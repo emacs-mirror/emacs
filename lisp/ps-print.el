@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<99/07/03 20:16:48 vinicius>
-;; Version:	5.0
+;; Time-stamp:	<99/10/18 01:53:12 vinicius>
+;; Version:	5.0.1
 
-(defconst ps-print-version "5.0"
-  "ps-print.el, v 5.0 <99/07/03 vinicius>
+(defconst ps-print-version "5.0.1"
+  "ps-print.el, v 5.0.1 <99/10/18 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -1056,17 +1056,22 @@ Please send all bug fixes and enhancements to
 (unless (featurep 'lisp-float-type)
   (error "`ps-print' requires floating point support"))
 
+
 ;; For Emacs 20.2 and the earlier version.
-(eval-and-compile
-  (and (boundp 'mule-version)		; only if mule package is loaded
-       (string< mule-version "4.0")
-       (progn
-	 (defun set-buffer-multibyte (arg)
-	   (setq enable-multibyte-characters arg))
-	 (defun string-as-unibyte (arg) arg)
-	 (defun string-as-multibyte (arg) arg)
-	 (defun charset-after (&optional arg)
-	   (char-charset (char-after arg))))))
+
+(or (fboundp 'set-buffer-multibyte)
+    (defun set-buffer-multibyte (arg)
+      (setq enable-multibyte-characters arg)))
+
+(or (fboundp 'string-as-unibyte)
+    (defun string-as-unibyte (arg) arg))
+
+(or (fboundp 'string-as-multibyte)
+    (defun string-as-multibyte (arg) arg))
+
+(or (fboundp 'charset-after)
+    (defun charset-after (&optional arg)
+      (char-charset (char-after arg))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -4433,7 +4438,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (let ((fname (buffer-file-name)))
     (if fname
 	(if (string-equal (buffer-name) (file-name-nondirectory fname))
-	    (file-name-directory fname)
+	    (abbreviate-file-name (file-name-directory fname))
 	  fname)
       "")))
 
