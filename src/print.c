@@ -578,7 +578,7 @@ write_string_1 (data, size, printcharfun)
 
 void
 temp_output_buffer_setup (bufname)
-    char *bufname;
+    const char *bufname;
 {
   int count = SPECPDL_INDEX ();
   register struct buffer *old = current_buffer;
@@ -609,7 +609,7 @@ temp_output_buffer_setup (bufname)
 
 Lisp_Object
 internal_with_output_to_temp_buffer (bufname, function, args)
-     char *bufname;
+     const char *bufname;
      Lisp_Object (*function) P_ ((Lisp_Object));
      Lisp_Object args;
 {
