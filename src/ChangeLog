@@ -1,3 +1,8 @@
+2000-11-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.c (directory_files_internal): Add missing GCPRO's.
+	Some cleanup.
+
 2000-11-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (syms_of_xdisp): Change doc of max-mini-window-height.
