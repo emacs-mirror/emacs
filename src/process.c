@@ -3391,7 +3391,6 @@ status_notify ()
   register Lisp_Object proc, buffer;
   Lisp_Object tail, msg;
   struct gcpro gcpro1, gcpro2;
-  Lisp_Object old_process_alist;
 
   tail = Qnil;
   msg = Qnil;
@@ -3401,96 +3400,94 @@ status_notify ()
      reference.  */
   GCPRO2 (tail, msg);
 
-  do
+  /* Set this now, so that if new processes are created by sentinels
+     that we run, we get called again to handle their status changes.  */
+  update_tick = process_tick;
+
+  for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
     {
-      old_process_alist = Vprocess_alist;
-      for (tail = Vprocess_alist; !NILP (tail); tail = Fcdr (tail))
+      Lisp_Object symbol;
+      register struct Lisp_Process *p;
+
+      proc = Fcdr (Fcar (tail));
+      p = XPROCESS (proc);
+
+      if (XINT (p->tick) != XINT (p->update_tick))
 	{
-	  Lisp_Object symbol;
-	  register struct Lisp_Process *p;
+	  XSETINT (p->update_tick, XINT (p->tick));
 
-	  proc = Fcdr (Fcar (tail));
-	  p = XPROCESS (proc);
+	  /* If process is still active, read any output that remains.  */
+	  if (XINT (p->infd) >= 0)
+	    while (! EQ (p->filter, Qt)
+		   && read_process_output (proc, XINT (p->infd)) > 0);
 
-	  if (XINT (p->tick) != XINT (p->update_tick))
+	  buffer = p->buffer;
+
+	  /* Get the text to use for the message.  */
+	  if (!NILP (p->raw_status_low))
+	    update_status (p);
+	  msg = status_message (p->status);
+
+	  /* If process is terminated, deactivate it or delete it.  */
+	  symbol = p->status;
+	  if (CONSP (p->status))
+	    symbol = XCONS (p->status)->car;
+
+	  if (EQ (symbol, Qsignal) || EQ (symbol, Qexit)
+	      || EQ (symbol, Qclosed))
 	    {
-	      XSETINT (p->update_tick, XINT (p->tick));
-
-	      /* If process is still active, read any output that remains.  */
-	      if (XINT (p->infd) >= 0)
-		while (! EQ (p->filter, Qt)
-		       && read_process_output (proc, XINT (p->infd)) > 0);
-
-	      buffer = p->buffer;
-
-	      /* Get the text to use for the message.  */
-	      if (!NILP (p->raw_status_low))
-		update_status (p);
-	      msg = status_message (p->status);
-
-	      /* If process is terminated, deactivate it or delete it.  */
-	      symbol = p->status;
-	      if (CONSP (p->status))
-		symbol = XCONS (p->status)->car;
-
-	      if (EQ (symbol, Qsignal) || EQ (symbol, Qexit)
-		  || EQ (symbol, Qclosed))
-		{
-		  if (delete_exited_processes)
-		    remove_process (proc);
-		  else
-		    deactivate_process (proc);
-		}
-
-	      /* Now output the message suitably.  */
-	      if (!NILP (p->sentinel))
-		exec_sentinel (proc, msg);
-	      /* Don't bother with a message in the buffer
-		 when a process becomes runnable.  */
-	      else if (!EQ (symbol, Qrun) && !NILP (buffer))
-		{
-		  Lisp_Object ro, tem;
-		  struct buffer *old = current_buffer;
-		  int opoint;
-
-		  ro = XBUFFER (buffer)->read_only;
-
-		  /* Avoid error if buffer is deleted
-		     (probably that's why the process is dead, too) */
-		  if (NILP (XBUFFER (buffer)->name))
-		    continue;
-		  Fset_buffer (buffer);
-		  opoint = point;
-		  /* Insert new output into buffer
-		     at the current end-of-output marker,
-		     thus preserving logical ordering of input and output.  */
-		  if (XMARKER (p->mark)->buffer)
-		    SET_PT (marker_position (p->mark));
-		  else
-		    SET_PT (ZV);
-		  if (point <= opoint)
-		    opoint += XSTRING (msg)->size + XSTRING (p->name)->size + 10;
-
-		  tem = current_buffer->read_only;
-		  current_buffer->read_only = Qnil;
-		  insert_string ("\nProcess ");
-		  Finsert (1, &p->name);
-		  insert_string (" ");
-		  Finsert (1, &msg);
-		  current_buffer->read_only = tem;
-		  Fset_marker (p->mark, make_number (point), p->buffer);
-
-		  SET_PT (opoint);
-		  set_buffer_internal (old);
-		}
+	      if (delete_exited_processes)
+		remove_process (proc);
+	      else
+		deactivate_process (proc);
 	    }
-	} /* end for */
-    } while (! EQ (old_process_alist, Vprocess_alist));
+
+	  /* Now output the message suitably.  */
+	  if (!NILP (p->sentinel))
+	    exec_sentinel (proc, msg);
+	  /* Don't bother with a message in the buffer
+	     when a process becomes runnable.  */
+	  else if (!EQ (symbol, Qrun) && !NILP (buffer))
+	    {
+	      Lisp_Object ro, tem;
+	      struct buffer *old = current_buffer;
+	      int opoint;
+
+	      ro = XBUFFER (buffer)->read_only;
+
+	      /* Avoid error if buffer is deleted
+		 (probably that's why the process is dead, too) */
+	      if (NILP (XBUFFER (buffer)->name))
+		continue;
+	      Fset_buffer (buffer);
+	      opoint = point;
+	      /* Insert new output into buffer
+		 at the current end-of-output marker,
+		 thus preserving logical ordering of input and output.  */
+	      if (XMARKER (p->mark)->buffer)
+		SET_PT (marker_position (p->mark));
+	      else
+		SET_PT (ZV);
+	      if (point <= opoint)
+		opoint += XSTRING (msg)->size + XSTRING (p->name)->size + 10;
+
+	      tem = current_buffer->read_only;
+	      current_buffer->read_only = Qnil;
+	      insert_string ("\nProcess ");
+	      Finsert (1, &p->name);
+	      insert_string (" ");
+	      Finsert (1, &msg);
+	      current_buffer->read_only = tem;
+	      Fset_marker (p->mark, make_number (point), p->buffer);
+
+	      SET_PT (opoint);
+	      set_buffer_internal (old);
+	    }
+	}
+    } /* end for */
 
   update_mode_lines++;  /* in case buffers use %s in mode-line-format */
   redisplay_preserve_echo_area ();
-
-  update_tick = process_tick;
 
   UNGCPRO;
 }
