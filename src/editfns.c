@@ -1209,7 +1209,7 @@ with that uid, or nil if there is no such user.  */)
 }
 
 DEFUN ("user-real-login-name", Fuser_real_login_name, Suser_real_login_name,
-  0, 0, 0,
+       0, 0, 0,
        doc: /* Return the name of the user's real uid, as a string.
 This ignores the environment variables LOGNAME and USER, so it differs from
 `user-login-name' when running under `su'.  */)
@@ -2304,7 +2304,7 @@ of the buffer.  */)
 }
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,
-  1, 3, 0,
+       1, 3, 0,
        doc: /* Insert before point a substring of the contents of buffer BUFFER.
 BUFFER may be a buffer or a buffer name.
 Arguments START and END are character numbers specifying the substring.
@@ -2354,7 +2354,7 @@ They default to the beginning and the end of BUFFER.  */)
 }
 
 DEFUN ("compare-buffer-substrings", Fcompare_buffer_substrings, Scompare_buffer_substrings,
-  6, 6, 0,
+       6, 6, 0,
        doc: /* Compare two substrings of two buffers; return result as number.
 the value is -N if first string is less after N-1 chars,
 +N if first string is greater after N-1 chars, or 0 if strings match.
@@ -2526,7 +2526,7 @@ subst_char_in_region_unwind_1 (arg)
 }
 
 DEFUN ("subst-char-in-region", Fsubst_char_in_region,
-  Ssubst_char_in_region, 4, 5, 0,
+       Ssubst_char_in_region, 4, 5, 0,
        doc: /* From START to END, replace FROMCHAR with TOCHAR each time it occurs.
 If optional arg NOUNDO is non-nil, don't record this change for undo
 and don't mark the buffer as really changed.
