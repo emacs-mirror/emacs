@@ -1,5 +1,18 @@
 2001-01-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_set_tool_bar_lines): Use x_clear_area instead of
+	XClearArea.
+
+	* xterm.c (x_after_update_window_line): Don't clear if frame's
+	internal border width is zero.
+	(x_clear_area): New function.
+	(x_after_update_window_line, x_clear_end_of_line)
+	(x_scroll_bar_create, x_scroll_bar_set_handle)
+	(XTset_vertical_scroll_bar, x_erase_phys_cursor): Use x_clear_area
+	instead of XClearArea.
+
+	* xterm.h (x_clear_area): Add prototype.
+
 	* xfns.c (Fx_file_dialog): Remove a workaround for Lesstif
 	which doesn't seem necessary anymore with Lesstif 0.92.
 
