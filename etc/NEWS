@@ -39,6 +39,26 @@ in case it has been renamed.
 change the `fill-column', `window-margins' and `tab-stop-list'
 settings.
 
+*** master-mode.el implements a minor mode for scrolling a slave
+buffer without leaving your current buffer, the master buffer.
+
+It can be used by sql.el, for example: the SQL buffer is the master
+and its SQLi buffer is the slave.  This allows you to scroll the SQLi
+buffer containing the output from the SQL buffer containing the
+commands.
+
+This is how to use sql.el and master.el together: the variable
+sql-buffer contains the slave buffer.  It is a local variable in the
+SQL buffer.
+
+(add-hook 'sql-mode-hook
+   (function (lambda ()
+	       (master-mode t)
+	       (master-set-slave sql-buffer))))
+(add-hook 'sql-set-sqli-hook
+   (function (lambda ()
+	       (master-set-slave sql-buffer))))
+
 
 * Lisp Changes in Emacs 21.2
 
