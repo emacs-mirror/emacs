@@ -4,7 +4,9 @@
 /^# DIST: /d
 /^SHELL *=/s/^/# /
 /^CC *=/s/=.*$/=gcc/
-/-DVERSION=/s/"\\"\${version}\\""/\\"${version}\\"/
+# Actually, here we should patch in the exact version number, but only
+# [ce]tags uses it.  Don't pass it.  This is more update-resistant.
+/-DVERSION=/s/-DVERSION="\\"\${version}\\""//
 /^configname *=/s/=.*$/=msdos/
 /^archlibdir *=/s!=.*$!=/emacs/bin!
 /^bindir *=/s!=.*$!=/emacs/bin!
