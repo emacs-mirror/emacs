@@ -1,3 +1,18 @@
+2001-01-02  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* isearch.el (isearch-lazy-highlight-cleanup): Arg now says
+	to remove all the current alternative-match highlighting.
+	If nil, remove only what's outside the current window.
+	(isearch-lazy-highlight-remove-overlays): Take optional
+	region within which NOT to remove them.
+	(isearch-lazy-highlight-new-loop): Greatly simplified.
+	(isearch-lazy-highlight-update): Find all the other occurrences
+	visible in the window, in just one call.
+	(isearch-lazy-highlight-start): Now holds start of region to scan.
+	(isearch-lazy-highlight-end): Now holds end of region to scan.
+	(isearch-lazy-highlight-wrapped): Variable deleted.
+	(isearch-lazy-highlight-search): Function deleted.
+
 2000-01-02  Andrew Innes  <andrewi@gnu.org>
 
 	* w32-fns.el (convert-standard-filename): Do length check on name

@@ -1,3 +1,7 @@
+2001-01-02  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* window.c (Frecenter): Doc fix.
+
 2001-01-02  Andrew Innes  <andrewi@gnu.org>
 
 	* term.c (FRAME_TERMCAP_P) [WINDOWSNT]: Remove redefinition.
