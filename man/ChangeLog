@@ -1,3 +1,10 @@
+2004-08-22  David Kastrup  <dak@gnu.org>
+
+	* reftex.texi (AUCTeX): Update links, section name.
+
+	* faq.texi (Calc): Update availability (included in 21.4).
+	(AUCTeX): Update availability, information, versions, description.
+
 2004-08-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* kmacro.texi (Keyboard Macro Ring): Rename section.

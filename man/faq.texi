@@ -3953,10 +3953,11 @@ Superyank is an old version of Supercite.
 @email{daveg@@csvax.cs.caltech.edu, Dave Gillespie}
 
 @item Latest version
-2.02f
+2.02g (part of Emacs since version 21.4)
 
 @item Distribution
-@uref{ftp://ftp.gnu.org/pub/gnu/calc/calc-2.02f.tar.gz}
+No separate distribution outside of Emacs.  Older versions
+are available at @uref{ftp://ftp.gnu.org/pub/gnu/calc/}.
 
 @end table
 
@@ -3996,34 +3997,41 @@ better than the one distributed with Emacs:
 @end table
 
 @node AUCTeX, BBDB, VIPER, Major packages and programs
-@section AUCTeX --- enhanced LaTeX mode with debugging facilities
+@section AUC@TeX{} --- enhanced @TeX{} modes with debugging facilities
 @cindex Mode for @TeX{}
 @cindex @TeX{} mode
-@cindex AUCTeX mode for editing @TeX{}
+@cindex AUC@TeX{} mode for editing @TeX{}
 @cindex Writing and debugging @TeX{}
+
+AUC@TeX{} is a set of sophisticated major modes for @TeX{}, LaTeX,
+ConTeXt, and Texinfo offering context-sensitive syntax highlighting,
+indentation, formatting and folding, macro completion, @TeX{} shell
+functionality, and debugging.  Some important supplemental packages are
+described in @ref{Introduction, RefTeX, Introduction, reftex, Ref@TeX{}
+User Manual}, and
+@uref{http://preview-latex.sourceforge.net,preview-latex}.
 
 @table @b
 
 @item Authors
-@email{krab@@iesd.auc.dk, Kresten Krab Thorup} and@*
-@email{abraham@@dina.kvl.dk, Per Abrahamsen}
+@email{krab@@iesd.auc.dk, Kresten Krab Thorup}, @*
+@email{abraham@@dina.kvl.dk, Per Abrahamsen}, @* and others.
 
 @item Maintainer
 @email{dak@@gnu.org, David Kastrup}
 
 @item Latest version
-11.13
+11.52
 
 @item Distribution
-@uref{http://savannah.gnu.org/download/auctex/stable.pkg/11.13/auctex-11.13.tar.gz}
+@uref{ftp://ftp.gnu.org/pub/gnu/auctex/}
 
 @item Web site
 @uref{http://www.gnu.org/software/auctex/}
 
 @item Mailing list:
 Subscription requests to @email{auc-tex-subscribe@@sunsite.dk}@*
-Submissions to @email{auc-tex@@sunsite.dk}@*
-Development team is at @email{auc-tex_mgr@@sunsite.dk}
+Submissions to @email{auc-tex@@sunsite.dk}
 
 @end table
 
