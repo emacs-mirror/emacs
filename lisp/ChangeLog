@@ -1,3 +1,7 @@
+2003-03-24  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* cus-edit.el (custom-mode): Make `custom-local-buffer' local.
+
 2003-03-23  Peter Breton  <pbreton@attbi.com>
 
 	* net/net-utils.el (dns-lookup-host): New function.
