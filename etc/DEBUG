@@ -28,14 +28,27 @@ kick in, provided that you run under GDB.
 
 ** Getting control to the debugger
 
-`Fsignal' is a very useful place to stop in.
+`Fsignal' is a very useful place to put a breakpoint in.
 All Lisp errors go through there.
 
-It is useful, when debugging, to have a guaranteed way
-to return to the debugger at any time.  If you are using
-interrupt-driven input, which is the default, then Emacs is using
-RAW mode and the only way you can do it is to store
-the code for some character into the variable stop_character:
+It is useful, when debugging, to have a guaranteed way to return to
+the debugger at any time.  When using X, this is easy: type C-c at the
+window where Emacs is running under GDB, and it will stop Emacs just
+as it would stop any ordinary program.  When Emacs is running in a
+terminal, things are not so easy.
+
+The src/.gdbinit file in the Emacs distribution arranges for SIGINT
+(C-g in Emacs) to be passed to Emacs and not give control back to GDB.
+On modern POSIX systems, you can override that with this command:
+
+   handle int stop nopass
+
+After this `handle' command, SIGINT will return control to GDB.  If
+you want the C-g to cause a QUIT within Emacs as well, omit the
+`nopass'.
+
+A technique that can work when `handle SIGINT' does not is to store
+the code for some character into the variable stop_character.  Thus,
 
     set stop_character = 29
 
@@ -44,16 +57,6 @@ Typing Control-] will cause immediate stop.  You cannot
 use the set command until the inferior process has been started.
 Put a breakpoint early in `main', or suspend the Emacs,
 to get an opportunity to do the set command.
-
-If you are using cbreak input (see the Lisp function set-input-mode),
-then typing Control-g will cause a SIGINT, which will return control
-to GDB immediately if you type this command first:
-
-    handle 2 stop
-
-By default the src/.gdbinit file in the Emacs distribution arranges
-for SIGINT to be passed to Emacs.  You can type C-z, which generates
-SIGTSTP, to cause GDB to regain control.
 
 ** Examining Lisp object values.
 
@@ -69,13 +72,16 @@ corrupted, etc.  In such cases, the Emacs subroutine called by `pr'
 might make more damage, like overwrite some data that is important for
 debugging the original problem.
 
-If you can't use `pr' command, either because the process can't run a
-subroutine or because the data is invalid or Emacs already got a fatal
-signal, you can fall back on lower-level commands.
+Also, on some systems it is impossible to use `pr' if you stopped
+Emacs while it was inside `select'.  This is in fact what happens if
+you stop Emacs while it is waiting.  In such a situation, don't try to
+use `pr'.  Instead, use `s' to step out of the system call.  Then
+Emacs will be between instructions and capable of handling `pr'.
 
-Use the `xtype' command to print out the data type of the last data
-value.  Once you know the data type, use the command that corresponds
-to that type.  Here are these commands:
+If you can't use `pr' command, for whatever reason, you can fall back
+on lower-level commands.  Use the `xtype' command to print out the
+data type of the last data value.  Once you know the data type, use
+the command that corresponds to that type.  Here are these commands:
 
     xint xptr xwindow xmarker xoverlay xmiscfree xintfwd xboolfwd xobjfwd
     xbufobjfwd xkbobjfwd xbuflocal xbuffer xsymbol xstring xvector xframe
@@ -190,7 +196,8 @@ where you can define xvector-elts as follows:
 
 ** Getting Lisp-level backtrace information within GDB
 
-The most convenient way is to use the `xbacktrace' command.
+The most convenient way is to use the `xbacktrace' command.  This
+shows the names of the Lisp functions that are currently active.
 
 If that doesn't work (e.g., because the `backtrace_list' structure is
 corrupted), type "bt" at the GDB prompt, to produce the C-level
@@ -360,6 +367,11 @@ the machine where you started GDB and use the debugger from there.
 
 ** Running Emacs with Purify
 
+Some people who are willing to use non-free software use Purify.  We
+can't ethically ask you to you become a Purify user; but if you have
+it, and you test Emacs with it, we will not refuse to look at the
+results you find.
+
 Emacs compiled with Purify won't run without some hacking.  Here are
 some of the changes you might find necessary (SYSTEM-NAME and
 MACHINE-NAME are the names of your OS- and CPU-specific headers in the
@@ -387,7 +399,6 @@ alarms, you will have to hack the definitions of these data structures
 on the respective headers to remove the ":N" bitfield definitions
 (which will cause each such field to use a full int).
 
-
 ** Debugging problems which happen in GC
 
 The array `last_marked' (defined on alloc.c) can be used to display
@@ -407,22 +418,21 @@ Once you discover the corrupted Lisp object or data structure, it is
 useful to look at it in a fresh session and compare its contents with
 a session that you are debugging.
 
-
 ** Some suggestions for debugging on MS Windows:
 
    (written by Marc Fleischeuers, Geoff Voelker and Andrew Innes)
 
-To debug emacs with Microsoft Visual C++, you either start emacs from
+To debug Emacs with Microsoft Visual C++, you either start emacs from
 the debugger or attach the debugger to a running emacs process.  To
 start emacs from the debugger, you can use the file bin/debug.bat.  The
 Microsoft Developer studio will start and under Project, Settings,
-Debug, General you can set the command-line arguments and emacs'
+Debug, General you can set the command-line arguments and Emacs's
 startup directory.  Set breakpoints (Edit, Breakpoints) at Fsignal and
 other functions that you want to examine.  Run the program (Build,
 Start debug).  Emacs will start and the debugger will take control as
 soon as a breakpoint is hit.
 
-You can also attach the debugger to an already running emacs process.
+You can also attach the debugger to an already running Emacs process.
 To do this, start up the Microsoft Developer studio and select Build,
 Start debug, Attach to process.  Choose the Emacs process from the
 list.  Send a break to the running process (Debug, Break) and you will
@@ -432,7 +442,7 @@ breakpoints in Emacs (Edit, Breakpoints).  Continue the running Emacs
 process (Debug, Step out) and control will return to Emacs, until a
 breakpoint is hit.
 
-To examine the contents of a lisp variable, you can use the function
+To examine the contents of a Lisp variable, you can use the function
 'debug_print'.  Right-click on a variable, select QuickWatch (it has
 an eyeglass symbol on its button in the toolbar), and in the text
 field at the top of the window, place 'debug_print(' and ')' around
@@ -452,7 +462,7 @@ an input event.  Use the `Call Stack' window to select the procedure
 `w32_msp_pump' up the call stack (see below for why you have to do
 this).  Open the QuickWatch window and enter
 "debug_print(Vexec_path)".  Evaluating this expression will then print
-out the contents of the lisp variable `exec-path'.
+out the contents of the Lisp variable `exec-path'.
 
 If QuickWatch reports that the symbol is unknown, then check the call
 stack in the `Call Stack' window.  If the selected frame in the call
@@ -469,7 +479,7 @@ execution (e.g., due to a breakpoint) in the context of the current
 thread, so this should only be a problem if you've explicitly switched
 threads.
 
-It is also possible to keep appropriately masked and typecast lisp
+It is also possible to keep appropriately masked and typecast Lisp
 symbols in the Watch window, this is more convenient when steeping
 though the code.  For instance, on entering apply_lambda, you can
 watch (struct Lisp_Symbol *) (0xfffffff & args[0]).
