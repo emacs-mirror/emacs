@@ -127,7 +127,8 @@ other buffer names are changed."
   :type 'boolean
   :group 'uniquify)
 
-(defcustom uniquify-ignore-buffers-re nil
+;; The default value matches certain Gnus buffers.
+(defcustom uniquify-ignore-buffers-re "^\\*\\(un\\)?sent "
   "*Regular expression matching buffer names that should not be uniquified.
 For instance, set this to \"^draft-[0-9]+$\" to avoid having uniquify rename
 draft buffers even if `uniquify-after-kill-buffer-p' is non-nil and the
