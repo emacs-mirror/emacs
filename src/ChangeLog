@@ -1,5 +1,10 @@
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (set_iterator_to_next): Reset box start and flags of the
+	iterator at the beginning, so that they can be set later on, for
+	instance in reseat_at_next_visible_line_start without being
+	overwritten.
+
 	* xfns.c (pbm_format): Add :foreground and :background keywords.
 	(PBM_FOREGROUND, PBM_BACKGROUND): New enumerators.
 	(xbm_load): Recoghnize foreground and background color
