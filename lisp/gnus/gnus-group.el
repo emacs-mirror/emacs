@@ -1216,8 +1216,7 @@ already."
 		     (not (zerop (buffer-size))))))
 	     (mode-string (eval gformat)))
 	;; Say whether the dribble buffer has been modified.
-	(setq mode-line-modified
-	      (if modified "--**- " "----- "))
+	(setq mode-line-modified (if modified "**" "--"))
 	;; If the line is too long, we chop it off.
 	(when (> (length mode-string) max-len)
 	  (setq mode-string (substring mode-string 0 (- max-len 4))))
