@@ -1,3 +1,8 @@
+2000-02-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xfaces.c (tty_defined_color): Don't return faulire indication
+	for unspecified-fg and unspecified-bg pseudo-colors.
+
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (mark_object): Don't mark symbol names in pure space.
