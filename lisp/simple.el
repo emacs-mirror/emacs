@@ -682,7 +682,7 @@ This cannot be done asynchronously."
       (unwind-protect
 	  (if (string-match "[ \t]*&[ \t]*$" command)
 	      ;; Command ending with ampersand means asynchronous.
-	      (let ((buffer (get-buffer-create "*shell-command*")) 
+	      (let ((buffer (get-buffer-create "*Shell-Command*")) 
 		    (directory default-directory)
 		    proc)
 		;; Remove the ampersand.
