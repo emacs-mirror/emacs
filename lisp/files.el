@@ -910,6 +910,7 @@ run `normal-mode' explicitly."
 				  ("\\.article\\'" . text-mode)
 				  ("\\.letter\\'" . text-mode)
 				  ("\\.tcl\\'" . tcl-mode)
+				  ("\\.f90\\'" . f90-mode)
 				  ("\\.lsp\\'" . lisp-mode)
 				  ("\\.awk\\'" . awk-mode)
 				  ("\\.prolog\\'" . prolog-mode)
