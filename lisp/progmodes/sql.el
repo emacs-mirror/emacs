@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.25
+;; Version: 1.5.0
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -62,7 +62,7 @@
 ;; statements can be sent to the SQL process in the SQLi buffer.
 
 ;; For documentation on the functionality provided by comint mode, and
-;; the hooks available for customising it, see the file `comint.el'.
+;; the hooks available for customizing it, see the file `comint.el'.
 
 ;; Hint for newbies: take a look at `dabbrev-expand', `abbrev-mode', and
 ;; `imenu-add-menubar-index'.
@@ -223,12 +223,12 @@ commands when the input history is read, as if you had set
 ;; The usual hooks
 
 (defcustom sql-interactive-mode-hook '()
-  "*Hook for customising `sql-interactive-mode'."
+  "*Hook for customizing `sql-interactive-mode'."
   :type 'hook
   :group 'SQL)
 
 (defcustom sql-mode-hook '()
-  "*Hook for customising `sql-mode'."
+  "*Hook for customizing `sql-mode'."
   :type 'hook
   :group 'SQL)
 
@@ -240,7 +240,7 @@ is changed."
   :type 'hook
   :group 'SQL)
 
-;; Customisation for Oracle
+;; Customization for Oracle
 
 (defcustom sql-oracle-program "sqlplus"
   "*Command to start sqlplus by Oracle.
@@ -261,7 +261,7 @@ The program can also specify a TCP connection.  See `make-comint'."
   :version "20.8"
   :group 'SQL)
 
-;; Customisation for MySql
+;; Customization for MySql
 
 (defcustom sql-mysql-program "mysql"
   "*Command to start mysql by TcX.
@@ -280,7 +280,7 @@ on Windows: \"-C\" \"-t\" \"-f\" \"-n\"."
   :version "20.8"
   :group 'SQL)
 
-;; Customisation for Solid
+;; Customization for Solid
 
 (defcustom sql-solid-program "solsql"
   "*Command to start SOLID SQL Editor.
@@ -291,7 +291,7 @@ The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
   :group 'SQL)
 
-;; Customisation for SyBase
+;; Customization for SyBase
 
 (defcustom sql-sybase-program "isql"
   "*Command to start isql by SyBase.
@@ -309,7 +309,7 @@ Some versions of isql might require the -n option in order to work."
   :version "20.8"
   :group 'SQL)
 
-;; Customisation for Informix
+;; Customization for Informix
 
 (defcustom sql-informix-program "dbaccess"
   "*Command to start dbaccess by Informix.
@@ -320,7 +320,7 @@ The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
   :group 'SQL)
 
-;; Customisation for Ingres
+;; Customization for Ingres
 
 (defcustom sql-ingres-program "sql"
   "*Command to start sql by Ingres.
@@ -331,7 +331,7 @@ The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
   :group 'SQL)
 
-;; Customisation for Microsoft
+;; Customization for Microsoft
 
 (defcustom sql-ms-program "isql"
   "*Command to start isql by Microsoft.
@@ -342,7 +342,7 @@ The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
   :group 'SQL)
 
-;; Customisation for Postgres
+;; Customization for Postgres
 
 (defcustom sql-postgres-program "psql"
   "Command to start psql by Postgres.
@@ -360,6 +360,23 @@ older versions of the psql client (such as version 6.5.3).
 The -P option is equivalent to the --pset option.
 If you want the psql to prompt you for a user name, add the
 string \"-u\" to the list of options."
+  :type '(repeat string)
+  :version "20.8"
+  :group 'SQL)
+
+;; Customization for Interbase
+
+(defcustom sql-interbase-program "isql"
+  "*Command to start isql by Interbase.
+
+Starts `sql-interactive-mode' after doing some setup.
+
+The program can also specify a TCP connection.  See `make-comint'."
+  :type 'file
+  :group 'SQL)
+
+(defcustom sql-interbase-options nil
+  "*List of additional options for `sql-interbase-program'."
   :type '(repeat string)
   :version "20.8"
   :group 'SQL)
@@ -776,7 +793,7 @@ even in old versions of Emacs."
   "Get username, password and database from the user.
 
 The variables `sql-user', `sql-password', `sql-server', and
-`sql-database' can be customised.  They are used as the default values.
+`sql-database' can be customized.  They are used as the default values.
 Usernames, servers and databases are stored in `sql-user-history',
 `sql-server-history' and `database-history'.  Passwords are not stored
 in a history.
@@ -1552,7 +1569,6 @@ The default comes from `process-coding-system-alist' and
     (message "Login...done")
     (pop-to-buffer sql-buffer)))
 
-
 
 
 ;;;###autoload
@@ -1608,6 +1624,54 @@ Try to set `comint-output-filter-functions' like this:
     ;; incorporate this (Gregor Zych <zych@pool.informatik.rwth-aachen.de>)
     ;; (comint-send-string "*SQL*" "\\o \| cat\n")
     (setq sql-mode-font-lock-keywords sql-mode-postgres-font-lock-keywords)
+    (setq sql-buffer (current-buffer))
+    (sql-interactive-mode)
+    (message "Login...done")
+    (pop-to-buffer sql-buffer)))
+
+
+
+;;;###autoload
+(defun sql-interbase ()
+  "Run isql by Interbase as an inferior process.
+
+If buffer `*SQL*' exists but no process is running, make a new process.
+If buffer exists and a process is running, just switch to buffer
+`*SQL*'.
+
+Interpreter used comes from variable `sql-interbase-program'.  Login
+uses the variables `sql-user', `sql-password', and `sql-database' as
+defaults, if set.
+
+The buffer is put in sql-interactive-mode, giving commands for sending
+input.  See `sql-interactive-mode'.
+
+To specify a coding system for converting non-ASCII characters
+in the input and output to the process, use \\[universal-coding-system-argument]
+before \\[sql-interbase].  You can also specify this with \\[set-buffer-process-coding-system]
+in the SQL buffer, after you start the process.
+The default comes from `process-coding-system-alist' and
+`default-process-coding-system'.
+
+\(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
+  (interactive)
+  (if (comint-check-proc "*SQL*")
+      (pop-to-buffer "*SQL*")
+    (sql-get-login 'user 'password 'database)
+    (message "Login...")
+    ;; Put all parameters to the program (if defined) in a list and call
+    ;; make-comint.
+    (let ((params sql-interbase-options))
+      (if (not (string= "" sql-user))
+	  (setq params (append (list "-u" sql-user) params)))
+      (if (not (string= "" sql-password))
+	  (setq params (append (list "-p" sql-password) params)))
+      (if (not (string= "" sql-database))
+        (setq params (cons sql-database params))); add to the front!
+      (set-buffer (apply 'make-comint "SQL" sql-interbase-program
+			 nil params)))
+    (setq sql-prompt-regexp "^SQL> ")
+    (setq sql-prompt-length 5)
     (setq sql-buffer (current-buffer))
     (sql-interactive-mode)
     (message "Login...done")
