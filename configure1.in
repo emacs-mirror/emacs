@@ -1323,13 +1323,19 @@ echo "Examining the machine- and system-dependent files to find out"
 echo " - which libraries the lib-src programs will want, and"
 echo " - whether the GNU malloc routines are usable."
 
+### First figure out CFLAGS (which we use for running the compiler here)
+### and REAL_CFLAGS (which we use for real compilation).
+### The two are the same except on a few systems, where they are made
+### different to work around various lossages.  For example,
+### GCC 2.5 on Linux needs them to be different because it treats -g
+### as implying static linking.
+
 ### It's not important that this name contain the PID; you can't run
 ### two configures in the same directory and have anything work
 ### anyway.
 tempcname="conftest.c"
 
 echo '
-#define THIS_IS_CONFIGURE
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
 #ifndef LIBS_MACHINE
@@ -1381,16 +1387,33 @@ configure___ system_malloc=no
 #define C_OPTIMIZE_SWITCH -O
 #endif
 
+#ifdef THIS_IS_CONFIGURE
+
+/* Get the CFLAGS for tests in configure.  */
 #ifdef __GNUC__
 configure___ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${CFLAGS}'
 #else
 configure___ CFLAGS=C_DEBUG_SWITCH '${CFLAGS}'
 #endif
+
+#else /* not THIS_IS_CONFIGURE */
+
+/* Get the CFLAGS for real compilation.  */
+#ifdef __GNUC__
+configure___ REAL_CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH '${CFLAGS}'
+#else
+configure___ REAL_CFLAGS=C_DEBUG_SWITCH '${CFLAGS}'
+#endif
+
+#endif /* not THIS_IS_CONFIGURE */
 ' > ${tempcname}
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
 eval `${CPP} -Isrc ${tempcname} \
+       | grep 'configure___' \
+       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
+eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
        | grep 'configure___' \
        | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
 rm ${tempcname}
@@ -1437,7 +1460,6 @@ fi
 
 # We change CFLAGS temporarily so that C_SWITCH_X_SITE gets used
 # for the tests that follow.
-orig_cflags="$CFLAGS"
 
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
@@ -1478,8 +1500,8 @@ if test -n "$ok_so_far"; then
   AC_DEFINE(HAVE_INET_SOCKETS)
 fi
 
-# Restore the original CFLAGS value.
-CFLAGS="$orig_cflags"
+# Set up the CFLAGS for real compilation, so we can substitute it.
+CFLAGS="$REAL_CFLAGS"
 
 [
 #### Find out which version of Emacs this is.
