@@ -70,6 +70,9 @@ initial sign and optional final period.
 @cindex integers in specific radix
 @cindex radix for reading an integer
 @cindex base for reading an integer
+@cindex hex numbers
+@cindex octal numbers
+@cindex reading numbers in hex, octal, and binary
   In addition, the Lisp reader recognizes a syntax for integers in
 bases other than 10: @samp{#B@var{integer}} reads @var{integer} in
 binary (radix 2), @samp{#O@var{integer}} reads @var{integer} in octal
