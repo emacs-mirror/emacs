@@ -1,3 +1,14 @@
+2004-06-14  Juanma Barranquero  <lektu@terra.es>
+
+	* image.el (image-library-alist): New variable to map image types
+	to external libraries.  Initialized to nil, unless system-specific
+	configs change it.
+	(image-type-available-p): Determine whether an image type is
+	available by calling `init-image-library'.
+
+	* term/w32-win.el (image-library-alist): Initialize to a known set
+	of probable library names.
+
 2004-06-14  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el (windows-1256, cp1125): Fix tables
