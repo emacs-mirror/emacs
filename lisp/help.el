@@ -1030,7 +1030,8 @@ help buffer."
     ;; We now have a help buffer on the variable.  Insert the function
     ;; text after it.
     (goto-char (point-max))
-    (insert "\n\n" fdoc))
+    (let ((inhibit-read-only t))
+      (insert "\n\n" fdoc)))
   (goto-char (point-min))
   (help-setup-xref (list #'help-xref-interned symbol) nil))
 
