@@ -283,7 +283,7 @@ enum coding_type
 #define CODING_FINISH_INSUFFICIENT_DST	2
 #define CODING_FINISH_INCONSISTENT_EOL	3
 
-/* Macros used for the member mode of the struct coding_systme.  */
+/* Macros used for the member `mode' of the struct coding_system.  */
 
 /* If set, recover the original CR or LF of the already decoded text
    when the decoding routine encounters an inconsistent eol format.  */
