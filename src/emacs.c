@@ -971,7 +971,16 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       init_casetab_once ();
       init_buffer_once ();	/* Create buffer table and some buffers */
       init_minibuf_once ();	/* Create list of minibuffers */
-			      /* Must precede init_window_once */
+				/* Must precede init_window_once */
+      
+      /* Call syms_of_xfaces before init_window_once because that
+	 function creates Vterminal_frame.  Termcap frames now use
+	 faces, and the face implementation uses some symbols as
+	 face names.  */
+#ifndef HAVE_NTGUI
+      syms_of_xfaces ();
+#endif
+
       init_window_once ();	/* Init the window system */
       init_fileio_once ();	/* Must precede any path manipulation.  */
     }
@@ -1205,6 +1214,9 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       syms_of_syntax ();
       syms_of_term ();
       syms_of_undo ();
+#ifdef HAVE_SOUND
+      syms_of_sound ();
+#endif
 
       /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
       syms_of_textprop ();
@@ -1226,7 +1238,6 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 #endif /* HAVE_X_WINDOWS */
 
 #ifndef HAVE_NTGUI
-      syms_of_xfaces ();
       syms_of_xmenu ();
 #endif
 
@@ -1270,6 +1281,10 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   init_vmsproc ();	/* And this too. */
 #endif /* VMS */
   init_sys_modes ();	/* Init system terminal modes (RAW or CBREAK, etc.) */
+#ifdef HAVE_X_WINDOWS
+  init_xfns ();
+#endif /* HAVE_X_WINDOWS */
+  init_fns ();
   init_xdisp ();
   init_macros ();
   init_editfns ();
@@ -1280,6 +1295,9 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   init_vmsfns ();
 #endif /* VMS */
   init_process ();
+#ifdef HAVE_SOUND
+  init_sound ();
+#endif
 
   if (!initialized)
     {
@@ -1325,14 +1343,13 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
     {
       extern void _mcleanup ();       
       extern char etext;
-      extern Lisp_Object Fredraw_frame ();
+      extern void safe_bcopy ();
       atexit (_mcleanup);
-      /* This uses Fredraw_frame because that function
-	 comes first in the Emacs executable.
-	 It might be better to use something that gives
-	 the start of the text segment, but start_of_text
-	 is not defined on all systems now.  */
-      monstartup (Fredraw_frame, &etext);
+      /* This uses safe_bcopy because that function comes first in the
+	 Emacs executable.  It might be better to use something that
+	 gives the start of the text segment, but start_of_text is not
+	 defined on all systems now.  */
+      monstartup (safe_bcopy, &etext);
     }
   else
     moncontrol (0);
@@ -1718,6 +1735,8 @@ shut_down_emacs (sig, no_x, stuff)
 #ifdef WINDOWSNT
   term_ntproc ();
 #endif
+
+  check_glyph_memory ();
 
 #ifdef MSDOS
   dos_cleanup ();
