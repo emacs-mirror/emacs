@@ -761,8 +761,6 @@ x_set_wait_for_wm (f, new_value, old_value)
 
 #ifdef USE_GTK
 
-static Lisp_Object x_find_image_file P_ ((Lisp_Object file));
-
 /* Set icon from FILE for frame F.  By using GTK functions the icon
    may be any format that GdkPixbuf knows about, i.e. not just bitmaps.  */
 
