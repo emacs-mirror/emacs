@@ -281,14 +281,9 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	  (progn
 	    (rmail-set-message-counters)
 	    (rmail-show-message))))
-    (let ((existing-unseen (rmail-first-unseen-message)))
-      (or file-name-arg
-	  (rmail-get-new-mail))
-      ;; Show the first unseen message, which might be from a previous session
-      ;; or might have been just read in by rmail-get-new-mail.  Must
-      ;; determine already unseen messages first, as rmail-get-new-mail
-      ;; positions on the first new message, thus marking it as seen.
-      (rmail-show-message existing-unseen))
+    (or (and (null file-name-arg)
+	     (rmail-get-new-mail))
+	(rmail-show-message (rmail-first-unseen-message)))
     (if rmail-display-summary (rmail-summary))
     (rmail-construct-io-menu)))
 
@@ -800,7 +795,8 @@ file of new mail is not changed or deleted.  Noninteractively, you can
 pass the inbox file name as an argument.  Interactively, a prefix
 argument causes us to read a file name and use that file as the inbox.
 
-This function runs `rmail-get-new-mail-hook' before saving the updated file."
+This function runs `rmail-get-new-mail-hook' before saving the updated file.
+It returns t if it got any new messages."
   (interactive
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
@@ -864,16 +860,21 @@ This function runs `rmail-get-new-mail-hook' before saving the updated file."
 	(if (= new-messages 0)
 	    (progn (goto-char opoint)
 		   (if (or file-name rmail-inbox-list)
-		       (message "(No new mail has arrived)")))
+		       (message "(No new mail has arrived)"))
+		   nil)
 	  (if (rmail-summary-exists)
 	      (rmail-select-summary
 		(rmail-update-summary)))
 	  (message "%d new message%s read"
 		   new-messages (if (= 1 new-messages) "" "s"))
+	  ;; Move to the first new message
+	  ;; unless we have other unseen messages before it.
+	  (rmail-show-message (rmail-first-unseen-message))
 	  ;; Update the displayed time, since that will clear out
 	  ;; the flag that says you have mail.
 	  (if (eq (process-status "display-time") 'run)
-	      (display-time-filter display-time-process ""))))
+	      (display-time-filter display-time-process ""))
+	  t))
     ;; Don't leave the buffer screwed up if we get a disk-full error.
     (rmail-show-message)))
 
