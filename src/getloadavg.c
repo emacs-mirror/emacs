@@ -1,5 +1,5 @@
 /* Get the system load averages.
-   Copyright (C) 1985, 86, 87, 88, 89, 91, 92, 93
+   Copyright (C) 1985, 86, 87, 88, 89, 91, 92, 93, 1994
    	Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -80,9 +80,17 @@
 #endif
 #endif
 
-
 /* Exclude all the code except the test program at the end
-   if the system has its own `getloadavg' function.  */
+   if the system has its own `getloadavg' function.
+
+   The declaration of `errno' is needed by the test program
+   as well as the function itself, so it comes first.  */
+
+#include <errno.h>
+
+#ifndef errno
+extern int errno;
+#endif
 
 #ifndef HAVE_GETLOADAVG
 
@@ -331,11 +339,6 @@
 #endif
 
 #include <stdio.h>
-#include <errno.h>
-
-#ifndef errno
-extern int errno;
-#endif
 
 /* LOAD_AVE_TYPE should only get defined if we're going to use the
    nlist method.  */
