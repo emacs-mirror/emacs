@@ -1,3 +1,7 @@
+2000-01-19  Dave Love  <fx@gnu.org>
+
+	* lread.c: (syms_of_lread) [user-init-file]: Doc change.
+
 2000-01-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* regex.c (re_compile_fastmap): While checking a range table for
@@ -1455,7 +1459,7 @@
 	compilation on USE_TEXT_PROPERTIES.
 
 	* Fbyte_code: Use block statements in cases and declare v1 and v2
-	locally there.  Rearrange case statements so that thos most
+	locally there.  Rearrange case statements so that those most
 	frequently executed come first.  Avoid goto's in frequently
 	executed cases.
 

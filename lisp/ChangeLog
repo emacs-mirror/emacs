@@ -1,3 +1,8 @@
+2000-01-19  Dave Love  <fx@gnu.org>
+
+	* startup.el (command-line): Check for compiled user-init-file and
+	set to uncompiled version if necessary.
+
 2000-01-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/undigest.el (rmail-digest-end-regexp): New user option.
