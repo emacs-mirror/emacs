@@ -2,6 +2,11 @@
 
 	* subr.el (after-change-major-mode-hook): Doc fix.
 
+2004-09-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Add a new tip about the use of gsprint instead
+	of ghostscript for monochrome PostScript file in Windows.
+
 2004-09-21  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Checking of quail activation
