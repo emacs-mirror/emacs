@@ -423,7 +423,7 @@ translate_char (table, c, charset, c1, c2)
   Lisp_Object ch;
   int alt_charset, alt_c1, alt_c2, dimension;
 
-  if (c < 0) c = MAKE_CHAR (charset, c1, c2);
+  if (c < 0) c = MAKE_CHAR (charset, (c1 & 0x7F) , (c2 & 0x7F));
   if (!CHAR_TABLE_P (table)
       || (ch = Faref (table, make_number (c)), !NATNUMP (ch)))
     return c;
