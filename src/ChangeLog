@@ -1,3 +1,7 @@
+2001-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dispnew.c (syms_of_display) <glyph-table>: Doc fix.
+
 2001-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (note_mouse_highlight): Call mouse_face_overlay_overlaps
