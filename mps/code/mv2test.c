@@ -1,6 +1,6 @@
 /* impl.c.mv2test: POOLMVT STRESS TEST
  *
- * $HopeName: MMsrc!mv2test.c(trunk.5) $
+ * $HopeName: MMsrc!mv2test.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 

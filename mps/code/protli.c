@@ -1,6 +1,6 @@
 /*  impl.c.protli: PROTECTION FOR LINUX
  *
- *  $HopeName: $
+ *  $HopeName: MMsrc!protli.c(trunk.1) $
  *  Copyright (C) 1995,1999 Harlequin Group, all rights reserved
  *
  */
@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 
-SRCID(protli, "$HopeName: $");
+SRCID(protli, "$HopeName: MMsrc!protli.c(trunk.1) $");
 
 
 /* ProtSet -- set protection

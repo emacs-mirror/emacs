@@ -1,6 +1,6 @@
 /* impl.h.mpsclo: MEMORY POOL SYSTEM CLASS "LO"
  *
- * $HopeName: MMsrc!mpsclo.h(trunk.1) $
+ * $HopeName: MMsrc!mpsclo.h(trunk.2) $
  *
  * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  */

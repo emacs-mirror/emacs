@@ -1,6 +1,6 @@
 /* impl.c.lockan: ANSI RECURSIVE LOCKS
  *
- * $HopeName: MMsrc!lockan.c(trunk.9) $
+ * $HopeName: MMsrc!lockan.c(trunk.10) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a trivial implementation of recursive locks
@@ -14,7 +14,7 @@
 #include "lock.h"
 #include "mpmtypes.h"
 
-SRCID(lockan, "$HopeName: MMsrc!lockan.c(trunk.9) $");
+SRCID(lockan, "$HopeName: MMsrc!lockan.c(trunk.10) $");
 
 
 typedef struct LockStruct {     /* ANSI fake lock structure */

@@ -1,6 +1,6 @@
 /* impl.c.amcsshe: POOL CLASS AMC STRESS TEST WITH HEADER
  *
- * $HopeName: MMsrc!amcsshe.c(trunk.4) $
+ * $HopeName: MMsrc!amcsshe.c(trunk.6) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -18,7 +18,7 @@
 
 
 /* These values have been tuned to cause one top-generation collection. */
-#define testArenaSIZE     ((size_t)1000*1024)
+#define testArenaSIZE     ((size_t)1400*1024)
 #define avLEN             3
 #define exactRootsCOUNT   200
 #define ambigRootsCOUNT   50
@@ -31,7 +31,7 @@
 /* testChain -- generation parameters for the test */
 
 static mps_gen_param_s testChain[genCOUNT] = {
-  { 150, 0.85 }, { 170, 0.45 } };
+  { 210, 0.85 }, { 248, 0.45 } };
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
@@ -252,8 +252,8 @@ static void *test(void *arg, size_t s)
       }
       /*  fill bogusRoots with variations of a real pointer */
       r = rnd() % exactRootsCOUNT;
-      if (exactRoots[i] != objNULL) {
-        char *p = (char*)exactRoots[i];
+      if (exactRoots[r] != objNULL) {
+        char *p = (char*)exactRoots[r];
 
         for(i = 0; i < bogusRootsCOUNT; ++i, ++p)
           bogusRoots[i] = (mps_addr_t)p;

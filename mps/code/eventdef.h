@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.24) $
+ * $HopeName: MMsrc!eventdef.h(trunk.25) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .source: design.mps.telemetry

@@ -1,6 +1,6 @@
 /* impl.c.vmxc: VIRTUAL MEMORY MAPPING FOR MacOS X
  *
- * $HopeName: MMsrc!vmxc.c(trunk.2) $
+ * $HopeName: MMsrc!vmxc.c(trunk.4) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.vm
@@ -38,7 +38,7 @@
 #include <unistd.h>
 #include <limits.h> /* for INT_MAX */
 
-SRCID(vmxc, "$HopeName: MMsrc!vmxc.c(trunk.2) $");
+SRCID(vmxc, "$HopeName: MMsrc!vmxc.c(trunk.4) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -58,6 +58,7 @@ typedef struct VMStruct {
 
 Align VMAlign(VM vm)
 {
+  AVERT(VM, vm);
   return vm->align;
 }
 

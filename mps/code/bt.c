@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.24) $
+ * $HopeName: MMsrc!bt.c(trunk.25) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -15,7 +15,7 @@
 #include "mpm.h"
 
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.24) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.25) $");
 
 
 /* BTIndexAlignUp, BTIndexAlignDown -- Align bit-table indices

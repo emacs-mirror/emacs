@@ -1,6 +1,6 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmso.c(trunk.14) $
+ * $HopeName: MMsrc!vmso.c(trunk.16) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * DESIGN
@@ -53,7 +53,7 @@
 /* unistd for _SC_PAGESIZE */
 #include <unistd.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.14) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.16) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -80,6 +80,7 @@ typedef struct VMStruct {
 
 Align VMAlign(VM vm)
 {
+  AVERT(VM, vm);
   return vm->align;
 }
 

@@ -1,6 +1,6 @@
 # impl.gmk.sus8gc: BUILD FOR SUNOS/SPARC V8/GCC PLATFORM
 #
-# $HopeName: MMsrc!sus8gc.gmk(trunk.42) $
+# $HopeName: MMsrc!sus8gc.gmk(trunk.43) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = sus8gc

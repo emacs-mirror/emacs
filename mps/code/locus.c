@@ -1,6 +1,6 @@
 /* impl.c.locus: LOCUS MANAGER
  *
- * $HopeName: MMsrc!locus.c(trunk.4) $
+ * $HopeName: MMsrc!locus.c(trunk.5) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -16,7 +16,7 @@
 #include <float.h> /* for DBL_MAX */
 
 
-SRCID(locus, "$HopeName: MMsrc!locus.c(trunk.4) $");
+SRCID(locus, "$HopeName: MMsrc!locus.c(trunk.5) $");
 
 
 /* SegPrefCheck -- check the consistency of a segment preference */

@@ -1,7 +1,7 @@
 /* impl.c.eventcnv: Simple event log converter
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName: MMsrc!eventcnv.c(trunk.3) $
+ * $HopeName: MMsrc!eventcnv.c(trunk.4) $
  */
 
 #include "config.h"

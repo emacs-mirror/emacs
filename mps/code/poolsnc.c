@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.12) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.13) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -22,7 +22,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.12) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.13) $");
 
 
 #define SNCGen  ((Serial)1) /* "generation" for SNC pools */
