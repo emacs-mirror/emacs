@@ -674,7 +674,8 @@ Do the same for the keys of the same name."
   '(menu-item "Default" menu-bar-showhide-fringe-menu-customize-reset
 	      :help "Default width fringe on both left and right side"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq fringe-mode nil))))
+	      :button (:radio . (or (not (boundp 'fringe-mode))
+				    (eq fringe-mode nil)))))
 
 (defun menu-bar-showhide-fringe-menu-customize-left ()
   "Make fringes appear only on the left."
@@ -686,7 +687,8 @@ Do the same for the keys of the same name."
   '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
 	      :help "Fringe only on the left side"
 	      :visible (display-graphic-p)
-	      :button (:radio . (equal fringe-mode '(nil . 0)))))
+	      :button (:radio . (and (boundp 'fringe-mode)
+				     (equal fringe-mode '(nil . 0))))))
 
 (defun menu-bar-showhide-fringe-menu-customize-right ()
   "Make fringes appear only on the right."
@@ -698,7 +700,8 @@ Do the same for the keys of the same name."
   '(menu-item "On the Right" menu-bar-showhide-fringe-menu-customize-right
 	      :help "Fringe only on the right side"
 	      :visible (display-graphic-p)
-	      :button (:radio . (equal fringe-mode '(0 . nil)))))
+	      :button (:radio . (and (boundp 'fringe-mode)
+				     (equal fringe-mode '(0 . nil))))))
 
 (defun menu-bar-showhide-fringe-menu-customize-disable ()
   "Make fringes disappear."
@@ -710,7 +713,8 @@ Do the same for the keys of the same name."
   '(menu-item "None" menu-bar-showhide-fringe-menu-customize-disable
 	      :help "Turn off fringe"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq fringe-mode 0))))
+	      :button (:radio . (and (boundp 'fringe-mode)
+				     (eq fringe-mode 0)))))
 
 (define-key menu-bar-showhide-menu [showhide-fringe]
   (list 'menu-item "Fringe" menu-bar-showhide-fringe-menu
