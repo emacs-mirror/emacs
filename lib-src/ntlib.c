@@ -49,12 +49,6 @@ getwd (char *dir)
   return NULL;
 }
 
-int
-getpid ()
-{
-  return _getpid ();
-}
-
 static HANDLE getppid_parent;
 static int    getppid_ppid;
 
