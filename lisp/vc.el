@@ -775,15 +775,9 @@ files in or below it."
 	(goto-char (point-min))
 	(set-buffer-modified-p nil)
 	)
-    (progn
-      (vc-backend-diff file rel1 rel2)
-      (goto-char (point-min))
-      (if (equal (point-min) (point-max))
-	  (message "No changes to %s between %s and %s." file rel1 rel2)
-	(pop-to-buffer "*vc*")
-	(goto-char (point-min))
-	)
-      )
+    (if (zerop (vc-backend-diff file rel1 rel2))
+	(message "No changes to %s between %s and %s." file rel1 rel2)
+      (pop-to-buffer "*vc*")
     )
   )
 
