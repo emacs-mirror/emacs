@@ -184,6 +184,7 @@ extern int quit_char;
 #include "termopts.h"
 #include "dispextern.h"
 #include "process.h"
+#include "cm.h"  /* for reset_sys_modes */
 
 #ifdef WINDOWSNT
 #include <direct.h>
@@ -330,7 +331,7 @@ stuff_char (char c)
 #endif /* SIGTSTP */
 
 void
-init_baud_rate ()
+init_baud_rate (struct tty_output *tty)
 {
   if (noninteractive)
     emacs_ospeed = 0;
@@ -345,7 +346,7 @@ init_baud_rate ()
 #ifdef VMS
       struct sensemode sg;
 
-      SYS$QIOW (0, fileno (TTY_INPUT (CURTTY())), IO$_SENSEMODE, &sg, 0, 0,
+      SYS$QIOW (0, fileno (TTY_INPUT (tty)), IO$_SENSEMODE, &sg, 0, 0,
 		&sg.class, 12, 0, 0, 0, 0 );
       emacs_ospeed = sg.xmit_baud;
 #else /* not VMS */
@@ -353,7 +354,7 @@ init_baud_rate ()
       struct termios sg;
 
       sg.c_cflag = B9600;
-      tcgetattr (fileno (TTY_INPUT (CURTTY())), &sg);
+      tcgetattr (fileno (TTY_INPUT (tty)), &sg);
       emacs_ospeed = cfgetospeed (&sg);
 #if defined (USE_GETOBAUD) && defined (getobaud)
       /* m88k-motorola-sysv3 needs this (ghazi@noc.rutgers.edu) 9/1/94. */
@@ -366,16 +367,16 @@ init_baud_rate ()
 
       sg.c_cflag = B9600;
 #ifdef HAVE_TCATTR
-      tcgetattr (fileno (TTY_INPUT (CURTTY())), &sg);
+      tcgetattr (fileno (TTY_INPUT (tty)), &sg);
 #else
-      ioctl (fileno (TTY_INPUT (CURTTY())), TCGETA, &sg);
+      ioctl (fileno (TTY_INPUT (tty)), TCGETA, &sg);
 #endif
       emacs_ospeed = sg.c_cflag & CBAUD;
 #else /* neither VMS nor TERMIOS nor TERMIO */
       struct sgttyb sg;
 
       sg.sg_ospeed = B9600;
-      if (ioctl (fileno (TTY_INPUT (CURTTY())), TIOCGETP, &sg) < 0)
+      if (ioctl (fileno (TTY_INPUT (tty)), TIOCGETP, &sg) < 0)
 	abort ();
       emacs_ospeed = sg.sg_ospeed;
 #endif /* not HAVE_TERMIO */
@@ -649,7 +650,7 @@ child_setup_tty (out)
 
 #ifdef BSD4_1
   if (interrupt_input)
-    reset_sigio ();
+    reset_sigio (0);
 #endif /* BSD4_1 */
 #ifdef RTU
   {
@@ -915,6 +916,7 @@ init_sigio (fd)
      int fd;
 {
 #ifdef FASYNC
+  /* XXX What if we get called with more than one fds? */
   old_fcntl_flags = fcntl (fd, F_GETFL, 0) & ~FASYNC;
   fcntl (fd, F_SETFL, old_fcntl_flags | FASYNC);
 #endif
@@ -922,9 +924,10 @@ init_sigio (fd)
 }
 
 void
-reset_sigio ()
+reset_sigio (fd)
+     int fd;
 {
-  unrequest_sigio ();
+  fcntl (fd, F_SETFL, old_fcntl_flags);
 }
 
 #ifdef FASYNC		/* F_SETFL does not imply existence of FASYNC */
@@ -938,13 +941,13 @@ request_sigio ()
 #ifdef SIGWINCH
   sigunblock (sigmask (SIGWINCH));
 #endif
-  fcntl (fileno (TTY_INPUT (CURTTY())), F_SETFL, old_fcntl_flags | FASYNC);
+  sigunblock (sigmask (SIGIO));
 
   interrupts_deferred = 0;
 }
 
 void
-unrequest_sigio ()
+unrequest_sigio (void)
 {
   if (read_socket_hook)
     return;
@@ -952,7 +955,7 @@ unrequest_sigio ()
 #ifdef SIGWINCH
   sigblock (sigmask (SIGWINCH));
 #endif
-  fcntl (fileno (TTY_INPUT (CURTTY())), F_SETFL, old_fcntl_flags);
+  sigblock (sigmask (SIGIO));
   interrupts_deferred = 1;
 }
 
@@ -967,19 +970,21 @@ request_sigio ()
   if (read_socket_hook)
     return;
 
-  ioctl (fileno (TTY_INPUT (CURTTY())), FIOASYNC, &on);
+  /* XXX CURTTY() is bogus here. */
+  ioctl (fileno (TTY_INPUT (CURTTY ())), FIOASYNC, &on);
   interrupts_deferred = 0;
 }
 
 void
-unrequest_sigio ()
+unrequest_sigio (struct tty_output *tty)
 {
   int off = 0;
 
   if (read_socket_hook)
     return;
 
-  ioctl (fileno (TTY_INPUT (CURTTY())), FIOASYNC, &off);
+  /* XXX CURTTY() is bogus here. */
+  ioctl (fileno (TTY_INPUT (CURTTY ())), FIOASYNC, &off);
   interrupts_deferred = 1;
 }
 
@@ -1000,7 +1005,7 @@ request_sigio ()
 
   sigemptyset (&st);
   sigaddset (&st, SIGIO);
-  ioctl (fileno (TTY_INPUT (CURTTY())), FIOASYNC, &on);
+  ioctl (0, FIOASYNC, &on);     /* XXX This fails for multiple ttys. */
   interrupts_deferred = 0;
   sigprocmask (SIG_UNBLOCK, &st, (sigset_t *)0);
 }
@@ -1013,7 +1018,7 @@ unrequest_sigio ()
   if (read_socket_hook)
     return;
 
-  ioctl (fileno (TTY_INPUT (CURTTY())), FIOASYNC, &off);
+  ioctl (0, FIOASYNC, &off);  /* XXX This fails for multiple ttys. */
   interrupts_deferred = 1;
 }
 
@@ -1728,7 +1733,7 @@ get_tty_size (tty_out, widthp, heightp)
 
   struct sensemode tty;
 
-  SYS$QIOW (0, fileno (TTY_INPUT (CURTTY())), IO$_SENSEMODE, &tty, 0, 0,
+  SYS$QIOW (0, fileno (TTY_INPUT (tty_out)), IO$_SENSEMODE, &tty, 0, 0,
 	    &tty.class, 12, 0, 0, 0, 0);
   *widthp = tty.scr_wid;
   *heightp = tty.scr_len;
@@ -1795,14 +1800,12 @@ reset_all_sys_modes (void)
   }
 }
 
-/* Prepare the terminal for exiting Emacs; move the cursor to the
+/* Prepare the terminal for closing it; move the cursor to the
    bottom of the frame, turn off interrupt-driven I/O, etc.  */
 void
 reset_sys_modes (tty_out)
      struct tty_output *tty_out;
 {
-  struct frame *sf;
-
   if (noninteractive)
     {
       fflush (stdout);
@@ -1822,11 +1825,9 @@ reset_sys_modes (tty_out)
       )
     return;
 #endif
-  sf = SELECTED_FRAME ();
-  cursor_to (FRAME_LINES (sf) - 1, 0);
-  clear_end_of_line (FRAME_COLS (sf));
-  /* clear_end_of_line may move the cursor */
-  cursor_to (FRAME_LINES (sf) - 1, 0);
+  cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
+  tty_clear_end_of_line (tty_out, FrameCols (tty_out));
+  cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
 #if defined (IBMR2AIX) && defined (AIXHFT)
   {
     /* HFT devices normally use ^J as a LF/CR.  We forced it to
@@ -1852,7 +1853,7 @@ reset_sys_modes (tty_out)
 #ifdef F_SETOWN		/* F_SETFL does not imply existence of F_SETOWN */
   if (interrupt_input)
     {
-      reset_sigio ();
+      reset_sigio (tty_out);
       fcntl (fileno (TTY_INPUT (tty_out)), F_SETOWN, old_fcntl_owner);
     }
 #endif /* F_SETOWN */
@@ -1864,7 +1865,7 @@ reset_sys_modes (tty_out)
 #endif /* F_SETFL */
 #ifdef BSD4_1
   if (interrupt_input)
-    reset_sigio ();
+    reset_sigio (tty_out);
 #endif /* BSD4_1 */
 
   if (tty_out->old_tty)
@@ -2170,7 +2171,8 @@ init_sigio (fd)
   request_sigio ();
 }
 
-reset_sigio ()
+reset_sigio (fd)
+     int fd;
 {
   unrequest_sigio ();
 }
@@ -2720,12 +2722,13 @@ init_sigio (fd)
 }
 
 void
-reset_sigio ()
+reset_sigio (fd)
+     int fd;
 {
   if (noninteractive)
     return;
   lmode = ~LINTRUP & lmode;
-  ioctl (0, TIOCLSET, &lmode);
+  ioctl (fd, TIOCLSET, &lmode);
 }
 
 void
@@ -3173,7 +3176,7 @@ sys_getenv (name)
 #undef abort
 sys_abort ()
 {
-  reset_sys_modes ();
+  reset_all_sys_modes ();
   LIB$SIGNAL (SS$_DEBUG);
 }
 #endif /* abort */

@@ -67,11 +67,7 @@ For the NEWS file:
    specify a terminal device (`tty' parameter) and a terminal type
    (`tty-type' parameter) to `make-terminal-frame'. `tty' must be a
    terminal device created by the updated emacsclient, or there will
-   be problems with terminal input and window resizes.  (The kernel
-   notifies processes about pending input or terminal resizes only on
-   the controlling terminal, so we need emacsclient to sit on the real
-   terminal device, create SIGIO signals upon terminal input, and
-   forward SIGWINCH signals to us.)
+   be problems with terminal input and window resizes.  
 
    You can test for the presence of multiple terminal support by
    testing for the `multi-tty' feature.
@@ -160,6 +156,9 @@ DIARY OF CHANGES
    terminal.  Note that this means that multi-tty does not work with
    raw ttys!)
 
+   (Update: This is bullshit.  There is a read_input_waiting function,
+   extend that somehow.)
+
 -- Make make-terminal-frame look up the `tty' and `tty-type' frame
    parameters from the currently selected terminal before the global
    default.
@@ -191,6 +190,13 @@ DIARY OF CHANGES
 
    (Done.)
 
+-- Restore tty screen after closing the terminal.
+
+   (Done, we do the same as Emacs 21.2 for all terminals.)
+
+-- 'TERM=dumb src/emacs' does not restore the terminal state.
+   
+   (Done.)
 
 THINGS TO DO
 ------------
@@ -216,34 +222,37 @@ THINGS TO DO
 
 ** Export delete_tty to the Lisp environment, for emacsclient.
 
-** Restore tty screen after closing the terminal.
-
-** 'TERM=dumb src/emacs' does not restore the terminal state.
-
 ** C-g should work on secondary terminals.
 
 ** Make parts of struct tty_output accessible from Lisp.  The device
    name and the type is sufficient.
 
 ** Find out why does Emacs abort when it wants to close its
-   controlling tty.
+   controlling tty.  Hint: chan_process[] array.  Hey, maybe
+   noninterrupt-IO would work, too?
 
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames
    later, with emacsclient.)  Not necessarily a good idea.
 
-** Support raw secondary terminals.  (This one is tricky, SIGIO works
-   only on the controlling terminal.  The emacsclient solution works
-   nicely, so this is not that important anyway.)
+** Support raw secondary terminals.  (Note that SIGIO works only on
+   the controlling terminal.) Hint: extend read_input_waiting() for
+   multiple ttys and hopefully this will be fixed.
 
 ** What does interrupt_input do?  I tried to disable it for raw
    secondary tty support, but it does not seem to do anything useful.
+
+** Issue with SIGIO: it needs to be disabled during redisplay.  See if
+   fcntl() kernel behaviour could be emulated by emacsclient.
 
 ** Move optimalization parameters (costs) from union output_data to
    a backend-neutral per-device structure.
 
 ** Find out the best way to support suspending Emacs with multiple
    ttys.
+
+** Deal with SIGHUP in Emacs and in emacsclient.  (After this, the
+   server-frames may be removed from server.el.)
 
 ** Do tty output through term_hooks, like all other display backends.
 

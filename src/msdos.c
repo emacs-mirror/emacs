@@ -4858,7 +4858,7 @@ croak (badfunc)
      char *badfunc;
 {
   fprintf (stderr, "%s not yet implemented\r\n", badfunc);
-  reset_sys_modes ();
+  reset_all_sys_modes ();
   exit (1);
 }
 

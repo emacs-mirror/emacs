@@ -1119,7 +1119,7 @@ syntax.o: syntax.c syntax.h buffer.h commands.h category.h charset.h \
    composite.h $(config_h)
 sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    process.h dispextern.h termhooks.h termchar.h termopts.h \
-   frame.h atimer.h window.h msdos.h dosfns.h keyboard.h  $(config_h)
+   frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h $(config_h)
 term.o: term.c systty.h termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
    disptab.h dispextern.h keyboard.h charset.h coding.h ccl.h msdos.h
 termcap.o: termcap.c $(config_h)

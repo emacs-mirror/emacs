@@ -106,6 +106,13 @@ Each element is (CLIENTID BUFFERS...) where CLIENTID is a string
 that can be given to the server process to identify a client.
 When a buffer is marked as \"done\", it is removed from this list.")
 
+(defvar server-frames nil
+  "List of current server frames.
+Each element is (CLIENTID FRAME) where CLIENTID is a string
+that can be given to the server process to identify a client.
+When all the buffers of the client are marked as \"done\", 
+the frame is deleted.")
+
 (defvar server-buffer-clients nil
   "List of client ids for clients requesting editing of current buffer.")
 (make-variable-buffer-local 'server-buffer-clients)
@@ -178,6 +185,7 @@ are done with it in the server.")
     ;; Remove PROC from the list of clients.
     (when client
       (setq server-clients (delq client server-clients))
+      (setq server-frames (delq client server-frames))
       (dolist (buf (cdr client))
 	(with-current-buffer buf
 	  ;; Remove PROC from the clients of each buffer.
@@ -326,6 +334,8 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	      (setq request (substring request (match-end 0)))
 	      (condition-case err
 		  (let ((frame (make-terminal-frame `((tty . ,pty) (tty-type . ,type)))))
+		    (setq server-frames (cons (list (car client) frame) server-frames))
+		    (sit-for 0)
 		    (process-send-string proc (concat (number-to-string (emacs-pid)) "\n"))
 		    (select-frame frame))
 		(error (process-send-string proc (nth 1 err))
@@ -368,6 +378,9 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
       (if (null (cdr client))
 	  ;; This client is empty; get rid of it immediately.
 	  (progn
+	    (let ((frame (cadr (assq (car client) server-frames))))
+	      ;; Close the client's frame.
+	      (when frame (delete-frame frame)))
 	    (delete-process proc)
 	    (server-log "Close empty client" proc))
 	;; We visited some buffer for this client.
@@ -454,6 +467,9 @@ FOR-KILLING if non-nil indicates that we are called from `kill-buffer'."
 	;; If client now has no pending buffers,
 	;; tell it that it is done, and forget it entirely.
 	(unless (cdr client)
+	  (let ((frame (cadr (assq (car client) server-frames))))
+	    ;; Close the client's frame.
+	    (when frame (delete-frame frame)))
 	  (delete-process (car client))
 	  (server-log "Close" (car client))
 	  (setq server-clients (delq client server-clients))))

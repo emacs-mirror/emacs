@@ -5921,11 +5921,12 @@ window_change_signal (signalnum) /* If we don't have an argument, */
   /* The frame size change obviously applies to a single
      termcap-controlled terminal, but we can't decide which.
      Therefore, we resize the frames corresponding to each tty.
-     
-     XXX In fact we only get the signal for the initial terminal.
   */
   for (tty = tty_list; tty; tty = tty->next) {
 
+    if (! tty->term_initted)
+      continue;
+    
     get_tty_size (tty, &width, &height);
     
     {
@@ -6623,8 +6624,13 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
   }
 #endif /* VMS */
 
-  term_init (0, terminal_type);
-
+  {
+    struct tty_output *tty;
+    
+    tty = term_init (selected_frame, 0, terminal_type);
+    change_frame_size (XFRAME (selected_frame), FrameRows (tty), FrameCols (tty), 0, 0, 0);
+  }
+  
   {
     struct frame *sf = SELECTED_FRAME ();
     int width = FRAME_TOTAL_COLS (sf);

@@ -102,6 +102,12 @@ char *getcwd ();
 /* Name used to invoke this program.  */
 char *progname;
 
+/* The first argument to main. */
+int main_argc;
+
+/* The second argument to main. */
+char **main_argv;
+
 /* Nonzero means don't wait for a response from Emacs.  --no-wait.  */
 int nowait = 0;
 
@@ -294,14 +300,12 @@ xmalloc (size)
   defined-- exit with an errorcode.
 */
 void
-fail (argc, argv)
-     int argc;
-     char **argv;
+fail ()
 {
   if (alternate_editor)
     {
       int i = optind - 1;
-      execvp (alternate_editor, argv + i);
+      execvp (alternate_editor, main_argv + i);
       return;
     }
   else
@@ -603,7 +607,7 @@ window_change ()
 #endif /* not SunOS-style */
 #endif /* not BSD-style */
 
-  if (width != 0 && height != 0)
+  if (emacs_pid && width && height)
     kill (emacs_pid, SIGWINCH);
 }
 
@@ -721,7 +725,7 @@ copy_from_to (int in, int out, int sigio)
       if (r < 0)
         return 0;               /* Error */
 
-      if (sigio)
+      if (emacs_pid && sigio)
         {
           kill (emacs_pid, SIGIO);
         }
@@ -730,8 +734,10 @@ copy_from_to (int in, int out, int sigio)
 }
 
 int
-pty_conversation ()
+pty_conversation (FILE *in)
 {
+  char *str;
+  char string[BUFSIZ];              
   fd_set set;
 
   in_conversation = 1;
@@ -742,6 +748,7 @@ pty_conversation ()
     FD_ZERO (&set);
     FD_SET (master, &set);
     FD_SET (1, &set);
+    FD_SET (fileno (in), &set);
     res = select (FD_SETSIZE, &set, NULL, NULL, NULL);
     if (res < 0)
       {
@@ -761,6 +768,24 @@ pty_conversation ()
             /* Forward user input to Emacs. */
             if (! copy_from_to (1, master, 1))
               return 1;
+          }
+        if (FD_ISSET (fileno (in), &set))
+          {
+            if (! emacs_pid)
+              {
+                /* Get the pid of the Emacs process.
+                   XXX Is there is some nifty libc/kernel feature for doing this?
+                */
+                str = fgets (string, BUFSIZ, in);
+                if (! str)
+                  {
+                    reset_tty ();
+                    fprintf (stderr, "%s: %s\n", progname, str);
+                    fail ();
+                  }
+                
+                emacs_pid = atoi (str);
+              }
           }
       }
   }
@@ -828,6 +853,8 @@ main (argc, argv)
   char *cwd, *str;
   char string[BUFSIZ];
 
+  main_argc = argc;
+  main_argv = argv;
   progname = argv[0];
 
   /* Process options.  */
@@ -1087,19 +1114,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 
   if (here)
     {
-      /* First of all, get the pid of the Emacs process.
-         XXX Is there is some nifty libc/kernel feature for doing this?
-       */
-      str = fgets (string, BUFSIZ, in);
-      emacs_pid = atoi (str);
-      if (emacs_pid == 0)
-        {
-          reset_tty ();
-          fprintf (stderr, "%s: %s\n", argv[0], str);
-          fail (argc, argv);
-        }
-      
-      if (! pty_conversation ())
+      if (! pty_conversation (out))
         {
           reset_tty ();
           fprintf (stderr, "%s: ", argv[0]);

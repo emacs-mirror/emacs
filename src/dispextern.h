@@ -2566,7 +2566,7 @@ void get_tty_size P_ ((struct tty_output *, int *, int *));
 void request_sigio P_ ((void));
 void unrequest_sigio P_ ((void));
 int tabs_safe_p P_ ((struct tty_output *));
-void init_baud_rate P_ ((void));
+void init_baud_rate P_ ((struct tty_output *));
 void init_sigio P_ ((int));
 
 /* Defined in xfaces.c */
@@ -2743,6 +2743,7 @@ extern void background_highlight P_ ((struct tty_output *));
 extern void clear_frame P_ ((void));
 extern void clear_end_of_line P_ ((int));
 extern void clear_end_of_line_raw P_ ((int));
+extern void tty_clear_end_of_line P_ ((struct tty_output *, int));
 extern void delete_glyphs P_ ((int));
 extern void ins_del_lines P_ ((int, int));
 extern int string_cost P_ ((char *));
@@ -2750,7 +2751,7 @@ extern int per_line_cost P_ ((char *));
 extern void calculate_costs P_ ((struct frame *));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
 extern void tty_setup_colors P_ ((struct tty_output *, int));
-extern struct tty_output *term_init P_ ((char *, char *));
+extern struct tty_output *term_init P_ ((Lisp_Object, char *, char *));
 extern struct tty_output *term_dummy_init P_ ((void));
 extern void fatal P_ ((/* char *, ... */));
 void cursor_to P_ ((int, int));

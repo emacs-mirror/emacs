@@ -485,13 +485,6 @@ make_terminal_frame (tty_name, tty_type)
   register struct frame *f;
   Lisp_Object frame;
   char name[20];
-  struct tty_output *tty;
-
-  /* init_term may throw an error, so create the tty first. */
-  if (initialized)
-    tty = term_init (tty_name, tty_type);
-  else
-    tty = term_dummy_init ();
   
 #ifdef MULTI_KBOARD
   if (!initial_kboard)
@@ -550,9 +543,23 @@ make_terminal_frame (tty_name, tty_type)
 #ifdef MAC_OS8
   make_mac_terminal_frame (f);
 #else
-  f->output_method = output_termcap;
-  f->output_data.tty = tty;
-  f->output_data.tty->top_frame = frame;
+  {
+    struct tty_output *tty;
+    f->output_method = output_termcap;
+    
+    if (initialized)
+      {
+        /* Note that term_init may signal an error, but then it is its
+           responsibility to make sure this frame is deleted. */
+        f->output_data.tty = term_init (frame, tty_name, tty_type);
+      }
+    else
+      {
+        /* init_display() will reinitialize the terminal with correct values after dump. */
+        f->output_data.tty = term_dummy_init ();
+      }
+  }
+  
 #ifdef CANNOT_DUMP
   FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
@@ -1383,25 +1390,33 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   if (FRAME_TERMCAP_P (f))
     {
-      /* See if the terminal needs to be closed. */
       Lisp_Object tail, frame1;
       int delete = 1;
+      struct tty_output *tty = FRAME_TTY (f);
+
+      /* delete_tty will call us recursively, so better kill the
+         frame now. */
+      f->output_data.nothing = 0;
       
+      /* See if the terminal needs to be closed. */
       FOR_EACH_FRAME (tail, frame1)
         {
-          if (!FRAME_LIVE_P (XFRAME (frame1)) &&
-              FRAME_TERMCAP_P (XFRAME (frame1)) &&
-              FRAME_TTY (XFRAME (frame1)) == FRAME_TTY (f))
+          if (frame1 != frame
+              && FRAME_LIVE_P (XFRAME (frame1))
+              && FRAME_TERMCAP_P (XFRAME (frame1))
+              && FRAME_TTY (XFRAME (frame1)) == FRAME_TTY (f))
             {
               delete = 0;
               break;
             }
         }
       if (delete)
-        delete_tty (FRAME_TTY (f));
+        delete_tty (tty);
     }
-      
-  f->output_data.nothing = 0;
+  else
+    {
+      f->output_data.nothing = 0;
+    }
 
   /* If we've deleted the last_nonminibuf_frame, then try to find
      another one.  */

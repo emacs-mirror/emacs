@@ -2942,8 +2942,6 @@ struct tty_output;
 /* defined in sysdep.c */
 extern void stuff_char P_ ((char c));
 extern void init_sigio P_ ((int));
-extern void request_sigio P_ ((void));
-extern void unrequest_sigio P_ ((void));
 extern void sys_subshell P_ ((void));
 extern void sys_suspend P_ ((void));
 extern void discard_tty_input P_ ((void));
@@ -2957,7 +2955,6 @@ extern void child_setup_tty P_ ((int));
 extern void setup_pty P_ ((int));
 extern int set_window_size P_ ((int, int, int));
 extern void create_process P_ ((Lisp_Object, char **, Lisp_Object));
-extern void init_baud_rate P_ ((void));
 extern int emacs_open P_ ((const char *, int, int));
 extern int emacs_close P_ ((int));
 extern int emacs_read P_ ((int, char *, unsigned int));

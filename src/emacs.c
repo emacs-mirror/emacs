@@ -1561,13 +1561,6 @@ main (argc, argv
 #endif  /* end #ifdef HAVE_NTGUI */
     }
 
-  if (!noninteractive)
-    {
-#ifdef VMS
-      init_vms_input ();/* init_display calls get_tty_size, that needs this.  */
-#endif /* VMS */
-      init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
-    }
 #ifndef MAC_OS8
   /* Called before init_window_once for Mac OS Classic.  */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
@@ -1575,7 +1568,13 @@ main (argc, argv
 #ifdef VMS
   init_vmsproc ();	/* And this too.  */
 #endif /* VMS */
-  /* init_sys_modes (); */	/* Init system terminal modes (RAW or CBREAK, etc.).  */
+  if (!noninteractive)
+    {
+#ifdef VMS
+      init_vms_input ();/* init_display calls get_tty_size, that needs this.  */
+#endif /* VMS */
+      init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
+    }
 #if defined (HAVE_X_WINDOWS) || defined (WINDOWSNT)
   init_xfns ();
 #endif /* HAVE_X_WINDOWS */
@@ -1910,9 +1909,9 @@ sort_args (argc, argv)
 
   bcopy (new, argv, sizeof (char *) * argc);
 
-  free (options);
-  free (new);
-  free (priority);
+  xfree (options);
+  xfree (new);
+  xfree (priority);
 }
 
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
@@ -1999,7 +1998,7 @@ shut_down_emacs (sig, no_x, stuff)
   }
 #else
   fflush (stdout);
-  reset_sys_modes ();
+  reset_all_sys_modes ();
 #endif
 
   stuff_buffered_input (stuff);

@@ -651,8 +651,6 @@ void
 clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
-  register int i;
-
   struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_output *tty;
   
@@ -663,8 +661,13 @@ clear_end_of_line (first_unused_hpos)
       return;
     }
 
-  tty = FRAME_TTY (f);
+  tty_clear_end_of_line (FRAME_TTY (f), first_unused_hpos);
+}
 
+void
+tty_clear_end_of_line (struct tty_output *tty, int first_unused_hpos)
+{
+  register int i;
   /* Detect the case where we are called from reset_sys_modes
      and the costs have never been calculated.  Do nothing.  */
   if (! tty->costs_set)
@@ -683,8 +686,8 @@ clear_end_of_line (first_unused_hpos)
 
       /* Do not write in last row last col with Auto-wrap on. */
       if (AutoWrap (tty)
-          && curY (tty) == FRAME_LINES (f) - 1
-	  && first_unused_hpos == FRAME_COLS (f))
+          && curY (tty) == FrameRows (tty) - 1
+	  && first_unused_hpos == FrameCols (tty))
 	first_unused_hpos--;
 
       for (i = curX (tty); i < first_unused_hpos; i++)
@@ -2124,9 +2127,7 @@ term_dummy_init (void)
 
 
 struct tty_output *
-term_init (name, terminal_type)
-     char *name;
-     char *terminal_type;
+term_init (Lisp_Object frame, char *name, char *terminal_type)
 {
   char *area;
   char **address = &area;
@@ -2134,20 +2135,16 @@ term_init (name, terminal_type)
   int buffer_size = 4096;
   register char *p;
   int status;
-  struct frame *sf = XFRAME (selected_frame);
-
+  struct frame *f = XFRAME (frame);
   struct tty_output *tty;
 
   tty = get_named_tty (name);
   if (tty)
     {
-      /* Return the previously initialized terminal, except if it is the dummy
-         terminal created for the initial frame. */
+      /* Return the previously initialized terminal, except if it is
+         the dummy terminal created for the initial frame. */
       if (tty->type)
         return tty;
-
-      /* In the latter case, initialize top_frame to the current terminal. */
-      tty->top_frame = selected_frame;
     }
   else
     {
@@ -2160,21 +2157,25 @@ term_init (name, terminal_type)
   if (! tty->Wcm)
       tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
 
+  /* Make sure the frame is live; if an error happens, it must be
+     deleted. */
+  f->output_method = output_termcap;
+  f->output_data.tty = tty;
+  
   if (name)
     {
       int fd;
-      FILE *f;
+      FILE *file;
       fd = emacs_open (name, O_RDWR, 0);
       if (fd < 0)
         {
-          tty_list = tty->next;
-          xfree (tty);
+          delete_tty (tty);
           error ("Could not open file: %s", name);
         }
-      f = fdopen (fd, "w+");
+      file = fdopen (fd, "w+");
       TTY_NAME (tty) = xstrdup (name);
-      TTY_INPUT (tty) = f;
-      TTY_OUTPUT (tty) = f;
+      TTY_INPUT (tty) = file;
+      TTY_OUTPUT (tty) = file;
     }
   else
     {
@@ -2185,8 +2186,6 @@ term_init (name, terminal_type)
 
   TTY_TYPE (tty) = xstrdup (terminal_type);
 
-  init_sys_modes (tty);
-  
 #ifdef WINDOWSNT
   initialize_w32_display ();
 
@@ -2194,9 +2193,9 @@ term_init (name, terminal_type)
 
   area = (char *) xmalloc (2044);
 
-  FrameRows = FRAME_LINES (sf);
-  FrameCols = FRAME_COLS (sf);
-  specified_window = FRAME_LINES (sf);
+  FrameRows = FRAME_LINES (f);
+  FrameCols = FRAME_COLS (f);
+  specified_window = FRAME_LINES (f);
 
   delete_in_insert_mode = 1;
 
@@ -2213,8 +2212,8 @@ term_init (name, terminal_type)
 
   baud_rate = 19200;
 
-  FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
   TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
   return tty;
@@ -2229,6 +2228,7 @@ term_init (name, terminal_type)
 #ifdef TERMINFO
       if (name)
         {
+          xfree (buffer);
           delete_tty (tty);
           error ("Cannot open terminfo database file");
         }
@@ -2237,6 +2237,7 @@ term_init (name, terminal_type)
 #else
       if (name)
         {
+          xfree (buffer);
           delete_tty (tty);
           error ("Cannot open termcap database file");
         }
@@ -2249,12 +2250,13 @@ term_init (name, terminal_type)
 #ifdef TERMINFO
       if (name)
         {
+          xfree (buffer);
           delete_tty (tty);
           error ("Terminal type %s is not defined", terminal_type);
         }
       else
         fatal ("Terminal type %s is not defined.\n\
-If that is not the actual type of terminal you have,\n          \
+If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
@@ -2262,12 +2264,13 @@ to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
 #else
       if (name)
         {
+          xfree (buffer);
           delete_tty (tty);
           error ("Terminal type %s is not defined", terminal_type);
         }
       else
         fatal ("Terminal type %s is not defined.\n\
-If that is not the actual type of terminal you have,\n          \
+If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
@@ -2401,21 +2404,29 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   {
     int height, width;
     get_tty_size (tty, &width, &height);
-    FRAME_COLS (sf) = width;
-    FRAME_LINES (sf) = height;
+    FrameCols (tty) = width;
+    FrameRows (tty) = height;
   }
 
-  if (FRAME_COLS (sf) <= 0)
-    SET_FRAME_COLS (sf, tgetnum ("co"));
-  else
-    /* Keep width and external_width consistent */
-    SET_FRAME_COLS (sf, FRAME_COLS (sf));
-  if (FRAME_LINES (sf) <= 0)
-    FRAME_LINES (sf) = tgetnum ("li");
+  if (FrameCols (tty) <= 0)
+    FrameCols (tty) = tgetnum ("co");
+  if (FrameRows (tty) <= 0)
+    FrameRows (tty) = tgetnum ("li");
 
-  if (FRAME_LINES (sf) < 3 || FRAME_COLS (sf) < 3)
-    fatal ("Screen size %dx%d is too small",
-           FRAME_LINES (sf), FRAME_COLS (sf));
+  if (FrameRows (tty) < 3 || FrameCols (tty) < 3)
+    {
+      if (initialized)
+        {
+          delete_tty (tty);
+          error ("Screen size %dx%d is too small",
+                 FrameCols (tty), FrameRows (tty));
+        }
+      else
+        {
+          fatal ("Screen size %dx%d is too small",
+                 FrameCols (tty), FrameRows (tty));
+        }
+    }
 
 #if 0  /* This is not used anywhere. */
   TTY_MIN_PADDING_SPEED (tty) = tgetnum ("pb");
@@ -2541,15 +2552,14 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
         }
     }
 
-  FrameRows (tty) = FRAME_LINES (sf);
-  FrameCols (tty) = FRAME_COLS (sf);
-  tty->specified_window = FRAME_LINES (sf);
+  tty->specified_window = FrameRows (tty);
 
   if (Wcm_init (tty) == -1)	/* can't do cursor motion */
     if (name)
       {
         delete_tty (tty);
-        error ("Terminal type \"%s\" is not powerful enough to run Emacs");
+        error ("Terminal type \"%s\" is not powerful enough to run Emacs",
+               terminal_type);
       }
     else {
 #ifdef VMS
@@ -2562,15 +2572,15 @@ or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.",
 #else /* not VMS */
 # ifdef TERMINFO
       fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
-It lacks the ability to position the cursor.\n                          \
-If that is not the actual type of terminal you have,\n                  \
+It lacks the ability to position the cursor.\n\
+If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
              terminal_type);
 # else /* TERMCAP */
       fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
-It lacks the ability to position the cursor.\n                       \
+It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
 use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 `setenv TERM ...') to specify the correct type.  It may be necessary\n\
@@ -2580,8 +2590,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #endif /*VMS */
     }
   
-  if (FRAME_LINES (sf) <= 0
-      || FRAME_COLS (sf) <= 0)
+  if (FrameRows (tty) <= 0 || FrameCols (tty) <= 0)
     {
       if (name)
         {
@@ -2619,20 +2628,29 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   TTY_FAST_CLEAR_END_OF_LINE (tty) = tty->TS_clr_line != 0;
 
-  init_baud_rate ();
+  init_baud_rate (tty);
   if (read_socket_hook)		/* Baudrate is somewhat
                                    meaningless in this case */
     baud_rate = 9600;
 
-  FRAME_CAN_HAVE_SCROLL_BARS (sf) = 0;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (sf) = vertical_scroll_bar_none;
-#endif /* WINDOWSNT */
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
 
-  xfree (buffer);
+  /* Don't do this.  I think termcap may still need the buffer. */
+  /* xfree (buffer); */
 
+  tty->top_frame = frame;
+  
+  tty->foreground_pixel = FACE_TTY_DEFAULT_FG_COLOR;
+  tty->background_pixel = FACE_TTY_DEFAULT_BG_COLOR;
+  
+  /* Init system terminal modes (RAW or CBREAK, etc.).  */
+  init_sys_modes (tty);
+  
   tty_set_terminal_modes (tty);
 
   return tty;
+#endif /* WINDOWSNT */
 }
 
 /* VARARGS 1 */
@@ -2670,11 +2688,20 @@ The function should accept no arguments.  */);
   Fprovide (intern ("multi-tty"), Qnil);
 }
 
+static int deleting_tty = 0;
+
 void
 delete_tty (struct tty_output *tty)
 {
   Lisp_Object tail, frame;
+  
+  if (deleting_tty)
+    /* We get a recursive call when we delete the last frame on this
+       tty. */
+    return;
 
+  deleting_tty = 1;
+  
   if (tty == tty_list)
     tty_list = tty->next;
   else
@@ -2687,7 +2714,8 @@ delete_tty (struct tty_output *tty)
         /* This should not happen. */
         abort ();
 
-      p->next = p->next->next;
+      p->next = tty->next;
+      tty->next = 0;
     }
 
   FOR_EACH_FRAME (tail, frame)
@@ -2700,46 +2728,31 @@ delete_tty (struct tty_output *tty)
         }
     }
   
-  /* This hangs. */
-  /*
   reset_sys_modes (tty);
 
   if (tty->name)
     xfree (tty->name);
   if (tty->type)
     xfree (tty->type);
-  */
+
   if (tty->input)
     fclose (tty->input);
   if (tty->output)
     fclose (tty->output);
   if (tty->termscript)
     fclose (tty->termscript);
-
-  tty->input = 0;
-  tty->output = 0;
-  tty->termscript = 0;
   
-  /*
   if (tty->old_tty)
-    {
-      memset (tty->old_tty, 'Z', sizeof (struct emacs_tty));
-      tty->old_tty = 0;
-    }
-  
-    
-    /*    xfree (tty->old_tty);
+    xfree (tty->old_tty);
 
-    if (tty->Wcm)
-    {
-      bzero (tty->Wcm, sizeof (struct cm));
-    }
+#if 0  /* XXX There is a dangling reference somewhere into this. */
+  if (tty->Wcm)
     xfree (tty->Wcm); 
+#endif
   
   bzero (tty, sizeof (struct tty_output));
-  
   xfree (tty);
-  */
+  deleting_tty = 0;
 }
 
 
