@@ -1502,10 +1502,9 @@ to `minor-mode-map-alist'.
 Optional AFTER specifies that TOGGLE should be added after AFTER
 in `minor-mode-alist'.
 
-Optional TOGGLE-FUN is there for compatiblity with other Emacssen.
+Optional TOGGLE-FUN is there for compatiblity with other Emacsen.
 It is currently not used."
   (make-local-variable toggle)
-  (set toggle t)
   
   (when name
     (let ((existing (assq toggle minor-mode-alist))
@@ -1519,7 +1518,7 @@ It is currently not used."
 	       (if found
 		   (let ((rest (cdr found)))
 		     (setcdr found nil)
-		     (nconc found (list toggle name) rest))
+		     (nconc found (list (list toggle name)) rest))
 		 (setq minor-mode-alist (cons (list toggle name)
 					      minor-mode-alist)))))
 	    (t
@@ -1527,10 +1526,20 @@ It is currently not used."
     
   (when keymap
     (let ((existing (assq toggle minor-mode-map-alist)))
-      (if existing
-	  (setcdr existing keymap)
-	(setq minor-mode-map-alist (cons (cons toggle keymap)
-					 minor-mode-map-alist))))))
+      (cond ((null existing)
+	     (let ((tail minor-mode-map-alist) found)
+	       (while (and tail (not found))
+		 (if (eq after (caar tail))
+		     (setq found tail)
+		   (setq tail (cdr tail))))
+	       (if found
+		   (let ((rest (cdr found)))
+		     (setcdr found nil)
+		     (nconc found (list (cons toggle keymap)) rest))
+		 (setq minor-mode-map-alist (cons (cons toggle keymap)
+						  minor-mode-map-alist)))))
+	    (t
+	     (setcdr existing keymap))))))
 
 
 ;;; subr.el ends here
