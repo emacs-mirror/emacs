@@ -184,11 +184,11 @@ The following keywords are meaningful:
 	`custom-initialize-default' 
 :set	VALUE should be a function to set the value of the symbol. 
 	It takes two arguments, the symbol to set and the value to
-	give it.  The default choice of function is `set-default'.
+	give it.  The default choice of function is `custom-set-default'.
 :get	VALUE should be a function to extract the value of symbol.
 	The function takes one argument, a symbol, and should return
 	the current value for that symbol.  The default choice of function
-	is `default-value'. 
+	is `custom-default-value'. 
 :require
 	VALUE should be a feature symbol.  If you save a value
 	for this option, then when your `.emacs' file loads the value,
@@ -383,6 +383,14 @@ LOAD should be either a library file name, or a feature name."
 
 ;;; Initializing.
 
+(defvar custom-local-buffer nil
+  "Non-nil, in a Customization buffer, means customize a specific buffer.
+If this variable is non-nil, it should be a buffer,
+and it means customize the local bindings of that buffer.
+This variable is a permanent local, and it normally has a local binding
+in every Customization buffer.")
+(put 'custom-local-buffer 'permanent-local t)
+
 (defun custom-set-variables (&rest args)
   "Initialize variables according to user preferences.  
 
@@ -400,7 +408,7 @@ the default value for the SYMBOL."
 		 (value (nth 1 entry))
 		 (now (nth 2 entry))
 		 (requests (nth 3 entry))
-		 (set (or (get symbol 'custom-set) 'set-default)))
+		 (set (or (get symbol 'custom-set) 'custom-set-default)))
 	    (put symbol 'saved-value (list value))
 	    (cond (now 
 		   ;; Rogue variable, set it now.
@@ -421,6 +429,16 @@ the default value for the SYMBOL."
 	      (value (nth 1 args)))
 	  (put symbol 'saved-value (list value)))
 	(setq args (cdr (cdr args)))))))
+
+(defun custom-set-default (variable value)
+  "Default :set function for a customizable variable.
+Normally, this sets the default value of VARIABLE to VALUE,
+but if `custom-local-buffer' is non-nil,
+this sets the local binding in that buffer instead."
+  (if custom-local-buffer
+      (with-current-buffer custom-local-buffer
+	(set variable value))
+    (set-default variable value)))
 
 ;;; The End.
 
