@@ -100,7 +100,7 @@
 }ifelse
 %%EndProcSet
 
-gs_languagelevel 2 ne{ % operators for language level 2 only
+gs_languagelevel 1 eq{ % operators for language level 2 only
  /<<{mark}bind def
  />>{counttomark 2 idiv dup dict begin{def}repeat pop currentdict end}bind def
  /setpagedevice{pop}bind def
