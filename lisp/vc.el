@@ -1434,10 +1434,12 @@ From a program, any arguments are passed to the `rcs2log' script."
     (message "Computing change log entries... %s"
 	     (if (or (null args)
 		     (eq 0 (apply 'call-process "rcs2log" nil t nil
-				  "-n"
-				  (user-login-name)
-				  (user-full-name)
-				  user-mail-address
+				  "-u"
+				  (concat (user-login-name)
+					  "\t"
+					  (user-full-name)
+					  "\t"
+					  user-mail-address)
 				  (mapcar (function
 					   (lambda (f)
 					     (file-relative-name
