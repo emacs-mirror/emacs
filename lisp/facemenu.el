@@ -236,8 +236,8 @@ when they are created."
   (define-key map [dc] (cons "Display Colors" 'list-colors-display))
   (define-key map [df] (cons "Display Faces" 'list-faces-display))
   (define-key map [dp] (cons "List Properties" 'list-text-properties-at))
-  (define-key map [ra] (cons "Remove All" 'facemenu-remove-all))
-  (define-key map [rm] (cons "Remove Properties" 'facemenu-remove-props))
+  (define-key map [ra] (cons "Remove Text Properties" 'facemenu-remove-all))
+  (define-key map [rm] (cons "Remove Face Properties" 'facemenu-remove-face-props))
   (define-key map [s1] (list "-----------------")))
 ;;;###autoload
 (let ((map facemenu-menu))
@@ -405,13 +405,12 @@ This sets the `read-only' text property; it can be undone with
   (add-text-properties start end '(read-only t)))
 
 ;;;###autoload
-(defun facemenu-remove-props (start end)
-  "Remove all text properties that facemenu added to region."
+(defun facemenu-remove-face-props (start end)
+  "Remove `face' and `mouse-face' text properties."
   (interactive "*r") ; error if buffer is read-only despite the next line.
   (let ((inhibit-read-only t))
     (remove-text-properties 
-     start end '(face nil invisible nil intangible nil 
-		      read-only nil category nil))))
+     start end '(face nil mouse-face nil))))
 
 ;;;###autoload
 (defun facemenu-remove-all (start end)
