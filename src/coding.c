@@ -958,52 +958,49 @@ detect_coding_iso2022 (src, src_end)
       }									   \
   } while (0)
 
-/* Check if the current composing sequence contains only valid codes.
-   If the composing sequence doesn't end before SRC_END, return -1.
-   Else, if it contains only valid codes, return 0.
-   Else return the length of the composing sequence.  */
+/* Return 0 if there's a valid composing sequence starting at SRC and
+   ending before SRC_END, else return -1.  */
 
 int
 check_composing_code (coding, src, src_end)
      struct coding_system *coding;
      unsigned char *src, *src_end;
 {
-  unsigned char *src_start = src;
-  int invalid_code_found = 0;
   int charset, c, c1, dim;
 
   while (src < src_end)
     {
-      if (*src++ != ISO_CODE_ESC) continue;
-      if (src >= src_end) break;
-      if ((c = *src++) == '1') /* end of compsition */
-	return (invalid_code_found ? src - src_start : 0);
-      if (src + 2 >= src_end) break;
-      if (!coding->flags & CODING_FLAG_ISO_DESIGNATION)
-	invalid_code_found = 1;
-      else
+      c = *src++;
+      if (c >= 0x20)
+	continue;
+      if (c != ISO_CODE_ESC || src >= src_end)
+	return -1;
+      c = *src++;
+      if (c == '1') /* end of compsition */
+	return 0;
+      if (src + 2 >= src_end
+	  || !coding->flags & CODING_FLAG_ISO_DESIGNATION)
+	return -1;
+
+      dim = (c == '$');
+      if (dim == 1)
+	c = (*src >= '@' && *src <= 'B') ? '(' : *src++;
+      if (c >= '(' && c <= '/')
 	{
-	  dim = 0;
-	  if (c == '$')
-	    {
-	      dim = 1;
-	      c = (*src >= '@' && *src <= 'B') ? '(' : *src++;
-	    }
-	  if (c >= '(' && c <= '/')
-	    {
-	      c1 = *src++;
-	      if ((c1 < ' ' || c1 >= 0x80)
-		  || (charset = iso_charset_table[dim][c >= ','][c1]) < 0
-		  || ! coding->safe_charsets[charset]
-		  || (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
-		      == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
-		invalid_code_found = 1;
-	    }
-	  else
-	    invalid_code_found = 1;
+	  c1 = *src++;
+	  if ((c1 < ' ' || c1 >= 0x80)
+	      || (charset = iso_charset_table[dim][c >= ','][c1]) < 0
+	      || ! coding->safe_charsets[charset]
+	      || (CODING_SPEC_ISO_REQUESTED_DESIGNATION (coding, charset)
+		  == CODING_SPEC_ISO_NO_REQUESTED_DESIGNATION))
+	    return -1;
 	}
+      else
+	return -1;
     }
-  return (invalid_code_found ? src - src_start : -1);
+
+  /* We have not found the sequence "ESC 1".  */
+  return -1;
 }
 
 /* See the above "GENERAL NOTES on `decode_coding_XXX ()' functions".  */
@@ -1183,7 +1180,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	      ONE_MORE_BYTE (c1);
 	      if (c1 >= '@' && c1 <= 'B')
 		{	/* designation of JISX0208.1978, GB2312.1980,
-				   or JISX0208.1980 */
+			   or JISX0208.1980 */
 		  DECODE_DESIGNATION (0, 2, 94, c1);
 		}
 	      else if (c1 >= 0x28 && c1 <= 0x2B)
@@ -1237,41 +1234,32 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	    case '0': case '2':	/* start composing */
 	      /* Before processing composing, we must be sure that all
 		 characters being composed are supported by CODING.
-		 If not, we must give up composing and insert the
-		 bunch of codes for composing as is without decoding.  */
-	      {
-		int result1;
-
-		result1 = check_composing_code (coding, src, src_end);
-		if (result1 == 0)
-		  {
-		    coding->composing = (c1 == '0'
-					 ? COMPOSING_NO_RULE_HEAD
-					 : COMPOSING_WITH_RULE_HEAD);
-		    coding->composed_chars = 0;
-		  }
-		else if (result1 > 0)
-		  {
-		    if (result1 + 2 < (dst_bytes ? dst_end : src_base) - dst)
-		      {
-			bcopy (src_base, dst, result1 + 2);
-			src += result1;
-			dst += result1 + 2;
-			coding->produced_char += result1 + 2;
-			coding->fake_multibyte = 1;
-		      }
-		    else
-		      {
-			result = CODING_FINISH_INSUFFICIENT_DST;
-			goto label_end_of_loop_2;
-		      }
-		  }
-		else
-		  goto label_end_of_loop;
-	      }
+		 If not, we must give up composing.  */
+	      if (check_composing_code (coding, src, src_end) == 0)
+		{
+		  /* We are looking at a valid composition sequence.  */
+		  coding->composing = (c1 == '0'
+				       ? COMPOSING_NO_RULE_HEAD
+				       : COMPOSING_WITH_RULE_HEAD);
+		  coding->composed_chars = 0;
+		}
+	      else
+		{
+		  *dst++ = ISO_CODE_ESC;
+		  *dst++ = c1;
+		  coding->produced_char += 2;
+		}
 	      break;
 
 	    case '1':		/* end composing */
+	      if (!coding->composing)
+		{
+		  *dst++ = ISO_CODE_ESC;
+		  *dst++ = c1;
+		  coding->produced_char += 2;
+		  break;
+		}
+
 	      if (coding->composed_chars > 0)
 		{
 		  if (coding->composed_chars == 1)
@@ -2002,6 +1990,11 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
       ENCODE_RESET_PLANE_AND_REGISTER;
       if (COMPOSING_P (coding->composing))
 	ENCODE_COMPOSITION_END;
+      if (result == CODING_FINISH_INSUFFICIENT_SRC)
+	{
+	  while (src < src_end && dst < dst_end)
+	    *dst++ = *src++;
+	}
     }
   coding->consumed = src - source;
   coding->produced = coding->produced_char = dst - destination;
@@ -2876,8 +2869,6 @@ setup_coding_system (coding_system, coding)
 
   /* Initialize remaining fields.  */
   coding->composing = 0;
-  coding->translation_table_for_decode = Qnil;
-  coding->translation_table_for_encode = Qnil;
 
   /* Get values of coding system properties:
      `post-read-conversion', `pre-write-conversion',
@@ -3862,6 +3853,7 @@ shrink_decoding_region (beg, end, coding, str)
 {
   unsigned char *begp_orig, *begp, *endp_orig, *endp, c;
   int eol_conversion;
+  Lisp_Object translation_table;
 
   if (coding->type == coding_type_ccl
       || coding->type == coding_type_undecided
@@ -3875,6 +3867,21 @@ shrink_decoding_region (beg, end, coding, str)
       /* We need no conversion, but don't have to skip any data here.
          Decoding routine handles them effectively anyway.  */
       return;
+    }
+
+  translation_table = coding->translation_table_for_decode;
+  if (NILP (translation_table) && !NILP (Venable_character_translation))
+    translation_table = Vstandard_translation_table_for_decode;
+  if (CHAR_TABLE_P (translation_table))
+    {
+      int i;
+      for (i = 0; i < 128; i++)
+	if (!NILP (CHAR_TABLE_REF (translation_table, i)))
+	  break;
+      if (i < 128)
+	/* Some ASCII character should be tranlsated.  We give up
+	   shrinking.  */
+	return;
     }
 
   eol_conversion = (coding->eol_type != CODING_EOL_LF);
@@ -4022,6 +4029,7 @@ shrink_encoding_region (beg, end, coding, str)
 {
   unsigned char *begp_orig, *begp, *endp_orig, *endp;
   int eol_conversion;
+  Lisp_Object translation_table;
 
   if (coding->type == coding_type_ccl)
     /* We can't skip any data.  */
@@ -4031,6 +4039,21 @@ shrink_encoding_region (beg, end, coding, str)
       /* We need no conversion.  */
       *beg = *end;
       return;
+    }
+
+  translation_table = coding->translation_table_for_encode;
+  if (NILP (translation_table) && !NILP (Venable_character_translation))
+    translation_table = Vstandard_translation_table_for_encode;
+  if (CHAR_TABLE_P (translation_table))
+    {
+      int i;
+      for (i = 0; i < 128; i++)
+	if (!NILP (CHAR_TABLE_REF (translation_table, i)))
+	  break;
+      if (i < 128)
+	/* Some ASCII character should be tranlsated.  We give up
+	   shrinking.  */
+	return;
     }
 
   if (str)
@@ -4096,6 +4119,20 @@ shrink_encoding_region (beg, end, coding, str)
   *end += endp - endp_orig;
   return;
 }
+
+/* As shrinking conversion region requires some overhead, we don't try
+   shrinking if the length of conversion region is less than this
+   value.  */
+static int shrink_conversion_region_threshhold = 1024;
+
+#define SHRINK_CONVERSION_REGION(beg, end, coding, str, encodep)	\
+  do {									\
+    if (*(end) - *(beg) > shrink_conversion_region_threshhold)		\
+      {									\
+        if (encodep) shrink_encoding_region (beg, end, coding, str);	\
+        else shrink_decoding_region (beg, end, coding, str);		\
+      }									\
+  } while (0)
 
 /* Decode (if ENCODEP is zero) or encode (if ENCODEP is nonzero) the
    text from FROM to TO (byte positions are FROM_BYTE and TO_BYTE) by
@@ -4240,10 +4277,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 
     if (from < GPT && GPT < to)
       move_gap_both (from, from_byte);
-    if (encodep)
-      shrink_encoding_region (&from_byte, &to_byte, coding, NULL);
-    else
-      shrink_decoding_region (&from_byte, &to_byte, coding, NULL);
+    SHRINK_CONVERSION_REGION (&from_byte, &to_byte, coding, NULL, encodep);
     if (from_byte == to_byte
 	&& ! (coding->mode & CODING_MODE_LAST_BLOCK
 	      && CODING_REQUIRE_FLUSHING (coding)))
@@ -4263,6 +4297,11 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
     to -= tail_skip;
     len -= total_skip; len_byte -= total_skip;
   }
+
+  /* The code conversion routine can not preserve text properties for
+     now.  So, we must remove all text properties in the region.  */
+  if (replace)
+    Fset_text_properties (make_number (from), make_number (to), Qnil, Qnil);
 
   /* For converion, we must put the gap before the text in addition to
      making the gap larger for efficient decoding.  The required gap
@@ -4439,8 +4478,9 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   if (src - dst > 0) *dst = 0; /* Put an anchor.  */
 
   if (multibyte
-      && (fake_multibyte
-	  || !encodep && (to - from) != (to_byte - from_byte)))
+      && (encodep
+	  || fake_multibyte
+	  || (to - from) != (to_byte - from_byte)))
     inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
 
   /* If we have shrinked the conversion area, adjust it now.  */ 
@@ -4562,10 +4602,8 @@ code_convert_string (str, coding, encodep, nocopy)
   else
     {
       /* Try to skip the heading and tailing ASCIIs.  */
-      if (encodep)
-	shrink_encoding_region (&from, &to_byte, coding, XSTRING (str)->data);
-      else
-	shrink_decoding_region (&from, &to_byte, coding, XSTRING (str)->data);
+      SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
+				encodep);
     }
   if (from == to_byte)
     return (nocopy ? str : Fcopy_sequence (str));
@@ -4813,10 +4851,6 @@ code_convert_region1 (start, end, coding_system, encodep)
 
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
     error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
-
-  /* The code conversion routine can not preserve text properties for
-     now.  So, we must remove all text properties in the region.  */
-  Fset_text_properties (start, end, Qnil, Qnil);
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
   code_convert_region (from, CHAR_TO_BYTE (from), to, CHAR_TO_BYTE (to),
