@@ -44,6 +44,8 @@
 
 (require 'compile)
 (require 'comint)
+(require 'find-file)
+(require 'ada-mode)
 
 ;; ------ Use variables
 (defcustom ada-xref-other-buffer t
@@ -515,7 +517,7 @@ All the directories are returned as absolute directories."
      ;; one (in case ada-xref-project-files is nil)
      (or ada-xref-project-files '(nil)))
 
-     (if (not ada-xemacs)
+     (if (not (featurep 'xemacs))
          (if (lookup-key ada-mode-map [menu-bar Ada Project])
              (setcdr (lookup-key ada-mode-map [menu-bar Ada Project])
 		     submenu)))
@@ -726,61 +728,61 @@ The current buffer should be the ada-file buffer."
 	      (let* ((buffer (run-hook-with-args-until-success
 			      'ada-load-project-hook prj-file)))
 		(unless buffer
-	    (setq buffer (find-file-noselect prj-file nil)))
-	  (set-buffer buffer))
+		  (setq buffer (find-file-noselect prj-file nil)))
+		(set-buffer buffer))
 
-	(widen)
-	(goto-char (point-min))
+	      (widen)
+	      (goto-char (point-min))
 
-	;;  Now overrides these values with the project file
-	(while (not (eobp))
-	  (if (looking-at "^\\([^=]+\\)=\\(.*\\)")
-	      (cond
-	       ((string= (match-string 1) "src_dir")
-		(add-to-list 'src_dir
-			     (file-name-as-directory (match-string 2))))
-	       ((string= (match-string 1) "obj_dir")
-		(add-to-list 'obj_dir
-			     (file-name-as-directory (match-string 2))))
-	       ((string= (match-string 1) "casing")
-		(set 'casing (cons (match-string 2) casing)))
-	       ((string= (match-string 1) "build_dir")
-		(set 'project
-		     (plist-put project 'build_dir
-				(file-name-as-directory (match-string 2)))))
-	       ((string= (match-string 1) "make_cmd")
-		(add-to-list 'make_cmd (match-string 2)))
-	       ((string= (match-string 1) "comp_cmd")
-		(add-to-list 'comp_cmd (match-string 2)))
-	       ((string= (match-string 1) "check_cmd")
-		(add-to-list 'check_cmd (match-string 2)))
-	       ((string= (match-string 1) "run_cmd")
-		(add-to-list 'run_cmd (match-string 2)))
-	       ((string= (match-string 1) "debug_pre_cmd")
-		(add-to-list 'debug_pre_cmd (match-string 2)))
-	       ((string= (match-string 1) "debug_post_cmd")
-		(add-to-list 'debug_post_cmd (match-string 2)))
-	       (t
-		(set 'project (plist-put project (intern (match-string 1))
-					 (match-string 2))))))
-	  (forward-line 1))
+	      ;;  Now overrides these values with the project file
+	      (while (not (eobp))
+		(if (looking-at "^\\([^=]+\\)=\\(.*\\)")
+		    (cond
+		     ((string= (match-string 1) "src_dir")
+		      (add-to-list 'src_dir
+				   (file-name-as-directory (match-string 2))))
+		     ((string= (match-string 1) "obj_dir")
+		      (add-to-list 'obj_dir
+				   (file-name-as-directory (match-string 2))))
+		     ((string= (match-string 1) "casing")
+		      (set 'casing (cons (match-string 2) casing)))
+		     ((string= (match-string 1) "build_dir")
+		      (set 'project
+			   (plist-put project 'build_dir
+				      (file-name-as-directory (match-string 2)))))
+		     ((string= (match-string 1) "make_cmd")
+		      (add-to-list 'make_cmd (match-string 2)))
+		     ((string= (match-string 1) "comp_cmd")
+		      (add-to-list 'comp_cmd (match-string 2)))
+		     ((string= (match-string 1) "check_cmd")
+		      (add-to-list 'check_cmd (match-string 2)))
+		     ((string= (match-string 1) "run_cmd")
+		      (add-to-list 'run_cmd (match-string 2)))
+		     ((string= (match-string 1) "debug_pre_cmd")
+		      (add-to-list 'debug_pre_cmd (match-string 2)))
+		     ((string= (match-string 1) "debug_post_cmd")
+		      (add-to-list 'debug_post_cmd (match-string 2)))
+		     (t
+		      (set 'project (plist-put project (intern (match-string 1))
+					       (match-string 2))))))
+		(forward-line 1))
 
-	(if src_dir (set 'project (plist-put project 'src_dir
-					     (reverse src_dir))))
-	(if obj_dir (set 'project (plist-put project 'obj_dir
-					     (reverse obj_dir))))
-	(if casing  (set 'project (plist-put project 'casing
-					     (reverse casing))))
-	(if make_cmd (set 'project (plist-put project 'make_cmd
-					      (reverse make_cmd))))
-	(if comp_cmd (set 'project (plist-put project 'comp_cmd
-					      (reverse comp_cmd))))
-	(if check_cmd (set 'project (plist-put project 'check_cmd
-					       (reverse check_cmd))))
-	(if run_cmd (set 'project (plist-put project 'run_cmd
-					     (reverse run_cmd))))
-	(set 'project (plist-put project 'debug_post_cmd
-				 (reverse debug_post_cmd)))
+	      (if src_dir (set 'project (plist-put project 'src_dir
+						   (reverse src_dir))))
+	      (if obj_dir (set 'project (plist-put project 'obj_dir
+						   (reverse obj_dir))))
+	      (if casing  (set 'project (plist-put project 'casing
+						   (reverse casing))))
+	      (if make_cmd (set 'project (plist-put project 'make_cmd
+						    (reverse make_cmd))))
+	      (if comp_cmd (set 'project (plist-put project 'comp_cmd
+						    (reverse comp_cmd))))
+	      (if check_cmd (set 'project (plist-put project 'check_cmd
+						     (reverse check_cmd))))
+	      (if run_cmd (set 'project (plist-put project 'run_cmd
+						   (reverse run_cmd))))
+	      (set 'project (plist-put project 'debug_post_cmd
+				       (reverse debug_post_cmd)))
 	      (set 'project (plist-put project 'debug_pre_cmd
 				       (reverse debug_pre_cmd)))
 
@@ -833,7 +835,7 @@ The current buffer should be the ada-file buffer."
 
 	;; Add the directories to the search path for ff-find-other-file
 	;; Do not add the '/' or '\' at the end
-	(setq ada-search-directories
+	(setq ada-search-directories-internal
 	     (append (mapcar 'directory-file-name compilation-search-path)
 		     ada-search-directories))
 
@@ -905,7 +907,7 @@ buffer *gnatfind* if it exists."
 		(concat "'\"" (substring entity 1 -1) "\"'"))
 	    entity))
 	 (switches (ada-xref-get-project-field 'gnatfind_opt))
-	 (command (concat "gnatfind " switches " "
+	 (command (concat "gnat find " switches " "
 			  quote-entity
                           (if file (concat ":" (file-name-nondirectory file)))
                           (if line (concat ":" line))
@@ -917,7 +919,10 @@ buffer *gnatfind* if it exists."
     ;;  If a project file is defined, use it
     (if (and ada-prj-default-project-file
 	     (not (string= ada-prj-default-project-file "")))
-        (setq command (concat command " -p" ada-prj-default-project-file)))
+        (if (string-equal (file-name-extension ada-prj-default-project-file)
+                          "gpr")
+            (setq command (concat command " -P" ada-prj-default-project-file))
+          (setq command (concat command " -p" ada-prj-default-project-file))))
 
     (if (and append (get-buffer "*gnatfind*"))
 	(save-excursion
@@ -2231,9 +2236,8 @@ This function typically is to be hooked into `ff-file-created-hooks'."
   "Function called by `ada-mode-hook' to initialize the ada-xref.el package.
 For instance, it creates the gnat-specific menus, sets some hooks for
 find-file...."
-  (make-local-hook 'ff-file-created-hooks)
   ;; This should really be an `add-hook'.  -stef
-  (setq ff-file-created-hooks 'ada-make-body-gnatstub)
+  (setq ff-file-created-hook 'ada-make-body-gnatstub)
 
   ;; Completion for file names in the mini buffer should ignore .ali files
   (add-to-list 'completion-ignored-extensions ".ali")
@@ -2263,7 +2267,7 @@ find-file...."
 (ada-initialize-runtime-library "")
 
 ;;  Add these standard directories to the search path
-(set 'ada-search-directories
+(set 'ada-search-directories-internal
      (append (mapcar 'directory-file-name ada-xref-runtime-library-specs-path)
 	     ada-search-directories))
 
