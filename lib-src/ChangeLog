@@ -1,3 +1,8 @@
+2001-04-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* etags.c (print_help): Enclose the regexp in the help text
+	example in quotes.
+
 2001-04-05  Dave Love  <fx@gnu.org>
 
 	* emacsclient.c (fail): Don't return a value.
