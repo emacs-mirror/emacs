@@ -864,6 +864,7 @@ redisplay_internal (preserve_echo_area)
   int all_windows;
   register int tlbufpos, tlendpos;
   struct position pos;
+  int number_of_frames_redisplayed;
 
   if (noninteractive)
     return;
@@ -888,12 +889,14 @@ redisplay_internal (preserve_echo_area)
      Do this before checking for resized or garbaged frames; they want
      to know if their frames are visible.
      See the comment in frame.h for FRAME_SAMPLE_VISIBILITY.  */
+  number_of_frames_redisplayed = 0;
   {
     Lisp_Object tail, frame;
 
     FOR_EACH_FRAME (tail, frame)
       {
 	FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+	number_of_frames_redisplayed++;
 
 	/* Clear out all the display lines in which we will generate the
 	   glyphs to display.  */
@@ -1303,6 +1306,30 @@ update:
   if (interrupt_input)
     request_sigio ();
   start_polling ();
+
+  /* If something has become visible now which was not before,
+     redisplay again, so that we get them.  */
+  if (!pause)
+    {
+      Lisp_Object tail, frame;
+      int new_count = 0;
+
+      FOR_EACH_FRAME (tail, frame)
+	{
+	  int this_is_visible = 0;
+	  if (XFRAME (frame)->visible)
+	    this_is_visible = 1;
+	  FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+	  if (XFRAME (frame)->visible)
+	    this_is_visible = 1;
+
+	  if (this_is_visible)
+	    new_count++;
+	}
+
+      if (new_count != number_of_frames_redisplayed)
+	windows_or_buffers_changed++;
+    }
 
   /* Change frame size now if a change is pending.  */
   do_pending_window_change ();
@@ -3670,7 +3697,7 @@ display_menu_bar (w)
       XSETFASTINT (XVECTOR (items)->contents[i + 3], hpos);
 
       if (hpos < maxendcol)
-	hpos = display_string (XWINDOW (FRAME_ROOT_WINDOW (f)), vpos,
+	hpos = display_string (w, vpos,
 			       XSTRING (string)->data,
 			       XSTRING (string)->size,
 			       hpos, 0, 0, hpos, maxendcol);
@@ -4405,9 +4432,12 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 				     decode_mode_spec_buf, eol_flag);
 	if (FRAME_TERMCAP_P (f))
 	  {
-	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, eol_flag);
-	    p = decode_mode_spec_coding (terminal_coding.symbol, p, eol_flag);
+	    /* No need to mention EOL here--the terminal never needs
+	       to do EOL conversion.  */
+	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, 0);
+	    p = decode_mode_spec_coding (terminal_coding.symbol, p, 0);
 	  }
+#if 0 /* This proves to be annoying; I think we can do without.  -- rms.  */
 #ifdef subprocesses
 	obj = Fget_buffer_process (Fcurrent_buffer ());
 	if (PROCESSP (obj))
@@ -4418,6 +4448,7 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 					 p, eol_flag);
 	  }
 #endif /* subprocesses */
+#endif /* 0 */
 	*p = 0;
 	return decode_mode_spec_buf;
       }
