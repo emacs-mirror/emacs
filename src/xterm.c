@@ -7722,82 +7722,58 @@ show_mouse_face (dpyinfo, draw)
 {
   struct window *w = XWINDOW (dpyinfo->mouse_face_window);
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int i;
-  int cursor_off_p = 0;
-  struct cursor_pos saved_cursor;
 
-  saved_cursor = output_cursor;
-  
-  /* If window is in the process of being destroyed, don't bother
-     to do anything.  */
-  if (w->current_matrix == NULL)
-    goto set_x_cursor;
-
-  /* Recognize when we are called to operate on rows that don't exist
-     anymore.  This can happen when a window is split.  */
-  if (dpyinfo->mouse_face_end_row >= w->current_matrix->nrows)
-    goto set_x_cursor;
-
-  set_output_cursor (&w->phys_cursor);
-
-  /* Note that mouse_face_beg_row etc. are window relative.  */
-  for (i = dpyinfo->mouse_face_beg_row;
-       i <= dpyinfo->mouse_face_end_row;
-       i++)
+  if (/* If window is in the process of being destroyed, don't bother
+	 to do anything.  */
+      w->current_matrix != NULL
+      /* Recognize when we are called to operate on rows that don't exist
+	 anymore.  This can happen when a window is split.  */
+      && dpyinfo->mouse_face_end_row < w->current_matrix->nrows)
     {
-      int start_hpos, end_hpos, start_x;
-      struct glyph_row *row = MATRIX_ROW (w->current_matrix, i);
+      int phys_cursor_on_p = w->phys_cursor_on_p;
+      struct glyph_row *row, *first, *last;
 
-      /* Don't do anything if row doesn't have valid contents.  */
-      if (!row->enabled_p)
-	continue;
-
-      /* For all but the first row, the highlight starts at column 0.  */
-      if (i == dpyinfo->mouse_face_beg_row)
+      first = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_beg_row);
+      last = MATRIX_ROW (w->current_matrix, dpyinfo->mouse_face_end_row);
+      
+      for (row = first; row <= last && row->enabled_p; ++row)
 	{
-	  start_hpos = dpyinfo->mouse_face_beg_col;
-	  start_x = dpyinfo->mouse_face_beg_x;
-	}
-      else
-	{
-	  start_hpos = 0;
-	  start_x = 0;
+	  int start_hpos, end_hpos, start_x;
+
+	  /* For all but the first row, the highlight starts at column 0.  */
+	  if (row == first)
+	    {
+	      start_hpos = dpyinfo->mouse_face_beg_col;
+	      start_x = dpyinfo->mouse_face_beg_x;
+	    }
+	  else
+	    {
+	      start_hpos = 0;
+	      start_x = 0;
+	    }
+
+	  if (row == last)
+	    end_hpos = dpyinfo->mouse_face_end_col;
+	  else
+	    end_hpos = row->used[TEXT_AREA];
+
+	  if (end_hpos > start_hpos)
+	    {
+	      x_draw_glyphs (w, start_x, row, TEXT_AREA, 
+			     start_hpos, end_hpos, draw, 0);
+
+	      row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
+	    }
 	}
 
-      if (i == dpyinfo->mouse_face_end_row)
-	end_hpos = dpyinfo->mouse_face_end_col;
-      else
-	end_hpos = row->used[TEXT_AREA];
-
-      /* If the cursor's in the text we are about to rewrite, turn the
-	 cursor off.  */
-      if (!w->pseudo_window_p
-	  && i == output_cursor.vpos
-	  && output_cursor.hpos >= start_hpos - 1
-	  && output_cursor.hpos <= end_hpos)
-	{
-	  x_update_window_cursor (w, 0);
-	  cursor_off_p = 1;
-	}
-
-      if (end_hpos > start_hpos)
-	{
-	  x_draw_glyphs (w, start_x, row, TEXT_AREA, 
-			 start_hpos, end_hpos, draw, 0);
-	  row->mouse_face_p = draw == DRAW_MOUSE_FACE || DRAW_IMAGE_RAISED;
-	}
+      /* When we've written over the cursor, arrange for it to
+	 be displayed again.  */
+      if (phys_cursor_on_p && !w->phys_cursor_on_p)
+	x_display_cursor (w, 1,
+			  w->phys_cursor.hpos, w->phys_cursor.vpos,
+			  w->phys_cursor.x, w->phys_cursor.y);
     }
 
-  /* If we turned the cursor off, turn it back on.  */
-  if (cursor_off_p)
-    x_display_cursor (w, 1,
-		      output_cursor.hpos, output_cursor.vpos,
-		      output_cursor.x, output_cursor.y);
-
-  output_cursor = saved_cursor;
-
- set_x_cursor:
-  
   /* Change the mouse cursor.  */
   if (draw == DRAW_NORMAL_TEXT)
     XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
