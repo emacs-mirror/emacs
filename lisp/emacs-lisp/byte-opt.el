@@ -1041,7 +1041,7 @@
       (byte-optimize-predicate form)
     (let ((count (nth 1 form)))
       (setq form (nth 2 form))
-      (while (> (setq count (1- count)) 0)
+      (while (>= (setq count (1- count)) 0)
 	(setq form (list 'cdr form)))
       form)))
 
