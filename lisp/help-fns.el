@@ -238,7 +238,7 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 	  file)))))
 
 ;;;###autoload
-(defface help-argument-name '((((supports :slant italic)) :inherit italic))
+(defface help-argument-name '((t :inherit italic))
   "Face to highlight argument names in *Help* buffers.")
 
 (defun help-default-arg-highlight (arg)
