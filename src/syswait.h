@@ -1,5 +1,5 @@
 /* Define wait system call interface for Emacs.
-   Copyright (C) 1993 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,6 +43,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define WAITTYPE union wait
 #define WRETCODE(w) w.w_retcode
+#undef WCOREDUMP		/* Later BSDs define this name differently.  */
 #define WCOREDUMP(w) w.w_coredump
 
 #if defined (HPUX) || defined (convex)
