@@ -1,3 +1,8 @@
+2000-07-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* syntax.c (Fforward_word): Add last arg nil in call of
+	Fconstrain_to_field.
+
 2000-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (Frename-file) [DOS_NT]: If the file names are
