@@ -693,6 +693,7 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
 See the documentation of `quail-keyboard-layout' for the format of
  the layout string.")
 
+;;;###autoload
 (defun quail-set-keyboard-layout (kbd-type)
   "Set the current keyboard layout to the same as keyboard KBD-TYPE.
 
