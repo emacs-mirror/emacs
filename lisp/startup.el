@@ -382,11 +382,15 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (let ((tail load-path)
 	(thisdir (directory-file-name default-directory)))
     (while (and tail
+		;;Don't go all the way to the nil terminator.
+		(cdr tail)
 		(not (equal thisdir (car tail)))
 		(not (and (memq system-type '(ms-dos windows-nt))
 			  (equal (downcase thisdir) (downcase (car tail))))))
       (setq tail (cdr tail)))
-    (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail)))))
+    ;;Splice the new section in.
+    (when tail
+      (setcdr tail (append (mapcar 'expand-file-name dirs) (cdr tail))))))
 
 (defun normal-top-level ()
   (if command-line-processed
