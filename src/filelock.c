@@ -120,6 +120,10 @@ static int boot_time_initialized;
 
 extern Lisp_Object Vshell_file_name;
 
+#ifdef BOOT_TIME
+static void get_boot_time_1 P_ ((char *, int));
+#endif
+
 static time_t
 get_boot_time ()
 {
@@ -241,6 +245,7 @@ get_boot_time ()
    Ignore all reboot records on or before BOOT_TIME.
    Success is indicated by setting BOOT_TIME to a larger value.  */
 
+void
 get_boot_time_1 (filename, newest)
      char *filename;
      int newest;
