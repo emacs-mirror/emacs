@@ -545,7 +545,6 @@ extern Lisp_Object make_number ();
 #define SDATA(string)		XSTRING (string)->data
 #define SCHARS(string)		XSTRING (string)->size
 #define SBYTES(string)		STRING_BYTES (XSTRING (string))
-#define SMBP(string)		STRING_MULTIBYTE (string)
 
 
 /* Basic data type for use of intervals.  See the macros in intervals.h.  */
@@ -681,8 +680,11 @@ extern int string_bytes P_ ((struct Lisp_String *));
 
 #endif /* not GC_CHECK_STRING_BYTES */
 
-/* Set the length in bytes of STR.  */
-#define SET_STRING_BYTES(STR, SIZE)  ((STR)->size_byte = (SIZE))
+/* Mark STR as a unibyte string.  */
+#define STRING_SET_UNIBYTE(STR)      (XSTRING (STR)->size_byte = -1)
+
+/* Get text properties.  */
+#define STRING_INTERVALS(STR)  (XSTRING (STR)->intervals)
 
 /* In a string or vector, the sign bit of the `size' is the gc mark bit */
 
