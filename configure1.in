@@ -33,7 +33,6 @@ dnl explaining how to rebuild it.
 ### along with GNU Emacs; see the file COPYING.  If not, write to
 ### the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
 ### Since Emacs has configuration requirements that autoconf can't
 ### meet, this file is an unholy marriage of custom-baked
 ### configuration code and autoconf macros.
@@ -47,7 +46,6 @@ dnl explaining how to rebuild it.
 ### If configure succeeds, it leaves its status in config.status.
 ### If configure fails after disturbing the status quo,
 ### 	config.status is removed.
-
 
 ### Remove any more than one leading "." element from the path name.
 ### If we don't remove them, then another "./" will be prepended to
@@ -64,6 +62,31 @@ dnl explaining how to rebuild it.
 progname="`echo $0 | sed 's:^\./\./:\./:'`"
 
 
+### Establish some default values.
+run_in_place=
+single_tree=
+prefix='/usr/local'
+exec_prefix='${prefix}'
+bindir='${exec_prefix}/bin'
+datadir='${prefix}/lib'
+statedir='${prefix}/lib'
+libdir='${exec_prefix}/lib'
+mandir='${prefix}/man/man1'
+infodir='${prefix}/info'
+lispdir='${datadir}/emacs/${version}/lisp'
+locallisppath='${datadir}/emacs/site-lisp'
+lisppath='${locallisppath}:${lispdir}'
+etcdir='${datadir}/emacs/${version}/etc'
+lockdir='${statedir}/emacs/lock'
+archlibdir='${libdir}/emacs/${version}/${configuration}'
+
+# We cannot use this variable in the case statement below, because many
+# /bin/sh's have broken semantics for "case".  Unfortunately, you must
+# actually edit the clause itself.
+# path_options="prefix | exec_prefix | bindir | libdir | etcdir | datadir"
+# path_options="$path_options | archlibdir | statedir | mandir | infodir"
+# path_options="$path_options | lispdir | lockdir | lisppath | locallisppath"
+
 #### Usage messages.
 
 short_usage="Usage: ${progname} CONFIGURATION [-OPTION[=VALUE] ...]
@@ -78,8 +101,20 @@ CONFIGURATION specifies the machine and operating system to build for.
 --with-gcc=no		Don't use GCC to compile Emacs.
 --run-in-place		Use libraries and data files directly out of the 
 			source tree.
---srcdir=DIR		Look for source in DIR.
---prefix=DIR		Install files below dir.
+--single-tree=DIR	Has the effect of creating a directory tree at DIR
+			which looks like:
+			  .../DIR/bin/CONFIGNAME (emacs, etags, etc.)
+			  .../DIR/bin/CONFIGNAME/etc (movemail, etc.)
+			  .../DIR/common/lisp  (emacs' lisp files)
+			  .../DIR/common/site-lisp (local lisp files)
+			  .../DIR/common/lib (DOC, TUTORIAL, etc.)
+			  .../DIR/common/lock (lockfiles)
+--srcdir=DIR		Look for the Emacs source files in DIR.
+--prefix=DIR		Install files below DIR. Defaults to \`${prefix}'.
+
+You may also specify any of the \`path' variables found in Makefile.in,
+including --bindir, --libdir, --etcdir, --infodir, and so on.  This allows
+you to override a single default location when configuring.
 
 If successful, ${progname} leaves its status in config.status.  If
 unsuccessful after disturbing the status quo, it removes config.status."
@@ -89,16 +124,6 @@ unsuccessful after disturbing the status quo, it removes config.status."
 
 ### Record all the arguments, so we can save them in config.status.
 arguments="$@"
-
-### These values are used to comment and uncomment different values
-### for the path variables in the Makefile, to choose the installed
-### configuration or the run-in-place configuration.
-rip_paths='#disabled# '
-inst_paths=''
-
-### Establish some default values.
-prefix='/usr/local'
-exec_prefix='${prefix}'
 
 ### Don't use shift -- that destroys the argument list, which autoconf needs
 ### to produce config.status.  It turns out that "set - ${arguments}" doesn't
@@ -111,7 +136,6 @@ while [ $index -lt $# ]; do
 
     ## Anything starting with a hyphen we assume is an option.
     -* )
-
       ## Separate the switch name from the value it's being given.
       case "${arg}" in
         -*=*)
@@ -195,7 +219,7 @@ Set it to either \`yes' or \`no'."
 	    ## Get the next argument from the argument list, if there is one.
             if [ $index = $# ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
-    \`--${optname}=FOO'."
+    \`--${optname}=/usr/local/X11/include'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
@@ -210,7 +234,7 @@ Set it to either \`yes' or \`no'."
 	    ## Get the next argument from the argument list, if there is one.
             if [ $index = $# ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
-    \`--${optname}=FOO'."
+    \`--${optname}=/usr/local/X11/lib'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
@@ -222,43 +246,30 @@ Set it to either \`yes' or \`no'."
 
 	## Should this use the "development configuration"?
 	"run_in_place" )
-	  rip_paths=''
-	  inst_paths='#disabled# '
+	  single_tree=
+	  run_in_place=1
 	;;
 
-	## Has the user specified an installation prefix?
-	"prefix" )
-	  ## If the value was omitted, get it from the next argument.
-	  if [ "${valomitted}" = "yes" ]; then
-	    ## Get the next argument from the argument list, if there is one.
-            if [ $index = $# ]; then
-	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
-    \`--${optname}=FOO'."
-	       echo "${short_usage}") >&2
-	      exit 1
-	    fi
-            index=`expr $index + 1`
-            val=`eval echo '$'$index`
-	  fi
-	  prefix="${val}"
-        ;;
-
-	## Has the user specified an installation prefix?
-	"exec_prefix" )
-	  ## If the value was omitted, get it from the next argument.
-	  if [ "${valomitted}" = "yes" ]; then
-	    ## Get the next argument from the argument list, if there is one.
-            if [ $index = $# ]; then
-	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
-    \`--${optname}=FOO'."
-	       echo "${short_usage}") >&2
-	      exit 1
-	    fi
-            index=`expr $index + 1`
-            val=`eval echo '$'$index`
-	  fi
-	  exec_prefix="${val}"
-        ;;
+	## Has the user specified one of the path options?
+	prefix | exec_prefix | bindir | libdir | etcdir | datadir | \
+	archlibdir | statedir | mandir | infodir | lispdir | lockdir | \
+	lisppath | locallisppath )
+	   ## If the value was omitted, get it from the next argument.
+	   if [ "${valomitted}" = "yes" ]; then
+	      if [ $index = $# ]; then
+		 (echo \
+"$progname: You must give a value for the \`--${optname}' option,";
+		  echo \
+"as in \`--${optname}=`eval echo '$'$optname`.'"
+		  echo "$short_usage") >&2
+		 exit 1
+	      fi
+	      index=`expr $index + 1`
+	      val=`eval echo '$'$index`
+	   fi
+	   eval "${optname}=\"${val}\""
+	   eval "${optname}_specified=1"
+	;;
 
 	## Verbose flag, tested by autoconf macros.
 	"verbose" )
@@ -1252,15 +1263,25 @@ fi
 AC_SUBST(configuration)
 AC_SUBST(version)
 AC_SUBST(srcdir)
+AC_SUBST(prefix)
+AC_SUBST(exec_prefix)
+AC_SUBST(bindir)
+AC_SUBST(datadir)
+AC_SUBST(statedir)
+AC_SUBST(libdir)
+AC_SUBST(mandir)
+AC_SUBST(infodir)
+AC_SUBST(lispdir)
+AC_SUBST(locallisppath)
+AC_SUBST(lisppath)
+AC_SUBST(etcdir)
+AC_SUBST(lockdir)
+AC_SUBST(archlibdir)
 AC_SUBST(c_switch_system)
 AC_SUBST(libsrc_libs)
-AC_SUBST(rip_paths)
-AC_SUBST(inst_paths)
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(CFLAGS)
-AC_SUBST(prefix)
-AC_SUBST(exec_prefix)
 
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
@@ -1291,6 +1312,53 @@ if [ "${LISP_FLOAT_TYPE}" = "yes" ] ; then
   ] AC_DEFINE(LISP_FLOAT_TYPE) [
 fi
 
+# ====================== Developer's configuration =======================
+
+# The following assignments make sense if you're running Emacs on a single
+# machine, one version at a time, and  you want changes to the lisp and etc
+# directories in the source tree to show up immediately in your working
+# environment.  It saves a great deal of disk space by not duplicating the
+# lisp and etc directories.
+
+if [ "$run_in_place" = "1" ]; then
+   lispdir='${srcdir}/lisp'
+   locallisppath='${srcdir}/site-lisp:${datadir}/emacs/site-lisp'
+   etcdir='${srcdir}/etc'
+   lockdir='${srcdir}/lock'
+   archlibdir='${srcdir}/lib-src'
+   infodir='${srcdir}/info'
+elif [ "$single_tree" = "1" ]; then
+   if [ "$exec_prefix_specified" = "" ]; then
+      exec_prefix='${prefix}'
+   fi
+   if [ "$bindir_specified" = "" ]; then
+      bindir='${exec_prefix}/bin/${configuration}'
+   fi
+   if [ "$datadir_specified" = "" ]; then
+      datadir='${prefix}/common'
+   fi
+   if [ "$statedir_specified" = "" ]; then
+      statedir='${prefix}/common'
+   fi
+   if [ "$libdir_specified" = "" ]; then
+      libdir='${bindir}'
+   fi
+   if [ "$lispdir_specified" = "" ]; then
+      lispdir='${prefix}/common/lisp'
+   fi
+   if [ "$locallisppath_specified" = "" ]; then
+      locallisppath='${prefix}/common/site-lisp'
+   fi
+   if [ "$lockdir_specified" = "" ]; then
+      lockdir='${prefix}/common/lock'
+   fi
+   if [ "$archlibdir_specified" = "" ]; then
+      archlibdir='${libdir}/etc'
+   fi
+   if [ "$etcdir_specified" = "" ]; then
+      etcdir='${prefix}/common/data'
+   fi
+fi
 
 #### Report on what we decided to do.
 echo "
@@ -1315,4 +1383,41 @@ test -n "${prefix}" &&
 test -n "${exec_prefix}" &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
-AC_OUTPUT(Makefile)
+AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile src/Makefile.in)
+[
+# Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
+# after src/config.h is built, since we rely on that file.  Only do the
+# build if "config.status" is present, since it's non-presence indicates
+# an error occured.
+status=$?
+if [ ! -f ./config.status ]; then
+   exit $status
+fi
+topsrcdir=${srcdir}
+makefile_command='echo "creating src/Makefile";
+  topsrcdir='"${topsrcdir}"';
+( cd ./src;
+  cp ${topsrcdir}/src/Makefile.in junk.c;
+  eval `echo ${CPP} -I${topsrcdir}/src ${CPPFLAGS} junk.c \>junk.cpp`;
+  < junk.cpp							'\
+'    sed -e '\''s/^#.*//'\''					'\
+'	-e '\''s/^[ \f\t][ \f\t]*$//'\''			'\
+'	-e '\''s/^ /	/'\'' 					'\
+'	| sed -n -e '\''/^..*$/p'\''				'\
+'	> Makefile.new;
+    mv -f Makefile.new Makefile;
+    chmod 444 Makefile;
+    rm -f junk.c junk.cpp;
+)'
+eval `echo $makefile_command`
+# AC-OUTPUT has created `config.status' already.  We need to add the above
+# commands to re-create `src/Makefile', and we need to insert them before
+# the final "exit 0" which appears at the end of `config.status'.
+<config.status sed -e 's/^exit 0$//' >config.new
+echo $makefile_command >>config.new
+echo exit 0 >>config.new
+mv -f config.new config.status
+chmod +x config.status
+exit 0
+]
+
