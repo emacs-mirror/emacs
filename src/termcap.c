@@ -289,12 +289,14 @@ tgetst1 (ptr, area)
 
 /* Outputting a string with padding.  */
 
+#ifndef emacs
+short ospeed;
 /* If OSPEED is 0, we use this as the actual baud rate.  */
 int tputs_baud_rate;
+#endif
 char PC;
 
-#if 0 /* Doesn't seem to be used anymore.  */
-
+#ifndef emacs
 /* Actual baud rate if positive;
    - baud rate / 100 if negative.  */
 
@@ -309,7 +311,7 @@ static int speeds[] =
 #endif /* not VMS */
   };
 
-#endif /* 0  */
+#endif /* not emacs */
 
 void
 tputs (str, nlines, outfun)
@@ -320,12 +322,19 @@ tputs (str, nlines, outfun)
   register int padcount = 0;
   register int speed;
 
+#ifdef emacs
   extern int baud_rate;
   speed = baud_rate;
   /* For quite high speeds, convert to the smaller
      units to avoid overflow.  */
   if (speed > 10000)
     speed = - speed / 100;
+#else
+  if (ospeed == 0)
+    speed = tputs_baud_rate;
+  else
+    speed = speeds[ospeed];
+#endif
 
   if (!str)
     return;
