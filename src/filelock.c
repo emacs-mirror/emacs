@@ -42,7 +42,7 @@ extern int errno;
 extern char *egetenv ();
 extern char *strcpy ();
 
-#ifndef (__386bsd__)
+#ifndef __386bsd__
 extern struct passwd *getpwuid ();
 #endif
 
