@@ -1,5 +1,8 @@
 2000-01-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (Fother_buffer): Don't call Fset_buffer_major_mode
+	for *scratch* if it already existed.
+
 	* emacs.c (USAGE): New macro.
 	(main): Use it to display usage information.
 

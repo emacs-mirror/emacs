@@ -1,5 +1,14 @@
 2000-01-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/cl-macs.el (cl-parse-loop-clause): Recognize
+	`collecting' as synonym for `collect'.
+
+	* ange-ftp.el (ange-ftp-copy-file-internal): Quote new name
+	for the case it contains spaces.
+
+	* simple.el (what-cursor-position): Change formatting of
+	messages.
+
 	* frame.el (delete-other-frames): New function.
 	(toplevel): Bind it to C-x 5 1.
 
