@@ -79,6 +79,10 @@
 (if (fboundp 'new-fontset)
     (require 'fontset))
 
+;; FIXME: this is temporary for v21.1, since many redisplay problems
+;; happen if redisplay-dont-pause is nil.
+(setq redisplay-dont-pause t)
+
 ;; Because Windows scrollbars look and act quite differently compared
 ;; with the standard X scroll-bars, we don't try to use the normal
 ;; scroll bar routines.
