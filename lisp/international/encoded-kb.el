@@ -177,14 +177,46 @@ The following key sequence may cause multilingual text insertion."
       (setq str (format "%s%c" str (read-char-exclusive))))
     (vector (aref result 0))))
 
+
+;; Decode list of codes in CODE-LIST by CHARSET and return the decoded
+;; characters.  If CODE-LIST is too short for the dimension of
+;; CHARSET, read new codes and append them to the tail of CODE-LIST.
+;; Return nil if CODE-LIST can't be decoded.
+
+(defun encoded-kbd-decode-code-list (charset code-list)
+  (let ((dimension (charset-dimension charset))
+	code)
+    (while (> dimension (length code-list))
+      (nconc code-list (list (read-char-exclusive))))
+    (setq code (car code-list))
+    (if (= dimension 1)
+	(decode-char charset code)
+      (setq code-list (cdr code-list)
+	    code (logior (lsh code 8) (car code-list)))
+      (if (= dimension 2)
+	  (decode-char charset code)
+	(setq code-list (cdr code-list)
+	      code (logior (lsh code 8) (car code-list)))
+	(if (= dimension 3)
+	    (decode-char charset code)
+	  ;; As Emacs can't handle full 32-bit integer, we must give a
+	  ;; cons of higher and lower 16-bit codes to decode-char.
+	  (setq code (cons (lsh code -8)
+			   (logior (lsh (car code-list) 8) (cadr code-list))))
+	  (decode-char charset code))))))
+
 (defun encoded-kbd-self-insert-charset (ignore)
-  (let* ((charset-list
-	  (coding-system-get (keyboard-coding-system) :charset-list))
-	 (charset (car charset-list))
-	 ;; For the moment, we can assume that the length of CHARSET-LIST
-	 ;; is 1, and the dimension of CHARSET is 1.
-	 (char (encoded-kbd-last-key)))
-    (vector (or (decode-char charset char) char))))
+  (let ((charset-list
+	 (coding-system-get (keyboard-coding-system) :charset-list))
+	(code-list (list (encoded-kbd-last-key)))
+	tail char)
+    (while (and charset-list (not char))
+      (setq char (encoded-kbd-decode-code-list (car charset-list) code-list)
+	    charset-list (cdr charset-list)))
+    (if char
+	(vector char)
+      (setq unread-command-events (cdr code-list))
+      (vector (car code-list)))))
 
 (defun encoded-kbd-self-insert-utf-8 (arg)
   (interactive "p")
@@ -217,14 +249,19 @@ The following key sequence may cause multilingual text insertion."
     8)
 
    ((eq (coding-system-type coding) 'charset)
-    (let* ((charset (car (coding-system-get coding :charset-list)))
-	   (code-space (get-charset-property charset :code-space))
-	   (from (max (aref code-space 0) 128))
-	   (to (aref code-space 1)))
-      (while (<= from to)
-	(define-key key-translation-map
-	  (vector from) 'encoded-kbd-self-insert-charset)
-	(setq from (1+ from))))
+    (dolist (elt (mapcar
+		  #'(lambda (x) 
+		      (let ((dim (charset-dimension x))
+			    (code-space (get-charset-property x :code-space)))
+			(cons (aref code-space (* (1- dim) 2))
+			      (aref code-space (1+ (* (1- dim) 2))))))
+		  (coding-system-get coding :charset-list)))
+      (let ((from (max (car elt) 128))
+	    (to (cdr elt)))
+	(while (<= from to)
+	  (define-key key-translation-map
+	    (vector from) 'encoded-kbd-self-insert-charset)
+	  (setq from (1+ from)))))
     8)
 
    ((eq (coding-system-type coding) 'iso-2022)
