@@ -3307,11 +3307,12 @@ by `current-window-configuration' (which see).")
 
       if (XFASTINT (data->frame_height) != previous_frame_height
 	  || XFASTINT (data->frame_width) != previous_frame_width)
-	change_frame_size (f, data->frame_height, data->frame_width, 0, 0);
+	change_frame_size (f, XFASTINT (data->frame_height),
+			   XFASTINT (data->frame_width), 0, 0);
 #if defined (HAVE_WINDOW_SYSTEM) || defined (MSDOS)
       if (XFASTINT (data->frame_menu_bar_lines)
 	  != previous_frame_menu_bar_lines)
-	x_set_menu_bar_lines (f, data->frame_menu_bar_lines, 0);
+	x_set_menu_bar_lines (f, data->frame_menu_bar_lines, make_number (0));
 #endif
 
       if (! NILP (XWINDOW (selected_window)->buffer))
@@ -3462,7 +3463,8 @@ by `current-window-configuration' (which see).")
 			   0, 0);
 #if defined (HAVE_WINDOW_SYSTEM) || defined (MSDOS)
       if (previous_frame_menu_bar_lines != FRAME_MENU_BAR_LINES (f))
-	x_set_menu_bar_lines (f, previous_frame_menu_bar_lines, 0);
+	x_set_menu_bar_lines (f, make_number (previous_frame_menu_bar_lines),
+			      make_number (0));
 #endif
 
       UNBLOCK_INPUT;
