@@ -506,18 +506,21 @@ Has a preference of looking backwards."
 					 (match-end 1))))))))
     (error nil)))
 
+(defvar get-method-definition-md)
+
 ;; Subroutine used within get-method-definition.
 ;; Add the last match in the buffer to the end of `md',
 ;; followed by the string END; move to the end of that match.
 (defun get-method-definition-1 (end)
-  (setq md (concat md 
-		   (buffer-substring (match-beginning 1) (match-end 1))
-		   end))
+  (setq get-method-definition-md
+	(concat get-method-definition-md 
+		(buffer-substring (match-beginning 1) (match-end 1))
+		end))
   (goto-char (match-end 0)))
 
 ;; For objective C, return the method name if we are in a method.
 (defun get-method-definition ()
-  (let ((md "["))
+  (let ((get-method-definition-md "["))
     (save-excursion
       (if (re-search-backward "^@implementation\\s-*\\([A-Za-z_]*\\)" nil t)
 	  (get-method-definition-1 " ")))
@@ -529,7 +532,7 @@ Has a preference of looking backwards."
 	  (looking-at
 	   "\\([A-Za-z_]*:?\\)\\s-*\\(([^)]*)\\)?[A-Za-z_]*[ \t\n\f\r]*")
 	  (get-method-definition-1 ""))
-	(concat md "]"))))))
+	(concat get-method-definition-md "]"))))))
 
 
 (provide 'add-log)
