@@ -1,11 +1,11 @@
 /* GNU Emacs routines to deal with syntax tables; also word and list parsing.
-   Copyright (C) 1985, 1987 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1987, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -1094,7 +1094,7 @@ scan_sexps_forward (from, end, targetdepth, stopbefore, oldstate)
    for make-docfile to see.  We cannot put this in the real DEFUN
    due to limits in the Unix cpp.
 
-DEFUN ("parse-partial-sexp", Ffoo, Sfoo, 0, 0, 0,
+DEFUN ("parse-partial-sexp", Ffoo, Sfoo, 2, 5, 0,
   "Parse Lisp syntax starting at FROM until TO; return status of parse at TO.\n\
 Parsing stops at TO or when certain criteria are met;\n\
  point is set to where parsing stops.\n\
@@ -1114,8 +1114,9 @@ in parentheses becomes equal to TARGETDEPTH.\n\
 Fourth arg STOPBEFORE non-nil means stop when come to\n\
  any character that starts a sexp.\n\
 Fifth arg STATE is a seven-list like what this function returns.\n\
-It is used to initialize the state of the parse.")
-
+It is used to initialize the state of the parse.  Its second and third
+elements are ignored.")
+  (from, to, targetdepth, stopbefore, state)
 */
 
 DEFUN ("parse-partial-sexp", Fparse_partial_sexp, Sparse_partial_sexp, 2, 5, 0,
