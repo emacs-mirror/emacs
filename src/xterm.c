@@ -10607,6 +10607,27 @@ XTread_socket (sd, bufp, numchars, expected)
 #ifdef XK_dead_abovedot
 			   || orig_keysym == XK_dead_abovedot
 #endif
+#ifdef XK_dead_abovering
+			   || orig_keysym == XK_dead_abovering
+#endif
+#ifdef XK_dead_iota
+			   || orig_keysym == XK_dead_iota
+#endif
+#ifdef XK_dead_belowdot
+			   || orig_keysym == XK_dead_belowdot
+#endif
+#ifdef XK_dead_voiced_sound
+			   || orig_keysym == XK_dead_voiced_sound
+#endif
+#ifdef XK_dead_semivoiced_sound
+			   || orig_keysym == XK_dead_semivoiced_sound
+#endif
+#ifdef XK_dead_hook
+			   || orig_keysym == XK_dead_hook
+#endif
+#ifdef XK_dead_horn
+			   || orig_keysym == XK_dead_horn
+#endif
 			   || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 			   || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
 			   /* Any "vendor-specific" key is ok.  */
@@ -10655,7 +10676,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			  if (/* If the event is not from XIM, */
 			      event.xkey.keycode != 0
 			      /* or the current locale doesn't request
-				 decoding of the intup data, ... */
+				 decoding of the input data, ... */
 			      || ! CODING_REQUIRE_DECODING (&coding))
 			    {
 			      /* ... we can use the input data as is.  */
