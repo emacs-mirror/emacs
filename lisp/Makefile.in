@@ -132,7 +132,7 @@ setwins=subdirs=`find $$wd -type d -print`; \
 	   esac; \
         done
 
-finder_setwins=subdirs=`find $$wd -type d -print`; \
+setwins_almost=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete | */term ) ;; \
 		*) wins="$$wins $$file" ;; \
@@ -144,12 +144,12 @@ doit:
 cus-load.el:
 	touch $@
 custom-deps: cus-load.el doit
-	wd=$(lisp); $(setwins); \
+	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(EMACS) $(EMACSOPT) -l cus-dep -f custom-make-dependencies $$wins
 
 finder-data: doit
-	wd=$(lisp); $(finder_setwins); \
+	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(EMACS) $(EMACSOPT) -l finder -f finder-compile-keywords-make-dist $$wins
 
