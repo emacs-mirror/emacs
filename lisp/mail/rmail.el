@@ -665,8 +665,7 @@ Instead, these commands are available:
 	(progn
 	  (rmail-convert-file)
 	  (goto-char (point-max))
-	  (rmail-set-message-counters)
-	  (rmail-show-message)))))
+	  (rmail-mode)))))
 
 ;; Return a list of files from this buffer's Mail: option.
 ;; Does not assume that messages have been parsed.
