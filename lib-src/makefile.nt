@@ -308,13 +308,6 @@ $(BLD)\emacsclient.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h
 
-$(BLD)\emacsserver.obj : \
-	$(SRC)\emacsserver.c \
-	$(EMACS_ROOT)\src\s\ms-w32.h \
-	$(EMACS_ROOT)\src\m\intel386.h \
-	$(EMACS_ROOT)\lib-src\..\src\config.h \
-	$(EMACS_ROOT)\nt\inc\sys\file.h
-
 $(BLD)\emacstool.obj : \
 	$(SRC)\emacstool.c \
 	$(EMACS_ROOT)\nt\inc\sys\file.h

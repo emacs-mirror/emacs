@@ -107,7 +107,7 @@ INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
 UTILITIES=  profile digest-doc sorted-doc movemail cvtmail fakemail \
-            yow emacsserver hexl update-game-score
+            yow hexl update-game-score
 
 DONT_INSTALL= test-distrib make-docfile
 
@@ -434,9 +434,6 @@ fakemail: ${srcdir}/fakemail.c ../src/config.h
 
 yow: ${srcdir}/yow.c ../src/epaths.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/yow.c $(LOADLIBES) -o yow
-
-emacsserver: ${srcdir}/emacsserver.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsserver.c $(LOADLIBES) -o emacsserver
 
 emacsclient: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(GETOPTOBJS)  \
