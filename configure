@@ -7295,7 +7295,7 @@ fi
 
 
 # Do we need the Hesiod library to provide the support routines?
-if test "$with_hesiod" == yes ; then
+if test "$with_hesiod" = yes ; then
   # Don't set $LIBS here -- see comments above.
   resolv=no
   echo $ac_n "checking for res_send""... $ac_c" 1>&6

@@ -1,3 +1,8 @@
+2001-10-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Use `=' instead of `=='.  From Kenichi Handa
+	<handa@etl.go.jp>.
+
 2001-10-18  Ken Raeburn  <raeburn@mit.edu>
 
 	* configure.in: If --with-hesiod is given, look for
