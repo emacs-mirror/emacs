@@ -187,12 +187,15 @@ These supersede the values given in `default-frame-alist'.")
 	(delete-frame terminal-frame)
 	(setq terminal-frame nil))
 
-    ;; No, we're not running a window system.  Arrange to cause errors.
+    ;; No, we're not running a window system.  Use make-terminal-frame if
+    ;; we support that feature, otherwise arrange to cause errors.
     (setq frame-creation-function
-	  (function
-	   (lambda (parameters)
-	     (error
-	      "Can't create multiple frames without a window system"))))))
+	  (if (fboundp 'make-terminal-frame)
+	      'make-terminal-frame
+	    (function
+	     (lambda (parameters)
+	       (error
+		"Can't create multiple frames without a window system")))))))
 
 ;;; startup.el calls this function after loading the user's init
 ;;; file.  Now default-frame-alist and initial-frame-alist contain
