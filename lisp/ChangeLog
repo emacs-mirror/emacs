@@ -1,3 +1,7 @@
+2002-05-19  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-match-end): Simplify it a bit.
+
 2002-05-19  Richard M. Stallman  <rms@gnu.org>
 
 	* indent.el (indent-region): Make COLUMN arg optional.
