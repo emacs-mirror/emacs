@@ -1,7 +1,11 @@
 2002-05-31  Dave Love  <fx@gnu.org>
 
+	* international/mule-conf.el (chinese-sisheng, ipa) 
+	(indian-is13194, tibetan, ethiopic): Add :unify-map.
+
 	* international/mule-diag.el (describe-character-set): Account for
 	more than two dimensions of possibly different size.
+	(describe-current-coding-system): Add selection-coding-system.
 
 	* international/mule-cmds.el (unify-8859-on-encoding-mode)
 	(unify-8859-on-decoding-mode): Moved from mule.el.

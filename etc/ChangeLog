@@ -1,3 +1,9 @@
+2002-05-31  Dave Love  <fx@gnu.org>
+
+	* charsets/tibetan.map, charsets/sisheng.map:
+	* charsets/is13194.map, charsets/ipa.map, charsets/ethiopic.map:
+	New files.
+
 2002-05-29  Kenichi Handa  <handa@etl.go.jp>
 
 	* charsets/gb18030-2.awk: New file.
