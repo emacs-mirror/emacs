@@ -569,11 +569,13 @@ typedef unsigned char UCHAR;
 #define COMPILED_DOC_STRING 4
 #define COMPILED_INTERACTIVE 5
 
-/* Flag bits in a character.  */
-
-#define CHAR_META 0x800000
-#define CHAR_CTL  0x400000
-#define CHAR_SHIFT 0x200000
+/* Flag bits in a character.  These also get used in termhooks.h.  */
+#define CHAR_ALT   (0x020000)
+#define CHAR_SUPER (0x040000)
+#define CHAR_HYPER (0x080000)
+#define CHAR_SHIFT (0x100000)
+#define CHAR_CTL   (0x200000)
+#define CHAR_META  (0x400000)
 
 /* Data type checking */
 
@@ -936,8 +938,8 @@ extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 extern Lisp_Object Qend_of_file, Qarith_error;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
 
-Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
-Lisp_Object Qoverflow_error, Qunderflow_error;
+extern Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
+extern Lisp_Object Qoverflow_error, Qunderflow_error;
 
 extern Lisp_Object Qintegerp, Qnumberp, Qnatnump, Qsymbolp, Qlistp, Qconsp;
 extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
@@ -1041,6 +1043,7 @@ extern Lisp_Object Vobarray, Vstandard_input;
 extern Lisp_Object Fread (), Fread_from_string ();
 extern Lisp_Object Fintern (), Fintern_soft (), Fload ();
 extern Lisp_Object Fget_file_char (), Fread_char ();
+extern Lisp_Object read_filtered_event ();
 extern Lisp_Object Feval_current_buffer (), Feval_region ();
 extern Lisp_Object intern (), oblookup ();
 #define LOADHIST_ATTACH(x) \
