@@ -1958,7 +1958,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
       if (parlev == 0)
 	{
 	  objdef = omethodtag;
-	  methodlen =+ len;
+	  methodlen += len;
 	  GROW_LINEBUFFER (token_name, methodlen+1);
 	  strncat (token_name.buffer, str, len);
 	  return TRUE;
