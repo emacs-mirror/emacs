@@ -147,20 +147,26 @@ Prefix arg means just kill any existing server communications subprocess."
       (progn
 	(set-process-sentinel server-process nil)
 	(condition-case () (delete-process server-process) (error nil))))
-  (condition-case () (delete-file "~/.emacs_server") (error nil))
+  ;; Delete the socket files made by previous server invocations.
   (let* ((sysname (system-name))
 	 (dot-index (string-match "\\." sysname)))
+    (condition-case ()
+	(delete-file (format "~/.emacs-server-%s" sysname))
+      (error nil))
     (condition-case ()
 	(delete-file (format "/tmp/esrv%d-%s" (user-uid) sysname))
       (error nil))
     ;; In case the server file name was made with a domainless hostname,
     ;; try deleting that name too.
     (if dot-index
-	(condition-case ()
-	    (delete-file (format "/tmp/esrv%d-%s" (user-uid)
-				 (substring sysname 0 dot-index)))
-	  (error nil))))
-  ;; If we already had a server, clear out associated status.
+	(let ((shortname (substring sysname 0 dot-index)))
+	  (condition-case ()
+	      (delete-file (format "~/.emacs-server-%s" shortname))
+	    (error nil))
+	  (condition-case ()
+	      (delete-file (format "/tmp/esrv%d-%s" (user-uid) shortname))
+	    (error nil)))))
+  ;; If this Emacs already had a server, clear out associated status.
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))
       (server-buffer-done buffer)))
