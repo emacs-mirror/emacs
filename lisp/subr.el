@@ -191,6 +191,33 @@ The comparison is done with `eq'."
       (delq elt (copy-sequence list))
     list))
 
+(defun copy-list (list)
+  "Return a copy of a list, which may be a dotted list.
+The elements of the list are not copied, just the list structure itself."
+  (if (consp list)
+      (let ((res nil))
+	(while (consp list) (push (pop list) res))
+	(prog1 (nreverse res) (setcdr res list)))
+    (car list)))
+
+(defun copy-tree (tree &optional vecp)
+  "Make a copy of TREE.
+If TREE is a cons cell, this recursively copies both its car and its cdr.
+Contrast to copy-sequence, which copies only along the cdrs.  With second
+argument VECP, this copies vectors as well as conses."
+  (if (consp tree)
+      (let ((p (setq tree (copy-list tree))))
+	(while (consp p)
+	  (if (or (consp (car p)) (and vecp (vectorp (car p))))
+	      (setcar p (copy-tree (car p) vecp)))
+	  (or (listp (cdr p)) (setcdr p (copy-tree (cdr p) vecp)))
+	  (cl-pop p)))
+    (if (and vecp (vectorp tree))
+	(let ((i (length (setq tree (copy-sequence tree)))))
+	  (while (>= (setq i (1- i)) 0)
+	    (aset tree i (copy-tree (aref tree i) vecp))))))
+  tree)
+
 (defun assoc-default (key alist &optional test default)
   "Find object KEY in a pseudo-alist ALIST.
 ALIST is a list of conses or objects.  Each element (or the element's car,
