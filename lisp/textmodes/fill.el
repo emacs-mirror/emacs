@@ -88,7 +88,7 @@ a role."
   :type 'regexp
   :group 'fill)
 
-(defcustom adaptive-fill-first-line-regexp "\\`[ \t]*$`//'"
+(defcustom adaptive-fill-first-line-regexp "\\`[ \t]*\\'"
   "*Regexp specifying whether to set fill prefix from a one-line paragraph.
 When a paragraph has just one line, then after `adaptive-fill-regexp'
 finds the prefix at the beginning of the line, if it doesn't
