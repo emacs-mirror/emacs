@@ -18,8 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef __WIN32_H__
-#define __WIN32_H__
+#ifndef __W32GUI_H__
+#define __W32GUI_H__
 
 #include <windows.h>
 
