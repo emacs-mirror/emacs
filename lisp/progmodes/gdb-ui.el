@@ -248,6 +248,7 @@ detailed description of this mode.
   (setq gdb-output-sink 'user)
   (setq gdb-server-prefix "server ")
   (setq gdb-flush-pending-output nil)
+  (setq gdb-location-list nil)
   ;;
   (setq gdb-buffer-type 'gdba)
   ;;
@@ -1046,7 +1047,7 @@ happens to be appropriate."
   ;; buffer specific functions
   gdb-info-breakpoints-custom)
 
-(defvar gdb-cdir nil "Compilation directory.")
+(defvar gdb-location-list nil "List of directories for source files.")
 
 (defconst breakpoint-xpm-data
   "/* XPM */
@@ -1145,7 +1146,7 @@ static char *magick[] = {
 		(setq bptno (match-string 1))
 		(setq flag (char-after (match-beginning 2)))
 		(beginning-of-line)
-		(if (re-search-forward "in.*at\\s-+" nil t)
+		(if (re-search-forward " in .* at\\s-+" nil t)
 		    (progn
 		      (looking-at "\\(\\S-+\\):\\([0-9]+\\)")
 		      (let ((line (match-string 2)) (buffer-read-only nil)
@@ -1153,18 +1154,30 @@ static char *magick[] = {
 			(add-text-properties (point-at-bol) (point-at-eol)
 			 '(mouse-face highlight
 			   help-echo "mouse-2, RET: visit breakpoint"))
-			(with-current-buffer
-			    (find-file-noselect
-			     (if (file-exists-p file) file
-			       (expand-file-name file gdb-cdir)))
-			  (save-current-buffer
-			    (set (make-local-variable 'gud-minor-mode) 'gdba)
-			    (set (make-local-variable 'tool-bar-map)
-				 gud-tool-bar-map))
-			  ;; only want one breakpoint icon at each location
-			  (save-excursion
-			    (goto-line (string-to-number line))
-			    (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
+			(unless (file-exists-p file)
+			   (setq file (cdr (assoc bptno gdb-location-list))))
+			(unless (string-equal file "File not found")
+			  (if file
+			      (with-current-buffer
+				  (find-file-noselect file)
+				(save-current-buffer
+				  (set (make-local-variable 'gud-minor-mode)
+				     'gdba)
+				  (set (make-local-variable 'tool-bar-map)
+				       gud-tool-bar-map))
+				;; only want one breakpoint icon at each location
+				(save-excursion
+				  (goto-line (string-to-number line))
+				  (gdb-put-breakpoint-icon (eq flag ?y) bptno)))
+			    (gdb-enqueue-input
+			     (list (concat gdb-server-prefix "list "
+					   (match-string-no-properties 1) ":1\n")
+				   'ignore))
+			    (gdb-enqueue-input
+			     (list (concat gdb-server-prefix "info source\n")
+				   `(lambda ()
+				      (gdb-get-location
+				       ,bptno ,line ,flag)))))))))))
 	  (end-of-line)))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
@@ -1300,15 +1313,16 @@ static char *magick[] = {
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	    (looking-at ".*in.*at\\s-+\\(\\S-*\\):\\([0-9]+\\)")
+	    (looking-at "\\([0-9]+\\) .* in .* at\\s-+\\(\\S-*\\):\\([0-9]+\\)")
 	  (looking-at
-     "[0-9]+\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)"))
-	(let ((line (match-string 2))
-	      (file (match-string 1)))
+ "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)"))
+	(let ((bptno (match-string 1))
+	      (file  (match-string 2))
+	      (line  (match-string 3)))
 	  (save-selected-window
 	    (let* ((buf (find-file-noselect (if (file-exists-p file)
 						file
-					      (expand-file-name file gdb-cdir))))
+					      (cdr (assoc bptno gdb-location-list)))))
 		   (window (display-buffer buf)))
 	      (with-current-buffer buf
 		(goto-line (string-to-number line))
@@ -2039,20 +2053,36 @@ Kills the gdb buffers and resets the source buffers."
   "Find the source file where the program starts and displays it with related
 buffers."
   (goto-char (point-min))
-  (if (search-forward "directory is " nil t)
-      (if (looking-at "\\S-*:\\(\\S-*\\)")
-	  (setq gdb-cdir (match-string 1))
-	(looking-at "\\S-*")
-	(setq gdb-cdir (match-string 0))))
   (if (search-forward "Located in " nil t)
       (if (looking-at "\\S-*")
 	  (setq gdb-main-file (match-string 0))))
  (if gdb-many-windows
       (gdb-setup-windows)
-    (gdb-get-create-buffer 'gdb-breakpoints-buffer)
+   (gdb-get-create-buffer 'gdb-breakpoints-buffer)
     (if gdb-show-main
       (let ((pop-up-windows t))
 	(display-buffer (gud-find-file gdb-main-file))))))
+
+(defun gdb-get-location (bptno line flag)
+  "Find the directory containing the relevant source file.
+Put in buffer and place breakpoint icon."
+  (goto-char (point-min))
+  (if (search-forward "Located in " nil t)
+      (if (looking-at "\\S-*")
+	  (push (cons bptno (match-string 0)) gdb-location-list))
+    (gdb-resync)
+    (push (cons bptno "File not found") gdb-location-list)
+    (error "Cannot find source file for breakpoint location.
+Add directory to search path for source files using the GDB command, dir."))
+  (with-current-buffer
+      (find-file-noselect (match-string 0))
+    (save-current-buffer
+      (set (make-local-variable 'gud-minor-mode) 'gdba)
+      (set (make-local-variable 'tool-bar-map) gud-tool-bar-map))
+    ;; only want one breakpoint icon at each location
+    (save-excursion
+      (goto-line (string-to-number line))
+      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop)
