@@ -98,6 +98,7 @@ environment variable `HANGUL_KEYBOARD_TYPE'.
 ** C-u C-x = provides detailed information about the character at
 point in a pop-up window.
 
++++
 ** New command M-x list-charset-chars reads a character set name and
 displays all characters in that character set.
 
