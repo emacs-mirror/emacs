@@ -296,7 +296,7 @@ handler `desktop-restore-file-buffer'.
 
 Handlers are called with argument list
 
-   (BUFFER-FILE-NAME BUFFER-NAME DESKTOP-BUFFER-MISC)
+   (DESKTOP-BUFFER-FILE-NAME DESKTOP-BUFFER-NAME DESKTOP-BUFFER-MISC)
 
 Furthermore, they may use the following variables:
 
