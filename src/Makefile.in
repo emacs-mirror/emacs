@@ -683,22 +683,22 @@ lisp= \
 	${lispsource}language/chinese.elc \
 	${lispsource}language/cyrillic.elc \
 	${lispsource}language/indian.elc \
-	${lispsource}language/devanagari.elc \
-	${lispsource}language/english.elc \
+	${lispsource}language/devanagari.el \
+	${lispsource}language/english.el \
 	${lispsource}language/ethiopic.elc \
 	${lispsource}language/european.elc \
-	${lispsource}language/czech.elc \
-	${lispsource}language/slovak.elc \
-	${lispsource}language/romanian.elc \
-	${lispsource}language/greek.elc \
-	${lispsource}language/hebrew.elc \
-	${lispsource}language/japanese.elc \
-	${lispsource}language/korean.elc \
-	${lispsource}language/lao.elc \
-	${lispsource}language/thai.elc \
+	${lispsource}language/czech.el \
+	${lispsource}language/slovak.el \
+	${lispsource}language/romanian.el \
+	${lispsource}language/greek.el \
+	${lispsource}language/hebrew.el \
+	${lispsource}language/japanese.el \
+	${lispsource}language/korean.el \
+	${lispsource}language/lao.el \
+	${lispsource}language/thai.el \
 	${lispsource}language/tibetan.elc \
 	${lispsource}language/vietnamese.elc \
-	${lispsource}language/misc-lang.elc \
+	${lispsource}language/misc-lang.el \
 	${lispsource}paths.el \
 	${lispsource}register.elc \
 	${lispsource}replace.elc \
@@ -763,22 +763,22 @@ shortlisp= \
 	../lisp/language/chinese.elc \
 	../lisp/language/cyrillic.elc \
 	../lisp/language/indian.elc \
-	../lisp/language/devanagari.elc \
-	../lisp/language/english.elc \
+	../lisp/language/devanagari.el \
+	../lisp/language/english.el \
 	../lisp/language/ethiopic.elc \
 	../lisp/language/european.elc \
-	../lisp/language/czech.elc \
-	../lisp/language/slovak.elc \
-	../lisp/language/romanian.elc \
-	../lisp/language/greek.elc \
-	../lisp/language/hebrew.elc \
-	../lisp/language/japanese.elc \
-	../lisp/language/korean.elc \
-	../lisp/language/lao.elc \
-	../lisp/language/thai.elc \
+	../lisp/language/czech.el \
+	../lisp/language/slovak.el \
+	../lisp/language/romanian.el \
+	../lisp/language/greek.el \
+	../lisp/language/hebrew.el \
+	../lisp/language/japanese.el \
+	../lisp/language/korean.el \
+	../lisp/language/lao.el \
+	../lisp/language/thai.el \
 	../lisp/language/tibetan.elc \
 	../lisp/language/vietnamese.elc \
-	../lisp/language/misc-lang.elc \
+	../lisp/language/misc-lang.el \
 	../lisp/menu-bar.elc \
 	../lisp/paths.el \
 	../lisp/register.elc \
