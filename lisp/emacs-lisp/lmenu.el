@@ -132,11 +132,16 @@ The syntax, more precisely:
   (let ((menu (make-lucid-menu-keymap (car menu-desc) (cdr menu-desc)))
 	(pos (mouse-position))
 	answer)
-    (setq answer (x-popup-menu (list (list (nth 1 pos) (nthcdr 2 pos))
-				     (car pos))
-			       menu))
-    (setq cmd (lookup-key menu (vector answer)))
-    (if cmd (call-interactively cmd))))
+    (while menu
+      (setq answer (x-popup-menu (list (list (nth 1 pos) (nthcdr 2 pos))
+				       (car pos))
+				 menu))
+      (setq cmd (lookup-key menu (vector answer)))
+      (setq menu nil)
+      (and cmd
+	   (if (keymapp cmd)
+	       (setq menu cmd)
+	     (call-interactively cmd))))))
 
 ;; This is empty because the usual elements of the menu bar 
 ;; are provided by menu-bar.el instead.
