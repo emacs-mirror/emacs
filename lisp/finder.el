@@ -132,40 +132,42 @@ arguments compiles from `load-path'."
 (defun finder-by-keyword ()
   "Find packages matching a given keyword."
   (interactive)
-  (pop-to-buffer "*Help*")
+  (set-buffer (get-buffer-create "*Help*"))
   (erase-buffer)
-  (mapcar
-   (function (lambda (x)
-	       (insert (symbol-name (car x)))
-	       (insert-at-column 14 (cdr x) "\n")
-	       ))
-   finder-known-keywords)
-  (goto-char (point-min))
-  (let (key
-	(known (mapcar (function (lambda (x) (car x))) finder-known-keywords)))
-    (let ((key (completing-read
-		"Package keyword: "
-		(vconcat known)
-		(function (lambda (arg) (memq arg known)))
-		t))
+
+  ;; Display descriptions of the keywords in the help buffer, and
+  ;; build an assoc list mapping the names of known keywords to their
+  ;; symbols.
+  (let ((keyword-names
+	 (mapcar (lambda (assoc)
+		   (let ((keyword (car assoc)))
+		     (insert (symbol-name keyword))
+		     (insert-at-column 14 (cdr assoc) "\n")
+		     (cons (symbol-name keyword) keyword)))
+		 finder-known-keywords)))
+    (let ((key 
+	   (save-window-excursion
+	     (pop-to-buffer "*Help*")
+	     (goto-char (point-min))
+	     (completing-read "Package keyword: " keyword-names nil t)))
 	  id)
-      (erase-buffer)
-      (if (equal key "")
-	  (delete-window (get-buffer-window "*Help*"))
-	(setq id (intern key))
-	(insert
-	 "The following packages match the keyword `" key "':\n\n")
-	(mapcar
-	 (function (lambda (x)
-		     (if (memq id (car (cdr (cdr x))))
-			 (progn
-			   (insert (car x))
-			   (insert-at-column 16 (car (cdr x)) "\n")
-			   ))
-		     ))
-	 finder-package-info)
-	(goto-char (point-min))
-	))))
+      (or (equal key "")
+	  (progn
+	    (erase-buffer)
+	    (pop-to-buffer "*Help*")
+	    (setq id (intern key))
+	    (insert
+	     "The following packages match the keyword `" key "':\n\n")
+	    (mapcar
+	     (function (lambda (x)
+			 (if (memq id (car (cdr (cdr x))))
+			     (progn
+			       (insert (car x))
+			       (insert-at-column 16 (car (cdr x)) "\n")
+			       ))
+			 ))
+	     finder-package-info)
+	    (goto-char (point-min)))))))
 
 (provide 'finder)
 
