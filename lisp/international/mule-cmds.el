@@ -761,7 +761,9 @@ If INPUT-METHOD is nil, deactivate any current input method."
 	    (error "Can't activate input method `%s'" input-method))))
       (setq current-input-method input-method)
       (setq current-input-method-title (nth 3 slot))
-      (run-hooks 'input-method-activate-hook))))
+      (unwind-protect
+	  (run-hooks 'input-method-activate-hook)
+	(force-mode-line-update)))))
 
 (defun inactivate-input-method ()
   "Turn off the current input method."
@@ -777,7 +779,8 @@ If INPUT-METHOD is nil, deactivate any current input method."
       (unwind-protect
 	  (run-hooks 'input-method-inactivate-hook)
 	(setq current-input-method nil
-	      current-input-method-title nil)))))
+	      current-input-method-title nil)
+	(force-mode-line-update)))))
 
 (defun set-input-method (input-method)
   "Select and activate input method INPUT-METHOD for the current buffer.
