@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.16 2001/09/19 20:21:02 rms Exp $
+@comment $Id: info.texi,v 1.17 2001/09/26 15:26:30 eliz Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -1264,6 +1264,10 @@ string (directory name) or @code{nil} (try default directory).  If not
 initialized Info uses the environment variable @env{INFOPATH} to
 initialize it, or @code{Info-default-directory-list} if there is no
 @env{INFOPATH} variable in the environment.
+
+If you wish to customize the Info directory search list for both Emacs
+info and stand-alone Info, it is best to set the @env{INFOPATH}
+environment variable, since that applies to both programs.
 
 @item Info-additional-directory-list
 A list of additional directories to search for Info documentation files.
