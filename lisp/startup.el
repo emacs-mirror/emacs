@@ -1153,6 +1153,20 @@ where FACE is a valid face specification, as it can be used with
 	  (kill-buffer splash-buffer)))))
 
 
+(defun use-fancy-splash-screens-p ()
+  "Return t if fancy splash screens should be used."
+  (when (or (and (display-color-p)
+		 (image-type-available-p 'xpm))
+	    (image-type-available-p 'pbm))
+    (let* ((img (create-image (or fancy-splash-image
+				  (if (and (display-color-p)
+					   (image-type-available-p 'xpm))
+				      "splash.xpm" "splash.pbm"))))
+	   (image-height (and img (cdr (image-size img))))
+	   (window-height (1- (window-height (selected-window)))))
+      (> window-height (+ image-height 14)))))
+
+
 (defun startup-echo-area-message ()
   (if (eq (key-binding "\C-h\C-p") 'describe-project)
       "For information about the GNU Project and its goals, type C-h C-p."
@@ -1241,9 +1255,7 @@ where FACE is a valid face specification, as it can be used with
 		       
 		       (if (assq 'display (frame-parameters))
 			   
-			   (if (or (and (display-color-p)
-					(image-type-available-p 'xpm))
-				   (image-type-available-p 'pbm))
+			   (if (use-fancy-splash-screens-p)
 			       (progn
 				 (setq wait-for-input nil)
 				 (fancy-splash-screens))
