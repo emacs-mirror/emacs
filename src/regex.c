@@ -86,6 +86,12 @@ char *realloc ();
 #define Sword 1
 #endif
 
+#ifdef SWITCH_ENUM_BUG
+#define SWITCH_ENUM_CAST(x) ((int)(x))
+#else
+#define SWITCH_ENUM_CAST(x) (x)
+#endif
+
 #ifdef SYNTAX_TABLE
 
 extern char *re_syntax_table;
@@ -2813,11 +2819,7 @@ re_compile_fastmap (bufp)
       /* We should never be about to go beyond the end of the pattern.  */
       assert (p < pend);
       
-#ifdef SWITCH_ENUM_BUG
-      switch ((int) ((re_opcode_t) *p++))
-#else
-      switch ((re_opcode_t) *p++)
-#endif
+      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p++))
 	{
 
         /* I guess the idea here is to simply not bother with a fastmap
@@ -3770,11 +3772,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
         }
 
       /* Otherwise match next pattern command.  */
-#ifdef SWITCH_ENUM_BUG
-      switch ((int) ((re_opcode_t) *p++))
-#else
-      switch ((re_opcode_t) *p++)
-#endif
+      switch (SWITCH_ENUM_CAST ((re_opcode_t) *p++))
 	{
         /* Ignore these.  Used to ignore the n of succeed_n's which
            currently have n == 0.  */
