@@ -1,5 +1,5 @@
 ;;; reftex.el --- minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.18
@@ -1965,12 +1965,12 @@ When DIE is non-nil, throw an error if file not found."
 	  (switch-to-buffer-other-window "*RefTeX Select*")
 	  (insert help-string)
 	  (goto-char 1)
-	  (unless (and (pos-visible-in-window-p 1)
+	  (unless (and (pos-visible-in-window-p (point-min))
 		       (pos-visible-in-window-p (point-max)))
-	    (enlarge-window (1+ (- (count-lines 1 (point-max))
+	    (enlarge-window (1+ (- (count-lines (point-min) (point-max))
 				   (reftex-window-height)))))
 	  (setq truncate-lines t))
-	(if (and (pos-visible-in-window-p 1)
+	(if (and (pos-visible-in-window-p (point-min))
 		 (pos-visible-in-window-p (point-max)))
 	    nil
 	  (setq prompt (concat prompt (if scroll "   (SPC/DEL=Scroll)" ""))))
