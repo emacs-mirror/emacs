@@ -1,3 +1,7 @@
+2002-11-07  Juanma Barranquero  <lektu@terra.es>
+
+	* help.el (where-is): Repport also aliases of the passed command.
+
 2002-11-07   Markus Rost  <rost@math.ohio-state.edu>
 
 	* cus-dep.el (custom-make-dependencies): Fix comment inserted in
