@@ -1,3 +1,8 @@
+2002-11-06  Dave Love  <fx@gnu.org>
+
+	* buffer.c (Qset_buffer_major_mode_hook): New.
+	(Fset_buffer_major_mode): Use it.
+
 2002-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (x_term_init): Use turn_on_atimers, not start_polling
