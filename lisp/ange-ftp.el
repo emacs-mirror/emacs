@@ -3217,7 +3217,10 @@ system TYPE.")
 				  "FTP Error: %s not arrived or readable"
 				  filename)))))
 		  (if binary
-		      (ange-ftp-set-ascii-mode host user))
+		      ;; We must keep `last-coding-system-used'
+		      ;; unchanged.
+		      (let (last-coding-system-used)
+			(ange-ftp-set-ascii-mode host user)))
 		  (ange-ftp-del-tmp-name temp))
 		(if visit
 		    (progn
