@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/objects
@@ -508,7 +508,7 @@ Lisp, upper case and lower case letters are distinct.
 
   Here are several examples of symbol names.  Note that the @samp{+} in
 the fifth example is escaped to prevent it from being read as a number.
-This is not necessary in the sixth example because the rest of the name
+This is not necessary in the seventh example because the rest of the name
 makes it invalid as a number.
 
 @example
