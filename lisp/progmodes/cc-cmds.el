@@ -2761,10 +2761,14 @@ command to conveniently insert and align the necessary backslashes."
 		  '("" . 0))))))
     ))
 
-(defun c-mask-comment (fill-mode apply-outside-literal fun &rest args)
+(defun c-mask-comment (fill-paragraph apply-outside-literal fun &rest args)
   ;; Calls FUN with ARGS ar arguments.  If point is inside a comment,
   ;; the comment starter and ender are masked and the buffer is
   ;; narrowed to make it look like a normal paragraph during the call.
+  ;;
+  ;; FILL-PARAGRAPH is non-nil if called for paragraph filling.  The
+  ;; position of point is then less significant when doing masking and
+  ;; narrowing.
   (let (fill
 	;; beg and end limits the region to narrow.  end is a marker.
 	beg end
@@ -2790,7 +2794,7 @@ command to conveniently insert and align the necessary backslashes."
       ;; Widen to catch comment limits correctly.
       (widen)
       (unless c-lit-limits
-	(setq c-lit-limits (c-literal-limits nil fill-mode)))
+	(setq c-lit-limits (c-literal-limits nil fill-paragraph)))
       (setq c-lit-limits (c-collect-line-comments c-lit-limits))
       (unless c-lit-type
 	(setq c-lit-type (c-literal-type c-lit-limits))))
@@ -2840,8 +2844,8 @@ command to conveniently insert and align the necessary backslashes."
 						 "\\)\\*/"))
 			     (eq (cdr c-lit-limits) (match-end 0))
 			     ;; Leave the comment ender on its own line.
-			     (set-marker end (max (point) here))))
-		(when fill-mode
+			     (set-marker end (point))))
+		(when fill-paragraph
 		  ;; The comment ender should hang.  Replace all cruft
 		  ;; between it and the last word with one or two 'x'
 		  ;; and include it in the region.  We'll change them
@@ -2900,13 +2904,11 @@ command to conveniently insert and align the necessary backslashes."
 	      ;; The region includes the comment starter.
 	      (save-excursion
 		(goto-char (car c-lit-limits))
-		(when (and (looking-at comment-start-skip)
-			   (> here (match-end 0)))
-		  (if (eq (match-end 0) (c-point 'eol))
-		      ;; Begin with the next line.
-		      (setq beg (c-point 'bonl))
-		    ;; Fake the fill prefix in the first line.
-		    (setq tmp-pre t))))))
+		(if (looking-at (concat "\\(" comment-start-skip "\\)$"))
+		    ;; Begin with the next line.
+		    (setq beg (c-point 'bonl))
+		  ;; Fake the fill prefix in the first line.
+		  (setq tmp-pre t)))))
 	   ((eq c-lit-type 'string)	; String.
 	    (save-excursion
 	      (when (>= end (cdr c-lit-limits))
@@ -2984,24 +2986,24 @@ Warning: Regexp from `c-comment-prefix-regexp' doesn't match the comment prefix 
 					      ""))))
 			   (car (or fill (c-guess-fill-prefix
 					  c-lit-limits c-lit-type))))))
-		    ;; Don't remember why I added this, but it doesn't
-		    ;; work correctly since `here' can point anywhere
-		    ;; after the deletes and inserts above.
-		    ;(point-rel (cond ((< here beg) (- here beg))
-		    ;		       ((> here end) (- here end))))
-		    )
+		    ;; Save the relative position of point if it's
+		    ;; outside the region we're going to narrow.  Want
+		    ;; to restore it in that case, but otherwise it
+		    ;; should be moved according to the called
+		    ;; function.
+		    (point-rel (cond ((< (point) beg) (- (point) beg))
+				     ((> (point) end) (- (point) end)))))
 		;; Preparations finally done! Now we can call the
 		;; actual function.
 		(prog1
 		    (save-restriction
 		      (narrow-to-region beg end)
 		      (apply fun args))
-		  ;(if point-rel
-		  ;    ;; Restore point if it was outside the region.
-		  ;    (if (< point-rel 0)
-		  ;	  (goto-char (+ beg point-rel))
-		  ;	(goto-char (+ end point-rel))))
-		  ))
+		  (if point-rel
+		      ;; Restore point if it was outside the region.
+		      (if (< point-rel 0)
+			  (goto-char (+ beg point-rel))
+			(goto-char (+ end point-rel))))))
 	    (when apply-outside-literal
 	      (apply fun args))))
       (when (consp tmp-pre)
