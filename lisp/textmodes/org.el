@@ -1,14 +1,14 @@
 ;; org.el --- Outline-based notes management and organizer 
 ;; Carstens outline-mode for keeping track of everything.
-;; Copyright (c) 2004 Free Software Foundation
-;;
+;; Copyright (c) 2003, 2004 Free Software Foundation
+
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.04  (internal CVS version is $Revision: 1.106 $)
-;;
+;; Version: 3.04
+
 ;; This file is part of GNU Emacs.
-;;
+
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
