@@ -2597,6 +2597,8 @@ void w32_reset_fringes P_ ((void));
 
 /* Defined in image.c */
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 extern int x_bitmap_height P_ ((struct frame *, int));
 extern int x_bitmap_width P_ ((struct frame *, int));
 extern int x_bitmap_pixmap P_ ((struct frame *, int));
@@ -2609,6 +2611,23 @@ extern void x_destroy_bitmap P_ ((struct frame *, int));
 #endif
 extern void x_destroy_all_bitmaps P_ ((Display_Info *));
 extern int x_create_bitmap_mask P_ ((struct frame * , int));
+
+void x_kill_gs_process P_ ((Pixmap, struct frame *));
+struct image_cache *make_image_cache P_ ((void));
+void free_image_cache P_ ((struct frame *));
+void clear_image_cache P_ ((struct frame *, int));
+void forall_images_in_image_cache P_ ((struct frame *,
+				       void (*) P_ ((struct image *))));
+int valid_image_p P_ ((Lisp_Object));
+void prepare_image_for_display P_ ((struct frame *, struct image *));
+int lookup_image P_ ((struct frame *, Lisp_Object));
+
+unsigned long image_background P_ ((struct image *, struct frame *,
+				    XImage *ximg));
+int image_background_transparent P_ ((struct image *, struct frame *,
+				      XImage *mask));
+
+#endif
 
 /* Defined in sysdep.c */
 
@@ -2668,24 +2687,8 @@ void gamma_correct P_ ((struct frame *, unsigned long *));
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-void x_kill_gs_process P_ ((Pixmap, struct frame *));
 int x_screen_planes P_ ((struct frame *));
 void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
-struct image_cache *make_image_cache P_ ((void));
-void free_image_cache P_ ((struct frame *));
-void clear_image_cache P_ ((struct frame *, int));
-void forall_images_in_image_cache P_ ((struct frame *,
-				       void (*) P_ ((struct image *))));
-int valid_image_p P_ ((Lisp_Object));
-void prepare_image_for_display P_ ((struct frame *, struct image *));
-int lookup_image P_ ((struct frame *, Lisp_Object));
-
-#ifdef HAVE_X_WINDOWS
-unsigned long image_background P_ ((struct image *, struct frame *,
-				    XImage *ximg));
-int image_background_transparent P_ ((struct image *, struct frame *,
-				      XImage *mask));
-#endif /* HAVE_X_WINDOWS */
 
 extern Lisp_Object tip_frame;
 extern Window tip_window;
