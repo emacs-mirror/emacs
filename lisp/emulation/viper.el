@@ -371,7 +371,7 @@ designated buffers.")
 
 (vip-deflocalvar vip-insert-diehard-minor-mode nil
   "Minor mode that simulates Vi very closely.
-Not recommened, except for the novice user.")
+Not recommended, except for the novice user.")
 
 (vip-deflocalvar vip-insert-kbd-minor-mode nil
 "Minor mode for Ex command macros Insert state.
@@ -615,7 +615,7 @@ to a new place after repeating previous Vi command.")
 ;; The reason this is needed is because dabbrev-expand (and possibly
 ;; others) may jump to before the insertion point, delete something and
 ;; then reinsert a bigger piece. For instance:  bla^blo
-;; If dabbrev-expand is called after `blo' and ^ undicates vip-insert-point,
+;; If dabbrev-expand is called after `blo' and ^ indicates vip-insert-point,
 ;; then point jumps to the beginning of `blo'. If expansion is found, `blablo'
 ;; is deleted, and we have |^, where | denotes point. Next, dabbrev-expand
 ;; will insert the expansion, and we get: blablo^
@@ -937,7 +937,7 @@ Should be set in `~/.vip' file.")
 (defun vip-change-state (new-state)
   ;; Keep vip-post/pre-command-hooks fresh.
   ;; We remove then add vip-post/pre-command-sentinel since it is very
-  ;; desirable that noone gets in-between
+  ;; desirable that no one gets in-between
   (remove-hook 'post-command-hook 'vip-post-command-sentinel)
   (add-hook 'post-command-hook 'vip-post-command-sentinel)
   (remove-hook 'pre-command-hook 'vip-pre-command-sentinel)
@@ -1361,7 +1361,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
     (error
      (vip-message-conditions conds))))
   
-;; escape to emacs mode termporarily
+;; escape to emacs mode temporarily
 (defun vip-escape-to-emacs (arg &optional events)
   "Escape to Emacs state from Vi state for one Emacs command.
 ARG is used as the prefix value for the executed command.  If
@@ -1369,7 +1369,7 @@ EVENTS is a list of events, which become the beginning of the command."
   (interactive "P")
   (vip-escape-to-state arg events 'emacs-state))
   
-;; escape to Vi mode termporarily
+;; escape to Vi mode temporarily
 (defun vip-escape-to-vi ()
   "Escape from Emacs state to Vi state for one Vi 1-character command.
 This doesn't work with prefix arguments or most complex commands like
@@ -1700,7 +1700,7 @@ behaves as in Emacs, any number of multiple escapes is allowed."
 	)
     ;; as com is non-nil, this means that we have a command to execute
     (if (memq (car com) '(?r ?R))
-	;; execute apropriate region command.
+	;; execute appropriate region command.
 	(let ((char (car com)) (com (cdr com)))
 	  (setq prefix-arg (cons value com))
 	  (if (= char ?r) (vip-region prefix-arg)
@@ -2369,7 +2369,7 @@ Undo previous insertion and inserts new."
 		'vip-change-state-to-emacs)))
     (funcall hook)
 
-    ;; Make sure the minibufer overlay is kept up-to-date. In XEmacs also
+    ;; Make sure the minibuffer overlay is kept up-to-date. In XEmacs also
     ;; guards against the possibility of detaching this overlay.
     (vip-add-hook 'vip-post-command-hooks 'vip-move-minibuffer-overlay)
     ))
@@ -2831,7 +2831,7 @@ Undo previous insertion and inserts new."
       ;; deleting an equal amount of characters.
       ;;
       ;; The reason why new-dabbrev.el causes this are this:
-      ;; if one dinamically completes a partial word that starts before the
+      ;; if one dynamically completes a partial word that starts before the
       ;; replacement region (but ends inside)then new-dabbrev.el first
       ;; moves cursor backwards, to the beginning of the word to be
       ;; completed (say, pt A). Then it inserts the 
@@ -3886,7 +3886,7 @@ Although this function is bound to \\[vip-toggle-search-style], the most
 convenient way to use it is to bind `//' to the macro
 `1 M-x vip-toggle-search-style' and `///' to
 `2 M-x vip-toggle-search-style'. In this way, hitting `//' quickly will
-toggle case-fold-search and hitting `/' three times witth toggle regexp
+toggle case-fold-search and hitting `/' three times with toggle regexp
 search. Macros are more convenient in this case because they don't affect
 the Emacs binding of `/'."
   (interactive "P")
@@ -4072,7 +4072,7 @@ Null string will repeat previous search."
   (aset vip-exec-array vip-buffer-search-char 'vip-exec-buffer-search)
   (setq vip-prefix-commands (cons vip-buffer-search-char vip-prefix-commands)))
 
-;; This is a Viper wraper for isearch-forward.
+;; This is a Viper wrapper for isearch-forward.
 (defun vip-isearch-forward (arg)
   "Do incremental search forward."
   (interactive "P")
@@ -4080,7 +4080,7 @@ Null string will repeat previous search."
   (if (listp arg) (setq arg (car arg)))
   (vip-exec-form-in-emacs (list 'isearch-forward arg)))
 
-;; This is a Viper wraper for isearch-backward."
+;; This is a Viper wrapper for isearch-backward."
 (defun vip-isearch-backward (arg)
   "Do incremental search backward."
   (interactive "P")
@@ -4388,7 +4388,7 @@ To turn this feature off, set this variable to nil.")
 (defun vip-del-backward-char-in-replace ()
   "Delete one character in replace mode.
 If `vip-delete-backwards-in-replace' is t, then DEL key actually deletes
-charecters. If it is nil, then the cursor just moves backwards, similarly
+characters. If it is nil, then the cursor just moves backwards, similarly
 to Vi. The variable `vip-ex-style-editing-in-insert', if t, doesn't let the
 cursor move past the beginning of line."
   (interactive)
@@ -4516,7 +4516,7 @@ cursor move past the beginning of line."
 
 (defun vip-query-replace ()
   "Query replace. 
-If a null string is suplied as the string to be replaced,
+If a null string is supplied as the string to be replaced,
 the query replace mode will toggle between string replace
 and regexp replace."
   (interactive)
@@ -5442,7 +5442,7 @@ Mail anyway (y or n)? ")
 (vip-record-kbd-macro
  "//" 'vi-state
  [1 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
-;; toggle regexp/vanila search
+;; toggle regexp/vanilla search
 (vip-record-kbd-macro
  "///" 'vi-state
  [2 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
@@ -5460,7 +5460,7 @@ Mail anyway (y or n)? ")
 
 ;; Applying Viper customization -- runs after (load .vip)
 
-;; Save user settings or Viper defaults for vars controled by vip-expert-level
+;; Save user settings or Viper defaults for vars controlled by vip-expert-level
 (setq vip-saved-user-settings 
       (list (cons 'vip-want-ctl-h-help vip-want-ctl-h-help)
 	    (cons 'vip-always vip-always)
