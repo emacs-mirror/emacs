@@ -111,8 +111,7 @@ extern void _XEditResCheckMessages ();
 #endif
 
 #ifdef SOLARIS2
-/* For XlibDisplayWriting */
-#include <X11/Xlibint.h>
+#define X_CONNECTION_LOCK_FLAG XlibDisplayWriting
 #endif
 
 #ifndef min
@@ -4648,19 +4647,7 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
     {
       signal (SIGPIPE, x_connection_signal_1);
 
-#ifdef SOLARIS2
-#ifdef XlibDisplayWriting
-      /* If the thread-interlock is locked, assume this connection is dead.
-	 This assumes that the library does not make other threads
-	 that can be locking the display legitimately.  */
-      if (x_connection_signal_dpyinfo->display->flags & XlibDisplayWriting)
-	{
-	  x_connection_signal_dpyinfo->display->flags &= ~XlibDisplayWriting;
-	  x_connection_closed (x_connection_signal_dpyinfo->display,
-			       "connection was lost");
-	}
-#endif
-#endif
+      x_connection_close_if_hung (x_connection_signal_dpyinfo);
 
       XNoOp (x_connection_signal_dpyinfo->display);
 
@@ -6250,4 +6237,47 @@ syms_of_xterm ()
   staticpro (&Qvendor_specific_keysyms);
   Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
 }
-#endif /* ! defined (HAVE_X_WINDOWS) */
+
+/* Avoid warnings or errors from including Xlibint.h.
+   We don't need these functions for the rest of this file.  */
+#undef bzero
+#undef bcopy
+#undef bcmp
+#undef min
+#undef max
+
+#ifdef X_CONNECTION_LOCK_FLAG
+#define free loserfree
+#define malloc losermalloc
+/* For XlibDisplayWriting */
+#include <X11/Xlibint.h>
+#endif
+
+/* Check whether display connection DPYINFO is hung
+   because its thread-interlock is locked.
+   If it is, close the connection.
+   Do nothing if this system does not have a thread interlock.  */
+
+x_connection_close_if_hung (dpyinfo)
+     struct x_display_info *dpyinfo;
+{      
+  /* This tests (1) whether X_CONNECTION_LOCK_FLAG is defined at all,
+     and (2) whether the name it is defined as is itself defined.
+     (It ought to have been defined by Xlibint.h.  */
+#if X_CONNECTION_LOCK_FLAG
+
+  if (dpyinfo->display->flags & X_CONNECTION_LOCK_FLAG)
+    {
+      /* If the thread-interlock is locked, assume this connection is dead.
+	 This assumes that the library does not make other threads
+	 that can be locking the display legitimately.  */
+
+      dpyinfo->display->flags &= ~X_CONNECTION_LOCK_FLAG;
+      x_connection_closed (dpyinfo->display, "connection was lost");
+    }
+#endif /* X_CONNECTION_LOCK_FLAG */
+}
+
+/* Don't put any additional functions here!  */
+
+#endif /* not HAVE_X_WINDOWS */
