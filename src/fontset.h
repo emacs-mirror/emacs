@@ -180,10 +180,10 @@ extern struct font_info *(*get_font_info_func) P_ ((struct frame *f,
 
 /* Return a list of font names which matches PATTERN.  See the document of
    `x-list-fonts' for more detail.  */
-extern Lisp_Object (*list_fonts_func) P_ ((Lisp_Object pattern,
-					   Lisp_Object face,
-					   Lisp_Object frame,
-					   Lisp_Object width));
+extern Lisp_Object (*list_fonts_func) P_ ((struct frame *f,
+					   Lisp_Object pattern,
+					   int size,
+					   int maxnames));
 
 /* Load a font named NAME for frame F and return a pointer to the
    information of the loaded font.  If loading is failed, return -1.  */
