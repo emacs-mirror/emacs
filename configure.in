@@ -258,6 +258,15 @@ case "${canonical}" in
     machine=alpha opsys=gnu-linux
   ;;
 
+  arm*-*-linux-gnu* )
+    machine=arm opsys=gnu-linux
+  ;;
+
+  ppc-*-linux | \
+  powerpc-*-linux* )
+    machine=powerpc opsys=gnu-linux
+  ;;
+
   ## Altos 3068
   m68*-altos-sysv* )
     machine=altos opsys=usg5-2
