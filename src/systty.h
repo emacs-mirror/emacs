@@ -1,4 +1,4 @@
-/* systerm.h - System-dependent definitions for terminals.
+/* systty.h - System-dependent definitions for terminals.
    Copyright (C) 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -29,7 +29,42 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
 #ifndef VMS
 #include <sgtty.h>
-#endif /* not VMS */
+#else /* VMS */
+#include <descrip.h>
+static struct iosb
+{
+  short status;
+  short offset;
+  short termlen;
+  short term;
+} input_iosb;
+
+extern int waiting_for_ast;
+extern int stop_input;
+extern int input_ef = 0;
+extern int timer_ef = 0;
+extern int process_ef = 0;
+extern int input_eflist;
+extern int timer_eflist;
+
+static $DESCRIPTOR (input_dsc, "TT");
+static int terminator_mask[2] = { 0, 0 };
+
+static struct sensemode {
+  short status;
+  unsigned char xmit_baud;
+  unsigned char rcv_baud;
+  unsigned char crfill;
+  unsigned char lffill;
+  unsigned char parity;
+  unsigned char unused;
+  char class;
+  char type;
+  short scr_wid;
+  unsigned long tt_char : 24, scr_len : 8;
+  unsigned long tt2_char;
+} sensemode_iosb;
+#endif /* VMS */
 #endif /* not HAVE_TERMIOS */
 #endif /* not HAVE_TERMIO */
 
@@ -261,12 +296,12 @@ struct emacs_tty {
 
 /* These definitions will really only work in sysdep.c, because of their
    use of input_iosb.  I don't know enough about VMS QIO to fix this.  */
-#define EMACS_GET_TTY_1(fd, p)				\
-  SYS$QIOW (0, (fd), IO$_SENSEMODE, (p), 0, 0,		\
-	    &(p)->main.class, 12, 0, 0, 0, 0);
-#define EMACS_SET_TTY_1(fd, p, waitp)			\
-  SYS$QIOW (0, (fd), IO$_SETMODE, &input_iosb, 0, 0,	\
-	    &(p)->main.class, 12, 0, 0, 0, 0);
+#define EMACS_GET_TTY_1(fd, p)					\
+  (1 & SYS$QIOW (0, (fd), IO$_SENSEMODE, (p), 0, 0,		\
+	    &(p)->main.class, 12, 0, 0, 0, 0))
+#define EMACS_SET_TTY_1(fd, p, waitp)				\
+  (1 & SYS$QIOW (0, (fd), IO$_SETMODE, &input_iosb, 0, 0,	\
+	    &(p)->main.class, 12, 0, 0, 0, 0))
 
 #else
 
