@@ -1,6 +1,6 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
-;; Copyright (C) 1985, 86, 87, 94, 95, 98 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 94, 95, 98, 2000 Free Software Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Adapted-By: Daniel Pfeiffer <occitan@esperanto.org>
@@ -77,7 +77,7 @@ Possible values:
 Insertion is possible when something appropriate is found in
 `auto-insert-alist'.  When the insertion is marked as unmodified, you can
 save it with  \\[write-file] RET.
-This variable is used when `auto-insert' is called as a function, e.g.
+This variable is used when the function `auto-insert' is called, e.g.
 when you do (add-hook 'find-file-hooks 'auto-insert).
 With \\[auto-insert], this is always treated as if it were t."
   :type '(choice (const :tag "Insert if possible" t)
@@ -147,11 +147,11 @@ If this contains a %s, that will be replaced by the matching rule."
      "Short description: "
      ";;; " (file-name-nondirectory (buffer-file-name)) " --- " str "
 
-;; Copyright (C) " (substring (current-time-string) -4) " by "
+;; Copyright (C) " (substring (current-time-string) -4) " "
  (getenv "ORGANIZATION") | "Free Software Foundation, Inc." "
 
 ;; Author: " (user-full-name)
-'(if (search-backward "&" (save-excursion (beginning-of-line 1) (point)) t)
+'(if (search-backward "&" (line-beginning-position) t)
      (replace-match (capitalize (user-login-name)) t t))
 '(end-of-line 1) " <" (progn user-mail-address) ">
 ;; Keywords: "
@@ -213,7 +213,7 @@ described above, e.g. [\"header.insert\" date-and-author-update]."
 
 ;;;###autoload
 (defun auto-insert ()
-  "Insert default contents into a new file if `auto-insert' is non-nil.
+  "Insert default contents into new files if variable `auto-insert' is non-nil.
 Matches the visited file name against the elements of `auto-insert-alist'."
   (interactive)
   (and (not buffer-read-only)
@@ -231,7 +231,8 @@ Matches the visited file name against the elements of `auto-insert-alist'."
 		   cond (car cond)))
 	   (if (if (symbolp cond)
 		   (eq cond major-mode)
-		 (string-match cond buffer-file-name))
+		 (and buffer-file-name
+		      (string-match cond buffer-file-name)))
 	       (setq action (cdr (car alist))
 		     alist nil)
 	     (setq alist (cdr alist))))
