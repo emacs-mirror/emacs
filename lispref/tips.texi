@@ -37,12 +37,13 @@ code intended for widespread use:
 
 @itemize @bullet
 @item
-Since all global variables share the same name space, and all functions
-share another name space, you should choose a short word to distinguish
-your program from other Lisp programs.@footnote{The benefits of a Common
-Lisp-style package system are considered not to outweigh the costs.}
-Then take care to begin the names of all global variables, constants,
-and functions with the chosen prefix.  This helps avoid name conflicts.
+Since all global variables share the same name space, and all
+functions share another name space, you should choose a short word to
+distinguish your program from other Lisp programs.@footnote{The
+benefits of a Common Lisp-style package system are considered not to
+outweigh the costs.}  Then take care to begin the names of all global
+variables, constants, and functions in your program with the chosen
+prefix.  This helps avoid name conflicts.
 
 This recommendation applies even to names for traditional Lisp
 primitives that are not primitives in Emacs Lisp---even to
