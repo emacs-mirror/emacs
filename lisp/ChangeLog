@@ -1,3 +1,24 @@
+2003-06-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-16.el: Many name changes: utf-16-{be,le} ->
+	utf-16{be,le}.
+	(mule-utf-16-le, utf-16-le, mule-utf-16-be, utf-16-be): New coding
+	system aliases for backward compatibility.
+
+	* international/utf-7.el: Adjusted for the name change:
+	xxx-utf-16-{le,be} -> xxx-utf-16{le,be}.
+
+	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
+	Adjusted for the name change: xxx-utf-16-{le,be} ->
+	xxx-utf-16{le,be}.
+
+	* international/mule-conf.el: Adjusted for the name change:
+	xxx-utf-16-{le,be} -> xxx-utf-16{le,be}.
+
+	* international/mule-cmds.el (reset-language-environment):
+	Adjusted for the name change: xxx-utf-16-{le,be} ->
+	xxx-utf-16{le,be}.
+
 2003-06-20  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* vc.el (vc-rename-file): Fix typo.
