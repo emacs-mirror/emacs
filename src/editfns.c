@@ -849,7 +849,7 @@ DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,
   1, 3, 0,
-  "Insert before point a substring of the contents buffer BUFFER.\n\
+  "Insert before point a substring of the contents of buffer BUFFER.\n\
 BUFFER may be a buffer or a buffer name.\n\
 Arguments START and END are character numbers specifying the substring.\n\
 They default to the beginning and the end of BUFFER.")
