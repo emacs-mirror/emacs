@@ -42,6 +42,7 @@
 ;; ffap-bindings makes the following global key bindings:
 ;;
 ;; C-x C-f       find-file-at-point (abbreviated as ffap)
+;; C-x d         dired-at-point
 ;; C-x 4 f       ffap-other-window
 ;; C-x 5 f       ffap-other-frame
 ;; S-mouse-3     ffap-at-mouse

@@ -129,7 +129,7 @@
 ;;
 ;; When `Follow' mode is activated, functions stored in the hook
 ;; `follow-mode-hook' are called.  When it is deactivated
-;; `follow-mode-off-hook' is runed.
+;; `follow-mode-off-hook' is run.
 ;;
 ;; The keymap `follow-key-map' contains key bindings activated by
 ;; `follow-mode'.
