@@ -379,8 +379,8 @@ interactively with "M-x dump-glyph-matrix RET"; see the documentation
 of this function for more details.
 
 Several more functions for debugging display code are available in
-Emacs compiled with GLYPH_DEBUG defined; type "C-h f dump- RET" and
-"C-h f trace- RET" to see the full list.
+Emacs compiled with GLYPH_DEBUG defined; type "C-h f dump- TAB" and
+"C-h f trace- TAB" to see the full list.
 
 
 ** Debugging LessTif
