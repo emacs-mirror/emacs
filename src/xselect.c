@@ -1596,13 +1596,13 @@ lisp_data_to_selection_data (display, obj,
     {
       /* Since we are now handling multilingual text, we must consider
 	 sending back compound text.  */
-      char charsets[MAX_CHARSET + 1];
+      int charsets[MAX_CHARSET + 1];
       int num;
 
       *format_ret = 8;
       *size_ret = XSTRING (obj)->size;
       *data_ret = XSTRING (obj)->data;
-      bzero (charsets, MAX_CHARSET + 1);
+      bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
       num = ((*size_ret <= 1)	/* Check the possibility of short cut.  */
 	     ? 0
 	     : find_charset_in_str (*data_ret, *size_ret, charsets, Qnil));
