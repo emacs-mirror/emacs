@@ -264,6 +264,6 @@ with the next possible expansion not yet tried."
 		   (setq result (downcase result))))))
       result)))
 
-(provide 'dabbrevs)
+(provide 'dabbrev)
 
 ;;; dabbrev.el ends here
