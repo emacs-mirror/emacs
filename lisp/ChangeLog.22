@@ -1,3 +1,8 @@
+2004-10-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (locale-language-names): Fix for
+	gb18030 and gdk.
+
 2004-10-05  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el (font-encoding-alist): Add gbk.
