@@ -207,7 +207,7 @@ This function is called after the function pointed out by
 ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Return the current/previous sexp and the location of the sexp (it's
+;; Return the current/previous sexp and the location of the sexp (its
 ;; beginning) without moving the point.
 (defun imenu-example--name-and-position ()
   (save-excursion
@@ -288,128 +288,6 @@ This function is called after the function pointed out by
 	       index-alist))
     index-alist))
 
-(defvar imenu-generic-lisp-expression
-      '(
-	(nil 
-	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\)\\s-+\\([-A-Za-z0-9+]+\\)" 2)
-	("Variables" 
-	 "^\\s-*(def\\(var\\|const\\)\\s-+\\([-A-Za-z0-9+]+\\)" 2)
-	("Types" 
-	 "^\\s-*(def\\(type\\|struct\\|class\\|ine-condition\\)\\s-+\\([-A-Za-z0-9+]+\\)" 
-	 2))
-
-  "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
-
-;;;
-;;; C++
-;;;
-;; Example of an imenu-generic-expression
-;;
-(defvar imenu-generic-c++-expression
-  (` 
-   ((nil
-     (, 
-      (concat
-       "^"				  ; beginning of line is required
-       "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
-       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
-       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
-       
-       "\\("				  ; last type spec including */&
-       "[a-zA-Z0-9_:]+"
-       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
-       "\\)?"				  ; if there is a last type spec
-       "\\("			      ; name; take that into the imenu entry
-       "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
-					; (may not contain * because then 
-					; "a::operator char*" would become "char*"!)
-       "\\|"
-       "\\([a-zA-Z0-9_:~]*::\\)?operator"
-       "[^a-zA-Z1-9_][^(]*"	      ; ...or operator
-       " \\)"
-       "[ \t]*([^)]*)[ \t\n]*[^	      ;]" ; require something other than a ; after
-					; the (...) to avoid prototypes.  Can't
-					; catch cases with () inside the parentheses
-					; surrounding the parameters
-					; (like "int foo(int a=bar()) {...}"
-       
-       )) 6)    
-    ("Class" 
-     (, (concat 
-	 "^"				   ; beginning of line is required
-	 "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
-	 "class[ \t]+"
-	 "\\([a-zA-Z0-9_]+\\)"                ; this is the string we want to get
-	 "[ \t]*[:{]"
-	 )) 2)
-;; Example of generic expression for finding prototypes, structs, unions, enums.
-;; Uncomment if You want to find these too.  It will be at bit slower gathering
-;; the indexes.
-;    ("Prototypes"
-;     (, 
-;      (concat
-;       "^"				  ; beginning of line is required
-;       "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
-;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
-;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
-       
-;       "\\("				  ; last type spec including */&
-;       "[a-zA-Z0-9_:]+"
-;       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
-;       "\\)?"				  ; if there is a last type spec
-;       "\\("			      ; name; take that into the imenu entry
-;       "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
-;					; (may not contain * because then 
-;					; "a::operator char*" would become "char*"!)
-;       "\\|"
-;       "\\([a-zA-Z0-9_:~]*::\\)?operator"
-;       "[^a-zA-Z1-9_][^(]*"	      ; ...or operator
-;       " \\)"
-;       "[ \t]*([^)]*)[ \t\n]*;" 	; require ';' after
-;					; the (...) Can't
-;					; catch cases with () inside the parentheses
-;					; surrounding the parameters
-;					; (like "int foo(int a=bar());"       
-;       )) 6)    
-;    ("Struct"
-;     (, (concat
-;	 "^"				; beginning of line is required
-;	 "\\(static[ \t]+\\)?"		; there may be static or const.
-;	 "\\(const[ \t]+\\)?"
-;	 "struct[ \t]+"
-;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
-;	 "[ \t]*[{]"
-;	 )) 3)
-;    ("Enum"
-;     (, (concat
-;	 "^"				; beginning of line is required
-;	 "\\(static[ \t]+\\)?"		; there may be static or const.
-;	 "\\(const[ \t]+\\)?"
-;	 "enum[ \t]+"
-;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
-;	 "[ \t]*[{]"
-;	 )) 3)
-;    ("Union"
-;     (, (concat
-;	 "^"				; beginning of line is required
-;	 "\\(static[ \t]+\\)?"		; there may be static or const.
-;	 "\\(const[ \t]+\\)?"
-;	 "union[ \t]+"
-;	 "\\([a-zA-Z0-9_]+\\)"		; this is the string we want to get
-;	 "[ \t]*[{]"
-;	 )) 3)
-    ))
-  "Imenu generic expression for C++ mode.  See `imenu-generic-expression'.")
-
-;;;
-;;; C
-;;;
-;;;
-(defvar imenu-generic-c-expression 
-  ;; Use the C++ expression above.
-  imenu-generic-c++-expression
-  "Imenu generic expression for C mode.  See `imenu-generic-expression'.")
-
 ;; Regular expression to find C functions
 (defvar imenu-example--function-name-regexp-c
   (concat 
@@ -442,51 +320,6 @@ This function is called after the function pointed out by
     (nreverse index-alist)))
 
 
-;; 
-;; Ada
-;; 
-;; Written by Christian Egli <Christian.Egli@hcsd.hac.com>
-;;
-(defvar imenu-generic-ada-expression
-      '((nil "^\\s-*\\(procedure\\|function\\)\\s-+\\([A-Za-z0-9_]+\\)" 2)
-	("Type Defs" "^\\s-*\\(sub\\)?type\\s-+\\([A-Za-z0-9_]+\\)" 2))
-
-  "Imenu generic expression for Ada mode.  See `imenu-generic-expression'.")
-
-;;; 
-;;; TexInfo
-;;; 
-;; Written by Wolfgang Bangerth <zcg51122@rpool1.rus.uni-stuttgart.de>
-;;
-;;
-(defvar imenu-generic-texinfo-expression
-  '((nil "^@node[ \t]+\\([^,\n]*\\)" 1)
-    ("Chapters" "^@chapter[ \t]+\\(.*\\)$" 1))
-
-  "Imenu generic expression for TexInfo mode.  See `imenu-generic-expression'.
-
-To overide this example, Either set 'imenu-generic-expression
-or 'imenu-create-index-function")
-
-;;; 
-;;; LaTex
-;;; 
-;; Written by Wolfgang Bangerth <zcg51122@rpool1.rus.uni-stuttgart.de>
-;;
-;;
-(defvar imenu-generic-latex-expression
-  '(
-    ("Part" "\\\\part{\\([^}]*\\)}" 1)
-    ("Chapter" "\\\\chapter{\\([^}]*\\)}" 1)
-    ("Section" "\\\\[a-zA-Z]*section{\\([^}]*\\)}" 1)
-    ;; i put numbers like 3.15 before my
-    ;; \begin{equation}'s which tell me
-    ;; the number the equation will get when
-    ;; being printed.
-    ("Equations" "%[ \t]*\\([0-9]+\\.[0-9]+\\)[,;]?[ \t]?" 1))  
-
-  "Imenu generic expression for LaTex mode.  See `imenu-generic-expression'.")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; Internal variables
@@ -504,23 +337,6 @@ or 'imenu-create-index-function")
 ;; History list for 'jump-to-function-in-buffer'.
 ;; Making this buffer local caused it not to work!
 (defvar imenu--history-list nil)
-
-(defvar imenu--scanning-method-alist
-  '((emacs-lisp-mode  imenu-generic-lisp-expression)
-    (lisp-mode        imenu-example--create-lisp-index)
-    (c++-mode         imenu-generic-c++-expression)
-    (c-mode           imenu-generic-c-expression)
-    (latex-mode       imenu-generic-latex-expression)
-    (texinfo-mode     imenu-generic-texinfo-expression)
-    (ada-mode         imenu-generic-ada-expression))
-
-  "Alist of major mode and imenu scanning methods.  
-
-Each item should be a list of the form (MAJOR-MODE
-IMENU-SCANNING-METHOD), where both MAJOR-MODE and IMENU-SCANNING-METHOD
-are symbols.  If IMENU-SCANNING-METHOD is a function then it is called
-to create an index.  If it is a \"pattern\" (see `imenu-generic-expression') 
-it is passed to `imenu--generic-function' to create an index.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -691,16 +507,7 @@ Their results are gathered into an index alist."
 	   index-alist))
 	;; Use generic expression if possible.
 	((and imenu-generic-expression)
-	 (imenu--generic-function imenu-generic-expression))
-	;; Use supplied example functions or expressions
-	((assq major-mode imenu--scanning-method-alist)
-	 (let ((method (cadr (assq major-mode imenu--scanning-method-alist))))
-	   ;; is it a function?
-	   (if (fboundp method)
-	       ;; ... then call it
-	       (funcall method) 
-	     ;; ...otherwise pass the pattern to imenu--generic-function
-	     (imenu--generic-function (eval method))))) 
+	 (imenu--generic-function imenu-generic-expression)) 
 	(t
 	 (error "The mode \"%s\" does not take full advantage of imenu.el yet."
 		mode-name))))      
