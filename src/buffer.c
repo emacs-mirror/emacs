@@ -260,6 +260,7 @@ The value is never nil.")
     b->undo_list = Qt;
 
   reset_buffer (b);
+  reset_buffer_local_variables (b);
 
   /* Put this in the alist of all live buffers.  */
   XSET (buf, Lisp_Buffer, b);
@@ -291,7 +292,8 @@ The value is never nil.")
   return unbind_to (count, buf);
 }
 
-/* Reinitialize everything about a buffer except its name and contents.  */
+/* Reinitialize everything about a buffer except its name and contents
+   and local variables.  */
 
 void
 reset_buffer (b)
@@ -315,9 +317,12 @@ reset_buffer (b)
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   INITIALIZE_INTERVAL (b, NULL_INTERVAL);
-
-  reset_buffer_local_variables(b);
 }
+
+/* Reset buffer B's local variables info.
+   Don't use this on a buffer that has already been in use;
+   it does not treat permanent locals consistently.
+   Instead, use Fkill_all_local_variables.  */
 
 reset_buffer_local_variables (b)
      register struct buffer *b;
@@ -2374,7 +2379,9 @@ init_buffer_once ()
   /* Make sure all markable slots in buffer_defaults
      are initialized reasonably, so mark_buffer won't choke.  */
   reset_buffer (&buffer_defaults);
+  reset_buffer_local_variables (&buffer_defaults);
   reset_buffer (&buffer_local_symbols);
+  reset_buffer_local_variables (&buffer_local_symbols);
   XSET (Vbuffer_defaults, Lisp_Buffer, &buffer_defaults);
   XSET (Vbuffer_local_symbols, Lisp_Buffer, &buffer_local_symbols);
 
