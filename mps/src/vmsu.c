@@ -1,10 +1,12 @@
-/*  impl.c.vmsu  draft impl
+/*  impl.c.vmsu
  *
  *                     VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- *  $HopeName: MMsrc/!vmsu.c(trunk.3)$
+ *  $HopeName: MMsrc/!vmsu.c(trunk.4)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
+ *
+ *  Design: design.mps.vm
  *
  *  This is the implementation of the virtual memory mapping interface
  *  (vm.h) for SunOS 4.
@@ -15,7 +17,22 @@
  *
  *  Experiments have shown that attempting to reserve address space
  *  by mapping /dev/zero results in swap being reserved.  This
- *  appears to be a bug, so we work round it by using /etc/passwd.
+ *  appears to be a bug, so we work round it by using /etc/passwd,
+ *  the only file we can think of which is pretty much guaranteed
+ *  to be around.
+ *
+ *  .assume.not-last: The implementation of VMCreate assumes that
+ *    mmap() will not choose a region which contains the last page
+ *    in the address space, so that the limit of the mapped area
+ *    is representable.
+ *
+ *  .assume.size: The maximum size of the reserved address space
+ *    is limited by the range of "int".  This will probably be half
+ *    of the address space.
+ *
+ *  .assume.mmap.err: ENOMEM is the only error we really expect to
+ *    get from mmap.  The others are either caused by invalid params
+ *    or features we don't use.  See mmap(2) for details.
  */
 
 #include "std.h"
@@ -25,6 +42,7 @@
 #error "vmsu.c is SunOS 4 specific, but OS_SUNOS is not set"
 #endif
 
+#include <limits.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <fcntl.h>
@@ -94,38 +112,58 @@ Bool VMIsValid(VM vm, ValidationType validParam)
 Error VMCreate(VM *vmReturn, Addr size)
 {
   caddr_t addr;
-  Addr grain = VMGrain();
+  Addr grain;
   int zero_fd;
   int none_fd;
   VM vm;
 
+  grain = VMGrain();
+
   AVER(vmReturn != NULL);
   AVER(IsAligned(grain, size));
   AVER(size != 0);
+  AVER(size <= INT_MAX); /* see .assume.size */
 
   zero_fd = open("/dev/zero", O_RDONLY);
   if(zero_fd == -1)
-    return(ErrIO);
+    return(ErrFAILURE);
   none_fd = open("/etc/passwd", O_RDONLY);
   if(none_fd == -1) {
     close(zero_fd);
-    return(ErrIO);
+    return(ErrFAILURE);
   }
 
   /* Map in a page to store the descriptor on. */
-  addr = mmap(0, AlignUp(grain, sizeof(VMStruct)),
+  addr = mmap((caddr_t)0, AlignUp(grain, sizeof(VMStruct)),
 	      PROT_READ | PROT_WRITE, MAP_PRIVATE,
-	      zero_fd, 0);
-  if((int)addr == -1)
-    return(errno == ENOMEM ? ErrRESOURCE : ErrFAILURE);
+	      zero_fd, (off_t)0);
+  if((int)addr == -1) {
+    int e = errno;
+    AVER(e == ENOMEM); /* .assume.mmap.err */
+    close(none_fd);
+    close(zero_fd);
+    if(e == ENOMEM)
+      return ErrRESMEM;
+    else
+      return ErrFAILURE;
+  }
   vm = (VM)addr;
 
   vm->zero_fd = zero_fd;
   vm->none_fd = none_fd;
 
-  addr = mmap(0, size, PROT_NONE, MAP_SHARED, none_fd, 0);
-  if((int)addr == -1)
-    return(errno == ENOMEM ? ErrRESOURCE : ErrFAILURE);
+  /* See .assume.not-last. */
+  addr = mmap((caddr_t)0, size, PROT_NONE, MAP_SHARED, none_fd, (off_t)0);
+  if((int)addr == -1) {
+    int e = errno;
+    AVER(e == ENOMEM); /* .assume.mmap.err */
+    close(none_fd);
+    close(zero_fd);
+    if(e == ENOMEM)
+      return ErrRESOURCE;
+    else
+      return ErrFAILURE;
+  }
 
   vm->base = (Addr)addr;
   vm->limit = vm->base + size;
@@ -145,16 +183,21 @@ Error VMCreate(VM *vmReturn, Addr size)
 void VMDestroy(VM vm)
 {
   int r;
-  Addr grain = VMGrain();
+  Addr grain;
 
   AVER(ISVALID(VM, vm));
 
-  /* This is pretty pointless, since the vm descriptor page is about */
-  /* to vanish completely. */
+  /* This appears to be pretty pointless, since the vm descriptor page is */
+  /* about to vanish completely.  However, munmap might fail for some */
+  /* reason, and this would ensure that it was still discovered if sigs */
+  /* were being checked. */
 #ifdef DEBUG_SIGN
   vm->sig = SigInvalid;
 #endif
 
+  close(vm->zero_fd);
+  close(vm->none_fd);
+  grain = VMGrain();
   r = munmap((caddr_t)vm->base, (int)(vm->limit - vm->base));
   AVER(r == 0);
   r = munmap((caddr_t)vm, (int)AlignUp(grain, sizeof(VMStruct)));
@@ -186,14 +229,20 @@ Error VMMap(VM vm, Addr base, Addr limit)
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
+  AVER((limit - base) <= INT_MAX); /* This should be redundant. */
   AVER(IsAligned(grain, base));
   AVER(IsAligned(grain, limit));
+
+  /* Map /dev/zero onto the area with a copy-on-write policy.  This */
+  /* effectively populates the area with zeroed memory. */
 
   if((int)mmap((caddr_t)base, (int)(limit - base),
 	       PROT_READ | PROT_WRITE | PROT_EXEC,
 	       MAP_PRIVATE | MAP_FIXED,
-	       vm->zero_fd, 0) == -1)
+	       vm->zero_fd, (off_t)0) == -1) {
+    AVER(errno == ENOMEM); /* .assume.mmap.err */
     return(ErrRESMEM);
+  }
 
   return(ErrSUCCESS);
 }
@@ -214,8 +263,13 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(IsAligned(grain, base));
   AVER(IsAligned(grain, limit));
 
+  /* Map /etc/passwd onto the area, allowing no access.  This */
+  /* effectively depopulates the area from memory, but keeps */
+  /* it "busy" as far as the OS is concerned, so that it will not */
+  /* be re-used by other calls to mmap which do not specify MAP_FIXED. */
+
   addr = mmap((caddr_t)base, (int)(limit - base),
-	      PROT_NONE, MAP_SHARED, vm->none_fd, 0);
+	      PROT_NONE, MAP_SHARED, vm->none_fd, (off_t)0);
   AVER((int)addr != -1);
 }
 
