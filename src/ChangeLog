@@ -1,7 +1,7 @@
 2002-07-21  Ken Raeburn  <raeburn@gnu.org>
 
 	* buffer.c (mmap_realloc): When shrinking, make sure number of
-	pages is rounded towards zero.
+	pages to unmap is rounded towards zero.
 
 2002-07-20  Richard M. Stallman  <rms@gnu.org>
 
