@@ -51,21 +51,20 @@ Point is at the end of the segment of this line within the rectangle."
      (setq endlinepos (point-marker)))
     (if (< endcol startcol)
 	(setq startcol (prog1 endcol (setq endcol startcol))))
-    (if (/= endcol startcol)
-	(save-excursion
-	 (goto-char startlinepos)
-	 (while (< (point) endlinepos)
-	   (let (startpos begextra endextra)
-	     (move-to-column startcol coerce-tabs)
-	     (setq begextra (- (current-column) startcol))
-	     (setq startpos (point))
-	     (move-to-column endcol coerce-tabs)
-	     (setq endextra (- endcol (current-column)))
-	     (if (< begextra 0)
-		 (setq endextra (+ endextra begextra)
-		       begextra 0))
-	     (funcall function startpos begextra endextra))
-	   (forward-line 1))))
+    (save-excursion
+     (goto-char startlinepos)
+     (while (< (point) endlinepos)
+       (let (startpos begextra endextra)
+	 (move-to-column startcol coerce-tabs)
+	 (setq begextra (- (current-column) startcol))
+	 (setq startpos (point))
+	 (move-to-column endcol coerce-tabs)
+	 (setq endextra (- endcol (current-column)))
+	 (if (< begextra 0)
+	     (setq endextra (+ endextra begextra)
+		   begextra 0))
+	 (funcall function startpos begextra endextra))
+       (forward-line 1)))
     (- endcol startcol)))
 
 (defun delete-rectangle-line (startdelpos ignore ignore)
@@ -179,17 +178,19 @@ but instead winds up to the right of the rectangle."
   (goto-char start))
 
 (defun open-rectangle-line (startpos begextra endextra)
-  (let ((column (+ (current-column) begextra endextra)))
+  ;; Column where rectangle ends.
+  (let ((endcol (+ (current-column) endextra))
+	whitewidth)
     (goto-char startpos)
-    (let ((ocol (current-column)))
+    ;; Column where rectangle begins.
+    (let ((begcol (- (current-column) begextra)))
       (skip-chars-forward " \t")
-      (setq column (+ column (- (current-column) ocol))))
-    (delete-region (point)
-		   ;; Use skip-chars-backward's LIM argument to leave
-		   ;; characters before STARTPOS undisturbed.
-                   (progn (skip-chars-backward " \t" startpos)
-			  (point)))
-    (indent-to column)))
+      ;; Width of whitespace to be deleted and recreated.
+      (setq whitewidth (- (current-column) begcol)))
+    ;; Delete the whitespace following the start column.
+    (delete-region startpos (point))
+    ;; Open the desired width, plus same amount of whitespace we just deleted.
+    (indent-to (+ endcol whitewidth))))
 
 ;;;###autoload
 (defun string-rectangle (start end string)
@@ -199,21 +200,22 @@ This command does not delete or overwrite any existing text.
 
 Called from a program, takes three args; START, END and STRING."
   (interactive "r\nsString rectangle: ")
-  (operate-on-rectangle 'string-rectangle-line start end nil)
+  (operate-on-rectangle 'string-rectangle-line start end t)
   (goto-char start))
 
 (defun string-rectangle-line (startpos begextra endextra)
-  (let ((column (+ (current-column) begextra endextra)))
+  (let (whitespace)
     (goto-char startpos)
+    ;; Compute horizontal width of following whitespace.
     (let ((ocol (current-column)))
       (skip-chars-forward " \t")
-      (setq column (+ column (- (current-column) ocol))))
-    (delete-region (point)
-		   ;; Use skip-chars-backward's LIM argument to leave
-		   ;; characters before STARTPOS undisturbed.
-                   (progn (skip-chars-backward " \t" startpos)
-			  (point)))
-    (insert string)))
+      (setq whitespace (- (current-column) ocol)))
+    ;; Delete the following whitespace.
+    (delete-region startpos (point))
+    ;; Insert the desired string.
+    (insert string)
+    ;; Insert the same width of whitespace that we had before.
+    (indent-to (+ (current-column) whitespace))))
 
 ;;;###autoload
 (defun clear-rectangle (start end)
@@ -224,12 +226,15 @@ When called from a program, requires two args which specify the corners."
   (operate-on-rectangle 'clear-rectangle-line start end t))
 
 (defun clear-rectangle-line (startpos begextra endextra)
+  ;; Find end of whitespace after the rectangle.
   (skip-chars-forward " \t")
   (let ((column (+ (current-column) endextra)))
+    ;; Delete the text in the rectangle, and following whitespace.
     (delete-region (point)
                    (progn (goto-char startpos)
 			  (skip-chars-backward " \t")
 			  (point)))
+    ;; Reindent out to same column that we were at.
     (indent-to column)))
 
 (provide 'rect)
