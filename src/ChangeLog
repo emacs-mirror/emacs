@@ -1,3 +1,9 @@
+2000-06-22  Dave Love  <fx@gnu.org>
+
+	* s/isc3-0.h (C_SWITCH_SYSTEM): Define _XOPEN_SOURCE=500.
+
+	* s/gnu-linux.h (C_SWITCH_SYSTEM): Don't define _XOPEN_SOURCE here.
+
 2000-06-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (ccl_driver) <CCL_End>: Decrement stack_idx only when it
