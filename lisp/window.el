@@ -90,7 +90,8 @@ new mode line."
 	  (if (< (window-start new-w) old-point)
 	      (progn
 		(set-window-point new-w old-point)
-		(select-window new-w)))))))
+		(select-window new-w)))))
+    new-w))
 
 (defun split-window-horizontally (&optional arg)
   "Split current window into two windows side by side.
