@@ -1,3 +1,14 @@
+2004-10-02  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/rmail.el	(rmail): Convert Babyl files using decode-babyl-file.
+	(rmail-use-spam-filter): Add defvar.
+
+	* mail/unrmail.el: Mostly rewritten.  Parses the file
+	directly without calling any functions in Rmail.
+	(batch-convert-babyl, convert-babyl-file, decode-babyl-file)
+	(decode-babyl): New functions.
+	(unrmail, batch-unrmail): Now aliases.
+
 2004-09-27  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/rmaildesc.el (rmail-message-deleted-p): Add as alias.

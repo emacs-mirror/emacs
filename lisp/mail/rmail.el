@@ -598,6 +598,9 @@ The first parenthesized expression should match the MIME-charset name.")
 
 (defvar rmail-enable-multibyte nil)
 
+;; Avoid errors.
+(defvar rmail-use-spam-filter nil)
+
 ;;; mbox don't care
 (defun rmail-require-mime-maybe ()
   "Require `rmail-mime-feature' if that is non-nil.
@@ -674,9 +677,10 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       (setq run-mail-hook t)
       (rmail-mode-2)
       (goto-char (point-min))
-      ;; If file starts like a Babyl file, reject it.
-      (if (looking-at "BABYL OPTIONS:")
-	  (error "This is a BABYL file; use M-x unrmail to convert it"))
+      ;; If file starts like a Babyl file, convert it.
+      (when (looking-at "BABYL OPTIONS:")
+	(erase-buffer)
+	(decode-babyl-file file-name))
       (goto-char (point-max)))
     ;; As we have read a file by raw-text, the buffer is set to
     ;; unibyte.  We must make it multibyte if necessary.
