@@ -586,7 +586,7 @@ ${libsrc}make-docfile:
 #endif
 
 temacs: MAKE_PARALLEL $(LOCALCPP) $(SHORT) $(STARTFILES) $(OLDXMENU) ${obj} ${otherobj} OBJECTS_SYSTEM OBJECTS_MACHINE prefix-args
-	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS}) ${ALL_LDFLAGS} \
+	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${ALL_LDFLAGS}) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
 
