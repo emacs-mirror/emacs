@@ -398,8 +398,6 @@ Use `face-attribute' for finer control."
     (memq italic '(italic oblique))))
     
 
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Face documentation.
@@ -1221,16 +1219,16 @@ is used.  If nil or omitted, use the selected frame."
   "Return t if FACE, on FRAME, matches what SPEC says it should look like."
   (face-attr-match-p face (face-spec-choose spec frame) frame))
 
-(defun face-user-default-spec (face)
-  "Return the user's customized face-spec for FACE, or the default if none.
-If there is neither a user setting or a default for FACE, return nil."
-  (or (get face 'saved-face)
-      (get face 'face-defface-spec)))
-
-(defun face-default-spec (face)
+(defsubst face-default-spec (face)
   "Return the default face-spec for FACE, ignoring any user customization.
 If there is no default for FACE, return nil."
   (get face 'face-defface-spec))
+
+(defsubst face-user-default-spec (face)
+  "Return the user's customized face-spec for FACE, or the default if none.
+If there is neither a user setting or a default for FACE, return nil."
+  (or (get face 'saved-face)
+      (face-default-spec face)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
