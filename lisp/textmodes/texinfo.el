@@ -53,7 +53,7 @@
   (define-key texinfo-mode-map "\C-c\C-t\C-l"    'tex-recenter-output-buffer)
   (define-key texinfo-mode-map "\C-c\C-t\C-q"    'tex-show-print-queue)
   (define-key texinfo-mode-map "\C-c\C-t\C-p"    'texinfo-tex-print)
-  (define-key texinfo-mode-map "\C-c\C-t\C-i"    'texinfo-texindex)
+;;  (define-key texinfo-mode-map "\C-c\C-t\C-i"    'texinfo-texindex)
   (define-key texinfo-mode-map "\C-c\C-t\C-t"    'texinfo-tex-buffer)
   (define-key texinfo-mode-map "\C-c\C-t\C-r"    'texinfo-tex-region)
 
@@ -310,11 +310,11 @@ to jump to the corresponding spot in the Texinfo file."
 
 ;;; The  tex  and  print  function definitions:
 
-(defvar texinfo-tex-command "tex"
+(defvar texinfo-tex-command "texi2dvi"
   "*Command used by  texinfo-tex-region  to run tex on a region.")
 
-(defvar texinfo-texindex-command "texindex"
-  "*Command used by  texinfo-texindex  to sort unsorted index files.")
+;;(defvar texinfo-texindex-command "texindex"
+;;  "*Command used by  texinfo-texindex  to sort unsorted index files.")
 
 (defun texinfo-tex-region (beg end)
   "Run tex on the current region.
@@ -395,15 +395,15 @@ See \\[texinfo-tex-region] for more information."
   (interactive)
   (texinfo-tex-region (point-min) (point-max)))
 
-(defun texinfo-texindex ()
-  "Run texindex on unsorted index files.
-The index files are made by \\[texinfo-tex-region] or \\[texinfo-tex-buffer].
-Runs the shell command defined by `texinfo-texindex-command'."
-  (interactive)
-  (send-string "tex-shell"
-	       (concat texinfo-texindex-command
-                       " " tex-zap-file ".??" "\n"))
-  (tex-recenter-output-buffer nil))
+;;(defun texinfo-texindex ()
+;;  "Run texindex on unsorted index files.
+;;The index files are made by \\[texinfo-tex-region] or \\[texinfo-tex-buffer].
+;;Runs the shell command defined by `texinfo-texindex-command'."
+;;  (interactive)
+;;  (send-string "tex-shell"
+;;	       (concat texinfo-texindex-command
+;;                       " " tex-zap-file ".??" "\n"))
+;;  (tex-recenter-output-buffer nil))
 
 (defun texinfo-tex-print ()
   "Print .dvi file made by \\[texinfo-tex-region] or \\[texinfo-tex-buffer].
