@@ -471,7 +471,6 @@ x_reply_selection_request (event, format, data, size, type)
 
   /* #### XChangeProperty can generate BadAlloc, and we must handle it! */
 
-  BLOCK_INPUT;
   /* Store the data on the requested property.
      If the selection is large, only store the first N bytes of it.
    */
@@ -482,15 +481,20 @@ x_reply_selection_request (event, format, data, size, type)
 #if 0
       fprintf (stderr,"\nStoring all %d\n", bytes_remaining);
 #endif
+      BLOCK_INPUT;
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, size);
       /* At this point, the selection was successfully stored; ack it.  */
-      (void) XSendEvent (display, window, False, 0L, (XEvent *) &reply);
+      XSendEvent (display, window, False, 0L, (XEvent *) &reply);
+      XFlushQueue ();
+      UNBLOCK_INPUT;
     }
   else
     {
       /* Send an INCR selection.  */
       int prop_id;
+
+      BLOCK_INPUT;
 
       if (x_window_to_frame (window)) /* #### debug */
 	error ("attempt to transfer an INCR to ourself!");
@@ -506,6 +510,8 @@ x_reply_selection_request (event, format, data, size, type)
       XSelectInput (display, window, PropertyChangeMask);
       /* Tell 'em the INCR data is there...  */
       (void) XSendEvent (display, window, False, 0L, (XEvent *) &reply);
+      XFlushQueue ();
+      UNBLOCK_INPUT;
 
       /* First, wait for the requestor to ack by deleting the property.
 	 This can run random lisp code (process handlers) or signal.  */
@@ -516,6 +522,9 @@ x_reply_selection_request (event, format, data, size, type)
 	  int i = ((bytes_remaining < max_bytes)
 		   ? bytes_remaining
 		   : max_bytes);
+
+	  BLOCK_INPUT;
+
 	  prop_id = expect_property_change (display, window, reply.property,
 					    PropertyDelete);
 #if 0
@@ -526,6 +535,8 @@ x_reply_selection_request (event, format, data, size, type)
 			   PropModeAppend, data, i / format_bytes);
 	  bytes_remaining -= i;
 	  data += i;
+	  XFlushQueue ();
+	  UNBLOCK_INPUT;
 
 	  /* Now wait for the requestor to ack this chunk by deleting the
 	     property.	 This can run random lisp code or signal.
@@ -537,14 +548,15 @@ x_reply_selection_request (event, format, data, size, type)
 #if 0
       fprintf (stderr,"  INCR done\n");
 #endif
+      BLOCK_INPUT;
       if (! waiting_for_other_props_on_window (display, window))
 	XSelectInput (display, window, 0L);
 
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, 0);
+      XFlushQueue ();
+      UNBLOCK_INPUT;
     }
-  XFlushQueue ();
-  UNBLOCK_INPUT;
 }
 
 /* Handle a SelectionRequest event EVENT.
@@ -555,7 +567,6 @@ x_handle_selection_request (event)
      struct input_event *event;
 {
   struct gcpro gcpro1, gcpro2, gcpro3;
-  XSelectionEvent reply;
   Lisp_Object local_selection_data = Qnil;
   Lisp_Object selection_symbol;
   Lisp_Object target_symbol = Qnil;
@@ -566,35 +577,10 @@ x_handle_selection_request (event)
 
   GCPRO3 (local_selection_data, converted_selection, target_symbol);
 
-  reply.type = SelectionNotify;		/* Construct the reply event */
-  reply.display = SELECTION_EVENT_DISPLAY (event);
-  reply.requestor = SELECTION_EVENT_REQUESTOR (event);
-  reply.selection = SELECTION_EVENT_SELECTION (event);
-  reply.time = SELECTION_EVENT_TIME (event);
-  reply.target = SELECTION_EVENT_TARGET (event);
-  reply.property = SELECTION_EVENT_PROPERTY (event);
-  if (reply.property == None)
-    reply.property = reply.target;
-
-  selection_symbol = x_atom_to_symbol (reply.display,
+  selection_symbol = x_atom_to_symbol (SELECTION_EVENT_DISPLAY (event),
 				       SELECTION_EVENT_SELECTION (event));
 
   local_selection_data = assq_no_quit (selection_symbol, Vselection_alist);
-  
-#if 0
-# define CDR(x) (XCONS (x)->cdr)
-# define CAR(x) (XCONS (x)->car)
-  /* This list isn't user-visible, so it can't "go bad." */
-  if (!CONSP (local_selection_data)) abort ();
-  if (!CONSP (CDR (local_selection_data))) abort ();
-  if (!CONSP (CDR (CDR (local_selection_data)))) abort ();
-  if (!NILP (CDR (CDR (CDR (local_selection_data))))) abort ();
-  if (!CONSP (CAR (CDR (CDR (local_selection_data))))) abort ();
-  if (!INTEGERP (CAR (CAR (CDR (CDR (local_selection_data)))))) abort ();
-  if (!INTEGERP (CDR (CAR (CDR (CDR (local_selection_data)))))) abort ();
-# undef CAR
-# undef CDR
-#endif
 
   if (NILP (local_selection_data))
     {
@@ -621,7 +607,7 @@ x_handle_selection_request (event)
   x_selection_current_request = event;
   record_unwind_protect (x_selection_request_lisp_error, Qnil);
 
-  target_symbol = x_atom_to_symbol (reply.display,
+  target_symbol = x_atom_to_symbol (SELECTION_EVENT_DISPLAY (event),
 				    SELECTION_EVENT_TARGET (event));
 
 #if 0 /* #### MULTIPLE doesn't work yet */
@@ -642,7 +628,8 @@ x_handle_selection_request (event)
       Atom type;
       int nofree;
 
-      lisp_data_to_selection_data (reply.display, converted_selection,
+      lisp_data_to_selection_data (SELECTION_EVENT_DISPLAY (event),
+				   converted_selection,
 				   &data, &type, &size, &format, &nofree);
       
       x_reply_selection_request (event, format, data, size, type);
@@ -733,16 +720,16 @@ x_handle_selection_clear (event)
    be servicing multiple INCR selection requests simultaneously.)  I haven't
    actually tested that yet.  */
 
-static int prop_location_tick;
+static int prop_location_identifier;
 
 static Lisp_Object property_change_reply;
-static int property_change_reply_tick;
+static int property_change_reply_identifier;
 
 /* Keep a list of the property changes that are awaited.  */
 
 struct prop_location
 {
-  int tick;
+  int identifier;
   Display *display;
   Window window;
   Atom property;
@@ -753,12 +740,12 @@ struct prop_location
 static struct prop_location *property_change_wait_list;
 
 static int
-property_deleted_p (tick)
-     void *tick;
+property_deleted_p (identifier)
+     void *identifier;
 {
   struct prop_location *rest = property_change_wait_list;
   while (rest)
-    if (rest->tick == (int) tick)
+    if (rest->identifier == (int) identifier)
       return 0;
     else
       rest = rest->next;
@@ -796,27 +783,27 @@ expect_property_change (display, window, property, state)
 {
   struct prop_location *pl
     = (struct prop_location *) xmalloc (sizeof (struct prop_location));
-  pl->tick = ++prop_location_tick;
+  pl->identifier = ++prop_location_identifier;
   pl->display = display;
   pl->window = window;
   pl->property = property;
   pl->desired_state = state;
   pl->next = property_change_wait_list;
   property_change_wait_list = pl;
-  return pl->tick;
+  return pl->identifier;
 }
 
 /* Delete an entry from the list of property changes we are waiting for.
-   TICK is the number that uniquely identifies the entry.  */
+   IDENTIFIER is the number that uniquely identifies the entry.  */
 
 static void
-unexpect_property_change (tick)
-     int tick;
+unexpect_property_change (identifier)
+     int identifier;
 {
   struct prop_location *prev = 0, *rest = property_change_wait_list;
   while (rest)
     {
-      if (rest->tick == tick)
+      if (rest->identifier == identifier)
 	{
 	  if (prev)
 	    prev->next = rest->next;
@@ -830,15 +817,38 @@ unexpect_property_change (tick)
     }
 }
 
+/* Remove the property change expectation element for IDENTIFIER.  */
+
+static Lisp_Object
+wait_for_property_change_unwind (identifierval)
+     Lisp_Object identifierval;
+{
+  unexpect_property_change (XFASTINT (identifierval));
+}
+
 /* Actually wait for a property change.
-   TICK should be the value that expect_property_change returned.  */
+   IDENTIFIER should be the value that expect_property_change returned.  */
 
 static void
-wait_for_property_change (tick)
+wait_for_property_change (identifier)
 {
+  int secs, usecs;
+  int count = specpdl_ptr - specpdl;
+
+  /* Make sure to do unexpect_property_change if we quit or err.  */
+  record_unwind_protect (wait_for_property_change_unwind,
+			 make_number (identifier));
+
   XCONS (property_change_reply)->car = Qnil;
-  property_change_reply_tick = tick;
-  wait_reading_process_input (0, 0, property_change_reply, 0);
+  property_change_reply_identifier = identifier;
+  secs = x_selection_timeout / 1000;
+  usecs = (x_selection_timeout % 1000) * 1000;
+  wait_reading_process_input (secs, usecs, property_change_reply, 0);
+
+  if (NILP (XCONS (property_change_reply)->car))
+    error ("timed out waiting for property-notify event");
+
+  unbind_to (count, Qnil);
 }
 
 /* Called from XTread_socket in response to a PropertyNotify event.  */
@@ -865,7 +875,7 @@ x_handle_property_notify (event)
 
 	  /* If this is the one wait_for_property_change is waiting for,
 	     tell it to wake up.  */
-	  if (rest->tick == property_change_reply_tick)
+	  if (rest->identifier == property_change_reply_identifier)
 	    XCONS (property_change_reply)->car = Qt;
 
 	  if (prev)
@@ -1024,20 +1034,18 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
 			       actual_type_ret, actual_format_ret,
 			       actual_size_ret,
 			       &bytes_remaining, &tmp_data);
-  UNBLOCK_INPUT;
   if (result != Success)
     {
+      UNBLOCK_INPUT;
       *data_ret = 0;
       *bytes_ret = 0;
       return;
     }
-  BLOCK_INPUT;
-  XFree ((char *) tmp_data);
-  UNBLOCK_INPUT;
+  xfree ((char *) tmp_data);
   
   if (*actual_type_ret == None || *actual_format_ret == 0)
     {
-      if (delete_p) XDeleteProperty (display, window, property);
+      UNBLOCK_INPUT;
       return;
     }
 
@@ -1045,7 +1053,6 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
   *data_ret = (unsigned char *) xmalloc (total_size);
   
   /* Now read, until weve gotten it all.  */
-  BLOCK_INPUT;
   while (bytes_remaining)
     {
 #if 0
@@ -1054,7 +1061,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
       result
 	= XGetWindowProperty (display, window, property,
 			      offset/4, buffer_size/4,
-			      (delete_p ? True : False),
+			      False,
 			      AnyPropertyType,
 			      actual_type_ret, actual_format_ret,
 			      actual_size_ret, &bytes_remaining, &tmp_data);
@@ -1069,8 +1076,10 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
       *actual_size_ret *= *actual_format_ret / 8;
       bcopy (tmp_data, (*data_ret) + offset, *actual_size_ret);
       offset += *actual_size_ret;
-      XFree ((char *) tmp_data);
+      xfree ((char *) tmp_data);
     }
+
+  XFlushQueue ();
   UNBLOCK_INPUT;
   *bytes_ret = offset;
 }
@@ -1097,16 +1106,23 @@ receive_incremental_selection (display, window, property, target_type,
 #if 0
   fprintf (stderr, "\nread INCR %d\n", min_size_bytes);
 #endif
-  /* At this point, we have read an INCR property, and deleted it (which
-     is how we ack its receipt: the sending window will be selecting
-     PropertyNotify events on our window to notice this.)
+
+  /* At this point, we have read an INCR property.
+     Delete the property to ack it.
+     (But first, prepare to receive the next event in this handshake.)
 
      Now, we must loop, waiting for the sending window to put a value on
      that property, then reading the property, then deleting it to ack.
      We are done when the sender places a property of length 0.
    */
+  BLOCK_INPUT;
+  XSelectInput (display, window, STANDARD_EVENT_SET | PropertyChangeMask);
+  XDeleteProperty (display, window, property);
   prop_id = expect_property_change (display, window, property,
 				    PropertyNewValue);
+  XFlushQueue ();
+  UNBLOCK_INPUT;
+
   while (1)
     {
       unsigned char *tmp_data;
@@ -1116,8 +1132,6 @@ receive_incremental_selection (display, window, property, target_type,
 	 .. no it wont, I dont get it.
 	 .. Ok, I get it now, the Xt code that implements INCR is broken.
        */
-      prop_id = expect_property_change (display, window, property,
-					PropertyNewValue);
       x_get_window_property (display, window, property,
 			     &tmp_data, &tmp_size_bytes,
 			     type_ret, format_ret, size_ret, 1);
@@ -1127,10 +1141,20 @@ receive_incremental_selection (display, window, property, target_type,
 #if 0
 	  fprintf (stderr, "  read INCR done\n");
 #endif
+	  if (! waiting_for_other_props_on_window (display, window))
+	    XSelectInput (display, window, STANDARD_EVENT_SET);
 	  unexpect_property_change (prop_id);
 	  if (tmp_data) xfree (tmp_data);
 	  break;
 	}
+
+      BLOCK_INPUT;
+      XDeleteProperty (display, window, property);
+      prop_id = expect_property_change (display, window, property,
+					PropertyNewValue);
+      XFlushQueue ();
+      UNBLOCK_INPUT;
+
 #if 0
       fprintf (stderr, "  read INCR %d\n", tmp_size_bytes);
 #endif
@@ -1205,6 +1229,11 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
 				     &actual_type, &actual_format,
 				     &actual_size);
     }
+
+  BLOCK_INPUT;
+  XDeleteProperty (display, window, property);
+  XFlushQueue ();
+  UNBLOCK_INPUT;
 
   /* It's been read.  Now convert it to a lisp object in some semi-rational
      manner.  */
@@ -1899,7 +1928,7 @@ syms_of_xselect ()
   reading_which_selection = 0;
 
   property_change_wait_list = 0;
-  prop_location_tick = 0;
+  prop_location_identifier = 0;
   property_change_reply = Fcons (Qnil, Qnil);
   staticpro (&property_change_reply);
 
