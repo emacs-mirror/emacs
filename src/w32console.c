@@ -57,7 +57,7 @@ static void reassert_line_highlight (int, int);
 static void insert_glyphs (GLYPH *start, int len);
 static void write_glyphs (GLYPH *string, int len);
 static void delete_glyphs (int n);
-static void ring_bell (void);
+void nt_ring_bell (void);
 static void reset_terminal_modes (void);
 static void set_terminal_modes (void);
 static void set_terminal_window (int size);
@@ -367,8 +367,10 @@ write_glyphs (register GLYPH *string, register int len)
 	  continue;
 	}
       GLYPH_FOLLOW_ALIASES (glyph_table, glyph_len, glyph);
+#ifndef HAVE_NTGUI
       if (GLYPH_FACE (fixfix, glyph) != 0)
 	printf ("Glyph face is %d\n", GLYPH_FACE (fixfix, glyph));
+#endif /* !HAVE_NTGUI */
       if (GLYPH_SIMPLE_P (glyph_table, glyph_len, glyph))
         {
 	  *ptr++ = glyph & 0xFF;
@@ -418,7 +420,7 @@ delete_glyphs (int n)
 static unsigned int sound_type = 0xFFFFFFFF;
 
 void
-ring_bell (void)
+nt_ring_bell (void)
 {
   if (sound_type == 0xFFFFFFFF) 
       Beep (666, 100);
@@ -551,7 +553,7 @@ initialize_win_nt_display (void)
   insert_glyphs_hook		= (term_hook) insert_glyphs;
   write_glyphs_hook		= (term_hook) write_glyphs;
   delete_glyphs_hook		= (term_hook) delete_glyphs;
-  ring_bell_hook		= (term_hook) ring_bell;
+  ring_bell_hook		= (term_hook) nt_ring_bell;
   reset_terminal_modes_hook	= (term_hook) reset_terminal_modes;
   set_terminal_modes_hook	= (term_hook) set_terminal_modes;
   set_terminal_window_hook	= (term_hook) set_terminal_window;
@@ -606,6 +608,7 @@ DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
   return Qt;
 }
 
+#ifndef HAVE_NTGUI
 void
 pixel_to_glyph_coords (FRAME_PTR f, int pix_x, int pix_y, int *x, int *y,
 		      void *bounds, int noclip)
@@ -620,6 +623,7 @@ glyph_to_pixel_coords (FRAME_PTR f, int x, int y, int *pix_x, int *pix_y)
   *pix_x = x;
   *pix_y = y;
 }
+#endif /* !HAVE_NTGUI */
 
 void
 syms_of_ntterm ()
