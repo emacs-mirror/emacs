@@ -113,14 +113,14 @@
 
 ;; BUGS:
 ;;  Accepting definitions in latex mode can mess up math mode skipping...
-;;  Highlighting in version 19 still doesn't work on tty's.
 ;;  On some versions of emacs, growing the minibuffer fails.
 ;;  Autoloading ispell can result in problems if you need to use a local or
-;;    modified dictionary.  Place the following in your .emacs file to
-;;    override the autoload definitions:
+;;   modified dictionary.  Place the following in your .emacs file to
+;;   override the autoload definitions:
 ;;    (setq ispell-dictionary-alist (cons '(dictionary ...)
 ;;					   ispell-dictionary-alist))
 ;;    (setq ispell-menu-map nil)
+;;    (setq ispell-dictionary-alist-override t)
 ;;    (load-library "ispell")
 
 
@@ -526,9 +526,12 @@ LANGUAGE.aff file \(e.g., english.aff\)."
 			       (const iso-8859-2))))
   :group 'ispell)
 
+(defvar ispell-dictionary-alist-override nil)
+
 ;;; update the dictionaries at load time
-(setq ispell-dictionary-alist
-      (append ispell-dictionary-alist-1 ispell-dictionary-alist-2))
+(unless ispell-dictionary-alist-override
+  (setq ispell-dictionary-alist
+	(append ispell-dictionary-alist-1 ispell-dictionary-alist-2)))
 
 ;;; The preparation of the menu bar menu must be autoloaded
 ;;; because otherwise this file gets autoloaded every time Emacs starts
