@@ -92,6 +92,11 @@ Visit @var{file} using @code{find-file}.  @xref{Visiting}.
 Visit @var{file} using @code{find-file}, then go to line number
 @var{linenum} in it.
 
+@item +@var{linenum}:@var{columnnum} @var{file}
+@opindex +@var{linenum}:@var{columnnum}
+Visit @var{file} using @code{find-file}, then go to line number
+@var{linenum} in it, and move to column number @var{columnnum}.
+
 @need 3000
 @item -l @var{file}
 @opindex -l
