@@ -75,7 +75,7 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 (put 'default-button 'mouse-face 'highlight)
 (put 'default-button 'keymap button-map)
 (put 'default-button 'type 'button)
-(put 'default-button 'action 'button-nop)
+(put 'default-button 'action 'ignore)
 (put 'default-button 'help-echo "mouse-2, RET: Push this button")
 ;; Make overlay buttons go away if their underlying text is deleted.
 (put 'default-button 'evaporate t)
@@ -85,11 +85,6 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 ;; Text property buttons don't have a `button' property of their own, so
 ;; they inherit this.
 (put 'default-button 'button t)
-
-;; This is the default button action.
-(defun button-nop (button)
-  "Do nothing to BUTTON."
-  nil)
 
 
 ;; Button types (which can be used to hold default properties for buttons)
