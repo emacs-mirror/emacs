@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.92) $
+ * $HopeName: MMsrc!mpmst.h(trunk.93) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: This header file crosses module boundaries.  The relevant
@@ -322,7 +322,7 @@ typedef struct GCSegStruct {    /* GC segment structure */
 typedef struct SegPrefStruct {  /* segment placement preferences */
   Sig sig;                      /* impl.h.misc.sig */
   Bool high;                    /* high or low */
-  RefSet refSet;                /* preferred RefSetOfSeg */
+  ZoneSet zones;                /* preferred zones */
   Bool isCollected;             /* whether segment will be collected */
   Bool isGen;                   /* whether gen is set */
   Serial gen;                   /* associated geneation */
@@ -544,7 +544,7 @@ typedef struct RootStruct {
 typedef struct ScanStateStruct {
   TraceFixMethod fix;           /* fix function */
   Word zoneShift;               /* copy of arena->zoneShift.  See .ss.zone */
-  RefSet white;                 /* white set, for inline fix test */
+  ZoneSet white;                /* white set, for inline fix test */
   RefSet unfixedSummary;        /* accumulated summary of scanned references */
   Sig sig;                      /* design.mps.sig */
   Arena arena;                  /* owning arena */
@@ -574,8 +574,8 @@ typedef struct TraceStruct {
   Sig sig;                      /* design.mps.sig */
   TraceId ti;                   /* index into TraceSets */
   Arena arena;                  /* owning arena */
-  RefSet white;                 /* superset of refs in white set */
-  RefSet mayMove;               /* superset of refs in moving set */
+  ZoneSet white;                /* zones in the white set */
+  ZoneSet mayMove;              /* zones containing possibly moving objs */
   TraceState state;             /* current state of trace */
   Bool emergency;               /* ran out of memory during trace */
   Chain chain;                  /* chain being incrementally collected */

@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.87) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.88) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.type
@@ -301,7 +301,7 @@ enum {
 enum {
   SegPrefHigh = 1,
   SegPrefLow,  
-  SegPrefRefSet,
+  SegPrefZoneSet,
   SegPrefGen,
   SegPrefCollected,
   SegPrefLIMIT
