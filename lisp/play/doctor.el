@@ -885,7 +885,7 @@ Otherwise call the Doctor to parse preceding sentence."
 (defun doctor-doc (sent)
   (cond
    ((equal sent '(foo))
-    (doctor-type '(bar! ($ please)($ continue))))
+    (doctor-type '(bar! ($ please)($ continue) \.)))
    ((member sent howareyoulst)
     (doctor-type '(i\'m ok \.  ($ describe) yourself \.)))
    ((or (member sent '((good bye) (see you later) (i quit) (so long)
