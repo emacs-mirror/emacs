@@ -1,6 +1,6 @@
 ;;; timezone.el --- time zone package for GNU Emacs
 
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 1996 Free Software Foundation, Inc.
 
 ;; Author: Masanobu Umeda
 ;; Maintainer: umerin@mse.kyutech.ac.jp
@@ -131,7 +131,8 @@ Understands the following styles:
  (5) 22-AUG-1993 10:59:12.82
  (6) Thu, 11 Apr 16:17:12 91 [MET]
  (7) Mon, 6  Jul 16:47:20 T 1992 [MET]"
-  ;; Get rid of any text properties.
+ (8) 1996-06-24 21:13:12 [GMT]"
+ ;; Get rid of any text properties.
   (and (stringp date)
        (or (text-properties-at 0 date)
 	   (next-property-change 0 date))
@@ -175,6 +176,14 @@ Understands the following styles:
 	    "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\.[0-9]+" date)
 	   ;; Styles: (5) without timezone.
 	   (setq year 3 month 2 day 1 time 4 zone nil))
+	  ((string-match
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
+	   ;; Styles: (8) with timezone.
+	   (setq year 1 month 2 day 3 time 4 zone 5))
+	  ((string-match
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)" date)
+	   ;; Styles: (8) without timezone.
+	   (setq year 1 month 2 day 3 time 4 zone nil))
 	  )
     (if year
 	(progn
@@ -183,13 +192,17 @@ Understands the following styles:
 	  ;; It is now Dec 1992.  8 years before the end of the World.
 	  (if (< (length year) 4)
 	      (setq year (concat "19" (substring year -2 nil))))
-	  (let ((string (substring date
-				   (match-beginning month)
-				   (+ (match-beginning month) 3))))
-	    (setq month
-		  (int-to-string
-		   (cdr (assoc (upcase string) timezone-months-assoc)))))
-
+          (setq month
+		(if (= (aref date (+ (match-beginning month) 2)) ?-)
+		    ;; Handle numeric months, spanning exactly two digits.
+		    (substring date
+			       (match-beginning month)
+			       (+ (match-beginning month) 2))
+ 	          (let ((string (substring date
+				 (match-beginning month)
+				 (+ (match-beginning month) 3))))
+		    (int-to-string
+		     (cdr (assoc (upcase string) timezone-months-assoc))))))
 	  (setq day
 		(substring date (match-beginning day) (match-end day)))
 	  (setq time
