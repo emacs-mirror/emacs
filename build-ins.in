@@ -7,27 +7,27 @@
 # libaries.  The default definitions for the variables below are
 # expressed in terms of this one, so you may not need to change them.
 # set LIBROOT=/usr/local/lib/emacs-19.0
-LIBROOT=/usr/local/emacs
+LIBROOT=/gd/gnu/emacs
 
 # Emacs will search this path to find its elisp files.  This should be
 # a colon-separated list of directories.  Strictly speaking, all the
 # elisp files should go under DATADIR (below), since both elisp source
 # and compiled elisp are completely portable, but it's traditional to
 # give the lisp files their own subdirectory.
-LISPPATH=/usr/local/emacs/local-lisp:/usr/local/emacs/lisp
+LISPPATH=/gd/gnu/emacs/local-lisp:/gd/gnu/emacs/lisp
 
 # Emacs will look here for its architecture-independent files (like
 # the tutorial and the zippy database).
-DATADIR=/usr/local/emacs/share-lib
+DATADIR=/gd/gnu/emacs/share-lib
 
 # Emacs will look here for its architecture-dependent files, like
 # executables for its utilities.
-LIBDIR=/usr/local/emacs/arch-lib
+LIBDIR=/gd/gnu/emacs/arch-lib
 
 # The locking directory, where the Emacs locking code keeps track of
 # which files are currently being edited.
 # set LOCKDIR=${LIBROOT}/lock
-LOCKDIR=/usr/local/emacs/lock
+LOCKDIR=/gd/gnu/emacs/lock
 
 # This is where build-install should place the binaries people will
 # want to run directly (like etags and Emacs itself).

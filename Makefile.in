@@ -5,6 +5,7 @@
 # make install	to install it
 # make install.sysv  to install on system V.
 # make install.xenix  to install on Xenix
+# make install.aix    to install on AIX.
 # make tags	to update tags tables
 #
 # make distclean	to delete everything that wasn't in the distribution
@@ -23,7 +24,7 @@ SHELL = /bin/sh
 # already, the `install' targets will move or copy it there.  The
 # default definitions for the variables below are expressed in terms
 # of this one, so you may not need to change them.
-LIBROOT=/usr/local/emacs
+LIBROOT=/gd/gnu/emacs
 
 # This is where the `install' make target should place the binaries
 # people will want to run directly (like etags and Emacs itself).
@@ -34,19 +35,19 @@ INSTALLBIN=/usr/local/bin
 # elisp files should go under DATADIR (below), since both elisp source
 # and compiled elisp are completely portable, but it's traditional to
 # give the lisp files their own subdirectory.
-LISPPATH=/usr/local/emacs/local-lisp:/usr/local/emacs/lisp
+LISPPATH=/gd/gnu/emacs/local-lisp:/gd/gnu/emacs/lisp
 
 # Emacs will look here for its architecture-independent files (like
 # the tutorial and the zippy database).
-DATADIR=/usr/local/emacs/share-lib
+DATADIR=/gd/gnu/emacs/share-lib
 
 # Emacs will look here for its architecture-dependent files, like
 # executables for its utilities.
-LIBDIR=/usr/local/emacs/arch-lib
+LIBDIR=/gd/gnu/emacs/arch-lib
 
 # The locking directory, where the Emacs locking code keeps track of
 # which files are currently being edited.
-LOCKDIR=/usr/local/emacs/lock
+LOCKDIR=/gd/gnu/emacs/lock
 
 # This is where the `install' make target should place the man pages
 # for the binaries it installs.
@@ -137,6 +138,24 @@ install.xenix: all mkdir lockdir
 	cp src/xemacs ${INSTALLBIN}/emacs
 	chmod 1755 ${INSTALLBIN}/emacs
 	-rm -f ${INSTALLBIN}/emacs.old
+
+install.aix: all mkdir lockdir
+	-if [ `/bin/pwd` != `(cd ${LIBROOT}; /bin/pwd)` ] ; then \
+		tar cf - ${COPYDIR} | (cd ${LIBROOT}; umask 0; tar xBf - ) ;\
+		for i in ${CLEANDIR}; do \
+			(rm -rf ${LIBROOT}/$$i/RCS; \
+			 rm -f ${LIBROOT}/$$i/\#*; \
+			 rm -f ${LIBROOT}/$$i/*~); \
+		done \
+	else true; \
+	fi
+	install -f ${INSTALLBIN} etc/emacsclient
+	install -f ${INSTALLBIN} etc/etags
+	install -f ${INSTALLBIN} etc/ctags
+	install -M 1755 -f ${INSTALLBIN} src/xemacs
+	install -M 444 -f ${MANDIR} etc/emacs.1
+	-rm -f ${INSTALLBIN}/emacs
+	mv ${INSTALLBIN}/xemacs ${INSTALLBIN}/emacs
 
 mkdir: FRC
 	-mkdir ${LIBROOT}
