@@ -266,7 +266,7 @@ ln config.bat make-dist update-subdirs vpath.sed ${tempdir}
 cp mkinstalldirs ${tempdir}
 cp config.sub ${tempdir}
 cp config.guess ${tempdir}
-cp install.sh ${tempdir}
+cp install-sh ${tempdir}
 
 echo "Updating version number in README"
 (cd ${tempdir}
@@ -405,7 +405,7 @@ echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[chy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
- ln rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
+ ln grep-changelog rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
  for file in [a-zA-Z]*.[chy]; do
