@@ -21,7 +21,7 @@
     MSVC compiled gmake 3.77:            okay          okay
     MSVC compiled gmake 3.78.1:          okay          okay
     MSVC compiled gmake 3.79.1:          okay          okay
-    mingw32/gcc-2.92.2 make (3.77):      okay[4]       okay
+    mingw32/gcc-2.92.2 make (3.77):      okay          okay[4]
     cygwin compiled gmake 3.77:          okay[1]       fails[2]
     cygwin compiled gmake 3.78.1:        okay          fails[2]
     cygwin compiled gmake 3.79.1:        couldn't build make[3]
