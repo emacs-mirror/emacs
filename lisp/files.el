@@ -2365,12 +2365,15 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 			    (or (eq delete-old-versions t) (eq delete-old-versions nil))
 			    (or delete-old-versions
 				(y-or-n-p (format "Delete excess backup versions of %s? "
-						  real-file-name))))))
+						  real-file-name)))))
+		      (modes (file-modes buffer-file-name)))
 		  ;; Actually write the back up file.
 		  (condition-case ()
 		      (if (or file-precious-flag
     ;			      (file-symlink-p buffer-file-name)
 			      backup-by-copying
+			      ;; Don't rename a suid or sgid file.
+			      (< 0 (logand modes #o6000))
 			      (and backup-by-copying-when-linked
 				   (> (file-nlinks real-file-name) 1))
 			      (and (or backup-by-copying-when-mismatch
@@ -2382,19 +2385,10 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 						   (<= (nth 2 attr) backup-by-copying-when-privileged-mismatch)))
 					  (or (nth 9 attr)
 					      (not (file-ownership-preserved-p real-file-name)))))))
-			  (condition-case ()
-			      (copy-file real-file-name backupname t t)
-			    (file-error
-			     ;; If copying fails because file BACKUPNAME
-			     ;; is not writable, delete that file and try again.
-			     (if (and (file-exists-p backupname)
-				      (not (file-writable-p backupname)))
-				 (delete-file backupname))
-			     (copy-file real-file-name backupname t t)))
+			  (backup-buffer-copy real-file-name backupname modes)
 			;; rename-file should delete old backup.
 			(rename-file real-file-name backupname t)
-			(setq setmodes
-			      (cons (file-modes backupname) backupname)))
+			(setq setmodes (cons modes backupname)))
 		    (file-error
 		     ;; If trouble writing the backup, write it in ~.
 		     (setq backupname (expand-file-name
@@ -2403,15 +2397,7 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		     (message "Cannot write backup file; backing up in %s"
 			      (file-name-nondirectory backupname))
 		     (sleep-for 1)
-		     (condition-case ()
-			 (copy-file real-file-name backupname t t)
-		       (file-error
-			;; If copying fails because file BACKUPNAME
-			;; is not writable, delete that file and try again.
-			(if (and (file-exists-p backupname)
-				 (not (file-writable-p backupname)))
-			    (delete-file backupname))
-			(copy-file real-file-name backupname t t)))))
+		     (backup-buffer-copy real-file-name backupname modes)))
 		  (setq buffer-backed-up t)
 		  ;; Now delete the old versions, if desired.
 		  (if delete-old-versions
@@ -2422,6 +2408,18 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 			(setq targets (cdr targets))))
 		  setmodes)
 	    (file-error nil))))))
+
+(defun backup-buffer-copy (from-name to-name modes)
+  (condition-case ()
+      (copy-file from-name to-name t t)
+    (file-error
+     ;; If copying fails because file TO-NAME
+     ;; is not writable, delete that file and try again.
+     (if (and (file-exists-p to-name)
+	      (not (file-writable-p to-name)))
+	 (delete-file to-name))
+     (copy-file from-name to-name t t)))
+  (set-file-modes to-name (logand modes #o1777)))
 
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
