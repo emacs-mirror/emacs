@@ -950,7 +950,8 @@ on the left of the dialog box and all following items on the right.\n\
   check_x ();
 
   /* Decode the first argument: find the window or frame to use.  */
-  if (EQ (position, Qt))
+  if (EQ (position, Qt)
+      || (CONSP (position) && EQ (XCONS (position)->car, Qmenu_bar)))
     {
 #if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
@@ -967,9 +968,7 @@ on the left of the dialog box and all following items on the right.\n\
       else
 	window = selected_window;
 #endif
-      /* Decode the first argument: find the window and the coordinates.  */
-      if (EQ (position, Qt))
-	window = selected_window;
+      window = selected_window;
     }
   else if (CONSP (position))
     {
