@@ -1,3 +1,9 @@
+2003-03-14  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Finsert_file_contents): On replacing, before decoding
+	the file into the work buffer, set point of the work buffer to the
+	end.
+
 2003-02-13  Dave Love  <fx@gnu.org>
 
 	* coding.c (Fcheck_coding_systems_region): Fix type errors.
