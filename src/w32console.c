@@ -58,8 +58,6 @@ static void clear_to_end (void);
 static void clear_frame (void);
 static void clear_end_of_line (int);
 static void ins_del_lines (int vpos, int n);
-static void change_line_highlight (int, int, int, int);
-static void reassert_line_highlight (int, int);
 static void insert_glyphs (struct glyph *start, int len);
 static void write_glyphs (struct glyph *string, int len);
 static void delete_glyphs (int n);
@@ -70,7 +68,6 @@ static void set_terminal_window (int size);
 static void update_begin (struct frame * f);
 static void update_end (struct frame * f);
 static WORD w32_face_attributes (struct frame *f, int face_id);
-static int hl_mode (int new_highlight);
 
 static COORD	cursor_coords;
 static HANDLE	prev_screen, cur_screen;
@@ -140,8 +137,6 @@ clear_frame (void)
 
   GetConsoleScreenBufferInfo (GetStdHandle (STD_OUTPUT_HANDLE), &info);
 
-  hl_mode (0);
-
   /* Remember that the screen buffer might be wider than the window.  */
   n = FRAME_HEIGHT (f) * info.dwSize.X;
   dest.X = dest.Y = 0;
@@ -176,7 +171,7 @@ clear_end_of_line (int end)
 void
 ins_del_lines (int vpos, int n)
 {
-  int	     i, nb, save_highlight;
+  int	     i, nb;
   SMALL_RECT scroll;
   COORD	     dest;
   CHAR_INFO  fill;
@@ -198,8 +193,6 @@ ins_del_lines (int vpos, int n)
   scroll.Right = FRAME_WIDTH (f);
   
   dest.X = 0;
-  
-  save_highlight = hl_mode (0);
   
   fill.Char.AsciiChar = 0x20;
   fill.Attributes = char_attr_normal;
@@ -240,41 +233,6 @@ ins_del_lines (int vpos, int n)
   
   cursor_coords.X = 0;
   cursor_coords.Y = vpos;
-  
-  hl_mode (save_highlight);
-}
-
-/* Changes attribute to use when drawing characters to control.  */
-static int
-hl_mode (int new_highlight)
-{
-  static int highlight = 0;
-  int old_highlight;
-  
-  old_highlight = highlight;
-  highlight = (new_highlight != 0);
-
-  return old_highlight;
-}
-
-/* Call this when about to modify line at position VPOS and change whether it
-   is highlighted.  */
-void
-change_line_highlight (int new_highlight, int vpos, int y, 
-                       int first_unused_hpos)
-{
-  hl_mode (new_highlight);
-  move_cursor (vpos, 0);
-  clear_end_of_line (first_unused_hpos);
-}
-
-/* External interface to control of standout mode. Call this when about to
- * modify line at position VPOS and not change whether it is highlighted.  */
-void
-reassert_line_highlight (int highlight, int vpos)
-{
-  hl_mode (highlight);
-  vpos;				/* pedantic compiler silencer */
 }
 
 #undef	LEFT
@@ -495,8 +453,6 @@ SOUND is nil to use the normal beep.")
 void
 reset_terminal_modes (void)
 {
-  hl_mode (0);
-
 #ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
 #else
@@ -509,8 +465,6 @@ void
 set_terminal_modes (void)
 {
   CONSOLE_CURSOR_INFO cci;
-
-  hl_mode (0);
 
   /* make cursor big and visible (100 on Win95 makes it disappear)  */
   cci.dwSize = 99;
@@ -533,13 +487,11 @@ set_terminal_modes (void)
 void
 update_begin (struct frame * f)
 {
-  hl_mode (0);
 }
 
 void
 update_end (struct frame * f)
 {
-  hl_mode (0);
   SetConsoleCursorPosition (cur_screen, cursor_coords);
 }
 
@@ -561,11 +513,7 @@ w32_face_attributes (f, face_id)
      int face_id;
 {
   WORD char_attr;
-  int highlight_on_p;
   struct face *face = FACE_FROM_ID (f, face_id);
-
-  highlight_on_p = hl_mode (0);
-  hl_mode (highlight_on_p);
 
   xassert (face != NULL);
 
@@ -586,7 +534,7 @@ w32_face_attributes (f, face_id)
   if (((char_attr & 0x00f0) >> 4) == (char_attr & 0x000f))
     char_attr ^= 0x0007;
 
-  if (face->tty_reverse_p || highlight_on_p)
+  if (face->tty_reverse_p)
     char_attr = (char_attr & 0xff00) + ((char_attr & 0x000f) << 4)
       + ((char_attr & 0x00f0) >> 4);
 
@@ -632,8 +580,6 @@ initialize_w32_display (void)
   clear_frame_hook		= clear_frame;
   clear_end_of_line_hook	= clear_end_of_line;
   ins_del_lines_hook		= ins_del_lines;
-  change_line_highlight_hook	= change_line_highlight;
-  reassert_line_highlight_hook  = reassert_line_highlight;
   insert_glyphs_hook		= insert_glyphs;
   write_glyphs_hook		= write_glyphs;
   delete_glyphs_hook		= delete_glyphs;
@@ -713,7 +659,6 @@ initialize_w32_display (void)
   
   meta_key = 1;
   char_attr_normal = info.wAttributes;
-  hl_mode (0);
 
   if (w32_use_full_screen_buffer)
     {
