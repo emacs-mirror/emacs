@@ -24,10 +24,10 @@
 (provide 'viper-macs)
 
 ;; compiler pacifier
-(defvar vip-ex-work-buf)
-(defvar vip-custom-file-name)
-(defvar vip-current-state)
-(defvar vip-fast-keyseq-timeout)
+(defvar viper-ex-work-buf)
+(defvar viper-custom-file-name)
+(defvar viper-current-state)
+(defvar viper-fast-keyseq-timeout)
 
 ;; loading happens only in non-interactive compilation
 ;; in order to spare non-viperized emacs from being viperized
@@ -52,27 +52,27 @@
 ;;; Variables
 
 ;; Register holding last macro.
-(defvar vip-last-macro-reg nil)
+(defvar viper-last-macro-reg nil)
 
 ;; format of the elements of kbd alists: 
 ;; (name ((buf . macr)...(buf . macr)) ((maj-mode . macr)...) (t . macr))
 ;; kbd macro alist for Vi state
-(defvar vip-vi-kbd-macro-alist nil)
+(defvar viper-vi-kbd-macro-alist nil)
 ;; same for insert/replace state
-(defvar vip-insert-kbd-macro-alist nil)
+(defvar viper-insert-kbd-macro-alist nil)
 ;; same for emacs state
-(defvar vip-emacs-kbd-macro-alist nil)
+(defvar viper-emacs-kbd-macro-alist nil)
 
 ;; Internal var that passes info between start-kbd-macro and end-kbd-macro
 ;; in :map and :map!
-(defvar vip-kbd-macro-parameters nil)
+(defvar viper-kbd-macro-parameters nil)
 
-(defvar vip-this-kbd-macro nil
+(defvar viper-this-kbd-macro nil
   "Vector of keys representing the name of currently running Viper kbd macro.")
-(defvar vip-last-kbd-macro nil
+(defvar viper-last-kbd-macro nil
   "Vector of keys representing the name of last Viper keyboard macro.")
 
-(defcustom vip-repeat-from-history-key 'f12
+(defcustom viper-repeat-from-history-key 'f12
   "Prefix key for accessing previously typed Vi commands.
 
 The previous command is accessible, as usual, via `.'. The command before this
@@ -93,7 +93,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
   (let ((mod-char "")
 	macro-name macro-body map-args ins)
     (save-window-excursion
-      (set-buffer vip-ex-work-buf)
+      (set-buffer viper-ex-work-buf)
       (if (looking-at "!")
 	  (progn
 	    (setq ins t
@@ -102,19 +102,19 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
     (setq map-args (ex-map-read-args mod-char)
 	  macro-name (car map-args)
 	  macro-body (cdr map-args))
-    (setq vip-kbd-macro-parameters (list ins mod-char macro-name macro-body))
+    (setq viper-kbd-macro-parameters (list ins mod-char macro-name macro-body))
     (if macro-body
-	(vip-end-mapping-kbd-macro 'ignore)
+	(viper-end-mapping-kbd-macro 'ignore)
       (ex-fixup-history (format "map%s %S" mod-char
-				(vip-display-macro macro-name)))
+				(viper-display-macro macro-name)))
       ;; if defining macro for insert, switch there for authentic WYSIWYG
-      (if ins (vip-change-state-to-insert))
+      (if ins (viper-change-state-to-insert))
       (start-kbd-macro nil)
-      (define-key vip-vi-intercept-map "\C-x)" 'vip-end-mapping-kbd-macro)
-      (define-key vip-insert-intercept-map "\C-x)" 'vip-end-mapping-kbd-macro)
-      (define-key vip-emacs-intercept-map "\C-x)" 'vip-end-mapping-kbd-macro)
+      (define-key viper-vi-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
+      (define-key viper-insert-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
+      (define-key viper-emacs-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
       (message "Mapping %S in %s state. Hit `C-x )' to complete the mapping"
-	       (vip-display-macro macro-name)
+	       (viper-display-macro macro-name)
 	       (if ins "Insert" "Vi")))
     ))
     
@@ -124,7 +124,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
   (let ((mod-char "")
 	temp macro-name ins)
     (save-window-excursion
-      (set-buffer vip-ex-work-buf)
+      (set-buffer viper-ex-work-buf)
       (if (looking-at "!")
 	  (progn
 	    (setq ins t
@@ -132,10 +132,10 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	    (forward-char 1))))
 
     (setq macro-name (ex-unmap-read-args mod-char))
-    (setq temp (vip-fixup-macro (vconcat macro-name))) ;; copy and fixup
+    (setq temp (viper-fixup-macro (vconcat macro-name))) ;; copy and fixup
     (ex-fixup-history (format "unmap%s %S" mod-char
-			      (vip-display-macro temp)))
-    (vip-unrecord-kbd-macro macro-name (if ins 'insert-state 'vi-state))
+			      (viper-display-macro temp)))
+    (viper-unrecord-kbd-macro macro-name (if ins 'insert-state 'vi-state))
     ))
     
 
@@ -179,31 +179,31 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	      (format
 	       ":map%s %s"
 	       variant (if (> (length key-seq) 0)
-			   (prin1-to-string (vip-display-macro key-seq))
+			   (prin1-to-string (viper-display-macro key-seq))
 			 "")))
 	(message message)
-	(setq event (vip-read-key))
-	;;(setq event (vip-read-event))
+	(setq event (viper-read-key))
+	;;(setq event (viper-read-event))
 	(setq key
-	      (if (vip-mouse-event-p event)
+	      (if (viper-mouse-event-p event)
 		  (progn
 		    (message "%s (No mouse---only keyboard keys, please)"
 			     message)
 		    (sit-for 2)
 		    nil)
-		(vip-event-key event)))
+		(viper-event-key event)))
 	)
       (setq macro-name key-seq))
     
     (if (= (length macro-name) 0)
 	(error "Can't map an empty macro name"))
-    (setq macro-name (vip-fixup-macro macro-name))
-    (if (vip-char-array-p macro-name)
-	(setq macro-name (vip-char-array-to-macro macro-name)))
+    (setq macro-name (viper-fixup-macro macro-name))
+    (if (viper-char-array-p macro-name)
+	(setq macro-name (viper-char-array-to-macro macro-name)))
     
     (if macro-body
-	(cond ((vip-char-array-p macro-body)
-	       (setq macro-body (vip-char-array-to-macro macro-body)))
+	(cond ((viper-char-array-p macro-body)
+	       (setq macro-body (viper-char-array-to-macro macro-body)))
 	      ((vectorp macro-body) nil)
 	      (t (error "map: Invalid syntax in macro definition"))))
     (setq cursor-in-echo-area nil)(sit-for 0) ; this overcomes xemacs tty bug
@@ -215,14 +215,14 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 (defun ex-unmap-read-args (variant)
   (let ((cursor-in-echo-area t)
 	(macro-alist (if (string= variant "!")
-			 vip-insert-kbd-macro-alist
-		       vip-vi-kbd-macro-alist))
+			 viper-insert-kbd-macro-alist
+		       viper-vi-kbd-macro-alist))
 	;; these are disabled just in case, to avoid surprises when doing
 	;; completing-read
-	vip-vi-kbd-minor-mode vip-insert-kbd-minor-mode
-	vip-emacs-kbd-minor-mode
-	vip-vi-intercept-minor-mode vip-insert-intercept-minor-mode
-	vip-emacs-intercept-minor-mode
+	viper-vi-kbd-minor-mode viper-insert-kbd-minor-mode
+	viper-emacs-kbd-minor-mode
+	viper-vi-intercept-minor-mode viper-insert-intercept-minor-mode
+	viper-emacs-intercept-minor-mode
 	event message
 	key key-seq macro-name)
     (setq macro-name (ex-get-inline-cmd-args ".*unma?p?[!]*[ \t]*"))
@@ -246,29 +246,29 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 		      ":unmap%s %s"
 		      variant (if (> (length key-seq) 0)
 				  (prin1-to-string
-				   (vip-display-macro key-seq))
+				   (viper-display-macro key-seq))
 				"")))
 	       (setq key-seq
-		     (vip-do-sequence-completion key-seq macro-alist message))
+		     (viper-do-sequence-completion key-seq macro-alist message))
 	       ))
 	(setq message 
 	      (format
 	       ":unmap%s %s"
 	       variant (if (> (length key-seq) 0)
 			   (prin1-to-string
-			    (vip-display-macro key-seq))
+			    (viper-display-macro key-seq))
 			 "")))
 	(message message)
-	(setq event (vip-read-key))
-	;;(setq event (vip-read-event))
+	(setq event (viper-read-key))
+	;;(setq event (viper-read-event))
 	(setq key
-	      (if (vip-mouse-event-p event)
+	      (if (viper-mouse-event-p event)
 		  (progn
 		    (message "%s (No mouse---only keyboard keys, please)"
 			     message)
 		    (sit-for 2)
 		    nil)
-		(vip-event-key event)))
+		(viper-event-key event)))
 	)
       (setq macro-name key-seq))
 
@@ -286,35 +286,35 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 ;; optional argument IGNORE, if t, indicates that we are dealing with an
 ;; existing macro that needs to be registered, but there is no need to
 ;; terminate a kbd macro.
-(defun vip-end-mapping-kbd-macro (&optional ignore)
+(defun viper-end-mapping-kbd-macro (&optional ignore)
   (interactive)
-  (define-key vip-vi-intercept-map "\C-x)" nil)
-  (define-key vip-insert-intercept-map "\C-x)" nil)
-  (define-key vip-emacs-intercept-map "\C-x)" nil)
+  (define-key viper-vi-intercept-map "\C-x)" nil)
+  (define-key viper-insert-intercept-map "\C-x)" nil)
+  (define-key viper-emacs-intercept-map "\C-x)" nil)
   (if (and (not ignore)
-	   (or (not vip-kbd-macro-parameters)
+	   (or (not viper-kbd-macro-parameters)
 	       (not defining-kbd-macro)))
       (error "Not mapping a kbd-macro"))
-  (let ((mod-char (nth 1 vip-kbd-macro-parameters))
-	(ins (nth 0 vip-kbd-macro-parameters))
-	(macro-name (nth 2 vip-kbd-macro-parameters))
-	(macro-body (nth 3 vip-kbd-macro-parameters)))
-    (setq vip-kbd-macro-parameters nil)
+  (let ((mod-char (nth 1 viper-kbd-macro-parameters))
+	(ins (nth 0 viper-kbd-macro-parameters))
+	(macro-name (nth 2 viper-kbd-macro-parameters))
+	(macro-body (nth 3 viper-kbd-macro-parameters)))
+    (setq viper-kbd-macro-parameters nil)
     (or ignore
 	(progn
 	  (end-kbd-macro nil)
-	  (setq macro-body (vip-events-to-macro last-kbd-macro))
+	  (setq macro-body (viper-events-to-macro last-kbd-macro))
 	  ;; always go back to Vi, since this is where we started
 	  ;; defining macro
-	  (vip-change-state-to-vi)))
+	  (viper-change-state-to-vi)))
     
-    (vip-record-kbd-macro macro-name
+    (viper-record-kbd-macro macro-name
 			  (if ins 'insert-state 'vi-state)
-			  (vip-display-macro macro-body))
+			  (viper-display-macro macro-body))
     
     (ex-fixup-history (format "map%s %S %S" mod-char
-			      (vip-display-macro macro-name)
-			      (vip-display-macro macro-body)))
+			      (viper-display-macro macro-name)
+			      (viper-display-macro macro-body)))
     ))
 
 
@@ -325,8 +325,8 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 ;; accepts as macro names: strings and vectors.
 ;; strings must be strings of characters; vectors must be vectors of keys
 ;; in canonic form. the canonic form is essentially the form used in XEmacs
-(defun vip-record-kbd-macro (macro-name state macro-body &optional scope)
-  "Record a Vi macro. Can be used in `.vip' file to define permanent macros.
+(defun viper-record-kbd-macro (macro-name state macro-body &optional scope)
+  "Record a Vi macro. Can be used in `.viper' file to define permanent macros.
 MACRO-NAME is a string of characters or a vector of keys. STATE is
 either `vi-state' or `insert-state'. It specifies the Viper state in which to
 define the macro. MACRO-BODY is a string that represents the keyboard macro.
@@ -337,16 +337,16 @@ If SCOPE is nil, the user is asked to specify the scope."
 	 (macro-alist-var
 	  (cond ((eq state 'vi-state)
 		 (setq state-name "Vi state"
-		       keymap vip-vi-kbd-map)
-		 'vip-vi-kbd-macro-alist)
+		       keymap viper-vi-kbd-map)
+		 'viper-vi-kbd-macro-alist)
 		((memq state '(insert-state replace-state))
 		 (setq state-name "Insert state"
-		       keymap vip-insert-kbd-map)
-		 'vip-insert-kbd-macro-alist)
+		       keymap viper-insert-kbd-map)
+		 'viper-insert-kbd-macro-alist)
 		(t
 		 (setq state-name "Emacs state"
-		       keymap vip-emacs-kbd-map)
-		 'vip-emacs-kbd-macro-alist)
+		       keymap viper-emacs-kbd-map)
+		 'viper-emacs-kbd-macro-alist)
 		 ))
 	 new-elt old-elt old-sub-elt msg
 	 temp lis lis2)
@@ -355,13 +355,13 @@ If SCOPE is nil, the user is asked to specify the scope."
 	(error "Can't map an empty macro name"))
 	
     ;; Macro-name is usually a vector. However, command history or macros
-    ;; recorded in ~/.vip may be recorded as strings. So, convert to vectors.
-    (setq macro-name (vip-fixup-macro macro-name))
-    (if (vip-char-array-p macro-name)
-	(setq macro-name (vip-char-array-to-macro macro-name)))
-    (setq macro-body (vip-fixup-macro macro-body))
-    (if (vip-char-array-p macro-body)
-	(setq macro-body (vip-char-array-to-macro macro-body)))
+    ;; recorded in ~/.viper may be recorded as strings. So, convert to vectors.
+    (setq macro-name (viper-fixup-macro macro-name))
+    (if (viper-char-array-p macro-name)
+	(setq macro-name (viper-char-array-to-macro macro-name)))
+    (setq macro-body (viper-fixup-macro macro-body))
+    (if (viper-char-array-p macro-body)
+	(setq macro-body (viper-char-array-to-macro macro-body)))
 	
     ;; don't ask if scope is given and is of the right type
     (or (eq scope t)
@@ -377,11 +377,11 @@ If SCOPE is nil, the user is asked to specify the scope."
 		  (setq msg
 			(format
 			 "%S is mapped to %s for %s in `%s'"
-			 (vip-display-macro macro-name)
-			 (vip-abbreviate-string
+			 (viper-display-macro macro-name)
+			 (viper-abbreviate-string
 			  (format
 			   "%S"
-			   (setq temp (vip-display-macro macro-body)))
+			   (setq temp (viper-display-macro macro-body)))
 			  14 "" ""
 			  (if (stringp temp) "  ....\"" "  ....]"))
 			 state-name (buffer-name)))
@@ -393,11 +393,11 @@ If SCOPE is nil, the user is asked to specify the scope."
 		  (setq msg
 			(format
 			 "%S is mapped to %s for %s in `%S'"
-			 (vip-display-macro macro-name)
-			 (vip-abbreviate-string
+			 (viper-display-macro macro-name)
+			 (viper-abbreviate-string
 			  (format
 			   "%S"
-			   (setq temp (vip-display-macro macro-body)))
+			   (setq temp (viper-display-macro macro-body)))
 			  14 "" ""
 			  (if (stringp macro-body) "  ....\"" "  ....]"))
 			 state-name major-mode))
@@ -406,33 +406,33 @@ If SCOPE is nil, the user is asked to specify the scope."
 		  (setq msg
 			(format
 			 "%S is globally mapped to %s in %s"
-			 (vip-display-macro macro-name)
-			 (vip-abbreviate-string
+			 (viper-display-macro macro-name)
+			 (viper-abbreviate-string
 			  (format
 			   "%S"
-			   (setq temp (vip-display-macro macro-body)))
+			   (setq temp (viper-display-macro macro-body)))
 			  14 "" ""
 			  (if (stringp macro-body) "  ....\"" "  ....]"))
 			 state-name))
 		  t)))
 	  (if (y-or-n-p
 	       (format "Save this macro in %s? "
-		       (vip-abbreviate-file-name vip-custom-file-name)))
-	      (vip-save-string-in-file 
-	       (format "\n(vip-record-kbd-macro %S '%S %s '%S)"
-		       (vip-display-macro macro-name)
+		       (viper-abbreviate-file-name viper-custom-file-name)))
+	      (viper-save-string-in-file 
+	       (format "\n(viper-record-kbd-macro %S '%S %s '%S)"
+		       (viper-display-macro macro-name)
 		       state
 		       ;; if we don't let vector macro-body through %S,
 		       ;; the symbols `\.' `\[' etc will be converted into
 		       ;; characters, causing invalid read  error on recorded
-		       ;; macros in .vip.
+		       ;; macros in .viper.
 		       ;; I am not sure is macro-body can still be a string at
 		       ;; this point, but I am preserving this option anyway.
 		       (if (vectorp macro-body)
 			   (format "%S" macro-body)
 			 macro-body)
 		       scope) 
-	       vip-custom-file-name))
+	       viper-custom-file-name))
 	  
 	  (message msg)
 	  ))
@@ -451,11 +451,11 @@ If SCOPE is nil, the user is asked to specify the scope."
 	    ;; insert new-elt in macro-alist-var and keep the list sorted
 	    (define-key
 	      keymap
-	      (vector (vip-key-to-emacs-key (aref macro-name 0)))
-	      'vip-exec-mapped-kbd-macro)
+	      (vector (viper-key-to-emacs-key (aref macro-name 0)))
+	      'viper-exec-mapped-kbd-macro)
 	    (setq lis (eval macro-alist-var))
-	    (while (and lis (string< (vip-array-to-string (car (car lis)))
-				     (vip-array-to-string macro-name)))
+	    (while (and lis (string< (viper-array-to-string (car (car lis)))
+				     (viper-array-to-string macro-name)))
 	      (setq lis2 (cons (car lis) lis2))
 	      (setq lis (cdr lis)))
 	    
@@ -463,90 +463,90 @@ If SCOPE is nil, the user is asked to specify the scope."
 	    (set macro-alist-var (append lis2 (cons new-elt lis)))
 	    (setq old-elt new-elt)))
     (setq old-sub-elt
-	  (cond ((eq scope t) (vip-kbd-global-pair old-elt))
-		((symbolp scope) (assoc scope (vip-kbd-mode-alist old-elt)))
-		((stringp scope) (assoc scope (vip-kbd-buf-alist old-elt)))))
+	  (cond ((eq scope t) (viper-kbd-global-pair old-elt))
+		((symbolp scope) (assoc scope (viper-kbd-mode-alist old-elt)))
+		((stringp scope) (assoc scope (viper-kbd-buf-alist old-elt)))))
     (if old-sub-elt 
 	(setcdr old-sub-elt macro-body)
       (cond ((symbolp scope) (setcar (cdr (cdr old-elt))
 				     (cons (cons scope macro-body)
-					   (vip-kbd-mode-alist old-elt))))
+					   (viper-kbd-mode-alist old-elt))))
 	    ((stringp scope) (setcar (cdr old-elt)
 				     (cons (cons scope macro-body)
-					   (vip-kbd-buf-alist old-elt))))))
+					   (viper-kbd-buf-alist old-elt))))))
     ))
   
 
     
-;; macro name must be a vector of vip-style keys
-(defun vip-unrecord-kbd-macro (macro-name state)
+;; macro name must be a vector of viper-style keys
+(defun viper-unrecord-kbd-macro (macro-name state)
   "Delete macro MACRO-NAME from Viper STATE.
-MACRO-NAME must be a vector of vip-style keys. This command is used by Viper
-internally, but the user can also use it in ~/.vip to delete pre-defined macros
-supplied with Viper. The best way to avoid mistakes in macro names to be passed
-to this function is to use vip-describe-kbd-macros and copy the name from
-there."
+MACRO-NAME must be a vector of viper-style keys. This command is used by Viper
+internally, but the user can also use it in ~/.viper to delete pre-defined
+macros supplied with Viper. The best way to avoid mistakes in macro names to be
+passed to this function is to use viper-describe-kbd-macros and copy the name
+from there."
   (let* (state-name keymap 
 	 (macro-alist-var
 	  (cond ((eq state 'vi-state)
 		 (setq state-name "Vi state"
-		       keymap vip-vi-kbd-map)
-		 'vip-vi-kbd-macro-alist)
+		       keymap viper-vi-kbd-map)
+		 'viper-vi-kbd-macro-alist)
 		((memq state '(insert-state replace-state))
 		 (setq state-name "Insert state"
-		       keymap vip-insert-kbd-map)
-		 'vip-insert-kbd-macro-alist)
+		       keymap viper-insert-kbd-map)
+		 'viper-insert-kbd-macro-alist)
 		(t
 		 (setq state-name "Emacs state"
-		       keymap vip-emacs-kbd-map)
-		 'vip-emacs-kbd-macro-alist)
+		       keymap viper-emacs-kbd-map)
+		 'viper-emacs-kbd-macro-alist)
 		))
 	 buf-mapping mode-mapping global-mapping
 	 macro-pair macro-entry)
 	 	
     ;; Macro-name is usually a vector. However, command history or macros
-    ;; recorded in ~/.vip may appear as strings. So, convert to vectors.
-    (setq macro-name (vip-fixup-macro macro-name))
-    (if (vip-char-array-p macro-name)
-	(setq macro-name (vip-char-array-to-macro macro-name)))
+    ;; recorded in ~/.viper may appear as strings. So, convert to vectors.
+    (setq macro-name (viper-fixup-macro macro-name))
+    (if (viper-char-array-p macro-name)
+	(setq macro-name (viper-char-array-to-macro macro-name)))
 
     (setq macro-entry (assoc macro-name (eval macro-alist-var)))
     (if (= (length macro-name) 0)
 	(error "Can't unmap an empty macro name"))
     (if (null macro-entry)
 	(error "%S is not mapped to a macro for %s in `%s'"
-	       (vip-display-macro macro-name)
+	       (viper-display-macro macro-name)
 	       state-name (buffer-name)))
 	
-    (setq buf-mapping (vip-kbd-buf-pair macro-entry)
-	  mode-mapping (vip-kbd-mode-pair macro-entry)
-	  global-mapping (vip-kbd-global-pair macro-entry))
+    (setq buf-mapping (viper-kbd-buf-pair macro-entry)
+	  mode-mapping (viper-kbd-mode-pair macro-entry)
+	  global-mapping (viper-kbd-global-pair macro-entry))
 	
     (cond ((and (cdr buf-mapping)
 		(or (and (not (cdr mode-mapping)) (not (cdr global-mapping)))
 		    (y-or-n-p
 		     (format "Unmap %S for `%s' only? "
-			     (vip-display-macro macro-name)
+			     (viper-display-macro macro-name)
 			     (buffer-name)))))
 	   (setq macro-pair buf-mapping)
 	   (message "%S is unmapped for %s in `%s'" 
-		    (vip-display-macro macro-name)
+		    (viper-display-macro macro-name)
 		    state-name (buffer-name)))
 	  ((and (cdr mode-mapping)
 		(or (not (cdr global-mapping))
 		    (y-or-n-p
 		     (format "Unmap %S for the major mode `%S' only? "
-			     (vip-display-macro macro-name)
+			     (viper-display-macro macro-name)
 			     major-mode))))
 	   (setq macro-pair mode-mapping)
 	   (message "%S is unmapped for %s in %S"
-		    (vip-display-macro macro-name) state-name major-mode))
-	  ((cdr (setq macro-pair (vip-kbd-global-pair macro-entry)))
+		    (viper-display-macro macro-name) state-name major-mode))
+	  ((cdr (setq macro-pair (viper-kbd-global-pair macro-entry)))
 	   (message
 	    "Global mapping for %S in %s is removed"
-	    (vip-display-macro macro-name) state-name))
+	    (viper-display-macro macro-name) state-name))
 	  (t (error "%S is not mapped to a macro for %s in `%s'"
-		    (vip-display-macro macro-name)
+		    (viper-display-macro macro-name)
 		    state-name (buffer-name))))
     (setcdr macro-pair nil)
     (or (cdr buf-mapping)
@@ -554,19 +554,19 @@ there."
 	(cdr global-mapping)
 	(progn
 	  (set macro-alist-var (delq macro-entry (eval macro-alist-var)))
-	  (if (vip-can-release-key (aref macro-name 0) 
+	  (if (viper-can-release-key (aref macro-name 0) 
 				   (eval macro-alist-var))
 	      (define-key
 		keymap
-		(vector (vip-key-to-emacs-key (aref macro-name 0)))
+		(vector (viper-key-to-emacs-key (aref macro-name 0)))
 		nil))
 	  ))
     ))
     
 ;; Check if MACRO-ALIST has an entry for a macro name starting with
 ;; CHAR. If not, this indicates that the binding for this char
-;; in vip-vi/insert-kbd-map can be released.
-(defun vip-can-release-key (char macro-alist)
+;; in viper-vi/insert-kbd-map can be released.
+(defun viper-can-release-key (char macro-alist)
   (let ((lis macro-alist)
 	(can-release t)
 	macro-name)
@@ -579,52 +579,52 @@ there."
     can-release))
 
 
-(defun vip-exec-mapped-kbd-macro (count)
+(defun viper-exec-mapped-kbd-macro (count)
   "Dispatch kbd macro."
   (interactive "P")
-  (let* ((macro-alist (cond ((eq vip-current-state 'vi-state)
-			     vip-vi-kbd-macro-alist)
-			    ((memq vip-current-state
+  (let* ((macro-alist (cond ((eq viper-current-state 'vi-state)
+			     viper-vi-kbd-macro-alist)
+			    ((memq viper-current-state
 				   '(insert-state replace-state))
-			     vip-insert-kbd-macro-alist)
+			     viper-insert-kbd-macro-alist)
 			    (t
-			     vip-emacs-kbd-macro-alist)))
+			     viper-emacs-kbd-macro-alist)))
 	(unmatched-suffix "")
 	;; Macros and keys are executed with other macros turned off
 	;; For macros, this is done to avoid macro recursion
-	vip-vi-kbd-minor-mode vip-insert-kbd-minor-mode
-	vip-emacs-kbd-minor-mode
+	viper-vi-kbd-minor-mode viper-insert-kbd-minor-mode
+	viper-emacs-kbd-minor-mode
 	next-best-match keyseq event-seq
 	macro-first-char macro-alist-elt macro-body
 	command)
     
     (setq macro-first-char last-command-event
-	  event-seq (vip-read-fast-keysequence macro-first-char macro-alist)
-	  keyseq (vip-events-to-macro event-seq)
+	  event-seq (viper-read-fast-keysequence macro-first-char macro-alist)
+	  keyseq (viper-events-to-macro event-seq)
 	  macro-alist-elt (assoc keyseq macro-alist)
-	  next-best-match (vip-find-best-matching-macro macro-alist keyseq))
+	  next-best-match (viper-find-best-matching-macro macro-alist keyseq))
 	  
     (if (null macro-alist-elt)
 	(setq macro-alist-elt (car next-best-match)
 	      unmatched-suffix (subseq event-seq (cdr next-best-match))))
 
     (cond ((null macro-alist-elt))
-	  ((setq macro-body (vip-kbd-buf-definition macro-alist-elt)))
-	  ((setq macro-body (vip-kbd-mode-definition macro-alist-elt)))
-	  ((setq macro-body (vip-kbd-global-definition macro-alist-elt))))
+	  ((setq macro-body (viper-kbd-buf-definition macro-alist-elt)))
+	  ((setq macro-body (viper-kbd-mode-definition macro-alist-elt)))
+	  ((setq macro-body (viper-kbd-global-definition macro-alist-elt))))
 				 
     ;; when defining keyboard macro, don't use the macro mappings
     (if (and macro-body (not defining-kbd-macro))
 	;; block cmd executed as part of a macro from entering command history
 	(let ((command-history command-history))
-	  (setq vip-this-kbd-macro (car macro-alist-elt))
-	  (execute-kbd-macro (vip-macro-to-events macro-body) count)
-	  (setq vip-this-kbd-macro nil
-		vip-last-kbd-macro (car macro-alist-elt))
-	  (vip-set-unread-command-events unmatched-suffix))
+	  (setq viper-this-kbd-macro (car macro-alist-elt))
+	  (execute-kbd-macro (viper-macro-to-events macro-body) count)
+	  (setq viper-this-kbd-macro nil
+		viper-last-kbd-macro (car macro-alist-elt))
+	  (viper-set-unread-command-events unmatched-suffix))
       ;; If not a macro, or the macro is suppressed while defining another
       ;; macro, put keyseq back on the event queue
-      (vip-set-unread-command-events event-seq)
+      (viper-set-unread-command-events event-seq)
       ;; if the user typed arg, then use it if prefix arg is not set by
       ;; some other command (setting prefix arg can happen if we do, say,
       ;; 2dw and there is a macro starting with 2. Then control will go to
@@ -640,36 +640,36 @@ there."
 
 ;;; Displaying and completing macros
     
-(defun vip-describe-kbd-macros ()
+(defun viper-describe-kbd-macros ()
   "Show currently defined keyboard macros."
   (interactive)
-  (with-output-to-temp-buffer " *vip-info*"
+  (with-output-to-temp-buffer " *viper-info*"
     (princ "Macros in Vi state:\n===================\n")
-    (mapcar 'vip-describe-one-macro vip-vi-kbd-macro-alist)
+    (mapcar 'viper-describe-one-macro viper-vi-kbd-macro-alist)
     (princ "\n\nMacros in Insert and Replace states:\n====================================\n")
-    (mapcar 'vip-describe-one-macro vip-insert-kbd-macro-alist)
+    (mapcar 'viper-describe-one-macro viper-insert-kbd-macro-alist)
     (princ "\n\nMacros in Emacs state:\n======================\n")
-    (mapcar 'vip-describe-one-macro vip-emacs-kbd-macro-alist)
+    (mapcar 'viper-describe-one-macro viper-emacs-kbd-macro-alist)
     ))
     
-(defun vip-describe-one-macro (macro)
+(defun viper-describe-one-macro (macro)
   (princ (format "\n  *** Mappings for %S:\n      ------------\n"
-		 (vip-display-macro (car macro))))
+		 (viper-display-macro (car macro))))
   (princ "   ** Buffer-specific:")
-  (if (vip-kbd-buf-alist macro)
-      (mapcar 'vip-describe-one-macro-elt (vip-kbd-buf-alist macro))
+  (if (viper-kbd-buf-alist macro)
+      (mapcar 'viper-describe-one-macro-elt (viper-kbd-buf-alist macro))
     (princ "  none\n"))
   (princ "\n   ** Mode-specific:")
-  (if (vip-kbd-mode-alist macro)
-      (mapcar 'vip-describe-one-macro-elt (vip-kbd-mode-alist macro))
+  (if (viper-kbd-mode-alist macro)
+      (mapcar 'viper-describe-one-macro-elt (viper-kbd-mode-alist macro))
     (princ "  none\n"))
   (princ "\n   ** Global:")
-  (if (vip-kbd-global-definition macro)
-      (princ (format "\n           %S" (cdr (vip-kbd-global-pair macro))))
+  (if (viper-kbd-global-definition macro)
+      (princ (format "\n           %S" (cdr (viper-kbd-global-pair macro))))
     (princ "  none"))
   (princ "\n"))
   
-(defun vip-describe-one-macro-elt (elt)
+(defun viper-describe-one-macro-elt (elt)
   (let ((name (car elt))
 	(defn (cdr elt)))
     (princ (format "\n       * %S:\n           %S\n" name defn))))
@@ -677,23 +677,23 @@ there."
     
     
 ;; check if SEQ is a prefix of some car of an element in ALIST
-(defun vip-keyseq-is-a-possible-macro (seq alist)
-  (let ((converted-seq (vip-events-to-macro seq)))
+(defun viper-keyseq-is-a-possible-macro (seq alist)
+  (let ((converted-seq (viper-events-to-macro seq)))
     (eval (cons 'or 
 		(mapcar
 		 (function (lambda (elt)
-			     (vip-prefix-subseq-p converted-seq elt)))
-		 (vip-this-buffer-macros alist))))))
+			     (viper-prefix-subseq-p converted-seq elt)))
+		 (viper-this-buffer-macros alist))))))
 		 
 ;; whether SEQ1 is a prefix of SEQ2
-(defun vip-prefix-subseq-p (seq1 seq2)
+(defun viper-prefix-subseq-p (seq1 seq2)
   (let ((len1 (length seq1))
 	(len2 (length seq2)))
     (if (<= len1 len2)
 	(equal seq1 (subseq seq2 0 len1)))))
 	
 ;; find the longest common prefix
-(defun vip-common-seq-prefix (&rest seqs)
+(defun viper-common-seq-prefix (&rest seqs)
   (let* ((first (car seqs))
 	 (rest (cdr seqs))
 	 (pref [])
@@ -713,15 +713,15 @@ there."
     pref))
     
 ;; get all sequences that match PREFIX from a given A-LIST
-(defun vip-extract-matching-alist-members (pref alist)
+(defun viper-extract-matching-alist-members (pref alist)
   (delq nil (mapcar (function (lambda (elt)
-				(if (vip-prefix-subseq-p pref elt)
+				(if (viper-prefix-subseq-p pref elt)
 				    elt)))
-		    (vip-this-buffer-macros alist))))
+		    (viper-this-buffer-macros alist))))
 		    
-(defun vip-do-sequence-completion (seq alist compl-message)
-  (let* ((matches (vip-extract-matching-alist-members seq alist))
-	 (new-seq (apply 'vip-common-seq-prefix matches))
+(defun viper-do-sequence-completion (seq alist compl-message)
+  (let* ((matches (viper-extract-matching-alist-members seq alist))
+	 (new-seq (apply 'viper-common-seq-prefix matches))
 	 )
     (cond ((and (equal seq new-seq) (= (length matches) 1))
 	   (message "%s (Sole completion)" compl-message)
@@ -733,24 +733,24 @@ there."
 	  ((member seq matches) 
 	   (message "%s (Complete, but not unique)" compl-message)
 	   (sit-for 2)
-	   (vip-display-vector-completions matches))
+	   (viper-display-vector-completions matches))
 	  ((equal seq new-seq)
-	   (vip-display-vector-completions matches)))
+	   (viper-display-vector-completions matches)))
     new-seq))
 	
 	 
-(defun vip-display-vector-completions (list)
+(defun viper-display-vector-completions (list)
   (with-output-to-temp-buffer "*Completions*"
     (display-completion-list 
      (mapcar 'prin1-to-string
-	     (mapcar 'vip-display-macro list)))))
+	     (mapcar 'viper-display-macro list)))))
   
 				  
     
 ;; alist is the alist of macros
 ;; str is the fast key sequence entered
 ;; returns: (matching-macro-def . unmatched-suffix-start-index)
-(defun vip-find-best-matching-macro (alist str)
+(defun viper-find-best-matching-macro (alist str)
   (let ((lis alist)
 	(def-len 0)
 	(str-len (length str))
@@ -760,9 +760,9 @@ there."
 	    def-len (length (car macro-def)))
       (if (and (>= str-len def-len)
 	       (equal (car macro-def) (subseq str 0 def-len)))
-	  (if (or (vip-kbd-buf-definition macro-def)
-		  (vip-kbd-mode-definition macro-def)
-		  (vip-kbd-global-definition macro-def))
+	  (if (or (viper-kbd-buf-definition macro-def)
+		  (viper-kbd-mode-definition macro-def)
+		  (viper-kbd-global-definition macro-def))
 	      (setq found t))
 	)
       (setq lis (cdr lis)))
@@ -778,14 +778,14 @@ there."
     
     
 ;; returns a list of names of macros defined for the current buffer
-(defun vip-this-buffer-macros (macro-alist)
+(defun viper-this-buffer-macros (macro-alist)
   (let (candidates)
     (setq candidates
 	  (mapcar (function
 		   (lambda (elt)
-		     (if (or (vip-kbd-buf-definition elt)
-			     (vip-kbd-mode-definition elt)
-			     (vip-kbd-global-definition elt))
+		     (if (or (viper-kbd-buf-definition elt)
+			     (viper-kbd-mode-definition elt)
+			     (viper-kbd-global-definition elt))
 			 (car elt))))
 		  macro-alist))
     (setq candidates (delq nil candidates))))
@@ -793,10 +793,10 @@ there."
   
 ;; if seq of Viper key symbols (representing a macro) can be converted to a
 ;; string--do so. Otherwise, do nothing.
-(defun vip-display-macro (macro-name-or-body)
-  (cond ((vip-char-symbol-sequence-p macro-name-or-body)
+(defun viper-display-macro (macro-name-or-body)
+  (cond ((viper-char-symbol-sequence-p macro-name-or-body)
 	 (mapconcat 'symbol-name macro-name-or-body ""))
-	((vip-char-array-p macro-name-or-body)
+	((viper-char-array-p macro-name-or-body)
 	 (mapconcat 'char-to-string macro-name-or-body ""))
 	(t macro-name-or-body)))
     
@@ -809,27 +809,27 @@ there."
 ;; during a macro definition, then something like (switch-frame ...) might get
 ;; in. Another reason for purging lists-events is that we can't store them in
 ;; textual form (say, in .emacs) and then read them back.
-(defun vip-events-to-macro (event-seq)
+(defun viper-events-to-macro (event-seq)
   (vconcat (delq nil (mapcar (function (lambda (elt)
 					 (if (consp elt)
 					     nil
-					   (vip-event-key elt))))
+					   (viper-event-key elt))))
 			     event-seq))))
   
 ;; convert strings or arrays of characters to Viper macro form
-(defun vip-char-array-to-macro (array)
+(defun viper-char-array-to-macro (array)
   (let ((vec (vconcat array))
 	macro)
-    (if vip-xemacs-p
+    (if viper-xemacs-p
 	(setq macro (mapcar 'character-to-event vec))
       (setq macro vec))
-    (vconcat (mapcar 'vip-event-key macro))))
+    (vconcat (mapcar 'viper-event-key macro))))
     
 ;; For macros bodies and names, goes over MACRO and checks if all members are
 ;; names of keys (actually, it only checks if they are symbols or lists
 ;; if a digit is found, it is converted into a symbol (e.g., 0 -> \0, etc).
 ;; If MACRO is not a list or vector -- doesn't change MACRO.
-(defun vip-fixup-macro (macro)
+(defun viper-fixup-macro (macro)
   (let ((len (length macro))
 	(idx 0)
 	elt break)
@@ -848,7 +848,7 @@ there."
 				    (intern (char-to-string (+ ?0 elt)))))
 			   )))
 		((listp elt)
-		 (vip-fixup-macro elt))
+		 (viper-fixup-macro elt))
 		((symbolp elt) nil)
 		(t (setq break t)))
 	  (setq idx (1+ idx))))
@@ -857,15 +857,15 @@ there."
 	  (error "Wrong type macro component, symbol-or-listp, %S" elt)
 	macro)))
   
-(defun vip-char-array-p (array)
-  (eval (cons 'and (mapcar 'vip-characterp array))))
+(defun viper-char-array-p (array)
+  (eval (cons 'and (mapcar 'viper-characterp array))))
   
-(defun vip-macro-to-events (macro-body)
-  (vconcat (mapcar 'vip-key-to-emacs-key macro-body)))
+(defun viper-macro-to-events (macro-body)
+  (vconcat (mapcar 'viper-key-to-emacs-key macro-body)))
 	    
 			 
 ;; check if vec is a vector of character symbols
-(defun vip-char-symbol-sequence-p (vec)
+(defun viper-char-symbol-sequence-p (vec)
   (and
    (sequencep vec)
    (eval
@@ -878,7 +878,7 @@ there."
 
 ;; Check if vec is a vector of key-press events representing characters
 ;; XEmacs only
-(defun vip-event-vector-p (vec)
+(defun viper-event-vector-p (vec)
   (and (vectorp vec)
        (eval (cons 'and (mapcar '(lambda (elt) (if (eventp elt) t)) vec)))))
     
@@ -889,15 +889,15 @@ there."
 ;; strokes, read the rest. Return the vector of keys that was entered in
 ;; this fast succession of key strokes.
 ;; A fast keysequence is one that is terminated by a pause longer than
-;; vip-fast-keyseq-timeout.
-(defun vip-read-fast-keysequence (event macro-alist)
+;; viper-fast-keyseq-timeout.
+(defun viper-read-fast-keysequence (event macro-alist)
   (let ((lis (vector event))
 	next-event)
-    (while (and (vip-fast-keysequence-p)
-		(vip-keyseq-is-a-possible-macro lis macro-alist))
-      (setq next-event (vip-read-key))
-      ;;(setq next-event (vip-read-event))
-      (or (vip-mouse-event-p next-event)
+    (while (and (viper-fast-keysequence-p)
+		(viper-keyseq-is-a-possible-macro lis macro-alist))
+      (setq next-event (viper-read-key))
+      ;;(setq next-event (viper-read-event))
+      (or (viper-mouse-event-p next-event)
 	  (setq lis (vconcat lis (vector next-event)))))
     lis))
 
@@ -905,7 +905,7 @@ there."
 ;;; Keyboard macros in registers
 
 ;; sets register to last-kbd-macro carefully.
-(defun vip-set-register-macro (reg)
+(defun viper-set-register-macro (reg)
   (if (get-register reg)
       (if (y-or-n-p "Register contains data. Overwrite? ")
 	  ()
@@ -913,35 +913,35 @@ there."
 	 "Macro not saved in register. Can still be invoked via `C-x e'")))
   (set-register reg last-kbd-macro))
 
-(defun vip-register-macro (count)
+(defun viper-register-macro (count)
   "Keyboard macros in registers - a modified \@ command."
   (interactive "P")
   (let ((reg (downcase (read-char))))
     (cond ((or (and (<= ?a reg) (<= reg ?z)))
-	   (setq vip-last-macro-reg reg)
+	   (setq viper-last-macro-reg reg)
 	   (if defining-kbd-macro
 	       (progn
 		 (end-kbd-macro)
-		 (vip-set-register-macro reg))
+		 (viper-set-register-macro reg))
 	     (execute-kbd-macro (get-register reg) count)))
 	  ((or (= ?@ reg) (= ?\^j reg) (= ?\^m reg))
-	   (if vip-last-macro-reg 
+	   (if viper-last-macro-reg 
 	       nil
 	       (error "No previous kbd macro"))
-	   (execute-kbd-macro (get-register vip-last-macro-reg) count))
+	   (execute-kbd-macro (get-register viper-last-macro-reg) count))
 	  ((= ?\# reg)
 	   (start-kbd-macro count))
 	  ((= ?! reg)
 	   (setq reg (downcase (read-char)))
 	   (if (or (and (<= ?a reg) (<= reg ?z)))
 	       (progn
-	       (setq vip-last-macro-reg reg)
-	       (vip-set-register-macro reg))))
+	       (setq viper-last-macro-reg reg)
+	       (viper-set-register-macro reg))))
 	  (t
 	   (error "`%c': Unknown register" reg)))))
 	   
 
-(defun vip-global-execute ()
+(defun viper-global-execute ()
   "Call last keyboad macro for each line in the region."
   (if (> (point) (mark t)) (exchange-point-and-mark))
   (beginning-of-line)

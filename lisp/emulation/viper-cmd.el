@@ -1557,8 +1557,12 @@ invokes the command before that, etc."
 	
     (message " `.' runs  %s%s"
 	     (concat "`" (viper-array-to-string keys) "'")
-	     (viper-abbreviate-string text max-text-len
-				    "  inserting  `" "'" "    ......."))
+	     (viper-abbreviate-string 
+	      (if viper-xemacs-p
+		  (replace-in-string text "\n" "^J")
+		text)
+	      max-text-len
+	      "  inserting  `" "'" "    ......."))
     ))
     
     

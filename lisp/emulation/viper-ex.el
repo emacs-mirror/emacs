@@ -25,15 +25,15 @@
 
 ;; Compiler pacifier
 (defvar read-file-name-map)
-(defvar vip-use-register)
-(defvar vip-s-string)
-(defvar vip-shift-width)
-(defvar vip-ex-history)
-(defvar vip-related-files-and-buffers-ring)
-(defvar vip-local-search-start-marker)
+(defvar viper-use-register)
+(defvar viper-s-string)
+(defvar viper-shift-width)
+(defvar viper-ex-history)
+(defvar viper-related-files-and-buffers-ring)
+(defvar viper-local-search-start-marker)
 (defvar viper-expert-level)
-(defvar vip-custom-file-name)
-(defvar vip-case-fold-search)
+(defvar viper-custom-file-name)
+(defvar viper-case-fold-search)
 (defvar explicit-shell-file-name)
 
 ;; loading happens only in non-interactive compilation
@@ -61,9 +61,9 @@
 
 ;;; Variables
 
-(defconst vip-ex-work-buf-name " *ex-working-space*")
-(defconst vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name))
-(defconst vip-ex-tmp-buf-name " *ex-tmp*")
+(defconst viper-ex-work-buf-name " *ex-working-space*")
+(defconst viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
+(defconst viper-ex-tmp-buf-name " *ex-tmp*")
 
 
 ;;; Variable completion in :set command
@@ -168,11 +168,11 @@ Don't put `-c' here, as it is added automatically."
   :group 'viper-ex)
 
 (defvar ex-nontrivial-find-file-function
-  (cond (ex-unix-type-shell 'vip-ex-nontrivial-find-file-unix)
-	((eq system-type 'emx) 'vip-ex-nontrivial-find-file-ms) ; OS/2
-	(vip-ms-style-os-p 'vip-ex-nontrivial-find-file-ms) ; a Microsoft OS
-	(vip-vms-os-p 'vip-ex-nontrivial-find-file-unix) ; VMS
-	(t  'vip-ex-nontrivial-find-file-unix) ; presumably UNIX
+  (cond (ex-unix-type-shell 'viper-ex-nontrivial-find-file-unix)
+	((eq system-type 'emx) 'viper-ex-nontrivial-find-file-ms) ; OS/2
+	(viper-ms-style-os-p 'viper-ex-nontrivial-find-file-ms) ; Microsoft OS
+	(viper-vms-os-p 'viper-ex-nontrivial-find-file-unix) ; VMS
+	(t  'viper-ex-nontrivial-find-file-unix) ; presumably UNIX
 	))
 
 ;; Remembers the previous Ex tag.
@@ -194,9 +194,9 @@ Don't put `-c' here, as it is added automatically."
 ;; e.g., :r !date
 (defvar ex-cmdfile nil)
   
-;; flag used in vip-ex-read-file-name to indicate that we may be reading
+;; flag used in viper-ex-read-file-name to indicate that we may be reading
 ;; multiple file names. Used for :edit and :next
-(defvar vip-keep-reading-filename nil)
+(defvar viper-keep-reading-filename nil)
 
 (defcustom ex-cycle-other-window t
   "*If t, :n and :b cycles through files and buffers in other window.
@@ -211,19 +211,19 @@ reversed."
   :group 'viper-ex)
 
 ;; Last shell command executed with :! command.
-(defvar vip-ex-last-shell-com nil)
+(defvar viper-ex-last-shell-com nil)
   
 ;; Indicates if Minibuffer was exited temporarily in Ex-command.
-(defvar vip-incomplete-ex-cmd nil)
+(defvar viper-incomplete-ex-cmd nil)
   
 ;; Remembers the last ex-command prompt.
-(defvar vip-last-ex-prompt "")
+(defvar viper-last-ex-prompt "")
 
 
 ;;; Code
   
 ;; Check if ex-token is an initial segment of STR
-(defun vip-check-sub (str)
+(defun viper-check-sub (str)
   (let ((length (length ex-token)))
     (if (and (<= length (length str))
   	     (string= ex-token (substring str 0 length)))
@@ -231,7 +231,7 @@ reversed."
       (setq ex-token-type 'non-command))))
 
 ;; Get a complete ex command
-(defun vip-get-ex-com-subr ()
+(defun viper-get-ex-com-subr ()
   (let (case-fold-search)
     (set-mark (point))
     (re-search-forward "[a-zA-Z][a-zA-Z]*")
@@ -239,98 +239,98 @@ reversed."
     (setq ex-token (buffer-substring (point) (mark t)))
     (exchange-point-and-mark)
     (cond ((looking-at "a")
-	   (cond ((looking-at "ab") (vip-check-sub "abbreviate"))
-		 ((looking-at "ar") (vip-check-sub "args"))
-		 (t (vip-check-sub "append"))))
-	  ((looking-at "h") (vip-check-sub "help"))
+	   (cond ((looking-at "ab") (viper-check-sub "abbreviate"))
+		 ((looking-at "ar") (viper-check-sub "args"))
+		 (t (viper-check-sub "append"))))
+	  ((looking-at "h") (viper-check-sub "help"))
 	  ((looking-at "c")
-	   (cond ((looking-at "cd") (vip-check-sub "cd"))
-		 ((looking-at "ch") (vip-check-sub "chdir"))
-		 ((looking-at "co") (vip-check-sub "copy"))
-		 (t (vip-check-sub "change"))))
-	  ((looking-at "d") (vip-check-sub "delete"))
-	  ((looking-at "b") (vip-check-sub "buffer"))
-	  ((looking-at "B") (vip-check-sub "Buffer"))
+	   (cond ((looking-at "cd") (viper-check-sub "cd"))
+		 ((looking-at "ch") (viper-check-sub "chdir"))
+		 ((looking-at "co") (viper-check-sub "copy"))
+		 (t (viper-check-sub "change"))))
+	  ((looking-at "d") (viper-check-sub "delete"))
+	  ((looking-at "b") (viper-check-sub "buffer"))
+	  ((looking-at "B") (viper-check-sub "Buffer"))
 	  ((looking-at "e")
-	   (if (looking-at "ex") (vip-check-sub "ex")
-	     (vip-check-sub "edit")))
-	  ((looking-at "f") (vip-check-sub "file"))
-	  ((looking-at "g") (vip-check-sub "global"))
-	  ((looking-at "i") (vip-check-sub "insert"))
-	  ((looking-at "j") (vip-check-sub "join"))
-	  ((looking-at "l") (vip-check-sub "list"))
+	   (if (looking-at "ex") (viper-check-sub "ex")
+	     (viper-check-sub "edit")))
+	  ((looking-at "f") (viper-check-sub "file"))
+	  ((looking-at "g") (viper-check-sub "global"))
+	  ((looking-at "i") (viper-check-sub "insert"))
+	  ((looking-at "j") (viper-check-sub "join"))
+	  ((looking-at "l") (viper-check-sub "list"))
 	  ((looking-at "m")
-	   (cond ((looking-at "map") (vip-check-sub "map"))
-		 ((looking-at "mar") (vip-check-sub "mark"))
-		 (t (vip-check-sub "move"))))
+	   (cond ((looking-at "map") (viper-check-sub "map"))
+		 ((looking-at "mar") (viper-check-sub "mark"))
+		 (t (viper-check-sub "move"))))
 	  ((looking-at "k[a-z][^a-z]")
 	   (setq ex-token "kmark")
 	   (forward-char 1)
 	   (exchange-point-and-mark))   ; this is canceled out by another
 					; exchange-point-and-mark at the end
-	  ((looking-at "k") (vip-check-sub "kmark"))
+	  ((looking-at "k") (viper-check-sub "kmark"))
 	  ((looking-at "n") (if (looking-at "nu")
-				(vip-check-sub "number")
-			      (vip-check-sub "next")))
-	  ((looking-at "N") (vip-check-sub "Next"))
-	  ((looking-at "o") (vip-check-sub "open"))
+				(viper-check-sub "number")
+			      (viper-check-sub "next")))
+	  ((looking-at "N") (viper-check-sub "Next"))
+	  ((looking-at "o") (viper-check-sub "open"))
 	  ((looking-at "p")
-	   (cond ((looking-at "pre") (vip-check-sub "preserve"))
-		 ((looking-at "pu") (vip-check-sub "put"))
-		 ((looking-at "pw") (vip-check-sub "pwd"))
-		 (t (vip-check-sub "print"))))
-	  ((looking-at "P") (vip-check-sub "PreviousRelatedFile"))
-	  ((looking-at "R") (vip-check-sub "RelatedFile"))
-	  ((looking-at "q") (vip-check-sub "quit"))
+	   (cond ((looking-at "pre") (viper-check-sub "preserve"))
+		 ((looking-at "pu") (viper-check-sub "put"))
+		 ((looking-at "pw") (viper-check-sub "pwd"))
+		 (t (viper-check-sub "print"))))
+	  ((looking-at "P") (viper-check-sub "PreviousRelatedFile"))
+	  ((looking-at "R") (viper-check-sub "RelatedFile"))
+	  ((looking-at "q") (viper-check-sub "quit"))
 	  ((looking-at "r")
-	   (cond ((looking-at "rec") (vip-check-sub "recover"))
-		 ((looking-at "rew") (vip-check-sub "rewind"))
-		 (t (vip-check-sub "read"))))
+	   (cond ((looking-at "rec") (viper-check-sub "recover"))
+		 ((looking-at "rew") (viper-check-sub "rewind"))
+		 (t (viper-check-sub "read"))))
 	  ((looking-at "s")
-	   (cond ((looking-at "se") (vip-check-sub "set"))
-		 ((looking-at "sh") (vip-check-sub "shell"))
-		 ((looking-at "so") (vip-check-sub "source"))
-		 ((looking-at "sr") (vip-check-sub "sr"))
-		 ((looking-at "st") (vip-check-sub "stop"))
-		 ((looking-at "sus") (vip-check-sub "suspend"))
-		 ((looking-at "subm") (vip-check-sub "submitReport"))
-		 (t (vip-check-sub "substitute"))))
+	   (cond ((looking-at "se") (viper-check-sub "set"))
+		 ((looking-at "sh") (viper-check-sub "shell"))
+		 ((looking-at "so") (viper-check-sub "source"))
+		 ((looking-at "sr") (viper-check-sub "sr"))
+		 ((looking-at "st") (viper-check-sub "stop"))
+		 ((looking-at "sus") (viper-check-sub "suspend"))
+		 ((looking-at "subm") (viper-check-sub "submitReport"))
+		 (t (viper-check-sub "substitute"))))
 	  ((looking-at "t")
-	   (if (looking-at "ta") (vip-check-sub "tag")
-	     (vip-check-sub "transfer")))
+	   (if (looking-at "ta") (viper-check-sub "tag")
+	     (viper-check-sub "transfer")))
 	  ((looking-at "u")
-	   (cond ((looking-at "una") (vip-check-sub "unabbreviate"))
-		 ((looking-at "unm") (vip-check-sub "unmap"))
-		 (t (vip-check-sub "undo"))))
+	   (cond ((looking-at "una") (viper-check-sub "unabbreviate"))
+		 ((looking-at "unm") (viper-check-sub "unmap"))
+		 (t (viper-check-sub "undo"))))
 	  ((looking-at "v")
-	   (cond ((looking-at "ve") (vip-check-sub "version"))
-		 ((looking-at "vi") (vip-check-sub "visual"))
-		 (t (vip-check-sub "vglobal"))))
+	   (cond ((looking-at "ve") (viper-check-sub "version"))
+		 ((looking-at "vi") (viper-check-sub "visual"))
+		 (t (viper-check-sub "vglobal"))))
 	  ((looking-at "w")
-	   (if (looking-at "wq") (vip-check-sub "wq")
-	     (vip-check-sub "write")))
+	   (if (looking-at "wq") (viper-check-sub "wq")
+	     (viper-check-sub "write")))
 	  ((looking-at "W")
 	   (if (looking-at "WW") 
-	       (vip-check-sub "WWrite")
-	     (vip-check-sub "Write")))
-	  ((looking-at "x") (vip-check-sub "xit"))
-	  ((looking-at "y") (vip-check-sub "yank"))
-	  ((looking-at "z") (vip-check-sub "z")))
+	       (viper-check-sub "WWrite")
+	     (viper-check-sub "Write")))
+	  ((looking-at "x") (viper-check-sub "xit"))
+	  ((looking-at "y") (viper-check-sub "yank"))
+	  ((looking-at "z") (viper-check-sub "z")))
     (exchange-point-and-mark)
     ))
 
 ;; Get an ex-token which is either an address or a command.
 ;; A token has a type, \(command, address, end-mark\), and a value
-(defun vip-get-ex-token ()
+(defun viper-get-ex-token ()
   (save-window-excursion
-    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-    (set-buffer vip-ex-work-buf)
+    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+    (set-buffer viper-ex-work-buf)
     (skip-chars-forward " \t|")
     (cond ((looking-at "#")
 	   (setq ex-token-type 'command)
 	   (setq ex-token (char-to-string (following-char)))
 	   (forward-char 1))
-	  ((looking-at "[a-z]") (vip-get-ex-com-subr))
+	  ((looking-at "[a-z]") (viper-get-ex-com-subr))
 	  ((looking-at "\\.")
 	   (forward-char 1)
 	   (setq ex-token-type 'dot))
@@ -358,7 +358,7 @@ reversed."
 		  (forward-char 1)
 		  (setq ex-token-type 'plus))
 		 (t
-		  (error vip-BadAddress))))
+		  (error viper-BadAddress))))
 	  ((looking-at "-")
 	   (cond ((or (looking-at "-[-+]") (looking-at "-[\n|]"))
 		  (forward-char 1)
@@ -369,7 +369,7 @@ reversed."
 		  (forward-char 1)
 		  (setq ex-token-type 'minus))
 		 (t
-		  (error vip-BadAddress))))
+		  (error viper-BadAddress))))
 	  ((looking-at "/")
 	   (forward-char 1)
 	   (set-mark (point))
@@ -377,7 +377,7 @@ reversed."
 	     (while (and (not (eolp)) cont)
 	       ;;(re-search-forward "[^/]*/")
 	       (re-search-forward "[^/]*\\(/\\|\n\\)")
-	       (if (not (vip-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"))
+	       (if (not (viper-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\/"))
 		   (setq cont nil))))
 	   (backward-char 1)
 	   (setq ex-token (buffer-substring (point) (mark t)))
@@ -390,7 +390,7 @@ reversed."
 	     (while (and (not (eolp)) cont)
 	       ;;(re-search-forward "[^\\?]*\\?")
 	       (re-search-forward "[^\\?]*\\(\\?\\|\n\\)")
-	       (if (not (vip-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"))
+	       (if (not (viper-looking-back "[^\\\\]\\(\\\\\\\\\\)*\\\\\\?"))
 		   (setq cont nil))
 	       (backward-char 1)
 	       (if (not (looking-at "\n")) (forward-char 1))))
@@ -417,13 +417,13 @@ reversed."
 	   (setq ex-token-type 'end-mark)
 	   (setq ex-token "goto"))
 	  (t
-	   (error vip-BadExCommand)))))
+	   (error viper-BadExCommand)))))
 
 ;; Reads Ex command. Tries to determine if it has to exit because command
 ;; is complete or invalid. If not, keeps reading command.
 (defun ex-cmd-read-exit ()
   (interactive)
-  (setq vip-incomplete-ex-cmd t)
+  (setq viper-incomplete-ex-cmd t)
   (let ((quit-regex1 (concat
 		      "\\(" "set[ \t]*"
 		      "\\|" "edit[ \t]*"
@@ -459,12 +459,12 @@ reversed."
 		     "!*")))
 	
     (save-window-excursion ;; put cursor at the end of the Ex working buffer
-      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-      (set-buffer vip-ex-work-buf)
+      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+      (set-buffer viper-ex-work-buf)
       (goto-char (point-max)))
-    (cond ((vip-looking-back quit-regex1) (exit-minibuffer))
-	  ((vip-looking-back stay-regex)  (insert " "))
-	  ((vip-looking-back quit-regex2) (exit-minibuffer))
+    (cond ((viper-looking-back quit-regex1) (exit-minibuffer))
+	  ((viper-looking-back stay-regex)  (insert " "))
+	  ((viper-looking-back quit-regex2) (exit-minibuffer))
 	  (t (insert " ")))))
   
 ;; complete Ex command
@@ -477,45 +477,45 @@ reversed."
 	    save-pos (point)))
 	
     (if (or (= dist 0)
-	    (vip-looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
-	    (vip-looking-back
+	    (viper-looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
+	    (viper-looking-back
 	     "^[ \t]*[a-zA-Z!=>&~][ \t]*[/?]*+[ \t]+[a-zA-Z!=>&~]+"))
 	;; Preceding characters are not the ones allowed in an Ex command
 	;; or we have typed past command name.
 	;; Note: we didn't do parsing, so there may be surprises.
-	(if (or (vip-looking-back "[a-zA-Z!=>&~][ \t]*[/?]*[ \t]*")
-		(vip-looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
+	(if (or (viper-looking-back "[a-zA-Z!=>&~][ \t]*[/?]*[ \t]*")
+		(viper-looking-back "\\([ \t]*['`][ \t]*[a-z]*\\)")
 		(looking-at "[^ \t\n\C-m]"))
 	    nil
 	  (with-output-to-temp-buffer "*Completions*" 
 	    (display-completion-list
-	     (vip-alist-to-list ex-token-alist))))
+	     (viper-alist-to-list ex-token-alist))))
       ;; Preceding chars may be part of a command name
       (setq string-to-complete (buffer-substring save-pos (point)))
       (setq completion-result
 	    (try-completion string-to-complete ex-token-alist))
       
       (cond ((eq completion-result t)  ; exact match--do nothing
-	     (vip-tmp-insert-at-eob " (Sole completion)"))
+	     (viper-tmp-insert-at-eob " (Sole completion)"))
 	    ((eq completion-result nil)
-	     (vip-tmp-insert-at-eob " (No match)"))
+	     (viper-tmp-insert-at-eob " (No match)"))
 	    (t  ;; partial completion
 	     (goto-char save-pos)
 	     (delete-region (point) (point-max))
 	     (insert completion-result)
 	     (let (case-fold-search)
 	       (setq compl-list
-		     (vip-filter-alist (concat "^" completion-result)
+		     (viper-filter-alist (concat "^" completion-result)
 				       ex-token-alist)))
 	     (if (> (length compl-list) 1)
 		 (with-output-to-temp-buffer "*Completions*" 
 		   (display-completion-list
-		    (vip-alist-to-list (reverse compl-list)))))))
+		    (viper-alist-to-list (reverse compl-list)))))))
       )))
     
 
 ;; Read Ex commands 
-(defun vip-ex (&optional string)
+(defun viper-ex (&optional string)
   (interactive)
   (or string
       (setq ex-g-flag nil
@@ -526,25 +526,25 @@ reversed."
 	 (dot (point))
 	 prev-token-type com-str)
 	 
-    (vip-add-keymap vip-ex-cmd-map map)
+    (viper-add-keymap viper-ex-cmd-map map)
     
-    (setq com-str (or string (vip-read-string-with-history
+    (setq com-str (or string (viper-read-string-with-history
 			      ":" 
 			      nil
-			      'vip-ex-history
-			      (car vip-ex-history)
+			      'viper-ex-history
+			      (car viper-ex-history)
 			      map)))
     (save-window-excursion
       ;; just a precaution
-      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-      (set-buffer vip-ex-work-buf)
+      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+      (set-buffer viper-ex-work-buf)
       (delete-region (point-min) (point-max))
       (insert com-str "\n")
       (goto-char (point-min)))
     (setq ex-token-type nil
 	  ex-addresses nil)
     (while cont
-      (vip-get-ex-token)
+      (viper-get-ex-token)
       (cond ((memq ex-token-type '(command end-mark))
 	     (if address (setq ex-addresses (cons address ex-addresses)))
 	     (cond ((string= ex-token "global")
@@ -554,21 +554,21 @@ reversed."
 		    (ex-global t)
 		    (setq cont nil))
 		   (t
-		    (vip-execute-ex-command)
+		    (viper-execute-ex-command)
 		    (save-window-excursion
-		      (setq vip-ex-work-buf
-			    (get-buffer-create vip-ex-work-buf-name))
-		      (set-buffer vip-ex-work-buf)
+		      (setq viper-ex-work-buf
+			    (get-buffer-create viper-ex-work-buf-name))
+		      (set-buffer viper-ex-work-buf)
 		      (skip-chars-forward " \t")
 		      (cond ((looking-at "|")
 			     (forward-char 1))
 			    ((looking-at "\n")
 			     (setq cont nil))
-			    (t (error "`%s': %s" ex-token vip-SpuriousText)))
+			    (t (error "`%s': %s" ex-token viper-SpuriousText)))
 		      ))
 		   ))
 	    ((eq ex-token-type 'non-command)
-	     (error "`%s': %s" ex-token vip-BadExCommand))
+	     (error "`%s': %s" ex-token viper-BadExCommand))
 	    ((eq ex-token-type 'whole)
 	     (setq address nil)
 	     (setq ex-addresses
@@ -586,16 +586,16 @@ reversed."
 	     (if address (setq dot address))
 	     (setq ex-addresses
 		   (cons (if (null address) (point) address) ex-addresses)))
-	    (t (let ((ans (vip-get-ex-address-subr address dot)))
+	    (t (let ((ans (viper-get-ex-address-subr address dot)))
 		 (if ans (setq address ans)))))
       (setq prev-token-type ex-token-type))))
       
 
 ;; Get a regular expression and set `ex-variant', if found
-(defun vip-get-ex-pat ()
+(defun viper-get-ex-pat ()
   (save-window-excursion
-    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name))
-    (set-buffer vip-ex-work-buf)
+    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
+    (set-buffer viper-ex-work-buf)
     (skip-chars-forward " \t")
     (if (looking-at "!")
 	(progn
@@ -618,7 +618,7 @@ reversed."
 			(error
 			 "Missing closing delimiter for global regexp")
 		      (goto-char (point-max))))
-		(if (not (vip-looking-back
+		(if (not (viper-looking-back
 			  (format "[^\\\\]\\(\\\\\\\\\\)*\\\\%c" c)))
 		    (setq cont nil))))
 	    (setq ex-token
@@ -637,26 +637,26 @@ reversed."
       c)))
 
 ;; get an ex command
-(defun vip-get-ex-command ()
+(defun viper-get-ex-command ()
   (save-window-excursion
-    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-    (set-buffer vip-ex-work-buf)
+    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+    (set-buffer viper-ex-work-buf)
     (if (looking-at "/") (forward-char 1))
     (skip-chars-forward " \t")
     (cond ((looking-at "[a-z]")
-	   (vip-get-ex-com-subr)
+	   (viper-get-ex-com-subr)
 	   (if (eq ex-token-type 'non-command)
-	       (error "`%s': %s" ex-token vip-BadExCommand)))
+	       (error "`%s': %s" ex-token viper-BadExCommand)))
 	  ((looking-at "[!=><&~]")
 	   (setq ex-token (char-to-string (following-char)))
 	   (forward-char 1))
-	  (t (error vip-BadExCommand)))))
+	  (t (error viper-BadExCommand)))))
 
 ;; Get an Ex option g or c
-(defun vip-get-ex-opt-gc (c)
+(defun viper-get-ex-opt-gc (c)
   (save-window-excursion
-    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-    (set-buffer vip-ex-work-buf)
+    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+    (set-buffer viper-ex-work-buf)
     (if (looking-at (format "%c" c)) (forward-char 1))
     (skip-chars-forward " \t")
     (cond ((looking-at "g")
@@ -670,7 +670,7 @@ reversed."
 	  (t nil))))
 
 ;; Compute default addresses.  WHOLE-FLAG means use the whole buffer
-(defun vip-default-ex-addresses (&optional whole-flag)
+(defun viper-default-ex-addresses (&optional whole-flag)
   (cond ((null ex-addresses)
 	 (setq ex-addresses
 	       (if whole-flag
@@ -681,13 +681,13 @@ reversed."
 	       (cons (car ex-addresses) ex-addresses)))))
 
 ;; Get an ex-address as a marker and set ex-flag if a flag is found
-(defun vip-get-ex-address ()
+(defun viper-get-ex-address ()
   (let ((address (point-marker))
 	(cont t))
     (setq ex-token "")
     (setq ex-flag nil)
     (while cont
-      (vip-get-ex-token)
+      (viper-get-ex-token)
       (cond ((eq ex-token-type 'command)
 	     (if (member ex-token '("print" "list" "#"))
 		 (progn
@@ -699,13 +699,13 @@ reversed."
 	    ((eq ex-token-type 'whole)
 	     (error "Trailing address expected"))
 	    ((eq ex-token-type 'comma)
-	     (error "`%s': %s" ex-token vip-SpuriousText))
-	    (t (let ((ans (vip-get-ex-address-subr address (point-marker))))
+	     (error "`%s': %s" ex-token viper-SpuriousText))
+	    (t (let ((ans (viper-get-ex-address-subr address (point-marker))))
 		 (if ans (setq address ans))))))
     address))
 
 ;; Returns an address as a point
-(defun vip-get-ex-address-subr (old-address dot)
+(defun viper-get-ex-address-subr (old-address dot)
   (let ((address nil))
     (if (null old-address) (setq old-address dot))
     (cond ((eq ex-token-type 'dot)
@@ -742,7 +742,7 @@ reversed."
 	   (save-excursion
 	     (if (null ex-token)
 		 (exchange-point-and-mark)
-	       (goto-char (vip-register-to-point
+	       (goto-char (viper-register-to-point
 			   (1+ (- ex-token ?a)) 'enforce-buffer)))
 	     (setq address (point-marker)))))
     address))
@@ -751,10 +751,10 @@ reversed."
 ;; Search pattern and set address
 (defun ex-search-address (forward)
   (if (string= ex-token "")
-      (if (null vip-s-string)
-	  (error vip-NoPrevSearch)
-	(setq ex-token vip-s-string))
-    (setq vip-s-string ex-token))
+      (if (null viper-s-string)
+	  (error viper-NoPrevSearch)
+	(setq ex-token viper-s-string))
+    (setq viper-s-string ex-token))
   (if forward
       (progn
 	(forward-line 1)
@@ -763,13 +763,13 @@ reversed."
     (re-search-backward ex-token)))
 
 ;; Get a buffer name and set `ex-count' and `ex-flag' if found
-(defun vip-get-ex-buffer ()
+(defun viper-get-ex-buffer ()
   (setq ex-buffer nil)
   (setq ex-count nil)
   (setq ex-flag nil)
   (save-window-excursion
-    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-    (set-buffer vip-ex-work-buf)
+    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+    (set-buffer viper-ex-work-buf)
     (skip-chars-forward " \t")
     (if (looking-at "[a-zA-Z]")
 	(progn
@@ -787,15 +787,15 @@ reversed."
 	  (setq ex-flag t)
 	  (forward-char 1)))
     (if (not (looking-at "[\n|]"))
-	(error "`%s': %s" ex-token vip-SpuriousText))))
+	(error "`%s': %s" ex-token viper-SpuriousText))))
 
-(defun vip-get-ex-count ()
+(defun viper-get-ex-count ()
   (setq ex-variant nil
 	ex-count nil
 	ex-flag nil)
   (save-window-excursion
-    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-    (set-buffer vip-ex-work-buf)
+    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+    (set-buffer viper-ex-work-buf)
     (skip-chars-forward " \t")
     (if (looking-at "!")
 	(progn
@@ -814,7 +814,8 @@ reversed."
 	  (forward-char 1)))
     (if (not (looking-at "[\n|]"))
 	(error "`%s': %s"
-	       (buffer-substring (point-min) (1- (point-max))) vip-BadExCommand))))
+	       (buffer-substring
+		(point-min) (1- (point-max))) viper-BadExCommand))))
 
 ;; Expand \% and \# in ex command
 (defun ex-expand-filsyms (cmd buf)
@@ -828,14 +829,14 @@ reversed."
     (if (and (null pf) (string-match "[^\\]#\\|\\`#" cmd))
 	(error "No alternate file to substitute for `#'"))
     (save-excursion
-      (set-buffer (get-buffer-create vip-ex-tmp-buf-name))
+      (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
       (erase-buffer)
       (insert cmd)
       (goto-char (point-min))
       (while (re-search-forward "%\\|#" nil t)
 	(let ((data (match-data)) 
 	      (char (buffer-substring (match-beginning 0) (match-end 0))))
-	  (if (vip-looking-back (concat "\\\\" char))
+	  (if (viper-looking-back (concat "\\\\" char))
 	      (replace-match char)
 	    (store-match-data data)
 	    (if (string= char "%")
@@ -847,7 +848,7 @@ reversed."
     ret))
 
 ;; Get a file name and set ex-variant, `ex-append' and `ex-offset' if found
-(defun vip-get-ex-file ()
+(defun viper-get-ex-file ()
   (let (prompt)
     (setq ex-file nil
 	  ex-variant nil
@@ -856,11 +857,11 @@ reversed."
 	  ex-cmdfile nil)
     (save-excursion
       (save-window-excursion
-	(setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-	(set-buffer vip-ex-work-buf)
+	(setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+	(set-buffer viper-ex-work-buf)
 	(skip-chars-forward " \t")
 	(if (looking-at "!")
-	    (if (and (not (vip-looking-back "[ \t]"))
+	    (if (and (not (viper-looking-back "[ \t]"))
 		     ;; read doesn't have a corresponding :r! form, so ! is
 		     ;; immediately interpreted as a shell command.
 		     (not (string= ex-token "read")))
@@ -902,7 +903,7 @@ reversed."
 			(progn
 			  ;; if file name comes from history, don't leave
 			  ;; minibuffer when the user types space
-			  (setq vip-incomplete-ex-cmd nil)
+			  (setq viper-incomplete-ex-cmd nil)
 			  ;; this must be the last clause in this progn
 			  (substring ex-file (match-beginning 0) (match-end 0))
 			  )
@@ -916,11 +917,11 @@ reversed."
 	(setq prompt (buffer-substring (point-min) (point)))
 	))
     
-    (setq vip-last-ex-prompt prompt)
+    (setq viper-last-ex-prompt prompt)
     
     ;; If we just finished reading command, redisplay prompt
-    (if vip-incomplete-ex-cmd
-	(setq ex-file (vip-ex-read-file-name (format ":%s " prompt)))
+    (if viper-incomplete-ex-cmd
+	(setq ex-file (viper-ex-read-file-name (format ":%s " prompt)))
       ;; file was typed in-line
       (setq ex-file (or ex-file "")))
     ))
@@ -928,24 +929,24 @@ reversed."
 
 ;; Completes file name or exits minibuffer. If Ex command accepts multiple
 ;; file names, arranges to re-enter the minibuffer.
-(defun vip-complete-filename-or-exit ()
+(defun viper-complete-filename-or-exit ()
   (interactive)
-  (setq vip-keep-reading-filename t) 
+  (setq viper-keep-reading-filename t) 
   ;; don't exit if directory---ex-commands don't 
   (cond ((ex-cmd-accepts-multiple-files-p ex-token) (exit-minibuffer))
 	;; apparently the argument to an Ex command is
 	;; supposed to be a shell command
-	((vip-looking-back "^[ \t]*!.*")
+	((viper-looking-back "^[ \t]*!.*")
 	 (setq ex-cmdfile t)
 	 (insert " "))
 	(t
 	 (setq ex-cmdfile nil)
 	 (minibuffer-complete-word))))
 
-(defun vip-handle-! ()
+(defun viper-handle-! ()
   (interactive)
   (if (and (string=
-	    (buffer-string) (vip-abbreviate-file-name default-directory))
+	    (buffer-string) (viper-abbreviate-file-name default-directory))
 	   (member ex-token '("read" "write")))
       (erase-buffer))
   (insert "!"))
@@ -955,20 +956,20 @@ reversed."
 
 ;; If user doesn't enter anything, then "" is returned, i.e., the
 ;; prompt-directory is not returned.
-(defun vip-ex-read-file-name (prompt)
+(defun viper-ex-read-file-name (prompt)
   (let* ((str "")
 	 (minibuffer-local-completion-map
 	  (copy-keymap minibuffer-local-completion-map))
 	 beg end cont val)
     
-    (vip-add-keymap ex-read-filename-map
-		    (if vip-emacs-p 
+    (viper-add-keymap ex-read-filename-map
+		    (if viper-emacs-p 
 			minibuffer-local-completion-map
 		      read-file-name-map)) 
 		    
-    (setq cont (setq vip-keep-reading-filename t))
+    (setq cont (setq viper-keep-reading-filename t))
     (while cont
-      (setq vip-keep-reading-filename nil
+      (setq viper-keep-reading-filename nil
 	    val (read-file-name (concat prompt str) nil default-directory))
       (if (string-match " " val)
 	  (setq val (concat "\\\"" val "\\\"")))
@@ -976,9 +977,9 @@ reversed."
 			 val (if (equal val "") "" " ")))
 			 
       ;; Only edit, next, and Next commands accept multiple files.
-      ;; vip-keep-reading-filename is set in the anonymous function that is
+      ;; viper-keep-reading-filename is set in the anonymous function that is
       ;; bound to " " in ex-read-filename-map.
-      (setq cont (and vip-keep-reading-filename
+      (setq cont (and viper-keep-reading-filename
 		      (ex-cmd-accepts-multiple-files-p ex-token)))
       )
     
@@ -990,19 +991,20 @@ reversed."
 	      (progn
 		(setq ex-cmdfile t)
 		(setq beg (1+ beg))
-		(setq vip-last-ex-prompt (concat vip-last-ex-prompt " !")))))
+		(setq viper-last-ex-prompt
+		      (concat viper-last-ex-prompt " !")))))
     (substring str (or beg 0) end)))
 
 ;; Execute ex command using the value of addresses
-(defun vip-execute-ex-command ()
-  (vip-deactivate-mark)
+(defun viper-execute-ex-command ()
+  (viper-deactivate-mark)
   (cond ((string= ex-token "args") (ex-args))
 	((string= ex-token "copy") (ex-copy nil))
 	((string= ex-token "cd") (ex-cd))
 	((string= ex-token "chdir") (ex-cd))
 	((string= ex-token "delete") (ex-delete))
 	((string= ex-token "edit") (ex-edit))
-	((string= ex-token "file") (vip-info-on-file))
+	((string= ex-token "file") (viper-info-on-file))
 	((string= ex-token "goto") (ex-goto))
 	((string= ex-token "help") (ex-help))
 	((string= ex-token "join") (ex-line "join"))
@@ -1021,7 +1023,7 @@ reversed."
 	((string= ex-token "read") (ex-read))
 	((string= ex-token "recover") (ex-recover))
 	((string= ex-token "rewind") (ex-rewind))
-	((string= ex-token "submitReport") (vip-submit-report))
+	((string= ex-token "submitReport") (viper-submit-report))
 	((string= ex-token "set") (ex-set))
 	((string= ex-token "shell") (ex-shell))
 	((string= ex-token "source") (ex-source))
@@ -1031,15 +1033,15 @@ reversed."
 	((string= ex-token "stop") (suspend-emacs))
 	((string= ex-token "transfer") (ex-copy nil))
 	((string= ex-token "buffer") (if ex-cycle-other-window
-					 (vip-switch-to-buffer-other-window)
-					 (vip-switch-to-buffer)))
+					 (viper-switch-to-buffer-other-window)
+				       (viper-switch-to-buffer)))
 	((string= ex-token "Buffer") (if ex-cycle-other-window
-					 (vip-switch-to-buffer)
-					 (vip-switch-to-buffer-other-window)))
+					 (viper-switch-to-buffer)
+				       (viper-switch-to-buffer-other-window)))
 	((string= ex-token "tag") (ex-tag))
-	((string= ex-token "undo") (vip-undo))
+	((string= ex-token "undo") (viper-undo))
 	((string= ex-token "unmap") (ex-unmap))
-	((string= ex-token "version") (vip-version))
+	((string= ex-token "version") (viper-version))
 	((string= ex-token "visual") (ex-edit))
 	((string= ex-token "write") (ex-write nil))
 	((string= ex-token "Write") (save-some-buffers))
@@ -1068,9 +1070,9 @@ reversed."
 	     (string= ex-token "z")
 	     (string= ex-token "#"))
 	 (error "`%s': Command not implemented in Viper" ex-token))
-	(t (error "`%s': %s" ex-token vip-BadExCommand))))
+	(t (error "`%s': %s" ex-token viper-BadExCommand))))
 
-(defun vip-undisplayed-files ()
+(defun viper-undisplayed-files ()
   (mapcar
    (function 
     (lambda (b) 
@@ -1088,7 +1090,7 @@ reversed."
 
 
 (defun ex-args ()
-  (let ((l (vip-undisplayed-files))
+  (let ((l (viper-undisplayed-files))
 	(args "")
 	(file-count 1))
     (while (not (null l))
@@ -1100,31 +1102,31 @@ reversed."
 	(message "All files are already displayed")
       (save-excursion
 	(save-window-excursion
-	  (with-output-to-temp-buffer " *vip-info*"
+	  (with-output-to-temp-buffer " *viper-info*"
 	    (princ "\n\nThese files are not displayed in any window.\n")
 	    (princ "\n=============\n")
 	    (princ args)
 	    (princ "\n=============\n")
 	    (princ "\nThe numbers can be given as counts to :next. ")
 	    (princ "\n\nPress any key to continue...\n\n"))
-	  (vip-read-event))))))
+	  (viper-read-event))))))
 
 ;; Ex cd command. Default directory of this buffer changes
 (defun ex-cd ()
-  (vip-get-ex-file)
+  (viper-get-ex-file)
   (if (string= ex-file "")
       (setq ex-file "~"))
   (setq default-directory (file-name-as-directory (expand-file-name ex-file))))
 
 ;; Ex copy and move command.  DEL-FLAG means delete
 (defun ex-copy (del-flag)
-  (vip-default-ex-addresses)
-  (let ((address (vip-get-ex-address))
+  (viper-default-ex-addresses)
+  (let ((address (viper-get-ex-address))
 	(end (car ex-addresses)) (beg (car (cdr ex-addresses))))
     (goto-char end)
     (save-excursion
       (push-mark beg t)
-      (vip-enlarge-region (mark t) (point))
+      (viper-enlarge-region (mark t) (point))
       (if del-flag
 	  (kill-region (point) (mark t))
 	(copy-region-as-kill (point) (mark t)))
@@ -1149,19 +1151,19 @@ reversed."
 
 ;; Ex delete command
 (defun ex-delete ()
-  (vip-default-ex-addresses)
-  (vip-get-ex-buffer)
+  (viper-default-ex-addresses)
+  (viper-get-ex-buffer)
   (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
-    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (if (> beg end) (error viper-FirstAddrExceedsSecond))
     (save-excursion
-      (vip-enlarge-region beg end)
+      (viper-enlarge-region beg end)
       (exchange-point-and-mark)
       (if ex-count
 	  (progn
 	    (set-mark (point))
 	    (forward-line (1- ex-count)))
 	(set-mark end))
-      (vip-enlarge-region (point) (mark t))
+      (viper-enlarge-region (point) (mark t))
       (if ex-flag
 	  ;; show text to be deleted and ask for confirmation
 	  (progn
@@ -1174,12 +1176,12 @@ reversed."
 	       (error "")))
 	    (save-excursion (kill-buffer " *delete text*")))
 	(if ex-buffer
-	    (cond ((vip-valid-register ex-buffer '(Letter))
-		   (vip-append-to-register
+	    (cond ((viper-valid-register ex-buffer '(Letter))
+		   (viper-append-to-register
 		    (downcase ex-buffer) (point) (mark t)))
-		  ((vip-valid-register ex-buffer)
+		  ((viper-valid-register ex-buffer)
 		   (copy-to-register ex-buffer (point) (mark t) nil))
-		  (t (error vip-InvalidRegister ex-buffer))))
+		  (t (error viper-InvalidRegister ex-buffer))))
 	(kill-region (point) (mark t))))))
 
 
@@ -1191,11 +1193,11 @@ reversed."
 ;; with the first file in its argument list
 (defun ex-edit (&optional file)
   (if (not file)
-      (vip-get-ex-file))
+      (viper-get-ex-file))
   (cond ((and (string= ex-file "") buffer-file-name)
-	 (setq ex-file  (vip-abbreviate-file-name (buffer-file-name))))
+	 (setq ex-file  (viper-abbreviate-file-name (buffer-file-name))))
 	((string= ex-file "")
-	 (error vip-NoFileSpecified)))
+	 (error viper-NoFileSpecified)))
       
   (let (msg do-edit)
     (if buffer-file-name
@@ -1223,20 +1225,20 @@ reversed."
       (progn 
 	(ex-find-file ex-file)
 	(or (eq major-mode 'dired-mode)
-	    (vip-change-state-to-vi))
+	    (viper-change-state-to-vi))
 	(goto-char (point-min)))
     (switch-to-buffer file))
   (if ex-offset
       (progn
 	(save-window-excursion
-	  (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-	  (set-buffer vip-ex-work-buf)
+	  (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+	  (set-buffer viper-ex-work-buf)
 	  (delete-region (point-min) (point-max))
 	  (insert ex-offset "\n")
 	  (goto-char (point-min)))
-	(goto-char (vip-get-ex-address))
+	(goto-char (viper-get-ex-address))
 	(beginning-of-line)))
-  (ex-fixup-history vip-last-ex-prompt ex-file))
+  (ex-fixup-history viper-last-ex-prompt ex-file))
 
 ;; Find-file FILESPEC if it appears to specify a single file.
 ;; Otherwise, assume that FILES{EC is a wildcard.
@@ -1269,33 +1271,33 @@ reversed."
 		ex-g-variant t)
 	(setq ex-g-flag t
 	      ex-g-variant nil)))
-    (vip-get-ex-pat)
+    (viper-get-ex-pat)
     (if (null ex-token)
 	(error "`%s': Missing regular expression" gcommand)))
   
   (if (string= ex-token "")
-      (if (null vip-s-string)
-	  (error vip-NoPrevSearch)
-	(setq ex-g-pat vip-s-string))
+      (if (null viper-s-string)
+	  (error viper-NoPrevSearch)
+	(setq ex-g-pat viper-s-string))
     (setq ex-g-pat ex-token
-	  vip-s-string ex-token))
+	  viper-s-string ex-token))
   (if (null ex-addresses)
       (setq ex-addresses (list (point-max) (point-min)))
-    (vip-default-ex-addresses))
+    (viper-default-ex-addresses))
   (let ((marks nil)
 	(mark-count 0)
 	(end (car ex-addresses))
 	(beg (car (cdr ex-addresses)))
 	com-str)
-    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (if (> beg end) (error viper-FirstAddrExceedsSecond))
     (save-excursion
-      (vip-enlarge-region beg end)
+      (viper-enlarge-region beg end)
       (exchange-point-and-mark)
       (let ((cont t) (limit (point-marker)))
 	(exchange-point-and-mark)
 	;; skip the last line if empty
 	(beginning-of-line)
-	(if (eobp) (vip-backward-char-carefully))
+	(if (eobp) (viper-backward-char-carefully))
 	(while (and cont (not (bobp)) (>= (point) limit))
 	  (beginning-of-line)
 	  (set-mark (point))
@@ -1312,12 +1314,12 @@ reversed."
 	    (forward-line -1)
 	    (end-of-line)))))
     (save-window-excursion
-      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-      (set-buffer vip-ex-work-buf)
+      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+      (set-buffer viper-ex-work-buf)
       (setq com-str (buffer-substring (1+ (point)) (1- (point-max)))))
     (while marks
       (goto-char (car marks))
-      (vip-ex com-str)
+      (viper-ex com-str)
       (setq mark-count (1- mark-count))
       (setq marks (cdr marks)))))
 
@@ -1331,12 +1333,12 @@ reversed."
 
 ;; Ex line commands.  COM is join, shift-right or shift-left
 (defun ex-line (com)
-  (vip-default-ex-addresses)
-  (vip-get-ex-count)
+  (viper-default-ex-addresses)
+  (viper-get-ex-count)
   (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))) point)
-    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (if (> beg end) (error viper-FirstAddrExceedsSecond))
     (save-excursion
-      (vip-enlarge-region beg end)
+      (viper-enlarge-region beg end)
       (exchange-point-and-mark)
       (if ex-count
 	  (progn
@@ -1371,10 +1373,10 @@ reversed."
 	((or (string= com "right") (string= com "left"))
 	 (indent-rigidly
 	  (min beg end) (max beg end)
-	  (if (string= com "right") vip-shift-width (- vip-shift-width)))
+	  (if (string= com "right") viper-shift-width (- viper-shift-width)))
 	 (goto-char (max beg end))
 	 (end-of-line)
-	 (vip-forward-char-carefully))))
+	 (viper-forward-char-carefully))))
 
 
 ;; Ex mark command
@@ -1384,8 +1386,8 @@ reversed."
 	(setq ex-addresses
 	      (cons (point) nil)))
     (save-window-excursion
-      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-      (set-buffer vip-ex-work-buf)
+      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+      (set-buffer viper-ex-work-buf)
       (skip-chars-forward " \t")
       (if (looking-at "[a-z]")
 	  (progn
@@ -1393,7 +1395,7 @@ reversed."
 	    (forward-char 1)
 	    (skip-chars-forward " \t")
 	    (if (not (looking-at "[\n|]"))
-		(error "`%s': %s" ex-token vip-SpuriousText)))
+		(error "`%s': %s" ex-token viper-SpuriousText)))
 	(error "`%s' requires a following letter" ex-token)))
     (save-excursion
       (goto-char (car ex-addresses))
@@ -1407,7 +1409,7 @@ reversed."
     (let (count l)
       (if (not find-alt-file) 
 	  (progn
-	    (vip-get-ex-file)
+	    (viper-get-ex-file)
 	    (if (or (char-or-string-p ex-offset)
 		    (and (not (string= "" ex-file)) 
 		         (not (string-match "^[0-9]+$" ex-file))))
@@ -1418,7 +1420,7 @@ reversed."
 	      (if (= count 0) (setq count 1))
 	      (if (< count 0) (error "Usage: `next <count>' (count >= 0)"))))
 	(setq count 1))
-      (setq l (vip-undisplayed-files))
+      (setq l (viper-undisplayed-files))
       (while (> count 0)
 	(while (and (not (null l)) (null (car l)))
 	  (setq l (cdr l)))
@@ -1434,22 +1436,22 @@ reversed."
 		(set-window-buffer w (get-file-buffer (car l)))
 		(bury-buffer b)
 		;; this puts "next <count>" in the ex-command history
-		(ex-fixup-history vip-last-ex-prompt ex-file))
+		(ex-fixup-history viper-last-ex-prompt ex-file))
 	    (error "Not that many undisplayed files")))))))
 
 
 (defun ex-next-related-buffer (direction &optional no-recursion)
   
-  (vip-ring-rotate1 vip-related-files-and-buffers-ring direction)
+  (viper-ring-rotate1 viper-related-files-and-buffers-ring direction)
   
   (let ((file-or-buffer-name 
-	 (vip-current-ring-item vip-related-files-and-buffers-ring))
-	(old-ring vip-related-files-and-buffers-ring)
+	 (viper-current-ring-item viper-related-files-and-buffers-ring))
+	(old-ring viper-related-files-and-buffers-ring)
 	(old-win (selected-window))
 	skip-rest buf wind)
     
-    (or (and (ring-p vip-related-files-and-buffers-ring)
-	     (> (ring-length vip-related-files-and-buffers-ring) 0))
+    (or (and (ring-p viper-related-files-and-buffers-ring)
+	     (> (ring-length viper-related-files-and-buffers-ring) 0))
 	(error "This buffer has no related files or buffers"))
 	
     (or (stringp file-or-buffer-name)
@@ -1461,10 +1463,10 @@ reversed."
 		     (find-file-noselect file-or-buffer-name))
 		    ))
     
-    (if (not (vip-buffer-live-p buf))
+    (if (not (viper-buffer-live-p buf))
 	(error "Didn't find buffer %S or file %S"
 	       file-or-buffer-name
-	       (vip-abbreviate-file-name
+	       (viper-abbreviate-file-name
 		(expand-file-name file-or-buffer-name))))
 	  
     (if (equal buf (current-buffer))
@@ -1477,12 +1479,12 @@ reversed."
     (if skip-rest
 	()
       ;; setup buffer
-      (if (setq wind (vip-get-visible-buffer-window buf))
+      (if (setq wind (viper-get-visible-buffer-window buf))
 	  ()
-	(setq wind (get-lru-window (if vip-xemacs-p nil 'visible)))
+	(setq wind (get-lru-window (if viper-xemacs-p nil 'visible)))
 	(set-window-buffer wind buf))
 	    
-      (if (vip-window-display-p)
+      (if (viper-window-display-p)
 	  (progn
 	    (raise-frame (window-frame wind))
 	    (if (equal (window-frame wind) (window-frame old-win))
@@ -1492,9 +1494,9 @@ reversed."
 	
       (save-excursion
 	(set-buffer buf)
-	(setq vip-related-files-and-buffers-ring old-ring))
+	(setq viper-related-files-and-buffers-ring old-ring))
       
-      (setq vip-local-search-start-marker (point-marker))
+      (setq viper-local-search-start-marker (point-marker))
       )))
   
     
@@ -1506,10 +1508,10 @@ reversed."
 ;; Ex put
 (defun ex-put ()
   (let ((point (if (null ex-addresses) (point) (car ex-addresses))))
-    (vip-get-ex-buffer)
-    (setq vip-use-register ex-buffer)
+    (viper-get-ex-buffer)
+    (setq viper-use-register ex-buffer)
     (goto-char point)
-    (if (bobp) (vip-Put-back 1) (vip-put-back 1))))
+    (if (bobp) (viper-Put-back 1) (viper-put-back 1))))
 
 ;; Ex print working directory
 (defun ex-pwd ()
@@ -1519,8 +1521,8 @@ reversed."
 (defun ex-quit ()
   ;; skip "!", if it is q!. In Viper q!, w!, etc., behave as q, w, etc.
   (save-excursion
-    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-    (set-buffer vip-ex-work-buf)
+    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+    (set-buffer viper-ex-work-buf)
     (if (looking-at "!") (forward-char 1)))
   (if (< viper-expert-level 3)
       (save-buffers-kill-emacs)
@@ -1529,35 +1531,35 @@ reversed."
 
 ;; Ex read command
 (defun ex-read ()
-  (vip-get-ex-file)
+  (viper-get-ex-file)
   (let ((point (if (null ex-addresses) (point) (car ex-addresses)))
 	command)
     (goto-char point)
-    (vip-add-newline-at-eob-if-necessary)
+    (viper-add-newline-at-eob-if-necessary)
     (if (not (or (bobp) (eobp))) (forward-line 1))
     (if (and (not ex-variant) (string= ex-file ""))
 	(progn
 	  (if (null buffer-file-name)
-	      (error vip-NoFileSpecified))
+	      (error viper-NoFileSpecified))
 	  (setq ex-file buffer-file-name)))
     (if ex-cmdfile
 	(progn
 	  (setq command (ex-expand-filsyms ex-file (current-buffer)))
 	  (shell-command command t))
       (insert-file-contents ex-file)))
-  (ex-fixup-history vip-last-ex-prompt ex-file))
+  (ex-fixup-history viper-last-ex-prompt ex-file))
   
 ;; this function fixes ex-history for some commands like ex-read, ex-edit
 (defun ex-fixup-history (&rest args)  
-  (setq vip-ex-history
-	(cons (mapconcat 'identity args " ") (cdr vip-ex-history))))
+  (setq viper-ex-history
+	(cons (mapconcat 'identity args " ") (cdr viper-ex-history))))
   
 
 ;; Ex recover from emacs \#file\#
 (defun ex-recover ()
-  (vip-get-ex-file)
+  (viper-get-ex-file)
   (if (or ex-append ex-offset)
-      (error "`recover': %s" vip-SpuriousText))
+      (error "`recover': %s" viper-SpuriousText))
   (if (string= ex-file "")
       (progn
 	(if (null buffer-file-name)
@@ -1585,11 +1587,11 @@ reversed."
     (define-key
       minibuffer-local-completion-map " " 'minibuffer-complete-and-exit)
     (define-key minibuffer-local-completion-map "=" 'exit-minibuffer)
-    (if (vip-set-unread-command-events
+    (if (viper-set-unread-command-events
 	 (ex-get-inline-cmd-args "[ \t]*[a-zA-Z]*[ \t]*" nil "\C-m"))
 	(progn
 	  (setq batch t)
-	  (vip-set-unread-command-events ?\C-m)))
+	  (viper-set-unread-command-events ?\C-m)))
     (message ":set  <Variable> [= <Value>]")
     (or batch (sit-for 2))
     
@@ -1598,7 +1600,7 @@ reversed."
 			       (completing-read ":set " ex-variable-alist)))
       (message ":set <Variable> [= <Value>]")
       ;; if there are unread events, don't wait
-      (or (vip-set-unread-command-events "") (sit-for 2))
+      (or (viper-set-unread-command-events "") (sit-for 2))
       ) ; while
     str))
 
@@ -1610,7 +1612,7 @@ reversed."
 	(ask-if-save t)
 	(auto-cmd-label "; don't touch or else...")
 	(delete-turn-on-auto-fill-pattern
-	 "([ \t]*add-hook[ \t]+'vip-insert-state-hooks[ \t]+'turn-on-auto-fill.*)")
+	 "([ \t]*add-hook[ \t]+'viper-insert-state-hooks[ \t]+'turn-on-auto-fill.*)")
 	actual-lisp-cmd lisp-cmd-del-pattern
 	val2 orig-var)
     (setq orig-var var)
@@ -1618,35 +1620,35 @@ reversed."
 	   (setq ask-if-save nil
 		 set-cmd nil))
 	  ((member var '("ai" "autoindent"))
-	   (setq var "vip-auto-indent"
+	   (setq var "viper-auto-indent"
 		 set-cmd "setq"
 		 ask-if-save nil
 		 val "t"))
 	  ((member var '("ai-g" "autoindent-global"))
-	   (kill-local-variable 'vip-auto-indent)
-	   (setq var "vip-auto-indent"
+	   (kill-local-variable 'viper-auto-indent)
+	   (setq var "viper-auto-indent"
 		 set-cmd "setq-default"
 		 val "t"))
 	  ((member var '("noai" "noautoindent"))
-	   (setq var "vip-auto-indent"
+	   (setq var "viper-auto-indent"
 		 ask-if-save nil
 		 val "nil"))
 	  ((member var '("noai-g" "noautoindent-global"))
-	   (kill-local-variable 'vip-auto-indent)
-	   (setq var "vip-auto-indent"
+	   (kill-local-variable 'viper-auto-indent)
+	   (setq var "viper-auto-indent"
 		 set-cmd "setq-default"
 		 val "nil"))
 	  ((member var '("ic" "ignorecase"))
-	   (setq var "vip-case-fold-search"
+	   (setq var "viper-case-fold-search"
 		 val "t"))
 	  ((member var '("noic" "noignorecase"))
-	   (setq var "vip-case-fold-search"
+	   (setq var "viper-case-fold-search"
 		 val "nil"))
 	  ((member var '("ma" "magic"))
-	   (setq var "vip-re-search"
+	   (setq var "viper-re-search"
 		 val "t"))
   	  ((member var '("noma" "nomagic"))
-	   (setq var "vip-re-search"
+	   (setq var "viper-re-search"
 		 val "nil"))
 	  ((member var '("ro" "readonly"))
 	   (setq var "buffer-read-only"
@@ -1661,16 +1663,16 @@ reversed."
 	   (setq var "blink-matching-paren"
 		 val "nil"))
 	  ((member var '("ws" "wrapscan"))
-	   (setq var "vip-search-wrap-around-t"
+	   (setq var "viper-search-wrap-around-t"
 		 val "t"))
 	  ((member var '("nows" "nowrapscan"))
-	   (setq var "vip-search-wrap-around-t"
+	   (setq var "viper-search-wrap-around-t"
 		 val "nil")))
     (if (and set-cmd (eq val 0)) ; value must be set by the user
 	(let ((cursor-in-echo-area t))
 	  (message ":set %s = <Value>" var)
 	  ;; if there are unread events, don't wait
-	  (or (vip-set-unread-command-events "") (sit-for 2))
+	  (or (viper-set-unread-command-events "") (sit-for 2))
 	  (setq val (read-string (format ":set %s = " var)))
 	  (ex-fixup-history "set" orig-var val)
 	  
@@ -1688,7 +1690,7 @@ reversed."
 		  
 	  (cond
 	   ((member var '("sw" "shiftwidth"))
-	    (setq var "vip-shift-width"))
+	    (setq var "viper-shift-width"))
 	   ((member var '("ts" "tabstop"))
 	    ;; make it take effect in curr buff and new bufs
 	    (setq var "tab-width"
@@ -1718,24 +1720,24 @@ reversed."
     
     (if (and ask-if-save
 	     (y-or-n-p (format "Do you want to save this setting in %s "
-			       vip-custom-file-name)))
+			       viper-custom-file-name)))
 	(progn
-	  (vip-save-string-in-file 
-	   actual-lisp-cmd vip-custom-file-name
+	  (viper-save-string-in-file 
+	   actual-lisp-cmd viper-custom-file-name
 	   ;; del pattern
 	   lisp-cmd-del-pattern)
 	  (if (string= var "fill-column")
 	      (if (> val2 0)
-		  (vip-save-string-in-file
+		  (viper-save-string-in-file
 		   (concat
-		    "(add-hook 'vip-insert-state-hooks 'turn-on-auto-fill) "
+		    "(add-hook 'viper-insert-state-hooks 'turn-on-auto-fill) "
 		    auto-cmd-label)
-		   vip-custom-file-name
+		   viper-custom-file-name
 		   delete-turn-on-auto-fill-pattern)
-		(vip-save-string-in-file
-		 nil vip-custom-file-name delete-turn-on-auto-fill-pattern)
-		(vip-save-string-in-file
-		 nil vip-custom-file-name
+		(viper-save-string-in-file
+		 nil viper-custom-file-name delete-turn-on-auto-fill-pattern)
+		(viper-save-string-in-file
+		 nil viper-custom-file-name
 		 ;; del pattern
 		 lisp-cmd-del-pattern)
 		))
@@ -1761,8 +1763,8 @@ reversed."
 ;; special meaning
 (defun ex-get-inline-cmd-args (regex-forw &optional chars-back replace-str)
   (save-excursion
-    (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-    (set-buffer vip-ex-work-buf)
+    (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+    (set-buffer viper-ex-work-buf)
     (goto-char (point-min))
     (re-search-forward regex-forw nil t)
     (let ((beg (point))
@@ -1778,7 +1780,7 @@ reversed."
       (if replace-str
 	  (while (re-search-forward " +" nil t)
 	    (replace-match replace-str nil t)
-	    (vip-forward-char-carefully)))
+	    (viper-forward-char-carefully)))
       (goto-char end)
       (buffer-substring beg end))))
 
@@ -1792,53 +1794,53 @@ reversed."
   (condition-case nil
       (progn
 	(pop-to-buffer (get-buffer-create "*info*"))
-	(info (if vip-xemacs-p "viper.info" "viper"))
+	(info (if viper-xemacs-p "viper.info" "viper"))
 	(message "Type `i' to search for a specific topic"))
     (error (beep 1)
-	   (with-output-to-temp-buffer " *vip-info*"
+	   (with-output-to-temp-buffer " *viper-info*"
 	     (princ (format "
 The Info file for Viper does not seem to be installed.
 
 This file is part of the standard distribution of %sEmacs.
 Please contact your system administrator. "
-			    (if vip-xemacs-p "X" "")
+			    (if viper-xemacs-p "X" "")
 			    ))))))
 
-;; Ex source command. Loads the file specified as argument or `~/.vip'
+;; Ex source command. Loads the file specified as argument or `~/.viper'
 (defun ex-source ()
-  (vip-get-ex-file)
+  (viper-get-ex-file)
   (if (string= ex-file "")
-      (load vip-custom-file-name)
+      (load viper-custom-file-name)
     (load ex-file)))
 
 ;; Ex substitute command
-;; If REPEAT use previous regexp which is ex-reg-exp or vip-s-string
+;; If REPEAT use previous regexp which is ex-reg-exp or viper-s-string
 (defun ex-substitute (&optional repeat r-flag) 
   (let ((opt-g nil)
 	(opt-c nil)
 	(matched-pos nil)
-	(case-fold-search vip-case-fold-search)
+	(case-fold-search viper-case-fold-search)
 	delim pat repl)
-    (if repeat (setq ex-token nil) (setq delim (vip-get-ex-pat)))
+    (if repeat (setq ex-token nil) (setq delim (viper-get-ex-pat)))
     (if (null ex-token)
 	(progn
-	  (setq pat (if r-flag vip-s-string ex-reg-exp))
+	  (setq pat (if r-flag viper-s-string ex-reg-exp))
 	  (or (stringp pat)
 	      (error "No previous pattern to use in substitution"))
 	  (setq repl ex-repl
 		delim (string-to-char pat)))
-      (setq pat (if (string= ex-token "") vip-s-string ex-token))
-      (setq vip-s-string pat
+      (setq pat (if (string= ex-token "") viper-s-string ex-token))
+      (setq viper-s-string pat
 	    ex-reg-exp pat)
-      (setq delim (vip-get-ex-pat))
+      (setq delim (viper-get-ex-pat))
       (if (null ex-token)
 	  (setq ex-token ""
 		ex-repl "")
 	(setq repl ex-token
 	      ex-repl ex-token)))
-    (while (vip-get-ex-opt-gc delim)
+    (while (viper-get-ex-opt-gc delim)
       (if (string= ex-token "g") (setq opt-g t) (setq opt-c t)))
-    (vip-get-ex-count)
+    (viper-get-ex-count)
     (if ex-count
 	(save-excursion
 	  (if ex-addresses (goto-char (car ex-addresses)))
@@ -1854,7 +1856,7 @@ Please contact your system administrator. "
 	  (end (car (cdr ex-addresses)))
 	  eol-mark)
       (save-excursion
-	(vip-enlarge-region beg end)
+	(viper-enlarge-region beg end)
 	(let ((limit (save-excursion
 		       (goto-char (max (point) (mark t)))
 		       (point-marker))))
@@ -1874,7 +1876,7 @@ Please contact your system administrator. "
 			      (error "Can't perform Ex substitution: No previous replacement pattern"))
 			  (replace-match repl t))))
 		  (end-of-line)
-		  (vip-forward-char-carefully))
+		  (viper-forward-char-carefully))
 	      (if (null pat)
 		  (error
 		   "Can't repeat Ex substitution: No previous regular expression"))
@@ -1886,7 +1888,7 @@ Please contact your system administrator. "
 			(error "Can't perform Ex substitution: No previous replacement pattern"))
 		    (replace-match repl t)))
 	      (end-of-line)
-	      (vip-forward-char-carefully))))))
+	      (viper-forward-char-carefully))))))
     (if matched-pos (goto-char matched-pos))
     (beginning-of-line)
     (if opt-c (message "done"))))
@@ -1895,28 +1897,28 @@ Please contact your system administrator. "
 (defun ex-tag ()
   (let (tag)
     (save-window-excursion
-      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-      (set-buffer vip-ex-work-buf)
+      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+      (set-buffer viper-ex-work-buf)
       (skip-chars-forward " \t")
       (set-mark (point))
       (skip-chars-forward "^ |\t\n")
       (setq tag (buffer-substring (mark t) (point))))
     (if (not (string= tag "")) (setq ex-tag tag))
-    (vip-change-state-to-emacs)
+    (viper-change-state-to-emacs)
     (condition-case conds
 	(progn
 	  (if (string= tag "")
 	      (find-tag ex-tag t)
 	    (find-tag-other-window ex-tag))
-	  (vip-change-state-to-vi))
+	  (viper-change-state-to-vi))
       (error
-       (vip-change-state-to-vi)
-       (vip-message-conditions conds)))))
+       (viper-change-state-to-vi)
+       (viper-message-conditions conds)))))
 
 ;; Ex write command
 (defun ex-write (q-flag)
-  (vip-default-ex-addresses t)
-  (vip-get-ex-file)
+  (viper-default-ex-addresses t)
+  (viper-get-ex-file)
   (let ((end (car ex-addresses))
 	(beg (car (cdr ex-addresses))) 
 	(orig-buf (current-buffer))
@@ -1925,10 +1927,10 @@ Please contact your system administrator. "
 	(buff-changed-p (buffer-modified-p))
 	temp-buf writing-same-file region
 	file-exists writing-whole-file)
-    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (if (> beg end) (error viper-FirstAddrExceedsSecond))
     (if ex-cmdfile
 	(progn
-	  (vip-enlarge-region beg end)
+	  (viper-enlarge-region beg end)
 	  (shell-command-on-region (point) (mark t) ex-file))
       (if (and (string= ex-file "") (not (buffer-file-name)))
 	  (setq ex-file
@@ -1987,7 +1989,7 @@ Please contact your system administrator. "
 	      (t ; writing a region
 	       (unwind-protect 
 		   (save-excursion
-		     (vip-enlarge-region beg end)
+		     (viper-enlarge-region beg end)
 		     (setq region (buffer-substring (point) (mark t)))
 		     ;; create temp buffer for the region
 		     (setq temp-buf (get-buffer-create " *ex-write*"))
@@ -2022,19 +2024,19 @@ Please contact your system administrator. "
 
 (defun ex-write-info (exists file-name beg end)
   (message "`%s'%s %d lines, %d characters"
-	   (vip-abbreviate-file-name file-name)
+	   (viper-abbreviate-file-name file-name)
 	   (if exists "" " [New file]")
 	   (count-lines beg (min (1+ end) (point-max)))
 	   (- end beg)))
 
 ;; Ex yank command
 (defun ex-yank ()
-  (vip-default-ex-addresses)
-  (vip-get-ex-buffer)
+  (viper-default-ex-addresses)
+  (viper-get-ex-buffer)
   (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
-    (if (> beg end) (error vip-FirstAddrExceedsSecond))
+    (if (> beg end) (error viper-FirstAddrExceedsSecond))
     (save-excursion
-      (vip-enlarge-region beg end)
+      (viper-enlarge-region beg end)
       (exchange-point-and-mark)
       (if (or ex-g-flag ex-g-variant)
 	  (error "Can't execute `yank' within `global'"))
@@ -2043,32 +2045,33 @@ Please contact your system administrator. "
 	    (set-mark (point))
 	    (forward-line (1- ex-count)))
 	(set-mark end))
-      (vip-enlarge-region (point) (mark t))
-      (if ex-flag (error "`yank': %s" vip-SpuriousText))
+      (viper-enlarge-region (point) (mark t))
+      (if ex-flag (error "`yank': %s" viper-SpuriousText))
       (if ex-buffer
-	  (cond ((vip-valid-register ex-buffer '(Letter))
-		 (vip-append-to-register
+	  (cond ((viper-valid-register ex-buffer '(Letter))
+		 (viper-append-to-register
 		  (downcase ex-buffer) (point) (mark t)))
-		((vip-valid-register ex-buffer)
+		((viper-valid-register ex-buffer)
 		 (copy-to-register ex-buffer (point) (mark t) nil))
-		(t (error vip-InvalidRegister ex-buffer))))
+		(t (error viper-InvalidRegister ex-buffer))))
       (copy-region-as-kill (point) (mark t)))))
 
 ;; Execute shell command
 (defun ex-command ()
   (let (command)
     (save-window-excursion
-      (setq vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name)) 
-      (set-buffer vip-ex-work-buf)
+      (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name)) 
+      (set-buffer viper-ex-work-buf)
       (skip-chars-forward " \t")
       (setq command (buffer-substring (point) (point-max)))
       (end-of-line))
     (setq command (ex-expand-filsyms command (current-buffer)))
     (if (and (> (length command) 0) (string= "!" (substring command 0 1)))
-	(if vip-ex-last-shell-com
-	    (setq command (concat vip-ex-last-shell-com (substring command 1)))
+	(if viper-ex-last-shell-com
+	    (setq command
+		  (concat viper-ex-last-shell-com (substring command 1)))
 	  (error "No previous shell command")))
-    (setq vip-ex-last-shell-com command)
+    (setq viper-ex-last-shell-com command)
     (if (null ex-addresses)
 	(shell-command command)
       (let ((end (car ex-addresses)) (beg (car (cdr ex-addresses))))
@@ -2076,7 +2079,7 @@ Please contact your system administrator. "
 	(save-excursion
 	  (goto-char beg)
 	  (set-mark end)
-	  (vip-enlarge-region (point) (mark t))
+	  (viper-enlarge-region (point) (mark t))
 	  (shell-command-on-region (point) (mark t) command t))
 	(goto-char beg)))))
 
@@ -2088,14 +2091,14 @@ Please contact your system administrator. "
 		(if (null ex-addresses) (point-max) (car ex-addresses))))))
 
 ;; Give information on the file visited by the current buffer
-(defun vip-info-on-file ()
+(defun viper-info-on-file ()
   (interactive)
-  (let ((pos1 (vip-line-pos 'start))
-	(pos2 (vip-line-pos 'end))
+  (let ((pos1 (viper-line-pos 'start))
+	(pos2 (viper-line-pos 'end))
 	lines file info)
-    (setq lines (count-lines (point-min) (vip-line-pos 'end))
+    (setq lines (count-lines (point-min) (viper-line-pos 'end))
 	  file (if (buffer-file-name)
-		   (concat (vip-abbreviate-file-name (buffer-file-name)) ":")
+		   (concat (viper-abbreviate-file-name (buffer-file-name)) ":")
 		 (concat (buffer-name) " [Not visiting any file]:"))
 	  info (format "line=%d/%d pos=%d/%d col=%d %s"
 		       (if (= pos1 pos2)
@@ -2109,27 +2112,27 @@ Please contact your system administrator. "
 	   (window-width (minibuffer-window)))
 	(message (concat file " " info))
       (save-window-excursion
-	(with-output-to-temp-buffer " *vip-info*"
+	(with-output-to-temp-buffer " *viper-info*"
 	  (princ (concat "\n"
 			 file "\n\n\t" info
 			 "\n\n\nPress any key to continue...\n\n")))
-	(vip-read-event)
-	(kill-buffer " *vip-info*")))
+	(viper-read-event)
+	(kill-buffer " *viper-info*")))
     ))
 
 ;; display all variables set through :set
 (defun ex-show-vars ()
-  (with-output-to-temp-buffer " *vip-info*"
-    (princ (if vip-auto-indent
+  (with-output-to-temp-buffer " *viper-info*"
+    (princ (if viper-auto-indent
 	       "autoindent (local)\n" "noautoindent (local)\n"))
-    (princ (if (default-value 'vip-auto-indent) 
+    (princ (if (default-value 'viper-auto-indent) 
 	       "autoindent (global) \n" "noautoindent (global) \n"))
-    (princ (if vip-case-fold-search "ignorecase\n" "noignorecase\n"))
-    (princ (if vip-re-search "magic\n" "nomagic\n"))
+    (princ (if viper-case-fold-search "ignorecase\n" "noignorecase\n"))
+    (princ (if viper-re-search "magic\n" "nomagic\n"))
     (princ (if buffer-read-only "readonly\n" "noreadonly\n"))
     (princ (if blink-matching-paren "showmatch\n" "noshowmatch\n"))
-    (princ (if vip-search-wrap-around-t "wrapscan\n" "nowrapscan\n"))
-    (princ (format "shiftwidth \t\t= %S\n" vip-shift-width))
+    (princ (if viper-search-wrap-around-t "wrapscan\n" "nowrapscan\n"))
+    (princ (format "shiftwidth \t\t= %S\n" viper-shift-width))
     (princ (format "tabstop (local) \t= %S\n" tab-width))
     (princ (format "tabstop (global) \t= %S\n" (default-value 'tab-width)))
     (princ (format "wrapmargin (local) \t= %S\n"

@@ -25,11 +25,11 @@
 
 ;; compiler pacifier
 (defvar viper-always)
-(defvar vip-current-state)
-(defvar vip-mode-string)
+(defvar viper-current-state)
+(defvar viper-mode-string)
 (defvar viper-expert-level)
-(defvar vip-ex-style-editing-in-insert)
-(defvar vip-ex-style-motion)
+(defvar viper-ex-style-editing-in-insert)
+(defvar viper-ex-style-motion)
 
 ;; loading happens only in non-interactive compilation
 ;; in order to spare non-viperized emacs from being viperized
@@ -46,43 +46,43 @@
 
 ;;; Variables
 
-(defvar vip-toggle-key "\C-z"
+(defvar viper-toggle-key "\C-z"
   "The key used to change states from emacs to Vi and back.
 In insert mode, this key also functions as Meta. 
-Must be set in .vip file or prior to loading Viper.
+Must be set in .viper file or prior to loading Viper.
 This setting cannot be changed interactively.")
 
-(defvar vip-ESC-key "\e" 
+(defvar viper-ESC-key "\e" 
   "Key used to ESC. 
-Must be set in .vip file or prior to loading Viper.
+Must be set in .viper file or prior to loading Viper.
 This setting cannot be changed interactively.")
   
 ;;; Emacs keys in other states.  
 
-(defcustom vip-want-emacs-keys-in-insert t
+(defcustom viper-want-emacs-keys-in-insert t
   "*Set to nil if you want complete Vi compatibility in insert mode.
 Complete compatibility with Vi is not recommended for power use of Viper."
   :type 'boolean
   :group 'viper)
 
-(defcustom vip-want-emacs-keys-in-vi t
+(defcustom viper-want-emacs-keys-in-vi t
   "*Set to nil if you want complete Vi compatibility in Vi mode.
 Full Vi compatibility is not recommended for power use of Viper."
   :type 'boolean
   :group 'viper)
 
-(defcustom vip-no-multiple-ESC  t
+(defcustom viper-no-multiple-ESC  t
   "*If true, multiple ESC in Vi mode will cause bell to ring.
 This is set to t on a windowing terminal and to 'twice on a dumb
 terminal (unless the user level is 1, 2, or 5). On a dumb terminal, this
 enables cursor keys and is generally more convenient, as terminals usually
 don't have a convenient Meta key.
-Setting vip-no-multiple-ESC to nil will allow as many multiple ESC,
+Setting viper-no-multiple-ESC to nil will allow as many multiple ESC,
 as is allowed by the major mode in effect."
   :type 'boolean
   :group 'viper) 
 
-(defcustom vip-want-ctl-h-help nil
+(defcustom viper-want-ctl-h-help nil
   "*If t then C-h is bound to help-command in insert mode, if nil then it is
 bound to delete-backward-char."
   :type 'boolean
@@ -93,76 +93,76 @@ bound to delete-backward-char."
 
 ;; Keymaps for vital things like \e and C-z.
 ;; Not for users
-(defvar vip-vi-intercept-map (make-sparse-keymap))
-(defvar vip-insert-intercept-map (make-sparse-keymap))
-(defvar vip-emacs-intercept-map (make-sparse-keymap))
+(defvar viper-vi-intercept-map (make-sparse-keymap))
+(defvar viper-insert-intercept-map (make-sparse-keymap))
+(defvar viper-emacs-intercept-map (make-sparse-keymap))
 
 ;; keymap used to zap all keymaps other than function-key-map,
 ;; device-function-key-map, etc.
-(defvar vip-overriding-map (make-sparse-keymap))
+(defvar viper-overriding-map (make-sparse-keymap))
   
-(vip-deflocalvar vip-vi-local-user-map (make-sparse-keymap)
+(viper-deflocalvar viper-vi-local-user-map (make-sparse-keymap)
   "Keymap for user-defined local bindings.
 Useful for changing bindings such as ZZ in certain major modes.
 For instance, in letter-mode, one may want to bind ZZ to
 mh-send-letter. In a newsreader such as gnus, tin, or rn, ZZ could be bound
 to save-buffers-kill-emacs then post article, etc.")
-(put 'vip-vi-local-user-map 'permanent-local t)	
+(put 'viper-vi-local-user-map 'permanent-local t)	
 
-(defvar vip-vi-global-user-map (make-sparse-keymap)
+(defvar viper-vi-global-user-map (make-sparse-keymap)
   "Keymap for user-defined global bindings.
 These bindings are seen in all Viper buffers.")
 
-(defvar vip-vi-basic-map (make-keymap)
+(defvar viper-vi-basic-map (make-keymap)
   "This is the main keymap in effect in Viper's Vi state.
 This map is global, shared by all buffers.")
 
-(defvar  vip-vi-kbd-map (make-sparse-keymap)
+(defvar  viper-vi-kbd-map (make-sparse-keymap)
   "This keymap keeps keyboard macros defined via the :map command.")
 
-(defvar vip-vi-diehard-map (make-sparse-keymap)
+(defvar viper-vi-diehard-map (make-sparse-keymap)
   "This keymap is in use when the user asks Viper to simulate Vi very closely.
 This happens when viper-expert-level is 1 or 2. See viper-set-expert-level.")
   
 
-(vip-deflocalvar vip-insert-local-user-map (make-sparse-keymap)
+(viper-deflocalvar viper-insert-local-user-map (make-sparse-keymap)
   "Auxiliary map for per-buffer user-defined keybindings in Insert state.")
-(put 'vip-insert-local-user-map 'permanent-local t)	
+(put 'viper-insert-local-user-map 'permanent-local t)	
 
-(defvar vip-insert-global-user-map (make-sparse-keymap)
+(defvar viper-insert-global-user-map (make-sparse-keymap)
   "Auxiliary map for global user-defined bindings in Insert state.")
 
-(defvar vip-insert-basic-map (make-sparse-keymap)
+(defvar viper-insert-basic-map (make-sparse-keymap)
   "The basic insert-mode keymap.")
 
-(defvar vip-insert-diehard-map (make-keymap)
+(defvar viper-insert-diehard-map (make-keymap)
   "Map used when user wants vi-style keys in insert mode.
 Most of the Emacs keys are suppressed. This map overshadows
-vip-insert-basic-map. Not recommended, except for novice users.")
+viper-insert-basic-map. Not recommended, except for novice users.")
 
-(defvar  vip-insert-kbd-map  (make-sparse-keymap)
+(defvar  viper-insert-kbd-map  (make-sparse-keymap)
   "This keymap keeps VI-style kbd macros for insert mode.")
 
-(defvar vip-replace-map (make-sparse-keymap)
+(defvar viper-replace-map (make-sparse-keymap)
   "Map used in Viper's replace state.")
   
-(defvar vip-emacs-global-user-map (make-sparse-keymap)
+(defvar viper-emacs-global-user-map (make-sparse-keymap)
   "Auxiliary map for global user-defined bindings in Emacs state.")
 
-(defvar  vip-emacs-kbd-map  (make-sparse-keymap)
+(defvar  viper-emacs-kbd-map  (make-sparse-keymap)
   "This keymap keeps Vi-style kbd macros for emacs mode.")
   
-(vip-deflocalvar vip-emacs-local-user-map  (make-sparse-keymap)
+(viper-deflocalvar viper-emacs-local-user-map  (make-sparse-keymap)
   "Auxiliary map for local user-defined bindings in Emacs state.")
-(put 'vip-emacs-local-user-map 'permanent-local t)  
+(put 'viper-emacs-local-user-map 'permanent-local t)  
 
 ;; This keymap should stay empty
-(defvar vip-empty-keymap (make-sparse-keymap))
+(defvar viper-empty-keymap (make-sparse-keymap))
 
 ;; This was the main Vi mode in old versions of VIP which may have been
 ;; extensively used by VIP users. We declare it as a global var
-;; and, after .vip is loaded, we add this keymap to vip-vi-basic-map.
-(defvar vip-mode-map (make-sparse-keymap))
+;; and, after .viper is loaded, we add this keymap to viper-vi-basic-map.
+(defvar viper-mode-map (make-sparse-keymap))
 
 
 ;;; Variables used by minor modes
@@ -171,296 +171,296 @@ vip-insert-basic-map. Not recommended, except for novice users.")
 ;; ((major-mode . keymap) (major-mode . keymap) ...)
 ;; Viper uses these keymaps to make user-requested adjustments
 ;; to its Vi state in various major modes.")
-(defvar vip-vi-state-modifier-alist nil)
+(defvar viper-vi-state-modifier-alist nil)
 
 ;; Association list of the form 
 ;; ((major-mode . keymap) (major-mode . keymap) ...)
 ;; Viper uses these keymaps to make user-requested adjustments
 ;; to its Insert state in various major modes.")
-(defvar vip-insert-state-modifier-alist nil)
+(defvar viper-insert-state-modifier-alist nil)
 
 ;; Association list of the form 
 ;; ((major-mode . keymap) (major-mode . keymap) ...)
 ;; Viper uses these keymaps to make user-requested adjustments
 ;; to its Emacs state in various major modes.
-(defvar vip-emacs-state-modifier-alist nil)
+(defvar viper-emacs-state-modifier-alist nil)
 
-;; Tells vip-add-local-keys to create a new vip-vi-local-user-map for new
+;; Tells viper-add-local-keys to create a new viper-vi-local-user-map for new
 ;; buffers. Not a user option.
-(vip-deflocalvar vip-need-new-vi-local-map t "")
-(put 'vip-need-new-vi-local-map  'permanent-local t)
+(viper-deflocalvar viper-need-new-vi-local-map t "")
+(put 'viper-need-new-vi-local-map  'permanent-local t)
 
-;; Tells vip-add-local-keys to create a new vip-insert-local-user-map for new
-;; buffers. Not a user option.
-(vip-deflocalvar vip-need-new-insert-local-map t "")
-(put 'vip-need-new-insert-local-map  'permanent-local t)
+;; Tells viper-add-local-keys to create a new viper-insert-local-user-map for
+;; new buffers. Not a user option.
+(viper-deflocalvar viper-need-new-insert-local-map t "")
+(put 'viper-need-new-insert-local-map  'permanent-local t)
 
-;; Tells vip-add-local-keys to create a new vip-emacs-local-user-map for new
-;; buffers. Not a user option.
-(vip-deflocalvar vip-need-new-emacs-local-map t "")
-(put 'vip-need-new-emacs-local-map  'permanent-local t)
+;; Tells viper-add-local-keys to create a new viper-emacs-local-user-map for
+;; new buffers. Not a user option.
+(viper-deflocalvar viper-need-new-emacs-local-map t "")
+(put 'viper-need-new-emacs-local-map  'permanent-local t)
 
 
 
 ;; Insert mode keymap
 
 ;; for novice users, pretend you are the real vi.
-(define-key vip-insert-diehard-map "\t"   'vip-insert-tab)
-(define-key vip-insert-diehard-map "\C-a" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-b" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-c" 'vip-change-state-to-vi)
-(define-key vip-insert-diehard-map "\C-e" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-f" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-g" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-i" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-k" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-l" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-n" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-o" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-p" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-q" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-r" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-s" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-u" 'vip-erase-line)
-(define-key vip-insert-diehard-map "\C-x" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-y" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-z" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-]" 'self-insert-command)
-(define-key vip-insert-diehard-map "\C-_" 'self-insert-command)
+(define-key viper-insert-diehard-map "\t"   'viper-insert-tab)
+(define-key viper-insert-diehard-map "\C-a" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-b" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-c" 'viper-change-state-to-vi)
+(define-key viper-insert-diehard-map "\C-e" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-f" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-g" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-i" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-k" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-l" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-n" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-o" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-p" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-q" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-r" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-s" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-u" 'viper-erase-line)
+(define-key viper-insert-diehard-map "\C-x" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-y" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-z" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-]" 'self-insert-command)
+(define-key viper-insert-diehard-map "\C-_" 'self-insert-command)
 
 (let ((i ?\ ))
   (while (<= i ?~)
-    (define-key vip-insert-diehard-map (make-string 1 i) 'self-insert-command)
+    (define-key viper-insert-diehard-map (make-string 1 i) 'self-insert-command)
     (setq i (1+ i))))
 
 ;; Insert mode map when user wants emacs style
-(define-key vip-insert-basic-map "\C-d" 'vip-backward-indent)
-(define-key vip-insert-basic-map "\C-w" 'vip-delete-backward-word)
-(define-key vip-insert-basic-map "\C-t" 'vip-forward-indent)
-(define-key vip-insert-basic-map 
-  (if vip-xemacs-p [(shift tab)] [S-tab]) 'vip-insert-tab)
-(define-key vip-insert-basic-map "\C-v" 'quoted-insert)
-(define-key vip-insert-basic-map "\C-?" 'vip-del-backward-char-in-insert)
-(define-key vip-insert-basic-map "\C-\\" 'vip-alternate-Meta-key)
-(define-key vip-insert-basic-map vip-toggle-key 'vip-escape-to-vi)
-(define-key vip-insert-basic-map "\C-c\M-p"
-  'vip-insert-prev-from-insertion-ring)
-(define-key vip-insert-basic-map "\C-c\M-n"
-  'vip-insert-next-from-insertion-ring)
+(define-key viper-insert-basic-map "\C-d" 'viper-backward-indent)
+(define-key viper-insert-basic-map "\C-w" 'viper-delete-backward-word)
+(define-key viper-insert-basic-map "\C-t" 'viper-forward-indent)
+(define-key viper-insert-basic-map 
+  (if viper-xemacs-p [(shift tab)] [S-tab]) 'viper-insert-tab)
+(define-key viper-insert-basic-map "\C-v" 'quoted-insert)
+(define-key viper-insert-basic-map "\C-?" 'viper-del-backward-char-in-insert)
+(define-key viper-insert-basic-map "\C-\\" 'viper-alternate-Meta-key)
+(define-key viper-insert-basic-map viper-toggle-key 'viper-escape-to-vi)
+(define-key viper-insert-basic-map "\C-c\M-p"
+  'viper-insert-prev-from-insertion-ring)
+(define-key viper-insert-basic-map "\C-c\M-n"
+  'viper-insert-next-from-insertion-ring)
 
 
 ;; Replace keymap
-(define-key vip-replace-map "\C-t" 'vip-forward-indent)
-(define-key vip-replace-map "\C-j" 'vip-replace-state-carriage-return)
-(define-key vip-replace-map "\C-m" 'vip-replace-state-carriage-return)
-(define-key vip-replace-map "\C-?" 'vip-del-backward-char-in-replace)
+(define-key viper-replace-map "\C-t" 'viper-forward-indent)
+(define-key viper-replace-map "\C-j" 'viper-replace-state-carriage-return)
+(define-key viper-replace-map "\C-m" 'viper-replace-state-carriage-return)
+(define-key viper-replace-map "\C-?" 'viper-del-backward-char-in-replace)
 
 
 
 ;; Vi keymaps
 
-(define-key vip-vi-basic-map "\C-^" 
-  (function (lambda () (interactive) (vip-ex "e#"))))
-(define-key vip-vi-basic-map "\C-b" 'vip-scroll-screen-back)
-(define-key vip-vi-basic-map "\C-d" 'vip-scroll-up)
-(define-key vip-vi-basic-map "\C-e" 'vip-scroll-up-one)
-(define-key vip-vi-basic-map "\C-f" 'vip-scroll-screen)
-(define-key vip-vi-basic-map "\C-m" 'vip-next-line-at-bol)
-(define-key vip-vi-basic-map "\C-u" 'vip-scroll-down)
-(define-key vip-vi-basic-map "\C-y" 'vip-scroll-down-one)
-(define-key vip-vi-basic-map "\C-s" 'vip-isearch-forward)
-(define-key vip-vi-basic-map "\C-r" 'vip-isearch-backward)
-(define-key vip-vi-basic-map "\C-c/" 'vip-toggle-search-style)
-(define-key vip-vi-basic-map "\C-cg" 'vip-info-on-file)
+(define-key viper-vi-basic-map "\C-^" 
+  (function (lambda () (interactive) (viper-ex "e#"))))
+(define-key viper-vi-basic-map "\C-b" 'viper-scroll-screen-back)
+(define-key viper-vi-basic-map "\C-d" 'viper-scroll-up)
+(define-key viper-vi-basic-map "\C-e" 'viper-scroll-up-one)
+(define-key viper-vi-basic-map "\C-f" 'viper-scroll-screen)
+(define-key viper-vi-basic-map "\C-m" 'viper-next-line-at-bol)
+(define-key viper-vi-basic-map "\C-u" 'viper-scroll-down)
+(define-key viper-vi-basic-map "\C-y" 'viper-scroll-down-one)
+(define-key viper-vi-basic-map "\C-s" 'viper-isearch-forward)
+(define-key viper-vi-basic-map "\C-r" 'viper-isearch-backward)
+(define-key viper-vi-basic-map "\C-c/" 'viper-toggle-search-style)
+(define-key viper-vi-basic-map "\C-cg" 'viper-info-on-file)
 
-(define-key vip-vi-basic-map "\C-c\M-p" 'vip-prev-destructive-command)
-(define-key vip-vi-basic-map "\C-c\M-n" 'vip-next-destructive-command)
+(define-key viper-vi-basic-map "\C-c\M-p" 'viper-prev-destructive-command)
+(define-key viper-vi-basic-map "\C-c\M-n" 'viper-next-destructive-command)
 
 
-(define-key vip-vi-basic-map " " 'vip-forward-char)
-(define-key vip-vi-basic-map "!" 'vip-command-argument)
-(define-key vip-vi-basic-map "\"" 'vip-command-argument)
-(define-key vip-vi-basic-map "#" 'vip-command-argument)
-(define-key vip-vi-basic-map "$" 'vip-goto-eol)
-(define-key vip-vi-basic-map "%" 'vip-paren-match)
-(define-key vip-vi-basic-map "&"
-  (function (lambda () (interactive) (vip-ex "&"))))
-(define-key vip-vi-basic-map "'" 'vip-goto-mark-and-skip-white)
-(define-key vip-vi-basic-map "(" 'vip-backward-sentence)
-(define-key vip-vi-basic-map ")" 'vip-forward-sentence)
-(define-key vip-vi-basic-map "*" 'call-last-kbd-macro)
-(define-key vip-vi-basic-map "+" 'vip-next-line-at-bol)
-(define-key vip-vi-basic-map "," 'vip-repeat-find-opposite)
-(define-key vip-vi-basic-map "-" 'vip-previous-line-at-bol)
-(define-key vip-vi-basic-map "." 'vip-repeat)
-(define-key vip-vi-basic-map "/" 'vip-search-forward)
+(define-key viper-vi-basic-map " " 'viper-forward-char)
+(define-key viper-vi-basic-map "!" 'viper-command-argument)
+(define-key viper-vi-basic-map "\"" 'viper-command-argument)
+(define-key viper-vi-basic-map "#" 'viper-command-argument)
+(define-key viper-vi-basic-map "$" 'viper-goto-eol)
+(define-key viper-vi-basic-map "%" 'viper-paren-match)
+(define-key viper-vi-basic-map "&"
+  (function (lambda () (interactive) (viper-ex "&"))))
+(define-key viper-vi-basic-map "'" 'viper-goto-mark-and-skip-white)
+(define-key viper-vi-basic-map "(" 'viper-backward-sentence)
+(define-key viper-vi-basic-map ")" 'viper-forward-sentence)
+(define-key viper-vi-basic-map "*" 'call-last-kbd-macro)
+(define-key viper-vi-basic-map "+" 'viper-next-line-at-bol)
+(define-key viper-vi-basic-map "," 'viper-repeat-find-opposite)
+(define-key viper-vi-basic-map "-" 'viper-previous-line-at-bol)
+(define-key viper-vi-basic-map "." 'viper-repeat)
+(define-key viper-vi-basic-map "/" 'viper-search-forward)
 
-(define-key vip-vi-basic-map "0" 'vip-beginning-of-line)
-(define-key vip-vi-basic-map "1" 'vip-digit-argument)
-(define-key vip-vi-basic-map "2" 'vip-digit-argument)
-(define-key vip-vi-basic-map "3" 'vip-digit-argument)
-(define-key vip-vi-basic-map "4" 'vip-digit-argument)
-(define-key vip-vi-basic-map "5" 'vip-digit-argument)
-(define-key vip-vi-basic-map "6" 'vip-digit-argument)
-(define-key vip-vi-basic-map "7" 'vip-digit-argument)
-(define-key vip-vi-basic-map "8" 'vip-digit-argument)
-(define-key vip-vi-basic-map "9" 'vip-digit-argument)
+(define-key viper-vi-basic-map "0" 'viper-beginning-of-line)
+(define-key viper-vi-basic-map "1" 'viper-digit-argument)
+(define-key viper-vi-basic-map "2" 'viper-digit-argument)
+(define-key viper-vi-basic-map "3" 'viper-digit-argument)
+(define-key viper-vi-basic-map "4" 'viper-digit-argument)
+(define-key viper-vi-basic-map "5" 'viper-digit-argument)
+(define-key viper-vi-basic-map "6" 'viper-digit-argument)
+(define-key viper-vi-basic-map "7" 'viper-digit-argument)
+(define-key viper-vi-basic-map "8" 'viper-digit-argument)
+(define-key viper-vi-basic-map "9" 'viper-digit-argument)
 
-(define-key vip-vi-basic-map ":" 'vip-ex)
-(define-key vip-vi-basic-map ";" 'vip-repeat-find)
-(define-key vip-vi-basic-map "<" 'vip-command-argument)
-(define-key vip-vi-basic-map "=" 'vip-command-argument)
-(define-key vip-vi-basic-map ">" 'vip-command-argument)
-(define-key vip-vi-basic-map "?" 'vip-search-backward)
-(define-key vip-vi-basic-map "@" 'vip-register-macro)
+(define-key viper-vi-basic-map ":" 'viper-ex)
+(define-key viper-vi-basic-map ";" 'viper-repeat-find)
+(define-key viper-vi-basic-map "<" 'viper-command-argument)
+(define-key viper-vi-basic-map "=" 'viper-command-argument)
+(define-key viper-vi-basic-map ">" 'viper-command-argument)
+(define-key viper-vi-basic-map "?" 'viper-search-backward)
+(define-key viper-vi-basic-map "@" 'viper-register-macro)
 
-(define-key vip-vi-basic-map "A" 'vip-Append)
-(define-key vip-vi-basic-map "B" 'vip-backward-Word)
-(define-key vip-vi-basic-map "C" 'vip-change-to-eol)
-(define-key vip-vi-basic-map "D" 'vip-kill-line)
-(define-key vip-vi-basic-map "E" 'vip-end-of-Word)
-(define-key vip-vi-basic-map "F" 'vip-find-char-backward)
-(define-key vip-vi-basic-map "G" 'vip-goto-line)
-(define-key vip-vi-basic-map "H" 'vip-window-top)
-(define-key vip-vi-basic-map "I" 'vip-Insert)
-(define-key vip-vi-basic-map "J" 'vip-join-lines)
-(define-key vip-vi-basic-map "K" 'vip-nil)
-(define-key vip-vi-basic-map "L" 'vip-window-bottom)
-(define-key vip-vi-basic-map "M" 'vip-window-middle)
-(define-key vip-vi-basic-map "N" 'vip-search-Next)
-(define-key vip-vi-basic-map "O" 'vip-Open-line)
-(define-key vip-vi-basic-map "P" 'vip-Put-back)
-(define-key vip-vi-basic-map "Q" 'vip-query-replace)
-(define-key vip-vi-basic-map "R" 'vip-overwrite)
-(define-key vip-vi-basic-map "S" 'vip-substitute-line)
-(define-key vip-vi-basic-map "T" 'vip-goto-char-backward)
-(define-key vip-vi-basic-map "U" 'vip-undo)
-(define-key vip-vi-basic-map "V" 'find-file-other-window)
-(define-key vip-vi-basic-map "W" 'vip-forward-Word)
-(define-key vip-vi-basic-map "X" 'vip-delete-backward-char)
-(define-key vip-vi-basic-map "Y" 'vip-yank-line)
-(define-key vip-vi-basic-map "ZZ" 'vip-save-kill-buffer)
+(define-key viper-vi-basic-map "A" 'viper-Append)
+(define-key viper-vi-basic-map "B" 'viper-backward-Word)
+(define-key viper-vi-basic-map "C" 'viper-change-to-eol)
+(define-key viper-vi-basic-map "D" 'viper-kill-line)
+(define-key viper-vi-basic-map "E" 'viper-end-of-Word)
+(define-key viper-vi-basic-map "F" 'viper-find-char-backward)
+(define-key viper-vi-basic-map "G" 'viper-goto-line)
+(define-key viper-vi-basic-map "H" 'viper-window-top)
+(define-key viper-vi-basic-map "I" 'viper-Insert)
+(define-key viper-vi-basic-map "J" 'viper-join-lines)
+(define-key viper-vi-basic-map "K" 'viper-nil)
+(define-key viper-vi-basic-map "L" 'viper-window-bottom)
+(define-key viper-vi-basic-map "M" 'viper-window-middle)
+(define-key viper-vi-basic-map "N" 'viper-search-Next)
+(define-key viper-vi-basic-map "O" 'viper-Open-line)
+(define-key viper-vi-basic-map "P" 'viper-Put-back)
+(define-key viper-vi-basic-map "Q" 'viper-query-replace)
+(define-key viper-vi-basic-map "R" 'viper-overwrite)
+(define-key viper-vi-basic-map "S" 'viper-substitute-line)
+(define-key viper-vi-basic-map "T" 'viper-goto-char-backward)
+(define-key viper-vi-basic-map "U" 'viper-undo)
+(define-key viper-vi-basic-map "V" 'find-file-other-window)
+(define-key viper-vi-basic-map "W" 'viper-forward-Word)
+(define-key viper-vi-basic-map "X" 'viper-delete-backward-char)
+(define-key viper-vi-basic-map "Y" 'viper-yank-line)
+(define-key viper-vi-basic-map "ZZ" 'viper-save-kill-buffer)
 
-(define-key vip-vi-basic-map "\\" 'vip-escape-to-emacs)
-(define-key vip-vi-basic-map "[" 'vip-brac-function)
-(define-key vip-vi-basic-map "]" 'vip-ket-function)
-(define-key vip-vi-basic-map "\C-\\" 'vip-alternate-Meta-key)
-(define-key vip-vi-basic-map "^" 'vip-bol-and-skip-white)
-(define-key vip-vi-basic-map "`" 'vip-goto-mark)
+(define-key viper-vi-basic-map "\\" 'viper-escape-to-emacs)
+(define-key viper-vi-basic-map "[" 'viper-brac-function)
+(define-key viper-vi-basic-map "]" 'viper-ket-function)
+(define-key viper-vi-basic-map "\C-\\" 'viper-alternate-Meta-key)
+(define-key viper-vi-basic-map "^" 'viper-bol-and-skip-white)
+(define-key viper-vi-basic-map "`" 'viper-goto-mark)
 
-(define-key vip-vi-basic-map "a" 'vip-append)
-(define-key vip-vi-basic-map "b" 'vip-backward-word)
-(define-key vip-vi-basic-map "c" 'vip-command-argument)
-(define-key vip-vi-basic-map "d" 'vip-command-argument)
-(define-key vip-vi-basic-map "e" 'vip-end-of-word)
-(define-key vip-vi-basic-map "f" 'vip-find-char-forward)
-(define-key vip-vi-basic-map "g" 'vip-nil)
-(define-key vip-vi-basic-map "h" 'vip-backward-char)
-(define-key vip-vi-basic-map "i" 'vip-insert)
-(define-key vip-vi-basic-map "j" 'vip-next-line)
-(define-key vip-vi-basic-map "k" 'vip-previous-line)
-(define-key vip-vi-basic-map "l" 'vip-forward-char)
-(define-key vip-vi-basic-map "m" 'vip-mark-point)
-(define-key vip-vi-basic-map "n" 'vip-search-next)
-(define-key vip-vi-basic-map "o" 'vip-open-line)
-(define-key vip-vi-basic-map "p" 'vip-put-back)
-(define-key vip-vi-basic-map "q" 'vip-nil)
-(define-key vip-vi-basic-map "r" 'vip-replace-char)
-(define-key vip-vi-basic-map "s" 'vip-substitute)
-(define-key vip-vi-basic-map "t" 'vip-goto-char-forward)
-(define-key vip-vi-basic-map "u" 'vip-undo)
-(define-key vip-vi-basic-map "v" 'find-file)
-(define-key vip-vi-basic-map "\C-v" 'find-file-other-frame)
-(define-key vip-vi-basic-map "w" 'vip-forward-word)
-(define-key vip-vi-basic-map "x" 'vip-delete-char)
-(define-key vip-vi-basic-map "y" 'vip-command-argument)
-(define-key vip-vi-basic-map "zH" 'vip-line-to-top)
-(define-key vip-vi-basic-map "zM" 'vip-line-to-middle)
-(define-key vip-vi-basic-map "zL" 'vip-line-to-bottom)
-(define-key vip-vi-basic-map "z\C-m" 'vip-line-to-top)
-(define-key vip-vi-basic-map "z." 'vip-line-to-middle)
-(define-key vip-vi-basic-map "z-" 'vip-line-to-bottom)
+(define-key viper-vi-basic-map "a" 'viper-append)
+(define-key viper-vi-basic-map "b" 'viper-backward-word)
+(define-key viper-vi-basic-map "c" 'viper-command-argument)
+(define-key viper-vi-basic-map "d" 'viper-command-argument)
+(define-key viper-vi-basic-map "e" 'viper-end-of-word)
+(define-key viper-vi-basic-map "f" 'viper-find-char-forward)
+(define-key viper-vi-basic-map "g" 'viper-nil)
+(define-key viper-vi-basic-map "h" 'viper-backward-char)
+(define-key viper-vi-basic-map "i" 'viper-insert)
+(define-key viper-vi-basic-map "j" 'viper-next-line)
+(define-key viper-vi-basic-map "k" 'viper-previous-line)
+(define-key viper-vi-basic-map "l" 'viper-forward-char)
+(define-key viper-vi-basic-map "m" 'viper-mark-point)
+(define-key viper-vi-basic-map "n" 'viper-search-next)
+(define-key viper-vi-basic-map "o" 'viper-open-line)
+(define-key viper-vi-basic-map "p" 'viper-put-back)
+(define-key viper-vi-basic-map "q" 'viper-nil)
+(define-key viper-vi-basic-map "r" 'viper-replace-char)
+(define-key viper-vi-basic-map "s" 'viper-substitute)
+(define-key viper-vi-basic-map "t" 'viper-goto-char-forward)
+(define-key viper-vi-basic-map "u" 'viper-undo)
+(define-key viper-vi-basic-map "v" 'find-file)
+(define-key viper-vi-basic-map "\C-v" 'find-file-other-frame)
+(define-key viper-vi-basic-map "w" 'viper-forward-word)
+(define-key viper-vi-basic-map "x" 'viper-delete-char)
+(define-key viper-vi-basic-map "y" 'viper-command-argument)
+(define-key viper-vi-basic-map "zH" 'viper-line-to-top)
+(define-key viper-vi-basic-map "zM" 'viper-line-to-middle)
+(define-key viper-vi-basic-map "zL" 'viper-line-to-bottom)
+(define-key viper-vi-basic-map "z\C-m" 'viper-line-to-top)
+(define-key viper-vi-basic-map "z." 'viper-line-to-middle)
+(define-key viper-vi-basic-map "z-" 'viper-line-to-bottom)
 
-(define-key vip-vi-basic-map "{" 'vip-backward-paragraph)
-(define-key vip-vi-basic-map "|" 'vip-goto-col)
-(define-key vip-vi-basic-map "}" 'vip-forward-paragraph)
-(define-key vip-vi-basic-map "~" 'vip-toggle-case)
-(define-key vip-vi-basic-map "\C-?" 'vip-backward-char)
-(define-key vip-vi-basic-map "_" 'vip-nil)
+(define-key viper-vi-basic-map "{" 'viper-backward-paragraph)
+(define-key viper-vi-basic-map "|" 'viper-goto-col)
+(define-key viper-vi-basic-map "}" 'viper-forward-paragraph)
+(define-key viper-vi-basic-map "~" 'viper-toggle-case)
+(define-key viper-vi-basic-map "\C-?" 'viper-backward-char)
+(define-key viper-vi-basic-map "_" 'viper-nil)
   
 ;;; Escape from Emacs to Vi for one command
-(global-set-key "\C-c\\" 'vip-escape-to-vi)  ; everywhere
+(global-set-key "\C-c\\" 'viper-escape-to-vi)  ; everywhere
 
-;;; This is vip-vi-diehard-map. Used when vip-vi-diehard-minor-mode is on.
+;;; This is viper-vi-diehard-map. Used when viper-vi-diehard-minor-mode is on.
 
-(define-key vip-vi-diehard-map "\C-a" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-c" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-g" 'vip-info-on-file)
-(define-key vip-vi-diehard-map "\C-i" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-k" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-l" 'redraw-display)
-(define-key vip-vi-diehard-map "\C-n" 'vip-next-line)
-(define-key vip-vi-diehard-map "\C-o" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-p" 'vip-previous-line)
-(define-key vip-vi-diehard-map "\C-q" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-r" 'redraw-display)
-(define-key vip-vi-diehard-map "\C-s" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-t" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-v" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-w" 'vip-nil)
-(define-key vip-vi-diehard-map "@" 'vip-nil)
-(define-key vip-vi-diehard-map "_" 'vip-nil)
-(define-key vip-vi-diehard-map "*" 'vip-nil)
-(define-key vip-vi-diehard-map "#" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-_" 'vip-nil)
-(define-key vip-vi-diehard-map "\C-]" 'vip-nil) ; This is actually tags.
+(define-key viper-vi-diehard-map "\C-a" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-c" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-g" 'viper-info-on-file)
+(define-key viper-vi-diehard-map "\C-i" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-k" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-l" 'redraw-display)
+(define-key viper-vi-diehard-map "\C-n" 'viper-next-line)
+(define-key viper-vi-diehard-map "\C-o" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-p" 'viper-previous-line)
+(define-key viper-vi-diehard-map "\C-q" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-r" 'redraw-display)
+(define-key viper-vi-diehard-map "\C-s" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-t" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-v" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-w" 'viper-nil)
+(define-key viper-vi-diehard-map "@" 'viper-nil)
+(define-key viper-vi-diehard-map "_" 'viper-nil)
+(define-key viper-vi-diehard-map "*" 'viper-nil)
+(define-key viper-vi-diehard-map "#" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-_" 'viper-nil)
+(define-key viper-vi-diehard-map "\C-]" 'viper-nil) ; This is actually tags.
 
 
 ;;; Minibuffer keymap
   
 
-(defvar vip-minibuffer-map (make-sparse-keymap)
+(defvar viper-minibuffer-map (make-sparse-keymap)
   "Keymap used to modify keys when Minibuffer is in Insert state.")
   
-(define-key vip-minibuffer-map "\C-m" 'vip-exit-minibuffer)
-(define-key vip-minibuffer-map "\C-j" 'vip-exit-minibuffer)
+(define-key viper-minibuffer-map "\C-m" 'viper-exit-minibuffer)
+(define-key viper-minibuffer-map "\C-j" 'viper-exit-minibuffer)
 
 ;; Map used to read Ex-style commands.
-(defvar vip-ex-cmd-map (make-sparse-keymap))
-(define-key vip-ex-cmd-map " "  'ex-cmd-read-exit)
-(define-key vip-ex-cmd-map "\t" 'ex-cmd-complete)
+(defvar viper-ex-cmd-map (make-sparse-keymap))
+(define-key viper-ex-cmd-map " "  'ex-cmd-read-exit)
+(define-key viper-ex-cmd-map "\t" 'ex-cmd-complete)
 
 ;; Keymap for reading file names in Ex-style commands.
 (defvar ex-read-filename-map (make-sparse-keymap))
-(define-key ex-read-filename-map " " 'vip-complete-filename-or-exit)
-(define-key ex-read-filename-map "!" 'vip-handle-!)
+(define-key ex-read-filename-map " " 'viper-complete-filename-or-exit)
+(define-key ex-read-filename-map "!" 'viper-handle-!)
 
 ;; Some other maps
-(defvar vip-slash-and-colon-map (make-sparse-keymap)
+(defvar viper-slash-and-colon-map (make-sparse-keymap)
   "This map redefines `/' and `:' to behave as in Vi.
 Useful in some modes, such as Gnus, MH, etc.")
-(define-key vip-slash-and-colon-map ":" 'vip-ex)
-(define-key vip-slash-and-colon-map "/" 'vip-search-forward)
+(define-key viper-slash-and-colon-map ":" 'viper-ex)
+(define-key viper-slash-and-colon-map "/" 'viper-search-forward)
 
-(defvar vip-comint-mode-modifier-map (make-sparse-keymap)
+(defvar viper-comint-mode-modifier-map (make-sparse-keymap)
   "This map modifies comint mode.")
-(define-key vip-comint-mode-modifier-map "\C-m" 'comint-send-input)
-(define-key vip-comint-mode-modifier-map "\C-d" 'comint-delchar-or-maybe-eof)
+(define-key viper-comint-mode-modifier-map "\C-m" 'comint-send-input)
+(define-key viper-comint-mode-modifier-map "\C-d" 'comint-delchar-or-maybe-eof)
 
-(defvar vip-dired-modifier-map (make-sparse-keymap)
+(defvar viper-dired-modifier-map (make-sparse-keymap)
   "This map modifies Dired behavior.")
-(define-key vip-dired-modifier-map ":" 'vip-ex)
-(define-key vip-dired-modifier-map "/" 'vip-search-forward)
+(define-key viper-dired-modifier-map ":" 'viper-ex)
+(define-key viper-dired-modifier-map "/" 'viper-search-forward)
 
-(defvar vip-help-modifier-map (make-sparse-keymap)
+(defvar viper-help-modifier-map (make-sparse-keymap)
   "This map modifies Help mode behavior.")
-(define-key vip-help-modifier-map "q" (if vip-xemacs-p 'help-mode-quit))
+(define-key viper-help-modifier-map "q" (if viper-xemacs-p 'help-mode-quit))
 
 
 
 ;;; Code
 
-(defun vip-add-local-keys (state alist)
+(defun viper-add-local-keys (state alist)
   "Override some vi-state or insert-state bindings in the current buffer.
 The effect is seen in the current buffer only.
 Useful for customizing  mailer buffers, gnus, etc.
@@ -469,64 +469,64 @@ ALIST is of the form ((key . func) (key . func) ...)
 Normally, this would be called from a hook to a major mode or
 on a per buffer basis.
 Usage:
-      (vip-add-local-keys state '((key-str . func) (key-str . func)...))   "
+      (viper-add-local-keys state '((key-str . func) (key-str . func)...))   "
       
   (let (map)
     (cond ((eq state 'vi-state)
-	   (if vip-need-new-vi-local-map
-	       (setq vip-vi-local-user-map (make-sparse-keymap)))
-	   (setq vip-need-new-vi-local-map nil
-		 map vip-vi-local-user-map))
+	   (if viper-need-new-vi-local-map
+	       (setq viper-vi-local-user-map (make-sparse-keymap)))
+	   (setq viper-need-new-vi-local-map nil
+		 map viper-vi-local-user-map))
 	  ((eq state 'insert-state)
-	   (if vip-need-new-insert-local-map
-	       (setq vip-insert-local-user-map (make-sparse-keymap)))
-	   (setq vip-need-new-insert-local-map nil
-		 map vip-insert-local-user-map))
+	   (if viper-need-new-insert-local-map
+	       (setq viper-insert-local-user-map (make-sparse-keymap)))
+	   (setq viper-need-new-insert-local-map nil
+		 map viper-insert-local-user-map))
 	  ((eq state 'emacs-state)
-	   (if vip-need-new-emacs-local-map
-	       (setq vip-emacs-local-user-map (make-sparse-keymap)))
-	   (setq vip-need-new-emacs-local-map nil
-		 map vip-emacs-local-user-map))
+	   (if viper-need-new-emacs-local-map
+	       (setq viper-emacs-local-user-map (make-sparse-keymap)))
+	   (setq viper-need-new-emacs-local-map nil
+		 map viper-emacs-local-user-map))
 	  (t 
 	   (error
-	    "Invalid state in vip-add-local-keys: %S. Valid states: vi-state, insert-state or emacs-state" state)))
+	    "Invalid state in viper-add-local-keys: %S. Valid states: vi-state, insert-state or emacs-state" state)))
 
-    (vip-modify-keymap map alist)
-    (vip-normalize-minor-mode-map-alist)
-    (vip-set-mode-vars-for vip-current-state)))
+    (viper-modify-keymap map alist)
+    (viper-normalize-minor-mode-map-alist)
+    (viper-set-mode-vars-for viper-current-state)))
 
-(defun vip-zap-local-keys ()
-  "Unconditionally reset Viper vip-*-local-user-map's.
+(defun viper-zap-local-keys ()
+  "Unconditionally reset Viper viper-*-local-user-map's.
 Rarely useful, but if u made a mistake by switching to a mode that adds
 undesirable local keys, e.g., comint-mode, then this function can restore
 sanity."
   (interactive)
-  (setq vip-vi-local-user-map (make-sparse-keymap)
-	vip-need-new-vi-local-map nil
-	vip-insert-local-user-map (make-sparse-keymap)
-	vip-need-new-insert-local-map nil
-	vip-emacs-local-user-map (make-sparse-keymap)
-	vip-need-new-emacs-local-map nil)
-  (vip-normalize-minor-mode-map-alist))
+  (setq viper-vi-local-user-map (make-sparse-keymap)
+	viper-need-new-vi-local-map nil
+	viper-insert-local-user-map (make-sparse-keymap)
+	viper-need-new-insert-local-map nil
+	viper-emacs-local-user-map (make-sparse-keymap)
+	viper-need-new-emacs-local-map nil)
+  (viper-normalize-minor-mode-map-alist))
     
 
-(defun vip-modify-major-mode (mode state keymap)
+(defun viper-modify-major-mode (mode state keymap)
   "Modify key bindings in a major-mode in a Viper state using a keymap.
 
 If the default for a major mode is emacs-state, then modifications to this
 major mode may not take effect until the buffer switches state to Vi,
-Insert or Emacs. If this happens, add vip-change-state-to-emacs to this
+Insert or Emacs. If this happens, add viper-change-state-to-emacs to this
 major mode's hook. If no such hook exists, you may have to put an advice on
-the function that invokes the major mode. See vip-set-hooks for hints.
+the function that invokes the major mode. See viper-set-hooks for hints.
 
 The above needs not to be done for major modes that come up in Vi or Insert
 state by default.
 
-Arguments: (major-mode vip-state keymap)"
+Arguments: (major-mode viper-state keymap)"
   (let ((alist
-	 (cond ((eq state 'vi-state) 'vip-vi-state-modifier-alist)
-	       ((eq state 'insert-state) 'vip-insert-state-modifier-alist)
-	       ((eq state 'emacs-state) 'vip-emacs-state-modifier-alist)))
+	 (cond ((eq state 'vi-state) 'viper-vi-state-modifier-alist)
+	       ((eq state 'insert-state) 'viper-insert-state-modifier-alist)
+	       ((eq state 'emacs-state) 'viper-emacs-state-modifier-alist)))
 	elt)
     (if (setq elt (assoc mode (eval alist)))
 	(set alist (delq elt (eval alist))))
@@ -536,74 +536,74 @@ Arguments: (major-mode vip-state keymap)"
     ;; normalize in the actual buffer where changes to the keymap are
     ;; to take place. However, it doesn't hurt, and it helps whenever this
     ;; function is actually called from within the right buffer.
-    (vip-normalize-minor-mode-map-alist)
+    (viper-normalize-minor-mode-map-alist)
     
-    (vip-set-mode-vars-for vip-current-state)))
+    (viper-set-mode-vars-for viper-current-state)))
 
     
 ;; Displays variables that control Viper's keymaps
-(defun vip-debug-keymaps ()
+(defun viper-debug-keymaps ()
   (interactive)
-  (with-output-to-temp-buffer " *vip-debug*"
+  (with-output-to-temp-buffer " *viper-debug*"
     (princ (format "Buffer name:  %s\n\n" (buffer-name)))
     (princ "Variables:  \n")
     (princ (format "major-mode:  %S\n" major-mode))
-    (princ (format "vip-current-state:  %S\n" vip-current-state))
-    (princ (format "vip-mode-string:  %S\n\n" vip-mode-string))
-    (princ (format "vip-vi-intercept-minor-mode:  %S\n"
-		   vip-vi-intercept-minor-mode))
-    (princ (format "vip-insert-intercept-minor-mode:  %S\n"
-		   vip-insert-intercept-minor-mode))
-    (princ (format "vip-emacs-intercept-minor-mode:  %S\n"
-		   vip-emacs-intercept-minor-mode))
-    (princ (format "vip-vi-minibuffer-minor-mode:  %S\n"
-		   vip-vi-minibuffer-minor-mode))
-    (princ (format "vip-insert-minibuffer-minor-mode:  %S\n\n"
-		   vip-insert-minibuffer-minor-mode))
-    (princ (format "vip-vi-local-user-minor-mode:  %S\n"
-		   vip-vi-local-user-minor-mode))
-    (princ (format "vip-vi-global-user-minor-mode:  %S\n"
-		   vip-vi-global-user-minor-mode))
-    (princ (format "vip-vi-kbd-minor-mode:  %S\n" vip-vi-kbd-minor-mode))
-    (princ (format "vip-vi-state-modifier-minor-mode:  %S\n"
-		   vip-vi-state-modifier-minor-mode))
-    (princ (format "vip-vi-diehard-minor-mode:  %S\n"
-		   vip-vi-diehard-minor-mode))
-    (princ (format "vip-vi-basic-minor-mode:  %S\n" vip-vi-basic-minor-mode))
-    (princ (format "vip-replace-minor-mode:  %S\n" vip-replace-minor-mode))
-    (princ (format "vip-insert-local-user-minor-mode:  %S\n"
-		   vip-insert-local-user-minor-mode))
-    (princ (format "vip-insert-global-user-minor-mode:  %S\n"
-		   vip-insert-global-user-minor-mode))
-    (princ (format "vip-insert-kbd-minor-mode:  %S\n"
-		   vip-insert-kbd-minor-mode)) 
-    (princ (format "vip-insert-state-modifier-minor-mode:  %S\n"
-		   vip-insert-state-modifier-minor-mode))
-    (princ (format "vip-insert-diehard-minor-mode:  %S\n"
-		   vip-insert-diehard-minor-mode))
-    (princ (format "vip-insert-basic-minor-mode:  %S\n"
-		   vip-insert-basic-minor-mode))
-    (princ (format "vip-emacs-local-user-minor-mode:  %S\n"
-		   vip-emacs-local-user-minor-mode))
-    (princ (format "vip-emacs-kbd-minor-mode:  %S\n"
-		   vip-emacs-kbd-minor-mode))
-    (princ (format "vip-emacs-global-user-minor-mode:  %S\n"
-		   vip-emacs-global-user-minor-mode))
-    (princ (format "vip-emacs-state-modifier-minor-mode:  %S\n"
-		   vip-emacs-state-modifier-minor-mode))
+    (princ (format "viper-current-state:  %S\n" viper-current-state))
+    (princ (format "viper-mode-string:  %S\n\n" viper-mode-string))
+    (princ (format "viper-vi-intercept-minor-mode:  %S\n"
+		   viper-vi-intercept-minor-mode))
+    (princ (format "viper-insert-intercept-minor-mode:  %S\n"
+		   viper-insert-intercept-minor-mode))
+    (princ (format "viper-emacs-intercept-minor-mode:  %S\n"
+		   viper-emacs-intercept-minor-mode))
+    (princ (format "viper-vi-minibuffer-minor-mode:  %S\n"
+		   viper-vi-minibuffer-minor-mode))
+    (princ (format "viper-insert-minibuffer-minor-mode:  %S\n\n"
+		   viper-insert-minibuffer-minor-mode))
+    (princ (format "viper-vi-local-user-minor-mode:  %S\n"
+		   viper-vi-local-user-minor-mode))
+    (princ (format "viper-vi-global-user-minor-mode:  %S\n"
+		   viper-vi-global-user-minor-mode))
+    (princ (format "viper-vi-kbd-minor-mode:  %S\n" viper-vi-kbd-minor-mode))
+    (princ (format "viper-vi-state-modifier-minor-mode:  %S\n"
+		   viper-vi-state-modifier-minor-mode))
+    (princ (format "viper-vi-diehard-minor-mode:  %S\n"
+		   viper-vi-diehard-minor-mode))
+    (princ (format "viper-vi-basic-minor-mode:  %S\n" viper-vi-basic-minor-mode))
+    (princ (format "viper-replace-minor-mode:  %S\n" viper-replace-minor-mode))
+    (princ (format "viper-insert-local-user-minor-mode:  %S\n"
+		   viper-insert-local-user-minor-mode))
+    (princ (format "viper-insert-global-user-minor-mode:  %S\n"
+		   viper-insert-global-user-minor-mode))
+    (princ (format "viper-insert-kbd-minor-mode:  %S\n"
+		   viper-insert-kbd-minor-mode)) 
+    (princ (format "viper-insert-state-modifier-minor-mode:  %S\n"
+		   viper-insert-state-modifier-minor-mode))
+    (princ (format "viper-insert-diehard-minor-mode:  %S\n"
+		   viper-insert-diehard-minor-mode))
+    (princ (format "viper-insert-basic-minor-mode:  %S\n"
+		   viper-insert-basic-minor-mode))
+    (princ (format "viper-emacs-local-user-minor-mode:  %S\n"
+		   viper-emacs-local-user-minor-mode))
+    (princ (format "viper-emacs-kbd-minor-mode:  %S\n"
+		   viper-emacs-kbd-minor-mode))
+    (princ (format "viper-emacs-global-user-minor-mode:  %S\n"
+		   viper-emacs-global-user-minor-mode))
+    (princ (format "viper-emacs-state-modifier-minor-mode:  %S\n"
+		   viper-emacs-state-modifier-minor-mode))
     
     (princ (format "\nviper-expert-level  %S\n" viper-expert-level))
-    (princ (format "vip-no-multiple-ESC  %S\n" vip-no-multiple-ESC))
+    (princ (format "viper-no-multiple-ESC  %S\n" viper-no-multiple-ESC))
     (princ (format "viper-always  %S\n" viper-always))
-    (princ (format "vip-ex-style-motion  %S\n"
-		   vip-ex-style-motion))
-    (princ (format "vip-ex-style-editing-in-insert  %S\n"
-		   vip-ex-style-editing-in-insert))
-    (princ (format "vip-want-emacs-keys-in-vi  %S\n"
-		   vip-want-emacs-keys-in-vi)) 
-    (princ (format "vip-want-emacs-keys-in-insert  %S\n"
-		   vip-want-emacs-keys-in-insert)) 
-    (princ (format "vip-want-ctl-h-help  %S\n" vip-want-ctl-h-help))
+    (princ (format "viper-ex-style-motion  %S\n"
+		   viper-ex-style-motion))
+    (princ (format "viper-ex-style-editing-in-insert  %S\n"
+		   viper-ex-style-editing-in-insert))
+    (princ (format "viper-want-emacs-keys-in-vi  %S\n"
+		   viper-want-emacs-keys-in-vi)) 
+    (princ (format "viper-want-emacs-keys-in-insert  %S\n"
+		   viper-want-emacs-keys-in-insert)) 
+    (princ (format "viper-want-ctl-h-help  %S\n" viper-want-ctl-h-help))
     
     (princ "\n\n\n")
     (princ (format "Default value for minor-mode-map-alist:  \n%S\n\n"
@@ -615,9 +615,9 @@ Arguments: (major-mode vip-state keymap)"
 
 ;;; Keymap utils
 	     
-(defun vip-add-keymap (mapsrc mapdst) 
+(defun viper-add-keymap (mapsrc mapdst) 
   "Add contents of mapsrc to mapdst. It is assumed that mapsrc is sparse."
-  (if vip-xemacs-p
+  (if viper-xemacs-p
       (map-keymap (function (lambda (key binding)
 			      (define-key mapdst key binding)))
 		  mapsrc)
@@ -627,7 +627,7 @@ Arguments: (major-mode vip-state keymap)"
 		 ))
      (cdr mapsrc))))
   
-(defun vip-modify-keymap (map alist)
+(defun viper-modify-keymap (map alist)
    "Modifies MAP with bindings specified in the ALIST. The alist has the
 form ((key . function) (key . function) ... )."
    (mapcar (function (lambda (p)
@@ -636,7 +636,7 @@ form ((key . function) (key . function) ... )."
 
 
 ;;; Local Variables:
-;;; eval: (put 'vip-deflocalvar 'lisp-indent-hook 'defun)
+;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
 

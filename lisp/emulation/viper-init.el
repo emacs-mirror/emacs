@@ -27,7 +27,6 @@
 (defvar mark-even-if-inactive)
 (defvar viper-version)
 (defvar viper-expert-level)
-(defvar vip-expert-level)
 ;; end pacifier
 
 
@@ -35,33 +34,32 @@
 (defun viper-version ()
   (interactive)
   (message "Viper version is %s" viper-version)) 
-(defalias 'vip-version 'viper-version)
 
 ;; Is it XEmacs?
-(defconst vip-xemacs-p (string-match "\\(Lucid\\|XEmacs\\)" emacs-version))
+(defconst viper-xemacs-p (string-match "XEmacs" emacs-version))
 ;; Is it Emacs?
-(defconst vip-emacs-p (not vip-xemacs-p))
+(defconst viper-emacs-p (not viper-xemacs-p))
 ;; Tell whether we are running as a window application or on a TTY
-(defsubst vip-device-type ()
-  (if vip-emacs-p
+(defsubst viper-device-type ()
+  (if viper-emacs-p
       window-system
     (device-type (selected-device))))
 ;; in XEmacs: device-type is tty on tty and stream in batch.
-(defun vip-window-display-p ()
-  (and (vip-device-type) (not (memq (vip-device-type) '(tty stream pc)))))
+(defun viper-window-display-p ()
+  (and (viper-device-type) (not (memq (viper-device-type) '(tty stream pc)))))
 
-(defcustom vip-ms-style-os-p (memq system-type '(ms-dos windows-nt windows-95))
+(defcustom viper-ms-style-os-p (memq system-type '(ms-dos windows-nt windows-95))
   "Tells if Emacs is running under an MS-style OS: ms-dos, windows-nt, W95."
   :type 'boolean
   :tag "Is it Microsoft-made OS?"
   :group 'viper)
-(defcustom vip-vms-os-p (memq system-type '(vax-vms axp-vms))
+(defcustom viper-vms-os-p (memq system-type '(vax-vms axp-vms))
   "Tells if Emacs is running under VMS."
   :type 'boolean
   :tag "Is it VMS?"
   :group 'viper)
 
-(defcustom vip-force-faces nil
+(defcustom viper-force-faces nil
   "If t, Viper will think that it is running on a display that supports faces.
 This is provided as a temporary relief for users of graphics-capable terminals
 that Viper doesn't know about.
@@ -69,189 +67,183 @@ In all likelihood, you don't need to bother with this setting."
   :type 'boolean
   :group 'viper)
 
-(defun vip-has-face-support-p ()
-  (cond ((vip-window-display-p))
-	(vip-force-faces)
-	(vip-emacs-p (memq (vip-device-type) '(pc)))
-	(vip-xemacs-p (memq (vip-device-type) '(tty pc)))))
-
-(defun vip-convert-standard-file-name (fname)
-  (if vip-emacs-p
-      (convert-standard-filename fname)
-    ;; hopefully, XEmacs adds this functionality
-    fname))
+(defun viper-has-face-support-p ()
+  (cond ((viper-window-display-p))
+	(viper-force-faces)
+	(viper-emacs-p (memq (viper-device-type) '(pc)))
+	(viper-xemacs-p (memq (viper-device-type) '(tty pc)))))
 
 
 ;;; Macros
 
-(defmacro vip-deflocalvar (var default-value &optional documentation)
+(defmacro viper-deflocalvar (var default-value &optional documentation)
   (` (progn
        (defvar (, var) (, default-value)
 	       (, (format "%s\n\(buffer local\)" documentation)))
        (make-variable-buffer-local '(, var))
      )))
 
-(defmacro vip-loop (count body)
-  "(vip-loop COUNT BODY) Execute BODY COUNT times."
+(defmacro viper-loop (count body)
+  "(viper-loop COUNT BODY) Execute BODY COUNT times."
   (list 'let (list (list 'count count))
 	(list 'while '(> count 0)
 	      body
 	      '(setq count (1- count))
 	      )))
 
-(defmacro vip-buffer-live-p (buf)
+(defmacro viper-buffer-live-p (buf)
   (` (and (, buf) (get-buffer (, buf)) (buffer-name (get-buffer (, buf))))))
   
 ;; return buffer-specific macro definition, given a full macro definition
-(defmacro vip-kbd-buf-alist (macro-elt)
+(defmacro viper-kbd-buf-alist (macro-elt)
   (` (nth 1 (, macro-elt))))
 ;; get a pair: (curr-buffer . macro-definition)
-(defmacro vip-kbd-buf-pair (macro-elt)
-  (` (assoc (buffer-name) (vip-kbd-buf-alist (, macro-elt)))))
+(defmacro viper-kbd-buf-pair (macro-elt)
+  (` (assoc (buffer-name) (viper-kbd-buf-alist (, macro-elt)))))
 ;; get macro definition for current buffer
-(defmacro vip-kbd-buf-definition (macro-elt)
-  (` (cdr (vip-kbd-buf-pair (, macro-elt)))))
+(defmacro viper-kbd-buf-definition (macro-elt)
+  (` (cdr (viper-kbd-buf-pair (, macro-elt)))))
   
 ;; return mode-specific macro definitions, given a full macro definition
-(defmacro vip-kbd-mode-alist (macro-elt)
+(defmacro viper-kbd-mode-alist (macro-elt)
   (` (nth 2 (, macro-elt))))
 ;; get a pair: (major-mode . macro-definition)
-(defmacro vip-kbd-mode-pair (macro-elt)
-  (` (assoc major-mode (vip-kbd-mode-alist (, macro-elt)))))
+(defmacro viper-kbd-mode-pair (macro-elt)
+  (` (assoc major-mode (viper-kbd-mode-alist (, macro-elt)))))
 ;; get macro definition for the current major mode
-(defmacro vip-kbd-mode-definition (macro-elt)
-  (` (cdr (vip-kbd-mode-pair (, macro-elt)))))
+(defmacro viper-kbd-mode-definition (macro-elt)
+  (` (cdr (viper-kbd-mode-pair (, macro-elt)))))
   
 ;; return global macro definition, given a full macro definition
-(defmacro vip-kbd-global-pair (macro-elt)
+(defmacro viper-kbd-global-pair (macro-elt)
   (` (nth 3 (, macro-elt))))
 ;; get global macro definition from an elt of macro-alist
-(defmacro vip-kbd-global-definition (macro-elt)
-  (` (cdr (vip-kbd-global-pair (, macro-elt)))))
+(defmacro viper-kbd-global-definition (macro-elt)
+  (` (cdr (viper-kbd-global-pair (, macro-elt)))))
   
 ;; last elt of a sequence
-(defsubst vip-seq-last-elt (seq)
+(defsubst viper-seq-last-elt (seq)
   (elt seq (1- (length seq))))
   
 
-(defvar vip-minibuffer-overlay-priority 300)
-(defvar vip-replace-overlay-priority 400)
-(defvar vip-search-overlay-priority 500)
+(defvar viper-minibuffer-overlay-priority 300)
+(defvar viper-replace-overlay-priority 400)
+(defvar viper-search-overlay-priority 500)
   
 
 ;;; Viper minor modes
 
 ;; Mode for vital things like \e, C-z.
-(vip-deflocalvar vip-vi-intercept-minor-mode nil)
+(viper-deflocalvar viper-vi-intercept-minor-mode nil)
 
-(vip-deflocalvar vip-vi-basic-minor-mode nil
+(viper-deflocalvar viper-vi-basic-minor-mode nil
   "Viper's minor mode for Vi bindings.")
   
-(vip-deflocalvar vip-vi-local-user-minor-mode nil
+(viper-deflocalvar viper-vi-local-user-minor-mode nil
   "Auxiliary minor mode for user-defined local bindings in Vi state.")
 
-(vip-deflocalvar vip-vi-global-user-minor-mode nil
+(viper-deflocalvar viper-vi-global-user-minor-mode nil
   "Auxiliary minor mode for user-defined global bindings in Vi state.")
 
-(vip-deflocalvar vip-vi-state-modifier-minor-mode nil
+(viper-deflocalvar viper-vi-state-modifier-minor-mode nil
   "Minor mode used to make major-mode-specific modification to Vi state.")
 
-(vip-deflocalvar vip-vi-diehard-minor-mode nil
+(viper-deflocalvar viper-vi-diehard-minor-mode nil
   "This minor mode is in effect when the user wants Viper to be Vi.")
 
-(vip-deflocalvar vip-vi-kbd-minor-mode nil
+(viper-deflocalvar viper-vi-kbd-minor-mode nil
   "Minor mode for Ex command macros in Vi state.
 The corresponding keymap stores key bindings of Vi macros defined with
 the Ex command :map.")
 
 ;; Mode for vital things like \e, C-z.
-(vip-deflocalvar vip-insert-intercept-minor-mode nil)
+(viper-deflocalvar viper-insert-intercept-minor-mode nil)
 
-(vip-deflocalvar vip-insert-basic-minor-mode nil
+(viper-deflocalvar viper-insert-basic-minor-mode nil
   "Viper's minor mode for bindings in Insert mode.")
 
-(vip-deflocalvar vip-insert-local-user-minor-mode nil
+(viper-deflocalvar viper-insert-local-user-minor-mode nil
   "Auxiliary minor mode for buffer-local user-defined bindings in Insert state.
 This is a way to overshadow normal Insert mode bindings locally to certain
 designated buffers.")
 
-(vip-deflocalvar vip-insert-global-user-minor-mode nil
+(viper-deflocalvar viper-insert-global-user-minor-mode nil
   "Auxiliary minor mode for global user-defined bindings in Insert state.")
 
-(vip-deflocalvar vip-insert-state-modifier-minor-mode nil
+(viper-deflocalvar viper-insert-state-modifier-minor-mode nil
   "Minor mode used to make major-mode-specific modification to Insert state.")
 
-(vip-deflocalvar vip-insert-diehard-minor-mode nil
+(viper-deflocalvar viper-insert-diehard-minor-mode nil
   "Minor mode that simulates Vi very closely.
 Not recommened, except for the novice user.")
 
-(vip-deflocalvar vip-insert-kbd-minor-mode nil
+(viper-deflocalvar viper-insert-kbd-minor-mode nil
 "Minor mode for Ex command macros Insert state.
 The corresponding keymap stores key bindings of Vi macros defined with
 the Ex command :map!.")
 
-(vip-deflocalvar vip-replace-minor-mode nil
+(viper-deflocalvar viper-replace-minor-mode nil
   "Minor mode in effect in replace state (cw, C, and the like commands).")
 
 ;; Mode for vital things like \C-z and \C-x)
 ;; This is t, by default. So, any new buffer will have C-z defined as
 ;; switch to Vi, unless we switched states in this buffer
-(vip-deflocalvar vip-emacs-intercept-minor-mode t)
+(viper-deflocalvar viper-emacs-intercept-minor-mode t)
   
-(vip-deflocalvar vip-emacs-local-user-minor-mode t
+(viper-deflocalvar viper-emacs-local-user-minor-mode t
   "Minor mode for local user bindings effective in Emacs state.
 Users can use it to override Emacs bindings when Viper is in its Emacs
 state.")  
   
-(vip-deflocalvar vip-emacs-global-user-minor-mode t
+(viper-deflocalvar viper-emacs-global-user-minor-mode t
   "Minor mode for global user bindings in effect in Emacs state.
 Users can use it to override Emacs bindings when Viper is in its Emacs
 state.")  
 
-(vip-deflocalvar vip-emacs-kbd-minor-mode t
+(viper-deflocalvar viper-emacs-kbd-minor-mode t
   "Minor mode for Vi style macros in Emacs state.
 The corresponding keymap stores key bindings of Vi macros defined with
-`vip-record-kbd-macro' command. There is no Ex-level command to do this
+`viper-record-kbd-macro' command. There is no Ex-level command to do this
 interactively.")
 
-(vip-deflocalvar vip-emacs-state-modifier-minor-mode t
+(viper-deflocalvar viper-emacs-state-modifier-minor-mode t
   "Minor mode used to make major-mode-specific modification to Emacs state.
 For instance, a Vi purist may want to bind `dd' in Dired mode to a function
 that deletes a file.")
 
-(vip-deflocalvar vip-vi-minibuffer-minor-mode nil
+(viper-deflocalvar viper-vi-minibuffer-minor-mode nil
    "Minor mode that forces Vi-style when the Minibuffer is in Vi state.")
 
-(vip-deflocalvar vip-insert-minibuffer-minor-mode nil
+(viper-deflocalvar viper-insert-minibuffer-minor-mode nil
    "Minor mode that forces Vi-style when the Minibuffer is in Insert state.")
   
 
 
 ;; Some common error messages
 
-(defconst vip-SpuriousText "Spurious text after command"  "")
-(defconst vip-BadExCommand "Not an editor command"   "")
-(defconst vip-InvalidCommandArgument "Invalid command argument"   "")
-(defconst vip-NoPrevSearch "No previous search string"   "")
-(defconst vip-EmptyRegister "`%c': Nothing in this register"   "")
-(defconst vip-InvalidRegister "`%c': Invalid register"   "")
-(defconst vip-EmptyTextmarker "`%c': Text marker doesn't point anywhere"   "")
-(defconst vip-InvalidTextmarker "`%c': Invalid text marker"   "")
-(defconst vip-InvalidViCommand "Invalid command"   "")
-(defconst vip-BadAddress "Ill-formed address"   "")
-(defconst vip-FirstAddrExceedsSecond "First address exceeds second"   "")
-(defconst vip-NoFileSpecified "No file specified"   "")
+(defconst viper-SpuriousText "Spurious text after command"  "")
+(defconst viper-BadExCommand "Not an editor command"   "")
+(defconst viper-InvalidCommandArgument "Invalid command argument"   "")
+(defconst viper-NoPrevSearch "No previous search string"   "")
+(defconst viper-EmptyRegister "`%c': Nothing in this register"   "")
+(defconst viper-InvalidRegister "`%c': Invalid register"   "")
+(defconst viper-EmptyTextmarker "`%c': Text marker doesn't point anywhere"   "")
+(defconst viper-InvalidTextmarker "`%c': Invalid text marker"   "")
+(defconst viper-InvalidViCommand "Invalid command"   "")
+(defconst viper-BadAddress "Ill-formed address"   "")
+(defconst viper-FirstAddrExceedsSecond "First address exceeds second"   "")
+(defconst viper-NoFileSpecified "No file specified"   "")
 
 ;; Is t until viper-mode executes for the very first time. 
 ;; Prevents recursive descend into startup messages.
-(defvar vip-first-time t)
+(defvar viper-first-time t)
 
-(defvar viper-expert-level (if (boundp 'vip-expert-level) vip-expert-level 0)
+(defvar viper-expert-level (if (boundp 'viper-expert-level) viper-expert-level 0)
   "User's expert level.
-The minor mode vip-vi-diehard-minor-mode is in effect when
-viper-expert-level is 1 or 2 or when vip-want-emacs-keys-in-vi is t.
-The minor mode vip-insert-diehard-minor-mode is in effect when
-viper-expert-level is 1 or 2 or if vip-want-emacs-keys-in-insert is t.
+The minor mode viper-vi-diehard-minor-mode is in effect when
+viper-expert-level is 1 or 2 or when viper-want-emacs-keys-in-vi is t.
+The minor mode viper-insert-diehard-minor-mode is in effect when
+viper-expert-level is 1 or 2 or if viper-want-emacs-keys-in-insert is t.
 Use `M-x viper-set-expert-level' to change this.")
 
 ;; Max expert level supported by Viper. This is NOT a user option.
@@ -261,8 +253,8 @@ Use `M-x viper-set-expert-level' to change this.")
 
 ;;; ISO characters
   
-(vip-deflocalvar vip-automatic-iso-accents nil "")
-(defcustom vip-automatic-iso-accents nil
+(viper-deflocalvar viper-automatic-iso-accents nil "")
+(defcustom viper-automatic-iso-accents nil
   "*If non-nil, ISO accents will be turned on in insert/replace emacs states and turned off in vi-state. 
 For some users, this behavior may be too primitive. In this case, use
 insert/emacs/vi state hooks."
@@ -273,15 +265,15 @@ insert/emacs/vi state hooks."
 ;; VI-style Undo
 
 ;; Used to 'undo' complex commands, such as replace and insert commands.
-(vip-deflocalvar vip-undo-needs-adjustment nil)
-(put 'vip-undo-needs-adjustment 'permanent-local t)
+(viper-deflocalvar viper-undo-needs-adjustment nil)
+(put 'viper-undo-needs-adjustment 'permanent-local t)
 
 ;; A mark that Viper puts on buffer-undo-list.  Marks the beginning of a
 ;; complex command that must be undone atomically. If inserted, it is
-;; erased by vip-change-state-to-vi and vip-repeat.
-(defconst vip-buffer-undo-list-mark 'viper)
+;; erased by viper-change-state-to-vi and viper-repeat.
+(defconst viper-buffer-undo-list-mark 'viper)
 
-(defcustom vip-keep-point-on-undo nil
+(defcustom viper-keep-point-on-undo nil
   "*Non-nil means not to move point while undoing commands.
 This style is different from Emacs and Vi. Try it to see if
 it better fits your working style."
@@ -291,20 +283,26 @@ it better fits your working style."
 
 ;; Replace mode and changing text
 
-;; Viper's own after/before change functions, which get vip-add-hook'ed to
+;; Viper's own after/before change functions, which get viper-add-hook'ed to
 ;; Emacs's
-(vip-deflocalvar vip-after-change-functions nil "")
-(vip-deflocalvar vip-before-change-functions nil "")
-(vip-deflocalvar vip-post-command-hooks nil "")
-(vip-deflocalvar vip-pre-command-hooks nil "")
+(viper-deflocalvar viper-after-change-functions nil "")
+(viper-deflocalvar viper-before-change-functions nil "")
+(viper-deflocalvar viper-post-command-hooks nil "")
+(viper-deflocalvar viper-pre-command-hooks nil "")
 
 ;; Can be used to pass global states around for short period of time
-(vip-deflocalvar vip-intermediate-command nil "")
+(viper-deflocalvar viper-intermediate-command nil "")
+
+;; This is used to pass the right Vi command key sequence to
+;; viper-set-destructive-command whenever (this-command-keys) doesn't give the
+;; right result. For instance, in commands like c/bla<RET>, (this-command-keys)
+;; will return ^M, which invoked exit-minibuffer, while we need "c/"
+(defconst viper-this-command-keys nil)
 
 ;; Indicates that the current destructive command has started in replace mode.
-(vip-deflocalvar vip-began-as-replace nil "")
+(viper-deflocalvar viper-began-as-replace nil "")
 
-(defcustom vip-allow-multiline-replace-regions t
+(defcustom viper-allow-multiline-replace-regions t
   "If non-nil, Viper will allow multi-line replace regions.
 This is an extension to standard Vi.
 If nil, commands that attempt to replace text spanning multiple lines first
@@ -312,114 +310,114 @@ delete the text being replaced, as in standard Vi."
   :type 'boolean
   :group 'viper)
 
-(defcustom vip-replace-overlay-cursor-color "Red"
+(defcustom viper-replace-overlay-cursor-color "Red"
   "*Cursor color when Viper is in Replace state."
   :type 'string
   :group 'viper)
-(defcustom vip-insert-state-cursor-color "Green"
+(defcustom viper-insert-state-cursor-color "Green"
   "Cursor color when Viper is in insert state."
   :type 'string
   :group 'viper)
 
 ;; place to save cursor colow when switching to insert mode
-(vip-deflocalvar vip-saved-cursor-color nil "")
+(viper-deflocalvar viper-saved-cursor-color nil "")
   
-(vip-deflocalvar vip-replace-overlay nil "")
-(put 'vip-replace-overlay 'permanent-local t)
+(viper-deflocalvar viper-replace-overlay nil "")
+(put 'viper-replace-overlay 'permanent-local t)
 
-(defcustom vip-replace-overlay-pixmap "gray3"
+(defcustom viper-replace-overlay-pixmap "gray3"
   "Pixmap to use for search face on non-color displays."
   :type 'string
   :group 'viper)
-(defcustom vip-search-face-pixmap "gray3"
+(defcustom viper-search-face-pixmap "gray3"
   "Pixmap to use for search face on non-color displays."
   :type 'string
   :group 'viper)
 
 
-(defcustom vip-replace-region-end-delimiter "$"
+(defcustom viper-replace-region-end-delimiter "$"
   "A string marking the end of replacement regions.
-It is used only with TTYs or if `vip-use-replace-region-delimiters'
+It is used only with TTYs or if `viper-use-replace-region-delimiters'
 is non-nil."
   :type 'string
   :group 'viper)
-(defcustom vip-replace-region-start-delimiter ""
+(defcustom viper-replace-region-start-delimiter ""
   "A string marking the beginning of replacement regions.
-It is used only with TTYs or if `vip-use-replace-region-delimiters'
+It is used only with TTYs or if `viper-use-replace-region-delimiters'
 is non-nil."
   :type 'string
   :group 'viper)
-(defcustom vip-use-replace-region-delimiters (not (vip-has-face-support-p))
-  "*If non-nil, Viper will always use `vip-replace-region-end-delimiter' and
-`vip-replace-region-start-delimiter' to delimit replacement regions, even on
+(defcustom viper-use-replace-region-delimiters (not (viper-has-face-support-p))
+  "*If non-nil, Viper will always use `viper-replace-region-end-delimiter' and
+`viper-replace-region-start-delimiter' to delimit replacement regions, even on
 color displays. By default, the delimiters are used only on TTYs."
   :type 'boolean
   :group 'viper)
   
 ;; XEmacs requires glyphs
-(if vip-xemacs-p
+(if viper-xemacs-p
     (progn
-      (or (glyphp vip-replace-region-end-delimiter)
-	  (setq vip-replace-region-end-delimiter
-		(make-glyph vip-replace-region-end-delimiter)))
-      (or (glyphp vip-replace-region-start-delimiter)
-	  (setq vip-replace-region-start-delimiter
-		(make-glyph vip-replace-region-start-delimiter)))
+      (or (glyphp viper-replace-region-end-delimiter)
+	  (setq viper-replace-region-end-delimiter
+		(make-glyph viper-replace-region-end-delimiter)))
+      (or (glyphp viper-replace-region-start-delimiter)
+	  (setq viper-replace-region-start-delimiter
+		(make-glyph viper-replace-region-start-delimiter)))
       ))
       
   
 ;; These are local marker that must be initialized to nil and moved with
-;; `vip-move-marker-locally'
+;; `viper-move-marker-locally'
 ;;
 ;; Remember the last position inside the replace region.
-(vip-deflocalvar vip-last-posn-in-replace-region nil)
+(viper-deflocalvar viper-last-posn-in-replace-region nil)
 ;; Remember the last position while inserting
-(vip-deflocalvar vip-last-posn-while-in-insert-state nil)
-(put 'vip-last-posn-in-replace-region 'permanent-local t)
-(put 'vip-last-posn-while-in-insert-state 'permanent-local t)
+(viper-deflocalvar viper-last-posn-while-in-insert-state nil)
+(put 'viper-last-posn-in-replace-region 'permanent-local t)
+(put 'viper-last-posn-while-in-insert-state 'permanent-local t)
 
-(vip-deflocalvar vip-sitting-in-replace nil "")
-(put 'vip-sitting-in-replace 'permanent-local t)
+(viper-deflocalvar viper-sitting-in-replace nil "")
+(put 'viper-sitting-in-replace 'permanent-local t)
   
 ;; Remember the number of characters that have to be deleted in replace
 ;; mode to compensate for the inserted characters.
-(vip-deflocalvar vip-replace-chars-to-delete 0 "")
-(vip-deflocalvar vip-replace-chars-deleted 0 "")
+(viper-deflocalvar viper-replace-chars-to-delete 0 "")
+(viper-deflocalvar viper-replace-chars-deleted 0 "")
 
 ;; Insertion ring and command ring
-(defcustom vip-insertion-ring-size 14
+(defcustom viper-insertion-ring-size 14
   "The size of history of inserted text.
 This is a list where Viper keeps the history of previously inserted pieces of
 text."
   :type 'integer
   :group 'viper)
 ;; The insertion ring.
-(defvar vip-insertion-ring nil)
+(defvar viper-insertion-ring nil)
 ;; This is temp insertion ring. Used to do rotation for display purposes.
-;; When rotation just started, it is initialized to vip-insertion-ring.
-(defvar vip-temp-insertion-ring nil)
-(defvar vip-last-inserted-string-from-insertion-ring "")
+;; When rotation just started, it is initialized to viper-insertion-ring.
+(defvar viper-temp-insertion-ring nil)
+(defvar viper-last-inserted-string-from-insertion-ring "")
 
-(defcustom vip-command-ring-size 14
+(defcustom viper-command-ring-size 14
   "The size of history of Vi commands repeatable with dot."
   :type 'integer
   :group 'viper)
 ;; The command ring.
-(defvar vip-command-ring nil)
+(defvar viper-command-ring nil)
 ;; This is temp command ring. Used to do rotation for display purposes.
-;; When rotation just started, it is initialized to vip-command-ring.
-(defvar vip-temp-command-ring nil)
+;; When rotation just started, it is initialized to viper-command-ring.
+(defvar viper-temp-command-ring nil)
 
 ;; Fast keyseq and ESC keyseq timeouts
-(defcustom vip-fast-keyseq-timeout 200
+(defcustom viper-fast-keyseq-timeout 200
   "*Key sequence separated by no more than this many milliseconds is viewed as a Vi-style macro, if such a macro is defined.
 Setting this too high may slow down your typing. Setting this value too low
 will make it hard to use Vi-stile timeout macros."
   :type 'integer
   :group 'viper)
 
-(defcustom vip-ESC-keyseq-timeout (if (vip-window-display-p)
-				      0 vip-fast-keyseq-timeout)
+(defcustom viper-ESC-keyseq-timeout (if (viper-window-display-p)
+				      0 viper-fast-keyseq-timeout)
   "*Key sequence beginning with ESC and separated by no more than this many milliseconds is considered to be generated by a keyboard function key.
 Setting this too high may slow down switching from insert to vi state. Setting
 this value too low will make it impossible to use function keys in insert mode
@@ -430,29 +428,29 @@ on a dumb terminal."
 ;; Modes and related variables
 
 ;; Current mode.  One of: `emacs-state', `vi-state', `insert-state'
-(vip-deflocalvar vip-current-state 'emacs-state)
+(viper-deflocalvar viper-current-state 'emacs-state)
 
 
 ;; Autoindent in insert
 
 ;; Variable that keeps track of whether C-t has been pressed.
-(vip-deflocalvar vip-cted nil "")
+(viper-deflocalvar viper-cted nil "")
 
 ;; Preserve the indent value, used by C-d in insert mode.
-(vip-deflocalvar vip-current-indent 0)
+(viper-deflocalvar viper-current-indent 0)
 
 ;; Whether to preserve the indent, used by C-d in insert mode.
-(vip-deflocalvar vip-preserve-indent nil)
+(viper-deflocalvar viper-preserve-indent nil)
 
-(vip-deflocalvar vip-auto-indent nil "")
-(defcustom vip-auto-indent nil
+(viper-deflocalvar viper-auto-indent nil "")
+(defcustom viper-auto-indent nil
   "*Enable autoindent, if t.
 This is a buffer-local variable."
   :type 'boolean
   :group 'viper)
 
-(vip-deflocalvar vip-electric-mode t "")
-(defcustom vip-electric-mode t
+(viper-deflocalvar viper-electric-mode t "")
+(defcustom viper-electric-mode t
   "*If t, electrify Viper.
 Currently, this only electrifies auto-indentation, making it appropriate to the
 mode of the buffer.
@@ -462,14 +460,14 @@ programs and LaTeX documents."
   :type 'boolean
   :group 'viper)
 
-(defcustom vip-shift-width 8
+(defcustom viper-shift-width 8
   "*The shiftwidth variable."
   :type 'integer
   :group 'viper)
 
 ;; Variables for repeating destructive commands
 
-(defcustom vip-keep-point-on-repeat t
+(defcustom viper-keep-point-on-repeat t
   "*If t, don't move point when repeating previous command.
 This is useful for doing repeated changes with the '.' key.
 The user can change this to nil, if she likes when the cursor moves
@@ -478,40 +476,40 @@ to a new place after repeating previous Vi command."
   :group 'viper) 
 
 ;; Remember insert point as a marker.  This is a local marker that must be
-;; initialized to nil and moved with `vip-move-marker-locally'.
-(vip-deflocalvar vip-insert-point nil)
-(put 'vip-insert-point 'permanent-local t)
+;; initialized to nil and moved with `viper-move-marker-locally'.
+(viper-deflocalvar viper-insert-point nil)
+(put 'viper-insert-point 'permanent-local t)
 
 ;; This remembers the point before dabbrev-expand was called.
-;; If vip-insert-point turns out to be bigger than that, it is reset
-;; back to vip-pre-command-point.
+;; If viper-insert-point turns out to be bigger than that, it is reset
+;; back to viper-pre-command-point.
 ;; The reason this is needed is because dabbrev-expand (and possibly
 ;; others) may jump to before the insertion point, delete something and
 ;; then reinsert a bigger piece. For instance:  bla^blo
-;; If dabbrev-expand is called after `blo' and ^ undicates vip-insert-point,
+;; If dabbrev-expand is called after `blo' and ^ undicates viper-insert-point,
 ;; then point jumps to the beginning of `blo'. If expansion is found, `blablo'
 ;; is deleted, and we have |^, where | denotes point. Next, dabbrev-expand
 ;; will insert the expansion, and we get: blablo^
 ;; Whatever we insert next goes before the ^, i.e., before the
-;; vip-insert-point marker. So, Viper will think that nothing was
+;; viper-insert-point marker. So, Viper will think that nothing was
 ;; inserted. Remembering the orig position of the marker circumvents the
 ;; problem.
 ;; We don't know of any command, except dabbrev-expand, that has the same
 ;; problem. However, the same trick can be used if such a command is
 ;; discovered later.
 ;;
-(vip-deflocalvar vip-pre-command-point nil)
-(put 'vip-pre-command-point 'permanent-local t) ; this is probably an overkill
+(viper-deflocalvar viper-pre-command-point nil)
+(put 'viper-pre-command-point 'permanent-local t) ; this is probably an overkill
 
 ;; This is used for saving inserted text.
-(defvar vip-last-insertion  nil)
+(defvar viper-last-insertion  nil)
   
 ;; Remembers the last replaced region.
-(defvar vip-last-replace-region "")
+(defvar viper-last-replace-region "")
   
 ;; Remember com point as a marker.
-;; This is a local marker. Should be moved with `vip-move-marker-locally'
-(vip-deflocalvar vip-com-point nil)
+;; This is a local marker. Should be moved with `viper-move-marker-locally'
+(viper-deflocalvar viper-com-point nil)
 
 ;; If non-nil, the value is a list (M-COM VAL COM REG inserted-text cmd-keys)
 ;; It is used to re-execute last destructive command.
@@ -523,53 +521,53 @@ to a new place after repeating previous Vi command."
 ;; INSERTED-TEXT is text inserted by that command (in case of o, c, C, i, r
 ;; commands).
 ;; COMMAND-KEYS are the keys that were typed to invoke the command.
-(defvar vip-d-com nil)
+(defvar viper-d-com nil)
 
 ;; The character remembered by the Vi `r' command.
-(defvar vip-d-char nil)
+(defvar viper-d-char nil)
 
 ;; Name of register to store deleted or yanked strings
-(defvar vip-use-register nil)
+(defvar viper-use-register nil)
 
 
 
 ;; Variables for Moves and Searches
 
 ;; For use by `;' command.
-(defvar vip-f-char nil)
+(defvar viper-f-char nil)
 
 ;; For use by `.' command.
-(defvar vip-F-char nil)
+(defvar viper-F-char nil)
 
 ;; For use by `;' command.
-(defvar vip-f-forward nil)
+(defvar viper-f-forward nil)
 
 ;; For use by `;' command.
-(defvar vip-f-offset nil)
+(defvar viper-f-offset nil)
 
 ;; Last search string
-(defvar vip-s-string "")
+(defvar viper-s-string "")
 
-(defcustom vip-quote-string "> "
+(defcustom viper-quote-string "> "
   "String inserted at the beginning of quoted region."
   :type 'string
   :group 'viper)
 
 ;; If t, search is forward.
-(defvar vip-s-forward nil)
+(defvar viper-s-forward nil)
 
-(defcustom vip-case-fold-search nil
+(defcustom viper-case-fold-search nil
   "*If not nil, search ignores cases."
   :type 'boolean
   :group 'viper)
 
-(defcustom vip-re-search t
+(defcustom viper-re-search t
   "*If not nil, search is regexp search, otherwise vanilla search."
   :type 'boolean
   :tag "Regexp Search"
   :group 'viper)
 
-(defcustom vip-search-scroll-threshold 2
+(defcustom viper-search-scroll-threshold 2
   "*If search lands within this threshnold from the window top/bottom,
 the window will be scrolled up or down appropriately, to reveal context.
 If you want Viper search to behave as usual in Vi, set this variable to a
@@ -577,81 +575,81 @@ negative number."
   :type 'boolean
   :group 'viper)
 
-(defcustom vip-re-query-replace t
+(defcustom viper-re-query-replace t
   "*If t then do regexp replace, if nil then do string replace."
   :type 'boolean
   :tag "Regexp Query Replace"
   :group 'viper)
 
-(defcustom vip-re-replace t
+(defcustom viper-re-replace t
   "*If t, do regexp replace. nil means do string replace."
   :type 'boolean
   :tag "Regexp Replace"
   :group 'viper)
 
-(defcustom vip-parse-sexp-ignore-comments t
+(defcustom viper-parse-sexp-ignore-comments t
   "*If t, `%' ignores the parentheses that occur inside comments."
   :type 'boolean
   :group 'viper)
 
-(vip-deflocalvar vip-ex-style-motion t "")
-(defcustom vip-ex-style-motion t
+(viper-deflocalvar viper-ex-style-motion t "")
+(defcustom viper-ex-style-motion t
   "*If t, the commands l,h do not cross lines, etc (Ex-style).
 If nil, these commands cross line boundaries."
   :type 'boolean
   :group 'viper)
 
-(vip-deflocalvar vip-ex-style-editing-in-insert t "")
-(defcustom vip-ex-style-editing-in-insert t
+(viper-deflocalvar viper-ex-style-editing-in-insert t "")
+(defcustom viper-ex-style-editing-in-insert t
   "*If t, `Backspace' and `Delete' don't cross line boundaries in insert, etc.
 Note: this doesn't preclude `Backspace' and `Delete' from deleting characters
 by moving past the insertion point. This is a feature, not a bug."
   :type 'boolean
   :group 'viper)
 
-(vip-deflocalvar vip-ESC-moves-cursor-back vip-ex-style-editing-in-insert "")
-(defcustom vip-ESC-moves-cursor-back nil
+(viper-deflocalvar viper-ESC-moves-cursor-back viper-ex-style-editing-in-insert "")
+(defcustom viper-ESC-moves-cursor-back nil
   "*If t, ESC moves cursor back when changing from insert to vi state.
 If nil, the cursor stays where it was."
   :type 'boolean
   :group 'viper)
 
-(vip-deflocalvar vip-delete-backwards-in-replace nil "")
-(defcustom vip-delete-backwards-in-replace nil
+(viper-deflocalvar viper-delete-backwards-in-replace nil "")
+(defcustom viper-delete-backwards-in-replace nil
   "*If t, DEL key will delete characters while moving the cursor backwards.
 If nil, the cursor will move backwards without deleting anything."
   :type 'boolean
   :group 'viper)
 
-(defcustom vip-buffer-search-char nil
+(defcustom viper-buffer-search-char nil
   "*Key used for buffer-searching. Must be a character type, e.g., ?g."
   :type '(choice (const nil) character)
   :group 'viper)
 
-(defcustom vip-search-wrap-around-t t
+(defcustom viper-search-wrap-around-t t
   "*If t, search wraps around."
   :type 'boolean
   :tag "Search Wraps Around"
   :group 'viper)
   
-(vip-deflocalvar vip-related-files-and-buffers-ring nil "")
-(defcustom vip-related-files-and-buffers-ring nil
+(viper-deflocalvar viper-related-files-and-buffers-ring nil "")
+(defcustom viper-related-files-and-buffers-ring nil
   "*List of file and buffer names that are considered to be related to the current buffer.
 Related buffers can be cycled through via :R and :P commands."
   :type 'boolean
   :group 'viper)
-(put 'vip-related-files-and-buffers-ring 'permanent-local t)
+(put 'viper-related-files-and-buffers-ring 'permanent-local t)
 
 ;; Used to find out if we are done with searching the current buffer.
-(vip-deflocalvar vip-local-search-start-marker nil)
+(viper-deflocalvar viper-local-search-start-marker nil)
 ;; As above, but global
-(defvar vip-search-start-marker (make-marker))
+(defvar viper-search-start-marker (make-marker))
 
 ;; the search overlay
-(vip-deflocalvar vip-search-overlay nil)
+(viper-deflocalvar viper-search-overlay nil)
 
 
-(defvar vip-heading-start 
+(defvar viper-heading-start 
   (concat "^\\s-*(\\s-*defun\\s-\\|"			        ; lisp
 	  "^{\\s-*$\\|^[_a-zA-Z][^()]*[()].*{\\s-*$\\|"	        ; C/C++
 	  "^\\s-*class.*{\\|^\\s-*struct.*{\\|^\\s-*enum.*{\\|"
@@ -660,7 +658,7 @@ Related buffers can be cycled through via :R and :P commands."
 	  "^.+:-")			                        ; prolog
   "*Regexps for Headings. Used by \[\[ and \]\].")
 
-(defvar vip-heading-end 
+(defvar viper-heading-end 
   (concat "^}\\|"						; C/C++
 	  "^\\\\end{\\|"					; latex
 	  "^@end \\|"						; texinfo
@@ -675,106 +673,102 @@ Related buffers can be cycled through via :R and :P commands."
 ;; inside the lines.
 
 ;; Remembers position of the last jump done using ``'.
-(vip-deflocalvar vip-last-jump  nil)
+(viper-deflocalvar viper-last-jump  nil)
 ;; Remembers position of the last jump done using `''.
-(vip-deflocalvar vip-last-jump-ignore 0)
+(viper-deflocalvar viper-last-jump-ignore 0)
 
 ;; History variables
 
 ;; History of search strings.
-(defvar vip-search-history  (list ""))
+(defvar viper-search-history  (list ""))
 ;; History of query-replace strings used as a source.
-(defvar vip-replace1-history nil)
+(defvar viper-replace1-history nil)
 ;; History of query-replace strings used as replacement.
-(defvar vip-replace2-history nil)
+(defvar viper-replace2-history nil)
 ;; History of region quoting strings.
-(defvar vip-quote-region-history (list vip-quote-string))
+(defvar viper-quote-region-history (list viper-quote-string))
 ;; History of Ex-style commands.
-(defvar vip-ex-history nil)
+(defvar viper-ex-history nil)
 ;; History of shell commands.
-(defvar vip-shell-history nil)
+(defvar viper-shell-history nil)
 
 
 ;; Last shell command. There are two of these, one for Ex (in viper-ex)
 ;; and one for Vi.
 
 ;; Last shell command executed with ! command.
-(defvar vip-last-shell-com nil)
+(defvar viper-last-shell-com nil)
 
 
 
 ;;; Miscellaneous
 
-(defvar vip-inhibit-startup-message nil
+(defvar viper-inhibit-startup-message nil
   "Whether Viper startup message should be inhibited.")
 
-(defcustom vip-spell-function 'ispell-region
+(defcustom viper-spell-function 'ispell-region
   "Spell function used by #s<move> command to spell."
   :type 'function
   :group 'viper)
 
-(defcustom vip-tags-file-name "TAGS"
+(defcustom viper-tags-file-name "TAGS"
   "The tags file used by Viper."
   :type 'string
   :group 'viper)
 
-;; Indicates if we are in the middle of executing a command that takes another
-;; command as an argument, e.g., cw, dw, etc.
-(defvar vip-inside-command-argument-action nil)
-
 ;; Minibuffer
 
-(defcustom vip-vi-style-in-minibuffer t
+(defcustom viper-vi-style-in-minibuffer t
   "If t, use vi-style editing in minibuffer.
-Should be set in `~/.vip' file."
+Should be set in `~/.viper' file."
   :type 'boolean
   :group 'viper)
   
 ;; overlay used in the minibuffer to indicate which state it is in
-(vip-deflocalvar vip-minibuffer-overlay nil)
+(viper-deflocalvar viper-minibuffer-overlay nil)
 
 ;; Hook, specific to Viper, which is run just *before* exiting the minibuffer.
 ;; Beginning with Emacs 19.26, the standard `minibuffer-exit-hook' is run
 ;; *after* exiting the minibuffer
-(defvar vip-minibuffer-exit-hook nil)
+(defvar viper-minibuffer-exit-hook nil)
        
 
 ;; Mode line
-(defconst vip-vi-state-id  	"<V> "
+(defconst viper-vi-state-id  	"<V> "
   "Mode line tag identifying the Vi mode of Viper.")
-(defconst vip-emacs-state-id	"<E> "
+(defconst viper-emacs-state-id	"<E> "
   "Mode line tag identifying the Emacs mode of Viper.")
-(defconst vip-insert-state-id	"<I> "
+(defconst viper-insert-state-id	"<I> "
   "Mode line tag identifying the Insert mode of Viper.")
-(defconst vip-replace-state-id	"<R> "
+(defconst viper-replace-state-id	"<R> "
   "Mode line tag identifying the Replace mode of Viper.")
 
 
-(defcustom vip-vi-state-hook nil
+(defcustom viper-vi-state-hook nil
   "*Hooks run just before the switch to Vi mode is completed."
   :type 'hook
   :group 'viper)
-(defcustom vip-insert-state-hook nil
+(defcustom viper-insert-state-hook nil
   "*Hooks run just before the switch to Insert mode is completed."
   :type 'hook
   :group 'viper)
-(defcustom vip-replace-state-hook nil
+(defcustom viper-replace-state-hook nil
   "*Hooks run just before the switch to Replace mode is completed."
   :type 'hook
   :group 'viper)
-(defcustom vip-emacs-state-hook nil
+(defcustom viper-emacs-state-hook nil
   "*Hooks run just before the switch to Emacs mode is completed."
   :type 'hook
   :group 'viper)
   
-(defcustom vip-load-hook nil
+(defcustom viper-load-hook nil
   "Hooks run just after loading Viper."
   :type 'hook
   :group 'viper)
   
 
 ;;; Local Variables:
-;;; eval: (put 'vip-deflocalvar 'lisp-indent-hook 'defun)
+;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
 ;;; End:
 
 ;;;  viper-ex.el ends here
