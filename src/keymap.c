@@ -75,9 +75,9 @@ Lisp_Object Vfunction_key_map;
 
 Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii;
 
-/* A char over 0200 in a key sequence
-   is equivalent to prefixing with this character.  */
-
+/* A char with the CHAR_META bit set in a vector or the 0200 bit set
+   in a string key sequence is equivalent to prefixing with this
+   character.  */
 extern Lisp_Object meta_prefix_char;
 
 void describe_map_tree ();
