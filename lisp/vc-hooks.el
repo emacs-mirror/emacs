@@ -785,6 +785,7 @@ For CVS, the full name of CVS/Entries is returned."
 	      ;; case-sensitively
 	      (setq case-fold-search nil)
 	      (cond
+	       ;; normal entry
 	       ((re-search-forward
 		 (concat "^/" (regexp-quote basename) 
 			 "/\\([^/]*\\)/[^ /]* \\([A-Z][a-z][a-z]\\) *\\([0-9]*\\) \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\) \\([0-9]*\\)")
@@ -813,6 +814,13 @@ For CVS, the full name of CVS/Entries is returned."
 			      year 0))
 		      (vc-file-setprop file 'vc-checkout-time mtime)
 		    (vc-file-setprop file 'vc-checkout-time 0)))
+		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
+	       ;; entry for a "locally added" file (not yet committed)
+	       ((re-search-forward
+		 (concat "^/" (regexp-quote basename) "/0/Initial ") nil t)
+		(setq case-fold-search fold) ;; restore the old value
+		(vc-file-setprop file 'vc-checkout-time 0)
+		(vc-file-setprop file 'vc-workfile-version "0")
 		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
 	       (t (setq case-fold-search fold)  ;; restore the old value
 		  nil)))
