@@ -1,3 +1,7 @@
+2004-11-09  Lars Brinkhoff  <lars@nocrew.org>
+
+	* building.texi (Lisp Eval): Delete hyphen in section name.
+
 2004-11-19  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* files.texi (Old Versions):

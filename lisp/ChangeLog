@@ -1,5 +1,7 @@
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
+	* comint.el (comint-input-ring-size): Increase to 150.
+
 	* hexl.el (hexl-mode-old-hl-line-mode, hexl-mode-old-ruler-mode): 
 	New variables.
 	(hexl-mode): Set those variables, record ruler-mode and hl-line-mode.
