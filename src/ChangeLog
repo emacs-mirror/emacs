@@ -1,3 +1,8 @@
+2001-11-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (tool_bar_item_info): Avoid calling Fget_text_property
+	with invalid position.
+
 2001-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* syswait.h: Delete conditionals for HPUX7, ISC 4.1, and convex.
