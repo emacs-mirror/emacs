@@ -861,12 +861,12 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bfollowing_char:
-	  XSETFASTINT (v1, PT == ZV ? 0 : FETCH_CHAR (point));
+	  v1 = Ffollowing_char ();
 	  PUSH (v1);
 	  break;
 
 	case Bpreceding_char:
-	  XSETFASTINT (v1, point <= BEGV ? 0 : FETCH_CHAR (point - 1));
+	  v1 = Fprevious_char ();
 	  PUSH (v1);
 	  break;
 
@@ -937,7 +937,7 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bchar_syntax:
 	  CHECK_NUMBER (TOP, 0);
 	  XSETFASTINT (TOP,
-		       syntax_code_spec[(int) SYNTAX (0xFF & XINT (TOP))]);
+		       syntax_code_spec[(int) SYNTAX (XINT (TOP))]);
 	  break;
 
 	case Bbuffer_substring:
