@@ -327,9 +327,10 @@ insert (string, length)
    before we bcopy the stuff into the buffer, and relocate the string
    without insert noticing.  */
 
-insert_from_string (string, pos, length)
+insert_from_string (string, pos, length, inherit)
      Lisp_Object string;
      register int pos, length;
+     int inherit;
 {
   register Lisp_Object temp;
   struct gcpro gcpro1;
@@ -366,7 +367,7 @@ insert_from_string (string, pos, length)
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   graft_intervals_into_buffer (XSTRING (string)->intervals, point,
-			       current_buffer);
+			       current_buffer, inherit);
 
   SET_PT (point + length);
 
@@ -407,12 +408,13 @@ insert_before_markers (string, length)
 
 /* Insert part of a Lisp string, relocating markers after.  */
 
-insert_from_string_before_markers (string, pos, length)
+insert_from_string_before_markers (string, pos, length, inherit)
      Lisp_Object string;
      register int pos, length;
+     int inherit;
 {
   register int opoint = point;
-  insert_from_string (string, pos, length);
+  insert_from_string (string, pos, length, inherit);
   adjust_markers (opoint - 1, opoint, length);
 }
 
