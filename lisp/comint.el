@@ -2338,7 +2338,7 @@ is at the beginning of the current input line; but if you have
 used \\[comint-accumulate] to send multiple lines at once,
 the process mark is at the beginning of the accumulated input."
   (interactive)
-  (if (not (eq last-command 'comint-bol-or-mark))
+  (if (not (eq last-command 'comint-bol-or-process-mark))
       (comint-bol nil)
     (comint-goto-process-mark)))
 
