@@ -150,10 +150,11 @@ of a repository; then VC only stays local for hosts that match it."
 	 root))))
 
 (defun vc-mcvs-read (file)
-  (with-temp-buffer
-    (insert-file-contents file)
-    (goto-char (point-min))
-    (read (current-buffer))))
+  (if (file-readable-p file)
+      (with-temp-buffer
+	(insert-file-contents file)
+	(goto-char (point-min))
+	(read (current-buffer)))))
 
 (defun vc-mcvs-map-file (dir file)
   (let ((map (vc-mcvs-read (expand-file-name "MCVS/MAP" dir)))
@@ -485,7 +486,9 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
           ;; Note: this is NOT a "mcvs diff".
           (apply 'vc-do-command "*vc-diff*"
                  1 "diff" file
-                 (append diff-switches-list '("/dev/null"))))
+                 (append diff-switches-list '("/dev/null")))
+	  ;; Even if it's empty, it's locally modified.
+	  1)
       (setq status
             (apply 'vc-mcvs-command "*vc-diff*"
                    (if (and (vc-mcvs-stay-local-p file)
