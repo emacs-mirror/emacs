@@ -46,7 +46,7 @@ file individually.")
     ("(pmr@legacy.pajato.com)" . "Paul Reilly")
     ("(Eric Youngdale at youngdale@v6550c.nrl.navy.mil)" . "Eric Youngdale")
     ("<Daniel.Pfeiffer@Informatik.START.db.de>" . "Daniel Pfeiffer")
-    ("<Daniel.Pfeiffer@Informatik.START.dbp.de>" . "Daniel Pfeiffer") 
+    ("<Daniel.Pfeiffer@Informatik.START.dbp.de>" . "Daniel Pfeiffer")
     ("(afs@hplb.hpl.hp.com)" . "ignore")
     ("<Use-Author-Address-Header@\\[127.1\\]>" . "ignore")
     ("Code Extracted" . "ignore")
@@ -240,10 +240,10 @@ listed.")
 	    (setq action item)
 	  (authors-add author item action table))))))
 
-	   
+
 (defun authors-obsolete-file-p (file)
   "Return non-nil if FILE is obsolete.
-FILE is considered obsolete if it matches on of the regular expressions
+FILE is considered obsolete if it matches one of the regular expressions
 from `authors-obsolete-files-regexps'."
   (let (obsolete-p
 	(regexps authors-obsolete-files-regexps))
@@ -315,7 +315,7 @@ file.
 
 :wrote		means the author wrote the file
 :changed	means he changed the file."
-  
+
   (let* ((enable-local-variables t)
 	 (enable-local-eval t)
 	 (existing-buffer (get-file-buffer file))
