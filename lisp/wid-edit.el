@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9929
+;; Version: 1.9936
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -332,6 +332,17 @@ minibuffer."
 This is needed on all versions of Emacs, and on XEmacs before 20.3.  
 If you don't add the space, it will become impossible to edit a zero
 size field."
+  :type 'boolean
+  :group 'widgets)
+
+(defcustom widget-field-use-before-change
+  (or (> emacs-minor-version 34)
+      (> emacs-major-version 20)
+      (string-match "XEmacs" emacs-version))
+  "Non-nil means use `before-change-functions' to track editable fields.
+This enables the use of undo, but doesn'f work on Emacs 19.34 and earlier. 
+Using before hooks also means that the :notify function can't know the
+new value."
   :type 'boolean
   :group 'widgets)
 
@@ -691,14 +702,15 @@ provide the fallback TAG as a part of the instantiator yourself."
   "In WIDGET, insert GLYPH.
 If optional arguments DOWN and INACTIVE are given, they should be
 glyphs used when the widget is pushed and inactive, respectively."
-  (set-glyph-property glyph 'widget widget)
-  (when down
-    (set-glyph-property down 'widget widget))
-  (when inactive
-    (set-glyph-property inactive 'widget widget))
+  (when widget
+    (set-glyph-property glyph 'widget widget)
+    (when down
+      (set-glyph-property down 'widget widget))
+    (when inactive
+      (set-glyph-property inactive 'widget widget)))
   (insert "*")
   (let ((ext (make-extent (point) (1- (point))))
-	(help-echo (widget-get widget :help-echo)))
+	(help-echo (and widget (widget-get widget :help-echo))))
     (set-extent-property ext 'invisible t)
     (set-extent-property ext 'start-open t)
     (set-extent-property ext 'end-open t)
@@ -706,9 +718,10 @@ glyphs used when the widget is pushed and inactive, respectively."
     (when help-echo
       (set-extent-property ext 'balloon-help help-echo)
       (set-extent-property ext 'help-echo help-echo)))
-  (widget-put widget :glyph-up glyph)
-  (when down (widget-put widget :glyph-down down))
-  (when inactive (widget-put widget :glyph-inactive inactive)))
+  (when widget
+    (widget-put widget :glyph-up glyph)
+    (when down (widget-put widget :glyph-down down))
+    (when inactive (widget-put widget :glyph-inactive inactive))))
 
 ;;; Buttons.
 
@@ -979,24 +992,25 @@ Recommended as a parent keymap for modes using widgets.")
 			 (widget-apply-action button event)))
 		   (overlay-put overlay 'face face)
 		   (overlay-put overlay 'mouse-face mouse-face)))
-	     (let (command up)
+	     (let ((up t)
+		   command)
 	       ;; Find the global command to run, and check whether it
 	       ;; is bound to an up event.
 	       (cond ((setq command	;down event
-			    (lookup-key widget-global-map [ button2 ])))
+			    (lookup-key widget-global-map [ button2 ]))
+		      (setq up nil))
 		     ((setq command	;down event
-			    (lookup-key widget-global-map [ down-mouse-2 ])))
+			    (lookup-key widget-global-map [ down-mouse-2 ]))
+		      (setq up nil))
 		     ((setq command	;up event
-			    (lookup-key widget-global-map [ button2up ]))
-		      (setq up t))
+			    (lookup-key widget-global-map [ button2up ])))
 		     ((setq command	;up event
-			    (lookup-key widget-global-map [ mouse-2]))
-		      (setq up t)))
-	       (when command
+			    (lookup-key widget-global-map [ mouse-2]))))
+	       (when up
 		 ;; Don't execute up events twice.
-		 (when up
-		   (while (not (button-release-event-p event))
-		     (setq event (widget-read-event))))
+		 (while (not (button-release-event-p event))
+		   (setq event (widget-read-event))))
+	       (when command
 		 (call-interactively command))))))
 	(t
 	 (message "You clicked somewhere weird."))))
@@ -1188,11 +1202,12 @@ When not inside a field, move to the previous button or field."
   (widget-clear-undo)
   ;; We need to maintain text properties and size of the editing fields.
   (make-local-variable 'after-change-functions)
-  (make-local-variable 'before-change-functions)
   (setq after-change-functions
 	(if widget-field-list '(widget-after-change) nil))
-  (setq before-change-functions
-	(if widget-field-list '(widget-before-change) nil)))
+  (when widget-field-use-before-change
+    (make-local-variable 'before-change-functions)
+    (setq before-change-functions
+	  (if widget-field-list '(widget-before-change) nil))))
 
 (defvar widget-field-last nil)
 ;; Last field containing point.
@@ -1665,30 +1680,33 @@ If END is omitted, it defaults to the length of LIST."
   ;; Insert text representing the `on' and `off' states.
   (let* ((tag (or (widget-get widget :tag)
 		  (widget-get widget :value)))
+	 (tag-glyph (widget-get widget :tag-glyph))
 	 (text (concat widget-push-button-prefix
 		       tag widget-push-button-suffix))
 	 (gui (cdr (assoc tag widget-push-button-cache))))
-    (if (and (fboundp 'make-gui-button)
+    (cond (tag-glyph
+	   (widget-glyph-insert widget text tag-glyph))
+	  ((and (fboundp 'make-gui-button)
 	     (fboundp 'make-glyph)
 	     widget-push-button-gui
 	     (fboundp 'device-on-window-system-p)
 	     (device-on-window-system-p)
 	     (string-match "XEmacs" emacs-version))
-	(progn 
-	  (unless gui
-	    (setq gui (make-gui-button tag 'widget-gui-action widget))
-	    (push (cons tag gui) widget-push-button-cache))
-	  (widget-glyph-insert-glyph widget
-				     (make-glyph
-				      (list (nth 0 (aref gui 1))
-					    (vector 'string ':data text)))
-				     (make-glyph
-				      (list (nth 1 (aref gui 1))
-					    (vector 'string ':data text)))
-				     (make-glyph
-				      (list (nth 2 (aref gui 1))
-					    (vector 'string ':data text)))))
-      (insert text))))
+	   (unless gui
+	     (setq gui (make-gui-button tag 'widget-gui-action widget))
+	     (push (cons tag gui) widget-push-button-cache))
+	   (widget-glyph-insert-glyph widget
+				      (make-glyph
+				       (list (nth 0 (aref gui 1))
+					     (vector 'string ':data text)))
+				      (make-glyph
+				       (list (nth 1 (aref gui 1))
+					     (vector 'string ':data text)))
+				      (make-glyph
+				       (list (nth 2 (aref gui 1))
+					     (vector 'string ':data text)))))
+	  (t
+	   (insert text)))))
 
 (defun widget-gui-action (widget)
   "Apply :action for WIDGET."
