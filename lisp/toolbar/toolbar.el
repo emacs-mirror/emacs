@@ -74,7 +74,7 @@ Info node `(elisp)Image Descriptors')."
   (let ((image (find-image `((:type xbm :file ,(concat icon ".xbm"))
 			     (:type xpm :file ,(concat icon ".xpm"))))))
     (when image
-      (unless (memq 'xbm image)
+      (unless (image-mask-p image)
 	(setq image (append image '(:mask heuristict))))
       (if (memq :enable props)
 	  (let ((dis (append image '(:algorithm laplace))))
