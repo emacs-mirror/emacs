@@ -2760,8 +2760,7 @@ int face_at_buffer_position P_ ((struct window *, int, int, int, int *,
 				 int, int));
 int face_at_string_position P_ ((struct window *, Lisp_Object, int, int, int,
 				 int, int *, enum face_id, int));
-int merge_into_realized_face P_ ((struct frame *, Lisp_Object,
-					     int, int));
+int merge_faces P_ ((struct frame *, Lisp_Object, int, int));
 int compute_char_face P_ ((struct frame *, int, Lisp_Object));
 void free_all_realized_faces P_ ((Lisp_Object));
 extern Lisp_Object Qforeground_color, Qbackground_color;
