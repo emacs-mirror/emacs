@@ -183,12 +183,12 @@ See also `comint-read-input-ring' and `comint-write-input-ring'.
 This variable is buffer-local, and is a good thing to set in mode hooks.")
 
 (defvar comint-scroll-to-bottom-on-input
-  (if (> baud-rate 9600) 'this)
+  nil
   "*Controls whether input to interpreter causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing buffer.
 If `this', scroll only the selected window.
 
-The default is `this' for fast terminals, nil for slower ones.
+The default nil.
 
 See `comint-preinput-scroll-to-bottom'.  This variable is buffer-local.")
 
@@ -266,9 +266,10 @@ Thus it can, for instance, track cd/pushd/popd commands issued to a shell.")
 Takes one argument, the input.  If non-nil, the input may be saved on the input
 history list.  Default is to save anything that isn't all whitespace.")
 
-(defvar comint-output-filter-hook '(comint-postoutput-scroll-to-bottom) 
+(defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom) 
   "Functions to call after output is inserted into the buffer.
-Possible function is `comint-postoutput-scroll-to-bottom'.
+One possible function is `comint-postoutput-scroll-to-bottom'.
+These functions get one argument, a string containing the text just inserted.
 
 This variable is buffer-local.")
 
@@ -310,7 +311,7 @@ This is to work around a bug in Emacs process signalling.")
 (put 'comint-input-ring 'permanent-local t)
 (put 'comint-input-ring-index 'permanent-local t)
 (put 'comint-input-autoexpand 'permanent-local t)
-(put 'comint-output-filter-hook 'permanent-local t)
+(put 'comint-output-filter-functions 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-input 'permanent-local t)
 (put 'comint-scroll-to-bottom-on-output 'permanent-local t)
 (put 'comint-scroll-show-maximum-output 'permanent-local t)
@@ -342,7 +343,7 @@ Commands with no default key bindings include `send-invisible',
 `comint-magic-space'.
 
 Input to, and output from, the subprocess can cause the window to scroll to
-the end of the buffer.  See variables `comint-output-filter-hook',
+the end of the buffer.  See variables `comint-output-filter-functions',
 `comint-scroll-to-bottom-on-input', and `comint-scroll-to-bottom-on-output'.
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
@@ -389,9 +390,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-to-bottom-on-input)
   (make-local-variable 'comint-scroll-to-bottom-on-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
-  (make-local-variable 'before-change-function)
-  (setq before-change-function 'comint-preinput-scroll-to-bottom)
-  (make-local-variable 'comint-output-filter-hook)
+  (make-local-variable 'pre-command-hook)
+  (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom)
+  (make-local-variable 'comint-output-filter-functions)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-exec-hook)
   (make-local-variable 'comint-process-echoes)
@@ -1104,7 +1105,10 @@ Similarly for Soar, Scheme, etc."
 	  (set-marker (process-mark proc) (point))
 	  ;; A kludge to prevent the delay between insert and process output
 	  ;; affecting the display.  A case for a comint-send-input-hook?
-	  (run-hooks 'comint-output-filter-hook)))))
+	  (let ((functions comint-output-filter-functions))
+	    (while functions
+	      (funcall (car functions) (concat input "\n"))
+	      (setq functions (cdr functions))))))))
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
@@ -1148,18 +1152,20 @@ Similarly for Soar, Scheme, etc."
 
       (narrow-to-region obeg oend)
       (goto-char opoint)
-      (run-hooks 'comint-output-filter-hook)
-
+      (let ((functions comint-output-filter-functions))
+	(while functions
+	  (funcall (car functions) string)
+	  (setq functions (cdr functions))))
       (set-buffer obuf))))
 
-(defun comint-preinput-scroll-to-bottom (beg end)
+(defun comint-preinput-scroll-to-bottom ()
   "Go to the end of buffer in all windows showing it.
 Movement occurs if point in the selected window is not after the process mark,
 and `this-command' is an insertion command.  Insertion commands recognised
 are `self-insert-command', `yank', `mouse-yank-at-click', and `hilit-yank'.
 Depends on the value of `comint-scroll-to-bottom-on-input'.
 
-This function should be bound to `before-change-function'."
+This function should be a pre-command hook."
   (if (and comint-scroll-to-bottom-on-input
 	   (memq this-command '(self-insert-command yank mouse-yank-at-click
 				hilit-yank)))
@@ -1180,13 +1186,13 @@ This function should be bound to `before-change-function'."
 		     (select-window selected)))))
 	     'not-minibuf t)))))
 
-(defun comint-postoutput-scroll-to-bottom ()
+(defun comint-postoutput-scroll-to-bottom (string)
   "Go to the end of buffer in all windows showing it.
 Does not scroll if the current line is the last line in the buffer.
 Depends on the value of `comint-scroll-to-bottom-on-output' and
 `comint-scroll-show-maximum-output'.
 
-This function should be bound to `comint-output-filter-hook'."
+This function should be in the list `comint-output-filter-functions'."
   (let* ((selected (selected-window))
 	 (current (current-buffer))
 	 (process (get-buffer-process current))
@@ -1200,10 +1206,18 @@ This function should be bound to `comint-output-filter-hook'."
 			(and (eq scroll 'others) (not (eq selected window)))))
 	       (progn
 		 (select-window window)
-		 (if (not (save-excursion (end-of-line nil) (eobp)))
-		     (goto-char (process-mark process)))
-		 (if comint-scroll-show-maximum-output
-		     (recenter -1))
+		 ;; If point WAS at process mark in this window,
+		 ;; keep it at process mark.
+		 (and (>= (point) (- (process-mark process) (length string)))
+		      (< (point) (process-mark process))
+		      (goto-char (process-mark process)))
+		 ;; Optionally scroll so that the text
+		 ;; ends at the bottom of the window.
+		 (if (and comint-scroll-show-maximum-output
+			  (>= (point) (process-mark process)))
+		     (save-excursion
+		       (goto-char (point-max))
+		       (recenter -1)))
 		 (select-window selected)))))
 	 'not-minibuf t))))
 
