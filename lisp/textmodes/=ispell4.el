@@ -946,7 +946,9 @@ Or you can bind the function to C-c i in gnus or mail with:
     (function (lambda () (local-set-key \"\\C-ci\" 'ispell-message)))))"
   (interactive)
   (save-excursion
-    (let (non-internal-message)
+    (let (non-internal-message
+	  (old-case-fold-search case-fold-search)
+	  (case-fold-search nil))
       (goto-char (point-min))
       ;; Don't spell-check the headers.
       (if (search-forward mail-header-separator nil t)
@@ -971,8 +973,9 @@ Or you can bind the function to C-c i in gnus or mail with:
 		       " *> *"))
 	      ((equal major-mode 'news-reply-mode) ;Gnus
 	       (concat "In article <" "\\|"
-		       (ispell-non-empty-string mail-yank-prefix)
-		       ))
+		       (if mail-yank-prefix
+			   (ispell-non-empty-string mail-yank-prefix)
+			 ispell-message-cite-regexp)))
 	      ((boundp 'vm-included-text-prefix) ; VM mail message
 	       (concat "[^,;&+=]+ writes:" "\\|"
 		       (ispell-non-empty-string vm-included-text-prefix)
@@ -990,14 +993,15 @@ Or you can bind the function to C-c i in gnus or mail with:
 		      (not (eobp)))
 	    (forward-line 1))
 	  (if (not (eobp))
-	      ;; Fill the next batch of lines that *aren't* cited.
+	      ;; Check the next batch of lines that *aren't* cited.
 	      (let ((start (point)))
 	       (if (re-search-forward
 		    (concat "^\\(" cite-regexp "\\)") nil 'end)
 		   (beginning-of-line))
 		(beginning-of-line)
-		(save-excursion
-		  (setq continue (ispell-region (- start 1) (point)))))))))))
+		(let ((case-fold-search old-case-fold-search))
+		  (save-excursion
+		    (setq continue (ispell-region (- start 1) (point))))))))))))
 
 (provide 'ispell)
 
