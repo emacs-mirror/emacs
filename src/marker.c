@@ -313,6 +313,32 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.")
   XMARKER (marker)->insertion_type = ! NILP (type);
   return type;
 }
+
+DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
+  1, 1, 0,
+  "Return t if there are markers pointing at POSITION in the currentbuffer.")
+  (position)
+      Lisp_Object position;
+{
+  register Lisp_Object tail;
+  register int charno;
+
+  charno = XINT (position);
+
+  if (charno < BEG)
+    charno = BEG;
+  if (charno > Z)
+    charno = Z;
+  if (charno > GPT) charno += GAP_SIZE;
+
+  for (tail = BUF_MARKERS (current_buffer);
+       XSYMBOL (tail) != XSYMBOL (Qnil);
+       tail = XMARKER (tail)->chain)
+    if (XMARKER (tail)->bufpos == charno)
+      return Qt;
+
+  return Qnil;
+}
 
 syms_of_marker ()
 {
@@ -322,4 +348,5 @@ syms_of_marker ()
   defsubr (&Scopy_marker);
   defsubr (&Smarker_insertion_type);
   defsubr (&Sset_marker_insertion_type);
+  defsubr (&Sbuffer_has_markers_at);
 }
