@@ -280,7 +280,7 @@ indented_beyond_p (pos, column)
      int pos, column;
 {
   while (pos > BEGV && FETCH_CHAR (pos) == '\n')
-    pos = find_next_newline (pos - 1, -1);
+    pos = find_next_newline_no_quit (pos - 1, -1);
   return (position_indentation (pos) >= column);
 }
 
@@ -767,7 +767,7 @@ vmotion (from, vtarget, width, hscroll, window)
 	 to determine hpos of starting point */
       if (from > BEGV && FETCH_CHAR (from - 1) != '\n')
 	{
-	  prevline = find_next_newline (from, -1);
+	  prevline = find_next_newline_no_quit (from, -1);
 	  while (prevline > BEGV
 		 && ((selective > 0
 		      && indented_beyond_p (prevline, selective))
@@ -778,7 +778,7 @@ vmotion (from, vtarget, width, hscroll, window)
 						    window))
 #endif
 		 ))
-	    prevline = find_next_newline (prevline - 1, -1);
+	    prevline = find_next_newline_no_quit (prevline - 1, -1);
 	  pos = *compute_motion (prevline, 0,
 				 lmargin + (prevline == 1 ? start_hpos : 0),
 				 from, 1 << (INTBITS - 2), 0,
@@ -805,7 +805,7 @@ vmotion (from, vtarget, width, hscroll, window)
       prevline = from;
       while (1)
 	{
-	  prevline = find_next_newline (prevline - 1, -1);
+	  prevline = find_next_newline_no_quit (prevline - 1, -1);
 	  if (prevline == BEGV
 	      || ((selective <= 0
 		   || ! indented_beyond_p (prevline, selective))
