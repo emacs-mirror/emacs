@@ -182,6 +182,8 @@ can be found:
   . libXaw3d for fancy 3D-style 
       scroll bars:    ftp://ftp.x.org/contrib/widgets/Xaw3d/
   . libxpm for XPM:   ftp://ftp.x.org/contrib/libraries/
+		      Get version 3.4k or later, which lets Emacs 
+		      use its own color allocation functions.
   . libpng for PNG:   ftp://www.libpng.org/pub/png/
   . libz (for PNG):   http://www.info-zip.org/pub/infozip/zlib/
   . libjpeg for JPEG: ftp://ftp.uu.net/graphics/jpeg/
