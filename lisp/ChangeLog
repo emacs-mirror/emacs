@@ -1,3 +1,17 @@
+2003-01-04  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el: Acknowledge Tom Lord as author of gdba.el.
+	Use let construction to bind buffer-read-only to nil.
+	(gdba): 'set height 0' in GDB.
+	(gdb-display-end, gdb-frame-handler): Corrections to forming
+	full expression name for header-line in display frame.
+	(gdb-info-breakpoints-custom): Highlight breakpoints since
+	they may be clicked on with mouse-2.
+	(gdb-quit): Delete frames of displayed expressions when
+	quitting.
+	(gdb-delete-frames): New function.
+	(gdb-source-info): Don't create stack buffer automatically.
+
 2003-01-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* xml.el (xml-substitute-special): Move "&amp;" -> "&" last.
