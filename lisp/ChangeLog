@@ -1,3 +1,7 @@
+2003-11-01  era@iki.fi  <era@iki.fi>  (tiny change)
+
+	* dired.el (dired-ls-sorting-switches): Doc fix.
+
 2003-11-01  Oliver Scholz  <epameinondas@gmx.de>
 
 	* emacs-lisp/rx.el (rx-or): Fix the case of 
