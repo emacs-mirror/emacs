@@ -1,5 +1,5 @@
 /* Tags file maker to go with GNU Emacs
-   Copyright (C) 1984, 87, 88, 89, 93, 94, 95
+   Copyright (C) 1984, 87, 88, 89, 93, 94, 95, 98
    Free Software Foundation, Inc. and Ken Arnold
 
 This file is not considered part of GNU Emacs.
@@ -3028,7 +3028,7 @@ getit (inf)
 	&& (isalpha (*cp) || isdigit (*cp) || (*cp == '_') || (*cp == '$')));
        cp++)
     continue;
-  pfnote ((CTAGS) ? savenstr (dbp, cp-dbp) : NULL, TRUE,
+  pfnote (savenstr (dbp, cp-dbp), TRUE,
 	  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 }
 
@@ -3109,6 +3109,18 @@ Fortran_functions (inf)
 	  if (tail ("procedure"))
 	    getit (inf);
 	  continue;
+	case 'b':
+	  if (tail ("blockdata") || tail ("block data"))
+	    {
+	      while (isspace (*dbp))
+		dbp++;
+	      if (*dbp == '\0')	/* assume un-named */
+		pfnote (savestr ("blockdata"), TRUE, lb.buffer,
+			dbp - lb.buffer, lineno, linecharno);
+	      else
+		getit (inf);	/* look for name */
+	    }
+	  continue;
 	}
     }
 }
@@ -3145,7 +3157,7 @@ Asm_labels (inf)
  	  if (*cp == ':' || isspace (*cp))
  	    {
  	      /* Found end of label, so copy it and add it to the table. */
- 	      pfnote ((CTAGS) ? savenstr(lb.buffer, cp-lb.buffer) : NULL, TRUE,
+ 	      pfnote (savenstr(lb.buffer, cp-lb.buffer), TRUE,
 		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
  	    }
  	}
@@ -3178,7 +3190,7 @@ Perl_functions (inf)
 	    cp++;
 	  while (*cp && ! isspace (*cp) && *cp != '{')
 	    cp++;
-	  pfnote ((CTAGS) ? savenstr (lb.buffer, cp-lb.buffer) : NULL, TRUE,
+	  pfnote (savenstr (lb.buffer, cp-lb.buffer), TRUE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
     }
@@ -3215,7 +3227,7 @@ Cobol_paragraphs (inf)
       for (cp = dbp; isalnum (*cp) || *cp == '-'; cp++)
 	continue;
       if (*cp++ == '.')
-	pfnote ((CTAGS) ? savenstr (dbp, cp-dbp) : NULL, TRUE,
+	pfnote (savenstr (dbp, cp-dbp), TRUE,
 		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
     }
 }
@@ -3372,7 +3384,7 @@ Pascal_functions (inf)
 	  /* grab block name */
 	  for (cp = dbp + 1; *cp != '\0' && !endtoken (*cp); cp++)
 	    continue;
-	  namebuf = (CTAGS) ? savenstr (dbp, cp-dbp) : NULL;
+	  namebuf = savenstr (dbp, cp-dbp);
 	  dbp = cp;		/* set dbp to e-o-token */
 	  save_len = dbp - lb.buffer + 1;
 	  get_tagname = FALSE;
@@ -3525,7 +3537,7 @@ Postscript_functions (inf)
 	       *cp != '\0' && *cp != ' ' && *cp != '{';
 	       cp++)
 	    continue;
-	  pfnote ((CTAGS) ? savenstr (dbp, cp-dbp) : NULL, TRUE,
+	  pfnote (savenstr (dbp, cp-dbp), TRUE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
     }
@@ -3895,7 +3907,7 @@ prolog_pred (s, last)
 	  || len != strlen (last)
 	  || !strneq (s, last, len))
 	{
-	  pfnote ((CTAGS) ? savenstr (s, len) : NULL, TRUE,
+	  pfnote (savenstr (s, len), TRUE,
 		  s, pos, lineno, linecharno);
 	  return len;
 	}
@@ -4073,7 +4085,7 @@ erlang_func (s, last)
 	  || len != strlen (last)
 	  || !strneq (s, last, len)))
 	{
-	  pfnote ((CTAGS) ? savenstr (s, len) : NULL, TRUE,
+	  pfnote (savenstr (s, len), TRUE,
 		  s, pos, lineno, linecharno);
 	  return len;
 	}
@@ -4105,7 +4117,7 @@ erlang_attribute (s)
 	{
 	  pos += eat_white (s, pos);
 	  if (len = erlang_atom (s, pos))
-	      pfnote ((CTAGS) ? savenstr (& s[pos], len) : NULL, TRUE,
+	      pfnote (savenstr (& s[pos], len), TRUE,
 		      s, pos + len, lineno, linecharno);
 	}
     }
