@@ -790,12 +790,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; terminal init file.  The colors are good for xterm-color and the
   ;; FreeBSD console (cons.*).  They should be sufficient for Linux
   ;; too, I guess.
-  (let ((colors '("black" "red" "green" "yellow" "blue" "magenta"
-		  "cyan" "white"))
-	(i 0))
-    (while colors
-      (face-register-tty-color (car colors) i)
-      (setq colors (cdr colors) i (1+ i))))
+  (or (eq window-system 'pc)	; pc-win.el did this already
+      (let ((colors '("black" "red" "green" "yellow" "blue" "magenta"
+		      "cyan" "white"))
+	    (i 0))
+	(while colors
+	  (face-register-tty-color (car colors) i)
+	  (setq colors (cdr colors) i (1+ i)))))
   
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
