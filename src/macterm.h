@@ -355,6 +355,12 @@ struct mac_output {
 
 #endif
 
+#if TARGET_API_MAC_CARBON
+  /* The Mac control reference for the hourglass (progress indicator)
+     shown at the upper-right corner of the window.  */
+  ControlRef hourglass_control;
+#endif
+
 #if 0
   DWORD dwStyle;
 #endif
@@ -573,6 +579,10 @@ struct scroll_bar {
    text from glomming up against the scroll bar */
 #define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
+/* Size of hourglass controls */
+#define HOURGLASS_WIDTH 16
+#define HOURGLASS_HEIGHT 16
+
 struct frame;
 struct face;
 struct image;
@@ -585,9 +595,6 @@ EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 EXFUN (Fx_display_planes, 1);
 extern void x_free_gcs P_ ((struct frame *));
-
-void activate_scroll_bars (FRAME_PTR);
-void deactivate_scroll_bars (FRAME_PTR);
 
 /* Defined in macterm.c.  */
 
