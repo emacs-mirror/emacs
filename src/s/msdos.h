@@ -209,7 +209,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 :so=\EA\077:se=\EA\027:\
 :ms:mb=\EX\200:md=\EX\010:mk=\EA\161:me=\EA\027:\
 :cl=\EC:ce=\EE:\
-:vb=\EB\140:bl=:"
+:vb=\EB\140:bl=\007:"
 #define fflush internal_flush
 
 /* Define this to a function (Fdowncase, Fupcase) if your file system
