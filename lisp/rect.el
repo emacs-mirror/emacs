@@ -45,24 +45,16 @@ Point is at the end of the segment of this line within the rectangle."
      (forward-line 1)
      (setq endlinepos (point-marker)))
     (if (< endcol startcol)
-	(let ((tem startcol))
-	  (setq startcol endcol endcol tem)))
+	(setq startcol (prog1 endcol (setq endcol startcol))))
     (if (/= endcol startcol)
 	(save-excursion
 	 (goto-char startlinepos)
 	 (while (< (point) endlinepos)
 	   (let (startpos begextra endextra)
-	     (move-to-column startcol)
-	     (and coerce-tabs
-		  (> (current-column) startcol)
-		  (rectangle-coerce-tab startcol))
+	     (move-to-column startcol coerce-tabs)
 	     (setq begextra (- (current-column) startcol))
 	     (setq startpos (point))
-	     (move-to-column endcol)
-	     (if (> (current-column) endcol)
-		 (if coerce-tabs
-		     (rectangle-coerce-tab endcol)
-		   (forward-char -1)))
+	     (move-to-column endcol coerce-tabs)
 	     (setq endextra (- endcol (current-column)))
 	     (if (< begextra 0)
 		 (setq endextra (+ endextra begextra)
@@ -167,11 +159,7 @@ and point is at the lower right corner."
 	  (progn
 	   (forward-line 1)
 	   (or (bolp) (insert ?\n))
-	   (move-to-column insertcolumn)
-	   (if (> (current-column) insertcolumn)
-	       (rectangle-coerce-tab insertcolumn))
-	   (if (< (current-column) insertcolumn)
-	       (indent-to insertcolumn))))
+	   (move-to-column insertcolumn t)))
       (setq first nil)
       (insert (car lines))
       (setq lines (cdr lines)))))
@@ -180,9 +168,10 @@ and point is at the lower right corner."
 (defun open-rectangle (start end)
   "Blank out rectangle with corners at point and mark, shifting text right.
 The text previously in the region is not overwritten by the blanks,
-but insted winds up to the right of the rectangle."
+but instead winds up to the right of the rectangle."
   (interactive "r")
-  (operate-on-rectangle 'open-rectangle-line start end nil))
+  (operate-on-rectangle 'open-rectangle-line start end nil)
+  (goto-char start))
 
 (defun open-rectangle-line (startpos begextra endextra)
   (let ((column (+ (current-column) begextra endextra)))
@@ -191,7 +180,9 @@ but insted winds up to the right of the rectangle."
       (skip-chars-forward " \t")
       (setq column (+ column (- (current-column) ocol))))
     (delete-region (point)
-                   (progn (skip-chars-backward " \t")
+		   ;; Use skip-chars-backward's LIM argument to leave
+		   ;; characters before STARTPOS undisturbed.
+                   (progn (skip-chars-backward " \t" startpos)
 			  (point)))
     (indent-to column)))
 
@@ -212,11 +203,6 @@ When called from a program, requires two args which specify the corners."
 			  (point)))
     (indent-to column)))
 
-(defun rectangle-coerce-tab (column)
-  (let ((aftercol (current-column))
-	(indent-tabs-mode nil))
-    (delete-char -1)
-    (indent-to aftercol)
-    (backward-char (- aftercol column))))
+(provide 'rect)
 
 ;;; rect.el ends here
