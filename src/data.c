@@ -60,10 +60,6 @@ Boston, MA 02111-1307, USA.  */
 extern double atof ();
 #endif /* !atof */
 
-/* Nonzero means it is an error to set a symbol whose name starts with
-   colon.  */
-int keyword_symbols_constant_flag;
-
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
 Lisp_Object Qerror_conditions, Qerror_message, Qtop_level;
 Lisp_Object Qerror, Qquit, Qwrong_type_argument, Qargs_out_of_range;
@@ -624,8 +620,7 @@ DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0, "Make SYMBOL's value be 
   CHECK_SYMBOL (symbol, 0);
   if (NILP (symbol) || EQ (symbol, Qt)
       || (XSYMBOL (symbol)->name->data[0] == ':'
-	  && EQ (XSYMBOL (symbol)->obarray, initial_obarray)
-	  && keyword_symbols_constant_flag))
+	  && EQ (XSYMBOL (symbol)->obarray, initial_obarray)))
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
   Fset (symbol, Qunbound);
   return symbol;
@@ -989,7 +984,7 @@ set_internal (symbol, newval, buf, bindflag)
   if (NILP (symbol) || EQ (symbol, Qt)
       || (XSYMBOL (symbol)->name->data[0] == ':'
 	  && EQ (XSYMBOL (symbol)->obarray, initial_obarray)
-	  && keyword_symbols_constant_flag && ! EQ (newval, symbol)))
+	  && !EQ (newval, symbol)))
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
   valcontents = XSYMBOL (symbol)->value;
 
@@ -2828,11 +2823,6 @@ syms_of_data ()
   staticpro (&Qchar_table);
   staticpro (&Qbool_vector);
   staticpro (&Qhash_table);
-
-  DEFVAR_BOOL ("keyword-symbols-constant-flag", &keyword_symbols_constant_flag,
-    "Non-nil means it is an error to set a keyword symbol.\n\
-A keyword symbol is a symbol whose name starts with a colon (`:').");
-  keyword_symbols_constant_flag = 1;
 
   defsubr (&Seq);
   defsubr (&Snull);
