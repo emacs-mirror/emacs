@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.48) $
+ * $HopeName: MMsrc!mpm.h(trunk.49) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -437,17 +437,16 @@ extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode);
 
 extern void (ArenaEnter)(Arena arena);
-#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
-#define ArenaEnter(arena)  NOOP
-#endif
 extern void (ArenaLeave)(Arena arena);
+
 #if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
-#define ArenaLeave(arena)  NOOP
+#define ArenaEnter(arena)  UNUSED(arena)
+#define ArenaLeave(arena)  UNUSED(arena)
 #endif
 
 extern void (ArenaPoll)(Arena arena);
 #ifdef MPS_PROD_EPCORE
-#define ArenaPoll(arena)  NOOP
+#define ArenaPoll(arena)  UNUSED(arena)
 #endif
 /* .nogc.why: ScriptWorks doesn't use MM-provided incremental GC, so */
 /* doesn't need to poll when allocating. */
@@ -629,15 +628,31 @@ extern RefSet RefSetOfSeg(Arena arena, Seg seg);
 
 /* Shield Interface -- see impl.c.shield */
 
-extern void ShieldRaise(Arena arena, Seg seg, AccessSet mode);
-extern void ShieldLower(Arena arena, Seg seg, AccessSet mode);
-extern void ShieldEnter(Arena arena);
-extern void ShieldLeave(Arena arena);
-extern void ShieldExpose(Arena arena, Seg seg);
-extern void ShieldCover(Arena arena, Seg seg);
-extern void ShieldSuspend(Arena arena);
-extern void ShieldResume(Arena arena);
-extern void ShieldFlush(Arena arena);
+extern void (ShieldRaise)(Arena arena, Seg seg, AccessSet mode);
+extern void (ShieldLower)(Arena arena, Seg seg, AccessSet mode);
+extern void (ShieldEnter)(Arena arena);
+extern void (ShieldLeave)(Arena arena);
+extern void (ShieldExpose)(Arena arena, Seg seg);
+extern void (ShieldCover)(Arena arena, Seg seg);
+extern void (ShieldSuspend)(Arena arena);
+extern void (ShieldResume)(Arena arena);
+extern void (ShieldFlush)(Arena arena);
+
+#if defined(THREAD_SINGLE) && defined(PROTECTION_NONE)
+#define ShieldRaise(arena, seg, mode) \
+  BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END
+#define ShieldLower(arena, seg, mode) \
+  BEGIN UNUSED(arena); UNUSED(seg); UNUSED(mode); END 
+#define ShieldEnter(arena) BEGIN UNUSED(arena); END
+#define ShieldLeave(arena) BEGIN UNUSED(arena); END
+#define ShieldExpose(arena, seg)  \
+  BEGIN UNUSED(arena); UNUSED(seg); END 
+#define ShieldCover(arena, seg) \
+  BEGIN UNUSED(arena); UNUSED(seg); END 
+#define ShieldSuspend(arena) BEGIN UNUSED(arena); END
+#define ShieldResume(arena) BEGIN UNUSED(arena); END
+#define ShieldFlush(arena) BEGIN UNUSED(arena); END
+#endif
 
 
 /* Protection Interface -- see impl.c.prot* */

@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.8) $
+ * $HopeName: MMsrc!shield.c(trunk.9) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * See: idea.shield, design.mps.shield.
@@ -73,10 +73,10 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.8) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.9) $");
 
 
-void ShieldSuspend(Arena arena)
+void (ShieldSuspend)(Arena arena)
 {
   AVERT(Arena, arena);
   AVER(arena->insideShield);
@@ -87,7 +87,7 @@ void ShieldSuspend(Arena arena)
   }
 }
 
-void ShieldResume(Arena arena)
+void (ShieldResume)(Arena arena)
 {
   AVERT(Arena, arena);
   AVER(arena->insideShield);
@@ -171,7 +171,7 @@ static void cache(Arena arena, Seg seg)
   }
 }
 
-void ShieldRaise(Arena arena, Seg seg, AccessSet mode)
+void (ShieldRaise) (Arena arena, Seg seg, AccessSet mode)
 {
   AVERT(Arena, arena);
   AVERT(Seg, seg);
@@ -183,7 +183,7 @@ void ShieldRaise(Arena arena, Seg seg, AccessSet mode)
   cache(arena, seg);
 }
 
-void ShieldLower(Arena arena, Seg seg, AccessSet mode)
+void (ShieldLower)(Arena arena, Seg seg, AccessSet mode)
 {
   AVERT(Arena, arena);
   AVERT(Seg, seg);
@@ -197,7 +197,7 @@ void ShieldLower(Arena arena, Seg seg, AccessSet mode)
   protLower(arena, seg, mode);
 }
 
-void ShieldEnter(Arena arena)
+void (ShieldEnter)(Arena arena)
 {
   Size i;
 
@@ -216,7 +216,7 @@ void ShieldEnter(Arena arena)
  * This needs to be called before segments are destroyed as there
  * may be references to them in the cache.
  */
-void ShieldFlush(Arena arena)
+void (ShieldFlush)(Arena arena)
 {
   Size i;
 
@@ -227,7 +227,7 @@ void ShieldFlush(Arena arena)
   }
 }
 
-void ShieldLeave(Arena arena)
+void (ShieldLeave)(Arena arena)
 {
   AVERT(Arena, arena);
   AVER(arena->insideShield);
@@ -246,7 +246,7 @@ void ShieldLeave(Arena arena)
 }
 
 
-void ShieldExpose(Arena arena, Seg seg)
+void (ShieldExpose)(Arena arena, Seg seg)
 {
   AccessSet mode = AccessREAD | AccessWRITE;
   AVERT(Arena, arena);
@@ -263,7 +263,7 @@ void ShieldExpose(Arena arena, Seg seg)
   protLower(arena, seg, mode);
 }
 
-void ShieldCover(Arena arena, Seg seg)
+void (ShieldCover)(Arena arena, Seg seg)
 {
   AVERT(Arena, arena);
   AVERT(Seg, seg);
