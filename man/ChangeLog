@@ -1,3 +1,11 @@
+2003-11-22  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Updated for CC Mode 5.30.
+
+	Note: Please refrain from doing purely cosmetic changes like
+	removing trailing whitespace in this manual; it clobbers cvs
+	merging for no good reason.
+
 2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
 	* man/ack.texi, man/basic.texi, man/cmdargs.texi:
