@@ -154,9 +154,9 @@ else
 DEBUG_CFLAGS	= 
 endif
 CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN $(ARCH_CFLAGS) -D$(ARCH) \
-		  -D_CRTAPI1=_cdecl -D_ANONYMOUS_UNION -D_ANONYMOUS_STRUCT \
+		  -D_CRTAPI1=_cdecl \
 		  $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
-EMACS_EXTRA_C_FLAGS = -DUSE_CRT_DLL=1 -DORDINARY_LINK=1
+EMACS_EXTRA_C_FLAGS = -DUSE_CRT_DLL=1
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -image-base settings.
@@ -178,10 +178,22 @@ DEL		= rm
 DEL_TREE	= rm -r
 ifdef USING_SH
 IFNOTSAMEDIR	= if [ ! -s ../same-dir.tst ] ; then
+FOREACH		= for f in
+FORVAR		= $${f}
+FORDO		= ; do
+ENDFOR		= ; done
 ENDIF		= ; fi
+ARGQUOTE	= '
+DQUOTE		= ""
 else
 IFNOTSAMEDIR	= if not exist ../same-dir.tst
+FOREACH		= for %%f in (
+FORVAR		= %%f
+FORDO		= ) do
+ENDFOR		=
 ENDIF		=
+ARGQUOTE	= "
+DQUOTE		= \"
 endif
 
 # The location of the icon file
@@ -201,9 +213,8 @@ ifeq "$(ARCH)" "i386"
 ifdef NOOPT
 ARCH_CFLAGS     = -D_X86_=1 -c $(DEBUG_FLAG) $(NOCYGWIN)
 else
-ARCH_CFLAGS     = -D_X86_=1 -c $(DEBUG_FLAG) $(NOCYGWIN) -O -Os \
-		  -mcpu=i686 -fno-exceptions -fbuiltins \
-		  # -mpreferred-stack-boundary=2 \
+ARCH_CFLAGS     = -D_X86_=1 -c $(DEBUG_FLAG) $(NOCYGWIN) -mcpu=i686 -O2 \
+		  # -fbuiltin \
 		  # -finline-functions \
 		  # -fomit-frame-pointer
 endif
