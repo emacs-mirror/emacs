@@ -82,14 +82,14 @@ Control whether the text should be underlined.")
 Control whether the text should be in inverse video.")
 		set-face-inverse-video-p
 		face-inverse-video-p)
-    (:foreground (color :tag "Foreground"
-			:value "black"
-			:help-echo "Set foreground color.")
+    (:foreground (editable-color :tag "Foreground"
+				 :value "black"
+				 :help-echo "Set foreground color.")
 		 set-face-foreground
 		 face-foreground)
-    (:background (color :tag "Background"
-			:value "white"
-			:help-echo "Set background color.")
+    (:background (editable-color :tag "Background"
+				 :value "white"
+				 :help-echo "Set background color.")
 		 set-face-background
 		 face-background)
     (:stipple (editable-field :format "Stipple: %v"
