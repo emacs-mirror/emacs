@@ -43,13 +43,6 @@
 
 
 ;;; APPLICATION NOTES:
-;;; 
-;;; rmail, vm, gnus, etc.
-;;;   To use compressed mail folders, .newsrc files, etc., you need
-;;;   only compress the file.  Since jka-compr searches for .gz
-;;;   versions of the files it's finding, you need not change
-;;;   variables within rmail, gnus, etc.  
-;;;
 ;;;
 ;;; crypt++
 ;;;   jka-compr can coexist with crpyt++ if you take all the decompression
