@@ -340,17 +340,23 @@ This function is the default value of `compose-chars-after-function'."
 ;;;###autoload
 (defun compose-last-chars (args)
   "Compose last characters.
-The argument is a parameterized event of the form (compose-last-chars N),
-where N is the number of characters before point to compose.
+The argument is a parameterized event of the form
+	\(compose-last-chars N COMPONENTS),
+where N is the number of characters before point to compose,
+COMPONENTS, if non-nil, is the same as the argument to `compose-region'
+\(which see).  If it is nil, `compose-chars-after' is called,
+and that function find a proper rule to compose the target characters.
 This function is intended to be used from input methods.
 The global keymap binds special event `compose-last-chars' to this
-function.  Input method may generate an event (compose-last-chars N)
+function.  Input method may generate an event (compose-last-chars N COMPONENTS)
 after a sequence character events."
   (interactive "e")
   (let ((chars (nth 1 args)))
     (if (and (numberp chars)
 	     (>= (- (point) (point-min)) chars))
-	(compose-chars-after (- (point) chars) (point)))))
+	(if (nth 2 args)
+	    (compose-region (- (point) chars) (point) (nth 2 args))
+	  (compose-chars-after (- (point) chars) (point))))))
 
 ;;;###autoload(global-set-key [compose-last-chars] 'compose-last-chars)
 
