@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.38) $
+ * $HopeName: MMsrc!poolawl.c(trunk.39) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,12 +16,38 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.38) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.39) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
 
 #define AWLGen  ((Serial)1) /* "generation" for AWL pools */
+
+
+/* Statistics gathering aboput instruction emulation. 
+ * In order to support change.dylan.2.0.160044 
+ */
+
+
+/* Per-segment statistics maintained between segment scans*/
+
+typedef struct AWLStatGroupStruct {
+  Count refAccesses;   /* accesses involving single reference */
+  Count sameAccesses;  /* accesses involving same address as last access */
+  Addr lastAccess;     /* the address of last access */
+} AWLStatGroupStruct, *AWLStatGroup;
+
+/* Per-pool statistics updated at segment scans */
+
+typedef struct AWLStatTotalStruct {
+  Count goodScans;     /* total times a segment scanned at proper rank */
+  Count badScans;      /* total times a segment scanned at improper rank */
+  Count savedScans;    /* total times an entire segment scan was avoided */
+  Count savedAccesses; /* total single references leading to a saved scan */
+  Count successive;    /* number of successive single accesses */
+  Count declined;      /* number of declined single accesses */
+} AWLStatTotalStruct, *AWLStatTotal;
+
 
 /* design.mps.poolawl.poolstruct */
 typedef struct AWLStruct {
@@ -32,6 +58,7 @@ typedef struct AWLStruct {
   double lastCollected;
   Serial gen;               /* associated generation (for SegAlloc) */
   Sig sig;
+  AWLStatTotalStruct stats;
 } AWLStruct, *AWL;
 
 #define AWLGroupSig ((Sig)0x519a379b)	/* SIGAWLGrouP */
@@ -45,6 +72,7 @@ typedef struct AWLGroupStruct {
   BT alloc;
   Count grains;
   Count free; /* number of free grains */
+  AWLStatGroupStruct stats;
 } AWLGroupStruct, *AWLGroup;
 
 
@@ -65,6 +93,142 @@ static Bool AWLGroupCheck(AWLGroup group);
 /* Conversion between indexes and Addrs */
 #define awlIndexOfAddr(base, awl, p) \
   (AddrOffset((base), (p)) >> (awl)->alignShift)
+
+
+
+/* Management of statistics for monitoring protection-driven accesses */
+
+static void AWLStatGroupInit(AWLGroup group)
+{
+  AWLGroupCheck(group);
+
+  group->stats.refAccesses = 0;
+  group->stats.sameAccesses = 0;
+  group->stats.lastAccess = NULL;
+}
+
+
+static void AWLStatTotalInit(AWL awl)
+{
+  AVERT(AWL, awl);
+
+  awl->stats.goodScans = 0;
+  awl->stats.badScans = 0;
+  awl->stats.savedAccesses = 0;
+  awl->stats.savedScans = 0;
+  awl->stats.successive = 0;
+  awl->stats.declined = 0;
+}
+
+
+/* Single access permission control parameters */
+
+Count AWLSegLimit = 0; /* Number of single accesses permitted per segment */
+Bool AWLHaveSegLimit = FALSE;  /* When TRUE, AWLSegLimit applies */
+
+Count AWLTotalLimit = 0; /* Number of single accesses permitted in a row */
+Bool AWLHaveTotalLimit = FALSE;  /* When TRUE, AWLTotalLimit applies */
+
+
+/* Determine whether to permit scanning a single ref */
+static Bool AWLStatCanTrySingleAccess(AWL awl, Seg seg, Addr addr)
+{
+  AVERT(AWL, awl);
+  AVERT(Seg, seg);
+  AVER(addr != NULL);
+
+  if (RankSetIsMember(SegRankSet(seg), RankWEAK)) {
+    AWLGroup group;
+
+    group = (AWLGroup)SegP(seg);
+    AWLGroupCheck(group);
+    
+    if (AWLHaveTotalLimit) {
+      if (AWLTotalLimit < awl->stats.successive) {
+	awl->stats.declined++;
+	return FALSE; /* decline single access because of total limit */
+      }
+    }
+
+    if (AWLHaveSegLimit) {
+      if (AWLSegLimit < group->stats.refAccesses) {
+	awl->stats.declined++;
+	return FALSE; /* decline single access because of segment limit */
+      }
+    }
+
+    return TRUE;
+
+  } else {
+    return FALSE; /* Single access is only useful or weak segments */
+  }
+
+}
+
+
+
+/* Record an access to a segment which required scanning a single ref */
+static void AWLStatNoteRefAccess(AWL awl, Seg seg, Addr addr)
+{
+  AWLGroup group;
+
+  AVERT(AWL, awl);
+  AVERT(Seg, seg);
+  AVER(addr != NULL);
+  group = (AWLGroup)SegP(seg);
+  AWLGroupCheck(group);
+
+  group->stats.refAccesses++; /* increment seg count of ref accesses */
+  if (addr == group->stats.lastAccess) {
+    /* If this is a repeated access, increment count  */
+    group->stats.sameAccesses++;  
+  }
+  group->stats.lastAccess = addr;
+  awl->stats.successive++;  /* Increment count of successive scans */
+}
+
+
+/* Record an access to a segment which required scanning the entire seg */
+static void AWLStatNoteSegAccess(AWL awl, Seg seg, Addr addr)
+{
+  AVERT(AWL, awl);
+  AVERT(Seg, seg);
+  AVER(addr != NULL);
+
+  awl->stats.successive = 0; /* reset count of successive scans */
+}
+
+
+/* Record a scan of a segment which wasn't provoked by an access */
+static void AWLStatNoteScan(AWL awl, Seg seg, ScanState ss)
+{
+  AWLGroup group;
+
+  AVERT(AWL, awl);
+  AVERT(Seg, seg);
+  group = (AWLGroup)SegP(seg);
+  AWLGroupCheck(group);
+
+  /* If this is a RankWEAK segment, then record statistics */
+  /* about whether weak splatting is being lost */
+  if (RankSetIsMember(SegRankSet(seg), RankWEAK)) {
+    if (RankWEAK == ss->rank) {
+      /* This is "successful" scan at proper rank. */
+      awl->stats.goodScans++;
+      if (0 < group->stats.refAccesses) {
+	/* Accesses have been proceesed singly */
+	/* Record that we genuinely did save a protection-provoked scan */
+	awl->stats.savedScans++;
+	awl->stats.savedAccesses += group->stats.refAccesses;
+      }
+    } else {
+      /* This is "failed" scan at improper rank. */
+      awl->stats.badScans++;
+    } 
+    /* Reinitialize the segment statistics */
+    AWLStatGroupInit(group);
+  }
+}
 
 
 static void AWLGroupDestroy(AWLGroup group)
@@ -161,6 +325,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   group->seg = seg;
   group->free = bits;
   group->sig = AWLGroupSig;
+  AWLStatGroupInit(group);
   AVERT(AWLGroup, group);
   *groupReturn = group;
   return ResOK;
@@ -223,6 +388,7 @@ static Res AWLInit(Pool pool, va_list arg)
   awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
   awl->gen = AWLGen;
   awl->sig = AWLSig;
+  AWLStatTotalInit(awl);
 
   AVERT(AWL, awl);
 
@@ -622,6 +788,7 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   } while(!scanAllObjects && anyScanned);
 
   *totalReturn = scanAllObjects;
+  AWLStatNoteScan(awl, seg, ss);
   return ResOK;
 }
 
@@ -753,6 +920,46 @@ static Res AWLTraceBegin(Pool pool, Trace trace)
   return ResOK;
 }
 
+
+static Res AWLAccess(Pool pool, Seg seg, Addr addr, 
+		     AccessSet mode, MutatorFaultContext context)
+{
+  AWL awl;
+  Res res;
+
+  AVERT(Pool, pool);
+  awl = PoolPoolAWL(pool);
+  AVERT(AWL, awl);
+  AVERT(Seg, seg);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  AVER(SegPool(seg) == pool);
+
+  /* Attempt scanning a single reference if permitted */
+  if (AWLStatCanTrySingleAccess(awl, seg, addr)) {
+    res = PoolSingleAccess(pool, seg, addr, mode, context);
+    switch(res) {
+    case ResOK:
+      AWLStatNoteRefAccess(awl, seg, addr);
+      return ResOK;
+    case ResUNIMPL:
+      /* Not all accesses can be managed singly. Default to segment */
+      break;
+    default:
+      return res;
+    }
+  } 
+
+  /* Have to scan the entire seg anyway. */
+  res = PoolSegAccess(pool, seg, addr, mode, context);
+  if (ResOK == res) {
+    AWLStatNoteSegAccess(awl, seg, addr);
+  }
+
+  return res;
+}
+
+
 /* defined in impl.c.trace */
 extern unsigned long AMCGen0Frequency;
 extern unsigned long AMCGen1Frequency;
@@ -865,7 +1072,7 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLBufferEmpty,
   PoolTrivBufferFinish,
   AWLTraceBegin,
-  PoolSegAccess,
+  AWLAccess,
   AWLWhiten,
   AWLGrey,
   AWLBlacken,
