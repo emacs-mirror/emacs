@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.0
 
-;;	$Id: vc.el,v 1.25 1993/03/11 07:45:02 eric Exp eric $	
+;;	$Id: vc.el,v 1.26.1.1 1993/03/16 20:54:53 eggert Exp $	
 
 ;; This file is part of GNU Emacs.
 
@@ -572,7 +572,7 @@ files in or below it."
 	(set-buffer (get-buffer-create "*vc*"))
 	(vc-file-tree-walk
 	 (function (lambda (f)
-		     (message (format "Looking at %s" f))
+		     (message "Looking at %s" f)
 		     (and
 		      (not (file-directory-p f))
 		      (vc-registered f)
@@ -1072,7 +1072,7 @@ Return nil if there is no such person."
 
 (defun vc-backend-checkout (file &optional writeable rev)
   ;; Retrieve a copy of a saved version into a workfile
-  (message "Checking out %s...done" file)
+  (message "Checking out %s..." file)
   (vc-backend-dispatch file
    (progn
      (vc-do-command 0 "get" file	;; SCCS
@@ -1181,7 +1181,6 @@ Return nil if there is no such person."
    (vc-add-triple name file (vc-latest-version file))	;; SCCS
    (vc-do-command 0 "rcs" file (concat "-n" name ":"))	;; RCS
    )
-  (message "Removing last change from %s...done" file)
   )
 
 (defun vc-backend-diff (file oldvers &optional newvers)
