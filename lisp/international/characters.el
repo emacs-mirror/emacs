@@ -283,7 +283,7 @@
 ;; Ethiopic character set
 
 (modify-category-entry '(#x1200 . #x137b) ?e)
-(let ((chars '(?ö …¡ ?ö …¢ ?ö …£ ?ö …¤ ?ö …¥ ?ö …¦ ?ö …§ ?ö …¨ ?ö ‡€ ?ö ‡‹ ?ö ‡Œ ?ö ‡ ?ö ‡Ž ?ö ‡)))
+(let ((chars '(?á¡ ?á¢ ?á£ ?á¤ ?á¥ ?á¦ ?á§ ?á¨ ?ö ‡€ ?ö ‡‹ ?ö ‡Œ ?ö ‡ ?ö ‡Ž ?ö ‡)))
   (while chars
     (modify-syntax-entry (car chars) ".")
     (setq chars (cdr chars))))
@@ -384,12 +384,12 @@
 ;;; and word syntax is the default.
 ;; (let ((deflist				;
 ;; 	'(;; chars	syntax	category
-;; 	  ("ö€€€ö€€ö€€‚"	"w"	?7) ; vowel-modifying diacritical mark
+;; 	  ("à¤à¤‚à¤ƒ"	"w"	?7) ; vowel-modifying diacritical mark
 ;; 				    ; chandrabindu, anuswar, visarga
-;; 	  ("ö€€ƒ-ö€€‘"	"w"	?1) ; base (independent) vowel
-;; 	  ("ö€€’-ö€€·"	"w"	?0) ; consonant
-;; 	  ("ö€€¹-ö€†"	"w"	?8) ; matra
-;; 	  ("ö€-ö€™"	"w"	?6) ; digit
+;; 	  ("à¤…-à¤"	"w"	?1) ; base (independent) vowel
+;; 	  ("à¤•-à¤¹"	"w"	?0) ; consonant
+;; 	  ("à¤¾-à¥‰"	"w"	?8) ; matra
+;; 	  ("à¥¦-à¥¯"	"w"	?6) ; digit
 ;; 	  ))
 ;;       elm chars len syntax category to ch i)
 ;;   (while deflist
@@ -641,20 +641,20 @@
 (map-charset-chars #'modify-category-entry 'tibetan-1-column ?q)
 
 (let ((deflist	'(;; chars             syntax category
-		  ("öž-ö‚‡ö‚ˆ"        	"w"	?0) ; consonant
-		  ("ö‚¼-öƒ¥öƒ¦öƒ§öƒ¨ö€ö€‚"       "w"     ?0) ;
+		  ("à½€-à½©à½ª"        	"w"	?0) ; consonant
+		  ("à¾-à¾¹à¾ºà¾»à¾¼ö€ö€‚"       "w"     ?0) ;
 		  ("ö„š-ö…ž"              "w"     ?0) ;
 		  ("ö…¸-ö‡Œ"              "w"     ?0) ;
-		  ("ö‚ö‚˜ö‚™ö‚šö‚›ö‚ž"       "w"	?2) ; upper vowel
-		  ("ö‚œö‚ ö‚¡ö‚¤ö‚¥ö‚¦ö‚§ö‚¨ö‚©" "w"	?2) ; upper modifier
-		  ("ö€¨ö‚Žö‚ö‚’ö‚¢ö„ö†"       "w"	?3) ; lowel vowel/modifier
-		  ("ö€¯-ö€¸ö€¹-ö‚"	        "w"	?6) ; digit
-		  ("ö€šö€œ-ö€¡ö€£ö‚"        "."     ?|) ; line-break char
-		  ("ö€šö€œö€žö€Ÿö€ ö€£ö‚"            "."     ?|) ;
-		  ("ö€—ö€šö€œ-ö€¡ö€£ö‚öŒöƒ"  "."     ?>) ; prohibition
-		  ("ö€šö€œö€žö€Ÿö€ ö€£ö‚"            "."     ?>) ;
-		  ("ö€-ö€™ö‹öƒ­öƒ®ö‚£"      "."     ?<) ; prohibition
-		  ("ö€¢ö€¤-ö€§ö€©-ö€®ö…ö‡-öŠööŽöƒªöƒ«-öƒ»" "." ?q) ; others
+		  ("à½²à½ºà½»à½¼à½½à¾€"       "w"	?2) ; upper vowel
+		  ("à½¾à¾‚à¾ƒà¾†à¾‡à¾ˆà¾‰à¾Šà¾‹" "w"	?2) ; upper modifier
+		  ("à¼™ö‚Žà½±à½´à¾„à¼µà¼·"       "w"	?3) ; lowel vowel/modifier
+		  ("à¼ -à¼©à¼ª-à¼³"	        "w"	?6) ; digit
+		  ("à¼‹à¼-à¼’à¼”à½¿"        "."     ?|) ; line-break char
+		  ("à¼‹à¼à¼à¼à¼‘à¼”à½¿"            "."     ?|) ;
+		  ("à¼ˆà¼‹à¼-à¼’à¼”à½¿à¼½à¼´"  "."     ?>) ; prohibition
+		  ("à¼‹à¼à¼à¼à¼‘à¼”à½¿"            "."     ?>) ;
+		  ("à¼€-à¼Šà¼¼à¿à¿‚à¾…"      "."     ?<) ; prohibition
+		  ("à¼“à¼•-à¼˜à¼š-à¼Ÿà¼¶à¼¸-à¼»à¼¾à¼¿à¾¾à¾¿-à¿" "." ?q) ; others
 		  ))
       elm chars len syntax category to ch i)
   (while deflist
@@ -686,15 +686,18 @@
 
 (map-charset-chars #'modify-category-entry 'vietnamese-viscii-upper ?l)
 (map-charset-chars #'modify-category-entry 'vietnamese-viscii-upper ?v)
-;; Fixme Unicode versions of Vietnamese categeory.
 
 (let ((tbl (standard-case-table))
       (i 32))
   (while (< i 128)
-    (let ((char (decode-char 'vietnamese-viscii-upper i)))
-      (if char
-	  (set-case-syntax-pair char (decode-char 'vietnamese-viscii-lower i)
-				tbl)))
+    (let* ((char (decode-char 'vietnamese-viscii-upper i))
+	   (charl (decode-char 'vietnamese-viscii-lower i))
+	   (uc (encode-char char 'ucs))
+	   (lc (encode-char charl 'ucs)))
+      (set-case-syntax-pair char (decode-char 'vietnamese-viscii-lower i)
+			    tbl)	
+      (if uc (modify-category-entry uc ?v))
+      (if lc (modify-category-entry lc ?v)))
     (setq i (1+ i))))
 
 ;; Unicode (mule-unicode-0100-24ff)
