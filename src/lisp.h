@@ -382,7 +382,7 @@ enum pvec_type
 
 #ifdef EXPLICIT_SIGN_EXTEND
 /* Make sure we sign-extend; compilers have been known to fail to do so.  */
-#define XINT(a) (((a).i << (BITS_PER_EMACS_INT - VALBITS)) \
+#define XINT(a) (((a).s.val << (BITS_PER_EMACS_INT - VALBITS)) \
 		 >> (BITS_PER_EMACS_INT - VALBITS))
 #else
 #define XINT(a) ((a).s.val)
@@ -400,7 +400,7 @@ enum pvec_type
 extern Lisp_Object make_number ();
 #endif
 
-#define EQ(x, y) ((x).s.val == (y).s.val)
+#define EQ(x, y) ((x).s.val == (y).s.val && (x).s.type == (y).s.type)
 
 #endif /* NO_UNION_TYPE */
 
