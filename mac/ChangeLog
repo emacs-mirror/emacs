@@ -1,5 +1,9 @@
 2000-12-12  Andrew Choi  <akochoi@i-cable.com>
 
+	* cw5-mcp.xml: add md5.c to project.
+
+	* cw6-mcp.xml: add md5.c to project.
+
 	* src/macfns.c (x_create_tip_frame, Fx_hide_tip): change to handle
 	Lisp_Object type tip_frame (was struct frame *) as in xfns.c.
 
