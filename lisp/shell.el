@@ -1,6 +1,6 @@
 ;;; shell.el --- specialized comint.el for running the shell.
 
-;; Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;; Maintainer: Simon Marshall <simon@gnu.ai.mit.edu>
@@ -53,11 +53,9 @@
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
 ;;
-;; ;; Define C-c t to run my favorite command in shell mode:
-;; (setq shell-mode-hook
-;;       '((lambda () 
-;;           (define-key shell-mode-map "\C-ct" 'favorite-cmd))))
-
+;; ;; Define M-# to run some strange command:
+;; (eval-after-load "shell"
+;;  '(define-key shell-mode-map "\M-#" 'shells-dynamic-spell))
 
 ;;; Brief Command Documentation:
 ;;;============================================================================
@@ -267,6 +265,8 @@ to continue it.
 
 `cd', `pushd' and `popd' commands given to the shell are watched by Emacs to
 keep this buffer's default directory the same as the shell's working directory.
+While directory tracking is enabled, the shell's working directory is displayed
+by \\[list-buffers] or \\[mouse-buffer-menu] in the `File' field.
 \\[dirs] queries the shell and resyncs Emacs' idea of what the current 
     directory stack is.
 \\[dirtrack-toggle] turns directory tracking on and off.
@@ -316,6 +316,8 @@ buffer."
   (setq shell-dirtrackp t)
   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
   (setq comint-input-autoexpand shell-input-autoexpand)
+  (make-local-variable 'list-buffers-directory)
+  (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
   (let ((shell (file-name-nondirectory (car
 		 (process-command (get-buffer-process (current-buffer)))))))
@@ -448,7 +450,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 (defun shell-process-popd (arg)
   (let ((num (or (shell-extract-num arg) 0)))
     (cond ((and num (= num 0) shell-dirstack)
-	   (cd (car shell-dirstack))
+	   (shell-cd (car shell-dirstack))
 	   (setq shell-dirstack (cdr shell-dirstack))
 	   (shell-dirstack-message))
 	  ((and num (> num 0) (<= num (length shell-dirstack)))
@@ -467,7 +469,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
     (if (file-name-absolute-p dir)
 	;; The name is absolute, so prepend the prefix.
 	(concat comint-file-name-prefix dir)
-      ;; For a relative name we assume default-directory already has the prefix.
+      ;; For relative name we assume default-directory already has the prefix.
       (expand-file-name dir))))
 
 ;;; cd [dir]
@@ -477,7 +479,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 		       ((string-equal "-" arg) shell-last-dir)
 		       (t (shell-prefixed-directory-name arg)))))
     (setq shell-last-dir default-directory)
-    (cd new-dir)
+    (shell-cd new-dir)
     (shell-dirstack-message)))
 
 ;;; pushd [+n | dir]
@@ -489,7 +491,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 		  (shell-process-pushd (concat comint-file-name-prefix "~")))
 		 (shell-dirstack
 		  (let ((old default-directory))
-		    (cd (car shell-dirstack))
+		    (shell-cd (car shell-dirstack))
 		    (setq shell-dirstack
 			  (cons old (cdr shell-dirstack)))
 		    (shell-dirstack-message)))
@@ -505,7 +507,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 		  (let ((dir (nth (1- num) shell-dirstack)))
 		    (shell-process-popd arg)
 		    (shell-process-pushd default-directory)
-		    (cd dir)
+		    (shell-cd dir)
 		    (shell-dirstack-message)))
 		 (t
 		  (let* ((ds (cons default-directory shell-dirstack))
@@ -513,13 +515,13 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 			 (front (nthcdr num ds))
 			 (back (reverse (nthcdr (- dslen num) (reverse ds))))
 			 (new-ds (append front back)))
-		    (cd (car new-ds))
+		    (shell-cd (car new-ds))
 		    (setq shell-dirstack (cdr new-ds))
 		    (shell-dirstack-message)))))
 	  (t
 	   ;; pushd <dir>
 	   (let ((old-wd default-directory))
-	     (cd (shell-prefixed-directory-name arg))
+	     (shell-cd (shell-prefixed-directory-name arg))
 	     (if (or (null shell-pushd-dunique)
 		     (not (member old-wd shell-dirstack)))
 		 (setq shell-dirstack (cons old-wd shell-dirstack)))
@@ -534,12 +536,18 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 (defun shell-dirtrack-toggle ()
   "Turn directory tracking on and off in a shell buffer."
   (interactive)
-  (setq shell-dirtrackp (not shell-dirtrackp))
+  (if (setq shell-dirtrackp (not shell-dirtrackp))
+      (setq list-buffers-directory default-directory)
+    (setq list-buffers-directory nil))
   (message "Directory tracking %s" (if shell-dirtrackp "ON" "OFF")))
 
 ;;; For your typing convenience:
 (defalias 'dirtrack-toggle 'shell-dirtrack-toggle)
 
+(defun shell-cd (dir)
+  "Do normal `cd' to DIR, and set `list-buffers-directory'."
+  (if shell-dirtrackp (setq list-buffers-directory (expand-file-name dir)))
+  (cd dir))
 
 (defun shell-resync-dirs ()
   "Resync the buffer's idea of the current directory stack.
@@ -582,7 +590,7 @@ command again."
 	(setq i (match-end 0)))
       (let ((ds (nreverse ds)))
 	(condition-case nil
-	    (progn (cd (car ds))
+	    (progn (shell-cd (car ds))
 		   (setq shell-dirstack (cdr ds))
 		   (shell-dirstack-message))
 	  (error (message "Couldn't cd.")))))))
