@@ -39,3 +39,10 @@
    XIM support.  */
 
 #define INHIBIT_X11R6_XIM
+
+/* Must use the system's termcap, if we use any termcap.
+   It does special things.  */
+
+#ifndef TERMINFO
+#define LIBS_TERMCAP -ltermcap
+#endif

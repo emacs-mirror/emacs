@@ -37,3 +37,10 @@
 #define MKDIR_PROTOTYPE \
   int mkdir (const char *dpath, unsigned short dmode)
 #endif /* __GNUC__ */
+
+/* Must use the system's termcap, if we use any termcap.
+   It does special things.  */
+
+#ifndef TERMINFO
+#define LIBS_TERMCAP -ltermcap
+#endif
