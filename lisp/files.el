@@ -627,7 +627,8 @@ Choose the buffer's name using `generate-new-buffer-name'."
 This also substitutes \"~\" for the user's home directory.
 Type \\[describe-variable] directory-abbrev-alist RET for more information."
   ;; Get rid of the prefixes added by the automounter.
-  (if (and (string-match automount-dir-prefix filename)
+  (if (and automount-dir-prefix
+	   (string-match automount-dir-prefix filename)
 	   (file-exists-p (file-name-directory
 			   (substring filename (1- (match-end 0))))))
       (setq filename (substring filename (1- (match-end 0)))))
