@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate February  1, 1999
+@set lastupdate February  2, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -611,10 +611,12 @@ information compiled by the USDA at
 @url{http://www.nal.usda.gov/fnic/foodcomp}.
 
 @item
-A fast emulator for the i386 which works by translating
-machine instructions into the machine language of the host machine.
-(Support for emulation of other machines would enhance the program
-but might make it much more difficult.)
+A fast emulator for the i386, which would make it possible
+to emulate x86 code on other CPUs, and also to more easily
+debug kernels such as Linux more conveniently.
+
+To make this faster, it could work by translating machine instructions
+into the machine language of the host machine.
 
 @item
 Optical character recognition programs; especially if suitable for
