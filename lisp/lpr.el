@@ -80,6 +80,9 @@ See definition of `print-region-1' for calling conventions.")
 	  (progn
 	    (print-region-new-buffer start end)
 	    (setq tab-width width)
+	    (save-excursion
+	      (goto-char end)
+	      (setq end (point-marker)))
 	    (untabify (point-min) (point-max))))
       (if page-headers
 	  (if (eq system-type 'usg-unix-v)
@@ -94,6 +97,8 @@ See definition of `print-region-1' for calling conventions.")
 		    (nconc (and (eq system-type 'berkeley-unix)
 				(list "-J" name "-T" name))
 			   switches)))
+      (if (markerp end)
+	  (set-marker end nil))
       (message "Spooling...done"))))
 
 ;; This function copies the text between start and end
