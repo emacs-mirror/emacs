@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/04/09 14:06:12 vinicius>
-;; Version:	5.1.4
+;; Time-stamp:	<2000/04/14 11:07:23 vinicius>
+;; Version:	5.1.5
 
-(defconst ps-print-version "5.1.4"
-  "ps-print.el, v 5.1.4 <2000/04/09 vinicius>
+(defconst ps-print-version "5.1.5"
+  "ps-print.el, v 5.1.5 <2000/04/14 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -1144,6 +1144,14 @@ Please send all bug fixes and enhancements to
 (or (fboundp 'charset-after)
     (defun charset-after (&optional arg)
       (char-charset (char-after arg))))
+
+
+(or (fboundp 'line-beginning-position)
+    (defun line-beginning-position (&optional n)
+      (save-excursion
+	(and n (/= n 1) (forward-line (1- n)))
+	(beginning-of-line)
+	(point))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2690,7 +2698,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 (defun ps-spool-without-faces (from to &optional region-p)
   (run-hooks 'ps-print-hook)
-  (ps-printing-region region-p)
+  (ps-printing-region region-p from)
   (ps-generate (current-buffer) from to 'ps-generate-postscript))
 
 
@@ -2701,7 +2709,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 (defun ps-spool-with-faces (from to &optional region-p)
   (run-hooks 'ps-print-hook)
-  (ps-printing-region region-p)
+  (ps-printing-region region-p from)
   (ps-generate (current-buffer) from to 'ps-generate-postscript-with-faces))
 
 
@@ -2725,11 +2733,11 @@ file.")
   "Non-nil means ps-print is printing a region.")
 
 
-(defun ps-printing-region (region-p)
+(defun ps-printing-region (region-p from)
   (setq ps-printing-region-p region-p
 	ps-printing-region
 	(cons (if region-p
-		  (ps-count-lines (point-min) (region-beginning))
+		  (ps-count-lines (point-min) from)
 		1)
 	      (ps-count-lines (point-min) (point-max)))))
 
