@@ -144,6 +144,13 @@ extern SIGMASKTYPE sigprocmask_set;
 #if defined (SIGURG) && defined (BROKEN_SIGURG)
 #undef SIGURG
 #endif
+#if defined (SIGAIO) && defined (BROKEN_SIGAIO)
+#undef SIGAIO
+#endif
+#if defined (SIGPTY) && defined (BROKEN_SIGPTY)
+#undef SIGPTY
+#endif
+
 
 #if NSIG < NSIG_MINIMUM
 # ifdef NSIG
