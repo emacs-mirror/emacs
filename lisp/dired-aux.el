@@ -490,12 +490,12 @@ and use this command with a prefix argument (the value does not matter)."
 	  ((file-symlink-p file)
 	   nil)
 	  ((string-match "\\.Z$" file)
-	   (if (dired-check-process (concat "Uncompressing " from-file)
-				    "uncompress" from-file)
+	   (if (dired-check-process (concat "Uncompressing " file)
+				    "uncompress" file)
 	       (substring file 0 -2)))
 	  (t
-	   (if (dired-check-process (concat "Compressing " from-file)
-				    "compress" "-f" from-file)
+	   (if (dired-check-process (concat "Compressing " file)
+				    "compress" "-f" file)
 	       (concat name ".Z"))))))
 
 (defun dired-mark-confirm (op-symbol arg)
