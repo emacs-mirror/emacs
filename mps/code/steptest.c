@@ -305,7 +305,8 @@ static void *test(void *arg, size_t s)
     size_t live, condemned, not_condemned;
     size_t messages;
     mps_word_t collections, old_collections;
-    double total_mps_time;
+    double total_mps_time, total_time;
+    double t1;
 
     arena = (mps_arena_t)arg;
     (void)s; /* unused */
@@ -350,6 +351,8 @@ static void *test(void *arg, size_t s)
     total_clock_time = 0.0;
     collections = old_collections = 0;
 
+    t1 = my_clock();
+
     while(objs < objCOUNT) {
         size_t r;
 
@@ -384,6 +387,8 @@ static void *test(void *arg, size_t s)
             fflush(stdout);
         }
     }
+
+    total_time = time_since(t1) - total_clock_time;
 
     if (collections > 0)
         printf("\n");
@@ -454,8 +459,10 @@ static void *test(void *arg, size_t s)
             print_time("(", step_time / collections, ") per collection.\n");
         }
     }
+    print_time("  Total time ", total_time, ".\n");
     print_time("  Total MPS time ", total_mps_time, "");
-    print_time(" (", total_mps_time/alloc_bytes, " per byte, ");
+    printf(" (%5.2f%%, ", total_mps_time * 100.0 / total_time);
+    print_time("", total_mps_time/alloc_bytes, " per byte, ");
     print_time("", total_mps_time/objs, " per object)\n");
     print_time("  (adjusted for clock timing: ",
                total_clock_time,
