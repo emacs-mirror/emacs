@@ -715,29 +715,41 @@ w32_draw_fringe_bitmap (w, row, p)
       SaveDC (hdc);
 
       horig_obj = SelectObject (compat_hdc, pixmap);
-      SetTextColor (hdc, face->background);
-      SetBkColor (hdc, p->cursor_p
-		        ? (p->overlay_p ? face->background
-			   : f->output_data.w32->cursor_pixel)
-			   : face->foreground);
 
       /* Paint overlays transparently.  */
       if (p->overlay_p)
 	{
-	BitBlt (hdc, p->x, p->y, p->wd, p->h,
-		compat_hdc, 0, p->dh,
-		DSTINVERT);
-	BitBlt (hdc, p->x, p->y, p->wd, p->h,
-		compat_hdc, 0, p->dh,
-		MERGEPAINT);
-	BitBlt (hdc, p->x, p->y, p->wd, p->h,
-		compat_hdc, 0, p->dh,
-		DSTINVERT);
+	  HBRUSH h_brush, h_orig_brush;
+
+	  SetTextColor (hdc, BLACK_PIX_DEFAULT (f));
+	  SetBkColor (hdc, WHITE_PIX_DEFAULT (f));
+	  h_brush = CreateSolidBrush (face->foreground);
+	  h_orig_brush = SelectObject (hdc, h_brush);
+
+	  BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		  compat_hdc, 0, p->dh,
+		  DSTINVERT);
+	  BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		  compat_hdc, 0, p->dh,
+		  0x2E064A);
+	  BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		  compat_hdc, 0, p->dh,
+		  DSTINVERT);
+
+	  SelectObject (hdc, h_orig_brush);
+	  DeleteObject (h_brush);
 	}
       else
-	BitBlt (hdc, p->x, p->y, p->wd, p->h,
-		compat_hdc, 0, p->dh,
-		SRCCOPY);
+	{
+	  SetTextColor (hdc, face->background);
+	  SetBkColor (hdc, (p->cursor_p
+			    ? f->output_data.w32->cursor_pixel
+			    : face->foreground));
+
+	  BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		  compat_hdc, 0, p->dh,
+		  SRCCOPY);
+	}
 
       SelectObject (compat_hdc, horig_obj);
       DeleteDC (compat_hdc);
