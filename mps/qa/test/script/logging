@@ -81,6 +81,51 @@ sub logcomment {
  }
 }
 
+sub logtimeline {
+ local ($secs, $slen, $slenl, $text, $barn, $barl, $barr) = @_;
+
+$barn = "***********************************************************>";
+
+$barr = "         |10s      |30s      |1min     |2min     |5min     |10min                    ";
+$barl = "*********|10s******|30s******|1min*****|2min*****|5min*****|10min                    ";
+
+ if ($secs < 10) {
+  $slen = $secs
+ } elsif ($secs < 30) {
+  $slen = ($secs + 10) / 2
+ } elsif ($secs < 60) {
+  $slen = ($secs + 30) / 3
+ } elsif ($secs < 120) {
+  $slen = ($secs + 120) / 6
+ } elsif ($secs < 300) {
+  $slen = ($secs + 600) / 18
+ } elsif ($secs < 600) {
+  $slen = ($secs + 1200) / 30
+ } else {
+  $slen = 60;
+ }
+
+ if (substr($barl, $slen-1, 1) eq "*") {
+  $slenl = $slen;
+ } elsif (substr($barl, $slen-1, 1) eq "|") {
+  $slenl = $slen - 1;
+ } else {
+  $slenl = $slen - ($slen % 10);
+ }
+
+ $secs = 9-($slen % 10);
+
+ &debug("time line: $slenl, $slen, $secs");
+
+ $text = substr($barl, 0, $slenl);
+ $text = substr($barn, $slenl-1, $slen-$slenl);
+ $text = substr($barr, $slen+$secs, 80-$slen-$secs); 
+
+ $text = substr($barl, 0, $slenl) . substr($barn, $slenl, $slen-$slenl) . (" " x $secs) . substr($barr, $slen+$secs, 80-$slen-$secs);
+ $text =~ s/[^>\*]*$//;
+ return $text;
+}
+
 #
 # what the output looks like:
 #
@@ -95,6 +140,8 @@ format LOGHEAD =
 ------------------------------------------------------------------------
 @<<<ED TEST @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $testconclusion, $testfile
+@<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testtimeline
 .
 
 format LOGVALS =
@@ -109,7 +156,12 @@ $testconclusion, $testconcreason
 .
 
 format LOGSUMM = 
-@<<<ED TEST @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-$testconclusion, $testfile
+@<<< @<<<<<<<<<<<<<< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testconclusion, $testfile, $testtimeline
+.
+
+format TESTTAB =
+@<<<<<<<<<<<<<<<
+$key
 .
 
