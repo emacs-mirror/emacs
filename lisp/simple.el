@@ -3924,7 +3924,7 @@ The completion list buffer is available as the value of `standard-output'.")
 			    (buffer-name mainbuf))
 	      (setq completion-base-size 0))))
       (goto-char (point-min))
-      (if window-system
+      (if (display-mouse-p)
 	  (insert (substitute-command-keys
 		   "Click \\[mouse-choose-completion] on a completion to select it.\n")))
       (insert (substitute-command-keys
