@@ -1,3 +1,13 @@
+2002-10-27  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (note_mouse_highlight): Don't use mouse-face if hidden.
+
+	* w32term.c (note_mouse_highlight): Don't use mouse-face if hidden.
+
+	* msdos.c (IT_note_mouse_highlight): Don't use mouse-face if hidden.
+
+	* macterm.c (note_mouse_highlight): Don't use mouse-face if hidden.
+
 2002-10-26  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (Fformat): Detect invalid format letters for floats.
