@@ -877,7 +877,9 @@ underline.  @xref{Face Customization}.
 @cindex comments
 
   Because comments are such an important part of programming, Emacs
-provides special commands for editing and inserting comments.
+provides special commands for editing and inserting comments.  It can
+also do spell checking on comments with Flyspell Prog mode
+(@pxref{Spelling}).
 
 @menu
 * Comment Commands::    Inserting, killing, and indenting comments.
