@@ -243,6 +243,10 @@ extern short ospeed;
    Under Unix, this is normally zero except when using X;
    under VMS, we place the input channel number here.  */
 int input_fd;
+
+void croak P_ ((char *));
+
+
 
 /* Specify a different file descriptor for further input operations.  */
 
