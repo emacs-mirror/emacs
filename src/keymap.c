@@ -1438,8 +1438,11 @@ Control characters turn into C-whatever, etc.")
     case Lisp_Symbol:		/* Function key or event-symbol */
       return Fsymbol_name (key);
 
+    case Lisp_String:
+      return key;
+
     default:
-      error ("KEY must be an integer, cons, or symbol.");
+      error ("KEY must be an integer, cons, string, or symbol.");
     }
 }
 
