@@ -65,7 +65,7 @@ Known problems:
 	* Mac, Windows and DOS support is broken, probably doesn't
 	  even compile -- this will be solved later.
 
-	* Only tested on my GNU/Linux box, Solaris 8 and FreeBSD.
+	* Tested on GNU/Linux, Solaris 8, FreeBSD and OpenBSD.
 
 
 HOW TO GET THE BRANCH
@@ -178,7 +178,7 @@ I use the following two bash functions to handle my Emacs sessions:
 | 
 |     if [ ! -e "$screendir"/*."$name" ]; then
 | 	if [ -e "$serverdir/$name" ]; then
-| 	    # Delete leftover socket (for preload-emacs-wait)
+| 	    # Delete leftover socket (for the wait option)
 | 	    rm "$serverdir/$name"
 | 	fi
 | 	screen -dmS "$name" "$emacs" -nw --eval "(setq server-name \"$name\")" -f server-start
@@ -217,25 +217,6 @@ I use the following two bash functions to handle my Emacs sessions:
 | alias edit="connect-emacs editor"
 | alias et="connect-emacs editor -t"
 | alias e=edit
-`----
-
-The following settings prevent me from accidentally killing the Emacs
-session.  (Maybe this should be the default binding of C-x C-c.)
-
-,----[ ~/.emacs
-| (defun lk-exit-emacs-or-delete-frame (&optional arg)
-|   "If the current frame has a client, kill it; otherwise kill Emacs itself.
-| Offer to save each buffer before the murder.  With prefix arg,
-| ignore client status and kill Emacs."
-|   (interactive "P")
-|   (let ((proc (frame-parameter (selected-frame) 'client)))
-|     (if (and (not arg) proc)
-| 	(progn
-| 	  (save-some-buffers nil t)
-| 	  (server-delete-client proc))
-|       (save-buffers-kill-emacs))))
-| 
-| (global-set-key (kbd "C-x C-c") 'lk-exit-emacs-or-delete-frame)
 `----
 
 
@@ -286,6 +267,7 @@ to the project by testing, submitting patches, bug reports, and
 suggestions.  Thanks!
 
 ARISAWA Akihiro <ari at mbf dot ocn dot ne dot jp>
+Han Boetes <han at mijncomputer dot nl>
 Robert J. Chassell <bob at rattlesnake dot com>
 Romain Francoise <romain at orebokech dot com>
 Ami Fischman <ami at fischman dot org>
