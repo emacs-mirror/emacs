@@ -46,6 +46,27 @@ Emacs with Leim.
 
 * Changes in Emacs 21.4
 
+---
+** The new options `buffers-menu-show-directories' and
+`buffers-menu-show-status' let you control how buffers are displayed
+in the menu dropped down when you click "Buffers" from the menu bar.
+
+`buffers-menu-show-directories' controls whether the menu displays
+leading directories as part of the file name visited by the buffer.
+If its value is `unless-uniquify', the default, directories will be
+shown unless uniquify-buffer-name-style' is non-nil.  The value of nil
+and t turn the display of directories off and on, respectively.
+
+`buffers-menu-show-status' controls whether the Buffers menu includes
+the modified and read-only status of the buffers.  By default it is
+t, and the status is shown.
+
+Setting these variables directly does not take effect until next time
+the Buffers menu is regenerated.
+
++++
+** `C-u C-x =' now displays text properties of the character at point.
+
 ** The commands M-x customize-face and M-x customize-face-other-window
 now look at the text at point.  If that text has a face specified,
 the commands suggest to customize that face.
