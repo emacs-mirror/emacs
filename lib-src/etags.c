@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 14.21";
+char pot_etags_version[] = "@(#) pot revision number is 14.26";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -61,6 +61,7 @@ char pot_etags_version[] = "@(#) pot revision number is 14.21";
 #else
 # ifndef __STDC__
 #   define static		/* remove static for old compilers' sake */
+#   define const		/* same for const */
 # endif
 #endif /* !HAVE_CONFIG_H */
 
@@ -148,6 +149,14 @@ char pot_etags_version[] = "@(#) pot revision number is 14.21";
 #endif /* LONG_OPTIONS */
 
 #ifdef ETAGS_REGEXPS
+# ifndef HAVE_CONFIG_H		/* this is a standalone compilation */
+#   ifdef __CYGWIN__         	/* compiling on Cygwin */
+			     !!! NOTICE !!!
+ the regex.h distributed with Cygwin is not compatible with etags, alas!
+If you want regular expression support, you should delete this notice and
+	      arrange to use the GNU regex.h and regex.c.
+#   endif
+# endif
 # include <regex.h>
 #endif /* ETAGS_REGEXPS */
 
@@ -272,6 +281,7 @@ static void Lisp_functions P_((FILE *));
 static void Makefile_targets P_((FILE *));
 static void Pascal_functions P_((FILE *));
 static void Perl_functions P_((FILE *));
+static void PHP_functions P_((FILE *));
 static void Postscript_functions P_((FILE *));
 static void Prolog_functions P_((FILE *));
 static void Python_functions P_((FILE *));
@@ -521,6 +531,9 @@ char *Perl_suffixes [] =
 char *Perl_interpreters [] =
   { "perl", "@PERL@", NULL };
 
+char *PHP_suffixes [] =
+  { "php", "php3", "php4", NULL };
+
 char *plain_C_suffixes [] =
   { "lm",			/* Objective lex file */
     "m",			/* Objective C file */
@@ -571,6 +584,7 @@ language lang_names [] =
   { "makefile",   Makefile_targets,     Makefile_filenames, NULL,     	NULL },
   { "pascal",  	  Pascal_functions,    	NULL, Pascal_suffixes,     	NULL },
   { "perl",    	  Perl_functions,     NULL, Perl_suffixes, Perl_interpreters },
+  { "php",  	  PHP_functions,    	NULL, PHP_suffixes,     	NULL },
   { "postscript", Postscript_functions, NULL, Postscript_suffixes, 	NULL },
   { "proc",    	  plain_C_entries,     	NULL, plain_C_suffixes,    	NULL },
   { "prolog",  	  Prolog_functions,    	NULL, Prolog_suffixes,     	NULL },
@@ -3582,7 +3596,7 @@ Yacc_entries (inf)
 }
 
 
-/* A useful macro. */
+/* Useful macros. */
 #define LOOP_ON_INPUT_LINES(file_pointer, line_buffer, char_pointer)	\
   for (lineno = charno = 0;	/* loop initialization */		\
        !feof (file_pointer)	/* loop test */				\
@@ -3592,7 +3606,10 @@ Yacc_entries (inf)
 	   char_pointer = lb.buffer,					\
 	   TRUE);							\
       )
-
+#define LOOKING_AT(cp, keyword)	/* keyword is a constant string */	\
+  (strneq ((cp), keyword, sizeof(keyword)-1) /* cp points at kyword */	\
+   && iswhite((cp)[sizeof(keyword)-1])	/* followed by a blank */	\
+   && ((cp) = skip_spaces((cp)+sizeof(keyword)-1))) /* skip blanks */
 
 /*
  * Read a file, but do no processing.  This is used to do regexp
@@ -3971,11 +3988,8 @@ Perl_functions (inf)
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
-      if (*cp++ == 's'
-	  && *cp++ == 'u'
-	  && *cp++ == 'b' && iswhite (*cp++))
+      if (LOOKING_AT (cp, "sub"))
 	{
-	  cp = skip_spaces (cp);
  	  if (*cp != '\0')
  	    {
 	      char *sp = cp;
@@ -3987,15 +4001,8 @@ Perl_functions (inf)
  	    }
  	}
        else if (globals		/* only if tagging global vars is enabled */
-		&& ((cp = lb.buffer,
-		     *cp++ == 'm'
-		     && *cp++ == 'y')
-		    || (cp = lb.buffer,
-			*cp++ == 'l'
-			&& *cp++ == 'o'
-			&& *cp++ == 'c'
-			&& *cp++ == 'a'
-			&& *cp++ == 'l'))
+		&& ((strneq (cp, "my", 2) && (cp+=2))
+		    || (strneq (cp, "local", 5) && (cp+=5)))
 		&& (*cp == '(' || iswhite (*cp)))
  	{
  	  /* After "my" or "local", but before any following paren or space. */
@@ -4025,7 +4032,7 @@ Perl_functions (inf)
     }
 }
 
-
+
 /*
  * Python support
  * Look for /^def[ \t\n]+[^ \t\n(:]+/ or /^class[ \t\n]+[^ \t\n(:]+/
@@ -4038,29 +4045,89 @@ Python_functions (inf)
   register char *cp;
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
+    if (LOOKING_AT (cp, "def") || LOOKING_AT (cp, "class"))
+      {
+	while (*cp != '\0' && !iswhite (*cp) && *cp != '(' && *cp != ':')
+	  cp++;
+	pfnote (NULL, TRUE,
+		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+      }
+}
+
+
+/*
+ * PHP support
+ * Look for:
+ *  - /^[ \t]*function[ \t\n]+[^ \t\n(]+/
+ *  - /^[ \t]*class[ \t\n]+[^ \t\n]+/
+ *  - /^[ \t]*define\(\"[^\"]+/
+ * Only with --members:
+ *  - /^[ \t]*var[ \t\n]+\$[^ \t\n=;]/
+ * originally by Diez B. Roggisch 2001-06-06
+ */
+static void
+PHP_functions (inf)
+     FILE *inf;
+{
+  register char *cp;
+  bool search_identifier = FALSE;
+
+  LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
-      if (*cp++ == 'd'
-	  && *cp++ == 'e'
-	  && *cp++ == 'f' && iswhite (*cp++))
+      cp = skip_spaces (cp);
+      if (search_identifier
+	  && *cp != '\0')
 	{
-	  cp = skip_spaces (cp);
-	  while (*cp != '\0' && !iswhite (*cp) && *cp != '(' && *cp != ':')
+	  while (*cp != '\0' && !iswhite (*cp) && *cp != '(')
 	    cp++;
 	  pfnote (NULL, TRUE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	  search_identifier = FALSE;
 	}
-
-      cp = lb.buffer;
-      if (*cp++ == 'c'
-	  && *cp++ == 'l'
-	  && *cp++ == 'a'
-	  && *cp++ == 's'
-	  && *cp++ == 's' && iswhite (*cp++))
+      else if (LOOKING_AT (cp, "function"))
 	{
-	  cp = skip_spaces (cp);
-	  while (*cp != '\0' && !iswhite (*cp) && *cp != '(' && *cp != ':')
+	  if(*cp == '&')
+	    cp = skip_spaces (cp+1);
+	  if(*cp != '\0')
+	    {
+	      while (*cp != '\0' && !iswhite (*cp) && *cp != '(')
+		cp++;
+	      pfnote (NULL, TRUE,
+		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	    }
+	  else
+	    search_identifier = TRUE;
+	}
+      else if (LOOKING_AT (cp, "class"))
+	{
+	  if (*cp != '\0')
+	    {
+	      while (*cp != '\0' && !iswhite (*cp))
+		cp++;
+	      pfnote (NULL, FALSE,
+		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	    }
+	  else
+	    search_identifier = TRUE;
+	}
+      else if (strneq (cp, "define", 6)
+	       && (cp = skip_spaces (cp+6))
+	       && *cp++ == '('
+	       && (*cp == '"' || *cp == '\''))
+	{
+	  char quote = *cp++;
+	  while (*cp != quote && *cp != '\0')
 	    cp++;
-	  pfnote (NULL, TRUE,
+	  pfnote (NULL, FALSE,
+		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	}
+      else if (members
+	       && LOOKING_AT (cp, "var")
+	       && *cp == '$')
+	{
+	  while (*cp != '=' && *cp != ';' && *cp != '\0' && !iswhite(*cp))
+	    cp++;
+	  pfnote (NULL, FALSE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
     }
@@ -4461,17 +4528,8 @@ Scheme_functions (inf)
 	    bp++;
 	  get_tag (bp);
 	}
-      if (bp[0] == '('
-	  && (bp[1] == 'S' || bp[1] == 's')
-	  && (bp[2] == 'E' || bp[2] == 'e')
-	  && (bp[3] == 'T' || bp[3] == 't')
-	  && (bp[4] == '!' || bp[4] == '!')
-	  && (iswhite (bp[5])))
-	{
-	  bp = skip_non_spaces (bp);
-	  bp = skip_spaces (bp);
-	  get_tag (bp);
-	}
+      if (LOOKING_AT (bp, "(SET!") || LOOKING_AT (bp, "(set!"))
+	get_tag (bp);
     }
 }
 
@@ -4666,20 +4724,14 @@ Texinfo_nodes (inf)
 {
   char *cp, *start;
   LOOP_ON_INPUT_LINES (inf, lb, cp)
-    {
-      if ((*cp++ == '@'
-	   && *cp++ == 'n'
-	   && *cp++ == 'o'
-	   && *cp++ == 'd'
-	   && *cp++ == 'e' && iswhite (*cp++)))
-	{
-	  start = cp = skip_spaces(cp);
-	  while (*cp != '\0' && *cp != ',')
-	    cp++;
-	  pfnote (savenstr (start, cp - start), TRUE,
-		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
-	}
-    }
+    if (LOOKING_AT (cp, "@node"))
+      {
+	start = cp;
+	while (*cp != '\0' && *cp != ',')
+	  cp++;
+	pfnote (savenstr (start, cp - start), TRUE,
+		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+      }
 }
 
 
@@ -4689,7 +4741,7 @@ Texinfo_nodes (inf)
  * Assumes that the predicate starts at column 0.
  * Only the first clause of a predicate is added.
  */
-static int prolog_pred P_((char *, char *));
+static int prolog_pr P_((char *, char *));
 static void prolog_skip_comment P_((linebuffer *, FILE *));
 static int prolog_atom P_((char *, int));
 
@@ -4713,7 +4765,7 @@ Prolog_functions (inf)
 	continue;
       else if (cp[0] == '/' && cp[1] == '*')	/* comment. */
 	prolog_skip_comment (&lb, inf);
-      else if ((len = prolog_pred (cp, last)) > 0)
+      else if ((len = prolog_pr (cp, last)) > 0)
 	{
 	  /* Predicate.  Store the function name so that we only
 	     generate a tag for the first clause.  */
@@ -4748,17 +4800,18 @@ prolog_skip_comment (plb, inf)
 }
 
 /*
- * A predicate definition is added if it matches:
+ * A predicate or rule definition is added if it matches:
  *     <beginning of line><Prolog Atom><whitespace>(
+ * or  <beginning of line><Prolog Atom><whitespace>:-
  *
  * It is added to the tags database if it doesn't match the
  * name of the previous clause header.
  *
- * Return the size of the name of the predicate, or 0 if no header
- * was found.
+ * Return the size of the name of the predicate or rule, or 0 if no
+ * header was found.
  */
 static int
-prolog_pred (s, last)
+prolog_pr (s, last)
      char *s;
      char *last;		/* Name of last clause. */
 {
@@ -4772,21 +4825,18 @@ prolog_pred (s, last)
   len = pos;
   pos = skip_spaces (s + pos) - s;
 
-  if ((s[pos] == '(') || (s[pos] == '.'))
-    {
-      if (s[pos] == '(')
-	pos++;
-
-      /* Save only the first clause. */
-      if (last == NULL
-	  || len != (int)strlen (last)
-	  || !strneq (s, last, len))
+  if ((s[pos] == '.'
+       || (s[pos] == '(' && (pos += 1))
+       || (s[pos] == ':' && s[pos + 1] == '-' && (pos += 2)))
+      && (last == NULL		/* save only the first clause */
+	  || len != strlen (last)
+	  || !strneq (s, last, len)))
 	{
 	  pfnote (savenstr (s, len), TRUE, s, pos, lineno, linecharno);
 	  return len;
 	}
-    }
-  return 0;
+  else
+    return 0;
 }
 
 /*
@@ -5817,3 +5867,12 @@ xrealloc (ptr, size)
     fatal ("virtual memory exhausted", (char *)NULL);
   return result;
 }
+
+/*
+ * Local Variables:
+ * c-indentation-style: gnu
+ * indent-tabs-mode: t
+ * tab-width: 8
+ * c-font-lock-extra-types: ("FILE" "bool" "linebuffer")
+ * End:
+ */
