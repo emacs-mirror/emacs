@@ -1664,6 +1664,9 @@ free_face_colors (f, face)
      struct face *face;
 {
 #ifdef HAVE_X_WINDOWS
+  if (face->colors_copied_bitwise_p)
+    return;
+
   BLOCK_INPUT;
 
   if (!face->foreground_defaulted_p)
@@ -6350,12 +6353,7 @@ realize_x_face (cache, attrs, c, base_face)
       face->gc = 0;
 
       /* Don't try to free the colors copied bitwise from BASE_FACE.  */
-      face->foreground_defaulted_p = 1;
-      face->background_defaulted_p = 1;
-      face->underline_defaulted_p = 1;
-      face->overline_color_defaulted_p = 1;
-      face->strike_through_color_defaulted_p = 1;
-      face->box_color_defaulted_p = 1;
+      face->colors_copied_bitwise_p = 1;
 
       /* to force realize_face to load font */
       face->font = NULL;
