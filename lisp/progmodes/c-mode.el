@@ -1271,24 +1271,25 @@ When going forwards, `#elif' is ignored."
 			;; the regexp matcher.
 			(funcall search-function
 				 "#[ \t]*\\(if\\|elif\\|endif\\)"
-				 nil t)
-			(progn
-			  (beginning-of-line)
-			  (looking-at "^[ \t]*#[ \t]*\\(if\\|elif\\|endif\\)")))
-	      ;; Update depth according to what we found.
+				 nil t))
 	      (beginning-of-line)
-	      (cond ((looking-at "[ \t]*#[ \t]*endif")
-		     (setq depth (+ depth increment)))
-		    ((looking-at "[ \t]*#[ \t]*elif")
-		     (if (and forward (= depth 0))
-			 (setq found (point))))
-		    (t (setq depth (- depth increment))))
-	      ;; If this line exits a level of conditional, exit inner loop.
-	      (if (< depth 0)
-		  (setq found (point)))
-	      ;; When searching forward, start from end of line
-	      ;; so that we don't find the same line again.
-	      (if forward (end-of-line))))
+	      ;; Now verify it is really a preproc line.
+	      (if (looking-at "^[ \t]*#[ \t]*\\(if\\|elif\\|endif\\)")
+		  (progn
+		    ;; Update depth according to what we found.
+		    (beginning-of-line)
+		    (cond ((looking-at "[ \t]*#[ \t]*endif")
+			   (setq depth (+ depth increment)))
+			  ((looking-at "[ \t]*#[ \t]*elif")
+			   (if (and forward (= depth 0))
+			       (setq found (point))))
+			  (t (setq depth (- depth increment))))
+		    ;; If this line exits a level of conditional, exit inner loop.
+		    (if (< depth 0)
+			(setq found (point)))
+		    ;; When searching forward, start from end of line
+		    ;; so that we don't find the same line again.
+		    (if forward (end-of-line))))))
 	  (or found
 	      (error "No containing preprocessor conditional"))
 	  (goto-char (setq new found)))
