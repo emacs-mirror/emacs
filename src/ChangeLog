@@ -1,3 +1,7 @@
+2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keyboard.c: Don't define min/max.
+
 2001-10-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c, xmenu.c, xfns.c, xdisp.c, window.c: 

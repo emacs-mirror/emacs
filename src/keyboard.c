@@ -696,9 +696,6 @@ static void any_kboard_state P_ ((void));
    to support it.  */
 static int cannot_suspend;
 
-#define	min(a,b)	((a)<(b)?(a):(b))
-#define	max(a,b)	((a)>(b)?(a):(b))
-
 /* Install the string STR as the beginning of the string of echoing,
    so that it serves as a prompt for the next character.
    Also start echoing.  */
