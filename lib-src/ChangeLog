@@ -1,3 +1,8 @@
+2001-01-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* ebrowse.c (xfree): New function.
+	(member, declaration, globals): Use xmalloc instead of alloca.
+
 2001-01-15  Francesco Potorti`  <pot@pot.cnuce.cnr.it>
 
 	* etags.c (print_language_names): Print filenames in addition to

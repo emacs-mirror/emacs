@@ -1,5 +1,10 @@
 2001-01-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-lazy-highlight-case-fold-search)
+	(isearch-lazy-highlight-regexp): New variables.
+	(isearch-lazy-highlight-cleanup): Update lazy highlight if
+	case-fold search or regexp search has been toggled.
+
 	* wid-edit.el (widget-button-click): Avoid a save-excursion
 	around running a global binding.
 
