@@ -599,18 +599,13 @@ See `compilation-mode'."
     (forward-char -1)
     (insert " at " (substring (current-time-string) 0 19))
     (forward-char 1)
-    (setq mode-line-process
-	  (format ":%s [%s]"
-		  (if (fboundp 'process-status)
-		      (process-status proc) 
-		    "")
-		  (cdr status)))
+    (setq mode-line-process (format ":%s [%s]" process-status (cdr status)))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
 	(goto-char opoint))
     (if compilation-finish-function
-	(funcall compilation-finish-function buffer msg))))
+	(funcall compilation-finish-function (current-buffer) msg))))
 
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)
