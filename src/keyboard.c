@@ -317,7 +317,10 @@ int last_auto_save;
 /* The command being executed by the command loop.
    Commands may set this, and the value set will be copied into
    current_kboard->Vlast_command instead of the actual command.  */
-Lisp_Object this_command;
+Lisp_Object Vthis_command;
+
+/* This is like Vthis_command, except that commands never set it.  */
+Lisp_Object real_this_command;
 
 /* The value of point when the last command was executed.  */
 int last_point_position;
@@ -368,6 +371,10 @@ extern Lisp_Object Vkey_translation_map;
 Lisp_Object Vinput_method_function;
 Lisp_Object Qinput_method_function;
 
+/* When we call Vinput_method_function,
+   this holds the echo area message that was just erased.  */
+Lisp_Object Vinput_method_previous_message;
+
 /* Non-nil means deactivate the mark at end of this command.  */
 Lisp_Object Vdeactivate_mark;
 
@@ -395,6 +402,9 @@ Lisp_Object Vdeferred_action_list;
 /* Function to call to handle deferred actions, when there are any.  */
 Lisp_Object Vdeferred_action_function;
 Lisp_Object Qdeferred_action_function;
+
+Lisp_Object Qinput_method_exit_on_first_char;
+Lisp_Object Qinput_method_use_echo_area;
 
 /* File in which we write all commands we read.  */
 FILE *dribble;
@@ -1185,8 +1195,8 @@ command_loop_1 ()
     }
 
   /* Do this after running Vpost_command_hook, for consistency.  */
-  current_kboard->Vlast_command = this_command;
-  current_kboard->Vreal_last_command = this_command;
+  current_kboard->Vlast_command = Vthis_command;
+  current_kboard->Vreal_last_command = real_this_command;
 
   while (1)
     {
@@ -1253,7 +1263,8 @@ command_loop_1 ()
       before_command_key_count = this_command_key_count;
       before_command_echo_length = echo_length ();
 
-      this_command = Qnil;
+      Vthis_command = Qnil;
+      real_this_command = Qnil;
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
@@ -1318,13 +1329,14 @@ command_loop_1 ()
 
       /* Execute the command.  */
 
-      this_command = cmd;
+      Vthis_command = cmd;
+      real_this_command = cmd;
       /* Note that the value cell will never directly contain nil
 	 if the symbol is a local variable.  */
       if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
 	safe_run_hooks (Qpre_command_hook);
       
-      if (NILP (this_command))
+      if (NILP (Vthis_command))
 	{
 	  /* nil means key is undefined.  */
 	  bitch_at_user ();
@@ -1341,7 +1353,7 @@ command_loop_1 ()
 
 	      /* Recognize some common commands in common situations and
 		 do them directly.  */
-	      if (EQ (this_command, Qforward_char) && PT < ZV)
+	      if (EQ (Vthis_command, Qforward_char) && PT < ZV)
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
@@ -1370,7 +1382,7 @@ command_loop_1 ()
 		    no_redisplay = direct_output_forward_char (1);
 		  goto directly_done;
 		}
-	      else if (EQ (this_command, Qbackward_char) && PT > BEGV)
+	      else if (EQ (Vthis_command, Qbackward_char) && PT > BEGV)
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
@@ -1396,7 +1408,7 @@ command_loop_1 ()
 		    no_redisplay = direct_output_forward_char (-1);
 		  goto directly_done;
 		}
-	      else if (EQ (this_command, Qself_insert_command)
+	      else if (EQ (Vthis_command, Qself_insert_command)
 		       /* Try this optimization only on ascii keystrokes.  */
 		       && INTEGERP (last_command_char))
 		{
@@ -1480,7 +1492,7 @@ command_loop_1 ()
 	  nonundocount = 0;
 	  if (NILP (current_kboard->Vprefix_arg))
 	    Fundo_boundary ();
-	  Fcommand_execute (this_command, Qnil, Qnil, Qnil);
+	  Fcommand_execute (Vthis_command, Qnil, Qnil, Qnil);
 	}
     directly_done: ;
       current_kboard->Vlast_prefix_arg = Vcurrent_prefix_arg;
@@ -1518,8 +1530,8 @@ command_loop_1 ()
 	 then the above doesn't apply.  */
       if (NILP (current_kboard->Vprefix_arg) || CONSP (last_command_char))
 	{
-	  current_kboard->Vlast_command = this_command;
-	  current_kboard->Vreal_last_command = this_command;
+	  current_kboard->Vlast_command = Vthis_command;
+	  current_kboard->Vreal_last_command = real_this_command;
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	  this_single_command_key_start = 0;
@@ -1788,17 +1800,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   jmp_buf save_jump;
   int key_already_recorded = 0;
   Lisp_Object tem, save;
+  Lisp_Object echo_area_message;
   Lisp_Object also_record;
   int reread;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
 
   also_record = Qnil;
 
   before_command_key_count = this_command_key_count;
   before_command_echo_length = echo_length ();
   c = Qnil;
+  echo_area_message = Qnil;
 
-  GCPRO1 (c);
+  GCPRO2 (c, echo_area_message);
 
  retry:
 
@@ -2274,11 +2288,6 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto retry;
     }
 
-  /* Wipe the echo area.  */
-  if (echo_area_glyphs)
-    safe_run_hooks (Qecho_area_clear_hook);
-  echo_area_glyphs = 0;
-
   /* Handle things that only apply to characters.  */
   if (INTEGERP (c))
     {
@@ -2331,27 +2340,53 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (! NILP (also_record))
     record_char (also_record);
 
+  /* Wipe the echo area.
+     But first, if we are about to use an input method,
+     save the echo area contents for it to refer to.  */
+  if (INTEGERP (c)
+      && ! NILP (Vinput_method_function)
+      && (unsigned) XINT (c) >= ' '
+      && (unsigned) XINT (c) < 127)
+    Vinput_method_previous_message = echo_area_message = Fcurrent_message ();
+
+  /* Now wipe the echo area.  */
+  if (echo_area_glyphs)
+    safe_run_hooks (Qecho_area_clear_hook);
+  echo_area_glyphs = 0;
+
  reread_for_input_method:
  from_macro:
   /* Pass this to the input method, if appropriate.  */
-  if (INTEGERP (c))
+  if (INTEGERP (c)
+      && ! NILP (Vinput_method_function)
+      && (unsigned) XINT (c) >= ' '
+      && (unsigned) XINT (c) < 127)
     {
-      /* If this is a printing character, run the input method.  */
-      if (! NILP (Vinput_method_function)
-	  && (unsigned) XINT (c) >= ' '
-	  && (unsigned) XINT (c) < 127)
+      Lisp_Object keys; 
+      int key_count = this_command_key_count - 1;
+      int saved = current_kboard->immediate_echo;
+      struct gcpro gcpro1;
+
+      keys = Fcopy_sequence (this_command_keys);
+      GCPRO1 (keys);
+      tem = call1 (Vinput_method_function, c);
+      UNGCPRO;
+      current_kboard->immediate_echo = saved;
+      /* The input method can return no events.  */
+      if (! CONSP (tem))
 	{
-	  int saved = current_kboard->immediate_echo;
-	  tem = call1 (Vinput_method_function, c);
-	  current_kboard->immediate_echo = saved;
-	  /* The input method can return no events.  */
-	  if (! CONSP (tem))
-	    goto retry;
-	  /* It returned one event or more.  */
-	  c = XCONS (tem)->car;
-	  Vunread_post_input_method_events
-	    = nconc2 (XCONS (tem)->cdr, Vunread_post_input_method_events);
+	  /* Bring back the previous message, if any.  */
+	  if (! NILP (Vinput_method_previous_message))
+	    message_with_string ("%s", echo_area_message, 0);
+	  this_command_keys = keys;
+	  this_command_key_count = key_count;
+	  cancel_echoing ();
+	  goto retry;
 	}
+      /* It returned one event or more.  */
+      c = XCONS (tem)->car;
+      Vunread_post_input_method_events
+	= nconc2 (XCONS (tem)->cdr, Vunread_post_input_method_events);
     }
 
  reread_first:
@@ -7611,23 +7646,35 @@ is nil, then the event will be put off until after the current key sequence.\n\
 \n\
 `read-key-sequence' checks `function-key-map' for function key\n\
 sequences, where they wouldn't conflict with ordinary bindings.  See\n\
-`function-key-map' for more details.")
+`function-key-map' for more details.\n\
+\n\
+The optional fifth argument COMMAND-LOOP, if non-nil, means\n\
+that this key sequence is being read by something that will\n\
+read commands one after another.  It should be nil if the caller\n\
+will read just one key sequence.")
   (prompt, continue_echo, dont_downcase_last, can_return_switch_frame)
 #endif
 
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
+DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
   0)
-  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame)
+  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
+   command_loop)
      Lisp_Object prompt, continue_echo, dont_downcase_last;
-     Lisp_Object can_return_switch_frame;
+     Lisp_Object can_return_switch_frame, command_loop;
 {
   Lisp_Object keybuf[30];
   register int i;
   struct gcpro gcpro1, gcpro2;
+  int count = specpdl_ptr - specpdl;
 
   if (!NILP (prompt))
     CHECK_STRING (prompt, 0);
   QUIT;
+
+  specbind (Qinput_method_exit_on_first_char,
+	    (NILP (command_loop) ? Qt : Qnil));
+  specbind (Qinput_method_use_echo_area,
+	    (NILP (command_loop) ? Qt : Qnil));
 
   bzero (keybuf, sizeof keybuf);
   GCPRO1 (keybuf[0]);
@@ -7649,23 +7696,30 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
       QUIT;
     }
   UNGCPRO;
-  return make_event_array (i, keybuf);
+  return unbind_to (count, make_event_array (i, keybuf));
 }
 
 DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
-       Sread_key_sequence_vector, 1, 4, 0,
+       Sread_key_sequence_vector, 1, 5, 0,
   "Like `read-key-sequence' but always return a vector.")
-  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame)
+  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
+   command_loop)
      Lisp_Object prompt, continue_echo, dont_downcase_last;
-     Lisp_Object can_return_switch_frame;
+     Lisp_Object can_return_switch_frame, command_loop;
 {
   Lisp_Object keybuf[30];
   register int i;
   struct gcpro gcpro1, gcpro2;
+  int count = specpdl_ptr - specpdl;
 
   if (!NILP (prompt))
     CHECK_STRING (prompt, 0);
   QUIT;
+
+  specbind (Qinput_method_exit_on_first_char,
+	    (NILP (command_loop) ? Qt : Qnil));
+  specbind (Qinput_method_use_echo_area,
+	    (NILP (command_loop) ? Qt : Qnil));
 
   bzero (keybuf, sizeof keybuf);
   GCPRO1 (keybuf[0]);
@@ -7687,7 +7741,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
       QUIT;
     }
   UNGCPRO;
-  return Fvector (i, keybuf);
+  return unbind_to (count, Fvector (i, keybuf));
 }
 
 DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 4, 0,
@@ -7870,7 +7924,8 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
   function = Fintern (function, Qnil);
   current_kboard->Vprefix_arg = prefixarg;
-  this_command = function;
+  Vthis_command = function;
+  real_this_command = function;
 
   /* If enabled, show which key runs this command.  */
   if (!NILP (Vsuggest_key_bindings)
@@ -8736,6 +8791,9 @@ syms_of_keyboard ()
   staticpro (&item_properties);
   item_properties = Qnil;
 
+  staticpro (&real_this_command);
+  real_this_command = Qnil;
+
   Qtimer_event_handler = intern ("timer-event-handler");
   staticpro (&Qtimer_event_handler);
 
@@ -8843,6 +8901,14 @@ syms_of_keyboard ()
 
   Qinput_method_function = intern ("input-method-function");
   staticpro (&Qinput_method_function);
+
+  Qinput_method_exit_on_first_char = intern ("input-method-exit-on-first-char");
+  staticpro (&Qinput_method_exit_on_first_char);
+  Qinput_method_use_echo_area = intern ("input-method-use-echo-area");
+  staticpro (&Qinput_method_use_echo_area);
+
+  Fset (Qinput_method_exit_on_first_char, Qnil);
+  Fset (Qinput_method_use_echo_area, Qnil);
 
   {
     struct event_head *p;
@@ -9000,11 +9066,11 @@ was a kill command.");
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
     "Same as `last-command', but never altered by Lisp code.");
 
-  DEFVAR_LISP ("this-command", &this_command,
+  DEFVAR_LISP ("this-command", &Vthis_command,
     "The command now being executed.\n\
 The command can set this variable; whatever is put here\n\
 will be in `last-command' during the following command.");
-  this_command = Qnil;
+  Vthis_command = Qnil;
 
   DEFVAR_INT ("auto-save-interval", &auto_save_interval,
     "*Number of keyboard input characters between auto-saves.\n\
@@ -9247,8 +9313,22 @@ so it will not be called recursively.\n\
 The function should return a list of zero or more events\n\
 to be used as input.  If it wants to put back some events\n\
 to be reconsidered, separately, by the input method,\n\
-it can add them to the beginning of `unread-command-events'.");
+it can add them to the beginning of `unread-command-events'.\n\
+\n\
+The input method function can find in `input-method-previous-method'\n\
+the previous echo area message.\n\
+\n\
+The input method function should refer to the variables\n\
+`input-method-use-echo-area' and `input-method-exit-on-first-char'\n\
+for guidance on what to do.");
   Vinput_method_function = Qnil;
+
+  DEFVAR_LISP ("input-method-previous-message",
+	       &Vinput_method_previous_message,
+	       "When `input-mehod-function' is called, hold the previous echo area message.\n\
+This variable exists because `read-event' clears the echo area\n\
+before running the input method.  It is nil if there was no message.");
+  Vinput_method_previous_message = Qnil;
 }
 
 void
