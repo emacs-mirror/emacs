@@ -31,7 +31,7 @@
 				the nlist n_name element is a pointer,
 				not an array.
    NLIST_NAME_UNION		struct nlist has an n_un member, not n_name.
-   LINUX_LDAV_FILE		[LINUX]: Name of file containing load averages.
+   LINUX_LDAV_FILE		[__linux__]: File containing load averages.
 
    Specific system predefines this file uses, aside from setting
    default values if not emacs:
@@ -49,7 +49,7 @@
    UMAX
    UMAX4_3
    VMS
-   LINUX			Linux: assumes /proc filesystem mounted.
+   __linux__			Linux: assumes /proc filesystem mounted.
    				Support from Michael K. Johnson.
 
    In addition, to avoid nesting many #ifdefs, we internally set
@@ -457,7 +457,7 @@ getloadavg (loadavg, nelem)
   elem = -1;
 #endif
 
-#if !defined (LDAV_DONE) && defined (LINUX)
+#if !defined (LDAV_DONE) && defined (__linux__)
 #define LDAV_DONE
 #undef LOAD_AVE_TYPE
 
@@ -487,7 +487,7 @@ getloadavg (loadavg, nelem)
 
   return elem;
 
-#endif /* LINUX */
+#endif /* __linux__ */
 
 #if !defined (LDAV_DONE) && defined (NeXT)
 #define LDAV_DONE
