@@ -1673,7 +1673,7 @@ x_is_vendor_fkey (sym)
    that the glyph at X, Y occupies, if BOUNDS != 0.
    If NOCLIP is nonzero, do not force the value into range.  */
 
-static void
+void
 pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
      FRAME_PTR f;
      register int pix_x, pix_y;
@@ -1780,14 +1780,9 @@ construct_menu_click (result, event, f)
 			  ? up_modifier 
 			  : down_modifier));
 
-  {
-    int row, column;
-
-    pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL, 0);
-    XFASTINT (result->x) = column;
-    XFASTINT (result->y) = -1;
-    XSET (result->frame_or_window, Lisp_Frame, f);
-  }
+  XFASTINT (result->x) = event->x;
+  XSETINT (result->y, -1);
+  XSET (result->frame_or_window, Lisp_Frame, f);
 }
 
 /* Function to report a mouse movement to the mainstream Emacs code.
