@@ -1,3 +1,16 @@
+2000-09-25  Dave Love  <fx@gnu.org>
+
+	* buffer.c: Include stdio.h.
+
+	Partly suggested by Eduardo Horvath <eeh@netbsd.org>.
+	
+	* ralloc.c (__malloc_extra_blocks): Declare as __malloc_size_t.
+
+	* alloc.c (__malloc_size_t) [DOUG_LEA_MALLOC]: Don't redefine it.
+	(__malloc_size_t) [!DOUG_LEA_MALLOC]: Define unconditionally as
+	size_t.
+	(__malloc_extra_blocks): Declare as __malloc_size_t.
+
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (mark_image): Use GC_NILP instead of NILP.
