@@ -1249,7 +1249,7 @@ If you want to search for just a space, type C-q SPC."
   ;; Append the char to the search string, update the message and re-search.
   (isearch-process-search-string 
    (isearch-char-to-string char) 
-   (if (>= char 0200)
+   (if (>= char ?\200)
        (char-to-string char)
      (isearch-text-char-description char))))
 
