@@ -1,5 +1,8 @@
 2001-12-07  Dave Love  <fx@gnu.org>
 
+	* international/iso-transl.el: Insert Latin-1 characters, not
+	unibyte codes.
+
 	* language/european.el (diacritic-composition-pattern): New constant.
 	(diacritic-compose-region, diacritic-compose-string) 
 	(diacritic-compose-buffer, diacritic-post-read-conversion) 
