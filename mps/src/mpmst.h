@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.29) $
+ * $HopeName: MMsrc!mpmst.h(trunk.30) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -27,13 +27,6 @@
  * a structure can also check its signature before using any of its
  * fields.  See design.mps.sig.test.uniq to check that signatures are
  * unique.
- *
- * TRANSGRESSIONS
- *
- * .fildes.name: the VMStruct used by impl.c.vmso and impl.c.vmsu has
- * two fields whose names violate our naming conventions.  They are
- * called none_fd and zero_fd to emphasize the fact that they are file
- * descriptors and this fact is not reflected in their type.
  */
 
 #ifndef mpmst_h
@@ -88,10 +81,10 @@ typedef struct PoolClassStruct {
   PoolFinishMethod finish;      /* finish the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
   PoolFreeMethod free;          /* free memory to pool */
-  PoolBufferInitMethod bufferInit;
-  PoolBufferFillMethod bufferFill;
-  PoolBufferEmptyMethod bufferEmpty;
-  PoolBufferFinishMethod bufferFinish;
+  PoolBufferInitMethod bufferInit;      /* additional buffer init */
+  PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
+  PoolBufferEmptyMethod bufferEmpty;      /* out-of-line commit */
+  PoolBufferFinishMethod bufferFinish;  /* additional buffer finish */
   PoolTraceBeginMethod traceBegin;
   PoolCondemnMethod condemn;    /* condemn (some or all) objects */
   PoolGreyMethod grey;          /* grey non-white objects */
@@ -119,10 +112,10 @@ typedef struct PoolClassStruct {
 
 typedef struct PoolStruct {     /* generic structure */
   Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from space->poolSerial */
+  Serial serial;                /* from arena->poolSerial */
   PoolClass class;              /* pool class structure */
-  Space space;                  /* owning space */
-  RingStruct spaceRing;         /* link in list of pools in space */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* link in list of pools in arena */
   RingStruct bufferRing;        /* allocation buffers are attached to pool */
   Serial bufferSerial;          /* serial of next buffer */
   RingStruct segRing;           /* segs are attached to pool */
@@ -136,7 +129,7 @@ typedef struct PoolStruct {     /* generic structure */
  * .mfs: See impl.c.poolmfs, design.mps.poolmfs.
  *
  * The MFS outer structure is declared here because it is in-lined
- * in the control pool structure which is in-lined in the space.  Normally,
+ * in the control pool structure which is in-lined in the arena.  Normally,
  * pool outer structures are declared with the pools.
  *
  * The signature is placed at the end, see
@@ -162,7 +155,7 @@ typedef struct MFSStruct {      /* MFS outer structure */
  * .mv: See impl.c.poolmv, design.mps.poolmv.
  *
  * The MV pool outer structure is declared here because it is the
- * control pool structure which is in-lined in the space.  Normally,
+ * control pool structure which is in-lined in the arena.  Normally,
  * pool outer structures are declared with the pools.
  *
  * The signature is placed at the end, see
@@ -183,83 +176,6 @@ typedef struct MVStruct {       /* MV pool outer structure */
   RingStruct spans;             /* span chain */
   Sig sig;                      /* design.mps.sig */
 } MVStruct;
-
-
-/* VMStruct -- virtual memory structure
- *
- * .vm: The VM structure is used when the MPM is configured to use a
- * virtual-memory based arena (impl.c.arenavm) which uses memory mapping
- * (impl.h.mpm.vm).  It holds the state information necessary to provide
- * that mapping, and as such, is specific to the implementation of that
- * vm (which is usually specific to an operating system).
- */
-
-#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
-
-#ifdef VM_RM                    /* impl.h.config */
-
-typedef struct VMStruct {       /* Real Memory fake VM; impl.c.vmrm */
-  Sig sig;                      /* design.mps.sig */
-  Align align;                  /* made-up alignment */
-  Addr base, limit;             /* boundaries of reserved space */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
-
-#elif defined(MPS_OS_W3)
-
-typedef struct VMStruct {       /* Win32 VM structure; impl.c.vmnt */
-  Sig sig;                      /* design.mps.sig */
-  Align align;                  /* page size */
-  Addr base, limit;             /* boundaries of reserved space */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
-
-#elif defined(MPS_OS_O1) 
-
-typedef struct VMStruct {       /* DEC UNIX VM structure; impl.c.vmo1 */
-  Sig sig;                      /* design.mps.sig */
-  Align align;                  /* page size */
-  Addr base, limit;             /* boundaries of reserved space */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-  int none_fd;                  /* fildes for reserved memory */
-} VMStruct;
-
-#elif defined(MPS_OS_S7) || defined(MPS_OS_I4) || defined (MPS_OS_I5)
-
-/* These platforms use vman, since no platform specific VM */
-
-/* ANSI fake VM structure, see impl.c.vman, design.mps.vman */
-typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
-  Addr base, limit;             /* boundaries of malloc'd memory */
-  void *block;                  /* pointer to malloc'd block, for free() */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
-
-#elif defined(MPS_OS_SU) || defined(MPS_OS_SO)
-
-/* SunOS 4 & Solaris 2 use the same VM struct (only the prototypes of
- * mmap and so on are different) */
-
-/* SunOS 4 & Solaris 2 VM structure; impl.c.vmsu, impl.c.vmso */
-/* The names of zero_fd and none_fd are transgressions, see .fildes.name */
-typedef struct VMStruct {
-  Sig sig;                      /* design.mps.sig */
-  int zero_fd;                  /* fildes for mmap, see impl.c.vms{o,u} */
-  int none_fd;                  /* fildes for mmap, see impl.c.vms{o,u} */
-  Align align;                  /* page size */
-  Addr base, limit;             /* boundaries of reserved space */
-  Size reserved;                /* total reserved address space */
-  Size mapped;                  /* total mapped memory */
-} VMStruct;
-
-#else
-#error "No definition of VMStruct for this OS."
-#endif
 
 
 /* SegStruct -- segment structure
@@ -299,59 +215,6 @@ typedef struct SegPrefStruct {  /* segment placement preferences */
 } SegPrefStruct;
 
 
-/* ArenaStruct -- arena structure
- *
- * .def: The arena structure is in-lined in the space structure
- * (impl.h.mpmst.space).
- */
-
-#define ArenaSig        ((Sig)0x519A6E4A) /* SIGnature ARENA */ 
-
-#ifdef ARENA_ANSI
-
-/* This is the arena structure used by the ANSI-based  */
-/* arena implementation, impl.c.arenaan. */
-
-typedef struct ArenaStruct {    /* ANSI arena structure */
-  Sig sig;                      /* design.mps.sig */
-  RingStruct blockRing;         /* list of blocks in arena */
-  Size committed;               /* total committed (alloced by pools) memory */
-} ArenaStruct;
-
-#elif defined(ARENA_CLIENT)
-
-typedef struct ArenaStruct {    /* arena structure */
-  Sig sig;                      /* impl.h.misc.sig */
-  RingStruct chunkRing;         /* all the chunks */
-  Serial chunkSerial;           /* next chunk number */
-  Shift pageShift;              /* log2(pageSize), for shifts */
-  Size pageSize;                /* size of block managed by PageStruct */
-} ArenaStruct;
-
-#else  /* neither ARENA_ANSI nor ARENA_CLIENT */
-
-/* This is the arena structure used by the virtual memory based */
-/* arena implementation, impl.c.arenavm. */
-
-/* Types used in ArenaStruct, but otherwise defined in impl.c.arenavm. */
-typedef struct PageStruct *Page; /* page type */
-
-typedef struct ArenaStruct {    /* VM arena structure */
-  Sig sig;                      /* design.mps.sig */
-  VMStruct vmStruct;            /* virtual memory structure */
-  Addr base;                    /* base address of arena area */
-  Addr limit;                   /* limit address of arena area */
-  Size pageSize;                /* size of block managed by PageStruct */
-  Shift pageShift;              /* log2 of page size, for shifts */
-  Index pages;                  /* number of pages in table */
-  Page pageTable;               /* the page table */
-  BT allocTable;                /* page allocation table */
-  Size tablesSize;              /* size of area occupied by tables */
-  Index tablePages;             /* number of pages occupied by tables */
-} ArenaStruct;
-
-#endif /* ARENA_CLIENT, ARENA_ANSI */
-
 /* APStruct -- allocation point structure
  *
  * AP are part of the design of buffers see design.mps.buffer.
@@ -382,10 +245,10 @@ typedef struct APStruct {
 typedef struct BufferStruct {
   Sig sig;                      /* design.mps.sig */
   Serial serial;                /* from pool->bufferSerial */
-  Space space;                  /* owning space */
+  Arena arena;                  /* owning arena */
   Pool pool;                    /* owning pool */
   RingStruct poolRing;          /* buffers are attached to pools */
-  Rank rankSet;                 /* ranks of references being created */
+  RankSet rankSet;              /* ranks of references being created */
   Seg seg;                      /* segment being buffered */
   Addr base;                    /* base address of allocation buffer */
   Addr initAtFlip;              /* limit of initialized data at flip */
@@ -411,9 +274,9 @@ typedef struct BufferStruct {
 
 typedef struct FormatStruct {
   Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from space->formatSerial */
-  Space space;                  /* owning space */
-  RingStruct spaceRing;         /* formats are attached to the space */
+  Serial serial;                /* from arena->formatSerial */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* formats are attached to the arena */
   Align alignment;              /* alignment of formatted objects */
   FormatScanMethod scan;
   FormatSkipMethod skip;
@@ -462,9 +325,9 @@ typedef struct LockStruct {
 
 typedef struct ThreadStruct {   /* Win32 thread structure */
   Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from space->threadSerial */
-  Space space;                  /* owning space */
-  RingStruct spaceRing;         /* threads attached to space */
+  Serial serial;                /* from arena->threadSerial */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* threads attached to arena */
   HANDLE handle;                /* Handle of thread, see
                                  * impl.c.thnti3.thread.handle */
   DWORD id;                     /* Thread id of thread */
@@ -482,9 +345,9 @@ typedef struct LockStruct {     /* ANSI fake lock structure */
 
 typedef struct ThreadStruct {   /* ANSI fake thread structure */
   Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from space->threadSerial */
-  Space space;                  /* owning space */
-  RingStruct spaceRing;         /* attaches to space */
+  Serial serial;                /* from arena->threadSerial */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* attaches to arena */
 } ThreadStruct;
 
 #else
@@ -503,9 +366,9 @@ typedef struct ThreadStruct {   /* ANSI fake thread structure */
 
 typedef struct RootStruct {
   Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* from space->rootSerial */
-  Space space;                  /* owning space */
-  RingStruct spaceRing;         /* attachment to space */
+  Serial serial;                /* from arena->rootSerial */
+  Arena arena;                  /* owning arena */
+  RingStruct arenaRing;         /* attachment to arena */
   Rank rank;                    /* rank of references in this root */
   TraceSet grey;                /* traces for which root is grey */
   RefSet summary;               /* summary of references in root */
@@ -560,11 +423,11 @@ typedef struct RootStruct {
 
 typedef struct ScanStateStruct {
   Res (*fix)(ScanState, Addr *);/* fix function */
-  Word zoneShift;               /* copy of space->zoneShift.  See .ss.zone */
+  Word zoneShift;               /* copy of arena->zoneShift.  See .ss.zone */
   RefSet white;                 /* white set, for inline fix test */
   RefSet summary;               /* accumulated summary of scanned references */
   Sig sig;                      /* design.mps.sig */
-  Space space;                  /* owning space */
+  Arena arena;                  /* owning arena */
   TraceSet traces;              /* traces to scan for */
   Rank rank;                    /* reference rank of scanning */
   Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
@@ -579,7 +442,7 @@ typedef struct ScanStateStruct {
 typedef struct TraceStruct {
   Sig sig;                      /* design.mps.sig */
   TraceId ti;                   /* index into TraceSets */
-  Space space;                  /* owning space */
+  Arena arena;                  /* owning arena */
   Action action;                /* the action that launched the trace */
   RefSet white;                 /* superset of refs in white set */
   RankSet grey;                 /* ranks for which grey segs (may) exist */
@@ -603,45 +466,74 @@ typedef struct ActionStruct {
 } ActionStruct;
 
 
-/* SpaceStruct -- the space structure
+/* ArenaClassStruct -- generic arena class interface */
+
+#define ArenaClassSig   ((Sig)0x519A6C1A) /* SIGnature ARena CLAss */
+
+typedef struct ArenaClassStruct {
+  Sig sig;
+  char *name;                   /* class name string */
+  size_t size;                  /* size of outer structure */
+  size_t offset;                /* offset of generic struct in outer struct */
+  ArenaInitMethod init;
+  ArenaFinishMethod finish;
+  ArenaReservedMethod reserved;
+  ArenaCommittedMethod committed;
+  ArenaExtendMethod extend;
+  ArenaRetractMethod retract;
+  ArenaSegAllocMethod segAlloc;
+  ArenaSegFreeMethod segFree;
+  ArenaSegBaseMethod segBase;
+  ArenaSegLimitMethod segLimit;
+  ArenaSegSizeMethod segSize;
+  ArenaSegOfAddrMethod segOfAddr;
+  ArenaSegFirstMethod segFirst;
+  ArenaSegNextMethod segNext;
+  ArenaDescribeMethod describe;
+  Sig endSig;
+} ArenaClassStruct;
+
+
+/* ArenaStruct -- generic arena
  *
- * See impl.c.space.
+ * See impl.c.arena.
  *
- * .space: The space structure is the top-level state of the
+ * .space: The arena structure is the top-level state of the
  * MPS, and as such contains a lot of fields which are considered
  * "global".  These fields belong to different modules.  The module
  * which owns each group of fields is commented.
  */
 
-#define SpaceSig        ((Sig)0x5195BACE) /* SIGnature SPACE */
+#define ArenaSig	((Sig)0x519A6E4A) /* SIGnature ARENA */
 
-typedef struct SpaceStruct {
-  /* space fields (impl.c.space) */
+typedef struct ArenaStruct {
+  /* arena fields (impl.c.arena) */
   Sig sig;                      /* design.mps.sig */
-  Serial serial;                /* design.mps.space.static.serial */
-  RingStruct globalRing;        /* node in global ring of spaces */
-  Bool poolReady;               /* design.mps.space.pool.ready */
-  MVStruct controlPoolStruct;   /* design.mps.space.pool */
-  LockStruct lockStruct;        /* space's lock */
-  Size pollThreshold;           /* design.mps.space.poll */
-  Bool insidePoll;              /* design.mps.space.poll */
-  Size actionInterval;          /* design.mps.space.poll.interval */
+  Serial serial;                /* design.mps.arena.static.serial */
+  ArenaClass class;             /* arena class structure */
+  RingStruct globalRing;        /* node in global ring of arenas */
+
+  Bool poolReady;               /* design.mps.arena.pool.ready */
+  MVStruct controlPoolStruct;   /* design.mps.arena.pool */
+  LockStruct lockStruct;        /* arena's lock */
+  Size pollThreshold;           /* design.mps.arena.poll */
+  Bool insidePoll;              /* design.mps.arena.poll */
+  Size actionInterval;          /* design.mps.arena.poll.interval */
   double allocTime;             /* "time" in allocated bytes */
 
-  /* arena fields (impl.c.arena*) */
-  ArenaStruct arenaStruct;      /* design.mps.space.arena */
   Shift zoneShift;              /* see also impl.c.ref */
+  Align alignment;		/* minimum alignment of segments */
 
   /* pool fields (impl.c.pool) */
-  RingStruct poolRing;          /* ring of pools in space */
+  RingStruct poolRing;          /* ring of pools in arena */
   Serial poolSerial;            /* serial of next created pool */
 
   /* root fields (impl.c.root) */
-  RingStruct rootRing;          /* ring of roots attached to space */
+  RingStruct rootRing;          /* ring of roots attached to arena */
   Serial rootSerial;            /* serial of next root */
 
   /* format fields (impl.c.format) */
-  RingStruct formatRing;        /* ring of formats attached to space */
+  RingStruct formatRing;        /* ring of formats attached to arena */
   Serial formatSerial;          /* serial of next format */
 
   /* thread fields (impl.c.thread) */
@@ -662,10 +554,10 @@ typedef struct SpaceStruct {
                                    design.mps.trace.intance.limit */
 
   /* location dependency fields (impl.c.ld) */
-  Epoch epoch;                     /* design.mps.space.ld.epoch */
-  RefSet prehistory;               /* design.mps.space.ld.prehistory */
-  RefSet history[SPACE_LD_LENGTH]; /* design.mps.space.ld.history */
-} SpaceStruct;
+  Epoch epoch;                     /* design.mps.arena.ld.epoch */
+  RefSet prehistory;               /* design.mps.arena.ld.prehistory */
+  RefSet history[ARENA_LD_LENGTH]; /* design.mps.arena.ld.history */
+} ArenaStruct;
 
 
 #endif /* mpmst_h */

@@ -1,7 +1,7 @@
 /* impl.h.eventcom -- Event Logging Common Types
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!eventcom.h(MMdevel_event_string.2) $
+ * $HopeName: MMsrc!eventcom.h(trunk.2) $
  *
  * .readership: MPS developers.
  * .sources: mps.design.telemetry
@@ -26,8 +26,6 @@ typedef Word EventType;
  */
                                                     /* EVent ... */
 #define EventEventTime      ((EventType)0xEF213E99) /* TIME */
-#define EventSpaceCreate    ((EventType)0xEF5BCC6E) /* SPaCe CREate */
-#define EventSpaceDestroy   ((EventType)0xEF5BCDE5) /* SPaCe DEStroy */
 #define EventPoolInit       ((EventType)0xEFB07141) /* POoL INIt */
 #define EventPoolFinish     ((EventType)0xEFB07F14) /* POoL FINish */
 #define EventPoolAlloc      ((EventType)0xEFB07A77) /* POoL ALLoc */
@@ -71,6 +69,8 @@ typedef Word EventType;
 #define EventVMDestroy      ((EventType)0xEFF3DE52) /* VM DESTroy */
 #define EventVMMap          ((EventType)0xEFF33AB9) /* VM MAP */
 #define EventVMUnmap        ((EventType)0xEFF3043B) /* VM UNMaP */
-#define EventIntern         ((EventType)0XEF142E64) /* INTERN */
+#define EventIntern         ((EventType)0xEF142E64) /* INTERN */
+#define EventArenaExtend    ((EventType)0xEFA64E82) /* AReNa EXTend */
+#define EventArenaRetract   ((EventType)0xEFA646E2) /* AReNa RETract */
 
 #endif /* eventcom_h */

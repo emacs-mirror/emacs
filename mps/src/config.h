@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.10) $
+ * $HopeName: MMsrc!config.h(trunk.11) $
  */
 
 #ifndef config_h
@@ -18,13 +18,14 @@
  * internal configuration parameters.  See design.mps.config.var.
  */
 
-#if defined(CONFIG_VAR_DF)
-#define MPS_VAR_DF              /* debug, full checking */
+#if defined(CONFIG_VAR_DF)      /* debug, full checking */
+#define MPS_VAR_DF
 #define ASSERT_MPSI             /* impl.c.mpsi */
 #define ASSERT_MPM              /* impl.h.mpm */
 #define CHECK_DEEP              /* impl.h.assert */
 #define CHECK_ASSERT            /* impl.h.assert */
 #elif defined(CONFIG_VAR_DL)    /* debug, full checking, telemetry */
+#define MPS_VAR_DL
 #define EVENT                   /* impl.h.event */
 #define ASSERT_MPSI             /* impl.c.mpsi */
 #define ASSERT_MPM              /* impl.h.mpm */
@@ -70,16 +71,22 @@
  * and change 170193/trapping.beta.3
  */
 
-#if defined(CONFIG_PROD_EPCORE)
-#define MPS_PROD_EPCORE
-#define ARENA_CLIENT
-#define ARENA_SIZE                      ((Size)0) /* bogus for client arena */
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
 #define ARENA_CLIENT_DEFAULT_SEG_HIGH   TRUE
+
+#if defined(CONFIG_PROD_EPCORE)
+#define MPS_PROD_EPCORE
+#define ARENA_SIZE              ((Size)2<<20)
+#define AMC_SIZE_LIMIT		ARENA_SIZE
+/* .nosync.why: ScriptWorks is single-threaded when using the MM. */
+#define THREAD_SINGLE
+#define PROTECTION_NONE
 #elif defined(CONFIG_PROD_DYLAN)
 #define MPS_PROD_DYLAN
 #define ARENA_SIZE              ((Size)1<<30)
 #define AMC_SIZE_LIMIT		((Size)64<<20)  /* experimentally reasonable limit */
+#define THREAD_MULTI
+#define PROTECTION
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_MPS
 #ifdef MPS_OS_S7
@@ -89,21 +96,24 @@
 #define ARENA_SIZE              ((Size)64<<20)
 #define AMC_SIZE_LIMIT		ARENA_SIZE
 #endif /* MPS_OS_S7 */
+#define THREAD_MULTI
+#define PROTECTION
 #else
 #error "No target product configured."
 #endif
 
 
-/* Space Configuration -- see impl.c.space */
+/* Arena Configuration -- see impl.c.arena */
 
-#define SPACE_CONTROL_EXTENDBY  ((Size)4096)
-#define SPACE_CONTROL_AVGSIZE   ((Size)32)
-#define SPACE_CONTROL_MAXSIZE   ((Size)65536)
-#define SPACE_POLL_MAX          ((Size)262144)
-#define SPACE_LD_LENGTH         ((Size)4)
+#define ARENA_CONTROL_EXTENDBY  ((Size)4096)
+#define ARENA_CONTROL_AVGSIZE   ((Size)32)
+#define ARENA_CONTROL_MAXSIZE   ((Size)65536)
+#define ARENA_POLL_MAX          ((Size)262144)
+#define ARENA_LD_LENGTH         ((Size)4)
+#define ARENA_ZONESHIFT         ((Shift)20)
 
 
-/* Arena Configuration -- see impl.c.arena* */
+/* ANSI Arena Configuration -- see impl.c.arenaan */
 
 #define ARENA_ANSI_ALIGN        ((Align)4096)
 #define ARENA_ANSI_ZONESHIFT    ((Shift)20)
@@ -120,7 +130,6 @@
 
 #define VMAN_ALIGN              ((Align)4096)
 #define VM_JUNKBYTE             ((unsigned char)0xA9)
-#define VMRM_ALIGN              ((Align)4096)
 
 
 /* Tracer Configuration -- see impl.c.trace */

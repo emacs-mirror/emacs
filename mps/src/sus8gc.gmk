@@ -1,6 +1,6 @@
 # impl.gmk.sus8gc: BUILD FOR SUNOS/SPARC v8/GCC PLATFORM
 #
-# $HopeName: MMsrc!sus8gc.gmk(trunk.28) $
+# $HopeName: MMsrc!sus8gc.gmk(trunk.29) $
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved.
 #
 # This is the GNU makefile for platform.sus8gc.
@@ -8,9 +8,9 @@
 PFM = sus8gc
 
 MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
-      arenavm.c vmsu.c space.c pool.c poolmfs.c \
+      arenavm.c arenaan.c arenacl.c arena.c pool.c poolmfs.c \
       poolmv.c root.c format.c buffer.c lockan.c ref.c \
-      trace.c than.c protsu.c shield.c mpsi.c ld.c \
+      trace.c than.c protsu.c shield.c mpsi.c ld.c vmsu.c \
       mpsioan.c event.c action.c seg.c
 MPMS = sssus8.s
 AMC = amc.c
@@ -19,9 +19,9 @@ AWL = poolawl.c
 LO = lo.c
 MRG = poolmrg.c
 DW = fmtdy.c dw.c
-SW = assert.c ring.c mpm.c arenacl.c space.c pool.c poolmfs.c \
-     poolmv.c root.c format.c buffer.c lockan.c ref.c \
-     trace.c than.c protsw.c shield.c mpsisw.c ld.c ssan.c \
+SW = assert.c ring.c mpm.c arenavm.c arenacl.c arena.c pool.c poolmfs.c \
+     poolmv.c root.c format.c buffer.c lockan.c ref.c bt.c \
+     trace.c than.c protsw.c shield.c mpsi.c ld.c ssan.c vmsu.c \
      poolepdl.c action.c seg.c
 
 LIBS = -lm

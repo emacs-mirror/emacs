@@ -1,6 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.19) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.20) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the MFS pool class.
@@ -17,7 +17,7 @@
  * fast, but successive allocations might have poor locality if
  * previous successive frees did.
  *
- * .restriction: This pool cannot allocate from the space control
+ * .restriction: This pool cannot allocate from the arena control
  * pool (as the control pool is an instance of PoolClassMV and MV uses
  * MFS in its implementation), nor can it allocate sub-pools, as that
  * causes allocation in the control pool.
@@ -35,7 +35,7 @@
 #include "mpm.h"
 #include "poolmfs.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.19) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.20) $");
 
 
 /*  == Round up ==
@@ -80,7 +80,7 @@ static Res MFSInit(Pool pool, va_list arg)
 {
   Size extendBy, unitSize;
   MFS mfs;
-  Space space;
+  Arena arena;
 
   AVER(pool != NULL);
 
@@ -91,12 +91,12 @@ static Res MFSInit(Pool pool, va_list arg)
   AVER(extendBy >= unitSize);
   
   mfs = PoolPoolMFS(pool);
-  space = PoolSpace(pool);
+  arena = PoolArena(pool);
 
   mfs->unroundedUnitSize = unitSize;
 
   unitSize = SizeAlignUp(unitSize, MPS_PF_ALIGN);
-  extendBy = SizeAlignUp(extendBy, ArenaAlign(space));
+  extendBy = SizeAlignUp(extendBy, ArenaAlign(arena));
 
   mfs->extendBy = extendBy;
   mfs->unitSize = unitSize;
@@ -161,9 +161,9 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     Size unitSize;
     Addr base;
     Header header = NULL, next;
-    Space space;
+    Arena arena;
 
-    space = PoolSpace(pool);
+    arena = PoolArena(pool);
 
     /* Create a new segment and attach it to the pool. */
     res = PoolSegAlloc(&seg, SegPrefDefault(), pool, mfs->extendBy);
@@ -180,7 +180,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 
     unitsPerSeg = mfs->unitsPerSeg;
     unitSize = mfs->unitSize;
-    base = SegBase(space, seg);
+    base = SegBase(arena, seg);
     next = NULL;
 
 #define SUB(b, s, i)    ((Header)AddrAdd(b, (s)*(i)))
@@ -189,7 +189,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     {
       header = SUB(base, unitSize, unitsPerSeg-i - 1);
       AVER(AddrIsAligned(header, pool->alignment));
-      AVER(AddrAdd((Addr)header, unitSize) <= SegLimit(space, seg));
+      AVER(AddrAdd((Addr)header, unitSize) <= SegLimit(arena, seg));
       header->next = next;
       next = header;
     }
@@ -293,24 +293,21 @@ PoolClass PoolClassMFS(void)
   return &PoolClassMFSStruct;
 }
 
+
 Bool MFSCheck(MFS mfs)
 {
-  Space space;
+  Arena arena;
 
   CHECKS(MFS, mfs);
   CHECKD(Pool, &mfs->poolStruct);
   CHECKL(mfs->poolStruct.class == &PoolClassMFSStruct);
   CHECKL(mfs->unroundedUnitSize >= UNIT_MIN);
   CHECKL(mfs->extendBy >= UNIT_MIN);
-  space = PoolSpace(&mfs->poolStruct);
-  CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(space)));
+  arena = PoolArena(&mfs->poolStruct);
+  CHECKL(SizeIsAligned(mfs->extendBy, ArenaAlign(arena)));
   CHECKL(SizeAlignUp(mfs->unroundedUnitSize, mfs->poolStruct.alignment) ==
          mfs->unitSize);
   CHECKL(mfs->unitsPerSeg == mfs->extendBy/mfs->unitSize);
-  if(mfs->freeList != NULL) {
-    /* free list is stored in the pool's managed memory */
-    CHECKL(PoolHasAddr(&mfs->poolStruct, (Addr)mfs->freeList));
-  }
   if(mfs->segList != (Seg)0) {
     CHECKL(SegCheck(mfs->segList));
   }

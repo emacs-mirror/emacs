@@ -1,7 +1,7 @@
 /* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- * $HopeName: MMsrc!vmsu.c(trunk.13) $
- * Copyright (C) 1995 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!vmsu.c(trunk.14) $
+ * Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  *
  * Design: design.mps.vm
  *
@@ -30,6 +30,13 @@
  * .assume.mmap.err: ENOMEM is the only error we really expect to
  *   get from mmap.  The others are either caused by invalid params
  *   or features we don't use.  See mmap(2) for details.
+ *
+ * TRANSGRESSIONS
+ *
+ * .fildes.name: VMStruct has two fields whose names violate our
+ * naming conventions.  They are called none_fd and zero_fd to
+ * emphasize that they are file descriptors and this fact is not
+ * reflected in their type.
  */
 
 #include "mpm.h"
@@ -47,7 +54,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.13) $");
+SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.14) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -58,7 +65,22 @@ extern int close(int fd);
 extern int munmap(caddr_t addr, int len);
 extern int getpagesize(void);
 
-#define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)
+
+/* VMStruct -- virtual memory structure */
+
+#define VMSig           ((Sig)0x519B3999) /* SIGnature VM */
+
+/* The names of zero_fd and none_fd are transgressions, see .fildes.name */
+typedef struct VMStruct {
+  Sig sig;                      /* design.mps.sig */
+  int zero_fd;                  /* fildes for mmap, see impl.c.vms{o,u} */
+  int none_fd;                  /* fildes for mmap, see impl.c.vms{o,u} */
+  Align align;                  /* page size */
+  Addr base, limit;             /* boundaries of reserved space */
+  Size reserved;                /* total reserved address space */
+  Size mapped;                  /* total mapped memory */
+} VMStruct;
+
 
 Align VMAlign(void)
 {
@@ -88,22 +110,22 @@ Bool VMCheck(VM vm)
 }
 
 
-Res VMCreate(Space *spaceReturn, Size size, Addr base)
+/* VMCreate -- reserve some virtual address space, and create a VM structure */
+
+Res VMCreate(VM *vmReturn, Size size)
 {
   caddr_t addr;
   Align align;
   int zero_fd;
   int none_fd;
-  Space space;
   VM vm;
 
   align = VMAlign();
 
-  AVER(spaceReturn != NULL);
+  AVER(vmReturn != NULL);
   AVER(SizeIsAligned(size, align));
   AVER(size != 0);
   AVER(size <= INT_MAX); /* see .assume.size */
-  AVER(base == NULL);
 
   zero_fd = open("/dev/zero", O_RDONLY);
   if(zero_fd == -1)
@@ -115,10 +137,10 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
   }
 
   /* Map in a page to store the descriptor on. */
-  addr = mmap((caddr_t)0, SizeAlignUp(sizeof(SpaceStruct), align),
+  addr = mmap((caddr_t)0, SizeAlignUp(sizeof(VMStruct), align),
               PROT_READ | PROT_WRITE, MAP_PRIVATE,
               zero_fd, (off_t)0);
-  if((int)addr == -1) {
+  if(addr == (caddr_t)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
     close(none_fd);
@@ -128,8 +150,7 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
     else
       return ResFAIL;
   }
-  space = (Space)addr;
-  vm = SpaceVM(space);
+  vm = (VM)addr;
 
   vm->zero_fd = zero_fd;
   vm->none_fd = none_fd;
@@ -158,15 +179,16 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
 
   AVERT(VM, vm);
 
-  *spaceReturn = space;
+  EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
+
+  *vmReturn = vm;
   return ResOK;
 }
 
 
-void VMDestroy(Space space)
+void VMDestroy(VM vm)
 {
   int r;
-  VM vm = SpaceVM(space);
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
@@ -181,45 +203,42 @@ void VMDestroy(Space space)
   close(vm->none_fd);
   r = munmap((caddr_t)vm->base, (int)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
-  r = munmap((caddr_t)space,
-             (int)SizeAlignUp(sizeof(SpaceStruct), vm->align));
+  r = munmap((caddr_t)vm,
+             (int)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
 }
 
 
-Addr VMBase(Space space)
+/* VMBase -- return the base address of the memory reserved */
+
+Addr VMBase(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->base;
 }
 
-Addr VMLimit(Space space)
+Addr VMLimit(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->limit;
 }
 
 
-Size VMReserved(Space space)
+Size VMReserved(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->reserved;
 }
 
-Size VMMapped(Space space)
+Size VMMapped(VM vm)
 {
-  VM vm = SpaceVM(space);
   AVERT(VM, vm);
   return vm->mapped;
 }
 
 
-Res VMMap(Space space, Addr base, Addr limit)
+Res VMMap(VM vm, Addr base, Addr limit)
 {
-  VM vm = SpaceVM(space);
   Size size;
 
   AVERT(VM, vm);
@@ -236,10 +255,11 @@ Res VMMap(Space space, Addr base, Addr limit)
 
   size = AddrOffset(base, limit);
 
-  if((int)mmap((caddr_t)base, (int)size,
-               PROT_READ | PROT_WRITE | PROT_EXEC,
-               MAP_PRIVATE | MAP_FIXED,
-               vm->zero_fd, (off_t)0) == -1) {
+  if(mmap((caddr_t)base, (int)size,
+	  PROT_READ | PROT_WRITE | PROT_EXEC,
+	  MAP_PRIVATE | MAP_FIXED,
+	  vm->zero_fd, (off_t)0)
+     == (caddr_t)-1) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
@@ -250,9 +270,8 @@ Res VMMap(Space space, Addr base, Addr limit)
 }
 
 
-void VMUnmap(Space space, Addr base, Addr limit)
+void VMUnmap(VM vm, Addr base, Addr limit)
 {
-  VM vm = SpaceVM(space);
   Size size;
   caddr_t addr;
 
@@ -274,7 +293,7 @@ void VMUnmap(Space space, Addr base, Addr limit)
   addr = mmap((caddr_t)base, (int)size,
               PROT_NONE, MAP_SHARED | MAP_FIXED,
               vm->none_fd, (off_t)AddrOffset(vm->base, base));
-  AVER((int)addr != -1);
+  AVER(addr == (caddr_t)base);
 
   vm->mapped -= size;
 }

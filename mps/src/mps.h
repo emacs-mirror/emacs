@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.20) $
+ * $HopeName: MMsrc!mps.h(trunk.21) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -21,7 +21,9 @@
 
 /* Abstract Types */
 
-typedef struct mps_space_s  *mps_space_t;  /* space */
+typedef struct mps_arena_s  *mps_arena_t;  /* arena */
+typedef mps_arena_t          mps_space_t;  /* space, for backward comp. */
+typedef struct mps_arena_class_s *mps_arena_class_t;  /* arena class */
 typedef struct mps_pool_s   *mps_pool_t;   /* pool */
 typedef struct mps_fmt_s    *mps_fmt_t;    /* object format */
 typedef struct mps_root_s   *mps_root_t;   /* root */
@@ -153,32 +155,39 @@ extern mps_assert_t mps_assert_install(mps_assert_t);
 extern mps_assert_t mps_assert_default(void);
 
 
-/* Spaces */
+/* arenas */
 
+extern mps_res_t mps_arena_create(mps_arena_t *, mps_arena_class_t, ...);
+extern mps_res_t mps_arena_create_v(mps_arena_t *, mps_arena_class_t, va_list);
+extern void mps_arena_destroy(mps_arena_t);
+
+/* these two for backward compatibility */
 extern mps_res_t mps_space_create(mps_space_t *);
 extern void mps_space_destroy(mps_space_t);
 
-/* Client memory spaces */
-
-extern mps_res_t mps_space_create_wmem(mps_space_t *, mps_addr_t, size_t);
-extern mps_res_t mps_space_extend(mps_space_t, mps_addr_t, size_t);
-extern mps_res_t mps_space_retract(mps_space_t, mps_addr_t, size_t);
+extern size_t mps_arena_reserved(mps_arena_t);
+extern size_t mps_arena_committed(mps_arena_t);
 
 extern size_t mps_space_reserved(mps_space_t);
 extern size_t mps_space_committed(mps_space_t);
 
+/* Client memory arenas */
+extern mps_res_t mps_arena_extend(mps_arena_t, mps_addr_t, size_t);
+extern mps_res_t mps_arena_retract(mps_arena_t, mps_addr_t, size_t);
+
+
 /* Object Formats */
 
-extern mps_res_t mps_fmt_create_A(mps_fmt_t *, mps_space_t,
+extern mps_res_t mps_fmt_create_A(mps_fmt_t *, mps_arena_t,
                                   mps_fmt_A_t);
 extern void mps_fmt_destroy(mps_fmt_t);
 
 
 /* Pools */
 
-extern mps_res_t mps_pool_create(mps_pool_t *, mps_space_t,
+extern mps_res_t mps_pool_create(mps_pool_t *, mps_arena_t,
                                  mps_class_t, ...);
-extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_space_t,
+extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_arena_t,
                                    mps_class_t, va_list);
 extern void mps_pool_destroy(mps_pool_t);
 
@@ -232,21 +241,21 @@ extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
 
 /* Root Creation and Destruction */
 
-extern mps_res_t mps_root_create(mps_root_t *, mps_space_t, mps_rank_t,
+extern mps_res_t mps_root_create(mps_root_t *, mps_arena_t, mps_rank_t,
                                  mps_rm_t, mps_root_scan_t,
                                  void *, size_t);
-extern mps_res_t mps_root_create_table(mps_root_t *, mps_space_t,
+extern mps_res_t mps_root_create_table(mps_root_t *, mps_arena_t,
                                        mps_rank_t, mps_rm_t,
                                        mps_addr_t *, size_t);
-extern mps_res_t mps_root_create_table_masked(mps_root_t *, mps_space_t,
+extern mps_res_t mps_root_create_table_masked(mps_root_t *, mps_arena_t,
                                               mps_rank_t, mps_rm_t,
                                               mps_addr_t *, size_t,
                                               mps_word_t);
-extern mps_res_t mps_root_create_fmt(mps_root_t *, mps_space_t,
+extern mps_res_t mps_root_create_fmt(mps_root_t *, mps_arena_t,
                                      mps_rank_t, mps_rm_t,
                                      mps_fmt_scan_t, mps_addr_t,
                                      mps_addr_t);
-extern mps_res_t mps_root_create_reg(mps_root_t *, mps_space_t,
+extern mps_res_t mps_root_create_reg(mps_root_t *, mps_arena_t,
                                      mps_rank_t, mps_rm_t, mps_thr_t,
                                      mps_reg_scan_t, void *, size_t);
 extern void mps_root_destroy(mps_root_t);
@@ -291,18 +300,18 @@ extern void (mps_tramp)(void **,
 
 #endif /* MPS_OS_W3 */
 
-extern mps_res_t mps_thread_reg(mps_thr_t *, mps_space_t);
+extern mps_res_t mps_thread_reg(mps_thr_t *, mps_arena_t);
 extern void mps_thread_dereg(mps_thr_t);
 
 
 /* Location Dependency */
 
-extern void mps_ld_reset(mps_ld_t, mps_space_t);
-extern void mps_ld_add(mps_ld_t, mps_space_t, mps_addr_t);
-extern void mps_ld_merge(mps_ld_t, mps_space_t, mps_ld_t);
-extern mps_bool_t mps_ld_isstale(mps_ld_t, mps_space_t, mps_addr_t);
+extern void mps_ld_reset(mps_ld_t, mps_arena_t);
+extern void mps_ld_add(mps_ld_t, mps_arena_t, mps_addr_t);
+extern void mps_ld_merge(mps_ld_t, mps_arena_t, mps_ld_t);
+extern mps_bool_t mps_ld_isstale(mps_ld_t, mps_arena_t, mps_addr_t);
 
-extern mps_word_t mps_collections(mps_space_t);
+extern mps_word_t mps_collections(mps_arena_t);
 
 
 /* Scanner Support */

@@ -1,7 +1,7 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
+ * $HopeName: MMsrc!eventdef.h(trunk.3) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!eventdef.h(trunk.2) $
  *
  * .readership: MPS developers.
  * .source: design.mps.telemetry
@@ -74,8 +74,6 @@ RELATION(PoolInit                        , 0x0015, TRUE, Pool, PPP)
 RELATION(PoolFinish                      , 0x0016, TRUE, Pool, P)
 RELATION(PoolAlloc                       , 0x0017, TRUE, Object, PAW)
 RELATION(PoolFree                        , 0x0018, TRUE, Object, PAW)
-RELATION(SpaceCreate                     , 0x001a, TRUE, Arena, P)
-RELATION(SpaceDestroy                    , 0x001b, TRUE, Arena, P)
 RELATION(TraceStart                      , 0x001c, TRUE, Trace, PPP)
 RELATION(TraceCreate                     , 0x001d, TRUE, Trace, PPPU)
 RELATION(TraceDestroy                    , 0x001e, TRUE, Trace, P)
@@ -90,10 +88,12 @@ RELATION(TracePoll                       , 0x0025, TRUE, Trace, PP)
 RELATION(TraceFix                        , 0x0026, TRUE, Ref, PPAU)
 RELATION(TraceFixSeg                     , 0x0027, TRUE, Ref, P)
 RELATION(TraceFixWhite                   , 0x0028, TRUE, Ref, 0)
-/* TraceScanArea{Tagged,}'s kind isn't really Trace, but not  Seg either */
+/* TraceScanArea{Tagged,}'s kind isn't really Trace, but not Seg either */
 RELATION(TraceScanArea                   , 0x0029, TRUE, Trace, PPP)
 RELATION(TraceScanAreaTagged             , 0x002a, TRUE, Trace, PPP)
-RELATION(VMCreate                        , 0x002b, TRUE, Arena, PPAA)
+RELATION(VMCreate                        , 0x002b, TRUE, Arena, PAA)
 RELATION(VMDestroy                       , 0x002c, TRUE, Arena, P)
 RELATION(VMMap                           , 0x002d, TRUE, Seg, PAA)
 RELATION(VMUnmap                         , 0x002e, TRUE, Seg, PAA)
+RELATION(ArenaExtend                     , 0x002f, TRUE, Arena, PAW)
+RELATION(ArenaRetract                    , 0x0030, TRUE, Arena, PAW)

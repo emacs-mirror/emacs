@@ -1,6 +1,6 @@
 /* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
  *
- * $HopeName: MMsrc!ld.c(trunk.6) $
+ * $HopeName: MMsrc!ld.c(trunk.7) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .def: A location dependency records the fact that the bit-patterns
@@ -26,13 +26,13 @@
  * references have moved since the epoch.
  *
  * .history: The current epoch, and a history of object movement
- * are recorded in the space.  Each slot in the history contains a
+ * are recorded in the arena.  Each slot in the history contains a
  * summary of all the movement since an earlier epoch (maintained by
  * LDAge).  To see if a dependency has become stale all that
  * is needed is to see whether its reference set intersects with the
  * movement since its epoch.
  *
- * .mod: SPACE_LD_LENGTH is used as a modulus to calculate the offset
+ * .mod: ARENA_LD_LENGTH is used as a modulus to calculate the offset
  * of an epoch in the history, so it's best if this is a power of two.
  * (impl.h.mpmconf)
  *
@@ -42,13 +42,13 @@
  *
  * .ld.access: Accesses (reads and writes) to the ld structure must be
  * "wrapped" with an ShieldExpose/Cover pair if and only if the access
- * is taking place inside the space.  Currently this is only the case for
+ * is taking place inside the arena.  Currently this is only the case for
  * LDReset.
  */
 
 #include "mpm.h"
 
-SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.6) $");
+SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.7) $");
 
 
 /* LDReset -- reset a dependency to empty
@@ -58,22 +58,22 @@ SRCID(ld, "$HopeName: MMsrc!ld.c(trunk.6) $");
  * will simply include movement for more time than necessary.
  */
 
-void LDReset(LD ld, Space space)
+void LDReset(LD ld, Arena arena)
 {
   Bool b;
   Seg seg;
 
   AVER(ld != NULL);
-  AVERT(Space, space);
+  AVERT(Arena, arena);
 
-  b = SegOfAddr(&seg, space, (Addr)ld);
+  b = SegOfAddr(&seg, arena, (Addr)ld);
   if(b) {
-    ShieldExpose(space, seg);   /* .ld.access */
+    ShieldExpose(arena, seg);   /* .ld.access */
   }
-  ld->epoch = space->epoch;
+  ld->epoch = arena->epoch;
   ld->rs = RefSetEMPTY;
   if(b) {
-    ShieldCover(space, seg);
+    ShieldCover(arena, seg);
   }
 }
 
@@ -97,12 +97,12 @@ void LDReset(LD ld, Space space)
  * location of the reference would end up in the set.
  */
 
-void LDAdd(LD ld, Space space, Addr addr)
+void LDAdd(LD ld, Arena arena, Addr addr)
 {
-  AVER(ld->epoch <= space->epoch);
-  /* AVERT(Space, space) -- see .add.lock-free */
+  AVER(ld->epoch <= arena->epoch);
+  /* AVERT(Arena, arena) -- see .add.lock-free */
 
-  ld->rs = RefSetAdd(space, ld->rs, addr);
+  ld->rs = RefSetAdd(arena, ld->rs, addr);
 }
 
 
@@ -127,36 +127,36 @@ void LDAdd(LD ld, Space space, Addr addr)
  * of the history, check it against all movement that has ever occured.
  */
 
-Bool LDIsStale(LD ld, Space space, Addr addr)
+Bool LDIsStale(LD ld, Arena arena, Addr addr)
 {
   RefSet rs;
 
   UNUSED(addr);
 
-  AVER(ld->epoch <= space->epoch);
-  /* AVERT(Space, space) -- .stale.thread-safe */
+  AVER(ld->epoch <= arena->epoch);
+  /* AVERT(Arena, arena) -- .stale.thread-safe */
 
-  if(space->epoch == ld->epoch) /* .stale.current */
+  if(arena->epoch == ld->epoch) /* .stale.current */
     return FALSE;
 
   /* Load the history refset, _then_ check to see if it's recent.
    * This may in fact load an okay refset, which we decide to throw
    * away and use the pre-history instead. */
-  rs = space->history[ld->epoch % SPACE_LD_LENGTH];
+  rs = arena->history[ld->epoch % ARENA_LD_LENGTH];
   /* .stale.recent */
   /* .stale.recent.conservative */
-  if(space->epoch - ld->epoch > SPACE_LD_LENGTH) {
-    rs = space->prehistory;     /* .stale.old */
+  if(arena->epoch - ld->epoch > ARENA_LD_LENGTH) {
+    rs = arena->prehistory;     /* .stale.old */
   }
 
   return RefSetInter(ld->rs, rs) != RefSetEMPTY;
 }
 
 
-/* LDAge -- age the space by adding a moved set
+/* LDAge -- age the arena by adding a moved set
  *
  * This stores the fact that a set of references has changed in
- * the history in the space structure, and increments the epoch.
+ * the history in the arena structure, and increments the epoch.
  * 
  * This is only called during a 'flip', because it must be atomic
  * w.r.t. the mutator (and therefore w.r.t. LdIsStale). This is
@@ -164,30 +164,30 @@ Bool LDIsStale(LD ld, Space space, Addr addr)
  * entries.
  */
 
-void LDAge(Space space, RefSet rs)
+void LDAge(Arena arena, RefSet rs)
 {
   Size i;
 
-  AVERT(Space, space);
+  AVERT(Arena, arena);
   AVER(rs != RefSetEMPTY);
 
-  /* Replace the entry for epoch - SPACE_LD_LENGTH by an empty */
+  /* Replace the entry for epoch - ARENA_LD_LENGTH by an empty */
   /* set which will become the set which has moved since the */
   /* current epoch. */
-  space->history[space->epoch % SPACE_LD_LENGTH] = RefSetEMPTY;
+  arena->history[arena->epoch % ARENA_LD_LENGTH] = RefSetEMPTY;
 
   /* Record the fact that the moved set has moved, by adding it */
   /* to all the sets in the history, including the set for the */
   /* current epoch. */
-  for(i = 0; i < SPACE_LD_LENGTH; ++i)
-    space->history[i] = RefSetUnion(space->history[i], rs);
+  for(i = 0; i < ARENA_LD_LENGTH; ++i)
+    arena->history[i] = RefSetUnion(arena->history[i], rs);
 
   /* This is the union of all movement since time zero. */
-  space->prehistory = RefSetUnion(space->prehistory, rs);
+  arena->prehistory = RefSetUnion(arena->prehistory, rs);
 
   /* Advance the epoch by one. */
-  ++space->epoch;
-  AVER(space->epoch != 0);      /* .epoch-size */
+  ++arena->epoch;
+  AVER(arena->epoch != 0);      /* .epoch-size */
 }
 
 
@@ -198,13 +198,13 @@ void LDAge(Space space, RefSet rs)
  * this function.
  */
 
-void LDMerge(LD ld, Space space, LD from)
+void LDMerge(LD ld, Arena arena, LD from)
 {
-  /* AVERT(Space, space); -- .merge.lock-free */
+  /* AVERT(Arena, arena); -- .merge.lock-free */
   AVER(ld != NULL);
-  AVER(ld->epoch <= space->epoch);
+  AVER(ld->epoch <= arena->epoch);
   AVER(from != NULL);
-  AVER(from->epoch <= space->epoch);
+  AVER(from->epoch <= arena->epoch);
 
   /* If a reference has been added since epoch e1 then I've */
   /* certainly added since epoch e0 where e0 < e1.  Therefore */

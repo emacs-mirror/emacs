@@ -1,26 +1,26 @@
 # ==== W3PPMV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.14) $
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.15) $
 #
-# Copyright (C) 1995 Harlequin Group, all rights reserved
+# Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 
 PFM = w3ppmv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
 MPM = <assert> <ring> <mpm> <bt> \
-      <arenavm> <vmw3> <space> <pool> <poolmfs> \
+      <arenavm> <arenaan> <arenacl> <arena> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
-      <ref> <trace> <protw3> <shield> \
+      <ref> <trace> <protw3> <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> \
       <event> <action> <seg>
-PLINTH = <mpsioan> <mpsliban>
-SW  = <assert> <ring> <mpm> \
-      <arenacl> <space> <pool> <poolmfs> \
+SW  = <assert> <ring> <mpm> <bt> \
+      <arenavm> <arenacl> <arena> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
-      <ref> <trace> <protw3> <shield> \
-      <than> <ssan> <mpsisw> <mpsiw3> <ld> <poolepdl> \
+      <ref> <trace> <protw3> <shield> <vmw3> \
+      <than> <ssan> <mpsi> <mpsiw3> <ld> <poolepdl> \
       <action> <seg>
+PLINTH = <mpsioan> <mpsliban>
 AMC = <amc>
 AMS = <poolams>
 AWL = <poolawl>

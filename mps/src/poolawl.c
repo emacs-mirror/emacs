@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.11) $
+ * $HopeName: MMsrc!poolawl.c(trunk.12) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.11) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.12) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -64,7 +64,7 @@ static void AWLGroupDestroy(AWLGroup group)
   Pool pool;
   Seg seg;
   Size tableSize;
-  Space space;
+  Arena arena;
   Count segGrains;
 
   AVERT(AWLGroup, group);
@@ -73,20 +73,20 @@ static void AWLGroupDestroy(AWLGroup group)
   AVERT(Pool, pool);
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
-  space = PoolSpace(pool);
-  AVERT(Space, space);
+  arena = PoolArena(pool);
+  AVERT(Arena, arena);
 
   /* This is one of the few places where it is easy to check */
   /* group->grains, so we do */
-  segGrains = SegSize(space, seg) >> awl->alignShift;
+  segGrains = SegSize(arena, seg) >> awl->alignShift;
   AVER(segGrains == group->grains);
   tableSize = BTSize(segGrains);
   PoolSegFree(pool, seg);
-  SpaceFree(space, (Addr)group->alloc, tableSize);
-  SpaceFree(space, (Addr)group->scanned, tableSize);
-  SpaceFree(space, (Addr)group->mark, tableSize);
+  ArenaFree(arena, (Addr)group->alloc, tableSize);
+  ArenaFree(arena, (Addr)group->scanned, tableSize);
+  ArenaFree(arena, (Addr)group->mark, tableSize);
   group->sig = SigInvalid;
-  SpaceFree(space, (Addr)group, sizeof *group);
+  ArenaFree(arena, (Addr)group, sizeof *group);
 }
   
  
@@ -100,7 +100,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   Count bits;	/* number of grains */
   Res res;
   Size tableSize;
-  Space space;
+  Arena arena;
 
   AVER(groupReturn != NULL);
   AVERT(Buffer, buffer);
@@ -110,10 +110,10 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
 
-  space = PoolSpace(pool);
-  AVERT(Space, space);
+  arena = PoolArena(pool);
+  AVERT(Arena, arena);
 
-  size = SizeAlignUp(size, ArenaAlign(space));
+  size = SizeAlignUp(size, ArenaAlign(arena));
   /* beware of large sizes overflowing upon rounding */
   if(size == 0) {
     return ResMEMORY;
@@ -121,23 +121,23 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   res = PoolSegAlloc(&seg, SegPrefDefault(), pool, size);
   if(res != ResOK)
     goto failSegAlloc;
-  res = SpaceAlloc(&v, space, sizeof *group);
+  res = ArenaAlloc(&v, arena, sizeof *group);
   if(res != ResOK)
-    goto failSpaceAlloc0;
+    goto failArenaAlloc0;
   group = v;
   bits = size >> awl->alignShift;
   tableSize = BTSize(bits);
-  res = SpaceAlloc(&v, space, tableSize);
+  res = ArenaAlloc(&v, arena, tableSize);
   if(res != ResOK)
-    goto failSpaceAllocMark;
+    goto failArenaAllocMark;
   group->mark = v;
-  res = SpaceAlloc(&v, space, tableSize);
+  res = ArenaAlloc(&v, arena, tableSize);
   if(res != ResOK)
-    goto failSpaceAllocScanned;
+    goto failArenaAllocScanned;
   group->scanned = v;
-  res = SpaceAlloc(&v, space, tableSize);
+  res = ArenaAlloc(&v, arena, tableSize);
   if(res != ResOK)
-    goto failSpaceAllocAlloc;
+    goto failArenaAllocAlloc;
   group->alloc = v;
   group->grains = bits;
   BTResRange(group->mark, 0, bits);
@@ -152,13 +152,13 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   *groupReturn = group;
   return ResOK;
 
-failSpaceAllocAlloc:
-  SpaceFree(space, (Addr)group->scanned, tableSize);
-failSpaceAllocScanned:
-  SpaceFree(space, (Addr)group->mark, tableSize);
-failSpaceAllocMark:
-  SpaceFree(space, (Addr)group, sizeof *group);
-failSpaceAlloc0:
+failArenaAllocAlloc:
+  ArenaFree(arena, (Addr)group->scanned, tableSize);
+failArenaAllocScanned:
+  ArenaFree(arena, (Addr)group->mark, tableSize);
+failArenaAllocMark:
+  ArenaFree(arena, (Addr)group, sizeof *group);
+failArenaAlloc0:
   PoolSegFree(pool, seg);
 failSegAlloc:
   return res;
@@ -170,7 +170,7 @@ static Bool AWLGroupAlloc(Addr *baseReturn, Addr *limitReturn,
 {
   Count n;	/* number of grains equivalent to alloc size */
   Index i, j;
-  Space space;
+  Arena arena;
 
   AVER(baseReturn != NULL);
   AVER(limitReturn != NULL);
@@ -178,19 +178,19 @@ static Bool AWLGroupAlloc(Addr *baseReturn, Addr *limitReturn,
   AVERT(AWL, awl);
   AVER(size > 0);
 
-  space = PoolSpace(&awl->poolStruct);
-  AVERT(Space, space);
+  arena = PoolArena(&awl->poolStruct);
+  AVERT(Arena, arena);
 
 
-  if(size > SegSize(space, group->seg)) {
+  if(size > SegSize(arena, group->seg)) {
     return FALSE;
   }
   n = size >> awl->alignShift;
   if(!BTFindLongResRange(&i, &j, group->alloc, 0, group->grains, n)) {
     return FALSE;
   }
-  *baseReturn = AddrAdd(SegBase(space, group->seg), i << awl->alignShift);
-  *limitReturn = AddrAdd(SegBase(space, group->seg), j << awl->alignShift);
+  *baseReturn = AddrAdd(SegBase(arena, group->seg), i << awl->alignShift);
+  *limitReturn = AddrAdd(SegBase(arena, group->seg), j << awl->alignShift);
   return TRUE;
 }
 
@@ -211,7 +211,7 @@ static Res AWLInit(Pool pool, va_list arg)
   awl->format = format;
   awl->alignShift = SizeLog2(pool->alignment);
   ActionInit(&awl->actionStruct, pool);
-  awl->lastCollected = PoolSpace(pool)->allocTime;
+  awl->lastCollected = PoolArena(pool)->allocTime;
   awl->sig = AWLSig;
 
   AVERT(AWL, awl);
@@ -255,7 +255,7 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AWL awl;
   Res res;
   Ring node;
-  Space space;
+  Arena arena;
 
   AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
@@ -264,7 +264,7 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AVERT(Buffer, buffer);
   AVER(size > 0);
 
-  space = PoolSpace(pool);
+  arena = PoolArena(pool);
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -291,14 +291,14 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   if(res != ResOK) {
     return res;
   }
-  base = SegBase(space, group->seg);
-  limit = SegLimit(space, group->seg);
+  base = SegBase(arena, group->seg);
+  limit = SegLimit(arena, group->seg);
 
 found:
   {
     Index i, j;
-    i = AddrOffset(SegBase(space, group->seg), base) >> awl->alignShift;
-    j = AddrOffset(SegBase(space, group->seg), limit) >> awl->alignShift;
+    i = AddrOffset(SegBase(arena, group->seg), base) >> awl->alignShift;
+    j = AddrOffset(SegBase(arena, group->seg), limit) >> awl->alignShift;
     BTSetRange(group->alloc, i, j);
   }
   *segReturn = group->seg;
@@ -323,7 +323,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
   group = (AWLGroup)SegP(BufferSeg(buffer));
   AVERT(AWLGroup, group);
 
-  segBase = SegBase(PoolSpace(pool), BufferSeg(buffer));
+  segBase = SegBase(PoolArena(pool), BufferSeg(buffer));
 
   i = AddrOffset(segBase, BufferGetInit(buffer)) >> awl->alignShift;
   j = AddrOffset(segBase, BufferLimit(buffer)) >> awl->alignShift;
@@ -379,7 +379,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AVERT(AWLGroup, group);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace->ti));
-    ShieldRaise(trace->space, seg, AccessREAD);
+    ShieldRaise(trace->arena, seg, AccessREAD);
     BTSetRange(group->mark, 0, group->grains);
     BTResRange(group->scanned, 0, group->grains);
   }
@@ -429,7 +429,7 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
   AWL awl;
   AWLGroup group;
   Bool finished;
-  Space space;
+  Arena arena;
 
   /* parameters checked by generic PoolScan */
   AVERT(ScanState, ss);
@@ -442,9 +442,9 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
 
-  space = PoolSpace(pool);
-  base = SegBase(space, seg);
-  limit = SegLimit(space, seg);
+  arena = PoolArena(pool);
+  base = SegBase(arena, seg);
+  limit = SegLimit(arena, seg);
 
 notFinished:
   finished = TRUE;
@@ -480,17 +480,17 @@ notFinished:
       if(dependent) {
 	Bool b;
 
-	b = SegOfAddr(&dependentSeg, space, dependentObj);
+	b = SegOfAddr(&dependentSeg, arena, dependentObj);
 	if(b == TRUE) {
-	  ShieldExpose(space, dependentSeg);
-	  TraceSetSummary(space, dependentSeg, RefSetUNIV);
+	  ShieldExpose(arena, dependentSeg);
+	  TraceSetSummary(arena, dependentSeg, RefSetUNIV);
 	} else {
 	  dependent = FALSE;
 	}
       }
       res = awl->format->scan(ss, p, objectEnd);
       if(dependent) {
-        ShieldCover(space, dependentSeg);
+        ShieldCover(arena, dependentSeg);
       }
       if(res != ResOK) {
         return res;
@@ -512,7 +512,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   Index i;
   AWL awl;
   AWLGroup group;
-  Space space;
+  Arena arena;
 
   AVERT(Pool, pool);
   AVERT(ScanState, ss);
@@ -525,11 +525,11 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   group  = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
 
-  space = PoolSpace(pool);
-  AVERT(Space, space);
+  arena = PoolArena(pool);
+  AVERT(Arena, arena);
 
   ref = *refIO;
-  i = AddrOffset(SegBase(space, seg), ref) >> awl->alignShift;
+  i = AddrOffset(SegBase(arena, seg), ref) >> awl->alignShift;
   
   ss->wasMarked = TRUE;
 
@@ -550,7 +550,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 	*refIO = (Ref)0;
       } else {
 	BTSet(group->mark, i);
-	TraceSegGreyen(space, seg, ss->traces);
+	TraceSegGreyen(arena, seg, ss->traces);
       }
     }
     break;
@@ -570,7 +570,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   AWL awl;
   AWLGroup group;
   Index i;
-  Space space;
+  Arena arena;
 
   AVERT(Pool, pool);
   AVERT(Trace, trace);
@@ -581,10 +581,10 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
   group = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
 
-  space = PoolSpace(pool);
-  AVERT(Space, space);
+  arena = PoolArena(pool);
+  AVERT(Arena, arena);
 
-  base = SegBase(space, seg);
+  base = SegBase(arena, seg);
 
   i = 0;
   while(i < group->grains) {
@@ -629,7 +629,7 @@ static Res AWLTraceBegin(Pool pool, Trace trace, Action action)
   AVERT(Action, action);
   AVER(awl == ActionAWL(action));
 
-  awl->lastCollected = PoolSpace(pool)->allocTime;
+  awl->lastCollected = PoolArena(pool)->allocTime;
   return ResOK;
 }
 
@@ -648,7 +648,7 @@ static double AWLBenefit(Pool pool, Action action)
   AVERT(Action, action);
   AVER(awl == ActionAWL(action));
 
-  return (PoolSpace(pool)->allocTime - awl->lastCollected) - 10*1024*1024.0;
+  return (PoolArena(pool)->allocTime - awl->lastCollected) - 10*1024*1024.0;
 }
 
 
@@ -692,7 +692,7 @@ static Bool AWLCheck(AWL awl)
   CHECKL(awl->poolStruct.class == &PoolClassAWLStruct);
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Action, &awl->actionStruct);
-  CHECKL(awl->poolStruct.space->allocTime >= awl->lastCollected);
+  CHECKL(awl->poolStruct.arena->allocTime >= awl->lastCollected);
   return TRUE;
 }
 

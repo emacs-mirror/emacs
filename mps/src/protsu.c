@@ -1,6 +1,6 @@
 /* impl.c.protsu: PROTECTION FOR SUNOS
  *
- * $HopeName: MMsrc!protsu.c(trunk.7) $
+ * $HopeName: MMsrc!protsu.c(trunk.8) $
  * Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -22,14 +22,17 @@
 
 #include "mpm.h"
 
-#include <sys/mman.h>
-#include <signal.h>
-
 #ifndef MPS_OS_SU
 #error "protsu.c is SunOS 4 specific, but MPS_OS_SU is not set"
 #endif
+#ifndef PROTECTION
+#error "protsu.c implements protection, but PROTECTION is not set"
+#endif
 
-SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.7) $");
+#include <sys/mman.h>
+#include <signal.h>
+
+SRCID(protsu, "$HopeName: MMsrc!protsu.c(trunk.8) $");
 
 
 /* Fix up unprototyped system calls. */
@@ -63,12 +66,12 @@ typedef void (*handler_t)(int, int, struct sigcontext *, char *);
 static handler_t sigNext = NULL;
 
 
-/* == sigHandle -- protection signal handler ==
+/* sigHandle -- protection signal handler
  *
  * This is the signal handler installed by ProtSetup to deal with
  * protection faults.  It is installed on the SIGSEGV signal.
  * It decodes the protection fault details from the signal context
- * and passes them to SpaceAccess, which attempts to handle the
+ * and passes them to ArenaAccess, which attempts to handle the
  * fault and remove its cause.  If the fault is handled, then
  * the handler returns and execution resumes.
  *
@@ -102,7 +105,7 @@ static void sigHandle(int sig, int code,
     AccessSet mode;
     AVER(addr != SIG_NOADDR);           /* .assume.addr */
     mode = AccessREAD | AccessWRITE;    /* .sigh.decode */
-    if(SpaceAccess((Addr)addr, mode))   /* .sigh.size */
+    if(ArenaAccess((Addr)addr, mode))   /* .sigh.size */
       return;
   }
 
@@ -213,10 +216,10 @@ void ProtSet(Addr base, Addr limit, AccessSet mode)
 /* ProtSync -- synchronize protection settings with hardware
  */
 
-void ProtSync(Space space)
+void ProtSync(Arena arena)
 {
-  AVERT(Space, space);
-  UNUSED(space);
+  AVERT(Arena, arena);
+  UNUSED(arena);
   NOOP;
 }
 
@@ -227,8 +230,9 @@ void ProtSync(Space space)
 void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
                void *p, size_t s)
 {
-  AVER(f != NULL);
   AVER(resultReturn != NULL);
+  AVER(FUNCHECK(f));
+  /* Can't check p and s as they are interpreted by the client */
 
   *resultReturn = (*f)(p, s);
 }

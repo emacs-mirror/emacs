@@ -1,13 +1,12 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.6) $
+ * $HopeName: MMsrc!arenacl.c(trunk.7) $
  * 
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers
  * 
  * .design: See design.mps.arena.client.
- *
  *
  * .req: The requirements are not fully known. They are inherited from
  * req.epcore, and from other requirements on the MPS. They include:
@@ -27,8 +26,6 @@
  *
  * .req.place: Allow preferential placement of segments.
  * 
- * .improve: There are various possible improvements:
- *
  * .improve.twiddle: There are several places in which many bits in a bit
  * table are checked or set in sequence. These could all be made much faster
  * with suitable bit-twiddling code.
@@ -36,32 +33,49 @@
  */
 
 #include "mpm.h"
+#include "mpsacl.h"
 
-#ifndef ARENA_CLIENT
-#error "Client arena not configured"
-#endif
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.6) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(MMdevel_config_thread.3) $");
 
-Bool ArenaCheck(Arena arena)
-{
-  CHECKS(Arena,arena);
-  CHECKL(RingCheck(&arena->chunkRing));
-  /* no possible check on arena->chunkSerial */
-  CHECKL(ShiftCheck(arena->pageShift));
-  CHECKL(arena->pageSize == 1uL << arena->pageShift);
-  return TRUE;
-}
 
-typedef struct ChunkStruct *Chunk;      /* chunk type */
-typedef struct PageStruct *Page;         /* page type */
+typedef struct ClientArenaStruct *ClientArena;
+typedef struct ChunkStruct *Chunk;
+typedef struct PageStruct *Page;
 typedef Word *ABT;                      /* bool table type */
+
+
+/* ClientArenaStruct -- Client Arena Structure */
+
+#define ClientArenaSig      ((Sig)0x519A6EC7) /* SIGnature AREna CLient */
+
+typedef struct ClientArenaStruct {
+  ArenaStruct arenaStruct;	/* generic arena structure */
+  RingStruct chunkRing;         /* all the chunks */
+  Serial chunkSerial;           /* next chunk number */
+  Shift pageShift;              /* log2(pageSize), for shifts */
+  Size pageSize;                /* size of block managed by PageStruct */
+  Sig sig;                      /* design.mps.sig */
+} ClientArenaStruct;
+
+
+/* ArenaClientArena -- find the ClientArena pointer given a generic Arena */
+
+#define ArenaClientArena(arena) PARENT(ClientArenaStruct, arenaStruct, (arena))
+
+
+/* ClientArenaArena -- find the generic Arena pointer given a ClientArena */
+
+#define ClientArenaArena(ClientArena) (&(ClientArena)->arenaStruct)
+
+
+/* ChunkStruct -- chunk structure */
 
 #define ChunkSig        ((Sig)0x519C804c) /* SIGnature CHUNK */
 
 typedef struct ChunkStruct {    /* chunk structure */
   Sig sig;                      /* impl.h.misc.sig */
-  Arena arena;                  /* the arena */
+  ClientArena arena;            /* the arena */
   RingStruct arenaRing;         /* ring of chunks within the arena */
   Serial serial;                /* serial within the arena */
   Size pages;                   /* number of pages in chunk */
@@ -96,10 +110,16 @@ typedef struct PageStruct {      /* page structure */
 } PageStruct;
 
 
+static Addr ClientSegLimit(Arena arena, Seg seg);
+static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr);
+
+
+/* ChunkCheck -- check the consistency of a chunk */
+
 static Bool ChunkCheck(Chunk chunk)
 {
   CHECKS(Chunk, chunk);
-  CHECKU(Arena, chunk->arena);
+  CHECKU(ClientArena, chunk->arena);
   CHECKL(RingCheck(&chunk->arenaRing));
   CHECKL(chunk->serial <= chunk->arena->chunkSerial);
   CHECKL(chunk->freePages <= chunk->pages);
@@ -133,7 +153,7 @@ static Bool ChunkCheck(Chunk chunk)
          >= chunk->pages);
         /* enough space for free table: */
   CHECKL(AddrOffset(chunk->freeTable, chunk->pageBase) / sizeof(Word)
-         >= SizeAlignUp(chunk->pages,MPS_WORD_WIDTH) >> MPS_WORD_SHIFT);
+         >= SizeAlignUp(chunk->pages, MPS_WORD_WIDTH) >> MPS_WORD_SHIFT);
         /* enough space for pages: */
   CHECKL((AddrOffset(chunk->pageBase, chunk->limit) >> chunk->arena->pageShift)
          == chunk->pages);
@@ -141,11 +161,12 @@ static Bool ChunkCheck(Chunk chunk)
   return TRUE;
 }
 
+
 /* would like to be able to write a PageCheck, but Pages don't even
  * have a signature */
 
 
-/* Page Index to Base address mapping
+/* PageBase -- Page Index to Base address mapping
  *
  * See design.mps.arenavm.table.linear
  */
@@ -179,9 +200,7 @@ typedef Size PI;
 typedef Size BI;
 
 
-/* Base address to Page Index (within a chunk) mapping
- *
- */
+/* ChunkPageIndexOfAddr -- base address to page index (within a chunk) mapping */
 
 static PI ChunkPageIndexOfAddr(Chunk chunk, Addr addr)
 {
@@ -225,17 +244,25 @@ static void ABTSet(ABT bt, BI i, Bool b)
   bt[wi] = (bt[wi] & mask) | ((Word)b << bi);
 }
 
-/* Space Arena Projection
- * 
- * Only the arena module needs to discuss the arena object, hence, this
- * method is private to this module.
- */
 
-#define SpaceArena(space)       (&(space)->arenaStruct)
+/* ClientArenaCheck -- check the consistency of a client arena */
+
+static Bool ClientArenaCheck(ClientArena clientArena)
+{
+  CHECKS(ClientArena, clientArena);
+  CHECKD(Arena, ClientArenaArena(clientArena));
+  CHECKL(RingCheck(&clientArena->chunkRing));
+  /* no possible check on clientArena->chunkSerial */
+  CHECKL(ShiftCheck(clientArena->pageShift));
+  CHECKL(clientArena->pageSize == 1uL << clientArena->pageShift);
+  return TRUE;
+}
+
 
 /* ChunkCreate -- create a chunk */
 
-static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit, Arena arena)
+static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit,
+		       ClientArena clientArena)
 {
   Chunk chunk;
   Addr a;
@@ -243,31 +270,31 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit, Arena arena)
   Size freeTableWords;
   PI i;
 
-  AVERT(Arena, arena);
+  AVERT(ClientArena, clientArena);
   AVER(chunkReturn != NULL);
   AVER(base != (Addr)0);
   AVER(limit != (Addr)0);
   AVER(limit > base);
 
   /* allocate the chunk */
-
-  a = AddrAlignUp(base,MPS_PF_ALIGN);
-  chunk = (Chunk) a;
+  a = AddrAlignUp(base, MPS_PF_ALIGN);
+  chunk = (Chunk)a;
 
   /* figure out the sizes and locations of the control structures */
-  a = AddrAlignUp(AddrAdd(a,sizeof(ChunkStruct)), MPS_PF_ALIGN);
+  a = AddrAlignUp(AddrAdd(a, sizeof(ChunkStruct)), MPS_PF_ALIGN);
 
   if (a > limit) /* the chunk is too small */
     return ResMEMORY;
 
-  tablePages = AddrOffset(a,limit) >> arena->pageShift;
+  tablePages = AddrOffset(a, limit) >> clientArena->pageShift;
 
-  chunk->pageTable = (Page) a;
-  a = AddrAlignUp(AddrAdd(a,sizeof(PageStruct) * tablePages), MPS_PF_ALIGN);
+  chunk->pageTable = (Page)a;
+  a = AddrAlignUp(AddrAdd(a, sizeof(PageStruct) * tablePages), MPS_PF_ALIGN);
 
-  chunk->freeTable = (ABT) a;
+  chunk->freeTable = (ABT)a;
   freeTableWords = SizeAlignUp(tablePages, MPS_WORD_WIDTH) >> MPS_WORD_SHIFT;
-  a = AddrAlignUp(AddrAdd(a,freeTableWords * sizeof(Word)), MPS_PF_ALIGN);
+  a = AddrAlignUp(AddrAdd(a, freeTableWords * sizeof(Word)),
+		  ARENA_CLIENT_PAGE_SIZE);
 
   /* the rest is in managed pages; there may be some wastage at the end */
   chunk->pageBase = a;
@@ -275,9 +302,10 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit, Arena arena)
   /* initialize the remaining slots */
   chunk->base = base;
   chunk->limit = limit;
-  chunk->pages = AddrOffset(chunk->pageBase, chunk->limit) >> arena->pageShift;
+  chunk->pages = AddrOffset(chunk->pageBase, chunk->limit)
+                 >> clientArena->pageShift;
   chunk->freePages = chunk->pages;
-  chunk->arena = arena;
+  chunk->arena = clientArena;
 
   /* initialize the freeTable */
   /* .improve.twiddle.init: Could go a lot faster with bit twiddling */
@@ -289,8 +317,8 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit, Arena arena)
   {
     Ring node;
 
-    node = RingNext(&arena->chunkRing);
-    RING_FOR(node, &arena->chunkRing) {
+    node = RingNext(&clientArena->chunkRing);
+    RING_FOR(node, &clientArena->chunkRing) {
       Chunk cchunk = RING_ELT(Chunk, arenaRing, node);
       if(chunk->base < cchunk->base) {
 	goto found;
@@ -300,8 +328,8 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit, Arena arena)
     RingAppend(node, &chunk->arenaRing);
   }
 
-  chunk->serial = arena->chunkSerial;
-  ++ arena->chunkSerial;
+  chunk->serial = clientArena->chunkSerial;
+  ++clientArena->chunkSerial;
 
   /* sign it, check it, return it */
   chunk->sig = ChunkSig;
@@ -311,115 +339,126 @@ static Res ChunkCreate(Chunk *chunkReturn, Addr base, Addr limit, Arena arena)
   return ResOK;
 }
 
-/* ArenaCreate -- create the arena
+
+/* ClientArenaInit -- create and initialize the client arena
  *
- * In fact, this creates the space structure and initializes the
- * arena part, and makes the first chunk from the memory left over.
+ * .init.memory: Creates the arena structure in the chuck given, and
+ * makes the first chunk from the memory left over.
+ * .arena.init: Once the arena has been allocated, we call ArenaInit
+ * to do the generic part of init.
  */
 
-Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
+static Res ClientArenaInit(Arena *arenaReturn, va_list args)
 {
-  Space space;
   Arena arena;
-  Addr limit;
+  ClientArena clientArena;
+  Size size;
+  Addr base, limit, chunkBase;
   Res res;
   Chunk chunk;
   
-  AVER(spaceReturn != NULL);
+  size = va_arg(args, Size);
+  base = va_arg(args, Addr);
+  AVER(arenaReturn != NULL);
   AVER(base != (Addr)0);
 
-  if (size < sizeof(SpaceStruct))
-    return ResMEMORY;
+  if (size < sizeof(ClientArenaStruct)) return ResMEMORY;
 
-  limit = AddrAdd(base,size);
+  limit = AddrAdd(base, size);
 
-  /* allocate the space */
-  base = AddrAlignUp(base,MPS_PF_ALIGN);
-  space = (Space) base;
-  base = AddrAlignUp(AddrAdd(base,sizeof(SpaceStruct)),MPS_PF_ALIGN);
+  /* allocate the arena */
+  base = AddrAlignUp(base, MPS_PF_ALIGN);
+  clientArena = (ClientArena)base;
+  chunkBase = AddrAlignUp(AddrAdd(base, sizeof(ClientArenaStruct)),
+			  MPS_PF_ALIGN);
+  if (chunkBase > limit) return ResMEMORY;
 
-  if (base > limit)
-    return ResMEMORY;
+  arena = ClientArenaArena(clientArena);
+  /* impl.c.arena.init.caller */
+  ArenaInit(arena, (ArenaClass)mps_arena_class_cl());
 
-  arena = SpaceArena(space);
-  arena->pageSize = ARENA_CLIENT_PAGE_SIZE;
-  arena->pageShift = SizeLog2(arena->pageSize);
-
-  RingInit(&arena->chunkRing);
-  arena->chunkSerial = (Serial)0;
+  clientArena->pageSize = ARENA_CLIENT_PAGE_SIZE;
+  clientArena->pageShift = SizeLog2(clientArena->pageSize);
+  RingInit(&clientArena->chunkRing);
+  clientArena->chunkSerial = (Serial)0;
 
   /* have to have a valid arena before calling ChunkCreate */
-  arena->sig = ArenaSig;
+  clientArena->sig = ClientArenaSig;
   
-  AVERT(Arena, arena);
+  AVERT(ClientArena, clientArena);
 
-  res = ChunkCreate(&chunk, base, limit, arena);
-  if (res)
-    return res;
+  res = ChunkCreate(&chunk, chunkBase, limit, clientArena);
+  if (res) return res;
   
-  /* Set the zone shift to divide the initial chunk into the same
-   * number of zones as will fit into a reference set (the number of
-   * bits in a word). Note that some zones are discontiguous in the
-   * arena if the size is not a power of 2. */
+  /* Set the zone shift to divide the initial chunk into the same */
+  /* number of zones as will fit into a reference set (the number of */
+  /* bits in a word). Note that some zones are discontiguous in the */
+  /* arena if the size is not a power of 2. */
+  arena->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
+  arena->alignment = clientArena->pageSize;
 
-  space->zoneShift = SizeFloorLog2(size >> MPS_WORD_SHIFT);
-
-  *spaceReturn = space;
+  *arenaReturn = arena;
   return ResOK;
 }
 
-/* ArenaDestroy -- finish the arena and destroy the space structure */
 
-void ArenaDestroy(Space space)
+/* ClientArenaFinish -- finish the arena */
+
+static void ClientArenaFinish(Arena arena)
 {
-  Arena arena;
-  AVERT(Arena, SpaceArena(space));
-  arena = SpaceArena(space);
-  arena->sig = SigInvalid;
+  ClientArena clientArena;
+
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
+
+  clientArena->sig = SigInvalid;
+  ArenaFinish(arena); /* impl.c.arena.finish.caller */
 }
 
-/* ArenaExtend: this extends the arena */
 
-Res ArenaExtend(Space space, Addr base, Size size)
+/* ClientArenaExtend -- extend the arena */
+
+static Res ClientArenaExtend(Arena arena, Addr base, Size size)
 {
-  Arena arena;
+  ClientArena clientArena;
   Chunk chunk;
   Res res;
   Addr limit;
 
-  AVERT(Space,space);
+  AVERT(Arena, arena);
   AVER(base != (Addr)0);
   AVER(size > 0);
-  limit = AddrAdd(base,size);
+  limit = AddrAdd(base, size);
   
-  arena = SpaceArena(space);
-  res = ChunkCreate(&chunk, base, limit, arena);
+  clientArena = ArenaClientArena(arena);
+  res = ChunkCreate(&chunk, base, limit, clientArena);
   return res;
 }
 
-/* ArenaRetract returns ResFAIL if there is no such chunk, or if it
- * exists but is not fully free. [This is really part of the interface
- * design]. */
 
-Res ArenaRetract(Space space, Addr base, Size size)
+/* ClientArenaRetract -- retract a chunk from the arena
+ *
+ * Returns ResFAIL if there is no such chunk, or if it exists but is
+ * not fully free.
+ */
+
+static Res ClientArenaRetract(Arena arena, Addr base, Size size)
 {
-  Arena arena;
+  ClientArena clientArena;
   Ring node;
   Addr limit;
   
-  AVERT(Space, space);
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
   AVER(base != (Addr)0);
   AVER(size > 0);
 
   limit = AddrAdd(base, size);
 
-  arena = SpaceArena(space);
-
-  RING_FOR(node, &arena->chunkRing) {
+  RING_FOR(node, &clientArena->chunkRing) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     AVERT(Chunk, chunk);
-    if ((chunk->base == base) &&
-        (chunk->limit == limit)) {
+    if ((chunk->base == base) && (chunk->limit == limit)) {
       /* check that it's empty */
       PI pi;
       for (pi = 0; pi < chunk->pages; pi++) {
@@ -429,30 +468,28 @@ Res ArenaRetract(Space space, Addr base, Size size)
       return ResOK;
     }
   }
-
   return ResFAIL;       /* no such chunk */
 }
 
 
-/* ArenaReserved -- return the amount of reserved address space
- * ArenaCommitted -- return the amount of committed virtual memory
+/* ClientArenaReserved -- return the amount of reserved address space
+ * ClientArenaCommitted -- return the amount of committed virtual memory
  * 
  * (actually for the client arena, ArenaCommitted returns the amount allocated
  *  in segments).
  */
 
-Size ArenaReserved(Space space)
+static Size ClientArenaReserved(Arena arena)
 {
-  Arena arena;
+  ClientArena clientArena;
   Size size;
   Ring node;
 
-  AVERT(Arena, SpaceArena(space));
-
-  arena = SpaceArena(space);
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
 
   size = 0;
-  RING_FOR(node, &arena->chunkRing) { /* .req.extend.slow */
+  RING_FOR(node, &clientArena->chunkRing) { /* .req.extend.slow */
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     AVERT(Chunk, chunk);
     size += AddrOffset(chunk->base, chunk->limit);
@@ -461,68 +498,24 @@ Size ArenaReserved(Space space)
   return size;
 }
 
-Size ArenaCommitted(Space space)
+static Size ClientArenaCommitted(Arena arena)
 {
-  Arena arena;
-  Size size;
+  ClientArena clientArena;
+  Size size = 0;
   Ring node;
 
-  AVERT(Arena, SpaceArena(space));
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
 
-  arena = SpaceArena(space);
-
-  size = 0;
-  RING_FOR(node, &arena->chunkRing) { /* .req.extend.slow */
+  RING_FOR(node, &clientArena->chunkRing) { /* .req.extend.slow */
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     AVERT(Chunk, chunk);
-    size += ((chunk->pages - chunk->freePages) * arena->pageSize);
+    size += ((chunk->pages - chunk->freePages) * clientArena->pageSize);
   }
 
   return size;
 }
 
-
-/* preferences... */
-
-Bool SegPrefCheck(SegPref pref)
-{
-  CHECKS(SegPref, pref);
-  CHECKL(BoolCheck(pref->high));
-  /* nothing else to check */
-  return TRUE;
-}
-
-static SegPrefStruct segPrefDefault = {
-  SegPrefSig,
-  ARENA_CLIENT_DEFAULT_SEG_HIGH
-};
-
-SegPref SegPrefDefault(void)
-{
-  return &segPrefDefault;
-}
-
-Res SegPrefExpress (SegPref sp, SegPrefKind kind, void *p)
-{
-  AVERT(SegPref,sp);
-  AVER(sp != &segPrefDefault);
-
-  switch(kind) {
-  case SegPrefHigh:
-    AVER(p == NULL);
-    sp->high = TRUE;
-    return ResOK;
-
-  case SegPrefLow:
-    AVER(p == NULL);
-    sp->high = FALSE;
-    return ResOK;
-
-  default:
-    /* see design.mps.pref.default */
-    return ResOK;
-  }
-}
 
 /* ChunkSegAlloc: allocate a segment in a chunk */
 
@@ -531,7 +524,7 @@ static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages, Pool pool,
 {
   PI pi, count, base = 0;
   Seg seg;
-  Arena arena;
+  ClientArena clientArena;
 
   AVER(segReturn != NULL);
   AVERT(Chunk, chunk);
@@ -539,25 +532,22 @@ static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages, Pool pool,
   if (pages > chunk->freePages)
     return ResRESOURCE;
 
-  arena = chunk->arena;
+  clientArena = chunk->arena;
   
-  /* Search the free table for a sufficiently-long run of free pages.
-   * If we succeed, we go to "found:" with the lowest page number in
-   * the run in 'base'. */
-
-  /* .improve.twiddle.search: This code could go a lot faster with
-   * twiddling the bit table. */
-
-  /* .improve.clear: I have tried to make this code clear, with
-   *  comments &c, but there's room for further clarification. */
+  /* Search the free table for a sufficiently-long run of free pages. */
+  /* If we succeed, we go to "found:" with the lowest page number in */
+  /* the run in 'base'. */
+  /* .improve.twiddle.search: This code could go a lot faster with */
+  /* twiddling the bit table. */
+  /* .improve.clear: I have tried to make this code clear, with */
+  /* comments &c, but there's room for further clarification. */
 
   count = 0; /* the number of free pages found in the current run */
-
   if (pref->high) { /* search down from the top of the chunk */
     pi = chunk->pages;
     while (pi != 0) {
       pi--;
-      if (ABTGet(chunk->freeTable,pi)) {
+      if (ABTGet(chunk->freeTable, pi)) {
         ++count;
         if (count == pages) { /* then we're done, take the base of this run */
           base = pi;
@@ -581,11 +571,10 @@ static Res ChunkSegAlloc(Seg *segReturn, SegPref pref, Size pages, Pool pool,
     }
   }
   
-  /* No adequate run was found.
-   * .improve.alloc-fail: This could be because the request was
-   * too large, or perhaps because of fragmentation.  We could return a
-   * more meaningful code.
-   */
+  /* No adequate run was found. */
+  /* .improve.alloc-fail: This could be because the request was */
+  /* too large, or perhaps because of fragmentation.  We could return a */
+  /* more meaningful code. */
   return ResRESOURCE;
 
 found:
@@ -593,10 +582,9 @@ found:
   seg = PageSeg(&chunk->pageTable[base]);
   SegInit(seg, pool);
 
-  /* Allocate the first page, and, if there is more than one page,
-   * allocate the rest of the pages and store the multi-page information
-   * in the page table.
-   */
+  /* Allocate the first page, and, if there is more than one page, */
+  /* allocate the rest of the pages and store the multi-page information */
+  /* in the page table. */
   AVER(ABTGet(chunk->freeTable, base));
   ABTSet(chunk->freeTable, base, FALSE);
   if(pages > 1) {
@@ -621,34 +609,30 @@ found:
 }
 
 
-/* SegAlloc -- allocate a segment from the arena */
+/* ClientSegAlloc -- allocate a segment from the arena */
 
-Res SegAlloc(Seg *segReturn, SegPref pref, Space space, Size size, Pool pool)
+static Res ClientSegAlloc(Seg *segReturn, SegPref pref, Arena arena,
+			Size size, Pool pool)
 {
-  Arena arena;
+  ClientArena clientArena;
   Res res;
   Ring node;
   Size pages;
 
   AVER(segReturn != NULL);
   AVERT(SegPref, pref);
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
+  AVER(SizeIsAligned(size, clientArena->pageSize));
   AVER(size > 0);
   AVERT(Pool, pool);
-  
-  /* NULL is used as a discriminator (see
-   * design.mps.arenavm.table.disc), therefore the real pool must be
-   * non-NULL.
-   */
+  /* NULL is used as a discriminator (see design.mps.arenavm.table.disc), */
+  /* therefore the real pool must be non-NULL. */
   AVER(pool != NULL);
 
-  arena = SpaceArena(space);
+  pages = size >> clientArena->pageShift;
 
-  AVERT(Arena, arena);
-  AVER(SizeIsAligned(size, arena->pageSize));
-
-  pages = size >> arena->pageShift;
-
-  RING_FOR(node, &arena->chunkRing) { /* .req.extend.slow */
+  RING_FOR(node, &clientArena->chunkRing) { /* .req.extend.slow */
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     res = ChunkSegAlloc(segReturn, pref, pages, pool, chunk);
     if (res == ResOK)
@@ -657,20 +641,22 @@ Res SegAlloc(Seg *segReturn, SegPref pref, Space space, Size size, Pool pool)
   return ResRESOURCE;
 }
 
+
 /* SegChunk: identify the chunk (and index) in which a segment resides */
 
-static Res SegChunk(Chunk *chunkReturn, PI *piReturn, Seg seg, Arena arena)
+static Res SegChunk(Chunk *chunkReturn, PI *piReturn, Seg seg,
+		    ClientArena clientArena)
 {
   Page page;
   Ring node;
   
   AVER(chunkReturn != NULL);
   AVERT(Seg, seg);
-  AVERT(Arena, arena);
+  AVERT(ClientArena, clientArena);
 
   page = PageOfSeg(seg);
 
-  RING_FOR(node, &arena->chunkRing) {
+  RING_FOR(node, &clientArena->chunkRing) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     if ((page >= chunk->pageTable) &&
         (page < (chunk->pageTable + chunk->pages))) {
@@ -683,25 +669,24 @@ static Res SegChunk(Chunk *chunkReturn, PI *piReturn, Seg seg, Arena arena)
 }
 
 
-/* SegFree - free a segment in the arena */
+/* ClientSegFree - free a segment in the arena */
 
-void SegFree(Space space, Seg seg)
+static void ClientSegFree(Arena arena, Seg seg)
 {
-  Arena arena;
+  ClientArena clientArena;
   Chunk chunk;
   PI pi, pl, pn;
   Addr base, limit; 
   Res res;
 
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
   AVERT(Seg, seg);
 
-  arena = SpaceArena(space);
-  AVERT(Arena, arena);
-
-  res = SegChunk(&chunk, &pi, seg, arena);
+  res = SegChunk(&chunk, &pi, seg, clientArena);
   AVER(res == ResOK);
 
-  limit = SegLimit(space, seg);
+  limit = ClientSegLimit(arena, seg);
 
   SegFinish(seg);
 
@@ -709,9 +694,9 @@ void SegFree(Space space, Seg seg)
   /* unmapped .free.unmap */
   base = PageBase(chunk, pi);
 
-  /* Calculate the number of pages in the segment, and hence the
-   * limit for .free.loop */
-  pn = AddrOffset(base, limit) >> arena->pageShift;
+  /* Calculate the number of pages in the segment, and hence the */
+  /* limit for .free.loop */
+  pn = AddrOffset(base, limit) >> clientArena->pageShift;
   pl = pi + pn;
   /* .free.loop: */
   for( ; pi < pl; ++pi) {
@@ -721,68 +706,55 @@ void SegFree(Space space, Seg seg)
 
   chunk->freePages += pn;
 
-  /* Double check that .free.loop takes us to the limit page of the
-   * segment.
-   */
+  /* Double check that .free.loop takes us to the limit page of the */
+  /* segment. */
   AVER(PageBase(chunk, pi) == limit);
 }
 
 
-/* ArenaAlign -- return the alignment of segments */
-
-Align ArenaAlign(Space space)
-{
-  Arena arena;
-  AVERT(Arena, SpaceArena(space));
-  arena = SpaceArena(space);
-  return arena->pageSize;
-}
-
-
-/* SegBase -- return the base address of a segment
+/* ClientSegBase -- return the base address of a segment
  *
  * The segment base is calculated by identifying the chunk and page
  * index, then multiplying that by the page size and adding it to
- * the chunk base address. */
+ * the chunk base address.
+ */
 
-Addr SegBase(Space space, Seg seg)
+static Addr ClientSegBase(Arena arena, Seg seg)
 {
-  Arena arena;
+  ClientArena clientArena;
   PI pi;
   Chunk chunk;
   Res res;
   
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
   AVERT(Seg, seg);
 
-  arena = SpaceArena(space);
-  AVERT(Arena, arena);
-
-  res = SegChunk(&chunk, &pi, seg, arena);
+  res = SegChunk(&chunk, &pi, seg, clientArena);
   AVER(res == ResOK);
 
   return PageBase(chunk, pi);
 }
 
 
-/* SegLimit -- return the limit address (end+1) of a segment
+/* ClientSegLimit -- return the limit address (end+1) of a segment
  *
  * If the segment is a single page, then the limit is just
  * the next page, otherwise it is stored on the next page
  * table entry.
  */
 
-Addr SegLimit(Space space, Seg seg)
+static Addr ClientSegLimit(Arena arena, Seg seg)
 {
-  Arena arena;
+  ClientArena clientArena;
   Page page;
 
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
   AVERT(Seg, seg);
 
-  arena = SpaceArena(space);
-  AVERT(Arena, arena);
-
   if(SegSingle(seg))
-    return AddrAdd(SegBase(space, seg), arena->pageSize);
+    return AddrAdd(ClientSegBase(arena, seg), clientArena->pageSize);
   else {
     page = PageOfSeg(seg);
     return PageTail(page+1)->limit;
@@ -790,21 +762,21 @@ Addr SegLimit(Space space, Seg seg)
 }
 
 
-/* SegSize -- return the size (limit - base) of a segment
+/* ClientSegSize -- return the size (limit - base) of a segment
  *
  * .improve.redundant-calc: There is scope for optimizing this,
  * because both base and limit calls do roughly the same thing twice.
  */
 
-Size SegSize(Space space, Seg seg)
+static Size ClientSegSize(Arena arena, Seg seg)
 {
-  AVERT(Arena, SpaceArena(space));
+  AVERT(ClientArena, ArenaClientArena(arena));
   AVERT(Seg, seg);
-  return AddrOffset(SegBase(space, seg), SegLimit(space, seg));
+  return AddrOffset(ClientSegBase(arena, seg), ClientSegLimit(arena, seg));
 }
 
 
-/* SegOfAddr -- return the segment which encloses an address
+/* ClientSegOfAddr -- return the segment which encloses an address
  *
  * If the address is within the bounds of the arena, calculate the
  * page table index from the address and see if the page is allocated.
@@ -812,20 +784,19 @@ Size SegSize(Space space, Seg seg)
  * tail's pointer back to the segment in the head page.
  */
 
-Bool SegOfAddr(Seg *segReturn, Space space, Addr addr)
+static Bool ClientSegOfAddr(Seg *segReturn, Arena arena, Addr addr)
 {
-  Arena arena;
+  ClientArena clientArena;
   Ring node;
   
   AVER(segReturn != NULL);
-  
-  arena = SpaceArena(space);
-  AVERT(Arena, arena);
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
 
-  RING_FOR(node, &arena->chunkRing) {
+  RING_FOR(node, &clientArena->chunkRing) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     if(chunk->base <= addr && addr < chunk->limit) {
-      PI pi = AddrOffset(chunk->pageBase, addr) >> arena->pageShift;
+      PI pi = AddrOffset(chunk->pageBase, addr) >> clientArena->pageShift;
       if(!ABTGet(chunk->freeTable, pi)) {
         Page page = &chunk->pageTable[pi];
         if(SegPool(PageSeg(page)) != NULL)
@@ -836,7 +807,6 @@ Bool SegOfAddr(Seg *segReturn, Space space, Addr addr)
       }
     }
   }
-  
   return FALSE;
 }
 
@@ -868,69 +838,98 @@ static Seg SegSearchChunk(Chunk chunk, PI pi)
 }
 
 
-/* SegFirst -- return the first segment in the arena
+/* ClientSegFirst -- return the first segment in the arena
  *
  * This is used to start an iteration over all segments in the arena.
  */
 
-Bool SegFirst(Seg *segReturn, Space space)
+static Bool ClientSegFirst(Seg *segReturn, Arena arena)
 {
-  return SegNext(segReturn, space, (Addr)0);
+  return ClientSegNext(segReturn, arena, (Addr)0);
 }
 
 
-/* SegNext -- return the next segment in the arena
+/* ClientSegNext -- return the next segment in the arena
  *
  * This is used as the iteration step when iterating over all
  * segments in the arena.
  */
 
-Bool SegNext(Seg *segReturn, Space space, Addr addr)
+static Bool ClientSegNext(Seg *segReturn, Arena arena, Addr addr)
 {
   Ring node;
-  Arena arena;
+  ClientArena clientArena;
 
   AVER(segReturn != NULL);
-  AVERT(Space, space);
-  AVER(AddrIsAligned(addr, ArenaAlign(space)));
-
-  arena = SpaceArena(space);
-  AVERT(Arena, arena);
+  clientArena = ArenaClientArena(arena);
+  AVERT(ClientArena, clientArena);
+  AVER(AddrIsAligned(addr, ArenaAlign(arena)));
 
   /* For each chunk, search for a segment whose base is bigger than */
-  /* addr.  Chunks whose limit is less then add are not considered. */
+  /* addr.  Chunks whose limit is less than addr are not considered. */
   /* Chunks are on the ring in address order, so this finds the first */
-  /* segment whose base is bigger than addr */
-  RING_FOR(node, &arena->chunkRing) {
+  /* segment whose base is bigger than addr. */
+  RING_FOR(node, &clientArena->chunkRing) {
     Chunk chunk = RING_ELT(Chunk, arenaRing, node);
     PI pi;
 
     if(addr < AddrAdd(chunk->pageBase,
-		      (Size)(chunk->pages << arena->pageShift))) {
+		      (Size)(chunk->pages << clientArena->pageShift))) {
       Seg seg;
 
       if(addr < chunk->pageBase) {
 	/* The address is not in this chunk, so we want */
-	/* to start looking at the beginning of the chunk */
+	/* to start looking at the beginning of the chunk. */
 	pi = 0;
       } else {
-	/* The address is in this chunk, so we want */
-	/* to start looking just after the page at this address */
+	/* The address is in this chunk, so we want to start */
+	/* looking just after the page at this address. */
 	pi = ChunkPageIndexOfAddr(chunk, addr);
 	/* There are fewer pages than addresses so the page index will */
-	/* not wrap */
+	/* not wrap. */
 	AVER(pi + 1 != 0);
 	++pi;
       }
       seg = SegSearchChunk(chunk, pi);
       if(seg != NULL) {
-	AVER(addr < SegBase(space, seg));
+	AVER(addr < ClientSegBase(arena, seg));
 	*segReturn = seg;
 	return TRUE;
       }
     }
-    /* This chunk didn't have any more segs, so try the next one */
+    /* This chunk didn't have any more segs, so try the next one. */
   }
-  /* if there are no more chunks, then we are done */
+  /* If there are no more chunks, then we are done. */
   return FALSE;
+}
+
+
+/* mps_arena_class_cl -- return the arena class CL */
+
+static ArenaClassStruct ArenaClassCLStruct = {
+  ArenaClassSig,
+  "CL",                                     /* name */
+  sizeof(ClientArenaStruct),                /* size */
+  offsetof(ClientArenaStruct, arenaStruct), /* offset */
+  ClientArenaInit,                          /* init */
+  ClientArenaFinish,                        /* finish */
+  ClientArenaReserved,                      /* reserved */
+  ClientArenaCommitted,                     /* committed */
+  ClientArenaExtend,                        /* extend */
+  ClientArenaRetract,                       /* retract */
+  ClientSegAlloc,                           /* segAlloc */
+  ClientSegFree,                            /* segFree */
+  ClientSegBase,                            /* segBase */
+  ClientSegLimit,                           /* segLimit */
+  ClientSegSize,                            /* segSize */
+  ClientSegOfAddr,                          /* segOfAddr */
+  ClientSegFirst,                           /* segFirst */
+  ClientSegNext,                            /* segNext */
+  ArenaTrivDescribe,                        /* describe */
+  ArenaClassSig
+};
+
+mps_arena_class_t mps_arena_class_cl(void)
+{
+  return (mps_arena_class_t)&ArenaClassCLStruct;
 }

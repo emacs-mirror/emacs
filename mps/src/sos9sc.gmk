@@ -1,7 +1,7 @@
 #
 #     BUILD FOR Solaris/SPARC v9/SunPro C PLATFORM
 #
-#  $HopeName: MMsrc!sos9sc.gmk(trunk.9) $
+#  $HopeName: MMsrc!sos9sc.gmk(trunk.10) $
 #
 #  This is the GNU makefile for platform.sos9sc
 #
@@ -10,9 +10,9 @@ PFM = sos9sc
 PFMDEFS = -D_POSIX_SOURCE -D__EXTENSIONS__
 
 MPM = assert.c ring.c mpsliban.c mpm.c bt.c \
-      arenavm.c vmso.c space.c pool.c poolmfs.c \
+      arenavm.c arenaan.c arenacl.c arena.c pool.c poolmfs.c \
       poolmv.c root.c format.c buffer.c lockan.c ref.c \
-      trace.c than.c protso.c shield.c mpsi.c ld.c \
+      trace.c than.c protso.c shield.c mpsi.c ld.c vmso.c \
       mpsioan.c event.c action.c seg.c
 MPMPS = sssos9sc.s
 AMC = amc.c
@@ -21,10 +21,10 @@ AWL = poolawl.c
 MRG = poolmrg.c
 LO = lo.c
 DW = fmtdy.c dw.c
-SW = assert.c ring.c mpm.c arenacl.c space.c pool.c poolmfs.c \
-     poolmv.c root.c format.c buffer.c lockan.c ref.c \
-     trace.c than.c protsw.c shield.c mpsisw.c ld.c ssan.c poolepdl.c \
-     action.c seg.c
+SW = assert.c ring.c mpm.c arenavm.c arenacl.c arena.c pool.c poolmfs.c \
+     poolmv.c root.c format.c buffer.c lockan.c ref.c bt.c \
+     trace.c than.c protsw.c shield.c mpsi.c ld.c ssan.c vmso.c \
+     poolepdl.c action.c seg.c
 LIBS = -lm
 
 TESTLIB = testlib.c

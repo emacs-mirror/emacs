@@ -1,34 +1,33 @@
-/*  impl.c.poolncv
+/*  impl.c.poolncv: NULL POOL COVERAGE TEST
  *
- *                   NULL POOL COVERAGE TEST
- *
- *  $HopeName: MMsrc!poolncv.c(trunk.5) $
- *
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
- *
+ *  $HopeName: MMsrc!poolncv.c(MMdevel_config_thread.2) $
+ *  Copyright (C) 1995,1997 Harlequin Group, all rights reserved
  */
 
+#include <stdio.h>
 #include "mpm.h"
 #include "pooln.h"
+#include "mpsaan.h"
 #include "testlib.h"
-#include <stdio.h>
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif
 
-int
-main(void)
+
+static Bool testit(ArenaClass class, ...)
 {
   Bool eflag = FALSE;
-  Space space;
+  Arena arena;
   Pool pool;
   Res res;
   Addr p;
+  va_list args;
 
-  die(SpaceCreate(&space, (Addr)0, (Size)0), "SpaceCreate");
+  va_start(args, class);
+  die(ArenaCreateV(&arena, class, args), "ArenaCreate");
+  va_end(args);
 
-  die(PoolCreate(&pool, space, PoolClassN()),
-      "PoolNCreate");
+  die(PoolCreate(&pool, arena, PoolClassN()), "PoolNCreate");
   res = PoolAlloc(&p, pool, 1);
   if(res == ResOK) {
     fprintf(stderr,
@@ -37,14 +36,18 @@ main(void)
     eflag = TRUE;
   }
   PoolDestroy(pool);
-  SpaceDestroy(space);
-  if(eflag) {
+  ArenaDestroy(arena);
+
+  return eflag;
+}
+
+
+int main(void)
+{
+  if(testit((ArenaClass)mps_arena_class_an(), (Size)1000)) {
     fprintf(stderr, "Conclusion:  Defects found.\n");
   } else {
     fprintf(stderr, "Conclusion:  Failed to find any defects.\n");
   }
   return 0;
 }
-
-
-

@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.27) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.28) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -45,7 +45,7 @@ typedef Size Epoch;                     /* design.mps.ld */
 typedef unsigned TraceId;               /* design.mps.tracer */
 typedef unsigned TraceSet;              /* design.mps.tracer */
 typedef unsigned TraceState;		/* design.mps.tracer */
-typedef unsigned AccessSet;           /* design.mps.type.access-set */
+typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
 typedef int RootVar;                    /* design.mps.type.rootvar */
 typedef unsigned Serial;                /* design.mps.type.serial */
@@ -57,25 +57,45 @@ typedef struct FormatStruct *Format;    /* design.mps.format */
 typedef struct LDStruct *LD;            /* design.mps.ld */
 typedef struct LockStruct *Lock;        /* impl.c.lock* */
 typedef struct PoolStruct *Pool;        /* design.mps.pool */
-typedef struct SpaceStruct *Space;      /* design.mps.space */
 typedef struct PoolClassStruct *PoolClass; /* impl.c.poolclas */
 typedef struct TraceStruct *Trace;      /* design.mps.tracer */
 typedef struct ScanStateStruct *ScanState; /* design.mps.tracer */
-typedef struct SegStruct *Seg;          /* impl.c.arena* */
-typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, */
-                                        /* impl.c.arena* */
-typedef int SegPrefKind;                /* design.mps.pref, */
-                                        /* impl.c.arena* */
-typedef struct ArenaStruct *Arena;      /* impl.c.arena* */
+typedef struct SegStruct *Seg;          /* impl.c.seg */
+typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, impl.c.arena* */
+typedef int SegPrefKind;                /* design.mps.pref, impl.c.arena* */
+typedef struct ArenaClassStruct *ArenaClass; /* design.mps.arena */
+typedef struct ArenaStruct *Arena;      /* design.mps.arena */
+typedef Arena Space;                    /* until all files have been updated */
 typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
 typedef struct ThreadStruct *Thread;    /* impl.c.th* */
 typedef struct ActionStruct *Action;	/* design.mps.action */
 
 
+/* Arena*Method -- see @@@@ */
+
+
+typedef Res (*ArenaInitMethod)(Arena *arenaReturn, va_list args);
+typedef void (*ArenaFinishMethod)(Arena arena);
+typedef Size (*ArenaReservedMethod)(Arena arena);
+typedef Size (*ArenaCommittedMethod)(Arena arena);
+typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
+typedef Res (*ArenaRetractMethod)(Arena arena, Addr base, Size size);
+typedef Res (*ArenaSegAllocMethod)(Seg *segReturn, SegPref pref,
+				   Arena arena, Size size, Pool pool);
+typedef void (*ArenaSegFreeMethod)(Arena arena, Seg seg);
+typedef Addr (*ArenaSegBaseMethod)(Arena arena, Seg seg);
+typedef Addr (*ArenaSegLimitMethod)(Arena arena, Seg seg);
+typedef Size (*ArenaSegSizeMethod)(Arena arena, Seg seg);
+typedef Bool (*ArenaSegOfAddrMethod)(Seg *segReturn, Arena arena, Addr addr);
+typedef Bool (*ArenaSegFirstMethod)(Seg *segReturn, Arena arena);
+typedef Bool (*ArenaSegNextMethod)(Seg *segReturn, Arena arena, Addr addr);
+typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
+
+
 /* Pool*Method -- see design.mps.class-interface */
 
-typedef Res (*PoolInitMethod)(Pool pool, va_list arg);
+typedef Res (*PoolInitMethod)(Pool pool, va_list args);
 typedef void (*PoolFinishMethod)(Pool pool);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
