@@ -1608,7 +1608,7 @@ brace."
   (catch 'return
     (let* ((start (point))
 	 (last-stmt-start (point))
-	 (move (c-beginning-of-statement-1 lim nil t)))
+	 (move (c-beginning-of-statement-1 lim t t)))
 
     (while (and (/= last-stmt-start (point))
 		(save-excursion
@@ -1618,7 +1618,7 @@ brace."
       ;; want to continue if the block doesn't begin a top level
       ;; construct, i.e. if it isn't preceded by ';', '}', ':', or bob.
       (setq last-stmt-start (point)
-	    move (c-beginning-of-statement-1 lim nil t)))
+	    move (c-beginning-of-statement-1 lim t t)))
 
     (when c-recognize-knr-p
       (let ((fallback-pos (point)) knr-argdecl-start)
@@ -1634,13 +1634,24 @@ brace."
 		 (< knr-argdecl-start start)
 		 (progn
 		   (goto-char knr-argdecl-start)
-		   (not (eq (c-beginning-of-statement-1 lim nil t) 'macro))))
+		   (not (eq (c-beginning-of-statement-1 lim t t) 'macro))))
 	    (throw 'return
 		   (cons (if (eq (char-after fallback-pos) ?{)
 			     'previous
 			   'same)
 			 knr-argdecl-start))
 	  (goto-char fallback-pos))))
+
+    (when c-opt-access-key
+      ;; Might have ended up before a protection label.  This should
+      ;; perhaps be checked before `c-recognize-knr-p' to be really
+      ;; accurate, but we know that no language has both.
+      (while (looking-at c-opt-access-key)
+	(goto-char (match-end 0))
+	(c-forward-syntactic-ws)
+	(when (>= (point) start)
+	  (goto-char start)
+	  (throw 'return (cons 'same nil)))))
 
     ;; `c-beginning-of-statement-1' counts each brace block as a
     ;; separate statement, so the result will be 'previous if we've
@@ -1700,13 +1711,19 @@ brace."
 		  (c-with-syntax-table decl-syntax-table
 		    (let ((lim (point)))
 		      (goto-char start)
-		      (not (and (c-syntactic-re-search-forward
-				 (concat "[;=\(\[{]\\|\\<\\("
-					 c-opt-block-decls-with-vars-key
-					 "\\)")
-				 lim t 1 t)
-				(match-beginning 1)
-				(not (eq (char-before) ?_))))))))
+		      (not (and
+			    ;; Check for `c-opt-block-decls-with-vars-key'
+			    ;; before the first paren.
+			    (c-syntactic-re-search-forward
+			     (concat "[;=\(\[{]\\|\\<\\("
+				     c-opt-block-decls-with-vars-key
+				     "\\)")
+			     lim t 1 t)
+			    (match-beginning 1)
+			    (not (eq (char-before) ?_))
+			    ;; Check that the first following paren is the block.
+			    (c-syntactic-re-search-forward "[;=\(\[{]" lim t 1 t)
+			    (eq (char-before) ?{)))))))
 	    ;; The declaration doesn't have any of the
 	    ;; `c-opt-block-decls-with-vars' keywords in the
 	    ;; beginning, so it ends here at the end of the block.
@@ -3408,7 +3425,8 @@ Keywords are recognized and not considered identifiers."
 	      (setq lim (c-most-enclosing-brace c-state-cache (point)))
 	      (c-beginning-of-statement-1 lim)
 	      (c-add-stmt-syntax 'brace-list-close t lim
-				 (c-whack-state-after (point) paren-state) t)))
+				 (c-whack-state-after (point) paren-state)
+				 t)))
 	   (t
 	    ;; Prepare for the rest of the cases below by going to the
 	    ;; token following the opening brace
