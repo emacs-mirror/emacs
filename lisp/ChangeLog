@@ -24,6 +24,9 @@
 
 	* which-func.el: Moved to progmodes.
 
+	* loadup.el: Load byte-run.el, map-ynp.el, timer.el and float-sup.el
+	from emacs-lisp.
+
 2003-05-31  Tom Wurgler  <twurgler@goodyear.com>  (tiny change)
 
 	* subr.el (looking-back): New function to check for regular
