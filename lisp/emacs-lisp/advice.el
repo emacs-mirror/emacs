@@ -2983,10 +2983,14 @@ Example: `(ad-map-arglists '(a &rest args) '(w x y z))' will return
 		   class (ad-advice-name advice)
 		   (if advice-docstring "\n" "")
 		   (or advice-docstring "")))
-	  (t (format "%s-advice `%s':%s%s"
-		     (capitalize (symbol-name class)) (ad-advice-name advice)
-		     (if advice-docstring "\n" "")
-		     (or advice-docstring ""))))))
+	  (t (if advice-docstring
+		 (format "%s-advice `%s':\n%s"
+			 (capitalize (symbol-name class))
+			 (ad-advice-name advice)
+			 advice-docstring)
+	       (format "%s-advice `%s'."
+		       (capitalize (symbol-name class))
+		       (ad-advice-name advice)))))))
 
 (defun ad-make-advised-docstring (function &optional style)
   ;;"Constructs a documentation string for the advised FUNCTION.
