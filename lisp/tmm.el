@@ -29,7 +29,7 @@
 ;;; (global-set-key [f10] 'tmm-menubar)
 
 ;;; to your .emacs file. You can also add your own access to different
-;;; menus available in Window System Emacs modelling definition after
+;;; menus available in Window System Emacs modeling definition after
 ;;; tmm-menubar.
 
 (require 'electric)
@@ -379,7 +379,7 @@ It uses the free variable `tmm-table-undef' to keep undefined keys."
 
 (defun tmm-get-keybind (keyseq)
   "Return the current binding of KEYSEQ, merging prefix definitions.
-If KEYSEQ is a prefix key that has local and gloibal bindings,
+If KEYSEQ is a prefix key that has local and global bindings,
 we merge them into a single keymap which shows the proper order of the menu.
 However, for the menu bar itself, the value does not take account
 of `menu-bar-final-items'."
