@@ -513,9 +513,8 @@ string."
 (defconst sc-emacs-features
   (let ((version 'v18)
 	(flavor  'GNU))
-    (if (or
-	 (string= (substring emacs-version 0 2) "19")
-	 (string= (substring emacs-version 0 2) "20"))
+    (if (not
+	 (string= (substring emacs-version 0 2) "18"))
 	(setq version 'v19))
     (if (string-match "Lucid" emacs-version)
 	(setq flavor 'Lucid))
@@ -524,9 +523,9 @@ string."
   "A list describing what version of Emacs we're running on.
 Known flavors are:
 
-Emacs 18        : (v18 GNU)
-Emacs 19 or 20  : (v19 GNU)
-Lucid 19 or 20  : (v19 Lucid)")
+Emacs 18           : (v18 GNU)
+Emacs 19 or later  : (v19 GNU)
+Lucid 19 or later  : (v19 Lucid)")
 
 
 (defvar sc-tmp-nested-regexp nil
