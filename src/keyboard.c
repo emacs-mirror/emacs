@@ -9138,6 +9138,27 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			     xterm-mouse-mode.  -stef
 
 			     Isn't this just the most wonderful code ever?  */
+
+			  /* If mock_input > t + 1, the above simplification
+			     will actually end up dropping keys on the floor.
+			     This is probably OK for now, but even
+			     if mock_input <= t + 1, we need to adjust fkey
+			     and keytran.
+			     Typical case [header-line down-mouse-N]:
+			     mock_input = 2, t = 1, fkey.end = 1,
+			     last_real_key_start = 0.  */
+			  if (fkey.end > last_real_key_start)
+			    {
+			      fkey.end = fkey.start
+				= min (last_real_key_start, fkey.start);
+			      fkey.map = fkey.parent;
+			      if (keytran.end > last_real_key_start)
+				{
+				  keytran.end = keytran.start
+				    = min (last_real_key_start, keytran.start);
+				  keytran.map = keytran.parent;
+				}
+			    }
 			  if (t == last_real_key_start)
 			    {
 			      mock_input = 0;
