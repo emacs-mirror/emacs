@@ -419,7 +419,7 @@ of the key sequence that ran this command."
 
 (defalias 'help 'help-for-help)
 (make-help-screen help-for-help
-  "a b c f C-f i k C-k l m n p s t v w C-c C-d C-n C-w, or ? for more help:"
+  "a b c C f F C-f i I k C-k l L m n p s t v w C-c C-d C-n C-p C-w; ? for help:"
   "You have typed \\[help-command], the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
@@ -429,16 +429,23 @@ a  command-apropos.  Give a substring, and see a list of commands
 b  describe-bindings.  Display table of all key bindings.
 c  describe-key-briefly.  Type a command key sequence;
 	it prints the function name that sequence runs.
+C  describe-coding-system.  This describes either a specific coding system
+        (if you type its name) or the coding systems currently in use
+	(if you type just RET).
 f  describe-function.  Type a function name and get documentation of it.
 C-f Info-goto-emacs-command-node.  Type a function name;
 	it takes you to the Info node for that command.
-F  view-emacs-FAQ.  Shows emacs frequently asked questions file.
 i  info. The  info  documentation reader.
+I  describe-input-method.  Describe a specific input method (if you type
+	its name) or the current input method (if you type just RET).
 k  describe-key.  Type a command key sequence;
 	it displays the full documentation.
 C-k Info-goto-emacs-key-command-node.  Type a command key sequence;
 	it takes you to the Info node for the command bound to that key.
 l  view-lossage.  Shows last 100 characters you typed.
+L  describe-language-environment.  This describes either the a
+	specific language environment (if you type its name)
+	or the current language environment (if you type just RET).
 m  describe-mode.  Print documentation of current major mode,
 	which describes the commands peculiar to it.
 n  view-emacs-news.  Shows emacs news file.
@@ -449,11 +456,14 @@ v  describe-variable.  Type name of a variable;
 	it displays the variable's documentation and value.
 w  where-is.  Type command name; it prints which keystrokes
 	invoke that command.
-C-c print Emacs copying permission (General Public License).
-C-d print Emacs ordering information.
-C-n print news of recent Emacs changes.
-C-p print information about the GNU project.
-C-w print information on absence of warranty for GNU Emacs."
+
+F  Display the frequently asked questions file.
+h  Display the HELLO file which illustrates various scripts.
+C-c Display Emacs copying permission (General Public License).
+C-d Display Emacs ordering information.
+C-n Display news of recent Emacs changes.
+C-p Display information about the GNU project.
+C-w Display information on absence of warranty for GNU Emacs."
   help-map)
 
 ;; Return a function which is called by the list containing point.
