@@ -61,88 +61,90 @@ in the file it applies to."
   :type 'regexp
   :group 'outlines)
 
-(defvar outline-mode-prefix-map nil)
+(defvar outline-mode-prefix-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "@" 'outline-mark-subtree)
+    (define-key map "\C-n" 'outline-next-visible-heading)
+    (define-key map "\C-p" 'outline-previous-visible-heading)
+    (define-key map "\C-i" 'show-children)
+    (define-key map "\C-s" 'show-subtree)
+    (define-key map "\C-d" 'hide-subtree)
+    (define-key map "\C-u" 'outline-up-heading)
+    (define-key map "\C-f" 'outline-forward-same-level)
+    (define-key map "\C-b" 'outline-backward-same-level)
+    (define-key map "\C-t" 'hide-body)
+    (define-key map "\C-a" 'show-all)
+    (define-key map "\C-c" 'hide-entry)
+    (define-key map "\C-e" 'show-entry)
+    (define-key map "\C-l" 'hide-leaves)
+    (define-key map "\C-k" 'show-branches)
+    (define-key map "\C-q" 'hide-sublevels)
+    (define-key map "\C-o" 'hide-other)
+    (define-key map "\C-^" 'outline-promote)
+    (define-key map "\C-v" 'outline-demote)
+    map))
 
-(if outline-mode-prefix-map
-    nil
-  (setq outline-mode-prefix-map (make-sparse-keymap))
-  (define-key outline-mode-prefix-map "@" 'outline-mark-subtree)
-  (define-key outline-mode-prefix-map "\C-n" 'outline-next-visible-heading)
-  (define-key outline-mode-prefix-map "\C-p" 'outline-previous-visible-heading)
-  (define-key outline-mode-prefix-map "\C-i" 'show-children)
-  (define-key outline-mode-prefix-map "\C-s" 'show-subtree)
-  (define-key outline-mode-prefix-map "\C-d" 'hide-subtree)
-  (define-key outline-mode-prefix-map "\C-u" 'outline-up-heading)
-  (define-key outline-mode-prefix-map "\C-f" 'outline-forward-same-level)
-  (define-key outline-mode-prefix-map "\C-b" 'outline-backward-same-level)
-  (define-key outline-mode-prefix-map "\C-t" 'hide-body)
-  (define-key outline-mode-prefix-map "\C-a" 'show-all)
-  (define-key outline-mode-prefix-map "\C-c" 'hide-entry)
-  (define-key outline-mode-prefix-map "\C-e" 'show-entry)
-  (define-key outline-mode-prefix-map "\C-l" 'hide-leaves)
-  (define-key outline-mode-prefix-map "\C-k" 'show-branches)
-  (define-key outline-mode-prefix-map "\C-q" 'hide-sublevels)
-  (define-key outline-mode-prefix-map "\C-o" 'hide-other))
+(defvar outline-mode-menu-bar-map
+  (let ((map (make-sparse-keymap)))
 
-(defvar outline-mode-menu-bar-map nil)
-(if outline-mode-menu-bar-map
-    nil
-  (setq outline-mode-menu-bar-map (make-sparse-keymap))
+    (define-key map [hide] (cons "Hide" (make-sparse-keymap "Hide")))
 
-  (define-key outline-mode-menu-bar-map [hide]
-    (cons "Hide" (make-sparse-keymap "Hide")))
+    (define-key map [hide hide-other] '("Hide Other" . hide-other))
+    (define-key map [hide hide-sublevels] '("Hide Sublevels" . hide-sublevels))
+    (define-key map [hide hide-subtree] '("Hide Subtree" . hide-subtree))
+    (define-key map [hide hide-entry] '("Hide Entry" . hide-entry))
+    (define-key map [hide hide-body] '("Hide Body" . hide-body))
+    (define-key map [hide hide-leaves] '("Hide Leaves" . hide-leaves))
 
-  (define-key outline-mode-menu-bar-map [hide hide-other]
-    '("Hide Other" . hide-other))
-  (define-key outline-mode-menu-bar-map [hide hide-sublevels]
-    '("Hide Sublevels" . hide-sublevels))
-  (define-key outline-mode-menu-bar-map [hide hide-subtree]
-    '("Hide Subtree" . hide-subtree))
-  (define-key outline-mode-menu-bar-map [hide hide-entry]
-    '("Hide Entry" . hide-entry))
-  (define-key outline-mode-menu-bar-map [hide hide-body]
-    '("Hide Body" . hide-body))
-  (define-key outline-mode-menu-bar-map [hide hide-leaves]
-    '("Hide Leaves" . hide-leaves))
+    (define-key map [show] (cons "Show" (make-sparse-keymap "Show")))
 
-  (define-key outline-mode-menu-bar-map [show]
-    (cons "Show" (make-sparse-keymap "Show")))
+    (define-key map [show show-subtree] '("Show Subtree" . show-subtree))
+    (define-key map [show show-children] '("Show Children" . show-children))
+    (define-key map [show show-branches] '("Show Branches" . show-branches))
+    (define-key map [show show-entry] '("Show Entry" . show-entry))
+    (define-key map [show show-all] '("Show All" . show-all))
 
-  (define-key outline-mode-menu-bar-map [show show-subtree]
-    '("Show Subtree" . show-subtree))
-  (define-key outline-mode-menu-bar-map [show show-children]
-    '("Show Children" . show-children))
-  (define-key outline-mode-menu-bar-map [show show-branches]
-    '("Show Branches" . show-branches))
-  (define-key outline-mode-menu-bar-map [show show-entry]
-    '("Show Entry" . show-entry))
-  (define-key outline-mode-menu-bar-map [show show-all]
-    '("Show All" . show-all))
+    (define-key map [headings]
+      (cons "Headings" (make-sparse-keymap "Headings")))
 
-  (define-key outline-mode-menu-bar-map [headings]
-    (cons "Headings" (make-sparse-keymap "Headings")))
+    (define-key map [headings copy]
+      '(menu-item "Copy to kill ring" outline-headers-as-kill
+	:enable mark-active))
+    (define-key map [headings outline-backward-same-level]
+      '("Previous Same Level" . outline-backward-same-level))
+    (define-key map [headings outline-forward-same-level]
+      '("Next Same Level" . outline-forward-same-level))
+    (define-key map [headings outline-previous-visible-heading]
+      '("Previous" . outline-previous-visible-heading))
+    (define-key map [headings outline-next-visible-heading]
+      '("Next" . outline-next-visible-heading))
+    (define-key map [headings outline-up-heading]
+      '("Up" . outline-up-heading))
+    map))
 
-  (define-key outline-mode-menu-bar-map [headings copy]
-    '(menu-item "Copy to kill ring" outline-headers-as-kill
-		:enable mark-active))
-  (define-key outline-mode-menu-bar-map [headings outline-backward-same-level]
-    '("Previous Same Level" . outline-backward-same-level))
-  (define-key outline-mode-menu-bar-map [headings outline-forward-same-level]
-    '("Next Same Level" . outline-forward-same-level))
-  (define-key outline-mode-menu-bar-map [headings outline-previous-visible-heading]
-    '("Previous" . outline-previous-visible-heading))
-  (define-key outline-mode-menu-bar-map [headings outline-next-visible-heading]
-    '("Next" . outline-next-visible-heading))
-  (define-key outline-mode-menu-bar-map [headings outline-up-heading]
-    '("Up" . outline-up-heading)))
+(defvar outline-minor-mode-menu-bar-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [outline]
+      (cons "Outline"
+	    (nconc (make-sparse-keymap "Outline")
+		   ;; Remove extra separator
+		   (cdr
+		    ;; Flatten the major mode's menus into a single menu.
+		    (apply 'append
+			   (mapcar (lambda (x)
+				     (if (consp x)
+					 ;; Add a separator between each
+					 ;; part of the unified menu.
+					 (cons '(--- "---") (cdr x))))
+				   outline-mode-menu-bar-map))))))
+    map))
+	      
 
-(defvar outline-mode-map nil "")
-
-(if outline-mode-map
-    nil
-  (setq outline-mode-map (nconc (make-sparse-keymap) text-mode-map))
-  (define-key outline-mode-map "\C-c" outline-mode-prefix-map)
-  (define-key outline-mode-map [menu-bar] outline-mode-menu-bar-map))
+(defvar outline-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c" outline-mode-prefix-map)
+    (define-key map [menu-bar] outline-mode-menu-bar-map)
+    map))
 
 (defvar outline-font-lock-keywords
   '(;;
@@ -243,7 +245,7 @@ After that, changing the prefix key requires manipulating keymaps."
   "Toggle Outline minor mode.
 With arg, turn Outline minor mode on if arg is positive, off otherwise.
 See the command `outline-mode' for more information on this mode."
-  nil " Outl" (list (cons [menu-bar] outline-mode-menu-bar-map)
+  nil " Outl" (list (cons [menu-bar] outline-minor-mode-menu-bar-map)
 		    (cons outline-minor-mode-prefix outline-mode-prefix-map))
   (if outline-minor-mode
       (progn
@@ -266,6 +268,13 @@ It can assume point is at the beginning of a header line."
   :type 'function
   :group 'outlines)
 
+(defvar outline-heading-alist ()
+  "Alist associating a heading for every possible level.
+Each entry is of the form (HEADING . LEVEL).
+This alist is used both to find the heading corresponding to
+a given level and to find the level of a given heading.")
+(make-variable-buffer-local 'outline-heading-alist)
+
 ;; This used to count columns rather than characters, but that made ^L
 ;; appear to be at level 2 instead of 1.  Columns would be better for
 ;; tab handling, but the default regexp doesn't use tabs, and anyone
@@ -273,11 +282,15 @@ It can assume point is at the beginning of a header line."
 ;; as appropriate.
 (defun outline-level ()
   "Return the depth to which a statement is nested in the outline.
-Point must be at the beginning of a header line.  This is actually
-the number of characters that `outline-regexp' matches."
+Point must be at the beginning of a header line.
+This is actually either the level specified in `outline-heading-alist'
+or else the number of characters matched by `outline-regexp'."
   (save-excursion
-    (looking-at outline-regexp)
-    (- (match-end 0) (match-beginning 0))))
+    (if (not (looking-at outline-regexp))
+	;; This should never happen
+	1000
+      (or (cdr (assoc (match-string 0) outline-heading-alist))
+	  (- (match-end 0) (match-beginning 0))))))
 
 (defun outline-next-preface ()
   "Skip forward to just before the next heading line.
@@ -333,10 +346,6 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
     (and (bolp) (or invisible-ok (not (outline-invisible-p)))
 	 (looking-at outline-regexp))))
 
-(defvar outline-level-heading ()
-  "Alist associating a heading for every possible level.")
-(make-variable-buffer-local 'outline-level-heading)
-
 (defun outline-insert-heading ()
   "Insert a new heading at same depth at point."
   (interactive)
@@ -345,7 +354,7 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
 		    (outline-back-to-heading)
 		  (error (outline-next-heading)))
 		(if (eobp)
-		    (or (cdar outline-level-heading) "")
+		    (or (caar outline-heading-alist) "")
 		  (match-string 0)))))
     (unless (or (string-match "[ \t]\\'" head)
 		(not (string-match outline-regexp (concat head " "))))
@@ -363,15 +372,14 @@ If prefix argument CHILDREN is given, promote also all the children."
   (outline-back-to-heading)
   (let* ((head (match-string 0))
 	 (level (save-match-data (funcall outline-level)))
-	 (up-head (or (cdr (assoc head outline-level-heading))
-		      (cdr (assoc (1- level) outline-level-heading))
+	 (up-head (or (car (rassoc (1- level) outline-heading-alist))
 		      (save-excursion
 			(save-match-data
 			  (outline-up-heading 1 t)
 			  (match-string 0))))))
     
-    (unless (assoc level outline-level-heading)
-      (push (cons level head) outline-level-heading))
+    (unless (rassoc level outline-heading-alist)
+      (push (cons head level) outline-heading-alist))
 
     (replace-match up-head nil t)
     (when children
@@ -385,9 +393,7 @@ If prefix argument CHILDREN is given, demote also all the children."
   (let* ((head (match-string 0))
 	 (level (save-match-data (funcall outline-level)))
 	 (down-head
-	  (or (let ((x (car (rassoc head outline-level-heading))))
-		(if (stringp x) x))
-	      (cdr (assoc (1+ level) outline-level-heading))
+	  (or (car (rassoc (1+ level) outline-heading-alist))
 	      (save-excursion
 		(save-match-data
 		  (while (and (not (eobp))
@@ -412,8 +418,8 @@ If prefix argument CHILDREN is given, demote also all the children."
 		    ;; Didn't work: keep it as is so it's still a heading.
 		    head))))))
 
-    (unless (assoc level outline-level-heading)
-      (push (cons level head) outline-level-heading))
+    (unless (rassoc level outline-heading-alist)
+      (push (cons head level) outline-heading-alist))
     
     (replace-match down-head nil t)
     (when children
