@@ -763,12 +763,13 @@ back past position LIMIT; return LIMIT if nothing is found until LIMIT.")
     CHECK_NUMBER_COERCE_MARKER (limit, 0);
 
   i = validate_interval_range (object, &pos, &pos, soft);
-  if (NULL_INTERVAL_P (i))
-    return limit;
 
   /* Start with the interval containing the char before point.  */
-  if (i->position == XFASTINT (pos))
+  if (! NULL_INTERVAL_P (i) && i->position == XFASTINT (pos))
     i = previous_interval (i);
+
+  if (NULL_INTERVAL_P (i))
+    return limit;
 
   here_val = textget (i->plist, prop);
   previous = previous_interval (i);
