@@ -1,3 +1,7 @@
+2004-03-18  Dave Love  <fx@gnu.org>
+
+	* configure.in: Add -znocombreloc to LDFLAGS if supported.
+
 2004-03-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* info/dir (File): Add SMTP and SES.

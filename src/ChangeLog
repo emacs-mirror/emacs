@@ -1,3 +1,7 @@
+2004-03-19  Richard M. Stallman  <rms@gnu.org>
+
+	* s/sol2-6.h: Delete previous change.
+
 2004-03-19  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (move_it_in_display_line_to): Fix MOVE_TO_POS case when
