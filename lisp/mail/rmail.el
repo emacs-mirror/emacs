@@ -2058,12 +2058,7 @@ otherwise, show it in full."
 		   (recenter old-screen-line)
 		   (if (and all-headers-visible
 			    (not (= (window-start) (point-min))))
-		       (let ((lines-offscreen (rmail-count-screen-lines
-					       (point-min)
-					       (window-start window))))
-			 (recenter (min (+ old-screen-line lines-offscreen)
-					;; last line of window
-					(- (window-height) 2))))))))))
+		       (recenter (- (window-height) 2))))))))
       (rmail-highlight-headers))))
 
 (defun rmail-narrow-to-non-pruned-header ()
