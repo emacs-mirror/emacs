@@ -1,5 +1,9 @@
 2004-08-25  John Paul Wallington  <jpw@gnu.org>
 
+	* textmodes/tex-mode.el (tex-validate-buffer): Distinguish between
+	0, 1, and many mismatches in message.
+	(tex-start-shell): Use `set-process-query-on-exit-flag'.
+
 	* ielm.el (ielm-tab, ielm-complete-symbol): Doc fix.
 	(inferior-emacs-lisp-mode): Use	`set-process-query-on-exit-flag'.
 
