@@ -486,8 +486,11 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute
       width = ws->width - 2 * shadow;
     }
 
+#ifdef 0
   /* see if it should be a button in the menubar */
   button_p = horizontal_p && val->call_data;
+#endif
+  button_p = 0;
 
   /* Only highlight an enabled item that has a callback. */
   if (highlighted_p)
