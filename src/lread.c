@@ -395,8 +395,9 @@ Print messages at start and end of loading unless\n\
  optional third arg NOMESSAGE is non-nil.\n\
 If optional fourth arg NOSUFFIX is non-nil, don't try adding\n\
  suffixes `.elc' or `.el' to the specified name FILE.\n\
-If optional fifth arg MUST-SUFFIX is non-nil, insist on adding\n\
- the suffixe `.elc' or `.el'; don't accept just FILE.\n\
+If optional fifth arg MUST-SUFFIX is non-nil, insist on\n\
+ the suffix `.elc' or `.el'; don't accept just FILE unless
+ it ends in one of those suffixes or includes a directory name.\n\
 Return t if file exists.")
   (file, noerror, nomessage, nosuffix, must_suffix)
      Lisp_Object file, noerror, nomessage, nosuffix, must_suffix;
@@ -433,7 +434,25 @@ Return t if file exists.")
      since it would try to load a directory as a Lisp file */
   if (XSTRING (file)->size > 0)
     {
+      int size = XSTRING (file)->size;
+
       GCPRO1 (file);
+
+      if (! NILP (must_suffix))
+	{
+	  /* Don't insist on adding a suffix if FILE already ends with one.  */
+	  if (size > 3
+	      && !strcmp (XSTRING (file)->data + size - 3, ".el"))
+	    must_suffix = Qnil;
+	  else if (size > 4
+		   && !strcmp (XSTRING (file)->data + size - 4, ".elc"))
+	    must_suffix = Qnil;
+	  /* Don't insist on adding a suffix
+	     if the argument includes a directory name.  */
+	  else if (! NILP (Ffile_name_directory (file)))
+	    must_suffix = Qnil;
+	}
+
       fd = openp (Vload_path, file,
 		  (!NILP (nosuffix) ? ""
 		   : ! NILP (must_suffix) ? ".elc:.el"
