@@ -310,7 +310,7 @@ to keep: LEN chars starting BEG chars from the beginning."
 			  ;; dd seems to be unreliable about
 			  ;; providing the last block.  So, always
 			  ;; read one more than you think you need.
-			  (if count (concat "count=" (1+ count)) "")))
+			  (if count (format "count=%d" (1+ count)) "")))
 			jka-compr-acceptable-retval-list)
 		  (jka-compr-error prog args infile message err-file))
 	    (jka-compr-delete-temp-file err-file)))
