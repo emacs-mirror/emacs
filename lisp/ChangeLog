@@ -1,3 +1,15 @@
+2004-08-21  John Paul Wallington  <jpw@gnu.org>
+
+	* subr.el (process-kill-without-query): Made obsolete in
+	version	21.4, not 21.5.
+
+	* log-edit.el (vc-comment-ring, vc-comment-ring-index)
+	(vc-previous-comment, vc-next-comment)
+	(vc-comment-search-reverse, vc-comment-search-forward)
+	(vc-comment-to-change-log): Likewise.
+
+	* international/latin1-disp.el (latin1-char-displayable-p): Likewise.
+
 2004-08-21  Peter Seibel  <peter@javamonkey.com>  (tiny patch)
 
 	* emacs-lisp/cl-indent.el (lisp-indent-defmethod): Correct
