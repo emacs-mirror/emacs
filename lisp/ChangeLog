@@ -1,3 +1,7 @@
+2003-01-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/ucs-tables.el: Undo the last change.
+
 2003-01-15  Dave Love  <fx@gnu.org>
 
 	* thingatpt.el (thing-at-point-file-name-chars): Include non-ASCII
