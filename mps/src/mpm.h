@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.102) $
+ * $HopeName: MMsrc!mpm.h(trunk.103) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -464,8 +464,6 @@ extern void TraceDestroy(Trace trace);
 extern Res TraceStep(Trace trace);
 extern void TracePoll(Trace trace);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
-extern void TraceScan(TraceScanMethod method, TraceSet ts, Rank rank,
-                      Arena arena, void *p, unsigned long l);
 
 extern Res TraceFix(ScanState ss, Ref *refIO);
 extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
@@ -533,12 +531,8 @@ extern Res TraceScanAreaTagged(ScanState ss,
                                Addr *base, Addr *limit);
 extern Res TraceScanAreaMasked(ScanState ss,
                                Addr *base, Addr *limit, Word mask);
-extern Res TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
-                              void *p, unsigned long l);
-extern void
-  TraceScanSingleRefClosureInit(TraceScanSingleRefClosureStruct *closure,
-                                Seg seg, Ref *refLocation);
-extern void TraceScanSingleRefClosureFinish(TraceScanSingleRefClosure closure);
+extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
+                               Seg seg, Ref *refIO);
 
 
 /* Action Interface -- see design.mps.action */

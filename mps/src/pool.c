@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.60) $
+ * $HopeName: MMsrc!pool.c(trunk.61) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.60) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.61) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -878,14 +878,10 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
       /* Check that the reference is aligned to a word boundary */
       /* (we assume it is not a reference otherwise) */
       if(WordIsAligned((Word)ref, sizeof(Word))) {
-	TraceScanSingleRefClosureStruct closure;
-
-	TraceScanSingleRefClosureInit(&closure, seg, (Ref *)addr);
         /* See the note in TraceSegAccess about using RankEXACT here */
         /* (impl.c.trace.scan.conservative) */
-	TraceScan(TraceScanSingleRef, arena->flippedTraces, RankEXACT,
-				      arena, &closure, 0);
-	TraceScanSingleRefClosureFinish(&closure);
+	TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
+	                   seg, (Ref *)addr);
       }
     }
     res = ProtStepInstruction(context);
