@@ -25,7 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 struct Lisp_Process
   {
-    int size;
+    EMACS_INT size;
     struct Lisp_Vector *v_next;
     /* Descriptor by which we read from this process */
     Lisp_Object infd;
