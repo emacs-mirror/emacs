@@ -239,7 +239,7 @@ lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
 lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
 lispref/control.texi     "Luc Teirlinck"   Chong Yidong
 lispref/customize.texi
-lispref/debugging.texi   Joakim Verona <joakim@verona.se>
+lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi
 lispref/edebug.texi
 lispref/elisp.texi       "Luc Teirlinck"

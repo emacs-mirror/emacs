@@ -1,3 +1,12 @@
+2005-03-01  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debug-on-entry-1): Reimplement to make sure
+	that debug-entry-code can be safely removed from a function while
+	this code is being evaluated.  Revert the 2005-02-27 change as the
+	new implementation no longer requires it.  Make sure that a
+	function body containing just a string is not mistaken for a
+	docstring.
+
 2005-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* double.el (double-translate-key): Call force-window-update after
