@@ -31,25 +31,19 @@
 
 ;;; Code:
 
-(defun move-to-column-force (column)
-  "Move to column COLUMN in current line.
-Differs from `move-to-column' in that it creates or modifies whitespace
-if necessary to attain exactly the specified column."
-  (or (natnump column) (setq column 0))
-  (move-to-column column)
-  (let ((col (current-column)))
-    (if (< col column)
-	(indent-to column)
-      (if (and (/= col column)
-	       (= (preceding-char) ?\t))
-	  (let (indent-tabs-mode)
-	    (delete-char -1)
-            (indent-to col)
-            (move-to-column column))))
-    ;; This call will go away when Emacs gets real horizontal autoscrolling
-    (hscroll-point-visible)))
+(defvar picture-rectangle-ctl ?+
+  "*Character picture-draw-rectangle uses for top left corners.")
+(defvar picture-rectangle-ctr ?+
+  "*Character picture-draw-rectangle uses for top right corners.")
+(defvar picture-rectangle-cbr ?+
+  "*Character picture-draw-rectangle uses for bottom right corners.")
+(defvar picture-rectangle-cbl ?+
+  "*Character picture-draw-rectangle uses for bottom left corners.")
+(defvar picture-rectangle-v   ?|
+  "*Character picture-draw-rectangle uses for vertical lines.")
+(defvar picture-rectangle-h   ?-
+  "*Character picture-draw-rectangle uses for horizontal lines.")
 
-
 ;; Picture Movement Commands
 
 (defun picture-beginning-of-line (&optional arg)
@@ -78,7 +72,7 @@ If scan reaches end of buffer, stop there without error."
 With argument, move that many columns."
   (interactive "p")
   (let ((target-column (+ (current-column) arg)))
-    (move-to-column-force target-column)
+    (move-to-column target-column t)
     ;; Picture mode isn't really suited to multi-column characters,
     ;; but we might as well let the user move across them.
     (and (< arg 0)
@@ -97,7 +91,7 @@ With argument, move that many lines."
   (interactive "p")
   (let ((col (current-column)))
     (picture-newline arg)
-    (move-to-column-force col)))
+    (move-to-column col t)))
 
 (defconst picture-vertical-step 0
   "Amount to move vertically after text character in Picture mode.")
@@ -188,19 +182,22 @@ Do \\[command-apropos] `picture-movement' to see commands which control motion."
 
 ;; Picture insertion and deletion.
 
+(defun picture-insert (ch arg)
+  (while (> arg 0)
+    (setq arg (1- arg))
+    (move-to-column (1+ (current-column)) t)
+    (delete-char -1)
+    (insert ch)
+    (forward-char -1)
+    (picture-move)))
+
 (defun picture-self-insert (arg)
   "Insert this character in place of character previously at the cursor.
 The cursor then moves in the direction you previously specified
 with the commands `picture-movement-right', `picture-movement-up', etc.
 Do \\[command-apropos] `picture-movement' to see those commands."
   (interactive "p")
-  (while (> arg 0)
-    (setq arg (1- arg))
-    (move-to-column-force (1+ (current-column)))
-    (delete-char -1)
-    (insert last-command-event)		; Always a character in this case.
-    (forward-char -1)
-    (picture-move)))
+  (picture-insert last-command-event arg)) ; Always a character in this case.
 
 (defun picture-clear-column (arg)
   "Clear out ARG columns after point without moving."
@@ -208,7 +205,7 @@ Do \\[command-apropos] `picture-movement' to see those commands."
   (let* ((opoint (point))
 	 (original-col (current-column))
 	 (target-col (+ original-col arg)))
-    (move-to-column-force target-col)
+    (move-to-column target-col t)
     (delete-region opoint (point))
     (save-excursion
      (indent-to (max target-col original-col)))))
@@ -285,7 +282,7 @@ With positive argument insert that many lines."
     (if (> change 0)
 	(delete-region (point)
 		       (progn
-			 (move-to-column-force (+ change (current-column)))
+			 (move-to-column (+ change (current-column)) t)
 			 (point))))
     (replace-match newtext fixedcase literal)
     (if (< change 0)
@@ -372,7 +369,7 @@ If no such character is found, move to beginning of line."
 	  (setq target (1- (current-column)))
 	(setq target nil)))
     (if target
-	(move-to-column-force target)
+	(move-to-column target t)
       (beginning-of-line))))
 
 (defun picture-tab (&optional arg)
@@ -418,7 +415,7 @@ prefix argument, the rectangle is actually killed, shifting remaining text."
                  (delete-extract-rectangle start end)
                (prog1 (extract-rectangle start end)
                       (clear-rectangle start end))))
-	   (move-to-column-force column))))
+	   (move-to-column column t))))
 
 (defun picture-yank-rectangle (&optional insertp)
   "Overlay rectangle saved by \\[picture-clear-rectangle]
@@ -468,6 +465,49 @@ Leaves the region surrounding the rectangle."
     (push-mark)
     (insert-rectangle rectangle)))
 
+(defun picture-current-line ()
+  "Return the vertical position of point.  Top line is 1."
+  (+ (count-lines (point-min) (point))
+     (if (= (current-column) 0) 1 0)))
+
+(defun picture-draw-rectangle (start end)
+  "Draw a rectangle around region."
+  (interactive "*r")                    ; start will be less than end
+  (let* ((sl     (picture-current-line))
+         (sc     (current-column))
+         (pvs    picture-vertical-step)
+         (phs    picture-horizontal-step)
+         (c1     (progn (goto-char start) (current-column)))
+         (r1     (picture-current-line))
+         (c2     (progn (goto-char end) (current-column)))
+         (r2     (picture-current-line))
+         (right  (max c1 c2))
+         (left   (min c1 c2))
+         (top    (min r1 r2))
+         (bottom (max r1 r2)))
+    (goto-line top)
+    (move-to-column left)
+
+    (picture-movement-right)
+    (picture-insert picture-rectangle-ctl 1)
+    (picture-insert picture-rectangle-h (- right (current-column)))
+
+    (picture-movement-down)
+    (picture-insert picture-rectangle-ctr 1)
+    (picture-insert picture-rectangle-v (- bottom (picture-current-line)))
+
+    (picture-movement-left)
+    (picture-insert picture-rectangle-cbr 1)
+    (picture-insert picture-rectangle-h (- (current-column) left))
+
+    (picture-movement-up)
+    (picture-insert picture-rectangle-cbl 1)
+    (picture-insert picture-rectangle-v (- (picture-current-line) top))
+
+    (picture-set-motion pvs phs)
+    (goto-line sl)
+    (move-to-column sc t)))
+
 
 ;; Picture Keymap, entry and exit points.
 
@@ -508,6 +548,7 @@ Leaves the region surrounding the rectangle."
       (define-key picture-mode-map "\C-c\C-w" 'picture-clear-rectangle-to-register)
       (define-key picture-mode-map "\C-c\C-y" 'picture-yank-rectangle)
       (define-key picture-mode-map "\C-c\C-x" 'picture-yank-rectangle-from-register)
+      (define-key picture-mode-map "\C-c\C-r" 'picture-draw-rectangle)
       (define-key picture-mode-map "\C-c\C-c" 'picture-mode-exit)
       (define-key picture-mode-map "\C-c\C-f" 'picture-motion)
       (define-key picture-mode-map "\C-c\C-b" 'picture-motion-reverse)
@@ -575,6 +616,7 @@ You can manipulate rectangles with these commands:
   C-c C-w Like C-c C-k except rectangle is saved in named register.
   C-c C-y Overlay (or insert) currently saved rectangle at point.
   C-c C-x Like C-c C-y except rectangle is taken from named register.
+  C-c C-r Draw a rectangular box around mark and point.
   \\[copy-rectangle-to-register]   Copies a rectangle to a register.
   \\[advertised-undo]   Can undo effects of rectangle overlay commands
 	    commands if invoked soon enough.
