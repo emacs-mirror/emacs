@@ -1024,7 +1024,7 @@ set_internal (symbol, newval, buf, bindflag)
 {
   int voide = EQ (newval, Qunbound);
 
-  register Lisp_Object valcontents, tem1, current_alist_element;
+  register Lisp_Object valcontents, innercontents, tem1, current_alist_element;
 
   if (buf == 0)
     buf = current_buffer;
@@ -1039,7 +1039,8 @@ set_internal (symbol, newval, buf, bindflag)
 	  && EQ (XSYMBOL (symbol)->obarray, initial_obarray)
 	  && !EQ (newval, symbol)))
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
-  valcontents = XSYMBOL (symbol)->value;
+
+  innercontents = valcontents = XSYMBOL (symbol)->value;
 
   if (BUFFER_OBJFWDP (valcontents))
     {
@@ -1130,7 +1131,7 @@ set_internal (symbol, newval, buf, bindflag)
 	  XSETBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer, buf);
 	  XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
 	}
-      valcontents = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
+      innercontents = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
     }
 
   /* If storing void (making the symbol void), forward only through
@@ -1138,7 +1139,26 @@ set_internal (symbol, newval, buf, bindflag)
   if (voide)
     store_symval_forwarding (symbol, Qnil, newval);
   else
-    store_symval_forwarding (symbol, valcontents, newval);
+    store_symval_forwarding (symbol, innercontents, newval);
+
+  /* If we just set a variable whose current binding is frame-local,
+     store the new value in the frame parameter too.  */
+
+  if (BUFFER_LOCAL_VALUEP (valcontents)
+      || SOME_BUFFER_LOCAL_VALUEP (valcontents))
+    {
+      /* What binding is loaded right now?  */
+      current_alist_element
+	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
+
+      /* If the current buffer is not the buffer whose binding is
+	 loaded, or if there may be frame-local bindings and the frame
+	 isn't the right one, or if it's a Lisp_Buffer_Local_Value and
+	 the default binding is loaded, the loaded binding may be the
+	 wrong one.  */
+      if (XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
+	XCDR (current_alist_element) = newval;
+    }
 
   return newval;
 }
