@@ -1,7 +1,7 @@
 /* impl.c.meter: METERS
  *
- * $HopeName: MMsrc!meter.c(trunk.7) $
- * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!meter.c(trunk.9) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * TRANSGRESSIONS
  *
@@ -13,6 +13,10 @@
 #include "meter.h"
 #include "mpm.h"
 
+SRCID(meter, "$HopeName$");
+
+
+/* MeterInit -- initialize a meter */
 
 void MeterInit(Meter meter, char *name, void *owner)
 {
@@ -31,6 +35,8 @@ void MeterInit(Meter meter, char *name, void *owner)
   UNUSED(owner); /* @@@@ hack */
 }
 
+
+/* MeterAccumulate -- accumulate another data point in the meter */
 
 void MeterAccumulate(Meter meter, Size amount)
 {
@@ -87,6 +93,8 @@ Res MeterWrite(Meter meter, mps_lib_FILE *stream)
   return res;
 }
 
+
+/* MeterEmit -- emit an evnet with the current data from the meter */
 
 void MeterEmit(Meter meter)
 {
