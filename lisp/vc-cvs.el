@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.5 2000/10/04 09:51:15 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.6 2000/10/22 15:31:11 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -519,14 +519,21 @@ Inappropriate for CVS"
 			"ci" (if rev (concat "-r" rev))
 			(concat "-m" comment)
 			switches))
-    ;; determine and store the new workfile version
     (set-buffer "*vc*")
     (goto-char (point-min))
-    ;; Check checkin problem.  We could check `status' as well.
-    (when (re-search-forward "Up-to-date check failed" nil t)
-      (vc-file-setprop file 'vc-state 'needs-merge)
-      (error (substitute-command-keys
-	      "Up-to-date check failed: type \\[vc-next-action] to merge in changes")))
+    (when (not (zerop status))
+      ;; Check checkin problem.
+      (cond
+       ((re-search-forward "Up-to-date check failed" nil t)
+        (vc-file-setprop file 'vc-state 'needs-merge)
+        (error (substitute-command-keys
+                (concat "Up-to-date check failed: "
+                        "type \\[vc-next-action] to merge in changes"))))
+       (t
+        (pop-to-buffer (current-buffer))
+        (goto-char (point-min))
+        (shrink-window-if-larger-than-buffer)
+        (error "Check-in failed"))))
     ;; Update file properties
     (vc-file-setprop
      file 'vc-workfile-version
