@@ -376,9 +376,9 @@ Return t if file exists.")
 #ifdef MSDOS
       dosmode = "rb";
 #endif
-      stat (XSTRING (found)->data, &s1);
+      stat ((char *)XSTRING (found)->data, &s1);
       XSTRING (found)->data[XSTRING (found)->size - 1] = 0;
-      result = stat (XSTRING (found)->data, &s2);
+      result = stat ((char *)XSTRING (found)->data, &s2);
       if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
 	{
 	  message ("Source file `%s' newer than byte-compiled file",
