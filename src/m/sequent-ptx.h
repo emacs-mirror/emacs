@@ -110,7 +110,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* PTX has getpagesize() but it returns 296. Using the default method of
    including getpagesize.h in unexec.c returns 4096 which seems more
    reasonable.  */
-/* #define HAVE_GETPAGESIZE */
+#undef HAVE_GETPAGESIZE
 
 /* Override magic number for a.out header.  */
 #define EXEC_MAGIC 0411		/* from a.out.h: separated I&D */
