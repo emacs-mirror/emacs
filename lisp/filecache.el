@@ -515,7 +515,7 @@ the name is considered already unique; only the second substitution
       (setq file-cache-string (file-cache-file-name string))
       (if (string= file-cache-string (buffer-string))
 	  (file-cache-temp-minibuffer-message file-cache-sole-match-message)
-	(erase-buffer)
+	(delete-region (minibuffer-prompt-end) (point-max))
 	(insert-string file-cache-string)
 	(if file-cache-multiple-directory-message
 	    (file-cache-temp-minibuffer-message
@@ -531,7 +531,7 @@ the name is considered already unique; only the second substitution
 	  (if (and (eq last-command this-command)
 		   (string= file-cache-last-completion completion-string))
 	      (progn
-		(erase-buffer)
+		(delete-region (minibuffer-prompt-end) (point-max))
 		(insert-string (file-cache-file-name completion-string))
 		(setq file-cache-last-completion nil)
 		)
@@ -560,7 +560,7 @@ the name is considered already unique; only the second substitution
 	  (if (string= file-cache-string (buffer-string))
 	      (file-cache-temp-minibuffer-message
 	       file-cache-sole-match-message)
-	    (erase-buffer)
+	    (delete-region (minibuffer-prompt-end) (point-max))
 	    (insert-string file-cache-string)
 	    (if file-cache-multiple-directory-message
 		(file-cache-temp-minibuffer-message
