@@ -1185,7 +1185,7 @@ and can edit it until it as been confirmed.")
       Fding (Qnil);
       Fdiscard_input ();
       message ("Please answer yes or no.");
-      Fsleep_for (make_number (2));
+      Fsleep_for (make_number (2), Qnil);
     }
   UNGCPRO;
 }
