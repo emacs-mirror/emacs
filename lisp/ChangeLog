@@ -1,3 +1,25 @@
+2000-05-23  Eric M. Ludlam  <zappo@ballista.ultranet.com>
+
+	* speedbar.el (speedbar-easymenu-definition-base): Image toggle fix.
+	(speedbar-insert-button): Invisible text property fix.
+	(speedbar-directory-plus): Renamed from speedbar-directory-+
+	(speedbar-directory-minus): Renamed from speedbar-directory--
+	(speedbar-page-plus): Renamed from speedbar-file-+
+	(speedbar-page-minus): Renamed from speedbar-file--
+	(speedbar-page): Renamed from speedbar-file-
+	(speedbar-tag): Renamed from speedbar-tag-
+	(speedbar-tag-plus): Renamed from speedbar-tag-+
+	(speedbar-tag-minus): Renamed from speedbar-tag--
+	(speedbar-expand-image-button-alist): Use above renames.
+
+	* sb-dir-plus.xpm: Renamed from sb-dir+.xpm
+	* sb-dir-minus.xpm: Renamed from sb-dir-.xpm
+	* sb-pg-plus.xpm: Renamed from sb-file+.xpm
+	* sb-pg-minus.xpm: Renamed from sb-file-.xpm
+	* sb-pg.xpm: Renamed from sb-file.xpm
+	* sb-tag-plus.xpm: Renamed from sb-tag+.xpm
+	* sb-tag-minus.xpm: Renamed from sb-tag-.xpm
+	
 2000-05-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-show-guidance-buf): Set
