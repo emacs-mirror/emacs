@@ -289,6 +289,13 @@ if it is quoted with double-quotes."
 Completable headers are according to `mail-complete-alist'.  If none matches
 current header, calls `mail-complete-function' and passes prefix arg if any."
   (interactive "P")
+  ;; Read the defaults first, if we have not done so.
+  (sendmail-sync-aliases)
+  (if (eq mail-aliases t)
+      (progn
+	(setq mail-aliases nil)
+	(if (file-exists-p mail-personal-alias-file)
+	    (build-mail-aliases))))
   (let ((list mail-complete-alist))
     (if (and (save-excursion (search-forward
 			      (concat "\n" mail-header-separator "\n")
