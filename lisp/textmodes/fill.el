@@ -660,9 +660,9 @@ space does not end a sentence, so don't break a line there."
 		      (progn
 			(delete-horizontal-space)
 			(justify-current-line justify t t))
-		    (forward-line -1)
-		    (justify-current-line justify nil t)
-		    (forward-line 1))))))
+		    (save-excursion
+		      (forward-line -1)
+		      (justify-current-line justify nil t)))))))
 	;; Leave point after final newline.
 	(goto-char to))
       (unless (eobp)
