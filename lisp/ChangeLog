@@ -1,3 +1,46 @@
+2004-11-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-rewr.el (math-regs, math-num-regs, math-prog-last)
+	(math-bound-vars, math-conds, math-copy-neg, math-rhs)
+	(math-pattern, math-remembering, math-aliased-vars, math-mt-many)
+	(math-import-list, math-rewrite-phase): Declare them.
+
+	(math-rewrite):  Use let* to declare variables.
+
+	(calc-rewrite-selection): Make rules a local variable.
+
+	(calc-rewr-sel): New variable.
+	(calc-rewrite-selection, calc-locate-selection-marker)
+	(calc-rewrite): Use the declared variable calc-rewr-sel instead
+	of sel.
+
+	(math-rewrite-whole-expr): New variable.
+	(math-rewrite, math-rewrite-phase): Replace variable expr by
+	declared variable.
+
+	(math-rewrite-heads-heads, math-rewrite-heads-skips)
+	(math-rewrite-heads-blanks ): New variables.
+	(math-rewrite-heads, math-rewrite-heads-rec): Replace variables
+	heads, skips and blanks by declared variables.
+
+	(math-rwcomp-subst-old, math-rwcomp-subst-new)
+	(math-rwcomp-subst-old-func, math-rwcomp-subst-new-func):
+	New variables.
+	(math-rwcomp-substitute, math-rwcomp-subst-rec): Replace variables
+	old, new, old-func and new-func by declared variables.
+
+	(math-rwcomp-assoc-args, math-rwcomp-addsub-args):
+	Remove unnecessary variable.
+
+	(math-apply-rw-regs): New variable.
+	(math-apply-rewrites, math-rwapply-replace-regs)
+	(math-rwapply-reg-looks-negp): Replace variable regs by declared
+	variable.
+
+	(math-apply-rw-ruleset): New variable.
+	(math-apply-rewrites, math-rwapply-remember): Replace variable
+	ruleset by declared variable.
+
 2004-11-19  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (Info-search): Use search-whitespace-regexp.
