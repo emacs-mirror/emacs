@@ -1,5 +1,17 @@
 2004-04-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (batch-byte-compile-file):
+	Give a backtrace if requested.
+
+	* progmodes/ada-mode.el (ada-create-menu): Remove redundant call.
+
+	* progmodes/python.el (python-mouse-2-command, python-RET-command):
+	Remove unused functions.
+	(python-orig-start-line, python-orig-file): Remove.
+	(python-orig-start): New var.
+	(python-input-filter, python-compilation-line-number)
+	(python-send-region, python-load-file): Use it.
+
 	* info.el (info): Always jump to *info*.
 
 	* subr.el (posn-set-point): New function.
@@ -35,6 +47,10 @@
 	(xml-parse-attlist): Make it do its own namespace parsing.
 
 2004-04-14  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el (run-python): Fix use of \n.
+	(python-load-file): Remove `try' from Python fragment.
+	(python-describe-symbol): Fix message.
 
 	* comint.el: Doc fixes.
 	(comint-last-input-start, comint-last-input-end)
