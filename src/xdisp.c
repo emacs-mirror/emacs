@@ -9250,7 +9250,6 @@ try_cursor_movement (window, startp, scroll_step)
 	  int scroll_p = 0;
 	  int last_y = window_text_bottom_y (w) - this_scroll_margin;
 	  
-	  
 	  if (PT > XFASTINT (w->last_point))
 	    {
 	      /* Point has moved forward.  */
@@ -9336,7 +9335,9 @@ try_cursor_movement (window, startp, scroll_step)
 	      /* If we end up in a partially visible line, let's make it
 		 fully visible, except when it's taller than the window,
 		 in which case we can't do much about it.  */
-	      if (row->height > window_box_height (w))
+	      if (scroll_p)
+		rc = -1;
+	      else if (row->height > window_box_height (w))
 		{
 		  *scroll_step = 1;
 		  rc = -1;
