@@ -1,3 +1,7 @@
+2003-10-13  Lute Kamstra  <lute@gnu.org>
+
+	* window.c (Fset_window_fringes): Elaborate docstring.
+
 2003-10-12  Andrew Choi  <akochoi@shaw.ca>
 
 	* macterm.c (XTread_socket): Call DragWindow only for mouseDown
