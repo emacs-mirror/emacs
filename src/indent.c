@@ -652,6 +652,7 @@ of a certain window, pass the window's starting location as FROM\n\
 and the window's upper-left coordinates as FROMPOS.\n\
 Pass the buffer's (point-max) as TO, to limit the scan to the end of the\n\
 visible section of the buffer, and pass LINE and COL as TOPOS.")
+  (from, frompos, to, topos, width, offsets, window)
 #endif
 
 DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
