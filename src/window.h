@@ -202,6 +202,10 @@ struct window
     Lisp_Object redisplay_end_trigger;
     /* Non-nil means don't delete this window for becoming "too small".  */
     Lisp_Object too_small_ok;
+
+    /* Original window height and top before mini-window was
+       enlarged. */
+    Lisp_Object orig_height, orig_top;
     
     /* No Lisp data may follow below this point without changing
        mark_object in alloc.c.  The member current_matrix must be the
@@ -367,10 +371,12 @@ extern int window_height P_ ((Lisp_Object));
 extern int window_width P_ ((Lisp_Object));
 extern void set_window_height P_ ((Lisp_Object, int, int));
 extern void set_window_width P_ ((Lisp_Object, int, int));
-extern void change_window_height P_ ((int, int));
 extern void delete_all_subwindows P_ ((struct window *));
 extern void freeze_window_starts P_ ((struct frame *, int));
 extern void foreach_window ();
+extern void grow_mini_window P_ ((struct window *, int));
+extern void shrink_mini_window P_ ((struct window *));
+
 
 /* Make WINDOW display BUFFER as its contents.  RUN_HOOKS_P non-zero
    means it's allowed to run hooks.  See make_frame for a case where
