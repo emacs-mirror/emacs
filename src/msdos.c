@@ -694,6 +694,7 @@ internal_terminal_init ()
   the_only_x_display.line_height = 1;
   the_only_frame.output_data.x = &the_only_x_display;
   the_only_frame.output_method = output_msdos_raw;
+  the_only_x_display.font = (XFontStruct *)1;   /* must *not* be zero */
 
   init_frame_faces ((FRAME_PTR) &the_only_frame);
 
