@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.24 2000/09/29 18:05:27 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.25 2000/10/02 03:46:26 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1019,15 +1019,13 @@ By default, the new source file is patched, but if the variable
 patched instead (some commands, such as `diff-goto-source' can change
 the value of this variable when given an appropriate prefix argument).
 
-With a prefix argument, REVERSE the hunk.
-
-Return value is t if the hunk was sucessfully applied, `reversed' if the
-hunk was applied backwards and nil if the hunk wasn't applied."
+With a prefix argument, REVERSE the hunk."
   (interactive "P")
   (destructuring-bind (buf line-offset pos old new &optional switched)
       (diff-find-source-location nil reverse)
     (cond
-     ((null line-offset) (error "Can't find the text to patch"))
+     ((null line-offset)
+      (error "Can't find the text to patch"))
      ((and switched
 	   ;; A reversed patch was detected, perhaps apply it in reverse
 	   (not (save-window-excursion
@@ -1037,36 +1035,29 @@ hunk was applied backwards and nil if the hunk wasn't applied."
 		   (if reverse
 		       "Hunk hasn't been applied yet; apply it now? "
 		     "Hunk has already been applied; undo it? ")))))
-      (message "(Nothing done)")
-      nil)
+      (message "(Nothing done)"))
      (t
-      (let ((reversed (diff-xor switched reverse)))
-	;; Apply the hunk
-	(with-current-buffer buf
-	  (goto-char pos)
-	  (delete-char (length (car old)))
-	  (insert (car new)))
-	;; Display BUF in a window
-	(set-window-point (display-buffer buf) (+ pos (cdr new)))
-	(diff-hunk-status-msg line-offset reversed nil)
-	(when diff-advance-after-apply-hunk
-	  (diff-hunk-next))
-	(if reversed 'reversed t))))))
+      ;; Apply the hunk
+      (with-current-buffer buf
+	(goto-char pos)
+	(delete-char (length (car old)))
+	(insert (car new)))
+      ;; Display BUF in a window
+      (set-window-point (display-buffer buf) (+ pos (cdr new)))
+      (diff-hunk-status-msg line-offset (diff-xor switched reverse) nil)
+      (when diff-advance-after-apply-hunk
+	(diff-hunk-next))))))
 
 
 (defun diff-test-hunk (&optional reverse)
   ;; FIXME: is `reverse' ever useful ???
   "See whether it's possible to apply the current hunk.
-With a prefix argument, try to REVERSE the hunk.
-Returns t if the hunk can be applied, `reversed' if it's already
-applied and nil if it can't be found."
+With a prefix argument, try to REVERSE the hunk."
   (interactive "P")
   (destructuring-bind (buf line-offset pos src dst &optional switched)
       (diff-find-source-location nil reverse)
     (set-window-point (display-buffer buf) (+ pos (cdr src)))
-    (let ((reversed (diff-xor switched reverse)))
-      (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)
-      (if reversed 'reversed t))))
+    (diff-hunk-status-msg line-offset (diff-xor reverse switched) t)))
 
 
 (defun diff-goto-source (&optional other-file)
