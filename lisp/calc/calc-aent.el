@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part I [calc-aent.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -298,7 +298,7 @@
 
 (defun calc-do-alg-entry (&optional initial prompt no-normalize)
   (let* ((calc-buffer (current-buffer))
-	 (blink-paren-hook 'calcAlg-blink-matching-open)
+	 (blink-paren-function 'calcAlg-blink-matching-open)
 	 (alg-exp 'error))
     (if (boundp 'calc-alg-ent-map)
 	()
