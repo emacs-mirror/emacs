@@ -6780,11 +6780,13 @@ x_handle_tool_bar_click (f, button_event)
 
       XSETFRAME (frame, f);
       event.kind = TOOL_BAR_EVENT;
-      event.frame_or_window = Fcons (frame, Fcons (Qtool_bar, Qnil));
+      event.frame_or_window = frame;
+      event.arg = frame;
       kbd_buffer_store_event (&event);
 
       event.kind = TOOL_BAR_EVENT;
-      event.frame_or_window = Fcons (frame, key);
+      event.frame_or_window = frame;
+      event.arg = key;
       event.modifiers = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
 						button_event->state);
       kbd_buffer_store_event (&event);
@@ -9785,7 +9787,8 @@ XTread_socket (sd, bufp, numchars, expected)
 		    {
 		      XSETFRAME (frame, f);
 		      bufp->kind = HELP_EVENT;
-		      bufp->frame_or_window = Fcons (frame, Qnil);
+		      bufp->frame_or_window = frame;
+		      bufp->arg = Qnil;
 		      ++bufp, ++count, --numchars;
 		    }
 
@@ -9872,7 +9875,8 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		    any_help_event_p = 1;
 		    bufp->kind = HELP_EVENT;
-		    bufp->frame_or_window = Fcons (frame, help_echo);
+		    bufp->frame_or_window = frame;
+		    bufp->arg = help_echo;
 		    ++bufp, ++count, --numchars;
 		  }
 		
