@@ -168,8 +168,12 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'comint))
+
 (defgroup hippie-expand nil
   "Expand text trying various ways to find its expansion."
+  :link '(custom-manual "(autotype)Hippie Expand")
+  :link '(emacs-commentary-link "hippie-exp")
   :group 'abbrev
   :group 'convenience)
 
@@ -198,19 +202,22 @@
 (defvar he-search-window ())
 
 ;;;###autoload
-(defvar hippie-expand-try-functions-list '(try-complete-file-name-partially
-					   try-complete-file-name
-					   try-expand-all-abbrevs
-					   try-expand-list
-					   try-expand-line
-					   try-expand-dabbrev
-					   try-expand-dabbrev-all-buffers
-					   try-expand-dabbrev-from-kill
-					   try-complete-lisp-symbol-partially
-					   try-complete-lisp-symbol)
+(defcustom hippie-expand-try-functions-list
+  '(try-complete-file-name-partially
+    try-complete-file-name
+    try-expand-all-abbrevs
+    try-expand-list
+    try-expand-line
+    try-expand-dabbrev
+    try-expand-dabbrev-all-buffers
+    try-expand-dabbrev-from-kill
+    try-complete-lisp-symbol-partially
+    try-complete-lisp-symbol)
   "The list of expansion functions tried in order by `hippie-expand'.
 To change the behavior of `hippie-expand', remove, change the order of,
-or insert functions in this list.")
+or insert functions in this list."
+  :type '(repeat function)
+  :group 'hippie-expand)
 
 ;;;###autoload
 (defcustom hippie-expand-verbose t
