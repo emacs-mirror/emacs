@@ -1,5 +1,19 @@
 2000-05-14  Dave Love  <fx@gnu.org>
 
+	* mail/rmail.el (rmail-show-message-hook): Customize and offer
+	goto-addr as an option.
+
+	* help.el (help-xref-stack): Doc fix.
+	(help-xref-following): New variable.
+	(help-make-xrefs): Use it.
+	(help-xref-go-back): Use position information from stack element.
+	(help-follow): Make position in stack element a pair.  Use
+	help-xref-following.
+	
+	* autoarg.el: New file.
+
+	* faces.el: Declare more functions obsolete.
+
 	* viet-util.el, thai-util.el, tibet-util.el.elc, slovak.el
 	* misc-lang.el, romanian.el, korea-util.el.elc, lao-util.el
 	* japan-util.el, greek.el, hebrew.el, european.el, ethio-util.el
