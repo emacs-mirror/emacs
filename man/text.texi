@@ -49,6 +49,9 @@ Then the formatting appears on the screen in Emacs while you edit.
 @xref{Formatted Text}.
 @end iftex
 
+  The `automatic typing' features may be useful when writing text.
+@xref{Top, Autotyping, autotype, Features for Automatic Typing}.
+
 @menu
 * Words::	        Moving over and killing words.
 * Sentences::	        Moving over and killing sentences.
@@ -785,12 +788,15 @@ underlines are considered part of words.
 @cindex Paragraph-Indent Text mode
 @cindex mode, Paragraph-Indent Text
 @findex paragraph-indent-text-mode
+@findex paragraph-indent-minor-mode
   If you indent the first lines of paragraphs, then you should use
 Paragraph-Indent Text mode rather than Text mode.  In this mode, you do
 not need to have blank lines between paragraphs, because the first-line
 indentation is sufficient to start a paragraph; however paragraphs in
 which every line is indented are not supported.  Use @kbd{M-x
-paragraph-indent-text-mode} to enter this mode.
+paragraph-indent-text-mode} to enter this mode.  Use @kbd{M-x
+paragraph-indent-minor-mode} to enter an equivalent minor mode, for
+instance during mail composition.
 
 @kindex M-TAB @r{(Text mode)}
   Text mode, and all the modes based on it, define @kbd{M-@key{TAB}} as
