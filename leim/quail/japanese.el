@@ -76,8 +76,9 @@
 	newfrom)
     (quail-delete-overlays)
     (let ((result (kkc-region from to)))
-      (move-overlay quail-conv-overlay (- (point) result) (point)))
-    (setq quail-converting nil)))
+      (move-overlay quail-conv-overlay from (point))
+      (if (= (+ from result) (point))
+	  (setq quail-converting nil)))))
 
 (defun quail-japanese-self-insert-and-switch-to-alpha (key idx)
   (quail-delete-region)
@@ -95,6 +96,8 @@
 (put 'quail-japanese-package-saved 'permanent-local t)
 
 (defun quail-japanese-switch-package (key idx)
+  (quail-delete-region)
+  (setq quail-converting nil)
   (let ((pkg (cdr (assq (aref key (1- idx)) quail-japanese-switch-table))))
     (if (null pkg)
 	(quail-error "No package to be switched")
