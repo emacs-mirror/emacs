@@ -1106,8 +1106,8 @@ echo '
 ' > ${tempcname}
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
-foo=`eval "echo $CPP"`
-eval `${foo} -Isrc ${tempcname} \
+CPP=`eval "echo $CPP"`
+eval `${CPP} -Isrc ${tempcname} \
        | grep '@configure@' \
        | sed -e 's/^@configure@ \([^=]*=\)\(.*\)$/\1"\2"/'`
 rm ${tempcname}
