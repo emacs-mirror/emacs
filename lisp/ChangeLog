@@ -1,3 +1,11 @@
+2005-03-20  Miles Bader  <miles@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Use breakpoint faces
+	in text-mode too.  Change to new face names.
+	(breakpoint-enabled): Renamed from `breakpoint-enabled-bitmap-face'.
+	Add `:weight bold' attribute.
+	(breakpoint-disabled): Renamed from `breakpoint-disabled-bitmap-face'.
+
 2005-03-19  Juri Linkov  <juri@jurta.org>
 
 	* files.el (auto-mode-alist): Add comment.  Optimize jar/ear/war.
