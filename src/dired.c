@@ -133,6 +133,7 @@ directory_files_internal_unwind (dh)
 /* Function shared by Fdirectory_files and Fdirectory_files_and_attributes.  
    When ATTRS is zero, return a list of directory filenames; when
    non-zero, return a list of directory filenames and their attributes.  */
+
 Lisp_Object
 directory_files_internal (directory, full, match, nosort, attrs)
      Lisp_Object directory, full, match, nosort;
@@ -209,9 +210,19 @@ directory_files_internal (directory, full, match, nosort, attrs)
 #endif /* not VMS */
 
   /* Loop reading blocks until EOF or error.  */
-  errno = 0;
-  while ((dp = readdir (d)) != NULL)
+  for (;;)
     {
+      errno = 0;
+      dp = readdir (d);
+
+#ifdef EAGAIN
+      if (dp == NULL && errno == EAGAIN)
+	continue;
+#endif
+      
+      if (dp == NULL)
+	break;
+
       if (DIRENTRY_NONEMPTY (dp))
 	{
 	  int len;
@@ -299,9 +310,6 @@ directory_files_internal (directory, full, match, nosort, attrs)
     }
 
   retry_p = 0;
-#ifdef EAGAIN
-  retry_p |= errno == EAGAIN;
-#endif
 #ifdef EINTR
   retry_p |= errno == EINTR;
 #endif
