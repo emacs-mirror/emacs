@@ -251,8 +251,6 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 				   default-directory
 				   (expand-file-name "TAGS" default-directory)
 				   t))))
-	(if (file-directory-p tags-file-name)
-	    (setq tags-file-name (expand-file-name "TAGS" tags-file-name)))
 	(visit-tags-file put-in-list)
 	t))))
 
@@ -264,6 +262,8 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
   ;; directly because we don't want to get its buffer-local value
   ;; in the buffer we switch to.
   (let ((file tags-file-name))
+    (if (file-directory-p file)
+	(setq file (expand-file-name "TAGS" file)))
     (if (if (get-file-buffer file)
 	    (let (win)
 	      (set-buffer (get-file-buffer file))
@@ -643,9 +643,9 @@ See documentation of variable `tags-file-name'."
 
 (defun etags-recognize-tags-table ()
   (and (eq (char-after 1) ?\f)
-;; It is annoying to flash messages on the screen briefly,
-;; and this message is not useful. -- rms
-;;       (message "%s is an `etags' TAGS file" buffer-file-name)
+       ;; It is annoying to flash messages on the screen briefly,
+       ;; and this message is not useful.  -- rms
+       ;; (message "%s is an `etags' TAGS file" buffer-file-name)
        (mapcar (function (lambda (elt)
 			   (make-local-variable (car elt))
 			   (set (car elt) (cdr elt))))
