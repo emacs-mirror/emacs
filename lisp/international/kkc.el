@@ -230,6 +230,7 @@ and the return value is the length of the conversion."
       ;; At first convert the region to the first candidate.
       (let ((current-input-method-title kkc-input-method-title)
 	    (input-method-function nil)
+	    (modified-p (buffer-modified-p))
 	    (first t))
 	(while (not (kkc-lookup-key kkc-length-head nil first))
 	  (setq kkc-length-head (1- kkc-length-head)
@@ -241,6 +242,7 @@ and the return value is the length of the conversion."
 	(force-mode-line-update)
 	(setq kkc-converting t)
 	(while kkc-converting
+	  (set-buffer-modified-p modified-p)
 	  (let* ((overriding-terminal-local-map kkc-keymap)
 		 (help-char nil)
 		 (keyseq (read-key-sequence nil))
