@@ -1555,23 +1555,30 @@ balance_an_interval (i)
   register int threshold = (XFASTINT (interval_balance_threshold)
 			    * (total_children_size / 100));
 
-  if (LEFT_TOTAL_LENGTH (i) > RIGHT_TOTAL_LENGTH (i)
-      && (LEFT_TOTAL_LENGTH (i) - RIGHT_TOTAL_LENGTH (i)) > threshold)
-    return rotate_right (i);
+  /* Balance within each side.  */
+  balance_intervals (i->left);
+  balance_intervals (i->right);
 
   if (LEFT_TOTAL_LENGTH (i) > RIGHT_TOTAL_LENGTH (i)
       && (LEFT_TOTAL_LENGTH (i) - RIGHT_TOTAL_LENGTH (i)) > threshold)
-    return rotate_right (i);
+    {
+      i = rotate_right (i);
+      /* If that made it unbalanced the other way, take it back.  */
+      if (RIGHT_TOTAL_LENGTH (i) > LEFT_TOTAL_LENGTH (i)
+	  && (RIGHT_TOTAL_LENGTH (i) - LEFT_TOTAL_LENGTH (i)) > threshold)
+	return rotate_left (i);
+      return i;
+    }
 
-#if 0
-  if (LEFT_TOTAL_LENGTH (i) >
-      (RIGHT_TOTAL_LENGTH (i) + XINT (interval_balance_threshold)))
-    return rotate_right (i);
-
-  if (RIGHT_TOTAL_LENGTH (i) >
-      (LEFT_TOTAL_LENGTH (i) + XINT (interval_balance_threshold)))
-    return rotate_left (i);
-#endif
+  if (RIGHT_TOTAL_LENGTH (i) > LEFT_TOTAL_LENGTH (i)
+      && (RIGHT_TOTAL_LENGTH (i) - LEFT_TOTAL_LENGTH (i)) > threshold)
+    {
+      i = rotate_left (i);
+      if (LEFT_TOTAL_LENGTH (i) > RIGHT_TOTAL_LENGTH (i)
+	  && (LEFT_TOTAL_LENGTH (i) - RIGHT_TOTAL_LENGTH (i)) > threshold)
+	return rotate_right (i);
+      return i;
+    }
 
   return i;
 }
@@ -1608,7 +1615,7 @@ copy_intervals (tree, start, length)
      int start, length;
 {
   register INTERVAL i, new, t;
-  register int got;
+  register int got, prevlen;
 
   if (NULL_INTERVAL_P (tree) || length <= 0)
     return NULL_INTERVAL;
@@ -1629,16 +1636,15 @@ copy_intervals (tree, start, length)
   copy_properties (i, new);
 
   t = new;
+  prevlen = got;
   while (got < length)
     {
       i = next_interval (i);
-      t = split_interval_right (t, got + 1);
+      t = split_interval_right (t, prevlen + 1);
       copy_properties (i, t);
-      got += LENGTH (i);
+      prevlen = LENGTH (i);
+      got += prevlen;
     }
-
-  if (got > length)
-    t->total_length -= (got - length);
 
   return balance_intervals (new);
 }
