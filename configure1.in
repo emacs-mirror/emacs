@@ -815,18 +815,37 @@ if test -n "${GCC}"; then
   CFLAGS='-g -O'
 fi
 
-#### Some other nice autoconf tests.
+#### Some other nice autoconf tests.  If you add a test here which
+#### should make an entry in src/config.h, don't forget to add an
+#### #undef clause to src/config.h.in for autoconf to modify.
 ]
+dnl checks for programs
 AC_LN_S
 AC_PROG_CPP
+
+dnl checks for UNIX variants that set `DEFS'
+
+dnl checks for header files
 AC_HAVE_HEADERS(sys/timeb.h sys/time.h)
 AC_STDC_HEADERS
 AC_TIME_WITH_SYS_TIME
+
+dnl checks for typedefs
 AC_RETSIGTYPE
+
+dnl checks for functions
 AC_ALLOCA
 AC_HAVE_FUNCS(gettimeofday gethostname dup2)
+
+dnl checks for structure members
 AC_STRUCT_TM
+
+dnl checks for compiler characteristics
 AC_CONST
+
+dnl checks for operating system services
+
+dnl other checks for UNIX variants
 [
 
 
