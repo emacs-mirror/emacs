@@ -951,7 +951,8 @@ The value of this variable is used when Font Lock mode is turned on."
 			       (radio :tag "Mode"
 				      (const :tag "all" t)
 				      (symbol :tag "name"))
-			       (radio :tag "Decoration"
+			       (radio :tag "Support"
+				      (const :tag "none" nil)
 				      (const :tag "fast lock" fast-lock-mode)
 				      (const :tag "lazy lock" lazy-lock-mode)))
 			 ))
@@ -1922,7 +1923,6 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	   '(1 font-lock-keyword-face)
 	   '(9 (cond ((match-beginning 3) font-lock-function-name-face)
 		     ((match-beginning 6) font-lock-variable-name-face)
-		     ((match-beginning 8) font-lock-variable-name-face)
 		     (t font-lock-type-face))
 	       nil t))
      ;;
