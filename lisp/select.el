@@ -262,7 +262,7 @@ Cut buffers are considered obsolete; you should use selections instead."
   (user-full-name))
 
 (defun xselect-convert-to-class (selection type size)
-  x-emacs-application-class)
+  "Emacs")
 
 ;; We do not try to determine the name Emacs was invoked with,
 ;; because it is not clean for a program's behavior to depend on that.
