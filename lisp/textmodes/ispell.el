@@ -502,7 +502,7 @@ and then re-start emacs."
 			       (const iso-8859-1)
 			       (const iso-8859-2)
 			       (const koi8-r)
-			       (const windows-1252))))
+			       (const windows-1251))))
   :group 'ispell)
 
 
