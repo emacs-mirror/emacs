@@ -2089,7 +2089,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 	  int tab_offset = (pos_tab_offset (w, last_point, last_point_byte)
 			    - (last_point_x + hscroll - !! hscroll));
 
-	  pos = *compute_motion (last_point, last_point_y, last_point_x, 0,
+	  pos = *compute_motion (last_point, last_point_y, last_point_x, 1,
 				 PT, height,
 				 /* BUG FIX: See the comment of	
 				    Fpos_visible_in_window_p (window.c).  */
@@ -3457,7 +3457,7 @@ display_text_line (w, start, start_byte, vpos, hpos, taboffset, ovstr_done)
 		      ovstr += ovstr_done;
 		      ovlen -= ovstr_done;
 
-		      while (ovlen > 0)
+		      while (ovlen > 0 && p1 < endp)
 			{
 			  int charset, cols;
 			  GLYPH g;
