@@ -60,6 +60,34 @@ These supersede the values given in `default-frame-alist'.")
       (function (lambda ()
 		  (new-frame pop-up-frame-alist))))
 
+(defvar special-display-frame-alist 
+  '((height . 14) (width . 80) (unsplittable . t))
+  "*Alist of frame parameters used when creating special frames.
+Special frames are used for buffers whose names are in
+`special-display-buffer-names' and for buffers whose names match
+one of the regular expressions in `special-display-regexps'.
+This variable can be set in your init file, like this:
+  (setq special-display-frame-alist '((width . 80) (height . 20)))
+These supersede the values given in `default-frame-alist'.")
+
+;; Display BUFFER in its own frame, reusing an existing window if any.
+;; Return the window chosen.
+;; Currently we do not insist on selecting the window within its frame.
+(defun special-display-popup-frame (buffer)
+  (let ((window (get-buffer-window buffer t)))
+    (if window
+	;; If we have a window already, make it visible.
+	(let ((frame (window-frame window)))
+	  (make-frame-visible frame)
+	  (raise-frame frame)
+	  window)
+      ;; If no window yet, make one in a new frame.
+      (let ((frame (new-frame special-display-frame-alist)))
+	(set-window-buffer (frame-selected-window frame) buffer)
+	(set-window-dedicated-p (frame-selected-window frame) t)
+	(frame-selected-window frame)))))
+
+(setq special-display-function 'special-display-popup-frame)
 
 ;;;; Arrangement of frames at startup
 
