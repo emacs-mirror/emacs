@@ -3008,7 +3008,7 @@ This requires the external program \"diff\" to be in your `exec-path'."
 	      (save-restriction
 		(widen)
 		(write-region (point-min) (point-max) tempfile nil 'nomessage)))
-	    (diff buf-filename tempfile))
+	    (diff buf-filename tempfile nil t))
 	(when (file-exists-p tempfile)
 	  (delete-file tempfile)))
       nil)))
