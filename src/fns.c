@@ -2665,6 +2665,7 @@ The value can later be retrieved with `widget-get'.")
 {
   CHECK_CONS (widget, 1);
   XCDR (widget) = Fplist_put (XCDR (widget), property, value);
+  return value;
 }
 
 DEFUN ("widget-get", Fwidget_get, Swidget_get, 2, 2, 0,
