@@ -1715,7 +1715,7 @@ scroll the window of possible completions.")
       struct buffer *obuf = current_buffer;
 
       Fset_buffer (XWINDOW (window)->buffer);
-      tem = Fpos_visible_in_window_p (make_number (ZV), window);
+      tem = Fpos_visible_in_window_p (make_number (ZV), window, Qt);
       if (! NILP (tem))
 	/* If end is in view, scroll up to the beginning.  */
 	Fset_window_start (window, make_number (BEGV), Qnil);
