@@ -1645,6 +1645,9 @@ From a program, any arguments are passed to the `rcs2log' script."
   ;; or if the checkin creates a new branch, set the master file branch
   ;; accordingly.
   (message "Checking in %s..." file)
+  ;; "This log message intentionally left almost blank".
+  (and (or (not comment) (string= comment ""))
+       (setq comment "*** empty log message ***"))
   (save-excursion
     ;; Change buffers to get local value of vc-checkin-switches.
     (set-buffer (or (get-file-buffer file) (current-buffer)))
@@ -1708,9 +1711,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 		   vc-checkin-switches))
 	(apply 'vc-do-command 0 "cvs" file 'WORKFILE 
 	       "ci" (if rev (concat "-r" rev))
-	            (if (and comment (not (string= comment "")))
-			(concat "-m" comment)
-		      "-m-")
+	       (concat "-m" comment)
 	       vc-checkin-switches)
 	;; determine and store the new workfile version
 	(set-buffer "*vc*")
