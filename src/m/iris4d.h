@@ -194,7 +194,7 @@ Boston, MA 02111-1307, USA.  */
 #ifndef IRIX6_5
 #define C_SWITCH_MACHINE -32
 #else
-#define C_SWITCH_MACHINE -n32 -G0
+#define C_SWITCH_MACHINE -n32
 #endif
 #endif
 #endif
