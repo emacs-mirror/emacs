@@ -337,7 +337,8 @@ That buffer should be current already."
 	    ;; help-xref-button needs to operate on something matched
 	    ;; by a regexp, so set that up for it.
 	    (re-search-forward "\\(\\(\\sw\\|\\s_\\)+\\)")
-	    (help-xref-button 1 'help-function-def sym file))))
+	    (help-xref-button 1 'help-function-def sym file)))
+	(forward-line 1))
       (widen))
     (setq debugger-previous-backtrace (buffer-string))))
 
@@ -530,7 +531,7 @@ Applies to the frame whose line point is on in the backtrace."
     (define-key debugger-mode-map "e" 'debugger-eval-expression)
     (define-key debugger-mode-map " " 'next-line)
     (define-key debugger-mode-map "R" 'debugger-record-expression)
-    (define-key debugger-mode-map [RET] 'help-follow)
+    (define-key debugger-mode-map "\C-m" 'help-follow)
     (define-key debugger-mode-map [mouse-2] 'push-button)
     ))
 
