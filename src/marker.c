@@ -252,6 +252,24 @@ buf_charpos_to_bytepos (b, charpos)
 }
 
 #undef CONSIDER
+
+/* Used for debugging: recompute the bytepos corresponding to CHARPOS
+   in the simplest, most reliable way.  */
+
+int
+verify_bytepos (charpos)
+{
+  int below = 1;
+  int below_byte = 1;
+
+  while (below != charpos)
+    {
+      below++;
+      BUF_INC_POS (current_buffer, below_byte);
+    }
+
+  return below_byte;
+}
 
 /* bytepos_to_charpos returns the char position corresponding to BYTEPOS.  */
 
