@@ -192,6 +192,8 @@ __do_global_ctors ()
 {}
 __do_global_ctors_aux ()
 {}
+__do_global_dtors ()
+{}
 char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
 char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
 __main ()
