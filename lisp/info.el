@@ -87,8 +87,8 @@ The Lisp code is executed when the node is selected.")
     (if path
 	(split-string path (regexp-quote path-separator))
       (if (and sibling (file-exists-p sibling))
-	  (setq alternative sibling)
-	(setq alternative source))
+	  (setq alternative sibling)	; uninstalled, Emacs builddir != srcdir
+	(setq alternative source))	; uninstalled, builddir != srcdir
       (if (or (member alternative Info-default-directory-list)
 	      (not (file-exists-p alternative))
 	      ;; On DOS/NT, we use movable executables always,
@@ -101,16 +101,11 @@ The Lisp code is executed when the node is selected.")
 			      (expand-file-name "lib-src/"
 						installation-directory)))))
 	  Info-default-directory-list
-	;; Substitute the alternative for occurences of the
-	;; installation directory.  The latter occurs last, but maybe
-	;; more than once, so that it overrides /usr/info in
-	;; particular.
-	(let ((instdir (car (last Info-default-directory-list))))
-	  (mapcar (lambda (dir)
-		    (if (string= dir instdir)
-			alternative
-		      dir))
-		  Info-default-directory-list)))))
+	;; `alternative' contains the Info files that came with this
+	;; version, so we should look there first.  `Info-insert-dir'
+	;; currently expects to find `alternative' first on the list.
+	(cons alternative
+	      (reverse (cdr (reverse Info-default-directory-list)))))))
   "List of directories to search for Info documentation files.
 nil means not yet initialized.  In this case, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
@@ -648,9 +643,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	  (error "Can't find the Info directory node"))
       ;; Distinguish the dir file that comes with Emacs from all the
       ;; others.  Yes, that is really what this is supposed to do.
-      ;; If it doesn't work, fix it.
-      (setq buffer (car buffers)
-	    others (cdr buffers))
+      ;; The definition of `Info-directory-list' puts it first on that
+      ;; list and so last in `buffers' at this point.
+      (setq buffer (car (last buffers))
+	    others (delq buffer buffers))
 
       ;; Insert the entire original dir file as a start; note that we've
       ;; already saved its default directory to use as the default
