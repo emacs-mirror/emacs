@@ -872,6 +872,7 @@ Commands for sorting the summary:
   '("Next" . rmail-summary-next-all))
 
 (defvar rmail-summary-overlay nil)
+(put 'rmail-summary-overlay 'permanent-local t)
 
 (defun rmail-summary-goto-msg (&optional n nowarn skip-rmail)
   (interactive "P")
