@@ -175,8 +175,11 @@
 		       (list :inline t
 			     :format "%v"
 			     (symbol :tag "Property")
-			     (sexp :tag "Value")))))
+			     (sexp :tag "Value"))))
+	      "21.1")
 	     (minibuffer-auto-raise minibuffer boolean)
+	     ;; options property set at end
+	     (read-buffer-function minibuffer (choice nil function))
 	     ;; msdos.c
 	     (dos-unsupported-char-glyph display integer)
 	     ;; process.c
@@ -291,6 +294,9 @@
 	;; Set the type.
 	(put symbol 'custom-type type)
 	(put symbol 'custom-version version)))))
+
+(custom-add-option 'read-buffer-function 'iswitchb-read-buffer)
+(custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
 
 ;; Record cus-start as loaded
 ;; if we have set up all the info that we can set up.
