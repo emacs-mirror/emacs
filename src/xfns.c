@@ -135,6 +135,10 @@ Lisp_Object Vx_no_window_manager;
 
 Lisp_Object Vmouse_depressed;
 
+/* For now, we have just one x_display structure since we only support
+   one X display.  */
+static struct x_screen the_x_screen;
+
 extern unsigned int x_mouse_x, x_mouse_y, x_mouse_grabbed;
 
 /* Atom for indicating window state to the window manager. */
@@ -2367,6 +2371,10 @@ be shared by the new frame.")
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
+  FRAME_X_SCREEN (f) = &the_x_screen;
+  FRAME_X_SCREEN (f)->reference_count++;
+  the_x_screen.x_display_value = x_current_display;
+
   UNGCPRO;
 
   /* It is now ok to make the frame official
@@ -2463,6 +2471,7 @@ even if they match PATTERN and FACE.")
   XFontStruct *info;
   XFontStruct *size_ref;
   Lisp_Object list;
+  FRAME_PTR f;
 
   check_x ();
   CHECK_STRING (pattern, 0);
@@ -2471,11 +2480,14 @@ even if they match PATTERN and FACE.")
   if (!NILP (frame))
     CHECK_LIVE_FRAME (frame, 2);
 
+  f = NILP (frame) ? selected_frame : XFRAME (frame);
+
+  /* Determine the width standard for comparison with the fonts we find.  */
+
   if (NILP (face))
     size_ref = 0;
   else
     {
-      FRAME_PTR f = NILP (frame) ? selected_frame : XFRAME (frame);
       int face_id;
 
       /* Don't die if we get called with a terminal frame.  */
@@ -2493,6 +2505,42 @@ even if they match PATTERN and FACE.")
 	  if (size_ref == (XFontStruct *) (~0))
 	    size_ref = f->display.x->font;
 	}
+    }
+
+  /* See if we cached the result for this particular query.  */
+  list = Fassoc (pattern, FRAME_X_SCREEN (f)->font_list_cache);
+
+  /* We have info in the cache for this PATTERN.  */
+  if (!NILP (list))
+    {
+      Lisp_Object tem, newlist;
+
+      /* We have info about this pattern.  */
+      list = XCONS (list)->cdr;
+
+      if (size_ref == 0)
+	return list;
+
+      BLOCK_INPUT;
+
+      /* Filter the cached info and return just the fonts that match FACE.  */
+      newlist = Qnil;
+      for (tem = list; CONSP (tem); tem = XCONS (tem)->cdr)
+	{
+	  XFontStruct *thisinfo;
+
+          thisinfo = XLoadQueryFont (x_current_display,
+				     XSTRING (XCONS (tem)->car)->data);
+
+          if (thisinfo && same_size_fonts (thisinfo, size_ref))
+	    newlist = Fcons (XCONS (tem)->car, newlist);
+
+	  XFreeFont (x_current_display, thisinfo);
+        }
+
+      UNBLOCK_INPUT;
+
+      return newlist;
     }
 
   BLOCK_INPUT;
@@ -2516,10 +2564,20 @@ even if they match PATTERN and FACE.")
 
   if (names)
     {
-      Lisp_Object *tail;
       int i;
+      Lisp_Object full_list;
 
-      tail = &list;
+      /* Make a list of all the fonts we got back.
+	 Store that in the font cache for the display.  */
+      full_list = Qnil;
+      for (i = 0; i < num_fonts; i++)
+	full_list = Fcons (build_string (names[i]), full_list);
+      FRAME_X_SCREEN (f)->font_list_cache
+	= Fcons (Fcons (pattern, full_list),
+		 FRAME_X_SCREEN (f)->font_list_cache);
+
+      /* Make a list of the fonts that have the right width.  */
+      list = Qnil;
       for (i = 0; i < num_fonts; i++)
         {
 	  XFontStruct *thisinfo;
@@ -2533,11 +2591,9 @@ even if they match PATTERN and FACE.")
 #endif
           if (thisinfo && (! size_ref
 			   || same_size_fonts (thisinfo, size_ref)))
-	    {
-	      *tail = Fcons (build_string (names[i]), Qnil);
-	      tail = &XCONS (*tail)->cdr;
-	    }
+	    list = Fcons (build_string (names[i]), list);
         }
+      list = Fnreverse (list);
 
       BLOCK_INPUT;
 #ifdef BROKEN_XLISTFONTSWITHINFO
@@ -3831,6 +3887,8 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
   x_current_display->db = xrdb;
 #endif
 
+  the_x_screen.name = display;
+
   x_screen = DefaultScreenOfDisplay (x_current_display);
 
   screen_visual = select_visual (x_screen, &n_planes);
@@ -3919,6 +3977,11 @@ syms_of_xfns ()
 {
   /* This is zero if not using X windows.  */
   x_current_display = 0;
+
+  the_x_screen.font_list_cache = Qnil;
+  the_x_screen.name = Qnil;
+  staticpro (&the_x_screen.font_list_cache);
+  staticpro (&the_x_screen.name);
 
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
