@@ -104,9 +104,9 @@
 (defconst x-switch-definitions
   '(("-name" name)
     ("-T" name)
-    ("-r" lose)
-    ("-rv" lose)
-    ("-reverse" lose)
+    ("-r" reverse t)
+    ("-rv" reverse t)
+    ("-reverse" reverse t)
     ("-fn" font)
     ("-font" font)
     ("-ib" internal-border-width)
