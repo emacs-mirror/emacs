@@ -2807,6 +2807,24 @@ char *sys_siglist[NSIG + 1] =
   "user defined signal 2",		/* 17 SIGUSR2 */
   "death of a child",			/* 18 SIGCLD */
   "power-fail restart",			/* 19 SIGPWR */
+#ifdef sun
+  "window size change",			    /* 20 SIGWINCH */
+  "urgent socket condition",		    /* 21 SIGURG */
+  "pollable event occured",		    /* 22 SIGPOLL */
+  "stop (cannot be caught or ignored)", /*  23 SIGSTOP */
+  "user stop requested from tty",	    /* 24 SIGTSTP */
+  "stopped process has been continued",	/* 25 SIGCONT */
+  "background tty read attempted",	    /* 26 SIGTTIN */
+  "background tty write attempted",    /* 27 SIGTTOU */
+  "virtual timer expired",		    /* 28 SIGVTALRM */
+  "profiling timer expired",		    /* 29 SIGPROF */
+  "exceeded cpu limit",			    /* 30 SIGXCPU */
+  "exceeded file size limit",		    /* 31 SIGXFSZ */
+  "process's lwps are blocked",	    /*  32 SIGWAITING */
+  "special signal used by thread library", /* 33 SIGLWP */
+  "Special Signal Used By CPR",	    /* 34 SIGFREEZE */
+  "Special Signal Used By CPR",	    /* 35 SIGTHAW */
+#endif /* sun */
 #endif /* not AIX */
   0
   };
