@@ -1130,10 +1130,6 @@ typedef unsigned char UCHAR;
 
 #ifdef LISP_FLOAT_TYPE
 
-#ifndef DBL_DIG
-#define DBL_DIG 20
-#endif
-
 #define XFLOATINT(n) extract_float((n))
 
 #define CHECK_FLOAT(x, i)		\
