@@ -1,7 +1,8 @@
 2001-12-14  Andrew Innes  <andrewi@gnu.org>
 
-	* makefile.w32-in (bootstrap-temacs): Remove dependency on
-	bootstrap-clean.
+	* makefile.w32-in (EMACSLOADPATH): Define.
+	($(EMACS)): Run `list-load-path-shadows' after dumping emacs.
+	(bootstrap-temacs): Remove dependency on bootstrap-clean.
 
 2001-12-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
