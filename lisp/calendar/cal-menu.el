@@ -200,9 +200,9 @@
 (put 'cal-tex-cursor-week2 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-week-iso 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-week-monday 'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week-filofax-2week
+(put 'cal-tex-cursor-filofax-2week
      'menu-enable '(calendar-cursor-to-date))
-(put 'cal-tex-cursor-week-filofax-week 'menu-enable '(calendar-cursor-to-date))
+(put 'cal-tex-cursor-filofax-week 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-month 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-month-landscape 'menu-enable '(calendar-cursor-to-date))
 (put 'cal-tex-cursor-year 'menu-enable '(calendar-cursor-to-date))
@@ -323,19 +323,19 @@ Holidays are included if `cal-tex-holidays' is t."
     (calendar-goto-date (calendar-event-to-date))
     (cal-tex-cursor-week-monday nil)))
 
-(defun cal-tex-mouse-week-filofax-2week ()
+(defun cal-tex-mouse-filofax-2week ()
   "One page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
     (calendar-goto-date (calendar-event-to-date))
-    (cal-tex-cursor-week-filofax-2week nil)))
+    (cal-tex-cursor-filofax-2week nil)))
 
-(defun cal-tex-mouse-week-filofax-week ()
+(defun cal-tex-mouse-filofax-week ()
   "Two page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
     (calendar-goto-date (calendar-event-to-date))
-    (cal-tex-cursor-week-filofax-week nil)))
+    (cal-tex-cursor-filofax-week nil)))
 
 (defun cal-tex-mouse-month ()
   "Make a buffer with LaTeX commands for the month cursor is on.
@@ -432,9 +432,9 @@ The output is in landscape format, one month to a page."
          (selection
           (x-popup-menu
            event
-           (list "Menu"
+           (list (calendar-date-string date t nil)
                  (list
-                  (calendar-date-string date t nil)
+                  ""
                   '("Holidays" . calendar-mouse-holidays)
                   '("Mark date" . calendar-mouse-set-mark)
                   '("Sunrise/sunset" . calendar-mouse-sunrise/sunset)
@@ -453,14 +453,15 @@ The output is in landscape format, one month to a page."
   (let* ((selection
           (x-popup-menu
            event
-           (list "Menu"
+           (list (calendar-date-string date t nil)
                  (list
-                  (calendar-date-string date t nil)
+                  ""
                   '("Daily (1 page)" . cal-tex-mouse-day)
                   '("Weekly (1 page)" . cal-tex-mouse-week)
                   '("Weekly (2 pages)" . cal-tex-mouse-week2)
-                  '("Weekly (other style; 1 page)" . cal-tex-mouse-week3)
-                  '("Weekly (yet another style; 1 page)" . cal-tex-mouse-week4)
+                  '("Weekly (other style; 1 page)" . cal-tex-mouse-week-iso)
+                  '("Weekly (yet another style; 1 page)" .
+                    cal-tex-mouse-week-monday)
                   '("Monthly" . cal-tex-mouse-month)
                   '("Monthly (landscape)" . cal-tex-mouse-month-landscape)
                   '("Yearly" . cal-tex-mouse-year)
@@ -475,11 +476,13 @@ The output is in landscape format, one month to a page."
   (let* ((selection
           (x-popup-menu
            event
-           (list "Menu"
+           (list (calendar-date-string date t nil)
                  (list
-                  (calendar-date-string date t nil)
-                  '("Filofax Weekly (1 page)" . cal-tex-mouse-week5)
-                  '("Filofax Weekly (2 pages)" . cal-tex-mouse-week6)
+                  ""
+                  '("Filofax Weekly (2-weeks-at-a-glance)" .
+                    cal-tex-mouse-filofax-2week)
+                  '("Filofax Weekly (week-at-a-glance)" .
+                    cal-tex-mouse-filofax-week)
                   '("Filofax Yearly" . cal-tex-mouse-filofax-year)
                   )))))
     (and selection (call-interactively selection))))
