@@ -249,6 +249,7 @@ static int startup_screen_size_X;
 static int startup_screen_size_Y;
 static int startup_pos_X;
 static int startup_pos_Y;
+static unsigned char startup_screen_attrib;
 
 static int term_setup_done;
 
@@ -554,12 +555,14 @@ IT_set_terminal_modes (void)
   
   startup_screen_size_X = screen_size_X;
   startup_screen_size_Y = screen_size_Y;
+  startup_screen_attrib = ScreenAttrib;
 
   ScreenGetCursor (&startup_pos_Y, &startup_pos_X);
   ScreenRetrieve (startup_screen_buffer = xmalloc (screen_size * 2));
 
   if (termscript)
-    fprintf (termscript, "<SCREEN SAVED>\n");
+    fprintf (termscript, "<SCREEN SAVED (dimensions=%dx%d)>\n",
+             screen_size_X, screen_size_Y);
 }
 
 /*
@@ -570,6 +573,15 @@ IT_set_terminal_modes (void)
 static
 IT_reset_terminal_modes (void)
 {
+  int display_row_start = (int) ScreenPrimary;
+  int saved_row_len     = startup_screen_size_X * 2;
+  int update_row_len    = ScreenCols () * 2;
+  int current_rows      = ScreenRows ();
+  int to_next_row       = update_row_len;
+  unsigned char *saved_row = startup_screen_buffer;
+  int cursor_pos_X = ScreenCols () - 1;
+  int cursor_pos_Y = ScreenRows () - 1;
+
   if (termscript)
     fprintf (termscript, "\n<RESET_TERM>");
 
@@ -578,12 +590,45 @@ IT_reset_terminal_modes (void)
   if (!term_setup_done)
     return;
   
-  ScreenUpdate (startup_screen_buffer);
-  ScreenSetCursor (startup_pos_Y, startup_pos_X);
-  xfree (startup_screen_buffer);
+  mouse_off ();
+ 
+  /* We have a situation here.
+     We cannot just do ScreenUpdate(startup_screen_buffer) because
+     the luser could have changed screen dimensions inside Emacs
+     and failed (or didn't want) to restore them before killing
+     Emacs.  ScreenUpdate() uses the *current* screen dimensions and
+     thus will happily use memory outside what was allocated for
+     `startup_screen_buffer'.
+     Thus we only restore as much as the current screen dimensions
+     can hold, and clear the rest (if the saved screen is smaller than
+     the current) with the color attribute saved at startup.  The cursor
+     is also restored within the visible dimensions.  */
+
+  ScreenAttrib = startup_screen_attrib;
+  ScreenClear ();
+
+  if (update_row_len > saved_row_len)
+    update_row_len = saved_row_len;
+  if (current_rows > startup_screen_size_Y)
+    current_rows = startup_screen_size_Y;
 
   if (termscript)
-    fprintf (termscript, "<SCREEN RESTORED>\n");
+    fprintf (termscript, "<SCREEN RESTORED (dimensions=%dx%d)>\n",
+             update_row_len / 2, current_rows);
+
+  while (current_rows--)
+    {
+      dosmemput (saved_row, update_row_len, display_row_start);
+      saved_row         += saved_row_len;
+      display_row_start += to_next_row;
+    }
+  if (startup_pos_X < cursor_pos_X)
+    cursor_pos_X = startup_pos_X;
+  if (startup_pos_Y < cursor_pos_Y)
+    cursor_pos_Y = startup_pos_Y;
+
+  ScreenSetCursor (cursor_pos_Y, cursor_pos_X);
+  xfree (startup_screen_buffer);
 
   term_setup_done = 0;
 }
