@@ -3193,11 +3193,18 @@ To use this type, you must define :match or :match-alternatives."
   :match-alternatives '(integerp))
 
 (define-widget 'number 'restricted-sexp
-  "A floating point number."
+  "A number (floating point or integer)."
   :tag "Number"
   :value 0.0
-  :type-error "This field should contain a number"
+  :type-error "This field should contain a number (floating point or integer)"
   :match-alternatives '(numberp))
+
+(define-widget 'float 'restricted-sexp
+  "A floating point number."
+  :tag "Floating point number"
+  :value 0.0
+  :type-error "This field should contain a floating point number"
+  :match-alternatives '(floatp))
 
 (define-widget 'character 'editable-field
   "A character."
