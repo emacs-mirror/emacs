@@ -1,6 +1,6 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.39) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.40) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * DESIGN
@@ -30,7 +30,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.39) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.40) $");
 
 
 /* Types */
@@ -109,6 +109,8 @@ static void MRGRefPartSetRef(Arena arena, RefPart refPart, Ref ref)
   ArenaPoke(arena, (Addr)&refPart->ref, ref);
 }
 
+
+/* MRGStruct -- MRG pool structure */
 
 #define MRGSig          ((Sig)0x519369B0) /* SIGnature MRG POol */
 
@@ -235,7 +237,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(MRGLinkSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
   linkseg->refSeg = NULL; /* .link.nullref */
   linkseg->sig = MRGLinkSegSig;
@@ -274,7 +276,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(MRGRefSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   /* design.mps.seg.field.rankset.start, .improve.rank */
@@ -450,7 +452,7 @@ static void MRGMessageFinalizationRef(Ref *refReturn,
   AVERT(Arena, arena);
   AVERT(Message, message);
 
-  AVER(message->type == MessageTypeFinalization);
+  AVER(message->type == MessageTypeFINALIZATION);
 
   link = linkOfMessage(message);
   AVER(link->state == MRGGuardianFINAL);
@@ -535,7 +537,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
   res = SegAlloc(&segLink, EnsureMRGLinkSegClass(),
                  SegPrefDefault(), linkSegSize, pool,
                  withReservoirPermit);
-  if(res != ResOK)
+  if (res != ResOK)
     goto failLinkSegAlloc;
   linkseg = SegLinkSeg(segLink);
 
@@ -543,7 +545,7 @@ static Res MRGSegPairCreate(MRGRefSeg *refSegReturn, MRG mrg,
                  SegPrefDefault(), mrg->extendBy, pool,
                  withReservoirPermit, 
                  linkseg); /* .ref.initarg */
-  if(res != ResOK)
+  if (res != ResOK)
     goto failRefPartSegAlloc;
   refseg = SegRefSeg(segRefPart);
 
@@ -580,14 +582,13 @@ static void MRGFinalize(Arena arena, MRGLinkSeg linkseg, Index index)
   link = linkOfIndex(linkseg, index);
 
   /* only finalize it if it hasn't been finalized already */
-  if(link->state != MRGGuardianFINAL) {
+  if (link->state != MRGGuardianFINAL) {
     AVER(link->state == MRGGuardianPREFINAL);
     RingRemove(&link->the.linkRing);
     RingFinish(&link->the.linkRing);
     link->state = MRGGuardianFINAL;
     message = &link->the.messageStruct;
-    MessageInit(arena, message, &MRGMessageClassStruct, 
-                MessageTypeFinalization);
+    MessageInit(arena, message, &MRGMessageClassStruct, MessageTypeFINALIZATION);
     MessagePost(arena, message);
   }
 }
@@ -617,16 +618,16 @@ static Res MRGRefSegScan(ScanState ss, MRGRefSeg refseg, MRG mrg)
       refPart = refPartOfIndex(refseg, i);
 
       /* free guardians are not scanned */
-      if(linkOfIndex(linkseg, i)->state != MRGGuardianFREE) {
+      if (linkOfIndex(linkseg, i)->state != MRGGuardianFREE) {
 	ss->wasMarked = TRUE;
 	/* .ref.direct: We can access the reference directly */
 	/* because we are in a scan and the shield is exposed. */
-	if(TRACE_FIX1(ss, refPart->ref)) {
+	if (TRACE_FIX1(ss, refPart->ref)) {
 	  res = TRACE_FIX2(ss, &(refPart->ref));
-	  if(res != ResOK) 
+	  if (res != ResOK) 
 	    return res;
 	
-	  if(ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
+	  if (ss->rank == RankFINAL && !ss->wasMarked) { /* .improve.rank */
 	    MRGFinalize(arena, linkseg, i);
 	  }
 	}
@@ -661,6 +662,8 @@ static Res MRGInit(Pool pool, va_list args)
 }
 
 
+/* MRGFinish -- finish a MRG pool */
+
 static void MRGFinish(Pool pool)
 {
   MRG mrg;
@@ -688,10 +691,10 @@ static void MRGFinish(Pool pool)
   /* from ArenaDestroy, and the message queue has been emptied prior */
   /* to the call.  See impl.c.arena.message.queue.empty */
 
-  if(!RingIsSingle(&mrg->entryRing)) {
+  if (!RingIsSingle(&mrg->entryRing)) {
     RingRemove(&mrg->entryRing);
   }
-  if(!RingIsSingle(&mrg->freeRing)) {
+  if (!RingIsSingle(&mrg->freeRing)) {
     RingRemove(&mrg->freeRing);
   }
 
@@ -726,11 +729,11 @@ Res MRGRegister(Pool pool, Ref ref)
   AVERT(Arena, arena);
 
   /* design.mps.poolmrg.alloc.grow */
-  if(RingIsSingle(&mrg->freeRing)) {
+  if (RingIsSingle(&mrg->freeRing)) {
     /* .refseg.useless: refseg isn't used */
     /* @@@@ Should the client be able to use the reservoir for this? */
     res = MRGSegPairCreate(&junk, mrg, /* withReservoirPermit */ FALSE);   
-    if(res != ResOK) 
+    if (res != ResOK) 
       return res;
   }
   AVER(!RingIsSingle(&mrg->freeRing));
@@ -833,7 +836,7 @@ static Res MRGScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVERT(MRGRefSeg, refseg);
 
   res = MRGRefSegScan(ss, refseg, mrg);
-  if(res != ResOK)  {
+  if (res != ResOK)  {
     *totalReturn = FALSE;
     return res;
   }

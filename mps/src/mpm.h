@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.139) $
+ * $HopeName: MMsrc!mpm.h(trunk.140) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -174,9 +174,10 @@ extern size_t (BTSize)(unsigned long length);
 
 /* design.mps.bt.if.get */
 extern Bool (BTGet)(BT bt, Index index);
-#define BTGet(a, i) ((Bool)(((a)[((i) >> MPS_WORD_SHIFT)] \
-                             >> ((i) & ~((Word)-1 << MPS_WORD_SHIFT))) \
-                            & (Word)1))
+#define BTGet(a, i) \
+  ((Bool)(((a)[((i) >> MPS_WORD_SHIFT)] \
+           >> ((i) & ~((Word)-1 << MPS_WORD_SHIFT))) \
+          & (Word)1))
 
 /* design.mps.bt.if.set */
 extern void (BTSet)(BT bt, Index index);
@@ -227,10 +228,8 @@ extern void BTCopyOffsetRange(BT fromBT, BT toBT,
 
 /* Pool Interface -- see impl.c.pool */
 
-extern Res PoolInit(Pool pool, Arena arena,
-                    PoolClass class, ...);
-extern Res PoolInitV(Pool pool, Arena arena, 
-                     PoolClass class, va_list args);
+extern Res PoolInit(Pool pool, Arena arena, PoolClass class, ...);
+extern Res PoolInitV(Pool pool, Arena arena, PoolClass class, va_list args);
 extern void PoolFinish(Pool pool);
 extern Bool PoolClassCheck(PoolClass class);
 extern Bool PoolCheck(Pool pool);
@@ -238,6 +237,7 @@ extern Res PoolDescribe(Pool pool, mps_lib_FILE *stream);
 
 extern Arena (PoolArena)(Pool pool);
 #define PoolArena(pool)         ((pool)->arena)
+
 extern Bool PoolFormat(Format *formatReturn, Pool pool);
 
 extern Align (PoolAlignment)(Pool pool);
@@ -410,7 +410,7 @@ extern Size MessageNoGCNotCondemnedSize(Message message);
 #define TraceSetComp(ts)            BS_COMP(ts)
 
 #define TRACE_SET_ITER(ti, trace, ts, arena) \
-  for(ti = 0, trace = ArenaTrace(arena, ti); ti < TRACE_MAX; \
+  for(ti = 0, trace = ArenaTrace(arena, ti); ti < TraceLIMIT; \
       ++ti, trace = ArenaTrace(arena, ti)) BEGIN \
     if (TraceSetIsMember(ts, trace)) {
 
@@ -471,19 +471,17 @@ extern double TraceWorkFactor;
 /* Equivalent to impl.h.mps MPS_FIX */
 
 #define TRACE_FIX(ss, refIO) \
-  (TRACE_FIX1(ss, *(refIO)) ? \
-   TRACE_FIX2(ss, refIO) : ResOK)
+  (TRACE_FIX1(ss, *(refIO)) ? TRACE_FIX2(ss, refIO) : ResOK)
 
 /* Equivalent to impl.h.mps MPS_SCAN_END */
 
 #define TRACE_SCAN_END(ss) \
-   } \
-   (ss)->unfixedSummary = SCANsummary; \
+    } \
+    (ss)->unfixedSummary = SCANsummary; \
   END
 
 extern Res TraceScanArea(ScanState ss, Addr *base, Addr *limit);
-extern Res TraceScanAreaTagged(ScanState ss,
-                               Addr *base, Addr *limit);
+extern Res TraceScanAreaTagged(ScanState ss, Addr *base, Addr *limit);
 extern Res TraceScanAreaMasked(ScanState ss,
                                Addr *base, Addr *limit, Word mask);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
