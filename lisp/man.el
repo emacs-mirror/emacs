@@ -867,7 +867,7 @@ The following key bindings are currently in effect in the buffer:
   (goto-char (point-min))
   (let ((case-fold-search nil))
     (while (re-search-forward Man-heading-regexp (point-max) t)
-      (aput 'Man-sections-alist (Man-match-substring 1))
+      (aput 'Man-sections-alist (match-string 1))
       (forward-line 1))))
 
 (defsubst Man-build-references-alist ()
