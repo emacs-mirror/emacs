@@ -1013,7 +1013,7 @@ Local Variables section of the file; for that, use `hack-local-variables'.
 If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag."
   ;; Look for -*-MODENAME-*- or -*- ... mode: MODENAME; ... -*-
-  (let (beg end done)
+  (let (beg end done modes)
     (save-excursion
       (goto-char (point-min))
       (skip-chars-forward " \t\n")
@@ -1067,52 +1067,58 @@ If `enable-local-variables' is nil, this function does not check for a
 		       (forward-char -1)
 		     (goto-char end))
 		   (skip-chars-backward " \t")
-		   (funcall (intern (concat (downcase (buffer-substring beg (point))) "-mode")))
-		   (setq done t))
+		   (setq modes (cons (intern (concat (downcase (buffer-substring beg (point))) "-mode"))
+				     modes)))
 	       ;; Simple -*-MODE-*- case.
-	       (funcall (intern (concat (downcase (buffer-substring beg end)) "-mode")))
-	       (setq done t))))
-      ;; If we didn't find a mode from a -*- line, try using the file name.
-      (if (and (not done) buffer-file-name)
-	  (let ((name buffer-file-name)
-		(keep-going t))
-	    ;; Remove backup-suffixes from file name.
-	    (setq name (file-name-sans-versions name))
-	    (while keep-going
-	      (setq keep-going nil)
-	      (let ((alist auto-mode-alist)
-		    (mode nil))
-		;; Find first matching alist entry.
-		(let ((case-fold-search 
-		       (memq system-type '(vax-vms windows-nt))))
-		  (while (and (not mode) alist)
-		    (if (string-match (car (car alist)) name)
-			(if (and (consp (cdr (car alist)))
-				 (nth 2 (car alist)))
-			    (progn
-			      (setq mode (car (cdr (car alist)))
-				    name (substring name 0 (match-beginning 0))
-				    keep-going t))
-			  (setq mode (cdr (car alist))
-				keep-going nil)))
-		    (setq alist (cdr alist))))
-		(if mode
-		    (funcall mode)
-		  ;; If we can't deduce a mode from the file name,
-		  ;; look for an interpreter specified in the first line.
-		  (let ((interpreter
-			 (save-excursion
-			   (goto-char (point-min))
-			   (if (looking-at "#! *\\([^ \t\n]+\\)")
-			       (buffer-substring (match-beginning 1)
-						 (match-end 1))
-			     "")))
-			elt)
-		    ;; Map interpreter name to a mode.
-		    (setq elt (assoc (file-name-nondirectory interpreter)
-				     interpreter-mode-alist))
-		    (if elt
-			(funcall (cdr elt))))))))))))
+	       (setq modes (cons (intern (concat (downcase (buffer-substring beg end))
+						 "-mode"))
+				 modes))))))
+    ;; If we found modes to use, invoke them now,
+    ;; outside the save-excursion.
+    (if modes
+	(progn (mapcar 'funcall modes)
+	       (setq done t)))
+    ;; If we didn't find a mode from a -*- line, try using the file name.
+    (if (and (not done) buffer-file-name)
+	(let ((name buffer-file-name)
+	      (keep-going t))
+	  ;; Remove backup-suffixes from file name.
+	  (setq name (file-name-sans-versions name))
+	  (while keep-going
+	    (setq keep-going nil)
+	    (let ((alist auto-mode-alist)
+		  (mode nil))
+	      ;; Find first matching alist entry.
+	      (let ((case-fold-search 
+		     (memq system-type '(vax-vms windows-nt))))
+		(while (and (not mode) alist)
+		  (if (string-match (car (car alist)) name)
+		      (if (and (consp (cdr (car alist)))
+			       (nth 2 (car alist)))
+			  (progn
+			    (setq mode (car (cdr (car alist)))
+				  name (substring name 0 (match-beginning 0))
+				  keep-going t))
+			(setq mode (cdr (car alist))
+			      keep-going nil)))
+		  (setq alist (cdr alist))))
+	      (if mode
+		  (funcall mode)
+		;; If we can't deduce a mode from the file name,
+		;; look for an interpreter specified in the first line.
+		(let ((interpreter
+		       (save-excursion
+			 (goto-char (point-min))
+			 (if (looking-at "#! *\\([^ \t\n]+\\)")
+			     (buffer-substring (match-beginning 1)
+					       (match-end 1))
+			   "")))
+		      elt)
+		  ;; Map interpreter name to a mode.
+		  (setq elt (assoc (file-name-nondirectory interpreter)
+				   interpreter-mode-alist))
+		  (if elt
+		      (funcall (cdr elt)))))))))))
 
 (defun hack-local-variables-prop-line ()
   ;; Set local variables specified in the -*- line.
