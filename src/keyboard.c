@@ -84,7 +84,12 @@ extern int input_fd;
 
 #ifdef HAVE_WINDOW_SYSTEM
 /* Make all keyboard buffers much bigger when using X windows.  */
+#ifdef macintosh
+/* But not too big (local data > 32K error) if on macintosh */
+#define KBD_BUFFER_SIZE 512
+#else
 #define KBD_BUFFER_SIZE 4096
+#endif
 #else	/* No X-windows, character input */
 #define KBD_BUFFER_SIZE 256
 #endif	/* No X-windows */
