@@ -1,15 +1,19 @@
-;; demo for forms-mode
+;; demo for forms-mode	-*-emacs-lisp-*-
 ;;
-;; This demo visits /etc/passwd.
+;; This demo visits your passwd file.
 
-(setq forms-file "/etc/passwd")
+;; use yp if present
+(or (file-exists-p (setq forms-file "/var/yp/src/passwd"))
+    (setq forms-file "/etc/passwd"))
+
 (setq forms-read-only t)		; to make sure
 (setq forms-field-sep ":")
 (setq forms-number-of-fields 7)
+
 (setq forms-format-list
-     '("====== Visiting /etc/passwd ======\n\n"
+      (list
+       "====== Visiting " forms-file " ======\n\n"
        "User : "	1
-       "Password : "	2
        "   Uid: "	3
        "   Gid: "	4
        "\n\n"
