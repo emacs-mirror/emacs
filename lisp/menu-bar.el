@@ -319,7 +319,6 @@ created in the future.
 With a numeric argument, if the argument is negative,
 turn off menu bars; otherwise, turn on menu bars."
  (interactive "P")
- (if flag (setq flag (prefix-numeric-value flag)))
 
  ;; Obtain the current setting by looking at default-frame-alist.
  (let ((menu-bar-mode
@@ -328,7 +327,7 @@ turn off menu bars; otherwise, turn on menu bars."
 
    ;; Tweedle it according to the argument.
    (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
-			 (or (not (numberp flag)) (>= flag 0))))
+			 (> (prefix-numeric-value flag) 0)))
 
    ;; Apply it to default-frame-alist.
    (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
