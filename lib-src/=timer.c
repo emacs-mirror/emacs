@@ -121,7 +121,7 @@ schedule (str)
 void
 notify ()
 {
-  time_t now, tdiff, waitfor;
+  time_t now, tdiff, waitfor = -1;
   register struct event *ep;
 
   now = time ((time_t *) NULL);
