@@ -26,7 +26,7 @@ ALL		= $(BLD)\addpm.exe
 addpm:		  $(BLD) $(BLD)\addpm.exe
 $(BLD)\addpm.exe: $(BLD)\addpm.obj
 $(BLD)\addpm.obj: addpm.c
-		  $(CC) -nologo -out:$@ addpm.c \
+		  $(CC) $(CFLAGS) -nologo -out:$@ addpm.c \
 			-link -out:$(BLD)\addpm.exe \
 			-subsystem:windows -entry:WinMainCRTStartup \
 			$(SYS_LDFLAGS) $(BASE_LIBS) user32.lib
