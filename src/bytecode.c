@@ -276,29 +276,51 @@ mark_byte_stack ()
 	abort ();
       
       for (obj = stack->bottom; obj <= stack->top; ++obj)
-	mark_object (obj);
+	if (!XMARKBIT (*obj))
+	  {
+	    mark_object (obj);
+	    XMARK (*obj);
+	  }
 
-      mark_object (&stack->byte_string);
-      mark_object (&stack->constants);
+      if (!XMARKBIT (stack->byte_string))
+	{
+          mark_object (&stack->byte_string);
+	  XMARK (stack->byte_string);
+	}
+
+      if (!XMARKBIT (stack->constants))
+	{
+	  mark_object (&stack->constants);
+	  XMARK (stack->constants);
+	}
     }
 }
 
 
-/* Relocate program counters in the stacks on byte_stack_list.  Called
-   when GC has completed.  */
+/* Unmark objects in the stacks on byte_stack_list.  Relocate program
+   counters.  Called when GC has completed.  */
 
 void 
-relocate_byte_pcs ()
+unmark_byte_stack ()
 {
   struct byte_stack *stack;
+  Lisp_Object *obj;
 
   for (stack = byte_stack_list; stack; stack = stack->next)
-    if (stack->byte_string_start != XSTRING (stack->byte_string)->data)
-      {
-	int offset = stack->pc - stack->byte_string_start;
-	stack->byte_string_start = XSTRING (stack->byte_string)->data;
-	stack->pc = stack->byte_string_start + offset;
-      }
+    {
+      for (obj = stack->bottom; obj <= stack->top; ++obj)
+	XUNMARK (*obj);
+
+      XUNMARK (stack->byte_string);
+      XUNMARK (stack->constants);
+
+      if (stack->byte_string_start != XSTRING (stack->byte_string)->data)
+	{
+	  int offset = stack->pc - stack->byte_string_start;
+	  stack->byte_string_start = XSTRING (stack->byte_string)->data;
+	  stack->pc = stack->byte_string_start + offset;
+	}
+    }
 }
 
 
