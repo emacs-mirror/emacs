@@ -1285,21 +1285,25 @@ skip_chars (forwardp, syntaxp, string, lim)
 		  {
 		    int savepos = pos;
 		    DEC_POS (pos);
+		    UPDATE_SYNTAX_TABLE_BACKWARD (pos);
 		    if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
 		      {
 			pos = savepos;
 			break;
 		      }
-		    UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
 		  }
 	      }
 	    else
 	      {
-		while (pos > XINT (lim)
-		       && fastmap[(int) SYNTAX (FETCH_BYTE (pos - 1))])
+		while (pos > XINT (lim))
 		  {
 		    pos--;
-		    UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		    UPDATE_SYNTAX_TABLE_BACKWARD (pos);
+		    if (!fastmap[(int) SYNTAX (FETCH_BYTE (pos))])
+		      {
+			pos++;
+			break;
+		      }
 		  }
 	      }
 	  }
