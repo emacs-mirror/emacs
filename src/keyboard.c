@@ -6139,8 +6139,8 @@ map_prompt (map)
   return Qnil;
 }
 
-static void menu_bar_item ();
-static void menu_bar_one_keymap ();
+static void menu_bar_item P_ ((Lisp_Object, Lisp_Object));
+static void menu_bar_one_keymap P_ ((Lisp_Object));
 
 /* These variables hold the vector under construction within
    menu_bar_items and its subroutines, and the current index
@@ -6236,16 +6236,13 @@ menu_bar_items (old)
   result = Qnil;
 
   for (mapno = nmaps - 1; mapno >= 0; mapno--)
-    {
-      if (! NILP (maps[mapno]))
+    if (!NILP (maps[mapno]))
+      {
 	def = get_keyelt (access_keymap (maps[mapno], Qmenu_bar, 1, 0), 0);
-      else
-	def = Qnil;
-
-      tem = Fkeymapp (def);
-      if (!NILP (tem))
-	menu_bar_one_keymap (def);
-    }
+	tem = Fkeymapp (def);
+	if (!NILP (tem))
+	  menu_bar_one_keymap (def);
+      }
 
   /* Move to the end those items that should be at the end.  */
 
@@ -6308,6 +6305,11 @@ menu_bar_one_keymap (keymap)
      Lisp_Object keymap;
 {
   Lisp_Object tail, item;
+
+  /* If KEYMAP is a symbol, its function definition is the keymap
+     to use.  */
+  if (SYMBOLP (keymap))
+    keymap = indirect_function (keymap);
 
   menu_bar_one_keymap_changed_items = Qnil;
 
@@ -6901,6 +6903,11 @@ tool_bar_items (reuse, nitems)
 	  {
 	    Lisp_Object tail;
 	    
+	    /* If KEYMAP is a symbol, its function definition is the
+	       keymap to use.  */
+	    if (SYMBOLP (keymap))
+	      keymap = indirect_function (keymap);
+
 	    /* KEYMAP is a list `(keymap (KEY . BINDING) ...)'.  */
 	    for (tail = keymap; CONSP (tail); tail = XCDR (tail))
 	      {
