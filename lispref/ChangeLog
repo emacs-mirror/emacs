@@ -1,3 +1,8 @@
+2004-07-16  Jim Blandy  <jimb@redhat.com>
+
+	* searching.texi (Regexp Backslash): Document new \_< and \_>
+	operators.
+
 2004-07-16  Juanma Barranquero  <lektu@terra.es>
 
 	* display.texi (Images): Fix Texinfo usage.
