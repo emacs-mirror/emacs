@@ -1109,6 +1109,9 @@ with descriptive strings such as
 (defconst fancy-diary-buffer "*Fancy Diary Entries*"
   "Name of the buffer used for the optional fancy display of the diary.")
 
+(defconst other-calendars-buffer "*Other Calendars*"
+  "Name of the buffer used for the display of date on other calendars.")
+
 (defconst lunar-phases-buffer "*Phases of Moon*"
   "Name of the buffer used for the lunar phases.")
 
@@ -1943,6 +1946,7 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "pi"  'calendar-print-islamic-date)
   (define-key calendar-mode-map "pf"  'calendar-print-french-date)
   (define-key calendar-mode-map "pm"  'calendar-print-mayan-date)
+  (define-key calendar-mode-map "po"  'calendar-print-other-dates)
   (define-key calendar-mode-map "id"  'insert-diary-entry)
   (define-key calendar-mode-map "iw"  'insert-weekly-diary-entry)
   (define-key calendar-mode-map "im"  'insert-monthly-diary-entry)
@@ -2513,6 +2517,53 @@ Defaults to today's date if DATE is not given."
          (days-remaining (- (calendar-day-number (list 12 31 year)) day)))
     (format "Day %d of %d; %d day%s remaining in the year"
             day year days-remaining (if (= days-remaining 1) "" "s"))))
+
+(defun calendar-print-other-dates ()
+  "Show dates on other calendars for date under the cursor."
+  (interactive)
+  (let* ((date (calendar-cursor-to-date t)))
+    (save-excursion
+      (set-buffer (get-buffer-create other-calendars-buffer))
+      (setq buffer-read-only nil)
+      (calendar-set-mode-line
+       (concat (calendar-date-string date) " (Gregorian)"))
+      (erase-buffer)
+      (insert
+       (mapconcat 'identity
+                  (list (calendar-day-of-year-string date)
+                        (format "ISO date: %s" (calendar-iso-date-string date))
+                        (format "Julian date: %s"
+                                (calendar-julian-date-string date))
+                        (format
+                         "Astronomical (Julian) day number (at noon UTC): %s.0"
+                         (calendar-astro-date-string date))
+                        (format "Fixed (RD) date: %s"
+                                (calendar-absolute-from-gregorian date))
+                        (format "Hebrew date (before sunset): %s"
+                                (calendar-hebrew-date-string date))
+                        (format "Persian date: %s"
+                                (calendar-persian-date-string date))
+                        (let ((i (calendar-islamic-date-string date)))
+                          (if (not (string-equal i ""))
+                              (format "Islamic date (before sunset): %s" i)))
+                        (format "Chinese date: %s"
+                                (calendar-chinese-date-string date))
+                        (let ((c (calendar-coptic-date-string date)))
+                          (if (not (string-equal c ""))
+                              (format "Coptic date: %s" c)))
+                        (let ((e (calendar-ethiopic-date-string date)))
+                          (if (not (string-equal e ""))
+                              (format "Ethiopic date: %s" e)))
+                        (let ((f (calendar-french-date-string date)))
+                          (if (not (string-equal f ""))
+                              (format "French Revolutionary date: %s" f)))
+                        (format "Mayan date: %s"
+                                (calendar-mayan-date-string date)))
+                  "\n"))
+      (goto-char (point-min))
+      (set-buffer-modified-p nil)
+      (setq buffer-read-only t)
+      (display-buffer other-calendars-buffer))))
 
 (defun calendar-print-day-of-year ()
   "Show day number in year/days remaining in year for date under the cursor."
