@@ -1265,6 +1265,8 @@ be finished later after the completion of an asynchronous subprocess."
 				name (getenv "PATH")))
 	(eshell-printn program)))))
 
+(put 'eshell/which 'eshell-no-numeric-conversions t)
+
 (defun eshell-named-command (command &optional args)
   "Insert output from a plain COMMAND, using ARGS.
 COMMAND may result in an alias being executed, or a plain command."
@@ -1383,23 +1385,27 @@ messages, and errors."
 
 (defun eshell-lisp-command (object &optional args)
   "Insert Lisp OBJECT, using ARGS if a function."
-  ;; if any of the arguments are flagged as numbers waiting for
-  ;; conversion, convert them now
-  (let ((a args) arg)
-    (while a
-      (setq arg (car a))
-      (if (and (stringp arg)
-	       (> (length arg) 0)
-	       (get-text-property 0 'number arg))
-	  (setcar a (string-to-number arg)))
-      (setq a (cdr a))))
-  (setq eshell-last-arguments args
-	eshell-last-command-name "#<Lisp>")
   (catch 'eshell-external               ; deferred to an external command
     (let* ((eshell-ensure-newline-p (eshell-interactive-output-p))
 	   (result
 	    (if (functionp object)
-		(eshell-apply object args)
+		(progn
+		  (setq eshell-last-arguments args
+			eshell-last-command-name
+			(concat "#<function " (symbol-name object) ">"))
+		  ;; if any of the arguments are flagged as numbers
+		  ;; waiting for conversion, convert them now
+		  (unless (get object 'eshell-no-numeric-conversions)
+		    (while args
+		      (let ((arg (car args)))
+			(if (and (stringp arg)
+				 (> (length arg) 0)
+				 (get-text-property 0 'number arg))
+			    (setcar a (string-to-number arg))))
+		      (setq args (cdr args))))
+		  (eshell-apply object eshell-last-arguments))
+	      (setq eshell-last-arguments args
+		    eshell-last-command-name "#<Lisp object>")
 	      (eshell-eval object))))
       (if (and eshell-ensure-newline-p
 	       (save-excursion
