@@ -1101,7 +1101,9 @@ from a different message."
 move point to the error message line and type \\[compile-goto-error].
 To kill the compilation, type \\[kill-compilation].
 
-Runs `compilation-mode-hook' with `run-hooks' (which see)."
+Runs `compilation-mode-hook' with `run-hooks' (which see).
+
+\\{compilation-mode-map}"
   (interactive)
   (kill-all-local-variables)
   (use-local-map compilation-mode-map)

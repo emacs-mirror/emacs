@@ -705,18 +705,18 @@ Buffer local variable.")
 
 ;;; faces -mm
 
-(defcustom term-default-fg-color nil
+(defcustom term-default-fg-color 'unspecified
   "Default color for foreground in `term'."
   :group 'term
   :type 'string)
 
-(defcustom term-default-bg-color nil
+(defcustom term-default-bg-color 'unspecified
   "Default color for background in `term'."
   :group 'term
   :type 'string)
 
 (defvar ansi-term-color-vector
-  [nil "black" "red" "green" "yellow" "blue"
+  [unspecified "black" "red" "green" "yellow" "blue"
    "magenta" "cyan" "white"])
 
 ;;; Inspiration came from comint.el -mm
@@ -3080,8 +3080,7 @@ See `term-prompt-regexp'."
 	      (setq term-current-face
 		    (append '(:underline t) term-current-face))))))
 
-;	(message "Debug %S" term-current-face)
-
+;;;	(message "Debug %S" term-current-face)
   (setq term-ansi-face-already-done 0))
 
 

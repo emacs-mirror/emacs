@@ -211,8 +211,6 @@ menu.  See the info section on Regexps for more information.
 INDEX points to the substring in REGEXP that contains the name (of the
 function, variable or type) that is to appear in the menu.
 
-The variable is buffer-local.
-
 The variable `imenu-case-fold-search' determines whether or not the
 regexp matches are case sensitive, and `imenu-syntax-alist' can be
 used to alter the syntax table for the search.
@@ -240,9 +238,7 @@ A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
 The function `imenu--subalist-p' tests an element and returns t
 if it is a sub-alist.
 
-This function is called within a `save-excursion'.
-
-The variable is buffer-local.")
+This function is called within a `save-excursion'.")
 ;;;###autoload
 (make-variable-buffer-local 'imenu-create-index-function)
 
@@ -977,8 +973,7 @@ A trivial interface to `imenu-add-to-menubar' suitable for use in a hook."
 (defvar imenu-buffer-menubar nil)
 
 (defvar imenu-menubar-modified-tick 0
-  "The value of (buffer-modified-tick) as of last call to `imenu-update-menubar'.
-This value becomes local in every buffer when it is set.")
+  "The value of (buffer-modified-tick) as of last call to `imenu-update-menubar'.")
 (make-variable-buffer-local 'imenu-menubar-modified-tick)
 
 (defun imenu-update-menubar ()
