@@ -2735,7 +2735,8 @@ struct glyph_string
 
 /* Encapsulate the different ways of displaying text under W32.  */
 
-void W32_TEXTOUT (s, x, y,chars,nchars)
+static void
+w32_text_out (s, x, y,chars,nchars)
      struct glyph_string * s;
      int x, y;
      wchar_t * chars;
@@ -2749,8 +2750,8 @@ void W32_TEXTOUT (s, x, y,chars,nchars)
   else if (s->first_glyph->w32_font_type == UNICODE_FONT)
     ExtTextOutW (s->hdc, x, y, 0, NULL, chars, nchars, NULL);
   else
-    ExtTextOut (s->hdc, x, y, 0, NULL, (char *) chars,
-                nchars * charset_dim, NULL);
+    ExtTextOutA (s->hdc, x, y, 0, NULL, (char *) chars,
+		 nchars * charset_dim, NULL);
 }
 
 #if GLYPH_DEBUG
@@ -3483,7 +3484,7 @@ x_draw_glyph_string_foreground (s)
           char1b[i] = BYTE2 (s->char2b[i]);
 
       /* Draw text with TextOut and friends. */
-      W32_TEXTOUT (s, x, s->ybase - boff, s->char2b, s->nchars);
+      w32_text_out (s, x, s->ybase - boff, s->char2b, s->nchars);
     }
   if (s->font && s->font->hfont)
     SelectObject (s->hdc, old_font);
@@ -3530,7 +3531,7 @@ x_draw_composite_glyph_string_foreground (s)
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-          W32_TEXTOUT (s, x + s->cmp->offsets[s->gidx * 2],
+          w32_text_out (s, x + s->cmp->offsets[s->gidx * 2],
                        s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
                        s->char2b + i, 1);
     }
