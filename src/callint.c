@@ -328,7 +328,13 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	      && XTYPE (event = XCONS (event)->cdr) == Lisp_Cons
 	      && XTYPE (event = XCONS (event)->car) == Lisp_Cons
 	      && XTYPE (event = XCONS (event)->car) == Lisp_Window)
-	    Fselect_window (event);
+	    {
+	      if (MINI_WINDOW_P (XWINDOW (window))
+		  && NILP (call1 (intern ("minibuffer-window-active-p"),
+				  window)))
+		error ("Attempt to select inactive minibuffer window");
+	      Fselect_window (event);
+	    }
 	  string++;
 	}
       else break;
