@@ -122,13 +122,18 @@ its value will not be lost."
 	 (funcall elisp-code)))))
 
 
-(defun elisp-eval-region (elisp-start elisp-end &optional elisp-output)
+(defun elisp-eval-region (elisp-start elisp-end &optional elisp-output
+				      elisp-read-function)
   "Execute the region as Lisp code.
 When called from programs, expects two arguments,
 giving starting and ending indices in the current buffer
 of the text to be executed.
 Programs can pass third argument PRINTFLAG which controls printing of output:
 nil means discard it; anything else is stream for print.
+
+Also the fourth argument READ-FUNCTION, if non-nil, is used
+instead of `read' to read each expression.  It gets one argument
+which is the input stream for reading characters.
 
 This version, from `eval-reg.el', allows Lisp customization of read,
 eval, and the printer."
@@ -149,7 +154,13 @@ eval, and the printer."
       (goto-char elisp-start)
       (elisp-skip-whitespace)
       (while (< (point) elisp-end-marker)
-	(setq elisp-form (read elisp-buf))
+	(setq elisp-form
+	      (cond (elisp-read-function
+		     (funcall elisp-read-function elisp-buf))
+		    (load-read-function
+		     (funcall load-read-function elisp-buf))
+		    (t
+		     (read elisp-buf))))
 
 	(let ((elisp-current-buffer (current-buffer)))
 	  ;; Restore the inside current-buffer.
