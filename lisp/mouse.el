@@ -757,6 +757,7 @@ If the click is in the echo area, display the `*Messages*' buffer."
     (if (and (window-minibuffer-p w)
 	     (not (minibuffer-window-active-p w)))
 	(save-excursion
+	  ;; Swallow the up-event.
 	  (read-event)
 	  (set-buffer "*Messages*")
 	  (goto-char (point-max))
