@@ -989,7 +989,7 @@ for this to be permanent."
 	      (tar-setf (tar-header-checksum tokens) chk)
 	      ;;
 	      ;; ok, make sure we didn't botch it.
-	      (check-tar-header-block-checksum
+	      (tar-header-block-check-checksum
 	        (buffer-substring start (+ start 512))
 	        chk (tar-header-name tokens))
 	      )))
