@@ -1,3 +1,13 @@
+2004-02-28  Juri Linkov  <juri@jurta.org>
+
+	* ffap.el (dired-at-point): Additional writability test for
+	relative directory names.
+	(dired-at-point-prompter): Treat directories as a directory, get
+	the directory component from files.
+	(ffap-string-at-point): Return string from region if region is
+	active.
+	(ffap-file-at-point): Remove redundant code.
+
 2004-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* gdb-ui.el (breakpoint-enabled-icon, breakpoint-disabled-icon):
