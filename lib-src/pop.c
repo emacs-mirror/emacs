@@ -296,7 +296,7 @@ pop_open (host, username, password, flags)
       free ((char *) server);
       return (0);
     }
-	  
+
   server->file = sock;
   server->data = 0;
   server->buffer_index = 0;
@@ -367,7 +367,7 @@ pop_stat (server, count, size)
       strcpy (pop_error, "In multi-line query in pop_stat");
       return (-1);
     }
-     
+
   if (sendline (server, "STAT") || (pop_getline (server, &fromserver) < 0))
     return (-1);
 
@@ -387,7 +387,7 @@ pop_stat (server, count, size)
     }
 
   *count = atoi (&fromserver[4]);
-     
+
   fromserver = index (&fromserver[4], ' ');
   if (! fromserver)
     {
@@ -896,7 +896,7 @@ pop_last (server)
      popserver server;
 {
   char *fromserver;
-     
+
   if (server->in_multi)
     {
       strcpy (pop_error, "In multi-line query in pop_last");
@@ -1009,7 +1009,7 @@ static int have_winsock = 0;
  * Arguments:
  * 	host	The host to which to connect.
  *	flags	Option flags.
- * 	
+ *
  * Return value: A file descriptor indicating the connection, or -1
  * 	indicating failure, in which case an error has been copied
  * 	into pop_error.
@@ -1112,7 +1112,7 @@ socket_connection (host, flags)
       strncat (pop_error, strerror (errno),
 	       ERROR_MAX - sizeof (POP_SOCKET_ERROR));
       return (-1);
-	  
+
     }
 
   while (*hostent->h_addr_list)
@@ -1125,7 +1125,7 @@ socket_connection (host, flags)
     }
 
 #define CONNECT_ERROR "Could not connect to POP server: "
-     
+
   if (! *hostent->h_addr_list)
     {
       CLOSESOCKET (sock);
@@ -1133,7 +1133,7 @@ socket_connection (host, flags)
       strncat (pop_error, strerror (errno),
 	       ERROR_MAX - sizeof (CONNECT_ERROR));
       return (-1);
-	  
+
     }
 
 #ifdef KERBEROS
@@ -1157,7 +1157,7 @@ socket_connection (host, flags)
 
       if ((rem = krb5_auth_con_init (kcontext, &auth_context)))
 	goto krb5error;
-      
+
       if (rem = krb5_cc_default (kcontext, &ccdef))
 	goto krb5error;
 
@@ -1215,7 +1215,7 @@ socket_connection (host, flags)
 	  CLOSESOCKET (sock);
 	  return (-1);
 	}
-#else  /* ! KERBEROS5 */	  
+#else  /* ! KERBEROS5 */
       ticket = (KTEXT) malloc (sizeof (KTEXT_ST));
       realhost = strdup (hostent->h_name);
       rem = krb_sendauth (0L, sock, ticket, "pop", realhost,
@@ -1285,7 +1285,7 @@ pop_getline (server, line)
 
 	  found = server->buffer_index;
 	  data_used = (cp + 2) - server->buffer - found;
-	       
+
 	  *cp = '\0';		/* terminate the string to be returned */
 	  server->data -= data_used;
 	  server->buffer_index += data_used;
@@ -1354,7 +1354,7 @@ pop_getline (server, line)
 	  char *cp;
 	  server->data += ret;
 	  server->buffer[server->data] = '\0';
-	       
+
 	  cp = find_crlf (server->buffer + search_offset,
 			  server->data - search_offset);
 	  if (cp)
@@ -1461,7 +1461,7 @@ fullwrite (fd, buf, nbytes)
  *
  * Arguments:
  * 	server	The server to read from.
- * 
+ *
  * Returns: 0 for success, else for failure and puts error in pop_error.
  *
  * Side effects: On failure, may make the connection unusable.
@@ -1492,7 +1492,7 @@ getok (server)
       pop_trash (server);
       return (-1);
     }
-}	  
+}
 
 #if 0
 /*
@@ -1538,7 +1538,7 @@ gettermination (server)
  * 	Changes made to the maildrop since the session was started (or
  * 	since the last pop_reset) may be lost.
  */
-void 
+void
 pop_close (server)
      popserver server;
 {

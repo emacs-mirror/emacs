@@ -1,6 +1,6 @@
 /* Give this program DOC-mm.nn.oo as standard input and it outputs to
    standard output a file of texinfo input containing the doc strings.
-   
+
    Copyright (C) 1989, 1992, 1994, 1996, 1999, 2000, 2001
       Free Software Foundation Inc.
 
@@ -121,7 +121,7 @@ char *states[] =
 {
   "WAITING", "BEG_NAME", "NAME_GET", "BEG_DESC", "DESC_GET"
 };
-    
+
 int
 main ()
 {
@@ -133,7 +133,7 @@ main ()
 
   DOCSTR *docs;			/* chain of allocated DOCSTRS */
   char buf[512];		/* line buffer */
-    
+
   while (1)			/* process one char at a time */
     {
       /* this char from the DOCSTR file */
@@ -181,7 +181,7 @@ main ()
 	  bp = buf;
 	  state = DESC_GET;
 	}
-	
+
       /* process gets */
 
       if (state == NAME_GET || state == DESC_GET)

@@ -50,7 +50,7 @@ This file is read by the `test-distribution' program.\n\
 If you change it, you will make that program fail.\n";
 
 char buf[300];
-  
+
 /* Like `read' but keeps trying until it gets SIZE bytes or reaches eof.  */
 int
 cool_read (fd, buf, size)

@@ -73,7 +73,7 @@ main (argc, argv)
    ** <filename>	dump filename
    ** -		(as filename == stdin)
    */
-    
+
   while (*argv && *argv[0] == '-' && (*argv)[1])
     {
       /* A switch! */
