@@ -686,10 +686,10 @@ provided}, unless @var{noerror} is non-@code{nil}.
 
 @defun featurep feature &optional subfeature
 This function returns @code{t} if @var{feature} has been provided in the
-current Emacs session (i.e., if @var{feature} is a member of
+current Emacs session (i.e.@:, if @var{feature} is a member of
 @code{features}.)  If @var{subfeature} is non-nil, then the function
-returns @code{t} only if that subfeature is provided as well (i.e.
-if @var{subfeature} is a member of the @var{subfeature} property
+returns @code{t} only if that subfeature is provided as well (i.e.@:
+if @var{subfeature} is a member of the @code{subfeature} property
 of the @var{feature} symbol.)
 @end defun
 
@@ -807,7 +807,7 @@ If @var{library} is a string, it must exactly match the argument of
 installed library is found by searching @code{load-path}, you should not
 include any directory names in @var{library}.
 
-@var{library} can also be a feature (i.e. a symbol), in which case,
+@var{library} can also be a feature (i.e.@: a symbol), in which case
 @var{form} is evaluated when @code{(provide @var{library})} is called.
 
 An error in @var{form} does not undo the load, but does prevent
