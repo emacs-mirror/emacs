@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!51.c(trunk.5) $
+ id = $HopeName: MMQA_test_function!51.c(trunk.6) $
  summary = wait until all registered objects are finalized
  language = c
  link = testlib.o rankfmt.o
@@ -104,7 +104,8 @@ static void test(void) {
                           mps_stack_scan_ambig, stackpointer, 0),
       "create root");
  
- cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0, &exfmt_root, 1),
+ cdie(mps_root_create_table(&root1, arena, MPS_RANK_AMBIG, 0,
+                            (mps_addr_t *)&exfmt_root, 1),
       "create table root");
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
