@@ -75,7 +75,8 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
-(require 'fontset)
+(if (fboundp 'new-fontset)
+    (require 'fontset))
 
 (defvar x-invocation-args)
 
@@ -641,39 +642,41 @@ This is in addition to the primary selection.")
 (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
 			    x-cut-buffer-max))
 
-;; Create a default fontset.
-(create-fontset-from-fontset-spec default-fontset-spec)
+(if (fboundp 'new-fontset)
+    (progn
+      ;; Create a default fontset.
+      (create-fontset-from-fontset-spec default-fontset-spec)
 
-;; Create fontset specified in X resources.
-(create-fontset-from-x-resource)
+      ;; Create fontset specified in X resources.
+      (create-fontset-from-x-resource)
 
-;; Try to create a fontset from font specification which comes from
-;; initial-frame-alist, default-frame-alist, or X resource if the font
-;; name conforms to XLFD and the registry part is `fontset'.  A font
-;; specification in command line argument (-fn XXXX) should be in
-;; default-frame-alist already.  However, any font specification in
-;; site-start library, user's init file (.emacs), and default.el are
-;; not yet handled here.
+      ;; Try to create a fontset from font specification which comes from
+      ;; initial-frame-alist, default-frame-alist, or X resource if the font
+      ;; name conforms to XLFD and the registry part is `fontset'.  A font
+      ;; specification in command line argument (-fn XXXX) should be in
+      ;; default-frame-alist already.  However, any font specification in
+      ;; site-start library, user's init file (.emacs), and default.el are
+      ;; not yet handled here.
 
-(let ((font (or (cdr (assq 'font initial-frame-alist))
-		(cdr (assq 'font default-frame-alist))
-		(x-get-resource "font" "Font")
-		(x-get-resource "fontset" "Fontset")))
-      xlfd-fields fontlist)
-  (if (and font
-	   (not (query-fontset font))
-	   (setq xlfd-fields (x-decompose-font-name font)))
-      (progn
-	(if (not (string= "fontset"
-			  (aref xlfd-fields xlfd-regexp-registry-subnum)))
+      (let ((font (or (cdr (assq 'font initial-frame-alist))
+		      (cdr (assq 'font default-frame-alist))
+		      (x-get-resource "font" "Font")
+		      (x-get-resource "fontset" "Fontset")))
+	    xlfd-fields fontlist)
+	(if (and font
+		 (not (query-fontset font))
+		 (setq xlfd-fields (x-decompose-font-name font)))
 	    (progn
-	      ;; Create a fontset of the name FONT.
-	      (setq fontlist (list (cons 'ascii font)))
-	      (aset xlfd-fields xlfd-regexp-foundry-subnum nil)
-	      (aset xlfd-fields xlfd-regexp-family-subnum nil)
-	      (aset xlfd-fields xlfd-regexp-adstyle-subnum nil)
-	      (aset xlfd-fields xlfd-regexp-avgwidth-subnum nil)))
-	(new-fontset font (x-complement-fontset-spec xlfd-fields fontlist)))))
+	      (if (not (string= "fontset"
+				(aref xlfd-fields xlfd-regexp-registry-subnum)))
+		  (progn
+		    ;; Create a fontset of the name FONT.
+		    (setq fontlist (list (cons 'ascii font)))
+		    (aset xlfd-fields xlfd-regexp-foundry-subnum nil)
+		    (aset xlfd-fields xlfd-regexp-family-subnum nil)
+		    (aset xlfd-fields xlfd-regexp-adstyle-subnum nil)
+		    (aset xlfd-fields xlfd-regexp-avgwidth-subnum nil)))
+	      (new-fontset font (x-complement-fontset-spec xlfd-fields fontlist)))))))
 
 ;; Sun expects the menu bar cut and paste commands to use the clipboard.
 ;; This has ,? to match both on Sunos and on Solaris.
