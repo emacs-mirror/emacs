@@ -2910,8 +2910,12 @@ into shorter lines.")
 
   CHECK_STRING (string, 1);
 
+  /* We need to allocate enough room for encoding the text.
+     We need 33 1/3% more space, plus a newline every 76
+     characters, and then we round up. */
   length = STRING_BYTES (XSTRING (string));
-  allength = length + length/3 + 1 + 6;
+  allength = length + length/3 + 1;
+  allength += allength / MIME_LINE_LENGTH + 1 + 6;
 
   /* We need to allocate enough room for decoding the text. */
   if (allength <= MAX_ALLOCA)
