@@ -113,6 +113,8 @@
        (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
 
        ;; define ediff-menu
+       (define-key menu-bar-ediff-menu [window]
+	 '("This Window And Next Window" . compare-windows))
        (define-key menu-bar-ediff-menu [ediff-dir-revision]
 	 '("Directory Revisions ..." . ediff-directory-revisions))
        (define-key menu-bar-ediff-menu [ediff-revision]
@@ -183,7 +185,7 @@
       
       ) ; cond
 
-;; arrange foe autoloads
+;; arrange for autoloads
 (if purify-flag
     () ; if dumping, autoloads are set up in loaddefs.el
   ;; if the user decides to load this file, set up autoloads
@@ -260,9 +262,15 @@
     "ediff"
     "Merge versions of files in a directory using other versions as ancestors"
     t)
+
+  ;; misc
   (autoload 'ediff-show-registry
     "ediff-meta"
     "Display the registry of active Ediff sessions"
+    t)
+  (autoload 'ediff-version
+    "ediff"
+    "Show Ediff's version and last modification date"
     t)
   ) ; if purify-flag
 
