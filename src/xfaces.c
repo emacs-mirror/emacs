@@ -4487,6 +4487,7 @@ DEFUN ("face-attribute-relative-p", Fface_attribute_relative_p,
        2, 2, 0,
        doc: /* Return non-nil if face ATTRIBUTE VALUE is relative.  */)
      (attribute, value)
+     Lisp_Object attribute, value;
 {
   if (EQ (value, Qunspecified))
     return Qt;
