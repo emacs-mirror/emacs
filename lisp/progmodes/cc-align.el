@@ -107,7 +107,7 @@ Works with: arglist-cont-nonempty, arglist-close."
 foo (xyz, aaa + bbb + ccc
           + ddd + eee + fff);    <- c-lineup-argcont
 
-Only continuation lines like this are touched, `nil' is returned on lines
+Only continuation lines like this are touched, nil is returned on lines
 which are the start of an argument.
 
 Within a gcc asm block, \":\" is recognised as an argument separator,
@@ -842,7 +842,7 @@ The \"x\" line is aligned to the text after the \":\" on the \"w\" line, and
 similarly \"z\" under \"y\".
 
 This is done only in an \"asm\" or \"__asm__\" block, and only to those
-lines mentioned.  Anywhere else `nil' is returned.  The usual arrangement is
+lines mentioned.  Anywhere else nil is returned.  The usual arrangement is
 to have this routine as an extra feature at the start of arglist lineups, e.g.
 
     (c-lineup-gcc-asm-reg c-lineup-arglist)
