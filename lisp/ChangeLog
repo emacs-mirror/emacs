@@ -1,8 +1,5 @@
 2003-12-29  Richard M. Stallman  <rms@gnu.org>
 
-	* mail/mail-utils.el (mail-unquote-printable-hexdigit):
-	Upcase the character.
-
 	* textmodes/flyspell.el (mail-mode-flyspell-verify):
 	Search for header separator alone on a line, literally,
 	and search for it backward, not forward.
