@@ -879,7 +879,7 @@ Otherwise, return a single face."
 		 (format "%s (default %s): " prompt
 			 (if faces (mapconcat 'symbol-name faces ", ")
 			   string-describing-default))
-	       prompt)
+	       (format "%s: " prompt))
 	     obarray 'custom-facep t))
 	   ;; Canonicalize the output.
 	   (output
@@ -892,8 +892,6 @@ Otherwise, return a single face."
       (if multiple
 	  output
 	(car output)))))
-
-
 
 
 (defun face-valid-attribute-values (attribute &optional frame)
