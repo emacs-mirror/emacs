@@ -87,7 +87,7 @@
 (load "language/tibetan")
 (load "language/vietnamese")
 (load "language/misc-lang")
-(update-iso-coding-systems)
+(update-coding-systems-internal)
 
 (load "indent")
 (load "isearch")
