@@ -41,6 +41,7 @@ Boston, MA 02111-1307, USA.  */
 #include <setjmp.h>
 #include <sys/stat.h>
 
+#include "keyboard.h"
 #include "frame.h"
 #include "dispextern.h"
 #include "fontset.h"
@@ -51,7 +52,6 @@ Boston, MA 02111-1307, USA.  */
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
-#include "keyboard.h"
 #include "intervals.h"
 #include "composite.h"
 #include "coding.h"
@@ -315,7 +315,9 @@ extern Lisp_Object Vcommand_line_args, Vsystem_name;
 
 extern Lisp_Object Qface, Qmouse_face;
 
+#ifndef USE_CRT_DLL
 extern int errno;
+#endif
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
 
@@ -334,7 +336,7 @@ enum draw_glyphs_face
   DRAW_IMAGE_SUNKEN
 };
 
-static void x_update_window_end P_ ((struct window *, int));
+static void x_update_window_end P_ ((struct window *, int, int));
 static void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
 void w32_delete_display P_ ((struct w32_display_info *));
 static int fast_find_position P_ ((struct window *, int, int *, int *,
