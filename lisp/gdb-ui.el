@@ -25,16 +25,21 @@
 
 ;;; Commentary:
 
-;;  This file is based on gdba.el from GDB 5.0 written by Tom Lord and Jim
-;;  Kingdon and uses GDB's annotation interface. It has been extended to use
-;;  features of Emacs 21 such as the display margin for breakpoints and the
-;;  toolbar. It also has new buffers and lots of other new features such as
-;;  formatted auto-display of arrays and structures (see the GDB-UI section in
-;;  the Emacs info manual). Start the debugger with M-x gdba.
+;; This mode acts as a graphical user interface to GDB. You can interact with
+;; GDB through the GUD buffer in the usual way, but there are also further
+;; buffers which control the execution and describe the state of your program.
+;; It separates the input/output of your program from that of GDB and displays
+;; expressions and their current values in their own buffers. It also uses
+;; features of Emacs 21 such as the display margin for breakpoints, and the
+;; toolbar (see the GDB User Interface section in the Emacs info manual).
 
-;;  You don't need to know about annotations to use this mode as a graphical
-;;  user interface to GDB. However, if you are interested developing the mode
-;;  itself see the Annotations section in the GDB info manual.
+;; Start the debugger with M-x gdba.
+
+;; This file is based on gdba.el from GDB 5.0 written by Tom Lord and Jim
+;; Kingdon and uses GDB's annotation interface. You don't need to know about
+;; annotations to use this mode as a debugger, but if you are interested
+;; developing the mode itself, then see the Annotations section in the GDB
+;; info manual.
 ;;
 ;;  Known Bugs: Does not auto-display arrays of structures or structures 
 ;;  containing arrays.
@@ -42,6 +47,16 @@
 ;;; Code:
 
 (require 'gud)
+
+(defcustom gdb-window-height 20
+  "*Number of lines in a frame for a displayed expression in GDB-UI."
+  :type 'integer
+  :group 'gud)
+
+(defcustom gdb-window-width 30
+  "Width of a frame for a displayed expression in GDB-UI."
+  :type 'integer
+  :group 'gud)
 
 (defvar gdb-main-or-pc nil "Initialisation for Assembler buffer.")
 (defvar gdb-current-address nil)
@@ -662,9 +677,10 @@ output from the current command if that happens to be appropriate."
 
 ;; If we get an error whilst evaluating one of the expressions
 ;; we won't get the display-end annotation. Set the sink back to
-;; user to make sure that the error message is seen
-(defun gdb-error-begin (ignored)
-  (gdb-set-output-sink 'user))
+;; user to make sure that the error message is seen.
+;; NOT USED: see annotation-rules for reason.
+;(defun gdb-error-begin (ignored)
+;  (gdb-set-output-sink 'user))
 
 (defun gdb-display-begin (ignored)
   (gdb-set-output-sink 'emacs)
@@ -698,7 +714,8 @@ output from the current command if that happens to be appropriate."
 	      (if (string-equal (frame-parameter frame 'name)
 				gdb-expression-buffer-name)
 		  (throw 'frame-exists nil)))
-	    (make-frame '((height . 20) (width . 40)
+	    (make-frame `((height . ,gdb-window-height) 
+			  (width . ,gdb-window-width)
 			  (tool-bar-lines . nil)
 			  (menu-bar-lines . nil)
 			  (minibuffer . nil))))
@@ -1935,8 +1952,7 @@ static char *magick[] = {
   (gdb-delete-frames '())
   (dolist (buffer (buffer-list))
     (if (not (eq buffer gud-comint-buffer))
-	(save-excursion
-	  (set-buffer buffer)
+	(with-current-buffer buffer
 	  (if (eq gud-minor-mode 'gdba)
 	      (if (string-match "^\*.+*$" (buffer-name))
 		  (kill-buffer nil)
