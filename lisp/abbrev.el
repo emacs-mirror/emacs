@@ -212,15 +212,11 @@ The argument FILE is the file name to write."
 		    abbrev-file-name)))
   (or (and file (> (length file) 0))
       (setq file abbrev-file-name))
-  (save-excursion
-   (set-buffer (get-buffer-create " write-abbrev-file"))
-   (erase-buffer)
-   (let ((tables abbrev-table-name-list))
-     (while tables
-       (insert-abbrev-table-description (car tables) nil)
-       (setq tables (cdr tables))))
-   (write-region (point-min) (point-max) file)
-   (erase-buffer)))
+  (let ((coding-system-for-write 'emacs-mule))
+    (with-temp-file file
+      (insert ";;-*-coding: emacs-mule;-*-\n")
+      (dolist (table abbrev-table-name-list)
+	(insert-abbrev-table-description table nil)))))
 
 (defun add-mode-abbrev (arg)
   "Define mode-specific abbrev for last word(s) before point.
