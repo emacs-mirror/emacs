@@ -89,10 +89,13 @@
 ;; 4523 options tested
 ;; The following variables might have problems:
 ;; ps-mule-font-info-database-default
+;; grep-tree-command
+;; grep-find-command
 ;;
 ;; 288 features required
 ;; 10 files loaded
 ;; The following load problems appeared:
+;; (killing x-win (file-error Cannot open load file x-win))
 ;; Symbol faces has loaddefs as custom dependency
 ;; (reftex-index-support reftex-vars (void-function reftex-set-dirty))
 ;; (eshell-script em-script (void-variable eshell-directory-name))
@@ -348,6 +351,8 @@ This function is suitable for batch mode.  E.g., invoke
 
 in the emacs source directory."
   (interactive)
+  (message "Running %s" 'cus-test-load-libs)
+  (cus-test-load-libs)
   (message "Running %s" 'cus-test-load-custom-loads)
   (cus-test-load-custom-loads)
   (message "Running %s" 'cus-test-apropos)
@@ -407,8 +412,9 @@ in the emacs source directory."
 	    ;; We are still loading it when we call this,
 	    ;; and it is not in load-history yet.
 	    ((equal load "cus-edit"))
-	    ;; In this test, we don't care about deps in lisp/term/
-	    ((locate-library (concat term-file-prefix load)))
+	    ;; This would ignore load problems with files in
+	    ;; lisp/term/
+	    ;; ((locate-library (concat term-file-prefix load)))
 	    (t
 	     ;; (condition-case nil (load load) (error nil))
 	     (condition-case alpha
