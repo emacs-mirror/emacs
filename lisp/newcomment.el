@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.26 2000/11/29 05:11:01 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.27 2000/12/06 19:54:37 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -928,8 +928,7 @@ unless optional argument SOFT is non-nil."
 			  (setq comin (point))))))
 
       ;; Now we know we should auto-fill.
-      (delete-region (progn (skip-chars-backward " \t") (point))
-		     (progn (skip-chars-forward  " \t") (point)))
+      (delete-horizontal-space)
       (if soft (insert-and-inherit ?\n) (newline 1))
       (if fill-prefix
 	  (progn
