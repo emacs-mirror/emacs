@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.31 2001/12/02 07:40:43 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.32 2001/12/20 18:43:35 pj Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -180,16 +180,16 @@
 	(dolist (cmd '("cvs" "checkout" "status" "log" "diff" "tag"
 		       "add" "commit" "remove" "update"))
 	  (goto-char (point-min))
-	  (let* ((sym (intern (concat "cvs-" cmd "-flags")))
-		 (val (when (re-search-forward
-			     (concat "^" cmd "\\s-+\\(.*\\)$") nil t)
-			(cvs-string->strings (match-string 1)))))
-	    (cvs-flags-set sym 0 val)))
+	  (when (re-search-forward
+		 (concat "^" cmd "\\(\\s-+\\(.*\\)\\)?$") nil t)
+	    (let* ((sym (intern (concat "cvs-" cmd "-flags")))
+		   (val (cvs-string->strings (or (match-string 2) ""))))
+	      (cvs-flags-set sym 0 val))))
 	;; ensure that cvs doesn't have -q or -Q
 	(cvs-flags-set 'cvs-cvs-flags 0
 		       (cons "-f"
 			     (cdr (cvs-partition
-				   (lambda (x) (member x '("-q" "-Q")))
+				   (lambda (x) (member x '("-q" "-Q" "-f")))
 				   (cvs-flags-query 'cvs-cvs-flags
 						    nil 'noquery))))))
       (file-error nil)))
