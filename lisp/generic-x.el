@@ -274,7 +274,7 @@ you must reload generic-x to enable the specified modes."
 	'((nil "^\\s-*\\(.*\\)\\s-*=" 1))))))
     "Generic mode for MS-Windows Registry files."))
 
-;;; Windows BAT files
+;;; DOS/Windows BAT files
 (if (not (memq 'bat-generic-mode generic-extras-enable-list))
     nil
 (define-generic-mode 'bat-generic-mode
@@ -285,39 +285,70 @@ you must reload generic-x to enable the specified modes."
      ;; be over-written by other variables
      (list "^[@ \t]*\\([rR][eE][mM][^\n\r]*\\)" 1 'font-lock-comment-face t)
      (list "^[ \t]*\\(::-.*\\)"		        1 'font-lock-comment-face t)
-     ;; These keywords appear as the first word on a line
+     (list
+      "^[@ \t]*\\([bB][rR][eE][aA][kK]\\|[vV][eE][rR][iI][fF][yY]\\)[ \t]+\\([oO]\\([nN]\\|[fF][fF]\\)\\)"
+      '(1 font-lock-builtin-face)
+      '(2 font-lock-constant-face 'append t))
+     ;; Any text (except ON/OFF) following ECHO is a string.
+     (list
+      "^[@ \t]*\\([eE][cC][hH][oO]\\)[ \t]+\\(\\([oO]\\([nN]\\|[fF][fF]\\)\\)\\|\\([^>|\r\n]+\\)\\)"
+      '(1 font-lock-builtin-face)
+      '(3 font-lock-constant-face t t)
+      '(5 font-lock-string-face t t))
+     ;; These keywords appear as the first word on a line.  (Actually, they
+     ;; can also appear after "if ..." or "for ..." clause, but since they
+     ;; are frequently used in simple text, we punt.)
      (generic-make-keywords-list
       (list
-       "[cC][aA][lL][lL]"
-       "[eE][cC][hH][oO]"
-       "[fF][oO][rR]"
-       "[iI][fF]"
-       "[pP][aA][tT][hH]"
-       "[pP][aA][uU][sS][eE]"
-       "[pP][rR][oO][mM][pP][tT]"
-       "[sS][eE][tT]"
-       "[sS][tT][aA][rR][tT]"
+       "FOR" "for" "For"
+       "IF" "if" "If"
        )
       'font-lock-keyword-face "^[@ \t]*")
      ;; These keywords can be anywhere on a line
      (generic-make-keywords-list
       (list
-       "[eE][xX][iI][sS][tT]"
-       "[eE][rR][rR][oO][rR][lL][eE][vV][eE][lL]"
-       "[gG][oO][tT][oO]"
-       "[nN][oO][tT]"
-       ) 'font-lock-keyword-face)
+       "DO"	    "do"	 "Do"
+       "EXIST"	    "exist"	 "Exist"
+       "ERRORLEVEL" "errorlevel" "ErrorLevel" "Errorlevel"
+       "GOTO"	    "goto"	 "GoTo"	      "Goto"
+       "NOT"	    "not"	 "Not"
+       ) 'font-lock-keyword-face "[ \t|\n]")
+     ; These are built-in commands.  Only frequently-used ones are listed.
+     (generic-make-keywords-list
+      (list
+       "CALL"	    "call"	 "Call"
+       "CD"	    "cd"	 "Cd"
+       "CLS"	    "cls"	 "Cls"
+       "COPY"	    "copy"	 "Copy"
+       "DEL"	    "del"	 "Del"
+       "ECHO"	    "echo"	 "Echo"
+       "MD"	    "md"	 "Md"
+       "PATH"	    "path"	 "Path"
+       "PAUSE"	    "pause"	 "Pause"
+       "PROMPT"	    "prompt"	 "Prompt"
+       "RD"	    "rd"	 "Rd"
+       "REN"	    "ren"	 "Ren"
+       "SET"	    "set"	 "Set"
+       "START"	    "start"	 "Start"
+       "SHIFT"	    "shift"	 "Shift"
+       ) 'font-lock-builtin-face "[ \t|\n]")
      (list "^[ \t]*\\(:\\sw+\\)"         1 'font-lock-function-name-face t)
-     (list "\\(%\\sw+%\\)"		 1 'font-lock-reference-face)
-     (list "\\(%[0-9]\\)"		 1 'font-lock-reference-face)
+     (list "\\(%\\sw+%\\)"		 1 'font-lock-variable-name-face t)
+     (list "\\(%[0-9]\\)"		 1 'font-lock-variable-name-face t)
      (list "\\(/[^/ \"\t\n]+\\)"	 1 'font-lock-type-face)
      (list "[\t ]+\\([+-][^\t\n\" ]+\\)" 1 'font-lock-type-face)
-     (list "\\<\\([gG][oO][tT][oO]\\)\\>[ \t]*\\(\\sw+\\)?" 
+     (list "[ \t\n|]\\<\\([gG][oO][tT][oO]\\)\\>[ \t]*\\(\\sw+\\)?" 
 	   '(1 font-lock-keyword-face)
 	   '(2 font-lock-function-name-face nil t))
+     (list "[ \t\n|]\\<\\([sS][eE][tT]\\)\\>[ \t]*\\(\\sw+\\)?[ \t]*=?"
+	   '(1 font-lock-builtin-face)
+	   '(2 font-lock-variable-name-face t t))
      
      )
-    (list "\\.[bB][aA][tT]\\'" "CONFIG\\." "AUTOEXEC\\." )
+    (list
+     "\\.[bB][aA][tT]\\'"
+     "\\`[cC][oO][nN][fF][iI][gG]\\."
+     "\\`[aA][uU][tT][oO][eE][xX][eE][cC]\\." )
     (list 'generic-bat-mode-setup-function)
     "Generic mode for MS-Windows BAT files.")
 
