@@ -30,9 +30,9 @@ Boston, MA 02111-1307, USA.  */
  **  abstraction : a stopwatch
  **  operations: reset_watch, get_time
  */
-#include <../src/config.h>
+#include <config.h>
 #include <stdio.h>
-#include <../src/systime.h>
+#include <systime.h>
 
 static EMACS_TIME TV1, TV2;
 static int watch_not_started = 1; /* flag */
