@@ -1,3 +1,11 @@
+2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* keyboard.c (head_table): Add missing braces around initializer.
+
+	* term.c (keys): Likewise.
+
+	* xfns.c (x_frame_parms, visual_classes): Likewise.
+
 2001-12-17  Sam Steingold  <sds@gnu.org>
 
 	* coding.c (DECODE_COMPOSITION_END): Fixed a typo in the last
