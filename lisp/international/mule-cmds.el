@@ -229,15 +229,15 @@ to KEY.")
 
 (defun get-language-info (language-name key)
   "Return the information for LANGUAGE-NAME of the kind KEY.
-LANGUAGE-NAME is a string.
 KEY is a symbol denoting the kind of required information."
+  (if (symbolp language-name)
+      (setq language-name (symbol-name language-name)))
   (let ((lang-slot (assoc-ignore-case language-name language-info-alist)))
     (if lang-slot
 	(cdr (assq key (cdr lang-slot))))))
 
 (defun set-language-info (language-name key info)
   "Set for LANGUAGE-NAME the information INFO under KEY.
-LANGUAGE-NAME is a string
 KEY is a symbol denoting the kind of information.
 INFO is any Lisp object which contains the actual information.
 
@@ -267,6 +267,8 @@ is actually set as the information.
 
 We will define more KEYs in the future.  To avoid conflict,
 if you want to use your own KEY values, make them start with `user-'."
+  (if (symbolp language-name)
+      (setq language-name (symbol-name language-name)))
   (let (lang-slot key-slot)
     (setq lang-slot (assoc language-name language-info-alist))
     (if (null lang-slot)		; If no slot for the language, add it.
@@ -304,12 +306,15 @@ if you want to use your own KEY values, make them start with `user-'."
   "Set for LANGUAGE-NAME the information in ALIST.
 ALIST is an alist of KEY and INFO.  See the documentation of
 `set-langauge-info' for the meanings of KEY and INFO."
+  (if (symbolp language-name)
+      (setq language-name (symbol-name language-name)))
   (while alist
     (set-language-info language-name (car (car alist)) (cdr (car alist)))
     (setq alist (cdr alist))))
 
 (defun read-language-name (key prompt &optional initial-input)
-  "Read language name which has information for KEY, prompting with PROMPT."
+  "Read language name which has information for KEY, prompting with PROMPT.
+It returns a string as language name."
   (let* ((completion-ignore-case t)
 	 (name (completing-read prompt
 				language-info-alist
@@ -411,7 +416,7 @@ See the function `register-input-method' for the meanings of each elements.")
 
 (defun register-input-method (input-method language-name &rest args)
   "Register INPUT-METHOD as an input method for LANGUAGE-NAME.
-INPUT-METHOD and LANGUAGE-NAME are strings.
+INPUT-METHOD and LANGUAGE-NAME are symbols or strings.
 The remaining arguments are:
 	ACTIVATE-FUNC, TITLE, DESCRIPTION, and ARG ...
  where,
@@ -419,6 +424,10 @@ ACTIVATE-FUNC is a function to call for activating this method.
 TITLE is a string shown in mode-line while this method is active,
 DESCRIPTION is a string describing about this method,
 Arguments to ACTIVATE-FUNC are INPUT-METHOD and ARGs."
+  (if (symbolp language-name)
+      (setq language-name (symbol-name language-name)))
+  (if (symbolp input-method)
+      (setq input-method (symbol-name input-method)))
   (let ((info (cons language-name args))
 	(slot (assoc input-method input-method-alist)))
     (if slot
@@ -430,7 +439,9 @@ Arguments to ACTIVATE-FUNC are INPUT-METHOD and ARGs."
   "Read a name of input method from a minibuffer prompting with PROMPT.
 If DEFAULT is non-nil, use that as the default,
   and substitute it into PROMPT at the first `%s'.
-If INHIBIT-NULL is non-nil, null input signals an error."
+If INHIBIT-NULL is non-nil, null input signals an error.
+
+The return value is a string."
   (if default
       (setq prompt (format prompt default)))
   (let* ((completion-ignore-case t)
@@ -447,6 +458,8 @@ If INHIBIT-NULL is non-nil, null input signals an error."
 (defun activate-input-method (input-method)
   "Turn INPUT-METHOD on.
 If some input method is already on, turn it off at first."
+  (if (symbolp input-method)
+      (setq input-method (symbol-name input-method)))
   (if (and current-input-method
 	   (not (string= current-input-method input-method)))
     (inactivate-input-method))
@@ -515,10 +528,12 @@ When there's no input method to turn on, turn on what read from minibuffer."
 	  (setq default-input-method current-input-method)))))
 
 (defun describe-input-method (input-method)
-  "Describe the current input method."
+  "Describe  input method INPUT-METHOD."
   (interactive
    (list (read-input-method-name
 	  "Describe input method (default, current choice): ")))
+  (if (symbolp input-method)
+      (setq input-method (symbol-name input-method)))
   (if (null input-method)
       (describe-current-input-method)
     (with-output-to-temp-buffer "*Help*"
@@ -544,11 +559,14 @@ The input method selected last time is activated in minibuffer.
 If optional second arg INITIAL-INPUT is non-nil, insert it in the minibuffer
 initially.
 Optional 3rd argument INPUT-METHOD specifies the input method
-to be activated instead of the one selected last time."
+to be activated instead of the one selected last time.  It is a symbol
+or a string."
   (setq input-method
 	(or input-method
 	    default-input-method
 	    (read-input-method-name "Input method: " nil t)))
+  (if (symbolp input-method)
+      (setq input-method (symbol-name input-method)))
   (let ((current-input-method
 	 (or input-method
 	     default-input-method
@@ -618,8 +636,10 @@ This sets the coding system priority and the default input method
 and sometimes other things."
   (interactive (list (read-language-name 'setup-function
 					 "Language (null for default): ")))
-  (or language-name
-      (setq language-name "English"))
+  (if language-name
+      (if (symbolp language-name)
+	  (setq language-name (symbol-name language-name)))
+    (setq language-name "English"))
   (if (null (get-language-info language-name 'setup-function))
       (error "Language environment not defined: %S" language-name))
   (funcall (get-language-info language-name 'setup-function))
@@ -653,6 +673,8 @@ and sometimes other things."
   (if (or (null language-name)
 	  (null (get-language-info language-name 'documentation)))
       (error "No documentation for the specified language"))
+  (if (symbolp language-name)
+      (setq language-name (symbol-name language-name)))
   (let ((doc (get-language-info language-name 'documentation)))
     (with-output-to-temp-buffer "*Help*"
       (if (stringp doc)
