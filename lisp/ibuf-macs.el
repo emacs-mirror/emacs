@@ -105,7 +105,7 @@ change its definition, you should explicitly call
     `(progn
        ,(if inline
 	    `(push '(,sym ,bod) ibuffer-inline-columns)
-	  `(defun ,sym (buffer mark ibuffer-buf)
+	  `(defun ,sym (buffer mark)
 	     ,bod))
        (put (quote ,sym) 'ibuffer-column-name
 	    ,(if (stringp name)
