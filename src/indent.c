@@ -938,7 +938,7 @@ The return value is the current column.  */)
   int c = 0;
   int next_boundary;
 
-  int pos_byte, end_byte, next_boundary_byte;
+  int pos_byte, next_boundary_byte;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   CHECK_NATNUM (column);
@@ -947,7 +947,6 @@ The return value is the current column.  */)
   pos = PT;
   pos_byte = PT_BYTE;
   end = ZV;
-  end_byte = ZV_BYTE;
   next_boundary = pos;
   next_boundary_byte = PT_BYTE;
 
