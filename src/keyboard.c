@@ -6704,10 +6704,13 @@ tty_read_avail_input (struct display *display,
   if (! tty->term_initted)      /* In case we get called during bootstrap. */
     return 0;
 
+  if (! tty->input)
+    return 0;                   /* The terminal is suspended. */
+
   /* Determine how many characters we should *try* to read.  */
 #ifdef FIONREAD
   /* Find out how much input is available.  */
-  if (ioctl (fileno (TTY_INPUT (tty)), FIONREAD, &n_to_read) < 0)
+  if (ioctl (fileno (tty->input), FIONREAD, &n_to_read) < 0)
     {
       if (! noninteractive)
         return -2;          /* Close this display. */
@@ -6722,7 +6725,7 @@ tty_read_avail_input (struct display *display,
 #if defined (USG) || defined (DGUX) || defined(CYGWIN)
   /* Read some input if available, but don't wait.  */
   n_to_read = sizeof cbuf;
-  fcntl (fileno (TTY_INPUT (tty)), F_SETFL, O_NDELAY);
+  fcntl (fileno (tty->input), F_SETFL, O_NDELAY);
 #else
   you lose;
 #endif
@@ -6732,7 +6735,7 @@ tty_read_avail_input (struct display *display,
      NREAD is set to the number of chars read.  */
   do
     {
-      nread = emacs_read (fileno (TTY_INPUT (tty)), cbuf, n_to_read);
+      nread = emacs_read (fileno (tty->input), cbuf, n_to_read);
       /* POSIX infers that processes which are not in the session leader's
          process group won't get SIGHUP's at logout time.  BSDI adheres to
          this part standard and returns -1 from read (0) with errno==EIO
@@ -6770,7 +6773,7 @@ tty_read_avail_input (struct display *display,
 
 #ifndef FIONREAD
 #if defined (USG) || defined (DGUX) || defined (CYGWIN)
-  fcntl (fileno (TTY_INPUT (tty)), F_SETFL, 0);
+  fcntl (fileno (tty->input), F_SETFL, 0);
 #endif /* USG or DGUX or CYGWIN */
 #endif /* no FIONREAD */
 
@@ -10168,7 +10171,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
     call1 (Vrun_hooks, intern ("suspend-hook"));
 
   GCPRO1 (stuffstring);
-  get_tty_size (fileno (TTY_INPUT (CURTTY ())), &old_width, &old_height);
+  get_tty_size (fileno (CURTTY ()->input), &old_width, &old_height);
   reset_all_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
@@ -10184,7 +10187,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   /* Check if terminal/window size has changed.
      Note that this is not useful when we are running directly
      with a window system; but suspend should be disabled in that case.  */
-  get_tty_size (fileno (TTY_INPUT (CURTTY ())), &width, &height);
+  get_tty_size (fileno (CURTTY ()->input), &width, &height);
   if (width != old_width || height != old_height)
     change_frame_size (SELECTED_FRAME (), height, width, 0, 0, 0);
 

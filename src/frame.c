@@ -667,7 +667,8 @@ and the `tty-type' parameter specifies the terminal type.  Example:
 
    (make-terminal-frame '((tty . "/dev/pts/5") (tty-type . "xterm")))
 
-Note that changing the size of one terminal frame automatically affects all.  */)
+Note that changing the size of one terminal frame automatically
+affects all frames on the same terminal device.  */)
      (parms)
      Lisp_Object parms;
 {
@@ -742,7 +743,7 @@ Note that changing the size of one terminal frame automatically affects all.  */
 
   {
     int width, height;
-    get_tty_size (fileno (TTY_INPUT (FRAME_TTY (f))), &width, &height);
+    get_tty_size (fileno (FRAME_TTY (f)->input), &width, &height);
     change_frame_size (f, height, width, 0, 0, 0);
   }
   

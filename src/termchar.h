@@ -42,8 +42,10 @@ struct tty_display_info
   
   /* Input/output */
   
-  FILE *input;                  /* The stream to be used for terminal input. */
-  FILE *output;                 /* The stream to be used for terminal output. */
+  FILE *input;                  /* The stream to be used for terminal input.
+                                   NULL if the terminal is suspended. */
+  FILE *output;                 /* The stream to be used for terminal output.
+                                   NULL if the terminal is suspended. */
   
   FILE *termscript;             /* If nonzero, send all terminal output
                                    characters to this stream also.  */
@@ -199,10 +201,6 @@ extern struct tty_display_info *tty_list;
    : (abort(), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())
-
-#define TTY_INPUT(t) ((t)->input)
-#define TTY_OUTPUT(t) ((t)->output)
-#define TTY_TERMSCRIPT(t) ((t)->termscript)
 
 /* arch-tag: bf9f0d49-842b-42fb-9348-ec8759b27193
    (do not change this comment) */

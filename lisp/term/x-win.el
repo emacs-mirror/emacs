@@ -2442,11 +2442,7 @@ order until succeed.")
     (if res-selection-timeout
 	(setq x-selection-timeout (string-to-number res-selection-timeout))))
 
-  ;; XXX This is wrong in general with multi-tty support.
-  (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-			     global-map)
-
-  ;; XXX This is wrong in general with multi-tty support.
+  ;; Don't let Emacs suspend under X.
   (add-hook 'suspend-hook 'x-win-suspend-error)
 
   ;; Arrange for the kill and yank functions to set and check the clipboard.

@@ -200,21 +200,49 @@ THINGS TO DO
    argument-handling is done in Lisp, so this should be quite easy to
    implement.
 
-** Very strange bug: visible-bell does not work on secondary
-   terminals.  This might be something xterm (konsole) specific.
+** Make `struct display' accessible to Lisp programs.  Accessor functions:
 
-** Find out the best way to support suspending Emacs with multiple
-   ttys.  My guess: disable it on the controlling tty, but from other
-   ttys pass it on to emacsclient somehow.  (It is (I hope) trivial to
-   extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
-   works right now.)
+	(displayp OBJECT):  Returns t if OBJECT is a display.
 
-** Clean up the frame-local variable system.  I think it's ugly and
-   error-prone.  But maybe I just haven't yet fully understood it.
+	(selected-display):  Returns the display object of the selected frame.
+
+	(frame-display FRAME):  Returns the display object of FRAME.
+
+	(display-frames DISPLAY):  Returns a list of frames on DISPLAY.
+
+	(display-type DISPLAY):  Returns the type of DISPLAY, as a
+		symbol.  (See `framep'.)
+
+	(display-device DISPLAY): Returns the name of the device that
+		DISPLAY uses, as a string.  (E.g: "/dev/pts/16", or
+		":0.0")
+
+   See next issue why this is necessary.
+
+** The following needs to be supported:
+
+	$ emacsclient -t
+		C-z
+	$ bg
+	$ emacsclient -t
+		(This fails now.)
+
+   The cleanest way to solve this is to allow multiple displays on the
+   same terminal device; each new emacsclient process should create
+   its own display.  As displays are currently identified by their
+   device names, this is not possible until struct display becomes
+   accessible as a Lisp-level object.
 
 ** Add an elaborate mechanism for display-local variables.  (There are
    already a few of these; search for `terminal-local' in the Elisp
    manual.)
+
+** Very strange bug: visible-bell does not work on secondary
+   terminals in xterm and konsole.  The screen does flicker a bit,
+   but it's so quick it isn't noticable.
+
+** Clean up the frame-local variable system.  I think it's ugly and
+   error-prone.  But maybe I just haven't yet fully understood it.
 
 ** Move baud_rate to struct display.
 
@@ -666,5 +694,16 @@ DIARY OF CHANGES
    (Fixed, changed emacsclient to check for TERM=eterm.  The face
    complaints seem to be caused by bugs in term.el; they are not
    related to multi-tty.)
+
+-- Find out the best way to support suspending Emacs with multiple
+   ttys.  My guess: disable it on the controlling tty, but from other
+   ttys pass it on to emacsclient somehow.  (It is (I hope) trivial to
+   extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
+   works right now.)
+
+   (Done.  I needed to play with signal handling and the server
+   protocol a bit to make emacsclient behave as a normal UNIX program
+   wrt foreground/background process groups.)
+
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

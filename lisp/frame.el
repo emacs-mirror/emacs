@@ -750,6 +750,22 @@ Otherwise, that variable should be nil."
       (iconify-frame)
     (make-frame-visible)))
 
+(defun suspend-frame ()
+  "Do whatever is right to suspend the current frame.
+Calls `suspend-emacs' if invoked from the controlling terminal,
+`suspend-tty' from a secondary terminal, and
+`iconify-or-deiconify-frame' from an X frame."
+  (interactive)
+  (let ((type (framep (selected-frame))))
+    (cond
+     ((eq type 'x) (iconify-or-deiconify-frame))
+     ((eq type t)
+      (if (frame-tty-name)
+	  (suspend-tty)
+	(suspend-emacs)))
+     (t (suspend-emacs)))))
+
+
 (defun make-frame-names-alist ()
   (let* ((current-frame (selected-frame))
 	 (falist
@@ -1373,6 +1389,8 @@ Use Custom to set this variable to get the display updated."
 (define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
+
+(substitute-key-definition 'suspend-emacs 'suspend-frame global-map)
 
 (provide 'frame)
 

@@ -64,9 +64,9 @@ int
 cmputc (c)
      char c;
 {
-  if (TTY_TERMSCRIPT (current_tty))
-    putc (c & 0177, TTY_TERMSCRIPT (current_tty));
-  putc (c & 0177, TTY_OUTPUT (current_tty));
+  if (current_tty->termscript)
+    putc (c & 0177, current_tty->termscript);
+  putc (c & 0177, current_tty->output);
   return c;
 }
 
@@ -136,12 +136,12 @@ cmcheckmagic (struct tty_display_info *tty)
     {
       if (!MagicWrap (tty) || curY (tty) >= FrameRows (tty) - 1)
 	abort ();
-      if (TTY_TERMSCRIPT (tty))
-	putc ('\r', TTY_TERMSCRIPT (tty));
-      putc ('\r', TTY_OUTPUT (tty));
-      if (TTY_TERMSCRIPT (tty))
-	putc ('\n', TTY_TERMSCRIPT (tty));
-      putc ('\n', TTY_OUTPUT (tty));
+      if (tty->termscript)
+	putc ('\r', tty->termscript);
+      putc ('\r', tty->output);
+      if (tty->termscript)
+	putc ('\n', tty->termscript);
+      putc ('\n', tty->output);
       curX (tty) = 0;
       curY (tty)++;
     }

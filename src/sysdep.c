@@ -274,7 +274,7 @@ discard_tty_input ()
 
 #ifdef VMS
   end_kbd_input ();
-  SYS$QIOW (0, fileno (TTY_INPUT (CURTTY())), IO$_READVBLK|IO$M_PURGE, input_iosb, 0, 0,
+  SYS$QIOW (0, fileno (CURTTY()->input), IO$_READVBLK|IO$M_PURGE, input_iosb, 0, 0,
 	    &buf.main, 0, 0, terminator_mask, 0, 0);
   queue_kbd_input ();
 #else /* not VMS */
@@ -284,7 +284,8 @@ discard_tty_input ()
     for (tty = tty_list; tty; tty = tty->next)
       {
         int zero = 0;
-        ioctl (fileno (TTY_INPUT (tty)), TIOCFLUSH, &zero);
+        if (tty->input)
+          ioctl (fileno (tty->input), TIOCFLUSH, &zero);
       }
   }
 #else /* not Apollo */
@@ -296,8 +297,11 @@ discard_tty_input ()
     struct tty_display_info *tty;
     for (tty = tty_list; tty; tty = tty->next)
       {
-        EMACS_GET_TTY (fileno (TTY_INPUT (tty)), &buf);
-        EMACS_SET_TTY (fileno (TTY_INPUT (tty)), &buf, 0);
+        if (tty->input)         /* Is the device suspended? */
+          {
+            EMACS_GET_TTY (fileno (tty->input), &buf);
+            EMACS_SET_TTY (fileno (tty->input), &buf, 0);
+          }
       }
   }
 #endif /* not MSDOS */
@@ -322,7 +326,7 @@ stuff_char (char c)
 
 /* Should perhaps error if in batch mode */
 #ifdef TIOCSTI
-  ioctl (fileno (TTY_INPUT (CURTTY())), TIOCSTI, &c);
+  ioctl (fileno (CURTTY()->input), TIOCSTI, &c);
 #else /* no TIOCSTI */
   error ("Cannot stuff terminal input characters in this version of Unix");
 #endif /* no TIOCSTI */
@@ -1005,7 +1009,7 @@ request_sigio ()
     return;
 
   /* XXX CURTTY() is bogus here. */
-  ioctl (fileno (TTY_INPUT (CURTTY ())), FIOASYNC, &on);
+  ioctl (fileno (CURTTY ()->input), FIOASYNC, &on);
   interrupts_deferred = 0;
 }
 
@@ -1018,7 +1022,7 @@ unrequest_sigio ()
     return;
 
   /* XXX CURTTY() is bogus here. */
-  ioctl (fileno (TTY_INPUT (CURTTY ())), FIOASYNC, &off);
+  ioctl (fileno (CURTTY ()->input), FIOASYNC, &off);
   interrupts_deferred = 1;
 }
 
@@ -1366,6 +1370,9 @@ nil means don't delete them until `list-processes' is run.  */);
   if (noninteractive)
     return;
 
+  if (!tty_out->output)
+    return;                     /* The tty is suspended. */
+  
 #ifdef VMS
   if (!input_ef)
     input_ef = get_kbd_event_flag ();
@@ -1404,13 +1411,13 @@ nil means don't delete them until `list-processes' is run.  */);
      unconditionally will not cause any problems. */
   if (! read_socket_hook && EQ (Vinitial_window_system, Qnil))
 #endif
-    narrow_foreground_group (fileno (TTY_INPUT (tty_out)));
+    narrow_foreground_group (fileno (tty_out->input));
 #endif
 
   if (! tty_out->old_tty)
     tty_out->old_tty = (struct emacs_tty *) xmalloc (sizeof (struct emacs_tty));
       
-  EMACS_GET_TTY (fileno (TTY_INPUT (tty_out)), tty_out->old_tty);
+  EMACS_GET_TTY (fileno (tty_out->input), tty_out->old_tty);
 
   tty = *tty_out->old_tty;
 
@@ -1626,23 +1633,23 @@ nil means don't delete them until `list-processes' is run.  */);
   dos_ttraw ();
 #endif
 
-  EMACS_SET_TTY (fileno (TTY_INPUT (tty_out)), &tty, 0);
+  EMACS_SET_TTY (fileno (tty_out->input), &tty, 0);
 
   /* This code added to insure that, if flow-control is not to be used,
      we have an unlocked terminal at the start. */
 
 #ifdef TCXONC
-  if (!tty_out->flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TCXONC, 1);
+  if (!tty_out->flow_control) ioctl (fileno (tty_out->input), TCXONC, 1);
 #endif
 #ifndef APOLLO
 #ifdef TIOCSTART
-  if (!tty_out->flow_control) ioctl (fileno (TTY_INPUT (tty_out)), TIOCSTART, 0);
+  if (!tty_out->flow_control) ioctl (fileno (tty_out->input), TIOCSTART, 0);
 #endif
 #endif
 
 #if defined (HAVE_TERMIOS) || defined (HPUX9)
 #ifdef TCOON
-  if (!tty_out->flow_control) tcflow (fileno (TTY_INPUT (tty_out)), TCOON);
+  if (!tty_out->flow_control) tcflow (fileno (tty_out->input), TCOON);
 #endif
 #endif
 
@@ -1662,7 +1669,7 @@ nil means don't delete them until `list-processes' is run.  */);
 
 #ifdef VMS
 /*  Appears to do nothing when in PASTHRU mode.
-      SYS$QIOW (0, fileno (TTY_INPUT (tty_out)), IO$_SETMODE|IO$M_OUTBAND, 0, 0, 0,
+      SYS$QIOW (0, fileno (tty_out->input), IO$_SETMODE|IO$M_OUTBAND, 0, 0, 0,
 		interrupt_signal, oob_chars, 0, 0, 0, 0);
 */
   queue_kbd_input (0);
@@ -1673,10 +1680,10 @@ nil means don't delete them until `list-processes' is run.  */);
 #ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
   if (interrupt_input)
     {
-      old_fcntl_owner[fileno (TTY_INPUT (tty_out))] =
-        fcntl (fileno (TTY_INPUT (tty_out)), F_GETOWN, 0);
-      fcntl (fileno (TTY_INPUT (tty_out)), F_SETOWN, getpid ());
-      init_sigio (fileno (TTY_INPUT (tty_out)));
+      old_fcntl_owner[fileno (tty_out->input)] =
+        fcntl (fileno (tty_out->input), F_GETOWN, 0);
+      fcntl (fileno (tty_out->input), F_SETOWN, getpid ());
+      init_sigio (fileno (tty_out->input));
     }
 #endif /* F_GETOWN */
 #endif /* F_SETOWN_BUG */
@@ -1684,7 +1691,7 @@ nil means don't delete them until `list-processes' is run.  */);
 
 #ifdef BSD4_1
   if (interrupt_input)
-    init_sigio (fileno (TTY_INPUT (tty_out)));
+    init_sigio (fileno (tty_out->input));
 #endif
 
 #ifdef VMS  /* VMS sometimes has this symbol but lacks setvbuf.  */
@@ -1694,9 +1701,9 @@ nil means don't delete them until `list-processes' is run.  */);
   /* This symbol is defined on recent USG systems.
      Someone says without this call USG won't really buffer the file
      even with a call to setbuf. */
-  setvbuf (TTY_OUTPUT (tty_out), (char *) _sobuf, _IOFBF, sizeof _sobuf);
+  setvbuf (tty_out->output, (char *) _sobuf, _IOFBF, sizeof _sobuf);
 #else
-  setbuf (TTY_OUTPUT (tty_out), (char *) _sobuf);
+  setbuf (tty_out->output, (char *) _sobuf);
 #endif
 
   tty_set_terminal_modes (tty_out->display);
@@ -1867,10 +1874,13 @@ reset_sys_modes (tty_out)
   if (!tty_out->term_initted)
     return;
 
+  if (!tty_out->output)
+    return;                     /* The tty is suspended. */
+  
   /* Go to and clear the last line of the terminal. */
 
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
-
+  
   /* Code adapted from tty_clear_end_of_line. */
   if (tty_out->TS_clr_line)
     {
@@ -1880,13 +1890,13 @@ reset_sys_modes (tty_out)
     {			/* have to do it the hard way */
       int i;
       turn_off_insert (tty_out);
-
+      
       for (i = curX (tty_out); i < FrameCols (tty_out) - 1; i++)
-	{
-	  fputc (' ', TTY_OUTPUT (tty_out));
-	}
+        {
+          fputc (' ', tty_out->output);
+        }
     }
-
+  
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
   fflush (tty_out->output);
   
@@ -1902,11 +1912,11 @@ reset_sys_modes (tty_out)
 #endif
 
   tty_reset_terminal_modes (tty_out->display);
-  fflush (TTY_OUTPUT (tty_out));
+  fflush (tty_out->output);
 #ifdef BSD_SYSTEM
 #ifndef BSD4_1
   /* Avoid possible loss of output when changing terminal modes.  */
-  fsync (fileno (TTY_OUTPUT (tty_out)));
+  fsync (fileno (tty_out->output));
 #endif
 #endif
 
@@ -1915,24 +1925,24 @@ reset_sys_modes (tty_out)
 #ifdef F_SETOWN		/* F_SETFL does not imply existence of F_SETOWN */
   if (interrupt_input)
     {
-      reset_sigio (fileno (TTY_INPUT (tty_out)));
-      fcntl (fileno (TTY_INPUT (tty_out)), F_SETOWN,
-             old_fcntl_owner[fileno (TTY_INPUT (tty_out))]);
+      reset_sigio (fileno (tty_out->input));
+      fcntl (fileno (tty_out->input), F_SETOWN,
+             old_fcntl_owner[fileno (tty_out->input)]);
     }
 #endif /* F_SETOWN */
 #endif /* F_SETOWN_BUG */
 #ifdef O_NDELAY
-  fcntl (fileno (TTY_INPUT (tty_out)), F_SETFL,
-         fcntl (fileno (TTY_INPUT (tty_out)), F_GETFL, 0) & ~O_NDELAY);
+  fcntl (fileno (tty_out->input), F_SETFL,
+         fcntl (fileno (tty_out->input), F_GETFL, 0) & ~O_NDELAY);
 #endif
 #endif /* F_SETFL */
 #ifdef BSD4_1
   if (interrupt_input)
-    reset_sigio (fileno (TTY_INPUT (tty_out)));
+    reset_sigio (fileno (tty_out->input));
 #endif /* BSD4_1 */
 
   if (tty_out->old_tty)
-    while (EMACS_SET_TTY (fileno (TTY_INPUT (tty_out)),
+    while (EMACS_SET_TTY (fileno (tty_out->input),
                           tty_out->old_tty, 0) < 0 && errno == EINTR)
       ;
 
@@ -1952,7 +1962,7 @@ reset_sys_modes (tty_out)
 #endif
 
 #ifdef BSD_PGRPS
-  widen_foreground_group (fileno (TTY_INPUT (tty_out)));
+  widen_foreground_group (fileno (tty_out->input));
 #endif
 }
 
@@ -2017,9 +2027,9 @@ init_vms_input ()
 {
   int status;
 
-  if (fileno (TTY_INPUT (CURTTY())) == 0)
+  if (fileno (CURTTY ()->input)) == 0)
     {
-      status = SYS$ASSIGN (&input_dsc, &fileno (TTY_INPUT (CURTTY())), 0, 0);
+      status = SYS$ASSIGN (&input_dsc, &fileno (CURTTY ()->input)), 0, 0);
       if (! (status & 1))
 	LIB$STOP (status);
     }
@@ -2030,7 +2040,7 @@ init_vms_input ()
 void
 stop_vms_input ()
 {
-  return SYS$DASSGN (fileno (TTY_INPUT (CURTTY())));
+  return SYS$DASSGN (fileno (CURTTY ()->input)));
 }
 
 short input_buffer;
@@ -2046,7 +2056,7 @@ queue_kbd_input ()
 
   waiting_for_ast = 0;
   stop_input = 0;
-  status = SYS$QIO (0, fileno (TTY_INPUT (CURTTY())), IO$_READVBLK,
+  status = SYS$QIO (0, fileno (CURTTY()->input), IO$_READVBLK,
 		    &input_iosb, kbd_input_ast, 1,
 		    &input_buffer, 1, 0, terminator_mask, 0, 0);
 }
@@ -2163,7 +2173,7 @@ end_kbd_input ()
 #endif
   if (LIB$AST_IN_PROG ())  /* Don't wait if suspending from kbd_buffer_store_event! */
     {
-      SYS$CANCEL (fileno (TTY_INPUT (CURTTY())));
+      SYS$CANCEL (fileno (CURTTY()->input));
       return;
     }
 
@@ -2172,7 +2182,7 @@ end_kbd_input ()
   SYS$CLREF (input_ef);
   waiting_for_ast = 1;
   stop_input = 1;
-  SYS$CANCEL (fileno (TTY_INPUT (CURTTY())));
+  SYS$CANCEL (fileno (CURTTY()->input));
   SYS$SETAST (1);
   SYS$WAITFR (input_ef);
   waiting_for_ast = 0;

@@ -513,7 +513,6 @@ struct display
      frames on the display when it calls this hook, so infinite
      recursion is prevented.  */
   void (*delete_display_hook) P_ ((struct display *));
-
 };
 
 

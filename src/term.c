@@ -106,8 +106,14 @@ void delete_tty_output P_ ((struct frame *));
 
 Lisp_Object Vring_bell_function;
 
-/* Functions to call after a tty was deleted. */
+/* Functions to call after deleting a tty. */
 Lisp_Object Vdelete_tty_after_functions;
+
+/* Functions to call after suspending a tty. */
+Lisp_Object Vsuspend_tty_functions;
+
+/* Functions to call after resuming a tty. */
+Lisp_Object Vresume_tty_functions;
 
 /* Chain of all displays currently in use. */
 struct display *display_list;
@@ -231,10 +237,13 @@ tty_set_terminal_modes (struct display *display)
 {
   struct tty_display_info *tty = display->display_info.tty;
   
-  OUTPUT_IF (tty, tty->TS_termcap_modes);
-  OUTPUT_IF (tty, tty->TS_cursor_visible);
-  OUTPUT_IF (tty, tty->TS_keypad_mode);
-  losecursor (tty);
+  if (tty->output)
+    {
+      OUTPUT_IF (tty, tty->TS_termcap_modes);
+      OUTPUT_IF (tty, tty->TS_cursor_visible);
+      OUTPUT_IF (tty, tty->TS_keypad_mode);
+      losecursor (tty);
+    }
 }
 
 /* Reset termcap modes before exiting Emacs. */
@@ -243,16 +252,19 @@ void
 tty_reset_terminal_modes (struct display *display)
 {
   struct tty_display_info *tty = display->display_info.tty;
-  
-  turn_off_highlight (tty);
-  turn_off_insert (tty);
-  OUTPUT_IF (tty, tty->TS_end_keypad_mode);
-  OUTPUT_IF (tty, tty->TS_cursor_normal);
-  OUTPUT_IF (tty, tty->TS_end_termcap_modes);
-  OUTPUT_IF (tty, tty->TS_orig_pair);
-  /* Output raw CR so kernel can track the cursor hpos.  */
-  current_tty = tty;
-  cmputc ('\r');
+
+  if (tty->output)
+    {
+      turn_off_highlight (tty);
+      turn_off_insert (tty);
+      OUTPUT_IF (tty, tty->TS_end_keypad_mode);
+      OUTPUT_IF (tty, tty->TS_cursor_normal);
+      OUTPUT_IF (tty, tty->TS_end_termcap_modes);
+      OUTPUT_IF (tty, tty->TS_orig_pair);
+      /* Output raw CR so kernel can track the cursor hpos.  */
+      current_tty = tty;
+      cmputc ('\r');
+    }
 }
 
 void
@@ -619,9 +631,9 @@ tty_clear_end_of_line (int first_unused_hpos)
 
       for (i = curX (tty); i < first_unused_hpos; i++)
 	{
-	  if (TTY_TERMSCRIPT (tty))
-	    fputc (' ', TTY_TERMSCRIPT (tty));
-	  fputc (' ', TTY_OUTPUT (tty));
+	  if (tty->termscript)
+	    fputc (' ', tty->termscript);
+	  fputc (' ', tty->output);
 	}
       cmplus (tty, first_unused_hpos - curX (tty));
     }
@@ -807,12 +819,12 @@ tty_write_glyphs (struct glyph *string, int len)
 	  if (produced > 0)
 	    {
 	      fwrite (conversion_buffer, 1, produced,
-                      TTY_OUTPUT (tty));
-	      if (ferror (TTY_OUTPUT (tty)))
-		clearerr (TTY_OUTPUT (tty));
-	      if (TTY_TERMSCRIPT (tty))
+                      tty->output);
+	      if (ferror (tty->output))
+		clearerr (tty->output);
+	      if (tty->termscript)
 		fwrite (conversion_buffer, 1, produced,
-                        TTY_TERMSCRIPT (tty));
+                        tty->termscript);
 	    }
 	  len -= consumed;
 	  n -= consumed;
@@ -833,12 +845,12 @@ tty_write_glyphs (struct glyph *string, int len)
       if (terminal_coding.produced > 0)
 	{
 	  fwrite (conversion_buffer, 1, terminal_coding.produced,
-                  TTY_OUTPUT (tty));
-	  if (ferror (TTY_OUTPUT (tty)))
-	    clearerr (TTY_OUTPUT (tty));
-	  if (TTY_TERMSCRIPT (tty))
+                  tty->output);
+	  if (ferror (tty->output))
+	    clearerr (tty->output);
+	  if (tty->termscript)
 	    fwrite (conversion_buffer, 1, terminal_coding.produced,
-		    TTY_TERMSCRIPT (tty));
+		    tty->termscript);
 	}
     }
 
@@ -927,12 +939,12 @@ tty_insert_glyphs (struct glyph *start, int len)
       if (produced > 0)
 	{
 	  fwrite (conversion_buffer, 1, produced,
-                  TTY_OUTPUT (tty));
-	  if (ferror (TTY_OUTPUT (tty)))
-	    clearerr (TTY_OUTPUT (tty));
-	  if (TTY_TERMSCRIPT (tty))
+                  tty->output);
+	  if (ferror (tty->output))
+	    clearerr (tty->output);
+	  if (tty->termscript)
 	    fwrite (conversion_buffer, 1, produced,
-                    TTY_TERMSCRIPT (tty));
+                    tty->termscript);
 	}
 
       OUTPUT1_IF (tty, tty->TS_pad_inserted_char);
@@ -2240,7 +2252,11 @@ term_init (char *name, char *terminal_type, int must_succeed)
   
   display = get_named_tty_display (name);
   if (display)
-    return display;             /* We have already opened a display there. */
+    {
+      if (! display->display_info.tty->input)
+        error ("%s already has a suspended frame on it, can't open it twice", name);
+      return display;
+    }
 
   display = create_display ();
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
@@ -2550,7 +2566,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Get frame size from system, or else from termcap.  */
   {
     int height, width;
-    get_tty_size (fileno (TTY_INPUT (tty)), &width, &height);
+    get_tty_size (fileno (tty->input), &width, &height);
     FrameCols (tty) = width;
     FrameRows (tty) = height;
   }
@@ -2735,7 +2751,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
               && tty->TS_end_standout_mode
               && !strcmp (tty->TS_standout_mode, tty->TS_end_standout_mode));
 
-  UseTabs (tty) = tabs_safe_p (fileno (TTY_INPUT (tty))) && TabWidth (tty) == 8;
+  UseTabs (tty) = tabs_safe_p (fileno (tty->input)) && TabWidth (tty) == 8;
 
   display->scroll_region_ok
     = (tty->Wcm->cm_abs
@@ -2754,7 +2770,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   display->fast_clear_end_of_line = tty->TS_clr_line != 0;
 
-  init_baud_rate (fileno (TTY_INPUT (tty)));
+  init_baud_rate (fileno (tty->input));
 
 #ifdef AIXHFT
   /* The HFT system on AIX doesn't optimize for scrolling, so it's
@@ -3067,6 +3083,134 @@ delete_display (struct display *dev)
   xfree (dev);
 }
 
+
+
+DEFUN ("suspend-tty", Fsuspend_tty, Ssuspend_tty, 0, 1, 0,
+       doc: /* Suspend the terminal device TTY.
+The terminal is restored to its default state, and Emacs closes all
+access to the terminal device.  Frames that use the device are not
+deleted, but input is not read from them and if they change, their
+display is not updated.
+
+TTY may a string (a device name), a frame, or nil for the display
+device of the currently selected frame.
+
+This function runs `suspend-tty-functions' after suspending the
+device.  The functions are run with one arg, the name of the terminal
+device.
+
+`suspend-tty' does nothing if it is called on an already suspended
+device.
+
+A suspended terminal device may be resumed by calling `resume-tty' on
+it. */)
+  (tty)
+     Lisp_Object tty;
+{
+  struct display *d = get_tty_display (tty);
+  FILE *f;
+  
+  if (!d)
+    error ("Unknown tty device");
+
+  f = d->display_info.tty->input;
+  
+  if (f)
+    {
+      reset_sys_modes (d->display_info.tty);
+
+      delete_keyboard_wait_descriptor (fileno (f));
+      
+      fclose (f);
+      if (f != d->display_info.tty->output)
+        fclose (d->display_info.tty->output);
+      
+      d->display_info.tty->input = 0;
+      d->display_info.tty->output = 0;
+
+      if (FRAMEP (d->display_info.tty->top_frame))
+        FRAME_SET_VISIBLE (XFRAME (d->display_info.tty->top_frame), 0);
+      
+      /* Run `suspend-tty-functions'.  */
+      if (!NILP (Vrun_hooks))
+        {
+          Lisp_Object args[2];
+          args[0] = intern ("suspend-tty-functions");
+          if (d->display_info.tty->name)
+            {
+              args[1] = build_string (d->display_info.tty->name);
+            }
+          else
+            args[1] = Qnil;
+          Frun_hook_with_args (2, args);
+        }
+    }
+
+  return Qnil;
+}
+
+
+DEFUN ("resume-tty", Fresume_tty, Sresume_tty, 0, 1, 0,
+       doc: /* Resume the previously suspended terminal device TTY.
+The terminal is opened and reinitialized.  Frames that used the
+suspended device are revived.
+
+This function runs `resume-tty-functions' after resuming the device.
+The functions are run with one arg, the name of the terminal device.
+
+`resume-tty' does nothing if it is called on a device that is not
+suspended.
+
+TTY may a string (a device name), a frame, or nil for the display
+device of the currently selected frame. */)
+  (tty)
+     Lisp_Object tty;
+{
+  struct display *d = get_tty_display (tty);
+  int fd;
+
+  if (!d)
+    error ("Unknown tty device");
+
+  if (!d->display_info.tty->input)
+    {
+      fd = emacs_open (d->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
+  
+#ifdef TIOCNOTTY
+      /* Drop our controlling tty if it is the same device. */
+      if (ioctl (fd, TIOCNOTTY, 0) != -1)
+        {
+          no_controlling_tty = 1;
+        }
+#endif
+
+      d->display_info.tty->output = fdopen (fd, "w+");
+      d->display_info.tty->input = d->display_info.tty->output;
+    
+      add_keyboard_wait_descriptor (fd);
+
+      if (FRAMEP (d->display_info.tty->top_frame))
+        FRAME_SET_VISIBLE (XFRAME (d->display_info.tty->top_frame), 1);
+
+      init_sys_modes (d->display_info.tty);
+
+      /* Run `suspend-tty-functions'.  */
+      if (!NILP (Vrun_hooks))
+        {
+          Lisp_Object args[2];
+          args[0] = intern ("resume-tty-functions");
+          if (d->display_info.tty->name)
+            {
+              args[1] = build_string (d->display_info.tty->name);
+            }
+          else
+            args[1] = Qnil;
+          Frun_hook_with_args (2, args);
+        }
+    }
+
+  return Qnil;
+}
 
 
 void
@@ -3092,6 +3236,20 @@ The functions are run with one argument, the name of the tty to be deleted.
 See `delete-tty'.  */);
   Vdelete_tty_after_functions = Qnil;
 
+
+  DEFVAR_LISP ("suspend-tty-functions", &Vsuspend_tty_functions,
+    doc: /* Functions to be run after suspending a tty.
+The functions are run with one argument, the name of the tty to be suspended.
+See `suspend-tty'.  */);
+  Vsuspend_tty_functions = Qnil;
+
+
+  DEFVAR_LISP ("resume-tty-functions", &Vresume_tty_functions,
+    doc: /* Functions to be run after resuming a tty.
+The functions are run with one argument, the name of the tty that was revived.
+See `resume-tty'.  */);
+  Vresume_tty_functions = Qnil;
+
   Qframe_tty_name = intern ("frame-tty-name");
   staticpro (&Qframe_tty_name);
 
@@ -3103,6 +3261,8 @@ See `delete-tty'.  */);
   defsubr (&Sframe_tty_name);
   defsubr (&Sframe_tty_type);
   defsubr (&Sdelete_tty);
+  defsubr (&Ssuspend_tty);
+  defsubr (&Sresume_tty);
 
   Fprovide (intern ("multi-tty"), Qnil);
 

@@ -114,7 +114,7 @@ decode_options (argc, argv)
   display = getenv ("DISPLAY");
   if (display && strlen (display) == 0)
     display = NULL;
-  
+
   if (display)
     window_system = 1;
   else
@@ -169,7 +169,7 @@ decode_options (argc, argv)
           window_system = 0;
           tty = 0;
           break;
-          
+
 	case 'H':
 	  print_help_and_exit ();
 	  break;
@@ -212,19 +212,21 @@ Report bugs to bug-gnu-emacs@gnu.org.\n", progname);
   exit (0);
 }
 
-/* In NAME, insert a & before each &, each space, each newline, and
+/* In STR, insert a & before each &, each space, each newline, and
    any initial -.  Change spaces to underscores, too, so that the
-   return value never contains a space.  */
+   return value never contains a space.
+
+   Does not change the string.  Outputs the result to STREAM.  */
 
 void
-quote_file_name (name, stream)
-     char *name;
+quote_argument (str, stream)
+     char *str;
      FILE *stream;
 {
-  char *copy = (char *) malloc (strlen (name) * 2 + 1);
+  char *copy = (char *) malloc (strlen (str) * 2 + 1);
   char *p, *q;
 
-  p = name;
+  p = str;
   q = copy;
   while (*p)
     {
@@ -242,7 +244,7 @@ quote_file_name (name, stream)
 	}
       else
 	{
-	  if (*p == '&' || (*p == '-' && p == name))
+	  if (*p == '&' || (*p == '-' && p == str))
 	    *q++ = '&';
 	  *q++ = *p++;
 	}
@@ -252,6 +254,41 @@ quote_file_name (name, stream)
   fprintf (stream, copy);
 
   free (copy);
+}
+
+
+/* The inverse of quote_argument.  Removes quoting in string STR by
+   modifying the string in place.   Returns STR. */
+
+char *
+unquote_argument (str)
+     char *str;
+{
+  char *p, *q;
+
+  if (! str)
+    return str;
+
+  p = str;
+  q = str;
+  while (*p)
+    {
+      if (*p == '&')
+        {
+          p++;
+          if (*p == '&')
+            *p = '&';
+          else if (*p == '_')
+            *p = ' ';
+          else if (*p == 'n')
+            *p = '\n';
+          else if (*p == '-')
+            *p = '-';
+        }
+      *q++ = *p++;
+    }
+  *q = 0;
+  return str;
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -288,7 +325,11 @@ fail (void)
     }
 }
 
+/* The process id of Emacs. */
 int emacs_pid;
+
+/* File handles for communicating with Emacs. */
+FILE *out, *in;
 
 /* A signal handler that passes the signal to the Emacs process.
    Useful for SIGWINCH.  */
@@ -305,8 +346,62 @@ pass_signal_to_emacs (int signalnum)
   errno = old_errno;
 }
 
+/* Signal handler for SIGCONT; notify the Emacs process that it can
+   now resume our tty frame.  */
+
+SIGTYPE
+handle_sigcont (int signalnum)
+{
+  int old_errno = errno;
+
+  if (tcgetpgrp (1) == getpgrp ())
+    {
+      /* We are in the foreground. */
+      fprintf (out, "-resume \n");
+      fflush (out);
+      fsync (fileno (out));
+    }
+  else
+    {
+      /* We are in the background; cancel the continue. */
+      kill (getpid (), SIGSTOP);
+    }
+  errno = old_errno;
+}
+
+/* Signal handler for SIGTSTP; notify the Emacs process that we are
+   going to sleep.  Normally the suspend is initiated by Emacs via
+   server-handle-suspend-tty, but if the server gets out of sync with
+   reality, we may get a SIGTSTP on C-z.  Handling this signal and
+   notifying Emacs about it should get things under control again. */
+
+SIGTYPE
+handle_sigtstp (int signalnum)
+{
+  int old_errno = errno;
+  sigset_t set;
+  
+  if (out)
+    {
+      fprintf (out, "-suspend \n");
+      fflush (out);
+      fsync (fileno (out));
+    }
+
+  /* Unblock this signal and call the default handler by temprarily
+     changing the handler and resignalling. */
+  sigprocmask (SIG_BLOCK, NULL, &set);
+  sigdelset (&set, signalnum);
+  signal (signalnum, SIG_DFL);
+  kill (getpid (), signalnum);
+  sigprocmask (SIG_SETMASK, &set, NULL); /* Let's the above signal through. */
+  signal (signalnum, handle_sigtstp);
+
+  errno = old_errno;
+}
+
 /* Set up signal handlers before opening a frame on the current tty.  */
-   
+
 void
 init_signals (void)
 {
@@ -320,6 +415,10 @@ init_signals (void)
   signal (SIGINT, pass_signal_to_emacs);
   signal (SIGQUIT, pass_signal_to_emacs);
 #endif
+
+  signal (SIGCONT, handle_sigcont);
+  signal (SIGTSTP, handle_sigtstp);
+  signal (SIGTTOU, handle_sigtstp);
 }
 
 
@@ -378,7 +477,7 @@ strprefix (char *prefix, char *string)
 
   if (!string)
     return 0;
-  
+
   for (i = 0; prefix[i]; i++)
     if (!string[i] || string[i] != prefix[i])
       return 0;
@@ -391,7 +490,6 @@ main (argc, argv)
      char **argv;
 {
   int s, i, needlf = 0;
-  FILE *out, *in;
   struct sockaddr_un server;
   char *cwd, *str;
   char string[BUFSIZ];
@@ -427,9 +525,9 @@ main (argc, argv)
     int sock_status = 0;
     int default_sock = !socket_name;
     int saved_errno = 0;
-    
+
      char *server_name = "server";
- 
+
      if (socket_name && !index (socket_name, '/') && !index (socket_name, '\\'))
        { /* socket_name is a file name component.  */
  	server_name = socket_name;
@@ -571,17 +669,14 @@ To start the server in Emacs, type \"M-x server-start\".\n",
 
   /* First of all, send our version number for verification. */
   fprintf (out, "-version %s ", VERSION);
-  
+
   if (nowait)
     fprintf (out, "-nowait ");
-
-  if (eval)
-    fprintf (out, "-eval ");
 
   if (display)
     {
       fprintf (out, "-display ");
-      quote_file_name (display, out);
+      quote_argument (display, out);
       fprintf (out, " ");
     }
 
@@ -589,7 +684,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
     {
       char *tty_name = ttyname (fileno (stdin));
       char *type = getenv ("TERM");
-      
+
       if (! tty_name)
         {
           fprintf (stderr, "%s: could not get terminal name\n", progname);
@@ -610,44 +705,60 @@ To start the server in Emacs, type \"M-x server-start\".\n",
                    " is not supported\n", progname);
           fail ();
         }
-      
+
       init_signals ();
-      
+
       fprintf (out, "-tty ");
-      quote_file_name (tty_name, out);
+      quote_argument (tty_name, out);
       fprintf (out, " ");
-      quote_file_name (type, out);
+      quote_argument (type, out);
       fprintf (out, " ");
     }
 
   if (window_system)
     fprintf (out, "-window-system ");
-  
+
   if ((argc - optind > 0))
     {
       for (i = optind; i < argc; i++)
 	{
+          int relative = 0;
+
 	  if (eval)
-	    ; /* Don't prepend any cwd or anything like that.  */
-	  else if (*argv[i] == '+')
-	    {
+            {
+              /* Don't prepend any cwd or anything like that.  */
+              fprintf (out, "-eval ");
+              quote_argument (argv[i], out);
+              fprintf (out, " ");
+              continue;
+            }
+
+          if (*argv[i] == '+')
+            {
 	      char *p = argv[i] + 1;
 	      while (isdigit ((unsigned char) *p) || *p == ':') p++;
-	      if (*p != 0)
-		{
-		  quote_file_name (cwd, out);
-		  fprintf (out, "/");
-		}
-	    }
-	  else if (*argv[i] != '/')
-	    {
-	      quote_file_name (cwd, out);
-	      fprintf (out, "/");
-	    }
+	      if (*p == 0)
+                {
+                  fprintf (out, "-position ");
+                  quote_argument (argv[i], out);
+                  fprintf (out, " ");
+                  continue;
+                }
+              else
+                relative = 1;
+            }
+          else if (*argv[i] != '/')
+            relative = 1;
 
-	  quote_file_name (argv[i], out);
-	  fprintf (out, " ");
-	}
+          fprintf (out, "-file ");
+          if (relative)
+            {
+              quote_argument (cwd, out);
+              fprintf (out, "/");
+            }
+          quote_argument (argv[i], out);
+          fprintf (out, " ");
+        }
     }
   else
     {
@@ -655,14 +766,19 @@ To start the server in Emacs, type \"M-x server-start\".\n",
         {
           while ((str = fgets (string, BUFSIZ, stdin)))
             {
-              quote_file_name (str, out);
+              if (eval)
+                fprintf (out, "-eval ");
+              else
+                fprintf (out, "-file ");
+              quote_argument (str, out);
             }
           fprintf (out, " ");
         }
     }
-  
+
   fprintf (out, "\n");
   fflush (out);
+  fsync (fileno (out));
 
   /* Maybe wait for an answer.   */
   if (nowait)
@@ -676,22 +792,18 @@ To start the server in Emacs, type \"M-x server-start\".\n",
       needlf = 2;
     }
   fflush (stdout);
+  fsync (1);
 
   /* Now, wait for an answer and print any messages.  */
   while ((str = fgets (string, BUFSIZ, in)))
     {
+      char *p = str + strlen (str) - 1;
+      while (p > str && *p == '\n')
+        *p-- = 0;
+
       if (strprefix ("-good-version ", str))
         {
           /* OK, we got the green light. */
-        }
-      else if (strprefix ("-bad-version ", str))
-        {
-          if (str[strlen (str) - 1] == '\n')
-            str[strlen (str) - 1] = 0;
-          
-          fprintf (stderr, "%s: Version mismatch: Emacs is %s, but we are %s\n",
-                   argv[0], str + strlen ("-bad-version "), VERSION);
-          fail ();
         }
       else if (strprefix ("-emacs-pid ", str))
         {
@@ -699,21 +811,30 @@ To start the server in Emacs, type \"M-x server-start\".\n",
         }
       else if (strprefix ("-print ", str))
         {
-          if (needlf == 2)
+          str = unquote_argument (str + strlen ("-print "));
+          if (needlf)
             printf ("\n");
-          printf ("%s", str + strlen ("-print "));
-          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';         
+          printf ("%s", str);
+          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
         }
       else if (strprefix ("-error ", str))
         {
-          if (needlf == 2)
+          str = unquote_argument (str + strlen ("-error "));
+          if (needlf)
             printf ("\n");
-          printf ("*ERROR*: %s", str + strlen ("-print "));
-          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';         
+          printf ("*ERROR*: %s", str);
+          needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+        }
+      else if (strprefix ("-suspend ", str))
+        {
+          if (needlf)
+            printf ("\n");
+          needlf = 0;
+          kill (0, SIGSTOP);
         }
       else
         {
-          if (needlf == 2)
+          if (needlf)
             printf ("\n");
           printf ("*ERROR*: Unknown message: %s", str);
           needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
@@ -723,6 +844,7 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   if (needlf)
     printf ("\n");
   fflush (stdout);
+  fsync (1);
 
   return 0;
 }

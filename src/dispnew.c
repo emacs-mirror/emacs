@@ -3316,7 +3316,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   clear_current_matrices (f);
   update_end (f);
   if (FRAME_TERMCAP_P (f))
-    fflush (TTY_OUTPUT (FRAME_TTY (f)));
+    fflush (FRAME_TTY (f)->output);
   windows_or_buffers_changed++;
   /* Mark all windows as inaccurate, so that every window will have
      its redisplay done.  */
@@ -3659,7 +3659,7 @@ direct_output_for_insert (g)
   update_end (f);
   updated_row = NULL;
   if (FRAME_TERMCAP_P (f))
-    fflush (TTY_OUTPUT (FRAME_TTY (f)));
+    fflush (FRAME_TTY (f)->output);
 
   TRACE ((stderr, "direct output for insert\n"));
   mark_window_display_accurate (it.window, 1);
@@ -3751,7 +3751,7 @@ direct_output_forward_char (n)
     }
 
   if (FRAME_TERMCAP_P (f))
-    fflush (TTY_OUTPUT (FRAME_TTY (f)));
+    fflush (FRAME_TTY (f)->output);
   redisplay_performed_directly_p = 1;
   return 1;
 }
@@ -3849,9 +3849,9 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 
       if (FRAME_TERMCAP_P (f))
         {
-          if (TTY_TERMSCRIPT (FRAME_TTY (f)))
-            fflush (TTY_TERMSCRIPT (FRAME_TTY (f)));
-          fflush (TTY_OUTPUT (FRAME_TTY (f)));
+          if (FRAME_TTY (f)->termscript)
+            fflush (FRAME_TTY (f)->termscript);
+          fflush (FRAME_TTY (f)->output);
         }
 
       /* Check window matrices for lost pointers.  */
@@ -5133,18 +5133,18 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		 Also flush out if likely to have more than 1k buffered
 		 otherwise.   I'm told that some telnet connections get
 		 really screwed by more than 1k output at once.  */
-	      int outq = PENDING_OUTPUT_COUNT (TTY_OUTPUT (FRAME_TTY (f)));
+	      int outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f)->output);
 	      if (outq > 900
 		  || (outq > 20 && ((i - 1) % preempt_count == 0)))
 		{
-		  fflush (TTY_OUTPUT (FRAME_TTY (f)));
+		  fflush (FRAME_TTY (f)->output);
 		  if (preempt_count == 1)
 		    {
 #ifdef EMACS_OUTQSIZE
 		      if (EMACS_OUTQSIZE (0, &outq) < 0)
 			/* Probably not a tty.  Ignore the error and reset
 			   the outq count.  */
-			outq = PENDING_OUTPUT_COUNT (TTY_OUTPUT (FRAME_TTY (f)));
+			outq = PENDING_OUTPUT_COUNT (FRAME_TTY (f->output));
 #endif
 		      outq *= 10;
 		      if (baud_rate <= outq && baud_rate > 0)
@@ -5999,7 +5999,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
     if (! tty->term_initted)
       continue;
 
-    get_tty_size (fileno (TTY_INPUT (tty)), &width, &height);
+    get_tty_size (fileno (tty->input), &width, &height);
     
     {
       Lisp_Object tail, frame;
@@ -6211,15 +6211,22 @@ FILE = nil means just close any termscript file currently open.  */)
      (file)
      Lisp_Object file;
 {
-  if (TTY_TERMSCRIPT (CURTTY ()) != 0)
-    fclose (TTY_TERMSCRIPT (CURTTY ()));
-  TTY_TERMSCRIPT (CURTTY ()) = 0;
+  struct tty_display_info *tty;
+
+  if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
+    error ("Current frame is not on a tty device");
+
+  tty = CURTTY ();
+
+  if (tty->termscript != 0)
+    fclose (tty->termscript);
+  tty->termscript = 0;
 
   if (! NILP (file))
     {
       file = Fexpand_file_name (file, Qnil);
-      TTY_TERMSCRIPT (CURTTY ()) = fopen (SDATA (file), "w");
-      if (TTY_TERMSCRIPT (CURTTY ()) == 0)
+      tty->termscript = fopen (SDATA (file), "w");
+      if (tty->termscript == 0)
 	report_file_error ("Opening termscript", Fcons (file, Qnil));
     }
   return Qnil;
@@ -6233,20 +6240,23 @@ Control characters in STRING will have terminal-dependent effects.  */)
      (string)
      Lisp_Object string;
 {
+  struct tty_display_info *tty;
+
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
+
   if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
     error ("Current frame is not on a tty device");
+
+  tty = CURTTY ();
   
-  if (TTY_TERMSCRIPT (CURTTY ()))
+  if (tty->termscript)
     {
-      fwrite (SDATA (string), 1, SBYTES (string),
-	      TTY_TERMSCRIPT (CURTTY ()));
-      fflush (TTY_TERMSCRIPT (CURTTY ()));
+      fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
+      fflush (tty->termscript);
     }
-  fwrite (SDATA (string), 1, SBYTES (string),
-          TTY_OUTPUT (CURTTY ()));
-  fflush (TTY_OUTPUT (CURTTY ()));
+  fwrite (SDATA (string), 1, SBYTES (string), tty->output);
+  fflush (tty->output);
   return Qnil;
 }
 
@@ -6265,7 +6275,7 @@ terminate any keyboard macro currently executing.  */)
       else
 	ring_bell ();
       if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
-        fflush (TTY_OUTPUT (CURTTY ()));
+        fflush (CURTTY ()->output);
     }
   else
     bitch_at_user ();
@@ -6283,7 +6293,7 @@ bitch_at_user ()
   else
     ring_bell ();
   if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
-    fflush (TTY_OUTPUT (CURTTY ()));
+    fflush (CURTTY ()->output);
 }
 
 
