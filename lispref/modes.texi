@@ -188,16 +188,24 @@ The key sequences bound in a major mode keymap should usually start with
 characters are reserved for minor modes, and ordinary letters are
 reserved for users.
 
-It is reasonable for a major mode to rebind a key sequence with a
-standard meaning, if it implements a command that does ``the same job''
-in a way that fits the major mode better.  For example, a major mode for
-editing a programming language might redefine @kbd{C-M-a} to ``move to
-the beginning of a function'' in a way that works better for that
-language.
+A major mode can also rebind the keys @kbd{M-n}, @kbd{M-p} and
+@kbd{M-s}.  The bindings for @kbd{M-n} and @kbd{M-p} should normally
+be some kind of ``moving forward and backward,'' but this does not
+necessarily mean cursor motion.
 
-Major modes such as Dired or Rmail that do not allow self-insertion of
-text can reasonably redefine letters and other printing characters as
-editing commands.  Dired and Rmail both do this.
+It is legitimate for a major mode to rebind a standard key sequence if
+it provides a command that does ``the same job'' in a way better
+suited to the text this mode is used for.  For example, a major mode
+for editing a programming language might redefine @kbd{C-M-a} to
+``move to the beginning of a function'' in a way that works better for
+that language.
+
+It is also legitimate for a major mode to rebind a standard key
+sequence whose standard meaning is rarely useful in that mode.  For
+instance, minibuffer modes rebind @kbd{M-r}, whose standard meaning is
+rarely of any use in the minibuffer.  Major modes such as Dired or
+Rmail that do not allow self-insertion of text can reasonably redefine
+letters and other printing characters as special commands.
 
 @item
 Major modes must not define @key{RET} to do anything other than insert
