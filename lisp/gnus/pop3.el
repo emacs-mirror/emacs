@@ -139,7 +139,7 @@ Returns the process associated with the connection."
 					     mailhost)))
       (erase-buffer)
       (setq pop3-read-point (point-min))
-      (setq process (open-network-stream "POP"(current-buffer) mailhost port))
+      (setq process (open-network-stream "POP" (current-buffer) mailhost port))
       (let ((response (pop3-read-response process t)))
 	(setq pop3-timestamp
 	      (substring response (or (string-match "<" response) 0)
