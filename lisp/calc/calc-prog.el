@@ -520,7 +520,7 @@
     (cond ((stringp (car p))
 	   (let ((s (car p)))
 	     (if (and (string-match "\\`\\\\dots\\>" s)
-		      (not (eq calc-lang '(tex latex))))
+		      (not (memq calc-lang '(tex latex))))
 		 (setq s (concat ".." (substring s 5))))
 	     (if (or (and (string-match
 			   "[a-zA-Z0-9\"{}]\\|\\`:=\\'\\|\\`#\\|\\`%%" s)
@@ -587,7 +587,7 @@
 	 "(")
 	((and (equal name "}") (memq calc-lang '(tex latex eqn)))
 	 ")")
-	((and (equal name "&") (eq calc-lang '(tex latex)))
+	((and (equal name "&") (memq calc-lang '(tex latex)))
 	 ",")
 	((equal name "#")
 	 (search-backward "#")
