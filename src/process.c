@@ -1078,11 +1078,11 @@ Returns nil if format of ADDRESS is invalid.  */)
 	return Qnil;
 
       args[0] = build_string ("%d.%d.%d.%d:%d");
-      args[1] = XINT (p->contents[0]);
-      args[2] = XINT (p->contents[1]);
-      args[3] = XINT (p->contents[2]);
-      args[4] = XINT (p->contents[3]);
-      args[5] = XINT (p->contents[4]);
+      args[1] = p->contents[0];
+      args[2] = p->contents[1];
+      args[3] = p->contents[2];
+      args[4] = p->contents[3];
+      args[5] = p->contents[4];
       return Fformat (6, args);
     }
 
@@ -1090,7 +1090,7 @@ Returns nil if format of ADDRESS is invalid.  */)
     {
       Lisp_Object args[2];
       args[0] = build_string ("<Family %d>");
-      args[1] = XINT (Fcar (address));
+      args[1] = Fcar (address);
       return Fformat (2, args);
       
     }
