@@ -1615,7 +1615,7 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "T if NUMBER is zero.")
   return Qnil;
 }
 
-/* Convert between full-sized long integers and pairs of lispy integers.  */
+/* Convert between long values and pairs of Lisp integers.  */
 
 Lisp_Object
 long_to_cons (i)
