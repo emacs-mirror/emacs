@@ -1,3 +1,7 @@
+2003-06-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure: Regenerate.
+
 2003-06-23  Dave Love  <fx@gnu.org>
 
 	* configure.in: Check for sys/_mbstate_t.h.  Test
