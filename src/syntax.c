@@ -1731,6 +1731,9 @@ skip_syntaxes (forwardp, string, lim)
   if (XINT (lim) < BEGV)
     XSETFASTINT (lim, BEGV);
 
+  if (forward ? PT >= XFASTINT (lim) : PT <= XFASTINT (lim))
+    return 0;
+
   multibyte = (!NILP (current_buffer->enable_multibyte_characters)
 	       && (lim - PT != CHAR_TO_BYTE (lim) - PT_BYTE));
 
@@ -1774,27 +1777,28 @@ skip_syntaxes (forwardp, string, lim)
       {
 	if (multibyte)
 	  {
-	    if (pos < XINT (lim))
-	      while (fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
-		{
-		  /* Since we already checked for multibyteness,
-		     avoid using INC_BOTH which checks again.  */
-		  INC_POS (pos_byte);
-		  pos++;
-		  if (pos >= XINT (lim))
-		    break;
-		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
-		}
+	    while (fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
+	      {
+		/* Since we already checked for multibyteness,
+		   avoid using INC_BOTH which checks again.  */
+		INC_POS (pos_byte);
+		pos++;
+		if (pos >= XINT (lim))
+		  break;
+		UPDATE_SYNTAX_TABLE_FORWARD (pos);
+	      }
 	  }
 	else
 	  {
-	    while (pos < XINT (lim))
+	    while (1)
 	      {
 		c = FETCH_BYTE (pos_byte);
 		MAKE_CHAR_MULTIBYTE (c);
 		if (! fastmap[(int) SYNTAX (c)])
 		  break;
 		pos++, pos_byte++;
+		if (pos >= XINT (lim))
+		  break;
 		UPDATE_SYNTAX_TABLE_FORWARD (pos);
 	      }
 	  }
@@ -1803,13 +1807,15 @@ skip_syntaxes (forwardp, string, lim)
       {
 	if (multibyte)
 	  {
-	    while (pos > XINT (lim))
+	    while (1)
 	      {
 		int savepos = pos_byte;
 		/* Since we already checked for multibyteness,
 		   avoid using DEC_BOTH which checks again.  */
 		pos--;
 		DEC_POS (pos_byte);
+		if (pos <= XINT (lim))
+		  break;
 		UPDATE_SYNTAX_TABLE_BACKWARD (pos);
 		if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
 		  {
@@ -1821,18 +1827,17 @@ skip_syntaxes (forwardp, string, lim)
 	  }
 	else
 	  {
-	    if (pos > XINT (lim))
-	      while (1)
-		{
-		  c = FETCH_BYTE (pos_byte - 1);
-		  MAKE_CHAR_MULTIBYTE (c);
-		  if (! fastmap[(int) SYNTAX (c)])
-		    break;
-		  pos--, pos_byte--;
-		  if (pos <= XINT (lim))
-		    break;
-		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
-		}
+	    while (1)
+	      {
+		c = FETCH_BYTE (pos_byte - 1);
+		MAKE_CHAR_MULTIBYTE (c);
+		if (! fastmap[(int) SYNTAX (c)])
+		  break;
+		pos--, pos_byte--;
+		if (pos <= XINT (lim))
+		  break;
+		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+	      }
 	  }
       }
 
