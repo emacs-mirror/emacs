@@ -4815,6 +4815,10 @@ x_iconify_frame (f)
     error ("Can't notify window manager of iconification.");
 
   f->async_iconified = 1;
+
+  BLOCK_INPUT;
+  XFlushQueue ();
+  UNBLOCK_INPUT;
 #else /* not USE_X_TOOLKIT */
 
   BLOCK_INPUT;
@@ -4868,10 +4872,10 @@ x_iconify_frame (f)
       refreshicon (f);
     }
 #endif /* ! defined (HAVE_X11) */
-#endif /* not USE_X_TOOLKIT */
 
   XFlushQueue ();
   UNBLOCK_INPUT;
+#endif /* not USE_X_TOOLKIT */
 }
 
 /* Destroy the X window of frame F.  */
