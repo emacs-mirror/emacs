@@ -1917,22 +1917,27 @@ Otherwise, return nil; point may be changed."
        (goto-char beg)
        end))))
 
-(defun hack-local-variables-prop-line ()
+(defun hack-local-variables-prop-line (&optional mode-only)
   "Set local variables specified in the -*- line.
 Ignore any specification for `mode:' and `coding:';
 `set-auto-mode' should already have handled `mode:',
-`set-auto-coding' should already have handled `coding:'."
+`set-auto-coding' should already have handled `coding:'.
+If MODE-ONLY is non-nil, all we do is check whether the major mode
+is specified, returning t if it is specified."
   (save-excursion
     (goto-char (point-min))
     (let ((result nil)
 	  (end (set-auto-mode-1))
+	  mode-specified
 	  (enable-local-variables
 	   (and local-enable-local-variables enable-local-variables)))
-      ;; Parse the -*- line into the `result' alist.
+      ;; Parse the -*- line into the RESULT alist.
+      ;; Also set MODE-SPECIFIED if we see a spec or `mode'.
       (cond ((not end)
 	     nil)
 	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
 	     ;; Simple form: "-*- MODENAME -*-".  Already handled.
+	     (setq mode-specified t)
 	     nil)
 	    (t
 	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
@@ -1958,29 +1963,34 @@ Ignore any specification for `mode:' and `coding:';
 		 (or (equal (downcase (symbol-name key)) "mode")
 		     (equal (downcase (symbol-name key)) "coding")
 		     (setq result (cons (cons key val) result)))
+		 (if (equal (downcase (symbol-name key)) "mode")
+		     (setq mode-specified t))
 		 (skip-chars-forward " \t;")))
 	     (setq result (nreverse result))))
 
-      (if (and result
-	       (or (eq enable-local-variables t)
-		   (and enable-local-variables
-			(save-window-excursion
-			  (condition-case nil
-			      (switch-to-buffer (current-buffer))
-			    (error
-			     ;; If we fail to switch in the selected window,
-			     ;; it is probably a minibuffer.
-			     ;; So try another window.
-			     (condition-case nil
-				 (switch-to-buffer-other-window (current-buffer))
-			       (error
-				(switch-to-buffer-other-frame (current-buffer))))))
-			  (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
-					    (file-name-nondirectory buffer-file-name)))))))
-	  (let ((enable-local-eval enable-local-eval))
-	    (while result
-	      (hack-one-local-variable (car (car result)) (cdr (car result)))
-	      (setq result (cdr result))))))))
+      (if mode-only mode-specified
+	(if (and result
+		 (or mode-only
+		     (eq enable-local-variables t)
+		     (and enable-local-variables
+			  (save-window-excursion
+			    (condition-case nil
+				(switch-to-buffer (current-buffer))
+			      (error
+			       ;; If we fail to switch in the selected window,
+			       ;; it is probably a minibuffer.
+			       ;; So try another window.
+			       (condition-case nil
+				   (switch-to-buffer-other-window (current-buffer))
+				 (error
+				  (switch-to-buffer-other-frame (current-buffer))))))
+			    (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
+					      (file-name-nondirectory buffer-file-name)))))))
+	    (let ((enable-local-eval enable-local-eval))
+	      (while result
+		(hack-one-local-variable (car (car result)) (cdr (car result)))
+		(setq result (cdr result)))))
+	nil))))
 
 (defvar hack-local-variables-hook nil
   "Normal hook run after processing a file's local variables specs.
@@ -1991,12 +2001,14 @@ in order to initialize other data structure based on them.")
   "Parse and put into effect this buffer's local variables spec.
 If MODE-ONLY is non-nil, all we do is check whether the major mode
 is specified, returning t if it is specified."
-  (unless mode-only
-    (hack-local-variables-prop-line))
-  ;; Look for "Local variables:" line in last page.
-  (let (mode-specified
+  (let ((mode-specified
+	 ;; If MODE-ONLY is t, we check here for specifying the mode
+	 ;; in the -*- line.  If MODE-ONLY is nil, we process
+	 ;; the -*- line here.
+	 (hack-local-variables-prop-line mode-only))
 	(enable-local-variables
 	 (and local-enable-local-variables enable-local-variables)))
+    ;; Look for "Local variables:" line in last page.
     (save-excursion
       (goto-char (point-max))
       (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
