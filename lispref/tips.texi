@@ -647,6 +647,7 @@ The argument FOO can be either a number
 This prevents the open-parenthesis from being treated as the start of a
 defun (@pxref{Defuns,, Defuns, emacs, The GNU Emacs Manual}).
 
+@anchor{Docstring hyperlinks}
 @item
 @iftex
 When a documentation string refers to a Lisp symbol, write it as it
