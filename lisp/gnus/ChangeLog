@@ -1,5 +1,7 @@
 2000-11-03  Dave Love  <fx@gnu.org>
 
+	* gnus-nocem.el (gnus-nocem-check-article-limit): Default to 500.
+
 	* mm-partial.el (mm-inline-partial): Space-prefix temp buffer
 	name.
 
