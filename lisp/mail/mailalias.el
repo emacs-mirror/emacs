@@ -93,14 +93,14 @@ If `angles', they look like:
   :group 'mailalias)
 
 (defcustom mail-directory-function nil
-  "*Function to get completions from directory service or `nil' for none.
+  "*Function to get completions from directory service or nil for none.
 See `mail-directory-requery'."
   :type '(choice function (const nil))
   :group 'mailalias)
 
 ;; This is for when the directory is huge, or changes frequently.
 (defcustom mail-directory-requery nil
-  "*When non-`nil' call `mail-directory-function' for each completion.
+  "*When non-nil call `mail-directory-function' for each completion.
 In that case, one argument gets passed to the function, the partial string
 entered so far."
   :type 'boolean
@@ -478,7 +478,7 @@ PATTERN is the string we want to complete."
 
 
 (defun mail-directory (pattern)
-  "Call directory to get names matching PATTERN or all if `nil'.
+  "Call directory to get names matching PATTERN or all if nil.
 Calls `mail-directory-function' and applies `mail-directory-parser' to output."
   (save-excursion
     (message "Querying directory...")
