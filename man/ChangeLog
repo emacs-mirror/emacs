@@ -23,6 +23,11 @@
 	* ediff.texi, dired-x.texi: Add @setchapternewpage odd after
 	index.
 
+2000-06-14  Carsten Dominik  <dominik@astro.uva.nl>
+
+	* reftex.texi (Documentation): Updated to reftex version 4.14
+	* idlwave.texi (Documentation): Updated to idlwave version 4.2
+
 2000-05-31  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* .cvsignore (*.tmp): New entry.  Seems to be used for @macro.
