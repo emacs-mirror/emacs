@@ -249,6 +249,12 @@ BBDB fields.  SPECs are sexps which are evaluated:
 	 (not (featurep 'ph-options-file)))
     (load ph-options-file))
 
+(defun ph-cadr (obj)
+  (car (cadr obj)))
+
+(defun ph-cdar (obj)
+  (cdr (car obj)))
+
 (defun ph-mode ()
   "Major mode used in buffers displaying the results of PH queries.
 There is no sense in calling this command from a buffer other than
@@ -433,9 +439,9 @@ Fields not in FIELDS are discarded."
 		      (memq current-key fields))
 		  (if key
 		      (setq record (cons (cons key value) record)) ; New key
-		    (setcdr (car record) (if (listp (cdar record))
-					     (append (cdar record) (list value))
-					   (list (cdar record) value))))))))
+		    (setcdr (car record) (if (listp (ph-cdar record))
+					     (append (ph-cdar record) (list value))
+					   (list (ph-cdar record) value))))))))
 	(and (not ignore)
 	     (or (null fields)
 		 (memq 'all fields)
@@ -458,10 +464,10 @@ Fields not in FIELDS are discarded."
 
     ;; Search for multiple records
     (while (and rec
-		(not (listp (cdar rec))))
+		(not (listp (ph-cdar rec))))
       (setq rec (cdr rec)))
 
-    (if (null (cdar rec))
+    (if (null (ph-cdar rec))
 	(list record)			; No duplicate fields in this record
       (mapcar (function 
 	       (lambda (field)
@@ -481,7 +487,7 @@ Fields not in FIELDS are discarded."
 			   (ph-add-field-to-records field result)))
 		    ((eq 'first method)
 		     (setq result 
-			   (ph-add-field-to-records (cons (car field) (cadr field)) result)))
+			   (ph-add-field-to-records (cons (car field) (ph-cadr field)) result)))
 		    ((eq 'concat method)
 		     (setq result 
 			   (ph-add-field-to-records (cons (car field)
@@ -690,7 +696,7 @@ If RECURSE is non-nil then SPEC may be a list of atomic specs"
 ADDR should be an address string of no more than four lines or a
 list of lines. 
 The last line is searched for the zip code, city and state name.
-LOCATION is used as the address location for bbdb"
+LOCATION is used as the address location for bbdb."
   (let* ((addr-components (if (listp addr)
 			      (reverse addr)
 			    (reverse (split-string addr "\n"))))
@@ -728,9 +734,9 @@ LOCATION is used as the phone location for bbdb"
       (condition-case err
 	  (setq phone-list (bbdb-parse-phone-number phone))
 	(error
-	 (if (string= "phone number unparsable." (cadr err))
+	 (if (string= "phone number unparsable." (ph-cadr err))
 	     (if (not (y-or-n-p (format "BBDB claims %S to be unparsable. Insert it unparsed ? " phone)))
-		 (error "phone number unparsable.")
+		 (error "phone number unparsable")
 	       (setq phone-list (list (bbdb-string-trim phone))))
 	   (signal (car err) (cdr err)))))
       (if (= 3 (length phone-list))
@@ -831,13 +837,13 @@ If ph-expanding-overwrites-query is t then the meaning of REPLACE is inverted."
 	      query-format (cdr query-format)))
       (if words
 	  (setcdr (car query-alist)
-		  (concat (cdar query-alist) " "
+		  (concat (ph-cdar query-alist) " "
 			  (mapconcat 'identity words " "))))
       ;; Uniquify query-alist
       (setq query-alist (nreverse query-alist))
       (while query-alist
 	(setq key (caar query-alist)
-	      val (cdar query-alist)
+	      val (ph-cdar query-alist)
 	      cell (assq key query))
 	(if cell
 	    (setcdr cell (concat val " " (cdr cell)))
@@ -984,7 +990,7 @@ for the existing fields and displays a corresponding form."
 	    (if (listp sexp)
 		(progn
 		  (if (and (eq (car sexp)  'setq)
-			   (eq (cadr sexp) 'ph-server-hotlist))
+			   (eq (ph-cadr sexp) 'ph-server-hotlist))
 		      (progn 
 			(delete-region (save-excursion
 					 (backward-sexp)
@@ -992,7 +998,7 @@ for the existing fields and displays a corresponding form."
 				       (point))
 			(setq setq-p t)))
 		  (if (and (eq (car sexp)  'provide)
-			   (equal (cadr sexp) '(quote ph-options-file)))
+			   (equal (ph-cadr sexp) '(quote ph-options-file)))
 		      (setq provide-p t))
 		  (if (and provide-p
 			   setq-p)
@@ -1016,7 +1022,7 @@ This function can only be called from a PH/QI query result buffer."
   (let ((record (and (overlays-at (point))
 		     (overlay-get (car (overlays-at (point))) 'ph-record))))
     (if (null record)
-	(error "Point is not over a record.")
+	(error "Point is not over a record")
       (ph-create-bbdb-record record))))
 
 (defun ph-try-bbdb-insert ()
