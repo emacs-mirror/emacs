@@ -1,3 +1,8 @@
+2001-06-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* ffap.el (ffap-machine-p): Always return nil if
+	open-network-stream is not fboundp.
+
 2001-06-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/sgml-mode.el: Move `provide' to the end.  Update copyright.
