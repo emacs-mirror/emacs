@@ -782,8 +782,21 @@ there."
 	 (mapconcat 'char-to-string macro-name-or-body ""))
 	(t macro-name-or-body)))
     
+;; convert sequence of events (that came presumably from emacs kbd macro) into
+;; Viper's macro, which is a vector of the form
+;; [ desc desc ... ]
+;; Each desc is either a symbol of (meta symb), (shift symb), etc.
+;; Here we purge events that happen to be lists. In most cases, these events
+;; got into a macro definition unintentionally; say, when the user moves mouse
+;; during a macro definition, then something like (switch-frame ...) might get
+;; in. Another reason for purging lists-events is that we can't store them in
+;; textual form (say, in .emacs) and then read them back.
 (defun vip-events-to-macro (event-seq)
-  (vconcat (delq nil (mapcar 'vip-event-key event-seq))))
+  (vconcat (delq nil (mapcar (function (lambda (elt)
+					 (if (consp elt)
+					     nil
+					   (vip-event-key elt))))
+			     event-seq))))
   
 ;; convert strings or arrays of characters to Viper macro form
 (defun vip-char-array-to-macro (array)
