@@ -1,5 +1,8 @@
 2004-10-28  Kenichi Handa  <handa@m17n.org>
 
+	* international/utf-8.el (utf-translate-cjk-charsets): Add
+	katakana-jisx0201.
+
 	* international/subst-jis.el: Add data for JISX0201.
 
 2004-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
