@@ -1,3 +1,8 @@
+2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* editfns.c (Fchar_to_string): Make the doc string consistent with
+	arguments.
+
 2001-10-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (select_window_1): Unfreeze window start.  Remove a
