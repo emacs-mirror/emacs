@@ -740,6 +740,30 @@ If kbd macro currently being defined end it before activating it."
 ;; letters and digits, provided that we inhibit the keymap while
 ;; executing the macro later on (but that's controversial...)
 
+(defun kmacro-lambda-form (mac &optional counter format)
+  "Create lambda form for macro bound to symbol or key."
+  (if counter
+      (setq mac (list mac counter format)))
+  `(lambda (&optional arg)
+     "Keyboard macro."
+     (interactive "p")
+     (kmacro-exec-ring-item ',mac arg)))
+
+(defun kmacro-extract-lambda (mac)
+  "Extract kmacro from a kmacro lambda form."
+  (and (consp mac)
+       (eq (car mac) 'lambda)
+       (setq mac (assoc 'kmacro-exec-ring-item mac))
+       (consp (cdr mac))
+       (consp (car (cdr mac)))
+       (consp (cdr (car (cdr mac))))
+       (setq mac (car (cdr (car (cdr mac)))))
+       (listp mac)
+       (= (length mac) 3)
+       (arrayp (car mac))
+       mac))
+
+
 (defun kmacro-bind-to-key (arg)
   "When not defining or executing a macro, offer to bind last macro to a key.
 The key sequences [C-x C-k 0] through [C-x C-k 9] and [C-x C-k A]
@@ -775,10 +799,7 @@ may be shaded by a local key binding."
 					  (format-kbd-macro key-seq)
 					  cmd))))
 	(define-key global-map key-seq
-	  `(lambda (&optional arg)
-	     "Keyboard macro."
-	     (interactive "p")
-	     (kmacro-exec-ring-item ',(kmacro-ring-head) arg)))
+	  (kmacro-lambda-form (kmacro-ring-head)))
 	(message "Keyboard macro bound to %s" (format-kbd-macro key-seq))))))
 
 
@@ -798,11 +819,7 @@ Such a \"function\" cannot be called from Lisp, but it is a valid editor command
 	      symbol))
   (if (string-equal symbol "")
       (error "No command name given"))
-  (fset symbol
-	`(lambda (&optional arg)
-	   "Keyboard macro."
-	   (interactive "p")
-	   (kmacro-exec-ring-item ',(kmacro-ring-head) arg)))
+  (fset symbol (kmacro-lambda-form (kmacro-ring-head)))
   (put symbol 'kmacro t))
 
 
