@@ -650,29 +650,39 @@ FILE should be the name of a library, with no directory name."
 ;;;; Input and display facilities.
 
 (defun read-quoted-char (&optional prompt)
-  "Like `read-char', except that if the first character read is an octal
-digit, we read up to two more octal digits and return the character
-represented by the octal number consisting of those digits.
-Optional argument PROMPT specifies a string to use to prompt the user."
-  (let ((message-log-max nil) (count 0) (code 0) char)
-    (while (< count 3)
-      (let ((inhibit-quit (zerop count))
+  "Like `read-char', but do not allow quitting.
+Also, if the first character read is an octal digit,
+we read any number of octal digits and return the
+soecified character code.  Any nondigit terminates the sequence.
+If the terminator is a space, it is discarded;
+any other terminator is used itself as input.
+
+The optional argument PROMPT specifies a string to use to prompt the user."
+  (let ((message-log-max nil) done (first t) (code 0) char)
+    (while (not done)
+      (let ((inhibit-quit first)
 	    ;; Don't let C-h get the help message--only help function keys.
 	    (help-char nil)
 	    (help-form
 	     "Type the special character you want to use,
-or three octal digits representing its character code."))
+or the octal character code.
+Space terminates the character code and is discarded;
+any other non-digit terminates the character code and is then used as input."))
 	(and prompt (message "%s-" prompt))
 	(setq char (read-char))
 	(if inhibit-quit (setq quit-flag nil)))
       (cond ((null char))
 	    ((and (<= ?0 char) (<= char ?7))
-	     (setq code (+ (* code 8) (- char ?0))
-		   count (1+ count))
+	     (setq code (+ (* code 8) (- char ?0)))
 	     (and prompt (setq prompt (message "%s %c" prompt char))))
-	    ((> count 0)
-	     (setq unread-command-events (list char) count 259))
-	    (t (setq code char count 259))))
+	    ((and (not first) (eq char ?\ ))
+	     (setq done t))
+	    ((not first)
+	     (setq unread-command-events (list char)
+		   done t))
+	    (t (setq code char
+		     done t)))
+      (setq first nil))
     ;; Turn a meta-character into a character with the 0200 bit set.
     (logior (if (/= (logand code ?\M-\^@) 0) 128 0)
 	    code)))
