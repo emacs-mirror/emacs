@@ -2985,6 +2985,89 @@ This has an effect only if a summary buffer exists."
 	    (font-lock-fontify-region (point-min) (point-max))
 	    (and (not modified) (buffer-modified-p) (set-buffer-modified-p nil)))))))
 
+;;; Speedbar support for RMAIL files.
+(eval-when-compile (require 'speedbspec))
+
+(defvar rmail-speedbar-last-user nil
+  "The last user to be displayed in the speedbar.")
+
+(defvar rmail-speedbar-menu-items
+  '(["Browse Item On Line" speedbar-edit-line t]
+    ["Move message to folder" rmail-move-message-to-folder-on-line
+     (save-excursion (beginning-of-line)
+		     (looking-at "<M> "))])
+  "Additional menu-items to add to speedbar frame.")
+
+(defun rmail-speedbar-buttons (buffer)
+  "Create buttons for BUFFER containing rmail messages.
+Click on the address under Reply to: to reply to this person.
+Under Folders: Click a name to read it, or on the <M> to move the
+current message into that RMAIL folder."
+  (let ((from nil))
+    (save-excursion
+      (set-buffer buffer)
+      (goto-char (point-min))
+      (if (not (re-search-forward "^Reply-To: " nil t))
+	  (if (not (re-search-forward "^From:? " nil t))
+	      (setq from t)))
+      (if from
+	  nil
+	(setq from (buffer-substring (point) (save-excursion
+					       (end-of-line)
+					       (point))))))
+    (goto-char (point-min))
+    (if (and (looking-at "Reply to:")
+	     (equal from rmail-speedbar-last-user))
+	nil
+      (setq rmail-speedbar-last-user from)
+      (erase-buffer)
+      (insert "Reply To:\n")
+      (if (stringp from)
+	  (speedbar-insert-button from 'speedbar-directory-face 'highlight
+				  'rmail-speedbar-button 'rmail-reply))
+      (insert "Folders:\n")
+      (let* ((case-fold-search nil)
+	     (df (directory-files (save-excursion (set-buffer buffer)
+						  default-directory)
+				  nil "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$")))
+	(while df
+	  (speedbar-insert-button "<M>" 'speedbar-button-face 'highlight
+				  'rmail-speedbar-move-message (car df))
+	  (speedbar-insert-button (car df) 'speedbar-file-face 'highlight
+				  'rmail-speedbar-find-file nil t)
+	  (setq df (cdr df)))))))
+
+(defun rmail-speedbar-button (text token indent)
+  "Execute an rmail command specified by TEXT.
+The command used is TOKEN.  INDENT is not used."
+  (speedbar-with-attached-buffer
+   (funcall token t)))
+
+(defun rmail-speedbar-find-file (text token indent)
+  "Load in the rmail file TEXT.
+TOKEN and INDENT are not used."
+  (speedbar-with-attached-buffer
+   (message "Loading in RMAIL file %s..." text)
+   (find-file text)))
+
+(defun rmail-move-message-to-folder-on-line ()
+  "If the current line is a folder, move current message to it."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (if (re-search-forward "<M> " (save-excursion (end-of-line) (point)) t)
+	(progn
+	  (forward-char -2)
+	  (speedbar-do-function-pointer)))))
+
+(defun rmail-speedbar-move-message (text token indent)
+  "From button TEXT, copy current message to the rmail file specified by TOKEN.
+TEXT and INDENT are not used."
+  (speedbar-with-attached-buffer
+   (message "Moving message to %s" token)
+   (rmail-output-to-rmail-file token)))
+
+
 (provide 'rmail)
 
 ;;; rmail.el ends here
