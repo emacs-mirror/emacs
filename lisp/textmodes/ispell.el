@@ -2059,8 +2059,9 @@ warns you if the previous word is incorrectly spelled."
                ;; Matches reporter.el bug report
                "^current state:\n==============\n"
 	       ;; Matches "----------------- cut here"
-	       ;; and "------- Start of forwarded message"
-	       "^[-=_]+\\s ?\\(cut here\\|Start of forwarded message\\)")
+               ;; and "------- Start of forwarded message",
+	       ;; or either one with "- " in front.
+               "^\\(- \\)?[-=_]+\\s ?\\(cut here\\|\\(Start of \\)?forwarded message\\)")
 	     "\\|")
   "*End of text which will be checked in ispell-message.
 If it is a string, limit at first occurrence of that regular expression.
