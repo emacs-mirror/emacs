@@ -399,7 +399,7 @@ fontset_pattern_regexp (pattern)
 
       /* Convert "*" to ".*", "?" to ".".  */
       *p1++ = '^';
-      for (p0 = XSTRING (pattern)->data; *p0; p0++)
+      for (p0 = (char *) XSTRING (pattern)->data; *p0; p0++)
 	{
 	  if (*p0 == '*')
 	    {
