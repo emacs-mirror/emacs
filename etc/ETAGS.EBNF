@@ -8,7 +8,7 @@ This file contains two sections:
 
 ====================== 1) EBNF tag file description =====================
 
-Productions created from current behavior to aid extensions
+Productions created from current behaviour to aid extensions
 Francesco Potorti` <pot@gnu.org> 2002
 ----------------
 
@@ -80,8 +80,11 @@ redundant; this happens when the name of a tag is an easily guessable
 substring of the tag pattern.  We define a set of rules to decide
 whether it is possible to deduce the tag name from the pattern, and make
 an unnamed tag in those cases.  The name deduced from the pattern of an
-unnamed tag is the implicit name of that tag.  etags.c uses implicit tag
-names when possible, in order to reduce the size of the tags file.
+unnamed tag is the implicit name of that tag.
+  When the user looks for a tag, and Emacs founds no explicit tag names
+that match it, Emacs then looks for an tag whose implicit tag name
+matches the request.  etags.c uses implicit tag names when possible, in
+order to reduce the size of the tags file.
   An implicit tag name is deduced from the pattern by discarding the
 last character if it is one of ` \f\t\n\r()=,;', then taking all the
 rightmost consecutive characters in the pattern which are not one of
