@@ -31,17 +31,17 @@
 (make-coding-system
  'greek-iso-8bit 2 ?7
  "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)"
- '((ascii t) (greek-iso8859-7 t) nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil)
- '(ascii greek-iso8859-7))
+ '(ascii greek-iso8859-7 nil nil
+   nil nil nil nil nil nil nil)
+ '((safe-charsets ascii greek-iso8859-7)
+   (mime-charset . iso-8859-7)))
 
 (define-coding-system-alias 'iso-8859-7 'greek-iso-8bit)
 
 (defun setup-greek-environment ()
   "Setup multilingual environment (MULE) for Greek."
   (interactive)
-  (setup-8-bit-environment "Greek" 'greek-iso8859-7 'greek-iso-8bit
-			   "greek"))
+  (setup-8-bit-environment "Greek" 'greek-iso8859-7 "greek-postfix"))
 
 (set-language-info-alist
  "Greek" '((setup-function . setup-greek-environment)
