@@ -509,31 +509,49 @@ Elements of ALIST that are not conses are also shared.")
 DEFUN ("substring", Fsubstring, Ssubstring, 2, 3, 0,
   "Return a substring of STRING, starting at index FROM and ending before TO.\n\
 TO may be nil or omitted; then the substring runs to the end of STRING.\n\
-If FROM or TO is negative, it counts from the end.")
+If FROM or TO is negative, it counts from the end.\n\
+\n\
+This function allows vectors as well as strings.")
   (string, from, to)
      Lisp_Object string;
      register Lisp_Object from, to;
 {
   Lisp_Object res;
+  int size;
 
-  CHECK_STRING (string, 0);
+  if (! (STRINGP (string) || VECTORP (string)))
+    wrong_type_argument (Qarrayp, string);
+
   CHECK_NUMBER (from, 1);
+
+  if (STRINGP (string))
+    size = XSTRING (string)->size;
+  else
+    size = XVECTOR (string)->size;
+
   if (NILP (to))
-    to = Flength (string);
+    to = size;
   else
     CHECK_NUMBER (to, 2);
 
   if (XINT (from) < 0)
-    XSETINT (from, XINT (from) + XSTRING (string)->size);
+    XSETINT (from, XINT (from) + size);
   if (XINT (to) < 0)
-    XSETINT (to, XINT (to) + XSTRING (string)->size);
+    XSETINT (to, XINT (to) + size);
   if (!(0 <= XINT (from) && XINT (from) <= XINT (to)
-        && XINT (to) <= XSTRING (string)->size))
+        && XINT (to) <= size))
     args_out_of_range_3 (string, from, to);
 
-  res = make_string (XSTRING (string)->data + XINT (from),
-		     XINT (to) - XINT (from));
-  copy_text_properties (from, to, string, make_number (0), res, Qnil);
+  if (STRINGP (string))
+    {
+      res = make_string (XSTRING (string)->data + XINT (from),
+			 XINT (to) - XINT (from));
+      copy_text_properties (from, to, string, make_number (0), res, Qnil);
+    }
+  else
+    res = Fvector (XINT (to) - XINT (from),
+		   XVECTOR (string)->contents + XINT (from));
+		   
   return res;
 }
 
