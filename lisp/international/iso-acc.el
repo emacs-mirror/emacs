@@ -47,8 +47,8 @@
 ;; self-insert-command, the dead-key code is terminated, the
 ;; pseudo-accent inserted 'as is' and the bell is rung to signal this.
 ;;
-;; Function `iso-accents' can be used to enable the iso accents
-;; minor mode, or disable it when called with a non-null argument.
+;; Function `iso-accents-mode' can be used to enable the iso accents
+;; minor mode, or disable it.
 
 ;;; Code:
 
@@ -104,10 +104,10 @@
     ((?\" ? ) ?\")
     ((?\" ?\") ?\250)
     )
-  "Association list for iso accent combinations.")
+  "Association list for ISO accent combinations.")
 
 (defun iso-accents-dead-key ()
-  "Emulate typewriter dead keys."
+  "Modify the following character by adding an accent to it."
   (interactive)
 
   ;; Pick up the dead-key.
@@ -135,10 +135,11 @@
 	    (beep 1))))))
 
 (defvar iso-accents-minor-mode nil
-  "Buffer local variable that denotes 'dead key' minor mode.")
+  "*Non-nil enables ISO-accents mode.
+See `iso-accents-mode'."
 
 (defvar iso-accents-prefix-map nil
-  "Keymap for 'dead key' minor mode.")
+  "Keymap for ISO-accents minor mode.")
 
 ;; It is a matter of taste if you want the minor mode indicated
 ;; in the mode line...
@@ -149,13 +150,15 @@
 ;; 		  '((iso-accents-minor-mode " ISO-Acc")))))
 
 ;;;###autoload
-(defun iso-accents (&optional arg)
-  "Allow easy insertion of accented characters according to ISO-8859-1.
-When called without an argument, or with a null argument, pseudo-accent
-keys (', \", ^ and ~) will behave like dead typewriter keys: when 
-followed by an appropriate character the combination will be replaced
-by the corresponding ISO character code for the accented character.
-Calling `iso-accents' with an argument will make all keys normal again."
+(defun iso-accents-mode (&optional arg)
+  "Toggle a minor mode in which accent modify the following letter.
+This permits easy insertion of accented characters according to ISO-8859-1.
+When Iso-accents mode is enabled, accent character keys
+\(', \", ^ and ~) do not self-insert; instead, they modify the following
+letter key so that it inserts an ISO accented letter.
+
+With an argument, a positive argument enables ISO-accents mode, 
+and a negative argument disables it."
 ;; When called, a buffer local variable iso-accents-minor-mode is created
 ;; to record iso-accents-minor-mode status.
 ;; A minor mode map `iso-accents-prefix-map' is used to activate the dead
@@ -166,8 +169,11 @@ Calling `iso-accents' with an argument will make all keys normal again."
   ;; Create buffer local variable iso-accents-minor-mode.
   (make-local-variable 'iso-accents-minor-mode)
 
-  (if arg
-      ;; Switch it off.
+  (if (if arg
+	  ;; Negative arg means switch it off.
+	  (<= (prefix-numeric-value arg) 0)
+	;; No arg means toggle.
+	iso-accents-minor-mode)
       (setq iso-accents-minor-mode nil)
 
     ;; Enable electric accents.
