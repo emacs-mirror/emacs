@@ -12,6 +12,12 @@ Small but important fixes needed in existing features:
 * Make compile.el record the markers that point to error loci
   on text properties in the error message lines.
 
+* Fix the kill/yank treatment of invisible text. At the moment,
+  invisible text is placed in the kill-ring, so that the contents of
+  the ring may not correspond to the text as displayed to the user. It
+  ought to be possible to omit text which is invisible (due to a
+  text-property, overlay, or selective display) from the kill-ring.
+
 Important features:
 
 * Provide user-friendly ways to list all available font families,

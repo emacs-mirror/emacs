@@ -900,6 +900,10 @@ appointments, paydays or anything else using a sexp.
 year and day number, and moves to that date. Negative day numbers
 count backward from the end of the year.
 
+** The function `simple-diary-display' now by default sets a header line.
+This can be controlled through the variables `diary-header-line-flag'
+and `diary-header-line-format'.
+
 ** VC Changes
 
 *** The key C-x C-q no longer checks files in or out, it only changes

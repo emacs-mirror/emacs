@@ -1,3 +1,12 @@
+2003-09-02  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-header-line-flag)
+	(diary-header-line-format): New variables.
+	(list-diary-entries): Use them to set header line in simple diary.
+
+	* progmodes/sh-script.el (sh-font-lock-keywords): Use something
+	other than font-lock-string-face to highlight backslashes.
+
 2003-09-01  Jason Rumney  <jasonr@gnu.org>
 
 	* international/titdic-cnv.el (tit-read-key-value): Include \r in
