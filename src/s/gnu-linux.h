@@ -217,5 +217,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Rob Malouf <malouf@csli.stanford.edu> says:
    SYSV IPC is standard a standard part of Linux since version 0.99pl10,
    and is a very common addition to previous versions.  */
-#define LIBS_MACHINE -lipc
+/* alane@wozzle.linet.org says that -lipc is not a separate library,
+   since libc-4.4.1.  So -lipc was deleted.  */
+#define LIBS_MACHINE
 #define HAVE_SYSVIPC
