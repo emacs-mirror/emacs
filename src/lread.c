@@ -1907,7 +1907,23 @@ read1 (readcharfun, pch, first_in_list)
 	      }
 #ifdef LISP_FLOAT_TYPE
 	    if (isfloat_string (read_buffer))
-	      return make_float (atof (read_buffer));
+	      {
+		double value = atof (read_buffer);
+		if (read_buffer[0] == '-' && value == 0.0)
+		  value *= -1.0;
+		/* The only way this can be true, after isfloat_string
+		   returns 1, is if the input ends in e+INF or e+NaN.  */
+		if (p[-1] == 'F' || p[-1] == 'N')
+		  {
+		    if (p[-1] == 'N')
+		      value = 0.0 / 0.0;
+		    else if (read_buffer[0] == '-')
+		      value = -1.0e999;
+		    else
+		      value = 1.0e999;
+		  }
+		return make_float (value);
+	      }
 #endif
 	  }
 
@@ -1968,6 +1984,17 @@ isfloat_string (cp)
       while (*cp >= '0' && *cp <= '9')
 	cp++;
     }
+  else if (cp[-1] == '+' && cp[0] == 'I' && cp[1] == 'N' && cp[2] == 'F')
+    {
+      state |= EXP_INT;
+      cp += 3;
+    }
+  else if (cp[-1] == '+' && cp[0] == 'N' && cp[1] == 'a' && cp[2] == 'N')
+    {
+      state |= EXP_INT;
+      cp += 3;
+    }
+
   return (((*cp == 0) || (*cp == ' ') || (*cp == '\t') || (*cp == '\n') || (*cp == '\r') || (*cp == '\f'))
 	  && (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
 	      || state == (DOT_CHAR|TRAIL_INT)
