@@ -68,7 +68,7 @@ strings or patterns."
 				   query-replace-to-history-variable from t))
     (list from to current-prefix-arg)))
 
-(defun query-replace (from-string to-string &optional arg)
+(defun query-replace (from-string to-string &optional delimited)
   "Replace some occurrences of FROM-STRING with TO-STRING.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
@@ -91,11 +91,11 @@ only matches surrounded by word boundaries.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
   (interactive (query-replace-read-args "Query replace" nil))
-  (perform-replace from-string to-string t nil arg))
+  (perform-replace from-string to-string t nil delimited))
 
 (define-key esc-map "%" 'query-replace)
 
-(defun query-replace-regexp (regexp to-string &optional arg)
+(defun query-replace-regexp (regexp to-string &optional delimited)
   "Replace some things after point matching REGEXP with TO-STRING.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
@@ -115,10 +115,10 @@ In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
  whatever what matched the Nth `\\(...\\)' in REGEXP."
   (interactive (query-replace-read-args "Query replace regexp" t))
-  (perform-replace regexp to-string t t arg))
+  (perform-replace regexp to-string t t delimited))
 (define-key esc-map [?\C-%] 'query-replace-regexp)
 
-(defun query-replace-regexp-eval (regexp to-expr &optional arg)
+(defun query-replace-regexp-eval (regexp to-expr &optional delimited)
   "Replace some things after point matching REGEXP with the result of TO-EXPR.
 As each match is found, the user must type a character saying
 what to do with it.  For directions, type \\[help-command] at that time.
@@ -159,9 +159,10 @@ only matches surrounded by word boundaries."
      ;; and the user might enter a single token.
      (replace-match-string-symbols to)
      (list from (car to) current-prefix-arg)))
-  (perform-replace regexp (cons 'replace-eval-replacement to-expr) t t arg))
+  (perform-replace regexp (cons 'replace-eval-replacement to-expr)
+		   t t delimited))
 
-(defun map-query-replace-regexp (regexp to-strings &optional arg)
+(defun map-query-replace-regexp (regexp to-strings &optional delimited)
   "Replace some matches for REGEXP with various strings, in rotation.
 The second argument TO-STRINGS contains the replacement strings, separated
 by spaces.  This command works like `query-replace-regexp' except
@@ -204,7 +205,7 @@ before rotating to the next."
 				       (1+ (string-match " " to-strings))))
 	  (setq replacements (append replacements (list to-strings))
 		to-strings ""))))
-    (perform-replace regexp replacements t t nil arg)))
+    (perform-replace regexp replacements t t nil delimited)))
 
 (defun replace-string (from-string to-string &optional delimited)
   "Replace occurrences of FROM-STRING with TO-STRING.
