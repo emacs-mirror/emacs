@@ -3297,7 +3297,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #ifdef FIOSNBIO
       /* If available, Xlib uses FIOSNBIO to make the socket
 	 non-blocking, and then looks for EWOULDBLOCK.  If O_NDELAY is set,
-	 FIOSNBIO is ignored, and instead of signalling EWOULDBLOCK,
+	 FIOSNBIO is ignored, and instead of signaling EWOULDBLOCK,
 	 a read returns 0, which Xlib interprets as equivalent to EPIPE. */
       fcntl (dpyinfo->connection, F_SETFL, 0);
 #endif /* ! defined (FIOSNBIO) */
@@ -3461,6 +3461,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
 		SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
 		SELECTION_EVENT_TIME (bufp) = eventp->time;
+		bufp->frame_or_window = Qnil;
 		bufp++;
 
 		count += 1;
@@ -3490,6 +3491,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  SELECTION_EVENT_TARGET (bufp) = eventp->target;
 		  SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
 		  SELECTION_EVENT_TIME (bufp) = eventp->time;
+		  bufp->frame_or_window = Qnil;
 		  bufp++;
 
 		  count += 1;
