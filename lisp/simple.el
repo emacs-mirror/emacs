@@ -1100,7 +1100,7 @@ we stop and ignore all further elements."
 If it crosses the edge, we return nil."
   (cond ((integerp undo-elt)
 	 (and (>= undo-elt start)
-	      (<  undo-elt end)))
+	      (<= undo-elt end)))
 	((eq undo-elt nil)
 	 t)
 	((atom undo-elt)
@@ -1120,16 +1120,16 @@ If it crosses the edge, we return nil."
 		   (cons alist-elt undo-adjusted-markers)))
 	   (and (cdr alist-elt)
 		(>= (cdr alist-elt) start)
-		(< (cdr alist-elt) end))))
+		(<= (cdr alist-elt) end))))
 	((null (car undo-elt))
 	 ;; (nil PROPERTY VALUE BEG . END)
 	 (let ((tail (nthcdr 3 undo-elt)))
 	   (and (>= (car tail) start)
-		(< (cdr tail) end))))
+		(<= (cdr tail) end))))
 	((integerp (car undo-elt))
 	 ;; (BEGIN . END)
 	 (and (>= (car undo-elt) start)
-	      (< (cdr undo-elt) end)))))
+	      (<= (cdr undo-elt) end)))))
 
 (defun undo-elt-crosses-region (undo-elt start end)
   "Test whether UNDO-ELT crosses one edge of that region START ... END.
