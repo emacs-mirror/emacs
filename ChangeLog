@@ -1,3 +1,7 @@
+2002-05-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* config.bat: Handle the case when lispintro is truncated to lispintr.
+
 2002-05-26  Paul Eggert  <eggert@twinsun.com>
 
 	* config.guess, config.sub: Updated from master source.
