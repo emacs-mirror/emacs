@@ -1,3 +1,14 @@
+2000-01-05  Carsten Dominik  <dominik@astro.uva.nl>
+
+	* progmodes/idlw-shell.el: Also provide idlwave-shell
+	* progmodes/idlw-rinfo.el: Also provide idlwave-rinfo
+	* progmodes/idlw-toolbar.el: Also provide idlwave-toolbar
+
+	* textmodes/reftex-dcr.el: renamed from reftex-vcr.el, provide
+	both reftex-dcr and reftex-vcr.
+	
+	* textmodes/reftex.el: Renamed reftex-vcr.el to reftex-dcr.el
+
 2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: PostScript code now is in separate files, doc fix.
