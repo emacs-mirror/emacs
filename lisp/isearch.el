@@ -522,6 +522,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-small-window nil
 	isearch-just-started t
 	isearch-multibyte-characters-flag nil
+	isearch-input-method nil
 
 	isearch-opoint (point)
 	search-ring-yank-pointer nil
@@ -1172,7 +1173,7 @@ Obsolete."
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
   (interactive)
-  (if isearch-multibyte-characters-flag
+  (if isearch-input-method
       (isearch-process-search-multibyte-characters (isearch-last-command-char))
     (isearch-process-search-char (isearch-last-command-char))))
 
@@ -1408,8 +1409,8 @@ If there is no completion possible, say so and continue searching."
 		   (if isearch-regexp "regexp " "")
 		   (if nonincremental "search" "I-search")
 		   (if isearch-forward "" " backward")
-		   (if isearch-multibyte-characters-flag
-		       (concat " [" default-input-method-title "]: ")
+		   (if isearch-input-method
+		       (concat " [" isearch-input-method-title "]: ")
 		     ": ")
 		   )))
     (aset m 0 (upcase (aref m 0)))
