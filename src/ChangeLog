@@ -1,5 +1,12 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
+	FOREACH is a macro that should make it easier to loop over Lisp
+	lists with checks for cycles and proper lists.
+
+	* lisp.h (LIST_END_P, FOREACH): New macros.
+
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
 	On some systems, XtCloseDisplay seems to cause a SIGSEGV when
 	called for a lost connection.  Prevent dumping core in this case.
 	Instead print the X error, and exit.  On user request.

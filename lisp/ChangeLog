@@ -1,5 +1,13 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
+	This allows upto 99999 messages in the summary without screwing up
+	the summary.  Previously 9999 were the maximum.
+	
+	* mail/rmailsum.el (rmail-make-summary-line) 
+	(rmail-make-summary-line-1, rmail-summary-next-same-subject) 
+	(rmail-summary-goto-msg, rmail-summary-goto-msg): Allow
+	5-digit message ids instead of 4.
+
 	This adds expansion of environment variables in the value
 	specified with M-x setenv.  Added to NEWS.
 
