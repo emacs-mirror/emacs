@@ -1,6 +1,6 @@
 ;;; map-ynp.el --- General-purpose boolean question-asker.
 
-;;; Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: lisp, extensions
@@ -76,23 +76,9 @@ but not all of the responses which `query-replace' understands
 are meaningful here.
 
 Returns the number of actions taken."
-  (let* ((user-keys (if action-alist
-			(concat (mapconcat (function
-					    (lambda (elt)
-					      (key-description
-					       (char-to-string (car elt)))))
-					   action-alist ", ")
-				" ")
-		      ""))
-	 ;; Make a map that defines each user key as a vector containing
-	 ;; its definition.
-	 (map (cons 'keymap
-		    (append (mapcar (lambda (elt)
-				      (cons (car elt) (vector (nth 1 elt))))
-				    action-alist)
-			    query-replace-map)))
-	 (actions 0)
-	 prompt char elt tail def delayed-switch-frame
+  (let* ((actions 0)
+	 user-keys mouse-event map prompt char elt tail def
+	 delayed-switch-frame
 	 (next (if (or (and list (symbolp list))
 		       (subrp list)
 		       (byte-code-function-p list)
@@ -107,6 +93,37 @@ Returns the number of actions taken."
 					 list (cdr list))
 				   t)
 			       nil))))))
+    (if (listp last-nonmenu-event)
+	;; Make a list describing a dialog box.
+	(let ((object (capitalize (nth 0 help)))
+	      (objects (capitalize (nth 1 help)))
+	      (action (capitalize (nth 2 help))))
+	  (setq map (` (("Yes" . act) ("No" . skip) ("Quit" . exit)
+			((, (if help (concat action " " object " And Quit")
+			      "Do it and Quit")) . act-and-exit)
+			((, (if help (concat action " All " objects)
+			      "Do All")) . automatic)
+			(,@ (mapcar (lambda (elt)
+				      (cons (concat (capitalize (nth 2 elt))
+						    " " object)
+					    (vector (nth 1 elt))))
+				    action-alist))))
+		mouse-event last-nonmenu-event))			       
+      (setq user-keys (if action-alist
+			  (concat (mapconcat (function
+					      (lambda (elt)
+						(key-description
+						 (char-to-string (car elt)))))
+					     action-alist ", ")
+				  " ")
+			"")
+	    ;; Make a map that defines each user key as a vector containing
+	    ;; its definition.
+	    map (cons 'keymap
+		      (append (mapcar (lambda (elt)
+					(cons (car elt) (vector (nth 1 elt))))
+				      action-alist)
+			      query-replace-map))))
     (unwind-protect
 	(progn
 	  (if (stringp prompter)
@@ -118,17 +135,23 @@ Returns the number of actions taken."
 		(progn
 		  (setq quit-flag nil)
 		  ;; Prompt the user about this object.
-		  (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
-		    (message "%s(y, n, !, ., q, %sor %s) "
+		  (if mouse-event
+		      (setq def (or (x-popup-dialog mouse-event
+						    (list "gratuitous"
+							  (cons prompt map)))
+				    'quit))
+		    ;; Prompt in the echo area.
+		    (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
+		      (message "%s(y, n, !, ., q, %sor %s) "
+			       prompt user-keys
+			       (key-description (vector help-char)))
+		      (setq char (read-event)))
+		    ;; Show the answer to the question.
+		    (message "%s(y, n, !, ., q, %sor %s) %s"
 			     prompt user-keys
-			     (key-description (vector help-char)))
-		    (setq char (read-event)))
-		  ;; Show the answer to the question.
-		  (message "%s(y, n, !, ., q, %sor %s) %s"
-			   prompt user-keys
-			   (key-description (vector help-char))
-			   (single-key-description char))
-		  (setq def (lookup-key map (vector char)))
+			     (key-description (vector help-char))
+			     (single-key-description char))
+		    (setq def (lookup-key map (vector char))))
 		  (cond ((eq def 'exit)
 			 (setq next (function (lambda () nil))))
 			((eq def 'act)
@@ -171,17 +194,17 @@ DEL or `n' to skip the current %s;
 ! to %s all remaining %s;
 ESC or `q' to exit;\n"
 				       action object object action objects)
-				      (mapconcat (function
-						  (lambda (elt)
-						    (format "%c to %s"
-							    (nth 0 elt)
-							    (nth 2 elt))))
-						 action-alist
-						 ";\n")
-				      (if action-alist ";\n")
-				      (format "or . (period) to %s \
+			       (mapconcat (function
+					   (lambda (elt)
+					     (format "%c to %s"
+						     (nth 0 elt)
+						     (nth 2 elt))))
+					  action-alist
+					  ";\n")
+			       (if action-alist ";\n")
+			       (format "or . (period) to %s \
 the current %s and exit."
-					      action object)))))
+				       action object)))))
 
 			 (setq next (` (lambda ()
 					 (setq next '(, next))
