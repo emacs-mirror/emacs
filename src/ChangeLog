@@ -1,3 +1,17 @@
+2001-12-16  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.h (struct buffer): New field `display_error_modiff'.
+	* buffer.c (reset_buffer): Initialize `display_error_modiff'.
+
+	* window.c (Frecenter): Clear display_error_modiff field.
+
+	* xdisp.c (redisplay_window_0, redisplay_window_1): New functions.
+	Call redisplay_window, but not if display_error_modiff field says no.
+	(redisplay_window_error): New function.
+	(displayed_buffer): New variable.
+	(redisplay_internal, redisplay_windows): Call the new functions
+	instead of redisplay_window directly.
+
 2001-12-15  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (syms_of_keyboard) <double-click-fuzz>: Doc fix.
