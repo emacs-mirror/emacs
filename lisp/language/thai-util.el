@@ -173,9 +173,33 @@ positions (integers or markers) specifying the region."
 (defun thai-post-read-conversion (len)
   (save-excursion
     (save-restriction
-      (let ((buffer-modified-p (buffer-modified-p)))
-	(narrow-to-region (point) (+ (point) len))
-	(thai-compose-region (point-min) (point-max))
+      (let ((buffer-modified-p (buffer-modified-p))
+	    (category-table (category-table))
+	    (buf (current-buffer))
+	    (workbuf (generate-new-buffer "*thai-work*"))
+	    (pos (point))
+	    start end str)
+	(save-excursion
+	  (set-buffer workbuf)
+	  (setq buffer-undo-list t))
+	(narrow-to-region pos (+ pos len))
+	(set-category-table thai-category-table)
+	(unwind-protect
+	    (progn
+	      (while (re-search-forward "\\c+\\c-+" nil t)
+		(setq start (match-beginning 0)
+		      end (point)
+		      str (compose-string (buffer-substring start end)))
+		(set-buffer workbuf)
+		(if (< pos start)
+		    (insert-buffer-substring buf pos start))
+		(insert str)
+		(set-buffer buf)
+		(setq pos end))
+	      (delete-region (point-min) (point))
+	      (insert-buffer-substring workbuf))
+	  (set-category-table category-table)
+	  (kill-buffer workbuf))
 	(set-buffer-modified-p buffer-modified-p)
 	(- (point-max) (point-min))))))
 
