@@ -185,24 +185,24 @@ Returns list of symbols and documentation found."
   (apropos-print
    (or do-all apropos-do-all)
    (lambda (p)
-     (let (symbol doc)
+     (let (symbol doc properties)
        (while p
 	 (setcar p (list
 		    (setq symbol (car p))
-		    (if (fboundp symbol)
-			(if (setq doc (documentation symbol t))
-			    (substring doc 0 (string-match "\n" doc))
-			  "(not documented)"))
-		    (if (boundp symbol)
-			(if (setq doc (documentation-property
-				       symbol 'variable-documentation t))
-			    (substring doc 0
-				       (string-match "\n" doc))
-			  "(not documented)"))
-		    (if (setq doc (symbol-plist symbol))
-			(if (eq (/ (length doc) 2) 1)
-			    (format "1 property (%s)" (car doc))
-			  (concat (/ (length doc) 2) " properties")))))
+		    (when (fboundp symbol)
+		      (if (setq doc (documentation symbol t))
+			  (substring doc 0 (string-match "\n" doc))
+			"(not documented)"))
+		    (when (boundp symbol)
+		      (if (setq doc (documentation-property
+				     symbol 'variable-documentation t))
+			  (substring doc 0 (string-match "\n" doc))
+			"(not documented)"))
+		    (when (setq properties (symbol-plist symbol))
+		      (setq doc (list (car properties)))
+		      (while (setq properties (cdr (cdr properties)))
+			(setq doc (cons (car properties) doc)))
+		      (mapconcat #'symbol-name (nreverse doc) " "))))
 	 (setq p (cdr p)))))
    nil))
 
