@@ -403,6 +403,10 @@ line.  Change logs above this notice are those for the 21.x code line.
 
 	* CODINGS, CHARSETS: New files.
 
+1996-08-21  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.34 released.
+
 1996-08-11  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* Version 19.33 released.

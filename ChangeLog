@@ -1509,6 +1509,10 @@ line.  Change logs above this notice are those for the 21.x code line.
 
 	* configure.in: Generate src/paths.h here.
 
+1996-08-21  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
+
+	* Version 19.34 released.
+
 1996-08-18  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
 	* configure.in (NON_GCC_LINK_TEST_OPTIONS, GCC_LINK_TEST_OPTIONS):
