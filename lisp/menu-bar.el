@@ -1244,7 +1244,37 @@ key (or menu-item)"))
   (interactive "*")
   (push-mark (point))
   (insert last-command-event))
+
 
+(defcustom buffers-menu-show-directories 'unless-uniquify
+  "If non-nil, show directories in the Buffers menu for buffers that have them.
+The special value `unless-uniquify' means that directories will be shown
+unless `uniquify-buffer-name-style' is non-nil (in which case, buffer
+names should include enough of a buffer's directory to distinguish it
+from other buffers).
+
+Setting this variable directly does not take effect until next time the
+Buffers menu is regenerated."
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (menu-bar-update-buffers t))
+  :initialize 'custom-initialize-default
+  :type '(choice (const :tag "Never" nil)
+		 (const :tag "Unless uniquify is enabled" unless-uniquify)
+		 (const :tag "Always" t))
+  :group 'menu)
+
+(defcustom buffers-menu-show-status t
+  "If non-nil, show modified/read-only status of buffers in the Buffers menu.
+Setting this variable directly does not take effect until next time the
+Buffers menu is regenerated."
+  :set (lambda (symbol value)
+	 (set symbol value)
+	 (menu-bar-update-buffers t))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'menu)
+
 (defvar list-buffers-directory nil)
 
 (defvar menu-bar-update-buffers-maxbuf)
@@ -1264,24 +1294,28 @@ key (or menu-item)"))
   (select-frame frame)))
 
 (defun menu-bar-update-buffers-1 (elt)
-  ;; (format "%%%ds  %%s%%s  %%s" menu-bar-update-buffers-maxbuf)
   (let* ((buf (car elt))
 	 (file
-	  (and (or (not (boundp 'uniquify-buffer-name-style))
-		   (null uniquify-buffer-name-style))
+	  (and (if (eq buffers-menu-show-directories 'unless-uniquify)
+		   (or (not (boundp 'uniquify-buffer-name-style))
+		       (null uniquify-buffer-name-style))
+		 buffers-menu-show-directories)
 	       (or (buffer-file-name buf)
-		   (buffer-local-value 'list-buffers-directory buf))))
-	 (mod (if (buffer-modified-p buf) "*" ""))
-	 (ro (if (buffer-local-value 'buffer-read-only buf) "%" "")))
+		   (buffer-local-value 'list-buffers-directory buf)))))
     (when file
       (setq file (file-name-directory file)))
     (when (and file (> (length file) 20))
       (setq file (concat "..." (substring file -17))))
-    (cons (if file
-	      (format "%s  %s%s  --  %s" (cdr elt) mod ro file)
-	    (format "%s  %s%s" (cdr elt) mod ro))
+    (cons (if buffers-menu-show-status
+	      (let ((mod (if (buffer-modified-p buf) "*" ""))
+		    (ro (if (buffer-local-value 'buffer-read-only buf) "%" "")))
+		(if file
+		    (format "%s  %s%s  --  %s" (cdr elt) mod ro file)
+		  (format "%s  %s%s" (cdr elt) mod ro)))
+	    (if file
+		(format "%s  --  %s"  (cdr elt) file)
+	      (cdr elt)))
 	  buf)))
-
 
 ;; Used to cache the menu entries for commands in the Buffers menu
 (defvar menu-bar-buffers-menu-command-entries nil)
