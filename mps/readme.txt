@@ -37,6 +37,9 @@ Thirty person-years of memory management development goes Open Source"
 <http://www.ravenbrook.com/project/mps/doc/2002-01-30/ismm2002-paper/>
 [RB 2002-01-30].
 
+This kit is distributed under an open source license.  See under
+"Licensing", below.
+
 This document is a brief introduction to the kit.
 
 The readership of this document is anyone who wants to modify, adapt, or
@@ -91,7 +94,7 @@ see what we can do.
 
 Many documents are referenced by tags, which look like
 "design.mps.buffer" or "req.dylan".  These are references to the
-obsolete Memory Management Information System [RBÊ2002-06-18].  We are
+obsolete Memory Management Information System [RB 2002-06-18].  We are
 working on translating these documents to HTML.  There are a vast
 number.  We've only been able to include a few key documents in the open
 source release so far.
@@ -114,7 +117,7 @@ makefiles/project files as a starting point.
               Table 1. MPS makefiles and platforms
 
   Makefile        OS              Architecture    Compiler
-  
+
   fri4gc.gmk      FreeBSD         Intel IA32      GCC
   iam4cc.gmk      Irix 6 N32      MIPS IV         CC
   lii3eg.gmk      Linux           Intel IA32      EGCS
@@ -127,13 +130,12 @@ makefiles/project files as a starting point.
   sos8gp.gmk      Solaris         SPARC V8        GCC with profiling
   sos9sc.gmk      Solaris         SPARC V9        SunPro C
   sus8gc.gmk      SunOS           SPARC V8        GCC
-  sus8lc.gmk      SunOS           SPARC V8        LCC
   xcppgc.gmk      Mac OS X        PowerPC         GCC
-  
+
   w3almv.nmk      Windows         Alpha           Microsoft C
   w3i3mv.nmk      Windows         Intel IA32      Microsoft C
   w3ppmv.nmk      Windows         PowerPC         Microsoft C
-  
+
   s7ppac/Makefile Mac OS 7-9      PowerPC         Apple Mr C
   s7ppmw.sit      Mac OS 7-9      PowerPC         Metrowerks Codewarrior
 
@@ -173,8 +175,11 @@ And so on.
 The output of the build goes to a directory named after the platform
 (e.g. "fri4gc") so that you can share the source tree across platforms
 using NFS, for example.  Building generates "mps.a" or "mps.lib" or
-equivalent, which you link with your application, but see "Licensing". 
-It also generates a bunch of test programs
+equivalent, a library of object code which you can link with your
+application, subject to the MPS licensing conditions (see under
+"Licensing", below).  It also generates a number of test programs,
+such as "amcss" (a stress test for the Automatic Mostly-Copying pool
+class).
 
 
 5. TESTING
@@ -195,8 +200,8 @@ to discuss it.
 7. CONTRIBUTING YOUR WORK
 
 We'd like to include improvements to the MPS in the distributions from
-Ravenbrook Limited.  Please consider putting your work under an open
-source license and sending it to us.
+Ravenbrook Limited.  Please consider putting your work under a
+compatible open source license and sending it to us.
 
 It will help a great deal if your work is self-consistent.  This means
 that the documentation is up to date (even if only with sketchy but
@@ -207,7 +212,7 @@ accurate notes) and the procedures have been maintained.
 
 You can obtain expert professional support for the MPS from Ravenbrook
 Limited <http://www.ravenbrook.com/>, the developers of the MPS, who
-have many years of experience in commercial memory management systems. 
+have many years of experience in commercial memory management systems.
 Write to us <mps-questions@ravenbrook.com> for more information.
 
 You might also want to join the MPS discussion mailing list.  To join,
@@ -236,7 +241,7 @@ management development goes Open Source"; Richard Brooksby; Ravenbrook
 Limited; 2002-01-30;
 <http://www.ravenbrook.com/project/mps/doc/2002-01-30/ismm2002-paper/>.
 
-[RBÊ2002-06-18] "The Obsolete Memory Management Information System";
+[RB 2002-06-18] "The Obsolete Memory Management Information System";
 Richard Brooksby; Ravenbrook Limited; 2002-06-18;
 <http://www.ravenbrook.com/project/mps/doc/2002-06-18/obsolete-mminfo/>.
 
@@ -244,6 +249,7 @@ Richard Brooksby; Ravenbrook Limited; 2002-06-18;
 B. DOCUMENT HISTORY
 
 2002-05-20  RB  Created based on template from P4DTI project.
+2002-06-18  NB  Minor updates and corrections.
 
 
 C. COPYRIGHT AND LICENSE
@@ -269,7 +275,7 @@ accompanying software that uses this software.  The source code must
 either be included in the distribution or be available for no more than
 the cost of distribution plus a nominal fee, and must be freely
 redistributable under reasonable conditions.  For an executable file,
-complete source code means the source code for all modules it contains. 
+complete source code means the source code for all modules it contains.
 It does not include source code for modules or files that typically
 accompany the major components of the operating system on which the
 executable file runs.
