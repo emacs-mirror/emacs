@@ -1735,6 +1735,9 @@ but the contents viewed as characters do change.")
 {
   Lisp_Object tail, markers;
 
+  if (current_buffer->base_buffer)
+    error ("Cannot do `set-buffer-multibyte' on an indirect buffer");
+
   /* Do nothing if nothing actually changes.  */
   if (NILP (flag) == NILP (current_buffer->enable_multibyte_characters))
     return flag;
