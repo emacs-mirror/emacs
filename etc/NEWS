@@ -1773,6 +1773,10 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** New function `delete-dups' destructively removes `equal' duplicates
+from a list.  Of several `equal' occurrences of an element in the list,
+the last one is kept.
+
 +++
 ** `declare' is now a macro.  This change was made mostly for
 documentation purposes and should have no real effect on Lisp code.

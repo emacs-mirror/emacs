@@ -1,3 +1,7 @@
+2004-01-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (delete-dups): New function.
+
 2004-01-19  Karl Berry  <karl@gnu.org>
 
 	* textmodes/texinfo.el (texinfo-mode): define outline-regexp to start
