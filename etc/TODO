@@ -1,3 +1,15 @@
+* Program Enriched mode to read and save in RTF.
+
+* Implement other text formatting properties.
+** Footnotes that can appear either in place or at the end of the page.
+** text property that says "don't break line in middle of this".
+   Don't break the line between two characters that have the
+   same value of this property.
+** Discretionary hyphens that are not visible when they are at end of line.
+
+* Can Auto-fill mode be extended to something that will refill the
+  whole paragraph so as to keep it filled all the time?
+
 * Implement a clean way to use different major modes for
   different parts of a buffer.
 
@@ -23,14 +35,6 @@
 
 * Save undo information in files, and reload it when needed
   for undoing.
-
-* Implement other text formatting properties.
-** Footnotes that can appear either in place
-  or at the end of the page.
-** text property that says "don't break line in middle of this".
-  Don't break the line between two characters that have the
-  same value of this property.
-** Discretionary hyphens that disappear at end of line.
 
 * Change the Windows NT menu code
   so that it handles the deep_p argument and avoids
