@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.311.4.3 2001/11/14 13:50:58 spiegel Exp $
+;; $Id: vc.el,v 1.311.4.4 2001/11/15 10:56:37 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2483,6 +2483,9 @@ to that version.  This function does not automatically pick up newer
 changes found in the master file; use \\[universal-argument] \\[vc-next-action] to do so."
   (interactive)
   (vc-ensure-vc-buffer)
+  ;; Make sure buffer is saved.  If the user says `no', abort since
+  ;; we cannot show the changes and ask for confirmation to discard them.
+  (vc-buffer-sync nil)
   (let ((file buffer-file-name)
 	;; This operation should always ask for confirmation.
 	(vc-suppress-confirm nil)
