@@ -363,6 +363,7 @@ and KILLP is t if a prefix arg was specified."
 
 (defun zap-to-char (arg char)
   "Kill up to and including ARG'th occurrence of CHAR.
+Case is ignored if `case-fold-search' is non-nil in the current buffer.
 Goes backward if ARG is negative; error if CHAR not found."
   (interactive "p\ncZap to char: ")
   (kill-region (point) (progn
