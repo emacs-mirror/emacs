@@ -4076,7 +4076,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
 (defun normal-erase-is-backspace-mode (&optional arg)
   "Toggle the Erase and Delete mode of the Backspace and Delete keys.
 
-With numeric arg, turn the mode on if and only ARG is positive.
+With numeric arg, turn the mode on if and only if ARG is positive.
 
 On window systems, when this mode is on, Delete is mapped to C-d and
 Backspace is mapped to DEL; when this mode is off, both Delete and
