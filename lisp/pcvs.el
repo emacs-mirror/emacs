@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.50 2003/03/19 14:34:24 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.51 2003/04/20 22:03:00 sds Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1899,10 +1899,11 @@ This command ignores files that are not flagged as `Unknown'."
   "Select a buffer containing the file.
 With a prefix, opens the buffer in an OTHER window."
   (interactive (list last-input-event current-prefix-arg))
-  (when (ignore-errors (mouse-set-point e) t)	;for invocation via the mouse
-    (unless (memq (get-text-property (1- (line-end-position)) 'font-lock-face)
-		  '(cvs-header-face cvs-filename-face))
-      (error "Not a file name")))
+  ;; If the event moves point, check that it moves it to a valid location.
+  (when (and (/= (point) (progn (ignore-errors (mouse-set-point e)) (point)))
+	     (memq (get-text-property (1- (line-end-position)) 'font-lock-face)
+		   '(cvs-header-face cvs-filename-face)))
+    (error "Not a file name"))
   (cvs-mode!
    (lambda (&optional rev)
      (interactive (list (cvs-prefix-get 'cvs-branch-prefix)))
@@ -2229,7 +2230,12 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 			   (string-match "\\`-" (car flags)))
 		 (pop flags))
 	       ;; don't parse output we don't understand.
-	       (member (car flags) cvs-parse-known-commands)))
+	       (member (car flags) cvs-parse-known-commands))
+	     ;; Don't parse "update -p" output.
+	     (not (and (member (car flags) '("update" "checkout"))
+		       (let ((found-p nil))
+			 (dolist (flag flags found-p)
+			   (if (equal flag "-p") (setq found-p t)))))))
     (save-current-buffer
       (let ((buffer (current-buffer))
 	    (dir default-directory)
