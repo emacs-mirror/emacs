@@ -1,3 +1,10 @@
+2005-01-12  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): New arg FACE specifies a default
+	face property for characters that don't specify one.
+
+	* fns.c (Frequire): Record in load-history unconditionally.
+
 2005-01-10  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (merge_faces): Rename from merge_into_realized_face.
@@ -63,6 +70,10 @@
 
 	* xdisp.c (set_iterator_to_next): Fix 2004-12-13 change.
 	Set stop_charpos to current charpos instead of 0.
+
+2005-01-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xdisp.c (Fformat_mode_line): First arg now required.
 
 2005-01-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

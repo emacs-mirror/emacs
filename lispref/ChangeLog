@@ -1,3 +1,11 @@
+2005-01-12  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Enabling Mouse-1 to Follow Links): Redo prev. change.
+
+	* display.texi (Beeping): Fix Texinfo usage.
+
+	* modes.texi (Emulating Mode Line): Doc FACE arg in format-header-line.
+
 2005-01-11  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Button Properties, Button Buffer Commands):

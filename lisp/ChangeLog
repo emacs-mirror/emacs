@@ -72,6 +72,10 @@
 	Ignore select-window events rather than fiddle with
 	mouse-autoselect-window.
 
+2005-01-11  Matthew Mundell  <matt@mundell.ukfsn.org>
+
+	* type-break.el (type-break-mode): Fix previous change.
+
 2005-01-10  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el (calc-reset): Reset when inside embedded
@@ -4396,7 +4400,7 @@
 	(dired-move-to-end-of-filename): Make the " -> " search more specific.
 	(dired-buffers-for-dir): Remove unused var `pattern'.
 
-2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>
 
 	* calendar/diary-lib.el (list-diary-entries): Save diary buffer
 	from diary display excursion.  Store diary buffer's point for
