@@ -4108,7 +4108,7 @@ x_new_font (f, fontname)
 					      * sizeof (x_font_table[0])));
 	}
 
-      x_font_table[n_fonts].name = (char *) xmalloc (strlen (fontname));
+      x_font_table[n_fonts].name = (char *) xmalloc (strlen (fontname) + 1);
       bcopy (fontname, x_font_table[n_fonts].name, strlen (fontname) + 1);
       f->display.x->font = x_font_table[n_fonts++].font = font;
     }
