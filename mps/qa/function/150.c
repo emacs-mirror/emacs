@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!150.c(trunk.2) $
+ id = $HopeName: MMQA_test_function!150.c(trunk.3) $
  summary = finalization and collection stats
  language = c
  link = testlib.o rankfmt.o
@@ -18,11 +18,13 @@ END_HEADER
 #include "mpscamc.h"
 #include "rankfmt.h"
 
+
 void *stackpointer;
 
 mps_space_t space;
 
 int final_count = 0;
+
 
 enum {
  FINAL_DISCARD,
@@ -31,16 +33,19 @@ enum {
  FINAL_QUEUE
 };
 
+
 mps_message_t mqueue[10000];
 
 int qhd = 0;
 int qtl = 0;
+
 
 static void nq(mps_message_t mess) {
  mqueue[qhd] = mess;
  qhd = (qhd+1) % 10000;
  asserts(qhd != qtl, "No space in message queue.");
 }
+
 
 static int qmt(void) {
  if (qhd == qtl) {
@@ -49,6 +54,7 @@ static int qmt(void) {
   return 0;
  }
 }
+
 
 static int dq(mps_message_t *mess) {
  if (qhd == qtl) {
@@ -59,6 +65,7 @@ static int dq(mps_message_t *mess) {
   return 1;
  } 
 }
+
 
 static void process_mess(mps_message_t message, int faction, mps_addr_t *ref) {
  mps_addr_t ffref;
@@ -85,13 +92,15 @@ static void process_mess(mps_message_t message, int faction, mps_addr_t *ref) {
  }
 }
 
-static void qpoll(mps_addr_t *ref, int faction) {
+
+static void qpoll(mycell **ref, int faction) {
  mps_message_t message;
 
  if (dq(&message)) {
-  process_mess(message, faction, ref);
+  process_mess(message, faction, (mps_addr_t*)ref);
  }
 }
+
 
 static void process_stats(mps_message_t message) {
  report("collect", "true");
@@ -104,17 +113,19 @@ static void process_stats(mps_message_t message) {
  mps_message_discard(space, message);
 }
 
-static void messagepoll(mps_addr_t *ref, int faction) {
+
+static void messagepoll(mycell **ref, int faction) {
  mps_message_t message;
 
  if (mps_message_get(&message, space, mps_message_type_finalization())) {
   final_count -=1;
-  process_mess(message, faction, ref);
+  process_mess(message, faction, (mps_addr_t*)ref);
  }
  if (mps_message_get(&message, space, mps_message_type_gc())) {
   process_stats(message);
  }
 }
+
 
 static void test(void) {
  mps_pool_t poolamc, poolawl, poollo;
@@ -181,10 +192,10 @@ static void test(void) {
   a = allocone(apamc, 2, MPS_RANK_EXACT);
   c = allocone(apawl, 2, MPS_RANK_WEAK);
   d = allocone(aplo, 2, MPS_RANK_EXACT); /* rank irrelevant here! */
-  mps_finalize(space, &a);
-  mps_finalize(space, &c);
-  mps_finalize(space, &d);
-  mps_finalize(space, &d);
+  mps_finalize(space, (mps_addr_t*)&a);
+  mps_finalize(space, (mps_addr_t*)&c);
+  mps_finalize(space, (mps_addr_t*)&d);
+  mps_finalize(space, (mps_addr_t*)&d);
   final_count += 4;
   setref(a, 0, b);
   setref(a, 1, c);
@@ -218,7 +229,7 @@ static void test(void) {
  for (j=0; j<10; j++) {
   comment("%d of 10", j);
   a = allocone(apamc, 10000, MPS_RANK_EXACT);
-  mps_finalize(space, &a);
+  mps_finalize(space, (mps_addr_t*)&a);
   final_count +=1;
   comment("finalize");
   messagepoll(&z, FINAL_QUEUE);
@@ -294,8 +305,8 @@ static void test(void) {
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void) {
  void *m;
