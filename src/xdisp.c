@@ -3507,20 +3507,18 @@ forward_to_next_line_start (it, skipped_p)
 
   /* Scan for a newline within MAX_NEWLINE_DISTANCE display elements
      from buffer text.  */
-  n = newline_found_p = 0;
-  while (n < MAX_NEWLINE_DISTANCE
-	 && get_next_display_element (it)
-	 && !newline_found_p)
+  for (n = newline_found_p = 0;
+       !newline_found_p && n < MAX_NEWLINE_DISTANCE;
+       n += STRINGP (it->string) ? 0 : 1)
     {
+      get_next_display_element (it);
       newline_found_p = it->what == IT_CHARACTER && it->c == '\n';
       set_iterator_to_next (it, 0);
-      if (!STRINGP (it->string))
-	++n;
     }
 
   /* If we didn't find a newline near enough, see if we can use a
      short-cut.  */
-  if (!newline_found_p && n == MAX_NEWLINE_DISTANCE)
+  if (n == MAX_NEWLINE_DISTANCE)
     {
       int start = IT_CHARPOS (*it);
       int limit = find_next_newline_no_quit (start, 1);
