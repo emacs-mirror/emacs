@@ -1880,15 +1880,18 @@ buffer) are displayed in the merged region of buffer C.  The strings in the
 template determine the text that separates the aforesaid regions. The
 default template is
 
-@example
-("@value{seven-left} variant A" A "@value{seven-right} variant B" B  "####### Ancestor" Ancestor "======= end")
-@end example
+@smallexample
+("@value{seven-left} variant A" A "@value{seven-right} variant B" B
+   "####### Ancestor" Ancestor "======= end")
+@end smallexample
 
-and the corresponding combined region is shown above. The order in which 
-the regions are shown (and the separator strings) can be changed by
-changing the above template. It is even possible to add or delete region
-specifiers in this template (although the only possibly useful such
-modification seems to be the deletion of the ancestor).
+@noindent
+(this is one long line) and the corresponding combined region is shown
+above. The order in which the regions are shown (and the separator
+strings) can be changed by changing the above template. It is even
+possible to add or delete region specifiers in this template (although
+the only possibly useful such modification seems to be the deletion of
+the ancestor).
 
 In addition to the state of the difference, Ediff displays the state of the
 merge for each region.  If a difference came from buffer A by default
