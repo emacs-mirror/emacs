@@ -823,7 +823,9 @@ cases in variable `default-directory-alist' (which see)."
 
 (defun dired-smart-shell-command (cmd &optional insert)
   "Like function `shell-command', but in the current Tree Dired directory."
-  (interactive "sShell command: \nP")
+  (interactive (list (read-from-minibuffer "Shell command: "
+					   nil nil nil 'shell-command-history)
+		     current-prefix-arg))
   (let ((default-directory (default-directory)))
     (shell-command cmd insert)))
 
