@@ -701,12 +701,14 @@ the user from the mailer."
 		;; convert the message to Babyl format.
 		(save-excursion
 		  (set-buffer (get-buffer-create " mail-temp"))
+		  (erase-buffer)
 		  (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
 			  "From: " (user-login-name) "\n"
 			  "Date: " (mail-rfc822-date) "\n")
 		  (insert-buffer-substring curbuf beg2 end)
 		  (insert "\n\C-_")
-		  (write-region (point-min) (point-max) (car fcc-list) t))
+		  (write-region (point-min) (point-max) (car fcc-list) t)
+		  (erase-buffer))
 	      (write-region
 	       (1+ (point-min)) (point-max) (car fcc-list) t))))
 	(setq fcc-list (cdr fcc-list))))
