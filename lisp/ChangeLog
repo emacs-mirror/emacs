@@ -1,3 +1,16 @@
+2004-03-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (appt-check): Remove superfluous progn.
+	When finished with diary buffer: if it was not being displayed
+	before, kill it; otherwise restore its original state.
+	Suggested by Matthew Mundell <matt@mundell.ukfsn.org>.
+
+	* calendar/calendar.el (calendar-set-mode-line): Use total
+	available mode-line width, rather than frame-width.
+
+	* calendar/diary-lib.el (fancy-diary-display): Set mode-line
+	after mode change so effect not lost.
+
 2004-03-23  Dave Love  <fx@gnu.org>
 
 	* dired.el (dired) <defgroup>: Add link to manual.
