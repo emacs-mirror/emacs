@@ -37,8 +37,6 @@ dotdot = ${dot}${dot}
 lispsource = ${srcdir}/$(dot)$(dot)/lisp/
 libsrc = $(dot)$(dot)/lib-src/
 etc = $(dot)$(dot)/etc/
-shortnamesdir = $(dot)$(dot)/shortnames/
-cppdir = $(dot)$(dot)/cpp/
 oldXMenudir = $(dot)$(dot)/oldXMenu/
 lwlibdir = $(dot)$(dot)/lwlib/
 
@@ -253,10 +251,6 @@ MYCPPFLAG= -Blocal
    CPP is the local one or the standard one.  */
 LOCALCPP= localcpp
 #endif /* ! defined (LONGNAMEBBBARFOOX) */
-
-#ifdef SHORTNAMES
-SHORT= shortnames
-#endif
 
 #ifdef USE_X_TOOLKIT
 #define USE_@X_TOOLKIT_TYPE@
@@ -845,7 +839,7 @@ ${libsrc}make-docfile:
 #define MAKE_PARALLEL
 #endif
 
-temacs: MAKE_PARALLEL $(LOCALCPP) $(SHORT) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_SYSTEM OBJECTS_MACHINE prefix-args
+temacs: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_SYSTEM OBJECTS_MACHINE prefix-args
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${ALL_LDFLAGS}) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
@@ -874,11 +868,6 @@ localcpp:
 #else /* ! defined (NEED_CPP) */
 CPP = $(CC) -E
 #endif /* ! defined (NEED_CPP) */
-
-#ifdef SHORTNAMES
-shortnames:
-	cd ${shortnamesdir}; ${MAKE} ${MFLAGS}
-#endif
 
 /* Don't lose if this was not defined.  */
 #ifndef OLDXMENU_OPTIONS
@@ -1168,16 +1157,15 @@ relock:
 	chmod -w $(SOURCES)
 	chmod +w paths.h
 
-/* Arrange to make a tags table in ../lisp, and another in this dir
-   which includes ../lisp/TAGS by reference.  */
+/* Arrange to make a tags table TAGS-LISP for ../lisp,
+   plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
 ctagsfiles = [a-zA-Z]*.[hc]
-lisptagsfiles = ../lisp/[a-zA-Z]*.el
 TAGS: $(srcdir)/$(ctagsfiles)
-	export DIR; DIR=`pwd`; cd ${srcdir}; \
-	$$DIR/../lib-src/etags --include=../lisp/TAGS \
+	../lib-src/etags --include=TAGS-LISP \
 	--regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' $(ctagsfiles)
-${lispsource}TAGS: ${lispsource}$(lisptagsfiles)
-	export DIR; DIR=`pwd`; cd ${lispsource}; \
-	$(MAKE) TAGS ETAGS=$$DIR/../lib-src/etags
-tags: TAGS ${lispsource}TAGS
+frc:
+TAGS-LISP: frc
+	$(MAKE) -f ${lispsource}Makefile TAGS-LISP ETAGS=../lib-src/etags \
+	    lispsource=${lispsource}
+tags: TAGS TAGS-LISP
 .PHONY: tags
