@@ -91,6 +91,10 @@ displays a buffer menu.  This option turns the buffer menu off.
 compilation, it is now made sure that the compilation buffer is reused
 in case it has been renamed.
 
+** On MS Windows, the "system caret" now follows the cursor.
+This enables Emacs to work better with programs that need to track
+the cursor, for example screen magnifiers and text to speech programs.
+
 ** New modes and packages
 
 +++
