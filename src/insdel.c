@@ -210,11 +210,16 @@ gap_right (pos)
   QUIT;
 }
 
-/* Add `amount' to the position of every marker in the current buffer
-   whose current position is between `from' (exclusive) and `to' (inclusive).
+/* Add AMOUNT to the position of every marker in the current buffer
+   whose current position is between FROM (exclusive) and TO (inclusive).
+
    Also, any markers past the outside of that interval, in the direction
    of adjustment, are first moved back to the near end of the interval
-   and then adjusted by `amount'.  */
+   and then adjusted by AMOUNT.
+
+   When the latter adjustment is done, if AMOUNT is negative,
+   we record the adjustment for undo.  (This case happens only for
+   deletion.)  */
 
 static void
 adjust_markers (from, to, amount)
@@ -237,8 +242,14 @@ adjust_markers (from, to, amount)
 	}
       else
 	{
+	  /* Here's the case where a marker is inside text being deleted.
+	     AMOUNT can be negative for gap motion, too,
+	     but then this range contains no markers.  */
 	  if (mpos > from + amount && mpos <= from)
-	    mpos = from + amount;
+	    {
+	      record_marker_adjustment (marker, from + amount - mpos);
+	      mpos = from + amount;
+	    }
 	}
       if (mpos > from && mpos <= to)
 	mpos += amount;
@@ -655,6 +666,12 @@ del_range_1 (from, to, prepare)
   if (prepare)
     prepare_to_modify_buffer (from, to);
 
+  /* Relocate all markers pointing into the new, larger gap
+     to point at the end of the text before the gap.
+     This has to be done before recording the deletion,
+     so undo handles this after reinserting the text.  */
+  adjust_markers (to + GAP_SIZE, to + GAP_SIZE, - numdel - GAP_SIZE);
+
   record_delete (from, numdel);
   MODIFF++;
 
@@ -664,10 +681,6 @@ del_range_1 (from, to, prepare)
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   offset_intervals (current_buffer, from, - numdel);
-
-  /* Relocate all markers pointing into the new, larger gap
-     to point at the end of the text before the gap.  */
-  adjust_markers (to + GAP_SIZE, to + GAP_SIZE, - numdel - GAP_SIZE);
 
   /* Adjust the overlay center as needed.  This must be done after
      adjusting the markers that bound the overlays.  */
