@@ -12,6 +12,8 @@
 % Because makeinfo.c exists, we can't just define new commands.
 % So instead, we take over little-used existing commands.
 %
+% Suggested by Karl Berry <karl@@freefriends.org>
+\gdef\!{\mskip-\thinmuskip}
 % Redefine @cite{text} to act like $text$ in regular TeX.
 % Info will typeset this same as @samp{text}.
 \gdef\goodtex{\tex \let\rm\goodrm \let\t\ttfont \turnoffactive}
@@ -241,8 +243,8 @@ original English.
 
 @c [begin]
 @ifinfo
-@node Top, Getting Started,, (dir)
-@ichapter The GNU Emacs Calculator
+@node Top, , (dir), (dir)
+@chapter The GNU Emacs Calculator
 
 @noindent
 @dfn{Calc 2.02} is an advanced desk calculator and mathematical tool
@@ -263,6 +265,7 @@ longer Info tutorial.)
 * Copying::               How you can copy and share Calc.
 
 * Getting Started::       General description and overview.
+* Interactive Tutorial::
 * Tutorial::              A step-by-step introduction for beginners.
 
 * Introduction::          Introduction to the Calc reference manual.
@@ -519,9 +522,8 @@ WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 @end enumerate
 
-@node Getting Started, Tutorial, Top, Top
+@node Getting Started, Tutorial, Copying, Top
 @chapter Getting Started
-
 @noindent
 This chapter provides a general overview of Calc, the GNU Emacs
 Calculator:  What it is, how to start it and how to exit from it,
@@ -13203,7 +13205,7 @@ but reformats only the top two stack entries in the new mode.
 The @kbd{I} prefix has another effect on the display modes.  The mode
 is set only temporarily; the top stack entry is reformatted according
 to that mode, then the original mode setting is restored.  In other
-words, @kbd{I d s} is equivalent to @kbd{H d s d RET H d @var{(old mode)}}.
+words, @kbd{I d s} is equivalent to @kbd{H d s d RET H d (@var{old mode})}.
 
 @menu
 * Radix Modes::
@@ -14467,7 +14469,7 @@ of quotes in @dfn{eqn}, but it is good enough for most uses.
 
 Accent codes (@samp{@var{x} dot}) are handled by treating them as
 function calls (@samp{dot(@var{x})}) internally.  @xref{TeX Language
-Mode} for a table of these accent functions.  The @code{prime} accent
+Mode}, for a table of these accent functions.  The @code{prime} accent
 is treated specially if it occurs on a variable or function name:
 @samp{f prime prime @w{( x prime )}} is stored internally as
 @samp{f'@w{'}(x')}.  For example, taking the derivative of @samp{f(2 x)}
@@ -23687,7 +23689,7 @@ always, a copy of the result that went to the stack; the other is
 a vector of the actual parameter values, written as equations:
 @cite{[a = 3, b = 2]}, in case you'd rather read them in a list
 than pick them out of the formula.  (You can type @kbd{t y}
-to move this vector to the stack; @pxref{Trail Commands}.)
+to move this vector to the stack; see @ref{Trail Commands}.
 
 Specifying a different independent variable name will affect the
 resulting formula: @kbd{a F 1 k RET} produces @kbd{3 + 2 k}.
@@ -35388,35 +35390,35 @@ may be an integer or a vector of integers.
 @end iftex
 @table @cite
 @item -1
-@var{(2)}  Rectangular complex number.
+(@var{2})  Rectangular complex number.
 @item -2
-@var{(2)}  Polar complex number.
+(@var{2})  Polar complex number.
 @item -3
-@var{(3)}  HMS form.
+(@var{3})  HMS form.
 @item -4
-@var{(2)}  Error form.
+(@var{2})  Error form.
 @item -5
-@var{(2)}  Modulo form.
+(@var{2})  Modulo form.
 @item -6
-@var{(2)}  Closed interval.
+(@var{2})  Closed interval.
 @item -7
-@var{(2)}  Closed .. open interval.
+(@var{2})  Closed .. open interval.
 @item -8
-@var{(2)}  Open .. closed interval.
+(@var{2})  Open .. closed interval.
 @item -9
-@var{(2)}  Open interval.
+(@var{2})  Open interval.
 @item -10
-@var{(2)}  Fraction.
+(@var{2})  Fraction.
 @item -11
-@var{(2)}  Float with integer mantissa.
+(@var{2})  Float with integer mantissa.
 @item -12
-@var{(2)}  Float with mantissa in @cite{[1 .. 10)}.
+(@var{2})  Float with mantissa in @cite{[1 .. 10)}.
 @item -13
-@var{(1)}  Date form (using date numbers).
+(@var{1})  Date form (using date numbers).
 @item -14
-@var{(3)}  Date form (using year, month, day).
+(@var{3})  Date form (using year, month, day).
 @item -15
-@var{(6)}  Date form (using year, month, day, hour, minute, second).
+(@var{6})  Date form (using year, month, day, hour, minute, second).
 @end table
 @iftex
 }
