@@ -814,14 +814,17 @@ The value of `texinfo-tex-trailer' is appended to the temporary file after the r
   (interactive "r")
   (require 'tex-mode)
   (let ((tex-command texinfo-tex-command)
-	(tex-trailer "@bye\n"))
+	(tex-trailer texinfo-tex-trailer))
     (tex-region beg end)))
 
 (defun texinfo-tex-buffer ()
   "Run TeX on visited file, once or twice, to make a correct `.dvi' file."
   (interactive)
   (require 'tex-mode)
-  (let ((tex-command texinfo-texi2dvi-command))
+  (let ((tex-command texinfo-texi2dvi-command)
+	;; Disable tex-start-options-string.  texi2dvi would not
+	;; understand anything specified here.
+	(tex-start-options-string ""))
     (tex-buffer)))
 
 (defun texinfo-texindex ()
