@@ -2726,11 +2726,11 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 	      fkey_next =
 		get_keyelt (access_keymap
-			    (fkey_next, keybuf[(fkey_end++) & 0x7f]));
+			    (fkey_next, keybuf[fkey_end++] & 0x7f));
 
-	      /* If keybuf[fkey_start..fkey_next] is bound in the
+	      /* If keybuf[fkey_start..fkey_end] is bound in the
 		 function key map and it's a suffix of the current
-		 sequence (i.e. fkey_next == t), replace it with
+		 sequence (i.e. fkey_end == t), replace it with
 		 the binding and restart with fkey_start at the end. */
 	      if (XTYPE (fkey_next) == Lisp_Vector
 		  && fkey_end == t)
