@@ -1249,7 +1249,7 @@ and source-file directory for your debugger."
 ;  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "%e"           "\C-p" "Evaluate perl expression at point.")
 
-  (setq comint-prompt-regexp "^  DB<+(*[0-9])*+>+ ")
+  (setq comint-prompt-regexp "^  DB<+[0-9]+>+ ")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'perldb-mode-hook))
 
@@ -2123,12 +2123,12 @@ and source-file directory for your debugger."
   (gud-def gud-finish "finish"     "\C-f" "Finish executing current function.")
   (gud-def gud-up     "up %p"      "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"    ">" "Down N stack frames (numeric arg).")
-  (gud-def gud-print  "pe %e"      "\C-p" "Evaluate bash expression at point.")
+  (gud-def gud-print  "x %e"      "\C-p" "Evaluate BASH expression at point.")
 
   ;; Is this right?
-  (gud-def gud-statement "eval %e" "\C-e" "Execute Python statement at point.")
+  (gud-def gud-statement "eval %e" "\C-e" "Execute BASH statement at point.")
 
-  (setq comint-prompt-regexp "^bashdb<+[0-9]*>+ ")
+  (setq comint-prompt-regexp "^bashdb<+(*[0-9]+)*>+ ")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'bashdb-mode-hook)
   )
