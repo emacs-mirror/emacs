@@ -1,3 +1,37 @@
+2002-01-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Support for more than 8 colors on character terminals:
+
+	* term/rxvt.el: New file.
+
+	* Makefile.in (DONTCOMPILE): Remove term/xterm.el.
+
+	* term/xterm.el (xterm-standard-colors): New variable.
+	(xterm-rgb-convert-to-16bit, xterm-register-default-colors)
+	(xterm-rxvt-set-background-mode): New functions.
+	(toplevel): Call xterm-register-default-colors,
+	xterm-rxvt-set-background-mode, and tty-set-up-initial-frame-faces.
+	Add support for more keys from xterm's terminfo entry.
+
+	* facemenu.el (list-colors-display): If the argument is nil, don't
+	show more colors that the number returned by display-color-cells.
+
+	* term/pc-win.el (msdos-color-values): Reverse the order of the
+	colors, since tty-color-define now preserves the registration
+	order.
+
+	* w32-fns.el (w32-tty-standard-colors): Reverse the order.
+
+	* term/tty-colors.el (tty-standard-colors): Reverse the order.
+	(tty-register-default-colors): New function; code moved from
+	startup.el's command-line.
+	(tty-modify-color-alist): Use nconc instead of cons, to preserve
+	the order the colors where registered.
+
+	* frame.el (display-color-cells): Use tty-display-color-cells.
+
+	* startup.el (command-line): Call tty-register-default-colors.
+
 2002-01-25  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (remove): Doc fix.

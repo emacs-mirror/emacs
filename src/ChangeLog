@@ -2,6 +2,8 @@
 
 	* term.c (Ftty_display_color_cells): New function.
 	(syms_of_term): Defsubr it.
+	(Ftty_display_color_cells, Ftty_display_color_p): Change the
+	argument name to DISPLAY.  Doc fix.
 
 	* dispextern.h: Add prototype for set_tty_color_mode and
 	tty_setup_colors.
