@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, charset, coding system, fontset, diagnosis, i18n
 
@@ -394,6 +395,7 @@ detailed meanings of these arguments."
 	       (or (< ch 32) (and (>= ch 127) (<= ch 255))))
 	  ;; Don't insert a control code.
 	  (setq ch 32))
+      (unless ch (setq ch 32))
       (indent-to (+ (* (% i 16) 3) 6))
       (insert ch)
       (setq i (1+ i))))
@@ -447,10 +449,13 @@ detailed meanings of these arguments."
       (setq range (car ranges) ranges (cdr ranges))
       (if (integerp (car range))
 	  ;; The form of RANGES is (FROM1 TO1 FROM2 TO2 ...).
-	  (while range
-	    (list-block-of-chars translate-method
-				 0 (max 128 (car range)) (nth 1 range))
-	    (setq range (nthcdr 2 range)))
+	  (if (< (car (last range)) 256)
+	      (list-block-of-chars translate-method
+				   0 (max 128 (car range)) (car (last range)))
+	    (while range
+	      (list-block-of-chars translate-method
+				   0 (max 128 (car range)) (nth 1 range))
+	      (setq range (nthcdr 2 range))))
 	;; The form of RANGES is ((FROM1-1 TO1-1 ...) . (FROM2-1 TO2-1 ...)).
 	(let ((row-range (car range))
 	      row row-max
@@ -1239,9 +1244,9 @@ No input method is available, perhaps because you have not yet
 installed LEIM (Libraries of Emacs Input Method).
 
 LEIM is available from the same ftp directory as Emacs.  For instance,
-if there exists an archive file `emacs-20.N.tar.gz', there should also
-be a file `leim-20.N.tar.gz'.  When you extract this file, LEIM files
-are put under the subdirectory `emacs-20.N/leim'.  When you install
+if there exists an archive file `emacs-M.N.tar.gz', there should also
+be a file `leim-M.N.tar.gz'.  When you extract this file, LEIM files
+are put under the subdirectory `emacs-M.N/leim'.  When you install
 Emacs again, you should be able to use various input methods."))
     (princ "LANGUAGE\n  NAME (`TITLE' in mode line)\n")
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
