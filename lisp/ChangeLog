@@ -1,3 +1,16 @@
+2000-03-10  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* cvs-status, log-edit.el, log-view.el, pcvs-defs.el, pcvs-info.el,
+	pcvs-parse.el, pcvs-util.el, pcvs.el: New files.
+
+	* emacs-lisp/ewoc.el: New file.  This is a merge of elib-node.el, dll.el
+	and cookie.el (from Elib) with heavy renaming and other massaging.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-defmap, easy-mmode-defsyntax):
+	Autoload the functions used.
+	(easy-mmode-define-syntax): Fix CL typo.
+	(easy-mmode-define-derived-mode): Improve the docstring generation.
+
 2000-03-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/texinfo.el (texinfo-version): Variable and function
