@@ -1,3 +1,7 @@
+2001-11-05  Richard M. Stallman  <rms@gnu.org>
+
+	* unexelf.c (unexec): Minor changes; clean up comments.
+
 2001-11-05  Sam Steingold  <sds@gnu.org>
 
 	* w32term.c (x_display_and_set_cursor): Fix w32 compilation error.
