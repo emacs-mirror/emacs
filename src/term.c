@@ -118,9 +118,6 @@ void (*clear_end_of_line_hook) P_ ((int));
 
 void (*ins_del_lines_hook) P_ ((int, int));
 
-void (*change_line_highlight_hook) P_ ((int, int, int, int));
-void (*reassert_line_highlight_hook) P_ ((int, int));
-
 void (*delete_glyphs_hook) P_ ((int));
 
 void (*ring_bell_hook) P_ ((void));
@@ -388,18 +385,7 @@ int max_frame_width;
 
 int max_frame_height;
 
-/* Number of chars of space used for standout marker at beginning of line,
-   or'd with 0100.  Zero if no standout marker at all.
-   The length of these vectors is max_frame_height.
-
-   Used IFF TN_standout_width >= 0. */
-
-static char *chars_wasted;
-static char *copybuf;
-
-/* nonzero means supposed to write text in standout mode.  */
-
-int standout_requested;
+int costs_set = 0;		/* Nonzero if costs have been calculated. */
 
 int insert_mode;			/* Nonzero when in insert mode.  */
 int standout_mode;			/* Nonzero when in standout mode.  */
@@ -527,7 +513,6 @@ update_end (f)
 	tty_show_cursor ();
       turn_off_insert ();
       background_highlight ();
-      standout_requested = 0;
     }
   else
     update_end_hook (f);
@@ -676,97 +661,10 @@ highlight_if_desired ()
 {
   if (TN_standout_width >= 0)
     return;
-  if (!inverse_video == !standout_requested)
-    turn_off_highlight ();
-  else
+  if (inverse_video)
     turn_on_highlight ();
-}
-
-/* Handle standout mode for terminals in which TN_standout_width >= 0.
-   On these terminals, standout is controlled by markers that
-   live inside the terminal's memory.  TN_standout_width is the width
-   that the marker occupies in memory.  Standout runs from the marker
-   to the end of the line on some terminals, or to the next
-   turn-off-standout marker (TS_end_standout_mode) string
-   on other terminals.  */
-
-/* Write a standout marker or end-standout marker at the front of the line
-   at vertical position vpos.  */
-
-static void
-write_standout_marker (flag, vpos)
-     int flag, vpos;
-{
-  if (flag
-      || (TS_end_standout_mode && !TF_teleray && !se_is_so
-	  && !(TF_xs && TN_standout_width == 0)))
-    {
-      cmgoto (vpos, 0);
-      cmplus (TN_standout_width);
-      OUTPUT (flag ? TS_standout_mode : TS_end_standout_mode);
-      chars_wasted[curY] = TN_standout_width | 0100;
-    }
-}
-
-/* External interface to control of standout mode.
-   Call this when about to modify line at position VPOS
-   and not change whether it is highlighted.  */
-
-void
-reassert_line_highlight (highlight, vpos)
-     int highlight;
-     int vpos;
-{
-  struct frame *f = updating_frame ? updating_frame : XFRAME (selected_frame);
-  if (! FRAME_TERMCAP_P (f))
-    {
-      (*reassert_line_highlight_hook) (highlight, vpos);
-      return;
-    }
-  if (TN_standout_width < 0)
-    /* Handle terminals where standout takes affect at output time */
-    standout_requested = highlight;
-  else if (chars_wasted && chars_wasted[vpos] == 0)
-    /* For terminals with standout markers, write one on this line
-       if there isn't one already.  */
-    write_standout_marker (inverse_video ? !highlight : highlight, vpos);
-}
-
-/* Call this when about to modify line at position VPOS
-   and change whether it is highlighted.  */
-
-void
-change_line_highlight (new_highlight, vpos, y, first_unused_hpos)
-     int new_highlight, vpos, y, first_unused_hpos;
-{
-  standout_requested = new_highlight;
-  if (! FRAME_TERMCAP_P (updating_frame))
-    {
-      (*change_line_highlight_hook) (new_highlight, vpos, y, first_unused_hpos);
-      return;
-    }
-
-  cursor_to (vpos, 0);
-
-  if (TN_standout_width < 0)
-    background_highlight ();
-  /* If line starts with a marker, delete the marker */
-  else if (TS_clr_line && chars_wasted[curY])
-    {
-      turn_off_insert ();
-      /* On Teleray, make sure to erase the SO marker.  */
-      if (TF_teleray)
-	{
-	  cmgoto (curY - 1, FRAME_WIDTH (XFRAME (selected_frame)) - 4);
-	  OUTPUT ("\033S");
-	  curY++;		/* ESC S moves to next line where the TS_standout_mode was */
-	  curX = 0;
-	}
-      else
-	cmgoto (curY, 0);	/* reposition to kill standout marker */
-    }
-  clear_end_of_line_raw (first_unused_hpos);
-  reassert_line_highlight (new_highlight, curY);
+  else
+    turn_off_highlight ();
 }
 
 
@@ -787,10 +685,9 @@ cursor_to (vpos, hpos)
 
   /* Detect the case where we are called from reset_sys_modes
      and the costs have never been calculated.  Do nothing.  */
-  if (chars_wasted == 0)
+  if (! costs_set)
     return;
 
-  hpos += chars_wasted[vpos] & 077;
   if (curY == vpos && curX == hpos)
     return;
   if (!TF_standout_motion)
@@ -838,15 +735,13 @@ clear_to_end ()
     {
       background_highlight ();
       OUTPUT (TS_clr_to_bottom);
-      bzero (chars_wasted + curY,
-	     FRAME_HEIGHT (XFRAME (selected_frame)) - curY);
     }
   else
     {
       for (i = curY; i < FRAME_HEIGHT (XFRAME (selected_frame)); i++)
 	{
 	  cursor_to (i, 0);
-	  clear_end_of_line_raw (FRAME_WIDTH (XFRAME (selected_frame)));
+	  clear_end_of_line (FRAME_WIDTH (XFRAME (selected_frame)));
 	}
     }
 }
@@ -868,7 +763,6 @@ clear_frame ()
     {
       background_highlight ();
       OUTPUT (TS_clr_frame);
-      bzero (chars_wasted, FRAME_HEIGHT (sf));
       cmat (0, 0);
     }
   else
@@ -878,32 +772,13 @@ clear_frame ()
     }
 }
 
-/* Clear to end of line, but do not clear any standout marker.
-   Assumes that the cursor is positioned at a character of real text,
-   which implies it cannot be before a standout marker
-   unless the marker has zero width.
-
-   Note that the cursor may be moved.  */
-
-void
-clear_end_of_line (first_unused_hpos)
-     int first_unused_hpos;
-{
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame))
-      && chars_wasted != 0
-      && TN_standout_width == 0 && curX == 0 && chars_wasted[curY] != 0)
-    write_glyphs (&space_glyph, 1);
-  clear_end_of_line_raw (first_unused_hpos);
-}
-
 /* Clear from cursor to end of line.
    Assume that the line is already clear starting at column first_unused_hpos.
-   If the cursor is at a standout marker, erase the marker.
 
    Note that the cursor may be moved, on terminals lacking a `ce' string.  */
 
 void
-clear_end_of_line_raw (first_unused_hpos)
+clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
   register int i;
@@ -919,15 +794,11 @@ clear_end_of_line_raw (first_unused_hpos)
 
   /* Detect the case where we are called from reset_sys_modes
      and the costs have never been calculated.  Do nothing.  */
-  if (chars_wasted == 0)
+  if (! costs_set)
     return;
 
-  first_unused_hpos += chars_wasted[curY] & 077;
   if (curX >= first_unused_hpos)
     return;
-  /* Notice if we are erasing a magic cookie */
-  if (curX == 0)
-    chars_wasted[curY] = 0;
   background_highlight ();
   if (TS_clr_line)
     {
@@ -1087,7 +958,7 @@ write_glyphs (string, len)
 
   if (AutoWrap
       && curY + 1 == FRAME_HEIGHT (sf)
-      && (curX + len - (chars_wasted[curY] & 077) == FRAME_WIDTH (sf)))
+      && (curX + len) == FRAME_WIDTH (sf))
     len --;
   if (len <= 0)
     return;
@@ -1357,20 +1228,6 @@ ins_del_lines (vpos, n)
 	= (scroll_region_ok
 	   ? specified_window
 	   : FRAME_HEIGHT (sf));
-
-      if (n < 0)
-	{
-	  bcopy (&chars_wasted[vpos - n], &chars_wasted[vpos],
-		 lower_limit - vpos + n);
-	  bzero (&chars_wasted[lower_limit + n], - n);
-	}
-      else
-	{
-	  bcopy (&chars_wasted[vpos], &copybuf[vpos], lower_limit - vpos - n);
-	  bcopy (&copybuf[vpos], &chars_wasted[vpos + n],
-		 lower_limit - vpos - n);
-	  bzero (&chars_wasted[vpos], n);
-	}
     }
   if (!scroll_region_ok && memory_below_frame && n < 0)
     {
@@ -1509,23 +1366,12 @@ calculate_costs (frame)
      once for the terminal frame of X-windows emacs, but not used afterwards.
 
      char_ins_del_vector (i.e., char_ins_del_cost) isn't used because
-     X turns off char_ins_del_ok.
-
-     chars_wasted and copybuf are only used here in term.c in cases where
-     the term hook isn't called. */
+     X turns off char_ins_del_ok. */
 
   max_frame_height = max (max_frame_height, FRAME_HEIGHT (frame));
   max_frame_width = max (max_frame_width, FRAME_WIDTH (frame));
 
-  if (chars_wasted != 0)
-    chars_wasted = (char *) xrealloc (chars_wasted, max_frame_height);
-  else
-    chars_wasted = (char *) xmalloc (max_frame_height);
-
-  if (copybuf != 0)
-    copybuf = (char *) xrealloc (copybuf, max_frame_height);
-  else
-    copybuf = (char *) xmalloc (max_frame_height);
+  costs_set = 1;
 
   if (char_ins_del_vector != 0)
     char_ins_del_vector
@@ -1537,8 +1383,6 @@ calculate_costs (frame)
       = (int *) xmalloc (sizeof (int)
 			 + 2 * max_frame_width * sizeof (int));
 
-  bzero (chars_wasted, max_frame_height);
-  bzero (copybuf, max_frame_height);
   bzero (char_ins_del_vector, (sizeof (int)
 			       + 2 * max_frame_width * sizeof (int)));
 
