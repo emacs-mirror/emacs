@@ -1,3 +1,7 @@
+2004-04-10  Benjamin Riefenstahl  <Benjamin.Riefenstahl@epost.de>
+
+	* runemacs.c (WinMain): Let emacs environment default to parent.
+
 2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Version 21.3 released.
