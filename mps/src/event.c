@@ -1,6 +1,6 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.11) $
+ * $HopeName: MMsrc!event.c(trunk.12) $
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers.
@@ -26,7 +26,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.11) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.12) $");
 
 
 #ifdef EVENT /* .trans.ifdef */
@@ -70,7 +70,7 @@ Res EventSync(void)
 }
 
 
-Res (EventInit)(void)
+Res EventInit(void)
 {
   Res res;
 
@@ -95,7 +95,7 @@ Res (EventInit)(void)
 }
 
 
-void (EventFinish)(void)
+void EventFinish(void)
 {
   AVER(eventInited);
   AVER(eventUserCount > 0);
@@ -138,7 +138,20 @@ Word EventInternString(const char *label)
 
   id = (Word)EventInternSerial;
   ++EventInternSerial;
-  EVENT_WS(Intern, id, label);
+  EVENT_WS(Intern, id, StringLength(label), label);
+  return id;
+}
+
+
+Word EventInternGenString(size_t len, const char *label)
+{
+  Word id;
+
+  AVER(label != NULL);
+
+  id = (Word)EventInternSerial;
+  ++EventInternSerial;
+  EVENT_WS(Intern, id, len, label);
   return id;
 }
 
@@ -154,7 +167,7 @@ void EventLabelAddr(Addr addr, Word id)
 #else /* EVENT, not */
 
 
-Res EventSync(void)
+Res (EventSync)(void)
 {
   return(ResOK);  
 }
@@ -184,6 +197,14 @@ Word (EventControl)(Word resetMask, Word flipMask)
 Word (EventInternString)(const char *label)
 {
   UNUSED(label);
+
+  return (Word)0;
+}
+
+
+Word (EventInternGenString)(size_t len, const char *label)
+{
+  UNUSED(len); UNUSED(label);
 
   return (Word)0;
 }
