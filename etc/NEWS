@@ -18,6 +18,7 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 ** Emacs' auto-save list files are now by default stored in a
 sub-directory `.emacs.d/auto-save-list/' of the user's home directory.
+(On MS-DOS, this subdirectory's name is `_emacs.d/auto-save.list/'.)
 You can customize `auto-save-list-prefix' to change this location.
 
 ** On window-systems, additional space can be put between text lines
