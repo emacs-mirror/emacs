@@ -89,4 +89,6 @@ Obsoletes `c-forward-into-nomenclature'."
        capitalized-next-word-boundary-function-table))
 
 (provide 'cap-words)
+
+;;; arch-tag: 46513b64-fe5a-4c0b-902c-ed235c22975f
 ;;; cap-words.el ends here

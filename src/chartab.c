@@ -970,3 +970,6 @@ syms_of_chartab ()
   defsubr (&Soptimize_char_table);
   defsubr (&Smap_char_table);
 }
+
+/* arch-tag: 18b5b560-7ab5-4108-b09e-d5dd65dc6fda
+   (do not change this comment) */

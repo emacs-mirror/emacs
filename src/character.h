@@ -652,3 +652,6 @@ extern Lisp_Object Vchar_script_table;
   do { (sym) = intern ((name)); staticpro (&(sym)); } while (0)
 
 #endif /* EMACS_CHARACTER_H */
+
+/* arch-tag: 4ef86004-2eff-4073-8cea-cfcbcf7188ac
+   (do not change this comment) */

@@ -468,3 +468,5 @@
 	      (setcar x (cdr x)) (setcdr x tmp)))
 	map)
   (define-translation-table 'cp51932-encode map))
+
+;;; arch-tag: d21c06e5-a548-4dda-8802-c2922ff19da3
