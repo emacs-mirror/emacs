@@ -1,3 +1,26 @@
+2000-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c (toplevel) [SYSTEM_MALLOC || DOUG_LEA_MALLOC]: Undef
+	GC_MALLOC_CHECK.
+	(toplevel) [GC_MARK_STACK || GC_MALLOC_CHECK]: Move mem_node
+	structure definition and related variabled to the top of the file.
+	Include this code when GC_MALLOC_CHECK is defined.
+	(lisp_malloc, lisp_free) [GC_MALLOC_CHECK]: Don't
+	register/unregister allocated region.
+	(emacs_blocked_free) [GC_MALLOC_CHECK]: Check if freeing something
+	which isn't allocated.
+	(emacs_blocked_malloc) [GC_MALLOC_CHECK]: Check if returning
+	something which is already in use.
+	(emacs_blocked_realloc) [GC_MALLOC_CHECK]: Likewise.
+	(mem_insert) [GC_MALLOC_CHECK]: Use _malloc_internal.
+	(mem_delete) [GC_MALLOC_CHECK]: Use _free_internal.
+	(init_alloc_once) [GC_MALLOC_CHECK]: Call mem_init.
+
+	* gmalloc.c (_malloc_internal) [GC_MALLOC_CHECK]: Use
+	_malloc_internal instead of malloc.
+	(_free_internal) [GC_MALLOC_CHECK]: Use _free_internal instead
+	of free.
+
 2000-10-20  Andrew Innes  <andrewi@gnu.org>
 
 	* strftime.c [!WINDOWSNT]: Don't apply Solaris 2.5 work-around on
