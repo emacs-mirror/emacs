@@ -58,14 +58,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define DEFAULT_FACE_FONT "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-*"
 
 
-static void EmacsFrameInitialize (Widget, Widget, ArgList, Cardinal *);
-static void EmacsFrameDestroy (Widget);
-static void EmacsFrameRealize (Widget, XtValueMask*, XSetWindowAttributes*);
-void EmacsFrameResize (Widget widget);
-static Boolean EmacsFrameSetValues (Widget, Widget, Widget,
-				     ArgList, Cardinal *);
-static XtGeometryResult EmacsFrameQueryGeometry (Widget, XtWidgetGeometry*,
-						  XtWidgetGeometry*);
+static void EmacsFrameInitialize (/*Widget, Widget, ArgList, Cardinal * */);
+static void EmacsFrameDestroy (/* Widget */);
+static void EmacsFrameRealize (/* Widget, XtValueMask*, XSetWindowAttributes* */);
+void EmacsFrameResize (/* Widget widget */);
+static Boolean EmacsFrameSetValues (/* Widget, Widget, Widget,
+				     ArgList, Cardinal * */);
+static XtGeometryResult EmacsFrameQueryGeometry (/* Widget, XtWidgetGeometry*,
+						  XtWidgetGeometry* */);
 
 
 #undef XtOffset
@@ -162,8 +162,10 @@ EmacsFrameClassRec emacsFrameClassRec = {
 WidgetClass emacsFrameClass = (WidgetClass) &emacsFrameClassRec;
 
 static void
-get_default_char_pixel_size (EmacsFrame ew, int* pixel_width,
-			     int* pixel_height)
+get_default_char_pixel_size (ew, pixel_width, pixel_height)
+     EmacsFrame ew;
+     int* pixel_width;
+     int* pixel_height;
 {
 /*
   *pixel_width = XTextWidth (ew->emacs_frame.font, "n", 1);
@@ -176,9 +178,12 @@ get_default_char_pixel_size (EmacsFrame ew, int* pixel_width,
 }
 
 static void
-pixel_to_char_size (EmacsFrame ew,
-		    Dimension pixel_width, Dimension pixel_height,
-		    int* char_width, int* char_height)
+pixel_to_char_size (ew, pixel_width, pixel_height, char_width, char_height)
+     EmacsFrame ew;
+     Dimension pixel_width;
+     Dimension pixel_height;
+     int* char_width;
+     int* char_height;
 {
   struct frame* f = ew->emacs_frame.frame;
   *char_width = PIXEL_TO_CHAR_WIDTH (f, pixel_width);

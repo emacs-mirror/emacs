@@ -26,9 +26,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <string.h>
 #include <stdio.h>
-#include <X11/StringDefs.h>
 #include "lwlib-int.h"
 #include "lwlib-utils.h"
+#include <X11/StringDefs.h>
 
 #if defined(__GNUC__) && !defined(alloca)
 #define alloca __builtin_alloca
