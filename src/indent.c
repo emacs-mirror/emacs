@@ -203,7 +203,7 @@ width_run_cache_on_off ()
    characters immediately following, then *NEXT_BOUNDARY_P
    will equal the return value.  */
 
-static int
+int
 skip_invisible (pos, next_boundary_p, to, window)
      int pos;
      int *next_boundary_p;
@@ -1518,6 +1518,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   return &val_compute_motion;
 }
 
+
 #if 0 /* The doc string is too long for some compilers,
 	 but make-docfile can find it in this comment.  */
 DEFUN ("compute-motion", Ffoo, Sfoo, 7, 7, 0,
@@ -1814,7 +1815,10 @@ whether or not it is currently displayed in some window.")
   (lines, window)
      Lisp_Object lines, window;
 {
-  struct position pos;
+  struct it it;
+  struct text_pos pt;
+  struct buffer *old, *b;
+  struct window *w;
 
   CHECK_NUMBER (lines, 0);
   if (! NILP (window))
@@ -1822,11 +1826,28 @@ whether or not it is currently displayed in some window.")
   else
     window = selected_window;
 
-  pos = *vmotion (PT, (int) XINT (lines), XWINDOW (window));
+  w = XWINDOW (window);
+  b = XBUFFER (w->buffer);
+  if (b != current_buffer)
+    {
+      old = current_buffer;
+      set_buffer_internal_1 (b);
+    }
+  else
+    old = NULL;
+      
+  SET_TEXT_POS (pt, PT, PT_BYTE);
+  start_display (&it, w, pt);
+  move_it_by_lines (&it, XINT (lines), 0);
+  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 
-  SET_PT (pos.bufpos);
-  return make_number (pos.vpos);
+  if (old)
+    set_buffer_internal_1 (old);
+  
+  return make_number (it.vpos);
 }
+
+
 
 /* file's initialization.  */
 
