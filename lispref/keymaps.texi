@@ -1280,7 +1280,7 @@ Dired mode is set up:
   A special kind of key binding, using a special ``key sequence''
 which includes a command name, has the effect of @dfn{remapping} that
 command into another.  Here's how it works.  You make a key binding
-for a key sequence tha starts with the dummy event @code{remap},
+for a key sequence that starts with the dummy event @code{remap},
 followed by the command name you want to remap.  Specify the remapped
 definition as the definition in this binding.  The remapped definition
 is usually a command name, but it can be any valid definition for
