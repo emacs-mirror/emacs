@@ -1126,8 +1126,8 @@ This hook is mainly used for canceling the effect of
 
 (defcustom current-language-environment "English"
   "The last language environment specified with `set-language-environment'.
-This variable should only be set with Customize, which is equivalent
-to using `set-language-environment'."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `set-language-environment'."
   :link '(custom-manual "(emacs)Language Environments")
   :set (lambda (symbol value) (set-language-environment value))
   :get (lambda (x)
