@@ -1,3 +1,13 @@
+2004-09-27  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (syms_of_buffer) <indicate-buffer-boundaries>:
+	Doc fix.  Format may now be a symbol or alist, not a cons.
+
+	* fringe.c (update_window_fringes): Handle new formats of
+	indicate-buffer-boundaries (symbol or alist).  No longer
+	allow a simple cons.
+	(Ffringe_bitmaps_at_pos): Use nil value for no bitmap.
+
 2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* config.in: Rebuild
