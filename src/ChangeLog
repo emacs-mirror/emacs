@@ -1,3 +1,7 @@
+2000-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dispnew.c (mode_line_string): Support termcap frames as well.
+
 2000-01-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* syntax.c (Fforward_word): Undo previous change.
