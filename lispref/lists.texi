@@ -568,14 +568,13 @@ result list.  If the final element is not a list, the result is a
 ``dotted list'' since its final @sc{cdr} is not @code{nil} as required
 in a true list.
 
-The @code{append} function also allows integers as arguments.  It
-converts them to strings of digits, making up the decimal print
-representation of the integer, and then uses the strings instead of the
-original integers.  @strong{Don't use this feature; we plan to eliminate
-it.  If you already use this feature, change your programs now!}  The
-proper way to convert an integer to a decimal number in this way is with
-@code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
-(@pxref{String Conversion}).
+In Emacs 20 and before, the @code{append} function also allowed
+integers as (non last) arguments.  It converted them to strings of
+digits, making up the decimal print representation of the integer, and
+then used the strings instead of the original integers.  This obsolete
+usage no longer works.  The proper way to convert an integer to a
+decimal number in this way is with @code{format} (@pxref{Formatting
+Strings}) or @code{number-to-string} (@pxref{String Conversion}).
 @end defun
 
   Here is an example of using @code{append}:
@@ -745,15 +744,43 @@ non-@code{nil}, it copies vectors too (and operates recursively on
 their elements).
 @end defun
 
-@defun number-sequence from to &optional separation
-This returns a list of numbers starting with @var{from}
-and incrementing by @var{separation} (or by 1 if @var{separation}
-is @code{nil} or omitted), and ending at or just before @var{to}.
-For example,
+@defun number-sequence from &optional to separation
+This returns a list of numbers starting with @var{from} and
+incrementing by @var{separation}, and ending at or just before
+@var{to}.  @var{separation} can be positive or negative and defaults
+to 1.  If @var{to} is @code{nil} or numerically equal to @var{from},
+the one element list @code{(from)} is returned.  If @var{separation}
+is 0 and @var{to} is neither @code{nil} nor numerically equal to
+@var{from}, an error is signaled.
+
+All arguments can be integers or floating point numbers.  However,
+floating point arguments can be tricky, because floating point
+arithmetic is inexact.  For instance, depending on the machine, it may
+quite well happen that @code{(number-sequence 0.4 0.6 0.2)} returns
+the one element list @code{(0.4)}, whereas 
+@code{(number-sequence 0.4 0.8 0.2)} returns a list with three
+elements.  The @var{n}th element of the list is computed by the exact
+formula @code{(+ @var{from} (* @var{n} @var{separation}))}.  Thus, if
+one wants to make sure that @var{to} is included in the list, one can
+pass an expression of this exact type for @var{to}.  Alternatively,
+one can replace @var{to} with a slightly larger value (or a slightly
+more negative value if @var{separation} is negative).
+
+Some examples:
 
 @example
 (number-sequence 4 9)
      @result{} (4 5 6 7 8 9)
+(number-sequence 9 4 -1)
+     @result{} (9 8 7 6 5 4)
+(number-sequence 9 4 -2)
+     @result{} (9 7 5)
+(number-sequence 8)
+     @result{} (8)
+(number-sequence 8 5)
+     @result{} nil
+(number-sequence 5 8 -1)
+     @result{} nil
 (number-sequence 1.5 6 2)
      @result{} (1.5 3.5 5.5)
 @end example
@@ -1253,13 +1280,6 @@ compare @var{object} against the elements of the list.  For example:
 @end example
 @end defun
 
-@defun member-ignore-case object list
-This function is like @code{member}, except that it ignores
-differences in letter-case and text representation: upper-case and
-lower-case letters are treated as equal, and unibyte strings are
-converted to multibyte prior to comparison.
-@end defun
-
 @defun delq object list
 @cindex deletion of elements
 This function destructively removes all elements @code{eq} to
@@ -1404,6 +1424,14 @@ elements @code{equal} to @code{object} removed.  For example:
 Lisp.  The Common Lisp versions do not use @code{equal} to compare
 elements.
 @end quotation
+
+@defun member-ignore-case object list
+This function is like @code{member}, except that @var{object} should
+be a string and that it ignores differences in letter-case and text
+representation: upper-case and lower-case letters are treated as
+equal, and unibyte strings are converted to multibyte prior to
+comparison.
+@end defun
 
   See also the function @code{add-to-list}, in @ref{Setting Variables},
 for another way to add an element to a list stored in a variable.
@@ -1671,7 +1699,7 @@ the associations of one copy without affecting the other:
 @tindex assq-delete-all
 This function deletes from @var{alist} all the elements whose @sc{car}
 is @code{eq} to @var{key}, much as if you used @code{delq} to delete
-such each element one by one.  It returns the shortened alist, and
+each such element one by one.  It returns the shortened alist, and
 often modifies the original list structure of @var{alist}.  For
 correct results, use the return value of @code{assq-delete-all} rather
 than looking at the saved value of @var{alist}.
