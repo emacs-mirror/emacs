@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.5) $
+ * $HopeName: MMsrc!poolawl.c(trunk.6) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.5) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.6) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -64,7 +64,7 @@ static void AWLGroupDestroy(AWLGroup group)
   Space space;
 
   seg = group->seg;
-  pool = seg->pool;
+  pool = SegPool(seg);
   AVERT(Pool, pool);
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -131,9 +131,9 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   BTResRange(group->mark, 0, bits);
   BTResRange(group->scanned, 0, bits);
   BTResRange(group->alloc, 0, bits);
-  seg->summary = RefSetUNIV;
-  seg->rankSet = BufferRankSet(buffer);
-  seg->p = group;
+  SegSetSummary(seg, RefSetUNIV);
+  SegSetRankSet(seg, BufferRankSet(buffer));
+  SegSetP(seg, group);
   group->seg = seg;
   group->sig = AWLGroupSig;
   AVERT(AWLGroup, group);
@@ -220,11 +220,11 @@ static void AWLFinish(Pool pool)
   node = RingNext(ring);
   while(node != ring) {
     Ring next = RingNext(node);
-    Seg seg = RING_ELT(Seg, poolRing, node);
+    Seg seg = SegOfPoolRing(node);
     AWLGroup group;
 
     AVERT(Seg, seg);
-    group = (AWLGroup)seg->p;
+    group = (AWLGroup)SegP(seg);
     AVERT(AWLGroup, group);
     AWLGroupDestroy(group);
     node = next;
@@ -256,9 +256,9 @@ static Res AWLBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   RING_FOR(node, &pool->segRing) {
     Seg seg;
 
-    seg = RING_ELT(Seg, poolRing, node);
+    seg = SegOfPoolRing(node);
     AVERT(Seg, seg);
-    group = (AWLGroup)seg->p;
+    group = (AWLGroup)SegP(seg);
     AVERT(AWLGroup, group);
 
     if(AWLGroupAlloc(&base, &limit, group, awl, size))
@@ -300,7 +300,7 @@ static void AWLBufferEmpty(Pool pool, Buffer buffer)
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
-  group = (AWLGroup)buffer->seg->p;
+  group = (AWLGroup)SegP(BufferSeg(buffer));
   AVERT(AWLGroup, group);
 
   segBase = SegBase(PoolSpace(pool), BufferSeg(buffer));
@@ -324,7 +324,7 @@ static Res AWLCondemn(Pool pool, Trace trace, Seg seg, Action action)
 
   /* can only condemn for a single trace, */
   /* see design.mps.poolawl.fun.condemn */
-  AVER(seg->white == TraceSetEMPTY);
+  AVER(SegWhite(seg) == TraceSetEMPTY);
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -332,30 +332,30 @@ static Res AWLCondemn(Pool pool, Trace trace, Seg seg, Action action)
   AVERT(Action, action);
   AVER(awl == ActionAWL(action));
 
-  group = (AWLGroup)seg->p;
+  group = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
   bits = SegSize(PoolSpace(pool), seg) >> awl->alignShift;
   
   BTResRange(group->mark, 0, bits);
-  seg->white = TraceSetAdd(seg->white, trace->ti);
-    
+  SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
+  
   return ResOK;
 }
 
 static void AWLGrey(Pool pool, Trace trace, Seg seg)
 {
   /* parameters checkd by generic PoolGrey */
-  if(!TraceSetIsMember(seg->white, trace->ti)) {
+  if(!TraceSetIsMember(SegWhite(seg), trace->ti)) {
     AWL awl;
     AWLGroup group;
     Count bits;
 
     awl = PoolPoolAWL(pool);
     AVERT(AWL, awl);
-    group = (AWLGroup)seg->p;
+    group = (AWLGroup)SegP(seg);
     AVERT(AWLGroup, group);
 
-    seg->grey = TraceSetAdd(seg->grey, trace->ti);
+    SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace->ti));
     ShieldRaise(trace->space, seg, AccessREAD);
     bits = SegSize(PoolSpace(pool), seg) >> awl->alignShift;
     BTSetRange(group->mark, 0, bits);
@@ -409,7 +409,7 @@ static Res AWLScan(ScanState ss, Pool pool, Seg seg)
 
   /* parameters checked by generic PoolScan */
 
-  group = (AWLGroup)seg->p;
+  group = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
 
   awl = PoolPoolAWL(pool);
@@ -427,9 +427,9 @@ notFinished:
     Index i;	/* the index into the bit tables corresponding to p */
     Addr objectEnd;
     /* design.mps.poolawl.fun.scan.buffer */
-    if(seg->buffer) {
-      if(p == BufferScanLimit(seg->buffer)) {
-	p = BufferLimit(seg->buffer);
+    if(SegBuffer(seg)) {
+      if(p == BufferScanLimit(SegBuffer(seg))) {
+	p = BufferLimit(SegBuffer(seg));
 	continue;
       }
     }
@@ -487,12 +487,12 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVERT(Pool, pool);
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
-  AVER(TraceSetInter(seg->white, ss->traces) != TraceSetEMPTY);
+  AVER(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY);
   AVER(refIO != NULL);
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
-  group  = (AWLGroup)seg->p;
+  group  = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
 
   space = PoolSpace(pool);
@@ -546,7 +546,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
-  group = (AWLGroup)seg->p;
+  group = (AWLGroup)SegP(seg);
   AVERT(AWLGroup, group);
 
   space = PoolSpace(pool);
