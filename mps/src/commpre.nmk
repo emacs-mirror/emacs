@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName$
+# $HopeName: MMsrc!commpre.nmk(trunk.1) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -97,6 +97,8 @@ ECHO = echo
 !ifdef TARGET
 !if "$(TARGET)" == "mmsw.lib"
 CFLAGSTARGET = /ML /DCONFIG_PROD_EPCORE
+!elseif "$(TARGET)" == "mmdw.lib"
+CFLAGSTARGET = /MT /DCONFIG_PROD_DYLAN
 !else
 CFLAGSTARGET = /MT /DCONFIG_PROD_MPS
 !endif
