@@ -32,7 +32,6 @@ maximum buffer size.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
-+++
 ** The new global minor mode `auto-image-file-mode' allows image files
 to be visited as images.
 
