@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000, 2001
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Display, Search, Registers, Top
 @chapter Controlling the Display
@@ -10,6 +11,11 @@ allow you to specify which part of the text you want to see, and how to
 display it.
 
 @menu
+* Faces::	           How to change the display style using faces.
+* Font Lock::              Minor mode for syntactic highlighting using faces.
+* Highlight Changes::      Using colors to show where you changed the buffer.
+* Highlight Interactively:: Tell Emacs what text to highlight.
+* Trailing Whitespace::    Showing possibly-spurious trailing whitespace.
 * Scrolling::	           Moving text up and down in a window.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Follow Mode::            Follow mode lets two windows scroll as one.
@@ -19,6 +25,365 @@ display it.
 * Display Custom::         Information on variables for customizing display.
 * Cursor Display::         Features for displaying the cursor.
 @end menu
+
+@node Faces
+@section Using Multiple Typefaces
+@cindex faces
+
+  When using Emacs with a window system, you can set up multiple
+styles of displaying characters.  Some of the aspects of style that
+you can control are the type font, the foreground color, the
+background color, and whether or not to underline text, and in which
+color.
+
+  Features which rely on text in multiple faces (such as Font Lock
+mode) will also work on non-windowed terminals (including
+MS-DOS@pxref{MS-DOS}), that can display more than one face, whether by
+colors or underlining and emboldening.  This includes the console on
+GNU/Linux.  Emacs determines automatically whether the terminal has
+this capability.
+
+  The way you control display style is by defining named @dfn{faces}.
+Each face can specify various attributes, like the type font's height,
+weight and slant, foreground and background color, and underlining,
+but it does not have to specify all of them.  By specifying the face
+or faces to use for a given part of the text in the buffer, you
+control how that text appears.
+
+  The style of display used for a given character in the text is
+determined by combining several faces.  Any aspect of the display
+style that isn't specified by overlays or text properties comes from a
+default face which inherits its settings from the frame itself.
+
+  Enriched mode, the mode for editing formatted text, includes several
+commands and menus for specifying faces.  @xref{Format Faces}, for how
+to specify the font for text in the buffer.  @xref{Format Colors}, for
+how to specify the foreground and background color.
+
+  To alter the appearance of a face, use the customization buffer.
+@xref{Face Customization}.  You can also use X resources to specify
+attributes of particular faces (@pxref{Resources X}).
+
+@cindex face colors, setting
+@findex set-face-foreground
+@findex set-face-background
+  Alternatively, you can change the foreground and background colors
+of a specific face with @kbd{M-x set-face-foreground} and @kbd{M-x
+set-face-background}.  These commands prompt in the minibuffer for a
+face name and a color name, with completion, and then set that face to
+use the specified color.
+
+@findex list-faces-display
+  To see what faces are currently defined, and what they look like, type
+@kbd{M-x list-faces-display}.  It's possible for a given face to look
+different in different frames; this command shows the appearance in the
+frame in which you type it.  Here's a list of the standardly defined
+faces:
+
+@table @code
+@item default
+This face is used for ordinary text that doesn't specify any other face.
+@item mode-line
+This face is used for mode lines.  By default, it's drawn with shadows
+for a ``raised'' effect on window systems, and drawn as the inverse of
+the default face on non-windowed terminals.  @xref{Display Custom}.
+@item header-line
+Similar to @code{mode-line} for a window's header line.  Most modes
+don't use the header line, but the Info mode does.
+@item highlight
+This face is used for highlighting portions of text, in various modes.
+For example, mouse-sensitive text is highlighted using this face.
+@item isearch
+This face is used for highlighting Isearch matches.
+@item isearch-lazy-highlight-face
+This face is used for lazy highlighting of Isearch matches other than
+the current one.
+@item region
+This face is used for displaying a selected region (when Transient Mark
+mode is enabled---see below).
+@item secondary-selection
+This face is used for displaying a secondary X selection (@pxref{Secondary
+Selection}).
+@item bold
+This face uses a bold variant of the default font, if it has one.
+@item italic
+This face uses an italic variant of the default font, if it has one.
+@item bold-italic
+This face uses a bold italic variant of the default font, if it has one.
+@item underline
+This face underlines text.
+@item fixed-pitch
+The basic fixed-pitch face.
+@item fringe
+@cindex fringe
+The face for the fringes to the left and right of windows on graphic
+displays.  (The fringes are the narrow portions of the Emacs frame
+between the text area and the frame's border.)
+@item scroll-bar
+This face determines the visual appearance of the scroll bar.
+@item border
+This face determines the color of the frame border.
+@item cursor
+This face determines the color of the cursor.
+@item mouse
+This face determines the color of the mouse pointer.
+@item tool-bar
+This is the basic tool-bar face.  No text appears in the tool bar, but the
+colors of this face affect the appearance of tool bar icons.
+@item tooltip
+This face is used for tooltips.
+@item menu
+This face determines the colors and font of Emacs's menus.  Setting the
+font of LessTif/Motif menus is currently not supported; attempts to set
+the font are ignored in this case.
+@item trailing-whitespace
+The face for highlighting trailing whitespace when
+@code{show-trailing-whitespace} is non-nil.
+@item variable-pitch
+The basic variable-pitch face.
+@end table
+
+@cindex @code{region} face
+  When Transient Mark mode is enabled, the text of the region is
+highlighted when the mark is active.  This uses the face named
+@code{region}; you can control the style of highlighting by changing the
+style of this face (@pxref{Face Customization}).  @xref{Transient Mark},
+for more information about Transient Mark mode and activation and
+deactivation of the mark.
+
+  One easy way to use faces is to turn on Font Lock mode.  This minor
+mode, which is always local to a particular buffer, arranges to
+choose faces according to the syntax of the text you are editing.  It
+can recognize comments and strings in most languages; in several
+languages, it can also recognize and properly highlight various other
+important constructs.  @xref{Font Lock}, for more information about
+Font Lock mode and syntactic highlighting.
+
+  You can print out the buffer with the highlighting that appears
+on your screen using the command @code{ps-print-buffer-with-faces}.
+@xref{PostScript}.
+
+@node Font Lock
+@section Font Lock mode
+@cindex Font Lock mode
+@cindex mode, Font Lock
+@cindex syntax highlighting and coloring
+
+  Font Lock mode is a minor mode, always local to a particular
+buffer, which highlights (or ``fontifies'') using various faces
+according to the syntax of the text you are editing.  It can
+recognize comments and strings in most languages; in several
+languages, it can also recognize and properly highlight various other
+important constructs---for example, names of functions being defined
+or reserved keywords.
+
+@findex font-lock-mode
+@findex turn-on-font-lock
+  The command @kbd{M-x font-lock-mode} turns Font Lock mode on or off
+according to the argument, and toggles the mode when it has no argument.
+The function @code{turn-on-font-lock} unconditionally enables Font Lock
+mode.  This is useful in mode-hook functions.  For example, to enable
+Font Lock mode whenever you edit a C file, you can do this:
+
+@example
+(add-hook 'c-mode-hook 'turn-on-font-lock)
+@end example
+
+@findex global-font-lock-mode
+@vindex global-font-lock-mode
+  To turn on Font Lock mode automatically in all modes which support
+it, customize the user option @code{global-font-lock-mode} or use the
+function @code{global-font-lock-mode} in your @file{.emacs} file, like
+this:
+
+@example
+(global-font-lock-mode 1)
+@end example
+
+  Font Lock mode uses several specifically named faces to do its job,
+including @code{font-lock-string-face}, @code{font-lock-comment-face},
+and others.  The easiest way to find them all is to use completion
+on the face name in @code{set-face-foreground}.
+
+  To change the colors or the fonts used by Font Lock mode to fontify
+different parts of text, just change these faces.  There are
+two ways to do it:
+
+@itemize @bullet
+@item
+Invoke @kbd{M-x set-face-foreground} or @kbd{M-x set-face-background}
+to change the colors of a particular face used by Font Lock.
+@xref{Faces}.  The command @kbd{M-x list-faces-display} displays all
+the faces currently known to Emacs, including those used by Font Lock.
+
+@item
+Customize the faces interactively with @kbd{M-x customize-face}, as
+described in @ref{Face Customization}.
+@end itemize
+
+  To get the full benefit of Font Lock mode, you need to choose a
+default font which has bold, italic, and bold-italic variants; or else
+you need to have a color or gray-scale screen.
+
+@vindex font-lock-maximum-decoration
+  The variable @code{font-lock-maximum-decoration} specifies the
+preferred level of fontification, for modes that provide multiple
+levels.  Level 1 is the least amount of fontification; some modes
+support levels as high as 3.  The normal default is ``as high as
+possible.''  You can specify an integer, which applies to all modes, or
+you can specify different numbers for particular major modes; for
+example, to use level 1 for C/C++ modes, and the default level
+otherwise, use this:
+
+@example
+(setq font-lock-maximum-decoration
+      '((c-mode . 1) (c++-mode . 1)))
+@end example
+
+@vindex font-lock-maximum-size
+  Fontification can be too slow for large buffers, so you can suppress
+it.  The variable @code{font-lock-maximum-size} specifies a buffer size,
+beyond which buffer fontification is suppressed.
+
+@c @w is used below to prevent a bad page-break.
+@vindex font-lock-beginning-of-syntax-function
+  Comment and string fontification (or ``syntactic'' fontification)
+relies on analysis of the syntactic structure of the buffer text.  For
+the purposes of speed, some modes including C mode and Lisp mode rely on
+a special convention: an open-parenthesis in the leftmost column always
+defines the @w{beginning} of a defun, and is thus always outside any string
+or comment.  (@xref{Defuns}.)  If you don't follow this convention,
+then Font Lock mode can misfontify the text after an open-parenthesis in
+the leftmost column that is inside a string or comment.
+
+  The variable @code{font-lock-beginning-of-syntax-function} (always
+buffer-local) specifies how Font Lock mode can find a position
+guaranteed to be outside any comment or string.  In modes which use the
+leftmost column parenthesis convention, the default value of the variable
+is @code{beginning-of-defun}---that tells Font Lock mode to use the
+convention.  If you set this variable to @code{nil}, Font Lock no longer
+relies on the convention.  This avoids incorrect results, but the price
+is that, in some cases, fontification for a changed text must rescan
+buffer text from the beginning of the buffer.
+
+@findex font-lock-add-keywords
+  Font Lock highlighting patterns already exist for many modes, but you
+may want to fontify additional patterns.  You can use the function
+@code{font-lock-add-keywords}, to add your own highlighting patterns for
+a particular mode.  For example, to highlight @samp{FIXME:} words in C
+comments, use this:
+
+@example
+(font-lock-add-keywords
+ 'c-mode
+ '(("\\<\\(FIXME\\):" 1 font-lock-warning-face t)))
+@end example
+
+@node Highlight Changes
+@section Highlight Changes Mode
+
+@findex highlight-changes-mode
+  Use @kbd{M-x highlight-changes-mode} to enable a minor mode
+that uses faces (colors, typically) to indicate which parts of
+the buffer were changed most recently.
+
+@node Highlight Interactively
+@section Interactive Highlighting by Matching
+@cindex highlighting by matching
+@cindex interactive highlighting
+
+  It is sometimes useful to highlight the strings that match a certain
+regular expression.  For example, you might wish to see all the
+references to a certain variable in a program source file, or highlight
+certain parts in a voluminous output of some program, or make certain
+cliches stand out in an article.
+
+@findex hi-lock-mode
+  Use the @kbd{M-x hi-lock-mode} command to turn on a minor mode that
+allows you to specify regular expressions of the text to be
+highlighted.  Hi-lock mode works like Font Lock (@pxref{Font Lock}),
+except that it lets you specify explicitly what parts of text to
+highlight.  You control Hi-lock mode with these commands:
+
+@table @kbd
+@item C-x w h @var{regexp} @key{RET} @var{face} @key{RET}
+@kindex C-x w h
+@findex highlight-regexp
+Highlight text that matches
+@var{regexp} using face @var{face} (@code{highlight-regexp}).
+By using this command more than once, you can highlight various
+parts of the text in different ways.
+
+@item C-x w r @var{regexp} @key{RET}
+@kindex C-x w r
+@findex unhighlight-regexp
+Unhighlight @var{regexp} (@code{unhighlight-regexp}).  You must enter
+one of the regular expressions currently specified for highlighting.
+(You can use completion, or a menu, to enter one of them
+conveniently.)
+
+@item C-x w l @var{regexp} @key{RET} @var{face} @key{RET}
+@kindex C-x w l
+@findex highlight-lines-matching-regexp
+@cindex lines, highlighting
+@cindex highlighting lines of text
+Highlight lines containing a match for @var{regexp}, using face
+@var{face} (@code{highlight-lines-matching-regexp}).
+
+@item C-x w b
+@kindex C-x w b
+@findex hi-lock-write-interactive-patterns
+Insert all the current highlighting regexp/face pairs into the buffer
+at point, with comment delimiters to prevent them from changing your
+program.  This key binding runs the
+@code{hi-lock-write-interactive-patterns} command.
+
+These patterns will be read the next time you visit the file while
+Hi-lock mode is enabled, or whenever you use the @kbd{M-x
+hi-lock-find-patterns} command.
+
+@item C-x w i
+@kindex C-x w i
+@findex hi-lock-find-patterns
+@vindex hi-lock-exclude-modes
+Re-read regexp/face pairs in the current buffer
+(@code{hi-lock-write-interactive-patterns}).  The list of pairs is
+found no matter where in the buffer it may be.
+
+This command does nothing if the major mode is a member of the list
+@code{hi-lock-exclude-modes}.
+@end table
+
+@node Trailing Whitespace
+@section Trailing Whitespace
+
+@cindex trailing whitespace
+@cindex whitespace, trailing
+@vindex show-trailing-whitespace
+  It is easy to leave unnecessary spaces at the end of a line without
+realizing it.  In most cases, this @dfn{trailing whitespace} has no
+effect, but there are special circumstances where it matters.
+
+  You can make trailing whitespace visible on the screen by setting
+the variable @code{show-trailing-whitespace} to @code{t}.  Then Emacs
+displays trailing whitespace in the face @code{trailing-whitespace}.
+
+  Trailing whitespace is defined as spaces or tabs at the end of a
+line.  But trailing whitespace is not displayed specially if point is
+at the end of the line containing the whitespace.  (Doing that looks
+ugly while you are typing in new text, and the location of point is
+enough in that case to show you that the spaces are present.)
+
+@vindex indicate-empty-lines
+@vindex default-indicate-empty-lines
+@cindex empty lines
+  Emacs can indicate empty lines at the end of the buffer with a
+special bitmap on the left fringe of the window.  To enable this
+feature, set the buffer-local variable @code{indicate-empty-lines} to
+a non-@code{nil} value.  The default value of this variable is
+controlled by the variable @code{default-indicate-empty-lines};
+by setting that variable, you can enable or disable this feature
+for all new buffers.
 
 @node Scrolling
 @section Scrolling
