@@ -2,7 +2,7 @@
 ;;; Copyright 1989, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Time-stamp: <93/12/19 14:50:59 gildea>
+;; Time-stamp: <94/02/14 15:02:07 gildea>
 ;; Keywords: tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -74,7 +74,7 @@ with other people's files!  If you must change them for some application,
 do so in the local variables section of the time-stamped file itself.")
 
 
-(defvar time-stamp-start "Time-stamp: \\\\?[\"<]+"    ;Do not change!
+(defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
   "Regexp after which the time stamp is written by \\[time-stamp].
 See also the variables `time-stamp-end' and `time-stamp-line-limit'.
 
@@ -277,3 +277,4 @@ The first character of DD is space if the value is less than 10."
 (provide 'time-stamp)
 
 ;;; time-stamp.el ends here
+
