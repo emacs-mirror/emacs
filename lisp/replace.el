@@ -360,7 +360,7 @@ end of the buffer."
 	    ;; Now end is first char preserved by the new match.
 	    (if (< start end)
 		(delete-region start end))))
-	
+
 	(setq start (save-excursion (forward-line 1) (point)))
 	;; If the match was empty, avoid matching again at same place.
 	(and (< (point) rend)
@@ -452,8 +452,11 @@ end of the buffer."
     (define-key map "\C-o" 'occur-mode-display-occurrence)
     (define-key map "\M-n" 'occur-next)
     (define-key map "\M-p" 'occur-prev)
+    (define-key map "r" 'occur-rename-buffer)
+    (define-key map "c" 'clone-buffer)
     (define-key map "g" 'revert-buffer)
-    (define-key map "q" 'delete-window)
+    (define-key map "q" 'quit-window)
+    (define-key map "z" 'kill-this-buffer)
     map)
   "Keymap for `occur-mode'.")
 
@@ -554,15 +557,15 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (if (not n) (setq n 1))
   (let ((r))
     (while (> n 0)
-    
+
       (setq r (get-text-property (point) 'occur-point))
       (if r (forward-char -1))
-      
+
       (setq r (previous-single-property-change (point) 'occur-point))
       (if r
 	  (goto-char (- r 1))
 	(error "No earlier matches"))
-      
+
       (setq n (1- n)))))
 
 (defcustom list-matching-lines-default-context-lines 0
@@ -622,6 +625,22 @@ If the value is nil, don't highlight the buffer names specially."
 	    input))
 	(when current-prefix-arg
 	  (prefix-numeric-value current-prefix-arg))))
+
+(defun occur-rename-buffer (&optional unique-p)
+  "Rename the current *Occur* buffer to *Occur: original-buffer-name*.
+Here `original-buffer-name' is the buffer name were occur was originally run.
+When given the prefix argument, the renaming will not clobber the existing
+buffer(s) of that name, but use `generate-new-buffer-name' instead.
+You can add this to `occur-mode-hook' if you always want a separate *Occur*
+buffer for each buffer where you invoke `occur'."
+  (interactive "P")
+  (with-current-buffer
+      (if (eq major-mode 'occur-mode) (current-buffer) (get-buffer "*Occur*"))
+    (rename-buffer (concat "*Occur: "
+                           (mapconcat #'buffer-name
+                                      (car (cddr occur-revert-arguments)) "/")
+                           "*")
+                   unique-p)))
 
 (defun occur (regexp &optional nlines)
   "Show all lines in the current buffer containing a match for REGEXP.
@@ -948,7 +967,7 @@ type them."
           (aset data 2 (if (consp next) next (aref data 3))))))
   (car (aref data 2)))
 
-(defun perform-replace (from-string replacements 
+(defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag
 			&optional repeat-count map start end)
   "Subroutine of `query-replace'.  Its complexity handles interactive queries.
@@ -1173,7 +1192,7 @@ make, or the user didn't cancel the call."
 			 (if (and regexp-flag nonempty-match)
 			     (setq match-again (and (looking-at search-string)
 						    (match-data)))))
-		      
+
 			;; Edit replacement.
 			((eq def 'edit-replacement)
 			 (setq next-replacement
@@ -1182,7 +1201,7 @@ make, or the user didn't cancel the call."
 			 (or replaced
 			     (replace-match next-replacement nocasify literal))
 			 (setq done t))
-		      
+
 			((eq def 'delete-and-edit)
 			 (delete-region (match-beginning 0) (match-end 0))
 			 (set-match-data
@@ -1212,7 +1231,7 @@ make, or the user didn't cancel the call."
       ;; beyond the last replacement.  Undo that.
       (when (and regexp-flag (not match-again) (> replace-count 0))
 	(backward-char 1))
-      
+
       (replace-dehighlight))
     (or unread-command-events
 	(message "Replaced %d occurrence%s"
