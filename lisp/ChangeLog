@@ -1,3 +1,8 @@
+1999-12-31  William M. Perry  <wmperry@aventail.com>
+
+	* image.el (defimage): Images with the `:data' keyword should be
+	considered valid as well.
+
 1999-12-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* dired.el (dired-get-filename): Don't call file-name-absolute-p

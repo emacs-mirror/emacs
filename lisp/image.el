@@ -72,7 +72,7 @@ Image types are symbols like `xbm' or `jpeg'."
   "Create an image which will be loaded from FILE.
 Optional TYPE is a symbol describing the image type.  If TYPE is omitted
 or nil, try to determine the image file type from its first few bytes.
-If that doesn't work, use FILE's extension.as image type.
+If that doesn't work, use FILE's extension as image type.
 Optional PROPS are additional image attributes to assign to the image,
 like, e.g. `:heuristic-mask t'.
 Value is the image created, or nil if images of type TYPE are not supported."
@@ -164,10 +164,12 @@ documentation string.
 
 Each image specification in SPECS is a property list.  The contents of
 a specification are image type dependent.  All specifications must at
-least contain the properties `:type TYPE' and `:file FILE', where TYPE
-is a symbol specifying the image type, e.g. `xbm', and FILE is the
-file to load the image from.  The first image specification whose TYPE
-is supported, and FILE exists, is used to define SYMBOL.
+least contain the properties `:type TYPE' and either `:file FILE' or
+`:data DATA', where TYPE is a symbol specifying the image type,
+e.g. `xbm', FILE is the file to load the image from, and DATA is a
+string containing the actual image data.  The first image
+specification whose TYPE is supported, and FILE exists, is used to
+define SYMBOL.
 
 Example:
 
@@ -176,13 +178,17 @@ Example:
   (let (image)
     (while (and specs (null image))
       (let* ((spec (car specs))
+	     (data (plist-get spec :data))
 	     (type (plist-get spec :type))
 	     (file (plist-get spec :file)))
-	(when (and (image-type-available-p type) (stringp file))
-	  (setq file (expand-file-name file data-directory))
-	  (when (file-readable-p file)
-	    (setq image (cons 'image (plist-put spec :file file)))))
-	(setq specs (cdr specs))))
+	(when (and (image-type-available-p type) ; Image type is supported
+		   (or data (stringp file))) ; Data or file was specified
+	  (if data
+	      (setq image (cons 'image spec))
+	    (setq file (expand-file-name file data-directory))
+	    (when (file-readable-p file)
+	      (setq image (cons 'image (plist-put spec :file file)))))
+	  (setq specs (cdr specs)))))
     `(defvar ,symbol ',image ,doc)))
 
 
