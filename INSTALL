@@ -200,7 +200,8 @@ configure should avoid such old versions.  If that happens, use the
 
 To take proper advantage of Emacs 21's mule-unicode charsets, you need
 a Unicode font.  For information on Unicode fonts for X, see
-<URL:http://czyborra.com/unifont/> and
+<URL:http://czyborra.com/unifont/>,
+<URL:http://openlab.ring.gr.jp/efont/> and
 <URL:http://www.cl.cam.ac.uk/%7Emgk25/ucs-fonts.html>.
 <URL:http://czyborra.com/charsets/> has basic fonts for Emacs's
 ISO-8859 charsets.
