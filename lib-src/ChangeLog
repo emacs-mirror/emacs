@@ -7,6 +7,8 @@
 	* etags.c (enum sym_type): New label st_C_template.
 	(gperf input): Use it for switching to C++ from C.
 	(consider_token): Do it.
+	(C_entries): Initialise typdefcblev to quiet compilers.
+	[!HAVE_CONFIG_H] [!__STDC__]: #define static as nothing.
 
 2001-02-22  Andrew Innes  <andrewi@gnu.org>
 
