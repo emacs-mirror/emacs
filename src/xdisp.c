@@ -739,7 +739,11 @@ update:
 	    {
 	      pause |= update_frame (f, 0, 0);
 	      if (!pause)
-		mark_window_display_accurate (f->root_window, 1);
+		{
+		  mark_window_display_accurate (f->root_window, 1);
+		  if (frame_up_to_date_hook != 0)
+		    (*frame_up_to_date_hook) (f);
+		}
 	    }
 	}
     }
@@ -755,8 +759,8 @@ update:
 	 above call to update_frame would not have caught it.  Catch
 	 it here.  */
       {
-	FRAME_PTR mini_frame =
-	  XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
+	FRAME_PTR mini_frame
+	  = XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
 	
 	if (mini_frame != selected_frame)
 	  pause |= update_frame (mini_frame, 0, 0);
@@ -807,6 +811,8 @@ update:
 	  w->window_end_valid = Qt;
 	  last_arrow_position = Voverlay_arrow_position;
 	  last_arrow_string = Voverlay_arrow_string;
+	  if (frame_up_to_date_hook != 0)
+	    (*frame_up_to_date_hook) (selected_frame);
 	}
       update_mode_lines = 0;
       windows_or_buffers_changed = 0;
@@ -1925,6 +1931,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
   GLYPH *endp;
   register GLYPH *startp;
   register GLYPH *p1prev = 0;
+  register GLYPH *p1start;
+  int *charstart;
   FRAME_PTR f = XFRAME (w->frame);
   int tab_width = XINT (current_buffer->tab_width);
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
@@ -1981,6 +1989,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   
   /* The face we're currently using.  */
   int current_face = 0;
+  int i;
 
   XFASTINT (default_invis_vector[2]) = '.';
   default_invis_vector[0] = default_invis_vector[1] = default_invis_vector[2];
@@ -2020,6 +2029,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
   desired_glyphs->bufp[vpos] = pos;
   p1 = desired_glyphs->glyphs[vpos] + hpos;
+  p1start = p1;
+  charstart = desired_glyphs->charstarts[vpos] + hpos;
+  /* In case we don't ever write anything into it...  */
+  *charstart = -1;
   end = ZV;
   startp = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
   endp = startp + width;
@@ -2042,6 +2055,10 @@ display_text_line (w, start, vpos, hpos, taboffset)
 #endif
   while (p1 < endp)
     {
+      /* Record which glyph starts a character,
+	 and the character position of that character.  */
+      charstart[p1 - p1start] = pos;
+
       p1prev = p1;
       if (pos >= pause)
 	{
@@ -2098,7 +2115,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  if (pos >= next_face_change && FRAME_X_P (f))
 	    current_face = compute_char_face (f, w, pos,
 					      region_beg, region_end,
-					      &next_face_change, pos + 50);
+					      &next_face_change, pos + 50, 0);
 #endif
 
 	  pause = end;
@@ -2225,6 +2242,19 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	  p1++;
 	}
 
+      /* For all the glyphs occupied by this character, except for the
+	 first, store -1 in charstarts.  */
+      if (p1 != p1prev)
+	{
+	  int *p2x = &charstart[p1prev - p1start] + 1;
+	  int *p2 = &charstart[p1 - p1start];
+	  while (p2x != p2)
+	    *p2x++ = -1;
+	}
+      else
+	/* If this character took up no space,
+	   erase all mention of it from charstart.  */
+	charstart[p1 - p1start] = 0;
       pos++;
     }
 
@@ -2235,6 +2265,12 @@ display_text_line (w, start, vpos, hpos, taboffset)
   val.vpos = 1;
 
   lastpos = pos;
+
+  /* Store 0 in this charstart line for the positions where
+     there is no character.  But do leave what was recorded
+     for the character that ended the line.  */
+  for (i = p1 - p1start + 1; i < endp - p1start; i++)
+    charstart[i] = 0;
 
   /* Handle continuation in middle of a character */
   /* by backing up over it */
@@ -3067,6 +3103,7 @@ display_string (w, vpos, string, length, hpos, truncate,
   /* Use the standard display table, not the window's display table.
      We don't want the mode line in rot13.  */
   register struct Lisp_Vector *dp = 0;
+  int i;
 
   if (XTYPE (Vstandard_display_table) == Lisp_Vector
       && XVECTOR (Vstandard_display_table)->size == DISP_TABLE_SIZE)
@@ -3098,6 +3135,10 @@ display_string (w, vpos, string, length, hpos, truncate,
   if (! obey_window_width
       || (maxcol >= 0 && end - desired_glyphs->glyphs[vpos] > maxcol))
     end = desired_glyphs->glyphs[vpos] + maxcol;
+
+  /* Store 0 in charstart for these columns.  */
+  for (i = hpos; i < end - p1start + hpos; i++)
+    desired_glyphs->charstarts[vpos][i] = 0;
 
   if (maxcol >= 0 && mincol > maxcol)
     mincol = maxcol;
