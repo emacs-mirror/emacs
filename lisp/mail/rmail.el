@@ -1073,9 +1073,9 @@ or backward if N is negative."
     (if (/= lastwin rmail-current-message)
 	(rmail-show-message lastwin))
     (if (< n 0)
-	(error "No previous nondeleted message"))
+	(message "No previous nondeleted message"))
     (if (> n 0)
-	(error "No following nondeleted message"))))
+	(message "No following nondeleted message"))))
 
 (defun rmail-previous-undeleted-message (n)
   "Show previous non-deleted message.
