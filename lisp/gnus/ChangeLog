@@ -1,3 +1,10 @@
+2001-08-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-start.el (gnus-startup-file-coding-system): Revert to binary.
+	(gnus-ding-file-coding-system): New variable.
+	(gnus-read-newsrc-el-file, gnus-save-newsrc-file)
+	(gnus-slave-save-newsrc): Use it.
+
 2001-07-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* gnus-start.el (gnus-startup-file-coding-system): Change to

@@ -1,5 +1,8 @@
 2001-08-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* play/animate.el: Add Keywords and Maintainer.  Remove a
+	reference to a removed function.
+	
 	* play/animate.el (animate-string): Handle case that the string is
 	longer than the window is wide.
 

@@ -1,3 +1,8 @@
+2001-08-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_set_tool_bar_lines): Clear the tool bar window's
+	current matrix when the window gets smaller.
+
 2001-08-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* print.c (strout): Cast the character passed to insert_char to
