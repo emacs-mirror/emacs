@@ -34,6 +34,9 @@ distclean:
 clean:
 	-rm -f temacs emacs prefix-args xmakefile* core \#* *.o
 
+versionclean:
+	-rm -f emacs emacs-* ../etc/DOC*
+
 extraclean: distclean
 	-rm -f *~ \#* m/*~ s/*~
 
