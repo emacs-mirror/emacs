@@ -1,3 +1,8 @@
+2001-10-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (XScreenNumberOfScreen): Fix struct to pointer
+	comparison.
+
 2001-10-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.c (Fframe_parameter): Fix last change.
