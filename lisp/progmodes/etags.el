@@ -34,21 +34,35 @@ Use the `etags' program to make a tags table file.")
 ;; Make M-x set-variable tags-file-name like M-x visit-tags-table.
 ;;;###autoload (put 'tags-file-name 'variable-interactive "fVisit tags table: ")
 
+(defgroup etags "Tags tables"
+  :group 'tools)
+
 ;;;###autoload
 ;; Use `visit-tags-table-buffer' to cycle through tags tables in this list.
-(defvar tags-table-list nil
+(defcustom tags-table-list nil
   "*List of file names of tags tables to search.
 An element that is a directory means the file \"TAGS\" in that directory.
 To switch to a new list of tags tables, setting this variable is sufficient.
 If you set this variable, do not also set `tags-file-name'.
-Use the `etags' program to make a tags table file.")
+Use the `etags' program to make a tags table file."
+  :group 'etags
+  :type '(repeat file))
 
 ;;;###autoload
-(defvar tags-add-tables 'ask-user
+(defcustom tags-add-tables 'ask-user
   "*Control whether to add a new tags table to the current list.
 t means do; nil means don't (always start a new list).
 Any other value means ask the user whether to add a new tags table
-to the current list (as opposed to starting a new list).")
+to the current list (as opposed to starting a new list)."
+  :group 'etags
+  :type '(choice (const :tag "Do" t)
+		 (const :tag "Don't" nil)
+		 (const :tag "Ask" ask-user)))
+
+(defcustom tags-revert-without-query nil
+  "*Non-nil means reread a TAGS table without querying, if it has changed."
+  :group 'etags
+  :type 'boolean)
 
 (defvar tags-table-computed-list nil
   "List of tags tables to search, computed from `tags-table-list'.
@@ -76,17 +90,21 @@ Use `visit-tags-table-buffer' to cycle through tags tables in this list.")
 Each element is a list of strings which are file names.")
 
 ;;;###autoload
-(defvar find-tag-hook nil
+(defcustom find-tag-hook nil
   "*Hook to be run by \\[find-tag] after finding a tag.  See `run-hooks'.
 The value in the buffer in which \\[find-tag] is done is used,
-not the value in the buffer \\[find-tag] goes to.")
+not the value in the buffer \\[find-tag] goes to."
+  :group 'etags
+  :type 'hook)
 
 ;;;###autoload
-(defvar find-tag-default-function nil
+(defcustom find-tag-default-function nil
   "*A function of no arguments used by \\[find-tag] to pick a default tag.
 If nil, and the symbol that is the value of `major-mode'
 has a `find-tag-default-function' property (see `put'), that is used.
-Otherwise, `find-tag-default' is used.")
+Otherwise, `find-tag-default' is used."
+  :group 'etags
+  :type 'function)
 
 (defvar default-tags-table-function nil
   "If non-nil, a function to choose a default tags file for a buffer.
@@ -323,6 +341,7 @@ Returns non-nil iff it is a valid table."
 				 (setq found t))
 			     (setq tail (cdr tail)))
 			   found)
+			 tags-revert-without-query
 			 (yes-or-no-p
 			  (format "Tags file %s has changed, read new contents? "
 				  file)))))
