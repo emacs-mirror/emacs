@@ -65,11 +65,10 @@
 ;;      (italic      . [?\H-i])
 ;;      (bold-italic . [?\H-l])
 ;;      (underline   . [?\H-u])))
+;;   (facemenu-update)
 ;;   (setq facemenu-keymap global-map)
-;;   (setq facemenu-key nil)
 ;;   (define-key global-map [?\H-c] 'facemenu-set-foreground) ; set fg color
 ;;   (define-key global-map [?\H-C] 'facemenu-set-background) ; set bg color
-;;   (require 'facemenu)
 ;;
 ;; The order of the faces that appear in the menu and their keybindings can be
 ;; controlled by setting the variables `facemenu-keybindings' and
@@ -98,9 +97,10 @@
 ;;; Provide some binding for startup:
 ;;;###autoload (define-key global-map "\M-g" 'facemenu-keymap)
 ;;;###autoload (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
-
-(defvar facemenu-key "\M-g"
-  "Prefix key to use for facemenu commands.")
+  
+;; Global bindings:
+(define-key global-map [C-down-mouse-2] 'facemenu-menu)
+(define-key global-map "\M-g" 'facemenu-keymap)
 
 (defvar facemenu-keybindings
   '((default     . "d")
@@ -111,7 +111,7 @@
   "Alist of interesting faces and keybindings. 
 Each element is itself a list: the car is the name of the face,
 the next element is the key to use as a keyboard equivalent of the menu item;
-the binding is made in facemenu-keymap.
+the binding is made in `facemenu-keymap'.
 
 The faces specifically mentioned in this list are put at the top of
 the menu, in the order specified.  All other faces which are defined,
@@ -122,13 +122,13 @@ If you change this variable after loading facemenu.el, you will need to call
 `facemenu-update' to make it take effect.")
 
 (defvar facemenu-new-faces-at-end t
-  "Where in the menu to insert newly-created faces.
+  "*Where in the menu to insert newly-created faces.
 This should be nil to put them at the top of the menu, or t to put them
 just before \"Other\" at the end.")
 
 (defvar facemenu-unlisted-faces
   '(modeline region secondary-selection highlight scratch-face)
-  "List of faces not to include in the Face menu.
+  "*List of faces not to include in the Face menu.
 You can set this list before loading facemenu.el, or add a face to it before
 creating that face if you do not want it to be listed.  If you change the
 variable so as to eliminate faces that have already been added to the menu,
@@ -253,7 +253,7 @@ This function is passed the FACE to set, and must return a string which is
 inserted.")
 
 (defvar facemenu-remove-face-function nil
-  "When non-`nil' function called to remove faces.
+  "When non-nil, this is a function called to remove faces.
 This function is passed the START and END of text to change.
 May also be `t' meaning to use `facemenu-add-face-function'.")
 
@@ -269,10 +269,6 @@ If null, `facemenu-read-color' will set it.")
 You can call this to update things if you change any of the menu configuration
 variables."
   (interactive)
-  
-  ;; Global bindings:
-  (define-key global-map [C-down-mouse-2] 'facemenu-menu)
-  (if facemenu-key (define-key global-map facemenu-key 'facemenu-keymap))
 
   ;; Add each defined face to the menu.
   (facemenu-iterate 'facemenu-add-new-face
