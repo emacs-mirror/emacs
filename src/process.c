@@ -107,6 +107,8 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"
 #include "blockinput.h"
 
+#define max(a, b) ((a) > (b) ? (a) : (b))
+
 Lisp_Object Qprocessp;
 Lisp_Object Qrun, Qstop, Qsignal, Qopen, Qclosed;
 Lisp_Object Qlast_nonmenu_event;
@@ -2288,7 +2290,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	{
 	  Atemp = input_wait_mask;
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
-	  if ((select (MAXDESC, &Atemp, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+	  if ((select (max (max_process_desc, max_keyboard_desc) + 1,
+		       &Atemp, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
 		       &timeout)
 	       <= 0))
 	    {
@@ -2349,7 +2352,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  FD_ZERO (&Available);
 	}
       else
-	nfds = select (MAXDESC, &Available, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+	nfds = select (max (max_process_desc, max_keyboard_desc) + 1,
+		       &Available, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
 		       &timeout);
 
       xerrno = errno;
@@ -2445,21 +2449,20 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  && requeued_events_pending_p ())
 	break;
 
-#if 0
       /* If wait_for_cell. check for keyboard input
 	 but don't run any timers.
-	 ??? (It seems wrong to me to check for keyboard
-	 input at all when wait_for_cell, but the code
-	 has been this way since July 1994.
-	 Try changing this after version 19.31.)  */
+	 The reason for this is so that X events will be processed.
+	 Otherwise they may have to wait until polling takes place.
+	 That would causes delays in pasting selections, for example.  */
       if (wait_for_cell
 	  && detect_input_pending ())
 	{
 	  swallow_events (do_display);
+#if 0  /* Exiting when read_kbd doesn't request that seems wrong, though.  */
 	  if (detect_input_pending ())
 	    break;
-	}
 #endif
+	}
 
       /* Exit now if the cell we're waiting for became non-nil.  */
       if (wait_for_cell && ! NILP (*wait_for_cell))
