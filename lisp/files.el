@@ -4110,7 +4110,12 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	      (while (< (point) end)
 		(let ((start (+ beg (read (current-buffer))))
 		      (end (+ beg (read (current-buffer)))))
-		  (put-text-property start end 'dired-filename t)))
+		  (if (= (char-after end) ?\n)
+		      (put-text-property start end 'dired-filename t)
+		    ;; It seems that we can't trust ls's output as to
+		    ;; byte positions of filenames.
+		    (put-text-property beg (point) 'dired-filename nil)
+		    (end-of-line))))
 	      (goto-char end)
 	      (beginning-of-line)
 	      (delete-region (point) (progn (forward-line 2) (point)))))
