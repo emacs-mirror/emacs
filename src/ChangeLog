@@ -1,3 +1,26 @@
+2001-01-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_produce_stretch_glyph): Only use Qspace when
+	GLYPH_DEBUG is defined.
+	(x_produce_glyphs): Don't xassert `it->descent > 0'; this isn't
+	true for images with `:ascent 100'.
+	(x_set_mouse_face_gc): If the last used mouse face has gone in the
+	meantime, use face MOUSE_FACE_ID.
+	If first glyph isn't a character glyph, use the ASCII NUL
+	character to determine the face.
+	(expose_area): Do not treat left margin specially.
+	(note_mode_line_highlight): If no local_map, check global keymap.
+	(note_mouse_highlight): Initialize overlay.
+	(clear_mouse_face): Don't return if tip_frame is
+	non-nil.
+	(show_scroll_bars): Remove unused function.
+	(w32_read_socket) [WM_KILLFOCUS]: Set help_echo to Qnil.
+	(x_draw_bar_cursor): Remove extra test for out of bounds cursor.
+	Clip to row.
+	(x_erase_phys_cursor): Don't apply XWINDOW to variable that may be
+	nil.
+	(x_free_frame_resources): Unload relief colors.
+
 2001-01-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (forward_to_next_line_start): Avoid calling
