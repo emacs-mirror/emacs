@@ -1,3 +1,8 @@
+2000-10-31  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* ediff-init.el (ediff-prepare-buffer-hook): Expand docstring, no
+	functional change.
+
 2000-10-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (find-file-noselect): When we expand a wildcard, return
@@ -65,7 +70,7 @@
 	* delim-col.el: Little fix: replace delimit-columns-align-columns by
 	delimit-columns-format.
 	(delimit-columns-region, delimit-columns-rectangle): Code fix.
-	
+
 2000-10-30  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* comint.el (comint-replace-by-expanded-history): Don't use
@@ -97,9 +102,9 @@
 	programs are modified and moved from mac-win.el.
 	(mac-roman): Definition of this coding system is modified and
 	moved from mac-win.el.
-	
+
 2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* ediff-wind.el (ediff-setup-control-frame): Enclose
 	face-attribute in condition-case to avoid errors in older emacsen.
 
@@ -234,7 +239,7 @@
 	command name names an aliased.
 
 2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
-	
+
 	* viper-cmd.el (viper-preserve-cursor-color): New test that avoids
 	redrawing the screen when changing cursor color.
 	(viper-insert-state-pre-command-sentinel)
@@ -249,7 +254,7 @@
 	Many functions changed to use viper= instead of = when comparing
 	characters.
 	* viper.el (viper-insert-state-mode-list): Added eshell.
-	
+
 	* ediff-init.el (ediff-before-setup-hook): New hook.
 	Several typos fixed in various docstrings.
 	* ediff-merg.el (ediff-show-clashes-only): Docstring typo fixed.
@@ -268,7 +273,7 @@
 	dired buffer.
 	(ediff-files,ediff-merge-files,ediff-files3)
 	(ediff-merge-files-with-ancestor): Use ediff-get-default-file-name.
-	
+
 2000-10-28  Dave Love  <fx@gnu.org>
 
 	* info.el (Info-fontify-node): Add help-echo for menu items.
@@ -329,19 +334,19 @@
 
 2000-10-27  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el (vc-version-backup-file-name): Use file.~<rev>~ for 
+	* vc-hooks.el (vc-version-backup-file-name): Use file.~<rev>~ for
 	manual backups and file.~<rev>.~ for automatic ones.
 	(vc-make-version-backup): Don't do it on MS-DOS without long file
 	names.
-	
+
 	* vc.el (vc-version-other-window): If an automatic backup of the
 	desired version exists, rename it instead of copying it.
 
-	* vc-cvs.el (vc-cvs-checkin): Check both status and error message 
-	after command.  If there's an unexpected error, signal it instead 
+	* vc-cvs.el (vc-cvs-checkin): Check both status and error message
+	after command.  If there's an unexpected error, signal it instead
 	of being silent.
 	(vc-cvs-merge-news): Be prepared for no news at all.
-	
+
 2000-10-27  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* shell.el (shell): Add BUFFER argument.
@@ -365,7 +370,7 @@
 
 	* ps-print.el: Avoid compilation gripes.
 	(ps-print-version): New version number (6.2.1).
-	
+
 2000-10-26  Dave Love  <fx@gnu.org>
 
 	* menu-bar.el: Modify some menu item help strings.
@@ -467,7 +472,7 @@
 	(authors): Set file coding system to iso-2022-7bit.  Add
 	file-local variables to output buffer.
 
-	* files.el (after-find-file): Don't print any warnings if 
+	* files.el (after-find-file): Don't print any warnings if
 	WARN is nil.
 
 2000-10-24  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
@@ -484,7 +489,7 @@
 	(delimit-columns-region, delimit-columns-rectangle)
 	(delimit-columns-rectangle-line): Modified to support column
 	formatting.
-	
+
 2000-10-24  Dave Love  <fx@gnu.org>
 
 	* log-edit.el (log-edit): Add :version and a :group for vc.
@@ -564,7 +569,7 @@
 	(imenu--create-keymap-1): Avoid append.
 
 	* textmodes/refill.el: Remove bits redundant with define-minor-mode.
- 
+
 2000-10-23  Miles Bader  <miles@lsi.nec.co.jp>
 
 	[the following changes fix a bug where `define-minor-mode' didn't
@@ -586,10 +591,10 @@
 
 	* faces.el (face-user-default-spec, face-default-spec): New functions.
 	(face-spec-choose, face-spec-set): Document nil-SPEC behavior.
-	(frame-set-background-mode, face-set-after-frame-default): 
+	(frame-set-background-mode, face-set-after-frame-default):
 	Use `face-user-default-spec'.  Simplify code slightly.
 
-	* woman.el (woman-italic-face, woman-bold-face) 
+	* woman.el (woman-italic-face, woman-bold-face)
 	(woman-unknown-face): Add dark-background variants.
 	(woman-default-faces): Renamed from `woman-colour-faces'.
 	Set using the stored defaults, rather than using hard-wired colors.
@@ -631,15 +636,15 @@
 
 2000-10-22  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el (vc-version-backup-file-name): New optional args 
+	* vc-hooks.el (vc-version-backup-file-name): New optional args
 	MANUAL and REGEXP.
-	(vc-delete-automatic-version-backups, vc-make-version-backup): 
+	(vc-delete-automatic-version-backups, vc-make-version-backup):
 	New functions.
 	(vc-before-save): Use the latter.
 	(vc-default-make-version-backups-p): Added `-p' suffix to avoid
 	confusion.
 
-	* vc-cvs.el (vc-cvs-make-version-backups-p): Added `-p' suffix as 
+	* vc-cvs.el (vc-cvs-make-version-backups-p): Added `-p' suffix as
 	expected by vc[-hooks].el.
 
 	* vc.el (vc-checkout): Added `-p' suffix in call to
@@ -690,7 +695,7 @@
 	(sh-font-lock-unfontify-region-function, sh-check-paren-in-case)
 	(sh-set-char-syntax, sh-electric-rparen, sh-electric-hash)
 	(sh-electric-less, sh-set-here-doc-region)
-	(sh-remove-our-text-properties, sh-search-word, sh-scan-case) 
+	(sh-remove-our-text-properties, sh-search-word, sh-scan-case)
 	(sh-scan-buffer, sh-rescan-buffer): Remove.
 
 2000-10-21  Andrew Innes  <andrewi@gnu.org>
@@ -771,7 +776,7 @@
 
 	* play/doctor.el (doctor-death): Update the Samaritans'
 	anonymous address, and add a website for Befrienders International.
-	
+
 2000-10-19  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Even/odd pages fix.  Fix little bug on XEmacs.
@@ -859,7 +864,7 @@
 	(ps-print-hook, ps-print-begin-sheet-hook, ps-print-begin-page-hook)
 	(ps-print-begin-column-hook): Now are defvar instead of
 	make-local-hook.
-	
+
 2000-10-18  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-delete-output): Renamed from `comint-kill-output'.
@@ -994,7 +999,7 @@
 	(whitespace-unload-hook): New function.
 
 	* info.el (Info-mouse-follow-nearest-node): Use mouse-set-point.
-	(Info-fontify-node, Info-goto-node, Info-mode-menu) 
+	(Info-fontify-node, Info-goto-node, Info-mode-menu)
 	(Info-fontify-node): `Goto' goes to `Go to'.
 	(Info-fontify-node): Add help-echo to xref links.
 
@@ -1062,9 +1067,9 @@
 	(tex-common-initialization): Don't setup the syntax-table any more.
 	(latex-insert-item): New skeleton.
 	(tex-next-unmatched-end): Fix copy/paste braino.
-	(latex-syntax-after, latex-skip-close-parens, latex-down-list) 
+	(latex-syntax-after, latex-skip-close-parens, latex-down-list)
 	(latex-indent, latex-find-indent): New functions.
-	(tex-indent-allhanging, tex-indent-arg, tex-latex-indent-syntax-table) 
+	(tex-indent-allhanging, tex-indent-arg, tex-latex-indent-syntax-table)
 	(tex-indent-item, tex-indent-item-re, tex-indent-basic): New vars.
 	(tex-compilation-parse-errors): Use with-syntax-table.
 
@@ -1087,7 +1092,7 @@
 	* emacs-lisp/lisp.el (down-list, backward-up-list, up-list): Doc
 	fix.
 
-	* toolbar/*.xpm: Reduce to max. 8 colors (mogrify -colorspace 
+	* toolbar/*.xpm: Reduce to max. 8 colors (mogrify -colorspace
 	transparent -colors 8).
 
 2000-10-13  Stephen Gildea  <gildea@alum.mit.edu>
@@ -1207,7 +1212,7 @@
 
 2000-10-13  Miles Bader  <miles@lsi.nec.co.jp>
 
-	* image-file.el (image-file-name-extensions) 
+	* image-file.el (image-file-name-extensions)
 	(image-file-name-regexps): Add autoload cookies.
 
 2000-10-13  Kenichi Handa  <handa@etl.go.jp>
