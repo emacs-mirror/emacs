@@ -1847,8 +1847,7 @@ IDX starts at 0.")
     }
   else if (STRING_MULTIBYTE (array))
     {
-      Lisp_Object new_len;
-      int c, idxval_byte, actual_len;
+      int c, idxval_byte, new_len, actual_len;
       unsigned char *p, *str;
 
       if (idxval < 0 || idxval >= XSTRING (array)->size)
@@ -1859,8 +1858,9 @@ IDX starts at 0.")
 
       actual_len
 	= MULTIBYTE_FORM_LENGTH (p, STRING_BYTES (XSTRING (array)) - idxval_byte);
-      new_len = Fchar_bytes (newelt);
-      if (actual_len != XINT (new_len))
+      CHECK_NUMBER (newelt, 2);
+      new_len = CHAR_BYTES (XINT (newelt));
+      if (actual_len != new_len)
 	error ("Attempt to change byte length of a string");
 
       CHAR_STRING (XINT (newelt), p, str);
