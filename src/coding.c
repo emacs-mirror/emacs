@@ -2825,14 +2825,17 @@ detect_eol (coding, src, src_bytes)
      unsigned char *src;
      int src_bytes;
 {
-  Lisp_Object val;
+  Lisp_Object val, coding_system;
   int eol_type = detect_eol_type (src, src_bytes);
 
   if (eol_type == CODING_EOL_UNDECIDED)
     /*  We found no end-of-line in the source text.  */
     return;
 
-  val = Fget (coding->symbol, Qeol_type);
+  coding_system = coding->symbol;
+  while (!NILP (coding_system)
+	 && NILP (val = Fget (coding_system, Qeol_type)))
+    coding_system = Fget (coding_system, Qcoding_system);
   if (VECTORP (val) && XVECTOR (val)->size == 3)
     setup_coding_system (XVECTOR (val)->contents[eol_type], coding);
 }
