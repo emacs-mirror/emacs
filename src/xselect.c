@@ -741,6 +741,7 @@ x_handle_selection_clear (event)
       {
 	for (; CONSP (rest); rest = Fcdr (rest))
 	  call1 (Fcar (rest), selection_symbol);
+	prepare_menu_bars ();
 	redisplay_preserve_echo_area ();
       }
   }
@@ -983,6 +984,7 @@ x_get_foreign_selection (selection_symbol, target_type)
     type_atom = symbol_to_x_atom (display, target_type);
 
   BLOCK_INPUT;
+  x_catch_errors ();
   XConvertSelection (display, selection_atom, type_atom, target_property,
 		     requestor_window, requestor_time);
   XFlushQueue ();
@@ -997,6 +999,11 @@ x_get_foreign_selection (selection_symbol, target_type)
   secs = x_selection_timeout / 1000;
   usecs = (x_selection_timeout % 1000) * 1000;
   wait_reading_process_input (secs, usecs, reading_selection_reply, 0);
+
+  BLOCK_INPUT;
+  x_check_errors ("Cannot get selection: %s");
+  x_uncatch_errors ();
+  UNBLOCK_INPUT;
 
   if (NILP (XCONS (reading_selection_reply)->car))
     error ("timed out waiting for reply from selection owner");
