@@ -1878,16 +1878,6 @@ signal_before_change (start_int, end_int, preserve_ptr)
       call1 (Vrun_hooks, Qfirst_change_hook);
     }
 
-  /* Run the before-change-function if any.
-     We don't bother "binding" this variable to nil
-     because it is obsolete anyway and new code should not use it.  */
-  if (!NILP (Vbefore_change_function))
-    {
-      PRESERVE_VALUE;
-      PRESERVE_START_END;
-      call2 (Vbefore_change_function, FETCH_START, FETCH_END);
-    }
-
   /* Now run the before-change-functions if any.  */
   if (!NILP (Vbefore_change_functions))
     {
@@ -1954,7 +1944,7 @@ signal_after_change (charpos, lendel, lenins)
      and there are no before-change functions,
      just record the args that we were going to use.  */
   if (! NILP (Vcombine_after_change_calls)
-      && NILP (Vbefore_change_function) && NILP (Vbefore_change_functions)
+      && NILP (Vbefore_change_functions)
       && NILP (current_buffer->overlays_before)
       && NILP (current_buffer->overlays_after))
     {
@@ -1976,14 +1966,6 @@ signal_after_change (charpos, lendel, lenins)
 
   if (!NILP (combine_after_change_list)) 
     Fcombine_after_change_execute ();
-
-  /* Run the after-change-function if any.
-     We don't bother "binding" this variable to nil
-     because it is obsolete anyway and new code should not use it.  */
-  if (!NILP (Vafter_change_function))
-    call3 (Vafter_change_function,
-	   make_number (charpos), make_number (charpos + lenins),
-	   make_number (lendel));
 
   if (!NILP (Vafter_change_functions))
     {
