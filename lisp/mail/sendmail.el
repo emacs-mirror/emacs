@@ -860,7 +860,7 @@ See also the function `select-sendmail-coding-system'.")
 			 (insert "From: " login "\n"))
 			((eq mail-from-style 'system-default)
 			 nil)
-			(t (error "Invalid value for `system-default'")))))
+			(t (error "Invalid value for `mail-from-style'")))))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
