@@ -1,8 +1,12 @@
 Emacs ICON    icons\gnu2a32t.ico
 
+#ifndef VS_VERSION_INFO
+#define VS_VERSION_INFO 1
+#endif
+
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 20,4,0,0
- PRODUCTVERSION 20,4,0,0
+ FILEVERSION 21,2,0,0
+ PRODUCTVERSION 21,2,0,0
  FILEFLAGSMASK 0x3FL
 #ifdef EMACSDEBUG
  FILEFLAGS 0x1L
@@ -18,13 +22,13 @@ BEGIN
 	BLOCK "040904B0"
 	BEGIN
 	    VALUE "CompanyName", "Free Software Foundation\0"
-	    VALUE "FileDescription", "GNU Emacs for Windows NT and Windows 95/98\0"
-	    VALUE "FileVersion", "20, 4, 0, 0\0"
+	    VALUE "FileDescription", "GNU Emacs for Windows NT/95/98/2000/ME/XP\0"
+	    VALUE "FileVersion", "21, 2, 0, 0\0"
 	    VALUE "InternalName", "Emacs\0"
-	    VALUE "LegalCopyright", "Copyright (C) 1998\0"
+	    VALUE "LegalCopyright", "Copyright (C) 2002\0"
 	    VALUE "OriginalFilename", "emacs.exe"
 	    VALUE "ProductName", "Emacs: The extensible self-documenting text editor\0"
-	    VALUE "ProductVersion", "20, 4, 0, 0\0"
+	    VALUE "ProductVersion", "21, 2, 0, 0\0"
 	    VALUE "OLESelfRegister", "\0"
 	 END
      END

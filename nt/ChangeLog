@@ -1,3 +1,8 @@
+2002-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* emacs.rc: Define VS_VERSION_INFO if not already.
+	Update version info.
+
 2002-02-11  Andrew Innes  <andrewi@gnu.org>
 
 	* gmake.defs (CFLAGS): Define _WIN32_WINNT as 0x0400, in order to
