@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.300 2001/07/11 22:55:05 monnier Exp $
+;; $Id: vc.el,v 1.301 2001/07/30 08:17:20 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2510,7 +2510,7 @@ A prefix argument NOREVERT means do not revert the buffer afterwards."
 	(vc-resynch-buffer file t t)))
       (message "Version %s has been removed from the master" target))))
 
-;;;autoload
+;;;###autoload
 (defun vc-switch-backend (file backend)
   "Make BACKEND the current version control system for FILE.
 FILE must already be registered in BACKEND.  The change is not
