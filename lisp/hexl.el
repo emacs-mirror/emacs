@@ -500,9 +500,8 @@ You may also type up to 3 octal digits, to insert a character with that code"
 
 (defun hexl-char-after-point ()
   "Return char for ASCII hex digits at point."
-  (setq lh (char-after (point)))
-  (setq rh (char-after (1+ (point))))
-  (hexl-htoi lh rh))
+  (hexl-htoi (char-after (point))
+	     (char-after (1+ (point)))))
 
 (defun hexl-htoi (lh rh)
   "Hex (char) LH (char) RH to integer."
