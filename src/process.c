@@ -4571,9 +4571,7 @@ read_process_output (proc, channel)
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
 		: Fstring_to_multibyte (text));
-      nbytes = SBYTES (text);
-      nchars = SCHARS (text);
-      if (nbytes > 0)
+      if (SBYTES (text) > 0)
 	internal_condition_case_1 (read_process_output_call,
 				   Fcons (outstream,
 					  Fcons (proc, Fcons (text, Qnil))),
@@ -4607,7 +4605,7 @@ read_process_output (proc, channel)
       start_vms_process_read (vs);
 #endif
       unbind_to (count, Qnil);
-      return nchars;
+      return nbytes;
     }
 
   /* If no filter, write into buffer if it isn't dead.  */
@@ -4678,11 +4676,10 @@ read_process_output (proc, channel)
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
 		: Fstring_to_multibyte (text));
-      nbytes = SBYTES (text);
-      nchars = SCHARS (text);
       /* Insert before markers in case we are inserting where
 	 the buffer's mark is, and the user's next command is Meta-y.  */
-      insert_from_string_before_markers (text, 0, 0, nchars, nbytes, 0);
+      insert_from_string_before_markers (text, 0, 0,
+					 SCHARS (text), SBYTES (text), 0);
 
       /* Make sure the process marker's position is valid when the
 	 process buffer is changed in the signal_after_change above.
