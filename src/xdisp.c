@@ -2989,20 +2989,17 @@ display_mode_line (w)
   w->column_number_displayed = Qnil;
 
   get_display_line (f, vpos, left);
-#ifdef MULTI_KBOARD
-  {
-    /* Sigh, mode-line-format can reference kboard-local variables like
-       defining-kbd-macro.  Use the one associated with the frame we're
-       updating.  */
-    KBOARD *orig_kboard = current_kboard;
-    current_kboard = FRAME_KBOARD (f);
-#endif
-    display_mode_element (w, vpos, left, 0, right, right,
-			  current_buffer->mode_line_format);
-#ifdef MULTI_KBOARD
-    current_kboard = orig_kboard;
-  }
-#endif
+
+  /* Temporarily make frame F's kboard the current kboard
+     so that kboard-local variables in the mode_line_format
+     will get the right values.  */
+  push_frame_kboard (f);
+
+  display_mode_element (w, vpos, left, 0, right, right,
+			current_buffer->mode_line_format);
+
+  pop_frame_kboard ();
+
   FRAME_DESIRED_GLYPHS (f)->bufp[vpos] = 0;
 
   /* Make the mode line inverse video if the entire line
@@ -3015,7 +3012,7 @@ display_mode_line (w)
       || XFASTINT (XWINDOW (w->parent)->width) == FRAME_WIDTH (f))
     FRAME_DESIRED_GLYPHS (f)->highlight[vpos] = mode_line_inverse_video;
 #ifdef HAVE_FACES
-  else if (! FRAME_TERMCAP_P (f))
+  else if (! FRAME_TERMCAP_P (f) && mode_line_inverse_video)
     {
       /* For a partial width window, explicitly set face of each glyph. */
       int i;
