@@ -4459,6 +4459,7 @@ Return an updated `non-iso-charset-alist'."
 ;; <URL:ftp://ftp.logic.ru/pub/logic/linux/cyr-asian/PT154>.  See also
 ;; <URL:http://lists.w3.org/Archives/Public/ietf-charsets/2002AprJun/0092.html,
 ;; which suggests it's used in an Asian Cyrillic context.
+;;;###autoload(autoload-coding-system 'pt154 '(require 'code-pages))
 (cp-make-coding-system
  pt154
  [?Җ ?Ғ ?Ӯ ?ғ ?„ ?… ?Ҷ ?Ү ?Ҳ ?ү ?Ҡ ?Ӣ ?Ң ?Қ ?Һ ?Ҹ ?җ ?‘ ?’ ?“ ?” ?• ?–
