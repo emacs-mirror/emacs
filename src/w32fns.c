@@ -124,7 +124,7 @@ Lisp_Object Vw32_enable_caps_lock;
 /* Modifier associated with Scroll Lock, or nil to act as a normal key.  */
 Lisp_Object Vw32_scroll_lock_modifier;
 
-/* Switch to control whether we inhibit requests for synthesyzed bold
+/* Switch to control whether we inhibit requests for synthesized bold
    and italic versions of fonts.  */
 Lisp_Object Vw32_enable_synthesized_fonts;
 
@@ -4212,7 +4212,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	 are used together, but only if user has two button mouse. */
     case WM_LBUTTONDOWN:
     case WM_RBUTTONDOWN:
-      if (XINT (Vw32_num_mouse_buttons) == 3)
+      if (XINT (Vw32_num_mouse_buttons) > 2)
 	goto handle_plain_button;
 
       {
@@ -4275,7 +4275,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
-      if (XINT (Vw32_num_mouse_buttons) == 3)
+      if (XINT (Vw32_num_mouse_buttons) > 2)
 	goto handle_plain_button;
 
       {
