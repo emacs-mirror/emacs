@@ -917,6 +917,7 @@ Titles}).
 
 @defun user-real-uid
 This function returns the real @sc{uid} of the user.
+The value may be a floating point number.
 
 @example
 @group
@@ -928,6 +929,7 @@ This function returns the real @sc{uid} of the user.
 
 @defun user-uid
 This function returns the effective @sc{uid} of the user.
+The value may be a floating point number.
 @end defun
 
 @node Time of Day
