@@ -320,7 +320,7 @@ preserving the comment indentation or line-starting decorations."
 	      ;; given the narrowing) and don't leave it on its own line.
 	      (goto-char (point-max))
 	      (forward-line -1)
-	      (search-forward "*/")
+	      (search-forward "*/" nil 'move)
 	      (beginning-of-line)
 	      (if (looking-at "[ \t]*\\*/")
 		  (delete-indentation)))))
