@@ -359,7 +359,9 @@ as returned by the `event-start' and `event-end' functions."
 POSITION should be a list of the form
    (WINDOW BUFFER-POSITION (COL . ROW) TIMESTAMP)
 as returned by the `event-start' and `event-end' functions."
-  (nth 1 position))
+  (if (consp (nth 1 position))
+      (car (nth 1 position))
+    (nth 1 position)))
 
 (defsubst posn-col-row (position)
   "Return the row and column in POSITION.
