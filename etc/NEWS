@@ -100,8 +100,8 @@ in the current input method to input a character at point.
 C-c <left> and C-c <right>, respectively.  This is an incompatible change.
 
 ** Help commands `describe-funcion' and `describe-key' now show function
-arguments in lowercase italics.  To change the default, customize the face
-`help-argument-name' or see variable `help-arg-highlighting-function'.
+arguments in lowercase italics on displays that support it.  To change the
+default, redefine the function `help-default-arg-highlight'.
 
 ---
 ** The comint prompt can now be made read-only, using the new user
