@@ -1,6 +1,6 @@
-/* impl.c.poolmv2: MANUAL VARIABLE POOL, II
+/* impl.c.poolmv2: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.17) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.18) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A manual-variable pool designed to take advantage of
@@ -16,7 +16,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.17) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.18) $");
 
 
 /* Signatures */
@@ -48,8 +48,6 @@ static Bool ABQRefillCallback(CBS cbs, CBSBlock block, void *closureP);
 static Res MVTContingencySearch(CBSBlock *blockReturn, CBS cbs, Size min);
 static Bool MVTContingencyCallback(CBS cbs, CBSBlock block, void *closureP);
 static Bool MVTCheckFit(CBSBlock block, Size min, Arena arena);
-static MVT PoolPoolMVT(Pool pool);
-static Pool MVTPool(MVT mvt);
 static ABQ MVTABQ(MVT mvt);
 static CBS MVTCBS(MVT mvt);
 static MVT CBSMVT(CBS cbs);
