@@ -1,3 +1,16 @@
+2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* process.h: synch_process_termsig new variable.
+
+	* callproc.c: Define synch_process_termsig.
+	(Fcall_process): Initiate synch_process_termsig to zero and
+	check if non-zero and get signal name after subprocess has ended.
+
+	* process.c (sigchld_handler): Set synch_process_termsig
+	if terminated by a signal.  synch_process_death setting removed.
+
+	* sysdep.c (mkdir, rmdir): Also check synch_process_termsig.
+
 2004-01-26  Andreas Schwab  <schwab@suse.de>
 
 	* print.c (print_preprocess): Declare size as EMACS_INT to not
