@@ -162,6 +162,7 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     ;; we return t.
     some-match))
 
+;;;###autoload
 (defun display-warning (group message &optional level buffer-name)
   "Display a warning message, MESSAGE.
 GROUP should be a custom group name (a symbol).
@@ -236,6 +237,7 @@ See also `warning-series', `warning-prefix-function' and
 		  (set-window-start window warning-series))
 		(sit-for 0)))))))
 
+;;;###autoload
 (defun lwarn (group level message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
 Aside from generating the message with `format',
@@ -253,6 +255,7 @@ LEVEL should be either :warning, :error, or :emergency.
 :warning   -- suspicious data or circumstances."
   (display-warning group (apply 'format message args) level))
 
+;;;###autoload
 (defun warn (message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
 Aside from generating the message with `format',
