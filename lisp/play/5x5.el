@@ -347,8 +347,8 @@ Quit current game         \\[5x5-quit-game]"
 
 ;;;###autoload
 (defun 5x5-crack-xor-mutate ()
-  "Attempt to crack 5x5 by xor the current and best solution and then
-mutating the result."
+  "Attempt to crack 5x5 by xor the current and best solution.
+Mutate the result."
   (interactive)
   (5x5-crack #'5x5-make-xor-with-mutation))
 
