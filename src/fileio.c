@@ -2800,7 +2800,7 @@ Non-nil second argument means save only current buffer.")
 	      b->auto_save_file_name = Qnil;
 	      /* Prevent warning from repeating if user does so.  */
 	      XFASTINT (b->save_length) = 0;
-	      Fsleep_for (make_number (1));
+	      Fsleep_for (make_number (1), Qnil);
 	      continue;
 	    }
 	  set_buffer_internal (b);
