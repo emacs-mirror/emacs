@@ -4473,6 +4473,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       if (! encodep && result == CODING_FINISH_INCONSISTENT_EOL)
 	{
 	  unsigned char *pend = dst, *p = pend - inserted_byte;
+	  Lisp_Object eol_type;
 
 	  /* Encode LFs back to the original eol format (CR or CRLF).  */
 	  if (coding->eol_type == CODING_EOL_CR)
@@ -4486,7 +4487,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	      while (p < pend) if (*p++ == '\n') count++;
 	      if (src - dst < count)
 		{
-		  /* We don't have sufficient room for putting LFs
+		  /* We don't have sufficient room for encoding LFs
 		     back to CRLF.  We must record converted and
 		     not-yet-converted text back to the buffer
 		     content, enlarge the gap, then record them out of
@@ -4519,8 +4520,14 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  /* Suppress eol-format conversion in the further conversion.  */
 	  coding->eol_type = CODING_EOL_LF;
 
-	  /* Restore the original symbol.  */
-	  coding->symbol = saved_coding_symbol;
+	  /* Set the coding system symbol to that for Unix-like EOL.  */
+	  eol_type = Fget (saved_coding_symbol, Qeol_type);
+	  if (VECTORP (eol_type)
+	      && XVECTOR (eol_type)->size == 3
+	      && SYMBOLP (XVECTOR (eol_type)->contents[CODING_EOL_LF]))
+	    coding->symbol = XVECTOR (eol_type)->contents[CODING_EOL_LF];
+	  else
+	    coding->symbol = saved_coding_symbol;
 	  
 	  continue;
 	}
