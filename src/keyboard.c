@@ -741,7 +741,7 @@ echo_char (c)
 	}
       else if (SYMBOLP (c))
 	{
-	  struct Lisp_String *name = XSYMBOL (c)->name;
+	  struct Lisp_String *name = XSTRING (SYMBOL_NAME (c));
 	  int nbytes = STRING_BYTES (name);
 	  
 	  if (size - (ptr - buffer) < nbytes)
@@ -3139,8 +3139,8 @@ record_char (c)
 	  if (SYMBOLP (dribblee))
 	    {
 	      putc ('<', dribble);
-	      fwrite (XSYMBOL (dribblee)->name->data, sizeof (char),
-		      STRING_BYTES (XSYMBOL (dribblee)->name),
+	      fwrite (XSTRING (SYMBOL_NAME (dribblee))->data, sizeof (char),
+		      STRING_BYTES (XSTRING (SYMBOL_NAME (dribblee))),
 		      dribble);
 	      putc ('>', dribble);
 	    }
@@ -5527,7 +5527,7 @@ parse_modifiers_uncached (symbol, modifier_end)
   CHECK_SYMBOL (symbol);
 
   modifiers = 0;
-  name = XSYMBOL (symbol)->name;
+  name = XSTRING (SYMBOL_NAME (symbol));
 
   for (i = 0; i+2 <= STRING_BYTES (name); )
     {
@@ -5704,8 +5704,8 @@ parse_modifiers (symbol)
       Lisp_Object unmodified;
       Lisp_Object mask;
 
-      unmodified = Fintern (make_string (XSYMBOL (symbol)->name->data + end,
-					 STRING_BYTES (XSYMBOL (symbol)->name) - end),
+      unmodified = Fintern (make_string (XSTRING (SYMBOL_NAME (symbol))->data + end,
+					 STRING_BYTES (XSTRING (SYMBOL_NAME (symbol))) - end),
 			    Qnil);
 
       if (modifiers & ~VALMASK)
@@ -5758,9 +5758,9 @@ apply_modifiers (modifiers, base)
     {
       /* We have to create the symbol ourselves.  */
       new_symbol = apply_modifiers_uncached (modifiers,
-					     XSYMBOL (base)->name->data,
-					     XSYMBOL (base)->name->size,
-					     STRING_BYTES (XSYMBOL (base)->name));
+					     XSTRING (SYMBOL_NAME (base))->data,
+					     XSTRING (SYMBOL_NAME (base))->size,
+					     STRING_BYTES (XSTRING (SYMBOL_NAME (base))));
 
       /* Add the new symbol to the base's cache.  */
       entry = Fcons (index, new_symbol);
@@ -5981,8 +5981,8 @@ has the same base event type and all the specified modifiers.  */)
     }
 
   /* Let the symbol A refer to the character A.  */
-  if (SYMBOLP (base) && XSYMBOL (base)->name->size == 1)
-    XSETINT (base, XSYMBOL (base)->name->data[0]);
+  if (SYMBOLP (base) && XSTRING (SYMBOL_NAME (base))->size == 1)
+    XSETINT (base, XSTRING (SYMBOL_NAME (base))->data[0]);
 
   if (INTEGERP (base))
     {
@@ -6017,7 +6017,7 @@ static int
 parse_solitary_modifier (symbol)
      Lisp_Object symbol;
 {
-  struct Lisp_String *name = XSYMBOL (symbol)->name;
+  struct Lisp_String *name = XSTRING (SYMBOL_NAME (symbol));
 
   switch (name->data[0])
     {
@@ -9478,11 +9478,11 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	  binding = Fkey_description (bindings);
 
 	  newmessage
-	    = (char *) alloca (XSYMBOL (function)->name->size
+	    = (char *) alloca (XSTRING (SYMBOL_NAME (function))->size
 			       + STRING_BYTES (XSTRING (binding))
 			       + 100);
 	  sprintf (newmessage, "You can run the command `%s' with %s",
-		   XSYMBOL (function)->name->data,
+		   XSTRING (SYMBOL_NAME (function))->data,
 		   XSTRING (binding)->data);
 	  message2_nolog (newmessage,
 			  strlen (newmessage),
