@@ -263,10 +263,11 @@ struct x_display_info
   Xatom_MULTIPLE, Xatom_INCR, Xatom_EMACS_TMP, Xatom_TARGETS, Xatom_NULL,
   Xatom_ATOM_PAIR;
 
-  /* More atoms for font properties.  The last two are private
+  /* More atoms for font properties.  The last three are private
      properties, see the comments in src/fontset.h.  */
   Atom Xatom_PIXEL_SIZE,
-  Xatom_MULE_BASELINE_OFFSET, Xatom_MULE_RELATIVE_COMPOSE;
+  Xatom_MULE_BASELINE_OFFSET, Xatom_MULE_RELATIVE_COMPOSE,
+  Xatom_MULE_DEFAULT_ASCENT;
 
 #ifdef MULTI_KBOARD
   struct kboard *kboard;
