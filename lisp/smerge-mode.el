@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.3 2000/05/25 18:08:26 fx Exp $
+;; Revision: $Id: smerge-mode.el,v 1.4 2000/07/21 13:52:19 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -127,13 +127,12 @@ Used in `smerge-diff-base-mine' and related functions."
   "Menu for `smerge-mode'."
   '("SMerge"
     ["Next" smerge-next :help "Go to next conflict"]
-    ["Previous" smerge-prev :help "Go to previous'th conflict"]
+    ["Previous" smerge-prev :help "Go to previous conflict"]
     ["Keep All" smerge-keep-all :help "Keep all three versions"]
     ["Revert to Base" smerge-keep-base :help "Revert to base version"]
     ["Keep Other" smerge-keep-other :help "Keep `other' version"]
     ["Keep Yours" smerge-keep-mine :help "Keep your version"]
-    ["Keep Current"  smerge-keep-current
-     :help "Use current (at point) version"]
+    ["Keep Current" smerge-keep-current :help "Use current (at point) version"]
     "--"
     ["Diff Base/Mine" smerge-diff-base-mine
      :help "Diff `base' and `mine' for current conflict"]
@@ -461,6 +460,9 @@ The point is moved to the end of the conflict."
 
 ;;; Change Log:
 ;; $Log: smerge-mode.el,v $
+;; Revision 1.4  2000/07/21 13:52:19  fx
+;; (smerge-mode-menu): Fill it out.
+;;
 ;; Revision 1.3  2000/05/25 18:08:26  fx
 ;; (smerge-diff-switches): Don't use list* in defcustom.
 ;;
