@@ -1525,7 +1525,7 @@ redisplay_window (window, just_this_one)
      in redisplay handles the same cases.  */
 
   if (XFASTINT (w->last_modified) >= MODIFF
-      && PT >= startp && current_buffer->clip_changed
+      && PT >= startp && !current_buffer->clip_changed
       && (just_this_one || XFASTINT (w->width) == FRAME_WIDTH (f))
       /* If force-mode-line-update was called, really redisplay;
 	 that's how redisplay is forced after e.g. changing
@@ -1579,7 +1579,7 @@ redisplay_window (window, just_this_one)
 	   /* or else vmotion on first line won't work.  */
 	   && ! NILP (w->start_at_line_beg)
 	   && ! EQ (w->window_end_valid, Qnil)
-	   && do_id && current_buffer->clip_changed
+	   && do_id && !current_buffer->clip_changed
 	   && !blank_end_of_window
 	   && XFASTINT (w->width) == FRAME_WIDTH (f)
 	   /* Can't use this case if highlighting a region.  */
