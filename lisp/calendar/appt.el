@@ -422,24 +422,14 @@ Usually just deletes the appointment buffer."
 
 (defun appt-select-lowest-window ()
 "Select the lowest window on the frame."
-  (let* ((lowest-window (selected-window))
-	 (bottom-edge (nth 3 (window-edges)))
-         (last-window (previous-window))
-         (window-search t))
-    (while window-search
-      (let* ((this-window (next-window))
-             (next-bottom-edge (nth 3 (window-edges this-window))))
-        (if (< bottom-edge next-bottom-edge)
-            (progn
-              (setq bottom-edge next-bottom-edge)
-              (setq lowest-window this-window)))
-
-        (select-window this-window)
-        (if (eq last-window this-window)
-            (progn
-              (select-window lowest-window)
-              (setq window-search nil)))))))
-
+  (let ((lowest-window (selected-window))
+	(bottom-edge (nth 3 (window-edges))))
+    (walk-windows (lambda (w)
+		    (let ((next-bottom-edge (nth 3 (window-edges w))))
+		      (when (< bottom-edge next-bottom-edge)
+			(setq bottom-edge next-bottom-edge
+			      lowest-window w)))))
+    (select-window lowest-window)))
 
 ;;;###autoload
 (defun appt-add (new-appt-time new-appt-msg)
