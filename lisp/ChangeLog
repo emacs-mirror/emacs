@@ -1,3 +1,19 @@
+2003-04-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/asm-mode.el (asm-calculate-indentation, asm-indent-line):
+	New functions.
+	(asm-mode): Use them in indent-line-function.
+	Set tab-always-indent to nil to stay closer to previous tab behavior.
+	Set comment-add.  Remove space at end of comment-add.
+	(asm-newline): Obsolete.  Use newline-and-indent instead.
+	(asm-mode-map): Remove TAB binding.
+	(asm-code-level-empty-comment-pattern)
+	(asm-flush-left-empty-comment-pattern)
+	(asm-inline-empty-comment-pattern): Remove.
+	(asm-comment): Use newcomment functions instead.
+	(asm-colon): Don't tab if colon is not after a label.
+	(asm-line-matches, asm-pop-comment-level): Remove.
+
 2003-04-02  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* emulation/crisp.el (top-level): Quote second arg to
@@ -7,14 +23,26 @@
 
 	* scroll-bar.el (scroll-bar-mode): Correctly specify `nil' choice.
 
+2003-04-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/asm-mode.el	(asm-mode-syntax-table): Setup entries
+	that do not depend on asm-comment-char.
+	(asm-mode-map): Declare and init at the same time.
+	(asm-code-level-empty-comment-pattern)
+	(asm-flush-left-empty-comment-pattern)
+	(asm-inline-empty-comment-pattern): Use \s< so they do not depend
+	on asm-comment-char.  Turn them into constants.
+	(asm-mode): Simplify.
+	(asm-line-matches): Remove unused arg.
+
 2003-04-01  Dave Love  <fx@gnu.org>
 
 	* time.el: Doc fixes.
 	(display-time-mail-face): Change :type and default to nil.
 	(display-time-mail-icon): Use pbm, not xbm.
 	(display-time-mail-string): New.
-	(display-time-string-forms): Use display-time-mail-string.  Add
-	checks in display property.
+	(display-time-string-forms): Use display-time-mail-string.
+	Add checks in display property.
 
 2003-04-01  Kenichi Handa  <handa@m17n.org>
 
@@ -29,6 +57,10 @@
 
 	* emulation/cua-base.el (cua-set-mark): Unconditionally repeat
 	pop-global-mark without C-x prefix.  Fix doc.
+
+2003-03-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* reveal.el (reveal-post-command): Better error handling.
 
 2003-03-31  Nick Roberts  <nick@nick.uklinux.net>
 	* gdb-ui.el (gdb-inferior-io-mode): Remove Unix pathname for cat
@@ -56,8 +88,8 @@
 
 2003-03-31  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-16.el (ccl-decode-mule-utf-16-le): Don't
-	assume the signature bytes.
+	* international/utf-16.el (ccl-decode-mule-utf-16-le):
+	Don't assume the signature bytes.
 	(ccl-decode-mule-utf-16-be): Likewise.
 	(ccl-encode-mule-utf-16-le): Don't produce the signature bytes.
 	(ccl-encode-mule-utf-16-be): Likewise.
@@ -88,12 +120,11 @@
 
 2003-03-29  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* trampver.el: New file, to support Autoconf in Tramp CVS
-	repository.
-	* tramp.el (tramp-version, tramp-bug-report-address): Moved to
+	* trampver.el: New file, to support Autoconf in Tramp CVS repository.
+	* tramp.el (tramp-version, tramp-bug-report-address): Move to
 	trampver.el, which is required now.
-	(tramp-chunksize): Type can be nil as well.  Reported
-	by Markus Rost <rost@math.ohio-state.edu>.
+	(tramp-chunksize): Type can be nil as well.
+	Reported by Markus Rost <rost@math.ohio-state.edu>.
 	* tramp-smb.el (tramp-smb-read-file-entry): Make reading size of a
 	listing entry more robust.  Ranges from 10 chars (Samba 1) to 7-9
 	chars (Samba 2).
@@ -116,8 +147,8 @@
 
 2003-03-28  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
-	* emacs-lisp/checkdoc.el (checkdoc-display-status-buffer): Fix
-	docstring.
+	* emacs-lisp/checkdoc.el (checkdoc-display-status-buffer):
+	Fix docstring.
 	(checkdoc-interactive, checkdoc-message-interactive): Make them
 	perform spell checking when appropriate.
 	(checkdoc-interactive-loop): Fix docstring and a few typos.
