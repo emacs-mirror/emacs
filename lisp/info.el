@@ -250,6 +250,7 @@ Do the right thing if the file has been compressed or zipped."
     (insert-file-contents fullname visit)
     (if decoder
 	(let ((buffer-read-only nil)
+	      (coding-system-for-write 'no-conversion)
 	      (default-directory (or (file-name-directory fullname)
 				     default-directory)))
 	  (call-process-region (point-min) (point-max) decoder t t)))))
