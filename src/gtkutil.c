@@ -2669,7 +2669,7 @@ xg_tool_bar_help_callback (w, event, client_data)
     }
 
   if (! f || ! f->n_tool_bar_items || NILP (f->tool_bar_items))
-    return;
+    return FALSE;
 
   if (event->type == GDK_ENTER_NOTIFY)
     {
