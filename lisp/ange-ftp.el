@@ -2825,9 +2825,9 @@ system TYPE.")
   "Documented as original."
   (let ((parsed (ange-ftp-ftp-name name)))
     (if parsed
-	(let ((name (nth 2 parsed)))
+	(let ((filename (nth 2 parsed)))
 	  (if (ange-ftp-save-match-data
-		(string-match "^~[^/]*$" name))
+		(string-match "^~[^/]*$" filename))
 	      ""
 	    (ange-ftp-real-file-name-nondirectory name)))
       (ange-ftp-real-file-name-nondirectory name))))
@@ -3610,9 +3610,9 @@ system TYPE.")
 	  (ange-ftp-real-delete-directory dir)))
     (error "Not a directory: %s" dir)))
 
-;; This may need more work.
+;; Make a local copy of FILE and return its name.
 
-(defun ange-ftp-diff-prepare (file)
+(defun ange-ftp-file-local-copy (file)
   (let* ((fn1 (expand-file-name file))
 	 (pa1 (ange-ftp-ftp-name fn1)))
     (if pa1
@@ -3620,7 +3620,7 @@ system TYPE.")
 	       (bin1 (ange-ftp-binary-file fn1)))
 	  (ange-ftp-copy-file-internal fn1 tmp1 t nil
 				       (format "Getting %s" fn1))
-	  pa1))))
+	  tmp1))))
 
 ;; Need the following functions for making filenames of compressed
 ;; files, because some OS's (unlike UNIX) do not allow a filename to
@@ -3772,7 +3772,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'file-name-all-completions 'ange-ftp 'ange-ftp-file-name-all-completions)
 (put 'file-name-completion 'ange-ftp 'ange-ftp-file-name-completion)
 (put 'insert-directory 'ange-ftp 'ange-ftp-insert-directory)
-(put 'diff-prepare 'ange-ftp 'ange-ftp-diff-prepare)
+(put 'file-local-copy 'ange-ftp 'ange-ftp-file-local-copy)
 (put 'file-name-sans-versions 'ange-ftp 'ange-ftp-file-name-sans-versions)
 (put 'dired-uncache 'ange-ftp 'ange-ftp-dired-uncache)
 (put 'dired-compress-file 'ange-ftp 'ange-ftp-dired-compress-file)
