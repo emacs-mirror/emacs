@@ -1,3 +1,9 @@
+2000-05-24  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-show-guidance-buf): Set
+	current-input-method of the guidance buffer to the name of the
+	curren input method.
+
 2000-05-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): Determine source file of compiled
