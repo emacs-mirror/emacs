@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;;; List and range functions
 
 (defun gnus-last-element (list)
@@ -207,7 +209,7 @@ Note: LIST has to be sorted over `<'."
 		    (setcar ranges (cons (car ranges)
 					 (cadr ranges)))
 		    (setcdr ranges (cddr ranges)))
-		(when (= (1+ (car ranges)) (caadr ranges))
+		(when (= (1+ (car ranges)) (car (cadr ranges)))
 		  (setcar (cadr ranges) (car ranges))
 		  (setcar ranges (cadr ranges))
 		  (setcdr ranges (cddr ranges)))))
@@ -216,8 +218,8 @@ Note: LIST has to be sorted over `<'."
 		(when (= (1+ (cdar ranges)) (cadr ranges))
 		  (setcdr (car ranges) (cadr ranges))
 		  (setcdr ranges (cddr ranges)))
-	      (when (= (1+ (cdar ranges)) (caadr ranges))
-		(setcdr (car ranges) (cdadr ranges))
+	      (when (= (1+ (cdar ranges)) (car (cadr ranges)))
+		(setcdr (car ranges) (cdr (cadr ranges)))
 		(setcdr ranges (cddr ranges))))))
 	(setq ranges (cdr ranges)))
       out)))
