@@ -1,3 +1,8 @@
+2003-03-31  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-inferior-io-mode): Remove Unix pathname for cat
+	so that it can run on NT also.
+
 2003-03-31  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/asm-mode.el (asm-mode): Support skipping C lang style
