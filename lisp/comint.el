@@ -553,9 +553,13 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 
 (defun comint-exec-1 (name buffer command switches)
   (let ((process-environment
-	 (nconc (list "EMACS=t" "TERM=emacs"
-		      (format "TERMCAP=emacs:co#%d:tc=unknown" (frame-width)))
-		process-environment)))
+	 (nconc
+	  (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
+	      (list "EMACS=t" "TERM=unknown"
+		    (format "COLUMNS=%d" (frame-width)))
+	    (list "EMACS=t" "TERM=emacs"
+		  (format "TERMCAP=emacs:co#%d:tc=unknown" (frame-width))))
+	  process-environment)))
     (apply 'start-process name buffer command switches)))
 
 ;;; Input history processing in a buffer
