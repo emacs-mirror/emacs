@@ -152,12 +152,23 @@ extern char *strerror ();
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+/* Encode the file name NAME using the specified coding system
+   for file names, if any.  */
+#define ENCODE_FILE(name)					\
+  (! NILP (Vfile_name_coding_system)				\
+   && XFASTINT (Vfile_name_coding_system) != 0			\
+   ? Fencode_coding_string (name, Vfile_name_coding_system, Qt)	\
+   : name)
+
 /* Nonzero during writing of auto-save files */
 int auto_saving;
 
 /* Set by auto_save_1 to mode of original file so Fwrite_region will create
    a new file with the same mode as the original */
 int auto_save_mode_bits;
+
+/* Coding system for file names, or nil if none.  */
+Lisp_Object Vfile_name_coding_system;
 
 /* Alist of elements (REGEXP . HANDLER) for file names
    whose I/O is done with a special handler.  */
@@ -2051,13 +2062,16 @@ A prefix arg makes KEEP-TIME non-nil.")
   char buf[16 * 1024];
   struct stat st, out_st;
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int count = specpdl_ptr - specpdl;
   int input_file_statable_p;
+  Lisp_Object encoded_file, encoded_newname;
 
-  GCPRO2 (file, newname);
+  encoded_file = encoded_newname = Qnil;
+  GCPRO4 (file, newname, encoded_file, encoded_newname);
   CHECK_STRING (file, 0);
   CHECK_STRING (newname, 1);
+
   file = Fexpand_file_name (file, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
 
@@ -2071,14 +2085,17 @@ A prefix arg makes KEEP-TIME non-nil.")
     RETURN_UNGCPRO (call5 (handler, Qcopy_file, file, newname,
 			   ok_if_already_exists, keep_date));
 
+  encoded_file = ENCODE_FILE (file);
+  encoded_newname = ENCODE_FILE (newname);
+
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (newname, "copy to it",
+    barf_or_query_if_file_exists (encoded_newname, "copy to it",
 				  INTEGERP (ok_if_already_exists), &out_st);
-  else if (stat (XSTRING (newname)->data, &out_st) < 0)
+  else if (stat (XSTRING (encoded_newname)->data, &out_st) < 0)
     out_st.st_mode = 0;
 
-  ifd = open (XSTRING (file)->data, O_RDONLY);
+  ifd = open (XSTRING (encoded_file)->data, O_RDONLY);
   if (ifd < 0)
     report_file_error ("Opening input file", Fcons (file, Qnil));
 
@@ -2114,13 +2131,13 @@ A prefix arg makes KEEP-TIME non-nil.")
 
 #ifdef VMS
   /* Create the copy file with the same record format as the input file */
-  ofd = sys_creat (XSTRING (newname)->data, 0666, ifd);
+  ofd = sys_creat (XSTRING (encoded_newname)->data, 0666, ifd);
 #else
 #ifdef MSDOS
   /* System's default file type was set to binary by _fmode in emacs.c.  */
-  ofd = creat (XSTRING (newname)->data, S_IREAD | S_IWRITE);
+  ofd = creat (XSTRING (encoded_newname)->data, S_IREAD | S_IWRITE);
 #else /* not MSDOS */
-  ofd = creat (XSTRING (newname)->data, 0666);
+  ofd = creat (XSTRING (encoded_newname)->data, 0666);
 #endif /* not MSDOS */
 #endif /* VMS */
   if (ofd < 0)
@@ -2146,13 +2163,14 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  EMACS_TIME atime, mtime;
 	  EMACS_SET_SECS_USECS (atime, st.st_atime, 0);
 	  EMACS_SET_SECS_USECS (mtime, st.st_mtime, 0);
-	  if (set_file_times (XSTRING (newname)->data, atime, mtime))
+	  if (set_file_times (XSTRING (encoded_newname)->data,
+			      atime, mtime))
 	    Fsignal (Qfile_date_error,
 		     Fcons (build_string ("Cannot set file date"),
 			    Fcons (newname, Qnil)));
 	}
 #ifndef MSDOS
-      chmod (XSTRING (newname)->data, st.st_mode & 07777);
+      chmod (XSTRING (encoded_newname)->data, st.st_mode & 07777);
 #else /* MSDOS */
 #if defined (__DJGPP__) && __DJGPP__ > 1
       /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
@@ -2160,7 +2178,7 @@ A prefix arg makes KEEP-TIME non-nil.")
          get only the READ bit, which will make the copied file read-only,
          so it's better not to chmod at all.  */
       if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
-	chmod (XSTRING (newname)->data, st.st_mode & 07777);
+	chmod (XSTRING (encoded_newname)->data, st.st_mode & 07777);
 #endif /* DJGPP version 2 or newer */
 #endif /* MSDOS */
     }
@@ -2182,6 +2200,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 {
   unsigned char *dir;
   Lisp_Object handler;
+  Lisp_Object encoded_dir;
 
   CHECK_STRING (directory, 0);
   directory = Fexpand_file_name (directory, Qnil);
@@ -2190,7 +2209,9 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
   if (!NILP (handler))
     return call2 (handler, Qmake_directory_internal, directory);
 
-  dir = XSTRING (directory)->data;
+  encoded_dir = ENCODE_FILE (directory);
+
+  dir = XSTRING (encoded_dir)->data;
 
 #ifdef WINDOWSNT
   if (mkdir (dir) != 0)
@@ -2209,14 +2230,18 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
 {
   unsigned char *dir;
   Lisp_Object handler;
+  Lisp_Object encoded_dir;
 
   CHECK_STRING (directory, 0);
   directory = Fdirectory_file_name (Fexpand_file_name (directory, Qnil));
-  dir = XSTRING (directory)->data;
 
   handler = Ffind_file_name_handler (directory, Qdelete_directory);
   if (!NILP (handler))
     return call2 (handler, Qdelete_directory, directory);
+
+  encoded_dir = ENCODE_FILE (directory);
+
+  dir = XSTRING (encoded_dir)->data;
 
   if (rmdir (dir) != 0)
     report_file_error ("Removing directory", Flist (1, &directory));
@@ -2231,6 +2256,8 @@ If file has multiple names, it continues to exist with the other names.")
      Lisp_Object filename;
 {
   Lisp_Object handler;
+  Lisp_Object encoded_file;
+
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
 
@@ -2238,7 +2265,9 @@ If file has multiple names, it continues to exist with the other names.")
   if (!NILP (handler))
     return call2 (handler, Qdelete_file, filename);
 
-  if (0 > unlink (XSTRING (filename)->data))
+  encoded_file = ENCODE_FILE (filename);
+
+  if (0 > unlink (XSTRING (encoded_file)->data))
     report_file_error ("Removing old name", Flist (1, &filename));
   return Qnil;
 }
@@ -2275,9 +2304,11 @@ This is what happens in interactive use with M-x.")
   Lisp_Object args[2];
 #endif
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  Lisp_Object encoded_file, encoded_newname;
 
-  GCPRO2 (file, newname);
+  encoded_file = encoded_newname = Qnil;
+  GCPRO4 (file, newname, encoded_file, encoded_newname);
   CHECK_STRING (file, 0);
   CHECK_STRING (newname, 1);
   file = Fexpand_file_name (file, Qnil);
@@ -2292,15 +2323,18 @@ This is what happens in interactive use with M-x.")
     RETURN_UNGCPRO (call4 (handler, Qrename_file,
 			   file, newname, ok_if_already_exists));
 
+  encoded_file = ENCODE_FILE (file);
+  encoded_newname = ENCODE_FILE (newname);
+
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (newname, "rename to it",
+    barf_or_query_if_file_exists (encoded_newname, "rename to it",
 				  INTEGERP (ok_if_already_exists), 0);
 #ifndef BSD4_1
-  if (0 > rename (XSTRING (file)->data, XSTRING (newname)->data))
+  if (0 > rename (XSTRING (encoded_file)->data, XSTRING (encoded_newname)->data))
 #else
-  if (0 > link (XSTRING (file)->data, XSTRING (newname)->data)
-      || 0 > unlink (XSTRING (file)->data))
+  if (0 > link (XSTRING (encoded_file)->data, XSTRING (encoded_newname)->data)
+      || 0 > unlink (XSTRING (encoded_file)->data))
 #endif
     {
       if (errno == EXDEV)
@@ -2340,9 +2374,11 @@ This is what happens in interactive use with M-x.")
   Lisp_Object args[2];
 #endif
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2;
+  Lisp_Object encoded_file, encoded_newname;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-  GCPRO2 (file, newname);
+  GCPRO4 (file, newname, encoded_file, encoded_newname);
+  encoded_file = encoded_newname = Qnil;
   CHECK_STRING (file, 0);
   CHECK_STRING (newname, 1);
   file = Fexpand_file_name (file, Qnil);
@@ -2362,13 +2398,16 @@ This is what happens in interactive use with M-x.")
     RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, file,
 			   newname, ok_if_already_exists));
 
+  encoded_file = ENCODE_FILE (file);
+  encoded_newname = ENCODE_FILE (newname);
+
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (newname, "make it a new name",
+    barf_or_query_if_file_exists (encoded_newname, "make it a new name",
 				  INTEGERP (ok_if_already_exists), 0);
 
   unlink (XSTRING (newname)->data);
-  if (0 > link (XSTRING (file)->data, XSTRING (newname)->data))
+  if (0 > link (XSTRING (encoded_file)->data, XSTRING (encoded_newname)->data))
     {
 #ifdef NO_ARG_ARRAY
       args[0] = file;
@@ -2398,9 +2437,11 @@ This happens for interactive use with M-x.")
   Lisp_Object args[2];
 #endif
   Lisp_Object handler;
-  struct gcpro gcpro1, gcpro2;
+  Lisp_Object encoded_filename, encoded_linkname;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-  GCPRO2 (filename, linkname);
+  GCPRO4 (filename, linkname, encoded_filename, encoded_linkname);
+  encoded_filename = encoded_linkname = Qnil;
   CHECK_STRING (filename, 0);
   CHECK_STRING (linkname, 1);
   /* If the link target has a ~, we must expand it to get
@@ -2424,17 +2465,22 @@ This happens for interactive use with M-x.")
     RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
 			   linkname, ok_if_already_exists));
 
+  encoded_filename = ENCODE_FILE (filename);
+  encoded_linkname = ENCODE_FILE (linkname);
+
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
-    barf_or_query_if_file_exists (linkname, "make it a link",
+    barf_or_query_if_file_exists (encoded_linkname, "make it a link",
 				  INTEGERP (ok_if_already_exists), 0);
-  if (0 > symlink (XSTRING (filename)->data, XSTRING (linkname)->data))
+  if (0 > symlink (XSTRING (encoded_filename)->data,
+		   XSTRING (encoded_linkname)->data))
     {
       /* If we didn't complain already, silently delete existing file.  */
       if (errno == EEXIST)
 	{
-	  unlink (XSTRING (linkname)->data);
-	  if (0 <= symlink (XSTRING (filename)->data, XSTRING (linkname)->data))
+	  unlink (XSTRING (encoded_linkname)->data);
+	  if (0 <= symlink (XSTRING (encoded_filename)->data,
+			    XSTRING (encoded_linkname)->data))
 	    {
 	      UNGCPRO;
 	      return Qnil;
@@ -2607,6 +2653,8 @@ See also `file-readable-p' and `file-attributes'.")
   if (!NILP (handler))
     return call2 (handler, Qfile_exists_p, absname);
 
+  absname = ENCODE_FILE (absname);
+
   return (stat (XSTRING (absname)->data, &statbuf) >= 0) ? Qt : Qnil;
 }
 
@@ -2628,6 +2676,8 @@ For a directory, this means you can access files in that directory.")
   handler = Ffind_file_name_handler (absname, Qfile_executable_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_executable_p, absname);
+
+  absname = ENCODE_FILE (absname);
 
   return (check_executable (XSTRING (absname)->data) ? Qt : Qnil);
 }
@@ -2652,6 +2702,8 @@ See also `file-exists-p' and `file-attributes'.")
   handler = Ffind_file_name_handler (absname, Qfile_readable_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_readable_p, absname);
+
+  absname = ENCODE_FILE (absname);
 
 #ifdef DOS_NT
   /* Under MS-DOS and Windows, open does not work for directories.  */
@@ -2685,7 +2737,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   (filename)
      Lisp_Object filename;
 {
-  Lisp_Object absname, dir;
+  Lisp_Object absname, dir, encoded;
   Lisp_Object handler;
   struct stat statbuf;
 
@@ -2698,9 +2750,11 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   if (!NILP (handler))
     return call2 (handler, Qfile_writable_p, absname);
 
-  if (stat (XSTRING (absname)->data, &statbuf) >= 0)
-    return (check_writable (XSTRING (absname)->data)
+  encoded = ENCODE_FILE (absname);
+  if (stat (XSTRING (encoded)->data, &statbuf) >= 0)
+    return (check_writable (XSTRING (encoded)->data)
 	    ? Qt : Qnil);
+
   dir = Ffile_name_directory (absname);
 #ifdef VMS
   if (!NILP (dir))
@@ -2710,6 +2764,8 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
   if (!NILP (dir))
     dir = Fdirectory_file_name (dir);
 #endif /* MSDOS */
+
+  dir = ENCODE_FILE (dir);
   return (check_writable (!NILP (dir) ? (char *) XSTRING (dir)->data : "")
 	  ? Qt : Qnil);
 }
@@ -2721,7 +2777,7 @@ If there is no error, we return nil.")
   (filename, string)
      Lisp_Object filename, string;
 {
-  Lisp_Object handler;
+  Lisp_Object handler, encoded_filename;
   int fd;
 
   CHECK_STRING (filename, 0);
@@ -2732,7 +2788,9 @@ If there is no error, we return nil.")
   if (!NILP (handler))
     return call3 (handler, Qaccess_file, filename, string);
 
-  fd = open (XSTRING (filename)->data, O_RDONLY);
+  encoded_filename = ENCODE_FILE (filename);
+
+  fd = open (XSTRING (encoded_filename)->data, O_RDONLY);
   if (fd < 0)
     report_file_error (XSTRING (string)->data, Fcons (filename, Qnil));
   close (fd);
@@ -2763,6 +2821,8 @@ Otherwise returns nil.")
   if (!NILP (handler))
     return call2 (handler, Qfile_symlink_p, filename);
 
+  filename = ENCODE_FILE (filename);
+
   bufsize = 100;
   while (1)
     {
@@ -2781,7 +2841,7 @@ Otherwise returns nil.")
     }
   val = make_string (buf, valsize);
   xfree (buf);
-  return val;
+  return Fdecode_coding_string (val, Vfile_name_coding_system, Qt);
 #else /* not S_IFLNK */
   return Qnil;
 #endif /* not S_IFLNK */
@@ -2803,6 +2863,8 @@ DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
   handler = Ffind_file_name_handler (absname, Qfile_directory_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_directory_p, absname);
+
+  absname = ENCODE_FILE (absname);
 
   if (stat (XSTRING (absname)->data, &st) < 0)
     return Qnil;
@@ -2860,6 +2922,8 @@ This is the sort of file that holds an ordinary stream of data bytes.")
   if (!NILP (handler))
     return call2 (handler, Qfile_regular_p, absname);
 
+  absname = ENCODE_FILE (absname);
+
   if (stat (XSTRING (absname)->data, &st) < 0)
     return Qnil;
   return (st.st_mode & S_IFMT) == S_IFREG ? Qt : Qnil;
@@ -2882,6 +2946,8 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
   if (!NILP (handler))
     return call2 (handler, Qfile_modes, absname);
 
+  absname = ENCODE_FILE (absname);
+
   if (stat (XSTRING (absname)->data, &st) < 0)
     return Qnil;
 #if defined (MSDOS) && __DJGPP__ < 2
@@ -2898,7 +2964,7 @@ Only the 12 low bits of MODE are used.")
   (filename, mode)
      Lisp_Object filename, mode;
 {
-  Lisp_Object absname;
+  Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
 
   absname = Fexpand_file_name (filename, current_buffer->directory);
@@ -2910,7 +2976,9 @@ Only the 12 low bits of MODE are used.")
   if (!NILP (handler))
     return call3 (handler, Qset_file_modes, absname, mode);
 
-  if (chmod (XSTRING (absname)->data, XINT (mode)) < 0)
+  encoded_absname = ENCODE_FILE (absname);
+
+  if (chmod (XSTRING (encoded_absname)->data, XINT (mode)) < 0)
     report_file_error ("Doing chmod", Fcons (absname, Qnil));
 
   return Qnil;
@@ -2987,6 +3055,11 @@ otherwise, if FILE2 does not exist, the answer is t.")
   if (!NILP (handler))
     return call3 (handler, Qfile_newer_than_file_p, absname1, absname2);
 
+  GCPRO2 (absname1, absname2);
+  absname1 = ENCODE_FILE (absname1);
+  absname2 = ENCODE_FILE (absname2);
+  UNGCPRO;
+
   if (stat (XSTRING (absname1)->data, &st) < 0)
     return Qnil;
 
@@ -3038,8 +3111,8 @@ This does code conversion according to the value of\n\
   register int how_much;
   register int unprocessed;
   int count = specpdl_ptr - specpdl;
-  struct gcpro gcpro1, gcpro2, gcpro3;
-  Lisp_Object handler, val, insval;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  Lisp_Object handler, val, insval, orig_filename;
   Lisp_Object p;
   int total;
   int not_regular = 0;
@@ -3056,8 +3129,9 @@ This does code conversion according to the value of\n\
 
   val = Qnil;
   p = Qnil;
+  orig_filename = Qnil;
 
-  GCPRO3 (filename, val, p);
+  GCPRO4 (filename, val, p, orig_filename);
 
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
@@ -3072,6 +3146,9 @@ This does code conversion according to the value of\n\
       goto handled;
     }
 
+  orig_filename = filename;
+  filename = ENCODE_FILE (filename);
+
   fd = -1;
 
 #ifndef APOLLO
@@ -3084,7 +3161,7 @@ This does code conversion according to the value of\n\
       if (fd >= 0) close (fd);
     badopen:
       if (NILP (visit))
-	report_file_error ("Opening input file", Fcons (filename, Qnil));
+	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
       st.st_mtime = -1;
       how_much = 0;
       goto notfound;
@@ -3104,7 +3181,7 @@ This does code conversion according to the value of\n\
       if (! NILP (replace) || ! NILP (beg) || ! NILP (end))
 	Fsignal (Qfile_error,
 		 Fcons (build_string ("not a regular file"),
-			Fcons (filename, Qnil)));
+			Fcons (orig_filename, Qnil)));
     }
 #endif
 
@@ -3170,14 +3247,14 @@ This does code conversion according to the value of\n\
 		  {
 		    if (lseek (fd, st.st_size - (1024 * 3), 0) < 0)
 		      report_file_error ("Setting file position",
-					 Fcons (filename, Qnil));
+					 Fcons (orig_filename, Qnil));
 		    nread += read (fd, read_buf + nread, 1024 * 3);
 		  }
 	      }
 	 
 	    if (nread < 0)
 	      error ("IO error reading %s: %s",
-		     XSTRING (filename)->data, strerror (errno));
+		     XSTRING (orig_filename)->data, strerror (errno));
 	    else if (nread > 0)
 	      {
 		val = call1 (Vset_auto_coding_function,
@@ -3185,14 +3262,14 @@ This does code conversion according to the value of\n\
 		/* Rewind the file for the actual read done later.  */
 		if (lseek (fd, 0, 0) < 0)
 		  report_file_error ("Setting file position",
-				     Fcons (filename, Qnil));
+				     Fcons (orig_filename, Qnil));
 	      }
 	  }
 	if (NILP (val))
 	  {
 	    Lisp_Object args[6], coding_systems;
 
-	    args[0] = Qinsert_file_contents, args[1] = filename,
+	    args[0] = Qinsert_file_contents, args[1] = orig_filename,
 	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = replace;
 	    coding_systems = Ffind_operation_coding_system (6, args);
 	    if (CONSP (coding_systems)) val = XCONS (coding_systems)->car;
@@ -3230,7 +3307,7 @@ This does code conversion according to the value of\n\
 	{
 	  if (lseek (fd, XINT (beg), 0) < 0)
 	    report_file_error ("Setting file position",
-			       Fcons (filename, Qnil));
+			       Fcons (orig_filename, Qnil));
 	}
 
       immediate_quit = 1;
@@ -3244,7 +3321,7 @@ This does code conversion according to the value of\n\
 	  nread = read (fd, buffer, sizeof buffer);
 	  if (nread < 0)
 	    error ("IO error reading %s: %s",
-		   XSTRING (filename)->data, strerror (errno));
+		   XSTRING (orig_filename)->data, strerror (errno));
 	  else if (nread == 0)
 	    break;
 
@@ -3309,7 +3386,7 @@ This does code conversion according to the value of\n\
 	  trial = min (curpos, sizeof buffer);
 	  if (lseek (fd, curpos - trial, 0) < 0)
 	    report_file_error ("Setting file position",
-			       Fcons (filename, Qnil));
+			       Fcons (orig_filename, Qnil));
 
 	  total_read = 0;
 	  while (total_read < trial)
@@ -3317,7 +3394,7 @@ This does code conversion according to the value of\n\
 	      nread = read (fd, buffer + total_read, trial - total_read);
 	      if (nread <= 0)
 		error ("IO error reading %s: %s",
-		       XSTRING (filename)->data, strerror (errno));
+		       XSTRING (orig_filename)->data, strerror (errno));
 	      total_read += nread;
 	    }
 	  /* Scan this bufferful from the end, comparing with
@@ -3403,7 +3480,7 @@ This does code conversion according to the value of\n\
 	{
 	  free (conversion_buffer);
 	  report_file_error ("Setting file position",
-			     Fcons (filename, Qnil));
+			     Fcons (orig_filename, Qnil));
 	}
 
       total = st.st_size;	/* Total bytes in the file.  */
@@ -3475,7 +3552,7 @@ This does code conversion according to the value of\n\
 
 	  if (how_much == -1)
 	    error ("IO error reading %s: %s",
-		   XSTRING (filename)->data, strerror (errno));
+		   XSTRING (orig_filename)->data, strerror (errno));
 	  else if (how_much == -2)
 	    error ("maximum buffer size exceeded");
 	}
@@ -3562,7 +3639,8 @@ This does code conversion according to the value of\n\
   if (XINT (beg) != 0 || !NILP (replace))
     {
       if (lseek (fd, XINT (beg), 0) < 0)
-	report_file_error ("Setting file position", Fcons (filename, Qnil));
+	report_file_error ("Setting file position",
+			   Fcons (orig_filename, Qnil));
     }
 
   /* In the following loop, HOW_MUCH contains the total bytes read so
@@ -3677,7 +3755,7 @@ This does code conversion according to the value of\n\
      is deemed to be a text file.  */
   {
     current_buffer->buffer_file_type
-      = call1 (Qfind_buffer_file_type, filename);
+      = call1 (Qfind_buffer_file_type, orig_filename);
     if (NILP (current_buffer->buffer_file_type))
       {
 	int reduced_size
@@ -3708,7 +3786,7 @@ This does code conversion according to the value of\n\
 
   if (how_much == -1)
     error ("IO error reading %s: %s",
-	   XSTRING (filename)->data, strerror (errno));
+	   XSTRING (orig_filename)->data, strerror (errno));
   else if (how_much == -2)
     error ("maximum buffer size exceeded");
 
@@ -3726,7 +3804,7 @@ This does code conversion according to the value of\n\
       if (NILP (handler))
 	{
 	  current_buffer->modtime = st.st_mtime;
-	  current_buffer->filename = filename;
+	  current_buffer->filename = orig_filename;
 	}
 
       SAVE_MODIFF = MODIFF;
@@ -3743,11 +3821,11 @@ This does code conversion according to the value of\n\
       if (not_regular)
 	Fsignal (Qfile_error,
 		 Fcons (build_string ("not a regular file"),
-			Fcons (filename, Qnil)));
+			Fcons (orig_filename, Qnil)));
 
       /* If visiting nonexistent file, return nil.  */
       if (current_buffer->modtime == -1)
-	report_file_error ("Opening input file", Fcons (filename, Qnil));
+	report_file_error ("Opening input file", Fcons (orig_filename, Qnil));
     }
 
   /* Decode file format */
@@ -3786,7 +3864,7 @@ This does code conversion according to the value of\n\
     }
 
   if (NILP (val))
-    val = Fcons (filename,
+    val = Fcons (orig_filename,
 		 Fcons (make_number (inserted),
 			Qnil));
 
@@ -3853,6 +3931,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   Lisp_Object handler;
   Lisp_Object visit_file;
   Lisp_Object annotations;
+  Lisp_Object encoded_filename;
   int visiting, quietly;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   struct buffer *given_buffer;
@@ -3869,7 +3948,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   GCPRO4 (start, filename, visit, lockname);
 
-  /* Decide the coding-system to be encoded to.  */
+  /* Decide the coding-system to encode the data with.  */
   {
     Lisp_Object val;
 
@@ -3995,7 +4074,9 @@ to the file, instead of any buffer contents, and END is ignored.")
     }
 #endif /* CLASH_DETECTION */
 
-  fn = XSTRING (filename)->data;
+  encoded_filename = ENCODE_FILE (filename);
+
+  fn = XSTRING (encoded_filename)->data;
   desc = -1;
   if (!NILP (append))
 #ifdef DOS_NT
@@ -4004,7 +4085,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     desc = open (fn, O_WRONLY);
 #endif /* not DOS_NT */
 
-  if (desc < 0 && (NILP (append) || errno == ENOENT) )
+  if (desc < 0 && (NILP (append) || errno == ENOENT))
 #ifdef VMS
     if (auto_saving)    /* Overwrite any previous version of autosave file */
       {
@@ -4228,7 +4309,8 @@ to the file, instead of any buffer contents, and END is ignored.")
     current_buffer->modtime = st.st_mtime;
 
   if (failure)
-    error ("IO error writing %s: %s", fn, strerror (save_errno));
+    error ("IO error writing %s: %s", XSTRING (filename)->data,
+	   strerror (save_errno));
 
   if (visiting)
     {
@@ -4427,6 +4509,7 @@ This means that the file has not been changed since it was visited or saved.")
   struct buffer *b;
   struct stat st;
   Lisp_Object handler;
+  Lisp_Object filename;
 
   CHECK_BUFFER (buf, 0);
   b = XBUFFER (buf);
@@ -4441,7 +4524,9 @@ This means that the file has not been changed since it was visited or saved.")
   if (!NILP (handler))
     return call2 (handler, Qverify_visited_file_modtime, buf);
 
-  if (stat (XSTRING (b->filename)->data, &st) < 0)
+  filename = ENCODE_FILE (b->filename);
+
+  if (stat (XSTRING (filename)->data, &st) < 0)
     {
       /* If the file doesn't exist now and didn't exist before,
 	 we say that it isn't modified, provided the error is a tame one.  */
@@ -4506,7 +4591,10 @@ An argument specifies the modification time value to use\n\
       if (!NILP (handler))
 	/* The handler can find the file name the same way we did.  */
 	return call2 (handler, Qset_visited_file_modtime, Qnil);
-      else if (stat (XSTRING (filename)->data, &st) >= 0)
+
+      filename = ENCODE_FILE (filename);
+
+      if (stat (XSTRING (filename)->data, &st) >= 0)
 	current_buffer->modtime = st.st_mtime;
     }
 
@@ -5133,6 +5221,10 @@ syms_of_fileio ()
   Qfind_buffer_file_type = intern ("find-buffer-file-type");
   staticpro (&Qfind_buffer_file_type);
 #endif /* DOS_NT */
+
+  DEFVAR_LISP ("file-name-coding-system", &Vfile_name_coding_system,
+    "*Coding system for encoding file names.");
+  Vfile_name_coding_system = Qnil;
 
   DEFVAR_LISP ("auto-save-file-format", &Vauto_save_file_format,
     "*Format in which to write auto-save files.\n\
