@@ -4,7 +4,7 @@
 
 ;; Author:     Mike Williams <mdub@bigfoot.com>
 ;; Created:    February 2001
-;; Version:    $Revision: 1.24 $
+;; Version:    $Revision: 1.28 $
 ;; Keywords:   xml
 
 ;; This file is part of GNU Emacs.
@@ -99,6 +99,26 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
 (make-variable-buffer-local 'xml-lite-mode)
 
 
+;; Syntax analysis
+
+(defsubst xml-lite-at-indentation-p ()
+  "Return true if point is at the first non-whitespace character on the line."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (bolp)))
+
+(defun xml-lite-in-string-p (&optional limit)
+  "Determine whether point is inside a string."
+  (let (syntax-info)
+    (or limit
+        (setq limit (or (save-excursion 
+                          (re-search-backward "^[ \t]*<" nil t))
+                        (point-min))))
+    (setq syntax-info (parse-partial-sexp limit (point)))
+    (if (nth 3 syntax-info)
+        (list (nth 3 syntax-info) (nth 8 syntax-info)))))
+
+
 ;; Parsing
 
 (defstruct (xml-lite-tag
@@ -111,64 +131,88 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
     (if (> (skip-chars-forward "-._:A-Za-z0-9") 0)
         (buffer-substring-no-properties here (point)))))
 
+(defsubst xml-lite-looking-back-at (s)
+  (let ((limit (max (- (point) (length s)) (point-min))))
+    (equal s (buffer-substring-no-properties limit (point)))))
+
+(defsubst xml-lite-looking-at (s)  
+  (let ((limit (min (+ (point) (length s)))))
+    (equal s (buffer-substring-no-properties (point) limit))))
+
 (defun xml-lite-parse-tag-backward ()
   "Get information about the parent tag."
   (let ((limit (point))
-        (tag-type 'open)
-        (tag-start (search-backward "<" nil t))
-        tag-end name name-end)
+        tag-type tag-start tag-end name name-end)
 
-    (if (not tag-start) nil
-      (setq tag-end (search-forward ">" limit t))
+    (cond 
 
-      ;; determine tag type
+     ((null (re-search-backward "[<>]" nil t)))
+     
+     ((= ?> (char-after))               ;--- found tag-end ---
+      (setq tag-end (1+ (point)))
+      (goto-char tag-end)
+      (cond
+       ((xml-lite-looking-back-at "--") ; comment
+        (setq tag-type 'comment
+              tag-start (search-backward "<!--" nil t)))
+       ((xml-lite-looking-back-at "]]>") ; cdata
+        (setq tag-type 'cdata
+              tag-start (search-backward "![CDATA[" nil t)))
+       (t
+        (setq tag-start
+              (ignore-errors (backward-sexp) (point))))))
+       
+     ((= ?< (char-after))               ;--- found tag-start ---
+      (setq tag-start (point))
       (goto-char (1+ tag-start))
       (cond
-
-       ((= ?? (char-after))             ; processing-instruction
-        (setq tag-type 'pi))
-
-       ((= ?! (char-after))             ; declaration
-        (setq tag-type 'decl)
-        (cond
-         ((looking-at "!--")            ; comment
-          (setq tag-type 'comment
-                tag-end (search-forward "-->" nil t)))
-         ((looking-at "!\\[CDATA\\[")   ; cdata
-          (setq tag-type 'cdata
-                tag-end (search-forward "]]>" nil t)))
-         (t
-          (ignore-errors
-            (goto-char tag-start)
-            (forward-sexp 1)
-            (setq tag-end (point))))))
-
-       ((= ?% (char-after))             ; JSP tag
-        (setq tag-type 'jsp
-              tag-end (search-forward "%>" nil t)))
-
-       ((= ?/ (char-after))             ; close-tag
-        (goto-char (+ 2 tag-start))
-        (setq tag-type 'close
-              name (xml-lite-parse-tag-name)
-              name-end (point)))
-
+       ((xml-lite-looking-at "!--")     ; comment
+        (setq tag-type 'comment
+              tag-end (search-forward "-->" nil t)))
+       ((xml-lite-looking-at "![CDATA[")   ; cdata
+        (setq tag-type 'cdata
+              tag-end (search-forward "]]>" nil t)))
        (t
-        (setq tag-type 'open
-              name (xml-lite-parse-tag-name)
-              name-end (point))
-        ;; check whether it's an empty tag
-        (if (and tag-end (eq ?/ (char-before (- tag-end 1))))
-            (setq tag-type 'empty))))
+        (goto-char tag-start)
+        (setq tag-end
+              (ignore-errors (forward-sexp) (point))))))
 
+     )
+     
+    (cond 
+
+     ((or tag-type (null tag-start)))
+     
+     ((= ?! (char-after (1+ tag-start))) ; declaration
+      (setq tag-type 'decl))
+     
+     ((= ?? (char-after (1+ tag-start))) ; processing-instruction
+      (setq tag-type 'pi))
+     
+     ((= ?/ (char-after (1+ tag-start))) ; close-tag
+      (goto-char (+ 2 tag-start))
+      (setq tag-type 'close
+            name (xml-lite-parse-tag-name)
+            name-end (point)))
+
+     ((member                           ; JSP tags etc
+       (char-after (1+ tag-start))
+       '(?% ?#))
+      (setq tag-type 'unknown))
+
+     (t
+      (goto-char (1+ tag-start))
+      (setq tag-type 'open
+            name (xml-lite-parse-tag-name)
+            name-end (point))
+      ;; check whether it's an empty tag
+      (if (and tag-end (eq ?/ (char-before (- tag-end 1))))
+          (setq tag-type 'empty))))
+
+    (cond 
+     (tag-start 
       (goto-char tag-start)
-      (xml-lite-make-tag tag-type tag-start tag-end name name-end))))
-
-(defsubst xml-lite-at-indentation-p ()
-  "Return true if point is at the first non-whitespace character on the line."
-  (save-excursion
-    (skip-chars-backward " \t")
-    (bolp)))
+      (xml-lite-make-tag tag-type tag-start tag-end name name-end)))))
 
 (defsubst xml-lite-inside-tag-p (tag-info &optional point)
   "Return true if TAG-INFO contains the POINT."
@@ -185,8 +229,12 @@ parse until we find a start-tag as the first thing on a line.
 The context is a list of tag-info structures.  The last one is the tag
 immediately enclosing the current position."
   (let ((here (point))
-        (level 0)
+        (ignore-depth 0)
         tag-info context)
+    ;; CONTEXT keeps track of the tag-stack
+    ;; IGNORE-DEPTH keeps track of the nesting level of point relative to the
+    ;;   first (outermost) tag on the context.  This is the number of
+    ;;   enclosing start-tags we'll have to ignore.
     (save-excursion
 
       (while
@@ -203,15 +251,22 @@ immediately enclosing the current position."
 
          ;; start-tag
          ((eq (xml-lite-tag-type tag-info) 'open)
-          (setq level (1- level))
-          (when (= level -1)
+          (setq ignore-depth (1- ignore-depth))
+          (when (= ignore-depth -1)
             (setq context (cons tag-info context))
-            (setq level 0)))
+            (setq ignore-depth 0)))
 
          ;; end-tag
          ((eq (xml-lite-tag-type tag-info) 'close)
-          (setq level (1+ level)))
-
+          (setq ignore-depth (1+ ignore-depth)))
+         
+         ((eq (xml-lite-tag-type tag-info) 'comment)
+          ;; this comment may enclose things we thought were tags
+          (while (and context
+                      (> (xml-lite-tag-end tag-info)
+                         (xml-lite-tag-end (car context))))
+            (setq context (cdr context))))
+           
          )))
 
     ;; return context
@@ -249,13 +304,13 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 
        ;; inside a tag
        ((xml-lite-inside-tag-p last-tag-info here)
-        (let ((syntax-info
-               (parse-partial-sexp (xml-lite-tag-start last-tag-info)
-                                   (point))))
+        
+        (let ((in-string
+               (xml-lite-in-string-p (xml-lite-tag-start last-tag-info))))
           (cond
            ;; inside a string
-           ((nth 3 syntax-info)
-            (goto-char (nth 8 syntax-info))
+           (in-string
+            (goto-char (nth 1 in-string))
             (1+ (current-column)))
            ;; if we have a tag-name, base indent on that
            ((and (xml-lite-tag-name-end last-tag-info)
@@ -360,36 +415,6 @@ Behaves electrically if `xml-lite-electric-slash' is non-nil."
     (xml-lite-insert-end-tag))
    (t
     (insert-char ?/ arg))))
-
-
-;; Movement commands
-
-(defun forward-xml-tag (arg)
-  "Move forward ARG XML-tags."
-  (interactive "p")
-  (cond
-   ((> arg 0)
-    (search-forward ">" nil nil arg))
-   ((< arg 0)
-    (search-backward "<" nil nil (- arg)))
-   ))
-
-(defun backward-xml-tag (arg)
-  "Move backward ARG XML-tags."
-  (interactive "p")
-  (forward-xml-tag (- arg)))
-
-(defun beginning-of-xml-tag ()
-  "Move to the beginning of the current XML-tag."
-  (interactive)
-  (if (= ?< (char-after (point)))
-      (point)
-    (search-backward "<")))
-
-(defun end-of-xml-tag ()
-  "Move to the end of the current XML-tag."
-  (interactive)
-  (forward-xml-tag 1))
 
 
 ;; Keymap
