@@ -1,5 +1,10 @@
 2001-05-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/smtpmail.el (smtpmail-warn-about-unknown-extensions): New
+	option.
+	(smtpmail-via-smtp): Print warnings about unknown SMTP extensions
+	only if smtpmail-warn-about-unknown-extensions is set.
+
 	* mail/rmail.el (rmail-mode-map): Use rmail-sort-by-labels
 	instead of rmail-sort-by-keywords.
 
