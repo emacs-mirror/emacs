@@ -63,7 +63,6 @@
 Ibuffer allows you to operate on buffers in a manner much like Dired.
 Operations include sorting, marking by regular expression, and
 the ability to filter the displayed buffers by various criteria."
-  :link '(url-link "http://cvs.verbum.org/ibuffer")
   :group 'convenience)
 
 (defcustom ibuffer-formats '((mark modified read-only " " (name 16 16 :left :elide)
@@ -116,7 +115,7 @@ own!):
   This format displays the current mark (if any), its modification and
   read-only status, as well as the name of the buffer and its size.  In
   this format, the name is restricted to 16 characters (longer names
-  will be truncated, nad shorter names will be padded with spaces), and
+  will be truncated, and shorter names will be padded with spaces), and
   the name is also aligned to the right.  The size of the buffer will
   be padded with spaces up to a minimum of six characters, but there is
   no upper limit on its size.  The size will also be aligned to the
@@ -1183,14 +1182,35 @@ become unmarked."
 	       (not (buffer-live-p buf)))
       (error "Buffer %s has been killed!" buf))
     buf))
-      
-(defun ibuffer-current-format ()
-  (when (null ibuffer-formats)
-    (error "No format!"))
-  (ibuffer-check-formats)
+
+(defun ibuffer-active-formats-name ()
+  (if (boundp 'ibuffer-filter-format-alist)
+      (let ((ret nil))
+	(dolist (filter ibuffer-filtering-qualifiers ret)
+	  (let ((val (assq (car filter) ibuffer-filter-format-alist)))
+	    (when val
+	      (setq ret (car filter)))))
+	(if ret
+	    ret
+	  :ibuffer-formats))
+    :ibuffer-formats))
+
+(defun ibuffer-current-formats (uncompiledp)
+  (let* ((name (ibuffer-active-formats-name)))
+    (ibuffer-check-formats)
+    (if (eq name :ibuffer-formats)
+	(if uncompiledp
+	    ibuffer-formats
+	  ibuffer-compiled-formats)
+      (cadr (assq name
+		  (if uncompiledp
+		      ibuffer-filter-format-alist
+		    ibuffer-compiled-filter-formats))))))
+       
+(defun ibuffer-current-format (&optional uncompiledp)
   (or ibuffer-current-format
       (setq ibuffer-current-format 0))
-  (nth ibuffer-current-format ibuffer-compiled-formats))
+  (nth ibuffer-current-format (ibuffer-current-formats uncompiledp)))  
 
 (defun ibuffer-expand-format-entry (form)
   (if (or (consp form)
@@ -1363,22 +1383,37 @@ become unmarked."
   "Recompile `ibuffer-formats'."
   (interactive)
   (setq ibuffer-compiled-formats
-	  (mapcar #'ibuffer-compile-format ibuffer-formats)))
+	  (mapcar #'ibuffer-compile-format ibuffer-formats))
+  (when (boundp 'ibuffer-filter-format-alist)
+    (setq ibuffer-compiled-filter-formats
+	  (mapcar #'(lambda (entry)
+		      (cons (car entry)
+			    (mapcar #'(lambda (formats)
+					(mapcar #'ibuffer-compile-format formats))
+				    (cdr entry))))
+		  ibuffer-filter-format-alist))))
 
 (defun ibuffer-check-formats ()
+  (when (null ibuffer-formats)
+    (error "No formats!"))
   (when (or (null ibuffer-compiled-formats)
 	    (null ibuffer-cached-formats)
-	    (not (equal ibuffer-cached-formats ibuffer-formats))
+	    (not (eq ibuffer-cached-formats ibuffer-formats))
 	    (null ibuffer-cached-eliding-string)
 	    (not (equal ibuffer-cached-eliding-string ibuffer-eliding-string))
 	    (eql 0 ibuffer-cached-elide-long-columns)
 	    (not (eql ibuffer-cached-elide-long-columns
-		      ibuffer-elide-long-columns)))
+		      ibuffer-elide-long-columns))
+	    (not (eq ibuffer-cached-filter-formats
+		     ibuffer-filter-format-alist))
+	    (and ibuffer-filter-format-alist
+		 (null ibuffer-compiled-filter-formats)))
     (message "Formats have changed, recompiling...")
     (ibuffer-recompile-formats)
     (setq ibuffer-cached-formats ibuffer-formats
 	  ibuffer-cached-eliding-string ibuffer-eliding-string
-	  ibuffer-cached-elide-long-columns ibuffer-elide-long-columns)
+	  ibuffer-cached-elide-long-columns ibuffer-elide-long-columns
+	  ibuffer-cached-filter-formats ibuffer-filter-format-alist)
     (message "Formats have changed, recompiling...done")))
 
 (defvar ibuffer-inline-columns nil)
@@ -1415,9 +1450,9 @@ become unmarked."
 
 (define-ibuffer-column process ()
   (let ((proc (get-buffer-process buffer)))
-    (format "%s" (if proc
-		     (list proc (process-status proc))
-		   "none"))))
+    (if proc 
+	(format "(%s %s)" proc (process-status proc))
+      "none")))
 
 (define-ibuffer-column filename ()
   (let ((directory-abbrev-alist ibuffer-directory-abbrev-alist))
@@ -1659,7 +1694,7 @@ If optional argument INCLUDE-LINES is non-nil, return a list like
   (unless (consp ibuffer-formats)
     (error "Ibuffer error: No formats!"))
   (setq ibuffer-current-format
-	(if (>= ibuffer-current-format (1- (length ibuffer-formats)))
+	(if (>= ibuffer-current-format (1- (length (ibuffer-current-formats))))
 	    0
 	  (1+ ibuffer-current-format)))
   (ibuffer-update-format)
@@ -1832,7 +1867,7 @@ Do not display messages if SILENT is non-nil."
 	       (car entry)
 	       (cdr entry)
 	       --ibuffer-insert-buffers-and-marks-format)))
-	  (ibuffer-update-title (nth ibuffer-current-format ibuffer-formats)))
+	  (ibuffer-update-title (ibuffer-current-format t)))
       (setq buffer-read-only t)
       (set-buffer-modified-p ibuffer-did-modification)
       (setq ibuffer-did-modification nil)

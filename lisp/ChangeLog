@@ -1,3 +1,25 @@
+2002-02-03  Colin Walters  <walters@verbum.org>
+
+	* ibuf-ext.el (ibuffer-filter-format-alist,
+	ibuffer-cached-filter-formats,
+	ibuffer-compiled-filter-formats): New variables.
+	
+	* ibuffer.el (ibuffer): Remove link; the "home page" for ibuffer
+	is now the Emacs CVS tree.
+	(ibuffer-formats): Doc fix.
+	(ibuffer-active-formats-name, ibuffer-current-formats): New
+	functions.
+	(ibuffer-current-format): Use them.
+	(ibuffer-recompile-formats): Add support for
+	ibuffer-filter-format-alist.
+	(ibuffer-check-formats): Ditto.
+	(ibuffer-switch-format): Ditto.
+	(ibuffer-update-title): Ditto.
+	(define-ibuffer-column process): Remove unncessary consing.
+	
+	* ibuf-macs.el (define-ibuffer-column): Add beginnings of support
+	for a summary column.
+
 2002-02-03  Andreas Schwab  <schwab@suse.de>
 
 	* window.el (save-selected-window): Move macro before first use.
