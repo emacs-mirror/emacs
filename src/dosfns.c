@@ -600,7 +600,8 @@ Implicitly modified when the TZ variable is changed.");
 #endif
 
   DEFVAR_LISP ("dos-display-scancodes", &Vdos_display_scancodes,
-    "*When non-nil, the keyboard scan-codes are displayed at the bottom right\n\
+    "*Controls whether DOS raw keyboard events are displayed as you type.\n\
+When non-nil, the keyboard scan-codes are displayed at the bottom right\n\
 corner of the display (typically at the end of the mode line).\n\
 The output format is: scan code:char code*modifiers.");
   Vdos_display_scancodes = Qnil;
@@ -645,7 +646,8 @@ Use msdos-set-keyboard to select another keyboard layout.");
   dos_keyboard_layout = 1;	/* US */
   
   DEFVAR_INT ("dos-decimal-point", &dos_decimal_point,
-    "If non-zero, it contains the character to be returned when the\n\
+    "The character to produce when kp-decimal key is pressed.\n\
+If non-zero, this variable contains the character to be returned when the\n\
 decimal point key in the numeric keypad is pressed when Num Lock is on.\n\
 If zero, the decimal point key returns the country code specific value.");
   dos_decimal_point = 0;
