@@ -133,24 +133,26 @@ This variable is relevant only if `backup-by-copying' and
   :type '(choice (const nil) integer)
   :group 'backup)
 
-(defvar backup-enable-predicate
-  (lambda (name)
-    (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
-				      name 0 nil)))
-	       ;; Directory is under temporary-file-directory.
-	       (and (not (eq comp t))
-		    (< comp -1)))
-	     (if small-temporary-file-directory
-		 (let ((comp (compare-strings small-temporary-file-directory
-					      0 nil
-					      name 0 nil)))
-		   ;; Directory is under small-temporary-file-directory.
-		   (and (not (eq comp t))
-			(< comp -1)))))))
+(defun normal-backup-enable-predicate (name)
+  "Default `backup-enable-predicate' function.
+Checks for files in `temporary-file-directory' or
+`small-temporary-file-directory'."
+  (not (or (let ((comp (compare-strings temporary-file-directory 0 nil
+					name 0 nil)))
+	     ;; Directory is under temporary-file-directory.
+	     (and (not (eq comp t))
+		  (< comp -1)))
+	   (if small-temporary-file-directory
+	       (let ((comp (compare-strings small-temporary-file-directory
+					    0 nil
+					    name 0 nil)))
+		 ;; Directory is under small-temporary-file-directory.
+		 (and (not (eq comp t))
+		      (< comp -1)))))))
+
+(defvar backup-enable-predicate 'normal-backup-enable-predicate
   "Predicate that looks at a file name and decides whether to make backups.
-Called with an absolute file name as argument, it returns t to enable backup.
-The default version checks for files in `temporary-file-directory' or
-`small-temporary-file-directory'.")
+Called with an absolute file name as argument, it returns t to enable backup.")
 
 (defcustom buffer-offer-save nil
   "*Non-nil in a buffer means always offer to save buffer on exit.
@@ -458,8 +460,9 @@ Runs the usual ange-ftp hook, but only for completion operations."
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
 This function's standard definition is trivial; it just returns the argument.
-However, on some systems, the function is redefined
-with a definition that really does change some file names."
+However, on some systems, the function is redefined with a definition
+that really does change some file names to canonicalize certain
+patterns and to guarantee valid names."
   filename)
 
 (defun pwd ()
