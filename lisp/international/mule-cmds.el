@@ -316,7 +316,7 @@ ALIST is an alist of KEY and INFO.  See the documentation of
 (defun read-language-name (key prompt &optional default)
   "Read language name which has information for KEY, prompting with PROMPT.
 DEFAULT is the default choice of language.
-It returns a string as language name."
+This returns a language name as a string."
   (let* ((completion-ignore-case t)
 	 (name (completing-read prompt
 				language-info-alist
@@ -631,7 +631,7 @@ But, if this flag is non-nil, the input method is never back on.")
 This sets the coding system priority and the default input method
 and sometimes other things."
   (interactive (list (read-language-name 'setup-function
-					 "Language (null for default): ")))
+					 "Set language environment: ")))
   (if language-name
       (if (symbolp language-name)
 	  (setq language-name (symbol-name language-name)))
