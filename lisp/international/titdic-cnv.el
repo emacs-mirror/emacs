@@ -397,7 +397,7 @@ the generated Quail package is saved."
       (message "Save this buffer after you make any modification"))))
 
 ;;;###autoload
-(defun batch-titdic-convert ()
+(defun batch-titdic-convert (&optional force)
   "Run `titdic-convert' on the files remaining on the command line.
 Use this from the command line, with `-batch';
 it won't work in an interactive Emacs.
@@ -428,11 +428,11 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 	  (setq files (list filename)))
 	(while files
 	  (setq file (expand-file-name (car files)))
-	  (if (file-newer-than-file-p
-	       file (tit-make-quail-package-file-name file targetdir))
-	      (progn
-		(message "Converting %s to quail-package..." file)
-		(titdic-convert file targetdir)))
+	  (when (or force
+		    (file-newer-than-file-p
+		     file (tit-make-quail-package-file-name file targetdir)))
+	    (message "Converting %s to quail-package..." file)
+	    (titdic-convert file targetdir))
 	  (setq files (cdr files)))
 	(setq command-line-args-left (cdr command-line-args-left)))
       (message "Do byte-compile the created files by:")
