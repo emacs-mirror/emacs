@@ -6715,7 +6715,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     d = term_init (0, terminal_type, 1); /* Errors are fatal. */
 
     /* Convert the initial frame to use the new display. */
-    if (! f->output_method == output_initial)
+    if (f->output_method != output_initial)
       abort ();
     f->output_method = d->type;
     f->display = d;
