@@ -110,7 +110,7 @@ This command runs the normal hook `view-mode-hook'."
   (let ((old-buf (current-buffer))
 	(had-a-buf (get-file-buffer file-name))
 	(buf-to-view (find-file-noselect file-name)))
-    (switch-to-buffer buf-to-view t)
+    (switch-to-buffer buf-to-view had-a-buf)
     (view-mode old-buf
 	       (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
 		    'kill-buffer))))
@@ -130,7 +130,9 @@ This command runs the normal hook `view-mode-hook'."
   (let ((old-arrangement (current-window-configuration))
 	(had-a-buf (get-file-buffer file-name))
 	(buf-to-view (find-file-noselect file-name)))
-    (switch-to-buffer-other-window buf-to-view)
+    ;; This used to pass t as second argument,
+    ;; but then the buffer did not show up in the Buffers menu.
+    (switch-to-buffer-other-window)
     (view-mode old-arrangement
 	       (and (not had-a-buf) (not (buffer-modified-p buf-to-view))
 		    'kill-buffer))))
