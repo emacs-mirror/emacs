@@ -18,6 +18,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/types.h>
+#ifdef MSDOS
+#include <fcntl.h>
+#endif
 
 #include <../src/config.h>
 
@@ -45,6 +48,11 @@ main (argc, argv)
      int argc;
      char **argv;
 {
+#ifdef MSDOS
+  _fmode = O_BINARY;	/* all of files are treated as binary files */
+  (stdout)->_flag &= ~_IOTEXT;
+  (stdin)->_flag &= ~_IOTEXT;
+#endif
   ltoday = time(0);
   today = ctime(&ltoday);
 

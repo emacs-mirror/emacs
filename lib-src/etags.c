@@ -28,6 +28,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer. 9.8
  */
 
+#ifdef MSDOS
+#include <fcntl.h>
+#endif /* MSDOS */
+
 #ifdef HAVE_CONFIG_H
 #include <../src/config.h>
 #endif
@@ -545,6 +549,10 @@ main (argc, argv)
   extern char *gfnames ();
   extern char *massage_name ();
 #endif
+
+#ifdef MSDOS
+  _fmode = O_BINARY;	/* all of files are treated as binary files */
+#endif /* MSDOS */
 
   progname = argv[0];
 
