@@ -1,3 +1,8 @@
+2005-03-04  Miles Bader  <miles@gnu.org>
+
+	* eval.c (FletX): Update Vinterpreter_lexical_environment for each
+	variable we bind, instead of all at once like `let'.
+
 2004-08-09  Miles Bader  <miles@gnu.org>
 
 	Changes from merging the funvec patch:

@@ -971,17 +971,17 @@ usage: (let* VARLIST BODY...)  */)
 	}
 
       if (!NILP (lexenv) && SYMBOLP (var) && !XSYMBOL (var)->declared_special)
-	/* Lexically bind VAR by adding it to the lexenv alist.  */
-	lexenv = Fcons (Fcons (var, val), lexenv);
+	/* Lexically bind VAR by adding it to the interpreter's binding
+	   alist.  */
+	{
+	  lexenv = Fcons (Fcons (var, val), lexenv);
+	  specbind (Qinternal_interpreter_environment, lexenv);
+	}
       else
 	specbind (var, val);
 
       varlist = Fcdr (varlist);
     }
-
-  if (!EQ (lexenv, Vinternal_interpreter_environment))
-    /* Instantiate a new lexical environment.  */
-    specbind (Qinternal_interpreter_environment, lexenv);
 
   UNGCPRO;
 
