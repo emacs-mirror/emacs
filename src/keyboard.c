@@ -3954,6 +3954,14 @@ Lisp_Object *scroll_bar_parts[] = {
   &Qup, &Qdown,
 };
 
+/* User signal events.  */
+Lisp_Object Qusr1_signal, Qusr2_signal;
+
+Lisp_Object *lispy_user_signals[] =
+{
+  &Qusr1_signal, &Qusr2_signal
+};
+
 
 /* A vector, indexed by button number, giving the down-going location
    of currently depressed buttons, both scroll bar and non-scroll bar.
@@ -4518,6 +4526,10 @@ make_lispy_event (event)
       return XCONS (event->frame_or_window)->cdr;
 #endif
 
+    case user_signal:
+      /* A user signal.  */
+      return *lispy_user_signals[event->code];
+      
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
       abort ();
@@ -8976,6 +8988,11 @@ syms_of_keyboard ()
 #endif
   Qdrag_n_drop = intern ("drag-n-drop");
   staticpro (&Qdrag_n_drop);
+
+  Qusr1_signal = intern ("usr1-signal");
+  staticpro (&Qusr1_signal);
+  Qusr2_signal = intern ("usr2-signal");
+  staticpro (&Qusr2_signal);
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
