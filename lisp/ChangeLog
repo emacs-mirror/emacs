@@ -1,3 +1,15 @@
+2000-05-25  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/elp.el (elp-restore-function): Don't use obsolete
+	byte-code-function-p.
+
+	* mail/rmailsum.el: Add provide.
+
+	* net/goto-addr.el (goto-address-fontify): Add help-echo property.
+
+	* smerge-mode.el (smerge-diff-switches): Don't use list* in
+	defcustom.
+
 2000-05-25  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-diff.el (ediff-exec-process): delete --binary option from
