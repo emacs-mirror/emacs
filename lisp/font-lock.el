@@ -402,10 +402,6 @@ the major mode's hook.  For example, put in your ~/.emacs:
 
  (add-hook 'c-mode-hook 'turn-on-font-lock)
 
-Or for any visited file with the following in your ~/.emacs:
-
- (add-hook 'find-file-hooks 'turn-on-font-lock)
-
 Alternatively, you can use Global Font Lock mode to automagically turn on Font
 Lock mode in buffers whose major mode supports it, or in buffers whose major
 mode is one of `font-lock-global-modes'.  For example, put in your ~/.emacs:
@@ -480,8 +476,12 @@ syntactic change on other lines, you can use \\[font-lock-fontify-block]."
 
 ;;;###autoload
 (defun turn-on-font-lock ()
-  "Turn on Font Lock mode, if the terminal can display it."
-  (if window-system (font-lock-mode t)))
+  "Turn on Font Lock mode conditionally.
+Turn on only if the buffer mode supports it and the terminal can display it."
+  (if (and window-system
+	   (not font-lock-mode)
+	   (or font-lock-defaults (assq major-mode font-lock-defaults-alist)))
+      (font-lock-mode t)))
 
 ;; Code for Global Font Lock mode.
 
@@ -500,7 +500,7 @@ syntactic change on other lines, you can use \\[font-lock-fontify-block]."
 ;; hook is run, the major mode is in the process of being changed and we do not
 ;; know what the final major mode will be.  So, `font-lock-change-major-mode'
 ;; only (a) notes the name of the current buffer, and (b) adds our function
-;; `turn-on-font-lock-if-supported' to the hook variable `post-command-hook'.
+;; `turn-on-font-lock-if-enabled' to the hook variable `post-command-hook'.
 ;; By the time the functions on `post-command-hook' are run, the new major mode
 ;; is assumed to be in place.
 
@@ -545,33 +545,29 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 	(memq 'font-lock-change-major-mode change-major-mode-hook))
       (remove-hook 'change-major-mode-hook 'font-lock-change-major-mode)
     (add-hook 'change-major-mode-hook 'font-lock-change-major-mode)
-    (add-hook 'post-command-hook 'turn-on-font-lock-if-supported)
+    (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
     (setq font-lock-cache-buffers (buffer-list))))
 
 (defun font-lock-change-major-mode ()
   ;; Gross hack warning: Delicate readers should avert eyes now.
   ;; Something is running `kill-all-local-variables', which generally means
-  ;; the major mode is being changed.  Run `turn-on-font-lock-if-supported'
-  ;; after the current command has finished.
-  (add-hook 'post-command-hook 'turn-on-font-lock-if-supported)
+  ;; the major mode is being changed.  Run `turn-on-font-lock-if-enabled' after
+  ;; the current command has finished.
+  (add-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
   (add-to-list 'font-lock-cache-buffers (current-buffer)))
 
-(defun turn-on-font-lock-if-supported ()
+(defun turn-on-font-lock-if-enabled ()
   ;; Gross hack warning: Delicate readers should avert eyes now.
-  ;; Turn on Font Lock mode if (a) it's not already on, (b) the major mode
-  ;; supports Font Lock mode, and (c) it's one of `font-lock-global-modes'.
-  (remove-hook 'post-command-hook 'turn-on-font-lock-if-supported)
+  ;; Turn on Font Lock mode if it's one of `font-lock-global-modes'.
+  (remove-hook 'post-command-hook 'turn-on-font-lock-if-enabled)
   (while font-lock-cache-buffers
-    (if (buffer-name (car font-lock-cache-buffers))
+    (if (buffer-live-p (car font-lock-cache-buffers))
 	(save-excursion
 	  (set-buffer (car font-lock-cache-buffers))
-	  (if (and (not font-lock-mode)
-		   (or font-lock-defaults
-		       (assq major-mode font-lock-defaults-alist))
-		   (or (eq font-lock-global-modes t)
-		       (if (eq (car-safe font-lock-global-modes) 'not)
-			   (not (memq major-mode (cdr font-lock-global-modes)))
-			 (memq major-mode font-lock-global-modes))))
+	  (if (or (eq font-lock-global-modes t)
+		  (if (eq (car-safe font-lock-global-modes) 'not)
+		      (not (memq major-mode (cdr font-lock-global-modes)))
+		    (memq major-mode font-lock-global-modes)))
 	      (turn-on-font-lock))))
     (setq font-lock-cache-buffers (cdr font-lock-cache-buffers))))
 
@@ -672,12 +668,12 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.
 The lines could be a function or paragraph, or a specified number of lines.
-If `font-lock-mark-block-function' non-nil and no ARG is given, it is used to
-delimit the region to fontify.
 If ARG is given, fontify that many lines before and after point, or 16 lines if
-no ARG is given and `font-lock-mark-block-function' is nil."
+no ARG is given and `font-lock-mark-block-function' is nil.
+If `font-lock-mark-block-function' non-nil and no ARG is given, it is used to
+delimit the region to fontify."
   (interactive "P")
-  (let ((font-lock-beginning-of-syntax-function nil))
+  (let (font-lock-beginning-of-syntax-function deactivate-mark)
     ;; Make sure we have the right `font-lock-keywords' etc.
     (if (not font-lock-mode) (font-lock-set-defaults))
     (save-excursion
