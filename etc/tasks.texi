@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 23 June 1997
+@set lastupdate 04 July 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -39,11 +39,12 @@ last updated on @value{lastupdate}.
 @chapter About the GNU Task List
 
 If you did not obtain this file directly from the GNU project and
-recently, please check for a newer version.  You can ftp it the task
-list from any GNU FTP host in directory @file{/pub/gnu/tasks}.  The task
+recently, please check for a newer version.  You can ftp the task
+list from any GNU FTP host in directory @file{/pub/gnu/tasks/}.  The task
 list is available there in several different formats: @file{tasks.text},
-@file{tasks.texi}, @file{tasks.info}, and @file{tasks.dvi}.
-
+@file{tasks.texi}, @file{tasks.info}, and @file{tasks.dvi}.  The GNU
+HURD task list is also there in file @file{tasks.hurd}.
+@c to fix an overfill, join the paragraphs -len
 The task list is also available on the GNU World Wide Web server:
 @url{http://www.gnu.ai.mit.edu/prep/tasks_toc.html}.
 
@@ -89,14 +90,28 @@ If you are good at writing documentation, please do.
 
 @item
 If you are very good at C programming and interested in kernels, you can
-help develop the GNU HURD.  Please look at
-@url{http://www.gnu.ai.mit.edu:/software/hurd/hurd.html}. then contact
-@email{gnu@@prep.ai.mit.edu} and ask for the latest HURD task list.
+help develop the GNU HURD, the kernel for the GNU system.  Please have a
+look at @url{http://www.gnu.ai.mit.edu/software/hurd/hurd.html}, and
+then get a copy of the latest HURD task list from:
+
+@itemize @bullet
 
 @item
-If you are a Scheme fan, please help develop Guile.  Please look
-at @url{http://www.gnu.ai.mit.edu:/software/guile/guile.html} and then
-contact @email{guile@@gnu.ai.mit.edu}.
+@url{http://www.gnu.ai.mit.edu/prep/tasks.hurd.html}, via the World Wide
+Web.
+
+@item
+@url{ftp://prep.ai.mit.edu/pub/gnu/tasks/tasks.hurd}, via anonymous FTP.
+
+@item
+@email{gnu@@prep.ai.mit.edu} via e-mail.
+
+@end itemize
+
+@item
+If you are a Scheme fan, you can help develop Guile.  Please have a look
+at the URL @url{http://www.gnu.ai.mit.edu:/software/guile/guile.html}
+and then contact @email{guile@@gnu.ai.mit.edu}.
 
 @item
 Help develop the GNU web browser, E-scape.
@@ -403,8 +418,8 @@ Addison-Wesley, ISBN 0-201-10745-7
 (I don't quite agree with a few of the details they propose.)
 
 @item
-A program to convert Microsoft Word documents to TeX, LaTeX, Texinfo,
-text/enriched or some other format that free software can edit.
+A program to convert Microsoft Word documents to text/enriched, TeX,
+LaTeX, Texinfo, or some other format that free software can edit.
 
 @item
 A free replacement for the semi-free Qt library.
