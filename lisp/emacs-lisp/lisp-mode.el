@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands.
 
-;; Copyright (C) 1985, 1986, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -25,79 +25,81 @@
 ;;; Commentary:
 
 ;; The base major mode for editing Lisp code (used also for Emacs Lisp).
-;; This mode is documented in the Emacs manual
+;; This mode is documented in the Emacs manual.
 
 ;;; Code:
 
-(defvar lisp-mode-syntax-table nil "")
-(defvar emacs-lisp-mode-syntax-table nil "")
-(defvar lisp-mode-abbrev-table nil "")
+(defvar lisp-mode-abbrev-table nil)
 
-(if (not emacs-lisp-mode-syntax-table)
+(defvar emacs-lisp-mode-syntax-table
+  (let ((table (make-syntax-table)))
     (let ((i 0))
-      (setq emacs-lisp-mode-syntax-table (make-syntax-table))
       (while (< i ?0)
-	(modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
+	(modify-syntax-entry i "_   " table)
 	(setq i (1+ i)))
       (setq i (1+ ?9))
       (while (< i ?A)
-	(modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
+	(modify-syntax-entry i "_   " table)
 	(setq i (1+ i)))
       (setq i (1+ ?Z))
       (while (< i ?a)
-	(modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
+	(modify-syntax-entry i "_   " table)
 	(setq i (1+ i)))
       (setq i (1+ ?z))
       (while (< i 128)
-	(modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
+	(modify-syntax-entry i "_   " table)
 	(setq i (1+ i)))
-      (modify-syntax-entry ?  "    " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\t "    " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\f "    " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\n ">   " emacs-lisp-mode-syntax-table)
+      (modify-syntax-entry ?  "    " table)
+      (modify-syntax-entry ?\t "    " table)
+      (modify-syntax-entry ?\f "    " table)
+      (modify-syntax-entry ?\n ">   " table)
       ;; Give CR the same syntax as newline, for selective-display.
-      (modify-syntax-entry ?\^m ">   " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\; "<   " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?` "'   " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?' "'   " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?, "'   " emacs-lisp-mode-syntax-table)
+      (modify-syntax-entry ?\^m ">   " table)
+      (modify-syntax-entry ?\; "<   " table)
+      (modify-syntax-entry ?` "'   " table)
+      (modify-syntax-entry ?' "'   " table)
+      (modify-syntax-entry ?, "'   " table)
       ;; Used to be singlequote; changed for flonums.
-      (modify-syntax-entry ?. "_   " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?# "'   " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\" "\"    " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\\ "\\   " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\( "()  " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\) ")(  " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\[ "(]  " emacs-lisp-mode-syntax-table)
-      (modify-syntax-entry ?\] ")[  " emacs-lisp-mode-syntax-table)
+      (modify-syntax-entry ?. "_   " table)
+      (modify-syntax-entry ?# "'   " table)
+      (modify-syntax-entry ?\" "\"    " table)
+      (modify-syntax-entry ?\\ "\\   " table)
+      (modify-syntax-entry ?\( "()  " table)
+      (modify-syntax-entry ?\) ")(  " table)
+      (modify-syntax-entry ?\[ "(]  " table)
+      (modify-syntax-entry ?\] ")[  " table)
       ;; All non-word multibyte characters should be `symbol'.
       (map-char-table
        (function (lambda (key val) 
 		   (and (>= key 256)
 			(/= (char-syntax key) ?w)
 			(modify-syntax-entry key "_   " 
-					     emacs-lisp-mode-syntax-table))))
-       (standard-syntax-table))))
+					     table))))
+       (standard-syntax-table)))
+    table))
 
-(if (not lisp-mode-syntax-table)
-    (progn (setq lisp-mode-syntax-table
-		 (copy-syntax-table emacs-lisp-mode-syntax-table))
-	   (modify-syntax-entry ?\| "\"   " lisp-mode-syntax-table)
-	   (modify-syntax-entry ?\[ "_   " lisp-mode-syntax-table)
-	   (modify-syntax-entry ?\] "_   " lisp-mode-syntax-table)))
+(defvar lisp-mode-syntax-table
+  (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
+    (modify-syntax-entry ?\| "\"   " table)
+    (modify-syntax-entry ?\[ "_   " table)
+    (modify-syntax-entry ?\] "_   " table)
+    (modify-syntax-entry ?# "' 14bn" table)
+    (modify-syntax-entry ?| "' 23b" table)
+    table))
 
 (define-abbrev-table 'lisp-mode-abbrev-table ())
 
 (defvar lisp-imenu-generic-expression
-      '(
-	(nil 
-	 "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\|ine-skeleton\\)\
-\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 2)
-	("Variables" 
-	 "^\\s-*(def\\(var\\|const\\|custom\\)\\s-+\\([-A-Za-z0-9+*|:/]+\\)" 2)
-	("Types" 
-	 "^\\s-*(def\\(group\\|type\\|struct\\|class\\|ine-condition\
-\\|ine-widget\\)\\s-+'?\\([-A-Za-z0-9+*|:/]+\\)" 
+  (list
+   (list nil 
+	 (purecopy "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\|\
+ine-skeleton\\|ine-minor-mode\\)\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)") 2)
+   (list (purecopy "Variables") 
+	 (purecopy "^\\s-*(def\\(var\\|const\\|custom\\)\\s-+\
+\\(\\sw\\(\\sw\\|\\s_\\)+\\)") 2)
+   (list (purecopy "Types") 
+	 (purecopy "^\\s-*(def\\(group\\|type\\|struct\\|class\\|\
+ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)") 
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
@@ -210,7 +212,7 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
   (require 'bytecomp)
   ;; Recompile if file or buffer has changed since last compilation.
   (if (and (buffer-modified-p)
-	   (y-or-n-p (format "save buffer %s first? " (buffer-name))))
+	   (y-or-n-p (format "Save buffer %s first? " (buffer-name))))
       (save-buffer))
   (let ((compiled-file-name (byte-compile-dest-file buffer-file-name)))
     (if (file-newer-than-file-p compiled-file-name buffer-file-name)
@@ -219,7 +221,7 @@ All commands in `shared-lisp-mode-map' are inherited by this map.")
 
 (defcustom emacs-lisp-mode-hook nil
   "Hook run when entering Emacs Lisp mode."
-  :options '(turn-on-eldoc-mode imenu-add-menubar-index)
+  :options '(turn-on-eldoc-mode imenu-add-menubar-index checkdoc-minor-mode)
   :type 'hook
   :group 'lisp)
 
@@ -253,16 +255,14 @@ if that value is non-nil."
   (setq imenu-case-fold-search nil)
   (run-hooks 'emacs-lisp-mode-hook))
 
-(defvar lisp-mode-map ()
+(defvar lisp-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map shared-lisp-mode-map)
+    (define-key map "\e\C-x" 'lisp-eval-defun)
+    (define-key map "\C-c\C-z" 'run-lisp)
+    map)
   "Keymap for ordinary Lisp mode.
 All commands in `shared-lisp-mode-map' are inherited by this map.")
-
-(if lisp-mode-map
-    ()
-  (setq lisp-mode-map (make-sparse-keymap))
-  (set-keymap-parent lisp-mode-map shared-lisp-mode-map)
-  (define-key lisp-mode-map "\e\C-x" 'lisp-eval-defun)
-  (define-key lisp-mode-map "\C-c\C-z" 'run-lisp))
 
 (defun lisp-mode ()
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
@@ -291,17 +291,15 @@ if that value is non-nil."
   (interactive)
   (error "Process lisp does not exist"))
 
-(defvar lisp-interaction-mode-map ()
+(defvar lisp-interaction-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map shared-lisp-mode-map)
+    (define-key map "\e\C-x" 'eval-defun)
+    (define-key map "\e\t" 'lisp-complete-symbol)
+    (define-key map "\n" 'eval-print-last-sexp)
+    map)
   "Keymap for Lisp Interaction mode.
 All commands in `shared-lisp-mode-map' are inherited by this map.")
-
-(if lisp-interaction-mode-map
-    ()
-  (setq lisp-interaction-mode-map (make-sparse-keymap))
-  (set-keymap-parent lisp-interaction-mode-map shared-lisp-mode-map)
-  (define-key lisp-interaction-mode-map "\e\C-x" 'eval-defun)
-  (define-key lisp-interaction-mode-map "\e\t" 'lisp-complete-symbol)
-  (define-key lisp-interaction-mode-map "\n" 'eval-print-last-sexp))
 
 (defun lisp-interaction-mode ()
   "Major mode for typing and evaluating Lisp forms.
@@ -404,10 +402,11 @@ With argument, print output into current buffer."
 	      (cdr-safe (cdr-safe form)))
 	 ;; Force variable to be bound.
 	 (cons 'defconst (cdr form)))
-	((and (eq (car form) 'defcustom)
-	      (default-boundp (nth 1 form)))
+	;; `defcustom' is now macroexpanded to `custom-declare-variable'.
+	((and (eq (car form) 'custom-declare-variable)
+	      (default-boundp (eval (nth 1 form))))
 	 ;; Force variable to be bound.
-	 (set-default (nth 1 form) (eval (nth 2 form)))
+	 (set-default (eval (nth 1 form)) (eval (nth 2 form)))
 	 form)
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
@@ -499,8 +498,8 @@ Return the result of evaluation."
 	(let ((comment-start nil) (comment-start-skip nil))
 	  (do-auto-fill)))))
 
-(defvar lisp-indent-offset nil "")
-(defvar lisp-indent-function 'lisp-indent-function "")
+(defvar lisp-indent-offset nil)
+(defvar lisp-indent-function 'lisp-indent-function)
 
 (defun lisp-indent-line (&optional whole-exp)
   "Indent current line as Lisp code.
@@ -616,7 +615,7 @@ is the buffer position of the start of the containing expression."
 		 (backward-prefix-chars))
 		(t
 		 ;; Indent beneath first sexp on same line as
-		 ;; calculate-lisp-indent-last-sexp.  Again, it's
+		 ;; `calculate-lisp-indent-last-sexp'.  Again, it's
 		 ;; almost certainly a function call.
 		 (goto-char calculate-lisp-indent-last-sexp)
 		 (beginning-of-line)
@@ -869,8 +868,8 @@ ENDPOS is encountered."
 	    (setq outer-loop-done (= (point) last-point))
 	    (setq last-point (point)))))))
 
-;; Indent every line whose first char is between START and END inclusive.
 (defun lisp-indent-region (start end)
+  "Indent every line whose first char is between START and END inclusive."
   (save-excursion
     (let ((endmark (copy-marker end)))
       (goto-char start)
