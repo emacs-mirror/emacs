@@ -1,0 +1,1227 @@
+;; octave-mod.el --- editing Octave source files under Emacs
+
+;;; Copyright (C) 1997 Free Software Foundation, Inc.
+
+;; Author: Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>
+;; Author: John Eaton <jwe@bevo.che.wisc.edu>
+;; Maintainer: Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>
+;; Keywords: languages
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
+
+(require 'octave)
+
+;; Keep the debugger quiet
+(eval-when-compile (load "octave-inf"))
+
+(defvar octave-mode-map nil
+  "Keymap used in Octave mode.")
+(if octave-mode-map
+    ()
+  (let ((map (make-sparse-keymap)))
+    (define-key map "`" 'octave-abbrev-start)
+    (define-key map ";" 'octave-electric-semi)
+    (define-key map " " 'octave-electric-space)
+    (define-key map "\n" 'octave-reindent-then-newline-and-indent)
+    (define-key map "\t" 'indent-according-to-mode)
+    (define-key map "\e;" 'octave-indent-for-comment)
+    (define-key map "\e\n" 'octave-indent-new-comment-line)  
+    (define-key map "\e\t" 'octave-complete-symbol)
+    (define-key map "\M-\C-a" 'octave-beginning-of-defun)
+    (define-key map "\M-\C-e" 'octave-end-of-defun)
+    (define-key map "\M-\C-h" 'octave-mark-defun)
+    (define-key map "\M-\C-q" 'octave-indent-defun)  
+    (define-key map "\C-c;" 'octave-comment-region)
+    (define-key map "\C-c:" 'octave-uncomment-region)  
+    (define-key map "\C-c\C-b" 'octave-submit-bug-report)
+    (define-key map "\C-c\C-p" 'octave-previous-code-line)
+    (define-key map "\C-c\C-n" 'octave-next-code-line)
+    (define-key map "\C-c\C-a" 'octave-beginning-of-line)
+    (define-key map "\C-c\C-e" 'octave-end-of-line)  
+    (define-key map "\C-c\M-\C-n" 'octave-forward-block)
+    (define-key map "\C-c\M-\C-p" 'octave-backward-block)
+    (define-key map "\C-c\M-\C-u" 'octave-backward-up-block)
+    (define-key map "\C-c\M-\C-d" 'octave-down-block)
+    (define-key map "\C-c\M-\C-h" 'octave-mark-block)
+    (define-key map "\C-c]" 'octave-close-block)
+    (define-key map "\C-cf" 'octave-insert-defun)
+    (define-key map "\C-c\C-h" 'octave-help)
+    (define-key map "\C-cil" 'octave-send-line)
+    (define-key map "\C-cib" 'octave-send-block)
+    (define-key map "\C-cif" 'octave-send-defun)
+    (define-key map "\C-cir" 'octave-send-region)  
+    (define-key map "\C-cis" 'octave-show-process-buffer)
+    (define-key map "\C-cih" 'octave-hide-process-buffer)
+    (define-key map "\C-cik" 'octave-kill-process)
+    (setq octave-mode-map map)))
+
+(defvar octave-mode-menu
+  (list "Octave"
+	(list "Lines"
+	      ["Previous Code Line"	octave-previous-code-line t]
+	      ["Next Code Line"		octave-next-code-line t]
+	      ["Begin of Continuation"	octave-beginning-of-line t]
+	      ["End of Continuation"	octave-end-of-line t]
+	      ["Split Line at Point"	octave-indent-new-comment-line t])
+	(list "Blocks"
+	      ["Next Block"		octave-forward-block t]
+	      ["Previous Block"		octave-backward-block t]
+	      ["Down Block"		octave-down-block t]
+	      ["Up Block"		octave-backward-up-block t]
+	      ["Mark Block"		octave-mark-block t]
+	      ["Close Block"		octave-close-block t])
+	(list "Functions"
+	      ["Begin of Function"	octave-beginning-of-defun t]
+	      ["End of Function"	octave-end-of-defun t]
+	      ["Mark Function"		octave-mark-defun t]
+	      ["Indent Function"	octave-indent-defun t]
+	      ["Insert Function"	octave-insert-defun t])
+	"-"
+	(list "Debug"
+	      ["Send Current Line"	octave-send-line t]
+	      ["Send Current Block"	octave-send-block t]
+	      ["Send Current Function"	octave-send-defun t]
+	      ["Send Region"		octave-send-region t]
+	      ["Show Process Buffer"	octave-show-process-buffer t]
+	      ["Hide Process Buffer"	octave-hide-process-buffer t]
+	      ["Kill Process"		octave-kill-process t])
+	"-"
+	["Indent Line"			indent-according-to-mode t]
+	["Complete Symbol"		octave-complete-symbol t]
+	"-"
+	["Toggle Abbrev Mode"		abbrev-mode t]
+	["Toggle Auto-Fill Mode"	auto-fill-mode t]
+	"-"
+	["Submit Bug Report"		octave-submit-bug-report t]
+	"-"
+	["Describe Octave Mode"		octave-describe-major-mode t]
+	["Lookup Octave Index"		octave-help t])
+  "Menu for Octave mode.")
+
+(defvar octave-mode-syntax-table nil
+  "Syntax table in use in octave-mode buffers.")
+(if octave-mode-syntax-table
+    ()
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?\r " "  table)
+    (modify-syntax-entry ?+ "."   table)
+    (modify-syntax-entry ?- "."   table)
+    (modify-syntax-entry ?= "."   table)
+    (modify-syntax-entry ?* "."   table)
+    (modify-syntax-entry ?/ "."   table)
+    (modify-syntax-entry ?> "."   table)
+    (modify-syntax-entry ?< "."   table)
+    (modify-syntax-entry ?& "."   table)
+    (modify-syntax-entry ?| "."   table)
+    (modify-syntax-entry ?! "."   table)
+    (modify-syntax-entry ?\\ "\\" table)
+    (modify-syntax-entry ?\' "."  table)
+    (modify-syntax-entry ?\` "w"  table)
+    (modify-syntax-entry ?\" "\"" table)
+    (modify-syntax-entry ?. "w"   table)
+    (modify-syntax-entry ?_ "w"   table)
+    (modify-syntax-entry ?\% "."  table)
+    (modify-syntax-entry ?\# "<"  table)
+    (modify-syntax-entry ?\n ">"  table)
+    (setq octave-mode-syntax-table table)))
+
+(defvar octave-auto-newline nil
+  "*Non-nil means automatically newline after a semicolon in Octave mode.")
+
+(defvar octave-blink-matching-block t
+  "*Control the blinking of matching Octave block keywords.
+Non-nil means show matching begin of block when inserting a space,
+newline or semicolon after an else or end keyword.")
+(defvar octave-block-offset 2
+  "*Extra indentation applied to statements in Octave block structures.")
+
+(defvar octave-block-begin-regexp
+  (concat "\\<\\("
+	  (mapconcat 'identity octave-begin-keywords "\\|")
+	  "\\)\\>"))
+(defvar octave-block-else-regexp
+  (concat "\\<\\("
+	  (mapconcat 'identity octave-else-keywords "\\|")
+	  "\\)\\>"))
+(defvar octave-block-end-regexp
+  (concat "\\<\\("
+	  (mapconcat 'identity octave-end-keywords "\\|")
+	  "\\)\\>"))
+(defvar octave-block-begin-or-end-regexp
+  (concat octave-block-begin-regexp "\\|" octave-block-end-regexp))
+(defvar octave-block-else-or-end-regexp
+  (concat octave-block-else-regexp "\\|" octave-block-end-regexp))
+(defvar octave-block-match-alist
+  '(("for" . ("end" "endfor"))
+    ("function" . ("end" "endfunction"))
+    ("if" . ("else" "elseif" "end" "endif"))
+    ("try" . ("catch" "end" "end_try_catch"))
+    ("unwind_protect" . ("unwind_protect_cleanup" "end"
+			 "end_unwind_protect"))
+    ("while" . ("end" "endwhile")))
+  "Alist with Octave's matching block keywords.
+Has Octave's begin keywords as keys and a list of the matching else or
+end keywords as associated values.")
+
+(defvar octave-block-comment-start
+  (concat (make-string 2 octave-comment-char) " ")
+  "String to insert to start a new Octave comment on an empty line.")
+
+(defvar octave-continuation-offset 4
+  "*Extra indentation applied to Octave continuation lines.")
+(defvar octave-continuation-regexp
+  "[^#%\n]*\\(\\\\\\|\\.\\.\\.\\)\\s-*\\(\\s<.*\\)?$")
+(defvar octave-continuation-string "\\"
+  "*Character string used for Octave continuation lines.  Normally \\.")
+
+(defvar octave-completion-alist nil
+  "Alist of Octave symbols for completion in Octave mode.
+Each element looks like (VAR . VAR), where the car and cdr are the same
+symbol (an Octave command or variable name).
+Currently, only builtin variables can be completed.") 
+
+(defvar octave-mode-imenu-generic-expression
+  (list
+   ;; Functions
+   (list nil octave-function-header-regexp 3))
+  "Imenu expression for Octave mode.  See `imenu-generic-expression'.")
+
+(defvar octave-mode-startup-message t
+  "*Nil means do not display the Octave mode startup message.")
+
+(defvar octave-mode-hook nil
+  "*Hook to be run when Octave mode is started.")
+
+(defvar octave-send-show-buffer t
+  "*Non-nil means display `inferior-octave-buffer' after sending to it.")
+(defvar octave-send-line-auto-forward t
+  "*Control auto-forward after sending to the inferior Octave process.
+Non-nil means always go to the next Octave code line after sending.")
+(defvar octave-send-echo-input t
+  "*Non-nil means echo input sent to the inferior Octave process.")
+
+
+;;;###autoload
+(defun octave-mode ()
+  "Major mode for editing Octave code.
+
+This mode makes it easier to write Octave code by helping with
+indentation, doing some of the typing for you (with Abbrev mode) and by
+showing keywords, comments, strings, etc. in different faces (with
+Font Lock mode on terminals that support it).
+
+Octave itself is a high-level language, primarily intended for numerical
+computations.  It provides a convenient command line interface for
+solving linear and nonlinear problems numerically.  Function definitions
+can also be stored in files, and it can be used in a batch mode (which
+is why you need this mode!).
+
+The latest released version of Octave is always available via anonymous
+ftp from bevo.che.wisc.edu in the directory `/pub/octave'.  Complete
+source and binaries for several popular systems are available.
+
+Type \\[list-abbrevs] to display the built-in abbrevs for Octave keywords.
+
+Keybindings
+===========
+
+\\{octave-mode-map}
+
+Variables you can use to customize Octave mode
+==============================================
+
+octave-auto-newline
+  Non-nil means auto-insert a newline and indent after a semicolon.
+  Default is nil.
+
+octave-blink-matching-block
+  Non-nil means show matching begin of block when inserting a space,
+  newline or semicolon after an else or end keyword.  Default is t.
+
+octave-block-offset
+  Extra indentation applied to statements in block structures.
+  Default is 2.
+
+octave-continuation-offset
+  Extra indentation applied to Octave continuation lines.
+  Default is 4.
+
+octave-continuation-string
+  String used for Octave continuation lines.
+  Default is a backslash.
+
+octave-mode-startup-message
+  Nil means do not display the Octave mode startup message.
+  Default is t.
+
+octave-send-echo-input
+  Non-nil means always display `inferior-octave-buffer' after sending a
+  command to the inferior Octave process.
+
+octave-send-line-auto-forward
+  Non-nil means always go to the next unsent line of Octave code after
+  sending a line to the inferior Octave process.
+
+octave-send-echo-input
+  Non-nil means echo input sent to the inferior Octave process.
+
+Turning on Octave mode runs the hook `octave-mode-hook'.
+
+To begin using this mode for all `.m' files that you edit, add the
+following lines to your `.emacs' file:
+
+  (autoload 'octave-mode \"octave-mod\" nil t)
+  (setq auto-mode-alist
+        (cons '(\"\\\\.m$\" . octave-mode) auto-mode-alist))
+
+To automatically turn on the abbrev, auto-fill and font-lock features,
+add the following lines to your `.emacs' file as well:
+
+  (add-hook 'octave-mode-hook
+	    (lambda ()
+	      (abbrev-mode 1)
+	      (auto-fill-mode 1)
+	      (if (eq window-system 'x)
+		  (font-lock-mode 1))))
+
+To submit a problem report, enter \\[octave-submit-bug-report] from \
+an Octave mode buffer.
+This automatically sets up a mail buffer with version information
+already added.  You just need to add a description of the problem,
+including a reproducible test case and send the message."
+  (interactive)
+  (kill-all-local-variables)
+
+  (use-local-map octave-mode-map)
+  (setq major-mode 'octave-mode)
+  (setq mode-name "Octave")
+  (setq local-abbrev-table octave-abbrev-table)
+  (set-syntax-table octave-mode-syntax-table)
+  
+  (make-local-variable 'indent-line-function)
+  (setq indent-line-function 'octave-indent-line)
+
+  (make-local-variable 'comment-start)  
+  (setq comment-start octave-comment-start)
+  (make-local-variable 'comment-end)
+  (setq comment-end "")
+  (make-local-variable 'comment-column)
+  (setq comment-column 32)    
+  (make-local-variable 'comment-start-skip)
+  (setq comment-start-skip "\\s<+\\s-*")
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'octave-comment-indent)
+
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (setq parse-sexp-ignore-comments t)
+  (make-local-variable 'paragraph-start)
+  (setq paragraph-start (concat "\\s-*$\\|" page-delimiter))
+  (make-local-variable 'paragraph-separate)
+  (setq paragraph-separate paragraph-start)
+  (make-local-variable 'paragraph-ignore-fill-prefix)
+  (setq paragraph-ignore-fill-prefix t)
+  (make-local-variable 'fill-paragraph-function)
+  (setq fill-paragraph-function 'octave-fill-paragraph)
+  (make-local-variable 'adaptive-fill-regexp)
+  (setq adaptive-fill-regexp nil)
+  (make-local-variable 'fill-column)
+  (setq fill-column 72)
+  (make-local-variable 'normal-auto-fill-function)
+  (setq normal-auto-fill-function 'octave-auto-fill)
+
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(octave-font-lock-keywords nil nil))
+
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression octave-mode-imenu-generic-expression)
+
+  (octave-add-octave-menu)
+  (octave-initialize-completions)
+  (run-hooks 'octave-mode-hook)
+  (if octave-mode-startup-message
+      (message "Octave mode %s.  Bugs to %s"
+	       octave-version octave-maintainer-address)))
+
+
+;;; Miscellaneous useful functions
+(defun octave-describe-major-mode ()
+  "Describe the current major mode."
+  (interactive)
+  (describe-function major-mode))
+
+(defun octave-point (position)
+  "Returns the value of point at certain positions." 
+  (save-excursion
+    (cond
+     ((eq position 'bol)  (beginning-of-line))
+     ((eq position 'eol)  (end-of-line))
+     ((eq position 'boi)  (back-to-indentation))
+     ((eq position 'bonl) (forward-line 1))
+     ((eq position 'bopl) (forward-line -1))
+     (t (error "unknown buffer position requested: %s" position)))
+    (point)))
+
+(defsubst octave-in-comment-p ()
+  "Returns t if point is inside an Octave comment, nil otherwise."
+  (interactive)
+  (save-excursion
+    (nth 4 (parse-partial-sexp (octave-point 'bol) (point)))))
+
+(defsubst octave-in-string-p ()
+  "Returns t if point is inside an Octave string, nil otherwise."
+  (interactive)
+  (save-excursion
+    (nth 3 (parse-partial-sexp (octave-point 'bol) (point)))))
+
+(defsubst octave-not-in-string-or-comment-p ()
+  "Returns t iff point is not inside an Octave string or comment."
+  (let ((pps (parse-partial-sexp (octave-point 'bol) (point))))
+    (not (or (nth 3 pps) (nth 4 pps)))))
+
+(defun octave-in-block-p ()
+  "Returns t if point is inside an Octave block, nil otherwise.
+The block is taken to start at the first letter of the begin keyword and
+to end after the end keyword."
+  (let ((pos (point)))
+    (save-excursion
+      (condition-case nil
+	  (progn
+	    (skip-syntax-forward "w")
+	    (octave-up-block -1)
+	    (octave-forward-block)
+	    t)
+	(error nil))
+      (< pos (point)))))
+
+(defun octave-in-defun-p ()
+  "Returns t iff point is inside an Octave function declaration.
+The function is taken to start at the `f' of `function' and to end after
+the end keyword."
+  (let ((pos (point)))
+    (save-excursion
+      (or (and (looking-at "\\<function\\>")
+	       (octave-not-in-string-or-comment-p))
+	  (and (octave-beginning-of-defun)
+	       (condition-case nil
+		   (progn
+		     (octave-forward-block)
+		     t)
+		 (error nil))
+	       (< pos (point)))))))
+
+;;; Comments
+(defun octave-comment-region (beg end &optional arg)
+  "Comment or uncomment each line in the region as Octave code.
+See `comment-region'."
+  (interactive "r\nP")
+  (let ((comment-start (char-to-string octave-comment-char)))
+    (comment-region beg end arg)))
+  
+(defun octave-uncomment-region (beg end &optional arg)
+  "Uncomment each line in the region as Octave code."
+  (interactive "r\nP")
+  (or arg (setq arg 1))
+  (octave-comment-region beg end (- arg)))
+
+
+;;; Indentation
+(defun calculate-octave-indent ()
+  "Return appropriate indentation for current line as Octave code.
+Returns an integer (the column to indent to) unless the line is a
+comment line with fixed goal golumn.  In that case, returns a list whose
+car is the column to indent to, and whose cdr is the current indentation
+level."
+  (let ((is-continuation-line
+	 (save-excursion
+	   (if (zerop (octave-previous-code-line))
+	       (looking-at octave-continuation-regexp))))
+	(icol 0))
+    (save-excursion
+      (beginning-of-line)
+      ;; If we can move backward out one level of parentheses, take 1
+      ;; plus the indentation of that parenthesis.  Otherwise, go back
+      ;; to the beginning of the previous code line, and compute the
+      ;; offset this line gives.
+      (if (condition-case nil
+	      (progn
+		(up-list -1)
+		t)
+	    (error nil))
+	  (setq icol (+ 1 (current-column)))
+	(if (zerop (octave-previous-code-line))
+	    (progn
+	      (octave-beginning-of-line)
+	      (back-to-indentation)
+	      (setq icol (current-column))
+	      (let ((bot (point))
+		    (eol (octave-point 'eol)))
+		(while (< (point) eol)
+		  (if (octave-not-in-string-or-comment-p)
+		      (cond
+		       ((looking-at octave-block-begin-regexp)
+			(setq icol (+ icol octave-block-offset)))
+		       ((looking-at octave-block-else-regexp)
+			(if (= bot (point))
+			    (setq icol (+ icol octave-block-offset))))
+		       ((looking-at octave-block-end-regexp)
+			(if (not (= bot (point)))
+			    (setq icol (- icol octave-block-offset))))))
+		  (forward-char)))
+	      (if is-continuation-line
+		  (setq icol (+ icol octave-continuation-offset)))))))
+    (save-excursion
+      (back-to-indentation)
+      (cond
+       ((and (or (looking-at octave-block-else-regexp)
+		 (looking-at octave-block-end-regexp))
+	     (octave-not-in-string-or-comment-p))
+	(setq icol (- icol octave-block-offset)))
+       ((looking-at "\\s<\\s<\\s<\\S<")
+	(setq icol (list 0 icol)))
+       ((looking-at "\\s<\\S<")
+	(setq icol (list comment-column icol)))))
+    icol))
+
+(defun octave-comment-indent ()
+  (if (looking-at "\\s<\\s<\\s<")
+      0
+    (if (looking-at "\\s<\\s<")
+	(calculate-octave-indent)
+      (skip-syntax-backward " ")
+      (max (if (bolp) 0 (+ (current-column)))
+	   comment-column))))
+
+(defun octave-indent-for-comment ()
+  "Maybe insert and indent an Octave comment.
+If there is no comment already on this line, create a code-level comment
+(started by two comment characters) if the line is empty, or an in-line
+comment (started by one comment character) otherwise. 
+Point is left after the start of the comment which is properly aligned."
+  (interactive)
+  (indent-for-comment)
+  (indent-according-to-mode))
+
+(defun octave-indent-line (&optional arg)
+  "Indent current line as Octave code.
+With optional ARG, use this as offset unless this line is a comment with
+fixed goal column."
+  (interactive)
+  (or arg (setq arg 0))
+  (let ((icol (calculate-octave-indent))
+	(relpos (- (current-column) (current-indentation))))
+    (if (listp icol)
+	(setq icol (car icol))
+      (setq icol (+ icol arg)))
+    (if (< icol 0)
+	(error "Unmatched end keyword")
+      (indent-line-to icol)
+      (if (> relpos 0)
+	  (move-to-column (+ icol relpos))))))
+
+(defun octave-indent-new-comment-line ()
+  "Break Octave line at point, continuing comment if within one.
+If within code, insert `octave-continuation-string' before breaking the
+line.  If within a string, signal an error.   
+The new line is properly indented." 
+  (interactive)
+  (delete-horizontal-space)
+  (cond
+   ((octave-in-comment-p)
+    (indent-new-comment-line))
+   ((octave-in-string-p)
+    (error "Cannot split a code line inside a string"))
+   (t
+    (insert (concat " " octave-continuation-string))
+    (octave-reindent-then-newline-and-indent))))
+
+(defun octave-indent-defun ()
+  "Properly indents the Octave function which contains point."
+  (interactive)
+  (save-excursion
+    (octave-mark-defun)
+    (message "Indenting function...")
+    (indent-region (point) (mark) nil))
+  (message "Indenting function...done."))
+
+
+;;; Motion
+(defun octave-next-code-line (&optional arg)
+  "Move ARG lines of Octave code forward (backward if ARG is negative).
+Skips past all empty and comment lines.  Default for ARG is 1.
+
+On success, return 0.  Otherwise, go as far as possible and return -1."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (beginning-of-line)
+  (let ((n 0)
+	(inc (if (> arg 0) 1 -1)))
+    (while (and (/= arg 0) (= n 0))
+      (setq n (forward-line inc))
+      (while (and (= n 0)
+		  (looking-at "\\s-*\\($\\|\\s<\\)"))
+	(setq n (forward-line inc)))
+      (setq arg (- arg inc)))
+    n))
+      
+(defun octave-previous-code-line (&optional arg)
+  "Move ARG lines of Octave code backward (forward if ARG is negative).
+Skips past all empty and comment lines.  Default for ARG is 1.
+
+On success, return 0.  Otherwise, go as far as possible and return -1."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (octave-next-code-line (- arg)))
+
+(defun octave-beginning-of-line ()
+  "Move point to beginning of current Octave line.
+If on an empty or comment line, go to the beginning of that line.
+Otherwise, move backward to the beginning of the first Octave code line
+which is not inside a continuation statement, i.e., which does not
+follow a code line ending in `...' or `\\', or is inside an open
+parenthesis list."
+  (interactive)
+  (beginning-of-line)
+  (if (not (looking-at "\\s-*\\($\\|\\s<\\)"))
+      (while (or (condition-case nil
+		     (progn
+		       (up-list -1)
+		       (beginning-of-line)
+		       t)
+		   (error nil))
+		 (and (or (looking-at "\\s-*\\($\\|\\s<\\)")
+			  (save-excursion
+			    (if (zerop (octave-previous-code-line))
+				(looking-at octave-continuation-regexp))))
+		      (zerop (forward-line -1)))))))
+
+(defun octave-end-of-line ()
+  "Move point to end of current Octave line.
+If on an empty or comment line, go to the end of that line.
+Otherwise, move forward to the end of the first Octave code line which
+does not end in `...' or `\\' or is inside an open parenthesis list."
+  (interactive)
+  (end-of-line)
+  (if (save-excursion
+	(beginning-of-line)
+	(looking-at "\\s-*\\($\\|\\s<\\)"))
+      ()
+    (while (or (condition-case nil
+		   (progn
+		     (up-list 1)
+		     (end-of-line)
+		     t)
+		 (error nil))
+	       (and (save-excursion
+		      (beginning-of-line)
+		      (or (looking-at "\\s-*\\($\\|\\s<\\)")
+			  (looking-at octave-continuation-regexp)))
+		    (zerop (forward-line 1)))))
+    (end-of-line)))
+  
+(defun octave-scan-blocks (from count depth)
+  "Scan from character number FROM by COUNT Octave begin-end blocks.
+Returns the character number of the position thus found.
+
+If DEPTH is nonzero, block depth begins counting from that value.
+Only places where the depth in blocks becomes zero are candidates for
+stopping; COUNT such places are counted.
+
+If the beginning or end of the buffer is reached and the depth is wrong,
+an error is signaled."
+  (let ((min-depth (if (> depth 0) 0 depth))
+	(inc (if (> count 0) 1 -1)))
+    (save-excursion
+      (while (/= count 0)
+	(catch 'foo
+	  (while (or (re-search-forward
+		      octave-block-begin-or-end-regexp nil 'move inc)
+		     (if (/= depth 0)
+			 (error "Unbalanced block")))
+	    (if (octave-not-in-string-or-comment-p)
+		(progn
+		  (cond
+		   ((match-end 1)
+		    (setq depth (+ depth inc)))
+		   ((match-end 2)
+		    (setq depth (- depth inc))))
+		  (if (< depth min-depth)
+		      (error "Containing expression ends prematurely"))
+		  (if (= depth 0)
+		      (throw 'foo nil))))))
+	(setq count (- count inc)))
+      (point))))
+
+(defun octave-forward-block (&optional arg)
+  "Move forward across one balanced Octave begin-end block.
+With argument, do it that many times.
+Negative arg -N means move backward across N blocks."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (goto-char (or (octave-scan-blocks (point) arg 0) (buffer-end arg))))
+
+(defun octave-backward-block (&optional arg)
+  "Move backward across one balanced Octave begin-end block.
+With argument, do it that many times.
+Negative arg -N means move forward across N blocks."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (octave-forward-block (- arg)))
+
+(defun octave-down-block (arg)
+  "Move forward down one begin-end block level of Octave code.
+With argument, do this that many times.
+A negative argument means move backward but still go down a level.
+In Lisp programs, an argument is required."
+  (interactive "p")
+  (let ((inc (if (> arg 0) 1 -1)))
+    (while (/= arg 0)
+      (goto-char (or (octave-scan-blocks (point) inc -1)
+		     (buffer-end arg)))
+      (setq arg (- arg inc)))))
+
+(defun octave-backward-up-block (arg)
+  "Move backward out of one begin-end block level of Octave code.
+With argument, do this that many times.
+A negative argument means move forward but still to a less deep spot.
+In Lisp programs, an argument is required."
+  (interactive "p")
+  (octave-up-block (- arg)))
+
+(defun octave-up-block (arg)
+  "Move forward out of one begin-end block level of Octave code.
+With argument, do this that many times.
+A negative argument means move backward but still to a less deep spot.
+In Lisp programs, an argument is required."
+  (interactive "p")
+  (let ((inc (if (> arg 0) 1 -1)))
+    (while (/= arg 0)
+      (goto-char (or (octave-scan-blocks (point) inc 1)
+		     (buffer-end arg)))
+      (setq arg (- arg inc)))))
+
+(defun octave-mark-block ()
+  "Put point at the beginning of this Octave block, mark at the end.
+The block marked is the one that contains point or follows point."
+  (interactive)
+  (let ((pos (point)))
+    (if (or (and (octave-in-block-p)
+		 (skip-syntax-forward "w"))
+	    (condition-case nil
+		(progn
+		  (octave-down-block 1)
+		  (octave-in-block-p))
+	      (error nil)))
+	(progn
+	  (octave-up-block -1)
+	  (push-mark (point))
+	  (octave-forward-block)
+	  (exchange-point-and-mark))
+      (goto-char pos)
+      (message "No block to mark found"))))
+
+(defun octave-close-block ()
+  "Close the current Octave block on a separate line.
+An error is signaled if no block to close is found."
+  (interactive)
+  (let (bb-keyword)
+    (condition-case nil
+	(progn
+	  (save-excursion
+	    (octave-backward-up-block 1)
+	    (setq bb-keyword (buffer-substring-no-properties
+			      (match-beginning 1) (match-end 1))))
+	  (if (save-excursion
+		(beginning-of-line)
+		(looking-at "^\\s-*$"))
+	      (indent-according-to-mode)
+	    (octave-reindent-then-newline-and-indent))
+	  (insert (car (reverse
+			(assoc bb-keyword
+			       octave-block-match-alist))))
+	  (octave-reindent-then-newline-and-indent)
+	  t)
+      (error (message "No block to close found")))))
+
+(defun octave-blink-matching-block-open ()
+  "Blink the matching Octave begin block keyword.
+If point is right after an Octave else or end type block keyword, move
+cursor momentarily to the corresponding begin keyword.
+Signal an error if the keywords are incompatible."
+  (interactive)
+  (let (bb-keyword bb-arg eb-keyword pos eol)
+    (if (and (octave-not-in-string-or-comment-p)
+	     (looking-at "\\>")
+	     (save-excursion
+	       (skip-syntax-backward "w")
+	       (looking-at octave-block-else-or-end-regexp)))
+	(save-excursion
+	  (cond
+	   ((match-end 1)
+	    (setq eb-keyword
+		  (buffer-substring-no-properties
+		   (match-beginning 1) (match-end 1)))
+	    (octave-backward-up-block 1))
+	   ((match-end 2)
+	    (setq eb-keyword
+		  (buffer-substring-no-properties
+		   (match-beginning 2) (match-end 2)))
+	    (octave-backward-block)))
+	  (setq pos (match-end 0)
+		bb-keyword
+		(buffer-substring-no-properties
+		 (match-beginning 0) pos)
+		pos (+ pos 1)
+		eol (octave-point 'eol)
+		bb-arg
+		(save-excursion
+		  (save-restriction
+		    (goto-char pos)
+		    (while (and (skip-syntax-forward "^<" eol)
+				(octave-in-string-p)
+				(not (forward-char 1))))
+		    (skip-syntax-backward " ")
+		    (buffer-substring-no-properties pos (point)))))
+	  (if (member eb-keyword
+		      (cdr (assoc bb-keyword octave-block-match-alist)))
+	      (progn
+		(message "Matches `%s %s'" bb-keyword bb-arg)
+		(if (pos-visible-in-window-p)
+		    (sit-for blink-matching-delay)))
+	    (error "Block keywords `%s' and `%s' do not match"
+		   bb-keyword eb-keyword))))))
+
+(defun octave-beginning-of-defun (&optional arg)
+  "Move backward to the beginning of an Octave function.
+With positive ARG, do it that many times.  Negative argument -N means
+move forward to Nth following beginning of a function.
+Returns t unless search stops at the beginning or end of the buffer."
+  (interactive "p")
+  (let* ((arg (or arg 1))
+	 (inc (if (> arg 0) 1 -1))
+	 (found))
+    (and (not (eobp))
+	 (not (and (> arg 0) (looking-at "\\<function\\>")))
+	 (skip-syntax-forward "w"))
+    (while (and (/= arg 0)
+		(setq found
+		      (re-search-backward "\\<function\\>" nil 'move inc)))
+      (if (octave-not-in-string-or-comment-p)
+	  (setq arg (- arg inc))))
+    (if found
+	(progn
+	  (and (< inc 0) (goto-char (match-beginning 0)))
+	  t))))
+
+(defun octave-end-of-defun (&optional arg)
+  "Move forward to the end of an Octave function.
+With positive ARG, do it that many times.  Negative argument -N means
+move back to Nth preceding end of a function.
+
+An end of a function occurs right after the end keyword matching the
+`function' keyword that starts the function."
+  (interactive "p")
+  (or arg (setq arg 1))
+  (and (< arg 0) (skip-syntax-backward "w"))
+  (and (> arg 0) (skip-syntax-forward "w"))  
+  (if (octave-in-defun-p)
+      (setq arg (- arg 1)))
+  (if (= arg 0) (setq arg -1))
+  (if (octave-beginning-of-defun (- arg))
+      (octave-forward-block)))
+
+(defun octave-mark-defun ()
+  "Put point at the beginning of this Octave function, mark at its end.
+The function marked is the one containing point or following point."
+  (interactive)
+  (let ((pos (point)))
+    (if (or (octave-in-defun-p)
+	    (and (octave-beginning-of-defun -1)
+		 (octave-in-defun-p)))
+	(progn
+	  (skip-syntax-forward "w")
+	  (octave-beginning-of-defun)
+	  (push-mark (point))
+	  (octave-end-of-defun)
+	  (exchange-point-and-mark))
+      (goto-char pos)
+      (message "No function to mark found"))))
+  
+
+;;; Filling
+(defun octave-auto-fill ()
+  "Perform auto-fill in Octave mode."
+  (if (> (current-column) (current-fill-column))
+      (if (octave-in-comment-p)
+	  (do-auto-fill)
+	(if (> (current-column) (current-fill-column))
+	    (let ((fill-column (- (current-fill-column)
+				  (length octave-continuation-string))))
+	      (do-auto-fill)
+	      (save-excursion
+		(forward-line -1)
+		(end-of-line)
+		(insert (concat " " octave-continuation-string)))
+	      (indent-according-to-mode))))))
+
+(defun octave-fill-paragraph (&optional arg)
+ "Fill paragraph of Octave code, handling Octave comments."
+ (interactive "P")
+ (save-excursion 
+   (let ((end (progn (forward-paragraph) (point)))
+	 (beg (progn
+		(forward-paragraph -1)
+		(skip-chars-forward " \t\n")
+		(beginning-of-line)
+		(point)))
+	 (cfc (current-fill-column))
+	 (ind (calculate-octave-indent))
+	 comment-prefix)
+     (save-restriction
+       (goto-char beg)
+       (narrow-to-region beg end)
+       (if (listp ind) (setq ind (nth 1 ind)))
+       (while (not (eobp))
+	 (condition-case nil
+	     (octave-indent-line ind)
+	   (error nil))
+	 (if (and (> ind 0)
+		  (not
+		   (save-excursion
+		     (beginning-of-line)
+		     (looking-at "^\\s-*\\($\\|\\s<+\\)"))))
+	     (setq ind 0))
+	 (move-to-column cfc)
+	 ;; First check whether we need to combine non-empty comment lines
+	 (if (and (< (current-column) cfc)
+		  (octave-in-comment-p)
+		  (not (save-excursion
+			 (beginning-of-line)
+			 (looking-at "^\\s-*\\s<+\\s-*$"))))
+	     ;; This is a nonempty comment line which does not extend
+	     ;; past the fill column.  If it is followed by an nonempty
+	     ;; comment line with the same comment prefix, try to
+	     ;; combine them, and repeat this until either we reach the
+	     ;; fill-column or there is nothing more to combine.
+	     (progn
+	       ;; Get the comment prefix
+	       (save-excursion
+		 (beginning-of-line)
+		 (while (and (re-search-forward "\\s<+")
+			     (not (octave-in-comment-p))))
+		 (setq comment-prefix (match-string 0)))
+	       ;; And keep combining ...
+	       (while (and (< (current-column) cfc)
+			   (save-excursion
+			     (forward-line 1)
+			     (and (looking-at
+				   (concat "^\\s-*"
+					   comment-prefix
+					   "\\S<"))
+				  (not (looking-at
+					(concat "^\\s-*"
+						comment-prefix
+						"\\s-*$"))))))
+		 (delete-char 1)
+		 (re-search-forward comment-prefix)
+		 (delete-region (match-beginning 0) (match-end 0))
+		 (fixup-whitespace)
+		 (move-to-column cfc))))
+	 (skip-chars-forward "^ \t\n")
+	 (delete-horizontal-space)
+	 (if (or (< (current-column) cfc)
+		 (and (= (current-column) cfc) (eolp)))
+	     (forward-line 1)
+	   (if (not (eolp)) (insert " "))
+	   (octave-auto-fill))))
+     t)))
+
+
+;;; Completions
+(defun octave-initialize-completions ()
+  "Create an alist for Octave completions."
+  (if octave-completion-alist
+      ()
+    (setq octave-completion-alist
+	  (mapcar '(lambda (var) (cons var var))
+		  (append octave-reserved-words
+			  octave-text-functions
+			  octave-variables)))))
+
+(defun octave-complete-symbol ()
+  "Perform completion on Octave symbol preceding point.
+Compare that symbol against Octave's reserved words and builtin
+variables."
+  ;; This code taken from lisp-complete-symbol
+  (interactive)
+  (let* ((end (point))
+	 (beg (save-excursion (backward-sexp 1) (point)))
+	 (string (buffer-substring-no-properties beg end))
+	 (completion (try-completion string octave-completion-alist)))
+    (cond ((eq completion t))		; ???
+	  ((null completion)
+	   (message "Can't find completion for \"%s\"" string)
+	   (ding))
+	  ((not (string= string completion))
+           (delete-region beg end)
+           (insert completion))
+	  (t
+	   (let ((list (all-completions string octave-completion-alist))
+		 (conf (current-window-configuration)))
+	     ;; Taken from comint.el
+	     (message "Making completion list...")	       
+	     (with-output-to-temp-buffer "*Completions*"
+	       (display-completion-list list))
+	     (message "Hit space to flush")
+	     (let (key first)
+	       (if (save-excursion
+		     (set-buffer (get-buffer "*Completions*"))
+		     (setq key (read-key-sequence nil)
+			   first (aref key 0))
+		     (and (consp first) (consp (event-start first))
+			  (eq (window-buffer (posn-window (event-start
+							   first)))
+			      (get-buffer "*Completions*"))
+			  (eq (key-binding key) 'mouse-choose-completion)))
+		   (progn
+		     (mouse-choose-completion first)
+		     (set-window-configuration conf))
+		 (if (eq first ?\ )
+		     (set-window-configuration conf)
+		   (setq unread-command-events
+			 (listify-key-sequence key))))))))))
+	       
+
+;;; Electric characters && friends
+(defun octave-reindent-then-newline-and-indent ()
+  "Reindent current Octave line, insert newline, and indent the new line.
+If Abbrev mode is on, expand abbrevs first."
+  (interactive)
+  (if abbrev-mode (expand-abbrev))
+  (if octave-blink-matching-block
+      (octave-blink-matching-block-open))
+  (save-excursion
+    (delete-region (point) (progn (skip-chars-backward " \t") (point)))
+    (indent-according-to-mode))
+  (insert "\n")
+  (indent-according-to-mode))
+
+(defun octave-electric-semi ()
+  "Insert a semicolon in Octave mode.
+Always reindent the line.  Insert a newline if `octave-auto-newline' is
+non-nil."
+  (interactive)
+  (if (not (octave-not-in-string-or-comment-p))
+      (insert ";")
+    (if abbrev-mode (expand-abbrev))
+    (if octave-blink-matching-block
+	(octave-blink-matching-block-open))
+    (indent-according-to-mode)    
+    (insert ";")
+    (if octave-auto-newline
+	(newline-and-indent))))
+
+(defun octave-electric-space ()
+  "Insert a space in Octave mode.
+Maybe expand abbrevs and blink matching block open keywords."
+  (interactive)
+  (setq last-command-char ? )
+  (if (not (octave-not-in-string-or-comment-p))
+      (progn
+	(indent-according-to-mode)
+	(self-insert-command 1))
+    (if abbrev-mode (expand-abbrev))
+    (if octave-blink-matching-block
+	(octave-blink-matching-block-open))
+    (if (save-excursion
+	  (skip-syntax-backward " ")
+	  (not (bolp)))
+	(indent-according-to-mode))
+    (self-insert-command 1)))
+
+(defun octave-abbrev-start ()
+  "Start entering an Octave abbreviation.
+If Abbrev mode is turned on, typing ` (grave accent) followed by ? or
+\\[help-command] lists all Octave abbrevs.  Any other key combination is
+executed normally.
+Note that all Octave mode abbrevs start with a grave accent."
+  (interactive)
+  (if (not abbrev-mode)
+      (self-insert-command 1)
+    (let (c)
+      (insert last-command-char)
+      (if (or (eq (setq c (read-event)) ??)
+	      (eq c help-char))
+	  (let ((abbrev-table-name-list '(octave-mode-abbrev-table)))
+	    (list-abbrevs))
+	(setq unread-command-events (list c))))))
+
+(defun octave-insert-defun (name args vals)
+  "Insert an Octave function skeleton.
+Prompt for the function's name, arguments and return values (to be
+entered without parens)."
+  (interactive
+   (list
+    (read-from-minibuffer "Function name: "
+			  (substring (buffer-name) 0 -2))
+    (read-from-minibuffer "Arguments: ")
+    (read-from-minibuffer "Return values: ")))
+  (let ((string (format "%s %s (%s)"
+			(cond
+			 ((string-equal vals "")
+			  vals)
+			 ((string-match "[ ,]" vals)
+			  (concat " [" vals "] ="))
+			 (t
+			  (concat " " vals " =")))
+			name
+			args))
+	(prefix octave-block-comment-start))
+    (if (not (bobp)) (newline))
+    (insert "function" string)
+    (indent-according-to-mode)
+    (newline 2)
+    (insert prefix "usage: " string)
+    (reindent-then-newline-and-indent)    
+    (insert prefix)
+    (reindent-then-newline-and-indent)    
+    (insert prefix)
+    (indent-according-to-mode)
+    (save-excursion
+      (newline 2)
+      (insert "endfunction")
+      (indent-according-to-mode))))
+	      
+
+;;; Menu
+(defun octave-add-octave-menu ()
+  "Adds the `Octave' menu to the menu bar in Octave mode."
+  (require 'easymenu)  
+  (easy-menu-define octave-mode-menu-map octave-mode-map
+		    "Menu keymap for Octave mode." octave-mode-menu)
+  (easy-menu-add octave-mode-menu-map octave-mode-map))
+
+
+;;; Communication with the inferior Octave process
+(defun octave-kill-process ()
+  "Kill inferior Octave process and its buffer."
+  (interactive)
+  (if inferior-octave-process
+      (progn
+	(process-send-string inferior-octave-process "quit;\n")
+	(accept-process-output inferior-octave-process)))
+  (if inferior-octave-buffer
+      (kill-buffer inferior-octave-buffer)))
+
+(defun octave-show-process-buffer ()
+  "Make sure that `inferior-octave-buffer' is displayed."
+  (interactive)
+  (if (get-buffer inferior-octave-buffer)
+      (display-buffer inferior-octave-buffer)
+    (message "No buffer named %s" inferior-octave-buffer)))
+
+(defun octave-hide-process-buffer ()
+  "Delete all windows that display `inferior-octave-buffer'."
+  (interactive)
+  (if (get-buffer inferior-octave-buffer)
+      (delete-windows-on inferior-octave-buffer)
+    (message "No buffer named %s" inferior-octave-buffer)))
+
+(defun octave-send-region (beg end)
+  "Send current region to the inferior Octave process."
+  (interactive "r")
+  (inferior-octave t)  
+  (let ((proc inferior-octave-process)
+	(string (buffer-substring-no-properties beg end))
+	line)
+    (save-excursion
+      (set-buffer inferior-octave-buffer)
+      (setq inferior-octave-output-list nil)
+      (while (not (string-equal string ""))
+	(if (string-match "\n" string)
+	    (setq line (substring string 0 (match-beginning 0))
+		  string (substring string (match-end 0)))
+	  (setq line string string ""))
+	(setq inferior-octave-receive-in-progress t)
+	(inferior-octave-send-list-and-digest (list (concat line "\n")))
+	(while inferior-octave-receive-in-progress
+	  (accept-process-output proc))
+	(insert-before-markers
+	 (mapconcat 'identity
+		    (append
+		     (if octave-send-echo-input (list line) (list ""))
+		     (mapcar 'inferior-octave-strip-ctrl-g
+			     inferior-octave-output-list)
+		     (list inferior-octave-output-string))
+		    "\n")))))
+  (if octave-send-show-buffer
+      (display-buffer inferior-octave-buffer)))
+
+(defun octave-send-block ()
+  "Send current Octave block to the inferior Octave process."  
+  (interactive)
+  (save-excursion
+    (octave-mark-block)
+    (octave-send-region (point) (mark))))
+
+(defun octave-send-defun ()
+  "Send current Octave function to the inferior Octave process."
+  (interactive)
+  (save-excursion
+    (octave-mark-defun)
+    (octave-send-region (point) (mark))))
+
+(defun octave-send-line (&optional arg)
+  "Send current Octave code line to the inferior Octave process.
+With positive prefix ARG, send that many lines.
+If `octave-send-line-auto-forward' is non-nil, go to the next unsent
+code line."
+  (interactive "P")
+  (or arg (setq arg 1))
+  (if (> arg 0)
+      (let (beg end)
+	(beginning-of-line)
+	(setq beg (point))
+	(octave-next-code-line (- arg 1))
+	(end-of-line)
+	(setq end (point))
+	(if octave-send-line-auto-forward
+	    (octave-next-code-line 1))
+	(octave-send-region beg end))))
+
+(defun octave-eval-print-last-sexp ()
+  "Evaluate Octave sexp before point and print value into current buffer."
+  (interactive)
+  (inferior-octave t)
+  (let ((standard-output (current-buffer))
+	(print-escape-newlines nil)
+	(opoint (point)))
+    (terpri)
+    (prin1    
+     (save-excursion
+       (forward-sexp -1)
+       (inferior-octave-send-list-and-digest
+	(list (concat (buffer-substring-no-properties (point) opoint)
+		      "\n")))
+       (mapconcat 'identity inferior-octave-output-list "\n")))
+    (terpri)))
+    
+;;; octave-mod.el ends here
