@@ -1004,6 +1004,10 @@ if [ "0${x_includes}" = 0 ] && [ "0${x_libraries}" = 0 ]; then
   ]
     AC_FIND_X
   [
+  if [ "0${x_includes}" = 0 ] && [ "0${x_libraries}" = 0 ]; then
+    C_SWITCH_X_SITE="-I\"${x_includes}\""
+    LD_SWITCH_X_SITE="-L\"${x_libraries}\""
+  fi
 fi
 
 case "${window_system}" in
