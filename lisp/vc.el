@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.218 1998/04/05 18:45:06 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.219 1998/04/05 18:54:35 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -960,8 +960,11 @@ merge in the changes into your working copy."
 			      "Enter a change comment for the marked files."
 			      'vc-next-action-dired))
 	    (throw 'nogo nil)))
-    (vc-ensure-vc-buffer)
-    (vc-next-action-on-file buffer-file-name verbose)))
+    (while vc-parent-buffer
+      (pop-to-buffer vc-parent-buffer))
+    (if buffer-file-name
+        (vc-next-action-on-file buffer-file-name verbose)
+      (error "Buffer %s is not associated with a file" (buffer-name)))))
 
 ;;; These functions help the vc-next-action entry point
 
