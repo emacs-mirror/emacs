@@ -1736,18 +1736,18 @@ call0 (fn)
   RETURN_UNGCPRO (Ffuncall (1, &fn));
 }
 
-/* Call function fn with argument arg */
+/* Call function fn with 1 argument arg1 */
 /* ARGSUSED */
 Lisp_Object
-call1 (fn, arg)
-     Lisp_Object fn, arg;
+call1 (fn, arg1)
+     Lisp_Object fn, arg1;
 {
   struct gcpro gcpro1;
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[2];  
 
   args[0] = fn;
-  args[1] = arg;
+  args[1] = arg1;
   GCPRO1 (args[0]);
   gcpro1.nvars = 2;
   RETURN_UNGCPRO (Ffuncall (2, args));
@@ -1758,18 +1758,18 @@ call1 (fn, arg)
 #endif /* not NO_ARG_ARRAY */
 }
 
-/* Call function fn with arguments arg, arg1 */
+/* Call function fn with 2 arguments arg1, arg2 */
 /* ARGSUSED */
 Lisp_Object
-call2 (fn, arg, arg1)
-     Lisp_Object fn, arg, arg1;
+call2 (fn, arg1, arg2)
+     Lisp_Object fn, arg1, arg2;
 {
   struct gcpro gcpro1;
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[3];
   args[0] = fn;
-  args[1] = arg;
-  args[2] = arg1;
+  args[1] = arg1;
+  args[2] = arg2;
   GCPRO1 (args[0]);
   gcpro1.nvars = 3;
   RETURN_UNGCPRO (Ffuncall (3, args));
@@ -1780,19 +1780,19 @@ call2 (fn, arg, arg1)
 #endif /* not NO_ARG_ARRAY */
 }
 
-/* Call function fn with arguments arg, arg1, arg2 */
+/* Call function fn with 3 arguments arg1, arg2, arg3 */
 /* ARGSUSED */
 Lisp_Object
-call3 (fn, arg, arg1, arg2)
-     Lisp_Object fn, arg, arg1, arg2;
+call3 (fn, arg1, arg2, arg3)
+     Lisp_Object fn, arg1, arg2, arg3;
 {
   struct gcpro gcpro1;
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[4];
   args[0] = fn;
-  args[1] = arg;
-  args[2] = arg1;
-  args[3] = arg2;
+  args[1] = arg1;
+  args[2] = arg2;
+  args[3] = arg3;
   GCPRO1 (args[0]);
   gcpro1.nvars = 4;
   RETURN_UNGCPRO (Ffuncall (4, args));
@@ -1803,20 +1803,20 @@ call3 (fn, arg, arg1, arg2)
 #endif /* not NO_ARG_ARRAY */
 }
 
-/* Call function fn with arguments arg, arg1, arg2, arg3 */
+/* Call function fn with 4 arguments arg1, arg2, arg3, arg4 */
 /* ARGSUSED */
 Lisp_Object
-call4 (fn, arg, arg1, arg2, arg3)
-     Lisp_Object fn, arg, arg1, arg2, arg3;
+call4 (fn, arg1, arg2, arg3, arg4)
+     Lisp_Object fn, arg1, arg2, arg3, arg4;
 {
   struct gcpro gcpro1;
 #ifdef NO_ARG_ARRAY
   Lisp_Object args[5];
   args[0] = fn;
-  args[1] = arg;
-  args[2] = arg1;
-  args[3] = arg2;
-  args[4] = arg3;
+  args[1] = arg1;
+  args[2] = arg2;
+  args[3] = arg3;
+  args[4] = arg4;
   GCPRO1 (args[0]);
   gcpro1.nvars = 5;
   RETURN_UNGCPRO (Ffuncall (5, args));
@@ -1824,6 +1824,57 @@ call4 (fn, arg, arg1, arg2, arg3)
   GCPRO1 (fn);
   gcpro1.nvars = 5;
   RETURN_UNGCPRO (Ffuncall (5, &fn));
+#endif /* not NO_ARG_ARRAY */
+}
+
+/* Call function fn with 5 arguments arg1, arg2, arg3, arg4, arg5 */
+/* ARGSUSED */
+Lisp_Object
+call5 (fn, arg1, arg2, arg3, arg4, arg5)
+     Lisp_Object fn, arg1, arg2, arg3, arg4, arg5;
+{
+  struct gcpro gcpro1;
+#ifdef NO_ARG_ARRAY
+  Lisp_Object args[6];
+  args[0] = fn;
+  args[1] = arg1;
+  args[2] = arg2;
+  args[3] = arg3;
+  args[4] = arg4;
+  args[5] = arg5;
+  GCPRO1 (args[0]);
+  gcpro1.nvars = 6;
+  RETURN_UNGCPRO (Ffuncall (6, args));
+#else /* not NO_ARG_ARRAY */
+  GCPRO1 (fn);
+  gcpro1.nvars = 6;
+  RETURN_UNGCPRO (Ffuncall (6, &fn));
+#endif /* not NO_ARG_ARRAY */
+}
+
+/* Call function fn with 6 arguments arg1, arg2, arg3, arg4, arg5, arg6 */
+/* ARGSUSED */
+Lisp_Object
+call6 (fn, arg1, arg2, arg3, arg4, arg5, arg6)
+     Lisp_Object fn, arg1, arg2, arg3, arg4, arg5, arg6;
+{
+  struct gcpro gcpro1;
+#ifdef NO_ARG_ARRAY
+  Lisp_Object args[7];
+  args[0] = fn;
+  args[1] = arg1;
+  args[2] = arg2;
+  args[3] = arg3;
+  args[4] = arg4;
+  args[5] = arg5;
+  args[6] = arg6;
+  GCPRO1 (args[0]);
+  gcpro1.nvars = 7;
+  RETURN_UNGCPRO (Ffuncall (7, args));
+#else /* not NO_ARG_ARRAY */
+  GCPRO1 (fn);
+  gcpro1.nvars = 7;
+  RETURN_UNGCPRO (Ffuncall (7, &fn));
 #endif /* not NO_ARG_ARRAY */
 }
 
