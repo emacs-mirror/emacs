@@ -294,6 +294,9 @@ INLINE int
 inc_bytepos (bytepos)
      int bytepos;
 {
+  if (NILP (current_buffer->enable_multibyte_characters))
+    return bytepos + 1;
+
   INC_POS (bytepos);
   return bytepos;
 }
@@ -305,6 +308,9 @@ INLINE int
 dec_bytepos (bytepos)
      int bytepos;
 {
+  if (NILP (current_buffer->enable_multibyte_characters))
+    return bytepos - 1;
+
   DEC_POS (bytepos);
   return bytepos;
 }
@@ -1367,7 +1373,10 @@ skip_chars (forwardp, syntaxp, string, lim)
 		while (pos < XINT (lim)
 		       && fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
 		  {
-		    INC_BOTH (pos, pos_byte);
+		    /* Since we already checked for multibyteness,
+		       avoid using INC_BOTH which checks again.  */
+		    INC_POS (pos_byte);
+		    pos++;
 		    UPDATE_SYNTAX_TABLE_FORWARD (pos);
 		  }
 	      }
@@ -1388,7 +1397,10 @@ skip_chars (forwardp, syntaxp, string, lim)
 		while (pos > XINT (lim))
 		  {
 		    int savepos = pos_byte;
-		    DEC_BOTH (pos, pos_byte);
+		    /* Since we already checked for multibyteness,
+		       avoid using DEC_BOTH which checks again.  */
+		    pos--;
+		    DEC_POS (pos_byte);
 		    UPDATE_SYNTAX_TABLE_BACKWARD (pos);
 		    if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
 		      {
@@ -1547,10 +1559,7 @@ between them, return t; otherwise return nil.")
 	{
 	  if (from == stop)
 	    {
-	      if (! NILP (current_buffer->enable_multibyte_characters))
-		SET_PT_BOTH (from, from_byte);
-	      else
-		SET_PT_BOTH (from_byte, from_byte);
+	      SET_PT_BOTH (from, from_byte);
 	      immediate_quit = 0;
 	      return Qnil;
 	    }
@@ -1579,10 +1588,7 @@ between them, return t; otherwise return nil.")
 	{
 	  immediate_quit = 0;
 	  DEC_BOTH (from, from_byte);
-	  if (! NILP (current_buffer->enable_multibyte_characters))
-	    SET_PT_BOTH (from, from_byte);
-	  else
-	    SET_PT_BOTH (from_byte, from_byte);
+	  SET_PT_BOTH (from, from_byte);
 	  return Qnil;
 	}
       /* We're at the start of a comment.  */
@@ -1591,10 +1597,7 @@ between them, return t; otherwise return nil.")
 	  if (from == stop)
 	    {
 	      immediate_quit = 0;
-	      if (! NILP (current_buffer->enable_multibyte_characters))
-		SET_PT_BOTH (from, from_byte);
-	      else
-		SET_PT_BOTH (from_byte, from_byte);
+	      SET_PT_BOTH (from, from_byte);
 	      return Qnil;
 	    }
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
@@ -1653,8 +1656,7 @@ between them, return t; otherwise return nil.")
 	  comstyle = 0;
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
-	  temp_pos = from_byte;
-	  DEC_POS (temp_pos);
+	  temp_pos = dec_bytepos (from_byte);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
 	      && (c1 = FETCH_CHAR (temp_pos),
 		  SYNTAX_COMEND_FIRST (c1))
@@ -1719,10 +1721,7 @@ between them, return t; otherwise return nil.")
 	    leave:
 	      immediate_quit = 0;
 	      INC_BOTH (from, from_byte);
-	      if (! NILP (current_buffer->enable_multibyte_characters))
-		SET_PT_BOTH (from, from_byte);
-	      else
-		SET_PT_BOTH (from_byte, from_byte);
+	      SET_PT_BOTH (from, from_byte);
 	      return Qnil;
 	    }
 	}
@@ -1730,10 +1729,7 @@ between them, return t; otherwise return nil.")
       count1++;
     }
 
-  if (! NILP (current_buffer->enable_multibyte_characters))
-    SET_PT_BOTH (from, from_byte);
-  else
-    SET_PT_BOTH (from_byte, from_byte);
+  SET_PT_BOTH (from, from_byte);
   immediate_quit = 0;
   return Qt;
 }
@@ -1891,8 +1887,7 @@ scan_lists (from, count, depth, sexpflag)
 
 	    case Sstring:
 	    case Sstring_fence:
-	      temp_pos = from_byte;
-	      DEC_POS (temp_pos);
+	      temp_pos = dec_bytepos (from_byte);
 	      stringterm = FETCH_CHAR (temp_pos);
 	      while (1)
 		{
@@ -1941,7 +1936,10 @@ scan_lists (from, count, depth, sexpflag)
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
 	  temp_pos = from_byte;
-	  DEC_POS (temp_pos);
+	  if (! NILP (current_buffer->enable_multibyte_characters))
+	    DEC_POS (temp_pos);
+	  else
+	    temp_pos--;
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
 	      && (c1 = FETCH_CHAR (temp_pos), SYNTAX_COMEND_FIRST (c1))
 	      && parse_sexp_ignore_comments)
@@ -1973,7 +1971,10 @@ scan_lists (from, count, depth, sexpflag)
 	      while (from > stop)
 		{
 		  temp_pos = from_byte;
-		  DEC_POS (temp_pos);
+		  if (! NILP (current_buffer->enable_multibyte_characters))
+		    DEC_POS (temp_pos);
+		  else
+		    temp_pos--;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
 		  c1 = FETCH_CHAR (temp_pos);
 		  temp_code = SYNTAX (c1);
@@ -1984,7 +1985,7 @@ scan_lists (from, count, depth, sexpflag)
 		  if (quoted)
 		    {
 		      DEC_BOTH (from, from_byte);
-		      DEC_POS (temp_pos);
+		      temp_pos = dec_bytepos (temp_pos);
 		      UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
 		    }
 		  c1 = FETCH_CHAR (temp_pos);
@@ -2000,8 +2001,7 @@ scan_lists (from, count, depth, sexpflag)
 	    case Smath:
 	      if (!sexpflag)
 		break;
-	      temp_pos = from_byte;
-	      DEC_POS (temp_pos);
+	      temp_pos = dec_bytepos (from_byte);
 	      UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
 	      if (from != stop && c == FETCH_CHAR (temp_pos))
 		DEC_BOTH (from, from_byte);
@@ -2055,7 +2055,10 @@ scan_lists (from, count, depth, sexpflag)
 		{
 		  if (from == stop) goto lose;
 		  temp_pos = from_byte;
-		  DEC_POS (temp_pos);
+		  if (! NILP (current_buffer->enable_multibyte_characters))
+		    DEC_POS (temp_pos);
+		  else
+		    temp_pos--;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
 		  if (!char_quoted (from - 1, temp_pos)
 		      && stringterm == FETCH_CHAR (temp_pos))
@@ -2214,8 +2217,7 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 #define INC_FROM				\
 do { prev_from = from;				\
      prev_from_byte = from_byte; 		\
-     from++;					\
-     INC_POS (from_byte);			\
+     INC_BOTH (from, from_byte);		\
   } while (0)
 
   immediate_quit = 1;
