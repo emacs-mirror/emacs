@@ -728,30 +728,27 @@ The local variable `buffer-file-coding-system' of the current buffer
 is set to the returned value.
 Return nil if there's no need of setting new buffer-file-coding-system."
   (let (local-coding local-eol
-	found-eol
+	found-coding found-eol
 	new-coding new-eol)
     (if (null coding)
 	;; Nothing found about coding.
 	nil
 
-      ;; Get information of the current local value of
-      ;; `buffer-file-coding-system' in LOCAL-EOL and LOCAL-CODING.
-      (if (local-variable-p 'buffer-file-coding-system)
-	  ;; Something already set locally.
-	  (progn
-	    (setq local-eol (coding-system-eol-type buffer-file-coding-system))
-	    (if (null (numberp local-eol))
-		;; But eol-type is not yet set.
-		(setq local-eol nil))
-	    (if (null (eq (coding-system-type buffer-file-coding-system) t))
-		;; This is not `undecided'.
-		(progn
-		  (setq local-coding buffer-file-coding-system)
-		  (while (symbolp (get local-coding 'coding-system))
-		    (setq local-coding (get local-coding 'coding-system))))
-	      )))
+      ;; Get information of `buffer-file-coding-system' in LOCAL-EOL
+      ;; and LOCAL-CODING.
+      (setq local-eol (coding-system-eol-type buffer-file-coding-system))
+      (if (null (numberp local-eol))
+	  ;; But eol-type is not yet set.
+	  (setq local-eol nil))
+      (when (and buffer-file-coding-system
+		 (not (eq (coding-system-type buffer-file-coding-system) t)))
+	;; This is not `undecided'.
+	(setq local-coding buffer-file-coding-system)
+	(while (symbolp (get local-coding 'coding-system))
+	  (setq local-coding (get local-coding 'coding-system))))
 
-      (if (and local-eol local-coding)
+      (if (and (local-variable-p 'buffer-file-coding-system)
+	       local-eol local-coding)
 	  ;; The current buffer has already set full coding-system, we
 	  ;; had better not change it.
 	  nil
@@ -760,15 +757,31 @@ Return nil if there's no need of setting new buffer-file-coding-system."
 	(if (null (numberp found-eol))
 	    ;; But eol-type is not found.
 	    (setq found-eol nil))
+	(unless (eq (coding-system-type coding) t)
+	  ;; This is not `undecided'.
+	  (setq found-coding coding)
+	  (while (symbolp (get found-coding 'coding-system))
+	    (setq found-coding (get found-coding 'coding-system))))
 
 	;; The local setting takes precedence over the found one.
-	(setq new-coding (or local-coding coding))
-	(setq new-eol (or local-eol found-eol))
-	(if (and (numberp new-eol)
-		 (vectorp (coding-system-eol-type new-coding)))
-	    (setq new-coding
-		  (aref (coding-system-eol-type new-coding) new-eol)))
-	new-coding))))
+	(setq new-coding (or (and (local-variable-p 'buffer-file-coding-system)
+				  local-coding)
+			     found-coding
+			     local-coding))
+	(setq new-eol (or (and (local-variable-p 'buffer-file-coding-system)
+			       local-eol)
+			  found-eol
+			  local-eol))
+	(when (numberp new-eol)
+	  (or new-coding
+	      (setq new-coding 'undecided))
+	  (if (vectorp (coding-system-eol-type new-coding))
+	      (setq new-coding
+		    (aref (coding-system-eol-type new-coding) new-eol))))
+	;; Return a new coding system only when it is different from
+	;; the current one.
+	(if (not (eq buffer-file-coding-system new-coding))
+	    new-coding)))))
 
 (defun modify-coding-system-alist (target-type regexp coding-system)
   "Modify one of look up tables for finding a coding system on I/O operation.
