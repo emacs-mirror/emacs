@@ -1379,20 +1379,19 @@ that are visiting the various files."
 		 (signal 'file-error (list "File is not readable"
 					   filename)))
 	       ;; Unconditionally set error
-	       (setq error t)))))
-      (condition-case ()
-	  (let ((inhibit-read-only t))
-	    (insert-file-contents filename t))
-	(file-error
-	 (when (and (file-exists-p filename)
-		    (not (file-readable-p filename)))
-	   (kill-buffer buf)
-	   (signal 'file-error (list "File is not readable"
-				     filename)))
-	 ;; Run find-file-not-found-hooks until one returns non-nil.
-	 (or (run-hook-with-args-until-success 'find-file-not-found-functions)
-	     ;; If they fail too, set error.
-	     (setq error t))))
+	       (setq error t)))
+	  (condition-case ()
+	      (insert-file-contents filename t)
+	    (file-error
+	     (when (and (file-exists-p filename)
+			(not (file-readable-p filename)))
+	       (kill-buffer buf)
+	       (signal 'file-error (list "File is not readable"
+					 filename)))
+	     ;; Run find-file-not-found-hooks until one returns non-nil.
+	     (or (run-hook-with-args-until-success 'find-file-not-found-functions)
+		 ;; If they fail too, set error.
+		 (setq error t))))))
       ;; Record the file's truename, and maybe use that as visited name.
       (if (equal filename buffer-file-name)
 	  (setq buffer-file-truename truename)
@@ -4336,21 +4335,26 @@ normally equivalent short `-D' option is just passed on to
             (when (looking-at "//SUBDIRED//")
               (delete-region (point) (progn (forward-line 1) (point)))
               (forward-line -1))
-	    (let ((end (line-end-position)))
-	      (forward-word 1)
-	      (forward-char 3)
-	      (while (< (point) end)
-		(let ((start (+ beg (read (current-buffer))))
-		      (end (+ beg (read (current-buffer)))))
-		  (if (= (char-after end) ?\n)
-		      (put-text-property start end 'dired-filename t)
-		    ;; It seems that we can't trust ls's output as to
-		    ;; byte positions of filenames.
-		    (put-text-property beg (point) 'dired-filename nil)
-		    (end-of-line))))
-	      (goto-char end)
-	      (beginning-of-line)
-	      (delete-region (point) (progn (forward-line 2) (point)))))
+	    (if (looking-at "//DIRED//")
+		(let ((end (line-end-position)))
+		  (forward-word 1)
+		  (forward-char 3)
+		  (while (< (point) end)
+		    (let ((start (+ beg (read (current-buffer))))
+			  (end (+ beg (read (current-buffer)))))
+		      (if (= (char-after end) ?\n)
+			  (put-text-property start end 'dired-filename t)
+			;; It seems that we can't trust ls's output as to
+			;; byte positions of filenames.
+			(put-text-property beg (point) 'dired-filename nil)
+			(end-of-line))))
+		  (goto-char end)
+		  (beginning-of-line)
+		  (delete-region (point) (progn (forward-line 2) (point))))
+	      (forward-line 1)
+	      (if (looking-at "//DIRED-OPTIONS//")
+		  (delete-region (point) (progn (forward-line 1) (point)))
+		(forward-line 1))))
 
 	  ;; Now decode what read if necessary.
 	  (let ((coding (or coding-system-for-read

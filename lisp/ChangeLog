@@ -1,7 +1,46 @@
+2004-05-25  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-toc): Call Info-mode on intermediate buffer.
+	(Info-index-nodes): Enclose code in condition-case to catch errors.
+	(Info-index-node): Don't search all index nodes if request is only
+	for the current node and file is not in the cache of index nodes.
+	(Info-mode-map): Bind Info-copy-current-node-name to `w'
+	for consistency with dired-copy-filename-as-kill.
+	Bind `S' to Info-search-case-sensitively.
+	(Info-copy-current-node-name): New arg.  With zero prefix arg put
+	the name inside a function call to `info'.  Display copied text in
+	the echo area.
+
+2004-05-25  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-find-tag-default): New function:
+	strip the package prefix from the symbol name, if any.
+	Make it the `find-tag-default-function' for `lisp-mode'.
+
+2004-05-25  John Paul Wallington  <jpw@gnu.org>
+
+	* gs.el (gs-load-image): Use `set-process-query-on-exit-flag'
+	instead of obsolete `process-kill-without-query'.
+
+	* textmodes/texinfmt.el (texinfo-indexvar-alist):
+	Declare as variable, not constant.
+
+2004-05-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (find-file-noselect-1): Fix bug introduced by
+	Revision 1.694.  As a side effect, `inhibit-read-only'
+	is again, by default, t during execution of
+	`find-file-not-found-functions'.
+	(insert-directory): Check that lines were really inserted by
+	the --dired switch, before erasing them.
+
 2004-05-24  Nick Roberts  <nickrob@gnu.org>
 
-	* progmodes/gdb-ui.el (gdb-breakpoints-mode, gdb-frames-mode) 
+	* progmodes/gdb-ui.el (gdb-breakpoints-mode, gdb-frames-mode)
 	(gdb-locals-mode): Check gud-minor-mode in gud-comint-buffer.
+	(gdb-var-update, gdb-var-update-handler, gdb-var-delete)
+	(gdb-edit-value, gdb-speedbar-expand-node): Handle new value for
+	gud-minor-mode (gdbmi).
 
 2004-05-24  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
 
@@ -2495,7 +2534,7 @@
 2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-file-not-found-hook): Fix typo.
-	From lorentey@elte.hu (L,Bu(Brentey K,Ba(Broly).
+	From lorentey@elte.hu (L$,1 q(Brentey K,Aa(Broly).
 
 2004-03-27  Luc Teirlinck  <teirllm@auburn.edu>
 

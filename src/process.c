@@ -4581,7 +4581,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		}
 	    }
 #ifdef NON_BLOCKING_CONNECT
-	  if (check_connect && FD_ISSET (channel, &Connecting))
+	  if (check_connect && FD_ISSET (channel, &Connecting)
+	      && FD_ISSET (channel, &connect_wait_mask))
 	    {
 	      struct Lisp_Process *p;
 

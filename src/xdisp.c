@@ -4559,6 +4559,14 @@ back_to_previous_visible_line_start (it)
 	    visible_p = 0;
 	}
 
+      if (visible_p)
+	{
+	  struct it it2 = *it;
+
+	  if (handle_display_prop (&it2) == HANDLED_RETURN)
+	    visible_p = 0;
+	}
+
       /* Back one more newline if the current one is invisible.  */
       if (!visible_p)
 	back_to_previous_line_start (it);

@@ -319,7 +319,11 @@ speedbar."
 (defun gdb-var-update ()
   (if (not (member 'gdb-var-update gdb-pending-triggers))
       (progn
-	(gdb-enqueue-input (list "server interpreter mi \"-var-update *\"\n"
+	(gdb-enqueue-input
+	 (list 
+	  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	      "server interpreter mi \"-var-update *\"\n"
+	    "-var-update *\n")
 				 'gdb-var-update-handler))
 	(push 'gdb-var-update gdb-pending-triggers))))
 
@@ -331,8 +335,11 @@ speedbar."
     (while (re-search-forward gdb-var-update-regexp nil t)
 	(let ((varnum (match-string 1)))
 	  (gdb-enqueue-input
-	   (list (concat "server interpreter mi \"-var-evaluate-expression "
-			 varnum "\"\n")
+	   (list
+	    (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+		(concat "server interpreter mi \"-var-evaluate-expression "
+			varnum "\"\n")
+	      (concat "-var-evaluate-expression " varnum "\n"))
 		     `(lambda () (gdb-var-evaluate-expression-handler
 				  ,varnum t)))))))
   (setq gdb-pending-triggers
@@ -349,8 +356,11 @@ speedbar."
 	       (varnum (cadr var)))
 	  (unless (string-match "\\." varnum)
 	    (gdb-enqueue-input
-	     (list (concat "server interpreter mi \"-var-delete "
-			   varnum "\"\n")
+	     (list 
+	      (if (with-current-buffer gud-comint-buffer
+		    (eq gud-minor-mode 'gdba))
+		  (concat "server interpreter mi \"-var-delete " varnum "\"\n")
+		(concat "-var-delete " varnum "\n"))
 		   'ignore))
 	    (setq gdb-var-list (delq var gdb-var-list))
 	    (dolist (varchild gdb-var-list)
@@ -364,8 +374,11 @@ speedbar."
 	 (varnum (cadr var)) (value))
     (setq value (read-string "New value: "))
     (gdb-enqueue-input
-     (list (concat "server interpreter mi \"-var-assign "
-		   varnum " " value "\"\n")
+     (list
+      (if (with-current-buffer gud-comint-buffer
+	    (eq gud-minor-mode 'gdba))
+	  (concat "server interpreter mi \"-var-assign " varnum " " value "\"\n")
+	(concat "-var-assign " varnum " " value "\n"))
 	   'ignore))))
 
 (defcustom gdb-show-changed-values t
@@ -380,7 +393,9 @@ TEXT is the text of the button we clicked on, a + or - item.
 TOKEN is data related to this node.
 INDENT is the current indentation depth."
   (cond ((string-match "+" text)        ;expand this node
-	 (gdb-var-list-children token))
+	 (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	     (gdb-var-list-children token)
+	   (gdbmi-var-list-children token)))
 	((string-match "-" text)	;contract this node
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))
