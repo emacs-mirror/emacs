@@ -2907,7 +2907,7 @@ To know which image types are really available, use
 This in an alist of image types vs external libraries needed to
 display them.
 
-Each element is a list @code{(@var{IMAGE-TYPE} @var{LIBRARY}...)},
+Each element is a list @code{(@var{image-type} @var{library}...)},
 where the car is a supported image format from @code{image-types}, and
 the rest are strings giving alternate filenames for the corresponding
 external libraries to load.
@@ -2924,9 +2924,10 @@ into Emacs.
 @defun  image-type-available-p type
 @findex image-type-available-p
 
-This function returns non-nil if image type @var{TYPE} is available,
-i.e., if images of this type can be loaded and displayed in Emacs.
-@var{TYPE} should be one of the types contained in @code{image-types}.
+This function returns non-@code{nil} if image type @var{type} is
+available, i.e., if images of this type can be loaded and displayed in
+Emacs.  @var{type} should be one of the types contained in
+@code{image-types}.
 
 For image types whose support libraries are statically linked, this
 function always returns @code{t}; for other image types, it returns
