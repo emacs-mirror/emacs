@@ -8985,7 +8985,7 @@ x_create_toolkit_scroll_bar (f, bar)
   
 #endif /* !USE_MOTIF */
 
-  /* Install an action hook that let's us detect when the user
+  /* Install an action hook that lets us detect when the user
      finishes interacting with a scroll bar.  */
   if (action_hook_id == 0)
     action_hook_id = XtAppAddActionHook (Xt_app_con, xt_action_hook, 0);
