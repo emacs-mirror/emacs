@@ -4974,15 +4974,19 @@ int size;
 #endif
       fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
     }
-  /* Because we need to support NT 3.x, we can't use EnumFontFamiliesEx
-     so if fonts of the same name are available with several
-     alternative character sets, the w32_list_fonts can fail to find a
-     match even if the font exists. Try loading it anyway.
-  */
-#if 0
   else
-    return NULL;
-#endif
+    {
+      /* If EnumFontFamiliesEx was available, we got a full list of
+         fonts back so stop now to avoid the possibility of loading a
+         random font.  If we had to fall back to EnumFontFamilies, the
+         list is incomplete, so continue whether the font we want was
+         listed or not. */
+      HMODULE gdi32 = GetModuleHandle ("gdi32.dll");
+      FARPROC enum_font_families_ex
+        = GetProcAddress ( gdi32, "EnumFontFamiliesExA");
+      if (enum_font_families_ex)
+        return NULL;
+    }
 
   /* Load the font and add it to the table. */
   {
@@ -5631,6 +5635,16 @@ w32_font_match (lpszfont1, lpszfont2)
     }
 }
 
+/* Callback functions, and a structure holding info they need, for
+   listing system fonts on W32. We need one set of functions to do the
+   job properly, but these don't work on NT 3.51 and earlier, so we
+   have a second set which don't handle character sets properly to
+   fall back on.
+
+   In both cases, there are two passes made. The first pass gets one
+   font from each family, the second pass lists all the fonts from
+   each family.  */
+
 typedef struct enumfont_t 
 {
   HDC hdc;
@@ -5676,8 +5690,8 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
     if (!w32_to_x_font (&(lplf->elfLogFont), buf, 100))
       return (0);
 
-    if (NILP (*(lpef->pattern)) ||
-        w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
+    if (NILP (*(lpef->pattern))
+        || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
       {
 	*lpef->tail = Fcons (Fcons (build_string (buf), width), Qnil);
 	lpef->tail = &(XCONS (*lpef->tail)->cdr);
@@ -5702,13 +5716,48 @@ enum_font_cb1 (lplf, lptm, FontType, lpef)
 }
 
 
+int CALLBACK
+enum_fontex_cb2 (lplf, lptm, font_type, lpef)
+     ENUMLOGFONTEX * lplf;
+     NEWTEXTMETRICEX * lptm;
+     int font_type;
+     enumfont_t * lpef;
+{
+  /* We are not interested in the extra info we get back from the 'Ex
+     version - only the fact that we get character set variations
+     enumerated seperately.  */
+  return enum_font_cb2 ((ENUMLOGFONT *) lplf, (NEWTEXTMETRIC *) lptm,
+                        font_type, lpef);
+}
+
+int CALLBACK
+enum_fontex_cb1 (lplf, lptm, font_type, lpef)
+     ENUMLOGFONTEX * lplf;
+     NEWTEXTMETRICEX * lptm;
+     int font_type;
+     enumfont_t * lpef;
+{
+  HMODULE gdi32 = GetModuleHandle ("gdi32.dll");
+  FARPROC enum_font_families_ex
+    = GetProcAddress ( gdi32, "EnumFontFamiliesExA");
+  /* We don't really expect EnumFontFamiliesEx to disappear once we
+     get here, so don't bother handling it gracefully.  */
+  if (enum_font_families_ex == NULL)
+    error ("gdi32.dll has disappeared!");
+  return enum_font_families_ex (lpef->hdc,
+                                &lplf->elfLogFont,
+                                (FONTENUMPROC) enum_fontex_cb2,
+                                (LPARAM) lpef, 0);
+}
+
 /* Interface to fontset handler. (adapted from mw32font.c in Meadow
    and xterm.c in Emacs 20.3) */
 
-Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern)
+Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
 {
   char *fontname, *ptnstr;
   Lisp_Object list, tem, newlist = Qnil;
+  int n_fonts;
 
   list = Vw32_bdf_filename_alist;
   ptnstr = XSTRING (pattern)->data;
@@ -5724,11 +5773,19 @@ Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern)
         continue;
 
       if (w32_font_match (fontname, ptnstr))
-        newlist = Fcons (XCONS (tem)->car, newlist);
+        {
+          newlist = Fcons (XCONS (tem)->car, newlist);
+          n_fonts++;
+          if (n_fonts >= max_names)
+            break;
+        }
     }
 
   return newlist;
 }
+
+Lisp_Object w32_list_synthesized_fonts (FRAME_PTR f, Lisp_Object pattern,
+                                        int size, int max_names);
 
 /* Return a list of names of available fonts matching PATTERN on frame
    F.  If SIZE is not 0, it is the size (maximum bound width) of fonts
@@ -5743,6 +5800,7 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
   Lisp_Object patterns, key, tem, tpat;
   Lisp_Object list = Qnil, newlist = Qnil, second_best = Qnil;
   struct w32_display_info *dpyinfo = &one_w32_display_info;
+  int n_fonts = 0;
 
   patterns = Fassoc (pattern, Valternate_fontname_alist);
   if (NILP (patterns))
@@ -5773,13 +5831,34 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
       ef.tail = &list;
       ef.numFonts = 0;
 
+      /* Use EnumFontFamiliesEx where it is available, as it knows
+         about character sets.  Fall back to EnumFontFamilies for
+         older versions of NT that don't support the 'Ex function.  */
       x_to_w32_font (STRINGP (tpat) ? XSTRING (tpat)->data :
                      NULL, &ef.logfont);
       {
+        LOGFONT font_match_pattern;
+        HMODULE gdi32 = GetModuleHandle ("gdi32.dll");
+        FARPROC enum_font_families_ex
+          = GetProcAddress ( gdi32, "EnumFontFamiliesExA");
+
+        /* We do our own pattern matching so we can handle wildcards.  */
+        font_match_pattern.lfFaceName[0] = 0;
+        font_match_pattern.lfPitchAndFamily = 0;
+        /* We can use the charset, because if it is a wildcard it will
+           be DEFAULT_CHARSET anyway.  */
+        font_match_pattern.lfCharSet = ef.logfont.lfCharSet;
+
         ef.hdc = GetDC (dpyinfo->root_window);
 
-        EnumFontFamilies (ef.hdc, NULL, (FONTENUMPROC) enum_font_cb1,
-                          (LPARAM)&ef);
+        if (enum_font_families_ex)
+          enum_font_families_ex (ef.hdc,
+                                 &font_match_pattern,
+                                 (FONTENUMPROC) enum_fontex_cb1,
+                                 (LPARAM) &ef, 0);
+        else
+          EnumFontFamilies (ef.hdc, NULL, (FONTENUMPROC) enum_font_cb1,
+                            (LPARAM)&ef);
 
         ReleaseDC (dpyinfo->root_window, ef.hdc);
       }
@@ -5810,7 +5889,11 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
           if (!size)
             {
               newlist = Fcons (XCONS (tem)->car, newlist);
-              continue;
+              n_fonts++;
+              if (n_fonts >= maxnames)
+                break;
+              else
+                continue;
             }
           if (!INTEGERP (XCONS (tem)->cdr))
             {
@@ -5843,14 +5926,19 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
             }
           found_size = XINT (XCONS (tem)->cdr);
           if (found_size == size)
-            newlist = Fcons (XCONS (tem)->car, newlist);
-
+            {
+              newlist = Fcons (XCONS (tem)->car, newlist);
+              n_fonts++;
+              if (n_fonts >= maxnames)
+                break;
+            }
           /* keep track of the closest matching size in case
              no exact match is found.  */
           else if (found_size > 0)
             {
               if (NILP (second_best))
                 second_best = tem;
+                  
               else if (found_size < size)
                 {
                   if (XINT (XCONS (second_best)->cdr) > size
@@ -5877,15 +5965,76 @@ w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
     }
 
   /* Include any bdf fonts.  */
+  if (n_fonts < maxnames)
   {
     Lisp_Object combined[2];
-    combined[0] = w32_list_bdf_fonts (pattern);
+    combined[0] = w32_list_bdf_fonts (pattern, maxnames - n_fonts);
     combined[1] = newlist;
     newlist = Fnconc(2, combined);
   }
 
+  /* If we can't find a font that matches, check if Windows would be
+     able to synthesize it from a different style.  */
+  if (NILP (newlist) && !NILP (Vw32_enable_italics))
+    newlist = w32_list_synthesized_fonts (f, pattern, size, maxnames);
+
   return newlist;
 }
+
+Lisp_Object
+w32_list_synthesized_fonts (f, pattern, size, max_names)
+     FRAME_PTR f;
+     Lisp_Object pattern;
+     int size;
+     int max_names;
+{
+  int fields;
+  char *full_pattn, *new_pattn, foundary[50], family[50], *pattn_part2;
+  char style[20], slant;
+  Lisp_Object matches, match, tem, synthed_matches = Qnil;
+
+  full_pattn = XSTRING (pattern)->data;
+
+  pattn_part2 = alloca (XSTRING (pattern)->size);
+  /* Allow some space for wildcard expansion.  */
+  new_pattn = alloca (XSTRING (pattern)->size + 100);
+
+  fields = sscanf (full_pattn, "-%49[^-]-%49[^-]-%19[^-]-%c-%s",
+                   foundary, family, style, &slant, pattn_part2);
+  if (fields == EOF || fields < 5)
+    return Qnil;
+
+  /* If the style and slant are wildcards already there is no point
+     checking again (and we don't want to keep recursing).  */
+  if (*style == '*' && slant == '*')
+    return Qnil;
+
+  sprintf (new_pattn, "-%s-%s-*-*-%s", foundary, family, pattn_part2);
+
+  matches = w32_list_fonts (f, build_string (new_pattn), size, max_names);
+
+  for ( ; CONSP (matches); matches = XCONS (matches)->cdr)
+    {
+      tem = XCONS (matches)->car;
+      if (!STRINGP (tem))
+        continue;
+
+      full_pattn = XSTRING (tem)->data;
+      fields = sscanf (full_pattn, "-%49[^-]-%49[^-]-%*[^-]-%*c-%s",
+                       foundary, family, pattn_part2);
+      if (fields == EOF || fields < 3)
+        continue;
+
+      sprintf (new_pattn, "-%s-%s-%s-%c-%s", foundary, family, style,
+               slant, pattn_part2);
+
+      synthed_matches = Fcons (build_string (new_pattn),
+                               synthed_matches);
+    }
+
+  return synthed_matches;
+}
+
 
 /* Return a pointer to struct font_info of font FONT_IDX of frame F.  */
 struct font_info *
