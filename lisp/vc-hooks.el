@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.136 2001/12/11 07:35:18 pj Exp $
+;; $Id: vc-hooks.el,v 1.137 2001/12/14 07:58:33 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -544,7 +544,8 @@ Before doing that, check if there are any old backups and get rid of them."
 The value is set in the current buffer, which should be the buffer
 visiting FILE."
   (interactive (list buffer-file-name))
-  (unless (not (vc-backend file))
+  (if (not (vc-backend file))
+      (setq vc-mode nil)
     (setq vc-mode (concat " " (if vc-display-status
 				  (vc-call mode-line-string file)
 				(symbol-name (vc-backend file)))))
@@ -610,6 +611,8 @@ current, and kill the buffer that visits the link."
   "Function for `find-file-hooks' activating VC mode if appropriate."
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
+  (if vc-mode
+      (setq vc-mode nil))
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
     (cond
