@@ -196,42 +196,6 @@ Lisp_Object Vw32_charset_info_alist;
 #define VIETNAMESE_CHARSET 163
 #endif
 
-
-/* Evaluate this expression to rebuild the section of syms_of_w32fns
-   that initializes and staticpros the symbols declared below.  Note
-   that Emacs 18 has a bug that keeps C-x C-e from being able to
-   evaluate this expression.
-
-(progn
-  ;; Accumulate a list of the symbols we want to initialize from the
-  ;; declarations at the top of the file.
-  (goto-char (point-min))
-  (search-forward "/\*&&& symbols declared here &&&*\/\n")
-  (let (symbol-list)
-    (while (looking-at "Lisp_Object \\(Q[a-z_]+\\)")
-      (setq symbol-list
-	    (cons (buffer-substring (match-beginning 1) (match-end 1))
-		  symbol-list))
-      (forward-line 1))
-    (setq symbol-list (nreverse symbol-list))
-    ;; Delete the section of syms_of_... where we initialize the symbols.
-    (search-forward "\n  /\*&&& init symbols here &&&*\/\n")
-    (let ((start (point)))
-      (while (looking-at "^  Q")
-	(forward-line 2))
-      (kill-region start (point)))
-    ;; Write a new symbol initialization section.
-    (while symbol-list
-      (insert (format "  %s = intern (\"" (car symbol-list)))
-      (let ((start (point)))
-	(insert (substring (car symbol-list) 1))
-	(subst-char-in-region start (point) ?_ ?-))
-      (insert (format "\");\n  staticpro (&%s);\n" (car symbol-list)))
-      (setq symbol-list (cdr symbol-list)))))
-
-  */        
-
-/*&&& symbols declared here &&&*/
 Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
 Lisp_Object Qbar;
@@ -264,6 +228,7 @@ Lisp_Object Quser_size;
 Lisp_Object Qscreen_gamma;
 Lisp_Object Qline_spacing;
 Lisp_Object Qcenter;
+Lisp_Object Qcancel_timer;
 Lisp_Object Qhyper;
 Lisp_Object Qsuper;
 Lisp_Object Qmeta;
@@ -2419,6 +2384,8 @@ x_set_font (f, arg, oldval)
     error ("The characters of the given font have varying widths");
   else if (STRINGP (result))
     {
+      if (!NILP (Fequal (result, oldval)))
+        return;
       store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
@@ -2576,6 +2543,10 @@ x_set_tool_bar_lines (f, value, oldval)
 {
   int delta, nlines, root_height;
   Lisp_Object root_window;
+
+  /* Treat tool bars like menu bars.  */
+  if (FRAME_MINIBUF_ONLY_P (f))
+    return;
 
   /* Use VALUE only if an integer >= 0.  */
   if (INTEGERP (value) && XINT (value) >= 0)
@@ -5170,7 +5141,7 @@ This function is an internal primitive--use `make-frame' instead.")
   int minibuffer_only = 0;
   long window_prompting = 0;
   int width, height;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   Lisp_Object display;
   struct w32_display_info *dpyinfo = NULL;
@@ -5427,6 +5398,35 @@ This function is an internal primitive--use `make-frame' instead.")
      f->height.  */
   width = f->width;
   height = f->height;
+
+  /* Add the tool-bar height to the initial frame height so that the
+     user gets a text display area of the size he specified with -g or
+     via .Xdefaults.  Later changes of the tool-bar height don't
+     change the frame size.  This is done so that users can create
+     tall Emacs frames without having to guess how tall the tool-bar
+     will get.  */
+  if (FRAME_TOOL_BAR_LINES (f))
+    {
+      int margin, relief, bar_height;
+      
+      relief = (tool_bar_button_relief > 0
+		? tool_bar_button_relief
+		: DEFAULT_TOOL_BAR_BUTTON_RELIEF);
+
+      if (INTEGERP (Vtool_bar_button_margin)
+	  && XINT (Vtool_bar_button_margin) > 0)
+	margin = XFASTINT (Vtool_bar_button_margin);
+      else if (CONSP (Vtool_bar_button_margin)
+	       && INTEGERP (XCDR (Vtool_bar_button_margin))
+	       && XINT (XCDR (Vtool_bar_button_margin)) > 0)
+	margin = XFASTINT (XCDR (Vtool_bar_button_margin));
+      else
+	margin = 0;
+	  
+      bar_height = DEFAULT_TOOL_BAR_IMAGE_HEIGHT + 2 * margin + 2 * relief;
+      height += (bar_height + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
+    }
+
   f->height = 0;
   SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
@@ -6724,7 +6724,11 @@ static Lisp_Object w32_list_synthesized_fonts (FRAME_PTR f,
    MAXNAMES sets a limit on how many fonts to match.  */
 
 Lisp_Object
-w32_list_fonts (FRAME_PTR f, Lisp_Object pattern, int size, int maxnames )
+w32_list_fonts (f, pattern, size, maxnames)
+     struct frame *f;
+     Lisp_Object pattern;
+     int size;
+     int maxnames;
 {
   Lisp_Object patterns, key = Qnil, tem, tpat;
   Lisp_Object list = Qnil, newlist = Qnil, second_best = Qnil;
@@ -12221,7 +12225,7 @@ show_busy_cursor (timer)
       BLOCK_INPUT;
   
       FOR_EACH_FRAME (rest, frame)
-	if (FRAME_X_P (XFRAME (frame)))
+	if (FRAME_W32_P (XFRAME (frame)))
 	  {
 	    struct frame *f = XFRAME (frame);
 	
@@ -12269,7 +12273,7 @@ hide_busy_cursor ()
 	{
 	  struct frame *f = XFRAME (frame);
       
-	  if (FRAME_X_P (f)
+	  if (FRAME_W32_P (f)
 	      /* Watch out for newly created frames.  */
 	      && f->output_data.x->busy_window)
 	    {
@@ -12342,7 +12346,7 @@ x_create_tip_frame (dpyinfo, parms)
   Lisp_Object name;
   long window_prompting = 0;
   int width, height;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1, gcpro2, gcpro3;
   struct kboard *kb;
 
@@ -12575,7 +12579,7 @@ x_create_tip_frame (dpyinfo, parms)
 #ifdef TODO /* Tooltip support not complete.  */
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
   "Show STRING in a \"tooltip\" window on frame FRAME.\n\
-A tooltip window is a small X window displaying a string.\n\
+A tooltip window is a small window displaying a string.\n\
 \n\
 FRAME nil or omitted means use the selected frame.\n\
 \n\
@@ -12591,7 +12595,7 @@ displayed at the mouse position, with offset DX added (default is 5 if\n\
 DX isn't specified).  Likewise for the y-position; if a `top' frame\n\
 parameter is specified, it determines the y-position of the tooltip\n\
 window, otherwise it is displayed at the mouse position, with offset\n\
-DY added (default is -5).")
+DY added (default is 10).")
   (string, frame, parms, timeout, dx, dy)
      Lisp_Object string, frame, parms, timeout, dx, dy;
 {
@@ -12625,12 +12629,48 @@ DY added (default is -5).")
     CHECK_NUMBER (dx, 5);
   
   if (NILP (dy))
-    dy = make_number (-5);
+    dy = make_number (-10);
   else
     CHECK_NUMBER (dy, 6);
 
+  if (NILP (last_show_tip_args))
+    last_show_tip_args = Fmake_vector (make_number (3), Qnil);
+
+  if (!NILP (tip_frame))
+    {
+      Lisp_Object last_string = AREF (last_show_tip_args, 0);
+      Lisp_Object last_frame = AREF (last_show_tip_args, 1);
+      Lisp_Object last_parms = AREF (last_show_tip_args, 2);
+
+      if (EQ (frame, last_frame)
+	  && !NILP (Fequal (last_string, string))
+	  && !NILP (Fequal (last_parms, parms)))
+	{
+	  struct frame *f = XFRAME (tip_frame);
+	  
+	  /* Only DX and DY have changed.  */
+	  if (!NILP (tip_timer))
+	    {
+	      Lisp_Object timer = tip_timer;
+	      tip_timer = Qnil;
+	      call1 (Qcancel_timer, timer);
+	    }
+
+	  BLOCK_INPUT;
+	  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
+	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		       root_x, root_y - PIXEL_HEIGHT (f));
+	  UNBLOCK_INPUT;
+	  goto start_timer;
+	}
+    }
+
   /* Hide a previous tip, if any.  */
   Fx_hide_tip ();
+
+  ASET (last_show_tip_args, 0, string);
+  ASET (last_show_tip_args, 1, frame);
+  ASET (last_show_tip_args, 2, parms);
 
   /* Add default values to frame parameters.  */
   if (NILP (Fassq (Qname, parms)))
@@ -12655,8 +12695,8 @@ DY added (default is -5).")
      will loose.  I don't think this is a realistic case.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
   w->left = w->top = make_number (0);
-  w->width = 80;
-  w->height = 40;
+  w->width = make_number (80);
+  w->height = make_number (40);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
@@ -12666,7 +12706,7 @@ DY added (default is -5).")
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   Ferase_buffer ();
-  Finsert (make_number (1), &string);
+  Finsert (1, &string);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);
@@ -12706,26 +12746,11 @@ DY added (default is -5).")
   height += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
   width += 2 * FRAME_INTERNAL_BORDER_WIDTH (f);
 
-  /* User-specified position?  */
-  left = Fcdr (Fassq (Qleft, parms));
-  top  = Fcdr (Fassq (Qtop, parms));
-  
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-#if 0 /* TODO : W32 specifics */
-  BLOCK_INPUT;
-  XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
-		 &root, &child, &root_x, &root_y, &win_x, &win_y, &pmask);
-  UNBLOCK_INPUT;
+  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
 
-  root_x += XINT (dx);
-  root_y += XINT (dy);
-  
-  if (INTEGERP (left))
-    root_x = XINT (left);
-  if (INTEGERP (top))
-    root_y = XINT (top);
-  
+#if 0 /* TODO : W32 specifics */
   BLOCK_INPUT;
   XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		     root_x, root_y - height, width, height);
@@ -12741,6 +12766,7 @@ DY added (default is -5).")
   set_buffer_internal_1 (old_buffer);
   windows_or_buffers_changed = old_windows_or_buffers_changed;
 
+ start_timer:
   /* Let the tip disappear after timeout seconds.  */
   tip_timer = call3 (intern ("run-at-time"), timeout, Qnil,
 		     intern ("x-hide-tip"));
@@ -12773,7 +12799,7 @@ Value is t is tooltip was open, nil otherwise.")
   specbind (Qinhibit_quit, Qt);
   
   if (!NILP (timer))
-    call1 (intern ("cancel-timer"), timer);
+    call1 (Qcancel_timer, timer);
 
   if (FRAMEP (frame))
     {
@@ -13432,6 +13458,8 @@ syms_of_w32fns ()
   staticpro (&Qline_spacing);
   Qcenter = intern ("center");
   staticpro (&Qcenter);
+  Qcancel_timer = intern ("cancel-timer");
+  staticpro (&Qcancel_timer);
   /* This is the end of symbol initialization.  */
 
   Qhyper = intern ("hyper");
