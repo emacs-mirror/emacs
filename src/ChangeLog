@@ -1,3 +1,23 @@
+2000-06-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (XTread_socket) <FocusIn>: Queue a FOCUS_IN_EVENT which
+	will be translated to a switch-frame event in when reading the
+	event queue.  This is necessary because Emacs otherwise won't
+	perform a switch-frame to a new frame until some other event, for
+	example a keystroke event, forces it to do so.  This has various
+	effects, one visible being that the cursor of a frame created with
+	C-x 5 2 or switched to with a window manager key binding like
+	A-TAB stays hollow because selected_window isn't on the newly
+	focused frame until the switch-frame is performed.
+
+	* keyboard.c (kbd_buffer_get_event): Handle FOCUS_IN_EVENT by
+	generating a switch-frame event if necessary.
+
+	* termhooks.h (enum event_kind): Add FOCUS_IN_EVENT.
+
+	* xdisp.c (handle_fontified_prop): Don't GCPRO local var `pos';
+	it's an integer.
+
 2000-06-08  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.c (Fset_fontset_font): The arg CHARACTER may be a
