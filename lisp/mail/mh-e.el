@@ -63,7 +63,7 @@
 ;;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.6 1995/04/10 00:19:19 kwzh Exp kwzh $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.7 1995/04/20 23:35:01 kwzh Exp kwzh $")
 
 ;;; Code:
 
@@ -637,7 +637,7 @@ Flush mh-e's state out to MH.  The message at the cursor becomes current."
   (if (get-buffer mh-show-buffer)
       (delete-windows-on mh-show-buffer))
   (setq mh-showing nil)
-  (set-buffer-modified-p (buffer-modified-p)) ;force mode line update
+  (force-mode-line-update)
   (if mh-recenter-summary-p
       (mh-recenter nil)))
 
