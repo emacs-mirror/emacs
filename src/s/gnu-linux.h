@@ -187,3 +187,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X11
 #define LD_SWITCH_SYSTEM -L/usr/X386/lib
 #endif
+
+/* Let's try this out, just in case.  */
+#define SIGNALS_VIA_CHARACTERS
