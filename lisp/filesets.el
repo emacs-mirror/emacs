@@ -1,6 +1,6 @@
 ;;; filesets.el --- handle group of files
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2005  Free Software Foundation, Inc.
 
 ;; Author: Thomas Link <t.link@gmx.at>
 ;; Maintainer: FSF
@@ -304,31 +304,26 @@ key is supported."
   :type 'sexp
   :group 'filesets)
 
-(if filesets-running-xemacs
-    (progn
-      (defcustom filesets-menu-path nil
-	"*The menu under which the filesets menu should be inserted.
-XEmacs specific; see `add-submenu' for documentation."
-	:set (function filesets-set-default)
-	:type 'sexp
-	:group 'filesets)
+(defcustom filesets-menu-path nil
+  "*The menu under which the filesets menu should be inserted.
+See `add-submenu' for documentation."
+  :set (function filesets-set-default)
+  :type 'sexp
+  :group 'filesets)
 
-      (defcustom filesets-menu-before "File"
-	"*The name of a menu before which this menu should be added.
-XEmacs specific; see `add-submenu' for documentation."
-	:set (function filesets-set-default)
-	:type 'sexp
-	:group 'filesets)
+(defcustom filesets-menu-before "File"
+  "*The name of a menu before which this menu should be added.
+See `add-submenu' for documentation."
+  :set (function filesets-set-default)
+  :type 'sexp
+  :group 'filesets)
 
-      (defcustom filesets-menu-in-menu nil
-	"*Use that instead of `current-menubar' as the menu to change.
-XEmacs specific; see `add-submenu' for documentation."
-	:set (function filesets-set-default)
-	:type 'sexp
-	:group 'filesets))
-  (defvar filesets-menu-path nil)
-  (defvar filesets-menu-before nil)
-  (defvar filesets-menu-in-menu nil))
+(defcustom filesets-menu-in-menu nil
+  "*Use that instead of `current-menubar' as the menu to change.
+See `add-submenu' for documentation."
+  :set (function filesets-set-default)
+  :type 'sexp
+  :group 'filesets)
 
 (defcustom filesets-menu-shortcuts-flag t
   "*Non-nil means to prepend menus with hopefully unique shortcuts."
@@ -351,7 +346,7 @@ XEmacs specific; see `add-submenu' for documentation."
 (defcustom filesets-menu-cache-file
   (if filesets-running-xemacs
       "~/.xemacs/filesets-cache.el"
-      "~/.filesets-cache.el")
+      "~/.emacs.d/filesets-cache.el")
   "*File to be used for saving the filesets menu between sessions.
 Set this to \"\", to disable caching of menus.
 Don't forget to check out `filesets-menu-ensure-use-cached'."
@@ -1070,9 +1065,7 @@ defined in `filesets-ingroup-patterns'."
 ;;; Emacs compatibility
 (eval-and-compile
   (if filesets-running-xemacs
-      (progn
-	(fset 'filesets-error 'error)
-	(fset 'filesets-add-submenu 'add-submenu))
+      (fset 'filesets-error 'error)
 
     (require 'easymenu)
 
@@ -1080,12 +1073,6 @@ defined in `filesets-ingroup-patterns'."
       "`error' wrapper."
       (error (mapconcat 'identity args " ")))
 
-    ;; This should work for 21.1 Emacs
-    (defun filesets-add-submenu (menu-path submenu &optional
-					   before in-menu)
-      "`easy-menu-define' wrapper."
-      (easy-menu-define
-	filesets-submenu global-map "Filesets menu" submenu))
     ))
 
 (defun filesets-filter-dir-names (lst &optional negative)
@@ -2339,7 +2326,7 @@ bottom up, set `filesets-submenus' to nil, first.)"
       (filesets-menu-cache-file-save-maybe)))
   (let ((cb (current-buffer)))
     (when (not (member cb filesets-updated-buffers))
-      (filesets-add-submenu
+      (add-submenu
        filesets-menu-path
        `(,filesets-menu-name
 	 ("# Filesets"
