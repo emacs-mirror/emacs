@@ -511,7 +511,7 @@ documentation found."
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Help*")))
 	   (print-help-return-message 'identity))))
-    (if (apropos string t 'commandp)
+    (if (apropos string t 'commandp t)
 	(and message (message message)))))
 
 (defun locate-library (library &optional nosuffix)
