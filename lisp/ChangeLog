@@ -1,3 +1,8 @@
+2002-04-18  Francesco Potorti`  <pot@gnu.org>
+
+	* comint.el (comint-watch-for-password-prompt): Remove whitespace
+	at the beginning of password prompts.
+
 2002-04-18  Andrew Innes  <andrewi@gnu.org>
 
 	* facemenu.el: Remove require of wid-edit.
@@ -10,7 +15,7 @@
 	`ibuffer-visit-buffer'.
 	(ibuffer-current-state-list): Reinstate optional argument; now
 	just call `point' inside the mapping function.
- 
+
 2002-04-17  Francesco Potorti`  <pot@gnu.org>
 
 	* dired-aux.el (dired-star-subst-regexp,
