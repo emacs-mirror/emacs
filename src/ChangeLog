@@ -1,3 +1,7 @@
+2002-02-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* intervals.h: Include "dispextern.h" unconditionally.
+
 2002-02-24  Jason Rumney  <jasonr@gnu.org>
 
 	* Makefile.in (WINNT_SUPPORT) [WINDOWSNT]: Add w32-vars.elc
