@@ -769,6 +769,8 @@ Otherwise returns the library directory name, if that is defined."
 	(if buf (kill-buffer buf)))
       (set-buffer (get-buffer-create " *ispell-tmp*"))
       (erase-buffer)
+      (unless (file-exists-p default-directory)
+	(setq default-directory (expand-file-name "~/")))
       (setq status (call-process
 		    ispell-program-name nil t nil
 		    ;; aspell doesn't accept the -vv switch.
