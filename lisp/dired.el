@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
-;; Version: 5.234
+;; Version: 6
 
 ;; This file is part of GNU Emacs.
 
@@ -33,9 +33,6 @@
 ;;; Code:
 
 ;;; Customizable variables
-
-;;; The funny comments are for autoload.el, to automagically update
-;;; loaddefs.
 
 ;;;###autoload
 (defvar dired-listing-switches "-al"
@@ -160,7 +157,8 @@ This is what the `do' commands look for and what the `mark' commands store.")
 
 (defvar dired-directory nil
   "The directory name or shell wildcard that was used as argument to `ls'.
-Local to each dired buffer.")
+Local to each dired buffer.  May be a list, in which case the car is the
+directory name and the cdr is the actual files to list.")
 
 (defvar dired-actual-switches nil
   "The value of `dired-listing-switches' used to make this buffer's text.")
@@ -327,11 +325,13 @@ Optional second argument ARG forces to use other files.  If ARG is an
 Optional second argument SWITCHES specifies the `ls' options used.
 \(Interactively, use a prefix argument to be able to specify SWITCHES.)
 Dired displays a list of files in DIRNAME (which may also have
-  shell wildcards appended to select certain files).
+shell wildcards appended to select certain files).  If DIRNAME is a cons,
+its first element is taken as the directory name and the resr as an explicit
+list of files to make directory entries for.
 \\<dired-mode-map>\
 You can move around in it with the usual commands.
-You can flag files for deletion with \\[dired-flag-file-deletion] and then delete them by
-  typing \\[dired-do-flagged-delete].
+You can flag files for deletion with \\[dired-flag-file-deletion] and then
+delete them by typing \\[dired-do-flagged-delete].
 Type \\[describe-mode] after entering dired for more info.
 
 If DIRNAME is already in a dired buffer, that buffer is used without refresh."
@@ -347,18 +347,25 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (switch-to-buffer-other-window (dired-noselect dirname switches)))
 
 ;;;###autoload
-(defun dired-noselect (dirname &optional switches)
+(defun dired-noselect (dir-or-list &optional switches)
   "Like `dired' but returns the dired buffer as value, does not select it."
-  (or dirname (setq dirname default-directory))
+  (or dir-or-list (setq dir-or-list default-directory))
   ;; This loses the distinction between "/foo/*/" and "/foo/*" that
   ;; some shells make:
-  (setq dirname (expand-file-name (directory-file-name dirname)))
-  (if (file-directory-p dirname)
-      (setq dirname (file-name-as-directory dirname)))
-  (dired-internal-noselect dirname switches))
+  (let (dirname)
+    (if (consp dir-or-list)
+	(setq dirname (car dir-or-list))
+      (setq dirname dir-or-list))
+    (setq dirname (expand-file-name (directory-file-name dirname)))
+    (if (file-directory-p dirname)
+	(setq dirname (file-name-as-directory dirname)))
+    (if (consp dir-or-list)
+	(setq dir-or-list (cons dirname (cdr dir-or-list)))
+      (setq dir-or-list dirname))
+    (dired-internal-noselect dir-or-list switches)))
 
 ;; Separate function from dired-noselect for the sake of dired-vms.el.
-(defun dired-internal-noselect (dirname &optional switches)
+(defun dired-internal-noselect (dir-or-list &optional switches)
   ;; If there is an existing dired buffer for DIRNAME, just leave
   ;; buffer as it is (don't even call dired-revert).
   ;; This saves time especially for deep trees or with ange-ftp.
@@ -368,7 +375,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; revert the buffer.
   ;; A pity we can't possibly do "Directory has changed - refresh? "
   ;; like find-file does.
-  (let* ((buffer (dired-find-buffer-nocreate dirname))
+  (let* ((dirname (if (consp dir-or-list) (car dir-or-list) dir-or-list))
+	 (buffer (dired-find-buffer-nocreate dir-or-list))
 	 ;; note that buffer already is in dired-mode, if found
 	 (new-buffer-p (not buffer))
 	 (old-buf (current-buffer)))
@@ -392,7 +400,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       ;; (buffer-local), so we can call dired-readin:
       (let ((failed t))
 	(unwind-protect
-	    (progn (dired-readin dirname buffer)
+	    (progn (dired-readin dir-or-list buffer)
 		   (setq failed nil))
 	  ;; dired-readin can fail if parent directories are inaccessible.
 	  ;; Don't leave an empty buffer around in that case.
@@ -427,7 +435,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 ;; dired-readin differs from dired-insert-subdir in that it accepts
 ;; wildcards, erases the buffer, and builds the subdir-alist anew
 ;; (including making it buffer-local and clearing it first).
-(defun dired-readin (dirname buffer)
+(defun dired-readin (dir-or-list buffer)
   ;; default-directory and dired-actual-switches must be buffer-local
   ;; and initialized by now.
   ;; Thus we can test (equal default-directory dirname) instead of
@@ -435,44 +443,67 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; Also, we can run this hook which may want to modify the switches
   ;; based on default-directory, e.g. with ange-ftp to a SysV host
   ;; where ls won't understand -Al switches.
-  (setq dirname (expand-file-name dirname))
-  (run-hooks 'dired-before-readin-hook)
-  (save-excursion
-    (message "Reading directory %s..." dirname)
-    (set-buffer buffer)
-    (let (buffer-read-only (failed t))
-      (widen)
-      (erase-buffer)
-      (dired-readin-insert dirname)
-      (indent-rigidly (point-min) (point-max) 2)
-      ;; We need this to make the root dir have a header line as all
-      ;; other subdirs have:
-      (goto-char (point-min))
-      (dired-insert-headerline default-directory)
-      ;; can't run dired-after-readin-hook here, it may depend on the subdir
-      ;; alist to be OK.
-      )
-    (message "Reading directory %s...done" dirname)
-    (set-buffer-modified-p nil)
-    ;; Must first make alist buffer local and set it to nil because
-    ;; dired-build-subdir-alist will call dired-clear-alist first
-    (set (make-local-variable 'dired-subdir-alist) nil)
-    (dired-build-subdir-alist)))
+  (let (dirname)
+    (if (consp dir-or-list)
+	(setq dirname (car dir-or-list))
+      (setq dirname dir-or-list))
+    (setq dirname (expand-file-name dirname))
+    (if (consp dir-or-list)
+	(setq dir-or-list (cons dirname (cdr dir-or-list))))
+    (run-hooks 'dired-before-readin-hook)
+    (save-excursion
+      (message "Reading directory %s..." dirname)
+      (set-buffer buffer)
+      (let (buffer-read-only (failed t))
+	(widen)
+	(erase-buffer)
+	(dired-readin-insert dir-or-list)
+	(indent-rigidly (point-min) (point-max) 2)
+	;; We need this to make the root dir have a header line as all
+	;; other subdirs have:
+	(goto-char (point-min))
+	(dired-insert-headerline default-directory)
+	;; can't run dired-after-readin-hook here, it may depend on the subdir
+	;; alist to be OK.
+	)
+      (message "Reading directory %s...done" dirname)
+      (set-buffer-modified-p nil)
+      ;; Must first make alist buffer local and set it to nil because
+      ;; dired-build-subdir-alist will call dired-clear-alist first
+      (set (make-local-variable 'dired-subdir-alist) nil)
+      (dired-build-subdir-alist))))
 
 ;; Subroutines of dired-readin
 
-(defun dired-readin-insert (dirname)
-  ;; Just insert listing for DIRNAME, assuming a clean buffer.
-  (if (equal default-directory dirname);; i.e., (file-directory-p dirname)
-      (insert-directory dirname dired-actual-switches nil t)
-    (if (not (file-readable-p
-	      (directory-file-name (file-name-directory dirname))))
-	(error "Directory %s inaccessible or nonexistent" dirname)
-      ;; else assume it contains wildcards:
-      (insert-directory dirname dired-actual-switches t)
-      (save-excursion;; insert wildcard instead of total line:
-	(goto-char (point-min))
-	(insert "wildcard " (file-name-nondirectory dirname) "\n")))))
+(defun dired-readin-insert (dir-or-list)
+  ;; Just insert listing for the passed-in directory or
+  ;; directory-and-file list, assuming a clean buffer.
+  (let (dirname)
+    (if (consp dir-or-list)
+	(setq dirname (car dir-or-list))
+      (setq dirname dir-or-list))
+    (if (equal default-directory dirname)	;; i.e., (file-directory-p dirname)
+	(dired-insert-directory dir-or-list dired-actual-switches nil t)
+      (if (not (file-readable-p
+		(directory-file-name (file-name-directory dirname))))
+	  (error "Directory %s inaccessible or nonexistent" dirname)
+	;; else assume it contains wildcards:
+	(dired-insert-directory dir-or-list dired-actual-switches t)
+	(save-excursion		;; insert wildcard instead of total line:
+	  (goto-char (point-min))
+	  (insert "wildcard " (file-name-nondirectory dirname) "\n"))))))
+
+(defun dired-insert-directory (dir-or-list switches &optional wildcard full-p)
+  ;; Do the right thing whether dir-or-list is atomic or not.  If it is,
+  ;; inset all files listed in the cdr (the car is the passed-in directory
+  ;; list.
+  (if (consp dir-or-list)
+      (progn
+      (mapcar
+       (function (lambda (x) (insert-directory x switches wildcard full-p)))
+       (cdr dir-or-list)))
+    (insert-directory dir-or-list switches wildcard full-p))
+  (setq dired-directory dir-or-list))
 
 (defun dired-insert-headerline (dir);; also used by dired-insert-subdir
   ;; Insert DIR's headerline with no trailing slash, exactly like ls
@@ -500,7 +531,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (setq mark-alist;; only after dired-remember-hidden since this unhides:
 	  (dired-remember-marks (point-min) (point-max)))
     ;; treat top level dir extra (it may contain wildcards)
-    (dired-uncache dired-directory)
+    (dired-uncache
+     (if (consp dired-directory) (car dired-directory) dired-directory))
     (dired-readin dired-directory (current-buffer))
     (let ((dired-after-readin-hook nil))
       ;; don't run that hook for each subdir...
@@ -853,7 +885,8 @@ Creates a buffer if necessary."
 	(and (cdr dired-subdir-alist)
 	     (dired-goto-subdir up))
 	(progn
-	  (dired up)
+	  (dired 
+up)
 	  (dired-goto-file dir)))))
 
 (defun dired-find-file ()
