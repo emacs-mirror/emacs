@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.33) $
+ * $HopeName: MMsrc!pool.c(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.33) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.34) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -410,58 +410,6 @@ Arena (PoolArena)(Pool pool)
 }
 
 
-/* PoolSegAlloc -- allocate a segment in a pool
- *
- * @@@@ There's no need for this routine.  The segment could be
- * attached in SegInit.
- */
-
-Res PoolSegAlloc(Seg *segReturn, SegPref pref, Pool pool, Size size)
-{
-  Res res;
-  Seg seg;
-  Arena arena;
-
-  AVER(segReturn != NULL);
-  AVERT(Pool, pool);
-  AVERT(SegPref, pref);
-  arena = PoolArena(pool);
-  AVER(SizeIsAligned(size, ArenaAlign(arena)));
-
-  res = SegAlloc(&seg, pref, arena, size, pool);
-  if(res != ResOK) return res;
-
-  RingAppend(&pool->segRing, SegPoolRing(seg));
-
-  *segReturn = seg;
-  return ResOK;
-}
-
-
-/* PoolSegFree -- free a segment from a pool
- *
- * @@@@ There's no need for this routine.  The segment could be
- * detached in SegFinish.
- */
-
-void PoolSegFree(Pool pool, Seg seg)
-{
-  Arena arena;
-
-  AVERT(Pool, pool);
-  AVERT(Seg, seg);
-  AVER(SegPool(seg) == pool);
-
-  arena = PoolArena(pool);
-
-  ShieldFlush(arena); /* See impl.c.shield.shield.flush */
-
-  RingRemove(SegPoolRing(seg));
-
-  SegFree(arena, seg);
-}
-
-
 Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
 {
   Seg seg;
@@ -700,16 +648,8 @@ void PoolTrivGrey(Pool pool, Trace trace, Seg seg)
 
   /* @@@@ The trivial grey method probably shouldn't exclude */
   /* the white segments, since they might also contain grey objects. */
-  /* It's probably also the Tracer's responsibility to raise the */
-  /* shield. */
-  /* @@@@ This should be calculated by comparing colour */
-  /* with the mutator colour.  For the moment we assume */
-  /* a read-barrier collector. */
-
-  if(!TraceSetIsMember(SegWhite(seg), trace->ti)) {
-    SegGrey(seg) = TraceSetAdd(SegGrey(seg), trace->ti);
-    ShieldRaise(trace->arena, seg, AccessREAD);
-  }
+  if(!TraceSetIsMember(SegWhite(seg), trace->ti))
+    SegSetGrey(seg, TraceSetSingle(trace->ti));
 }
 
 Res PoolNoScan(ScanState ss, Pool pool, Seg seg)

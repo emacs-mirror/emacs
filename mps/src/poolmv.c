@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.21) $
+ * $HopeName: MMsrc!poolmv.c(trunk.22) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -37,7 +37,7 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.21) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.22) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -131,8 +131,8 @@ static Bool MVSpanCheck(MVSpan span)
   /* This is just defined this way.  It shouldn't change. */
   CHECKL(span->limit.next == NULL);
   /* The sentinels should mark the ends of the segment. */
-  CHECKL(span->base.base == SegBase(PoolSpace(MVPool(span->mv)), span->seg));
-  CHECKL(span->limit.limit == SegLimit(PoolSpace(MVPool(span->mv)), span->seg));
+  CHECKL(span->base.base == SegBase(PoolArena(MVPool(span->mv)), span->seg));
+  CHECKL(span->limit.limit == SegLimit(PoolArena(MVPool(span->mv)), span->seg));
   /* The sentinels mustn't overlap. */
   CHECKL(span->base.limit <= span->limit.base);
   /* The remaining space can't be more than the gap between the sentinels. */
@@ -145,7 +145,7 @@ static Res MVInit(Pool pool, va_list arg)
 {
   Size extendBy, avgSize, maxSize, blockExtendBy, spanExtendBy;
   MV mv;
-  Space space;
+  Arena arena;
   Res res;
 
   extendBy = va_arg(arg, Size);
@@ -159,7 +159,7 @@ static Res MVInit(Pool pool, va_list arg)
   AVER(extendBy <= maxSize);
 
   mv = PoolPoolMV(pool);
-  space = PoolSpace(pool);
+  arena = PoolArena(pool);
 
   /* At 100% fragmentation we will need one block descriptor for every other */
   /* allocated block, or (extendBy/avgSize)/2 descriptors.  See note 1. */
@@ -169,7 +169,7 @@ static Res MVInit(Pool pool, va_list arg)
   }
 
   res = PoolInit(&mv->blockPoolStruct.poolStruct, 
-                 space, PoolClassMFS(), 
+                 arena, PoolClassMFS(), 
                  blockExtendBy, sizeof(MVBlockStruct));
   if(res != ResOK)
     return res;
@@ -177,7 +177,7 @@ static Res MVInit(Pool pool, va_list arg)
   spanExtendBy = sizeof(MVSpanStruct) * (maxSize/extendBy);
 
   res = PoolInit(&mv->spanPoolStruct.poolStruct, 
-                 space, PoolClassMFS(),
+                 arena, PoolClassMFS(),
                  spanExtendBy, sizeof(MVSpanStruct));
   if(res != ResOK)
     return res;
@@ -213,7 +213,7 @@ static void MVFinish(Pool pool)
   RING_FOR(node, spans) {
     span = RING_ELT(MVSpan, spans, node);
     AVERT(MVSpan, span);
-    PoolSegFree(pool, span->seg);
+    SegFree(PoolArena(pool), span->seg);
   }
 
   mv->sig = SigInvalid;
@@ -370,7 +370,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
 {
   Res res;
   MVSpan span;
-  Space space;
+  Arena arena;
   MV mv;
   Size segSize;
   Ring spans, node = NULL; /* gcc whinge stop */
@@ -414,13 +414,13 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   else
     segSize = size;
 
-  space = PoolSpace(pool);
-  segSize = SizeAlignUp(segSize, ArenaAlign(space));
+  arena = PoolArena(pool);
+  segSize = SizeAlignUp(segSize, ArenaAlign(arena));
 
-  res = PoolSegAlloc(&span->seg, SegPrefDefault(), pool, segSize);
+  res = SegAlloc(&span->seg, SegPrefDefault(), arena, segSize, pool);
   if(res != ResOK) { /* try again with a segment big enough for this object */
-    segSize = SizeAlignUp(size, ArenaAlign(space));
-    res = PoolSegAlloc(&span->seg, SegPrefDefault(), pool, segSize);
+    segSize = SizeAlignUp(size, ArenaAlign(arena));
+    res = SegAlloc(&span->seg, SegPrefDefault(), arena, segSize, pool);
     if (res != ResOK) {
       PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
       return res;
@@ -430,8 +430,8 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size)
   span->mv = mv;
   SegSetP(span->seg, (void *)span);
   RingInit(&span->spans);
-  span->base.base = span->base.limit = SegBase(space, span->seg);
-  span->limit.base = span->limit.limit = SegLimit(space, span->seg);
+  span->base.base = span->base.limit = SegBase(arena, span->seg);
+  span->limit.base = span->limit.limit = SegLimit(arena, span->seg);
   span->space = AddrOffset(span->base.limit, span->limit.base);
   span->limit.next = NULL;
   span->base.next = &span->limit;
@@ -474,7 +474,7 @@ static void MVFree(Pool pool, Addr old, Size size)
 
   /* Map the pointer onto the segment which contains it, and thence */
   /* onto the span. */
-  b = SegOfAddr(&seg, PoolSpace(pool), old);
+  b = SegOfAddr(&seg, PoolArena(pool), old);
   AVER(b);
   span = (MVSpan)SegP(seg);
   AVERT(MVSpan, span);
@@ -497,7 +497,7 @@ static void MVFree(Pool pool, Addr old, Size size)
     /* both blocks are the trivial sentinel blocks */
     AVER(span->base.limit == span->base.base);
     AVER(span->limit.limit == span->limit.base);
-    PoolSegFree(pool, span->seg);
+    SegFree(PoolArena(pool), span->seg);
     RingRemove(&span->spans);
     PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
   }
@@ -675,7 +675,7 @@ size_t mps_mv_size(mps_pool_t mps_pool)
   Pool pool;
   MV mv;
   MVSpan span;
-  Space space;
+  Arena arena;
   Size f = 0;
   Ring spans, node = NULL; /* gcc whinge stop */
 
@@ -684,13 +684,13 @@ size_t mps_mv_size(mps_pool_t mps_pool)
   AVERT(Pool, pool);
   mv = PoolPoolMV(pool);
   AVERT(MV, mv);
-  space = PoolSpace(pool);
+  arena = PoolArena(pool);
 
   spans = &mv->spans;
   RING_FOR(node, spans) {
   span = RING_ELT(MVSpan, spans, node);
     AVERT(MVSpan, span);
-    f += SegSize(space, span->seg);
+    f += SegSize(arena, span->seg);
   }
 
   return (size_t)f;

@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.3) $
+ * $HopeName: MMsrc!eventdef.h(trunk.4) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
@@ -77,7 +77,7 @@ RELATION(PoolFree                        , 0x0018, TRUE, Object, PAW)
 RELATION(TraceStart                      , 0x001c, TRUE, Trace, PPP)
 RELATION(TraceCreate                     , 0x001d, TRUE, Trace, PPPU)
 RELATION(TraceDestroy                    , 0x001e, TRUE, Trace, P)
-RELATION(TraceSegGreyen                  , 0x001f, TRUE, Seg, PPU)
+RELATION(SegSetGrey                      , 0x001f, TRUE, Seg, PPU)
 RELATION(TraceFlipBegin                  , 0x0020, TRUE, Trace, PP)
 RELATION(TraceFlipEnd                    , 0x0021, TRUE, Trace, PP)
 RELATION(TraceReclaim                    , 0x0022, TRUE, Seg, P)

@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.13) $
+ * $HopeName: MMsrc!poolawl.c(trunk.14) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.13) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.14) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -81,7 +81,7 @@ static void AWLGroupDestroy(AWLGroup group)
   segGrains = SegSize(arena, seg) >> awl->alignShift;
   AVER(segGrains == group->grains);
   tableSize = BTSize(segGrains);
-  PoolSegFree(pool, seg);
+  SegFree(arena, seg);
   ArenaFree(arena, group->alloc, tableSize);
   ArenaFree(arena, group->scanned, tableSize);
   ArenaFree(arena, group->mark, tableSize);
@@ -118,7 +118,7 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   if(size == 0) {
     return ResMEMORY;
   }
-  res = PoolSegAlloc(&seg, SegPrefDefault(), pool, size);
+  res = SegAlloc(&seg, SegPrefDefault(), arena, size, pool);
   if(res != ResOK)
     goto failSegAlloc;
   res = ArenaAlloc(&v, arena, sizeof *group);
@@ -143,8 +143,8 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   BTResRange(group->mark, 0, bits);
   BTResRange(group->scanned, 0, bits);
   BTResRange(group->alloc, 0, bits);
-  SegSetSummary(seg, RefSetUNIV);
   SegSetRankSet(seg, BufferRankSet(buffer));
+  SegSetSummary(seg, RefSetUNIV);
   SegSetP(seg, group);
   group->seg = seg;
   group->sig = AWLGroupSig;
@@ -159,7 +159,7 @@ failArenaAllocScanned:
 failArenaAllocMark:
   ArenaFree(arena, group, sizeof *group);
 failArenaAlloc0:
-  PoolSegFree(pool, seg);
+  SegFree(arena, seg);
 failSegAlloc:
   return res;
 }
@@ -379,7 +379,6 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     AVERT(AWLGroup, group);
 
     SegSetGrey(seg, TraceSetAdd(SegGrey(seg), trace->ti));
-    ShieldRaise(trace->arena, seg, AccessREAD);
     BTSetRange(group->mark, 0, group->grains);
     BTResRange(group->scanned, 0, group->grains);
   }
@@ -483,7 +482,7 @@ notFinished:
 	b = SegOfAddr(&dependentSeg, arena, dependentObj);
 	if(b == TRUE) {
 	  ShieldExpose(arena, dependentSeg);
-	  TraceSetSummary(arena, dependentSeg, RefSetUNIV);
+          SegSetSummary(dependentSeg, RefSetUNIV);
 	} else {
 	  dependent = FALSE;
 	}
@@ -550,7 +549,7 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 	*refIO = (Ref)0;
       } else {
 	BTSet(group->mark, i);
-	TraceSegGreyen(arena, seg, ss->traces);
+        SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
       }
     }
     break;

@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.2) $
+ * $HopeName: MMsrc!arena.c(trunk.3) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -38,7 +38,7 @@
 #include "mpm.h"
 
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.2) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.3) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -86,6 +86,7 @@ Bool ArenaCheck(Arena arena)
   Index i;
   Size depth;
   RefSet rs;
+  Rank rank;
 
   /* we check the fields in order. We can't yet check the serials,
    * pollThreshold, actionInterval, or epoch.  nickb 1997-07-21 */
@@ -163,6 +164,9 @@ Bool ArenaCheck(Arena arena)
   CHECKD(Lock, &arenaRingLock);
   /* can't check arenaSerial */
   
+  for(rank = 0; rank < RankMAX; ++rank)
+    CHECKL(RingCheck(&arena->greyRing[rank]));
+
   return TRUE;
 }
 
@@ -177,6 +181,7 @@ Bool ArenaCheck(Arena arena)
 void ArenaInit(Arena arena, ArenaClass class)
 {
   Index i;
+  Rank rank;
 
   /* We do not check the arena argument, because it's _supposed_ to */
   /* point to an uninitialized block of memory. */
@@ -214,6 +219,8 @@ void ArenaInit(Arena arena, ArenaClass class)
   arena->alignment = MPS_PF_ALIGN;	/* usually overridden by init */
   arena->zoneShift = ARENA_ZONESHIFT;	/* usually overridden by init */
   arena->poolReady = FALSE;     /* design.mps.arena.pool.ready */
+  for(rank = 0; rank < RankMAX; ++rank)
+    RingInit(&arena->greyRing[rank]);
 
   arena->sig = ArenaSig;
   arena->serial = arenaSerial;  /* design.mps.arena.static.serial */
@@ -286,6 +293,8 @@ failInit:
 
 void ArenaFinish(Arena arena)
 {
+  Rank rank;
+
   arena->sig = SigInvalid;
   LockFinish(&arena->lockStruct);
   RingFinish(&arena->poolRing);
@@ -293,6 +302,8 @@ void ArenaFinish(Arena arena)
   RingFinish(&arena->rootRing);
   RingFinish(&arena->threadRing);
   RingFinish(&arena->globalRing);
+  for(rank = 0; rank < RankMAX; ++rank)
+    RingFinish(&arena->greyRing[rank]);
 }
 
 
@@ -578,6 +589,8 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
     res = ThreadDescribe(thread, stream);
     if(res != ResOK) return res;
   }
+
+  /* @@@@ What about grey rings? */
 
   res = WriteF(stream,
                "} Arena $P ($U)\n", (WriteFP)arena, (WriteFU)arena->serial,
