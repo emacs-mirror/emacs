@@ -1262,6 +1262,7 @@ extern Lisp_Object Fget_buffer (), Fget_buffer_create (), Fset_buffer ();
 extern Lisp_Object Fbarf_if_buffer_read_only ();
 extern Lisp_Object Fcurrent_buffer (), Fswitch_to_buffer (), Fpop_to_buffer ();
 extern Lisp_Object Fother_buffer ();
+extern Lisp_Object Foverlay_get ();
 extern Lisp_Object Qoverlayp;
 extern struct buffer *all_buffers;
 
@@ -1390,6 +1391,7 @@ extern int inhibit_window_system;
 /* defined in process.c */
 extern Lisp_Object Fget_process (), Fget_buffer_process (), Fprocessp ();
 extern Lisp_Object Fprocess_status (), Fkill_process ();
+extern Lisp_Object Fprocess_send_eof ();
 
 /* defined in callproc.c */
 extern Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
