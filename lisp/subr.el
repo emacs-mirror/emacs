@@ -1480,8 +1480,8 @@ If NOEXCLUDE is present and non-nil, the normal removal of the
  if FUNCTION adjusts point before or after inserting the object.
 If UNDO is present and non-nil, it is a function that will be called
  by `yank-pop' to undo the insertion of the current object.  It is
- called with two arguments 
- FUNCTION may set `yank-undo-function' to override this.
+ called with two arguments, the start and end of the current region. 
+ FUNCTION may set `yank-undo-function' to override the UNDO value.
 If COMMAND is present and non-nil, `this-command' is set to COMMAND
  after calling FUNCTION (or insert).  Note that setting `this-command'
  to a value different from `yank' will prevent `yank-pop' from undoing
