@@ -1261,11 +1261,11 @@ update_menu_bar (f, save_match_data)
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
 	  current_buffer = XBUFFER (w->buffer);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
-	  current_buffer = prev;
 #ifdef USE_X_TOOLKIT
 	  set_frame_menubar (f, 0);
 #endif /* USE_X_TOOLKIT */
 
+	  current_buffer = prev;
 	  unbind_to (count, Qnil);
 	}
     }
