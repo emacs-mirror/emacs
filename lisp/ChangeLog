@@ -1,5 +1,7 @@
 2000-12-09  Miles Bader  <miles@gnu.org>
 
+	* minibuf-eldef.el: New file.
+
 	* window.el (fit-window-to-buffer): Don't pass last argument to
 	pos-visible-in-window-p, now that its meaning is inverted.
 
