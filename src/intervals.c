@@ -1475,9 +1475,9 @@ verify_interval_modification (buf, start, end)
 
       /* Run both insert hooks (just once if they're the same).  */
       if (!NULL_INTERVAL_P (prev))
-	prev_mod_hooks = textget (prev->plist, Qinsert_after_hooks);
+	prev_mod_hooks = textget (prev->plist, Qinsert_behind_hooks);
       if (!NULL_INTERVAL_P (i))
-	mod_hooks = textget (i->plist, Qinsert_before_hooks);
+	mod_hooks = textget (i->plist, Qinsert_in_front_hooks);
       GCPRO1 (mod_hooks);
       if (! NILP (prev_mod_hooks))
 	call_mod_hooks (prev_mod_hooks, make_number (start),
