@@ -1,5 +1,7 @@
 2000-09-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* files.el (auto-mode-alist): Add pattern for `#*mail*...'.
+
 	* emacs-lisp/authors.el (authors-obsolete-file-p): New function.
 	(authors-obsolete-files-regexps): New variable.
 	(authors-add): Don't record changes in obsolete files.

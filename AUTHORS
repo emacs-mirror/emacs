@@ -54,15 +54,10 @@ Anders Lindgren (wrote) cwarn.el
 Anders Lindgren (wrote) follow.el
 Andre Spiegel (changed) dired.el
 Andre Spiegel (changed) files.el
-Andre Spiegel (changed) spec.txt
 Andre Spiegel (changed) startup.el
-Andre Spiegel (changed) vc-*.el
-Andre Spiegel (changed) vc-cvs-hooks.el
 Andre Spiegel (changed) vc-cvs.el
 Andre Spiegel (changed) vc-hooks.el
-Andre Spiegel (changed) vc-rcs-hooks.el
 Andre Spiegel (changed) vc-rcs.el
-Andre Spiegel (changed) vc-sccs-hooks.el
 Andre Spiegel (changed) vc-sccs.el
 Andre Spiegel (changed) vc.el
 Andrea Arcangeli (changed) message.el
@@ -123,7 +118,7 @@ Bill Richter (changed) quail.el
 Bill Rosenblatt (wrote) float.el
 Bill Rozas (changed) xscheme.el
 Bill Rozas (wrote) scheme.el
-Bj,Av(Brn Torkelsson (changed) rfc2047.el
+Björn Torkelsson (changed) rfc2047.el
 Boaz Ben-Zvi (wrote) profile.el
 Bob Glickstein (changed) sendmail.el
 Bob Glickstein (wrote) sregex.el
@@ -302,7 +297,7 @@ David J. Mackenzie (changed) [more than 20 files]
 David Kegedal (changed) sendmail.el
 David K}Gedal (changed) sendmail.el
 David K}Gedal (wrote) tempo.el
-David K$BiH(Bedal (changed) xmenu.c
+David Kågedal (changed) xmenu.c
 David Lawrence (changed) [more than 20 files]
 David M Smith (changed) ielm.el
 David M. Koppelman (wrote) hi-lock.el
@@ -516,16 +511,16 @@ Francisco Solsona (changed) message.el
 Francois Felix Ingrand (changed) gnus-salt.el
 Francois Felix Ingrand (changed) gnus-start.el
 Frank Bennett (changed) nnmail.el
-Fran$BmP(Bis Pinard (changed) allout.el
-Fran$BmP(Bis Pinard (changed) bytecomp.el
-Fran$BmP(Bis Pinard (changed) gnus
-Fran$BmP(Bis Pinard (changed) gnus-sum.el
-Fran$BmP(Bis Pinard (changed) gnus-util.el
-Fran$BmP(Bis Pinard (changed) gnus-uu.el
-Fran$BmP(Bis Pinard (changed) nndoc.el
-Fran$BmP(Bis Pinard (changed) nnmail.el
-Fran$BmP(Bis Pinard (changed) rmailsum.el
-Fran$BmP(Bis Pinard (changed) timezone.el
+François Pinard (changed) allout.el
+François Pinard (changed) bytecomp.el
+François Pinard (changed) gnus
+François Pinard (changed) gnus-sum.el
+François Pinard (changed) gnus-util.el
+François Pinard (changed) gnus-uu.el
+François Pinard (changed) nndoc.el
+François Pinard (changed) nnmail.el
+François Pinard (changed) rmailsum.el
+François Pinard (changed) timezone.el
 Fred Fish (changed) linux.h
 Fred Oberhauser (changed) nnmail.el
 Frederic Lepied (changed) gnus.el
@@ -833,10 +828,10 @@ K. Shane Hartman (wrote) helper.el
 K. Shane Hartman (wrote) picture.el
 K. Shane Hartman (wrote) view.el
 Kai Grossjohann (changed) nnheader.el
-Kai Gro,A_(Bjohann (changed) gnus-cus.el
-Kai Gro,A_(Bjohann (changed) gnus-sum.el
-Kai Gro,A_(Bjohann (changed) gnus-util.el
-Kai Gro,A_(Bjohann (changed) nnmail.el
+Kai Großjohann (changed) gnus-cus.el
+Kai Großjohann (changed) gnus-sum.el
+Kai Großjohann (changed) gnus-util.el
+Kai Großjohann (changed) nnmail.el
 Kai.Grossjohann@Cs.Uni-Dortmund.De (changed) nnimap.el
 Karl Berry (changed) compile.el
 Karl Berry (changed) dired.c
@@ -1154,12 +1149,9 @@ Martin Buchholz (changed) etags.c
 Martin Larose (changed) message.el
 Martin Lorentzon (changed) vc-hooks.el
 Martin Lorentzon (changed) vc.el
-Martin Lorentzson (changed) vc-cvs-hooks.el
 Martin Lorentzson (changed) vc-cvs.el
 Martin Lorentzson (changed) vc-hooks.el
-Martin Lorentzson (changed) vc-rcs-hooks.el
 Martin Lorentzson (changed) vc-rcs.el
-Martin Lorentzson (changed) vc-sccs-hooks.el
 Martin Lorentzson (changed) vc-sccs.el
 Martin Lorentzson (changed) vc.el
 Martin Stjernholm (changed) [more than 20 files]
