@@ -315,16 +315,16 @@ the region, and the START and END of each region."
 INTERNAL-ANN may be a string, for a flag, or a list of the form (PARAM VALUE).
 If POSITIVE is non-nil, this is the opening annotation;
 if nil, the matching close."
-  (cond ((stringp name)
-	 (format enriched-annotation-format (if positive "" "/") name))
+  (cond ((stringp internal-ann)
+	 (format enriched-annotation-format (if positive "" "/") internal-ann))
 	;; Otherwise it is an annotation with parameters, represented as a list
 	(positive
-	 (let ((item (car name))
-	       (params (cdr name)))
+	 (let ((item (car internal-ann))
+	       (params (cdr internal-ann)))
 	   (concat (format enriched-annotation-format "" item)
 		   (mapconcat (lambda (i) (concat "<param>" i "</param>"))
 			      params ""))))
-	(t (format enriched-annotation-format "/" (car name)))))
+	(t (format enriched-annotation-format "/" (car internal-ann)))))
 
 (defun enriched-encode-other-face (old new)
   "Generate annotations for random face change.
@@ -465,9 +465,8 @@ has the form `(ANNOTATION PARAM ...)'."
   (let ((annotation "x-display")
 	(param (prin1-to-string (or old new))))
     (if (null old)
-	(list nil (list annotation param))
-      (list (list annotation param)))))
-
+        (cons nil (list (list annotation param)))
+      (cons (list (list annotation param)) nil))))
 
 (defun enriched-decode-display-prop (start end &optional param)
   "Decode a `display' property for text between START and END.
