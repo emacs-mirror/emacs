@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000
+   Copyright (C) 1985,86,87,89,93,94,95,96,97,98, 1999, 2000, 2001
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1358,7 +1358,10 @@ If an argument is given, it specifies a time to convert to float\n\
 instead of the current time.  The argument should have the forms:\n\
  (HIGH . LOW) or (HIGH LOW USEC) or (HIGH LOW . USEC).\n\
 Thus, you can use times obtained from `current-time'\n\
-and from `file-attributes'.")
+and from `file-attributes'.\n\
+\n\
+WARNING: Since the result is floating point, it may not be exact.\n\
+Do not use this function if precise time stamps are required.")
   (specified_time)
      Lisp_Object specified_time;
 {
@@ -1368,7 +1371,7 @@ and from `file-attributes'.")
   if (! lisp_time_argument (specified_time, &sec, &usec))
     error ("Invalid time specification");
 
-  return make_float (sec + usec * 0.0000001);
+  return make_float ((sec * 1e6 + usec) / 1e6);
 }
 
 /* Write information into buffer S of size MAXSIZE, according to the
