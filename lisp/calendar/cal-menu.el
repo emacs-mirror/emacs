@@ -36,8 +36,10 @@
 
 ;;; Code:
 
-(define-key calendar-mode-map [mouse-2] 'calendar-mouse-2-date-menu)
-(define-key calendar-mode-map [mouse-3] 'calendar-mouse-3-date-menu)
+(define-key calendar-mode-map [down-mouse-2] 'calendar-mouse-2-date-menu)
+
+(defvar calendar-mouse-3-map (make-sparse-keymap "Calendar"))
+(define-key calendar-mode-map [down-mouse-3] calendar-mouse-3-map)
   
 (define-key calendar-mode-map [menu-bar moon]
   '("Moon" . calendar-phases-of-moon))
@@ -284,37 +286,24 @@ ERROR is t, otherwise just returns nil."
                   '("Other calendars" . calendar-mouse-print-dates))))))
     (and selection (call-interactively selection))))
 
-(defun calendar-mouse-3-date-menu (event)
-  "Pop up menu for Mouse-3 in the calendar window."
-  (interactive "e")
-  (let* ((m1 displayed-month)
-         (y1 displayed-year)
-         (m2 displayed-month)
-         (y2 displayed-year)
-         (junk (increment-calendar-month m1 y1 -1))
-         (junk (increment-calendar-month m2 y2 1))
-         (selection
-          (x-popup-menu
-           event
-           (list "Menu"
-                 (list
-                   (if (= y1 y2)
-                       (format "%s--%s, %d"
-                               (substring (calendar-month-name m1) 0 3)
-                               (substring (calendar-month-name m2) 0 3) y2)
-                     (format "%s, %d--%s, %d"
-                             (substring (calendar-month-name m1) 0 3) y1
-                             (substring (calendar-month-name m2) 0 3) y2))
-                   '("Scroll forward" . scroll-calendar-left-three-months)
-                   '("Scroll backward" . scroll-calendar-right-three-months)
-                   '("Show diary" . show-all-diary-entries)
-                   '("Mark diary entries" . mark-diary-entries)
-                   '("List holidays" . list-calendar-holidays)
-                   '("Mark holidays" . mark-calendar-holidays)
-                   '("Unmark" . calendar-unmark)
-                   '("Lunar phases" . calendar-phases-of-moon)
-                   '("Exit calendar" . exit-calendar))))))
-    (and selection (call-interactively selection))))
+(define-key calendar-mouse-3-map [exit-calendar]
+  '("Exit calendar" . exit-calendar))
+(define-key calendar-mouse-3-map [show-diary]
+  '("Show diary" . show-all-diary-entries))
+(define-key calendar-mouse-3-map [lunar-phases]
+  '("Lunar phases" . calendar-phases-of-moon))
+(define-key calendar-mouse-3-map [unmark]
+  '("Unmark" . calendar-unmark))
+(define-key calendar-mouse-3-map [mark-holidays]
+  '("Mark holidays" . mark-calendar-holidays))
+(define-key calendar-mouse-3-map [list-holidays]
+  '("List holidays" . list-calendar-holidays))
+(define-key calendar-mouse-3-map [mark-diary-entries]
+  '("Mark diary entries" . mark-diary-entries))
+(define-key calendar-mouse-3-map [scroll-backward]
+  '("Scroll backward" . scroll-calendar-right-three-months))
+(define-key calendar-mouse-3-map [scroll-forward]
+  '("Scroll forward" . scroll-calendar-left-three-months))
 
 (run-hooks 'cal-menu-load-hook)
 
