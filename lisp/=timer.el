@@ -142,7 +142,15 @@ will happen at the specified time."
               token (assoc (substring token (match-beginning 3) (match-end 3))
                            timer-alist)
               timer-alist (delq token timer-alist))
-        (error "%s for %s; couldn't set at `%s'" error (nth 2 token) do))))
+        (or timer-alist 
+            timer-dont-exit
+            (process-send-eof proc))
+        ;; Update error message for this particular instance
+        (put 'timer-filter-error
+             'error-message
+             (format "%s for %s; couldn't set at \"%s\"" 
+                     error (nth 2 token) do))
+        (signal 'timer-filter-error (list proc str)))))
     (or timer-alist timer-dont-exit (process-send-eof proc))))
 
 (defun timer-process-sentinel (proc str)
