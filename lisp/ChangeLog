@@ -1,3 +1,9 @@
+2005-03-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* menu-bar.el (menu-bar-make-mm-toggle): Doc fix.
+	(menu-bar-options-save): Add blink-cursor-mode.
+	(menu-bar-options-menu): Add blink-cursor-mode.
+
 2005-03-04  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-version): Increase to 0.11.
