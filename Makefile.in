@@ -492,8 +492,8 @@ maintainer-clean: FRC
 ### it deletes backup and autosave files too.
 extraclean:
 	for i in ${SUBDIR}; do (cd $$i; $(MAKE) $(MFLAGS) extraclean); done
-	-(cd lock && rm *)
-	-rm config.status config-tmp-*
+	${top_distclean}
+	-rm config-tmp-*
 	-rm -f *~ \#*
 
 ### Unlocking and relocking.  The idea of these productions is to reduce
