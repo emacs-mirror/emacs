@@ -1,3 +1,7 @@
+2000-04-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* cus-edit.el (custom-face): Fix parenthesis.
+
 2000-04-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* mail/rmail.el (rmail-expunge): When there are no deleted
