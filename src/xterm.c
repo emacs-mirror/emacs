@@ -85,8 +85,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef USE_X_TOOLKIT
 extern void free_frame_menubar ();
-extern void _XEditResCheckMessages ();
 extern FRAME_PTR x_menubar_window_to_frame ();
+#if (XtSpecificationRelease >= 5) && !defined(NO_EDITRES)
+#define HACK_EDITRES
+extern void _XEditResCheckMessages ();
+#endif /* not NO_EDITRES */
 #endif /* USE_X_TOOLKIT */
 
 #ifndef USE_X_TOOLKIT
@@ -3420,7 +3423,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			f->output_data.x->top_pos = new_y;
 		      }
 		  }
-#if defined (USE_X_TOOLKIT) && defined (HAVE_X11R5)
+#ifdef HACK_EDITRES
 		else if (event.xclient.message_type
 			 == dpyinfo->Xatom_editres)
 		  {
@@ -3429,7 +3432,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    _XEditResCheckMessages (f->output_data.x->widget, NULL,
 					    &event, NULL);
 		  }
-#endif /* USE_X_TOOLKIT and HAVE_X11R5 */
+#endif /* HACK_EDITRES */
 	      }
 	      break;
 
