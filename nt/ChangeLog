@@ -1,3 +1,7 @@
+2004-06-06  Juanma Barranquero  <lektu@terra.es>
+
+	* nmake.defs: Add quote in comment to resync font-locking.
+
 2004-06-04  Juanma Barranquero  <lektu@terra.es>
 
 	* INSTALL: Reword the section on image support.  Add reference to
