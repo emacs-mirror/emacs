@@ -1917,7 +1917,7 @@ Return non-nil iff we received any output before the timeout expired.")
     {
       CHECK_NUMBER (timeout, 1);
       seconds = XINT (timeout);
-      if (seconds <= 0)
+      if (seconds < 0 || (seconds == 0 && useconds == 0))
 	seconds = -1;
     }
   else
