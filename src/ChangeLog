@@ -1,3 +1,7 @@
+2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* minibuf.c (keys_of_minibuf): Eliminate redundant bindings.
+
 2001-10-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (notice_overwritten_cursor): Renamed from
