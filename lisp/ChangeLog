@@ -1,3 +1,7 @@
+2003-10-10  Dave Love  <fx@gnu.org>
+
+	* bindings.el: Don't bind stop.
+
 2003-10-08  Miles Bader  <miles@gnu.org>
 
 	* gdb-ui.el (gdb-info-frames-custom): Use proper :inverse-video
