@@ -849,7 +849,7 @@ x_set_icon_type (f, arg, oldval)
   if (NILP (arg))
     result = x_text_icon (f, 0);
   else
-    result = x_bitmap_icon (f, 0);
+    result = x_bitmap_icon (f);
 
   if (result)
     {
