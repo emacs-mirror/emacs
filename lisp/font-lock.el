@@ -618,14 +618,13 @@ This is normally set via `font-lock-defaults'.")
 If this is nil, the major mode's syntax table is used.
 This is normally set via `font-lock-defaults'.")
 
-;; If this is nil, we only use the beginning of the buffer if we can't use
-;; `font-lock-cache-position' and `font-lock-cache-state'.
 (defvar font-lock-beginning-of-syntax-function nil
   "*Non-nil means use this function to move back outside of a syntactic block.
 When called with no args it should leave point at the beginning of any
 enclosing syntactic block.
 If this is nil, the beginning of the buffer is used (in the worst case).
-This is normally set via `font-lock-defaults'.")
+This is normally set via `font-lock-defaults'.
+It is preferable to set `syntax-begin-function' instead.")
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.
@@ -1491,44 +1490,6 @@ START should be at the beginning of a line."
 
 ;;; Syntactic fontification functions.
 
-;; These record the parse state at a particular position, always the start of a
-;; line.  Used to make `font-lock-fontify-syntactically-region' faster.
-;; Previously, `font-lock-cache-position' was just a buffer position.  However,
-;; under certain situations, this occasionally resulted in mis-fontification.
-;; I think the "situations" were deletion with Lazy Lock mode's deferral.  sm.
-(defvar font-lock-cache-state nil)
-(defvar font-lock-cache-position nil)
-(defvar font-lock-ppss-stats '(0 . 0.0))
-
-(defun font-lock-ppss (start)
-  (let ((cache (marker-position font-lock-cache-position)))
-    (if (eq start cache)
-	;; Use the cache for the state of `start'.
-	font-lock-cache-state
-      ;; Find the state of `start'.
-      (let ((state
-	     (if (null font-lock-beginning-of-syntax-function)
-		 ;; Use the state at the previous cache position, if any, or
-		 ;; otherwise calculate from `point-min'.
-		 (if (or (null cache) (< start cache))
-		     (progn
-		       (incf (cdr font-lock-ppss-stats) (- start (point-min)))
-		       (parse-partial-sexp (point-min) start))
-		   (incf (cdr font-lock-ppss-stats) (- start cache))
-		   (parse-partial-sexp cache start nil nil
-						   font-lock-cache-state))
-	       ;; Call the function to move outside any syntactic block.
-	       (funcall font-lock-beginning-of-syntax-function)
-	       (incf (cdr font-lock-ppss-stats) (- start (point)))
-	       (parse-partial-sexp (point) start))))
-	(incf (car font-lock-ppss-stats))
-	;; Cache the state and position of `start'.
-	(setq font-lock-cache-state state)
-	(set-marker font-lock-cache-position start)
-	state))))
-
-(elp-instrument-list '(font-lock-ppss))
-
 (defun font-lock-fontify-syntactically-region (start end &optional loudly ppss)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
@@ -1537,12 +1498,7 @@ START should be at the beginning of a line."
     (goto-char start)
     ;;
     ;; Find the state at the `beginning-of-line' before `start'.
-    (setq state
-	  ;; We use both functions for benchmarking/tuning purposes.
-	  ;; FIXME: this should be fixed before the release.
-	  (or ppss (let ((state1 (font-lock-ppss start))
-			 (state2 (syntax-ppss start)))
-		     state2)))
+    (setq state (or ppss (syntax-ppss start)))
     ;;
     ;; Find each interesting place between here and `end'.
     (while
@@ -1699,7 +1655,7 @@ If REGEXP is non-nil, it means these keywords are used for
 		       (concat "^\\(?:" defun-prompt-regexp "\\)?\\s(")
 		     "^\\s(")
 		  (0
-		   (if (memq (get-text-property (point) 'face)
+		   (if (memq (get-text-property (1- (point)) 'face)
 			     '(font-lock-string-face font-lock-doc-face
 			       font-lock-comment-face))
 		       font-lock-warning-face)
@@ -1762,8 +1718,6 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   ;; Set fontification defaults iff not previously set.
   (unless font-lock-set-defaults
     (set (make-local-variable 'font-lock-set-defaults)		t)
-    (set (make-local-variable 'font-lock-cache-state)		nil)
-    (set (make-local-variable 'font-lock-cache-position)	(make-marker))
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
     (let* ((defaults (or font-lock-defaults
@@ -2286,7 +2240,9 @@ The value of this variable is used when Font Lock mode is turned on."
 			"typedef" "extern" "auto" "register" "static"
 			"volatile" "const"
 			;; Dan Nicolaescu <done@gnu.org> says this is new.
-			"restrict"))))
+			"restrict"
+			;; Henrik Enberg <henrik@enberg.org> says this is new.
+			"inline"))))
        (c-type-specs
 	(eval-when-compile
 	  (regexp-opt '("enum" "struct" "union"))))
@@ -2298,7 +2254,9 @@ The value of this variable is used when Font Lock mode is turned on."
 	   ,(eval-when-compile
 	      (regexp-opt
 	       '("char" "short" "int" "long" "signed" "unsigned"
-		 "float" "double" "void" "complex")))
+		 "float" "double" "void" "complex"
+		 ;; Henrik Enberg <henrik@enberg.org> says these are new.
+		 "_Complex" "_Imaginary" "_Bool")))
 	   c-font-lock-extra-types)
 	  "\\|"))
        (c-type-names-depth
