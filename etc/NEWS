@@ -1168,6 +1168,23 @@ timing measurements of code (including the garbage collection component).
 
 * Lisp Changes in Emacs 21.4
 
+** New function `set-process-filter-multibyte' sets the multibyteness
+of a string given to a process's filter.
+
+** New function `process-filter-multibyte-p' returns t if
+a string given to a process's filter is multibyte.
+
+** A filter function of a process is called with a multibyte string if
+the filter's multibyteness is t.  That multibyteness is decided by the
+value of `default-enable-multibyte-characters' when the process is
+created and can be changed later by `set-process-filter-multibyte'.
+
+** If a process's coding system is raw-text or no-conversion and its
+buffer is multibyte, the output of the process is at first converted
+to multibyte by `string-to-multibyte' then inserted in the buffer.
+Previously, it was converted to multibyte by `string-as-multibyte',
+which was not compatible with the behaviour of file reading.
+
 ** New function `string-to-multibyte' converts a unibyte string to a
 multibyte string with the same individual character codes.
 

@@ -1,3 +1,36 @@
+2003-02-10  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (QCfilter_multibyte): New variable.
+	(setup_process_coding_systems): New function.
+	(Fset_process_buffer, Fset_process_filter): Call
+	setup_process_coding_systems.
+	(Fstart_process): Initialize the member `filter_multibyte' of
+	struct Lisp_Process.
+	(create_process): Call setup_process_coding_systems.
+	(Fmake_network_process): New keyward `:filter-multibyte'.
+	Initialize the member `filter_multibyte' of struct Lisp_Process.
+	Call setup_process_coding_systems.
+	(server_accept_connection): Call setup_process_coding_systems.
+	(read_process_output): If the process has a filter, decide the
+	multibyteness of a string to given to the filter by
+	`filter_multibyte' member of the process.  If the process doesn't
+	have a filter and the result of conversion is unibyte, use
+	Fstring_to_multibyte (not Fstring_make_multibyte) to get the
+	multibyte form.
+	(Fset_process_coding_system): Call setup_process_coding_systems.
+	(Fset_process_filter_multibyte): New function.
+	(Fprocess_filter_multibyte_p): New function.
+	(syms_of_process): Intern and staticpro QCfilter_multibyte.
+	Defsubr Sset_process_filter_multibyte and
+	Sprocess_filter_multibyte_p.
+
+	* process.h (struct Lisp_Process): New member filter_multibyte.
+
+	* lisp.h (setup_process_coding_systems): Add prototype.
+
+	* buffer.c (Fset_buffer_multibyte): If the current buffer has a
+	process, update coding systems for the process.
+
 2003-02-09  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (string_to_multibyte): New function.
