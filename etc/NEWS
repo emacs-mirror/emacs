@@ -86,6 +86,26 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** On window systems, lines which are exactly as wide as the window
+(not counting the final newline character) are no longer broken into
+two lines on the display (with just the newline on the second line).
+Instead, the newline now "overflows" into the right fringe, and the
+cursor will be displayed in the fringe when positioned on that newline.
+
+The new user option 'overflow-newline-into-fringe' may be set to nil to
+revert to the old behaviour of continuing such lines.
+
+** The buffer boundaries (i.e. first and last line in the buffer) may now
+be marked with bitmaps in the fringes.  In addition, up and down
+arrow bitmaps may be shown at the top and bottom of the right fringe
+if the window can be scrolled in either direction.
+
+This behavior is activated by setting the buffer-local variable
+`indicate-buffer-boundaries' to a non-nil value.  If value is t, both
+boundaries and scrolling arrows are shown; any other non-nil value
+shows only the buffer boundaries.  The default value of this variable
+is found in `default-indicate-buffer-boundaries'.
+
 ** New command `display-local-help' displays any local help at point
 in the echo area.  It is bound to `C-h .'.  It normally displays the
 same string that would be displayed on mouse-over using the
