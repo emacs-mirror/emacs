@@ -1422,7 +1422,7 @@ fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
 /* Take proper action when mouse has moved to the mode or top line of
    window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
    mode line.  X is relative to the start of the text display area of
-   W, so the width of bitmap areas and scroll bars must be subtracted
+   W, so the width of fringes and scroll bars must be subtracted
    to get a position relative to the start of the mode line.  */
 static void
 IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
