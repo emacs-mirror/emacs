@@ -773,7 +773,7 @@ have to bother.
 
 Defaulting c-style-variables-are-local-p to t avoids the confusing
 situation that occurs when a user sets some style variables globally
-and edit both a Java and a non-Java file in the same Emacs session.
+and edits both a Java and a non-Java file in the same Emacs session.
 If the style variables aren't buffer local in this case, loading of
 the second file will cause the default style (either "gnu" or "java"
 by default) to override the global settings made by the user.
