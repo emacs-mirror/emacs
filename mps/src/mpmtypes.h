@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.33) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -41,6 +41,7 @@ typedef void *Pointer;                  /* design.mps.type.pointer */
 typedef Word RefSet;                    /* design.mps.refset */
 typedef unsigned Rank;                  /* design.mps.ref */
 typedef unsigned RankSet;
+typedef unsigned RootMode;
 typedef Size Epoch;                     /* design.mps.ld */
 typedef unsigned TraceId;               /* design.mps.tracer */
 typedef unsigned TraceSet;              /* design.mps.tracer */
@@ -213,6 +214,10 @@ enum {
 /* .rm: Synchronize with impl.h.mps.rm. */
 /* This comment exists as a placeholder for when root modes are */
 /* implemented. */
+
+#define RootModeCONSTANT          ((RootMode)1<<0)
+#define RootModePROTECTABLE       ((RootMode)1<<1)
+#define RootModePROTECTABLE_INNER ((RootMode)1<<2)
 
 
 /* Root Variants -- see design.mps.type.rootvar
