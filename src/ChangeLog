@@ -1,7 +1,10 @@
 2000-08-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* alloc.c (compact_small_strings): Use safe_bcopy, add an
+	assertion.
+
 	* term.c (turn_off_face): Reset standout_mode when resetting
-	apparances with capability `me'.
+	appearances with capability `me'.
 	(write_glyphs): Switch on inverse video before each face change.
 
 2000-08-14  Dave Love  <fx@gnu.org>

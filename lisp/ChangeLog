@@ -1,5 +1,8 @@
 2000-08-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* buff-menu.el (list-buffers-noselect): Don't display the
+	*Buffer List* buffer.
+
 	* font-lock.el: Require jit-lock to prevent a very late
 	`Loading jit-lock' message.
 
