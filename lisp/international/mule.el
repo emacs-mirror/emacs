@@ -454,7 +454,7 @@ VALUE is a character to display on mode line for the coding system.
 `:coding-type' (required)
 
 VALUE must be one of `charset', `utf-8', `utf-16', `iso-2022',
-`emacs-mule', `shift-jis', `big5', `ccl', `raw-text', `undecided'.
+`emacs-mule', `shift-jis', `ccl', `raw-text', `undecided'.
 
 `:eol-type'
 
@@ -523,6 +523,11 @@ format automatically, and on encoding, uses Unix-like EOL.
 
 VALUE must be a symbol whose name is that of a MIME charset converted
 to lower case.
+
+`:mime-text-unsuitable'
+
+VALUE non-nil means the `:mime-charset' property names a charset which
+is unsuitable for the top-level media type "text".
 
 `:flags'
 
