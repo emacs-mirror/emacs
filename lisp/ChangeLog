@@ -69,7 +69,6 @@
 	* startup.el (command-line-1, fancy-splash-text): Change the
 	text to sound more friendly.
 
->>>>>>> 1.1138
 2000-09-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el: Update author email address.
