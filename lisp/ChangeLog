@@ -1,3 +1,8 @@
+2002-03-31  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns)
+	(side-effect-and-error-free-fns): Add many functions, remove some.
+
 2002-03-30  Richard M. Stallman  <rms@gnu.org>
 
 	* menu-bar.el (menu-bar-tools-menu): Rename gdb item to say GDB.
