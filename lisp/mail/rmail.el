@@ -525,12 +525,12 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
       (rmail-mode-2)
       ;; Convert all or part to Babyl file if possible.
       (rmail-convert-file)
-      ;; As we have read a file by raw-text, the buffer is set to
-      ;; unibyte.  We must make it multibyte if necessary.
-      (if (and rmail-enable-multibyte
-	       (not enable-multibyte-characters))
-	  (set-buffer-multibyte t))
       (goto-char (point-max)))
+    ;; As we have read a file by raw-text, the buffer is set to
+    ;; unibyte.  We must make it multibyte if necessary.
+    (if (and rmail-enable-multibyte
+	     (not enable-multibyte-characters))
+	(set-buffer-multibyte t))
     ;; If necessary, scan to find all the messages.
     (rmail-maybe-set-message-counters)
     (unwind-protect
