@@ -2128,6 +2128,11 @@ User customizable variables:
     gnus-summary-save-in-file. The variable is initialized from the
     SAVEDIR environment variable.
 
+ gnus-kill-files-directory
+    Specifies a directory name to save KILL files to using the commands
+    gnus-edit-global-kill, and gnus-edit-local-kill. The variable is
+    initialized from the SAVEDIR environment variable.
+
  gnus-show-all-headers
     Non-nil means that all headers of an article are shown.
 
@@ -4680,27 +4685,27 @@ In addition to Emacs-Lisp Mode, the following commands are available:
 \\[gnus-kill-file-exit]	Save file and exit editing KILL file.
 \\[gnus-info-find-node]	Read Info about KILL file.
 
-  A KILL file contains lisp expressions to be applied to a selected
-newsgroup. The purpose is to mark articles as read on the basis of
-some set of regexps. A global KILL file is applied to every newsgroup,
-and a local KILL file is applied to a specified newsgroup. Since a
+  A KILL file contains Lisp expressions to be applied to a selected
+newsgroup.  The purpose is to mark articles as read on the basis of
+some set of regexps.  A global KILL file is applied to every newsgroup,
+and a local KILL file is applied to a specified newsgroup.  Since a
 global KILL file is applied to every newsgroup, for better performance
 use a local one.
 
-  A KILL file can contain any kind of Emacs lisp expressions expected
-to be evaluated in the Summary buffer. Writing lisp programs for this
+  A KILL file can contain any kind of Emacs Lisp expressions expected
+to be evaluated in the Summary buffer.  Writing Lisp programs for this
 purpose is not so easy because the internal working of GNUS must be
-well-known. For this reason, GNUS provides a general function which
+well-known.  For this reason, GNUS provides a general function which
 does this easily for non-Lisp programmers.
 
   The `gnus-kill' function executes commands available in Summary Mode
 by their key sequences. `gnus-kill' should be called with FIELD,
-REGEXP and optional COMMAND and ALL. FIELD is a string representing
-the header field or an empty string. If FIELD is an empty string, the
-entire article body is searched for. REGEXP is a string which is
+REGEXP and optional COMMAND and ALL.  FIELD is a string representing
+the header field or an empty string.  If FIELD is an empty string, the
+entire article body is searched for.  REGEXP is a string which is
 compared with FIELD value. COMMAND is a string representing a valid
-key sequence in Summary Mode or Lisp expression. COMMAND is default to
-'(gnus-summary-mark-as-read nil \"X\"). Make sure that COMMAND is
+key sequence in Summary mode or Lisp expression. COMMAND defaults to
+'(gnus-summary-mark-as-read nil \"X\").  Make sure that COMMAND is
 executed in the Summary buffer.  If the second optional argument ALL
 is non-nil, the COMMAND is applied to articles which are already
 marked as read or unread.  Articles which are marked are skipped over
