@@ -198,18 +198,21 @@ Set it to either \`yes' or \`no'."
 
         ## Has the user specified which toolkit they want to support?
         "with_x_toolkit" )
-	  ## Make sure the value given was either "yes" or "no".
 	  case "${val}" in
 	    y | ye | yes )	val=athena ;;
 	    n | no )		val=no  ;;
 	    l | lu | luc | luci | lucid )	val=lucid ;;
 	    a | at | ath | athe | athena )	val=athena ;;
-	    m | mo | mot | moti | motif )	val=motif ;;
-	    o | op | ope | open | open- | open-l | open-lo \
-		| open-loo | open-look )	val=open-look ;;
+# These don't currently work.
+#	    m | mo | mot | moti | motif )	val=motif ;;
+#	    o | op | ope | open | open- | open-l | open-lo \
+#		| open-loo | open-look )	val=open-look ;;
 	    * )
-	      (echo "${progname}: the \`--${optname}' option is supposed to have a value
-which is \`yes', \`no', \`lucid', \`athena', \`motif' or \`open-look'."
+	      (
+#echo "${progname}: the \`--${optname}' option is supposed to have a value
+#which is \`yes', \`no', \`lucid', \`athena', \`motif' or \`open-look'."
+echo "${progname}: the \`--${optname}' option is supposed to have a value
+which is \`yes', \`no', \`lucid', or \`athena'.
 	       echo "${short_usage}") >&2
 	      exit 1
 	    ;;
