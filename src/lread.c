@@ -734,7 +734,7 @@ Return t if file exists.")
   saved_doc_string_size = 0;
 
   if (prev_saved_doc_string)
-    free (prev_saved_doc_string);
+    xfree (prev_saved_doc_string);
   prev_saved_doc_string = 0;
   prev_saved_doc_string_size = 0;
 
@@ -2915,7 +2915,7 @@ init_obarray ()
   staticpro (&Qvariable_documentation);
 
   read_buffer_size = 100 + MAX_MULTIBYTE_LENGTH;
-  read_buffer = (char *) malloc (read_buffer_size);
+  read_buffer = (char *) xmalloc (read_buffer_size);
 }
 
 void
