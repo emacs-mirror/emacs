@@ -240,7 +240,7 @@ ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 ## edit the values for the path variables into them.  This means that
 ## when the user has built them from this makefile once, they will use
 ## the right default values for the path variables.
-lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
+lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile vpath.sed
 	rm -f lib-src/Makefile.tmp
 	@echo "Producing \`lib-src/Makefile' from \`${srcdir}/lib-src/Makefile.in'."
 	@(echo "# This file is generated from \`${srcdir}/lib-src/Makefile.in'." ; \
@@ -248,6 +248,7 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	  echo "# running \`make lib-src/Makefile' at the top of the" ;	\
 	  echo "# Emacs build tree instead, or editing" ;		\
 	  echo "# \`${srcdir}/lib-src/Makefile.in' itself." ;		\
+	  subdir=lib-src;						\
 	  sed < ${srcdir}/lib-src/Makefile.in				\
 	  -e 's|^\(version *=\).*$$|\1'"${version}"'|'			\
 	  -e 's|^\(configname *=\).*$$|\1'"${configuration}"'|'		\
@@ -255,7 +256,7 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	  -e 's|^\(exec_prefix *=\).*$$|\1'"${exec_prefix}"'|'		\
 	  -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|'			\
 	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'/lib-src|'		\
-	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/lib-src|'		\
+	  @vpath_sed@							\
 	  -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
 	  -e 's|^\(ALLOCA *=\).*$$|\1'"${ALLOCA}"'|'			\
 	  -e 's|^\(YACC *=\).*$$|\1'"${YACC}"'|'			\
@@ -267,7 +268,7 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	@${srcdir}/move-if-change lib-src/Makefile.tmp lib-src/Makefile
 	chmod -w lib-src/Makefile
 
-src/Makefile: ${srcdir}/src/Makefile.in Makefile
+src/Makefile: ${srcdir}/src/Makefile.in Makefile vpath.sed
 	rm -f src/Makefile.tmp
 	@echo "Producing \`src/Makefile' from \`${srcdir}/src/Makefile.in'."
 	@(echo "# This file is generated from \`${srcdir}/src/Makefile.in'." ; \
@@ -275,9 +276,10 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	  echo "# running \`make src/Makefile' at the top of the" ;	\
 	  echo "# Emacs build tree instead, or editing" ;		\
 	  echo "# \`${srcdir}/src/Makefile.in' itself." ;		\
+	  subdir=src;						\
 	  sed < ${srcdir}/src/Makefile.in				\
 	  -e 's|^\(srcdir *=\).*$$|\1${srcdir}/src|'			\
-	  -e 's|^\(VPATH *=\).*$$|\1${srcdir}/src|'			\
+	  @vpath_sed@							\
 	  -e 's|^CC *=.*$$|CC=${CC}|'					\
 	  -e 's|^CPP *=.*$$|CPP=${CPP}|'				\
 	  -e 's|^LN_S *=.*$$|LN_S=${LN_S}|'				\
@@ -288,7 +290,7 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	@${srcdir}/move-if-change src/Makefile.tmp src/Makefile
 	chmod -w src/Makefile
 
-oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile.in Makefile
+oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile.in Makefile vpath.sed
 	rm -f oldXMenu/Makefile.tmp
 	@echo "Producing \`oldXMenu/Makefile' from \`${srcdir}/oldXMenu/Makefile.in'."
 	@(echo "# This file is generated from \`${srcdir}/oldXMenu/Makefile.in'." ; \
@@ -296,9 +298,10 @@ oldXMenu/Makefile: ${srcdir}/oldXMenu/Makefile.in Makefile
 	  echo "# running \`make oldXMenu/Makefile' at the top of the" ; \
 	  echo "# Emacs build tree instead, or editing" ;		\
 	  echo "# \`${srcdir}/oldXMenu/Makefile.in' itself." ;		\
+	  subdir=oldXMenu;						\
 	  sed < ${srcdir}/oldXMenu/Makefile.in				\
 	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'/oldXMenu|'		\
-	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/oldXMenu|'		\
+	  @vpath_sed@							\
 	  -e 's|^\(C_SWITCH_X_SITE *=\).*$$|\1'"${C_SWITCH_X_SITE}"'|'	\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
 	  -e 's|^DEFS *=.*$$|DEFS='"${DEFS}"'|' \
