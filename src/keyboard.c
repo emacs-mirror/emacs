@@ -6614,16 +6614,10 @@ init_keyboard ()
   Vlast_event_frame = internal_last_event_frame;
 #endif
 
-  if (!initialized)
-    {
 #ifdef MULTI_KBOARD
-      current_kboard = (KBOARD *)xmalloc (sizeof (KBOARD));
-      all_kboards = current_kboard;
+  current_kboard = initial_kboard;
 #endif
-      current_kboard->next_kboard = 0;
-    }
-  if (initialized)
-    wipe_kboard (current_kboard);
+  wipe_kboard (current_kboard);
   init_kboard (current_kboard);
 
   if (initialized)
