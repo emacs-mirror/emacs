@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-stat.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -34,36 +34,31 @@
 (defun calc-vector-count (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-vector-op "coun" 'calcFunc-vcount arg))
-)
+   (calc-vector-op "coun" 'calcFunc-vcount arg)))
 
 (defun calc-vector-sum (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-vector-op "vprd" 'calcFunc-vprod arg)
-     (calc-vector-op "vsum" 'calcFunc-vsum arg)))
-)
+     (calc-vector-op "vsum" 'calcFunc-vsum arg))))
 
 (defun calc-vector-product (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-vector-sum arg)
-)
+  (calc-vector-sum arg))
 
 (defun calc-vector-max (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-vector-op "vmin" 'calcFunc-vmin arg)
-     (calc-vector-op "vmax" 'calcFunc-vmax arg)))
-)
+     (calc-vector-op "vmax" 'calcFunc-vmax arg))))
 
 (defun calc-vector-min (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-vector-max arg)
-)
+  (calc-vector-max arg))
 
 (defun calc-vector-mean (arg)
   (interactive "P")
@@ -74,35 +69,30 @@
 	 (calc-vector-op "medn" 'calcFunc-vmedian arg))
      (if (calc-is-inverse)
 	 (calc-vector-op "meae" 'calcFunc-vmeane arg)
-       (calc-vector-op "mean" 'calcFunc-vmean arg))))
-)
+       (calc-vector-op "mean" 'calcFunc-vmean arg)))))
 
 (defun calc-vector-mean-error (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-vector-mean arg)
-)
+  (calc-vector-mean arg))
 
 (defun calc-vector-median (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-vector-mean arg)
-)
+  (calc-vector-mean arg))
 
 (defun calc-vector-harmonic-mean (arg)
   (interactive "P")
   (calc-invert-func)
   (calc-hyperbolic-func)
-  (calc-vector-mean arg)
-)
+  (calc-vector-mean arg))
 
 (defun calc-vector-geometric-mean (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-binary-op "geom" 'calcFunc-agmean arg)
-     (calc-vector-op "geom" 'calcFunc-vgmean arg)))
-)
+     (calc-vector-op "geom" 'calcFunc-vgmean arg))))
 
 (defun calc-vector-sdev (arg)
   (interactive "P")
@@ -113,27 +103,23 @@
 	 (calc-vector-op "var" 'calcFunc-vvar arg))
      (if (calc-is-inverse)
 	 (calc-vector-op "psdv" 'calcFunc-vpsdev arg)
-       (calc-vector-op "sdev" 'calcFunc-vsdev arg))))
-)
+       (calc-vector-op "sdev" 'calcFunc-vsdev arg)))))
 
 (defun calc-vector-pop-sdev (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-vector-sdev arg)
-)
+  (calc-vector-sdev arg))
 
 (defun calc-vector-variance (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-vector-sdev arg)
-)
+  (calc-vector-sdev arg))
 
 (defun calc-vector-pop-variance (arg)
   (interactive "P")
   (calc-invert-func)
   (calc-hyperbolic-func)
-  (calc-vector-sdev arg)
-)
+  (calc-vector-sdev arg))
 
 (defun calc-vector-covariance (arg)
   (interactive "P")
@@ -146,28 +132,24 @@
 	   (calc-enter-result n "pcov" (cons 'calcFunc-vpcov
 					     (calc-top-list-n n)))
 	 (calc-enter-result n "cov" (cons 'calcFunc-vcov
-					  (calc-top-list-n n)))))))
-)
+					  (calc-top-list-n n))))))))
 
 (defun calc-vector-pop-covariance (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-vector-covariance arg)
-)
+  (calc-vector-covariance arg))
 
 (defun calc-vector-correlation (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-vector-covariance arg)
-)
+  (calc-vector-covariance arg))
 
 (defun calc-vector-op (name func arg)
   (setq calc-aborted-prefix name
 	arg (prefix-numeric-value arg))
   (if (< arg 0)
       (error "Negative arguments not allowed"))
-  (calc-enter-result arg name (cons func (calc-top-list-n arg)))
-)
+  (calc-enter-result arg name (cons func (calc-top-list-n arg))))
 
 
 
@@ -180,12 +162,10 @@
 ;;; non-vectors.
 
 (defun calcFunc-vsum (&rest vecs)
-  (math-reduce-many-vecs 'calcFunc-add 'calcFunc-vsum vecs 0)
-)
+  (math-reduce-many-vecs 'calcFunc-add 'calcFunc-vsum vecs 0))
 
 (defun calcFunc-vprod (&rest vecs)
-  (math-reduce-many-vecs 'calcFunc-mul 'calcFunc-vprod vecs 1)
-)
+  (math-reduce-many-vecs 'calcFunc-mul 'calcFunc-vprod vecs 1))
 
 (defun calcFunc-vmax (&rest vecs)
   (if (eq (car-safe (car vecs)) 'sdev)
@@ -193,8 +173,7 @@
     (if (eq (car-safe (car vecs)) 'intv)
 	(nth 3 (math-fix-int-intv (car vecs)))
       (math-reduce-many-vecs 'calcFunc-max 'calcFunc-vmax vecs
-			     '(neg (var inf var-inf)))))
-)
+			     '(neg (var inf var-inf))))))
 
 (defun calcFunc-vmin (&rest vecs)
   (if (eq (car-safe (car vecs)) 'sdev)
@@ -202,8 +181,7 @@
     (if (eq (car-safe (car vecs)) 'intv)
 	(nth 2 (math-fix-int-intv (car vecs)))
       (math-reduce-many-vecs 'calcFunc-min 'calcFunc-vmin vecs
-			     '(var inf var-inf))))
-)
+			     '(var inf var-inf)))))
 
 (defun math-reduce-many-vecs (func whole-func vecs ident)
   (let ((const-part nil)
@@ -236,8 +214,7 @@
 	  (if symb-part
 	      (funcall func const-part (cons whole-func symb-part))
 	    const-part))
-      (if symb-part (cons whole-func symb-part) ident)))
-)
+      (if symb-part (cons whole-func symb-part) ident))))
 
 
 ;;; Return the number of data elements among the arguments.
@@ -256,8 +233,7 @@
 				    (symbol-value (nth 2 (car vecs)))))
 			(math-reject-arg (car vecs) 'numvecp))))
 	    vecs (cdr vecs)))
-    count)
-)
+    count))
 
 (defun math-count-elements (vec)
   (let ((count 0))
@@ -265,8 +241,7 @@
       (setq count (if (Math-vectorp (car vec))
 		      (+ count (math-count-elements (car vec)))
 		    (1+ count))))
-    count)
-)
+    count))
 
 
 (defun math-flatten-many-vecs (vecs)
@@ -285,12 +260,10 @@
 						     (nth 2 (car p))))
 			     (math-reject-arg (car p) 'numvecp)))))
 	    p (cdr p)))
-    vec)
-)
+    vec))
 
 (defun calcFunc-vflat (&rest vecs)
-  (math-flatten-many-vecs vecs)
-)
+  (math-flatten-many-vecs vecs))
 
 (defun math-split-sdev-vec (vec zero-ok)
   (let ((means (list 'vec))
@@ -317,8 +290,7 @@
 		      exact t))
 	    (setq means (cons p means)))))
       (list (nreverse means)
-	    (and wts (nreverse wts)))))
-)
+	    (and wts (nreverse wts))))))
 
 
 ;;; Return the arithmetic mean of the argument numbers or vectors.
@@ -344,16 +316,14 @@
 					   (calcFunc-map '(var div var-div)
 							 means sqrwts))
 			  suminvsqrwts))
-	    (math-div (calcFunc-reduce '(var add var-add) means) len))))))
-)
+	    (math-div (calcFunc-reduce '(var add var-add) means) len)))))))
 
 (defun math-fix-int-intv (x)
   (if (math-floatp x)
       x
     (list 'intv 3
 	  (if (memq (nth 1 x) '(2 3)) (nth 2 x) (math-add (nth 2 x) 1))
-	  (if (memq (nth 1 x) '(1 3)) (nth 3 x) (math-sub (nth 3 x) 1))))
-)
+	  (if (memq (nth 1 x) '(1 3)) (nth 3 x) (math-sub (nth 3 x) 1)))))
 
 ;;; Compute the mean with an error estimate.
 (defun calcFunc-vmeane (&rest vecs)
@@ -390,8 +360,7 @@
 							   means
 							   (math-neg mean)))
 					    2))
-			     (math-mul len (1- len))))))))))
-)
+			     (math-mul len (1- len)))))))))))
 
 
 ;;; Compute the median of a list of values.
@@ -413,8 +382,7 @@
 	(setq flat (sort flat 'math-lessp))
 	(if (= (% len 2) 0)
 	    (math-div (math-add (nth (1- hlen) flat) (nth hlen flat)) 2)
-	  (nth hlen flat)))))
-)
+	  (nth hlen flat))))))
 
 
 (defun calcFunc-vgmean (&rest vecs)
@@ -426,8 +394,7 @@
 	(let ((x (calcFunc-reduce '(var mul math-mul) flat)))
 	  (if (= len 2)
 	      (math-sqrt x)
-	    (math-pow x (list 'frac 1 len)))))))
-)
+	    (math-pow x (list 'frac 1 len))))))))
 
 
 (defun calcFunc-agmean (a b)
@@ -446,8 +413,7 @@
 	       (setq mean (math-mul-float (math-add-float a b) '(float 5 -1))
 		     b (math-sqrt-float (math-mul-float a b))
 		     a mean))
-	     a))))
-)
+	     a)))))
 
 
 (defun calcFunc-vhmean (&rest vecs)
@@ -458,8 +424,7 @@
       (math-with-extra-prec 2
 	(math-div len
 		  (calcFunc-reduce '(var add math-add)
-				   (calcFunc-map '(var inv var-inv) flat))))))
-)
+				   (calcFunc-map '(var inv var-inv) flat)))))))
 
 
 
@@ -471,8 +436,7 @@
       (if (eq (car-safe (car vecs)) 'intv)
 	  (math-intv-variance (car vecs) nil)
 	(math-sqr (nth 2 (car vecs))))
-    (math-covariance vecs nil nil 0))
-)
+    (math-covariance vecs nil nil 0)))
 
 (defun calcFunc-vsdev (&rest vecs)
   (if (and (= (length vecs) 1)
@@ -483,8 +447,7 @@
 			(math-sqrt-12))
 	    (math-sqrt (calcFunc-vvar (car vecs))))
 	(nth 2 (car vecs)))
-    (math-sqrt (math-covariance vecs nil nil 0)))
-)
+    (math-sqrt (math-covariance vecs nil nil 0))))
 
 ;;; Compute the population variance or std deviation of numbers or vectors.
 (defun calcFunc-vpvar (&rest vecs)
@@ -493,8 +456,7 @@
       (if (eq (car-safe (car vecs)) 'intv)
 	  (math-intv-variance (car vecs) t)
 	(math-sqr (nth 2 (car vecs))))
-    (math-covariance vecs nil t 0))
-)
+    (math-covariance vecs nil t 0)))
 
 (defun calcFunc-vpsdev (&rest vecs)
   (if (and (= (length vecs) 1)
@@ -505,8 +467,7 @@
 			(math-sqrt-12))
 	    (math-sqrt (calcFunc-vpvar (car vecs))))
 	(nth 2 (car vecs)))
-    (math-sqrt (math-covariance vecs nil t 0)))
-)
+    (math-sqrt (math-covariance vecs nil t 0))))
 
 (defun math-intv-variance (x pop)
   (or (math-constp x) (math-reject-arg x 'constp))
@@ -521,21 +482,17 @@
 		  (calcFunc-sum '(^ (- (var X var-X) (/ 1 2)) 2)
 				'(var X var-X)
 				(math-neg hlen) (math-add hlen 1)))
-		(if pop (math-add len 1) len))))
-)
+		(if pop (math-add len 1) len)))))
 
 ;;; Compute the covariance and linear correlation coefficient.
 (defun calcFunc-vcov (vec1 &optional vec2)
-  (math-covariance (list vec1) (list vec2) nil 1)
-)
+  (math-covariance (list vec1) (list vec2) nil 1))
 
 (defun calcFunc-vpcov (vec1 &optional vec2)
-  (math-covariance (list vec1) (list vec2) t 1)
-)
+  (math-covariance (list vec1) (list vec2) t 1))
 
 (defun calcFunc-vcorr (vec1 &optional vec2)
-  (math-covariance (list vec1) (list vec2) nil 2)
-)
+  (math-covariance (list vec1) (list vec2) nil 2))
 
 
 (defun math-covariance (vec1 vec2 pop mode)
@@ -621,9 +578,6 @@
 	       (if pop
 		   suminvsqrwts
 		 (math-div (math-mul suminvsqrwts (1- len)) len))
-	     (if pop len (1- len))))))))
-)
+	     (if pop len (1- len)))))))))
 
-
-
-
+;;; calc-stat.el ends here

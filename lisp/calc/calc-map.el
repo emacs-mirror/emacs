@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-map.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -48,8 +48,7 @@
 				(nth 2 oper))
 			(list 'calcFunc-apply
 			      (math-calcFunc-to-var (nth 1 oper))
-			      expr))))
-)
+			      expr)))))
 
 (defun calc-reduce (&optional oper accum)
   (interactive)
@@ -91,13 +90,11 @@
 						  "reduce"
 						  calc-mapping-dir)))
 				(math-calcFunc-to-var (nth 1 oper))
-				(calc-top-n (1+ calc-dollar-used)))))))
-)
+				(calc-top-n (1+ calc-dollar-used))))))))
 
 (defun calc-accumulate (&optional oper)
   (interactive)
-  (calc-reduce oper t)
-)
+  (calc-reduce oper t))
 
 (defun calc-map (&optional oper)
   (interactive)
@@ -118,8 +115,7 @@
 			      (cons (math-calcFunc-to-var (nth 1 oper))
 				    (calc-top-list-n
 				     nargs
-				     (1+ calc-dollar-used)))))))
-)
+				     (1+ calc-dollar-used))))))))
 
 (defun calc-map-equation (&optional oper)
   (interactive)
@@ -142,16 +138,14 @@
 			      (cons (math-calcFunc-to-var (nth 1 oper))
 				    (calc-top-list-n
 				     nargs
-				     (1+ calc-dollar-used)))))))
-)
+				     (1+ calc-dollar-used))))))))
 
 (defun calc-map-stack ()
   "This is meant to be called by calc-keypad mode."
   (interactive)
   (let ((calc-verify-arglist nil))
     (calc-unread-command ?\$)
-    (calc-map))
-)
+    (calc-map)))
 
 (defun calc-outer-product (&optional oper)
   (interactive)
@@ -169,8 +163,7 @@
 			(cons 'calcFunc-outer
 			      (cons (math-calcFunc-to-var (nth 1 oper))
 				    (calc-top-list-n
-				     2 (1+ calc-dollar-used)))))))
-)
+				     2 (1+ calc-dollar-used))))))))
 
 (defun calc-inner-product (&optional mul-oper add-oper)
   (interactive)
@@ -196,8 +189,7 @@
 				     (math-calcFunc-to-var (nth 1 mul-oper))
 				     (math-calcFunc-to-var (nth 1 add-oper)))
 			       (calc-top-list-n
-				2 (+ 1 mul-used calc-dollar-used))))))
-)
+				2 (+ 1 mul-used calc-dollar-used)))))))
 
 ;;; Return a list of the form (nargs func name)
 (defun calc-get-operator (msg &optional nargs)
@@ -448,8 +440,7 @@
 				 (char-to-string key))))
 	       (if (> (length name) 3)
 		   (substring name 0 3)
-		 name)))))
-)
+		 name))))))
 (setq calc-verify-arglist t)
 (setq calc-mapping-dir nil)
 
@@ -763,8 +754,7 @@
 	(intern (concat "calcFunc-" (symbol-name (nth 1 f)))))
     (if (memq (car-safe f) '(lambda calcFunc-lambda))
 	f
-      (math-reject-arg f "*Expected a function name")))
-)
+      (math-reject-arg f "*Expected a function name"))))
 
 ;;; Convert a function name into a like-looking variable name formula.
 (defun math-calcFunc-to-var (f)
@@ -785,8 +775,7 @@
 	(list 'var
 	      (intern base)
 	      (intern (concat "var-" base))))
-    f)
-)
+    f))
 
 ;;; Expand a function call using "lambda" notation.
 (defun math-build-call (f args)
@@ -807,8 +796,7 @@
 			     ( calcFunc-vconcat . | ) ))))
 	(if (and func (= (length args) 2))
 	    (cons (cdr func) args)
-	  (cons f args)))))
-)
+	  (cons f args))))))
 
 ;;; Do substitutions in parallel to avoid crosstalk.
 (defun math-multi-subst (expr olds news)
@@ -818,8 +806,7 @@
       (setq args (cons (cons (car olds) (car news)) args)
 	    olds (cdr olds)
 	    news (cdr news)))
-    (math-multi-subst-rec expr))
-)
+    (math-multi-subst-rec expr)))
 
 (defun math-multi-subst-rec (expr)
   (cond ((setq temp (assoc expr args)) (cdr temp))
@@ -834,21 +821,18 @@
 	   (nreverse (cons (math-multi-subst-rec (car expr)) new))))
 	(t
 	 (cons (car expr)
-	       (mapcar 'math-multi-subst-rec (cdr expr)))))
-)
+	       (mapcar 'math-multi-subst-rec (cdr expr))))))
 
 (defun calcFunc-call (f &rest args)
   (setq args (math-build-call (math-var-to-calcFunc f) args))
   (if (eq (car-safe args) 'calcFunc-call)
       args
-    (math-normalize args))
-)
+    (math-normalize args)))
 
 (defun calcFunc-apply (f args)
   (or (Math-vectorp args)
       (math-reject-arg args 'vectorp))
-  (apply 'calcFunc-call (cons f (cdr args)))
-)
+  (apply 'calcFunc-call (cons f (cdr args))))
 
 
 
@@ -928,32 +912,26 @@
     (setq vec (cons head (nreverse vec)))
     (if (and (eq mode 'cols) (math-matrixp vec))
 	(math-transpose vec)
-      vec))
-)
+      vec)))
 
 (defun calcFunc-map (func &rest args)
-  (math-symb-map func 'elems args)
-)
+  (math-symb-map func 'elems args))
 
 (defun calcFunc-mapr (func &rest args)
-  (math-symb-map func 'rows args)
-)
+  (math-symb-map func 'rows args))
 
 (defun calcFunc-mapc (func &rest args)
-  (math-symb-map func 'cols args)
-)
+  (math-symb-map func 'cols args))
 
 (defun calcFunc-mapa (func arg)
   (if (math-matrixp arg)
       (math-symb-map func 'elems (cdr (math-transpose arg)))
-    (math-symb-map func 'elems arg))
-)
+    (math-symb-map func 'elems arg)))
 
 (defun calcFunc-mapd (func arg)
   (if (math-matrixp arg)
       (math-symb-map func 'elems (cdr arg))
-    (math-symb-map func 'elems arg))
-)
+    (math-symb-map func 'elems arg)))
 
 (defun calcFunc-mapeq (func &rest args)
   (if (and (or (equal func '(var mul var-mul))
@@ -974,8 +952,7 @@
 	  (equal func '(var neg var-neg))
 	  (equal func '(var inv var-inv)))
       (apply 'calcFunc-mapeqr func args)
-    (apply 'calcFunc-mapeqp func args))
-)
+    (apply 'calcFunc-mapeqp func args)))
 
 (defun calcFunc-mapeqr (func &rest args)
   (setq args (mapcar (function (lambda (x)
@@ -985,8 +962,7 @@
 				       (cons (nth 1 func) (cdr x))
 				     x))))
 		     args))
-  (apply 'calcFunc-mapeqp func args)
-)
+  (apply 'calcFunc-mapeqp func args))
 
 (defun calcFunc-mapeqp (func &rest args)
   (if (or (and (memq (car-safe (car args)) '(calcFunc-lt calcFunc-leq))
@@ -999,8 +975,7 @@
 				   (nth 2 (nth 1 args))
 				   (nth 1 (nth 1 args)))
 			     (cdr (cdr args))))))
-  (math-symb-map func 'eqn args)
-)
+  (math-symb-map func 'eqn args))
 
 
 
@@ -1019,8 +994,7 @@
 			     (math-build-call func (list expr (car row))))
 			 (car row)))))
 	(math-normalize expr))
-    (calcFunc-reducer func vec))
-)
+    (calcFunc-reducer func vec)))
 
 (defun calcFunc-rreduce (func vec)
   (if (math-matrixp vec)
@@ -1036,8 +1010,7 @@
 		  row (cdr row)))
 	  (setq vec (cdr vec)))
 	(math-normalize expr))
-    (calcFunc-rreducer func vec))
-)
+    (calcFunc-rreducer func vec)))
 
 (defun calcFunc-reducer (func vec)
   (setq func (math-var-to-calcFunc func))
@@ -1066,8 +1039,7 @@
 	    (setq expr (math-build-call func (list expr (car vec)))))
 	  (math-normalize expr))
       (or (math-identity-value func)
-	  (math-reject-arg vec "*Vector is empty"))))
-)
+	  (math-reject-arg vec "*Vector is empty")))))
 
 (defun math-identity-value (func)
   (cdr (assq func '( (calcFunc-add . 0) (calcFunc-sub . 0)
@@ -1076,8 +1048,7 @@
 		     (calcFunc-min . (var inf var-inf))
 		     (calcFunc-max . (neg (var inf var-inf)))
 		     (calcFunc-vconcat . (vec))
-		     (calcFunc-append . (vec)) )))
-)
+		     (calcFunc-append . (vec)) ))))
 
 (defun calcFunc-rreducer (func vec)
   (setq func (math-var-to-calcFunc func))
@@ -1100,52 +1071,45 @@
 	      (setq expr (math-build-call func (list (car vec) expr))))
 	    (math-normalize expr))
 	(or (math-identity-value func)
-	    (math-reject-arg vec "*Vector is empty")))))
-)
+	    (math-reject-arg vec "*Vector is empty"))))))
 
 (defun calcFunc-reducec (func vec)
   (if (math-matrixp vec)
       (calcFunc-reducer func (math-transpose vec))
-    (calcFunc-reducer func vec))
-)
+    (calcFunc-reducer func vec)))
 
 (defun calcFunc-rreducec (func vec)
   (if (math-matrixp vec)
       (calcFunc-rreducer func (math-transpose vec))
-    (calcFunc-rreducer func vec))
-)
+    (calcFunc-rreducer func vec)))
 
 (defun calcFunc-reducea (func vec)
   (if (math-matrixp vec)
       (cons 'vec
 	    (mapcar (function (lambda (x) (calcFunc-reducer func x)))
 		    (cdr vec)))
-    (calcFunc-reducer func vec))
-)
+    (calcFunc-reducer func vec)))
 
 (defun calcFunc-rreducea (func vec)
   (if (math-matrixp vec)
       (cons 'vec
 	    (mapcar (function (lambda (x) (calcFunc-rreducer func x)))
 		    (cdr vec)))
-    (calcFunc-rreducer func vec))
-)
+    (calcFunc-rreducer func vec)))
 
 (defun calcFunc-reduced (func vec)
   (if (math-matrixp vec)
       (cons 'vec
 	    (mapcar (function (lambda (x) (calcFunc-reducer func x)))
 		    (cdr (math-transpose vec))))
-    (calcFunc-reducer func vec))
-)
+    (calcFunc-reducer func vec)))
 
 (defun calcFunc-rreduced (func vec)
   (if (math-matrixp vec)
       (cons 'vec
 	    (mapcar (function (lambda (x) (calcFunc-rreducer func x)))
 		    (cdr (math-transpose vec))))
-    (calcFunc-rreducer func vec))
-)
+    (calcFunc-rreducer func vec)))
 
 (defun calcFunc-accum (func vec)
   (setq func (math-var-to-calcFunc func))
@@ -1158,8 +1122,7 @@
     (while (setq vec (cdr vec))
       (setq expr (math-build-call func (list expr (car vec)))
 	    res (nconc res (list expr))))
-    (math-normalize res))
-)
+    (math-normalize res)))
 
 (defun calcFunc-raccum (func vec)
   (setq func (math-var-to-calcFunc func))
@@ -1172,8 +1135,7 @@
     (while (setq vec (cdr vec))
       (setq expr (math-build-call func (list (car vec) expr))
 	    res (cons (list expr) res)))
-    (math-normalize (cons 'vec res)))
-)
+    (math-normalize (cons 'vec res))))
 
 
 (defun math-nest-calls (func base iters accum tol)
@@ -1226,24 +1188,19 @@
 	    (setq avalues (cons value avalues))))
       (if accum
 	  (cons 'vec (nreverse avalues))
-	value)))
-)
+	value))))
 
 (defun calcFunc-nest (func base iters)
-  (math-nest-calls func base iters nil nil)
-)
+  (math-nest-calls func base iters nil nil))
 
 (defun calcFunc-anest (func base iters)
-  (math-nest-calls func base iters t nil)
-)
+  (math-nest-calls func base iters t nil))
 
 (defun calcFunc-fixp (func base &optional iters tol)
-  (math-nest-calls func base iters nil (or tol t))
-)
+  (math-nest-calls func base iters nil (or tol t)))
 
 (defun calcFunc-afixp (func base &optional iters tol)
-  (math-nest-calls func base iters t (or tol t))
-)
+  (math-nest-calls func base iters t (or tol t)))
 
 
 (defun calcFunc-outer (func a b)
@@ -1259,8 +1216,7 @@
 								       x))))
 				    (cdr b)))
 		      mat)))
-    (math-normalize (cons 'vec (nreverse mat))))
-)
+    (math-normalize (cons 'vec (nreverse mat)))))
 
 
 (defun calcFunc-inner (mul-func add-func a b)
@@ -1281,8 +1237,7 @@
 	    (math-dimension-error))))
     (if (math-matrixp b)
 	(nth 1 (math-inner-mats (list 'vec a) b))
-      (calcFunc-reduce add-func (calcFunc-map mul-func a b))))
-)
+      (calcFunc-reduce add-func (calcFunc-map mul-func a b)))))
 
 (defun math-inner-mats (a b)
   (let ((mat nil)
@@ -1298,8 +1253,7 @@
 						       (math-mat-col b col)))
 			row)))
       (setq mat (cons (cons 'vec row) mat)))
-    (cons 'vec (nreverse mat)))
-)
+    (cons 'vec (nreverse mat))))
 
-
+;;; calc-map.el ends here
 

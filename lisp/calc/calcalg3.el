@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-alg-3.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -47,8 +47,7 @@
 	 (calc-enter-result 1 "root" (list func
 					   (calc-top-n 2)
 					   var
-					   (calc-top-n 1)))))))
-)
+					   (calc-top-n 1))))))))
 
 (defun calc-find-minimum (var)
   (interactive "sVariable(s) to minimize over: ")
@@ -73,14 +72,12 @@
 	 (calc-enter-result 1 tag (list func
 					(calc-top-n 2)
 					var
-					(calc-top-n 1)))))))
-)
+					(calc-top-n 1))))))))
 
 (defun calc-find-maximum (var)
   (interactive "sVariable to maximize over: ")
   (calc-invert-func)
-  (calc-find-minimum var)
-)
+  (calc-find-minimum var))
 
 
 (defun calc-poly-interp (arg)
@@ -94,8 +91,7 @@
      (if (calc-is-hyperbolic)
 	 (calc-enter-result 1 "rati" (list 'calcFunc-ratint data (calc-top 1)))
        (calc-enter-result 1 "poli" (list 'calcFunc-polint data
-					 (calc-top 1))))))
-)
+					 (calc-top 1)))))))
 
 
 (defun calc-curve-fit (arg &optional model coefnames varnames)
@@ -312,16 +308,13 @@
 				  coefnames)
 				data))
        (if (consp calc-fit-to-trail)
-	   (calc-record (calc-normalize calc-fit-to-trail) "parm")))))
-)
+	   (calc-record (calc-normalize calc-fit-to-trail) "parm"))))))
 
 (defun calc-invent-independent-variables (n &optional but)
-  (calc-invent-variables n but '(x y z t) "x")
-)
+  (calc-invent-variables n but '(x y z t) "x"))
 
 (defun calc-invent-parameter-variables (n &optional but)
-  (calc-invent-variables n but '(a b c d) "a")
-)
+  (calc-invent-variables n but '(a b c d) "a"))
 
 (defun calc-invent-variables (num but names base)
   (let ((vars nil)
@@ -337,8 +330,7 @@
       (or (symbolp names) (setq names (cdr names))))
     (if (= n 0)
 	(nreverse vars)
-      (calc-invent-variables num but t base)))
-)
+      (calc-invent-variables num but t base))))
 
 (defun calc-get-fit-variables (nv nc &optional defv defc with-y homog)
   (or (= nv (if with-y (1+ nvars) nvars))
@@ -394,8 +386,7 @@
     (if coefnames
 	(setq model (math-multi-subst model (cdr coefnames) (cdr coefs))))
     (setq varnames vars
-	  coefnames coefs))
-)
+	  coefnames coefs)))
 
 
 
@@ -422,8 +413,7 @@
 			    limit)
 		(math-newton-root expr deriv next orig-guess limit)
 	      (math-reject-arg next "*Newton's method failed to converge"))))
-      (math-reject-arg next "*Newton's method encountered a singularity")))
-)
+      (math-reject-arg next "*Newton's method encountered a singularity"))))
 
 ;;; Inspired by "rtsafe"
 (defun math-newton-search-root (expr deriv guess vguess ostep oostep
@@ -494,8 +484,7 @@
 		(and (Math-negp vlow) (Math-negp vhigh)))
 	    (math-search-root expr deriv low vlow high vhigh)
 	  (math-newton-search-root expr deriv nil nil nil ostep
-				   low vlow high vhigh)))))
-)
+				   low vlow high vhigh))))))
 
 ;;; Search for a root in an interval with no overt zero crossing.
 (defun math-search-root (expr deriv low vlow high vhigh)
@@ -579,8 +568,7 @@
 					 low vlow high vhigh)
 	      (math-bisect-root expr low vlow high vhigh))))
       (math-reject-arg (list 'intv 3 low high)
-		       "*Unable to find a sign change in this interval")))
-)
+		       "*Unable to find a sign change in this interval"))))
 
 ;;; "rtbis"  (but we should be using Brent's method)
 (defun math-bisect-root (expr low vlow high vhigh)
@@ -602,8 +590,7 @@
 		vhigh vmid)
 	(setq low mid
 	      vlow vmid)))
-    (list 'vec mid vmid))
-)
+    (list 'vec mid vmid)))
 
 ;;; "mnewt"
 (defun math-newton-multi (expr jacob n guess orig-guess limit)
@@ -628,8 +615,7 @@
 			limit)
 	    (math-newton-multi expr jacob n next orig-guess limit)
 	  (math-reject-arg nil "*Newton's method failed to converge"))
-      (list 'vec next expr-val)))
-)
+      (list 'vec next expr-val))))
 
 (defvar math-root-vars [(var DUMMY var-DUMMY)])
 
@@ -746,16 +732,13 @@
 			(not (Math-numberp vlow))
 			(not (Math-numberp vhigh)))
 		    (math-search-root expr deriv low vlow high vhigh)
-		  (math-bisect-root expr low vlow high vhigh)))))))))
-)
+		  (math-bisect-root expr low vlow high vhigh))))))))))
 
 (defun calcFunc-root (expr var guess)
-  (math-find-root expr var guess nil)
-)
+  (math-find-root expr var guess nil))
 
 (defun calcFunc-wroot (expr var guess)
-  (math-find-root expr var guess t)
-)
+  (math-find-root expr var guess t))
 
 
 
@@ -773,8 +756,7 @@
       (math-float a)
     (if (eq (car a) 'float)
 	a
-      (math-reject-arg a 'realp)))
-)
+      (math-reject-arg a 'realp))))
 
 
 ;;; A bracket for a minimum is a < b < c where f(b) < f(a) and f(b) < f(c).
@@ -842,8 +824,7 @@
 	    c u  vc vu))
     (if (math-lessp-float a c)
 	(list a va b vb c vc)
-      (list c vc b vb a va)))
-)
+      (list c vc b vb a va))))
 
 (defun math-narrow-min (expr a c intv)
   (let ((xvals (list a c))
@@ -893,8 +874,7 @@
 		   (and (not yvals)
 			(list (nth 3 intv) min)))))
 	  (math-reject-arg nil (format "*Unable to find a %s in the interval"
-				       math-min-or-max)))))
-)
+				       math-min-or-max))))))
 
 ;;; "brent"
 (defun math-brent-min (expr prec a va x vx b vb)
@@ -986,8 +966,7 @@
 	(setq v w  vv vw
 	      w x  vw vx
 	      x u  vx vu)))
-    (list 'vec x vx))
-)
+    (list 'vec x vx)))
 
 ;;; "powell"
 (defun math-powell-min (expr n guesses prec)
@@ -1047,8 +1026,7 @@
 	    (while (<= (setq i (1+ i)) n)
 	      (setcar (nthcdr ibig (nth i xi))
 		      (nth i (nth 1 res)))))))
-    (list 'vec p fret))
-)
+    (list 'vec p fret)))
 
 (defun math-line-min-func (expr n)
   (let ((m -1))
@@ -1059,8 +1037,7 @@
 		       '(var DUMMY var-DUMMY)
 		       (list 'calcFunc-mrow '(var line-xi line-xi) (1+ m)))
 		 (list 'calcFunc-mrow '(var line-p line-p) (1+ m)))))
-    (math-evaluate-expr expr))
-)
+    (math-evaluate-expr expr)))
 
 (defun math-line-min (f1dim line-p line-xi n prec)
   (let* ((var-DUMMY nil)
@@ -1068,8 +1045,7 @@
 	 (params (math-widen-min expr '(float 0 0) '(float 1 0)))
 	 (res (apply 'math-brent-min expr prec params))
 	 (xi (math-mul (nth 1 res) line-xi)))
-    (list (math-add line-p xi) xi (nth 2 res)))
-)
+    (list (math-add line-p xi) xi (nth 2 res))))
 
 
 (defvar math-min-vars [(var DUMMY var-DUMMY)])
@@ -1168,8 +1144,7 @@
 	  (setq guesses (cdr guesses)))
 	(if isvec
 	    (list 'vec vec (nth 2 res))
-	  (list 'vec (nth 1 vec) (nth 2 res))))))
-)
+	  (list 'vec (nth 1 vec) (nth 2 res)))))))
 (setq math-min-or-max "minimum")
 
 (defun calcFunc-minimize (expr var guess)
@@ -1177,16 +1152,14 @@
 	(math-min-or-max "minimum"))
     (math-find-minimum (math-normalize expr)
 		       (math-normalize var)
-		       (math-normalize guess) nil))
-)
+		       (math-normalize guess) nil)))
 
 (defun calcFunc-wminimize (expr var guess)
   (let ((calc-internal-prec (max (/ calc-internal-prec 2) 3))
 	(math-min-or-max "minimum"))
     (math-find-minimum (math-normalize expr)
 		       (math-normalize var)
-		       (math-normalize guess) t))
-)
+		       (math-normalize guess) t)))
 
 (defun calcFunc-maximize (expr var guess)
   (let* ((calc-internal-prec (max (/ calc-internal-prec 2) 3))
@@ -1194,8 +1167,7 @@
 	 (res (math-find-minimum (math-normalize (math-neg expr))
 				 (math-normalize var)
 				 (math-normalize guess) nil)))
-    (list 'vec (nth 1 res) (math-neg (nth 2 res))))
-)
+    (list 'vec (nth 1 res) (math-neg (nth 2 res)))))
 
 (defun calcFunc-wmaximize (expr var guess)
   (let* ((calc-internal-prec (max (/ calc-internal-prec 2) 3))
@@ -1203,8 +1175,7 @@
 	 (res (math-find-minimum (math-normalize (math-neg expr))
 				 (math-normalize var)
 				 (math-normalize guess) t)))
-    (list 'vec (nth 1 res) (math-neg (nth 2 res))))
-)
+    (list 'vec (nth 1 res) (math-neg (nth 2 res)))))
 
 
 
@@ -1223,8 +1194,7 @@
     (or (math-objectp x) math-expand-formulas (math-reject-arg x 'objectp))
     (math-with-extra-prec 2
       (cons 'vec (math-poly-interp (cdr (nth 1 data)) (cdr (nth 2 data)) x
-				   nil))))
-)
+				   nil)))))
 (put 'calcFunc-polint 'math-expandable t)
 
 
@@ -1240,8 +1210,7 @@
     (or (math-objectp x) math-expand-formulas (math-reject-arg x 'objectp))
     (math-with-extra-prec 2
       (cons 'vec (math-poly-interp (cdr (nth 1 data)) (cdr (nth 2 data)) x
-				   (cdr (cdr (cdr (nth 1 data))))))))
-)
+				   (cdr (cdr (cdr (nth 1 data)))))))))
 (put 'calcFunc-ratint 'math-expandable t)
 
 
@@ -1295,8 +1264,7 @@
 	  (setq ns (1- ns)
 		dy (nth ns d)))
 	(setq y (math-add y dy)))
-      (list y dy)))
-)
+      (list y dy))))
 
 
 
@@ -1335,8 +1303,7 @@
 			      (math-ninteg-romberg
 			       'math-ninteg-midpoint expr
 			       (math-float lo) (math-float hi) nil))))
-      sum))
-)
+      sum)))
 
 
 ;;; Open Romberg method; "qromo" in section 4.4.
@@ -1365,8 +1332,7 @@
 		      h (cdr h)))
 	    (setq curh (math-div-float curh '(float 9 0))))
 	  ss
-	  (math-reject-arg nil (format "*Integral failed to converge")))))
-)
+	  (math-reject-arg nil (format "*Integral failed to converge"))))))
 
 
 (defun math-ninteg-evaluate (expr x mode)
@@ -1378,8 +1344,7 @@
 	(math-reject-arg res "*Integrand does not evaluate to a number"))
     (if (eq mode 'inf)
 	(setq res (math-mul res (math-sqr x))))
-    res)
-)
+    res))
 
 
 (defun math-ninteg-midpoint (expr lo hi mode)    ; uses "integ-temp"
@@ -1417,8 +1382,7 @@
 			       expr
 			       (math-mul (math-add lo hi) '(float 5 -1))
 			       mode)))))
-  (nth 1 integ-temp)
-)
+  (nth 1 integ-temp))
 
 
 
@@ -1437,28 +1401,24 @@
   (set (nth 2 (aref math-dummy-vars math-dummy-counter)) nil)
   (prog1
       (aref math-dummy-vars math-dummy-counter)
-    (setq math-dummy-counter (1+ math-dummy-counter)))
-)
+    (setq math-dummy-counter (1+ math-dummy-counter))))
 
 
 
 (defun calcFunc-fit (expr vars &optional coefs data)
   (let ((math-in-fit 10))
     (math-with-extra-prec 2
-      (math-general-fit expr vars coefs data nil)))
-)
+      (math-general-fit expr vars coefs data nil))))
 
 (defun calcFunc-efit (expr vars &optional coefs data)
   (let ((math-in-fit 10))
     (math-with-extra-prec 2
-      (math-general-fit expr vars coefs data 'sdev)))
-)
+      (math-general-fit expr vars coefs data 'sdev))))
 
 (defun calcFunc-xfit (expr vars &optional coefs data)
   (let ((math-in-fit 10))
     (math-with-extra-prec 2
-      (math-general-fit expr vars coefs data 'full)))
-)
+      (math-general-fit expr vars coefs data 'full))))
 
 (defun math-general-fit (expr vars coefs data mode)
   (let ((calc-simplify-mode nil)
@@ -1746,8 +1706,7 @@
 	       (if (and have-sdevs (> n mm))
 		   (list 'calcFunc-utpc chisq (- n mm))
 		 '(var nan var-nan)))
-       expr)))
-)
+       expr))))
 
 (setq math-in-fit 0)
 (setq calc-fit-to-trail nil)
@@ -1757,38 +1716,33 @@
       (progn
 	(setq x (aref math-dummy-vars (+ first-var x -1)))
 	(or (calc-var-value (nth 2 x)) x))
-    (math-reject-arg x))
-)
+    (math-reject-arg x)))
 
 (defun calcFunc-fitparam (x)
   (if (>= math-in-fit 2)
       (progn
 	(setq x (aref math-dummy-vars (+ first-coef x -1)))
 	(or (calc-var-value (nth 2 x)) x))
-    (math-reject-arg x))
-)
+    (math-reject-arg x)))
 
 (defun calcFunc-fitdummy (x)
   (if (= math-in-fit 3)
       (nth x new-coefs)
-    (math-reject-arg x))
-)
+    (math-reject-arg x)))
 
 (defun calcFunc-hasfitvars (expr)
   (if (Math-primp expr)
       0
     (if (eq (car expr) 'calcFunc-fitvar)
 	(nth 1 expr)
-      (apply 'max (mapcar 'calcFunc-hasfitvars (cdr expr)))))
-)
+      (apply 'max (mapcar 'calcFunc-hasfitvars (cdr expr))))))
 
 (defun calcFunc-hasfitparams (expr)
   (if (Math-primp expr)
       0
     (if (eq (car expr) 'calcFunc-fitparam)
 	(nth 1 expr)
-      (apply 'max (mapcar 'calcFunc-hasfitparams (cdr expr)))))
-)
+      (apply 'max (mapcar 'calcFunc-hasfitparams (cdr expr))))))
 
 
 (defun math-all-vars-but (expr but)
@@ -1798,15 +1752,13 @@
       (setq vars (delq (assoc (car-safe p) vars) vars)
 	    p (cdr p)))
     (sort (mapcar 'car vars)
-	  (function (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
-)
+	  (function (lambda (x y) (string< (nth 1 x) (nth 1 y)))))))
 
 (defun math-all-vars-in (expr)
   (let ((vars nil)
 	found)
     (math-all-vars-rec expr)
-    vars)
-)
+    vars))
 
 (defun math-all-vars-rec (expr)
   (if (Math-primp expr)
@@ -1816,9 +1768,6 @@
 		  (setcdr found (1+ (cdr found)))
 		(setq vars (cons (cons expr 1) vars)))))
     (while (setq expr (cdr expr))
-      (math-all-vars-rec (car expr))))
-)
+      (math-all-vars-rec (car expr)))))
 
-
-
-
+;;; calcalg3.el ends here

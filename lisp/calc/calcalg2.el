@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-alg-2.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -46,8 +46,7 @@
 	     expr (calc-top-n 1)))
      (while (>= (setq num (1- num)) 0)
        (setq expr (list func expr var)))
-     (calc-enter-result n "derv" expr)))
-)
+     (calc-enter-result n "derv" expr))))
 
 (defun calc-integral (var)
   (interactive "sIntegration variable: ")
@@ -61,38 +60,32 @@
 	   (error "Bad format in expression: %s" (nth 1 var)))
        (calc-enter-result 1 "intg" (list 'calcFunc-integ
 					 (calc-top-n 1)
-					 var)))))
-)
+					 var))))))
 
 (defun calc-num-integral (&optional varname lowname highname)
   (interactive "sIntegration variable: ")
   (calc-tabular-command 'calcFunc-ninteg "Integration" "nint"
-			nil varname lowname highname)
-)
+			nil varname lowname highname))
 
 (defun calc-summation (arg &optional varname lowname highname)
   (interactive "P\nsSummation variable: ")
   (calc-tabular-command 'calcFunc-sum "Summation" "sum"
-			arg varname lowname highname)
-)
+			arg varname lowname highname))
 
 (defun calc-alt-summation (arg &optional varname lowname highname)
   (interactive "P\nsSummation variable: ")
   (calc-tabular-command 'calcFunc-asum "Summation" "asum"
-			arg varname lowname highname)
-)
+			arg varname lowname highname))
 
 (defun calc-product (arg &optional varname lowname highname)
   (interactive "P\nsIndex variable: ")
   (calc-tabular-command 'calcFunc-prod "Index" "prod"
-			arg varname lowname highname)
-)
+			arg varname lowname highname))
 
 (defun calc-tabulate (arg &optional varname lowname highname)
   (interactive "P\nsIndex variable: ")
   (calc-tabular-command 'calcFunc-table "Index" "tabl"
-			arg varname lowname highname)
-)
+			arg varname lowname highname))
 
 (defun calc-tabular-command (func prompt prefix arg varname lowname highname)
   (calc-slow-wrapper
@@ -150,8 +143,7 @@
 	       (setq step (prefix-numeric-value arg)))))
      (setq expr (calc-top-n num))
      (calc-enter-result num prefix (append (list func expr var low high)
-					   (and step (list step))))))
-)
+					   (and step (list step)))))))
 
 (defun calc-solve-for (var)
   (interactive "sVariable to solve for: ")
@@ -171,8 +163,7 @@
 	     (error "Bad format in expression: %s" (nth 1 var)))
 	 (calc-enter-result 1 "solv" (list func
 					   (calc-top-n 1)
-					   var))))))
-)
+					   var)))))))
 
 (defun calc-poly-roots (var)
   (interactive "sVariable to solve for: ")
@@ -189,8 +180,7 @@
 	   (error "Bad format in expression: %s" (nth 1 var)))
        (calc-enter-result 1 "prts" (list 'calcFunc-roots
 					 (calc-top-n 1)
-					 var)))))
-)
+					 var))))))
 
 (defun calc-taylor (var nterms)
   (interactive "sTaylor expansion variable: \nNNumber of terms: ")
@@ -201,8 +191,7 @@
      (calc-enter-result 1 "tylr" (list 'calcFunc-taylor
 				       (calc-top-n 1)
 				       var
-				       (prefix-numeric-value nterms)))))
-)
+				       (prefix-numeric-value nterms))))))
 
 
 (defun math-derivative (expr)   ; uses global values: deriv-var, deriv-total.
@@ -332,8 +321,7 @@
 					     (throw 'math-deriv nil)
 					   (cons func (cdr expr))))))))))
 		     (setq n (1+ n)))
-		   accum)))))
-)
+		   accum))))))
 
 (defun calcFunc-deriv (expr deriv-var &optional deriv-value deriv-symb)
   (let* ((deriv-total nil)
@@ -344,8 +332,7 @@
     (and res
 	 (if deriv-value
 	     (math-expr-subst res deriv-var deriv-value)
-	   res)))
-)
+	   res))))
 
 (defun calcFunc-tderiv (expr deriv-var &optional deriv-value deriv-symb)
   (math-setup-declarations)
@@ -357,8 +344,7 @@
     (and res
 	 (if deriv-value
 	     (math-expr-subst res deriv-var deriv-value)
-	   res)))
-)
+	   res))))
 
 (put 'calcFunc-inv\' 'math-derivative-1
      (function (lambda (u) (math-neg (math-div 1 (math-sqr u))))))
@@ -492,8 +478,7 @@
 (defun math-deriv-gamma (a x scale)
   (math-mul scale
 	    (math-mul (math-pow x (math-add a -1))
-		      (list 'calcFunc-exp (math-neg x))))
-)
+		      (list 'calcFunc-exp (math-neg x)))))
 
 (put 'calcFunc-betaB\' 'math-derivative-3
      (function (lambda (x a b) (math-deriv-beta x a b 1))))
@@ -507,8 +492,7 @@
 (defun math-deriv-beta (x a b scale)
   (math-mul (math-mul (math-pow x (math-add a -1))
 		      (math-pow (math-sub 1 x) (math-add b -1)))
-	    scale)
-)
+	    scale))
 
 (put 'calcFunc-erf\' 'math-derivative-1
      (function (lambda (x) (math-div 2
@@ -632,8 +616,7 @@
 	      ;;(list 'condition-case 'err
 		    (cons 'insert parts)
 		;;    '(error (insert (prin1-to-string err))))
-	      '(sit-for 0)))
-)
+	      '(sit-for 0))))
 
 ;;; The following wrapper caches results and avoids infinite recursion.
 ;;; Each cache entry is: ( A B )          Integral of A is B;
@@ -724,8 +707,7 @@
 			   "  is  "
 			   (math-format-value val 1000)
 			   "\n")
-    val)
-)
+    val))
 (defvar math-integral-cache nil)
 (defvar math-integral-cache-state nil)
 
@@ -736,8 +718,7 @@
 	   (listp (nth 2 expr)))
     (while (and (setq expr (cdr expr))
 		(not (math-integral-contains-parts (car expr)))))
-    expr)
-)
+    expr))
 
 (defun math-replace-integral-parts (expr)
   (or (Math-primp expr)
@@ -751,8 +732,7 @@
 			    (setcar expr (nth 1 (nth 2 (car expr))))
 			    (math-replace-integral-parts (cons 'foo expr)))
 			(setcar (cdr cur-record) 'cancelled)))
-	       (math-replace-integral-parts (car expr))))))
-)
+	       (math-replace-integral-parts (car expr)))))))
 
 (defun math-do-integral (expr)
   (let (t1 t2)
@@ -974,8 +954,7 @@
 	;; Try expanding the function's definition.
 	(let ((res (math-expand-formula expr)))
 	  (and res
-	       (math-integral res)))))
-)
+	       (math-integral res))))))
 
 (defun math-sub-integration (expr &rest rest)
   (or (if (or (not rest)
@@ -986,8 +965,7 @@
 	  (and (or (= math-integ-level math-integral-limit)
 		   (not (math-expr-calls res 'calcFunc-integ)))
 	       res)))
-      (list 'calcFunc-integfailed expr))
-)
+      (list 'calcFunc-integfailed expr)))
 
 (defun math-do-integral-methods (expr)
   (let ((so-far math-integ-var-list-list)
@@ -1074,8 +1052,7 @@
 	(math-integ-try-parts expr)
 
 	;; Give up.
-	nil))
-)
+	nil)))
 
 (defun math-integ-parts-easy (expr)
   (cond ((Math-primp expr) t)
@@ -1090,8 +1067,7 @@
 	      (math-integ-parts-easy (nth 1 expr))))
 	((eq (car expr) 'neg)
 	 (math-integ-parts-easy (nth 1 expr)))
-	(t t))
-)
+	(t t)))
 
 (defun math-integ-try-parts (expr &optional math-good-parts)
   ;; Integration by parts:
@@ -1117,8 +1093,7 @@
       (and (eq (car expr) '^)
 	   (math-integrate-by-parts (math-pow (nth 1 expr)
 					      (math-sub (nth 2 expr) 1))
-				    (nth 1 expr))))
-)
+				    (nth 1 expr)))))
 
 (defun math-integrate-by-parts (u vprime)
   (let ((math-integ-level (if (or math-good-parts
@@ -1149,16 +1124,14 @@
 				   (math-solve-for (math-sub v temp) 0 v nil)))
 		      (and temp (not (integerp temp))
 			   (math-simplify-extended temp)))))
-	   (setcar (cdr cur-record) 'busy))))
-)
+	   (setcar (cdr cur-record) 'busy)))))
 
 ;;; This tries two different formulations, hoping the algebraic simplifier
 ;;; will be strong enough to handle at least one.
 (defun math-integrate-by-substitution (expr u &optional user uinv uinvprime)
   (and (> math-integ-level 0)
        (let ((math-integ-level (max (- math-integ-level 2) 0)))
-	 (math-integrate-by-good-substitution expr u user uinv uinvprime)))
-)
+	 (math-integrate-by-good-substitution expr u user uinv uinvprime))))
 
 (defun math-integrate-by-good-substitution (expr u &optional user
 						 uinv uinvprime)
@@ -1208,8 +1181,7 @@
 					       deriv)
 					      'yes)))))
 	 (math-simplify-extended
-	  (math-expr-subst temp math-integ-var u))))
-)
+	  (math-expr-subst temp math-integ-var u)))))
 
 ;;; Look for substitutions of the form u = a x + b.
 (defun math-integ-try-linear-substitutions (sub-expr)
@@ -1234,8 +1206,7 @@
 	     (while (and (setq sub-expr (cdr sub-expr))
 			 (not (setq res (math-integ-try-linear-substitutions
 					 (car sub-expr))))))
-	     res)))
-)
+	     res))))
 
 ;;; Recursively try different substitutions based on various sub-expressions.
 (defun math-integ-try-substitutions (sub-expr &optional allow-rat)
@@ -1260,14 +1231,12 @@
 	     (while (and (setq sub-expr (cdr sub-expr))
 			 (not (setq res (math-integ-try-substitutions
 					 (car sub-expr) allow-rat)))))
-	     res)))
-)
+	     res))))
 
 (defun math-expr-rational-in (expr)
   (let ((parts nil))
     (math-expr-rational-in-rec expr)
-    (mapcar 'car parts))
-)
+    (mapcar 'car parts)))
 
 (defun math-expr-rational-in-rec (expr)
   (cond ((Math-primp expr)
@@ -1284,8 +1253,7 @@
 	(t
 	 (and (not (assoc expr parts))
 	      (math-expr-contains expr math-integ-var)
-	      (setq parts (cons (list expr) parts)))))
-)
+	      (setq parts (cons (list expr) parts))))))
 
 (defun math-expr-calls (expr funcs &optional arg-contains)
   (if (consp expr)
@@ -1300,8 +1268,7 @@
 	       (while (and (setq expr (cdr expr))
 			   (not (setq res (math-expr-calls
 					   (car expr) funcs arg-contains)))))
-	       res))))
-)
+	       res)))))
 
 (defun math-fix-const-terms (expr except-vars)
   (cond ((not (math-expr-depends expr except-vars)) 0)
@@ -1312,8 +1279,7 @@
 	((eq (car expr) '-)
 	 (math-sub (math-fix-const-terms (nth 1 expr) except-vars)
 		   (math-fix-const-terms (nth 2 expr) except-vars)))
-	(t expr))
-)
+	(t expr)))
 
 ;; Command for debugging the Calculator's symbolic integrator.
 (defun calc-dump-integral-cache (&optional arg)
@@ -1336,8 +1302,7 @@
 		    "\n")
 	    (setq p (cdr p)))
 	  (goto-char (point-min)))
-      (set-buffer buf)))
-)
+      (set-buffer buf))))
 
 (defun math-try-integral (expr)
   (let ((math-integ-level math-integral-limit)
@@ -1355,8 +1320,7 @@
 	(and (> math-max-integral-limit math-integral-limit)
 	     (setq math-integral-limit math-max-integral-limit
 		   math-integ-level math-integral-limit)
-	     (math-integral expr 'yes))))
-)
+	     (math-integral expr 'yes)))))
 
 (defun calcFunc-integ (expr var &optional low high)
   (cond
@@ -1468,8 +1432,7 @@
 		 (math-expr-subst res math-integ-var var)))))
 	(append (list 'calcFunc-integ expr var)
 		(and low (list low))
-		(and high (list high)))))))
-)
+		(and high (list high))))))))
 
 
 (math-defintegral calcFunc-inv
@@ -1682,8 +1645,7 @@
 				  (math-mul n (math-mul q (math-pow v n)))))
 		       (math-mul-thru (math-div (math-mul b (1- (* 2 n)))
 						(math-mul n q))
-				      (math-integral-q02 a b c v n)))))))
-)
+				      (math-integral-q02 a b c v n))))))))
 
 (defun math-integral-q02 (a b c v vpow)
   (let (q rq part)
@@ -1722,8 +1684,7 @@
 	   (math-div (math-mul 2 (math-to-radians-2
 				  (list 'calcFunc-arctan
 					(math-div part rq))))
-		     rq))))
-)
+		     rq)))))
 
 
 (math-defintegral calcFunc-erf
@@ -1798,8 +1759,7 @@
 	      (and (not (and (equal low '(neg (var inf var-inf)))
 			     (equal high '(var inf var-inf))))
 		   (list low high))
-	      (and step (list step)))))
-)
+	      (and step (list step))))))
 
 (setq math-tabulate-initial nil)
 (setq math-tabulate-function nil)
@@ -1822,8 +1782,7 @@
 		 high (math-min high (math-floor high-val)))))
 	(t
 	 (while (setq x (cdr x))
-	   (math-scan-for-limits (car x)))))
-)
+	   (math-scan-for-limits (car x))))))
 
 
 (defun calcFunc-sum (expr var &optional low high step)
@@ -1831,8 +1790,7 @@
   (let* ((res (let* ((calc-internal-prec (+ calc-internal-prec 2)))
 		(math-sum-rec expr var low high step)))
 	 (math-disable-sums t))
-    (math-normalize res))
-)
+    (math-normalize res)))
 (setq math-disable-sums nil)
 
 (defun math-sum-rec (expr var &optional low high step)
@@ -1937,8 +1895,7 @@
     (or val
 	(let* ((math-tabulate-initial 0)
 	       (math-tabulate-function 'calcFunc-sum))
-	  (calcFunc-table expr var low high))))
-)
+	  (calcFunc-table expr var low high)))))
 
 (defun calcFunc-asum (expr var low &optional high step no-mul-flag)
   (or high (setq high low low 1))
@@ -1960,8 +1917,7 @@
 			   (math-simplify (math-div (math-sub high low)
 						    step))))))
     (math-mul (if no-mul-flag 1 (math-pow -1 low))
-	      (calcFunc-sum (math-mul (math-pow -1 var) expr) var low high)))
-)
+	      (calcFunc-sum (math-mul (math-pow -1 var) expr) var low high))))
 
 (defun math-sum-const-factors (expr var)
   (let ((const nil)
@@ -1983,8 +1939,7 @@
 	       (let ((temp (or (car not-const) 1)))
 		 (while (setq not-const (cdr not-const))
 		   (setq temp (list '* (car not-const) temp)))
-		 temp))))
-)
+		 temp)))))
 
 ;; Following is from CRC Math Tables, 27th ed, pp. 52-53.
 (defun math-sum-integer-power (pow)
@@ -2007,8 +1962,7 @@
 	(setq math-sum-int-pow-cache
 	      (nconc math-sum-int-pow-cache (list (nreverse new)))
 	      n (1+ n))))
-    (nth pow math-sum-int-pow-cache))
-)
+    (nth pow math-sum-int-pow-cache)))
 (setq math-sum-int-pow-cache (list '(0 1)))
 
 (defun math-to-exponentials (expr)
@@ -2046,8 +2000,7 @@
 			       (list '^ '(var e var-e) x)
 			       (list '^ '(var e var-e) (list 'neg x)))
 		      2))
-	       (t nil))))
-)
+	       (t nil)))))
 
 (defun math-to-exps (expr)
   (cond (calc-symbolic-mode expr)
@@ -2057,8 +2010,7 @@
 	      (equal (nth 1 expr) '(var e var-e)))
 	 (list 'calcFunc-exp (nth 2 expr)))
 	(t
-	 (cons (car expr) (mapcar 'math-to-exps (cdr expr)))))
-)
+	 (cons (car expr) (mapcar 'math-to-exps (cdr expr))))))
 
 
 (defun calcFunc-prod (expr var &optional low high step)
@@ -2066,8 +2018,7 @@
   (let* ((res (let* ((calc-internal-prec (+ calc-internal-prec 2)))
 		(math-prod-rec expr var low high step)))
 	 (math-disable-prods t))
-    (math-normalize res))
-)
+    (math-normalize res)))
 (setq math-disable-prods nil)
 
 (defun math-prod-rec (expr var &optional low high step)
@@ -2209,8 +2160,7 @@
     (or val
 	(let* ((math-tabulate-initial 1)
 	       (math-tabulate-function 'calcFunc-prod))
-	  (calcFunc-table expr var low high))))
-)
+	  (calcFunc-table expr var low high)))))
 
 
 
@@ -2359,8 +2309,7 @@
 	   (math-try-solve-for t1 rhs sign))
 	  (t
 	   (calc-record-why "*No inverse known" lhs)
-	   nil)))
-)
+	   nil))))
 
 (setq math-solve-ranges nil)
 
@@ -2470,8 +2419,7 @@
 			  (and sign
 			       (math-oddp (nth 2 lhs))
 			       (math-solve-sign sign (nth 2 lhs)))))))))
-	(t nil))
-)
+	(t nil)))
 
 (defun math-solve-prod (lsoln rsoln)
   (cond ((null lsoln)
@@ -2485,8 +2433,7 @@
 	       (list 'calcFunc-gt (math-solve-get-sign 1) 0)
 	       lsoln
 	       rsoln))
-	(t lsoln))
-)
+	(t lsoln)))
 
 ;;; This deals with negative, fractional, and symbolic powers of "x".
 (defun math-solve-poly-funny-powers (sub-rhs)    ; uses "t1", "t2"
@@ -2503,8 +2450,7 @@
     (setq t2 (math-mul (or math-poly-mult-powers 1)
 		       (let ((calc-prefer-frac t))
 			 (math-div 1 math-poly-frac-powers)))
-	  t1 (math-is-polynomial (math-simplify (calcFunc-expand t1)) b 50)))
-)
+	  t1 (math-is-polynomial (math-simplify (calcFunc-expand t1)) b 50))))
 
 ;;; This converts "a x^8 + b x^5 + c x^2" to "(a (x^3)^2 + b (x^3) + c) * x^2".
 (defun math-solve-crunch-poly (max-degree)   ; uses "t1", "t3"
@@ -2533,8 +2479,7 @@
 			      t1 new-t1))))
 	     (setq scale (1- scale)))
 	   (setq t3 (list (math-mul (car t3) t2) (math-mul count t2)))
-	   (<= (1- (length t1)) max-degree))))
-)
+	   (<= (1- (length t1)) max-degree)))))
 
 (defun calcFunc-poly (expr var &optional degree)
   (if degree
@@ -2545,8 +2490,7 @@
 	(if (equal p '(0))
 	    (list 'vec)
 	  (cons 'vec p))
-      (math-reject-arg expr "Expected a polynomial")))
-)
+      (math-reject-arg expr "Expected a polynomial"))))
 
 (defun calcFunc-gpoly (expr var &optional degree)
   (if degree
@@ -2556,8 +2500,7 @@
 	 (d (math-decompose-poly expr var degree nil)))
     (if d
 	(cons 'vec d)
-      (math-reject-arg expr "Expected a polynomial")))
-)
+      (math-reject-arg expr "Expected a polynomial"))))
 
 (defun math-decompose-poly (lhs solve-var degree sub-rhs)
   (let ((rhs (or sub-rhs 1))
@@ -2589,15 +2532,13 @@
 	      (cons 'vec t1)
 	      (if sub-rhs
 		  (math-pow t2 (nth 1 t3))
-		(math-div (math-pow t2 (nth 1 t3)) rhs)))))
-)
+		(math-div (math-pow t2 (nth 1 t3)) rhs))))))
 
 (defun math-solve-linear (var sign b a)
   (math-try-solve-for var
 		      (math-div (math-neg b) a)
 		      (math-solve-sign sign a)
-		      t)
-)
+		      t))
 
 (defun math-solve-quadratic (var c b a)
   (math-try-solve-for
@@ -2622,8 +2563,7 @@
 	       (math-add (math-sqr b)
 			 (math-mul 4 (math-mul (math-neg c) a)))))))
       (math-mul 2 a)))
-   nil t)
-)
+   nil t))
 
 (defun math-solve-cubic (var d c b a)
   (let* ((p (math-div b a))
@@ -2665,8 +2605,7 @@
 					 calc-symbolic-mode))))
 		   3))))
 	  (math-div p 3))
-	 nil t))))
-)
+	 nil t)))))
 
 (defun math-solve-quartic (var d c b a aa)
   (setq a (math-div a aa))
@@ -2715,8 +2654,7 @@
       (math-sub (math-add (math-mul sign1 (math-div r 2))
 			  (math-solve-get-sign (math-div de 2)))
 		(math-div a 4))))
-   nil t)
-)
+   nil t))
 
 (defun math-poly-all-roots (var p &optional math-factoring)
   (catch 'ouch
@@ -2811,8 +2749,7 @@
 	      (list 'calcFunc-subscr
 		    vec
 		    (math-solve-get-int 1 (1- (length orig-p)) 1))
-	    vec)))))
-)
+	    vec))))))
 (setq math-symbolic-solve nil)
 
 (defun math-lcm-denoms (&rest fracs)
@@ -2821,8 +2758,7 @@
       (if (eq (car-safe (car fracs)) 'frac)
 	  (setq den (calcFunc-lcm den (nth 2 (car fracs)))))
       (setq fracs (cdr fracs)))
-    den)
-)
+    den))
 
 (defun math-poly-any-root (p x polish)    ; p is a reverse poly coeff list
   (let* ((newt (if (math-zerop x)
@@ -2838,8 +2774,7 @@
 		  (math-poly-laguerre-root p x polish)))))
     (and math-symbolic-solve (math-floatp res)
 	 (throw 'ouch nil))
-    res)
-)
+    res))
 
 (defun math-poly-newton-root (p x iters)
   (let* ((calc-prefer-frac nil)
@@ -2869,8 +2804,7 @@
 			       (math-nearly-zerop dx (math-abs-approx x))))
 		      (progn (setq dx 0) nil)))))
     (cons x (if (math-zerop x)
-		1 (math-div (math-abs-approx dx) (math-abs-approx x)))))
-)
+		1 (math-div (math-abs-approx dx) (math-abs-approx x))))))
 
 (defun math-poly-integer-root (x)
   (and (math-lessp (calcFunc-xpon (math-abs-approx x)) calc-internal-prec)
@@ -2935,8 +2869,7 @@
 			      (let ((calc-symbolic-mode math-symbolic-solve))
 				(math-mul (math-sqrt (math-sub (math-sqr aa)
 							       rnd0))
-					  (if (math-negp xim) -1 1))))))))))
-)
+					  (if (math-negp xim) -1 1)))))))))))
 (setq math-int-coefs nil)
 
 ;;; The following routine is from Numerical Recipes, section 9.5.
@@ -3018,8 +2951,7 @@
 			     dxold))))
     (or (and (math-floatp x)
 	     (math-poly-integer-root x))
-	x))
-)
+	x)))
 
 (defun math-solve-above-dummy (x)
   (and (not (Math-primp x))
@@ -3029,8 +2961,7 @@
 	 (let ((res nil))
 	   (while (and (setq x (cdr x))
 		       (not (setq res (math-solve-above-dummy (car x))))))
-	   res)))
-)
+	   res))))
 
 (defun math-solve-find-root-term (x neg)    ; sets "t2", "t3"
   (if (math-solve-find-root-in-prod x)
@@ -3039,8 +2970,7 @@
     (and (memq (car-safe x) '(+ -))
 	 (or (math-solve-find-root-term (nth 1 x) neg)
 	     (math-solve-find-root-term (nth 2 x)
-					(if (eq (car x) '-) (not neg) neg)))))
-)
+					(if (eq (car x) '-) (not neg) neg))))))
 
 (defun math-solve-find-root-in-prod (x)
   (and (consp x)
@@ -3057,8 +2987,7 @@
 		(or (and (not (math-expr-contains (nth 1 x) solve-var))
 			 (math-solve-find-root-in-prod (nth 2 x)))
 		    (and (not (math-expr-contains (nth 2 x) solve-var))
-			 (math-solve-find-root-in-prod (nth 1 x)))))))
-)
+			 (math-solve-find-root-in-prod (nth 1 x))))))))
 
 
 (defun math-solve-system (exprs solve-vars solve-full)
@@ -3071,8 +3000,7 @@
   (or (let ((math-solve-simplifying nil))
 	(math-solve-system-rec exprs solve-vars nil))
       (let ((math-solve-simplifying t))
-	(math-solve-system-rec exprs solve-vars nil)))
-)
+	(math-solve-system-rec exprs solve-vars nil))))
 
 ;;; The following backtracking solver works by choosing a variable
 ;;; and equation, and trying to solve the equation for the variable.
@@ -3167,8 +3095,7 @@
        (cons 'vec 
 	     (if solns
 		 (mapcar (function (lambda (x) (cons 'calcFunc-eq x))) solns)
-	       (mapcar 'car eqn-list))))))
-)
+	       (mapcar 'car eqn-list)))))))
 
 (defun math-solve-system-subst (x)    ; uses "res" and "v"
   (let ((accum nil)
@@ -3184,8 +3111,7 @@
 				 (car res2)))
 	    x (cdr x)
 	    res2 (cdr res2)))
-    accum)
-)
+    accum))
 
 
 (defun math-get-from-counter (name)
@@ -3194,8 +3120,7 @@
 	(setcdr ctr (1+ (cdr ctr)))
       (setq ctr (cons name 1)
 	    calc-command-flags (cons ctr calc-command-flags)))
-    (cdr ctr))
-)
+    (cdr ctr)))
 
 (defun math-solve-get-sign (val)
   (setq val (math-simplify val))
@@ -3222,8 +3147,7 @@
 					      math-solve-ranges)))
 	    (math-mul var2 val)))
       (calc-record-why "*Choosing positive solution")
-      val))
-)
+      val)))
 
 (defun math-solve-get-int (val &optional range first)
   (if solve-full
@@ -3243,8 +3167,7 @@
 					    math-solve-ranges)))
 	  (math-mul val var2)))
     (calc-record-why "*Choosing 0 for arbitrary integer in solution")
-    0)
-)
+    0))
 
 (defun math-solve-sign (sign expr)
   (and sign
@@ -3252,15 +3175,13 @@
 	 (cond ((memq s1 '(4 6))
 		sign)
 	       ((memq s1 '(1 3))
-		(- sign)))))
-)
+		(- sign))))))
 
 (defun math-looks-evenp (expr)
   (if (Math-integerp expr)
       (math-evenp expr)
     (if (memq (car expr) '(* /))
-	(math-looks-evenp (nth 1 expr))))
-)
+	(math-looks-evenp (nth 1 expr)))))
 
 (defun math-solve-for (lhs rhs solve-var solve-full &optional sign)
   (if (math-expr-contains rhs solve-var)
@@ -3287,8 +3208,7 @@
 					  (format
 					   "*Omitted %d complex solutions"
 					   (- old-len new-len)))))))
-	     res))))
-)
+	     res)))))
 
 (defun math-solve-eqn (expr var full)
   (if (memq (car-safe expr) '(calcFunc-neq calcFunc-lt calcFunc-gt
@@ -3308,51 +3228,44 @@
 		      (list 'calcFunc-neq var res))))))
     (let ((res (math-solve-for expr 0 var full)))
       (and res
-	   (list 'calcFunc-eq var res))))
-)
+	   (list 'calcFunc-eq var res)))))
 
 (defun math-reject-solution (expr var func)
   (if (math-expr-contains expr var)
       (or (equal (car calc-next-why) '(* "Unable to find a symbolic solution"))
 	  (calc-record-why "*Unable to find a solution")))
-  (list func expr var)
-)
+  (list func expr var))
 
 (defun calcFunc-solve (expr var)
   (or (if (or (Math-vectorp expr) (Math-vectorp var))
 	  (math-solve-system expr var nil)
 	(math-solve-eqn expr var nil))
-      (math-reject-solution expr var 'calcFunc-solve))
-)
+      (math-reject-solution expr var 'calcFunc-solve)))
 
 (defun calcFunc-fsolve (expr var)
   (or (if (or (Math-vectorp expr) (Math-vectorp var))
 	  (math-solve-system expr var t)
 	(math-solve-eqn expr var t))
-      (math-reject-solution expr var 'calcFunc-fsolve))
-)
+      (math-reject-solution expr var 'calcFunc-fsolve)))
 
 (defun calcFunc-roots (expr var)
   (let ((math-solve-ranges nil))
     (or (if (or (Math-vectorp expr) (Math-vectorp var))
 	    (math-solve-system expr var 'all)
 	  (math-solve-for expr 0 var 'all))
-      (math-reject-solution expr var 'calcFunc-roots)))
-)
+      (math-reject-solution expr var 'calcFunc-roots))))
 
 (defun calcFunc-finv (expr var)
   (let ((res (math-solve-for expr math-integ-var var nil)))
     (if res
 	(math-normalize (math-expr-subst res math-integ-var var))
-      (math-reject-solution expr var 'calcFunc-finv)))
-)
+      (math-reject-solution expr var 'calcFunc-finv))))
 
 (defun calcFunc-ffinv (expr var)
   (let ((res (math-solve-for expr math-integ-var var t)))
     (if res
 	(math-normalize (math-expr-subst res math-integ-var var))
-      (math-reject-solution expr var 'calcFunc-finv)))
-)
+      (math-reject-solution expr var 'calcFunc-finv))))
 
 
 (put 'calcFunc-inv 'math-inverse
@@ -3499,9 +3412,6 @@
 						 nfac))))
 	       (and fprime
 		    (math-normalize accum))))
-	(list 'calcFunc-taylor expr var num)))
-)
+	(list 'calcFunc-taylor expr var num))))
 
-
-
-
+;;; calcalg2.el ends here

@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-lang.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -46,44 +46,38 @@
       (setq calc-language lang
 	    calc-language-option option)
     (calc-change-mode '(calc-language calc-language-option)
-		      (list lang option) t))
-)
+		      (list lang option) t)))
 
 (defun calc-normal-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language nil)
-   (message "Normal language mode."))
-)
+   (message "Normal language mode.")))
 
 (defun calc-flat-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'flat)
-   (message "Flat language mode (all stack entries shown on one line)."))
-)
+   (message "Flat language mode (all stack entries shown on one line).")))
 
 (defun calc-big-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'big)
-   (message "\"Big\" language mode."))
-)
+   (message "\"Big\" language mode.")))
 
 (defun calc-unformatted-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'unform)
-   (message "Unformatted language mode."))
-)
+   (message "Unformatted language mode.")))
 
 
 (defun calc-c-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'c)
-   (message "`C' language mode."))
-)
+   (message "`C' language mode.")))
 
 (put 'c 'math-oper-table
   '( ( "u+"    ident	     -1 1000 )
@@ -114,8 +108,7 @@
      ( "|||"   calcFunc-por   75  76 )
      ( "="     calcFunc-assign 51 50 )
      ( ":="    calcFunc-assign 51 50 )
-     ( "::"    calcFunc-condition 45 46 )
-)) ; should support full assignments
+     ( "::"    calcFunc-condition 45 46 ))) ; should support full assignments
 
 (put 'c 'math-function-table
   '( ( acos	   . calcFunc-arccos )
@@ -124,13 +117,11 @@
      ( asinh	   . calcFunc-arcsinh )
      ( atan	   . calcFunc-arctan )
      ( atan2	   . calcFunc-arctan2 )
-     ( atanh	   . calcFunc-arctanh )
-))
+     ( atanh	   . calcFunc-arctanh )))
 
 (put 'c 'math-variable-table
   '( ( M_PI	   . var-pi )
-     ( M_E	   . var-e )
-))
+     ( M_E	   . var-e )))
 
 (put 'c 'math-vector-brackets "{}")
 
@@ -150,8 +141,7 @@
 		(if (> n 0)
 		    "Pascal language mode (all uppercase)."
 		  "Pascal language mode (all lowercase).")
-	      "Pascal language mode.")))
-)
+	      "Pascal language mode."))))
 
 (put 'pascal 'math-oper-table
   '( ( "not"   calcFunc-lnot -1 1000 )
@@ -179,8 +169,7 @@
      ( "&&&"   calcFunc-pand  80  81 )
      ( "|||"   calcFunc-por   75  76 )
      ( ":="    calcFunc-assign 51 50 )
-     ( "::"    calcFunc-condition 45 46 )
-))
+     ( "::"    calcFunc-condition 45 46 )))
 
 (put 'pascal 'math-input-filter 'calc-input-case-filter)
 (put 'pascal 'math-output-filter 'calc-output-case-filter)
@@ -194,8 +183,7 @@
   (cond ((or (null calc-language-option) (= calc-language-option 0))
 	 str)
 	(t
-	 (downcase str)))
-)
+	 (downcase str))))
 
 (defun calc-output-case-filter (str)
   (cond ((or (null calc-language-option) (= calc-language-option 0))
@@ -203,8 +191,7 @@
 	((> calc-language-option 0)
 	 (upcase str))
 	(t
-	 (downcase str)))
-)
+	 (downcase str))))
 
 
 (defun calc-fortran-language (n)
@@ -216,8 +203,7 @@
 		(if (> n 0)
 		    "FORTRAN language mode (all uppercase)."
 		  "FORTRAN language mode (all lowercase).")
-	      "FORTRAN language mode.")))
-)
+	      "FORTRAN language mode."))))
 
 (put 'fortran 'math-oper-table
   '( ( "u/"    (math-parse-fortran-vector) -1 1 )
@@ -243,8 +229,7 @@
      ( "|||"   calcFunc-por   75  76 )
      ( "="     calcFunc-assign 51 50 )
      ( ":="    calcFunc-assign 51 50 )
-     ( "::"    calcFunc-condition 45 46 )
-))
+     ( "::"    calcFunc-condition 45 46 )))
 
 (put 'fortran 'math-vector-brackets "//")
 
@@ -261,8 +246,7 @@
      ( conjg	   . calcFunc-conj )
      ( log	   . calcFunc-ln )
      ( nint	   . calcFunc-round )
-     ( real	   . calcFunc-re )
-))
+     ( real	   . calcFunc-re ))) 
 
 (put 'fortran 'math-input-filter 'calc-input-case-filter)
 (put 'fortran 'math-output-filter 'calc-output-case-filter)
@@ -272,8 +256,7 @@
     (prog1
 	(math-read-brackets t "]")
       (setq exp-token (car math-parsing-fortran-vector)
-	    exp-data (cdr math-parsing-fortran-vector))))
-)
+	    exp-data (cdr math-parsing-fortran-vector)))))
 
 (defun math-parse-fortran-vector-end (x op)
   (if math-parsing-fortran-vector
@@ -282,8 +265,7 @@
 	      exp-token 'end
 	      exp-data "\000")
 	x)
-    (throw 'syntax "Unmatched closing `/'"))
-)
+    (throw 'syntax "Unmatched closing `/'")))
 (setq math-parsing-fortran-vector nil)
 
 (defun math-parse-fortran-subscr (sym args)
@@ -291,8 +273,7 @@
   (while args
     (setq sym (list 'calcFunc-subscr sym (car args))
 	  args (cdr args)))
-  sym
-)
+  sym)
 
 
 (defun calc-tex-language (n)
@@ -304,8 +285,7 @@
 		(if (> n 0)
 		    "TeX language mode with \\hbox{func}(\\hbox{var})."
 		  "TeX language mode with \\func{\\hbox{var}}.")
-	      "TeX language mode.")))
-)
+	      "TeX language mode."))))
 
 (put 'tex 'math-oper-table
   '( ( "u+"       ident		   -1 1000 )
@@ -360,8 +340,7 @@
      ( "\\to"	  calcFunc-evalto   40  41 )
      ( "\\to"	  calcFunc-evalto   40  -1 )
      ( "=>" 	  calcFunc-evalto   40  41 )
-     ( "=>" 	  calcFunc-evalto   40  -1 )
-))
+     ( "=>" 	  calcFunc-evalto   40  -1 )))
 
 (put 'tex 'math-function-table
   '( ( \\arccos	   . calcFunc-arccos )
@@ -383,8 +362,7 @@
      ( \\sqrt	   . calcFunc-sqrt )
      ( \\tanh	   . calcFunc-tanh )
      ( \\phi	   . calcFunc-totient )
-     ( \\mu	   . calcFunc-moebius )
-))
+     ( \\mu	   . calcFunc-moebius )))
 
 (put 'tex 'math-variable-table
   '( ( \\pi	   . var-pi )
@@ -393,8 +371,7 @@
      ( \\phi       . var-phi )
      ( \\gamma     . var-gamma )
      ( \\sum       . (math-parse-tex-sum calcFunc-sum) )
-     ( \\prod      . (math-parse-tex-sum calcFunc-prod) )
-))
+     ( \\prod      . (math-parse-tex-sum calcFunc-prod) )))
 
 (put 'tex 'math-complex-format 'i)
 
@@ -411,15 +388,13 @@
     (or (equal exp-data "^") (throw 'syntax "Expected `^'"))
     (math-read-token)
     (setq high (math-read-factor))
-    (list (nth 2 f) (math-read-factor) (nth 1 low) (nth 2 low) high))
-)
+    (list (nth 2 f) (math-read-factor) (nth 1 low) (nth 2 low) high)))
 
 (defun math-tex-input-filter (str)   ; allow parsing of 123\,456\,789.
   (while (string-match "[0-9]\\\\,[0-9]" str)
     (setq str (concat (substring str 0 (1+ (match-beginning 0)))
 		      (substring str (1- (match-end 0))))))
-  str
-)
+  str)
 (put 'tex 'math-input-filter 'math-tex-input-filter)
 
 
@@ -427,8 +402,7 @@
   (interactive "P")
   (calc-wrapper
    (calc-set-language 'eqn)
-   (message "Eqn language mode."))
-)
+   (message "Eqn language mode.")))
 
 (put 'eqn 'math-oper-table
   '( ( "u+"       ident		   -1 1000 )
@@ -482,8 +456,7 @@
      ( "->"	  calcFunc-evalto   40  41 )
      ( "->"	  calcFunc-evalto   40  -1 )
      ( "=>" 	  calcFunc-evalto   40  41 )
-     ( "=>" 	  calcFunc-evalto   40  -1 )
-))
+     ( "=>" 	  calcFunc-evalto   40  -1 )))
 
 (put 'eqn 'math-function-table
   '( ( arc\ cos	   . calcFunc-arccos )
@@ -495,12 +468,10 @@
      ( GAMMA	   . calcFunc-gamma )
      ( phi	   . calcFunc-totient )
      ( mu	   . calcFunc-moebius )
-     ( matrix	   . (math-parse-eqn-matrix) )
-))
+     ( matrix	   . (math-parse-eqn-matrix) )))
 
 (put 'eqn 'math-variable-table
-  '( ( inf	   . var-uinf )
-))
+  '( ( inf	   . var-uinf )))
 
 (put 'eqn 'math-complex-format 'i)
 
@@ -518,8 +489,7 @@
     (or (equal exp-data calc-function-close)
 	(throw 'syntax "Expected `}'"))
     (math-read-token)
-    (math-transpose (cons 'vec (nreverse vec))))
-)
+    (math-transpose (cons 'vec (nreverse vec)))))
 
 (defun math-parse-eqn-prime (x sym)
   (if (eq (car-safe x) 'var)
@@ -538,16 +508,14 @@
 	(list 'var
 	      (intern (concat (symbol-name (nth 1 x)) "'"))
 	      (intern (concat (symbol-name (nth 2 x)) "'"))))
-    (list 'calcFunc-Prime x))
-)
+    (list 'calcFunc-Prime x)))
 
 
 (defun calc-mathematica-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'math)
-   (message "Mathematica language mode."))
-)
+   (message "Mathematica language mode.")))
 
 (put 'math 'math-oper-table
   '( ( "[["    (math-read-math-subscr) 250 -1 )
@@ -653,16 +621,14 @@
 	       (equal exp-data "]")))
 	(throw 'syntax "Expected ']]'"))
     (math-read-token)
-    (list 'calcFunc-subscr x idx))
-)
+    (list 'calcFunc-subscr x idx)))
 
 
 (defun calc-maple-language ()
   (interactive)
   (calc-wrapper
    (calc-set-language 'maple)
-   (message "Maple language mode."))
-)
+   (message "Maple language mode.")))
 
 (put 'maple 'math-oper-table
   '( ( "matrix" ident	     -1  300 )
@@ -732,8 +698,7 @@
 (put 'maple 'math-complex-format 'I)
 
 (defun math-read-maple-dots (x op)
-  (list 'intv 3 x (math-read-expr-level (nth 3 op)))
-)
+  (list 'intv 3 x (math-read-expr-level (nth 3 op))))
 
 
 
@@ -1074,8 +1039,7 @@
 	    the-h2 h)
       (or short (= the-h2 h2)
 	  (math-read-big-error h baseline))
-      p))
-)
+      p)))
 
 (defun math-read-big-char (h v)
   (or (and (>= h h1)
@@ -1086,8 +1050,7 @@
 	     (and line
 		  (< h (length line))
 		  (aref line h))))
-      ?\ )
-)
+      ?\ ))
 
 (defun math-read-big-emptyp (eh1 ev1 eh2 ev2 &optional what error)
   (and (< ev1 v1) (setq ev1 v1))
@@ -1109,8 +1072,7 @@
 		  (< h eh1)))
       (setq ev1 (1+ ev1)
 	    p (cdr p)))
-    (>= ev1 ev2))
-)
+    (>= ev1 ev2)))
 
 (defun math-read-big-error (h v &optional msg)
   (let ((pos 0)
@@ -1121,8 +1083,7 @@
 	    v (1- v)))
     (setq h (+ pos (min h (length (car p))))
 	  err-msg (list 'error h (or msg "Syntax error")))
-    (throw 'syntax nil))
-)
+    (throw 'syntax nil)))
 
 (defun math-read-big-balance (h v what &optional commas)
   (let* ((line (nth v lines))
@@ -1143,9 +1104,6 @@
 		(memq (aref line h) '(?\) ?\])))
 	      (setq count (1- count))))
 	(setq h (1+ h))))
-    h)
-)
+    h))
 
-
-
-
+;;; calc-lang.el ends here

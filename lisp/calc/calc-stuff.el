@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-stuff.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -43,8 +43,7 @@ With a prefix, push that prefix as a number onto the stack."
 	   (error "Argument must be a small integer"))
        (calc-pop-stack 1)
        (setq prefix-arg num)
-       (message "%d-" num))))    ; a (lame) simulation of the real thing...
-)
+       (message "%d-" num)))))    ; a (lame) simulation of the real thing...
 
 
 (defun calc-more-recursion-depth (n)
@@ -56,8 +55,7 @@ With a prefix, push that prefix as a number onto the stack."
        (if (> n 1)
 	   (setq max-specpdl-size (* max-specpdl-size n)
 		 max-lisp-eval-depth (* max-lisp-eval-depth n))))
-     (message "max-lisp-eval-depth is now %d" max-lisp-eval-depth)))
-)
+     (message "max-lisp-eval-depth is now %d" max-lisp-eval-depth))))
 
 (defun calc-less-recursion-depth (n)
   (interactive "P")
@@ -67,8 +65,7 @@ With a prefix, push that prefix as a number onto the stack."
 	      (max (/ max-specpdl-size n) 600)
 	      max-lisp-eval-depth
 	      (max (/ max-lisp-eval-depth n) 200))))
-  (message "max-lisp-eval-depth is now %d" max-lisp-eval-depth)
-)
+  (message "max-lisp-eval-depth is now %d" max-lisp-eval-depth))
 
 
 (defun calc-explain-why (why &optional more)
@@ -137,8 +134,7 @@ With a prefix, push that prefix as a number onto the stack."
 					  (car why)
 					(math-format-flat-expr (car why) 0)))
 		 punc ", ")))
-    (message "%s%s" msg (if more "  [w=more]" "")))
-)
+    (message "%s%s" msg (if more "  [w=more]" ""))))
 
 (defun calc-why ()
   (interactive)
@@ -154,8 +150,7 @@ With a prefix, push that prefix as a number onto the stack."
 	(progn
 	  (message "(No further explanations available)")
 	  (setq calc-which-why calc-why))
-      (message "No explanations available")))
-)
+      (message "No explanations available"))))
 (setq calc-which-why nil)
 (setq calc-last-why-command nil)
 
@@ -184,8 +179,7 @@ With a prefix, push that prefix as a number onto the stack."
 	 math-format-date-cache nil
 	 math-holidays-cache-tag t)
    (mapcar (function (lambda (x) (set x -100))) math-cache-list)
-   (message "All internal calculator caches have been reset."))
-)
+   (message "All internal calculator caches have been reset.")))
 
 
 ;;; Conversions.
@@ -203,8 +197,7 @@ With a prefix, push that prefix as a number onto the stack."
 				     (if (<= n 0)
 					 (+ n calc-internal-prec)
 				       n)))
-			   (list func (calc-top-n 1)))))))
-)
+			   (list func (calc-top-n 1))))))))
 
 (defun calc-clean-num (num)
   (interactive "P")
@@ -213,8 +206,7 @@ With a prefix, push that prefix as a number onto the stack."
 		   (if (and (>= last-command-char ?0)
 			    (<= last-command-char ?9))
 		       (- last-command-char ?0)
-		     (error "Number required")))))
-)
+		     (error "Number required"))))))
 
 
 (defun calcFunc-clean (a &optional prec)   ; [X X S] [Public]
@@ -257,27 +249,22 @@ With a prefix, push that prefix as a number onto the stack."
 	     a))
 	  ((Math-objectp a) a)
 	  ((math-infinitep a) a)
-	  (t (list 'calcFunc-clean a))))
-)
+	  (t (list 'calcFunc-clean a)))))
 (setq math-chopping-small nil)
 
 (defun calcFunc-pclean (a &optional prec)
   (math-map-over-constants (function (lambda (x) (calcFunc-clean x prec)))
-			   a)
-)
+			   a))
 
 (defun calcFunc-pfloat (a)
-  (math-map-over-constants 'math-float a)
-)
+  (math-map-over-constants 'math-float a))
 
 (defun calcFunc-pfrac (a &optional tol)
   (math-map-over-constants (function (lambda (x) (calcFunc-frac x tol)))
-			   a)
-)
+			   a))
 
 (defun math-map-over-constants (func expr)
-  (math-map-over-constants-rec expr)
-)
+  (math-map-over-constants-rec expr))
 
 (defun math-map-over-constants-rec (expr)
   (cond ((or (Math-primp expr)
@@ -292,9 +279,6 @@ With a prefix, push that prefix as a number onto the stack."
 	 (list (car expr)
 	       (math-map-over-constants-rec (nth 1 expr))
 	       (nth 2 expr)))
-	(t (cons (car expr) (mapcar 'math-map-over-constants-rec (cdr expr)))))
-)
+	(t (cons (car expr) (mapcar 'math-map-over-constants-rec (cdr expr))))))
 
-
-
-
+;;; calc-stuff.el ends here

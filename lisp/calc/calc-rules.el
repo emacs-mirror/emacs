@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-rules.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -33,8 +33,7 @@
   (prog2
    (message "Preparing rule set %s..." name)
    (math-read-plain-expr rules t)
-   (message "Preparing rule set %s...done" name))
-)
+   (message "Preparing rule set %s...done" name)))
 
 (defun calc-CommuteRules ()
   "CommuteRules"
@@ -56,8 +55,7 @@ select(plain(a != b))		:=  select(b != a),
 select(a < b)			:=  select(b > a),
 select(a > b)			:=  select(b < a),
 select(a <= b)			:=  select(b >= a),
-select(a >= b)			:=  select(b <= a) ]")
-)
+select(a >= b)			:=  select(b <= a) ]"))
 
 (defun calc-JumpRules ()
   "JumpRules"
@@ -87,8 +85,7 @@ plain(y = a ^ select(2))	:=  select(sqrt(y)) = a,
 plain(y = a ^ select(x))	:=  y ^ select(1/x) = a,
 plain(y = select(x) ^ a)	:=  log(y, select(x)) = a,
 plain(y = log(a, select(x)))	:=  select(x) ^ y = a,
-plain(y = log(select(x), a))	:=  select(x) ^ (1/y) = a ]")
-)
+plain(y = log(select(x), a))	:=  select(x) ^ (1/y) = a ]"))
 
 (defun calc-DistribRules ()
   "DistribRules"
@@ -161,8 +158,7 @@ tanh(select(a + b))		:=  (tanh(select(a)) + tanh(b)) /
 x && select(a || b)		:=  (x && select(a)) || (x && b),
 select(a || b) && x		:=  (select(a) && x) || (b && x),
 ! select(a && b)		:=  (!a) || (!b),
-! select(a || b)		:=  (!a) && (!b) ]")
-)
+! select(a || b)		:=  (!a) && (!b) ]"))
 
 (defun calc-MergeRules ()
   "MergeRules"
@@ -235,8 +231,7 @@ select(log(a,x)) / log(b,x)	:=  select(log(a, b)),
 log(a,x) / select(log(b,x))	:=  select(log(a, b)),
 select(log(a,x)) / b		:=  select(log(a ^ (1/b),x)),
 log(a,x) / select(b)		:=  select(log(a ^ (1/b),x)),
-select(x && a) || (x && opt(b)) :=  x && (select(a) || b) ]")
-)
+select(x && a) || (x && opt(b)) :=  x && (select(a) || b) ]"))
 
 (defun calc-NegateRules ()
   "NegateRules"
@@ -290,8 +285,7 @@ a < select(x)			:=  -a > select(-x),
 a > select(x)			:=  -a < select(-x),
 a <= select(x)			:=  -a >= select(-x),
 a >= select(x)			:=  -a <= select(-x),
-select(x)			:=  -select(-x) ]")
-)
+select(x)			:=  -select(-x) ]"))
 
 (defun calc-InvertRules ()
   "InvertRules"
@@ -319,8 +313,7 @@ a < select(x)			:=  1/a > select(1/x),
 a > select(x)			:=  1/a < select(1/x),
 a <= select(x)			:=  1/a >= select(1/x),
 a >= select(x)			:=  1/a <= select(1/x),
-select(x)			:=  1 / select(1/x) ]")
-)
+select(x)			:=  1 / select(1/x) ]"))
 
 
 (defun calc-FactorRules ()
@@ -340,8 +333,7 @@ thecoefs(x, [z, 0, c]) := thefactors(x, [rz + rc x, rz - rc x])
         :: negative(c)
         :: let(rz := esimplify(sqrt(z))) :: !matches(rz, sqrt(rzz))
         :: let(rc := esimplify(sqrt(-c))) :: !matches(rc, sqrt(rcc))
- ]")
-)
+ ]"))
 ;;(setq var-FactorRules 'calc-FactorRules)
 
 
@@ -352,8 +344,7 @@ thecoefs(x, [z, 0, c]) := thefactors(x, [rz + rc x, rz - rc x])
  opt(a) ln(x) + opt(b) ln(y) := 2 a esimplify(arctanh(x-1))
      :: a + b = 0 :: nrat(x + y) = 2 || nrat(x - y) = 2,
  a * (b + c) := a b + a c :: constant(a)
- ]")
-)
+ ]"))
 
 ;;(setq var-IntegAfterRules 'calc-IntegAfterRules)
 
@@ -439,6 +430,6 @@ fitsystem(y, xv, pv, 0)  :=  fitsystem(y, xv, cons(fvh,fvt))
 			     :: let(cons(fvh,fvt),
 				    solve(pv, table(fitparam(j), j, 1,
 						    hasfitparams(pv)))),
-fitparam(n) = x  :=  x ]")
-)
+fitparam(n) = x  :=  x ]"))
 
+;;; calc-rules.el ends here

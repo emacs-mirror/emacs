@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-comp.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -878,8 +878,7 @@
 					    (if (eq calc-language 'eqn)
 						" , " ", ")
 					    0)
-		       right))))))))
-)
+		       right)))))))))
 
 (defconst math-eqn-special-funcs
   '( calcFunc-log
@@ -894,14 +893,12 @@
 (defun math-prod-first-term (x)
   (while (eq (car-safe x) '*)
     (setq x (nth 1 x)))
-  x
-)
+  x)
 
 (defun math-prod-last-term (x)
   (while (eq (car-safe x) '*)
     (setq x (nth 2 x)))
-  x
-)
+  x)
 
 (defun math-compose-vector (a sep prec)
   (if a
@@ -918,13 +915,11 @@
 				    (cons (list 'break math-compose-level)
 					  (cons sep c)))))
 		    (nreverse c))))
-    "")
-)
+    ""))
 
 (defun math-vector-no-parens (a)
   (or (cdr (cdr a))
-      (not (eq (car-safe (nth 1 a)) '*)))
-)
+      (not (eq (car-safe (nth 1 a)) '*))))
 
 (defun math-compose-matrix (a col cols base)
   (let ((col 0)
@@ -943,8 +938,7 @@
 						     (concat comma-spc " ")))))
 					  a)))
 		      res)))
-    (nreverse res))
-)
+    (nreverse res)))
 
 (defun math-compose-rows (a count first)
   (if (cdr a)
@@ -962,16 +956,14 @@
     (list (list 'horiz
 		(if first (concat left-bracket " ") "  ")
 		(math-compose-expr (car a) vector-prec)
-		(concat " " right-bracket))))
-)
+		(concat " " right-bracket)))))
 
 (defun math-compose-tex-matrix (a)
   (if (cdr a)
       (cons (math-compose-vector (cdr (car a)) " & " 0)
 	    (cons " \\\\ "
 		  (math-compose-tex-matrix (cdr a))))
-    (list (math-compose-vector (cdr (car a)) " & " 0)))
-)
+    (list (math-compose-vector (cdr (car a)) " & " 0))))
 
 (defun math-compose-eqn-matrix (a)
   (if a
@@ -989,8 +981,7 @@
 	  (cons
 	   " } "
 	   (math-compose-eqn-matrix (cdr a)))))))
-    nil)
-)
+    nil))
 
 (defun math-vector-is-string (a)
   (while (and (setq a (cdr a))
@@ -1000,8 +991,7 @@
 		       (natnump (nth 1 (car a)))
 		       (eq (nth 2 (car a)) 0)
 		       (<= (nth 1 (car a)) 255)))))
-  (null a)
-)
+  (null a))
 
 (defun math-vector-to-string (a &optional quoted)
   (setq a (concat (mapcar (function (lambda (x) (if (consp x) (nth 1 x) x)))
@@ -1024,8 +1014,7 @@
 		  p (+ p 2))))))
   (if quoted
       (concat "\"" a "\"")
-    a)
-)
+    a))
 (defconst math-vector-to-string-chars '( ( ?\" . "\\\"" )
 					 ( ?\\ . "\\\\" )
 					 ( ?\a . "\\a" )
@@ -1042,8 +1031,7 @@
   (if (string-match "\\`\\(.*\\)#\\(.*\\)\\'" x)
       (math-to-underscores
        (concat (math-match-substring x 1) "_" (math-match-substring x 2)))
-    x)
-)
+    x))
 
 (defun math-tex-expr-is-flat (a)
   (or (Math-integerp a)
@@ -1054,8 +1042,7 @@
 			 (math-tex-expr-is-flat (car a))))
 	     (null a)))
       (and (memq (car a) '(^ calcFunc-subscr))
-	   (math-tex-expr-is-flat (nth 1 a))))
-)
+	   (math-tex-expr-is-flat (nth 1 a)))))
 
 (put 'calcFunc-log 'math-compose-big 'math-compose-log)
 (defun math-compose-log (a prec)
@@ -1066,8 +1053,7 @@
 		     (math-compose-expr (nth 2 a) 1000)))
 	     "("
 	     (math-compose-expr (nth 1 a) 1000)
-	     ")"))
-)
+	     ")")))
 
 (put 'calcFunc-log10 'math-compose-big 'math-compose-log10)
 (defun math-compose-log10 (a prec)
@@ -1076,8 +1062,7 @@
 	     (list 'subscr "log" "10")
 	     "("
 	     (math-compose-expr (nth 1 a) 1000)
-	     ")"))
-)
+	     ")")))
 
 (put 'calcFunc-deriv 'math-compose-big 'math-compose-deriv)
 (put 'calcFunc-tderiv 'math-compose-big 'math-compose-deriv)
@@ -1092,8 +1077,7 @@
 				      (list 'vec
 					    '(calcFunc-string (vec ?d))
 					    (nth 2 a))))
-			  prec))
-)
+			  prec)))
 
 (put 'calcFunc-sqrt 'math-compose-big 'math-compose-sqrt)
 (defun math-compose-sqrt (a prec)
@@ -1114,8 +1098,7 @@
 			       (make-list (1- h) " |")
 			       '("\\|")))
 		     " "
-		     c))))
-)
+		     c)))))
 
 (put 'calcFunc-choose 'math-compose-big 'math-compose-choose)
 (defun math-compose-choose (a prec)
@@ -1126,8 +1109,7 @@
 	  (list 'vcent
 		(math-comp-height a1)
 		a1 " " a2)
-	  ")"))
-)
+	  ")")))
 
 (put 'calcFunc-integ 'math-compose-big 'math-compose-integ)
 (defun math-compose-integ (a prec)
@@ -1164,8 +1146,7 @@
 	       (if over
 		   ""
 		 (list 'horiz " d" var))
-	       (if parens ")" ""))))
-)
+	       (if parens ")" "")))))
 
 (put 'calcFunc-sum 'math-compose-big 'math-compose-sum)
 (defun math-compose-sum (a prec)
@@ -1190,8 +1171,7 @@
 	       (if (memq (car-safe (nth 1 a)) '(calcFunc-sum calcFunc-prod))
 		   " " "")
 	       expr
-	       (if (memq prec '(180 201)) ")" ""))))
-)
+	       (if (memq prec '(180 201)) ")" "")))))
 
 (put 'calcFunc-prod 'math-compose-big 'math-compose-prod)
 (defun math-compose-prod (a prec)
@@ -1215,8 +1195,7 @@
 	       (if (memq (car-safe (nth 1 a)) '(calcFunc-sum calcFunc-prod))
 		   " " "")
 	       expr
-	       (if (memq prec '(196 201)) ")" ""))))
-)
+	       (if (memq prec '(196 201)) ")" "")))))
 
 
 (defun math-stack-value-offset-fancy ()
@@ -1251,8 +1230,7 @@
 	 (or (< off 0)
 	     (and calc-display-origin
 		  (> calc-line-breaking calc-display-origin)))
-	 (setq wid calc-line-breaking)))
-)
+	 (setq wid calc-line-breaking))))
 
 
 
@@ -1265,8 +1243,7 @@
     (if (math-comp-is-flat c)
 	(math-comp-to-string-flat c width)
       (math-vert-comp-to-string
-       (math-comp-simplify c width))))
-)
+       (math-comp-simplify c width)))))
 
 (defun math-comp-is-flat (c)     ; check if c's height is 1.
   (cond ((not (consp c)) t)
@@ -1281,8 +1258,7 @@
 	      (math-comp-is-flat (nth 2 c))))
 	((eq (car c) 'tag)
 	 (math-comp-is-flat (nth 2 c)))
-	(t nil))
-)
+	(t nil)))
 
 
 ;;; Convert a one-line composition to a string.  Break into multiple
@@ -1315,8 +1291,7 @@
 		     (aset comp-buf (1+ k) ?\n)
 		     (setq prefix " "))
 		 (setq prefix "\n"))))
-	(concat comp-buf prefix str))))
-)
+	(concat comp-buf prefix str)))))
 (setq math-comp-buf-string (make-vector 10 ""))
 (setq math-comp-buf-margin (make-vector 10 0))
 (setq math-comp-buf-level (make-vector 10 0))
@@ -1415,8 +1390,7 @@
 		  (math-comp-to-string-flat-term (nth 2 c))))
 	       (t (math-comp-to-string-flat-term (nth 2 c)))))
 
-	(t (math-comp-to-string-flat-term (nth 2 c))))
-)
+	(t (math-comp-to-string-flat-term (nth 2 c)))))
 
 (defun math-comp-highlight-string (s)
   (setq s (copy-sequence s))
@@ -1424,8 +1398,7 @@
     (while (>= (setq i (1- i)) 0)
       (or (memq (aref s i) '(32 ?\n))
 	  (aset s i (if calc-show-selections ?\. ?\#)))))
-  s
-)
+  s)
 
 (defun math-comp-sel-flat-term (c)
   (cond ((not (consp c))
@@ -1442,8 +1415,7 @@
 		   (setq math-comp-sel-tag c
 			 math-comp-sel-cpos 1000000)))
 	   (math-comp-sel-flat-term (nth 2 c))))
-	(t (math-comp-sel-flat-term (nth 2 c))))
-)
+	(t (math-comp-sel-flat-term (nth 2 c)))))
 
 
 ;;; Simplify a composition to a canonical form consisting of
@@ -1459,8 +1431,7 @@
 	(comp-highlight (and math-comp-selected calc-show-selections))
 	(comp-tag nil))
     (math-comp-simplify-term c)
-    (cons 'vleft (cons comp-base comp-buf)))
-)
+    (cons 'vleft (cons comp-base comp-buf))))
 
 (defun math-comp-add-string (s h v)
   (and (> (length s) 0)
@@ -1481,8 +1452,7 @@
 				 (make-string (- h (length (car str))) 32)
 				 (if comp-highlight
 				     (math-comp-highlight-string s)
-				   s)))))))
-)
+				   s))))))))
 
 (defun math-comp-add-string-sel (x y w h)
   (if (and (<= y math-comp-sel-vpos)
@@ -1490,8 +1460,7 @@
 	   (<= x math-comp-sel-hpos)
 	   (> (+ x w) math-comp-sel-hpos))
       (setq math-comp-sel-tag comp-tag
-	    math-comp-sel-vpos 10000))
-)
+	    math-comp-sel-vpos 10000)))
 
 (defun math-comp-simplify-term (c)
   (cond ((stringp c)
@@ -1561,8 +1530,7 @@
 		(let ((comp-highlight nil))
 		  (math-comp-simplify-term (nth 2 c))))
 	       (t (let ((comp-tag c))
-		    (math-comp-simplify-term (nth 2 c)))))))
-)
+		    (math-comp-simplify-term (nth 2 c))))))))
 
 
 ;;; Measuring a composition.
@@ -1576,8 +1544,7 @@
 		     (math-comp-is-null (car c))))
 	 (and c (math-comp-first-char (car c))))
 	((eq (car c) 'tag)
-	 (math-comp-first-char (nth 2 c))))
-)
+	 (math-comp-first-char (nth 2 c)))))
 
 (defun math-comp-first-string (c)
   (cond ((stringp c)
@@ -1588,8 +1555,7 @@
 		     (math-comp-is-null (car c))))
 	 (and c (math-comp-first-string (car c))))
 	((eq (car c) 'tag)
-	 (math-comp-first-string (nth 2 c))))
-)
+	 (math-comp-first-string (nth 2 c)))))
 
 (defun math-comp-last-char (c)
   (cond ((stringp c)
@@ -1601,8 +1567,7 @@
 	     (setq c (cdr c)))
 	   (and c (math-comp-last-char (car c)))))
 	((eq (car c) 'tag)
-	 (math-comp-last-char (nth 2 c))))
-)
+	 (math-comp-last-char (nth 2 c)))))
 
 (defun math-comp-is-null (c)
   (cond ((stringp c) (= (length c) 0))
@@ -1612,8 +1577,7 @@
 	 (null c))
 	((eq (car c) 'tag)
 	 (math-comp-is-null (nth 2 c)))
-	((memq (car c) '(set break)) t))
-)
+	((memq (car c) '(set break)) t)))
 
 (defun math-comp-width (c)
   (cond ((not (consp c)) (length c))
@@ -1630,14 +1594,12 @@
 	   accum))
 	((eq (car c) 'tag)
 	 (math-comp-width (nth 2 c)))
-	(t 0))
-)
+	(t 0)))
 
 (defun math-comp-height (c)
   (if (stringp c)
       1
-    (+ (math-comp-ascent c) (math-comp-descent c)))
-)
+    (+ (math-comp-ascent c) (math-comp-descent c))))
 
 (defun math-comp-ascent (c)
   (cond ((not (consp c)) 1)
@@ -1654,8 +1616,7 @@
 	 (math-comp-ascent (nth 1 c)))
 	((eq (car c) 'tag)
 	 (math-comp-ascent (nth 2 c)))
-	(t 1))
-)
+	(t 1)))
 
 (defun math-comp-descent (c)
   (cond ((not (consp c)) 0)
@@ -1676,13 +1637,11 @@
 	 (+ (math-comp-descent (nth 1 c)) (math-comp-height (nth 2 c))))
 	((eq (car c) 'tag)
 	 (math-comp-descent (nth 2 c)))
-	(t 0))
-)
+	(t 0)))
 
 (defun calcFunc-cwidth (a &optional prec)
   (if (and prec (not (integerp prec))) (math-reject-arg prec 'fixnump))
-  (math-comp-width (math-compose-expr a (or prec 0)))
-)
+  (math-comp-width (math-compose-expr a (or prec 0))))
 
 (defun calcFunc-cheight (a &optional prec)
   (if (and prec (not (integerp prec))) (math-reject-arg prec 'fixnump))
@@ -1690,8 +1649,7 @@
 	   (memq (length a) '(2 3))
 	   (eq (nth 1 a) 0))
       0
-    (math-comp-height (math-compose-expr a (or prec 0))))
-)
+    (math-comp-height (math-compose-expr a (or prec 0)))))
 
 (defun calcFunc-cascent (a &optional prec)
   (if (and prec (not (integerp prec))) (math-reject-arg prec 'fixnump))
@@ -1699,13 +1657,11 @@
 	   (memq (length a) '(2 3))
 	   (eq (nth 1 a) 0))
       0
-    (math-comp-ascent (math-compose-expr a (or prec 0))))
-)
+    (math-comp-ascent (math-compose-expr a (or prec 0)))))
 
 (defun calcFunc-cdescent (a &optional prec)
   (if (and prec (not (integerp prec))) (math-reject-arg prec 'fixnump))
-  (math-comp-descent (math-compose-expr a (or prec 0)))
-)
+  (math-comp-descent (math-compose-expr a (or prec 0))))
 
 
 ;;; Convert a simplified composition into string form.
@@ -1713,14 +1669,12 @@
 (defun math-vert-comp-to-string (c)
   (if (stringp c)
       c
-    (math-vert-comp-to-string-step (cdr (cdr c))))
-)
+    (math-vert-comp-to-string-step (cdr (cdr c)))))
 
 (defun math-vert-comp-to-string-step (c)
   (if (cdr c)
       (concat (car c) "\n" (math-vert-comp-to-string-step (cdr c)))
-    (car c))
-)
+    (car c)))
 
 
 ;;; Convert a composition to a string in "raw" form (for debugging).
@@ -1738,8 +1692,7 @@
 		   (math-comp-to-string-raw (nth 1 c) next-indent)
 		   (math-comp-to-string-raw-step (cdr (cdr c))
 						 next-indent)
-		   ")"))))
-)
+		   ")")))))
 
 (defun math-comp-to-string-raw-step (cl indent)
   (if cl
@@ -1747,9 +1700,6 @@
 	      (make-string indent 32)
 	      (math-comp-to-string-raw (car cl) indent)
 	      (math-comp-to-string-raw-step (cdr cl) indent))
-    "")
-)
+    ""))
 
-
-
-
+;;; calccomp.el ends here

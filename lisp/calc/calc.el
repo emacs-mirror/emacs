@@ -922,7 +922,6 @@ calc-shift-Y-prefix-help calc-tutorial calcDigit-letter
 report-calc-bug)
 
 ))
-
 )
 
 (calc-init-base)
@@ -947,8 +946,7 @@ report-calc-bug)
 		   (define-key calc-dispatch-map (substring keys 0 1) nil))
 	      (define-key calc-dispatch-map keys 'calc-same-interface))))
     (error nil))
-  (calc-do-dispatch arg)
-)
+  (calc-do-dispatch arg))
 
 (defun calc-do-dispatch (arg)
   (let ((key (calc-read-key-sequence
@@ -963,8 +961,7 @@ report-calc-bug)
 	(progn
 	  (or (commandp key) (calc-extensions))
 	  (call-interactively key))
-      (beep)))
-)
+      (beep))))
 (setq calc-dispatch-help nil)
 
 (defun calc-read-key-sequence (prompt map)
@@ -984,8 +981,7 @@ report-calc-bug)
 					  (char-to-string (cdr key)))))
 		 "" prompt2)))
 	(use-global-map glob)
-	(use-local-map loc))))
-)
+	(use-local-map loc)))))
 
 
 
@@ -1065,8 +1061,7 @@ Notations:  3.14e6     3.14 * 10^6
 	(eval (cons 'progn calc-defs))
 	(setq calc-defs nil)
 	(calc-set-mode-line)))
-  (calc-check-defines)
-)
+  (calc-check-defines))
 
 (defun calc-check-defines ()
   (if (symbol-plist 'calc-define)
@@ -1084,8 +1079,7 @@ Notations:  3.14e6     3.14 * 10^6
 		(setq plist (cdr (cdr plist))))
 	      ;; See if this has added any more calc-define properties.
 	      (calc-check-defines))
-	  (setplist 'calc-define nil))))
-)
+	  (setplist 'calc-define nil)))))
 (setq calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
 
 (defun calc-trail-mode (&optional buf)
@@ -1115,8 +1109,7 @@ commands given here will actually operate on the *Calculator* stack."
       (let ((buffer-read-only nil))
 	(insert "Emacs Calculator v" calc-version " by Dave Gillespie, "
 		"installed " calc-installed-date "\n")))
-  (run-hooks 'calc-trail-mode-hook)
-)
+  (run-hooks 'calc-trail-mode-hook))
 
 (defun calc-create-buffer ()
   (set-buffer (get-buffer-create "*Calculator*"))
@@ -1128,8 +1121,7 @@ commands given here will actually operate on the *Calculator* stack."
   (if calc-language
       (progn
 	(calc-extensions)
-	(calc-set-language calc-language calc-language-option t)))
-)
+	(calc-set-language calc-language calc-language-option t))))
 
 ;;;###autoload
 (defun calc (&optional arg full-display interactive)
@@ -1191,15 +1183,13 @@ commands given here will actually operate on the *Calculator* stack."
 	     (progn
 	       (sit-for 2)
 	       (message "")))
-	(setq calc-said-hello t))))
-)
+	(setq calc-said-hello t)))))
 
 ;;;###autoload
 (defun full-calc ()
   "Invoke the Calculator and give it a full-sized window."
   (interactive)
-  (calc nil t (interactive-p))
-)
+  (calc nil t (interactive-p)))
 
 (defun calc-same-interface (arg)
   "Invoke the Calculator using the most recent interface (calc or calc-keypad)."
@@ -1213,8 +1203,7 @@ commands given here will actually operate on the *Calculator* stack."
 	  (MacEdit-finish-edit)
 	(if calc-was-keypad-mode
 	    (calc-keypad)
-	  (calc arg calc-full-mode t)))))
-)
+	  (calc arg calc-full-mode t))))))
 
 
 (defun calc-quit (&optional non-fatal)
@@ -1253,23 +1242,20 @@ commands given here will actually operate on the *Calculator* stack."
 	    (delete-windows-on kbuf))
 	  (bury-buffer buf)
 	  (bury-buffer calc-trail-buffer)
-	  (and kbuf (bury-buffer kbuf))))))
-)
+	  (and kbuf (bury-buffer kbuf)))))))
 
 ;;;###autoload
 (defun quick-calc ()
   "Do a quick calculation in the minibuffer without invoking full Calculator."
   (interactive)
-  (calc-do-quick-calc)
-)
+  (calc-do-quick-calc))
 
 ;;;###autoload
 (defun calc-eval (str &optional separator &rest args)
   "Do a quick calculation and return the result as a string.
 Return value will either be the formatted result in string form,
 or a list containing a character position and an error message in string form."
-  (calc-do-calc-eval str separator args)
-)
+  (calc-do-calc-eval str separator args))
 
 ;;;###autoload
 (defun calc-keypad ()
@@ -1279,8 +1265,7 @@ In this mode, click on the Calc \"buttons\" using the left mouse button.
 Or, position the cursor manually and do M-x calc-keypad-press."
   (interactive)
   (calc-extensions)
-  (calc-do-keypad calc-full-mode (interactive-p))
-)
+  (calc-do-keypad calc-full-mode (interactive-p)))
 
 ;;;###autoload
 (defun full-calc-keypad ()
@@ -1288,8 +1273,7 @@ Or, position the cursor manually and do M-x calc-keypad-press."
 See calc-keypad for details."
   (interactive)
   (calc-extensions)
-  (calc-do-keypad t (interactive-p))
-)
+  (calc-do-keypad t (interactive-p)))
 
 
 ;;; Note that modifications to this function may break calc-pass-errors.
@@ -1367,15 +1351,14 @@ See calc-keypad for details."
       (calc-set-mode-line)
       (and calc-embedded-info
 	   (calc-embedded-finish-command))))
-  (identity nil)  ; allow a GC after timing is done
-)
+  (identity nil))  ; allow a GC after timing is done
+
 (setq calc-aborted-prefix nil)
 (setq calc-start-time nil)
 
 (defun calc-set-command-flag (f)
   (if (not (memq f calc-command-flags))
-      (setq calc-command-flags (cons f calc-command-flags)))
-)
+      (setq calc-command-flags (cons f calc-command-flags))))
 
 (defun calc-select-buffer ()
   (or (eq major-mode 'calc-mode)
@@ -1384,17 +1367,14 @@ See calc-keypad for details."
 	(let ((buf (get-buffer "*Calculator*")))
 	  (if buf
 	      (set-buffer buf)
-	    (error "Calculator buffer not available")))))
-)
+	    (error "Calculator buffer not available"))))))
 
 (defun calc-cursor-stack-index (&optional index)
   (goto-char (point-max))
-  (forward-line (- (calc-substack-height (or index 1))))
-)
+  (forward-line (- (calc-substack-height (or index 1)))))
 
 (defun calc-stack-size ()
-  (- (length calc-stack) calc-stack-top)
-)
+  (- (length calc-stack) calc-stack-top))
 
 (defun calc-substack-height (n)
   (let ((sum 0)
@@ -1404,8 +1384,7 @@ See calc-keypad for details."
       (setq sum (+ sum (nth 1 (car stack)))
 	    n (1- n)
 	    stack (cdr stack)))
-    sum)
-)
+    sum))
 
 (defun calc-set-mode-line ()
   (save-excursion
@@ -1510,8 +1489,7 @@ See calc-keypad for details."
 	  nil
 	(setq mode-line-buffer-identification new-mode-string)
 	(set-buffer-modified-p (buffer-modified-p))
-	(and calc-embedded-info (calc-embedded-mode-line-change)))))
-)
+	(and calc-embedded-info (calc-embedded-mode-line-change))))))
 
 (defun calc-align-stack-window ()
   (if (eq major-mode 'calc-mode)
@@ -1527,15 +1505,13 @@ See calc-keypad for details."
 	    (goto-char (1- (match-end 0)))))
     (save-excursion
       (calc-select-buffer)
-      (calc-align-stack-window)))
-)
+      (calc-align-stack-window))))
 
 (defun calc-check-stack (n)
   (if (> n (calc-stack-size))
       (error "Too few elements on stack"))
   (if (< n 0)
-      (error "Invalid argument"))
-)
+      (error "Invalid argument")))
 
 (defun calc-push-list (vals &optional m sels)
   (while vals
@@ -1556,15 +1532,13 @@ See calc-keypad for details."
 	  (calc-record-undo (list 'push mm))
 	  (calc-set-command-flag 'renum-stack))))
     (setq vals (cdr vals)
-	  sels (cdr sels)))
-)
+	  sels (cdr sels))))
 
 (defun calc-pop-push-list (n vals &optional m sels)
   (if (and calc-any-selections (null sels))
       (calc-replace-selections n vals m)
     (calc-pop-stack n m sels)
-    (calc-push-list vals m sels))
-)
+    (calc-push-list vals m sels)))
 
 (defun calc-pop-push-record-list (n prefix vals &optional m sels)
   (or (and (consp vals)
@@ -1577,8 +1551,7 @@ See calc-keypad for details."
       (if (cdr vals)
 	  (calc-record-list vals prefix)
 	(calc-record (car vals) prefix)))
-  (calc-pop-push-list n vals m sels)
-)
+  (calc-pop-push-list n vals m sels))
 
 (defun calc-enter-result (n prefix vals &optional m)
   (setq calc-aborted-prefix prefix)
@@ -1594,20 +1567,17 @@ See calc-keypad for details."
   (if (equal vals '((nil)))
       (setq vals nil))
   (calc-pop-push-record-list n prefix vals m)
-  (calc-handle-whys)
-)
+  (calc-handle-whys))
 
 (defun calc-normalize (val)
   (if (memq calc-simplify-mode '(nil none num))
       (math-normalize val)
     (calc-extensions)
-    (calc-normalize-fancy val))
-)
+    (calc-normalize-fancy val)))
 
 (defun calc-handle-whys ()
   (if calc-next-why
-      (calc-do-handle-whys))
-)
+      (calc-do-handle-whys)))
 
 
 (defun calc-pop-stack (&optional n m sel-ok)  ; pop N objs at level M of stack.
@@ -1635,8 +1605,7 @@ See calc-keypad for details."
 		(calc-cursor-stack-index n)
 		(setq calc-stack (nthcdr n calc-stack))
 		(delete-region (point) (point-max))))
-	    (calc-set-command-flag 'renum-stack)))))
-)
+	    (calc-set-command-flag 'renum-stack))))))
 
 (defun calc-get-stack-element (x)
   (cond ((eq sel-mode 'entry)
@@ -1649,19 +1618,16 @@ See calc-keypad for details."
 	 (car x))
 	(sel-mode
 	 (calc-sel-error))
-	(t (nth 2 x)))
-)
+	(t (nth 2 x))))
 
 ;; Get the Nth element of the stack (N=1 is the top element).
 (defun calc-top (&optional n sel-mode)
   (or n (setq n 1))
   (calc-check-stack n)
-  (calc-get-stack-element (nth (+ n calc-stack-top -1) calc-stack))
-)
+  (calc-get-stack-element (nth (+ n calc-stack-top -1) calc-stack)))
 
 (defun calc-top-n (&optional n sel-mode)    ; in case precision has changed
-  (math-check-complete (calc-normalize (calc-top n sel-mode)))
-)
+  (math-check-complete (calc-normalize (calc-top n sel-mode))))
 
 (defun calc-top-list (&optional n m sel-mode)
   (or n (setq n 1))
@@ -1671,13 +1637,11 @@ See calc-keypad for details."
        (let ((top (copy-sequence (nthcdr (+ m calc-stack-top -1)
 					 calc-stack))))
 	 (setcdr (nthcdr (1- n) top) nil)
-	 (nreverse (mapcar 'calc-get-stack-element top))))
-)
+	 (nreverse (mapcar 'calc-get-stack-element top)))))
 
 (defun calc-top-list-n (&optional n m sel-mode)
   (mapcar 'math-check-complete
-	  (mapcar 'calc-normalize (calc-top-list n m sel-mode)))
-)
+	  (mapcar 'calc-normalize (calc-top-list n m sel-mode))))
 
 
 (defun calc-renumber-stack ()
@@ -1709,8 +1673,7 @@ See calc-keypad for details."
 	    (beginning-of-line)
 	    (setq lnum (1+ lnum)
 		  stack (cdr stack))))))
-  (and calc-embedded-info (calc-embedded-stack-change))
-)
+  (and calc-embedded-info (calc-embedded-stack-change)))
 
 (defun calc-refresh (&optional align)
   (interactive)
@@ -1743,8 +1706,7 @@ See calc-keypad for details."
        (save-excursion
 	 (set-buffer (aref calc-embedded-info 1))
 	 (calc-refresh align)))
-  (setq calc-refresh-count (1+ calc-refresh-count))
-)
+  (setq calc-refresh-count (1+ calc-refresh-count)))
 
 
 (defun calc-x-paste-text (arg)
@@ -1763,8 +1725,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		 (if (eq (car-safe val) 'error)
 		     (error "%s in yanked data" (nth 2 val)))))
 	   (calc-enter-result 0 "Xynk" val))))
-    (x-paste-text arg))
-)
+    (x-paste-text arg)))
 
 
 
@@ -1774,8 +1735,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   (save-excursion
     (let ((win (get-buffer-window (current-buffer))))
       (and win
-	   (pos-visible-in-window-p (1- (point-max)) win))))
-)
+	   (pos-visible-in-window-p (1- (point-max)) win)))))
 
 (defun calc-trail-buffer ()
   (and (or (null calc-trail-buffer)
@@ -1794,8 +1754,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	(set-buffer calc-trail-buffer)
 	(goto-line 2)
 	(setq calc-trail-pointer (point-marker))))
-  calc-trail-buffer
-)
+  calc-trail-buffer)
 
 (defun calc-record (val &optional prefix)
   (setq calc-aborted-prefix nil)
@@ -1825,8 +1784,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	      (if (and aligned win (not (memq 'hold-trail calc-command-flags)))
 		  (calc-trail-here))
 	      (goto-char (1- (point-max))))))))
-  val
-)
+  val)
 
 
 (defun calc-trail-display (flag &optional no-refresh)
@@ -1855,8 +1813,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		 (if (interactive-p)
 		     (calc-do-refresh)
 		   (calc-refresh))))))))
-  calc-trail-buffer
-)
+  calc-trail-buffer)
 
 (defun calc-trail-here ()
   (interactive)
@@ -1886,8 +1843,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		  (set-buffer calc-main-buffer)
 		  (setq overlay-arrow-string calc-trail-overlay
 			overlay-arrow-position calc-trail-pointer))))))
-    (error "Not in Calc Trail buffer"))
-)
+    (error "Not in Calc Trail buffer")))
 
 
 
@@ -1901,8 +1857,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 				     (cdr calc-undo-list)))
 	(setq calc-undo-list (cons (list rec) calc-undo-list)
 	      calc-redo-list nil)
-	(calc-set-command-flag 'undo)))
-)
+	(calc-set-command-flag 'undo))))
 
 
 
@@ -1916,8 +1871,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 				      (mapcar 'math-check-complete
 					      (calc-top-list 2))))
     (calc-extensions)
-    (calc-binary-op-fancy name func arg ident unary))
-)
+    (calc-binary-op-fancy name func arg ident unary)))
 
 (defun calc-unary-op (name func arg &optional func2)
   (setq calc-aborted-prefix name)
@@ -1925,40 +1879,34 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
       (calc-enter-result 1 name (list (or func2 func)
 				      (math-check-complete (calc-top 1))))
     (calc-extensions)
-    (calc-unary-op-fancy name func arg))
-)
+    (calc-unary-op-fancy name func arg)))
 
 
 (defun calc-plus (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "+" 'calcFunc-add arg 0 nil '+))
-)
+   (calc-binary-op "+" 'calcFunc-add arg 0 nil '+)))
 
 (defun calc-minus (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "-" 'calcFunc-sub arg 0 'neg '-))
-)
+   (calc-binary-op "-" 'calcFunc-sub arg 0 'neg '-)))
 
 (defun calc-times (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "*" 'calcFunc-mul arg 1 nil '*))
-)
+   (calc-binary-op "*" 'calcFunc-mul arg 1 nil '*)))
 
 (defun calc-divide (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "/" 'calcFunc-div arg 0 'calcFunc-inv '/))
-)
+   (calc-binary-op "/" 'calcFunc-div arg 0 'calcFunc-inv '/)))
 
 
 (defun calc-change-sign (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "chs" 'neg arg))
-)
+   (calc-unary-op "chs" 'neg arg)))
 
 
 
@@ -1972,8 +1920,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	 ((= n 0)
 	  (calc-push-list (calc-top-list (calc-stack-size))))
 	 (t
-	  (calc-push-list (calc-top-list n)))))
-)
+	  (calc-push-list (calc-top-list n))))))
 
 
 (defun calc-pop (n)
@@ -1999,8 +1946,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		     (= nn 1)
 		     (calc-top-selected 1 1))
 		(calc-delete-selection 1)
-	      (calc-pop-stack nn))))))
-)
+	      (calc-pop-stack nn)))))))
 
 
 
@@ -2042,8 +1988,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
        (if (eq calc-prev-char 'dots)
 	   (progn
 	     (calc-extensions)
-	     (calc-dots))))))
-)
+	     (calc-dots)))))))
 
 (defsubst calc-minibuffer-size ()
   (- (point-max) (minibuffer-prompt-end)))
@@ -2067,15 +2012,13 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 					     (>= last-input-char 128))
 					last-input-char
 				      nil))))
-    (exit-minibuffer))
-)
+    (exit-minibuffer)))
 
 
 (defun calc-minibuffer-contains (rex)
   (save-excursion
     (goto-char (minibuffer-prompt-end))
-    (looking-at rex))
-)
+    (looking-at rex)))
 
 (defun calcDigit-key ()
   (interactive)
@@ -2174,8 +2117,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	  (beep)
 	  (calc-temp-minibuffer-message " [Bad format]"))))))
   (setq calc-prev-prev-char calc-prev-char
-	calc-prev-char last-command-char)
-)
+	calc-prev-char last-command-char))
 
 
 (defun calcDigit-backspace ()
@@ -2193,8 +2135,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   (if (= (calc-minibuffer-size) 0)
       (progn
 	(setq last-command-char 13)
-	(calcDigit-nondigit)))
-)
+	(calcDigit-nondigit))))
 
 
 
@@ -2401,8 +2342,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		   (calc-record-why "*Variable is void" (nth 1 err)))))
 	      (if (consp (car a))
 		  (math-dimension-error)
-		(cons (car a) args)))))))
-)
+		(cons (car a) args))))))))
 
 
 
@@ -2414,8 +2354,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	     (math-floatp (nth 2 a))
 	     (and (eq (car a) 'intv) (math-floatp (nth 3 a)))))
 	((eq (car-safe a) 'date)
-	 (math-floatp (nth 1 a))))
-)
+	 (math-floatp (nth 1 a)))))
 
 
 
@@ -2425,8 +2364,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	((eq (car-safe a) 'incomplete)
 	 (calc-incomplete-error a))
 	((consp a) a)
-	(t (error "Invalid data object encountered")))
-)
+	(t (error "Invalid data object encountered"))))
 
 
 
@@ -2434,14 +2372,12 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 (defun math-bignum (a)
   (if (>= a 0)
       (cons 'bigpos (math-bignum-big a))
-    (cons 'bigneg (math-bignum-big (- a))))
-)
+    (cons 'bigneg (math-bignum-big (- a)))))
 
 (defun math-bignum-big (a)   ; [L s]
   (if (= a 0)
       nil
-    (cons (% a 1000) (math-bignum-big (/ a 1000))))
-)
+    (cons (% a 1000) (math-bignum-big (/ a 1000)))))
 
 
 ;;; Build a normalized floating-point number.  [F I S]
@@ -2472,15 +2408,13 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
       (if (and (>= exp 3000000)
 	       (>= (+ exp (math-numdigs mant) -1) 4000000))
 	  (signal 'math-overflow nil)
-	(list 'float mant exp))))
-)
+	(list 'float mant exp)))))
 
 (defun math-div10-bignum (a)   ; [l l]
   (if (cdr a)
       (cons (+ (/ (car a) 10) (* (% (nth 1 a) 10) 100))
 	    (math-div10-bignum (cdr a)))
-    (list (/ (car a) 10)))
-)
+    (list (/ (car a) 10))))
 
 ;;; Coerce A to be a float.  [F N; V V] [Public]
 (defun math-float (a)
@@ -2489,8 +2423,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	((eq (car a) 'float) a)
 	((memq (car a) '(cplx polar vec hms date sdev mod))
 	 (cons (car a) (mapcar 'math-float (cdr a))))
-	(t (math-float-fancy a)))
-)
+	(t (math-float-fancy a))))
 
 
 (defun math-neg (a)
@@ -2501,8 +2434,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	 (list (car a) (Math-integer-neg (nth 1 a)) (nth 2 a)))
 	((memq (car a) '(cplx vec hms date calcFunc-idn))
 	 (cons (car a) (mapcar 'math-neg (cdr a))))
-	(t (math-neg-fancy a)))
-)
+	(t (math-neg-fancy a))))
 
 
 ;;; Compute the number of decimal digits in integer A.  [S I]
@@ -2519,15 +2451,13 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	  ((= a 0) 0)
 	  ((> a -10) 1)
 	  ((> a -100) 2)
-	  (t (math-numdigs (- a)))))
-)
+	  (t (math-numdigs (- a))))))
 
 ;;; Multiply (with truncation toward 0) the integer A by 10^N.  [I i S]
 (defun math-scale-int (a n)
   (cond ((= n 0) a)
 	((> n 0) (math-scale-left a n))
-	(t (math-normalize (math-scale-right a (- n)))))
-)
+	(t (math-normalize (math-scale-right a (- n))))))
 
 (defun math-scale-left (a n)   ; [I I S]
   (if (= n 0)
@@ -2544,8 +2474,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	      (* a 100))
 	  (if (or (>= a 100000) (<= a -100000))
 	      (math-scale-left (math-bignum a) 1)
-	    (* a 10))))))
-)
+	    (* a 10)))))))
 
 (defun math-scale-left-bignum (a n)
   (if (>= n 3)
@@ -2553,8 +2482,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		       n (- n 3)) 3)))
   (if (> n 0)
       (math-mul-bignum-digit a (if (= n 2) 100 10) 0)
-    a)
-)
+    a))
 
 (defun math-scale-right (a n)   ; [i i S]
   (if (= n 0)
@@ -2572,8 +2500,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	    (/ a 100)
 	  (if (= n 1)
 	      (/ a 10)
-	    a)))))
-)
+	    a))))))
 
 (defun math-scale-right-bignum (a n)   ; [L L S; l l S]
   (if (>= n 3)
@@ -2581,8 +2508,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	    n (% n 3)))
   (if (> n 0)
       (cdr (math-mul-bignum-digit a (if (= n 2) 10 100) 0))
-    a)
-)
+    a))
 
 ;;; Multiply (with rounding) the integer A by 10^N.   [I i S]
 (defun math-scale-rounding (a n)
@@ -2610,8 +2536,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	     (- (math-scale-rounding (- a) n))
 	   (if (= n -1)
 	       (/ (+ a 5) 10)
-	     (/ (+ (math-scale-right a (- -1 n)) 5) 10)))))
-)
+	     (/ (+ (math-scale-right a (- -1 n)) 5) 10))))))
 
 
 ;;; Compute the sum of A and B.  [O O O] [Public]
@@ -2661,8 +2586,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	 (and (calc-extensions)
 	      (math-add-objects-fancy a b))))
    (and (calc-extensions)
-	(math-add-symb-fancy a b)))
-)
+	(math-add-symb-fancy a b))))
 
 (defun math-add-bignum (a b)   ; [L L L; l l l]
   (if a
@@ -2696,8 +2620,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		  (nconc a b)
 		a)))
 	a)
-    b)
-)
+    b))
 
 (defun math-sub-bignum (a b)   ; [l l l]
   (if b
@@ -2735,8 +2658,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	  (setq b (cdr b)))
 	(and b
 	     'neg))
-    a)
-)
+    a))
 
 (defun math-add-float (a b)   ; [F F F]
   (let ((ediff (- (nth 2 a) (nth 2 b))))
@@ -2753,8 +2675,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	  b
 	(math-make-float (math-add (nth 1 a)
 				   (math-scale-left (nth 1 b) ediff))
-			 (nth 2 a)))))
-)
+			 (nth 2 a))))))
 
 ;;; Compute the difference of A and B.  [O O O] [Public]
 (defun math-sub (a b)
@@ -2763,8 +2684,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
     (setq a (- a b))
     (if (or (<= a -1000000) (>= a 1000000))
 	(math-bignum a)
-      a))
-)
+      a)))
 
 (defun math-sub-float (a b)   ; [F F F]
   (let ((ediff (- (nth 2 a) (nth 2 b))))
@@ -2782,8 +2702,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	(math-make-float (math-add (nth 1 a)
 				   (Math-integer-neg
 				    (math-scale-left (nth 1 b) ediff)))
-			 (nth 2 a)))))
-)
+			 (nth 2 a))))))
 
 
 ;;; Compute the product of A and B.  [O O O] [Public]
@@ -2829,8 +2748,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	 (and (calc-extensions)
 	      (math-mul-objects-fancy a b))))
    (and (calc-extensions)
-	(math-mul-symb-fancy a b)))
-)
+	(math-mul-symb-fancy a b))))
 
 (defun math-infinitep (a &optional undir)
   (while (and (consp a) (memq (car a) '(* / neg)))
@@ -2842,8 +2760,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
        (memq (nth 2 a) '(var-inf var-uinf var-nan))
        (if (and undir (eq (nth 2 a) 'var-inf))
 	   '(var uinf var-uinf)
-	 a))
-)
+	 a)))
 
 ;;; Multiply digit lists A and B.  [L L L; l l l]
 (defun math-mul-bignum (a b)
@@ -2869,8 +2786,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	       (if (cdr ss)
 		   (setcar (cdr ss) (+ (/ prod 1000) (car (cdr ss))))
 		 (setcdr ss (list (/ prod 1000))))))
-	 sum))
-)
+	 sum)))
 
 ;;; Multiply digit list A by digit D.  [L L D D; l l D D]
 (defun math-mul-bignum-digit (a d c)
@@ -2887,8 +2803,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	      (setcdr aa (list (/ prod 1000))))
 	  a))
     (and (> c 0)
-	 (list c)))
-)
+	 (list c))))
 
 
 ;;; Compute the integer (quotient . remainder) of A and B, which may be
@@ -2910,8 +2825,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	   (math-normalize (cons (if (eq (car a) (car b)) 'bigpos 'bigneg)
 				 (car res)))
 	   (math-normalize (cons (car a) (cdr res))))))
-    (cons (/ a b) (% a b)))
-)
+    (cons (/ a b) (% a b))))
 
 (defun math-quotient (a b)   ; [I I I] [Public]
   (if (and (not (consp a)) (not (consp b)))
@@ -2932,8 +2846,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 				       (math-mul-bignum-digit (cdr b) d 0)
 				       alen blen)))
 	(math-normalize (cons (if (eq (car a) (car b)) 'bigpos 'bigneg)
-			      (car res))))))
-)
+			      (car res)))))))
 
 
 ;;; Divide a bignum digit list by another.  [l.l l L]
@@ -2951,8 +2864,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	  (cons (car res)
 		(car (math-div-bignum-digit (cdr res) d)))))
     (let ((res (math-div-bignum-digit a (car b))))
-      (cons (car res) (list (cdr res)))))
-)
+      (cons (car res) (list (cdr res))))))
 
 ;;; Divide a bignum digit list by a digit.  [l.D l D]
 (defun math-div-bignum-digit (a b)
@@ -2962,8 +2874,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	(cons
 	 (cons (/ num b) (car res))
 	 (% num b)))
-    '(nil . 0))
-)
+    '(nil . 0)))
 
 (defun math-div-bignum-big (a b alen blen)   ; [l.l l L]
   (if (< alen blen)
@@ -2973,22 +2884,19 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	   (res2 (math-div-bignum-part num b blen)))
       (cons
        (cons (car res2) (car res))
-       (cdr res2))))
-)
+       (cdr res2)))))
 
 (defun math-div-bignum-part (a b blen)   ; a < b*1000  [D.l l L]
   (let* ((num (+ (* (or (nth blen a) 0) 1000) (or (nth (1- blen) a) 0)))
 	 (den (nth (1- blen) b))
 	 (guess (min (/ num den) 999)))
-    (math-div-bignum-try a b (math-mul-bignum-digit b guess 0) guess))
-)
+    (math-div-bignum-try a b (math-mul-bignum-digit b guess 0) guess)))
 
 (defun math-div-bignum-try (a b c guess)   ; [D.l l l D]
   (let ((rem (math-sub-bignum a c)))
     (if (eq rem 'neg)
 	(math-div-bignum-try a b (math-sub-bignum c b) (1- guess))
-      (cons guess rem)))
-)
+      (cons guess rem))))
 
 
 ;;; Compute the quotient of A and B.  [O O N] [Public]
@@ -3027,16 +2935,14 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	 (and (calc-extensions)
 	      (math-div-objects-fancy a b))))
    (and (calc-extensions)
-	(math-div-symb-fancy a b)))
-)
+	(math-div-symb-fancy a b))))
 
 (defun math-div-float (a b)   ; [F F F]
   (let ((ldiff (max (- (1+ calc-internal-prec)
 		       (- (math-numdigs (nth 1 a)) (math-numdigs (nth 1 b))))
 		    0)))
     (math-make-float (math-quotient (math-scale-int (nth 1 a) ldiff) (nth 1 b))
-		     (- (- (nth 2 a) (nth 2 b)) ldiff)))
-)
+		     (- (- (nth 2 a) (nth 2 b)) ldiff))))
 
 
 
@@ -3100,8 +3006,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	    (aset s 0 ?1)
 	    (aset s 1 ?:))))
     (setcar (cdr entry) (calc-count-lines s))
-    s)
-)
+    s))
 
 (defun math-stack-value-offset (c)
   (let* ((num (if calc-line-numbering 4 0))
@@ -3115,8 +3020,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
       (if (integerp calc-line-breaking)
 	  (setq wid calc-line-breaking)))
     (cons (max (- off (length calc-left-label)) 0)
-	  (+ wid num)))
-)
+	  (+ wid num))))
 
 (defun calc-count-lines (s)
   (let ((pos 0)
@@ -3124,8 +3028,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
     (while (setq newpos (string-match "\n" s pos))
       (setq pos (1+ newpos)
 	    num (1+ num)))
-    num)
-)
+    num))
 
 (defun math-format-value (a &optional w)
   (if (and (Math-scalarp a)
@@ -3133,22 +3036,19 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
       (math-format-number a)
     (calc-extensions)
     (let ((calc-line-breaking nil))
-      (math-composition-to-string (math-compose-expr a 0) w)))
-)
+      (math-composition-to-string (math-compose-expr a 0) w))))
 
 (defun calc-window-width ()
   (if calc-embedded-info
       (let ((win (get-buffer-window (aref calc-embedded-info 0))))
 	(1- (if win (window-width win) (frame-width))))
     (- (window-width (get-buffer-window (current-buffer)))
-       (if calc-line-numbering 5 1)))
-)
+       (if calc-line-numbering 5 1))))
 
 (defun math-comp-concat (c1 c2)
   (if (and (stringp c1) (stringp c2))
       (concat c1 c2)
-    (list 'horiz c1 c2))
-)
+    (list 'horiz c1 c2)))
 
 
 
@@ -3171,8 +3071,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
       (math-format-number a)))
    (t
     (calc-extensions)
-    (math-format-flat-expr-fancy a prec)))
-)
+    (math-format-flat-expr-fancy a prec))))
 
 
 
@@ -3282,8 +3181,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	str)))
    (t
     (calc-extensions)
-    (math-format-number-fancy a prec)))
-)
+    (math-format-number-fancy a prec))))
 
 (defun math-format-bignum (a)   ; [X L]
   (if (and (= calc-number-radix 10)
@@ -3291,8 +3189,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	   (not calc-group-digits))
       (math-format-bignum-decimal a)
     (calc-extensions)
-    (math-format-bignum-fancy a))
-)
+    (math-format-bignum-fancy a)))
 
 (defun math-format-bignum-decimal (a)   ; [X L]
   (if a
@@ -3301,8 +3198,7 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	  (setq s (concat (format "%06d" (+ (* (nth 1 a) 1000) (car a))) s)
 		a (cdr (cdr a))))
 	(concat (int-to-string (+ (* (or (nth 1 a) 0) 1000) (car a))) s))
-    "0")
-)
+    "0"))
 
 
 
@@ -3362,21 +3258,18 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 		(list 'float (nth 1 mant) (+ (nth 2 mant) exp)))))))
 
     ;; Syntax error!
-    (t nil)))
-)
+    (t nil))))
 
 (defun math-match-substring (s n)
   (if (match-beginning n)
       (substring s (match-beginning n) (match-end n))
-    "")
-)
+    ""))
 
 (defun math-read-bignum (s)   ; [l X]
   (if (> (length s) 3)
       (cons (string-to-int (substring s -3))
 	    (math-read-bignum (substring s 0 -3)))
-    (list (string-to-int s)))
-)
+    (list (string-to-int s))))
 
 
 (defconst math-tex-ignore-words
@@ -3449,30 +3342,26 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   "Parse the region as a vector of numbers and push it on the Calculator stack."
   (interactive "r\nP")
   (calc-extensions)
-  (calc-do-grab-region top bot arg)
-)
+  (calc-do-grab-region top bot arg))
 
 ;;;###autoload
 (defun calc-grab-rectangle (top bot arg)
   "Parse a rectangle as a matrix of numbers and push it on the Calculator stack."
   (interactive "r\nP")
   (calc-extensions)
-  (calc-do-grab-rectangle top bot arg)
-)
+  (calc-do-grab-rectangle top bot arg))
 
 (defun calc-grab-sum-down (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its columns."
   (interactive "r\nP")
   (calc-extensions)
-  (calc-do-grab-rectangle top bot arg 'calcFunc-reduced)
-)
+  (calc-do-grab-rectangle top bot arg 'calcFunc-reduced))
 
 (defun calc-grab-sum-across (top bot arg)
   "Parse a rectangle as a matrix of numbers and sum its rows."
   (interactive "r\nP")
   (calc-extensions)
-  (calc-do-grab-rectangle top bot arg 'calcFunc-reducea)
-)
+  (calc-do-grab-rectangle top bot arg 'calcFunc-reducea))
 
 
 ;;;###autoload
@@ -3480,24 +3369,21 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
   "Start Calc Embedded mode on the formula surrounding point."
   (interactive "P")
   (calc-extensions)
-  (calc-do-embedded arg end obeg oend)
-)
+  (calc-do-embedded arg end obeg oend))
 
 ;;;###autoload
 (defun calc-embedded-activate (&optional arg cbuf)
   "Scan the current editing buffer for all embedded := and => formulas.
 Also looks for the equivalent TeX words, \\gets and \\evalto."
   (interactive "P")
-  (calc-do-embedded-activate arg cbuf)
-)
+  (calc-do-embedded-activate arg cbuf))
 
 
 (defun calc-user-invocation ()
   (interactive)
   (or (stringp calc-invocation-macro)
       (error "Use `Z I' inside Calc to define a `M-# Z' keyboard macro"))
-  (execute-kbd-macro calc-invocation-macro nil)
-)
+  (execute-kbd-macro calc-invocation-macro nil))
 
 
 
@@ -3507,8 +3393,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 ;;;###autoload
 (defmacro defmath (func args &rest body)   ;  [Public]
   (calc-extensions)
-  (math-do-defmath func args body)
-)
+  (math-do-defmath func args body))
 
 
 ;;; Functions needed for Lucid Emacs support.
@@ -3524,8 +3409,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 	   (cons key key)))
 	(t
 	 (let ((key (read-char)))
-	   (cons key key))))
-)
+	   (cons key key)))))
 
 (defun calc-unread-command (&optional input)
   (if (featurep 'xemacs)
@@ -3542,10 +3426,9 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 (if calc-always-load-extensions
     (progn
       (calc-extensions)
-      (calc-load-everything))
-)
+      (calc-load-everything)))
 
 
 (run-hooks 'calc-load-hook)
 
-
+;;; calc.el ends here

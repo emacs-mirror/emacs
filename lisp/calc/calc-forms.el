@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-forms.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -39,11 +39,7 @@
 				    (string-to-int (substring time 11 13))
 				    (string-to-int (substring time 14 16))
 				    (string-to-int (substring time 17 19)))
-			      (list 'hms 24 0 0)))))
-)
-
-
-
+			      (list 'hms 24 0 0))))))
 
 (defun calc-to-hms (arg)
   (interactive "P")
@@ -52,14 +48,12 @@
        (if (eq calc-angle-mode 'rad)
 	   (calc-unary-op ">rad" 'calcFunc-rad arg)
 	 (calc-unary-op ">deg" 'calcFunc-deg arg))
-     (calc-unary-op ">hms" 'calcFunc-hms arg)))
-)
+     (calc-unary-op ">hms" 'calcFunc-hms arg))))
 
 (defun calc-from-hms (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-to-hms arg)
-)
+  (calc-to-hms arg))
 
 
 (defun calc-hms-notation (fmt)
@@ -75,8 +69,7 @@
 				   "%s" (math-match-substring fmt 5))
 			   t)
 	 (setq-default calc-hms-format calc-hms-format))  ; for minibuffer
-     (error "Bad hours-minutes-seconds format.")))
-)
+     (error "Bad hours-minutes-seconds format."))))
 
 (defun calc-date-notation (fmt arg)
   (interactive "sDate format (e.g., M/D/YY h:mm:ss): \nP")
@@ -154,22 +147,19 @@
      (and lfmt (if time
 		   (setq fullfmt (cons (nreverse lfmt) fullfmt))
 		 (setq fullfmt (nconc lfmt fullfmt))))
-     (calc-change-mode 'calc-date-format (nreverse fullfmt) t)))
-)
+     (calc-change-mode 'calc-date-format (nreverse fullfmt) t))))
 
 
 (defun calc-hms-mode ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-angle-mode 'hms)
-   (message "Angles measured in degrees-minutes-seconds."))
-)
+   (message "Angles measured in degrees-minutes-seconds.")))
 
 
 (defun calc-now (arg)
   (interactive "P")
-  (calc-date-zero-args "now" 'calcFunc-now arg)
-)
+  (calc-date-zero-args "now" 'calcFunc-now arg))
 
 (defun calc-date-part (arg)
   (interactive "NPart code (1-9 = Y,M,D,H,M,S,Wd,Yd,Hms): ")
@@ -184,31 +174,26 @@
 					   calcFunc-minute calcFunc-second
 					   calcFunc-weekday calcFunc-yearday
 					   calcFunc-time))
-			    (calc-top-n 1))))
-)
+			    (calc-top-n 1)))))
 
 (defun calc-date (arg)
   (interactive "p")
   (if (or (< arg 1) (> arg 6))
       (error "Between one and six arguments are allowed"))
   (calc-wrapper
-   (calc-enter-result arg "date" (cons 'calcFunc-date (calc-top-list-n arg))))
-)
+   (calc-enter-result arg "date" (cons 'calcFunc-date (calc-top-list-n arg)))))
 
 (defun calc-julian (arg)
   (interactive "P")
-  (calc-date-one-arg "juln" 'calcFunc-julian arg)
-)
+  (calc-date-one-arg "juln" 'calcFunc-julian arg))
 
 (defun calc-unix-time (arg)
   (interactive "P")
-  (calc-date-one-arg "unix" 'calcFunc-unixtime arg)
-)
+  (calc-date-one-arg "unix" 'calcFunc-unixtime arg))
 
 (defun calc-time-zone (arg)
   (interactive "P")
-  (calc-date-zero-args "zone" 'calcFunc-tzone arg)
-)
+  (calc-date-zero-args "zone" 'calcFunc-tzone arg))
 
 (defun calc-convert-time-zones (old &optional new)
   (interactive "sFrom time zone: ")
@@ -227,40 +212,33 @@
      (if (eq (car-safe new) 'error)
 	 (error "Error in expression: " (nth 1 new)))
      (calc-enter-result 1 "tzcv" (list 'calcFunc-tzconv
-				       (calc-top-n 1) old new))))
-)
+				       (calc-top-n 1) old new)))))
 
 (defun calc-new-week (arg)
   (interactive "P")
-  (calc-date-one-arg "nwwk" 'calcFunc-newweek arg)
-)
+  (calc-date-one-arg "nwwk" 'calcFunc-newweek arg))
 
 (defun calc-new-month (arg)
   (interactive "P")
-  (calc-date-one-arg "nwmn" 'calcFunc-newmonth arg)
-)
+  (calc-date-one-arg "nwmn" 'calcFunc-newmonth arg))
 
 (defun calc-new-year (arg)
   (interactive "P")
-  (calc-date-one-arg "nwyr" 'calcFunc-newyear arg)
-)
+  (calc-date-one-arg "nwyr" 'calcFunc-newyear arg))
 
 (defun calc-inc-month (arg)
   (interactive "p")
-  (calc-date-one-arg "incm" 'calcFunc-incmonth arg)
-)
+  (calc-date-one-arg "incm" 'calcFunc-incmonth arg))
 
 (defun calc-business-days-plus (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "bus+" 'calcFunc-badd arg))
-)
+   (calc-binary-op "bus+" 'calcFunc-badd arg)))
 
 (defun calc-business-days-minus (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "bus-" 'calcFunc-bsub arg))
-)
+   (calc-binary-op "bus-" 'calcFunc-bsub arg)))
 
 (defun calc-date-zero-args (prefix func arg)
   (calc-wrapper
@@ -268,8 +246,7 @@
        (calc-enter-result 1 prefix (list func (calc-top-n 1)))
      (calc-enter-result 0 prefix (if arg
 				     (list func (prefix-numeric-value arg))
-				   (list func)))))
-)
+				   (list func))))))
 
 (defun calc-date-one-arg (prefix func arg)
   (calc-wrapper
@@ -278,14 +255,7 @@
      (calc-enter-result 1 prefix (if arg
 				     (list func (calc-top-n 1)
 					   (prefix-numeric-value arg))
-				   (list func (calc-top-n 1))))))
-)
-
-
-
-
-
-
+				   (list func (calc-top-n 1)))))))
 
 
 ;;;; Hours-minutes-seconds forms.
@@ -325,8 +295,7 @@
 	     (<= (+ (math-numdigs (nth 1 s)) (nth 2 s))
 		 (- 2 calc-internal-prec)))
 	(setq s 0))
-    (list 'hms h m s))
-)
+    (list 'hms h m s)))
 
 ;;; Convert A from ANG or current angular mode to HMS format.
 (defun math-to-hms (a &optional ang)   ; [X R] [Public]
@@ -351,8 +320,7 @@
 	    (list 'hms
 		  (car hmd)
 		  (cdr hmd)
-		  (math-sub b (math-mul hm 60)))))))
-)
+		  (math-sub b (math-mul hm 60))))))))
 (defun calcFunc-hms (h &optional m s)
   (or (Math-realp h) (math-reject-arg h 'realp))
   (or m (setq m 0))
@@ -366,8 +334,7 @@
     (math-to-hms (math-add h
 			   (math-add (math-div (or m 0) 60)
 				     (math-div (or s 0) 3600)))
-		 'deg))
-)
+		 'deg)))
 
 ;;; Convert A from HMS format to ANG or current angular mode.
 (defun math-from-hms (a &optional ang)   ; [R X] [Public]
@@ -389,10 +356,7 @@
 						 '(float 6 1))
 				       (nth 2 a))
 			     60)
-		   (nth 1 a))))
-)
-
-
+		   (nth 1 a)))))
 
 ;;;; Date forms.
 
@@ -442,8 +406,7 @@
       (list year month day
 	    (/ time 3600)
 	    (% (/ time 60) 60)
-	    (math-add (% time 60) (nth 2 parts)))))
-)
+	    (math-add (% time 60) (nth 2 parts))))))
 
 (defun math-dt-to-date (dt)
   (or (integerp (nth 1 dt))
@@ -461,8 +424,7 @@
 					 (* (nth 4 dt) 60))
 				      (nth 5 dt))
 			    '(float 864 2)))
-      date))
-)
+      date)))
 
 (defun math-date-parts (value &optional offset)
   (let* ((date (math-floor value))
@@ -472,13 +434,11 @@
 	 (ftime (math-floor time)))
     (list date
 	  ftime
-	  (math-sub time ftime)))
-)
+	  (math-sub time ftime))))
 
 
 (defun math-this-year ()
-  (string-to-int (substring (current-time-string) -4))
-)
+  (string-to-int (substring (current-time-string) -4)))
 
 (defun math-leap-year-p (year)
   (if (Math-lessp year 1752)
@@ -487,14 +447,12 @@
 	(= (math-imod year 4) 0))
     (setq year (math-imod year 400))
     (or (and (= (% year 4) 0) (/= (% year 100) 0))
-	(= year 0)))
-)
+	(= year 0))))
 
 (defun math-days-in-month (year month)
   (if (and (= month 2) (math-leap-year-p year))
       29
-    (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month)))
-)
+    (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
 
 (defun math-day-number (year month day)
   (let ((day-of-year (+ day (* 31 (1- month)))))
@@ -507,8 +465,7 @@
 	 (or (> month 9)
 	     (and (= month 9) (>= day 14)))
 	 (setq day-of-year (- day-of-year 11)))
-    day-of-year)
-)
+    day-of-year))
 
 (defun math-absolute-from-date (year month day)
   (if (eq year 0) (setq year -1))
@@ -528,8 +485,7 @@
 		    (math-add (if (= (cdr res) 0)
 				  -1
 				0)
-			      (car res)))))))
-)
+			      (car res))))))))
 
 
 ;;; It is safe to redefine these in your .emacs file to use a different
@@ -564,8 +520,7 @@
 					     math-format-date-cache))
 	  (and (setq dt (nthcdr 10 math-format-date-cache))
 	       (setcdr dt nil))
-	  fmt)))
-)
+	  fmt))))
 (setq math-format-date-cache nil)
 
 (defun math-format-date-part (x)
@@ -731,8 +686,7 @@
 			(let ((calc-float-format
 			       (list 'fix (min (- 12 calc-internal-prec)
 					       0))))
-			  (math-format-number second)))))))
-)
+			  (math-format-number second))))))))
 
 
 (defun math-parse-date (str)
@@ -880,8 +834,7 @@
 	      (setq year (math-neg (math-abs year))))
 
 	  (math-parse-date-validate year bigyear month day
-				    hour minute second))))
-)
+				    hour minute second)))))
 
 (defun math-parse-date-validate (year bigyear month day hour minute second)
   (and (not bigyear) (natnump year) (< year 100)
@@ -901,8 +854,7 @@
 	 (if (or (math-negp second) (not (Math-lessp second 60)))
 	     (throw 'syntax "Seconds value is out of range"))))
   (list 'date (math-dt-to-date (append (list year month day)
-				       (and hour (list hour minute second)))))
-)
+				       (and hour (list hour minute second))))))
 
 (defun math-parse-date-word (names &optional front)
   (let ((n 1))
@@ -918,8 +870,7 @@
 	   (setq str (concat (substring str 0 (match-beginning 0))
 			     (if front "" " ")
 			     (substring str (match-end 0))))
-	   n)))
-)
+	   n))))
 
 (defun math-parse-standard-date (str with-time)
   (let ((case-fold-search t)
@@ -1077,8 +1028,7 @@
 						   hour minute second))
 	       (if yearday
 		   (setq day (math-add day (1- yearday))))
-	       day))))
-)
+	       day)))))
 
 
 (defun calcFunc-now (&optional zone)
@@ -1091,58 +1041,48 @@
 				     '(float 864 2)))
 	  date)
       (calc-record-why "*Unable to interpret current date from system")
-      (append (list 'calcFunc-now) (and zone (list zone)))))
-)
+      (append (list 'calcFunc-now) (and zone (list zone))))))
 
 (defun calcFunc-year (date)
-  (car (math-date-to-dt date))
-)
+  (car (math-date-to-dt date)))
 
 (defun calcFunc-month (date)
-  (nth 1 (math-date-to-dt date))
-)
+  (nth 1 (math-date-to-dt date)))
 
 (defun calcFunc-day (date)
-  (nth 2 (math-date-to-dt date))
-)
+  (nth 2 (math-date-to-dt date)))
 
 (defun calcFunc-weekday (date)
   (if (eq (car-safe date) 'date)
       (setq date (nth 1 date)))
   (or (math-realp date)
       (math-reject-arg date 'datep))
-  (math-mod (math-add (math-floor date) 6) 7)
-)
+  (math-mod (math-add (math-floor date) 6) 7))
 
 (defun calcFunc-yearday (date)
   (let ((dt (math-date-to-dt date)))
-    (math-day-number (car dt) (nth 1 dt) (nth 2 dt)))
-)
+    (math-day-number (car dt) (nth 1 dt) (nth 2 dt))))
 
 (defun calcFunc-hour (date)
   (if (eq (car-safe date) 'hms)
       (nth 1 date)
-    (or (nth 3 (math-date-to-dt date)) 0))
-)
+    (or (nth 3 (math-date-to-dt date)) 0)))
 
 (defun calcFunc-minute (date)
   (if (eq (car-safe date) 'hms)
       (nth 2 date)
-    (or (nth 4 (math-date-to-dt date)) 0))
-)
+    (or (nth 4 (math-date-to-dt date)) 0)))
 
 (defun calcFunc-second (date)
   (if (eq (car-safe date) 'hms)
       (nth 3 date)
-    (or (nth 5 (math-date-to-dt date)) 0))
-)
+    (or (nth 5 (math-date-to-dt date)) 0)))
 
 (defun calcFunc-time (date)
   (let ((dt (math-date-to-dt date)))
     (if (nth 3 dt)
 	(cons 'hms (nthcdr 3 dt))
-      (list 'hms 0 0 0)))
-)
+      (list 'hms 0 0 0))))
 
 (defun calcFunc-date (date &optional month day hour minute second)
   (and (math-messy-integerp month) (setq month (math-trunc month)))
@@ -1174,8 +1114,7 @@
 	(list 'date date)
       (if (eq (car date) 'date)
 	  (nth 1 date)
-	(math-reject-arg date 'datep))))
-)
+	(math-reject-arg date 'datep)))))
 
 (defun calcFunc-julian (date &optional zone)
   (if (math-realp date)
@@ -1190,8 +1129,7 @@
 				 (math-add '(float (bigpos 235 214 17) -1)
 					   (math-div (calcFunc-tzone zone date)
 						     '(float 864 2)))))
-      (math-reject-arg date 'datep)))
-)
+      (math-reject-arg date 'datep))))
 
 (defun calcFunc-unixtime (date &optional zone)
   (if (math-realp date)
@@ -1202,8 +1140,7 @@
     (if (eq (car date) 'date)
 	(math-add (nth 1 (math-date-parts (nth 1 date) 719164))
 		  (calcFunc-tzone zone date))
-      (math-reject-arg date 'datep)))
-)
+      (math-reject-arg date 'datep))))
 
 (defun calcFunc-tzone (&optional zone date)
   (if zone
@@ -1281,8 +1218,7 @@
 	(kill-buffer " *Calc Temporary*")
 	(setq var-TimeZone tz)
 	(calc-refresh-evaltos 'var-TimeZone)
-	(calcFunc-tzone tz date))))
-)
+	(calcFunc-tzone tz date)))))
 
 ;;; Note: Longer names must appear before shorter names which are
 ;;;       substrings of them.
@@ -1319,8 +1255,7 @@
     (setq date (math-float date))
     (or dt (setq dt (math-date-to-dt date)))
     (and math-daylight-savings-hook
-	 (funcall math-daylight-savings-hook date dt zone bump)))
-)
+	 (funcall math-daylight-savings-hook date dt zone bump))))
 
 (defun calcFunc-dsadj (date &optional zone)
   (if zone
@@ -1336,14 +1271,12 @@
     (or zadj (math-reject-arg zone "*Unrecognized time zone name"))
     (if (integerp (nth 2 zadj))
 	(nth 2 zadj)
-      (math-daylight-savings-adjust date zone)))
-)
+      (math-daylight-savings-adjust date zone))))
 
 (defun calcFunc-tzconv (date z1 z2)
   (if (math-realp date)
       (nth 1 (calcFunc-tzconv (list 'date date) z1 z2))
-    (calcFunc-unixtime (calcFunc-unixtime date z1) z2))
-)
+    (calcFunc-unixtime (calcFunc-unixtime date z1) z2)))
 
 (defvar math-daylight-savings-hook 'math-std-daylight-savings)
 
@@ -1366,8 +1299,7 @@ and ends on the last Sunday of October at 2 a.m."
 		 ((= (nth 2 dt) sunday)
 		  (if (>= (nth 3 dt) (+ 2 bump)) 0 -1))
 		 (t 0))))
-	(t 0))
-)
+	(t 0)))
 
 ;;; Compute the day (1-31) of the WDAY (0-6) on or preceding the given
 ;;; day of the given month.
@@ -1376,8 +1308,7 @@ and ends on the last Sunday of October at 2 a.m."
   (if (> day (math-days-in-month (car dt) (nth 1 dt)))
       (setq day (math-days-in-month (car dt) (nth 1 dt))))
   (let ((zeroth (math-sub (math-floor date) (nth 2 dt))))
-    (math-sub (nth 1 (calcFunc-newweek (math-add zeroth day))) zeroth))
-)
+    (math-sub (nth 1 (calcFunc-newweek (math-add zeroth day))) zeroth)))
 
 (defun calcFunc-pwday (date &optional day weekday)
   (if (eq (car-safe date) 'date)
@@ -1388,8 +1319,7 @@ and ends on the last Sunday of October at 2 a.m."
   (or (integerp day) (math-reject-arg day 'fixnump))
   (if (= day 0) (setq day 31))
   (and (or (< day 7) (> day 31)) (math-reject-arg day 'range))
-  (math-prev-weekday-in-month date (math-date-to-dt date) day (or weekday 0))
-)
+  (math-prev-weekday-in-month date (math-date-to-dt date) day (or weekday 0)))
 
 
 (defun calcFunc-newweek (date &optional weekday)
@@ -1402,8 +1332,7 @@ and ends on the last Sunday of October at 2 a.m."
   (or (integerp weekday) (math-reject-arg weekday 'fixnump))
   (and (or (< weekday 0) (> weekday 6)) (math-reject-arg weekday 'range))
   (setq date (math-floor date))
-  (list 'date (math-sub date (calcFunc-weekday (math-sub date weekday))))
-)
+  (list 'date (math-sub date (calcFunc-weekday (math-sub date weekday)))))
 
 (defun calcFunc-newmonth (date &optional day)
   (or day (setq day 1))
@@ -1416,8 +1345,7 @@ and ends on the last Sunday of October at 2 a.m."
     (and (eq (car dt) 1752) (= (nth 1 dt) 9)
 	 (if (>= day 14) (setq day (- day 11))))
     (list 'date (math-add (math-dt-to-date (list (car dt) (nth 1 dt) 1))
-			  (1- day))))
-)
+			  (1- day)))))
 
 (defun calcFunc-newyear (date &optional day)
   (or day (setq day 1))
@@ -1432,8 +1360,7 @@ and ends on the last Sunday of October at 2 a.m."
 				(1- day))))
       (if (and (>= day -12) (<= day -1))
 	  (list 'date (math-dt-to-date (list (car dt) (- day) 1)))
-	(math-reject-arg day 'range))))
-)
+	(math-reject-arg day 'range)))))
 
 (defun calcFunc-incmonth (date &optional step)
   (or step (setq step 1))
@@ -1452,12 +1379,10 @@ and ends on the last Sunday of October at 2 a.m."
     (and (math-negp (car dt)) (not (math-negp year))
 	 (setq year (math-add year 1)))
     (list 'date (math-dt-to-date
-		 (cons year (cons month (cons day (cdr (cdr (cdr dt)))))))))
-)
+		 (cons year (cons month (cons day (cdr (cdr (cdr dt))))))))))
 
 (defun calcFunc-incyear (date &optional step)
-  (calcFunc-incmonth date (math-mul (or step 1) 12))
-)
+  (calcFunc-incmonth date (math-mul (or step 1) 12)))
 
 
 
@@ -1472,8 +1397,7 @@ and ends on the last Sunday of October at 2 a.m."
 	       (db (math-to-business-day b)))
 	  (math-add (math-sub (car da) (car db))
 		    (if (and (cdr db) (not (cdr da))) 1 0))))
-    (calcFunc-badd a (math-neg b)))
-)
+    (calcFunc-badd a (math-neg b))))
 
 (defun calcFunc-badd (a b)
   (if (eq (car-safe b) 'date)
@@ -1497,12 +1421,10 @@ and ends on the last Sunday of October at 2 a.m."
 		    (setq b (math-div b (cdr hours))))
 		(calcFunc-badd a b))
 	    (math-reject-arg nil "*Illegal combination in date arithmetic")))
-      (math-reject-arg a 'datep)))
-)
+      (math-reject-arg a 'datep))))
 
 (defun calcFunc-holiday (a)
-  (if (cdr (math-to-business-day a)) 1 0)
-)
+  (if (cdr (math-to-business-day a)) 1 0))
 
 
 (setq math-holidays-cache nil)
@@ -1547,8 +1469,7 @@ and ends on the last Sunday of October at 2 a.m."
 		(setq time
 		      (math-sub 1
 				(math-div 1 (math-mul 86400 (cdr hours)))))))))
-    (cons (math-add (math-sub day delta) time) holiday))
-)
+    (cons (math-add (math-sub day delta) time) holiday)))
 
 
 ;;; Compute the date a certain number of business days since Jan 1, 1 AD.
@@ -1579,8 +1500,7 @@ and ends on the last Sunday of October at 2 a.m."
 	(if hours
 	    (setq time (math-add (math-mul time (cdr hours)) (car hours)))))
       (and (not (math-setup-holidays day))
-	   (list 'date (math-add day time)))))
-)
+	   (list 'date (math-add day time))))))
 
 
 (defun math-setup-holidays (&optional date)
@@ -1686,8 +1606,7 @@ and ends on the last Sunday of October at 2 a.m."
 		    (t
 		     (setq done t)
 		     nil)))
-	  (or done (setq math-holidays-cache-tag t)))))
-)
+	  (or done (setq math-holidays-cache-tag t))))))
 
 (defun math-setup-year-holidays (year)
   (let ((exprs (nth 2 math-holidays-cache)))
@@ -1700,8 +1619,7 @@ and ends on the last Sunday of October at 2 a.m."
 	      (while (<= (setq var-m (1+ var-m)) 12)
 		(math-setup-add-holidays (math-evaluate-expr expr))))
 	  (math-setup-add-holidays expr)))
-      (setq exprs (cdr exprs))))
-)
+      (setq exprs (cdr exprs)))))
 
 (defun math-setup-add-holidays (days)   ; uses "year"
   (cond ((eq (car-safe days) 'vec)
@@ -1731,8 +1649,7 @@ and ends on the last Sunday of October at 2 a.m."
 	((Math-realp days)
 	 (math-reject-arg (list 'date days) "*Invalid holiday value"))
 	(t
-	 (math-reject-arg days "*Holiday formula failed to evaluate")))
-)
+	 (math-reject-arg days "*Holiday formula failed to evaluate"))))
 
 
 
@@ -1749,11 +1666,9 @@ and ends on the last Sunday of October at 2 a.m."
       (setq sigma (math-abs sigma)))
   (if (and (Math-zerop sigma) (Math-scalarp x))
       x
-    (list 'sdev x sigma))
-)
+    (list 'sdev x sigma)))
 (defun calcFunc-sdev (x sigma)
-  (math-make-sdev x sigma)
-)
+  (math-make-sdev x sigma))
 
 
 
@@ -1764,8 +1679,7 @@ and ends on the last Sunday of October at 2 a.m."
 	(m (math-normalize (nth 2 a))))
     (if (and (math-anglep n) (math-anglep m) (math-posp m))
 	(math-make-mod n m)
-      (math-normalize (list 'calcFunc-makemod n m))))
-)
+      (math-normalize (list 'calcFunc-makemod n m)))))
 
 ;;; Build a modulo form.  [N R R]
 (defun math-make-mod (n m)
@@ -1789,11 +1703,9 @@ and ends on the last Sunday of October at 2 a.m."
 	      (math-mul (math-make-mod (nth 1 n) m) (nth 2 n)))
 	     ((memq (car n) '(* ^ var calcFunc-subscr))
 	      (math-mul (math-make-mod 1 m) n))
-	     (t (math-reject-arg n 'anglep))))
-)
+	     (t (math-reject-arg n 'anglep)))))
 (defun calcFunc-makemod (n m)
-  (math-make-mod n m)
-)
+  (math-make-mod n m))
 
 
 
@@ -1819,20 +1731,17 @@ and ends on the last Sunday of October at 2 a.m."
 		  (list 'intv 2 lo lo)
 		(list 'intv mask lo lo))
 	    (list 'intv mask lo hi))))
-    (list 'intv mask lo hi))
-)
+    (list 'intv mask lo hi)))
 (defun calcFunc-intv (mask lo hi)
   (if (math-messy-integerp mask) (setq mask (math-trunc mask)))
   (or (natnump mask) (math-reject-arg mask 'fixnatnump))
   (or (<= mask 3) (math-reject-arg mask 'range))
-  (math-make-intv mask lo hi)
-)
+  (math-make-intv mask lo hi))
 
 (defun math-sort-intv (mask lo hi)
   (if (Math-lessp hi lo)
       (math-make-intv (aref [0 2 1 3] mask) hi lo)
-    (math-make-intv mask lo hi))
-)
+    (math-make-intv mask lo hi)))
 
 
 
@@ -1847,8 +1756,7 @@ and ends on the last Sunday of October at 2 a.m."
 	(setq b d bm dm)
       (if (= res 0)
 	  (setq bm (or bm dm))))
-    (math-make-intv (+ (if am 2 0) (if bm 1 0)) a b))
-)
+    (math-make-intv (+ (if am 2 0) (if bm 1 0)) a b)))
 
 
 (defun math-div-mod (a b m)   ; [R R R R]  (Returns nil if no solution)
@@ -1860,8 +1768,7 @@ and ends on the last Sunday of October at 2 a.m."
 	     (setq u1 v1  u3 v3  v1 t1  v3 (cdr q))))
 	 (let ((q (math-idivmod a u3)))
 	   (and (eq (cdr q) 0)
-		(math-mod (math-mul (car q) u1) m)))))
-)
+		(math-mod (math-mul (car q) u1) m))))))
 
 (defun math-mod-intv (a b)
   (let* ((q1 (math-floor (math-div (nth 2 a) b)))
@@ -1875,8 +1782,7 @@ and ends on the last Sunday of October at 2 a.m."
 		(memq (nth 1 a) '(0 2)))
 	   (math-make-intv (nth 1 a) m1 b))
 	  (t
-	   (math-make-intv 2 0 b))))
-)
+	   (math-make-intv 2 0 b)))))
 
 
 (defun math-read-angle-brackets ()
@@ -1909,6 +1815,6 @@ and ends on the last Sunday of October at 2 a.m."
 	(throw 'syntax (nth 2 res)))
     (setq exp-pos (1+ last))
     (math-read-token)
-    res)
-)
+    res))
 
+;;; calc-forms.el ends here

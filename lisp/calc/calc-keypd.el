@@ -127,8 +127,7 @@
   (interactive)
   (if calc-standalone-flag
       (save-buffers-kill-emacs nil)
-    (calc-keypad))
-)
+    (calc-keypad)))
 
 (defun calc-keypad-redraw ()
   (set-buffer calc-keypad-buffer)
@@ -176,8 +175,7 @@
 	      row (cdr row)))))
   (setq calc-keypad-prev-input t)
   (calc-keypad-show-input)
-  (goto-char (point-min))
-)
+  (goto-char (point-min)))
 
 (defun calc-keypad-show-input ()
   (or (equal calc-keypad-input calc-keypad-prev-input)
@@ -191,8 +189,7 @@
 	    (insert "----+-----Calc " calc-version "-----+----"
 		    (int-to-string (1+ calc-keypad-menu))
 		    "\n")))))
-  (setq calc-keypad-prev-input calc-keypad-input)
-)
+  (setq calc-keypad-prev-input calc-keypad-input))
 
 (defun calc-keypad-press ()
   (interactive)
@@ -343,8 +340,7 @@
 			   (command-execute (car cmd))))
 		     (command-execute cmd)))))
       (set-buffer calc-keypad-buffer)
-      (calc-keypad-show-input)))
-)
+      (calc-keypad-show-input))))
 
 (defun calc-keypad-left-click (event)
   "Handle a left-button mouse click in Calc Keypad window."
@@ -372,8 +368,7 @@
   (while (progn (setq calc-keypad-menu (% (1+ calc-keypad-menu)
 					  (length calc-keypad-menus)))
 		(not (symbol-value (nth calc-keypad-menu calc-keypad-menus)))))
-  (calc-keypad-redraw)
-)
+  (calc-keypad-redraw))
 
 (defun calc-keypad-menu-back ()
   (interactive)
@@ -383,25 +378,21 @@
 						 (length calc-keypad-menus)))
 					  (length calc-keypad-menus)))
 		(not (symbol-value (nth calc-keypad-menu calc-keypad-menus)))))
-  (calc-keypad-redraw)
-)
+  (calc-keypad-redraw))
 
 (defun calc-keypad-store ()
   (interactive)
-  (setq calc-keypad-input "STO")
-)
+  (setq calc-keypad-input "STO"))
 
 (defun calc-keypad-recall ()
   (interactive)
-  (setq calc-keypad-input "RCL")
-)
+  (setq calc-keypad-input "RCL"))
 
 (defun calc-pack-interval (mode)
   (interactive "p")
   (if (or (< mode 0) (> mode 3))
       (error "Open/close code should be in the range from 0 to 3."))
-  (calc-pack (- -6 mode))
-)
+  (calc-pack (- -6 mode)))
 
 (defun calc-keypad-execute ()
   (interactive)
@@ -430,8 +421,7 @@
     (message "")
     (if (commandp cmd)
 	(command-execute cmd)
-      (error "Not a Calc command: %s" (key-description keys))))
-)
+      (error "Not a Calc command: %s" (key-description keys)))))
 
 
 ;;; |----+----+----+----+----+----|
@@ -474,8 +464,7 @@
        ( "0"	 ("0") calc-imaginary )
        ( "."	 (".") calc-precision )
        ( "PI"	 calc-pi )
-       ( "+"	 calc-plus calc-sqrt ) ) )
-)
+       ( "+"	 calc-plus calc-sqrt ) ) ))
 
 (defvar calc-keypad-menus '( calc-keypad-math-menu
 			     calc-keypad-funcs-menu
@@ -509,8 +498,7 @@
        ( "TAN"   calc-tan )
        ( "SQRT"  calc-sqrt )
        ( "y^x"   calc-power )
-       ( "1/x"   calc-inv ) ) )
-)
+       ( "1/x"   calc-inv ) ) ))
 
 ;;; |----+----+----+----+----+----|
 ;;; |IGAM|BETA|IBET|ERF |BESJ|BESY|
@@ -537,8 +525,7 @@
        ( "DFCT"  calc-double-factorial )
        ( "BNOM"  calc-choose )
        ( "PERM"  calc-perm )
-       ( "NXTP"	 calc-next-prime calc-prev-prime ) ) )
-)
+       ( "NXTP"	 calc-next-prime calc-prev-prime ) ) ))
 
 ;;; |----+----+----+----+----+----|
 ;;; |AND | OR |XOR |NOT |LSH |RSH |
@@ -565,8 +552,7 @@
        ( "C"     ("C") )
        ( "D"     ("D") )
        ( "E"     ("E") )
-       ( "F"     ("F") ) ) )
-)
+       ( "F"     ("F") ) ) ))
 
 ;;; |----+----+----+----+----+----|
 ;;; |SUM |PROD|MAX |MAP*|MAP^|MAP$|
@@ -598,8 +584,7 @@
        ( "INDX"  (progn calc-num-prefix calc-index) "\C-u\excalc-index\r" )
        ( "BLD"   (progn calc-num-prefix calc-build-vector) )
        ( "LEN"   calc-vlength )
-       ( "..."   calc-full-vectors ) ) )
-)
+       ( "..."   calc-full-vectors ) ) ))
 
 ;;; |----+----+----+----+----+----|
 ;;; |FLT |FIX |SCI |ENG |GRP |    |
@@ -630,6 +615,6 @@
        ( "RLL4"  (progn 4 calc-roll-up) (progn 4 calc-roll-down) )
        ( "OVER"  calc-over )
        ( "STO"   calc-keypad-store )
-       ( "RCL"   calc-keypad-recall ) ) )
-)
+       ( "RCL"   calc-keypad-recall ) ) ))
 
+;;; calc-keypd.el ends here

@@ -34,8 +34,7 @@
   (calc-wrapper
    (message (if (calc-change-mode 'calc-line-numbering n t t)
 		"Displaying stack level numbers."
-	      "Hiding stack level numbers.")))
-)
+	      "Hiding stack level numbers."))))
 
 (defun calc-line-breaking (n)
   (interactive "P")
@@ -49,8 +48,7 @@
        (if (integerp calc-line-breaking)
 	   (message "Breaking lines longer than %d characters." n)
 	 (message "Breaking long lines in Stack display."))
-     (message "Not breaking long lines in Stack display.")))
-)
+     (message "Not breaking long lines in Stack display."))))
 
 
 (defun calc-left-justify (n)
@@ -61,8 +59,7 @@
 		     (list nil n) t)
    (if n
        (message "Displaying stack entries indented by %d." n)
-     (message "Displaying stack entries left-justified.")))
-)
+     (message "Displaying stack entries left-justified."))))
 
 (defun calc-center-justify (n)
   (interactive "P")
@@ -72,8 +69,7 @@
 		     (list 'center n) t)
    (if n
        (message "Displaying stack entries centered on column %d." n)
-     (message "Displaying stack entries centered in window.")))
-)
+     (message "Displaying stack entries centered in window."))))
 
 (defun calc-right-justify (n)
   (interactive "P")
@@ -83,24 +79,21 @@
 		     (list 'right n) t)
    (if n
        (message "Displaying stack entries right-justified to column %d." n)
-     (message "Displaying stack entries right-justified in window.")))
-)
+     (message "Displaying stack entries right-justified in window."))))
 
 (defun calc-left-label (s)
   (interactive "sLefthand label: ")
   (calc-wrapper
    (or (equal s "")
        (setq s (concat s " ")))
-   (calc-change-mode 'calc-left-label s t))
-)
+   (calc-change-mode 'calc-left-label s t)))
 
 (defun calc-right-label (s)
   (interactive "sRighthand label: ")
   (calc-wrapper
    (or (equal s "")
        (setq s (concat " " s)))
-   (calc-change-mode 'calc-right-label s t))
-)
+   (calc-change-mode 'calc-right-label s t)))
 
 (defun calc-auto-why (n)
   (interactive "P")
@@ -117,8 +110,7 @@
 	 ((eq n t)
 	  (message "Automatically doing `w' to explain unsimplified results."))
 	 (t
-	  (message "Automatically doing `w' only for unusual messages."))))
-)
+	  (message "Automatically doing `w' only for unusual messages.")))))
 
 (defun calc-group-digits (n)
   (interactive "P")
@@ -138,8 +130,7 @@
 	 ((integerp n)
 	  (message "Grouping every %d digits." (math-abs n)))
 	 (t
-	  (message "Grouping is on."))))
-)
+	  (message "Grouping is on.")))))
 
 (defun calc-group-char (ch)
   (interactive "cGrouping character: ")
@@ -150,8 +141,7 @@
        (setq ch "\\,")
      (setq ch (char-to-string ch)))
    (calc-change-mode 'calc-group-char ch calc-group-digits)
-   (message "Digit grouping character is \"%s\"." ch))
-)
+   (message "Digit grouping character is \"%s\"." ch)))
 
 (defun calc-point-char (ch)
   (interactive "cCharacter to use as decimal point: ")
@@ -159,8 +149,7 @@
    (or (>= ch 32)
        (error "Control characters not allowed as decimal point."))
    (calc-change-mode 'calc-point-char (char-to-string ch) t)
-   (message "Decimal point character is \"%c\"." ch))
-)
+   (message "Decimal point character is \"%c\"." ch)))
 
 (defun calc-normal-notation (n)
   (interactive "P")
@@ -180,8 +169,7 @@
 	  "Displaying floating-point numbers with %d significant digits."
 	  (nth 1 n))
        (message "Displaying floating-point numbers with (precision%d)."
-		(nth 1 n)))))
-)
+		(nth 1 n))))))
 
 (defun calc-fix-notation (n)
   (interactive "NDigits after decimal point: ")
@@ -190,8 +178,7 @@
 		     (setq n (list 'fix (if n (prefix-numeric-value n) 0)))
 		     t)
    (message "Displaying floats with %d digits after decimal."
-	    (math-abs (nth 1 n))))
-)
+	    (math-abs (nth 1 n)))))
 
 (defun calc-sci-notation (n)
   (interactive "P")
@@ -205,8 +192,7 @@
 	 (message "Displaying scientific notation with %d significant digits."
 		  (nth 1 n))
        (message "Displaying scientific notation with (precision%d)."
-		(nth 1 n)))))
-)
+		(nth 1 n))))))
 
 (defun calc-eng-notation (n)
   (interactive "P")
@@ -220,8 +206,7 @@
 	 (message "Displaying engineering notation with %d significant digits."
 		  (nth 1 n))
        (message "Displaying engineering notation with (precision%d)."
-		(nth 1 n)))))
-)
+		(nth 1 n))))))
 
 
 (defun calc-truncate-stack (n &optional rel)
@@ -253,18 +238,15 @@
 	 (if calc-line-numbering
 	     (calc-refresh))))
      (calc-record-undo (list 'set 'saved-stack-top 0))
-     (setq calc-stack-top newtop)))
-)
+     (setq calc-stack-top newtop))))
 
 (defun calc-truncate-up (n)
   (interactive "p")
-  (calc-truncate-stack n t)
-)
+  (calc-truncate-stack n t))
 
 (defun calc-truncate-down (n)
   (interactive "p")
-  (calc-truncate-stack (- n) t)
-)
+  (calc-truncate-stack (- n) t))
 
 (defun calc-display-raw (arg)
   (interactive "P")
@@ -272,8 +254,7 @@
    (setq calc-display-raw (if calc-display-raw nil (if arg 0 t)))
    (calc-do-refresh)
    (if calc-display-raw
-       (message "Press d ' again to cancel \"raw\" display mode.")))
-)
+       (message "Press d ' again to cancel \"raw\" display mode."))))
 
 
 
@@ -323,8 +304,7 @@
 	 ;; FIXME: why is this here? -cgw 2001.11.12
 	 (let ((executing-kbd-macro ""))   ; what a kludge!
 	   (save-buffer))
-       (save-buffer))))
-)
+       (save-buffer)))))
 
 (defun calc-settings-file-name (name &optional arg)
   (interactive
@@ -381,8 +361,7 @@
 	      (t 1))
 	(cond ((eq calc-infinite-mode 1) 0)
 	      (calc-infinite-mode 1)
-	      (t -1)))
-)
+	      (t -1))))
 
 (defun calc-get-modes (n)
   (interactive "P")
@@ -394,8 +373,7 @@
 				     (< n (length modes)))
 				(nth n modes)
 			      (error "Prefix out of range"))
-			  modes))))
-)
+			  modes)))))
 
 (defun calc-shift-prefix (arg)
   (interactive "P")
@@ -406,8 +384,7 @@
    (calc-init-prefixes)
    (message (if calc-shift-prefix
 		"Prefix keys are now case-insensitive"
-	      "Prefix keys must be unshifted (except V, Z)")))
-)
+	      "Prefix keys must be unshifted (except V, Z)"))))
 
 (defun calc-mode-record-mode (n)
   (interactive "P")
@@ -441,8 +418,7 @@
 		   (format "Recording mode changes in \"%s\"."
 			   calc-settings-file))
 		  (t
-		   "Not recording mode changes permanently."))))
-)
+		   "Not recording mode changes permanently.")))))
 
 (defun calc-total-algebraic-mode (flag)
   (interactive "P")
@@ -455,8 +431,7 @@
 		       '(total nil))
      (use-local-map calc-alg-map)
      (message
-      "All keys begin algebraic entry; use Meta (ESC) for Calc keys.")))
-)
+      "All keys begin algebraic entry; use Meta (ESC) for Calc keys."))))
 
 (defun calc-algebraic-mode (flag)
   (interactive "P")
@@ -472,8 +447,7 @@
 		"Numeric keys and ( and [ begin algebraic entry."
 	      (if calc-incomplete-algebraic-mode
 		  "Only ( and [ begin algebraic entry."
-		"No keys except ' and $ begin algebraic entry."))))
-)
+		"No keys except ' and $ begin algebraic entry.")))))
 
 (defun calc-symbolic-mode (n)
   (interactive "P")
@@ -481,8 +455,7 @@
    
    (message (if (calc-change-mode 'calc-symbolic-mode n nil t)
 		"Inexact computations like sqrt(2) are deferred."
-	      "Numerical computations are always done immediately.")))
-)
+	      "Numerical computations are always done immediately."))))
 
 (defun calc-infinite-mode (n)
   (interactive "P")
@@ -493,8 +466,7 @@
 	 (message "Computations like 1 / 0 produce \"inf\"."))
      (message (if (calc-change-mode 'calc-infinite-mode n nil t)
 		  "Computations like 1 / 0 produce \"uinf\"."
-		"Computations like 1 / 0 are left unsimplified."))))
-)
+		"Computations like 1 / 0 are left unsimplified.")))))
 
 (defun calc-matrix-mode (arg)
   (interactive "P")
@@ -514,8 +486,7 @@
 		  "Variables are assumed to be matrices."
 		(if calc-matrix-mode
 		    "Variables are assumed to be scalars (non-matrices)."
-		  "Variables are not assumed to be matrix or scalar.")))))
-)
+		  "Variables are not assumed to be matrix or scalar."))))))
 
 (defun calc-set-simplify-mode (mode arg msg)
   (calc-change-mode 'calc-simplify-mode
@@ -526,22 +497,19 @@
 			   mode)))
   (message (if (eq calc-simplify-mode mode)
 	       msg
-	     "Default simplifications enabled."))
-)
+	     "Default simplifications enabled.")))
 
 (defun calc-no-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'none arg
-			   "All default simplifications are disabled."))
-)
+			   "All default simplifications are disabled.")))
 
 (defun calc-num-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'num arg
-			   "Default simplifications apply only if arguments are numeric."))
-)
+			   "Default simplifications apply only if arguments are numeric.")))
 
 (defun calc-default-simplify-mode (arg)
   (interactive "p")
@@ -555,37 +523,32 @@
 	((= arg 3) (calc-alg-simplify-mode 1))
 	((= arg 4) (calc-ext-simplify-mode 1))
 	((= arg 5) (calc-units-simplify-mode 1))
-	(t (error "Prefix argument out of range")))
-)
+	(t (error "Prefix argument out of range"))))
 
 (defun calc-bin-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'binary arg
 			   (format "Binary simplification occurs by default (word size=%d)."
-				   calc-word-size)))
-)
+				   calc-word-size))))
 
 (defun calc-alg-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'alg arg
-			   "Algebraic simplification occurs by default."))
-)
+			   "Algebraic simplification occurs by default.")))
 
 (defun calc-ext-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'ext arg
-			   "Extended algebraic simplification occurs by default."))
-)
+			   "Extended algebraic simplification occurs by default.")))
 
 (defun calc-units-simplify-mode (arg)
   (interactive "P")
   (calc-wrapper
    (calc-set-simplify-mode 'units arg
-			   "Units simplification occurs by default."))
-)
+			   "Units simplification occurs by default.")))
 
 (defun calc-auto-recompute (arg)
   (interactive "P")
@@ -594,8 +557,7 @@
    (calc-refresh-evaltos)
    (message (if calc-auto-recompute
 		"Automatically recomputing `=>' forms when necessary."
-	      "Not recomputing `=>' forms automatically.")))
-)
+	      "Not recomputing `=>' forms automatically."))))
 
 (defun calc-working (n)
   (interactive "P")
@@ -613,70 +575,61 @@
 	 (calc-display-working-message
 	  (message "Detailed \"Working...\" messages enabled."))
 	 (t
-	  (message "\"Working...\" messages disabled."))))
-)
+	  (message "\"Working...\" messages disabled.")))))
 
 (defun calc-always-load-extensions ()
   (interactive)
   (calc-wrapper
    (if (setq calc-always-load-extensions (not calc-always-load-extensions))
        (message "Always loading extensions package.")
-     (message "Loading extensions package on demand only.")))
-)
+     (message "Loading extensions package on demand only."))))
 
 
 (defun calc-matrix-left-justify ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-matrix-just nil t)
-   (message "Matrix elements will be left-justified in columns."))
-)
+   (message "Matrix elements will be left-justified in columns.")))
 
 (defun calc-matrix-center-justify ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-matrix-just 'center t)
-   (message "Matrix elements will be centered in columns."))
-)
+   (message "Matrix elements will be centered in columns.")))
 
 (defun calc-matrix-right-justify ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-matrix-just 'right t)
-   (message "Matrix elements will be right-justified in columns."))
-)
+   (message "Matrix elements will be right-justified in columns.")))
 
 (defun calc-full-vectors (n)
   (interactive "P")
   (calc-wrapper
    (message (if (calc-change-mode 'calc-full-vectors n t t)
 		"Displaying long vectors in full."
-	      "Displaying long vectors in [a, b, c, ..., z] notation.")))
-)
+	      "Displaying long vectors in [a, b, c, ..., z] notation."))))
 
 (defun calc-full-trail-vectors (n)
   (interactive "P")
   (calc-wrapper
    (message (if (calc-change-mode 'calc-full-trail-vectors n nil t)
 		"Recording long vectors in full."
-	      "Recording long vectors in [a, b, c, ..., z] notation.")))
-)
+	      "Recording long vectors in [a, b, c, ..., z] notation."))))
 
 (defun calc-break-vectors (n)
   (interactive "P")
   (calc-wrapper
    (message (if (calc-change-mode 'calc-break-vectors n t t)
 		"Displaying vector elements one-per-line."
-	      "Displaying vector elements all on one line.")))
-)
+	      "Displaying vector elements all on one line."))))
 
 (defun calc-vector-commas ()
   (interactive)
   (calc-wrapper
    (if (calc-change-mode 'calc-vector-commas (if calc-vector-commas nil ",") t)
        (message "Separating vector elements with \",\".")
-     (message "Separating vector elements with spaces.")))
-)
+     (message "Separating vector elements with spaces."))))
 
 (defun calc-vector-brackets ()
   (interactive)
@@ -684,8 +637,7 @@
    (if (calc-change-mode 'calc-vector-brackets
 			 (if (equal calc-vector-brackets "[]") nil "[]") t)
        (message "Surrounding vectors with \"[]\".")
-     (message "Not surrounding vectors with brackets.")))
-)
+     (message "Not surrounding vectors with brackets."))))
 
 (defun calc-vector-braces ()
   (interactive)
@@ -693,8 +645,7 @@
    (if (calc-change-mode 'calc-vector-brackets
 			 (if (equal calc-vector-brackets "{}") nil "{}") t)
        (message "Surrounding vectors with \"{}\".")
-     (message "Not surrounding vectors with brackets.")))
-)
+     (message "Not surrounding vectors with brackets."))))
 
 (defun calc-vector-parens ()
   (interactive)
@@ -702,8 +653,7 @@
    (if (calc-change-mode 'calc-vector-brackets
 			 (if (equal calc-vector-brackets "()") nil "()") t)
        (message "Surrounding vectors with \"()\".")
-     (message "Not surrounding vectors with brackets.")))
-)
+     (message "Not surrounding vectors with brackets."))))
 
 (defun calc-matrix-brackets (arg)
   (interactive "sCode letters (R, O, C, P): ")
@@ -715,6 +665,6 @@
 	 (bad (string-match "[^rRoOcCpP ]" arg)))
      (if bad
 	 (error "Unrecognized character: %c" (aref arg bad)))
-     (calc-change-mode 'calc-matrix-brackets code t)))
-)
+     (calc-change-mode 'calc-matrix-brackets code t))))
 
+;;; calc-mode.el ends here

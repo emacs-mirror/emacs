@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-incom.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -36,8 +36,7 @@
   (calc-wrapper
    (if (or calc-algebraic-mode calc-incomplete-algebraic-mode)
        (calc-alg-entry "(")
-     (calc-push (list 'incomplete calc-complex-mode))))
-)
+     (calc-push (list 'incomplete calc-complex-mode)))))
 
 (defun calc-end-complex ()
   (interactive)
@@ -60,16 +59,14 @@
        (if (not (and (math-realp (nth 2 top))
 		     (math-anglep (nth 3 top))))
 	   (error "Components must be real"))
-       (calc-enter-result 1 "()" (cdr top)))))
-)
+       (calc-enter-result 1 "()" (cdr top))))))
 
 (defun calc-begin-vector ()
   (interactive)
   (calc-wrapper
    (if (or calc-algebraic-mode calc-incomplete-algebraic-mode)
        (calc-alg-entry "[")
-     (calc-push '(incomplete vec))))
-)
+     (calc-push '(incomplete vec)))))
 
 (defun calc-end-vector ()
   (interactive)
@@ -88,8 +85,7 @@
        (if (not (and (eq (car-safe top) 'incomplete)
 		     (eq (nth 1 top) 'vec)))
 	   (error "Not entering a vector"))
-       (calc-pop-push-record 1 "[]" (cdr top)))))
-)
+       (calc-pop-push-record 1 "[]" (cdr top))))))
 
 (defun calc-comma (&optional allow-polar)
   (interactive)
@@ -121,8 +117,7 @@
        (if (and (eq (nth 1 new) 'intv)
 		(> (length new) 5))
 	   (error "Too many components in interval form"))
-       (calc-pop-push num new))))
-)
+       (calc-pop-push num new)))))
 
 (defun calc-semi ()
   (interactive)
@@ -169,8 +164,7 @@
 	      (calc-pop-push num
 			     (list 'incomplete 'vec
 				   (cons 'vec (append (cdr (cdr inc)) stuff)))
-			     (list 'incomplete 'vec)))))))
-)
+			     (list 'incomplete 'vec))))))))
 
 (defun calc-digit-dots ()
   (if (eq calc-prev-char ?.)
@@ -186,8 +180,7 @@
 	  (erase-buffer)
 	  (exit-minibuffer)))
     ;; just ignore extra decimal point, anticipating ".."
-    (delete-backward-char 1))
-)
+    (delete-backward-char 1)))
 
 (defun calc-dots ()
   (interactive)
@@ -208,8 +201,7 @@
 	   (setq new (append new '((neg (var inf var-inf))))))
        (if (> (length new) 5)
 	   (error "Too many components in interval form"))
-       (calc-pop-push num new))))
-)
+       (calc-pop-push num new)))))
 
 (defun calc-find-first-incomplete (stack n)
   (cond ((null stack)
@@ -217,8 +209,7 @@
 	((eq (car-safe (car-safe (car stack))) 'incomplete)
 	 n)
 	(t
-	 (calc-find-first-incomplete (cdr stack) (1+ n))))
-)
+	 (calc-find-first-incomplete (cdr stack) (1+ n)))))
 
 (defun calc-incomplete-error (a)
   (cond ((memq (nth 1 a) '(cplx polar))
@@ -227,8 +218,6 @@
 	 (error "Vector is incomplete"))
 	((eq (nth 1 a) 'intv)
 	 (error "Interval form is incomplete"))
-	(t (error "Object is incomplete")))
-)
+	(t (error "Object is incomplete"))))
 
-
-
+;;; calc-incom.el ends here

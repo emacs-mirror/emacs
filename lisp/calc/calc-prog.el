@@ -34,76 +34,64 @@
   (calc-wrapper
    (if (and (integerp arg) (> arg 2))
        (calc-enter-result arg "eq" (cons 'calcFunc-eq (calc-top-list-n arg)))
-     (calc-binary-op "eq" 'calcFunc-eq arg)))
-)
+     (calc-binary-op "eq" 'calcFunc-eq arg))))
 
 (defun calc-remove-equal (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "rmeq" 'calcFunc-rmeq arg))
-)
+   (calc-unary-op "rmeq" 'calcFunc-rmeq arg)))
 
 (defun calc-not-equal-to (arg)
   (interactive "P")
   (calc-wrapper
    (if (and (integerp arg) (> arg 2))
        (calc-enter-result arg "neq" (cons 'calcFunc-neq (calc-top-list-n arg)))
-     (calc-binary-op "neq" 'calcFunc-neq arg)))
-)
+     (calc-binary-op "neq" 'calcFunc-neq arg))))
 
 (defun calc-less-than (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "lt" 'calcFunc-lt arg))
-)
+   (calc-binary-op "lt" 'calcFunc-lt arg)))
 
 (defun calc-greater-than (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "gt" 'calcFunc-gt arg))
-)
+   (calc-binary-op "gt" 'calcFunc-gt arg)))
 
 (defun calc-less-equal (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "leq" 'calcFunc-leq arg))
-)
+   (calc-binary-op "leq" 'calcFunc-leq arg)))
 
 (defun calc-greater-equal (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "geq" 'calcFunc-geq arg))
-)
+   (calc-binary-op "geq" 'calcFunc-geq arg)))
 
 (defun calc-in-set (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "in" 'calcFunc-in arg))
-)
+   (calc-binary-op "in" 'calcFunc-in arg)))
 
 (defun calc-logical-and (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "land" 'calcFunc-land arg 1))
-)
+   (calc-binary-op "land" 'calcFunc-land arg 1)))
 
 (defun calc-logical-or (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "lor" 'calcFunc-lor arg 0))
-)
+   (calc-binary-op "lor" 'calcFunc-lor arg 0)))
 
 (defun calc-logical-not (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "lnot" 'calcFunc-lnot arg))
-)
+   (calc-unary-op "lnot" 'calcFunc-lnot arg)))
 
 (defun calc-logical-if ()
   (interactive)
   (calc-wrapper
-   (calc-enter-result 3 "if" (cons 'calcFunc-if (calc-top-list-n 3))))
-)
+   (calc-enter-result 3 "if" (cons 'calcFunc-if (calc-top-list-n 3)))))
 
 
 
@@ -115,8 +103,7 @@
    (calc-change-mode 'calc-timing n nil t)
    (message (if calc-timing
 		"Reporting timing of slow commands in Trail."
-	      "Not reporting timing of commands.")))
-)
+	      "Not reporting timing of commands."))))
 
 (defun calc-pass-errors ()
   (interactive)
@@ -129,8 +116,7 @@
 	(or (memq (car (car place)) '(error xxxerror))
 	    (error "foo"))
 	(setcar (car place) 'xxxerror))
-    (error (error "The calc-do function has been modified; unable to patch.")))
-)
+    (error (error "The calc-do function has been modified; unable to patch."))))
 
 (defun calc-user-define ()
   (interactive)
@@ -149,8 +135,7 @@
 	     (old (assq key kmap)))
 	(if old
 	    (setcdr old func)
-	  (setcdr kmap (cons (cons key func) (cdr kmap)))))))
-)
+	  (setcdr kmap (cons (cons key func) (cdr kmap))))))))
 
 (defun calc-user-undefine ()
   (interactive)
@@ -163,8 +148,7 @@
 		(assq (upcase key) kmap)
 		(assq (downcase key) kmap)
 		(error "No such user key is defined"))
-	    kmap)))
-)
+	    kmap))))
 
 (defun calc-user-define-formula ()
   (interactive)
@@ -304,8 +288,7 @@
 	   (if old
 	       (setcdr old cmd)
 	     (setcdr kmap (cons (cons key cmd) (cdr kmap)))))))
-   (message ""))
-)
+   (message "")))
 
 (defun calc-default-formula-arglist (form)
   (if (consp form)
@@ -314,21 +297,18 @@
 		  (math-const-var form))
 	      ()
 	    (setq arglist (cons (nth 1 form) arglist)))
-	(calc-default-formula-arglist-step (cdr form))))
-)
+	(calc-default-formula-arglist-step (cdr form)))))
 
 (defun calc-default-formula-arglist-step (l)
   (and l
        (progn
 	 (calc-default-formula-arglist (car l))
-	 (calc-default-formula-arglist-step (cdr l))))
-)
+	 (calc-default-formula-arglist-step (cdr l)))))
 
 (defun calc-subsetp (a b)
   (or (null a)
       (and (memq (car a) b)
-	   (calc-subsetp (cdr a) b)))
-)
+	   (calc-subsetp (cdr a) b))))
 
 (defun calc-fix-user-formula (f)
   (if (consp f)
@@ -356,8 +336,7 @@
 	       (cons 'list
 		     (cons (list 'quote (car f))
 			   (mapcar 'calc-fix-user-formula (cdr f)))))))
-    f)
-)
+    f))
 
 (defun calc-user-define-composition ()
   (interactive)
@@ -395,8 +374,7 @@
 		   (cons (setq entry2 (list (length alist))) (cdr entry))))
        (setcdr entry2 (list 'lambda alist (calc-fix-user-formula comp))))
      (calc-pop-stack 1)
-     (calc-do-refresh)))
-)
+     (calc-do-refresh))))
 
 
 (defun calc-user-define-kbd-macro (arg)
@@ -443,8 +421,7 @@
 	     (old (assq key kmap)))
 	(if old
 	    (setcdr old cmd)
-	  (setcdr kmap (cons (cons key cmd) (cdr kmap)))))))
-)
+	  (setcdr kmap (cons (cons key cmd) (cdr kmap))))))))
 
 
 (defun calc-edit-user-syntax ()
@@ -459,8 +436,7 @@
 				   (t (capitalize (symbol-name lang))))))
      (calc-write-parse-table (cdr (assq lang calc-user-parse-tables))
 			     lang)))
-  (calc-show-edit-buffer)
-)
+  (calc-show-edit-buffer))
 
 (defun calc-finish-user-syntax-edit (lang)
   (let ((tab (calc-read-parse-table calc-original-buffer lang))
@@ -473,8 +449,7 @@
       (if entry
 	  (setq calc-user-parse-tables
 		(delq entry calc-user-parse-tables)))))
-  (switch-to-buffer calc-original-buffer)
-)
+  (switch-to-buffer calc-original-buffer))
 
 (defun calc-write-parse-table (tab calc-lang)
   (let ((p tab))
@@ -484,8 +459,7 @@
 	      (let ((math-format-hash-args t))
 		(math-format-flat-expr (cdr (car p)) 0))
 	      "\n")
-      (setq p (cdr p))))
-)
+      (setq p (cdr p)))))
 
 (defun calc-write-parse-table-part (p)
   (while p
@@ -515,8 +489,7 @@
 	   (if (nth 2 (car p))
 	       (calc-write-parse-table-part (list (car (nth 2 (car p)))))
 	     (insert " "))))
-    (setq p (cdr p)))
-)
+    (setq p (cdr p))))
 
 (defun calc-read-parse-table (calc-buf calc-lang)
   (let ((tab nil))
@@ -551,8 +524,7 @@
 		    (goto-char (+ pos (nth 1 exp)))
 		    (error (nth 2 exp))))
 	      (setq tab (nconc tab (list (cons p exp)))))))))
-    tab)
-)
+    tab))
 
 (defun calc-fix-token-name (name &optional unquoted)
   (cond ((string-match "\\`\\.\\." name)
@@ -571,8 +543,7 @@
 	((not (string-match "[^ ]" name))
 	 (search-backward "\"" nil t)
 	 (error "Blank tokens are not allowed"))
-	(t name))
-)
+	(t name)))
 
 (defun calc-read-parse-table-part (term eterm)
   (let ((part nil)
@@ -634,8 +605,7 @@
 			 (not (eq (car last) quoted))
 			 (setcar last
 				 (list '\? (list (car last)) '("$$"))))))))
-    part)
-)
+    part))
 
 
 (defun calc-user-define-invocation ()
@@ -643,8 +613,7 @@
   (or last-kbd-macro
       (error "No keyboard macro defined"))
   (setq calc-invocation-macro last-kbd-macro)
-  (message "Use `M-# Z' to invoke this macro")
-)
+  (message "Use `M-# Z' to invoke this macro"))
 
 
 (defun calc-user-define-edit (prefix)
@@ -746,8 +715,7 @@
 			       (math-format-nice-expr defn (frame-width)))
 			      "\n"))
 		     (calc-show-edit-buffer))
-		 (error "That command's definition cannot be edited"))))))
-)
+		 (error "That command's definition cannot be edited")))))))
 
 (defun calc-finish-macro-edit (def keys)
   (forward-line 1)
@@ -764,14 +732,12 @@
 		  (aset (car mac) 0 (if keys true-str (key-description str)))
 		  (aset (car mac) 1 str))
 	      (setcar mac str))))
-      (setcdr def str)))
-)
+      (setcdr def str))))
 
 ;;; The following are hooks into the MacEdit package from macedit.el.
 (put 'calc-execute-extended-command 'MacEdit-print
      (function (lambda ()
-		 (setq macro-str (concat "\excalc-" macro-str))))
-)
+		 (setq macro-str (concat "\excalc-" macro-str)))))
 
 (put 'calcDigit-start 'MacEdit-print
      (function (lambda ()
@@ -809,8 +775,7 @@
 		       (MacEdit-unread-chars ch))
 		     (insert "type \"")
 		     (MacEdit-insert-string str)
-		     (insert "\"\n")))))
-)
+		     (insert "\"\n"))))))
 
 (defun calc-macro-edit-algebraic ()
   (MacEdit-unread-chars key-last)
@@ -842,8 +807,7 @@
 	(progn
 	  (insert "type \"")
 	  (MacEdit-insert-string str)
-	  (insert "\"\n"))))
-)
+	  (insert "\"\n")))))
 (put 'calc-algebraic-entry 'MacEdit-print 'calc-macro-edit-algebraic)
 (put 'calc-auto-algebraic-entry 'MacEdit-print 'calc-macro-edit-algebraic)
 
@@ -858,8 +822,7 @@
 		(char-to-string (MacEdit-read-char)) "\"\n")
       (if (> (length str) 0)
 	  (insert "type \"" str "\"\n"))
-      (MacEdit-read-argument)))
-)
+      (MacEdit-read-argument))))
 (put 'calc-store 'MacEdit-print 'calc-macro-edit-variable)
 (put 'calc-store-into 'MacEdit-print 'calc-macro-edit-variable)
 (put 'calc-store-neg 'MacEdit-print 'calc-macro-edit-variable)
@@ -880,14 +843,12 @@
 
 (defun calc-macro-edit-variable-2 ()
   (calc-macro-edit-variable)
-  (calc-macro-edit-variable t)
-)
+  (calc-macro-edit-variable t))
 (put 'calc-copy-variable 'MacEdit-print 'calc-macro-edit-variable-2)
 (put 'calc-declare-variable 'MacEdit-print 'calc-macro-edit-variable-2)
 
 (defun calc-macro-edit-quick-digit ()
-  (insert "type \"" key-str "\"  # " (symbol-name key-symbol) "\n")
-)
+  (insert "type \"" key-str "\"  # " (symbol-name key-symbol) "\n"))
 (put 'calc-store-quick 'MacEdit-print 'calc-macro-edit-quick-digit)
 (put 'calc-store-into-quick 'MacEdit-print 'calc-macro-edit-quick-digit)
 (put 'calc-recall-quick 'MacEdit-print 'calc-macro-edit-quick-digit)
@@ -910,8 +871,7 @@
       (setcar (cdr body)
 	      (let ((alist (nth 1 (symbol-function func))))
 		(calc-fix-user-formula val)))
-      (put func 'calc-user-defn val)))
-)
+      (put func 'calc-user-defn val))))
 
 (defun calc-valid-formula-func (func)
   (let ((def (symbol-function func)))
@@ -922,8 +882,7 @@
 	   (while (and def
 		       (not (eq (car (car def)) 'math-normalize)))
 	     (setq def (cdr def)))
-	   (car def))))
-)
+	   (car def)))))
 
 
 (defun calc-get-user-defn ()
@@ -953,8 +912,7 @@
 							      func)))
 					      (list defn))))
 		      (calc-enter-result 0 "gdef" defn))
-		  (error "That command is not defined by a formula")))))))
-)
+		  (error "That command is not defined by a formula"))))))))
 
 
 (defun calc-user-define-permanent ()
@@ -1051,8 +1009,7 @@
 		   (prin1-to-string cmd)
 		   ")\n")))
      (insert "))\n")
-     (save-buffer)))
-)
+     (save-buffer))))
 
 (defun calc-stack-command-p (cmd)
   (if (and cmd (symbolp cmd))
@@ -1065,8 +1022,7 @@
 	 (setq cmd (assq 'calc-enter-result cmd))
 	 (memq (car (nth 3 cmd)) '(cons list))
 	 (eq (car (nth 1 (nth 3 cmd))) 'quote)
-	 (nth 1 (nth 1 (nth 3 cmd)))))
-)
+	 (nth 1 (nth 1 (nth 3 cmd))))))
 
 
 (defun calc-call-last-kbd-macro (arg)
@@ -1075,8 +1031,7 @@
        (error "Can't execute anonymous macro while defining one"))
   (or last-kbd-macro
       (error "No kbd macro has been defined"))
-  (calc-execute-kbd-macro last-kbd-macro arg)
-)
+  (calc-execute-kbd-macro last-kbd-macro arg))
 
 (defun calc-execute-kbd-macro (mac arg &rest prefix)
   (if (and (vectorp mac) (> (length mac) 0) (stringp (aref mac 0)))
@@ -1127,8 +1082,7 @@
 		 (calc-record-undo (list 'push 1))
 		 (setq new-stack (cdr new-stack)))
 	       (calc-refresh))
-	     (calc-record-undo (list 'set 'saved-stack-top 0))))))))
-)
+	     (calc-record-undo (list 'set 'saved-stack-top 0)))))))))
 
 (defun calc-push-list-in-macro (vals m sels)
   (let ((entry (list (car vals) 1 (car sels)))
@@ -1136,15 +1090,13 @@
     (if (> mm 1)
 	(setcdr (nthcdr (- mm 2) calc-stack)
 		(cons entry (nthcdr (1- mm) calc-stack)))
-      (setq calc-stack (cons entry calc-stack))))
-)
+      (setq calc-stack (cons entry calc-stack)))))
 
 (defun calc-pop-stack-in-macro (n mm)
   (if (> mm 1)
       (setcdr (nthcdr (- mm 2) calc-stack)
 	      (nthcdr (+ n mm -1) calc-stack))
-    (setq calc-stack (nthcdr n calc-stack)))
-)
+    (setq calc-stack (nthcdr n calc-stack))))
 
 
 (defun calc-kbd-if ()
@@ -1157,13 +1109,11 @@
 	     (message "If true..."))
        (if defining-kbd-macro
 	   (message "Condition is false; skipping to Z: or Z] ..."))
-       (calc-kbd-skip-to-else-if t))))
-)
+       (calc-kbd-skip-to-else-if t)))))
 
 (defun calc-kbd-else-if ()
   (interactive)
-  (calc-kbd-if)
-)
+  (calc-kbd-if))
 
 (defun calc-kbd-skip-to-else-if (else-okay)
   (let ((count 0)
@@ -1188,21 +1138,18 @@
     (and defining-kbd-macro
 	 (if (= ch ?\:)
 	     (message "Else...")
-	   (message "End-if..."))))
-)
+	   (message "End-if...")))))
 
 (defun calc-kbd-end-if ()
   (interactive)
   (if defining-kbd-macro
-      (message "End-if..."))
-)
+      (message "End-if...")))
 
 (defun calc-kbd-else ()
   (interactive)
   (if defining-kbd-macro
       (message "Else; skipping to Z] ..."))
-  (calc-kbd-skip-to-else-if nil)
-)
+  (calc-kbd-skip-to-else-if nil))
 
 
 (defun calc-kbd-repeat ()
@@ -1217,8 +1164,7 @@
      (or (integerp count)
 	 (setq count 1000000))
      (calc-pop-stack 1))
-    (calc-kbd-loop count))
-)
+    (calc-kbd-loop count)))
 
 (defun calc-kbd-for (dir)
   (interactive "P")
@@ -1229,8 +1175,7 @@
      (or (and (math-anglep init) (math-anglep final))
 	 (error "Initial and final values must be real numbers"))
      (calc-pop-stack 2))
-    (calc-kbd-loop nil init final (and dir (prefix-numeric-value dir))))
-)
+    (calc-kbd-loop nil init final (and dir (prefix-numeric-value dir)))))
 
 (defun calc-kbd-loop (rpt-count &optional initial final dir)
   (interactive "P")
@@ -1301,23 +1246,19 @@
 		     (setq counter (calcFunc-add counter step)))
 		 (setq rpt-count (1- rpt-count))))))))
     (or executing-kbd-macro
-	(message "Looping...done")))
-)
+	(message "Looping...done"))))
 
 (defun calc-kbd-end-repeat ()
   (interactive)
-  (error "Unbalanced Z> in keyboard macro")
-)
+  (error "Unbalanced Z> in keyboard macro"))
 
 (defun calc-kbd-end-for ()
   (interactive)
-  (error "Unbalanced Z) in keyboard macro")
-)
+  (error "Unbalanced Z) in keyboard macro"))
 
 (defun calc-kbd-end-loop ()
   (interactive)
-  (error "Unbalanced Z} in keyboard macro")
-)
+  (error "Unbalanced Z} in keyboard macro"))
 
 (defun calc-kbd-break ()
   (interactive)
@@ -1325,8 +1266,7 @@
    (let ((cond (calc-top-n 1)))
      (calc-pop-stack 1)
      (if (math-is-true cond)
-	 (error "Keyboard macro aborted."))))
-)
+	 (error "Keyboard macro aborted.")))))
 
 
 (defun calc-kbd-push (arg)
@@ -1383,8 +1323,7 @@
 	     (execute-kbd-macro (substring body 0 -2))))
        (let ((calc-kbd-push-level (1+ calc-kbd-push-level)))
 	 (message "Saving modes; type Z' to restore")
-	 (recursive-edit)))))
-)
+	 (recursive-edit))))))
 (setq calc-kbd-push-level 0)
 
 (defun calc-kbd-pop ()
@@ -1393,8 +1332,7 @@
       (progn
 	(message "Mode settings restored")
 	(exit-recursive-edit))
-    (error "Unbalanced Z' in keyboard macro"))
-)
+    (error "Unbalanced Z' in keyboard macro")))
 
 
 (defun calc-kbd-report (msg)
@@ -1402,16 +1340,14 @@
   (calc-wrapper
    (let ((executing-kbd-macro nil)
 	 (defining-kbd-macro nil))
-     (math-working msg (calc-top-n 1))))
-)
+     (math-working msg (calc-top-n 1)))))
 
 (defun calc-kbd-query (msg)
   (interactive "sPrompt: ")
   (calc-wrapper
    (let ((executing-kbd-macro nil)
 	 (defining-kbd-macro nil))
-     (calc-alg-entry nil (and (not (equal msg "")) msg))))
-)
+     (calc-alg-entry nil (and (not (equal msg "")) msg)))))
 
 
 
@@ -1443,8 +1379,7 @@
 	(if (and (or (math-looks-negp a) (math-zerop a))
 		 (or (math-looks-negp b) (math-zerop b)))
 	    (list 'calcFunc-eq (math-neg a) (math-neg b))
-	  (list 'calcFunc-eq a b))))
-)
+	  (list 'calcFunc-eq a b)))))
 
 (defun calcFunc-neq (a b &rest more)
   (if more
@@ -1468,8 +1403,7 @@
 	(if (and (or (math-looks-negp a) (math-zerop a))
 		 (or (math-looks-negp b) (math-zerop b)))
 	    (list 'calcFunc-neq (math-neg a) (math-neg b))
-	  (list 'calcFunc-neq a b))))
-)
+	  (list 'calcFunc-neq a b)))))
 
 (defun math-two-eq (a b)
   (if (eq (car-safe a) 'vec)
@@ -1495,8 +1429,7 @@
 	    1
 	  (if (and (= res 2) (not (and (Math-scalarp a) (Math-scalarp b))))
 	      nil
-	    0)))))
-)
+	    0))))))
 
 (defun calcFunc-lt (a b)
   (let ((res (math-compare a b)))
@@ -1507,8 +1440,7 @@
 		   (or (math-looks-negp b) (math-zerop b)))
 	      (list 'calcFunc-gt (math-neg a) (math-neg b))
 	    (list 'calcFunc-lt a b))
-	0)))
-)
+	0))))
 
 (defun calcFunc-gt (a b)
   (let ((res (math-compare a b)))
@@ -1519,8 +1451,7 @@
 		   (or (math-looks-negp b) (math-zerop b)))
 	      (list 'calcFunc-lt (math-neg a) (math-neg b))
 	    (list 'calcFunc-gt a b))
-	0)))
-)
+	0))))
 
 (defun calcFunc-leq (a b)
   (let ((res (math-compare a b)))
@@ -1531,8 +1462,7 @@
 		   (or (math-looks-negp b) (math-zerop b)))
 	      (list 'calcFunc-geq (math-neg a) (math-neg b))
 	    (list 'calcFunc-leq a b))
-	1)))
-)
+	1))))
 
 (defun calcFunc-geq (a b)
   (let ((res (math-compare a b)))
@@ -1543,8 +1473,7 @@
 		   (or (math-looks-negp b) (math-zerop b)))
 	      (list 'calcFunc-leq (math-neg a) (math-neg b))
 	    (list 'calcFunc-geq a b))
-	1)))
-)
+	1))))
 
 (defun calcFunc-rmeq (a)
   (if (math-vectorp a)
@@ -1558,8 +1487,7 @@
 	  (nth 2 a)
 	(if (eq (car-safe a) 'calcFunc-evalto)
 	    (nth 1 a)
-	  (list 'calcFunc-rmeq a)))))
-)
+	  (list 'calcFunc-rmeq a))))))
 
 (defun calcFunc-land (a b)
   (cond ((Math-zerop a)
@@ -1570,8 +1498,7 @@
 	 b)
 	((math-is-true b)
 	 a)
-	(t (list 'calcFunc-land a b)))
-)
+	(t (list 'calcFunc-land a b))))
 
 (defun calcFunc-lor (a b)
   (cond ((Math-zerop a)
@@ -1582,8 +1509,7 @@
 	 a)
 	((math-is-true b)
 	 b)
-	(t (list 'calcFunc-lor a b)))
-)
+	(t (list 'calcFunc-lor a b))))
 
 (defun calcFunc-lnot (a)
   (if (Math-zerop a)
@@ -1594,8 +1520,7 @@
 		     (assq (car a) calc-tweak-eqn-table))))
 	(if op
 	    (cons (nth 2 op) (cdr a))
-	  (list 'calcFunc-lnot a)))))
-)
+	  (list 'calcFunc-lnot a))))))
 
 (defun calcFunc-if (c e1 e2)
   (if (Math-zerop c)
@@ -1616,16 +1541,14 @@
 			    (list e2))))
 		 (and ee1 ee2
 		      (cons 'vec (math-if-vector (cdr c) ee1 ee2)))))
-	  (list 'calcFunc-if c e1 e2))))
-)
+	  (list 'calcFunc-if c e1 e2)))))
 
 (defun math-if-vector (c e1 e2)
   (and c
        (cons (if (Math-zerop (car c)) (car e2) (car e1))
 	     (math-if-vector (cdr c)
 			     (or (cdr e1) e1)
-			     (or (cdr e2) e2))))
-)
+			     (or (cdr e2) e2)))))
 
 (defun math-normalize-logical-op (a)
   (or (and (eq (car a) 'calcFunc-if)
@@ -1644,8 +1567,7 @@
 		     (list 'calcFunc-if a1
 			   (math-normalize (nth 2 a))
 			   (math-normalize (nth 3 a)))))))))
-      a)
-)
+      a))
 
 (defun calcFunc-in (a b)
   (or (and (eq (car-safe b) 'vec)
@@ -1678,8 +1600,7 @@
 	   1)
       (and (math-constp a) (math-constp b)
 	   0)
-      (list 'calcFunc-in a b))
-)
+      (list 'calcFunc-in a b)))
 
 (defun calcFunc-typeof (a)
   (cond ((Math-integerp a) 1)
@@ -1695,40 +1616,35 @@
 	((eq (car a) 'var)
 	 (if (memq (nth 2 a) '(var-inf var-uinf var-nan)) 12 100))
 	((eq (car a) 'vec) (if (math-matrixp a) 102 101))
-	(t (math-calcFunc-to-var func)))
-)
+	(t (math-calcFunc-to-var func))))
 
 (defun calcFunc-integer (a)
   (if (Math-integerp a)
       1
     (if (Math-objvecp a)
 	0
-      (list 'calcFunc-integer a)))
-)
+      (list 'calcFunc-integer a))))
 
 (defun calcFunc-real (a)
   (if (Math-realp a)
       1
     (if (Math-objvecp a)
 	0
-      (list 'calcFunc-real a)))
-)
+      (list 'calcFunc-real a))))
 
 (defun calcFunc-constant (a)
   (if (math-constp a)
       1
     (if (Math-objvecp a)
 	0
-      (list 'calcFunc-constant a)))
-)
+      (list 'calcFunc-constant a))))
 
 (defun calcFunc-refers (a b)
   (if (math-expr-contains a b)
       1
     (if (eq (car-safe a) 'var)
 	(list 'calcFunc-refers a b)
-      0))
-)
+      0)))
 
 (defun calcFunc-negative (a)
   (if (math-looks-negp a)
@@ -1736,28 +1652,24 @@
     (if (or (math-zerop a)
 	    (math-posp a))
 	0
-      (list 'calcFunc-negative a)))
-)
+      (list 'calcFunc-negative a))))
 
 (defun calcFunc-variable (a)
   (if (eq (car-safe a) 'var)
       1
     (if (Math-objvecp a)
 	0
-      (list 'calcFunc-variable a)))
-)
+      (list 'calcFunc-variable a))))
 
 (defun calcFunc-nonvar (a)
   (if (eq (car-safe a) 'var)
       (list 'calcFunc-nonvar a)
-    1)
-)
+    1))
 
 (defun calcFunc-istrue (a)
   (if (math-is-true a)
       1
-    0)
-)
+    0))
 
 
 
@@ -1851,14 +1763,12 @@
 	  (append (list 'defun fname clargs)
 		  doc
 		  (math-do-arg-list-check args nil nil)
-		  body)))
-)
+		  body))))
 
 (defun math-clean-arg (arg)
   (if (consp arg)
       (math-clean-arg (nth 1 arg))
-    arg)
-)
+    arg))
 
 (defun math-do-arg-check (arg var is-opt is-rest)
   (if is-opt
@@ -1915,8 +1825,7 @@
 			      (list 'and
 				    (list chk var)
 				    (list 'math-reject-arg var qqual)))))
-		 (error "Unknown qualifier `%s'" qual-name)))))))
-)
+		 (error "Unknown qualifier `%s'" qual-name))))))))
 
 (defun math-do-arg-list-check (args is-opt is-rest)
   (cond ((null args) nil)
@@ -1929,8 +1838,7 @@
 	 (math-do-arg-list-check (cdr args) t nil))
 	((eq (car args) '&rest)
 	 (math-do-arg-list-check (cdr args) nil t))
-	(t (math-do-arg-list-check (cdr args) is-opt is-rest)))
-)
+	(t (math-do-arg-list-check (cdr args) is-opt is-rest))))
 
 (defconst math-prim-funcs
   '( (~= . math-nearly-equal)
@@ -1949,27 +1857,23 @@
      (if . if)
      (^ . math-pow)
      (expt . math-pow)
-   )
-)
+   ))
 
 (defconst math-prim-vars
   '( (nil . nil)
      (t . t)
      (&optional . &optional)
      (&rest . &rest)
-   )
-)
+   ))
 
 (defun math-define-function-body (body env)
   (let ((body (math-define-body body env)))
     (if (math-body-refers-to body 'math-return)
 	(list (cons 'catch (cons '(quote math-return) body)))
-      body))
-)
+      body)))
 
 (defun math-define-body (body exp-env)
-  (math-define-list body)
-)
+  (math-define-list body))
 
 (defun math-define-list (body &optional quote)
   (cond ((null body)
@@ -1988,8 +1892,7 @@
 	       (math-define-list (cdr body))))
 	(t
 	 (cons (math-define-exp (car body))
-	       (math-define-list (cdr body)))))
-)
+	       (math-define-list (cdr body))))))
 
 (defun math-define-exp (exp)
   (cond ((consp exp)
@@ -2140,26 +2043,22 @@
 	 (if (or (<= exp -1000000) (>= exp 1000000))
 	     (list 'quote (math-normalize exp))
 	   exp))
-	(t exp))
-)
+	(t exp)))
 
 (defun math-define-cond (forms)
   (and forms
        (cons (math-define-list (car forms))
-	     (math-define-cond (cdr forms))))
-)
+	     (math-define-cond (cdr forms)))))
 
 (defun math-complicated-lhs (body)
   (and body
        (or (not (symbolp (car body)))
-	   (math-complicated-lhs (cdr (cdr body)))))
-)
+	   (math-complicated-lhs (cdr (cdr body))))))
 
 (defun math-define-setf-list (body)
   (and body
        (cons (math-define-setf (nth 0 body) (nth 1 body))
-	     (math-define-setf-list (cdr (cdr body)))))
-)
+	     (math-define-setf-list (cdr (cdr body))))))
 
 (defun math-define-setf (place value)
   (setq place (math-define-exp place)
@@ -2175,16 +2074,14 @@
 	((eq (car-safe place) 'cdr)
 	 (list 'setcdr (nth 1 place) value))
 	(t
-	 (error "Bad place form for setf: %s" place)))
-)
+	 (error "Bad place form for setf: %s" place))))
 
 (defun math-define-binop (op ident arg1 rest)
   (if rest
       (math-define-binop op ident
 			 (list op arg1 (car rest))
 			 (cdr rest))
-    (or arg1 ident))
-)
+    (or arg1 ident)))
 
 (defun math-define-let (vlist)
   (and vlist
@@ -2192,29 +2089,25 @@
 		 (cons (car (car vlist))
 		       (math-define-list (cdr (car vlist))))
 	       (car vlist))
-	     (math-define-let (cdr vlist))))
-)
+	     (math-define-let (cdr vlist)))))
 
 (defun math-define-let-env (vlist)
   (and vlist
        (cons (if (consp (car vlist))
 		 (car (car vlist))
 	       (car vlist))
-	     (math-define-let-env (cdr vlist))))
-)
+	     (math-define-let-env (cdr vlist)))))
 
 (defun math-define-lambda (exp exp-env)
   (nconc (list (nth 0 exp)   ; 'lambda
 	       (nth 1 exp))  ; arg list
 	 (math-define-function-body (cdr (cdr exp))
-				    (append (nth 1 exp) exp-env)))
-)
+				    (append (nth 1 exp) exp-env))))
 
 (defun math-define-elt (seq idx)
   (if idx
       (math-define-elt (list 'elt seq (car idx)) (cdr idx))
-    seq)
-)
+    seq))
 
 
 
@@ -2224,8 +2117,7 @@
   (let ((body (cons 'while (cons head body))))
     (if (math-body-refers-to body 'math-break)
 	(cons 'catch (cons '(quote math-break) (list body)))
-      body))
-)
+      body)))
 
 
 (defmacro math-for (head &rest body)
@@ -2234,8 +2126,7 @@
 		(cons 'while (cons t body)))))
     (if (math-body-refers-to body 'math-break)
 	(cons 'catch (cons '(quote math-break) (list body)))
-      body))
-)
+      body)))
 
 (defun math-handle-for (head body)
   (let* ((var (nth 0 (car head)))
@@ -2291,16 +2182,14 @@
 							   '+
 							 'math-add)
 						       var
-						       save-step))))))))))
-)
+						       save-step)))))))))))
 
 
 (defmacro math-foreach (head &rest body)
   (let ((body (math-handle-foreach head body)))
     (if (math-body-refers-to body 'math-break)
 	(cons 'catch (cons '(quote math-break) (list body)))
-      body))
-)
+      body)))
 
 
 (defun math-handle-foreach (head body)
@@ -2317,24 +2206,20 @@
 			     (append body
 				     (list (list 'setq
 						 var
-						 (list 'cdr var))))))))))
-)
+						 (list 'cdr var)))))))))))
 
 
 (defun math-body-refers-to (body thing)
   (or (equal body thing)
       (and (consp body)
 	   (or (math-body-refers-to (car body) thing)
-	       (math-body-refers-to (cdr body) thing))))
-)
+	       (math-body-refers-to (cdr body) thing)))))
 
 (defun math-break (&optional value)
-  (throw 'math-break value)
-)
+  (throw 'math-break value))
 
 (defun math-return (&optional value)
-  (throw 'math-return value)
-)
+  (throw 'math-return value))
 
 
 
@@ -2359,6 +2244,6 @@
 		 (+ (if (eq (nth 1 op) 'calcFunc-geq) 2 0)
 		    (if (eq (car x) 'calcFunc-geq) 1 0))
 		 (math-read-expr-level (nth 3 op)) (nth 1 x))
-	      (throw 'syntax "Syntax error")))))
-)
+	      (throw 'syntax "Syntax error"))))))
 
+;;; calc-prog.el ends here

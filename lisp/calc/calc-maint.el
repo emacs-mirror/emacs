@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, maintenance routines
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -42,8 +42,7 @@ Unix usage:
 	      (calc-do-compile))
 	  (fset 'message old-message)
 	  (fset 'write-region old-write-region)))
-    (calc-do-compile))
-)
+    (calc-do-compile)))
 
 (defun calc-do-compile ()
   (let ((make-backup-files nil)
@@ -133,8 +132,7 @@ Unix usage:
 			    (sort rules 'string<))
 		    (save-buffer))))
 	  (error (message "Unable to pre-build tables %s" err))))
-    (message "Done.  Don't forget to install with \"make public\" or \"make private\"."))
-)
+    (message "Done.  Don't forget to install with \"make public\" or \"make private\".")))
 
 (defun calc-compile-message (fmt &rest args)
   (cond ((and (= (length args) 2)
@@ -166,8 +164,7 @@ Unix usage:
 	 (send-string-to-terminal (apply 'format fmt args)))
 	((string-match "\\(Preparing\\|Building\\).*\\.\\.\\. *done$" fmt)
 	 (send-string-to-terminal "done\n"))
-	(t (apply old-message fmt args)))
-)
+	(t (apply old-message fmt args))))
 
 (defun calc-compile-write-region (start end filename &optional append visit &rest rest)
   (if (eq visit t)
@@ -182,8 +179,7 @@ Unix usage:
 	(setq end (point-max))))
   (apply old-write-region start end filename append 'quietly rest)
   (message "Wrote %s" filename)
-  nil
-)
+  nil)
 
 
 
@@ -241,8 +237,7 @@ Usage:  C-x C-f calc.texinfo RET
     (goto-char 1))
   (message (cond ((eq part 1) "Wrote file calctut.tex")
 		 ((eq part 2) "Wrote file calcref.tex")
-		 (t "Wrote files calctut.tex and calcref.tex")))
-)
+		 (t "Wrote files calctut.tex and calcref.tex"))))
 
 (defun calc-split-volume (number fix name other-name)
   (goto-char 1)
@@ -270,14 +265,12 @@ Usage:  C-x C-f calc.texinfo RET
   (while (search-forward "@c [not-split]\n" nil t)
     (while (not (looking-at "@c"))
       (insert "@c ")
-      (forward-line 1)))
-)
+      (forward-line 1))))
 
 
 (defun calc-inline-summary ()
   "Make a special \"calcsum.tex\" file to be used with main manual."
-  (calc-split-summary nil t)
-)
+  (calc-split-summary nil t))
 
 (defun calc-split-summary (&optional force in-line)
   "Make a special \"calcsum.tex\" file with just the Calc summary."
@@ -392,8 +385,7 @@ Usage:  C-x C-f calc.texinfo RET
 	 "Unable to find Key Index (calc.ky); no page numbers inserted"))
       (switch-to-buffer buf))
     (save-buffer))
-  (message "Wrote file calcsum.tex")
-)
+  (message "Wrote file calcsum.tex"))
 
 
 
@@ -414,8 +406,7 @@ global-set-key commands for Calc."
     (find-file name)
     (if buffer-read-only (error "No write permission for \"%s\"" buffer-file-name))
     (goto-char (point-max))
-    (calc-add-autoloads home "calc-public-autoloads"))
-)
+    (calc-add-autoloads home "calc-public-autoloads")))
 
 (defun calc-private-autoloads ()
   "Modify the user's \".emacs\" file to contain the necessary autoload and
@@ -424,8 +415,7 @@ global-set-key commands for Calc."
   (let ((home default-directory))
     (find-file "~/.emacs")
     (goto-char (point-max))
-    (calc-add-autoloads home "calc-private-autoloads"))
-)
+    (calc-add-autoloads home "calc-private-autoloads")))
 
 (defun calc-add-autoloads (home cmd)
   (barf-if-buffer-read-only)
@@ -458,9 +448,6 @@ global-set-key commands for Calc."
 \(global-set-key \"\\e#\" 'calc-dispatch)
 ;;; End of Calc autoloads.\n")
   (let ((trim-versions-without-asking t))
-    (save-buffer))
-)
+    (save-buffer)))
 
-
-
-;;; End.
+;;; calc-maint.el ends here

@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-comb.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -34,52 +34,44 @@
 (defun calc-gcd (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "gcd" 'calcFunc-gcd arg))
-)
+   (calc-binary-op "gcd" 'calcFunc-gcd arg)))
 
 (defun calc-lcm (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "lcm" 'calcFunc-lcm arg))
-)
+   (calc-binary-op "lcm" 'calcFunc-lcm arg)))
 
 (defun calc-extended-gcd ()
   (interactive)
   (calc-slow-wrapper
-   (calc-enter-result 2 "egcd" (cons 'calcFunc-egcd (calc-top-list-n 2))))
-)
+   (calc-enter-result 2 "egcd" (cons 'calcFunc-egcd (calc-top-list-n 2)))))
 
 (defun calc-factorial (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "fact" 'calcFunc-fact arg))
-)
+   (calc-unary-op "fact" 'calcFunc-fact arg)))
 
 (defun calc-gamma (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "gmma" 'calcFunc-gamma arg))
-)
+   (calc-unary-op "gmma" 'calcFunc-gamma arg)))
 
 (defun calc-double-factorial (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "dfac" 'calcFunc-dfact arg))
-)
+   (calc-unary-op "dfac" 'calcFunc-dfact arg)))
 
 (defun calc-choose (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-binary-op "perm" 'calcFunc-perm arg)
-     (calc-binary-op "chos" 'calcFunc-choose arg)))
-)
+     (calc-binary-op "chos" 'calcFunc-choose arg))))
 
 (defun calc-perm (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-choose arg)
-)
+  (calc-choose arg))
 
 (defvar calc-last-random-limit '(float 1 0))
 (defun calc-random (n)
@@ -91,29 +83,25 @@
 					  (prefix-numeric-value n))))
      (calc-enter-result 1 "rand" (list 'calcFunc-random
 				       (calc-get-random-limit
-					(calc-top-n 1))))))
-)
+					(calc-top-n 1)))))))
 
 (defun calc-get-random-limit (val)
   (if (eq val 0)
       calc-last-random-limit
-    (setq calc-last-random-limit val))
-)
+    (setq calc-last-random-limit val)))
 
 (defun calc-rrandom ()
   (interactive)
   (calc-slow-wrapper
    (setq calc-last-random-limit '(float 1 0))
-   (calc-enter-result 0 "rand" (list 'calcFunc-random '(float 1 0))))
-)
+   (calc-enter-result 0 "rand" (list 'calcFunc-random '(float 1 0)))))
 
 (defun calc-random-again (arg)
   (interactive "p")
   (calc-slow-wrapper
    (while (>= (setq arg (1- arg)) 0)
      (calc-enter-result 0 "rand" (list 'calcFunc-random
-				       calc-last-random-limit))))
-)
+				       calc-last-random-limit)))))
 
 (defun calc-shuffle (n)
   (interactive "P")
@@ -126,8 +114,7 @@
      (calc-enter-result 2 "shuf" (list 'calcFunc-shuffle
 				       (calc-top-n 1)
 				       (calc-get-random-limit
-					(calc-top-n 2))))))
-)
+					(calc-top-n 2)))))))
 
 (defun calc-report-prime-test (res)
   (cond ((eq (car res) t)
@@ -146,16 +133,14 @@
 	  "prim" "Probably prime (%d iters; %s%% chance of error)"
 	  (nth 1 res)
 	  (let ((calc-float-format '(fix 2)))
-	    (math-format-number (nth 2 res))))))
-)
+	    (math-format-number (nth 2 res)))))))
 
 (defun calc-prime-test (iters)
   (interactive "p")
   (calc-slow-wrapper
    (let* ((n (calc-top-n 1))
 	  (res (math-prime-test n iters)))
-     (calc-report-prime-test res)))
-)
+     (calc-report-prime-test res))))
 
 (defun calc-next-prime (iters)
   (interactive "p")
@@ -165,14 +150,12 @@
 	 (calc-enter-result 1 "prvp" (list 'calcFunc-prevprime
 					   (calc-top-n 1) (math-abs iters)))
        (calc-enter-result 1 "nxtp" (list 'calcFunc-nextprime
-					 (calc-top-n 1) (math-abs iters))))))
-)
+					 (calc-top-n 1) (math-abs iters)))))))
 
 (defun calc-prev-prime (iters)
   (interactive "p")
   (calc-invert-func)
-  (calc-next-prime iters)
-)
+  (calc-next-prime iters))
 
 (defun calc-prime-factors (iters)
   (interactive "p")
@@ -180,23 +163,17 @@
    (let ((res (calcFunc-prfac (calc-top-n 1))))
      (if (not math-prime-factors-finished)
 	 (calc-record-message "pfac" "Warning:  May not be fully factored"))
-     (calc-enter-result 1 "pfac" res)))
-)
+     (calc-enter-result 1 "pfac" res))))
 
 (defun calc-totient (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "phi" 'calcFunc-totient arg))
-)
+   (calc-unary-op "phi" 'calcFunc-totient arg)))
 
 (defun calc-moebius (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "mu" 'calcFunc-moebius arg))
-)
-
-
-
+   (calc-unary-op "mu" 'calcFunc-moebius arg)))
 
 
 (defun calcFunc-gcd (a b)
@@ -224,15 +201,13 @@
 	 (list 'calcFunc-gcd a b))
 	(t
 	 (calc-record-why 'integerp b)
-	 (list 'calcFunc-gcd a b)))
-)
+	 (list 'calcFunc-gcd a b))))
 
 (defun calcFunc-lcm (a b)
   (let ((g (calcFunc-gcd a b)))
     (if (Math-numberp g)
 	(math-div (math-mul a b) g)
-      (list 'calcFunc-lcm a b)))
-)
+      (list 'calcFunc-lcm a b))))
 
 (defun calcFunc-egcd (a b)   ; Knuth section 4.5.2
   (cond
@@ -256,8 +231,7 @@
 	      t2 (math-sub u2 (math-mul v2 (car q)))
 	      u1 v1  u2 v2  u3 v3
 	      v1 t1  v2 t2  v3 (cdr q)))
-      (list 'vec u3 u1 u2))))
-)
+      (list 'vec u3 u1 u2)))))
 
 
 ;;; Factorial and related functions.
@@ -318,8 +292,7 @@
 		      (math-gammap1-raw (math-float n)))))))
 	  ((equal n '(var inf var-inf)) n)
 	  (t (calc-record-why 'numberp n)
-	     (list 'calcFunc-fact n))))
-)
+	     (list 'calcFunc-fact n)))))
 
 (math-defcache math-gamma-1q nil
   (math-with-extra-prec 3
@@ -334,8 +307,7 @@
       (math-working (format "factorial(%d)" (1- n)) f))
   (if (> count 0)
       (math-factorial-iter (1- count) (1+ n) (math-mul n f))
-    f)
-)
+    f))
 
 (defun calcFunc-dfact (n)   ; [I I] [F F] [Public]
   (cond ((Math-integer-negp n)
@@ -364,16 +336,14 @@
 	     (list 'calcFunc-dfact max))))
 	((equal n '(var inf var-inf)) n)
 	(t (calc-record-why 'natnump n)
-	   (list 'calcFunc-dfact n)))
-)
+	   (list 'calcFunc-dfact n))))
 
 (defun math-double-factorial-iter (max n f step)
   (if (< (% n 12) step)
       (math-working (format "dfact(%d)" (- n step)) f))
   (if (<= n max)
       (math-double-factorial-iter max (+ n step) (math-mul n f) step)
-    f)
-)
+    f))
 
 (defun calcFunc-perm (n m)   ; [I I I] [F F F] [Public]
   (cond ((and (integerp n) (integerp m) (<= m n) (>= m 0))
@@ -397,8 +367,7 @@
 	   (or (integerp tm) (math-reject-arg tm 'fixnump))
 	   (or (and (<= tm tn) (>= tm 0)) (math-reject-arg tm 'range))
 	   (math-with-extra-prec 1
-	     (math-factorial-iter tm (1+ (- tn tm)) '(float 1 0))))))
-)
+	     (math-factorial-iter tm (1+ (- tn tm)) '(float 1 0)))))))
 
 (defun calcFunc-choose (n m)   ; [I I I] [F F F] [Public]
   (cond ((and (integerp n) (integerp m) (<= m n) (>= m 0))
@@ -434,8 +403,7 @@
 				   (calcFunc-fact (math-float
 						   (math-sub n m)))))
 	     (math-with-extra-prec 1
-	       (math-choose-float-iter tm n 1 1))))))
-)
+	       (math-choose-float-iter tm n 1 1)))))))
 
 (defun math-choose-iter (m n i c)
   (if (and (= (% i 5) 1) (> i 5))
@@ -443,8 +411,7 @@
   (if (<= i m)
       (math-choose-iter m (1- n) (1+ i)
 			(math-quotient (math-mul c n) i))
-    c)
-)
+    c))
 
 (defun math-choose-float-iter (count n i c)
   (if (= (% i 5) 1)
@@ -452,19 +419,16 @@
   (if (> count 0)
       (math-choose-float-iter (1- count) (math-sub n 1) (1+ i)
 			      (math-div (math-mul c n) i))
-    c)
-)
+    c))
 
 
 ;;; Stirling numbers.
 
 (defun calcFunc-stir1 (n m)
-  (math-stirling-number n m 1)
-)
+  (math-stirling-number n m 1))
 
 (defun calcFunc-stir2 (n m)
-  (math-stirling-number n m 0)
-)
+  (math-stirling-number n m 0))
 
 (defun math-stirling-number (n m k)
   (or (math-num-natnump n) (math-reject-arg n 'natnump))
@@ -487,23 +451,20 @@
 	    (aset row i 1))))
       (if (= k 1)
 	  (math-stirling-1 n m)
-	(math-stirling-2 n m))))
-)
+	(math-stirling-2 n m)))))
 (setq math-stirling-cache (vector [[1]] [[1]]))
 
 (defun math-stirling-1 (n m)
   (or (aref (aref cache n) m)
       (aset (aref cache n) m
 	    (math-add (math-stirling-1 (1- n) (1- m))
-		      (math-mul (- 1 n) (math-stirling-1 (1- n) m)))))
-)
+		      (math-mul (- 1 n) (math-stirling-1 (1- n) m))))))
 
 (defun math-stirling-2 (n m)
   (or (aref (aref cache n) m)
       (aset (aref cache n) m
 	    (math-add (math-stirling-2 (1- n) (1- m))
-		      (math-mul m (math-stirling-2 (1- n) m)))))
-)
+		      (math-mul m (math-stirling-2 (1- n) m))))))
 
 
 ;;; Produce a random 10-bit integer, with (random) if no seed provided,
@@ -544,8 +505,7 @@
       (if (> (lsh (math-abs (random)) math-random-shift) 4095)
 	  (setq math-random-shift (1- math-random-shift)))))
   (setq math-last-RandSeed var-RandSeed
-	math-gaussian-cache nil)
-)
+	math-gaussian-cache nil))
 
 (defun math-random-base ()
   (if var-RandSeed
@@ -558,8 +518,7 @@
 			     (logand (- (car math-random-ptr1)
 					(car math-random-ptr2)) 524287))
 		     -6) 1023))
-    (logand (lsh (random) math-random-shift) 1023))
-)
+    (logand (lsh (random) math-random-shift) 1023)))
 (setq math-random-table nil)
 (setq math-last-RandSeed nil)
 (setq math-random-ptr1 nil)
@@ -586,8 +545,7 @@
 		   math-random-last (aref math-random-cache i))
 	     (aset math-random-cache i (math-random-base))
 	     (>= math-random-last 1000)))
-    math-random-last)
-)
+    math-random-last))
 (setq math-random-cache nil)
 
 ;;; Produce an N-digit random integer.
@@ -602,14 +560,12 @@
 	       (setq digs (cons (math-random-digit) digs)
 		     i (1- i)))
 	     (math-normalize (math-scale-right (cons 'bigpos digs)
-					       slop)))))
-)
+					       slop))))))
 
 ;;; Produce a uniformly-distributed random float 0 <= N < 1.
 (defun math-random-float ()
   (math-make-float (math-random-digits calc-internal-prec)
-		   (- calc-internal-prec))
-)
+		   (- calc-internal-prec)))
 
 ;;; Produce a Gaussian-distributed random float with mean=0, sigma=1.
 (defun math-gaussian-float ()
@@ -629,8 +585,7 @@
 	(let ((fac (math-sqrt (math-mul (math-div (calcFunc-ln r) r) -2))))
 	  (setq math-gaussian-cache (cons calc-internal-prec
 					  (math-mul v1 fac)))
-	  (math-mul v2 fac)))))
-)
+	  (math-mul v2 fac))))))
 (setq math-gaussian-cache nil)
 
 ;;; Produce a random integer or real 0 <= N < MAX.
@@ -668,8 +623,7 @@
 	   (math-reject-arg max "*Empty list")))
 	((and (eq (car max) 'sdev) (math-constp max) (Math-realp (nth 1 max)))
 	 (math-add (math-mul (math-gaussian-float) (nth 2 max)) (nth 1 max)))
-	(t (math-reject-arg max 'realp)))
-)
+	(t (math-reject-arg max 'realp))))
 
 ;;; Choose N objects at random from the set MAX without duplicates.
 (defun calcFunc-shuffle (n &optional max)
@@ -724,8 +678,7 @@
 	 (if (math-posp max)
 	     (calcFunc-shuffle n (list 'intv 2 0 max))
 	   (calcFunc-shuffle n (list 'intv 1 max 0))))
-	(t (math-reject-arg max 'realp)))
-)
+	(t (math-reject-arg max 'realp))))
 
 (defun math-simple-shuffle (n max)
   (let ((vec nil)
@@ -733,8 +686,7 @@
     (while (>= (setq n (1- n)) 0)
       (while (math-member (setq val (calcFunc-random max)) vec))
       (setq vec (cons val vec)))
-    (cons 'vec vec))
-)
+    (cons 'vec vec)))
 
 (defun math-shuffle-list (n size vec)
   (let ((j size)
@@ -746,14 +698,12 @@
 	    temp (nth k p))
       (setcar (nthcdr k p) (car p))
       (setcar p temp))
-    (cons 'vec (nthcdr (- size n -1) vec)))
-)
+    (cons 'vec (nthcdr (- size n -1) vec))))
 
 (defun math-member (x list)
   (while (and list (not (equal x (car list))))
     (setq list (cdr list)))
-  list
-)
+  list)
 
 
 ;;; Check if the integer N is prime.  [X I]
@@ -845,8 +795,7 @@
 	    iters (if (eq (car res) 'maybe)
 		      (1- iters)
 		    0)))
-    res)
-)
+    res))
 (defvar math-prime-test-cache '(-1))
 
 (defun calcFunc-prime (n &optional iters)
@@ -854,8 +803,7 @@
   (or (not iters) (math-num-integerp iters) (math-reject-arg iters 'integerp))
   (if (car (math-prime-test (math-trunc n) (math-trunc (or iters 1))))
       1
-    0)
-)
+    0))
 
 ;;; Theory: summing base-10^6 digits modulo 111111 is "casting out 999999s".
 ;;; Initial probability that N is prime is 1/ln(N) = log10(e)/log10(N).
@@ -897,8 +845,7 @@
 	    (list 'vec n)
 	  (cons 'vec (cons -1 (cdr (calcFunc-prfac (math-neg n))))))
       (calc-record-why 'integerp n)
-      (list 'calcFunc-prfac n)))
-)
+      (list 'calcFunc-prfac n))))
 
 (defun calcFunc-totient (n)
   (if (Math-messy-integerp n)
@@ -921,8 +868,7 @@
 	    (calc-record-why "*Number too big to factor" n)
 	    (list 'calcFunc-totient n))))
     (calc-record-why 'natnump n)
-    (list 'calcFunc-totient n))
-)
+    (list 'calcFunc-totient n)))
 
 (defun calcFunc-moebius (n)
   (if (Math-messy-integerp n)
@@ -944,8 +890,7 @@
 	    (calc-record-why "Number too big to factor" n)
 	    (list 'calcFunc-moebius n))))
     (calc-record-why 'posintp n)
-    (list 'calcFunc-moebius n))
-)
+    (list 'calcFunc-moebius n)))
 
 
 (defun calcFunc-nextprime (n &optional iters)
@@ -966,8 +911,7 @@
 	  n))
     (if (Math-realp n)
 	(calcFunc-nextprime (math-trunc n) iters)
-      (math-reject-arg n 'integerp)))
-)
+      (math-reject-arg n 'integerp))))
 (setq calc-verbose-nextprime nil)
 
 (defun calcFunc-prevprime (n &optional iters)
@@ -986,8 +930,7 @@
 	n)
     (if (Math-realp n)
 	(calcFunc-prevprime (math-ceiling n) iters)
-      (math-reject-arg n 'integerp)))
-)
+      (math-reject-arg n 'integerp))))
 
 (defun math-next-small-prime (n)
   (if (and (integerp n) (> n 2))
@@ -1000,8 +943,7 @@
 	      (setq lo mid)
 	    (setq hi mid)))
 	(aref math-primes-table hi))
-    2)
-)
+    2))
 
 (defconst math-primes-table
   [2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89
@@ -1052,5 +994,4 @@
      4987 4993 4999 5003])
 
 
-
-
+;;; calc-comb.el ends here

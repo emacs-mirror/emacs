@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-undo.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -49,8 +49,7 @@
 	       (let ((calc-stack-top 0))
 		 (calc-handle-undos calc-undo-list n))
 	       (setq calc-stack-top saved-stack-top))))
-     (message "Undo!")))
-)
+     (message "Undo!"))))
 
 (defun calc-handle-undos (cl n)
   (if (> n 0)
@@ -59,8 +58,7 @@
 	  (setq calc-undo-list nil)
 	  (calc-handle-undo (car cl))
 	  (setq calc-redo-list (append calc-undo-list old-redo)))
-	(calc-handle-undos (cdr cl) (1- n))))
-)
+	(calc-handle-undos (cdr cl) (1- n)))))
 
 (defun calc-handle-undo (list)
   (and list
@@ -88,8 +86,7 @@
 	   (calc-record-undo (append (list 'eval (nth 2 action) (nth 1 action))
 				     (cdr (cdr (cdr action)))))
 	   (apply (nth 1 action) (cdr (cdr (cdr action))))))
-	 (calc-handle-undo (cdr list))))
-)
+	 (calc-handle-undo (cdr list)))))
 
 (defun calc-redo (n)
   (interactive "p")
@@ -107,8 +104,7 @@
 	       (let ((calc-stack-top 0))
 		 (calc-handle-redos calc-redo-list n))
 	       (setq calc-stack-top saved-stack-top))))
-     (message "Redo!")))
-)
+     (message "Redo!"))))
 
 (defun calc-handle-redos (cl n)
   (if (> n 0)
@@ -117,8 +113,7 @@
 	  (setq calc-undo-list nil)
 	  (calc-handle-undo (car cl))
 	  (setq calc-undo-list (append calc-undo-list old-undo)))
-	(calc-handle-redos (cdr cl) (1- n))))
-)
+	(calc-handle-redos (cdr cl) (1- n)))))
 
 (defun calc-last-args (n)
   (interactive "p")
@@ -128,8 +123,7 @@
    (let ((urec (calc-find-last-x calc-undo-list n)))
      (if urec
 	 (calc-handle-last-x urec)
-       (error "Not enough undo information available"))))
-)
+       (error "Not enough undo information available")))))
 
 (defun calc-handle-last-x (list)
   (and list
@@ -137,8 +131,7 @@
 	 (if (eq (car action) 'pop)
 	     (calc-pop-push-record-list 0 "larg"
 					(delq 'top-of-stack (nth 2 action))))
-	 (calc-handle-last-x (cdr list))))
-)
+	 (calc-handle-last-x (cdr list)))))
 
 (defun calc-find-last-x (ul n)
   (and ul
@@ -146,14 +139,11 @@
 	   (if (<= n 1)
 	       (car ul)
 	     (calc-find-last-x (cdr ul) (1- n)))
-	 (calc-find-last-x (cdr ul) n)))
-)
+	 (calc-find-last-x (cdr ul) n))))
 
 (defun calc-undo-does-pushes (list)
   (and list
        (or (eq (car (car list)) 'pop)
-	   (calc-undo-does-pushes (cdr list))))
-)
+	   (calc-undo-does-pushes (cdr list)))))
 
-
-
+;;; calc-undo.el ends here

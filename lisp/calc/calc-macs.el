@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part I [calc-macs.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -32,27 +32,23 @@
 
 
 (defmacro calc-wrapper (&rest body)
-  (list 'calc-do (list 'function (append (list 'lambda ()) body)))
-)
+  (list 'calc-do (list 'function (append (list 'lambda ()) body))))
 
 ;; We use "point" here to generate slightly smaller byte-code than "t".
 (defmacro calc-slow-wrapper (&rest body)
-  (list 'calc-do (list 'function (append (list 'lambda ()) body)) (point))
-)
+  (list 'calc-do (list 'function (append (list 'lambda ()) body)) (point)))
 
 
 (defmacro math-showing-full-precision (body)
   (list 'let
 	'((calc-float-format calc-full-float-format))
-	body)
-)
+	body))
 
 
 (defmacro math-with-extra-prec (delta &rest body)
   (` (math-normalize
       (let ((calc-internal-prec (+ calc-internal-prec (, delta))))
-	(,@ body))))
-)
+	(,@ body)))))
 
 
 ;;; Faster in-line version zerop, normalized values only.
@@ -62,20 +58,17 @@
 	      (if (eq (car (, a)) 'float)
 		  (eq (nth 1 (, a)) 0)
 		(math-zerop (, a))))
-       (eq (, a) 0)))
-)
+       (eq (, a) 0))))
 
 (defmacro Math-integer-negp (a)
   (` (if (consp (, a))
 	 (eq (car (, a)) 'bigneg)
-       (< (, a) 0)))
-)
+       (< (, a) 0))))
 
 (defmacro Math-integer-posp (a)
   (` (if (consp (, a))
 	 (eq (car (, a)) 'bigpos)
-       (> (, a) 0)))
-)
+       (> (, a) 0))))
 
 
 (defmacro Math-negp (a)
@@ -85,8 +78,7 @@
 		  (if (memq (car (, a)) '(frac float))
 		      (Math-integer-negp (nth 1 (, a)))
 		    (math-negp (, a)))))
-       (< (, a) 0)))
-)
+       (< (, a) 0))))
 
 
 (defmacro Math-looks-negp (a)   ; [P x] [Public]
@@ -94,8 +86,7 @@
 	 (and (consp (, a)) (or (eq (car (, a)) 'neg)
 				(and (memq (car (, a)) '(* /))
 				     (or (math-looks-negp (nth 1 (, a)))
-					 (math-looks-negp (nth 2 (, a)))))))))
-)
+					 (math-looks-negp (nth 2 (, a))))))))))
 
 
 (defmacro Math-posp (a)
@@ -105,69 +96,57 @@
 		  (if (memq (car (, a)) '(frac float))
 		      (Math-integer-posp (nth 1 (, a)))
 		    (math-posp (, a)))))
-       (> (, a) 0)))
-)
+       (> (, a) 0))))
 
 
 (defmacro Math-integerp (a)
   (` (or (not (consp (, a)))
-	 (memq (car (, a)) '(bigpos bigneg))))
-)
+	 (memq (car (, a)) '(bigpos bigneg)))))
 
 
 (defmacro Math-natnump (a)
   (` (if (consp (, a))
 	 (eq (car (, a)) 'bigpos)
-       (>= (, a) 0)))
-)
+       (>= (, a) 0))))
 
 (defmacro Math-ratp (a)
   (` (or (not (consp (, a)))
-	 (memq (car (, a)) '(bigpos bigneg frac))))
-)
+	 (memq (car (, a)) '(bigpos bigneg frac)))))
 
 (defmacro Math-realp (a)
   (` (or (not (consp (, a)))
-	 (memq (car (, a)) '(bigpos bigneg frac float))))
-)
+	 (memq (car (, a)) '(bigpos bigneg frac float)))))
 
 (defmacro Math-anglep (a)
   (` (or (not (consp (, a)))
-	 (memq (car (, a)) '(bigpos bigneg frac float hms))))
-)
+	 (memq (car (, a)) '(bigpos bigneg frac float hms)))))
 
 (defmacro Math-numberp (a)
   (` (or (not (consp (, a)))
-	 (memq (car (, a)) '(bigpos bigneg frac float cplx polar))))
-)
+	 (memq (car (, a)) '(bigpos bigneg frac float cplx polar)))))
 
 (defmacro Math-scalarp (a)
   (` (or (not (consp (, a)))
-	 (memq (car (, a)) '(bigpos bigneg frac float cplx polar hms))))
-)
+	 (memq (car (, a)) '(bigpos bigneg frac float cplx polar hms)))))
 
 (defmacro Math-vectorp (a)
-  (` (and (consp (, a)) (eq (car (, a)) 'vec)))
-)
+  (` (and (consp (, a)) (eq (car (, a)) 'vec))))
 
 (defmacro Math-messy-integerp (a)
   (` (and (consp (, a))
 	  (eq (car (, a)) 'float)
-	  (>= (nth 2 (, a)) 0)))
-)
+	  (>= (nth 2 (, a)) 0))))
 
 (defmacro Math-objectp (a)    ;  [Public]
   (` (or (not (consp (, a)))
 	 (memq (car (, a))
-	       '(bigpos bigneg frac float cplx polar hms date sdev intv mod))))
-)
+	       '(bigpos bigneg frac float cplx polar hms date sdev intv mod)))))
 
 (defmacro Math-objvecp (a)    ;  [Public]
   (` (or (not (consp (, a)))
 	 (memq (car (, a))
 	       '(bigpos bigneg frac float cplx polar hms date
-			sdev intv mod vec))))
-)
+			sdev intv mod vec)))))
 
 
 ;;; Compute the negative of A.  [O O; o o] [Public]
@@ -176,38 +155,32 @@
 	 (if (eq (car (, a)) 'bigpos)
 	     (cons 'bigneg (cdr (, a)))
 	   (cons 'bigpos (cdr (, a))))
-       (- (, a))))
-)
+       (- (, a)))))
 
 
 (defmacro Math-equal (a b)
-  (` (= (math-compare (, a) (, b)) 0))
-)
+  (` (= (math-compare (, a) (, b)) 0)))
 
 (defmacro Math-lessp (a b)
-  (` (= (math-compare (, a) (, b)) -1))
-)
+  (` (= (math-compare (, a) (, b)) -1)))
 
 
 (defmacro math-working (msg arg)    ; [Public]
   (` (if (eq calc-display-working-message 'lots)
-	 (math-do-working (, msg) (, arg))))
-)
+	 (math-do-working (, msg) (, arg)))))
 
 
 (defmacro calc-with-default-simplification (body)
   (list 'let
 	'((calc-simplify-mode (and (not (memq calc-simplify-mode '(none num)))
 				   calc-simplify-mode)))
-	body)
-)
+	body))
 
 
 (defmacro Math-primp (a)
   (` (or (not (consp (, a)))
 	 (memq (car (, a)) '(bigpos bigneg frac float cplx polar
-				    hms date mod var))))
-)
+				    hms date mod var)))))
 
 
 (defmacro calc-with-trail-buffer (&rest body)
@@ -218,23 +191,20 @@
 			 (set-buffer (calc-trail-display t))
 			 (goto-char calc-trail-pointer))
 		      body))
-	 (set-buffer save-buf))))
-)
+	 (set-buffer save-buf)))))
 
 
 (defmacro Math-num-integerp (a)
   (` (or (not (consp (, a)))
 	 (memq (car (, a)) '(bigpos bigneg))
 	 (and (eq (car (, a)) 'float)
-	      (>= (nth 2 (, a)) 0))))
-)
+	      (>= (nth 2 (, a)) 0)))))
 
 
 (defmacro Math-bignum-test (a)   ; [B N; B s; b b]
   (` (if (consp (, a))
 	 (, a)
-       (math-bignum (, a))))
-)
+       (math-bignum (, a)))))
 
 
 (defmacro Math-equal-int (a b)
@@ -242,20 +212,18 @@
 	 (and (consp (, a))
 	      (eq (car (, a)) 'float)
 	      (eq (nth 1 (, a)) (, b))
-	      (= (nth 2 (, a)) 0))))
-)
+	      (= (nth 2 (, a)) 0)))))
 
 (defmacro Math-natnum-lessp (a b)
   (` (if (consp (, a))
 	 (and (consp (, b))
 	      (= (math-compare-bignum (cdr (, a)) (cdr (, b))) -1))
        (or (consp (, b))
-	   (< (, a) (, b)))))
-)
+	   (< (, a) (, b))))))
 
 
 (defmacro math-format-radix-digit (a)   ; [X D]
-  (` (aref math-radix-digits (, a)))
-)
+  (` (aref math-radix-digits (, a))))
 
+;;; calc-macs.el ends here
 

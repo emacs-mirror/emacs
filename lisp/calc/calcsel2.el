@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-sel-2.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -109,8 +109,7 @@
 	      (list (calc-replace-sub-formula expr parent new))
 	      num
 	      (list (and (or (not (eq arg 0)) reselect)
-			 sel)))))))))
-)
+			 sel))))))))))
 
 (defun calc-commute-right (arg)
   (interactive "p")
@@ -193,8 +192,7 @@
 	      (list (calc-replace-sub-formula expr parent new))
 	      num
 	      (list (and (or (not (eq arg 0)) reselect)
-			 sel)))))))))
-)
+			 sel))))))))))
 
 (defun calc-build-assoc-term (op lhs rhs)
   (cond ((and (eq op '+) (or (math-looks-negp rhs)
@@ -215,8 +213,7 @@
 			      (or (math-equal-int (nth 1 rhs) 1)
 				  (equal (nth 1 rhs) '(cplx 1 0)))))
 	 (list '/ lhs (nth 2 rhs)))
-	(t (list op lhs rhs)))
-)
+	(t (list op lhs rhs))))
 
 (defun calc-sel-unpack ()
   (interactive)
@@ -234,8 +231,7 @@
 				(list (calc-replace-sub-formula
 				       expr sel (nth 1 sel)))
 				num
-				(list (and reselect (nth 1 sel))))))
-)
+				(list (and reselect (nth 1 sel)))))))
 
 (defun calc-sel-isolate ()
   (interactive)
@@ -266,38 +262,32 @@
 				       expr eqn soln))
 				num
 				(list (and reselect sel)))
-     (calc-handle-whys)))
-)
+     (calc-handle-whys))))
 
 (defun calc-sel-commute (many)
   (interactive "P")
   (let ((calc-assoc-selections nil))
     (calc-rewrite-selection "CommuteRules" many "cmut"))
-  (calc-set-mode-line)
-)
+  (calc-set-mode-line))
 
 (defun calc-sel-jump-equals (many)
   (interactive "P")
-  (calc-rewrite-selection "JumpRules" many "jump")
-)
+  (calc-rewrite-selection "JumpRules" many "jump"))
 
 (defun calc-sel-distribute (many)
   (interactive "P")
-  (calc-rewrite-selection "DistribRules" many "dist")
-)
+  (calc-rewrite-selection "DistribRules" many "dist"))
 
 (defun calc-sel-merge (many)
   (interactive "P")
-  (calc-rewrite-selection "MergeRules" many "merg")
-)
+  (calc-rewrite-selection "MergeRules" many "merg"))
 
 (defun calc-sel-negate (many)
   (interactive "P")
-  (calc-rewrite-selection "NegateRules" many "jneg")
-)
+  (calc-rewrite-selection "NegateRules" many "jneg"))
 
 (defun calc-sel-invert (many)
   (interactive "P")
-  (calc-rewrite-selection "InvertRules" many "jinv")
-)
+  (calc-rewrite-selection "InvertRules" many "jinv"))
 
+;;; calcsel2.el ends here

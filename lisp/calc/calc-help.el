@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-help.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -43,8 +43,7 @@
     (message "")
     (if key
 	(call-interactively key)
-      (beep)))
-)
+      (beep))))
 
 (defun calc-help-for-help (arg)
   "You have typed `h', the Calc help character.  Type a Help option:
@@ -84,20 +83,17 @@ C-w  Describe how there is no warranty for Calc."
 	(calc-unread-command (cdr key))
 	(calc-help-prefix nil))
     (let ((calc-dispatch-help t))
-      (calc-help-prefix arg)))
-)
+      (calc-help-prefix arg))))
 
 (defun calc-describe-copying ()
   (interactive)
   (calc-info)
-  (Info-goto-node "Copying")
-)
+  (Info-goto-node "Copying"))
 
 (defun calc-describe-distribution ()
   (interactive)
   (calc-info)
-  (Info-goto-node "Reporting Bugs")
-)
+  (Info-goto-node "Reporting Bugs"))
 
 (defun calc-describe-no-warranty ()
   (interactive)
@@ -106,8 +102,7 @@ C-w  Describe how there is no warranty for Calc."
   (let ((case-fold-search nil))
     (search-forward "     NO WARRANTY"))
   (beginning-of-line)
-  (recenter 0)
-)
+  (recenter 0))
 
 (defun calc-describe-bindings ()
   (interactive)
@@ -141,13 +136,11 @@ C-w  Describe how there is no warranty for Calc."
 	(delete-backward-char 1)
 	(delete-char 1)
 	(insert (format "%c .. %c" (min dig1 dig2) (max dig1 dig2)))))
-    (goto-char (point-min)))
-)
+    (goto-char (point-min))))
 
 (defun calc-describe-key-briefly (key)
   (interactive "kDescribe key briefly: ")
-  (calc-describe-key key t)
-)
+  (calc-describe-key key t))
 
 (defun calc-describe-key (key &optional briefly)
   (interactive "kDescribe key: ")
@@ -298,8 +291,7 @@ C-w  Describe how there is no warranty for Calc."
 	(if inv (setq desc (concat "I " desc)))
 	(if hyp (setq desc (concat "H " desc)))
 	(calc-describe-thing desc "Key Index" nil
-			     (string-match "[A-Z][A-Z][A-Z]" desc)))))
-)
+			     (string-match "[A-Z][A-Z][A-Z]" desc))))))
 
 (defun calc-describe-function (&optional func)
   (interactive)
@@ -312,8 +304,7 @@ C-w  Describe how there is no warranty for Calc."
     (calc-describe-thing (if (string-match "\\`calcFunc-." func)
 			     (substring func 9)
 			   func)
-			 "Function Index"))
-)
+			 "Function Index")))
 
 (defun calc-describe-variable (&optional var)
   (interactive)
@@ -324,8 +315,7 @@ C-w  Describe how there is no warranty for Calc."
   (calc-describe-thing var "Variable Index"
 		       (if (string-match "\\`var-." var)
 			   (substring var 4)
-			 var))
-)
+			 var)))
 
 (defun calc-describe-thing (thing where &optional target not-quoted)
   (message "Looking for `%s' in %s..." thing where)
@@ -365,8 +355,7 @@ C-w  Describe how there is no warranty for Calc."
 	      (search-forward (format "`%s'" (or target thing)) nil t)
 	      (search-forward (or target thing) nil t))))
     (beginning-of-line)
-    (message "Found `%s' in %s" thing where))
-)
+    (message "Found `%s' in %s" thing where)))
 
 (defun calc-view-news ()
   (interactive)
@@ -384,10 +373,7 @@ C-w  Describe how there is no warranty for Calc."
     (search-forward "Summary of changes")
     (forward-line -1)
     (delete-region (point-min) (point))
-    (goto-char (point-min)))
-)
-
-
+    (goto-char (point-min))))
 
 (defun calc-full-help ()
   (interactive)
@@ -444,23 +430,20 @@ C-w  Describe how there is no warranty for Calc."
 		calc-shift-Y-prefix-help
 		calc-shift-Z-prefix-help
 		calc-z-prefix-help)))
-    (print-help-return-message))
-)
+    (print-help-return-message)))
 
-(defvar calc-help-long-names '( ( ?b . "binary/business" )
-				( ?g . "graphics" )
-				( ?j . "selection" )
-				( ?k . "combinatorics/statistics" )
-				( ?u . "units/statistics" )
-))
+(defvar calc-help-long-names '((?b . "binary/business")
+			       (?g . "graphics")
+			       (?j . "selection")
+			       (?k . "combinatorics/statistics")
+			       (?u . "units/statistics")))
 
 (defun calc-h-prefix-help ()
   (interactive)
   (calc-do-prefix-help
    '("Help; Bindings; Info, Tutorial, Summary; News"
      "describe: Key, C (briefly), Function, Variable")
-   "help" ?h)
-)
+   "help" ?h))
 
 (defun calc-inverse-prefix-help ()
   (interactive)
@@ -474,8 +457,7 @@ C-w  Describe how there is no warranty for Calc."
      "I + v s (remove subvec); v h (tail)"
      "I + t + (alt sum), t M (mean with error)"
      "I + t S (pop std dev), t C (pop covar)")
-   "inverse" nil)
-)
+   "inverse" nil))
 
 (defun calc-hyperbolic-prefix-help ()
   (interactive)
@@ -490,8 +472,7 @@ C-w  Describe how there is no warranty for Calc."
      "H + a R (widen/root), a N (widen/min), a X (widen/max)"
      "H + t M (median), t S (variance), t C (correlation coef)"
      "H + c f/F/c (pervasive float/frac/clean)")
-   "hyperbolic" nil)
-)
+   "hyperbolic" nil))
 
 (defun calc-inv-hyp-prefix-help ()
   (interactive)
@@ -501,8 +482,7 @@ C-w  Describe how there is no warranty for Calc."
      "I H + F (float ceiling), R (float truncate)"
      "I H + t S (pop variance)"
      "I H + a S (general invert func); v h (rtail)")
-   "inverse-hyperbolic" nil)
-)
+   "inverse-hyperbolic" nil))
 
 
 (defun calc-f-prefix-help ()
@@ -513,8 +493,7 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + int-sQrt; Int-log, Exp(x)-1, Ln(x+1); arcTan2"
      "SHIFT + Abssqr; Mantissa, eXponent, Scale"
      "SHIFT + incomplete: Gamma-P, Beta-I")
-   "functions" ?f)
-)
+   "functions" ?f))
 
 
 (defun calc-s-prefix-help ()
@@ -526,15 +505,13 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + Decls, GenCount, TimeZone, Holidays; IntegLimit"
      "SHIFT + LineStyles, PointStyles, plotRejects; Units"
      "SHIFT + Eval-, AlgSimp-, ExtSimp-, FitRules")
-   "store" ?s)
-)
+   "store" ?s))
 
 (defun calc-r-prefix-help ()
   (interactive)
   (calc-do-prefix-help
    '("digits 0-9: recall, same as `s r 0-9'")
-   "recall" ?r)
-)
+   "recall" ?r))
 
 
 (defun calc-j-prefix-help ()
@@ -547,8 +524,7 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + swap: Left, Right; maybe: Select, Once"
      "SHIFT + Commute, Merge, Distrib, jump-Eqn, Isolate"
      "SHIFT + Negate, & (invert); Unpack")
-   "select" ?j)
-)
+   "select" ?j))
 
 
 (defun calc-a-prefix-help ()
@@ -564,8 +540,7 @@ C-w  Describe how there is no warranty for Calc."
      "relations: =, # (not =), <, >, [ (< or =), ] (> or =)"
      "logical: & (and), | (or), ! (not); : (if)"
      "misc: { (in-set); . (rmeq)")
-   "algebra" ?a)
-)
+   "algebra" ?a))
 
 
 (defun calc-b-prefix-help ()
@@ -575,8 +550,7 @@ C-w  Describe how there is no warranty for Calc."
      "Lshift, Rshift, roTate; SHIFT + signed Lshift, Rshift"
      "SHIFT + business: Pv, Npv, Fv, pMt, #pmts, raTe, Irr"
      "SHIFT + business: Sln, sYd, Ddb; %ch")
-   "binary/bus" ?b)
-)
+   "binary/bus" ?b))
 
 
 (defun calc-c-prefix-help ()
@@ -584,8 +558,7 @@ C-w  Describe how there is no warranty for Calc."
   (calc-do-prefix-help
    '("Deg, Rad, HMS; Float; Polar/rect; Clean, 0-9; %"
      "SHIFT + Fraction")
-   "convert" ?c)
-)
+   "convert" ?c))
 
 
 (defun calc-d-prefix-help ()
@@ -598,8 +571,7 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + language: Normal, One-line, Big, Unformatted"
      "SHIFT + language: C, Pascal, Fortran; TeX, Eqn"
      "SHIFT + language: Mathematica, W=Maple")
-   "display" ?d)
-)
+   "display" ?d))
 
 
 (defun calc-g-prefix-help ()
@@ -612,8 +584,7 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + Print; Device, Output-file; X-geometry"
      "SHIFT + Num-pts; Command, Kill, View-trail"
      "SHIFT + 3d: Fast, Add; CTRL + z-axis: Range, Title, Log")
-   "graph" ?g)
-)
+   "graph" ?g))
 
 
 (defun calc-k-prefix-help ()
@@ -626,8 +597,7 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + Extended-gcd"
      "SHIFT + dists: Binomial, Chi-square, F, Normal"
      "SHIFT + dists: Poisson, student's-T")
-   "combinatorics" ?k)
-)
+   "combinatorics" ?k))
 
 
 (defun calc-m-prefix-help ()
@@ -637,8 +607,7 @@ C-w  Describe how there is no warranty for Calc."
      "Working; Xtensions; Mode-save"
      "SHIFT + Shifted-prefixes, mode-Filename; Record; reCompute"
      "SHIFT + simplify: Off, Num, Default, Bin, Alg, Ext, Units")
-   "mode" ?m)
-)
+   "mode" ?m))
 
 
 (defun calc-t-prefix-help ()
@@ -650,8 +619,7 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + time: newWeek, newMonth, newYear; Incmonth"
      "SHIFT + time: +, - (business days)"
      "digits 0-9: store-to, same as `s t 0-9'")
-   "trail/time" ?t)
-)
+   "trail/time" ?t))
 
 
 (defun calc-u-prefix-help ()
@@ -663,8 +631,7 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + View-table-other-window"
      "SHIFT + stat: Mean, G-mean, Std-dev, Covar, maX, miN"
      "SHIFT + stat: + (sum), - (asum), * (prod), # (count)")
-   "units/stat" ?u)
-)
+   "units/stat" ?u))
 
 
 (defun calc-v-prefix-help ()
@@ -681,6 +648,6 @@ C-w  Describe how there is no warranty for Calc."
      "SHIFT + sets: : (span), # (card), + (rdup)"
      "<, =, > (justification); , (commas); [, {, ( (brackets)"
      "} (matrix brackets); . (abbreviate); / (multi-lines)")
-   "vec/mat" ?v)
-)
+   "vec/mat" ?v))
 
+;;; calc-help.el ends here

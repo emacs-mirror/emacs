@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-cplx.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -32,20 +32,17 @@
 (defun calc-argument (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "arg" 'calcFunc-arg arg))
-)
+   (calc-unary-op "arg" 'calcFunc-arg arg)))
 
 (defun calc-re (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "re" 'calcFunc-re arg))
-)
+   (calc-unary-op "re" 'calcFunc-re arg)))
 
 (defun calc-im (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "im" 'calcFunc-im arg))
-)
+   (calc-unary-op "im" 'calcFunc-im arg)))
 
 
 (defun calc-polar ()
@@ -55,8 +52,7 @@
      (if (or (calc-is-inverse)
 	     (eq (car-safe arg) 'polar))
 	 (calc-enter-result 1 "p-r" (list 'calcFunc-rect arg))
-       (calc-enter-result 1 "r-p" (list 'calcFunc-polar arg)))))
-)
+       (calc-enter-result 1 "r-p" (list 'calcFunc-polar arg))))))
 
 
 
@@ -65,22 +61,19 @@
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-complex-format nil t)
-   (message "Displaying complex numbers in (X,Y) format."))
-)
+   (message "Displaying complex numbers in (X,Y) format.")))
 
 (defun calc-i-notation ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-complex-format 'i t)
-   (message "Displaying complex numbers in X+Yi format."))
-)
+   (message "Displaying complex numbers in X+Yi format.")))
 
 (defun calc-j-notation ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-complex-format 'j t)
-   (message "Displaying complex numbers in X+Yj format."))
-)
+   (message "Displaying complex numbers in X+Yj format.")))
 
 
 (defun calc-polar-mode (n)
@@ -93,8 +86,7 @@
 	 (calc-change-mode 'calc-complex-mode 'polar)
 	 (message "Preferred complex form is polar."))
      (calc-change-mode 'calc-complex-mode 'cplx)
-     (message "Preferred complex form is rectangular.")))
-)
+     (message "Preferred complex form is rectangular."))))
 
 
 ;;;; Complex numbers.
@@ -113,8 +105,7 @@
 	  ((math-negp r)
 	   (math-neg (list 'polar (math-neg r) th)))
 	  (t
-	   (list 'polar r th))))
-)
+	   (list 'polar r th)))))
 
 
 ;;; Coerce A to be complex (rectangular form).  [c N]
@@ -127,8 +118,7 @@
 	     (list 'cplx
 		   (math-mul (nth 1 a) (nth 1 sc))
 		   (math-mul (nth 1 a) (nth 2 sc))))))
-	(t (list 'cplx a 0)))
-)
+	(t (list 'cplx a 0))))
 
 ;;; Coerce A to be complex (polar form).  [c N]
 (defun math-polar (a)
@@ -137,8 +127,7 @@
 	(t
 	 (list 'polar
 	       (math-abs a)
-	       (calcFunc-arg a))))
-)
+	       (calcFunc-arg a)))))
 
 ;;; Multiply A by the imaginary constant i.  [N N] [Public]
 (defun math-imaginary (a)
@@ -150,8 +139,7 @@
 			     (eq calc-complex-mode 'polar)))
 		    (list 'polar 1 (math-quarter-circle nil))
 		  '(cplx 0 1)))
-    (math-mul a '(var i var-i)))
-)
+    (math-mul a '(var i var-i))))
 
 
 
@@ -169,8 +157,7 @@
 	 t)
 	((eq (car-safe b) 'cplx)
 	 nil)
-	(t (eq calc-complex-mode 'polar)))
-)
+	(t (eq calc-complex-mode 'polar))))
 
 ;;; Force A to be in the (-pi,pi] or (-180,180] range.
 (defun math-fix-circular (a &optional dir)   ; [R R]
@@ -194,8 +181,7 @@
 	       ((or (Math-lessp '(float -18 1) a) (eq dir -1))
 		a)
 	       (t
-		(math-fix-circular (math-add a '(float 36 1)) 1)))))
-)
+		(math-fix-circular (math-add a '(float 36 1)) 1))))))
 
 
 ;;;; Complex numbers.
@@ -206,8 +192,7 @@
 	((Math-realp a) a)
 	((Math-numberp a)
 	 (math-normalize (math-polar a)))
-	(t (list 'calcFunc-polar a)))
-)
+	(t (list 'calcFunc-polar a))))
 
 (defun calcFunc-rect (a)   ; [N N] [Public]
   (cond ((Math-vectorp a)
@@ -215,8 +200,7 @@
 	((Math-realp a) a)
 	((Math-numberp a)
 	 (math-normalize (math-complex a)))
-	(t (list 'calcFunc-rect a)))
-)
+	(t (list 'calcFunc-rect a))))
 
 ;;; Compute the complex conjugate of A.  [O O] [Public]
 (defun calcFunc-conj (a)
@@ -255,8 +239,7 @@
 	     (and inf
 		  (math-mul (calcFunc-conj (math-infinite-dir a inf)) inf))))
 	  (t (calc-record-why 'numberp a)
-	     (list 'calcFunc-conj a))))
-)
+	     (list 'calcFunc-conj a)))))
 
 
 ;;; Compute the complex argument of A.  [F N] [Public]
@@ -284,8 +267,7 @@
 	     '(var nan var-nan)
 	   (calcFunc-arg (math-infinite-dir a))))
 	(t (calc-record-why 'numvecp a)
-	   (list 'calcFunc-arg a)))
-)
+	   (list 'calcFunc-arg a))))
 
 (defun math-imaginary-i ()
   (let ((val (calc-var-value 'var-i)))
@@ -293,8 +275,7 @@
 	(equal val '(cplx 0 1))
 	(and (eq (car-safe val) 'polar)
 	     (eq (nth 1 val) 0)
-	     (Math-equal (nth 1 val) (math-quarter-circle nil)))))
-)
+	     (Math-equal (nth 1 val) (math-quarter-circle nil))))))
 
 ;;; Extract the real or complex part of a complex number.  [R N] [Public]
 ;;; Also extracts the real part of a modulo form.
@@ -332,8 +313,7 @@
 	  ((eq (car a) 'neg)
 	   (math-neg (calcFunc-re (nth 1 a))))
 	  (t (calc-record-why 'numberp a)
-	     (list 'calcFunc-re a))))
-)
+	     (list 'calcFunc-re a)))))
 
 (defun calcFunc-im (a)
   (let (aa bb)
@@ -370,8 +350,6 @@
 	  ((eq (car a) 'neg)
 	   (math-neg (calcFunc-im (nth 1 a))))
 	  (t (calc-record-why 'numberp a)
-	     (list 'calcFunc-im a))))
-)
+	     (list 'calcFunc-im a)))))
 
-
-
+;;; calc-cplx.el ends here

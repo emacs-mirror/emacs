@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-mat.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -32,20 +32,17 @@
 (defun calc-mdet (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "mdet" 'calcFunc-det arg))
-)
+   (calc-unary-op "mdet" 'calcFunc-det arg)))
 
 (defun calc-mtrace (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "mtr" 'calcFunc-tr arg))
-)
+   (calc-unary-op "mtr" 'calcFunc-tr arg)))
 
 (defun calc-mlud (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "mlud" 'calcFunc-lud arg))
-)
+   (calc-unary-op "mlud" 'calcFunc-lud arg)))
 
 
 ;;; Coerce row vector A to be a matrix.  [V V]
@@ -53,16 +50,14 @@
   (if (and (Math-vectorp a)
 	   (not (math-matrixp a)))
       (list 'vec a)
-    a)
-)
+    a))
 
 ;;; Coerce column vector A to be a matrix.  [V V]
 (defun math-col-matrix (a)
   (if (and (Math-vectorp a)
 	   (not (math-matrixp a)))
       (cons 'vec (mapcar (function (lambda (x) (list 'vec x))) (cdr a)))
-    a)
-)
+    a))
 
 
 
@@ -82,29 +77,25 @@
 	  (setq accum (math-add accum (math-mul (car ap) (nth col (car bp))))))
 	(setq row (cons accum row)))
       (setq mat (cons (cons 'vec row) mat)))
-    (cons 'vec (nreverse mat)))
-)
+    (cons 'vec (nreverse mat))))
 
 (defun math-mul-mat-vec (a b)
   (cons 'vec (mapcar (function (lambda (row)
 				 (math-dot-product row b)))
-		     (cdr a)))
-)
+		     (cdr a))))
 
 
 
 (defun calcFunc-tr (mat)   ; [Public]
   (if (math-square-matrixp mat)
       (math-matrix-trace-step 2 (1- (length mat)) mat (nth 1 (nth 1 mat)))
-    (math-reject-arg mat 'square-matrixp))
-)
+    (math-reject-arg mat 'square-matrixp)))
 
 (defun math-matrix-trace-step (n size mat sum)
   (if (<= n size)
       (math-matrix-trace-step (1+ n) size mat
 			      (math-add sum (nth n (nth n mat))))
-    sum)
-)
+    sum))
 
 
 ;;; Matrix inverse and determinant.
@@ -167,8 +158,7 @@
 		det)))
       (let ((lud (math-matrix-lud m)))
 	(and lud
-	     (math-lud-solve lud (calcFunc-idn 1 n))))))
-)
+	     (math-lud-solve lud (calcFunc-idn 1 n)))))))
 
 (defun calcFunc-det (m)
   (if (math-square-matrixp m)
@@ -177,8 +167,7 @@
 	     (or (math-zerop (nth 1 m))
 		 (math-equal-int (nth 1 m) 1)))
 	(nth 1 m)
-      (math-reject-arg m 'square-matrixp)))
-)
+      (math-reject-arg m 'square-matrixp))))
 
 (defun math-det-raw (m)
   (let ((n (1- (length m))))
@@ -217,14 +206,12 @@
 	       (if lud
 		   (let ((lu (car lud)))
 		     (math-det-step n (nth 2 lud)))
-		 0)))))
-)
+		 0))))))
 
 (defun math-det-step (n prod)
   (if (> n 0)
       (math-det-step (1- n) (math-mul prod (nth n (nth n lu))))
-    prod)
-)
+    prod))
 
 ;;; This returns a list (LU index d), or NIL if not possible.
 ;;; Argument M must be a square matrix.
@@ -238,8 +225,7 @@
 	(if old
 	    (setcdr old entry)
 	  (setq math-lud-cache (cons (cons m entry) math-lud-cache)))
-	lud)))
-)
+	lud))))
 (defvar math-lud-cache nil)
 
 ;;; Numerical Recipes section 2.3; implicit pivoting omitted.
@@ -288,8 +274,7 @@
 	    (setcar (nthcdr j (nth i lu))
 		    (math-div (nth j (nth i lu)) pivot)))))
       (setq j (1+ j)))
-    (list lu (nreverse index) d))
-)
+    (list lu (nreverse index) d)))
 
 (defun math-swap-rows (m r1 r2)
   (or (= r1 r2)
@@ -302,8 +287,7 @@
 	(setcdr r1prev row2)
 	(setcdr row2 (cdr row1))
 	(setcdr row1 r2next)))
-  m
-)
+  m)
 
 
 (defun math-lud-solve (lud b &optional need)
@@ -345,8 +329,7 @@
 	  (setq col (1+ col)))
 	x)
     (and need
-	 (math-reject-arg need "*Singular matrix")))
-)
+	 (math-reject-arg need "*Singular matrix"))))
 
 (defun calcFunc-lud (m)
   (if (math-square-matrixp m)
@@ -373,6 +356,6 @@
 			     (setq perm (math-swap-rows perm j pos)))))
 		     (list 'vec perm lmat umat)))))
 	  (math-reject-arg m "*Singular matrix"))
-    (math-reject-arg m 'square-matrixp))
-)
+    (math-reject-arg m 'square-matrixp)))
 
+;;; calc-mtx.el ends here

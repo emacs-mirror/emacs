@@ -55,28 +55,24 @@
 	     (if (not no-delete)
 		 (calc-pop-stack n (- num n -1))))
 	   (setq calc-last-kill (cons (car kill-ring) stuff)))))
-    (kill-line nn))
-)
+    (kill-line nn)))
 
 (defun calc-force-refresh ()
   (if (or calc-executing-macro calc-display-dirty)
       (let ((calc-executing-macro nil))
-	(calc-refresh)))
-)
+	(calc-refresh))))
 
 (defun calc-locate-cursor-element (pt)
   (save-excursion
     (goto-char (point-max))
-    (calc-locate-cursor-scan (- calc-stack-top) calc-stack pt))
-)
+    (calc-locate-cursor-scan (- calc-stack-top) calc-stack pt)))
 
 (defun calc-locate-cursor-scan (n stack pt)
   (if (or (<= (point) pt)
 	  (null stack))
       n
     (forward-line (- (nth 1 (car stack))))
-    (calc-locate-cursor-scan (1+ n) (cdr stack) pt))
-)
+    (calc-locate-cursor-scan (1+ n) (cdr stack) pt)))
 
 (defun calc-kill-region (top bot &optional no-delete)
   (interactive "r")
@@ -94,18 +90,15 @@
 	     (calc-pop-stack num bot-num))))
     (if no-delete
 	(copy-region-as-kill top bot)
-      (kill-region top bot)))
-)
+      (kill-region top bot))))
 
 (defun calc-copy-as-kill (n)
   (interactive "P")
-  (calc-kill n t)
-)
+  (calc-kill n t))
 
 (defun calc-copy-region-as-kill (top bot)
   (interactive "r")
-  (calc-kill-region top bot t)
-)
+  (calc-kill-region top bot t))
 
 ;;; This function uses calc-last-kill if possible to get an exact result,
 ;;; otherwise it just parses the yanked string.
@@ -128,8 +121,7 @@
 		    (if (eq (car-safe val) 'error)
 			(error "Bad format in yanked data")
 		      val))
-		val)))))))
-)
+		val))))))))
 
 (defun calc-clean-newlines (s)
   (cond
@@ -144,8 +136,7 @@
     (calc-clean-newlines (concat (math-match-substring s 1) ","
 				 (math-match-substring s 2))))
    
-   (t s))
-)
+   (t s)))
 
 
 (defun calc-do-grab-region (top bot arg)
@@ -191,8 +182,7 @@
 	  (forward-char (+ (nth 1 vals) (if single 0 1)))
 	  (error (nth 2 vals))))
     (calc-slow-wrapper
-     (calc-enter-result 0 "grab" vals)))
-)
+     (calc-enter-result 0 "grab" vals))))
 
 
 (defun calc-do-grab-rectangle (top bot arg &optional reduce)
@@ -273,8 +263,7 @@
      (if reduce
 	 (calc-enter-result 0 "grb+" (list reduce '(var add var-add)
 					   (nreverse mat)))
-       (calc-enter-result 0 "grab" (nreverse mat)))))
-)
+       (calc-enter-result 0 "grab" (nreverse mat))))))
 
 
 (defun calc-copy-to-buffer (nn)
@@ -354,8 +343,7 @@
 	 (not thebuf)
 	 (progn
 	   (calc-quit t)
-	   (switch-to-buffer newbuf))))
-)
+	   (switch-to-buffer newbuf)))))
 
 (defun calc-overwrite-string (str eat-lnums)
   (if (string-match "\n\\'" str)
@@ -379,8 +367,7 @@
 		    (forward-char 1))
 		  (if eat-lnums (setq i (+ i 4)))))
 	  (self-insert-command 1))
-	(setq i (1+ i)))))
-)
+	(setq i (1+ i))))))
 
 ;;; First, require that buffer is visible and does not begin with "*"
 ;;; Second, require only that it not begin with "*Calc"
@@ -392,8 +379,7 @@
 		    (or (string-match "\\`\\*.*" (buffer-name (car buf)))
 			(not (get-buffer-window (car buf))))))
 	   (calc-find-writable-buffer (cdr buf) mode)
-	 (car buf)))
-)
+	 (car buf))))
 
 
 (defun calc-edit (n)
@@ -418,16 +404,14 @@
      (while list
        (insert (car list) "\n")
        (setq list (cdr list)))))
-  (calc-show-edit-buffer)
-)
+  (calc-show-edit-buffer))
 
 (defun calc-alg-edit (str)
   (calc-edit-mode '(calc-finish-stack-edit 0))
   (calc-show-edit-buffer)
   (insert str "\n")
   (backward-char 1)
-  (calc-set-command-flag 'do-edit)
-)
+  (calc-set-command-flag 'do-edit))
 
 (defvar calc-edit-mode-map nil "Keymap for use by the calc-edit command.")
 (if calc-edit-mode-map
@@ -435,8 +419,7 @@
   (setq calc-edit-mode-map (make-sparse-keymap))
   (define-key calc-edit-mode-map "\n" 'calc-edit-finish)
   (define-key calc-edit-mode-map "\r" 'calc-edit-return)
-  (define-key calc-edit-mode-map "\C-c\C-c" 'calc-edit-finish)
-)
+  (define-key calc-edit-mode-map "\C-c\C-c" 'calc-edit-finish))
 
 (defun calc-edit-mode (&optional handler allow-ret title)
   "Calculator editing mode.  Press RET, LFD, or C-c C-c to finish.
@@ -476,8 +459,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	    (if (eq (lookup-key (current-global-map) "\e#") 'calc-dispatch)
 		"M-# x"
 	      "C-x k RET")
-	    " to cancel.\n"))
-)
+	    " to cancel.\n")))
 (put 'calc-edit-mode 'mode-class 'special)
 
 (defun calc-show-edit-buffer ()
@@ -495,15 +477,13 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	      (delete-window win))))
     (set-buffer-modified-p nil)
     (goto-char (point-min))
-    (forward-line 1))
-)
+    (forward-line 1)))
 
 (defun calc-edit-return ()
   (interactive)
   (if (and (boundp 'calc-allow-ret) calc-allow-ret)
       (newline)
-    (calc-edit-finish))
-)
+    (calc-edit-finish)))
 
 (defun calc-edit-finish (&optional keep)
   "Finish calc-edit mode.  Parse buffer contents and push them on the stack."
@@ -543,16 +523,14 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (if disp-trail
 	(calc-wrapper
 	 (calc-trail-display 1 t)))
-    (message ""))
-)
+    (message "")))
 
 (defun calc-edit-cancel ()
   "Cancel calc-edit mode.  Ignore the Calc Edit buffer and don't change stack."
   (interactive)
   (let ((calc-edit-handler nil))
     (calc-edit-finish))
-  (message "(Cancelled)")
-)
+  (message "(Cancelled)"))
 
 (defun calc-finish-stack-edit (num)
   (let ((buf (current-buffer))
@@ -585,9 +563,6 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 					  calc-simplify-mode)))
 		(if (>= num 0)
 		    (calc-enter-result num "edit" vals)
-		  (calc-enter-result 1 "edit" vals (- num)))))))))
-)
+		  (calc-enter-result 1 "edit" vals (- num))))))))))
 
-
-
-
+;;; calc-yank.el ends here

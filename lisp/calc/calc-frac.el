@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-frac.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -32,8 +32,7 @@
 (defun calc-fdiv (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op ":" 'calcFunc-fdiv arg 1))
-)
+   (calc-binary-op ":" 'calcFunc-fdiv arg 1)))
 
 
 (defun calc-fraction (arg)
@@ -46,8 +45,7 @@
 					   (calc-top-n 1)))
        (calc-enter-result 1 "frac" (list func
 					 (calc-top-n 1)
-					 (prefix-numeric-value (or arg 0)))))))
-)
+					 (prefix-numeric-value (or arg 0))))))))
 
 
 (defun calc-over-notation (fmt)
@@ -60,14 +58,12 @@
 		   fmt (math-match-substring fmt 1)))
 	 (if (eq n 0) (error "Bad denominator"))
 	 (calc-change-mode 'calc-frac-format (list fmt n) t))
-     (error "Bad fraction separator format.")))
-)
+     (error "Bad fraction separator format."))))
 
 (defun calc-slash-notation (n)
   (interactive "P")
   (calc-wrapper
-   (calc-change-mode 'calc-frac-format (if n '("//" nil) '("/" nil)) t))
-)
+   (calc-change-mode 'calc-frac-format (if n '("//" nil) '("/" nil)) t)))
 
 
 (defun calc-frac-mode (n)
@@ -76,8 +72,7 @@
    (calc-change-mode 'calc-prefer-frac n nil t)
    (message (if calc-prefer-frac
 		"Integer division will now generate fractions."
-	      "Integer division will now generate floating-point results.")))
-)
+	      "Integer division will now generate floating-point results."))))
 
 
 
@@ -99,8 +94,7 @@
 	  (list 'frac num den))
       (if (equal gcd den)
 	  (math-quotient num gcd)
-	(list 'frac (math-quotient num gcd) (math-quotient den gcd)))))
-)
+	(list 'frac (math-quotient num gcd) (math-quotient den gcd))))))
 
 (defun calc-add-fractions (a b)
   (if (eq (car-safe a) 'frac)
@@ -113,8 +107,7 @@
 			(nth 2 a)))
     (math-make-frac (math-add (math-mul a (nth 2 b))
 			      (nth 1 b))
-		    (nth 2 b)))
-)
+		    (nth 2 b))))
 
 (defun calc-mul-fractions (a b)
   (if (eq (car-safe a) 'frac)
@@ -124,8 +117,7 @@
 	(math-make-frac (math-mul (nth 1 a) b)
 			(nth 2 a)))
     (math-make-frac (math-mul a (nth 1 b))
-		    (nth 2 b)))
-)
+		    (nth 2 b))))
 
 (defun calc-div-fractions (a b)
   (if (eq (car-safe a) 'frac)
@@ -135,8 +127,7 @@
 	(math-make-frac (nth 1 a)
 			(math-mul (nth 2 a) b)))
     (math-make-frac (math-mul a (nth 2 b))
-		    (nth 1 b)))
-)
+		    (nth 1 b))))
 
 
 
@@ -183,8 +174,7 @@
 	(t
 	 (let ((cfrac (math-continued-fraction a tol))
 	       (calc-prefer-frac t))
-	   (math-eval-continued-fraction cfrac))))
-)
+	   (math-eval-continued-fraction cfrac)))))
 
 (defun math-continued-fraction (a tol)
   (let ((calc-internal-prec (+ calc-internal-prec 2)))
@@ -207,8 +197,7 @@
 	      cfrac (cons int cfrac))
 	(or (Math-zerop aa)
 	    (setq aa (math-div 1 aa))))
-      cfrac))
-)
+      cfrac)))
 
 (defun math-eval-continued-fraction (cf)
   (let ((n (car cf))
@@ -218,8 +207,7 @@
       (setq temp (math-add (math-mul (car cf) n) d)
 	    d n
 	    n temp))
-    (math-div n d))
-)
+    (math-div n d)))
 
 
 
@@ -230,6 +218,6 @@
 	      (math-reject-arg a "*Division by zero")
 	    (math-make-frac (math-trunc a) (math-trunc b)))
 	(math-reject-arg b 'integerp))
-    (math-reject-arg a 'integerp))
-)
+    (math-reject-arg a 'integerp)))
 
+;;; calc-frac.el ends here

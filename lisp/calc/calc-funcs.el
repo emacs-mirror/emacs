@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-funcs.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -38,102 +38,86 @@
 	 (calc-binary-op "gamQ" 'calcFunc-gammaQ arg))
        (if (calc-is-hyperbolic)
 	   (calc-binary-op "gamg" 'calcFunc-gammag arg)
-	 (calc-binary-op "gamP" 'calcFunc-gammaP arg))))
-)
+	 (calc-binary-op "gamP" 'calcFunc-gammaP arg)))))
 
 (defun calc-erf (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-unary-op "erfc" 'calcFunc-erfc arg)
-     (calc-unary-op "erf" 'calcFunc-erf arg)))
-)
+     (calc-unary-op "erf" 'calcFunc-erf arg))))
 
 (defun calc-erfc (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-erf arg)
-)
+  (calc-erf arg))
 
 (defun calc-beta (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "beta" 'calcFunc-beta arg))
-)
+   (calc-binary-op "beta" 'calcFunc-beta arg)))
 
 (defun calc-inc-beta ()
   (interactive)
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-enter-result 3 "betB" (cons 'calcFunc-betaB (calc-top-list-n 3)))
-     (calc-enter-result 3 "betI" (cons 'calcFunc-betaI (calc-top-list-n 3)))))
-)
+     (calc-enter-result 3 "betI" (cons 'calcFunc-betaI (calc-top-list-n 3))))))
 
 (defun calc-bessel-J (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "besJ" 'calcFunc-besJ arg))
-)
+   (calc-binary-op "besJ" 'calcFunc-besJ arg)))
 
 (defun calc-bessel-Y (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "besY" 'calcFunc-besY arg))
-)
+   (calc-binary-op "besY" 'calcFunc-besY arg)))
 
 (defun calc-bernoulli-number (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-binary-op "bern" 'calcFunc-bern arg)
-     (calc-unary-op "bern" 'calcFunc-bern arg)))
-)
+     (calc-unary-op "bern" 'calcFunc-bern arg))))
 
 (defun calc-euler-number (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-binary-op "eulr" 'calcFunc-euler arg)
-     (calc-unary-op "eulr" 'calcFunc-euler arg)))
-)
+     (calc-unary-op "eulr" 'calcFunc-euler arg))))
 
 (defun calc-stirling-number (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-hyperbolic)
        (calc-binary-op "str2" 'calcFunc-stir2 arg)
-     (calc-binary-op "str1" 'calcFunc-stir1 arg)))
-)
+     (calc-binary-op "str1" 'calcFunc-stir1 arg))))
 
 (defun calc-utpb ()
   (interactive)
-  (calc-prob-dist "b" 3)
-)
+  (calc-prob-dist "b" 3))
 
 (defun calc-utpc ()
   (interactive)
-  (calc-prob-dist "c" 2)
-)
+  (calc-prob-dist "c" 2))
 
 (defun calc-utpf ()
   (interactive)
-  (calc-prob-dist "f" 3)
-)
+  (calc-prob-dist "f" 3))
 
 (defun calc-utpn ()
   (interactive)
-  (calc-prob-dist "n" 3)
-)
+  (calc-prob-dist "n" 3))
 
 (defun calc-utpp ()
   (interactive)
-  (calc-prob-dist "p" 2)
-)
+  (calc-prob-dist "p" 2))
 
 (defun calc-utpt ()
   (interactive)
-  (calc-prob-dist "t" 2)
-)
+  (calc-prob-dist "t" 2))
 
 (defun calc-prob-dist (letter nargs)
   (calc-slow-wrapper
@@ -145,8 +129,7 @@
      (calc-enter-result nargs (concat "utp" letter)
 			(append (list (intern (concat "calcFunc-utp" letter))
 				      (calc-top-n 1))
-				(calc-top-list-n (1- nargs) 2)))))
-)
+				(calc-top-list-n (1- nargs) 2))))))
 
 
 
@@ -159,8 +142,7 @@
 
 (defun calcFunc-gamma (x)
   (or (math-numberp x) (math-reject-arg x 'numberp))
-  (calcFunc-fact (math-add x -1))
-)
+  (calcFunc-fact (math-add x -1)))
 
 (defun math-gammap1-raw (x &optional fprec nfprec)   ; compute gamma(1 + x)
   (or fprec
@@ -193,8 +175,7 @@
 		       xinv
 		       (math-sqr xinv)
 		       '(float 0 0)
-		       2))))))
-)
+		       2)))))))
 
 (defun math-gamma-series (sum x xinvsqr oterm n)
   (math-working "gamma" sum)
@@ -212,8 +193,7 @@
 	    (calc-record-why
 	     "*Gamma computation stopped early, not all digits may be valid")
 	    next)
-	(math-gamma-series next (math-mul x xinvsqr) xinvsqr term (+ n 2)))))
-)
+	(math-gamma-series next (math-mul x xinvsqr) xinvsqr term (+ n 2))))))
 
 
 ;;; Incomplete gamma function.
@@ -229,8 +209,7 @@
 	     (> a 0) (< a 20))
 	(math-sub 1 (calcFunc-gammaQ a x))
       (let ((math-current-gamma-value (calcFunc-gamma a)))
-	(math-div (calcFunc-gammag a x) math-current-gamma-value))))
-)
+	(math-div (calcFunc-gammag a x) math-current-gamma-value)))))
 
 (defun calcFunc-gammaQ (a x)
   (if (equal x '(var inf var-inf))
@@ -251,8 +230,7 @@
 	      (math-working "gamma" sum))
 	    (math-mul sum (calcFunc-exp (math-neg x)))))
       (let ((math-current-gamma-value (calcFunc-gamma a)))
-	(math-div (calcFunc-gammaG a x) math-current-gamma-value))))
-)
+	(math-div (calcFunc-gammaG a x) math-current-gamma-value)))))
 
 (defun calcFunc-gammag (a x)
   (if (equal x '(var inf var-inf))
@@ -269,8 +247,7 @@
 						'(float 1 0))))
 	  (math-inc-gamma-series a x)
 	(math-sub (or math-current-gamma-value (calcFunc-gamma a))
-		  (math-inc-gamma-cfrac a x)))))
-)
+		  (math-inc-gamma-cfrac a x))))))
 (setq math-current-gamma-value nil)
 
 (defun calcFunc-gammaG (a x)
@@ -288,8 +265,7 @@
 						'(float 1 0))))
 	  (math-sub (or math-current-gamma-value (calcFunc-gamma a))
 		    (math-inc-gamma-series a x))
-	(math-inc-gamma-cfrac a x))))
-)
+	(math-inc-gamma-cfrac a x)))))
 
 (defun math-inc-gamma-series (a x)
   (if (Math-zerop x)
@@ -297,8 +273,7 @@
     (math-mul (math-exp-raw (math-sub (math-mul a (math-ln-raw x)) x))
 	      (math-with-extra-prec 2
 		(let ((start (math-div '(float 1 0) a)))
-		  (math-inc-gamma-series-step start start a x)))))
-)
+		  (math-inc-gamma-series-step start start a x))))))
 
 (defun math-inc-gamma-series-step (sum term a x)
   (math-working "gamma" sum)
@@ -307,8 +282,7 @@
   (let ((next (math-add sum term)))
     (if (math-nearly-equal sum next)
 	next
-      (math-inc-gamma-series-step next term a x)))
-)
+      (math-inc-gamma-series-step next term a x))))
 
 (defun math-inc-gamma-cfrac (a x)
   (if (Math-zerop x)
@@ -317,8 +291,7 @@
 	      (math-inc-gamma-cfrac-step '(float 1 0) x
 					 '(float 0 0) '(float 1 0)
 					 '(float 1 0) '(float 1 0) '(float 0 0)
-					 a x)))
-)
+					 a x))))
 
 (defun math-inc-gamma-cfrac-step (a0 a1 b0 b1 n fac g a x)
   (let ((ana (math-sub n a))
@@ -335,8 +308,7 @@
 	(math-working "gamma" next)
 	(if (math-nearly-equal next g)
 	    next
-	  (math-inc-gamma-cfrac-step a0 a1 b0 b1 n fac next a x)))))
-)
+	  (math-inc-gamma-cfrac-step a0 a1 b0 b1 n fac next a x))))))
 
 
 ;;; Error function.
@@ -353,8 +325,7 @@
 	   (math-div (calcFunc-gammag '(float 5 -1)
 				      (math-sqr (math-to-complex-quad-one x)))
 		     math-current-gamma-value)
-	   x)))))
-)
+	   x))))))
 
 (defun calcFunc-erfc (x)
   (if (equal x '(var inf var-inf))
@@ -363,15 +334,13 @@
 	(let ((math-current-gamma-value (math-sqrt-pi)))
 	  (math-div (calcFunc-gammaG '(float 5 -1) (math-sqr x))
 		    math-current-gamma-value))
-      (math-sub 1 (calcFunc-erf x))))
-)
+      (math-sub 1 (calcFunc-erf x)))))
 
 (defun math-to-complex-quad-one (x)
   (if (eq (car-safe x) 'polar) (setq x (math-complex x)))
   (if (eq (car-safe x) 'cplx)
       (list 'cplx (math-abs (nth 1 x)) (math-abs (nth 2 x)))
-    x)
-)
+    x))
 
 (defun math-to-same-complex-quad (x y)
   (if (eq (car-safe y) 'cplx)
@@ -384,8 +353,7 @@
 	(if (eq (car-safe x) 'cplx)
 	    (list 'cplx (math-neg (nth 1 x)) (nth 2 x))
 	  (math-neg x))
-      x))
-)
+      x)))
 
 
 ;;; Beta function.
@@ -398,8 +366,7 @@
     (if (math-num-integerp b)
 	(calcFunc-beta b a)
       (math-div (math-mul (calcFunc-gamma a) (calcFunc-gamma b))
-		(calcFunc-gamma (math-add a b)))))
-)
+		(calcFunc-gamma (math-add a b))))))
 
 
 ;;; Incomplete beta function.
@@ -425,8 +392,7 @@
 	((not (math-numberp b)) (math-reject-arg b 'numberp))
 	((math-inexact-result))
 	(t (let ((math-current-beta-value (calcFunc-beta a b)))
-	     (math-div (calcFunc-betaB x a b) math-current-beta-value))))
-)
+	     (math-div (calcFunc-betaB x a b) math-current-beta-value)))))
 
 (defun calcFunc-betaB (x a b)
   (cond
@@ -478,8 +444,7 @@
 	  (math-sub (or math-current-beta-value (calcFunc-beta a b))
 		    (math-div (math-mul bt
 					(math-beta-cfrac b a (math-sub 1 x)))
-			      b)))))))
-)
+			      b))))))))
 (setq math-current-beta-value nil)
 
 (defun math-beta-cfrac (a b x)
@@ -491,8 +456,7 @@
 				    (math-div (math-mul qab x) qap))
 			  '(float 1 0) '(float 1 0)
 			  '(float 1 0)
-			  qab qap qam a b x))
-)
+			  qab qap qam a b x)))
 
 (defun math-beta-cfrac-step (az bz am bm m qab qap qam a b x)
   (let* ((two-m (math-mul m '(float 2 0)))
@@ -512,8 +476,7 @@
       (math-beta-cfrac-step next '(float 1 0)
 			    (math-div ap bpp) (math-div bp bpp)
 			    (math-add m '(float 1 0))
-			    qab qap qam a b x)))
-)
+			    qab qap qam a b x))))
 
 
 ;;; Bessel functions.
@@ -583,8 +546,7 @@
 		     (setq sum (math-add sum bj)))
 		 (if (= j v)
 		     (setq ans bjp)))
-	       (math-div ans (math-sub (math-mul 2 sum) bj)))))))
-)
+	       (math-div ans (math-sub (math-mul 2 sum) bj))))))))
 
 (defun math-besJ-series (sum term k zz vk)
   (math-working "besJ" sum)
@@ -594,8 +556,7 @@
   (let ((next (math-add sum term)))
     (if (math-nearly-equal next sum)
 	next
-      (math-besJ-series next term k zz vk)))
-)
+      (math-besJ-series next term k zz vk))))
 
 (defun math-besJ0 (x &optional yflag)
   (cond ((and (not yflag) (math-negp (calcFunc-re x)))
@@ -638,8 +599,7 @@
 					(float (bigpos 853 264 927 5) -5)
 					(float (bigpos 718 680 494 9) -3)
 					(float (bigpos 985 532 029 1) 0)
-					(float (bigpos 411 490 568 57) 0)))))))
-)
+					(float (bigpos 411 490 568 57) 0))))))))
 
 (defun math-besJ1 (x &optional yflag)
   (cond ((and (math-negp (calcFunc-re x)) (not yflag))
@@ -686,8 +646,7 @@
 					(float (bigpos 474 330 858 1) -2)
 					(float (bigpos 178 535 300 2) 0)
 					(float (bigpos 442 228 725 144)
-					       0))))))))
-)
+					       0)))))))))
 
 (defun calcFunc-besY (v x)
   (math-inexact-result)
@@ -721,8 +680,7 @@
 				     bym)
 		       bym by
 		       by byp))
-	       by)))))
-)
+	       by))))))
 
 (defun math-besY0 (x)
   (cond ((Math-lessp (math-abs-approx x) '(float 8 0))
@@ -749,8 +707,7 @@
 		   (math-mul '(cplx 0 2)
 			     (math-besJ0 (math-neg x)))))
 	(t
-	 (math-besJ0 x t)))
-)
+	 (math-besJ0 x t))))
 
 (defun math-besY1 (x)
   (cond ((Math-lessp (math-abs-approx x) '(float 8 0))
@@ -782,15 +739,13 @@
 		    (math-mul '(cplx 0 2)
 			      (math-besJ1 (math-neg x))))))
 	(t
-	 (math-besJ1 x t)))
-)
+	 (math-besJ1 x t))))
 
 (defun math-poly-eval (x coefs)
   (let ((accum (car coefs)))
     (while (setq coefs (cdr coefs))
       (setq accum (math-add (car coefs) (math-mul accum x))))
-    accum)
-)
+    accum))
 
 
 ;;;; Bernoulli and Euler polynomials and numbers.
@@ -805,8 +760,7 @@
 	(progn
 	  (math-inexact-result)
 	  (math-float (math-bernoulli-number (math-trunc n))))
-      (math-bernoulli-number n)))
-)
+      (math-bernoulli-number n))))
 
 (defun calcFunc-euler (n &optional x)
   (or (math-num-natnump n) (math-reject-arg n 'natnump))
@@ -840,8 +794,7 @@
 		  (progn
 		    (math-inexact-result)
 		    (calcFunc-euler n '(float 5 -1)))
-		(calcFunc-euler n '(frac 1 2)))))
-)
+		(calcFunc-euler n '(frac 1 2))))))
 
 (defun math-bernoulli-coefs (n)
   (let* ((coefs (list (calcFunc-bern n)))
@@ -855,8 +808,7 @@
 	    coef (math-mul term (math-bernoulli-number k))
 	    coefs (cons (if (consp n) (math-float coef) coef) coefs)
 	    term (math-mul term k)))
-    (nreverse coefs))
-)
+    (nreverse coefs)))
 
 (defun math-bernoulli-number (n)
   (if (= (% n 2) 1)
@@ -884,8 +836,7 @@
 	      math-bernoulli-B-cache (cons (math-mul sum ofact)
 					   math-bernoulli-B-cache)
 	      math-bernoulli-cache-size (1+ math-bernoulli-cache-size))))
-    (nth (- math-bernoulli-cache-size n 1) math-bernoulli-B-cache))
-)
+    (nth (- math-bernoulli-cache-size n 1) math-bernoulli-B-cache)))
 
 ;;;   Bn = n! bn
 ;;;   bn = - sum_k=0^n-1 bk / (n-k+1)!
@@ -919,28 +870,24 @@
 (defun calcFunc-utpb (x n p)
   (if math-expand-formulas
       (math-normalize (list 'calcFunc-betaI p x (list '+ (list '- n x) 1)))
-    (calcFunc-betaI p x (math-add (math-sub n x) 1)))
-)
+    (calcFunc-betaI p x (math-add (math-sub n x) 1))))
 (put 'calcFunc-utpb 'math-expandable t)
 
 (defun calcFunc-ltpb (x n p)
-  (math-sub 1 (calcFunc-utpb x n p))
-)
+  (math-sub 1 (calcFunc-utpb x n p)))
 (put 'calcFunc-ltpb 'math-expandable t)
 
 ;;; Chi-square.
 (defun calcFunc-utpc (chisq v)
   (if math-expand-formulas
       (math-normalize (list 'calcFunc-gammaQ (list '/ v 2) (list '/ chisq 2)))
-    (calcFunc-gammaQ (math-div v 2) (math-div chisq 2)))
-)
+    (calcFunc-gammaQ (math-div v 2) (math-div chisq 2))))
 (put 'calcFunc-utpc 'math-expandable t)
 
 (defun calcFunc-ltpc (chisq v)
   (if math-expand-formulas
       (math-normalize (list 'calcFunc-gammaP (list '/ v 2) (list '/ chisq 2)))
-    (calcFunc-gammaP (math-div v 2) (math-div chisq 2)))
-)
+    (calcFunc-gammaP (math-div v 2) (math-div chisq 2))))
 (put 'calcFunc-ltpc 'math-expandable t)
 
 ;;; F-distribution.
@@ -952,13 +899,11 @@
 			    (list '/ v1 2)))
     (calcFunc-betaI (math-div v2 (math-add v2 (math-mul v1 f)))
 		    (math-div v2 2)
-		    (math-div v1 2)))
-)
+		    (math-div v1 2))))
 (put 'calcFunc-utpf 'math-expandable t)
 
 (defun calcFunc-ltpf (f v1 v2)
-  (math-sub 1 (calcFunc-utpf f v1 v2))
-)
+  (math-sub 1 (calcFunc-utpf f v1 v2)))
 (put 'calcFunc-ltpf 'math-expandable t)
 
 ;;; Normal.
@@ -975,8 +920,7 @@
 			(calcFunc-erf
 			 (math-div (math-sub mean x)
 				   (math-mul sdev (math-sqrt-2)))))
-	      '(float 5 -1)))
-)
+	      '(float 5 -1))))
 (put 'calcFunc-utpn 'math-expandable t)
 
 (defun calcFunc-ltpn (x mean sdev)
@@ -992,23 +936,20 @@
 			(calcFunc-erf
 			 (math-div (math-sub x mean)
 				   (math-mul sdev (math-sqrt-2)))))
-	      '(float 5 -1)))
-)
+	      '(float 5 -1))))
 (put 'calcFunc-ltpn 'math-expandable t)
 
 ;;; Poisson.
 (defun calcFunc-utpp (n x)
   (if math-expand-formulas
       (math-normalize (list 'calcFunc-gammaP x n))
-    (calcFunc-gammaP x n))
-)
+    (calcFunc-gammaP x n)))
 (put 'calcFunc-utpp 'math-expandable t)
 
 (defun calcFunc-ltpp (n x)
   (if math-expand-formulas
       (math-normalize (list 'calcFunc-gammaQ x n))
-    (calcFunc-gammaQ x n))
-)
+    (calcFunc-gammaQ x n)))
 (put 'calcFunc-ltpp 'math-expandable t)
 
 ;;; Student's t.  (As defined in Abramowitz & Stegun and Numerical Recipes.)
@@ -1020,15 +961,12 @@
 			    '(float 5 -1)))
     (calcFunc-betaI (math-div v (math-add v (math-sqr tt)))
 		    (math-div v 2)
-		    '(float 5 -1)))
-)
+		    '(float 5 -1))))
 (put 'calcFunc-utpt 'math-expandable t)
 
 (defun calcFunc-ltpt (tt v)
-  (math-sub 1 (calcFunc-utpt tt v))
-)
+  (math-sub 1 (calcFunc-utpt tt v)))
 (put 'calcFunc-ltpt 'math-expandable t)
 
 
-
-
+;;; calc-funcs.el ends here

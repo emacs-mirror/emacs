@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-vec.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -34,8 +34,7 @@
   (calc-wrapper
    (message (if (calc-change-mode 'calc-display-strings n t t)
 		"Displaying vectors of integers as quoted strings."
-	      "Displaying vectors of integers normally.")))
-)
+	      "Displaying vectors of integers normally."))))
 
 
 (defun calc-pack (n)
@@ -48,8 +47,7 @@
 		    (error "Packing mode must be an integer or vector of integers"))))
 	  (num (calc-pack-size mode))
 	  (items (calc-top-list num nn)))
-     (calc-enter-result (+ nn num -1) "pack" (calc-pack-items mode items))))
-)
+     (calc-enter-result (+ nn num -1) "pack" (calc-pack-items mode items)))))
 
 (defun calc-pack-size (mode)
   (cond ((consp mode)
@@ -63,8 +61,7 @@
 	     size)))
 	((>= mode 0) mode)
 	(t (or (cdr (assq mode '((-3 . 3) (-13 . 1) (-14 . 3) (-15 . 6))))
-	       2)))
-)
+	       2))))
 
 (defun calc-pack-items (mode items)
   (cond ((consp mode)
@@ -205,8 +202,7 @@
 		  (list 'calcFunc-float (car items))
 		  (nth 1 items)))))
 	(t
-	 (error "Invalid packing mode: %d" mode)))
-)
+	 (error "Invalid packing mode: %d" mode))))
 
 (defun calc-unpack (mode)
   (interactive "P")
@@ -215,8 +211,7 @@
      (calc-pop-push-record-list 1 "unpk" (calc-unpack-item
 					  (and mode
 					       (prefix-numeric-value mode))
-					  (calc-top)))))
-)
+					  (calc-top))))))
 
 (defun calc-unpack-type (item)
   (cond ((eq (car-safe item) 'vec)
@@ -228,8 +223,7 @@
 					   (hms . -3) (sdev . -4) (mod . -5)
 					   (frac . -10) (float . -11)
 					   (date . -13) )))
-	     (error "Argument must be a composite object"))))
-)
+	     (error "Argument must be a composite object")))))
 
 (defun calc-unpack-item (mode item)
   (cond ((not mode)
@@ -333,8 +327,7 @@
 	     (list (calcFunc-mant item) (calcFunc-xpon item))
 	   (error "Expected a floating-point number")))
 	(t
-	 (error "Invalid unpacking mode: %d" mode)))
-)
+	 (error "Invalid unpacking mode: %d" mode))))
 (setq calc-unpack-with-type nil)
 
 (defun calc-diag (n)
@@ -343,8 +336,7 @@
    (calc-enter-result 1 "diag" (if n
 				   (list 'calcFunc-diag (calc-top-n 1)
 					 (prefix-numeric-value n))
-				 (list 'calcFunc-diag (calc-top-n 1)))))
-)
+				 (list 'calcFunc-diag (calc-top-n 1))))))
 
 (defun calc-ident (n)
   (interactive "NDimension of identity matrix = ")
@@ -352,8 +344,7 @@
    (calc-enter-result 0 "idn" (if (eq n 0)
 				  '(calcFunc-idn 1)
 				(list 'calcFunc-idn 1
-				      (prefix-numeric-value n)))))
-)
+				      (prefix-numeric-value n))))))
 
 (defun calc-index (n &optional stack)
   (interactive "NSize of vector = \nP")
@@ -361,24 +352,21 @@
    (if (consp stack)
        (calc-enter-result 3 "indx" (cons 'calcFunc-index (calc-top-list-n 3)))
      (calc-enter-result 0 "indx" (list 'calcFunc-index
-				       (prefix-numeric-value n)))))
-)
+				       (prefix-numeric-value n))))))
 
 (defun calc-build-vector (n)
   (interactive "NSize of vector = ")
   (calc-wrapper
    (calc-enter-result 1 "bldv" (list 'calcFunc-cvec
 				     (calc-top-n 1)
-				     (prefix-numeric-value n))))
-)
+				     (prefix-numeric-value n)))))
 
 (defun calc-cons (arg)
   (interactive "P")
   (calc-wrapper
    (if (calc-is-hyperbolic)
        (calc-binary-op "rcns" 'calcFunc-rcons arg)
-     (calc-binary-op "cons" 'calcFunc-cons arg)))
-)
+     (calc-binary-op "cons" 'calcFunc-cons arg))))
 
 
 (defun calc-head (arg)
@@ -390,29 +378,25 @@
 	 (calc-unary-op "tail" 'calcFunc-tail arg))
      (if (calc-is-hyperbolic)
 	 (calc-unary-op "rhed" 'calcFunc-rhead arg)
-       (calc-unary-op "head" 'calcFunc-head arg))))
-)
+       (calc-unary-op "head" 'calcFunc-head arg)))))
 
 (defun calc-tail (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-head arg)
-)
+  (calc-head arg))
 
 (defun calc-vlength (arg)
   (interactive "P")
   (calc-wrapper
    (if (calc-is-hyperbolic)
        (calc-unary-op "dims" 'calcFunc-mdims arg)
-     (calc-unary-op "len" 'calcFunc-vlen arg)))
-)
+     (calc-unary-op "len" 'calcFunc-vlen arg))))
 
 (defun calc-arrange-vector (n)
   (interactive "NNumber of columns = ")
   (calc-wrapper
    (calc-enter-result 1 "arng" (list 'calcFunc-arrange (calc-top-n 1)
-				     (prefix-numeric-value n))))
-)
+				     (prefix-numeric-value n)))))
 
 (defun calc-vector-find (arg)
   (interactive "P")
@@ -420,8 +404,7 @@
    (let ((func (cons 'calcFunc-find (calc-top-list-n 2))))
      (calc-enter-result
       2 "find"
-      (if arg (append func (list (prefix-numeric-value arg))) func))))
-)
+      (if arg (append func (list (prefix-numeric-value arg))) func)))))
 
 (defun calc-subvector ()
   (interactive)
@@ -429,44 +412,38 @@
    (if (calc-is-inverse)
        (calc-enter-result 3 "rsvc" (cons 'calcFunc-rsubvec
 					 (calc-top-list-n 3)))
-     (calc-enter-result 3 "svec" (cons 'calcFunc-subvec (calc-top-list-n 3)))))
-)
+     (calc-enter-result 3 "svec" (cons 'calcFunc-subvec (calc-top-list-n 3))))))
 
 (defun calc-reverse-vector (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "rev" 'calcFunc-rev arg))
-)
+   (calc-unary-op "rev" 'calcFunc-rev arg)))
 
 (defun calc-mask-vector (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "vmsk" 'calcFunc-vmask arg))
-)
+   (calc-binary-op "vmsk" 'calcFunc-vmask arg)))
 
 (defun calc-expand-vector (arg)
   (interactive "P")
   (calc-wrapper
    (if (calc-is-hyperbolic)
        (calc-enter-result 3 "vexp" (cons 'calcFunc-vexp (calc-top-list-n 3)))
-     (calc-binary-op "vexp" 'calcFunc-vexp arg)))
-)
+     (calc-binary-op "vexp" 'calcFunc-vexp arg))))
 
 (defun calc-sort ()
   (interactive)
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-enter-result 1 "rsrt" (list 'calcFunc-rsort (calc-top-n 1)))
-     (calc-enter-result 1 "sort" (list 'calcFunc-sort (calc-top-n 1)))))
-)
+     (calc-enter-result 1 "sort" (list 'calcFunc-sort (calc-top-n 1))))))
 
 (defun calc-grade ()
   (interactive)
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-enter-result 1 "rgrd" (list 'calcFunc-rgrade (calc-top-n 1)))
-     (calc-enter-result 1 "grad" (list 'calcFunc-grade (calc-top-n 1)))))
-)
+     (calc-enter-result 1 "grad" (list 'calcFunc-grade (calc-top-n 1))))))
 
 (defun calc-histogram (n)
   (interactive "NNumber of bins: ")
@@ -478,113 +455,95 @@
 					 (prefix-numeric-value n)))
      (calc-enter-result 1 "hist" (list 'calcFunc-histogram
 				       (calc-top-n 1)
-				       (prefix-numeric-value n)))))
-)
+				       (prefix-numeric-value n))))))
 
 (defun calc-transpose (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "trn" 'calcFunc-trn arg))
-)
+   (calc-unary-op "trn" 'calcFunc-trn arg)))
 
 (defun calc-conj-transpose (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "ctrn" 'calcFunc-ctrn arg))
-)
+   (calc-unary-op "ctrn" 'calcFunc-ctrn arg)))
 
 (defun calc-cross (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "cros" 'calcFunc-cross arg))
-)
+   (calc-binary-op "cros" 'calcFunc-cross arg)))
 
 (defun calc-remove-duplicates (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "rdup" 'calcFunc-rdup arg))
-)
+   (calc-unary-op "rdup" 'calcFunc-rdup arg)))
 
 (defun calc-set-union (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "unio" 'calcFunc-vunion arg '(vec) 'calcFunc-rdup))
-)
+   (calc-binary-op "unio" 'calcFunc-vunion arg '(vec) 'calcFunc-rdup)))
 
 (defun calc-set-intersect (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "intr" 'calcFunc-vint arg '(vec) 'calcFunc-rdup))
-)
+   (calc-binary-op "intr" 'calcFunc-vint arg '(vec) 'calcFunc-rdup)))
 
 (defun calc-set-difference (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "diff" 'calcFunc-vdiff arg '(vec) 'calcFunc-rdup))
-)
+   (calc-binary-op "diff" 'calcFunc-vdiff arg '(vec) 'calcFunc-rdup)))
 
 (defun calc-set-xor (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-binary-op "xor" 'calcFunc-vxor arg '(vec) 'calcFunc-rdup))
-)
+   (calc-binary-op "xor" 'calcFunc-vxor arg '(vec) 'calcFunc-rdup)))
 
 (defun calc-set-complement (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "cmpl" 'calcFunc-vcompl arg))
-)
+   (calc-unary-op "cmpl" 'calcFunc-vcompl arg)))
 
 (defun calc-set-floor (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "vflr" 'calcFunc-vfloor arg))
-)
+   (calc-unary-op "vflr" 'calcFunc-vfloor arg)))
 
 (defun calc-set-enumerate (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "enum" 'calcFunc-venum arg))
-)
+   (calc-unary-op "enum" 'calcFunc-venum arg)))
 
 (defun calc-set-span (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "span" 'calcFunc-vspan arg))
-)
+   (calc-unary-op "span" 'calcFunc-vspan arg)))
 
 (defun calc-set-cardinality (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "card" 'calcFunc-vcard arg))
-)
+   (calc-unary-op "card" 'calcFunc-vcard arg)))
 
 (defun calc-unpack-bits (arg)
   (interactive "P")
   (calc-wrapper
    (if (calc-is-inverse)
        (calc-unary-op "bpck" 'calcFunc-vpack arg)
-     (calc-unary-op "bupk" 'calcFunc-vunpack arg)))
-)
+     (calc-unary-op "bupk" 'calcFunc-vunpack arg))))
 
 (defun calc-pack-bits (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-unpack-bits arg)
-)
+  (calc-unpack-bits arg))
 
 
 (defun calc-rnorm (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "rnrm" 'calcFunc-rnorm arg))
-)
+   (calc-unary-op "rnrm" 'calcFunc-rnorm arg)))
 
 (defun calc-cnorm (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "cnrm" 'calcFunc-cnorm arg))
-)
+   (calc-unary-op "cnrm" 'calcFunc-cnorm arg)))
 
 (defun calc-mrow (n &optional nn)
   (interactive "NRow number: \nP")
@@ -598,8 +557,7 @@
 	   (calc-enter-result 1 "rrow" (list 'calcFunc-mrrow
 					     (calc-top-n 1) (- n)))
 	 (calc-enter-result 1 "mrow" (list 'calcFunc-mrow
-					   (calc-top-n 1) n))))))
-)
+					   (calc-top-n 1) n)))))))
 
 (defun calc-mcol (n &optional nn)
   (interactive "NColumn number: \nP")
@@ -613,8 +571,7 @@
 	   (calc-enter-result 1 "rcol" (list 'calcFunc-mrcol
 					     (calc-top-n 1) (- n)))
 	 (calc-enter-result 1 "mcol" (list 'calcFunc-mcol
-					   (calc-top-n 1) n))))))
-)
+					   (calc-top-n 1) n)))))))
 
 
 ;;;; Vectors.
@@ -622,33 +579,28 @@
 (defun calcFunc-mdims (m)
   (or (math-vectorp m)
       (math-reject-arg m 'vectorp))
-  (cons 'vec (math-mat-dimens m))
-)
+  (cons 'vec (math-mat-dimens m)))
 
 
 ;;; Apply a function elementwise to vector A.  [V X V; N X N] [Public]
 (defun math-map-vec (f a)
   (if (math-vectorp a)
       (cons 'vec (mapcar f (cdr a)))
-    (funcall f a))
-)
+    (funcall f a)))
 
 (defun math-dimension-error ()
   (calc-record-why "*Dimension error")
-  (signal 'wrong-type-argument nil)
-)
+  (signal 'wrong-type-argument nil))
 
 
 ;;; Build a vector out of a list of objects.  [Public]
 (defun calcFunc-vec (&rest objs)
-  (cons 'vec objs)
-)
+  (cons 'vec objs))
 
 
 ;;; Build a constant vector or matrix.  [Public]
 (defun calcFunc-cvec (obj &rest dims)
-  (math-make-vec-dimen obj dims)
-)
+  (math-make-vec-dimen obj dims))
 
 (defun math-make-vec-dimen (obj dims)
   (if dims
@@ -660,31 +612,27 @@
 				     (math-make-vec-dimen obj (cdr dims)))))
 	    (cons 'vec (make-list (car dims) obj)))
 	(math-reject-arg (car dims) 'fixnatnump))
-    obj)
-)
+    obj))
 
 (defun calcFunc-head (vec)
   (if (and (Math-vectorp vec)
 	   (cdr vec))
       (nth 1 vec)
     (calc-record-why 'vectorp vec)
-    (list 'calcFunc-head vec))
-)
+    (list 'calcFunc-head vec)))
 
 (defun calcFunc-tail (vec)
   (if (and (Math-vectorp vec)
 	   (cdr vec))
       (cons 'vec (cdr (cdr vec)))
     (calc-record-why 'vectorp vec)
-    (list 'calcFunc-tail vec))
-)
+    (list 'calcFunc-tail vec)))
 
 (defun calcFunc-cons (head tail)
   (if (Math-vectorp tail)
       (cons 'vec (cons head (cdr tail)))
     (calc-record-why 'vectorp tail)
-    (list 'calcFunc-cons head tail))
-)
+    (list 'calcFunc-cons head tail)))
 
 (defun calcFunc-rhead (vec)
   (if (and (Math-vectorp vec)
@@ -693,23 +641,20 @@
 	(setcdr (nthcdr (- (length vec) 2) vec) nil)
 	vec)
     (calc-record-why 'vectorp vec)
-    (list 'calcFunc-rhead vec))
-)
+    (list 'calcFunc-rhead vec)))
 
 (defun calcFunc-rtail (vec)
   (if (and (Math-vectorp vec)
 	   (cdr vec))
       (nth (1- (length vec)) vec)
     (calc-record-why 'vectorp vec)
-    (list 'calcFunc-rtail vec))
-)
+    (list 'calcFunc-rtail vec)))
 
 (defun calcFunc-rcons (head tail)
   (if (Math-vectorp head)
       (append head (list tail))
     (calc-record-why 'vectorp head)
-    (list 'calcFunc-rcons head tail))
-)
+    (list 'calcFunc-rcons head tail)))
 
 
 
@@ -733,8 +678,7 @@
 	  (while (setq b (cdr b))
 	    (setq v (cons (funcall f a (car b)) v)))
 	  (cons 'vec (nreverse v)))
-      (funcall f a b)))
-)
+      (funcall f a b))))
 
 
 
@@ -747,21 +691,18 @@
 	      (setq accum (funcall f accum (car a))))
 	    accum)
 	0)
-    a)
-)
+    a))
 
 ;;; Reduce a function over the columns of matrix A.  [V X V] [Public]
 (defun math-reduce-cols (f a)
   (if (math-matrixp a)
       (cons 'vec (math-reduce-cols-col-step f (cdr a) 1 (length (nth 1 a))))
-    a)
-)
+    a))
 
 (defun math-reduce-cols-col-step (f a col cols)
   (and (< col cols)
        (cons (math-reduce-cols-row-step f (nth col (car a)) col (cdr a))
-	     (math-reduce-cols-col-step f a (1+ col) cols)))
-)
+	     (math-reduce-cols-col-step f a (1+ col) cols))))
 
 (defun math-reduce-cols-row-step (f tot col a)
   (if a
@@ -769,8 +710,7 @@
 				 (funcall f tot (nth col (car a)))
 				 col
 				 (cdr a))
-    tot)
-)
+    tot))
 
 
 
@@ -780,8 +720,7 @@
 	(while (setq a (cdr a) b (cdr b))
 	  (setq accum (math-add accum (math-mul (car a) (car b)))))
 	accum)
-    0)
-)
+    0))
 
 
 ;;; Return the number of elements in vector V.  [Public]
@@ -790,8 +729,7 @@
       (1- (length v))
     (if (math-objectp v)
 	0
-      (list 'calcFunc-vlen v)))
-)
+      (list 'calcFunc-vlen v))))
 
 ;;; Get the Nth row of a matrix.
 (defun calcFunc-mrow (mat n)   ; [Public]
@@ -807,8 +745,7 @@
       (or (Math-vectorp mat)
 	  (math-reject-arg mat 'vectorp))
       (or (nth n mat)
-	  (math-reject-arg n "*Index out of range"))))
-)
+	  (math-reject-arg n "*Index out of range")))))
 
 (defun calcFunc-subscr (mat n &optional m)
   (setq mat (calcFunc-mrow mat n))
@@ -816,13 +753,11 @@
       (if (math-num-integerp n)
 	  (calcFunc-mrow mat m)
 	(calcFunc-mcol mat m))
-    mat)
-)
+    mat))
 
 ;;; Get the Nth column of a matrix.
 (defun math-mat-col (mat n)
-  (cons 'vec (mapcar (function (lambda (x) (elt x n))) (cdr mat)))
-)
+  (cons 'vec (mapcar (function (lambda (x) (elt x n))) (cdr mat))))
 
 (defun calcFunc-mcol (mat n)   ; [Public]
   (if (Math-vectorp n)
@@ -841,29 +776,25 @@
 	      (and (< n (length (nth 1 mat)))
 		   (math-mat-col mat n))
 	    (nth n mat))
-	  (math-reject-arg n "*Index out of range"))))
-)
+	  (math-reject-arg n "*Index out of range")))))
 
 ;;; Remove the Nth row from a matrix.
 (defun math-mat-less-row (mat n)
   (if (<= n 0)
       (cdr mat)
     (cons (car mat)
-	  (math-mat-less-row (cdr mat) (1- n))))
-)
+	  (math-mat-less-row (cdr mat) (1- n)))))
 
 (defun calcFunc-mrrow (mat n)   ; [Public]
   (and (integerp (setq n (math-check-integer n)))
        (> n 0)
        (< n (length mat))
-       (math-mat-less-row mat n))
-)
+       (math-mat-less-row mat n)))
 
 ;;; Remove the Nth column from a matrix.
 (defun math-mat-less-col (mat n)
   (cons 'vec (mapcar (function (lambda (x) (math-mat-less-row x n)))
-		     (cdr mat)))
-)
+		     (cdr mat))))
 
 (defun calcFunc-mrcol (mat n)   ; [Public]
   (and (integerp (setq n (math-check-integer n)))
@@ -871,29 +802,25 @@
        (if (math-matrixp mat)
 	   (and (< n (length (nth 1 mat)))
 		(math-mat-less-col mat n))
-	 (math-mat-less-row mat n)))
-)
+	 (math-mat-less-row mat n))))
 
 (defun calcFunc-getdiag (mat)   ; [Public]
   (if (math-square-matrixp mat)
       (cons 'vec (math-get-diag-step (cdr mat) 1))
     (calc-record-why 'square-matrixp mat)
-    (list 'calcFunc-getdiag mat))
-)
+    (list 'calcFunc-getdiag mat)))
 
 (defun math-get-diag-step (row n)
   (and row
        (cons (nth n (car row))
-	     (math-get-diag-step (cdr row) (1+ n))))
-)
+	     (math-get-diag-step (cdr row) (1+ n)))))
 
 (defun math-transpose (mat)   ; [Public]
   (let ((m nil)
 	(col (length (nth 1 mat))))
     (while (> (setq col (1- col)) 0)
       (setq m (cons (math-mat-col mat col) m)))
-    (cons 'vec m))
-)
+    (cons 'vec m)))
 
 (defun calcFunc-trn (mat)
   (if (math-vectorp mat)
@@ -902,12 +829,10 @@
 	(math-col-matrix mat))
     (if (math-numberp mat)
 	mat
-      (math-reject-arg mat 'matrixp)))
-)
+      (math-reject-arg mat 'matrixp))))
 
 (defun calcFunc-ctrn (mat)
-  (calcFunc-conj (calcFunc-trn mat))
-)
+  (calcFunc-conj (calcFunc-trn mat)))
 
 (defun calcFunc-pack (mode els)
   (or (Math-vectorp els) (math-reject-arg els 'vectorp))
@@ -918,20 +843,17 @@
       (if (= (calc-pack-size mode) (1- (length els)))
 	  (calc-pack-items mode (cdr els))
 	(math-reject-arg els "*Wrong number of elements"))
-    (error (math-reject-arg els (nth 1 err))))
-)
+    (error (math-reject-arg els (nth 1 err)))))
 
 (defun calcFunc-unpack (mode thing)
   (or (integerp mode) (math-reject-arg mode 'fixnump))
   (condition-case err
       (cons 'vec (calc-unpack-item mode thing))
-    (error (math-reject-arg thing (nth 1 err))))
-)
+    (error (math-reject-arg thing (nth 1 err)))))
 
 (defun calcFunc-unpackt (mode thing)
   (let ((calc-unpack-with-type 'pair))
-    (calcFunc-unpack mode thing))
-)
+    (calcFunc-unpack mode thing)))
 
 (defun calcFunc-arrange (vec cols)   ; [Public]
   (setq cols (math-check-fixnum cols t))
@@ -948,40 +870,33 @@
 		  flat next))
 	  (if flat
 	      (setq mat (nconc mat (list (cons 'vec flat)))))
-	  mat)))
-)
+	  mat))))
 
 (defun math-flatten-vector (vec)   ; [L V]
   (if (math-vectorp vec)
       (apply 'append (mapcar 'math-flatten-vector (cdr vec)))
-    (list vec))
-)
+    (list vec)))
 
 (defun calcFunc-vconcat (a b)
-  (math-normalize (list '| a b))
-)
+  (math-normalize (list '| a b)))
 
 (defun calcFunc-vconcatrev (a b)
-  (math-normalize (list '| b a))
-)
+  (math-normalize (list '| b a)))
 
 (defun calcFunc-append (v1 v2)
   (if (and (math-vectorp v1) (math-vectorp v2))
       (append v1 (cdr v2))
-    (list 'calcFunc-append v1 v2))
-)
+    (list 'calcFunc-append v1 v2)))
 
 (defun calcFunc-appendrev (v1 v2)
-  (calcFunc-append v2 v1)
-)
+  (calcFunc-append v2 v1))
 
 
 ;;; Copy a matrix.  [Public]
 (defun math-copy-matrix (m)
   (if (math-vectorp (nth 1 m))
       (cons 'vec (mapcar 'copy-sequence (cdr m)))
-    (copy-sequence m))
-)
+    (copy-sequence m)))
 
 ;;; Convert a scalar or vector into an NxN diagonal matrix.  [Public]
 (defun calcFunc-diag (a &optional n)
@@ -997,8 +912,7 @@
 	  (cons 'vec (math-diag-step (cdr a) 0 (1- (length a))))))
     (if n
 	(cons 'vec (math-diag-step (make-list n a) 0 n))
-      (list 'calcFunc-diag a)))
-)
+      (list 'calcFunc-diag a))))
 
 (defun calcFunc-idn (a &optional n)
   (if n
@@ -1007,8 +921,7 @@
 	(calcFunc-diag a n))
     (if (integerp calc-matrix-mode)
 	(calcFunc-idn a calc-matrix-mode)
-      (list 'calcFunc-idn a)))
-)
+      (list 'calcFunc-idn a))))
 
 (defun math-mimic-ident (a m)
   (if (math-square-matrixp m)
@@ -1021,8 +934,7 @@
 					     a)))
 			       (cdr m)))
 	  (math-dimension-error))
-      (calcFunc-idn a)))
-)
+      (calcFunc-idn a))))
 
 (defun math-diag-step (a n m)
   (if (< n m)
@@ -1031,8 +943,7 @@
 			 (cons (car a)
 			       (make-list (1- (- m n)) 0))))
 	    (math-diag-step (cdr a) (1+ n) m))
-    nil)
-)
+    nil))
 
 ;;; Create a vector of consecutive integers. [Public]
 (defun calcFunc-index (n &optional start incr)
@@ -1059,8 +970,7 @@
 	    (while (>= i n)
 	      (setq vec (cons i vec)
 		    i (1- i))))))
-      (cons 'vec vec)))
-)
+      (cons 'vec vec))))
 
 ;;; Find an element in a vector.
 (defun calcFunc-find (vec x &optional start)
@@ -1071,8 +981,7 @@
     (while (and vec (not (Math-equal x (car vec))))
       (setq n (1+ n)
 	    vec (cdr vec)))
-    (if vec n 0))
-)
+    (if vec n 0)))
 
 ;;; Return a subvector of a vector.
 (defun calcFunc-subvec (vec start &optional end)
@@ -1091,8 +1000,7 @@
       (if (<= end len)
 	  (let ((chop (nthcdr (- end start 1) (setq vec (copy-sequence vec)))))
 	    (setcdr chop nil)))
-      (cons 'vec vec)))
-)
+      (cons 'vec vec))))
 
 ;;; Remove a subvector from a vector.
 (defun calcFunc-rsubvec (vec start &optional end)
@@ -1110,15 +1018,13 @@
       (let ((tail (nthcdr end vec))
 	    (chop (nthcdr (1- start) (setq vec (copy-sequence vec)))))
 	(setcdr chop nil)
-	(append vec tail))))
-)
+	(append vec tail)))))
 
 ;;; Reverse the order of the elements of a vector.
 (defun calcFunc-rev (vec)
   (if (math-vectorp vec)
       (cons 'vec (reverse (cdr vec)))
-    (math-reject-arg vec 'vectorp))
-)
+    (math-reject-arg vec 'vectorp)))
 
 ;;; Compress a vector according to a mask vector.
 (defun calcFunc-vmask (mask vec)
@@ -1134,8 +1040,7 @@
       (while (setq mask (cdr mask) vec (cdr vec))
 	(or (math-zerop (car mask))
 	    (setq new (cons (car vec) new))))
-      (cons 'vec (nreverse new))))
-)
+      (cons 'vec (nreverse new)))))
 
 ;;; Expand a vector according to a mask vector.
 (defun calcFunc-vexp (mask vec &optional filler)
@@ -1152,8 +1057,7 @@
 			      (car mask)) new))
 	(setq vec (cdr vec)
 	      new (cons (or (car vec) (car mask)) new))))
-    (cons 'vec (nreverse new)))
-)
+    (cons 'vec (nreverse new))))
 
 
 ;;; Compute the row and column norms of a vector or matrix.  [Public]
@@ -1164,8 +1068,7 @@
 	  (math-reduce-vec 'math-max (math-map-vec 'calcFunc-cnorm a))
 	(math-reduce-vec 'math-max (math-map-vec 'math-abs a)))
     (calc-record-why 'vectorp a)
-    (list 'calcFunc-rnorm a))
-)
+    (list 'calcFunc-rnorm a)))
 
 (defun calcFunc-cnorm (a)
   (if (and (Math-vectorp a)
@@ -1175,45 +1078,38 @@
 			   (math-reduce-cols 'math-add-abs a))
 	(math-reduce-vec 'math-add-abs a))
     (calc-record-why 'vectorp a)
-    (list 'calcFunc-cnorm a))
-)
+    (list 'calcFunc-cnorm a)))
 
 (defun math-add-abs (a b)
-  (math-add (math-abs a) (math-abs b))
-)
+  (math-add (math-abs a) (math-abs b)))
 
 
 ;;; Sort the elements of a vector into increasing order.
 (defun calcFunc-sort (vec)   ; [Public]
   (if (math-vectorp vec)
       (cons 'vec (sort (copy-sequence (cdr vec)) 'math-beforep))
-    (math-reject-arg vec 'vectorp))
-)
+    (math-reject-arg vec 'vectorp)))
 
 (defun calcFunc-rsort (vec)   ; [Public]
   (if (math-vectorp vec)
       (cons 'vec (nreverse (sort (copy-sequence (cdr vec)) 'math-beforep)))
-    (math-reject-arg vec 'vectorp))
-)
+    (math-reject-arg vec 'vectorp)))
 
 (defun calcFunc-grade (grade-vec)
   (if (math-vectorp grade-vec)
       (let* ((len (1- (length grade-vec))))
 	(cons 'vec (sort (cdr (calcFunc-index len)) 'math-grade-beforep)))
-    (math-reject-arg grade-vec 'vectorp))
-)
+    (math-reject-arg grade-vec 'vectorp)))
 
 (defun calcFunc-rgrade (grade-vec)
   (if (math-vectorp grade-vec)
       (let* ((len (1- (length grade-vec))))
 	(cons 'vec (nreverse (sort (cdr (calcFunc-index len))
 				   'math-grade-beforep))))
-    (math-reject-arg grade-vec 'vectorp))
-)
+    (math-reject-arg grade-vec 'vectorp)))
 
 (defun math-grade-beforep (i j)
-  (math-beforep (nth i grade-vec) (nth j grade-vec))
-)
+  (math-beforep (nth i grade-vec) (nth j grade-vec)))
 
 
 ;;; Compile a histogram of data from a vector.
@@ -1239,8 +1135,7 @@
 	   (< bin n)
 	   (aset res bin (math-add (aref res bin)
 				   (if wvec (car (setq wp (cdr wp))) wts)))))
-    (cons 'vec (append res nil)))
-)
+    (cons 'vec (append res nil))))
 
 
 ;;; Set operations.
@@ -1253,8 +1148,7 @@
       (setq b (list b))
     (or (math-vectorp b) (math-reject-arg b 'vectorp))
     (setq b (cdr b)))
-  (calcFunc-rdup (append a b))
-)
+  (calcFunc-rdup (append a b)))
 
 (defun calcFunc-vint (a b)
   (if (and (math-simple-set a) (math-simple-set b))
@@ -1271,8 +1165,7 @@
 	      (setq b (cdr b))))
 	  (nreverse vec)))
     (calcFunc-vcompl (calcFunc-vunion (calcFunc-vcompl a)
-				      (calcFunc-vcompl b))))
-)
+				      (calcFunc-vcompl b)))))
 
 (defun calcFunc-vdiff (a b)
   (if (and (math-simple-set a) (math-simple-set b))
@@ -1289,8 +1182,7 @@
 	      (setq vec (cons (car a) vec)
 		    a (cdr a))))
 	  (nreverse vec)))
-    (calcFunc-vcompl (calcFunc-vunion (calcFunc-vcompl a) b)))
-)
+    (calcFunc-vcompl (calcFunc-vunion (calcFunc-vcompl a) b))))
 
 (defun calcFunc-vxor (a b)
   (if (and (math-simple-set a) (math-simple-set b))
@@ -1312,8 +1204,7 @@
     (let ((ca (calcFunc-vcompl a))
 	  (cb (calcFunc-vcompl b)))
       (calcFunc-vunion (calcFunc-vcompl (calcFunc-vunion ca b))
-		       (calcFunc-vcompl (calcFunc-vunion a cb)))))
-)
+		       (calcFunc-vcompl (calcFunc-vunion a cb))))))
 
 (defun calcFunc-vcompl (a)
   (setq a (math-prepare-set a))
@@ -1336,8 +1227,7 @@
 	(setq vec (cons (list 'intv (+ closed 1)
 			      prev '(var inf var-inf))
 			vec)))
-    (math-clean-set (nreverse vec)))
-)
+    (math-clean-set (nreverse vec))))
 
 (defun calcFunc-vspan (a)
   (setq a (math-prepare-set a))
@@ -1347,8 +1237,7 @@
 			   (logand (nth 1 last) 1))
 			(nth 2 (nth 1 a))
 			(nth 3 last)))
-    '(intv 2 0 0))
-)
+    '(intv 2 0 0)))
 
 (defun calcFunc-vfloor (a &optional always-vec)
   (setq a (math-prepare-set a))
@@ -1374,8 +1263,7 @@
 	(or (Math-lessp b a)
 	    (setq vec (cons (setq prev (list 'intv mask a b)) vec)))))
     (setq vec (nreverse vec))
-    (math-clean-set vec always-vec))
-)
+    (math-clean-set vec always-vec)))
 
 (defun calcFunc-vcard (a)
   (setq a (calcFunc-vfloor a t))
@@ -1386,8 +1274,7 @@
 	  (setq count (math-add count (math-sub (nth 3 (car a))
 						(nth 2 (car a))))))
       (setq count (math-add count 1)))
-    count)
-)
+    count))
 
 (defun calcFunc-venum (a)
   (setq a (calcFunc-vfloor a t))
@@ -1403,8 +1290,7 @@
 						(nth 2 (nth 1 p))))
 			   (cdr (cdr p)))))
       (setq p next))
-    a)
-)
+    a))
 
 (defun calcFunc-vpack (a)
   (setq a (calcFunc-vfloor a t))
@@ -1424,8 +1310,7 @@
 				   (math-power-of-2 (1+ (nth 3 (car a))))
 				   (math-power-of-2 (nth 2 (car a)))))))
 	(setq accum (math-add accum (math-power-of-2 (car a))))))
-    accum)
-)
+    accum))
 
 (defun calcFunc-vunpack (a &optional w)
   (or (math-num-integerp a) (math-reject-arg a 'integerp))
@@ -1456,8 +1341,7 @@
 			vec))))
     (if neg
 	(setq vec (cons (list 'intv 2 len '(var inf var-inf)) vec)))
-    (math-clean-set (nreverse vec)))
-)
+    (math-clean-set (nreverse vec))))
 
 (defun calcFunc-rdup (a)
   (if (math-simple-set a)
@@ -1471,8 +1355,7 @@
 		(setcdr p (cdr (cdr p)))
 	      (setq p (cdr p)))))
 	(cons 'vec a))
-    (math-clean-set (math-prepare-set a)))
-)
+    (math-clean-set (math-prepare-set a))))
 
 (defun math-prepare-set (a)
   (if (Math-objectp a)
@@ -1527,8 +1410,7 @@
 				  (nth 3 (nth 1 p))
 				(nth 3 (nth 2 p))))
 			(cdr (cdr (cdr p))))))))
-  a
-)
+  a)
 
 (defun math-clean-set (a &optional always-vec)
   (let ((p a) res)
@@ -1541,8 +1423,7 @@
 	     (eq (car-safe (nth 1 a)) 'intv)
 	     (not always-vec))
 	(nth 1 a)
-      a))
-)
+      a)))
 
 (defun math-simple-set (a)
   (or (and (Math-objectp a)
@@ -1551,8 +1432,7 @@
 	   (progn
 	     (while (and (setq a (cdr a))
 			 (not (eq (car-safe (car a)) 'intv))))
-	     (null a))))
-)
+	     (null a)))))
 
 
 
@@ -1571,8 +1451,7 @@
 		(math-sub (math-mul (nth 1 a) (nth 2 b))
 			  (math-mul (nth 2 a) (nth 1 b))))
 	(math-reject-arg b "*Three-vector expected"))
-    (math-reject-arg a "*Three-vector expected"))
-)
+    (math-reject-arg a "*Three-vector expected")))
 
 
 
@@ -1646,8 +1525,7 @@
 	    (throw 'syntax "Expected `]'")))
       (or (eq exp-token 'end)
 	  (math-read-token))
-      vals))
-)
+      vals)))
 
 (defun math-check-for-commas (&optional balancing)
   (let ((count 0)
@@ -1663,8 +1541,7 @@
 	     (setq count (1- count)))))
     (if balancing
 	pos
-      (and pos (= (aref exp-str pos) ?,))))
-)
+      (and pos (= (aref exp-str pos) ?,)))))
 
 (defun math-read-vector ()
   (let* ((val (list (math-read-expr-level 0)))
@@ -1684,8 +1561,7 @@
       (let ((rest (list (math-read-expr-level 0))))
 	(setcdr last rest)
 	(setq last rest)))
-    (cons 'vec val))
-)
+    (cons 'vec val)))
 
 (defun math-read-matrix (mat)
   (while (equal exp-data ";")
@@ -1693,6 +1569,6 @@
     (while (eq exp-token 'space)
       (math-read-token))
     (setq mat (nconc mat (list (math-read-vector)))))
-  mat
-)
+  mat)
 
+;;; calc-vec.el ends here

@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-store.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -34,8 +34,7 @@
 (defun calc-store (&optional var)
   (interactive)
   (let ((calc-store-keep t))
-    (calc-store-into var))
-)
+    (calc-store-into var)))
 (setq calc-store-keep nil)
 
 (defun calc-store-into (&optional var)
@@ -62,58 +61,47 @@
 	     (calc-store-value (car (car var)) (cdr (car var))
 			       (if (not (cdr var)) "")
 			       (if (not (cdr var)) 1))
-	     (setq var (cdr var)))))))
-)
+	     (setq var (cdr var))))))))
 
 (defun calc-store-plus (&optional var)
   (interactive)
-  (calc-store-binary var "+" '+)
-)
+  (calc-store-binary var "+" '+))
 
 (defun calc-store-minus (&optional var)
   (interactive)
-  (calc-store-binary var "-" '-)
-)
+  (calc-store-binary var "-" '-))
 
 (defun calc-store-times (&optional var)
   (interactive)
-  (calc-store-binary var "*" '*)
-)
+  (calc-store-binary var "*" '*))
 
 (defun calc-store-div (&optional var)
   (interactive)
-  (calc-store-binary var "/" '/)
-)
+  (calc-store-binary var "/" '/))
 
 (defun calc-store-power (&optional var)
   (interactive)
-  (calc-store-binary var "^" '^)
-)
+  (calc-store-binary var "^" '^))
 
 (defun calc-store-concat (&optional var)
   (interactive)
-  (calc-store-binary var "|" '|)
-)
+  (calc-store-binary var "|" '|))
 
 (defun calc-store-neg (n &optional var)
   (interactive "p")
-  (calc-store-binary var "n" '/ (- n))
-)
+  (calc-store-binary var "n" '/ (- n)))
 
 (defun calc-store-inv (n &optional var)
   (interactive "p")
-  (calc-store-binary var "&" '^ (- n))
-)
+  (calc-store-binary var "&" '^ (- n)))
 
 (defun calc-store-incr (n &optional var)
   (interactive "p")
-  (calc-store-binary var "n" '- (- n))
-)
+  (calc-store-binary var "n" '- (- n)))
 
 (defun calc-store-decr (n &optional var)
   (interactive "p")
-  (calc-store-binary var "n" '- n)
-)
+  (calc-store-binary var "n" '- n))
 
 (defun calc-store-value (var value tag &optional pop)
   (if var
@@ -131,15 +119,13 @@
 	     (null old)
 	     (message "(Note: %s has built-in meanings which may interfere)"
 		      var))
-	(calc-refresh-evaltos var)))
-)
+	(calc-refresh-evaltos var))))
 
 (defun calc-var-name (var)
   (if (symbolp var) (setq var (symbol-name var)))
   (if (string-match "\\`var-." var)
       (substring var 4)
-    var)
-)
+    var))
 
 (defun calc-store-binary (var tag func &optional val)
   (calc-wrapper
@@ -160,8 +146,7 @@
 						 (list func value old)
 					       (list func old value)))
 			     tag (and (not val) 1))
-	   (message "Stored to variable \"%s\"" (calc-var-name var))))))
-)
+	   (message "Stored to variable \"%s\"" (calc-var-name var)))))))
 
 (defun calc-read-var-name (prompt &optional calc-store-opers)
   (setq calc-given-value nil
@@ -184,8 +169,7 @@
 		     (error "Bad format: %s" (nth 2 calc-given-value)))
 		 (setq calc-given-value (math-evaluate-expr calc-given-value))
 		 svar))
-	   (intern var))))
-)
+	   (intern var)))))
 (setq calc-given-value-flag nil)
 
 (defvar calc-var-name-map nil "Keymap for reading Calc variable names.")
@@ -202,8 +186,7 @@
 	   (lambda (x)
 	     (define-key calc-var-name-map (char-to-string x)
 	       'calcVar-oper)))
-	  "+-*/^|")
-)
+	  "+-*/^|"))
 
 (defun calcVar-digit ()
   (interactive)
@@ -212,8 +195,7 @@
 	  (beep)
 	(insert "q")
 	(self-insert-and-exit))
-    (self-insert-command 1))
-)
+    (self-insert-command 1)))
 
 (defun calcVar-oper ()
   (interactive)
@@ -222,8 +204,7 @@
       (progn
 	(erase-buffer)
 	(self-insert-and-exit))
-    (self-insert-command 1))
-)
+    (self-insert-command 1)))
 
 (defun calc-store-map (&optional oper var)
   (interactive)
@@ -256,8 +237,7 @@
 	   (calc-store-value var
 			     (calc-normalize (cons (nth 1 oper) values))
 			     (nth 2 oper)
-			     (+ calc-dollar-used (1- nargs)))))))
-)
+			     (+ calc-dollar-used (1- nargs))))))))
 
 (defun calc-store-exchange (&optional var)
   (interactive)
@@ -275,8 +255,7 @@
 	   (setq top (or calc-given-value (calc-top 1)))
 	   (calc-store-value var top nil)
 	   (calc-pop-push-record calc-given-value-flag
-				 (concat "<>" (calc-var-name var)) value)))))
-)
+				 (concat "<>" (calc-var-name var)) value))))))
 
 (defun calc-unstore (&optional var)
   (interactive)
@@ -291,8 +270,7 @@
 	     (message "Unstored variable \"%s\"" (calc-var-name var))
 	   (message "Variable \"%s\" remains unstored" (calc-var-name var)))
 	 (makunbound var)
-	 (calc-refresh-evaltos var))))
-)
+	 (calc-refresh-evaltos var)))))
 
 (defun calc-let (&optional var)
   (interactive)
@@ -331,8 +309,7 @@
 		  (makunbound (car (car var))))
 		(setq saved-val (cdr saved-val)
 		      var (cdr var)))
-	      (calc-handle-whys)))))))
-)
+	      (calc-handle-whys))))))))
 
 (defun calc-is-assignments (value)
   (if (memq (car-safe value) '(calcFunc-eq calcFunc-assign))
@@ -348,8 +325,7 @@
 				 (nth 2 (car value)))
 			   vv)))
 	  (and (not value)
-	       vv))))
-)
+	       vv)))))
 
 (defun calc-recall (&optional var)
   (interactive)
@@ -366,23 +342,19 @@
 	 (setq value (calc-normalize value))
 	 (let ((calc-full-trail-vectors nil))
 	   (calc-record value (concat "<" (calc-var-name var))))
-	 (calc-push value))))
-)
+	 (calc-push value)))))
 
 (defun calc-store-quick ()
   (interactive)
-  (calc-store (intern (format "var-q%c" last-command-char)))
-)
+  (calc-store (intern (format "var-q%c" last-command-char))))
 
 (defun calc-store-into-quick ()
   (interactive)
-  (calc-store-into (intern (format "var-q%c" last-command-char)))
-)
+  (calc-store-into (intern (format "var-q%c" last-command-char))))
 
 (defun calc-recall-quick ()
   (interactive)
-  (calc-recall (intern (format "var-q%c" last-command-char)))
-)
+  (calc-recall (intern (format "var-q%c" last-command-char))))
 
 (defun calc-copy-variable (&optional var1 var2)
   (interactive)
@@ -395,8 +367,7 @@
 	 (or var2 (setq var2 (calc-read-var-name
 			      (format "Copy variable: %s, to: " var1))))
 	 (if var2
-	     (calc-store-value var2 value "")))))
-)
+	     (calc-store-value var2 value ""))))))
 
 (defun calc-edit-variable (&optional var)
   (interactive)
@@ -416,75 +387,61 @@
 			 t
 			 (concat "Editing " (calc-var-name var)))
 	 (and value
-	      (insert (math-format-nice-expr value (screen-width)) "\n")))))
-  (calc-show-edit-buffer)
-)
+	      (insert (math-format-nice-expr value (frame-width)) "\n")))))
+  (calc-show-edit-buffer))
 (setq calc-last-edited-variable nil)
 
 (defun calc-edit-Decls ()
   (interactive)
-  (calc-edit-variable 'var-Decls)
-)
+  (calc-edit-variable 'var-Decls))
 
 (defun calc-edit-EvalRules ()
   (interactive)
-  (calc-edit-variable 'var-EvalRules)
-)
+  (calc-edit-variable 'var-EvalRules))
 
 (defun calc-edit-FitRules ()
   (interactive)
-  (calc-edit-variable 'var-FitRules)
-)
+  (calc-edit-variable 'var-FitRules))
 
 (defun calc-edit-GenCount ()
   (interactive)
-  (calc-edit-variable 'var-GenCount)
-)
+  (calc-edit-variable 'var-GenCount))
 
 (defun calc-edit-Holidays ()
   (interactive)
-  (calc-edit-variable 'var-Holidays)
-)
+  (calc-edit-variable 'var-Holidays))
 
 (defun calc-edit-IntegLimit ()
   (interactive)
-  (calc-edit-variable 'var-IntegLimit)
-)
+  (calc-edit-variable 'var-IntegLimit))
 
 (defun calc-edit-LineStyles ()
   (interactive)
-  (calc-edit-variable 'var-LineStyles)
-)
+  (calc-edit-variable 'var-LineStyles))
 
 (defun calc-edit-PointStyles ()
   (interactive)
-  (calc-edit-variable 'var-PointStyles)
-)
+  (calc-edit-variable 'var-PointStyles))
 
 (defun calc-edit-PlotRejects ()
   (interactive)
-  (calc-edit-variable 'var-PlotRejects)
-)
+  (calc-edit-variable 'var-PlotRejects))
 
 (defun calc-edit-AlgSimpRules ()
   (interactive)
-  (calc-edit-variable 'var-AlgSimpRules)
-)
+  (calc-edit-variable 'var-AlgSimpRules))
 
 (defun calc-edit-TimeZone ()
   (interactive)
-  (calc-edit-variable 'var-TimeZone)
-)
+  (calc-edit-variable 'var-TimeZone))
 
 (defun calc-edit-Units ()
   (interactive)
-  (calc-edit-variable 'var-Units)
-)
+  (calc-edit-variable 'var-Units))
 
 (defun calc-edit-ExtSimpRules ()
   (interactive)
-  (calc-edit-variable 'var-ExtSimpRules)
-)
+  (calc-edit-variable 'var-ExtSimpRules))
 
 (defun calc-declare-variable (&optional var)
   (interactive)
@@ -554,8 +511,7 @@
 				     (list (list 'vec
 						 (math-build-var-name var)
 						 decl)))))))
-     (calc-refresh-evaltos 'var-Decls)))
-)
+     (calc-refresh-evaltos 'var-Decls))))
 
 (defun calc-permanent-variable (&optional var)
   (interactive)
@@ -575,8 +531,7 @@
 			 (calc-var-value x)
 			 (not (eq (car-safe (symbol-value x)) 'special-const))
 			 (calc-insert-permanent-variable x))))))
-     (save-buffer)))
-)
+     (save-buffer))))
 (defvar calc-dont-insert-variables '(var-FitRules var-FactorRules
 				     var-CommuteRules var-JumpRules
 				     var-DistribRules var-MergeRules
@@ -613,8 +568,7 @@
 	    " ')\n")
     (backward-char 2))
   (insert (prin1-to-string (calc-var-value var)))
-  (forward-line 1)
-)
+  (forward-line 1))
 
 (defun calc-insert-variables (buf)
   (interactive "bBuffer in which to save variable values: ")
@@ -640,24 +594,21 @@
 					  'flat
 					calc-language)))
 				 (math-format-value (symbol-value x) 100000)))
-			      ")\n"))))))
-)
+			      ")\n")))))))
 
 (defun calc-assign (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op ":=" 'calcFunc-assign arg))
-)
+   (calc-binary-op ":=" 'calcFunc-assign arg)))
 
 (defun calc-evalto (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-unary-op "=>" 'calcFunc-evalto arg))
-)
+   (calc-unary-op "=>" 'calcFunc-evalto arg)))
 
 (defun calc-subscript (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "sub" 'calcFunc-subscr arg))
-)
+   (calc-binary-op "sub" 'calcFunc-subscr arg)))
 
+;;; calc-store.el ends here

@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-fin.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -38,16 +38,14 @@
        (calc-enter-result 3 "pvl" (cons 'calcFunc-pvl (calc-top-list-n 3)))
      (if (calc-is-inverse)
 	 (calc-enter-result 3 "pvb" (cons 'calcFunc-pvb (calc-top-list-n 3)))
-       (calc-enter-result 3 "pv" (cons 'calcFunc-pv (calc-top-list-n 3))))))
-)
+       (calc-enter-result 3 "pv" (cons 'calcFunc-pv (calc-top-list-n 3)))))))
 
 (defun calc-fin-npv (arg)
   (interactive "p")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-vector-op "npvb" 'calcFunc-npvb (1+ arg))
-     (calc-vector-op "npv" 'calcFunc-npv (1+ arg))))
-)
+     (calc-vector-op "npv" 'calcFunc-npv (1+ arg)))))
 
 (defun calc-fin-fv ()
   (interactive)
@@ -56,8 +54,7 @@
        (calc-enter-result 3 "fvl" (cons 'calcFunc-fvl (calc-top-list-n 3)))
      (if (calc-is-inverse)
 	 (calc-enter-result 3 "fvb" (cons 'calcFunc-fvb (calc-top-list-n 3)))
-       (calc-enter-result 3 "fv" (cons 'calcFunc-fv (calc-top-list-n 3))))))
-)
+       (calc-enter-result 3 "fv" (cons 'calcFunc-fv (calc-top-list-n 3)))))))
 
 (defun calc-fin-pmt ()
   (interactive)
@@ -66,8 +63,7 @@
        (calc-enter-result 3 "fvl" (cons 'calcFunc-fvl (calc-top-list-n 3)))
      (if (calc-is-inverse)
 	 (calc-enter-result 3 "pmtb" (cons 'calcFunc-pmtb (calc-top-list-n 3)))
-       (calc-enter-result 3 "pmt" (cons 'calcFunc-pmt (calc-top-list-n 3))))))
-)
+       (calc-enter-result 3 "pmt" (cons 'calcFunc-pmt (calc-top-list-n 3)))))))
 
 (defun calc-fin-nper ()
   (interactive)
@@ -78,8 +74,7 @@
 	 (calc-enter-result 3 "nprb" (cons 'calcFunc-nperb
 					   (calc-top-list-n 3)))
        (calc-enter-result 3 "nper" (cons 'calcFunc-nper
-					 (calc-top-list-n 3))))))
-)
+					 (calc-top-list-n 3)))))))
 
 (defun calc-fin-rate ()
   (interactive)
@@ -92,34 +87,29 @@
 			   (cons (if (calc-is-hyperbolic) 'calcFunc-ratel
 				   (if (calc-is-hyperbolic) 'calcFunc-rateb
 				     'calcFunc-rate))
-				 (calc-top-list-n 3))))))
-)
+				 (calc-top-list-n 3)))))))
 
 (defun calc-fin-irr (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-vector-op "irrb" 'calcFunc-irrb arg)
-     (calc-vector-op "irr" 'calcFunc-irr arg)))
-)
+     (calc-vector-op "irr" 'calcFunc-irr arg))))
 
 (defun calc-fin-sln ()
   (interactive)
   (calc-slow-wrapper
-   (calc-enter-result 3 "sln" (cons 'calcFunc-sln (calc-top-list-n 3))))
-)
+   (calc-enter-result 3 "sln" (cons 'calcFunc-sln (calc-top-list-n 3)))))
 
 (defun calc-fin-syd ()
   (interactive)
   (calc-slow-wrapper
-   (calc-enter-result 4 "syd" (cons 'calcFunc-syd (calc-top-list-n 4))))
-)
+   (calc-enter-result 4 "syd" (cons 'calcFunc-syd (calc-top-list-n 4)))))
 
 (defun calc-fin-ddb ()
   (interactive)
   (calc-slow-wrapper
-   (calc-enter-result 4 "ddb" (cons 'calcFunc-ddb (calc-top-list-n 4))))
-)
+   (calc-enter-result 4 "ddb" (cons 'calcFunc-ddb (calc-top-list-n 4)))))
 
 
 (defun calc-to-percentage (x)
@@ -130,24 +120,18 @@
 	 (list 'calcFunc-percent x))
 	((Math-vectorp x)
 	 (cons 'vec (mapcar 'calc-to-percentage (cdr x))))
-	(t x))
-)
+	(t x)))
 
 (defun calc-convert-percent ()
   (interactive)
   (calc-slow-wrapper
-   (calc-pop-push-record 1 "c%" (calc-to-percentage (calc-top-n 1))))
-)
+   (calc-pop-push-record 1 "c%" (calc-to-percentage (calc-top-n 1)))))
 
 (defun calc-percent-change ()
   (interactive)
   (calc-slow-wrapper
    (let ((res (calc-normalize (cons 'calcFunc-relch (calc-top-list 2)))))
-     (calc-pop-push-record 2 "%ch" (calc-to-percentage res))))
-)
-
-
-
+     (calc-pop-push-record 2 "%ch" (calc-to-percentage res)))))
 
 
 ;;; Financial functions.
@@ -159,13 +143,11 @@
       (math-add (math-mul amount
 			  (math-div (math-sub 1 (math-div 1 p))
 				    rate))
-		(math-div (or lump 0) p))))
-)
+		(math-div (or lump 0) p)))))
 (put 'calcFunc-pv 'math-expandable t)
 
 (defun calcFunc-pvl (rate num amount)
-  (calcFunc-pv rate num 0 amount)
-)
+  (calcFunc-pv rate num 0 amount))
 (put 'calcFunc-pvl 'math-expandable t)
 
 (defun calcFunc-pvb (rate num amount &optional lump)
@@ -176,8 +158,7 @@
 			  (math-div (math-mul (math-sub 1 (math-div 1 p))
 					      (math-add 1 rate))
 				    rate))
-		(math-div (or lump 0) p))))
-)
+		(math-div (or lump 0) p)))))
 (put 'calcFunc-pvb 'math-expandable t)
 
 (defun calcFunc-npv (rate &rest flows)
@@ -190,8 +171,7 @@
       (while (setq flat (cdr flat))
 	(setq accum (math-add accum (math-div (car flat) p))
 	      p (math-mul p pp)))
-      accum))
-)
+      accum)))
 (put 'calcFunc-npv 'math-expandable t)
 
 (defun calcFunc-npvb (rate &rest flows)
@@ -204,8 +184,7 @@
       (while (setq flat (cdr flat))
 	(setq accum (math-add accum (math-div (car flat) p))
 	      p (math-mul p pp)))
-      accum))
-)
+      accum)))
 (put 'calcFunc-npvb 'math-expandable t)
 
 (defun calcFunc-fv (rate num amount &optional initial)
@@ -215,13 +194,11 @@
       (math-add (math-mul amount
 			  (math-div (math-sub p 1)
 				    rate))
-		(math-mul (or initial 0) p))))
-)
+		(math-mul (or initial 0) p)))))
 (put 'calcFunc-fv 'math-expandable t)
 
 (defun calcFunc-fvl (rate num amount)
-  (calcFunc-fv rate num 0 amount)
-)
+  (calcFunc-fv rate num 0 amount))
 (put 'calcFunc-fvl 'math-expandable t)
 
 (defun calcFunc-fvb (rate num amount &optional initial)
@@ -232,8 +209,7 @@
 			  (math-div (math-mul (math-sub p 1)
 					      (math-add 1 rate))
 				    rate))
-		(math-mul (or initial 0) p))))
-)
+		(math-mul (or initial 0) p)))))
 (put 'calcFunc-fvb 'math-expandable t)
 
 (defun calcFunc-pmt (rate num amount &optional lump)
@@ -243,8 +219,7 @@
       (math-div (math-mul (math-sub amount
 				    (math-div (or lump 0) p))
 			  rate)
-		(math-sub 1 (math-div 1 p)))))
-)
+		(math-sub 1 (math-div 1 p))))))
 (put 'calcFunc-pmt 'math-expandable t)
 
 (defun calcFunc-pmtb (rate num amount &optional lump)
@@ -253,23 +228,19 @@
     (let ((p (math-pow (math-add 1 rate) num)))
       (math-div (math-mul (math-sub amount (math-div (or lump 0) p)) rate)
 		(math-mul (math-sub 1 (math-div 1 p))
-			  (math-add 1 rate)))))
-)
+			  (math-add 1 rate))))))
 (put 'calcFunc-pmtb 'math-expandable t)
 
 (defun calcFunc-nper (rate pmt amount &optional lump)
-  (math-compute-nper rate pmt amount lump nil)
-)
+  (math-compute-nper rate pmt amount lump nil))
 (put 'calcFunc-nper 'math-expandable t)
 
 (defun calcFunc-nperb (rate pmt amount &optional lump)
-  (math-compute-nper rate pmt amount lump 'b)
-)
+  (math-compute-nper rate pmt amount lump 'b))
 (put 'calcFunc-nperb 'math-expandable t)
 
 (defun calcFunc-nperl (rate pmt amount)
-  (math-compute-nper rate pmt amount nil 'l)
-)
+  (math-compute-nper rate pmt amount nil 'l))
 (put 'calcFunc-nperl 'math-expandable t)
 
 (defun math-compute-nper (rate pmt amount lump bflag)
@@ -315,16 +286,13 @@
 					    pmt))))))
 	(if (or (math-posp temp) math-expand-formulas)
 	    (math-neg (calcFunc-log temp (math-add 1 rate)))
-	  (math-reject-arg pmt "*Payment too small to cover interest rate")))))
-)
+	  (math-reject-arg pmt "*Payment too small to cover interest rate"))))))
 
 (defun calcFunc-rate (num pmt amount &optional lump)
-  (math-compute-rate num pmt amount lump 'calcFunc-pv)
-)
+  (math-compute-rate num pmt amount lump 'calcFunc-pv))
 
 (defun calcFunc-rateb (num pmt amount &optional lump)
-  (math-compute-rate num pmt amount lump 'calcFunc-pvb)
-)
+  (math-compute-rate num pmt amount lump 'calcFunc-pvb))
 
 (defun math-compute-rate (num pmt amount lump func)
   (or (math-objectp num)
@@ -348,8 +316,7 @@
 			      t)))
     (if (math-vectorp root)
 	(nth 1 root)
-      root))
-)
+      root)))
 
 (defun calcFunc-ratel (num pmt amount)
   (or (math-objectp num) math-expand-formulas
@@ -359,16 +326,13 @@
   (or (math-objectp amount) math-expand-formulas
       (math-reject-arg amount 'numberp))
   (math-with-extra-prec 2
-    (math-sub (math-pow (math-div pmt amount) (math-div 1 num)) 1))
-)
+    (math-sub (math-pow (math-div pmt amount) (math-div 1 num)) 1)))
 
 (defun calcFunc-irr (&rest vecs)
-  (math-compute-irr vecs 'calcFunc-npv)
-)
+  (math-compute-irr vecs 'calcFunc-npv))
 
 (defun calcFunc-irrb (&rest vecs)
-  (math-compute-irr vecs 'calcFunc-npvb)
-)
+  (math-compute-irr vecs 'calcFunc-npvb))
 
 (defun math-compute-irr (vecs func)
   (let* ((flat (math-flatten-many-vecs vecs))
@@ -380,8 +344,7 @@
 			       t)))
     (if (math-vectorp root)
 	(nth 1 root)
-      root))
-)
+      root)))
 
 (defun math-check-financial (rate num)
   (or (math-objectp rate) math-expand-formulas
@@ -389,8 +352,7 @@
   (and (math-zerop rate)
        (math-reject-arg rate 'nonzerop))
   (or (math-objectp num) math-expand-formulas
-      (math-reject-arg num 'numberp))
-)
+      (math-reject-arg num 'numberp)))
 
 
 (defun calcFunc-sln (cost salvage life &optional period)
@@ -406,8 +368,7 @@
 	       (or (Math-lessp life period) (not (math-posp period)))
 	     (math-reject-arg period 'integerp)))
       0
-    (math-div (math-sub cost salvage) life))
-)
+    (math-div (math-sub cost salvage) life)))
 (put 'calcFunc-sln 'math-expandable t)
 
 (defun calcFunc-syd (cost salvage life period)
@@ -424,8 +385,7 @@
       0
     (math-div (math-mul (math-sub cost salvage)
 			(math-add (math-sub life period) 1))
-	      (math-div (math-mul life (math-add life 1)) 2)))
-)
+	      (math-div (math-mul life (math-add life 1)) 2))))
 (put 'calcFunc-syd 'math-expandable t)
 
 (defun calcFunc-ddb (cost salvage life period)
@@ -445,8 +405,6 @@
 	(if (Math-lessp book salvage)
 	    (setq res (math-add res (math-sub book salvage))
 		  book salvage)))
-      res))
-)
+      res)))
 
-
-
+;;; calc-fin.el ends here

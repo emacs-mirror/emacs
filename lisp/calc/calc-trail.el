@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-trail.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -34,8 +34,7 @@
 (defun calc-trail-in ()
   (interactive)
   (let ((win (get-buffer-window (calc-trail-display t))))
-    (and win (select-window win)))
-)
+    (and win (select-window win))))
 
 (defun calc-trail-out ()
   (interactive)
@@ -45,38 +44,33 @@
 	(progn
 	  (select-window win)
 	  (calc-align-stack-window))
-      (calc)))
-)
+      (calc))))
 
 (defun calc-trail-next (n)
   (interactive "p")
   (calc-with-trail-buffer
    (forward-line n)
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-previous (n)
   (interactive "p")
   (calc-with-trail-buffer
    (forward-line (- n))
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-first (n)
   (interactive "p")
   (calc-with-trail-buffer
    (goto-char (point-min))
    (forward-line n)
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-last (n)
   (interactive "p")
   (calc-with-trail-buffer
    (goto-char (point-max))
    (forward-line (- n))
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-scroll-left (n)
   (interactive "P")
@@ -86,8 +80,7 @@
 	 (progn
 	   (select-window (get-buffer-window (current-buffer)))
 	   (calc-scroll-left n))
-       (select-window curwin))))
-)
+       (select-window curwin)))))
 
 (defun calc-trail-scroll-right (n)
   (interactive "P")
@@ -97,22 +90,19 @@
 	 (progn
 	   (select-window (get-buffer-window (current-buffer)))
 	   (calc-scroll-right n))
-       (select-window curwin))))
-)
+       (select-window curwin)))))
 
 (defun calc-trail-forward (n)
   (interactive "p")
   (calc-with-trail-buffer
    (forward-line (* n (1- (window-height))))
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-backward (n)
   (interactive "p")
   (calc-with-trail-buffer
    (forward-line (- (* n (1- (window-height)))))
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-isearch-forward ()
   (interactive)
@@ -121,8 +111,7 @@
      (select-window (get-buffer-window (current-buffer)))
      (let ((search-exit-char ?\r))
        (isearch-forward)))
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-isearch-backward ()
   (interactive)
@@ -131,8 +120,7 @@
      (select-window (get-buffer-window (current-buffer)))
      (let ((search-exit-char ?\r))
        (isearch-backward)))
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-yank (arg)
   (interactive "P")
@@ -158,8 +146,7 @@
 				     (math-read-plain-expr str))))
 			 (if (eq (car-safe val) 'error)
 			     (error "Can't yank that line: %s" (nth 2 val))
-			   val)))))
-)
+			   val))))))
 
 (defun calc-trail-marker (str)
   (interactive "sText to insert in trail: ")
@@ -168,8 +155,7 @@
    (let ((buffer-read-only nil))
      (insert "---- " str "\n"))
    (forward-line -1)
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
 (defun calc-trail-kill (n)
   (interactive "p")
@@ -183,8 +169,6 @@
 	  (point))
 	(point-max))
        (kill-line n)))
-   (calc-trail-here))
-)
+   (calc-trail-here)))
 
-
-
+;;; calc-trail.el ends here

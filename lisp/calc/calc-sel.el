@@ -52,23 +52,19 @@
 				     (car entry) found)))
 		      found)
 		  (calc-grow-assoc-formula (car entry) found))
-	      (car entry)))))))
-)
+	      (car entry))))))))
 
 (defun calc-select-once (num)
   (interactive "P")
-  (calc-select-here num t)
-)
+  (calc-select-here num t))
 
 (defun calc-select-here-maybe (num)
   (interactive "P")
-  (calc-select-here num nil t)
-)
+  (calc-select-here num nil t))
 
 (defun calc-select-once-maybe (num)
   (interactive "P")
-  (calc-select-here num t t)
-)
+  (calc-select-here num t t))
 
 (defun calc-select-additional ()
   (interactive)
@@ -88,8 +84,7 @@
 			       (car entry) sel)))
 		  sel)
 	      (calc-grow-assoc-formula (car entry) found)))
-	(car entry)))))
-)
+	(car entry))))))
 
 (defun calc-select-more (num)
   (interactive "P")
@@ -102,8 +97,7 @@
 		       (>= (setq num (1- (prefix-numeric-value num))) 0))
 	     (setq sel (calc-find-assoc-parent-formula (car entry) sel)))
 	   (calc-change-current-selection sel))
-       (calc-select-here num))))
-)
+       (calc-select-here num)))))
 
 (defun calc-select-less (num)
   (interactive "p")
@@ -125,8 +119,7 @@
 		    (setq op (assq (car-safe sel) calc-assoc-ops))
 		    (memq (car old) (nth index op))
 		    (setq num (1+ num))))
-	     sel)))))
-)
+	     sel))))))
 
 (defun calc-select-part (num)
   (interactive "P")
@@ -138,8 +131,7 @@
 				  num)))
      (if sel
 	 (calc-change-current-selection sel)
-       (error "%d is not a valid sub-formula index" num))))
-)
+       (error "%d is not a valid sub-formula index" num)))))
 
 (defun calc-find-nth-part (expr num)
   (if (and calc-assoc-selections
@@ -149,8 +141,7 @@
     (if (eq (car-safe expr) 'intv)
 	(and (>= num 1) (<= num 2) (nth (1+ num) expr))
       (and (not (Math-primp expr)) (>= num 1) (< num (length expr))
-	   (nth num expr))))
-)
+	   (nth num expr)))))
 
 (defun calc-find-nth-part-rec (expr)   ; uses num, op
   (or (if (and (setq op (assq (car-safe (nth 1 expr)) calc-assoc-ops))
@@ -162,8 +153,7 @@
 	       (memq (car expr) (nth 2 op)))
 	  (calc-find-nth-part-rec (nth 2 expr))
 	(and (= (setq num (1- num)) 0)
-	     (nth 2 expr))))
-)
+	     (nth 2 expr)))))
 
 (defun calc-select-next (num)
   (interactive "p")
@@ -200,8 +190,7 @@
 	     (calc-change-current-selection sel))
 	 (if (Math-primp (car entry))
 	     (calc-change-current-selection (car entry))
-	   (calc-select-part num))))))
-)
+	   (calc-select-part num)))))))
 
 (defun calc-select-previous (num)
   (interactive "p")
@@ -246,8 +235,7 @@
 			    (calc-find-nth-part-rec (car entry))
 			    (- 1 num))
 			(length (car entry)))))
-	     (calc-select-part (- len num))))))))
-)
+	     (calc-select-part (- len num)))))))))
 
 (defun calc-find-parent-formula (expr part)
   (cond ((eq expr part) t)
@@ -258,13 +246,11 @@
 		       (not (setq res (calc-find-parent-formula
 				       (car p) part)))))
 	   (and p
-		(if (eq res t) expr res)))))
-)
+		(if (eq res t) expr res))))))
 
 
 (defun calc-find-assoc-parent-formula (expr part)
-  (calc-grow-assoc-formula expr (calc-find-parent-formula expr part))
-)
+  (calc-grow-assoc-formula expr (calc-find-parent-formula expr part)))
 
 (defun calc-grow-assoc-formula (expr part)
   (if calc-assoc-selections
@@ -277,8 +263,7 @@
 				(nth (calc-find-sub-formula new part) op)))
 		(setq part new))))
 	part)
-    part)
-)
+    part))
 
 (defun calc-find-sub-formula (expr part)
   (cond ((eq expr part) t)
@@ -288,15 +273,13 @@
 	   (while (and (setq expr (cdr expr))
 		       (not (calc-find-sub-formula (car expr) part)))
 	     (setq num (1+ num)))
-	   (and expr num))))
-)
+	   (and expr num)))))
 
 (defun calc-unselect (num)
   (interactive "P")
   (calc-wrapper
    (calc-prepare-selection num)
-   (calc-change-current-selection nil))
-)
+   (calc-change-current-selection nil)))
 
 (defun calc-clear-selections ()
   (interactive)
@@ -309,8 +292,7 @@
 	     (calc-prepare-selection n)
 	     (calc-change-current-selection nil)))
        (setq n (1+ n))))
-   (calc-clear-command-flag 'position-point))
-)
+   (calc-clear-command-flag 'position-point)))
 
 (defun calc-show-selections (arg)
   (interactive "P")
@@ -334,8 +316,7 @@
 		(calc-change-current-selection sel)))))
    (message (if calc-show-selections
 		"Displaying only selected part of formulas"
-	      "Displaying all but selected part of formulas")))
-)
+	      "Displaying all but selected part of formulas"))))
 
 (defun calc-preserve-point ()
   (or (looking-at "\\.\n+\\'")
@@ -343,8 +324,7 @@
 	(setq calc-final-point-line (+ (count-lines (point-min) (point))
 				       (if (bolp) 1 0))
 	      calc-final-point-column (current-column))
-	(calc-set-command-flag 'position-point)))
-)
+	(calc-set-command-flag 'position-point))))
 
 (defun calc-enable-selections (arg)
   (interactive "P")
@@ -356,8 +336,7 @@
    (calc-set-command-flag 'renum-stack)
    (message (if calc-use-selections
 		"Commands operate only on selected sub-formulas"
-	      "Selections of sub-formulas have no effect")))
-)
+	      "Selections of sub-formulas have no effect"))))
 
 (defun calc-break-selections (arg)
   (interactive "P")
@@ -368,8 +347,7 @@
 				 (not calc-assoc-selections)))
    (message (if calc-assoc-selections
 		"Selection treats a+b+c as a sum of three terms"
-	      "Selection treats a+b+c as (a+b)+c")))
-)
+	      "Selection treats a+b+c as (a+b)+c"))))
 
 (defun calc-prepare-selection (&optional num)
   (or num (setq num (calc-locate-cursor-element (point))))
@@ -392,8 +370,7 @@
 		(+ (car (math-stack-value-offset calc-selection-cache-comp))
 		   (length calc-left-label)
 		   (if calc-line-numbering 4 0))))))
-  (calc-preserve-point)
-)
+  (calc-preserve-point))
 (setq calc-selection-cache-entry nil)
 
 ;;; The following ensures that no two subformulas will be "eq" to each other!
@@ -402,8 +379,7 @@
 	  (equal x '(float 0 0)))
       (list 'cplx x 0)
     (calc-encase-atoms-rec x)
-    x)
-)
+    x))
 
 (defun calc-encase-atoms-rec (x)
   (or (Math-primp x)
@@ -414,8 +390,7 @@
 	  (if (or (not (consp (car x)))
 		  (equal (car x) '(float 0 0)))
 	      (setcar x (list 'cplx (car x) 0))
-	    (calc-encase-atoms-rec (car x))))))
-)
+	    (calc-encase-atoms-rec (car x)))))))
 
 (defun calc-find-selected-part ()
   (let* ((math-comp-sel-hpos (- (current-column) calc-selection-cache-offset))
@@ -441,8 +416,7 @@
     (and (>= math-comp-sel-hpos 0)
 	 (> calc-selection-true-num 0)
 	 (math-composition-to-string calc-selection-cache-comp 1000000))
-    (nth 1 math-comp-sel-tag))
-)
+    (nth 1 math-comp-sel-tag)))
 
 (defun calc-change-current-selection (sub-expr)
   (or (eq sub-expr (nth 2 calc-selection-cache-entry))
@@ -457,8 +431,7 @@
 	(delete-region top (point))
 	(let ((calc-selection-cache-default-entry calc-selection-cache-entry))
 	  (insert (math-format-stack-value calc-selection-cache-entry)
-		  "\n"))))
-)
+		  "\n")))))
 
 (defun calc-top-selected (&optional n m)
   (and calc-any-selections
@@ -473,25 +446,21 @@
 	     (if (nth 2 (car top))
 		 (setq sel (if sel t (nth 2 (car top)))))
 	     (setq top (cdr top)))
-	   sel)))
-)
+	   sel))))
 
 (defun calc-replace-sub-formula (expr old new)
   (setq new (calc-encase-atoms new))
-  (calc-replace-sub-formula-rec expr)
-)
+  (calc-replace-sub-formula-rec expr))
 
 (defun calc-replace-sub-formula-rec (expr)
   (cond ((eq expr old) new)
 	((Math-primp expr) expr)
 	(t
 	 (cons (car expr)
-	       (mapcar 'calc-replace-sub-formula-rec (cdr expr)))))
-)
+	       (mapcar 'calc-replace-sub-formula-rec (cdr expr))))))
 
 (defun calc-sel-error ()
-  (error "Illegal operation on sub-formulas")
-)
+  (error "Illegal operation on sub-formulas"))
 
 (defun calc-replace-selections (n vals m)
   (if (calc-top-selected n m)
@@ -538,8 +507,7 @@
 	      (calc-push-list vals))))
 	 (t (calc-sel-error))))
     (calc-pop-stack n m t)
-    (calc-push-list vals m))
-)
+    (calc-push-list vals m)))
 (setq calc-keep-selection t)
 
 (defun calc-delete-selection (n)
@@ -590,32 +558,28 @@
 								(copy-sequence
 								 parent)))))
 			      n)))))
-      (calc-pop-stack 1 n t)))
-)
+      (calc-pop-stack 1 n t))))
 
 (defun calc-roll-down-with-selections (n m)
   (let ((vals (append (calc-top-list m 1)
 		      (calc-top-list (- n m) (1+ m))))
 	(sels (append (calc-top-list m 1 'sel)
 		      (calc-top-list (- n m) (1+ m) 'sel))))
-    (calc-pop-push-list n vals 1 sels))
-)
+    (calc-pop-push-list n vals 1 sels)))
 
 (defun calc-roll-up-with-selections (n m)
   (let ((vals (append (calc-top-list (- n m) 1)
 		      (calc-top-list m (- n m -1))))
 	(sels (append (calc-top-list (- n m) 1 'sel)
 		      (calc-top-list m (- n m -1) 'sel))))
-    (calc-pop-push-list n vals 1 sels))
-)
+    (calc-pop-push-list n vals 1 sels)))
 
 (defun calc-auto-selection (entry)
   (or (nth 2 entry)
       (progn
 	(and (boundp 'reselect) (setq reselect nil))
 	(calc-prepare-selection)
-	(calc-grow-assoc-formula (car entry) (calc-find-selected-part))))
-)
+	(calc-grow-assoc-formula (car entry) (calc-find-selected-part)))))
 
 (defun calc-copy-selection ()
   (interactive)
@@ -623,8 +587,7 @@
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
 	  (entry (calc-top num 'entry)))
-     (calc-push (or (calc-auto-selection entry) (car entry)))))
-)
+     (calc-push (or (calc-auto-selection entry) (car entry))))))
 
 (defun calc-del-selection ()
   (interactive)
@@ -634,8 +597,7 @@
 	  (entry (calc-top num 'entry))
 	  (sel (calc-auto-selection entry)))
      (setcar (nthcdr 2 entry) (and (not (eq sel (car entry))) sel))
-     (calc-delete-selection num)))
-)
+     (calc-delete-selection num))))
 
 (defun calc-enter-selection ()
   (interactive)
@@ -658,8 +620,7 @@
 						expr sel alg))
 					 num
 					 (list (and reselect alg))))))
-     (calc-handle-whys)))
-)
+     (calc-handle-whys))))
 
 (defun calc-edit-selection ()
   (interactive)
@@ -676,8 +637,7 @@
        (calc-edit-mode (list 'calc-finish-selection-edit
 			     num (list 'quote sel) reselect))
        (insert str "\n"))))
-  (calc-show-edit-buffer)
-)
+  (calc-show-edit-buffer))
 
 (defun calc-finish-selection-edit (num sel reselect)
   (let ((buf (current-buffer))
@@ -703,8 +663,7 @@
 					num
 					(list (and reselect val)))
 	   (calc-push val)
-	   (error "Original selection has been lost"))))))
-)
+	   (error "Original selection has been lost")))))))
 
 (defun calc-sel-evaluate (arg)
   (interactive "p")
@@ -723,8 +682,7 @@
 					    (car entry) sel val))
 				     num
 				     (list (and reselect val))))))
-     (calc-handle-whys)))
-)
+     (calc-handle-whys))))
 
 (defun calc-sel-expand-formula (arg)
   (interactive "p")
@@ -749,8 +707,7 @@
 					    (car entry) sel val))
 				     num
 				     (list (and reselect val))))))
-     (calc-handle-whys)))
-)
+     (calc-handle-whys))))
 
 (defun calc-sel-mult-both-sides (no-simp &optional divide)
   (interactive "P")
@@ -811,13 +768,11 @@
 					      expr sel alg))
 				       num
 				       (list (and reselect alg)))))
-     (calc-handle-whys)))
-)
+     (calc-handle-whys))))
 
 (defun calc-sel-div-both-sides (no-simp)
   (interactive "P")
-  (calc-sel-mult-both-sides no-simp t)
-)
+  (calc-sel-mult-both-sides no-simp t))
 
 (defun calc-sel-add-both-sides (no-simp &optional subtract)
   (interactive "P")
@@ -857,11 +812,10 @@
 					      expr sel alg))
 				       num
 				       (list (and reselect alg)))))
-     (calc-handle-whys)))
-)
+     (calc-handle-whys))))
 
 (defun calc-sel-sub-both-sides (no-simp)
   (interactive "P")
-  (calc-sel-add-both-sides no-simp t)
-)
+  (calc-sel-add-both-sides no-simp t))
 
+;;; calc-sel.el ends here
