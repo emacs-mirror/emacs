@@ -299,16 +299,21 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
 	  (tooltip-activate-mouse-motions nil))
 	(setq buffers (cdr buffers))))))
 
+(defvar tooltip-mouse-motions-active nil
+  "Locally t in a buffer if tooltip processing of mouse motion is enabled.")
 
 (defun tooltip-activate-mouse-motions (activatep)
   "Activate/deactivate mouse motion events for the current buffer.
 ACTIVATEP non-nil means activate mouse motion events."
   (if activatep
       (progn
+	(make-local-variable 'tooltip-mouse-motions-active)
+	(setq tooltip-mouse-motions-active t)
 	(make-local-variable 'track-mouse)
 	(setq track-mouse t))
-    (kill-local-variable 'track-mouse)))
-
+    (when tooltip-mouse-motions-active
+      (kill-local-variable 'tooltip-mouse-motions-active)
+      (kill-local-variable 'track-mouse))))
 
 (defun tooltip-mouse-motion (event)
   "Command handler for mouse movement events in `global-map'."
