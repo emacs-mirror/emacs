@@ -97,6 +97,7 @@ struct backtrace
 
 #ifdef MULTI_PERDISPLAY
 PERDISPLAY *current_perdisplay;
+PERDISPLAY *all_perdisplays;
 #else
 PERDISPLAY the_only_perdisplay;
 #endif
