@@ -381,8 +381,8 @@ Remove any highlighting that was added by `align-highlight-rule'." t nil)
 ;;;***
 
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
-;;;;;;  "ange-ftp.el" (14488 16438))
-;;; Generated autoloads from ange-ftp.el
+;;;;;;  "net/ange-ftp.el" (14546 48005))
+;;; Generated autoloads from net/ange-ftp.el
  (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
 
 (autoload (quote ange-ftp-reread-dir) "ange-ftp" "\
@@ -766,8 +766,8 @@ definition of \"random distance\".)" t nil)
 
 ;;;***
 
-;;;### (autoloads (awk-mode) "awk-mode" "progmodes/awk-mode.el" (13549
-;;;;;;  39413))
+;;;### (autoloads (awk-mode) "awk-mode" "progmodes/awk-mode.el" (14546
+;;;;;;  45178))
 ;;; Generated autoloads from progmodes/awk-mode.el
 
 (autoload (quote awk-mode) "awk-mode" "\
@@ -1309,9 +1309,9 @@ corresponding bookmark function from Lisp (the one without the
 ;;;;;;  browse-url-at-point browse-url browse-url-of-region browse-url-of-dired-file
 ;;;;;;  browse-url-of-buffer browse-url-of-file browse-url-generic-program
 ;;;;;;  browse-url-save-file browse-url-netscape-display browse-url-new-window-p
-;;;;;;  browse-url-browser-function) "browse-url" "browse-url.el"
+;;;;;;  browse-url-browser-function) "browse-url" "net/browse-url.el"
 ;;;;;;  (14477 53252))
-;;; Generated autoloads from browse-url.el
+;;; Generated autoloads from net/browse-url.el
 
 (defvar browse-url-browser-function (if (eq system-type (quote windows-nt)) (quote browse-url-default-windows-browser) (quote browse-url-netscape)) "\
 *Function to display the current buffer in a WWW browser.
@@ -1546,7 +1546,7 @@ name of buffer configuration." t nil)
 ;;;### (autoloads (batch-byte-recompile-directory batch-byte-compile
 ;;;;;;  display-call-tree byte-compile compile-defun byte-compile-file
 ;;;;;;  byte-recompile-directory byte-force-recompile) "bytecomp"
-;;;;;;  "emacs-lisp/bytecomp.el" (14534 23874))
+;;;;;;  "emacs-lisp/bytecomp.el" (14547 29523))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 
 (autoload (quote byte-force-recompile) "bytecomp" "\
@@ -3333,7 +3333,7 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise." t nil)
 ;;;;;;  customize-option-other-window customize-changed-options customize-option
 ;;;;;;  customize-group-other-window customize-group customize customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value) "cus-edit" "cus-edit.el"
-;;;;;;  (14542 5199))
+;;;;;;  (14545 22746))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -3749,7 +3749,7 @@ $
 ;;;***
 
 ;;;### (autoloads (cancel-debug-on-entry debug-on-entry debug) "debug"
-;;;;;;  "emacs-lisp/debug.el" (14432 49602))
+;;;;;;  "emacs-lisp/debug.el" (14547 29510))
 ;;; Generated autoloads from emacs-lisp/debug.el
 
 (setq debugger (quote debug))
@@ -5973,7 +5973,7 @@ This is used only in conjunction with `expand-add-abbrevs'." t nil)
 
 ;;;***
 
-;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (14398 36512))
+;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (14546 35423))
 ;;; Generated autoloads from progmodes/f90.el
 
 (autoload (quote f90-mode) "f90" "\
@@ -6635,7 +6635,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 ;;;### (autoloads (font-lock-fontify-buffer global-font-lock-mode
 ;;;;;;  global-font-lock-mode font-lock-remove-keywords font-lock-add-keywords
 ;;;;;;  turn-on-font-lock font-lock-mode) "font-lock" "font-lock.el"
-;;;;;;  (14539 53666))
+;;;;;;  (14546 54851))
 ;;; Generated autoloads from font-lock.el
 
 (defvar font-lock-mode-hook nil "\
@@ -7167,8 +7167,8 @@ Use \\[describe-mode] for more info." t nil)
 ;;;***
 
 ;;;### (autoloads (goto-address goto-address-at-point goto-address-at-mouse)
-;;;;;;  "goto-addr" "goto-addr.el" (14385 24830))
-;;; Generated autoloads from goto-addr.el
+;;;;;;  "goto-addr" "net/goto-addr.el" (14385 24830))
+;;; Generated autoloads from net/goto-addr.el
 
 (autoload (quote goto-address-at-mouse) "goto-addr" "\
 Send to the e-mail address or load the URL clicked with the mouse.
@@ -8187,7 +8187,7 @@ of `inferior-lisp-program').  Runs the hooks from
 
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node info-standalone info info-other-window)
-;;;;;;  "info" "info.el" (14485 39769))
+;;;;;;  "info" "info.el" (14544 60288))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -8761,7 +8761,7 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading." nil 
 ;;;***
 
 ;;;### (autoloads (turn-on-jit-lock jit-lock-mode) "jit-lock" "jit-lock.el"
-;;;;;;  (14512 27554))
+;;;;;;  (14550 5866))
 ;;; Generated autoloads from jit-lock.el
 
 (autoload (quote jit-lock-mode) "jit-lock" "\
@@ -10201,9 +10201,9 @@ Enable mouse wheel support." nil nil)
 
 ;;;### (autoloads (network-connection network-connection-to-service
 ;;;;;;  whois-reverse-lookup whois finger ftp dig nslookup nslookup-host
-;;;;;;  route arp netstat ipconfig ping traceroute) "net-utils" "net-utils.el"
+;;;;;;  route arp netstat ipconfig ping traceroute) "net-utils" "net/net-utils.el"
 ;;;;;;  (14385 24830))
-;;; Generated autoloads from net-utils.el
+;;; Generated autoloads from net/net-utils.el
 
 (autoload (quote traceroute) "net-utils" "\
 Run traceroute program for TARGET." t nil)
@@ -11379,8 +11379,9 @@ of each directory." t nil)
 
 ;;;### (autoloads (quickurl-list quickurl-list-mode quickurl-edit-urls
 ;;;;;;  quickurl-browse-url-ask quickurl-browse-url quickurl-add-url
-;;;;;;  quickurl-ask quickurl) "quickurl" "quickurl.el" (14495 17990))
-;;; Generated autoloads from quickurl.el
+;;;;;;  quickurl-ask quickurl) "quickurl" "net/quickurl.el" (14495
+;;;;;;  17990))
+;;; Generated autoloads from net/quickurl.el
 
 (defconst quickurl-reread-hook-postfix "\n;; Local Variables:\n;; eval: (progn (require 'quickurl) (add-hook 'local-write-file-hooks (lambda () (quickurl-read) nil)))\n;; End:\n" "\
 Example `quickurl-postfix' text that adds a local variable to the
@@ -11424,9 +11425,9 @@ Display `quickurl-list' as a formatted list using `quickurl-list-mode'." t nil)
 
 ;;;***
 
-;;;### (autoloads (remote-compile) "rcompile" "rcompile.el" (13149
+;;;### (autoloads (remote-compile) "rcompile" "net/rcompile.el" (13149
 ;;;;;;  16808))
-;;; Generated autoloads from rcompile.el
+;;; Generated autoloads from net/rcompile.el
 
 (autoload (quote remote-compile) "rcompile" "\
 Compile the the current buffer's directory on HOST.  Log in as USER.
@@ -11775,8 +11776,8 @@ Make a ring that can contain SIZE elements." nil nil)
 
 ;;;***
 
-;;;### (autoloads (rlogin) "rlogin" "rlogin.el" (14495 17992))
-;;; Generated autoloads from rlogin.el
+;;;### (autoloads (rlogin) "rlogin" "net/rlogin.el" (14550 7959))
+;;; Generated autoloads from net/rlogin.el
  (add-hook 'same-window-regexps "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)")
 
 (autoload (quote rlogin) "rlogin" "\
@@ -12144,7 +12145,7 @@ KEYWORDS is a comma-separated list of labels." t nil)
 ;;;;;;  rmail-summary-by-topic rmail-summary-by-regexp rmail-summary-by-recipients
 ;;;;;;  rmail-summary-by-labels rmail-summary rmail-summary-line-count-flag
 ;;;;;;  rmail-summary-scroll-between-messages) "rmailsum" "mail/rmailsum.el"
-;;;;;;  (14418 7508))
+;;;;;;  (14547 28270))
 ;;; Generated autoloads from mail/rmailsum.el
 
 (defvar rmail-summary-scroll-between-messages t "\
@@ -12917,9 +12918,9 @@ snake-mode keybindings:
 
 ;;;***
 
-;;;### (autoloads (snmpv2-mode snmp-mode) "snmp-mode" "snmp-mode.el"
+;;;### (autoloads (snmpv2-mode snmp-mode) "snmp-mode" "net/snmp-mode.el"
 ;;;;;;  (14082 18459))
-;;; Generated autoloads from snmp-mode.el
+;;; Generated autoloads from net/snmp-mode.el
 
 (autoload (quote snmp-mode) "snmp-mode" "\
 Major mode for editing SNMP MIBs.
@@ -13562,8 +13563,8 @@ Prefix argument means invert sense of `tcl-use-smart-word-finder'." t nil)
 
 ;;;***
 
-;;;### (autoloads (rsh telnet) "telnet" "telnet.el" (13858 52416))
-;;; Generated autoloads from telnet.el
+;;;### (autoloads (rsh telnet) "telnet" "net/telnet.el" (13858 52416))
+;;; Generated autoloads from net/telnet.el
  (add-hook 'same-window-regexps "\\*telnet-.*\\*\\(\\|<[0-9]+>\\)")
 
 (autoload (quote telnet) "telnet" "\
@@ -15244,8 +15245,8 @@ Convert Vietnamese characaters of the current buffer to `VIQR' mnemonics." t nil
 
 ;;;### (autoloads (View-exit-and-edit view-mode-enter view-mode view-buffer-other-frame
 ;;;;;;  view-buffer-other-window view-buffer view-file-other-frame
-;;;;;;  view-file-other-window view-file) "view" "view.el" (14485
-;;;;;;  65350))
+;;;;;;  view-file-other-window view-file) "view" "view.el" (14550
+;;;;;;  6934))
 ;;; Generated autoloads from view.el
 
 (defvar view-mode nil "\
@@ -15453,8 +15454,8 @@ Turn on Viper emulation of Vi." t nil)
 
 ;;;***
 
-;;;### (autoloads (webjump) "webjump" "webjump.el" (14223 54012))
-;;; Generated autoloads from webjump.el
+;;;### (autoloads (webjump) "webjump" "net/webjump.el" (14223 54012))
+;;; Generated autoloads from net/webjump.el
 
 (autoload (quote webjump) "webjump" "\
 Jumps to a Web site from a programmable hotlist.
@@ -15818,8 +15819,8 @@ Zippy goes to the analyst." t nil)
 ;;;***
 
 ;;;### (autoloads (zone-mode zone-mode-update-serial-hook) "zone-mode"
-;;;;;;  "zone-mode.el" (13674 20513))
-;;; Generated autoloads from zone-mode.el
+;;;;;;  "net/zone-mode.el" (13674 20513))
+;;; Generated autoloads from net/zone-mode.el
 
 (autoload (quote zone-mode-update-serial-hook) "zone-mode" "\
 Update the serial number in a zone if the file was modified" t nil)

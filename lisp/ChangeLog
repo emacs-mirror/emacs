@@ -1,5 +1,9 @@
 2000-03-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* rcompile.el, rlogin.el, telnet.el, net-utils.el, quickurl.el,
+	ange-ftp.el, browse-url.el, goto-addr.el, webjump.el,
+	zone-mode.el, snmp-mode.el: Moved to net subdirectory.
+	
 	* jit-lock.el (with-buffer-prepared-for-font-lock): Add comment
 	about behavior of set-buffer-modified-p wrt redisplay.
 
