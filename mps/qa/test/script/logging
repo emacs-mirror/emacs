@@ -6,35 +6,49 @@
 
 1;
 
+@LOG_FILES = (STDOUT);
+
 #
 # &describe_test(report_type)
 #
 # prints out report on a test. report_type is one of:
 #   full:    everything
-#   result:  test, spec output, results, conclusion
+#   summary: single line, pass/fail
+#   results: test, spec output, results, conclusion
 #
 
 sub describe_test {
- local ($report) = @_;
+ local ($report, $LOGFILE, $oldhandle) = @_;
 
- $~ = "LOGHEAD";
- write;
- %keyvalues = %test_header;
- %keyrelations = ();
- &dispvals;
- %keyvalues = %spec_output;
- %keyrelations = %spec_rel;
- print $log_test_spec;
- &dispvals;
- %keyvalues = %real_output;
- %keyrelations = ();
- print $log_test_res;
- &dispvals;
- print $log_test_conc;
- $~ = "LOGCONC";
- write;
- if ($report eq "full") {
-  &displog;
+ if ($LOGFILE) {
+  $oldhandle = select($LOGFILE);
+ }
+ if ($report eq "summary") {
+  $~ = "LOGSUMM";
+  write;
+ } else {
+  $~ = "LOGHEAD";
+  write;
+  %keyvalues = %test_header;
+  %keyrelations = ();
+  &dispvals;
+  %keyvalues = %spec_output;
+  %keyrelations = %spec_rel;
+  print $log_test_spec;
+  &dispvals;
+  %keyvalues = %real_output;
+  %keyrelations = ();
+   print $log_test_res;
+  &dispvals;
+  print $log_test_conc;
+  $~ = "LOGCONC";
+  write;
+  if ($report eq "full") {
+   &displog;
+  }
+ }
+ if ($LOGFILE) {
+  select($oldhandle);
  }
 }
 
@@ -57,6 +71,14 @@ sub displog {
   print $line;
  }
  print $log_test_end;
+}
+
+sub logcomment {
+ local ($text, $FILE) = @_;
+
+ foreach $FILE (@LOG_FILES) {
+  print $FILE "$text\n";
+ }
 }
 
 #
@@ -84,5 +106,10 @@ format LOGCONC =
   @<<<<<<<<<    @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $testconclusion, $testconcreason
 
+.
+
+format LOGSUMM = 
+@<<<ED TEST @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testconclusion, $testfile
 .
 
