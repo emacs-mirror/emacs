@@ -1,5 +1,7 @@
 2002-01-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* emacs-lisp/cl-seq.el (mismatch): Doc fix.
+
 	Support for more than 8 colors on character terminals:
 
 	* term/rxvt.el: New file.
