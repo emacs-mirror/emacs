@@ -209,7 +209,7 @@ act as a paragraph-separator."
       (if at-second
 	  ;; If we get a fill prefix from the second line,
 	  ;; make sure it or something compatible is on the first line too.
-	  (and second-line-prefix
+	  (and second-line-prefix first-line-prefix
 	       (if (or (string-match (regexp-quote second-line-prefix)
 				     first-line-prefix)
 		       (and (string-match "[ \t]" second-line-prefix)
