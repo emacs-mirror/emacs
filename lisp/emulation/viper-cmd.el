@@ -1,6 +1,22 @@
 ;;; viper-cmd.el --- Vi command support for Viper
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;; Code
 
@@ -1785,7 +1801,7 @@ Undo previous insertion and inserts new."
 
 (defcustom viper-smart-suffix-list
   '("" "tex" "c" "cc" "C" "el" "java" "html" "htm" "pl" "P" "p")
-  "*List of suffixes that Viper automatically tries to append to filenames ending with a `.'.
+  "*List of suffixes that Viper tries to append to filenames ending with a `.'.
 This is useful when you the current directory contains files with the same
 prefix and many different suffixes. Usually, only one of the suffixes
 represents an editable file. However, file completion will stop at the `.'
@@ -1797,7 +1813,7 @@ corresponding file exists is selected. If no file exists for any of the
 suffixes, the user is asked to confirm.
 
 To turn this feature off, set this variable to nil."
-  :type '(set string)
+  :type '(repeat string)
   :group 'viper)
     
 
