@@ -35,18 +35,20 @@ VPATH=@srcdir@
 MAKEINFO = makeinfo
 INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
-		../info/info ../info/message ../info/mh-e ../info/reftex \
+		../info/message ../info/sieve ../info/pgg ../info/emacs-mime \
+		../info/info ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
 		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
-		../info/woman ../info/emacs-mime ../info/eshell \
+		../info/woman ../info/eshell \
 		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail \
 		../info/flymake
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
-		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
+		 ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
+                 gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
-		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
+		 pcl-cvs.dvi woman.dvi eshell.dvi \
 		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
                  emacs-xtra.dvi
 INFOSOURCES = info.texi
@@ -185,6 +187,7 @@ emacs-xtra.dvi: emacs-xtra.texi
 forms.dvi: forms.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/forms.texi
 
+# gnus/message/emacs-mime/sieve/pgg are part of Gnus:
 ../info/gnus: gnus.texi
 	cd $(srcdir); $(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
@@ -192,11 +195,22 @@ gnus.dvi: gnus.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*
-
 ../info/message: message.texi
 	cd $(srcdir); $(MAKEINFO) message.texi
 message.dvi: message.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/message.texi
+../info/sieve: sieve.texi
+	cd $(srcdir); $(MAKEINFO) sieve.texi
+sieve.dvi: sieve.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/sieve.texi
+../info/emacs-mime: emacs-mime.texi
+	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
+emacs-mime.dvi: emacs-mime.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
+../info/pgg: pgg.texi
+	cd $(srcdir); $(MAKEINFO) pgg.texi
+pgg.dvi: pgg.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/pgg.texi
 
 ../info/mh-e: mh-e.texi
 	cd $(srcdir); $(MAKEINFO) mh-e.texi
@@ -273,11 +287,6 @@ woman.dvi: woman.texi
 	cd $(srcdir); $(MAKEINFO) speedbar.texi
 speedbar.dvi: speedbar.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/speedbar.texi
-
-../info/emacs-mime: emacs-mime.texi
-	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
-emacs-mime.dvi: emacs-mime.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
 
 ../info/tramp: tramp.texi
 	cd $(srcdir); $(MAKEINFO) -D emacs tramp.texi
