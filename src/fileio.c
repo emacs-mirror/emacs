@@ -1,5 +1,5 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000,01,2003
+   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000,01,03,2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2729,7 +2729,7 @@ This is what happens in interactive use with M-x.  */)
           symlink_target = Ffile_symlink_p (file);
           if (! NILP (symlink_target))
             Fmake_symbolic_link (symlink_target, newname,
-                                 NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
+                                 NILP (ok_if_already_exists) ? Qnil : Qt);
           else
 #endif
             Fcopy_file (file, newname,
