@@ -180,7 +180,7 @@ buf_charpos_to_bytepos (b, charpos)
       if (best_above - best_below < 50)
 	break;
 
-      tail = XMARKER (tail)->chain;
+      tail = MARKER_CHAIN (XMARKER (tail));
     }
 
   /* We get here if we did not exactly hit one of the known places.
@@ -366,7 +366,7 @@ buf_bytepos_to_charpos (b, bytepos)
       if (best_above - best_below < 50)
 	break;
 
-      tail = XMARKER (tail)->chain;
+      tail = MARKER_CHAIN (XMARKER (tail));
     }
 
   /* We get here if we did not exactly hit one of the known places.
@@ -546,8 +546,8 @@ Returns MARKER.  */)
     {
       unchain_marker (marker);
       m->buffer = b;
-      m->chain = BUF_MARKERS (b);
-      BUF_MARKERS (b) = marker;
+      XSET_MARKER_CHAIN (m, BUF_MARKERS (b));
+      SET_BUF_MARKERS (b, marker);
     }
 
   return marker;
@@ -622,8 +622,8 @@ set_marker_restricted (marker, pos, buffer)
     {
       unchain_marker (marker);
       m->buffer = b;
-      m->chain = BUF_MARKERS (b);
-      BUF_MARKERS (b) = marker;
+      XSET_MARKER_CHAIN (m, BUF_MARKERS (b));
+      SET_BUF_MARKERS (b, marker);
     }
 
   return marker;
@@ -673,8 +673,8 @@ set_marker_both (marker, buffer, charpos, bytepos)
     {
       unchain_marker (marker);
       m->buffer = b;
-      m->chain = BUF_MARKERS (b);
-      BUF_MARKERS (b) = marker;
+      XSET_MARKER_CHAIN (m, BUF_MARKERS (b));
+      SET_BUF_MARKERS (b, marker);
     }
 
   return marker;
@@ -733,8 +733,8 @@ set_marker_restricted_both (marker, buffer, charpos, bytepos)
     {
       unchain_marker (marker);
       m->buffer = b;
-      m->chain = BUF_MARKERS (b);
-      BUF_MARKERS (b) = marker;
+      XSET_MARKER_CHAIN (m, BUF_MARKERS (b));
+      SET_BUF_MARKERS (b, marker);
     }
 
   return marker;
@@ -752,7 +752,9 @@ unchain_marker (marker)
      register Lisp_Object marker;
 {
   register Lisp_Object tail, prev, next;
+#ifndef BOEHM_GC
   register EMACS_INT omark;
+#endif
   register struct buffer *b;
 
   b = XMARKER (marker)->buffer;
@@ -768,14 +770,16 @@ unchain_marker (marker)
   prev = Qnil;
   while (! GC_NILP (tail))
     {
-      next = XMARKER (tail)->chain;
+      next = MARKER_CHAIN (XMARKER (tail));
+#ifndef BOEHM_GC
       XUNMARK (next);
+#endif
 
       if (XMARKER (marker) == XMARKER (tail))
 	{
 	  if (NILP (prev))
 	    {
-	      BUF_MARKERS (b) = next;
+	      SET_BUF_MARKERS (b, next);
 	      /* Deleting first marker from the buffer's chain.  Crash
 		 if new first marker in chain does not say it belongs
 		 to the same buffer, or at least that they have the same
@@ -785,9 +789,13 @@ unchain_marker (marker)
 	    }
 	  else
 	    {
-	      omark = XMARKBIT (XMARKER (prev)->chain);
-	      XMARKER (prev)->chain = next;
-	      XSETMARKBIT (XMARKER (prev)->chain, omark);
+#ifdef BOEHM_GC
+	      XSET_MARKER_CHAIN (XMARKER (prev), next);
+#else
+	      omark = XMARKBIT (MARKER_CHAIN (XMARKER (prev)));
+	      XSET_MARKER_CHAIN (XMARKER (prev), next);
+	      XSETMARKBIT (MARKER_CHAIN (XMARKER (prev)), omark);
+#endif
 	    }
 	  /* We have removed the marker from the chain;
 	     no need to scan the rest of the chain.  */
@@ -900,7 +908,7 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
 
   for (tail = BUF_MARKERS (current_buffer);
        !NILP (tail);
-       tail = XMARKER (tail)->chain)
+       tail = MARKER_CHAIN (XMARKER (tail)))
     if (XMARKER (tail)->charpos == charno)
       return Qt;
 
@@ -918,7 +926,7 @@ count_markers (buf)
 
   for (tail = BUF_MARKERS (buf);
        !NILP (tail);
-       tail = XMARKER (tail)->chain)
+       tail = MARKER_CHAIN (XMARKER (tail)))
     total++;
 
   return total;
