@@ -1,3 +1,9 @@
+2002-03-05  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-transfer-file): Use `make-temp-file'.
+	(vc-default-update-changelog): Remove conditional use of
+	`make-temp-name'.
+
 2002-03-05  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* ediff-init.el: comments.
