@@ -1,7 +1,8 @@
-2000-10-11  Miles Bader  <miles@lsi.nec.co.jp>
+2000-10-11  Miles Bader  <miles@gnu.org>
 
 	* faces.el (frame-set-background-mode): Pay attention to saved
-	face specs as well as default ones.
+	face specs as well as default ones.  Only do anything if the
+	bg-mode or display-type has actually changed.  Use `dolist'.
 
 2000-10-10  Sam Steingold  <sds@gnu.org>
 
