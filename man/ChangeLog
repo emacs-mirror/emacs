@@ -1,3 +1,7 @@
+2000-03-29  Andreas Schwab  <schwab@suse.de>
+
+	* programs.texi (Imenu): Fix cross ref.
+
 2000-02-18  Andreas Schwab  <schwab@suse.de>
 
 	* ack.texi (Acknowledgments): Remove extra `@end itemize'.
