@@ -1,3 +1,9 @@
+2000-03-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/make-mode.el (makefile-warn-suspicious-lines): clean
+	up the code and the regexp and make sure the cursor is temporarily
+	moved to the suspicious line while querying the user.
+
 2000-03-22  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (w32-charset-info-alist): Initialize.
