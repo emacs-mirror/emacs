@@ -50,57 +50,40 @@ emacs = $(EMACS) $(EMACSOPT)
 
 temacs=../src/temacs -batch -l ./loadup.el 
 
+# Common command to find subdirectories
+
+setwins=subdirs=`find . -type d -print`; \
+	for file in $$subdirs; do \
+	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* ) ;; \
+		*) wins="$$wins $$file" ;; \
+	   esac; \
+        done
 
 doit:
 
 custom-deps: doit
-	subdirs=`find . -type d -print`; \
-	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
-	   esac; \
-        done; \
+	$(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep -f custom-make-dependencies $$wins
 
 finder-data: doit
-	subdirs=`find . -type d -print`; \
-	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
-	   esac; \
-        done; \
+	$(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins
 
 autoloads: doit
-	subdirs=`find . -type d -print`; \
-	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
-	   esac; \
-        done; \
+	$(setwins); \
 	echo Directories: $$wins; \
 	$(emacs) -f batch-update-autoloads $$wins
 
 update-subdirs: doit
-	subdirs=`find . -type d -print`; \
-	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
-	   esac; \
-        done; \
+	$(setwins); \
 	for file in $$wins; do \
 	   ../update-subdirs $$file; \
 	done;
 
 updates: doit
-	subdirs=`find . -type d -print`; \
-	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS | */CVS | */=* ) ;; \
-		*) wins="$$wins $$file" ;; \
-	   esac; \
-        done; \
+	$(setwins); \
 	for file in $$wins; do \
 	   ../update-subdirs $$file; \
 	done; \
