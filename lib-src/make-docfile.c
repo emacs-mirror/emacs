@@ -690,7 +690,6 @@ scan_lisp_file (filename)
 	 The opening quote (and leading backslash-newline) have already
 	 been read.
        */
-      putc ('\n', outfile);
       putc (037, outfile);
       putc (type, outfile);
       fprintf (outfile, "%s\n", buffer);
