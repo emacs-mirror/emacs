@@ -1,3 +1,10 @@
+2003-09-30  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/scheme.el (scheme-mode-variables): When setting
+	`font-lock-defaults', also specify that "#" should
+	be interpreted with `word' syntax.
+	(scheme-font-lock-keywords-2): Also interpret "#:foo" as keyword.
+
 2003-09-30  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el: A lot of comments updated.
@@ -16,7 +23,7 @@
 	for displaying ``clean'' output.
 	(whitespace-buffer): Use `whitespace-clean-msg'.
 	(whitespace-global-mode): Fix typo.
-	
+
 2003-09-29  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* pcvs.el (cvs-mode-unmark-up): Move to goal column when done.
