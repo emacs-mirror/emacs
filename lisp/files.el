@@ -297,7 +297,7 @@ containing it, until no links are left at any level."
   "Switch to buffer BUFFER in another frame."
   (interactive "BSwitch to buffer in other frame: ")
   (let ((pop-up-frames t))
-    (pop-to-buffer buffer)))
+    (pop-to-buffer buffer t)))
 
 (defun find-file (filename)
   "Edit file FILENAME.
