@@ -1147,7 +1147,7 @@ NOTE: Activate the new setting in a VHDL buffer using the menu entry
 (defvar vhdl-progress-interval 1
   "*Interval used to update progress status during long operations.
 If a number, percentage complete gets updated after each interval of
-that many seconds.   To inhibit all messages, set this variable to nil.")
+that many seconds.  To inhibit all messages, set this variable to nil.")
 
 (defvar vhdl-inhibit-startup-warnings-p nil
   "*If non-nil, inhibits start up compatibility warnings.")
@@ -3816,7 +3816,7 @@ keyword."
   "If the word at the current position corresponds to an \"end\"
 keyword, then return a vector containing enough information to find
 the corresponding \"begin\" keyword, else return nil.  The keyword to
-search backward for is aref 0.     The column in which the keyword must
+search backward for is aref 0.  The column in which the keyword must
 appear is aref 1 or nil if any column is suitable.  The supplementary
 keyword to search forward for is aref 2 or nil if this is not
 required.  If aref 3 is t, then the \"begin\" keyword may be found in
