@@ -1,3 +1,8 @@
+2004-09-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check for exec-shield.
+	* configure: Rebuild.
+
 2004-08-06  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install-arch-indep, uninstall): Add flymake.
