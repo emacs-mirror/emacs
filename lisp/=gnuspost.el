@@ -116,10 +116,10 @@ If prefix argument YANK is non-nil, original article is yanked automatically."
 ;;; Post a News using NNTP
 
 ;;;###autoload
-(fset 'sendnews 'gnus-post-news)
+(defalias 'sendnews 'gnus-post-news)
 
 ;;;###autoload
-(fset 'postnews 'gnus-post-news)
+(defalias 'postnews 'gnus-post-news)
 
 ;;;###autoload
 (defun gnus-post-news ()
