@@ -1032,7 +1032,7 @@ combine_bytes (pos, pos_byte, nbytes)
 void
 byte_combining_error ()
 {
-  error ("Byte combining across region boundary inhibitted");
+  error ("Byte combining across boundary of accessible buffer text inhibitted");
 }
 
 /* If we are going to combine bytes at POS which is at a narrowed
