@@ -1,3 +1,10 @@
+2001-11-12  Alex Schroeder  <kensanata@yahoo.com>
+
+	* sql.el (sql-mode): Doc change.
+
+	* sql.el (sql-mode-syntax-table): The backslash is no longer an
+	escape character.
+
 2001-11-12  Colin Walters  <walters@debian.org>
 
 	* calc/calc-keypd.el (toplevel): Bind mouse buttons.
@@ -22,11 +29,6 @@
 
 	* textmodes/flyspell.el (flyspell-default-dictionary):
 	Fix custom type.
-
-2001-11-05  Alex Schroeder  <kensanata@yahoo.com>
-
-	* sql.el (sql-mode-syntax-table): The backslash is no longer an
-	escape character.
 
 2001-11-11  Richard M. Stallman  <rms@gnu.org>
 
