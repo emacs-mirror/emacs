@@ -93,7 +93,6 @@ Visit @var{file} using @code{find-file}, then go to line number
 @var{linenum} in it.
 
 @item +@var{linenum}:@var{columnnum} @var{file}
-@opindex +@var{linenum}:@var{columnnum}
 Visit @var{file} using @code{find-file}, then go to line number
 @var{linenum} and put point at column number @var{columnnum}.
 
