@@ -199,11 +199,10 @@ its normal size.  If the minibuffer is active, this brings the
 minibuffer contents back onto the screen immediately.
 
 @vindex message-truncate-lines
-Normally, if the message is longer than one line, the echo area is
-resized to display the message in its entirety.  But if the variable
-@code{message-truncate-lines} is bound to @code{t}, the echo area does
-not resize, and the message is truncated, as it was done in Emacs 20
-and before.
+Normally, displaying a message that is longer than one line resizes
+the echo area to display the entire message.  But if the variable
+@code{message-truncate-lines} is non-@code{nil}, the echo area does
+not resize, and the message is truncated, as in Emacs 20 and before.
 
 @example
 @group
