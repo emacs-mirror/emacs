@@ -104,7 +104,6 @@ static void update_all_widget_values P_ ((widget_info *, Boolean));
 static void initialize_widget_instance P_ ((widget_instance *));
 static widget_creation_function find_in_table P_ ((char *, widget_creation_entry *));
 static Boolean dialog_spec_p P_ ((char *));
-static void instantiate_widget_instance P_ ((widget_instance *));
 static void destroy_one_instance P_ ((widget_instance *));
 static void lw_pop_all_widgets P_ ((LWLIB_ID, Boolean));
 static Boolean get_one_value P_ ((widget_instance *, widget_value *));
