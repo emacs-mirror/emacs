@@ -47,7 +47,8 @@ The default status is as follows.
 	coding-category-iso-7		iso-2022-7bit
 	coding-category-iso-8-2		iso-latin-1
 	coding-category-iso-8-1		iso-latin-1
-	coding-category-iso-else	iso-2022-7bit-lock
+	coding-category-iso-7-else	iso-2022-7bit-lock
+	coding-category-iso-8-else	iso-2022-8bit-ss2
 	coding-category-emacs-mule 	emacs-mule
 	coding-category-binary		no-conversion
 	coding-category-sjis		japanese-shift-jis
@@ -59,7 +60,8 @@ The default status is as follows.
   (setq coding-category-iso-7		'iso-2022-7bit
 	coding-category-iso-8-1		'iso-latin-1
 	coding-category-iso-8-2		'iso-latin-1
-	coding-category-iso-else	'iso-2022-7bit-lock
+	coding-category-iso-7-else	'iso-2022-7bit-lock
+	coding-category-iso-8-else	'iso-2022-8bit-ss2
 	coding-category-emacs-mule	'emacs-mule
 	coding-category-sjis		'japanese-shift-jis
 	coding-category-big5		'chinese-big5
@@ -69,7 +71,8 @@ The default status is as follows.
    '(coding-category-iso-7
      coding-category-iso-8-2
      coding-category-iso-8-1
-     coding-category-iso-else
+     coding-category-iso-7-else
+     coding-category-iso-8-else
      coding-category-emacs-mule 
      coding-category-sjis
      coding-category-big5
