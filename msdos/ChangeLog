@@ -1,3 +1,9 @@
+2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
+
+	* sedlisp.inp: Set FNCASE=y for all targets in the lisp directory,
+	so that CVS etc. file names are filtered out of the list of
+	subdirectories.
+
 2003-08-28  Eli Zaretskii  <eliz@elta.co.il>
 
 	* sed6.inp (elisp.dvi, index.texi): Replace Unix shell commands

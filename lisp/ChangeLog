@@ -1,3 +1,8 @@
+2003-08-30  Eli Zaretskii  <eliz@elta.co.il>
+
+	* vc-hooks.el (vc-make-version-backup): Fix the change made on
+	2003-07-26: msdos-long-file-names is a function, not a variable.
+
 2003-08-29  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/sendmail.el (sendmail-sync-aliases, mail-setup): 
