@@ -211,29 +211,37 @@ See also the documentation of make-char."
     (and (or (= (nth 1 l) 0) (eq (nth 2 l) 0))
 	 (not (eq (car l) 'composition)))))
 
-;; Coding-system staffs
+;; Coding system staffs
 
-;; Coding-system object is a symbol that has the property
-;; `coding-system' and `eol-type'.
+;; Coding system is a symbol that has the property `coding-system'.
 ;;
-;; The value of the property `coding-system' is a coding-vector of the
-;; format: [TYPE MNEMONIC DOCSTRING NOT-USED-NOW FLAGS].
-;; See comments in src/coding.c for more detail.  The property value
-;; may be another coding-system, in which case, the coding-vector
-;; should be taken from that coding-system.
-;;
-;; The value of the property `eol-type' is integer 0..2 or a vector of
-;; length 3.  The integer value 0, 1, and 2 indicate the format of
+;; The value of the property `coding-system' is a vector of the
+;; following format:
+;;	[TYPE MNEMONIC DOC-STRING NOT-USED-NOW FLAGS]
+;; We call this vector as coding-spec.  See comments in src/coding.c
+;; for more detail.  The property value may be another coding system,
+;; in which case, the coding-spec should be taken from that
+;; coding-system.  The 4th element NOT-USED-NOW is kept just for
+;; backward compatibility with old version of Mule.
+
+(defconst coding-spec-type-idx 0)
+(defconst coding-spec-mnemonic-idx 1)
+(defconst coding-spec-doc-string-idx 2)
+(defconst coding-spec-flags-idx 4)
+
+;; Coding system may have proerpty `eol-type'.  The value of the
+;; property `eol-type' is integer 0..2 or a vector of three coding
+;; systems.  The integer value 0, 1, and 2 indicate the format of
 ;; end-of-line LF, CRLF, and CR respectively.  The vector value
 ;; indicates that the format of end-of-line should be detected
-;; automatically.  Nth element of the vector is the subsidiary
-;; coding-system whose `eol-type' property is integer value.
+;; automatically.  Nth element of the vector is the subsidiary coding
+;; system whose `eol-type' property is N.
 ;;
-;; Coding-system may also have properties `post-read-conversion' and
-;; `pre-write-conversion and the values are functions.
+;; Coding system may also have properties `post-read-conversion' and
+;; `pre-write-conversion.  Values of these properties are functions.
 ;;
 ;; The function in `post-read-conversion' is called after some text is
-;; inserted and decoded along the coding-system and before any
+;; inserted and decoded along the coding system and before any
 ;; functions in `after-insert-functions' are called.  The arguments to
 ;; this function is the same as those of a function in
 ;; `after-insert-functions', i.e. LENGTH of a text while putting point
@@ -242,76 +250,59 @@ See also the documentation of make-char."
 ;; The function in `pre-write-conversion' is called after all
 ;; functions in `write-region-annotate-functions' and
 ;; `buffer-file-format' are called, and before the text is encoded by
-;; the coding-system.  The arguments to this function is the same as
+;; the coding system.  The arguments to this function is the same as
 ;; those of a function in `write-region-annotate-functions', i.e. FROM
 ;; and TO specifying region of a text.
 
-(defsubst coding-vector-type (vec) (aref vec 0))
-(defsubst coding-vector-mnemonic (vec) (aref vec 1))
-(defsubst coding-vector-docstring (vec) (aref vec 2))
-(defsubst coding-vector-flags (vec) (aref vec 4))
+;; Return Nth element of coding-spec of CODING-SYSTEM.
+(defun coding-system-spec-ref (coding-system n)
+  (check-coding-system coding-system)
+  (let ((vec (coding-system-spec coding-system)))
+    (and vec (aref vec n))))
 
-;; Return type of CODING-SYSTEM.
 (defun coding-system-type (coding-system)
-  (check-coding-system coding-system)
-  (let ((vec (coding-system-vector coding-system)))
-    (if vec (coding-vector-type vec))))
+  "Return TYPE element in coding-spec of  CODING-SYSTEM."
+  (coding-system-spec-ref coding-system coding-spec-type-idx))
 
-;; Return mnemonic character of CODING-SYSTEM.
 (defun coding-system-mnemonic (coding-system)
-  (check-coding-system coding-system)
-  (let ((vec (coding-system-vector coding-system)))
-    (if vec (coding-vector-mnemonic vec)
-      ?-)))
+  "Return MNEMONIC element in coding-spec of CODING-SYSTEM."
+  (or (coding-system-spec-ref coding-system coding-spec-mnemonic-idx)
+      ?-))
 
-;; Return docstring of CODING-SYSTEM.
-(defun coding-system-docstring (coding-system)
-  (check-coding-system coding-system)
-  (let ((vec (coding-system-vector coding-system)))
-    (if vec (coding-vector-docstring vec))))
+(defun coding-system-doc-string (coding-system)
+  "Return DOC-STRING element in coding-spec of CODING-SYSTEM."
+  (coding-system-spec-ref coding-system coding-spec-doc-string-idx))
 
-;; Return flags of CODING-SYSTEM.
 (defun coding-system-flags (coding-system)
-  (check-coding-system coding-system)
-  (let ((vec (coding-system-vector coding-system)))
-    (if vec (coding-vector-flags vec))))
+  "Return FLAGS element in coding-spec of CODING-SYSTEM."
+  (coding-system-spec-ref coding-system coding-spec-flags-idx))
 
-;; Return eol-type of CODING-SYSTEM.
-(defun coding-system-eoltype (coding-system)
+(defun coding-system-eol-type (coding-system)
+  "Return eol-type property of CODING-SYSTEM."
   (check-coding-system coding-system)
   (and coding-system
        (or (get coding-system 'eol-type)
-	   (coding-system-eoltype (get coding-system 'coding-system)))))
+	   (coding-system-eol-type (get coding-system 'coding-system)))))
 
-;; Return mnemonic character of eol-type of CODING-SYSTEM.
-(defun coding-system-eoltype-mnemonic (coding-system)
-  (let ((eol-type (coding-system-eoltype coding-system)))
-    (cond ((vectorp eol-type) eol-mnemonic-undecided)
-	  ((eq eol-type 0) eol-mnemonic-unix)
-	  ((eq eol-type 1) eol-mnemonic-unix)
-	  ((eq eol-type 2) eol-mnemonic-unix)
-	  (t ?-))))
+;; Make subsidiear coding systems of CODING-SYSTEM whose base is BASE.
+(defun make-subsidiary-coding-system (coding-system base)
+  (let ((subsidiaries (vector (intern (format "%s-unix" coding-system))
+			      (intern (format "%s-dos" coding-system))
+			      (intern (format "%s-mac" coding-system))))
+	(i 0))
+    (while (< i 3)
+      (put (aref subsidiaries i) 'coding-system base)
+      (put (aref subsidiaries i) 'eol-type i)
+      (put (aref subsidiaries i) 'eol-variant t)
+      (setq i (1+ i)))
+    subsidiaries))
 
-;; Return function for post-read-conversion of CODING-SYSTEM.
-(defun coding-system-post-read-conversion (coding-system)
-  (and coding-system
-       (symbolp coding-system)
-       (or (get coding-system 'post-read-conversion)
-	   (coding-system-post-read-conversion
-	    (get coding-system 'coding-system)))))
-
-;; Return function for pre-write-conversion of CODING-SYSTEM.
-(defun coding-system-pre-write-conversion (coding-system)
-  (and coding-system
-       (symbolp coding-system)
-       (or (get coding-system 'pre-write-conversion)
-	   (coding-system-pre-write-conversion
-	    (get coding-system 'coding-system)))))
-
-(defun make-coding-system (coding-system type mnemonic docstring
-					    &optional flags)
+(defun make-coding-system (coding-system type mnemonic doc-string
+					 &optional flags)
   "Define a new CODING-SYSTEM (symbol).
-Remaining arguments are TYPE, MNEMONIC, DOCSTRING, and FLAGS (optional).
+Remaining arguments are TYPE, MNEMONIC, DOC-STRING, and FLAGS (optional) which
+construct a coding-spec of CODING-SYSTEM in the following format:
+	[TYPE MNEMONIC DOC-STRING nil FLAGS]
 TYPE is an integer value indicating the type of coding-system as follows:
   0: Emacs internal format,
   1: Shift-JIS (or MS-Kanji) used mainly on Japanese PC,
@@ -319,7 +310,7 @@ TYPE is an integer value indicating the type of coding-system as follows:
   3: Big5 used mainly on Chinese PC,
   4: private, CCL programs provide encoding/decoding algorithm.
 MNEMONIC is a character to be displayed on mode line for the coding-system.
-DOCSTRING is a documentation string for the coding-system.
+DOC-STRING is a documentation string for the coding-system.
 FLAGS specifies more precise information of each TYPE.
   If TYPE is 2 (ISO-2022), FLAGS should be a list of:
       CHARSET0, CHARSET1, CHARSET2, CHARSET3, SHORT-FORM,
@@ -348,13 +339,15 @@ FLAGS specifies more precise information of each TYPE.
     for encoding and decoding.  See the documentation of CCL for more detail."
 
   ;; At first, set a value of `coding-system' property.
-  (let ((coding-vector (make-vector 5 nil)))
-    (aset coding-vector 0 type)
-    (aset coding-vector 1
-	  ;; MNEMONIC must be a printable character.
-	  (if (and (> mnemonic ? ) (< mnemonic 127)) mnemonic ? ))
-    (aset coding-vector 2 (if (stringp docstring) docstring ""))
-    (aset coding-vector 3 nil)		; obsolete element
+  (let ((coding-spec (make-vector 5 nil)))
+    (if (or (not (integerp type)) (< type 0) (> type 4))
+	(error "TYPE argument must be 0..4"))
+    (if (or (not (integerp mnemonic)) (<= mnemonic ? ) (> mnemonic 127))
+	(error "MNEMONIC arguemnt must be a printable character."))
+    (aset coding-spec 0 type)
+    (aset coding-spec 1 mnemonic)
+    (aset coding-spec 2 (if (stringp doc-string) doc-string ""))
+    (aset coding-spec 3 nil)		; obsolete element
     (cond ((eq type 2)			; ISO2022
 	   (let ((i 0)
 		 (vec (make-vector 32 nil)))
@@ -376,51 +369,30 @@ FLAGS specifies more precise information of each TYPE.
 	     (while (and (< i 32) flags)
 	       (aset vec i (car flags))
 	       (setq flags (cdr flags) i (1+ i)))
-	     (aset coding-vector 4 vec)))
+	     (aset coding-spec 4 vec)))
 	  ((eq type 4)			; private
 	   (if (and (consp flags)
 		    (vectorp (car flags))
 		    (vectorp (cdr flags)))
-	       (aset coding-vector 4 flags)
+	       (aset coding-spec 4 flags)
 	     (error "Invalid FLAGS argument for TYPE 4 (CCL)")))
-	  (t (aset coding-vector 4 flags)))
-    (put coding-system 'coding-system coding-vector))
+	  (t (aset coding-spec 4 flags)))
+    (put coding-system 'coding-system coding-spec))
 
   ;; Next, set a value of `eol-type' property.  The value is a vector
-  ;; of subsidiary coding-systems, each corresponds to a coding-system
+  ;; of subsidiary coding systems, each corresponds to a coding-system
   ;; for the detected end-of-line format.
-  (let ((codings (vector (intern (format "%s-unix" coding-system))
-			 (intern (format "%s-dos" coding-system))
-			 (intern (format "%s-mac" coding-system))))
-	(i 0))
-    (while (< i 3)
-      (put (aref codings i) 'coding-system coding-system)
-      (put (aref codings i) 'eol-type i)
-      (setq i (1+ i)))
-    (put coding-system 'eol-type codings))
-  )
+  (put coding-system 'eol-type
+       (if (<= type 3)
+	   (make-subsidiary-coding-system coding-system coding-system)
+	 0)))
 
-(defun define-coding-system-alias (symbol new-symbol)
-  "Define NEW-SYMBOL as the same coding system as SYMBOL."
-  (check-coding-system symbol)
-  (put new-symbol 'coding-system symbol)
-  (let ((eol-type (coding-system-eoltype symbol)))
-    (if (vectorp eol-type)
-	(let* ((name (symbol-name new-symbol))
-	       (new-eol-type (vector (intern (concat name "-unix"))
-				     (intern (concat name "-dos"))
-				     (intern (concat name "-mac")))))
-	  (define-coding-system-alias (aref eol-type 0) (aref new-eol-type 0))
-	  (define-coding-system-alias (aref eol-type 1) (aref new-eol-type 1))
-	  (define-coding-system-alias (aref eol-type 2) (aref new-eol-type 2))
-	  (setq eol-type new-eol-type)))
-    (put new-symbol 'eol-type eol-type)))
-
-(defvar buffer-file-coding-system nil
-  "Coding-system of the file which the current-buffer is visiting.")
-(make-variable-buffer-local 'buffer-file-coding-system)
-;; This value should not be reset by changing major mode.
-(put 'buffer-file-coding-system 'permanent-local t)
+(defun define-coding-system-alias (coding-system alias)
+  "Define ALIAS as an alias coding system of CODING-SYSTEM."
+  (check-coding-system coding-system)
+  (put alias 'coding-system coding-system)
+  (if (vectorp (coding-system-eol-type coding-system))
+      (make-subsidiary-coding-system alias coding-system)))
 
 (defun set-buffer-file-coding-system (coding-system &optional force)
   "Set buffer-file-coding-system of the current buffer to CODING-SYSTEM.
@@ -432,8 +404,8 @@ Optional prefix argument FORCE non-nil means CODING-SYSTEM is set
   (interactive "zBuffer-file-coding-system: \nP")
   (check-coding-system coding-system)
   (if (null force)
-      (let ((x (coding-system-eoltype buffer-file-coding-system))
-	    (y (coding-system-eoltype coding-system)))
+      (let ((x (coding-system-eol-type buffer-file-coding-system))
+	    (y (coding-system-eol-type coding-system)))
 	(if (and (numberp x) (>= x 0) (<= x 2) (vectorp y))
 	    (setq coding-system (aref y x)))))
   (setq buffer-file-coding-system coding-system)
@@ -470,9 +442,6 @@ ENCODING is to be used to encode output to the process."
       (check-coding-system encoding)
       (set-process-coding-system proc decoding encoding)))
   (force-mode-line-update))
-
-(defvar default-process-coding-system (cons nil nil)
-  "Cons of default values used to read from and write to process.")
 
 (defun set-coding-priority (arg)
   "Set priority of coding-category according to LIST.
@@ -512,7 +481,7 @@ LIST is a list of coding-categories ordered by priority."
       (cons 'after-insert-file-set-buffer-file-coding-system
 	    after-insert-file-functions))
 
-;; The coding-vector and eol-type of coding-system returned is decided
+;; The coding-spec and eol-type of coding-system returned is decided
 ;; independently in the following order.
 ;;	1. That of buffer-file-coding-system locally bound.
 ;;	2. That of CODING.
@@ -534,7 +503,7 @@ Return nil if there's no need of setting new buffer-file-coding-system."
       (if (local-variable-p 'buffer-file-coding-system)
 	  ;; Something already set locally.
 	  (progn
-	    (setq local-eol (coding-system-eoltype buffer-file-coding-system))
+	    (setq local-eol (coding-system-eol-type buffer-file-coding-system))
 	    (if (null (numberp local-eol))
 		;; But eol-type is not yet set.
 		(setq local-eol nil))
@@ -551,7 +520,7 @@ Return nil if there's no need of setting new buffer-file-coding-system."
 	  ;; had better not change it.
 	  nil
 
-	(setq found-eol (coding-system-eoltype coding))
+	(setq found-eol (coding-system-eol-type coding))
 	(if (null (numberp found-eol))
 	    ;; But eol-type is not found.
 	    (setq found-eol nil))
@@ -564,9 +533,9 @@ Return nil if there's no need of setting new buffer-file-coding-system."
 	(setq new-coding (or local-coding coding))
 	(setq new-eol (or local-eol found-eol))
 	(if (and (numberp new-eol)
-		 (vectorp (coding-system-eoltype new-coding)))
+		 (vectorp (coding-system-eol-type new-coding)))
 	    (setq new-coding
-		  (aref (coding-system-eoltype new-coding) new-eol)))
+		  (aref (coding-system-eol-type new-coding) new-eol)))
 	new-coding))))
 
 (defun make-unification-table (&rest args)
