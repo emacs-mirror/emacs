@@ -41,6 +41,15 @@ extern char *strerror ();
 #include <fcntl.h>
 #endif
 
+#ifdef WINDOWSNT
+#define NOMINMAX
+#include <windows.h>
+#include <stdlib.h>	/* for proper declaration of environ */
+#include <fcntl.h>
+#include "nt.h"
+#define _P_NOWAIT 1	/* from process.h */
+#endif
+
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
 #include "msdos.h"
 #define INCLUDED_FCNTL
@@ -74,14 +83,14 @@ extern char **environ;
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-#ifdef MSDOS
+#ifdef DOS_NT
 /* When we are starting external processes we need to know whether they
    take binary input (no conversion) or text input (\n is converted to
    \r\n).  Similar for output: if newlines are written as \r\n then it's
    text process output, otherwise it's binary.  */
 Lisp_Object Vbinary_process_input;
 Lisp_Object Vbinary_process_output;
-#endif
+#endif /* DOS_NT */
 
 Lisp_Object Vexec_path, Vexec_directory, Vdata_directory, Vdoc_directory;
 Lisp_Object Vconfigure_info_directory;
@@ -90,9 +99,9 @@ Lisp_Object Vshell_file_name;
 
 Lisp_Object Vprocess_environment;
 
-#ifdef MSDOS
+#ifdef DOS_NT
 Lisp_Object Qbuffer_file_type;
-#endif
+#endif /* DOS_NT */
 
 /* True iff we are about to fork off a synchronous process or if we
    are waiting for it.  */
@@ -319,7 +328,11 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   else
     {
 #ifndef MSDOS
+#ifdef WINDOWSNT
+      pipe_with_inherited_out (fd);
+#else  /* not WINDOWSNT */
       pipe (fd);
+#endif /* not WINDOWSNT */
 #endif
 #if 0
       /* Replaced by close_process_descs */
@@ -360,6 +373,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	report_file_error ("Cannot re-open temporary file", Qnil);
       }
 #else /* not MSDOS */
+#ifdef WINDOWSNT
+    pid = child_setup (filefd, fd1, fd1, new_argv, 0, current_dir);
+#else  /* not WINDOWSNT */
     pid = vfork ();
 
     if (pid == 0)
@@ -374,6 +390,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	child_setup (filefd, fd1, fd1, new_argv, 0, current_dir);
       }
 #endif /* not MSDOS */
+#endif /* not WINDOWSNT */
 
     environ = save_environ;
 
@@ -499,13 +516,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   struct gcpro gcpro1;
   Lisp_Object filename_string;
   register Lisp_Object start, end;
-#ifdef MSDOS
+#ifdef DOS_NT
   char *tempfile;
 #else
   char tempfile[20];
 #endif
   int count = specpdl_ptr - specpdl;
-#ifdef MSDOS
+#ifdef DOS_NT
   char *outf = '\0';
 
   if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
@@ -519,14 +536,14 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   if (tempfile[strlen (tempfile) - 1] != '/')
     strcat (tempfile, "/");
   strcat (tempfile, "detmp.XXX");
-#else /* not MSDOS */
+#else /* not DOS_NT */
 
 #ifdef VMS
   strcpy (tempfile, "tmp:emacsXXXXXX.");
 #else
   strcpy (tempfile, "/tmp/emacsXXXXXX");
 #endif
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
 
   mktemp (tempfile);
 
@@ -534,13 +551,13 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   GCPRO1 (filename_string);
   start = args[0];
   end = args[1];
-#ifdef MSDOS
+#ifdef DOS_NT
   specbind (Qbuffer_file_type, Vbinary_process_input);
   Fwrite_region (start, end, filename_string, Qnil, Qlambda);
   unbind_to (count, Qnil);
-#else
+#else  /* not DOS_NT */
   Fwrite_region (start, end, filename_string, Qnil, Qlambda);
-#endif
+#endif /* not DOS_NT */
 
   record_unwind_protect (delete_temp_file, filename_string);
 
@@ -586,6 +603,10 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 #else /* not MSDOS */
   char **env;
   char *pwd_var;
+#ifdef WINDOWSNT
+  int cpid;
+  HANDLE handles[4];
+#endif /* WINDOWSNT */
 
   int pid = getpid ();
 
@@ -618,7 +639,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     temp = pwd_var + 4;
     bcopy ("PWD=", pwd_var, 4);
     bcopy (XSTRING (current_dir)->data, temp, i);
-    if (temp[i - 1] != '/') temp[i++] = '/';
+    if (!IS_DIRECTORY_SEP (temp[i - 1])) temp[i++] = DIRECTORY_SEP;
     temp[i] = 0;
 
     /* We can't signal an Elisp error here; we're in a vfork.  Since
@@ -630,7 +651,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
       _exit (errno);
 
     /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
-    while (i > 2 && temp[i - 1] == '/')
+    while (i > 2 && IS_DIRECTORY_SEP (temp[i - 1]))
       temp[--i] = 0;
   }
 
@@ -685,7 +706,9 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
       }
     *new_env = 0;
   }
-
+#ifdef WINDOWSNT
+  prepare_standard_handles (in, out, err, handles);
+#else  /* not WINDOWSNT */
   /* Make sure that in, out, and err are not actually already in
      descriptors zero, one, or two; this could happen if Emacs is
      started with its standard in, out, or error closed, as might
@@ -709,6 +732,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   close (in);
   close (out);
   close (err);
+#endif /* not WINDOWSNT */
 
 #ifdef USG
 #ifndef SETPGRP_RELEASES_CTTY
@@ -724,6 +748,15 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   something missing here;
 #endif /* vipc */
 
+#ifdef WINDOWSNT
+  /* Spawn the child.  (See ntproc.c:Spawnve).  */
+  cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
+  if (cpid == -1) {    ????
+      report_file_error ("Spawning child process", Qnil);
+  }
+  reset_standard_handles (in, out, err, handles);
+  return cpid;
+#else /* not WINDOWSNT */
   /* execvp does not accept an environment arg so the only way
      to pass this environment is to set environ.  Our caller
      is responsible for restoring the ambient value of environ.  */
@@ -733,6 +766,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   write (1, "Couldn't exec the program ", 26);
   write (1, new_argv[0], strlen (new_argv[0]));
   _exit (1);
+#endif /* not WINDOWSNT */
 #endif /* not MSDOS */
 }
 
@@ -782,7 +816,12 @@ getenv_internal (var, varlen, value, valuelen)
       if (STRINGP (entry)
 	  && XSTRING (entry)->size > varlen
 	  && XSTRING (entry)->data[varlen] == '='
+#ifdef WINDOWSNT
+	  /* NT environment variables are case insensitive.  */
+	  && ! strnicmp (XSTRING (entry)->data, var, varlen))
+#else  /* not WINDOWSNT */
 	  && ! bcmp (XSTRING (entry)->data, var, varlen))
+#endif /* not WINDOWSNT */
 	{
 	  *value    = (char *) XSTRING (entry)->data + (varlen + 1);
 	  *valuelen = XSTRING (entry)->size - (varlen + 1);
@@ -866,11 +905,11 @@ init_callproc ()
 			       Vinstallation_directory);
       if (NILP (Fmember (tem, Vexec_path)))
 	{
-#ifndef MSDOS
+#ifndef DOS_NT
 	  /* MSDOS uses wrapped binaries, so don't do this.  */
 	  Vexec_path = nconc2 (Vexec_path, Fcons (tem, Qnil));
 	  Vexec_directory = Ffile_name_as_directory (tem);
-#endif
+#endif /* not DOS_NT */
 
 	  /* If we use ../lib-src, maybe use ../etc as well.
 	     Do so if ../etc exists and has our DOC-... file in it.  */
@@ -948,7 +987,7 @@ set_process_environment ()
 
 syms_of_callproc ()
 {
-#ifdef MSDOS
+#ifdef DOS_NT
   Qbuffer_file_type = intern ("buffer-file-type");
   staticpro (&Qbuffer_file_type);
 
@@ -959,7 +998,7 @@ syms_of_callproc ()
   DEFVAR_LISP ("binary-process-output", &Vbinary_process_output,
     "*If non-nil then new subprocesses are assumed to produce binary output.");
   Vbinary_process_output = Qnil;
-#endif
+#endif /* DOS_NT */
 
   DEFVAR_LISP ("shell-file-name", &Vshell_file_name,
     "*File name to load inferior shells from.\n\
