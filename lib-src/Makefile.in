@@ -181,11 +181,11 @@ ${archlibdir}: all BLESSMAIL
 #ifdef MOVEMAIL_NEEDS_BLESSING
 /* Don't charge ahead and do it!  Let the installer decide.
 	  ./blessmail ${archlibdir}/movemail  */
-	@if [ "`wc -l blessmail`" != "      2 blessmail" ] ; then \
+	@if [ `wc -l <blessmail` != 2 ] ; then \
 	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
 	  echo Assuming $$dir is really the mail spool directory, you should; \
 	  echo run  ./blessmail ${archlibdir}/movemail; \
-	  echo as root, to make  movemail  setuid or setgid.; \
+	  echo as root, to give  movemail  appropriate permissions.; \
 	fi
 #endif
 
