@@ -13,6 +13,9 @@ See msg from rms to emacs-devel on 21 Dec.
 
 ** Update Speedbar.
 
+** Enhance scroll-bar to handle tall line (similar to line-move).
+
+
 * FATAL ERRORS
 
 ** Investigate face cache related crash.
@@ -187,7 +190,7 @@ man/calendar.texi   joakim@verona.se
 man/cmdargs.texi    Chong Yidong
 man/commands.texi   "Luc Teirlinck"
 man/custom.texi     Chong Yidong
-man/dired.texi      Chong Yidong     joakim@verona.se 
+man/dired.texi      Chong Yidong     joakim@verona.se
 man/display.texi    "Luc Teirlinck"  Chong Yidong
 man/emacs.texi      "Luc Teirlinck"
 man/entering.texi   "Luc Teirlinck"  Chong Yidong
