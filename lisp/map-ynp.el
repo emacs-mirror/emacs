@@ -1,6 +1,6 @@
 ;;; map-ynp.el --- General-purpose boolean question-asker.
 
-;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: lisp, extensions
@@ -33,7 +33,8 @@
 ;;; Code:
 
 ;;;###autoload
-(defun map-y-or-n-p (prompter actor list &optional help action-alist)
+(defun map-y-or-n-p (prompter actor list &optional help action-alist
+			      no-cursor-in-echo-area)
   "Ask a series of boolean questions.
 Takes args PROMPTER ACTOR LIST, and optional args HELP and ACTION-ALIST.
 
@@ -66,6 +67,9 @@ arg (an object from LIST); HELP is a string.  When the user hits KEY,
 FUNCTION is called.  If it returns non-nil, the object is considered
 \"acted upon\", and the next object from LIST is processed.  If it returns
 nil, the prompt is repeated for the same object.
+
+Final optional argument NO-CURSOR-IN-ECHO-AREA non-nil says not to set
+`cursor-in-echo-area' while prompting.
 
 This function uses `query-replace-map' to define the standard responses,
 but not all of the responses which `query-replace' understands
@@ -114,7 +118,7 @@ Returns the number of actions taken."
 		(progn
 		  (setq quit-flag nil)
 		  ;; Prompt the user about this object.
-		  (let ((cursor-in-echo-area t))
+		  (let ((cursor-in-echo-area (not no-cursor-in-echo-area)))
 		    (message "%s(y, n, !, ., q, %sor %s) "
 			     prompt user-keys
 			     (key-description (char-to-string help-char)))
