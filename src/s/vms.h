@@ -246,3 +246,5 @@ globalref char sdata[];
 /* Stdio FILE type has extra indirect on VMS, so must alter this macro.  */
 
 #define PENDING_OUTPUT_COUNT(FILE) ((*(FILE))->_ptr - (*(FILE))->_base)
+
+#define NULL_DEVICE "NLA0:"
