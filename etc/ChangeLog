@@ -1,3 +1,9 @@
+2004-09-04  Eric S. Raymond  <esr@thyrsus.com>
+
+	* PROBLEMS: More reorganization to exile old stuff to the
+	pre-2000 section.  I looked up end-of-life dates for a bunch
+	of old Unixes to check.
+
 2004-08-24  Bill Wohler  <wohler@newt.com>
 
 	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.82.

@@ -1,3 +1,7 @@
+2004-09-04  Emilio C. Lopes <eclig@gmx.net>
+
+	* emacs-lisp/lisp.el (kill-backward-up-list): New function.
+
 2004-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* simple.el (next-error-follow-mode)
