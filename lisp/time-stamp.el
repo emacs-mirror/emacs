@@ -2,7 +2,7 @@
 ;;; Copyright 1989, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
-;; Time-stamp: <93/06/20 17:36:04 gildea>
+;; Time-stamp: <93/09/24 16:02:25 gildea>
 ;; Keywords: tools
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -33,10 +33,12 @@
 
 ;;; To activate automatic time stamping, add this code to your .emacs file:
 ;;;
-;;; (autoload 'time-stamp "time-stamp" "Update the time stamp in a buffer." t)
 ;;; (if (not (memq 'time-stamp write-file-hooks))
 ;;;     (setq write-file-hooks
 ;;;           (cons 'time-stamp write-file-hooks)))
+;;;
+;;; In Emacs 18 you will also need
+;;; (autoload 'time-stamp "time-stamp" "Update the time stamp in a buffer." t)
 
 ;;; Change Log:
 
@@ -162,7 +164,7 @@ See the function time-stamp-mail-host-name.")
 ;;; Some useful functions to use in time-stamp-format
 
 ;;; Could generate most of a message-id with
-;;; '(yymmdd "" hhmm "@" mail-host-name)
+;;; '(time-stamp-yymmdd "" time-stamp-hhmm "@" mail-host-name)
 
 (defun time-stamp-mail-host-name ()
   "Return the name of the host where the user receives mail.
@@ -270,3 +272,5 @@ The first character of dd is Space if the value is less than 10."
 (provide 'time-stamp)
 
 ;;; time-stamp.el ends here
+
+
