@@ -1,10 +1,10 @@
 ;;; isearch.el --- incremental search minor mode.
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/06/01 04:52:28 $|$Revision: 1.39 $
+;; |$Date: 1993/06/04 06:40:45 $|$Revision: 1.40 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -157,7 +157,7 @@ that the search has reached.")
 ;;;========================================================================
 ;;; Some additional options and constants.
 
-(defvar search-upper-case t
+(defvar search-upper-case 'not-yanks
   "*If non-nil, upper case chars disable case fold searching.
 That is, upper and lower case chars must match exactly.
 This applies no matter where the chars come from, but does not
@@ -177,9 +177,7 @@ You might want to use something like \"[ \\t\\r\\n]+\" instead.")
 ;; currently a clean thing to do.  Once highlighting is made clean, 
 ;; this feature can be re-enabled and advertised.
 (defvar search-highlight nil
-  "Whether isearch and query-replace should highlight the text which 
-currently matches the search-string.")
-
+  "*Non-nil means incremental search highlights the current match.")
 
 (defvar isearch-mode-hook nil
   "Function(s) to call after starting up an incremental search.")
@@ -1285,7 +1283,8 @@ If there is no completion possible, say so and continue searching."
   ;; Do the search with the current search string.
   (isearch-message nil t)
   (if (and isearch-case-fold-search search-upper-case)
-      (setq isearch-case-fold-search (isearch-no-upper-case-p isearch-string)))
+      (setq isearch-case-fold-search
+	    (isearch-no-upper-case-p isearch-string isearch-regexp)))
   (condition-case lossage
       (let ((inhibit-quit nil)
 	    (case-fold-search isearch-case-fold-search))
@@ -1330,71 +1329,35 @@ If there is no completion possible, say so and continue searching."
 ;;;========================================================
 ;;; Highlighting
 
-(defun isearch-highlight (begin end))
-(defun isearch-dehighlight (totally))
+(defvar isearch-overlay nil)
 
-;; lemacs uses faces
-'(progn
-(defvar isearch-extent nil)
-
-(or (find-face 'isearch)	;; this face is initialized by x-faces.el
-    (make-face 'isearch))	;; since isearch is preloaded
-
-(defun isearch-lemacs-highlight (begin end)
-  (if (null isearch-highlight)
+(defun isearch-highlight (beg end)
+  (if (or (null search-highlight) (not (internal-find-face 'isearch nil)))
       nil
-    (if (and (extentp isearch-extent)
-	     (eq (extent-buffer isearch-extent) (current-buffer)))
-	(set-extent-endpoints isearch-extent begin end)
-      (if (and (extentp isearch-extent)
-	       (bufferp (extent-buffer isearch-extent))
-	       (buffer-name (extent-buffer isearch-extent)))
-	  (delete-extent isearch-extent))
-      (setq isearch-extent (make-extent begin end (current-buffer))))
-    (set-extent-face isearch-extent 'isearch)))
+    (or isearch-overlay (setq isearch-overlay (make-overlay beg end)))
+    (move-overlay isearch-overlay beg end (current-buffer))
+    (overlay-put isearch-overlay 'face 'isearch)))
 
-(defun isearch-lemacs-dehighlight (totally)
-  (if (and isearch-highlight isearch-extent)
-      (if totally
-	  (let ((inhibit-quit t))
-	    (if (and (extentp isearch-extent)
-		     (bufferp (extent-buffer isearch-extent))
-		     (buffer-name (extent-buffer isearch-extent)))
-		(delete-extent isearch-extent))
-	    (setq isearch-extent nil))
-	(if (and (extentp isearch-extent)
-		 (bufferp (extent-buffer isearch-extent))
-		 (buffer-name (extent-buffer isearch-extent)))
-	    (set-extent-face isearch-extent 'default)
-	  (isearch-dehighlight t)))))
-
-(defalias 'isearch-highlight (symbol-function 'isearch-lemacs-highlight))
-(defalias 'isearch-dehighlight (symbol-function 'isearch-lemacs-dehighlight))
-)
+(defun isearch-dehighlight (totally)
+  (if isearch-overlay
+      (delete-overlay isearch-overlay)))
 
 ;;;===========================================================
 ;;; General utilities
 
-;; (defalias 'isearch-member-equal (symbol-function 'member)) ; for emacs 19
 
-(defun isearch-member-equal (item list)
-  "Return non-nil if ITEM is `equal' to some item in LIST.
-Actually return the list whose car is that item."
-  (while (and list (not (equal item (car list))))
-    (setq list (cdr list)))
-  list)
-
-
-(defun isearch-no-upper-case-p (string)
-  "Return t if there are no upper case chars in string.
-But upper case chars preceeded by \\ (but not \\\\) do not count since they
-have special meaning in a regexp."
+(defun isearch-no-upper-case-p (string regexp-flag)
+  "Return t if there are no upper case chars in STRING.
+If REGEXP-FLAG is non-nil, disregard letters preceeded by `\\' (but not `\\\\')
+since they have special meaning in a regexp."
   (let ((case-fold-search nil))
-    (not (string-match "\\(^\\|\\\\\\\\\\|[^\\]\\)[A-Z]" string))))
+    (not (string-match (if regexp-flag "\\(^\\|\\\\\\\\\\|[^\\]\\)[A-Z]"
+			 "[A-Z]")
+		       string))))
 
 
 ;;;=================================================
-;;; Special functions for lemacs events.
+;; Portability functions to support various Emacs versions.
 
 ;; To quiet the byte-compiler.
 (defvar unread-command-event)
@@ -1431,109 +1394,5 @@ have special meaning in a regexp."
   (if isearch-event-data-type
       last-command-event
     last-command-char))
-
-
-
-
-;;;========================================================
-;;; Exiting in lemacs
-
-;; This is a large amount of code to support automatic termination of
-;; isearch-mode when a command (however it is invoked) is not an
-;; isearch command, or the buffer is switched out from under
-;; isearch-mode.   Only later versions of lemacs have the pre-command-hook.
-
-;;(if isearch-pre-command-hook-exists
-;;(progn
-
-;;;; This list must be modified whenever the available commands are modified.
-;;(mapcar (function (lambda (command)
-;;		    (put command 'isearch-command t)))
-;;	'(isearch-printing-char
-;;	  isearch-return-char
-;;	  isearch-repeat-forward
-;;	  isearch-repeat-backward
-;;	  isearch-delete-char
-;;	  isearch-abort	
-;;	  isearch-quote-char
-;;	  isearch-exit	
-;;	  isearch-printing-char
-;;	  isearch-printing-char
-;;	  isearch-yank-word	
-;;	  isearch-yank-line	
-;;	  isearch-*-char	
-;;	  isearch-*-char	
-;;	  isearch-|-char	
-;;	  isearch-toggle-regexp
-;;	  isearch-edit-string
-;;	  isearch-mode-help	
-;;	  isearch-ring-advance
-;;	  isearch-ring-retreat
-;;	  isearch-ring-advance-edit
-;;	  isearch-ring-retreat-edit
-;;	  isearch-whitespace-chars
-;;	  isearch-complete	
-;;	  isearch-complete-edit
-;;	  isearch-edit-string
-;;	  isearch-toggle-regexp
-;;	  ;; The following may not be needed since isearch-mode is off already.
-;;	  isearch-forward-exit-minibuffer
-;;	  isearch-reverse-exit-minibuffer
-;;	  isearch-nonincremental-exit-minibuffer))
-
-;;(defun isearch-pre-command-hook ()
-;;  ;;
-;;  ;; For use as the value of `pre-command-hook' when isearch-mode is active.
-;;  ;; If the command about to be executed is not one of the isearch commands,
-;;  ;; then isearch-mode is turned off before that command is executed.
-;;  ;;
-;;  ;; If the command about to be executed is self-insert-command, or is a
-;;  ;; keyboard macro of a single key sequence which is bound to self-insert-
-;;  ;; command, then we add those chars to the search ring instead of inserting
-;;  ;; them in the buffer.  In this way, the set of self-searching characters
-;;  ;; need not be exhaustively enumerated, but is derived from other maps.
-;;  ;;
-;;  (isearch-maybe-frob-keyboard-macros)
-;;  (if (and (symbolp this-command)
-;;	   (get this-command 'isearch-command))
-;;      nil
-;;    (isearch-done)))
-
-;;(defun isearch-maybe-frob-keyboard-macros ()
-;;  ;;
-;;  ;; If the command about to be executed is `self-insert-command' then change
-;;  ;; the command to `isearch-printing-char' instead, meaning add the last-
-;;  ;; typed character to the search string.
-;;  ;;
-;;  ;; If `this-command' is a string or a vector (that is, a keyboard macro)
-;;  ;; and it contains only one command, which is bound to self-insert-command,
-;;  ;; then do the same thing as for self-inserting commands: arrange for that
-;;  ;; character to be added to the search string.  If we didn't do this, then
-;;  ;; typing a compose sequence (a la x-compose.el) would terminate the search
-;;  ;; and insert the character, instead of searching for that character.
-;;  ;;
-;;  (cond ((eq this-command 'self-insert-command)
-;;	 (setq this-command 'isearch-printing-char))
-;;	((and (stringp this-command)
-;;	      (eq (key-binding this-command) 'self-insert-command))
-;;	 (setq last-command-char (aref this-command 0)
-;;	       last-command-event (character-to-event last-command-char)
-;;	       this-command 'isearch-printing-char))
-;;	((and (vectorp this-command)
-;;	      (eq (key-binding this-command) 'self-insert-command))
-;;	 (let* ((desc (aref this-command 0))
-;;		(code (cond ((integerp desc) desc)
-;;			    ((symbolp desc) (get desc character-set-property))
-;;			    ((consp desc)
-;;			     (and (null (cdr desc))
-;;				  (get (car desc) character-set-property)))
-;;			    (t nil))))
-;;	   (if code
-;;	       (setq last-command-char code
-;;		     last-command-event (character-to-event last-command-char)
-;;		     this-command 'isearch-printing-char))))
-;;	))
-
-;;))
 
 ;;; isearch.el ends here
