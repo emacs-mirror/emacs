@@ -42,6 +42,12 @@ Boston, MA 02111-1307, USA.  */
 #define TABDLY OXTABS
 #define TAB3 OXTABS
 
+/* Tell Emacs that we are a terminfo based system; disable the use
+   of local termcap.  (GNU uses ncurses.) */
+#ifdef HAVE_LIBNCURSES
+#define TERMINFO
+#define LIBS_TERMCAP -lncurses
+#endif
 
 #define SYSV_SYSTEM_DIR
 
