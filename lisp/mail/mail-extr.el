@@ -1615,18 +1615,21 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 		(insert initial ". ")))))
 	 
 	 ;; Handle & substitution
-	 ((and (or (bobp)
-		   (eq ?\  (preceding-char)))
-	       (looking-at "&\\( \\|\\'\\)"))
-	  (mail-extr-delete-char 1)
-	  (capitalize-region
-	   (point)
-	   (progn
-	     (insert-buffer-substring canonicalization-buffer
-				      mbox-beg mbox-end)
-	     (point)))
-	  (setq disable-initial-guessing-flag t)
-	  (setq word-found-flag t))
+	 ;; This is turned off because an & from the passwd file
+	 ;; should not really get into a mail address without
+	 ;; being substituted, and people use it for other things.
+;;;	 ((and (or (bobp)
+;;;		   (eq ?\  (preceding-char)))
+;;;	       (looking-at "&\\( \\|\\'\\)"))
+;;;	  (mail-extr-delete-char 1)
+;;;	  (capitalize-region
+;;;	   (point)
+;;;	   (progn
+;;;	     (insert-buffer-substring canonicalization-buffer
+;;;				      mbox-beg mbox-end)
+;;;	     (point)))
+;;;	  (setq disable-initial-guessing-flag t)
+;;;	  (setq word-found-flag t))
 	 
 	 ;; Handle *Stupid* VMS date stamps
 	 ((looking-at mail-extr-stupid-vms-date-stamp-pattern)
