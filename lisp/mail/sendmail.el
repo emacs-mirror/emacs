@@ -473,6 +473,7 @@ actually occur.")
   :type 'hook
   :options '(footnote-mode))
 
+(defvar mail-mode-abbrev-table text-mode-abbrev-table)
 ;;;###autoload
 (define-derived-mode mail-mode text-mode "Mail"
   "Major mode for editing mail to be sent.
@@ -489,7 +490,6 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-sent-via]  mail-sent-via (add a Sent-via field for each To or CC).
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
-  (setq local-abbrev-table text-mode-abbrev-table)
   (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
   (setq buffer-offer-save t)
