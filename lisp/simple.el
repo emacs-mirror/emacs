@@ -4304,6 +4304,12 @@ make the common parts less visible than normal, so that the rest
 of the differing parts is, by contrast, slightly highlighted."
   :group 'completion)
 
+;; This is for packages that need to bind it to a non-default regexp
+;; in order to make the first-differing character highlight work
+;; to their liking
+(defvar completion-root-regexp "^/"
+  "Regexp to use in `completion-setup-function' to find the root directory.")
+
 (defun completion-setup-function ()
   (let ((mainbuf (current-buffer))
 	(mbuf-contents (minibuffer-contents)))
@@ -4332,7 +4338,7 @@ of the differing parts is, by contrast, slightly highlighted."
 		(with-current-buffer mainbuf
 		  (save-excursion
 		    (goto-char (point-max))
-		    (skip-chars-backward "^/")
+		    (skip-chars-backward completion-root-regexp)
 		    (- (point) (minibuffer-prompt-end)))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(if (minibufferp mainbuf)

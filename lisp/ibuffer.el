@@ -1644,16 +1644,17 @@ If point is on a group name, this function operates on that group."
        (dolist (string column-strings)
 	 (setq total
 	       ;; like, ewww ...
-	       (+ (float (string-to-int string))
+	       (+ (float (string-to-number string))
 		  total)))
        (format "%.0f" total))))
   (format "%s" (buffer-size)))
 
-(define-ibuffer-column mode (:inline t
-			     :props
-			     ('mouse-face 'highlight
-			      'keymap ibuffer-mode-name-map
-			      'help-echo "mouse-2: filter by this mode"))
+(define-ibuffer-column mode
+  (:inline t
+   :props
+   ('mouse-face 'highlight
+		'keymap ibuffer-mode-name-map
+		'help-echo "mouse-2: filter by this mode"))
   (format "%s" mode-name))
 
 (define-ibuffer-column process
@@ -2198,7 +2199,7 @@ Try to restore the previous window configuration iff
 `ibuffer-restore-window-config-on-quit' is non-nil."
   (interactive)
   (if ibuffer-restore-window-config-on-quit
-      (progn 
+      (progn
 	(bury-buffer)
 	(unless (= (count-windows) 1)
 	  (set-window-configuration ibuffer-prev-window-config)))

@@ -2262,6 +2262,11 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
+** Both the variable and the function `disabled-command-hook' have
+been renamed to `disabled-command-function'.  The variable
+`disabled-command-hook' has been kept as an obsolete alias.
+
 ** Function `compute-motion' now calculates the usable window
 width if the WIDTH argument is nil.  If the TOPOS argument is nil,
 the usable window height and width is used.

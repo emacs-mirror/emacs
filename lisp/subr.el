@@ -566,7 +566,7 @@ The order of bindings in a keymap matters when it is used as a menu."
 (defmacro kbd (keys)
   "Convert KEYS to the internal Emacs key representation.
 KEYS should be a string constant in the format used for
-saving keyboard macros (see `insert-kbd-macro')."
+saving keyboard macros (see `edmacro-mode')."
   (read-kbd-macro keys))
 
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
@@ -2304,13 +2304,13 @@ which in most cases is shared with all other buffers in the same major mode."
 
 (defun global-unset-key (key)
   "Remove global binding of KEY.
-KEY is a string representing a sequence of keystrokes."
+KEY is a string or vector representing a sequence of keystrokes."
   (interactive "kUnset key globally: ")
   (global-set-key key nil))
 
 (defun local-unset-key (key)
   "Remove local binding of KEY.
-KEY is a string representing a sequence of keystrokes."
+KEY is a string or vector representing a sequence of keystrokes."
   (interactive "kUnset key locally: ")
   (if (current-local-map)
       (local-set-key key nil))

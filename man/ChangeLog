@@ -1,3 +1,9 @@
+2004-08-05  Lars Hansen  <larsh@math.ku.dk>
+
+	* widget.texi (User Interface): Update how to separate the
+	editable field of an editable-field widget from other widgets.
+	(Programming Example): Add text after field.
+
 2004-07-24  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Paragraphs): Update how paragraphs are separated

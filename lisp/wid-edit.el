@@ -3187,6 +3187,8 @@ It will read a directory name from the minibuffer when invoked."
 		(setq err "Empty sexp -- use `nil'?")
 	      (unless (widget-apply widget :match (read (current-buffer)))
 		(setq err (widget-get widget :type-error))))
+	    ;; Allow whitespace after expression.
+	    (skip-syntax-forward "\\s-")
 	    (if (and (not (eobp))
 		     (not err))
 		(setq err (format "Junk at end of expression: %s"

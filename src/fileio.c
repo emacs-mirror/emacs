@@ -887,7 +887,7 @@ make_temp_name (prefix, base64_p)
      int base64_p;
 {
   Lisp_Object val;
-  int len;
+  int len, clen;
   int pid;
   unsigned char *p, *data;
   char pidbuf[20];
@@ -922,8 +922,10 @@ make_temp_name (prefix, base64_p)
 #endif
     }
 
-  len = SCHARS (prefix);
-  val = make_uninit_string (len + 3 + pidlen);
+  len = SBYTES (prefix); clen = SCHARS (prefix);
+  val = make_uninit_multibyte_string (clen + 3 + pidlen, len + 3 + pidlen);
+  if (!STRING_MULTIBYTE (prefix))
+    STRING_SET_UNIBYTE (val);
   data = SDATA (val);
   bcopy(SDATA (prefix), data, len);
   p = data + len;

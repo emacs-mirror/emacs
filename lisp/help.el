@@ -428,7 +428,8 @@ We put that list in a buffer, and display the buffer.
 The optional argument PREFIX, if non-nil, should be a key sequence;
 then we display only bindings that start with that prefix.
 The optional argument BUFFER specifies which buffer's bindings
-to display (default, the current buffer)."
+to display (default, the current buffer).  BUFFER can be a buffer
+or a buffer name."
   (interactive)
   (or buffer (setq buffer (current-buffer)))
   (help-setup-xref (list #'describe-bindings prefix buffer) (interactive-p))

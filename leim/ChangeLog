@@ -1,3 +1,7 @@
+2004-08-06  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install): Remove .arch-inventory files.
+
 2004-07-01  David Kastrup  <dak@gnu.org>
 
 	* quail/greek.el ("((") ("))"): add quotation mark shorthands.

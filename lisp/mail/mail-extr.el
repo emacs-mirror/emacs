@@ -1434,374 +1434,388 @@ consing a string.)"
     (if all (nreverse value-list) (car value-list))
     ))
 
+(defcustom mail-extr-disable-voodoo "\\cj"
+  "*If it is a regexp, names matching it will never be modified.
+If it is neither nil nor a string, modifying of names will never take
+place.  It affects how `mail-extract-address-components' works."
+  :type '(choice (regexp :size 0)
+		 (const :tag "Always enabled" nil)
+		 (const :tag "Always disabled" t))
+  :group 'mail-extr)
+
 (defun mail-extr-voodoo (mbox-beg mbox-end canonicalization-buffer)
-  (let ((word-count 0)
-	(case-fold-search nil)
-	mixed-case-flag lower-case-flag ;;upper-case-flag
-	suffix-flag last-name-comma-flag
-	;;cbeg cend
-	initial
-	begin-again-flag
-	drop-this-word-if-trailing-flag
-	drop-last-word-if-trailing-flag
-	word-found-flag
-	this-word-beg last-word-beg
-	name-beg name-end
-	name-done-flag
-	)
-    (save-excursion
-      (set-syntax-table mail-extr-address-text-syntax-table)
+  (unless (and mail-extr-disable-voodoo
+	       (or (not (stringp mail-extr-disable-voodoo))
+		   (progn
+		     (goto-char (point-min))
+		     (re-search-forward mail-extr-disable-voodoo nil t))))
+    (let ((word-count 0)
+	  (case-fold-search nil)
+	  mixed-case-flag lower-case-flag ;;upper-case-flag
+	  suffix-flag last-name-comma-flag
+	  ;;cbeg cend
+	  initial
+	  begin-again-flag
+	  drop-this-word-if-trailing-flag
+	  drop-last-word-if-trailing-flag
+	  word-found-flag
+	  this-word-beg last-word-beg
+	  name-beg name-end
+	  name-done-flag
+	  )
+      (save-excursion
+	(set-syntax-table mail-extr-address-text-syntax-table)
 
-      ;; Get rid of comments.
-      (goto-char (point-min))
-      (while (not (eobp))
-	;; Initialize for this iteration of the loop.
-	(skip-chars-forward "^({[\"'`")
-	(let ((cbeg (point)))
-	  (set-syntax-table mail-extr-address-text-comment-syntax-table)
-	  (if (memq (following-char) '(?\' ?\`))
-	      (search-forward "'" nil 'move
-			      (if (eq ?\' (following-char)) 2 1))
-	    (or (mail-extr-safe-move-sexp 1)
-		(goto-char (point-max))))
-	  (set-syntax-table mail-extr-address-text-syntax-table)
-	  (when (eq (char-after cbeg) ?\()
-	    ;; Delete the comment itself.
-	    (delete-region cbeg (point))
-	    ;; Canonicalize whitespace where the comment was.
-	    (skip-chars-backward " \t")
-	    (if (looking-at "\\([ \t]+$\\|[ \t]+,\\)")
-		(replace-match "")
-	      (setq cbeg (point))
-	      (skip-chars-forward " \t")
-	      (if (bobp)
-		  (delete-region (point) cbeg)
-		(just-one-space))))))
-
-      ;; This was moved above.
-      ;; Fix . used as space
-      ;; But it belongs here because it occurs not only as
-      ;;   rypens@reks.uia.ac.be (Piet.Rypens)
-      ;; but also as
-      ;;   "Piet.Rypens" <rypens@reks.uia.ac.be>
-      ;;(goto-char (point-min))
-      ;;(while (re-search-forward mail-extr-bad-dot-pattern nil t)
-      ;;  (replace-match "\\1 \\2" t))
-
-      (unless (search-forward " " nil t)
+	;; Get rid of comments.
 	(goto-char (point-min))
-	(cond ((search-forward "_" nil t)
-	       ;; Handle the *idiotic* use of underlines as spaces.
-	       ;; Example: fml@foo.bar.dom (First_M._Last)
-	       (goto-char (point-min))
-	       (while (search-forward "_" nil t)
-		 (replace-match " " t)))
-	      ((search-forward "." nil t)
-	       ;; Fix . used as space
-	       ;; Example: danj1@cb.att.com (daniel.jacobson)
-	       (goto-char (point-min))
-	       (while (re-search-forward mail-extr-bad-dot-pattern nil t)
-		 (replace-match "\\1 \\2" t)))))
+	(while (not (eobp))
+	  ;; Initialize for this iteration of the loop.
+	  (skip-chars-forward "^({[\"'`")
+	  (let ((cbeg (point)))
+	    (set-syntax-table mail-extr-address-text-comment-syntax-table)
+	    (if (memq (following-char) '(?\' ?\`))
+		(search-forward "'" nil 'move
+				(if (eq ?\' (following-char)) 2 1))
+	      (or (mail-extr-safe-move-sexp 1)
+		  (goto-char (point-max))))
+	    (set-syntax-table mail-extr-address-text-syntax-table)
+	    (when (eq (char-after cbeg) ?\()
+	      ;; Delete the comment itself.
+	      (delete-region cbeg (point))
+	      ;; Canonicalize whitespace where the comment was.
+	      (skip-chars-backward " \t")
+	      (if (looking-at "\\([ \t]+$\\|[ \t]+,\\)")
+		  (replace-match "")
+		(setq cbeg (point))
+		(skip-chars-forward " \t")
+		(if (bobp)
+		    (delete-region (point) cbeg)
+		  (just-one-space))))))
 
-      ;; Loop over the words (and other junk) in the name.
-      (goto-char (point-min))
-      (while (not name-done-flag)
+	;; This was moved above.
+	;; Fix . used as space
+	;; But it belongs here because it occurs not only as
+	;;   rypens@reks.uia.ac.be (Piet.Rypens)
+	;; but also as
+	;;   "Piet.Rypens" <rypens@reks.uia.ac.be>
+	;;(goto-char (point-min))
+	;;(while (re-search-forward mail-extr-bad-dot-pattern nil t)
+	;;  (replace-match "\\1 \\2" t))
 
-	(when word-found-flag
-	  ;; Last time through this loop we skipped over a word.
-	  (setq last-word-beg this-word-beg)
-	  (setq drop-last-word-if-trailing-flag
-		drop-this-word-if-trailing-flag)
-	  (setq word-found-flag nil))
+	(unless (search-forward " " nil t)
+	  (goto-char (point-min))
+	  (cond ((search-forward "_" nil t)
+		 ;; Handle the *idiotic* use of underlines as spaces.
+		 ;; Example: fml@foo.bar.dom (First_M._Last)
+		 (goto-char (point-min))
+		 (while (search-forward "_" nil t)
+		   (replace-match " " t)))
+		((search-forward "." nil t)
+		 ;; Fix . used as space
+		 ;; Example: danj1@cb.att.com (daniel.jacobson)
+		 (goto-char (point-min))
+		 (while (re-search-forward mail-extr-bad-dot-pattern nil t)
+		   (replace-match "\\1 \\2" t)))))
 
-	(when begin-again-flag
-	  ;; Last time through the loop we found something that
-	  ;; indicates we should pretend we are beginning again from
-	  ;; the start.
-	  (setq word-count 0)
-	  (setq last-word-beg nil)
-	  (setq drop-last-word-if-trailing-flag nil)
-	  (setq mixed-case-flag nil)
-	  (setq lower-case-flag nil)
-	  ;;	       (setq upper-case-flag nil)
-	  (setq begin-again-flag nil))
+	;; Loop over the words (and other junk) in the name.
+	(goto-char (point-min))
+	(while (not name-done-flag)
 
-	;; Initialize for this iteration of the loop.
-	(mail-extr-skip-whitespace-forward)
-	(if (eq word-count 0) (narrow-to-region (point) (point-max)))
-	(setq this-word-beg (point))
-	(setq drop-this-word-if-trailing-flag nil)
+	  (when word-found-flag
+	    ;; Last time through this loop we skipped over a word.
+	    (setq last-word-beg this-word-beg)
+	    (setq drop-last-word-if-trailing-flag
+		  drop-this-word-if-trailing-flag)
+	    (setq word-found-flag nil))
 
-	;; Decide what to do based on what we are looking at.
-	(cond
+	  (when begin-again-flag
+	    ;; Last time through the loop we found something that
+	    ;; indicates we should pretend we are beginning again from
+	    ;; the start.
+	    (setq word-count 0)
+	    (setq last-word-beg nil)
+	    (setq drop-last-word-if-trailing-flag nil)
+	    (setq mixed-case-flag nil)
+	    (setq lower-case-flag nil)
+	    ;;	       (setq upper-case-flag nil)
+	    (setq begin-again-flag nil))
 
-	 ;; Delete title
-	 ((and (eq word-count 0)
-	       (looking-at mail-extr-full-name-prefixes))
-	  (goto-char (match-end 0))
-	  (narrow-to-region (point) (point-max)))
-
-	 ;; Stop after name suffix
-	 ((and (>= word-count 2)
-	       (looking-at mail-extr-full-name-suffix-pattern))
-	  (mail-extr-skip-whitespace-backward)
-	  (setq suffix-flag (point))
-	  (if (eq ?, (following-char))
-	      (forward-char 1)
-	    (insert ?,))
-	  ;; Enforce at least one space after comma
-	  (or (eq ?\  (following-char))
-	      (insert ?\ ))
+	  ;; Initialize for this iteration of the loop.
 	  (mail-extr-skip-whitespace-forward)
-	  (cond ((memq (following-char) '(?j ?J ?s ?S))
-		 (capitalize-word 1)
-		 (if (eq (following-char) ?.)
-		     (forward-char 1)
-		   (insert ?.)))
-		(t
-		 (upcase-word 1)))
-	  (setq word-found-flag t)
-	  (setq name-done-flag t))
+	  (if (eq word-count 0) (narrow-to-region (point) (point-max)))
+	  (setq this-word-beg (point))
+	  (setq drop-this-word-if-trailing-flag nil)
 
-	 ;; Handle SCA names
-	 ((looking-at "MKA \\(.+\\)")	; "Mundanely Known As"
-	  (goto-char (match-beginning 1))
-	  (narrow-to-region (point) (point-max))
-	  (setq begin-again-flag t))
-
-	 ;; Check for initial last name followed by comma
-	 ((and (eq ?, (following-char))
-	       (eq word-count 1))
-	  (forward-char 1)
-	  (setq last-name-comma-flag t)
-	  (or (eq ?\  (following-char))
-	      (insert ?\ )))
-
-	 ;; Stop before trailing comma-separated comment
-	 ;; THIS CASE MUST BE AFTER THE PRECEDING CASES.
-	 ;; *** This case is redundant???
-	 ;;((eq ?, (following-char))
-	 ;; (setq name-done-flag t))
-
-	 ;; Delete parenthesized/quoted comment/nickname
-	 ((memq (following-char) '(?\( ?\{ ?\[ ?\" ?\' ?\`))
-	  (setq cbeg (point))
-	  (set-syntax-table mail-extr-address-text-comment-syntax-table)
-	  (cond ((memq (following-char) '(?\' ?\`))
-		 (or (search-forward "'" nil t
-				     (if (eq ?\' (following-char)) 2 1))
-		     (delete-char 1)))
-		(t
-		 (or (mail-extr-safe-move-sexp 1)
-		     (goto-char (point-max)))))
-	  (set-syntax-table mail-extr-address-text-syntax-table)
-	  (setq cend (point))
+	  ;; Decide what to do based on what we are looking at.
 	  (cond
-	   ;; Handle case of entire name being quoted
+
+	   ;; Delete title
 	   ((and (eq word-count 0)
-		 (looking-at " *\\'")
-		 (>= (- cend cbeg) 2))
-	    (narrow-to-region (1+ cbeg) (1- cend))
-	    (goto-char (point-min)))
+		 (looking-at mail-extr-full-name-prefixes))
+	    (goto-char (match-end 0))
+	    (narrow-to-region (point) (point-max)))
+
+	   ;; Stop after name suffix
+	   ((and (>= word-count 2)
+		 (looking-at mail-extr-full-name-suffix-pattern))
+	    (mail-extr-skip-whitespace-backward)
+	    (setq suffix-flag (point))
+	    (if (eq ?, (following-char))
+		(forward-char 1)
+	      (insert ?,))
+	    ;; Enforce at least one space after comma
+	    (or (eq ?\  (following-char))
+		(insert ?\ ))
+	    (mail-extr-skip-whitespace-forward)
+	    (cond ((memq (following-char) '(?j ?J ?s ?S))
+		   (capitalize-word 1)
+		   (if (eq (following-char) ?.)
+		       (forward-char 1)
+		     (insert ?.)))
+		  (t
+		   (upcase-word 1)))
+	    (setq word-found-flag t)
+	    (setq name-done-flag t))
+
+	   ;; Handle SCA names
+	   ((looking-at "MKA \\(.+\\)")	; "Mundanely Known As"
+	    (goto-char (match-beginning 1))
+	    (narrow-to-region (point) (point-max))
+	    (setq begin-again-flag t))
+
+	   ;; Check for initial last name followed by comma
+	   ((and (eq ?, (following-char))
+		 (eq word-count 1))
+	    (forward-char 1)
+	    (setq last-name-comma-flag t)
+	    (or (eq ?\  (following-char))
+		(insert ?\ )))
+
+	   ;; Stop before trailing comma-separated comment
+	   ;; THIS CASE MUST BE AFTER THE PRECEDING CASES.
+	   ;; *** This case is redundant???
+	   ;;((eq ?, (following-char))
+	   ;; (setq name-done-flag t))
+
+	   ;; Delete parenthesized/quoted comment/nickname
+	   ((memq (following-char) '(?\( ?\{ ?\[ ?\" ?\' ?\`))
+	    (setq cbeg (point))
+	    (set-syntax-table mail-extr-address-text-comment-syntax-table)
+	    (cond ((memq (following-char) '(?\' ?\`))
+		   (or (search-forward "'" nil t
+				       (if (eq ?\' (following-char)) 2 1))
+		       (delete-char 1)))
+		  (t
+		   (or (mail-extr-safe-move-sexp 1)
+		       (goto-char (point-max)))))
+	    (set-syntax-table mail-extr-address-text-syntax-table)
+	    (setq cend (point))
+	    (cond
+	     ;; Handle case of entire name being quoted
+	     ((and (eq word-count 0)
+		   (looking-at " *\\'")
+		   (>= (- cend cbeg) 2))
+	      (narrow-to-region (1+ cbeg) (1- cend))
+	      (goto-char (point-min)))
+	     (t
+	      ;; Handle case of quoted initial
+	      (if (and (or (= 3 (- cend cbeg))
+			   (and (= 4 (- cend cbeg))
+				(eq ?. (char-after (+ 2 cbeg)))))
+		       (not (looking-at " *\\'")))
+		  (setq initial (char-after (1+ cbeg)))
+		(setq initial nil))
+	      (delete-region cbeg cend)
+	      (if initial
+		  (insert initial ". ")))))
+
+	   ;; Handle *Stupid* VMS date stamps
+	   ((looking-at mail-extr-stupid-vms-date-stamp-pattern)
+	    (replace-match "" t))
+
+	   ;; Handle Chinese characters.
+	   ((looking-at mail-extr-hz-embedded-gb-encoded-chinese-pattern)
+	    (goto-char (match-end 0))
+	    (setq word-found-flag t))
+
+	   ;; Skip initial garbage characters.
+	   ;; THIS CASE MUST BE AFTER THE PRECEDING CASES.
+	   ((and (eq word-count 0)
+		 (looking-at mail-extr-leading-garbage))
+	    (goto-char (match-end 0))
+	    ;; *** Skip backward over these???
+	    ;; (skip-chars-backward "& \"")
+	    (narrow-to-region (point) (point-max)))
+
+	   ;; Various stopping points
+	   ((or
+
+	     ;; Stop before ALL CAPS acronyms, if preceded by mixed-case
+	     ;; words.  Example: XT-DEM.
+	     (and (>= word-count 2)
+		  mixed-case-flag
+		  (looking-at mail-extr-weird-acronym-pattern)
+		  (not (looking-at mail-extr-roman-numeral-pattern)))
+
+	     ;; Stop before trailing alternative address
+	     (looking-at mail-extr-alternative-address-pattern)
+
+	     ;; Stop before trailing comment not introduced by comma
+	     ;; THIS CASE MUST BE AFTER AN EARLIER CASE.
+	     (looking-at mail-extr-trailing-comment-start-pattern)
+
+	     ;; Stop before telephone numbers
+	     (and (>= word-count 1)
+		  (looking-at mail-extr-telephone-extension-pattern)))
+	    (setq name-done-flag t))
+
+	   ;; Delete ham radio call signs
+	   ((looking-at mail-extr-ham-call-sign-pattern)
+	    (delete-region (match-beginning 0) (match-end 0)))
+
+	   ;; Fixup initials
+	   ((looking-at mail-extr-initial-pattern)
+	    (or (eq (following-char) (upcase (following-char)))
+		(setq lower-case-flag t))
+	    (forward-char 1)
+	    (if (eq ?. (following-char))
+		(forward-char 1)
+	      (insert ?.))
+	    (or (eq ?\  (following-char))
+		(insert ?\ ))
+	    (setq word-found-flag t))
+
+	   ;; Handle BITNET LISTSERV list names.
+	   ((and (eq word-count 0)
+		 (looking-at mail-extr-listserv-list-name-pattern))
+	    (narrow-to-region (match-beginning 1) (match-end 1))
+	    (setq word-found-flag t)
+	    (setq name-done-flag t))
+
+	   ;; Handle & substitution, when & is last and is not first.
+	   ((and (> word-count 0)
+		 (eq ?\  (preceding-char))
+		 (eq (following-char) ?&)
+		 (eq (1+ (point)) (point-max)))
+	    (delete-char 1)
+	    (capitalize-region
+	     (point)
+	     (progn
+	       (insert-buffer-substring canonicalization-buffer
+					mbox-beg mbox-end)
+	       (point)))
+	    (setq disable-initial-guessing-flag t)
+	    (setq word-found-flag t))
+
+	   ;; Handle & between names, as in "Bob & Susie".
+	   ((and (> word-count 0) (eq (following-char) ?\&))
+	    (setq name-beg (point))
+	    (setq name-end (1+ name-beg))
+	    (setq word-found-flag t)
+	    (goto-char name-end))
+
+	   ;; Regular name words
+	   ((looking-at mail-extr-name-pattern)
+	    (setq name-beg (point))
+	    (setq name-end (match-end 0))
+
+	    ;; Certain words will be dropped if they are at the end.
+	    (and (>= word-count 2)
+		 (not lower-case-flag)
+		 (or
+		  ;; Trailing 4-or-more letter lowercase words preceded by
+		  ;; mixed case or uppercase words will be dropped.
+		  (looking-at "[[:lower:]]\\{4,\\}[ \t]*\\'")
+		  ;; Drop a trailing word which is terminated with a period.
+		  (eq ?. (char-after (1- name-end))))
+		 (setq drop-this-word-if-trailing-flag t))
+
+	    ;; Set the flags that indicate whether we have seen a lowercase
+	    ;; word, a mixed case word, and an uppercase word.
+	    (if (re-search-forward "[[:lower:]]" name-end t)
+		(if (progn
+		      (goto-char name-beg)
+		      (re-search-forward "[[:upper:]]" name-end t))
+		    (setq mixed-case-flag t)
+		  (setq lower-case-flag t))
+	      ;;	    (setq upper-case-flag t)
+	      )
+
+	    (goto-char name-end)
+	    (setq word-found-flag t))
+
+	   ;; Allow a number as a word, if it doesn't mean anything else.
+	   ((looking-at "[0-9]+\\>")
+	    (setq name-beg (point))
+	    (setq name-end (match-end 0))
+	    (goto-char name-end)
+	    (setq word-found-flag t))
+
 	   (t
-	    ;; Handle case of quoted initial
-	    (if (and (or (= 3 (- cend cbeg))
-			 (and (= 4 (- cend cbeg))
-			      (eq ?. (char-after (+ 2 cbeg)))))
-		     (not (looking-at " *\\'")))
-		(setq initial (char-after (1+ cbeg)))
-	      (setq initial nil))
-	    (delete-region cbeg cend)
-	    (if initial
-		(insert initial ". ")))))
+	    (setq name-done-flag t)
+	    ))
 
-	 ;; Handle *Stupid* VMS date stamps
-	 ((looking-at mail-extr-stupid-vms-date-stamp-pattern)
-	  (replace-match "" t))
+	  ;; Count any word that we skipped over.
+	  (if word-found-flag
+	      (setq word-count (1+ word-count))))
 
-	 ;; Handle Chinese characters.
-	 ((looking-at mail-extr-hz-embedded-gb-encoded-chinese-pattern)
-	  (goto-char (match-end 0))
-	  (setq word-found-flag t))
+	;; If the last thing in the name is 2 or more periods, or one or more
+	;; other sentence terminators (but not a single period) then keep them
+	;; and the preceding word.  This is for the benefit of whole sentences
+	;; in the name field: it's better behavior than dropping the last word
+	;; of the sentence...
+	(if (and (not suffix-flag)
+		 (looking-at "\\(\\.+\\|[?!;:.][?!;:.]+\\|[?!;:][?!;:.]*\\)\\'"))
+	    (goto-char (setq suffix-flag (point-max))))
 
-	 ;; Skip initial garbage characters.
-	 ;; THIS CASE MUST BE AFTER THE PRECEDING CASES.
-	 ((and (eq word-count 0)
-	       (looking-at mail-extr-leading-garbage))
-	  (goto-char (match-end 0))
-	  ;; *** Skip backward over these???
-	  ;; (skip-chars-backward "& \"")
+	;; Drop everything after point and certain trailing words.
+	(narrow-to-region (point-min)
+			  (or (and drop-last-word-if-trailing-flag
+				   last-word-beg)
+			      (point)))
+
+	;; Xerox's mailers SUCK!!!!!!
+	;; We simply refuse to believe that any last name is PARC or ADOC.
+	;; If it looks like that is the last name, that there is no meaningful
+	;; here at all.  Actually I guess it would be best to map patterns
+	;; like foo.hoser@xerox.com into foo@hoser.xerox.com, but I don't
+	;; actually know that that is what's going on.
+	(unless suffix-flag
+	  (goto-char (point-min))
+	  (let ((case-fold-search t))
+	    (if (looking-at "[-A-Za-z_]+[. ]\\(PARC\\|ADOC\\)\\'")
+		(erase-buffer))))
+
+	;; If last name first put it at end (but before suffix)
+	(when last-name-comma-flag
+	  (goto-char (point-min))
+	  (search-forward ",")
+	  (setq name-end (1- (point)))
+	  (goto-char (or suffix-flag (point-max)))
+	  (or (eq ?\  (preceding-char))
+	      (insert ?\ ))
+	  (insert-buffer-substring (current-buffer) (point-min) name-end)
+	  (goto-char name-end)
+	  (skip-chars-forward "\t ,")
 	  (narrow-to-region (point) (point-max)))
 
-	 ;; Various stopping points
-	 ((or
+	;; Delete leading and trailing junk characters.
+	;; *** This is probably completely unneeded now.
+	;;(goto-char (point-max))
+	;;(skip-chars-backward mail-extr-non-end-name-chars)
+	;;(if (eq ?. (following-char))
+	;;    (forward-char 1))
+	;;(narrow-to-region (point)
+	;;                  (progn
+	;;                    (goto-char (point-min))
+	;;                    (skip-chars-forward mail-extr-non-begin-name-chars)
+	;;                    (point)))
 
-	   ;; Stop before ALL CAPS acronyms, if preceded by mixed-case
-	   ;; words.  Example: XT-DEM.
-	   (and (>= word-count 2)
-		mixed-case-flag
-		(looking-at mail-extr-weird-acronym-pattern)
-		(not (looking-at mail-extr-roman-numeral-pattern)))
-
-	   ;; Stop before trailing alternative address
-	   (looking-at mail-extr-alternative-address-pattern)
-
-	   ;; Stop before trailing comment not introduced by comma
-	   ;; THIS CASE MUST BE AFTER AN EARLIER CASE.
-	   (looking-at mail-extr-trailing-comment-start-pattern)
-
-	   ;; Stop before telephone numbers
-	   (and (>= word-count 1)
-		(looking-at mail-extr-telephone-extension-pattern)))
-	  (setq name-done-flag t))
-
-	 ;; Delete ham radio call signs
-	 ((looking-at mail-extr-ham-call-sign-pattern)
-	  (delete-region (match-beginning 0) (match-end 0)))
-
-	 ;; Fixup initials
-	 ((looking-at mail-extr-initial-pattern)
-	  (or (eq (following-char) (upcase (following-char)))
-	      (setq lower-case-flag t))
-	  (forward-char 1)
-	  (if (eq ?. (following-char))
-	      (forward-char 1)
-	    (insert ?.))
-	  (or (eq ?\  (following-char))
-	      (insert ?\ ))
-	  (setq word-found-flag t))
-
-	 ;; Handle BITNET LISTSERV list names.
-	 ((and (eq word-count 0)
-	       (looking-at mail-extr-listserv-list-name-pattern))
-	  (narrow-to-region (match-beginning 1) (match-end 1))
-	  (setq word-found-flag t)
-	  (setq name-done-flag t))
-
-	 ;; Handle & substitution, when & is last and is not first.
-	 ((and (> word-count 0)
-	       (eq ?\  (preceding-char))
-	       (eq (following-char) ?&)
-	       (eq (1+ (point)) (point-max)))
-	  (delete-char 1)
-	  (capitalize-region
-	   (point)
-	   (progn
-	     (insert-buffer-substring canonicalization-buffer
-				      mbox-beg mbox-end)
-	     (point)))
-	  (setq disable-initial-guessing-flag t)
-	  (setq word-found-flag t))
-
-	 ;; Handle & between names, as in "Bob & Susie".
-	 ((and (> word-count 0) (eq (following-char) ?\&))
-	  (setq name-beg (point))
-	  (setq name-end (1+ name-beg))
-	  (setq word-found-flag t)
-	  (goto-char name-end))
-
-	 ;; Regular name words
-	 ((looking-at mail-extr-name-pattern)
-	  (setq name-beg (point))
-	  (setq name-end (match-end 0))
-
-	  ;; Certain words will be dropped if they are at the end.
-	  (and (>= word-count 2)
-	       (not lower-case-flag)
-	       (or
-		;; Trailing 4-or-more letter lowercase words preceded by
-		;; mixed case or uppercase words will be dropped.
-		(looking-at "[[:lower:]]\\{4,\\}[ \t]*\\'")
-		;; Drop a trailing word which is terminated with a period.
-		(eq ?. (char-after (1- name-end))))
-	       (setq drop-this-word-if-trailing-flag t))
-
-	  ;; Set the flags that indicate whether we have seen a lowercase
-	  ;; word, a mixed case word, and an uppercase word.
-	  (if (re-search-forward "[[:lower:]]" name-end t)
-	      (if (progn
-		    (goto-char name-beg)
-		    (re-search-forward "[[:upper:]]" name-end t))
-		  (setq mixed-case-flag t)
-		(setq lower-case-flag t))
-;;	    (setq upper-case-flag t)
-	    )
-
-	  (goto-char name-end)
-	  (setq word-found-flag t))
-
-	 ;; Allow a number as a word, if it doesn't mean anything else.
-	 ((looking-at "[0-9]+\\>")
-	  (setq name-beg (point))
-	  (setq name-end (match-end 0))
-	  (goto-char name-end)
-	  (setq word-found-flag t))
-
-	 (t
-	  (setq name-done-flag t)
-	  ))
-
-	;; Count any word that we skipped over.
-	(if word-found-flag
-	    (setq word-count (1+ word-count))))
-
-      ;; If the last thing in the name is 2 or more periods, or one or more
-      ;; other sentence terminators (but not a single period) then keep them
-      ;; and the preceding word.  This is for the benefit of whole sentences
-      ;; in the name field: it's better behavior than dropping the last word
-      ;; of the sentence...
-      (if (and (not suffix-flag)
-	       (looking-at "\\(\\.+\\|[?!;:.][?!;:.]+\\|[?!;:][?!;:.]*\\)\\'"))
-	  (goto-char (setq suffix-flag (point-max))))
-
-      ;; Drop everything after point and certain trailing words.
-      (narrow-to-region (point-min)
-			(or (and drop-last-word-if-trailing-flag
-				 last-word-beg)
-			    (point)))
-
-      ;; Xerox's mailers SUCK!!!!!!
-      ;; We simply refuse to believe that any last name is PARC or ADOC.
-      ;; If it looks like that is the last name, that there is no meaningful
-      ;; here at all.  Actually I guess it would be best to map patterns
-      ;; like foo.hoser@xerox.com into foo@hoser.xerox.com, but I don't
-      ;; actually know that that is what's going on.
-      (unless suffix-flag
+	;; Compress whitespace
 	(goto-char (point-min))
-	(let ((case-fold-search t))
-	  (if (looking-at "[-A-Za-z_]+[. ]\\(PARC\\|ADOC\\)\\'")
-	      (erase-buffer))))
-
-      ;; If last name first put it at end (but before suffix)
-      (when last-name-comma-flag
-	(goto-char (point-min))
-	(search-forward ",")
-	(setq name-end (1- (point)))
-	(goto-char (or suffix-flag (point-max)))
-	(or (eq ?\  (preceding-char))
-	    (insert ?\ ))
-	(insert-buffer-substring (current-buffer) (point-min) name-end)
-	(goto-char name-end)
-	(skip-chars-forward "\t ,")
-	(narrow-to-region (point) (point-max)))
-
-      ;; Delete leading and trailing junk characters.
-      ;; *** This is probably completely unneeded now.
-      ;;(goto-char (point-max))
-      ;;(skip-chars-backward mail-extr-non-end-name-chars)
-      ;;(if (eq ?. (following-char))
-      ;;    (forward-char 1))
-      ;;(narrow-to-region (point)
-      ;;                  (progn
-      ;;                    (goto-char (point-min))
-      ;;                    (skip-chars-forward mail-extr-non-begin-name-chars)
-      ;;                    (point)))
-
-      ;; Compress whitespace
-      (goto-char (point-min))
-      (while (re-search-forward "[ \t\n]+" nil t)
-	(replace-match (if (eobp) "" " ") t))
-      )))
+	(while (re-search-forward "[ \t\n]+" nil t)
+	  (replace-match (if (eobp) "" " ") t))
+	))))
 
 
 

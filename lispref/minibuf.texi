@@ -1118,6 +1118,7 @@ complete in the set of extant Lisp symbols, and it uses the
 @end defun
 
 @defun read-variable prompt &optional default
+@anchor{Definition of read-variable}
 This function reads the name of a user variable and returns it as a
 symbol.
 

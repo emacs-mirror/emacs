@@ -232,6 +232,7 @@ install: all
 	  fi; \
 	  rm -rf ${INSTALLDIR}/CVS        ${INSTALLDIR}/*/CVS; \
 	  rm -f  ${INSTALLDIR}/.cvsignore ${INSTALLDIR}/*/.cvsignore; \
+	  rm -f  ${INSTALLDIR}/.arch-inventory ${INSTALLDIR}/*/.arch-inventory; \
 	  rm -f  ${INSTALLDIR}/\#*        ${INSTALLDIR}/*/\#* ; \
 	  rm -f  ${INSTALLDIR}/.\#*       ${INSTALLDIR}/*/.\#* ; \
 	  rm -f  ${INSTALLDIR}/*~         ${INSTALLDIR}/*/*~ ; \

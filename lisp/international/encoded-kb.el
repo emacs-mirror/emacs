@@ -28,6 +28,10 @@
 
 ;;; Code:
 
+;; Usually this map is empty (even if Encoded-kbd mode is on), but if
+;; the keyboard coding system is iso-2022-based, it defines dummy key
+;; bindings for ESC $ ..., etc. so that those bindings in
+;; key-translation-map take effect.
 (defconst encoded-kbd-mode-map (make-sparse-keymap)
   "Keymap for Encoded-kbd minor mode.")
 
@@ -73,25 +77,6 @@
 (fset 'encoded-kbd-iso2022-designation-prefix
       encoded-kbd-iso2022-designation-map)
 
-(defvar encoded-kbd-iso2022-non-ascii-map
-  (let ((map (make-keymap))
-	(i 32))
-    (while (< i 128)
-      (define-key map (char-to-string i) 'encoded-kbd-self-insert-iso2022-7bit)
-      (setq i (1+ i)))
-    (define-key map "\e" 'encoded-kbd-iso2022-esc-prefix)
-    (setq i 160)
-    (while (< i 256)
-      (define-key map (vector i) 'encoded-kbd-handle-8bit)
-      (setq i (1+ i)))
-    map)
-  "Keymap for handling non-ASCII character set in Encoded-kbd mode.")
-
-;; One of the symbols `sjis', `iso2022-7', `iso2022-8', `big5', or
-;; `utf-8' to denote what kind of coding-system we are now handling in
-;; Encoded-kbd mode.
-(defvar encoded-kbd-coding nil)
-
 ;; Keep information of designation state of ISO2022 encoding.  When
 ;; Encoded-kbd mode is on, this is set to a vector of length 4, the
 ;; elements are character sets currently designated to graphic
@@ -108,11 +93,14 @@
 (defvar encoded-kbd-iso2022-invocations nil)
 (put 'encoded-kbd-iso2022-invocations 'permanent-local t)
 
-(defun encoded-kbd-iso2022-designation ()
+(defsubst encoded-kbd-last-key ()
+  (let ((keys (this-single-command-keys)))
+    (aref keys (1- (length keys)))))
+
+(defun encoded-kbd-iso2022-designation (ignore)
   "Do ISO2022 designation according to the current key in Encoded-kbd mode.
 The following key sequence may cause multilingual text insertion."
-  (interactive)
-  (let ((key-seq (this-command-keys))
+  (let ((key-seq (this-single-command-keys))
 	(prev-g0-charset (aref encoded-kbd-iso2022-designations
 			       (aref encoded-kbd-iso2022-invocations 0)))
 	intermediate-char final-char
@@ -136,109 +124,58 @@ The following key sequence may cause multilingual text insertion."
 	      chars (if (< intermediate-char ?,) 94 96)
 	      final-char (aref key-seq 2)
 	      reg (mod intermediate-char 4))))
-    (if (setq charset (iso-charset dimension chars final-char))
-	(aset encoded-kbd-iso2022-designations reg charset)
-      (error "Character set of DIMENSION %s, CHARS %s, FINAL-CHAR `%c' is not supported"
-	     dimension chars final-char))
+    (aset encoded-kbd-iso2022-designations reg
+	  (iso-charset dimension chars final-char)))
+  "")
 
-    (if (memq (aref encoded-kbd-iso2022-designations
-		    (aref encoded-kbd-iso2022-invocations 0))
-	      '(ascii latin-jisx0201))
-	;; Graphic plane 0 (0x20..0x7f) is for ASCII.  We don't have
-	;; to handle characters in this range specially.
-	(if (not (memq prev-g0-charset '(ascii latin-jisx0201)))
-	    ;; We must exit recursive edit now.
-	    (throw 'exit nil))
-      ;; Graphic plane 0 is for non-ASCII.
-      (if (memq prev-g0-charset '(ascii latin-jisx0201))
-	  ;; We must handle keys specially.
-	  (let ((overriding-local-map encoded-kbd-iso2022-non-ascii-map))
-	    (recursive-edit))))))
+(defun encoded-kbd-iso2022-single-shift (ignore)
+  (let ((char (encoded-kbd-last-key)))
+    (aset encoded-kbd-iso2022-invocations 2
+	  (aref encoded-kbd-iso2022-designations
+		(if (= char ?\216) 2 3))))
+  "")
 
-(defun encoded-kbd-handle-8bit ()
-  "Handle an 8-bit character entered in Encoded-kbd mode."
-  (interactive)
-  (cond ((eq encoded-kbd-coding 'iso2022-7)
-	 (error "Can't handle the character code %d" last-command-char))
-
-	((eq encoded-kbd-coding 'iso2022-8)
-	 (cond ((= last-command-char ?\216)
-		(aset encoded-kbd-iso2022-invocations 2 2))
-
-	       ((= last-command-char ?\217)
-		(aset encoded-kbd-iso2022-invocations 2 3))
-
-	       ((>= last-command-char ?\240)
-		(encoded-kbd-self-insert-iso2022-8bit 1))
-
-	       (t
-		(error "Can't handle the character code %d"
-		       last-command-char))))
-
-	((eq encoded-kbd-coding 'sjis)
-	 (encoded-kbd-self-insert-sjis))
-
-	(t
-	 (encoded-kbd-self-insert-big5))))
-
-(defun encoded-kbd-self-insert-iso2022-7bit ()
-  (interactive)
-  (let* ((charset (aref encoded-kbd-iso2022-designations
-			(or (aref encoded-kbd-iso2022-invocations 2)
-			    (aref encoded-kbd-iso2022-invocations 0))))
-	 (char (if (= (charset-dimension charset) 1)
-		   (make-char charset last-command-char)
-		 (make-char charset last-command-char (read-char-exclusive)))))
+(defun encoded-kbd-self-insert-iso2022-7bit (ignore)
+  (let ((char (encoded-kbd-last-key))
+	(charset (aref encoded-kbd-iso2022-designations
+		       (or (aref encoded-kbd-iso2022-invocations 2)
+			   (aref encoded-kbd-iso2022-invocations 0)))))
     (aset encoded-kbd-iso2022-invocations 2 nil)
-    (setq unread-command-events (cons char unread-command-events))))
+    (vector (if (= (charset-dimension charset) 1)
+		(make-char charset char)
+	      (make-char charset char (read-char-exclusive))))))
 
-(defun encoded-kbd-self-insert-iso2022-8bit (arg)
-  (interactive "p")
-  (cond
-   ((= last-command-char ?\216)		; SS2 (Single Shift 2)
-    (aset encoded-kbd-iso2022-invocations 2 2))
-   ((= last-command-char ?\217)		; SS3 (Single Shift 3)
-    (aset encoded-kbd-iso2022-invocations 2 3))
-   (t
-    (let* ((charset (aref encoded-kbd-iso2022-designations
-			  (or (aref encoded-kbd-iso2022-invocations 2)
-			      (aref encoded-kbd-iso2022-invocations 1))))
-	   (char (if (= (charset-dimension charset) 1)
-		     (make-char charset last-command-char)
-		   (make-char charset last-command-char
-			      (read-char-exclusive)))))
-      (aset encoded-kbd-iso2022-invocations 2 nil)
-      ;; As simply setting unread-command-events may result in
-      ;; infinite-loop for characters 160..255, this is a temporary
-      ;; workaround until we found a better solution.
-      (let ((last-command-char char))
-	(self-insert-command arg))))))
+(defun encoded-kbd-self-insert-iso2022-8bit (ignore)
+  (let ((char (encoded-kbd-last-key))
+	(charset (aref encoded-kbd-iso2022-designations
+		       (or (aref encoded-kbd-iso2022-invocations 2)
+			   (aref encoded-kbd-iso2022-invocations 1)))))
+    (aset encoded-kbd-iso2022-invocations 2 nil)
+    (vector (if (= (charset-dimension charset) 1)
+		(make-char charset char)
+	      (make-char charset char (read-char-exclusive))))))
 
-(defun encoded-kbd-self-insert-sjis ()
-  (interactive)
-  (let ((char (if (or (< last-command-char ?\xA0) (>= last-command-char ?\xE0))
-		  (decode-sjis-char (+ (ash last-command-char 8)
-				       (read-char-exclusive)))
-		(make-char 'katakana-jisx0201 last-command-char))))
-    (setq unread-command-events (cons char unread-command-events))))
+(defun encoded-kbd-self-insert-sjis (ignore)
+  (let ((char (encoded-kbd-last-key)))
+    (vector
+     (if (or (< char ?\xA0) (>= char ?\xE0))
+	 (decode-sjis-char (+ (ash char 8) (read-char-exclusive)))
+       (make-char 'katakana-jisx0201 char)))))
 
-(defun encoded-kbd-self-insert-big5 ()
-  (interactive)
-  (let ((char (decode-big5-char (+ (ash last-command-char 8)
-				   (read-char-exclusive)))))
-    (setq unread-command-events (cons char unread-command-events))))
+(defun encoded-kbd-self-insert-big5 (ignore)
+  (let ((char (encoded-kbd-last-key)))
+    (vector 
+     (decode-big5-char (+ (ash char 8) (read-char-exclusive))))))
 
-(defun encoded-kbd-self-insert-ccl ()
-  (interactive)
-  (let ((str (char-to-string last-command-char))
+(defun encoded-kbd-self-insert-ccl (ignore)
+  (let ((str (char-to-string (encoded-kbd-last-key)))
 	(ccl (coding-system-get (keyboard-coding-system) :ccl-decoder))
 	(vec [nil nil nil nil nil nil nil nil nil])
 	result)
     (while (= (length (setq result (ccl-execute-on-string ccl vec str t))) 0)
       (dotimes (i 9) (aset vec i nil))
       (setq str (format "%s%c" str (read-char-exclusive))))
-    (setq unread-command-events
-	  (append result unread-command-events))))
+    (vector (aref result 0))))
 
 (defun encoded-kbd-self-insert-charset (arg)
   (interactive "p")
@@ -276,7 +213,7 @@ The following key sequence may cause multilingual text insertion."
 
 (defun encoded-kbd-setup-keymap (coding)
   ;; At first, reset the keymap.
-  (setcdr encoded-kbd-mode-map nil)
+  (define-key encoded-kbd-mode-map "\e" nil)
   ;; Then setup the keymap according to the keyboard coding system.
   (cond
    ((eq encoded-kbd-coding 'charset)
@@ -289,38 +226,64 @@ The following key sequence may cause multilingual text insertion."
 	  (vector from) 'encoded-kbd-self-insert-charset)
 	(setq from (1+ from)))))
 
-   ((eq encoded-kbd-coding 'sjis)
+   ((eq (coding-system-type coding) 1)	; SJIS
     (let ((i 128))
       (while (< i 256)
-	(define-key encoded-kbd-mode-map
+	(define-key key-translation-map
 	  (vector i) 'encoded-kbd-self-insert-sjis)
-	(setq i (1+ i)))))
+	(setq i (1+ i))))
+    8)
 
-   ((eq encoded-kbd-coding 'big5)
+   ((eq (coding-system-type coding) 3)	; Big5
     (let ((i 161))
       (while (< i 255)
-	(define-key encoded-kbd-mode-map
+	(define-key key-translation-map
 	  (vector i) 'encoded-kbd-self-insert-big5)
-	(setq i (1+ i)))))
+	(setq i (1+ i))))
+    8)
 
-   ((eq encoded-kbd-coding 'iso2022-7)
-    (define-key encoded-kbd-mode-map "\e" 'encoded-kbd-iso2022-esc-prefix))
+   ((eq (coding-system-type coding) 2) ; ISO-2022
+    (let ((flags (coding-system-flags coding))
+	  use-designation)
+      (if (aref flags 8)
+	  nil				; Don't support locking-shift.
+	(setq encoded-kbd-iso2022-designations (make-vector 4 nil)
+	      encoded-kbd-iso2022-invocations (make-vector 3 nil))
+	(dotimes (i 4)
+	  (if (aref flags i)
+	      (if (charsetp (aref flags i))
+		  (aset encoded-kbd-iso2022-designations
+			i (aref flags i))
+		(setq use-designation t)
+		(if (charsetp (car-safe (aref flags i)))
+		    (aset encoded-kbd-iso2022-designations
+			  i (car (aref flags i)))))))
+	(aset encoded-kbd-iso2022-invocations 0 0)
+	(if (aref encoded-kbd-iso2022-designations 1)
+	    (aset encoded-kbd-iso2022-invocations 1 1))
+	(when use-designation
+	  (define-key encoded-kbd-mode-map "\e" 'encoded-kbd-iso2022-esc-prefix)
+	  (define-key key-translation-map "\e" 'encoded-kbd-iso2022-esc-prefix))
+	(when (or (aref flags 2) (aref flags 3))
+	  (define-key key-translation-map
+	    [?\216] 'encoded-kbd-iso2022-single-shift)
+	  (define-key key-translation-map
+	    [?\217] 'encoded-kbd-iso2022-single-shift))
+	(or (eq (aref flags 0) 'ascii)
+	    (dotimes (i 96)
+	      (define-key key-translation-map
+		(vector (+ 32 i)) 'encoded-kbd-self-insert-iso2022-7bit)))
+	(if (aref flags 7)
+	    t
+	  (dotimes (i 96)
+	    (define-key key-translation-map
+	      (vector (+ 160 i)) 'encoded-kbd-self-insert-iso2022-8bit))
+	  8))))
 
-   ((eq encoded-kbd-coding 'iso2022-8)
-    (define-key encoded-kbd-mode-map
-      (vector ?\216) 'encoded-kbd-self-insert-iso2022-8bit)
-    (define-key encoded-kbd-mode-map
-      (vector ?\217) 'encoded-kbd-self-insert-iso2022-8bit)
-    (let ((i 160))
-      (while (< i 256)
-	(define-key encoded-kbd-mode-map
-	  (vector i) 'encoded-kbd-self-insert-iso2022-8bit)
-	(setq i (1+ i)))))
-
-   ((eq encoded-kbd-coding 'ccl)
+   ((eq (coding-system-type coding) 4)	; CCL-base
     (let ((valid-codes (or (coding-system-get coding :valid)
 			   '((128 . 255))))
-	  elt from to)
+	  elt from to valid)
       (while valid-codes
 	(setq elt (car valid-codes) valid-codes (cdr valid-codes))
 	(if (consp elt)
@@ -328,9 +291,10 @@ The following key sequence may cause multilingual text insertion."
 	  (setq from (setq to elt)))
 	(while (<= from to)
 	  (if (>= from 128)
-	      (define-key encoded-kbd-mode-map
+	      (define-key key-translation-map
 		(vector from) 'encoded-kbd-self-insert-ccl))
-	  (setq from (1+ from))))))
+	  (setq from (1+ from))))
+      8))
 
    ((eq encoded-kbd-coding 'utf-8)
     (let ((i #xC0))
@@ -340,8 +304,11 @@ The following key sequence may cause multilingual text insertion."
 	(setq i (1+ i)))))
 
    (t
-    (error "Invalid value in encoded-kbd-coding: %s" encoded-kbd-coding))))
+    nil)))
 
+;; key-translation-map at the time Encoded-kbd mode is turned on is
+;; saved here.
+(defvar saved-key-translation-map nil)
 
 ;; Input mode at the time Encoded-kbd mode is turned on is saved here.
 (defvar saved-input-mode nil)
