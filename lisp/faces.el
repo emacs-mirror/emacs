@@ -109,6 +109,10 @@ in that frame; otherwise change each frame."
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "background"))
+  (if (and frame (member color '("gray" "gray1" "gray3"))
+	   (not (x-display-color-p frame))
+	   (not (x-display-grayscale-p frame)))
+      (set-face-stipple face color frame))
   (internal-set-face-1 face 'background color 5 frame))
 
 (defsubst set-face-stipple (face name &optional frame)
@@ -966,8 +970,9 @@ selected frame."
 ;; That can't fail, so any subsequent elements after the t are ignored.
 (defun face-try-color-list (function face colors frame)
   (if (stringp colors)
-      (if (or (and (not (x-display-color-p)) (not (string= colors "gray")))
-	      (= (x-display-planes) 1))
+      (if (and (not (member colors '("gray" "gray1" "gray3")))
+	       (or (not (x-display-color-p))
+		   (= (x-display-planes) 1)))
 	  nil
 	(funcall function face colors frame))
     (if (eq colors t)
@@ -975,9 +980,9 @@ selected frame."
       (let (done)
 	(while (and colors (not done))
 	  (if (and (stringp (car colors))
-		   (or (and (not (x-display-color-p))
-			    (not (string= (car colors) "gray")))
-		       (= (x-display-planes) 1)))
+		   (and (not (member (car colors) '("gray" "gray1" "gray3")))
+			(or (not (x-display-color-p))
+			    (= (x-display-planes) 1))))
 	      nil
 	    (if (cdr colors)
 		;; If there are more colors to try, catch errors
