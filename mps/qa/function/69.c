@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!69.c(trunk.5) $
  summary = request.dylan.170563 (colour invariant and finalization)
  language = c
  link = testlib.o rankfmt.o
@@ -27,7 +27,7 @@ static void test(void) {
  mps_ap_t ap;
 
  mycell *a, *b;
- tag tag;
+ tag myTag;
 
  long int j;
 
@@ -63,8 +63,8 @@ static void test(void) {
  }
 
  a = allocone(ap, 2, 1);
- mps_finalize(space, &a);
- tag = a->tag;
+ mps_finalize(space, (mps_addr_t*)&a);
+ myTag = a->tag;
 
  a = allocone(ap, 4000, 1);
  mps_arena_collect(space);
@@ -81,7 +81,7 @@ static void test(void) {
   mps_arena_park(space);
   a = ref;
   comment("                   %p", a);
-  asserts(a->tag == tag, "Bad reference!");
+  asserts(a->tag == myTag, "Bad reference!");
   a = NULL;
   ref = NULL;
   mps_arena_release(space);
@@ -106,8 +106,8 @@ static void test(void) {
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void) {
  void *m;
