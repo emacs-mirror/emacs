@@ -1174,8 +1174,6 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	     (setq %-pos (cdr %-pos))))
 
       (setq %-pos (nreverse %-pos))
-      ;; RFC 1034 doesn't approve of this, oh well:
-      (downcase-region (or (car %-pos) @-pos (point-max)) (point-max))
       (cond (%-pos			; implies @-pos valid
 	     (setq temp %-pos)
 	     (catch 'truncated
