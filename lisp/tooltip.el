@@ -1,6 +1,6 @@
 ;;; tooltip.el --- Show tooltip windows
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -49,8 +49,10 @@
   :group 'c
   :group 'mouse
   :group 'tools
+  :version "21.1"
   :tag "Tool Tips")
 
+(defvar tooltip-mode)
 
 (defcustom tooltip-delay 1.0
   "Seconds to wait before displaying a tooltip the first time."
@@ -67,8 +69,8 @@
 
 
 (defcustom tooltip-recent-seconds 1
-  "Display tooltips after `tooltip-short-delay' if changing tip items
-within this many seconds."
+  "Display tooltips if changing tip items within this many seconds.
+Do so after `tooltip-short-delay'."
   :tag "Recent seconds"
   :type 'number
   :group 'tooltip)
@@ -132,10 +134,6 @@ the last mouse movement event that occurred.")
 
 (defvar tooltip-hide-time nil
   "Time when the last tooltip was hidden.")
-
-
-(defvar tooltip-mode nil
-  "Non-nil means tooltip mode is on.")
 
 
 (defvar tooltip-gud-debugger nil
@@ -402,10 +400,10 @@ If TOOLTIP-GUD-DEREFERENCE is t, also prepend a `*' to EXPR."
     
 
 (defun tooltip-gud-tips (event)
-  "Show tip for identifier or selection under the mouse.  The mouse
-must either point at an identifier or inside a selected region for the
-tip window to be shown.  If tooltip-gud-dereference is t, add a `*' in
-front of the printed expression.
+  "Show tip for identifier or selection under the mouse.
+The mouse must either point at an identifier or inside a selected
+region for the tip window to be shown.  If tooltip-gud-dereference is t,
+add a `*' in front of the printed expression.
 
 This function must return nil if it doesn't handle EVENT."
   (let (gud-buffer process)
@@ -462,13 +460,16 @@ Value is non-nil if this function handled the tip."
 ;;; Do this after all functions have been defined that are called
 ;;; from `tooltip-mode'.
 
-(defcustom tooltip-active nil
-  "*Non-nil means tooltips are active."
-  :tag "Activate tooltips"
+
+;;;###autoload
+(defcustom tooltip-mode nil
+  "Toggle tooltip-mode.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `tooltip-mode'."
+  :set (lambda (symbol value)
+	 (tooltip-mode (or value 0)))
+  :initialize 'custom-initialize-default
   :type 'boolean
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (tooltip-mode (or value 0)))
   :require 'tooltip
   :group 'tooltip)
 
