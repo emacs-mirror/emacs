@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1996  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Id: metamail.el,v 1.10 1998/06/10 19:10:55 fx Exp fx $
+;; Version: $Id: metamail.el,v 1.11 1999/01/11 12:36:15 fx Exp rms $
 ;; Keywords: mail, news, mime, multimedia
 
 ;; This file is part of GNU Emacs.
@@ -165,7 +165,7 @@ redisplayed as output is inserted."
   (interactive "r\np")
   (let ((curbuf (current-buffer))
 	(buffer-read-only nil)
-	(metafile (make-temp-name "/tmp/metamail"))
+	(metafile (make-temp-name (expand-file-name "metamail" temporary-file-directory)))
 	(option-environment
 	 (list (format "EMACS_VIEW_MODE=%d" 
 		       (if (numberp viewmode) viewmode 1)))))
