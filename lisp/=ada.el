@@ -193,7 +193,6 @@ This does a lot more highlighting.")
 
 (defvar ada-comment-end-column)
 
-;;;###autoload
 (defun ada-mode ()
 "This is a mode intended to support program development in Ada.
 Most control constructs and declarations of Ada can be inserted in the buffer
