@@ -36,9 +36,6 @@
   (require 'ibuf-macs)
   (require 'dired))
 
-;; This is loaded lazily, via byte-compile-dynamic
-(require 'ibuf-ext)
-
 ;;; Compatibility
 (eval-and-compile
   (if (fboundp 'window-list)
@@ -1884,6 +1881,11 @@ Optional argument NOSELECT means don't select the Ibuffer buffer.
 Optional argument SHRINK means shrink the buffer to minimal size.  The
 special value `onewindow' means always use another window."
   (interactive "P")
+
+  ;; The individual functions are lazy-loaded, via byte-compile-dynamic,
+  ;; so we may as well load the file unconditionally now.
+  (require 'ibuf-ext)
+
   (when ibuffer-use-other-window
     (setq other-window-p (not other-window-p)))
   (let* ((buf (get-buffer-create (or name "*Ibuffer*")))
