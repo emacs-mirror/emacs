@@ -84,7 +84,15 @@ extern "C"
 #define	__malloc_size_t		size_t
 #define	__malloc_ptrdiff_t	ptrdiff_t
 #else
+#ifdef __GNUC__
+#include <stddef.h>
+#ifdef __SIZE_TYPE__
+#define	__malloc_size_t		__SIZE_TYPE__
+#endif
+#endif
+#ifndef __malloc_size_t
 #define	__malloc_size_t		unsigned int
+#endif
 #define	__malloc_ptrdiff_t	int
 #endif
 
@@ -1597,7 +1605,8 @@ Cambridge, MA 02139, USA.  */
 
 #else
 
-__ptr_t (*__memalign_hook) PP ((size_t __size, size_t __alignment));
+__ptr_t (*__memalign_hook) PP ((__malloc_size_t __size,
+				__malloc_size_t __alignment));
 
 __ptr_t
 memalign (alignment, size)
