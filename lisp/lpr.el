@@ -130,8 +130,13 @@ The variable `lpr-page-header-program' specifies the program to use."
 
 ;;;###autoload
 (defun print-buffer ()
-  "Print buffer contents as with Unix command `lpr -p'.
-`lpr-switches' is a list of extra switches (strings) to pass to lpr."
+  "Paginate and print buffer contents.
+Normally invokes `pr' for pagination, but see the variable
+`lpr-page-header-program'.  Printing is normally done with `lpr'
+or `lp'; the variable `lpr-command' changes this.
+
+Also see the variables `lpr-switches' and `lpr-page-header-switches'
+for further customization of the commands used."
   (interactive)
   (print-region-1 (point-min) (point-max) lpr-switches t))
 
