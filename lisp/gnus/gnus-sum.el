@@ -180,7 +180,7 @@ This applies to marking commands as well as other commands that
 the end of an article.
 
 If nil, the marking commands do NOT go to the next unread article
-(they go to the next article instead).  If `never', commands that
+\(they go to the next article instead).  If `never', commands that
 usually go to the next unread article, will go to the next article,
 whether it is read or not."
   :group 'gnus-summary-marks
