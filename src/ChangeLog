@@ -1,3 +1,9 @@
+2000-08-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (dispnew.o, indent.o, fontset.o, minibuf.o)
+	(process.o, scroll.o, sysdep.o): Depend on keyboard.h.
+	(xterm.o): Depend on coding.h
+
 2000-08-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* cmds.c (internal_self_insert): Delete '#ifdef HAVE_FACES' and
