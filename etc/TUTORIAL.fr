@@ -1,30 +1,23 @@
+Didacticiel d'Emacs.  Voir la fin de ce document pour les conditions.
 Copyright (c) 1985, 2001, 2002 Free Software Foundation, Inc.
-Voir la fin de ce document pour les conditions.
-
-Ce document est le didacticiel d'Emacs. Cette traduction française a
-été effectuée par Éric Jacoboni <jaco@teaser.fr>.
 
 Les commandes Emacs utilisent généralement la touche CONTROLE (souvent
 désignée par CTRL ou CTL) ou la touche META (souvent désignée par EDIT
-ou ALT). Au lieu de les citer intégralement à chaque fois, nous
-utiliserons les abréviations suivantes :
+ou ALT). Pour ces touches, nous utiliserons les abréviations suivantes :
 
  C-<car> signifie qu'il faut maintenir la touche CONTROLE appuyée tout
- en tapant le caractère <car>. Ainsi, C-f signifie : presser sur la
- touche CONTROLE tout en pressant la touche f.
-
+         en tapant le caractère <car>. Ainsi, C-f signifie : presser
+         sur la touche CONTROLE tout en pressant la touche f.
  M-<car> signifie qu'il faut maintenir la touche META ou EDIT ou ALT
- appuyée tout en tapant le caractère <car>. Si aucune de ces touches
- n'existe, pressez puis relâchez la touche ESC et tapez <car>. Nous
- écrirons <ESC> pour désigner la touche ESC.
+	 appuyée tout en tapant le caractère <car>. Si aucune de ces
+	 touches n'existe, pressez puis relâchez la touche ESC et
+	 tapez <car>. Nous écrirons <ESC> pour désigner la touche ESC.
 
-Remarque importante : tapez C-x C-c (deux caractères) pour terminer
-une session Emacs.
-
+Tapez C-x C-c (deux caractères) pour terminer une session Emacs.
 Dans ce didacticiel, les caractères ">>" en marge gauche indiquent les
 directions à suivre pour essayer une commande. Ainsi :
 <<Lignes blanches insérées après cette ligne par help-with-tutorial>>
-[Centre de page vide pour les essais. Le texte continue ci-dessous.]
+[Centre de page deliberéement vide. Le texte continue ci-dessous.]
 >>  Tapez C-v (Voir l'écran suivant) pour passer à l'écran suivant
     (faites-le, pressez la touche CTRL tout en pressant la touche v).
     À partir de maintenant, vous devrez le faire à chaque fois que
@@ -331,16 +324,23 @@ caractères que vous pouvez lire, comme A, 7, *, etc. sont considérés
 comme du texte par Emacs et insérés immédiatement. Tapez <Entrée> (la
 touche de retour chariot) pour insérer un caractère Newline.
 
-Vous pouvez effacer le dernier caractère que vous avez tapé en
-faisant <Delete>. <Delete> est une touche du clavier, parfois nommée 
-« Del » ou « Suppr ». Dans certains cas, la touche « Backspace » sert de
-<Delete>, mais pas toujours !
+Vous pouvez effacer le dernier caractère que vous avez tapé en faisant
+<Delback>. <Delback> est une touche du clavier -- la même que vous
+utilisez habituellement en dehors d'Emacs, pour supprimer le dernier
+caractère saisi. Il s'agit généralement de la grande touche située
+quelques lignes au-dessus de la touche « Entrée ». Elle est
+habituellement nommée « Delete », « Del », « Suppr » ou « Backspace ».
 
-Plus généralement, <Delete> efface le caractère situé immédiatement
+Si cette grande touche s'appelle « Backspace », c'est celle-là qui
+représente <Delback>. Votre clavier peut également comporter une autre
+touche, nommée « Delete », « Del » ou « Suppr », mais ce n'est pas
+<Delback>.
+
+Plus généralement, <Delback> efface le caractère situé immédiatement
 avant la position courante du curseur.
 
 >> Tapez quelques caractères puis effacez-les en faisant plusieurs 
-   fois <Delete>. Ne vous inquiétez pas de modifier ce fichier ; vous
+   fois <Delback>. Ne vous inquiétez pas de modifier ce fichier ; vous
    ne modifierez pas le didacticiel principal mais uniquement votre
    copie personnelle de celui-ci.
 
@@ -353,7 +353,7 @@ droite indique une ligne qui se poursuit sur la ligne suivante.
 >> Insérez du texte jusqu'à atteindre la marge droite et continuez
    d'en insérer. Vous verrez apparaître une ligne de continuation.
 
->> Faites des <Delete> pour effacer le texte jusqu'à ce que la ligne
+>> Faites des <Delback> pour effacer le texte jusqu'à ce que la ligne
    tienne à nouveau sur une seule ligne d'écran. La ligne de
    continuation disparaît.
 
@@ -363,7 +363,7 @@ en une seule ligne. Si la ligne résultante est trop longue pour tenir
 dans la largeur de l'écran, elle s'affichera avec une ligne de
 continuation.
 
->> Placez le curseur au début d'une ligne et faites <Delete>. 
+>> Placez le curseur au début d'une ligne et faites <Delback>. 
    Cela fusionne cette ligne avec la ligne précédente.
 
 >> Faites <Entrée> pour remettre le Newline que vous avez supprimé.
@@ -379,19 +379,19 @@ texte dans Emacs et pour corriger les erreurs. Vous pouvez également
 effacer des mots ou des lignes entières. Voici un résumé des
 opérations de suppression :
 
-	<Delete>     Efface le caractère situé avant le curseur
+	<Delback>    Efface le caractère situé avant le curseur
 	C-d   	     Efface le caractère situé après le curseur
 
-	M-<Delete>   Supprime le mot situé avant le curseur
+	M-<Delback>  Supprime le mot situé avant le curseur
 	M-d	     Supprime le mot situé après le curseur
 
 	C-k	     Supprime du curseur à la fin de la ligne
 	M-k	     Supprime jusqu'à la fin de la phrase courante
 
-Vous noterez que <Delete> et C-d, par rapport à M-<Delete> et M-d, ont
-la même relation que C-f et M-f (en fait, <Delete> n'est pas vraiment
-un caractère de contrôle, mais ne nous soucions pas de cela) C-k et
-M-k sont un peu comme C-e et M-e.
+Vous noterez que <Delback> et C-d, par rapport à M-<Delback> et M-d,
+ont la même relation que C-f et M-f (en fait, <Delback> n'est pas
+vraiment un caractère de contrôle, mais ne nous soucions pas de cela)
+C-k et M-k sont un peu comme C-e et M-e.
 
 Vous pouvez aussi supprimer n'importe quelle zone du tampon en
 utilisant une méthode unique et générale. Placez-vous à une extrémité
@@ -812,8 +812,8 @@ de façon différente. Un mode majeur est le nom d'une commande étendue,
 qui vous permet de basculer dans ce mode. M-x fundamental-mode, par
 exemple, est une commande pour basculer dans le mode Fundamental.
 
-Si vous devez éditer du texte français, comme ce fichier, vous
-utiliserez probablement le mode Text.
+Si vous devez éditer du texte en langage naturel, comme ce fichier,
+vous utiliserez probablement le mode Text.
 
 >> Faites M-x text mode<Entrée>.
 
@@ -840,10 +840,10 @@ mais simplement des modifications de ceux-ci. Tout mode mineur peut
 mineurs et de votre mode majeur. Vous pouvez donc n'utiliser aucun
 mode mineur, un seul, ou toute combinaison de plusieurs modes mineurs.
 
-Un mode mineur très utile, surtout lorsque l'on édite du Français, est
-le mode Auto Fill. Lorsqu'il est activé, Emacs coupe automatiquement
-la ligne entre les mots lorsque vous insérez du texte et que la ligne
-est trop longue.
+Un mode mineur très utile, surtout lorsque l'on édite du langage
+naturel, est le mode Auto Fill. Lorsqu'il est activé, Emacs coupe
+automatiquement la ligne entre les mots lorsque vous insérez du texte
+et que la ligne est trop longue.
 
 Vous pouvez activer le mode Auto Fill en faisant M-x auto fill
 mode<Entrée>.  Lorsqu'il est activé, vous pouvez le désactiver en
@@ -900,7 +900,7 @@ que vous recherchez. <Entrée> termine une recherche.
    pour constater ce que fait le curseur. Vous avez maintenant atteint
    « curseur » une première fois.
 >> Tapez C-s à nouveau pour trouver l'occurrence suivante de « curseur ».
->> Faites maintenant <Delete> quatre fois et étudiez les mouvements du
+>> Faites maintenant <Delback> quatre fois et étudiez les mouvements du
    curseur.
 >> Faites <Entrée> pour mettre fin à la recherche.
 
@@ -920,12 +920,12 @@ Emacs. Pour décoincer l'écran, faites C-q puis consultez la section
 pour avoir des avis sur la gestion de cette « fonctionnalité ».
 
 Si vous vous trouvez au milieu d'une recherche incrémentale et que
-vous tapez <Delete>, vous remarquerez que cela supprime le dernier
+vous tapez <Delback>, vous remarquerez que cela supprime le dernier
 caractère de la chaîne recherchée et que la recherche reprend à
 l'endroit où elle se trouvait précédemment. Supposons, par exemple,
 que vous ayiez tapé « c » pour trouver la première occurrence de
 « c ». Si vous tapez maintenant « u », le curseur ira sur la première
-occurrence de « cu ». Faites <Delete> : cela supprime le « u » de la
+occurrence de « cu ». Faites <Delback> : cela supprime le « u » de la
 chaîne de recherche et le curseur revient à la première occurrence de
 « c ».
 
@@ -1189,6 +1189,9 @@ dans le même esprit. Lisez le fichier COPYING et donnez ensuite des
 copies de GNU Emacs à vos amis. Participez à l'éradication de
 l'obstructionnisme du logiciel (sa « propriétarisation ») en
 utilisant, écrivant et partagent des logiciels libres !
+
+Cette traduction française a été effectuée par Éric Jacoboni
+<jaco@teaser.fr>.
 
 --- end of TUTORIAL.fr ---
 
