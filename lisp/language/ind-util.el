@@ -98,8 +98,8 @@
   '(;; for encode/decode
     (;; vowels -- 18
      "a" ("aa" "A") "i" ("ii" "I") "u" ("uu" "U")
-     ("RRi" "R^i") ("LLi" "L^i") (".c" "e.c") nil "e" "ai"
-     "o.c"  nil   "o"   "au"  ("RRI" "R^I") ("LLI" "L^I"))
+     ("RRi" "R^i") ("LLi" "L^i") (".c" "e.c") "E" "e" "ai"
+     "o.c"  "O"   "o"   "au"  ("RRI" "R^I") ("LLI" "L^I"))
     (;; consonants -- 40
      "k"   "kh"  "g"   "gh"  ("~N" "N^")
      "ch" ("Ch" "chh") "j" "jh" ("~n" "JN")
