@@ -3549,7 +3549,6 @@ This has an effect only if a summary buffer exists."
 
 (defun rmail-fontify-buffer-function ()
   ;; This function's symbol is bound to font-lock-fontify-buffer-function.
-  (make-local-hook 'rmail-show-message-hook)
   (add-hook 'rmail-show-message-hook 'rmail-fontify-message nil t)
   ;; If we're already showing a message, fontify it now.
   (if rmail-current-message (rmail-fontify-message))
