@@ -1,3 +1,12 @@
+2002-05-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/keypad.el: Improved commentary.
+	(keypad-setup, keypad-shifted-setup): Added choice to setup
+	Numeric keypad with decimal key; value is selected character.
+	(keypad-decimal-key, keypad-shifted-decimal-key): Removed options.
+	(keypad-numlock-setup, keypad-numlock-shifted-setup): New options.
+	(keypad-setup):  Arg list changed to support the new options.
+
 2002-05-14  Richard M. Stallman  <rms@gnu.org>
 
 	* dabbrev.el (dabbrev-case-distinction): New option.
