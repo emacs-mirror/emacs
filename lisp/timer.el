@@ -189,6 +189,10 @@ This function returns a timer object which you can use in `cancel-timer'."
   (if (null time)
       (setq time (current-time)))
 
+  ;; Handle numbers as relative times in seconds.
+  (if (numberp time)
+      (setq time (timer-relative-time (current-time) time)))
+
   ;; Handle relative times like "2 hours and 35 minutes"
   (if (stringp time)
       (let ((secs (timer-duration time)))
