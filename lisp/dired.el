@@ -1154,18 +1154,10 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   ;; This is the UNIX version.
   (or eol (setq eol (progn (end-of-line) (point))))
   (beginning-of-line)
-  (if (re-search-forward
-       dired-move-to-filename-regexp
-       eol t)
+  (if (and (re-search-forward dired-move-to-filename-regexp eol t)
+	   (looking-at " \\([0-9][0-9]:[0-9][0-9]\\| [0-9]+\\|[0-9]+ \\) "))
       (progn
-	(skip-chars-forward " ")	; there is one SPC after day of month
-	(skip-chars-forward "^ " eol)	; move after time of day (or year)
-	(skip-chars-forward " " eol)	; there is space before the file name
-	;; Actually, if the year instead of clock time is displayed,
-	;; there are (only for some ls programs?) two spaces instead
-	;; of one before the name.
-	;; If we could depend on ls inserting exactly one SPC we
-	;; would not bomb on names _starting_ with SPC.
+	(goto-char (match-end 0))
 	(point))
     (if raise-error
 	(error "No file on this line")
