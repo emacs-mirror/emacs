@@ -443,7 +443,7 @@ if there is a suitable one already."
      (t
       ;; * String is a common substring completion already.  Make list.
       (message "Making completion list...")
-      (with-output-to-temp-buffer " *Completions*"
+      (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list (all-completions init my-obarray)))
       (message "Making completion list...done")))
     (and (window-minibuffer-p (selected-window))
