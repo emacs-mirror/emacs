@@ -227,7 +227,8 @@ With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
   (push-mark
     (save-excursion
       (forward-sentence arg)
-      (point))))
+      (point))
+    nil t))
 
 (defun transpose-sentences (arg)
   "Interchange this (next) and previous sentence."
