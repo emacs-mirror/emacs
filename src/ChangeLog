@@ -1,3 +1,8 @@
+2003-06-04  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encoding_buffer_size): If coding->type is
+	coding_type_ccl, double magnification on CRLF encoding.
+
 2003-06-02  Kenichi Handa  <handa@etlken2>
 
 	* buffer.c (Fset_buffer_multibyte): Fix previous change.
