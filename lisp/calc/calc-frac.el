@@ -5,6 +5,8 @@
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Colin Walters <walters@debian.org>
 
+;; This file is part of GNU Emacs.
+
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY.  No author or distributor
 ;; accepts responsibility to anyone for the consequences of using it
