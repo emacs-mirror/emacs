@@ -103,8 +103,7 @@
 ;; (autoload 'browse-url-of-file "browse-url"
 ;;   "Ask a WWW browser to display FILE." t)
 ;; (autoload 'browse-url-of-dired-file "browse-url"
-;;   "In Dired, ask a WWW browser to display the file named on this line."
-t)
+;;   "In Dired, ask a WWW browser to display the file named on this line." t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Usage
@@ -133,9 +132,8 @@ t)
 ;;      (global-set-key "\C-cub" 'browse-url-of-buffer)
 ;;      (global-set-key "\C-cuf" 'browse-url-of-file)
 ;;      (add-hook 'dired-mode-hook
-;;                (function (lambda ()
-;;                            (local-set-key "\C-cuf"
-'browse-url-of-dired-file))))
+;;                (lambda ()
+;;                  (local-set-key "\C-cuf" 'browse-url-of-dired-file))))
 ;;      (if (boundp 'browse-url-browser-function)
 ;;          (global-set-key "\C-cuu" browse-url-browser-function)
 ;;        (eval-after-load
@@ -162,10 +160,8 @@ t)
 ;;                                (let ((local-write-file-hooks))
 ;;                                  (save-buffer))
 ;;                                (browse-url-netscape-reload)
-;;                                t))                   ; => file written
-by hook
-;;                             t))))                    ; append to
-l-w-f-hooks
+;;                                t))                   ; => file written by hook
+;;                             t))))                    ; append to l-w-f-hooks
 ;;
 ;; [Does this work for html-mode too?]
 ;;
@@ -274,8 +270,7 @@ l-w-f-hooks
 ;;; Code:
 
 (defvar browse-url-regexp
-  "\\(https?://\\|ftp://\\|gopher://\\|telnet://\\|wais://\\|file:/\\|s?news:\\|mai
-lto:\\)[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
+  "\\(https?://\\|ftp://\\|gopher://\\|telnet://\\|wais://\\|file:/\\|s?news:\\|mailto:\\)[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
   "A regular expression probably matching a URL.")
 
 (defvar browse-url-browser-function
