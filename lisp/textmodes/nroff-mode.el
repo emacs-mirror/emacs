@@ -71,9 +71,9 @@ closing requests for requests that are used in matched pairs."
   (make-local-variable 'page-delimiter)
   (setq page-delimiter "^\\.\\(bp\\|SK\\|OP\\)")
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^[.']\\|" paragraph-start))
+  (setq paragraph-start (concat "[.']\\|" paragraph-start))
   (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate (concat "^[.']\\|" paragraph-separate))
+  (setq paragraph-separate (concat "[.']\\|" paragraph-separate))
   ;; comment syntax added by mit-erl!gildea 18 Apr 86
   (make-local-variable 'comment-start)
   (setq comment-start "\\\" ")
