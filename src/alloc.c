@@ -3600,7 +3600,9 @@ Garbage collection happens automatically if you cons more than\n\
     for (i = 0; i < tail->nvars; i++)
       if (!XMARKBIT (tail->var[i]))
 	{
-	  mark_object (&tail->var[i]);
+	  /* Explicit casting prevents compiler warning about
+	     discarding the `volatile' qualifier.  */
+	  mark_object ((Lisp_Object *)&tail->var[i]);
 	  XMARK (tail->var[i]);
 	}
 #endif
