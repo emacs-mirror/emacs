@@ -248,3 +248,5 @@ globalref char sdata[];
 #define PENDING_OUTPUT_COUNT(FILE) ((*(FILE))->_ptr - (*(FILE))->_base)
 
 #define NULL_DEVICE "NLA0:"
+
+#define EXEC_SUFFIXES ".exe:.com"
