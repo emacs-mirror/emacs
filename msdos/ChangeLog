@@ -1,3 +1,8 @@
+2000-11-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2.inp (NSIG) [__DJGPP__ == 2 && __DJGPP_MINOR__ == 1]:
+	Define; it is undefined in DJGPP v2.01.
+
 2000-11-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed2.inp (HAVE_MKSTEMP): Define.
