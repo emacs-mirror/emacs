@@ -714,6 +714,9 @@ case "${canonical}" in
   mips-sony-bsd* | mips-sony-newsos4* | mips-sony-news4*)
     machine=news-risc opsys=bsd4-3
   ;;
+  mips-sony-newsos6* )
+    machine=news-risc opsys=newsos6
+  ;;
   mips-sony-news* )
     machine=news-risc opsys=newsos5
   ;;
