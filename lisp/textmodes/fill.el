@@ -1,6 +1,7 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,2002
+;;               Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -75,7 +76,9 @@ reinserts the fill prefix in each resulting line."
   :group 'fill)
 
 (defcustom adaptive-fill-regexp
-  (purecopy "[ \t]*\\([-|#;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*")
+  ;; Added `!' for doxygen comments starting with `//!' or `/*!'.
+  ;; Added `%' for TeX comments.
+  (purecopy "[ \t]*\\([-!|#%;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*")
   "*Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, a prefix matching this pattern
 on the first and second lines of a paragraph is used as the
@@ -234,7 +237,7 @@ act as a paragraph-separator."
 	    (unless first-line-prefix (setq first-line-prefix ""))
 
 	    (if ;; If the non-whitespace chars match the first line,
-		;; just use it (this subsumes the 2 previous checks).
+		;; just use it (this subsumes the 2 checks used previously).
 		;; Used when first line is `/* ...' and second-line is
 		;; ` * ...'.
 		(string-match
@@ -317,7 +320,7 @@ Can be customized with the variable `fill-nobreak-predicate'."
      ;; The reason is that if a period ends up at the end of a
      ;; line, further fills will assume it ends a sentence.
      ;; If we now know it does not end a sentence, avoid putting
-     ;; it at the end of the line. 
+     ;; it at the end of the line.
      (and sentence-end-double-space
 	  (save-excursion
 	    (skip-chars-backward ". ")
@@ -368,40 +371,42 @@ If the charset has no such property, do nothing."
   "Delete the fill prefix from every line except the first.
 The first line may not even have a fill prefix.
 Point is moved to just past the fill prefix on the first line."
-  (goto-char from)
-  (let ((fpre (and prefix (not (equal prefix ""))
-		   (concat "[ \t]*"
-			   (replace-regexp-in-string
-			    "[ \t]+" "[ \t]*"
-			    (regexp-quote prefix))
-			   "[ \t]*"))))
-    (when fpre
-      (if (>= (+ (current-left-margin) (length prefix))
-	      (current-fill-column))
-	  (error "fill-prefix too long for specified width"))
-      (forward-line 1)
-      (while (< (point) to)
-	(if (looking-at fpre)
-	    (delete-region (point) (match-end 0)))
-	(forward-line 1))
-      (goto-char from)
+  (let ((fpre (if (and prefix (not (string-match "\\`[ \t]*\\'" prefix)))
+		  (concat "[ \t]*\\("
+			  (replace-regexp-in-string
+			   "[ \t]+" "[ \t]*"
+			   (regexp-quote prefix))
+			  "\\)?[ \t]*")
+		"[ \t]*")))
+    (goto-char from)
+    (if (>= (+ (current-left-margin) (length prefix))
+	    (current-fill-column))
+	(error "fill-prefix too long for specified width"))
+    (forward-line 1)
+    (while (< (point) to)
       (if (looking-at fpre)
-	  (goto-char (match-end 0)))
-      (setq from (point))))
-  ;; Remove indentation from lines other than the first.
-  (beginning-of-line 2)
-  (indent-region (point) to 0)
-  (goto-char from))
+	  (delete-region (point) (match-end 0)))
+      (forward-line 1))
+    (goto-char from)
+    (if (looking-at fpre)
+	(goto-char (match-end 0)))
+    (setq from (point))))
 
 (defun fill-delete-newlines (from to justify nosqueeze squeeze-after)
   (goto-char from)
   ;; Make sure sentences ending at end of line get an extra space.
   ;; loses on split abbrevs ("Mr.\nSmith")
-  (let ((eol-double-space-re (if colon-double-space
-				 "[.?!:][])}\"']*$"
-			       "[.?!][])}\"']*$")))
+  (let ((eol-double-space-re
+	 (cond
+	  ((not colon-double-space) (concat sentence-end "$"))
+	  ;; Try to add the : inside the `sentence-end' regexp.
+	  ((string-match "\\[[^][]*\\(\\.\\)[^][]*\\]" sentence-end)
+	   (concat (replace-match ".:" nil nil sentence-end 1) "$"))
+	  ;; Can't find the right spot to insert the colon.
+	  (t "[.?!:][])}\"']*$"))))
     (while (re-search-forward eol-double-space-re to t)
-      (or (>= (point) to) (insert-and-inherit ?\ ))))
+      (or (>= (point) to) (memq (char-before) '(?\t ?\ ))
+	  (insert-and-inherit ?\ ))))
 
   (goto-char from)
   (if enable-multibyte-characters
@@ -436,6 +441,92 @@ Point is moved to just past the fill prefix on the first line."
     (delete-horizontal-space)
     (insert-and-inherit " "))
   (goto-char from))
+
+(defun fill-move-to-break-point (linebeg)
+  "Move to the position where the line should be broken.
+The break position will normally be after LINEBEG and before point."
+  ;; If the fill column is before linebeg, we have an insanely
+  ;; wide prefix and might as well ignore it.
+  (if (> linebeg (point)) (setq linebeg (line-beginning-position)))
+  ;; Move back to the point where we can break the line
+  ;; at.  We break the line between word or after/before
+  ;; the character which has character category `|'.  We
+  ;; search space, \c| followed by a character, or \c|
+  ;; following a character.  If not found, place
+  ;; the point at linebeg.
+  (while
+      (when (re-search-backward "[ \t]\\|\\c|.\\|.\\c|" linebeg 0)
+	;; In case of space, we place the point at next to
+	;; the point where the break occurs actually,
+	;; because we don't want to change the following
+	;; logic of original Emacs.  In case of \c|, the
+	;; point is at the place where the break occurs.
+	(forward-char 1)
+	(when (fill-nobreak-p) (skip-chars-backward " \t" linebeg))))
+  ;; If the left margin and fill prefix by themselves
+  ;; pass the fill-column. or if they are zero
+  ;; but we have no room for even one word,
+  ;; keep at least one word or a character which has
+  ;; category `|' anyway.
+  (if (>= linebeg (point))
+      ;; Ok, skip at least one word or one \c| character.
+      ;; Meanwhile, don't stop at a period followed by one space.
+      (let ((to (line-end-position))
+	    (fill-nobreak-predicate nil) ;to break sooner.
+	    (first t))
+	(goto-char linebeg)
+	(while (and (< (point) to) (or first (fill-nobreak-p)))
+	  ;; Find a breakable point while ignoring the
+	  ;; following spaces.
+	  (skip-chars-forward " \t")
+	  (if (looking-at "\\c|")
+	      (forward-char 1)
+	    (let ((pos (save-excursion
+			 (skip-chars-forward "^ \n\t")
+			 (point))))
+	      (if (re-search-forward "\\c|" pos t)
+		  (forward-char -1)
+		(goto-char pos))))
+	  (setq first nil)))
+    ;; Normally, move back over the single space between
+    ;; the words.
+    (skip-chars-backward " \t")
+
+    (if enable-multibyte-characters
+	;; If we are going to break the line after or
+	;; before a non-ascii character, we may have to
+	;; run a special function for the charset of the
+	;; character to find the correct break point.
+	(if (not (and (eq (charset-after (1- (point))) 'ascii)
+		      (eq (charset-after (point)) 'ascii)))
+	    ;; Make sure we take SOMETHING after the fill prefix if any.
+	    (fill-find-break-point linebeg)))))
+
+(defun fill-newline ()
+  ;; Replace whitespace here with one newline, then
+  ;; indent to left margin.
+  (skip-chars-backward " \t")
+  (if (and (= (following-char) ?\ )
+	   (or (aref (char-category-set (preceding-char)) ?|)
+	       (looking-at "[ \t]+\\c|")))
+      ;; We need one space at end of line so that
+      ;; further filling won't delete it.  NOTE: We
+      ;; intentionally leave this one space to
+      ;; distingush the case that user wants to put
+      ;; space between \c| characters.
+      (forward-char 1))
+  (insert ?\n)
+  ;; Give newline the properties of the space(s) it replaces
+  (set-text-properties (1- (point)) (point)
+		       (text-properties-at (point)))
+  (if (or fill-prefix
+	  (not fill-indent-according-to-mode))
+      (indent-to-left-margin)
+    (indent-according-to-mode))
+  ;; Insert the fill prefix after indentation.
+  ;; Set prefixcol so whitespace in the prefix won't get lost.
+  (and fill-prefix (not (equal fill-prefix ""))
+       (insert-and-inherit fill-prefix)))
 
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
@@ -498,16 +589,9 @@ space does not end a sentence, so don't break a line there."
     (goto-char from-plus-indent))
 
   (if (not (> to (point)))
-      nil ; There is no paragraph, only whitespace: exit now.
+      nil ;; There is no paragraph, only whitespace: exit now.
 
     (or justify (setq justify (current-justification)))
-
-    ;; Never indent-according-to-mode with brain dead "indenting" functions.
-    (when (and fill-indent-according-to-mode
-	       (memq indent-line-function
-		   '(indent-relative-maybe indent-relative
-		       indent-to-left-margin)))
-      (set (make-local-variable 'fill-indent-according-to-mode) nil))
 
     ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
     (let ((fill-prefix fill-prefix))
@@ -526,7 +610,7 @@ space does not end a sentence, so don't break a line there."
 	(beginning-of-line)
 	(narrow-to-region (point) to)
 
-	(if (not justify)	    ; filling disabled: just check indentation
+	(if (not justify)	  ; filling disabled: just check indentation
 	    (progn
 	      (goto-char from)
 	      (while (< (point) to)
@@ -551,136 +635,20 @@ space does not end a sentence, so don't break a line there."
 	  (fill-delete-newlines from to justify nosqueeze squeeze-after)
 
 	  ;; This is the actual filling loop.
-	  (let ((prefixcol 0) linebeg)
-	    (while (not (eobp))
+	  (goto-char from)
+	  (let (linebeg)
+	    (while (< (point) to)
 	      (setq linebeg (point))
 	      (move-to-column (1+ (current-fill-column)))
-	      (if (eobp)
+	      (if (>= (point) to)
 		  (or nosqueeze (delete-horizontal-space))
-		;; Move back to the point where we can break the line
-		;; at.  We break the line between word or after/before
-		;; the character which has character category `|'.  We
-		;; search space, \c| followed by a character, or \c|
-		;; following a character.  If not found, place
-		;; the point at linebeg.
-		(while
-		    (when (re-search-backward "[ \t]\\|\\c|.\\|.\\c|" linebeg 0)
-		      ;; In case of space, we place the point at next to
-		      ;; the point where the break occurs actually,
-		      ;; because we don't want to change the following
-		      ;; logic of original Emacs.  In case of \c|, the
-		      ;; point is at the place where the break occurs.
-		      (forward-char 1)
-		      (when (fill-nobreak-p) (skip-chars-backward " \t"))))
-		;; If the left margin and fill prefix by themselves
-		;; pass the fill-column. or if they are zero
-		;; but we have no room for even one word,
-		;; keep at least one word or a character which has
-		;; category `|'anyway .
-		;; This handles ALL BUT the first line of the paragraph.
-		(if (if (zerop prefixcol)
-			(save-excursion
-			  (skip-chars-backward " \t" linebeg)
-			  (bolp))
-		      (>= prefixcol (current-column)))
-		    ;; Ok, skip at least one word or one \c| character.
-		    ;; Meanwhile, don't stop at a period followed by one space.
-		    (let ((fill-nobreak-predicate nil) ;to break sooner.
-			  (first t))
-		      (move-to-column prefixcol)
-		      (while (and (not (eobp)) (or first (fill-nobreak-p)))
-			;; Find a breakable point while ignoring the
-			;; following spaces.
-			(skip-chars-forward " \t")
-			(if (looking-at "\\c|")
-			    (forward-char 1)
-			  (let ((pos (save-excursion
-				       (skip-chars-forward "^ \n\t")
-				       (point))))
-			    (if (re-search-forward "\\c|" pos t)
-				(forward-char -1)
-			      (goto-char pos))))
-			(setq first nil)))
-		  ;; Normally, move back over the single space between
-		  ;; the words.
-		  (skip-chars-backward " \t")
+		;; Find the position where we'll break the line.
+		(fill-move-to-break-point linebeg)
 
-		  (if enable-multibyte-characters
-		      ;; If we are going to break the line after or
-		      ;; before a non-ascii character, we may have to
-		      ;; run a special function for the charset of the
-		      ;; character to find the correct break point.
-		      (if (not (and (eq (charset-after (1- (point))) 'ascii)
-				    (eq (charset-after (point)) 'ascii)))
-			  ;; Make sure we take SOMETHING after the
-			  ;; fill prefix if any.
-			  (fill-find-break-point
-			   (save-excursion
-			     (goto-char linebeg)
-			     (move-to-column prefixcol)
-			     (point))))))
-
-		;; If the left margin and fill prefix by themselves
-		;; pass the fill-column, keep at least one word.
-		;; This handles the first line of the paragraph.
-		(if (and (zerop prefixcol)
-			 (let ((fill-point (point)) nchars)
-			   (save-excursion
-			     (move-to-left-margin)
-			     (setq nchars (- fill-point (point)))
-			     (or (< nchars 0)
-				 (and fill-prefix
-				      (< nchars (length fill-prefix))
-				      (string= (buffer-substring (point)
-								 fill-point)
-					       (substring fill-prefix
-							  0 nchars)))))))
-		    ;; Ok, skip at least one word.  But
-		    ;; don't stop at a period followed by just one space.
-		    (let ((fill-nobreak-predicate nil) ;to break sooner.
-			  (first t))
-		      (while (and (not (eobp)) (or first (fill-nobreak-p)))
-			;; Find a breakable point while ignoring the
-			;; following spaces.
-			(skip-chars-forward " \t")
-			(if (looking-at "\\c|")
-			    (forward-char 1)
-			  (let ((pos (save-excursion
-				       (skip-chars-forward "^ \n\t")
-				       (point))))
-			    (if (re-search-forward "\\c|" pos t)
-				(forward-char -1)
-			      (goto-char pos))))
-			(setq first nil))))
 		;; Check again to see if we got to the end of the paragraph.
-		(if (save-excursion (skip-chars-forward " \t") (eobp))
+		(if (save-excursion (skip-chars-forward " \t") (>= (point) to))
 		    (or nosqueeze (delete-horizontal-space))
-		  ;; Replace whitespace here with one newline, then
-		  ;; indent to left margin.
-		  (skip-chars-backward " \t")
-		  (if (and (= (following-char) ?\ )
-			   (or (aref (char-category-set (preceding-char)) ?|)
-			       (looking-at "[ \t]+\\c|")))
-		      ;; We need one space at end of line so that
-		      ;; further filling won't delete it.  NOTE: We
-		      ;; intentionally leave this one space to
-		      ;; distingush the case that user wants to put
-		      ;; space between \c| characters.
-		      (forward-char 1))
-		  (insert ?\n)
-		  ;; Give newline the properties of the space(s) it replaces
-		  (set-text-properties (1- (point)) (point)
-				       (text-properties-at (point)))
-		  (if (or fill-prefix
-			  (not fill-indent-according-to-mode))
-		      (indent-to-left-margin)
-		    (indent-according-to-mode))
-		  ;; Insert the fill prefix after indentation.
-		  ;; Set prefixcol so whitespace in the prefix won't get lost.
-		  (and fill-prefix (not (equal fill-prefix ""))
-		       (progn
-			 (insert-and-inherit fill-prefix)
-			 (setq prefixcol (current-column))))))
+		  (fill-newline)))
 	      ;; Justify the line just ended, if desired.
 	      (if justify
                 (if (save-excursion (skip-chars-forward " \t") (eobp))
@@ -691,7 +659,7 @@ space does not end a sentence, so don't break a line there."
 		    (justify-current-line justify nil t)
 		    (forward-line 1))))))
 	;; Leave point after final newline.
-	(goto-char (point-max)))
+	(goto-char to))
       (unless (eobp)
 	(forward-char 1))
       ;; Return the fill-prefix we used
