@@ -1587,15 +1587,15 @@ AC_CHECK_LIB(ncurses, tparm)
 
 # These tell us which Kerberos-related libraries to use.
 if test "${with_kerberos+set}" = set; then
+  AC_CHECK_LIB(com_err, com_err)
+  AC_CHECK_LIB(crypto, mit_des_cbc_encrypt)
+  AC_CHECK_LIB(krb5, krb5_init_context)
   if test "${with_kerberos5+set}" != set; then
-    AC_CHECK_LIB(krb, krb_get_cred,,
-		 AC_CHECK_LIB(krb4, krb_get_cred))
     AC_CHECK_LIB(des, des_cbc_encrypt,,
 		 AC_CHECK_LIB(des425, des_cbc_encrypt))
+    AC_CHECK_LIB(krb, krb_get_cred,,
+		 AC_CHECK_LIB(krb4, krb_get_cred))
   fi
-  AC_CHECK_LIB(krb5, krb5_init_context)
-  AC_CHECK_LIB(crypto, mit_des_cbc_encrypt)
-  AC_CHECK_LIB(com_err, com_err)
 
   if test "${with_kerberos5+set}" = set; then
     AC_CHECK_HEADERS(krb5.h)
