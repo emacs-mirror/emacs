@@ -10872,9 +10872,10 @@ will be in `last-command' during the following command.  */);
   Vthis_command = Qnil;
 
   DEFVAR_LISP ("this-original-command", &Vthis_original_command,
-	       doc: /* If non-nil, the original command bound to the current key sequence.
-The value of `this-command' is the result of looking up the original
-command in the active keymaps.  */);
+	       doc: /* The command bound to the current key sequence before remapping.
+It equals `this-command' if the original command was not remapped through
+any of the active keymaps.  Otherwise, the value of `this-command' is the
+result of looking up the original command in the active keymaps.  */); 
   Vthis_original_command = Qnil;
 
   DEFVAR_INT ("auto-save-interval", &auto_save_interval,
