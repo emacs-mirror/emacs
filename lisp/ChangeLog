@@ -1,3 +1,9 @@
+2003-04-21  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* dabbrev.el (dabbrev--substitute-expansion): Fix a bug which lost
+	the case of letters in case-insensitive expansions on certain
+	abbreviations.
+
 2004-04-21  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-putback-char):
