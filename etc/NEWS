@@ -1199,8 +1199,13 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
-** The function `sub-arity' provides information on the argument list
+** The function `subr-arity' provides information on the argument list
 of a primitive.
+
+** The text property `keymap' specifies a key map which overrides the
+buffer's local map and the map specified by the `local-map' property.
+This is probably what most current uses of `local-map' want, rather
+than replacing the local map.
 
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
