@@ -13099,6 +13099,8 @@ x_free_frame_resources (f)
      struct frame *f;
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  Lisp_Object bar;
+  struct scroll_bar *b;
 
   BLOCK_INPUT;
 
@@ -13108,15 +13110,27 @@ x_free_frame_resources (f)
     {
       if (f->output_data.x->icon_desc)
 	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
-      
+
+#ifdef USE_X_TOOLKIT
+      /* Explicitly destroy the scroll bars of the frame.  Without
+	 this, we get "BadDrawable" errors from the toolkit later on,
+	 presumably from expose events generated for the disappearing
+	 toolkit scroll bars.  */
+      for (bar = FRAME_SCROLL_BARS (f); !NILP (bar); bar = b->next)
+	{
+	  b = XSCROLL_BAR (bar);
+	  x_scroll_bar_remove (b);
+	}
+#endif
+
 #ifdef HAVE_X_I18N
       if (FRAME_XIC (f))
 	free_frame_xic (f);
 #endif
-      
+
       if (FRAME_X_WINDOW (f))
 	XDestroyWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-      
+
 #ifdef USE_X_TOOLKIT
       if (f->output_data.x->widget)
 	{
@@ -13132,7 +13146,7 @@ x_free_frame_resources (f)
       unload_color (f, f->output_data.x->cursor_foreground_pixel);
       unload_color (f, f->output_data.x->border_pixel);
       unload_color (f, f->output_data.x->mouse_pixel);
-      
+
       if (f->output_data.x->scroll_bar_background_pixel != -1)
 	unload_color (f, f->output_data.x->scroll_bar_background_pixel);
       if (f->output_data.x->scroll_bar_foreground_pixel != -1)
