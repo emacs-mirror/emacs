@@ -604,6 +604,9 @@ Get previous element of history which is a completion of minibuffer contents."
 Repeat this command to undo more changes.
 A numeric argument serves as a repeat count."
   (interactive "*p")
+  ;; If we don't get all the way thru, make last-command indicate that
+  ;; for the following command.
+  (setq this-command t)
   (let ((modified (buffer-modified-p))
 	(recent-save (recent-auto-save-p)))
     (or (eq (selected-window) (minibuffer-window))
@@ -611,10 +614,11 @@ A numeric argument serves as a repeat count."
     (or (eq last-command 'undo)
 	(progn (undo-start)
 	       (undo-more 1)))
-    (setq this-command 'undo)
     (undo-more (or arg 1))
     (and modified (not (buffer-modified-p))
-	 (delete-auto-save-file-if-necessary recent-save))))
+	 (delete-auto-save-file-if-necessary recent-save)))
+  ;; If we do get all the way thru, make this-command indicate that.
+  (setq this-command 'undo))
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.")
@@ -1165,6 +1169,9 @@ With argument N, reinsert the Nth most recently killed stretch of killed
 text.
 See also the command \\[yank-pop]."
   (interactive "*P")
+  ;; If we don't get all the way thru, make last-command indicate that
+  ;; for the following command.
+  (setq this-command t)
   (push-mark (point))
   (insert (current-kill (cond
 			 ((listp arg) 0)
@@ -1176,6 +1183,8 @@ See also the command \\[yank-pop]."
       ;; loop would deactivate the mark because we inserted text.
       (goto-char (prog1 (mark t)
 		   (set-marker (mark-marker) (point) (current-buffer)))))
+  ;; If we do get all the way thru, make this-command indicate that.
+  (setq this-command 'yank)
   nil)
 
 (defun rotate-yank-pointer (arg)
