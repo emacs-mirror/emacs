@@ -310,8 +310,9 @@ Lisp_Object Vkeyboard_translate_table;
 /* Keymap mapping ASCII function key sequences onto their preferred forms.  */
 extern Lisp_Object Vfunction_key_map;
 
-/* Keymap mapping ASCII function key sequences onto their preferred forms.  */
-Lisp_Object Vkey_translation_map;
+/* Another keymap that maps key sequences into key sequences.
+   This one takes precedence over ordinary definitions.  */
+extern Lisp_Object Vkey_translation_map;
 
 /* Non-nil means deactivate the mark at end of this command.  */
 Lisp_Object Vdeactivate_mark;
@@ -2563,6 +2564,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	     and process it again.  */
 	  copy = *event;
 	  kbd_fetch_ptr = event + 1;
+	  input_pending = readable_events ();
 	  x_handle_selection_request (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
@@ -2574,7 +2576,12 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       else if (event->kind == selection_clear_event)
 	{
 #ifdef HAVE_X11
+	  struct input_event copy;
+
+	  /* Remove it from the buffer before processing it.  */
+	  copy = *event;
 	  kbd_fetch_ptr = event + 1;
+	  input_pending = readable_events ();
 	  x_handle_selection_clear (event);
 #else
 	  /* We're getting selection request events, but we don't have
@@ -2615,6 +2622,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       else if (event->kind == menu_bar_activate_event)
 	{
 	  kbd_fetch_ptr = event + 1;
+	  input_pending = readable_events ();
 	  x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
@@ -2757,8 +2765,13 @@ swallow_events ()
 	{
 #ifdef HAVE_X11
 	  struct input_event copy;
+
+	  /* Remove it from the buffer before processing it,
+	     since otherwise swallow_events called recursively could see it
+	     and process it again.  */
 	  copy = *event;
 	  kbd_fetch_ptr = event + 1;
+	  input_pending = readable_events ();
 	  x_handle_selection_request (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
@@ -2770,8 +2783,14 @@ swallow_events ()
       else if (event->kind == selection_clear_event)
 	{
 #ifdef HAVE_X11
-	  x_handle_selection_clear (event);
+	  struct input_event copy;
+
+	  /* Remove it from the buffer before processing it,  */
+	  copy = *event;
+
 	  kbd_fetch_ptr = event + 1;
+	  input_pending = readable_events ();
+	  x_handle_selection_clear (event);
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -7162,12 +7181,6 @@ Useful to set before you dump a modified Emacs.");
 Each character is looked up in this string and the contents used instead.\n\
 If string is of length N, character codes N and up are untranslated.");
   Vkeyboard_translate_table = Qnil;
-
-  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
-    "Keymap of key translations that can override keymaps.\n\
-This keymap works like `function-key-map', but comes after that,\n\
-and applies even for keys that have ordinary bindings.");
-  Vkey_translation_map = Qnil;
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
     "Non-nil means to always spawn a subshell instead of suspending,\n\
