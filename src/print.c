@@ -83,15 +83,17 @@ Lisp_Object Qprint_escape_newlines;
 
 int print_quoted;
 
-/* Nonzero means print #: before uninterned symbols.  */
+/* Non-nil means print #: before uninterned symbols.
+   Neither t nor nil means so that and don't clear Vprint_gensym_alist
+   on entry to and exit from print functions.  */
 
-int print_gensym;
+Lisp_Object Vprint_gensym;
 
 /* Association list of certain objects that are `eq' in the form being
    printed and which should be `eq' when read back in, using the #n=object
    and #n# reader forms.  Each element has the form (object . n).  */
 
-Lisp_Object printed_gensyms;
+Lisp_Object Vprint_gensym_alist;
 
 /* Nonzero means print newline to stdout before next minibuffer message.
    Defined in xdisp.c */
@@ -208,7 +210,8 @@ glyph_to_str_cpy (glyphs, str)
 	 }							\
        print_buffer_pos = 0;					\
      }								\
-   printed_gensyms = Qnil
+   if (!CONSP (Vprint_gensym))					\
+     Vprint_gensym_alist = Qnil
 
 #define PRINTFINISH					\
    if (NILP (printcharfun))				\
@@ -226,7 +229,8 @@ glyph_to_str_cpy (glyphs, str)
 			  ? PT - start_point : 0));	\
    if (old != current_buffer)				\
      set_buffer_internal (old);				\
-   printed_gensyms = Qnil
+   if (!CONSP (Vprint_gensym))				\
+     Vprint_gensym_alist = Qnil
 
 #define PRINTCHAR(ch) printchar (ch, printcharfun)
 
@@ -1047,12 +1051,12 @@ print (obj, printcharfun, escapeflag)
 	/* If we print an uninterned symbol as part of a complex object and
 	   the flag print-gensym is non-nil, prefix it with #n= to read the
 	   object back with the #n# reader syntax later if needed.  */
-	if (print_gensym && NILP (XSYMBOL (obj)->obarray))
+	if (! NILP (Vprint_gensym) && NILP (XSYMBOL (obj)->obarray))
 	  {
 	    if (print_depth > 1)
 	      {
 		Lisp_Object tem;
-		tem = Fassq (obj, printed_gensyms);
+		tem = Fassq (obj, Vprint_gensym_alist);
 		if (CONSP (tem))
 		  {
 		    PRINTCHAR ('#');
@@ -1062,11 +1066,11 @@ print (obj, printcharfun, escapeflag)
 		  }
 		else
 		  {
-		    if (CONSP (printed_gensyms))
-		      XSETFASTINT (tem, XFASTINT (XCDR (XCAR (printed_gensyms))) + 1);
+		    if (CONSP (Vprint_gensym_alist))
+		      XSETFASTINT (tem, XFASTINT (XCDR (XCAR (Vprint_gensym_alist))) + 1);
 		    else
 		      XSETFASTINT (tem, 1);
-		    printed_gensyms = Fcons (Fcons (obj, tem), printed_gensyms);
+		    Vprint_gensym_alist = Fcons (Fcons (obj, tem), Vprint_gensym_alist);
 
 		    PRINTCHAR ('#');
 		    print (tem, printcharfun, escapeflag);
@@ -1505,10 +1509,25 @@ I.e., (quote foo) prints as 'foo, (function foo) as #'foo, and, backquoted\n\
 forms print in the new syntax.");
   print_quoted = 0;
 
-  DEFVAR_BOOL ("print-gensym", &print_gensym,
+  DEFVAR_LISP ("print-gensym", &Vprint_gensym,
     "Non-nil means print uninterned symbols so they will read as uninterned.\n\
-I.e., the value of (make-symbol "foobar") prints as #:foobar.");
-  print_gensym = 0;
+I.e., the value of (make-symbol "foobar") prints as #:foobar.\n\
+When the uninterned symbol appears within a larger data structure,\n\
+in addition use the #...# and #...= constructs as needed,\n\
+so that multiple references to the same symbol are shared once again\n\
+when the text is read back.\n\
+\n\
+If the value of `print-gensym' is a cons cell, then in addition refrain from\n\
+clearing `print-gensym-alist' on entry to and exit from printing functions,\n\
+so that the use of #...# and #...= can carry over for several separately\n\
+printed objects.");
+  Vprint_gensym = Qnil;
+
+  DEFVAR_LISP ("print-gensym-alist", &Vprint_gensym_alist,
+    "Association list of elements (GENSYM . N) to guide use of #N# and #N=.\n\
+In each element, GENSYM is an uninterned symbol that has been associated\n\
+with #N= for the specified value of N.");
+  Vprint_gensym_alist = Qnil;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);
@@ -1527,9 +1546,6 @@ I.e., the value of (make-symbol "foobar") prints as #:foobar.");
 
   Qprint_escape_newlines = intern ("print-escape-newlines");
   staticpro (&Qprint_escape_newlines);
-
-  staticpro (&printed_gensyms);
-  printed_gensyms = Qnil;
 
 #ifndef standalone
   defsubr (&Swith_output_to_temp_buffer);
