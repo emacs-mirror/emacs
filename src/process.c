@@ -46,6 +46,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <arpa/inet.h>
 #endif /* HAVE_SOCKETS */
 
+/* TERM is a poor-man's SLIP, used on Linux.  */
+#ifdef TERM
+#include <client.h>
+#endif
+
 #if defined(BSD) || defined(STRIDE)
 #include <sys/ioctl.h>
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
@@ -1396,6 +1401,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       port = svc_info->s_port;
     }
 
+#ifndef TERM
   host_info_ptr = gethostbyname (XSTRING (host)->data);
   if (host_info_ptr == 0)
     /* Attempt to interpret host as numeric inet address */
@@ -1440,6 +1446,13 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       report_file_error ("connection failed",
 			 Fcons (host, Fcons (name, Qnil)));
     }
+#else /* TERM */
+  s = connect_server (0);
+  if (s < 0)
+    report_file_error ("error creating socket", Fcons (name, Qnil));
+  send_command (s, C_PORT, 0, "%s:%d", XSTRING (host)->data, ntohs (port));
+  send_command (s, C_DUMB, 1, 0);
+#endif /* TERM */
 
   inch = s;
   outch = dup (s);
