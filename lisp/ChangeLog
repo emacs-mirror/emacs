@@ -1,5 +1,8 @@
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
+	* calendar/todo-mode.el (todo-save): Add save-excursion
+	and save-restriction.
+
 	* server.el (server-edit, server-done): Doc fix.
 
 	* simple.el (clone-indirect-buffer): Error if major mode symbol
