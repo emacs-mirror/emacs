@@ -1,5 +1,8 @@
 2001-11-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_scroll_bar_create): Check for width and height > 0.
+	(XTset_vertical_scroll_bar): Likewise.
+
 	* buffer.c (Fset_buffer_major_mode): Use initial-major-mode for
 	*scratch*.
 
