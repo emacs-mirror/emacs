@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 1997
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 1998
 ;;        Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1181,7 +1181,8 @@ If it is nil, error output is mingled with regular output."
     ;; replacing its entire contents.
     (let ((buffer (get-buffer-create
 		   (or output-buffer "*Shell Command Output*")))
-	  (success nil))
+	  (success nil)
+          (exit-status nil))
       (unwind-protect
 	  (if (eq buffer (current-buffer))
 	      ;; If the input is the same buffer as the output,
@@ -1190,23 +1191,25 @@ If it is nil, error output is mingled with regular output."
 	      (progn (setq buffer-read-only nil)
 		     (delete-region (max start end) (point-max))
 		     (delete-region (point-min) (min start end))
-		     (call-process-region (point-min) (point-max)
-					  shell-file-name t 
-					  (if error-file
-					      (list t error-file)
-					    t)
-					  nil shell-command-switch command)
+		     (setq exit-status
+                           (call-process-region (point-min) (point-max)
+                                                shell-file-name t 
+                                                (if error-file
+                                                    (list t error-file)
+                                                  t)
+                                                nil shell-command-switch command))
 		     (setq success t))
 	    ;; Clear the output buffer, then run the command with output there.
 	    (save-excursion
 	      (set-buffer buffer)
 	      (setq buffer-read-only nil)
 	      (erase-buffer))
-	    (call-process-region start end shell-file-name nil
-				 (if error-file
-				     (list buffer error-file)
-				   buffer)
-				 nil shell-command-switch command)
+	    (setq exit-status
+                  (call-process-region start end shell-file-name nil
+                                       (if error-file
+                                           (list buffer error-file)
+                                         buffer)
+                                       nil shell-command-switch command))
 	    (setq success t))
 	;; Report the amount of output.
 	(let ((lines (save-excursion
@@ -1216,7 +1219,10 @@ If it is nil, error output is mingled with regular output."
 			 (count-lines (point-min) (point-max))))))
 	  (cond ((= lines 0)
 		 (if success
-		     (message "(Shell command completed with no output)"))
+		     (message "(Shell command %sed with no output)"
+                              (if (equal 0 exit-status)
+                                  "succeed"
+                                "fail")))
 		 (kill-buffer buffer))
 		((and success (= lines 1))
 		 (message "%s"
