@@ -550,7 +550,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 		/* KEY is the generic character of the charset of IDX.
 		   Use KEY's binding if there isn't a binding for IDX
 		   itself.  */
-		generic_binding = binding;
+		generic_binding = XCDR (binding);
 	      }
 	    else if (t_ok && EQ (XCAR (binding), Qt))
 	      t_binding = XCDR (binding);
