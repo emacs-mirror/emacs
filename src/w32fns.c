@@ -64,6 +64,10 @@ Lisp_Object Vwin32_enable_palette;
    be converted to a middle button down event. */
 Lisp_Object Vwin32_mouse_button_tolerance;
 
+/* Minimum interval between mouse movement (and scroll bar drag)
+   events that are passed on to the event loop. */
+Lisp_Object Vwin32_mouse_move_interval;
+
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
 
@@ -157,8 +161,13 @@ Lisp_Object Qdisplay;
 #define RMOUSE 4
 
 static int button_state = 0;
-static Win32Msg saved_mouse_msg;
-static unsigned timer_id;	/* non-zero when timer is active */
+static Win32Msg saved_mouse_button_msg;
+static unsigned mouse_button_timer;	/* non-zero when timer is active */
+static Win32Msg saved_mouse_move_msg;
+static unsigned mouse_move_timer;
+
+#define MOUSE_BUTTON_ID	1
+#define MOUSE_MOVE_ID	2
 
 /* The below are defined in frame.c.  */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
@@ -2841,14 +2850,6 @@ win_msg_worker (dw)
 	{
 	  switch (msg.message)
 	    {
-	    case WM_TIMER:
-	      if (saved_mouse_msg.msg.hwnd)
-		{
-		  post_msg (&saved_mouse_msg);
-		  saved_mouse_msg.msg.hwnd = 0;
-		}
-	      timer_id = 0;
-	      break;
 	    case WM_EMACS_CREATEWINDOW:
 	      win32_createwindow ((struct frame *) msg.wParam);
 	      PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0);
@@ -2888,7 +2889,8 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
   LRESULT ret = 1;
   struct win32_display_info *dpyinfo = &one_win32_display_info;
   Win32Msg wmsg;
-  
+  int windows_translate;
+
   switch (msg) 
     {
     case WM_ERASEBKGND:
@@ -2930,31 +2932,41 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       record_keydown (wParam, lParam);
 
       wParam = map_keypad_keys (wParam, lParam);
-      
+
+      windows_translate = 0;
       switch (wParam) {
       case VK_LWIN:
       case VK_RWIN:
       case VK_APPS:
 	/* More support for these keys will likely be necessary.  */
 	if (!NILP (Vwin32_pass_optional_keys_to_system))
-	  goto dflt;
+	  windows_translate = 1;
 	break;
       case VK_MENU:
 	if (NILP (Vwin32_pass_alt_to_system)) 
 	  return 0;
-	else 
-	  goto dflt;
+	windows_translate = 1;
+	break;
       case VK_CONTROL: 
       case VK_CAPITAL: 
       case VK_SHIFT:
-	/* Pass on to Windows.  */
-	goto dflt;
+	windows_translate = 1;
+	break;
       default:
 	/* If not defined as a function key, change it to a WM_CHAR message. */
 	if (lispy_function_keys[wParam] == 0)
 	  msg = WM_CHAR;
 	break;
       }
+
+      if (windows_translate)
+	{
+	  MSG winmsg = { hwnd, msg, wParam, lParam, 0, {0,0} };
+
+	  winmsg.time = GetMessageTime ();
+	  TranslateMessage (&winmsg);
+	  goto dflt;
+	}
 
       /* Fall through */
       
@@ -3003,10 +3015,10 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 
 	if (button_state & other)
 	  {
-	    if (timer_id)
+	    if (mouse_button_timer)
 	      {
-		KillTimer (NULL, timer_id);
-		timer_id = 0;
+		KillTimer (hwnd, mouse_button_timer);
+		mouse_button_timer = 0;
 
 		/* Generate middle mouse event instead. */
 		msg = WM_MBUTTONDOWN;
@@ -3023,25 +3035,25 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	    else
 	      {
 		/* Flush out saved message. */
-		post_msg (&saved_mouse_msg);
+		post_msg (&saved_mouse_button_msg);
 	      }
 	    wmsg.dwModifiers = win32_get_modifiers ();
 	    my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 
 	    /* Clear message buffer. */
-	    saved_mouse_msg.msg.hwnd = 0;
+	    saved_mouse_button_msg.msg.hwnd = 0;
 	  }
 	else
 	  {
 	    /* Hold onto message for now. */
-	    timer_id =
-	      SetTimer (NULL, 0, XINT (Vwin32_mouse_button_tolerance), NULL);
-	    saved_mouse_msg.msg.hwnd = hwnd;
-	    saved_mouse_msg.msg.message = msg;
-	    saved_mouse_msg.msg.wParam = wParam;
-	    saved_mouse_msg.msg.lParam = lParam;
-	    saved_mouse_msg.msg.time = GetMessageTime ();
-	    saved_mouse_msg.dwModifiers = win32_get_modifiers ();
+	    mouse_button_timer =
+	      SetTimer (hwnd, MOUSE_BUTTON_ID, XINT (Vwin32_mouse_button_tolerance), NULL);
+	    saved_mouse_button_msg.msg.hwnd = hwnd;
+	    saved_mouse_button_msg.msg.message = msg;
+	    saved_mouse_button_msg.msg.wParam = wParam;
+	    saved_mouse_button_msg.msg.lParam = lParam;
+	    saved_mouse_button_msg.msg.time = GetMessageTime ();
+	    saved_mouse_button_msg.dwModifiers = win32_get_modifiers ();
 	  }
       }
       return 0;
@@ -3076,18 +3088,18 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	else
 	  {
 	    /* Flush out saved message if necessary. */
-	    if (saved_mouse_msg.msg.hwnd)
+	    if (saved_mouse_button_msg.msg.hwnd)
 	      {
-		post_msg (&saved_mouse_msg);
+		post_msg (&saved_mouse_button_msg);
 	      }
 	  }
 	wmsg.dwModifiers = win32_get_modifiers ();
 	my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
 
 	/* Always clear message buffer and cancel timer. */
-	saved_mouse_msg.msg.hwnd = 0;
-	KillTimer (NULL, timer_id);
-	timer_id = 0;
+	saved_mouse_button_msg.msg.hwnd = 0;
+	KillTimer (hwnd, mouse_button_timer);
+	mouse_button_timer = 0;
 
 	if (button_state == 0)
 	  ReleaseCapture ();
@@ -3111,33 +3123,73 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 0;
 
-#if 0
+    case WM_VSCROLL:
     case WM_MOUSEMOVE:
-      /* Flush out saved message if necessary. */
-      if (saved_mouse_msg.msg.hwnd)
-	{
-	  wmsg = saved_mouse_msg;
-	  my_post_msg (&wmsg, wmsg.msg.hwnd, wmsg.msg.message,
-		       wmsg.msg.wParam, wmsg.msg.lParam);
-	}
-      wmsg.dwModifiers = win32_get_modifiers ();
-      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      if (XINT (Vwin32_mouse_move_interval) <= 0
+	  || (msg == WM_MOUSEMOVE && button_state == 0))
+  	{
+	  wmsg.dwModifiers = win32_get_modifiers ();
+	  my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+	  return 0;
+  	}
+  
+      /* Hang onto mouse move and scroll messages for a bit, to avoid
+	 sending such events to Emacs faster than it can process them.
+	 If we get more events before the timer from the first message
+	 expires, we just replace the first message. */
 
-      /* Always clear message buffer and cancel timer. */
-      saved_mouse_msg.msg.hwnd = 0;
-      KillTimer (NULL, timer_id);
-      timer_id = 0;
+      if (saved_mouse_move_msg.msg.hwnd == 0)
+	mouse_move_timer =
+	  SetTimer (hwnd, MOUSE_MOVE_ID, XINT (Vwin32_mouse_move_interval), NULL);
 
+      /* Hold onto message for now. */
+      saved_mouse_move_msg.msg.hwnd = hwnd;
+      saved_mouse_move_msg.msg.message = msg;
+      saved_mouse_move_msg.msg.wParam = wParam;
+      saved_mouse_move_msg.msg.lParam = lParam;
+      saved_mouse_move_msg.msg.time = GetMessageTime ();
+      saved_mouse_move_msg.dwModifiers = win32_get_modifiers ();
+  
       return 0;
-#endif
 
+    case WM_TIMER:
+      /* Flush out saved messages if necessary. */
+      if (wParam == mouse_button_timer)
+	{
+	  if (saved_mouse_button_msg.msg.hwnd)
+	    {
+	      post_msg (&saved_mouse_button_msg);
+	      saved_mouse_button_msg.msg.hwnd = 0;
+	    }
+	  KillTimer (hwnd, mouse_button_timer);
+	  mouse_button_timer = 0;
+	}
+      else if (wParam == mouse_move_timer)
+	{
+	  if (saved_mouse_move_msg.msg.hwnd)
+	    {
+	      post_msg (&saved_mouse_move_msg);
+	      saved_mouse_move_msg.msg.hwnd = 0;
+	    }
+	  KillTimer (hwnd, mouse_move_timer);
+	  mouse_move_timer = 0;
+	}
+      return 0;
+  
+    case WM_NCACTIVATE:
+      /* Windows doesn't send us focus messages when putting up and
+	 taking down a system popup dialog as for Ctrl-Alt-Del on Win95.
+	 The only indication we get that something happened is receiving
+	 this message afterwards.  So this is a good time to reset our
+	 keyboard modifiers' state. */
+      reset_modifiers ();
+      goto dflt;
+
+    case WM_KILLFOCUS:
     case WM_SETFOCUS:
       reset_modifiers ();
-    case WM_MOUSEMOVE:
     case WM_MOVE:
     case WM_SIZE:
-    case WM_KILLFOCUS:
-    case WM_VSCROLL:
     case WM_SYSCOMMAND:
     case WM_COMMAND:
       wmsg.dwModifiers = win32_get_modifiers ();
@@ -4926,6 +4978,14 @@ left/right button down events before they are considered distinct events.\n\
 If both mouse buttons are depressed within this interval, a middle mouse\n\
 button down event is generated instead.");
   XSETINT (Vwin32_mouse_button_tolerance, GetDoubleClickTime () / 2);
+
+  DEFVAR_INT ("win32-mouse-move-interval",
+	      &Vwin32_mouse_move_interval,
+	      "Minimum interval between mouse move events.\n\
+The value is the minimum time in milliseconds that must elapse between\n\
+successive mouse move (or scroll bar drag) events before they are\n\
+reported as lisp events.");
+  XSETINT (Vwin32_mouse_move_interval, 50);
 
   init_x_parm_symbols ();
 
