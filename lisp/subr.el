@@ -85,6 +85,7 @@ BODY should be a list of Lisp expressions."
   "Add NEWELT to the list stored in the symbol LISTNAME.
 This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
 LISTNAME must be a symbol."
+  (declare (debug (form sexp)))
   (list 'setq listname
 	(list 'cons newelt listname)))
 
@@ -93,6 +94,7 @@ LISTNAME must be a symbol."
 LISTNAME must be a symbol whose value is a list.
 If the value is nil, `pop' returns nil but does not actually
 change the list."
+  (declare (debug (sexp)))
   (list 'car
 	(list 'prog1 listname
 	      (list 'setq listname (list 'cdr listname)))))
@@ -1630,6 +1632,7 @@ See also `with-temp-buffer'."
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
+  (declare (debug t))
   (let ((temp-file (make-symbol "temp-file"))
 	(temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-file ,file)
@@ -1652,6 +1655,7 @@ The value returned is the value of the last form in BODY.
 MESSAGE is written to the message log buffer if `message-log-max' is non-nil.
 If MESSAGE is nil, the echo area and message log buffer are unchanged.
 Use a MESSAGE of \"\" to temporarily clear the echo area."
+  (declare (debug t))
   (let ((current-message (make-symbol "current-message"))
 	(temp-message (make-symbol "with-temp-message")))
     `(let ((,temp-message ,message)
@@ -1741,6 +1745,7 @@ Major mode functions should use this."
 (defmacro delay-mode-hooks (&rest body)
   "Execute BODY, but delay any `run-mode-hooks'.
 Only affects hooks run in the current buffer."
+  (declare (debug t))
   `(progn
      (make-local-variable 'delay-mode-hooks)
      (let ((delay-mode-hooks t))
@@ -1761,6 +1766,7 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 The syntax table of the current buffer is saved, BODY is evaluated, and the
 saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
+  (declare (debug t))
   (let ((old-table (make-symbol "table"))
 	(old-buffer (make-symbol "buffer")))
     `(let ((,old-table (syntax-table))
@@ -1820,18 +1826,13 @@ STRING should be given if the last search was by `string-match' on STRING."
 	(buffer-substring-no-properties (match-beginning num)
 					(match-end num)))))
 
-(defun looking-back (regexp)
-  "Return t if text before point matches regular expression REGEXP.
-This function modifies the match data that `match-beginning',
-`match-end' and `match-data' access; save and restore the match
-data if you want to preserve them."
+(defun looking-back (regexp &optional limit)
+  "Return non-nil if text before point matches regular expression REGEXP.
+Like `looking-at' except backwards and slower.
+LIMIT if non-nil speeds up the search by specifying how far back the
+match can start."
   (save-excursion
-    (let ((beg (point)))
-      (if (re-search-backward regexp nil t)
-	  (if (= (match-end 0) beg)
-	      t
-	    nil)
-	nil))))
+    (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)))
 
 (defconst split-string-default-separators "[ \f\t\n\r\v]+"
   "The default value of separators for `split-string'.
