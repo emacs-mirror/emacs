@@ -84,24 +84,27 @@
 (defun win32-handle-scroll-bar-event (event)
   "Handle Win32 scroll bar events to do normal Window style scrolling."
   (interactive "e")
-  (let* ((position (event-start event))
-	 (window (nth 0 position))
-	 (portion-whole (nth 2 position))
-	 (bar-part (nth 4 position)))
-    (save-excursion
-      (select-window window)
-      (cond
-       ((eq bar-part 'up)
-	(scroll-down 1))
-       ((eq bar-part 'above-handle)
-	(scroll-down))
-       ((eq bar-part 'handle)
-	(scroll-bar-maybe-set-window-start event))
-       ((eq bar-part 'below-handle)
-	(scroll-up))
-       ((eq bar-part 'down)
-	(scroll-up 1))
-       ))))
+  (let ((old-window (selected-window)))
+    (unwind-protect
+	(let* ((position (event-start event))
+	       (window (nth 0 position))
+	       (portion-whole (nth 2 position))
+	       (bar-part (nth 4 position)))
+	  (save-excursion
+	    (select-window window)
+	    (cond
+	     ((eq bar-part 'up)
+	      (scroll-down 1))
+	     ((eq bar-part 'above-handle)
+	      (scroll-down))
+	     ((eq bar-part 'handle)
+	      (scroll-bar-maybe-set-window-start event))
+	     ((eq bar-part 'below-handle)
+	      (scroll-up))
+	     ((eq bar-part 'down)
+	      (scroll-up 1))
+	     )))
+      (select-window old-window))))
 
 ;; The following definition is used for debugging.
 ;(defun win32-handle-scroll-bar-event (event) (interactive "e") (princ event))
