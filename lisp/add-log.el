@@ -111,6 +111,14 @@ this variable."
   :type 'boolean
   :group 'change-log)
 
+(defcustom add-log-file-name-function nil
+  "*If non-nil, function to call to identify the filename for a ChangeLog entry.
+This function is called with one argument, `buffer-file-name' in that buffer.
+If this is nil, the default is to use the file's name
+relative to the directory of the change log file."
+  :type 'function
+  :group 'change-log)
+
 (defvar change-log-font-lock-keywords
   '(;;
     ;; Date lines, new and old styles.
@@ -305,12 +313,15 @@ non-nil, otherwise in local time."
     (and buffer-file-name
 	 ;; Never want to add a change log entry for the ChangeLog file itself.
 	 (not (string= buffer-file-name file-name))
-	 (setq entry (if (string-match
-			  (concat "^" (regexp-quote (file-name-directory
-						     file-name)))
-			  buffer-file-name)
-			 (substring buffer-file-name (match-end 0))
-		       (file-name-nondirectory buffer-file-name))))
+	 (setq entry
+	       (if add-log-file-name-function
+		   (funcall add-log-file-name-function buffer-file-name)
+		 (if (string-match
+		      (concat "^" (regexp-quote (file-name-directory
+						 file-name)))
+		      buffer-file-name)
+		     (substring buffer-file-name (match-end 0))
+		   (file-name-nondirectory buffer-file-name)))))
 
     (let ((buffer (find-buffer-visiting file-name)))
       (setq add-log-debugging (list (gap-position) (gap-size))))
