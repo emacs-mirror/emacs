@@ -1,5 +1,14 @@
 2004-04-14  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (Ffind_coding_systems_region_internal): Include
+	raw-text and no-conversion in the result.
+
+	* fontset.h: Sync to HEAD.
+
+	* fontset.c: Sync to HEAD.
+
+2004-04-14  Kenichi Handa  <handa@m17n.org>
+
 	* fontset.c (find_font_encoding): Return `ascii' for unknown
 	encoding.
 	(load_font_get_repertory): Delete unnecessary check of ENCODING of
