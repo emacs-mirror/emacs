@@ -42,7 +42,8 @@
 	    (coding-system . (iso-8859-2))
 	    (coding-priority . (iso-8859-2))
 	    (sample-text . "Prajeme V,Ba(Bm pr,Bm(Bjemn,B}(B de,Br(B!")
-	    (documentation . t)))
+	    (documentation . t))
+ '("European"))
 
 (provide 'slovak)
 
