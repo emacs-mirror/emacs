@@ -535,6 +535,11 @@ This does not change the name of the visited file (if any).")
     }
 
   current_buffer->name = name;
+
+  /* Catch redisplay's attention.  Unless we do this, the mode lines for
+     any windows displaying current_buffer will stay unchanged.  */
+  update_mode_lines++;
+
   XSET (buf, Lisp_Buffer, current_buffer);
   Fsetcar (Frassq (buf, Vbuffer_alist), name);
   if (NILP (current_buffer->filename) && !NILP (current_buffer->auto_save_file_name))
