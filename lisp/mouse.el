@@ -401,9 +401,7 @@ This should be bound to a mouse drag event."
     ;; If mark is highlighted, no need to bounce the cursor.
     ;; On X, we highlight while dragging, thus once again no need to bounce.
     (or transient-mark-mode
-	(eq (framep (selected-frame)) 'x)
-	(eq (framep (selected-frame)) 'pc)
-	(eq (framep (selected-frame)) 'win32)
+	(memq (framep (selected-frame)) '(x pc ms-windows))
 	(sit-for 1))
     (push-mark)
     (set-mark (point))
