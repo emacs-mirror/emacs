@@ -1,3 +1,9 @@
+2001-09-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* isearch.el (isearch-intersects-p): New function.
+	(isearch-close-unnecessary-overlays): Renamed from *unecessary*,
+	use isearch-intersects-p, and clean up.
+
 2001-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/ispell.el (ispell-dictionary-alist-4): Add "german"
