@@ -1,13 +1,17 @@
-2000-06-29  Miles Bader  <miles@lsi.nec.co.jp>
+2000-07-04  Dave Love  <fx@gnu.org>
+
+	* calendar/todo-mode.el: Replaced with a working version, based on
+	revision 1.34 tidied up.
+
+2000-07-03  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* paths.el (prune-directory-list): New function.
 	(Info-default-directory-list): Rewritten to more methodically
 	enumerate a big list of possible info directories (based on the
 	list used by the standalone info reader).
+
 	* info.el (info-initialize): Use prune-directory-list to remove
 	non-existant directories from Info-directory-list.
-
-2000-06-27  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* paths.el (Info-default-directory-list): Try a list of possible
 	info-directories instead of a single one.  Add the possible
