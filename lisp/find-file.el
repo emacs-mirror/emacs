@@ -188,14 +188,6 @@ To override this, give an argument to `ff-find-other-file'."
     ("^\#\\s *\\(include\\|import\\)\\s +[<\"]\\(.*\\)[>\"]" .
      (lambda ()
        (setq fname (buffer-substring (match-beginning 2) (match-end 2)))))
-
-    ;; Ada import
-    ("^with[ \t]+\\([a-zA-Z0-9_\\.]+\\)" .
-     (lambda ()
-       (setq fname (buffer-substring (match-beginning 1) (match-end 1)))
-       (require 'ada-mode)
-       (setq fname (concat (ada-make-filename-from-adaname fname)
-			   ada-spec-suffix))))
     )
   "*A list of regular expressions for `ff-find-file'.
 Specifies how to recognise special constructs such as include files
@@ -943,8 +935,6 @@ and the name of the file passed in."
 ;; The regexps are Ada specific.
 
 (defvar ff-function-name nil "Name of the function we are in.")
-
-;(eval-when-compile (require 'ada-mode))
 
 ;; bind with (setq ff-pre-load-hook 'ff-which-function-are-we-in)
 ;;
