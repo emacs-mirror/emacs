@@ -1649,6 +1649,7 @@ in Indented-Text mode.
 `query-replace' and related functions simply ignore
 a match if part of it has a read-only property.
 
+** The new Lisp library fringe.el controls the apperance of fringes.
 
 * Lisp Changes in Emacs 21.4
 
@@ -1909,6 +1910,7 @@ hash tables defined by the Lisp function `define-translation-hash-table'.
 argument is a minibuffer.  If the argument is omitted it defaults to
 the current buffer.
 
++++
 ** There is a new Warnings facility; see the functions `warn'
 and `display-warning'.
 
@@ -1932,12 +1934,14 @@ file, you can put a `coding:' tags to override it.)
 ** The new function `merge-coding-systems' fills in unspecified aspects
 of one coding system from another coding system.
 
+---
 ** The variable `safe-local-eval-forms' specifies a list of forms that
 are ok to evaluate when they appear in an `eval' local variables
 specification.  Normally Emacs asks for confirmation before evaluating
 such a form, but if the form appears in this list, no confirmation is
 needed.
 
+---
 ** If a function has a non-nil `safe-local-eval-function' property,
 that means it is ok to evaluate some calls to that function when it
 appears in an `eval' local variables specification.  If the property
@@ -1948,6 +1952,7 @@ with the form as argument, and if any returns t, the form is ok to call.
 If the form is not "ok to call", that means Emacs asks for
 confirmation as before.
 
++++
 ** Controlling the default left and right fringe widths.
 
 The default left and right fringe widths for all windows of a frame
@@ -1967,6 +1972,7 @@ width which is the minimum number of pixels necessary to display any
 of the currently defined fringe bitmaps.  The width of the built-in
 fringe bitmaps is 8 pixels.
 
++++
 ** Per-window fringes settings
 
 Windows can now have their own individual fringe widths and position
@@ -2000,6 +2006,7 @@ used to obtain the current settings.  To make `scroll-bar-mode' and
 the buffer in a window, or use `set-window-buffer' to force an update
 of the display margins.
 
++++
 ** The function `set-window-buffer' now has an optional third argument
 KEEP-MARGINS which will preserve the window's current margin, fringe,
 and scroll-bar settings if non-nil.
@@ -2012,33 +2019,38 @@ write-file-hooks to write-file-functions,
 write-contents-hooks to write-contents-functions.
 Marked local-write-file-hooks as obsolete (use the LOCAL arg of `add-hook').
 
++++
 ** The new variable `delete-frame-functions' replaces `delete-frame-hook'.
 It was renamed to follow the naming conventions for abnormal hooks.  The old
 name remains available as an alias, but has been marked obsolete.
 
++++
 ** The `read-file-name' function now takes an additional argument which
 specifies a predicate which the file name read must satify.  The
 new variable `read-file-name-predicate' contains the predicate argument
 while reading the file name from the minibuffer; the predicate in this
 variable is used by read-file-name-internal to filter the completion list.
 
+---
 ** The new variable `read-file-name-function' can be used by lisp code
 to override the internal read-file-name function.
 
++++
 ** The new function `read-directory-name' can be used instead of
 `read-file-name' to read a directory name; when used, completion
 will only show directories.
 
++++
 ** The new function `file-remote-p' tests a file name and returns
 non-nil if it specifies a remote file (one that Emacs accesses using
 its own special methods and not directly through the file system).
 
+---
 ** When a Lisp file uses CL functions at run-time, compiling the file
 now issues warnings about these calls, unless the file performs
 (require 'cl) when loaded.
 
-** The new Lisp library fringe.el controls the apperance of fringes.
-
++++
 ** The `defmacro' form may contain declarations specifying how to
 indent the macro in Lisp mode and how to debug it with Edebug.  The
 syntax of defmacro has been extended to

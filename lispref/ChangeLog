@@ -1,3 +1,51 @@
+2003-08-05  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi: Update lists of subnodes.
+
+	* windows.texi (Buffers and Windows): set-window-buffer has new arg.
+
+	* variables.texi (Local Variables): Use lc for example variable names.
+
+	* tips.texi (Library Headers): Explain where to put -*-.
+
+	* strings.texi (Creating Strings): Fix xref for vconcat.
+
+	* sequences.texi (Vector Functions):
+	vconcat no longer allows integer args.
+
+	* minibuf.texi (Reading File Names): read-file-name has new
+	arg PREDICATE.  New function read-directory-name.
+
+	* macros.texi (Defining Macros): Give definition of `declare'
+	(Indenting Macros): New node.
+
+	* frames.texi (Parameter Access): Add modify-all-frames-parameters.
+	(Window Frame Parameters): Make separate table of parameters
+	that are coupled with specific face attributes.
+	(Deleting Frames): delete-frame-hooks renamed to
+	delete-frame-functions.
+
+	* files.texi (Magic File Names): Add file-remote-p.
+	Clarify file-local-copy.
+
+	* edebug.texi (Instrumenting Macro Calls): Don't define `declare'
+	here; instead xref Defining Macros.
+
+	* display.texi (Warnings): New node, and subnodes.
+	(Fringes): New node.
+
+	* debugging.texi (Test Coverage): New node.
+
+	* compile.texi (Compiler Errors): Explain with-no-warnings
+	and other ways to suppress warnings.
+
+	* commands.texi (Interactive Call): Minor clarification.
+
+	* buffers.texi (Buffer File Name): set-visited-file-name
+	renames the buffer too.
+
+	* abbrevs.texi (Abbrev Tables): Add copy-abbrev-table.
+
 2003-07-24  Markus Rost  <rost@math.ohio-state.edu>
 
 	* abbrevs.texi (Abbrev Expansion): Use \s syntax in example.

@@ -1,3 +1,25 @@
+2003-08-05  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/testcover.el (noreturn): Report error if does return.
+	(testcover-reinstrument-clauses): Doc fix.
+
+	* emacs-lisp/warnings.el: Doc fixes, args renamed.
+	(warning-type-format): Renamed from warning-group-format.
+
+	* emacs-lisp/bytecomp.el (byte-compile-not-obsolete-var): New var.
+	(byte-compile-variable-ref): Handle byte-compile-not-obsolete-var.
+	(byte-compile-defvar): Bind byte-compile-not-obsolete-var
+	to prevent warnings about defvar for an obsolete variable.
+	
+	* emacs-lisp/bytecomp.el (byte-compile-log-warning):
+	warning-group-format renamed to warning-type-format.
+
+	* subr.el (read-passwd): Use clear-string instead of fillarray.
+
+	* edmacro.el (edmacro-format-keys): Use edmacro-sanitize-for-string.
+	Use vconcat instead of concat.
+	(edmacro-sanitize-for-string): New function.
+
 2003-08-05  Dave Love  <fx@gnu.org>
 
 	* cus-start.el: Add open-paren-in-column-0-is-defun-start,
