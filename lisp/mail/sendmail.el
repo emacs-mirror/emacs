@@ -689,7 +689,7 @@ the user from the mailer."
 	  (if (let ((case-fold-search t))
 		(re-search-forward "^To:\\|^cc:\\|^bcc:\\|^resent-to:\
 \\|^resent-cc:\\|^resent-bcc:"
-				   delimline t)
+				   delimline t))
 	      (let ((default-directory "/"))
 		(apply 'call-process-region
 		       (append (list (point-min) (point-max)
@@ -705,9 +705,13 @@ the user from the mailer."
     ;;;				(list "-f" (user-login-name)))
 			       (and mail-alias-file
 				    (list (concat "-oA" mail-alias-file)))
-			       ;; These mean "report errors by mail"
-			       ;; and "deliver in background".
-			       (if (null mail-interactive) '("-oem" "-odb"))
+			       (if mail-interactive
+				   ;; These mean "report errors to terminal"
+				   ;; and "deliver interactively"
+				   '("-oep" "-odi")
+				 ;; These mean "report errors by mail"
+				 ;; and "deliver in background".
+				 '("-oem" "-odb"))
 			       ;; Get the addresses from the message
 			       ;; unless this is a resend.
 			       ;; We must not do that for a resend
