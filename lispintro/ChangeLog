@@ -1,0 +1,16 @@
+2001-11-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in: New file.
+
+	* README: Update.
+
+	* *.eps: Rename to avoid clashes in DOS 8+3 namespace.
+
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:
+
+    Copyright (C) 2001
+	Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.
