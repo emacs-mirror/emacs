@@ -653,14 +653,14 @@ This behaviour can be customized via the mouse-wheel-click-event and
 mouse-wheel-inhibit-click-time variables.
 
 +++
-** The keyboard-coding-system is now automatically set based on
-your current locale settings.  If it turns out that your terminal
-does not support the encoding implied by your locale (for example,
-it inserts non-ASCII chars if you hit M-i), you will need to add
-
-	(set-keyboard-coding-system nil)
-
-to your .emacs to revert to the old behavior.
+** The keyboard-coding-system is now automatically set based on your
+current locale settings if you are not using a window system.  This
+may mean that the META key doesn't work but generates non-ASCII
+characters instead, depending on how the terminal (or terminal
+emulator) works.  Use `set-keyboard-coding-system' (or customize
+keyboard-coding-system) if you prefer META to work (the old default)
+or if the locale doesn't describe the character set actually generated
+by the keyboard.  See Info node `Single-Byte Character Support'.
 
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
@@ -1120,6 +1120,9 @@ with Custom.
 
 
 * Lisp Changes in Emacs 21.4
+
+** New function `optimize-char-coding-system-table' can be called
+after making changes to `char-coding-system-table'.
 
 ** Byte compiler changes:
 
