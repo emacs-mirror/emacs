@@ -122,6 +122,19 @@ Goto End
 set djgpp_ver=1
 If ErrorLevel 20 set djgpp_ver=2
 rm -f junk.c junk junk.exe
+rem DJECHO is used by the top-level Makefile
+Echo Checking whether 'djecho' is available...
+redir -o Nul -eo djecho -o junk.$$$ foo
+If Exist junk.$$$ Goto djechoOk
+Echo To build 'Emacs' you need the 'djecho.exe' program!
+Echo 'djecho.exe' is part of 'djdevNNN.zip' basic DJGPP development kit.
+Echo Versions of DJGPP before 2.02 called this program 'echo.exe'.
+Echo Either unpack 'djecho.exe' from the 'djdevNNN.zip' archive,
+Echo or, if you have 'echo.exe', copy it to 'djecho.exe'.
+Echo Then run CONFIG.BAT again with the same arguments you did now.
+Goto End
+:djechoOk
+rm -f junk.$$$
 Echo Configuring for DJGPP Version %DJGPP_VER% ...
 Rem   ----------------------------------------------------------------------
 Echo Configuring the source directory...
