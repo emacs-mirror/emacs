@@ -3181,6 +3181,10 @@ direct_output_for_insert (g)
   glyph_row->contains_overlapping_glyphs_p
     |= it.glyph_row->contains_overlapping_glyphs_p;
 
+  glyph_row->displays_text_p = 1;
+  w->window_end_vpos = make_number (max (w->cursor.vpos,
+					 XFASTINT (w->window_end_vpos)));
+
   if (!NILP (Vshow_trailing_whitespace))
     highlight_trailing_whitespace (it.f, glyph_row);
 
