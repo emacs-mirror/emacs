@@ -369,6 +369,9 @@ The value is never nil.")
   b->newline_cache = 0;
   b->width_run_cache = 0;
   b->width_table = Qnil;
+#if !NO_PROMPT_IN_BUFFER
+  b->minibuffer_prompt_length = Qnil;
+#endif
 
   /* Put this on the chain of all buffers including killed ones.  */
   b->next = all_buffers;
@@ -447,6 +450,9 @@ NAME should be a string which is not the name of an existing buffer.")
   b->newline_cache = 0;
   b->width_run_cache = 0;
   b->width_table = Qnil;
+#if !NO_PROMPT_IN_BUFFER
+  b->minibuffer_prompt_length = Qnil;
+#endif
 
   /* Put this on the chain of all buffers including killed ones.  */
   b->next = all_buffers;
@@ -1215,6 +1221,9 @@ with SIGHUP.")
       b->width_run_cache = 0;
     }
   b->width_table = Qnil;
+#if !NO_PROMPT_IN_BUFFER
+  b->minibuffer_prompt_length = Qnil;
+#endif
   UNBLOCK_INPUT;
   b->undo_list = Qnil;
 
@@ -1410,6 +1419,7 @@ set_buffer_internal (b)
   if (current_buffer == b)
     return;
 
+  /* Otherwise, force-mode-line-update doesn't work as expected.  */
   windows_or_buffers_changed = 1;
   set_buffer_internal_1 (b);
 }
@@ -2029,7 +2039,11 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 		 Either make it bigger, or don't store any more in it.  */
 	      if (extend)
 		{
-		  *len_ptr = len *= 2;
+		  /* Make it work with an initial len == 0.  */
+		  len *= 2;
+		  if (len == 0)
+		    len = 4;
+		  *len_ptr = len;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
 		}
@@ -2071,6 +2085,8 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	      if (extend)
 		{
 		  *len_ptr = len *= 2;
+		  if (len == 0)
+		    len = *len_ptr = 4;
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
 		}
@@ -3847,6 +3863,7 @@ init_buffer_once ()
 
   /* real setup is done in loaddefs.el */
   buffer_defaults.mode_line_format = build_string ("%-");
+  buffer_defaults.top_line_format = Qnil;
   buffer_defaults.abbrev_mode = Qnil;
   buffer_defaults.overwrite_mode = Qnil;
   buffer_defaults.case_fold_search = Qt;
@@ -3879,6 +3896,9 @@ init_buffer_once ()
   buffer_defaults.cache_long_line_scans = Qnil;
   buffer_defaults.file_truename = Qnil;
   XSETFASTINT (buffer_defaults.display_count, 0);
+  buffer_defaults.indicate_empty_lines = Qnil;
+  buffer_defaults.scroll_up_aggressively = Qnil;
+  buffer_defaults.scroll_down_aggressively = Qnil;
   buffer_defaults.display_time = Qnil;
 
   /* Assign the local-flags to the slots that have default values.
@@ -3937,6 +3957,12 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.buffer_file_coding_system, 0x80000);
   /* Make this one a permanent local.  */
   buffer_permanent_local_flags |= 0x80000;
+  XSETFASTINT (buffer_local_flags.left_margin_width, 0x100000);
+  XSETFASTINT (buffer_local_flags.right_margin_width, 0x200000);
+  XSETFASTINT (buffer_local_flags.indicate_empty_lines, 0x400000);
+  XSETFASTINT (buffer_local_flags.scroll_up_aggressively, 0x800000);
+  XSETFASTINT (buffer_local_flags.scroll_down_aggressively, 0x1000000);
+  XSETFASTINT (buffer_local_flags.top_line_format, 0x2000000);
   
   Vbuffer_alist = Qnil;
   current_buffer = 0;
@@ -4084,6 +4110,11 @@ syms_of_buffer ()
     "Default value of `mode-line-format' for buffers that don't override it.\n\
 This is the same as (default-value 'mode-line-format).");
 
+  DEFVAR_LISP_NOPRO ("default-top-line-format",
+		     &buffer_defaults.top_line_format,
+    "Default value of `top-line-format' for buffers that don't override it.\n\
+This is the same as (default-value 'top-line-format).");
+
   DEFVAR_LISP_NOPRO ("default-abbrev-mode",
 	      &buffer_defaults.abbrev_mode,
     "Default value of `abbrev-mode' for buffers that do not override it.\n\
@@ -4142,6 +4173,38 @@ This is the same as (default-value 'buffer-file-type).\n\
 The file type is nil for text, t for binary.");
 #endif
 
+  DEFVAR_LISP_NOPRO ("default-left-margin-width",
+	      &buffer_defaults.left_margin_width,
+    "Default value of `left-margin-width' for buffers that don't override it.\n\
+This is the same as (default-value 'left-margin-width).");
+
+  DEFVAR_LISP_NOPRO ("default-right-margin-width",
+	      &buffer_defaults.right_margin_width,
+    "Default value of `right_margin_width' for buffers that don't override it.\n\
+This is the same as (default-value 'right-margin-width).");
+  
+  DEFVAR_LISP_NOPRO ("default-indicate-empty-lines",
+	      &buffer_defaults.indicate_empty_lines,
+    "Default value of `indicate-empty-lines' for buffers that don't override it.\n\
+This is the same as (default-value 'indicate-empty-lines).");
+  
+  DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
+	      &buffer_defaults.scroll_up_aggressively,
+    "Default value of `scroll-up-aggressively' for buffers that\n\
+don't override it.  This is the same as (default-value\n\
+'scroll-up-aggressively).");
+  
+  DEFVAR_LISP_NOPRO ("default-scroll-down-aggressively",
+	      &buffer_defaults.scroll_down_aggressively,
+    "Default value of `scroll-down-aggressively' for buffers that\n\
+don't override it.  This is the same as (default-value\n\
+'scroll-down-aggressively).");
+  
+  DEFVAR_PER_BUFFER ("top-line-format", &current_buffer->top_line_format, 
+		     Qnil,
+   "Analogous to `mode-line-format', but for a mode line displayed\n\
+at the top of windows.");
+  
   DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format, 
 		     Qnil, 0);
 
@@ -4151,7 +4214,8 @@ The file type is nil for text, t for binary.");
     Qnil,
     "Template for displaying mode line for current buffer.\n\
 Each buffer has its own value of this variable.\n\
-Value may be a string, a symbol or a list or cons cell.\n\
+Value may be nil, a string, a symbol or a list or cons cell.\n\
+A value of nil means don't display a mode line.\n\
 For a symbol, its value is used (but it is ignored if t or nil).\n\
  A string appearing directly as the value of a symbol is processed verbatim\n\
  in that the %-constructs below are not recognized.\n\
@@ -4382,6 +4446,39 @@ Each window can have its own, overriding display table.");
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
 		     Qnil, 0);
 
+  DEFVAR_PER_BUFFER ("left-margin-width", &current_buffer->left_margin_width,
+		     Qnil,
+    "*Width of left marginal area for display of a buffer.\n\
+Automatically becomes buffer-local when set in any fashion.\n\
+A value of nil means no marginal area.");
+  
+  DEFVAR_PER_BUFFER ("right-margin-width", &current_buffer->right_margin_width,
+		     Qnil,
+    "*Width of right marginal area for display of a buffer.\n\
+Automatically becomes buffer-local when set in any fashion.\n\
+A value of nil means no marginal area.");
+  
+  DEFVAR_PER_BUFFER ("indicate-empty-lines",
+		     &current_buffer->indicate_empty_lines, Qnil,
+    "*Non-nil means visually indicate lines not displaying text.\n\
+Automatically becomes buffer-local when set in any fashion.\n");
+  
+  DEFVAR_PER_BUFFER ("scroll-up-aggressively",
+		     &current_buffer->scroll_up_aggressively, Qnil,
+    "*If a number, scroll display up aggressively.\n\
+If scrolling a window because point is above the window start, choose\n\
+a new window start so that point ends up that fraction of the window's\n\
+height from the bottom of the window.\n\
+Automatically becomes buffer-local when set in any fashion.");
+  
+  DEFVAR_PER_BUFFER ("scroll-down-aggressively",
+		     &current_buffer->scroll_down_aggressively, Qnil,
+    "*If a number, scroll display down aggressively.\n\
+If scrolling a window because point is below the window end, choose\n\
+a new window start so that point ends up that fraction of the window's\n\
+height from the top of the window.\n\
+Automatically becomes buffer-local when set in any fashion.");
+  
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
 */
