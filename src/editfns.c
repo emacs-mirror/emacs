@@ -235,17 +235,6 @@ DEFUN ("region-end", Fregion_end, Sregion_end, 0, 0, 0,
   return (region_limit (0));
 }
 
-#if 0 /* now in lisp code */
-DEFUN ("mark", Fmark, Smark, 0, 0, 0,
-  "Return this buffer's mark value as integer, or nil if no mark.\n\
-If you are using this in an editing command, you are most likely making\n\
-a mistake; see the documentation of `set-mark'.")
-  ()
-{
-  return Fmarker_position (current_buffer->mark);
-}
-#endif /* commented out code */
-
 DEFUN ("mark-marker", Fmark_marker, Smark_marker, 0, 0, 0,
   "Return this buffer's mark, as a marker object.\n\
 Watch out!  Moving this marker changes the mark position.\n\
@@ -254,41 +243,6 @@ If you set the marker not to point anywhere, the buffer will have no mark.")
 {
   return current_buffer->mark;
 }
-
-#if 0 /* this is now in lisp code */
-DEFUN ("set-mark", Fset_mark, Sset_mark, 1, 1, 0,
-  "Set this buffer's mark to POS.  Don't use this function!\n\
-That is to say, don't use this function unless you want\n\
-the user to see that the mark has moved, and you want the previous\n\
-mark position to be lost.\n\
-\n\
-Normally, when a new mark is set, the old one should go on the stack.\n\
-This is why most applications should use push-mark, not set-mark.\n\
-\n\
-Novice programmers often try to use the mark for the wrong purposes.\n\
-The mark saves a location for the user's convenience.\n\
-Most editing commands should not alter the mark.\n\
-To remember a location for internal use in the Lisp program,\n\
-store it in a Lisp variable.  Example:\n\
-\n\
-   (let ((beg (point))) (forward-line 1) (delete-region beg (point))).")
-  (pos)
-     Lisp_Object pos;
-{
-  if (NILP (pos))
-    {
-      current_buffer->mark = Qnil;
-      return Qnil;
-    }
-  CHECK_NUMBER_COERCE_MARKER (pos, 0);
-
-  if (NILP (current_buffer->mark))
-    current_buffer->mark = Fmake_marker ();
-
-  Fset_marker (current_buffer->mark, pos, Qnil);
-  return pos;
-}
-#endif /* commented-out code */
 
 Lisp_Object
 save_excursion_save ()
