@@ -1,5 +1,12 @@
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* w16select.c (Fw16_set_clipboard_data): Run pre-write-conversion
+	on the string before encoding it.
+	(Fw16_get_clipboard_data): Run post-read-conversion on the string
+	after decoding it.
+
+2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	Support for ICCCM  Extended Segments in X selections:
 
 	* xselect.c <Qcompound_text_no_extensions>: New variable.
