@@ -28,8 +28,6 @@
 
 ;;; Code:
 
-(eval-and-compile
-
 (defvar viet-viscii-decode-table
   [;; VISCII is a full 8-bit code.
    0 1 ?,2F(B 3 4 ?,2G(B ?,2g(B 7 8 9 10 11 12 13 14 15
@@ -50,22 +48,10 @@
    ?,1p(B ?,1q(B ?,1r(B ?,1s(B ?,1t(B ?,1u(B ?,1v(B ?,1w(B ?,1x(B ?,1y(B ?,1z(B ?,1{(B ?,1|(B ?,1}(B ?,1~(B ?,2f(B ]
   "Vietnamese VISCII decoding table.")
 
-(defvar viet-viscii-encode-table
-  (let ((table-lower (make-vector 128 0))
-	(table-upper (make-vector 128 0))
-	(i 0)
-	char-component)
-    (while (< i 256)
-      (setq char-component (split-char (aref viet-viscii-decode-table i)))
-      (cond ((eq (car char-component) 'vietnamese-viscii-lower)
-	     (aset table-lower (nth 1 char-component) i))
-	    ((eq (car char-component) 'vietnamese-viscii-upper)
-	     (aset table-upper (nth 1 char-component) i)))
-      (setq i (1+ i)))
-    (cons table-lower table-upper))
-  "Vietnamese VISCII encoding table.
-Cons of tables for encoding lower-case chars and upper-case characters.
-Both tables are indexed by the position code of Vietnamese characters.")
+(let ((table (make-translation-table-from-vector viet-viscii-decode-table)))
+  (define-translation-table 'viet-viscii-nonascii-translation-table table)
+  (define-translation-table 'viet-viscii-encode-table
+    (char-table-extra-slot table 0)))
 
 (defvar viet-vscii-decode-table
   [;; VSCII is a full 8-bit code.
@@ -87,61 +73,27 @@ Both tables are indexed by the position code of Vietnamese characters.")
    ?,22(B ?,1|(B ?,1{(B ?,1z(B ?,1x(B ?,1W(B ?,1X(B ?,1f(B ?,1Q(B ?,1q(B ?,1O(B ?,1V(B ?,1[(B ?,1}(B ?,1\(B ?,2/(B]
   "Vietnamese VSCII decoding table.")
 
-(defvar viet-vscii-encode-table
-  (let ((table-lower (make-vector 128 0))
-	(table-upper (make-vector 128 0))
-	(i 0)
-	char-component)
-    (while (< i 256)
-      (setq char-component (split-char (aref viet-vscii-decode-table i)))
-      (cond ((eq (car char-component) 'vietnamese-viscii-lower)
-	     (aset table-lower (nth 1 char-component) i))
-	    ((eq (car char-component) 'vietnamese-viscii-upper)
-	     (aset table-upper (nth 1 char-component) i)))
-      (setq i (1+ i)))
-    (cons table-lower table-upper))
-  "Vietnamese VSCII encoding table.
-Cons of tables for encoding lower-case chars and upper-case characters.
-Both tables are indexed by the position code of Vietnamese characters.")
-
-)
+(let ((table (make-translation-table-from-vector viet-vscii-decode-table)))
+  (define-translation-table 'viet-vscii-nonascii-translation-table table)
+  (define-translation-table 'viet-vscii-encode-table
+    (char-table-extra-slot table 0)))
 
 (define-ccl-program ccl-decode-viscii
   `(3
-    ((read r0)
-     (loop
-      (write-read-repeat r0 ,viet-viscii-decode-table))
-     ))
+    ((loop
+      (r0 = 0)
+      (read r1)
+      (translate-character viet-viscii-nonascii-translation-table r0 r1)
+      (write-multibyte-character r0 r1)
+      (repeat))))
   "CCL program to decode VISCII 1.1")
-
-;; Multibyte form of a Vietnamese character is as follows (3-byte):
-;;   LEADING-CODE-PRIVATE-11 LEADING-CODE-EXTENDED-11 POSITION-CODE
-;; where LEADING-CODE-EXTENDED-11 for Vietnamese is
-;; `vietnamese-viscii-lower' or `vietnamese-viscii-upper'.
 
 (define-ccl-program ccl-encode-viscii
   `(1
-     ((read r0)
-      (loop
-       (if (r0 < 128)
-	   ;; ASCII
-	   (write-read-repeat r0)
-	 ;; not ASCII
-	 (if (r0 != ,leading-code-private-11)
-	     ;; not Vietnamese
-	     (write-read-repeat r0)
-	   ((read-if (r0 == ,(charset-id 'vietnamese-viscii-lower))
-	     (;; Vietnamese lower
-	      (read r0)
-	      (r0 -= 128)
-	      (write-read-repeat r0 ,(car viet-viscii-encode-table)))
-	     (if (r0 == ,(charset-id 'vietnamese-viscii-upper))
-		 (;; Vietnamese upper
-		  (read r0)
-		  (r0 -= 128)
-		  (write-read-repeat r0 ,(cdr viet-viscii-encode-table)))
-	       ;; not Vietnamese
-	       (write-read-repeat r0)))))))))
+    ((loop
+      (read-multibyte-character r0 r1)
+      (translate-character viet-viscii-encode-table r0 r1)
+      (write-repeat r1))))
   "CCL program to encode VISCII 1.1")
 
 (define-ccl-program ccl-encode-viscii-font
@@ -149,43 +101,25 @@ Both tables are indexed by the position code of Vietnamese characters.")
     ;; In:  R0:vietnamese-viscii-lower/vietnamese-viscii-upper
     ;;      R1:position code
     ;; Out: R1:font code point
-    (if (r0 == ,(charset-id 'vietnamese-viscii-lower))
-	(r1 = r1 ,(car viet-viscii-encode-table))
-      (r1 = r1 ,(cdr viet-viscii-encode-table)))
-    )
+    (translate-character viet-viscii-encode-table r0 r1))
   "CCL program to encode Vietnamese chars to VISCII 1.1 font")
 
 (define-ccl-program ccl-decode-vscii
   `(3
-    ((read r0)
-     (loop
-      (write-read-repeat r0 ,viet-vscii-decode-table))
-     ))
+    ((loop
+      (r0 = 0)
+      (read r1)
+      (translate-character viet-vscii-nonascii-translation-table r0 r1)
+      (write-multibyte-character r0 r1)
+      (repeat))))
   "CCL program to decode VSCII-1.")
 
 (define-ccl-program ccl-encode-vscii
   `(1
-    ((read r0)
-     (loop
-      (if (r0 < 128)
-	  ;; ASCII
-	  (write-read-repeat r0)
-	;; not ASCII 
-	(if (r0 != ,leading-code-private-11)
-	    ;; not Vietnamese
-	    (write-read-repeat r0)
-	  (read-if (r0 == ,(charset-id 'vietnamese-viscii-lower))
-		   (;; Vietnamese lower
-		    (read r0)
-		    (r0 -= 128)
-		    (write-read-repeat r0 ,(car viet-vscii-encode-table)))
-		   (if (r0 == ,(charset-id 'vietnamese-viscii-upper))
-		       (;; Vietnamese upper
-			(read r0)
-			(r0 -= 128)
-			(write-read-repeat r0 ,(cdr viet-vscii-encode-table)))
-		     ;; not Vietnamese
-		     (write-read-repeat r0))))))))
+    ((loop
+      (read-multibyte-character r0 r1)
+      (translate-character viet-vscii-encode-table r0 r1)
+      (write-repeat r1))))
   "CCL program to encode VSCII-1.")
 
 (define-ccl-program ccl-encode-vscii-font
@@ -193,10 +127,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
     ;; In:  R0:vietnamese-viscii-lower/vietnamese-viscii-upper
     ;;      R1:position code
     ;; Out: R1:font code point
-    (if (r0 == ,(charset-id 'vietnamese-viscii-lower))
-	(r1 = r1 ,(car viet-vscii-encode-table))
-      (r1 = r1 ,(cdr viet-vscii-encode-table)))
-    )
+    (translate-character viet-vscii-encode-table r0 r1))
   "CCL program to encode Vietnamese chars to VSCII-1 font.")
 
 
@@ -234,19 +165,16 @@ Both tables are indexed by the position code of Vietnamese characters.")
 (define-coding-system-alias 'viqr 'vietnamese-viqr)
 
 (setq font-ccl-encoder-alist
-      (cons (cons "viscii" ccl-encode-viscii-font) font-ccl-encoder-alist))
+      (cons '("viscii" . ccl-encode-viscii-font) font-ccl-encoder-alist))
 
 (setq font-ccl-encoder-alist
-      (cons (cons "vscii" ccl-encode-vscii-font) font-ccl-encoder-alist))
-
-(defvar viet-viscii-nonascii-translation-table
-  (make-translation-table-from-vector viet-viscii-decode-table)
-  "Value of `nonascii-translation-table' in Vietnamese language environment.")
+      (cons '("vscii" . ccl-encode-vscii-font) font-ccl-encoder-alist))
 
 (set-language-info-alist
  "Vietnamese" `((charset vietnamese-viscii-lower vietnamese-viscii-upper)
 		(nonascii-translation
-		 . ,viet-viscii-nonascii-translation-table)
+		 . ,(get 'viet-viscii-nonascii-translation-table
+			 'translation-table))
 		(coding-system vietnamese-viscii vietnamese-vscii
 			       vietnamese-viqr)
 		(coding-priority vietnamese-viscii)
