@@ -474,8 +474,8 @@ the line could be found."
   (save-excursion
     (unless (gnus-buffer-live-p nntp-server-buffer)
       (setq nntp-server-buffer (get-buffer-create " *nntpd*")))
-    (mm-enable-multibyte)
     (set-buffer nntp-server-buffer)
+    (mm-enable-multibyte)
     (erase-buffer)
     (kill-all-local-variables)
     (setq case-fold-search t)		;Should ignore case.
