@@ -1176,6 +1176,17 @@ ARRAY is a vector, string, char-table, or bool-vector.")
   return array;
 }
 
+DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
+       1, 1, 0,
+  "Return the subtype of char-table CHAR-TABLE.   The value is a symbol.")
+  (chartable)
+     Lisp_Object chartable;
+{
+  CHECK_CHAR_TABLE (chartable, 0);  
+
+  return XCHAR_TABLE (chartable)->purpose;
+}
+
 DEFUN ("char-table-parent", Fchar_table_parent, Schar_table_parent,
        1, 1, 0,
   "Return the parent char-table of CHAR-TABLE.\n\
@@ -1247,6 +1258,37 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
   return XCHAR_TABLE (chartable)->extras[XINT (n)] = value;
 }
 
+DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
+       2, 2, 0,
+  "Return the value in CHARTABLE for a range of characters RANGE.\n\
+RANGE should be t (for all characters), nil (for the default value)\n\
+a vector which identifies a character set or a row of a character set,\n\
+or a character code.")
+  (chartable, range)
+     Lisp_Object chartable, range;
+{
+  int i;
+
+  CHECK_CHAR_TABLE (chartable, 0);
+  
+  if (EQ (range, Qnil))
+    return XCHAR_TABLE (chartable)->defalt;
+  else if (INTEGERP (range))
+    return Faref (chartable, range);
+  else if (VECTORP (range))
+    {
+      for (i = 0; i < XVECTOR (range)->size - 1; i++)
+	chartable = Faref (chartable, XVECTOR (range)->contents[i]);
+
+      if (EQ (XVECTOR (range)->contents[i], Qnil))
+	return XCHAR_TABLE (chartable)->defalt;
+      else
+	return Faref (chartable, XVECTOR (range)->contents[i]);
+    }
+  else
+    error ("Invalid RANGE argument to `char-table-range'");
+}
+
 DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
        3, 3, 0,
   "Set the value in CHARTABLE for a range of characters RANGE to VALUE.\n\
@@ -1314,6 +1356,11 @@ map_char_table (c_function, function, chartable, depth, indices)
 	map_char_table (chartable, c_function, function, depth + 1, indices);
       else if (c_function)
 	(*c_function) (depth + 1, indices, elt);
+      /* Here we should handle all cases where the range is a single character
+	 by passing that character as a number.  Currently, that is
+	 all the time, but with the MULE code this will have to be changed.  */
+      else if (depth == 0)
+	call2 (function, make_number (i), elt);
       else
 	call2 (function, Fvector (depth + 1, indices), elt);
     }
@@ -1816,10 +1863,12 @@ Used by `featurep' and `require', and altered by `provide'.");
   defsubr (&Sput);
   defsubr (&Sequal);
   defsubr (&Sfillarray);
+  defsubr (&Schar_table_subtype);
   defsubr (&Schar_table_parent);
   defsubr (&Sset_char_table_parent);
   defsubr (&Schar_table_extra_slot);
   defsubr (&Sset_char_table_extra_slot);
+  defsubr (&Schar_table_range);
   defsubr (&Sset_char_table_range);
   defsubr (&Smap_char_table);
   defsubr (&Snconc);
