@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = try to provoke request.dylan.170463 using AMCZ pool
  language = c
  link = testlib.o awlfmt.o

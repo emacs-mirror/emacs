@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test awl and amc pools
  language = c
  link = testlib.o awlfmt.o

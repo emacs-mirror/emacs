@@ -1,5 +1,6 @@
-$HopeName: MMQA_test_function!502.c(trunk.1) $
+
 TEST_HEADER
+ id = $HopeName$
  summary = MM works with Dylan debugger
  language = english
 END_HEADER

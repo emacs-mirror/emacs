@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary =  provoke segsummary assertion (request.dylan.170450)
  language = c
  link = testlib.o awlfmt.o

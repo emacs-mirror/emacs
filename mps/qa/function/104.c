@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = test of mps_arena_formatted_objects_walk, inc AMCZ
  language = c
  link = testlib.o rankfmt.o

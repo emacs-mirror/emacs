@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!123.c(trunk.1) $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = regression test for AWl bug (request.dylan.160094
  language = c
  link = testlib.o rankfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = should collect objects on buffered segs (request.dylan.160064)
  language = c
  link = testlib.o rankfmt.o

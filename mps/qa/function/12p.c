@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = lots of APs with interleaved reserve and 2-stage commit
  language = c
  link = testlib.o newfmt.o

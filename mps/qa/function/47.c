@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = LDs don't go stale when using only non-moving pools
  language = c
  link = testlib.o rankfmt.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = wait until all registered objects are finalized
  language = c
  link = testlib.o rankfmt.o

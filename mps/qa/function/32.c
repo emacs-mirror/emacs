@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = random test of exact references in AWL 
  language = c
  link = testlib.o awlfmt.o

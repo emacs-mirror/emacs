@@ -1,5 +1,6 @@
-$HopeName: MMQA_test_function!503.c(trunk.1) $
+
 TEST_HEADER
+ id = $HopeName$
  summary = Compare variety.hi/he and variety.wi performance
  language = english
 END_HEADER

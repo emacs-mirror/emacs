@@ -1,5 +1,6 @@
-/* $HopeName: MMQA_test_function!blah.c $
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = SNC simple test
  language = c
  link = testlib.o rankfmt.o

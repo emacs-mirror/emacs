@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = create lots of formats at once (and cause to run out of memory)
  language = c
  link = testlib.o newfmt.o
