@@ -77,10 +77,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define FALSE 0
 #endif /* no TRUE */
 
-extern Display *x_current_display;
-
 extern Lisp_Object Qmenu_enable;
 extern Lisp_Object Qmenu_bar;
+extern Lisp_Object Qmouse_click, Qevent_kind;
 
 #ifdef USE_X_TOOLKIT
 extern void process_expose_from_menu ();
@@ -348,6 +347,18 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
       if (VECTORP (savedkey)
 	  && EQ (XVECTOR (savedkey)->contents[0], Qmenu_bar))
 	savedkey = Qnil;
+      /* Reject two-key sequences that start with a mouse click.
+	 These are probably menu items.  */
+      if (VECTORP (savedkey)
+	  && XVECTOR (savedkey)->size > 1
+	  && SYMBOLP (XVECTOR (savedkey)->contents[0]))
+	{
+	  Lisp_Object tem;
+
+	  tem = Fget (XVECTOR (savedkey)->contents[0], Qevent_kind);
+	  if (EQ (tem, Qmouse_click))
+	    savedkey = Qnil;
+	}
       if (!NILP (savedkey))
 	{
 	  descrip = Fkey_description (savedkey);
@@ -1720,7 +1731,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   while (queue != NULL) 
     {
       queue_tmp = queue;
-      XPutBackEvent (XDISPLAY &queue_tmp->event);
+      XPutBackEvent (FRAME_X_DISPLAY (f), &queue_tmp->event);
       queue = queue_tmp->next;
       free ((char *)queue_tmp);
       /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
@@ -1958,7 +1969,7 @@ xdialog_show (f, menubarp, keymaps, title, error)
       else if (event.type == Expose)
 	process_expose_from_menu (event);
       XtDispatchEvent (&event);
-      if (XtWindowToWidget(XDISPLAY event.xany.window) != menu)
+      if (XtWindowToWidget (FRAME_X_DISPLAY (f), event.xany.window) != menu)
 	{
 	  queue_tmp = (struct event_queue *) malloc (sizeof (struct event_queue));
 
@@ -1984,7 +1995,7 @@ xdialog_show (f, menubarp, keymaps, title, error)
   while (queue != NULL) 
     {
       queue_tmp = queue;
-      XPutBackEvent (XDISPLAY &queue_tmp->event);
+      XPutBackEvent (FRAME_X_DISPLAY (f), &queue_tmp->event);
       queue = queue_tmp->next;
       free ((char *)queue_tmp);
       /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
@@ -2064,12 +2075,12 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     }
 
   /* Figure out which root window F is on.  */
-  XGetGeometry (x_current_display, FRAME_X_WINDOW (f), &root,
+  XGetGeometry (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), &root,
 		&dummy_int, &dummy_int, &dummy_uint, &dummy_uint,
 		&dummy_uint, &dummy_uint);
 
   /* Make the menu on that window.  */
-  menu = XMenuCreate (XDISPLAY root, "emacs");
+  menu = XMenuCreate (FRAME_X_DISPLAY (f), root, "emacs");
   if (menu == NULL)
     {
       *error = "Can't create menu";
@@ -2087,7 +2098,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     if (f->display.x->parent_desc != ROOT_WINDOW)
       {
 	BLOCK_INPUT;
-	XTranslateCoordinates (x_current_display,
+	XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
 			       /* From-window, to-window.  */
 			       f->display.x->window_desc,
@@ -2126,10 +2137,10 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	  if (keymaps && !NILP (prefix))
 	    pane_string++;
 
-	  lpane = XMenuAddPane (XDISPLAY menu, pane_string, TRUE);
+	  lpane = XMenuAddPane (FRAME_X_DISPLAY (f), menu, pane_string, TRUE);
 	  if (lpane == XM_FAILURE)
 	    {
-	      XMenuDestroy (XDISPLAY menu);
+	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error = "Can't create pane";
 	      return Qnil;
 	    }
@@ -2197,11 +2208,12 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	  else
 	    item_data = XSTRING (item_name)->data;
 
-	  if (XMenuAddSelection (XDISPLAY menu, lpane, 0, item_data,
+	  if (XMenuAddSelection (FRAME_X_DISPLAY (f),
+				 menu, lpane, 0, item_data,
 				 !NILP (enable))
 	      == XM_FAILURE)
 	    {
-	      XMenuDestroy (XDISPLAY menu);
+	      XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 	      *error = "Can't add selection to menu";
 	      return Qnil;
 	    }
@@ -2210,14 +2222,16 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
     }
 
   /* All set and ready to fly.  */
-  XMenuRecompute (XDISPLAY menu);
-  dispwidth = DisplayWidth (x_current_display, XDefaultScreen (x_current_display));
-  dispheight = DisplayHeight (x_current_display, XDefaultScreen (x_current_display));
+  XMenuRecompute (FRAME_X_DISPLAY (f), menu);
+  dispwidth = DisplayWidth (FRAME_X_DISPLAY (f),
+			    XDefaultScreen (FRAME_X_DISPLAY (f)));
+  dispheight = DisplayHeight (FRAME_X_DISPLAY (f),
+			      XDefaultScreen (FRAME_X_DISPLAY (f)));
   x = min (x, dispwidth);
   y = min (y, dispheight);
   x = max (x, 1);
   y = max (y, 1);
-  XMenuLocate (XDISPLAY menu, 0, 0, x, y,
+  XMenuLocate (FRAME_X_DISPLAY (f), menu, 0, 0, x, y,
 	       &ulx, &uly, &width, &height);
   if (ulx+width > dispwidth)
     {
@@ -2236,7 +2250,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   XMenuSetFreeze (menu, TRUE);
   pane = selidx = 0;
   
-  status = XMenuActivate (XDISPLAY menu, &pane, &selidx,
+  status = XMenuActivate (FRAME_X_DISPLAY (f), menu, &pane, &selidx,
 			  x, y, ButtonReleaseMask, &datap);
   switch (status)
     {
@@ -2287,7 +2301,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       entry = Qnil;
       break;
     }
-  XMenuDestroy (XDISPLAY menu);
+  XMenuDestroy (FRAME_X_DISPLAY (f), menu);
 
 #ifdef HAVE_X_WINDOWS
   /* State that no mouse buttons are now held.
