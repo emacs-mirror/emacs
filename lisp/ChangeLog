@@ -1,5 +1,8 @@
 2002-07-06  Richard M. Stallman  <rms@gnu.org>
 
+	* net/browse-url.el (browse-url-at-mouse): Don't pass an arg
+	to browse-url-at-point.
+
 	* simple.el (shell-command): Match & only at end of whole command.
 
 2002-07-03  Dave Love  <fx@gnu.org>
