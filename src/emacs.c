@@ -570,7 +570,6 @@ main (argc, argv, envp)
       printf ("\
 Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       [-q] [--no-init-file]  [-u user] [--user user]  [--debug-init]\n\
-\(Arguments above this line must be first; those below may be in any order)\n\
       [-f func] [--funcall func]  [-l file] [--load file]  [--insert file]\n\
       file-to-visit  [--kill]\n", argv[0]);
       exit (0);
