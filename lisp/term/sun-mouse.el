@@ -318,12 +318,12 @@ but that uses minibuffer, and mucks up last-command."
     (let ((pc1 (read-char)))
       (if (or (not (equal pc1 mouse-prefix1))
 	      (sit-for-millisecs 3))	; a mouse prefix will have second char
-	  (progn (setq unread-command-char pc1)	; Can get away with one unread.
+	  (progn (setq unread-command-event pc1)	; Can get away with one unread.
 		 nil)			; Next input not mouse event.
 	(let ((pc2 (read-char)))
 	  (if (not (equal pc2 mouse-prefix2))
-	      (progn (setq unread-command-char pc1) ; put back the ^X
-;;; Too bad can't do two: (setq unread-command-char (list pc1 pc2))
+	      (progn (setq unread-command-event pc1) ; put back the ^X
+;;; Too bad can't do two: (setq unread-command-event (list pc1 pc2))
 		(ding)			; user will have to retype that pc2.
 		nil)			; This input is not a mouse event.
 	    ;; Next input has mouse prefix and is within time limit.
