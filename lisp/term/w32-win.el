@@ -1121,6 +1121,8 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (progn
+      ;; Setup the default fontset.
+      (setup-default-fontset)
       ;; Create the standard fontset.
       (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
       ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
