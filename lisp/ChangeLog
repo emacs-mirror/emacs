@@ -1,5 +1,43 @@
 2003-12-29  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/mail-utils.el (mail-unquote-printable-hexdigit):
+	Upcase the character.
+
+	* textmodes/flyspell.el (mail-mode-flyspell-verify):
+	Search for header separator alone on a line, literally,
+	and search for it backward, not forward.
+	(flyspell-abbrev-table): Always use global-abbrev-table
+	if there is no local one.
+
+	* progmodes/sh-script.el (sh-get-indent-info):
+	Don't move point back if at bob.
+
+	* progmodes/antlr-mode.el (save-buffer-state-x): Use with-no-warnings.
+
+	* play/handwrite.el (handwrite): Make the handwrite credit message
+	a comment rather than an output command.
+
+	* obsolete/sc.el: Display message that this file is obsolete.
+
+	* net/ange-ftp.el (ange-ftp-start-process): Copy the environment.
+
+	* mail/rfc822.el (rfc822-address-start): Declare variable.
+	Renamed from address-start.  All uses changed.
+
+	* term.el (term-exec): Set up sentinel.
+	(term-sentinel): New function.
+	(term-handle-exit): New function.
+
+	* subr.el (assoc-ignore-case, assoc-ignore-representation): 
+	Use assoc-string, and mark them obsolete.
+	(delay-mode-hooks): Mark as permanent local.
+
+	* simple.el (sendmail-user-agent-compose): Use assoc-string.
+
+	* register.el (copy-rectangle-to-register): Doc fix.
+
+	* info.el (Info-insert-dir): Use assoc-string.
+
 	* info-look.el (info-lookup): Use assoc-string.
 
 	* frame.el (pop-up-frame-function): Use quote, not `function'.
