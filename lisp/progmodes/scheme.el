@@ -216,8 +216,8 @@ Set this to nil if you normally use another dialect.")
   "<!DOCTYPE style-sheet PUBLIC \"-//James Clark//DTD DSSSL Style Sheet//EN\">
 "
   "*An SGML declaration (typically using James Clark's style-sheet
-doctype, as required for Jade) which will be inserted into an empty
-buffer in dsssl-mode.")
+doctype, as required for Jade).  This will be inserted into an empty
+buffer in dsssl-mode if it is defined as a string.")
 
 (defvar dsssl-imenu-generic-expression
   ;; Perhaps this should also look for the style-sheet DTD tags.  I'm
@@ -230,6 +230,7 @@ buffer in dsssl-mode.")
      "^\\s-*(mode\\s-+\\(\\(\\sw\\|\\s-\\|\\s_\\)+\\)" 1)
     (" Elements"
      ;; (element foo ...) or (element (foo bar ...) ...)
+     ;; Fixme: Perhaps it should do `root'.
      "^\\s-*(element\\s-+(?\\(\\(\\sw\\|\\s-\\|\\s_\\)+\\))?" 1)
     (" Declarations" 
      "^(declare\\(-\\sw+\\)+\\>\\s-+\\(\\(\\sw\\|\\s_\\)+\\)" 2))
@@ -245,7 +246,8 @@ Delete converts tabs to spaces as it moves back.
 Blank lines separate paragraphs.  Semicolons start comments.
 \\{scheme-mode-map}
 Entry to this mode calls the value of dsssl-mode-hook
-if that value is non-nil."
+if that value is non-nil and inserts the value of
+`dsssl-sgml-declaration' if that variable's value is a string."
   (interactive)
   (kill-all-local-variables)
   (use-local-map scheme-mode-map)
@@ -262,7 +264,7 @@ if that value is non-nil."
 	mode-name "DSSSL")
   ;; Insert a suitable SGML declaration into an empty buffer.
   (and (zerop (buffer-size))
-       dsssl-sgml-declaration
+       (stringp dsssl-sgml-declaration)
        (not buffer-read-only)
        (insert dsssl-sgml-declaration))
   (run-hooks 'scheme-mode-hook)
@@ -276,21 +278,35 @@ if that value is non-nil."
 (put 'mode 'scheme-indent-function 1)
 (put 'with-mode 'scheme-indent-function 1)
 (put 'make 'scheme-indent-function 1)
+(put 'style 'scheme-indent-function 1)
+(put 'root 'scheme-indent-function 1)
 
 (defvar dsssl-font-lock-keywords
-  '(("(\\(define\\(-\\w+\\)?\\)\\>[ 	]*\\\((?\\)\\(\\sw+\\)\\>"
-     (1 font-lock-keyword-face)
-     (4 font-lock-function-name-face))
-    ("(\\(case\\|cond\\|else\\|if\\|lambda\\|let\\*?\\|letrec\\|and\\|or\\|map\\|with-mode\\)\\>" . 1)
-    ("(\\(element\\|mode\\|declare-\\w+\\)\\>[ 	]*\\(\\sw+\\)"
-     (1 font-lock-keyword-face)
-     (2 font-lock-type-face))
-    ("(\\(element\\)\\>[ 	]*(\\(\\S)+\\))"
-     (1 font-lock-keyword-face)
-     (2 font-lock-type-face))
-    ("\\<\\sw+:\\>" . font-lock-reference-face)
-    ("<\\([!?][-a-z0-9]+\\)" 1 font-lock-keyword-face)
-    ("<\\(/?[-a-z0-9]+\\)" 1 font-lock-function-name-face))
+  (eval-when-compile
+    (list
+     ;; Similar to Scheme
+     (list "(\\(define\\(-\\w+\\)?\\)\\>[ 	]*\\\((?\\)\\(\\sw+\\)\\>"
+	   '(1 font-lock-keyword-face)
+	   '(4 font-lock-function-name-face))
+     (cons
+      (concat "(\\("
+	      ;; (make-regexp '("case" "cond" "else" "if" "lambda"
+	      ;; "let" "let*" "letrec" "and" "or" "map" "with-mode"))
+	      "and\\|c\\(ase\\|ond\\)\\|else\\|if\\|"
+	      "l\\(ambda\\|et\\(\\|*\\|rec\\)\\)\\|map\\|or\\|with-mode"
+	      "\\)\\>")
+      1)
+     ;; DSSSL syntax
+     '("(\\(element\\|mode\\|declare-\\w+\\)\\>[ 	]*\\(\\sw+\\)"
+       (1 font-lock-keyword-face)
+       (2 font-lock-type-face))
+     '("(\\(element\\)\\>[ 	]*(\\(\\S)+\\))"
+       (1 font-lock-keyword-face)
+       (2 font-lock-type-face))
+     '("\\<\\sw+:\\>" . font-lock-reference-face) ; trailing `:' c.f. scheme
+     ;; SGML markup (from sgml-mode) :
+     '("<\\([!?][-a-z0-9]+\\)" 1 font-lock-keyword-face)
+     '("<\\(/?[-a-z0-9]+\\)" 1 font-lock-function-name-face)))
   "Default expressions to highlight in DSSSL mode.")
 
 
