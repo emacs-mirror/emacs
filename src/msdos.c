@@ -1360,6 +1360,11 @@ fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
 	}
       else if (line_start_position > 0)
 	best_row = row;
+
+      /* Don't overstep the last matrix row, lest we get into the
+	 never-never land... */
+      if (row->y + 1 >= yb)
+	break;
       
       ++row;
     }
@@ -1456,7 +1461,7 @@ static void
 IT_note_mouse_highlight (struct frame *f, int x, int y)
 {
   struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int portion;
+  int portion = -1;
   Lisp_Object window;
   struct window *w;
 
@@ -1515,16 +1520,22 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
       && (XFASTINT (w->last_overlay_modified)
 	  == BUF_OVERLAY_MODIFF (XBUFFER (w->buffer))))
     {
-      int pos, i, area;
+      int pos, i;
       struct glyph_row *row;
       struct glyph *glyph;
+      int nrows = w->current_matrix->nrows;
 
       /* Find the glyph under X/Y.  */
       glyph = NULL;
-      if (y < w->current_matrix->nrows)
+      if (y >= 0 && y < nrows)
 	{
 	  row = MATRIX_ROW (w->current_matrix, y);
-	  if (row->enabled_p
+	  /* Give up if some row before the one we are looking for is
+	     not enabled.  */
+	  for (i = 0; i <= y; i++)
+	    if (!MATRIX_ROW (w->current_matrix, i)->enabled_p)
+	      break;
+	  if (i > y  /* all rows upto and including the one at Y are enabled */
 	      && row->displays_text_p
 	      && x <  window_box_width (w, TEXT_AREA))
 	    {
