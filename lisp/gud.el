@@ -337,8 +337,12 @@ and source-file directory for your debugger."
   (cons file args))
 
 (defun gud-dbx-marker-filter (string)
-  (if (string-match
-       "stopped in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\"" string)
+  (if (or (string-match
+         "stopped in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\""
+         string)
+        (string-match
+         "signal .* in .* at line \\([0-9]*\\) in file \"\\([^\"]*\\)\""
+         string))
       (setq gud-last-frame
 	    (cons
 	     (substring string (match-beginning 2) (match-end 2))
