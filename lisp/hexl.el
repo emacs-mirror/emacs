@@ -615,10 +615,11 @@ If there's no byte at the target address, move to the first or last line."
 
 (defun hexl-quoted-insert (arg)
   "Read next input character and insert it.
-Useful for inserting control characters.
-You may also type up to 3 octal digits, to insert a character with that code"
+Useful for inserting control characters and non-ASCII characters given their
+numerical code.
+You may also type octal digits, to insert a character with that code."
   (interactive "p")
-  (hexl-insert-char (read-quoted-char) arg))
+  (hexl-insert-multibyte-char (read-quoted-char) arg))
 
 ;00000000: 0011 2233 4455 6677 8899 aabb ccdd eeff  0123456789ABCDEF
 
@@ -687,13 +688,63 @@ This discards the buffer's undo information."
 		     46
 		   ch))))
 
+(defun hexl-insert-multibyte-char (ch num)
+  "Insert a possibly multibyte character CH NUM times.
+
+Non-ASCII characters are first encoded with `buffer-file-coding-system',
+and their encoded form is inserted byte by byte."
+  (let ((charset (char-charset ch))
+	(coding (if (or (null buffer-file-coding-system)
+			;; coding-system-type equals t means undecided.
+			(eq (coding-system-type buffer-file-coding-system) t))
+		    default-buffer-file-coding-system
+		  buffer-file-coding-system)))
+    (cond ((and (> ch 0) (< ch 256))
+	   (hexl-insert-char ch num))
+	  ((eq charset 'unknown)
+	   (error
+	    "0x%x -- invalid character code; use \\[hexl-insert-hex-string]."
+	    ch))
+	  (t
+	   (let ((encoded (encode-coding-char ch coding))
+		 (internal (string-as-unibyte (char-to-string ch)))
+		 internal-hex)
+	     ;; If encode-coding-char returns nil, it means our character
+	     ;; cannot be safely encoded with buffer-file-coding-system.
+	     ;; In that case, we offer to insert the internal representation
+	     ;; of that character, byte by byte.
+	     (when (null encoded)
+	       (setq internal-hex
+		     (mapconcat (function (lambda (c) (format "%x" c)))
+				internal " "))
+	       (if (yes-or-no-p
+		    (format
+		     "Insert char 0x%x's internal representation \"%s\"? "
+		     ch internal-hex))
+		   (setq encoded internal)
+		 (error
+		  "Can't encode `0x%x' with this buffer's coding system; try \\[hexl-insert-hex-string]."
+		  ch)))
+	     (while (> num 0)
+	       (mapc
+		(function (lambda (c) (hexl-insert-char c 1))) encoded)
+	       (setq num (1- num))))))))
+
 (defun hexl-self-insert-command (arg)
-  "Insert this character."
+  "Insert this character.
+Interactively, with a numeric argument, insert this character that many times.
+
+Non-ASCII characters are first encoded with `buffer-file-coding-system',
+and their encoded form is inserted byte by byte."
   (interactive "p")
-  (hexl-insert-char last-command-char arg))
+  (hexl-insert-multibyte-char last-command-char arg))
 
 (defun hexl-insert-char (ch num)
-  "Insert a character in a hexl buffer."
+  "Insert the character CH NUM times in a hexl buffer.
+
+CH must be a unibyte character whose value is between 0 and 255."
+  (if (or (< ch 0) (> ch 255))
+      (error "Invalid character 0x%x -- must be in the range [0..255]."))
   (let ((address (hexl-current-address t)))
     (while (> num 0)
       (let ((hex-position
@@ -725,12 +776,12 @@ This discards the buffer's undo information."
 ;; hex conversion
 
 (defun hexl-insert-hex-char (arg)
-  "Insert a ASCII char ARG times at point for a given hexadecimal number."
+  "Insert a character given by its hexadecimal code ARG times at point."
   (interactive "p")
   (let ((num (hexl-hex-string-to-integer (read-string "Hex number: "))))
-    (if (or (> num 255) (< num 0))
+    (if (< num 0)
 	(error "Hex number out of range")
-      (hexl-insert-char num arg))))
+      (hexl-insert-multibyte-char num arg))))
 
 (defun hexl-insert-hex-string (str arg)
   "Insert hexadecimal string STR at point ARG times.
@@ -758,20 +809,20 @@ Embedded whitespace, dashes, and periods in the string are ignored."
       (setq arg (- arg 1)))))
 
 (defun hexl-insert-decimal-char (arg)
-  "Insert a ASCII char ARG times at point for a given decimal number."
+  "Insert a character given by its decimal code ARG times at point."
   (interactive "p")
   (let ((num (string-to-int (read-string "Decimal Number: "))))
-    (if (or (> num 255) (< num 0))
+    (if (< num 0)
 	(error "Decimal number out of range")
-      (hexl-insert-char num arg))))
+      (hexl-insert-multibyte-char num arg))))
 
 (defun hexl-insert-octal-char (arg)
-  "Insert a ASCII char ARG times at point for a given octal number."
+  "Insert a character given by its octal code ARG times at point."
   (interactive "p")
   (let ((num (hexl-octal-string-to-integer (read-string "Octal Number: "))))
-    (if (or (> num 255) (< num 0))
+    (if (< num 0)
 	(error "Decimal number out of range")
-      (hexl-insert-char num arg))))
+      (hexl-insert-multibyte-char num arg))))
 
 (defun hexl-follow-ascii (&optional arg)
   "Toggle following ASCII in Hexl buffers.
@@ -815,7 +866,12 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 
 (if hexl-mode-map
     nil
-  (setq hexl-mode-map (make-sparse-keymap))
+  (setq hexl-mode-map (copy-keymap (current-global-map)))
+  ;; Make all self-inserting keys go through hexl-self-insert-command,
+  ;; because we need to convert them to unibyte characters before
+  ;; inserting them into the buffer.
+  (substitute-key-definition 'self-insert-command 'hexl-self-insert-command
+			     hexl-mode-map)
 
   (define-key hexl-mode-map [left] 'hexl-backward-char)
   (define-key hexl-mode-map [right] 'hexl-forward-char)
@@ -844,10 +900,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (if (not (eq (key-binding (char-to-string help-char)) 'help-command))
       (define-key hexl-mode-map (char-to-string help-char) 'undefined))
 
-  (define-key hexl-mode-map "\C-i" 'hexl-self-insert-command)
-  (define-key hexl-mode-map "\C-j" 'hexl-self-insert-command)
   (define-key hexl-mode-map "\C-k" 'undefined)
-  (define-key hexl-mode-map "\C-m" 'hexl-self-insert-command)
   (define-key hexl-mode-map "\C-n" 'hexl-next-line)
   (define-key hexl-mode-map "\C-o" 'undefined)
   (define-key hexl-mode-map "\C-p" 'hexl-previous-line)
@@ -857,11 +910,8 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (define-key hexl-mode-map "\C-w" 'undefined)
   (define-key hexl-mode-map "\C-y" 'undefined)
 
-  (let ((ch 32))
-    (while (< ch 127)
-      (define-key hexl-mode-map (format "%c" ch) 'hexl-self-insert-command)
-      (setq ch (1+ ch))))
-
+  (fset 'hexl-ESC-prefix (copy-keymap 'ESC-prefix))
+  (define-key hexl-mode-map "\e" 'hexl-ESC-prefix)
   (define-key hexl-mode-map "\e\C-a" 'hexl-beginning-of-512b-page)
   (define-key hexl-mode-map "\e\C-b" 'hexl-backward-short)
   (define-key hexl-mode-map "\e\C-d" 'hexl-insert-decimal-char)
@@ -893,8 +943,12 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (define-key hexl-mode-map "\e<" 'hexl-beginning-of-buffer)
   (define-key hexl-mode-map "\e>" 'hexl-end-of-buffer)
 
+  (fset 'hexl-C-c-prefix (copy-keymap mode-specific-map))
+  (define-key hexl-mode-map "\C-c" 'hexl-C-c-prefix)
   (define-key hexl-mode-map "\C-c\C-c" 'hexl-mode-exit)
 
+  (fset 'hexl-C-x-prefix (copy-keymap 'Control-X-prefix))
+  (define-key hexl-mode-map "\C-x" 'hexl-C-x-prefix)
   (define-key hexl-mode-map "\C-x[" 'hexl-beginning-of-1k-page)
   (define-key hexl-mode-map "\C-x]" 'hexl-end-of-1k-page)
   (define-key hexl-mode-map "\C-x\C-p" 'undefined)
