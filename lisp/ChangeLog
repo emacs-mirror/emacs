@@ -1,5 +1,13 @@
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* tooltip.el (tooltip-cancel-delayed-tip) 
+	(tooltip-start-delayed-tip): Renamed from tooltip-disable-timeout
+	and tooltip-add-timeout.
+	(tooltip-show): Set border color from faces's foreground.
+	(tooltip-show-help-function): If called with the same help string
+	as last time, do nothing.
+	(tooltip-help-tips): Don't set tooltip-help-message to nil.
+
 	* startup.el (fancy-splash-screens): Don't bind show-help-function
 	to nil.
 
@@ -102,7 +110,7 @@
 
 	* ps-print.el: Handle form feed better when ps-zebra-stripe-follow is
 	non-nil.  Adding almost all customization variables on ps-setup.  Doc
-	Fix.
+	fix.
 	(ps-print-version): New version number (6.3.3).
 	(ps-end-with-control-d): Initialization fix.
 	(ps-lines-printed): New var.

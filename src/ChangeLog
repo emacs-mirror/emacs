@@ -1,3 +1,16 @@
+2001-01-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (clear_mouse_face): Don't return if tip_frame is
+	non-nil.
+
+	* xfns.c (x_create_tip_frame): Preserve the value of
+	face_change_count around the creation of the tip frame.
+	
+	* xfns.c (last_show_tip_args): New variable.
+	(compute_tip_xy): New function.
+	(Fx_show_tip): Reuse an existing tip frame, if possible.
+	(syms_of_xfns): Initialize and staticpro last_show_tip_args.
+
 2001-01-04  Dave Love  <fx@gnu.org>
 
 	* systime.h (set_file_times): Prototype.
