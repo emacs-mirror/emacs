@@ -611,7 +611,7 @@ as well as widgets, buttons, overlays, and text properties."
 			  "\n ")))
 	    (insert "these terminal codes:\n")
 	    (dotimes (i (length disp-vector))
-	      (insertf(car (aref disp-vector i)) 
+	      (insert (car (aref disp-vector i)) 
 		      (propertize " " 'display '(space :align-to 5))
 		      (or (cdr (aref disp-vector i)) "-- not encodable --")
 		      "\n"))))
