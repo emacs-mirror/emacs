@@ -12216,7 +12216,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
 
 
 DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
-  doc: /* Dump glyph row ROW of the tool-bar of the current frame to stderr.
+       doc: /* Dump glyph row ROW of the tool-bar of the current frame to stderr.
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
 GLYPH > 1 or omitted means dump glyphs in long form.  */)
