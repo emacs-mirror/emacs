@@ -84,7 +84,18 @@ Setting this to nil is offered as an aid to debugging only."
 (defcustom eshell-convert-numeric-arguments t
   "*If non-nil, converting arguments of numeric form to Lisp numbers.
 Numeric form is tested using the regular expression
-`eshell-number-regexp'."
+`eshell-number-regexp'.
+
+NOTE: If you find that numeric conversions are intefering with the
+specification of filenames (for example, in calling `find-file', or
+some other Lisp function that deals with files, not numbers), add the
+following in your .emacs file:
+
+  (put 'find-file 'eshell-no-numeric-conversions t)
+
+Any function with the property `eshell-no-numeric-conversions' set to
+a non-nil value, will be passed strings, not numbers, even when an
+argument matches `eshell-number-regexp'."
   :type 'boolean
   :group 'eshell-util)
 
