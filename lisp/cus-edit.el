@@ -367,7 +367,7 @@ Return a list suitable for use in `interactive'."
 	 val)
      (setq val (completing-read 
 		(if (symbolp v)
-		    (format "Customize variable: (default %s) " v)
+		    (format "Customize option: (default %s) " v)
 		  "Customize variable: ")
 		obarray (lambda (symbol)
 			  (and (boundp symbol)
