@@ -83,6 +83,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LIB_X11_LIB -L/usr/lib/X11 -lX11
 
+/* This avoids a problem in Xos.h when using co-Xist 3.01.  */
+#define X_NOT_POSIX
+
 /* Conflicts in process.c between ioctl.h & tty.h use of t_foo fields */
 
 #define NO_T_CHARS_DEFINES
