@@ -2545,7 +2545,7 @@ Its value and function definition are void, and its property list is nil.  */)
     }
   
   p = XSYMBOL (val);
-  p->name = XSTRING (name);
+  p->xname = name;
   p->plist = Qnil;
   p->value = Qunbound;
   p->function = Qunbound;
@@ -4690,9 +4690,9 @@ mark_object (argptr)
 	mark_object (&ptr->function);
 	mark_object (&ptr->plist);
 
-	if (!PURE_POINTER_P (ptr->name))
-	  MARK_STRING (ptr->name);
-	MARK_INTERVAL_TREE (ptr->name->intervals);
+	if (!PURE_POINTER_P (XSTRING (ptr->xname)))
+	  MARK_STRING (XSTRING (ptr->xname));
+	MARK_INTERVAL_TREE (XSTRING (ptr->xname)->intervals);
 	
 	/* Note that we do not mark the obarray of the symbol.
 	   It is safe not to do so because nothing accesses that
@@ -5163,7 +5163,7 @@ gc_sweep ()
 	    /* Check if the symbol was created during loadup.  In such a case
 	       it might be pointed to by pure bytecode which we don't trace,
 	       so we conservatively assume that it is live.  */
-	    int pure_p = PURE_POINTER_P (sym->name);
+	    int pure_p = PURE_POINTER_P (XSTRING (sym->xname));
 	    
 	    if (!XMARKBIT (sym->plist) && !pure_p)
 	      {
@@ -5178,7 +5178,7 @@ gc_sweep ()
 	      {
 		++num_used;
 		if (!pure_p)
-		  UNMARK_STRING (sym->name);
+		  UNMARK_STRING (XSTRING (sym->xname));
 		XUNMARK (sym->plist);
 	      }
 	  }
