@@ -516,51 +516,49 @@ when syntaxifying a chunk of buffer."
 				   (repeat symbol)))))
   :group 'cperl-faces)
 
-(if window-system
-    (progn
-      (defvar cperl-dark-background
-	(cperl-choose-color "navy" "os2blue" "darkgreen"))
-      (defvar cperl-dark-foreground
-	(cperl-choose-color "orchid1" "orange"))
+(defvar cperl-dark-background
+  (cperl-choose-color "navy" "os2blue" "darkgreen"))
+(defvar cperl-dark-foreground
+  (cperl-choose-color "orchid1" "orange"))
 
-      (defface cperl-nonoverridable-face
-	`((((class grayscale) (background light))
-	   (:background "Gray90" :italic t :underline t))
-	  (((class grayscale) (background dark))
-	   (:foreground "Gray80" :italic t :underline t :bold t))
-	  (((class color) (background light))
-	   (:foreground "chartreuse3"))
-	  (((class color) (background dark))
-	   (:foreground ,cperl-dark-foreground))
-	  (t (:bold t :underline t)))
-	"Font Lock mode face used to highlight array names."
-	:group 'cperl-faces)
+(defface cperl-nonoverridable-face
+    `((((class grayscale) (background light))
+       (:background "Gray90" :italic t :underline t))
+      (((class grayscale) (background dark))
+       (:foreground "Gray80" :italic t :underline t :bold t))
+      (((class color) (background light))
+       (:foreground "chartreuse3"))
+      (((class color) (background dark))
+       (:foreground ,cperl-dark-foreground))
+      (t (:bold t :underline t)))
+  "Font Lock mode face used to highlight array names."
+  :group 'cperl-faces)
 
-      (defface cperl-array-face
-	`((((class grayscale) (background light))
-	   (:background "Gray90" :bold t))
-	  (((class grayscale) (background dark))
-	   (:foreground "Gray80" :bold t))
-	  (((class color) (background light))
-	   (:foreground "Blue" :background "lightyellow2" :bold t))
-	  (((class color) (background dark))
-	   (:foreground "yellow" :background ,cperl-dark-background :bold t))
-	  (t (:bold t)))
-	"Font Lock mode face used to highlight array names."
-	:group 'cperl-faces)
+(defface cperl-array-face
+    `((((class grayscale) (background light))
+       (:background "Gray90" :bold t))
+      (((class grayscale) (background dark))
+       (:foreground "Gray80" :bold t))
+      (((class color) (background light))
+       (:foreground "Blue" :background "lightyellow2" :bold t))
+      (((class color) (background dark))
+       (:foreground "yellow" :background ,cperl-dark-background :bold t))
+      (t (:bold t)))
+  "Font Lock mode face used to highlight array names."
+  :group 'cperl-faces)
 
-      (defface cperl-hash-face
-	`((((class grayscale) (background light))
-	   (:background "Gray90" :bold t :italic t))
-	  (((class grayscale) (background dark))
-	   (:foreground "Gray80" :bold t :italic t))
-	  (((class color) (background light))
-	   (:foreground "Red" :background "lightyellow2" :bold t :italic t))
-	  (((class color) (background dark))
-	   (:foreground "Red" :background ,cperl-dark-background :bold t :italic t))
-	  (t (:bold t :italic t)))
-	"Font Lock mode face used to highlight hash names."
-	:group 'cperl-faces)))
+(defface cperl-hash-face
+    `((((class grayscale) (background light))
+       (:background "Gray90" :bold t :italic t))
+      (((class grayscale) (background dark))
+       (:foreground "Gray80" :bold t :italic t))
+      (((class color) (background light))
+       (:foreground "Red" :background "lightyellow2" :bold t :italic t))
+      (((class color) (background dark))
+       (:foreground "Red" :background ,cperl-dark-background :bold t :italic t))
+      (t (:bold t :italic t)))
+  "Font Lock mode face used to highlight hash names."
+  :group 'cperl-faces)
 
 
 
