@@ -1786,6 +1786,7 @@ read_input_waiting ()
   /* Scan the chars for C-g and store them in kbd_buffer.  */
   e.kind = ascii_keystroke;
   e.frame_or_window = selected_frame;
+  e.modifiers = 0;
   for (i = 0; i < nread; i++)
     {
       XSET (e.code, Lisp_Int, buf[i]);
