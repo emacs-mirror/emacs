@@ -410,6 +410,7 @@ reset_buffer (b)
      register struct buffer *b;
 {
   b->filename = Qnil;
+  b->file_truename = Qnil;
   b->directory = (current_buffer) ? current_buffer->directory : Qnil;
   b->modtime = 0;
   XSETFASTINT (b->save_length, 0);
@@ -2694,6 +2695,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_defaults.fill_column, 70);
   XSETFASTINT (buffer_defaults.left_margin, 0);
   buffer_defaults.cache_long_line_scans = Qnil;
+  buffer_defaults.file_truename = Qnil;
 
   /* Assign the local-flags to the slots that have default values.
      The local flag is a bit that is used in the buffer
@@ -2716,6 +2718,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.undo_list, -1);
   XSETINT (buffer_local_flags.mark_active, -1);
   XSETINT (buffer_local_flags.point_before_scroll, -1);
+  XSETINT (buffer_local_flags.file_truename, -1);
 
   XSETFASTINT (buffer_local_flags.mode_line_format, 1);
   XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
@@ -3006,6 +3009,12 @@ It may not be a list of functions.");
   DEFVAR_PER_BUFFER ("buffer-file-name", &current_buffer->filename,
 		     make_number (Lisp_String),
     "Name of file visited in current buffer, or nil if not visiting a file.\n\
+Each buffer has its own value of this variable.");
+
+  DEFVAR_PER_BUFFER ("buffer-file-truename", &current_buffer->file_truename,
+		     make_number (Lisp_String),
+    "Truename of file visited in current buffer, or nil if not visiting a file.\n\
+The truename of a file is calculated by `file-truename'.\n\
 Each buffer has its own value of this variable.");
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
