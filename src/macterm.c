@@ -8594,6 +8594,7 @@ mac_check_for_quit_char ()
       struct mac_output *mwp =
 	(mac_output *) GetWRefCon (FrontNonFloatingWindow ());
       /* Use an input_event to emulate what the interrupt handler does. */
+      EVENT_INIT (e);
       e.kind = ASCII_KEYSTROKE_EVENT;
       e.code = quit_char;
       e.arg = NULL;
