@@ -33,6 +33,13 @@
 	[HAVE_PNG]: Sync with xfns.c version.
 	(png_load): Adjust colors for Windows. Use Windows
 	bitmaps. Disable color table lookups.
+	(DEF_IMGLIB_FN, LOAD_IMGLIB_FN): New macros.
+	(init_png_functions): New function.
+	(png_read_from_memory, png_load): Call png library functions
+	through pointers determined at runtime.
+	(QCloader, QCbounding_box, QCpt_width, QCpt_height): Declare.
+	(init_external_image_libraries): New function.
+	(init_xfns): Call it.
 
 2003-01-24  Andreas Schwab  <schwab@suse.de>
 
