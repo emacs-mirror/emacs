@@ -4578,7 +4578,7 @@ The elements of this list correspond to the arguments of\n\
   val[0] = interrupt_input ? Qt : Qnil;
   val[1] = flow_control ? Qt : Qnil;
   val[2] = meta_key == 2 ? make_number (0) : meta_key == 1 ? Qt : Qnil;
-  XSETINT (val[3], quit_char);
+  XFASTINT (val[3], quit_char);
 
   return Flist (val, sizeof (val) / sizeof (val[0]));
 }
