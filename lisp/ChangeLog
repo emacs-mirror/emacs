@@ -1,3 +1,11 @@
+2000-09-16  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (compile-files): No need to make .elc files
+	read-only, since they aren't under VC now.
+
+	* makefile.w32-in (compile-files-CMD): No need to make .elc files
+	read-only, since they aren't under VC now.
+
 2000-09-17  Dave Love  <fx@gnu.org>
 
 	* tmm.el: Replace mapcar with mapc in several places.

@@ -1,3 +1,14 @@
+2000-09-17  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs: Revert to Unix line endings.
+
+	* nmake.defs: Revert to Unix line endings.
+
+2000-09-16  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (SETLOADPATH): Change definition to work from any
+	subdirectory.
+
 2000-09-14  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Revert to Unix line endings.

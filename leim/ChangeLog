@@ -1,3 +1,11 @@
+2000-09-16  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt ($(TIT)): Set EMACSLOADPATH when running emacs.
+	(leim-list.el): Ditto.
+
+	* makefile.w32-in ($(TIT)): Set EMACSLOADPATH when running emacs.
+	(leim-list.el): Ditto.
+
 2000-09-15  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (clean mostlyclean): Ignore errors when removing
