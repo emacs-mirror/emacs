@@ -128,6 +128,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define CLASH_DETECTION
 
+/* Define this if your operating system declares signal handlers to
+   have a type other than the usual.  `The usual' is `void' for ANSI C
+   systems (i.e. when the __STDC__ macro is defined), and `int' for
+   pre-ANSI systems.  If you're using GCC on an older system, __STDC__
+   will be defined, but the system's include files will still say that
+   signal returns int or whatever; in situations like that, define
+   this to be what the system's include files want.  */
+/* #define SIGTYPE int */
+
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
    you might define certain system call names that don't

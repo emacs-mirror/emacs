@@ -649,12 +649,14 @@ swap_in_symval_forwarding (sym, valcontents)
   return XCONS (valcontents)->car;
 }
 
-/* Note that it must not be possible to quit within this function.
-   Great care is required for this.  */
+/* Find the value of a symbol, returning Qunbound if it's not bound.
+   This is helpful for code which just wants to get a variable's value
+   if it has one, without signalling an error.
+   Note that it must not be possible to quit
+   within this function.  Great care is required for this.  */
 
-DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
-  "Return SYMBOL's value.  Error if that is void.")
-  (sym)
+Lisp_Object
+find_symbol_value (sym)
      Lisp_Object sym;
 {
   register Lisp_Object valcontents, tem1;
@@ -689,16 +691,24 @@ DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
     case Lisp_Buffer_Objfwd:
       return *(Lisp_Object *)(XUINT (valcontents) + (char *)current_buffer);
 
-    case Lisp_Symbol:
-      /* For a symbol, check whether it is 'unbound. */
-      if (!EQ (valcontents, Qunbound))
-	break;
-      /* drops through! */
     case Lisp_Void:
-      return Fsignal (Qvoid_variable, Fcons (sym, Qnil));
+      return Qunbound;
     }
 
   return valcontents;
+}
+
+DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
+  "Return SYMBOL's value.  Error if that is void.")
+  (sym)
+     Lisp_Object sym;
+{
+  Lisp_Object val = find_symbol_value (sym);
+
+  if (EQ (val, Qunbound))
+    return Fsignal (Qvoid_variable, Fcons (sym, Qnil));
+  else
+    return val;
 }
 
 DEFUN ("set", Fset, Sset, 2, 2, 0,

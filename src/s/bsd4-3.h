@@ -127,3 +127,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    is named _avenrun.  */
 
 #define LDAV_SYMBOL "_avenrun"
+
+/* The return type of a signal handling function.  */
+#define SIGTYPE int
