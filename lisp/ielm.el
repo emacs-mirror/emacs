@@ -35,7 +35,7 @@
 ;;
 ;;   (autoload 'ielm "ielm" "Start an inferior Emacs Lisp session" t)
 ;;
-;; For completion to work, the comint.el from FSF Emacs 19.23 is
+;; For completion to work, the comint.el from Emacs 19.23 is
 ;; required.  If you do not have it, or if you are running Lemacs,
 ;; also add the following code to your .emacs:
 ;;
@@ -103,7 +103,7 @@ This variable is buffer-local.")
 (defvar ielm-header 
   (concat
    "*** Welcome to IELM version "
-   (substring "$Revision: 1.13 $" 11 -2)
+   (substring "$Revision: 1.14 $" 11 -2)
    " ***  Type (describe-mode) for help.\n"
    "IELM has ABSOLUTELY NO WARRANTY; type (describe-no-warranty) for details.\n")
   "Message to display when IELM is started.")
