@@ -1,13 +1,13 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.13) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.14) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
 PFM = nti3mv
 PFMDEFS = /DWIN32 /D_WINDOWS
 
-STD = <assert> <deque> <error> <liban> <meter> <misc> <sig>
+STD = <assert> <deque> <error> <liban> <meter> <misc>
 MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
       <poolmv> <root> <format> <buffer> <locknt> \
       <ref> <trace> <protnt> <shield> \
@@ -21,7 +21,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.13) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.14) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
