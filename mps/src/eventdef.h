@@ -1,7 +1,7 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName: MMsrc!eventdef.h(trunk.14) $
- * Copyright (C) 1997 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!eventdef.h(trunk.15) $
+ * Copyright (C) 1997, 1998 Harlequin Group, all rights reserved.
  *
  * .readership: MPS developers.
  * .source: design.mps.telemetry
@@ -67,10 +67,8 @@ RELATION(AMCFinish                       , 0x0004, TRUE, Pool, P)
 RELATION(AMCBufferInit                   , 0x0005, TRUE, Pool, PP)
 RELATION(AMCBufferFill                   , 0x0006, TRUE, Seg, PPWAW)
 RELATION(AMCBufferEmpty                  , 0x0007, TRUE, Seg, PPW)
-#if 0 /* Not in use */
-RELATION(AMCTraceBegin                   , 0x0008, TRUE, Trace, PPPP)
-RELATION(AMCCondemn                      , 0x0009, TRUE, Seg, PPPP)
-#endif
+RELATION(MeterInit                       , 0x0008, TRUE, Pool, PP)
+RELATION(MeterValues                     , 0x0009, TRUE, Pool, PUDDUU)
 RELATION(AMCScanBegin                    , 0x000a, TRUE, Trace, PPP)
 RELATION(AMCScanEnd                      , 0x000b, TRUE, Trace, PPP)
 RELATION(AMCFix                          , 0x000c, TRUE, Ref, 0)
@@ -86,6 +84,8 @@ RELATION(PoolInit                        , 0x0015, TRUE, Pool, PPP)
 RELATION(PoolFinish                      , 0x0016, TRUE, Pool, P)
 RELATION(PoolAlloc                       , 0x0017, TRUE, Object, PAW)
 RELATION(PoolFree                        , 0x0018, TRUE, Object, PAW)
+RELATION(CBSInit                         , 0x0019, TRUE, Pool, PP)
+
 RELATION(TraceStart                      , 0x001c, TRUE, Trace, PPP)
 #if 0 /* Not in use */
 RELATION(TraceCreate                     , 0x001d, TRUE, Trace, PPPU)
