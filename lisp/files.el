@@ -478,7 +478,7 @@ Runs the usual ange-ftp hook, but only for completion operations."
       (apply op args))))
 
 (defun convert-standard-filename (filename)
-  "Convert a standard file's name to something suitable for the current OS.
+  "Convert a standard file's name to something suitable for the OS.
 This means to guarantee valid names and perhaps to canonicalize
 certain patterns.
 
@@ -487,7 +487,9 @@ the argument.  However, on Windows and DOS, replace invalid
 characters.  On DOS, make sure to obey the 8.3 limitations.  On
 Windows, turn Cygwin names into native names, and also turn
 slashes into backslashes if the shell requires it (see
-`w32-shell-dos-semantics')."
+`w32-shell-dos-semantics').
+
+See Info node `(elisp)Standard File Names' for more details."
   filename)
 
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
