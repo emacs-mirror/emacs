@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:options(trunk.15) $
+# $HopeName: MMQA_harness!script:options(trunk.16) $
 #
 
 # global options for qa commands
@@ -36,6 +36,7 @@ if (($ENV{"OS"} || "") eq "Windows_NT") {
  "p", "PLATFORM",
  "data", "DATA_DIR",
  "a", "PARAMETERS",
+ "s", "STDIN",
  "g", "LOG_DIR"
 );
 
