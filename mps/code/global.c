@@ -144,7 +144,7 @@ Bool GlobalsCheck(Globals arenaGlobals)
   CHECKL(RingCheck(&arenaGlobals->rootRing));
   CHECKL(RingCheck(&arenaGlobals->rememberedSummaryRing));
   CHECKL(arenaGlobals->rememberedSummaryIndex < RememberedSummaryBLOCK);
-  /* RingIsSingle imples index == 0 */
+  /* <code/global.c#remembered.summary> RingIsSingle imples index == 0 */
   CHECKL(!RingIsSingle(&arenaGlobals->rememberedSummaryRing) ||
     arenaGlobals->rememberedSummaryIndex == 0);
   CHECKL(RingCheck(&arena->formatRing));
