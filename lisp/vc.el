@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.239 1998/11/04 15:09:38 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.240 1998/12/02 13:34:59 spiegel Exp rost $
 
 ;; This file is part of GNU Emacs.
 
@@ -291,21 +291,24 @@ and that its contents match what the master file says."
   "*The release number of your RCS installation, as a string.
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
-		 string)
+		 string 
+		 (const :tag "Unknown" unknown))
   :group 'vc)
 
 (defcustom vc-sccs-release nil
   "*The release number of your SCCS installation, as a string.
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
-		 string)
+		 string 
+		 (const :tag "Unknown" unknown))
   :group 'vc)
 
 (defcustom vc-cvs-release nil
   "*The release number of your CVS installation, as a string.
 If nil, VC itself computes this value when it is first needed."
   :type '(choice (const :tag "Auto" nil)
-		 string)
+		 string 
+		 (const :tag "Unknown" unknown))
   :group 'vc)
 
 ;; Variables the user doesn't need to know about.
