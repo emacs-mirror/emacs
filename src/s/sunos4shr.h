@@ -41,3 +41,5 @@
 
 /* khera@cs.duke.edu says this is needed.  */
 #define memmove(to, from, size) bcopy (from, to, size)
+
+#undef USE_DL_STUBS
