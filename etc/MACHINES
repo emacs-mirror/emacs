@@ -748,6 +748,20 @@ Iris 4D (mips-sgi-irix[456].*)
   flag or otherwise (see cc(1)).  This may work on earlier Irix 6
   systems if you edit src/s/irix6-0.h following irix6-5.h.
 
+  Building Emacs 21.1 and 21.2 on versions of Irix before 6.5.10,
+  especially when Emacs is built with GCC, was reported to have subtle
+  problems such as being unable to print to stdout under the -batch
+  command-line option.  Building with the native compiler or upgrading
+  the OS to a newer version solves these problems.  There's evidence
+  that these problems are actually related to the runtime libraries
+  (before IRIX 6.5.10, the IRIX runtimes were based on the MIPSpro 7.2
+  compilers), so installing patches for the runtime from
+  http://www.sgi.com/support/patch_intro.html could solve the problem
+  even without upgrading the OS.  The dump process is the crucial
+  step that needs the upgraded runtime, so a workaround is to dump
+  Emacs on a machine with a newer OS, then copy the binary to the
+  older OS.
+
   If compiling with GCC on Irix 6 yields an error "conflicting types
   for `initstate'", install GCC 2.95 or a newer version, and this
   problem should go away.  It is possible that this problem results
