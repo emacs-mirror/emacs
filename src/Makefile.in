@@ -39,6 +39,7 @@ etc = $(dot)$(dot)/etc/
 shortnamesdir = $(dot)$(dot)/shortnames/
 cppdir = $(dot)$(dot)/cpp/
 oldXMenudir = $(dot)$(dot)/oldXMenu/
+lwlibdir = $(dot)$(dot)/lwlib/
 config_h = config.h
 
 CPPFLAGS=
@@ -268,26 +269,37 @@ XOBJ= xterm.o xfns.o xfaces.o xmenu.o xselect.o xrdb.o
    from X11.  If we have X10, just use the installed library;
    otherwise, use our own copy.  */
 #ifdef HAVE_X11
+#ifdef USE_X_TOOLKIT
+OLDXMENU=liblw.a
+LIBXMENU= $(OLDXMENU)
+#else /* not USE_X_TOOLKIT */
 OLDXMENU= libXMenu11.a
 LIBXMENU= $(OLDXMENU)
-#else /* ! defined (HAVE_X11) */
+#endif /* not USE_X_TOOLKIT */
+#else /* not HAVE_X11 */
 LIBXMENU= -lXMenu
-#endif /* ! defined (HAVE_X11) */
+#endif /* not HAVE_X11 */
 
-#else /* ! defined (HAVE_X_MENU) */
+#else /* not HAVE_X_MENU */
 
 /* Otherwise, omit xmenu.o from the list of X object files, and
    don't worry about the menu library at all.  */
 XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o
 LIBXMENU=
-#endif /* ! defined (HAVE_X_MENU) */
+#endif /* not HAVE_X_MENU */
+
+#ifdef USE_X_TOOLKIT
+LIBXT= -lXaw -lXt -lXmu
+#else
+LIBXT=
+#endif
 
 #ifdef HAVE_X11
-LIBX= $(LIBXMENU) LD_SWITCH_X_SITE LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
-#else /* ! defined (HAVE_X11) */
+LIBX= $(LIBXMENU) $(LIBXT) LD_SWITCH_X_SITE LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
+#else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
-#endif /* ! defined (HAVE_X11) */
-#endif /* ! defined (HAVE_X_WINDOWS) */
+#endif /* not HAVE_X11 */
+#endif /* not HAVE_X_WINDOWS */
 
 #ifndef ORDINARY_LINK
 /* Fix linking if compiled with GCC.  */
@@ -315,7 +327,7 @@ LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 #ifndef LIB_GCC
 /* Ask GCC where to find libgcc.a.  */
 #define LIB_GCC `$(CC) -print-libgcc-file-name`
-#endif /* LIB_GCC */
+#endif /* not LIB_GCC */
 
 GNULIB_VAR = LIB_GCC
 
@@ -334,13 +346,13 @@ GNULIB_VAR = LIB_GCC
 
 #ifndef LIB_GCC
 #define LIB_GCC /usr/local/lib/gcc-gnulib
-#endif /* LIB_GCC */
+#endif /* not LIB_GCC */
 GNULIB_VAR = `if [ -f LIB_GCC ] ; then echo LIB_GCC; else echo; fi`
 #endif /* __GNUC__ < 2 */
-#else /* ! defined (__GNUC__) */
+#else /* not __GNUC__ */
 GNULIB_VAR = 
 
-#endif /* ! defined (__GNUC__) */
+#endif /* not __GNUC__ */
 #endif /* not ORDINARY_LINK */
 
 /* Specify address for ld to start loading at,
@@ -357,10 +369,10 @@ LD=$(CC) -nostdlib
 #else /* not ORDINARY_LINK */
 #ifdef LINKER
 LD=LINKER
-#else /* ! defined (LINKER) */
+#else /* not LINKER */
 LD=ld
-#endif /* ! defined (LINKER) */
-#endif /* ! defined (COFF_ENCAPSULATE) */
+#endif /* not LINKER */
+#endif /* not COFF_ENCAPSULATE */
 #endif /* not ORDINARY_LINK */
 
 ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE
@@ -451,10 +463,16 @@ allocaobj = alloca.o
 allocaobj =
 #endif
 
+#ifdef USE_X_TOOLKIT
+widgetobj= widget.o
+#else /* not USE_X_TOOLKIT */
+widgetobj=
+#endif /* not USE_X_TOOLKIT */
+
 
 /* define otherobj as list of object files that make-docfile
    should not be told about.  */
-otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj)
+otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 
 #ifdef LISP_FLOAT_TYPE
 #define FLOAT_SUPPORT ${lispdir}float-sup.elc
@@ -599,9 +617,38 @@ shortnames:
 #define OLDXMENU_OPTIONS
 #endif
 
+/* Don't lose if this was not defined.  */
+#ifndef LWLIB_OPTIONS
+#define LWLIB_OPTIONS
+#endif
+
 #ifdef HAVE_X_WINDOWS
-#ifdef HAVE_X_MENU
 #ifdef HAVE_X11
+#ifdef USE_X_TOOLKIT
+$(OLDXMENU): really-lwlib
+	-rm -f $(OLDXMENU) /* We might have a link to an old version.  */
+	${LN_S} ${lwlibdir}liblw.a $(OLDXMENU)
+
+/* Encode the values of these two macros in Make variables,
+   so we can use $(...) to substitute their values within "...".  */
+C_SWITCH_MACHINE_1 = C_SWITCH_MACHINE
+C_SWITCH_SYSTEM_1 = C_SWITCH_SYSTEM
+C_SWITCH_SITE_1 = C_SWITCH_SITE
+C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
+C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
+C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
+really-lwlib:
+	cd ${lwlibdir}; ${MAKE} ${MFLAGS} LWLIB_OPTIONS \
+    CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
+    "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
+    "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \
+    "C_SWITCH_X_SYSTEM=$(C_SWITCH_X_SYSTEM_1)" \
+    "C_SWITCH_SITE=$(C_SWITCH_SITE_1)" \
+    "C_SWITCH_MACHINE=$(C_SWITCH_MACHINE_1)" \
+    "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
+	@true  /* make -t should not create really-lwlib.  */
+#else /* not USE_X_TOOLKIT */
+#ifdef HAVE_X_MENU
 $(OLDXMENU): really-oldXMenu
 	-rm -f $(OLDXMENU) /* We might have a link to an old version.  */
 	${LN_S} ${oldXMenudir}libXMenu11.a $(OLDXMENU)
@@ -624,9 +671,10 @@ really-oldXMenu:
     "C_SWITCH_MACHINE=$(C_SWITCH_MACHINE_1)" \
     "C_SWITCH_SYSTEM=$(C_SWITCH_SYSTEM_1)"
 	@true  /* make -t should not create really-oldXMenu.  */
-#endif /* ! defined (HAVE_X11) */
-#endif /* ! defined (HAVE_X_MENU) */
-#endif /* ! defined (HAVE_X_WINDOWS) */
+#endif /* HAVE_X_MENU */
+#endif /* not USE_X_TOOLKIT */
+#endif /* HAVE_X11 */
+#endif /* HAVE_X_WINDOWS */
 
 paths.h: paths.h.in
 	@echo "The file paths.h needs to be set up from paths.h.in."
@@ -739,6 +787,7 @@ terminfo.o : terminfo.c $(config_h)
 tparam.o : tparam.c $(config_h)
 undo.o : undo.c buffer.h commands.h $(config_h) 
 UNEXEC : UNEXEC_SRC $(config_h)
+widget.o : widget.c xterm.h frame.h dispextern.h widgetprv.h $(config_h)
 window.o : window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    termhooks.h disptab.h keyboard.h $(config_h)
 xdisp.o : xdisp.c macros.h commands.h indent.h buffer.h dispextern.h \
