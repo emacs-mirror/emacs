@@ -58,7 +58,7 @@ extern sigset_t empty_mask, full_mask, temp_mask;
    appears to be assumed in the source, for example data.c:arith_error() */
 typedef RETSIGTYPE (*signal_handler_t) (int);
 
-signal_handler_t sys_signal (int signal_number, int (*action)());
+signal_handler_t sys_signal (int signal_number, signal_handler_t action);
 int      sys_sigpause   (sigset_t new_mask);
 sigset_t sys_sigblock   (sigset_t new_mask);
 sigset_t sys_sigunblock (sigset_t new_mask);
