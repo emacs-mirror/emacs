@@ -8,7 +8,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1996/03/20 13:30:16 $|$Revision: 3.6 $|~/modes/edebug.el|
+;; |$Date: 1996/05/29 17:16:52 $|$Revision: 3.7 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -85,7 +85,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.6 $"))
+  (let ((raw-version "$Revision: 3.7 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -4140,7 +4140,8 @@ You must include newlines in FMT to break lines, but one newline is appended."
 ;;	 (edebug-trace-display "*trace-point*"
 ;;	  "saving: point = %s  window-start = %s"
 ;;	  (point) (window-start))
-  (let* ((selected-window (selected-window))
+  (let* ((oldbuf (current-buffer))
+	 (selected-window (selected-window))
 	 (buffer (get-buffer-create buf-name))
 	 buf-window)
 ;;    (message "before pop-to-buffer") (sit-for 1)
@@ -4156,7 +4157,8 @@ You must include newlines in FMT to break lines, but one newline is appended."
 ;;    (set-window-point buf-window (point))
 ;;    (edebug-sit-for 0)
     (bury-buffer buffer)
-    (select-window selected-window))
+    (select-window selected-window)
+    (set-buffer oldbuf))
   buf-name)
 
 
