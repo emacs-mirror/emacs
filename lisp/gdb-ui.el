@@ -58,8 +58,8 @@
   :type 'integer
   :group 'gud)
 
-(defvar gdb-main-or-pc nil "Initialisation for Assembler buffer.")
-(defvar gdb-current-address nil)
+(defvar gdb-current-address nil "Initialisation for Assembler buffer.")
+(defvar gdb-previous-address nil)
 (defvar gdb-display-in-progress nil)
 (defvar gdb-dive nil)
 (defvar gdb-buffer-type nil)
@@ -143,11 +143,19 @@ The following interactive lisp functions help control operation :
 			  (gud-call "clear *%a" arg)))
 	   "\C-d" "Remove breakpoint at current line or address.")
   ;;
+  (gud-def gud-until  (if (not (string-equal mode-name "Assembler"))
+			  (gud-call "until %f:%l" arg)
+			(save-excursion
+			  (beginning-of-line)
+			  (forward-char 2)
+			  (gud-call "until *%a" arg)))
+	   "\C-u" "Continue up to current line or address.")
+
   (setq comint-input-sender 'gdb-send)
   ;;
   ;; (re-)initialise
-  (setq gdb-main-or-pc "main")
-  (setq gdb-current-address nil)
+  (setq gdb-current-address "main")
+  (setq gdb-previous-address nil)
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
   ;;
@@ -508,9 +516,7 @@ This filter may simply queue output for a later time."
   :group 'gud)
 
 (defvar gdb-annotation-rules
-  '(("frames-invalid" gdb-invalidate-frame-and-assembler)
-    ("breakpoints-invalid" gdb-invalidate-breakpoints-and-assembler)
-    ("pre-prompt" gdb-pre-prompt)
+  '(("pre-prompt" gdb-pre-prompt)
     ("prompt" gdb-prompt)
     ("commands" gdb-subprompt)
     ("overload-choice" gdb-subprompt)
@@ -524,7 +530,7 @@ This filter may simply queue output for a later time."
     ("signal" gdb-stopping)
     ("breakpoint" gdb-stopping)
     ("watchpoint" gdb-stopping)
-;    ("frame-begin" gdb-frame-begin)
+    ("frame-begin" gdb-frame-begin)
     ("stopped" gdb-stopped)
     ("display-begin" gdb-display-begin)
     ("display-end" gdb-display-end)
@@ -555,7 +561,6 @@ This filter may simply queue output for a later time."
 	 (match-string 1 args)
 	 (string-to-int (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
-  (setq gdb-main-or-pc gdb-current-address)
   ;;update with new frame for machine code if necessary
   (gdb-invalidate-assembler))
 
@@ -663,9 +668,12 @@ output from the current command if that happens to be appropriate."
   (if (not (gdb-get-pending-triggers))
       (progn
 	(gdb-get-current-frame)
-	(gdb-invalidate-registers ignored)
-	(gdb-invalidate-locals ignored)
-	(gdb-invalidate-display ignored)
+	(gdb-invalidate-frames)
+	(gdb-invalidate-breakpoints)
+	(gdb-invalidate-assembler)
+	(gdb-invalidate-registers)
+	(gdb-invalidate-locals)
+	(gdb-invalidate-display)
 	(gdb-invalidate-threads)))
   (let ((sink (gdb-get-output-sink)))
     (cond
@@ -1160,8 +1168,8 @@ output from the current command if that happens to be appropriate."
     (goto-char (point-max))
     (insert-before-markers string))
   (if (not (string-equal string ""))
-      (gdb-display-buffer
-       (gdb-get-create-buffer 'gdb-inferior-io))))
+      (select-window 
+	(gdb-display-buffer (gdb-get-create-buffer 'gdb-inferior-io)))))
 
 (defun gdb-clear-inferior-io ()
   (save-excursion
@@ -1351,8 +1359,8 @@ static char *magick[] = {
 	  (forward-line 1)
 	  (if (looking-at "[^\t].*breakpoint")
 	      (progn
-		(looking-at "\\([0-9]*\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)")
-		(setq flag (char-after (match-beginning 2)))
+		(looking-at "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)")
+		(setq flag (char-after (match-beginning 1)))
 		(beginning-of-line)
 		(if (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
 		    (progn
@@ -1512,13 +1520,23 @@ current line."
 (defun gdb-info-frames-custom ()
   (save-excursion
     (set-buffer (gdb-get-buffer 'gdb-stack-buffer))
-    (let ((buffer-read-only nil))
-      (goto-char (point-min))
-      (while (< (point) (point-max))
-	(put-text-property (progn (beginning-of-line) (point))
-			   (progn (end-of-line) (point))
-			   'mouse-face 'highlight)
-	(forward-line 1)))))
+    (save-excursion
+      (let ((buffer-read-only nil))
+	(goto-char (point-min))
+	(while (< (point) (point-max))
+	  (put-text-property (progn (beginning-of-line) (point))
+			     (progn (end-of-line) (point))
+			     'mouse-face 'highlight)
+	  (beginning-of-line)
+	  (if (or (looking-at "^#[0-9]*\\s-*\\S-* in \\(\\S-*\\)")
+		  (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)"))
+	      (if (equal (match-string 1) gdb-current-frame)
+		  (put-text-property (progn (beginning-of-line) (point))
+				     (progn (end-of-line) (point))
+				     'face 
+				     `(:background ,(face-attribute 'default :foreground)
+				       :foreground ,(face-attribute 'default :background)))))
+	  (forward-line 1))))))
 
 (defun gdb-stack-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -1549,6 +1567,7 @@ current line."
   (setq mode-name "Frames")
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
+  (font-lock-mode -1)
   (gdb-invalidate-frames))
 
 (defun gdb-get-frame-number ()
@@ -2214,29 +2233,28 @@ BUFFER nil or omitted means use the current buffer."
 
 (def-gdb-auto-updated-buffer gdb-assembler-buffer
   gdb-invalidate-assembler
-  (concat "server disassemble " gdb-main-or-pc "\n")
+  (concat "server disassemble " gdb-current-address "\n")
   gdb-assembler-handler
   gdb-assembler-custom)
 
 (defun gdb-assembler-custom ()
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
-	(gdb-arrow-position) (address) (flag))
-    (if gdb-current-address
-	(progn
-	  (save-excursion
-	    (set-buffer buffer)
-	    (remove-arrow)
-	    (goto-char (point-min))
-	    (re-search-forward gdb-current-address)
-	    (setq gdb-arrow-position (point))
-	    (put-arrow "=>" gdb-arrow-position nil 'left-margin))))
-    ;; remove all breakpoint-icons in assembler buffer  before updating.
+	(address) (flag))
     (save-excursion
       (set-buffer buffer)
-      (if (display-graphic-p)
-	  (remove-images (point-min) (point-max))
-	(remove-strings (point-min) (point-max))))
-    (save-excursion
+      (if (not (equal gdb-current-address "main"))
+	  (progn
+	    (remove-arrow)
+	    (goto-char (point-min))
+	    (if (re-search-forward gdb-current-address nil t)
+		(progn
+		  (put-arrow "=>" (point) nil 'left-margin)
+		  (set-window-point gdb-source-window (point))))))
+      ;; remove all breakpoint-icons in assembler buffer  before updating.
+      (save-excursion
+	(if (display-graphic-p)
+	    (remove-images (point-min) (point-max))
+	  (remove-strings (point-min) (point-max))))
       (set-buffer (gdb-get-buffer 'gdb-breakpoints-buffer))
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
@@ -2244,33 +2262,35 @@ BUFFER nil or omitted means use the current buffer."
 	(if (looking-at "[^\t].*breakpoint")
 	    (progn
 	      (looking-at
-	       "\\([0-9]*\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*0x0\\(\\S-*\\)")
-	      ;; info break gives '0x0' (8 digit) while dump gives '0x' (7 digit)
-	      (setq address (concat "0x" (match-string 3)))
-	      (setq flag (char-after (match-beginning 2)))
+	       "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*0x\\(\\S-*\\)")
+	      (setq flag (char-after (match-beginning 1)))
+	      (let ((number (match-string 2)))
+		;; remove leading 0s from output of info break.
+		(if (string-match "0x0+\\(.*\\)" number)
+		    (setq address (concat "0x" (match-string 1 address)))
+		  (setq address number)))
 	      (save-excursion
 		(set-buffer buffer)
-		(goto-char (point-min))
-		(if (re-search-forward address nil t)
-		    (let ((start (progn (beginning-of-line) (- (point) 1)))
-			  (end (progn (end-of-line) (+ (point) 1))))
-		      (if (display-graphic-p)
-			  (progn
-			    (remove-images start end)
-			    (if (eq ?y flag)
-				(put-image breakpoint-enabled-icon (point)
-					   "breakpoint icon enabled"
-					   'left-margin)
-			      (put-image breakpoint-disabled-icon (point)
-					 "breakpoint icon disabled"
-					 'left-margin)))
-			(remove-strings start end)
-			(if (eq ?y flag)
-			    (put-string "B" (point) "enabled" 'left-margin)
-			  (put-string "b" (point) "disabled"
-				      'left-margin))))))))))
-    (if gdb-current-address
-	(set-window-point (get-buffer-window buffer) gdb-arrow-position))))
+		(save-excursion
+		  (goto-char (point-min))
+		  (if (re-search-forward address nil t)
+		      (let ((start (progn (beginning-of-line) (- (point) 1)))
+			    (end (progn (end-of-line) (+ (point) 1))))
+			(if (display-graphic-p)
+			    (progn
+			      (remove-images start end)
+			      (if (eq ?y flag)
+				  (put-image breakpoint-enabled-icon (point)
+					     "breakpoint icon enabled"
+					     'left-margin)
+				(put-image breakpoint-disabled-icon (point)
+					   "breakpoint icon disabled"
+					   'left-margin)))
+			  (remove-strings start end)
+			  (if (eq ?y flag)
+			      (put-string "B" (point) "enabled" 'left-margin)
+			    (put-string "b" (point) "disabled"
+					'left-margin)))))))))))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2303,40 +2323,29 @@ BUFFER nil or omitted means use the current buffer."
   (switch-to-buffer-other-frame
    (gdb-get-create-buffer 'gdb-assembler-buffer)))
 
-(defun gdb-invalidate-frame-and-assembler (&optional ignored)
-  (gdb-invalidate-frames)
-  (gdb-invalidate-assembler))
-
-(defun gdb-invalidate-breakpoints-and-assembler (&optional ignored)
-  (gdb-invalidate-breakpoints)
-  (gdb-invalidate-assembler))
-
-(defvar gdb-prev-main-or-pc nil)
-
-;; modified because if gdb-main-or-pc has changed value a new command
+;; modified because if gdb-current-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output
 (defun gdb-invalidate-assembler (&optional ignored)
   (if (and (gdb-get-buffer 'gdb-assembler-buffer)
 	   (or (not (member 'gdb-invalidate-assembler
 			    (gdb-get-pending-triggers)))
-	       (not (string-equal gdb-main-or-pc gdb-prev-main-or-pc))))
+	       (not (string-equal gdb-current-address gdb-previous-address))))
       (progn
 	;; take previous disassemble command off the queue
 	(save-excursion
 	  (set-buffer gud-comint-buffer)
-	  (let ((queue gdb-idle-input-queue) (item))
+	  (let ((queue (gdb-get-idle-input-queue)) (item))
 	    (dolist (item queue)
-	      (setq item (car queue))
 	      (if (equal (cdr item) '(gdb-assembler-handler))
-		  (setq gdb-idle-input-queue 
-			(delete item gdb-idle-input-queue))))))
+		  (gdb-set-idle-input-queue 
+		   (delete item (gdb-get-idle-input-queue)))))))
 	(gdb-enqueue-idle-input
-	 (list (concat "server disassemble " gdb-main-or-pc "\n")
+	 (list (concat "server disassemble " gdb-current-address "\n")
 	       'gdb-assembler-handler))
 	(gdb-set-pending-triggers
 	 (cons 'gdb-invalidate-assembler
 	       (gdb-get-pending-triggers)))
-	(setq gdb-prev-main-or-pc gdb-main-or-pc))))
+	(setq gdb-previous-address gdb-current-address))))
 
 (defun gdb-get-current-frame ()
   (if (not (member 'gdb-get-current-frame (gdb-get-pending-triggers)))
@@ -2353,8 +2362,19 @@ BUFFER nil or omitted means use the current buffer."
   (save-excursion
     (set-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer))
     (goto-char (point-min))
-    (if (looking-at "^#[0-9]*\\s-*0x\\S-* in \\(\\S-*\\)")
-	(setq gdb-current-frame (match-string 1))
+    (if (looking-at "^#[0-9]*\\s-*\\(\\S-*\\) in \\(\\S-*\\)")
+	(progn
+	  (setq gdb-current-frame (match-string 2))
+	  (let ((address (match-string 1)))
+	    ;; remove leading 0s from output of frame command.
+	    (if (string-match "0x0+\\(.*\\)" address)
+		(setq gdb-current-address (concat "0x" (match-string 1 address)))
+	      (setq gdb-current-address address)))
+	  (if (not (looking-at ".*) at "))
+	      (progn
+		(set-window-buffer gdb-source-window
+				   (gdb-get-create-buffer 'gdb-assembler-buffer))
+		(gdb-invalidate-assembler))))
       (if (looking-at "^#[0-9]*\\s-*\\(\\S-*\\)")
 	  (setq gdb-current-frame (match-string 1))))))
 
