@@ -542,7 +542,7 @@ together with a command \\<terminal-edit-mode-map>to return to terminal emulatio
   (setq mode-line-modified (default-value 'mode-line-modified))
   (setq major-mode 'terminal-mode)
   (setq mode-name "terminal")
-  (setq mode-line-process '(": %s")))
+  (setq mode-line-process '(":%s")))
 
 ;;;; more break hair
 
@@ -1172,7 +1172,7 @@ of the terminal-emulator"
   (setq mode-name "terminal")
 ; (make-local-variable 'Helper-return-blurb)
 ; (setq Helper-return-blurb "return to terminal simulator")
-  (setq mode-line-process '(": %s"))
+  (setq mode-line-process '(":%s"))
   (setq buffer-read-only t)
   (setq truncate-lines t)
   (make-local-variable 'terminal-escape-char)
