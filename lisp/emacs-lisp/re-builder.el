@@ -313,20 +313,23 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Call up the RE Builder for the current window."
   (interactive)
 
-  (if reb-target-buffer
-      (reb-delete-overlays))
-  (setq reb-target-buffer (current-buffer)
-	reb-target-window (selected-window)
-	reb-window-config (current-window-configuration))
-  (select-window (split-window (selected-window) (- (window-height) 4)))
-  (switch-to-buffer (get-buffer-create reb-buffer))
-  (erase-buffer)
-  (reb-insert-regexp)
-  (goto-char (+ 2 (point-min)))
-  (cond
-   ((reb-lisp-syntax-p)
-    (reb-lisp-mode))
-   (t (reb-mode))))
+  (if (and (string= (buffer-name) reb-buffer)
+           (memq major-mode '(reb-mode reb-lisp-mode)))
+      (message "Already in the RE Builder")
+    (if reb-target-buffer
+        (reb-delete-overlays))
+    (setq reb-target-buffer (current-buffer)
+          reb-target-window (selected-window)
+          reb-window-config (current-window-configuration))
+    (select-window (split-window (selected-window) (- (window-height) 4)))
+    (switch-to-buffer (get-buffer-create reb-buffer))
+    (erase-buffer)
+    (reb-insert-regexp)
+    (goto-char (+ 2 (point-min)))
+    (cond
+     ((reb-lisp-syntax-p)
+      (reb-lisp-mode))
+     (t (reb-mode)))))
 
 (defun reb-change-target-buffer (buf)
   "Change the target buffer and display it in the target window."
