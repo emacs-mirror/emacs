@@ -1,3 +1,8 @@
+2000-11-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (pos_visible_p): Compute the default character height
+	differently.
+
 2000-11-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (pos_visible_p): Handle case that we reach ZV without
