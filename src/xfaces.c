@@ -238,7 +238,7 @@ intern_face (f, face)
   else
     xgcv.background = f->display.x->background_pixel;
 
-  if (face->font && (int) face->font != FACE_DEFAULT)
+  if (face->font && face->font != (XFontStruct *) FACE_DEFAULT)
     xgcv.font = face->font->fid;
   else
     xgcv.font = f->display.x->font->fid;
