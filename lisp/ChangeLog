@@ -1,3 +1,9 @@
+2001-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-allow-child-lookup): Always return nil.
+	This fixes a bug that treated all files as directories.
+	(ange-ftp-insert-directory): Explicitly follow symlinks.
+	
 2001-12-28  Simon Josefsson  <jas@extundo.com>
 
 	* mail/sendmail.el (mail-envelope-from): Fix :type.

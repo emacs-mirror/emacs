@@ -2780,24 +2780,31 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 ;; 2. The syntax of FILE and DIR make it impossible that FILE could be a valid
 ;;     subdirectory. This is of course an OS dependent judgement.
 
+;;; Nowadays, the judgement for #2 is always "no".
+;;; With today's ftp servers on Unix and GNU systems,
+;;; it appears to be impossible to tell from the result
+;;; of the directory listing whether the argument is a directory.
+;;; This appears to be true even in Emacs 20.7
+
 (defmacro ange-ftp-allow-child-lookup (dir file)
-  `(not
-    (let* ((efile ,file) ; expand once.
-           (edir ,dir)
-           (parsed (ange-ftp-ftp-name edir))
-           (host-type (ange-ftp-host-type
-                       (car parsed))))
-      (or
-       ;; Deal with dired
-       (and (boundp 'dired-local-variables-file) ; in the dired-x package
-            (stringp dired-local-variables-file)
-            (string-equal dired-local-variables-file efile))
-       ;; No dots in dir names in vms.
-       (and (eq host-type 'vms)
-            (string-match "\\." efile))
-       ;; No subdirs in mts of cms.
-       (and (memq host-type '(mts cms))
-            (not (string-equal "/" (nth 2 parsed))))))))
+  nil)
+;;;   `(not
+;;;     (let* ((efile ,file) ; expand once.
+;;;            (edir ,dir)
+;;;            (parsed (ange-ftp-ftp-name edir))
+;;;            (host-type (ange-ftp-host-type
+;;;                        (car parsed))))
+;;;       (or
+;;;        ;; Deal with dired
+;;;        (and (boundp 'dired-local-variables-file) ; in the dired-x package
+;;;             (stringp dired-local-variables-file)
+;;;             (string-equal dired-local-variables-file efile))
+;;;        ;; No dots in dir names in vms.
+;;;        (and (eq host-type 'vms)
+;;;             (string-match "\\." efile))
+;;;        ;; No subdirs in mts of cms.
+;;;        (and (memq host-type '(mts cms))
+;;;             (not (string-equal "/" (nth 2 parsed))))))))
 
 (defun ange-ftp-file-entry-p (name)
   "Given NAME, return whether there is a file entry for it."
@@ -4318,13 +4325,19 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 
 (defun ange-ftp-insert-directory (file switches &optional wildcard full)
   (let ((short (ange-ftp-abbreviate-filename file))
-	(parsed (ange-ftp-ftp-name (expand-file-name file))))
+	(parsed (ange-ftp-ftp-name (expand-file-name file)))
+	tem)
     (if parsed
-	(insert
-	 (if wildcard
-	     (let ((default-directory (file-name-directory file)))
-	       (ange-ftp-ls (file-name-nondirectory file) switches nil nil t))
-	   (ange-ftp-ls file switches full)))
+	(if (and (not wildcard)
+		 (setq tem (file-symlink-p (directory-file-name file))))
+	    (ange-ftp-insert-directory
+	     (ange-ftp-replace-name-component file tem)
+	     switches wildcard full)
+	  (insert
+	   (if wildcard
+	       (let ((default-directory (file-name-directory file)))
+		 (ange-ftp-ls (file-name-nondirectory file) switches nil nil t))
+	     (ange-ftp-ls file switches full))))q
       (ange-ftp-real-insert-directory file switches wildcard full))))
 
 (defun ange-ftp-dired-uncache (dir)
