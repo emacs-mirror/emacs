@@ -1,3 +1,16 @@
+2000-09-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-file-header-face): Reset to its previous value.
+	(diff-hunk-text): Correctly use offsets rather than buffer-positions.
+	(diff-xor): New function.
+	(diff-find-source-location): Use it.  Fix a stupid name clash.
+	(diff-hunk-status-msg): New function.
+	(diff-apply-hunk): Drop args OTHER-FILE, DRY-RUN, POPUP and NOERROR.
+	(diff-test-hunk): Use diff-find-source-location.
+	(diff-goto-source): Favor the `reverse'.
+	(diff-hunk-text): Properly handle one-sided context diffs.
+	(diff-apply-hunk): When done, advance to the next hunk.
+
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* add-log.el (change-log-date-face, change-log-name-face)
