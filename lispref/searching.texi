@@ -1050,10 +1050,14 @@ A positive number means to include that many lines both before and after.
 @section Search and Replace
 @cindex replacement
 
-@defun perform-replace from-string replacements query-flag regexp-flag delimited-flag &optional repeat-count map
-This function is the guts of @code{query-replace} and related commands.
-It searches for occurrences of @var{from-string} and replaces some or
-all of them.  If @var{query-flag} is @code{nil}, it replaces all
+@defun perform-replace from-string replacements start end query-flag regexp-flag delimited-flag &optional repeat-count map
+This function is the guts of @code{query-replace} and related
+commands.  It searches for occurrences of @var{from-string} in the
+text between positions @var{start} and @var{end} and replaces some or
+all of them.  If @var{start} is @code{nil}, point is used instead, and
+the buffer's end is used for @var{end}.
+
+If @var{query-flag} is @code{nil}, it replaces all
 occurrences; otherwise, it asks the user what to do about each one.
 
 If @var{regexp-flag} is non-@code{nil}, then @var{from-string} is
