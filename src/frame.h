@@ -689,7 +689,7 @@ extern Lisp_Object selected_frame;
      ((FRAMEP (selected_frame)				\
        && FRAME_LIVE_P (XFRAME (selected_frame)))	\
       ? XFRAME (selected_frame)				\
-      : (struct frame *) (abort (), 0))
+      : (struct frame *) (abort (), NULL))
 
 
 /***********************************************************************
