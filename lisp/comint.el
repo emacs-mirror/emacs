@@ -571,7 +571,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-c" 'comint-interrupt-subjob)
   (define-key comint-mode-map "\C-c\C-z" 'comint-stop-subjob)
   (define-key comint-mode-map "\C-c\C-\\" 'comint-quit-subjob)
-  (define-key comint-mode-map "\C-c\C-m" 'comint-copy-old-input)
+  (define-key comint-mode-map "\C-c\C-m" 'comint-insert-input)
   (define-key comint-mode-map "\C-c\C-o" 'comint-delete-output)
   (define-key comint-mode-map "\C-c\C-r" 'comint-show-output)
   (define-key comint-mode-map "\C-c\C-e" 'comint-show-maximum-output)
@@ -582,7 +582,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map "\C-c\C-s" 'comint-write-output)
   (define-key comint-mode-map "\C-c." 'comint-insert-previous-argument)
   ;; Mouse Buttons:
-  (define-key comint-mode-map [mouse-2] 'comint-insert-clicked-input)
+  (define-key comint-mode-map [mouse-2] 'comint-mouse-insert-input)
   ;; Menu bars:
   ;; completion:
   (define-key comint-mode-map [menu-bar completion]
@@ -615,7 +615,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (define-key comint-mode-map [menu-bar inout kill-input]
     '("Kill Current Input" . comint-kill-input))
   (define-key comint-mode-map [menu-bar inout copy-input]
-    '("Copy Old Input" . comint-copy-old-input))
+    '("Copy Old Input" . comint-insert-input))
   (define-key comint-mode-map [menu-bar inout forward-matching-history]
     '("Forward Matching Input..." . comint-forward-matching-input))
   (define-key comint-mode-map [menu-bar inout backward-matching-history]
@@ -798,11 +798,10 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	(set-process-coding-system proc decoding encoding))
     proc))
 
-
-(defun comint-insert-clicked-input (event)
-  "In a Comint buffer, set the current input to the clicked-on previous input."
-  (interactive "e")
-  (let ((pos (posn-point (event-end event))))
+(defun comint-insert-input ()
+  "In a Comint buffer, set the current input to the previous input at point."
+  (interactive)
+  (let ((pos (point)))
     (if (not (eq (get-char-property pos 'field) 'input))
 	;; No input at POS, fall back to the global definition.
 	(let* ((keys (this-command-keys))
@@ -816,11 +815,16 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
        (or (marker-position comint-accum-marker)
 	   (process-mark (get-buffer-process (current-buffer))))
        (point))
-      ;; Insert the clicked-upon input
+      ;; Insert the input at point
       (insert (buffer-substring-no-properties
 	       (previous-single-char-property-change (1+ pos) 'field)
 	       (next-single-char-property-change pos 'field))))))
 
+(defun comint-mouse-insert-input (event)
+  "In a Comint buffer, set the current input to the previous input you click on."
+  (interactive "e")
+  (mouse-set-point event)
+  (comint-insert-input)) 
 
 
 ;; Input history processing in a buffer
@@ -1857,17 +1861,6 @@ the current line with any initial string matching the regexp
 	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (line-end-position)))))
-
-(defun comint-copy-old-input ()
-  "Insert after prompt old input at point as new input to be edited.
-Calls `comint-get-old-input' to get old input."
-  (interactive)
-  (let ((input (funcall comint-get-old-input))
-	(process (get-buffer-process (current-buffer))))
-    (if (not process)
-	(error "Current buffer has no process")
-      (goto-char (process-mark process))
-      (insert input))))
 
 (defun comint-skip-prompt ()
   "Skip past the text matching regexp `comint-prompt-regexp'.
