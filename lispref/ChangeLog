@@ -1,3 +1,12 @@
+2004-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* backups.texi:  Various small changes in addition to:
+	(Making Backups): Mention return value of `backup-buffer'.
+	(Auto-Saving): Mention optional FORCE argument to
+	`delete-auto-save-file-if-necessary'.
+	(Reverting): Mention optional PRESERVE-MODES argument to
+	`revert-buffer'.  Correct description of `revert-buffer-function'.
+
 2004-03-22  Juri Linkov  <juri@jurta.org>
 
 	* sequences.texi (Sequence Functions): Replace xref to `Vectors'

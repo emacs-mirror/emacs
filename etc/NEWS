@@ -88,6 +88,19 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** When used interactively, `format-write-file' now asks for confirmation
+before overwriting an existing file, unless a prefix argument is
+supplied.  This behavior is analogous to `write-file'.
+
+** You can now use Auto Revert mode to `tail' a file.
+If point is at the end of a file buffer before reverting, Auto Revert
+mode keeps it at the end after reverting.  Similarly if point is
+displayed at the end of a file buffer in any window, it will stay at
+the end of the buffer in that window.  This allows to tail a file:
+just put point at the end of the buffer and it will stay there.  This
+rule applies to file buffers.  For non-file buffers, the behavior may
+be mode dependent.
+
 ** Auto Revert mode is now more careful to avoid excessive reverts and
 other potential problems when deciding which non-file buffers to
 revert.  This matters especially if Global Auto Revert mode is enabled
