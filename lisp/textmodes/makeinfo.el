@@ -1,6 +1,6 @@
 ;;; makeinfo.el --- run makeinfo conveniently
 
-;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 2002 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell      
 ;; Maintainer: FSF
@@ -47,6 +47,7 @@
 ;;; Variables used by `makeinfo'
 
 (require 'compile)
+(require 'info)
 
 (defgroup makeinfo nil
   "Run makeinfo conveniently"
@@ -77,6 +78,9 @@ the proper way to specify those is with the Texinfo commands
 
 (defvar makeinfo-output-file-name nil
   "Info file name used for text output by `makeinfo'.")
+
+(defvar makeinfo-output-node-name nil
+  "Node name to visit in output file, for `makeinfo-buffer'.")
 
 
 ;;; The `makeinfo' function definitions
@@ -167,12 +171,13 @@ command to gain use of `next-error'."
                      " " 
                      makeinfo-temp-file)
              "Use `makeinfo-buffer' to gain use of the `next-error' command"
-	     nil)))))))
+	     nil
+             'makeinfo-compilation-sentinel-region)))))))
 
 ;;; Actually run makeinfo.  COMMAND is the command to run.
 ;;; ERROR-MESSAGE is what to say when next-error can't find another error.
 ;;; If PARSE-ERRORS is non-nil, do try to parse error messages.
-(defun makeinfo-compile (command error-message parse-errors)
+(defun makeinfo-compile (command error-message parse-errors sentinel)
   (let ((buffer
 	 (compile-internal command error-message nil
 			   (and (not parse-errors)
@@ -181,27 +186,36 @@ command to gain use of `next-error'."
 				;; ever find any errors.
 				(lambda (&rest ignore)
 				  (setq compilation-error-list nil))))))
-    (set-process-sentinel (get-buffer-process buffer)
-			  'makeinfo-compilation-sentinel)))
+    (set-process-sentinel (get-buffer-process buffer) sentinel)))
 
 ;; Delete makeinfo-temp-file after processing is finished,
 ;; and visit Info file.
 ;; This function is called when the compilation process changes state.
 ;; Based on `compilation-sentinel' in compile.el
-(defun makeinfo-compilation-sentinel (proc msg)
+(defun makeinfo-compilation-sentinel-region (proc msg)
+  "Sentinel for `makeinfo-compile' run from `makeinfo-region'."
   (compilation-sentinel proc msg)
-  (if (and makeinfo-temp-file (file-exists-p makeinfo-temp-file))
-      (delete-file makeinfo-temp-file))
-  ;; Always use the version on disk.
-  (let ((buffer (get-file-buffer makeinfo-output-file-name)))
-    (if buffer
-	(with-current-buffer buffer
-	  (revert-buffer t t))
-      (setq buffer (find-file-noselect makeinfo-output-file-name)))
-    (if (window-dedicated-p (selected-window))
-	(switch-to-buffer-other-window buffer)
-      (switch-to-buffer buffer)))
-  (goto-char (point-min)))
+  (when (memq (process-status proc) '(signal exit))
+    (if (file-exists-p makeinfo-temp-file)
+	(delete-file makeinfo-temp-file))
+    ;; Always use the version on disk.
+    (let ((buffer (get-file-buffer makeinfo-output-file-name)))
+      (if buffer
+	  (with-current-buffer buffer
+	    (revert-buffer t t))
+	(setq buffer (find-file-noselect makeinfo-output-file-name)))
+      (if (window-dedicated-p (selected-window))
+	  (switch-to-buffer-other-window buffer)
+	(switch-to-buffer buffer)))
+    (goto-char (point-min))))
+
+(defun makeinfo-current-node ()
+  "Return the name of the node containing point, in a texinfo file."
+  (save-excursion
+    (end-of-line)           ; in case point is at the start of an @node line
+    (if (re-search-backward "^@node\\s-+\\([^,\n]+\\)" (point-min) t)
+        (match-string 1)
+      "Top")))
 
 (defun makeinfo-buffer ()
   "Make Info file from current buffer.
@@ -225,16 +239,27 @@ Use the \\[next-error] command to move to the next error
            "^@setfilename[ \t]+\\([^ \t\n]+\\)[ \t]*"
            search-end t)
           (setq makeinfo-output-file-name 
-                (buffer-substring (match-beginning 1) (match-end 1)))
+                (expand-file-name
+                 (buffer-substring (match-beginning 1) (match-end 1))))
         (error
          "The texinfo file needs a line saying: @setfilename <name>"))))
+  (setq makeinfo-output-node-name (makeinfo-current-node))
   
   (save-excursion
     (makeinfo-compile
      (concat makeinfo-run-command " " makeinfo-options
              " " buffer-file-name)
      "No more errors."
-     t)))
+     t
+     'makeinfo-compilation-sentinel-buffer)))
+
+(defun makeinfo-compilation-sentinel-buffer (proc msg)
+  "Sentinel for `makeinfo-compile' run from `makeinfo-buffer'."
+  (compilation-sentinel proc msg)
+  (when (memq (process-status proc) '(signal exit))
+    (when (file-exists-p makeinfo-output-file-name)
+      (Info-revert-find-node
+       makeinfo-output-file-name makeinfo-output-node-name))))
 
 (defun makeinfo-recenter-compilation-buffer (linenum)
   "Redisplay `*compilation*' buffer so most recent output can be seen.
