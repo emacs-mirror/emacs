@@ -2289,10 +2289,14 @@ void forall_images_in_image_cache P_ ((struct frame *,
 int valid_image_p P_ ((Lisp_Object));
 void prepare_image_for_display P_ ((struct frame *, struct image *));
 int lookup_image P_ ((struct frame *, Lisp_Object));
+
+#ifdef HAVE_X_WINDOWS
 unsigned long image_background P_ ((struct image *, struct frame *,
 				    XImage *ximg));
 int image_background_transparent P_ ((struct image *, struct frame *,
 				      XImage *mask));
+#endif /* HAVE_X_WINDOWS */
+
 extern Lisp_Object tip_frame;
 extern Window tip_window;
 EXFUN (Fx_show_tip, 6);
