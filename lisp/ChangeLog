@@ -1,3 +1,8 @@
+2002-07-25  Markus Rost  <rost@math.ohio-state.edu>
+
+	* ediff-wind.el (ediff-window-setup-function): Extend type
+	declaration.
+
 2002-07-25  Sam Steingold  <sds@gnu.org>
 
 	* replace.el (occur-rename-buffer): New command.
