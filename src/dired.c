@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 
 #include "systime.h"
+#include <errno.h>
 
 #ifdef VMS
 #include <string.h>
@@ -208,6 +209,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 #endif /* not VMS */
 
   /* Loop reading blocks until EOF or error.  */
+  errno = 0;
   while ((dp = readdir (d)) != NULL)
     {
       if (DIRENTRY_NONEMPTY (dp))
