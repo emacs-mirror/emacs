@@ -101,64 +101,64 @@ temacs:
         Link    Info    Adralgn      Entsize
 
 [1]     1       2       0x80480d4    0xd4         0x13          .interp
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [2]     5       2       0x80480e8    0xe8         0x388         .hash
-        3       0       0x4          0x4          
+        3       0       0x4          0x4
 
 [3]     11      2       0x8048470    0x470        0x7f0         .dynsym
-        4       1       0x4          0x10         
+        4       1       0x4          0x10
 
 [4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [5]     9       2       0x8049010    0x1010       0x338         .rel.plt
-        3       7       0x4          0x8          
+        3       7       0x4          0x8
 
 [6]     1       6       0x8049348    0x1348       0x3           .init
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [7]     1       6       0x804934c    0x134c       0x680         .plt
-        0       0       0x4          0x4          
+        0       0       0x4          0x4
 
 [8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [12]    1       3       0x8088330    0x3f330      0x20afc       .data
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
-        0       0       0x4          0x4          
+        0       0       0x4          0x4
 
 [15]    6       3       0x80a9874    0x60874      0x80          .dynamic
-        4       0       0x4          0x8          
+        4       0       0x4          0x8
 
 [16]    8       3       0x80a98f4    0x608f4      0x449c        .bss
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [17]    2       0       0            0x608f4      0x9b90        .symtab
-        18      371     0x4          0x10         
+        18      371     0x4          0x10
 
 [18]    3       0       0            0x6a484      0x8526        .strtab
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [19]    3       0       0            0x729aa      0x93          .shstrtab
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [20]    1       0       0            0x72a3d      0x68b7        .comment
-        0       0       0x1          0            
+        0       0       0x1          0
 
 raid:/nfs/raid/src/dist-18.56/src> dump -h xemacs
 
@@ -169,67 +169,67 @@ xemacs:
         Link    Info    Adralgn      Entsize
 
 [1]     1       2       0x80480d4    0xd4         0x13          .interp
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [2]     5       2       0x80480e8    0xe8         0x388         .hash
-        3       0       0x4          0x4          
+        3       0       0x4          0x4
 
 [3]     11      2       0x8048470    0x470        0x7f0         .dynsym
-        4       1       0x4          0x10         
+        4       1       0x4          0x10
 
 [4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [5]     9       2       0x8049010    0x1010       0x338         .rel.plt
-        3       7       0x4          0x8          
+        3       7       0x4          0x8
 
 [6]     1       6       0x8049348    0x1348       0x3           .init
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [7]     1       6       0x804934c    0x134c       0x680         .plt
-        0       0       0x4          0x4          
+        0       0       0x4          0x4
 
 [8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [12]    1       3       0x8088330    0x3f330      0x20afc       .data
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
-        0       0       0x4          0x4          
+        0       0       0x4          0x4
 
 [15]    6       3       0x80a9874    0x60874      0x80          .dynamic
-        4       0       0x4          0x8          
+        4       0       0x4          0x8
 
 [16]    8       3       0x80c6800    0x7d800      0             .bss
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [17]    2       0       0            0x7d800      0x9b90        .symtab
-        18      371     0x4          0x10         
+        18      371     0x4          0x10
 
 [18]    3       0       0            0x87390      0x8526        .strtab
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [19]    3       0       0            0x8f8b6      0x93          .shstrtab
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [20]    1       0       0            0x8f949      0x68b7        .comment
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [21]    1       3       0x80a98f4    0x608f4      0x1cf0c       .data
-        0       0       0x4          0            
+        0       0       0x4          0
 
  * This is an example of how the file header is changed.  "Shoff" is
  * the section header offset within the file.  Since that table is
@@ -279,20 +279,20 @@ temacs:
 Type        Offset      Vaddr       Paddr
 Filesz      Memsz       Flags       Align
 
-6           0x34        0x8048034   0           
-0xa0        0xa0        5           0           
+6           0x34        0x8048034   0
+0xa0        0xa0        5           0
 
-3           0xd4        0           0           
-0x13        0           4           0           
+3           0xd4        0           0
+0x13        0           4           0
 
-1           0x34        0x8048034   0           
-0x3f2f9     0x3f2f9     5           0x1000      
+1           0x34        0x8048034   0
+0x3f2f9     0x3f2f9     5           0x1000
 
-1           0x3f330     0x8088330   0           
-0x215c4     0x25a60     7           0x1000      
+1           0x3f330     0x8088330   0
+0x215c4     0x25a60     7           0x1000
 
-2           0x60874     0x80a9874   0           
-0x80        0           7           0           
+2           0x60874     0x80a9874   0
+0x80        0           7           0
 
 raid:/nfs/raid/src/dist-18.56/src> dump -o xemacs
 
@@ -301,42 +301,42 @@ xemacs:
 Type        Offset      Vaddr       Paddr
 Filesz      Memsz       Flags       Align
 
-6           0x34        0x8048034   0           
-0xa0        0xa0        5           0           
+6           0x34        0x8048034   0
+0xa0        0xa0        5           0
 
-3           0xd4        0           0           
-0x13        0           4           0           
+3           0xd4        0           0
+0x13        0           4           0
 
-1           0x34        0x8048034   0           
-0x3f2f9     0x3f2f9     5           0x1000      
+1           0x34        0x8048034   0
+0x3f2f9     0x3f2f9     5           0x1000
 
-1           0x3f330     0x8088330   0           
-0x3e4d0     0x3e4d0     7           0x1000      
+1           0x3f330     0x8088330   0
+0x3e4d0     0x3e4d0     7           0x1000
 
-2           0x60874     0x80a9874   0           
-0x80        0           7           0           
+2           0x60874     0x80a9874   0
+0x80        0           7           0
 
 
  */
 
-/* Modified by wtien@urbana.mcd.mot.com of Motorola Inc. 
- * 
+/* Modified by wtien@urbana.mcd.mot.com of Motorola Inc.
+ *
  * The above mechanism does not work if the unexeced ELF file is being
- * re-layout by other applications (such as `strip'). All the applications 
+ * re-layout by other applications (such as `strip'). All the applications
  * that re-layout the internal of ELF will layout all sections in ascending
- * order of their file offsets. After the re-layout, the data2 section will 
- * still be the LAST section in the section header vector, but its file offset 
+ * order of their file offsets. After the re-layout, the data2 section will
+ * still be the LAST section in the section header vector, but its file offset
  * is now being pushed far away down, and causes part of it not to be mapped
- * in (ie. not covered by the load segment entry in PHDR vector), therefore 
+ * in (ie. not covered by the load segment entry in PHDR vector), therefore
  * causes the new binary to fail.
  *
  * The solution is to modify the unexec algorithm to insert the new data2
  * section header right before the new bss section header, so their file
- * offsets will be in the ascending order. Since some of the section's (all 
- * sections AFTER the bss section) indexes are now changed, we also need to 
- * modify some fields to make them point to the right sections. This is done 
+ * offsets will be in the ascending order. Since some of the section's (all
+ * sections AFTER the bss section) indexes are now changed, we also need to
+ * modify some fields to make them point to the right sections. This is done
  * by macro PATCH_INDEX. All the fields that need to be patched are:
- * 
+ *
  * 1. ELF header e_shstrndx field.
  * 2. section header sh_link and sh_info field.
  * 3. symbol table entry st_shndx field.
@@ -348,67 +348,67 @@ Filesz      Memsz       Flags       Align
         Link    Info    Adralgn      Entsize
 
 [1]     1       2       0x80480d4    0xd4         0x13          .interp
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [2]     5       2       0x80480e8    0xe8         0x388         .hash
-        3       0       0x4          0x4          
+        3       0       0x4          0x4
 
 [3]     11      2       0x8048470    0x470        0x7f0         .dynsym
-        4       1       0x4          0x10         
+        4       1       0x4          0x10
 
 [4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [5]     9       2       0x8049010    0x1010       0x338         .rel.plt
-        3       7       0x4          0x8          
+        3       7       0x4          0x8
 
 [6]     1       6       0x8049348    0x1348       0x3           .init
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [7]     1       6       0x804934c    0x134c       0x680         .plt
-        0       0       0x4          0x4          
+        0       0       0x4          0x4
 
 [8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [12]    1       3       0x8088330    0x3f330      0x20afc       .data
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
-        0       0       0x4          0x4          
+        0       0       0x4          0x4
 
 [15]    6       3       0x80a9874    0x60874      0x80          .dynamic
-        4       0       0x4          0x8          
+        4       0       0x4          0x8
 
 [16]    1       3       0x80a98f4    0x608f4      0x1cf0c       .data
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [17]    8       3       0x80c6800    0x7d800      0             .bss
-        0       0       0x4          0            
+        0       0       0x4          0
 
 [18]    2       0       0            0x7d800      0x9b90        .symtab
-        19      371     0x4          0x10         
+        19      371     0x4          0x10
 
 [19]    3       0       0            0x87390      0x8526        .strtab
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [20]    3       0       0            0x8f8b6      0x93          .shstrtab
-        0       0       0x1          0            
+        0       0       0x1          0
 
 [21]    1       0       0            0x8f949      0x68b7        .comment
-        0       0       0x1          0            
+        0       0       0x1          0
 
  */
 
@@ -684,7 +684,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (old_data_index == old_file_h->e_shnum)
     fatal ("Can't find .data in %s.\n", old_name, 0);
 
-  /* Walk through all section headers, insert the new data2 section right 
+  /* Walk through all section headers, insert the new data2 section right
      before the new bss section. */
   for (n = 1, nn = 1; n < (int) old_file_h->e_shnum; n++, nn++)
     {
@@ -695,7 +695,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  /* Steal the data section header for this data2 section. */
 	  memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (old_data_index),
 		  new_file_h->e_shentsize);
-	  
+
 	  NEW_SECTION_H (nn).sh_addr = new_data2_addr;
 	  NEW_SECTION_H (nn).sh_offset = new_data2_offset;
 	  NEW_SECTION_H (nn).sh_size = new_data2_size;
@@ -705,15 +705,15 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  NEW_SECTION_H (nn).sh_addralign = OLD_SECTION_H (n).sh_addralign;
 
 	  /* Now copy over what we have in the memory now. */
-	  memcpy (NEW_SECTION_H (nn).sh_offset + new_base, 
-		  (caddr_t) OLD_SECTION_H (n).sh_addr, 
+	  memcpy (NEW_SECTION_H (nn).sh_offset + new_base,
+		  (caddr_t) OLD_SECTION_H (n).sh_addr,
 		  new_data2_size);
 	  nn++;
 	}
-      
-      memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n), 
+
+      memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n),
 	      old_file_h->e_shentsize);
-      
+
       /* The new bss section's size is zero, and its file offset and virtual
 	 address should be off by NEW_DATA2_SIZE. */
       if (n == old_bss_index)
@@ -722,7 +722,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  NEW_SECTION_H (nn).sh_offset += new_data2_size;
 	  NEW_SECTION_H (nn).sh_addr += new_data2_size;
 	  /* Let the new bss section address alignment be the same as the
-	     section address alignment followed the old bss section, so 
+	     section address alignment followed the old bss section, so
 	     this section will be placed in exactly the same place. */
 	  NEW_SECTION_H (nn).sh_addralign = OLD_SECTION_H (nn).sh_addralign;
 	  NEW_SECTION_H (nn).sh_size = 0;
@@ -741,9 +741,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	}
 
       /* If any section hdr refers to the section after the new .data
-	 section, make it refer to next one because we have inserted 
+	 section, make it refer to next one because we have inserted
 	 a new section in between.  */
-      
+
       PATCH_INDEX (NEW_SECTION_H (nn).sh_link);
       /* For symbol tables, info is a symbol table index,
 	 so don't change it.  */
@@ -755,7 +755,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       if (NEW_SECTION_H (nn).sh_type == SHT_NULL
 	  || NEW_SECTION_H (nn).sh_type == SHT_NOBITS)
 	continue;
-      
+
       /* Write out the sections. .data and .data1 (and data2, called
 	 ".data" in the strings table) get copied from the current process
 	 instead of the old file.  */
@@ -765,7 +765,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	src = (caddr_t) OLD_SECTION_H (n).sh_addr;
       else
 	src = old_base + OLD_SECTION_H (n).sh_offset;
-      
+
       memcpy (NEW_SECTION_H (nn).sh_offset + new_base, src,
 	      NEW_SECTION_H (nn).sh_size);
 
@@ -775,7 +775,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	{
 	  Elf32_Shdr *spt = &NEW_SECTION_H (nn);
 	  unsigned int num = spt->sh_size / spt->sh_entsize;
-	  Elf32_Sym * sym = (Elf32_Sym *) (NEW_SECTION_H (nn).sh_offset + 
+	  Elf32_Sym * sym = (Elf32_Sym *) (NEW_SECTION_H (nn).sh_offset +
 					   new_base);
 	  for (; num--; sym++)
 	    {
@@ -783,7 +783,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 		  || (sym->st_shndx == SHN_ABS)
 		  || (sym->st_shndx == SHN_COMMON))
 		continue;
-	
+
 	      PATCH_INDEX (sym->st_shndx);
 	    }
 	}
@@ -810,7 +810,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  memcpy (&symp->st_value, &new_bss_addr, sizeof (new_bss_addr));
     }
 
-#ifdef SOLARIS2
   /* This loop seeks out relocation sections for the data section, so
      that it can undo relocations performed by the runtime linker.  */
   for (n = new_file_h->e_shnum - 1; n; n--)
@@ -821,9 +820,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	break;
       case SHT_REL:
       case SHT_RELA:
-	/* This code handles two different size structs, but there
-            should be no harm in that provided that r_offset is always
-            the first member.  */
+	/* This code handles two different size structs, but there should
+	   be no harm in that provided that r_offset is always the first
+	   member.  */
 	nn = section.sh_info;
 	if (!strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".data")
 	    || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
@@ -842,7 +841,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	break;
       }
     }
-#endif
 
 #ifdef UNEXEC_USE_MAP_PRIVATE
   if (lseek (new_file, 0, SEEK_SET) == -1)
