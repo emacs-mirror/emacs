@@ -1,5 +1,7 @@
 2004-06-13  Andreas Schwab  <schwab@suse.de>
 
+	* image.c: Include <ctype.h>.
+
 	* xfaces.c (face_attr_equal_p): Declare parameters.
 
 2004-06-13  Kenichi Handa  <handa@m17n.org>
