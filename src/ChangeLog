@@ -1,3 +1,8 @@
+2004-10-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_mode_element): Fix display of wide chars.
+	From Kenichi Handa  <handa@m17n.org>.
+
 2004-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_update_scrollbar_pos): Change XClearWindow to
