@@ -38,6 +38,10 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 #include "window.h"
 
+#ifdef HAVE_TERMCAP_H
+#include <termcap.h>
+#endif
+
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
@@ -56,14 +60,14 @@ static void tty_hide_cursor P_ ((void));
 #define OUTPUT1(a) tputs (a, 1, cmputc)
 #define OUTPUTL(a, lines) tputs (a, lines, cmputc)
 
-#define OUTPUT_IF(a)						\
-     if (a)							\
-       tputs (a, (int) (FRAME_HEIGHT (XFRAME (selected_frame))	\
-			- curY), cmputc);			\
-     else							\
-       (void) 0
+#define OUTPUT_IF(a)							\
+     do {								\
+       if (a)								\
+         tputs (a, (int) (FRAME_HEIGHT (XFRAME (selected_frame))	\
+			  - curY), cmputc);				\
+     } while (0)
      
-#define OUTPUT1_IF(a) if (a) tputs (a, 1, cmputc); else (void) 0
+#define OUTPUT1_IF(a) do { if (a) tputs (a, 1, cmputc); } while (0)
 
 /* Function to use to ring the bell.  */
 
@@ -940,8 +944,6 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
       /* We must skip glyphs to be padded for a wide character.  */
       if (! CHAR_GLYPH_PADDING_P (*src))
 	{
-	  struct frame *sf = XFRAME (selected_frame);
-	  
 	  c = src->u.ch.code;
 	  if (! GLYPH_CHAR_VALID_P (c))
 	    {
@@ -1995,7 +1997,6 @@ turn_off_face (f, face_id)
      int face_id;
 {
   struct face *face = FACE_FROM_ID (f, face_id);
-  Lisp_Object entry;
 
   xassert (face != NULL);
 
