@@ -1,3 +1,7 @@
+2004-04-20  Juanma Barranquero  <lektu@terra.es>
+
+	* calendar/time-date.el (time-to-day-in-year): Fix docstring.
+
 2004-04-20  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-lookup-key): New optional arg
@@ -15,8 +19,8 @@
 2004-04-20  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-frame-parameters): New constant.
-	(gdb-frame-breakpoints-buffer, gdb-frame-stack-buffer) 
-	(gdb-frame-threads-buffer, gdb-frame-registers-buffer) 
+	(gdb-frame-breakpoints-buffer, gdb-frame-stack-buffer)
+	(gdb-frame-threads-buffer, gdb-frame-registers-buffer)
 	(gdb-frame-locals-buffer, gdb-frame-gdb-buffer)
 	(gdb-frame-assembler-buffer): Improve behaviour with
 	multiple frames.
