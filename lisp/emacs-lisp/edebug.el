@@ -2093,9 +2093,9 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec edebug-\` (def-form))
 
 ;; Assume immediate quote in unquotes mean backquote at next higher level.
-(def-edebug-spec , (&or ("quote" edebug-`) def-form))
+(def-edebug-spec , (&or ("quote" edebug-\`) def-form))
 (def-edebug-spec ,@ (&define  ;; so (,@ form) is never wrapped.
-		     &or ("quote" edebug-`) def-form))
+		     &or ("quote" edebug-\`) def-form))
 
 ;; New byte compiler.
 (def-edebug-spec defsubst defun)
