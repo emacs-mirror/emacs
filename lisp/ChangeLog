@@ -1,3 +1,7 @@
+2001-04-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (normal-erase-is-backspace-mode): Doc fix.
+
 2001-04-06  Dave Love  <fx@gnu.org>
 
 	* international/encoded-kb.el (encoded-kbd-self-insert-ccl):
