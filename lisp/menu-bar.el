@@ -416,9 +416,12 @@ turn off menu bars; otherwise, turn on menu bars."
    ;; Apply it to existing frames.
    (let ((frames (frame-list)))
      (while frames
-       (modify-frame-parameters (car frames)
-				(list (cons 'menu-bar-lines
+       (let ((height (cdr (assq 'height (frame-parameters (selected-frame))))))
+	 (modify-frame-parameters (car frames)
+				  (list (cons 'menu-bar-lines
 					    (if menu-bar-mode 1 0))))
+	 (modify-frame-parameters (car frames)
+				  (list (cons 'height height))))
        (setq frames (cdr frames))))))
 
 (provide 'menu-bar)
