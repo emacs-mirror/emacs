@@ -1219,7 +1219,6 @@ See also the function `condition-case'.")
   Lisp_Object real_error_symbol;
   Lisp_Object combined_data;
   extern int display_busy_cursor_p;
-  extern int redisplaying_p;
 
   immediate_quit = 0;
   if (gc_in_progress || waiting_for_input)
@@ -1236,7 +1235,6 @@ See also the function `condition-case'.")
   if (display_busy_cursor_p)
     Fx_hide_busy_cursor (Qt);
 #endif
-  redisplaying_p = 0;
 
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function))
