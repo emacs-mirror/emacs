@@ -1201,7 +1201,7 @@ This checks if all multi-byte characters in the region are printable or not."
     ;; Be sure to have font information for Latin-1.
     (or (assq 'iso-8859-1 ps-mule-font-info-database)
 	(setq ps-mule-font-info-database
-	      (cons '((iso-8859-1 (normal nil nil)))
+	      (cons '(iso-8859-1 (normal nil nil))
 		    ps-mule-font-info-database)))
 
     ;; Generate ps-mule-font-spec-tables.
