@@ -1,3 +1,14 @@
+2002-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* play/pong.el (pong-height): Don't use height that exceeds the
+	frame height.
+
+	* play/gamegrid.el (gamegrid-display-type): Treat any
+	color-capable display as color-x, if display-color-p is fboundp.
+	(gamegrid-make-color-x-face): Don't call gamegrid-color twice.
+	(gamegrid-make-color-tty-face): Use the value of color, not the
+	symbol itself.  Don't call gamegrid-color.
+
 2002-02-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* gud.el (gud-refresh): Call recenter only after we are sure we

@@ -49,7 +49,7 @@
   :group 'pong
   :type '(integer))
 
-(defcustom pong-height 30
+(defcustom pong-height (min 30 (- (frame-height) 6))
   "*Height of the playfield."
   :group 'pong
   :type '(integer))
