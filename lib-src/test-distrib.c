@@ -1,4 +1,13 @@
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <stdio.h>
+
+#ifndef O_RDONLY
+#define O_RDONLY 0
+#endif
+
 
 /* Break string in two parts to avoid buggy C compilers that ignore characters
    after nulls in strings.  */
@@ -44,7 +53,7 @@ main (argc, argv)
       fprintf (stderr, "Usage: %s testfile\n", argv[0]);
       exit (2);
     }
-  fd = open (argv[1], 0);
+  fd = open (argv[1], O_RDONLY);
   if (fd < 0)
     {
       perror (argv[1]);
