@@ -1784,6 +1784,10 @@ XTmouse_position (f, bar_window, part, x, y, time)
 {
   FRAME_PTR f1;
 
+  /* If this isn't an X-window frame, quit now. */
+  if (!FRAME_X_P (f))
+    return;
+
   BLOCK_INPUT;
 
   if (! NILP (last_mouse_scroll_bar))
