@@ -76,6 +76,8 @@ typedef PoolClass AbstractBufferPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractSegBufPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
 typedef PoolClass AbstractCollectPoolClass; /* <code/poolabs.c> */
+typedef struct TraceStartMessageStruct
+  *TraceStartMessage;                   /* <design/mesage-gc> */
 typedef struct TraceStruct *Trace;      /* <design/trace/> */
 typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
 typedef struct ChainStruct *Chain;      /* <design/trace/> */
@@ -232,6 +234,7 @@ typedef void (*MessageFinalizationRefMethod)
 typedef Size (*MessageGCLiveSizeMethod)(Message message);
 typedef Size (*MessageGCCondemnedSizeMethod)(Message message);
 typedef Size (*MessageGCNotCondemnedSizeMethod)(Message message);
+typedef const char * (*MessageGCStartWhyMethod)(Message message);
 
 
 /* Message Types -- <design/message/> and elsewhere */
@@ -401,6 +404,18 @@ enum {
   TraceFINISHED
 };
 
+/* TraceStart reasons.  Reasons for why a trace is started. */
+
+enum {
+  TraceStartWhyBASE = 1, /* not a reason, the base of the enum. */
+  TraceStartWhyNURSERY = TraceStartWhyBASE,
+  TraceStartWhyGLOBAL,
+  TraceStartWhyOPPORTUNISM,
+  TraceStartWhyCLIENT,
+  TraceStartWhyWALK,
+  TraceStartWhyLIMIT /* not a reason, the limit of the enum. */
+};
+
 
 /* MessageTypes -- see <design/message/> */
 /* .message.types: Keep in sync with <code/mps.h#message.types> */
@@ -408,6 +423,7 @@ enum {
 enum {
   MessageTypeFINALIZATION,
   MessageTypeGC,
+  MessageTypeGCSTART,
   MessageTypeLIMIT
 };
 

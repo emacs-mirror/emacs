@@ -12,11 +12,16 @@
 
 SRCID(trace, "$Id$");
 
+/* Forward declarations */
+static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage);
 
 /* Types */
 
-enum {traceAccountingPhaseRootScan = 1, traceAccountingPhaseSegScan,
-      traceAccountingPhaseSingleScan};
+enum {
+  traceAccountingPhaseRootScan = 1,
+  traceAccountingPhaseSegScan,
+  traceAccountingPhaseSingleScan
+};
 typedef int traceAccountingPhase;
 
 
@@ -32,7 +37,7 @@ typedef struct TraceMessageStruct  {
   MessageStruct messageStruct;
 } TraceMessageStruct, *TraceMessage;
 
-#define TraceMessageMessage(TraceMessage) (&((TraceMessage)->messageStruct))
+#define TraceMessageMessage(traceMessage) (&((traceMessage)->messageStruct))
 #define MessageTraceMessage(message) \
   (PARENT(TraceMessageStruct, messageStruct, message))
 
@@ -102,6 +107,7 @@ static MessageClassStruct TraceMessageClassStruct = {
   TraceMessageLiveSize,          /* GCLiveSize */
   TraceMessageCondemnedSize,     /* GCCondemnedSize */
   TraceMessageNotCondemnedSize,  /* GCNotCondemnedSize */
+  MessageNoGCStartWhy,           /* GCStartWhy */
   MessageClassSig                /* <design/message/#class.sig.double> */
 };
 
@@ -117,6 +123,135 @@ static void TraceMessageInit(Arena arena, TraceMessage tMessage)
 
   tMessage->sig = TraceMessageSig;
   AVERT(TraceMessage, tMessage);
+}
+
+/* TraceStartMessage - manages info needed by start of trace message
+  (mps_message_type_gc_start).
+  
+  (structure declared in <code/mpmst.h> ) */
+
+#define TraceStartMessageMessage(traceStartMessage) \
+  (&((traceStartMessage)->messageStruct))
+#define MessageTraceStartMessage(message) \
+  (PARENT(TraceStartMessageStruct, messageStruct, message))
+
+static Bool TraceStartMessageCheck(TraceStartMessage message)
+{
+  size_t i;
+
+  CHECKS(TraceStartMessage, message);
+  CHECKD(Message, TraceStartMessageMessage(message));
+  CHECKL(MessageGetType(TraceStartMessageMessage(message)) ==
+         MessageTypeGCSTART);
+
+  /* Check that why is NUL terminated. */
+  for(i=0; i<NELEMS(message->why); ++i) {
+    if(message->why[i] == 0) {
+       break;
+    }
+  }
+  CHECKL(i<NELEMS(message->why));
+
+  return TRUE;
+}
+
+static void TraceStartMessageDelete(Message message)
+{
+  TraceStartMessage tsMessage;
+
+  AVERT(Message, message);
+  tsMessage = MessageTraceStartMessage(message);
+  AVERT(TraceStartMessage, tsMessage);
+
+  TraceStartMessageInit(MessageArena(message), tsMessage);
+
+  return;
+}
+
+static const char *TraceStartMessageWhy(Message message)
+{
+  TraceStartMessage tsMessage;
+
+  AVERT(Message, message);
+  tsMessage = MessageTraceStartMessage(message);
+  AVERT(TraceStartMessage, tsMessage);
+
+  return tsMessage->why;
+}
+
+static MessageClassStruct TraceStartMessageClassStruct = {
+  MessageClassSig,               /* sig */
+  "TraceGCStart",                /* name */
+  TraceStartMessageDelete,       /* Delete */
+  MessageNoFinalizationRef,      /* FinalizationRef */
+  MessageNoGCLiveSize,           /* GCLiveSize */
+  MessageNoGCCondemnedSize,        /* GCCondemnedSize */
+  MessageNoGCNotCondemnedSize,     /* GCNotCondemnedSize */
+  TraceStartMessageWhy,          /* GCStartWhy */
+  MessageClassSig                /* <design/message/#class.sig.double> */
+};
+
+static void TraceStartMessageInit(Arena arena, TraceStartMessage tsMessage)
+{
+  AVERT(Arena, arena);
+
+  MessageInit(arena, TraceStartMessageMessage(tsMessage),
+              &TraceStartMessageClassStruct, MessageTypeGCSTART);
+  tsMessage->why[0] = '\0';
+
+  tsMessage->sig = TraceStartMessageSig;
+  AVERT(TraceStartMessage, tsMessage);
+
+  return;
+}
+
+/* traceStartWhyToString
+ *
+ * Converts a TraceStartWhy* code into a string description.
+ * s specifies the beginning of the buffer to write the string
+ * into, len specifies the length of the buffer.
+ * The string written into will be NUL terminated (truncated if
+ * necessary). */
+static void traceStartWhyToString(char *s, size_t len, int why)
+{
+  const char *r;
+  size_t i;
+
+  AVER(s);
+  /* len can be anything, including 0. */
+  AVER(TraceStartWhyBASE <= why);
+  AVER(why < TraceStartWhyLIMIT);
+
+  switch(why) {
+  case TraceStartWhyNURSERY:
+    r = "Nursery generation is full.";
+    break;
+  case TraceStartWhyGLOBAL:
+    r = "Preventing global exhaustion of memory.";
+    break;
+  case TraceStartWhyOPPORTUNISM:
+    r = "Opportunism.";
+    break;
+  case TraceStartWhyCLIENT:
+    r = "Client request.";
+    break;
+  case TraceStartWhyWALK:
+    r = "Walking.";
+    break;
+  default:
+    NOTREACHED;
+    r = "Unknown reason (internal error).";
+    break;
+  }
+
+  for(i=0; i<len; ++i) {
+    s[i] = r[i];
+    if(r[i] == '\0')
+      break;
+  }
+  s[len-1] = '\0';
+
+  return;
 }
 
 
@@ -162,8 +297,9 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
 
   ss->fix = TraceFix;
   TRACE_SET_ITER(ti, trace, ts, arena)
-    if (trace->emergency)
+    if (trace->emergency) {
       ss->fix = TraceFixEmergency;
+    }
   TRACE_SET_ITER_END(ti, trace, ts, arena);
   ss->rank = rank;
   ss->traces = ts;
@@ -580,6 +716,8 @@ static void traceFlip(Trace trace)
   /* collector), so that we allocate grey or white before the flip    */
   /* and black afterwards. For instance, see                          */
   /* <design/poolams/#invariant.alloc>.                              */
+  /* (surely we mean "write-barrier" not "read-barrier" above? */
+  /* drj 2003-02-19) */
 
   /* Now that the mutator is black we must prevent it from reading */
   /* grey objects so that it can't obtain white pointers.  This is */
@@ -625,7 +763,7 @@ static void traceFlip(Trace trace)
  * This code is written to be adaptable to allocating Trace objects
  * dynamically.  */
 
-Res TraceCreate(Trace *traceReturn, Arena arena)
+Res TraceCreate(Trace *traceReturn, Arena arena, int why)
 {
   TraceId ti;
   Trace trace;
@@ -678,6 +816,9 @@ found:
   trace->preservedInPlaceSize = (Size)0;  /* see .message.data */
   STATISTIC(trace->reclaimCount = (Count)0);
   STATISTIC(trace->reclaimSize = (Size)0);
+  TraceStartMessageInit(arena, &trace->startMessage);
+  traceStartWhyToString(trace->startMessage.why,
+    sizeof trace->startMessage.why, why);
   trace->sig = TraceSig;
   arena->busyTraces = TraceSetAdd(arena->busyTraces, trace);
   AVERT(Trace, trace);
@@ -1373,8 +1514,9 @@ static Res rootGrey(Root root, void *p)
   AVERT(Root, root);
   AVERT(Trace, trace);
 
-  if (ZoneSetInter(RootSummary(root), trace->white) != ZoneSetEMPTY)
+  if (ZoneSetInter(RootSummary(root), trace->white) != ZoneSetEMPTY) {
     RootGrey(root, trace);
+  }
 
   return ResOK;
 }
@@ -1389,8 +1531,9 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
   AVER(0.0 <= mortality && mortality <= 1.0);
-  arena = trace->arena;
   AVER(finishingTime >= 0.0);
+
+  arena = trace->arena;
 
   /* From the already set up white set, derive a grey set. */
 
@@ -1420,13 +1563,15 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
         /* approximation to the white set. */
         if (ZoneSetInter(SegSummary(seg), trace->white) != ZoneSetEMPTY) {
           PoolGrey(SegPool(seg), trace, seg);
-          if (TraceSetIsMember(SegGrey(seg), trace))
+          if (TraceSetIsMember(SegGrey(seg), trace)) {
             trace->foundation += size;
+	  }
         }
 
         if ((SegPool(seg)->class->attr & AttrGC)
-            && !TraceSetIsMember(SegWhite(seg), trace))
+            && !TraceSetIsMember(SegWhite(seg), trace)) {
           trace->notCondemned += size;
+	}
       }
     } while (SegNext(&seg, arena, base));
   }
@@ -1508,9 +1653,12 @@ static void traceQuantum(Trace trace)
 }
 
 /* traceStartCollectAll: start a trace which condemns everything in
- * the arena. */
+ * the arena.
+ *
+ * "why" is a TraceStartWhy* enum member that specifies why the
+ * collection is starting. */
 
-static Res traceStartCollectAll(Trace *traceReturn, Arena arena)
+static Res traceStartCollectAll(Trace *traceReturn, Arena arena, int why)
 {
   Trace trace;
   Res res;
@@ -1519,16 +1667,17 @@ static Res traceStartCollectAll(Trace *traceReturn, Arena arena)
   AVERT(Arena, arena);
   AVER(arena->busyTraces == TraceSetEMPTY);
 
-  res = TraceCreate(&trace, arena);
+  res = TraceCreate(&trace, arena, why);
   AVER(res == ResOK); /* succeeds because no other trace is busy */
   res = traceCondemnAll(trace);
   if (res != ResOK) /* should try some other trace, really @@@@ */
     goto failCondemn;
   finishingTime = ArenaAvail(arena)
                   - trace->condemned * (1.0 - TraceTopGenMortality);
-  if (finishingTime < 0)
+  if (finishingTime < 0) {
     /* Run out of time, should really try a smaller collection. @@@@ */
     finishingTime = 0.0;
+  }
   TraceStart(trace, TraceTopGenMortality, finishingTime);
   *traceReturn = trace;
   return ResOK;
@@ -1572,7 +1721,7 @@ Size TracePoll(Globals globals)
     dynamicDeferral = (double)ArenaAvail(arena) - (double)sConsTrace;
 
     if (dynamicDeferral < 0.0) { /* start full GC */
-      res = traceStartCollectAll(&trace, arena);
+      res = traceStartCollectAll(&trace, arena, TraceStartWhyGLOBAL);
       if (res != ResOK)
         goto failStart;
       scannedSize = traceWorkClock(trace);
@@ -1596,7 +1745,7 @@ Size TracePoll(Globals globals)
       if (firstTime < 0) {
         double mortality;
 
-        res = TraceCreate(&trace, arena);
+        res = TraceCreate(&trace, arena, TraceStartWhyNURSERY);
         AVER(res == ResOK);
         res = ChainCondemnAuto(&mortality, firstChain, trace);
         if (res != ResOK) /* should try some other trace, really @@@@ */
@@ -1675,7 +1824,7 @@ void ArenaPark(Globals globals)
 /* ArenaStartCollect -- start a collection of everything in the
  * arena; leave unclamped. */
 
-Res ArenaStartCollect(Globals globals)
+Res ArenaStartCollect(Globals globals, int why)
 {
   Arena arena;
   Res res;
@@ -1685,7 +1834,7 @@ Res ArenaStartCollect(Globals globals)
   arena = GlobalsArena(globals);
 
   ArenaPark(globals);
-  res = traceStartCollectAll(&trace, arena);
+  res = traceStartCollectAll(&trace, arena, why);
   if (res != ResOK)
     goto failStart;
   ArenaRelease(globals);
@@ -1698,12 +1847,12 @@ failStart:
 
 /* ArenaCollect -- collect everything in arena; leave clamped */
 
-Res ArenaCollect(Globals globals)
+Res ArenaCollect(Globals globals, int why)
 {
   Res res;
 
   AVERT(Globals, globals);
-  res = ArenaStartCollect(globals);
+  res = ArenaStartCollect(globals, why);
   if (res != ResOK)
     return res;
 
