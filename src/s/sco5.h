@@ -1,5 +1,5 @@
 /* System description file for SCO 3.2v5.
-   Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1996  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* Contributed by Ian Lance Taylor, ian@cygnus.com.  */
+/* Contributed by Mark Diekhans <markd@grizzly.com>.  */
 
 /* SCO is sort of like SVR3.  */
 #include "usg5-3.h"
