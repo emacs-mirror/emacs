@@ -535,7 +535,7 @@ See `fast-lock-cache-directory'."
       (concat buffer-file-name ".flc")
     (let* ((bufile (expand-file-name buffer-file-truename))
 	   (chars-alist
-	    (if (eq system-type 'emx)
+	    (if (memq system-type '(emx windowsnt))
 		'((?/ . (?#)) (?# . (?# ?#)) (?: . (?\;)) (?\; . (?\; ?\;)))
 	      '((?/ . (?#)) (?# . (?# ?#)))))
 	   (mapchars
