@@ -46,16 +46,17 @@ default, which is system-dependent, and is the same as used by Rmail."
 
 (defcustom display-time-mail-directory nil
   "*Name of mail inbox directory, for indicating existence of new mail.
-Non-nil and not a string means don't check for mail.
-When nil, no checking for mail in directory is done."
+Any nonempty regular file in the directory is regarded as newly arrived mail.
+If nil, do not check a directory for arriving mail."
   :type '(choice (const :tag "None" nil)
 		 (directory :format "%v"))
   :group 'display-time)
 
 (defcustom display-time-mail-function nil
   "*Function to call, for indicating existence of new mail.
-nil means use the default method of checking `display-time-mail-file'
-or files in `display-time-mail-directory'."
+If nil, that means use the default method: check that the file
+specified by `display-time-mail-file' is nonempty or that the
+directory `display-time-mail-directory' contains nonempty files."
   :type '(choice (const :tag "Default" nil)
 		 (function))
   :group 'display-time)
