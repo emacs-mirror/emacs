@@ -1,16 +1,14 @@
-# impl.gmk.sus8lc: BUILD FOR SUNOS/SPARC v8/LCC PLATFORM
+# impl.gmk.sus8lc: BUILD FOR SUNOS/SPARC V8/LCC PLATFORM
 #
-# $HopeName: MMsrc!sus8lc.gmk(trunk.19) $
-# Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
+# $HopeName: MMsrc!sus8lc.gmk(trunk.20) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # This is the GNU makefile for platform.sus8lc.
-#
 
 PFM = sus8lc
 
 MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmsu.c \
         protsu.c prmcan.c span.c
 MPMS = sssus8.s
-SWPF = lockan.c than.c vmsu.c protsw.c prmcan.c ssan.c
 
 include lc.gmk
