@@ -178,3 +178,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* AIX defines FIONREAD, but it does not work.  */
 #define BROKEN_FIONREAD
+
+/* rocky@watson.ibm.com says this is needed.  */
+#define HAVE_FTIME
