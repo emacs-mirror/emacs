@@ -32,16 +32,17 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
----
++++
 ** Emacs now supports ICCCM Extended Segments in X selections.
 
 Some versions of X, notably XFree86, use Extended Segments to encode
 in X selections characters that belong to character sets which are not
 part of the list of standard charsets supported by the ICCCM spec.
 Examples of such non-standard character sets include ISO 8859-14, ISO
-8859-15, KOI8-R, and BIG5.  The coding system `compound-text'  now
-supports these extensions.  If you don't want this support, set
-`selection-coding-system' to `compound-text-no-extensions'.
+8859-15, KOI8-R, and BIG5.  The new coding system
+`compound-text-with-extensions' supports these extensions, and is now
+used by default for encoding and decoding X selections.  If you don't
+want this support, set `selection-coding-system' to `compound-text'.
 
 +++
 ** The parameters of automatic hscrolling can now be customized.
