@@ -1,3 +1,10 @@
+2000-09-04  Miles Bader  <miles@gnu.org>
+
+	* xmenu.c (xmenu_show): Call x_set_menu_resources_from_menu_face
+	before initially popping up the menu, so the menu doesn't flash
+	when the face settings are significantly different from the
+	defaults.
+
 2000-09-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (WIDE_CHAR_SUPPORT): New macro.

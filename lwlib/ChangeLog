@@ -1,3 +1,8 @@
+2000-09-04  Miles Bader  <miles@gnu.org>
+
+	* xlwmenu.c (XlwMenuSetValues): Only frob the display if the menu
+	is actually displayed.
+
 2000-09-03  Miles Bader  <miles@gnu.org>
 
 	* xlwmenu.c (x_alloc_lighter_color_for_widget): New extern declaration.
