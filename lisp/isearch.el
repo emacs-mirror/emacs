@@ -1008,9 +1008,9 @@ If no previous match was done, just beep."
 		   (looking-at (if isearch-regexp isearch-string
 				 (regexp-quote isearch-string))))
 	       (error nil))
-	       (or isearch-yank-flag
-		   (<= (match-end 0) 
-		       (min isearch-opoint isearch-barrier))))
+	     (or isearch-yank-flag
+		 (<= (match-end 0) 
+		     (min isearch-opoint isearch-barrier))))
 	(progn
 	  (setq isearch-success t 
 		isearch-invalid-regexp nil
@@ -1042,20 +1042,23 @@ If no previous match was done, just beep."
   "Handle * and ? specially in regexps."
   (interactive)
   (if isearch-regexp 
-
-      (progn
-	(setq isearch-adjusted t)
-	;; Get the isearch-other-end from before the last search.
-	;; We want to start from there,
-	;; so that we don't retreat farther than that.
-	;; (car isearch-cmds) is after last search;
-	;; (car (cdr isearch-cmds)) is from before it.
-	(let ((cs (nth 5 (car (cdr isearch-cmds)))))
-	  (setq cs (or cs isearch-barrier))
-	  (goto-char
-	   (if isearch-forward
-	       (max cs isearch-barrier)
-	     (min cs isearch-barrier))))))
+      (let ((idx (length isearch-string)))
+	(while (and (> idx 0)
+		    (eq (aref isearch-string (1- idx)) ?\\))
+	  (setq idx (1- idx)))
+	(when (= (mod (- (length isearch-string) idx) 2) 0)
+	  (setq isearch-adjusted t)
+	  ;; Get the isearch-other-end from before the last search.
+	  ;; We want to start from there,
+	  ;; so that we don't retreat farther than that.
+	  ;; (car isearch-cmds) is after last search;
+	  ;; (car (cdr isearch-cmds)) is from before it.
+	  (let ((cs (nth 5 (car (cdr isearch-cmds)))))
+	    (setq cs (or cs isearch-barrier))
+	    (goto-char
+	     (if isearch-forward
+		 (max cs isearch-barrier)
+	       (min cs isearch-barrier)))))))
   (isearch-process-search-char (isearch-last-command-char)))
   
 
