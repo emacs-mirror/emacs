@@ -53,7 +53,7 @@ typedef int Window;
 #define XDISPLAY
 
 /* This is a cut-down version of the one in xterm.h, which see.  */
-struct x_display
+struct x_output
 {
   int left_pos;
   int top_pos;
@@ -68,7 +68,7 @@ struct x_display
   int size_computed_faces;
 };
 
-extern struct x_display the_only_x_display;
+extern struct x_output the_only_x_display;
 extern Display *x_current_display;
 
 #define FRAME_PARAM_FACES(f) (the_only_x_display.param_faces)
