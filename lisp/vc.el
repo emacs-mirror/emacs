@@ -218,7 +218,12 @@ the master name of FILE; this is appended to an optional list of FLAGS."
     (if vc-file
 	(setq squeezed (append squeezed (list vc-file))))
     (let ((default-directory (file-name-directory (or file "./")))
-	  (exec-path (if vc-path (append exec-path vc-path) exec-path)))
+	  (exec-path (if vc-path (append exec-path vc-path) exec-path))
+	  ;; Add vc-path to PATH for the execution of this command.
+	  (process-environment
+	   (cons (concat "PATH=" (getenv "PATH")
+			 ":" (mapconcat 'identity vc-path ":"))
+		 process-environment)))
       (setq status (apply 'call-process command nil t nil squeezed)))
     (goto-char (point-max))
     (forward-line -1)
