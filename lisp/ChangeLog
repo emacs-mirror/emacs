@@ -72,12 +72,11 @@
 	(replace-regexp): Explain `\,', `\#' and `\?'.
 	(replace-match-data): New function for thorough reuse/destruction
 	of old match-data.
-	(replace-match-maybe-edit): Function for implementing `\?'
-	editing.
+	(replace-match-maybe-edit): Function for implementing `\?' editing.
 	(perform-replace): Fix maintaining of the match stack including
 	already matched regions, implement `\?', fix various problems
 	with regions while editing and other stuff.
-	(replace-highlight): Simplified.
+	(replace-highlight): Simplify.
 
 2004-06-24  Daniel Pfeiffer  <occitan@esperanto.org>
 
@@ -104,8 +103,7 @@
 
 2004-06-21  Juanma Barranquero  <lektu@terra.es>
 
-	* image.el (image-library-alist): Rewrite docstring in active
-	voice.
+	* image.el (image-library-alist): Rewrite docstring in active voice.
 
 2004-06-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -132,8 +130,8 @@
 
 2004-06-18  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* autorevert.el (global-auto-revert-non-file-buffers): Update
-	docstring.
+	* autorevert.el (global-auto-revert-non-file-buffers):
+	Update docstring.
 
 2004-06-19  Daniel Pfeiffer  <occitan@esperanto.org>
 
@@ -154,7 +152,7 @@
 	escaped character is n or t.
 	(query-replace-regexp): Add \, and \# interpretation to
 	interactive call and document it.
-	(query-replace-regexp-eval, replace-match-string-symbols): add \#
+	(query-replace-regexp-eval, replace-match-string-symbols): Add \#
 	as shortkey for replace-count.
 	(replace-quote): New function for doubling backslashes.
 
@@ -184,8 +182,8 @@
 	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
 	Add hyperlink to emacs-xtra manual to docstring.
 
-	* autorevert.el (global-auto-revert-non-file-buffers): Add
-	hyperlink to emacs-xtra manual to docstring, as well as an
+	* autorevert.el (global-auto-revert-non-file-buffers):
+	Add hyperlink to emacs-xtra manual to docstring, as well as an
 	info-link.
 
 2004-06-14  Juanma Barranquero  <lektu@terra.es>
@@ -204,8 +202,7 @@
 	* international/code-pages.el (windows-1256, cp1125): Fix tables
 	for several characters.
 
-	* international/utf-8.el (ccl-encode-mule-utf-8): Fix previous
-	change.
+	* international/utf-8.el (ccl-encode-mule-utf-8): Fix previous change.
 
 2004-06-13  Richard M. Stallman  <rms@gnu.org>
 
@@ -251,14 +248,13 @@
 
 2004-06-13  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Fix previous
-	change.
+	* international/utf-8.el (ccl-decode-mule-utf-8): Fix previous change.
 	(ccl-untranslated-to-ucs): Fix typo.
 
 2004-06-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
 
-	* progmodes/python.el (python-open-block-statement-p): Fix
-	indentation after a block opening that contains a comment.
+	* progmodes/python.el (python-open-block-statement-p):
+	Fix indentation after a block opening that contains a comment.
 
 2004-06-12  J,Ai(Br,At(Bme Marant  <jerome@marant.org>  (tiny change)
 
@@ -274,11 +270,10 @@
 
 2004-06-12  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-language-environment): Load
-	subst tables if necessary.
+	* international/mule-cmds.el (set-language-environment):
+	Load subst tables if necessary.
 
-	* international/mule.el (decode-char): Load subst tables if
-	necessary.
+	* international/mule.el (decode-char): Load subst tables if necessary.
 	(encode-char): Likewise.
 
 	* international/utf-16.el (utf-16-decode-ucs): Handle a surrogate
@@ -294,18 +289,17 @@
 	(utf-16-decode-to-ucs): Handle pre-read character.
 	(utf-16le-encode-loop): Handle surrogate pair.
 	(utf-16be-encode-loop): Likewise.
-	(ccl-encode-mule-utf-16le-with-signature): Adjusted for the change
+	(ccl-encode-mule-utf-16le-with-signature): Adjust for the change
 	of utf-16le-encode-loop.
-	(ccl-encode-mule-utf-16be-with-signature): Adjusted for the change
+	(ccl-encode-mule-utf-16be-with-signature): Adjust for the change
 	of utf-16be-encode-loop.
-	(mule-utf-16-post-read-conversion): Call
-	utf-8-post-read-conversion at first.
-	(mule-utf-16[{le|be}], mule-utf-16{le|be}-with-signature): Include
-	CJK charsets in safe-charsets if utf-translate-cjk-mode is on.
+	(mule-utf-16-post-read-conversion):
+	Call utf-8-post-read-conversion at first.
+	(mule-utf-16[{le|be}], mule-utf-16{le|be}-with-signature):
+	Include CJK charsets in safe-charsets if utf-translate-cjk-mode is on.
 	Add post-read-conversion and pre-write-conversion.
 
-	* international/utf-8.el (utf-translate-cjk-charsets): New
-	variable.
+	* international/utf-8.el (utf-translate-cjk-charsets): New variable.
 	(utf-translate-cjk-unicode-range): New variable.
 	(utf-translate-cjk-load-tables): New function.
 	(utf-lookup-subst-table-for-decode): New function.
@@ -320,10 +314,10 @@
 	(ccl-untranslated-to-ucs): Handle 2-byte encoding.  Set r1 to the
 	length of encoding.  Don't return r0.
 	(utf-8-compose): New arg hash-table.  Handle 2-byte encoding.
-	(utf-8-post-read-conversion): Narrow to region properly.  If
-	utf-translate-cjk-mode is on, load tables if necessary.  Call
-	utf-8-compose with hash-table arg if necessary.  Call
-	XXX-compose-region instead of XXX-post-read-convesion.
+	(utf-8-post-read-conversion): Narrow to region properly.
+	If utf-translate-cjk-mode is on, load tables if necessary.
+	Call utf-8-compose with hash-table arg if necessary.
+	Call XXX-compose-region instead of XXX-post-read-convesion.
 	(utf-8-pre-write-conversion): New function.
 	(mule-utf-8): Include CJK charsets in safe-charsets if
 	utf-translate-cjk-mode is on.  Add pre-write-conversion.
@@ -331,8 +325,8 @@
 	* international/characters.el: Temporarily set
 	utf-translate-cjk-mode to nil.
 
-	* language/devan-util.el (devanagari-compose-region): Add
-	autoload cookie.
+	* language/devan-util.el (devanagari-compose-region):
+	Add autoload cookie.
 
 	* international/ccl.el (ccl-dump-call): Fix printing the
 	subroutine name.
@@ -342,13 +336,12 @@
 	* dired.el (dired-revert): If buffer is marked unmodified before
 	reverting, keep it marked unmodified.
 	Adapt to new conventions for commenting out code.
-	(dired-make-relative): Adapt to new conventions for commenting out
-	code.
+	(dired-make-relative): Adapt to new conventions for commenting out code.
 
 2004-06-10  Miles Bader  <miles@gnu.ai.mit.edu>
 
-	* eshell/esh-module.el (eshell-load-defgroups): Bind
-	`vc-handled-backends' to nil when opening files.
+	* eshell/esh-module.el (eshell-load-defgroups):
+	Bind `vc-handled-backends' to nil when opening files.
 
 2004-06-11  Juanma Barranquero  <lektu@terra.es>
 
@@ -431,15 +424,15 @@
 	or incorrect, autoloads.
 
 	* dired-aux.el (dired-kill-tree): Do not kill DIRNAME, even if it
-	does not end in a slash.  Add optional argument KILL-ROOT.  Update
-	docstring.
+	does not end in a slash.  Add optional argument KILL-ROOT.
+	Update docstring.
 	(dired-do-touch, dired-clean-directory, dired-run-shell-command)
 	(dired-query): Add autoloads.
 
 2004-06-08  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* progmodes/compile.el (compilation-set-window-height): Rearrange
-	the save-* functions because a buffer can have several current
+	* progmodes/compile.el (compilation-set-window-height):
+	Rearrange the save-* functions because a buffer can have several current
 	point in different windows.
 	(compilation-error-regexp-alist-alist): Recognize {standard input}
 	GNU messages (for gcc --pipe) and more kinds of Oracle messages.
@@ -479,8 +472,7 @@
 
 	* format.el (format-insert-annotations)
 	(format-annotate-location): Doc fixes.
-	(format-subtract-regions): Make arguments match their use in
-	docstring.
+	(format-subtract-regions): Make arguments match their use in docstring.
 
 	* simple.el (kill-region): Doc fix.
 
@@ -566,8 +558,7 @@
 	Handle `dired-subdir-switches'.
 	(dired-hide-subdir, dired-hide-all): Do not mark buffer modified.
 
-	* dired.el (dired-subdir-switches, dired-switches-alist):
-	New vars.
+	* dired.el (dired-subdir-switches, dired-switches-alist): New vars.
 	(dired-insert-old-subdirs): Do not repeatedly delete and reinsert
 	subdirs if -R switch is used for a subdir.
 	(dired-mode): Set `dired-switches-alist'.
@@ -600,7 +591,7 @@
 
 2004-06-04  Mario Lang  <mlang@delysid.org>
 
-	* battery.el (battery-linux-proc-acpi): mA was hardcored, but some
+	* battery.el (battery-linux-proc-acpi): `mA' was hardcored, but some
 	systems appear to use mW, make the code handle this.  Fix a
 	division-by-zero bug while at it, and handle kernels with
 	a slightly different layout in /proc/acpi.
@@ -610,7 +601,7 @@
 	* vc-svn.el (vc-svn-checkin): Use 'nconc' instead of 'list*',
 	because the latter is a CL-ism.  This fixes the bug reported by
 	Shawn Boyette <mdxi@collapsar.net> in
-        http://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
+	http://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
 
 2004-06-04  Miles Bader  <miles@gnu.org>
 
@@ -647,8 +638,8 @@
 
 	* subr.el (read-number): Use canonical format for default in prompt.
 
-	* minibuf-eldef.el (minibuffer-default-in-prompt-regexps): Add
-	regexp for " [...]" style defaults.
+	* minibuf-eldef.el (minibuffer-default-in-prompt-regexps):
+	Add regexp for " [...]" style defaults.
 
 2004-06-02  Romain Francoise  <romain@orebokech.com>
 
@@ -671,13 +662,27 @@
 	empty docstring.
 
 	* international/mule.el (register-char-codings): Make alias for
-	`ignore'.  Move docstring to obsolescence info and remove
-	redundancy.
+	`ignore'.  Move docstring to obsolescence info and remove redundancy.
 
 2004-06-02  Kim F. Storm  <storm@cua.dk>
 
 	* frame.el (blink-cursor-start): Turn cursor off initially so blink
 	starts after blink-cursor-delay rather than 2*blink-cursor-delay.
+
+2004-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-replace-by-expanded-history-before-point):
+	Obey `start' as the docstring says.
+	(comint-send-input, comint-snapshot-last-prompt, comint-output-filter)
+	(comint-update-fence): Prevent font-lock from running unnecessarily.
+	(comint-dynamic-list-completions): Use with-current-buffer.
+
+2004-06-01  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-format-entry): Fix regexps.
+	(bibtex-parse-strings): Bugfix, use assoc instead of assoc-string.
+	(bibtex-entry-update): Handle alternatives and optional fields.
+	(bibtex-parse-entry): Bugfix, handle empty key.
 
 2004-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
