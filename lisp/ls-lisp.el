@@ -312,7 +312,7 @@ are: A a c i r S s t u"
 	     "%b %e %H:%M"
 	   "%b %e  %Y")
 	 time)
-      (error "??? ??  ????"))))
+      (error "Unk  0  0000"))))
 
 (provide 'ls-lisp)
 
