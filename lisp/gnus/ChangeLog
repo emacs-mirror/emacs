@@ -1,5 +1,26 @@
 2000-11-10  Dave Love  <fx@gnu.org>
 
+	* gnus-cache.el (gnus-cache-active-file): Don't use
+	file-name-as-directory on directory.
+	(gnus-cache-file-name): Use expand-file-name, not concat.  Don't
+	use file-name-as-directory on directory.
+
+	* time-date.el (timezone-make-date-arpa-standard): Autoload.
+	(date-to-time): Use it.
+
+	* message.el (message-mode) <adaptive-fill-regexp>:
+	<adaptive-fill-first-line-regexp>: Use [:alnum:] in regexp range.
+	(message-newline-and-reformat): Likewise.
+
+	* mm-util.el: Doc fixes.
+	(mm-mime-charset): Don't use the raw result of
+	mm-preferred-coding-system.
+	(mm-with-unibyte-buffer, mm-with-unibyte-current-buffer)
+	(mm-with-unibyte): Simplify.
+
+	* gnus-int.el (gnus-start-news-server): Use expand-file-name, not
+	concat.
+
 	* pop3.el (pop3-version): Deleted.
 	(pop3-make-date): New function, avoiding message-make-date.
 	(pop3-munge-message-separator): Use it.
