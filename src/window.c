@@ -1528,6 +1528,7 @@ BUFFER can be a buffer or buffer name.")
 			 make_number (XBUFFER (buffer)->last_window_start),
 			 buffer);
   w->start_at_line_beg = Qnil;
+  w->force_start = Qnil;
   XFASTINT (w->last_modified) = 0;
   windows_or_buffers_changed++;
   if (EQ (window, selected_window))
