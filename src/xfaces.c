@@ -1183,9 +1183,6 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
     {
       unsigned long new_color = load_color (f, attr_value);
       unload_color (f, face->background);
-#if defined (MSDOS) && !defined (HAVE_X_WINDOWS)
-      new_color &= ~8;  /* Bright would give blinking characters.  */
-#endif
       face->background = new_color;
       garbaged = 1;
     }
