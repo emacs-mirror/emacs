@@ -213,14 +213,15 @@ removenullpaths=sed -e 's/^://' -e 's/:$$//' -e 's/::/:/'
 # src/paths.h.tmp, which isn't much.
 # Note that sed is not in /bin on 386bsd.
 src/paths.h: Makefile ${srcdir}/src/paths.h.in FRC
-	lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
-	buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
-	sed < ${srcdir}/src/paths.h.in > src/paths.h.tmp		\
-	-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'		\
-	-e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";'	\
-	-e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'			\
-	-e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
-	-e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";'
+	@echo "Producing \`src/paths.h' from \`src/paths.h.in'."
+	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
+	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
+	  sed < ${srcdir}/src/paths.h.in > src/paths.h.tmp		\
+	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
+	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
+	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
+	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
+	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";')
 	${srcdir}/move-if-change src/paths.h.tmp src/paths.h
 
 src:	lib-src
@@ -237,42 +238,42 @@ ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 ## when the user has built them from this makefile once, they will use
 ## the right default values for the path variables.
 lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
-	echo "Producing \`lib-src/Makefile' from \`${srcdir}/lib-src/Makefile.in'."
 	rm -f lib-src/Makefile.tmp
-	(echo "# This file is generated from \`${srcdir}/lib-src/Makefile.in'." ; \
-	 echo "# If you are thinking about editing it, you should seriously consider" ; \
-	 echo "# running \`make lib-src/Makefile' at the top of the" ;	\
-	 echo "# Emacs build tree instead, or editing" ;		\
-	 echo "# \`${srcdir}/lib-src/Makefile.in' itself." ;		\
-	 /bin/sed < ${srcdir}/lib-src/Makefile.in			\
-	 -e 's|^\(version *=\).*$$|\1'"${version}"'|'			\
-	 -e 's|^\(configname *=\).*$$|\1'"${configname}"'|'		\
-	 -e 's|^\(prefix *=\).*$$|\1'"${prefix}"'|'			\
-	 -e 's|^\(exec_prefix *=\).*$$|\1'"${exec_prefix}"'|'		\
-	 -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|'			\
-	 -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
-	 -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
-	 -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
-	 -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
-	 -e 's|^C_SWITCH_SYSTEM *=.*$$|C_SWITCH_SYSTEM='"${C_SWITCH_SYSTEM}"'|' \
-	 -e 's|^LOADLIBES *=.*$$|LOADLIBES='"${libsrc_libs}"'|'		\
-	 -e '/^# DIST: /d') > lib-src/Makefile.tmp
+	@echo "Producing \`lib-src/Makefile' from \`${srcdir}/lib-src/Makefile.in'."
+	@(echo "# This file is generated from \`${srcdir}/lib-src/Makefile.in'." ; \
+	  echo "# If you are thinking about editing it, you should seriously consider" ; \
+	  echo "# running \`make lib-src/Makefile' at the top of the" ;	\
+	  echo "# Emacs build tree instead, or editing" ;		\
+	  echo "# \`${srcdir}/lib-src/Makefile.in' itself." ;		\
+	  /bin/sed < ${srcdir}/lib-src/Makefile.in			\
+	  -e 's|^\(version *=\).*$$|\1'"${version}"'|'			\
+	  -e 's|^\(configname *=\).*$$|\1'"${configname}"'|'		\
+	  -e 's|^\(prefix *=\).*$$|\1'"${prefix}"'|'			\
+	  -e 's|^\(exec_prefix *=\).*$$|\1'"${exec_prefix}"'|'		\
+	  -e 's|^\(libdir *=\).*$$|\1'"${libdir}"'|'			\
+	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
+	  -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
+	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
+	  -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
+	  -e 's|^C_SWITCH_SYSTEM *=.*$$|C_SWITCH_SYSTEM='"${C_SWITCH_SYSTEM}"'|' \
+	  -e 's|^LOADLIBES *=.*$$|LOADLIBES='"${libsrc_libs}"'|'	\
+	  -e '/^# DIST: /d') > lib-src/Makefile.tmp
 	${srcdir}/move-if-change lib-src/Makefile.tmp lib-src/Makefile
 	chmod -w lib-src/Makefile
 
 src/Makefile: ${srcdir}/src/Makefile.in Makefile
-	echo "Producing \`src/Makefile' from \`${srcdir}/src/Makefile.in'."
 	rm -f src/Makefile.tmp
-	(echo "# This file is generated from \`${srcdir}/src/Makefile.in'." ; \
-	 echo "# If you are thinking about editing it, you should seriously consider" ; \
-	 echo "# running \`make src/Makefile' at the top of the" ;	\
-	 echo "# Emacs build tree instead, or editing" ;		\
-	 echo "# \`${srcdir}/src/Makefile.in' itself." ;		\
-	 /bin/sed < ${srcdir}/src/Makefile.in				\
-	 -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
-	 -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
-	 -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
-	 -e '/^# DIST: /d') > src/Makefile.tmp
+	@echo "Producing \`src/Makefile' from \`${srcdir}/src/Makefile.in'."
+	@(echo "# This file is generated from \`${srcdir}/src/Makefile.in'." ; \
+	  echo "# If you are thinking about editing it, you should seriously consider" ; \
+	  echo "# running \`make src/Makefile' at the top of the" ;	\
+	  echo "# Emacs build tree instead, or editing" ;		\
+	  echo "# \`${srcdir}/src/Makefile.in' itself." ;		\
+	  /bin/sed < ${srcdir}/src/Makefile.in				\
+	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'|'			\
+	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
+	  -e 's|^CONFIG_CFLAGS *=.*$$|CONFIG_CFLAGS='"${CONFIG_CFLAGS}"'|' \
+	  -e '/^# DIST: /d') > src/Makefile.tmp
 	${srcdir}/move-if-change src/Makefile.tmp src/Makefile
 	chmod -w src/Makefile
 
