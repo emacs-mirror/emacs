@@ -2610,7 +2610,7 @@ regex_compile (pattern, size, syntax, bufp)
 			    
 			    SET_RANGE_TABLE_WORK_AREA (range_table_work,
 						       c2, c1);
-			    c1 = 377;
+			    c1 = 0377;
 			  }
 		      }
 		    else if (!SAME_CHARSET_P (c, c1))
