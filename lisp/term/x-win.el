@@ -1128,6 +1128,9 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (put 'return 'ascii-character 13)
 (put 'escape 'ascii-character ?\e)
 
+
+;;;; Keysyms
+
 (defun vendor-specific-keysyms (vendor)
   "Return the appropriate value of system-key-alist for VENDOR.
 VENDOR is a string containing the name of the X Server's vendor,
@@ -1191,13 +1194,11 @@ as returned by (x-server-vendor)."
 	 ;; This is used by DEC's X server.
 	 '((65280 . remove)))))
 
-
-;;;; Keysyms
-
+;; Latin-1
 (let ((i 160))
   (while (< i 256)
     (puthash i i x-keysym-table)
-    (setq i (1- i))))
+    (setq i (1+ i))))
 
 ;; Table from Kuhn's proposed additions to the `KEYSYM Encoding'
 ;; appendix to the X protocol definition.
