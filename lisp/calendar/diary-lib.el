@@ -583,6 +583,64 @@ is created."
           (error "Your diary file is not readable!"))
       (error "You don't have a diary file!"))))
 
+
+
+(defcustom diary-mail-addr 
+  (if (boundp 'user-mail-address) user-mail-address nil)
+  "*Email address that `diary-mail-entries' will send email to."
+  :group 'diary
+  :type 'string)
+
+(defcustom diary-mail-days 7
+  "*Number of days for `diary-mail-entries' to check."
+  :group 'diary
+  :type integer)
+
+(defun diary-mail-entries (&optional ndays)
+  "Send a mail message showing diary entries for next NDAYS days.
+If no prefix argument is given, NDAYS is set to `diary-mail-days'.
+
+You can call `diary-mail-entries' every night using an at/cron job.
+For example, this script will run the program at 2am daily.  Since
+`emacs -batch' does not load your `.emacs' file, you must ensure that
+all relevant variables are set, as done here.
+
+#!/bin/sh
+# diary-rem.sh -- repeatedly run the Emacs diary-reminder
+emacs -batch \\
+-eval \"(setq diary-mail-days 3 \\
+             european-calendar-style t \\
+             diary-mail-addr \\\"user@host.name\\\" )\" \\
+-l diary-lib -f diary-mail-entries 
+at -f diary-rem.sh 0200 tomorrow
+
+You may have to tweak the syntax of the `at' command to suit your
+system.  Alternatively, you can specify a cron entry:
+0 1 * * * diary-rem.sh
+to run it every morning at 1am."
+  (interactive "p")
+  (let ((text nil)
+	;; Use the fancy-diary-display as it doesn't hide rest of
+	;; diary file with ^M characters.  It also looks nicer.
+	(diary-display-hook 'fancy-diary-display))	
+    (if (not current-prefix-arg)
+	(setq ndays diary-mail-days))
+    (calendar)
+    (view-diary-entries ndays)
+    (set-buffer "*Fancy Diary Entries*")
+    (setq text (buffer-substring (point-min) (point-max)))
+
+    ;; Now send text as a mail message.
+    (mail)
+    (mail-to)
+    (insert diary-mail-addr)
+    (mail-subject)
+    (insert "Diary entries generated ")
+    (insert (format-time-string "%a %d %b %y" (current-time)))
+    (mail-text)
+    (insert text)
+    (mail-send-and-exit nil)))
+
 (defun diary-name-pattern (string-array &optional fullname)
   "Convert an STRING-ARRAY, an array of strings to a pattern.
 The pattern will match any of the strings, either entirely or abbreviated
