@@ -5,11 +5,10 @@
 #define O_NDELAY        FNDELAY /* Non-blocking I/O (4.2 style) */
 #endif
 
-#ifdef __GNUC__
-#define LD_SWITCH_SYSTEM -e __start -static
-#else
+/* We use the Sun syntax -Bstatic unconditionally, because even when we
+   use GCC, these are passed through to the linker, not handled by GCC
+   directly.  */
 #define LD_SWITCH_SYSTEM -e __start -Bstatic
-#endif
 
 /* In SunOS 4.1, a static function called by tzsetwall reportedly
    clears the byte just past an eight byte region it mallocs, corrupting
