@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/05/12 19:56:11 vinicius>
-;; Version:	5.2.1
+;; Time-stamp:	<2000/06/05 14:40:03 vinicius>
+;; Version:	5.2.2
 
-(defconst ps-print-version "5.2.1"
-  "ps-print.el, v 5.2.1 <2000/05/12 vinicius>
+(defconst ps-print-version "5.2.2"
+  "ps-print.el, v 5.2.2 <2000/06/05 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -195,6 +195,10 @@ Please send all bug fixes and enhancements to
 ;; See definition of `call-process-region' for calling conventions.  The fourth
 ;; and the sixth arguments are both nil.
 ;;
+;; The variable `ps-manual-feed' indicates if the printer will manually feed
+;; paper.  If it's nil, automatic feeding takes place.  If it's non-nil, manual
+;; feeding takes place.  The default is nil (automatic feeding).
+;;
 ;; If you're using Emacs for Windows 95/98/NT or MS-DOS, don't forget to
 ;; customize the following variables: `ps-printer-name', `ps-lpr-command',
 ;; `ps-lpr-switches' and `ps-spool-config'.  See these variables documentation
@@ -212,6 +216,14 @@ Please send all bug fixes and enhancements to
 ;; for; it should contain one of the symbols: `a4' `a3' `letter' `legal'
 ;; `letter-small' `tabloid' `ledger' `statement' `executive' `a4small' `b4'
 ;; `b5'.
+;;
+;; If variable `ps-warn-paper-type' is nil, it's *not* given an error if
+;; PostScript printer doesn't have a paper with the size indicated by
+;; `ps-paper-type', instead it uses the default paper size.  If variable
+;; `ps-warn-paper-type' is non-nil, it's given an error if PostScript printer
+;; doesn't have a paper with the size indicated by `ps-paper-type'.  It's used
+;; when `ps-spool-config' is set to `setpagedevice' (see section Duplex
+;; Printers).  The default value is non-nil (it gives an error).
 ;;
 ;; The variable `ps-landscape-mode' determines the orientation of the printing
 ;; on the page: nil means `portrait' mode, non-nil means `landscape' mode.
@@ -306,6 +318,17 @@ Please send all bug fixes and enhancements to
 ;; To print only one header at the top of each page,
 ;; set `ps-print-only-one-header' to t.
 ;;
+;; To switch headers, set `ps-switch-header' to:
+;;
+;;    nil	Never switch headers.
+;;
+;;    t		Always switch headers.
+;;
+;;    duplex	Switch headers only when duplexing is on, that is, when
+;;		`ps-spool-duplex' is non-nil (see Duplex Printers).
+;;
+;; Any other value is treated as t.  The default value is `duplex'.
+;;
 ;; The font family and size of text in the header are determined
 ;; by the variables `ps-header-font-family', `ps-header-font-size' and
 ;; `ps-header-title-font-size' (see below).
@@ -314,7 +337,7 @@ Please send all bug fixes and enhancements to
 ;; title line height to insert between the header frame and the text
 ;; it contains, both in the vertical and horizontal directions:
 ;; .5 means half a line.
-
+;;
 ;; Page numbers are printed in `n/m' format, indicating page n of m pages;
 ;; to omit the total page count and just print the page number,
 ;; set `ps-show-n-of-n' to nil.
@@ -679,6 +702,34 @@ Please send all bug fixes and enhancements to
 ;; color), a string which is a color name, or a list of 3 numbers which
 ;; corresponds to the Red Green Blue color scale.
 ;; The default is 0.95 (or "gray95", or '(0.95 0.95 0.95)).
+;;
+;; The variable `ps-zebra-stripe-follow' specifies if zebra stripe should
+;; continue on next page or restart on each page.  If `ps-zebra-stripe-follow'
+;; is nil, zebra stripe is restarted on each page.  If `ps-zebra-stripe-follow'
+;; is non-nil, zebra stripe continues on next page.  Visually, we have:
+;;
+;;		`ps-zebra-stripe-follow'	`ps-zebra-stripe-follow'
+;;		   is nil			   is non-nil
+;; Current Page ------------------------	------------------------
+;;		1  XXXXXXXXXXXXXXXXXXXXX	1  XXXXXXXXXXXXXXXXXXXXX
+;;		2  XXXXXXXXXXXXXXXXXXXXX	2  XXXXXXXXXXXXXXXXXXXXX
+;;		3  XXXXXXXXXXXXXXXXXXXXX	3  XXXXXXXXXXXXXXXXXXXXX
+;;		4				4
+;;		5				5
+;;		6				6
+;;		7  XXXXXXXXXXXXXXXXXXXXX	7  XXXXXXXXXXXXXXXXXXXXX
+;;		8  XXXXXXXXXXXXXXXXXXXXX	8  XXXXXXXXXXXXXXXXXXXXX
+;;		------------------------	------------------------
+;;    Next Page ------------------------	------------------------
+;;		9  XXXXXXXXXXXXXXXXXXXXX	9  XXXXXXXXXXXXXXXXXXXXX
+;;		10 XXXXXXXXXXXXXXXXXXXXX	10
+;;		11 XXXXXXXXXXXXXXXXXXXXX	11
+;;		12				12
+;;		13				13 XXXXXXXXXXXXXXXXXXXXX
+;;		14				14 XXXXXXXXXXXXXXXXXXXXX
+;;		15 XXXXXXXXXXXXXXXXXXXXX	15 XXXXXXXXXXXXXXXXXXXXX
+;;		16 XXXXXXXXXXXXXXXXXXXXX	16
+;;		------------------------	------------------------
 ;;
 ;; See also section How Ps-Print Has A Text And/Or Image On Background.
 ;;
@@ -1134,8 +1185,9 @@ Please send all bug fixes and enhancements to
 ;; Thanks to David X Callaway <dxc@xprt.net> for helping debugging PostScript
 ;; level 1 compatibility.
 ;;
-;; Thanks to Colin Marquardt <colin.marquardt@usa.alcatel.com> for upside-down
-;; and line number step suggestions.
+;; Thanks to Colin Marquardt <colin.marquardt@usa.alcatel.com> for upside-down,
+;; line number step, line number start and zebra stripe follow suggestions, and
+;; for XEmacs beta-tests.
 ;;
 ;; Thanks to Klaus Berndl <klaus.berndl@sdm.de> for user defined PostScript
 ;; prologue code suggestion.
@@ -1230,7 +1282,7 @@ Please send all bug fixes and enhancements to
 
 
 (defconst ps-windows-system
-  (memq system-type '(win32 w32 mswindows ms-dos windows-nt)))
+  (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
 (defconst ps-lp-system
   (memq system-type '(usq-unix-v dgux hpux irix)))
 
@@ -1345,7 +1397,8 @@ Valid values are:
 			send back the error message to printing system.
 
 Any other value is treated as `paper'."
-  :type '(choice :tag "Error Handler Message"
+  :type '(choice :menu-tag "Error Handler Message"
+		 :tag "Error Handler Message"
 		 (const none)   (const paper)
 		 (const system) (const paper-and-system))
   :group 'ps-print-miscellany)
@@ -1371,7 +1424,8 @@ handles this in a suitable way.
 For more information about PostScript, see:
    PostScript Language Reference Manual (2nd edition)
    Adobe Systems Incorporated"
-  :type '(choice :tag "User Defined Prologue"
+  :type '(choice :menu-tag "User Defined Prologue"
+		 :tag "User Defined Prologue"
 		 (const :tag "none" nil) string symbol)
   :group 'ps-print-miscellany)
 
@@ -1399,7 +1453,8 @@ For more information about PostScript document comments, see:
    PostScript Language Reference Manual (2nd edition)
    Adobe Systems Incorporated
    Appendix G: Document Structuring Conventions -- Version 3.0"
-  :type '(choice :tag "Prologue Header"
+  :type '(choice :menu-tag "Prologue Header"
+		 :tag "Prologue Header"
 		 (const :tag "none" nil) string symbol)
   :group 'ps-print-miscellany)
 
@@ -1422,10 +1477,11 @@ appended to that file.  \(Note that `ps-print' package already has
 facilities for printing to a file, so you might as well use them instead
 of changing the setting of this variable.\)  If you want to silently
 discard the printed output, set this to \"NUL\"."
-  :type '(choice :tag "Printer Name"
+  :type '(choice :menu-tag "Printer Name"
+		 :tag "Printer Name"
+		 (const :tag "Same as printer-name" nil)
 		 (file :tag "Print to file")
-		 (string :tag "Pipe to ps-lpr-command")
-		 (const :tag "Same as printer-name" nil))
+		 (string :tag "Pipe to ps-lpr-command"))
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-command lpr-command
@@ -1452,6 +1508,13 @@ argument."
 See definition of `call-process-region' for calling conventions.  The fourth and
 the sixth arguments are both nil."
   :type 'function
+  :group 'ps-print-printer)
+
+(defcustom ps-manual-feed nil
+  "*Non-nil means the printer will manually feed paper.
+
+If it's nil, automatic feeding takes place."
+  :type 'boolean
   :group 'ps-print-printer)
 
 ;;; Page layout
@@ -1509,6 +1572,13 @@ example `letter', `legal' or `a4'."
 			       wid)))
   :group 'ps-print-page)
 
+(defcustom ps-warn-paper-type t
+  "*Non-nil means give an error if paper size is not equal to `ps-paper-type'.
+
+It's used when `ps-spool-config' is set to `setpagedevice'."
+  :type 'boolean
+  :group 'ps-print-page)
+
 (defcustom ps-landscape-mode nil
   "*Non-nil means print in landscape mode."
   :type 'boolean
@@ -1544,7 +1614,8 @@ Valid values are:
 		  current font.
 
 Any other value is treated as nil."
-  :type '(choice :tag "Control Char"
+  :type '(choice :menu-tag "Control Char"
+		 :tag "Control Char"
 		 (const 8-bit)   (const control-8-bit)
 		 (const control) (const :tag "nil" nil))
   :group 'ps-print-miscellany)
@@ -1597,7 +1668,8 @@ using a 3x4 page matrix:
 		12 9  6  3                          10 7  4  1
 
 Any other value is treated as `left-top'."
-  :type '(choice :tag "N-Up Filling"
+  :type '(choice :menu-tag "N-Up Filling"
+		 :tag "N-Up Filling"
 		 (const left-top)  (const left-bottom)
 		 (const right-top) (const right-bottom)
 		 (const top-left)  (const bottom-left)
@@ -1624,13 +1696,47 @@ See also documentation for `ps-zebra-stripes' and `ps-zebra-color'."
 (defcustom ps-zebra-color 0.95
   "*Zebra stripe gray scale or RGB color.
 See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
-  :type '(choice :tag "Zebra Gray/Color"
+  :type '(choice :menu-tag "Zebra Gray/Color"
+		 :tag "Zebra Gray/Color"
 		 (number :tag "Gray Scale" :value 0.95)
 		 (string :tag "Color Name" :value "gray95")
 		 (list :tag "RGB Color" :value (0.95 0.95 0.95)
 		       (number :tag "Red")
 		       (number :tag "Green")
 		       (number :tag "Blue")))
+  :group 'ps-print-zebra)
+
+(defcustom ps-zebra-stripe-follow nil
+  "*Non-nil means zebra stripe continues on next page.
+
+If `ps-zebra-stripe-follow' is nil, zebra stripe is restarted on each page.
+If `ps-zebra-stripe-follow' is non-nil, zebra stripe continues on next page.
+
+Visually, we have:
+
+		`ps-zebra-stripe-follow'	`ps-zebra-stripe-follow'
+		   is nil			   is non-nil
+   Current Page ------------------------	------------------------
+		1  XXXXXXXXXXXXXXXXXXXXX	1  XXXXXXXXXXXXXXXXXXXXX
+		2  XXXXXXXXXXXXXXXXXXXXX	2  XXXXXXXXXXXXXXXXXXXXX
+		3  XXXXXXXXXXXXXXXXXXXXX	3  XXXXXXXXXXXXXXXXXXXXX
+		4				4
+		5				5
+		6				6
+		7  XXXXXXXXXXXXXXXXXXXXX	7  XXXXXXXXXXXXXXXXXXXXX
+		8  XXXXXXXXXXXXXXXXXXXXX	8  XXXXXXXXXXXXXXXXXXXXX
+		------------------------	------------------------
+      Next Page ------------------------	------------------------
+		9  XXXXXXXXXXXXXXXXXXXXX	9  XXXXXXXXXXXXXXXXXXXXX
+		10 XXXXXXXXXXXXXXXXXXXXX	10
+		11 XXXXXXXXXXXXXXXXXXXXX	11
+		12				12
+		13				13 XXXXXXXXXXXXXXXXXXXXX
+		14				14 XXXXXXXXXXXXXXXXXXXXX
+		15 XXXXXXXXXXXXXXXXXXXXX	15 XXXXXXXXXXXXXXXXXXXXX
+		16 XXXXXXXXXXXXXXXXXXXXX	16
+		------------------------	------------------------"
+  :type 'boolean
   :group 'ps-print-zebra)
 
 (defcustom ps-line-number nil
@@ -1661,7 +1767,8 @@ Valid values are:
 		stripe is to be printed.
 
 Any other value is treated as `zebra'."
-  :type '(choice :tag "Line Number Step"
+  :type '(choice :menu-tag "Line Number Step"
+		 :tag "Line Number Step"
 		 (integer :tag "Step Interval")
 		 (const :tag "Synchronize Zebra" zebra))
   :group 'ps-print-miscellany)
@@ -1879,6 +1986,26 @@ See also `ps-print-header'."
   :type 'integer
   :group 'ps-print-headers)
 
+(defcustom ps-switch-header 'duplex
+  "*Specify if headers are switched or not.
+
+Valid values are:
+
+nil	Never switch headers.
+
+t	Always switch headers.
+
+duplex	Switch headers only when duplexing is on, that is, when
+	`ps-spool-duplex' is non-nil.
+
+Any other value is treated as t."
+  :type '(choice :menu-tag "Switch Header"
+		 :tag "Switch Header"
+		 (const :tag "Never Switch" nil)
+		 (const :tag "Always Switch" t)
+		 (const :tag "Switch When Duplexing" duplex))
+  :group 'ps-print-headers)
+
 (defcustom ps-show-n-of-n t
   "*Non-nil means show page numbers as N/M, meaning page N of M.
 NOTE: page numbers are displayed as part of headers,
@@ -1915,7 +2042,8 @@ WARNING: The setpagedevice PostScript operator affects ghostview utility when
 	 So, if you need to use setpagedevice, set `ps-spool-config' to
 	 `setpagedevice', generate a test file and send it to your printer; if
 	 the printed file isn't ok, set `ps-spool-config' to nil."
-  :type '(choice :tag "Spool Config"
+  :type '(choice :menu-tag "Spool Config"
+		 :tag "Spool Config"
 		 (const lpr-switches) (const setpagedevice)
 		 (const :tag "nil" nil))
   :group 'ps-print-headers)
@@ -2132,7 +2260,8 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
 
 (defcustom ps-default-fg '(0.0 0.0 0.0)
   "*RGB values of the default foreground color.  Defaults to black."
-  :type '(choice :tag "Default Foreground Gray/Color"
+  :type '(choice :menu-tag "Default Foreground Gray/Color"
+		 :tag "Default Foreground Gray/Color"
 		 (number :tag "Gray Scale" :value 0.0)
 		 (string :tag "Color Name" :value "black")
 		 (list :tag "RGB Color" :value (0.0 0.0 0.0)
@@ -2143,7 +2272,8 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
 
 (defcustom ps-default-bg '(1.0 1.0 1.0)
   "*RGB values of the default background color.  Defaults to white."
-  :type '(choice :tag "Default Background Gray/Color"
+  :type '(choice :menu-tag "Default Background Gray/Color"
+		 :tag "Default Background Gray/Color"
 		 (number :tag "Gray Scale" :value 1.0)
 		 (string :tag "Color Name" :value "white")
 		 (list :tag "RGB Color" :value (1.0 1.0 1.0)
@@ -2203,7 +2333,8 @@ Valid values are:
    (face...)	list of faces whose background color will be used.
 
 Any other value will be treated as t."
-  :type '(choice :tag "Use Face Background"
+  :type '(choice :menu-tag "Use Face Background"
+		 :tag "Use Face Background"
 		 (const :tag "Always Use Face Background" t)
 		 (const :tag "Never Use Face Background" nil)
 		 (repeat :menu-tag "Face Background List"
@@ -2285,7 +2416,7 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
 
 (defcustom ps-postscript-code-directory
   (or (and (fboundp 'locate-data-directory) ; xemacs
-           (locate-data-directory "ps-print"))
+	   (locate-data-directory "ps-print"))
       data-directory)			; emacs
   "*Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
@@ -2436,19 +2567,23 @@ The table depends on the current ps-print setup."
   "Return the current PostScript-generation setup."
   (format
    "
+;;; ps-print version %s
 \(setq ps-print-color-p         %s
       ps-lpr-command           %S
       ps-lpr-switches          %s
       ps-printer-name          %S
       ps-print-region-function %s
+      ps-manual-feed           %S
 
       ps-paper-type          %s
+      ps-warn-paper-type     %s
       ps-landscape-mode      %s
       ps-print-upside-down   %s
       ps-number-of-columns   %s
 
       ps-zebra-stripes       %s
       ps-zebra-stripe-height %s
+      ps-zebra-stripe-follow %S
       ps-zebra-color         %s
       ps-line-number         %s
       ps-line-number-step    %s
@@ -2479,6 +2614,7 @@ The table depends on the current ps-print setup."
       ps-print-header               %s
       ps-print-only-one-header      %s
       ps-print-header-frame         %s
+      ps-switch-header              %s
       ps-header-lines               %s
       ps-show-n-of-n                %s
       ps-spool-config               %s
@@ -2486,10 +2622,10 @@ The table depends on the current ps-print setup."
       ps-spool-tumble               %s
       ps-banner-page-when-duplexing %s
 
-      ps-n-up-printing         %s
-      ps-n-up-margin           %s
-      ps-n-up-border-p         %s
-      ps-n-up-filling          %s
+      ps-n-up-printing %s
+      ps-n-up-margin   %s
+      ps-n-up-border-p %s
+      ps-n-up-filling  %s
 
       ps-multibyte-buffer       %s
       ps-font-family            %s
@@ -2498,17 +2634,21 @@ The table depends on the current ps-print setup."
       ps-header-font-size       %s
       ps-header-title-font-size %s)
 "
+   ps-print-version
    ps-print-color-p
    ps-lpr-command
    (ps-print-quote ps-lpr-switches)
    ps-printer-name
    (ps-print-quote ps-print-region-function)
+   ps-manual-feed
    (ps-print-quote ps-paper-type)
+   ps-warn-paper-type
    ps-landscape-mode
    ps-print-upside-down
    ps-number-of-columns
    ps-zebra-stripes
    ps-zebra-stripe-height
+   ps-zebra-stripe-follow
    (ps-print-quote ps-zebra-color)
    ps-line-number
    (ps-print-quote ps-line-number-step)
@@ -2532,6 +2672,7 @@ The table depends on the current ps-print setup."
    ps-print-header
    ps-print-only-one-header
    ps-print-header-frame
+   (ps-print-quote ps-switch-header)
    ps-header-lines
    ps-show-n-of-n
    (ps-print-quote ps-spool-config)
@@ -3392,7 +3533,7 @@ page-height == bm + print-height + tm - ho - hh
 			 "PrintHeight PrintPageWidth atan") ; rotation
 	(ps-float-format (nth 5 text) 0.85) ; gray
 	(ps-float-format (nth 1 text) "0") ; x position
-	(ps-float-format (nth 2 text) "BottomMargin") ; y position
+	(ps-float-format (nth 2 text) "0") ; y position
 	"\nShowBackText} def\n")
        (ps-background-pages (nthcdr 7 text) ; page list
 			    (format "ShowBackText-%d\n"
@@ -3530,6 +3671,7 @@ page-height == bm + print-height + tm - ho - hh
      (100 nil 10 10 0))
     (letter
      (1   nil 1  1  0)
+     (2   t   1  2  0)			; adjusted by PostScript code
      (4   nil 2  2  0)
      (6   t   2  3  0)
      (9   nil 3  3  0)
@@ -3572,6 +3714,7 @@ page-height == bm + print-height + tm - ho - hh
      (100 nil 10 10 0))
     (letter-small
      (1   nil 1  1  0)
+     (2   t   1  2  0)			; adjusted by PostScript code
      (4   nil 2  2  0)
      (6   t   2  3  0)
      (9   nil 3  3  0)
@@ -3667,6 +3810,7 @@ page-height == bm + print-height + tm - ho - hh
      (100 nil 10 10 0))
     (executive
      (1   nil 1  1  0)
+     (2   t   1  2  0)			; adjusted by PostScript code
      (4   nil 2  2  0)
      (6   t   2  3  0)
      (9   nil 3  3  0)
@@ -3948,12 +4092,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
      (format " %d" (round (ps-page-dimensions-get-height dimensions)))
      " 0 () ()\n%%PageOrder: Ascend\n%%Pages: (atend)\n%%Requirements:"
      (if ps-spool-duplex
-	 (format " duplex%s" (if tumble "(tumble)\n" "\n"))
+	 (if tumble " duplex(tumble)\n" " duplex\n")
        "\n"))
 
     (ps-insert-string ps-print-prologue-header)
 
-    (ps-output "%%EndComments\n\n%%BeginPrologue\n\n"
+    (ps-output "%%EndComments\n%%BeginDefaults\n%%PageMedia: "
+	       (ps-page-dimensions-get-media dimensions)
+	       "\n%%EndDefaults\n\n%%BeginPrologue\n\n"
 	       "/languagelevel where{pop}{/languagelevel 1 def}ifelse\n"
 	       (format "/ErrorMessage  %s def\n\n"
 		       (or (cdr (assoc ps-error-handler-message
@@ -3992,6 +4138,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-output-boolean "PrintHeader       " ps-print-header)
     (ps-output-boolean "PrintOnlyOneHeader" ps-print-only-one-header)
     (ps-output-boolean "PrintHeaderFrame  " ps-print-header-frame)
+    (ps-output-boolean "SwitchHeader      " (if (eq ps-switch-header 'duplex)
+						ps-spool-duplex
+					      ps-switch-header))
     (ps-output-boolean "ShowNofN          " ps-show-n-of-n)
     (ps-output-boolean "DuplexValue       " ps-spool-duplex)
     (ps-output-boolean "TumbleValue       " tumble)
@@ -4003,7 +4152,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				      (* line-height 0.45))
 				   line-height)))))
 
+    (ps-output-boolean "WarnPaperSize   " ps-warn-paper-type)
     (ps-output-boolean "Zebra           " ps-zebra-stripes)
+    (ps-output-boolean "ZebraFollow     " ps-zebra-stripe-follow)
     (ps-output-boolean "PrintLineNumber " ps-line-number)
     (ps-output-boolean "SyncLineZebra   " (not (integerp ps-line-number-step)))
     (ps-output (format "/PrintLineStep    %d def\n"
@@ -4089,7 +4240,12 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		 "\n\n"
 		 ps-print-duplex-feature
 		 "\n%%EndFeature\n")))
-  (ps-output "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n")
+  (ps-output "\n%%BeginFeature: *ManualFeed "
+	     (ps-boolean-capitalized ps-manual-feed)
+	     "\nBMark /ManualFeed "
+	     (ps-boolean-constant ps-manual-feed)
+	     " EMark setpagedevice\n%%EndFeature\n"
+	     "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n")
   (and ps-banner-page-when-duplexing
        (ps-output "\n%%Page: banner 0\nsave showpage restore\n")))
 
@@ -4118,6 +4274,10 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
 (defun ps-boolean-capitalized (bool)
   (if bool "True" "False"))
+
+
+(defun ps-boolean-constant (bool)
+  (if bool "true" "false"))
 
 
 (defun ps-header-dirpart ()
@@ -4537,6 +4697,12 @@ EndDSCPage\n")
 	  (ps-color-values color)))
 
 
+(defun ps-xemacs-color-name (color)
+  (if (color-specifier-p color)
+      (color-name color)
+    color))
+
+
 (cond ((eq ps-print-emacs-type 'emacs)  ; emacs
 
        (defun ps-color-values (x-color)
@@ -4548,18 +4714,16 @@ EndDSCPage\n")
 					; lucid
       (t				; epoch
        (defun ps-color-values (x-color)
-	 (let ((the-color (if (color-specifier-p x-color)
-			      (color-name x-color)
-			    x-color)))
+	 (let ((color (ps-xemacs-color-name x-color)))
 	   (cond
 	    ((fboundp 'x-color-values)
-	     (x-color-values the-color))
+	     (x-color-values color))
 	    ((and (fboundp 'color-instance-rgb-components)
 		  (ps-color-device))
 	     (color-instance-rgb-components
 	      (if (color-instance-p x-color)
 		  x-color
-		(make-color-instance the-color))))
+		(make-color-instance color))))
 	    (t
 	     (error "No available function to determine X color values.")))))
        ))
@@ -4659,6 +4823,9 @@ If FACE is not a valid face name, it is used default face."
 
 (cond ((eq ps-print-emacs-type 'emacs)  ; emacs
 
+       (defalias 'ps-face-foreground-name 'face-foreground)
+       (defalias 'ps-face-background-name 'face-background)
+
        (defun ps-face-bold-p (face)
 	 (or (face-bold-p face)
 	     (memq face ps-bold-faces)))
@@ -4670,6 +4837,12 @@ If FACE is not a valid face name, it is used default face."
 					; xemacs
 					; lucid
       (t				; epoch
+       (defun ps-face-foreground-name (face)
+	 (ps-xemacs-color-name (face-foreground face)))
+
+       (defun ps-face-background-name (face)
+	 (ps-xemacs-color-name (face-background face)))
+
        (defun ps-face-bold-p (face)
 	 (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
 	     (memq face ps-bold-faces))) ; Kludge-compatible
@@ -4738,8 +4911,8 @@ If FACE is not a valid face name, it is used default face."
 	(vector (logior (if (ps-face-bold-p face) 1 0) ; bold
 			(if (ps-face-italic-p face) 2 0) ; italic
 			(if (ps-face-underlined-p face) 4 0)) ; underline
-		(face-foreground face)
-		(face-background face))))
+		(ps-face-foreground-name face)
+		(ps-face-background-name face))))
 
 
 (cond ((not (eq ps-print-emacs-type 'emacs))
@@ -4765,11 +4938,10 @@ If FACE is not a valid face name, it is used default face."
   (setq ps-current-effect 0)
 
   ;; Build the reference lists of faces if necessary.
-  (if (or ps-always-build-face-reference
-	  ps-build-face-reference)
-      (progn
-	(message "Collecting face information...")
-	(ps-build-reference-face-lists)))
+  (when (or ps-always-build-face-reference
+	    ps-build-face-reference)
+    (message "Collecting face information...")
+    (ps-build-reference-face-lists))
   ;; Generate some PostScript.
   (save-restriction
     (narrow-to-region from to)
@@ -4777,8 +4949,7 @@ If FACE is not a valid face name, it is used default face."
     (let ((face 'default)
 	  (position to))
       (cond
-       ((or (eq ps-print-emacs-type 'lucid)
-	    (eq ps-print-emacs-type 'xemacs))
+       ((memq ps-print-emacs-type '(xemacs lucid))
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)
