@@ -1,3 +1,10 @@
+2004-06-04  Mario Lang  <mlang@delysid.org>
+
+	* battery.el (battery-linux-proc-acpi): mA was hardcored, but some
+	systems appear to use mW, make the code handle this.  Fix a
+	division-by-zero bug while at it, and handle kernels with
+	a slightly different layout in /proc/acpi.
+
 2004-06-03  Karl Fogel  <kfogel@red-bean.com>
 
 	* vc-svn.el (vc-svn-checkin): Use 'nconc' instead of 'list*',
