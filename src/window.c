@@ -253,8 +253,17 @@ POS defaults to point; WINDOW, to the selected window.")
 	return Qnil;
 
       /* If that info is not correct, calculate afresh */
+      /* BUG FIX for the 7th arg (TOHPOS).
+
+	 '0' is harmless, however, ' - (1 << (BITS_PER_SHORT - 1))' is
+	 more appropriate here.  In case of HSCROLL > 0, this can avoid
+	 needless calculation done until (HPOS == 0).
+
+	 We want to determine if the position POSINT is in HEIGHT or
+	 not.  We don't have to do calculation until (HPOS == 0).  We
+	 can stop it when VPOS goes beyond HEIGHT.  */
       posval = *compute_motion (top, 0, (hscroll ? 1 - hscroll : 0), 0,
-				posint, height, 0,
+				posint, height, - (1 << (BITS_PER_SHORT - 1)),
 				window_internal_width (w) - 1,
 				hscroll, 0, w);
 
@@ -1573,7 +1582,7 @@ value is reasonable when this function is called.")
 
       Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
       w->start_at_line_beg = ((pos.bufpos == BEGV
-			       || FETCH_CHAR (pos.bufpos - 1) == '\n') ? Qt
+			       || FETCH_BYTE (pos.bufpos - 1) == '\n') ? Qt
 			      : Qnil);
       /* We need to do this, so that the window-scroll-functions
 	 get called.  */
@@ -3055,7 +3064,7 @@ redraws with point in the center of the current window.")
 
   Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
   w->start_at_line_beg = ((pos.bufpos == BEGV
-			   || FETCH_CHAR (pos.bufpos - 1) == '\n')
+			   || FETCH_BYTE (pos.bufpos - 1) == '\n')
 			  ? Qt : Qnil);
   w->force_start = Qt;
 
