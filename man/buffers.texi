@@ -46,6 +46,8 @@ the value in other buffers.  @xref{Locals}.
 * Several Buffers::     How to go through the list of all buffers
 			  and operate variously on several of them.
 * Indirect Buffers::    An indirect buffer shares the text of another buffer. 
+* Buffer Convenience::  Convenience and customization features for
+                          buffer handling.
 @end menu
 
 @node Select Buffer
@@ -414,3 +416,42 @@ buffer, but killing an indirect buffer has no effect on its base buffer.
 
   One way to use indirect buffers is to display multiple views of an
 outline.  @xref{Outline Views}.
+
+@node Buffer Convenience
+@section Convenience Features and Customization of Buffer Handling
+
+@menu
+* Uniquify::                    
+* BS::                          
+* Iswitchb::                    
+* MSB::                         
+@end menu
+
+@node Uniquify
+@subsection Directory Names in Buffer Names
+
+@findex toggle-uniquify-buffer-names
+@vindex uniquify-buffer-name-style
+@cindex unique buffer names
+@cindex directories in buffer names
+Emacs's standard method for making buffer names unique adds @samp{<2>},
+@samp{<3>}, etc. to the end of (all but one of) the buffers.  The
+Uniquify package replaces that behavior, for buffers visiting files and
+dired buffers.  It implements a uniquification that adds parts of the
+file name until the buffer names are unique.  For instance, buffers
+visiting @file{/u/mernst/tmp/Makefile} and
+@file{/usr/projects/zaphod/Makefile} would be named @samp{tmp/Makefile}
+and @samp{zaphod/Makefile}, respectively (instead of @samp{Makefile}
+and @samp{Makefile<2>}).  You can turn on this mode and select other
+buffer name styles by customizing the user option
+@code{uniquify-buffer-name-style}.  The command @kbd{M-x
+toggle-uniquify-buffer-names} can also be used to toggle the mode.  
+
+@node BS
+@subsection BS Mode: Configurable Buffer Menus
+
+@node Iswitchb
+@subsection Iswitchb Mode: Switching Between Buffers using Substrings
+
+@node MSB
+@subsection MSB Mode: Customizable Buffer Selection with Multiple Menus
