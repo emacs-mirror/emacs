@@ -818,25 +818,6 @@ x_clear_frame_selections (f)
   /* Otherwise, we're really honest and truly being told to drop it.
      Don't use Fdelq as that may QUIT;.  */
 
-  while (!NILP (Vselection_alist)
-	 && EQ (frame, Fcar (Fcdr (Fcdr (Fcdr (Fcar (Vselection_alist)))))))
-    {
-      /* Let random Lisp code notice that the selection has been stolen.  */
-      Lisp_Object hooks, selection_symbol;
-
-      hooks = Vx_lost_selection_hooks;
-      selection_symbol = Fcar (Vselection_alist);
-
-      if (!EQ (hooks, Qunbound))
-	{
-	  for (; CONSP (hooks); hooks = Fcdr (hooks))
-	    call1 (Fcar (hooks), selection_symbol);
-	  redisplay_preserve_echo_area ();
-	}
-
-      Vselection_alist = Fcdr (Vselection_alist);
-    }
-
   for (rest = Vselection_alist; !NILP (rest); rest = Fcdr (rest))
     if (EQ (frame, Fcar (Fcdr (Fcdr (Fcdr (Fcar (XCONS (rest)->cdr)))))))
       {
