@@ -1,3 +1,10 @@
+2002-12-23  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* mail/undigest.el (unforward-rmail-message): Do not assume that
+	the forwarded message's Date: header comes after From:.  Use a
+	Forwarded-from: rather than a Forwarded-by: header.  Add a
+	Forwarded-date: header.
+
 2002-12-23  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-display-number-end): Make auto-display of
@@ -25,7 +32,7 @@
         Merging Dave Love <fx@gnu.org>'s custom_themes branch containing
 	Alex Schroeder's adaptation of Jan Vroonhof
 	<vroonhof@math.ethz.ch>'s code.  Doc strings corrected by RMS.
-	
+
 	* cus-edit.el (customize-save-variable): Take themes into account.
 	(custom-variable-save): Take themes into account.
 	(custom-variable-reset-saved): Add comment-widget.
@@ -90,13 +97,13 @@
 
 	* subr.el (add-to-invisibility-spec): If it was t, start it out at (t).
 
-	* textmodes/texinfmt.el (tex-start-of-header, tex-end-of-header): 
+	* textmodes/texinfmt.el (tex-start-of-header, tex-end-of-header):
 	Add defvars.
 
 	* textmodes/tex-mode.el (tex-print): Call shell-quote-argument
 	on the file name.
 
-	* textmodes/outline.el (outline-next-visible-heading): 
+	* textmodes/outline.el (outline-next-visible-heading):
 	When going forward, test outline-invisible-p at start of header.
 
 2002-12-22  Kevin Ryde  <user42@zip.com.au>
