@@ -1,3 +1,8 @@
+2002-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (clone-indirect-buffer-other-window): Fix a typo in
+	pop-up-window.
+
 2002-05-01  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--pre-command-handler): Only
