@@ -1,3 +1,14 @@
+2005-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* frame.c (x_set_font): Call set_default_ascii_font if an
+	available font is found.
+
+	* fontset.c (set_default_ascii_font): New function.
+	(syms_of_fontset): Don't set FONTSET_ASCII (Vdefault_fontset)
+	here.
+
+	* fontset.h (set_default_ascii_font): Extern it.
+
 2005-03-07  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (CLEAR_IMAGE_CACHE_COUNT): New const.
