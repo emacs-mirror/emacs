@@ -50,7 +50,7 @@ extern Lisp_Object last_command_char;
 extern Lisp_Object last_nonmenu_event;
 
 /* Command character to be re-read, or -1 */
-extern int unread_command_char;
+extern Lisp_Object unread_command_char;
 
 /* Previous command symbol found here for comparison */
 extern Lisp_Object last_command;
