@@ -791,7 +791,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  && NEW_SECTION_H (n).sh_type != SHT_SYMTAB)
 	continue;
 
-      symnames = NEW_SECTION_H (NEW_SECTION_H (n).sh_link).sh_offset + new_base;
+      symnames = ((byte *) new_base
+		  + NEW_SECTION_H (NEW_SECTION_H (n).sh_link).sh_offset);
       symp = (Elf32_Sym *) (NEW_SECTION_H (n).sh_offset + new_base);
       symendp = (Elf32_Sym *) ((byte *)symp + NEW_SECTION_H (n).sh_size);
 
