@@ -1,7 +1,7 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.30) $
-# Copyright(C) 1997 Harlequin Group plc.  All rights reserved.
+# $HopeName: MMsrc!commpost.nmk(trunk.31) $
+# Copyright(C) 1997, 1999 Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
 #
@@ -26,16 +26,13 @@ mpmss.exe amcss.exe amsss.exe awlut.exe dwstress.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
      thw3susp.exe abqtest.exe cbstest.exe btcv.exe mv2eptst.exe \
-     mv2test.exe epvmss.exe \
+     mv2test.exe epvmss.exe eventcnv.exe \
      mpm.lib mmdw.lib mmsw.lib poolawl.lib mpsplan.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
 !ELSE
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 !ENDIF
-
-eventcnv.exe:
-	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=we variety
 
 mpsicv.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cv variety
@@ -166,8 +163,6 @@ $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
 
 $(PFM)\$(VARIETY)\eventcnv.exe: $(PFM)\$(VARIETY)\eventcnv.obj \
 	$(PFM)\$(VARIETY)\eventpro.obj $(PFM)\$(VARIETY)\table.obj
-	$(ECHO) $@
-	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**)
 
 $(PFM)\$(VARIETY)\epvmss.exe: $(PFM)\$(VARIETY)\epvmss.obj \
 	$(PFM)\$(VARIETY)\fmtpstst.obj \
