@@ -271,7 +271,7 @@
 
 ;;;###autoload
 (defun ccl-compile (ccl-program)
-  "Return a compiled code of CCL-PROGRAM as a vector of integer."
+  "Return the compiled code of CCL-PROGRAM as a vector of integers."
   (if (or (null (consp ccl-program))
 	  (null (integerp (car ccl-program)))
 	  (null (listp (car (cdr ccl-program)))))

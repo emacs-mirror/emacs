@@ -448,7 +448,8 @@ for more detail."
 	    (list prop val)))))
 
 (defun coding-system-category (coding-system)
-  "Return the coding category of CODING-SYSTEM."
+  "Return the coding category of CODING-SYSTEM.
+See also `coding-category-list'."
   (coding-system-get coding-system 'coding-category))
 
 (defun coding-system-base (coding-system)
