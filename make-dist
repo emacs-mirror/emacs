@@ -207,6 +207,7 @@ echo "Making links to \`etc'."
  ln [0-9a-zA-Z]* ../${tempdir}/etc
  cd ../${tempdir}/etc
  rm -f DOC* *~ \#*\# *.dvi *.log *,v core
+ rm -fr Old
  rm -f =* TAGS)
 
 echo "Making links to \`cpp'."
