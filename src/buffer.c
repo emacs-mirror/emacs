@@ -4707,7 +4707,7 @@ Automatically becomes buffer-local when set in any fashion.\n");
     "*If a number, scroll display up aggressively.\n\
 If scrolling a window because point is above the window start, choose\n\
 a new window start so that point ends up that fraction of the window's\n\
-height from the bottom of the window.\n\
+height from the top of the window.\n\
 Automatically becomes buffer-local when set in any fashion.");
   
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
@@ -4715,7 +4715,7 @@ Automatically becomes buffer-local when set in any fashion.");
     "*If a number, scroll display down aggressively.\n\
 If scrolling a window because point is below the window end, choose\n\
 a new window start so that point ends up that fraction of the window's\n\
-height from the top of the window.\n\
+height from the bottom of the window.\n\
 Automatically becomes buffer-local when set in any fashion.");
   
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
