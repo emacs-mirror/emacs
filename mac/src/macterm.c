@@ -129,9 +129,17 @@ enum fringe_bitmap_type
    `indicate-empty-lines' is non-nil.  */
 
 #define zv_width 8
-#define zv_height 8
+#define zv_height 72
+#define zv_period 3
 static unsigned char zv_bits[] = {
-   0x00, 0x00, 0x78, 0x78, 0x78, 0x78, 0x00, 0x00};
+  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
+  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
+  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
+  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
+  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
+  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
+  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
+  0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00};
 
 /* An arrow like this: `<-'.  */
 
@@ -429,8 +437,7 @@ static void x_update_window_cursor P_ ((struct window *, int));
 static void x_erase_phys_cursor P_ ((struct window *));
 void x_display_and_set_cursor P_ ((struct window *, int, int, int, int, int));
 static void x_draw_fringe_bitmap P_ ((struct window *, struct glyph_row *, 
-			       enum fringe_bitmap_type));
-
+				      enum fringe_bitmap_type, int left_p));
 static void x_clip_to_row P_ ((struct window *, struct glyph_row *,
 			       GC, int));
 static int x_phys_cursor_in_rect_p P_ ((struct window *, Rect *));
@@ -1303,15 +1310,17 @@ x_after_update_window_line (desired_row)
    drawn.  */
 
 static void
-x_draw_fringe_bitmap (w, row, which)
+x_draw_fringe_bitmap (w, row, which, left_p)
      struct window *w;
      struct glyph_row *row;
      enum fringe_bitmap_type which;
+     int left_p;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Display *display = FRAME_MAC_DISPLAY (f);
   WindowPtr window = FRAME_MAC_WINDOW (f);
   int x, y, wd, h, dy;
+  int b1, b2;
   unsigned char *bits;
   BitMap bitmap;
   XGCValues gcv;
@@ -1320,72 +1329,138 @@ x_draw_fringe_bitmap (w, row, which)
   /* Must clip because of partially visible lines.  */
   x_clip_to_row (w, row, 1);
 
+  /* Convert row to frame coordinates.  */
+  y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+
   switch (which)
     {
+    case NO_FRINGE_BITMAP:
+      wd = 0;
+      h = 0;
+      break;
+
     case LEFT_TRUNCATION_BITMAP:
       wd = left_width;
       h = left_height;
       bits = left_bits;
-      x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
-	   - wd
-	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
       break;
       
     case OVERLAY_ARROW_BITMAP:
-      wd = left_width;
-      h = left_height;
+      wd = ov_width;
+      h = ov_height;
       bits = ov_bits;
-      x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
-	   - wd
-	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
       break;
       
     case RIGHT_TRUNCATION_BITMAP:
       wd = right_width;
       h = right_height;
       bits = right_bits;
-      x = window_box_right (w, -1);
-      x += (FRAME_X_RIGHT_FRINGE_WIDTH (f) - wd) / 2;
       break;
 
     case CONTINUED_LINE_BITMAP:
-      wd = right_width;
-      h = right_height;
+      wd = continued_width;
+      h = continued_height;
       bits = continued_bits;
-      x = window_box_right (w, -1);
-      x += (FRAME_X_RIGHT_FRINGE_WIDTH (f) - wd) / 2;
       break;
       
     case CONTINUATION_LINE_BITMAP:
       wd = continuation_width;
       h = continuation_height;
       bits = continuation_bits;
-      x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
-	   - wd
-	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
       break;
 
     case ZV_LINE_BITMAP:
       wd = zv_width;
-      h = zv_height;
-      bits = zv_bits;
-      x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
-	   - wd
-	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
+      h = zv_height - (y % zv_period);
+      bits = zv_bits + (y % zv_period);
       break;
 
     default:
       abort ();
     }
 
-  /* Convert to frame coordinates.  Set dy to the offset in the row to
-     start drawing the bitmap.  */
-  y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+  /* Clip bitmap if too high.  */
+  if (h > row->height)
+    h = row->height;
+
+  /* Set dy to the offset in the row to start drawing the bitmap.  */
   dy = (row->height - h) / 2;
 
   /* Draw the bitmap.  I believe these small pixmaps can be cached
      by the server.  */
   face = FACE_FROM_ID (f, FRINGE_FACE_ID);
+  PREPARE_FACE_FOR_DISPLAY (f, face);
+
+  /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
+     the fringe.  */
+  b1 = -1;
+  if (left_p)
+    {
+      if (wd > FRAME_X_LEFT_FRINGE_WIDTH (f))
+	wd = FRAME_X_LEFT_FRINGE_WIDTH (f);
+      x = (WINDOW_TO_FRAME_PIXEL_X (w, 0)
+	   - wd
+	   - (FRAME_X_LEFT_FRINGE_WIDTH (f) - wd) / 2);
+      if (wd < FRAME_X_LEFT_FRINGE_WIDTH (f) || row->height > h)
+	{
+	  /* If W has a vertical border to its left, don't draw over it.  */
+	  int border = ((XFASTINT (w->left) > 0
+			 && !FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+			? 1 : 0);
+	  b1 = (window_box_left (w, -1)
+		- FRAME_X_LEFT_FRINGE_WIDTH (f)
+		+ border);
+	  b2 = (FRAME_X_LEFT_FRINGE_WIDTH (f) - border);
+	}
+    }
+  else
+    {
+      if (wd > FRAME_X_RIGHT_FRINGE_WIDTH (f))
+	wd = FRAME_X_RIGHT_FRINGE_WIDTH (f);
+      x = (window_box_right (w, -1)
+	   + (FRAME_X_RIGHT_FRINGE_WIDTH (f) - wd) / 2);
+      /* Clear right fringe if no bitmap to draw of if bitmap doesn't fill
+	 the fringe.  */
+      if (wd < FRAME_X_RIGHT_FRINGE_WIDTH (f) || row->height > h)
+	{
+	  b1 = window_box_right (w, -1);
+	  b2 = FRAME_X_RIGHT_FRINGE_WIDTH (f);
+	}
+    }
+
+  if (b1 >= 0)
+    {
+      int header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
+      XGCValues gcv;
+      gcv.foreground = face->background;
+
+#if 0  /* MAC_TODO: stipple */
+      /* In case the same realized face is used for fringes and
+	 for something displayed in the text (e.g. face `region' on
+	 mono-displays, the fill style may have been changed to
+	 FillSolid in x_draw_glyph_string_background.  */
+      if (face->stipple)
+	XSetFillStyle (FRAME_X_DISPLAY (f), face->gc, FillOpaqueStippled);
+      else
+	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
+#endif
+
+      XFillRectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+		      &gcv,
+		      b1,
+		      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
+						       row->y)),
+		      b2,
+		      row->visible_height);
+
+#if 0  /* MAC_TODO: stipple */
+      if (!face->stipple)
+	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
+#endif
+    }
+
+  if (which == NO_FRINGE_BITMAP)
+    return;
 
   mac_create_bitmap_from_bitmap_data (&bitmap, bits, wd, h);
   gcv.foreground = face->foreground;
@@ -1408,8 +1483,6 @@ x_draw_row_fringe_bitmaps (w, row)
 {
   struct frame *f = XFRAME (w->frame);
   enum fringe_bitmap_type bitmap;
-  struct face *face;
-  int header_line_height = -1;
 
   xassert (interrupt_input_blocked);
 
@@ -1418,133 +1491,37 @@ x_draw_row_fringe_bitmaps (w, row)
   if (row->visible_height <= 0)
     return;
 
-  face = FACE_FROM_ID (f, FRINGE_FACE_ID);
-  PREPARE_FACE_FOR_DISPLAY (f, face);
-
-  /* Decide which bitmap to draw in the left fringe.  */
-  if (row->overlay_arrow_p)
-    bitmap = OVERLAY_ARROW_BITMAP;
-  else if (row->truncated_on_left_p)
-    bitmap = LEFT_TRUNCATION_BITMAP;
-  else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
-    bitmap = CONTINUATION_LINE_BITMAP;
-  else if (row->indicate_empty_line_p)
-    bitmap = ZV_LINE_BITMAP;
-  else
-    bitmap = NO_FRINGE_BITMAP;
-
-  /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
-     the fringe.  */
-  if (bitmap == NO_FRINGE_BITMAP
-      || FRAME_FRINGE_BITMAP_WIDTH (f) < FRAME_X_LEFT_FRINGE_WIDTH (f)
-      || row->height > FRAME_FRINGE_BITMAP_HEIGHT (f))
+  if (FRAME_X_LEFT_FRINGE_WIDTH (f) != 0)
     {
-      /* If W has a vertical border to its left, don't draw over it.  */
-      int border = ((XFASTINT (w->left) > 0
-		     && !FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-		    ? 1 : 0);
-      int left = window_box_left (w, -1);
-
-      if (header_line_height < 0)
-	header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
-      
-#if 0  /* MAC_TODO: stipple */
-      /* In case the same realized face is used for fringes and
-	 for something displayed in the text (e.g. face `region' on
-	 mono-displays, the fill style may have been changed to
-	 FillSolid in x_draw_glyph_string_background.  */
-      if (face->stipple)
-	XSetFillStyle (FRAME_X_DISPLAY (f), face->gc, FillOpaqueStippled);
+      /* Decide which bitmap to draw in the left fringe.  */
+      if (row->overlay_arrow_p)
+	bitmap = OVERLAY_ARROW_BITMAP;
+      else if (row->truncated_on_left_p)
+	bitmap = LEFT_TRUNCATION_BITMAP;
+      else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
+	bitmap = CONTINUATION_LINE_BITMAP;
+      else if (row->indicate_empty_line_p)
+	bitmap = ZV_LINE_BITMAP;
       else
-	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
-      
-      XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      face->gc,
-		      (left
-		       - FRAME_X_LEFT_FRINGE_WIDTH (f)
-		       + border),
-		      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
-						       row->y)),
-		      FRAME_X_LEFT_FRINGE_WIDTH (f) - border,
-		      row->visible_height);
-      if (!face->stipple)
-	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
-#endif
-      {
-        XGCValues gcv;
-        gcv.foreground = face->background;
-        XFillRectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		        &gcv,
-		        (left
-		         - FRAME_X_LEFT_FRINGE_WIDTH (f)
-		         + border),
-		        WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
-						         row->y)),
-		        FRAME_X_LEFT_FRINGE_WIDTH (f) - border,
-		        row->visible_height);
-      }
-      
+	bitmap = NO_FRINGE_BITMAP;
+
+      x_draw_fringe_bitmap (w, row, bitmap, 1);
     }
 
-  /* Draw the left bitmap.  */
-  if (bitmap != NO_FRINGE_BITMAP)
-    x_draw_fringe_bitmap (w, row, bitmap);
-
-  /* Decide which bitmap to draw in the right fringe.  */
-  if (row->truncated_on_right_p)
-    bitmap = RIGHT_TRUNCATION_BITMAP;
-  else if (row->continued_p)
-    bitmap = CONTINUED_LINE_BITMAP;
-  else
-    bitmap = NO_FRINGE_BITMAP;
-
-  /* Clear right fringe if no bitmap to draw of if bitmap doesn't fill
-     the fringe.  */
-  if (bitmap == NO_FRINGE_BITMAP
-      || FRAME_FRINGE_BITMAP_WIDTH (f) < FRAME_X_RIGHT_FRINGE_WIDTH (f)
-      || row->height > FRAME_FRINGE_BITMAP_HEIGHT (f))
+  if (FRAME_X_RIGHT_FRINGE_WIDTH (f) != 0)
     {
-      int right = window_box_right (w, -1);
-
-      if (header_line_height < 0)
-	header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
-
-#if 0  /* MAC_TODO: stipple */
-      /* In case the same realized face is used for fringes and
-	 for something displayed in the text (e.g. face `region' on
-	 mono-displays, the fill style may have been changed to
-	 FillSolid in x_draw_glyph_string_background.  */
-      if (face->stipple)
-	XSetFillStyle (FRAME_X_DISPLAY (f), face->gc, FillOpaqueStippled);
+      /* Decide which bitmap to draw in the right fringe.  */
+      if (row->truncated_on_right_p)
+	bitmap = RIGHT_TRUNCATION_BITMAP;
+      else if (row->continued_p)
+	bitmap = CONTINUED_LINE_BITMAP;
+      else if (row->indicate_empty_line_p && FRAME_X_LEFT_FRINGE_WIDTH (f) == 0)
+	bitmap = ZV_LINE_BITMAP;
       else
-	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
-      XFillRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		      face->gc,
-		      right,
-		      WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
-						       row->y)),
-		      FRAME_X_RIGHT_FRINGE_WIDTH (f),
-		      row->visible_height);
-      if (!face->stipple)
-	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->foreground);
-#endif
-      {
-        XGCValues gcv;
-        gcv.foreground = face->background;
-        XFillRectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		        &gcv,
-		        right,
-		        WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height,
-						         row->y)),
-		        FRAME_X_RIGHT_FRINGE_WIDTH (f),
-		        row->visible_height);
-      }
+	bitmap = NO_FRINGE_BITMAP;
 
+      x_draw_fringe_bitmap (w, row, bitmap, 0);
     }
-
-  /* Draw the right bitmap.  */
-  if (bitmap != NO_FRINGE_BITMAP)
-    x_draw_fringe_bitmap (w, row, bitmap);
 }
 
 
@@ -5193,7 +5170,6 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end,
       /* X is relative to the left edge of W, without scroll bars
 	 or fringes.  */
       struct frame *f = XFRAME (w->frame);
-      /* int width = FRAME_FRINGE_WIDTH (f);  */
       int window_left_x = WINDOW_LEFT_MARGIN (w) * CANON_X_UNIT (f);
 
       x += window_left_x;
@@ -9210,8 +9186,92 @@ x_new_fontset (f, fontsetname)
   return build_string (fontsetname);
 }
 
-#if 0 /* MAC_TODO: inline input methods for Mac */
+/* Compute actual fringe widths */
+
+void
+x_compute_fringe_widths (f, redraw)
+     struct frame *f;
+     int redraw;
+{
+  int o_left = f->output_data.mac->left_fringe_width;
+  int o_right = f->output_data.mac->right_fringe_width;
+  int o_cols = f->output_data.mac->fringe_cols;
+
+  Lisp_Object left_fringe = Fassq (Qleft_fringe, f->param_alist);
+  Lisp_Object right_fringe = Fassq (Qright_fringe, f->param_alist);
+  int left_fringe_width, right_fringe_width;
+
+  if (!NILP (left_fringe))
+    left_fringe = Fcdr (left_fringe);
+  if (!NILP (right_fringe))
+    right_fringe = Fcdr (right_fringe);
+
+  left_fringe_width = ((NILP (left_fringe) || !INTEGERP (left_fringe)) ? 8 :
+		       XINT (left_fringe));
+  right_fringe_width = ((NILP (right_fringe) || !INTEGERP (right_fringe)) ? 8 :
+			XINT (right_fringe));
+
+  if (left_fringe_width || right_fringe_width)
+    {
+      int left_wid = left_fringe_width >= 0 ? left_fringe_width : -left_fringe_width;
+      int right_wid = right_fringe_width >= 0 ? right_fringe_width : -right_fringe_width;
+      int conf_wid = left_wid + right_wid;
+      int font_wid = FONT_WIDTH (f->output_data.mac->font);
+      int cols = (left_wid + right_wid + font_wid-1) / font_wid;
+      int real_wid = cols * font_wid;
+      if (left_wid && right_wid)
+	{
+	  if (left_fringe_width < 0)
+	    {
+	      /* Left fringe width is fixed, adjust right fringe if necessary */
+	      f->output_data.mac->left_fringe_width = left_wid;
+	      f->output_data.mac->right_fringe_width = real_wid - left_wid;
+	    }
+	  else if (right_fringe_width < 0)
+	    {
+	      /* Right fringe width is fixed, adjust left fringe if necessary */
+	      f->output_data.mac->left_fringe_width = real_wid - right_wid;
+	      f->output_data.mac->right_fringe_width = right_wid;
+	    }
+	  else
+	    {
+	      /* Adjust both fringes with an equal amount.
+		 Note that we are doing integer arithmetic here, so don't
+		 lose a pixel if the total width is an odd number.  */
+	      int fill = real_wid - conf_wid;
+	      f->output_data.mac->left_fringe_width = left_wid + fill/2;
+	      f->output_data.mac->right_fringe_width = right_wid + fill - fill/2;
+	    }
+	}
+      else if (left_fringe_width)
+	{
+	  f->output_data.mac->left_fringe_width = real_wid;
+	  f->output_data.mac->right_fringe_width = 0;
+	}
+      else
+	{
+	  f->output_data.mac->left_fringe_width = 0;
+	  f->output_data.mac->right_fringe_width = real_wid;
+	}
+      f->output_data.mac->fringe_cols = cols;
+      f->output_data.mac->fringes_extra = real_wid;
+    }
+  else
+    {
+      f->output_data.mac->left_fringe_width = 0;
+      f->output_data.mac->right_fringe_width = 0;
+      f->output_data.mac->fringe_cols = 0;
+      f->output_data.mac->fringes_extra = 0;
+    }
+
+  if (redraw && FRAME_VISIBLE_P (f))
+    if (o_left != f->output_data.mac->left_fringe_width ||
+	o_right != f->output_data.mac->right_fringe_width ||
+	o_cols != f->output_data.mac->fringe_cols)
+      redraw_frame (f);
+}
 
+#if 0 /* MAC_TODO: inline input methods for Mac */
 /***********************************************************************
 			   X Input Methods
  ***********************************************************************/
@@ -9512,8 +9572,9 @@ x_set_window_size (f, change_gravity, cols, rows)
        : FRAME_SCROLL_BAR_PIXEL_WIDTH (f) > 0
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.mac->font)));
-  f->output_data.mac->fringes_extra
-    = FRAME_FRINGE_WIDTH (f);
+
+  x_compute_fringe_widths (f, 0);
+
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
