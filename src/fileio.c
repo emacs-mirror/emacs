@@ -3746,8 +3746,8 @@ build_annotations_unwind (buf)
   return Qnil;
 }
 
-DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
-  "r\nFWrite region to file: \ni\ni\ni\nZCoding system: ",
+DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 6,
+  "r\nFWrite region to file: ",
   "Write current region into specified file.\n\
 When called from a program, takes three arguments:\n\
 START, END and FILENAME.  START and END are buffer positions.\n\
@@ -3762,18 +3762,10 @@ If VISIT is a string, it is a second file name;\n\
 If VISIT is neither t nor nil nor a string,\n\
   that means do not print the \"Wrote file\" message.\n\
 The optional sixth arg LOCKNAME, if non-nil, specifies the name to\n\
-  use for locking and unlocking, overriding FILENAME and VISIT.\n\
-The optional seventh arg CODING-SYSTEM, if non-nil, specifies the coding\n\
- system to be used for encoding characters.  For interactive use,\n\
- you can specify it by giving a prefix argument.  If no coding system\n\
- is specified, the current region is encoded according to the value of\n\
- `coding-system-for-write' or `coding-system-alist'.  The variable\n\
- `last-coding-system-used' is set the coding system actually used.\n\
 Kludgy feature: if START is a string, then that string is written\n\
 to the file, instead of any buffer contents, and END is ignored.")
-  (start, end, filename, append, visit, lockname, coding_system_symbol)
+  (start, end, filename, append, visit, lockname)
      Lisp_Object start, end, filename, append, visit, lockname;
-     Lisp_Object coding_system_symbol;
 {
   register int desc;
   int failure;
@@ -3804,7 +3796,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   if (!NILP (start) && !STRINGP (start))
     validate_region (&start, &end);
 
-  GCPRO5 (start, filename, visit, lockname, coding_system_symbol);
+  GCPRO4 (start, filename, visit, lockname);
 
   /* Decide the coding-system to be encoded to.  */
   {
@@ -3812,8 +3804,6 @@ to the file, instead of any buffer contents, and END is ignored.")
 
     if (auto_saving || NILP (current_buffer->enable_multibyte_characters))
       val = Qnil;
-    else if (!NILP (coding_system_symbol))
-      val = coding_system_symbol;
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
     else if (!NILP (Flocal_variable_if_set_p (Qbuffer_file_coding_system,
@@ -3829,7 +3819,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 	coding_systems = Ffind_coding_system (7, args);
 	val = (CONSP (coding_systems)
 	       ? XCONS (coding_systems)->cdr
-	       : Fsymbol_value (Qbuffer_file_coding_system));
+	       : current_buffer->buffer_file_coding_system);
       }
     setup_coding_system (Fcheck_coding_system (val), &coding); 
     if (!STRINGP (start) && !NILP (current_buffer->selective_display))
@@ -4457,7 +4447,7 @@ auto_save_1 ()
   return
     Fwrite_region (Qnil, Qnil,
 		   current_buffer->auto_save_file_name,
-		   Qnil, Qlambda, Qnil, Qnil);
+		   Qnil, Qlambda, Qnil);
 }
 
 static Lisp_Object
