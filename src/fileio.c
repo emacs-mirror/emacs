@@ -3686,8 +3686,11 @@ actually used.  */)
   record_unwind_protect (close_file_unwind, make_number (fd));
 
   /* Supposedly happens on VMS.  */
+  /* Can happen on any platform that uses long as type of off_t, but allows
+     file sizes to exceed 2Gb.  VMS is no longer officially supported, so
+     give a message suitable for the latter case.  */
   if (! not_regular && st.st_size < 0)
-    error ("File size is negative");
+    error ("Maximum buffer size exceeded");
 
   /* Prevent redisplay optimizations.  */
   current_buffer->clip_changed = 1;
