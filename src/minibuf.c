@@ -298,8 +298,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
     }
 
   /* Make minibuffer contents into a string */
-  val = make_buffer_string (1, Z);
+  val = make_buffer_string (1, Z, 1);
+#if 0  /* make_buffer_string should handle the gap.  */
   bcopy (GAP_END_ADDR, XSTRING (val)->data + GPT - BEG, Z - GPT);
+#endif
 
   /* VAL is the string of minibuffer text.  */
   last_minibuf_string = val;
