@@ -18,6 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+extern void init_signals P_ ((void));
+
 #ifdef POSIX_SIGNALS
 
 /* Don't #include <signal.h>.  That header should always be #included
@@ -31,7 +33,6 @@ Boston, MA 02111-1307, USA.  */
 #define SIGEMPTYMASK (empty_mask)
 #define SIGFULLMASK (full_mask)
 extern sigset_t empty_mask, full_mask;
-extern void init_signals P_ ((void));
 
 /* POSIX pretty much destroys any possibility of writing sigmask as a
    macro in standard C.  We always define our own version because the
