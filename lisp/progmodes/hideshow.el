@@ -350,7 +350,7 @@ as opposed to hiding it from the position returned when searching
 for `hs-block-start-regexp'.
 
 For example, in c-like modes, if we wish to also hide the curly braces
-(if you think they occupy too much space on the screen), this function
+\(if you think they occupy too much space on the screen), this function
 should return the starting point (at the end of line) of the hidden
 region.
 
