@@ -150,6 +150,38 @@
 	* xfns.c: Remove obsolete code in #if 0.
 	(Fx_focus_frame): New function.
 
+2000-03-07  Miyashita Hisashi  <himi@bird.scphys.kyoto-u.ac.jp>
+
+	* coding.c (coding_category_name): Add coding-category-utf-8,
+	coding-category-utf-16-be, coding-category-utf-16-le.
+	(UTF_8_1_OCTET_P, UTF_8_EXTRA_OCTET_P, UTF_8_2_OCTET_LEADING_P,
+	UTF_8_3_OCTET_LEADING_P, UTF_8_4_OCTET_LEADING_P,
+	UTF_8_5_OCTET_LEADING_P, UTF_8_6_OCTET_LEADING_P): New macros.
+	(detect_coding_utf_8): New function.
+	(UTF_16_INVALID_P, UTF_16_HIGH_SURROGATE_P
+	UTF_16_LOW_SURROGATE_P): New macros.
+	(detect_coding_utf_16): New function
+	(detect_coding_mask): When priorities are specified, skip any
+	categories that have `nil' coding-system.  Fix bug of returning
+	wrong mask when PRIORITIES is specified and detect_coding_XXX()
+	returns a mask not set in PRIORITIES.
+	(detect_eol_type_in_2_octet_form): New function.
+	(detect_eol): selects detect_eol_type_XXX to call according to
+	cooding->category_idx.
+	(detect_coding_system): Remove `nil' coding-system in the result.
+	(Fupdate_coding_systems_internal): Update all coding-categories.
+
+	* coding.h (CODING_CATEGORY_IDX_UTF_8,
+	CODING_CATEGORY_IDX_UTF_16_BE, CODING_CATEGORY_IDX_UTF_16_LE): New
+	macros.
+	(CODING_CATEGORY_IDX_RAW_TEXT, CODING_CATEGORY_IDX_BINARY,
+	CODING_CATEGORY_IDX_MAX): Adjusted for the above macros.
+	CODING_CATEGORY_IDX_UTF_16_LE.
+	(CODING_CATEGORY_MASK_UTF_8, CODING_CATEGORY_MASK_UTF_16_BE,
+	CODING_CATEGORY_MASK_UTF_16_LE): New macros.
+	(CODING_CATEGORY_MASK_ANY): Include the above macros.
+	(CODING_CATEGORY_MASK_UTF_16_BE_LE): New macro.
+
 2000-03-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* doc.c (Fdocumentation_property): If value is not a string,
