@@ -46,7 +46,7 @@
   :type 'hook)
 
 (defun describe-text-mode ()
-  "Major mode for buffers created by `describe-text-at'.
+  "Major mode for buffers created by `describe-char'.
 
 \\{describe-text-mode-map}
 Entry to this mode calls the value of `describe-text-mode-hook'
@@ -92,7 +92,7 @@ if that value is non-nil."
 				 (princ (widget-get widget :value))))
 		     pp))))
 
-(defun describe-text-properties (properties)
+(defun describe-property-list (properties)
   "Insert a description of PROPERTIES in the current buffer.
 PROPERTIES should be a list of overlay or text properties.
 The `category' property is made into a widget button that call 
@@ -141,16 +141,40 @@ The `category' property is made into a widget button that call
     (with-output-to-temp-buffer "*Text Category*"
       (set-buffer "*Text Category*")
       (widget-insert "Category " (format "%S" category) ":\n\n")
-      (describe-text-properties (symbol-plist category))
+      (describe-property-list (symbol-plist category))
       (describe-text-mode)
       (goto-char (point-min)))))
 
 ;;;###autoload
-(defun describe-text-at (pos)
-  "Describe widgets, buttons, overlays and text properties at POS."
+(defun describe-text-properties (pos &optional output-buffer)
+  "Describe widgets, buttons, overlays and text properties at POS.
+Interactively, describe them for the character after point.
+If optional second argument OUTPUT-BUFFER is non-nil,
+insert the output into that buffer, and don't initialize or clear it
+otherwise."
   (interactive "d")
   (when (eq (current-buffer) (get-buffer "*Text Description*"))
     (error "Can't do self inspection"))
+  (if (>= pos (point-max))
+      (error "No character follows specified position"))
+  (if output-buffer
+      (describe-text-properties-1 pos output-buffer)
+    (if (not (or (text-properties-at pos) (overlays-at pos)))
+	(message "This is plain text.")
+      (when (get-buffer "*Text Description*")
+	(kill-buffer "*Text Description*"))
+      (let ((buffer (current-buffer)))
+	(save-excursion
+	  (with-output-to-temp-buffer "*Text Description*"
+	    (set-buffer "*Text Description*")
+	    (setq output-buffer (current-buffer))
+	    (widget-insert "Text content at position " (format "%d" pos) ":\n\n")
+	    (with-current-buffer buffer
+	      (describe-text-properties-1 pos output-buffer))
+	    (describe-text-mode)
+	    (goto-char (point-min))))))))
+
+(defun describe-text-properties-1 (pos output-buffer)
   (let* ((properties (text-properties-at pos))
 	 (overlays (overlays-at pos))
 	 overlay
@@ -162,43 +186,172 @@ The `category' property is made into a widget button that call
 	 (button-type (and button (button-type button)))
 	 (button-label (and button (button-label button)))
 	 (widget (or wid-field wid-button wid-doc)))
-    (if (not (or properties overlays))
-	(message "This is plain text.")
-      (when (get-buffer "*Text Description*")
-	(kill-buffer "*Text Description*"))
+    (with-current-buffer output-buffer
+      ;; Widgets
+      (when (widgetp widget)
+	(newline)
+	(widget-insert (cond (wid-field "This is an editable text area")
+			     (wid-button "This is an active area")
+			     (wid-doc "This is documentation text")))
+	(widget-insert " of a ")
+	(describe-text-widget widget)
+	(widget-insert ".\n\n"))
+      ;; Buttons
+      (when (and button (not (widgetp wid-button)))
+	(newline)
+	(widget-insert "Here is a " (format "%S" button-type) 
+		       " button labeled `" button-label "'.\n\n"))
+      ;; Overlays
+      (when overlays
+	(newline)
+	(if (eq (length overlays) 1)
+	    (widget-insert "There is an overlay here:\n")
+	  (widget-insert "There are " (format "%d" (length overlays))
+			 " overlays here:\n"))
+	(dolist (overlay overlays)
+	  (widget-insert " From " (format "%d" (overlay-start overlay)) 
+			 " to " (format "%d" (overlay-end overlay)) "\n")
+	  (describe-property-list (overlay-properties overlay)))
+	(widget-insert "\n"))
+      ;; Text properties
+      (when properties
+	(newline)
+	(widget-insert "There are text properties here:\n")
+	(describe-property-list properties)))))
+
+;;;###autoload
+(defun describe-char (pos)
+  "Describe the character after POS (interactively, the character after point).
+The information includes character code, charset and code points in it,
+syntax, category, how the character is encoded in a file,
+character composition information (if relevant),
+as well as widgets, buttons, overlays, and text properties."
+  (interactive "d")
+  (when (eq (current-buffer) (get-buffer "*Text Description*"))
+    (error "Can't do self inspection"))
+  (if (>= pos (point-max))
+      (error "No character follows specified position"))
+  (let* ((char (char-after pos))
+	 (charset (char-charset char))
+	 (buffer (current-buffer))
+	 (composition (find-composition (point) nil nil t))
+	 (composed (if composition (buffer-substring (car composition)
+						     (nth 1 composition))))
+	 (multibyte-p enable-multibyte-characters)
+	 item-list max-width)
+    (if (eq charset 'unknown)
+	(setq item-list
+	      `(("character"
+		 ,(format "%s (0%o, %d, 0x%x) -- invalid character code"
+			  (if (< char 256)
+			      (single-key-description char)
+			    (char-to-string char))
+			  char char char))))
+      (setq item-list
+	    `(("character"
+	       ,(format "%s (0%o, %d, 0x%x)" (if (< char 256)
+						 (single-key-description char)
+					       (char-to-string char))
+			char char char))
+	      ("charset"
+	       ,(symbol-name charset)
+	       ,(format "(%s)" (charset-description charset)))
+	      ("code point"
+	       ,(let ((split (split-char char)))
+		  (if (= (charset-dimension charset) 1)
+		      (format "%d" (nth 1 split))
+		    (format "%d %d" (nth 1 split) (nth 2 split)))))
+	      ("syntax"
+ 	       ,(let ((syntax (get-char-property (point) 'syntax-table)))
+		  (with-temp-buffer
+		    (internal-describe-syntax-value
+		     (if (consp syntax) syntax
+		       (aref (or syntax (syntax-table)) char)))
+		    (buffer-string))))
+	      ("category"
+	       ,@(let ((category-set (char-category-set char)))
+		   (if (not category-set)
+		       '("-- none --")
+		     (mapcar #'(lambda (x) (format "%c:%s  "
+						   x (category-docstring x)))
+			     (category-set-mnemonics category-set)))))
+	      ,@(let ((props (aref char-code-property-table char))
+		      ps)
+		  (when props
+		    (while props
+		      (push (format "%s:" (pop props)) ps)
+		      (push (format "%s;" (pop props)) ps))
+		    (list (cons "Properties" (nreverse ps)))))
+	      ("buffer code"
+	       ,(encoded-string-description
+		 (string-as-unibyte (char-to-string char)) nil))
+	      ("file code"
+	       ,@(let* ((coding buffer-file-coding-system)
+			(encoded (encode-coding-char char coding)))
+		   (if encoded
+		       (list (encoded-string-description encoded coding)
+			     (format "(encoded by coding system %S)" coding))
+		     (list "not encodable by coding system"
+			   (symbol-name coding)))))
+	      ,@(if (or (memq 'mule-utf-8
+			  (find-coding-systems-region (point) (1+ (point))))
+			(get-char-property (point) 'untranslated-utf-8))
+		    (let ((uc (or (get-char-property (point)
+						     'untranslated-utf-8)
+				  (encode-char (char-after) 'ucs))))
+		      (if uc
+			  (list (list "Unicode"
+				      (format "%04X" uc))))))
+	      ,(if (display-graphic-p (selected-frame))
+		   (list "font" (or (internal-char-font (point))
+				    "-- none --"))
+		 (list "terminal code"
+		       (let* ((coding (terminal-coding-system))
+			      (encoded (encode-coding-char char coding)))
+			 (if encoded
+			     (encoded-string-description encoded coding)
+			   "not encodable")))))))
+    (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
+					 item-list)))
+    (when (get-buffer "*Help*")
+      (kill-buffer "*Help*"))
+    (with-output-to-temp-buffer "*Help*"
       (save-excursion
-	(with-output-to-temp-buffer "*Text Description*"
-	  (set-buffer "*Text Description*")
-	  (widget-insert "Text content at position " (format "%d" pos) ":\n\n")
-	  ;; Widgets
-	  (when (widgetp widget)
-	    (widget-insert (cond (wid-field "This is an editable text area")
-				 (wid-button "This is an active area")
-				 (wid-doc "This is documentation text")))
-	    (widget-insert " of a ")
-	    (describe-text-widget widget)
-	    (widget-insert ".\n\n"))
-	  ;; Buttons
-	  (when (and button (not (widgetp wid-button)))
-	    (widget-insert "Here is a " (format "%S" button-type) 
-			   " button labeled `" button-label "'.\n\n"))
-	  ;; Overlays
-	  (when overlays
-	    (if (eq (length overlays) 1)
-		(widget-insert "There is an overlay here:\n")
-	      (widget-insert "There are " (format "%d" (length overlays))
-			     " overlays here:\n"))
-	    (dolist (overlay overlays)
-	      (widget-insert " From " (format "%d" (overlay-start overlay)) 
-			     " to " (format "%d" (overlay-end overlay)) "\n")
-	      (describe-text-properties (overlay-properties overlay)))
-	    (widget-insert "\n"))
-	  ;; Text properties
-	  (when properties
-	    (widget-insert "There are text properties here:\n")
-	    (describe-text-properties properties))
-	  (describe-text-mode)
-	  (goto-char (point-min)))))))
+	(set-buffer standard-output)
+	(set-buffer-multibyte multibyte-p)
+	(let ((formatter (format "%%%ds:" max-width)))
+	  (dolist (elt item-list)
+	    (insert (format formatter (car elt)))
+	    (dolist (clm (cdr elt))
+	      (when (>= (+ (current-column)
+			   (or (string-match "\n" clm)
+			       (string-width clm)) 1)
+			(frame-width))
+		(insert "\n")
+		(indent-to (1+ max-width)))
+	      (insert " " clm))
+	    (insert "\n")))
+	(when composition
+	  (insert "\nComposed with the following character(s) "
+		  (mapconcat (lambda (x) (format "`%c'" x))
+			     (substring composed 1)
+			     ", ")
+		  " to form `" composed "'")
+	  (if (nth 3 composition)
+	      (insert ".\n")
+	    (insert "\nby the rule ("
+		    (mapconcat (lambda (x)
+				 (format (if (consp x) "%S" "?%c") x))
+			       (nth 2 composition)
+			       " ")
+		    ").\n"
+		    "See the variable `reference-point-alist' for "
+		    "the meaning of the rule.\n")))
+
+	(let ((output (current-buffer)))
+	  (with-current-buffer buffer
+	    (describe-text-properties pos output))
+	  (describe-text-mode))))))
 
 (provide 'descr-text)
 
