@@ -67,7 +67,7 @@
   (setq asm-mode-map (make-sparse-keymap))
   ;; Note that the comment character isn't set up until asm-mode is called.
   (define-key asm-mode-map ":"		'asm-colon)
-  (define-key f90-mode-map "\C-c;"      'comment-region)
+  (define-key asm-mode-map "\C-c;"      'comment-region)
   (define-key asm-mode-map "\C-i"	'tab-to-tab-stop)
   (define-key asm-mode-map "\C-j"	'asm-newline)
   (define-key asm-mode-map "\C-m"	'asm-newline)
