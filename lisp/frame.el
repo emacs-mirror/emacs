@@ -494,13 +494,13 @@ on `after-make-frame-functions' are run with one arg, the newly created frame."
 
 (defun filtered-frame-list (predicate)
   "Return a list of all live frames which satisfy PREDICATE."
-  (let ((frames (frame-list))
-	good-frames)
+  (let* ((frames (frame-list))
+	 (list frames))
     (while (consp frames)
-      (if (funcall predicate (car frames))
-	  (setq good-frames (cons (car frames) good-frames)))
+      (unless (funcall predicate (car frames))
+	(setcar frames nil))
       (setq frames (cdr frames)))
-    good-frames))
+    (delq nil list)))
 
 (defun minibuffer-frame-list ()
   "Return a list of all frames with their own minibuffers."
@@ -512,12 +512,9 @@ on `after-make-frame-functions' are run with one arg, the newly created frame."
   "Return a list of all frames on DISPLAY.
 DISPLAY is a name of a display, a string of the form HOST:SERVER.SCREEN.
 If DISPLAY is omitted or nil, it defaults to the selected frame's display."
-  (let* ((display (or display
-		      (cdr (assoc 'display (frame-parameters)))))
-	 (func
-	  (function (lambda (frame)
-		      (eq (cdr (assoc 'display (frame-parameters frame)))
-			  display)))))
+  (let* ((display (or display (frame-parameter nil 'display)))
+	 (func #'(lambda (frame)
+		   (eq (frame-parameter frame 'display) display))))
     (filtered-frame-list func)))
 
 (defun framep-on-display (&optional display)
