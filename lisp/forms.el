@@ -288,10 +288,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.21 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.22 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.21 1995/10/28 16:21:33 rms Exp rms $")
+  $Id: forms.el,v 2.22 1995/10/30 17:07:02 rms Exp jvromans $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -310,7 +310,7 @@
 ;;; Optional variables with default values.
 
 (defvar forms-check-number-of-fields t
-  "If non-nil, warn about records with wrong number of fields.")
+  "*If non-nil, warn about records with wrong number of fields.")
 
 (defvar forms-field-sep "\t"
   "Field separator character (default TAB).")
@@ -1093,9 +1093,9 @@ Commands:                        Equivalent keys in read-only mode:
 	(if (setq there 
 		  (next-single-property-change here 'read-only))
 	    (aset forms--recordv (aref forms--elements i)
-		  (buffer-substring here there))
+		  (buffer-substring-no-properties here there))
 	  (aset forms--recordv (aref forms--elements i)
-		(buffer-substring here (point-max)))))
+		(buffer-substring-no-properties here (point-max)))))
       (setq i (1+ i)))))
 
 (defun forms--make-parser-elt (el)
@@ -1117,7 +1117,7 @@ Commands:                        Equivalent keys in read-only mode:
   ;;     (setq here (point))
   ;;     (if (not (search-forward "\nmore text: " nil t nil))
   ;; 	    (error "Parse error: cannot find \"\\nmore text: \""))
-  ;;     (aset forms--recordv 5 (buffer-substring here (- (point) 12)))
+  ;;     (aset forms--recordv 5 (buffer-substring-no-properties here (- (point) 12)))
   ;;
   ;;	 ;;  (tocol 40)
   ;;	(let ((forms--dyntext (car-safe forms--dynamic-text)))
@@ -1127,7 +1127,7 @@ Commands:                        Equivalent keys in read-only mode:
   ;;	  (setq forms--dynamic-text (cdr-safe forms--dynamic-text)))
   ;;     ... 
   ;;     ;; final flush (due to terminator sentinel, see below)
-  ;;	(aset forms--recordv 7 (buffer-substring (point) (point-max)))
+  ;;	(aset forms--recordv 7 (buffer-substring-no-properties (point) (point-max)))
 
   (cond
    ((stringp el)
@@ -1137,7 +1137,7 @@ Commands:                        Equivalent keys in read-only mode:
 		(if (not (search-forward (, el) nil t nil))
 		    (error "Parse error: cannot find \"%s\"" (, el)))
 		(aset forms--recordv (, (1- forms--field))
-		      (buffer-substring here
+		      (buffer-substring-no-properties here
 					(- (point) (, (length el)))))))
 	  (` ((if (not (looking-at (, (regexp-quote el))))
 		  (error "Parse error: not looking at \"%s\"" (, el)))
@@ -1153,7 +1153,7 @@ Commands:                        Equivalent keys in read-only mode:
    ((null el)
     (if forms--field
 	(` ((aset forms--recordv (, (1- forms--field))
-		  (buffer-substring (point) (point-max)))))))
+		  (buffer-substring-no-properties (point) (point-max)))))))
    ((listp el)
     (prog1
 	(if forms--field
@@ -1162,7 +1162,7 @@ Commands:                        Equivalent keys in read-only mode:
 		  (if (not (search-forward forms--dyntext nil t nil))
 		      (error "Parse error: cannot find \"%s\"" forms--dyntext))
 		  (aset forms--recordv (, (1- forms--field))
-			(buffer-substring here
+			(buffer-substring-no-properties here
 					  (- (point) (length forms--dyntext)))))))
 	  (` ((let ((forms--dyntext (aref forms--dyntexts (, forms--dyntext))))
 		(if (not (looking-at (regexp-quote forms--dyntext)))
@@ -1462,7 +1462,7 @@ Commands:                        Equivalent keys in read-only mode:
   (let ((here (point)))
     (prog2
      (end-of-line)
-     (buffer-substring here (point))
+     (buffer-substring-no-properties here (point))
      (goto-char here))))
 
 (defun forms--show-record (the-record)
