@@ -75,9 +75,7 @@ SHELL=/bin/sh
 #include "config.h"
 
 #ifdef BOEHM_GC
-CPPFLAGS=@CPPFLAGS@ -I$(top_srcdir)/gc/include
-#else
-CPPFLAGS=@CPPFLAGS@
+GCINCLUDE=-I$(top_srcdir)/gc/include
 #endif
 
 /* We won't really call alloca;
@@ -286,7 +284,7 @@ TOOLKIT_DEFINES =
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS} $(GCINCLUDE)
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
@@ -628,7 +626,7 @@ rallocobj = ralloc.o
 #endif
 
 #ifdef BOEHM_GC
-gclib = $(top_srcdir)/gc/.libs/libgc.a
+gclib = ../gc/.libs/libgc.a
 #endif
 
 mallocobj = $(gmallocobj) $(rallocobj) $(gclib) vm-limit.o
