@@ -363,7 +363,7 @@ typing a character to insert cancels the specification."
 			 (region-end))))
   (unless (color-defined-p color)
     (message "Color `%s' undefined" color))
-  (facemenu-add-new-face color 'facemenu-foreground-menu)
+  (facemenu-add-new-color color 'facemenu-foreground-menu)
   (facemenu-add-face (list (list :foreground color)) start end))
 
 ;;;###autoload
@@ -387,7 +387,7 @@ typing a character to insert cancels the specification."
 			 (region-end))))
   (unless (color-defined-p color)
     (message "Color `%s' undefined" color))
-  (facemenu-add-new-face color 'facemenu-background-menu)
+  (facemenu-add-new-color color 'facemenu-background-menu)
   (facemenu-add-face (list (list :background color)) start end))
 
 ;;;###autoload
@@ -805,37 +805,24 @@ If not, create it and add it to the appropriate menu.  Return the SYMBOL."
 	  (t (make-face symbol))))
   symbol)
 
-(defun facemenu-add-new-face (face-or-color &optional menu)
-  "Add FACE-OR-COLOR (a face or a color) to the appropriate Face menu.
-If MENU is nil, then FACE-OR-COLOR is a face to be added
-to `facemenu-face-menu'.  If MENU is `facemenu-foreground-menu'
-or `facemenu-background-menu', FACE-OR-COLOR is a color
-to be added to the specified menu.
+(defun facemenu-add-new-face (face)
+  "Add FACE (a face) to the Face menu.
 
 This is called whenever you create a new face."
   (let* (name
 	 symbol
-	 docstring
-	 (key (cdr (assoc face-or-color facemenu-keybindings)))
+	 menu docstring
+	 (key (cdr (assoc face facemenu-keybindings)))
 	 function menu-val)
-    (if (symbolp face-or-color)
-	(setq name (symbol-name face-or-color)
-	      symbol face-or-color)
-      (setq name face-or-color
+    (if (symbolp face)
+	(setq name (symbol-name face)
+	      symbol face)
+      (setq name face
 	    symbol (intern name)))
-    (cond ((eq menu 'facemenu-foreground-menu)
-	   (setq docstring
-		 (format "Select foreground color %s for subsequent insertion."
-			 name)))
-	  ((eq menu 'facemenu-background-menu)
-	   (setq docstring
-		 (format "Select background color %s for subsequent insertion."
-			 name)))
-	  (t
-	   (setq menu 'facemenu-face-menu)
-	   (setq docstring
-		 (format "Select face `%s' for subsequent insertion."
-			 name))))
+    (setq menu 'facemenu-face-menu)
+    (setq docstring
+	  (format "Select face `%s' for subsequent insertion."
+		  name))
     (cond ((eq t facemenu-unlisted-faces))
 	  ((memq symbol facemenu-unlisted-faces))
 	  ;; test against regexps in facemenu-unlisted-faces
@@ -865,6 +852,48 @@ This is called whenever you create a new face."
 	    (lambda (m) (and (listp m) 
 			     (symbolp (car m))
 			     (face-equal (car m) symbol)))
+	    (cdr (symbol-function menu))))
+	  (t   ; No keyboard equivalent.  Figure out where to put it:
+	   (setq key (vector symbol)
+		 function 'facemenu-set-face-from-menu
+		 menu-val (symbol-function menu))
+	   (if (and facemenu-new-faces-at-end
+		   (> (length menu-val) 3))
+	       (define-key-after menu-val key (cons name function)
+		 (car (nth (- (length menu-val) 3) menu-val)))
+	     (define-key menu key (cons name function))))))
+  nil) ; Return nil for facemenu-iterate
+
+(defun facemenu-add-new-color (color &optional menu)
+  "Add COLOR (a color name string) to the appropriate Face menu.
+MENU should be `facemenu-foreground-menu' or
+`facemenu-background-menu'.
+
+This is called whenever you use a new color."
+  (let* (name
+	 symbol
+	 docstring
+	 function menu-val key
+	 (color-p (memq menu '(facemenu-foreground-menu
+			       facemenu-background-menu))))
+    (unless (stringp color)
+      (error "%s is not a color" color))
+    (setq name color
+	  symbol (intern name))
+
+    (cond ((eq menu 'facemenu-foreground-menu)
+	   (setq docstring
+		 (format "Select foreground color %s for subsequent insertion."
+			 name)))
+	  ((eq menu 'facemenu-background-menu)
+	   (setq docstring
+		 (format "Select background color %s for subsequent insertion."
+			 name))))
+    (cond ((facemenu-iterate ; check if equivalent face is already in the menu
+	    (lambda (m) (and (listp m) 
+			     (symbolp (car m))
+			     (stringp (cadr m))
+			     (string-equal (cadr m) color)))
 	    (cdr (symbol-function menu))))
 	  (t   ; No keyboard equivalent.  Figure out where to put it:
 	   (setq key (vector symbol)
