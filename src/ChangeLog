@@ -57,7 +57,7 @@
 	* callproc.c (Fcall_process): Always encode an argument string if
 	it is multibyte.  Setup src_multibyte and dst_multibyte members of
 	process_coding properly.
-w
+
 	* category.c (Fmodify_category_entry): Use SPLIT_CHAR, not
 	SPLIT_NON_ASCII_CHAR.
 

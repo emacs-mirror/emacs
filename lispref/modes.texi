@@ -1449,28 +1449,28 @@ The value of @code{global-mode-string}.  Currently, only
   Starting in Emacs 21, certain text properties are meaningful in the
 mode line.  The @code{face} property affects the appearance of text; the
 @code{help-echo} property associate help strings with the text, and
-@code{keymap} can make the text mouse-sensitive.
+@code{local-map} can make the text mouse-sensitive.
 
   There are three ways to specify text properties for text in the mode
 line:
 
 @enumerate
 @item
-Put a string with the @code{keymap} property directly into the mode-line
-data structure.
+Put a string with the @code{local-map} property directly into the
+mode-line data structure.
 
 @item
-Put a @code{keymap} property on a mode-line %-construct such as
-@samp{%12b}; then the expansion of the %-construct will have that same
-text property.
+Put a @code{local-map} property on a mode-line %-construct
+such as @samp{%12b}; then the expansion of the %-construct
+will have that same text property.
 
 @item
 Use a list containing @code{:eval @var{form}} in the mode-line data
 structure, and make @var{form} evaluate to a string that has a
-@code{keymap} property.
+@code{local-map} property.
 @end enumerate
 
-  You use the @code{keymap} property to specify a keymap.  Like any
+  You use the @code{local-map} property to specify a keymap.  Like any
 keymap, it can bind character keys and function keys; but that has no
 effect, since it is impossible to move point into the mode line.  This
 keymap can only take real effect for mouse clicks.

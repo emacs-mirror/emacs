@@ -1184,6 +1184,11 @@ functionality with aliases for the mldrag functions.
 *** eval-reg.el has been obsoleted by changes to edebug.el and removed.
 
 *** ph.el has been obsoleted by EUDC and removed.
+
+
+* Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
+(Display-related features are described in a page of their own below.)
+
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 

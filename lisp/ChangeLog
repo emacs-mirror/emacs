@@ -17,7 +17,7 @@
 
 2000-05-22  Sam Steingold  <sds@gnu.org>
 
-	* info.el (Info-fontify-node): fixed the call to
+	* info.el (Info-fontify-node): Fixed the call to
 	`add-text-properties' (bug introduced on 2000-05-18).
 
 2000-05-22  Dave Love  <fx@gnu.org>
