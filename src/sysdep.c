@@ -796,7 +796,7 @@ sys_subshell ()
 
       /* Use our buffer's default directory for the subshell.  */
       if (str)
-	chdir (str);
+	chdir ((char *) str);
 
 #ifdef subprocesses
       close_process_descs ();	/* Close Emacs's pipes/ptys */
@@ -1570,9 +1570,9 @@ init_sys_modes ()
   /* This symbol is defined on recent USG systems.
      Someone says without this call USG won't really buffer the file
      even with a call to setbuf. */
-  setvbuf (stdout, _sobuf, _IOFBF, sizeof _sobuf);
+  setvbuf (stdout, (char *) _sobuf, _IOFBF, sizeof _sobuf);
 #else
-  setbuf (stdout, _sobuf);
+  setbuf (stdout, (char *) _sobuf);
 #endif
 #ifdef HAVE_WINDOW_SYSTEM
   /* Emacs' window system on MSDOG uses the `internal terminal' and therefore
