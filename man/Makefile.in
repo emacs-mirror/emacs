@@ -17,11 +17,11 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 		../info/info ../info/message ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
 		../info/efaq ../info/ada-mode ../info/autotype \
-		../info/idlwave ../info/eudc
+		../info/idlwave ../info/eudc ../info/ebrowse
 DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
-		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi
+		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -186,6 +186,11 @@ idlwave.dvi: idlwave.texi
 	cd $(srcdir); $(MAKEINFO) eudc.texi
 eudc.dvi: eudc.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/eudc.texi
+
+../info/ebrowse: ebrowse.texi
+	cd $(srcdir); $(MAKEINFO) ebrowse.texi
+ebrowse.dvi: ebrowse.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ebrowse.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core
