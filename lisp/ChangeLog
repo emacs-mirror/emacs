@@ -12,10 +12,10 @@
 2004-12-07  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/holidays.el (holiday-easter-etc): Make arguments
-	optional for backwards compatability.  Doc fix.
+	optional for backwards compatibility.  Doc fix.
 	Remove un-necessary local vars mandatory, output-list.
 	(holiday-advent):  Make arguments optional for backwards
-	compatability.  Doc fix.
+	compatibility.  Doc fix.
 
 2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
