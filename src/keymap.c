@@ -1790,7 +1790,8 @@ spaces are put between sequence elements, etc.")
 
       for (i = 0; i < len; i++)
 	{
-	  args[i * 2] = Fsingle_key_description (XVECTOR (keys)->contents[i]);
+	  args[i * 2] = Fsingle_key_description (XVECTOR (keys)->contents[i],
+						 Qnil);
 	  args[i * 2 + 1] = sep;
 	}
     }
@@ -1807,7 +1808,7 @@ spaces are put between sequence elements, etc.")
 
       for (i = 0; i < len; i++)
 	{
-	  args[i * 2] = Fsingle_key_description (XCAR (keys));
+	  args[i * 2] = Fsingle_key_description (XCAR (keys), Qnil);
 	  args[i * 2 + 1] = sep;
 	  keys = XCDR (keys);
 	}
@@ -1937,11 +1938,14 @@ push_key_description (c, p)
 
 /* This function cannot GC.  */
 
-DEFUN ("single-key-description", Fsingle_key_description, Ssingle_key_description, 1, 1, 0,
+DEFUN ("single-key-description", Fsingle_key_description,
+       Ssingle_key_description, 1, 2, 0,
   "Return a pretty description of command character KEY.\n\
-Control characters turn into C-whatever, etc.")
-  (key)
-     Lisp_Object key;
+Control characters turn into C-whatever, etc.\n\
+Optional argument NO-ANGLES non-nil means don't put angle brackets\n\
+around function keys and event symbols.")
+  (key, no_angles)
+     Lisp_Object key, no_angles;
 {
   if (CONSP (key) && lucid_event_type_list_p (key))
     key = Fevent_convert_list (key);
@@ -1979,9 +1983,15 @@ Control characters turn into C-whatever, etc.")
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */
     {
-      char *buffer = (char *) alloca (STRING_BYTES (XSYMBOL (key)->name) + 5);
-      sprintf (buffer, "<%s>", XSYMBOL (key)->name->data);
-      return build_string (buffer);
+      if (NILP (no_angles))
+	{
+	  char *buffer
+	    = (char *) alloca (STRING_BYTES (XSYMBOL (key)->name) + 5);
+	  sprintf (buffer, "<%s>", XSYMBOL (key)->name->data);
+	  return build_string (buffer);
+	}
+      else
+	return Fsymbol_name (key);
     }
   else if (STRINGP (key))	/* Buffer names in the menubar.  */
     return Fcopy_sequence (key);
@@ -2888,7 +2898,7 @@ describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
 	    insert1 (elt_prefix);
 
 	  /* THIS gets the string to describe the character EVENT.  */
-	  insert1 (Fsingle_key_description (event));
+	  insert1 (Fsingle_key_description (event, Qnil));
 
 	  /* Print a description of the definition of this character.
 	     elt_describer will take care of spacing out far enough
@@ -3153,7 +3163,7 @@ describe_vector (vector, elt_prefix, elt_describer,
       else if (CHAR_TABLE_P (vector))
 	{
 	  if (complete_char)
-	    insert1 (Fsingle_key_description (make_number (character)));
+	    insert1 (Fsingle_key_description (make_number (character), Qnil));
 	  else
 	    {
 	      /* Print the information for this character set.  */
@@ -3169,7 +3179,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 	}
       else
 	{
-	  insert1 (Fsingle_key_description (make_number (character)));
+	  insert1 (Fsingle_key_description (make_number (character), Qnil));
 	}
 
       /* If we find a sub char-table within a char-table,
@@ -3225,7 +3235,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 	    {
 	      if (char_table_depth == 0)
 		{
-		  insert1 (Fsingle_key_description (make_number (i)));
+		  insert1 (Fsingle_key_description (make_number (i), Qnil));
 		}
 	      else if (complete_char)
 		{
@@ -3244,7 +3254,7 @@ describe_vector (vector, elt_prefix, elt_describer,
 	    }
 	  else
 	    {
-	      insert1 (Fsingle_key_description (make_number (i)));
+	      insert1 (Fsingle_key_description (make_number (i), Qnil));
 	    }
 	}
 
