@@ -1,5 +1,5 @@
 # -sed1.inp-------------------------------------------------------------
-# Configuration script for makefile.in-in
+# Configuration script for src/makefile
 # ----------------------------------------------------------------------
 s/^#.*//
 s/^[ \f\t][ \f\t]*$//
@@ -7,7 +7,6 @@ s/^ /	/
 /^obj=/s!$! dosfns.o msdos.o!
 /window.elc/s!window.elc!window.elc ${lispdir}dos-fns.elc!
 s/\.h\.in/.h-in/
-s!^.-if.*inc-vers.*$!#!
 s!^	\./temacs!	go32 temacs!
 s!/bin/sh!command.com!
 /^MAKE *=/s/^/# /
@@ -21,7 +20,6 @@ s!/bin/sh!command.com!
 /^M_FILE *=/s!@[^@\n]+@!m/dos386.h!
 /^S_FILE *=/s!@[^@\n]+@!s/msdos.h!
 /^@SET_MAKE@$/s/@SET_MAKE@//
-/DEBUG_MOLE *=/s/=.*$/=/
 /^.\${libsrc}make-doc/s!>.*$!!
 /^.\${libsrc}make-docfile/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-docfile/s/\$/go32 $/
