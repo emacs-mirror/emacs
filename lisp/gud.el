@@ -49,17 +49,6 @@
 (global-set-key (concat gud-key-prefix "\C-l") 'gud-refresh)
 (define-key ctl-x-map " " 'gud-break)	;; backward compatibility hack
 
-;; ======================================================================
-;; the overloading mechanism
-
-(defun gud-overload-functions (gud-overload-alist)
-  "Overload functions defined in GUD-OVERLOAD-ALIST.
-This association list has elements of the form
-     (ORIGINAL-FUNCTION-NAME  OVERLOAD-FUNCTION)"
-  (mapcar
-   (function (lambda (p) (fset (car p) (symbol-function (cdr p)))))
-   gud-overload-alist))
-
 (defvar gud-massage-args nil)
 (put 'gud-massage-args 'permanent-local t)
 (defvar gud-marker-filter nil)
