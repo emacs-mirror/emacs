@@ -267,6 +267,21 @@ but the default input method is set to \"german-postfix\"."))
  '("European"))
 
 (set-language-info-alist
+ "French" '((tutorial . "TUTORIAL.fr")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (input-method . "latin-1-prefix")
+	    (sample-text . "French (Fran,Ag(Bais)	Bonjour, Salut")
+	    (documentation . "\
+This language environment is almost the same as Latin-1,
+but the tutorial is set to \"TUTORIAL.fr\"."))
+ '("European"))
+
+(set-language-info-alist
  "Slovenian" '((charset . (ascii latin-iso8859-2))
 	      (coding-system . (iso-8859-2))
 	      (coding-priority . (iso-8859-2))
