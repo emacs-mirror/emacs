@@ -121,6 +121,7 @@ The value of this variable is an expression; it is evaluated
 and the resulting value determines the decision.
 For example: setting this to `case-fold-search' means evaluate that
 variable to see whether its value is nil.")
+(put 'dabbrev-case-fold-search 'risky-local-variable t)
 
 (defvar dabbrev-upcase-means-case-search nil
   "*The significance of an uppercase character in an abbreviation.
@@ -141,6 +142,7 @@ variable to see if its value is t or nil.
 
 This variable has an effect only when the value of
 `dabbrev-case-fold-search' evaluates to t.")
+(put 'dabbrev-case-replace 'risky-local-variable t)
 
 (defvar dabbrev-abbrev-char-regexp nil
   "*Regexp to recognize a character in an abbreviation or expansion.
