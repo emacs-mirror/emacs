@@ -1,3 +1,14 @@
+2000-11-20  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el, vc-hooks.el: Undo prev change (moved functions back to
+	vc.el).
+
+	* vc-rcs.el (vc-rcs-state): Before calling vc-workfile-unchanged-p, 
+	require vc.
+	
+	* vc-cvs.el (vc-cvs-checkout): Fix bug that broke C-x v ~-style 
+	checkouts.
+	
 2000-11-20  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (DONTCOMPILE): Omit bindings.el.
