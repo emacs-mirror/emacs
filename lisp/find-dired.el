@@ -121,10 +121,9 @@ as the final argument."
 		       (car find-ls-option)))
     ;; The next statement will bomb in classic dired (no optional arg allowed)
     (dired-mode dir (cdr find-ls-option))
-    ;; This really should rerun the find command, but I don't
-    ;; have time for that.
-    (use-local-map (append (make-sparse-keymap) (current-local-map)))
-    (define-key (current-local-map) "g" 'undefined)
+    (set (make-local-variable 'revert-buffer-function)
+	 `(lambda (ignore-auto noconfirm)
+	    (find-dired ,dir ,find-args)))
     ;; Set subdir-alist so that Tree Dired will work:
     (if (fboundp 'dired-simple-subdir-alist)
 	;; will work even with nested dired format (dired-nstd.el,v 1.15
