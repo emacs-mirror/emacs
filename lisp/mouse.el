@@ -771,21 +771,22 @@ If the click is in the echo area, display the `*Messages*' buffer."
 
 A clickable link is identified by one of the following methods:
 
-1) If the character at POS has a non-nil `follow-link' text or
-overlay property, the value of that property is returned.
+If the character at POS has a non-nil `follow-link' text or
+overlay property, use the value of that property as action code,
+or if there is a local key-binding or a keybinding at position
+POS for the `follow-link' event, use the binding of that event as
+action code.
 
-2) If there is a local key-binding or a keybinding at position
-POS for the `follow-link' event, the binding of that event
-determines whether POS is inside a link:
+The action code is used to determine whether POS is inside a link:
 
-- If the binding is `mouse-face', POS is inside a link if there
+- If the action code is `mouse-face', POS is inside a link if there
 is a non-nil `mouse-face' property at POS.  Return t in this case.
 
-- If the binding is a function, FUNC, POS is inside a link if
+- If the action code is a function, FUNC, POS is inside a link if
 the call \(FUNC POS) returns non-nil.  Return the return value
 from that call.
 
-- Otherwise, return the binding of the `follow-link' binding.
+- Otherwise, return the action code itself.
 
 The return value is interpreted as follows:
 
@@ -799,16 +800,17 @@ click is the local or global binding of that event.
 
 - Otherwise, the mouse-1 event is translated into a mouse-2 event
 at the same position."
-  (or (get-char-property pos 'follow-link)
-      (save-excursion
-	(goto-char pos)
-	(let ((b (key-binding [follow-link] nil t)))
-	  (cond
-	   ((eq b 'mouse-face)
-	    (and (get-char-property pos 'mouse-face) t))
-	   ((functionp b)
-	    (funcall b pos))
-	   (t b))))))
+  (let ((action
+	 (or (get-char-property pos 'follow-link)
+	     (save-excursion
+	       (goto-char pos)
+	       (key-binding [follow-link] nil t)))))
+    (cond
+     ((eq action 'mouse-face)
+      (and (get-char-property pos 'mouse-face) t))
+     ((functionp action)
+      (funcall action pos))
+     (t action))))
 
 (defun mouse-drag-region-1 (start-event)
   (mouse-minibuffer-check start-event)
