@@ -4688,7 +4688,8 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	;
       else if (preserve_y >= 0)
 	{
-	  /* If we have a header line, take account of it.  */
+	  /* If we have a header line, take account of it.
+	     This is necessary because we set it.current_y to 0, above.  */
 	  if (WINDOW_WANTS_HEADER_LINE_P (w))
 	    preserve_y -= CURRENT_HEADER_LINE_HEIGHT (w);
 
@@ -4728,9 +4729,14 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	{
 	  SET_TEXT_POS_FROM_MARKER (start, w->start);
 	  start_display (&it, w, start);
+#if 0  /* It's wrong to subtract this here
+	  because we called start_display again
+	  and did not alter it.current_y this time.  */
+
 	  /* If we have a header line, take account of it.  */
 	  if (WINDOW_WANTS_HEADER_LINE_P (w))
 	    preserve_y -= CURRENT_HEADER_LINE_HEIGHT (w);
+#endif
 
 	  move_it_to (&it, -1, -1, preserve_y, -1, MOVE_TO_Y);
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
