@@ -35,6 +35,9 @@
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
 
+(defvar help-mode-map (make-sparse-keymap)
+  "Keymap for help mode.")
+
 (define-key global-map (char-to-string help-char) 'help-command)
 (fset 'help-command help-map)
 
@@ -79,6 +82,18 @@
 (define-key help-map "v" 'describe-variable)
 
 (define-key help-map "q" 'help-quit)
+
+(defun help-mode ()
+  "Major mode for viewing help text.
+Entry to this mode runs the normal hook `help-mode-hook'.
+Commands:
+\\{help-mode-map}"
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map help-mode-map)
+  (setq mode-name "Help")
+  (setq major-mode 'help-mode)
+  (run-hooks 'help-mode-hook))
 
 (defun help-quit ()
   (interactive)
@@ -145,7 +160,7 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 			       (tail special-display-regexps)
 			       (name (buffer-name standard-output)))
 			   (while (and tail (not found))
-			     (if (or (and (consp (car taiul))
+			     (if (or (and (consp (car tail))
 					  (string-match (car (car tail)) name))
 				     (and (stringp (car tail))
 					  (string-match (car tail) name)))
