@@ -1,3 +1,16 @@
+1999-12-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/lisp-mnt.el (lm-header-multiline): fix spurious
+	use of `cond'.
+	(lm-with-file): Move all the find-file...kill-buffer stuff into
+	this macro.  Make it use `find-file-noselect' and make it kill
+	the buffer only if it wasn't already displayed somewhere.
+	(lm-summary, lm-authors, lm-maintainer, lm-creation-date)
+	(lm-last-modified-date, lm-version, lm-keywords, lm-adapted-by)
+	(lm-commentary, lm-verify, lm-synopsis): use lm-with-file.
+	(lm-commentary): fix to handle the case when the change log is
+	at the end of the file.
+
 1999-12-02  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (charsetp): Fix typo in docstring.
@@ -42,7 +55,7 @@
 
 1999-11-30  Dave Love  <fx@gnu.org>
 
-	* fortran.el (fortran-strip-sqeuence-nos): New command.
+	* fortran.el (fortran-strip-sequence-nos): New command.
 
 	* autoinsert.el: Minor doc fixes.
 	(auto-insert): Return nil.
