@@ -1,3 +1,13 @@
+2001-03-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* term.el: These changes are based on a patch sent from Yong Lu
+	<lyongu@yahoo.com>.
+	(term-set-escape-char): Bind M-x to execute-extended-command in
+	term-raw-escape-map.
+	(term-move-columns): Don't try to move to negagive column.
+	(term-emulate-terminal): Insert a string before deleting a text to
+	overwrite.
+
 2001-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/life.el (life): Rearrange code so that all calls to
