@@ -1446,6 +1446,15 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   if (s < 0) 
     report_file_error ("error creating socket", Fcons (name, Qnil));
 
+  /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
+     when connect is interrupted.  So let's not let it get interrupted.
+     Note we do not turn off polling, because polling is only used
+     when not interrupt_input, and thus not normally used on the systems
+     which have this bug.  On systems which use polling, there's no way
+     to quit if polling is turned off.  */
+  if (interrupt_input)
+    unrequest_sigio ();
+
  loop:
   if (connect (s, (struct sockaddr *) &address, sizeof address) == -1)
     {
@@ -1453,10 +1462,18 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       if (errno == EINTR)
 	goto loop;
       close (s);
+
+      if (interrupt_input)
+	request_sigio ();
+
       errno = xerrno;
       report_file_error ("connection failed",
 			 Fcons (host, Fcons (name, Qnil)));
     }
+
+  if (interrupt_input)
+    request_sigio ();
+
 #else /* TERM */
   s = connect_server (0);
   if (s < 0)
