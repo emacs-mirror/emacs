@@ -1,3 +1,7 @@
+1999-10-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (bootstrap): New target.
+
 1999-10-19  Paul Eggert  <eggert@twinsun.com>
 
 	Add support for large files.  Merge glibc 2.1.2.

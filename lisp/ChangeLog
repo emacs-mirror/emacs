@@ -1,3 +1,8 @@
+1999-10-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile (compile-files, backup-compiled-files): New targets.
+	(bootstrap, bootstrap-clean): Ditto.
+
 1999-10-22  Paul Eggert  <eggert@twinsun.com>
 
 	* international/mule-cmds.c (locale-language-names):
