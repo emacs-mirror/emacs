@@ -347,7 +347,7 @@ main (argc, argv)
   {
     int sock_status = 0;
 
-    sprintf (server.sun_path, "/tmp/esrv%d-%s", (int) geteuid (), system_name);
+    sprintf (server.sun_path, "/tmp/emacs%d-%s/server", (int) geteuid (), system_name);
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
