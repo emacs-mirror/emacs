@@ -103,7 +103,7 @@ extern char PC;			/* Pad character */
 #ifdef HAVE_TERMIOS_H
 #include <termios.h>
 /* HJL's version of libc is said to need this on the Alpha.  */
-speed_t ospeed;
+extern speed_t ospeed;
 #else
 extern short ospeed;		/* Output speed (from sg_ospeed) */
 #endif
