@@ -9579,7 +9579,7 @@ try_cursor_movement (window, startp, scroll_step)
 	  || current_buffer != XMARKER (Voverlay_arrow_position)->buffer))
     {
       int this_scroll_margin;
-      struct glyph_row *row;
+      struct glyph_row *row = NULL;
 
 #if GLYPH_DEBUG
       debug_method_add (w, "cursor movement");
