@@ -517,7 +517,7 @@ is okay.  See `mode-line-format'.")
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
          ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
-         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl"
+         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl" ".dfsl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext
