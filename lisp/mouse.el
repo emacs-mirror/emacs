@@ -166,7 +166,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	  (lookup-key menubar (vector (car submap)))))))
 
 (defun mouse-popup-menubar (event prefix)
-  "Pops up a menu equivalent to the menu bar a keyboard EVENT with PREFIX.
+  "Pop up a menu equivalent to the menu bar for keyboard EVENT with PREFIX.
 The contents are the items that would be in the menu bar whether or
 not it is actually displayed."
   (interactive "@e \nP")
@@ -895,12 +895,12 @@ If DIR is positive skip forward; if negative, skip backward."
 	   (while (and (not (eobp)) (= (following-char) char))
 	     (forward-char 1))))))
 
-;; Return a list of region bounds based on START and END according to MODE.
-;; If MODE is 0 then set point to (min START END), mark to (max START END).
-;; If MODE is 1 then set point to start of word at (min START END),
-;; mark to end of word at (max START END).
-;; If MODE is 2 then do the same for lines.
 (defun mouse-start-end (start end mode)
+"Return a list of region bounds based on START and END according to MODE.
+If MODE is 0 then set point to (min START END), mark to (max START END).
+If MODE is 1 then set point to start of word at (min START END),
+mark to end of word at (max START END).
+If MODE is 2 then do the same for lines."
   (if (> start end)
       (let ((temp start))
         (setq start end
