@@ -1913,7 +1913,7 @@ A value of nil means highlight all matches."
   '((((type tty pc) (class color))
      (:background "magenta4" :foreground "cyan1"))
     (((class color) (background light))
-     (:background "magenta4" :foreground "lightskyblue1"))
+     (:background "magenta2" :foreground "lightskyblue1"))
     (((class color) (background dark))
      (:background "palevioletred2" :foreground "brown4"))
     (t (:inverse-video t)))
