@@ -956,6 +956,10 @@ This function returns the position of the end of the display in window
 @var{window}.  If @var{window} is @code{nil}, the selected window is
 used.
 
+Simply changing the buffer text or moving point does not update the
+value that @code{window-end} returns.  The value is updated only when
+Emacs redisplays and redisplay actually finishes.
+
 If the last redisplay of @var{window} was preempted, and did not finish,
 Emacs does not know the position of the end of display in that window.
 In that case, this function returns a value that is not correct.  In a
