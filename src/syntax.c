@@ -24,7 +24,9 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
+#include "charset.h"
 #include "syntax.h"
+#include "category.h"
 
 Lisp_Object Qsyntax_table_p, Qsyntax_table, Qscan_error;
 
@@ -222,6 +224,14 @@ char syntax_code_spec[14] =
   {
     ' ', '.', 'w', '_', '(', ')', '\'', '\"', '$', '\\', '/', '<', '>', '@'
   };
+
+/* Indexed by syntax code, give the object (cons of syntax code and
+   nil) to be stored in syntax table.  Since these objects can be
+   shared among syntax tables, we generate them in advance.  By
+   sharing objects, the function `describe-syntax' can give a more
+   compact listing.  */
+static Lisp_Object Vsyntax_code_object;
+
 
 /* Look up the value for CHARACTER in syntax table TABLE's parent
    and its parents.  SYNTAX_ENTRY calls this, when TABLE itself has nil
@@ -351,9 +361,13 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
 
   if (*p)
     {
-      XSETINT (match, *p++);
+      int len;
+      int character = STRING_CHAR_AND_LENGTH (p, XSTRING (newentry)->size - 1,
+					      len);
+      XSETINT (match, character);
       if (XFASTINT (match) == ' ')
 	match = Qnil;
+      p += len;
     }
   else
     match = Qnil;
@@ -387,8 +401,13 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
 	break;
       }
 	
-  SET_RAW_SYNTAX_ENTRY (syntax_table, c,
-			Fcons (make_number (val), match));
+  if (val < XVECTOR (Vsyntax_code_object)->size && NILP (match))
+    newentry = XVECTOR (Vsyntax_code_object)->contents[val];
+  else
+    /* Since we can't use a shared object, let's make a new one.  */
+    newentry = Fcons (make_number (val), match);
+    
+  SET_RAW_SYNTAX_ENTRY (syntax_table, c, newentry);
 
   return Qnil;
 }
@@ -408,13 +427,13 @@ describe_syntax (value)
 
   if (NILP (value))
     {
-      insert_string ("inherit");
+      insert_string ("default\n");
       return;
     }
 
   if (!CONSP (value))
     {
-      insert_string ("invalid");
+      insert_string ("invalid\n");
       return;
     }
 
@@ -423,7 +442,7 @@ describe_syntax (value)
 
   if (!INTEGERP (first) || !(NILP (match_lisp) || INTEGERP (match_lisp)))
     {
-      insert_string ("invalid");
+      insert_string ("invalid\n");
       return;
     }
 
@@ -445,8 +464,10 @@ describe_syntax (value)
   str[0] = desc, str[1] = 0;
   insert (str, 1);
 
-  str[0] = !NILP (match_lisp) ? XINT (match_lisp) : ' ';
-  insert (str, 1);
+  if (NILP (match_lisp))
+    insert (" ", 1);
+  else
+    insert_char (XINT (match_lisp));
 
   if (start1)
     insert ("1", 1);
@@ -529,6 +550,13 @@ describe_syntax_1 (vector)
   struct buffer *old = current_buffer;
   set_buffer_internal (XBUFFER (Vstandard_output));
   describe_vector (vector, Qnil, describe_syntax, 0, Qnil, Qnil);
+  while (! NILP (XCHAR_TABLE (vector)->parent))
+    {
+      vector = XCHAR_TABLE (vector)->parent;
+      insert_string ("\nThe parent syntax table is:");
+      describe_vector (vector, Qnil, describe_syntax, 0, Qnil, Qnil);
+    }
+	
   call0 (intern ("help-mode"));
   set_buffer_internal (old);
   return Qnil;
@@ -554,8 +582,9 @@ scan_words (from, count)
 {
   register int beg = BEGV;
   register int end = ZV;
-  register int code;
-  int charcode;
+  register enum syntaxcode code;
+  int ch0, ch1;
+  int temp_pos;
 
   immediate_quit = 1;
   QUIT;
@@ -569,25 +598,28 @@ scan_words (from, count)
 	      immediate_quit = 0;
 	      return 0;
 	    }
-	  charcode = FETCH_CHAR (from);
-	  code = SYNTAX (charcode);
+	  ch0 = FETCH_CHAR (from);
+	  code = SYNTAX (ch0);
+	  INC_POS (from);
 	  if (words_include_escapes
 	      && (code == Sescape || code == Scharquote))
 	    break;
 	  if (code == Sword)
 	    break;
-	  from++;
 	}
+      /* Now CH0 is a character which begins a word and FROM is the
+         position of the next character.  */
       while (1)
 	{
 	  if (from == end) break;
-	  charcode = FETCH_CHAR (from);
-	  code = SYNTAX (charcode);
+	  ch1 = FETCH_CHAR (from);
+	  code = SYNTAX (ch1);
 	  if (!(words_include_escapes
 		&& (code == Sescape || code == Scharquote)))
-	    if (code != Sword)
+	    if (code != Sword || WORD_BOUNDARY_P (ch0, ch1))
 	      break;
-	  from++;
+	  INC_POS (from);
+	  ch0 = ch1;
 	}
       count--;
     }
@@ -600,25 +632,30 @@ scan_words (from, count)
 	      immediate_quit = 0;
 	      return 0;
 	    }
-	  charcode = FETCH_CHAR (from - 1);
-	  code = SYNTAX (charcode);
+	  DEC_POS (from);
+	  ch1 = FETCH_CHAR (from);
+	  code = SYNTAX (ch1);
 	  if (words_include_escapes
 	      && (code == Sescape || code == Scharquote))
 	    break;
 	  if (code == Sword)
 	    break;
-	  from--;
 	}
+      /* Now CH1 is a character which ends a word and FROM is the
+         position of it.  */
       while (1)
 	{
 	  if (from == beg) break;
-	  charcode = FETCH_CHAR (from - 1);
-	  code = SYNTAX (charcode);
+	  temp_pos = from;
+	  DEC_POS (temp_pos);
+	  ch0 = FETCH_CHAR (temp_pos);
+	  code = SYNTAX (ch0);
 	  if (!(words_include_escapes
 		&& (code == Sescape || code == Scharquote)))
-	    if (code != Sword)
+	    if (code != Sword || WORD_BOUNDARY_P (ch0, ch1))
 	      break;
-	  from--;
+	  from = temp_pos;
+	  ch1 = ch0;
 	}
       count++;
     }
@@ -664,6 +701,7 @@ between them, return t; otherwise return nil.")
   int comstyle = 0;	    /* style of comment encountered */
   int found;
   int count1;
+  int temp_pos;
 
   CHECK_NUMBER (count, 0);
   count1 = XINT (count);
@@ -686,7 +724,7 @@ between them, return t; otherwise return nil.")
 	    }
 	  c = FETCH_CHAR (from);
 	  code = SYNTAX (c);
-	  from++;
+	  INC_POS (from);
 	  comstyle = 0;
 	  if (from < stop && SYNTAX_COMSTART_FIRST (c)
 	      && (c1 = FETCH_CHAR (from),
@@ -699,14 +737,15 @@ between them, return t; otherwise return nil.")
 		 the comment section.  */
 	      code = Scomment;
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
-	      from++;
+	      INC_POS (from);
 	    }
 	}
       while (code == Swhitespace || code == Sendcomment);
       if (code != Scomment)
 	{
 	  immediate_quit = 0;
-	  SET_PT (from - 1);
+	  DEC_POS (from);
+	  SET_PT (from);
 	  return Qnil;
 	}
       /* We're at the start of a comment.  */
@@ -719,7 +758,7 @@ between them, return t; otherwise return nil.")
 	      return Qnil;
 	    }
 	  c = FETCH_CHAR (from);
-	  from++;
+	  INC_POS (from);
 	  if (SYNTAX (c) == Sendcomment
 	      && SYNTAX_COMMENT_STYLE (c) == comstyle)
 	    /* we have encountered a comment end of the same style
@@ -733,7 +772,7 @@ between them, return t; otherwise return nil.")
 	    /* we have encountered a comment end of the same style
 	       as the comment sequence which began this comment
 	       section */
-	    { from++; break; }
+	    { INC_POS (from); break; }
 	}
       /* We have skipped one comment.  */
       count1--;
@@ -746,26 +785,28 @@ between them, return t; otherwise return nil.")
 	{
 	  int quoted;
 
-	  from--;
+	  DEC_POS (from);
 	  quoted = char_quoted (from);
 	  if (quoted)
-	    from--;
+	    DEC_POS (from);
 	  c = FETCH_CHAR (from);
 	  code = SYNTAX (c);
 	  comstyle = 0;
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
+	  temp_pos = from;
+	  DEC_POS (temp_pos);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
-	      && (c1 = FETCH_CHAR (from - 1),
+	      && (c1 = FETCH_CHAR (temp_pos),
 		  SYNTAX_COMEND_FIRST (c1))
-	      && !char_quoted (from - 1))
+	      && !char_quoted (temp_pos))
 	    {
 	      /* We must record the comment style encountered so that
 		 later, we can match only the proper comment begin
 		 sequence of the same style.  */
 	      code = Sendcomment;
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
-	      from--;
+	      from = temp_pos;
 	    }
 
 	  if (code == Sendcomment && !quoted)
@@ -775,7 +816,7 @@ between them, return t; otherwise return nil.")
 		/* For a two-char comment ender, we can assume
 		   it does end a comment.  So scan back in a simple way.  */
 		{
-		  if (from != stop) from--;
+		  if (from != stop) DEC_POS (from);
 		  while (1)
 		    {
 		      if ((c = FETCH_CHAR (from),
@@ -788,7 +829,7 @@ between them, return t; otherwise return nil.")
 			  SET_PT (from);
 			  return Qnil;
 			}
-		      from--;
+		      DEC_POS (from);
 		      if (SYNTAX_COMSTART_SECOND (c)
 			  && (c1 = FETCH_CHAR (from),
 			      SYNTAX_COMSTART_FIRST (c1))
@@ -816,33 +857,40 @@ between them, return t; otherwise return nil.")
 		int comment_end = from;
 		int comstart_pos = 0;
 		int comstart_parity = 0;
-		int scanstart = from - 1;
+		int scanstart = from;
 
+		DEC_POS (scanstart);
 		/* At beginning of range to scan, we're outside of strings;
 		   that determines quote parity to the comment-end.  */
 		while (from != stop)
 		  {
 		    /* Move back and examine a character.  */
-		    from--;
+		    DEC_POS (from);
 
 		    c = FETCH_CHAR (from);
 		    code = SYNTAX (c);
 
 		    /* If this char is the second of a 2-char comment sequence,
 		       back up and give the pair the appropriate syntax.  */
+		    temp_pos = from;
+		    DEC_POS (temp_pos);
 		    if (from > stop && SYNTAX_COMEND_SECOND (c)
-			&& SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1)))
+			&& (c1 = FETCH_CHAR (temp_pos),
+			    SYNTAX_COMEND_FIRST (c1)))
 		      {
 			code = Sendcomment;
-			from--;
-		        c = FETCH_CHAR (from);
+			from = temp_pos;
+		        c = c1;
 		      }
 			
+		    temp_pos = from;
+		    INC_POS (temp_pos);
 		    /* If this char starts a 2-char comment start sequence,
 		       treat it like a 1-char comment starter.  */
 		    if (from < scanstart && SYNTAX_COMSTART_FIRST (c)
-			&& SYNTAX_COMSTART_SECOND (FETCH_CHAR (from + 1))
-			&& comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (from + 1)))
+			&& (c1 = FETCH_CHAR (temp_pos),
+			    SYNTAX_COMSTART_SECOND (c1))
+			&& comstyle == SYNTAX_COMMENT_STYLE (c1))
 		      code = Scomment;
 
 		    /* Ignore escaped characters.  */
@@ -878,7 +926,7 @@ between them, return t; otherwise return nil.")
 
 		    /* Assume a defun-start point is outside of strings.  */
 		    if (code == Sopen
-			&& (from == stop || FETCH_CHAR (from - 1) == '\n'))
+			&& (from == stop || FETCH_BYTE (from - 1) == '\n'))
 		      break;
 		  }
 
@@ -914,7 +962,8 @@ between them, return t; otherwise return nil.")
 	  else if ((code != Swhitespace && code != Scomment) || quoted)
 	    {
 	      immediate_quit = 0;
-	      SET_PT (from + 1);
+	      INC_POS (from);
+	      SET_PT (from);
 	      return Qnil;
 	    }
 	}
@@ -936,13 +985,14 @@ scan_lists (from, count, depth, sexpflag)
 {
   Lisp_Object val;
   register int stop;
-  register int c;
-  unsigned char stringterm;
+  register int c, c1;
+  int stringterm;
   int quoted;
   int mathexit = 0;
-  register enum syntaxcode code;
+  register enum syntaxcode code, temp_code;
   int min_depth = depth;    /* Err out if depth gets less than this. */
   int comstyle = 0;	    /* style of comment encountered */
+  int temp_pos;
   int last_good = from;
 
   if (depth > 0) min_depth = 0;
@@ -959,7 +1009,7 @@ scan_lists (from, count, depth, sexpflag)
 	  code = SYNTAX (c);
 	  if (depth == min_depth)
 	    last_good = from;
-	  from++;
+	  INC_POS (from);
 	  if (from < stop && SYNTAX_COMSTART_FIRST (c)
 	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from))
 	      && parse_sexp_ignore_comments)
@@ -971,7 +1021,7 @@ scan_lists (from, count, depth, sexpflag)
 		 the comment section */
 	      code = Scomment;
 	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from));
-	      from++;
+	      INC_POS (from);
 	    }
 	  
 	  if (SYNTAX_PREFIX (c))
@@ -982,7 +1032,7 @@ scan_lists (from, count, depth, sexpflag)
 	    case Sescape:
 	    case Scharquote:
 	      if (from == stop) goto lose;
-	      from++;
+	      INC_POS (from);
 	      /* treat following character as a word constituent */
 	    case Sword:
 	    case Ssymbol:
@@ -994,7 +1044,7 @@ scan_lists (from, count, depth, sexpflag)
 		    {
 		    case Scharquote:
 		    case Sescape:
-		      from++;
+		      INC_POS (from);
 		      if (from == stop) goto lose;
 		      break;
 		    case Sword:
@@ -1004,7 +1054,7 @@ scan_lists (from, count, depth, sexpflag)
 		    default:
 		      goto done;
 		    }
-		  from++;
+		  INC_POS (from);
 		}
 	      goto done;
 
@@ -1025,14 +1075,14 @@ scan_lists (from, count, depth, sexpflag)
 		       as the comment sequence which began this comment
 		       section */
 		    break;
-		  from++;
+		  INC_POS (from);
 		  if (from < stop && SYNTAX_COMEND_FIRST (c)
 		      && SYNTAX_COMEND_SECOND (FETCH_CHAR (from))
 		      && SYNTAX_COMMENT_STYLE (c) == comstyle)
 		    /* we have encountered a comment end of the same style
 		       as the comment sequence which began this comment
 		       section */
-		    { from++; break; }
+		    { INC_POS (from); break; }
 		}
 	      break;
 
@@ -1040,7 +1090,7 @@ scan_lists (from, count, depth, sexpflag)
 	      if (!sexpflag)
 		break;
 	      if (from != stop && c == FETCH_CHAR (from))
-		from++;
+		INC_POS (from);
 	      if (mathexit)
 		{
 		  mathexit = 0;
@@ -1063,7 +1113,9 @@ scan_lists (from, count, depth, sexpflag)
 	      break;
 
 	    case Sstring:
-	      stringterm = FETCH_CHAR (from - 1);
+	      temp_pos = from;
+	      DEC_POS (temp_pos);
+	      stringterm = FETCH_CHAR (temp_pos);
 	      while (1)
 		{
 		  if (from >= stop) goto lose;
@@ -1072,11 +1124,11 @@ scan_lists (from, count, depth, sexpflag)
 		    {
 		    case Scharquote:
 		    case Sescape:
-		      from++;
+		      INC_POS (from);
 		    }
-		  from++;
+		  INC_POS (from);
 		}
-	      from++;
+	      INC_POS (from);
 	      if (!depth && sexpflag) goto done;
 	      break;
 	    }
@@ -1098,9 +1150,9 @@ scan_lists (from, count, depth, sexpflag)
       stop = BEGV;
       while (from > stop)
 	{
-	  from--;
+	  DEC_POS (from);
 	  if (quoted = char_quoted (from))
-	    from--;
+	    DEC_POS (from);
 	  c = FETCH_CHAR (from);
 	  code = SYNTAX (c);
 	  if (depth == min_depth)
@@ -1108,17 +1160,19 @@ scan_lists (from, count, depth, sexpflag)
 	  comstyle = 0;
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
+	  temp_pos = from;
+	  DEC_POS (temp_pos);
 	  if (from > stop && SYNTAX_COMEND_SECOND (c)
-	      && SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1))
-	      && !char_quoted (from - 1)
+	      && (c1 = FETCH_CHAR (temp_pos), SYNTAX_COMEND_FIRST (c1))
+	      && !char_quoted (temp_pos)
 	      && parse_sexp_ignore_comments)
 	    {
 	      /* we must record the comment style encountered so that
 		 later, we can match only the proper comment begin
 		 sequence of the same style */
 	      code = Sendcomment;
-	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from - 1));
-	      from--;
+	      comstyle = SYNTAX_COMMENT_STYLE (c1);
+	      from = temp_pos;
 	    }
 	  
 	  if (SYNTAX_PREFIX (c))
@@ -1132,22 +1186,31 @@ scan_lists (from, count, depth, sexpflag)
 	      /* This word counts as a sexp; count object finished after passing it. */
 	      while (from > stop)
 		{
-		  quoted = char_quoted (from - 1);
+		  temp_pos = from;
+		  DEC_POS (temp_pos);
+		  quoted = char_quoted (temp_pos);
 		  if (quoted)
-		    from--;
-		  if (! (quoted || SYNTAX (FETCH_CHAR (from - 1)) == Sword
-			 || SYNTAX (FETCH_CHAR (from - 1)) == Ssymbol
-			 || SYNTAX (FETCH_CHAR (from - 1)) == Squote))
+		    {
+		      from = temp_pos;
+		      DEC_POS (temp_pos);
+		    }
+		  c1 = FETCH_CHAR (temp_pos);
+		  temp_code = SYNTAX (c1);
+		  if (! (quoted || temp_code == Sword
+			 || temp_code == Ssymbol
+			 || temp_code == Squote))
             	    goto done2;
-		  from--;
+		  from = temp_pos;
 		}
 	      goto done2;
 
 	    case Smath:
 	      if (!sexpflag)
 		break;
-	      if (from != stop && c == FETCH_CHAR (from - 1))
-		from--;
+	      temp_pos = from;
+	      DEC_POS (temp_pos);
+	      if (from != stop && c == FETCH_CHAR (temp_pos))
+		from = temp_pos;
 	      if (mathexit)
 		{
 		  mathexit = 0;
@@ -1177,7 +1240,7 @@ scan_lists (from, count, depth, sexpflag)
 		/* For a two-char comment ender, we can assume
 		   it does end a comment.  So scan back in a simple way.  */
 		{
-		  if (from != stop) from--;
+		  if (from != stop) DEC_POS (from);
 		  while (1)
 		    {
 		      if (SYNTAX (c = FETCH_CHAR (from)) == Scomment
@@ -1189,7 +1252,7 @@ scan_lists (from, count, depth, sexpflag)
 			    goto done2;
 			  goto lose;
 			}
-		      from--;
+		      DEC_POS (from);
 		      if (SYNTAX_COMSTART_SECOND (c)
 			  && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from))
 			  && SYNTAX_COMMENT_STYLE (c) == comstyle
@@ -1216,33 +1279,41 @@ scan_lists (from, count, depth, sexpflag)
 		int comment_end = from;
 		int comstart_pos = 0;
 		int comstart_parity = 0;
-		int scanstart = from - 1;
+		int scanstart = from;
+
+		DEC_POS (scanstart);
 
 		/* At beginning of range to scan, we're outside of strings;
 		   that determines quote parity to the comment-end.  */
 		while (from != stop)
 		  {
 		    /* Move back and examine a character.  */
-		    from--;
+		    DEC_POS (from);
 
 		    c = FETCH_CHAR (from);
 		    code = SYNTAX (c);
 
 		    /* If this char is the second of a 2-char comment sequence,
 		       back up and give the pair the appropriate syntax.  */
+		    temp_pos = from;
+		    DEC_POS (temp_pos);
 		    if (from > stop && SYNTAX_COMEND_SECOND (c)
-			&& SYNTAX_COMEND_FIRST (FETCH_CHAR (from - 1)))
+			&& (c1 = FETCH_CHAR (temp_pos),
+			    SYNTAX_COMEND_FIRST (c1)))
 		      {
 			code = Sendcomment;
-			from--;
-		        c = FETCH_CHAR (from);
+			from = temp_pos;
+		        c = c1;
 		      }
 			
 		    /* If this char starts a 2-char comment start sequence,
 		       treat it like a 1-char comment starter.  */
+		    temp_pos = from;
+		    INC_POS (temp_pos);
 		    if (from < scanstart && SYNTAX_COMSTART_FIRST (c)
-			&& SYNTAX_COMSTART_SECOND (FETCH_CHAR (from + 1))
-			&& comstyle == SYNTAX_COMMENT_STYLE (FETCH_CHAR (from + 1)))
+			&& (c1 = FETCH_CHAR (temp_pos),
+			    SYNTAX_COMSTART_SECOND (c1))
+			&& comstyle == SYNTAX_COMMENT_STYLE (c1))
 		      code = Scomment;
 
 		    /* Ignore escaped characters.  */
@@ -1278,7 +1349,7 @@ scan_lists (from, count, depth, sexpflag)
 
 		    /* Assume a defun-start point is outside of strings.  */
 		    if (code == Sopen
-			&& (from == stop || FETCH_CHAR (from - 1) == '\n'))
+			&& (from == stop || FETCH_BYTE (from - 1) == '\n'))
 		      break;
 		  }
 
@@ -1315,12 +1386,14 @@ scan_lists (from, count, depth, sexpflag)
 	      while (1)
 		{
 		  if (from == stop) goto lose;
-		  if (!char_quoted (from - 1)
-		      && stringterm == FETCH_CHAR (from - 1))
+		  temp_pos = from;
+		  DEC_POS (temp_pos);
+		  if (!char_quoted (temp_pos)
+		      && stringterm == FETCH_CHAR (temp_pos))
 		    break;
-		  from--;
+		  from = temp_pos;
 		}
-	      from--;
+	      DEC_POS (from);
 	      if (!depth && sexpflag) goto done2;
 	      break;
 	    }
@@ -1357,11 +1430,17 @@ char_quoted (pos)
   register enum syntaxcode code;
   register int beg = BEGV;
   register int quoted = 0;
+  int temp_pos = pos;
 
+  DEC_POS (temp_pos);
   while (pos > beg
-	 && ((code = SYNTAX (FETCH_CHAR (pos - 1))) == Scharquote
+	 && ((code = SYNTAX (FETCH_CHAR (temp_pos))) == Scharquote
 	     || code == Sescape))
-    pos--, quoted = !quoted;
+    {
+      pos = temp_pos;
+      quoted = !quoted;
+      DEC_POS (temp_pos);
+    }
   return quoted;
 }
 
@@ -1417,11 +1496,18 @@ This includes chars with \"quote\" or \"prefix\" syntax (' or p).")
 {
   int beg = BEGV;
   int pos = PT;
+  int c;
+  int temp_pos = pos;
 
-  while (pos > beg && !char_quoted (pos - 1)
-	 && (SYNTAX (FETCH_CHAR (pos - 1)) == Squote
-	     || SYNTAX_PREFIX (FETCH_CHAR (pos - 1))))
-    pos--;
+  DEC_POS (temp_pos);
+
+  while (pos > beg && !char_quoted (temp_pos)
+	 && ((c = FETCH_CHAR (temp_pos), SYNTAX (c) == Squote)
+	     || SYNTAX_PREFIX (c)))
+    {
+      pos = temp_pos;
+      DEC_POS (temp_pos);
+    }
 
   SET_PT (pos);
 
@@ -1450,13 +1536,20 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
   struct level levelstart[100];
   register struct level *curlevel = levelstart;
   struct level *endlevel = levelstart + 100;
-  char prev;
+  int prev;
   register int depth;	/* Paren depth of current scanning location.
 			   level - levelstart equals this except
 			   when the depth becomes negative.  */
   int mindepth;		/* Lowest DEPTH value seen.  */
   int start_quoted = 0;		/* Nonzero means starting after a char quote */
   Lisp_Object tem;
+  int prev_from;		/* Keep one character before FROM.  */
+
+  prev_from = from;
+  DEC_POS (prev_from);
+
+  /* Use this macro instead of `from++'.  */
+#define INC_FROM do { prev_from = from; INC_POS (from); } while (0)
 
   immediate_quit = 1;
   QUIT;
@@ -1516,11 +1609,11 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
   while (from < end)
     {
       code = SYNTAX (FETCH_CHAR (from));
-      from++;
+      INC_FROM;
       if (code == Scomment)
-	state.comstart = from-1;
+	state.comstart = prev_from;
       
-      else if (from < end && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from - 1))
+      else if (from < end && SYNTAX_COMSTART_FIRST (FETCH_CHAR (prev_from))
 	       && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from)))
 	{
 	  /* Record the comment style we have entered so that only
@@ -1528,27 +1621,27 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	     terminates the comment section.  */
 	  code = Scomment;
 	  state.comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from));
-	  state.comstart = from-1;
-	  from++;
+	  state.comstart = prev_from;
+	  INC_FROM;
 	}
 
-      if (SYNTAX_PREFIX (FETCH_CHAR (from - 1)))
+      if (SYNTAX_PREFIX (FETCH_CHAR (prev_from)))
 	continue;
       switch (SWITCH_ENUM_CAST (code))
 	{
 	case Sescape:
 	case Scharquote:
 	  if (stopbefore) goto stop;  /* this arg means stop at sexp start */
-	  curlevel->last = from - 1;
+	  curlevel->last = prev_from;
 	startquoted:
 	  if (from == end) goto endquoted;
-	  from++;
+	  INC_FROM;
 	  goto symstarted;
 	  /* treat following character as a word constituent */
 	case Sword:
 	case Ssymbol:
 	  if (stopbefore) goto stop;  /* this arg means stop at sexp start */
-	  curlevel->last = from - 1;
+	  curlevel->last = prev_from;
 	symstarted:
 	  while (from < end)
 	    {
@@ -1556,7 +1649,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 		{
 		case Scharquote:
 		case Sescape:
-		  from++;
+		  INC_FROM;
 		  if (from == end) goto endquoted;
 		  break;
 		case Sword:
@@ -1566,7 +1659,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 		default:
 		  goto symdone;
 		}
-	      from++;
+	      INC_FROM;
 	    }
 	symdone:
 	  curlevel->prev = curlevel->last;
@@ -1579,7 +1672,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	    {
 	      /* Enter the loop in the middle so that we find
 		 a 2-char comment ender if we start in the middle of it.  */
-	      prev = FETCH_CHAR (from - 1);
+	      prev = FETCH_CHAR (prev_from);
 	      goto startincomment_1;
 	    }
 	  /* At beginning of buffer, enter the loop the ordinary way.  */
@@ -1598,7 +1691,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 		   of the same style as the start sequence has been
 		   encountered.  */
 		break;
-	      from++;
+	      INC_FROM;
 	    startincomment_1:
 	      if (from < end && SYNTAX_COMEND_FIRST (prev)
 		  && SYNTAX_COMEND_SECOND (FETCH_CHAR (from))
@@ -1606,7 +1699,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 		/* Only terminate the comment section if the end-comment
 		   sequence of the same style as the start sequence has
 		   been encountered.  */
-		{ from++; break; }
+		{ INC_FROM; break; }
 	    }
 	  state.incomment = 0;
 	  state.comstyle = 0;	/* reset the comment style */
@@ -1616,7 +1709,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	  if (stopbefore) goto stop;  /* this arg means stop at sexp start */
 	  depth++;
 	  /* curlevel++->last ran into compiler bug on Apollo */
-	  curlevel->last = from - 1;
+	  curlevel->last = prev_from;
 	  if (++curlevel == endlevel)
 	    error ("Nesting too deep for parser");
 	  curlevel->prev = -1;
@@ -1636,26 +1729,29 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 
 	case Sstring:
 	  if (stopbefore) goto stop;  /* this arg means stop at sexp start */
-	  curlevel->last = from - 1;
-	  state.instring = FETCH_CHAR (from - 1);
+	  curlevel->last = prev_from;
+	  state.instring = FETCH_CHAR (prev_from);
 	startinstring:
 	  while (1)
 	    {
+	      int c;
+
 	      if (from >= end) goto done;
-	      if (FETCH_CHAR (from) == state.instring) break;
-	      switch (SWITCH_ENUM_CAST (SYNTAX (FETCH_CHAR (from))))
+	      c = FETCH_CHAR (from);
+	      if (c == state.instring) break;
+	      switch (SWITCH_ENUM_CAST (SYNTAX (c)))
 		{
 		case Scharquote:
 		case Sescape:
-		  from++;
+		  INC_FROM;
 		startquotedinstring:
 		  if (from >= end) goto endquoted;
 		}
-	      from++;
+	      INC_FROM;
 	    }
 	  state.instring = -1;
 	  curlevel->prev = curlevel->last;
-	  from++;
+	  INC_FROM;
 	  break;
 
 	case Smath:
@@ -1665,7 +1761,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
   goto done;
 
  stop:   /* Here if stopping before start of sexp. */
-  from--;    /* We have just fetched the char that starts it; */
+  from = prev_from;    /* We have just fetched the char that starts it; */
   goto done; /* but return the position before it. */
 
  endquoted:
@@ -1761,15 +1857,21 @@ init_syntax_once ()
      But don't staticpro it here--that is done in alloc.c.  */
   Qchar_table_extra_slots = intern ("char-table-extra-slots");
 
+  /* Create objects which can be shared among syntax tables.  */
+  Vsyntax_code_object = Fmake_vector (13, Qnil);
+  for (i = 0; i < XVECTOR (Vsyntax_code_object)->size; i++)
+    XVECTOR (Vsyntax_code_object)->contents[i]
+      = Fcons (make_number (i), Qnil);
+
   /* Now we are ready to set up this property, so we can
      create syntax tables.  */
   Fput (Qsyntax_table, Qchar_table_extra_slots, make_number (0));
 
-  temp = Fcons (make_number ((int) Swhitespace), Qnil);
+  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Swhitespace];
 
   Vstandard_syntax_table = Fmake_char_table (Qsyntax_table, temp);
 
-  temp = Fcons (make_number ((int) Sword), Qnil);
+  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
   for (i = 'a'; i <= 'z'; i++)
     SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, i, temp);
   for (i = 'A'; i <= 'Z'; i++)
@@ -1797,11 +1899,11 @@ init_syntax_once ()
   SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, '\\',
 			Fcons (make_number ((int) Sescape), Qnil));
 
-  temp = Fcons (make_number ((int) Ssymbol), Qnil);
+  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Ssymbol];
   for (i = 0; i < 10; i++)
     SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, "_-+*/&|<>="[i], temp);
 
-  temp = Fcons (make_number ((int) Spunct), Qnil);
+  temp = XVECTOR (Vsyntax_code_object)->contents[(int) Spunct];
   for (i = 0; i < 12; i++)
     SET_RAW_SYNTAX_ENTRY (Vstandard_syntax_table, ".,;:?!#@~^'`"[i], temp);
 }
@@ -1810,6 +1912,8 @@ syms_of_syntax ()
 {
   Qsyntax_table_p = intern ("syntax-table-p");
   staticpro (&Qsyntax_table_p);
+
+  staticpro (&Vsyntax_code_object);
 
   Qscan_error = intern ("scan-error");
   staticpro (&Qscan_error);
