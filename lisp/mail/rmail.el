@@ -338,8 +338,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
     (if (or convert
 	    (save-excursion
 	      (goto-char (point-max))
-	      (search-backward "\^_")
-	      (forward-char 1)
+	      (search-backward "\n\^_")
+	      (forward-char 2)
 	      (looking-at "\n*From ")))
 	(let ((buffer-read-only nil))
 	  (message "Converting to Babyl format...")
