@@ -254,7 +254,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
 
   /* Add the value to the appropriate history list.  */
   if (XTYPE (Vminibuffer_history_variable) == Lisp_Symbol
-      && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound))
+      && ! EQ (XSYMBOL (Vminibuffer_history_variable)->value, Qunbound)
+      && NILP (Fstring_equal
+	       (val, Fcar (Fsymbol_value (Vminibuffer_history_variable)))))
     Fset (Vminibuffer_history_variable,
 	  Fcons (val, Fsymbol_value (Vminibuffer_history_variable)));
 
