@@ -1,3 +1,13 @@
+2001-02-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.c (parse_str_to_multibyte): New function.
+
+	* charset.h (parse_str_to_multibyte): Extern it.
+
+	* print.c (print_string): If we are going to print a unibyte
+	string into a multibyte buffer, convert the string to multibyte by
+	str_to_multibyte.
+
 2001-02-06  Andrew Innes  <andrewi@gnu.org>
 
 	* w32xfns.c (select_palette): Do nothing if palette hasn't yet
