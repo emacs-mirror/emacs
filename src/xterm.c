@@ -1097,7 +1097,7 @@ x_do_pending_expose ()
 	  f = XFRAME (frame);
 	  if (! FRAME_X_P (f))
 	    continue;
-	  if (!f->visible)
+	  if (!f->async_visible)
 	    continue;
 	  if (!f->display.x->needs_exposure)
 	    continue;
@@ -1924,10 +1924,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  f = x_window_to_frame (event.xexpose.window);
 	  if (f)
 	    {
-	      if (f->visible == 0)
+	      if (f->async_visible == 0)
 		{
-		  f->visible = 1;
-		  f->iconified = 0;
+		  f->async_visible = 1;
+		  f->async_iconified = 0;
 		  SET_FRAME_GARBAGED (f);
 		}
 	      else
@@ -1958,14 +1958,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  if (event.window == f->display.x->icon_desc)
 	    {
 	      refreshicon (f);
-	      f->iconified = 1;
+	      f->async_iconified = 1;
 	    }
 	  if (event.window == FRAME_X_WINDOW (f))
 	    {
 	      /* Say must check all windows' needs_exposure flags.  */
 	      expose_all_windows = 1;
 	      f->display.x->needs_exposure = 1;
-	      f->visible = 1;
+	      f->async_visible = 1;
 	    }
 	  break;
 
@@ -2010,7 +2010,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		/* While a frame is unmapped, display generation is
 		   disabled; you don't want to spend time updating a
 		   display that won't ever be seen.  */
-		f->visible = 0;
+		f->async_visible = 0;
 		x_mouse_x = x_mouse_y = -1;
 	      }
 	  }
@@ -2020,8 +2020,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  f = x_window_to_frame (event.xmap.window);
 	  if (f)
 	    {
-	      f->visible = 1;
-	      f->iconified = 0;
+	      f->async_visible = 1;
+	      f->async_iconified = 0;
 
 	      /* wait_reading_process_input will notice this and update
 		 the frame's display structures.  */
@@ -2037,9 +2037,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	case UnmapWindow:
 	  f = x_window_to_frame (event.window);
 	  if (event.window == f->display.x->icon_desc)
-	    f->iconified = 0;
+	    f->async_iconified = 0;
 	  if (event.window == FRAME_X_WINDOW (f))
-	    f->visible = 0;
+	    f->async_visible = 0;
 	  break;
 #endif /* ! defined (HAVE_X11) */
 
@@ -3329,7 +3329,7 @@ x_unfocus_frame (f)
 x_raise_frame (f)
      struct frame *f;
 {
-  if (f->visible)
+  if (f->async_visible)
     {
       BLOCK_INPUT;
       XRaiseWindow (XDISPLAY FRAME_X_WINDOW (f));
@@ -3343,7 +3343,7 @@ x_raise_frame (f)
 x_lower_frame (f)
      struct frame *f;
 {
-  if (f->visible)
+  if (f->async_visible)
     {
       BLOCK_INPUT;
       XLowerWindow (XDISPLAY FRAME_X_WINDOW (f));
@@ -3376,8 +3376,8 @@ x_make_frame_visible (f)
 	XUnmapWindow (f->display.x->icon_desc);
 
       /* Handled by the MapNotify event for X11 */
-      f->visible = 1;
-      f->iconified = 0;
+      f->async_visible = 1;
+      f->async_iconified = 0;
 
       /* NOTE: this may cause problems for the first frame. */
       XTcursor_to (0, 0);
@@ -3396,7 +3396,7 @@ x_make_frame_invisible (f)
 {
   int mask;
 
-  if (! f->visible)
+  if (! f->async_visible)
     return;
 
   BLOCK_INPUT;
@@ -3439,7 +3439,7 @@ x_make_frame_invisible (f)
 #else /* ! defined (HAVE_X11) */
 
   XUnmapWindow (FRAME_X_WINDOW (f));
-  f->visible = 0;		/* Handled by the UnMap event for X11 */
+  f->async_visible = 0;		/* Handled by the UnMap event for X11 */
   if (f->display.x->icon_desc != 0)
     XUnmapWindow (f->display.x->icon_desc);
 
@@ -3460,7 +3460,7 @@ x_iconify_frame (f)
 {
   int mask;
 
-  if (f->iconified)
+  if (f->async_iconified)
     return;
 
   BLOCK_INPUT;
@@ -3495,11 +3495,11 @@ x_iconify_frame (f)
      IconicState.  */
   x_wm_set_window_state (f, IconicState);
 
-  f->iconified = 1;
+  f->async_iconified = 1;
 #else /* ! defined (HAVE_X11) */
   XUnmapWindow (XDISPLAY FRAME_X_WINDOW (f));
 
-  f->visible = 0;		/* Handled in the UnMap event for X11. */
+  f->async_visible = 0;		/* Handled in the UnMap event for X11. */
   if (f->display.x->icon_desc != 0)
     {
       XMapWindow (XDISPLAY f->display.x->icon_desc);
