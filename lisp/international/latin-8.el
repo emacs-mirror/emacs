@@ -104,4 +104,4 @@
 (or set-case-syntax-set-multibyte
     (provide 'latin-8))
 
-;;; latin-18el ends here
+;;; latin-8.el ends here
