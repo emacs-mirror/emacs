@@ -398,6 +398,8 @@ A large number or nil slows down menu responsiveness.")
 ;;;	       mode-name
 ;;;	       (or (buffer-file-name) ""))))))
 
+(defvar menu-bar-mode nil)
+
 (defun menu-bar-mode (flag)
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
@@ -406,33 +408,36 @@ With a numeric argument, if the argument is negative,
 turn off menu bars; otherwise, turn on menu bars."
  (interactive "P")
 
- ;; Obtain the current setting by looking at default-frame-alist.
- (let ((menu-bar-mode
-	(not (zerop (let ((assq (assq 'menu-bar-lines default-frame-alist)))
-		      (if assq (cdr assq) 0))))))
+  ;; Make menu-bar-mode and default-frame-alist consistent.
+  (let ((default (assq 'menu-bar-lines default-frame-alist)))
+    (if default
+	(setq menu-bar-mode (not (eq (cdr default) 0)))
+      (setq default-frame-alist
+	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
+		  default-frame-alist))))
 
-   ;; Tweedle it according to the argument.
-   (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
-			 (> (prefix-numeric-value flag) 0)))
+  ;; Toggle or set the mode, according to FLAG.
+ (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
+		       (> (prefix-numeric-value flag) 0)))
 
-   ;; Apply it to default-frame-alist.
-   (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
-     (if (consp parameter)
-	 (setcdr parameter (if menu-bar-mode 1 0))
-       (setq default-frame-alist
-	     (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		   default-frame-alist))))
+ ;; Apply it to default-frame-alist.
+ (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
+   (if (consp parameter)
+       (setcdr parameter (if menu-bar-mode 1 0))
+     (setq default-frame-alist
+	   (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
+		 default-frame-alist))))
 
-   ;; Apply it to existing frames.
-   (let ((frames (frame-list)))
-     (while frames
-       (let ((height (cdr (assq 'height (frame-parameters (car frames))))))
-	 (modify-frame-parameters (car frames)
-				  (list (cons 'menu-bar-lines
-					    (if menu-bar-mode 1 0))))
-	 (modify-frame-parameters (car frames)
-				  (list (cons 'height height))))
-       (setq frames (cdr frames))))))
+ ;; Apply it to existing frames.
+ (let ((frames (frame-list)))
+   (while frames
+     (let ((height (cdr (assq 'height (frame-parameters (car frames))))))
+       (modify-frame-parameters (car frames)
+				(list (cons 'menu-bar-lines
+					  (if menu-bar-mode 1 0))))
+       (modify-frame-parameters (car frames)
+				(list (cons 'height height))))
+     (setq frames (cdr frames)))))
 
 (provide 'menu-bar)
 
