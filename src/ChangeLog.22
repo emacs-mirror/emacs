@@ -1,4 +1,13 @@
-2004-04-12  Kenichi Handa  <handa@m17n.org>
+2004-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c: Sync to HEAD.
+	(emacs_mule_char): Check invalid code more regidly.
+	
+	* coding.h: Sync to HEAD.
+
+	* charset.c: Sync to HEAD.
+
+	* charset.h: Sync to HEAD.
 
 	* character.h (LEADING_CODE_LATIN_1_MIN)
 	(LEADING_CODE_LATIN_1_MAX): Delete these macros.
