@@ -1,3 +1,9 @@
+2000-04-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* lisp.h (struct Lisp_Buffer_Cons): Remove.
+
+	* keyboard.c (timer_check): Fix typo in comment.
+
 2000-04-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.c (Fset_fontset_font): Fix docstring.  Local variable
