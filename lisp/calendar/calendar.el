@@ -204,34 +204,33 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
   :type 'boolean
   :group 'view)
 
-(when window-system
-  (add-to-list 'facemenu-unlisted-faces 'diary-face)
-  (defface diary-face
-    '((((class color) (background light))
-       :foreground "red")
-      (((class color) (background dark))
-       :foreground "yellow")
-      (t
-       :bold t))
-    "Face for highlighting diary entries."
-    :group 'diary)
+(add-to-list 'facemenu-unlisted-faces 'diary-face)
+(defface diary-face
+  '((((class color) (background light))
+     :foreground "red")
+    (((class color) (background dark))
+     :foreground "yellow")
+    (t
+     :bold t))
+  "Face for highlighting diary entries."
+  :group 'diary)
 
-  (add-to-list 'facemenu-unlisted-faces 'calendar-today-face)
-  (defface calendar-today-face
-    '((t (:underline t)))
-    "Face for indicating today's date."
-    :group 'diary)
+(add-to-list 'facemenu-unlisted-faces 'calendar-today-face)
+(defface calendar-today-face
+  '((t (:underline t)))
+  "Face for indicating today's date."
+  :group 'diary)
 
-  (add-to-list 'facemenu-unlisted-faces 'holiday-face)
-  (defface holiday-face
-    '((((class color) (background light))
-       :background "pink")
-      (((class color) (background dark))
-       :background "chocolate4")
-      (t
-       :inverse-video t))
-    "Face for indicating dates that have holidays."
-    :group 'diary))
+(add-to-list 'facemenu-unlisted-faces 'holiday-face)
+(defface holiday-face
+  '((((class color) (background light))
+     :background "pink")
+    (((class color) (background dark))
+     :background "chocolate4")
+    (t
+     :inverse-video t))
+  "Face for indicating dates that have holidays."
+  :group 'diary)
 
 (defcustom diary-entry-marker
   (if (not window-system)
