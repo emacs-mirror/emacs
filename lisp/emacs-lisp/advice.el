@@ -2137,31 +2137,31 @@ either t or nil, and DEFINITION should be a list of the form
 ;;     fset(sym,newdef)
 ;;       assign NEWDEF to SYM
 ;;       if (get SYM 'ad-advice-info)
-;;          ad-activate(SYM, nil)
+;;          ad-activate-internal(SYM, nil)
 ;;       return (symbol-function SYM)
 ;;
 ;; Whether advised definitions created by automatic activations will be
 ;; compiled depends on the value of `ad-default-compilation-action'.
 
-;; Since calling `ad-activate' in the built-in definition of `fset' can
+;; Since calling `ad-activate-internal' in the built-in definition of `fset' can
 ;; create major disasters we have to be a bit careful. One precaution is
-;; to provide a dummy definition for `ad-activate' which can be used to
+;; to provide a dummy definition for `ad-activate-internal' which can be used to
 ;; turn off automatic advice activation (e.g., when `ad-stop-advice' or
 ;; `ad-recover-normality' are called). Another is to avoid recursive calls
-;; to `ad-activate-on' by using `ad-with-auto-activation-disabled' where
+;; to `ad-activate' by using `ad-with-auto-activation-disabled' where
 ;; appropriate, especially in a safe version of `fset'.
 
-;; For now define `ad-activate' to the dummy definition:
-(defun ad-activate (function &optional compile)
+;; For now define `ad-activate-internal' to the dummy definition:
+(defun ad-activate-internal (function &optional compile)
   "Automatic advice activation is disabled. `ad-start-advice' enables it."
   nil)
 
 ;; This is just a copy of the above:
-(defun ad-activate-off (function &optional compile)
+(defun ad-activate-internal-off (function &optional compile)
   "Automatic advice activation is disabled. `ad-start-advice' enables it."
   nil)
 
-;; This will be t for top-level calls to `ad-activate-on':
+;; This will be t for top-level calls to `ad-activate-internal-on':
 (defvar ad-activate-on-top-level t)
 
 (defmacro ad-with-auto-activation-disabled (&rest body)
@@ -2169,7 +2169,7 @@ either t or nil, and DEFINITION should be a list of the form
        (,@ body))))
 
 (defun ad-safe-fset (symbol definition)
-  ;; A safe `fset' which will never call `ad-activate' recursively.
+  ;; A safe `fset' which will never call `ad-activate-internal' recursively.
   (ad-with-auto-activation-disabled
    (ad-real-fset symbol definition)))
 
@@ -3399,7 +3399,7 @@ advised definition from scratch."
 	  (ad-add-advice function advice class position)
 	  (ad-enable-advice function class (ad-advice-name advice))
 	  (ad-clear-cache function)
-	  (ad-activate-on function -1)
+	  (ad-activate function -1)
 	  (if (and (ad-is-active function)
 	           (ad-get-cache-definition function))
 	      (list (ad-get-cache-definition function)
@@ -3586,7 +3586,7 @@ the value of `ad-redefinition-action' and de/activate again."
 ;; @@ The top-level advice interface:
 ;; ==================================
 
-(defun ad-activate-on (function &optional compile)
+(defun ad-activate (function &optional compile)
   "Activates all the advice information of an advised FUNCTION.
 If FUNCTION has a proper original definition then an advised
 definition will be generated from FUNCTION's advice info and the
@@ -3606,7 +3606,7 @@ definition will always be cached for later usage."
    (list (ad-read-advised-function "Activate advice of: ")
 	 current-prefix-arg))
   (if ad-activate-on-top-level
-      ;; avoid recursive calls to `ad-activate-on':
+      ;; avoid recursive calls to `ad-activate':
       (ad-with-auto-activation-disabled
 	(if (not (ad-is-advised function))
 	    (error "ad-activate: `%s' is not advised" function)
@@ -3646,12 +3646,12 @@ a call to `ad-activate'."
 
 (defun ad-update (function &optional compile)
   "Update the advised definition of FUNCTION if its advice is active.
-See `ad-activate-on' for documentation on the optional COMPILE argument."
+See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
    (list (ad-read-advised-function
 	  "Update advised definition of: " 'ad-is-active)))
   (if (ad-is-active function)
-      (ad-activate-on function compile)))
+      (ad-activate function compile)))
 
 (defun ad-unadvise (function)
   "Deactivates FUNCTION and then removes all its advice information. 
@@ -3684,13 +3684,13 @@ Use in emergencies."
 
 (defun ad-activate-regexp (regexp &optional compile)
   "Activates functions with an advice name containing a REGEXP match.
-See `ad-activate-on' for documentation on the optional COMPILE argument."
+See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
    (list (ad-read-regexp "Activate via advice regexp: ")
 	 current-prefix-arg))
   (ad-do-advised-functions (function)
     (if (ad-find-some-advice function 'any regexp)
-	(ad-activate-on function compile))))
+	(ad-activate function compile))))
 
 (defun ad-deactivate-regexp (regexp)
   "Deactivates functions with an advice name containing REGEXP match."
@@ -3702,7 +3702,7 @@ See `ad-activate-on' for documentation on the optional COMPILE argument."
 
 (defun ad-update-regexp (regexp &optional compile)
   "Updates functions with an advice name containing a REGEXP match.
-See `ad-activate-on' for documentation on the optional COMPILE argument."
+See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive
    (list (ad-read-regexp "Update via advice regexp: ")
 	 current-prefix-arg))
@@ -3712,10 +3712,10 @@ See `ad-activate-on' for documentation on the optional COMPILE argument."
 
 (defun ad-activate-all (&optional compile)
   "Activates all currently advised functions.
-See `ad-activate-on' for documentation on the optional COMPILE argument."
+See `ad-activate' for documentation on the optional COMPILE argument."
   (interactive "P")
   (ad-do-advised-functions (function)
-    (ad-activate-on function compile)))
+    (ad-activate function compile)))
 
 (defun ad-deactivate-all ()
   "Deactivates all currently advised functions."
@@ -3856,8 +3856,8 @@ Look at the file `advice.el' for comprehensive documentation."
 					(, (car preactivation)))))))
 			'(, (car (cdr preactivation))))))))
 	   (,@ (if (memq 'activate flags)
-		   (` ((ad-activate-on '(, function)
-				       (, (if (memq 'compile flags) t)))))))
+		   (` ((ad-activate '(, function)
+				    (, (if (memq 'compile flags) t)))))))
 	   '(, function))))))
 
 
@@ -3941,29 +3941,29 @@ undone on exit of this macro."
 (defun ad-start-advice ()
   "Starts the automatic advice handling magic."
   (interactive)
-  ;; Advising `ad-activate' means death!!
-  (ad-set-advice-info 'ad-activate nil)
-  (ad-safe-fset 'ad-activate 'ad-activate-on)
+  ;; Advising `ad-activate-internal' means death!!
+  (ad-set-advice-info 'ad-activate-internal nil)
+  (ad-safe-fset 'ad-activate-internal 'ad-activate)
   (ad-enable-advice 'documentation 'after 'ad-advised-docstring)
-  (ad-activate-on 'documentation 'compile))
+  (ad-activate 'documentation 'compile))
 
 (defun ad-stop-advice ()
   "Stops the automatic advice handling magic.
 You should only need this in case of Advice-related emergencies."
   (interactive)
-  ;; Advising `ad-activate' means death!!
-  (ad-set-advice-info 'ad-activate nil)
+  ;; Advising `ad-activate-internal' means death!!
+  (ad-set-advice-info 'ad-activate-internal nil)
   (ad-disable-advice 'documentation 'after 'ad-advised-docstring)
   (ad-update 'documentation)
-  (ad-safe-fset 'ad-activate 'ad-activate-off))
+  (ad-safe-fset 'ad-activate-internal 'ad-activate-internal-off))
 
 (defun ad-recover-normality ()
   "Undoes all advice related redefinitions and unadvises everything. 
 Use only in REAL emergencies."
   (interactive)
-  ;; Advising `ad-activate' means death!!
-  (ad-set-advice-info 'ad-activate nil)
-  (ad-safe-fset 'ad-activate 'ad-activate-off)
+  ;; Advising `ad-activate-internal' means death!!
+  (ad-set-advice-info 'ad-activate-internal nil)
+  (ad-safe-fset 'ad-activate-internal 'ad-activate-internal-off)
   (ad-recover-all)
   (setq ad-advised-functions nil))
 
