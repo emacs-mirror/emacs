@@ -130,7 +130,7 @@ int stack_copy_size;
 /* Non-zero means ignore malloc warnings.  Set during initialization.  */
 int ignore_warnings;
 
-static void mark_object (), mark_buffer ();
+static void mark_object (), mark_buffer (), mark_perdisplays ();
 static void clear_marks (), gc_sweep ();
 static void compact_strings ();
 
@@ -1358,6 +1358,7 @@ Garbage collection happens automatically if you cons more than\n\
 	    XMARK (backlist->args[i]);
 	  }
     }  
+  mark_perdisplays ();
 
   gc_sweep ();
 
@@ -1775,6 +1776,21 @@ mark_buffer (buf)
     {
       XSETBUFFER (base_buffer, buffer->base_buffer); 
       mark_buffer (base_buffer);
+    }
+}
+
+
+/* Mark the pointers in the perdisplay objects.  */
+
+static void
+mark_perdisplays ()
+{
+  PERDISPLAY *perd;
+  for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
+    {
+      mark_object (&perd->Vprefix_arg);
+      mark_object (&perd->Vcurrent_prefix_arg);
+      mark_object (&perd->kbd_buffer_frame_or_window);
     }
 }
 
