@@ -527,7 +527,7 @@ extern char *get_conversion_buffer P_ ((int));
 extern int setup_coding_system P_ ((Lisp_Object, struct coding_system *));
 extern void setup_raw_text_coding_system P_ ((struct coding_system *));
 extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
-extern Lisp_Object Qraw_text;
+extern Lisp_Object Qraw_text, Qemacs_mule;
 extern Lisp_Object Qbuffer_file_coding_system;
 extern Lisp_Object Vcoding_category_list;
 
