@@ -45,7 +45,7 @@ the name it is linked to.")
 
 ;;; Turn off backup files on VMS since it has version numbers.
 (defconst make-backup-files (not (eq system-type 'vax-vms))
-  "*Create a backup of each file when it is saved for the first time.
+  "*Non-nil means make a backup of a file the first time it is saved.
 This can be done by renaming the file or by copying.
 
 Renaming means that Emacs renames the existing file so that it is a
