@@ -469,6 +469,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       unsigned char *p;
       int pos;
 
+      if (STRINGP (val) && XSTRING (val)->size == 0
+	  && STRINGP (defalt))
+	val = defalt;
+
       expr_and_pos = Fread_from_string (val, Qnil, Qnil);
       pos = XINT (Fcdr (expr_and_pos));
       if (pos != XSTRING (val)->size)
@@ -752,18 +756,18 @@ Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
 }
 
 DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 3, 0,
-  "Args PROMPT and INIT, strings.  Read a string from the terminal, not allowing blanks.\n\
-Prompt with PROMPT, and provide INIT as an initial value of the input string.\n\
+  "Read a string from the terminal, not allowing blanks.\n\
+Prompt with PROMPT, and provide INITIAL as an initial value of the input string.\n\
 Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
 the current input method and the setting of enable-multibyte-characters.")
-  (prompt, init, inherit_input_method)
-     Lisp_Object prompt, init, inherit_input_method;
+  (prompt, initial, inherit_input_method)
+     Lisp_Object prompt, initial, inherit_input_method;
 {
   CHECK_STRING (prompt, 0);
-  if (! NILP (init))
-    CHECK_STRING (init, 1);
+  if (! NILP (initial))
+    CHECK_STRING (initial, 1);
 
-  return read_minibuf (Vminibuffer_local_ns_map, init, prompt, Qnil,
+  return read_minibuf (Vminibuffer_local_ns_map, initial, prompt, Qnil,
 		       0, Qminibuffer_history, make_number (0), Qnil, 0,
 		       !NILP (inherit_input_method));
 }
