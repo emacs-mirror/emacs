@@ -3959,7 +3959,14 @@ The completion list buffer is available as the value of `standard-output'.")
 
 (defun completion-setup-function ()
   (save-excursion
-    (let ((mainbuf (current-buffer)))
+    (let ((mainbuf (current-buffer))
+	  (mbuf-contents (minibuffer-contents)))
+      ;; When reading a file name in the minibuffer,
+      ;; set default-directory in the minibuffer
+      ;; so it will get copied into the completion list buffer.
+      (if minibuffer-completing-file-name
+	  (with-current-buffer mainbuf
+	    (setq default-directory (file-name-directory mbuf-contents))))
       (set-buffer standard-output)
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
