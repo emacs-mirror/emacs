@@ -1,3 +1,7 @@
+2002-03-03  Kim F. Storm  <storm@cua.dk>
+
+	* configure.in: Test for getpeername.
+
 2002-03-01  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in (HAVE_JPEG): Turn it off if libjpeg version < 6b.
