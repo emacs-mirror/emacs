@@ -210,7 +210,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBS_DEBUG
 #define LIBS_TERMCAP -ltermcap -lcurses /* save some space with shared libs*/
 #define LIB_STANDARD -lc /* avoid -lPW */
-#define C_OPTIMIZE_SWITCH /* configure can guess this just fine */
 #ifdef HAVE_X11
 #define LD_SWITCH_SYSTEM -L/usr/X386/lib
 #endif
