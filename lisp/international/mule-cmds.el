@@ -1379,7 +1379,7 @@ of buffer-file-coding-system set by this function."
 	      (princ-list "  " str)
 	      (terpri))))
       (let ((input-method (get-language-info language-name 'input-method))
-	    (l input-method-alist))
+	    (l (copy-sequence input-method-alist)))
 	(princ "Input methods")
 	(when input-method
 	  (princ (format " (default, %s)" input-method))
