@@ -1,8 +1,7 @@
 #!/bin/sh
+# impl.sh.overnight: RUN A SCRIPT "OVERNIGHT"
 #
-# === RUN A SCRIPT "OVERNIGHT" ===
-#
-# $Id$
+# $HopeName$
 #
 # SYNOPSIS
 #
@@ -43,10 +42,10 @@ test -d $HOME/var/log || mkdir $HOME/var/log ||
 logfile="$HOME/var/log/`basename \"$1\"`"
 
 (
-  date "+$script 19%y-%m-%d %H:%M:%S started \"$*\""
+  date "+$script %Y-%m-%d %H:%M:%S started \"$*\""
   "$@"
   status="$?"
-  date "+$script 19%y-%m-%d %H:%M:%S exited with status $status"
+  date "+$script %Y-%m-%d %H:%M:%S exited with status $status"
   exit "$status"
 ) >> "$logfile" 2>&1 ||
 {
