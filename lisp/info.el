@@ -1357,12 +1357,14 @@ N is the digit argument used to invoke this command."
 
 (defun Info-next-menu-item ()
   (interactive)
-  (save-excursion
-    (forward-line -1)
-    (search-forward "\n* menu:" nil t)
-    (or (search-forward "\n* " nil t)
-	(error "No more items in menu"))
-    (Info-goto-node (Info-extract-menu-node-name))))
+  (let ((node
+	 (save-excursion
+	   (forward-line -1)
+	   (search-forward "\n* menu:" nil t)
+	   (and (search-forward "\n* " nil t)
+		(Info-extract-menu-node-name)))))
+    (if node (Info-goto-node node)
+      (error "No more items in menu"))))
 
 (defun Info-last-menu-item ()
   (interactive)
