@@ -2,6 +2,8 @@
  summary = ensure allocation in MV pool causes collection
  language = c
  link = newfmt.o testlib.o
+OUTPUT_SPEC
+ diff23 < 5
 END_HEADER
 */
 
@@ -30,6 +32,7 @@ static void test(void)
  mps_addr_t p;
 
  int i;
+ int s1, s2, s3;
 
  cdie(mps_space_create(&space), "create space");
 
@@ -59,6 +62,7 @@ static void test(void)
  while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;
  report("refuse1", "%s", err_text(r));
  report("size1", "%i", i);
+ s1 = i;
  mps_pool_destroy(poolMV);
 
  die(
@@ -69,6 +73,7 @@ static void test(void)
  while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;
  report("refuse2", "%s", err_text(r));
  report("size2", "%i", i);
+ s2 = i;
  mps_pool_destroy(poolMV);
 
  a = allocdumb(ap, 1024*1024*30); /* allocate 30 M object */
@@ -80,7 +85,11 @@ static void test(void)
  i=0;
  while ((r=mps_alloc(&p, poolMV, 1024*1024)) == 0) i++;
  report("refuse4", "%s", err_text(r));
- report("size4", "%i", i);
+ report("size3", "%i", i);
+ s3 = i;
+
+ report("diff12", "%i", s1-s2);
+ report("diff23", "%i", s2-s3);
 
  for(i=0; i<10; i++) {
   r=mps_alloc(&p, poolMV, 1024*1024);
