@@ -1,3 +1,10 @@
+2005-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/trace.el (inhibit-trace): New var.
+	(trace-make-advice): Use it.
+
+	* emacs-lisp/debug.el (debug): Put back the inhibit-trace.
+
 2005-02-26  Kim F. Storm  <storm@cua.dk>
 
 	* mouse.el (mouse-1-click-in-non-selected-windows): New defcustom.
