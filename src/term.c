@@ -2133,6 +2133,9 @@ get_tty_display (Lisp_Object display)
 {
   struct display *d = get_display (display);
   
+  if (d && d->type == output_initial)
+    d = NULL;
+
   if (d && d->type != output_termcap)
     {
 #if 0   /* XXX We need a predicate as the first argument; find one. */
