@@ -164,7 +164,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; We insist on a non-digit in the file name
     ;; so that we don't mistake the file name for a command name
     ;; and take the line number as the file name.
-    ("\\([-a-zA-Z._]+: ?\\)?\
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)?\
 \\([a-zA-Z]?:?[^:( \t\n]*[^:( \t\n0-9][^:( \t\n]*\\)[:(][ \t]*\\([0-9]+\\)\
 \\([) \t]\\|:\\(\\([0-9]+:\\)\\|[0-9]*[^:0-9]\\)\\)" 2 3 6)
 
