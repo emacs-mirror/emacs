@@ -90,6 +90,7 @@ skiped over. Nil means show all regions.")
   ;; by Stig@hackvan.com
   (normal-mode t)
   (remove-hook 'local-write-file-hooks 'ediff-set-merge-mode))
+
 	
 ;; Go over all diffs starting with DIFF-NUM and copy regions into buffer C
 ;; according to the state of the difference.
@@ -113,7 +114,6 @@ skiped over. Nil means show all regions.")
 		   ediff-number-of-differences))
 	     
       (setq state-of-merge (ediff-get-state-of-merge n))
-      (setq do-not-copy (string= state-of-merge default-state-of-merge))
 
       (if remerging
 	  (let ((reg-A (ediff-get-region-contents n 'A ediff-control-buffer))
