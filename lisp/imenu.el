@@ -1002,8 +1002,7 @@ See the command `imenu' for more information."
 	(set-keymap-parent newmap (current-local-map))
 	(setq imenu--last-menubar-index-alist nil)
 	(define-key newmap [menu-bar index]
-	  (define-key map [index] 
-	    `(menu-item ,name ,(make-sparse-keymap "Imenu"))))
+	  `(menu-item ,name ,(make-sparse-keymap "Imenu")))
 	(use-local-map newmap)
 	(add-hook 'menu-bar-update-hook 'imenu-update-menubar))
     (error "The mode `%s' does not support Imenu" mode-name)))
