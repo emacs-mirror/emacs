@@ -535,7 +535,9 @@ VALUE must be a property list of the form `(:line-width WIDTH
 :color COLOR :style STYLE)'.  If a keyword/value pair is missing from
 the property list, a default value will be used for the value, as
 specified below.  WIDTH specifies the width of the lines to draw; it
-defaults to 1.  COLOR is the name of the color to draw in, default is
+defaults to 1.  If WIDTH is negative, the absolute value is the width
+of the lines, and draw top/bottom lines inside the characters area,
+not around it.  COLOR is the name of the color to draw in, default is
 the foreground color of the face for simple boxes, and the background
 color of the face for 3D boxes.  STYLE specifies whether a 3D box
 should be draw.  If STYLE is `released-button', draw a box looking
