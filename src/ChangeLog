@@ -1,3 +1,10 @@
+2002-05-10  Kim F. Storm  <storm@cua.dk>
+
+	* keymap.c (Vemulation_mode_map_alists): New variable.
+	(syms_of_keymap): DEFVAR_LISP it.
+	(current_minor_maps): Process keymap alists in that list before
+	minor-mode-overriding-map-alist and minor-mode-map-alist.
+
 2002-05-09  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (Freplace_match): Doc fix.
