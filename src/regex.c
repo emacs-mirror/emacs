@@ -2197,18 +2197,20 @@ compile_range (p_ptr, pend, translate, syntax, b)
   unsigned this_char;
 
   const char *p = *p_ptr;
+  int range_start, range_end;
   
-  /* Even though the pattern is a signed `char *', we need to fetch into
-     `unsigned char's.  Reason: if the high bit of the pattern character
-     is set, the range endpoints will be negative if we fetch into a
-     signed `char *'.  */
-  unsigned char range_end;
-  unsigned char range_start = p[-2];
-
   if (p == pend)
     return REG_ERANGE;
 
-  PATFETCH (range_end);
+  /* Even though the pattern is a signed `char *', we need to fetch
+     with unsigned char *'s; if the high bit of the pattern character
+     is set, the range endpoints will be negative if we fetch using a
+     signed char *.
+
+     We also want to fetch the endpoints without translating them; the 
+     appropriate translation is done in the bit-setting loop below.  */
+  range_start = ((unsigned char *) p)[-2];
+  range_end   = ((unsigned char *) p)[0];
 
   /* Have to increment the pointer into the pattern string, so the
      caller isn't still at the ending character.  */
