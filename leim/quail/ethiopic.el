@@ -93,7 +93,7 @@ With ARG, insert that many delimiters."
 	      '(?. [".."] ["..."] ?, [",,"] ?\; [";;"] ?: ["::"] [":::"] ?* ["**"])
 	    '(?$(3$i(B ?$(3%u(B ?. ?$(3$j(B ?, ?$(3$k(B ?\; ?$(3$h(B ?$(3$i(B ?: ?* ?$(3$o(B))))
     (while keys
-      (quail-defrule (car keys) (car puncs) "quail-ethio")
+      (quail-defrule (car keys) (car puncs) "ethiopic")
       (setq keys (cdr keys)
 	    puncs (cdr puncs)))
     (force-mode-line-update)))
@@ -123,7 +123,7 @@ mark."
     (error ""))))
 		
 ;;
-;; The package "quail-ethio"
+;; The package "ethiopic"
 ;;
 
 (quail-define-package
@@ -1099,6 +1099,6 @@ C-' or ethio-gemination
 	  (lambda nil
 	    (quail-defrule "a"
 			   (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
-			   "quail-ethio")))
+			   "ethiopic")))
 
 ;;; quail/ethiopic.el ends here
