@@ -248,21 +248,21 @@ extern Lisp_Object item_properties;
 /* Extract the head from an event.
    This works on composite and simple events.  */
 #define EVENT_HEAD(event) \
-  (EVENT_HAS_PARAMETERS (event) ? XCONS (event)->car : (event))
+  (EVENT_HAS_PARAMETERS (event) ? XCAR (event) : (event))
 
 /* Extract the starting and ending positions from a composite event.  */
-#define EVENT_START(event) (XCONS (XCONS (event)->cdr)->car)
-#define EVENT_END(event) (XCONS (XCONS (XCONS (event)->cdr)->cdr)->car)
+#define EVENT_START(event) (XCAR (XCDR (event)))
+#define EVENT_END(event) (XCAR (XCDR (XCDR (event))))
 
 /* Extract the click count from a multi-click event.  */
 #define EVENT_CLICK_COUNT(event) (Fnth ((event), make_number (2)))
 
 /* Extract the fields of a position.  */
-#define POSN_WINDOW(posn) (XCONS (posn)->car)
-#define POSN_BUFFER_POSN(posn) (XCONS (XCONS (posn)->cdr)->car)
-#define POSN_WINDOW_POSN(posn) (XCONS (XCONS (XCONS (posn)->cdr)->cdr)->car)
+#define POSN_WINDOW(posn) (XCAR (posn))
+#define POSN_BUFFER_POSN(posn) (XCAR (XCDR (posn)))
+#define POSN_WINDOW_POSN(posn) (XCAR (XCDR (XCDR (posn))))
 #define POSN_TIMESTAMP(posn) \
-  (XCONS (XCONS (XCONS (XCONS (posn)->cdr)->cdr)->cdr)->car)
+  (XCAR (XCDR (XCDR (XCDR (posn)))))
 #define POSN_SCROLLBAR_PART(posn)	(Fnth ((posn), make_number (4)))
 
 /* A cons (STRING . STRING-CHARPOS), or nil in mouse-click events.

@@ -122,39 +122,39 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
   ({ Lisp_Object temp;							\
      temp = SYNTAX_ENTRY (c);						\
      (CONSP (temp)							\
-      ? (enum syntaxcode) (XINT (XCONS (temp)->car) & 0xff)		\
+      ? (enum syntaxcode) (XINT (XCAR (temp)) & 0xff)		\
       : Swhitespace); })
 
 #define SYNTAX_WITH_FLAGS(c)						\
   ({ Lisp_Object temp;							\
      temp = SYNTAX_ENTRY (c);						\
      (CONSP (temp)							\
-      ? XINT (XCONS (temp)->car)					\
+      ? XINT (XCAR (temp))					\
       : (int) Swhitespace); })
 
 #define SYNTAX_MATCH(c)							\
   ({ Lisp_Object temp;							\
      temp = SYNTAX_ENTRY (c);						\
      (CONSP (temp)							\
-      ? XCONS (temp)->cdr						\
+      ? XCDR (temp)						\
       : Qnil); })
 #else
 #define SYNTAX(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
-    ? (enum syntaxcode) (XINT (XCONS (syntax_temp)->car) & 0xff)	\
+    ? (enum syntaxcode) (XINT (XCAR (syntax_temp)) & 0xff)	\
     : Swhitespace))
 
 #define SYNTAX_WITH_FLAGS(c)						\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
-    ? XINT (XCONS (syntax_temp)->car)					\
+    ? XINT (XCAR (syntax_temp))					\
     : (int) Swhitespace))
 
 #define SYNTAX_MATCH(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\
-    ? XCONS (syntax_temp)->cdr						\
+    ? XCDR (syntax_temp)						\
     : Qnil))
 #endif
 
