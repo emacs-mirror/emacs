@@ -11,6 +11,15 @@
 
 2000-06-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* info.el (Info-find-in-tag-table-1, Info-find-in-tag-table) 
+	(Info-find-node-in-buffer-1, Info-find-node-in-buffer): New
+	functions. 
+	(Info-find-node-2): Try a case-sensitive search first, then
+	do a case-insensitive search.
+
+	* menu-bar.el (menu-bar-help-menu): Add menu item for non-English
+	tutorials.
+
 	* complete.el (PC-env-vars-alist): New variable.
 	(PC-complete-as-file-name): New function.
 	(partial-completion-mode): Initialize PC-env-vars-alist from
