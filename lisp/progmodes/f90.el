@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <T.Einarsson@clab.ericsson.se>
-;; Created: Sep. 21, 1995
+;; Created: Apr. 18, 1996
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -117,6 +117,7 @@
 ;;    mechanism for treating multi-line directives (continued by \ ).
 ;; 7) f77 do-loops do 10 i=.. ; ; 10 continue are not correctly indented.
 ;;    You are urged to use f90-do loops (with labels if you wish).
+;; 8) The highlighting mode under XEmacs is not as complete as under Emacs.
 
 ;; List of user commands
 ;;   f90-previous-statement         f90-next-statement
@@ -204,9 +205,9 @@ whether to blink the matching beginning.")
   ;;"elseif" "elsewhere" "end" "enddo" "endfile" "endif" "entry" "equivalence"
   ;;"exit" "external" "forall" "format" "function" "goto" "if" "implicit"
   ;;"include" "inquire" "integer" "intent" "interface" "intrinsic" "logical"
-  ;;"module" "namelist" "none" "nullify" "only" "open" "optional" "parameter"
+  ;;"module" "namelist" "none" "nullify" "only" "open" "operator" "optional" "parameter"
   ;;"pause" "pointer" "precision" "print" "private" "procedure" "program"
-  ;;"public" "read" "real" "recursive" "return" "rewind" "save" "select"
+  ;;"public" "read" "real" "recursive" "result" "return" "rewind" "save" "select"
   ;;"sequence" "stop" "subroutine" "target" "then" "type" "use" "where"
   ;;"while" "write")
   (concat
@@ -217,25 +218,28 @@ whether to blink the matching beginning.")
    "if\\)\\|try\\)\\|quivalence\\|x\\(it\\|ternal\\)\\)\\|f\\(or\\(all\\|"
    "mat\\)\\|unction\\)\\|goto\\|i\\(f\\|mplicit\\|n\\(clude\\|quire\\|t\\("
    "e\\(ger\\|nt\\|rface\\)\\|rinsic\\)\\)\\)\\|logical\\|module\\|n\\("
-   "amelist\\|one\\|ullify\\)\\|o\\(nly\\|p\\(en\\|tional\\)\\)\\|p\\(a\\("
+   "amelist\\|one\\|ullify\\)\\|o\\(nly\\|p\\(en\\|erator\\|tional\\)\\)\\|p\\(a\\("
    "rameter\\|use\\)\\|ointer\\|r\\(ecision\\|i\\(nt\\|vate\\)\\|o\\("
-   "cedure\\|gram\\)\\)\\|ublic\\)\\|re\\(a[dl]\\|cursive\\|turn\\|wind\\)\\|"
+   "cedure\\|gram\\)\\)\\|ublic\\)\\|re\\(a[dl]\\|cursive\\|sult\\|turn\\|wind\\)\\|"
    "s\\(ave\\|e\\(lect\\|quence\\)\\|top\\|ubroutine\\)\\|t\\(arget\\|hen\\|"
    "ype\\)\\|use\\|w\\(h\\(ere\\|ile\\)\\|rite\\)\\)\\>")
   "Regexp for F90 keywords.")
 
 (defconst f90-keywords-level-3-re
- ;; ("allocate" "allocatable" "assign" "assignment" "backspace" "close"
- ;; "deallocate" "endfile" "entry" "equivalence" "external" "inquire" "intent"
- ;; "intrinsic" "only" "open" "optional" "parameter" "pause" "pointer" "print"
- ;; "private" "public" "read" "recursive" "rewind" "save" "select" "sequence"
- ;; "target"  "write")
+  ;; ("allocate" "allocatable" "assign" "assignment" "backspace" "close"
+  ;; "deallocate" "dimension" "endfile" "entry" "equivalence" "external"
+  ;; "inquire" "intent" "intrinsic" "nullify" "only" "open" "operator"
+  ;; "optional" "parameter" "pause" "pointer" "print" "private" "public"
+  ;; "read" "recursive" "result" "rewind" "save" "select" "sequence"
+  ;; "target"  "write")
   (concat
    "\\<\\(a\\(llocat\\(able\\|e\\)\\|ssign\\(\\|ment\\)\\)\\|backspace\\|"
-   "close\\|deallocate\\|e\\(n\\(dfile\\|try\\)\\|quivalence\\|xternal\\)\\|"
-   "in\\(quire\\|t\\(ent\\|rinsic\\)\\)\\|o\\(nly\\|p\\(en\\|tional\\)\\)\\|"
+   "close\\|d\\(eallocate\\|imension\\)\\|e\\(n\\(dfile\\|try\\)\\|"
+   "quivalence\\|xternal\\)\\|"
+   "in\\(quire\\|t\\(ent\\|rinsic\\)\\)\\|nullify\\|"
+   "o\\(nly\\|p\\(en\\|erator\\|tional\\)\\)\\|"
    "p\\(a\\(rameter\\|use\\)\\|ointer\\|ri\\(nt\\|vate\\)\\|ublic\\)\\|re\\("
-   "ad\\|cursive\\|wind\\)\\|s\\(ave\\|e\\(lect\\|quence\\)\\)\\|target\\|"
+   "ad\\|cursive\\|sult\\|wind\\)\\|s\\(ave\\|e\\(lect\\|quence\\)\\)\\|target\\|"
    "write\\)\\>")
 "Keyword-regexp for font-lock level >= 3.")
 
@@ -387,7 +391,7 @@ whether to blink the matching beginning.")
 	 1 font-lock-keyword-face)
        '("\\<\\(exit\\|cycle\\)[ \t]*\\(\\sw+\\)2\\>" 
 	 2 font-lock-doc-string-face)
-       '("\\<\\(case\\)[ \t]+\\(default\\|(\\)" . 1)
+       '("\\<\\(case\\)[ \t]*\\(default\\|(\\)" . 1)
        '("\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)"
 	 1 font-lock-keyword-face)
        '("\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)"
@@ -410,7 +414,7 @@ whether to blink the matching beginning.")
        "\\<\\(then\\|continue\\|format\\|include\\|stop\\|return\\)\\>"
        '("\\<\\(exit\\|cycle\\)[ \t]*\\(\\sw+\\)?\\>" 
 	 (1 font-lock-keyword-face) (2 font-lock-reference-face nil t))
-       '("\\<\\(case\\)[ \t]+\\(default\\|(\\)" . 1)
+       '("\\<\\(case\\)[ \t]*\\(default\\|(\\)" . 1)
        '("\\<\\(do\\|go *to\\)\\>[ \t]*\\([0-9]+\\)"
 	 (1 font-lock-keyword-face) (2 font-lock-reference-face))
        '("^[ \t]*\\([0-9]+\\)" (1 font-lock-reference-face t)))))
@@ -645,7 +649,7 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
 (defconst f90-program-block-re 
   "\\(program\\|module\\|subroutine\\|function\\)")
 (defconst f90-else-like-re 
-  "\\(else\\([ \t]*if\\|where\\)?\\|case[ \t]*\\(default\\|(\\)\\)\\>")
+  "\\(else\\([ \t]*if\\|where\\)?\\|case[ \t]*\\(default\\|(\\)\\)")
 (defconst f90-end-if-re 
   "end[ \t]*\\(if\\|select\\|where\\|forall\\)\\>")
 (defconst f90-end-type-re 
@@ -664,7 +668,8 @@ program\\|select\\|subroutine\\|type\\|where\\|forall\\)\\>")
     "^[ \t0-9]*\\("
     "program[ \t]+\\(\\sw+\\)\\|"
     "module[ \t]+\\(\\sw+\\)[ \t]*\\(!\\|$\\)\\|"
-    "\\(recursive[ \t]*\\)?subroutine[ \t]+\\(\\sw+\\)\\|"
+    "\\(pure\\|recursive\\|extrinsic([^)]+)\\)?[ \t]*"
+    "subroutine[ \t]+\\(\\sw+\\)\\|"
     ; avoid end function, but allow for most other things
     "\\([^!]*\\([^e!].[^ \t!]\\|.[^n!][^ \t!]\\|..[^d \t!]\\)"
     "\\|[^!]?[^!]?\\)[ \t]*function[ \t]+\\(\\sw+\\)"
@@ -1000,10 +1005,12 @@ Name is non-nil only for type."
    ((and (not (looking-at "module[ \t]*procedure\\>"))
 	 (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
     (list (f90-match-piece 1) (f90-match-piece 2)))
-   ((looking-at "\\(recursive[ \t]*\\)?\\(subroutine\\)[ \t]+\\(\\sw+\\)")
+   ((looking-at (concat
+		 "\\(pure\\|recursive\\|extrinsic([^)]+)\\)?[ \t]*"
+		 "\\(subroutine\\)[ \t]+\\(\\sw+\\)"))
     (list (f90-match-piece 2) (f90-match-piece 3)))
    ((and (not (looking-at "end[ \t]*function"))
-	 (looking-at ".*\\(function\\)[ \t]+\\(\\sw+\\)"))
+	 (looking-at "[^!\"\&\\n]*\\(function\\)[ \t]+\\(\\sw+\\)"))
     (list (f90-match-piece 1) (f90-match-piece 2)))))
 
 (defsubst f90-looking-at-program-block-end ()
@@ -1580,9 +1587,19 @@ Leave point at the end of line."
 	  (setq end-name  (car (cdr end-struct)))
 	  (save-excursion
 	    (beginning-of-line)
-	    (while (and (not (zerop count))
-			(re-search-backward 
-			 (concat "\\(" f90-blocks-re "\\)") nil t))
+	    (while 
+		(and (not (zerop count))
+		     (let ((stop nil) notexist)
+		       (while (not stop)
+			 (setq notexist
+			       (not (re-search-backward 
+				     (concat "\\(" f90-blocks-re "\\)") nil t)))
+			 (if notexist
+			     (setq stop t)
+			   (setq stop
+				 (not (or (f90-in-string)
+					  (f90-in-comment))))))
+		       (not notexist)))
 	      (beginning-of-line) (skip-chars-forward " \t0-9")
 	      (cond ((setq matching-beg
 			   (cond
@@ -1627,10 +1644,11 @@ Any other key combination is executed normally."
   (interactive)
   (let (e c)
     (insert last-command-char)
-    (setq e (next-command-event)
-	  c (if (string-match "XEmacs" emacs-version)
-		(event-to-character e)
-	      (read-event)))
+    (if (string-match "XEmacs" emacs-version)
+	(progn
+	  (setq e (next-command-event))
+	  (setq c (event-to-character e)))
+      (setq c (read-event)))
     ;; insert char if not equal to `?'
     (if (or (= c ??) (eq c help-char))
 	(f90-abbrev-help)
