@@ -150,10 +150,10 @@ server there that you can connect to.  See also `nntp-open-connection-function'"
   "*If non-nil, beep when a server closes connection.")
 
 ;; 1997/5/4 by MORIOKA Tomohiko <morioka@jaist.ac.jp>
-(defvoo nntp-coding-system-for-read nil
+(defvoo nntp-coding-system-for-read 'binary
   "*Coding system to read from NNTP.")
 
-(defvoo nntp-coding-system-for-write nil
+(defvoo nntp-coding-system-for-write 'binary
   "*Coding system to write to NNTP.")
 
 
