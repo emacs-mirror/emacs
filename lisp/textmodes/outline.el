@@ -411,6 +411,16 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 			 'outline-isearch-open-invisible)))))
   (run-hooks 'outline-view-change-hook))
 
+
+;; Function to be set as an outline-isearch-open-invisible' property
+;; to the overlay that makes the outline invisible (see
+;; `outline-flag-region').
+(defun outline-isearch-open-invisible (overlay)
+  (save-excursion
+    (goto-char (overlay-start overlay))
+    (show-entry)))
+
+
 ;; Exclude from the region BEG ... END all overlays
 ;; with a non-nil PROP property.
 ;; Exclude them by shrinking them to exclude BEG ... END,
