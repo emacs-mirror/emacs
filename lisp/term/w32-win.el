@@ -336,7 +336,6 @@ x-invocation args from which the X-related things are extracted, first
 the switch (e.g., \"-fg\") in the following code, and possible values
 \(e.g., \"black\") in the option handler code (e.g., x-handle-switch).
 This returns ARGS with the arguments that have been processed removed."
-  ;;(message "%s" args)
   (setq x-invocation-args args
 	args nil)
   (while x-invocation-args
@@ -901,9 +900,7 @@ Courier. These fonts are used in the font menu if the variable
   "Select a font. If `w32-use-w32-font-dialog' is non-nil (the default),
 use the Windows font dialog. Otherwise use a pop-up menu (like Emacs
 on other platforms) initialized with the fonts in
-`w32-fixed-font-alist'. Emacs will attempt to create a fontset from
-the font chosen, covering all the charsets that can be fully represented
-with the font."
+`w32-fixed-font-alist'."
   (interactive
    (if w32-use-w32-font-dialog
        (let ((chosen-font (w32-select-font)))
@@ -914,29 +911,12 @@ with the font."
       (if (fboundp 'new-fontset)
       (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
   (if fonts
-      (let (font fontset xlfd resolved-font)
+      (let (font)
 	(while fonts
 	  (condition-case nil
 	      (progn
                 (setq font (car fonts))
-                (if (fontset-name-p font)
-                    (setq fontset font)
-                  (condition-case nil
-                      (setq resolved-font (x-resolve-font-name font)
-                            xlfd (x-decompose-font-name resolved-font)
-                            fontset
-                              (create-fontset-from-ascii-font
-                               font resolved-font
-                               (format "%s_%s_%s_%s"
-                                       (aref xlfd xlfd-regexp-family-subnum)
-                                       (aref xlfd xlfd-regexp-registry-subnum)
-                                       (aref xlfd xlfd-regexp-encoding-subnum)
-                                       (aref xlfd
-                                             xlfd-regexp-pixelsize-subnum))))
-                    (error nil)))
-                (if fontset
-                    (set-default-font fontset)
-                  (set-default-font font))
+		(set-default-font font)
                 (setq fonts nil))
 	    (error (setq fonts (cdr fonts)))))
 	(if (null font)
