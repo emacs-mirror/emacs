@@ -3179,13 +3179,16 @@ static int xpm_valid_color_symbols_p P_ ((Lisp_Object));
 /* Indicate to xpm.h that we don't have Xlib.  */
 #define FOR_MSW
 /* simx.h in xpm defines XColor and XImage differently than Emacs.  */
+/* It also defines Display the same way as Emacs, but gcc 3.3 still barfs.  */
 #define XColor xpm_XColor
 #define XImage xpm_XImage
+#define Display xpm_Display
 #define PIXEL_ALREADY_TYPEDEFED
 #include "X11/xpm.h"
 #undef FOR_MSW
 #undef XColor
 #undef XImage
+#undef Display
 #undef PIXEL_ALREADY_TYPEDEFED
 #else
 #include "X11/xpm.h"
