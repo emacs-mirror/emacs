@@ -1,5 +1,5 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985, 86,87,88,93,94,95, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,93,94,95,99,2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -846,20 +846,26 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	coding_free_composition_data (&process_coding);
       }
 
-    record_unwind_protect (save_excursion_restore, save_excursion_save ());
-    inserted = PT - pt_orig;
-    TEMP_SET_PT_BOTH (pt_orig, pt_byte_orig);
-    if (SYMBOLP (process_coding.post_read_conversion)
-	&& !NILP (Ffboundp (process_coding.post_read_conversion)))
-      call1 (process_coding.post_read_conversion, make_number (inserted));
+    {
+      int post_read_count = specpdl_ptr - specpdl;
 
-    Vlast_coding_system_used = process_coding.symbol;
+      record_unwind_protect (save_excursion_restore, save_excursion_save ());
+      inserted = PT - pt_orig;
+      TEMP_SET_PT_BOTH (pt_orig, pt_byte_orig);
+      if (SYMBOLP (process_coding.post_read_conversion)
+	  && !NILP (Ffboundp (process_coding.post_read_conversion)))
+	call1 (process_coding.post_read_conversion, make_number (inserted));
 
-    /* If the caller required, let the buffer inherit the
-       coding-system used to decode the process output.  */
-    if (inherit_process_coding_system)
-      call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
-	     make_number (total_read));
+      Vlast_coding_system_used = process_coding.symbol;
+
+      /* If the caller required, let the buffer inherit the
+	 coding-system used to decode the process output.  */
+      if (inherit_process_coding_system)
+	call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
+	       make_number (total_read));
+
+      unbind_to (post_read_count, Qnil);
+    }
   }
 
   /* Wait for it to terminate, unless it already has.  */
