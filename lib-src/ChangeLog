@@ -1,3 +1,13 @@
+2001-02-22  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt ($(BLD)\movemail.obj): Remove reference to
+	VMS header files.
+	($(BLD)\profile.obj): Ditto.
+
+	* makefile.w32-in ($(BLD)/movemail.$(O)): Remove reference to
+	VMS header files.
+	($(BLD)/profile.$(O)): Ditto.
+
 2001-02-05  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in ($(DOC)): Use $(THISDIR) instead of . in

@@ -1,3 +1,7 @@
+2001-02-22  Andrew Innes  <andrewi@gnu.org>
+
+	* MACHINES: Update pointer to MS-Windows install instructions.
+
 2001-02-20  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin1.ps: Code fix to support `ps-zebra-stripe-follow'

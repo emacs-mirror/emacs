@@ -1,3 +1,27 @@
+2001-02-22  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt ($(BLD)\dired.obj): Remove reference to VMS header
+	files.
+	($(BLD)\dispnew.obj):
+	($(BLD)\editfns.obj):
+	($(BLD)\fileio.obj):
+	($(BLD)\filelock.obj):
+	($(BLD)\keyboard.obj):
+	($(BLD)\w32proc.obj):
+	($(BLD)\process.obj):
+	($(BLD)\sysdep.obj): Ditto.
+
+	* makefile.w32-in ($(BLD)/dired.$(O)): Remove reference to VMS
+	header files.
+	($(BLD)/dispnew.$(O)): 
+	($(BLD)/editfns.$(O)): 
+	($(BLD)/fileio.$(O)): 
+	($(BLD)/filelock.$(O)): 
+	($(BLD)/keyboard.$(O)): 
+	($(BLD)/w32proc.$(O)): 
+	($(BLD)/process.$(O)): 
+	($(BLD)/sysdep.$(O)): Ditto.
+
 2001-02-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (forward_to_next_line_start): When taking the shortcut
