@@ -1,7 +1,7 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName: MMsrc!amsss.c(trunk.9) $
- * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!amsss.c(trunk.10) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amcss.c, but not counting collections, just
  * total size of objects allocated (because epoch doesn't increment
@@ -21,7 +21,6 @@
 #include <stdarg.h>
 #include <math.h>
 #include <string.h>
-#include <assert.h>
 
 
 #define exactRootsCOUNT 50
@@ -109,15 +108,15 @@ static void *test(void *arg, size_t s)
              (unsigned long)totalSize, objs);
       fflush(stdout);
       for(i = 0; i < exactRootsCOUNT; ++i)
-        assert(exactRoots[i] == objNULL ||
-               dylan_check(exactRoots[i]));
+        cdie(exactRoots[i] == objNULL || dylan_check(exactRoots[i]),
+             "all roots check");
     }
 
     r = (size_t)rnd();
     if(r & 1) {
       i = (r >> 1) % exactRootsCOUNT;
       if(exactRoots[i] != objNULL)
-        assert(dylan_check(exactRoots[i]));
+        cdie(dylan_check(exactRoots[i]), "dying root check");
       exactRoots[i] = make();
       if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
         dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
@@ -151,11 +150,13 @@ static void *test(void *arg, size_t s)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   mps_arena_t arena;
   mps_thr_t thread;
   void *r;
+ 
+  randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
