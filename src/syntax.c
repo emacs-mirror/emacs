@@ -970,7 +970,7 @@ describe_syntax (value)
     Lisp_Object value;
 {
   register enum syntaxcode code;
-  char desc, start1, start2, end1, end2, prefix, comstyle;
+  char desc, start1, start2, end1, end2, prefix, comstyle, comnested;
   char str[2];
   Lisp_Object first, match_lisp;
 
@@ -1010,6 +1010,7 @@ describe_syntax (value)
   end2 = (XINT (first) >> 19) & 1;
   prefix = (XINT (first) >> 20) & 1;
   comstyle = (XINT (first) >> 21) & 1;
+  comnested = (XINT (first) >> 22) & 1;
 
   if ((int) code < 0 || (int) code >= (int) Smax)
     {
@@ -1040,6 +1041,8 @@ describe_syntax (value)
     insert ("p", 1);
   if (comstyle)
     insert ("b", 1);
+  if (comnested)
+    insert ("n", 1);
 
   insert_string ("\twhich means: ");
 
@@ -1093,6 +1096,8 @@ describe_syntax (value)
     insert_string (",\n\t  is the second character of a comment-end sequence");
   if (comstyle)
     insert_string (" (comment style b)");
+  if (comnested)
+    insert_string (" (nestable)");
 
   if (prefix)
     insert_string (",\n\t  is a prefix character for `backward-prefix-chars'");
@@ -1777,9 +1782,9 @@ between them, return t; otherwise return nil.")
 	  code = SYNTAX (c);
 	  comstart_first = SYNTAX_COMSTART_FIRST (c);
 	  comnested = SYNTAX_COMMENT_NESTED (c);
+	  comstyle = SYNTAX_COMMENT_STYLE (c);
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  comstyle = 0;
 	  if (from < stop && comstart_first
 	      && (c1 = FETCH_CHAR (from_byte),
 		  SYNTAX_COMSTART_SECOND (c1)))
@@ -1991,6 +1996,7 @@ scan_lists (from, count, depth, sexpflag)
 	  code = SYNTAX_WITH_MULTIBYTE_CHECK (c);
 	  comstart_first = SYNTAX_COMSTART_FIRST (c);
 	  comnested = SYNTAX_COMMENT_NESTED (c);
+	  comstyle = SYNTAX_COMMENT_STYLE (c);
 	  prefix = SYNTAX_PREFIX (c);
 	  if (depth == min_depth)
 	    last_good = from;
@@ -2171,7 +2177,7 @@ scan_lists (from, count, depth, sexpflag)
 	    }
 	  
 	  /* Quoting turns anything except a comment-ender
-	     into a word character.  Note that this if cannot be true
+	     into a word character.  Note that this cannot be true
 	     if we decremented FROM in the if-statement above.  */
 	  if (code != Sendcomment && char_quoted (from, from_byte))
 	    code = Sword;
@@ -2648,10 +2654,14 @@ do { prev_from = from;				\
 	commentloop:
 	  /* The (from == BEGV) test is to enter the loop in the middle so
 	     that we find a 2-char comment ender even if we start in the
-	     middle of it.  */
+	     middle of it.  We don't want to do that if we're just at the
+	     beginning of the comment (think of (*) ... (*)).
+	     Actually, the current code still doesn't handle such cases right
+	     when the comment style allows nesting.  */
 	  found = forw_comment (from, from_byte, end,
 				state.incomment, state.comstyle,
-				(from == BEGV) ? 0 : prev_from_syntax,
+				(from == BEGV || from < state.comstr_start + 3)
+				? 0 : prev_from_syntax,
 				&out_charpos, &out_bytepos, &state.incomment);
 	  from = out_charpos; from_byte = out_bytepos;
 	  /* Beware!  prev_from and friends are invalid now.
