@@ -5,11 +5,9 @@ for Emacs functions and variables.
 
 Some of the *.tex files need special versions of TeX to typeset them.
 The files cs-*.tex and sk-*.tex need csTeX, a special version of TeX
-tailored to typesetting Czech and Slovak documents.  csTeX can be
-found on http://www.cstug.cz and in the teTeX distribution
-(http://www.tug.org/tetex/).  We provide PostScript files for these
-documents, so that you could print them without installing the
-modified TeX versions.
+tailored to typesetting Czech and Slovak documents.  We provide
+PostScript files for these documents, so that you could print them
+without installing the modified TeX versions.
 
 `termcap.src' is included mainly for VMS.  It is a copy of the
 `/etc/termcap' file used on Unix.
