@@ -1,5 +1,8 @@
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/authors.el (authors-add): Don't add an entry if
+	author's name is unknown.
+
 	* eshell/esh-var.el, eshell/esh-util.el, eshell/esh-test.el,
 	* eshell/esh-proc.el, eshell/esh-opt.el, eshell/esh-mode.el,
 	* eshell/esh-maint.el, eshell/esh-io.el, eshell/esh-ext.el,
