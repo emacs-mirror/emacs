@@ -574,9 +574,22 @@ remains active.  Otherwise, it remains until the next input event."
 			(cons event unread-command-events)))
 	      (if (not (= (overlay-start mouse-drag-overlay)
 			  (overlay-end mouse-drag-overlay)))
-		  (let (last-command this-command)
-		    (push-mark (overlay-start mouse-drag-overlay) t t)
-		    (goto-char (overlay-end mouse-drag-overlay))
+		  (let* ((stop-point (posn-point (event-end event)))
+			 ;; The end that comes from where we ended the drag.
+			 ;; Point goes here.
+			 (region-termination
+			  (if (< stop-point start-point)
+			      (overlay-start mouse-drag-overlay)
+			    (overlay-end mouse-drag-overlay)))
+			 ;; The end that comes from where we started the drag.
+			 ;; Mark goes there.
+			 (region-commencement
+			  (- (+ (overlay-end mouse-drag-overlay)
+				(overlay-start mouse-drag-overlay))
+			     region-termination))
+			 last-command this-command)
+		    (push-mark region-commencement t t)
+		    (goto-char region-termination)
 		    (copy-region-as-kill (point) (mark t))
 		    (mouse-show-mark)
 		    (mouse-set-region-1))
