@@ -1960,6 +1960,10 @@ It cannot deal with every code format, but ought to handle a sizeable
 majority.
 
 ---
+** The new function `f90-backslash-not-special' can be used to change
+the syntax of backslashes in F90 buffers.
+
+---
 ** Prolog mode has a new variable `prolog-font-lock-keywords'
 to support use of font-lock.
 

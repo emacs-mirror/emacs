@@ -1,3 +1,15 @@
+2004-11-25  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-smart-end)
+	(f90-previous-statement, f90-beginning-of-block): Doc fix.
+	(f90-calculate-indent): Handle un-named PROGRAM blocks.
+	(f90-end-of-block): Doc fix.  Make check of outermost block
+	conditional on value of `f90-smart-end'.
+	(f90-block-match): Hack to deal with un-named PROGRAM blocks.
+	Handle case where END-BLOCK is nil.
+	(f90-match-end): Handle un-named PROGRAM blocks.
+	(f90-backslash-not-special): New function.
+
 2004-11-24  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-embedded-active): Removed unnecessary
