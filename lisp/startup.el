@@ -101,8 +101,8 @@
 ;; --funcall FUNC            and should not be used.  (It's a typo
 ;; -e FUNC                   promoted to a feature.)
 ;;
-;; -eval FORM                Execute Emacs lisp form FORM, and print
-;; --eval FORM               the value it returns.
+;; -eval FORM                Execute Emacs lisp form FORM.
+;; --eval FORM
 ;;
 ;; -insert FILE              Insert the contents of FILE into buffer.
 ;; --insert FILE
@@ -725,7 +725,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		     (setq tem argval)
 		   (setq tem (car command-line-args-left))
 		   (setq command-line-args-left (cdr command-line-args-left)))
-		 (print (eval (read tem))))
+		 (eval (read tem)))
 		;; Set the default directory as specified in -L.
 		((or (string-equal argi "-L")
 		     (string-equal argi "-directory"))
