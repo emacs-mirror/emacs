@@ -1,3 +1,31 @@
+2002-02-26  Richard M. Stallman  <rms@gnu.org>
+
+	* rect.el (clear-rectangle-line): Reindent to the same column
+	that move-to-column reached when it tried to go to endcol.
+
+	* icomplete.el (icomplete-exhibit): Use minibuffer-prompt-end.
+
+2002-02-26  Ivar Rummelhoff  <ivarru@math.uio.no>
+
+	* winner.el (winner-boring-buffers, winner-set): A window which
+	displays a buffer whose name is in the list
+	`winner-boring-buffers', will no longer be restored by
+	`winner-undo'.
+	(winner-sorted-window-list): Used to improve comparison between
+	window configurations.
+	(winner-win-data): Simplified and moved.
+	(winner-conf): Simplified (now uses `winner-win-data').
+	(winner-change-fun, winner-save-old-configurations)
+	(winner-save-(un)conditionally, winner-redo): Changes made while in
+	the minibuffer will be ignored.  (Such changes are undone upon
+	exit for the minibuffer, anyway.)
+	(winner-set-conf): Preserve selected window whenever possible.
+	(winner-make-point-alist): Simplified.
+	(winner-mode, winner-save-unconditionally): Save current window
+	configuration on entering minibuffer.
+	(minor-mode-alist): Don't add winner-mode to `minor-mode-alist',
+	since it does not change the overall behavior of Emacs.
+
 2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule-conf.el (compound-text): Renamed back from
