@@ -1254,6 +1254,10 @@ create_process (process, new_argv, current_dir)
 #endif /* not BSD4_1 */
 #endif /* SIGCHLD */
 
+  FD_SET (inchannel, &input_wait_mask);
+  if (inchannel > max_process_desc)
+    max_process_desc = inchannel;
+
   /* Until we store the proper pid, enable sigchld_handler
      to recognize an unknown pid as standing for this process.
      It is very important not to let this `marker' value stay
@@ -1412,10 +1416,6 @@ create_process (process, new_argv, current_dir)
     }
   
   XFASTINT (XPROCESS (process)->pid) = pid;
-
-  FD_SET (inchannel, &input_wait_mask);
-  if (inchannel > max_process_desc)
-    max_process_desc = inchannel;
 
   /* If the subfork execv fails, and it exits,
      this close hangs.  I don't know why.
