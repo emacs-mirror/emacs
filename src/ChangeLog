@@ -1,3 +1,8 @@
+2000-03-03  Ken Raeburn  <raeburn@gnu.org>
+
+	* unexelf.c (PT_LOAD, SHT_*, SHN_*) [__NetBSD__]: Only provide
+	standard ELF definitions here if the system header does not.
+
 2000-03-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (PER_CHAR_METRIC): Removed.

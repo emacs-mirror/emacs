@@ -478,17 +478,19 @@ typedef struct {
 # endif
 # include <sys/exec_elf.h>
 
-# define PT_LOAD	Elf_pt_load
-# define SHT_SYMTAB	Elf_sht_symtab
-# define SHT_DYNSYM	Elf_sht_dynsym
-# define SHT_NULL	Elf_sht_null
-# define SHT_NOBITS	Elf_sht_nobits
-# define SHT_REL	Elf_sht_rel
-# define SHT_RELA	Elf_sht_rela
+# ifndef PT_LOAD
+#  define PT_LOAD	Elf_pt_load
+#  define SHT_SYMTAB	Elf_sht_symtab
+#  define SHT_DYNSYM	Elf_sht_dynsym
+#  define SHT_NULL	Elf_sht_null
+#  define SHT_NOBITS	Elf_sht_nobits
+#  define SHT_REL	Elf_sht_rel
+#  define SHT_RELA	Elf_sht_rela
 
-# define SHN_UNDEF	Elf_eshn_undefined
-# define SHN_ABS	Elf_eshn_absolute
-# define SHN_COMMON	Elf_eshn_common
+#  define SHN_UNDEF	Elf_eshn_undefined
+#  define SHN_ABS	Elf_eshn_absolute
+#  define SHN_COMMON	Elf_eshn_common
+# endif
 
 # ifdef __alpha__
 #  include <sys/exec_ecoff.h>
