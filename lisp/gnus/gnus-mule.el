@@ -131,12 +131,20 @@ coding-system for reading and writing respectively."
   (setq gnus-mule-article-decoded t))
 
 ;; Decode the current summary buffer.  This function is set in
-;; `gnus-summary-prepare-hook'. 
+;; `gnus-summary-generate-hook'.
+;; Made by <sangil@hugsvr.kaist.ac.kr>,
+;; coded by <crisp@hugsvr.kaist.ac.kr>.
 (defun gnus-mule-decode-summary ()
-  ;; I have not yet implemented this function because I'm not yet
-  ;; familiar with the new Gnus codes, especialy how to extract only
-  ;; subjects from a summary buffer.
-  nil)
+  (if gnus-mule-coding-system 
+      (mapcar 
+       (lambda (headers)
+         (let ((subject (aref headers 1))
+               (author  (aref headers 2)))
+           (aset headers 1 
+                 (decode-coding-string subject gnus-mule-coding-system))
+           (aset headers 2
+                 (decode-coding-string author gnus-mule-coding-system))))
+       gnus-newsgroup-headers)))
 
 (defun gnus-mule-toggle-article-format ()
   "Toggle decoding/encoding of the current article buffer."
@@ -160,20 +168,20 @@ coding-system for reading and writing respectively."
   (define-key gnus-summary-mode-map "z" 'gnus-mule-toggle-article-format)
   ;; Hook definition
   (add-hook 'gnus-select-group-hook 'gnus-mule-select-coding-system)
-  (add-hook 'gnus-summary-prepare-hook 'gnus-mule-decode-summary)
+  (add-hook 'gnus-summary-generate-hook 'gnus-mule-decode-summary)
   (add-hook 'gnus-article-prepare-hook 'gnus-mule-decode-article))
 
-(gnus-mule-add-group "" 'coding-system-iso-2022-7) ;; default coding system
+(gnus-mule-add-group "" 'iso-2022-7) ;; default coding system
 (gnus-mule-add-group "alt" 'no-conversion)
 (gnus-mule-add-group "comp" 'no-conversion)
 (gnus-mule-add-group "gnu" 'no-conversion)
 (gnus-mule-add-group "rec" 'no-conversion)
 (gnus-mule-add-group "sci" 'no-conversion)
 (gnus-mule-add-group "soc" 'no-conversion)
-(gnus-mule-add-group "alt.chinese.text" 'coding-system-hz)
-(gnus-mule-add-group "alt.hk" 'coding-system-hz)
-(gnus-mule-add-group "alt.chinese.text.big5" 'coding-system-big5)
-(gnus-mule-add-group "soc.culture.vietnamese" '(nil . coding-system-viqr))
+(gnus-mule-add-group "alt.chinese.text" 'hz-gb-2312)
+(gnus-mule-add-group "alt.hk" 'hz-gb-2312)
+(gnus-mule-add-group "alt.chinese.text.big5" 'cn-big5)
+(gnus-mule-add-group "soc.culture.vietnamese" '(nil . viqr))
 
 (add-hook 'gnus-startup-hook 'gnus-mule-initialize)
 
