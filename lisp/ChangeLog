@@ -1,3 +1,10 @@
+2005-03-14  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (next-line, previous-line): Add optional try-vscroll
+	arg to recognize interactive use.  Pass it on to line-move.
+	(line-move): Don't perform auto-window-vscroll when defining or
+	executing keyboard macro to ensure consistent behaviour.
+
 2005-03-13  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/debug.el (debug): Set debug-on-exit before calling
@@ -5,7 +12,7 @@
 	debug-on-exit and we don't have to do it manually.  Set an extra
 	debug-on-exit for macro's.
 	(debugger-setup-buffer): Don't mark the top frame manually.
-	
+
 2005-03-12  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/byte-run.el: Replace lisp-indent-hook with
