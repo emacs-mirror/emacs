@@ -2,10 +2,9 @@
 
 ;; Copyright (C) 1996, 1997  Free Software Foundation, Inc.
 
-;; Author: Stephen Eglen <stephene@cogs.susx.ac.uk>
-;; Maintainer: Stephen Eglen <stephene@cogs.susx.ac.uk>
+;; Author: Stephen Eglen <stephen@cns.ed.ac.uk>
+;; Maintainer: Stephen Eglen <stephen@cns.ed.ac.uk>
 ;; Keywords: extensions
-;; location: http://www.cogs.susx.ac.uk/users/stephene/emacs
 
 ;; This file is part of GNU Emacs.
 

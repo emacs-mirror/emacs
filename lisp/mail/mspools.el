@@ -2,11 +2,10 @@
 
 ;; Copyright (C) 1997 Stephen Eglen
 
-;; Author: Stephen Eglen <stephene@cogs.susx.ac.uk>
-;; Maintainer: Stephen Eglen <stephene@cogs.susx.ac.uk>
+;; Author: Stephen Eglen <stephen@cns.ed.ac.uk>
+;; Maintainer: Stephen Eglen <stephen@cns.ed.ac.uk>
 ;; Created: 22 Jan 1997
-;; Version: 1.0
-;; Keywords:
+;; Keywords: mail
 
  
 ;; This program is free software; you can redistribute it and/or modify
