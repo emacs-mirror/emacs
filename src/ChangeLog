@@ -1,3 +1,7 @@
+2000-02-27  Dave Love  <fx@gnu.org>
+
+	* lisp.h: Add a bunch of prototypes.
+
 2000-02-26  Kenichi Handa  <handa@etl.go.jp>
 
 	* keyboard.c (read_char): Set `usec' correctly.
