@@ -1,5 +1,8 @@
 2001-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* progmodes/cmacexp.el (c-macro-preprocessor): Use "gcc -E" for
+	MS-DOS, since cpp might not be available.
+
 	* menu-bar.el (menu-bar-edit-menu) <yank-menu, yank>: Mention
 	"yank" in the help-echo text.  Suggested by Pavel Jan,Bm(Bk
 	<Pavel@Janik.cz>.
