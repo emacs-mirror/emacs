@@ -2247,7 +2247,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       if (XINT (read_kbd) && interrupt_input
 	  && (keyboard_bit_set (&Available)))
-	kill (0, SIGIO);
+	kill (getpid (), SIGIO);
 #endif
 
       if (! wait_proc)
@@ -3902,7 +3902,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 #endif
 #ifdef SIGIO
       if (XINT (read_kbd) && interrupt_input && (waitchannels & 1))
-	kill (0, SIGIO);
+	kill (getpid (), SIGIO);
 #endif
 
       /* If we have timed out (nfds == 0) or found some input (nfds > 0),
