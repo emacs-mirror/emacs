@@ -1,3 +1,8 @@
+2004-01-02  Andreas Schwab  <schwab@suse.de>
+
+	* macterm.c (emacs_options, x_initialized, same_x_server): Remove
+	unused (and duplicated) definitions.
+
 2004-01-02  Kim F. Storm  <storm@cua.dk>
 
 	* process.h (struct Lisp_Process): New members for adaptive read
