@@ -901,7 +901,7 @@ returns @code{nil}.
 Any processes that have this buffer as the @code{process-buffer} are
 sent the @code{SIGHUP} signal, which normally causes them to terminate.
 (The basic meaning of @code{SIGHUP} is that a dialup line has been
-disconnected.)  @xref{Deleting Processes}.
+disconnected.)  @xref{Signals to Processes}.
 
 If the buffer is visiting a file and contains unsaved changes,
 @code{kill-buffer} asks the user to confirm before the buffer is killed.
