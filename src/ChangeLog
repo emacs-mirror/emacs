@@ -3,6 +3,11 @@
 	* syntax.c (skip_chars): Fix handling of multibyte<->unibyte
 	conversion.
 
+2000-08-04  Noah Friedman  <friedman@splode.com>
+
+	* fns.c (Fmake_hash_table): Add missing `\n\' to end of line in
+	docstring.
+
 2000-08-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* syntax.c (skip_chars): Fix typo in error message.
