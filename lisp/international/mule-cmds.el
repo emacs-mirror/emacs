@@ -147,7 +147,7 @@ With arg, make them enable iff arg is positive."
   (interactive)
   ;; We have to decode the file in any environment.
   (let ((default-enable-multibyte-characters t)
-	(coding-system-for-read 'iso-2022-7))
+	(coding-system-for-read 'iso-2022-7bit))
     (find-file-read-only (expand-file-name "HELLO" data-directory))))
 
 (defun universal-coding-system-argument ()
