@@ -1954,6 +1954,24 @@ struct sortstr
   int priority;
 };
 
+struct sortstrlist
+{
+  struct sortstr *buf;	/* An array that expands as needed; never freed.  */
+  int size;		/* Allocated length of that array.  */
+  int used;		/* How much of the array is currently in use.  */
+  int bytes;		/* Total length of the strings in buf.  */
+};
+
+/* Buffers for storing information about the overlays touching a given
+   position.  These could be automatic variables in overlay_strings, but
+   it's more efficient to hold onto the memory instead of repeatedly
+   allocating and freeing it.  */
+static struct sortstrlist overlay_heads, overlay_tails;
+static char *overlay_str_buf;
+
+/* Allocated length of overlay_str_buf.  */
+static int overlay_str_len;
+
 /* A comparison function suitable for passing to qsort.  */
 static int
 cmp_for_strings (as1, as2)
@@ -1968,13 +1986,28 @@ cmp_for_strings (as1, as2)
   return 0;
 }
 
-/* Buffers for storing the overlays touching a given position.
-   These are expanded as needed, but never freed.  */
-static struct sortstr *overlay_heads, *overlay_tails;
-static char *overlay_str_buf;
-
-/* Allocated length of those buffers.  */
-static int overlay_heads_len, overlay_tails_len, overlay_str_len;
+static void
+record_overlay_string (ssl, str, pri, size)
+     struct sortstrlist *ssl;
+     Lisp_Object str;
+     Lisp_Object pri;
+     int size;
+{
+  if (ssl->used == ssl->size)
+    {
+      if (ssl->buf)
+	ssl->size *= 2;
+      else
+	ssl->size = 5;
+      ssl->buf = ((struct sortstr *)
+		  xrealloc (ssl->buf, ssl->size * sizeof (struct sortstr)));
+    }
+  ssl->buf[ssl->used].string = str;
+  ssl->buf[ssl->used].size = size;
+  ssl->buf[ssl->used].priority = (INTEGERP (pri) ? XINT (pri) : 0);
+  ssl->used++;
+  ssl->bytes += XSTRING (str)->size;
+}
 
 /* Return the concatenation of the strings associated with overlays that
    begin or end at POS, ignoring overlays that are specific to a window
@@ -1989,11 +2022,11 @@ overlay_strings (pos, w, pstr)
      struct window *w;
      char **pstr;
 {
-  Lisp_Object ov, overlay, window, str, tem;
-  int ntail = 0, nhead = 0;
-  int total = 0;
+  Lisp_Object ov, overlay, window, str;
   int startpos, endpos;
 
+  overlay_heads.used = overlay_heads.bytes = 0;
+  overlay_tails.used = overlay_tails.bytes = 0;
   for (ov = current_buffer->overlays_before; CONSP (ov); ov = XCONS (ov)->cdr)
     {
       overlay = XCONS (ov)->car;
@@ -2009,66 +2042,16 @@ overlay_strings (pos, w, pstr)
       window = Foverlay_get (overlay, Qwindow);
       if (WINDOWP (window) && XWINDOW (window) != w)
 	continue;
-      if (endpos == pos)
-	{
-	  str = Foverlay_get (overlay, Qafter_string);
-	  if (STRINGP (str))
-	    {
-	      if (ntail == overlay_tails_len)
-		{
-		  if (! overlay_tails)
-		    {
-		      overlay_tails_len = 5;
-		      overlay_tails = ((struct sortstr *)
-				       xmalloc (5 * sizeof (struct sortstr)));
-		    }
-		  else
-		    {
-		      overlay_tails_len *= 2;
-		      overlay_tails = ((struct sortstr *)
-				       xrealloc (overlay_tails,
-						 (overlay_tails_len
-						  * sizeof (struct sortstr))));
-		    }
-		}
-	      overlay_tails[ntail].string = str;
-	      overlay_tails[ntail].size = endpos - startpos;
-	      tem = Foverlay_get (overlay, Qpriority);
-	      overlay_tails[ntail].priority = (INTEGERP (tem) ? XINT (tem) : 0);
-	      ntail++;
-	      total += XSTRING (str)->size;
-	    }
-	}
-      if (startpos == pos)
-	{
-	  str = Foverlay_get (overlay, Qbefore_string);
-	  if (STRINGP (str))
-	    {
-	      if (nhead == overlay_heads_len)
-		{
-		  if (! overlay_heads)
-		    {
-		      overlay_heads_len = 5;
-		      overlay_heads = ((struct sortstr *)
-				       xmalloc (5 * sizeof (struct sortstr)));
-		    }
-		  else
-		    {
-		      overlay_heads_len *= 2;
-		      overlay_heads = ((struct sortstr *)
-				       xrealloc (overlay_heads,
-						 (overlay_heads_len
-						  * sizeof (struct sortstr))));
-		    }
-		}
-	      overlay_heads[nhead].string = str;
-	      overlay_heads[nhead].size = endpos - startpos;
-	      tem = Foverlay_get (overlay, Qpriority);
-	      overlay_heads[nhead].priority = (INTEGERP (tem) ? XINT (tem) : 0);
-	      nhead++;
-	      total += XSTRING (str)->size;
-	    }
-	}
+      if (endpos == pos
+	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str)))
+	record_overlay_string (&overlay_tails, str,
+			       Foverlay_get (overlay, Qpriority),
+			       endpos - startpos);
+      if (startpos == pos
+	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str)))
+	record_overlay_string (&overlay_heads, str,
+			       Foverlay_get (overlay, Qpriority),
+			       endpos - startpos);
     }
   for (ov = current_buffer->overlays_after; CONSP (ov); ov = XCONS (ov)->cdr)
     {
@@ -2080,101 +2063,56 @@ overlay_strings (pos, w, pstr)
       endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
       if (startpos > pos)
 	break;
-      if (endpos == pos)
-	{
-	  str = Foverlay_get (overlay, Qafter_string);
-	  if (STRINGP (str))
-	    {
-	      if (ntail == overlay_tails_len)
-		{
-		  if (! overlay_tails)
-		    {
-		      overlay_tails_len = 5;
-		      overlay_tails = ((struct sortstr *)
-				       xmalloc (5 * sizeof (struct sortstr)));
-		    }
-		  else
-		    {
-		      overlay_tails_len *= 2;
-		      overlay_tails = ((struct sortstr *)
-				       xrealloc (overlay_tails,
-						 (overlay_tails_len
-						  * sizeof (struct sortstr))));
-		    }
-		}
-	      overlay_tails[ntail].string = str;
-	      overlay_tails[ntail].size = endpos - startpos;
-	      tem = Foverlay_get (overlay, Qpriority);
-	      overlay_tails[ntail].priority = (INTEGERP (tem) ? XINT (tem) : 0);
-	      ntail++;
-	      total += XSTRING (str)->size;
-	    }
-	}
-      if (startpos == pos)
-	{
-	  str = Foverlay_get (overlay, Qbefore_string);
-	  if (STRINGP (str))
-	    {
-	      if (nhead == overlay_heads_len)
-		{
-		  if (! overlay_heads)
-		    {
-		      overlay_heads_len = 5;
-		      overlay_heads = ((struct sortstr *)
-				       xmalloc (5 * sizeof (struct sortstr)));
-		    }
-		  else
-		    {
-		      overlay_heads_len *= 2;
-		      overlay_heads = ((struct sortstr *)
-				       xrealloc (overlay_heads,
-						 (overlay_heads_len
-						  * sizeof (struct sortstr))));
-		    }
-		}
-	      overlay_heads[nhead].string = str;
-	      overlay_heads[nhead].size = endpos - startpos;
-	      tem = Foverlay_get (overlay, Qpriority);
-	      overlay_heads[nhead].priority = (INTEGERP (tem) ? XINT (tem) : 0);
-	      nhead++;
-	      total += XSTRING (str)->size;
-	    }
-	}
+      if (endpos != pos && startpos != pos)
+	continue;
+      window = Foverlay_get (overlay, Qwindow);
+      if (WINDOWP (window) && XWINDOW (window) != w)
+	continue;
+      if (endpos == pos
+	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str)))
+	record_overlay_string (&overlay_tails, str,
+			       Foverlay_get (overlay, Qpriority),
+			       endpos - startpos);
+      if (startpos == pos
+	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str)))
+	record_overlay_string (&overlay_heads, str,
+			       Foverlay_get (overlay, Qpriority),
+			       endpos - startpos);
     }
-  if (ntail > 1)
-    qsort (overlay_tails, ntail, sizeof (struct sortstr), cmp_for_strings);
-  if (nhead > 1)
-    qsort (overlay_heads, nhead, sizeof (struct sortstr), cmp_for_strings);
-  if (total)
+  if (overlay_tails.used > 1)
+    qsort (overlay_tails.buf, overlay_tails.used, sizeof (struct sortstr),
+	   cmp_for_strings);
+  if (overlay_heads.used > 1)
+    qsort (overlay_heads.buf, overlay_heads.used, sizeof (struct sortstr),
+	   cmp_for_strings);
+  if (overlay_heads.bytes || overlay_tails.bytes)
     {
+      Lisp_Object tem;
       int i;
       char *p;
+      int total = overlay_heads.bytes + overlay_tails.bytes;
 
       if (total > overlay_str_len)
-	{
-	  if (! overlay_str_buf)
-	    overlay_str_buf = (char *)xmalloc (total);
-	  else
-	    overlay_str_buf = (char *)xrealloc (overlay_str_buf, total);
-	  overlay_str_len = total;
-	}
+	overlay_str_buf = (char *)xrealloc (overlay_str_buf,
+					    overlay_str_len = total);
       p = overlay_str_buf;
-      for (i = ntail; --i >= 0;)
+      for (i = overlay_tails.used; --i >= 0;)
 	{
-	  tem = overlay_tails[i].string;
+	  tem = overlay_tails.buf[i].string;
 	  bcopy (XSTRING (tem)->data, p, XSTRING (tem)->size);
 	  p += XSTRING (tem)->size;
 	}
-      for (i = 0; i < nhead; ++i)
+      for (i = 0; i < overlay_heads.used; ++i)
 	{
-	  tem = overlay_heads[i].string;
+	  tem = overlay_heads.buf[i].string;
 	  bcopy (XSTRING (tem)->data, p, XSTRING (tem)->size);
 	  p += XSTRING (tem)->size;
 	}
       if (pstr)
 	*pstr = overlay_str_buf;
+      return total;
     }
-  return total;
+  return 0;
 }
 
 /* Shift overlays in BUF's overlay lists, to center the lists at POS.  */
