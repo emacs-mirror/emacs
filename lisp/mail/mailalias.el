@@ -22,15 +22,16 @@
 ;; only if some mail aliases are defined.
 (defun expand-mail-aliases (beg end &optional exclude)
   "Expand all mail aliases in suitable header fields found between BEG and END.
-Suitable header fields are To, Cc and Bcc.  Optional 2nd arg EXCLUDE may be a
-regular expression defining text to be removed from alias expansions."
+Suitable header fields are To, Cc and Bcc and their Resent- variants.
+Optional 2nd arg EXCLUDE may be a regular expression
+defining text to be removed from alias expansions."
   (if (eq mail-aliases t)
       (progn (setq mail-aliases nil) (build-mail-aliases)))
   (goto-char beg)
   (setq end (set-marker (make-marker) end))
   (let ((case-fold-search nil))
     (while (let ((case-fold-search t))
-	     (re-search-forward "^\\(to\\|cc\\|bcc\\):" end t))
+	     (re-search-forward "^\\(to\\|cc\\|bcc\\|resent-to\\|resent-cc\\|resent-bcc\\):" end t))
       (skip-chars-forward " \t")
       (let ((beg1 (point))
 	    end1 pos epos seplen
