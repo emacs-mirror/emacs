@@ -95,33 +95,30 @@ extern long timezone;
 
 /* On SVR4, the compiler may complain if given this extra BSD arg.  */
 #ifdef GETTIMEOFDAY_ONE_ARGUMENT
-#define EMACS_GET_TIME(time)                                  \
-{                                                             \
-  gettimeofday (&(time));                                     \
-}
+#define EMACS_GET_TIME(time) gettimeofday (&(time))
 #else /* not GETTIMEOFDAY_ONE_ARGUMENT */
-#define EMACS_GET_TIME(time)					\
-{								\
-  struct timezone dummy;					\
-  gettimeofday (&(time), &dummy);				\
-}
+#define EMACS_GET_TIME(time)			\
+  do {						\
+    struct timezone dummy;			\
+    gettimeofday (&(time), &dummy);		\
+  } while (0)
 #endif /* not GETTIMEOFDAY_ONE_ARGUMENT */
 
-#define EMACS_ADD_TIME(dest, src1, src2)			\
-{								\
-  (dest).tv_sec  = (src1).tv_sec  + (src2).tv_sec;		\
-  (dest).tv_usec = (src1).tv_usec + (src2).tv_usec;		\
-  if ((dest).tv_usec > 1000000)					\
-    (dest).tv_usec -= 1000000, (dest).tv_sec++;			\
-}
+#define EMACS_ADD_TIME(dest, src1, src2)		\
+  do {							\
+    (dest).tv_sec  = (src1).tv_sec  + (src2).tv_sec;	\
+    (dest).tv_usec = (src1).tv_usec + (src2).tv_usec;	\
+    if ((dest).tv_usec > 1000000)			\
+      (dest).tv_usec -= 1000000, (dest).tv_sec++;	\
+  } while (0)
 
-#define EMACS_SUB_TIME(dest, src1, src2)			\
-{								\
-  (dest).tv_sec  = (src1).tv_sec  - (src2).tv_sec;		\
-  (dest).tv_usec = (src1).tv_usec - (src2).tv_usec;		\
-  if ((dest).tv_usec < 0)					\
-    (dest).tv_usec += 1000000, (dest).tv_sec--;			\
-}
+#define EMACS_SUB_TIME(dest, src1, src2)		\
+  do {							\
+    (dest).tv_sec  = (src1).tv_sec  - (src2).tv_sec;	\
+    (dest).tv_usec = (src1).tv_usec - (src2).tv_usec;	\
+    if ((dest).tv_usec < 0)				\
+      (dest).tv_usec += 1000000, (dest).tv_sec--;	\
+  } while (0)
 
 #define EMACS_TIME_NEG_P(time)					\
   ((long)(time).tv_sec < 0					\
