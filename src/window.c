@@ -1642,17 +1642,20 @@ DEFUN ("delete-windows-on", Fdelete_windows_on, Sdelete_windows_on,
   1, 2, "bDelete windows on (buffer): ",
   "Delete all windows showing BUFFER.\n\
 Optional second argument FRAME controls which frames are affected.\n\
-If nil or omitted, delete all windows showing BUFFER in any frame.\n\
-If t, delete only windows showing BUFFER in the selected frame.\n\
-If `visible', delete all windows showing BUFFER in any visible frame.\n\
-If a frame, delete only windows showing BUFFER in that frame.")
+If optional argument FRAME is `visible', search all visible frames.\n\
+If FRAME is 0, search all visible and iconified frames.\n\
+If FRAME is nil, search all frames.\n\
+If FRAME is t, search only the selected frame.\n\
+If FRAME is a frame, search only that frame.")
   (buffer, frame)
      Lisp_Object buffer, frame;
 {
   /* FRAME uses t and nil to mean the opposite of what window_loop
      expects.  */
-  if (! FRAMEP (frame))
-    frame = NILP (frame) ? Qt : Qnil;
+  if (NILP (frame))
+    frame = Qt;
+  else if (EQ (frame, Qt))
+    frame = Qnil;
 
   if (!NILP (buffer))
     {
