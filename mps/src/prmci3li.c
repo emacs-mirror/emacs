@@ -1,6 +1,6 @@
 /* impl.c.prmci3li: PROTECTION MUTATOR CONTEXT INTEL 386 (Linux)
  *
- * $HopeName: $
+ * $HopeName: MMsrc!prmci3li.c(trunk.1) $
  * Copyright (C) 1998, 1999. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -16,6 +16,8 @@
  *
  * .source.i486: Intel486 Microprocessor Family Programmer's 
  * Reference Manual
+ *
+ * .source.linux.kernel: Linux kernel source files.
  *
  * ASSUMPTIONS
  *
@@ -67,10 +69,13 @@ void Prmci3DecodeFaultContext(MRef *faultmemReturn,
 
   scp = context->scp;
 
-  /* Assert that this is an access violation. The computation of */
-  /* faultmem depends on this. */
+  /* Assert that this is a page fault exception. The computation of */
+  /* faultmem depends on this.  See .source.i486 (14.9.14). */
   AVER(scp->trapno == 14);
 
+  /* cr2 contains the address which caused the fault. */
+  /* See .source.i486 (14.9.14) and */
+  /* .source.linux.kernel (linux/arch/i386/mm/fault.c). */
   *faultmemReturn = (MRef)scp->cr2;
   *insvecReturn = (Byte*)scp->eip;
 }
