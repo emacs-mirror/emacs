@@ -364,7 +364,7 @@ NOTE: This command only works with newsgroups that use real or simulated NNTP."
 	(article (gnus-summary-article-number))
 	b)
     (or (gnus-summary-goto-subject article)
-	(error (format "No such article: %d" article)))
+	(error "No such article: %d" article))
     (or gnus-newsgroup-headers-hashtb-by-number
 	(gnus-make-headers-hashtable-by-number))
     (gnus-summary-position-cursor)
