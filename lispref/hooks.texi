@@ -1,0 +1,123 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/hooks
+@node Standard Hooks, Antinews, Standard Keymaps, Top
+@appendix Standard Hooks
+
+The following is a list of hook variables which let you provide
+functions to be called from within Emacs on suitable occasions. 
+
+Most of these variables have names ending with @samp{-hook} are
+@dfn{normal hooks}, that are run with @code{run-hooks}.  The value of
+such a hook is a list of functions.  The recommended way to put a new
+function on such a hook is to call @code{add-hook}.  @xref{Hooks}, for
+more information about using hooks.
+
+The variables whose names end in @samp{-function} have single functions
+as their values.  Usually there is a specific reason why the variable is
+not a normal hook, such as, the need to pass an argument to the
+function.  (In older Emacs versions, some of these variables had
+names ending in @samp{-hook} even though they were not normal hooks.)
+
+The variables whose names end in @samp{-hooks} have lists of functions
+as their values, but these functions are called in a special way (they
+are passed arguments, or else their values are used).
+
+@c !!! need  xref  to where each hook is documented or else document it
+@c by specifying what is expected, and when it is called relative to
+@c mode initialization.)
+
+@table @code
+@item activate-mark-hook
+@item after-change-function
+@item after-init-hook
+@item after-insert-file-functions
+@item after-make-frame-hook
+@item auto-fill-function
+@item auto-save-hook
+@item before-change-function
+@item before-init-hook
+@item before-make-frame-hook
+@item blink-paren-function
+@item c-mode-hook
+@item calendar-load-hook
+@item command-history-hook
+@item comment-indent-function
+@item deactivate-mark-hook
+@item diary-display-hook
+@item diary-hook
+@item dired-mode-hook
+@item disabled-command-hook
+@item edit-picture-hook
+@item electric-buffer-menu-mode-hook
+@item electric-command-history-hook
+@item electric-help-mode-hook
+@item emacs-lisp-mode-hook
+@item find-file-hooks
+@item find-file-not-found-hooks
+@item first-change-hook
+@item fortran-comment-hook
+@item fortran-mode-hook
+@item ftp-setup-write-file-hooks
+@item ftp-write-file-hook
+@item indent-mim-hook
+@item initial-calendar-window-hook
+@item kill-buffer-query-functions
+@item kill-emacs-query-functions
+@item LaTeX-mode-hook
+@item ledit-mode-hook
+@item lisp-indent-function
+@item lisp-interaction-mode-hook
+@item lisp-mode-hook
+@item list-diary-entries-hook
+@item m2-mode-hook
+@item mail-mode-hook
+@item mail-setup-hook
+@item mark-diary-entries-hook
+@item medit-mode-hook
+@item mh-compose-letter-hook
+@item mh-folder-mode-hook
+@item mh-letter-mode-hook
+@item mim-mode-hook
+@item minibuffer-setup-hook
+@item news-mode-hook
+@item news-reply-mode-hook
+@item news-setup-hook
+@item nongregorian-diary-listing-hook
+@item nongregorian-diary-marking-hook
+@item nroff-mode-hook
+@item outline-mode-hook
+@item plain-TeX-mode-hook
+@item post-command-hook
+@item pre-abbrev-expand-hook
+@item pre-command-hook
+@item print-diary-entries-hook
+@item prolog-mode-hook
+@item protect-innocence-hook
+@item rmail-edit-mode-hook
+@item rmail-mode-hook
+@item rmail-summary-mode-hook
+@item scheme-indent-hook
+@item scheme-mode-hook
+@item scribe-mode-hook
+@item shell-mode-hook
+@item shell-set-directory-error-hook
+@item suspend-hook
+@item suspend-resume-hook
+@item temp-buffer-show-function
+@item term-setup-hook
+@item terminal-mode-hook
+@item terminal-mode-break-hook
+@item TeX-mode-hook
+@item text-mode-hook
+@item today-visible-calendar-hook
+@item today-invisible-calendar-hook
+@item vi-mode-hook
+@item view-hook
+@item window-setup-hook
+@item write-contents-hooks
+@item write-file-hooks
+@item write-region-annotation-functions
+@end table
