@@ -1451,11 +1451,28 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
 /* AMSBlacken -- the pool class blackening method
  *
- * Turn all grey objects black.
- */
+ * Turn all grey objects black.  */
+
+
+static Res amsBlackenObject(Seg seg, Index i, Addr p, Addr next, void *clos)
+{
+  AVER(clos == NULL);
+  /* Do what amsScanObject does, minus the scanning. */
+  if (AMS_IS_GREY(seg, i)) {
+    Index j = AMS_ADDR_INDEX(seg, next);
+    AVER(!AMS_IS_INVALID_COLOUR(seg, i));
+    AMS_GREY_BLACKEN(seg, i);
+    if (i+1 < j)
+      AMS_RANGE_BLACKEN(seg, i+1, j);
+  }
+  return ResOK;
+}
+
+
 static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
 {
   AMS ams;
+  Res res;
 
   AVERT(Pool, pool);
   ams = Pool2AMS(pool);
@@ -1463,14 +1480,14 @@ static void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg)
   AVERT(TraceSet, traceSet);
   AVERT(Seg, seg);
 
-  /* If it's white for any of these traces, remove the greyness from tables. */
+  /* If it's white for any of these traces, turn grey to black without scanning. */
   if (TraceSetInter(traceSet, SegWhite(seg)) != TraceSetEMPTY) {
     AMSSeg amsseg = Seg2AMSSeg(seg);
     AVERT(AMSSeg, amsseg);
     AVER(amsseg->marksChanged); /* there must be something grey */
     amsseg->marksChanged = FALSE;
-    /* This will turn grey->black, and not affect black or white. */
-    BTSetRange(amsseg->nongreyTable, 0, amsseg->grains);
+    res = amsIterate(seg, amsBlackenObject, NULL);
+    AVER(res == ResOK);
   }
 }
 
@@ -1685,18 +1702,18 @@ Bool AMSCheck(AMS ams)
  * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * 1. Redistributions of source code must retain the above copyright
  * notice, this list of conditions and the following disclaimer.
- * 
+ *
  * 2. Redistributions in binary form must reproduce the above copyright
  * notice, this list of conditions and the following disclaimer in the
  * documentation and/or other materials provided with the distribution.
- * 
+ *
  * 3. Redistributions in any form must be accompanied by information on how
  * to obtain complete source code for this software and any accompanying
  * software that uses this software.  The source code must either be
@@ -1707,7 +1724,7 @@ Bool AMSCheck(AMS ams)
  * include source code for modules or files that typically accompany the
  * major components of the operating system on which the executable file
  * runs.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
  * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
  * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
