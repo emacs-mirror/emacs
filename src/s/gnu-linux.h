@@ -1,5 +1,4 @@
-/* This file is the configuration file for Lignux systems
-   (that is,  Linux-based GNU operating systems.)
+/* This file is the configuration file for Linux-based GNU systems
    Copyright (C) 1985, 1986, 1992, 1994, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -36,7 +35,7 @@ Boston, MA 02111-1307, USA.  */
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
 
-#define SYSTEM_TYPE "lignux"		/* All the best software is free. */
+#define SYSTEM_TYPE "gnu/linux"		/* All the best software is free. */
 
 /* Check the version number of Linux--if it is at least 1.2.0,
    it is safe to use SIGIO.  */
@@ -91,9 +90,9 @@ Boston, MA 02111-1307, USA.  */
    The alternative is that a lock file named
    /usr/spool/mail/$USER.lock.  */
 
-/* Both are used in Linux by different mail programs.  I assume that most
-   people are using newer mailers that have heard of flock.  Change this
-   if you need to. */
+/* On GNU/Linux systems, both methods are used by various mail
+   programs.  I assume that most people are using newer mailers that
+   have heard of flock.  Change this if you need to. */
 
 #define MAIL_USE_FLOCK
 
@@ -151,7 +150,7 @@ Boston, MA 02111-1307, USA.  */
 #define LIB_GCC `$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
 
 #ifndef __ELF__
-/* Linux has crt0.o in a non-standard place */
+/* GNU/Linux usually has crt0.o in a non-standard place */
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
 #else
 #define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
@@ -170,7 +169,8 @@ Boston, MA 02111-1307, USA.  */
 #endif /* GCC */
 #endif /* __ELF__ */
 
-/* As of version 1.1.51, Linux does not actually implement SIGIO.  */
+/* As of version 1.1.51, Linux did not actually implement SIGIO.
+   But it works in newer versions.  */
 /* Here we assume that signal.h is already included.  */
 #ifdef emacs
 #ifdef LINUX_SIGIO_DOES_WORK
