@@ -1,3 +1,41 @@
+2002-07-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* buffer.c (Qas, Qmake, Qto): New variables.
+	(Fset_buffer_multibyte): New optional arg METHOD.  Caller changed.
+	(syms_of_buffer): Intern and staticpro Qas, Qmake, and Qto.
+
+	* callproc.c (Fcall_process): Don't call insert_1_both directly if
+	we are inserting a process output into a multibyte buffer.
+
+	* character.h (CHAR_TO_BYTE8): If C is not eight-bit char, call
+	multibyte_char_to_unibyte.
+
+	* character.c (Funibyte_char_to_multibyte): If C can't be decoded
+	by the primary charset, make it eight-bit char.
+	(Fmultibyte_char_to_unibyte): Call CHAR_TO_BYTE8.
+
+	* charset.c: (charset_eight_bit, Qeight_bit_control): New
+	variables.
+	(charset_8_bit__control, charset_8_bit_graphic,
+	Qeight_bit_control, Qeight_bit_graphic): These variables deleted.
+	(define_charset_internal): New function.
+	(syms_of_charset): Call define_charset_internal for pre-defined
+	charsets.
+
+	* charset.h (charset_8_bit): Extern it.
+
+	* coding.c (make_conversion_work_buffer): Adjusted for the change
+	of Fset_buffer_multibyte.
+	(encode_coding_raw_text): Increment p0 in the loop.
+
+	* lisp.h (Fset_buffer_multibyte): Prototype adjusted.
+
+	* xdisp.c (setup_echo_area_for_printing, set_message_1): Adjusted
+	for the change of Fset_buffer_multibyte.
+
+	* fns.c (Fstring_to_multibyte): New function.
+	(syms_of_fns): Declare Fstring_to_multibyte as Lisp subroutine.
+
 2002-07-30  Dave Love  <fx@gnu.org>
 
 	* xfns.c (x_put_x_image): Declare args.

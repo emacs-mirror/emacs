@@ -1,3 +1,53 @@
+2002-07-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* arc-mode.el (archive-file-name-coding-system): New variable.
+	Make it permanent-local.
+	(byte-after, bref, insert-unibyte): New function.  Change most of
+	char-after, aref, insert to them respectively.
+	(archive-mode): Set archive-file-name-coding-system.
+	(archive-summarize): Don't change the buffer's multibyteness.
+	(archive-extract): Inherit archive-file-name-coding-system from
+	archive-superior-buffer.  Bind coding-system-for-write to
+	archive-file-name-coding-system.
+	(archive-*-write-file-member): Encode ENAME by
+	archive-file-name-coding-system.  Bind coding-system-for-write to
+	no-conversion.
+	(archive-rename-entry): Encode the filename by
+	archive-file-name-coding-system.
+	(archive-mode-revert): Don't change the buffer's multibyteness.
+	(archive-arc-summarize, archive-lzh-summarize,
+	archive-zoo-summarize): Don't change the buffer's multibyteness.
+	Decode filenames by archive-file-name-coding-system.
+	(archive-arc-rename-entry, archive-zip-chmod-entry): Don't change
+	the buffer's multibyteness.
+
+	* tar-mode.el (tar-file-name-coding-system): New variable.  Make
+	it permanent-local.p
+	(tar-header-block-tokenize): Decode filename and linkname by
+	tar-file-name-coding-system.
+	(tar-header-block-checksum): Call multibyte-char-to-unibyte to get
+	the byte value of eight-bit chars.
+	(tar-summarize-buffer): Call set-buffer-multibyte with METHOD
+	`to'.  Delete unnecessary call of position-bytes.
+	(tar-mode): Set tar-file-name-coding-system.  Delete unnecessary
+	call of position-bytes.
+	(tar-extract): Simplified by calling decode-coding-region with
+	DESTINATION argument.  Don't toggle multibyteness of tar buffer.
+	(tar-copy): Don't toggle multibyteness of tar buffer.
+	(tar-expunge): Likewise.
+	(tar-clear-modification-flags): Delete unnecessary call of
+	position-bytes.
+	(tar-rename-entry): Call tar-alter-one-field with encoded new
+	name.
+	(tar-alter-one-field): Don't toggle multibyteness of tar buffer.
+	Convert new-data-string by string-to-multibyte before inserting
+	it.
+	(tar-subfile-save-buffer): Don't toggle multibyteness of tar
+	buffer.  Simplified by calling encoding-coding-region with
+	DESTINATION argument.
+	(tar-mode-write-file): Delete unnecessary call of
+	byte-to-position.
+
 2002-07-30  Dave Love  <fx@gnu.org>
 
 	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Doc
