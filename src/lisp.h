@@ -123,7 +123,10 @@ enum Lisp_Type
        created.
 
        Note that REALVALUE can be a forwarding pointer.  Each time it
-       is examined or set, forwarding must be done.  */
+       is examined or set, forwarding must be done.  Each time we
+       switch buffers, buffer-local variables which forward into C
+       variables are swapped immediately, so the C code can assume
+       that they are always up to date.  */
     Lisp_Buffer_Local_Value,
 
     /* Like Lisp_Buffer_Local_Value with one difference:
