@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.47 $
+;; Version: $Revision: 1.48 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/08/22 17:49:45 $|$Revision: 1.47 $|~/modes/tcl.el.Z|
+;; $Date: 1995/12/07 18:18:21 $|$Revision: 1.48 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.48  1995/12/07  18:18:21  tromey
+;; (add-log-tcl-defun): Now uses tcl-beginning-of-defun.
+;;
 ;; Revision 1.47  1995/08/22  17:49:45  tromey
 ;; (tcl-hilit): New function from "Chris Alfeld" <calfeld@math.utah.edu>
 ;; (tcl-mode): Call it
@@ -359,7 +362,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.47 $")
+(defconst tcl-version "$Revision: 1.48 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1443,9 +1446,8 @@ Returns nil if line starts inside a string, t if in a comment."
 (defun add-log-tcl-defun ()
   "Return name of Tcl function point is in, or nil."
   (save-excursion
-    (tcl-beginning-of-defun)
-    (forward-char)
-    (if (looking-at (concat tcl-proc-regexp "\\([^ \t\n{]+\\)"))
+    (end-of-line)
+    (if (re-search-backward (concat tcl-proc-regexp "\\([^ \t\n{]+\\)") nil t)
 	(buffer-substring (match-beginning 2)
 			  (match-end 2)))))
 
