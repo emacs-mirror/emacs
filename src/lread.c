@@ -588,7 +588,8 @@ openp (path, str, suffix, storeptr, exec_only)
 		  /* We succeeded; return this descriptor and filename.  */
 		  if (storeptr)
 		    *storeptr = build_string (fn);
-		  RETURN_UNGCPRO (fd);
+		  UNGCPRO;
+		  return fd;
 		}
 	    }
 
@@ -598,10 +599,11 @@ openp (path, str, suffix, storeptr, exec_only)
 	  nsuffix += lsuffix + 1;
 	}
       if (absolute)
-	RETURN_UNGCPRO (-1);
+	break;
     }
 
-  RETURN_UNGCPRO (-1);
+  UNGCPRO;
+  return -1;
 }
 
 
