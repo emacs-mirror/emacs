@@ -298,6 +298,7 @@ effective when it's display is shown.")
   "Hooks run when speedbar visits a tag in the selected frame."
   :group 'speedbar
   :type 'hook
+  :version "21.1"
   :options '(speedbar-highlight-one-tag-line
 	     speedbar-recenter-to-top
 	     speedbar-recenter
@@ -311,6 +312,7 @@ effective when it's display is shown.")
 (defcustom speedbar-reconfigure-keymaps-hook nil
   "Hooks run when the keymaps are regenerated."
   :group 'speedbar
+  :version "21.1"
   :type 'hook)
 
 (defcustom speedbar-show-unknown-files nil
@@ -480,11 +482,13 @@ hierarchy would be replaced with the new directory."
 (defcustom speedbar-indentation-width 1
   "*When sub-nodes are expanded, the number of spaces used for indentation."
   :group 'speedbar
+  :version "21.1"
   :type 'integer)
 
 (defcustom speedbar-hide-button-brackets-flag nil
   "*Non-nil means speedbar will hide the brackets around the + or -."
   :group 'speedbar
+  :version "21.1"
   :type 'boolean)
 
 (defcustom speedbar-use-images (and (or (fboundp 'defimage)
@@ -494,6 +498,7 @@ hierarchy would be replaced with the new directory."
 				      window-system))
   "*Non nil if speedbar should display icons."
   :group 'speedbar
+  :version "21.1"
   :type 'boolean)
 
 (defcustom speedbar-before-popup-hook nil
@@ -679,6 +684,7 @@ function `speedbar-add-supported-extension' to add a new extension at
 runtime, or use the configuration dialog to set it in your .emacs
 file."
   :group 'speedbar
+  :version "21.1"
   :type '(repeat (regexp :tag "Extension Regexp"))
   :set (lambda (sym val)
 	 (setq speedbar-supported-extension-expressions val
