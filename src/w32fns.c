@@ -146,15 +146,15 @@ Lisp_Object Vx_resource_name;
 /* Non nil if no window manager is in use.  */
 Lisp_Object Vx_no_window_manager;
 
-/* Non-zero means we're allowed to display a busy cursor.  */
+/* Non-zero means we're allowed to display a hourglass pointer.  */
 
-int display_busy_cursor_p;
+int display_hourglass_p;
 
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_busy_pointer_shape, Vx_window_horizontal_drag_shape;
+Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
@@ -395,7 +395,7 @@ x_window_to_frame (dpyinfo, wdesc)
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
-      if (f->output_data.w32->busy_window == wdesc)
+      if (f->output_data.w32->hourglass_window == wdesc)
         return f;
 
       /* TODO: Check tooltips when supported.  */
@@ -2031,14 +2031,14 @@ x_set_mouse_color (f, arg, oldval)
     nontext_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_left_ptr);
   x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
 
-  if (!EQ (Qnil, Vx_busy_pointer_shape))
+  if (!EQ (Qnil, Vx_hourglass_pointer_shape))
     {
-      CHECK_NUMBER (Vx_busy_pointer_shape, 0);
-      busy_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
-				       XINT (Vx_busy_pointer_shape));
+      CHECK_NUMBER (Vx_hourglass_pointer_shape, 0);
+      hourglass_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f),
+					    XINT (Vx_hourglass_pointer_shape));
     }
   else
-    busy_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_watch);
+    hourglass_cursor = XCreateFontCursor (FRAME_W32_DISPLAY (f), XC_watch);
   x_check_errors (FRAME_W32_DISPLAY (f), "bad busy pointer cursor: %s");
   
   x_check_errors (FRAME_W32_DISPLAY (f), "bad nontext pointer cursor: %s");
@@ -2098,7 +2098,7 @@ x_set_mouse_color (f, arg, oldval)
 		    &fore_color, &back_color);
     XRecolorCursor (FRAME_W32_DISPLAY (f), cross_cursor,
                     &fore_color, &back_color);
-    XRecolorCursor (FRAME_W32_DISPLAY (f), busy_cursor,
+    XRecolorCursor (FRAME_W32_DISPLAY (f), hourglass_cursor,
                     &fore_color, &back_color);
   }
 
@@ -2114,10 +2114,10 @@ x_set_mouse_color (f, arg, oldval)
     XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->nontext_cursor);
   f->output_data.w32->nontext_cursor = nontext_cursor;
 
-  if (busy_cursor != f->output_data.w32->busy_cursor
-      && f->output_data.w32->busy_cursor != 0)
-    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->busy_cursor);
-  f->output_data.w32->busy_cursor = busy_cursor;
+  if (hourglass_cursor != f->output_data.w32->hourglass_cursor
+      && f->output_data.w32->hourglass_cursor != 0)
+    XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->hourglass_cursor);
+  f->output_data.w32->hourglass_cursor = hourglass_cursor;
 
   if (mode_cursor != f->output_data.w32->modeline_cursor
       && f->output_data.w32->modeline_cursor != 0)
@@ -12132,97 +12132,97 @@ value.")
  ***********************************************************************/
 
 /* If non-null, an asynchronous timer that, when it expires, displays
-   a busy cursor on all frames.  */
+   an hourglass cursor on all frames.  */
 
-static struct atimer *busy_cursor_atimer;
+static struct atimer *hourglass_atimer;
 
-/* Non-zero means a busy cursor is currently shown.  */
+/* Non-zero means an hourglass cursor is currently shown.  */
 
-static int busy_cursor_shown_p;
+static int hourglass_shown_p;
 
-/* Number of seconds to wait before displaying a busy cursor.  */
+/* Number of seconds to wait before displaying an hourglass cursor.  */
 
-static Lisp_Object Vbusy_cursor_delay;
+static Lisp_Object Vhourglass_delay;
 
-/* Default number of seconds to wait before displaying a busy
+/* Default number of seconds to wait before displaying an hourglass
    cursor.  */
 
-#define DEFAULT_BUSY_CURSOR_DELAY 1
+#define DEFAULT_HOURGLASS_DELAY 1
 
 /* Function prototypes.  */
 
-static void show_busy_cursor P_ ((struct atimer *));
-static void hide_busy_cursor P_ ((void));
+static void show_hourglass P_ ((struct atimer *));
+static void hide_hourglass P_ ((void));
 
 
-/* Cancel a currently active busy-cursor timer, and start a new one.  */
+/* Cancel a currently active hourglass timer, and start a new one.  */
 
 void
-start_busy_cursor ()
+start_hourglass ()
 {
 #if 0 /* TODO: cursor shape changes.  */
   EMACS_TIME delay;
   int secs, usecs = 0;
   
-  cancel_busy_cursor ();
+  cancel_hourglass ();
 
-  if (INTEGERP (Vbusy_cursor_delay)
-      && XINT (Vbusy_cursor_delay) > 0)
-    secs = XFASTINT (Vbusy_cursor_delay);
-  else if (FLOATP (Vbusy_cursor_delay)
-	   && XFLOAT_DATA (Vbusy_cursor_delay) > 0)
+  if (INTEGERP (Vhourglass_delay)
+      && XINT (Vhourglass_delay) > 0)
+    secs = XFASTINT (Vhourglass_delay);
+  else if (FLOATP (Vhourglass_delay)
+	   && XFLOAT_DATA (Vhourglass_delay) > 0)
     {
       Lisp_Object tem;
-      tem = Ftruncate (Vbusy_cursor_delay, Qnil);
+      tem = Ftruncate (Vhourglass_delay, Qnil);
       secs = XFASTINT (tem);
-      usecs = (XFLOAT_DATA (Vbusy_cursor_delay) - secs) * 1000000;
+      usecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000000;
     }
   else
-    secs = DEFAULT_BUSY_CURSOR_DELAY;
+    secs = DEFAULT_HOURGLASS_DELAY;
   
   EMACS_SET_SECS_USECS (delay, secs, usecs);
-  busy_cursor_atimer = start_atimer (ATIMER_RELATIVE, delay,
-				     show_busy_cursor, NULL);
+  hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
+				   show_hourglass, NULL);
 #endif
 }
 
 
-/* Cancel the busy cursor timer if active, hide a busy cursor if
-   shown.  */
+/* Cancel the hourglass cursor timer if active, hide an hourglass
+   cursor if shown.  */
 
 void
-cancel_busy_cursor ()
+cancel_hourglass ()
 {
-  if (busy_cursor_atimer)
+  if (hourglass_atimer)
     {
-      cancel_atimer (busy_cursor_atimer);
-      busy_cursor_atimer = NULL;
+      cancel_atimer (hourglass_atimer);
+      hourglass_atimer = NULL;
     }
   
-  if (busy_cursor_shown_p)
-    hide_busy_cursor ();
+  if (hourglass_shown_p)
+    hide_hourglass ();
 }
 
 
-/* Timer function of busy_cursor_atimer.  TIMER is equal to
-   busy_cursor_atimer.
+/* Timer function of hourglass_atimer.  TIMER is equal to
+   hourglass_atimer.
 
-   Display a busy cursor on all frames by mapping the frames'
-   busy_window.  Set the busy_p flag in the frames' output_data.x
-   structure to indicate that a busy cursor is shown on the
-   frames.  */
+   Display an hourglass cursor on all frames by mapping the frames'
+   hourglass_window.  Set the hourglass_p flag in the frames'
+   output_data.x structure to indicate that an hourglass cursor is
+   shown on the frames.  */
 
 static void
-show_busy_cursor (timer)
+show_hourglass (timer)
      struct atimer *timer;
 {
 #if 0  /* TODO: cursor shape changes.  */
   /* The timer implementation will cancel this timer automatically
-     after this function has run.  Set busy_cursor_atimer to null
+     after this function has run.  Set hourglass_atimer to null
      so that we know the timer doesn't have to be canceled.  */
-  busy_cursor_atimer = NULL;
+  hourglass_atimer = NULL;
 
-  if (!busy_cursor_shown_p)
+  if (!hourglass_shown_p)
     {
       Lisp_Object rest, frame;
   
@@ -12233,16 +12233,16 @@ show_busy_cursor (timer)
 	  {
 	    struct frame *f = XFRAME (frame);
 	
-	    f->output_data.w32->busy_p = 1;
+	    f->output_data.w32->hourglass_p = 1;
 	
-	    if (!f->output_data.w32->busy_window)
+	    if (!f->output_data.w32->hourglass_window)
 	      {
 		unsigned long mask = CWCursor;
 		XSetWindowAttributes attrs;
 	    
-		attrs.cursor = f->output_data.w32->busy_cursor;
+		attrs.cursor = f->output_data.w32->hourglass_cursor;
 	    
-		f->output_data.w32->busy_window
+		f->output_data.w32->hourglass_window
 		  = XCreateWindow (FRAME_X_DISPLAY (f),
 				   FRAME_OUTER_WINDOW (f),
 				   0, 0, 32000, 32000, 0, 0,
@@ -12251,24 +12251,25 @@ show_busy_cursor (timer)
 				   mask, &attrs);
 	      }
 	
-	    XMapRaised (FRAME_X_DISPLAY (f), f->output_data.w32->busy_window);
+	    XMapRaised (FRAME_X_DISPLAY (f),
+			f->output_data.w32->hourglass_window);
 	    XFlush (FRAME_X_DISPLAY (f));
 	  }
 
-      busy_cursor_shown_p = 1;
+      hourglass_shown_p = 1;
       UNBLOCK_INPUT;
     }
 #endif
 }
 
 
-/* Hide the busy cursor on all frames, if it is currently shown.  */
+/* Hide the hourglass cursor on all frames, if it is currently shown.  */
 
 static void
-hide_busy_cursor ()
+hide_hourglass ()
 {
 #if 0 /* TODO: cursor shape changes.  */
-  if (busy_cursor_shown_p)
+  if (hourglass_shown_p)
     {
       Lisp_Object rest, frame;
 
@@ -12279,17 +12280,18 @@ hide_busy_cursor ()
       
 	  if (FRAME_W32_P (f)
 	      /* Watch out for newly created frames.  */
-	      && f->output_data.x->busy_window)
+	      && f->output_data.x->hourglass_window)
 	    {
-	      XUnmapWindow (FRAME_X_DISPLAY (f), f->output_data.x->busy_window);
-	      /* Sync here because XTread_socket looks at the busy_p flag
-		 that is reset to zero below.  */
+	      XUnmapWindow (FRAME_X_DISPLAY (f),
+			    f->output_data.x->hourglass_window);
+	      /* Sync here because XTread_socket looks at the
+		 hourglass_p flag that is reset to zero below.  */
 	      XSync (FRAME_X_DISPLAY (f), False);
-	      f->output_data.x->busy_p = 0;
+	      f->output_data.x->hourglass_p = 0;
 	    }
 	}
 
-      busy_cursor_shown_p = 0;
+      hourglass_shown_p = 0;
       UNBLOCK_INPUT;
     }
 #endif
@@ -13637,20 +13639,20 @@ switches, if present.");
 
   Vx_mode_pointer_shape = Qnil;
 
-  DEFVAR_LISP ("x-busy-pointer-shape", &Vx_busy_pointer_shape,
+  DEFVAR_LISP ("x-hourglass-pointer-shape", &Vx_hourglass_pointer_shape,
     "The shape of the pointer when Emacs is busy.\n\
 This variable takes effect when you create a new frame\n\
 or when you set the mouse color.");
-  Vx_busy_pointer_shape = Qnil;
+  Vx_hourglass_pointer_shape = Qnil;
 
-  DEFVAR_BOOL ("display-busy-cursor", &display_busy_cursor_p,
-    "Non-zero means Emacs displays a busy cursor on window systems.");
-  display_busy_cursor_p = 1;
+  DEFVAR_BOOL ("display-hourglass", &display_hourglass_p,
+    "Non-zero means Emacs displays an hourglass pointer on window systems.");
+  display_hourglass_p = 1;
   
-  DEFVAR_LISP ("busy-cursor-delay", &Vbusy_cursor_delay,
-     "*Seconds to wait before displaying a busy-cursor.\n\
+  DEFVAR_LISP ("hourglass-delay", &Vhourglass_delay,
+     "*Seconds to wait before displaying an hourglass pointer.\n\
 Value must be an integer or float.");
-  Vbusy_cursor_delay = make_number (DEFAULT_BUSY_CURSOR_DELAY);
+  Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
 	      &Vx_sensitive_text_pointer_shape,
@@ -13933,8 +13935,8 @@ versions of Windows) characters.");
 #endif
 #endif /* TODO */
 
-  busy_cursor_atimer = NULL;
-  busy_cursor_shown_p = 0;
+  hourglass_atimer = NULL;
+  hourglass_shown_p = 0;
 #ifdef TODO /* Tooltip support not complete.  */
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
