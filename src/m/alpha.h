@@ -68,6 +68,7 @@ NOTE-END
 /* Define the type to use.  */
 #define EMACS_INT long
 #define EMACS_UINT unsigned long
+#define SPECIAL_EMACS_INT
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
@@ -187,3 +188,16 @@ NOTE-END
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 
 #define XPNTR(a) XUINT (a)
+
+/* Declare malloc and realloc in a way that is clean.
+   But not in makefiles!  */
+
+#ifndef NOT_C_CODE
+#ifndef THIS_IS_YMAKEFILE
+/* We need these because pointers are larger than the default ints.  */
+#include <alloca.h>
+#include <string.h>
+extern void *malloc (), *realloc ();
+extern long *xmalloc (), *xrealloc ();
+#endif
+#endif
