@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.25 1997/10/28 20:03:27 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.26 1997/10/28 21:14:51 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -91,7 +91,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.25 1997/10/28 20:03:27 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.26 1997/10/28 21:14:51 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -249,6 +249,12 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.26  1997/10/28 21:14:51  os10000
+;; Improvements sent in by Dave Love <d.love@dl.ac.uk>:
+;; todo-mode.el: Doc fixes.  Customization.
+;; (todo-add-item-non-interactively): New arg -- don't dynamically bind ARG.
+;; (todo-insert-item): Use it.
+;;
 ;; Revision 1.25  1997/10/28 20:03:27  os10000
 ;; Harald Backer <harald.backer@fou.telenor.no> sent the following:
 ;; Added `todo-save-top-priorities' and option to automatically save top
@@ -714,7 +720,8 @@ Use `todo-categories' instead.")
 (defun todo-add-item-non-interactively (new-item category ARG)
   "Insert NEW-ITEM in TODO list as a new entry in CATEGORY."
   (save-excursion
-    (todo-show)
+    (todo-show))
+  (save-excursion
     (if (string= "" category)
         (setq category (nth todo-category-number todo-categories)))
     (let ((cat-exists (member category todo-categories)))
@@ -751,7 +758,9 @@ Use `todo-categories' instead.")
 With a prefix argument solicit the category, otherwise use the current
 category."
   (interactive "P")
+  (save-excursion
   (todo-show)
+  )
   (let* ((new-item (concat todo-prefix " "
 			   (read-from-minibuffer
                             "New TODO entry: "
