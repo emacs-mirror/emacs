@@ -59,13 +59,6 @@
 ;;; Will allow anyone access to your account without a password. I suggest you
 ;;; read the rhosts(5) manual page before you edit this file (if you are not
 ;;; familiar with it already) 
-
-;;; History:
-;;; V1.1 Oct 13 1993 Alon Albert
-;;;   SYSV support by Jay Finger <finger@mikey.convex.com>
-;;; V1.0 Oct 6 1993 Alon Albert
-;;;   Initial cut.
-
 
 ;;; Code:
 
