@@ -1191,7 +1191,7 @@ This function should be in the list `comint-output-filter-functions'."
 	 (current (current-buffer))
 	 (process (get-buffer-process current))
 	 (scroll comint-scroll-to-bottom-on-output))
-    (if (and process (not (window-minibuffer-p selected)))
+    (if process
 	(walk-windows
 	 (function (lambda (window)
 	   (if (eq (window-buffer window) current)
@@ -1214,7 +1214,7 @@ This function should be in the list `comint-output-filter-functions'."
 		       (goto-char (point-max))
 		       (recenter -1)))
 		 (select-window selected)))))
-	 'not-minibuf t))))
+	 nil t))))
 
 (defun comint-show-maximum-output ()
   "Put the end of the buffer at the bottom of the window."
