@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName: MMsrc!testlib.c(trunk.5) $
+ *  $HopeName: MMsrc!testlib.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -11,6 +11,9 @@
 
 #include "mpm.h"
 #include "testlib.h"
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
 
 #include <math.h>
 #include <stdio.h>
