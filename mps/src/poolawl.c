@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.39) $
+ * $HopeName: MMsrc!poolawl.c(trunk.40) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.39) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.40) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -100,7 +100,7 @@ static Bool AWLGroupCheck(AWLGroup group);
 
 static void AWLStatGroupInit(AWLGroup group)
 {
-  AWLGroupCheck(group);
+  AVERT(AWLGroup, group);
 
   group->stats.refAccesses = 0;
   group->stats.sameAccesses = 0;
@@ -141,7 +141,7 @@ static Bool AWLStatCanTrySingleAccess(AWL awl, Seg seg, Addr addr)
     AWLGroup group;
 
     group = (AWLGroup)SegP(seg);
-    AWLGroupCheck(group);
+    AVERT(AWLGroup, group);
     
     if (AWLHaveTotalLimit) {
       if (AWLTotalLimit < awl->stats.successive) {
@@ -176,7 +176,7 @@ static void AWLStatNoteRefAccess(AWL awl, Seg seg, Addr addr)
   AVERT(Seg, seg);
   AVER(addr != NULL);
   group = (AWLGroup)SegP(seg);
-  AWLGroupCheck(group);
+  AVERT(AWLGroup, group);
 
   group->stats.refAccesses++; /* increment seg count of ref accesses */
   if (addr == group->stats.lastAccess) {
@@ -207,7 +207,7 @@ static void AWLStatNoteScan(AWL awl, Seg seg, ScanState ss)
   AVERT(AWL, awl);
   AVERT(Seg, seg);
   group = (AWLGroup)SegP(seg);
-  AWLGroupCheck(group);
+  AVERT(AWLGroup, group);
 
   /* If this is a RankWEAK segment, then record statistics */
   /* about whether weak splatting is being lost */
@@ -1017,7 +1017,7 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
   group = (AWLGroup)SegP(seg);
-  AWLGroupCheck(group);
+  AVERT(AWLGroup, group);
 
   base = SegBase(seg);
   object = base;
