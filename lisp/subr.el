@@ -655,8 +655,11 @@ POSITION should be a list of the form
 as returned by the `event-start' and `event-end' functions.
 For a scroll-bar event, the result column is 0, and the row
 corresponds to the vertical position of the click in the scroll bar."
-  (let ((pair   (nth 2 position))
-	(window (posn-window position)))
+  (let* ((pair   (nth 2 position))
+	 (window (posn-window position))
+	 (vspacing (or (buffer-local-value 'line-spacing 
+					   (window-buffer window))
+		       0)))
     (if (eq (if (consp (nth 1 position))
 		(car (nth 1 position))
 	      (nth 1 position))
@@ -669,7 +672,7 @@ corresponds to the vertical position of the click in the scroll bar."
 	  (cons (scroll-bar-scale pair (window-width window)) 0)
 	(let* ((frame (if (framep window) window (window-frame window)))
 	       (x (/ (car pair) (frame-char-width frame)))
-	       (y (/ (cdr pair) (frame-char-height frame))))
+	       (y (/ (cdr pair) (+ (frame-char-height frame) vspacing))))
 	  (cons x y))))))
 
 (defsubst posn-timestamp (position)
