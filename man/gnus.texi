@@ -14002,7 +14002,7 @@ Let's look at an example value of this variable first:
       ;; @r{the bugs- list, but allow cross-posting when the}
       ;; @r{message was really cross-posted.}
       (any "bugs-mypackage@@somewhere" "mypkg.bugs")
-      (any "mypackage@@somewhere\" - "bugs-mypackage" "mypkg.list")
+      (any "mypackage@@somewhere" - "bugs-mypackage" "mypkg.list")
       ;; @r{People@dots{}}
       (any "larsi@@ifi\\.uio\\.no" "people.Lars_Magne_Ingebrigtsen"))
    ;; @r{Unmatched mail goes to the catch all group.}
