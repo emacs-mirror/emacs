@@ -885,7 +885,7 @@ Here is an example that specifies Lisp mode and sets two variables with
 numeric values:
 
 @smallexample
-;; -*-mode: Lisp; fill-column: 75; comment-column: 50; -*-
+;; -*- mode: Lisp; fill-column: 75; comment-column: 50; -*-
 @end smallexample
 
   You can also specify the coding system for a file in this way: just
@@ -1740,7 +1740,7 @@ Events,,,elisp, The Emacs Lisp Reference Manual}.}, like this:
 @end example
 
 @noindent
-Type @kbd{C-q} followe dby the key you want to bind, to insert @var{char}.
+Type @kbd{C-q} followed by the key you want to bind, to insert @var{char}.
 
 If you don't specify the keyboard coding system, that approach won't
 work.  Instead, you need to find out the actual code that the terminal
