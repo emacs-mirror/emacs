@@ -861,7 +861,7 @@ Recommended as a parent keymap for modes using widgets.")
 	    ;; Mouse click on a widget button.  Do the following
 	    ;; in a save-excursion so that the click on the button
 	    ;; doesn't change point.
-	    (progn
+	    (save-selected-window
 	      (save-excursion
 		(mouse-set-point event)
 		(let* ((overlay (widget-get button :button-overlay))
