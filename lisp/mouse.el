@@ -922,7 +922,9 @@ selection through the word or line clicked on.  If you do this
 again in a different position, it extends the selection again.
 If you do this twice in the same position, the selection is killed." 
   (interactive "e")
-  (let ((before-scroll point-before-scroll))
+  (let ((before-scroll
+	 (with-current-buffer (window-buffer (posn-window (event-start click)))
+	   point-before-scroll)))
     (mouse-minibuffer-check click)
     (let ((click-posn (posn-point (event-start click)))
 	  ;; Don't let a subsequent kill command append to this one:
