@@ -117,7 +117,7 @@ linked Emacs under SunOS 4.x"
       (let ((proc (start-process " *nslookup*" " *nslookup*"
 				 url-gateway-nslookup-program host))
 	    (res host))
-	(process-kill-without-query proc)
+	(set-process-query-on-exit-flag proc nil)
 	(save-excursion
 	  (set-buffer (process-buffer proc))
 	  (while (memq (process-status proc) '(run open))
