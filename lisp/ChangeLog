@@ -1,3 +1,7 @@
+2000-12-16  Miles Bader  <miles@gnu.org>
+
+	* simple.el (delete-trailing-whitespace): Remove extraneous let.
+
 2000-12-15  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-send-string, comint-send-region): Also accept
