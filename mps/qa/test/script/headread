@@ -65,7 +65,7 @@ sub readheader {
  &readvals($header, "=");
  %test_header = %keyvalues;
 
- &readvals($outspec, "=|<|>|<=|>=");
+ &readvals($outspec, "=~|<=|>=|=|<|>");
  %spec_output = %keyvalues;
  %spec_rel    = %keyrelations;
 
@@ -105,6 +105,7 @@ sub read_results {
  &debug("read_results >$logfile<");
  open(LOGFILE, $logfile);
  %real_output = ("seconds", $testtotaltime);
+ $testtimeline = &logtimeline($testtotaltime);
 
  while (<LOGFILE>) {
   &debug($_);
@@ -115,18 +116,6 @@ sub read_results {
    } else {
     die "Badly formatted result line in output:\n$_\n";
    }
-  } elsif (/MPS ASSERTION FAILURE/) {
-# MPS assertion failure
-   $real_output{"assert"} = "true";
-   $_=<LOGFILE>; $_=<LOGFILE>; /Id:\s*(.*)$/;
-   $real_output{"assertid"} = $1;
-   $_=<LOGFILE>; /File:\s*(.*)$/;
-   $real_output{"assertfile"} = $1;
-   $_=<LOGFILE>; /Line:\s*(.*)$/;
-   $real_output{"assertline"} = $1;
-   $_=<LOGFILE>; /Condition:\s*(.*)$/;
-   $real_output{"assertcond"} = $1;
-   $_ = "%";
   } elsif (/^Abort|^abnormal program termination/ ) {
 # abort for other reason
    $real_output{"abort"} = "true";
@@ -150,18 +139,24 @@ sub verdict {
  $testconcreason = "";
 
  foreach $key (keys %spec_output) {
-  $act = ($real_output{$key} || "NONE");
-  $acn = ($real_output{$key} || 0);
-  $ope = $spec_rel{$key};
-  $spe = $spec_output{$key};
-&debug("require: $key: $act $ope $spe");
-  if ($ope eq "=" && $spe ne $act
-   || $ope eq "<" && $spe <= $acn
-   || $ope eq ">" && $spe >= $acn
-   || $ope eq "<=" && $spe < $acn
-   || $ope eq ">=" && $spe > $acn) {
+   $ope = $spec_rel{$key};
+   $spe = $spec_output{$key};
+  if (defined($real_output{$key})) {
+   $acn = $real_output{$key};
+   &debug("require: $key: $acn $ope $spe");
+   if ($ope eq "=" && $spe ne $acn
+    || $ope eq "=~" && $acn !~ /$spe/
+    || $ope eq "<" && $spe <= $acn
+    || $ope eq ">" && $spe >= $acn
+    || $ope eq "<=" && $spe < $acn
+    || $ope eq ">=" && $spe > $acn) {
+    $testconclusion = "FAIL";
+    $testconcreason = "failed on $key: wanted $ope $spe, was $acn";
+    last;
+   }
+  } else {
    $testconclusion = "FAIL";
-   $testconcreason = "failed on $key: wanted $ope $spe, was $act";
+   $testconcreason = "failed on $key: wanted $ope $spe, was absent";
    last;
   }
  }
