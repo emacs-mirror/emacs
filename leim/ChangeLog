@@ -1,3 +1,7 @@
+2001-12-20  Dave Love  <fx@gnu.org>
+
+	* quail/latin-ltx.el: Fix un-doubled backslashes.
+
 2001-12-15  Dave Love  <fx@gnu.org>
 
 	* quail/latin-pre.el ("french-prefix", "german-prefix") 
