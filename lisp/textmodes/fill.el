@@ -316,10 +316,18 @@ be tested.  If it returns t, fill commands do not break the line there."
   :type 'hook
   :options '(fill-french-nobreak-p fill-single-word-nobreak-p))
 
+(defcustom fill-nobreak-invisible nil
+  "Non-nil means that fill command do not break lines in invisible text."
+  :type 'boolean
+  :group 'fill)
+
 (defun fill-nobreak-p ()
   "Return nil if breaking the line at point is allowed.
-Can be customized with the variable `fill-nobreak-predicate'."
-  (unless (bolp)
+Can be customized with the variables `fill-nobreak-predicate'
+and `fill-nobreak-invisible'."
+  (or
+   (and fill-nobreak-invisible (line-move-invisible (point)))
+   (unless (bolp)
     (or
      ;; Don't break after a period followed by just one space.
      ;; Move back to the previous place to break.
@@ -340,7 +348,7 @@ Can be customized with the variable `fill-nobreak-predicate'."
      (unless use-hard-newlines
        (save-excursion
 	 (skip-chars-forward " \t") (looking-at paragraph-start)))
-     (run-hook-with-args-until-success 'fill-nobreak-predicate))))
+     (run-hook-with-args-until-success 'fill-nobreak-predicate)))))
 
 ;; Put `fill-find-break-point-function' property to charsets which
 ;; require special functions to find line breaking point.
@@ -525,6 +533,11 @@ The break position will be always after LINEBEG and generally before point."
   ;; Give newline the properties of the space(s) it replaces
   (set-text-properties (1- (point)) (point)
 		       (text-properties-at (point)))
+  ;; If we don't want breaks in invisible text, don't insert
+  ;; an invisible newline.
+  (if fill-nobreak-invisible
+      (remove-text-properties (1- (point)) (point)
+			      '(invisible t)))
   (if (or fill-prefix
 	  (not fill-indent-according-to-mode))
       (indent-to-left-margin)
