@@ -1,3 +1,7 @@
+2004-01-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/scheme.el (scheme-font-lock-keywords-2): Add "force".
+
 2004-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
