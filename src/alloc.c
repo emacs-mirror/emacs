@@ -166,7 +166,7 @@ int stack_copy_size;
 /* Non-zero means ignore malloc warnings.  Set during initialization.  */
 int ignore_warnings;
 
-Lisp_Object Qgc_cons_threshold;
+Lisp_Object Qgc_cons_threshold, Qchar_table_extra_slots;
 
 static void mark_object (), mark_buffer (), mark_kboards ();
 static void clear_marks (), gc_sweep ();
@@ -756,22 +756,26 @@ See also the function `vector'.")
   return vector;
 }
 
-DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 0, 2, 0,
-  "Return a newly created char-table, with N \"extra\" slots.\n\
+DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
+  "Return a newly created char-table, with purpose PURPOSE.
 Each element is initialized to INIT, which defaults to nil.\n\
-N may not be more than ten.\n\
-See `char-table-extra-slot' and `set-char-table-extra-slot'.")
-  (n, init)
-     register Lisp_Object n, init;
+PURPOSE should be a symbol which has a `char-table-extra-slot' property.\n\
+The property's value should be an integer between 0 and 10.")
+  (purpose, init)
+     register Lisp_Object purpose, init;
 {
   Lisp_Object vector;
-  CHECK_NUMBER (n, 1);
+  Lisp_Object n;
+  CHECK_SYMBOL (purpose, 1);
+  n = Fget (purpose, Qchar_table_extra_slots);
+  CHECK_NUMBER (n, 0);
   if (XINT (n) < 0 || XINT (n) > 10)
     args_out_of_range (n, Qnil);
   /* Add 2 to the size for the defalt and parent slots.  */
   vector = Fmake_vector (make_number (CHAR_TABLE_STANDARD_SLOTS + XINT (n)),
 			 init);
   XCHAR_TABLE (vector)->parent = Qnil;
+  XCHAR_TABLE (vector)->purpose = purpose;
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
   return vector;
 }
@@ -2607,6 +2611,9 @@ which includes both saved text and other data.");
 
   staticpro (&Qgc_cons_threshold);
   Qgc_cons_threshold = intern ("gc-cons-threshold");
+
+  staticpro (&Qchar_table_extra_slots);
+  Qchar_table_extra_slots = intern ("char-table-extra-slots");
 
   defsubr (&Scons);
   defsubr (&Slist);
