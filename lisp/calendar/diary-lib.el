@@ -392,6 +392,10 @@ changing the variable `diary-include-string'."
          (msg (format "No diary entries for %s %s"
                       (concat date-string (if holiday-list ":" ""))
                       (mapconcat 'identity holiday-list "; "))))
+    (calendar-set-mode-line
+     (concat "Diary for " date-string
+             (if holiday-list ": " "")
+             (mapconcat 'identity holiday-list "; ")))
     (if (or (not diary-entries-list)
             (and (not (cdr diary-entries-list))
                  (string-equal (car (cdr (car diary-entries-list))) "")))
@@ -407,10 +411,6 @@ changing the variable `diary-include-string'."
           (setq buffer-read-only t)
           (display-buffer holiday-buffer)
           (message  "No diary entries for %s" date-string))
-      (calendar-set-mode-line
-       (concat "Diary for " date-string
-               (if holiday-list ": " "")
-               (mapconcat 'identity holiday-list "; ")))
       (display-buffer (find-buffer-visiting d-file))
       (message "Preparing diary...done"))))
 
