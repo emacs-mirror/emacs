@@ -71,15 +71,6 @@
 	   ;; Plain only exists so that there is an obvious neutral choice in
 	   ;; the completion list.
 	   nil nil nil nil nil)
-    (ibm   "IBM Code Page 850 (DOS)"
-	   nil				; The original "1\\(^\\)" is obscure.
-	   "recode -f ibm-pc:latin1" "recode -f latin1:ibm-pc" t nil)
-    (mac   "Apple Macintosh"
-	   nil
-	   "recode -f mac:latin1" "recode -f latin1:mac" t nil)
-    (hp    "HP Roman8"
-	   nil
-	   "recode -f roman8:latin1" "recode -f latin1:roman8" t nil)
     (TeX   "TeX (encoding)"
 	   nil
 	   iso-tex2iso iso-iso2tex t nil)
