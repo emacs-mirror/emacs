@@ -123,34 +123,51 @@ The variable `lpr-page-header-program' specifies the program to use."
 
 ;;;###autoload
 (defun lpr-buffer ()
-  "Print buffer contents as with Unix command `lpr'.
-`lpr-switches' is a list of extra switches (strings) to pass to lpr."
+  "Print buffer contents without pagination or page headers.
+See the variables `lpr-switches' and `lpr-command'
+for customization of the printer command."
   (interactive)
   (print-region-1 (point-min) (point-max) lpr-switches nil))
 
 ;;;###autoload
 (defun print-buffer ()
   "Paginate and print buffer contents.
-Normally invokes `pr' for pagination, but see the variable
-`lpr-page-header-program'.  Printing is normally done with `lpr'
-or `lp'; the variable `lpr-command' changes this.
 
-Also see the variables `lpr-switches' and `lpr-page-header-switches'
-for further customization of the commands used."
+The variable `lpr-headers-switches' controls how to paginate.
+If it is nil (the default), we run the `pr' program (or whatever program
+`lpr-page-header-program' specifies) to paginate.
+`lpr-page-header-switches' specifies the switches for that program.
+
+Otherwise, the switches in `lpr-headers-switches' are used
+in the print command itself; we expect them to request pagination.
+ 
+See the variables `lpr-switches' and `lpr-command'
+for further customization of the printer command."
   (interactive)
   (print-region-1 (point-min) (point-max) lpr-switches t))
 
 ;;;###autoload
 (defun lpr-region (start end)
-  "Print region contents as with Unix command `lpr'.
-`lpr-switches' is a list of extra switches (strings) to pass to lpr."
+  "Print region contents without pagination or page headers.
+See the variables `lpr-switches' and `lpr-command'
+for customization of the printer command."
   (interactive "r")
   (print-region-1 start end lpr-switches nil))
 
 ;;;###autoload
 (defun print-region (start end)
-  "Print region contents as with Unix command `lpr -p'.
-`lpr-switches' is a list of extra switches (strings) to pass to lpr."
+  "Paginate and print the region contents.
+
+The variable `lpr-headers-switches' controls how to paginate.
+If it is nil (the default), we run the `pr' program (or whatever program
+`lpr-page-header-program' specifies) to paginate.
+`lpr-page-header-switches' specifies the switches for that program.
+
+Otherwise, the switches in `lpr-headers-switches' are used
+in the print command itself; we expect them to request pagination.
+ 
+See the variables `lpr-switches' and `lpr-command'
+for further customization of the printer command."
   (interactive "r")
   (print-region-1 start end lpr-switches t))
 
