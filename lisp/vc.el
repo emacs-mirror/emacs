@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.257 1999/10/15 15:44:52 monnier Exp $
+;; $Id: vc.el,v 1.258 1999/12/02 14:21:08 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1406,10 +1406,11 @@ and two version designators specifying which versions to compare."
 If FILE is a directory, generate diffs between versions for all registered
 files in or below it."
   (interactive 
-   (let ((file (read-file-name (if buffer-file-name
-				   "File or dir to diff: (default visited file) "
-				 "File or dir to diff: ")
-                                default-directory buffer-file-name t))
+   (let ((file (expand-file-name
+                (read-file-name (if buffer-file-name
+                                    "File or dir to diff: (default visited file) "
+                                  "File or dir to diff: ")
+                                default-directory buffer-file-name t)))
          (rel1-default nil) (rel2-default nil))
      ;; compute default versions based on the file state
      (cond
