@@ -64,6 +64,7 @@ extern Lisp_Object Voverriding_local_map_menu_flag;
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 Lisp_Object Qredisplay_end_trigger_functions;
+Lisp_Object Qinhibit_point_motion_hooks;
 
 /* Nonzero means print newline to stdout before next minibuffer message.  */
 
@@ -1745,6 +1746,7 @@ redisplay_window (window, just_this_one, preserve_echo_area)
   int update_mode_line;
   struct Lisp_Char_Table *dp = window_display_table (w);
   int really_switched_buffer = 0;
+  int count = specpdl_ptr - specpdl;
 
   if (Z == Z_BYTE && lpoint != lpoint_byte)
     abort ();
@@ -1767,7 +1769,9 @@ redisplay_window (window, just_this_one, preserve_echo_area)
     }
   if (NILP (w->buffer))
     abort ();
-  
+
+  specbind (Qinhibit_point_motion_hooks, Qt);
+
   height = window_internal_height (w);
   update_mode_line = (!NILP (w->update_mode_line) || update_mode_lines);
   if (XBUFFER (w->buffer)->clip_changed)
@@ -2447,6 +2451,8 @@ done:
   else
     set_buffer_temp (old);
   TEMP_SET_PT_BOTH (lpoint, lpoint_byte);
+
+  unbind_to (count, Qnil);
 }
 
 /* Do full redisplay on one window, starting at position `pos'. */
@@ -5361,6 +5367,9 @@ syms_of_xdisp ()
 
   staticpro (&Qredisplay_end_trigger_functions);
   Qredisplay_end_trigger_functions = intern ("redisplay-end-trigger-functions");
+
+  staticpro (&Qinhibit_point_motion_hooks);
+  Qinhibit_point_motion_hooks = intern ("inhibit-point-motion-hooks");
 
   staticpro (&last_arrow_position);
   staticpro (&last_arrow_string);
