@@ -443,7 +443,7 @@ internal_self_insert (c, noautofill)
 
       sym = Fexpand_abbrev ();
 
-      /* If we expanded an abbrev which has only a hook,
+      /* If we expanded an abbrev which has a hook,
 	 and the hook has a non-nil `no-self-insert' property,
 	 return right away--don't really self-insert.  */
       if (! NILP (sym) && ! NILP (XSYMBOL (sym)->function)

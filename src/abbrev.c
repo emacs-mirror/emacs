@@ -367,11 +367,14 @@ Returns the abbrev symbol, if expansion took place.")
     {
       Lisp_Object expanded, prop;
 
-      /* If expanding an abbrev which has only a hook, and the hook
-	 has a non-nil `no-self-insert' property, let the return value
-	 of the hook specify whether an expansion took place.  If it
-	 returns nil, no expansion has been done.  */
+      /* If the abbrev has a hook function, run it.  */
       expanded = call0 (hook);
+
+      /* In addition, if the hook function is a symbol with a a
+	 non-nil `no-self-insert' property, let the value it returned
+	 specify whether we consider that an expansion took place.  If
+	 it returns nil, no expansion has been done.  */
+
       if (SYMBOLP (hook)
 	  && NILP (expanded)
 	  && (prop = Fget (hook, intern ("no-self-insert")),
