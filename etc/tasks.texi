@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 7 June 1997
+@set lastupdate 23 June 1997
 @c %**end of header
 
 @setchapternewpage off
@@ -331,7 +331,14 @@ This program should use the Diffie-Helman algorithm for public key
 encryption, not the RSA algorithm, because the Diffie-Helman patent in
 the US will expire in 1997.  It should use triple-DES, not IDEA, for
 block encryption, because IDEA is patented in many countries and the
-patents will not expire soon.  In other respects, it should be like PGP.
+patents will not expire soon.
+
+In other respects, it should be like PGP.  If the new version of PGP
+no longer uses RSA and IDEA, compatibility with it may be feasible.
+
+There is a suggestion that the Blowfish algorithm might be a good choice
+for the non-public-key block encryption.  I'm not an encryption expert
+so I don't have an opinion about that.
 
 This program needs to be written by someone who is not a US citizen,
 outside the US, to avoid problems with US export control law.
@@ -353,7 +360,8 @@ preceding item.
 This program should follow the draft standard for ssh.  As always, it
 cannot implement the RSA algorithm, but must instead support the
 alternatives that will be patent-free in late 1997.  It cannot support
-IDEA, but can use triple-DES and some other alternatives.
+IDEA, but can use triple-DES and/or Blowfish or other non-patented
+alternatives.
 
 @item
 Free software for doing secure commercial transactions on the web.
