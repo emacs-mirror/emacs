@@ -1035,6 +1035,37 @@ string_make_multibyte (string)
   return make_multibyte_string (buf, SCHARS (string), nbytes);
 }
 
+
+/* Convert STRING to a multibyte string without changing each
+   character codes.  Thus, characters 0200 trough 0237 are converted
+   to eight-bit-control characters, and characters 0240 through 0377
+   are converted eight-bit-graphic characters. */
+
+Lisp_Object
+string_to_multibyte (string)
+     Lisp_Object string;
+{
+  unsigned char *buf;
+  int nbytes;
+  int i;
+
+  if (STRING_MULTIBYTE (string))
+    return string;
+
+  nbytes = parse_str_to_multibyte (SDATA (string), SBYTES (string));
+  /* If all the chars are ASCII, they won't need any more bytes
+     once converted.  In that case, we can return STRING itself.  */
+  if (nbytes == SBYTES (string))
+    return string;
+
+  buf = (unsigned char *) alloca (nbytes);
+  bcopy (SDATA (string), buf, SBYTES (string));
+  str_to_multibyte (buf, nbytes, SBYTES (string));
+
+  return make_multibyte_string (buf, SCHARS (string), nbytes);
+}
+
+
 /* Convert STRING to a single-byte string.  */
 
 Lisp_Object
@@ -1140,6 +1171,24 @@ multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */)
     }
   return string;
 }
+
+DEFUN ("string-to-multibyte", Fstring_to_multibyte, Sstring_to_multibyte,
+       1, 1, 0,
+       doc: /* Return a multibyte string with the same individual chars as STRING.
+If STRING is multibyte, the resutl is STRING itself.
+Otherwise it is a newly created string, with no text properties.
+Characters 0200 through 0237 are converted to eight-bit-control
+characters of the same character code.  Characters 0240 through 0377
+are converted to eight-bit-control characters of the same character
+codes.  */)
+     (string)
+     Lisp_Object string;
+{
+  CHECK_STRING (string);
+
+  return string_to_multibyte (string);
+}
+
 
 DEFUN ("copy-alist", Fcopy_alist, Scopy_alist, 1, 1, 0,
        doc: /* Return a copy of ALIST.
@@ -5545,6 +5594,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sstring_make_unibyte);
   defsubr (&Sstring_as_multibyte);
   defsubr (&Sstring_as_unibyte);
+  defsubr (&Sstring_to_multibyte);
   defsubr (&Scopy_alist);
   defsubr (&Ssubstring);
   defsubr (&Ssubstring_no_properties);
