@@ -1450,6 +1450,7 @@ Similarly for Soar, Scheme, etc."
 	      ;; Make an overlay for the terminating newline
 	      (let ((over (make-overlay end (1+ end) nil t nil)))
 		(overlay-put over 'field 'boundary)
+		(overlay-put over 'inhibit-line-move-field-capture t)
 		(overlay-put over 'evaporate t))))
 
 	  (comint-snapshot-last-prompt)
