@@ -1,6 +1,6 @@
 ;;; info.el --- info package for Emacs.
 
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -607,30 +607,13 @@ Completion is allowed, and the menu item point is on is the default."
 	nil))
     (Info-extract-menu-node-name)))
 
-(defun Info-first-menu-item ()
-  "Go to the node of the first menu item."
+(defun Info-nth-menu-item ()
+  "Go to the node of the Nth menu item.
+N is the digit argument used to invoke this command."
   (interactive)
-  (Info-goto-node (Info-extract-menu-counting 1)))
-
-(defun Info-second-menu-item ()
-  "Go to the node of the second menu item."
-  (interactive)
-  (Info-goto-node (Info-extract-menu-counting 2)))
-
-(defun Info-third-menu-item ()
-  "Go to the node of the third menu item."
-  (interactive)
-  (Info-goto-node (Info-extract-menu-counting 3)))
-
-(defun Info-fourth-menu-item ()
-  "Go to the node of the fourth menu item."
-  (interactive)
-  (Info-goto-node (Info-extract-menu-counting 4)))
-
-(defun Info-fifth-menu-item ()
-  "Go to the node of the fifth menu item."
-  (interactive)
-  (Info-goto-node (Info-extract-menu-counting 5)))
+  (Info-goto-node
+   (Info-extract-menu-counting
+    (- (aref (this-command-keys) (1- (length (this-command-keys)))) ?0))))
 
 (defun Info-top-node ()
   "Go to the Top node of this file."
@@ -858,16 +841,16 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "." 'beginning-of-buffer)
   (define-key Info-mode-map " " 'Info-scroll-up)
   (define-key Info-mode-map "\C-m" 'Info-next-preorder)
-  (define-key Info-mode-map "1" 'Info-first-menu-item)
-  (define-key Info-mode-map "2" 'Info-second-menu-item)
-  (define-key Info-mode-map "3" 'Info-third-menu-item)
-  (define-key Info-mode-map "4" 'Info-fourth-menu-item)
-  (define-key Info-mode-map "5" 'Info-fifth-menu-item)
-  (define-key Info-mode-map "6" 'undefined)
-  (define-key Info-mode-map "7" 'undefined)
-  (define-key Info-mode-map "8" 'undefined)
-  (define-key Info-mode-map "9" 'undefined)
-  (define-key Info-mode-map "0" 'undefined)
+  (define-key Info-mode-map "1" 'Info-nth-menu-item)
+  (define-key Info-mode-map "2" 'Info-nth-menu-item)
+  (define-key Info-mode-map "3" 'Info-nth-menu-item)
+  (define-key Info-mode-map "4" 'Info-nth-menu-item)
+  (define-key Info-mode-map "5" 'Info-nth-menu-item)
+  (define-key Info-mode-map "6" 'Info-nth-menu-item)
+  (define-key Info-mode-map "7" 'Info-nth-menu-item)
+  (define-key Info-mode-map "8" 'Info-nth-menu-item)
+  (define-key Info-mode-map "9" 'Info-nth-menu-item)
+  (define-key Info-mode-map "0" 'Info-nth-menu-item)
   (define-key Info-mode-map "?" 'Info-summary)
   (define-key Info-mode-map "]" 'Info-forward-node)
   (define-key Info-mode-map "[" 'Info-backward-node)
