@@ -3200,7 +3200,7 @@ Output from processes can arrive in between bunches.")
   validate_region (&start, &end);
 
   if (XINT (start) < GPT && XINT (end) > GPT)
-    move_gap (start);
+    move_gap (XINT (start));
 
   start1 = XINT (start);
   send_process (proc, POS_ADDR (start1), XINT (end) - XINT (start),
