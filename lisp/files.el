@@ -1925,6 +1925,7 @@ is specified, returning t if it is specified."
 (put 'header-line-format 'risky-local-variable t)
 (put 'icon-title-format 'risky-local-variable t)
 (put 'input-method-alist 'risky-local-variable t)
+(put 'format-alist 'risky-local-variable t)
 (put 'vc-mode 'risky-local-variable t)
 (put 'imenu-generic-expression 'risky-local-variable t)
 (put 'imenu-index-alist 'risky-local-variable t)
@@ -3518,37 +3519,38 @@ If PATTERN is written as a relative file name, it is interpreted
 relative to the current default directory, `default-directory'.
 The file names returned are normally also relative to the current
 default directory.  However, if FULL is non-nil, they are absolute."
-  (let* ((nondir (file-name-nondirectory pattern))
-	 (dirpart (file-name-directory pattern))
-	 ;; A list of all dirs that DIRPART specifies.
-	 ;; This can be more than one dir
-	 ;; if DIRPART contains wildcards.
-	 (dirs (if (and dirpart (string-match "[[*?]" dirpart))
-		   (mapcar 'file-name-as-directory
-			   (file-expand-wildcards (directory-file-name dirpart)))
-		 (list dirpart)))
-	 contents)
-    (while dirs
-      (when (or (null (car dirs))	; Possible if DIRPART is not wild.
-		(file-directory-p (directory-file-name (car dirs))))
-	(let ((this-dir-contents
-	       ;; Filter out "." and ".."
-	       (delq nil
-		     (mapcar #'(lambda (name)
-				 (unless (string-match "\\`\\.\\.?\\'"
-						       (file-name-nondirectory name))
-				   name))
-			     (directory-files (or (car dirs) ".") full
-					      (wildcard-to-regexp nondir))))))
-	  (setq contents
-		(nconc
-		 (if (and (car dirs) (not full))
-		     (mapcar (function (lambda (name) (concat (car dirs) name)))
-			     this-dir-contents)
-		   this-dir-contents)
-		 contents))))
-      (setq dirs (cdr dirs)))
-    contents))
+  (save-match-data
+    (let* ((nondir (file-name-nondirectory pattern))
+	   (dirpart (file-name-directory pattern))
+	   ;; A list of all dirs that DIRPART specifies.
+	   ;; This can be more than one dir
+	   ;; if DIRPART contains wildcards.
+	   (dirs (if (and dirpart (string-match "[[*?]" dirpart))
+		     (mapcar 'file-name-as-directory
+			     (file-expand-wildcards (directory-file-name dirpart)))
+		   (list dirpart)))
+	   contents)
+      (while dirs
+	(when (or (null (car dirs))	; Possible if DIRPART is not wild.
+		  (file-directory-p (directory-file-name (car dirs))))
+	  (let ((this-dir-contents
+		 ;; Filter out "." and ".."
+		 (delq nil
+		       (mapcar #'(lambda (name)
+				   (unless (string-match "\\`\\.\\.?\\'"
+							 (file-name-nondirectory name))
+				     name))
+			       (directory-files (or (car dirs) ".") full
+						(wildcard-to-regexp nondir))))))
+	    (setq contents
+		  (nconc
+		   (if (and (car dirs) (not full))
+		       (mapcar (function (lambda (name) (concat (car dirs) name)))
+			       this-dir-contents)
+		     this-dir-contents)
+		   contents))))
+	(setq dirs (cdr dirs)))
+      contents)))
 
 (defun list-directory (dirname &optional verbose)
   "Display a list of files in or matching DIRNAME, a la `ls'.
