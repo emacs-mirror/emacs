@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.18 2000/07/06 13:24:28 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.19 2000/07/06 13:25:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -54,6 +54,11 @@
 ;; - support gnu-style "multi-line with space in continue"
 ;; - somehow allow comment-dwim to use the region even if transient-mark-mode
 ;;   is not turned on.
+
+;; - when auto-filling a comment, try to move the comment to the left
+;;   rather than break it (if possible).
+;; - sometimes default the comment-column to the same
+;;   one used on the preceding line(s).
 
 ;;; Code:
 
@@ -111,7 +116,7 @@ Should be an empty string if comments are terminated by end-of-line.")
 
 ;;;###autoload
 (defvar comment-indent-function
-  (lambda () comment-column)
+  (lambda () (if (looking-at "\\s<\\s<\\s<") 0 comment-column))
   "Function to compute desired indentation for a comment.
 This function is called with no args with point at the beginning of
 the comment's starting delimiter.")
@@ -413,13 +418,19 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
 	    (setq cpos (point-marker))
 	    (goto-char begpos))
           ;; Compute desired indent.
-          (if (= (current-column)
-                 (setq indent (funcall comment-indent-function)))
+	  (setq indent (funcall comment-indent-function))
+	  ;; Avoid moving comments past the fill-column.
+	  (setq indent
+		(min indent
+		     (+ (current-column)
+			(- fill-column
+			   (save-excursion (end-of-line) (current-column))))))
+          (if (= (current-column) indent)
               (goto-char begpos)
             ;; If that's different from current, change it.
             (skip-chars-backward " \t")
             (delete-region (point) begpos)
-            (indent-to indent))
+            (indent-to (if (bolp) indent (max indent (1+ (current-column))))))
           ;; An existing comment?
           (if cpos
               (progn (goto-char cpos) (set-marker cpos nil))
