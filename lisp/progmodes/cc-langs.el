@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.16
+;; Version:    5.17
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -375,7 +375,6 @@ it finds in `c-file-offsets'."
   (define-key c-mode-base-map "\C-c\C-b"  'c-submit-bug-report)
   (define-key c-mode-base-map "\C-c\C-c"  'comment-region)
   (define-key c-mode-base-map "\C-c\C-d"  'c-toggle-hungry-state)
-  (define-key c-mode-base-map "\C-c\C-e"  'c-macro-expand)
   (define-key c-mode-base-map "\C-c\C-o"  'c-set-offset)
   (define-key c-mode-base-map "\C-c\C-s"  'c-show-syntactic-information)
   (define-key c-mode-base-map "\C-c\C-t"  'c-toggle-auto-hungry-state)
@@ -429,6 +428,7 @@ it finds in `c-file-offsets'."
     nil
   (setq c-mode-map (c-make-inherited-keymap))
   ;; add bindings which are only useful for C
+  (define-key c-mode-map "\C-c\C-e"  'c-macro-expand)
   )
 
 ;;;###autoload
@@ -455,9 +455,10 @@ it finds in `c-file-offsets'."
     nil
   (setq c++-mode-map (c-make-inherited-keymap))
   ;; add bindings which are only useful for C++
-  (define-key c++-mode-map "\C-c:"  'c-scope-operator)
-  (define-key c++-mode-map "<"      'c-electric-lt-gt)
-  (define-key c++-mode-map ">"      'c-electric-lt-gt))
+  (define-key c++-mode-map "\C-c\C-e" 'c-macro-expand)
+  (define-key c++-mode-map "\C-c:"    'c-scope-operator)
+  (define-key c++-mode-map "<"        'c-electric-lt-gt)
+  (define-key c++-mode-map ">"        'c-electric-lt-gt))
 
 ;;;###autoload
 (defvar c++-mode-syntax-table nil
@@ -491,7 +492,7 @@ it finds in `c-file-offsets'."
     nil
   (setq objc-mode-map (c-make-inherited-keymap))
   ;; add bindings which are only useful for Objective-C
-  (define-key objc-mode-map "/"      'c-electric-slash))
+  (define-key objc-mode-map "\C-c\C-e" 'c-macro-expand))
 
 ;;;###autoload
 (defvar objc-mode-syntax-table nil
@@ -519,7 +520,7 @@ it finds in `c-file-offsets'."
     nil
   (setq java-mode-map (c-make-inherited-keymap))
   ;; add bindings which are only useful for Java
-  (define-key java-mode-map "/"      'c-electric-slash))
+  )
 
 ;;;###autoload
 (defvar java-mode-syntax-table nil
@@ -544,8 +545,8 @@ it finds in `c-file-offsets'."
 (if idl-mode-map
     nil
   (setq idl-mode-map (c-make-inherited-keymap))
-  ;; additional bindings
-  (define-key idl-mode-map "/" 'c-electric-slash))
+  ;; add bindings which are only useful for IDL
+  )
 
 ;;;###autoload
 (defvar idl-mode-syntax-table nil
