@@ -323,7 +323,7 @@ s          Switch to a different index (for documents with multiple indices).
 e / C-k    Edit/Kill the entry.
 * | @      Edit specific part of entry: [*]key [|]attribute [@]visual
            With prefix: kill that part.
-( )        Toggle entry's beginning/end of page range property.
+\( )        Toggle entry's beginning/end of page range property.
 _ ^        Add/Remove parent key (to make this item a subitem).
 } / {      Restrict Index to a single document section / Widen.
 < / >      When restricted, move restriction to previous/next section.")
