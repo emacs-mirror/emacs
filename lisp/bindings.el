@@ -622,7 +622,8 @@ language you are using."
 (define-key global-map [delete] 'backward-delete-char)
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
-(define-key global-map [home]		'beginning-of-buffer)
+(define-key global-map [home]		'beginning-of-line)
+(define-key global-map [C-home]		'beginning-of-buffer)
 (define-key global-map [M-home]		'beginning-of-buffer-other-window)
 (define-key global-map [left]		'backward-char)
 (define-key global-map [up]		'previous-line)
@@ -636,7 +637,8 @@ language you are using."
 (define-key global-map [C-next]		'scroll-left)
 (define-key global-map [M-next]		'scroll-other-window)
 (define-key global-map [M-prior]	'scroll-other-window-down)
-(define-key global-map [end]		'end-of-buffer)
+(define-key global-map [end]		'end-of-line)
+(define-key global-map [C-end]		'end-of-buffer)
 (define-key global-map [M-end]		'end-of-buffer-other-window)
 (define-key global-map [begin]		'beginning-of-buffer)
 (define-key global-map [M-begin]	'beginning-of-buffer-other-window)
