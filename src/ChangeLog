@@ -1,5 +1,40 @@
 2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* indent.c (skip_invisible): Don't skip "ellipsisized" text.
+
+	* xfns.c (syms_of_xfns): Update calls to Fprovide.
+
+	* lisp.h (Fprovide): Update prototype.
+	(Ffeaturep, invisible_p): Remove.
+
+	* xdisp.c (init_iterator): Be more strict with bytepos and charspos.
+	(DOLIST, LOOP_PROPVAL): New macros.
+	(invisible_p, invisible_ellipsis_p): Use them.
+	(invisible_noellipsis_p): New function.
+	(syms_of_xdisp): Use empty_string.
+
+	* alloc.c (mark_interval_tree): Use traverse_intervals_noorder.
+
+	* lread.c (substitute_object_recurse): Use traverse_intervals_noorder.
+	(syms_of_lread) <Vafter_load_alist>: Update docstring.
+
+	* print.c (Fwith_output_to_temp_buffer): Align with
+	internal_with_output_to_temp_buffer.
+	(print_preprocess): Use traverse_intervals_noorder.
+	(print_object): Update call to traverse_intervals.
+
+	* intervals.h (TEXT_PROP_MEANS_INVISIBLE_NOELLIPSIS): New macro.
+	(traverse_intervals_noorder, invisible_noellipsis_p): New funs.
+
+	* intervals.c (traverse_intervals_noorder): New function.
+	(search_for_interval, count_intervals): Use it.
+	(traverse_intervals): Use less stack space and drop `depth' arg.
+
+	* fns.c (Ffeaturep): Add new `subfeature' arg.
+	(Fprovide): Add new `subfeatures' arg.  Use `after-load-alist'.
+	(Qsubfeatures): New var.
+	(syms_of_fns): Initialize it.
+
 	* keymap.c (Fkey_description): Use empty_string.
 	(Fdescribe_bindings_internal, describe_buffer_bindings): Remove.
 	(syms_of_keymap): Setup inheritance between maps.

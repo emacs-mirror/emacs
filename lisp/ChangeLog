@@ -1,5 +1,10 @@
 2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* newcomment.el (comment-region-internal): Don't rebind
+	invisibility_spec now that the C routines handle it correctly.
+
+	* help-funs.el (locate-library): Use load-suffixes and abbrev filename.
+
 	* frame.el (special-display-popup-frame): Obey new specs `same-window'
 	and `same-frame'.
 
@@ -112,11 +117,11 @@
 
 2001-10-12  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list): 
+	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list):
 	Turn error for repeated variables into warning.
-	
-	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list): New
-	function checking that lambda-list consists of non-constant
+
+	* emacs-lisp/bytecomp.el (byte-compile-check-lambda-list):
+	New function checking that lambda-list consists of non-constant
 	symbols, that &rest and &optional are followed by variable names,
 	that &rest VAR is the last element, and that variables aren't doubled.
 	(byte-compile-lambda): Use it.
