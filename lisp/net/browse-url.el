@@ -269,7 +269,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function :tag "Your own function")
 	  (alist :tag "Regexp/function association list"
 		 :key-type regexp :value-type function))
-  :version "20.4"
+  :version "21.1"
   :group 'browse-url)
 
 (defcustom browse-url-netscape-program "netscape"
