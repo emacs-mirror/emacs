@@ -39,6 +39,8 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
   ;; the end of the previous line.
   (let ((flag (and (not (bobp)) 
 		   (bolp)
+		   ;; Make sure there are no markers here.
+		   (not (buffer-has-markers-at (1- (point))))
 		   ;; Make sure the newline before point isn't intangible.
 		   (not (get-char-property (1- (point)) 'intangible))
 		   ;; Make sure the newline before point isn't read-only.
