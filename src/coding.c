@@ -1999,6 +1999,11 @@ encode_coding_emacs_mule (coding)
       c = *charbuf++;
       if (ASCII_CHAR_P (c))
 	EMIT_ONE_ASCII_BYTE (c);
+      else if (CHAR_BYTE8_P (c))
+	{
+	  c = CHAR_TO_BYTE8 (c);
+	  EMIT_ONE_BYTE (c);
+	}
       else
 	{
 	  struct charset *charset;
@@ -3555,6 +3560,11 @@ encode_coding_iso_2022 (coding)
 	      ENCODE_ISO_CHARACTER (charset, c);
 	    }
 	}
+      else if (CHAR_BYTE8_P (c))
+	{
+	  c = CHAR_TO_BYTE8 (c);
+	  EMIT_ONE_BYTE (c);
+	}
       else
 	{
 	  struct charset *charset = char_charset (c, charset_list, NULL);
@@ -3925,6 +3935,11 @@ encode_coding_sjis (coding)
       /* Now encode the character C.  */
       if (ASCII_CHAR_P (c) && ascii_compatible)
 	EMIT_ONE_ASCII_BYTE (c);
+      else if (CHAR_BYTE8_P (c))
+	{
+	  c = CHAR_TO_BYTE8 (c);
+	  EMIT_ONE_BYTE (c);
+	}
       else
 	{
 	  unsigned code;
@@ -3993,6 +4008,11 @@ encode_coding_big5 (coding)
       /* Now encode the character C.  */
       if (ASCII_CHAR_P (c) && ascii_compatible)
 	EMIT_ONE_ASCII_BYTE (c);
+      else if (CHAR_BYTE8_P (c))
+	{
+	  c = CHAR_TO_BYTE8 (c);
+	  EMIT_ONE_BYTE (c);
+	}
       else
 	{
 	  unsigned code;
@@ -4475,6 +4495,11 @@ encode_coding_charset (coding)
       c = *charbuf++;
       if (ascii_compatible && ASCII_CHAR_P (c))
 	EMIT_ONE_ASCII_BYTE (c);
+      else if (CHAR_BYTE8_P (c))
+	{
+	  c = CHAR_TO_BYTE8 (c);
+	  EMIT_ONE_BYTE (c);
+	}
       else
 	{
 	  charset = char_charset (c, charset_list, &code);
