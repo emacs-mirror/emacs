@@ -1,3 +1,8 @@
+2005-01-21  Ren,Ai(B Kyllingstad  <listmailxemacs@kyllingstad.com>
+
+	* pcomplete.el: define pcomplete-read-event instead of read-event,
+	since it's not a complete read-event implementation
+
 2005-01-20  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el (calc-fancy-prefix-other-key): Set prefix arg
