@@ -345,7 +345,11 @@ If COLUMN is nil, then indent each line according to the mode."
       (move-marker end nil))))
 
 (defun indent-relative-maybe ()
-  "Indent a new line like previous nonblank line."
+  "Indent a new line like previous nonblank line.
+If the previous nonblank line has no indent points beyond the
+column point starts at, this command does nothing.
+
+See also `indent-relative'."
   (interactive)
   (indent-relative t))
 
@@ -355,7 +359,11 @@ An indent point is a non-whitespace character following whitespace.
 The following line shows the indentation points in this line.
     ^         ^    ^     ^   ^           ^      ^  ^    ^
 If the previous nonblank line has no indent points beyond the
-column point starts at, `tab-to-tab-stop' is done instead."
+column point starts at, `tab-to-tab-stop' is done instead, unless
+this command is invoked with a numeric argument, in which case it
+does nothing.
+
+See also `indent-relative-maybe'."
   (interactive "P")
   (if (and abbrev-mode
 	   (eq (char-syntax (preceding-char)) ?w))
