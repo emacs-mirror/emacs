@@ -276,7 +276,7 @@ endif
 # %%TARGET: Add the target to the all dependencies, if it uses the
 # CONFIG_PROD_MPS configuration, to swall if CONFIG_PROD_EPCORE
 
-all: mpmss apss sacss amcss amsss segsmss awlut awluthe \
+all: mpmss apss sacss amcss amsss amssshe segsmss awlut awluthe \
      mpsicv lockcov poolncv mps.a \
      locv qs finalcv arenacv bttest teletest abqtest cbstest \
      btcv mv2test messtest
@@ -287,7 +287,7 @@ swall: mmsw.a epvmss replaysw epdss
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
-testrun: mpmss apss sacss amcss amcsshe amsss segsmss awlut awluthe \
+testrun: mpmss apss sacss amcss amcsshe amsss amssshe segsmss awlut awluthe \
          mpsicv lockcov poolncv locv qs finalcv arenacv \
          abqtest cbstest btcv messtest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
@@ -302,7 +302,7 @@ testrunep: epvmss epdss
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss apss sacss amcss amcssth amcsshe amsss segsmss awlut awluthe awlutth mpsicv \
+mpmss apss sacss amcss amcssth amcsshe amsss amssshe segsmss awlut awluthe awlutth mpsicv \
   lockcov poolncv locv qs finalcv arenacv bttest teletest epvmss \
   abqtest cbstest btcv mv2test messtest eventcnv replay replaysw \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
@@ -392,6 +392,9 @@ $(PFM)/$(VARIETY)/amcsshe: $(PFM)/$(VARIETY)/amcsshe.o \
 
 $(PFM)/$(VARIETY)/amsss: $(PFM)/$(VARIETY)/amsss.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/amssshe: $(PFM)/$(VARIETY)/amssshe.o \
+	$(PFM)/$(VARIETY)/fmthe.o $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/segsmss: $(PFM)/$(VARIETY)/segsmss.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMSOBJ) $(TESTLIBOBJ)

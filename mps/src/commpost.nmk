@@ -13,7 +13,7 @@
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target to the all dependencies
 
-all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe awluthe.exe mpsicv.exe \
+all: mpmss.exe amcss.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe \
@@ -23,7 +23,7 @@ all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe awluthe.exe mpsicv.exe 
 # %%TARGET: Add a pseudo-target for the new target here, first rule for
 # variety-dependent targets, and second for variety-independent ones.
 
-mpmss.exe amcss.exe amcsshe.exe amsss.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
+mpmss.exe amcss.exe amcsshe.exe amsss.exe amssshe.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
      thw3susp.exe abqtest.exe cbstest.exe btcv.exe \
@@ -124,10 +124,14 @@ $(PFM)\$(VARIETY)\amcss.exe: $(PFM)\$(VARIETY)\amcss.obj \
 
 $(PFM)\$(VARIETY)\amcsshe.exe: $(PFM)\$(VARIETY)\amcsshe.obj \
 	$(CONFIGURAOBJ) $(AMCOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
-	$(TESTLIBOBJ) $(DONGLELIB)
+	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe: $(PFM)\$(VARIETY)\amsss.obj \
 	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\amssshe.exe: $(PFM)\$(VARIETY)\amsss.obj \
+	$(CONFIGURAOBJ) $(AMSOBJ) $(PLINTHOBJ) $(PFM)\$(VARIETY)\fmthe.obj \
 	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\segsmss.exe: $(PFM)\$(VARIETY)\segsmss.obj \

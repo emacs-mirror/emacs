@@ -42,4 +42,7 @@ extern mps_addr_t dylan_weak_dependent(mps_addr_t);
 #define headerPadSize(header) ((header) >> headerTypeBits)
 #define padHeader(size) ((size << headerTypeBits) | padTYPE)
 
+/* checking */
+extern mps_bool_t dylan_check(mps_addr_t);
+
 #endif /* fmthe_h */
