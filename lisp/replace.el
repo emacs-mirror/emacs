@@ -27,9 +27,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
-
 (defcustom case-replace t
   "*Non-nil means `query-replace' should preserve case in replacements."
   :type 'boolean
@@ -449,7 +446,9 @@ end of the buffer."
     map)
   "Keymap for `occur-mode'.")
 
-(defvar occur-revert-properties nil)
+(defvar occur-revert-arguments nil
+  "Arguments to pass to `occur-1' to revert an Occur mode buffer.
+See `occur-revert-function'.")
 
 (put 'occur-mode 'mode-class 'special)
 (defun occur-mode ()
@@ -470,65 +469,63 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 	     (font-lock-unfontify-region-function . occur-unfontify-region-function)))
   (setq revert-buffer-function 'occur-revert-function)
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
-  (make-local-variable 'occur-revert-properties)
+  (make-local-variable 'occur-revert-arguments)
   (run-hooks 'occur-mode-hook))
 
 (defun occur-revert-function (ignore1 ignore2)
-  "Handle `revert-buffer' for *Occur* buffers."
-  (apply 'occur-1 occur-revert-properties))
+  "Handle `revert-buffer' for Occur mode buffers."
+  (apply 'occur-1 occur-revert-arguments))
 
 (defun occur-mode-mouse-goto (event)
   "In Occur mode, go to the occurrence whose line you click on."
   (interactive "e")
-  (let ((buffer nil)
-	(pos nil))
+  (let (pos)
     (save-excursion
       (set-buffer (window-buffer (posn-window (event-end event))))
       (save-excursion
 	(goto-char (posn-point (event-end event)))
-	(let ((props (occur-mode-find-occurrence)))
-	  (setq buffer (car props))
-	  (setq pos (cdr props)))))
-    (pop-to-buffer buffer)
-    (goto-char (marker-position pos))))
+	(setq pos (occur-mode-find-occurrence))))
+    (pop-to-buffer (marker-buffer pos))
+    (goto-char pos)))
 
 (defun occur-mode-find-occurrence ()
-  (let ((props (get-text-property (point) 'occur-target)))
-    (unless props
+  (let ((pos (get-text-property (point) 'occur-target)))
+    (unless pos
       (error "No occurrence on this line"))
-    (unless (buffer-live-p (car props))
-      (error "Buffer in which occurrence was found is deleted"))
-    props))
+    (unless (buffer-live-p (marker-buffer pos))
+      (error "Buffer for this occurrence was killed"))
+    pos))
 
 (defun occur-mode-goto-occurrence ()
   "Go to the occurrence the current line describes."
   (interactive)
-  (let ((target (occur-mode-find-occurrence)))
-    (pop-to-buffer (car target))
-    (goto-char (marker-position (cdr target)))))
+  (let ((pos (occur-mode-find-occurrence)))
+    (pop-to-buffer (marker-buffer pos))
+    (goto-char pos)))
 
 (defun occur-mode-goto-occurrence-other-window ()
   "Go to the occurrence the current line describes, in another window."
   (interactive)
-  (let ((target (occur-mode-find-occurrence)))
-    (switch-to-buffer-other-window (car target))
-    (goto-char (marker-position (cdr target)))))
+  (let ((pos (occur-mode-find-occurrence)))
+    (switch-to-buffer-other-window (marker-buffer pos))
+    (goto-char pos)))
 
 (defun occur-mode-display-occurrence ()
   "Display in another window the occurrence the current line describes."
   (interactive)
-  (let ((target (occur-mode-find-occurrence))
+  (let ((pos (occur-mode-find-occurrence))
+	window
+	;; Bind these to ensure `display-buffer' puts it in another window.
 	same-window-buffer-names
-	same-window-regexps
-	window)
-    (setq window (display-buffer (car target)))
+	same-window-regexps)
+    (setq window (display-buffer (marker-buffer pos)))
     ;; This is the way to set point in the proper window.
     (save-selected-window
       (select-window window)
-      (goto-char (marker-position (cdr target))))))
+      (goto-char pos))))
 
 (defun occur-next (&optional n)
-  "Move to the Nth (default 1) next match in the *Occur* buffer."
+  "Move to the Nth (default 1) next match in an Occur mode buffer."
   (interactive "p")
   (if (not n) (setq n 1))
   (let ((r))
@@ -542,7 +539,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
       (setq n (1- n)))))
 
 (defun occur-prev (&optional n)
-  "Move to the Nth (default 1) previous match in the *Occur* buffer."
+  "Move to the Nth (default 1) previous match in an Occur mode buffer."
   (interactive "p")
   (if (not n) (setq n 1))
   (let ((r))
@@ -587,9 +584,7 @@ If the value is nil, don't highlight the buffer names specially."
 		      (if forwardp
 			  (eobp)
 			(bobp))))
-	(if forwardp
-	    (decf count)
-	  (incf count))
+	(setq count (+ count (if forwardp 1 -1)))
 	(push
 	 (funcall (if no-props
 		      #'buffer-substring-no-properties
@@ -701,125 +696,121 @@ See also `multi-occur'."
 	(if (> count 0)
 	    (display-buffer occur-buf)
 	  (kill-buffer occur-buf)))
-      (setq occur-revert-properties (list regexp nlines bufs)
+      (setq occur-revert-arguments (list regexp nlines bufs)
 	    buffer-read-only t))))
 
-;; Most of these are macros becuase if we used `flet', it wouldn't
-;; create a closure, so things would blow up at run time.  Ugh. :(
-(macrolet ((insert-get-point (obj)
-	     `(progn
-		(insert ,obj)
-		(point)))
-	   (add-prefix (lines)
-	     `(mapcar
-		 #'(lambda (line)
-		     (concat "      :" line "\n"))
-		 ,lines)))
-  (defun occur-engine (regexp buffers out-buf nlines case-fold-search
-			      title-face prefix-face match-face keep-props)
-    (with-current-buffer out-buf
-      (setq buffer-read-only nil)
-      (let ((globalcount 0))
-	;; Map over all the buffers
-	(dolist (buf buffers)
-	  (when (buffer-live-p buf)
-	    (let ((c 0)	;; count of matched lines
-		  (l 1)	;; line count
-		  (matchbeg 0)
-		  (matchend 0)
-		  (origpt nil)
-		  (begpt nil)
-		  (endpt nil)
-		  (marker nil)
-		  (curstring "")
-		  (headerpt (with-current-buffer out-buf (point))))
+(defun occur-engine-add-prefix (lines)
+  (mapcar
+   #'(lambda (line)
+       (concat "      :" line "\n"))
+   lines))
+
+(defun occur-engine (regexp buffers out-buf nlines case-fold-search
+			    title-face prefix-face match-face keep-props)
+  (with-current-buffer out-buf
+    (setq buffer-read-only nil)
+    (let ((globalcount 0))
+      ;; Map over all the buffers
+      (dolist (buf buffers)
+	(when (buffer-live-p buf)
+	  (let ((matches 0)	;; count of matched lines
+		(lines 1)	;; line count
+		(matchbeg 0)
+		(matchend 0)
+		(origpt nil)
+		(begpt nil)
+		(endpt nil)
+		(marker nil)
+		(curstring "")
+		(headerpt (with-current-buffer out-buf (point))))
+	    (save-excursion
+	      (set-buffer buf)
 	      (save-excursion
-		(set-buffer buf)
-		(save-excursion
-		  (goto-char (point-min)) ;; begin searching in the buffer
-		  (while (not (eobp))
-		    (setq origpt (point))
-		    (when (setq endpt (re-search-forward regexp nil t))
-			(incf c) ;; increment match count
-			(incf globalcount)
-			(setq matchbeg (match-beginning 0)
-			      matchend (match-end 0))
-			(setq begpt (save-excursion
-				      (goto-char matchbeg)
-				      (line-beginning-position)))
-			(incf l (1- (count-lines origpt endpt)))
-			(setq marker (make-marker))
-			(set-marker marker matchbeg)
-			(setq curstring (buffer-substring begpt
-					 (line-end-position)))
-			;; Depropertize the string, and maybe
-			;; highlight the matches
-			(let ((len (length curstring))
-				      (start 0))
-				  (unless keep-props
-				    (set-text-properties 0 len nil curstring))
-				  (while (and (< start len)
-					      (string-match regexp curstring start))
-				    (add-text-properties (match-beginning 0)
-							 (match-end 0)
-							 (append
-							  '(occur-match t)
-							  (when match-face
-							    `(face ,match-face)))
-							 curstring)
-				    (setq start (match-end 0))))
-			;; Generate the string to insert for this match
-			(let* ((out-line
-				(concat
-				 (apply #'propertize (format "%6d:" l)
-					(append
-					 (when prefix-face
-					   `(face prefix-face))
-					 '(occur-prefix t)))
-				 curstring
-				 "\n"))
-			       (data
-				(if (= nlines 0)
-				    ;; The simple display style
-				    out-line
-				 ;; The complex multi-line display
-				 ;; style.  Generate a list of lines,
-				 ;; concatenate them all together.
-				 (apply #'concat
-					(nconc
-					 (add-prefix (nreverse (cdr (occur-accumulate-lines (- (1+ nlines)) t))))
-					 (list out-line)
-					 (add-prefix (cdr (occur-accumulate-lines (1+ nlines) t))))))))
-			  ;; Actually insert the match display data
-			  (with-current-buffer out-buf
-			    (let ((beg (point))
-				  (end (insert-get-point data)))
-			      (unless (= nlines 0)
-				(insert-get-point "-------\n"))
-			      (add-text-properties
-			       beg (1- end)
-			       `(occur-target ,(cons buf marker)
-					      mouse-face highlight help-echo
-					      "mouse-2: go to this occurrence")))))
-			(goto-char endpt))
-		    (incf l)
-		    ;; On to the next match...
-		    (forward-line 1))))
-	      (when (not (zerop c)) ;; is the count zero?
-		(with-current-buffer out-buf
-		  (goto-char headerpt)
-		  (let ((beg (point))
-			(end (insert-get-point
-			      (format "%d lines matching \"%s\" in buffer: %s\n"
-				      c regexp (buffer-name buf)))))
-		    (add-text-properties beg end
-					 (append
-					  (when title-face
-					    `(face ,title-face))
-					  `(occur-title ,buf))))
-		  (goto-char (point-min)))))))
-	;; Return the number of matches
-	globalcount))))
+		(goto-char (point-min)) ;; begin searching in the buffer
+		(while (not (eobp))
+		  (setq origpt (point))
+		  (when (setq endpt (re-search-forward regexp nil t))
+		    (setq matches (1+ matches)) ;; increment match count
+		    (setq globalcount (1+ globalcount))
+		    (setq matchbeg (match-beginning 0)
+			  matchend (match-end 0))
+		    (setq begpt (save-excursion
+				  (goto-char matchbeg)
+				  (line-beginning-position)))
+		    (setq lines (+ lines (1- (count-lines origpt endpt))))
+		    (setq marker (make-marker))
+		    (set-marker marker matchbeg)
+		    (setq curstring (buffer-substring begpt
+						      (line-end-position)))
+		    ;; Depropertize the string, and maybe
+		    ;; highlight the matches
+		    (let ((len (length curstring))
+			  (start 0))
+		      (unless keep-props
+			(set-text-properties 0 len nil curstring))
+		      (while (and (< start len)
+				  (string-match regexp curstring start))
+			(add-text-properties (match-beginning 0)
+					     (match-end 0)
+					     (append
+					      '(occur-match t)
+					      (when match-face
+						`(face ,match-face)))
+					     curstring)
+			(setq start (match-end 0))))
+		    ;; Generate the string to insert for this match
+		    (let* ((out-line
+			    (concat
+			     (apply #'propertize (format "%6d:" lines)
+				    (append
+				     (when prefix-face
+				       `(face prefix-face))
+				     '(occur-prefix t)))
+			     curstring
+			     "\n"))
+			   (data
+			    (if (= nlines 0)
+				;; The simple display style
+				out-line
+			      ;; The complex multi-line display
+			      ;; style.  Generate a list of lines,
+			      ;; concatenate them all together.
+			      (apply #'concat
+				     (nconc
+				      (occur-engine-add-prefix (nreverse (cdr (occur-accumulate-lines (- (1+ nlines)) t))))
+				      (list out-line)
+				      (occur-engine-add-prefix (cdr (occur-accumulate-lines (1+ nlines) t))))))))
+		      ;; Actually insert the match display data
+		      (with-current-buffer out-buf
+			(let ((beg (point))
+			      (end (progn (insert data) (point))))
+			  (unless (= nlines 0)
+			    (insert "-------\n"))
+			  (add-text-properties
+			   beg (1- end)
+			   `(occur-target ,marker
+					  mouse-face highlight help-echo
+					  "mouse-2: go to this occurrence")))))
+		    (goto-char endpt))
+		  (setq lines (1+ lines))
+		  ;; On to the next match...
+		  (forward-line 1))))
+	    (when (not (zerop matches)) ;; is the count zero?
+	      (with-current-buffer out-buf
+		(goto-char headerpt)
+		(let ((beg (point))
+		      end)
+		  (insert (format "%d lines matching \"%s\" in buffer: %s\n"
+				  matches regexp (buffer-name buf)))
+		  (setq end (point))
+		  (add-text-properties beg end
+				       (append
+					(when title-face
+					  `(face ,title-face))
+					`(occur-title ,buf))))
+		(goto-char (point-min)))))))
+      ;; Return the number of matches
+      globalcount)))
 
 (defun occur-fontify-on-property (prop face beg end)
   (let ((prop-beg (or (and (get-text-property (point) prop) (point))
