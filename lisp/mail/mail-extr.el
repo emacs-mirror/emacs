@@ -26,15 +26,6 @@
 
 ;;; Commentary:
 
-;;; This file has been censored by the Communications Decency Act.
-;;; That law was passed under the guise of a ban on pornography, but
-;;; it bans far more than that.  This file did not contain pornography,
-;;; but it was censored nonetheless.
-
-;;; For information on US government censorship of the Internet, and
-;;; what you can do to bring back freedom of the press, see the web
-;;; site http://www.vtw.org/
-
 ;; The entry point of this code is
 ;;
 ;;    mail-extract-address-components: (address)
@@ -1317,9 +1308,9 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 		   (cond
 		    
 		    ;; Handle X.400 addresses encoded in RFC-822.
-		    ;; *** This has to handle the case where it is
+		    ;; *** Shit!  This has to handle the case where it is
 		    ;; *** embedded in a quote too!
-		    ;; *** The input is being broken up into atoms
+		    ;; *** Shit!  The input is being broken up into atoms
 		    ;; *** by periods!
 		    ((looking-at mail-extr-x400-encoded-address-pattern)
 		     
@@ -1456,6 +1447,33 @@ If ADDRESS contains more than one RFC-822 address, only the first is
 	)
     (save-excursion
       (set-syntax-table mail-extr-address-text-syntax-table)
+
+      ;; Get rid of comments.
+      (goto-char (point-min))
+      (while (not (eobp))
+	;; Initialize for this iteration of the loop.
+	(skip-chars-forward "^({[\"'`")
+	(let ((cbeg (point)))
+	  (set-syntax-table mail-extr-address-text-comment-syntax-table)
+	  (cond ((memq (following-char) '(?\' ?\`))
+		 (search-forward "'" nil t
+				 (if (eq ?\' (following-char)) 2 1)))
+		(t
+		 (or (mail-extr-safe-move-sexp 1)
+		     (goto-char (point-max)))))
+	  (set-syntax-table mail-extr-address-text-syntax-table)
+	  (when (eq (char-after cbeg) ?\()
+	    ;; Delete the comment itself.
+	    (delete-region cbeg (point))
+	    ;; Canonicalize whitespace where the comment was.
+	    (skip-chars-backward " \t")
+	    (if (looking-at "\\([ \t]+$\\|[ \t]+,\\)")
+		(replace-match "")
+	      (setq cbeg (point))
+	      (skip-chars-forward " \t")
+	      (if (bobp)
+		  (delete-region (point) cbeg)
+		(just-one-space))))))
       
       ;; This was moved above.
       ;; Fix . used as space
