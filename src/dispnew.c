@@ -6256,18 +6256,29 @@ sit_for (sec, usec, reading, display, initial_display)
 DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
        doc: /* Perform redisplay, then wait for SECONDS seconds or until input is available.
 SECONDS may be a floating-point value, meaning that you can wait for a
-fraction of a second.  Optional second arg MILLISECONDS specifies an
-additional wait period, in milliseconds; this may be useful if your
-Emacs was built without floating point support.
+fraction of a second.
 \(Not all operating systems support waiting for a fraction of a second.)
-Optional third arg NODISP non-nil means don't redisplay, just wait for input.
+Optional arg NODISP non-nil means don't redisplay, just wait for input.
 Redisplay is preempted as always if input arrives, and does not happen
 if input is available before it starts.
-Value is t if waited the full time with no input arriving.  */)
+Value is t if waited the full time with no input arriving.
+
+An obsolete but still supported form is
+\(sit-for SECONDS &optional MILLISECONDS NODISP)
+Where the optional arg MILLISECONDS specifies an additional wait period,
+in milliseconds; this was useful when Emacs was built without
+floating point support.
+usage: (sit-for SECONDS &optional NODISP) */)
      (seconds, milliseconds, nodisp)
      Lisp_Object seconds, milliseconds, nodisp;
 {
   int sec, usec;
+
+  if (NILP (nodisp) && !NUMBERP (milliseconds))
+    { /* New style.  */
+      nodisp = milliseconds;
+      milliseconds = Qnil;
+    }
 
   if (NILP (milliseconds))
     XSETINT (milliseconds, 0);
