@@ -9485,13 +9485,11 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       y0 = it.current_y;
       move_it_to (&it, PT, 0, it.last_visible_y, -1,
 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
-      
-      /* With a scroll_margin of 0, scroll_margin_pos is at the window
-	 end, which is one line below the window.  The iterator's
-	 current_y will be same as y0 in that case, but we have to
-	 scroll a line to make PT visible.  That's the reason why 1 is
-	 added below.  */
-      dy = 1 + it.current_y - y0;
+
+      /* To make point visible, we have to move the window start
+	 down so that the line the cursor is in is visible, which
+	 means we have to add in the height of the cursor line.  */
+      dy = line_bottom_y (&it) - y0;
       
       if (dy > scroll_max)
 	return SCROLLING_FAILED;
