@@ -2973,9 +2973,16 @@ buffer that is about to change is always the current buffer.
 This variable holds a list of a functions to call after any buffer
 modification.  Each function receives three arguments: the beginning and
 end of the region just changed, and the length of the text that existed
-before the change.  (To get the current length, subtract the region
-beginning from the region end.)  All three arguments are integers.  The
-buffer that's about to change is always the current buffer.
+before the change.  All three arguments are integers.  The buffer that's
+about to change is always the current buffer.
+
+The length of the old text is measured in bytes; it is the difference
+between the buffer positions before and after that text, before the
+change.  As for the changed text, its length in bytes is simply the
+difference between the first two arguments.  If you want the length
+in @emph{characters} of the text before the change, you should use
+a @code{before-change-functions} function that calls @code{chars-in-region}
+(@pxref{Chars and Bytes}).
 @end defvar
 
 @defvar before-change-function
