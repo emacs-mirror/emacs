@@ -182,10 +182,9 @@ shell buffer.
 
 This is a fine thing to set in your `.emacs' file.")
 
-(defvar shell-command-regexp "\\((.*)\\|[^;&|]\\)+"
-  "*Regexp to match shell commands.
-Elements of pipes are considered as separate commands, forks and redirections
-as part of one command.")
+(defvar shell-command-regexp "[^;&|\n]+"
+  "*Regexp to match a single command within a pipeline.
+This is used for directory tracking and does not do a perfect job.")
 
 (defvar shell-completion-execonly t
   "*If non-nil, use executable files only for completion candidates.
