@@ -184,6 +184,8 @@ can be found:
   . libtiff for TIFF: http://www.libtiff.org/
   . libungif for GIF: 
       http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml
+      Ensure you get version 4.1.0b1 or higher of libungif -- a bug in
+      4.1.0 can crash Emacs.
 
 Emacs will configure itself to build with these libraries if the
 `configure' script finds them on your system, unless you supply the
