@@ -918,7 +918,7 @@ Returns t for rescan and otherwise an element or subelement of INDEX-ALIST."
 		(stringp (nth (1- (length position)) position)))
 	   (let ((final menu))
 	     (while position
-	       (setq final (assoc (car position) final))
+	       (setq final (assq (car position) final))
 	       (setq position (cdr position)))
              (or (string= (car final) (car imenu--rescan-item))
                  (nthcdr 3 final))))
