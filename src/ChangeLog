@@ -1,3 +1,12 @@
+2004-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_pattern_regexp): Cancel my previous change;
+	don't pay attention to '\' before '*'.
+	(fontset_pattern_regexp): Change the meaning of the second arg.
+	(Fnew_fontset): Call fs_query_fontset, not Fquery_fontset.
+	(check_fontset_name): Try NAME as literal at first, and if it
+	failes, try NAME as pattern.
+
 2004-11-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* emacs.c (Fdump_emacs): Only output warning on GNU/Linux.
