@@ -1,3 +1,10 @@
+2004-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-current-stack-level): New variable.
+	(gdb-info-frames-custom, gdb-frame-handler): Use it to find
+	current frame (in case of recursive calls).
+	(gdb-show-changed-values): Add :version keyword.
+
 2004-11-08  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (syntax-after): Doc fix.
