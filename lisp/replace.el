@@ -28,7 +28,7 @@
 ;;; Code:
 
 (defcustom case-replace t
-  "*Non-nil means query-replace should preserve case in replacements."
+  "*Non-nil means `query-replace' should preserve case in replacements."
   :type 'boolean
   :group 'matching)
 
@@ -39,7 +39,7 @@
 That becomes the \"string to replace\".")
 
 (defcustom query-replace-from-history-variable 'query-replace-history
-  "History list to use for the FROM argument of query-replace commands.
+  "History list to use for the FROM argument of `query-replace' commands.
 The value of this variable should be a symbol; that symbol
 is used as a variable to hold a history list for the strings
 or patterns to be replaced."
@@ -48,7 +48,7 @@ or patterns to be replaced."
   :version "20.3")
 
 (defcustom query-replace-to-history-variable 'query-replace-history
-  "History list to use for the TO argument of query-replace commands.
+  "History list to use for the TO argument of `query-replace' commands.
 The value of this variable should be a symbol; that symbol
 is used as a variable to hold a history list for replacement
 strings or patterns."
@@ -296,9 +296,10 @@ Prompt for a regexp with PROMPT.
 
 Value is a list (REGEXP START END).
 
-If in Transient Mark node, and the mark is active, START is the
-start of the region, and end is a marker for the end of the region.
-Otherwise, START is the current point, and END is `point-max-marker'."
+If in Transient Mark mode, and the mark is active, START is the
+start of the region, and END is a marker for the end of the region.
+Otherwise, START is the current point, and END is the value of
+function `point-max-marker'."
   (let ((regexp (read-from-minibuffer prompt nil nil nil
 				      'regexp-history nil t))
 	start end)
@@ -444,7 +445,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (make-local-variable 'occur-command-arguments))
 
 (defun occur-revert-function (ignore1 ignore2)
-  "Handle revert-buffer for *Occur* buffers."
+  "Handle `revert-buffer' for *Occur* buffers."
   (let ((args occur-command-arguments ))
     (save-excursion
       (set-buffer occur-buffer)
@@ -774,7 +775,7 @@ C-l to clear the screen, redisplay, and offer same replacement again,
 ! to replace all remaining matches with no more questions,
 ^ to move point back to previous match,
 E to edit the replacement string"
-  "Help message while in query-replace")
+  "Help message while in `query-replace'.")
 
 (defvar query-replace-map (make-sparse-keymap)
   "Keymap that defines the responses to questions in `query-replace'.
