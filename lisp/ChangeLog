@@ -1,3 +1,53 @@
+2004-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el (bibtex-mark-active)
+	(bibtex-run-with-idle-timer): Move the `if' inside the defun.
+
+2004-09-10  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-autokey-titleword-ignore): Regexp is
+	used in a case insensitive environment.
+	(bibtex-mode-map): Rearrange order of menus.
+	(bibtex-quoted-string-re): Obsolete.
+	(bibtex-complete-key-cleanup): Variable replaced by new function.
+	(bibtex-font-lock-keywords): Use backquotes.
+	(bibtex-font-lock-url-regexp): New internal variable.
+	(bibtex-name-in-field): New optional arg remove-opt-alt to remove
+	"OPT" and "ALT".
+	(bibtex-insert-current-kill, bibtex-make-field)
+	(bibtex-prepare-new-entry, bibtex-yank-pop, bibtex-String): Use unless.
+	(bibtex-parse-field-text): Simplify.
+	(bibtex-string=): New helper function.
+	(bibtex-member-of-regexp): Merge with bibtex-autokey-get-title.
+	(bibtex-map-entries): Use bibtex-string=.
+	(bibtex-search-entry): Use not.
+	(bibtex-enclosing-field): Fix docstring.
+	(bibtex-assoc-regexp): Obsolete.
+	(bibtex-format-entry): Use assoc-string and bibtex-string=.
+	(bibtex-autokey-get-names): Handle empty name field.
+	(bibtex-parse-strings): Use assoc-string and unless.
+	(bibtex-complete-string-cleanup): Expansion list is passed as an arg.
+	Use assoc-string.
+	(bibtex-pop): Simplify.
+	(bibtex-mode): Set font-lock-extra-managed-props.
+	(bibtex-entry-update): Use assoc-string.
+	(bibtex-parse-entry): Remove "OPT" and "ALT" from FIELD.
+	(bibtex-autofill-entry): Use bibtex-string=.
+	(bibtex-print-help-message): Simplify.
+	(bibtex-find-entry): New optional arg START.
+	(bibtex-validate): Use bibtex-string= and assoc-string.
+	Do not call obsolete function compilation-parse-errors.
+	(bibtex-remove-delimiters): Only remove delimiters if present.
+	(bibtex-copy-entry-as-kill): Add docstring.
+	(bibtex-clean-entry): Use bibtex-string=. Handle empty keys.
+	Detect duplicate keys if bibtex-maintain-sorted-entries is nil.
+	(bibtex-complete): Use bibtex-predefined-month-strings,
+	bibtex-string=, and new function bibtex-complete-key-cleanup.
+	(bibtex-generate-url-list): New variable.
+	(bibtex-url): New command bound to C-c C-l and mouse-2.
+	(bibtex-url-map): New local keymap for bibtex-url-mouse.
+	(bibtex-font-lock-url): New function.
+
 2004-09-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/grep.el (grep-mode): Remove unnecessary autoload.
