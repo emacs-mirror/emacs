@@ -2554,12 +2554,11 @@ It is saved for when this flag is not set.")
 
 (defun gud-reset ()
   (dolist (buffer (buffer-list))
-    (if (not (eq buffer gud-comint-buffer))
-	(save-excursion
-	  (set-buffer buffer)
-	  (when gud-minor-mode
-	    (setq gud-minor-mode nil)
-	    (kill-local-variable 'tool-bar-map))))))
+    (unless (eq buffer gud-comint-buffer)
+      (with-current-buffer buffer
+	(when gud-minor-mode
+	  (setq gud-minor-mode nil)
+	  (kill-local-variable 'tool-bar-map))))))
 
 (defun gud-display-frame ()
   "Find and obey the last filename-and-line marker from the debugger.
