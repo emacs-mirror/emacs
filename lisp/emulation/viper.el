@@ -5033,7 +5033,7 @@ Type any key to continue... ")
 	      level-changed t)
 	(insert "
 Please specify your level of familiarity with the venomous VI PERil
-(and the VI Plan for Emacs Rescue).
+\(and the VI Plan for Emacs Rescue).
 You can change it at any time by typing `M-x vip-set-expert-level RET'
 	
  1 -- BEGINNER: Almost all Emacs features are suppressed.
