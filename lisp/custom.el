@@ -135,7 +135,7 @@ not the default value itself."
 		((eq keyword :require)
 		 (setq requests (cons value requests)))
 		((eq keyword :type)
-		 (put symbol 'custom-type value))
+		 (put symbol 'custom-type (purecopy value)))
 		((eq keyword :options)
 		 (if (get symbol 'custom-options)
 		     ;; Slow safe code to avoid duplicates.
