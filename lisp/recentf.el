@@ -8,7 +8,7 @@
 ;; Maintainer: FSF
 ;; Keywords: files
 
-(defconst recentf-version "$Revision: 1.26 $")
+(defconst recentf-version "$Revision: 1.27 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -239,6 +239,12 @@ cleanup the list."
          (when (featurep 'recentf)
            ;; Unavailable until recentf has been loaded.
            (recentf-auto-cleanup))))
+
+(defcustom recentf-initialize-file-name-history t
+  "*non-nil means to initialize `file-name-history' with the recent list.
+If `file-name-history' is not empty, do nothing."
+  :group 'recentf
+  :type  'boolean)
 
 (defcustom recentf-load-hook nil
    "*Normal hook run at end of loading the `recentf' package."
@@ -1143,11 +1149,17 @@ Write data into the file specified by `recentf-save-file'."
 
 (defun recentf-load-list ()
   "Load a previously saved recent list.
-Read data from the file specified by `recentf-save-file'."
+Read data from the file specified by `recentf-save-file'.
+When `recentf-initialize-file-name-history' is non-nil, initialize an
+empty `file-name-history' with the recent list."
   (interactive)
   (let ((file (expand-file-name recentf-save-file)))
     (when (file-readable-p file)
-      (load-file file))))
+      (load-file file)
+      (and recentf-initialize-file-name-history
+           (not file-name-history)
+           (setq file-name-history (mapcar 'abbreviate-file-name
+                                           recentf-list))))))
 
 (defun recentf-cleanup ()
   "Remove all excluded or non-readable files from the recent list."
