@@ -762,10 +762,11 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 	     (message "Cannot read history file %s"
 		      comint-input-ring-file-name)))
 	(t
-	 (let ((history-buf (get-buffer-create " *temp*"))
-	       (file comint-input-ring-file-name)
-	       (count 0)
-	       (ring (make-ring comint-input-ring-size)))
+	 (let* ((history-buf (get-buffer-create " *temp*"))
+		(file comint-input-ring-file-name)
+		(count 0)
+		(size comint-input-ring-size)
+		(ring (make-ring size)))
 	   (unwind-protect
 	       (save-excursion
 		 (set-buffer history-buf)
@@ -775,7 +776,7 @@ See also `comint-input-ignoredups' and `comint-write-input-ring'."
 		 ;; Save restriction in case file is already visited...
 		 ;; Watch for those date stamps in history files!
 		 (goto-char (point-max))
-		 (while (and (< count comint-input-ring-size)
+		 (while (and (< count size)
 			     (re-search-backward "^[ \t]*\\([^#\n].*\\)[ \t]*$"
 						 nil t))
 	       (let (start end history)
