@@ -370,6 +370,7 @@ insert_1 (string, length, inherit, prepare)
   GPT += length;
   ZV += length;
   Z += length;
+  adjust_overlays_for_insert (PT, length);
   adjust_point (length);
 
 #ifdef USE_TEXT_PROPERTIES
@@ -436,6 +437,7 @@ insert_from_string_1 (string, pos, length, inherit)
   GPT += length;
   ZV += length;
   Z += length;
+  adjust_overlays_for_insert (PT, length);
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   graft_intervals_into_buffer (XSTRING (string)->intervals, PT, length,
@@ -510,6 +512,7 @@ insert_from_buffer_1 (buf, pos, length, inherit)
   GPT += length;
   ZV += length;
   Z += length;
+  adjust_overlays_for_insert (PT, length);
   adjust_point (length);
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
@@ -635,6 +638,10 @@ del_range_1 (from, to, prepare)
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.  */
   adjust_markers (to + GAP_SIZE, to + GAP_SIZE, - numdel - GAP_SIZE);
+
+  /* Adjust the overlay center as needed.  This must be done after
+   adjusting the markers that bound the overlays.  */
+  adjust_overlays_for_delete (from, numdel);
 
   GAP_SIZE += numdel;
   ZV -= numdel;
