@@ -78,7 +78,7 @@ The default status is as follows.
      coding-category-big5
      coding-category-binary))
 
-  (setq-default buffer-file-coding-system nil)
+  (set-default-coding-systems nil)
   (set-terminal-coding-system-internal nil)
   (set-keyboard-coding-system-internal nil)
 
