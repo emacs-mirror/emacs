@@ -1,3 +1,8 @@
+2000-10-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (select-safe-coding-system): If FROM
+	is string, show it in *Warning* buffer.
+
 2000-10-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (normal-top-level): Use display-popup-menus-p instead
@@ -24,6 +29,7 @@
 	(cperl-invalid-face): Revert last change.
 	(cperl-init-faces): Quote cperl-invalid-face.
 
+>>>>>>> 1.1252
 2000-10-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* startup.el (fancy-splash-text): Remove superfluous quote.
