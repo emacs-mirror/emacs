@@ -210,6 +210,7 @@ extern int interrupt_input;
 extern int command_loop_level;
 
 extern int minibuffer_auto_raise;
+extern Lisp_Object Vminibuffer_list;
 
 extern Lisp_Object Qface;
 extern Lisp_Object Qmode_line, Qmode_line_inactive, Qheader_line;
@@ -10230,8 +10231,9 @@ redisplay_window (window, just_this_one_p)
 	    /* We've already displayed the echo area glyphs in this window.  */
 	    goto finish_scroll_bars;
 	}
-      else if (w != XWINDOW (minibuf_window)
-	       || minibuf_level == 0)
+      else if ((w != XWINDOW (minibuf_window)
+		|| minibuf_level == 0)
+	       && !NILP (Fmemq (w->buffer, Vminibuffer_list)))
 	{
 	  /* W is a mini-buffer window, but it's not the currently
 	     active one, so clear it.  */
