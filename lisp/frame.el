@@ -94,9 +94,21 @@ These supercede the values given in `default-frame-alist'.")
 	;; it has a minibuffer, but let initial-frame-alist omit the
 	;; minibuffer spec.
 	(or (delq terminal-frame (minibuffer-frame-list))
-	    (setq default-minibuffer-frame
-		  (setq frame-initial-frame
-			(new-frame initial-frame-alist))))
+	    (progn
+	      (setq default-minibuffer-frame
+		    (setq frame-initial-frame
+			  (new-frame initial-frame-alist)))
+	      ;; Handle `reverse' as a parameter.
+	      (if (cdr (or (assq 'reverse initial-frame-alist)
+			   (assq 'reverse default-frame-alist)))
+		  (let ((params (frame-parameters frame-initial-frame)))
+		    (modify-frame-parameters
+		     frame-initial-frame
+		     (list (cons 'foreground-color (cdr (assq 'background-color params)))
+			   (cons 'background-color (cdr (assq 'foreground-color params)))
+			   (cons 'mouse-color (cdr (assq 'background-color params)))
+			   (cons 'cursor-color (cdr (assq 'background-color params)))
+			   (cons 'border-color (cdr (assq 'background-color params)))))))))
 
 	;; At this point, we know that we have a frame open, so we 
 	;; can delete the terminal frame.
