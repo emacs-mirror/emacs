@@ -1,7 +1,7 @@
 /* impl.c.amcssth: POOL CLASS AMC STRESS TEST WITH TWO THREADS
  *
- * $HopeName: MMsrc!amcssth.c(trunk.2) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!amcssth.c(trunk.3) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .posix: This is Posix only.
  */
@@ -44,12 +44,17 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 
 static mps_pool_t pool;
-static mps_ap_t ap;
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
+mps_arena_t arena;
+mps_fmt_t format;
+mps_chain_t chain;
+mps_root_t exactRoot, ambigRoot;
+unsigned long objs = 0;
 
-static mps_addr_t make(void)
+
+static mps_addr_t make(mps_ap_t ap)
 {
   size_t length = rnd() % (2*avLEN);
   size_t size = (length+2) * sizeof(mps_word_t);
@@ -58,10 +63,10 @@ static mps_addr_t make(void)
 
   do {
     MPS_RESERVE_BLOCK(res, p, ap, size);
-    if(res)
+    if (res)
       die(res, "MPS_RESERVE_BLOCK");
     res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
-    if(res)
+    if (res)
       die(res, "dylan_init");
   } while(!mps_commit(ap, p, size));
 
@@ -77,32 +82,17 @@ static void test_stepper(mps_addr_t object, void *p, size_t s)
 }
 
 
-/* test -- the body of the test */
+/* init -- initialize pool and roots */
 
-static void *test(void *arg, size_t s)
+static void init(void)
 {
-  mps_arena_t arena;
-  mps_fmt_t format;
-  mps_chain_t chain;
-  mps_root_t exactRoot, ambigRoot;
-  unsigned long objs; size_t i;
-  mps_word_t collections, rampSwitch;
-  mps_alloc_pattern_t ramp = mps_alloc_pattern_ramp();
-  int ramping;
-  mps_ap_t busy_ap;
-  mps_addr_t busy_init;
-
-  arena = (mps_arena_t)arg;
-  (void)s; /* unused */
+  size_t i;
 
   die(dylan_fmt(&format, arena), "fmt_create");
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
   die(mps_pool_create(&pool, arena, mps_class_amc(), format, chain),
       "pool_create(amc)");
-
-  die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
-  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate 2");
 
   for(i = 0; i < exactRootsCOUNT; ++i)
     exactRoots[i] = objNULL;
@@ -118,6 +108,63 @@ static void *test(void *arg, size_t s)
                             MPS_RANK_AMBIG, (mps_rm_t)0,
                             &ambigRoots[0], ambigRootsCOUNT),
       "root_create_table(ambig)");
+}
+
+
+/* finish -- finish pool and roots */
+
+static void finish(void)
+{
+  mps_root_destroy(exactRoot);
+  mps_root_destroy(ambigRoot);
+  mps_pool_destroy(pool);
+  mps_chain_destroy(chain);
+  mps_fmt_destroy(format);
+}
+
+
+/* churn -- create an object and install into roots */
+
+static void churn(mps_ap_t ap)
+{
+  size_t i;
+  size_t r;
+
+  ++objs;
+  r = (size_t)rnd();
+  if (r & 1) {
+    i = (r >> 1) % exactRootsCOUNT;
+    if (exactRoots[i] != objNULL)
+      cdie(dylan_check(exactRoots[i]), "dying root check");
+    exactRoots[i] = make(ap);
+    if (exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
+      dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
+                  exactRoots, exactRootsCOUNT);
+  } else {
+    i = (r >> 1) % ambigRootsCOUNT;
+    ambigRoots[(ambigRootsCOUNT-1) - i] = make(ap);
+    /* Create random interior pointers */
+    ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
+  }
+}
+
+
+/* test -- the body of the test */
+
+static void *test(void *arg, size_t s)
+{
+  size_t i;
+  mps_word_t collections, rampSwitch;
+  mps_alloc_pattern_t ramp = mps_alloc_pattern_ramp();
+  int ramping;
+  mps_ap_t ap, busy_ap;
+  mps_addr_t busy_init;
+
+  arena = (mps_arena_t)arg;
+  (void)s; /* unused */
+
+  die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate");
+  die(mps_ap_create(&busy_ap, pool, MPS_RANK_EXACT), "BufferCreate 2");
 
   /* create an ap, and leave it busy */
   die(mps_reserve(&busy_init, busy_ap, 64), "mps_reserve busy");
@@ -127,43 +174,42 @@ static void *test(void *arg, size_t s)
   mps_ap_alloc_pattern_begin(ap, ramp);
   mps_ap_alloc_pattern_begin(busy_ap, ramp);
   ramping = 1;
-  objs = 0;
   while(collections < collectionsCOUNT) {
     unsigned long c;
     size_t r;
 
     c = mps_collections(arena);
 
-    if(collections != c) {
+    if (collections != c) {
       collections = c;
       printf("\nCollection %lu, %lu objects.\n",
              c, objs);
       for(r = 0; r < exactRootsCOUNT; ++r)
         cdie(exactRoots[r] == objNULL || dylan_check(exactRoots[r]),
              "all roots check");
-      if(collections == collectionsCOUNT / 2) {
+      if (collections == collectionsCOUNT / 2) {
         unsigned long object_count = 0;
         mps_arena_park(arena);
 	mps_amc_apply(pool, test_stepper, &object_count, 0);
 	mps_arena_release(arena);
 	printf("mps_amc_apply stepped on %lu objects.\n", object_count);
       }
-      if(collections == rampSwitch) {
+      if (collections == rampSwitch) {
         rampSwitch += rampSIZE;
-        if(ramping) {
+        if (ramping) {
           mps_ap_alloc_pattern_end(ap, ramp);
           mps_ap_alloc_pattern_end(busy_ap, ramp);
           /* kill half of the roots */
           for(i = 0; i < exactRootsCOUNT; i += 2) {
-            if(exactRoots[i] != objNULL) {
+            if (exactRoots[i] != objNULL) {
               cdie(dylan_check(exactRoots[i]), "ramp kill check");
               exactRoots[i] = objNULL;
             }
           }
           /* Every other time, switch back immediately. */
-          if(collections & 1) ramping = 0;
+          if (collections & 1) ramping = 0;
         }
-        if(!ramping) {
+        if (!ramping) {
           mps_ap_alloc_pattern_begin(ap, ramp);
           mps_ap_alloc_pattern_begin(busy_ap, ramp);
           ramping = 1;
@@ -171,41 +217,20 @@ static void *test(void *arg, size_t s)
       }
     }
 
-    r = (size_t)rnd();
-    if(r & 1) {
-      i = (r >> 1) % exactRootsCOUNT;
-      if(exactRoots[i] != objNULL)
-        cdie(dylan_check(exactRoots[i]), "dying root check");
-      exactRoots[i] = make();
-      if(exactRoots[(exactRootsCOUNT-1) - i] != objNULL)
-        dylan_write(exactRoots[(exactRootsCOUNT-1) - i],
-                    exactRoots, exactRootsCOUNT);
-    } else {
-      i = (r >> 1) % ambigRootsCOUNT;
-      ambigRoots[(ambigRootsCOUNT-1) - i] = make();
-      /* Create random interior pointers */
-      ambigRoots[i] = (mps_addr_t)((char *)(ambigRoots[i/2]) + 1);
-    }
+    churn(ap);
 
-    if(r % initTestFREQ == 0)
+    if (r % initTestFREQ == 0)
       *(int*)busy_init = -1; /* check that the buffer is still there */
 
-    if(objs % 1024 == 0) {
+    if (objs % 1024 == 0) {
       putchar('.');
       fflush(stdout);
     }
-
-    ++objs;
   }
 
   (void)mps_commit(busy_ap, busy_init, 64);
   mps_ap_destroy(busy_ap);
   mps_ap_destroy(ap);
-  mps_root_destroy(exactRoot);
-  mps_root_destroy(ambigRoot);
-  mps_pool_destroy(pool);
-  mps_chain_destroy(chain);
-  mps_fmt_destroy(format);
 
   return NULL;
 }
@@ -213,17 +238,19 @@ static void *test(void *arg, size_t s)
 
 static void *fooey2(void *arg, size_t s)
 {
-  struct timespec req, rem;
+  mps_ap_t ap;
 
-  req.tv_sec = 10;
-  req.tv_nsec = 0;
-  while(nanosleep(&req, &rem))
-    req = rem;
-  return arg;
+  (void)arg; (void)s; /* unused */
+  die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "BufferCreate(fooey)");
+  while(mps_collections(arena) < collectionsCOUNT) {
+    churn(ap);
+  }
+  mps_ap_destroy(ap);
+  return NULL;
 }
 
 
-static void *fooey(void *arena)
+static void *fooey(void* childIsFinishedReturn)
 {
   void *r;
   mps_thr_t thread;
@@ -232,28 +259,37 @@ static void *fooey(void *arena)
   /* register the thread twice, just to make sure it works */
   die(mps_thread_reg(&thread, (mps_arena_t)arena), "thread_reg");
   die(mps_thread_reg(&thread2, (mps_arena_t)arena), "thread2_reg");
-  mps_tramp(&r, fooey2, (mps_arena_t)arena, 0);
+  mps_tramp(&r, fooey2, NULL, 0);
   mps_thread_dereg(thread);
   mps_thread_dereg(thread2);
+  *(int *)childIsFinishedReturn = 1;
   return r;
 }
 
 
 int main(int argc, char **argv)
 {
-  mps_arena_t arena;
   mps_thr_t thread;
   pthread_t pthread1;
   void *r;
+  int childIsFinished = 0;
 
   randomize(argc, argv);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "arena_create");
+  init();
   die(mps_thread_reg(&thread, arena), "thread_reg");
-  pthread_create(&pthread1, NULL, fooey, (void *)arena);
+  pthread_create(&pthread1, NULL, fooey, (void *)&childIsFinished);
   mps_tramp(&r, test, arena, 0);
   mps_thread_dereg(thread);
+
+  while (!childIsFinished) {
+    struct timespec req = {1, 0};
+    (void)nanosleep(&req, NULL);
+  }
+
+  finish();
   mps_arena_destroy(arena);
 
   fflush(stdout); /* synchronize */
