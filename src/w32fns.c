@@ -142,6 +142,7 @@ Lisp_Object Qicon_type;
 Lisp_Object Qicon_name;
 Lisp_Object Qinternal_border_width;
 Lisp_Object Qleft;
+Lisp_Object Qright;
 Lisp_Object Qmouse_color;
 Lisp_Object Qnone;
 Lisp_Object Qparent_id;
@@ -2075,9 +2076,16 @@ x_set_vertical_scroll_bars (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  if (NILP (arg) != ! FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+  if ((EQ (arg, Qleft) && FRAME_HAS_VERTICAL_SCROLL_BARS_ON_RIGHT (f))
+      || (EQ (arg, Qright) && FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f))
+      || (NILP (arg) && FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+      || (!NILP (arg) && ! FRAME_HAS_VERTICAL_SCROLL_BARS (f)))
     {
-      FRAME_HAS_VERTICAL_SCROLL_BARS (f) = ! NILP (arg);
+      FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = NILP (arg) ?
+	vertical_scroll_bar_none :
+	EQ (Qright, arg)
+	? vertical_scroll_bar_right 
+	: vertical_scroll_bar_left;
 
       /* We set this parameter before creating the window for the
 	 frame, so we can get the geometry right from the start.
@@ -2462,7 +2470,7 @@ x_figure_window_size (f, parms)
   /* Default values if we fall through.
      Actually, if that happens we should get
      window manager prompting.  */
-  f->width = DEFAULT_COLS;
+  SET_FRAME_WIDTH (f, DEFAULT_COLS);
   f->height = DEFAULT_ROWS;
   /* Window managers expect that if program-specified
      positions are not (0,0), they're intentional, not defaults.  */
@@ -2482,7 +2490,7 @@ x_figure_window_size (f, parms)
       if (!EQ (tem1, Qunbound))
 	{
 	  CHECK_NUMBER (tem1, 0);
-	  f->width = XINT (tem1);
+	  SET_FRAME_WIDTH (f, XINT (tem1));
 	}
       if (!NILP (tem2) && !EQ (tem2, Qunbound))
 	window_prompting |= USSize;
@@ -3673,7 +3681,8 @@ This function is an internal primitive--use `make-frame' instead.")
      f->height.  */
   width = f->width;
   height = f->height;
-  f->height = f->width = 0;
+  f->height = 0;
+  SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0);
 
   /* Tell the server what size and position, etc, we want,
@@ -4956,6 +4965,8 @@ syms_of_win32fns ()
   staticpro (&Qinternal_border_width);
   Qleft = intern ("left");
   staticpro (&Qleft);
+  Qright = intern ("right");
+  staticpro (&Qright);
   Qmouse_color = intern ("mouse-color");
   staticpro (&Qmouse_color);
   Qnone = intern ("none");
