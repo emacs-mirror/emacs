@@ -52,7 +52,10 @@ extern POINTER_TYPE *sbrk ();
 #ifdef DOUG_LEA_MALLOC
 
 #include <malloc.h>
+/* malloc.h #defines this as size_t, at least in glibc2.  */
+#ifndef __malloc_size_t
 #define __malloc_size_t int
+#endif
 
 /* Specify maximum number of areas to mmap.  It would be nice to use a
    value that explicitly means "no limit".  */
@@ -63,14 +66,9 @@ extern POINTER_TYPE *sbrk ();
 
 /* The following come from gmalloc.c.  */
 
-#if defined (STDC_HEADERS)
-#include <stddef.h>
 #define	__malloc_size_t		size_t
-#else
-#define	__malloc_size_t		unsigned int
-#endif
 extern __malloc_size_t _bytes_used;
-extern int __malloc_extra_blocks;
+extern __malloc_size_t __malloc_extra_blocks;
 
 #endif /* not DOUG_LEA_MALLOC */
 
@@ -3769,7 +3767,7 @@ mark_image (img)
 {
   mark_object (&img->spec);
   
-  if (!GC_NILP (img->data.lisp_val))
+  if (!NILP (img->data.lisp_val))
     mark_object (&img->data.lisp_val);
 }
 
