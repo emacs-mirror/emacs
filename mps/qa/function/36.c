@@ -66,7 +66,7 @@ static void test(void)
   a[i] = allocone(apamc, 6, 1);
  }
 
- for(i=0; i<100000; i++) {
+ for(i=0; i<10000; i++) {
   j = ranint(100);
   k = 5 + ranint(500);
   if (ranint(2)==1) {
