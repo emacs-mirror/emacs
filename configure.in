@@ -571,11 +571,14 @@ case "${canonical}" in
   mips-sgi-irix3* )
     machine=iris4d opsys=irix3-3
   ;;
-  mips-sgi-irix5* )
+  mips-sgi-irix4* )
+    machine=iris4d opsys=irix4-0
+  ;;
+  mips-sgi-irix5.[01]* )
     machine=iris4d opsys=irix5-0
   ;;
-  mips-sgi-irix4* | mips-sgi-irix* )
-    machine=iris4d opsys=irix4-0
+  mips-sgi-irix5* | mips-sgi-irix* )
+    machine=iris4d opsys=irix5-2
   ;;
 
   ## SONY machines
