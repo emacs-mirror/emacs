@@ -43,6 +43,7 @@ This function returns @code{t} if @var{object} is a process,
 * Input to Processes::       Sending input to an asynchronous subprocess.
 * Signals to Processes::     Stopping, continuing or interrupting
                                an asynchronous subprocess.
+* Query Before Exit::        Whether to query if exiting will kill a process.
 * Output from Processes::    Collecting output from an asynchronous subprocess.
 * Sentinels::                Sentinels run when process run-status changes.
 * Transaction Queues::	     Transaction-based communication with subprocesses.
@@ -481,17 +482,20 @@ Information}).
 @cindex deleting processes
 
   @dfn{Deleting a process} disconnects Emacs immediately from the
-subprocess, and removes it from the list of active processes.  It sends
-a signal to the subprocess to make the subprocess terminate, but this is
-not guaranteed to happen immediately.  The process object itself
-continues to exist as long as other Lisp objects point to it.  The
-process mark continues to point to the same place as before (usually
-into a buffer where output from the process was being inserted).
+subprocess.  Processes are deleted automatically after they terminate,
+but not necessarily right away.  You can delete a process explicitly
+at any time.  If you delete a terminated process explicitly before it
+is deleted automatically, no harm results.  Deletion of a running
+process sends a signal to terminate it and calls the process sentinel
+if it has one.
 
-  You can delete a process explicitly at any time.  Processes are
-deleted automatically after they terminate, but not necessarily right
-away.  If you delete a terminated process explicitly before it is
-deleted automatically, no harm results.
+  @code{get-buffer-process} and @code{process-list} do not remember a
+deleted process, but the process object itself continues to exist as
+long as other Lisp objects point to it.  All the Lisp primitives that
+work on process objects accept deleted processes, but those that do
+I/O or send signals will report an error.  The process mark continues
+to point to the same place as before, usually into a buffer where
+output from the process was being inserted.
 
 @defopt delete-exited-processes
 This variable controls automatic deletion of processes that have
@@ -502,32 +506,19 @@ they exit.
 @end defopt
 
 @defun delete-process name
-This function deletes the process associated with @var{name}, killing it
-with a @code{SIGHUP} signal.  The argument @var{name} may be a process,
-the name of a process, a buffer, or the name of a buffer.
+This function deletes the process associated with @var{name}, killing
+it with a @code{SIGKILL} signal.  The argument @var{name} may be a
+process, the name of a process, a buffer, or the name of a buffer.
+Calling @code{delete-process} on a running process terminates it,
+updates the process status, and runs the sentinel (if any) immediately.
+If the process has already terminated, calling @code{delete-process}
+has no effect on its status, or on the running of its sentinel (which
+will happen sooner or later).
 
 @smallexample
 @group
 (delete-process "*shell*")
      @result{} nil
-@end group
-@end smallexample
-@end defun
-
-@defun process-kill-without-query process &optional do-query
-This function specifies whether Emacs should query the user if
-@var{process} is still running when Emacs is exited.  If @var{do-query}
-is @code{nil}, the process will be deleted silently.
-Otherwise, Emacs will query about killing it.
-
-The value is @code{t} if the process was formerly set up to require
-query, @code{nil} otherwise.  A newly-created process always requires
-query.
-
-@smallexample
-@group
-(process-kill-without-query (get-process "shell"))
-     @result{} t
 @end group
 @end smallexample
 @end defun
@@ -864,6 +855,56 @@ a child of Emacs.  The argument @var{signal} specifies which signal
 to send; it should be an integer.
 @end defun
 
+@node Query Before Exit
+@section Querying Before Exit 
+
+  When Emacs exits, it terminates all its subprocesses by sending them
+the @code{SIGHUP} signal.  Because some subprocesses are doing
+valuable work, Emacs normally asks the user to confirm that it is ok
+to terminate them.  Each process has a query flag which, if
+non-@code{nil}, says that Emacs should ask for confirmation before
+exiting and thus killing that process.  The default for the query flag
+is @code{t}, meaning @emph{do} query.
+
+@tindex process-query-on-exit-flag
+@defun process-query-on-exit-flag process
+This returns the query flag of @var{process}.
+@end defun
+
+@tindex set-process-query-on-exit-flag
+@defun set-process-query-on-exit-flag process flag
+This function sets the query flag of @var{process} to @var{flag}.  It
+returns @var{flag}.
+
+@smallexample
+@group
+;; @r{Don't query about the shell process}
+(set-process-query-on-exit-flag (get-process "shell") nil)
+     @result{} t
+@end group
+@end smallexample
+@end defun
+
+@defun process-kill-without-query process &optional do-query
+This function clears the query flag of @var{process}, so that
+Emacs will not query the user on account of that process.
+
+Actually, the function does more than that: it returns the old value of
+the process's query flag, and sets the query flag to @var{do-query}.
+Please don't use this function to do those things any more---please
+use the newer, cleaner functions @code{process-query-on-exit-flag} and
+@code{set-process-query-on-exit-flag} in all but the simplest cases.
+The only way you should use @code{process-kill-without-query} nowadays
+is like this:
+
+@smallexample
+@group
+;; @r{Don't query about the shell process}
+(process-kill-without-query (get-process "shell"))
+@end group
+@end smallexample
+@end defun
+
 @node Output from Processes
 @section Receiving Output from Processes
 @cindex process output
@@ -974,11 +1015,15 @@ associated with no buffer.
 @end defun
 
 @defun get-buffer-process buffer-or-name
-This function returns the process associated with @var{buffer-or-name}.
-If there are several processes associated with it, then one is chosen.
-(Currently, the one chosen is the one most recently created.)  It is
-usually a bad idea to have more than one process associated with the
-same buffer.
+This function returns a nondeleted process associated with the buffer
+specified by @var{buffer-or-name}.  If there are several processes
+associated with it, this function chooses one (currently, the one most
+recently created, but don't count on that).  Deletion of a process
+(see @code{delete-process}) makes it ineligible for this function to
+return.
+
+It is usually a bad idea to have more than one process associated with
+the same buffer.
 
 @smallexample
 @group
@@ -1197,10 +1242,10 @@ arrived.
   A @dfn{process sentinel} is a function that is called whenever the
 associated process changes status for any reason, including signals
 (whether sent by Emacs or caused by the process's own actions) that
-terminate, stop, or continue the process.  The process sentinel is also
-called if the process exits.  The sentinel receives two arguments: the
-process for which the event occurred, and a string describing the type
-of event.
+terminate, stop, or continue the process.  The process sentinel is
+also called if the process exits.  The sentinel receives two
+arguments: the process for which the event occurred, and a string
+describing the type of event.
 
   The string describing the event looks like one of the following:
 
@@ -1218,14 +1263,22 @@ of event.
 @code{"@var{name-of-signal} (core dumped)\n"}.
 @end itemize
 
-  A sentinel runs only while Emacs is waiting (e.g., for terminal input,
-or for time to elapse, or for process output).  This avoids the timing
-errors that could result from running them at random places in the
-middle of other Lisp programs.  A program can wait, so that sentinels
-will run, by calling @code{sit-for} or @code{sleep-for}
+  A sentinel runs only while Emacs is waiting (e.g., for terminal
+input, or for time to elapse, or for process output).  This avoids the
+timing errors that could result from running them at random places in
+the middle of other Lisp programs.  A program can wait, so that
+sentinels will run, by calling @code{sit-for} or @code{sleep-for}
 (@pxref{Waiting}), or @code{accept-process-output} (@pxref{Accepting
 Output}).  Emacs also allows sentinels to run when the command loop is
-reading input.
+reading input.  @code{delete-process} calls the sentinel when it
+terminates a running process.
+
+  Emacs does not keep a queue of multiple reasons to call the sentinel
+of one process; it records just the current status and the fact that
+there has been a change.  Therefore two changes in status, coming in
+quick succession, can call the sentinel just once.  However, process
+termination will always run the sentinel exactly once.  This is
+because the process status can't change again after termination.
 
   Quitting is normally inhibited within a sentinel---otherwise, the
 effect of typing @kbd{C-g} at command level or to quit a user command
@@ -1254,6 +1307,10 @@ This function associates @var{sentinel} with @var{process}.  If
 @var{sentinel} is @code{nil}, then the process will have no sentinel.
 The default behavior when there is no sentinel is to insert a message in
 the process's buffer when the process status changes.
+
+Changes in process sentinel take effect immediately---if the sentinel
+is slated to be run but has not been called yet, and you specify a new
+sentinel, the eventual call to the sentinel will use the new one.
 
 @smallexample
 @group
