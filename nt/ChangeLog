@@ -1,3 +1,7 @@
+2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Version 21.2 released.
+
 2002-02-18  Jason Rumney  <jasonr@gnu.org>
 
 	* emacs.rc: Define VS_VERSION_INFO if not already.

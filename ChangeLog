@@ -1,4 +1,8 @@
-2002-03-15  Eli Zaretskii  <eliz@gnu.org>
+2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Version 21.2 released.
+
+2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in: Support AIX 5.1.
 

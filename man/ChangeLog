@@ -1,3 +1,9 @@
+2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Version 21.2 released.
+
+	* faq.texi, eshell.texi: Update for the 21.2 release.
+
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (EMACSSOURCES): Update the list of Emacs manual

@@ -1,4 +1,9 @@
+2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Version 21.2 released.
+
 2002-03-12  Francesco Potorti`  <pot@gnu.org>
+
 	* etags.c (Python_functions): Skip spaces at beginning of lines.
 
 2002-02-15  Richard M. Stallman  <rms@gnu.org>

@@ -1,3 +1,7 @@
+2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Version 21.2 released.
+
 2002-03-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calendar/cal-french.el (calendar-goto-french-date): Fix prompt

@@ -1,3 +1,7 @@
+2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Version 21.2 released.
+
 2002-03-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (x_set_toolkit_scroll_bar_thumb, xm_scroll_callback)
