@@ -86,11 +86,12 @@ Movement is forward is ARG is negative."
   (interactive "p")
   (calendar-forward-month (* -12 arg)))
 
-(defun scroll-calendar-left (arg)
+(defun scroll-calendar-left (&optional arg)
   "Scroll the displayed calendar left by ARG months.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
   (interactive "p")
+  (unless arg (setq arg 1))
   (calendar-cursor-to-nearest-date)
   (let ((old-date (calendar-cursor-to-date))
         (today (calendar-current-date)))
@@ -106,12 +107,12 @@ position of the cursor with respect to the calendar as well as possible."
             (t (list month 1 year)))))))
   (run-hooks 'calendar-move-hook))
 
-(defun scroll-calendar-right (arg)
+(defun scroll-calendar-right (&optional arg)
   "Scroll the displayed calendar window right by ARG months.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
   (interactive "p")
-  (scroll-calendar-left (- arg)))
+  (scroll-calendar-left (- (or arg 1))))
 
 (defun scroll-calendar-left-three-months (arg)
   "Scroll the displayed calendar window left by 3*ARG months.
