@@ -12780,24 +12780,38 @@ x_get_font_info (f, font_idx)
 }
 
 
-/* Return a list of names of available fonts matching PATTERN on frame
-   F.  If SIZE is not 0, it is the size (maximum bound width) of fonts
-   to be listed.  Frame F NULL means we have not yet created any
-   frame on X, and consult the first display in x_display_list.
-   MAXNAMES sets a limit on how many fonts to match.  */
+/* Return a list of names of available fonts matching PATTERN on frame F.
+
+   If SIZE is > 0, it is the size (maximum bounds width) of fonts
+   to be listed.
+
+   SIZE < 0 means include scalable fonts.
+
+   Frame F null means we have not yet created any frame on X, and
+   consult the first display in x_display_list.  MAXNAMES sets a limit
+   on how many fonts to match.  */
 
 Lisp_Object
 x_list_fonts (f, pattern, size, maxnames)
-     FRAME_PTR f;
+     struct frame *f;
      Lisp_Object pattern;
      int size;
      int maxnames;
 {
   Lisp_Object list = Qnil, patterns, newlist = Qnil, key = Qnil;
   Lisp_Object tem, second_best;
-  Display *dpy = f != NULL ? FRAME_X_DISPLAY (f) : x_display_list->display;
+  struct x_display_info *dpyinfo
+    = f ? FRAME_X_DISPLAY_INFO (f) : x_display_list;
+  Display *dpy = dpyinfo->display;
   int try_XLoadQueryFont = 0;
   int count;
+  int allow_scalable_fonts_p = 0;
+
+  if (size < 0)
+    {
+      allow_scalable_fonts_p = 1;
+      size = 0;
+    }
 
   patterns = Fassoc (pattern, Valternate_fontname_alist);
   if (NILP (patterns))
@@ -12815,11 +12829,12 @@ x_list_fonts (f, pattern, size, maxnames)
       pattern = XCAR (patterns);
       /* See if we cached the result for this particular query.
          The cache is an alist of the form:
-	   (((PATTERN . MAXNAMES) (FONTNAME . WIDTH) ...) ...)
-      */
-      if (f && (tem = XCDR (FRAME_X_DISPLAY_INFO (f)->name_list_element),
-		key = Fcons (pattern, make_number (maxnames)),
-		!NILP (list = Fassoc (key, tem))))
+	 ((((PATTERN . MAXNAMES) . SCALABLE) (FONTNAME . WIDTH) ...) ...)  */
+      tem = XCDR (dpyinfo->name_list_element);
+      key = Fcons (Fcons (pattern, make_number (maxnames)),
+		   allow_scalable_fonts_p ? Qt : Qnil);
+      list = Fassoc (key, tem);
+      if (!NILP (list))
 	{
 	  list = Fcdr_safe (list);
 	  /* We have a cashed list.  Don't have to get the list again.  */
@@ -12906,10 +12921,10 @@ x_list_fonts (f, pattern, size, maxnames)
 	      int average_width = -1, dashes = 0;
 	      
 	      /* Count the number of dashes in NAMES[I].  If there are
-		14 dashes, and the field value following 12th dash
-		(AVERAGE_WIDTH) is 0, this is a auto-scaled font which
-		is usually too ugly to be used for editing.  Let's
-		ignore it.  */
+		 14 dashes, and the field value following 12th dash
+		 (AVERAGE_WIDTH) is 0, this is a auto-scaled font which
+		 is usually too ugly to be used for editing.  Let's
+		 ignore it.  */
 	      while (*p)
 		if (*p++ == '-')
 		  {
@@ -12919,7 +12934,9 @@ x_list_fonts (f, pattern, size, maxnames)
 		    else if (dashes == 12) /* AVERAGE_WIDTH field */
 		      average_width = atoi (p);
 		  }
-	      if (dashes < 14 || average_width != 0)
+	      
+	      if (allow_scalable_fonts_p
+		  || dashes < 14 || average_width != 0)
 		{
 		  tem = build_string (names[i]);
 		  if (NILP (Fassoc (tem, list)))
@@ -12942,10 +12959,8 @@ x_list_fonts (f, pattern, size, maxnames)
 	}
 
       /* Now store the result in the cache.  */
-      if (f != NULL)
-	XCDR (FRAME_X_DISPLAY_INFO (f)->name_list_element)
-	  = Fcons (Fcons (key, list),
-		   XCDR (FRAME_X_DISPLAY_INFO (f)->name_list_element));
+      XCDR (dpyinfo->name_list_element)
+        = Fcons (Fcons (key, list), XCDR (dpyinfo->name_list_element));
 
     label_cached:
       if (NILP (list)) continue; /* Try the remaining alternatives.  */
@@ -12969,7 +12984,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	  if (!INTEGERP (XCDR (tem)))
 	    {
 	      /* Since we have not yet known the size of this font, we
-		must try slow function call XLoadQueryFont.  */
+		 must try slow function call XLoadQueryFont.  */
 	      XFontStruct *thisinfo;
 
 	      BLOCK_INPUT;
@@ -13261,20 +13276,26 @@ x_load_font (f, fontname, size)
 	   the cache for x_list_fonts.  */
 	Lisp_Object lispy_name = build_string (fontname);
 	Lisp_Object lispy_full_name = build_string (fontp->full_name);
+	Lisp_Object key = Fcons (Fcons (lispy_name, make_number (256)),
+				 Qnil);
 
 	XCDR (dpyinfo->name_list_element)
-	  = Fcons (Fcons (Fcons (lispy_name, make_number (256)),
+	  = Fcons (Fcons (key,
 			  Fcons (Fcons (lispy_full_name,
 					make_number (fontp->size)),
 				 Qnil)),
 		   XCDR (dpyinfo->name_list_element));
 	if (full_name)
-	  XCDR (dpyinfo->name_list_element)
-	    = Fcons (Fcons (Fcons (lispy_full_name, make_number (256)),
-			    Fcons (Fcons (lispy_full_name,
-					  make_number (fontp->size)),
-				   Qnil)),
-		     XCDR (dpyinfo->name_list_element));
+	  {
+	    key = Fcons (Fcons (lispy_full_name, make_number (256)),
+			 Qnil);
+	    XCDR (dpyinfo->name_list_element)
+	      = Fcons (Fcons (key,
+			      Fcons (Fcons (lispy_full_name,
+					    make_number (fontp->size)),
+				     Qnil)),
+		       XCDR (dpyinfo->name_list_element));
+	  }
       }
 
     /* The slot `encoding' specifies how to map a character
