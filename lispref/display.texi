@@ -1890,7 +1890,7 @@ as if they had a light background.
 attributes}.  This table lists all the face attributes, and what they
 mean.  Note that in general, more than one face can be specified for a
 given piece of text; when that happens, the attributes of all the faces
-are merged to specify how to display the text.  @xref{Merging Faces}.
+are merged to specify how to display the text.  @xref{Displaying Faces}.
 
   In Emacs 21, any attribute in a face can have the value
 @code{unspecified}.  This means the face doesn't specify that attribute.
