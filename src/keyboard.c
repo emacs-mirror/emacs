@@ -22,7 +22,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <config.h>
 #include <stdio.h>
-#undef NULL
 #include "termchar.h"
 #include "termopts.h"
 #include "lisp.h"
@@ -317,6 +316,57 @@ int input_pending;
 int meta_key;
 
 extern char *pending_malloc_warning;
+
+/* Circular buffer for pre-read keyboard input.  */
+static struct input_event kbd_buffer[KBD_BUFFER_SIZE];
+
+/* Vector to GCPRO the frames and windows mentioned in kbd_buffer.
+
+   The interrupt-level event handlers will never enqueue an event on a
+   frame which is not in Vframe_list, and once an event is dequeued,
+   internal_last_event_frame or the event itself points to the frame.
+   So that's all fine.
+
+   But while the event is sitting in the queue, it's completely
+   unprotected.  Suppose the user types one command which will run for
+   a while and then delete a frame, and then types another event at
+   the frame that will be deleted, before the command gets around to
+   it.  Suppose there are no references to this frame elsewhere in
+   Emacs, and a GC occurs before the second event is dequeued.  Now we
+   have an event referring to a freed frame, which will crash Emacs
+   when it is dequeued.
+
+   Similar things happen when an event on a scroll bar is enqueued; the
+   window may be deleted while the event is in the queue.
+
+   So, we use this vector to protect the frame_or_window field in the
+   event queue.  That way, they'll be dequeued as dead frames or
+   windows, but still valid lisp objects.
+
+   If kbd_buffer[i].kind != no_event, then
+     (XVECTOR (kbd_buffer_frame_or_window)->contents[i]
+      == kbd_buffer[i].frame_or_window.  */
+static Lisp_Object kbd_buffer_frame_or_window;
+
+/* Pointer to next available character in kbd_buffer.
+   If kbd_fetch_ptr == kbd_store_ptr, the buffer is empty.
+   This may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the the
+   next available char is in kbd_buffer[0].  */
+static struct input_event *kbd_fetch_ptr;
+
+/* Pointer to next place to store character in kbd_buffer.  This
+   may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the next
+   character should go in kbd_buffer[0].  */
+static volatile struct input_event *kbd_store_ptr;
+
+/* The above pair of variables forms a "queue empty" flag.  When we
+   enqueue a non-hook event, we increment kbd_store_ptr.  When we
+   dequeue a non-hook event, we increment kbd_fetch_ptr.  We say that
+   there is input available iff the two pointers are not equal.
+
+   Why not just have a flag set and cleared by the enqueuing and
+   dequeuing functions?  Such a flag could be screwed up by interrupts
+   at inopportune times.  */
 
 #ifdef HAVE_MOUSE
 /* If this flag is a frame, we check mouse_moved to see when the
@@ -1022,7 +1072,7 @@ command_loop_1 ()
 	 cases identified below that set no_redisplay to 1.
 	 (actually, there's currently no way to prevent the redisplay,
 	 and no_redisplay is ignored.
-	 Perhaps someday we will really implement it.  */
+	 Perhaps someday we will really implement it.)  */
       no_redisplay = 0;
 
       prev_buffer = current_buffer;
@@ -1407,6 +1457,9 @@ Lisp_Object print_help ();
 static Lisp_Object kbd_buffer_get_event ();
 static void record_char ();
 
+static PERDISPLAY *read_char_perdisplay;
+static jmp_buf wrong_display_jmpbuf;
+
 /* read a character from the keyboard; call the redisplay if needed */
 /* commandflag 0 means do not do auto-saving, but do do redisplay.
    -1 means do not do redisplay, but do do autosaving.
@@ -1664,19 +1717,74 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
     }
 
-  /* Actually read a character, waiting if necessary.  */
-  while (NILP (c))
+  if (NILP (c))
     {
-      c = kbd_buffer_get_event ();
-      if (!NILP (c))
-	break;
-      if (commandflag >= 0 && !input_pending && !detect_input_pending ())
+      PERDISPLAY *perd;
+      /* Check for something on one of the side queues.  If we're already
+	 locked to a particular display, just check that one; otherwise
+	 check all of them, but give priority to the most recently used
+	 display.  */
+      if (current_perdisplay)
 	{
-	  prepare_menu_bars ();
-	  redisplay ();
+	  if (CONSP (current_perdisplay->kbd_queue))
+	    perd = current_perdisplay;
+	  else
+	    perd = 0;
+	}
+      else if (read_char_perdisplay && CONSP (read_char_perdisplay->kbd_queue))
+	perd = read_char_perdisplay;
+      else
+	{
+	  for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
+	    if (CONSP (perd->kbd_queue))
+	      break;
+	}
+
+      /* If we found something on a side queue, use that.
+	 Otherwise, read from the main queue, and if that gives us
+	 something we can't use yet, put it on the side queue and
+	 try again.  */
+      if (perd)
+	{
+	  c = XCONS (perd->kbd_queue)->car;
+	  perd->kbd_queue = XCONS (perd->kbd_queue)->cdr;
+	}
+      else
+	{
+	wrong_display:
+	  /* Actually read a character, waiting if necessary.  */
+	  while (c = kbd_buffer_get_event (&perd), NILP (c))
+	    {
+	      if (commandflag >= 0
+		  && !input_pending && !detect_input_pending ())
+		{
+		  prepare_menu_bars ();
+		  redisplay ();
+		}
+	    }
+	  if (current_perdisplay && perd != current_perdisplay)
+	    {
+	      Lisp_Object *tailp = &perd->kbd_queue;
+	      while (CONSP (*tailp))
+		tailp = &XCONS (*tailp)->cdr;
+	      if (!NILP (*tailp))
+		abort ();
+	      *tailp = Fcons (c, Qnil);
+	      goto wrong_display;
+	    }
+	}
+      if (!read_char_perdisplay)
+	read_char_perdisplay = perd;
+      if (perd != read_char_perdisplay)
+	{
+	  /* We shouldn't get here if we were locked onto one display!  */
+	  if (current_perdisplay)
+	    abort ();
+	  perd->kbd_queue = Fcons (c, perd->kbd_queue);
+	  read_char_perdisplay = perd;
+	  longjmp (wrong_display_jmpbuf, 1);
 	}
     }
-
   /* Terminate Emacs in batch mode if at eof.  */
   if (noninteractive && INTEGERP (c) && XINT (c) < 0)
     Fkill_emacs (make_number (1));
@@ -1942,30 +2050,18 @@ Normally, mouse motion is ignored.")
    mouse_moved indicates when the mouse has moved again, and
    *mouse_position_hook provides the mouse position.  */
 
-static PERDISPLAY *
-find_active_event_queue (check_mouse)
-     int check_mouse;
-{
-  PERDISPLAY *perd;
-
-  for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
-    {
-      if (perd->kbd_fetch_ptr != perd->kbd_store_ptr)
-	return perd;
-#ifdef HAVE_MOUSE
-      if (check_mouse && FRAMEP (do_mouse_tracking) && mouse_moved)
-	return perd;
-#endif
-    }
-  return 0;
-}
-
 /* Return true iff there are any events in the queue that read-char
    would return.  If this returns false, a read-char would block.  */
 static int
 readable_events ()
 {
-  return find_active_event_queue (1) != NULL;
+  if (kbd_fetch_ptr != kbd_store_ptr)
+    return 1;
+#ifdef HAVE_MOUSE
+  if (FRAMEP (do_mouse_tracking) && mouse_moved)
+    return 1;
+#endif
+  return 0;
 }
 
 /* Set this for debugging, to have a way to get out */
@@ -1977,8 +2073,6 @@ void
 kbd_buffer_store_event (event)
      register struct input_event *event;
 {
-  PERDISPLAY *perd = get_perdisplay (XFRAME (event->frame_or_window));
-
   if (event->kind == no_event)
     abort ();
 
@@ -2004,13 +2098,14 @@ kbd_buffer_store_event (event)
 	     will set Vlast_event_frame again, so this is safe to do.  */
 	  {
 	    Lisp_Object focus;
+	    PERDISPLAY *perd;
 
 	    focus = FRAME_FOCUS_FRAME (XFRAME (event->frame_or_window));
 	    if (NILP (focus))
-	      perd->internal_last_event_frame = event->frame_or_window;
-	    else
-	      perd->internal_last_event_frame = focus;
-	    perd->Vlast_event_frame = perd->internal_last_event_frame;
+	      focus = event->frame_or_window;
+	    perd = get_perdisplay (XFRAME (focus));
+	    perd->internal_last_event_frame = focus;
+	    perd->Vlast_event_frame = focus;
 	  }
 #endif
 
@@ -2026,16 +2121,16 @@ kbd_buffer_store_event (event)
 	}
     }
 
-  if (perd->kbd_store_ptr - perd->kbd_buffer == KBD_BUFFER_SIZE)
-    perd->kbd_store_ptr = perd->kbd_buffer;
+  if (kbd_store_ptr - kbd_buffer == KBD_BUFFER_SIZE)
+    kbd_store_ptr = kbd_buffer;
 
   /* Don't let the very last slot in the buffer become full,
      since that would make the two pointers equal,
      and that is indistinguishable from an empty buffer.
      Discard the event if it would fill the last slot.  */
-  if (perd->kbd_fetch_ptr - 1 != perd->kbd_store_ptr)
+  if (kbd_fetch_ptr - 1 != kbd_store_ptr)
     {
-      volatile struct input_event *sp = perd->kbd_store_ptr;
+      volatile struct input_event *sp = kbd_store_ptr;
       sp->kind = event->kind;
       if (event->kind == selection_request_event)
 	{
@@ -2054,11 +2149,11 @@ kbd_buffer_store_event (event)
 	  sp->y = event->y;
 	  sp->timestamp = event->timestamp;
 	}
-      (XVECTOR (perd->kbd_buffer_frame_or_window)->contents[perd->kbd_store_ptr
-							    - perd->kbd_buffer]
+      (XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_store_ptr
+						      - kbd_buffer]
        = event->frame_or_window);
 
-      perd->kbd_store_ptr++;
+      kbd_store_ptr++;
     }
 }
 
@@ -2069,9 +2164,8 @@ kbd_buffer_store_event (event)
    We always read and discard one event.  */
 
 static Lisp_Object
-kbd_buffer_get_event ()
+kbd_buffer_get_event (PERDISPLAY **perdp)
 {
-  PERDISPLAY *perd;
   register int c;
   Lisp_Object obj;
 
@@ -2079,15 +2173,19 @@ kbd_buffer_get_event ()
     {
       c = getchar ();
       XSETINT (obj, c);
+      *perdp = all_perdisplays;  /* There'd better be exactly one!  */
       return obj;
     }
 
   /* Wait until there is input available.  */
   for (;;)
     {
-      perd = find_active_event_queue (1);
-      if (perd)
+      if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
+#ifdef HAVE_MOUSE
+      if (FRAMEP (do_mouse_tracking) && mouse_moved)
+	break;
+#endif
 
       /* If the quit flag is set, then read_char will return
 	 quit_char, so that counts as "available input."  */
@@ -2104,33 +2202,49 @@ kbd_buffer_get_event ()
 #ifdef SIGIO
       gobble_input (0);
 #endif /* SIGIO */
-      perd = find_active_event_queue (1);
-      if (!perd)
-	{
-	  Lisp_Object minus_one;
+      if (kbd_fetch_ptr != kbd_store_ptr)
+	break;
+#ifdef HAVE_MOUSE
+      if (FRAMEP (do_mouse_tracking) && mouse_moved)
+	break;
+#endif
+      {
+	Lisp_Object minus_one;
 
-	  XSETINT (minus_one, -1);
-	  wait_reading_process_input (0, 0, minus_one, 1);
+	XSETINT (minus_one, -1);
+	wait_reading_process_input (0, 0, minus_one, 1);
 
-	  if (!interrupt_input && find_active_event_queue (0) == NULL)
-	    /* Pass 1 for EXPECT since we just waited to have input.  */
-	    read_avail_input (1);
-	}
+	if (!interrupt_input && kbd_fetch_ptr == kbd_store_ptr)
+	  /* Pass 1 for EXPECT since we just waited to have input.  */
+	  read_avail_input (1);
+      }
 #endif /* not VMS */
     }
 
   /* At this point, we know that there is a readable event available
      somewhere.  If the event queue is empty, then there must be a
      mouse movement enabled and available.  */
-  if (perd->kbd_fetch_ptr != perd->kbd_store_ptr)
+  if (kbd_fetch_ptr != kbd_store_ptr)
     {
       struct input_event *event;
 
-      event = ((perd->kbd_fetch_ptr < perd->kbd_buffer + KBD_BUFFER_SIZE)
-	       ? perd->kbd_fetch_ptr
-	       : perd->kbd_buffer);
+      event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
+	       ? kbd_fetch_ptr
+	       : kbd_buffer);
 
       last_event_timestamp = event->timestamp;
+
+      {
+	Lisp_Object frame;
+	frame = event->frame_or_window;
+	if (CONSP (frame))
+	  frame = XCONS (frame)->car;
+	else if (WINDOWP (frame))
+	  frame = WINDOW_FRAME (XWINDOW (frame));
+	if (!FRAMEP (frame))
+	  abort ();
+	*perdp = get_perdisplay (XFRAME (frame));
+      }
 
       obj = Qnil;
 
@@ -2144,7 +2258,7 @@ kbd_buffer_get_event ()
 	  /* Remove it from the buffer before processing it,
 	     since otherwise swallow_events will see it
 	     and process it again.  */
-	  perd->kbd_fetch_ptr = event + 1;
+	  kbd_fetch_ptr = event + 1;
 	  x_handle_selection_request (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
@@ -2157,7 +2271,7 @@ kbd_buffer_get_event ()
 	{
 #ifdef HAVE_X11
 	  x_handle_selection_clear (event);
-	  perd->kbd_fetch_ptr = event + 1;
+	  kbd_fetch_ptr = event + 1;
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -2170,40 +2284,42 @@ kbd_buffer_get_event ()
 	  /* Make an event (delete-frame (FRAME)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
 	  obj = Fcons (Qdelete_frame, Fcons (obj, Qnil));
-	  perd->kbd_fetch_ptr = event + 1;
+	  kbd_fetch_ptr = event + 1;
 	}
       else if (event->kind == iconify_event)
 	{
 	  /* Make an event (iconify-frame (FRAME)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
 	  obj = Fcons (Qiconify_frame, Fcons (obj, Qnil));
-	  perd->kbd_fetch_ptr = event + 1;
+	  kbd_fetch_ptr = event + 1;
 	}
       else if (event->kind == deiconify_event)
 	{
 	  /* Make an event (make-frame-visible (FRAME)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
 	  obj = Fcons (Qmake_frame_visible, Fcons (obj, Qnil));
-	  perd->kbd_fetch_ptr = event + 1;
+	  kbd_fetch_ptr = event + 1;
 	}
 #endif
       else if (event->kind == menu_bar_event)
 	{
-	  /* The event value is in the frame_or_window slot.  */
-	  obj = event->frame_or_window;
-	  perd->kbd_fetch_ptr = event + 1;
+	  /* The event value is in the cdr of the frame_or_window slot.  */
+	  if (!CONSP (event->frame_or_window))
+	    abort ();
+	  obj = XCONS (event->frame_or_window)->cdr;
+	  kbd_fetch_ptr = event + 1;
 	}
       else if (event->kind == buffer_switch_event)
 	{
 	  /* The value doesn't matter here; only the type is tested.  */
 	  XSETBUFFER (obj, current_buffer);
-	  perd->kbd_fetch_ptr = event + 1;
+	  kbd_fetch_ptr = event + 1;
 	}
       /* Just discard these, by returning nil.
 	 (They shouldn't be found in the buffer,
 	 but on some machines it appears they do show up.)  */
       else if (event->kind == no_event)
-	perd->kbd_fetch_ptr = event + 1;
+	kbd_fetch_ptr = event + 1;
 
       /* If this event is on a different frame, return a switch-frame this
 	 time, and leave the event in the queue for next time.  */
@@ -2221,10 +2337,10 @@ kbd_buffer_get_event ()
 	  if (! NILP (focus))
 	    frame = focus;
 
-	  if (! EQ (frame, perd->internal_last_event_frame)
+	  if (! EQ (frame, (*perdp)->internal_last_event_frame)
 	      && XFRAME (frame) != selected_frame)
 	    obj = make_lispy_switch_frame (frame);
-	  perd->internal_last_event_frame = frame;
+	  (*perdp)->internal_last_event_frame = frame;
 #endif /* MULTI_FRAME */
 
 	  /* If we didn't decide to make a switch-frame event, go ahead
@@ -2236,9 +2352,9 @@ kbd_buffer_get_event ()
 
 	      /* Wipe out this event, to catch bugs.  */
 	      event->kind = no_event;
-	      XVECTOR (perd->kbd_buffer_frame_or_window)->contents[event - perd->kbd_buffer] = Qnil;
+	      XVECTOR (kbd_buffer_frame_or_window)->contents[event - kbd_buffer] = Qnil;
 
-	      perd->kbd_fetch_ptr = event + 1;
+	      kbd_fetch_ptr = event + 1;
 	    }
 	}
     }
@@ -2252,6 +2368,10 @@ kbd_buffer_get_event ()
       Lisp_Object x, y;
       unsigned long time;
 
+      if (!current_perdisplay)
+	abort ();
+
+      *perdp = current_perdisplay;
       /* Note that this uses F to determine which display to look at.
 	 If there is no valid info, it does not store anything
 	 so x remains nil.  */
@@ -2272,10 +2392,10 @@ kbd_buffer_get_event ()
 	  if (NILP (frame))
 	    XSETFRAME (frame, f);
 
-	  if (! EQ (frame, perd->internal_last_event_frame)
+	  if (! EQ (frame, (*perdp)->internal_last_event_frame)
 	      && XFRAME (frame) != selected_frame)
 	    obj = make_lispy_switch_frame (frame);
-	  perd->internal_last_event_frame = frame;
+	  (*perdp)->internal_last_event_frame = frame;
 	}
 #endif
 
@@ -2293,7 +2413,7 @@ kbd_buffer_get_event ()
   input_pending = readable_events ();
 
 #ifdef MULTI_FRAME
-  perd->Vlast_event_frame = perd->internal_last_event_frame;
+  (*perdp)->Vlast_event_frame = (*perdp)->internal_last_event_frame;
 #endif
 
   return (obj);
@@ -2305,14 +2425,13 @@ kbd_buffer_get_event ()
 void
 swallow_events ()
 {
-  PERDISPLAY *perd;
-  while ((perd = find_active_event_queue (0)) != NULL)
+  while (kbd_fetch_ptr != kbd_store_ptr)
     {
       struct input_event *event;
 
-      event = ((perd->kbd_fetch_ptr < perd->kbd_buffer + KBD_BUFFER_SIZE)
-	       ? perd->kbd_fetch_ptr
-	       : perd->kbd_buffer);
+      event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
+	       ? kbd_fetch_ptr
+	       : kbd_buffer);
 
       last_event_timestamp = event->timestamp;
 
@@ -2323,7 +2442,7 @@ swallow_events ()
 #ifdef HAVE_X11
 	  struct input_event copy;
 	  copy = *event;
-	  perd->kbd_fetch_ptr = event + 1;
+	  kbd_fetch_ptr = event + 1;
 	  x_handle_selection_request (&copy);
 #else
 	  /* We're getting selection request events, but we don't have
@@ -2336,7 +2455,7 @@ swallow_events ()
 	{
 #ifdef HAVE_X11
 	  x_handle_selection_clear (event);
-	  perd->kbd_fetch_ptr = event + 1;
+	  kbd_fetch_ptr = event + 1;
 #else
 	  /* We're getting selection request events, but we don't have
              a window system.  */
@@ -4701,8 +4820,19 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last)
 	{
 	  struct buffer *buf = current_buffer;
 
-	  key = read_char (NILP (prompt), nmaps, submaps, last_nonmenu_event,
-			   &used_mouse_menu);
+	  {
+	    PERDISPLAY *interrupted_perdisplay = read_char_perdisplay;
+	    if (setjmp (wrong_display_jmpbuf))
+	      {
+		while (t > 0)
+		  interrupted_perdisplay->kbd_queue
+		    = Fcons (keybuf[--t], interrupted_perdisplay->kbd_queue);
+		mock_input = 0;
+		goto replay_sequence;
+	      }
+	    key = read_char (NILP (prompt), nmaps, submaps, last_nonmenu_event,
+			     &used_mouse_menu);
+	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
 	     Just return -1.  */
@@ -5660,9 +5790,8 @@ Also cancel any kbd macro being defined.")
   /* Without the cast, GCC complains that this assignment loses the
      volatile qualifier of kbd_store_ptr.  Is there anything wrong
      with that?  */
-  current_perdisplay->kbd_fetch_ptr
-    = (struct input_event *) current_perdisplay->kbd_store_ptr;
-  Ffillarray (current_perdisplay->kbd_buffer_frame_or_window, Qnil);
+  kbd_fetch_ptr = (struct input_event *) kbd_store_ptr;
+  Ffillarray (kbd_buffer_frame_or_window, Qnil);
   input_pending = 0;
 
   return Qnil;
@@ -5735,7 +5864,6 @@ stuff_buffered_input (stuffstring)
 #ifdef BSD
 #ifndef BSD4_1
   register unsigned char *p;
-  PERDISPLAY *perd;
 
   if (STRINGP (stuffstring))
     {
@@ -5748,25 +5876,18 @@ stuff_buffered_input (stuffstring)
       stuff_char ('\n');
     }
   /* Anything we have read ahead, put back for the shell to read.  */
-#ifndef MULTI_PERDISPLAY
-  perd = &the_only_perdisplay;
-#else
-  /* ?? What should this do when we have multiple keyboards??  */
-  perd = current_perdisplay;
-  if (!perd)
-    return;
-#endif
-  while (perd->kbd_fetch_ptr != perd->kbd_store_ptr)
+  /* ?? What should this do when we have multiple keyboards??
+     Should we ignore anything that was typed in at the "wrong" display?  */
+  for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
     {
-      if (perd->kbd_fetch_ptr == perd->kbd_buffer + KBD_BUFFER_SIZE)
-	perd->kbd_fetch_ptr = perd->kbd_buffer;
-      if (perd->kbd_fetch_ptr->kind == ascii_keystroke)
-	stuff_char (perd->kbd_fetch_ptr->code);
-      perd->kbd_fetch_ptr->kind = no_event;
-      (XVECTOR (perd->kbd_buffer_frame_or_window)->contents[perd->kbd_fetch_ptr
-							    - perd->kbd_buffer]
+      if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
+	kbd_fetch_ptr = kbd_buffer;
+      if (kbd_fetch_ptr->kind == ascii_keystroke)
+	stuff_char (kbd_fetch_ptr->code);
+      kbd_fetch_ptr->kind = no_event;
+      (XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_fetch_ptr
+						      - kbd_buffer]
        = Qnil);
-      perd->kbd_fetch_ptr++;
     }
   input_pending = 0;
 #endif
@@ -6042,18 +6163,12 @@ init_perdisplay (perd)
 {
   perd->Vprefix_arg = Qnil;
   perd->Vcurrent_prefix_arg = Qnil;
-  perd->kbd_buffer
-    = (struct input_event *)xmalloc (KBD_BUFFER_SIZE
-				     * sizeof (struct input_event));
-  perd->kbd_fetch_ptr = perd->kbd_buffer;
-  perd->kbd_store_ptr = perd->kbd_buffer;
-  perd->kbd_buffer_frame_or_window
-    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
 #ifdef MULTI_FRAME
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */
   perd->internal_last_event_frame = Qnil;
 #endif
+  perd->kbd_queue = Qnil;
   perd->Vlast_event_frame = Qnil;
   perd->immediate_echo = 0;
   perd->echoptr = perd->echobuf;
@@ -6069,7 +6184,8 @@ void
 wipe_perdisplay (perd)
      PERDISPLAY *perd;
 {
-  xfree (perd->kbd_buffer);
+  /* Free anything that was malloc'd in init_perdisplay.  */
+  /* Placeholder -- currently no action required.  */
 }
 
 init_keyboard ()
@@ -6082,6 +6198,10 @@ init_keyboard ()
   unread_command_char = -1;
   total_keys = 0;
   recent_keys_index = 0;
+  kbd_fetch_ptr = kbd_buffer;
+  kbd_store_ptr = kbd_buffer;
+  kbd_buffer_frame_or_window
+    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
 #ifdef HAVE_MOUSE
   do_mouse_tracking = Qnil;
 #endif
@@ -6093,6 +6213,11 @@ init_keyboard ()
   init_perdisplay (&the_only_perdisplay);
 #endif
 
+  if (initialized)
+    Ffillarray (kbd_buffer_frame_or_window, Qnil);
+
+  kbd_buffer_frame_or_window
+    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
   if (!noninteractive && !read_socket_hook && NILP (Vwindow_system))
     {
       signal (SIGINT, interrupt_signal);
@@ -6261,6 +6386,10 @@ syms_of_keyboard ()
   Qextended_command_history = intern ("extended-command-history");
   Fset (Qextended_command_history, Qnil);
   staticpro (&Qextended_command_history);
+
+  kbd_buffer_frame_or_window
+    = Fmake_vector (make_number (KBD_BUFFER_SIZE), Qnil);
+  staticpro (&kbd_buffer_frame_or_window);
 
   accent_key_syms = Qnil;
   staticpro (&accent_key_syms);
