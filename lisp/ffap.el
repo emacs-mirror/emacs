@@ -35,9 +35,8 @@
 ;; README's, MANIFEST's, and so on.  Submit bugs or suggestions with
 ;; M-x ffap-bug.
 ;;
-;; For the default installation, add these two lines to your .emacs file:
+;; For the default installation, add this line to your .emacs file:
 ;;
-;; (require 'ffap)                      ; load the package
 ;; (ffap-bindings)                      ; do default key bindings
 ;;
 ;; ffap-bindings makes the following global key bindings:
@@ -1690,13 +1689,14 @@ ffap most of the time."
      ;; (setq dired-x-hands-off-my-keys t) ; the default
      )
      "List of binding forms evaluated by function `ffap-bindings'.
-A reasonable ffap installation needs just these two lines:
-  (require 'ffap)
+A reasonable ffap installation needs just these one line:
   (ffap-bindings)
 Of course if you do not like these bindings, just roll your own!")
 
+;;;###autoload
 (defun ffap-bindings nil
   "Evaluate the forms in variable `ffap-bindings'."
+  (interactive)
   (eval (cons 'progn ffap-bindings)))
 
 
