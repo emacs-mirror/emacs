@@ -1000,7 +1000,7 @@ dired."
    '("\\.out$" "xgraph")                ; for plotting purposes.
    '("\\.tex$" "latex" "tex")
    '("\\.texi\\(nfo\\)?$" "makeinfo" "texi2dvi")
-   '("\\.pdf$" "acroread")              ; edit PDF files
+   '("\\.pdf$" "xpdf")              ; edit PDF files
 
    ;; Some other popular archivers.
    '("\\.zoo$" "zoo x//")
