@@ -447,10 +447,9 @@ detection and checks if a player scores."
 This is an implementation of the classical game pong.
 Move left and right bats and try to bounce the ball to your opponent.
 
-pong-mode keybindings:
-   \\<pong-mode-map>
+pong-mode keybindings:\\<pong-mode-map>
 
-   \\{pong-mode-map}"
+\\{pong-mode-map}"
   (interactive)
   (setq pong-score-player1 0)
   (setq pong-score-player2 0)
