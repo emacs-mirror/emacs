@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.55) $
+ * $HopeName: MMsrc!mpm.h(trunk.56) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -752,5 +752,9 @@ extern Res VMMap(VM vm, Addr base, Addr limit);
 extern void VMUnmap(VM vm, Addr base, Addr limit);
 extern Size VMReserved(VM vm);
 extern Size VMMapped(VM vm);
+
+
+/* Stack Probe */
+extern void StackProbe(Word depth);
 
 #endif /* mpm_h */
