@@ -61,7 +61,7 @@
 ;; Eli Barzilay (eli@cs.bgu.ac.il) suggested the sexps functions and
 ;; keybindings.
 ;;
-;; Ok, some details about the idea of pc-selection-mode:
+;; Ok, some details about the idea of PC Selection mode:
 ;;
 ;;  o The standard keys for moving around (right, left, up, down, home, end,
 ;;    prior, next, called "move-keys" from now on) will always de-activate
@@ -114,23 +114,23 @@ This gives mostly Emacs-like behaviour with only the selection keys enabled."
   :group 'pc-select)
 
 (defvar pc-select-saved-settings-alist nil
-  "The values of the variables before `pc-selection-mode' was toggled on.
-When `pc-selection-mode' is toggled on, it sets quite a few variables
+  "The values of the variables before PC Selection mode was toggled on.
+When PC Selection mode is toggled on, it sets quite a few variables
 for its own purposes.  This alist holds the original values of the
-variables `pc-selection-mode' had set, so that these variables can be
-restored to their original values when `pc-selection-mode' is toggled off.")
+variables PC Selection mode had set, so that these variables can be
+restored to their original values when PC Selection mode is toggled off.")
 
 (defvar pc-select-map nil
-  "The keymap used as the global map when `pc-selection-mode' is on." )
+  "The keymap used as the global map when PC Selection mode is on." )
 
 (defvar pc-select-saved-global-map nil
-  "The global map that was in effect when `pc-selection-mode' was toggled on.")
+  "The global map that was in effect when PC Selection mode was toggled on.")
 
 (defvar pc-select-key-bindings-alist nil
-  "This alist holds all the key bindings `pc-selection-mode' sets.")
+  "This alist holds all the key bindings PC Selection mode sets.")
 
 (defvar pc-select-default-key-bindings nil
-  "These key bindings always get set by `pc-selection-mode'.")
+  "These key bindings always get set by PC Selection mode.")
 
 (unless pc-select-default-key-bindings
   (let ((lst
@@ -250,7 +250,7 @@ These key bindings get installed when running in a tty, but only if
 (defvar pc-select-old-M-delete-binding nil
   "Holds the old mapping of [M-delete] in the `function-key-map'.
 This variable holds the value associated with [M-delete] in the
-`function-key-map' before `pc-selection-mode' had changed that
+`function-key-map' before PC Selection mode had changed that
 association.")
 
 ;;;;
@@ -842,7 +842,7 @@ M-LEFT and M-RIGHT move back or forward one word or sexp, disabling the mark.
 S-M-LEFT and S-M-RIGHT move back or forward one word or sexp, leaving the mark
 behind.  To control whether these keys move word-wise or sexp-wise set the
 variable `pc-select-meta-moves-sexps' after loading pc-select.el but before
-turning `pc-selection-mode' on.
+turning PC Selection mode on.
 
 C-DOWN and C-UP move back or forward a paragraph, disabling the mark.
 S-C-DOWN and S-C-UP move back or forward a paragraph, leaving the mark behind.
@@ -864,7 +864,7 @@ C-INSERT copies the region into the kill ring (`copy-region-as-kill').
 
 In addition, certain other PC bindings are imitated (to avoid this, set
 the variable `pc-select-selection-keys-only' to t after loading pc-select.el
-but before calling `pc-selection-mode'):
+but before calling PC Selection mode):
 
   F6           other-window
   DELETE       delete-char
@@ -974,7 +974,8 @@ but before calling `pc-selection-mode'):
 Change mark behaviour to emulate Motif, MAC or MS-Windows cut and paste style,
 and cursor movement commands.
 This mode enables Delete Selection mode and Transient Mark mode.
-You must modify via \\[customize] for this variable to have an effect."
+Setting this variable directly does not take effect;
+you must modify it using \\[customize] or \\[pc-selection-mode]."
   :set (lambda (symbol value)
 	 (pc-selection-mode (if value 1 -1)))
   :initialize 'custom-initialize-default
