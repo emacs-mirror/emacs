@@ -2171,7 +2171,7 @@ mode-lines in inverse-video.
 ** New package benchmark.el contains simple support for convenient
 timing measurements of code (including the garbage collection component).
 
-** The new Lisp library fringe.el controls the apperance of fringes.
+** The new Lisp library fringe.el controls the appearance of fringes.
 
 ** `cfengine-mode' is a major mode for editing GNU Cfengine
 configuration files.
@@ -2179,7 +2179,10 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 ** If a command sets transient-mark-mode to `only', that 
-enables Transient Mark mode for the following command, only.
+enables Transient Mark mode for the following command only.
+During that following command, the value of transient-mark-mode
+is `identity'.  If it is still `identity' at the end of the command,
+it changes to nil.
 
 +++
 ** Cleaner way to enter key sequences.
@@ -3562,6 +3565,11 @@ it in that buffer.
 ---
 ** In `replace-match', the replacement text no longer inherits
 properties from surrounding text.
+
++++
+** `(match-data t)' will append the buffer as a final element of the
+match data if the last match was on a buffer.  `set-match-data' will
+accept this for restoring the match state.
 
 +++
 ** New function `buffer-local-value'.
