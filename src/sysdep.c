@@ -1,11 +1,11 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -72,44 +72,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 extern int errno;
-#ifndef VMS
-extern char *sys_errlist[];
-#endif
 
-#ifdef VMS
-#include <rms.h>
-#include <ttdef.h>
-#include <tt2def.h>
-#include <iodef.h>
-#include <ssdef.h>
-#include <descrip.h>
-#include <fibdef.h>
-#include <atrdef.h>
-#include <ctype.h>
-#include <string.h>
-#ifdef __GNUC__
-#include <sys/file.h>
-#else
-#include <file.h>
-#endif
-#undef F_SETFL
-#ifndef RAB$C_BID
-#include <rab.h>
-#endif
-#define	MAXIOSIZE ( 32 * PAGESIZE )	/* Don't I/O more than 32 blocks at a time */
-#endif /* VMS */
-
-#ifndef BSD4_1
-#ifdef BSD /* this is done this way to avoid defined (BSD) || defined (USG)
-	      because the vms compiler doesn't grok `defined' */
-#include <fcntl.h>
-#endif
-#ifdef USG
-#ifndef USG5
-#include <fcntl.h>
-#endif
-#endif
-#endif /* not 4.1 bsd */
 
 #ifdef BROKEN_FASYNC
 /* On some systems (DGUX comes to mind real fast) FASYNC causes
@@ -2630,6 +2593,21 @@ char *sys_errlist[] =
 #endif /* SHAREABLE_LIB_BUG */
 #endif /* LINK_CRTL_SHARE */
 #endif /* VMS */
+
+#ifndef HAVE_STRERROR
+char *
+strerror (errnum)
+     int errnum;
+{
+  extern char *sys_errlist[];
+  extern int sys_nerr;
+
+  if (errnum >= 0 && errnum < sys_nerr)
+    return sys_errlist[errnum];
+  return (char *) "Unknown error";
+}
+
+#endif /* ! HAVE_STRERROR */
 
 #ifdef INTERRUPTIBLE_OPEN
 
@@ -2923,7 +2901,7 @@ dup2 (oldd, newd)
 #ifdef F_DUPFD
   fd = fcntl (oldd, F_DUPFD, newd);
   if (fd != newd)
-    error ("can't dup2 (%i,%i) : %s", oldd, newd, sys_errlist[errno]);
+    error ("can't dup2 (%i,%i) : %s", oldd, newd, strerror (errno));
 #else
   fd = dup (old);
   if (fd == -1)
