@@ -152,12 +152,14 @@ the elements themselves."
 	(setq cl-list (cdr cl-list)))
       (nreverse cl-res))))
 
+(defvar cl-old-mapc (symbol-function 'mapc))
+
 (defun mapc (cl-func cl-seq &rest cl-rest)
   "Like `mapcar', but does not accumulate values returned by the function."
   (if cl-rest
-      (apply 'map nil cl-func cl-seq cl-rest)
-    (mapcar cl-func cl-seq))
-  cl-seq)
+      (progn (apply 'map nil cl-func cl-seq cl-rest)
+	     cl-seq)
+    (funcall #'cl-old-mapc cl-func cl-seq)))
 
 (defun mapl (cl-func cl-list &rest cl-rest)
   "Like `maplist', but does not accumulate values returned by the function."
@@ -244,17 +246,15 @@ If so, return the true (non-nil) value returned by PREDICATE."
   (or cl-what (setq cl-what (current-buffer)))
   (if (bufferp cl-what)
       (let (cl-mark cl-mark2 (cl-next t) cl-next2)
-	(save-excursion
-	  (set-buffer cl-what)
+	(with-current-buffer cl-what
 	  (setq cl-mark (copy-marker (or cl-start (point-min))))
 	  (setq cl-mark2 (and cl-end (copy-marker cl-end))))
 	(while (and cl-next (or (not cl-mark2) (< cl-mark cl-mark2)))
-	  (setq cl-next (and (fboundp 'next-property-change)
-			     (if cl-prop (next-single-property-change
-					  cl-mark cl-prop cl-what)
-			       (next-property-change cl-mark cl-what)))
-		cl-next2 (or cl-next (save-excursion
-				       (set-buffer cl-what) (point-max))))
+	  (setq cl-next (if cl-prop (next-single-property-change
+				     cl-mark cl-prop cl-what)
+			  (next-property-change cl-mark cl-what))
+		cl-next2 (or cl-next (with-current-buffer cl-what
+				       (point-max))))
 	  (funcall cl-func (prog1 (marker-position cl-mark)
 			     (set-marker cl-mark cl-next2))
 		   (if cl-mark2 (min cl-next2 cl-mark2) cl-next2)))
@@ -262,10 +262,9 @@ If so, return the true (non-nil) value returned by PREDICATE."
     (or cl-start (setq cl-start 0))
     (or cl-end (setq cl-end (length cl-what)))
     (while (< cl-start cl-end)
-      (let ((cl-next (or (and (fboundp 'next-property-change)
-			      (if cl-prop (next-single-property-change
-					   cl-start cl-prop cl-what)
-				(next-property-change cl-start cl-what)))
+      (let ((cl-next (or (if cl-prop (next-single-property-change
+				      cl-start cl-prop cl-what)
+			   (next-property-change cl-start cl-what))
 			 cl-end)))
 	(funcall cl-func cl-start (min cl-next cl-end))
 	(setq cl-start cl-next)))))
@@ -276,8 +275,7 @@ If so, return the true (non-nil) value returned by PREDICATE."
 
       ;; This is the preferred algorithm, though overlay-lists is undocumented.
       (let (cl-ovl)
-	(save-excursion
-	  (set-buffer cl-buffer)
+	(with-current-buffer cl-buffer
 	  (setq cl-ovl (overlay-lists))
 	  (if cl-start (setq cl-start (copy-marker cl-start)))
 	  (if cl-end (setq cl-end (copy-marker cl-end))))
@@ -292,10 +290,10 @@ If so, return the true (non-nil) value returned by PREDICATE."
 	(if cl-end (set-marker cl-end nil)))
 
     ;; This alternate algorithm fails to find zero-length overlays.
-    (let ((cl-mark (save-excursion (set-buffer cl-buffer)
-				   (copy-marker (or cl-start (point-min)))))
-	  (cl-mark2 (and cl-end (save-excursion (set-buffer cl-buffer)
-						(copy-marker cl-end))))
+    (let ((cl-mark (with-current-buffer cl-buffer
+		     (copy-marker (or cl-start (point-min)))))
+	  (cl-mark2 (and cl-end (with-current-buffer cl-buffer
+				  (copy-marker cl-end))))
 	  cl-pos cl-ovl)
       (while (save-excursion
 	       (and (setq cl-pos (marker-position cl-mark))
@@ -367,13 +365,6 @@ If so, return the true (non-nil) value returned by PREDICATE."
 	  (setq g g2))
 	g)
     (if (eq a 0) 0 (signal 'arith-error nil))))
-
-(defun cl-expt (x y)
-  "Return X raised to the power of Y.  Works only for integer arguments."
-  (if (<= y 0) (if (= y 0) 1 (if (memq x '(-1 1)) (cl-expt x (- y)) 0))
-    (* (if (= (% y 2) 0) 1 x) (cl-expt (* x x) (/ y 2)))))
-(or (and (fboundp 'expt) (subrp (symbol-function 'expt)))
-    (defalias 'expt 'cl-expt))
 
 (defun floor* (x &optional y)
   "Return a list of the floor of X and the fractional part of X.
@@ -593,8 +584,7 @@ argument VECP, this copies vectors as well as conses."
 	  (while (>= (setq i (1- i)) 0)
 	    (aset tree i (cl-copy-tree (aref tree i) vecp))))))
   tree)
-(or (and (fboundp 'copy-tree) (subrp (symbol-function 'copy-tree)))
-    (defalias 'copy-tree 'cl-copy-tree))
+(defalias 'copy-tree 'cl-copy-tree)
 
 
 ;;; Property lists.
@@ -637,8 +627,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'."
     (if (and plist (eq tag (car plist)))
 	(progn (setplist sym (cdr (cdr plist))) t)
       (cl-do-remf plist tag))))
-(or (and (fboundp 'remprop) (subrp (symbol-function 'remprop)))
-    (defalias 'remprop 'cl-remprop))
+(defalias 'remprop 'cl-remprop)
 
 
 
@@ -648,8 +637,8 @@ PROPLIST is a list of the sort returned by `symbol-plist'."
   "Make an empty Common Lisp-style hash-table.
 Keywords supported:  :test :size
 The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
-  (let ((cl-test (or (car (cdr (memq ':test cl-keys))) 'eql))
-	(cl-size (or (car (cdr (memq ':size cl-keys))) 20)))
+  (let ((cl-test (or (car (cdr (memq :test cl-keys))) 'eql))
+	(cl-size (or (car (cdr (memq :size cl-keys))) 20)))
     (make-hash-table :size cl-size :test cl-size)))
 
 (defun cl-hash-table-p (x)
@@ -678,7 +667,7 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 			      (and (eq test 'eql) (not (numberp key))))
 			  (assq key sym))
 			 ((memq test '(eql equal)) (assoc key sym))
-			 (t (assoc* key sym ':test test))))
+			 (t (assoc* key sym :test test))))
 	  sym str)))
 
 (defun cl-gethash (key table &optional def)
