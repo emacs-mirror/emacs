@@ -1,7 +1,7 @@
 MAKE = make
 # BSD doesn't have it as a default.
 
-CC = gcc
+CC =gcc
 CPP = $(CC) -E
 #Note: an alternative is  CPP = /lib/cpp
 
@@ -16,7 +16,7 @@ doall:
 #This is used in making a distribution.
 #Do not use it on development directories!
 distclean:
-	-rm -f paths.h config.h emacs-* temacs xemacs xmakefile core *~ \#* *.o
+	-rm -f paths.h config.h machine.h system.h emacs-* temacs xemacs xmakefile core *~ \#* *.o
 
 clean:
 	-rm -f temacs xemacs xmakefile core \#* *.o
