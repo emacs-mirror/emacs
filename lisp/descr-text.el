@@ -98,10 +98,28 @@ if that value is non-nil."
 PROPERTIES should be a list of overlay or text properties.
 The `category' property is made into a widget button that call 
 `describe-text-category' when pushed."
-  (while properties
-    (widget-insert (format "  %-20s " (car properties)))
-    (let ((key (nth 0 properties))
-	  (value (nth 1 properties)))
+  ;; Sort the properties by the size of their value.
+  (dolist (elt (sort (let ((ret nil)
+			   (key nil)
+			   (val nil)
+			   (len nil))
+		       (while properties
+			 (setq key (pop properties)
+			       val (pop properties)
+			       len 0)
+			 (unless (or (eq key 'category)
+				     (widgetp val))
+			   (setq val (pp-to-string val)
+				 len (length val)))
+			 (push (list key val len) ret))
+		       ret)
+		     (lambda (a b)
+		       (< (nth 2 a)
+			  (nth 2 b)))))
+    (let ((key (nth 0 elt))
+	  (value (nth 1 elt)))
+      (widget-insert (propertize (format "  %-20s" key)
+				 'font-lock-face 'italic))
       (cond ((eq key 'category)
 	     (widget-create 'link 
 			    :notify `(lambda (&rest ignore)
@@ -110,9 +128,8 @@ The `category' property is made into a widget button that call
 	    ((widgetp value)
 	     (describe-text-widget value))
 	    (t
-	     (describe-text-sexp value))))
-    (widget-insert "\n")
-    (setq properties (cdr (cdr properties)))))
+	     (widget-insert value))))
+    (widget-insert "\n")))
 
 ;;; Describe-Text Commands.
 
