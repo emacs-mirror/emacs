@@ -315,18 +315,15 @@ The following simple functions and macros are defined in @file{cl.el};
 they do not cause other components like @file{cl-extra} to be loaded.
 
 @example
-eql           floatp-safe   abs           endp
+eql           floatp-safe   endp
 evenp         oddp          plusp         minusp
-butlast       nbutlast                    caar .. cddddr
+butlast       nbutlast      caaar .. cddddr
 list*         ldiff         rest          first .. tenth
-member [1]    copy-list     subst         mapcar* [2]
+copy-list     subst         mapcar* [2]
 adjoin [3]    acons         pairlis       pop [4]
 push [4]      pushnew [3,4] incf [4]      decf [4]
 proclaim      declaim
 @end example
-
-@noindent
-[1] This is the Emacs 19-compatible function, not @code{member*}.
 
 @noindent
 [2] Only for one sequence argument or two list arguments.
@@ -676,9 +673,7 @@ certain top-level forms, like @code{defmacro} (sort-of) and
 
 Emacs 19 includes two special forms related to @code{eval-when}.
 One of these, @code{eval-when-compile}, is not quite equivalent to
-any @code{eval-when} construct and is described below.  This package
-defines a version of @code{eval-when-compile} for the benefit of
-Emacs 18 users.
+any @code{eval-when} construct and is described below.
 
 The other form, @code{(eval-and-compile @dots{})}, is exactly
 equivalent to @samp{(eval-when (compile load eval) @dots{})} and
@@ -2578,7 +2573,7 @@ clause to access both the codes and the bindings together.
 @item for @var{var} being the key-seqs of @var{keymap}
 This clause iterates over all key sequences defined by @var{keymap}
 and its nested keymaps, where @var{var} takes on values which are
-strings in Emacs 18 or vectors in Emacs 19.  The strings or vectors
+vectors.  The strings or vectors
 are reused for each iteration, so you must copy them if you wish to keep
 them permanently.  You can add a @samp{using (key-bindings ...)}
 clause to get the command bindings as well.
@@ -2586,8 +2581,8 @@ clause to get the command bindings as well.
 @item for @var{var} being the overlays [of @var{buffer}] @dots{}
 This clause iterates over the Emacs 19 ``overlays'' or Lucid
 Emacs ``extents'' of a buffer (the clause @code{extents} is synonymous
-with @code{overlays}).  Under Emacs 18, this clause iterates zero
-times.  If the @code{of} term is omitted, the current buffer is used.
+with @code{overlays}).  If the @code{of} term is omitted, the current
+buffer is used.
 This clause also accepts optional @samp{from @var{pos}} and
 @samp{to @var{pos}} terms, limiting the clause to overlays which
 overlap the specified region.
@@ -2612,9 +2607,7 @@ are visited in @code{next-frame} order starting from
 
 @item for @var{var} being the windows [of @var{frame}]
 This clause iterates over the windows (in the Emacs sense) of
-the current frame, or of the specified @var{frame}.  (In Emacs 18
-there is only ever one frame, and the @code{of} term is not
-allowed there.)
+the current frame, or of the specified @var{frame}.
 
 @item for @var{var} being the buffers
 This clause iterates over all buffers in Emacs.  It is equivalent
@@ -3477,20 +3470,6 @@ to @code{floatp}.  On other systems, this always returns @code{nil}.
 @noindent
 These functions perform various arithmetic operations on numbers.
 
-@defun abs number
-This function returns the absolute value of @var{number}.  (Newer
-versions of Emacs provide this as a built-in function; this package
-defines @code{abs} only for Emacs 18 versions which don't provide
-it as a primitive.)
-@end defun
-
-@defun expt base power
-This function returns @var{base} raised to the power of @var{number}.
-(Newer versions of Emacs provide this as a built-in function; this
-package defines @code{expt} only for Emacs 18 versions which don't
-provide it as a primitive.)
-@end defun
-
 @defun gcd &rest integers
 This function returns the Greatest Common Divisor of the arguments.
 For one argument, it returns the absolute value of that argument.
@@ -4059,12 +4038,6 @@ non-destructive and destructive list operations in Emacs Lisp.
 The predicate-oriented functions @code{remove-if}, @code{remove-if-not},
 @code{delete-if}, and @code{delete-if-not} are defined similarly.
 
-@defun delete item list
-This MacLisp-compatible function deletes from @var{list} all elements
-which are @code{equal} to @var{item}.  The @code{delete} function is
-built-in to Emacs 19; this package defines it equivalently in Emacs 18.
-@end defun
-
 @defun remove item list
 This function removes from @var{list} all elements which are
 @code{equal} to @var{item}.  This package defines it for symmetry
@@ -4430,13 +4403,6 @@ This is a destructive version of @code{sublis}.
 @noindent
 These functions perform operations on lists which represent sets
 of elements.
-
-@defun member item list
-This MacLisp-compatible function searches @var{list} for an element
-which is @code{equal} to @var{item}.  The @code{member} function is
-built-in to Emacs 19; this package defines it equivalently in Emacs 18.
-See the following function for a Common-Lisp compatible version.
-@end defun
 
 @defun member* item list @t{&key :test :test-not :key}
 This function searches @var{list} for an element matching @var{item}.
@@ -5296,9 +5262,8 @@ Hallvard Furuseth.  The patch is applied to the byte compiler's
 code in Emacs' memory, @emph{not} to the @file{bytecomp.elc} file
 stored on disk.
 
-The Emacs 19 compiler (for Emacs 18) is available from various
-Emacs Lisp archive sites such as @code{archive.cis.ohio-state.edu}.
-Its use is highly recommended; many of the Common Lisp macros emit
+Use of the Emacs 19 compiler is highly recommended; many of the Common
+Lisp macros emit
 code which can be improved by optimization.  In particular,
 @code{block}s (whether explicit or implicit in constructs like
 @code{defun*} and @code{loop}) carry a fair run-time penalty; the
@@ -5395,7 +5360,7 @@ implemented in this package.
 The @code{member}, @code{floor}, @code{ceiling}, @code{truncate},
 @code{round}, @code{mod}, and @code{rem} functions are suffixed
 by @samp{*} in this package to avoid collision with existing
-functions in Emacs 18 or Emacs 19.  The older package simply
+functions in Emacs.  The older package simply
 redefined these functions, overwriting the built-in meanings and
 causing serious portability problems with Emacs 19.  (Some more
 recent versions of the Quiroz package changed the names to
