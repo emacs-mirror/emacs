@@ -126,7 +126,7 @@ when the TAB command is used."
   :group 'icon)
 
 (defvar icon-imenu-generic-expression
-      '((nil "^[ \t]*procedure[ \t]*\\(\\sw+\\)[ \t]*("  1))
+      '((nil "^[ \t]*procedure[ \t]+\\(\\sw+\\)[ \t]*("  1))
   "Imenu expression for Icon mode.  See `imenu-generic-expression'.")
 
 
@@ -193,20 +193,21 @@ with no args, if that value is non-nil."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults  
 	'((icon-font-lock-keywords
-	   icon-font-lock-keywords-1 
-	   icon-font-lock-keywords-2
-	   )
+	   icon-font-lock-keywords-1 icon-font-lock-keywords-2)
 	  nil nil ((?_ . "w")) beginning-of-defun
-	  (font-lock-comment-start-regexp . "#")
+	  ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
+	  ;(font-lock-comment-start-regexp . "#")
 	  (font-lock-mark-block-function . mark-defun)))
   ;; imenu support
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression icon-imenu-generic-expression)
   ;; hideshow support
   ;; we start from the assertion that `hs-special-modes-alist' is autoloaded.
-  (pushnew '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil 
-			icon-forward-sexp-function)
-	   hs-special-modes-alist :test 'equal)
+  (unless (assq 'icon-mode hs-special-modes-alist)
+    (setq hs-special-modes-alist
+	  (cons '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil 
+			     icon-forward-sexp-function)
+		hs-special-modes-alist)))
   (run-hooks 'icon-mode-hook))
 
 ;; This is used by indent-for-comment to decide how much to
@@ -619,7 +620,7 @@ Returns nil if line starts inside a string, t if in a comment."
      ;; Fontify procedure name definitions.
      '("^[ \t]*\\(procedure\\)[ \t]*\\(\\sw+\\)[ \t]*("
        (1 font-lock-builtin-face) (2 font-lock-function-name-face nil t))))
-  "Subdued level highlighting for `icon-mode'.")
+  "Subdued level highlighting for Icon mode.")
 
 (defconst icon-font-lock-keywords-2
   (append 
@@ -674,10 +675,9 @@ Returns nil if line starts inside a string, t if in a comment."
 	       font-lock-variable-name-face)))))
 
       (cons      ;; $define $elif $ifdef $ifdef $ifndef
-       (concat 
-	"^" 
-	(regexp-opt'("$define" "$elif" "$ifdef" "$ifdef" "$ifndef" "$undef") t)
-	"[ \t]+\\([^ \t\n]+\\)")
+       (concat "^" 
+	       (regexp-opt'("$define" "$elif" "$ifdef" "$ifndef" "$undef") t)
+	       "\\>[ \t]*\\([^ \t\n]+\\)?")
 	    '((1 font-lock-builtin-face) 
 	      (4 font-lock-variable-name-face nil t)))
       (cons      ;; $dump $endif $else $include 
@@ -685,9 +685,10 @@ Returns nil if line starts inside a string, t if in a comment."
 	"^" (regexp-opt'("$dump" "$endif" "$else" "$include") t) "\\>" )
        'font-lock-builtin-face)
       (cons      ;; $warning $error
-       (concat 	"^" (regexp-opt '("$warning" "$error") t) "[ \t]+\\([^\n]+\\)")
-	    '((1 font-lock-builtin-face) (3 font-lock-warning-face nil t))))))
-    "Gaudy level highlighting for `icon-mode'.")
+       (concat "^" (regexp-opt '("$warning" "$error") t)
+	       "\\>[ \t]*\\(.+\\)?")
+       '((1 font-lock-builtin-face) (3 font-lock-warning-face nil t))))))
+  "Gaudy level highlighting for Icon mode.")
 
 (defvar icon-font-lock-keywords icon-font-lock-keywords-1
   "Default expressions to highlight in `icon-mode'.")
