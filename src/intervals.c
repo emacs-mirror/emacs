@@ -2174,7 +2174,7 @@ get_local_map (position, buffer, type)
      register struct buffer *buffer;
      enum map_property type;
 {
-  Lisp_Object prop, tem, lispy_position, lispy_buffer;
+  Lisp_Object prop, lispy_position, lispy_buffer;
   int old_begv, old_zv, old_begv_byte, old_zv_byte;
 
   /* Perhaps we should just change `position' to the limit.  */
