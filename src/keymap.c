@@ -1959,14 +1959,18 @@ around function keys and event symbols.")
 	}
       else
 	{
-	  char tem[KEY_DESCRIPTION_SIZE];
-	  int len;
+	  char tem[KEY_DESCRIPTION_SIZE], *end;
+	  int nbytes, nchars;
+	  Lisp_Object string;
 
-	  *push_key_description (XUINT (key), tem, 1) = 0;
-	  len = strlen (tem);
-	  return make_multibyte_string (tem,
-					multibyte_chars_in_text (tem, len),
-					len);
+	  end = push_key_description (XUINT (key), tem, 1);
+	  nbytes = end - tem;
+	  nchars = multibyte_chars_in_text (tem, nbytes);
+	  if (nchars == nbytes)
+	    string = build_string (tem);
+	  else
+	    string = make_multibyte_string (tem, nchars, nbytes);
+	  return string;
 	}
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */

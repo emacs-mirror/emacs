@@ -777,8 +777,6 @@ Return t if file exists.")
     }
   else
     {
-    load_source:
-
       /* We are loading a source file (*.el).  */
       if (!NILP (Vload_source_file_function))
 	{

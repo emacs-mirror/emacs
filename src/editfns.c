@@ -316,6 +316,8 @@ If you set the marker not to point anywhere, the buffer will have no mark.")
 }
 
 
+#if 0 /* Not used.  */
+
 /* Return nonzero if POS1 and POS2 have the same value
    for the text property PROP.  */
 
@@ -331,6 +333,8 @@ char_property_eq (prop, pos1, pos2)
 
   return EQ (pval1, pval2);
 }
+
+#endif /* 0 */
 
 /* Return the direction from which the text-property PROP would be
    inherited by any new text inserted at POS: 1 if it would be

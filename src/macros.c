@@ -61,7 +61,7 @@ The commands are recorded even as they are executed.\n\
 Use \\[end-kbd-macro] to finish recording and make the macro available.\n\
 Use \\[name-last-kbd-macro] to give it a permanent name.\n\
 Non-nil arg (prefix arg) means append to last macro defined;\n\
- This begins by re-executing that macro as if you typed it again.")
+this begins by re-executing that macro as if you typed it again.")
   (append)
      Lisp_Object append;
 {

@@ -624,6 +624,9 @@ current_column_1 ()
   return col;
 }
 
+
+#if 0 /* Not used.  */
+
 /* Return the width in columns of the part of STRING from BEG to END.
    If BEG is nil, that stands for the beginning of STRING.
    If END is nil, that stands for the end of STRING.  */
@@ -701,6 +704,9 @@ string_display_width (string, beg, end)
 
   return col;
 }
+
+#endif /* 0 */
+
 
 DEFUN ("indent-to", Findent_to, Sindent_to, 1, 2, "NIndent to column: ",
   "Indent from point with tabs and spaces until COLUMN is reached.\n\

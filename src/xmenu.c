@@ -2077,7 +2077,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
             item_name = string_make_unibyte (item_name);
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
-            item_name = string_make_unibyte (descrip);
+            descrip = string_make_unibyte (descrip);
 #endif
  
 	  wv = xmalloc_widget_value ();
