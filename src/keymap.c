@@ -616,6 +616,9 @@ the front of KEYMAP.")
 	  idx++;
 	}
 
+      if (! INTEGERP (c) && ! SYMBOLP (c) && ! CONSP (c))
+	error ("Key sequence contains illegal events");
+
       if (idx == length)
 	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
 
