@@ -1,7 +1,7 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.61) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
  * .sources: design.mps.interface.c.
@@ -176,7 +176,6 @@ typedef struct mps_ss_s {
 
 /* Format Variants */
 
-typedef struct mps_fmt_A_s *mps_fmt_A_t;
 typedef struct mps_fmt_A_s {
   mps_align_t     align;
   mps_fmt_scan_t  scan;
@@ -186,8 +185,8 @@ typedef struct mps_fmt_A_s {
   mps_fmt_isfwd_t isfwd;
   mps_fmt_pad_t   pad;
 } mps_fmt_A_s;
+typedef struct mps_fmt_A_s *mps_fmt_A_t;  /* deprecated */
 
-typedef struct mps_fmt_B_s *mps_fmt_B_t;
 typedef struct mps_fmt_B_s {
   mps_align_t     align;
   mps_fmt_scan_t  scan;
@@ -198,6 +197,18 @@ typedef struct mps_fmt_B_s {
   mps_fmt_pad_t   pad;
   mps_fmt_class_t mps_class;
 } mps_fmt_B_s;
+typedef struct mps_fmt_B_s *mps_fmt_B_t;  /* deprecated */
+
+
+typedef struct mps_fmt_auto_header_s {
+  mps_align_t     align;
+  mps_fmt_scan_t  scan;
+  mps_fmt_skip_t  skip;
+  mps_fmt_fwd_t   fwd;
+  mps_fmt_isfwd_t isfwd;
+  mps_fmt_pad_t   pad;
+  size_t          mps_headerSize;
+} mps_fmt_auto_header_s;
 
 
 /* Internal Definitions */
@@ -263,6 +274,8 @@ extern mps_res_t mps_fmt_create_A(mps_fmt_t *, mps_arena_t,
                                   mps_fmt_A_s *);
 extern mps_res_t mps_fmt_create_B(mps_fmt_t *, mps_arena_t,
                                   mps_fmt_B_s *);
+extern mps_res_t mps_fmt_create_auto_header(mps_fmt_t *, mps_arena_t,
+                                            mps_fmt_auto_header_s *);
 extern void mps_fmt_destroy(mps_fmt_t);
 
 
@@ -585,6 +598,7 @@ extern mps_res_t mps_fix(mps_ss_t, mps_addr_t *);
   (MPS_FIX1(ss, *(ref_io)) ? \
    MPS_FIX2(ss, ref_io) : MPS_RES_OK)
 
+/* MPS_FIX is deprecated */
 #define MPS_FIX(ss, ref_io) MPS_FIX12(ss, ref_io)
 
 #define MPS_FIX_CALL(ss, call) \
