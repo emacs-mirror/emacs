@@ -1,3 +1,8 @@
+2004-07-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (decode-coding-inserted-region): Set
+	last-coding-system-used only when coding is nil.
+
 2004-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/grep.el (grep-compute-defaults, grep-command)
