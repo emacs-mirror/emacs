@@ -167,16 +167,6 @@ Used to determine if files in fundamental mode should be put into
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Inline functions
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defsubst generic-read-type ()
-  (completing-read
-   "Generic Type: "
-   (mapcar (lambda (elt) (list (symbol-name (car elt))))
-   nil t))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -216,7 +206,7 @@ See the file generic-x.el for some examples of `define-generic-mode'."
 
   ;; Add a new entry
   (unless (assq name generic-mode-list)
-    (push (list name) generic-mode-list))
+    (push (list (symbol-name name)) generic-mode-list))
 
   ;; Add it to auto-mode-alist
   (dolist (re auto-mode-list)
@@ -275,7 +265,7 @@ comment characters, keywords, and the like.)
 To define a generic-mode, use the function `define-generic-mode'.
 Some generic modes are defined in `generic-x.el'."
   (interactive
-   (list (generic-read-type)))
+   (list (completing-read "Generic Type: " generic-mode-list nil t)))
   (funcall (intern type)))
 
 ;;; Comment Functionality
