@@ -67,6 +67,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/CoreP.h>
 #include <X11/StringDefs.h>
 #include <X11/Shell.h>
+#include <X11/Xaw/Paned.h>
 #include "../lwlib/lwlib.h"
 #else /* not USE_X_TOOLKIT */
 #include "../oldXMenu/XMenu.h"
@@ -1555,6 +1556,24 @@ set_frame_menubar (f, first_time)
 					 popup_deactivate_callback);
       f->display.x->menubar_widget = menubar_widget;
     }
+
+  {
+    int menubar_size 
+      = (f->display.x->menubar_widget
+	 ? (f->display.x->menubar_widget->core.height
+	    + f->display.x->menubar_widget->core.border_width)
+	 : 0);
+
+    if (FRAME_EXTERNAL_MENU_BAR (f))
+      {
+        Dimension ibw = 0;
+        XtVaGetValues (f->display.x->column_widget,
+		       XtNinternalBorderWidth, &ibw, NULL);
+        menubar_size += ibw;
+      }
+
+    f->display.x->menubar_height = menubar_size;
+  }
   
   free_menubar_widget_value_tree (first_wv);
 
