@@ -105,9 +105,7 @@
 ;; USER OPTIONS -- settings you might want to play with.
 ;; ----------------------------------------------------------------------------
 (defconst desktop-basefilename
-  (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
-      "emacs.dsk" ; Ms-Dos does not support multiple dots in file name
-    ".emacs.desktop")
+  (convert-standard-filename ".emacs.desktop")
   "File for Emacs desktop, not including the directory name.")
 
 (defvar desktop-missing-file-warning t
