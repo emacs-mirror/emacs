@@ -1180,20 +1180,14 @@ window_loop (type, obj, mini, frames)
 	 the current window.  */
       next_window = Fnext_window (w, mini ? Qt : Qnil, frame_arg);
 
-#ifdef MULTI_FRAME
-      if (frame != 0 && EQ (frames, Qt)
-	  && FRAME_VISIBLE_P (w_frame))
-	continue;
-#endif
+      /* Note that we do not pay attention here to whether
+	 the frame is visible, since Fnext_window skips non-visible frames
+	 if that is desired, under the control of frame_arg.  */
       if (! MINI_WINDOW_P (XWINDOW (w))
 	  || (mini && minibuf_level > 0))
 	switch (type)
 	  {
 	  case GET_BUFFER_WINDOW:
-	    /* Ignore invisible and iconified frames.  */
-	    if (! FRAME_VISIBLE_P (w_frame)
-		|| FRAME_ICONIFIED_P (w_frame))
-	      break;
 	    if (XBUFFER (XWINDOW (w)->buffer) == XBUFFER (obj))
 	      return w;
 	    break;
@@ -1203,12 +1197,6 @@ window_loop (type, obj, mini, frames)
 	    if (!NILP (obj) && XFASTINT (XWINDOW (w)->width)
 		!= FRAME_WIDTH (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
 	      break;
-#if 0
-	    /* Ignore invisible and iconified frames.  */
-	    if (! FRAME_VISIBLE_P (XFRAME (WINDOW_FRAME (XWINDOW (w))))
-		|| FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
-	      break;
-#endif
 	    /* Ignore dedicated windows and minibuffers.  */
 	    if (MINI_WINDOW_P (XWINDOW (w))
 		|| !NILP (XWINDOW (w)->dedicated))
@@ -1245,12 +1233,6 @@ window_loop (type, obj, mini, frames)
 	    break;
 
 	  case GET_LARGEST_WINDOW:
-#if 0
-	    /* Ignore invisible and iconified frames.  */
-	    if (! FRAME_VISIBLE_P (XFRAME (WINDOW_FRAME (XWINDOW (w))))
-		|| FRAME_ICONIFIED_P (XFRAME (WINDOW_FRAME (XWINDOW (w)))))
-	      break;
-#endif
 	    /* Ignore dedicated windows and minibuffers.  */
 	    if (MINI_WINDOW_P (XWINDOW (w))
 		|| !NILP (XWINDOW (w)->dedicated))
