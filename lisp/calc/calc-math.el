@@ -574,39 +574,51 @@
 	   (and root (list 'polar root (math-div (nth 2 a) n)))))
 	(t nil)))
 
-(defun math-nth-root-float (a n &optional guess)
+;; The variables math-nrf-n, math-nrf-nf and math-nrf-nfm1 are local
+;; to math-nth-root-float, but are used by math-nth-root-float-iter,
+;; which is called by math-nth-root-float.
+(defvar math-nrf-n)
+(defvar math-nrf-nf)
+(defvar math-nrf-nfm1)
+
+(defun math-nth-root-float (a math-nrf-n &optional guess)
   (math-inexact-result)
   (math-with-extra-prec 1
-    (let ((nf (math-float n))
-	  (nfm1 (math-float (1- n))))
+    (let ((math-nrf-nf (math-float math-nrf-n))
+	  (math-nrf-nfm1 (math-float (1- math-nrf-n))))
       (math-nth-root-float-iter a (or guess
 				      (math-make-float
 				       1 (/ (+ (math-numdigs (nth 1 a))
 					       (nth 2 a)
-					       (/ n 2))
-					    n)))))))
+					       (/ math-nrf-n 2))
+					    math-nrf-n)))))))
 
-(defun math-nth-root-float-iter (a guess)   ; uses "n", "nf", "nfm1"
+(defun math-nth-root-float-iter (a guess)
   (math-working "root" guess)
-  (let ((g2 (math-div-float (math-add-float (math-mul nfm1 guess)
+  (let ((g2 (math-div-float (math-add-float (math-mul math-nrf-nfm1 guess)
 					    (math-div-float
-					     a (math-ipow guess (1- n))))
-			    nf)))
+					     a (math-ipow guess (1- math-nrf-n))))
+			    math-nrf-nf)))
     (if (math-nearly-equal-float g2 guess)
 	g2
       (math-nth-root-float-iter a g2))))
 
-(defun math-nth-root-integer (a n &optional guess)   ; [I I S]
+;; The variable math-nri-n is local to math-nth-root-integer, but
+;; is used by math-nth-root-int-iter, which is called by
+;; math-nth-root-int.
+(defvar math-nri-n)
+
+(defun math-nth-root-integer (a math-nri-n &optional guess)   ; [I I S]
   (math-nth-root-int-iter a (or guess
 				(math-scale-int 1 (/ (+ (math-numdigs a)
-							(1- n))
-						     n)))))
+							(1- math-nri-n))
+						     math-nri-n)))))
 
-(defun math-nth-root-int-iter (a guess)   ; uses "n"
+(defun math-nth-root-int-iter (a guess)
   (math-working "root" guess)
-  (let* ((q (math-idivmod a (math-ipow guess (1- n))))
-	 (s (math-add (car q) (math-mul (1- n) guess)))
-	 (g2 (math-idivmod s n)))
+  (let* ((q (math-idivmod a (math-ipow guess (1- math-nri-n))))
+	 (s (math-add (car q) (math-mul (1- math-nri-n) guess)))
+	 (g2 (math-idivmod s math-nri-n)))
     (if (Math-natnum-lessp (car g2) guess)
 	(math-nth-root-int-iter a (car g2))
       (cons (and (equal (car g2) guess)
@@ -1247,7 +1259,7 @@
 	     (math-div (calcFunc-ln x) 0)
 	   (math-reject-arg b "*Logarithm base one")))
 	((math-equal-int x 1)
-	 (if (or (math-floatp a) (math-floatp b)) '(float 0 0) 0))
+	 (if (math-floatp b) '(float 0 0) 0))
 	((and (Math-ratp x) (Math-ratp b)
 	      (math-posp x) (math-posp b)
 	      (let* ((sign 1) (inv nil)
