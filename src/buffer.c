@@ -2007,7 +2007,8 @@ swap_out_buffer_local_variables (b)
    Store in *NEXT_PTR the next position after POS where an overlay starts,
      or ZV if there are no more overlays.
    Store in *PREV_PTR the previous position before POS where an overlay ends,
-     or BEGV if there are no previous overlays.
+     or where an overlay starts which ends at or after POS;
+     or BEGV if there are no such overlays.
    NEXT_PTR and/or PREV_PTR may be 0, meaning don't store that info.
 
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
@@ -2052,9 +2053,13 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	    prev = endpos;
 	  break;
 	}
+      startpos = OVERLAY_POSITION (start);
+      /* This one ends at or after POS
+	 so its start counts for NEXT_PTR if it's before POS.  */
+      if (prev < startpos && startpos < pos)
+	prev = startpos;
       if (endpos == pos)
 	continue;
-      startpos = OVERLAY_POSITION (start);
       if (startpos <= pos)
 	{
 	  if (idx == len)
@@ -2121,9 +2126,14 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	  if (!inhibit_storing)
 	    vec[idx] = overlay;
 	  idx++;
+
+	  if (startpos < pos && startpos > prev)
+	    prev = startpos;
 	}
       else if (endpos < pos && endpos > prev)
 	prev = endpos;
+      else if (endpos == pos && startpos > prev)
+	prev = startpos;
     }
 
   if (next_ptr)
