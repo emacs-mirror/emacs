@@ -497,6 +497,9 @@ the user during startup."
   (cdr param-list))
 
 
+(defvar focus-follows-mouse t
+  "*Non-nil if window system changes focus when you move the mouse.")
+
 (defun other-frame (arg)
   "Select the ARG'th different visible frame, and raise it.
 All frames are arranged in a cyclic order.
@@ -519,7 +522,8 @@ A negative ARG moves in the opposite order."
     ;; Ensure, if possible, that frame gets input focus.
     (if (eq window-system 'w32)
 	(w32-focus-frame frame)
-      (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
+      (unless focus-follows-mouse
+	(set-mouse-position (selected-frame) (1- (frame-width)) 0)))))
 
 (defun make-frame-names-alist ()
   (let* ((current-frame (selected-frame))
