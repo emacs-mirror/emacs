@@ -1591,6 +1591,51 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   return Qnil;
 }
 
+/* Overlay dissection functions.  */
+
+DEFUN ("overlay-start", Foverlay_start, Soverlay_start, 1, 1, 0,
+  "Return the position at which OVERLAY starts.")
+     (overlay)
+     Lisp_Object overlay;
+{
+  CHECK_OVERLAY (overlay, 0);
+
+  return (Fmarker_position (OVERLAY_START (overlay)));
+}
+
+DEFUN ("overlay-end", Foverlay_end, Soverlay_end, 1, 1, 0,
+  "Return the position at which OVERLAY ends.")
+     (overlay)
+     Lisp_Object overlay;
+{
+  CHECK_OVERLAY (overlay, 0);
+
+  return (Fmarker_position (OVERLAY_END (overlay)));
+}
+
+DEFUN ("overlay-buffer", Foverlay_buffer, Soverlay_buffer, 1, 1, 0,
+  "Return the buffer OVERLAY belongs to.")
+     (overlay)
+       Lisp_Object overlay;
+{
+  CHECK_OVERLAY (overlay, 0);
+
+  return Fmarker_buffer (OVERLAY_START (overlay));
+}
+
+DEFUN ("overlay-properties", Foverlay_properties, Soverlay_properties, 1, 1, 0,
+  "Return a list of the properties on OVERLAY.\n\
+This is a copy of OVERLAY's plist; modifying its conses has no effect on\n\
+OVERLAY.")
+  (overlay)
+    Lisp_Object overlay;
+{
+  CHECK_OVERLAY (overlay, 0);
+
+  return Fcopy_sequence (Fcdr_safe (XCONS (overlay)->cdr));
+}
+
+
 DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
   "Return a list of the overays that contain position POS.")
   (pos)
@@ -2246,6 +2291,10 @@ Automatically local in all buffers.");
   defsubr (&Smake_overlay);
   defsubr (&Sdelete_overlay);
   defsubr (&Smove_overlay);
+  defsubr (&Soverlay_start);
+  defsubr (&Soverlay_end);
+  defsubr (&Soverlay_buffer);
+  defsubr (&Soverlay_properties);
   defsubr (&Soverlays_at);
   defsubr (&Snext_overlay_change);
   defsubr (&Soverlay_recenter);
