@@ -733,6 +733,22 @@ Returns the documentation as a string, also."
 	  (let ((doc (documentation-property variable 'variable-documentation)))
 	    (princ (or doc "not documented as a variable.")))
           (help-setup-xref (cons #'describe-variable variable) (interactive-p))
+
+	  ;; Make a link to customize if this variable can be customized.
+	  (if (or (get variable 'custom-type)
+		  (user-variable-p variable))
+	      (let ((customize-label "customize"))
+		(terpri)
+		(terpri)
+		(princ (concat "You can " customize-label " this variable."))
+		(with-current-buffer "*Help*"
+		  (save-excursion
+		    (re-search-backward 
+		     (concat "\\(" customize-label "\\)") nil t)
+		    (help-xref-button 1 #'(lambda (v)
+					    (customize-variable v)) variable)
+		    ))))
+
 	  (print-help-return-message)
 	  (save-excursion
 	    (set-buffer standard-output)
