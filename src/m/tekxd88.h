@@ -150,7 +150,6 @@ and this notice must be preserved on all copies.  */
 #define BSTRING /* its in libc but not declared in any <*.h> file. */
 #define HAVE_TZSET
 #define HAVE_SETSID
-#define HAVE_RENAME
 
 #ifdef ghs	/* Stands for "Green Hills Software", defined in /bin/cc */ 
 /* Only required for use with the Green Hills compiler:
