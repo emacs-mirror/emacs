@@ -1,30 +1,34 @@
 /* timer.c --- daemon to provide a tagged interval timer service
 
-   This little daemon runs forever waiting for signals.  SIGIO (or
-   SIGUSR1) causes it to read an event spec from stdin; that is, a
-   date followed by colon followed by an event label.  SIGALRM causes
+   This little daemon runs forever waiting for commands to schedule events.
+   SIGALRM causes
    it to check its queue for events attached to the current second; if
    one is found, its label is written to stdout.  SIGTERM causes it to
    terminate, printing a list of pending events.
 
    This program is intended to be used with the lisp package called
-   timer.el.  It was written anonymously in 1990.  This version was
-   documented and rewritten for portability by esr@snark.thyrsus.com,
-   Aug 7 1992.  */
+   timer.el.  The first such program was written anonymously in 1990.
+   This version was documented and rewritten for portability by
+   esr@snark.thyrsus.com, Aug 7 1992.  */
 
 #include <stdio.h>
 #include <signal.h>
-#include <fcntl.h>      /* FASYNC */
+#include <errno.h>
 #include <sys/types.h>  /* time_t */
 
 #include <../src/config.h>
-#ifdef USG
-#undef SIGIO
-#define SIGIO SIGPOLL
-#endif
+#undef read
 
 #ifdef LINUX
 /* Perhaps this is correct unconditionally.  */
+#undef signal
+#endif
+#ifdef _CX_UX
+/* I agree with the comment above, this probably should be unconditional (it
+ * is already unconditional in a couple of other files in this directory),
+ * but in the spirit of minimizing the effects of my port, I am making it
+ * conditional on _CX_UX.
+ */
 #undef signal
 #endif
 
@@ -34,9 +38,8 @@ extern char *strerror (), *malloc ();
 extern time_t time ();
 
 /*
- * The field separator for input.  This character shouldn't be legal in a date,
- * and should be printable so event strings are readable by people.  Was
- * originally ';', then got changed to bogus `\001'.
+ * The field separator for input.  This character shouldn't occur in dates,
+ * and should be printable so event strings are readable by people.
  */
 #define FS '@'
 
@@ -50,11 +53,27 @@ int num_events;			/* How many are actually scheduled?  */
 struct event *events;		/* events[0 .. num_events-1] are the
 				   valid events.  */
 
-char *pname;      /* programme name for error messages */
+char *pname;      /* program name for error messages */
 
-/* Accepts a string of two fields separated by FS.
+/* This buffer is used for reading commands.
+   We make it longer when necessary, but we never free it.  */
+char *buf;
+/* This is the allocated size of buf.  */
+int buf_size;
+
+/* Non-zero means don't handle an alarm now;
+   instead, just set alarm_deferred if an alarm happens.
+   We set this around parts of the program that call malloc and free.  */
+int defer_alarms;
+
+/* Non-zero if an alarm came in during the reading of a command.  */
+int alarm_deferred;
+
+/* Schedule one event, and arrange an alarm for it.
+   STR is a string of two fields separated by FS.
    First field is string for get_date, saying when to wake-up.
    Second field is a token to identify the request.  */
+
 void
 schedule (str)
      char *str;
@@ -64,7 +83,7 @@ schedule (str)
   time_t now;
   register char *p;
   static struct event *ep;
-
+  
   /* check entry format */
   for (p = str; *p && *p != FS; p++)
     continue;
@@ -90,13 +109,10 @@ schedule (str)
       if (! events)
 	{
 	  fprintf (stderr, "%s: virtual memory exhausted.\n", pname);
-
-	  /* Should timer exit now?  Well, we've still got other
-	     events in the queue, and more memory might become
-	     available in the future, so we'll just toss this event.
-	     This will screw up whoever scheduled the event, but
-	     maybe someone else will survive.  */
-	  return;
+	  /* Since there is so much virtual memory, and running out
+	     almost surely means something is very very wrong,
+	     it is best to exit rather than continue.  */
+	  exit (1);
 	}
 
       while (old_size < events_size)
@@ -123,6 +139,9 @@ schedule (str)
   strcpy (ep->token, p);
   num_events++;
 }
+
+/* Print the notification for the alarmed event just arrived if any,
+   and schedule an alarm for the next event if any.  */
 
 void
 notify ()
@@ -130,12 +149,9 @@ notify ()
   time_t now, tdiff, waitfor = -1;
   register struct event *ep;
 
-  /* If an alarm timer runs out while this function is executing,
-     it could get called recursively.  This would be bad, because
-     it's not re-entrant.  So we must try to suspend the signal. */
-#if 0   /* This function isn't right for BSD.  Fix it later.  */
-  sighold(SIGIO);
-#endif
+  /* Inhibit interference with alarms while changing global vars.  */
+  defer_alarms = 1;
+  alarm_deferred = 0;
 
   now = time ((time_t *) NULL);
 
@@ -168,50 +184,82 @@ notify ()
   if (num_events > 0)
     alarm (waitfor);
 
-#if 0  /* This function isn't right for BSD.  */
-  sigrelse(SIGIO);
-#endif
+  /* Now check if there was another alarm
+     while we were handling an explicit request.  */
+  defer_alarms = 0;
+  if (alarm_deferred)
+    notify ();
+  alarm_deferred = 0;
 }
+
+/* Read one command from command from standard input
+   and schedule the event for it.  */
 
 void
 getevent ()
 {
   int i;
-  char *buf;
-  int buf_size;
+  int n_events;
 
   /* In principle the itimer should be disabled on entry to this
      function, but it really doesn't make any important difference
      if it isn't.  */
 
-  buf_size = 80;
-  buf = (char *) malloc (buf_size);
+  if (buf == 0)
+    {
+      buf_size = 80;
+      buf = (char *) malloc (buf_size);
+    }
 
   /* Read a line from standard input, expanding buf if it is too short
      to hold the line.  */
   for (i = 0; ; i++)
     {
-      int c;
+      char c;
+      int nread;
 
       if (i >= buf_size)
 	{
 	  buf_size *= 2;
+	  alarm_deferred = 0;
+	  defer_alarms = 1;
 	  buf = (char *) realloc (buf, buf_size);
-
-	  /* If we're out of memory, toss this event.  */
-	  do
-	    {
-	      c = getchar ();
-	    }
-	  while (c != '\n' && c != EOF);
-	  
-	  return;
+	  defer_alarms = 0;
+	  if (alarm_deferred)
+	    notify ();
+	  alarm_deferred = 0;
 	}
 
-      c = getchar ();
+      /* Read one character into c.  */
+      while (1)
+	{
+	  nread = read (fileno (stdin), &c, 1);
 
-      if (c == EOF)
-	exit (0);
+	  /* Retry after transient error.  */
+	  if (nread < 0
+	      && (1
+#ifdef EINTR
+		  || errno == EINTR
+#endif
+#ifdef EAGAIN
+		  || errno == EAGAIN
+#endif
+		  ))
+	    continue;
+
+	  /* Report serious errors.  */
+	  if (nread < 0)
+	    {
+	      perror ("read");
+	      exit (1);
+	    }
+
+	  /* On eof, exit.  */
+	  if (nread == 0)
+	    exit (0);
+
+	  break;
+	}
 
       if (c == '\n')
 	{
@@ -223,27 +271,32 @@ getevent ()
     }
 
   /* Register the event.  */
+  alarm_deferred = 0;
+  defer_alarms = 1;
   schedule (buf);
-  free (buf);
-
-  /* Who knows what this interrupted, or if it said "now"? */
+  defer_alarms = 0;
   notify ();
+  alarm_deferred = 0;
 }
+
+/* Handle incoming signal SIG.  */
 
 SIGTYPE
 sigcatch (sig)
      int sig;
-/* dispatch on incoming signal, then restore it */
 {
   struct event *ep;
+
+  /* required on older UNIXes; harmless on newer ones */
+  signal (sig, sigcatch);
 
   switch (sig)
     {
     case SIGALRM:
-      notify ();
-      break;
-    case SIGIO:
-      getevent ();
+      if (defer_alarms)
+	alarm_deferred = 1;
+      else
+	notify ();
       break;
     case SIGTERM:
       fprintf (stderr, "Events still queued:\n");
@@ -253,9 +306,6 @@ sigcatch (sig)
       exit (0);
       break;
     }
-
-  /* required on older UNIXes; harmless on newer ones */
-  signal (sig, sigcatch);
 }
 
 /*ARGSUSED*/
@@ -274,34 +324,14 @@ main (argc, argv)
   events = ((struct event *) malloc (events_size * sizeof (*events)));
   num_events = 0;
 
-  signal (SIGIO, sigcatch);
   signal (SIGALRM, sigcatch);
   signal (SIGTERM, sigcatch);
 
-#ifndef USG
-  if (fcntl (0, F_SETOWN, getpid ()) == -1)
-    {
-      fprintf (stderr, "%s: can't set ownership of stdin\n", pname);
-      fprintf (stderr, "%s\n", strerror (errno));
-      exit (1);
-    }
-  if (fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) | FASYNC) == -1)
-    {
-      fprintf (stderr, "%s: can't request asynchronous I/O on stdin\n", pname);
-      fprintf (stderr, "%s\n", strerror (errno));
-      exit (1);
-    }
-#else /* USG */
-  /* Register this process for SIGPOLL.  */
-  ioctl (0, I_SETSIG, S_RDNORM);
-#endif /* USG */
-
-  /* In case Emacs sent some input before we set up
-     the handling of SIGIO, read it now.  */
-  kill (0, SIGIO);
-
-  for (;;)
-    pause ();
+  /* Loop reading commands from standard input
+     and scheduling alarms accordingly.
+     The alarms are handled asynchronously, while we wait for commands.  */
+  while (1)
+    getevent ();
 }
 
 #ifndef HAVE_STRERROR
