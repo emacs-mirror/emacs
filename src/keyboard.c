@@ -630,8 +630,9 @@ add_command_key (key)
 
   if (this_command_key_count >= size)
     {
-      Lisp_Object new_keys = Fmake_vector (make_number (size * 2), Qnil);
+      Lisp_Object new_keys;
 
+      new_keys = Fmake_vector (make_number (size * 2), Qnil);
       bcopy (XVECTOR (this_command_keys)->contents,
 	     XVECTOR (new_keys)->contents,
 	     size * sizeof (Lisp_Object));
@@ -1149,8 +1150,9 @@ command_loop_1 ()
 
 		      if (dp)
 			{
-			  Lisp_Object obj = DISP_CHAR_VECTOR (dp, lose);
+			  Lisp_Object obj;
 
+			  obj = DISP_CHAR_VECTOR (dp, lose);
 			  if (XTYPE (obj) == Lisp_Vector
 			      && XVECTOR (obj)->size == 1
 			      && (XTYPE (obj = XVECTOR (obj)->contents[0])
@@ -1639,10 +1641,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	putc (XINT (c), dribble);
       else
 	{
-	  Lisp_Object dribblee = c;
+	  Lisp_Object dribblee;
 
 	  /* If it's a structured event, take the event header.  */
-	  dribblee = EVENT_HEAD (dribblee);
+	  dribblee = EVENT_HEAD (c);
 
 	  if (XTYPE (dribblee) == Lisp_Symbol)
 	    {
@@ -1828,9 +1830,9 @@ kbd_buffer_store_event (event)
 	     get returned to Emacs as an event, the next event read
 	     will set Vlast_event_frame again, so this is safe to do.  */
 	  {
-	    Lisp_Object focus
-	      = FRAME_FOCUS_FRAME (XFRAME (event->frame_or_window));
+	    Lisp_Object focus;
 
+	    focus = FRAME_FOCUS_FRAME (XFRAME (event->frame_or_window));
 	    if (NILP (focus))
 	      internal_last_event_frame = event->frame_or_window;
 	    else
@@ -2017,9 +2019,10 @@ kbd_buffer_get_event ()
       else
 	{
 #ifdef MULTI_FRAME
-	  Lisp_Object frame = event->frame_or_window;
+	  Lisp_Object frame;
 	  Lisp_Object focus;
 
+	  frame = event->frame_or_window;
 	  if (XTYPE (frame) == Lisp_Window)
 	    frame = WINDOW_FRAME (XWINDOW (frame));
 
@@ -2068,8 +2071,9 @@ kbd_buffer_get_event ()
 	 frames.  */
       if (f)
 	{
-	  Lisp_Object frame = FRAME_FOCUS_FRAME (f);
+	  Lisp_Object frame;
 
+	  frame = FRAME_FOCUS_FRAME (f);
 	  if (NILP (frame))
 	    XSET (frame, Lisp_Frame, f);
 
@@ -2630,8 +2634,9 @@ make_lispy_event (event)
 	      {
 		/* The third element of every position should be the (x,y)
 		   pair.  */
-		Lisp_Object down = Fnth (make_number (2), start_pos);
+		Lisp_Object down;
 
+		down = Fnth (make_number (2), start_pos);
 		if (EQ (event->x, XCONS (down)->car)
 		    && EQ (event->y, XCONS (down)->cdr))
 		  {
@@ -2656,14 +2661,14 @@ make_lispy_event (event)
 
 	{
 	  /* Get the symbol we should use for the mouse click.  */
-	  Lisp_Object head
-	    = modify_event_symbol (button,
-				   event->modifiers,
-				   Qmouse_click, Qnil,
-				   lispy_mouse_names, &mouse_syms,
-				   (sizeof (lispy_mouse_names)
-				    / sizeof (lispy_mouse_names[0])));
-	  
+	  Lisp_Object head;
+
+	  head = modify_event_symbol (button,
+				      event->modifiers,
+				      Qmouse_click, Qnil,
+				      lispy_mouse_names, &mouse_syms,
+				      (sizeof (lispy_mouse_names)
+				       / sizeof (lispy_mouse_names[0])));
 	  if (event->modifiers & drag_modifier)
 	    return Fcons (head,
 			  Fcons (start_pos,
@@ -2698,8 +2703,9 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
   /* Is it a scroll bar movement?  */
   if (frame && ! NILP (bar_window))
     {
-      Lisp_Object part_sym = *scroll_bar_parts[(int) part];
+      Lisp_Object part_sym;
 
+      part_sym = *scroll_bar_parts[(int) part];
       return Fcons (Qscroll_bar_movement,
 		    (Fcons (Fcons (bar_window,
 				   Fcons (Qvertical_scroll_bar,
@@ -2929,8 +2935,9 @@ apply_modifiers_uncached (modifiers, base, base_len)
   }
 
   {
-    Lisp_Object new_name = make_uninit_string (mod_len + base_len);
+    Lisp_Object new_name;
     
+    new_name = make_uninit_string (mod_len + base_len);
     bcopy (new_mods, XSTRING (new_name)->data,	       mod_len);
     bcopy (base,     XSTRING (new_name)->data + mod_len, base_len);
 
@@ -2977,19 +2984,21 @@ static Lisp_Object
 parse_modifiers (symbol)
      Lisp_Object symbol;
 {
-  Lisp_Object elements = Fget (symbol, Qevent_symbol_element_mask);
+  Lisp_Object elements;
 
+  elements = Fget (symbol, Qevent_symbol_element_mask);
   if (CONSP (elements))
     return elements;
   else
     {
       int end;
       int modifiers = parse_modifiers_uncached (symbol, &end);
-      Lisp_Object unmodified
-	= Fintern (make_string (XSYMBOL (symbol)->name->data + end,
-				XSYMBOL (symbol)->name->size - end),
-		   Qnil);
+      Lisp_Object unmodified;
       Lisp_Object mask;
+
+      unmodified = Fintern (make_string (XSYMBOL (symbol)->name->data + end,
+					 XSYMBOL (symbol)->name->size - end),
+			    Qnil);
 
       if (modifiers & ~((1<<VALBITS) - 1))
 	abort ();
@@ -3065,8 +3074,9 @@ apply_modifiers (modifiers, base)
      Qevent_kind set right as well.  */
   if (NILP (Fget (new_symbol, Qevent_kind)))
     {
-      Lisp_Object kind = Fget (base, Qevent_kind);
+      Lisp_Object kind;
 
+      kind = Fget (base, Qevent_kind);
       if (! NILP (kind))
 	Fput (new_symbol, Qevent_kind, kind);
     }
@@ -3089,8 +3099,9 @@ reorder_modifiers (symbol)
 {
   /* It's hopefully okay to write the code this way, since everything
      will soon be in caches, and no consing will be done at all.  */
-  Lisp_Object parsed = parse_modifiers (symbol);
+  Lisp_Object parsed;
 
+  parsed = parse_modifiers (symbol);
   return apply_modifiers (XCONS (XCONS (parsed)->cdr)->car,
 			  XCONS (parsed)->car);
 }
@@ -4440,13 +4451,15 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 or when user programs play with this-command-keys.  */
       if (EVENT_HAS_PARAMETERS (key))
 	{
-	  Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
+	  Lisp_Object kind;
 
+	  kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
 	  if (EQ (kind, Qmouse_click))
 	    {
-	      Lisp_Object window = POSN_WINDOW      (EVENT_START (key));
-	      Lisp_Object posn   = POSN_BUFFER_POSN (EVENT_START (key));
+	      Lisp_Object window, posn;
 
+	      window = POSN_WINDOW      (EVENT_START (key));
+	      posn   = POSN_BUFFER_POSN (EVENT_START (key));
 	      if (XTYPE (posn) == Lisp_Cons)
 		{
 		  /* We're looking at the second event of a
@@ -4514,8 +4527,9 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    }
 	  else
 	    {
-	      Lisp_Object posn   = POSN_BUFFER_POSN (EVENT_START (key));
+	      Lisp_Object posn;
 
+	      posn = POSN_BUFFER_POSN (EVENT_START (key));
 	      /* Handle menu-bar events:
 		 insert the dummy prefix event `menu-bar'.  */
 	      if (EQ (posn, Qmenu_bar))
@@ -4564,8 +4578,9 @@ read_key_sequence (keybuf, bufsize, prompt)
       /* If KEY wasn't bound, we'll try some fallbacks.  */
       if (first_binding >= nmaps)
 	{
-	  Lisp_Object head = EVENT_HEAD (key);
+	  Lisp_Object head;
 
+	  head = EVENT_HEAD (key);
 	  if (EQ (head, Vhelp_char))
 	    {
 	      read_key_sequence_cmd = Vprefix_help_command;
@@ -4576,9 +4591,11 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 	  if (XTYPE (head) == Lisp_Symbol)
 	    {
-	      Lisp_Object breakdown = parse_modifiers (head);
-	      int modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
+	      Lisp_Object breakdown;
+	      int modifiers;
 
+	      breakdown = parse_modifiers (head);
+	      modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
 	      /* Attempt to reduce an unbound mouse event to a simpler
 		 event that is bound:
 		   Drags reduce to clicks.
