@@ -2013,7 +2013,7 @@ regardless of what this variable says.
 This is a good thing to set in mode hooks.")
 
 (defvar comint-file-name-quote-list nil
-  "List of characters to quote with `\' when in a file name.
+  "List of characters to quote with `\\' when in a file name.
 
 This is a good thing to set in mode hooks.")
 
