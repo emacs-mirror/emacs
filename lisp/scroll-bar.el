@@ -126,7 +126,8 @@ when they are turned on; if it is nil, they go on the left."
       (setq arg
 	    (if (cdr (assq 'vertical-scroll-bars
 			   (frame-parameters (selected-frame))))
-		-1 1)))
+		-1 1))
+    (setq arg (prefix-numeric-value arg)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'vertical-scroll-bars
 				       (if (> arg 0)
