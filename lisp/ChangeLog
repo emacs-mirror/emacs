@@ -1,5 +1,23 @@
 2001-08-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el (minor-mode-alist): Use mode-line-minor-mode-keymap
+	for the minor mode name.
+
+	* view.el (toplevel): Use mode-line-minor-mode-keymap for the
+	minor mode name.
+
+	* time.el (display-time-string-forms): Use
+	make-mode-line-mouse-map instead of make-mode-line-mouse2-map.
+
+	* subr.el (add-minor-mode): Use mode-line-minor-mode-keymap for
+	the minor mode name.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Use 
+	mode-line-minor-mode-keymap for the minor mode name.
+
+	* calendar/calendar.el (calendar-mode-line-format): Use
+	make-mode-line-mouse-map instead of make-mode-line-mouse2-map.
+
 	* bindings.el (make-mode-line-mouse-map): Renamed from
 	make-mode-line-mouse2-map.  Take additional arg MOUSE.
 	(mode-line-modified): Use mouse-3 instead of mouse-2.
