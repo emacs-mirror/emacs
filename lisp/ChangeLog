@@ -1,3 +1,11 @@
+2002-05-25  Miles Bader  <miles@gnu.org>
+
+	* menu-bar.el (menu-bar-showhide-fringe-menu-customize-left) 
+	(menu-bar-showhide-fringe-menu-customize-right) 
+	(menu-bar-showhide-fringe-menu-customize-disable):
+	Use proper calling convention for `customize-set-value'.
+	Require `fringe' before setting variable.
+
 2002-05-25  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--self-insert-char-p): New function.
