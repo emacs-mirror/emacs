@@ -247,6 +247,9 @@ If you quit, the process is killed with SIGKILL.")
       return Qnil;
     }
 
+  synch_process_death = 0;
+  synch_process_retcode = 0;
+
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), make_number (pid)));
 
