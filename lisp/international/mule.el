@@ -358,6 +358,14 @@ See also the documentation of make-char."
 ;; The value is a symbol of which name is `MIME-charset' parameter of
 ;; the coding system.
 ;;
+;; o charset-origin-alist
+;;
+;; The value is a list of this form:
+;;	(CHARSET EXTERNAL-CHARSET-NAME ENCODING-FUNCTION).
+;; ENCODING-FUNCTION is a function to encode a character in CHARSET
+;; to the code in EXTERNAL-CHARSET-NAME.  The command what-cursor-position
+;; uses this information of the buffer-file-coding-system.
+;;
 ;; o valid-codes (meaningful only for a coding system based on CCL)
 ;;
 ;; The value is a list to indicate valid byte ranges of the encoded
@@ -1119,24 +1127,6 @@ or a function symbol which, when called, returns such a cons cell."
 	     (setq network-coding-system-alist
 		   (cons (cons regexp coding-system)
 			 network-coding-system-alist)))))))
-
-(defvar charset-origin-alist nil
-  "Alist of Emacs charset vs the information of the origin of the charset.
-Each element looks like (CHARSET ORIGIN-NAME GET-ORIGIN-CODE-FUNCTION).
-CHARSET is Emacs character set (symbol).
-ORIGIN-NAME is a name of original (external) character set (string).
-GET-ORIGIN-CODE-FUNCTION is a function which returns an original
-\(external) code.  This function is called with one argument, Emacs
-character code.
-
-The command \\[what-cursor-position] when called with prefix argument
-shows a character set name and character code based on this alist.  If
-a character set of a character at point is not listed here, the
-character set is regarded as identical with the original (external)
-character set.
-
-Setting specific language environment will change the value of this
-variable.")
 
 (defun make-translation-table (&rest args)
   "Make a translation table (char table) from arguments.
