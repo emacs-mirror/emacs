@@ -228,10 +228,10 @@ MOVE_FLAGS=
 # endif
 #endif
 
-MOVE_LIBS=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
+LIBS_MOVE=$(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(HESIODLIB)
 
 #ifdef HAVE_LIBMAIL
-LIBMAIL=-lmail
+LIBS_MAIL=-lmail
 #endif
 
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
@@ -415,7 +415,7 @@ b2m: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 	   $(GETOPTOBJS) $(LOADLIBES) -o b2m 
 
 movemail: movemail.o pop.o $(GETOPTDEPS)
-	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBMAIL) $(MOVE_LIBS) -o movemail
+	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MAIL) $(LIBS_MOVE) -o movemail
 
 movemail.o: ${srcdir}/movemail.c ../src/config.h
 	$(CC) -c ${CPP_CFLAGS} -Demacs ${MOVE_FLAGS} ${srcdir}/movemail.c
