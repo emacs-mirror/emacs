@@ -51,6 +51,7 @@
 
 
 #include "fmtdy.h"
+#include "fmtno.h"
 #include "mps.h"
 #include <assert.h>
 #include <string.h>
@@ -102,8 +103,6 @@ static unsigned long dylan_fw_counts[2];
 #define FMTDY_COUNT(x)
 #endif /* FMTDY_COUNTING */
 
-
-#ifndef NDEBUG
 
 int dylan_wrapper_check(mps_word_t *w)
 {
@@ -209,8 +208,6 @@ int dylan_wrapper_check(mps_word_t *w)
   return 1;
 }
 
-#endif /* NDEBUG */
-
 
 /* Scan a contiguous array of references in [base, limit). */
 /* This code has been hand-optimised and examined using Metrowerks */
@@ -315,6 +312,8 @@ dylan_scan_contig_weak(mps_ss_t mps_ss,
 }
 
 
+/* dylan_scan_pat -- scan according to pattern */
+
 /* Scan an array of words in [base, limit) using the patterns at pats */
 /* to determine which words can be fixed. */
 /* This code has been hand-optimised and examined using Metrowerks */
@@ -368,7 +367,7 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
      (MPS_WORD_SHIFT - (_es)) : \
    (_vt) << ((_es) - MPS_WORD_SHIFT))
 
-static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
+extern mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
 {
   mps_addr_t *p;        /* cursor in object */
   mps_addr_t *q;        /* cursor limit for loops */
@@ -544,7 +543,7 @@ static mps_addr_t dylan_class(mps_addr_t obj)
     return (mps_addr_t)first_word;
 }
 
-static mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
+extern mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 {
   mps_addr_t *assoc;
   mps_addr_t *base;
@@ -692,12 +691,6 @@ static void dylan_copy(mps_addr_t old, mps_addr_t new)
   memcpy(new, old, length);
 }
 
-static void dylan_no_copy(mps_addr_t old, mps_addr_t new)
-{
-  unused(old); unused(new);
-  notreached();
-}
-
 static mps_addr_t dylan_isfwd(mps_addr_t object)
 {
   mps_word_t h, tag;
@@ -708,13 +701,6 @@ static mps_addr_t dylan_isfwd(mps_addr_t object)
     return (mps_addr_t)(h - tag);
   else
     return NULL;
-}
-
-static mps_addr_t dylan_no_isfwd(mps_addr_t object)
-{
-  unused(object);
-  notreached();
-  return 0;
 }
 
 static void dylan_fwd(mps_addr_t old, mps_addr_t new)
@@ -735,12 +721,6 @@ static void dylan_fwd(mps_addr_t old, mps_addr_t new)
   }
 }
 
-static void dylan_no_fwd(mps_addr_t old, mps_addr_t new)
-{
-  unused(old); unused(new);
-  notreached();
-}
-
 void dylan_pad(mps_addr_t addr, size_t size)
 {
   mps_word_t *p;
@@ -754,11 +734,8 @@ void dylan_pad(mps_addr_t addr, size_t size)
   }
 }
 
-static void dylan_no_pad(mps_addr_t addr, size_t size)
-{
-  unused(addr); unused(size);
-  notreached();
-}
+
+/* The dylan format structures */
 
 static struct mps_fmt_A_s dylan_fmt_A_s =
 {
@@ -770,28 +747,6 @@ static struct mps_fmt_A_s dylan_fmt_A_s =
   dylan_isfwd,
   dylan_pad
 };
-
-static struct mps_fmt_A_s dylan_fmt_A_weak_s =
-{
-  ALIGN,
-  dylan_scan_weak,
-  dylan_skip,
-  dylan_no_copy,
-  dylan_no_fwd,
-  dylan_no_isfwd,
-  dylan_no_pad
-};
-
-mps_fmt_A_s *dylan_fmt_A(void)
-{
-  return &dylan_fmt_A_s;
-}
-
-mps_fmt_A_s *dylan_fmt_A_weak(void)
-{
-  return &dylan_fmt_A_weak_s;
-}
-
 
 static struct mps_fmt_B_s dylan_fmt_B_s =
 {
@@ -805,22 +760,58 @@ static struct mps_fmt_B_s dylan_fmt_B_s =
   dylan_class
 };
 
-static struct mps_fmt_B_s dylan_fmt_B_weak_s =
+/* Functions returning the dylan format structures */
+
+mps_fmt_A_s *dylan_fmt_A(void)
 {
-  ALIGN,
-  dylan_scan_weak,
-  dylan_skip,
-  dylan_no_copy,
-  dylan_no_fwd,
-  dylan_no_isfwd,
-  dylan_no_pad,
-  dylan_class
-};
+  return &dylan_fmt_A_s;
+}
 
 mps_fmt_B_s *dylan_fmt_B(void)
 {
   return &dylan_fmt_B_s;
 }
+
+/* Format variety-independent version that picks the right format
+ * variety and creates it.  */
+
+mps_res_t dylan_fmt(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
+{
+  return mps_fmt_create_B(mps_fmt_o, arena, dylan_fmt_B());
+}
+
+/* The weak format structures */
+
+static struct mps_fmt_A_s dylan_fmt_A_weak_s =
+{
+  ALIGN,
+  dylan_scan_weak,
+  dylan_skip,
+  no_copy,
+  no_fwd,
+  no_isfwd,
+  no_pad
+};
+
+static struct mps_fmt_B_s dylan_fmt_B_weak_s =
+{
+  ALIGN,
+  dylan_scan_weak,
+  dylan_skip,
+  no_copy,
+  no_fwd,
+  no_isfwd,
+  no_pad,
+  dylan_class
+};
+
+/* Functions returning the weak format structures */
+
+mps_fmt_A_s *dylan_fmt_A_weak(void)
+{
+  return &dylan_fmt_A_weak_s;
+}
+
 
 mps_fmt_B_s *dylan_fmt_B_weak(void)
 {
@@ -828,14 +819,8 @@ mps_fmt_B_s *dylan_fmt_B_weak(void)
 }
 
 
-/* Now we have format variety-independent version that pick the right
- * format variety and create it.
- */
-
-mps_res_t dylan_fmt(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
-{
-  return mps_fmt_create_B(mps_fmt_o, arena, dylan_fmt_B());
-}
+/* Format variety-independent version that picks the right format
+ * variety and creates it.  */
 
 mps_res_t dylan_fmt_weak(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
 {
@@ -843,13 +828,3 @@ mps_res_t dylan_fmt_weak(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
 }
 
 
-mps_bool_t dylan_check(mps_addr_t addr)
-{
-  assert(addr != 0);
-  assert(((mps_word_t)addr & (ALIGN-1)) == 0);
-  assert(dylan_wrapper_check((mps_word_t *)((mps_word_t *)addr)[0]));
-  /* .assert.unused: Asserts throw away their conditions */
-  /* in hot varieties, so UNUSED is needed. */
-  unused(addr);
-  return 1;
-}

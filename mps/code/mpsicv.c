@@ -9,6 +9,7 @@
 #include "mpsavm.h"
 #include "mpscmv.h"
 #include "fmtdy.h"
+#include "fmtdytst.h"
 #include "mpstd.h"
 #ifdef MPS_OS_W3
 #include "mpsw3.h"
@@ -288,7 +289,7 @@ static void *test(void *arg, size_t s)
 
   die(mps_pool_create(&mv, arena, mps_class_mv(), 0x10000, 32, 0x10000),
       "pool_create(mv)");
- 
+
   pool_create_v_test(arena, format, chain); /* creates amc pool */
 
   ap_create_v_test(amcpool);
