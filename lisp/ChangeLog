@@ -1,3 +1,13 @@
+2002-10-29  Dave Love  <fx@gnu.org>
+
+	* cus-start.el (selection-coding-system, scalable-fonts-allowed):
+	Added.
+
+	* progmodes/scheme.el (syntax-case): Define
+	scheme-indent-function.
+
+	* international/mule-conf.el: Doc fixes.
+
 2002-10-29  Richard M. Stallman  <rms@gnu.org>
 
 	* server.el (server-switch-buffer): Say when no server buffers remain.
@@ -16,8 +26,9 @@
 
 2002-10-29  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
 
-	* textmodes/texinfo.el (texinfo-environments): Add environment; copying,
-	documentdescription, ifplaintext, ifnotplaintext, and verbatim.
+	* textmodes/texinfo.el (texinfo-environments): Add environment;
+	copying, documentdescription, ifplaintext, ifnotplaintext, and
+	verbatim.
 
 	* textmodes/texinfmt.el (texinfo-format-ifplaintext): New function.
 	(ifplaintext, ifnotplaintext)
