@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 96, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 1999 Free Software Foundation, Inc.
 
 ;; Keywords: wp
 
@@ -148,7 +148,7 @@ Leave one space between words, two at end of sentences or after colons
 \(depending on values of `sentence-end-double-space', `colon-double-space',
 and `sentence-end-without-period').
 Remove indentation from each line."
-  (interactive "r")
+  (interactive "*r")
   (save-excursion
     (goto-char beg)
     ;; Nuke tabs; they get screwed up in a fill.
@@ -319,8 +319,10 @@ means don't canonicalize spaces before that position.
 
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
-  (interactive (list (region-beginning) (region-end)
-		     (if current-prefix-arg 'full)))
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (region-beginning) (region-end)
+		       (if current-prefix-arg 'full))))
   (unless (memq justify '(t nil none full center left right))
     (setq justify 'full))
   ;; Arrange for undoing the fill to restore point.
@@ -631,7 +633,9 @@ the variable `fill-column' controls the width for filling.
 
 If `fill-paragraph-function' is non-nil, we call it (passing our
 argument to it), and if it returns non-nil, we simply return its value."
-  (interactive (list (if current-prefix-arg 'full)))
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (if current-prefix-arg 'full))))
   (or (and fill-paragraph-function
 	   (let ((function fill-paragraph-function)
 		 fill-paragraph-function)
@@ -669,8 +673,10 @@ hard newline, if `use-hard-newlines' is on).
 
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
-  (interactive (list (region-beginning) (region-end)
-		     (if current-prefix-arg 'full)))
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (region-beginning) (region-end)
+		       (if current-prefix-arg 'full))))
   (unless (memq justify '(t nil none full center left right))
     (setq justify 'full))
   (let (end beg)
@@ -847,7 +853,7 @@ Second arg EOP non-nil means that this is the last line of the paragraph, so
 it will not be stretched by full justification.
 Third arg NOSQUEEZE non-nil means to leave interior whitespace unchanged,
 otherwise it is made canonical."
-  (interactive)
+  (interactive "*")
   (if (eq t how) (setq how (or (current-justification) 'none))
     (if (null how) (setq how 'full)
       (or (memq how '(none left right center))
@@ -1026,8 +1032,10 @@ When filling a mail message, pass a regexp for CITATION-REGEXP
 which will match the prefix of a line which is a citation marker
 plus whitespace, but no other kind of prefix.
 Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
-  (interactive (list (region-beginning) (region-end)
-		     (if current-prefix-arg 'full)))
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (region-beginning) (region-end)
+		       (if current-prefix-arg 'full))))
   (let ((fill-individual-varying-indent t))
     (fill-individual-paragraphs min max justifyp citation-regexp)))
 
@@ -1054,8 +1062,10 @@ When filling a mail message, pass a regexp for CITATION-REGEXP
 which will match the prefix of a line which is a citation marker
 plus whitespace, but no other kind of prefix.
 Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
-  (interactive (list (region-beginning) (region-end)
-		     (if current-prefix-arg 'full)))
+  (interactive (progn
+		 (barf-if-buffer-read-only)
+		 (list (region-beginning) (region-end)
+		       (if current-prefix-arg 'full))))
   (save-restriction
     (save-excursion
       (goto-char min)
