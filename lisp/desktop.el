@@ -107,11 +107,11 @@
   (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
       "emacs.dsk" ; Ms-Dos does not support multiple dots in file name
     ".emacs.desktop")
-  "File for Emacs desktop.  A directory name will be prepended to this name.")
+  "File for Emacs desktop, not including the directory name.")
 
 (defvar desktop-missing-file-warning t
-  "*If non-nil then issue warning if a file no longer exists.
-Otherwise simply ignore the file.")
+  "*If non-nil then desktop warns when a file no longer exists.
+Otherwise it simply ignores that file.")
 
 (defvar desktop-globals-to-save
   (list 'desktop-missing-file-warning
@@ -136,8 +136,8 @@ Otherwise simply ignore the file.")
 	'change-log-default-name
 	'line-number-mode
 	)
-  "List of local variables to save for each buffer.  The variables are saved
-only when they really are local.")
+  "List of local variables to save for each buffer.
+The variables are saved only when they really are local.")
 (make-variable-buffer-local 'desktop-locals-to-save)
 
 ;; We skip .log files because they are normally temporary.
@@ -158,11 +158,12 @@ only when they really are local.")
     desktop-buffer-mh
     desktop-buffer-info
     desktop-buffer-file)
-  "*List of functions to call in order to create a buffer.  The functions are
-called without explicit parameters but may access the the major mode as `mam',
-the file name as `fn', the buffer name as `bn', the default directory as
-`dd'.  If some function returns non-nil no further functions are called.
-If the function returns t then the buffer is considered created.")
+  "*List of functions to call in order to create a buffer.
+The functions are called without explicit parameters but may access
+the the major mode as `mam', the file name as `fn', the buffer name as
+`bn', the default directory as `dd'.  If some function returns non-nil
+no further functions are called.  If the function returns t then the
+buffer is considered created.")
 
 (defvar desktop-create-buffer-form "(desktop-create-buffer 205"
   "Opening of form for creation of new buffers.")
@@ -212,9 +213,10 @@ the like shorter.")
 	   (signal (car err) (cdr err)))))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-internal-v2s (val)
-  "Convert VALUE to a pair (quote . txt) where txt is a string that when read
-and evaluated yields value.  quote may be 'may (value may be quoted),
-'must (values must be quoted), or nil (value may not be quoted)."
+  "Convert VALUE to a pair (QUOTE . TXT); (eval (read TXT)) gives VALUE.
+TXT is a string that when read and evaluated yields value.
+QUOTE may be `may' (value may be quoted),
+`must' (values must be quoted), or nil (value may not be quoted)."
   (cond
    ((or (numberp val) (null val) (eq t val))
     (cons 'may (prin1-to-string val)))
@@ -294,8 +296,8 @@ and evaluated yields value.  quote may be 'may (value may be quoted),
     (cons 'may "\"Unprintable entity\""))))
 
 (defun desktop-value-to-string (val)
-  "Convert VALUE to a string that when read evaluates to the same value.  Not
-all types of values are supported."
+  "Convert VALUE to a string that when read evaluates to the same value.
+Not all types of values are supported."
   (let* ((print-escape-newlines t)
 	 (float-output-format nil)
 	 (quote.txt (desktop-internal-v2s val))
@@ -431,9 +433,9 @@ MODE is the major mode."
       (desktop-clear))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-load-default ()
-  "Load the `default' start-up library manually.  Also inhibit further loading
-of it.  Call this from your `.emacs' file to provide correct modes for
-autoloaded files."
+  "Load the `default' start-up library manually.
+Also inhibit further loading of it.  Call this from your `.emacs' file
+to provide correct modes for autoloaded files."
   (if (not inhibit-default-init)	; safety check
       (progn
 	(load "default" t t)
