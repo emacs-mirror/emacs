@@ -1,7 +1,7 @@
 /*  impl.c.qs: QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.14) $
- *  Copyright (C) 1995, 1996, 1998 Harlequin Group plc, all rights reserved.
+ *  $HopeName: MMsrc!qs.c(trunk.15) $
+ *  Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  *  The purpose of this program is to act as a "real" client of the MM.
  *  It is a test, but (hopefully) less contrived than some of the other
@@ -53,6 +53,7 @@ struct mps_fmt_A_s fmt_A_s =
   };
 
 
+
 /* Tags used by object format */
 enum {QSInt, QSRef, QSEvac, QSPadOne, QSPadMany};
 
@@ -72,9 +73,11 @@ static mps_pool_t mpool;    /* manual pool */
 static mps_root_t regroot;
 static mps_root_t actroot;
 
+
 /*  list holds an array that we qsort(), listl is its length */
 static mps_word_t *list;
 static mps_word_t listl;
+
 
 /*  Machine State
  *
@@ -92,7 +95,6 @@ static mps_word_t regtag[NREGS];
  *  The machine can perform the following operations:
  *  cons
  *  append
- *  print
  *  swap
  */
 
@@ -115,6 +117,7 @@ static void cons(mps_word_t tag0, mps_word_t value0, QSCell tail)
   regtag[0] = QSRef;
   return;
 }
+
 
 /* Appends reg[1] to reg[0] */
 /* append nil, y = y
@@ -158,34 +161,6 @@ static void append(void)
   regtag[1] = QSRef;
   reg[1] = (mps_word_t)0;
   return;
-}
-
-
-static void print(QSCell a, FILE *stream)
-{
-  int ctr = 0;
-
-  fprintf(stream, "( ");
-
-  while(a != NULL) {
-    if(ctr++ >= 20) {
-      fprintf(stream, "\n");
-      ctr = 0;
-    }
-    switch(a->tag) {
-    case QSInt:
-      fprintf(stream, "%lu ", a->value);
-      break;
-    case QSRef:
-      fprintf(stream, "<%08lx> ", a->value);
-      break;
-    default:
-      fprintf(stream, "? ");
-      break;
-    }
-    a = a->tail;
-  }
-  fprintf(stream, ")\n");
 }
 
 
@@ -301,23 +276,6 @@ static void qs(void)
 }
 
 
-static void printlist(FILE *stream)
-{
-  mps_word_t i;
-  int ctr = 0;
-
-  fprintf(stream, "[ ");
-  for(i = 0; i < listl; ++i) {
-    if(ctr++ >= 20) {
-      fprintf(stream, "\n");
-      ctr = 0;
-    }
-    fprintf(stream, "%lu ", list[i]);
-  }
-  fprintf(stream, "]\n");
-}
-
-
 /*  Compare
  *
  *  Used as an argument to qsort()
@@ -383,15 +341,11 @@ static void *go(void *p, size_t s)
 
   /* makes a random list */
   makerndlist(1000);
-  print((QSCell)reg[0], stdout);
 
   part(0);
   swap();
   qs();
-  print((QSCell)reg[0], stdout);
-  printlist(stdout);
   qsort(list, listl, sizeof(mps_word_t), &compare);
-  printlist(stdout);
   validate();
 
   mps_root_destroy(regroot);
@@ -420,6 +374,7 @@ static void pad(mps_addr_t base, size_t size)
   object[1] = size;
   return;
 }
+
 
 static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
 {
@@ -472,6 +427,7 @@ static mps_res_t scan1(mps_ss_t ss, mps_addr_t *objectIO)
   return MPS_RES_OK;
 }
 
+
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
   while(base < limit) {
@@ -487,6 +443,7 @@ static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
   return MPS_RES_OK;
 }
 
+
 static mps_addr_t skip(mps_addr_t object)
 {
   QSCell cell = (QSCell)object;
@@ -500,6 +457,7 @@ static mps_addr_t skip(mps_addr_t object)
     return (mps_addr_t)((QSCell)object + 1);
   }
 }
+
 
 static void move(mps_addr_t object, mps_addr_t to)
 {
@@ -536,9 +494,12 @@ static void copy(mps_addr_t object, mps_addr_t to)
 }
 
 
-int main(void)
+int main(int argc, char **argv)
 {
   void *r;
+
+  randomize(argc, argv);
+
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
   mps_tramp(&r, &go, NULL, 0);
