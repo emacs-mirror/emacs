@@ -2434,6 +2434,8 @@ It is saved for when this flag is not set.")
 	  (if gud-filter-pending-text
 	      (gud-filter proc ""))))))
 
+(defvar gud-minor-mode-type nil)
+
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
 	 ;; buffer killed
@@ -2474,8 +2476,6 @@ It is saved for when this flag is not set.")
 	     ;; Restore old buffer, but don't restore old point
 	     ;; if obuf is the gud buffer.
 	     (set-buffer obuf))))))
-
-(defvar gud-minor-mode-type nil)
 
 (defun gud-kill-buffer-hook ()
   (if gud-minor-mode
