@@ -1,3 +1,9 @@
+2000-05-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-simple-translation-keymap): Map
+	128..255 to quail-self-insert-command.
+	(quail-keyboard-layout-alist): Add definition for "pc102-de".
+
 2000-05-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/sregex.el: Rewritten to take advantage of shy-groups and
