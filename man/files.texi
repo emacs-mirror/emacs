@@ -47,7 +47,10 @@ on file directories.
 file name.  (Saving and reverting are exceptions; the buffer knows which
 file name to use for them.)  You enter the file name using the
 minibuffer (@pxref{Minibuffer}).  @dfn{Completion} is available, to make
-it easier to specify long file names.  @xref{Completion}.
+it easier to specify long file names.  @xref{Completion}.  When
+completing file names, Emacs ignores those whose file-name extensions
+appear in the variable @code{completion-ignored-extensions}, see
+@ref{Completion Options}.
 
   For most operations, there is a @dfn{default file name} which is used
 if you type just @key{RET} to enter an empty argument.  Normally the
@@ -193,7 +196,9 @@ the command with the name of the file you wish to visit, terminated by a
 
   The file name is read using the minibuffer (@pxref{Minibuffer}), with
 defaulting and completion in the standard manner (@pxref{File Names}).
-While in the minibuffer, you can abort @kbd{C-x C-f} by typing @kbd{C-g}.
+While in the minibuffer, you can abort @kbd{C-x C-f} by typing
+@kbd{C-g}.  File-name completion ignores certain filenames; for more
+about this, see @ref{Completion Options}.
 
 @cindex file selection dialog
   When Emacs is built with a suitable GUI toolkit, it pops up the
