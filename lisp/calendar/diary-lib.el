@@ -841,11 +841,11 @@ Each entry in the diary file visible in the calendar window is marked.
 After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
 `mark-diary-entries-hook' are run."
   (interactive)
-  (setq mark-diary-entries-in-calendar t)
   (let ((marking-diary-entries t)
         file-glob-attrs marks)
     (save-excursion
       (set-buffer (find-file-noselect (diary-check-diary-file) t))
+      (setq mark-diary-entries-in-calendar t)
       (message "Marking diary entries...")
       (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
       (let ((d diary-date-forms)
