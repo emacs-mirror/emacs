@@ -211,7 +211,7 @@ if [ $update = yes ];
 then
   echo "Updating Info files"
 
-  (cd man; make info)
+  (cd man; make -f Makefile.in srcdir=. info)
 
   echo "Updating finder, custom and autoload data"
 
