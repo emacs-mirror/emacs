@@ -284,6 +284,6 @@ extern void r_alloc_free ();
    simultaneously.  */
 #define NO_TERMIO
 
-#define TEXT_END ({ extern int _etext; _etext; })
-#define DATA_END ({ extern int _EDATA; _EDATA; })
+#define TEXT_END ({ extern int _etext; &_etext; })
+#define DATA_END ({ extern int _EDATA; &_EDATA; })
 #endif
