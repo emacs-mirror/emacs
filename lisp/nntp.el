@@ -363,7 +363,7 @@ servers."
     ;; check that the physical server is opened.
     (if (or (nntp-server-opened server)
 	    connectionless)
-	()
+	t
       (if (member nntp-address nntp-timeout-servers)
 	  nil
 	;; We open a connection to the physical nntp server.
