@@ -1905,7 +1905,7 @@ defvar_int (namestring, address)
   Lisp_Object sym, val;
   sym = intern (namestring);
   val = allocate_misc ();
-  XMISC (val)->type = Lisp_Misc_Intfwd;
+  XMISCTYPE (val) = Lisp_Misc_Intfwd;
   XINTFWD (val)->intvar = address;
   XSYMBOL (sym)->value = val;
 }
@@ -1920,7 +1920,7 @@ defvar_bool (namestring, address)
   Lisp_Object sym, val;
   sym = intern (namestring);
   val = allocate_misc ();
-  XMISC (val)->type = Lisp_Misc_Boolfwd;
+  XMISCTYPE (val) = Lisp_Misc_Boolfwd;
   XBOOLFWD (val)->boolvar = address;
   XSYMBOL (sym)->value = val;
 }
@@ -1938,7 +1938,7 @@ defvar_lisp_nopro (namestring, address)
   Lisp_Object sym, val;
   sym = intern (namestring);
   val = allocate_misc ();
-  XMISC (val)->type = Lisp_Misc_Objfwd;
+  XMISCTYPE (val) = Lisp_Misc_Objfwd;
   XOBJFWD (val)->objvar = address;
   XSYMBOL (sym)->value = val;
 }
@@ -1973,7 +1973,7 @@ defvar_per_buffer (namestring, address, type, doc)
   val = allocate_misc ();
   offset = (char *)address - (char *)current_buffer;
 
-  XMISC (val)->type = Lisp_Misc_Buffer_Objfwd;
+  XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
   XBUFFER_OBJFWD (val)->offset = offset;
   XSYMBOL (sym)->value = val;
   *(Lisp_Object *)(offset + (char *)&buffer_local_symbols) = sym;
@@ -1997,7 +1997,7 @@ defvar_kboard (namestring, offset)
   Lisp_Object sym, val;
   sym = intern (namestring);
   val = allocate_misc ();
-  XMISC (val)->type = Lisp_Misc_Kboard_Objfwd;
+  XMISCTYPE (val) = Lisp_Misc_Kboard_Objfwd;
   XKBOARD_OBJFWD (val)->offset = offset;
   XSYMBOL (sym)->value = val;
 }
