@@ -1,3 +1,7 @@
+2000-01-28  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/hanja.el (korean-hanja): Add an entry for "wod".
+
 2000-01-04  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/japanese.el ("japanese"): Docstring augmented.
