@@ -557,15 +557,18 @@ This variable is local in all buffers, once set.")
 
 ;;; Truncate all strings in MENULIST to imenu-max-item-length
 (defun imenu--truncate-items (menulist)
-  (dolist (item menulist)
-    (cond
-     ((consp (cdr item))
-      (imenu--truncate-items (cdr item)))
-     (t
-      ;; truncate if necessary
-      (if (and (numberp imenu-max-item-length)
-	       (> (length (car item)) imenu-max-item-length))
-	  (setcar item (substring (car item) 0 imenu-max-item-length)))))))
+  (mapcar (function
+	   (lambda (item)
+	     (cond
+	      ((consp (cdr item))
+	       (imenu--truncate-items (cdr item)))
+	      (t
+	       ;; truncate if necessary
+	       (if (and (numberp imenu-max-item-length)
+			(> (length (car item)) imenu-max-item-length))
+		   (setcar item (substring (car item) 0
+					   imenu-max-item-length)))))))
+	  menulist))
 
 
 (defun imenu--make-index-alist (&optional noerror)
