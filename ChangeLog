@@ -1,3 +1,7 @@
+2000-05-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Add check for speed_t typedef.
+
 2000-05-25  Ken Raeburn  <raeburn@gnu.org>
 
 	* Makefile.in (install-arch-dep): Install fns-*.el only if it

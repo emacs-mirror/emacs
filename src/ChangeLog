@@ -1,3 +1,10 @@
+2000-05-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* config.in (HAVE_SPEED_T): New define.
+
+	* sysdep.c, terminfo.c (ospeed) [HAVE_SPEED_T]: Declare as
+	`extern speed_t'.
+
 2000-05-26  Dave Love  <fx@gnu.org>
 
 	* coding.c (shrink_decoding_region): Initialize eol_conversion.
