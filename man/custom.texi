@@ -1116,10 +1116,18 @@ each line, you should position point at the start of a line, and define a
 macro to change that line and leave point at the start of the next line.
 Then repeating the macro will operate on successive lines.
 
-  After you have terminated the definition of a keyboard macro, you can add
-to the end of its definition by typing @kbd{C-u C-x (}.  This is equivalent
-to plain @kbd{C-x (} followed by retyping the whole definition so far.  As
-a consequence it re-executes the macro as previously defined.
+  When a command reads an argument with the minibuffer, your
+minibuffer input becomes part of the macro along with the command.  So
+when you replay the macro, the command gets the same argument as
+when you entered the macro.  For example,
+
+@example
+C-x ( C-a C-@key{SPC} C-n M-w C-x b f o o @key{RET} C-y C-x b @key{RET} C-x )
+@end example
+
+@noindent
+defines a macro that copies the current line into the buffer
+@samp{foo}, then returns to the original buffer.
 
   You can use function keys in a keyboard macro, just like keyboard
 keys.  You can even use mouse events, but be careful about that: when
@@ -1134,6 +1142,11 @@ exits a recursive edit that started within the macro, it works as you'd
 expect.  But if it exits a recursive edit that started before you
 invoked the keyboard macro, it also necessarily exits the keyboard macro
 as part of the process.
+
+  After you have terminated the definition of a keyboard macro, you can add
+to the end of its definition by typing @kbd{C-u C-x (}.  This is equivalent
+to plain @kbd{C-x (} followed by retyping the whole definition so far.  As
+a consequence it re-executes the macro as previously defined.
 
 @findex edit-kbd-macro
 @kindex C-x C-k
