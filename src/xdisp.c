@@ -1872,16 +1872,56 @@ handle_fontified_prop (it)
   if (!STRINGP (it->string)
       && it->s == NULL
       && !NILP (Vfontification_functions)
+      && !NILP (Vrun_hooks)
       && (pos = make_number (IT_CHARPOS (*it)),
 	  prop = Fget_char_property (pos, Qfontified, Qnil),
 	  NILP (prop)))
     {
-      Lisp_Object args[2];
+      int count = specpdl_ptr - specpdl;
+      Lisp_Object val;
 
-      /* Run the hook functions.  */
-      args[0] = Qfontification_functions;
-      args[1] = pos;
-      Frun_hook_with_args (2, args);
+      val = Vfontification_functions;
+      specbind (Qfontification_functions, Qnil);
+      specbind (Qafter_change_functions, Qnil);
+  
+      if (!CONSP (val) || EQ (XCAR (val), Qlambda))
+	call1 (val, pos);
+      else
+	{
+	  Lisp_Object globals, fn;
+	  struct gcpro gcpro1, gcpro2;
+
+	  globals = Qnil;
+	  GCPRO2 (val, globals);
+	  
+	  for (; CONSP (val); val = XCDR (val))
+	    {
+	      fn = XCAR (val);
+	      
+	      if (EQ (fn, Qt))
+		{
+		  /* A value of t indicates this hook has a local
+		     binding; it means to run the global binding too.
+		     In a global value, t should not occur.  If it
+		     does, we must ignore it to avoid an endless
+		     loop.  */
+		  for (globals = Fdefault_value (Qfontification_functions);
+		       CONSP (globals);
+		       globals = XCDR (globals))
+		    {
+		      fn = XCAR (globals);
+		      if (!EQ (fn, Qt))
+			call1 (fn, pos);
+		    }
+		}
+	      else
+		call1 (fn, pos);
+	    }
+
+	  UNGCPRO;
+	}
+
+      unbind_to (count, Qnil);
 
       /* Return HANDLED_RECOMPUTE_PROPS only if function fontified
 	 something.  This avoids an endless loop if they failed to
@@ -12514,6 +12554,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
   Lisp_Object eoltype;
 
   val = Fget (coding_system, Qcoding_system);
+  eoltype = Qnil;
 
   if (!VECTORP (val))		/* Not yet decided.  */
     {
