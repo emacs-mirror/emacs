@@ -4,7 +4,7 @@
 
 ;; Author: Doug Cutting <doug@csli.stanford.edu>
 ;;	Jamie Zawinski <jwz@lucid.com>
-;; Maintainer: Jamie Zawinski <jwz@lucid.com>
+;; Maintainer: FSF
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
@@ -57,7 +57,7 @@ redefine OBJECT if it is a symbol."
   (interactive (list (intern (completing-read "Disassemble function: "
 					      obarray 'fboundp t))
 		     nil 0 t))
-  (if (consp object)
+  (if (and (consp object) (not (eq (car object) 'lambda)))
       (setq object (list 'lambda () object)))
   (or indent (setq indent 0))		;Default indent to zero
   (save-excursion
