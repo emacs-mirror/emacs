@@ -214,19 +214,25 @@
 	 (setq cmd (intern (concat "calc-User-" keyname))))
      (while
 	 (progn
-	   (setq func (completing-read "Define algebraic function name: "
-				       obarray 'fboundp nil
-				       (concat "calcFunc-"
-					       (if cmd-base
-						   (if (string-match
-							"\\`User-.+" cmd-base)
-						       (concat
-							"User"
-							(substring cmd-base 5))
-						     cmd-base)
-						 "")))
-		 func (and (not (or (string-equal func "")
-				    (string-equal func "calcFunc-")))
+	   (setq func 
+                 (concat "calcFunc-"
+                         (completing-read "Define algebraic function name: "
+                                          (mapcar (lambda (x) (substring x 9))
+                                                  (all-completions "calcFunc-"
+                                                                   obarray))
+                                          (lambda (x) 
+                                            (fboundp 
+                                             (intern (concat "calcFunc-" x))))
+                                          nil
+                                          (if cmd-base
+                                              (if (string-match
+                                                   "\\`User-.+" cmd-base)
+                                                  (concat
+                                                   "User"
+                                                   (substring cmd-base 5))
+                                                cmd-base)
+                                            "")))
+                 func (and (not (string-equal func "calcFunc-"))
 			   (intern func)))
 	   (and func
 		(fboundp func)
@@ -359,8 +365,15 @@
    (if (eq calc-language 'unform)
        (error "Can't define formats for unformatted mode"))
    (let* ((comp (calc-top 1))
-	  (func (intern (completing-read "Define format for which function: "
-					 obarray 'fboundp nil "calcFunc-")))
+	  (func (intern 
+                 (concat "calcFunc-"
+                         (completing-read "Define format for which function: "
+                                          (mapcar (lambda (x) (substring x 9))
+                                                  (all-completions "calcFunc-"
+                                                                   obarray))
+                                          (lambda (x) 
+                                            (fboundp 
+                                             (intern (concat "calcFunc-" x))))))))
 	  (comps (get func 'math-compose-forms))
 	  entry entry2
 	  (arglist nil)
@@ -952,10 +965,24 @@
 		   (assq (downcase key) (calc-user-key-map))
 		   (and (eq key ?\')
 			(cons nil
+                              (intern
+                               (concat "calcFunc-"
+                                       (completing-read
+                                        (format "Record in %s the algebraic function: "
+                                                calc-settings-file)
+                                        (mapcar (lambda (x) (substring x 9))
+                                                (all-completions "calcFunc-"
+                                                                 obarray))
+                                        (lambda (x) 
+                                          (fboundp 
+                                           (intern (concat "calcFunc-" x))))
+                                        t)))))
+                   (and (eq key ?\M-x)
+			(cons nil
 			      (intern (completing-read
-				       (format "Record in %s the function: "
+				       (format "Record in %s the command: "
 					       calc-settings-file)
-				       obarray 'fboundp nil "calcFunc-"))))
+				       obarray 'fboundp nil "calc-"))))
 		   (error "No command defined for that key"))))
      (set-buffer (find-file-noselect (substitute-in-file-name
 				      calc-settings-file)))
