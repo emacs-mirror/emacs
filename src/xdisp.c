@@ -572,11 +572,13 @@ echo_area_display ()
 		      echo_area_glyphs ? echo_area_glyphs_length : -1,
 		      0, 0, 0, 0, FRAME_WIDTH (f));
 
+#if 0 /* This just gets in the way.  update_frame does the job.  */
       /* If desired cursor location is on this line, put it at end of text */
       if (cursor_in_echo_area)
 	FRAME_CURSOR_Y (f) = vpos;
       if (FRAME_CURSOR_Y (f) == vpos)
 	FRAME_CURSOR_X (f) = FRAME_DESIRED_GLYPHS (f)->used[vpos];
+#endif
 
       /* Fill the rest of the minibuffer window with blank lines.  */
       {
@@ -927,7 +929,12 @@ redisplay ()
 	  else
 	    goto cancel;
 	}
-      else if (PT == XFASTINT (w->last_point))
+      else if (PT == XFASTINT (w->last_point)
+	       /* Make sure the cursor was last displayed
+		  in this window.  Otherwise we have to reposition it.  */
+	       && XINT (w->top) <= FRAME_CURSOR_Y (selected_frame)
+	       && (XINT (w->top) + XINT (w->height)
+		   > FRAME_CURSOR_Y (selected_frame)))
 	{
 	  if (!must_finish)
 	    {
