@@ -152,7 +152,7 @@ That is a list of elements, each of the form (MAINTAINER PACKAGES...)."
 (defun gulp-maintainer (filenm dir)
   "Return a list (MAINTAINER TIMESTAMP) for the package FILENM in directory DIR."
   (save-excursion
-    (let* ((fl (concat dir filenm)) mnt
+    (let* ((fl (expand-file-name filenm dir)) mnt
 	   (timest (format-time-string "%Y-%m-%d %a %T %Z"
 				       (elt (file-attributes fl) 5))))
       (set-buffer gulp-tmp-buffer)
