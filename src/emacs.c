@@ -584,7 +584,7 @@ init_cmdargs (argc, argv, skip_args)
 	   They are decoded in the function command-line after we know
 	   locale-coding-system.  */
 	Vcommand_line_args
-	  = Fcons (make_unibyte_string (argv[i], strlen (argv[i])), 
+	  = Fcons (make_unibyte_string (argv[i], strlen (argv[i])),
 		   Vcommand_line_args);
     }
 
@@ -748,7 +748,9 @@ malloc_initialize_hook ()
 	}
 
       malloc_set_state (malloc_state_ptr);
+#ifndef XMALLOC_OVERRUN_CHECK
       free (malloc_state_ptr);
+#endif
     }
   else
     {
@@ -1984,9 +1986,9 @@ sort_args (argc, argv)
 
   bcopy (new, argv, sizeof (char *) * argc);
 
-  free (options);
-  free (new);
-  free (priority);
+  xfree (options);
+  xfree (new);
+  xfree (priority);
 }
 
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
