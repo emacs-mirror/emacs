@@ -47,6 +47,18 @@
 
 ;;; CHARSET
 
+(define-button-type 'sort-listed-character-sets
+  'help-echo (purecopy "mouse-2, RET: sort on this column")
+  'face 'bold
+  'action #'(lambda (button)
+	      (sort-listed-character-sets (button-get button 'sort-key))))
+
+(define-button-type 'list-charset-chars
+  :supertype 'help-xref
+  'help-function #'list-charset-chars
+  'help-echo "mouse-2, RET: show table of characters for this character set")
+
+
 ;;;###autoload
 (defun list-character-sets (arg)
   "Display a list of all character sets.
@@ -88,20 +100,13 @@ but still shows the full information."
 			 ("CHARSET-NAME" . name) "\t\t\t"
 			 ("MULTIBYTE-FORM" . id) "\t"
 			 ("D CH FINAL-CHAR" . iso-spec)))
-	      (help-highlight-face 'region)
-	      (help-echo
-	       (substitute-command-keys
-		(concat (if (display-mouse-p) "\\[help-follow-mouse], ")
-			"\\[help-follow]: sort on this column")))
 	      pos)
 	  (while columns
 	    (if (stringp (car columns))
 		(insert (car columns))
-	      (insert (car (car columns)))
-	      (search-backward (car (car columns)))
-	      (help-xref-button 0 'sort-listed-character-sets
-				(cdr (car columns))
-				help-echo)
+	      (insert-text-button (car (car columns))
+				  :type 'sort-listed-character-sets
+				  'sort-key (cdr (car columns)))
 	      (goto-char (point-max)))
 	    (setq columns (cdr columns)))
 	  (insert "\n"))
@@ -151,10 +156,6 @@ but still shows the full information."
   (or sort-key
       (setq sort-key 'id))
   (let ((tail (charset-list))
-	(help-echo
-	 (substitute-command-keys
-	  (concat (if (display-mouse-p) "\\[help-follow-mouse], ")
-		  "\\[help-follow]: show table of this character set")))
 	charset-info-list elt charset info sort-func)
     (while tail
       (setq charset (car tail) tail (cdr tail)
@@ -199,9 +200,9 @@ but still shows the full information."
 	    charset-info-list (cdr charset-info-list))
       (insert (format "%03d(%02X)" (car elt) (car elt))) ; ID-NUM
       (indent-to 8)
-      (insert (symbol-name (nth 1 elt))) ; CHARSET-NAME
-      (search-backward (symbol-name (nth 1 elt)))
-      (help-xref-button 0 'list-charset-chars (nth 1 elt) help-echo)
+      (insert-text-button (symbol-name (nth 1 elt))
+			  :type 'list-charset-chars
+			  'help-args (list (nth 1 elt)))
       (goto-char (point-max))
       (insert "\t")
       (indent-to 40)
@@ -508,8 +509,7 @@ detailed meanings of these arguments."
 	  (when coding
 	    (insert (format "preferred coding system: %s\n" coding))
 	    (search-backward (symbol-name coding))
-	    (help-xref-button 0 #'describe-coding-system coding
-			      "mouse-2, RET: describe this coding system")))
+	    (help-xref-button 0 'help-coding-system coding)))
 	(help-setup-xref (list #'describe-character-set charset)
 			 (interactive-p))
 	))))
@@ -744,7 +744,7 @@ eight-bit-control and eight-bit-graphic.\n")
 	      (while charsets
 		(insert " " (symbol-name (car charsets)))
 		(search-backward (symbol-name (car charsets)))
-		(help-xref-button 0 #'describe-character-set (car charsets))
+		(help-xref-button 0 'help-character-set (car charsets))
 		(goto-char (point-max))
 		(setq charsets (cdr charsets))))))
 	(help-setup-xref (list #'describe-coding-system coding-system)
