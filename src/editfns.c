@@ -1463,7 +1463,7 @@ Use %% to put a single % into the output.")
 	if (*format == '%')
 	  format++;
 	else if (++n >= nargs)
-	  ;
+	  error ("format string wants too many arguments");
 	else if (*format == 'S')
 	  {
 	    /* For `S', prin1 the argument and then treat like a string.  */
@@ -1480,6 +1480,8 @@ Use %% to put a single % into the output.")
 	else if (XTYPE (args[n]) == Lisp_String)
 	  {
 	  string:
+	    if (*format != 's' && *format != 'S')
+	      error ("format specifier doesn't match argument type");
 	    total += XSTRING (args[n])->size;
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
