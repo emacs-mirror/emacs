@@ -1,6 +1,6 @@
 ;;; ps-print.el --- Print text from the buffer as PostScript
 
-;; Copyright (C) 1993,94,95,96,97,98,99,2000
+;; Copyright (C) 1993,94,95,96,97,98,99,00,2001
 ;; Free Software Foundation, Inc.
 
 ;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
@@ -10,12 +10,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/12/26 23:19:24 Vinicius>
-;; Version:	6.3.3
+;; Time-stamp:	<2001/02/19 14:54:52 Vinicius>
+;; Version:	6.4
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.3.3"
-  "ps-print.el, v 6.3.3 <2000/12/26 vinicius>
+(defconst ps-print-version "6.4"
+  "ps-print.el, v 6.4 <2001/02/19 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -757,33 +757,39 @@ Please send all bug fixes and enhancements to
 ;; corresponds to the Red Green Blue color scale.
 ;; The default is 0.95 (or "gray95", or '(0.95 0.95 0.95)).
 ;;
-;; The variable `ps-zebra-stripe-follow' specifies if zebra stripe should
-;; continue on next page or restart on each page.  If `ps-zebra-stripe-follow'
-;; is nil, zebra stripe is restarted on each page.  If `ps-zebra-stripe-follow'
-;; is non-nil, zebra stripe continues on next page.  Visually, we have:
+;; The variable `ps-zebra-stripe-follow' specifies how zebra stripes continue
+;; on next page.  Visually, valid values are (the character `+' at right of
+;; each column indicates that a line is printed):
 ;;
-;;		`ps-zebra-stripe-follow'	`ps-zebra-stripe-follow'
-;;		   is nil			   is non-nil
-;; Current Page ------------------------	------------------------
-;;		1  XXXXXXXXXXXXXXXXXXXXX	1  XXXXXXXXXXXXXXXXXXXXX
-;;		2  XXXXXXXXXXXXXXXXXXXXX	2  XXXXXXXXXXXXXXXXXXXXX
-;;		3  XXXXXXXXXXXXXXXXXXXXX	3  XXXXXXXXXXXXXXXXXXXXX
-;;		4				4
-;;		5				5
-;;		6				6
-;;		7  XXXXXXXXXXXXXXXXXXXXX	7  XXXXXXXXXXXXXXXXXXXXX
-;;		8  XXXXXXXXXXXXXXXXXXXXX	8  XXXXXXXXXXXXXXXXXXXXX
-;;		------------------------	------------------------
-;;    Next Page ------------------------	------------------------
-;;		9  XXXXXXXXXXXXXXXXXXXXX	9  XXXXXXXXXXXXXXXXXXXXX
-;;		10 XXXXXXXXXXXXXXXXXXXXX	10
-;;		11 XXXXXXXXXXXXXXXXXXXXX	11
-;;		12				12
-;;		13				13 XXXXXXXXXXXXXXXXXXXXX
-;;		14				14 XXXXXXXXXXXXXXXXXXXXX
-;;		15 XXXXXXXXXXXXXXXXXXXXX	15 XXXXXXXXXXXXXXXXXXXXX
-;;		16 XXXXXXXXXXXXXXXXXXXXX	16
-;;		------------------------	------------------------
+;;		   `nil'        `follow'        `full'        `full-follow'
+;; Current Page --------     -----------     ---------     ----------------
+;;		1  XXXXX +   1  XXXXXXXX +   1  XXXXXX +   1  XXXXXXXXXXXXX +
+;;		2  XXXXX +   2  XXXXXXXX +   2  XXXXXX +   2  XXXXXXXXXXXXX +
+;;		3  XXXXX +   3  XXXXXXXX +   3  XXXXXX +   3  XXXXXXXXXXXXX +
+;;		4        +   4           +   4         +   4                +
+;;		5        +   5           +   5         +   5                +
+;;		6        +   6           +   6         +   6                +
+;;		7  XXXXX +   7  XXXXXXXX +   7  XXXXXX +   7  XXXXXXXXXXXXX +
+;;		8  XXXXX +   8  XXXXXXXX +   8  XXXXXX +   8  XXXXXXXXXXXXX +
+;;		9  XXXXX +   9  XXXXXXXX +   9  XXXXXX +   9  XXXXXXXXXXXXX +
+;;		10       +   10          +
+;;		11       +   11          +
+;;		--------     -----------     ---------     ----------------
+;;    Next Page --------     -----------     ---------     ----------------
+;;		12 XXXXX +   12          +   10 XXXXXX +   10               +
+;;		13 XXXXX +   13 XXXXXXXX +   11 XXXXXX +   11               +
+;;		14 XXXXX +   14 XXXXXXXX +   12 XXXXXX +   12               +
+;;		15       +   15 XXXXXXXX +   13        +   13 XXXXXXXXXXXXX +
+;;		16       +   16          +   14        +   14 XXXXXXXXXXXXX +
+;;		17       +   17          +   15        +   15 XXXXXXXXXXXXX +
+;;		18 XXXXX +   18          +   16 XXXXXX +   16               +
+;;		19 XXXXX +   19 XXXXXXXX +   17 XXXXXX +   17               +
+;;		20 XXXXX +   20 XXXXXXXX +   18 XXXXXX +   18               +
+;;		21       +   21 XXXXXXXX +
+;;		22       +   22          +
+;;		--------     -----------     ---------     ----------------
+;;
+;; Any other value is treated as `nil'.
 ;;
 ;; See also section How Ps-Print Has A Text And/Or Image On Background.
 ;;
@@ -1263,7 +1269,8 @@ Please send all bug fixes and enhancements to
 ;; for XEmacs beta-tests.
 ;;
 ;; Thanks to Klaus Berndl <klaus.berndl@sdm.de> for user defined PostScript
-;; prologue code suggestion and for odd/even printing suggestion.
+;; prologue code suggestion, for odd/even printing suggestion and for
+;; `ps-prologue-file' enhancement.
 ;;
 ;; Thanks to Kein'ichi Handa <handa@etl.go.jp> for multi-byte buffer handling.
 ;;
@@ -1379,8 +1386,13 @@ Please send all bug fixes and enhancements to
   (defalias 'ps-x-map-extents                   'map-extents)
 
   ;; GNU Emacs
-  (defalias 'ps-e-x-color-values 'x-color-values)
-  (defalias 'ps-e-color-values   'color-values)
+  (defalias 'ps-e-face-bold-p         'face-bold-p)
+  (defalias 'ps-e-face-italic-p       'face-italic-p)
+  (defalias 'ps-e-next-overlay-change 'next-overlay-change)
+  (defalias 'ps-e-overlays-at         'overlays-at)
+  (defalias 'ps-e-overlay-get         'overlay-get)
+  (defalias 'ps-e-x-color-values      'x-color-values)
+  (defalias 'ps-e-color-values        'color-values)
   (if (fboundp 'find-composition)
       (defalias 'ps-e-find-composition 'find-composition)
     (defalias 'ps-e-find-composition 'ignore))
@@ -1571,7 +1583,7 @@ For more information about PostScript document comments, see:
   :group 'ps-print-miscellany)
 
 (defcustom ps-printer-name (and (boundp 'printer-name)
-				printer-name)
+				(symbol-value 'printer-name))
   "*The name of a local printer for printing PostScript files.
 
 On Unix-like systems, a string value should be a name understood by lpr's -P
@@ -1943,36 +1955,46 @@ See also documentation for `ps-zebra-stripes' and `ps-zebra-stripe-height'."
   :group 'ps-print-zebra)
 
 (defcustom ps-zebra-stripe-follow nil
-  "*Non-nil means zebra stripe continues on next page.
+  "*Specify how zebra stripes continue on next page.
 
-If `ps-zebra-stripe-follow' is nil, zebra stripe is restarted on each page.
-If `ps-zebra-stripe-follow' is non-nil, zebra stripe continues on next page.
+Visually, valid values are (the character `+' at right of each column indicates
+that a line is printed):
 
-Visually, we have:
+		   `nil'        `follow'        `full'        `full-follow'
+   Current Page --------     -----------     ---------     ----------------
+		1  XXXXX +   1  XXXXXXXX +   1  XXXXXX +   1  XXXXXXXXXXXXX +
+		2  XXXXX +   2  XXXXXXXX +   2  XXXXXX +   2  XXXXXXXXXXXXX +
+		3  XXXXX +   3  XXXXXXXX +   3  XXXXXX +   3  XXXXXXXXXXXXX +
+		4        +   4           +   4         +   4                +
+		5        +   5           +   5         +   5                +
+		6        +   6           +   6         +   6                +
+		7  XXXXX +   7  XXXXXXXX +   7  XXXXXX +   7  XXXXXXXXXXXXX +
+		8  XXXXX +   8  XXXXXXXX +   8  XXXXXX +   8  XXXXXXXXXXXXX +
+		9  XXXXX +   9  XXXXXXXX +   9  XXXXXX +   9  XXXXXXXXXXXXX +
+		10       +   10          +
+		11       +   11          +
+		--------     -----------     ---------     ----------------
+      Next Page --------     -----------     ---------     ----------------
+		12 XXXXX +   12          +   10 XXXXXX +   10               +
+		13 XXXXX +   13 XXXXXXXX +   11 XXXXXX +   11               +
+		14 XXXXX +   14 XXXXXXXX +   12 XXXXXX +   12               +
+		15       +   15 XXXXXXXX +   13        +   13 XXXXXXXXXXXXX +
+		16       +   16          +   14        +   14 XXXXXXXXXXXXX +
+		17       +   17          +   15        +   15 XXXXXXXXXXXXX +
+		18 XXXXX +   18          +   16 XXXXXX +   16               +
+		19 XXXXX +   19 XXXXXXXX +   17 XXXXXX +   17               +
+		20 XXXXX +   20 XXXXXXXX +   18 XXXXXX +   18               +
+		21       +   21 XXXXXXXX +
+		22       +   22          +
+		--------     -----------     ---------     ----------------
 
-		`ps-zebra-stripe-follow'	`ps-zebra-stripe-follow'
-		   is nil			   is non-nil
-   Current Page ------------------------	------------------------
-		1  XXXXXXXXXXXXXXXXXXXXX	1  XXXXXXXXXXXXXXXXXXXXX
-		2  XXXXXXXXXXXXXXXXXXXXX	2  XXXXXXXXXXXXXXXXXXXXX
-		3  XXXXXXXXXXXXXXXXXXXXX	3  XXXXXXXXXXXXXXXXXXXXX
-		4				4
-		5				5
-		6				6
-		7  XXXXXXXXXXXXXXXXXXXXX	7  XXXXXXXXXXXXXXXXXXXXX
-		8  XXXXXXXXXXXXXXXXXXXXX	8  XXXXXXXXXXXXXXXXXXXXX
-		------------------------	------------------------
-      Next Page ------------------------	------------------------
-		9  XXXXXXXXXXXXXXXXXXXXX	9  XXXXXXXXXXXXXXXXXXXXX
-		10 XXXXXXXXXXXXXXXXXXXXX	10
-		11 XXXXXXXXXXXXXXXXXXXXX	11
-		12				12
-		13				13 XXXXXXXXXXXXXXXXXXXXX
-		14				14 XXXXXXXXXXXXXXXXXXXXX
-		15 XXXXXXXXXXXXXXXXXXXXX	15 XXXXXXXXXXXXXXXXXXXXX
-		16 XXXXXXXXXXXXXXXXXXXXX	16
-		------------------------	------------------------"
-  :type 'boolean
+Any other value is treated as `nil'."
+  :type '(choice :menu-tag "Zebra Stripe Follow"
+		 :tag "Zebra Stripe Follow"
+		 (const :tag "Always Restart" nil)
+		 (const :tag "Continue on Next Page" follow)
+		 (const :tag "Print Only Full Stripe" full)
+		 (const :tag "Continue on Full Stripe" full-follow))
   :group 'ps-print-zebra)
 
 (defcustom ps-line-number nil
@@ -2633,7 +2655,8 @@ string delimiters added to it."
   :group 'ps-print-headers)
 
 (defcustom ps-right-header
-  (list "/pagenumberstring load" 'time-stamp-mon-dd-yyyy 'time-stamp-hh:mm:ss)
+  (list "/pagenumberstring load"
+	'ps-time-stamp-mon-dd-yyyy 'ps-time-stamp-hh:mm:ss)
   "*The items to display (each on a line) on the right part of the page header.
 This applies to generating PostScript.
 
@@ -2964,7 +2987,7 @@ The table depends on the current ps-print setup."
    ps-number-of-columns
    ps-zebra-stripes
    ps-zebra-stripe-height
-   ps-zebra-stripe-follow
+   (ps-print-quote ps-zebra-stripe-follow)
    (ps-print-quote ps-zebra-color)
    ps-line-number
    (ps-print-quote ps-line-number-step)
@@ -3004,7 +3027,7 @@ The table depends on the current ps-print setup."
    ps-n-up-margin
    ps-n-up-border-p
    (ps-print-quote ps-n-up-filling)
-   (ps-print-quote ps-multibyte-buffer)	; see `ps-mule.el'
+   (ps-print-quote (symbol-value 'ps-multibyte-buffer))	; see `ps-mule.el'
    (ps-print-quote ps-font-family)
    (ps-print-quote ps-font-size)
    (ps-print-quote ps-header-font-family)
@@ -3025,6 +3048,14 @@ The table depends on the current ps-print setup."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions and variables:
+
+
+(defun ps-time-stamp-mon-dd-yyyy ()
+  (format-time-string "%b %d %Y"))
+
+
+(defun ps-time-stamp-hh:mm:ss ()
+  (format-time-string "%T"))
 
 
 (defun ps-print-quote (sym)
@@ -3094,6 +3125,9 @@ The table depends on the current ps-print setup."
 
   (cond ((eq ps-print-emacs-type 'emacs) ; emacs
 
+	 ;; to avoid XEmacs compilation gripes
+	 (defvar coding-system-for-write nil)
+
 	 (defun ps-color-values (x-color)
 	   (cond
 	    ((fboundp 'color-values)
@@ -3107,11 +3141,11 @@ The table depends on the current ps-print setup."
 	 (defalias 'ps-face-background-name 'face-background)
 
 	 (defun ps-face-bold-p (face)
-	   (or (face-bold-p face)
+	   (or (ps-e-face-bold-p face)
 	       (memq face ps-bold-faces)))
 
 	 (defun ps-face-italic-p (face)
-	   (or (face-italic-p face)
+	   (or (ps-e-face-italic-p face)
 	       (memq face ps-italic-faces)))
 	 )
 					; xemacs
@@ -3166,22 +3200,22 @@ The table depends on the current ps-print setup."
       (memq face ps-underlined-faces)))
 
 
-(require 'time-stamp)
-
-
 (defun ps-prologue-file (filenumber)
-  (save-excursion
-    (let* ((filename (convert-standard-filename
-		      (expand-file-name (format "ps-prin%d.ps" filenumber)
-					ps-postscript-code-directory)))
-	   (buffer
-	    (or (find-file-noselect filename 'no-warn 'rawfile)
-		(error "ps-print PostScript prologue `%s' file was not found."
-		       filename))))
-      (set-buffer buffer)
-      (prog1
-	  (buffer-string)
-	(kill-buffer buffer)))))
+  "If prologue FILENUMBER exists and is readable, returns contents as string.
+
+Note: No major/minor-mode is activated and no local variables are evaluated for
+      FILENUMBER, but proper EOL-conversion and character interpretation is
+      done!"
+  (let ((filename (convert-standard-filename
+		   (expand-file-name (format "ps-prin%d.ps" filenumber)
+				     ps-postscript-code-directory))))
+    (if (and (file-exists-p filename)
+             (file-readable-p filename))
+        (with-temp-buffer
+          (insert-file-contents filename)
+          (buffer-string))
+      (error "ps-print PostScript prologue `%s' file was not found."
+	     filename))))
 
 
 (defvar ps-mark-code-directory nil)
@@ -3230,6 +3264,7 @@ The table depends on the current ps-print setup."
 (defvar ps-current-color nil)
 (defvar ps-current-bg nil)
 
+(defvar ps-zebra-stripe-full-p nil)
 (defvar ps-razchunk 0)
 
 (defvar ps-color-p nil)
@@ -3758,7 +3793,24 @@ page-height == bm + print-height + tm - ho - hh
 		  (* (ps-line-height 'ps-font-for-header)
 		     (1- ps-header-lines))
 		  ps-header-pad)
-	       ps-print-height))))
+	       ps-print-height))
+    ;; ps-zebra-stripe-follow is `full' or `full-follow'
+    (if ps-zebra-stripe-full-p
+	(let* ((line-height (ps-line-height 'ps-font-for-text))
+	       (zebra (* line-height ps-zebra-stripe-height)))
+	  (setq ps-print-height (- (* (floor ps-print-height zebra) zebra)
+				   line-height))
+	  (if (<= ps-print-height 0)
+	      (error "Bad vertical layout:
+ps-zebra-stripe-follow == %s
+ps-zebra-stripe-height == %s
+font-text-height       == %s
+page-height == ((floor print-height (th * zh)) * (th * zh)) - th
+=> print-height == %d !"
+		     ps-zebra-stripe-follow
+		     ps-zebra-stripe-height
+		     (ps-line-height 'ps-font-for-text)
+		     ps-print-height))))))
 
 (defun ps-print-preprint (prefix-arg)
   (and prefix-arg
@@ -3953,8 +4005,8 @@ page-height == bm + print-height + tm - ho - hh
 	(while (and (< count ps-header-lines)
 		    (setq contents (cdr contents)))
 	  (ps-generate-header-line "/h1" (car contents))
-	  (setq count (1+ count)))
-	(ps-output "] def\n"))))
+	  (setq count (1+ count)))))
+  (ps-output "] def\n"))
 
 
 (defun ps-output-boolean (name bool)
@@ -4547,7 +4599,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (paper            . 1)
     (system           . 2)
     (paper-and-system . 3))
-  "Alist for error handler message")
+  "Alist for error handler message.")
+
+
+(defconst ps-zebra-stripe-alist
+  '((follow      . 1)
+    (full        . 2)
+    (full-follow . 3))
+  "Alist for zebra stripe continuation.")
 
 
 (defun ps-begin-file ()
@@ -4570,8 +4629,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 					; first buffer printed
      "\n%%Creator: " (user-full-name)
      " (using ps-print v" ps-print-version
-     ")\n%%CreationDate: "
-     (time-stamp-hh:mm:ss) " " (time-stamp-mon-dd-yyyy)
+     ")\n%%CreationDate: " (format-time-string "%T %b %d %Y")
      "\n%%Orientation: "
      (if ps-landscape-mode "Landscape" "Portrait")
      "\n%%DocumentNeededResources: font Times-Roman Times-Italic\n%%+ font "
@@ -4638,18 +4696,21 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (ps-output-boolean "ShowNofN          " ps-show-n-of-n)
 
     (let ((line-height (ps-line-height 'ps-font-for-text)))
-      (ps-output (format "/LineHeight     %s def\n" line-height)
-		 (format "/LinesPerColumn %d def\n"
+      (ps-output (format "/LineHeight       %s def\n" line-height)
+		 (format "/LinesPerColumn   %d def\n"
 			 (round (/ (+ ps-print-height
 				      (* line-height 0.45))
 				   line-height)))))
 
     (ps-output-boolean "WarnPaperSize   " ps-warn-paper-type)
     (ps-output-boolean "Zebra           " ps-zebra-stripes)
-    (ps-output-boolean "ZebraFollow     " ps-zebra-stripe-follow)
     (ps-output-boolean "PrintLineNumber " ps-line-number)
     (ps-output-boolean "SyncLineZebra   " (not (integerp ps-line-number-step)))
-    (ps-output (format "/PrintLineStep    %d def\n"
+    (ps-output (format "/ZebraFollow      %d def\n"
+		       (or (cdr (assq ps-zebra-stripe-follow
+				      ps-zebra-stripe-alist))
+			   0))
+	       (format "/PrintLineStep    %d def\n"
 		       (if (integerp ps-line-number-step)
 			   ps-line-number-step
 			 ps-zebra-stripe-height))
@@ -4861,7 +4922,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (and (re-search-backward "^%%Trailer$" nil t)
 	 (delete-region (match-beginning 0) (point-max))))
   ;; miscellaneous
-  (setq ps-page-postscript 0
+  (setq ps-zebra-stripe-full-p (memq ps-zebra-stripe-follow
+				     '(full full-follow))
+	ps-page-postscript 0
 	ps-page-sheet 0
 	ps-page-n-up 0
 	ps-page-column 0
@@ -5443,7 +5506,8 @@ If FACE is not a valid face name, it is used default face."
 		 (setq property-change (next-property-change from nil to)))
 	    (and (< overlay-change to)	; Don't search for overlay change
 					; unless previous search succeeded.
-		 (setq overlay-change (min (next-overlay-change from) to)))
+		 (setq overlay-change (min (ps-e-next-overlay-change from)
+					   to)))
 	    (setq position (min property-change overlay-change))
 	    ;; The code below is not quite correct,
 	    ;; because a non-nil overlay invisible property
@@ -5461,13 +5525,13 @@ If FACE is not a valid face name, it is used default face."
 			 'emacs--invisible--face)
 			((get-text-property from 'face))
 			(t 'default)))
-	    (let ((overlays (overlays-at from))
+	    (let ((overlays (ps-e-overlays-at from))
 		  (face-priority -1))	; text-property
 	      (while (and overlays
 			  (not (eq face 'emacs--invisible--face)))
 		(let* ((overlay (car overlays))
-		       (overlay-invisible (overlay-get overlay 'invisible))
-		       (overlay-priority (or (overlay-get overlay 'priority)
+		       (overlay-invisible (ps-e-overlay-get overlay 'invisible))
+		       (overlay-priority (or (ps-e-overlay-get overlay 'priority)
 					     0)))
 		  (and (> overlay-priority face-priority)
 		       (setq face
@@ -5478,7 +5542,7 @@ If FACE is not a valid face name, it is used default face."
 					  (assq overlay-invisible
 						save-buffer-invisibility-spec)))
 				    'emacs--invisible--face)
-				   ((overlay-get overlay 'face))
+				   ((ps-e-overlay-get overlay 'face))
 				   (t face))
 			     face-priority overlay-priority)))
 		(setq overlays (cdr overlays))))
@@ -5616,7 +5680,7 @@ If FACE is not a valid face name, it is used default face."
 	(let* ((coding-system-for-write 'raw-text-unix)
 	       (ps-printer-name (or ps-printer-name
 				    (and (boundp 'printer-name)
-					 printer-name)))
+					 (symbol-value 'printer-name))))
 	       (ps-lpr-switches
 		(append ps-lpr-switches
 			(and (stringp ps-printer-name)
