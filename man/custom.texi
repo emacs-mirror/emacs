@@ -670,7 +670,7 @@ set the variable---is @code{t}.
   Emacs uses many Lisp variables for internal record keeping, but the
 most interesting variables for a non-programmer user are the @dfn{user
 options}, the variables that are meant for users to change.  Each user
-option that you can set with the customization buffera is, in fact, a
+option that you can set with the customization buffer is, in fact, a
 Lisp variable.  Emacs does not (usually) change the values of these
 variables; instead, you set the values, and thereby alter and control
 the behavior of certain Emacs commands.  Use of the customization
