@@ -1,3 +1,11 @@
+2000-12-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (delete_window): Simplify somewhat.
+	(Fset_window_configuration): Don't SET_FRAME_GARBAGED after
+	freeing window matrices.  The flag windows_or_buffers_changed is
+	set, so the next redisplay will consider all windows; this should
+	suffice.
+
 2000-12-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (ccl_coding_driver): Initialize ccl->cr_consumed.
