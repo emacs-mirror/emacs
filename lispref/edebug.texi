@@ -1074,7 +1074,7 @@ time later.)
 
   Therefore, you must define an Edebug specification for each macro
 that Edebug will encounter, to explain the format of calls to that
-macro.  To do this, add an @code{edebug} declaration to the macro
+macro.  To do this, add a @code{debug} declaration to the macro
 definition.  Here is a simple example that shows the specification for
 the @code{for} example macro (@pxref{Argument Evaluation}).
 
@@ -1095,10 +1095,9 @@ the @code{declare} form.
 
   You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
-@code{edebug} declarations is preferred, and more convenient, for
-macro definitions in Lisp, but @code{def-edebug-spec} makes it
-possible to define Edebug specifications for special forms implemented
-in C.
+@code{debug} declarations is preferred, and more convenient, for macro
+definitions in Lisp, but @code{def-edebug-spec} makes it possible to
+define Edebug specifications for special forms implemented in C.
 
 @deffn Macro def-edebug-spec macro specification
 Specify which expressions of a call to macro @var{macro} are forms to be
