@@ -979,7 +979,7 @@ DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
 CHARACTER may be a cons; (FROM . TO), where FROM and TO are
 non-generic characters.  In that case, use FONTNAME
 for all characters in the range FROM and TO (inclusive).
-CHARACTER may be a charset.   In that case, use FONTNAME
+CHARACTER may be a charset.  In that case, use FONTNAME
 for all character in the charsets.
 
 FONTNAME may be a cons; (FAMILY . REGISTRY), where FAMILY is a family
