@@ -90,6 +90,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 extern XtAppContext Xt_app_con;
 extern Widget Xt_app_shell;
 extern void free_frame_menubar ();
+extern void _XEditResCheckMessages ();
 #endif /* USE_X_TOOLKIT */
 
 #ifndef USE_X_TOOLKIT
@@ -309,7 +310,7 @@ extern Window requestor_window;
 /* Nonzero enables some debugging for the X interface code. */
 extern int _Xdebug;
 
-extern Qface, Qmouse_face;
+extern Lisp_Object Qface, Qmouse_face;
 
 #else /* ! defined (HAVE_X11) */
 
@@ -3312,6 +3313,9 @@ Atom Xatom_wm_window_moved;	  /* When the WM moves us. */
 /* Window manager communication.  */
 Atom Xatom_wm_change_state;
 
+/* EditRes protocol */
+Atom Xatom_editres_name;
+
 /* Record the last 100 characters stored
    to help debug the loss-of-chars-during-GC problem.  */
 int temp_index;
@@ -3450,6 +3454,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    f->display.x->top_pos = new_y;
 		  }
 	      }
+#ifdef USE_X_TOOLKIT
+	    else if (event.xclient.message_type == Xatom_editres_name)
+	      {
+		struct frame *f = x_any_window_to_frame (event.xclient.window);
+		_XEditResCheckMessages (f->display.x->widget, NULL, &event, NULL);
+	      }
+#endif /* USE_X_TOOLKIT */
 	  }
 	  break;
 
@@ -5912,11 +5923,13 @@ x_term_init (display_name)
   x_focus_frame = x_highlight_frame = 0;
 
 #ifdef USE_X_TOOLKIT
-  argv = (char **) XtMalloc (3 * sizeof (char *));
+  argv = (char **) XtMalloc (5 * sizeof (char *));
   argv [0] = "";
   argv [1] = "-display";
   argv [2] = display_name;
-  argc = 3;
+  argv [3] = "-name";
+  argv [4] = "emacs";
+  argc = 5;
   Xt_app_shell = XtAppInitialize (&Xt_app_con, "Emacs",
 				  emacs_options, XtNumber (emacs_options),
 				  &argc, argv,
