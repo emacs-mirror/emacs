@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.26) $
+ * $HopeName: MMsrc!poolmv.c(trunk.27) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -29,7 +29,7 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.26) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.27) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -707,6 +707,7 @@ static PoolClassStruct PoolClassMVStruct = {
   PoolNoReclaim,                        /* relcaim */
   PoolNoBenefit,                        /* benefit */
   PoolNoAct,                            /* act */
+  PoolNoWalk,                           /* walk */
   MVDescribe,                           /* describe */
   PoolClassSig                          /* impl.h.mpmst.class.end-sig */
 };
