@@ -415,7 +415,7 @@ buffer."
   (make-local-variable 'list-buffers-directory)
   (setq list-buffers-directory (expand-file-name default-directory))
   ;; shell-dependent assignments.
-  (when (zerop (ring-length comint-input-ring))
+  (when (ring-empty-p comint-input-ring)
     (let ((shell (file-name-nondirectory (car
 		   (process-command (get-buffer-process (current-buffer)))))))
       (setq comint-input-ring-file-name
