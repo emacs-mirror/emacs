@@ -1244,7 +1244,7 @@ With argument, insert value in current buffer after the form."
   ;; buffer --> output-buffer, or buffer --> eval form, return nil
   (let (outbuffer)
     (let (;; Prevent truncation of flonums and lists as we read and print them
-	  (float-output-format "%20e")
+	  (float-output-format "%.20e")
 	  (case-fold-search nil)
 	  (print-length nil)
 	  ;; Simulate entry to byte-compile-top-level
