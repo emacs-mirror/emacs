@@ -473,7 +473,24 @@ The R column contains a % for buffers that are read-only."
 	(while bl
 	  (let* ((buffer (car bl))
 		 (name (buffer-name buffer))
-		 (file (buffer-file-name buffer)))
+		 (file (buffer-file-name buffer))
+		 this-buffer-read-only
+		 this-buffer-size
+		 this-buffer-mode-name
+		 this-buffer-directory)
+	    (save-excursion
+	      (set-buffer buffer)
+	      (setq this-buffer-read-only buffer-read-only)
+	      (setq this-buffer-size (buffer-size))
+	      (setq this-buffer-mode-name
+		    (if (eq buffer standard-output)
+			"Buffer Menu" mode-name))
+	      (or file
+		  ;; No visited file.  Check local value of
+		  ;; list-buffers-directory.
+		  (if (and (boundp 'list-buffers-directory)
+			   list-buffers-directory)
+		      (setq this-buffer-directory list-buffers-directory))))
 	    (cond
 	     ;; Don't mention internal buffers.
 	     ((string= (substring name 0 1) " "))
@@ -492,7 +509,8 @@ The R column contains a % for buffers that are read-only."
 	      ;; Handle readonly status.  The output buffer is special
 	      ;; cased to be readonly; it is actually made so at a later
 	      ;; date.
-	      (princ (if (or (eq buffer standard-output) buffer-read-only)
+	      (princ (if (or (eq buffer standard-output)
+			     this-buffer-read-only)
 			 "% "
 		       "  "))
 	      (princ name)
@@ -500,31 +518,19 @@ The R column contains a % for buffers that are read-only."
 	      (let (size
 		    mode
 		    (excess (- (current-column) 17)))
-		(save-excursion
-		  (set-buffer buffer)
-		  (setq size (format "%8d" (buffer-size)))
-		  ;; Ack -- if looking at the *Buffer List* buffer,
-		  ;; always use "Buffer Menu" mode.  Otherwise the
-		  ;; first time the buffer is created, the mode will
-		  ;; be wrong.
-		  (setq mode (if (eq buffer standard-output)
-				 "Buffer Menu"
-			       mode-name))
-		  (while (and (> excess 0) (= (aref size 0) ?\ ))
-		    (setq size (substring size 1))
-		    (setq excess (1- excess))))
+		(setq size (format "%8d" this-buffer-size))
+		;; Ack -- if looking at the *Buffer List* buffer,
+		;; always use "Buffer Menu" mode.  Otherwise the
+		;; first time the buffer is created, the mode will be wrong.
+		(setq mode this-buffer-mode-name)
+		(while (and (> excess 0) (= (aref size 0) ?\ ))
+		  (setq size (substring size 1))
+		  (setq excess (1- excess)))
 		(princ size)
 		(indent-to 27 1)
 		(princ mode))
 	      (indent-to 40 1)
-	      (or file
-		  ;; No visited file.  Check local value of
-		  ;; list-buffers-directory.
-		  (save-excursion
-		    (set-buffer buffer)
-		    (if (and (boundp 'list-buffers-directory)
-			     list-buffers-directory)
-			(setq file list-buffers-directory))))
+	      (or file (setq file this-buffer-directory))
 	      (if file
 		  (princ file))
 	      (princ "\n"))))
