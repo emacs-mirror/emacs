@@ -1261,7 +1261,7 @@ AC_FUNC_ALLOCA
 # On HPUX 9.01, -lm does not contain logb, so check for sqrt.
 AC_CHECK_LIB(m, sqrt(0.0) + t)
 AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
-random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid \
+random lrand48 bcopy bcmp logb frexp fmod ftime res_init setsid \
 strerror fpathconf select mktime eaccess getpagesize tzset)
 
 AC_MSG_CHECKING(whether localtime caches TZ)
