@@ -1292,9 +1292,9 @@ Selecting other nodes:
 \\[Info-index-next]	(comma) Move to the next match from a previous `i' command.
 
 Moving within a node:
-\\[scroll-up]	Normally, scroll forward a full screen.  If the end of the buffer is
+\\[Info-scroll-up]	Normally, scroll forward a full screen.  If the end of the buffer is
 already visible, try to go to the next menu entry, or up if there is none.
-\\[scroll-down]  Normally, scroll backward.  If the beginning of the buffer is
+\\[Info-scroll-down]  Normally, scroll backward.  If the beginning of the buffer is
 already visible, try to go to the previous menu entry, or up if there is none.
 \\[beginning-of-buffer]	Go to beginning of node.  
 
