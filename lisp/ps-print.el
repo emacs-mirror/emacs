@@ -1,9 +1,10 @@
 ;;; ps-print.el --- Jim's Pretty-Good PostScript Generator for Emacs 19.
 
-;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author:     Jim Thompson (was <thompson@wg2.waii.com>)
-;; Maintainer: Jacques Duthen <duthen@club-internet.fr>
+;; Author:     Jacques Duthen <duthen@club-internet.fr>
+;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.br>
 ;; Keywords:   print, PostScript
 ;; Time-stamp: <97/01/09 13:52:08 duthen>
 ;; Version:    3.04
