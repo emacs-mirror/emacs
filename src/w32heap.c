@@ -41,6 +41,9 @@ int etext;
 int w32_major_version;
 int w32_minor_version;
 
+/* Distinguish between Windows NT and Windows 95.  */
+int os_subtype;
+
 /* Cache information describing the NT system for later use.  */
 void
 cache_system_info (void)
@@ -60,6 +63,11 @@ cache_system_info (void)
   version.data = GetVersion ();
   w32_major_version = version.info.major;
   w32_minor_version = version.info.minor;
+
+  if (version.info.platform & 0x8000)
+    os_subtype = OS_WIN95;
+  else
+    os_subtype = OS_NT;
 
   /* Cache page size, allocation unit, processor type, etc.  */
   GetSystemInfo (&sysinfo_cache);
@@ -84,10 +92,6 @@ round_to_next (unsigned char *address, unsigned long align)
 
   return (unsigned char *) (tmp * align);
 }
-
-/* Force zero initialized variables to be placed in the .data segment;
-   MSVC 5.0 otherwise places them in .bss, which breaks the dumping code.  */
-#pragma data_seg(".data")
 
 /* Info for keeping track of our heap.  */
 unsigned char *data_region_base = NULL;
@@ -278,6 +282,9 @@ recreate_heap (char *executable_path)
      any funny interactions between file I/O and file mapping.  */
   read_in_bss (executable_path);
   map_in_heap (executable_path);
+
+  /* Update system version information to match current system.  */
+  cache_system_info ();
 }
 
 /* Round the heap up to the given alignment.  */
@@ -293,3 +300,26 @@ round_heap (unsigned long align)
   if (need_to_alloc) 
     sbrk (need_to_alloc);
 }
+
+#if (_MSC_VER >= 1000)
+
+/* MSVC 4.2 invokes these functions from mainCRTStartup to initialize
+   a heap via HeapCreate.  They are normally defined by the runtime,
+   but we override them here so that the unnecessary HeapCreate call
+   is not performed.  */
+
+int __cdecl
+_heap_init (void)
+{
+  /* Stepping through the assembly indicates that mainCRTStartup is
+     expecting a nonzero success return value.  */
+  return 1;
+}
+
+void __cdecl
+_heap_term (void)
+{
+  return;
+}
+
+#endif
