@@ -1,10 +1,9 @@
 ;;; xml-lite.el --- an indentation-engine for XML
 
-;; Copyright (C) 2001   Mike Williams <mdub@bigfoot.com>
+;; Copyright (C) 2002  Free Software Foundation, Inc.
 
 ;; Author:     Mike Williams <mdub@bigfoot.com>
 ;; Created:    February 2001
-;; Version:    $Revision: 1.2 $
 ;; Keywords:   xml
 
 ;; This file is part of GNU Emacs.
@@ -32,11 +31,6 @@
 ;;
 ;; xml-lite is designed to be used in conjunction with the default GNU
 ;; Emacs sgml-mode, to provide a lightweight XML-editing environment.
-;;
-;; Updates will be made available at:
-;;     http://www.bigfoot.com/~mdub/software/xml-lite.el
-;;
-;; Note: the font-lock support that was in this package has been removed.
 
 ;;; Thanks:
 ;;
@@ -56,14 +50,8 @@
   :group 'languages
   )
 
-(defcustom xml-lite-indent-offset 4
-  "*Specifies the default indentation level for `xml-lite-indent-line'."
-  :type 'integer
-  :group 'xml-lite
-  )
-
-(defcustom xml-lite-indent-comment-offset 5
-  "*Specifies the indentation level for XML comments."
+(defcustom xml-lite-basic-offset 2
+  "*Specifies the basic indentation level for `xml-lite-indent-line'."
   :type 'integer
   :group 'xml-lite
   )
@@ -119,11 +107,9 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
 
 
 ;; Parsing
-
 (defstruct (xml-lite-tag
             (:constructor xml-lite-make-tag (type start end name name-end)))
   type start end name name-end)
-
 (defsubst xml-lite-parse-tag-name ()
   "Skip past a tag-name, and return the name."
   (buffer-substring-no-properties
@@ -133,7 +119,7 @@ Set this to nil if you don't want a modeline indicator for xml-lite-mode."
   (let ((limit (max (- (point) (length s)) (point-min))))
     (equal s (buffer-substring-no-properties limit (point)))))
 
-(defsubst xml-lite-looking-at (s)  
+(defsubst xml-lite-looking-at (s)
   (let ((limit (min (+ (point) (length s)))))
     (equal s (buffer-substring-no-properties (point) limit))))
 
@@ -254,7 +240,7 @@ immediately enclosing the current position."
 
          ;; inside a tag ...
          ((xml-lite-inside-tag-p tag-info here)
-          (setq context (cons tag-info context)))
+          (push tag-info context))
 
          ;; start-tag
          ((eq (xml-lite-tag-type tag-info) 'open)
@@ -294,23 +280,27 @@ If FULL is non-nil, parse back to the beginning of the buffer."
       (cond
 
        ;; no context
-       ((null context)
-        0)
+       ((null context) 0)
 
        ;; inside a comment
        ((eq 'comment (xml-lite-tag-type last-tag-info))
-        (goto-char (xml-lite-tag-start last-tag-info))
-        (+ (current-column) xml-lite-indent-comment-offset))
+        (let ((mark (looking-at "--")))
+          (goto-char (xml-lite-tag-start last-tag-info))
+	  (forward-char 2)
+	  (if mark (current-column)
+	    (forward-char 2)
+	    (+ (if (zerop (skip-chars-forward " \t")) 1 0)
+	       (current-column)))))
 
        ;; inside a tag
        ((xml-lite-inside-tag-p last-tag-info here)
         
-        (let ((in-string
+        (let ((start-of-enclosing-string
                (xml-lite-in-string-p (xml-lite-tag-start last-tag-info))))
           (cond
-           ;; inside a string
-           (in-string
-            (goto-char (nth 1 in-string))
+           ;; inside an attribute value
+           (start-of-enclosing-string
+            (goto-char start-of-enclosing-string)
             (1+ (current-column)))
            ;; if we have a tag-name, base indent on that
            ((and (xml-lite-tag-name-end last-tag-info)
@@ -321,21 +311,19 @@ If FULL is non-nil, parse back to the beginning of the buffer."
            ;; otherwise, add indent-offset
            (t
             (goto-char (xml-lite-tag-start last-tag-info))
-            (+ (current-column) xml-lite-indent-offset)))))
+            (+ (current-column) xml-lite-basic-offset)))))
 
        ;; inside an element
        (t
         ;; indent to start of tag
-        (let ((here (point))
-              indent-col)
+        (let ((indent-offset xml-lite-basic-offset))
+          ;; add xml-lite-basic-offset, unless we're looking at the
+          ;; matching end-tag
+          (if (and (eq (length context) 1)
+                   (xml-lite-looking-at "</"))
+              (setq indent-offset 0))
           (goto-char (xml-lite-tag-start ref-tag-info))
-          (setq indent-col (current-column))
-          (goto-char here)
-          ;; add xml-lite-indent-offset, unless we're looking at the matching
-          ;; end-tag
-          (unless (and (eq (length context) 1) (looking-at "</"))
-            (setq indent-col (+ indent-col xml-lite-indent-offset)))
-          indent-col))
+          (+ (current-column) indent-offset)))
 
        ))))
 
@@ -371,13 +359,13 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 
      ;; inside a tag
      ((xml-lite-inside-tag-p tag-info)
-      (cond
-       ((eq type 'open) 	(insert " />"))
-       ((eq type 'comment) 	(insert " -->"))
-       ((eq type 'cdata) 	(insert "]]>"))
-       ((eq type 'jsp) 		(insert "%>"))
-       ((eq type 'pi) 		(insert "?>"))
-       (t 			(insert ">"))))
+      (insert (cond
+	       ((eq type 'open) 	" />")
+	       ((eq type 'comment)	" -->")
+	       ((eq type 'cdata)	"]]>")
+	       ((eq type 'jsp) 		"%>")
+	       ((eq type 'pi) 		"?>")
+	       (t 			">"))))
 
      ;; inside an element
      ((eq type 'open)
@@ -423,7 +411,7 @@ Behaves electrically if `xml-lite-electric-slash' is non-nil."
 With ARG, enable xml-lite-mode if and only if ARG is positive.
 
 xml-lite-mode provides indentation for XML tags.  The value of
-`xml-lite-indent-offset' determines the amount of indentation.
+`xml-lite-basic-offset' determines the amount of indentation.
 
 Key bindings:
 \\{xml-lite-mode-map}"
