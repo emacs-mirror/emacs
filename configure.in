@@ -1514,6 +1514,9 @@ AC_CHECK_MEMBER(struct tm.tm_gmtoff,
 		[AC_DEFINE(HAVE_TM_GMTOFF, 1,
 			   [Define to 1 if `tm_gmtoff' is member of `struct tm'.])],,
 		[#include <time.h>])
+AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr, 
+		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
+		  struct ifreq.ifr_addr], , ,[#include <net/if.h>])
 
 dnl checks for compiler characteristics
 
