@@ -1,5 +1,5 @@
 % test set for daily tests of MPS on PC
-% $HopeName: MMQA_testsets!daily(trunk.4) $
+% $HopeName: MMQA_testsets!daily(trunk.5) $
 
 function/0.c
 function/1.c
@@ -15,6 +15,7 @@ function/17.c
 function/18.c
 function/19.c
 function/20.c
+function/23.c
 function/25.c
 function/26.c
 function/27.c
@@ -54,11 +55,14 @@ function/112.c
 function/117.c
 function/118.c
 function/119.c
+function/120.c
+function/121.c
 function/125.c
 function/126.c
 function/130.c
 function/131.c
 function/132.c
+function/133.c
 function/135.c
 function/136.c
 function/137.c
@@ -84,4 +88,4 @@ function/167.c
 function/168.c
 function/170.c
 function/172.c
-function/224.c
+function/173.c
