@@ -108,7 +108,7 @@ main ()
   unlink (server.sun_path);
 #endif
 
-  if (bind (s, &server, strlen (server.sun_path) + 2) < 0)
+  if (bind (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2) < 0)
     {
       perror ("bind");
       exit (1);
@@ -135,7 +135,7 @@ main ()
 	{
 	  fromlen = sizeof (fromunix);
 	  fromunix.sun_family = AF_UNIX;
-	  infd = accept (s, &fromunix, &fromlen); /* open socket fd */
+	  infd = accept (s, (struct sockaddr *) &fromunix, &fromlen); /* open socket fd */
 	  if (infd < 0)
 	    {
 	      if (errno == EMFILE || errno == ENFILE)
