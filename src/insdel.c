@@ -533,10 +533,13 @@ make_gap_larger (nbytes_added)
 
   /* Don't allow a buffer size that won't fit in an int
      even if it will fit in a Lisp integer.
-     That won't work because so many places use `int'.  */
+     That won't work because so many places use `int'.
+
+     Make sure we don't introduce overflows in the calculation.  */
      
-  if (Z_BYTE - BEG_BYTE + GAP_SIZE + nbytes_added
-      >= MOST_POSITIVE_FIXNUM)
+  if (Z_BYTE - BEG_BYTE + GAP_SIZE
+      >= (((EMACS_INT) 1 << (min (VALBITS, BITS_PER_INT) - 1)) - 1
+	  - nbytes_added))
     error ("Buffer exceeds maximum size");
 
   enlarge_buffer_text (current_buffer, nbytes_added);
