@@ -143,7 +143,8 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 						  display-time-mail-face
 						  :background)))
 		 'help-echo "mouse-2: Read mail"
-		 'local-map (make-mode-line-mouse2-map read-mail-command)))
+		 'local-map (make-mode-line-mouse-map 'mouse-2 
+						      read-mail-command)))
       ""))
   "*A list of expressions governing display of the time in the mode line.
 For most purposes, you can control the time format using `display-time-format'
