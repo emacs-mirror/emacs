@@ -2531,7 +2531,7 @@ process_send_signal (process, signo, current_group, nomsg)
 
   	case SIGTSTP:
 	  tcgetattr (XINT (p->infd), &t);
-#if defined (VSWTCH) && !defined (IRIX5)
+#if defined (VSWTCH) && !defined (PREFER_VSUSP)
   	  send_process (proc, &t.c_cc[VSWTCH], 1);
 #else
 	  send_process (proc, &t.c_cc[VSUSP], 1);
