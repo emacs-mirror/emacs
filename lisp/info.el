@@ -1086,7 +1086,7 @@ a case-insensitive match is tried."
 	(+ (- nodepos lastfilepos) (point)))))
 
 (defun Info-unescape-quotes (value)
-  "Unescape double quotes and backslashes in VALUE"
+  "Unescape double quotes and backslashes in VALUE."
   (let ((start 0)
 	(unquote value))
     (while (string-match "[^\\\"]*\\(\\\\\\)[\\\\\"]" unquote start)
@@ -1099,10 +1099,9 @@ a case-insensitive match is tried."
 ;; into the Info file for handling images.
 (defun Info-split-parameter-string (parameter-string)
   "Return alist of (\"KEY\" . \"VALUE\") from PARAMETER-STRING; a
-   whitespace separated list of KEY=VALUE pairs.  If VALUE
-   contains whitespace or double quotes, it must be quoted in
-   double quotes and any double quotes or backslashes must be
-   escaped (\\\",\\\\)."
+whitespace separated list of KEY=VALUE pairs.  If VALUE contains
+whitespace or double quotes, it must be quoted in double quotes and
+any double quotes or backslashes must be escaped (\\\",\\\\)."
   (let ((start 0)
 	(parameter-alist))
     (while (string-match
@@ -2683,12 +2682,12 @@ The locations are of the format used in `Info-history', i.e.
   "Go to the Info node in the Emacs manual for command COMMAND.
 The command is found by looking up in Emacs manual's indices
 or in another manual found via COMMAND's `info-file' property or
-the variable `Info-file-list-for-emacs'. COMMAND must be a symbol
-or string."
+the variable `Info-file-list-for-emacs'.
+COMMAND must be a symbol or string."
   (interactive "CFind documentation for command: ")
   ;; If command is given as a string, convert it to a symbol.
   (if (stringp command)
-      (setq command (intern command)))  
+      (setq command (intern command)))
   (or (commandp command)
       (signal 'wrong-type-argument (list 'commandp command)))
   (let ((where (Info-find-emacs-command-nodes command)))
@@ -2785,9 +2784,9 @@ Preserve text properties."
 	(setq mb (match-beginning 0)
 	      me (1+ mb)
 	      m (substring string mb me)
-	      matches (cons m 
-			    (cons m 
-				  (cons (substring string start mb) 
+	      matches (cons m
+			    (cons m
+				  (cons (substring string start mb)
 					matches)))
 	      start me))
       (push (substring string start end) matches)
