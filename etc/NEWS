@@ -459,6 +459,20 @@ delim-col has the following commands:
    delimit-columns-region	Prettify all columns in a text region.
    delimit-columns-rectangle	Prettify all columns in a text rectangle.
 
+*** The package recentf.el maintains a menu for visiting files that
+were operated on recently.  When enabled, a new "Open Recent" submenu
+is displayed in the "Files" menu.
+
+The recent files list is automatically saved across Emacs sessions.
+
+To enable/disable recentf use M-x recentf-mode.
+
+To enable recentf at Emacs startup use
+M-x customize-variable RET recentf-mode RET.
+
+To change the number of recent files displayed and others options use
+M-x customize-group RET recentf RET.
+
 ** Withdrawn packages
 
 *** mldrag.el has been removed.  mouse.el provides the same
