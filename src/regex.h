@@ -32,8 +32,9 @@
 
 
 /* The following bits are used to determine the regexp syntax we
-   recognize.  The set/not-set meanings are chosen so that Emacs syntax
-   remains the value 0.  The bits are given in alphabetical order, and
+   recognize.  The set/not-set meanings where historically chosen so
+   that Emacs syntax had the value 0.
+   The bits are given in alphabetical order, and
    the definitions shifted by one from the previous bit; thus, when we
    add or remove a bit, only one other definition need change.  */
 typedef unsigned reg_syntax_t;
@@ -153,9 +154,9 @@ extern Lisp_Object re_match_object;
 
 /* Define combinations of the above bits for the standard possibilities.
    (The [[[ comments delimit what gets put into the Texinfo file, so
-   don't delete them!)  */ 
+   don't delete them!)  */
 /* [[[begin syntaxes]]] */
-#define RE_SYNTAX_EMACS 0
+#define RE_SYNTAX_EMACS (RE_CHAR_CLASSES | RE_INTERVALS)
 
 #define RE_SYNTAX_AWK							\
   (RE_BACKSLASH_ESCAPE_IN_LISTS | RE_DOT_NOT_NULL			\

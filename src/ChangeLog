@@ -1,3 +1,11 @@
+2000-02-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.h (RE_SYNTAX_EMACS): Add RE_CHAR_CLASSES and RE_INTERVALS
+	to Emacs' syntax.  Also fix the comment about set/not-set meanings
+	since Emacs syntax is not the value 0 any more.
+	* search.c (compile_pattern_1): Remove RE_CHAR_CLASSES from the syntax
+	since it's now part of RE_SYNTAX_EMACS.
+
 2000-02-12  Dave Love  <fx@gnu.org>
 
 	* frame.h (SELECTED_FRAME): Use NULL, not 0 to avoid warnings on
