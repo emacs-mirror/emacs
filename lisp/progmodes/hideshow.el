@@ -836,8 +836,7 @@ Key bindings:
       (progn
         (hs-grok-mode-type)
         (easy-menu-add hs-minor-mode-menu)
-        (make-variable-buffer-local 'line-move-ignore-invisible)
-        (setq line-move-ignore-invisible t)
+        (set (make-local-variable 'line-move-ignore-invisible) t)
         (add-to-invisibility-spec '(hs . t)))
     (easy-menu-remove hs-minor-mode-menu)
     (remove-from-invisibility-spec '(hs . t)))
