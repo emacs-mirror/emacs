@@ -20,8 +20,8 @@
 
 (defun set-fill-prefix ()
   "Set the fill-prefix to the current line up to point.
-Filling expects lines to start with the fill prefix
-and reinserts the fill prefix in each resulting line."
+Filling expects lines to start with the fill prefix and
+reinserts the fill prefix in each resulting line."
   (interactive)
   (setq fill-prefix (buffer-substring
 		     (save-excursion (beginning-of-line) (point))
@@ -32,94 +32,123 @@ and reinserts the fill prefix in each resulting line."
       (message "fill-prefix: \"%s\"" fill-prefix)
     (message "fill-prefix cancelled")))
 
+(defconst adaptive-fill-mode t
+  "*Non-nil means determine a paragraph's fill prefix from its text.")
+
+(defconst adaptive-fill-regexp "[ \t]*\\([>*] +\\)?"
+  "*Regexp to match text at start of line that constitutes indentation.
+If Adaptive Fill mode is enabled, whatever text matches this pattern
+on the second line of a paragraph is used as the standard indentation
+for the paragraph.")
+
 (defun fill-region-as-paragraph (from to &optional justify-flag)
   "Fill region as one paragraph: break lines to fit fill-column.
 Prefix arg means justify too.
 From program, pass args FROM, TO and JUSTIFY-FLAG."
   (interactive "r\nP")
-  (save-restriction
-    (narrow-to-region from to)
-    (goto-char (point-min))
-    (skip-chars-forward "\n")
-    (narrow-to-region (point) (point-max))
-    (setq from (point))
-    (goto-char (point-max))
-    (let ((fpre (and fill-prefix (not (equal fill-prefix ""))
-		     (regexp-quote fill-prefix))))
-      ;; Delete the fill prefix from every line except the first.
-      ;; The first line may not even have a fill prefix.
-      (and fpre
-	   (progn
-	     (if (>= (length fill-prefix) fill-column)
-		 (error "fill-prefix too long for specified width"))
-	     (goto-char (point-min))
-	     (forward-line 1)
-	     (while (not (eobp))
-	       (if (looking-at fpre)
-		   (delete-region (point) (match-end 0)))
-	       (forward-line 1))
-	     (goto-char (point-min))
-	     (and (looking-at fpre) (forward-char (length fill-prefix)))
-	     (setq from (point)))))
-    ;; from is now before the text to fill,
-    ;; but after any fill prefix on the first line.
+  ;; Don't let Adaptive Fill mode alter the fill prefix permanently.
+  (let ((fill-prefix fill-prefix))
+    ;; Figure out how this paragraph is indented, if desired.
+    (if adaptive-fill-mode
+	(save-excursion
+	  (goto-char (min from to))
+	  (if (eolp) (forward-line 1))
+	  (forward-line 1)
+	  (if (< (point) (max from to))
+	      (let ((start (point)))
+		(re-search-forward adaptive-fill-regexp)
+		(setq fill-prefix (buffer-substring start (point))))
+	    (goto-char (min from to))
+	    (if (eolp) (forward-line 1))
+	    ;; If paragraph has only one line, don't assume
+	    ;; that additional lines would have the same starting
+	    ;; decoration.  Instead, assume they would have white space
+	    ;; reaching to the same column.
+	    (re-search-forward adaptive-fill-regexp)
+	    (setq fill-prefix (make-string (current-column) ?\ )))))
 
-    ;; Make sure sentences ending at end of line get an extra space.
-    ;; loses on split abbrevs ("Mr.\nSmith")
-    (goto-char from)
-    (while (re-search-forward "[.?!][])\"']*$" nil t)
-      (insert ? ))
-
-    ;; Then change all newlines to spaces.
-    (subst-char-in-region from (point-max) ?\n ?\ )
-
-    ;; Flush excess spaces, except in the paragraph indentation.
-    (goto-char from)
-    (skip-chars-forward " \t")
-    ;; nuke tabs while we're at it; they get screwed up in a fill
-    ;; this is quick, but loses when a sole tab follows the end of a sentence.
-    ;; actually, it is difficult to tell that from "Mr.\tSmith".
-    ;; blame the typist.
-    (subst-char-in-region (point) (point-max) ?\t ?\ )
-    (while (re-search-forward "   *" nil t)
-      (delete-region
-       (+ (match-beginning 0)
-	  (if (save-excursion
-	       (skip-chars-backward " ])\"'")
-	       (memq (preceding-char) '(?. ?? ?!)))
-	      2 1))
-       (match-end 0)))
-    (goto-char (point-max))
-    (delete-horizontal-space)
-    (insert "  ")
-    (goto-char (point-min))
-
-    (let ((prefixcol 0))
-      (while (not (eobp))
-	(move-to-column (1+ fill-column))
-	(if (eobp)
-	    nil
-	  (skip-chars-backward "^ \n")
-	  (if (if (zerop prefixcol) (bolp) (>= prefixcol (current-column)))
-	      (skip-chars-forward "^ \n")
-	    (forward-char -1)))
-	;; Inserting the newline first prevents losing track of point.
-	(skip-chars-backward " ")
-	(insert ?\n)
-	(delete-horizontal-space)
-	(and (not (eobp)) fill-prefix (not (equal fill-prefix ""))
+    (save-restriction
+      (narrow-to-region from to)
+      (goto-char (point-min))
+      (skip-chars-forward "\n")
+      (narrow-to-region (point) (point-max))
+      (setq from (point))
+      (goto-char (point-max))
+      (let ((fpre (and fill-prefix (not (equal fill-prefix ""))
+		       (regexp-quote fill-prefix))))
+	;; Delete the fill prefix from every line except the first.
+	;; The first line may not even have a fill prefix.
+	(and fpre
 	     (progn
-	       (insert fill-prefix)
-	       (setq prefixcol (current-column))))
-	(and justify-flag (not (eobp))
-	     (progn
-	       (forward-line -1)
-	       (justify-current-line)
-	       (forward-line 1)))))))
+	       (if (>= (length fill-prefix) fill-column)
+		   (error "fill-prefix too long for specified width"))
+	       (goto-char (point-min))
+	       (forward-line 1)
+	       (while (not (eobp))
+		 (if (looking-at fpre)
+		     (delete-region (point) (match-end 0)))
+		 (forward-line 1))
+	       (goto-char (point-min))
+	       (and (looking-at fpre) (forward-char (length fill-prefix)))
+	       (setq from (point)))))
+      ;; from is now before the text to fill,
+      ;; but after any fill prefix on the first line.
+
+      ;; Make sure sentences ending at end of line get an extra space.
+      ;; loses on split abbrevs ("Mr.\nSmith")
+      (goto-char from)
+      (while (re-search-forward "[.?!][])\"']*$" nil t)
+	(insert ? ))
+
+      ;; Then change all newlines to spaces.
+      (subst-char-in-region from (point-max) ?\n ?\ )
+
+      ;; Flush excess spaces, except in the paragraph indentation.
+      (goto-char from)
+      (skip-chars-forward " \t")
+      ;; nuke tabs while we're at it; they get screwed up in a fill
+      ;; this is quick, but loses when a sole tab follows the end of a sentence.
+      ;; actually, it is difficult to tell that from "Mr.\tSmith".
+      ;; blame the typist.
+      (subst-char-in-region (point) (point-max) ?\t ?\ )
+      (while (re-search-forward "   *" nil t)
+	(delete-region
+	 (+ (match-beginning 0)
+	    (if (save-excursion
+		  (skip-chars-backward " ])\"'")
+		  (memq (preceding-char) '(?. ?? ?!)))
+		2 1))
+	 (match-end 0)))
+      (goto-char (point-max))
+      (delete-horizontal-space)
+      (insert "  ")
+      (goto-char (point-min))
+
+      (let ((prefixcol 0))
+	(while (not (eobp))
+	  (move-to-column (1+ fill-column))
+	  (if (eobp)
+	      nil
+	    (skip-chars-backward "^ \n")
+	    (if (if (zerop prefixcol) (bolp) (>= prefixcol (current-column)))
+		(skip-chars-forward "^ \n")
+	      (forward-char -1)))
+	  ;; Inserting the newline first prevents losing track of point.
+	  (skip-chars-backward " ")
+	  (insert ?\n)
+	  (delete-horizontal-space)
+	  (and (not (eobp)) fill-prefix (not (equal fill-prefix ""))
+	       (progn
+		 (insert fill-prefix)
+		 (setq prefixcol (current-column))))
+	  (and justify-flag (not (eobp))
+	       (progn
+		 (forward-line -1)
+		 (justify-current-line)
+		 (forward-line 1))))))))
 
 (defun fill-paragraph (arg)
-  "Fill paragraph at or after point.
-Prefix arg means justify as well."
+  "Fill paragraph at or after point.  Prefix arg means justify as well."
   (interactive "P")
   (save-excursion
     (forward-paragraph)
@@ -130,8 +159,7 @@ Prefix arg means justify as well."
 
 (defun fill-region (from to &optional justify-flag)
   "Fill each of the paragraphs in the region.
-Prefix arg (non-nil third arg, if called from program)
-means justify as well."
+Prefix arg (non-nil third arg, if called from program) means justify as well."
   (interactive "r\nP")
   (save-restriction
    (narrow-to-region from to)
@@ -146,14 +174,15 @@ means justify as well."
 	 (goto-char end))))))
 
 (defun justify-current-line ()
-  "Add spaces to line point is in, so it ends at fill-column."
+  "Add spaces to line point is in, so it ends at `fill-column'."
   (interactive)
   (save-excursion
    (save-restriction
-    (let (ncols beg)
+    (let (ncols beg indent)
       (beginning-of-line)
       (forward-char (length fill-prefix))
       (skip-chars-forward " \t")
+      (setq indent (current-column))
       (setq beg (point))
       (end-of-line)
       (narrow-to-region beg (point))
@@ -171,7 +200,9 @@ means justify as well."
 	(forward-char -1)
 	(insert ? ))
       (goto-char (point-max))
-      (setq ncols (- fill-column (current-column)))
+      ;; Note that the buffer bounds start after the indentation,
+      ;; so the columns counted by INDENT don't appear in (current-column).
+      (setq ncols (- fill-column (current-column) indent))
       (if (search-backward " " nil t)
 	  (while (> ncols 0)
 	    (let ((nmove (+ 3 (random 3))))
@@ -196,18 +227,20 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
   (let (fill-prefix)
     (save-restriction
       (save-excursion
-	(narrow-to-region min max)
-	(goto-char (point-min))
+	(goto-char min)
+	(if mailp 
+	    (while (looking-at "[^ \t\n]*:")
+	      (forward-line 1)))
+	(narrow-to-region (point) max)
 	(while (progn
 		 (skip-chars-forward " \t\n")
 		 (not (eobp)))
-	  (setq fill-prefix (buffer-substring (point) (progn (beginning-of-line) (point))))
+	  (setq fill-prefix
+		(buffer-substring (point) (progn (beginning-of-line) (point))))
 	  (let ((fin (save-excursion (forward-paragraph) (point)))
 		(start (point)))
-	    (if mailp
-		(while (re-search-forward "^[ \t]*[^ \t\n]*:" fin t)
-		  (forward-line 1)))
-	    (cond ((= start (point))
-		   (fill-region-as-paragraph (point) fin justifyp)
-		   (goto-char fin)))))))))
+	    (fill-region-as-paragraph (point) fin justifyp)
+	    (goto-char start)
+	    (forward-paragraph)))))))
+
 
