@@ -98,7 +98,7 @@ $(BLD)\etags.exe: 		$(LIBS) $(ETAGSOBJ)
 #
 # From ..\makefile.nt, with .obj changed to .o
 #
-obj = abbrev.o alloc.o alloca.o buffer.o bytecode.o callint.o callproc.o casefiddle.o cm.o cmds.o data.o dired.o dispnew.o doc.o  doprnt.o editfns.o eval.o fileio.o filelock.o filemode.o fns.o  indent.o insdel.o keyboard.o keymap.o lastfile.o lread.o macros.o marker.o minibuf.o xfaces.o mocklisp.o nt.o ntheap.o ntinevt.o ntproc.o ntterm.o print.o process.o regex.o scroll.o search.o syntax.o sysdep.o term.o termcap.o tparam.o undo.o unexnt.o window.o xdisp.o casetab.o floatfns.o frame.o gmalloc.o intervals.o ralloc.o textprop.o vm-limit.o region-cache.o strftime.o
+obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c eval.c fileio.c filelock.c filemode.c fns.c  indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c mocklisp.c nt.c ntheap.c ntinevt.c ntproc.c ntterm.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexnt.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c
 
 lispdir = ..\lisp
 
