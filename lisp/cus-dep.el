@@ -62,7 +62,11 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies"
 		      (push where found)))
 		  (when found
 		    (insert "))\n"))))))
-  (insert "\n;;; cus-load.el ends here\n")
+  (insert "\
+
+\(provide 'cus-load)
+
+;;; cus-load.el ends here\n")
   (save-buffer)
   (message "Generating cus-load.el...done"))
 
