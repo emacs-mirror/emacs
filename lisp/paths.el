@@ -25,7 +25,8 @@
 ;; in site-init.el.  Do not change this file.
 
 (defvar Info-directory-list
-  (list (expand-file-name "../info/" exec-directory))
+  (list "/usr/local/lib/info/"
+	(expand-file-name "../info/" exec-directory))
   "List of directories to search for Info documentation files.")
 
 (defvar news-path "/usr/spool/news/"
