@@ -1,3 +1,8 @@
+2002-05-14  Mike Williams  <mdub@bigfoot.com>
+
+	* textmodes/sgml-mode.el (sgml-tag): Default
+	skeleton-transformation to `identity'.
+
 2002-05-14  Francesco Potorti`  <pot@gnu.org>
 
 	* shell.el (shell-mode): Make second part of initialisation
