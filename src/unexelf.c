@@ -1013,8 +1013,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".lit8")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
-		      ".got")
-	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".sdata1")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".data1")
@@ -1197,8 +1195,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 			  ".lit4")
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			  ".lit8")
-	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			  ".got")
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			  ".sdata1")
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
