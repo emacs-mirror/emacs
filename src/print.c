@@ -1276,7 +1276,8 @@ static void
 print_preprocess (obj)
      Lisp_Object obj;
 {
-  int i, size;
+  int i;
+  EMACS_INT size;
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
@@ -1891,7 +1892,7 @@ print_object (obj, printcharfun, escapeflag)
 	}
       else
 	{
-	  int size = XVECTOR (obj)->size;
+	  EMACS_INT size = XVECTOR (obj)->size;
 	  if (COMPILEDP (obj))
 	    {
 	      PRINTCHAR ('#');
