@@ -1,3 +1,8 @@
+2003-01-06  Kim F. Storm  <storm@cua.dk>
+
+	* pop.c (__P): Renamed from _P to avoid problems on Cygwin.
+	All uses changed.
+
 2002-12-18  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in ($(DOC)): Use -o and -a options to make-docfile,
