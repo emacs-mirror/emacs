@@ -1,5 +1,10 @@
 2001-05-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (expose_window): Return int.  If W is the window
+	currently being updated, mark the frame garbaged.  Fix
+	computation of rows intersecting the exposed rectangle.
+	(expose_window_tree): Stop when expose_window returns 0.
+	
 	* xterm.c (x_draw_stretch_glyph_string): Don't draw background
 	again if it has already been drawn.
 
