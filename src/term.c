@@ -828,7 +828,7 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	      buf = GLYPH_STRING (tbase, g);
 	    }
 	  
-	  if (CODING_MAY_REQUIRE_NO_CONVERSION (&terminal_coding))
+	  if (! CODING_REQUIRE_ENCODING (&terminal_coding))
 	    /* We had better avoid sending Emacs' internal code to
                terminal.  */
 	    produced = encode_coding (&safe_terminal_coding, buf, dst,
@@ -903,7 +903,7 @@ write_glyphs (string, len)
       string += consumed;
     }
   /* We may have to output some codes to terminate the writing.  */
-  if (!CODING_MAY_REQUIRE_NO_CONVERSION (&terminal_coding))
+  if (CODING_REQUIRE_FLUSHING (&terminal_coding))
     {
       terminal_coding.last_block = 1;
       produced = encode_coding (&terminal_coding, (char *)0, conversion_buffer,
