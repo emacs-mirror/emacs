@@ -1,3 +1,9 @@
+2001-09-04  Andrew Innes  <andrewi@gnu.org>
+
+	* admin/nt/makedist.bat: Remove reference to obsolete file
+	GETTING.GNU.SOFTWARE.  Remove outdated comments.  Explain about
+	version of tar used.
+
 2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist (nt): Add subdirs.el to the list of distributed files.
