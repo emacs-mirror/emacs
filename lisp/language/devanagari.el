@@ -65,7 +65,7 @@ devanagari-compose-from-is13194-region
 		(documentation . ("\
 Such languages using Devanagari script as Hindi and Marathi
 are supported in this language environment."
-				  . describe-indian-support-map))))
+				  . describe-indian-environment-map))))
 
 ;;
 ;; Devanagari Glyph List
