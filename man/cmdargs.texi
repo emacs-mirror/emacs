@@ -911,7 +911,7 @@ line option:
 Specify @var{title} as the title for the initial Emacs frame.
 @end table
 
-  The @samp{--name} option (@pxref{Resources X}) also specifies the title
+  The @samp{--name} option (@pxref{Resources}) also specifies the title
 for the initial Emacs frame.
 
 @node Icons X

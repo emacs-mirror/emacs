@@ -62,7 +62,7 @@ background color.
 @findex set-face-background
   To alter the appearance of a face, use the customization buffer.
 @xref{Face Customization}.  You can also use X resources to specify
-attributes of particular faces (@pxref{Resources X}).  Alternatively,
+attributes of particular faces (@pxref{Resources}).  Alternatively,
 you can change the foreground and background colors of a specific face
 with @kbd{M-x set-face-foreground} and @kbd{M-x set-face-background}.
 These commands prompt in the minibuffer for a face name and a color

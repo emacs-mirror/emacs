@@ -690,7 +690,7 @@ Press @kbd{S-Mouse-1} to activate this menu.
   In Emacs versions that use an X toolkit, the color-setting and
 font-setting functions don't affect menus and the menu bar, since they
 are displayed by their own widget classes.  To change the appearance of
-the menus and menu bar, you must use X resources (@pxref{Resources X}).
+the menus and menu bar, you must use X resources (@pxref{Resources}).
 @xref{Colors X}, regarding colors.  @xref{Font X}, regarding choice of
 font.
 
@@ -740,7 +740,7 @@ frames yet to be created.  Customize the option @code{scroll-bar-mode}
 to control the use of scroll bars at startup.  You can use it to specify
 that they are placed at the right of windows if you prefer that.  You
 can use the X resource @samp{verticalScrollBars} to control the initial
-setting of Scroll Bar mode similarly.  @xref{Resources X}.
+setting of Scroll Bar mode similarly.  @xref{Resources}.
 
 @findex toggle-scroll-bar
   To enable or disable scroll bars for just the selected frame, use the
@@ -785,7 +785,7 @@ With no argument, this command toggles Menu Bar mode, a
 minor mode.  With an argument, the command turns Menu Bar mode on if the
 argument is positive, off if the argument is not positive.  You can use
 the X resource @samp{menuBarLines} to control the initial setting of
-Menu Bar mode.  @xref{Resources X}.
+Menu Bar mode.  @xref{Resources}.
 
 @kindex C-Mouse-3 @r{(when menu bar is disabled)}
   Expert users often turn off the menu bar, especially on text-only
