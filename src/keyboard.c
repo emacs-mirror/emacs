@@ -2928,6 +2928,22 @@ input_available_signal (signo)
   errno = old_errno;
 }
 #endif /* SIGIO */
+
+/* Send ourselves a SIGIO.
+
+   This function exists so that the UNBLOCK_INPUT macro in
+   blockinput.h can have some way to take care of input we put off
+   dealing with, without assuming that every file which uses
+   UNBLOCK_INPUT also has #included the files necessary to get SIGIO. */
+void
+reinvoke_input_signal ()
+{
+#ifdef SIGIO  
+  kill (0, SIGIO);
+#endif
+}
+
+
 
 /* Return the prompt-string of a sparse keymap.
    This is the first element which is a string.
@@ -4852,8 +4868,8 @@ Type this character while in a menu prompt to rotate around the lines of it.");
 
   DEFVAR_INT ("extra-keyboard-modifiers", &extra_keyboard_modifiers,
     "A mask of additional modifier keys to use with every keyboard character.\n\
-The modifiers of the character stored here apply to each keyboard\n\
-character we read.  For example, after evaluating the expression\n\
+Emacs applies the modifiers of the character stored here to each keyboard\n\
+character it reads.  For example, after evaluating the expression\n\
     (setq extra-keyboard-modifiers ?\C-x)\n\
 all input characters will have the control modifier applied to them.\n\
 \n\
