@@ -112,7 +112,8 @@ and then returns."
 			       (setq key (lookup-key function-key-map key)))
 			   (setq char (aref key 0)))
 		       (setq char ??))
-		     (if (or (eq char ??) (eq char help-char))
+		     (if (or (eq char ??) (eq char help-char)
+			     (memq char help-event-list))
 			 (progn
 			   (setq config (current-window-configuration))
 			   (switch-to-buffer-other-window "*Help*")
@@ -125,7 +126,8 @@ and then returns."
 			   (insert help-screen)
 			   (help-mode)
 			   (goto-char (point-min))
-			   (while (or (memq char (cons help-char '(?? ?\C-v ?\ ?\177 delete ?\M-v)))
+			   (while (or (memq char (append help-event-list
+							 (cons help-char '(?? ?\C-v ?\ ?\177 delete backspace ?\M-v))))
 				      (eq (car-safe char) 'switch-frame)
 				      (equal key "\M-v"))
 			     (condition-case nil
@@ -134,7 +136,8 @@ and then returns."
 				       (handle-switch-frame char))
 				   (if (memq char '(?\C-v ?\ ))
 				       (scroll-up))
-				   (if (or (memq char '(?\177 ?\M-v delete))
+				   (if (or (memq char '(?\177 ?\M-v
+							delete backspace))
 					   (equal key "\M-v"))
 				       (scroll-down)))
 			       (error nil))
