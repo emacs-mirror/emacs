@@ -468,7 +468,7 @@ get_long_basename (char * name, char * buf, int size)
   HANDLE dir_handle;
   int len = 0;
 
-  /* must be valid filename, no wild cards or other illegal characters */
+  /* must be valid filename, no wild cards or other invalid characters */
   if (strpbrk (name, "*?|<>\""))
     return 0;
 
@@ -1913,7 +1913,7 @@ stat (const char * path, struct stat * buf)
     }
 
   name = (char *) map_w32_filename (path, &path);
-  /* must be valid filename, no wild cards or other illegal characters */
+  /* must be valid filename, no wild cards or other invalid characters */
   if (strpbrk (name, "*?|<>\""))
     {
       errno = ENOENT;

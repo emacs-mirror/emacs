@@ -372,7 +372,7 @@ dosv_refresh_virtual_screen (int offset, int count)
 {
   __dpmi_regs regs;
 
-  if (offset < 0 || count < 0)	/* paranoia; illegal values crash DOS/V */
+  if (offset < 0 || count < 0)	/* paranoia; invalid values crash DOS/V */
     return;
 
   regs.h.ah = 0xff;	/* update relocated screen */

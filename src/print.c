@@ -1490,7 +1490,7 @@ print_object (obj, printcharfun, escapeflag)
 	    int print_length, i;
 	    Lisp_Object halftail = obj;
 
-	    /* Negative values of print-length are illegal in CL.
+	    /* Negative values of print-length are invalid in CL.
 	       Treat them like nil, as CMUCL does.  */
 	    if (NATNUMP (Vprint_length))
 	      print_length = XFASTINT (Vprint_length);
@@ -1594,7 +1594,7 @@ print_object (obj, printcharfun, escapeflag)
 	  PRINTCHAR ('\"');
 
 	  /* Don't print more characters than the specified maximum.
-	     Negative values of print-length are illegal.  Treat them
+	     Negative values of print-length are invalid.  Treat them
 	     like a print-length of nil.  */
 	  if (NATNUMP (Vprint_length)
 	      && XFASTINT (Vprint_length) < size_in_chars)

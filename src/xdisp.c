@@ -878,7 +878,7 @@ window_box_edges (w, area, top_left_x, top_left_y,
 /* Return the next character from STR which is MAXLEN bytes long.
    Return in *LEN the length of the character.  This is like
    STRING_CHAR_AND_LENGTH but never returns an invalid character.  If
-   we find one, we return a `?', but with the length of the illegal
+   we find one, we return a `?', but with the length of the invalid
    character.  */
 
 static INLINE int
@@ -891,7 +891,7 @@ string_char_and_length (str, maxlen, len)
   c = STRING_CHAR_AND_LENGTH (str, maxlen, *len);
   if (!CHAR_VALID_P (c, 1))
     /* We may not change the length here because other places in Emacs
-       don't use this function, i.e. they silently accept illegal
+       don't use this function, i.e. they silently accept invalid
        characters.  */
     c = '?';
 

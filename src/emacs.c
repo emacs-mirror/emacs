@@ -314,7 +314,7 @@ handle_USR2_signal (sig)
 }
 #endif /* SIGUSR2 */
 
-/* Handle bus errors, illegal instruction, etc. */
+/* Handle bus errors, invalid instruction, etc. */
 SIGTYPE
 fatal_error_signal (sig)
      int sig;
