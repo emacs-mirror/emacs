@@ -9830,7 +9830,7 @@ compute_window_start_on_continuation_line (w)
 }
 
 
-/* Try cursor movement in case text has not changes in window WINDOW,
+/* Try cursor movement in case text has not changed in window WINDOW,
    with window start STARTP.  Value is
 
    CURSOR_MOVEMENT_SUCCESS if successful
