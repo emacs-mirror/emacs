@@ -255,15 +255,16 @@ request.
 	   (if ref-url (concat
 			"Referer: " ref-url "\r\n"))
 	   extra-headers
-	   ;; Any data
+	   ;; Length of data
 	   (if url-request-data
 	       (concat
 		"Content-length: " (number-to-string
 				    (length url-request-data))
-		"\r\n\r\n"
-		url-request-data))
+		"\r\n"))
 	   ;; End request
-	   "\r\n"))
+	   "\r\n"
+	   ;; Any data
+	   url-request-data))
     (url-http-debug "Request is: \n%s" request)
     request))
 
