@@ -2,6 +2,7 @@
 ;; Copyright (c) 1999, 2000 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik@astro.uva.nl>
+;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
 ;; Version: 4.7
 ;; Keywords: languages
 
