@@ -1,5 +1,4 @@
 *.elc
 Makefile
-cus-load.el
 elc.tar.gz
 MANIFEST
