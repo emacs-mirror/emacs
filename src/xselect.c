@@ -2189,7 +2189,10 @@ Disowning it means there is no such selection.  */)
 {
   Time timestamp;
   Atom selection_atom;
-  struct selection_input_event event;
+  union {
+    struct selection_input_event sie;
+    struct input_event ie;
+  } event;
   Display *display;
   struct x_display_info *dpyinfo;
   struct frame *sf = SELECTED_FRAME ();
@@ -2217,10 +2220,10 @@ Disowning it means there is no such selection.  */)
      the selection owner to None.  The NCD server does, the MIT Sun4 server
      doesn't.  So we synthesize one; this means we might get two, but
      that's ok, because the second one won't have any effect.  */
-  SELECTION_EVENT_DISPLAY (&event) = display;
-  SELECTION_EVENT_SELECTION (&event) = selection_atom;
-  SELECTION_EVENT_TIME (&event) = timestamp;
-  x_handle_selection_clear ((struct input_event *) &event);
+  SELECTION_EVENT_DISPLAY (&event.sie) = display;
+  SELECTION_EVENT_SELECTION (&event.sie) = selection_atom;
+  SELECTION_EVENT_TIME (&event.sie) = timestamp;
+  x_handle_selection_clear (&event.ie);
 
   return Qt;
 }
