@@ -4650,13 +4650,24 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
 {
   x_connection_signal_dpyinfo = x_display_list;
 
+  stop_polling ();
   sigunblock (SIGPIPE);
 
   while (x_connection_signal_dpyinfo)
     {
       signal (SIGPIPE, x_connection_signal_1);
+      signal (SIGALRM, x_connection_signal_1);
 
+      /* According to Jim Campbell <jec@murzim.ca.boeing.com>,
+	 On Solaris 2.4, XNoOp can hang when the connection
+	 has already died.  Since XNoOp should not wait,
+	 let's assume that if it hangs for 3 seconds
+	 that means the connection is dead.
+	 This is a kludge, but I don't see any other way that works.  */
+      alarm (3);
       XNoOp (x_connection_signal_dpyinfo->display);
+      alarm (0);
+
       XSync (x_connection_signal_dpyinfo->display, False);
 
       /* Each time we get here, cycle through the displays now open.  */
