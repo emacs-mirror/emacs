@@ -1079,7 +1079,7 @@ destroy_fringe_bitmap (n)
   fbp = &fringe_bitmaps[n];
   if (*fbp && (*fbp)->dynamic)
     {
-      if (rif->destroy_fringe_bitmap)
+      if (rif && rif->destroy_fringe_bitmap)
 	rif->destroy_fringe_bitmap (n);
       xfree (*fbp);
       *fbp = NULL;
@@ -1185,7 +1185,7 @@ init_fringe_bitmap (which, fb, once_p)
     {
       destroy_fringe_bitmap (which);
 
-      if (rif->define_fringe_bitmap)
+      if (rif && rif->define_fringe_bitmap)
 	rif->define_fringe_bitmap (which, fb->bits, fb->height, fb->width);
 
       fringe_bitmaps[which] = fb;
@@ -1445,6 +1445,9 @@ w32_init_fringe ()
 {
   enum fringe_bitmap_type bt;
 
+  if (!rif)
+    return;
+
   for (bt = NO_FRINGE_BITMAP + 1; bt < MAX_STANDARD_FRINGE_BITMAPS; bt++)
     {
       struct fringe_bitmap *fb = &standard_bitmaps[bt];
@@ -1457,6 +1460,9 @@ w32_reset_fringes ()
 {
   /* Destroy row bitmaps.  */
   int bt;
+
+  if (!rif)
+    return;
 
   for (bt = NO_FRINGE_BITMAP + 1; bt < max_used_fringe_bitmap; bt++)
     rif->destroy_fringe_bitmap (bt);
