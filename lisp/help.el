@@ -591,7 +591,7 @@ C-w Display information on absence of warranty for GNU Emacs."
 		((symbolp def)
 		 (while (symbolp (symbol-function def))
 		   (setq def (symbol-function def)))
-		 (format "alias for `%s'" def))
+		 (format "an alias for `%s'" def))
 		((eq (car-safe def) 'lambda)
 		 (concat beg "Lisp function"))
 		((eq (car-safe def) 'macro)
