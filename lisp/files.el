@@ -302,9 +302,8 @@ for editing a remote file."
   :type '(repeat (list (string :tag "Regexp") (string :tag "Replacement")))
   :version "21.1")
 
-(defcustom save-abbrevs nil
-  "*Non-nil means save word abbrevs too when files are saved.
-Loading an abbrev file sets this to t."
+(defcustom save-abbrevs t
+  "*Non-nil means save word abbrevs too when files are saved."
   :type 'boolean
   :group 'abbrev)
 
