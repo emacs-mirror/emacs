@@ -349,6 +349,16 @@ With argument, print output into current buffer."
 			   (forward-char -1)
 			   (when (eq (preceding-char) ??)
 			     (forward-char -1)))
+			 
+			 ;; Skip over `#N='s.
+			 (when (eq (preceding-char) ?=)
+			   (let (labeled-p)
+			     (save-excursion
+			       (skip-chars-backward "0-9#=")
+			       (setq labeled-p (looking-at "\\(#[0-9]+=\\)+")))
+			     (when labeled-p
+			       (forward-sexp -1))))
+
 			 (save-restriction
 			   ;; vladimir@cs.ualberta.ca 30-Jul-1997: skip ` in
 			   ;; `variable' so that the value is returned, not the
