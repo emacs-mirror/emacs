@@ -1,3 +1,9 @@
+2000-01-10  John Wiegley  <johnw@gnu.org>
+
+	* allout.el (isearch-done/outline-provisions): Added `edit'
+	argument to correspond with the current definition of
+	`isearch-done'.
+
 2000-01-10  Dave Love  <fx@gnu.org>
 
 	* elide-head.el (elide-head): Use point-marker, not point.

@@ -75,7 +75,7 @@ containing no symbols.  It is a vector filled with zeros.
 
 @defun clear-abbrev-table table
 This function undefines all the abbrevs in abbrev table @var{table},
-leaving it empty. The function returns @code{nil}.
+leaving it empty.  It always returns @code{nil}.
 @end defun
 
 @defun define-abbrev-table tabname definitions
