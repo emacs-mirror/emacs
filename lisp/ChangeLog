@@ -117,6 +117,14 @@
 
 	* ffap.el (ffap-read-file-or-url): Revert previous change.
 
+2003-12-25  Robert J. Chassell <bob@rattlesnake.com>
+
+	* textmodes/texnfo-upd.el (texinfo-multi-file-update): Create a
+	new list of included files called `files-with-node-lines', that
+	only have node lines.  This way @include commands can include any
+	file, such as version and update files without node lines, not
+	just files that are chapters.
+
 2003-12-25  Andreas Schwab  <schwab@suse.de>
 
 	* jka-compr.el (jka-compr-insert-file-contents): Avoid error when
