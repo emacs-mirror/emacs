@@ -228,7 +228,7 @@
 	(encode-char): Use ucs-mule-to-mule-unicode.
 
 	* international/characters.el: Fix settings of U+2000-U+2027.
-	Remove $,1uf(B.
+	Remove.
 
 	* international/mule-cmds.el (locale-language-names): Fix be, add
 	sr_YU@cyrillic, modify tg.
