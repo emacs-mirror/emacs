@@ -1,5 +1,7 @@
 2000-12-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* dos-w32.el (find-buffer-file-type-coding-system): Doc fix.
+
 	* term/pc-win.el (x-select-enable-clipboard): Customize (as per
 	the Emacs Lisp manual).
 
