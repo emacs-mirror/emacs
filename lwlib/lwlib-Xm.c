@@ -510,9 +510,8 @@ update_one_menu_entry (instance, widget, val, deep_p)
       if (contents)
 	{
 	  unsigned int old_num_children, i;
-	  Widget button, parent;
+	  Widget parent;
 	  Widget *widget_list;
-	  int buttonchange;
 
 	  parent = XtParent (widget);
 	  widget_list = XtCompositeChildren (parent, &old_num_children);
@@ -523,27 +522,37 @@ update_one_menu_entry (instance, widget, val, deep_p)
 	      break;
 	  if (i == old_num_children)
 	    abort ();
-	  /* `buttonchange' indicates the parent button is being
-	     exchanged with a CascadeButton.  */
-	  buttonchange = !XmIsCascadeButton (widget_list[i]);
-	  if (buttonchange)
-	    XtDestroyWidget (widget_list[i]);
-	  menu = XmCreatePulldownMenu (parent, val->name, NULL, 0);
-	  make_menu_in_widget (instance, menu, contents, 0);
-	  ac = 0;
-	  XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
-          /* Non-zero values don't work reliably in
-             conjunction with Emacs' event loop */
-          XtSetArg (al [ac], XmNmappingDelay, 0); ac++;
-	  /* Tell Motif to put it in the right place.  */
-	  XtSetArg (al [ac], XmNpositionIndex, i); ac++;
-	  button = XmCreateCascadeButtonGadget (parent, val->name, al, ac);
-	  xm_update_label (instance, button, val);
-	  
-	  XtAddCallback (button, XmNcascadingCallback, xm_pull_down_callback,
-			 (XtPointer)instance);
-	  if (buttonchange)
-	    XtManageChild (button);
+	  if (XmIsCascadeButton (widget_list[i]))
+	    {
+	      menu = XmCreatePulldownMenu (parent, XtName(widget), NULL, 0);
+	      make_menu_in_widget (instance, menu, contents, 0);
+	      ac = 0;
+	      XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
+	      XtSetValues (widget, al, ac);
+	    }
+	  else
+	    {
+	      Widget button;
+	      
+	      /* The current menuitem is a XmPushButtonGadget, it 
+		 needs to be replaced by a CascadeButtonGadget */
+	      XtDestroyWidget (widget_list[i]);
+	      menu = XmCreatePulldownMenu (parent, val->name, NULL, 0);
+	      make_menu_in_widget (instance, menu, contents, 0);
+	      ac = 0;
+	      XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
+	      /* Non-zero values don't work reliably in
+		 conjunction with Emacs' event loop */
+	      XtSetArg (al [ac], XmNmappingDelay, 0); ac++;
+	      /* Tell Motif to put it in the right place */
+	      XtSetArg (al [ac], XmNpositionIndex, i); ac++;
+	      button = XmCreateCascadeButtonGadget (parent, val->name, al, ac);
+	      xm_update_label (instance, button, val);
+	      
+	      XtAddCallback (button, XmNcascadingCallback, xm_pull_down_callback,
+			     (XtPointer)instance);
+	      XtManageChild (button);
+	    }
 	}
     }
   else if (!contents)
