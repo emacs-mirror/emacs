@@ -112,8 +112,8 @@
     ("ea" "(1`WM(B" (?(1`(B 0 ?(1W(B ?(1M(B))
     ("ai" "(1d(B" (?(1d(B 0))
     ("ei" "(1c(B" (?(1c(B 0))
-    ("ow" "(1`[R(B" (?(1`(B 0 ?(1[(B ?(1R(B))
-    ("am" "(1S(B" (?(1S(B 0))))
+    ("ao" "(1`[R(B" (?(1`(B 0 ?(1[(B ?(1R(B))
+    ("arm" "(1S(B" (?(1S(B 0))))
 
 ;; Maa-sakod is put at the tail.
 (defconst lrt-maa-sakod-table
@@ -214,9 +214,10 @@
 
 (defun lrt-handle-maa-sakod ()
   (interactive)
-  (if (= (length quail-current-key) 0)
+  (if (or (= (length quail-current-key) 0)
+	  (not quail-current-data))
       (quail-self-insert-command)
-    (if (not (and quail-current-data (car quail-current-data)))
+    (if (not (car quail-current-data))
 	(progn
 	  (setq quail-current-data nil)
 	  (setq unread-command-events
@@ -258,15 +259,22 @@
 		;; have already done it.
 		(nth 1 quail-current-data)))
 	     (tail tone-mark-pattern)
+	     (double-consonant-tail '(?(1'(B ?(1](B ?(1G(B ?(1E(B ?(1-(B ?(19(B ?(1A(B))
 	     place)
 	;; Find a place to embed TONE-MARK.  It should be after a
-	;; single or double consonant.
+	;; single or double consonant and following vowels.
 	(while (and tail (not place))
 	  (if (and
-	       ;; Skip `(1K(B', the first letter of double consonant.
-	       (/= (car tail) ?(1K(B)
 	       (eq (get-char-code-property (car tail) 'phonetic-type)
-		   'consonant))
+		   'consonant)
+	       ;; Skip `(1K(B' if it is the first letter of double consonant.
+	       (or (/= (car tail) ?(1K(B)
+		   (not (cdr tail))
+		   (not
+		    (if (= (car (cdr tail)) ?(1\(B)
+			(and (cdr (cdr tail))
+			     (memq (car (cdr (cdr tail))) double-consonant-tail))
+		      (memq (car (cdr tail)) double-consonant-tail)))))
 	      (progn
 		(setq place tail)
 		(setq tail (cdr tail))
