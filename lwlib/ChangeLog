@@ -1,3 +1,8 @@
+2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (TAGS): Don't use -t, it's the default behafior for
+	etags, so it barfs if invoked with -t.
+
 2002-03-17  Richard M. Stallman  <rms@gnu.org>
 
 	* lwlib.c (P_): Definitions deleted. 

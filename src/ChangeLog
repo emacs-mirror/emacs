@@ -1,3 +1,8 @@
+2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/sol2-5.h (bcopy, bzero, bcmp): Define only if HAVE_BCOPY is
+	not defined.
+
 2002-04-18  Richard M. Stallman  <rms@gnu.org>
 
 	* textprop.c (remove_properties): New arg LIST allows scanning
