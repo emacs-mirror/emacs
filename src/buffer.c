@@ -2161,8 +2161,9 @@ but the contents viewed as characters do change.  */)
 	  else
 	    {
 	      unsigned char tmp[MAX_MULTIBYTE_LENGTH];
+	      int c = BYTE8_TO_CHAR (*p);
 
-	      bytes = CHAR_STRING (*p, tmp);
+	      bytes = CHAR_STRING (c, tmp);
 	      *p = tmp[0];
 	      TEMP_SET_PT_BOTH (pos + 1, pos + 1);
 	      bytes--;
