@@ -318,9 +318,9 @@ Sets `grep-last-buffer' and runs `grep-setup-hook'."
 	      'gnu)))
   (unless grep-find-command
     (setq grep-find-command
-          (cond ((not (executable-command-find-unix-p "find"))
+          (cond ((not (executable-command-find-posix-p "find"))
 		 (message
-		  (concat "compile.el: Unix type find(1) not found. "
+		  (concat "compile.el: Posix-style find(1) not found. "
 			  "Please set `grep-find-command'."))
 		 nil)
 		((eq grep-find-use-xargs 'gnu)
@@ -543,5 +543,5 @@ those sub directories of DIR."
 (provide 'grep)
 
 ;;; grep.el ends here
- 
+
 ;;; arch-tag: 5a5b9169-a79d-4f38-9c38-f69615f39c4d
