@@ -2242,6 +2242,7 @@ typically for purposes of moderating a list."
 (defvar mail-unsent-separator
   (concat "^ *---+ +Unsent message follows +---+ *$\\|"
 	  "^ *---+ +Returned message +---+ *$\\|"
+	  "^Start of returned message$\\|"
 	  "^ *---+ +Original message +---+ *$\\|"
 	  "^ *--+ +begin message +--+ *$\\|"
 	  "^ *---+ +Original message follows +---+ *$\\|"
@@ -2281,6 +2282,23 @@ specifying headers which should not be copied into the new message."
 		  (error "Cannot find end of header in failed message")))
 	  (or (re-search-forward mail-unsent-separator nil t)
 	      (error "Cannot parse this as a failure message"))
+	  (skip-chars-forward "\n")
+	  ;; Support a style of failure message in which the original
+	  ;; message is indented, and included within lines saying
+	  ;; `Start of returned message' and `End of returned message'.
+	  (if (looking-at " *Received:")
+	      (let (column)
+		(skip-chars-forward " ")
+		(setq column (current-column))
+		(let ((old-buffer (current-buffer)))
+		  (set-buffer (get-buffer-create " rmail retry temp"))
+		  (insert-buffer old-buffer)
+		  (goto-char (point-max))
+		  (if (re-search-backward "^End of returned message$")
+		      (delete-region (point) (point-max)))
+		  (indent-rigidly (point-min) (point-max) (- column))
+		  (goto-char (point-min))
+		  (re-search-forward mail-unsent-separator nil t))))
 	  (save-restriction
 	    (let ((old-end (point-max)))
 	      ;; One message contained a few random lines before the old
