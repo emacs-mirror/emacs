@@ -394,6 +394,8 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq comint-mode-map (make-sparse-keymap))
   (define-key comint-mode-map "\ep" 'comint-previous-input)
   (define-key comint-mode-map "\en" 'comint-next-input)
+  (define-key comint-mode-map [C-up] 'comint-previous-input)
+  (define-key comint-mode-map [C-down] 'comint-next-input)
   (define-key comint-mode-map "\er" 'comint-previous-matching-input)
   (define-key comint-mode-map "\es" 'comint-next-matching-input)
   (define-key comint-mode-map [?\A-\M-r] 'comint-previous-matching-input-from-input)
