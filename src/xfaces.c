@@ -499,7 +499,8 @@ static int xlfd_fixed_p P_ ((struct font_name *));
 static int xlfd_numeric_value P_ ((struct table_entry *, int, struct font_name *,
 				   int, int));
 static Lisp_Object xlfd_symbolic_value P_ ((struct table_entry *, int,
-					    struct font_name *, int, int));
+					    struct font_name *, int,
+					    Lisp_Object));
 static struct table_entry *xlfd_lookup_field_contents P_ ((struct table_entry *, int,
 							   struct font_name *, int));
 
@@ -1008,7 +1009,7 @@ the pixmap.  Bits are stored row by row, each row occupies\n\
 	{
 	  int bytes_per_row = ((XFASTINT (width) + BITS_PER_CHAR - 1)
 			       / BITS_PER_CHAR);
-	  if (STRING_BYTES (XSTRING (data)) >= bytes_per_row * height)
+	  if (STRING_BYTES (XSTRING (data)) >= bytes_per_row * XINT (height))
 	    pixmap_p = 1;
 	}
     }
@@ -1824,7 +1825,7 @@ xlfd_symbolic_value (table, dim, font, field_index, dflt)
      int dim;
      struct font_name *font;
      int field_index;
-     int dflt;
+     Lisp_Object dflt;
 {
   struct table_entry *p;
   p = xlfd_lookup_field_contents (table, dim, font, field_index);
@@ -4455,9 +4456,9 @@ lface_hash (v)
   return (hash_string_case_insensitive (v[LFACE_FAMILY_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_FOREGROUND_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_BACKGROUND_INDEX])
-	  ^ (unsigned) v[LFACE_WEIGHT_INDEX]
-	  ^ (unsigned) v[LFACE_SLANT_INDEX]
-	  ^ (unsigned) v[LFACE_SWIDTH_INDEX]
+	  ^ XFASTINT (v[LFACE_WEIGHT_INDEX])
+	  ^ XFASTINT (v[LFACE_SLANT_INDEX])
+	  ^ XFASTINT (v[LFACE_SWIDTH_INDEX])
 	  ^ XFASTINT (v[LFACE_HEIGHT_INDEX]));
 }
 

@@ -9727,8 +9727,8 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
      will loose.  I don't think this is a realistic case.  */
   w = XWINDOW (FRAME_ROOT_WINDOW (f));
   w->left = w->top = make_number (0);
-  w->width = 80;
-  w->height = 40;
+  w->width = make_number (80);
+  w->height = make_number (40);
   adjust_glyphs (f);
   w->pseudo_window_p = 1;
 
@@ -9738,7 +9738,7 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
   old_buffer = current_buffer;
   set_buffer_internal_1 (XBUFFER (buffer));
   Ferase_buffer ();
-  Finsert (make_number (1), &string);
+  Finsert (1, &string);
   clear_glyph_matrix (w->desired_matrix);
   clear_glyph_matrix (w->current_matrix);
   SET_TEXT_POS (pos, BEGV, BEGV_BYTE);

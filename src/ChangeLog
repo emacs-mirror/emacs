@@ -8,6 +8,32 @@
 	(shrink_window_lowest_first): w->top is Lisp_Object; use XINT.
 	(grow_mini_window): Fix typo getting int value of root->height.
 
+	* xdisp.c (compute_string_pos): Fix order of arguments to
+	string_pos_nchars_ahead.
+	(handle_fontified_prop, add_to_log): Pass int, not Lisp_Object, as
+	count arg to variable-arg routines like Frun_hook_with_args and
+	Fformat.
+	(back_to_previous_visible_line_start,
+	build_desired_tool_bar_string): Pass Lisp_Object, not int, to
+	fixed-arg routines like Fget_char_property and Fmake_string.
+	(reconsider_clip_changes): Use XINT when comparing integer lisp
+	objects, or passing them as int arguments.
+	(mark_window_display_accurate, insert_left_trunc_glyphs,
+	append_space, extend_face_to_end_of_line): Use make_number when
+	storing or passing integer values as lisp objects.
+	(set_cursor_from_row, highlight_trailing_whitespace): Use
+	INTEGERP, not implicit test against zero, for glyph object.
+	(try_window_id): Don't use make_number when we want an int value.
+
+	* xfaces.c (xlfd_symbolic_value): Make last argument a
+	Lisp_Object, to be consistent with callers.
+	(Fbitmap_spec_p): Use XINT to get numeric value of height.
+	(lface_hash): Apply XFASTINT to lisp values before folding in.
+
+	* xfns.c (Fx_show_tip): Use make_number to get lisp objects to
+	fill in window width and height.  Pass an int, not a lisp object,
+	as first arg to Finsert.
+
 2000-04-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (realize_basic_faces): Block input while realizing

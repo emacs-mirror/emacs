@@ -1021,8 +1021,8 @@ compute_string_pos (newpos, pos, string)
   xassert (CHARPOS (*newpos) >= CHARPOS (pos));
   
   if (STRING_MULTIBYTE (string))
-    *newpos = string_pos_nchars_ahead (pos, CHARPOS (*newpos) - CHARPOS (pos),
-				       string);
+    *newpos = string_pos_nchars_ahead (pos, string,
+				       CHARPOS (*newpos) - CHARPOS (pos));
   else
     BYTEPOS (*newpos) = CHARPOS (*newpos);
 }
@@ -1786,7 +1786,7 @@ handle_fontified_prop (it)
       /* Run the hook functions.  */
       args[0] = Qfontification_functions;
       args[1] = pos;
-      Frun_hook_with_args (make_number (2), args);
+      Frun_hook_with_args (2, args);
 
       /* Return HANDLED_RECOMPUTE_PROPS only if function fontified
 	 something.  This avoids an endless loop if they failed to
@@ -3033,7 +3033,8 @@ back_to_previous_visible_line_start (it)
 	{
 	  Lisp_Object prop;
 
-	  prop = Fget_char_property (IT_CHARPOS (*it), Qinvisible, it->window);
+	  prop = Fget_char_property (make_number (IT_CHARPOS (*it)),
+				     Qinvisible, it->window);
 	  if (TEXT_PROP_MEANS_INVISIBLE (prop))
 	    visible_p = 0;
 	}
@@ -4669,7 +4670,7 @@ add_to_log (format, arg1, arg2)
   args[0] = fmt = build_string (format);
   args[1] = arg1;
   args[2] = arg2;
-  msg = Fformat (make_number (3), args);
+  msg = Fformat (3, args);
 
   len = STRING_BYTES (XSTRING (msg)) + 1;
   buffer = (char *) alloca (len);
@@ -6463,7 +6464,8 @@ build_desired_tool_bar_string (f)
 
   /* Reuse f->desired_tool_bar_string, if possible.  */
   if (size < size_needed)
-    f->desired_tool_bar_string = Fmake_string (make_number (size_needed), ' ');
+    f->desired_tool_bar_string = Fmake_string (make_number (size_needed),
+					       make_number (' '));
   else
     {
       props = list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
@@ -7115,9 +7117,9 @@ reconsider_clip_changes (w, b)
 	pt = marker_position (w->pointm);
 
       if ((w->current_matrix->buffer != XBUFFER (w->buffer)
-	   || pt != w->last_point)
+	   || pt != XINT (w->last_point))
 	  && check_point_in_composition (w->current_matrix->buffer,
-					 w->last_point,
+					 XINT (w->last_point),
 					 XBUFFER (w->buffer), pt))
 	b->clip_changed = 1;
     }
@@ -7893,9 +7895,9 @@ mark_window_display_accurate (window, accurate_p)
 	      w->last_cursor = w->cursor;
 	      w->last_cursor_off_p = w->cursor_off_p;
 	      if (w == XWINDOW (selected_window))
-		w->last_point = BUF_PT (b);
+		w->last_point = make_number (BUF_PT (b));
 	      else
-		w->last_point = XMARKER (w->pointm)->charpos;
+		w->last_point = make_number (XMARKER (w->pointm)->charpos);
 	    }
 	}
 
@@ -8014,7 +8016,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
      frames.  */
   if (row->displays_text_p)
     while (glyph < end
-	   && !glyph->object
+	   && INTEGERP (glyph->object)
 	   && glyph->charpos < 0)
       {
 	x += glyph->pixel_width;
@@ -8022,7 +8024,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
       }
 
   while (glyph < end
-	 && glyph->object
+	 && !INTEGERP (glyph->object)
 	 && (!BUFFERP (glyph->object)
 	     || glyph->charpos < pt_old))
     {
@@ -10033,7 +10035,7 @@ try_window_id (w)
       w->window_end_pos
 	= make_number (Z - MATRIX_ROW_END_CHARPOS (row));
       w->window_end_bytepos
-	= make_number (Z_BYTE - MATRIX_ROW_END_BYTEPOS (row));
+	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
       return 1;
     }
 
@@ -10047,7 +10049,7 @@ try_window_id (w)
       w->window_end_pos
 	= make_number (Z - MATRIX_ROW_END_CHARPOS (row));
       w->window_end_bytepos
-	= make_number (Z_BYTE - MATRIX_ROW_END_BYTEPOS (row));
+	= Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
       return 1;
     }
 
@@ -10778,7 +10780,7 @@ insert_left_trunc_glyphs (it)
   truncate_it.glyph_row = &scratch_glyph_row;
   truncate_it.glyph_row->used[TEXT_AREA] = 0;
   CHARPOS (truncate_it.position) = BYTEPOS (truncate_it.position) = -1;
-  truncate_it.object = 0;
+  truncate_it.object = make_number (0);
   produce_special_glyphs (&truncate_it, IT_TRUNCATION);
   
   /* Overwrite glyphs from IT with truncation glyphs.  */
@@ -10936,7 +10938,7 @@ append_space (it, default_face_p)
 	  
 	  it->what = IT_CHARACTER;
 	  bzero (&it->position, sizeof it->position);
-	  it->object = 0;
+	  it->object = make_number (0);
 	  it->c = ' ';
 	  it->len = 1;
 
@@ -11023,7 +11025,7 @@ extend_face_to_end_of_line (it)
   
       it->what = IT_CHARACTER;
       bzero (&it->position, sizeof it->position);
-      it->object = 0;
+      it->object = make_number (0);
       it->c = ' ';
       it->len = 1;
       
@@ -11084,7 +11086,7 @@ highlight_trailing_whitespace (f, row)
 	 cursor at the end of a line.  */
       if (glyph->type == CHAR_GLYPH
 	  && glyph->u.ch == ' '
-	  && glyph->object == 0)
+	  && INTEGERP (glyph->object))
 	--glyph;
 
       /* If last glyph is a space or stretch, and it's trailing
