@@ -388,7 +388,7 @@ Can be toggled by [M-p] while the rectangle is active,"
 
 ;;; Cursor Indication Customization
 
-(defcustom cua-enable-cursor-indications t
+(defcustom cua-enable-cursor-indications nil
   "*If non-nil, use different cursor colors for indications."
   :type 'boolean
   :group 'cua)
@@ -1069,6 +1069,13 @@ Extra commands should be added to `cua-user-movement-commands'")
   (define-key cua--region-keymap [remap keyboard-quit]		'cua-cancel)
   )
 
+;; State prior to enabling cua-mode
+;; Value is a list with the following elements:
+;;   transient-mark-mode
+;;   delete-selection-mode
+;;   pc-selection-mode
+
+(defvar cua--saved-state nil)
 
 ;;;###autoload
 (defun cua-mode (&optional arg)
@@ -1110,10 +1117,41 @@ paste (in addition to the normal emacs bindings)."
 
   (if (fboundp 'cua--rectangle-on-off)
       (cua--rectangle-on-off cua-mode))
-  (setq transient-mark-mode (and cua-mode
-				 (if cua-highlight-region-shift-only
-				     (not cua--explicit-region-start)
-				   t))))
+
+  (cond
+   (cua-mode
+    (setq cua--saved-state
+	  (list
+	   transient-mark-mode
+	   (and (boundp 'delete-selection-mode) delete-selection-mode)
+	   (and (boundp 'pc-selection-mode) pc-selection-mode)))
+    (if (and (boundp 'delete-selection-mode) delete-selection-mode)
+	(delete-selection-mode))
+    (if (and (boundp 'pc-selection-mode) pc-selection-mode)
+	(pc-selection-mode))
+    (setq transient-mark-mode (and cua-mode
+				   (if cua-highlight-region-shift-only
+				       (not cua--explicit-region-start)
+				     t)))
+    (if (interactive-p)
+	(message "CUA mode enabled")))
+   (cua--saved-state
+    (setq transient-mark-mode (car cua--saved-state))
+    (if (nth 1 cua--saved-state)
+	(delete-selection-mode 1))
+    (if (nth 2 cua--saved-state)
+	(pc-selection-mode 1))
+    (if (interactive-p)
+	(message "CUA mode disabled.%s%s%s%s"
+		 (if (nth 1 cua--saved-state) " Delete-Selection" "")
+		 (if (and (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " and" "")
+		 (if (nth 2 cua--saved-state) " PC-Selection" "")
+		 (if (or (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " enabled" "")))
+    (setq cua--saved-state nil))
+
+   (t
+    (if (interactive-p)
+	(message "CUA mode disabled")))))
 
 (defun cua-debug ()
   "Toggle cua debugging."
