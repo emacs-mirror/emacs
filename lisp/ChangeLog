@@ -1,5 +1,12 @@
 2002-05-27  Dave Love  <fx@gnu.org>
 
+	* Makefile.in (DONTCOMPILE): Add language/chinese.el,
+	language/japanese.el.
+
+	* international/mule-conf.el: Doc fixes.
+	(cp936): New alias.
+	(cp720, cp858): New charsets.
+
 	* mail/sendmail.el (mail-recover-1, mail-recover): Use utf-8-emacs
 	coding system, not emacs-mule.
 

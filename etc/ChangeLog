@@ -1,3 +1,11 @@
+2002-05-27  Dave Love  <fx@gnu.org>
+
+	* charsets/cp720.map, charsets/858.map: New files.
+
+	* charsets/koi8-r.map, charsets/ibm866.map: Elide ASCII part.
+
+	* HELLO: Add pseudo-maths example.
+
 2002-05-20  Dave Love  <fx@gnu.org>
 
 	* charsets/symbol.map, charsets/stdenc.map:
