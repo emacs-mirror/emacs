@@ -89,7 +89,7 @@ VIETNAMESE=$(srcdir)/quail/viqr.elc
 
 LAO=$(srcdir)/quail/lao.elc $(srcdir)/quail/lrt.elc
 
-INDIAN=$(srcdir)/quail/devanagari.elc
+INDIAN=$(srcdir)/quail/indian.elc
 
 TIBETAN=$(srcdir)/quail/tibetan.elc
 
