@@ -1705,13 +1705,7 @@ and `face'."
 ;;; The `custom' Widget.
 
 (defface custom-button-face
-  '((((type x) (class color))		; Like default modeline
-     (:box (:line-width 2 :style released-button)
-	   :background "lightgrey" :foreground "black"))
-    (((type w32) (class color))		; Like default modeline
-     (:box (:line-width 2 :style released-button)
-	   :background "lightgrey" :foreground "black"))
-    (((type mac) (class color))		; Like default modeline
+  '((((type x w32 mac) (class color))		; Like default modeline
      (:box (:line-width 2 :style released-button)
 	   :background "lightgrey" :foreground "black"))
     (t
@@ -1721,13 +1715,7 @@ and `face'."
   :group 'custom-faces)
 
 (defface custom-button-pressed-face
-  '((((type x) (class color))
-     (:box (:line-width 2 :style pressed-button)
-	   :background "lightgrey" :foreground "black"))
-    (((type w32) (class color))
-     (:box (:line-width 2 :style pressed-button)
-	   :background "lightgrey" :foreground "black"))
-    (((type mac) (class color))
+  '((((type x w32 mac) (class color))
      (:box (:line-width 2 :style pressed-button)
 	   :background "lightgrey" :foreground "black"))
     (t
