@@ -552,6 +552,9 @@ x_update_begin (f)
 {
   struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
 
+  if (! FRAME_W32_P (f))
+    return;
+
   /* Regenerate display palette before drawing if list of requested
      colors has changed. */
   if (display_info->regen_palette)
@@ -703,6 +706,9 @@ static void
 x_update_end (f)
      struct frame *f;
 {
+  if (! FRAME_W32_P (f))
+    return;
+
   /* Mouse highlight may be displayed again.  */
   FRAME_W32_DISPLAY_INFO (f)->mouse_face_defer = 0;
 }
@@ -988,6 +994,16 @@ static void
 w32_reassert_line_highlight (new, vpos)
      int new, vpos;
 {
+  struct frame *f;
+
+  if (updating_frame)
+    f = updating_frame;
+  else
+    f = SELECTED_FRAME ();
+
+  if (! FRAME_W32_P (f))
+    return;
+
   abort ();
 }
 
@@ -999,6 +1015,16 @@ static void
 x_change_line_highlight (new_highlight, vpos, y, first_unused_hpos)
      int new_highlight, vpos, y, first_unused_hpos;
 {
+  struct frame *f;
+
+  if (updating_frame)
+    f = updating_frame;
+  else
+    f = SELECTED_FRAME ();
+
+  if (! FRAME_W32_P (f))
+    return;
+
   abort ();
 }
 
@@ -5146,6 +5172,16 @@ static void
 x_delete_glyphs (n)
      register int n;
 {
+  struct frame *f;
+
+  if (updating_frame)
+    f = updating_frame;
+  else
+    f = SELECTED_FRAME ();
+
+  if (! FRAME_W32_P (f))
+    return;
+
   abort ();
 }
 
@@ -5240,6 +5276,9 @@ x_clear_frame ()
   else
     f = SELECTED_FRAME ();
 
+  if (! FRAME_W32_P (f))
+    return;
+
   /* Clearing the frame will erase any cursor, so mark them all as no
      longer visible.  */
   mark_window_cursors_off (XWINDOW (FRAME_ROOT_WINDOW (f)));
@@ -5265,6 +5304,13 @@ x_clear_frame ()
 static void
 w32_ring_bell (void)
 {
+  struct frame *f;
+
+  f = SELECTED_FRAME ();
+
+  if (! FRAME_W32_P (f))
+    return;
+
   BLOCK_INPUT;
 
   if (visible_bell)
@@ -5311,6 +5357,16 @@ static void
 x_ins_del_lines (vpos, n)
      int vpos, n;
 {
+  struct frame *f;
+
+  if (updating_frame)
+    f = updating_frame;
+  else
+    f = SELECTED_FRAME ();
+
+  if (! FRAME_W32_P (f))
+    return;
+
   abort ();
 }
 
@@ -5758,6 +5814,9 @@ static void
 w32_frame_rehighlight (frame)
      struct frame *frame;
 {
+  if (! FRAME_W32_P (frame))
+    return;
+
   x_frame_rehighlight (FRAME_W32_DISPLAY_INFO (frame));
 }
 
@@ -9729,6 +9788,9 @@ w32_frame_raise_lower (f, raise_flag)
      FRAME_PTR f;
      int raise_flag;
 {
+  if (! FRAME_W32_P (f))
+    return;
+
   if (raise_flag)
     x_raise_frame (f);
   else
