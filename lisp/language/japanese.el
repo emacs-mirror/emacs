@@ -45,12 +45,12 @@
  'iso-2022-jp-2 2 ?J
  "ISO 2022 based 7bit encoding for CJK, Latin-1, and Greek (MIME:ISO-2022-JP-2)"
  '((ascii japanese-jisx0208-1978 japanese-jisx0208
-	  latin-jisx0201 japanese-jisx0212 katakana-jisx0201
+	  latin-jisx0201 japanese-jisx0212
 	  chinese-gb2312 korean-ksc5601) nil
 	  (nil latin-iso8859-1 greek-iso8859-7) nil
  short ascii-eol ascii-cntl seven nil single-shift)
  '((safe-charsets ascii japanese-jisx0208-1978 japanese-jisx0208
-		  latin-jisx0201 japanese-jisx0212 katakana-jisx0201
+		  latin-jisx0201 japanese-jisx0212
 		  chinese-gb2312 korean-ksc5601
 		  latin-iso8859-1 greek-iso8859-7)
    (mime-charset . iso-2022-jp-2)))
