@@ -1091,7 +1091,7 @@ forms to be evaluated.  For simple macros, the @var{specification}
 often looks very similar to the formal argument list of the macro
 definition, but specifications are much more general than macro
 arguments.  @xref{Defining Macros}, for more explanation of
-the @code{declare} special form.
+the @code{declare} form.
 
   You can also define an edebug specification for a macro separately
 from the macro definition with @code{def-edebug-spec}.  Adding
