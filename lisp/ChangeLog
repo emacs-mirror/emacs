@@ -1,3 +1,12 @@
+2001-10-05  Richard M. Stallman  <rms@gnu.org>
+
+	* add-log.el (add-change-log-entry): Skip copyright notice
+	and copying permission notice at start of file, if any.
+	Make use of terms "entry" and "item" accord with Emacs manual.
+	Simplify the logic for moving point while entering or creating
+	an entry and then an item.
+	(add-change-log-entry-other-window): Doc fix.
+
 2001-10-06  Miles Bader  <miles@gnu.org>
 
 	* rfn-eshadow.el (read-file-name-electric-shadow): Autoload cookie
