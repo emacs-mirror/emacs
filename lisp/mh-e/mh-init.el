@@ -90,7 +90,7 @@ GNU mailutils."
       (cond
        ((mh-variant-set-variant 'nmh)
         (message "%s installed as MH variant" mh-variant-in-use))
-       ((mh-variant-set-variant 'MH)
+       ((mh-variant-set-variant 'mh)
         (message "%s installed as MH variant" mh-variant-in-use))
        ((mh-variant-set-variant 'mu-mh)
         (message "%s installed as MH variant" mh-variant-in-use))
@@ -145,7 +145,7 @@ If VARIANT is a symbol, select the first entry that matches that variant."
 ;;;###mh-autoload
 (defun mh-variant-p (&rest variants)
   "Return t if variant is any of VARIANTS.
-Currently known variants are 'mh and 'nmh."
+Currently known variants are 'MH, 'nmh, and 'mu-mh."
   (let ((variant-in-use
          (cadr (assoc 'variant (assoc mh-variant-in-use mh-variants)))))
     (not (null (member variant-in-use variants)))))

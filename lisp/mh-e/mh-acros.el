@@ -51,12 +51,7 @@ Some versions of `cl' produce code for the expansion of
 \(setf (gethash ...) ...) that uses functions in `cl' at run time.  This macro
 recognizes that and loads `cl' where appropriate."
   (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
-      `(progn
-         (require 'cl)
-         ;; Autoloads of CL functions go here...
-         (autoload 'cl-puthash "cl")
-         (autoload 'values "cl")
-         (autoload 'copy-tree "cl"))
+      `(require 'cl)
     `(eval-when-compile (require 'cl))))
 
 ;;; Macros to generate correct code for different emacs variants
@@ -130,6 +125,12 @@ various structure fields. Lookup `defstruct' for more details."
                           (list 'nth ,x z)))
        (quote ,struct-name))))
 
+(defadvice require (around mh-prefer-el activate)
+  "Modify `require' to load uncompiled MH-E files."
+  (or (featurep (ad-get-arg 0))
+      (and (string-match "^mh-" (symbol-name (ad-get-arg 0)))
+           (load (format "%s.el" (ad-get-arg 0)) t t))
+      ad-do-it))
 
 (provide 'mh-acros)
 

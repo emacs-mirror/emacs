@@ -13,7 +13,7 @@
 ;;;;;;  mh-check-whom mh-insert-signature mh-to-fcc mh-to-field mh-fill-paragraph-function
 ;;;;;;  mh-get-header-field mh-send-other-window mh-send mh-reply
 ;;;;;;  mh-redistribute mh-forward mh-extract-rejected-mail mh-edit-again)
-;;;;;;  "mh-comp" "mh-comp.el" (16665 55172))
+;;;;;;  "mh-comp" "mh-comp.el" (16665 53716))
 ;;; Generated autoloads from mh-comp.el
 
 (autoload (quote mh-edit-again) "mh-comp" "\
@@ -183,7 +183,7 @@ If we are at the first header field go to the start of the message body." t nil)
 ;;;;;;  mh-store-msg mh-undo-folder mh-sort-folder mh-page-digest-backwards
 ;;;;;;  mh-page-digest mh-pipe-msg mh-pack-folder mh-list-folders
 ;;;;;;  mh-kill-folder mh-copy-msg mh-burst-digest) "mh-funcs" "mh-funcs.el"
-;;;;;;  (16671 49652))
+;;;;;;  (16671 48788))
 ;;; Generated autoloads from mh-funcs.el
 
 (autoload (quote mh-burst-digest) "mh-funcs" "\
@@ -261,7 +261,7 @@ Display cheat sheet for the commands of the current prefix in minibuffer." t nil
 ;;;;;;  mh-identity-insert-attribution-verb mh-identity-handler-attribution-verb
 ;;;;;;  mh-identity-handler-signature mh-identity-handler-gpg-identity
 ;;;;;;  mh-insert-identity mh-identity-list-set mh-identity-make-menu)
-;;;;;;  "mh-identity" "mh-identity.el" (16680 7172))
+;;;;;;  "mh-identity" "mh-identity.el" (16671 57010))
 ;;; Generated autoloads from mh-identity.el
 
 (autoload (quote mh-identity-make-menu) "mh-identity" "\
@@ -307,7 +307,7 @@ If the field wasn't present, the VALUE is added at the bottom of the header." ni
 ;;;***
 
 ;;;### (autoloads (mh-inc-spool-list-set) "mh-inc" "mh-inc.el" (16671
-;;;;;;  49652))
+;;;;;;  48848))
 ;;; Generated autoloads from mh-inc.el
 
 (autoload (quote mh-inc-spool-list-set) "mh-inc" "\
@@ -326,7 +326,7 @@ This is called after 'customize is used to alter `mh-inc-spool-list'." nil nil)
 ;;;;;;  mh-index-parse-search-regexp mh-index-do-search mh-index-p
 ;;;;;;  mh-index-read-data mh-index-search mh-index-create-sequences
 ;;;;;;  mh-create-sequence-map mh-index-update-maps) "mh-index" "mh-index.el"
-;;;;;;  (16665 55172))
+;;;;;;  (16665 53754))
 ;;; Generated autoloads from mh-index.el
 
 (autoload (quote mh-index-update-maps) "mh-index" "\
@@ -582,7 +582,7 @@ system." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-variants mh-variant-p mh-variant-set) "mh-init"
-;;;;;;  "mh-init.el" (16680 9361))
+;;;;;;  "mh-init.el" (16684 6777))
 ;;; Generated autoloads from mh-init.el
 
 (autoload (quote mh-variant-set) "mh-init" "\
@@ -593,7 +593,7 @@ GNU mailutils." t nil)
 
 (autoload (quote mh-variant-p) "mh-init" "\
 Return t if variant is any of VARIANTS.
-Currently known variants are 'mh and 'nmh." nil nil)
+Currently known variants are 'MH, 'nmh, and 'mu-mh." nil nil)
 
 (autoload (quote mh-variants) "mh-init" "\
 Return a list of installed variants of MH on the system.
@@ -604,7 +604,7 @@ by the variable `mh-variants'." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-junk-whitelist mh-junk-blacklist) "mh-junk"
-;;;;;;  "mh-junk.el" (16671 49652))
+;;;;;;  "mh-junk.el" (16671 48929))
 ;;; Generated autoloads from mh-junk.el
 
 (autoload (quote mh-junk-blacklist) "mh-junk" "\
@@ -644,7 +644,7 @@ The `mh-junk-program' option specifies the spam program in use." t nil)
 ;;;;;;  mh-mhn-compose-external-compressed-tar mh-mhn-compose-anon-ftp
 ;;;;;;  mh-mhn-compose-insertion mh-file-mime-type mh-have-file-command
 ;;;;;;  mh-compose-forward mh-compose-insertion) "mh-mime" "mh-mime.el"
-;;;;;;  (16680 7172))
+;;;;;;  (16684 7323))
 ;;; Generated autoloads from mh-mime.el
 
 (autoload (quote mh-compose-insertion) "mh-mime" "\
@@ -857,7 +857,7 @@ View MIME PART-INDEX externally." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-do-search mh-pick-do-search mh-search-folder)
-;;;;;;  "mh-pick" "mh-pick.el" (16671 49652))
+;;;;;;  "mh-pick" "mh-pick.el" (16671 49140))
 ;;; Generated autoloads from mh-pick.el
 
 (autoload (quote mh-search-folder) "mh-pick" "\
@@ -882,7 +882,7 @@ indexing program specified in `mh-index-program' is used." t nil)
 
 ;;;### (autoloads (mh-print-msg mh-ps-print-toggle-mime mh-ps-print-toggle-color
 ;;;;;;  mh-ps-print-toggle-faces mh-ps-print-msg-show mh-ps-print-msg-file
-;;;;;;  mh-ps-print-msg) "mh-print" "mh-print.el" (16680 9361))
+;;;;;;  mh-ps-print-msg) "mh-print" "mh-print.el" (16680 11171))
 ;;; Generated autoloads from mh-print.el
 
 (autoload (quote mh-ps-print-msg) "mh-print" "\
@@ -935,7 +935,7 @@ The messages are formatted by mhl. See the variable `mhl-formfile'." t nil)
 ;;;;;;  mh-rename-seq mh-translate-range mh-read-range mh-read-seq-default
 ;;;;;;  mh-notate-deleted-and-refiled mh-widen mh-put-msg-in-seq
 ;;;;;;  mh-narrow-to-seq mh-msg-is-in-seq mh-list-sequences mh-delete-seq)
-;;;;;;  "mh-seq" "mh-seq.el" (16668 22297))
+;;;;;;  "mh-seq" "mh-seq.el" (16671 65286))
 ;;; Generated autoloads from mh-seq.el
 
 (autoload (quote mh-delete-seq) "mh-seq" "\
@@ -1157,7 +1157,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 ;;;### (autoloads (mh-speed-add-folder mh-speed-invalidate-map mh-speed-flists
 ;;;;;;  mh-speed-view mh-speed-toggle mh-folder-speedbar-buttons)
-;;;;;;  "mh-speed" "mh-speed.el" (16665 55171))
+;;;;;;  "mh-speed" "mh-speed.el" (16665 53793))
 ;;; Generated autoloads from mh-speed.el
 
 (autoload (quote mh-folder-speedbar-buttons) "mh-speed" "\
@@ -1196,7 +1196,7 @@ The function invalidates the latest ancestor that is present." nil nil)
 ;;;;;;  mh-alias-grab-from-field mh-alias-add-alias mh-alias-for-from-p
 ;;;;;;  mh-alias-address-to-alias mh-alias-letter-expand-alias mh-alias-minibuffer-confirm-address
 ;;;;;;  mh-read-address mh-alias-reload-maybe mh-alias-reload) "mh-alias"
-;;;;;;  "mh-alias.el" (16671 49553))
+;;;;;;  "mh-alias.el" (16671 49382))
 ;;; Generated autoloads from mh-alias.el
 
 (autoload (quote mh-alias-reload) "mh-alias" "\

@@ -1,5 +1,40 @@
 2004-08-21  Bill Wohler  <wohler@newt.com>
 
+	* Released MH-E version 7.82.
+     
+	* MH-E-NEWS, README: Updated for release 7.82.
+     
+	* mh-e.el (Version, mh-version): Updated for release 7.82.
+
+2004-08-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-init.el (mh-variant-set): Changed MH to mh as that's what is
+	emitted by `mh-variant-mh-info' (closes SF #1014781).
+	(mh-variant-p): Added mu-mh to docstring.
+
+2004-08-23  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-acros.el (mh-require-cl): Remove unneeded autoloads.
+	(require): Add an advice to the function so that at compile time
+	the uncompiled file is loaded. This avoids compilation problems
+	when built in the Emacs tree.
+
+	* mh-mime.el (mh-identity-pgg-default-user-id): Defvar the
+	variable, to avoid compiler warnings.
+
+	* mh-e.el (mh-seq): Load mh-seq since functions defined there are
+	used here. Without this, the state mh-seq.elc would be loaded.
+
+	* mh-customize.el (mh-init, mh-identity): Load mh-init and
+	mh-identity at compile time manually, before the corresponding
+	stale elc files get autoloaded.
+
+2004-08-21  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Added +cvs to release number.
+
+2004-08-21  Bill Wohler  <wohler@newt.com>
+
 	* Released MH-E version 7.81.
      
 	* MH-E-NEWS, README: Updated for release 7.81.
