@@ -759,8 +759,10 @@ indicating whether the privilege is currently enabled.
 
 @defvar user-mail-address
 This holds the nominal email address of the user who is using Emacs.
-When Emacs starts up, it computes a default value that is usually right,
-but users often set this themselves when the default value is not right.
+Emacs normally sets this variable to a default value after reading your
+init files, but not if you have already set it.  So you can set the
+variable to some other value in your @file{~/.emacs} file if you do not
+want to use the default value.
 @end defvar
 
 @defun user-login-name &optional uid
