@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -433,7 +433,8 @@ If KEY is an event on a string, and that string has a `local-map'
 or `keymap' property, return the binding of KEY in the string's keymap."
   (let* ((defn nil)
 	 (start (when (vectorp key)
-		  (if (memq (aref key 0) '(mode-line header-line))
+		  (if (memq (aref key 0)
+			    '(mode-line header-line left-margin right-margin))
 		      (event-start (aref key 1))
 		    (and (consp (aref key 0))
 			 (event-start (aref key 0))))))
@@ -441,7 +442,7 @@ or `keymap' property, return the binding of KEY in the string's keymap."
     (when string-info
       (let* ((string (car string-info))
 	     (pos (cdr string-info))
-	     (local-map (and (> pos 0)
+	     (local-map (and (>= pos 0)
 			     (< pos (length string))
 			     (or (get-text-property pos 'local-map string)
 				 (get-text-property pos 'keymap string)))))
