@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "disptab.h"
+#include "dispextern.h"
 #include "keyboard.h"
 #include <setjmp.h>
 #include <errno.h>
@@ -156,8 +157,10 @@ Lisp_Object unread_command_char;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
-   next command input, after any unread_command_char.  */
-Lisp_Object unread_switch_frame;
+   next command input, after any unread_command_char.  Only
+   read_key_sequence sets this; it uses it to delay switch-frame
+   events until the end of the key sequence.  */
+static Lisp_Object unread_switch_frame;
 
 /* Char to use as prefix when a meta character is typed in.
    This is bound on entry to minibuffer in case ESC is changed there.  */
@@ -323,6 +326,8 @@ Lisp_Object Qmodifier_cache;
 Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
 
+Lisp_Object recursive_edit_unwind (), command_loop ();
+Lisp_Object Fthis_command_keys ();
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
@@ -374,8 +379,8 @@ static int echo_keystrokes;
 static int immediate_echo;
 
 /* The text we're echoing in the modeline - partial key sequences,
-   usually.  '\0'-terminated.  */
-static char echobuf[100];
+   usually.  '\0'-terminated.  This really shouldn't have a fixed size.  */
+static char echobuf[300];
 
 /* Where to append more text to echobuf if we want to.  */
 static char *echoptr;
@@ -435,7 +440,7 @@ echo_char (c)
 	  ptr += name->size;
 	}
 
-      if (echoptr == echobuf && c == help_char)
+      if (echoptr == echobuf && EQ (c, help_char))
 	{
 	  strcpy (ptr, " (Type ? for further options)");
 	  ptr += strlen (ptr);
@@ -563,8 +568,6 @@ record_auto_save ()
   last_auto_save = num_nonmacro_input_chars;
 }
 
-Lisp_Object recursive_edit_unwind (), command_loop ();
-
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
   "Invoke the editor command loop recursively.\n\
 To get out of the recursive edit, a command can do `(throw 'exit nil)';\n\
@@ -1143,7 +1146,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 from a macro should never cause a new frame to be selected.  */
       Vlast_event_frame = Qmacro;
 
-      if (executing_macro_index >= Flength (Vexecuting_macro))
+      if (executing_macro_index >= XFASTINT (Flength (Vexecuting_macro)))
 	{
 	  XSET (c, Lisp_Int, -1);
 	  return c;
@@ -1161,8 +1164,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       unread_switch_frame = Qnil;
 
       /* This event should make it into this_command_keys, and get echoed
-	 again, so we go to reread, rather than reread_first.  */
-      goto reread;
+	 again, so we go to reread_first, rather than reread.  */
+      goto reread_first;
     }
 
   /* Save outer setjmp data, in case called recursively.  */
@@ -1299,11 +1302,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	return c;
 
       /* Strip the high bits, and maybe the meta bit too.  */
-      XSETINT (c, c & (meta_key ? 0377 : 0177));
+      XSETINT (c, XINT (c) & (meta_key ? 0377 : 0177));
 
       if (XTYPE (Vkeyboard_translate_table) == Lisp_String
-	  && XSTRING (Vkeyboard_translate_table)->size > XINT (c))
-	XSETINT (c, XSTRING (Vkeyboard_translate_table)->data[c]);
+	  && XSTRING (Vkeyboard_translate_table)->size > XFASTINT (c))
+	XSETINT (c, XSTRING (Vkeyboard_translate_table)->data[XFASTINT (c)]);
     }
 
   total_keys++;
@@ -1317,7 +1320,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (dribble)
     {
       if (XTYPE (c) == Lisp_Int)
-	putc (c, dribble);
+	putc (XINT (c), dribble);
       else
 	{
 	  Lisp_Object dribblee = c;
@@ -2727,9 +2730,9 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
       else
 	ch = XINT (obj);
 
-      if (obj != menu_prompt_more_char
+      if (! EQ (obj, menu_prompt_more_char)
 	  && (XTYPE (menu_prompt_more_char) != Lisp_Int
-	      || obj != make_number (Ctl (XINT (menu_prompt_more_char)))))
+	      || ! EQ (obj, make_number (Ctl (XINT (menu_prompt_more_char))))))
 	return obj;
     }
 }
@@ -2777,7 +2780,7 @@ follow_key (key, nmaps, current, defs, next)
 	    /* Note that since we pass the resulting bindings through
 	       get_keymap_1, non-prefix bindings for meta-prefix-char
 	       disappear.  */
-	    next[i] = get_keymap_1 (next[i], 0);
+	    next[i] = get_keymap_1 (next[i], 0, 1);
 	  }
 	else
 	  next[i] = Qnil;
@@ -2825,82 +2828,98 @@ follow_key (key, nmaps, current, defs, next)
   /* Given the set of bindings we've found, produce the next set of maps.  */
   if (first_binding < nmaps)
     for (i = 0; i < nmaps; i++)
-      next[i] = NILP (defs[i]) ? Qnil : get_keymap_1 (defs[i], 0);
+      next[i] = NILP (defs[i]) ? Qnil : get_keymap_1 (defs[i], 0, 1);
 
   return first_binding;
 }
 
-/* Read a sequence of keys that ends with a non prefix character
-   according to the keymaps in KEYMAPS[0..nmaps-1].  Keymaps appearing
-   earlier in KEYMAPS take precidence over those appearing later.
-
-   Store the sequence in KEYBUF, a buffer of size BUFSIZE.  Prompt
-   with PROMPT.  Echo starting immediately unless `prompt' is 0.
+/* Read a sequence of keys that ends with a non prefix character, 
+   storing it in KEYBUF, a buffer of size BUFSIZE.
+   Prompt with PROMPT.
    Return the length of the key sequence stored.
 
-   If the user switches frames in the midst of a key sequence, we
-   throw away any prefix we have read so far, and start afresh.  For
-   mouse clicks, we look up the click in the keymap of the buffer
-   clicked on, throwing away any prefix if it is not the same buffer
-   we used to be reading from.  */
+   Echo starting immediately unless `prompt' is 0.
 
+   Where a key sequence ends depends on the currently active keymaps.
+   These include any minor mode keymaps active in the current buffer,
+   the current buffer's local map, and the global map.
+
+   If a key sequence has no other bindings, we check Vfunction_key_map
+   to see if some trailing subsequence might be the beginning of a
+   function key's sequence.  If so, we try to read the whole function
+   key, and substitute its symbolic name into the key sequence.
+
+   We ignore unbound `down-' mouse clicks.  We turn unbound `drag-'
+   events into similar click events, if that would make them bound.
+
+   If we get a mouse click in a mode line, vertical divider, or other
+   non-text area, we treat the click as if it were prefixed by the
+   symbol denoting that area - `mode-line', `vertical-line', or
+   whatever.
+
+   If the sequence starts with a mouse click, we read the key sequence
+   with respect to the buffer clicked on, not the current buffer.
+
+   If the user switches frames in the midst of a key sequence, we put
+   off the switch-frame event until later; the next call to
+   read_char will return it.  */
 static int
 read_key_sequence (keybuf, bufsize, prompt)
      Lisp_Object *keybuf;
      int bufsize;
-     Lisp_Object prompt;
+     char *prompt;
 {
+  int count = specpdl_ptr - specpdl;
+
   /* How many keys there are in the current key sequence.  */
   int t;
-
-  /* The buffer that the most recently read event was typed at.  This
-     helps us read mouse clicks according to the buffer clicked in,
-     and notice when the mouse has moved from one frame to another.  */
-  struct buffer *last_event_buffer = current_buffer;
 
   /* The length of the echo buffer when we started reading, and
      the length of this_command_keys when we started reading.  */
   int echo_start;
-  int keys_start = this_command_key_count;
+  int keys_start;
 
   /* The number of keymaps we're scanning right now, and the number of
      keymaps we have allocated space for.  */
   int nmaps;
   int nmaps_allocated = 0;
 
-  /* submaps[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
-     in the current keymaps, or nil where it is not a prefix.  */
-  Lisp_Object *submaps;
-
   /* defs[0..nmaps-1] are the definitions of KEYBUF[0..t-1] in
      the current keymaps.  */
   Lisp_Object *defs;
 
-  /* The index of the first keymap that has a binding for this key
-     sequence.  In other words, the lowest i such that defs[i] is
-     non-nil.*/
+  /* submaps[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
+     in the current keymaps, or nil where it is not a prefix.  */
+  Lisp_Object *submaps;
+
+  /* The index in defs[] of the first keymap that has a binding for
+     this key sequence.  In other words, the lowest i such that
+     defs[i] is non-nil.  */
   int first_binding;
 
-  /* If mock_input > t, then KEYBUF[t] should be read as the next
+  /* If t < mock_input, then KEYBUF[t] should be read as the next
      input key.
 
      We use this to recover after recognizing a function key.  Once we
      realize that a suffix of the current key sequence is actually a
      function key's escape sequence, we replace the suffix with the
      function key's binding from Vfunction_key_map.  Now keybuf
-     contains a new and different key sequence, so the echo area and
-     the submaps and defs arrays are wrong.  In this situation, we set
-     mock_input to t, set t to 0, and jump to restart; the loop will
-     read keys from keybuf up until mock_input, which rebuilds the
-     state, and then it will resume reading characters from the keyboard.  */
+     contains a new and different key sequence, so the echo area,
+     this_command_keys, and the submaps and defs arrays are wrong.  In
+     this situation, we set mock_input to t, set t to 0, and jump to
+     restart_sequence; the loop will read keys from keybuf up until
+     mock_input, thus rebuilding the state; and then it will resume
+     reading characters from the keyboard.  */
   int mock_input = 0;
 
   /* If the sequence is unbound in submaps[], then
-     keymap[fkey_start..fkey_end-1] is a prefix in Vfunction_key_map,
-     and fkey_map is its binding.  If mock_input is in use, these
-     might be > t, indicating that all function key scanning should
-     hold off until t reaches them.  */
+     keybuf[fkey_start..fkey_end-1] is a prefix in Vfunction_key_map,
+     and fkey_map is its binding.
 
+     These might be > t, indicating that all function key scanning
+     should hold off until t reaches them.  We do this when we've just
+     recognized a function key, to avoid searching for the function
+     key's again in Vfunction_key_map.  */
   int fkey_start = 0, fkey_end = 0;
   Lisp_Object fkey_map = Vfunction_key_map;
 
@@ -2908,6 +2927,15 @@ read_key_sequence (keybuf, bufsize, prompt)
      we put it off for later.  While we're reading, we keep the event here.  */
   Lisp_Object delayed_switch_frame = Qnil;
 
+
+  /* If there is no function key map, turn off function key scanning.  */
+  if (NILP (Fkeymapp (Vfunction_key_map)))
+    fkey_start = fkey_end = bufsize + 1;
+
+  /* We need to save the current buffer in case we switch buffers to
+     find the right binding for a mouse click.  */
+  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+			 
   last_nonmenu_event = Qnil;
 
   if (INTERACTIVE)
@@ -2918,22 +2946,18 @@ read_key_sequence (keybuf, bufsize, prompt)
 	/* This doesn't put in a dash if the echo buffer is empty, so
 	   you don't always see a dash hanging out in the minibuffer.  */
 	echo_dash ();
-      echo_start = echo_length ();
     }
 
-  /* If there is no function key map, turn off function key scanning.  */
-  if (NILP (Fkeymapp (Vfunction_key_map)))
-    fkey_start = fkey_end = bufsize + 1;
-
- restart:
-  t = 0;
-  this_command_key_count = keys_start;
-
-  /* This is a no-op the first time through, but if we restart, it
-     reverts the echo area to its original state.  */
+  /* Record the initial state of the echo area and this_command_keys;
+     we will need to restore them if we replay a key sequence.  */
   if (INTERACTIVE)
-    echo_truncate (echo_start);
+    echo_start = echo_length ();
+  keys_start = this_command_key_count;
 
+ replay_sequence_new_buffer:
+  /* Build our list of keymaps.
+     If the sequence starts with a mouse click, we may need to switch buffers
+     and jump back here; that's what replay_sequence_new_buffer is for.  */
   { 
     Lisp_Object *maps;
 
@@ -2945,7 +2969,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	nmaps_allocated = nmaps;
       }
     bcopy (maps, submaps, (nmaps - 2) * sizeof (submaps[0]));
-    submaps[nmaps-2] = last_event_buffer->keymap;
+    submaps[nmaps-2] = current_buffer->keymap;
     submaps[nmaps-1] = global_map;
   }
 
@@ -2954,6 +2978,21 @@ read_key_sequence (keybuf, bufsize, prompt)
     if (! NILP (submaps[first_binding]))
       break;
 
+ replay_sequence:
+  /* We jump here when a function key substitution has forced us to
+     reprocess the current key sequence.  keybuf[0..mock_input] is the
+     sequence we want to reread.  */
+  t = 0;
+
+  /* These are no-ops the first time through, but if we restart, they
+     revert the echo area and this_command_keys to their original state.  */
+  this_command_key_count = keys_start;
+  if (INTERACTIVE)
+    echo_truncate (echo_start);
+
+  /* If the best binding for the current key sequence is a keymap,
+     or we may be looking at a function key's escape sequence, keep
+     on reading.  */
   while ((first_binding < nmaps && ! NILP (submaps[first_binding]))
 	 || (first_binding >= nmaps && fkey_start < t))
     {
@@ -2964,23 +3003,27 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 while those allow us to restart the entire key sequence,
 	 echo_local_start and keys_local_start allow us to throw away
 	 just one key.  */
-      int echo_local_start = echo_length ();
-      int keys_local_start = this_command_key_count;
-      int local_first_binding = first_binding;
-      
+      int echo_local_start, keys_local_start, local_first_binding;
+
       if (t >= bufsize)
 	error ("key sequence too long");
 
-    retry_key:
+      if (INTERACTIVE)
+	echo_local_start = echo_length ();
+      keys_local_start = this_command_key_count;
+      local_first_binding = first_binding;
+      
+    replay_key:
       /* These are no-ops, unless we throw away a keystroke below and
-	 jumped back up to retry_key; in that case, these restore these
-	 variables to their original state, allowing us to restart the
+	 jumped back up to replay_key; in that case, these restore the
+	 variables to their original state, allowing us to replay the
 	 loop.  */
-      echo_truncate (echo_local_start);
+      if (INTERACTIVE)
+	echo_truncate (echo_local_start);
       this_command_key_count = keys_local_start;
       first_binding = local_first_binding;
 
-      /* Are we re-reading a key sequence, as indicated by mock_input?  */
+      /* Does mock_input indicate that we are re-reading a key sequence?  */
       if (t < mock_input)
 	{
 	  key = keybuf[t];
@@ -2991,33 +3034,64 @@ read_key_sequence (keybuf, bufsize, prompt)
       /* If not, we should actually read a character.  */
       else
 	{
-	  struct buffer *buf;
-
 	  key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
 			   &used_mouse_menu);
 
-	  /* The above routines return -1 at the end of a macro.
+	  /* read_char returns -1 at the end of a macro.
 	     Emacs 18 handles this by returning immediately with a
 	     zero, so that's what we'll do.  */
 	  if (XTYPE (key) == Lisp_Int && XINT (key) < 0)
 	    {
-	      unread_switch_frame = delayed_switch_frame;
-	      return 0;
+	      t = 0;
+	      goto done;
 	    }
 	  
 	  Vquit_flag = Qnil;
 
 	  /* Clicks in non-text areas get prefixed by the symbol 
 	     in their CHAR-ADDRESS field.  For example, a click on
-	     the mode line is prefixed by the symbol `mode-line'.  */
+	     the mode line is prefixed by the symbol `mode-line'.
+
+	     Furthermore, key sequences beginning with mouse clicks
+	     are read using the keymaps of the buffer clicked on, not
+	     the current buffer.  So we may have to switch the buffer
+	     here.  */
 	  if (EVENT_HAS_PARAMETERS (key))
 	    {
 	      Lisp_Object kind = EVENT_HEAD_KIND (EVENT_HEAD (key));
+
 	      if (EQ (kind, Qmouse_click))
 		{
-		  Lisp_Object posn = POSN_BUFFER_POSN (EVENT_START (key));
+		  Lisp_Object window = POSN_WINDOW      (EVENT_START (key));
+		  Lisp_Object posn   = POSN_BUFFER_POSN (EVENT_START (key));
 
-		  if (XTYPE (posn) == Lisp_Symbol)
+		  /* Key sequences beginning with mouse clicks are
+		     read using the keymaps in the buffer clicked on,
+		     not the current buffer.  If we're at the
+		     beginning of a key sequence, switch buffers.  */
+		  if (t == 0
+		      && XTYPE (window) == Lisp_Window
+		      && XTYPE (XWINDOW (window)->buffer) == Lisp_Buffer
+		      && XBUFFER (XWINDOW (window)->buffer) != current_buffer)
+		    {
+		      if (XTYPE (posn) == Lisp_Symbol)
+			{
+			  if (t + 1 >= bufsize)
+			    error ("key sequence too long");
+			  keybuf[t] = posn;
+			  keybuf[t+1] = key;
+			  mock_input = t + 2;
+			}
+		      else
+			{
+			  keybuf[t] = key;
+			  mock_input = t + 1;
+			}
+
+		      set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
+		      goto replay_sequence_new_buffer;
+		    }
+		  else if (XTYPE (posn) == Lisp_Symbol)
 		    {
 		      if (t + 1 >= bufsize)
 			error ("key sequence too long");
@@ -3025,7 +3099,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      keybuf[t+1] = key;
 		      mock_input = t + 2;
 
-		      goto retry_key;
+		      goto replay_key;
 		    }
 		}
 	      else if (EQ (kind, Qswitch_frame))
@@ -3036,57 +3110,14 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  if (t > 0)
 		    {
 		      delayed_switch_frame = key;
-		      goto retry_key;
+		      goto replay_key;
 		    }
 		}
 	    }
-
-#if 0	/* This shouldn't be necessary any more, now that we have
-	   switch-frame events.  */
-#ifdef MULTI_FRAME
-	  /* What buffer was this event typed/moused at?  */
-	  if (used_mouse_menu)
-	    /* Never change last_event_buffer for using a menu.  */
-	    buf = last_event_buffer;
-	  else if (XTYPE (key) == Lisp_Int || XTYPE (key) == Lisp_Symbol)
-	    {
-	      buf = ((XTYPE (Vlast_event_frame) == Lisp_Frame)
-		     ? (XBUFFER
-			(XWINDOW
-			 (FRAME_SELECTED_WINDOW
-			  (XFRAME (Vlast_event_frame)))->buffer))
-		     : last_event_buffer);
-	    }
-	  else if (EVENT_HAS_PARAMETERS (key))
-	    {
-	      Lisp_Object window = POSN_WINDOW (EVENT_START (key));
-
-	      if (NILP (window))
-		abort ();
-
-	      buf = XBUFFER (XWINDOW (window)->buffer);
-	    }
-	  else
-	    abort ();
-
-	  /* If this event came to a different buffer than the one
-	     we're currently in, switch buffers and start a new key
-	     sequence, starting with key.  */
-	  if (buf != last_event_buffer)
-	    {
-	      last_event_buffer = buf;
-	      Fselect_frame (Vlast_event_frame, Qnil);
-
-	      /* Arrange to read key as the next event.  */
-	      keybuf[0] = key;
-	      mock_input = 1;
-
-	      goto restart;
-	    }
-#endif /* MULTI_FRAME */
-#endif /* 0 */
 	}
-	  
+
+      /* We have finally decided that KEY is something we might want
+	 to look up.  */
       first_binding = (follow_key (key,
 				   nmaps   - first_binding,
 				   submaps + first_binding,
@@ -3094,7 +3125,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 				   submaps + first_binding)
 		       + first_binding);
 
-      /* If this key wasn't bound, we'll try some fallbacks.  */
+      /* If KEY wasn't bound, we'll try some fallbacks.  */
       if (first_binding >= nmaps)
 	{
 	  Lisp_Object head = EVENT_HEAD (key);
@@ -3108,15 +3139,27 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      /* We drop unbound `down-' events altogether.  */
 	      if (modifiers & down_modifier)
 		{
-		  /* Adding prefixes for non-textual mouse clicks creates
-		     two characters of mock input, and this can't be the
-		     first, so it's okay to clear mock_input in that case.
-		     Only function key expansion could create more than
-		     two keys, but that should never generate mouse events,
-		     so it's okay to nuke mock_input in that case too.
+		  /* To make sure that mock_input doesn't just give
+		     this event back to us; we want to delete this
+		     event from the mock input queue.  We could delete
+		     keybuf[t] and shift everything after that to the
+		     left by one spot, but we'd also have to fix up
+		     any variable that points into keybuf, and shifting
+		     isn't really necessary anyway.
+		     
+		     Adding prefixes for non-textual mouse clicks creates
+		     two characters of mock input, and this must be the
+		     second, so mock_input would be over anyway; it's okay
+		     to zero it.
+		     
+		     Beyond that, only function key expansion could
+		     create more than two keys, but that should never
+		     generate mouse events, so it's okay to zero
+		     mock_input in that case too.
+		     
 		     Isn't this just the most wonderful code ever?  */
 		  mock_input = 0;
-		  goto retry_key;
+		  goto replay_key;
 		}
 
 	      /* We turn unbound `drag-' events into `click-'
@@ -3159,7 +3202,7 @@ read_key_sequence (keybuf, bufsize, prompt)
       /* If the sequence is unbound, see if we can hang a function key
 	 off the end of it.  We only want to scan real keyboard input
 	 for function key sequences, so if mock_input says that we're
-	 re-scanning after expanding a function key, don't examine it.  */
+	 re-reading old events, don't examine it.  */
       if (first_binding >= nmaps
 	  && t >= mock_input)
 	{
@@ -3168,20 +3211,26 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  /* Scan from fkey_end until we find a bound suffix.  */
 	  while (fkey_end < t)
 	    {
+	      Lisp_Object key;
+
+	      key = keybuf[fkey_end++];
 	      /* Look up meta-characters by prefixing them
 		 with meta_prefix_char.  I hate this.  */
-	      if (keybuf[fkey_end] & 0x80)
-		fkey_next =
-		  get_keymap_1
-		    ((get_keyelt
-		      (access_keymap (fkey_map, meta_prefix_char, 1))),
-		     0);
+	      if (XTYPE (key) == Lisp_Int && XINT (key) & 0x80)
+		{
+		  fkey_next =
+		    get_keymap_1
+		      (get_keyelt
+		       (access_keymap
+			(fkey_map, meta_prefix_char, 1)),
+		       0, 1);
+		  XFASTINT (key) = XFASTINT (key) & 0x7f;
+		}
 	      else
 		fkey_next = fkey_map;
 
 	      fkey_next =
-		get_keyelt (access_keymap
-			    (fkey_next, keybuf[fkey_end++] & 0x7f, 1));
+		get_keyelt (access_keymap (fkey_next, key, 1));
 
 	      /* If keybuf[fkey_start..fkey_end] is bound in the
 		 function key map and it's a suffix of the current
@@ -3201,10 +3250,10 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  mock_input = t;
 		  fkey_start = fkey_end = t;
 
-		  goto restart;
+		  goto replay_sequence;
 		}
 	      
-	      fkey_map = get_keymap_1 (fkey_next, 0);
+	      fkey_map = get_keymap_1 (fkey_next, 0, 1);
 
 	      /* If we no longer have a bound suffix, try a new positions for 
 		 fkey_start.  */
@@ -3221,7 +3270,9 @@ read_key_sequence (keybuf, bufsize, prompt)
 			   ? defs[first_binding]
 			   : Qnil);
 
+ done:
   unread_switch_frame = delayed_switch_frame;
+  unbind_to (count, Qnil);
   return t;
 }
 
@@ -3257,7 +3308,7 @@ typed while in this function is treated like any other character, and\n\
     this_command_key_count = 0;
 
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
-			 NILP (prompt)  ? 0 : XSTRING (prompt)->data);
+			 NILP (prompt) ? 0 : XSTRING (prompt)->data);
 
   UNGCPRO;
   return make_array (i, keybuf);
