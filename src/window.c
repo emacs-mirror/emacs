@@ -337,7 +337,7 @@ POS defaults to point in WINDOW; WINDOW defaults to the selected window.")
 	 char in the window.  */
       if (!NILP (fully))
 	{
-	  pos_visible_p (w, posint, &fully_p);
+	  pos_visible_p (w, posint, &fully_p, !NILP (fully));
 	  in_window = fully_p ? Qt : Qnil;
 	}
       else
@@ -350,7 +350,7 @@ POS defaults to point in WINDOW; WINDOW defaults to the selected window.")
     in_window = Qnil;
   else
     {
-      if (pos_visible_p (w, posint, &fully_p))
+      if (pos_visible_p (w, posint, &fully_p, !NILP (fully)))
 	in_window = NILP (fully) || fully_p ? Qt : Qnil;
       else
 	in_window = Qnil;
