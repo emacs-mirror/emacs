@@ -110,6 +110,22 @@
 		x-invocation-args
 		(cdr x-invocation-args))))))
 
+;; Handle options that apply to initial frame only
+(defun x-handle-initial-switch (switch)
+  (let ((aelt (assoc switch command-line-x-option-alist)))
+    (if aelt
+	(let ((param (nth 3 aelt))
+	      (value (nth 4 aelt)))
+	  (if value
+	      (setq initial-frame-alist
+		    (cons (cons param value)
+			  initial-frame-alist))
+	    (setq initial-frame-alist
+		  (cons (cons param
+			      (car x-invocation-args))
+			initial-frame-alist)
+		  x-invocation-args (cdr x-invocation-args)))))))
+
 ;; Make -iconic apply only to the initial frame!
 (defun x-handle-iconic (switch)
   (setq initial-frame-alist
