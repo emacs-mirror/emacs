@@ -1,3 +1,10 @@
+2003-06-12  Dave Love  <fx@gnu.org>
+
+	* alloca.c (alloca): Declare arg as size_t.
+
+	* sysdep.c: Remove redundant include of unistd.h, stdlib.h.  Use
+	HAVE_DECL_SYS_SIGLIST, not SYS_SIGLIST_DECLARED.
+
 2003-06-11  Dave Love  <fx@gnu.org>
 
 	* search.c (shrink_regexp_cache): Use xrealloc.
