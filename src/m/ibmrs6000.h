@@ -122,6 +122,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define C_SWITCH_MACHINE -D_BSD
 
 #ifdef AIX3_2
+/* -lpthread seems to be necessary for Xlib in X11R6, and should be harmless
+   on older versions of X where it happens to exist.  */
 #ifdef HAVE_LIBPTHREAD
 #define LIBS_MACHINE -lrts -lIM -liconv -lpthread
 #else
