@@ -8,11 +8,10 @@
 	(w32_system_caret_height, w32_system_caret_x)
 	(w32_system_caret_y): New variables for tracking system caret.
 	(w32_initialize): Initialize them.
-	(x_display_and_set_cursor): Make system caret follow the active
-	cursor.
+	(x_display_and_set_cursor): Make system caret follow the active cursor.
 
-	* w32term.h (WM_EMACS_TRACK_CARET, WM_EMACS_DESTROY_CARET): New
-	messages types.
+	* w32term.h (WM_EMACS_TRACK_CARET, WM_EMACS_DESTROY_CARET):
+	New messages types.
 
 	* w32term.c (note_mouse_highlight): Clear old help_echo.
 
@@ -33,7 +32,7 @@
 2001-10-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward): Use 2/3 line_height
-	instead of 1/2 line_height in the heuristic for skipping 
+	instead of 1/2 line_height in the heuristic for skipping
 	farther backward when target_y was not reached.
 
 	* sound.c (sound_perror): Unblock SIGIO, turn on atimers.
@@ -56,15 +55,14 @@
 
 	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
 	Fix clearing in the case of scroll bars on the right.
-	
+
 2001-10-26  Juanma Barranquero <lektu@terra.es>
 
 	* w32gui.h (XImage): Add a dummy typedef.
 
 2001-10-26  Gerd Moellmann  <gerd@gnu.org>
 
-	* xfns.c (XScreenNumberOfScreen): Fix struct to pointer
-	comparison.
+	* xfns.c (XScreenNumberOfScreen): Fix struct to pointer comparison.
 
 2001-10-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -98,7 +96,7 @@
 2001-10-24  Richard M. Stallman  <rms@gnu.org>
 
 	* xfaces.c (Fface_attributes_as_vector): New function.
-	(syms_of_xfaces): defsubr it.
+	(syms_of_xfaces): Defsubr it.
 
 2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -107,8 +105,7 @@
 
 2001-10-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* search.c (scan_newline): Remove unused variable
-	`selective_display'.
+	* search.c (scan_newline): Remove unused variable `selective_display'.
 
 2001-10-25  Miles Bader  <miles@gnu.org>
 
@@ -116,9 +113,10 @@
 	`background_valid', and `background_transparent' fields.
 	(image_background, image_background_transparent): New declarations.
 	(IMAGE_BACKGROUND, IMAGE_BACKGROUND_TRANSPARENT): New macros.
+
 	* xfns.c (image_background, image_background_transparent)
 	(four_corners_best): New functions.
-	(xpm_format, png_format, jpeg_format, tiff_format, gif_format) 
+	(xpm_format, png_format, jpeg_format, tiff_format, gif_format)
 	(gs_format): Add `:background' entry.
 	(lookup_image): Set IMG's background color if specified.
 	(pbm_load, xbm_load_image, png_load): Set IMG's background field
@@ -133,8 +131,9 @@
 	(enum tiff_keyword_index): Add TIFF_BACKGROUND.
 	(enum gif_keyword_index): Add GIF_BACKGROUND.
 	(enum gs_keyword_index): Add GS_BACKGROUND.
-	(pbm_load, png_load, jpeg_load, tiff_load, gif_load): 
+	(pbm_load, png_load, jpeg_load, tiff_load, gif_load):
 	Pre-calculate image background color where necessary.
+
 	* xterm.c (x_setup_relief_colors): Use `IMAGE_BACKGROUND' and
 	`IMAGE_BACKGROUND_TRANSPARENT' to calculate the correct background
 	color to use for image glyph reliefs.
@@ -143,7 +142,7 @@
 
 	* xterm.c (x_draw_glyphs): Don't check for cursor overwriting
 	in full-width rows.
-	
+
 	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
 	Fix clearing of area not covered by scroll bar.
 
@@ -151,18 +150,16 @@
 
 	* xterm.c: (x_insert_glyphs): Remove unused variables `real_end'
 	and `real_start'.
-	(x_draw_image_foreground): Remove unused variables `mask' and
-	`xgcv'.
+	(x_draw_image_foreground): Remove unused variables `mask' and `xgcv'.
 	(glyph_rect): Remove unused variable `area'.
 
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c: Change #ifdef GLYPH_DEBUG to #if.
-	
-	* xdisp.c (try_window_reusing_current_matrix): Use
-	row_containing_pos.
-	(row_containing_pos): Take additional argument DY.  Treat
-	rows ending in middle of char differently.
+
+	* xdisp.c (try_window_reusing_current_matrix): Use row_containing_pos.
+	(row_containing_pos): Take additional argument DY.
+	Treat rows ending in middle of char differently.
 	(display_line): Handle tabs on window systems differently.
 
 	* xterm.c, w32term.c (fast_find_position): Call row_containing_pos
@@ -200,8 +197,7 @@
 
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
-	* xfaces.c (Finternal_set_lisp_face_attribute): Fix compilation
-	error.
+	* xfaces.c (Finternal_set_lisp_face_attribute): Fix compilation error.
 
 2001-10-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -211,12 +207,11 @@
 
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
-	* dispnew.c (sync_window_with_frame_matrix_rows): Fix 
-	handling of windows which aren't full-width, fix handling
+	* dispnew.c (sync_window_with_frame_matrix_rows):
+	Fix handling of windows which aren't full-width, fix handling
 	of marginal areas.
 
-	* lread.c (syms_of_lread)<recursive-load-depth-limit>: Raise to
-	50.
+	* lread.c (syms_of_lread) <recursive-load-depth-limit>: Raise to 50.
 
 2001-10-23  Andreas Schwab  <schwab@suse.de>
 
@@ -225,7 +220,7 @@
 
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
-	* xterm.c (x_draw_glyphs): Remove parameters READ_START and 
+	* xterm.c (x_draw_glyphs): Remove parameters READ_START and
 	REAL_END.  Notice if cursor gets overwritten.
 	(notice_overwritten_cursor): Take X positions as parameters.
 	(x_draw_phys_cursor_glyph): Save state of w->phys_cursor_on_p
@@ -283,31 +278,30 @@
 	* keyboard.c (Ftrack_mouse): Add usage: string to doc string.
 	* print.c (Fwith_output_to_temp_buffer): Likewise.
 	* window.c (Fsave_window_excursion): Likewise.
-	* editfns.c (Fsave_excursion, Fsave_current_buffer) 
+	* editfns.c (Fsave_excursion, Fsave_current_buffer)
 	(Fsave_restriction): Likewise.
-	* eval.c (Frun_hooks, Frun_hook_with_args) 
-	(Frun_hook_with_args_until_failure) 
-	(Frun_hook_with_args_until_success, Ffuncall, For, Fand, Fif) 
-	(Fcond, Fprogn, Fprog1, Fprog2, Fsetq, Fquote, Ffunction, Fdefun) 
-	(Fdefmacro, Fdefvar, Fdefconst, FletX, Flet, Fwhile, Fcatch) 
+	* eval.c (Frun_hooks, Frun_hook_with_args)
+	(Frun_hook_with_args_until_failure)
+	(Frun_hook_with_args_until_success, Ffuncall, For, Fand, Fif)
+	(Fcond, Fprogn, Fprog1, Fprog2, Fsetq, Fquote, Ffunction, Fdefun)
+	(Fdefmacro, Fdefvar, Fdefconst, FletX, Flet, Fwhile, Fcatch)
 	(Funwind_protect, Fcondition_case): Likewise.
 	* coding.c (Ffind_operation_coding_system): Likewise.
 	* keyboard.c (Ftrack_mouse): Likewise.
 
 2001-10-21  Miles Bader  <miles@gnu.org>
 
-	* fns.c (Fappend, Fconcat, Fvconcat, Fnconc, Fwidget_apply) 
+	* fns.c (Fappend, Fconcat, Fvconcat, Fnconc, Fwidget_apply)
 	(Fmake_hash_table): Add usage: string to doc string.
 	* editfns.c (Finsert, Finsert_and_inherit, Finsert_before_markers)
-	(Fmessage, Fmessage_box, Fmessage_or_box, Fpropertize, Fformat) 
+	(Fmessage, Fmessage_box, Fmessage_or_box, Fpropertize, Fformat)
 	(Fencode_time, Finsert_and_inherit_before_markers): Likewise.
 	* mocklisp.c (Finsert_string, Fml_if, Fml_provide_prefix_argument)
 	(Fml_prefix_argument_loop): Likewise.
 
 2001-10-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* fileio.c (Finsert_file_contents): Remove unused variable
-	`gap_size'.
+	* fileio.c (Finsert_file_contents): Remove unused variable `gap_size'.
 
 	* sysdep.c (init_sys_modes): Change doc-string comments to `new
 	style' [w/`doc:' keyword].
@@ -324,7 +318,7 @@
 	(w32_mouse_position): Use it.
 	(note_mouse_movement): If the mouse moved off the glyph, remember
 	its new position.
-	
+
 	* w32term.h (struct w32_output): Correct spelling of x_compatible.
 	(w32_display_info): Add mouse_face_overlay.
 
@@ -427,7 +421,7 @@
 
 2001-10-21  Miles Bader  <miles@gnu.org>
 
-	* data.c (Fplus, Fminus, Fmax, Ftimes, Fquo, Flogand, Flogior) 
+	* data.c (Fplus, Fminus, Fmax, Ftimes, Fquo, Flogand, Flogior)
 	(Flogxor): Add usage: string to doc string.
 	* charset.c (Fstring): Likewise.
 	* callproc.c (Fcall_process_region, Fcall_process): Likewise.
@@ -450,15 +444,14 @@
 
 2001-10-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* xfns.c (x_laplace_read_row, x_laplace_write_row): Prototypes
-	removed.
+	* xfns.c (x_laplace_read_row, x_laplace_write_row): Prototypes removed.
 
 	* xdisp.c (invisible_text_between_p): Put prototype inside #if
 	0 because unused.
 
 	* bytecode.c, callint.c, callproc.c, casefiddle.c, casetab.c
-	* category.c, ccl.c, charset.c, process.c, syntax.c, window.c: Change
-	doc-string comments to `new style' [w/`doc:' keyword].
+	* category.c, ccl.c, charset.c, process.c, syntax.c, window.c:
+	Change doc-string comments to `new style' [w/`doc:' keyword].
 
 2001-10-20  Miles Bader  <miles@gnu.org>
 
@@ -468,19 +461,19 @@
 	* dispextern.h (struct glyph_row): Remove `inverse_p' field.
 	(reassert_line_highlight, change_line_highlight): Declarations removed.
 	* dispnew.c (update_frame_line): Don't call reassert_line_highlight.
-	(line_hash_code, row_equal_p, fake_current_matrices) 
-	(build_frame_matrix_from_leaf_window, update_frame_line) 
+	(line_hash_code, row_equal_p, fake_current_matrices)
+	(build_frame_matrix_from_leaf_window, update_frame_line)
 	(update_frame_line, update_frame_line, update_frame_line):
 	Don't use `inverse_p' field.
 	* xterm.c (x_initialize): Don't set reassert_line_highlight_hook or
 	change_line_highlight_hook.
 	(XTreassert_line_highlight, x_change_line_highlight):
 	Functions removed.
-	(x_fix_overlapping_area, x_write_glyphs, expose_area) 
+	(x_fix_overlapping_area, x_write_glyphs, expose_area)
 	(expose_line, x_erase_phys_cursor): Don't use `inverse_p' field.
 	* xdisp.c (dump_glyph_row, display_mode_line): Don't use
 	`inverse_p' field.
-	* w32term.c (x_fix_overlapping_area, x_write_glyphs, expose_area) 
+	* w32term.c (x_fix_overlapping_area, x_write_glyphs, expose_area)
 	(expose_line, x_erase_phys_cursor): Don't use `inverse_p' field.
 	(w32_reassert_line_highlight, x_change_line_highlight):
 	Functions removed.
@@ -489,8 +482,8 @@
 	(initialize_w32_display): Don't set reassert_line_highlight_hook
 	or change_line_highlight_hook.
 	(hl_mode): Function removed.
-	(reset_terminal_modes, set_terminal_modes, update_begin) 
-	(update_end, w32_face_attributes, initialize_w32_display): 
+	(reset_terminal_modes, set_terminal_modes, update_begin)
+	(update_end, w32_face_attributes, initialize_w32_display):
 	(clear_frame, ins_del_lines): Don't call it.
 	* termhooks.h (reassert_line_highlight_hook)
 	(change_line_highlight_hook): Declarations removed.
@@ -502,7 +495,7 @@
 	(internal_terminal_init): Don't set reassert_line_highlight_hook
 	or change_line_highlight_hook.
 	(highlight): Variable removed.
-	(IT_set_face, IT_update_begin, IT_update_end) 
+	(IT_set_face, IT_update_begin, IT_update_end)
 	(IT_set_terminal_modes): Don't set or use it.
 
 	The following changes remove inverse-video support for terminals
@@ -515,7 +508,7 @@
 	(update_end, highlight_if_desired): Don't use it.
 	(chars_wasted, copybuf): Variables removed.
 	(write_standout_marker): Function removed.
-	(cursor_to, clear_to_end, clear_frame, clear_end_of_line_raw) 
+	(cursor_to, clear_to_end, clear_frame, clear_end_of_line_raw)
 	(clear_end_of_line_raw, write_glyphs, ins_del_lines):
 	Don't use `chars_wasted' or `copybuf'.
 	(calculate_costs): Don't allocate `chars_wasted' or `copybuf'.
@@ -529,7 +522,7 @@
 	(TN_standout_width, TF_xs, TN_magic_cookie_glitch_ul): Vars removed.
 	(term_init): Don't set them.
 	Turn off any standout/underline modes that require magic cookies.
-	(ins_del_lines, highlight_if_desired, background_highlight) 
+	(ins_del_lines, highlight_if_desired, background_highlight)
 	(turn_on_highlight, turn_off_highlight, reset_terminal_modes):
 	Remove special processing for magic-cookie standout modes.
 	(turn_off_face, turn_on_face): Remove special processing for
@@ -656,20 +649,17 @@
 	(Fmake_variable_frame_local): Likewise.
 	* fns.c (concat, Fcopy_alist, Fwidget_put): Likewise.
 	* keymap.c (Fset_keymap_parent, store_in_keymap)
-	(accessible_keymaps_1, where_is_internal_2, Fcopy_keymap):
-	Likewise.
+	(accessible_keymaps_1, where_is_internal_2, Fcopy_keymap): Likewise.
 	* minibuf.c (get_minibuffer): Likewise.
 	* search.c (Fmatch_data): Likewise.
 	* textprop.c (extend_property_ranges): Likewise.
-	* undo.c (record_insert, Fundo_boundary, truncate_undo_list):
-	Likewise.
+	* undo.c (record_insert, Fundo_boundary, truncate_undo_list): Likewise.
 	* w32fns.c (w32_msg_pump, Fw32_register_hot_key, w32_list_fonts):
 	Likewise.
 	* w32term.c (x_delete_display): Likewise.
 	* xfaces.c (remove_duplicates, Finternal_set_lisp_face_attribute):
 	Likewise.
-	* xterm.c (x_list_fonts, x_load_font, x_delete_display):
-	Likewise.
+	* xterm.c (x_list_fonts, x_load_font, x_delete_display): Likewise.
 	* doc.c (store_function_docstring): Use XSETCARFASTINT.
 	* fileio.c (Fdo_auto_save): Use XSETCARFASTINT and XSETCDRFASTINT.
 	(Fread_file_name): Use XSETCAR.
