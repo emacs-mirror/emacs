@@ -1,3 +1,7 @@
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 21.1 released.
+
 2001-08-21  Andrew Choi  <akochoi@i-cable.com>
 
 	* macos.texi: Change mac-filename-to-unix and unix-filename-to-mac

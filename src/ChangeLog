@@ -1,3 +1,7 @@
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 21.1 released.
+
 2001-10-19  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (syms_of_eval): Doc fixes.

@@ -1,3 +1,7 @@
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 21.1 released.
+
 2000-07-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Activate.c (XMenuActivate): Call help callback with two more

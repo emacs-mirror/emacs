@@ -1,3 +1,7 @@
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 21.1 released.
+
 2001-10-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* build-configs: Add --help option.  Add support for building

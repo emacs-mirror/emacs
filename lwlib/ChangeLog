@@ -1,3 +1,7 @@
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 21.1 released.
+
 2001-04-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xlwmenu.c (xlwmenu_window_p): New function.

@@ -1,3 +1,7 @@
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 21.1 released.
+
 2001-09-04  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
 	* src/macmenu.c (mac_menu_show): Use refcon of selected menu item.
