@@ -88,9 +88,6 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
-** DCL mode has new variables `dcl-font-lock-keywords' and
-`dcl-font-lock-defaults' to support use of font-lock.
-
 ** The default for the paper size (variable ps-paper-type) is taken
 from the locale.
 
