@@ -10,6 +10,10 @@
 	functions.  Add some IN-FILTER and OUT-FILTER functions in the few
 	cases they're needed.
 
+	* wid-edit.el (checkbox): Add a small `X' to the the :on-glyph, so
+	that it's distinguishable from the :off-glyph on dark-background
+	displays.  Set its background color too.
+
 2000-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-diff.el: Moved variables around to have it compile under NT.
