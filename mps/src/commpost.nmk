@@ -13,7 +13,7 @@
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target to the all dependencies
 
-all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe mpsicv.exe \
+all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe awluthe.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe \
      abqtest.exe cbstest.exe btcv.exe mv2eptst.exe mv2test.exe \
@@ -23,7 +23,7 @@ all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe mpsicv.exe \
 # %%TARGET: Add a pseudo-target for the new target here, first rule for
 # variety-dependent targets, and second for variety-independent ones.
 
-mpmss.exe amcss.exe amcsshe.exe amsss.exe segsmss.exe awlut.exe dwstress.exe \
+mpmss.exe amcss.exe amcsshe.exe amsss.exe segsmss.exe awlut.exe awluthe.exe dwstress.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
      thw3susp.exe abqtest.exe cbstest.exe btcv.exe mv2eptst.exe \
@@ -152,6 +152,10 @@ $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
 
 $(PFM)\$(VARIETY)\awlut.exe:  $(PFM)\$(VARIETY)\awlut.obj \
 	$(PFM)\$(VARIETY)\fmtdy.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
+
+$(PFM)\$(VARIETY)\awluthe.exe:  $(PFM)\$(VARIETY)\awluthe.obj \
+	$(PFM)\$(VARIETY)\fmthe.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
 
 $(PFM)\$(VARIETY)\arenacv.exe:  $(PFM)\$(VARIETY)\arenacv.obj \
