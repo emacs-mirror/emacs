@@ -48,9 +48,13 @@ casify_object (flag, obj)
       if (INTEGERP (obj))
 	{
 	  c = DOWNCASE (obj);
-	  if (!inword && c == XFASTINT (obj))
-	    c = UPCASE1 (obj);
-	  XSETFASTINT (obj, c);
+	  if (inword)
+	    XSETFASTINT (obj, c);
+	  else if (c == XFASTINT (obj))
+	    {
+	      c = UPCASE1 (obj);
+	      XSETFASTINT (obj, c);
+	    }
 	  return obj;
 	}
       if (STRINGP (obj))
