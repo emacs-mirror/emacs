@@ -1,7 +1,7 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
- * $HopeName: MMsrc!cbs.c(trunk.19) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!cbs.c(trunk.20) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -19,7 +19,7 @@
 #include "mpm.h"
 
 
-SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.19) $");
+SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.20) $");
 
 
 /* See design.mps.cbs.align */
@@ -1160,9 +1160,8 @@ static Res CBSSplayNodeDescribe(SplayNode splayNode, mps_lib_FILE *stream)
  * See design.mps.cbs.function.cbs.iterate.
  */
 
-/* Internal version for enter/leave checking. */
-static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate,
-                               void *closureP, unsigned long closureS)
+/* Internal version without enter/leave checking. */
+static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate, void *closureP)
 {
   SplayNode splayNode;
   SplayTree splayTree;
@@ -1178,7 +1177,7 @@ static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate,
   splayNode = SplayTreeFirst(splayTree, NULL);
   while(splayNode != NULL) {
     cbsBlock = cbsBlockOfSplayNode(splayNode);
-    if (!(*iterate)(cbs, cbsBlock, closureP, closureS)) {
+    if (!(*iterate)(cbs, cbsBlock, closureP)) {
       break;
     }
     METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
@@ -1187,14 +1186,13 @@ static void cbsIterateInternal(CBS cbs, CBSIterateMethod iterate,
   return;
 }
 
-void CBSIterate(CBS cbs, CBSIterateMethod iterate,
-                void *closureP, unsigned long closureS)
+void CBSIterate(CBS cbs, CBSIterateMethod iterate, void *closureP)
 {
   AVERT(CBS, cbs);
   AVER(FUNCHECK(iterate));
   CBSEnter(cbs);
 
-  cbsIterateInternal(cbs, iterate, closureP, closureS);
+  cbsIterateInternal(cbs, iterate, closureP);
 
   CBSLeave(cbs);
   return;
@@ -1209,29 +1207,25 @@ void CBSIterate(CBS cbs, CBSIterateMethod iterate,
 
 typedef struct CBSIterateLargeClosureStruct {
   void *p;
-  unsigned long s;
   CBSIterateMethod f;
 } CBSIterateLargeClosureStruct, *CBSIterateLargeClosure;
 
-static Bool cbsIterateLargeAction(CBS cbs, CBSBlock block, 
-                                  void *p, unsigned long s)
+static Bool cbsIterateLargeAction(CBS cbs, CBSBlock block, void *p)
 {
   Bool b = TRUE;
   CBSIterateLargeClosure closure;
 
   closure = (CBSIterateLargeClosure)p;
   AVER(closure != NULL);
-  AVER(s == (unsigned long)0);
 
   if (CBSBlockSize(block) >= cbs->minSize)
-    b = (closure->f)(cbs, block, closure->p, closure->s);
+    b = (closure->f)(cbs, block, closure->p);
 
   return b;
 }
 
 
-void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate,
-                     void *closureP, unsigned long closureS)
+void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate, void *closureP)
 {
   CBSIterateLargeClosureStruct closure;
 
@@ -1241,11 +1235,8 @@ void CBSIterateLarge(CBS cbs, CBSIterateMethod iterate,
   AVER(FUNCHECK(iterate));
 
   closure.p = closureP;
-  closure.s = closureS;
   closure.f = iterate;
-
-  cbsIterateInternal(cbs, &cbsIterateLargeAction, 
-                     (void *)&closure, (unsigned long)0);
+  cbsIterateInternal(cbs, &cbsIterateLargeAction, (void *)&closure);
 
   CBSLeave(cbs);
   return;
@@ -1263,13 +1254,11 @@ typedef struct {
   Size new;
 } CBSSetMinSizeClosureStruct, *CBSSetMinSizeClosure;
 
-static Bool cbsSetMinSizeGrow(CBS cbs, CBSBlock block,
-                              void *p, unsigned long s)
+static Bool cbsSetMinSizeGrow(CBS cbs, CBSBlock block, void *p)
 {
   CBSSetMinSizeClosure closure;
   Size size;
   
-  UNUSED(s);
   closure = (CBSSetMinSizeClosure)p;
   AVER(closure->old > closure->new);
   size = CBSBlockSize(block);
@@ -1279,13 +1268,11 @@ static Bool cbsSetMinSizeGrow(CBS cbs, CBSBlock block,
   return TRUE;
 }
 
-static Bool cbsSetMinSizeShrink(CBS cbs, CBSBlock block,
-                                void *p, unsigned long s)
+static Bool cbsSetMinSizeShrink(CBS cbs, CBSBlock block, void *p)
 {
   CBSSetMinSizeClosure closure;
   Size size;
   
-  UNUSED(s);
   closure = (CBSSetMinSizeClosure)p;
   AVER(closure->old < closure->new);
   size = CBSBlockSize(block);
@@ -1295,7 +1282,8 @@ static Bool cbsSetMinSizeShrink(CBS cbs, CBSBlock block,
   return TRUE;
 }
 
-void CBSSetMinSize(CBS cbs, Size minSize) {
+void CBSSetMinSize(CBS cbs, Size minSize)
+{
   CBSSetMinSizeClosureStruct closure;
 
   AVERT(CBS, cbs);
@@ -1305,11 +1293,9 @@ void CBSSetMinSize(CBS cbs, Size minSize) {
   closure.new = minSize;
 
   if (minSize < cbs->minSize)
-    cbsIterateInternal(cbs, &cbsSetMinSizeGrow, 
-                       (void *)&closure, (unsigned long)0);
+    cbsIterateInternal(cbs, &cbsSetMinSizeGrow, (void *)&closure);
   else if (minSize > cbs->minSize)
-    cbsIterateInternal(cbs, &cbsSetMinSizeShrink, 
-                       (void *)&closure, (unsigned long)0);
+    cbsIterateInternal(cbs, &cbsSetMinSizeShrink, (void *)&closure);
 
   cbs->minSize = minSize;
 
