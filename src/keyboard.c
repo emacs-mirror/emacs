@@ -975,12 +975,12 @@ force_auto_save_soon ()
 }
 
 DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
-  "Invoke the editor command loop recursively.\n\
-To get out of the recursive edit, a command can do `(throw 'exit nil)';\n\
-that tells this function to return.\n\
-Alternately, `(throw 'exit t)' makes this function signal an error.\n\
-This function is called by the editor initialization to begin editing.")
-  ()
+       doc: /* Invoke the editor command loop recursively.
+To get out of the recursive edit, a command can do `(throw 'exit nil)';
+that tells this function to return.
+Alternately, `(throw 'exit t)' makes this function signal an error.
+This function is called by the editor initialization to begin editing.  */)
+     ()
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object buffer;
@@ -1266,8 +1266,8 @@ top_level_1 ()
 }
 
 DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
-  "Exit all recursive editing levels.")
-  ()
+       doc: /* Exit all recursive editing levels.  */)
+     ()
 {
 #ifdef HAVE_X_WINDOWS
   if (display_hourglass_p)
@@ -1277,8 +1277,8 @@ DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
 }
 
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
-  "Exit from the innermost recursive edit or minibuffer.")
-  ()
+       doc: /* Exit from the innermost recursive edit or minibuffer.  */)
+     ()
 {
   if (command_loop_level > 0 || minibuf_level > 0)
     Fthrow (Qexit, Qnil);
@@ -1288,8 +1288,8 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
 }
 
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 0, "",
-  "Abort the command that requested this recursive edit or minibuffer input.")
-  ()
+       doc: /* Abort the command that requested this recursive edit or minibuffer input.  */)
+     ()
 {
   if (command_loop_level > 0 || minibuf_level > 0)
     Fthrow (Qexit, Qt);
@@ -3110,12 +3110,12 @@ tracking_off (old_value)
 }
 
 DEFUN ("track-mouse", Ftrack_mouse, Strack_mouse, 0, UNEVALLED, 0,
-  "Evaluate BODY with mouse movement events enabled.\n\
-Within a `track-mouse' form, mouse motion generates input events that\n\
-you can read with `read-event'.\n\
-Normally, mouse motion is ignored.\n\
-usage: (track-mouse BODY ...)")
-  (args)
+       doc: /* Evaluate BODY with mouse movement events enabled.
+Within a `track-mouse' form, mouse motion generates input events that
+you can read with `read-event'.
+Normally, mouse motion is ignored.
+usage: (track-mouse BODY ...)  */)
+     (args)
      Lisp_Object args;
 {
   int count = specpdl_ptr - specpdl;
@@ -5864,13 +5864,13 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
    event type as a number or a symbol.  */
 
 DEFUN ("event-convert-list", Fevent_convert_list, Sevent_convert_list, 1, 1, 0,
-  "Convert the event description list EVENT-DESC to an event type.\n\
-EVENT-DESC should contain one base event type (a character or symbol)\n\
-and zero or more modifier names (control, meta, hyper, super, shift, alt,\n\
-drag, down, double or triple).  The base must be last.\n\
-The return value is an event type (a character or symbol) which\n\
-has the same base event type and all the specified modifiers.")
-  (event_desc)
+       doc: /* Convert the event description list EVENT-DESC to an event type.
+EVENT-DESC should contain one base event type (a character or symbol)
+and zero or more modifier names (control, meta, hyper, super, shift, alt,
+drag, down, double or triple).  The base must be last.
+The return value is an event type (a character or symbol) which
+has the same base event type and all the specified modifiers.  */)
+     (event_desc)
      Lisp_Object event_desc;
 {
   Lisp_Object base;
@@ -8977,60 +8977,53 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   return t;
 }
 
-#if 0 /* This doc string is too long for some compilers.
-	 This commented-out definition serves for DOC.  */
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
-  "Read a sequence of keystrokes and return as a string or vector.\n\
-The sequence is sufficient to specify a non-prefix command in the\n\
-current local and global maps.\n\
-\n\
-First arg PROMPT is a prompt string.  If nil, do not prompt specially.\n\
-Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos\n\
-as a continuation of the previous key.\n\
-\n\
-The third (optional) arg DONT-DOWNCASE-LAST, if non-nil, means do not\n\
-convert the last event to lower case.  (Normally any upper case event\n\
-is converted to lower case if the original event is undefined and the lower\n\
-case equivalent is defined.)  A non-nil value is appropriate for reading\n\
-a key sequence to be defined.\n\
-\n\
-A C-g typed while in this function is treated like any other character,\n\
-and `quit-flag' is not set.\n\
-\n\
-If the key sequence starts with a mouse click, then the sequence is read\n\
-using the keymaps of the buffer of the window clicked in, not the buffer\n\
-of the selected window as normal.\n\
-""\n\
-`read-key-sequence' drops unbound button-down events, since you normally\n\
-only care about the click or drag events which follow them.  If a drag\n\
-or multi-click event is unbound, but the corresponding click event would\n\
-be bound, `read-key-sequence' turns the event into a click event at the\n\
-drag's starting position.  This means that you don't have to distinguish\n\
-between click and drag, double, or triple events unless you want to.\n\
-\n\
-`read-key-sequence' prefixes mouse events on mode lines, the vertical\n\
-lines separating windows, and scroll bars with imaginary keys\n\
-`mode-line', `vertical-line', and `vertical-scroll-bar'.\n\
-\n\
-Optional fourth argument CAN-RETURN-SWITCH-FRAME non-nil means that this\n\
-function will process a switch-frame event if the user switches frames\n\
-before typing anything.  If the user switches frames in the middle of a\n\
-key sequence, or at the start of the sequence but CAN-RETURN-SWITCH-FRAME\n\
-is nil, then the event will be put off until after the current key sequence.\n\
-\n\
-`read-key-sequence' checks `function-key-map' for function key\n\
-sequences, where they wouldn't conflict with ordinary bindings.  See\n\
-`function-key-map' for more details.\n\
-\n\
-The optional fifth argument COMMAND-LOOP, if non-nil, means\n\
-that this key sequence is being read by something that will\n\
-read commands one after another.  It should be nil if the caller\n\
-will read just one key sequence.")
-  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame, command-loop)
-#endif
-
 DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
-  0)
+       doc: /* Read a sequence of keystrokes and return as a string or vector.
+The sequence is sufficient to specify a non-prefix command in the
+current local and global maps.
+
+First arg PROMPT is a prompt string.  If nil, do not prompt specially.
+Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos
+as a continuation of the previous key.
+
+The third (optional) arg DONT-DOWNCASE-LAST, if non-nil, means do not
+convert the last event to lower case.  (Normally any upper case event
+is converted to lower case if the original event is undefined and the lower
+case equivalent is defined.)  A non-nil value is appropriate for reading
+a key sequence to be defined.
+
+A C-g typed while in this function is treated like any other character,
+and `quit-flag' is not set.
+
+If the key sequence starts with a mouse click, then the sequence is read
+using the keymaps of the buffer of the window clicked in, not the buffer
+of the selected window as normal.
+
+`read-key-sequence' drops unbound button-down events, since you normally
+only care about the click or drag events which follow them.  If a drag
+or multi-click event is unbound, but the corresponding click event would
+be bound, `read-key-sequence' turns the event into a click event at the
+drag's starting position.  This means that you don't have to distinguish
+between click and drag, double, or triple events unless you want to.
+
+`read-key-sequence' prefixes mouse events on mode lines, the vertical
+lines separating windows, and scroll bars with imaginary keys
+`mode-line', `vertical-line', and `vertical-scroll-bar'.
+
+Optional fourth argument CAN-RETURN-SWITCH-FRAME non-nil means that this
+function will process a switch-frame event if the user switches frames
+before typing anything.  If the user switches frames in the middle of a
+key sequence, or at the start of the sequence but CAN-RETURN-SWITCH-FRAME
+is nil, then the event will be put off until after the current key sequence.
+
+`read-key-sequence' checks `function-key-map' for function key
+sequences, where they wouldn't conflict with ordinary bindings.  See
+`function-key-map' for more details.
+
+The optional fifth argument COMMAND-LOOP, if non-nil, means
+that this key sequence is being read by something that will
+read commands one after another.  It should be nil if the caller
+will read just one key sequence.  */)
   (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
    command_loop)
      Lisp_Object prompt, continue_echo, dont_downcase_last;
@@ -9089,9 +9082,9 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 5, 0,
 
 DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
        Sread_key_sequence_vector, 1, 5, 0,
-  "Like `read-key-sequence' but always return a vector.")
-  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
-   command_loop)
+       doc: /* Like `read-key-sequence' but always return a vector.  */)
+     (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
+      command_loop)
      Lisp_Object prompt, continue_echo, dont_downcase_last;
      Lisp_Object can_return_switch_frame, command_loop;
 {
@@ -9143,15 +9136,15 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
 }
 
 DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 4, 0,
- "Execute CMD as an editor command.\n\
-CMD must be a symbol that satisfies the `commandp' predicate.\n\
-Optional second arg RECORD-FLAG non-nil\n\
-means unconditionally put this command in `command-history'.\n\
-Otherwise, that is done only if an arg is read using the minibuffer.\n\
-The argument KEYS specifies the value to use instead of (this-command-keys)\n\
-when reading the arguments; if it is nil, (this-command-keys) is used.\n\
-The argument SPECIAL, if non-nil, means that this command is executing\n\
-a special event, so ignore the prefix argument and don't clear it.")
+       doc: /* Execute CMD as an editor command.
+CMD must be a symbol that satisfies the `commandp' predicate.
+Optional second arg RECORD-FLAG non-nil
+means unconditionally put this command in `command-history'.
+Otherwise, that is done only if an arg is read using the minibuffer.
+The argument KEYS specifies the value to use instead of (this-command-keys)
+when reading the arguments; if it is nil, (this-command-keys) is used.
+The argument SPECIAL, if non-nil, means that this command is executing
+a special event, so ignore the prefix argument and don't clear it.  */)
      (cmd, record_flag, keys, special)
      Lisp_Object cmd, record_flag, keys, special;
 {
@@ -9243,9 +9236,9 @@ a special event, so ignore the prefix argument and don't clear it.")
 
 
 DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_command,
-  1, 1, "P",
-  "Read function name, then read its arguments and call it.")
-  (prefixarg)
+       1, 1, "P",
+       doc: /* Read function name, then read its arguments and call it.  */)
+     (prefixarg)
      Lisp_Object prefixarg;
 {
   Lisp_Object function;
@@ -9496,9 +9489,9 @@ requeued_events_pending_p ()
 
 
 DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
-  "T if command input is currently available with no waiting.\n\
-Actually, the value is nil only if we can be sure that no input is available.")
-  ()
+       doc: /* T if command input is currently available with no waiting.
+Actually, the value is nil only if we can be sure that no input is available.  */)
+     ()
 {
   if (!NILP (Vunread_command_events) || unread_command_char != -1)
     return (Qt);
@@ -9508,8 +9501,8 @@ Actually, the value is nil only if we can be sure that no input is available.")
 }
 
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
-  "Return vector of last 100 events, not counting those from keyboard macros.")
-  ()
+       doc: /* Return vector of last 100 events, not counting those from keyboard macros.  */)
+     ()
 {
   Lisp_Object *keys = XVECTOR (recent_keys)->contents;
   Lisp_Object val;
@@ -9530,17 +9523,17 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
 }
 
 DEFUN ("this-command-keys", Fthis_command_keys, Sthis_command_keys, 0, 0, 0,
-  "Return the key sequence that invoked this command.\n\
-The value is a string or a vector.")
-  ()
+       doc: /* Return the key sequence that invoked this command.
+The value is a string or a vector.  */)
+     ()
 {
   return make_event_array (this_command_key_count,
 			   XVECTOR (this_command_keys)->contents);
 }
 
 DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys_vector, 0, 0, 0,
-  "Return the key sequence that invoked this command, as a vector.")
-  ()
+       doc: /* Return the key sequence that invoked this command, as a vector.  */)
+     ()
 {
   return Fvector (this_command_key_count,
 		  XVECTOR (this_command_keys)->contents);
@@ -9548,11 +9541,11 @@ DEFUN ("this-command-keys-vector", Fthis_command_keys_vector, Sthis_command_keys
 
 DEFUN ("this-single-command-keys", Fthis_single_command_keys,
        Sthis_single_command_keys, 0, 0, 0,
-  "Return the key sequence that invoked this command.\n\
-Unlike `this-command-keys', this function's value\n\
-does not include prefix arguments.\n\
-The value is always a vector.")
-  ()
+       doc: /* Return the key sequence that invoked this command.
+Unlike `this-command-keys', this function's value
+does not include prefix arguments.
+The value is always a vector.  */)
+     ()
 {
   return Fvector (this_command_key_count
 		  - this_single_command_key_start,
@@ -9562,30 +9555,30 @@ The value is always a vector.")
 
 DEFUN ("this-single-command-raw-keys", Fthis_single_command_raw_keys,
        Sthis_single_command_raw_keys, 0, 0, 0,
-  "Return the raw events that were read for this command.\n\
-Unlike `this-single-command-keys', this function's value\n\
-shows the events before all translations (except for input methods).\n\
-The value is always a vector.")
-  ()
+       doc: /* Return the raw events that were read for this command.
+Unlike `this-single-command-keys', this function's value
+shows the events before all translations (except for input methods).
+The value is always a vector.  */)
+     ()
 {
   return Fvector (raw_keybuf_count,
 		  (XVECTOR (raw_keybuf)->contents));
 }
 
 DEFUN ("reset-this-command-lengths", Freset_this_command_lengths,
-  Sreset_this_command_lengths, 0, 0, 0,
-  "Used for complicated reasons in `universal-argument-other-key'.\n\
-\n\
-`universal-argument-other-key' rereads the event just typed.\n\
-It then gets translated through `function-key-map'.\n\
-The translated event gets included in the echo area and in\n\
-the value of `this-command-keys' in addition to the raw original event.\n\
-That is not right.\n\
-\n\
-Calling this function directs the translated event to replace\n\
-the original event, so that only one version of the event actually\n\
-appears in the echo area and in the value of `this-command-keys.'.")
-  ()
+       Sreset_this_command_lengths, 0, 0, 0,
+       doc: /* Used for complicated reasons in `universal-argument-other-key'.
+
+`universal-argument-other-key' rereads the event just typed.
+It then gets translated through `function-key-map'.
+The translated event gets included in the echo area and in
+the value of `this-command-keys' in addition to the raw original event.
+That is not right.
+
+Calling this function directs the translated event to replace
+the original event, so that only one version of the event actually
+appears in the echo area and in the value of `this-command-keys'.  */)
+     ()
 {
   before_command_restore_flag = 1;
   before_command_key_count_1 = before_command_key_count;
@@ -9594,10 +9587,10 @@ appears in the echo area and in the value of `this-command-keys.'.")
 }
 
 DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
-  Sclear_this_command_keys, 0, 0, 0,
-  "Clear out the vector that `this-command-keys' returns.\n\
-Clear vector containing last 100 events.")
-  ()
+       Sclear_this_command_keys, 0, 0, 0,
+       doc: /* Clear out the vector that `this-command-keys' returns.
+Clear vector containing last 100 events.  */)
+     ()
 {
   int i;
   
@@ -9611,8 +9604,8 @@ Clear vector containing last 100 events.")
 }
 
 DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
-  "Return the current depth in recursive edits.")
-  ()
+       doc: /* Return the current depth in recursive edits.  */)
+     ()
 {
   Lisp_Object temp;
   XSETFASTINT (temp, command_loop_level + minibuf_level);
@@ -9620,10 +9613,10 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
 }
 
 DEFUN ("open-dribble-file", Fopen_dribble_file, Sopen_dribble_file, 1, 1,
-  "FOpen dribble file: ",
-  "Start writing all keyboard characters to a dribble file called FILE.\n\
-If FILE is nil, close any open dribble file.")
-  (file)
+       "FOpen dribble file: ",
+       doc: /* Start writing all keyboard characters to a dribble file called FILE.
+If FILE is nil, close any open dribble file.  */)
+     (file)
      Lisp_Object file;
 {
   if (dribble)
@@ -9642,9 +9635,9 @@ If FILE is nil, close any open dribble file.")
 }
 
 DEFUN ("discard-input", Fdiscard_input, Sdiscard_input, 0, 0, 0,
-  "Discard the contents of the terminal input buffer.\n\
-Also cancel any kbd macro being defined.")
-  ()
+       doc: /* Discard the contents of the terminal input buffer.
+Also cancel any kbd macro being defined.  */)
+     ()
 {
   current_kboard->defining_kbd_macro = Qnil;
   update_mode_lines++;
@@ -9662,18 +9655,19 @@ Also cancel any kbd macro being defined.")
 }
 
 DEFUN ("suspend-emacs", Fsuspend_emacs, Ssuspend_emacs, 0, 1, "",
-  "Stop Emacs and return to superior process.  You can resume later.\n\
-If `cannot-suspend' is non-nil, or if the system doesn't support job\n\
-control, run a subshell instead.\n\n\
-If optional arg STUFFSTRING is non-nil, its characters are stuffed\n\
-to be read as terminal input by Emacs's parent, after suspension.\n\
-\n\
-Before suspending, run the normal hook `suspend-hook'.\n\
-After resumption run the normal hook `suspend-resume-hook'.\n\
-\n\
-Some operating systems cannot stop the Emacs process and resume it later.\n\
-On such systems, Emacs starts a subshell instead of suspending.")
-  (stuffstring)
+       doc: /* Stop Emacs and return to superior process.  You can resume later.
+If `cannot-suspend' is non-nil, or if the system doesn't support job
+control, run a subshell instead.
+
+If optional arg STUFFSTRING is non-nil, its characters are stuffed
+to be read as terminal input by Emacs's parent, after suspension.
+
+Before suspending, run the normal hook `suspend-hook'.
+After resumption run the normal hook `suspend-resume-hook'.
+
+Some operating systems cannot stop the Emacs process and resume it later.
+On such systems, Emacs starts a subshell instead of suspending.  */)
+     (stuffstring)
      Lisp_Object stuffstring;
 {
   int count = specpdl_ptr - specpdl;
@@ -9972,17 +9966,17 @@ quit_throw_to_read_char ()
 }
 
 DEFUN ("set-input-mode", Fset_input_mode, Sset_input_mode, 3, 4, 0,
-  "Set mode of reading keyboard input.\n\
-First arg INTERRUPT non-nil means use input interrupts;\n\
- nil means use CBREAK mode.\n\
-Second arg FLOW non-nil means use ^S/^Q flow control for output to terminal\n\
- (no effect except in CBREAK mode).\n\
-Third arg META t means accept 8-bit input (for a Meta key).\n\
- META nil means ignore the top bit, on the assumption it is parity.\n\
- Otherwise, accept 8-bit input and don't use the top bit for Meta.\n\
-Optional fourth arg QUIT if non-nil specifies character to use for quitting.\n\
-See also `current-input-mode'.")
-  (interrupt, flow, meta, quit)
+       doc: /* Set mode of reading keyboard input.
+First arg INTERRUPT non-nil means use input interrupts;
+ nil means use CBREAK mode.
+Second arg FLOW non-nil means use ^S/^Q flow control for output to terminal
+ (no effect except in CBREAK mode).
+Third arg META t means accept 8-bit input (for a Meta key).
+ META nil means ignore the top bit, on the assumption it is parity.
+ Otherwise, accept 8-bit input and don't use the top bit for Meta.
+Optional fourth arg QUIT if non-nil specifies character to use for quitting.
+See also `current-input-mode'.  */)
+     (interrupt, flow, meta, quit)
      Lisp_Object interrupt, flow, meta, quit;
 {
   if (!NILP (quit)
@@ -10044,20 +10038,20 @@ See also `current-input-mode'.")
 }
 
 DEFUN ("current-input-mode", Fcurrent_input_mode, Scurrent_input_mode, 0, 0, 0,
-  "Return information about the way Emacs currently reads keyboard input.\n\
-The value is a list of the form (INTERRUPT FLOW META QUIT), where\n\
-  INTERRUPT is non-nil if Emacs is using interrupt-driven input; if\n\
-    nil, Emacs is using CBREAK mode.\n\
-  FLOW is non-nil if Emacs uses ^S/^Q flow control for output to the\n\
-    terminal; this does not apply if Emacs uses interrupt-driven input.\n\
-  META is t if accepting 8-bit input with 8th bit as Meta flag.\n\
-    META nil means ignoring the top bit, on the assumption it is parity.\n\
-    META is neither t nor nil if accepting 8-bit input and using\n\
-    all 8 bits as the character code.\n\
-  QUIT is the character Emacs currently uses to quit.\n\
-The elements of this list correspond to the arguments of\n\
-`set-input-mode'.")
-  ()
+       doc: /* Return information about the way Emacs currently reads keyboard input.
+The value is a list of the form (INTERRUPT FLOW META QUIT), where
+  INTERRUPT is non-nil if Emacs is using interrupt-driven input; if
+    nil, Emacs is using CBREAK mode.
+  FLOW is non-nil if Emacs uses ^S/^Q flow control for output to the
+    terminal; this does not apply if Emacs uses interrupt-driven input.
+  META is t if accepting 8-bit input with 8th bit as Meta flag.
+    META nil means ignoring the top bit, on the assumption it is parity.
+    META is neither t nor nil if accepting 8-bit input and using
+    all 8 bits as the character code.
+  QUIT is the character Emacs currently uses to quit.
+The elements of this list correspond to the arguments of
+`set-input-mode'.  */)
+     ()
 {
   Lisp_Object val[4];
 
@@ -10492,377 +10486,377 @@ syms_of_keyboard ()
   defsubr (&Sexecute_extended_command);
 
   DEFVAR_LISP ("last-command-char", &last_command_char,
-    "Last input event that was part of a command.");
+	       doc: /* Last input event that was part of a command.  */);
 
   DEFVAR_LISP_NOPRO ("last-command-event", &last_command_char,
-    "Last input event that was part of a command.");
+		     doc: /* Last input event that was part of a command.  */);
 
   DEFVAR_LISP ("last-nonmenu-event", &last_nonmenu_event,
-    "Last input event in a command, except for mouse menu events.\n\
-Mouse menus give back keys that don't look like mouse events;\n\
-this variable holds the actual mouse event that led to the menu,\n\
-so that you can determine whether the command was run by mouse or not.");
+	       doc: /* Last input event in a command, except for mouse menu events.
+Mouse menus give back keys that don't look like mouse events;
+this variable holds the actual mouse event that led to the menu,
+so that you can determine whether the command was run by mouse or not.  */);
 
   DEFVAR_LISP ("last-input-char", &last_input_char,
-    "Last input event.");
+	       doc: /* Last input character.  */);
 
   DEFVAR_LISP_NOPRO ("last-input-event", &last_input_char,
-    "Last input event.");
+		     doc: /* Last input event.  */);
 
   DEFVAR_LISP ("unread-command-events", &Vunread_command_events,
-    "List of events to be read as the command input.\n\
-These events are processed first, before actual keyboard input.");
+	       doc: /* List of events to be read as the command input.
+These events are processed first, before actual keyboard input.  */);
   Vunread_command_events = Qnil;
 
   DEFVAR_INT ("unread-command-char", &unread_command_char,
-    "If not -1, an object to be read as next command input event.");
+	      doc: /* If not -1, an object to be read as next command input event.  */);
 
   DEFVAR_LISP ("unread-post-input-method-events", &Vunread_post_input_method_events,
-    "List of events to be processed as input by input methods.\n\
-These events are processed after `unread-command-events', but\n\
-before actual keyboard input.");
+	       doc: /* List of events to be processed as input by input methods.
+These events are processed after `unread-command-events', but
+before actual keyboard input.  */);
   Vunread_post_input_method_events = Qnil;
 
   DEFVAR_LISP ("unread-input-method-events", &Vunread_input_method_events,
-    "List of events to be processed as input by input methods.\n\
-These events are processed after `unread-command-events', but\n\
-before actual keyboard input.");
+	       doc: /* List of events to be processed as input by input methods.
+These events are processed after `unread-command-events', but
+before actual keyboard input.  */);
   Vunread_input_method_events = Qnil;
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
-    "Meta-prefix character code.\n\
-Meta-foo as command input turns into this character followed by foo.");
+	       doc: /* Meta-prefix character code.
+Meta-foo as command input turns into this character followed by foo.  */);
   XSETINT (meta_prefix_char, 033);
 
   DEFVAR_KBOARD ("last-command", Vlast_command,
-    "The last command executed.\n\
-Normally a symbol with a function definition, but can be whatever was found\n\
-in the keymap, or whatever the variable `this-command' was set to by that\n\
-command.\n\
-\n\
-The value `mode-exit' is special; it means that the previous command\n\
-read an event that told it to exit, and it did so and unread that event.\n\
-In other words, the present command is the event that made the previous\n\
-command exit.\n\
-\n\
-The value `kill-region' is special; it means that the previous command\n\
-was a kill command.");
+		 doc: /* The last command executed.
+Normally a symbol with a function definition, but can be whatever was found
+in the keymap, or whatever the variable `this-command' was set to by that
+command.
+
+The value `mode-exit' is special; it means that the previous command
+read an event that told it to exit, and it did so and unread that event.
+In other words, the present command is the event that made the previous
+command exit.
+
+The value `kill-region' is special; it means that the previous command
+was a kill command.  */);
 
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
-    "Same as `last-command', but never altered by Lisp code.");
+		 doc: /* Same as `last-command', but never altered by Lisp code.  */);
 
   DEFVAR_LISP ("this-command", &Vthis_command,
-    "The command now being executed.\n\
-The command can set this variable; whatever is put here\n\
-will be in `last-command' during the following command.");
+	       doc: /* The command now being executed.
+The command can set this variable; whatever is put here
+will be in `last-command' during the following command.  */);
   Vthis_command = Qnil;
 
   DEFVAR_INT ("auto-save-interval", &auto_save_interval,
-    "*Number of input events between auto-saves.\n\
-Zero means disable autosaving due to number of characters typed.");
+	      doc: /* *Number of input events between auto-saves.
+Zero means disable autosaving due to number of characters typed.  */);
   auto_save_interval = 300;
 
   DEFVAR_LISP ("auto-save-timeout", &Vauto_save_timeout,
-    "*Number of seconds idle time before auto-save.\n\
-Zero or nil means disable auto-saving due to idleness.\n\
-After auto-saving due to this many seconds of idle time,\n\
-Emacs also does a garbage collection if that seems to be warranted.");
+	       doc: /* *Number of seconds idle time before auto-save.
+Zero or nil means disable auto-saving due to idleness.
+After auto-saving due to this many seconds of idle time,
+Emacs also does a garbage collection if that seems to be warranted.  */);
   XSETFASTINT (Vauto_save_timeout, 30);
 
   DEFVAR_LISP ("echo-keystrokes", &Vecho_keystrokes,
-    "*Nonzero means echo unfinished commands after this many seconds of pause.\n\
-The value may be integer or floating point.");
+	       doc: /* *Nonzero means echo unfinished commands after this many seconds of pause.
+The value may be integer or floating point.  */);
   Vecho_keystrokes = make_number (1);
 
   DEFVAR_INT ("polling-period", &polling_period,
-    "*Interval between polling for input during Lisp execution.\n\
-The reason for polling is to make C-g work to stop a running program.\n\
-Polling is needed only when using X windows and SIGIO does not work.\n\
-Polling is automatically disabled in all other cases.");
+	      doc: /* *Interval between polling for input during Lisp execution.
+The reason for polling is to make C-g work to stop a running program.
+Polling is needed only when using X windows and SIGIO does not work.
+Polling is automatically disabled in all other cases.  */);
   polling_period = 2;
 
   DEFVAR_LISP ("double-click-time", &Vdouble_click_time,
-    "*Maximum time between mouse clicks to make a double-click.\n\
-Measured in milliseconds.  nil means disable double-click recognition;\n\
-t means double-clicks have no time limit and are detected\n\
-by position only.");
+	       doc: /* *Maximum time between mouse clicks to make a double-click.
+Measured in milliseconds.  nil means disable double-click recognition;
+t means double-clicks have no time limit and are detected
+by position only.  */);
   Vdouble_click_time = make_number (500);
 
   DEFVAR_INT ("double-click-fuzz", &double_click_fuzz,
-    "*Maximum mouse movement between clicks to make a double-click.\n\
-On window-system frames, value is the number of pixels the mouse may have\n\
-moved horizontally or vertically between two clicks to make a double-click.\n\
-On non window-system frames, value is interpreted in units of 1/8 characters\n\
-instead of pixels.");
+	      doc: /* *Maximum mouse movement between clicks to make a double-click.
+On window-system frames, value is the number of pixels the mouse may have
+moved horizontally or vertically between two clicks to make a double-click.
+On non window-system frames, value is interpreted in units of 1/8 characters
+instead of pixels.  */);
   double_click_fuzz = 3;
   
   DEFVAR_BOOL ("inhibit-local-menu-bar-menus", &inhibit_local_menu_bar_menus,
-    "*Non-nil means inhibit local map menu bar menus.");
+	       doc: /* *Non-nil means inhibit local map menu bar menus.  */);
   inhibit_local_menu_bar_menus = 0;
 
   DEFVAR_INT ("num-input-keys", &num_input_keys,
-    "Number of complete key sequences read as input so far.\n\
-This includes key sequences read from keyboard macros.\n\
-The number is effectively the number of interactive command invocations.");
+	      doc: /* Number of complete key sequences read as input so far.
+This includes key sequences read from keyboard macros.
+The number is effectively the number of interactive command invocations.  */);
   num_input_keys = 0;
 
   DEFVAR_INT ("num-nonmacro-input-events", &num_nonmacro_input_events,
-    "Number of input events read from the keyboard so far.\n\
-This does not include events generated by keyboard macros.");
+	      doc: /* Number of input events read from the keyboard so far.
+This does not include events generated by keyboard macros.  */);
   num_nonmacro_input_events = 0;
 
   DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
-    "The frame in which the most recently read event occurred.\n\
-If the last event came from a keyboard macro, this is set to `macro'.");
+	       doc: /* The frame in which the most recently read event occurred.
+If the last event came from a keyboard macro, this is set to `macro'.  */);
   Vlast_event_frame = Qnil;
 
   /* This variable is set up in sysdep.c.  */
   DEFVAR_LISP ("tty-erase-char", &Vtty_erase_char,
-    "The ERASE character as set by the user with stty.");
+	       doc: /* The ERASE character as set by the user with stty.  */);
 
   DEFVAR_LISP ("help-char", &Vhelp_char,
-    "Character to recognize as meaning Help.\n\
-When it is read, do `(eval help-form)', and display result if it's a string.\n\
-If the value of `help-form' is nil, this char can be read normally.");
+	       doc: /* Character to recognize as meaning Help.
+When it is read, do `(eval help-form)', and display result if it's a string.
+If the value of `help-form' is nil, this char can be read normally.  */);
   XSETINT (Vhelp_char, Ctl ('H'));
 
   DEFVAR_LISP ("help-event-list", &Vhelp_event_list,
-    "List of input events to recognize as meaning Help.\n\
-These work just like the value of `help-char' (see that).");
+	       doc: /* List of input events to recognize as meaning Help.
+These work just like the value of `help-char' (see that).  */);
   Vhelp_event_list = Qnil;
 
   DEFVAR_LISP ("help-form", &Vhelp_form,
-    "Form to execute when character `help-char' is read.\n\
-If the form returns a string, that string is displayed.\n\
-If `help-form' is nil, the help char is not recognized.");
+	       doc: /* Form to execute when character `help-char' is read.
+If the form returns a string, that string is displayed.
+If `help-form' is nil, the help char is not recognized.  */);
   Vhelp_form = Qnil;
 
   DEFVAR_LISP ("prefix-help-command", &Vprefix_help_command,
-    "Command to run when `help-char' character follows a prefix key.\n\
-This command is used only when there is no actual binding\n\
-for that character after that prefix key.");
+	       doc: /* Command to run when `help-char' character follows a prefix key.
+This command is used only when there is no actual binding
+for that character after that prefix key.  */);
   Vprefix_help_command = Qnil;
 
   DEFVAR_LISP ("top-level", &Vtop_level,
-    "Form to evaluate when Emacs starts up.\n\
-Useful to set before you dump a modified Emacs.");
+	       doc: /* Form to evaluate when Emacs starts up.
+Useful to set before you dump a modified Emacs.  */);
   Vtop_level = Qnil;
 
   DEFVAR_LISP ("keyboard-translate-table", &Vkeyboard_translate_table,
-    "Translate table for keyboard input, or nil.\n\
-Each character is looked up in this string and the contents used instead.\n\
-The value may be a string, a vector, or a char-table.\n\
-If it is a string or vector of length N,\n\
-character codes N and up are untranslated.\n\
-In a vector or a char-table, an element which is nil means \"no translation\".");
+	       doc: /* Translate table for keyboard input, or nil.
+Each character is looked up in this string and the contents used instead.
+The value may be a string, a vector, or a char-table.
+If it is a string or vector of length N,
+character codes N and up are untranslated.
+In a vector or a char-table, an element which is nil means "no translation".  */);
   Vkeyboard_translate_table = Qnil;
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
-    "Non-nil means to always spawn a subshell instead of suspending.\n\
-\(Even if the operating system has support for stopping a process.\)");
+	       doc: /* Non-nil means to always spawn a subshell instead of suspending.
+\(Even if the operating system has support for stopping a process.\)  */);
   cannot_suspend = 0;
 
   DEFVAR_BOOL ("menu-prompting", &menu_prompting,
-    "Non-nil means prompt with menus when appropriate.\n\
-This is done when reading from a keymap that has a prompt string,\n\
-for elements that have prompt strings.\n\
-The menu is displayed on the screen\n\
-if X menus were enabled at configuration\n\
-time and the previous event was a mouse click prefix key.\n\
-Otherwise, menu prompting uses the echo area.");
+	       doc: /* Non-nil means prompt with menus when appropriate.
+This is done when reading from a keymap that has a prompt string,
+for elements that have prompt strings.
+The menu is displayed on the screen
+if X menus were enabled at configuration
+time and the previous event was a mouse click prefix key.
+Otherwise, menu prompting uses the echo area.  */);
   menu_prompting = 1;
 
   DEFVAR_LISP ("menu-prompt-more-char", &menu_prompt_more_char,
-    "Character to see next line of menu prompt.\n\
-Type this character while in a menu prompt to rotate around the lines of it.");
+	       doc: /* Character to see next line of menu prompt.
+Type this character while in a menu prompt to rotate around the lines of it.  */);
   XSETINT (menu_prompt_more_char, ' ');
 
   DEFVAR_INT ("extra-keyboard-modifiers", &extra_keyboard_modifiers,
-    "A mask of additional modifier keys to use with every keyboard character.\n\
-Emacs applies the modifiers of the character stored here to each keyboard\n\
-character it reads.  For example, after evaluating the expression\n\
-    (setq extra-keyboard-modifiers ?\\C-x)\n\
-all input characters will have the control modifier applied to them.\n\
-\n\
-Note that the character ?\\C-@, equivalent to the integer zero, does\n\
-not count as a control character; rather, it counts as a character\n\
-with no modifiers; thus, setting `extra-keyboard-modifiers' to zero\n\
-cancels any modification.");
+	      doc: /* A mask of additional modifier keys to use with every keyboard character.
+Emacs applies the modifiers of the character stored here to each keyboard
+character it reads.  For example, after evaluating the expression
+    (setq extra-keyboard-modifiers ?\\C-x)
+all input characters will have the control modifier applied to them.
+
+Note that the character ?\\C-@, equivalent to the integer zero, does
+not count as a control character; rather, it counts as a character
+with no modifiers; thus, setting `extra-keyboard-modifiers' to zero
+cancels any modification.  */);
   extra_keyboard_modifiers = 0;
 
   DEFVAR_LISP ("deactivate-mark", &Vdeactivate_mark,
-    "If an editing command sets this to t, deactivate the mark afterward.\n\
-The command loop sets this to nil before each command,\n\
-and tests the value when the command returns.\n\
-Buffer modification stores t in this variable.");
+	       doc: /* If an editing command sets this to t, deactivate the mark afterward.
+The command loop sets this to nil before each command,
+and tests the value when the command returns.
+Buffer modification stores t in this variable.  */);
   Vdeactivate_mark = Qnil;
 
   DEFVAR_LISP ("command-hook-internal", &Vcommand_hook_internal,
-    "Temporary storage of pre-command-hook or post-command-hook.");
+	       doc: /* Temporary storage of pre-command-hook or post-command-hook.  */);
   Vcommand_hook_internal = Qnil;
 
   DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
-    "Normal hook run before each command is executed.\n\
-If an unhandled error happens in running this hook,\n\
-the hook value is set to nil, since otherwise the error\n\
-might happen repeatedly and make Emacs nonfunctional.");
+	       doc: /* Normal hook run before each command is executed.
+If an unhandled error happens in running this hook,
+the hook value is set to nil, since otherwise the error
+might happen repeatedly and make Emacs nonfunctional.  */);
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", &Vpost_command_hook,
-    "Normal hook run after each command is executed.\n\
-If an unhandled error happens in running this hook,\n\
-the hook value is set to nil, since otherwise the error\n\
-might happen repeatedly and make Emacs nonfunctional.");
+	       doc: /* Normal hook run after each command is executed.
+If an unhandled error happens in running this hook,
+the hook value is set to nil, since otherwise the error
+might happen repeatedly and make Emacs nonfunctional.  */);
   Vpost_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-idle-hook", &Vpost_command_idle_hook,
-    "Normal hook run after each command is executed, if idle.\n\
-Errors running the hook are caught and ignored.\n\
-This feature is obsolete; use idle timers instead.  See `etc/NEWS'.");
+	       doc: /* Normal hook run after each command is executed, if idle.
+Errors running the hook are caught and ignored.
+This feature is obsolete; use idle timers instead.  See `etc/NEWS'.  */);
   Vpost_command_idle_hook = Qnil;
 
   DEFVAR_INT ("post-command-idle-delay", &post_command_idle_delay,
-    "Delay time before running `post-command-idle-hook'.\n\
-This is measured in microseconds.");
+	      doc: /* Delay time before running `post-command-idle-hook'.
+This is measured in microseconds.  */);
   post_command_idle_delay = 100000;
 
 #if 0
   DEFVAR_LISP ("echo-area-clear-hook", ...,
-    "Normal hook run when clearing the echo area.");
+	       doc: /* Normal hook run when clearing the echo area.  */);
 #endif
   Qecho_area_clear_hook = intern ("echo-area-clear-hook");
   SET_SYMBOL_VALUE (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
-    "t means menu bar, specified Lucid style, needs to be recomputed.");
+	       doc: /* t means menu bar, specified Lucid style, needs to be recomputed.  */);
   Vlucid_menu_bar_dirty_flag = Qnil;
 
   DEFVAR_LISP ("menu-bar-final-items", &Vmenu_bar_final_items,
-    "List of menu bar items to move to the end of the menu bar.\n\
-The elements of the list are event types that may have menu bar bindings.");
+	       doc: /* List of menu bar items to move to the end of the menu bar.
+The elements of the list are event types that may have menu bar bindings.  */);
   Vmenu_bar_final_items = Qnil;
 
   DEFVAR_KBOARD ("overriding-terminal-local-map",
 		 Voverriding_terminal_local_map,
-    "Per-terminal keymap that overrides all other local keymaps.\n\
-If this variable is non-nil, it is used as a keymap instead of the\n\
-buffer's local map, and the minor mode keymaps and text property keymaps.\n\
-This variable is intended to let commands such as `universal-argument'\n\
-set up a different keymap for reading the next command.");
+		 doc: /* Per-terminal keymap that overrides all other local keymaps.
+If this variable is non-nil, it is used as a keymap instead of the
+buffer's local map, and the minor mode keymaps and text property keymaps.
+This variable is intended to let commands such as `universal-argument'
+set up a different keymap for reading the next command.  */);
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
-    "Keymap that overrides all other local keymaps.\n\
-If this variable is non-nil, it is used as a keymap instead of the\n\
-buffer's local map, and the minor mode keymaps and text property keymaps.");
+	       doc: /* Keymap that overrides all other local keymaps.
+If this variable is non-nil, it is used as a keymap instead of the
+buffer's local map, and the minor mode keymaps and text property keymaps.  */);
   Voverriding_local_map = Qnil;
 
   DEFVAR_LISP ("overriding-local-map-menu-flag", &Voverriding_local_map_menu_flag,
-    "Non-nil means `overriding-local-map' applies to the menu bar.\n\
-Otherwise, the menu bar continues to reflect the buffer's local map\n\
-and the minor mode maps regardless of `overriding-local-map'.");
+	       doc: /* Non-nil means `overriding-local-map' applies to the menu bar.
+Otherwise, the menu bar continues to reflect the buffer's local map
+and the minor mode maps regardless of `overriding-local-map'.  */);
   Voverriding_local_map_menu_flag = Qnil;
 
   DEFVAR_LISP ("special-event-map", &Vspecial_event_map,
-    "Keymap defining bindings for special events to execute at low level.");
+	       doc: /* Keymap defining bindings for special events to execute at low level.  */);
   Vspecial_event_map = Fcons (intern ("keymap"), Qnil);
 
   DEFVAR_LISP ("track-mouse", &do_mouse_tracking,
-    "*Non-nil means generate motion events for mouse motion.");
+	       doc: /* *Non-nil means generate motion events for mouse motion.  */);
 
   DEFVAR_KBOARD ("system-key-alist", Vsystem_key_alist,
-    "Alist of system-specific X windows key symbols.\n\
-Each element should have the form (N . SYMBOL) where N is the\n\
-numeric keysym code (sans the \"system-specific\" bit 1<<28)\n\
-and SYMBOL is its name.");
+		 doc: /* Alist of system-specific X windows key symbols.
+Each element should have the form (N . SYMBOL) where N is the
+numeric keysym code (sans the \"system-specific\" bit 1<<28)
+and SYMBOL is its name.  */);
 
   DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
-    "List of deferred actions to be performed at a later time.\n\
-The precise format isn't relevant here; we just check whether it is nil.");
+	       doc: /* List of deferred actions to be performed at a later time.
+The precise format isn't relevant here; we just check whether it is nil.  */);
   Vdeferred_action_list = Qnil;
 
   DEFVAR_LISP ("deferred-action-function", &Vdeferred_action_function,
-    "Function to call to handle deferred actions, after each command.\n\
-This function is called with no arguments after each command\n\
-whenever `deferred-action-list' is non-nil.");
+	       doc: /* Function to call to handle deferred actions, after each command.
+This function is called with no arguments after each command
+whenever `deferred-action-list' is non-nil.  */);
   Vdeferred_action_function = Qnil;
 
   DEFVAR_LISP ("suggest-key-bindings", &Vsuggest_key_bindings,
-    "*Non-nil means show the equivalent key-binding when M-x command has one.\n\
-The value can be a length of time to show the message for.\n\
-If the value is non-nil and not a number, we wait 2 seconds.");
+	       doc: /* *Non-nil means show the equivalent key-binding when M-x command has one.
+The value can be a length of time to show the message for.
+If the value is non-nil and not a number, we wait 2 seconds.  */);
   Vsuggest_key_bindings = Qt;
 
   DEFVAR_LISP ("timer-list", &Vtimer_list,
-    "List of active absolute time timers in order of increasing time");
+	       doc: /* List of active absolute time timers in order of increasing time.  */);
   Vtimer_list = Qnil;
 
   DEFVAR_LISP ("timer-idle-list", &Vtimer_idle_list,
-    "List of active idle-time timers in order of increasing time");
+	       doc: /* List of active idle-time timers in order of increasing time.  */);
   Vtimer_idle_list = Qnil;
 
   DEFVAR_LISP ("input-method-function", &Vinput_method_function,
-    "If non-nil, the function that implements the current input method.\n\
-It's called with one argument, a printing character that was just read.\n\
-\(That means a character with code 040...0176.)\n\
-Typically this function uses `read-event' to read additional events.\n\
-When it does so, it should first bind `input-method-function' to nil\n\
-so it will not be called recursively.\n\
-\n\
-The function should return a list of zero or more events\n\
-to be used as input.  If it wants to put back some events\n\
-to be reconsidered, separately, by the input method,\n\
-it can add them to the beginning of `unread-command-events'.\n\
-\n\
-The input method function can find in `input-method-previous-method'\n\
-the previous echo area message.\n\
-\n\
-The input method function should refer to the variables\n\
-`input-method-use-echo-area' and `input-method-exit-on-first-char'\n\
-for guidance on what to do.");
+	       doc: /* If non-nil, the function that implements the current input method.
+It's called with one argument, a printing character that was just read.
+\(That means a character with code 040...0176.)
+Typically this function uses `read-event' to read additional events.
+When it does so, it should first bind `input-method-function' to nil
+so it will not be called recursively.
+
+The function should return a list of zero or more events
+to be used as input.  If it wants to put back some events
+to be reconsidered, separately, by the input method,
+it can add them to the beginning of `unread-command-events'.
+
+The input method function can find in `input-method-previous-method'
+the previous echo area message.
+
+The input method function should refer to the variables
+`input-method-use-echo-area' and `input-method-exit-on-first-char'
+for guidance on what to do.  */);
   Vinput_method_function = Qnil;
 
   DEFVAR_LISP ("input-method-previous-message",
 	       &Vinput_method_previous_message,
-    "When `input-method-function' is called, hold the previous echo area message.\n\
-This variable exists because `read-event' clears the echo area\n\
-before running the input method.  It is nil if there was no message.");
+	       doc: /* When `input-method-function' is called, hold the previous echo area message.
+This variable exists because `read-event' clears the echo area
+before running the input method.  It is nil if there was no message.  */);
   Vinput_method_previous_message = Qnil;
 
   DEFVAR_LISP ("show-help-function", &Vshow_help_function,
-    "If non-nil, the function that implements the display of help.\n\
-It's called with one argument, the help string to display.");
+	       doc: /* If non-nil, the function that implements the display of help.
+It's called with one argument, the help string to display.  */);
   Vshow_help_function = Qnil;
 
   DEFVAR_LISP ("disable-point-adjustment", &Vdisable_point_adjustment,
-    "If non-nil, suppress point adjustment after executing a command.\n\
-\n\
-After a command is executed, if point is moved into a region that has\n\
-special properties (e.g. composition, display), we adjust point to\n\
-the boundary of the region.  But, several special commands sets this\n\
-variable to non-nil, then we suppress the point adjustment.\n\
-\n\
-This variable is set to nil before reading a command, and is checked\n\
-just after executing the command");
+	       doc: /* If non-nil, suppress point adjustment after executing a command.
+
+After a command is executed, if point is moved into a region that has
+special properties (e.g. composition, display), we adjust point to
+the boundary of the region.  But, several special commands sets this
+variable to non-nil, then we suppress the point adjustment.
+
+This variable is set to nil before reading a command, and is checked
+just after executing the command.  */);
   Vdisable_point_adjustment = Qnil;
 
   DEFVAR_LISP ("global-disable-point-adjustment",
 	       &Vglobal_disable_point_adjustment,
-    "*If non-nil, always suppress point adjustment.\n\
-\n\
-The default value is nil, in which case, point adjustment are\n\
-suppressed only after special commands that set\n\
-`disable-point-adjustment' (which see) to non-nil.");
+	       doc: /* *If non-nil, always suppress point adjustment.
+
+The default value is nil, in which case, point adjustment are
+suppressed only after special commands that set
+`disable-point-adjustment' (which see) to non-nil.  */);
   Vglobal_disable_point_adjustment = Qnil;
 
   DEFVAR_BOOL ("update-menu-bindings", &update_menu_bindings,
-    "Non-nil means updating menu bindings is allowed.\n\
-A value of nil means menu bindings should not be updated.\n\
-Used during Emacs' startup.");
+	       doc: /* Non-nil means updating menu bindings is allowed.
+A value of nil means menu bindings should not be updated.
+Used during Emacs' startup.  */);
   update_menu_bindings = 1;
 
   DEFVAR_LISP ("minibuffer-message-timeout", &Vminibuffer_message_timeout,
-    "*How long to display an echo-area message when the minibuffer is active.\n\
-If the value is not a number, such messages don't time out.");
+	       doc: /* *How long to display an echo-area message when the minibuffer is active.
+If the value is not a number, such messages don't time out.  */);
   Vminibuffer_message_timeout = make_number (2);
 }
 
