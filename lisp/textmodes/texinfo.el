@@ -422,7 +422,8 @@ chapter."
     ["Insert block"	texinfo-insert-block	t]
     ;; ["Insert node"	texinfo-insert-@node	t]
     "----"
-    ["Update All"	(lambda () (interactive) (texinfo-master-menu t)) t]
+    ["Update All"	(lambda () (interactive) (texinfo-master-menu t))
+     :keys "\\[universal-argument] \\[texinfo-master-menu]"]
     ["Update every node" texinfo-every-node-update t]
     ["Update node"	texinfo-update-node	t]
     ["Make Master menu"	texinfo-master-menu	t]
