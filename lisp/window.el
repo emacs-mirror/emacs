@@ -442,6 +442,8 @@ header-line."
 
   (when (null window)
     (setq window (selected-window)))
+  (when (null max-height)
+    (setq max-height (frame-height (window-frame window))))
 
   (let* ((window-height
 	  ;; The current height of WINDOW
@@ -458,11 +460,7 @@ header-line."
 	 (delta
 	  ;; Calculate how much the window height has to change to show
 	  ;; text-height lines, constrained by MIN-HEIGHT and MAX-HEIGHT.
-	  (- (max (min (+ text-height extra)
-		       (or max-height
-			   (frame-height
-			    (window-frame
-			     (or window (selected-window))))))
+	  (- (max (min (+ text-height extra) max-height)
 		  (or min-height window-min-height))
 	     window-height))
 	 ;; We do our own height checking, so avoid any restrictions due to
