@@ -5143,10 +5143,11 @@ get_next_display_element (it)
 					 it->face_id);
 		}
 
-	      if (it->c == 0x8a0 || it->c == 0x8ad)
+	      if (it->c == 0x8a0 || it->c == 0x8ad
+		  || it->c == 0xf20 || it->c == 0xf2d)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  g = it->c == 0x8ad ? '-' : ' ';
+		  g = it->c;
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
 		  goto display_control;
