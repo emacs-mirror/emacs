@@ -1,7 +1,14 @@
 2000-12-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el (mode-line-mode-menu): Add glasses-mode.
+	
 	* bindings.el (mode-line-mode-menu): Reverse the order
 	of define-keys so that the menu appears in alphabetical order.
+
+2000-12-07  Milan Zamazal  <pdm@freesoft.cz>
+
+	* progmodes/glasses.el (glasses-mode): Update mode line at the end
+	of the function.
 
 2000-12-07  Dave Love  <fx@gnu.org>
 

@@ -1,3 +1,7 @@
+2000-12-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (xm_arm_callback): Fix last change.
+
 2000-11-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xm.c (xm_arm_callback): Handle case that W is null;
