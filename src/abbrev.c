@@ -24,6 +24,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "window.h"
+#include "syntax.h"
 
 /* An abbrev table is an obarray.
  Each defined abbrev is represented by a symbol in that obarray
@@ -318,16 +319,15 @@ Returns t if expansion took place.")
   else if (uccount)
     {
       /* Abbrev included some caps.  Cap first initial of expansion */
-      int old_zv = ZV;
-      int old_pt = point;
+      int pos = wordstart;
 
-      /* Don't let Fcapitalize_word operate on text after point.  */
-      ZV = point;
-      SET_PT (wordstart);
-      Fcapitalize_word (make_number (1));
+      /* Find the initial.  */
+      while (pos < point
+	     && SYNTAX (*BUF_CHAR_ADDRESS (current_buffer, pos)) != Sword)
+	pos++;
 
-      SET_PT (old_pt);
-      ZV = old_zv;
+      /* Change just that.  */
+      Fupcase_initials_region (make_number (pos), make_number (pos + 1));
     }
 
   hook = XSYMBOL (sym)->function;
