@@ -2305,6 +2305,17 @@ void
 msdos_downcase_filename (p)
      register unsigned char *p;
 {
+  /* Always lower-case drive letters a-z, even if the filesystem
+     preserves case in filenames.
+     This is so MSDOS filenames could be compared by string comparison
+     functions that are case-sensitive.  Even case-preserving filesystems
+     do not distinguish case in drive letters.  */
+  if (p[1] == ':' && *p >= 'A' && *p <= 'Z')
+    {
+      *p += 'a' - 'A';
+      p += 2;
+    }
+
   /* Under LFN we expect to get pathnames in their true case.  */
   if (NILP (Fmsdos_long_file_names ()))
     for ( ; *p; p++)
