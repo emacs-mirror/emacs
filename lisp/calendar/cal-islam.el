@@ -137,7 +137,6 @@ Driven by the variable `calendar-date-display-form'."
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
 
-;;;###autoload
 (defun calendar-goto-islamic-date (date &optional noecho)
   "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is t."
   (interactive
