@@ -1,3 +1,9 @@
+2004-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element): If
+	unibyte_display_via_language_environment is zero, display 8-bit
+	chars in octal in unibyte buffer.
+
 2004-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* doc.c (Fsubstitute_command_keys): Ignore remappings unless there
