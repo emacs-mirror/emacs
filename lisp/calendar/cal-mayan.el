@@ -60,7 +60,8 @@
   "Number of days of the Mayan calendar epoch before absolute day 0.
 According to the Goodman-Martinez-Thompson correlation.  This correlation is
 not universally accepted, as it still a subject of astro-archeological
-research.  Using 1232041 will give you the correlation used by Spinden.")
+research.  Using 1232041 will give you Spinden's correlation; using
+1142840 will give you Hochleitner's correlation.")
 
 (defconst calendar-mayan-haab-at-epoch '(8 . 18)
   "Mayan haab date at the epoch.")
