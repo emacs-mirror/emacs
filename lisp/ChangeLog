@@ -1,3 +1,8 @@
+2003-05-27  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* bindings.el (global-map): Bind M-S-<backspace to
+	kill-whole-line.
+
 2003-05-26  John Paul Wallington  <jpw@gnu.org>
 
 	* faces.el (display-supports-face-attributes-p): Doc fix.
