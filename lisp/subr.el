@@ -1467,7 +1467,7 @@ Strip text properties from the inserted text according to
 If STRING has a non-nil `yank-handler' property on the first character,
 the normal insert behaviour is modified in various ways.  The value of
 the yank-handler property must be a list with one to five elements
-with the following format:  (FUNCTION PARAM NOEXCLUDE UNDO COMMAND).
+with the following format:  (FUNCTION PARAM NOEXCLUDE UNDO).
 When FUNCTION is present and non-nil, it is called instead of `insert'
  to insert the string.  FUNCTION takes one argument--the object to insert.
 If PARAM is present and non-nil, it replaces STRING as the object
@@ -1481,11 +1481,7 @@ If NOEXCLUDE is present and non-nil, the normal removal of the
 If UNDO is present and non-nil, it is a function that will be called
  by `yank-pop' to undo the insertion of the current object.  It is
  called with two arguments, the start and end of the current region. 
- FUNCTION may set `yank-undo-function' to override the UNDO value.
-If COMMAND is present and non-nil, `this-command' is set to COMMAND
- after calling FUNCTION (or insert).  Note that setting `this-command'
- to a value different from `yank' will prevent `yank-pop' from undoing
- this yank."
+ FUNCTION may set `yank-undo-function' to override the UNDO value."
   (let* ((handler (and (stringp string)
 		       (get-text-property 0 'yank-handler string)))
 	 (param (or (nth 1 handler) string))
