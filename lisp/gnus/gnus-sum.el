@@ -136,9 +136,9 @@ which only takes Subjects into consideration; and
 `gnus-gather-threads-by-references', which compared the References
 headers of the articles to find matches."
   :group 'gnus-thread
-  :type '(set (function-item gnus-gather-threads-by-subject)
-	      (function-item gnus-gather-threads-by-references)
-	      (function :tag "other")))
+  :type '(radio (function-item gnus-gather-threads-by-subject)
+		(function-item gnus-gather-threads-by-references)
+		(function :tag "other")))
 
 ;; Added by Per Abrahamsen <amanda@iesd.auc.dk>.
 (defcustom gnus-summary-same-subject ""
