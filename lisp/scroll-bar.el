@@ -114,6 +114,38 @@ EVENT should be a scroll bar click or drag event."
 	(beginning-of-line)
 	(set-window-start window (point))))))
 
+(defun scroll-bar-drag-position (portion-whole)
+  "Calculate new window start for drag event."
+  (save-excursion
+    (goto-char (+ (point-min)
+		  (scroll-bar-scale portion-whole
+				    (- (point-max) (point-min)))))
+    (beginning-of-line)
+    (point)))
+
+(defun scroll-bar-maybe-set-window-start (event)
+  "Set the window start according to where the scroll bar is dragged.
+Only change window start if the new start is substantially different.
+EVENT should be a scroll bar click or drag event."
+  (interactive "e")
+  (let* ((end-position (event-end event))
+	 (window (nth 0 end-position))
+	 (portion-whole (nth 2 end-position))
+	 (next-portion-whole (cons (1+ (car portion-whole))
+				   (cdr portion-whole)))
+	 portion-start
+	 next-portion-start
+	 (current-start (window-start window)))
+    (save-excursion
+      (set-buffer (window-buffer window))
+      (setq portion-start (scroll-bar-drag-position portion-whole))
+      (setq next-portion-start (max
+				(scroll-bar-drag-position next-portion-whole)
+				(1+ portion-start)))
+      (if (or (> current-start next-portion-start)
+	      (< current-start portion-start))
+	  (set-window-start window portion-start)))))
+
 ;; Scroll the window to the proper position for EVENT.
 (defun scroll-bar-drag-1 (event)
   (let* ((start-position (event-start event))
