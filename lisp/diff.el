@@ -31,12 +31,22 @@
 
 (require 'compile)
 
-;;; This is duplicated in vc.el.
-(defvar diff-switches "-c"
-  "*A string or list of strings specifying switches to be be passed to diff.")
+;;;###autoload
+(defgroup diff nil
+  "Comparing files with `diff'."
+  :group 'tools)
 
-(defvar diff-command "diff"
-  "*The command to use to run diff.")
+;;;###autoload
+(defcustom diff-switches "-c"
+  "*A string or list of strings specifying switches to be be passed to diff."
+  :type '(choice string (repeat string))
+  :group 'diff)
+
+;;;###autoload
+(defcustom diff-command "diff"
+  "*The command to use to run diff."
+  :type string
+  :group 'diff)
 
 (defvar diff-regexp-alist
   '(
