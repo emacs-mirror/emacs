@@ -1,7 +1,26 @@
+2001-12-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (kbd_buffer_store_event): Fix interrupt_signal prototype.
+	Pass a dummy argument when calling interrupt_signal.
+	(parse_menu_item): Mark disabled items before checking for empty def.
+	(read_char_minibuf_menu_prompt): Make safety more visible.
+	(read_key_sequence): Add a `first_unbound' variable.
+	Use it to detect C-c ESC ESC ESC ESC ... cases and drop the
+	unbound prefix as soon as we can detect it.
+
+	* doc.c (Fsnarf_documentation): Add prototype.
+	(get_doc_string): Handle negative arguments.
+	(Fdocumentation): Use AREF and ASIZE.
+	Move the calls to get_doc_string to a single place.
+	Don't confuse an interactive-spec for a docstring reference.
+	(Fdocumentation_property): Take advantage of the fact that
+	get_doc_string now ignores the sign of the docstring position.
+
+	* eval.c: Use standard syntax for usage in docstrings.
+
 2001-12-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* xdisp.c (syms_of_xdisp): Make `tool-bar-button-relief` an
-	option.
+	* xdisp.c (syms_of_xdisp): Make `tool-bar-button-relief` an option.
 
 2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
