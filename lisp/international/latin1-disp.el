@@ -171,7 +171,7 @@ character set: `latin-2', `hebrew' etc."
 	   (if font-pattern
 	       (progn
 		 ;; Now FONT-PATTERN is a string or a cons of family
-		 ;; field pattern and registry filed pattern.
+		 ;; field pattern and registry field pattern.
 		 (or (stringp font-pattern)
 		     (setq font-pattern (concat (or (car font-pattern) "*")
 						"-*-"
@@ -272,7 +272,8 @@ is.  If FORCE is non-nil, set up the display regardless."
        '((?ƒ¡ "/H")
 	 (?ƒ¢ "~`" "'(")
 	 (?ƒ¦ "^H" "H^")
-	 (?ƒ¶ "^h" "h^")	 (?ƒ© ".I" "I^.")
+	 (?ƒ¶ "^h" "h^")
+	 (?ƒ© ".I" "I^.")
 	 (?ƒª ",S")
 	 (?ƒ« "~G" "G(")
 	 (?ƒ¬ "^J" "J^")
