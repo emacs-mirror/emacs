@@ -540,10 +540,9 @@ starting from the left edge column of the rectangle.
 Replace rectangle contents with @var{string} on each line.
 (@code{string-rectangle}).
 @item M-x replace-rectangle @key{RET} @var{string} @key{RET}
-Replaces each line of the region-rectangle with @var{string}
-(@code{string-rectangle}).
+Replace each line of the region-rectangle with @var{string}.
 @item M-x string-insert-rectangle @key{RET} @var{string} @key{RET}
-Insert @var{STRING} on each line of the rectangle.
+Insert @var{string} on each line of the rectangle.
 @end table
 
   The rectangle operations fall into two classes: commands deleting and
