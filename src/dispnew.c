@@ -183,7 +183,8 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   CHECK_LIVE_FRAME (frame, 0);
   f = XFRAME (frame);
   update_begin (f);
-  /*  set_terminal_modes (); */
+  if (FRAME_MSDOS_P (f))
+    set_terminal_modes ();
   clear_frame ();
   clear_frame_records (f);
   update_end (f);
@@ -399,7 +400,8 @@ remake_frame_glyphs (frame)
   FRAME_CURRENT_GLYPHS (frame) = make_frame_glyphs (frame, 0);
   FRAME_DESIRED_GLYPHS (frame) = make_frame_glyphs (frame, 0);
   FRAME_TEMP_GLYPHS (frame) = make_frame_glyphs (frame, 1);
-  if (! FRAME_TERMCAP_P (frame) || frame == selected_frame)
+  if (! FRAME_TERMCAP_P (frame) && ! FRAME_MSDOS_P (frame)
+      || frame == selected_frame)
     SET_FRAME_GARBAGED (frame);
 }
 
@@ -1117,7 +1119,7 @@ direct_output_for_insert (g)
 #ifdef HAVE_FACES
     int dummy;
 
-    if (FRAME_WINDOW_P (frame))
+    if (FRAME_WINDOW_P (frame) || FRAME_MSDOS_P (frame))
       face = compute_char_face (frame, w, point - 1, -1, -1, &dummy, point, 0);
 #endif
     current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (frame, g, face);
@@ -2103,12 +2105,12 @@ change_frame_size (f, newheight, newwidth, pretend, delay)
      int newheight, newwidth, pretend;
 {
   Lisp_Object tail, frame;
-  if (FRAME_TERMCAP_P (f))
+  if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
     {
-      /* When using termcap, all frames use the same screen,
-	 so a change in size affects all termcap frames.  */
+      /* When using termcap, or on MS-DOS, all frames use
+	 the same screen, so a change in size affects all frames.  */
       FOR_EACH_FRAME (tail, frame)
-	if (FRAME_TERMCAP_P (XFRAME (frame)))
+	if (FRAME_TERMCAP_P (XFRAME (frame)) || FRAME_MSDOS_P (XFRAME (frame)))
 	  change_frame_size_1 (XFRAME (frame), newheight, newwidth,
 			       pretend, delay);
     }
