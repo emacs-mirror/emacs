@@ -142,6 +142,7 @@ frame.  Select one of them, such as @samp{menubar}, then select
 @samp{Show Resource Box} from the @samp{Commands} menu.  This displays
 a list of all the meaningful X resources and allows you to edit them.
 Changes take effect immediately if you click on the @samp{Apply} button.
+(See the @code{editres} man page for more details.)
 
 @node Table of Resources
 @appendixsec Table of X Resources for Emacs
@@ -392,15 +393,22 @@ In the menu bar, the color of the foreground for a selected item.
 @item horizontalSpacing
 Horizontal spacing in pixels between items.  Default is 3.
 @item verticalSpacing
-Vertical spacing in pixels between items.  Default is 1.
+Vertical spacing in pixels between items.  Default is 2.
 @item arrowSpacing
 Horizontal spacing between the arrow (which indicates a submenu) and
 the associated text.  Default is 10.
 @item shadowThickness
-Thickness of shadow line around the widget.
+Thickness of shadow line around the widget.  Default is 1.
+
+Also determines the thickness of shadow lines around other objects,
+for instance 3D buttons and arrows.  If you have the impression that
+the arrows in the menus do not stand out clearly enough or that the
+difference between ``in'' and ``out'' buttons is difficult to see, set
+this to 2.  If you have no problems with visibility, the default
+probably looks better.  The background color may also have some effect
+on the contrast.
 @item margin
-The margin of the menu bar, in characters.  The default of 4 makes the
-menu bar appear like the LessTif/Motif one.
+The margin of the menu bar, in characters.  Default is 1.
 @end table
 
 @node LessTif Resources
