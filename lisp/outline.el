@@ -808,7 +808,7 @@ Show the heading too, if it is currently invisible."
     (save-excursion
       (outline-back-to-heading t)
       (show-entry)
-      (while (condition-case nil (progn (outline-up-heading 1) (not (bobp)))
+      (while (condition-case nil (progn (outline-up-heading 1 t) (not (bobp)))
 	       (error nil))
 	(outline-flag-region (1- (point))
 			     (save-excursion (forward-line 1) (point))
