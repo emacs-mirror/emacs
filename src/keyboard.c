@@ -900,6 +900,7 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
 
 Lisp_Object Fcommand_execute ();
 static int read_key_sequence ();
+static void safe_run_hooks ();
 
 Lisp_Object
 command_loop_1 ()
@@ -926,16 +927,7 @@ command_loop_1 ()
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
   if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-    {
-      /* If we get an error during the post-command-hook,
-	 cause post-command-hook to be nil.  */
-      Vcommand_hook_internal = Vpost_command_hook;
-      Vpost_command_hook = Qnil;
-
-      call1 (Vrun_hooks, Qcommand_hook_internal);
-      
-      Vpost_command_hook = Vcommand_hook_internal;
-    }
+    safe_run_hooks (&Vpost_command_hook);
 
   /* Do this after running Vpost_command_hook, for consistency.  */
   last_command = this_command;
@@ -1057,16 +1049,7 @@ command_loop_1 ()
 
       this_command = cmd;
       if (!NILP (Vpre_command_hook) && !NILP (Vrun_hooks))
-	{
-	  /* If we get an error during the pre-command-hook,
-	     cause pre-command-hook to be nil.  */
-	  Vcommand_hook_internal = Vpre_command_hook;
-	  Vpre_command_hook = Qnil;
-
-	  call1 (Vrun_hooks, Qcommand_hook_internal);
-
-	  Vpre_command_hook = Vcommand_hook_internal;
-	}
+	safe_run_hooks (&Vpre_command_hook);
 
       if (NILP (this_command))
 	{
@@ -1194,16 +1177,7 @@ command_loop_1 ()
     directly_done: ;
 
       if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-	{
-	  /* If we get an error during the post-command-hook,
-	     cause post-command-hook to be nil.  */
-	  Vcommand_hook_internal = Vpost_command_hook;
-	  Vpost_command_hook = Qnil;
-
-	  call1 (Vrun_hooks, Qcommand_hook_internal);
-
-	  Vpost_command_hook = Vcommand_hook_internal;
-	}
+	safe_run_hooks (&Vpost_command_hook);
 
       /* If there is a prefix argument,
 	 1) We don't want last_command to be ``universal-argument''
@@ -1232,6 +1206,24 @@ command_loop_1 ()
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
 	}
     }
+}
+
+/* If we get an error while running the hook, cause the hook variable
+   to be nil.  Also inhibit quits, so that C-g won't cause the hook
+   to mysteriously evaporate.  */
+static void
+safe_run_hooks (hook)
+     Lisp_Object *hook;
+{
+  int count = specpdl_ptr - specpdl;
+  specbind (Qinhibit_quit, Qt);
+
+  Vcommand_hook_internal = *hook;
+  *hook = Qnil;
+  call1 (Vrun_hooks, Qcommand_hook_internal);
+  *hook = Vcommand_hook_internal;
+
+  unbind_to (count, Qnil);
 }
 
 /* Number of seconds between polling for input.  */
