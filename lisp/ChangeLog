@@ -1,3 +1,17 @@
+2004-10-19  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode): Doc fix.
+
+	* eshell/em-unix.el (eshell-grep):
+	Don't bind compilation-process-setup-function.
+
+	* comint.el (comint-insert-input): Use @ in `interactive'.
+	(comint-input-filter-functions): Doc fix.
+	(comint-kill-whole-line, comint-get-source): Doc fix.
+
+	* progmodes/compile.el (compilation-setup):
+	Don't set buffer-read-only if MINOR is non-nil.
+
 2004-10-19  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el: Set coding to utf-8.

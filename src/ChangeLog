@@ -26,10 +26,9 @@
 	arguments left and width to xg_update_scrollbar_pos.
 	(XTset_vertical_scroll_bar): Do x_clear_area for USE_GTK also.
 
-2004-10-19  Kim F. Storm  <storm@cua.dk>
+2004-10-19  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (display_mode_element): Fix display of wide chars.
-	From Kenichi Handa  <handa@m17n.org>.
 
 2004-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -41,8 +40,7 @@
 
 	* fontset.c (fs_load_font): Use fast_string_match_ignore_case for
 	comparing font names.
-	(fs_query_fontset): Use fast_string_match for comparing fontset
-	names.
+	(fs_query_fontset): Use fast_string_match for comparing fontset names.
 	(list_fontsets): Likewise.
 
 	* search.c (fast_string_match_ignore_case): New function.
