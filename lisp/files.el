@@ -1786,6 +1786,10 @@ Interactively, confirmation is required unless you supply a prefix argument."
 		 (error "Canceled")))
 	(set-visited-file-name filename (not confirm))))
   (set-buffer-modified-p t)
+  ;; Make buffer writable if file is writable.
+  (and buffer-file-name
+       (file-writable-p buffer-file-name)
+       (setq buffer-read-only nil))
   (save-buffer))
 
 (defun backup-buffer ()
