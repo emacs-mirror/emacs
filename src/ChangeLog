@@ -1,3 +1,14 @@
+2002-03-16  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (redisplay_internal, redisplay_windows): 
+	Use list_of_error to call internal_condition_case_1.
+	(safe_eval, safe_call): Pass Qt to internal_condition_case_{1,2}
+	so as to catch all errors with no possibility of debugger redisplay.
+	(list_of_error): New variable.
+	(syms_of_xdisp): Init and staticpro it.
+
+	* print.c (print_object): Delete `\ ' from printed rep of frame.
+
 2002-03-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (dos_rawgetc): Disable the x-autoselect-window feature,

@@ -1,17 +1,28 @@
                                                                 -*-text-*-
 
+Small but important fixes in existing features:
+
 * Bring back the feature of showing the part of the buffer that is a problem
   for the use of the preferred coding systems.
+
+* Make compile.el record the markers that point to error loci
+  on text properties in the error message lines.
+
+Important features:
 
 * Provide user-friendly ways to list all available font families,
   display a font as a sample, etc.
 
-* Have a command suggestion help system that recognizes patterns
-  of commands which could be replaced with a simpler common command.
-  It should not make more than one suggestion per 10 minutes.
-
 * Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?]
+
+* Implement something better than the current Refill mode.  This
+  probably needs some primitive support.
+
+* Implement primitive and higher-level functions to allow filling
+  properly with variable-pitch faces.
+
+* Implement a smoother vertical scroll facility.
 
 * Implement other text formatting properties.
 ** Footnotes that can appear either in place or at the end of the page.
@@ -20,8 +31,20 @@
    same value of this property.
 ** Discretionary hyphens that are not visible when they are at end of line.
 
-* Implement something better than the current Refill mode.  This
-  probably needs some primitive support.
+* Make movemail work with IMAP.
+
+* Port Emacs to GTK+.  (Relevant work has been done already.)
+
+* Make the Lucid menu widget display multilingual text.
+
+* Remove the limitation that window and frame widths and heights can
+  be only full columns/lines.
+
+Other features we would like:
+
+* Have a command suggestion help system that recognizes patterns
+  of commands which could be replaced with a simpler common command.
+  It should not make more than one suggestion per 10 minutes.
 
 * Implement a clean way to use different major modes for
   different parts of a buffer.
@@ -29,16 +52,8 @@
 * Give start-process the ability to direct standard-error
   output to a different filter.
 
-* Make compile.el record the markers that point to error loci
-  on text properties in the error message lines.
-
 * Make desktop.el save the "frame configuration" of Emacs (in some
   useful sense).
-
-* Make movemail work with IMAP.
-
-* Add ANSI C prototype forward declarations to the source files,
-  so that even the functions used within one file have prototypes.
 
 * Replace finder.el with something that generates an Info file
   which gives the same information through a menu structure.  [Dave
@@ -60,8 +75,6 @@
   thread has processed the menu_bar_activate_event and regenerated
   the whole menu bar.  In the mean time, it should process other messages.
 
-* Implement the design for Unicode-based internal encoding for Mule.
-
 * Get some major packages installed: W3/url (development version needs
   significant work), PSGML, Mule-UCS, Tramp (?).  Check the
   assignments file for other packages which might go in and have been
@@ -81,9 +94,6 @@
 * Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).
 
 * Support simultaneous tty and X frames.
-
-* Implement primitive and higher-level functions to allow filling
-  properly with variable-pitch faces.
 
 * Provide MIME support for Rmail using the Gnus MIME library.
 
@@ -112,24 +122,15 @@
 * Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)
 
-* Port Emacs to GTK+.  (Relevant work has been done already.)
-
-* Make the Lucid menu widget display multilingual text.
-
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
 
 * Implement some variety of (non-gtk) drag-and-drop support under X.
   Using libdnd might be a good start.
 
-* Remove the limitation that window and frame widths and heights can
-  be only full columns/lines.
-
 * Add horizontal scroll bars.
 
 * Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
-
-* Implement a smoother vertical scroll facility.
 
 * Integrate Vroonhof's Custom themes code and make it do useful
   things.  [The integration is partly done.]

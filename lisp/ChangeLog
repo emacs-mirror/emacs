@@ -1,3 +1,11 @@
+2002-03-16  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-imenu--function-name-regexp-perl):
+	Move definition above cperl-outline-regexp.
+
+	* bindings.el (mode-line-mule-info): In computing help-echo prop,
+	avoid using save-window-excursion.  And compile the function.
+
 2002-03-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* calendar/cal-french.el (calendar-goto-french-date): Fix prompt
