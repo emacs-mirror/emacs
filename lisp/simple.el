@@ -961,13 +961,24 @@ as an argument limits undo to changes within the current region."
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
     (let ((tail buffer-undo-list)
-	  done)
-      (while (and tail (not done) (not (null (car tail))))
-	(if (integerp (car tail))
-	    (progn
-	      (setq done t)
-	      (setq buffer-undo-list (delq (car tail) buffer-undo-list))))
-	(setq tail (cdr tail))))
+	  (prev nil))
+      (while (car tail)
+	(when (integerp (car tail))
+	  (let ((pos (car tail)))
+	    (if (null prev)
+		(setq buffer-undo-list (cdr tail))
+	      (setcdr prev (cdr tail)))
+	    (setq tail (cdr tail))
+	    (while (car tail)
+	      (if (eq pos (car tail))
+		  (if prev
+		      (setcdr prev (cdr tail))
+		    (setq buffer-undo-list (cdr tail)))
+		(setq prev tail))
+	      (setq tail (cdr tail)))
+	    (setq tail nil)))
+	(setq prev tail tail (cdr tail))))
+
     (and modified (not (buffer-modified-p))
 	 (delete-auto-save-file-if-necessary recent-save)))
   ;; If we do get all the way thru, make this-command indicate that.
