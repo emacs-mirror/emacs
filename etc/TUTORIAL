@@ -50,6 +50,10 @@ The following commands are useful for viewing screenfuls:
    Find the cursor again and notice that the same text
    is near the cursor now.
 
+You can also use the PageUp and PageDn keys to do scrolling, if your
+terminal has them, but you can edit more efficiently if you use C-v
+and M-v.
+
 
 * BASIC CURSOR CONTROL
 ----------------------
@@ -57,11 +61,10 @@ The following commands are useful for viewing screenfuls:
 Moving from screenful to screenful is useful, but how do you
 move to a specific place within the text on the screen?
 
-There are several ways you can do this.  The most basic way is to use
-the commands C-p, C-b, C-f, and C-n.  Each of these commands moves the
-cursor one row or column in a particular direction on the screen.
-Here is a table showing these four commands and the directions they
-move:
+There are several ways you can do this.  You can use the arrow keys,
+but it's more efficient to keep your hands in the standard position
+and use the commands C-p, C-b, C-f, and C-n.  These characters
+are equivalent to the four arrow keys, like this:
  
 			  Previous line, C-p
 				  :
@@ -75,10 +78,9 @@ move:
    using C-n or C-p.  Then type C-l to see the whole diagram
    centered in the screen.
 
-You'll probably find it easy to think of these by letter: P for
-previous, N for next, B for backward and F for forward.  These are the
-basic cursor positioning commands, and you'll be using them ALL the
-time, so it would be of great benefit if you learn them now.
+You'll find it easy to remember these letters by words they stand for:
+P for previous, N for next, B for backward and F for forward.  You
+will be using these basic cursor positioning commands all the time.
 
 >> Do a few C-n's to bring the cursor down to this line.
 
