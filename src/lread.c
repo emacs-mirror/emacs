@@ -130,6 +130,10 @@ static int read_pure;
 static int read_from_string_index;
 static int read_from_string_limit;
 
+/* Number of bytes left to read in the buffer character
+   that `readchar' has already advanced over.  */
+static int readchar_backlog;
+
 /* This contains the last string skipped with #@, but only on some systems.
      On other systems we can't put the string here.  */
 static char *saved_doc_string;
@@ -169,28 +173,58 @@ readchar (readcharfun)
     {
       inbuffer = XBUFFER (readcharfun);
 
-      if (BUF_PT (inbuffer) >= BUF_ZV (inbuffer))
-	return -1;
-      c = *(unsigned char *) BUF_CHAR_ADDRESS (inbuffer, BUF_PT (inbuffer));
-      SET_BUF_PT (inbuffer, BUF_PT (inbuffer) + 1);
+      if (readchar_backlog == 0)
+	{
+	  int pt_byte = BUF_PT_BYTE (inbuffer);
+	  int orig_pt_byte = pt_byte;
 
-      return c;
+	  if (pt_byte >= BUF_ZV_BYTE (inbuffer))
+	    return -1;
+
+	  if (! NILP (inbuffer->enable_multibyte_characters))
+	    BUF_INC_POS (inbuffer, pt_byte);
+	  else
+	    pt_byte++;
+	  SET_BUF_PT_BOTH (inbuffer, BUF_PT (inbuffer) + 1, pt_byte);
+	  readchar_backlog = pt_byte - orig_pt_byte;
+	}
+
+      /* We get the address of the byte just passed,
+	 which is the last byte of the character.
+	 The other bytes in this character are consecutive with it,
+	 because the gap can't be in the middle of a character.  */
+      return *(BUF_BYTE_ADDRESS (inbuffer, BUF_PT_BYTE (inbuffer) - 1)
+	       - --readchar_backlog);
     }
   if (MARKERP (readcharfun))
     {
       inbuffer = XMARKER (readcharfun)->buffer;
 
-      mpos = marker_position (readcharfun);
+      if (readchar_backlog == 0)
+	{
+	  int bytepos = marker_byte_position (readcharfun);
+	  int orig_bytepos = bytepos;
 
-      if (mpos > BUF_ZV (inbuffer) - 1)
-	return -1;
-      c = *(unsigned char *) BUF_CHAR_ADDRESS (inbuffer, mpos);
-      if (mpos != BUF_GPT (inbuffer))
-	XMARKER (readcharfun)->bufpos++;
-      else
-	Fset_marker (readcharfun, make_number (mpos + 1),
-		     Fmarker_buffer (readcharfun));
-      return c;
+	  if (bytepos >= BUF_ZV_BYTE (inbuffer))
+	    return -1;
+
+	  if (XMARKER (readcharfun)->bufpos == BUF_GPT_BYTE (inbuffer))
+	    XMARKER (readcharfun)->bufpos += BUF_GAP_SIZE (inbuffer);
+
+	  if (! NILP (inbuffer->enable_multibyte_characters))
+	    INC_POS (bytepos);
+	  else
+	    bytepos++;
+	  XMARKER (readcharfun)->bufpos += bytepos - orig_bytepos;
+	  XMARKER (readcharfun)->charpos++;
+
+	  readchar_backlog = bytepos - orig_bytepos;
+	}
+
+      /* Because we move ->bufpos across the gap before we advance it,
+	 the gap never comes between the previous character and ->bufpos.  */
+      return *(BUF_BEG_ADDR (inbuffer) + XMARKER (readcharfun)->bufpos
+	       - readchar_backlog--);
     }
   if (EQ (readcharfun, Qget_file_char))
     {
@@ -215,6 +249,7 @@ readchar (readcharfun)
 	c = XSTRING (readcharfun)->data[read_from_string_index++];
       else
 	c = -1;
+
       return c;
     }
 
@@ -238,14 +273,9 @@ unreadchar (readcharfun, c)
        since readchar didn't advance it when we read it.  */
     ;
   else if (BUFFERP (readcharfun))
-    {
-      if (XBUFFER (readcharfun) == current_buffer)
-	SET_PT (PT - 1);
-      else
-	SET_BUF_PT (XBUFFER (readcharfun), BUF_PT (XBUFFER (readcharfun)) - 1);
-    }
+    readchar_backlog++;
   else if (MARKERP (readcharfun))
-    XMARKER (readcharfun)->bufpos--;
+    readchar_backlog++;
   else if (STRINGP (readcharfun))
     read_from_string_index--;
   else if (EQ (readcharfun, Qget_file_char))
@@ -255,6 +285,7 @@ unreadchar (readcharfun, c)
 }
 
 static Lisp_Object read0 (), read1 (), read_list (), read_vector ();
+static int read_multibyte ();
 
 /* get a character from the tty */
 
@@ -884,6 +915,8 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
   specbind (Qstandard_input, readcharfun);
   specbind (Qcurrent_load_list, Qnil);
 
+  readchar_backlog = 0;
+
   GCPRO1 (sourcename);
 
   LOADHIST_ATTACH (sourcename);
@@ -1068,6 +1101,7 @@ STREAM or the value of `standard-input' may be:\n\
   if (EQ (stream, Qt))
     stream = Qread_char;
 
+  readchar_backlog = 0;
   new_backquote_flag = 0;
   read_objects = Qnil;
 
@@ -1145,6 +1179,7 @@ static char *read_buffer;
 /* Read multibyte form and return it as a character.  C is a first
    byte of multibyte form, and rest of them are read from
    READCHARFUN.  */
+
 static int
 read_multibyte (c, readcharfun)
      register int c;
@@ -1162,6 +1197,8 @@ read_multibyte (c, readcharfun)
   UNREAD (c);
   return STRING_CHAR (str, len);
 }
+
+/* Read a \-escape sequence, assuming we already read the `\'.  */
 
 static int
 read_escape (readcharfun)
@@ -1624,9 +1661,8 @@ read1 (readcharfun, pch, first_in_list)
 	  c = read_escape (readcharfun);
 	else if (BASE_LEADING_CODE_P (c))
 	  c = read_multibyte (c, readcharfun);
-	XSETINT (val, c);
 
-	return val;
+	return make_number (c);
       }
 
     case '\"':
@@ -1670,6 +1706,7 @@ read1 (readcharfun, pch, first_in_list)
 		    continue;
 		  }
 	      }
+
 	    /* c is -1 if \ newline has just been seen */
 	    if (c == -1)
 	      {
@@ -1692,7 +1729,8 @@ read1 (readcharfun, pch, first_in_list)
 		*p++ = c;
 	      }
 	  }
-	if (c < 0) return Fsignal (Qend_of_file, Qnil);
+	if (c < 0)
+	  return Fsignal (Qend_of_file, Qnil);
 
 	/* If purifying, and string starts with \ newline,
 	   return zero instead.  This is for doc strings
@@ -1736,16 +1774,16 @@ read1 (readcharfun, pch, first_in_list)
 	{
 	  register char *end = read_buffer + read_buffer_size;
 
-	  while (c > 040 && 
-		 !(c == '\"' || c == '\'' || c == ';' || c == '?'
-		   || c == '(' || c == ')'
+	  while (c > 040
+		 && !(c == '\"' || c == '\'' || c == ';' || c == '?'
+		      || c == '(' || c == ')'
 #ifndef LISP_FLOAT_TYPE
-		   /* If we have floating-point support, then we need
-		      to allow <digits><dot><digits>.  */
-		   || c =='.'
+		      /* If we have floating-point support, then we need
+			 to allow <digits><dot><digits>.  */
+		      || c =='.'
 #endif /* not LISP_FLOAT_TYPE */
-		   || c == '[' || c == ']' || c == '#'
-		   ))
+		      || c == '[' || c == ']' || c == '#'
+		      ))
 	    {
 	      if (p == end)
 		{
@@ -1759,7 +1797,9 @@ read1 (readcharfun, pch, first_in_list)
 		  c = READCHAR;
 		  quoted = 1;
 		}
+
 	      *p++ = c;
+
 	      c = READCHAR;
 	    }
 
@@ -1905,8 +1945,8 @@ read_vector (readcharfun)
   return vector;
 }
   
-/* flag = 1 means check for ] to terminate rather than ) and .
-   flag = -1 means check for starting with defun
+/* FLAG = 1 means check for ] to terminate rather than ) and .
+   FLAG = -1 means check for starting with defun
     and make structure pure.  */
 
 static Lisp_Object
