@@ -163,7 +163,16 @@ It is a copy of the TABLE, which defaults to the standard syntax table.")
     table = Vstandard_syntax_table;
 
   copy = Fcopy_sequence (table);
-  Fset_char_table_parent (copy, Vstandard_syntax_table);
+
+  /* Only the standard syntax table should have a default element.
+     Other syntax tables should inherit from parents instead.  */
+  XCHAR_TABLE (copy)->defalt = Qnil;
+
+  /* Copied syntax tables should all have parents.
+     If we copied one with no parent, such as the standard syntax table,
+     use the standard syntax table as the copy's parent.  */
+  if (NILP (XCHAR_TABLE (copy)->parent))
+    Fset_char_table_parent (copy, Vstandard_syntax_table);
   return copy;
 }
 
