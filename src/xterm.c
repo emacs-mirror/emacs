@@ -11879,7 +11879,7 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
 
 static char *error_msg;
 
-/* Function installed as fatal_error_signal_hook.in
+/* Function installed as fatal_error_signal_hook in
    x_connection_closed.  Print the X error message, and exit normally,
    instead of dumping core when XtCloseDisplay fails.  */
 
