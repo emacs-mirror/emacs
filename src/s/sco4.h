@@ -38,21 +38,28 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SCO has ptys with unusual names.  */
 #define HAVE_PTYS
 
+#define PTY_ITERATION \
+   for (i = 0; ; i++)
 #define PTY_NAME_SPRINTF \
-  sprintf (pty_name, "/dev/ptyp%d", ((c - FIRST_PTY_LETTER) * 16) + i);
+  sprintf (pty_name, "/dev/ptyp%d", i);
 #define PTY_TTY_NAME_SPRINTF \
-  sprintf (pty_name, "/dev/ttyp%d", ((c - FIRST_PTY_LETTER) * 16) + i);
+  sprintf (pty_name, "/dev/ttyp%d", i);
 
 /* SCO has bcopy, et. al.  */
 #define BSTRING
 
-/* Sockets are an option on SCO.  If we have X, we have them.  */
+/* Sockets are an option on SCO.  If you have X, you have them.
+   They also exist if you have TCP, but we don't know how to test
+   for that.  */
 #ifdef HAVE_X_WINDOWS
 #define HAVE_SOCKETS
 #endif
 
 #ifdef HAVE_SOCKETS
 #define LIBS_SYSTEM -lsocket
+
+/* SCO has gettimeofday in socket library */
+#define HAVE_GETTIMEOFDAY
 #endif
 
 /* We don't have -loldX, and we don't need it.  */
@@ -65,3 +72,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* We need to link with crt1.o and crtn.o.  */
 #define START_FILES pre-crt0.o /lib/crt1.o
 #define LIB_STANDARD -lc /lib/crtn.o
+
+/* Send signals to subprocesses by "typing" signal chars at them.  */
+#define SIGNALS_VIA_CHARACTERS
+
+/* Specify program for etc/fakemail to run.  Define SMAIL if you are
+   using smail, don't for MMDF.  */
+
+#ifdef SMAIL
+#define MAIL_PROGRAM_NAME "/bin/smail -q0"
+#else
+#define MAIL_PROGRAM_NAME "/usr/lib/mail/execmail"
+#endif
