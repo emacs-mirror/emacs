@@ -4344,8 +4344,14 @@ actually used.")
     {
       /* Visiting a file with these coding system always make the buffer
 	 unibyte. */
-      current_buffer->enable_multibyte_characters = Qnil;
-      coding.dst_multibyte = 0;
+      if (!NILP (replace)
+	  && !NILP (current_buffer->enable_multibyte_characters))
+	Fset_buffer_multibyte (Qnil);
+      else
+	{
+	  current_buffer->enable_multibyte_characters = Qnil;
+	  coding.dst_multibyte = 0;
+	}
     }
 
   if (inserted > 0 || coding.type == coding_type_ccl)
