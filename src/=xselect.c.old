@@ -159,6 +159,8 @@ use X selections.")
   Time event_time = last_event_timestamp;
   CHECK_STRING (string, 0);
 
+  val = Qnil;
+
   if (NILP (type) || EQ (type, Qprimary))
     {
       BLOCK_INPUT;
@@ -195,6 +197,7 @@ use X selections.")
       XStoreBytes (x_current_display,
 		   (char *) XSTRING (string)->data,
 		   XSTRING (string)->size);
+      val = string;
       UNBLOCK_INPUT;
     }
   else
