@@ -2,6 +2,8 @@
 
 	* mac.c (sys_read): Fixed sys_read to not call select if IO is
 	non-blocking
+	(sys_select): Fixed sys_select to not use a timeout larger than
+	the one given.
 
 2002-12-10  Juanma Barranquero  <lektu@terra.es>
 
