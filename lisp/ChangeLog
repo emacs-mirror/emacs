@@ -1,3 +1,8 @@
+2002-09-09  Markus Rost  <rost@math.ohio-state.edu>
+
+	* files.el (save-some-buffers-action-alist):  Use lower case for
+	help string of diff-buffer-with-file.
+
 2002-09-09  Richard M. Stallman  <rms@gnu.org>
 
 	* calendar/calendar.el (mouse-scroll-calendar-left) 
@@ -20,13 +25,13 @@
 
 2002-09-09  Jari Aalto  <jari.aalto@poboxes.com>
 
- 	* progmodes/cperl-mode.el (cperl-noscan-files-regexp): 
-        In addition to RCS, exclude CVS directories.
+	* progmodes/cperl-mode.el (cperl-noscan-files-regexp): 
+	In addition to RCS, exclude CVS directories.
 
 	* ls-lisp.el (ls-lisp-format-time-list): New variable.
 	(ls-lisp-format-time): Use it.
 
-        * files.el (auto-mode-alist): Use sh-mode for .bash files.
+	* files.el (auto-mode-alist): Use sh-mode for .bash files.
 	
 2002-09-09  Dave Love  <d.love@dl.ac.uk>
 
@@ -7702,7 +7707,7 @@
 	* ibuf-ext.el (ibuffer-toggle-sorting-mode): Make it work.
 
 	* ibuffer.el (ibuffer-truncate-lines): New option.
-	  (ibuffer-mode):  Use it.
+	(ibuffer-mode):  Use it.
 
 2002-02-17  Kim F. Storm  <storm@cua.dk>
 
