@@ -40,6 +40,7 @@
 ;;;       pascal-auto-newline       nil
 ;;;       pascal-tab-always-indent  t
 ;;;       pascal-auto-endcomments   t
+;;;       pascal-auto-lineup        '(all)
 ;;;       pascal-toggle-completions nil
 ;;;       pascal-type-keywords      '("array" "file" "packed" "char" 
 ;;; 				      "integer" "real" "string" "record")
@@ -58,8 +59,8 @@
 
 ;;; Code:
 
-(defconst pascal-mode-version "2.1a"
-  "Version of `pascal-mode.el'.")
+(defconst pascal-mode-version "2.3"
+  "Version of `pascal.el'.")
 
 (defvar pascal-mode-abbrev-table nil
   "Abbrev table in use in Pascal-mode buffers.")
@@ -147,27 +148,42 @@
 
 (defvar pascal-indent-level 3
   "*Indentation of Pascal statements with respect to containing block.")
+
 (defvar pascal-case-indent 2
   "*Indentation for case statements.")
+
 (defvar pascal-auto-newline nil
   "*Non-nil means automatically newline after simcolons and the punctation mark
 after an end.")
+
 (defvar pascal-tab-always-indent t
   "*Non-nil means TAB in Pascal mode should always reindent the current line,
 regardless of where in the line point is when the TAB command is used.")
+
 (defvar pascal-auto-endcomments t
   "*Non-nil means a comment { ... } is set after the ends which ends cases and
 functions. The name of the function or case will be set between the braces.")
+
+(defvar pascal-auto-lineup '(all)
+  "*List of contexts where auto lineup of :'s or ='s should be done.
+Elements can be of type: 'paramlist', 'declaration' or 'case', which will
+do auto lineup in parameterlist, declarations or case-statements
+respectively. The word 'all' will do all lineups. '(case paramlist) for
+instance will do lineup in case-statements and parameterlist, while '(all)
+will do all lineups.")
+
 (defvar pascal-toggle-completions nil
   "*Non-nil means that \\<pascal-mode-map>\\[pascal-complete-label] should \
 not display a completion buffer when
 the label couldn't be completed, but instead toggle the possible completions
 with repeated \\[pascal-complete-label]'s.")
+
 (defvar pascal-type-keywords
   '("array" "file" "packed" "char" "integer" "real" "string" "record")
   "*Keywords for types used when completing a word in a declaration or parmlist.
 \(eg. integer, real, char.)  The types defined within the Pascal program
 will be completed runtime, and should not be added to this list.")
+
 (defvar pascal-start-keywords
   '("begin" "end" "function" "procedure" "repeat" "until" "while"
     "read" "readln" "reset" "rewrite" "write" "writeln")
@@ -175,6 +191,7 @@ will be completed runtime, and should not be added to this list.")
 \(eg. begin, repeat, until, readln.)
 The procedures and variables defined within the Pascal program
 will be completed runtime and should not be added to this list.")
+
 (defvar pascal-separator-keywords
   '("downto" "else" "mod" "div" "then")
   "*Keywords to complete when NOT standing at the first word of a statement.
@@ -205,14 +222,16 @@ Pascal program are completed runtime and should not be added to this list.")
       (cond ((match-beginning 1) (setq nest (1+ nest)))
 	    ((match-beginning 2) (setq nest (1- nest)))))))
 
+
 (defun pascal-declaration-beg ()
   (let ((nest 1))
     (while (and (> nest 0)
-		(re-search-backward "[:=]\\|\\<\\(type\\|var\\|label\\|const\\)\\>\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)" (pascal-get-beg-of-line -0) t))
+		(re-search-backward "[:=]\\|\\<\\(type\\|var\\|label\\|const\\)\\>\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)" (pascal-get-beg-of-line 0) t))
       (cond ((match-beginning 1) (setq nest 0))
 	    ((match-beginning 2) (setq nest (1- nest)))
 	    ((match-beginning 3) (setq nest (1+ nest)))))
     (= nest 0)))
+
   
 (defsubst pascal-within-string ()
   (save-excursion
@@ -250,12 +269,14 @@ Variables controlling indentation/edit style:
  pascal-auto-newline      (default nil)
     Non-nil means automatically newline after simcolons and the punctation mark
     after an end.
- pascal-tab-always-indent (defualt t)
+ pascal-tab-always-indent (default t)
     Non-nil means TAB in Pascal mode should always reindent the current line,
     regardless of where in the line point is when the TAB command is used.
  pascal-auto-endcomments  (default t)
     Non-nil means a comment { ... } is set after the ends which ends cases and
     functions. The name of the function or case will be set between the braces.
+ pascal-auto-lineup       (default t)
+    List of contexts where auto lineup of :'s or ='s hould be done.
 
 See also the user variables pascal-type-keywords, pascal-start-keywords and
 pascal-separator-keywords.
@@ -537,6 +558,43 @@ area.  See also `pascal-comment-area'."
 	     (setq func (1+ func))))))
   (forward-line 1))
 
+(defun pascal-end-of-statement ()
+  "Move forward to end of current statement."
+  (interactive)
+  (let ((nest 0) pos
+	(regexp (concat "\\(" pascal-beg-block-re "\\)\\|\\("
+			pascal-end-block-re "\\)")))
+    (if (not (looking-at "[ \t\n]")) (forward-sexp -1))
+    (or (looking-at pascal-beg-block-re)
+	;; Skip to end of statement
+	(setq pos (catch 'found
+		    (while t
+		      (forward-sexp 1)
+		      (cond ((looking-at "[ \t]*;")
+			     (skip-chars-forward "^;")
+			     (forward-char 1)
+			     (throw 'found (point)))
+			    ((save-excursion
+			       (forward-sexp -1)
+			       (looking-at pascal-beg-block-re))
+			     (goto-char (match-beginning 0))
+			     (throw 'found nil))
+			    ((eobp)
+			     (throw 'found (point))))))))
+    (if (not pos)
+	;; Skip a whole block
+	(catch 'found
+	  (while t
+	    (re-search-forward regexp nil 'move)
+	    (setq nest (if (match-end 1) 
+			   (1+ nest)
+			 (1- nest)))
+	    (cond ((eobp)
+		   (throw 'found (point)))
+		  ((= 0 nest)
+		   (throw 'found (pascal-end-of-statement))))))
+      pos)))
+
 (defun pascal-downcase-keywords ()
   "Downcase all Pascal keywords in the buffer."
   (interactive)
@@ -634,12 +692,18 @@ on the line which ends a function or procedure named NAME."
   (let* ((indent-str (pascal-calculate-indent))
 	 (type (car indent-str))
 	 (ind (car (cdr indent-str))))
-    (cond ((eq type 'paramlist)
+    (cond ((and (eq type 'paramlist)
+		(or (memq 'all pascal-auto-lineup)
+		    (memq 'paramlist pascal-auto-lineup)))
 	   (pascal-indent-paramlist)
 	   (pascal-indent-paramlist))
-	  ((eq type 'declaration)
+	  ((and (eq type 'declaration)
+		(or (memq 'all pascal-auto-lineup)
+		    (memq 'declaration  pascal-auto-lineup)))
 	   (pascal-indent-declaration))
-	  ((and (eq type 'case) (not (looking-at "^[ \t]*$")))
+	  ((and (eq type 'case) (not (looking-at "^[ \t]*$"))
+		(or (memq 'all pascal-auto-lineup)
+		    (memq 'case pascal-auto-lineup)))
 	   (pascal-indent-case)))
     (if (looking-at "[ \t]+$")
 	(skip-chars-forward " \t"))))
@@ -766,7 +830,7 @@ column number the line should be indented to."
 		 (end-of-line)
 		 (point-marker)
 	       (re-search-backward "\\<case\\>" nil t)))
-	(beg (point))
+	(beg (point)) oldpos
 	(ind 0))
     ;; Get right indent
     (while (< (point) (marker-position end))
@@ -777,8 +841,9 @@ column number the line should be indented to."
       (delete-horizontal-space)
       (if (> (current-column) ind)
 	  (setq ind (current-column)))
-      (beginning-of-line 2))
+      (pascal-end-of-statement))
     (goto-char beg)
+    (setq oldpos (marker-position end))
     ;; Indent all case statements
     (while (< (point) (marker-position end))
       (if (re-search-forward
@@ -790,7 +855,10 @@ column number the line should be indented to."
 	  ()
 	(forward-char 1)
 	(delete-horizontal-space)
-	(insert " ")))))
+	(insert " "))
+      (setq oldpos (point))
+      (pascal-end-of-statement))
+    (goto-char oldpos)))
 
 (defun pascal-indent-paramlist (&optional arg)
   "Indent current line in parameterlist.
@@ -878,15 +946,16 @@ indent of the current line in parameterlist."
       (while (< (point) e)
 	(setq nest 1)
 	(if (re-search-forward reg (min e (pascal-get-end-of-line 2)) 'move)
-	    ;; Skip record blocks
-	    (if (match-beginning 1)
-		(pascal-declaration-end)
-	      (progn
-		(goto-char (match-beginning 0))
-		(skip-chars-backward " \t")
-		(if (> (current-column) ind)
-		    (setq ind (current-column)))
-		(end-of-line)))))
+	    (progn
+	      ;; Skip record blocks
+	      (if (match-beginning 1)
+		  (pascal-declaration-end)
+		(progn
+		  (goto-char (match-beginning 0))
+		  (skip-chars-backward " \t")
+		  (if (> (current-column) ind)
+		      (setq ind (current-column)))
+		  (goto-char (match-end 0)))))))
       ;; In case no lineup was found
       (if (> ind 0)
 	  (1+ ind)
@@ -977,7 +1046,7 @@ indent of the current line in parameterlist."
 						 (point))
 			    (forward-char 1)))
 		 (re-search-forward
-		  "\\<type\\>\\|\\<\\(begin\\|function\\|proceudre\\)\\>"
+		  "\\<type\\>\\|\\<\\(begin\\|function\\|procedure\\)\\>"
 		  start t)
 		 (not (match-end 1)))
 	    ;; Check current type declaration
@@ -1041,28 +1110,29 @@ indent of the current line in parameterlist."
 	       (or (eq state 'declaration) (eq state 'paramlist)
 		   (and (eq state 'defun)
 			(save-excursion
-			  (re-search-backward ")[ \t]*:" (pascal-get-beg-of-line) t))))
+			  (re-search-backward ")[ \t]*:"
+					      (pascal-get-beg-of-line) t))))
 	       (if (or (eq state 'paramlist) (eq state 'defun))
 		   (pascal-beg-of-defun))
 	       (pascal-type-completion)
 	       (pascal-keyword-completion pascal-type-keywords))
 	      (;--Starting a new statement
-			    (and (not (eq state 'contexp))
-				 (save-excursion
-				   (skip-chars-backward "a-zA-Z0-9_.")
-				   (backward-sexp 1)
-				   (or (looking-at pascal-nosemi-re)
-				       (progn
-					 (forward-sexp 1)
-					 (looking-at "\\s *\\(;\\|:[^=]\\)")))))
-			    (save-excursion (pascal-var-completion))
-			    (pascal-func-completion 'procedure)
-			    (pascal-keyword-completion pascal-start-keywords))
+	       (and (not (eq state 'contexp))
+		    (save-excursion
+		      (skip-chars-backward "a-zA-Z0-9_.")
+		      (backward-sexp 1)
+		      (or (looking-at pascal-nosemi-re)
+			  (progn
+			    (forward-sexp 1)
+			    (looking-at "\\s *\\(;\\|:[^=]\\)")))))
+	       (save-excursion (pascal-var-completion))
+	       (pascal-func-completion 'procedure)
+	       (pascal-keyword-completion pascal-start-keywords))
 	      (t;--Anywhere else
 	       (save-excursion (pascal-var-completion))
 	       (pascal-func-completion 'function)
 	       (pascal-keyword-completion pascal-separator-keywords))))
-
+      
       ;; Now we have built a list of all matches. Give response to caller
       (pascal-completion-response))))
 
