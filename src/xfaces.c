@@ -339,7 +339,7 @@ unload_font (f, font)
   BLOCK_INPUT;
   /* Invalidate any computed faces which use this font,
      and free their GC's if they have any.  */
-  for (i = 0; i < len; i++)
+  for (i = 2; i < len; i++)
     {
       struct face *face = FRAME_COMPUTED_FACES (f)[i];
       if (face->font == font)
@@ -348,6 +348,7 @@ unload_font (f, font)
 	  if (face->gc)
 	    XFreeGC (dpy, face->gc);
 	  face->gc = 0;
+	  /* This marks the computed face as available to reuse.  */
 	  face->font = 0;
 	}
     }
@@ -402,7 +403,7 @@ unload_color (f, pixel)
       BLOCK_INPUT;
       /* Invalidate any computed faces which use this color,
 	 and free their GC's if they have any.  */
-      for (i = 0; i < len; i++)
+      for (i = 2; i < len; i++)
 	{
 	  struct face *face = FRAME_COMPUTED_FACES (f)[i];
 	  if (face->foreground == pixel
@@ -412,6 +413,7 @@ unload_color (f, pixel)
 	      if (face->gc)
 		XFreeGC (dpy, face->gc);
 	      face->gc = 0;
+	      /* This marks the computed face as available to reuse.  */
 	      face->font = 0;
 	    }
 	}
