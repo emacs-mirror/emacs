@@ -65,23 +65,6 @@
 	* callproc.c, emacs.c, sysdep.c (setpgrp) [HAVE_SETPGID]: Define
 	as setpgid.
 	
-2000-05-23  Stefan Monnier  <monnier@cs.yale.edu>
-
-	* syntax.c (forw_comment, back_comment): Match `nestedness' as well
-	when matching comment style.
-	(describe_syntax): Handle the `nested' bit as well.
-	(Fforward_comment): Don't skip stray endcomments unless it's a \n.
-	When going backward, don't skip over comment starters.
-	(back_comment): Revert to the generic code as soon as a comment-starter
-	is found with string lossage to catch cases like:  " // " // " \n.
-	Revert to the generic code if a comment-starter is found after
-	having seen a non-matching comment-ender:  /* // */ // \n.
-	Don't use comstart_* at all for nested comments.
-	Jump to the generic slow code as soon as lossage is detected.
-	Don't revert to the generic slow code if the string lossage happened
-	after the last seen matching comment starter.
-	Document a bug in the slow generic code.
-
 2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (SOME_MACHINE_LISP): Add disp-table.elc,
