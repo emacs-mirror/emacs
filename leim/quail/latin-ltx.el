@@ -1,4 +1,4 @@
-;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: iso-2022-7bit-*-
+;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
