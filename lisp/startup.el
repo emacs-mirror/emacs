@@ -386,6 +386,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
       (save-excursion
 	(set-buffer (get-buffer "*Messages*"))
 	(setq default-directory dir)))
+    ;; For root, preserve owner and group when editing files.
+    (if (equal (user-uid) 0)
+	(setq backup-by-copying-when-mismatch t))
     ;; Look in each dir in load-path for a subdirs.el file.
     ;; If we find one, load it, which will add the appropriate subdirs
     ;; of that dir into load-path,
