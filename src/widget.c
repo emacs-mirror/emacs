@@ -899,15 +899,25 @@ result = XtMakeResizeRequest ((Widget)ew,
     {
       int hdelta = pixel_height - ew->core.height;
       int column_widget_height = f->display.x->column_widget->core.height;
+      Arg al[2];
+      int ac = 0;
+
+      XawPanedSetRefigureMode (f->display.x->column_widget, False);
+
+      XtSetArg (al[ac], XtNheight, pixel_height); ac++;
+      XtSetArg (al[ac], XtNwidth, pixel_width); ac++;
+      XtSetValues ((Widget) ew, al, ac);
+#if 0
       XtVaSetValues ((Widget) ew, 
 		          XtNheight, pixel_height,
 		          XtNwidth, pixel_width,
 		          0);
-
+#endif
       XtVaSetValues (f->display.x->column_widget,
 		          XtNwidth, pixel_width,
 		          XtNheight, column_widget_height + hdelta, 
 		          0);
+      XawPanedSetRefigureMode (f->display.x->column_widget, True);
     }
 
   /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
