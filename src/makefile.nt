@@ -1039,62 +1039,80 @@ $(BLD)\w32faces.obj: \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32faces.c \
-	$(SRC)\dispextern.h \
-	$(SRC)\frame.h \
+	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\win32.h \
 	$(SRC)\buffer.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
 	$(SRC)\blockinput.h \
-  	$(SRC)\window.h
+  	$(SRC)\window.h \
+	$(SRC)\intervals.h
 
 $(BLD)\w32fns.obj: \
 	$(EMACS_ROOT)\src\s\windowsnt.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32fns.c \
-	$(SRC)\dispextern.h \
-	$(SRC)\frame.h \
+	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\win32.h \
+	$(SRC)\frame.h \
+  	$(SRC)\window.h \
 	$(SRC)\buffer.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\keyboard.h \
 	$(SRC)\blockinput.h \
-  	$(SRC)\window.h
+	$(SRC)\paths.h \
+	$(SRC)\ntheap.h \
+	$(SRC)\termhooks.h
 
 $(BLD)\w32menu.obj: \
 	$(EMACS_ROOT)\src\s\windowsnt.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32menu.c \
-	$(SRC)\dispextern.h \
+	$(SRC)\lisp.h \
+	$(SRC)\termhooks.h \
 	$(SRC)\frame.h \
-	$(SRC)\w32term.h \
-	$(SRC)\win32.h \
-	$(SRC)\buffer.h \
+  	$(SRC)\window.h \
+	$(SRC)\keyboard.h \
 	$(SRC)\blockinput.h \
-  	$(SRC)\window.h
+	$(SRC)\buffer.h
 
 $(BLD)\w32term.obj: \
 	$(EMACS_ROOT)\src\s\windowsnt.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32term.c \
-	$(SRC)\dispextern.h \
-	$(SRC)\frame.h \
+	$(SRC)\lisp.h \
+	$(SRC)\blockinput.h \
 	$(SRC)\w32term.h \
 	$(SRC)\win32.h \
+	$(SRC)\systty.h \
+	$(SRC)\systime.h \
+	$(SRC)\frame.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\termhooks.h \
+	$(SRC)\termopts.h \
+	$(SRC)\termchar.h \
+	$(SRC)\gnu.h \
+	$(SRC)\disptab.h \
 	$(SRC)\buffer.h \
-	$(SRC)\blockinput.h \
-  	$(SRC)\window.h
+  	$(SRC)\window.h \
+	$(SRC)\.keyboardh \
+	$(SRC)\intervals.h
 
 $(BLD)\w32select.obj: \
 	$(EMACS_ROOT)\src\s\windowsnt.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32select.c \
-	$(SRC)\dispextern.h \
-	$(SRC)\frame.h \
+	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\win32.h \
+	$(SRC)\dispextern.h \
+	$(SRC)\frame.h \
 	$(SRC)\blockinput.h
 
 $(BLD)\w32reg.obj: \
@@ -1102,8 +1120,7 @@ $(BLD)\w32reg.obj: \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h \
 	$(SRC)\w32reg.c \
-	$(SRC)\dispextern.h \
-	$(SRC)\frame.h \
+	$(SRC)\lisp.h \
 	$(SRC)\w32term.h \
 	$(SRC)\win32.h \
 	$(SRC)\blockinput.h
