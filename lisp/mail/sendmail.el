@@ -270,15 +270,15 @@ is non-nil."
   :type 'boolean
   :group 'sendmail)
 
-;; I find that this happens so often, for innocent reasons,
-;; that it is not acceptable to bother the user about it -- rms.
-(defcustom mail-send-nonascii t
+(defcustom mail-send-nonascii 'mime
   "*Specify whether to allow sending non-ASCII characters in mail.
 If t, that means do allow it.  nil means don't allow it.
 `query' means ask the user each time.
+`mime' means add an appropriate MIME header if none already present.
+The default is `mime'.
 Including non-ASCII characters in a mail message can be problematical
 for the recipient, who may not know how to decode them properly."
-  :type '(choice (const t) (const nil) (const query))
+  :type '(choice (const t) (const nil) (const query) (const mime))
   :group 'sendmail)
 
 ;; Note: could use /usr/ucb/mail instead of sendmail;
@@ -711,7 +711,7 @@ the user from the mailer."
       (let ((inhibit-read-only t)
 	    (opoint (point)))
 	(when (and enable-multibyte-characters
-		   (not (eq mail-send-nonascii t)))
+		   (not (memq mail-send-nonascii '(t mime))))
 	  (goto-char (point-min))
 	  (skip-chars-forward "\0-\177")
 	  (or (= (point) (point-max))
@@ -898,6 +898,22 @@ See also the function `select-message-coding-system'.")
 			((eq mail-from-style 'system-default)
 			 nil)
 			(t (error "Invalid value for `mail-from-style'")))))
+	    ;; Possibly add a MIME header for the current coding system
+	    (let (coding-system
+		  charset)
+	      (goto-char (point-min))
+	      (and (eq mail-send-nonascii 'mime)
+		   (not (re-search-forward "^MIME-version:" delimline t))
+		   (progn (skip-chars-forward "\0-\177")
+			  (/= (point) (point-max)))
+		   (setq coding-system (select-message-coding-system))
+		   (setq charset
+			 (coding-system-get coding-system 'mime-charset))
+		   (goto-char delimline)
+		   (insert "MIME-version: 1.0\n"
+			   "Content-type: text/plain; charset="
+			   (symbol-name charset) "\n"
+			   "Content-Transfer-Encoding: 8bit\n")))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
