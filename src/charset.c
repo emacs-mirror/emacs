@@ -630,13 +630,18 @@ CHARSET should be defined by `defined-charset' in advance.")
 /* Return number of different charsets in STR of length LEN.  In
    addition, for each found charset N, CHARSETS[N] is set 1.  The
    caller should allocate CHARSETS (MAX_CHARSET + 1 elements) in advance.
-   It may lookup a translation table TABLE if supplied.  */
+   It may lookup a translation table TABLE if supplied.
+
+   If CMPCHARP is nonzero and some composite character is found,
+   CHARSETS[128] is also set 1 and the returned number is incremented
+   by 1.  */
 
 int
-find_charset_in_str (str, len, charsets, table)
+find_charset_in_str (str, len, charsets, table, cmpcharp)
      unsigned char *str;
      int len, *charsets;
      Lisp_Object table;
+     int cmpcharp;
 {
   register int num = 0, c;
 
@@ -653,7 +658,7 @@ find_charset_in_str (str, len, charsets, table)
 	  int cmpchar_id = str_cmpchar_id (str, len);
 	  GLYPH *glyph;
 
-	  if (cmpchar_id > 0)
+	  if (cmpchar_id >= 0)
 	    {
 	      struct cmpchar_info *cmpcharp = cmpchar_table[cmpchar_id];
 	      int i;
@@ -676,6 +681,11 @@ find_charset_in_str (str, len, charsets, table)
 		}
 	      str += cmpcharp->len;
 	      len -= cmpcharp->len;
+	      if (!charsets[LEADING_CODE_COMPOSITION])
+		{
+		  charsets[LEADING_CODE_COMPOSITION] = 1;
+		  num += 1;
+		}
 	      continue;
 	    }
 
@@ -735,7 +745,7 @@ Optional arg TABLE if non-nil is a translation table to look up.")
   while (1)
     {
       find_charset_in_str (BYTE_POS_ADDR (from_byte), stop_byte - from_byte,
-			   charsets, table);
+			   charsets, table, 0);
       if (stop < to)
 	{
 	  from = stop, from_byte = stop_byte;
@@ -770,7 +780,7 @@ Optional arg TABLE if non-nil is a translation table to look up.")
 
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
   find_charset_in_str (XSTRING (str)->data, STRING_BYTES (XSTRING (str)),
-		       charsets, table);
+		       charsets, table, 0);
   val = Qnil;
   for (i = MAX_CHARSET; i >= 0; i--)
     if (charsets[i])
