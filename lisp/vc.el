@@ -104,7 +104,7 @@ If FORM3 is `RCS', use FORM2 for CVS as well as RCS.
   "*Extra switches passed to the checkin program by \\[vc-checkin].")
 (defvar vc-checkout-switches nil
   "*Extra switches passed to the checkout program by \\[vc-checkout].")
-(defvar vc-directory-exclusion-list '("SCCS" "RCS")
+(defvar vc-directory-exclusion-list '("SCCS" "RCS" "CVS")
   "*Directory names ignored by functions that recursively walk file trees.")
 
 (defconst vc-maximum-comment-ring-size 32
@@ -293,7 +293,8 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
 	  ;; Add vc-path to PATH for the execution of this command.
 	  (process-environment
 	   (cons (concat "PATH=" (getenv "PATH")
-			 ":" (mapconcat 'identity vc-path ":"))
+			 path-separator
+			 (mapconcat 'identity vc-path path-separator))
 		 process-environment)))
       (setq status (apply 'call-process command nil t nil squeezed)))
     (goto-char (point-max))
@@ -663,6 +664,10 @@ merge in the changes into your working copy."
 	   (not (file-exists-p buffer-file-name)))
       (set-buffer-modified-p t))
   (vc-buffer-sync)
+  (cond ((not vc-make-backup-files)
+	 ;; inhibit backup for this buffer
+	 (make-local-variable 'backup-inhibited)
+	 (setq backup-inhibited t)))
   (vc-admin
    buffer-file-name
    (and override
@@ -1135,7 +1140,7 @@ Normally it creates a Dired buffer that lists only the locked files
 in all these directories.  With a prefix argument, it lists all files."
   (interactive "P")
   (let (nonempty
-	(dl (length default-directory))
+	(dl (length (expand-file-name default-directory)))
 	(filelist nil) (userlist nil)
 	dired-buf
 	dired-buf-mod-count)
@@ -1209,7 +1214,11 @@ in all these directories.  With a prefix argument, it lists all files."
 
 (defun vc-add-triple (name file rev)
   (save-excursion
-    (find-file (concat (vc-backend-subdirectory-name file) "/" vc-name-assoc-file))
+    (find-file (expand-file-name
+		vc-name-assoc-file
+		(file-name-as-directory
+		 (expand-file-name (vc-backend-subdirectory-name file) 
+				   (file-name-directory file)))))
     (goto-char (point-max))
     (insert name "\t:\t" file "\t" rev "\n")
     (basic-save-buffer)
@@ -1218,7 +1227,12 @@ in all these directories.  With a prefix argument, it lists all files."
 
 (defun vc-record-rename (file newname)
   (save-excursion
-    (find-file (concat (vc-backend-subdirectory-name file) "/" vc-name-assoc-file))
+    (find-file
+     (expand-file-name
+      vc-name-assoc-file
+      (file-name-as-directory
+       (expand-file-name (vc-backend-subdirectory-name file) 
+			 (file-name-directory file)))))
     (goto-char (point-min))
     ;; (replace-regexp (concat ":" (regexp-quote file) "$") (concat ":" newname))
     (while (re-search-forward (concat ":" (regexp-quote file) "$") nil t)
@@ -1237,9 +1251,12 @@ in all these directories.  With a prefix argument, it lists all files."
 	(t
 	 (save-excursion
 	   (set-buffer (get-buffer-create "*vc-info*"))
-	   (vc-insert-file (concat 
-			    (vc-backend-subdirectory-name file) 
-			    "/" vc-name-assoc-file))
+	   (vc-insert-file
+	    (expand-file-name
+	     vc-name-assoc-file
+	     (file-name-as-directory
+	      (expand-file-name (vc-backend-subdirectory-name file) 
+				(file-name-directory file)))))
 	   (prog1
 	       (car (vc-parse-buffer
 		     (list (list (concat name "\t:\t" file "\t\\(.+\\)") 1))))
@@ -1288,7 +1305,7 @@ levels in the snapshot."
        (function (lambda (f) (and
 			      (vc-name f)
 			      (vc-error-occurred
-			       (vc-backend-checkout f nil name))))))
+			       (vc-checkout f nil name))))))
       )))
 
 ;; Miscellaneous other entry points
@@ -1986,13 +2003,13 @@ Global user options:
 (defun vc-file-tree-walk (func &rest args)
   "Walk recursively through default directory.
 Invoke FUNC f ARGS on each non-directory file f underneath it."
-  (vc-file-tree-walk-internal default-directory func args)
+  (vc-file-tree-walk-internal (expand-file-name default-directory) func args)
   (message "Traversing directory %s...done" default-directory))
 
 (defun vc-file-tree-walk-internal (file func args)
   (if (not (file-directory-p file))
       (apply func file args)
-    (message "Traversing directory %s..." file)
+    (message "Traversing directory %s..." (abbreviate-file-name file))
     (let ((dir (file-name-as-directory file)))
       (mapcar
        (function
