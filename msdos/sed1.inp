@@ -35,4 +35,5 @@ ${libsrc}make-doc.exe:\
 /\${libsrc}make-docfile/s/-docfile[ 	]/-doc.exe /
 /^[ 	]*$/d
 /^temacs:/s/prefix-args//
+/^temacs:/s/stamp-oldxmenu//
 /^	#/d

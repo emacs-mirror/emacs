@@ -22,4 +22,5 @@ s/\.h\.in/.h-in/
 /^.\${libsrc}make-doc/s!>.*$!!
 /^[ 	]*$/d
 /^temacs:/s/prefix-args//
+/^temacs:/s/stamp-oldxmenu//
 /^	#/d
