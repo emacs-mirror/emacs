@@ -389,6 +389,9 @@ problems."
       (and (interactive-p)
            (message "Type Break mode is already enabled")))
      (type-break-mode
+      (with-current-buffer (find-file-noselect type-break-file-name 'nowarn)
+        (setq buffer-save-without-query t))
+
       (or global-mode-string
           (setq global-mode-string '("")))
       (or (assq 'type-break-mode-line-message-mode
@@ -433,7 +436,6 @@ problems."
       (do-auto-save)
       (with-current-buffer (find-file-noselect type-break-file-name
                                                'nowarn)
-	(setq buffer-save-without-query t)
 	(set-buffer-modified-p nil)
         (unlock-buffer)
         (kill-this-buffer))
