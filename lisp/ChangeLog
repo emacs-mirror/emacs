@@ -1,3 +1,7 @@
+2002-02-25  Jason Rumney  <jasonr@gnu.org>
+
+	* language/japanese.el (iso-2022-jp-2): Add init-bol flag.
+
 2002-02-24  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (w32-charset-info-alist): Use ansi fonts for
