@@ -22,6 +22,8 @@ Boston, MA 02111-1307, USA.  */
 #include "config.h"
 
 #ifdef USE_GTK
+#include <string.h>
+#include <stdio.h>
 #include "lisp.h"
 #include "xterm.h"
 #include "blockinput.h"
@@ -29,8 +31,6 @@ Boston, MA 02111-1307, USA.  */
 #include "atimer.h"
 #include "gtkutil.h"
 #include "termhooks.h"
-#include <string.h>
-#include <stdio.h>
 #include <gdk/gdkkeysyms.h>
 
 #define FRAME_TOTAL_PIXEL_HEIGHT(f) \
