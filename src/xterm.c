@@ -802,7 +802,7 @@ XTwrite_glyphs (start, len)
   if (curs_y == f->phys_cursor_y
       && curs_x <= f->phys_cursor_x
       && curs_x + len > f->phys_cursor_x)
-    f->phys_cursor_x = -1;
+    f->phys_cursor_on = 0;
 
   if (updating_frame == 0)
     x_display_cursor (f, 1, FRAME_CURSOR_X (f) + len, FRAME_CURSOR_Y (f));
@@ -845,7 +845,7 @@ XTclear_end_of_line (first_unused)
   if (curs_y == f->phys_cursor_y
       && curs_x <= f->phys_cursor_x
       && f->phys_cursor_x < first_unused)
-    f->phys_cursor_x = -1;
+    f->phys_cursor_on = 0;
 
   XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	      CHAR_TO_PIXEL_COL (f, curs_x),
@@ -868,7 +868,7 @@ XTclear_frame ()
   if (f == 0)
     f = selected_frame;
 
-  f->phys_cursor_x = -1;	/* Cursor not visible.  */
+  f->phys_cursor_on = 0;	/* Cursor not visible.  */
   curs_x = 0;			/* Nominal cursor position is top left.  */
   curs_y = 0;
 
@@ -4245,11 +4245,11 @@ clear_cursor (f)
   int mask;
 
   if (! FRAME_VISIBLE_P (f)
-      || f->phys_cursor_x < 0)
+      || ! f->phys_cursor_on)
     return;
 
   x_update_cursor (f, 0);
-  f->phys_cursor_x = -1;
+  f->phys_cursor_on = 0;
 }
 
 /* Redraw the glyph at ROW, COLUMN on frame F, in the style
@@ -4283,11 +4283,11 @@ x_display_bar_cursor (f, on, x, y)
   if (! FRAME_VISIBLE_P (f) || FRAME_GARBAGED_P (f))
     return;
 
-  if (! on && f->phys_cursor_x < 0)
+  if (! on && ! f->phys_cursor_on)
     return;
 
   /* If there is anything wrong with the current cursor state, remove it.  */
-  if (f->phys_cursor_x >= 0
+  if (f->phys_cursor_on
       && (!on
 	  || f->phys_cursor_x != x
 	  || f->phys_cursor_y != y
@@ -4297,12 +4297,12 @@ x_display_bar_cursor (f, on, x, y)
       x_draw_single_glyph (f, f->phys_cursor_y, f->phys_cursor_x,
 			   f->phys_cursor_glyph,
 			   current_glyphs->highlight[f->phys_cursor_y]);
-      f->phys_cursor_x = -1;
+      f->phys_cursor_on = 0;
     }
 
   /* If we now need a cursor in the new place or in the new form, do it so.  */
   if (on
-      && (f->phys_cursor_x < 0
+      && (! f->phys_cursor_on
 	  || (f->output_data.x->current_cursor != bar_cursor)))
     {
       f->phys_cursor_glyph
@@ -4319,6 +4319,7 @@ x_display_bar_cursor (f, on, x, y)
 
       f->phys_cursor_x = x;
       f->phys_cursor_y = y;
+      f->phys_cursor_on = 1;
 
       f->output_data.x->current_cursor = bar_cursor;
     }
@@ -4346,14 +4347,14 @@ x_display_box_cursor (f, on, x, y)
     return;
 
   /* If cursor is off and we want it off, return quickly.  */
-  if (!on && f->phys_cursor_x < 0)
+  if (!on && ! f->phys_cursor_on)
     return;
 
   /* If cursor is currently being shown and we don't want it to be
      or it is in the wrong place,
      or we want a hollow box and it's not so, (pout!)
      erase it.  */
-  if (f->phys_cursor_x >= 0
+  if (f->phys_cursor_on
       && (!on
 	  || f->phys_cursor_x != x
 	  || f->phys_cursor_y != y
@@ -4394,14 +4395,14 @@ x_display_box_cursor (f, on, x, y)
 			   (mouse_face_here
 			    ? 3
 			    : current_glyphs->highlight[f->phys_cursor_y]));
-      f->phys_cursor_x = -1;
+      f->phys_cursor_on = 0;
     }
 
   /* If we want to show a cursor,
      or we want a box cursor and it's not so,
      write it in the right place.  */
   if (on
-      && (f->phys_cursor_x < 0
+      && (! f->phys_cursor_on
 	  || (f->output_data.x->current_cursor != filled_box_cursor
 	      && f == FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)))
     {
@@ -4424,6 +4425,7 @@ x_display_box_cursor (f, on, x, y)
 
       f->phys_cursor_x = x;
       f->phys_cursor_y = y;
+      f->phys_cursor_on = 1;
     }
 
   if (updating_frame != f)
@@ -4458,11 +4460,6 @@ x_update_cursor (f, on)
      struct frame *f;
      int on;
 {
-  /* If we don't have any previous cursor position to use,
-     leave the cursor off.  */
-  if (f->phys_cursor_x < 0)
-    return;
-
   BLOCK_INPUT;
 
   if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
@@ -5159,8 +5156,9 @@ x_set_window_size (f, change_gravity, cols, rows)
   if (f->phys_cursor_y >= rows
       || f->phys_cursor_x >= cols)
     {
-      f->phys_cursor_x = -1;
-      f->phys_cursor_y = -1;
+      f->phys_cursor_x = 0;
+      f->phys_cursor_y = 0;
+      f->phys_cursor_on = 0;
     }
 
   /* Clear out any recollection of where the mouse highlighting was,
