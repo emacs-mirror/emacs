@@ -86,6 +86,16 @@ all-other-dirs-SH:
 	$(MAKE) $(MFLAGS) -C ../lisp all
 	$(MAKE) $(MFLAGS) -C ../leim all
 
+recompile:	recompile-$(SHELLTYPE)
+
+recompile-CMD:
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) recompile
+	cd ..\nt
+
+recompile-SH:
+	$(MAKE) $(MFLAGS) -C ../lisp recompile
+
 bootstrap:	$(BLD) $(ALL) bootstrap-$(SHELLTYPE)
 
 bootstrap-CMD:
