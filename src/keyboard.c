@@ -42,7 +42,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #include "syssignal.h"
-#include "systerm.h"
+#include "systty.h"
 #include "systime.h"
 
 extern int errno;
