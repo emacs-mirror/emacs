@@ -402,8 +402,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
 
   CHECK_NUMBER_OR_FLOAT (arg1, 0);
   CHECK_NUMBER_OR_FLOAT (arg2, 0);
-  if ((XTYPE (arg1) == Lisp_Int) && /* common lisp spec */
-      (XTYPE (arg2) == Lisp_Int)) /* don't promote, if both are ints */
+  if (XTYPE (arg1) == Lisp_Int     /* common lisp spec */
+      && XTYPE (arg2) == Lisp_Int) /* don't promote, if both are ints */
     {				/* this can be improved by pre-calculating */
       int acc, x, y;		/* some binary powers of x then accumulating */
       Lisp_Object val;
@@ -444,7 +444,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   else if ((f1 == 0.0 && f2 < 0.0) || (f1 < 0 && f2 != floor(f2)))
     domain_error2 ("expt", arg1, arg2);
 #endif
-  IN_FLOAT (f1 = pow (f1, f2), "expt", arg1);
+  IN_FLOAT2 (f1 = pow (f1, f2), "expt", arg1, arg2);
   return make_float (f1);
 }
 
