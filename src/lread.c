@@ -1790,7 +1790,7 @@ to_multibyte (p, end, nchars)
   int nbytes;
 
   parse_str_as_multibyte (read_buffer, *p - read_buffer, &nbytes, nchars);
-  if (nbytes > read_buffer_size)
+  if (read_buffer_size < 2 * nbytes)
     {
       int offset = *p - read_buffer;
       read_buffer_size *= 2;
@@ -2238,6 +2238,9 @@ read1 (readcharfun, pch, first_in_list)
 	  }
 	if (c < 0)
 	  end_of_file_error ();
+
+	if (p - read_buffer == 24183)
+	  fprintf (stderr, "hello\n");
 
 	/* If purifying, and string starts with \ newline,
 	   return zero instead.  This is for doc strings
