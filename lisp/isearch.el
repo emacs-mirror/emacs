@@ -1735,9 +1735,7 @@ If there is no completion possible, say so and continue searching."
       nil
     (or isearch-overlay (setq isearch-overlay (make-overlay beg end)))
     (move-overlay isearch-overlay beg end (current-buffer))
-    (overlay-put isearch-overlay 'face
-		 (if (facep 'isearch)
-		     'isearch 'region))))
+    (overlay-put isearch-overlay 'face isearch)))
 
 (defun isearch-dehighlight (totally)
   (if isearch-overlay
@@ -1837,10 +1835,22 @@ If this is nil, extra highlighting can be \"manually\" removed with
   :type 'number
   :group 'isearch-lazy-highlight)
 
-(defcustom isearch-lazy-highlight-face 'secondary-selection
-  "*Face to use for lazily highlighting all matches."
-  :type 'face
-  :group 'isearch-lazy-highlight)
+(defgroup isearch-faces nil
+  "Lazy highlighting feature for incremental search."
+  :version "21.1"
+  :group 'isearch)
+
+(defface isearch
+  '((t (:inherit region)))
+  "Face for highlighting matches."
+  :group 'isearch-faces)
+(defvar isearch 'isearch)
+
+(defface isearch-lazy-highlight-face
+  '((t (:inherit secondary-selection)))
+  "Face for lazy highlighting of matches."
+  :group 'isearch-faces)
+(defvar isearch-lazy-highlight-face 'isearch-lazy-highlight-face)
 
 (defvar isearch-lazy-highlight-overlays nil)
 (defvar isearch-lazy-highlight-wrapped nil)
@@ -1926,7 +1936,7 @@ Attempt to do the search exactly the way the pending isearch would."
               ;; found the next match
               (let ((ov (make-overlay (match-beginning 0)
                                       (match-end 0))))
-                (overlay-put ov 'face isearch-lazy-highlight-face)
+                (overlay-put ov 'face 'isearch-lazy-highlight-face)
                 (overlay-put ov 'priority 0)
                 (setq isearch-lazy-highlight-overlays
                       (cons ov isearch-lazy-highlight-overlays))
