@@ -12072,7 +12072,7 @@ dump_glyph_row (row, vpos, glyphs)
       fprintf (stderr, "Row Start   End Used oEI><O\\CTZFesm     X    Y    W    H    V    A    P\n");
       fprintf (stderr, "=======================================================================\n");
   
-      fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d\
+      fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d\
 %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d  %4d %4d %4d %4d %4d %4d %4d\n",
 	       vpos,
 	       MATRIX_ROW_START_CHARPOS (row),
@@ -12080,7 +12080,6 @@ dump_glyph_row (row, vpos, glyphs)
 	       row->used[TEXT_AREA],
 	       row->contains_overlapping_glyphs_p,
 	       row->enabled_p,
-	       row->inverse_p,
 	       row->truncated_on_left_p,
 	       row->truncated_on_right_p,
 	       row->overlay_arrow_p,
@@ -13387,7 +13386,6 @@ display_mode_line (w, face_id, format)
   compute_line_metrics (&it);
   it.glyph_row->full_width_p = 1;
   it.glyph_row->mode_line_p = 1;
-  it.glyph_row->inverse_p = 0;
   it.glyph_row->continued_p = 0;
   it.glyph_row->truncated_on_left_p = 0;
   it.glyph_row->truncated_on_right_p = 0;
