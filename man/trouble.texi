@@ -17,7 +17,7 @@ also considered.
 @table @kbd
 @item C-g
 @itemx C-@key{BREAK}@r{ (MS-DOS only)}
-Quit (@code{keyboard-quit})}: cancel running or partially typed command.
+Quit (@code{keyboard-quit}): cancel running or partially typed command.
 @item C-]
 Abort innermost recursive editing level and cancel the command which
 invoked it (@code{abort-recursive-edit}).
