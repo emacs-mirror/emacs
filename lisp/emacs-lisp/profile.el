@@ -92,6 +92,8 @@ Both how many times invoked and real time of start.")
 (defvar profile-time (cons 0 0) "Used to return result from a filter.")
 (defvar profile-buffer "*profile*" "Name of profile buffer.")
 
+(defconst profile-million 1000000)
+
 ;;;
 ;;; F U N C T I O N S
 ;;;
@@ -188,8 +190,6 @@ With argument FLIST, use the list FLIST instead."
       (setcar init-time (car profile-time))
       (setcdr init-time (cdr profile-time)))
     ))
-	
-(defconst profile-million 1000000)
 
 (defun profile-update-function (fun)
   "When the call to the function FUN is finished, add its run time."
