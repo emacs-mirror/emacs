@@ -47,7 +47,7 @@ This defaults to the value returned by the `user-full-name' function.")
 This defaults to the value of `user-mail-address'.")
 
 (defvar change-log-font-lock-keywords
-  '(("^[SMTWF].+" . font-lock-function-name-face)	; Date line.
+  '(("^[12].+" . font-lock-function-name-face)	; Date line.
     ("^\t\\* \\([^ :\n]+\\)" 1 font-lock-comment-face)	; File name.
     ("(\\([^)\n]+\\)):" 1 font-lock-keyword-face))	; Function name.
   "Additional expressions to highlight in Change Log mode.")
@@ -57,6 +57,24 @@ This defaults to the value of `user-mail-address'.")
 (if change-log-mode-map
     nil
   (setq change-log-mode-map (make-sparse-keymap)))
+
+(defvar change-log-time-zone-rule nil
+  "Time zone used for calculating change log time stamps.
+It takes the same format as the TZ argument of `set-time-zone-rule'.
+If nil, use local time.")
+
+(defun iso8601-time-zone (time)
+  (let* ((utc-offset (or (car (current-time-zone time)) 0))
+	 (sign (if (< utc-offset 0) ?- ?+))
+	 (sec (abs utc-offset))
+	 (ss (% sec 60))
+	 (min (/ sec 60))
+	 (mm (% min 60))
+	 (hh (/ min 60)))
+    (format (cond ((not (zerop ss)) "%c%02d:%02d:%02d")
+		  ((not (zerop mm)) "%c%02d:%02d")
+		  (t "%c%02d"))
+	    sign hh mm ss)))
 
 (defun change-log-name ()
   (or change-log-default-name
@@ -148,7 +166,8 @@ Optional arg (interactive prefix) non-nil means prompt for user name and site.
 Second arg is file name of change log.  If nil, uses `change-log-default-name'.
 Third arg OTHER-WINDOW non-nil means visit in other window.
 Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
-never append to an existing entry."
+never append to an existing entry.  Today's date is calculated according to
+`change-log-time-zone-rule' if non-nil, otherwise in local time."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
   (or add-log-full-name
@@ -188,14 +207,23 @@ never append to an existing entry."
 	(change-log-mode))
     (undo-boundary)
     (goto-char (point-min))
-    (if (looking-at (concat (regexp-quote (substring (current-time-string)
-						     0 10))
-			    ".* " (regexp-quote add-log-full-name)
-			    "  <" (regexp-quote add-log-mailing-address)))
-	(forward-line 1)
-      (insert (current-time-string)
-	      "  " add-log-full-name
-	      "  <" add-log-mailing-address ">\n\n"))
+    (let ((new-entry (concat (if change-log-time-zone-rule
+				 (let ((tz (getenv "TZ"))
+				       (now (current-time)))
+				   (unwind-protect
+				       (progn
+					 (set-time-zone-rule
+					  change-log-time-zone-rule)
+					 (concat 
+					  (format-time-string "%Y-%m-%d " now)
+					  (iso8601-time-zone now)))
+				     (set-time-zone-rule tz)))
+			       (format-time-string "%Y-%m-%d"))
+			     "  " add-log-full-name
+			     "  <" add-log-mailing-address ">")))
+      (if (looking-at (regexp-quote new-entry))
+	  (forward-line 1)
+	(insert new-entry "\n\n")))
 
     ;; Search only within the first paragraph.
     (if (looking-at "\n*[^\n* \t]")
@@ -290,8 +318,8 @@ Runs `change-log-mode-hook'."
   ;; Let each entry behave as one paragraph:
   ;; We really do want "^" in paragraph-start below: it is only the lines that
   ;; begin at column 0 (despite the left-margin of 8) that we are looking for.
-  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\sw")
-  (set (make-local-variable 'paragraph-separate) "\\s *$\\|\f\\|^\\sw")
+  (set (make-local-variable 'paragraph-start) "\\s *$\\|\f\\|^\\<")
+  (set (make-local-variable 'paragraph-separate) "\\s *$\\|\f\\|^\\<")
   ;; Let all entries for one day behave as one page.
   ;; Match null string on the date-line so that the date-line
   ;; is grouped with what follows.
