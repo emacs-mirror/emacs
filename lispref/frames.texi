@@ -1575,9 +1575,15 @@ will specify which terminal to operate on (the default being the
 selected frame's terminal; @pxref{Input Focus}).  At present, though,
 the @var{display} argument has no effect.
 
+@defun tty-display-color-p &optional display
+This function returns non-@code{nil} if the terminal on @var{display}
+supports colors.
+@end defun
+
 @defun tty-display-color-cells &optional display
 This function returns the number of distinct colors supported for
-@var{display}.
+@var{display}.  For a monochrome terminal which only supports two
+colors (usually black and white), this function returns zero.
 @end defun
 
 @defun tty-color-define name number &optional rgb display
