@@ -106,7 +106,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    Define neither one if an assembler-language alloca
    in the file alloca.s should be used.  */
 
-#define C_ALLOCA
+/* #define C_ALLOCA */  /* Sjoerd.Mullender@cwi.nl says no need.  */
 /* #define HAVE_ALLOCA */
 
 /* Define NO_REMAP if memory segmentation makes it not work well
