@@ -1349,7 +1349,8 @@ or a character code.")
 
 void
 map_char_table (c_function, function, chartable, depth, indices)
-     Lisp_Object (*c_function) (), function, chartable, depth, *indices;
+     Lisp_Object (*c_function) (), function, chartable, *indices;
+     int depth;
 {
   int i;
   int size = CHAR_TABLE_ORDINARY_SLOTS;
