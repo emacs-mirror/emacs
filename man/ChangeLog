@@ -1,3 +1,8 @@
+2005-03-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* programs.texi (ForIndent Vars): `fortran-if-indent' does other
+	constructs as well.
+
 2005-03-29  Kenichi Handa  <handa@m17n.org>
 
 	* mule.texi (Input Methods): Refer to the command C-u C-x =.
