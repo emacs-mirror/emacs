@@ -271,12 +271,12 @@ nil."
 
 (defcustom c-tab-always-indent t
   "*Controls the operation of the TAB key.
-If t, hitting TAB always just indents the current line.  If nil,
-hitting TAB indents the current line if point is at the left margin or
-in the line's indentation, otherwise it insert a `real' tab character
-\(see note\).  If the symbol `other', then tab is inserted only within
-literals -- defined as comments and strings -- and inside preprocessor
-directives, but the line is always reindented.
+If t, hitting TAB always just indents the current line.  If nil, hitting
+TAB indents the current line if point is at the left margin or in the
+line's indentation, otherwise it inserts a `real' tab character \(see
+note\).  If some other value (not nil or t), then tab is inserted only
+within literals \(comments and strings), but the line is always
+reindented.
 
 Note: The value of `indent-tabs-mode' will determine whether a real
 tab character will be inserted, or the equivalent number of spaces.
@@ -1544,140 +1544,6 @@ Don't change this directly; call `c-set-style' instead.")
   "The current comment prefix regexp.
 Set from `c-comment-prefix-regexp' at mode initialization.")
 (make-variable-buffer-local 'c-current-comment-prefix)
-
-
-;; Figure out what features this Emacs has
-
-(cc-bytecomp-defvar open-paren-in-column-0-is-defun-start)
-
-(defconst c-emacs-features
-  (let (list)
-
-    (if (boundp 'infodock-version)
-	;; I've no idea what this actually is, but it's legacy. /mast
-	(setq list (cons 'infodock list)))
-
-    ;; XEmacs 19 and beyond use 8-bit modify-syntax-entry flags.
-    ;; Emacs 19 uses a 1-bit flag.  We will have to set up our
-    ;; syntax tables differently to handle this.
-    (let ((table (copy-syntax-table))
-	  entry)
-      (modify-syntax-entry ?a ". 12345678" table)
-      (cond
-       ;; XEmacs 19, and beyond Emacs 19.34
-       ((arrayp table)
-	(setq entry (aref table ?a))
-	;; In Emacs, table entries are cons cells
-	(if (consp entry) (setq entry (car entry))))
-       ;; XEmacs 20
-       ((fboundp 'get-char-table) (setq entry (get-char-table ?a table)))
-       ;; before and including Emacs 19.34
-       ((and (fboundp 'char-table-p)
-	     (char-table-p table))
-	(setq entry (car (char-table-range table [?a]))))
-       ;; incompatible
-       (t (error "CC Mode is incompatible with this version of Emacs")))
-      (setq list (cons (if (= (logand (lsh entry -16) 255) 255)
-			   '8-bit
-			 '1-bit)
-		       list)))
-
-    (let ((buf (generate-new-buffer " test"))
-	  parse-sexp-lookup-properties
-	  parse-sexp-ignore-comments
-	  lookup-syntax-properties)
-      (save-excursion
-	(set-buffer buf)
-	(set-syntax-table (make-syntax-table))
-
-	;; For some reason we have to set some of these after the
-	;; buffer has been made current.  (Specifically,
-	;; `parse-sexp-ignore-comments' in Emacs 21.)
-	(setq parse-sexp-lookup-properties t
-	      parse-sexp-ignore-comments t
-	      lookup-syntax-properties t)
-
-	;; Find out if the `syntax-table' text property works.
-	(modify-syntax-entry ?< ".")
-	(modify-syntax-entry ?> ".")
-	(insert "<()>")
-	(c-mark-<-as-paren 1)
-	(c-mark->-as-paren 4)
-	(goto-char 1)
-	(c-forward-sexp)
-	(if (= (point) 5)
-	    (setq list (cons 'syntax-properties list)))
-
-	;; Find out if generic comment delimiters work.
-	(c-safe
-	  (modify-syntax-entry ?x "!")
-	  (if (string-match "\\s!" "x")
-	      (setq list (cons 'gen-comment-delim list))))
-
-	;; Find out if generic string delimiters work.
-	(c-safe
-	  (modify-syntax-entry ?x "|")
-	  (if (string-match "\\s|" "x")
-	      (setq list (cons 'gen-string-delim list))))
-
-	;; See if `open-paren-in-column-0-is-defun-start' exists and
-	;; isn't buggy.
-	(when (boundp 'open-paren-in-column-0-is-defun-start)
-	  (let ((open-paren-in-column-0-is-defun-start nil)
-		(parse-sexp-ignore-comments t))
-	    (set-syntax-table (make-syntax-table))
-	    (modify-syntax-entry ?\' "\"")
-	    (cond
-	     ;; XEmacs.  Afaik this is currently an Emacs-only
-	     ;; feature, but it's good to be prepared.
-	     ((memq '8-bit list)
-	      (modify-syntax-entry ?/ ". 1456")
-	      (modify-syntax-entry ?* ". 23"))
-	     ;; Emacs
-	     ((memq '1-bit list)
-	      (modify-syntax-entry ?/ ". 124b")
-	      (modify-syntax-entry ?* ". 23")))
-	    (modify-syntax-entry ?\n "> b")
-	    (insert "/* '\n   () */")
-	    (backward-sexp)
-	    (if (bobp)
-		(setq list (cons 'col-0-paren list))))
-	  (kill-buffer buf))
-
-	(set-buffer-modified-p nil))
-      (kill-buffer buf))
-
-    ;; See if `parse-partial-sexp' returns the eighth element.
-    (when (c-safe (>= (length (save-excursion (parse-partial-sexp 1 1))) 10))
-      (setq list (cons 'pps-extended-state list)))
-
-    ;; See if POSIX char classes work.
-    (when (string-match "[[:alpha:]]" "a")
-      (setq list (cons 'posix-char-classes list)))
-
-    list)
-  "A list of certain features in the (X)Emacs you are using.
-There are many flavors of Emacs out there, each with different
-features supporting those needed by CC Mode.  The following values
-might be present:
-
-'8-bit              8 bit syntax entry flags (XEmacs style).
-'1-bit              1 bit syntax entry flags (Emacs style).
-'syntax-properties  It works to override the syntax for specific characters
-		    in the buffer with the 'syntax-table property.
-'gen-comment-delim  Generic comment delimiters work
-		    (i.e. the syntax class `!').
-'gen-string-delim   Generic string delimiters work
-		    (i.e. the syntax class `|').
-'pps-extended-state `parse-partial-sexp' returns a list with at least 10
-		    elements, i.e. it contains the position of the
-		    start of the last comment or string.
-'posix-char-classes The regexp engine understands POSIX character classes.
-'col-0-paren        It's possible to turn off the ad-hoc rule that a paren
-		    in column zero is the start of a defun.
-'infodock           This is Infodock (based on XEmacs).
-
-'8-bit and '1-bit are mutually exclusive.")
 
 
 (cc-provide 'cc-vars)

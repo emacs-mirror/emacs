@@ -48,7 +48,6 @@
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar c-enable-xemacs-performance-kludge-p) ; In cc-vars.el
-(cc-bytecomp-defvar c-emacs-features)	; In cc-vars.el
 (cc-bytecomp-defun buffer-syntactic-context-depth) ; XEmacs
 (cc-bytecomp-defun region-active-p)	; XEmacs
 (cc-bytecomp-defvar zmacs-region-stays)	; XEmacs
@@ -105,7 +104,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.30.8"
+(defconst c-version "5.30.9"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -620,20 +619,36 @@ This function does not do any hidden buffer changes."
 		   (eq (char-before) ?\\)))
        (backward-char))))
 
+(eval-and-compile
+  (defvar c-langs-are-parametric nil))
+
 (defmacro c-major-mode-is (mode)
   "Return non-nil if the current CC Mode major mode is MODE.
 MODE is either a mode symbol or a list of mode symbols.
 
 This function does not do any hidden buffer changes."
-  (if (eq (car-safe mode) 'quote)
-      (let ((mode (eval mode)))
-	(if (listp mode)
-	    `(memq c-buffer-is-cc-mode ',mode)
-	  `(eq c-buffer-is-cc-mode ',mode)))
-    `(let ((mode ,mode))
-       (if (listp mode)
-	   (memq c-buffer-is-cc-mode mode)
-	 (eq c-buffer-is-cc-mode mode)))))
+
+  (if c-langs-are-parametric
+      ;; Inside a `c-lang-defconst'.
+      `(c-lang-major-mode-is ,mode)
+
+    (if (eq (car-safe mode) 'quote)
+	(let ((mode (eval mode)))
+	  (if (listp mode)
+	      `(memq c-buffer-is-cc-mode ',mode)
+	    `(eq c-buffer-is-cc-mode ',mode)))
+
+      `(let ((mode ,mode))
+	 (if (listp mode)
+	     (memq c-buffer-is-cc-mode mode)
+	   (eq c-buffer-is-cc-mode mode))))))
+
+(defmacro c-mode-is-new-awk-p ()
+  ;; Is the current mode the "new" awk mode?  It is important for
+  ;; (e.g.) the cc-engine functions do distinguish between the old and
+  ;; new awk-modes.
+  '(and (c-major-mode-is 'awk-mode)
+	(memq 'syntax-properties c-emacs-features)))
 
 (defmacro c-parse-sexp-lookup-properties ()
   ;; Return the value of the variable that says whether the
@@ -968,13 +983,6 @@ the value of the variable with that name.
 This function does not do any hidden buffer changes."
   (symbol-value (c-mode-symbol suffix)))
 
-(defsubst c-mode-is-new-awk-p ()
-  ;; Is the current mode the "new" awk mode?  It is important for
-  ;; (e.g.) the cc-engine functions do distinguish between the old and
-  ;; new awk-modes.
-  (and (c-major-mode-is 'awk-mode)
-       (memq 'syntax-properties c-emacs-features)))
-
 (defsubst c-got-face-at (pos faces)
   "Return non-nil if position POS in the current buffer has any of the
 faces in the list FACES.
@@ -1057,11 +1065,155 @@ current language (taken from `c-buffer-is-cc-mode')."
 (put 'c-make-keywords-re 'lisp-indent-function 1)
 
 
+;; Figure out what features this Emacs has
+
+(cc-bytecomp-defvar open-paren-in-column-0-is-defun-start)
+
+(defconst c-emacs-features
+  (let (list)
+
+    (if (boundp 'infodock-version)
+	;; I've no idea what this actually is, but it's legacy. /mast
+	(setq list (cons 'infodock list)))
+
+    ;; XEmacs 19 and beyond use 8-bit modify-syntax-entry flags.
+    ;; Emacs 19 uses a 1-bit flag.  We will have to set up our
+    ;; syntax tables differently to handle this.
+    (let ((table (copy-syntax-table))
+	  entry)
+      (modify-syntax-entry ?a ". 12345678" table)
+      (cond
+       ;; XEmacs 19, and beyond Emacs 19.34
+       ((arrayp table)
+	(setq entry (aref table ?a))
+	;; In Emacs, table entries are cons cells
+	(if (consp entry) (setq entry (car entry))))
+       ;; XEmacs 20
+       ((fboundp 'get-char-table) (setq entry (get-char-table ?a table)))
+       ;; before and including Emacs 19.34
+       ((and (fboundp 'char-table-p)
+	     (char-table-p table))
+	(setq entry (car (char-table-range table [?a]))))
+       ;; incompatible
+       (t (error "CC Mode is incompatible with this version of Emacs")))
+      (setq list (cons (if (= (logand (lsh entry -16) 255) 255)
+			   '8-bit
+			 '1-bit)
+		       list)))
+
+    (let ((buf (generate-new-buffer " test"))
+	  parse-sexp-lookup-properties
+	  parse-sexp-ignore-comments
+	  lookup-syntax-properties)
+      (save-excursion
+	(set-buffer buf)
+	(set-syntax-table (make-syntax-table))
+
+	;; For some reason we have to set some of these after the
+	;; buffer has been made current.  (Specifically,
+	;; `parse-sexp-ignore-comments' in Emacs 21.)
+	(setq parse-sexp-lookup-properties t
+	      parse-sexp-ignore-comments t
+	      lookup-syntax-properties t)
+
+	;; Find out if the `syntax-table' text property works.
+	(modify-syntax-entry ?< ".")
+	(modify-syntax-entry ?> ".")
+	(insert "<()>")
+	(c-mark-<-as-paren 1)
+	(c-mark->-as-paren 4)
+	(goto-char 1)
+	(c-forward-sexp)
+	(if (= (point) 5)
+	    (setq list (cons 'syntax-properties list)))
+
+	;; Find out if generic comment delimiters work.
+	(c-safe
+	  (modify-syntax-entry ?x "!")
+	  (if (string-match "\\s!" "x")
+	      (setq list (cons 'gen-comment-delim list))))
+
+	;; Find out if generic string delimiters work.
+	(c-safe
+	  (modify-syntax-entry ?x "|")
+	  (if (string-match "\\s|" "x")
+	      (setq list (cons 'gen-string-delim list))))
+
+	;; See if POSIX char classes work.
+	(when (and (string-match "[[:alpha:]]" "a")
+		   ;; All versions of Emacs 21 so far haven't fixed
+		   ;; char classes in `skip-chars-forward' and
+		   ;; `skip-chars-backward'.
+		   (progn
+		     (delete-region (point-min) (point-max))
+		     (insert "foo123")
+		     (skip-chars-backward "[:alnum:]")
+		     (bobp))
+		   (= (skip-chars-forward "[:alpha:]") 3))
+	  (setq list (cons 'posix-char-classes list)))
+
+	;; See if `open-paren-in-column-0-is-defun-start' exists and
+	;; isn't buggy.
+	(when (boundp 'open-paren-in-column-0-is-defun-start)
+	  (let ((open-paren-in-column-0-is-defun-start nil)
+		(parse-sexp-ignore-comments t))
+	    (delete-region (point-min) (point-max))
+	    (set-syntax-table (make-syntax-table))
+	    (modify-syntax-entry ?\' "\"")
+	    (cond
+	     ;; XEmacs.  Afaik this is currently an Emacs-only
+	     ;; feature, but it's good to be prepared.
+	     ((memq '8-bit list)
+	      (modify-syntax-entry ?/ ". 1456")
+	      (modify-syntax-entry ?* ". 23"))
+	     ;; Emacs
+	     ((memq '1-bit list)
+	      (modify-syntax-entry ?/ ". 124b")
+	      (modify-syntax-entry ?* ". 23")))
+	    (modify-syntax-entry ?\n "> b")
+	    (insert "/* '\n   () */")
+	    (backward-sexp)
+	    (if (bobp)
+		(setq list (cons 'col-0-paren list)))))
+
+	(set-buffer-modified-p nil))
+      (kill-buffer buf))
+
+    ;; See if `parse-partial-sexp' returns the eighth element.
+    (when (c-safe (>= (length (save-excursion (parse-partial-sexp 1 1))) 10))
+      (setq list (cons 'pps-extended-state list)))
+
+    ;;(message "c-emacs-features: %S" list)
+    list)
+  "A list of certain features in the (X)Emacs you are using.
+There are many flavors of Emacs out there, each with different
+features supporting those needed by CC Mode.  The following values
+might be present:
+
+'8-bit              8 bit syntax entry flags (XEmacs style).
+'1-bit              1 bit syntax entry flags (Emacs style).
+'syntax-properties  It works to override the syntax for specific characters
+		    in the buffer with the 'syntax-table property.
+'gen-comment-delim  Generic comment delimiters work
+		    (i.e. the syntax class `!').
+'gen-string-delim   Generic string delimiters work
+		    (i.e. the syntax class `|').
+'pps-extended-state `parse-partial-sexp' returns a list with at least 10
+		    elements, i.e. it contains the position of the
+		    start of the last comment or string.
+'posix-char-classes The regexp engine understands POSIX character classes.
+'col-0-paren        It's possible to turn off the ad-hoc rule that a paren
+		    in column zero is the start of a defun.
+'infodock           This is Infodock (based on XEmacs).
+
+'8-bit and '1-bit are mutually exclusive.")
+
+
 ;;; Some helper constants.
 
-;; If the regexp engine supports POSIX char classes (e.g. Emacs 21)
-;; then we can use them to handle extended charsets correctly.
-(if (string-match "[[:alpha:]]" "a")	; Can't use c-emacs-features here.
+;; If the regexp engine supports POSIX char classes then we can use
+;; them to handle extended charsets correctly.
+(if (memq 'posix-char-classes c-emacs-features)
     (progn
       (defconst c-alpha "[:alpha:]")
       (defconst c-alnum "[:alnum:]")
@@ -1127,8 +1279,8 @@ system."
     (error "The mode name symbol `%s' must end with \"-mode\"" mode))
   (put mode 'c-mode-prefix (match-string 1 (symbol-name mode)))
   (unless (get base-mode 'c-mode-prefix)
-    (error "Unknown base mode `%s'" base-mode)
-    (put mode 'c-fallback-mode base-mode)))
+    (error "Unknown base mode `%s'" base-mode))
+  (put mode 'c-fallback-mode base-mode))
 
 (defvar c-lang-constants (make-vector 151 0))
 ;; This obarray is a cache to keep track of the language constants
@@ -1144,7 +1296,6 @@ system."
 ;; various other symbols, but those don't have any variable bindings.
 
 (defvar c-lang-const-expansion nil)
-(defvar c-langs-are-parametric nil)
 
 (defsubst c-get-current-file ()
   ;; Return the base name of the current file.
@@ -1584,6 +1735,22 @@ This macro does not do any hidden buffer changes."
 	  (throw 'found (cdr assignment))))
 
       c-lang-constants)))
+
+(defun c-lang-major-mode-is (mode)
+  ;; `c-major-mode-is' expands to a call to this function inside
+  ;; `c-lang-defconst'.  Here we also match the mode(s) against any
+  ;; fallback modes for the one in `c-buffer-is-cc-mode', so that
+  ;; e.g. (c-major-mode-is 'c++-mode) is true in a derived language
+  ;; that has c++-mode as base mode.
+  (unless (listp mode)
+    (setq mode (list mode)))
+  (let (match (buf-mode c-buffer-is-cc-mode))
+    (while (if (memq buf-mode mode)
+	       (progn
+		 (setq match t)
+		 nil)
+	     (setq buf-mode (get buf-mode 'c-fallback-mode))))
+    match))
 
 
 (cc-provide 'cc-defs)

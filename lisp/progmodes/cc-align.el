@@ -121,7 +121,7 @@ Works with: arglist-cont-nonempty, arglist-close."
     ;; like "({".
     (when c-special-brace-lists
       (let ((special-list (c-looking-at-special-brace-list)))
-	(when special-list
+	(when (and special-list (< (car (car special-list)) (point)))
 	  (goto-char (+ (car (car special-list)) 2)))))
 
     (let ((savepos (point))
@@ -380,9 +380,7 @@ Works with: inher-cont, member-init-cont."
     (back-to-indentation)
     (let* ((eol (c-point 'eol))
 	   (here (point))
-	   (char-after-ip (progn
-			    (skip-chars-forward " \t")
-			    (char-after))))
+	   (char-after-ip (char-after)))
       (if (cdr langelem) (goto-char (cdr langelem)))
 
       ;; This kludge is necessary to support both inher-cont and
@@ -392,13 +390,12 @@ Works with: inher-cont, member-init-cont."
 	(backward-char)
 	(c-backward-syntactic-ws))
 
-      (skip-chars-forward "^:" eol)
-      (if (eq char-after-ip ?,)
-	  (skip-chars-forward " \t" eol)
-	(skip-chars-forward " \t:" eol))
-      (if (or (eolp)
-	      (looking-at c-comment-start-regexp))
-	  (c-forward-syntactic-ws here))
+      (c-syntactic-re-search-forward ":" eol 'move)
+      (if (looking-at c-syntactic-eol)
+	  (c-forward-syntactic-ws here)
+	(if (eq char-after-ip ?,)
+	    (backward-char)
+	  (skip-chars-forward " \t" eol)))
       (if (< (point) here)
 	  (vector (current-column)))
       )))
@@ -952,11 +949,17 @@ Works with: defun-close, defun-block-intro, block-close,
 brace-list-close, brace-list-intro, statement-block-intro and all in*
 symbols, e.g. inclass and inextern-lang."
   (save-excursion
-    (goto-char (cdr langelem))
-    (back-to-indentation)
-    (if (eq (char-syntax (char-after)) ?\()
-	0
-      c-basic-offset)))
+    (+ (progn
+	 (back-to-indentation)
+	 (if (eq (char-syntax (char-after)) ?\()
+	     c-basic-offset
+	   0))
+       (progn
+	 (goto-char (cdr langelem))
+	 (back-to-indentation)
+	 (if (eq (char-syntax (char-after)) ?\()
+	     0
+	   c-basic-offset)))))
 
 (defun c-lineup-cpp-define (langelem)
   "Line up macro continuation lines according to the indentation of

@@ -1,3 +1,7 @@
+2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Various updates for CC Mode 5.30.9.
+
 2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.44.
