@@ -1,3 +1,12 @@
+2002-05-18  Colin Walters  <walters@gnu.org>
+	    
+	* international/mule.el (make-coding-system): Doc fixes.
+
+	* international/mule.el (auto-coding-functions): New variable.
+	(auto-coding-from-file-contents): Use it.
+	(set-auto-coding): Update docs.
+	(sgml-xml-auto-coding-function): New function.
+
 2002-05-21  Colin Walters  <walters@verbum.org>	
 
 	* font-lock.el (font-lock-defaults, font-lock-defaults-alist)
