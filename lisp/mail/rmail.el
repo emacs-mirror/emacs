@@ -708,19 +708,27 @@ Instead, these commands are available:
   (interactive "FRun rmail on RMAIL file: ")
   (rmail filename))
 
+;; Return a list of file names for all files in or under START
+;; whose names match rmail-secondary-file-regexp.
+;; This includes START itself, if that name matches.
+;; But normally START is a directory.
 (defun rmail-find-all-files (start)
   (if (file-accessible-directory-p start)
-      (let ((files (directory-files start nil
-				    rmail-secondary-file-regexp))
+      ;; Don't sort here.
+      (let ((files (directory-files start t
+				    rmail-secondary-file-regexp t))
 	    (ret nil))
 	(while files
 	  (setq file (car files))
 	  (setq files (cdr files))
-	  (setq ret (cons
-		     (rmail-find-all-files (concat start "/" file))
-		     ret))) 
-	(cons (file-name-nondirectory start) ret))
-    (file-name-nondirectory start)))
+	  (setq ret (nconc
+		     (rmail-find-all-files file)
+		     ret)))
+	;; Sort here instead of in directory-files
+	;; because this list is usually much shorter.
+	(sort ret 'string<))
+    (if (string-match rmail-secondary-file-regexp start)
+	(list (file-name-nondirectory start)))))
 
 (defun rmail-list-to-menu (menu-name l action &optional full-name)
   (let ((menu (make-sparse-keymap menu-name)))
@@ -748,23 +756,31 @@ Instead, these commands are available:
 				   rmail-secondary-file-directory))))))
 		 (define-key menu (vector (intern name))
 		   (cons name command))))
-     l)
+     (reverse l))
     menu))
  
+;; This command is always "disabled" when it appears in a menu.
+(put 'rmail-disable-menu 'menu-enable ''nil)
+
 (defun rmail-construct-io-menu ()
   (let ((files (rmail-find-all-files rmail-secondary-file-directory)))
-    (if (listp files)
+    (if files
 	(progn
 	  (define-key rmail-mode-map [menu-bar classify input-menu]
 	    (cons "Input Rmail File" 
 		  (rmail-list-to-menu "Input Rmail File" 
-				      (cdr files) 
+				      files
 				      'rmail-input)))
 	  (define-key rmail-mode-map [menu-bar classify output-menu]
 	    (cons "Output Rmail File" 
 		  (rmail-list-to-menu "Output Rmail File" 
-				      (cdr files) 
-				      'rmail-output-to-rmail-file)))))))
+				      files
+				      'rmail-output-to-rmail-file))))
+
+      (define-key rmail-mode-map [menu-bar classify input-menu]
+	'("Input Rmail File" . rmail-disable-menu))
+      (define-key rmail-mode-map [menu-bar classify output-menu]
+	'("Output Rmail File" . rmail-disable-menu)))))
 
 
 ;;;; *** Rmail input ***
