@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.16
+;; Version: 1.4.19
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -404,7 +404,6 @@ Based on `comint-mode-map'.")
     (define-key map (kbd "C-c C-c") 'sql-send-paragraph)
     (define-key map (kbd "C-c C-r") 'sql-send-region)
     (define-key map (kbd "C-c C-b") 'sql-send-buffer)
-    (define-key map (kbd "<TAB>") 'indent-relative)
     map)
   "Mode map used for `sql-mode'.")
 
@@ -654,6 +653,7 @@ used for the default `font-lock-defaults' value in `sql-mode'.  This
 can be changed by some entry functions to provide more hilighting.")
 
 
+
 ;;; Compatibility functions
 
 (if (not (fboundp 'comint-line-beginning-position))
@@ -1555,8 +1555,13 @@ Try to set `comint-output-filter-functions' like this:
       (pop-to-buffer "*SQL*")
     (sql-get-login 'database 'server)
     (message "Login...")
-    ;; username and password are ignored.
-    (let ((params))
+    ;; username and password are ignored.  Jason Beegan suggest using
+    ;; --pset and pager=off instead of \\o|cat.  The later was the
+    ;; solution by Gregor Zych.  If you find that your postgres doesn't
+    ;; like Jason Beegans's solution and prefers Gregor Zych's solution,
+    ;; then I'd love to hear from you.  Send your comments to the
+    ;; mailing list.
+    (let ((params (list "--pset" "pager=off")))
       (if (not (string= "" sql-database))
 	  (setq params (append (list sql-database) params)))
       (if (not (string= "" sql-server))
@@ -1569,7 +1574,7 @@ Try to set `comint-output-filter-functions' like this:
     ;; and giving stupid warnings. If s.o. knows a way to prevent psql
     ;; from acting this way, then I would be very thankful to
     ;; incorporate this (Gregor Zych <zych@pool.informatik.rwth-aachen.de>)
-    (comint-send-string "*SQL*" "\\o \| cat\n")
+    ;; (comint-send-string "*SQL*" "\\o \| cat\n")
     (setq sql-mode-font-lock-keywords sql-mode-postgres-font-lock-keywords)
     (setq sql-buffer (current-buffer))
     (sql-interactive-mode)
