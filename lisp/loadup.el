@@ -40,7 +40,8 @@
       (setq load-path (list path
 			    (expand-file-name "emacs-lisp" path)
 			    (expand-file-name "language" path)
-			    (expand-file-name "international" path)))))
+			    (expand-file-name "international" path)
+			    (expand-file-name "textmodes" path)))))
 
 (message "Using load-path %s" load-path)
 
