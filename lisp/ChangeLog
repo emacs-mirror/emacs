@@ -1,3 +1,8 @@
+2004-09-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el (enriched-translations): Replace defconst
+	with defvar.
+
 2004-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Doc fix.
