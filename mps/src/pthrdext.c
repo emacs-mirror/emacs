@@ -13,7 +13,9 @@
  */
 
 
-#ifdef MPS_OS_LI
+#include "mpm.h"
+
+#if defined(MPS_OS_LI)
 /* open sesame magic */
 #define _BSD_SOURCE 1
 #define _POSIX_C_SOURCE 1
@@ -28,7 +30,6 @@
 #include <stdlib.h>
 
 #include "pthrdext.h"
-#include "mpm.h"
 
 SRCID(pthreadext, "$HopeName$");
 
