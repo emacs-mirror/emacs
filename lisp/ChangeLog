@@ -1,3 +1,8 @@
+2002-04-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* hilit-chg.el (global-highlight-changes): Capitalize status
+	texts.
+
 2002-04-22  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
 	* diary-lib.el (include-other-diary-files): Allow modifying
