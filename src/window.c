@@ -55,7 +55,6 @@ extern Lisp_Object Qleft_margin, Qright_margin;
 
 static int displayed_window_lines P_ ((struct window *));
 static struct window *decode_window P_ ((Lisp_Object));
-static Lisp_Object select_window_1 P_ ((Lisp_Object, int));
 static int count_windows P_ ((struct window *));
 static int get_leaf_windows P_ ((struct window *, struct window **, int));
 static void window_scroll P_ ((Lisp_Object, int, int, int));
@@ -1299,7 +1298,7 @@ delete_window (window)
 	   delete the selected window on any other frame, we shouldn't do
 	   anything but set the frame's selected_window slot.  */
 	if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
-	  Fselect_window (swindow);
+	  Fselect_window (swindow, Qnil);
 	else
 	  FRAME_SELECTED_WINDOW (f) = swindow;
       }
@@ -1698,7 +1697,7 @@ argument ALL_FRAMES is non-nil, cycle through all frames.  */)
   for (; i < 0; ++i)
     window = Fprevious_window (window, Qnil, all_frames);
 
-  Fselect_window (window);
+  Fselect_window (window, Qnil);
   return Qnil;
 }
 
@@ -2782,26 +2781,17 @@ BUFFER can be a buffer or buffer name.  */)
   return Qnil;
 }
 
-DEFUN ("select-window", Fselect_window, Sselect_window, 1, 1, 0,
+DEFUN ("select-window", Fselect_window, Sselect_window, 1, 2, 0,
        doc: /* Select WINDOW.  Most editing will apply to WINDOW's buffer.
 If WINDOW is not already selected, also make WINDOW's buffer current.
 Also make WINDOW the frame's selected window.
+Optional second arg NORECORD non-nil means
+do not put this buffer at the front of the list of recently selected ones.
 
 Note that the main editor command loop
 selects the buffer of the selected window before each command.  */)
-     (window)
-     register Lisp_Object window;
-{
-  return select_window_1 (window, 1);
-}
-
-/* Note that selected_window can be nil
-   when this is called from Fset_window_configuration.  */
-
-static Lisp_Object
-select_window_1 (window, recordflag)
-     register Lisp_Object window;
-     int recordflag;
+     (window, norecord)
+     register Lisp_Object window, norecord;
 {
   register struct window *w;
   register struct window *ow;
@@ -2839,7 +2829,7 @@ select_window_1 (window, recordflag)
   else
     sf->selected_window = window;
 
-  if (recordflag)
+  if (NILP (norecord))
     record_buffer (w->buffer);
   Fset_buffer (w->buffer);
 
@@ -2862,6 +2852,13 @@ select_window_1 (window, recordflag)
 
   windows_or_buffers_changed++;
   return window;
+}
+
+static Lisp_Object
+select_window_norecord (window)
+     Lisp_Object window;
+{
+  return Fselect_window (window, Qt);
 }
 
 /* Deiconify the frame containing the window WINDOW,
@@ -3205,18 +3202,19 @@ temp_output_buffer_show (buf)
 	      if (!NILP (tem))
 		{
 		  int count = SPECPDL_INDEX ();
-		  Lisp_Object prev_window;
+		  Lisp_Object prev_window, prev_buffer;
 		  prev_window = selected_window;
+		  XSETBUFFER (prev_buffer, old);
 
-		  /* Select the window that was chosen, for running the hook.  */
-		  /* Both this Fselect_window and the select_window_1
-		     below will (may) incorrectly set-buffer to the buffer
-		     displayed in the window.  --stef  */
-		  record_unwind_protect (Fselect_window, prev_window);
-		  select_window_1 (window, 0);
+		  /* Select the window that was chosen, for running the hook.
+		     Note: Both Fselect_window and select_window_norecord may
+		     set-buffer to the buffer displayed in the window,
+		     so we need to save the current buffer.  --stef  */
+		  record_unwind_protect (Fset_buffer, prev_buffer);
+		  record_unwind_protect (select_window_norecord, prev_window);
+		  Fselect_window (window, Qt);
 		  Fset_buffer (w->buffer);
 		  call1 (Vrun_hooks, Qtemp_buffer_show_hook);
-		  select_window_1 (prev_window, 0);
 		  unbind_to (count, Qnil);
 		}
 	    }
@@ -5220,7 +5218,7 @@ the return value is nil.  Otherwise the value is t.  */)
 			       make_number (old_point),
 			       XWINDOW (data->current_window)->buffer);
 
-      Fselect_window (data->current_window);
+      Fselect_window (data->current_window, Qnil);
       XBUFFER (XWINDOW (selected_window)->buffer)->last_selected_window
 	= selected_window;
 
