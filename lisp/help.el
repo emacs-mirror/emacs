@@ -255,6 +255,7 @@ of the key sequence that ran this command."
 (make-help-screen help-for-help
   "a b c f C-f i k C-k l m n p s t v w C-c C-d C-n C-w.  Type \\[help-command] again for more help: "
   "You have typed \\[help-command], the help character.  Type a Help option:
+\(Use \\[scroll-up] or \\[scroll-down] to scroll through this text.)
 
 a  command-apropos.  Give a substring, and see a list of commands
 	(functions interactively callable) that contain
