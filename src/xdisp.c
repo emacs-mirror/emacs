@@ -2839,6 +2839,11 @@ decode_mode_spec (w, c, maxwidth)
 	return "*";
       return "-";
 
+    case '+':
+      if (MODIFF > current_buffer->save_modified)
+	return "*";
+      return "-";
+
     case 's':
       /* status of process */
       obj = Fget_buffer_process (Fcurrent_buffer ());
