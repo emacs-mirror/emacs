@@ -1354,7 +1354,7 @@ old name in that directory."
 	    (setq filename (concat (file-name-as-directory filename)
 				   (file-name-nondirectory buffer-file-name))))
 	(if (file-exists-p filename)
-	    (or (y-or-n-p "File `%s' exists; overwrite? " filename)
+	    (or (y-or-n-p (format "File `%s' exists; overwrite? " filename))
 		(error "Canceled")))
 	(set-visited-file-name filename)))
   (set-buffer-modified-p t)
