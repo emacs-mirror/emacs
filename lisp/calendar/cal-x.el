@@ -96,6 +96,25 @@ Can be used to change frame parameters, such as font, color, location, etc.")
               fancy-diary-buffer))
            'diary))))))
 
+(defun calendar-only-one-frame-setup (&optional arg)
+  "Start calendar and display it in a dedicated frame."
+  (if (not window-system)
+      (calendar-basic-setup arg)
+    (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
+    (let ((special-display-buffer-names nil)
+          (view-diary-entries-initially nil))
+      (save-window-excursion
+        (save-excursion
+          (setq calendar-frame
+		(make-frame calendar-frame-parameters))
+          (run-hooks 'calendar-after-frame-setup-hooks)
+          (select-frame calendar-frame)
+          (if (eq 'icon (cdr (assoc 'visibility
+                                     (frame-parameters calendar-frame))))
+              (iconify-or-deiconify-frame))
+          (calendar-basic-setup arg)
+          (set-window-dedicated-p (selected-window) 'calendar))))))
+
 (defun calendar-two-frame-setup (&optional arg)
   "Start calendar and diary in separate, dedicated frames."
   (if (not window-system)
