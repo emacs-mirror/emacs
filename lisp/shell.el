@@ -549,7 +549,9 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 
 (defun shell-cd (dir)
   "Do normal `cd' to DIR, and set `list-buffers-directory'."
-  (if shell-dirtrackp (setq list-buffers-directory (expand-file-name dir)))
+  (if shell-dirtrackp
+      (setq list-buffers-directory (file-name-as-directory
+				    (expand-file-name dir))))
   (cd dir))
 
 (defun shell-resync-dirs ()
