@@ -1,15 +1,14 @@
 # impl.gmk.gc: GNUMAKEFILE FRAGMENT FOR GNU CC
 #
-# $HopeName: MMsrc!gc.gmk(trunk.23) $
-# Copyright (C) 1996, 1997, 1998 Harlequin Group, all rights reserved
+# $HopeName: MMsrc!gc.gmk(trunk.25) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # This file is included by platform makefiles that use the GNU CC
-# compiler.  It defines the compiler specific variables that the
+# compiler.  It defines the compiler-specific variables that the
 # common makefile fragment (impl.gmk.comm) requires.
 
-
 CC = gcc
-CFLAGSCOMPILER = \
+CFLAGSCOMPILER := \
 	-ansi -pedantic -Wall -Werror -Wpointer-arith \
 	-Wstrict-prototypes -Wmissing-prototypes \
 	-Winline -Waggregate-return -Wnested-externs \
@@ -22,11 +21,10 @@ CFLAGSOPTNODEBUG = -O -g0
 #   thing.o : thing.c ...
 # The sed line converts this into:
 #   <pfm>/<variety>/thing.o <pfm>/<variety>/thing.d : thing.c ...
-# @@ This sequence is vulnerable to interrupts (for some reason)
+# If interrupted, this is liable to leave a zero-length file behind.
 
 define gendep
-	$(SHELL) -ec "gcc -c $(CFLAGS) -MM $< | \
+	$(SHELL) -ec "$(CC) $(CFLAGS) -MM $< | \
 		sed '/:/s!$*.o!$(@D)/& $(@D)/$*.d!' > $@"
+	[ -s $@ ] || rm -f $@
 endef
-
-include comm.gmk
