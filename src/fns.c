@@ -591,7 +591,7 @@ concat (nargs, args, target_type, last_special)
 		  wrong_type_argument (Qcharacterp, ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
-		if (! ASCII_CHAR_P (XINT (ch)))
+		if (! ASCII_CHAR_P (XINT (ch)) && ! CHAR_BYTE8_P (XINT (ch)))
 		  some_multibyte = 1;
 	      }
 	  else if (BOOL_VECTOR_P (this) && XBOOL_VECTOR (this)->size > 0)
@@ -604,7 +604,7 @@ concat (nargs, args, target_type, last_special)
 		  wrong_type_argument (Qcharacterp, ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
 		result_len_byte += this_len_byte;
-		if (! ASCII_CHAR_P (XINT (ch)))
+		if (! ASCII_CHAR_P (XINT (ch)) && ! CHAR_BYTE8_P (XINT (ch)))
 		  some_multibyte = 1;
 	      }
 	  else if (STRINGP (this))
