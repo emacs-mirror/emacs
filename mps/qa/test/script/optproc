@@ -133,7 +133,7 @@ sub explainoptions {
  foreach $key (@keys) {
   $optname = "MMQA_$key";
   if (&optioncode($key)) {
-   $optcode = "-".&optioncode($key)." <value>";
+   $optcode = "-".&optioncode($key)." <val>";
   } elsif (&flagcode($key)) {
    $optcode = "-[no]".&flagcode($key);
   } else {
@@ -149,7 +149,9 @@ sub displayalloptions {
 }
 
 format OPTLIST =
- @<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<<<<< @*
+ @<<<<<<<<<<<<<<<<<<<<< @<<<<<<<<< ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 $optname, $optcode, $optcur
+~~                                  ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$optcur
 .
 
