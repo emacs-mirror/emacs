@@ -1746,7 +1746,7 @@ REMOVE not nil, remove the ADDRESSES."
 		  (goto-char (point-min))
 		  (when (re-search-forward "^X-Spam: yes;" nil t)
 		    spam-split-group))
-	      (error "Error running spamoracle" status))))))))
+	      (error "Error running spamoracle: %s" status))))))))
 
 (defun spam-spamoracle-learn (articles article-is-spam-p &optional unregister)
   "Run spamoracle in training mode."
@@ -1768,8 +1768,8 @@ REMOVE not nil, remove the ADDRESSES."
 			   `("-f" ,spam-spamoracle-database
 			     "add" ,arg)
 			 `("add" ,arg)))))
-	  (when (not (eq 0 status))
-	    (error "Error running spamoracle" status)))))))
+	  (unless (eq 0 status)
+	    (error "Error running spamoracle: %s" status)))))))
 
 (defun spam-spamoracle-learn-ham (articles &optional unregister)
   (spam-spamoracle-learn articles nil unregister))

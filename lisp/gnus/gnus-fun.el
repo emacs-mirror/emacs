@@ -26,8 +26,11 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (require 'mm-util))
+  (require 'cl))
+
+(require 'mm-util)
+(require 'gnus-ems)
+(require 'gnus-util)
 
 (defcustom gnus-x-face-directory (expand-file-name "x-faces" gnus-directory)
   "*Directory where X-Face PBM files are stored."

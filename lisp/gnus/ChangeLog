@@ -1,3 +1,25 @@
+2004-09-28  Jesper Harder  <harder@ifa.au.dk>
+
+	* gnus-picon.el: Require cl.
+
+	* mml-sec.el (mml-signencrypt-style): Don't depend on Gnus.
+
+	* mml-smime.el: Require cl.  Autoload message-fetch-field.
+
+	* gnus-fun.el: Require gnus-ems and gnus-util.
+
+	* gnus-diary.el (gnus-diary-header-schedule): caddr -> car (cddr
+
+	* gnus-art.el (gnus-article-edit-mode): Define before first
+	reference.
+
+	* gnus.el (gnus-method-to-server): Move defsubst before first use.
+
+	* spam.el (spam-check-spamoracle, spam-spamoracle-learn): Fix
+	format string mismatch.
+	* nnml.el (nnml-request-set-mark, nnml-save-marks): do.	
+	* nnfolder.el (nnfolder-request-set-mark, nnfolder-save-marks): do.
+
 2004-09-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el (gnus-version-number): Set to 5.11.
