@@ -1,6 +1,9 @@
 		      Building and Installing Emacs
 		on Windows NT/2000 and Windows 95/98/ME
 
+  Copyright (c) 2001 Free Software Foundation, Inc.
+  See the end of the file for copying permissions.
+
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later, or a Windows port of GCC 2.95 or later with Mingw and W32 API
   support and a port of GNU make.  You can use the Cygwin ports of GCC,
@@ -167,3 +170,18 @@
   execution (e.g., due to a breakpoint) in the context of the current
   thread, so this should only be a problem if you've explicitly switched
   threads.
+
+COPYING PERMISSIONS
+
+  Permission is granted to anyone to make or distribute verbatim copies
+  of this document as received, in any medium, provided that the
+  copyright notice and permission notice are preserved,
+  and that the distributor grants the recipient permission
+  for further redistribution as permitted by this notice.
+
+  Permission is granted to distribute modified versions
+  of this document, or of portions of it,
+  under the above conditions, provided also that they
+  carry prominent notices stating who last changed them,
+  and that any new or changed statements about the activities
+  of the Free Software Foundation are approved by the Foundation.
