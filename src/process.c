@@ -472,9 +472,9 @@ make_process (name)
   p = XPROCESS (val);
   XSETINT (p->infd, -1);
   XSETINT (p->outfd, -1);
-  XFASTINT (p->pid) = 0;
-  XFASTINT (p->tick) = 0;
-  XFASTINT (p->update_tick) = 0;
+  XSETFASTINT (p->pid, 0);
+  XSETFASTINT (p->tick, 0);
+  XSETFASTINT (p->update_tick, 0);
   p->raw_status_low = Qnil;
   p->raw_status_high = Qnil;
   p->status = Qrun;
@@ -862,7 +862,7 @@ list_processes_1 ()
   register int state;
   char tembuf[80];
 
-  XFASTINT (minspace) = 1;
+  XSETFASTINT (minspace, 1);
 
   set_buffer_internal (XBUFFER (Vstandard_output));
   Fbuffer_disable_undo (Vstandard_output);
@@ -1255,7 +1255,7 @@ create_process (process, new_argv, current_dir)
   if (forkin < 0)
     XPROCESS (process)->subtty = Qnil;
   else
-    XFASTINT (XPROCESS (process)->subtty) = forkin;
+    XSETFASTINT (XPROCESS (process)->subtty, forkin);
   XPROCESS (process)->pty_flag = (pty_flag ? Qt : Qnil);
   XPROCESS (process)->status = Qrun;
 
@@ -1440,7 +1440,7 @@ create_process (process, new_argv, current_dir)
       report_file_error ("Doing vfork", Qnil);
     }
   
-  XFASTINT (XPROCESS (process)->pid) = pid;
+  XSETFASTINT (XPROCESS (process)->pid, pid);
 
   /* If the subfork execv fails, and it exits,
      this close hangs.  I don't know why.
@@ -1796,7 +1796,7 @@ Return non-nil iff we received any output before the timeout expired.")
     }
 
   if (NILP (proc))
-    XFASTINT (proc) = 0;
+    XSETFASTINT (proc, 0);
 
   return
     (wait_reading_process_input (seconds, useconds, proc, 0)
@@ -1870,14 +1870,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
     {
       wait_proc = XPROCESS (read_kbd);
       wait_channel = XINT (wait_proc->infd);
-      XFASTINT (read_kbd) = 0;
+      XSETFASTINT (read_kbd, 0);
     }
 
   /* If waiting for non-nil in a cell, record where.  */
   if (CONSP (read_kbd))
     {
       wait_for_cell = &XCONS (read_kbd)->car;
-      XFASTINT (read_kbd) = 0;
+      XSETFASTINT (read_kbd, 0);
     }
 
   waiting_for_user_input_p = XINT (read_kbd);
@@ -2322,8 +2322,8 @@ read_process_output (proc, channel)
       Fset_buffer (p->buffer);
       opoint = point;
       old_read_only = current_buffer->read_only;
-      XFASTINT (old_begv) = BEGV;
-      XFASTINT (old_zv) = ZV;
+      XSETFASTINT (old_begv, BEGV);
+      XSETFASTINT (old_zv, ZV);
 
       current_buffer->read_only = Qnil;
 
@@ -2511,7 +2511,7 @@ send_process (proc, buf, len, object)
 		    else if (STRINGP (object))
 		      offset = buf - (char *) XSTRING (object)->data;
 
-		    XFASTINT (zero) = 0;
+		    XSETFASTINT (zero, 0);
 		    wait_reading_process_input (1, 0, zero, 0);
 
 		    if (BUFFERP (object))
@@ -3052,8 +3052,8 @@ sigchld_handler (signo)
 	  
 	  XSETINT (p->tick, ++process_tick);
 	  u.wt = w;
-	  XFASTINT (p->raw_status_low) = u.i & 0xffff;
-	  XFASTINT (p->raw_status_high) = u.i >> 16;
+	  XSETFASTINT (p->raw_status_low, u.i & 0xffff);
+	  XSETFASTINT (p->raw_status_high, u.i >> 16);
 	  
 	  /* If process has terminated, stop waiting for its output.  */
 	  if (WIFSIGNALED (w) || WIFEXITED (w))
