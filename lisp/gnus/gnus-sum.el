@@ -6413,15 +6413,15 @@ If NOT-MATCHING, excluding articles that have subjects that match a regexp."
 	  (gnus-summary-limit articles))
       (gnus-summary-position-point))))
 
-(defun gnus-summary-limit-to-author (from)
+(defun gnus-summary-limit-to-author (from &optional not-matching)
   "Limit the summary buffer to articles that have authors that match a regexp.
 If NOT-MATCHING, excluding articles that have authors that match a regexp."
   (interactive 
    (list (read-string (if current-prefix-arg
 			  "Exclude author (regexp): "
 			"Limit to author (regexp): ")) 
-	 nil current-prefix-arg))
-  (gnus-summary-limit-to-subject from "from"))
+	 current-prefix-arg))
+  (gnus-summary-limit-to-subject from "from" not-matching))
 
 (defun gnus-summary-limit-to-age (age &optional younger-p)
   "Limit the summary buffer to articles that are older than (or equal) AGE days.

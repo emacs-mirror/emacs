@@ -1,3 +1,7 @@
+2001-11-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-sum.el (gnus-summary-limit-to-author): The number of arguments.
+
 2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* imap.el (imap-interactive-login, imap-open, imap-authenticate):
