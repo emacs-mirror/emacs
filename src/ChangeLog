@@ -1,3 +1,8 @@
+2004-07-15  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* w32fns.c (Fx_file_dialog): Encode strings in system coding
+	system before passing them to OS functions for display.
+
 2004-07-15  David Kastrup  <dak@gnu.org>
 
 	* search.c (syms_of_search): staticpro
