@@ -1,5 +1,8 @@
 1999-12-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (Fset_buffer_multibyte): Arrange for a thorough
+	redisplay after changing the multibyteness of a buffer.
+
 	* xterm.c (XTread_socket): At the beginning of the loop, pass the
 	frame's X window to XFilterEvent instead of None because that's
 	the X window for which the IC was created.  This makes dead

@@ -1,3 +1,8 @@
+1999-12-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/sh-script.el (sh-mode): Don't call sh-set-shell
+	with third argument t.
+
 1999-12-21  Christoph Wedler  <Christoph.Wedler@sap.com>
 
 	* antlr-mode.el: Version 1.2 is released.
