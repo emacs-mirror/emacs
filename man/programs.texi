@@ -478,6 +478,9 @@ Shift an entire list rigidly sideways so that its first line
 is properly indented.
 @item C-M-\
 Reindent all lines in the region (@code{indent-region}).
+@item M-x indent-code-rigidly
+Shift all the lines in the region rigidly sideways, but do not alter
+lines that start inside comments and strings.
 @end table
 
 @kindex C-M-q
@@ -500,9 +503,15 @@ whole grouping rigidly as a unit.  It is clever, though, and does not
 alter lines that start inside strings, or C preprocessor lines when in C
 mode.
 
+@findex indent-code-rigidly
   Another way to specify the range to be reindented is with the region.
 The command @kbd{C-M-\} (@code{indent-region}) applies @key{TAB} to
-every line whose first character is between point and mark.
+every line whose first character is between point and mark.  The command
+@kbd{M-x indent-code-rigidly} rigidly shifts all the lines in the region
+sideways, like @code{indent-rigidly} does (@pxref{Indentation
+Commands}), except that it doesn't alter the indentation of lines that
+start inside comments and strings, unless the region starts inside that
+comment or string.
 
 @node Lisp Indent
 @subsection Customizing Lisp Indentation
