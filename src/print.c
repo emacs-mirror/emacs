@@ -784,7 +784,6 @@ print (obj, printcharfun, escapeflag)
 #ifdef USE_TEXT_PROPERTIES
 	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
 	    {
-	      PRINTCHAR (' ');
 	      traverse_intervals (XSTRING (obj)->intervals,
 				  0, 0, print_interval, printcharfun);
 	      PRINTCHAR (')');
@@ -991,13 +990,13 @@ print_interval (interval, printcharfun)
      INTERVAL interval;
      Lisp_Object printcharfun;
 {
+  PRINTCHAR (' ');
   print (make_number (interval->position), printcharfun, 1);
   PRINTCHAR (' ');
   print (make_number (interval->position + LENGTH (interval)),
 	 printcharfun, 1);
   PRINTCHAR (' ');
   print (interval->plist, printcharfun, 1);
-  PRINTCHAR (' ');
 }
 
 #endif /* USE_TEXT_PROPERTIES */
