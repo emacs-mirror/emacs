@@ -27,6 +27,8 @@
 
 ;; Arrange to use current-menubar to set up part of the menu bar.
 
+(defvar current-menubar)
+
 (setq recompute-lucid-menubar 'recompute-lucid-menubar)
 (defun recompute-lucid-menubar ()
   (define-key lucid-menubar-map [menu-bar]
@@ -179,7 +181,7 @@ The syntax, more precisely:
   (let ((name (car data))
 	(tail (cdr data))
 	converted
-	choice)
+	choice meaning)
     (while tail
       (if (null (car tail))
 	  (setq converted (cons nil converted))
