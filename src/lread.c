@@ -2145,14 +2145,16 @@ read1 (readcharfun, pch, first_in_list)
 	char *p = read_buffer;
 	char *end = read_buffer + read_buffer_size;
 	register int c;
-	/* Nonzero if we saw an escape sequence specifying
-	   a multibyte character.  */
+	/* 1 if we saw an escape sequence specifying
+	   a multibyte character, or a multibyte character.  */
 	int force_multibyte = 0;
-	/* Nonzero if we saw an escape sequence specifying
+	/* 1 if we saw an escape sequence specifying
 	   a single-byte character.  */
 	int force_singlebyte = 0;
+	/* 1 if read_buffer contains multibyte text now.  */
+	int is_multibyte = 0;
 	int cancel = 0;
-	int nchars;
+	int nchars = 0;
 
 	while ((c = READCHAR) >= 0
 	       && c != '\"')
@@ -2186,39 +2188,47 @@ read1 (readcharfun, pch, first_in_list)
 		  force_multibyte = 1;
 	      }
 
-	    if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
+	    /* A character that must be multibyte forces multibyte.  */
+	    if (! SINGLE_BYTE_CHAR_P (c & ~CHAR_MODIFIER_MASK))
+	      force_multibyte = 1;
+
+	    /* If we just discovered the need to be multibyte,
+	       convert the text accumulated thus far.  */
+	    if (force_multibyte && ! is_multibyte)
 	      {
-		/* Any modifiers for a multibyte character are invalid.  */
-		if (c & CHAR_MODIFIER_MASK)
-		  error ("Invalid modifier in string");
-		p += CHAR_STRING (c, p);
-		force_multibyte = 1;
+		is_multibyte = 1;
+		to_multibyte (&p, &end, &nchars);
 	      }
+
+	    /* Allow `\C- ' and `\C-?'.  */
+	    if (c == (CHAR_CTL | ' '))
+	      c = 0;
+	    else if (c == (CHAR_CTL | '?'))
+	      c = 127;
+
+	    if (c & CHAR_SHIFT)
+	      {
+		/* Shift modifier is valid only with [A-Za-z].  */
+		if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
+		  c &= ~CHAR_SHIFT;
+		else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
+		  c = (c & ~CHAR_SHIFT) - ('a' - 'A');
+	      }
+
+	    if (c & CHAR_META)
+	      /* Move the meta bit to the right place for a string.  */
+	      c = (c & ~CHAR_META) | 0x80;
+	    if (c & CHAR_MODIFIER_MASK)
+	      error ("Invalid modifier in string");
+
+	    if (is_multibyte)
+	      p += CHAR_STRING (c, p);
 	    else
-	      {
-		/* Allow `\C- ' and `\C-?'.  */
-		if (c == (CHAR_CTL | ' '))
-		  c = 0;
-		else if (c == (CHAR_CTL | '?'))
-		  c = 127;
+	      *p++ = c;
 
-		if (c & CHAR_SHIFT)
-		  {
-		    /* Shift modifier is valid only with [A-Za-z].  */
-		    if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
-		      c &= ~CHAR_SHIFT;
-		    else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
-		      c = (c & ~CHAR_SHIFT) - ('a' - 'A');
-		  }
-
-		if (c & CHAR_META)
-		  /* Move the meta bit to the right place for a string.  */
-		  c = (c & ~CHAR_META) | 0x80;
-		if (c & ~0xff)
-		  error ("Invalid modifier in string");
-		*p++ = c;
-	      }
+	    nchars++;
 	  }
+
 	if (c < 0)
 	  end_of_file_error ();
 
@@ -2228,10 +2238,8 @@ read1 (readcharfun, pch, first_in_list)
 	if (!NILP (Vpurify_flag) && NILP (Vdoc_file_name) && cancel)
 	  return make_number (0);
 
-	if (force_multibyte)
-	  to_multibyte (&p, &end, &nchars);
-	else if (force_singlebyte)
-	  nchars = p - read_buffer;
+	if (is_multibyte || force_singlebyte)
+	  ;
 	else if (load_convert_to_unibyte)
 	  {
 	    Lisp_Object string;
@@ -2242,6 +2250,8 @@ read1 (readcharfun, pch, first_in_list)
 						p - read_buffer);
 		return Fstring_make_unibyte (string);
 	      }
+	    /* We can make a unibyte string directly.  */
+	    is_multibyte = 0;
 	  }
 	else if (EQ (readcharfun, Qget_file_char)
 		 || EQ (readcharfun, Qlambda))
@@ -2252,19 +2262,18 @@ read1 (readcharfun, pch, first_in_list)
 	       for reading dynamic byte code (compiled with
 	       byte-compile-dynamic = t).  */
 	    to_multibyte (&p, &end, &nchars);
+	    is_multibyte = 1;
 	  }
 	else
 	  /* In all other cases, if we read these bytes as
 	     separate characters, treat them as separate characters now.  */
-	  nchars = p - read_buffer;
+	  ;
 
 	if (read_pure)
 	  return make_pure_string (read_buffer, nchars, p - read_buffer,
-				   (force_multibyte
-				    || (p - read_buffer != nchars)));
+				   is_multibyte);
 	return make_specified_string (read_buffer, nchars, p - read_buffer,
-				      (force_multibyte
-				       || (p - read_buffer != nchars)));
+				      is_multibyte);
       }
 
     case '.':
