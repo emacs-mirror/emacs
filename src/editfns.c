@@ -2747,12 +2747,11 @@ It returns the number of characters changed.  */)
      Lisp_Object end;
      register Lisp_Object table;
 {
-  register int pos_byte, stop;	/* Limits of the region. */
   register unsigned char *tt;	/* Trans table. */
   register int nc;		/* New character. */
   int cnt;			/* Number of changes made. */
   int size;			/* Size of translate table. */
-  int pos;
+  int pos, pos_byte;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte;
 
@@ -2768,25 +2767,22 @@ It returns the number of characters changed.  */)
   size = SCHARS (table);
   tt = SDATA (table);
 
-  pos_byte = CHAR_TO_BYTE (XINT (start));
-  stop = CHAR_TO_BYTE (XINT (end));
-  modify_region (current_buffer, XINT (start), XINT (end));
   pos = XINT (start);
+  pos_byte = CHAR_TO_BYTE (pos);
+  modify_region (current_buffer, pos, XINT (end));
 
   cnt = 0;
-  for (; pos_byte < stop; )
+  for (; pos < end; )
     {
       register unsigned char *p = BYTE_POS_ADDR (pos_byte);
       unsigned char *str;
       int len, str_len;
       int oc;
-      int pos_byte_next;
 
       if (multibyte)
-	oc = STRING_CHAR_AND_LENGTH (p, stop - pos_byte, len);
+	oc = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, len);
       else
 	oc = *p, len = 1;
-      pos_byte_next = pos_byte + len;
       if (oc < size)
 	{
 	  if (string_multibyte)
@@ -2801,25 +2797,15 @@ It returns the number of characters changed.  */)
 	    }
 	  if (nc != oc)
 	    {
-	      /* Take care of the case where the new character
-		 combines with neighboring bytes.  */
-	      if (len > 1 || str_len > 1)
+	      if (len != str_len)
 		{
 		  Lisp_Object string;
 
-		  string = make_multibyte_string (str, 1, str_len);
 		  /* This is less efficient, because it moves the gap,
-		     but it handles combining correctly.  */
-		  replace_range (pos, pos + 1, string,
-				 1, 0, 1);
-		  pos_byte_next = CHAR_TO_BYTE (pos);
-		  if (pos_byte_next > pos_byte)
-		    /* Before combining happened.  We should not
-		       increment POS.  So, to cancel the later
-		       increment of POS, we decrease it now.  */
-		    pos--;
-		  else
-		    INC_POS (pos_byte_next);
+		     but it should multibyte characters correctly.  */
+		  string = make_multibyte_string (str, 1, str_len);
+		  replace_range (pos, pos + 1, string, 1, 0, 1);
+		  len = str_len;
 		}
 	      else
 		{
@@ -2832,7 +2818,7 @@ It returns the number of characters changed.  */)
 	      ++cnt;
 	    }
 	}
-      pos_byte = pos_byte_next;
+      pos_byte += len;
       pos++;
     }
 
