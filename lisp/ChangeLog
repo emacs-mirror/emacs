@@ -1,3 +1,9 @@
+2001-08-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* toolbar/tool-bar.el (tool-bar-mode): Make it a no-op if images
+	aren't supported.  This avoids the annoying gray strip drawn by
+	the Windows version instead of the missing tool bar.
+
 2001-08-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* menu-bar.el (menu-bar-options-menu): Make option text, messages
