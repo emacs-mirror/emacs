@@ -9,6 +9,12 @@
 	(tooltip-show): Set up color frame parameters from face `tooltip'.
 	Display the tooltip text in face `tooltip'.
 
+2001-01-04  Dave Love  <fx@gnu.org>
+
+	* whitespace.el (whitespace-global-mode): Fix typo.
+
+	* hilit19.el, mail/rnewspost.el, mail/rnews.el: Moved to obsolete.
+
 2001-01-03  Dave Love  <fx@gnu.org>
 
 	* dired-x.el: Doc fixes.  Maintainer change.
