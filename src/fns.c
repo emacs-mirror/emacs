@@ -147,10 +147,7 @@ which is at least the number of distinct elements.")
   for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       if (EQ (tail, halftail) && len != 0)
-	{
-	  len /= 2;
-	  break;
-	}
+	break;
       len++;
       if (len & 1 == 0)
 	halftail = XCONS (halftail)->cdr;
