@@ -52,6 +52,7 @@
 ;; The following files are part of the calendar/diary code:
 
 ;;       cal-menu.el                   Menu support
+;;       cal-x.el                      X-windows dedicated frame functions
 ;;       diary-lib.el, diary-ins.el    Diary functions
 ;;       holidays.el                   Holiday functions
 ;;       cal-french.el                 French Revolutionary calendar
