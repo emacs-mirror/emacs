@@ -1,3 +1,7 @@
+2004-06-16  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (Vimage_types): Remove extern.
+
 2004-06-16  Miles Bader  <miles@gnu.org>
 
 	* image.c (lookup_image_type): Initialize image type if necessary.
