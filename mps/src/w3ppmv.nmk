@@ -1,6 +1,6 @@
 # ==== W3PPMV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3ppmv.nmk(trunk.22) $
+# $HopeName: MMsrc!w3ppmv.nmk(trunk.23) $
 #
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
@@ -13,7 +13,7 @@ MPM = <assert> <ring> <mpm> <bt> \
       <poolmv> <root> <format> <buffer> <lockw3> \
       <ref> <trace> <protw3> <shield> <vmw3> \
       <than> <ssan> <mpsi> <mpsiw3> <ld> \
-      <event> <action> <seg> <poolmrg> <message>
+      <event> <action> <seg> <poolmrg> <message> <span>
 SW  = <assert> <ring> <mpm> <bt> \
       <arenavm> <arenacl> <arena> <pool> <poolmfs> \
       <poolmv> <root> <format> <buffer> <lockw3> \
@@ -44,7 +44,7 @@ TESTLIB = <testlib>
 # libraries
 
 !IF "$(VARIETY)" == "he"
-CFLAGS=$(CFLAGSCOMMON) $(CFHE)
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFHE) $(CFLAGSCOMMONPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHE)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHE)
 MPMOBJ0 = $(MPM:<=w3ppmv\he\)
@@ -71,7 +71,7 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\he\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ce"
-CFLAGS=$(CFLAGSCOMMON) $(CFCE)
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFCE) $(CFLAGSCOMMONPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCE)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCE)
 MPMOBJ0 = $(MPM:<=w3ppmv\ce\)
@@ -98,7 +98,7 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\ce\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "hi"
-CFLAGS=$(CFLAGSCOMMON) $(CFHI)
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFHI) $(CFLAGSCOMMONPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFHI)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSHI)
 MPMOBJ0 = $(MPM:<=w3ppmv\hi\)
@@ -125,7 +125,7 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\hi\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ci"
-CFLAGS=$(CFLAGSCOMMON) $(CFCI)
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFCI) $(CFLAGSCOMMONPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFCI)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSCI)
 MPMOBJ0 = $(MPM:<=w3ppmv\ci\)
@@ -152,7 +152,7 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\ci\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "ti"
-CFLAGS=$(CFLAGSCOMMON) $(CFTI)
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFTI) $(CFLAGSCOMMONPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFTI)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSTI)
 MPMOBJ0 = $(MPM:<=w3ppmv\ti\)
@@ -179,7 +179,7 @@ TESTLIBOBJ0 = $(TESTLIB:<=w3ppmv\ti\)
 TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 
 !ELSEIF "$(VARIETY)" == "wi"
-CFLAGS=$(CFLAGSCOMMON) $(CFWI)
+CFLAGS=$(CFLAGSCOMMONPRE) $(CFWI) $(CFLAGSCOMMONPOST)
 LINKFLAGS=$(LINKFLAGSCOMMON) $(LFWI)
 LIBFLAGS=$(LIBFLAGSCOMMON) $(LIBFLAGSWI)
 MPMOBJ0 = $(MPM:<=w3ppmv\wi\)
