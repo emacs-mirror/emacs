@@ -132,11 +132,11 @@ DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
      Lisp_Object character;
 {
   int len;
-  unsigned char workbuf[4], *str;
+  unsigned char str[MAX_MULTIBYTE_LENGTH];
 
   CHECK_NUMBER (character, 0);
 
-  len = CHAR_STRING (XFASTINT (character), workbuf, str);
+  len = CHAR_STRING (XFASTINT (character), str);
   return make_string_from_bytes (str, 1, len);
 }
 
@@ -1712,17 +1712,16 @@ general_insert_function (insert_func, insert_from_string_func,
     retry:
       if (INTEGERP (val))
 	{
-	  unsigned char workbuf[4], *str;
+	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len;
 
 	  if (!NILP (current_buffer->enable_multibyte_characters))
-	    len = CHAR_STRING (XFASTINT (val), workbuf, str);
+	    len = CHAR_STRING (XFASTINT (val), str);
 	  else
 	    {
-	      workbuf[0] = (SINGLE_BYTE_CHAR_P (XINT (val))
-			    ? XINT (val)
-			    : multibyte_char_to_unibyte (XINT (val), Qnil));
-	      str = workbuf;
+	      str[0] = (SINGLE_BYTE_CHAR_P (XINT (val))
+			? XINT (val)
+			: multibyte_char_to_unibyte (XINT (val), Qnil));
 	      len = 1;
 	    }
 	  (*insert_func) (str, len);
@@ -1843,15 +1842,15 @@ from adjoining text, if those properties are sticky.")
   register int strlen;
   register int i, n;
   int len;
-  unsigned char workbuf[4], *str;
+  unsigned char str[MAX_MULTIBYTE_LENGTH];
 
   CHECK_NUMBER (character, 0);
   CHECK_NUMBER (count, 1);
 
   if (!NILP (current_buffer->enable_multibyte_characters))
-    len = CHAR_STRING (XFASTINT (character), workbuf, str);
+    len = CHAR_STRING (XFASTINT (character), str);
   else
-    workbuf[0] = XFASTINT (character), str = workbuf, len = 1;
+    str[0] = XFASTINT (character), len = 1;
   n = XINT (count) * len;
   if (n <= 0)
     return Qnil;
@@ -2262,13 +2261,15 @@ Both characters must have the same length of multi-byte form.")
 {
   register int pos, pos_byte, stop, i, len, end_byte;
   int changed = 0;
-  unsigned char fromwork[4], *fromstr, towork[4], *tostr, *p;
+  unsigned char fromstr[MAX_MULTIBYTE_LENGTH], tostr[MAX_MULTIBYTE_LENGTH];
+  unsigned char *p;
   int count = specpdl_ptr - specpdl;
 #define COMBINING_NO	 0
 #define COMBINING_BEFORE 1
 #define COMBINING_AFTER  2
 #define COMBINING_BOTH (COMBINING_BEFORE | COMBINING_AFTER)
   int maybe_byte_combining = COMBINING_NO;
+  int last_changed;
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar, 2);
@@ -2276,8 +2277,8 @@ Both characters must have the same length of multi-byte form.")
 
   if (! NILP (current_buffer->enable_multibyte_characters))
     {
-      len = CHAR_STRING (XFASTINT (fromchar), fromwork, fromstr);
-      if (CHAR_STRING (XFASTINT (tochar), towork, tostr) != len)
+      len = CHAR_STRING (XFASTINT (fromchar), fromstr);
+      if (CHAR_STRING (XFASTINT (tochar), tostr) != len)
 	error ("Characters in subst-char-in-region have different byte-lengths");
       if (!ASCII_BYTE_P (*tostr))
 	{
@@ -2294,8 +2295,8 @@ Both characters must have the same length of multi-byte form.")
   else
     {
       len = 1;
-      fromwork[0] = XFASTINT (fromchar), fromstr = fromwork;
-      towork[0] = XFASTINT (tochar), tostr = towork;
+      fromstr[0] = XFASTINT (fromchar);
+      tostr[0] = XFASTINT (tochar);
     }
 
   pos = XINT (start);
@@ -2340,7 +2341,8 @@ Both characters must have the same length of multi-byte form.")
 	{
 	  if (! changed)
 	    {
-	      modify_region (current_buffer, XINT (start), XINT (end));
+	      changed = pos;
+	      modify_region (current_buffer, changed, XINT (end));
 
 	      if (! NILP (noundo))
 		{
@@ -2349,8 +2351,6 @@ Both characters must have the same length of multi-byte form.")
 		  if (MODIFF - 1 == current_buffer->auto_save_modified)
 		    current_buffer->auto_save_modified++;
 		}
-
-	      changed = 1;
 	    }
 
 	  /* Take care of the case where the new character
@@ -2397,14 +2397,18 @@ Both characters must have the same length of multi-byte form.")
 		record_change (pos, 1);
 	      for (i = 0; i < len; i++) *p++ = tostr[i];
 	    }
+	  last_changed =  pos + 1;
 	}
       pos_byte = pos_byte_next;
       pos++;
     }
 
   if (changed)
-    signal_after_change (XINT (start),
-			 XINT (end) - XINT (start), XINT (end) - XINT (start));
+    {
+      signal_after_change (changed,
+			   last_changed - changed, last_changed - changed);
+      update_compositions (changed, last_changed, CHECK_ALL);
+    }
 
   unbind_to (count, Qnil);
   return Qnil;
@@ -2487,6 +2491,7 @@ It returns the number of characters changed.")
 		  record_change (pos, 1);
 		  *p = nc;
 		  signal_after_change (pos, 1, 1);
+		  update_compositions (pos, pos + 1, CHECK_BORDER);
 		}
 	      ++cnt;
 	    }
@@ -3532,6 +3537,8 @@ Transposing beyond buffer boundaries is an error.")
                                    len1, current_buffer, 0);
       graft_intervals_into_buffer (tmp_interval2, start1,
                                    len2, current_buffer, 0);
+      update_compositions (start1, start1 + len2, CHECK_BORDER);
+      update_compositions (start1 + len2, end2, CHECK_TAIL);
     }
   /* Non-adjacent regions, because end1 != start2, bleagh...  */
   else
@@ -3632,6 +3639,9 @@ Transposing beyond buffer boundaries is an error.")
           graft_intervals_into_buffer (tmp_interval2, start1,
                                        len2, current_buffer, 0);
         }
+
+      update_compositions (start1, start1 + len2, CHECK_BORDER);
+      update_compositions (end2 - len1, end2, CHECK_BORDER);
     }
 
   /* When doing multiple transpositions, it might be nice
