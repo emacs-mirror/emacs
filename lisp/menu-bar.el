@@ -359,7 +359,7 @@ Do the same for the keys of the same name."
   '("Top-level Customization Group" . customize))
 
 ;; Options menu
-(defvar menu-bar-options-menu (make-sparse-keymap "Options"))
+(defvar menu-bar-options-menu (make-sparse-keymap "Global Options"))
 
 (defmacro menu-bar-make-toggle (name variable doc message &rest body)
   `(progn
@@ -406,10 +406,18 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-font-lock-mode font-lock-mode
 			"Toggle Font Lock (syntax highlighting)"
 			"Font Lock mode %s"
-			(global-font-lock-mode)
-			(if font-lock-mode
-			    (lazy-lock-mode t))
-			font-lock-mode))
+			(require 'font-lock)
+			(if global-font-lock-mode
+			    (let ((buffers (buffer-list)))
+			      (while buffers
+				(with-current-buffer (car buffers)
+				  (if font-lock-mode
+				      (font-lock-mode 0)))
+				(setq buffers (cdr buffers)))
+			      (setq global-font-lock-mode nil))
+			  (setq font-lock-support-mode 'lazy-lock-mode)
+			  (global-font-lock-mode))
+			global-font-lock-mode))
 
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
@@ -433,7 +441,7 @@ Do the same for the keys of the same name."
   '("Command Apropos..." . command-apropos))
 (define-key menu-bar-help-menu [describe-mode]
   '("Describe Mode" . describe-mode))
-(define-key menu-bar-help-menu [info] '("Browse Manuals" . info))
+(define-key menu-bar-help-menu [info] '("Info (Browse Manuals)" . info))
 (define-key menu-bar-help-menu [emacs-faq] '("Emacs FAQ" . view-emacs-FAQ))
 (define-key menu-bar-help-menu [emacs-news] '("Emacs News" . view-emacs-news))
 (define-key menu-bar-help-menu [options-menu]
