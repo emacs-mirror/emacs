@@ -640,6 +640,10 @@ directory for only the accessible portion of the buffer."
     (forward-line (if (= 0 pages-buffer-original-page)
                       1
                     pages-buffer-original-page))))
+(eval-when-compile
+  (defvar pages-buffer-original-position)
+  (defvar pages-buffer-original-page)
+  (defvar pages-buffer-original-page))
 
 (defun pages-copy-header-and-position (count-lines-p)
   "Copy page header and its position to the Pages Directory.

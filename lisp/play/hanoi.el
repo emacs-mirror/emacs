@@ -56,7 +56,14 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl))
+  (require 'cl)
+  ;; dynamic bondage:
+  (defvar baseward-step)
+  (defvar fly-step)
+  (defvar fly-row-start)
+  (defvar pole-width)
+  (defvar pole-char)
+  (defvar line-offset))
 
 (defgroup hanoi nil
   "The Towers of Hanoi."
