@@ -2828,11 +2828,11 @@ read_process_output (proc, channel)
 	     valid memory because p->outfd will be changed once EOF is
 	     sent to the process.  */
 	  if (NILP (p->encode_coding_system)
-	      && proc_encode_coding_system[p->outfd])
+	      && proc_encode_coding_system[XINT (p->outfd)])
 	    {
 	      p->encode_coding_system = coding->symbol;
 	      setup_coding_system (coding->symbol,
-				   proc_encode_coding_system[p->outfd]);
+				   proc_encode_coding_system[XINT (p->outfd)]);
 	    }
 	}
 
