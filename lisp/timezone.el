@@ -176,7 +176,7 @@ Understands the following styles:
 	   ;; Styles: (4) with timezone
 	   (setq year 3 month 2 day 1 time 4 zone 5))
 	  ((string-match
-	    "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\.[0-9]+" date)
+	    "\\([0-9]+\\)-\\([A-Za-z]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)\\(\\.[0-9]+\\)?" date)
 	   ;; Styles: (5) without timezone.
 	   (setq year 3 month 2 day 1 time 4 zone nil))
 	  ((string-match
