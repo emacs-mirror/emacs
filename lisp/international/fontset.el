@@ -461,7 +461,7 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
       (error "Invalid fontset spec: %s" fontset-spec))
   (let ((idx (match-end 0))
 	(name (match-string 0 fontset-spec))
-	fontlist full-fontlist ascii-font charset)
+	fontlist full-fontlist ascii-font resolved-ascii-font charset)
     (if (query-fontset name)
 	(or noerror 
 	    (error "Fontset \"%s\" already exists"))
@@ -493,14 +493,14 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 	      (or (rassoc alias fontset-alias-alist)
 		  (setq fontset-alias-alist
 			(cons (cons name alias) fontset-alias-alist)))))
-	(let ((resolved-ascii-font (cdr (assq 'ascii full-fontlist))))
-	  (setq fontset-alias-alist
-		(cons (cons name resolved-ascii-font)
-		      fontset-alias-alist))
-	  (or (equal ascii-font resolved-ascii-font)
-	      (setq fontset-alias-alist
-		    (cons (cons name ascii-font)
-			  fontset-alias-alist))))
+	(setq resolved-ascii-font (cdr (assq 'ascii full-fontlist)))
+	(setq fontset-alias-alist
+	      (cons (cons name resolved-ascii-font)
+		    fontset-alias-alist))
+	(or (equal ascii-font resolved-ascii-font)
+	    (setq fontset-alias-alist
+		  (cons (cons name ascii-font)
+			fontset-alias-alist)))
 
 	;; At last, handle style variants.
 	(if (eq style-variant t)
@@ -526,7 +526,8 @@ signaled unless the optional 3rd argument NOERROR is non-nil."
 		(when new-name
 		  ;; Modify ASCII font name for the style...
 		  (setq new-ascii-font
-			(or font (x-modify-font-name ascii-font style)))
+			(or font
+			    (x-modify-font-name resolved-ascii-font style)))
 		  ;; but leave fonts for the other charsets unmodified
 		  ;; for the momemnt.  They are modified for the style
 		  ;; in instantiate-fontset.
