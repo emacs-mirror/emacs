@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/09/30 09:16:06 $|$Revision: 1.74 $
+;; |$Date: 1994/11/01 04:20:43 $|$Revision: 1.75 $
 
 ;; This file is part of GNU Emacs.
 
@@ -1035,24 +1035,30 @@ and the meta character is unread so that it applies to editing the string."
 	   (apply 'isearch-unread (listify-key-sequence key)))
 	 (isearch-edit-string))
 	(search-exit-option
-	 (let ((key (this-command-keys))
-	       (index 0)
-	       window)
+	 (let* ((key (this-command-keys))
+		(main-event (aref key 0))
+		window)
 	   (apply 'isearch-unread (listify-key-sequence key))
 	   ;; Properly handle scroll-bar and mode-line clicks
 	   ;; for which a dummy prefix event was generated as (aref key 0).
 	   (and (> (length key) 1)
 		(symbolp (aref key 0))
 		(listp (aref key 1))
-		;; These events now have a symbol; they used to have a list.
-		;; Accept either one.  Other events have a number here.
 		(not (numberp (posn-point (event-start (aref key 1)))))
-		(setq index 1))
+		;; Convert the event back into its raw form,
+		;; with the dummy prefix implicit in the mouse event,
+		;; so it will get split up once again.
+		(progn (setq foo key)
+		       (setq unread-command-events
+			     (cdr unread-command-events))
+		       (setq main-event (car unread-command-events))
+		       (setcar (cdr (event-start main-event))
+			       (car (nth 1 (event-start main-event))))))
 	   ;; If we got a mouse click, maybe it was read with the buffer
 	   ;; it was clicked on.  If so, that buffer, not the current one,
 	   ;; is in isearch mode.  So end the search in that buffer.
-	   (if (and (listp (aref key index))
-		    (setq window (posn-window (event-start (aref key index))))
+	   (if (and (listp main-event)
+		    (setq window (posn-window (event-start main-event)))
 		    (windowp window))
 	       (save-excursion
 		 (set-buffer (window-buffer window))
@@ -1419,20 +1425,10 @@ since they have special meaning in a regexp."
       (text-char-description c)
     (isearch-char-to-string c)))
 
+;; General function to unread characters or events.
 (defun isearch-unread (&rest char-or-events)
-  ;; General function to unread characters or events.
-  (if isearch-gnu-emacs-events
-      (setq unread-command-events
-	    (append char-or-events unread-command-events))
-    (let ((char (if (cdr char-or-events)
-		    (progn
-		      (while (cdr char-or-events)
-			(setq char-or-events (cdr char-or-events)))
-		      (+ 128 (car char-or-events)))
-		  (car char-or-events))))
-      (if isearch-event-data-type
-	  (setq unread-command-event char)
-	(setq unread-command-char char)))))
+  (setq unread-command-events
+	(append char-or-events unread-command-events)))
 
 (defun isearch-last-command-char ()
   ;; General function to return the last command character.
