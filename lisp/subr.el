@@ -1938,8 +1938,7 @@ in BODY."
 (put 'delay-mode-hooks 'permanent-local t)
 
 (defvar after-change-major-mode-hook nil
-  "Mode independent hook run at the end of major mode functions.
-This is run just before the mode dependent hooks.")
+  "Mode independent hook run at the very end of major mode functions.")
 
 (defun run-mode-hooks (&rest hooks)
   "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
