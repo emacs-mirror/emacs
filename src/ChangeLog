@@ -6,6 +6,13 @@
 
 2001-10-08  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* lisp.h: Remove the entries for keymap.c (moved to keymap.h).
+
+	* keyboard.h (map_prompt): Remove.
+
+	* xterm.c, w32term.c, term.c, minibuf.c, keymap.c,
+	intervals.c, fns.c, doc.c, callint.c: Include keymap.h.
+
 	* xmenu.c (keymap_panes, Fx_popup_menu): Use Fkeymap_prompt.
 
 	* w32menu.c (keymap_panes, Fx_popup_menu): Use Fkeymap_prompt.
