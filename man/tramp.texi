@@ -28,13 +28,10 @@
 @c Some flags which make the text independent on the (X)Emacs flavor.
 @c "emacs" resp "xemacs" are set in the Makefile.
 
-@c GNU Emacs values.
+@c Emacs values.
 @ifset emacs
-@set emacs-name               GNU Emacs
+@set emacs-name               Emacs
 @set emacs-dir                emacs
-@set emacs-other-name         XEmacs
-@set emacs-other-dir          xemacs
-@set emacs-other-file-name    tramp-xemacs.html
 @set ftp-package-name         Ange-FTP
 @set tramp-prefix             /
 @set tramp-prefix-single-hop
@@ -47,9 +44,6 @@
 @ifset xemacs
 @set emacs-name               XEmacs
 @set emacs-dir                xemacs
-@set emacs-other-name         GNU Emacs
-@set emacs-other-dir          emacs
-@set emacs-other-file-name    tramp-emacs.html
 @set ftp-package-name         EFS
 @set tramp-prefix             /[
 @set tramp-prefix-single-hop  [
@@ -123,16 +117,6 @@ programs, such as @command{ssh}/@command{scp}.
 
 You can find the latest version of this document on the web at
 @uref{http://www.freesoftware.fsf.org/tramp/}.
-
-The manual has been generated for @value{emacs-name}.
-@ifinfo
-If you want to read the info pages for @value{emacs-other-name}, you
-should read in @ref{Installation} how to create them.
-@end ifinfo
-@ifhtml
-If you're using the other Emacs flavour, you should read the
-@uref{@value{emacs-other-file-name}, @value{emacs-other-name}} pages.
-@end ifhtml
 
 @ifhtml
 This manual is also available as a @uref{tramp_ja.html, Japanese
@@ -531,34 +515,6 @@ installation prefix other than @file{@value{prefix}} by giving
 If your installed copy of Emacs is named something other than
 @command{@value{emacs-dir}}, you will need to tell `make' where to find it so
 that it can correctly byte-compile the @tramp{} sources.
-
-For example, to force the use of @value{emacs-other-name} you might do
-this:
-
-@example
-./configure --with-@value{emacs-other-dir}
-make
-make install
-@end example
-
-or this:
-
-@example
-./configure
-make EMACS=/usr/bin/@value{emacs-other-dir}-21.4
-make install
-@end example
-
-The syntax of @tramp{} file names is different for @value{emacs-name}
-and @value{emacs-other-name}.  The Info manual will be generated for
-the Emacs flavor choosen in the @command{configure} phase. If you want
-the Info manual for the other version, you need to set the variable
-@command{EMACS_INFO} to @command{make}:
-
-@example
-./configure --with-@value{emacs-dir}
-make EMACS_INFO=@value{emacs-other-dir}
-@end example
 
 Also, the @command{--prefix=PATH} option to @command{configure} may
 not be general enough to set the paths you want.  If not, you can pass
