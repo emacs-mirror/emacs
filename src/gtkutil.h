@@ -132,7 +132,8 @@ extern void free_widget_value P_ ((widget_value *));
 extern char *xg_get_file_name P_ ((FRAME_PTR f,
                                    char *prompt,
                                    char *default_filename,
-                                   int mustmatch_p));
+                                   int mustmatch_p,
+                                   int only_dir_p));
 
 extern GtkWidget *xg_create_widget P_ ((char *type,
                                         char *name,

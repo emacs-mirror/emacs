@@ -1118,6 +1118,10 @@ create_dialog (wv, select_cb, deactivate_cb)
 }
 
 
+
+/***********************************************************************
+                      File dialog functions
+ ***********************************************************************/
 enum
 {
   XG_FILE_NOT_DONE,
@@ -1126,6 +1130,69 @@ enum
   XG_FILE_DESTROYED,
 };
 
+#ifdef HAVE_GTK_FILE_BOTH
+static int use_old_gtk_file_dialog;
+#endif
+
+
+#ifdef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+/* Read a file name from the user using a file chooser dialog.
+   F is the current frame.
+   PROMPT is a prompt to show to the user.  May not be NULL.
+   DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
+   If MUSTMATCH_P is non-zero, the returned file name must be an existing
+   file.
+
+   Returns a file name or NULL if no file was selected.
+   The returned string must be freed by the caller.  */
+
+static char *
+xg_get_file_with_chooser (f, prompt, default_filename, mustmatch_p, only_dir_p)
+     FRAME_PTR f;
+     char *prompt;
+     char *default_filename;
+     int mustmatch_p, only_dir_p;
+{
+  GtkWidget *filewin;
+  GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
+
+  char *fn = 0;
+  GtkFileChooserAction action = (mustmatch_p ?
+                                 GTK_FILE_CHOOSER_ACTION_OPEN :
+                                 GTK_FILE_CHOOSER_ACTION_SAVE);
+
+  if (only_dir_p)
+    action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
+
+  filewin = gtk_file_chooser_dialog_new (prompt, gwin, action,
+                                         GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+                                         (mustmatch_p || only_dir_p ?
+                                          GTK_STOCK_OPEN : GTK_STOCK_SAVE),
+                                         GTK_RESPONSE_OK,
+                                         NULL);
+
+  xg_set_screen (filewin, f);
+  gtk_widget_set_name (filewin, "emacs-filedialog");
+  gtk_window_set_transient_for (GTK_WINDOW (filewin), gwin);
+  gtk_window_set_destroy_with_parent (GTK_WINDOW (filewin), TRUE);
+
+
+  if (default_filename)
+    gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (filewin),
+                                   default_filename);
+
+  gtk_widget_show (filewin);
+
+  if (gtk_dialog_run (GTK_DIALOG (filewin)) == GTK_RESPONSE_OK)
+    fn = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (filewin));
+
+  gtk_widget_destroy (filewin);
+
+  return fn;
+}
+#endif /* HAVE_GTK_FILE_CHOOSER_DIALOG_NEW */
+
+#ifdef HAVE_GTK_FILE_SELECTION_NEW
 /* Callback function invoked when the Ok button is pressed in
    a file dialog.
    W is the file dialog widget,
@@ -1167,7 +1234,7 @@ xg_file_sel_destroy (w, arg)
   *(int*)arg = XG_FILE_DESTROYED;
 }
 
-/* Read a file name from the user using a file dialog.
+/* Read a file name from the user using a file selection dialog.
    F is the current frame.
    PROMPT is a prompt to show to the user.  May not be NULL.
    DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
@@ -1177,12 +1244,13 @@ xg_file_sel_destroy (w, arg)
    Returns a file name or NULL if no file was selected.
    The returned string must be freed by the caller.  */
 
-char *
-xg_get_file_name (f, prompt, default_filename, mustmatch_p)
+static char *
+xg_get_file_with_selection (f, prompt, default_filename,
+                            mustmatch_p, only_dir_p)
      FRAME_PTR f;
      char *prompt;
      char *default_filename;
-     int mustmatch_p;
+     int mustmatch_p, only_dir_p;
 {
   GtkWidget *filewin;
   GtkFileSelection *filesel;
@@ -1193,9 +1261,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p)
   filesel = GTK_FILE_SELECTION (filewin);
 
   xg_set_screen (filewin, f);
-
   gtk_widget_set_name (filewin, "emacs-filedialog");
-
   gtk_window_set_transient_for (GTK_WINDOW (filewin),
                                 GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
   gtk_window_set_destroy_with_parent (GTK_WINDOW (filewin), TRUE);
@@ -1236,6 +1302,49 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p)
     gtk_widget_destroy (filewin);
 
   return fn;
+}
+#endif /* HAVE_GTK_FILE_SELECTION_NEW */
+
+/* Read a file name from the user using a file dialog, either the old
+   file selection dialog, or the new file chooser dialog.  Which to use
+   depends on what the GTK version used has, and what the value of
+   gtk-use-old-file-dialog.
+   F is the current frame.
+   PROMPT is a prompt to show to the user.  May not be NULL.
+   DEFAULT_FILENAME is a default selection to be displayed.  May be NULL.
+   If MUSTMATCH_P is non-zero, the returned file name must be an existing
+   file.
+
+   Returns a file name or NULL if no file was selected.
+   The returned string must be freed by the caller.  */
+
+char *
+xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
+     FRAME_PTR f;
+     char *prompt;
+     char *default_filename;
+     int mustmatch_p, only_dir_p;
+{
+#ifdef HAVE_GTK_FILE_BOTH
+  if (use_old_gtk_file_dialog)
+    return xg_get_file_with_selection (f, prompt, default_filename,
+                                       mustmatch_p, only_dir_p);
+  return xg_get_file_with_chooser (f, prompt, default_filename,
+                                   mustmatch_p, only_dir_p);
+
+#else /* not HAVE_GTK_FILE_BOTH */
+
+#ifdef HAVE_GTK_FILE_SELECTION_DIALOG_NEW
+  return xg_get_file_with_selection (f, prompt, default_filename,
+                                     mustmatch_p, only_dir_p);
+#endif
+#ifdef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+  return xg_get_file_with_chooser (f, prompt, default_filename,
+                                   mustmatch_p, only_dir_p);
+#endif
+
+#endif /* HAVE_GTK_FILE_BOTH */
+  return 0;
 }
 
 
@@ -3429,6 +3538,14 @@ xg_initialize ()
                                     "gtk-key-theme-name",
                                     "Emacs",
                                     EMACS_CLASS);
+
+#ifdef HAVE_GTK_FILE_BOTH
+  DEFVAR_BOOL ("use-old-gtk-file-dialog", &use_old_gtk_file_dialog,
+    doc: /* *Non-nil means that the old GTK file selection dialog is used.
+            If nil the new GTK file chooser is used instead.  To turn off
+            all file dialogs set the variable `use-file-dialog'.  */);
+  use_old_gtk_file_dialog = 0;
+#endif
 }
 
 #endif /* USE_GTK */

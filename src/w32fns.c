@@ -7742,23 +7742,24 @@ file_dialog_callback (hwnd, msg, wParam, lParam)
   return 0;
 }
 
-DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
+DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.
 Select DEFAULT-FILENAME in the dialog's file selection box, if
-specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
-  (prompt, dir, default_filename, mustmatch)
-     Lisp_Object prompt, dir, default_filename, mustmatch;
+specified.  Ensure that file exists if MUSTMATCH is non-nil.
+If ONLY-DIR-P is non-nil, the user can only select directories.  */)
+  (prompt, dir, default_filename, mustmatch, only_dir_p)
+     Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
 {
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
   int count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char filename[MAX_PATH + 1];
   char init_dir[MAX_PATH + 1];
   int default_filter_index = 1; /* 1: All Files, 2: Directories only  */
 
-  GCPRO5 (prompt, dir, default_filename, mustmatch, file);
+  GCPRO6 (prompt, dir, default_filename, mustmatch, only_dir_p, file);
   CHECK_STRING (prompt);
   CHECK_STRING (dir);
 
@@ -7806,10 +7807,7 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
     file_details.lpstrInitialDir = init_dir;
     file_details.lpstrTitle = SDATA (prompt);
 
-    /* If prompt starts with Dired, default to directories only.  */
-    /* A bit hacky, but there doesn't seem to be a better way to
-       DTRT for dired.  */
-    if (strncmp (file_details.lpstrTitle, "Dired", 5) == 0)
+    if (! NILP (only_dir_p))
       default_filter_index = 2;
 
     file_details.nFilterIndex = default_filter_index;

@@ -4216,22 +4216,23 @@ Value is t if tooltip was open, nil otherwise.  */)
 
 extern Lisp_Object Qfile_name_history;
 
-DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 4, 0,
+DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.
 Select DEFAULT-FILENAME in the dialog's file selection box, if
-specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
-  (prompt, dir, default_filename, mustmatch)
-     Lisp_Object prompt, dir, default_filename, mustmatch;
+specified.  Ensure that file exists if MUSTMATCH is non-nil.
+If ONLY-DIR-P is non-nil, the user can only select directories.  */)
+  (prompt, dir, default_filename, mustmatch, only_dir_p)
+     Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
 {
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
   int count = SPECPDL_INDEX ();
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   char filename[1001];
   int default_filter_index = 1; /* 1: All Files, 2: Directories only  */
 
-  GCPRO5 (prompt, dir, default_filename, mustmatch, file);
+  GCPRO6 (prompt, dir, default_filename, mustmatch, file, only_dir_p);
   CHECK_STRING (prompt);
   CHECK_STRING (dir);
 
@@ -4245,7 +4246,8 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
     NavDialogRef dialogRef;
     NavTypeListHandle fileTypes = NULL;
     NavUserAction userAction;
-    CFStringRef message=NULL, client=NULL, saveName = NULL;
+    CFStringRef message=NULL, client=NULL, saveName = NULL, ok = NULL;
+    CFStringRef title = NULL;
     
     BLOCK_INPUT;
     /* No need for a callback function because we are modal */
@@ -4268,13 +4270,19 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
     options.clientName = client;
     */
 
-    /* Do Dired hack copied from w32fns.c */ 
-    if (!NILP(prompt) && strncmp (SDATA(prompt), "Dired", 5) == 0)
+    if (!NILP (only_dir_p))
       status = NavCreateChooseFolderDialog(&options, NULL, NULL, NULL,
 					   &dialogRef);
     else if (NILP (mustmatch)) 
       { 
 	/* This is a save dialog */
+	ok = CFStringCreateWithCString (NULL, "Ok", kCFStringEncodingUTF8);
+	title = CFStringCreateWithCString (NULL, "Enter name",
+	                                   kCFStringEncodingUTF8);
+	options.optionFlags |= kNavDontConfirmReplacement;
+	options.actionButtonLabel = ok;
+	options.windowTitle = title;
+
 	if (!NILP(default_filename))
 	  {
 	    saveName = CFStringCreateWithCString(NULL, SDATA(default_filename),
@@ -4282,20 +4290,10 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
 	    options.saveFileName = saveName;
 	    options.optionFlags |= kNavSelectDefaultLocation;
 	  }
-	/* MAC_TODO: Find a better way to determine if this is a save
-	   or load dialog than comparing dir with default_filename */
-	if (EQ(dir, default_filename)) 
-	  {
-	    status = NavCreateChooseFileDialog(&options, fileTypes,
-					       NULL, NULL, NULL, NULL, 
-					       &dialogRef);
-	  }
-	else {
 	  status = NavCreatePutFileDialog(&options, 
 					  'TEXT', kNavGenericSignature,
 					  NULL, NULL, &dialogRef);
 	}
-      }
     else
       {
 	/* This is an open dialog*/
@@ -4324,6 +4322,8 @@ specified.  Ensure that file exists if MUSTMATCH is non-nil.  */)
     if (saveName) CFRelease(saveName);
     if (client) CFRelease(client);
     if (message) CFRelease(message);
+    if (ok) CFRelease(ok);
+    if (title) CFRelease(title);
 
     if (status == noErr) {
       userAction = NavDialogGetUserAction(dialogRef);

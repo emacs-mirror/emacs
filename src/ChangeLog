@@ -1,5 +1,36 @@
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* fileio.c (Fread_file_name): Pass Qt as fifth parameter to
+	Fx_file_dialog if only directories should be read.
+
+	* lisp.h: Fx_file_dialog takes 5 parameters.
+
+	* xfns.c (Fx_file_dialog): Both Motif and GTK version:  Add
+	parameter only_dir_p.
+	In Motif version, don't put DEFAULT_FILENAME in filter part of the
+	dialog, just text field part.  Do not add DEFAULT_FILENAME
+	to list of files if it isn't there.
+	In GTK version, pass only_dir_p parameter to xg_get_file_name.
+
+	* macfns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
+	only_dir_p instead of comparing prompt to "Dired".  When using
+	a save dialog, add option kNavDontConfirmReplacement, change title
+	to "Enter name", change text for save button to "Ok".
+
+	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
+	only_dir_p instead of comparing prompt to "Dired".
+
+	* gtkutil.c (xg_get_file_with_chooser)
+	(xg_get_file_with_selection): New functions, only defined ifdef
+	HAVE_GTK_FILE_CHOOSER_DIALOG_NEW and HAVE_GTK_FILE_SELECTION_NEW
+	respectively.
+	(xg_get_file_name): Add parameter only_dir_p.
+	Call xg_get_file_with_chooser or xg_get_file_with_selection
+	depending on HAVE_GTK_FILE* and the value of use_old_gtk_file_dialog.
+	(xg_initialize): New DEFVAR_BOOL use_old_gtk_file_dialog.
+
+	* gtkutil.h (xg_get_file_name): Add parameter only_dir_p.
+
 	* config.in: Rebuild (added HAVE_GTK_FILE_*).
 
 2004-11-01  Kim F. Storm  <storm@cua.dk>
