@@ -246,6 +246,17 @@ only for program-generated buffers.)  The users will find Emacs more
 coherent if all libraries use the same conventions.
 
 @item
+Try to avoid compiler warnings about undefined free variables, by adding
+@cdode{defvar} definitions for these variables.
+
+If you bind a variable in one function, and use it or set it in another
+function, the compiler warns about the latter function unless the
+variable has a definition.  But often these variables have short names,
+and it is not clean for Lisp packages to define such variables names.
+Therefore, you should rename the variable to start with the name prefix
+used for the other functions and variables in your package.
+
+@item
 Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
 default indentation parameters.
 
