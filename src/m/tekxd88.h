@@ -91,7 +91,6 @@ Boston, MA 02111-1307, USA.  */
 #  define alloca __builtin_alloca	/* Use the gcc builtin alloca() ... */
 #  define HAVE_ALLOCA	/* ... and be sure that no other ones are tried out. */
 #  undef C_ALLOCA
-#  define C_OPTIMIZE_SWITCH -O2
 #else /* not __GNUC__ */
 #  undef HAVE_ALLOCA
 #  define C_ALLOCA	/* Use the alloca() supplied in alloca.c. */

@@ -9,8 +9,6 @@
 #define LIBS_MACHINE -lmld
 
 #ifdef __GNUC__
-#define C_DEBUG_SWITCH -g
-#define C_OPTIMIZE_SWITCH -g -O
 #define LD_SWITCH_MACHINE -g -Xlinker -D -Xlinker 800000
 #else
 #define C_DEBUG_SWITCH -g3

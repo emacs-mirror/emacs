@@ -153,7 +153,6 @@ NOTE-END  */
 
 #ifdef __GNUC__
 #define C_DEBUG_SWITCH
-#define C_OPTIMIZE_SWITCH -O
 #define LD_SWITCH_MACHINE 
 #else
 #define C_DEBUG_SWITCH -DSYSV

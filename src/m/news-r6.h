@@ -40,7 +40,6 @@
 /*#define C_DEBUG_SWITCH -g*/
 #define C_DEBUG_SWITCH -O -Olimit 2000
 #ifdef __GNUC__
-#define C_OPTIMIZE_SWITCH -O
 #define LD_SWITCH_MACHINE -g -Xlinker -D -Xlinker 800000
 #else /* !__GNUC__ */
 /*#define LD_SWITCH_MACHINE -D 800000 -g*/
