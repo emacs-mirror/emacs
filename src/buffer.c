@@ -808,6 +808,58 @@ If BUFFER is not indirect, return nil.  */)
   return base_buffer;
 }
 
+DEFUN ("buffer-local-value", Fbuffer_local_value,
+       Sbuffer_local_value, 2, 2, 0, 
+       doc: /* Return the value of VARIABLE in BUFFER.
+If VARIABLE does not have a buffer-local binding in BUFFER, the value
+is the default binding of variable. */)
+     (symbol, buffer)
+     register Lisp_Object symbol;
+     register Lisp_Object buffer;
+{
+  register struct buffer *buf;
+  register Lisp_Object result;
+
+  CHECK_SYMBOL (symbol, 0);
+  CHECK_BUFFER (buffer, 0);
+  buf = XBUFFER (buffer);
+
+  /* Look in local_var_list */
+  result = Fassoc (symbol, buf->local_var_alist);
+  if (NILP (result)) 
+    {
+      int offset, idx;
+      int found = 0;
+
+      /* Look in special slots */
+      for (offset = PER_BUFFER_VAR_OFFSET (name);
+	   offset < sizeof (struct buffer);
+	   /* sizeof EMACS_INT == sizeof Lisp_Object */
+	   offset += (sizeof (EMACS_INT)))
+	{
+	  idx = PER_BUFFER_IDX (offset);
+	  if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
+	      && SYMBOLP (PER_BUFFER_SYMBOL (offset)) 
+	      && EQ (PER_BUFFER_SYMBOL (offset), symbol)) 
+	    {
+	      result = PER_BUFFER_VALUE (buf, offset);
+	      found = 1;
+	      break;
+	    }
+	}
+
+      if (!found)
+	result = Fdefault_value (symbol);
+    }
+  else
+    result = XCDR (result);
+
+  if (EQ (result, Qunbound))
+    return Fsignal (Qvoid_variable, Fcons (symbol, Qnil));
+
+  return result;
+}
+
 DEFUN ("buffer-local-variables", Fbuffer_local_variables,
        Sbuffer_local_variables, 0, 1, 0,
        doc: /* Return an alist of variables that are buffer-local in BUFFER.
@@ -5571,6 +5623,7 @@ The space is measured in pixels, and put below lines on window systems.  */);
 /*defsubr (&Sbuffer_number);*/
   defsubr (&Sbuffer_file_name);
   defsubr (&Sbuffer_base_buffer);
+  defsubr (&Sbuffer_local_value);
   defsubr (&Sbuffer_local_variables);
   defsubr (&Sbuffer_modified_p);
   defsubr (&Sset_buffer_modified_p);
