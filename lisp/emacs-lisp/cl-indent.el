@@ -389,7 +389,7 @@ by `lisp-body-indent'."
 	   (defun       (4 &lambda &body))
 	   (define-setf-method . defun)
 	   (define-setf-expander . defun)
-	   (defmacro . defun) (deftype . defun)
+	   (defmacro . defun) (defsubst . defun) (deftype . defun)
 	   (defpackage  (4 2))
 	   (defstruct   ((&whole 4 &rest (&whole 2 &rest 1))
 			 &rest (&whole 2 &rest 1)))
