@@ -693,6 +693,8 @@ cached information about equivalent key sequences.")
 	  int part;
 	  unsigned long time;
 
+	  if (mouse_position_hook)
+	    (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
 	  if (new_f != 0)
 	    XSET (window, Lisp_Frame, new_f);
 	  else
