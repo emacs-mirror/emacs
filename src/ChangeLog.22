@@ -1,5 +1,9 @@
 2004-10-15  Kenichi Handa  <handa@m17n.org>
 
+	* xdisp.c (get_next_display_element): In unibyte case, decide to
+	display in octal form by checking a chacter by
+	UNIBYTE_CHAR_HAS_MULTIBYTE_P.
+
 	* charset.c (Fset_unibyte_charset): Setup
 	unibyte_has_multibyte_table.
 
