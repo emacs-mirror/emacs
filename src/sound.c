@@ -421,7 +421,7 @@ Internal use only, use `play-sound' instead.  */)
     {
       /* Open the sound file.  */
       s.fd = openp (Fcons (Vdata_directory, Qnil),
-		    attrs[SOUND_FILE], Qnil, &file, 0);
+		    attrs[SOUND_FILE], Qnil, &file, Qnil);
       if (s.fd < 0)
 	sound_perror ("Could not open sound file");
 
