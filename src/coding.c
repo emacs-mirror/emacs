@@ -7497,7 +7497,7 @@ DEFUN ("find-coding-systems-region-internal",
 	}
     }
 
-  safe_codings = Qnil;
+  safe_codings = list2 (Qraw_text, Qno_conversion);
   for (tail = coding_attrs_list; CONSP (tail); tail = XCDR (tail))
     if (! NILP (XCAR (tail)))
       safe_codings = Fcons (CODING_ATTR_BASE_NAME (XCAR (tail)), safe_codings);
