@@ -7,7 +7,7 @@
 ;; Keywords:		help, man, UN*X, manual
 ;; Adapted-By:		Eli Zaretskii <eliz@is.elta.co.il>
 ;; Version:		see `woman-version'
-;; URL:			http://centaur.maths.qmw.ac.uk/Emacs/
+;; URL:			http://centaur.maths.qmw.ac.uk/Emacs/WoMan/
 
 ;; This file is part of GNU Emacs.
 
@@ -417,6 +417,7 @@
 ;;   Paul A. Thompson <pat@po.cwru.edu>
 ;;   Arrigo Triulzi <arrigo@maths.qmw.ac.uk>
 ;;   Geoff Voelker <voelker@cs.washington.edu>
+;;   Eli Zaretskii <eliz@is.elta.co.il>
 
 (defvar woman-version "0.54 (beta)" "WoMan version information.")
 
@@ -432,37 +433,35 @@
   (require 'apropos))
 
 (defun woman-mapcan (fn x)
-  "Return concatenated list of FN applied to successive CAR elements of X.
+  "Return concatenated list of FN applied to successive `car' elements of X.
 FN must return a list, cons or nil.  Useful for splicing into a list."
   ;; Based on the Standard Lisp function MAPCAN but with args swapped!
   (and x (nconc (funcall fn (car x)) (woman-mapcan fn (cdr x)))))
 
 (defun woman-parse-colon-path (cd-path)
   "Explode a search path CD-PATH into a list of directory names.
-If the platform is Microsoft Windows and no path contains `\\' then
-assume a Cygwin-style colon-separated search path and convert any
-leading drive specifier `//X/' to `X:', otherwise assume paths
-separated by `path-separator'."
-  ;; Based on a suggestion by Jari Aalto.
-  (woman-mapcan				; splice into list...
-   (lambda (path)
-     ;; parse-colon-path returns nil for a null path component and
-     ;; an empty substring of MANPATH denotes the default list...
-     (if path (cons path nil) (woman-parse-man.conf)))
-   (if (and (memq system-type '(windows-nt ms-dos))
-	    (not (or (string-match ";" cd-path)
-		     (string-match "\\\\" cd-path))))
-       (let ((path-separator ":"))
-	 (mapcar
-	  (lambda (path)			  ; //a/b -> a:/b
-	    (cond ((and path (string-match "\\`//./" path))
-		   (setq path (substring path 1)) ; //a/b -> /a/b
-		   (aset path 0 (aref path 1))    ; /a/b -> aa/b
-		   (aset path 1 ?:)		  ; aa/b -> a:/b
-		   ))
-	    path)
-	  (parse-colon-path cd-path)))
-     (parse-colon-path cd-path))))
+Replace null components by calling `woman-parse-man.conf'.
+Allow UN*X-style search paths on Microsoft platforms, i.e. allow path
+elements to be separated by colons and convert Cygwin-style drive
+specifiers `//x/' to `x:'."
+  ;; Based on suggestions by Jari Aalto and Eli Zaretskii.
+  (mapcar
+   (lambda (path)			; //a/b -> a:/b
+     (when (and path (string-match "\\`//./" path))
+       (setq path (substring path 1))	; //a/b -> /a/b
+       (aset path 0 (aref path 1))	; /a/b -> aa/b
+       (aset path 1 ?:))		; aa/b -> a:/b
+     path)
+   (woman-mapcan			; splice into list...
+    (lambda (path)
+      ;; parse-colon-path returns nil for a null path component and
+      ;; an empty substring of MANPATH denotes the default list...
+      (if path (list path) (woman-parse-man.conf)))
+    (if (and (memq system-type '(windows-nt ms-dos))
+	     (not (string-match ";" cd-path)))
+	(let ((path-separator ":"))
+	  (parse-colon-path cd-path))
+      (parse-colon-path cd-path)))))
 
 
 ;;; User options:
@@ -513,9 +512,11 @@ instead to provide a default value for `woman-manpath'."
   :group 'woman-interface)
 
 (defun woman-parse-man.conf ()
-  "Parse man config file if found.  (Used only if MANPATH is not set.)
+  "Parse if possible Linux-style configuration file for man command.
+Used only if MANPATH is not set or contains null components.
 Look in `woman-man.conf-path' and return a value for `woman-manpath'.
 Concatenate data from all lines in the config file of the form
+
 MANPATH	/usr/man"
   ;; Functionality suggested by Charles Curley.
   (let ((path woman-man.conf-path)
@@ -752,9 +753,9 @@ Should begin with \\. and end with \\' and MUST NOT be optional."
   :set 'set-woman-file-regexp
   :group 'woman-interface)
 
-(defcustom woman-use-own-frame
-  (or (and (fboundp 'display-graphic-p) (display-graphic-p))
-      (memq window-system '(x w32)))
+(defcustom woman-use-own-frame		; window-system
+  (or (and (fboundp 'display-graphic-p) (display-graphic-p)) ; Emacs 21
+      (memq window-system '(x w32)))	; Emacs 20
   "*If non-nil then use a dedicated frame for displaying WoMan windows.
 Only useful when run on a graphic display such as X or MS-Windows."
   :type 'boolean
@@ -876,7 +877,7 @@ Default: foreground orange."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental font support, initially only for MS-Windows.
 (defconst woman-font-support
-  (eq window-system 'w32)	; Support X later!
+  (eq window-system 'w32)		; Support X later!
   "If non-nil then non-ASCII characters and symbol font supported.")
 
 (defun woman-select-symbol-fonts (fonts)
@@ -1337,36 +1338,30 @@ The cdr of each alist element is the path-index / filename."
     ;; Uniquefy topics:
     (woman-topic-all-completions-merge files)))
 
-(defsubst woman-list-n (n &rest args)
-  "Return a list of at most the first N of the arguments ARGS.
-Treats N < 1 as if N = 1."
-  (if (< n (length args))
-      (setcdr (nthcdr (1- n) args) nil))
-  args)
-
 (defun woman-topic-all-completions-1 (dir path-index)
-  "Return an alist of the man files in directory DIR with index PATH-INDEX.
-The `cdr' of each alist element is the path-index / filename."
-  ;; *** NEED case-fold-search t HERE ???
-  (let ((old (directory-files dir nil woman-file-regexp))
-	new file)
-    ;; Convert list to alist of non-directory files:
-    (while old
-      (setq file (car old)
-	    old (cdr old))
-      (if (file-directory-p file)
-	  ()
-	(setq new (cons
-		   (woman-list-n
-		    woman-cache-level
-		    (file-name-sans-extension
-		     (if (string-match woman-file-compression-regexp file)
-			 (file-name-sans-extension file)
-		       file))
-		    path-index
-		    file)
-		   new))))
-    new))
+  "Return an alist of the man topics in directory DIR with index PATH-INDEX.
+A topic is a filename sans type-related extensions.
+Support 3 levels of caching: each element of the alist will be a list
+of the first `woman-cache-level' elements from the following list:
+\(topic path-index filename)."
+  ;; This function used to check that each file in the directory was
+  ;; not itself a directory, but this is very slow and should be
+  ;; unnecessary.  So let us assume that `woman-file-regexp' will
+  ;; filter out any directories, which probably should not be there
+  ;; anyway, i.e. it is a user error!
+  (mapcar
+   (lambda (file)
+     (cons
+      (file-name-sans-extension
+       (if (string-match woman-file-compression-regexp file)
+	   (file-name-sans-extension file)
+	 file))
+      (if (> woman-cache-level 1)
+	  (cons
+	   path-index
+	   (if (> woman-cache-level 2)
+	       (cons file nil))))))
+   (directory-files dir nil woman-file-regexp)))
 
 (defun woman-topic-all-completions-merge (alist)
   "Merge the alist ALIST so that the keys are unique.
@@ -1446,7 +1441,7 @@ Also make each path-info component into a list.
     (mapcar 'list files)
     ))
 
-
+
 ;;; dired support
 
 (defun woman-dired-define-key (key)
@@ -4477,5 +4472,6 @@ logging the message."
 ;;   Comment order and doc strings changed substantially.
 ;;   MS-DOS support added (by Eli Zaretskii).
 ;;   checkdoc run: no real errors.
+;;   woman topic interface speeded up.
 
 ;;; woman.el ends here
