@@ -421,9 +421,10 @@ XTframe_up_to_date (f)
   if (FRAME_X_DISPLAY_INFO (f)->mouse_face_deferred_gc
       || f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
     {
-      note_mouse_highlight (FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame,
-			    FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_x,
-			    FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_y);
+      if (FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
+	note_mouse_highlight (FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame,
+			      FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_x,
+			      FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_y);
       FRAME_X_DISPLAY_INFO (f)->mouse_face_deferred_gc = 0;
     }
   UNBLOCK_INPUT;
@@ -6114,6 +6115,8 @@ x_destroy_window (f)
       dpyinfo->mouse_face_end_row
 	= dpyinfo->mouse_face_end_col = -1;
       dpyinfo->mouse_face_window = Qnil;
+      dpyinfo->mouse_face_deferred_gc = 0;
+      dpyinfo->mouse_face_mouse_frame = 0;
     }
 
   UNBLOCK_INPUT;
