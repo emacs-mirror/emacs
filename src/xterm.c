@@ -10755,8 +10755,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		    {
 		      if (f == dpyinfo->x_focus_event_frame)
 			dpyinfo->x_focus_event_frame = 0;
-		      if (dpyinfo->x_focus_event_frame != 0
-			  && f == dpyinfo->x_focus_frame)
+		      if (f == dpyinfo->x_focus_frame)
 			x_new_focus_frame (dpyinfo, 0);
 		    }
 #endif
