@@ -982,7 +982,7 @@ exited abnormally with code %d\n"
 
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'compile-mouse-goto-error)
+    (define-key map [mouse-2] 'compile-goto-error)
     (define-key map "\C-c\C-c" 'compile-goto-error)
     (define-key map "\C-m" 'compile-goto-error)
     (define-key map "\C-c\C-k" 'kill-compilation)
@@ -998,7 +998,7 @@ exited abnormally with code %d\n"
 
 (defvar compilation-shell-minor-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mouse-2] 'compile-mouse-goto-error)
+    (define-key map [mouse-2] 'compile-goto-error)
     (define-key map "\M-\C-m" 'compile-goto-error)
     (define-key map "\M-\C-n" 'compilation-next-error)
     (define-key map "\M-\C-p" 'compilation-previous-error)
@@ -1358,23 +1358,20 @@ Prefix arg N says how many files to move backwards (or forwards, if negative)."
 	(interrupt-process (get-buffer-process buffer))
       (error "The compilation process is not running"))))
 
-(defun compile-mouse-goto-error (event)
-  "Visit the source for the error message the mouse is pointing at."
-  (interactive "e")
-  (mouse-set-point event)
-  (compile-goto-error))
+(defalias 'compile-mouse-goto-error 'compile-goto-error)
 
-(defun compile-goto-error ()
-  "Visit the source for the error message point is on.
+(defun compile-goto-error (&optional event)
+  "Visit the source for the error message at point.
 Use this command in a compilation log buffer.  Sets the mark at point there."
-  (interactive)
+  (interactive (list last-input-event))
+  (mouse-set-point event)
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
   (if (get-text-property (point) 'directory)
       (dired-other-window (car (get-text-property (point) 'directory)))
     (push-mark)
     (setq compilation-current-error (point))
-    (next-error 0)))
+    (next-error 0)))))
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.
