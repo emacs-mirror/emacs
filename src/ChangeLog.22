@@ -1,5 +1,10 @@
 2003-09-30  Kenichi Handa  <handa@m17n.org>
 
+	* character.c (char_string): Use ASCII_CHAR_P instead of
+	SINGLE_BYTE_CHAR_P.
+
+2003-09-30  Kenichi Handa  <handa@m17n.org>
+
 	* xdisp.c (handle_auto_composed_prop): Check if the last
 	characters of auto-composed region is newly composed with the
 	following characters.
@@ -63,6 +68,7 @@
 	* window.c (Fdisplay_buffer, Fframe_selected_window): Remove
 	unsued vars.
 
+>>>>>>> 1.1.2.8
 2003-09-26  Dave Love  <fx@gnu.org>
 
 	* xterm.c (x_bitmap_mask): Declare.
