@@ -1,3 +1,9 @@
+2003-06-02  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* emacs-lisp/lisp-mnt.el (lm-synopsis): Use relative filenames
+	correctly.  Show the synopsis to the user when appropriate.  Do
+	not kill buffers that were created outside `lm-synopsis'.
+
 2003-05-27  David Ponce  <david@dponce.com>
 
 	* ruler-mode.el
