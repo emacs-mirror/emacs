@@ -217,14 +217,16 @@ echo "Making links to \`vms'."
  cd ../${tempdir}/vms
  rm -f *~)
 
-echo "Making sure copying notices are all symlinks to \`etc/COPYING'."
+### It would be nice if they could all be symlinks to etc's copy, but
+### you're not supposed to have any symlinks in distribution tar files.
+echo "Making sure copying notices are all copies of \`etc/COPYING'."
 rm -f ${tempdir}/etc/COPYING
 cp etc/COPYING ${tempdir}/etc/COPYING
 for subdir in lisp external-lisp src lib-src info shortnames; do
   if [ -f ${tempdir}/${subdir}/COPYING ]; then
     rm ${tempdir}/${subdir}/COPYING
   fi
-  ln -s ../etc/COPYING ${tempdir}/${subdir}
+  cp ../etc/COPYING ${tempdir}/${subdir}
 done
 
 if [ "${newer}" ]; then
