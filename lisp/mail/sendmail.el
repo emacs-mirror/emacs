@@ -407,8 +407,6 @@ the user from the mailer."
 	    (replace-match "\n"))
 	  (let ((case-fold-search t))
 	    (goto-char (point-min))
-	    (if (re-search-forward "^Sender:" delimline t)
-		(error "Sender may not be specified."))
 	    ;; Find and handle any FCC fields.
 	    (goto-char (point-min))
 	    (if (re-search-forward "^FCC:" delimline t)
