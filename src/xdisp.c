@@ -10713,26 +10713,11 @@ try_window_reusing_current_matrix (w)
 	      int dy = it.current_y - first_row_y;
 	      
 	      row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-	      while (MATRIX_ROW_DISPLAYS_TEXT_P (row))
-		{
-		  if (PT >= MATRIX_ROW_START_CHARPOS (row)
-		      && PT < MATRIX_ROW_END_CHARPOS (row))
-		    {
-		      set_cursor_from_row (w, row, w->current_matrix, 0, 0,
-					   dy, nrows_scrolled);
-		      break;
-		    }
-		  
-		  if (MATRIX_ROW_BOTTOM_Y (row) + dy >= it.last_visible_y)
-		    break;
-		  
-		  ++row;
-		}
-	      
-	      /* Give up if point was not found.  This shouldn't
-		 happen often; not more often than with try_window
-		 itself.  */
-	      if (w->cursor.vpos < 0)
+	      row = row_containing_pos (w, PT, row, NULL, dy);
+	      if (row)
+		set_cursor_from_row (w, row, w->current_matrix, 0, 0,
+				     dy, nrows_scrolled);
+	      else
 		{
 		  clear_glyph_matrix (w->desired_matrix);
 		  return 0;
@@ -11208,10 +11193,11 @@ sync_frame_with_window_matrix_rows (w)
    containing CHARPOS or null.  */
 
 struct glyph_row *
-row_containing_pos (w, charpos, start, end)
+row_containing_pos (w, charpos, start, end, dy)
      struct window *w;
      int charpos;
      struct glyph_row *start, *end;
+     int dy;
 {
   struct glyph_row *row = start;
   int last_y;
@@ -11223,18 +11209,18 @@ row_containing_pos (w, charpos, start, end)
   if ((end && row >= end) || !row->enabled_p)
     return NULL;
   
-  last_y = window_text_bottom_y (w);
+  last_y = window_text_bottom_y (w) - dy;
       
   while ((end == NULL || row < end)
+	 && MATRIX_ROW_BOTTOM_Y (row) < last_y
 	 && (MATRIX_ROW_END_CHARPOS (row) < charpos
-	     /* The end position of a row equals the start
-		position of the next row.  If CHARPOS is there, we
-		would rather display it in the next line, except
-		when this line ends in ZV.  */
 	     || (MATRIX_ROW_END_CHARPOS (row) == charpos
-		 && (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
-		     || !row->ends_at_zv_p)))
-	 && MATRIX_ROW_BOTTOM_Y (row) < last_y)
+		 /* The end position of a row equals the start
+		    position of the next row.  If CHARPOS is there, we
+		    would rather display it in the next line, except
+		    when this line ends in ZV.  */
+		 && !row->ends_at_zv_p
+		 && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))))
     ++row;
       
   /* Give up if CHARPOS not found.  */
@@ -11443,7 +11429,7 @@ try_window_id (w)
 	    }
       
 	  /* Set the cursor.  */
-	  row = row_containing_pos (w, PT, r0, NULL);
+	  row = row_containing_pos (w, PT, r0, NULL, 0);
 	  set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
 	  return 1;
 	}
@@ -11481,7 +11467,7 @@ try_window_id (w)
 	    = Z_BYTE - MATRIX_ROW_END_BYTEPOS (row);
 
 	  /* Set the cursor.  */
-	  row = row_containing_pos (w, PT, r0, NULL);
+	  row = row_containing_pos (w, PT, r0, NULL, 0);
 	  set_cursor_from_row (w, row, current_matrix, 0, 0, 0, 0);
 	  return 2;
 	}
@@ -11695,7 +11681,7 @@ try_window_id (w)
 	{
 	  row = row_containing_pos (w, PT,
 				    MATRIX_FIRST_TEXT_ROW (w->current_matrix),
-				    last_unchanged_at_beg_row + 1);
+				    last_unchanged_at_beg_row + 1, 0);
 	  if (row)
 	    set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
 	}
@@ -11704,7 +11690,7 @@ try_window_id (w)
       else if (first_unchanged_at_end_row)
 	{
 	  row = row_containing_pos (w, PT - delta,
-				    first_unchanged_at_end_row, NULL);
+				    first_unchanged_at_end_row, NULL, 0);
 	  if (row)
 	    set_cursor_from_row (w, row, w->current_matrix, delta,
 				 delta_bytes, dy, dvpos);
@@ -12969,11 +12955,24 @@ display_line (it)
 		      it->max_phys_ascent = phys_ascent;
 		      it->max_phys_descent = phys_descent;
 		    }
+		  else if (it->c == '\t' && FRAME_WINDOW_P (it->f))
+		    {
+		      /* A TAB that extends past the right edge of the
+			 window.  This produces a single glyph on
+			 window system frames.  We leave the glyph in
+			 this row and let it fill the row, but don't
+			 consume the TAB.  */
+		      it->continuation_lines_width += it->last_visible_x;
+		      row->ends_in_middle_of_char_p = 1;
+		      row->continued_p = 1;
+		      glyph->pixel_width = it->last_visible_x - x;
+		      it->starts_in_middle_of_char_p = 1;
+		    }
 		  else
 		    {
-		      /* Display element draws past the right edge of
-			 the window.  Restore positions to values
-			 before the element.  */
+		      /* Something other than a TAB that draws past
+			 the right edge of the window.  Restore
+			 positions to values before the element.  */
 		      row->used[TEXT_AREA] = n_glyphs_before + i;
 		  
 		      /* Display continuation glyphs.  */
@@ -12981,14 +12980,7 @@ display_line (it)
 			produce_special_glyphs (it, IT_CONTINUATION);
 		      row->continued_p = 1;
 
-		      /* A TAB takes us to the right edge of the window.  */
-		      if (it->c == '\t')
-			{
-			  it->continuation_lines_width += it->last_visible_x;
-			  row->ends_in_middle_of_char_p = 1;
-			}
-		      else
-			it->continuation_lines_width += x;
+		      it->continuation_lines_width += x;
 		      
 		      if (nglyphs > 1 && i > 0)
 			{
