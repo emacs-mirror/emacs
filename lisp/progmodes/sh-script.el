@@ -392,8 +392,7 @@ The following commands are available, based on the current shell's syntax:
   (make-local-variable 'sh-shell-is-csh)
   (make-local-variable 'pair-alist)
   (make-local-variable 'pair-filter)
-  (make-local-variable 'font-lock-keywords)
-  (make-local-variable 'font-lock-keywords-case-fold-search)
+  (make-local-variable 'font-lock-defaults)
   (make-local-variable 'sh-variables)
   (setq major-mode 'sh-mode
 	mode-name "Shell-script"
@@ -405,7 +404,6 @@ The following commands are available, based on the current shell's syntax:
 	tab-width sh-tab-width
 	;; C shells do
 	require-final-newline t
-	font-lock-keywords-case-fold-search nil
 	pair-alist '((?` _ ?`))
 	pair-filter 'sh-quoted-p)
   ;; parse or insert magic number for exec
@@ -828,8 +826,8 @@ Calls the value of `sh-set-shell-hook' if set."
 					(error "Cannot find %s." shell)))
 	  sh-shell (intern (file-name-nondirectory sh-shell-path))
 	  sh-shell-is-csh (memq sh-shell '(csh tcsh))
-	  font-lock-keywords
-	  (intern-soft (format "sh-%s-font-lock-keywords" sh-shell))
+	  font-lock-defaults
+	  (list (intern-soft (format "sh-%s-font-lock-keywords" sh-shell))) 
 	  font-lock-keywords (if (and font-lock-keywords
 				      (boundp font-lock-keywords))
 				 (symbol-value font-lock-keywords)
