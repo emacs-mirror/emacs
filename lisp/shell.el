@@ -454,8 +454,30 @@ buffer."
       (setq shell-dirstack-query
 	    (cond ((string-equal shell "sh") "pwd")
 		  ((string-equal shell "ksh") "echo $PWD ~-")
-		  (t "dirs"))))
+		  (t "dirs")))
+      ;; Bypass a bug in certain versions of bash.
+      (when (string-equal shell "bash")
+        (add-hook 'comint-output-filter-functions
+                  'shell-filter-ctrl-a-ctrl-b nil t)))
     (comint-read-input-ring t)))
+
+(defun shell-filter-ctrl-a-ctrl-b (string)
+  "Remove `^A' and `^B' characters from comint output.
+
+Bash uses these characters as internal quoting characters in its
+prompt.  Due to a bug in some bash versions (including 2.03,
+2.04, and 2.05b), they may erroneously show up when bash is
+started with the `--noediting' option and Select Graphic
+Rendition (SGR) control sequences (formerly known as ANSI escape
+sequences) are used to color the prompt.
+
+This function can be put on `comint-output-filter-functions'.
+The argument STRING is ignored."
+  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
+    (save-excursion
+      (goto-char (or comint-last-output-start (point-min)))
+      (while (re-search-forward "[\C-a\C-b]" pmark t)
+        (replace-match "")))))
 
 (defun shell-write-history-on-exit (process event)
   "Called when the shell process is stopped.
