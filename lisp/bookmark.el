@@ -1254,46 +1254,51 @@ one most recently used in this file, if any\)."
 ;; Thanks to Roland McGrath for fixing menubar.el so that the
 ;; following works, and for explaining what to do to make it work.
 
+;;;###autoload
 (defvar menu-bar-bookmark-map (make-sparse-keymap "Bookmark functions."))
 
-;; make bookmarks appear toward the right side of the menu.
-(if (boundp 'menu-bar-final-items)
-    (if menu-bar-final-items 
-        (setq menu-bar-final-items
-              (cons 'bookmark menu-bar-final-items)))
-  (setq menu-bar-final-items '(bookmark)))
+;;;###autoload
+(fset 'menu-bar-bookmark-map (symbol-value 'menu-bar-bookmark-map))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [load]
   '("Load a bookmark file" . bookmark-load))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [write]
   '("Write \(to another file\)" . bookmark-write))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [save]
   '("Save  \(in default file\)" . bookmark-save))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [edit]
   '("Edit Bookmark List" . list-bookmarks))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [delete]
   '("Delete bookmark" . bookmark-menu-bar-delete))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [rename]
   '("Rename bookmark" . bookmark-menu-bar-rename))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [locate]
   '("Insert location" . bookmark-menu-bar-locate))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [insert]
   '("Insert contents" . bookmark-menu-bar-insert))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [set]
   '("Set bookmark" . bookmark-set))
 
+;;;###autoload
 (define-key menu-bar-bookmark-map [jump] 
   '("Jump to bookmark" . bookmark-menu-bar-jump))
- 
-;;;###autoload (autoload 'menu-bar-bookmark-map "bookmark" nil t 'keymap)
 
 (fset 'menu-bar-bookmark-map (symbol-value 'menu-bar-bookmark-map))
 
