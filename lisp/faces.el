@@ -302,7 +302,7 @@ If FRAME is omitted or nil, use the selected frame."
   "*List of X resources and classes for face attributes.
 Each element has the form (ATTRIBUTE ENTRY1 ENTRY2...) where ATTRIBUTE is
 the name of a face attribute, and each ENTRY is a cons of the form
-(RESOURCE . CLASS) with RESOURCE being the resource and CLASS being the
+\(RESOURCE . CLASS) with RESOURCE being the resource and CLASS being the
 X resource class for the attribute."
   :type '(repeat (cons symbol (repeat (cons string string))))
   :group 'faces)
@@ -1109,7 +1109,7 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:inherit . "Inherit")))
 	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
 					attrs))))
-    (require 'help-mode)
+    (help-setup-xref (list #'describe-face face) (interactive-p))
     (with-output-to-temp-buffer (help-buffer)
       (save-excursion
 	(set-buffer standard-output)
@@ -1129,8 +1129,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      (re-search-backward
 	       (concat "\\(" customize-label "\\)") nil t)
 	      (help-xref-button 1 'help-customize-face face)))))
-      (print-help-return-message)
-      (help-setup-xref (list #'describe-face face) (interactive-p)))))
+      (print-help-return-message))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
