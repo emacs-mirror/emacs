@@ -261,7 +261,7 @@ the macro ring.
 executes the previous (rather than the head) element on the macro ring.
 
 @node Keyboard Macro Counter
-@section Inserting incrementing numbers in macros
+@section The Keyboard Macro Counter
 
   Each keyboard macro has an associated counter which is automatically
 incremented on every repetition of the keyboard macro.  Normally, the
@@ -449,7 +449,7 @@ keyboard input that you would use to invoke the macro---@kbd{C-x e} or
 @kbd{C-x C-k l} (@code{kmacro-edit-lossage}).
 
 @node Keyboard Macro Step-Edit
-@section Interactively executing and editing a keyboard macro
+@section Stepwise Editing a Keyboard Macro
 
 @findex kmacro-step-edit-macro
 @kindex C-x C-k SPC
