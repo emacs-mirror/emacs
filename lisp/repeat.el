@@ -124,8 +124,10 @@
 
 ;;;;; ************************* USER OPTIONS ************************** ;;;;;
 
-(defvar vi-dot-too-dangerous '(kill-this-buffer)
-  "Commands too dangerous to repeat with `vi-dot'.")
+(defcustom vi-dot-too-dangerous '(kill-this-buffer)
+  "Commands too dangerous to repeat with `vi-dot'."
+  :group 'convenience
+  :type '(repeat function))
 
 ;; If the last command was self-insert-command, the char to be inserted was
 ;; obtained by that command from last-command-char, which has now been
@@ -134,33 +136,15 @@
 ;; this has the disadvantage that if the user types a sequence of different
 ;; chars then invokes vi-dot, only the final char will be inserted.  In vi,
 ;; the dot command can reinsert the entire most-recently-inserted sequence.
-;; To do the same thing here, we need to extract the string to insert from
-;; the undo information, then insert a new copy in the buffer.  However, the
-;; built-in `insert', which takes a string as an arg, is a little different
-;; from `self-insert-command', which takes only a prefix arg; `insert' ignores
-;; `overwrite-mode'.  Emacs 19.34 has no self-insert-string.  But there's
-;; one in my dotemacs.el (on the web), so if you want to, you can define that
-;; in your .emacs, & it'll Just Work, as it will in any future Emaecse that
-;; have self-insert-string.  Or users can code their own
-;; insert-string-with-trumpet-fanfare and use that by customizing this:
-
-(defvar vi-dot-insert-function
-  (catch t (mapcar (lambda (f) (if (fboundp f) (throw t f)))
-                   [self-insert-string
-                    insert]))
-  "Function used by `vi-dot' command to re-insert a string of characters.
-In a vanilla Emacs this will default to `insert', which doesn't respect
-`overwrite-mode'; customize with your own insertion function, taking a single
-string as an argument, if you have one.")
 
 (defvar vi-dot-message-function nil
   "If non-nil, function used by `vi-dot' command to say what it's doing.
 Message is something like \"Repeating command glorp\".
-To disable such messages, assign 'ignore to this variable.  To customize
+To disable such messages, set this variable to `ignore'.  To customize
 display, assign a function that takes one string as an arg and displays
 it however you want.")
 
-(defvar vi-dot-repeat-on-final-keystroke t
+(defcustom vi-dot-repeat-on-final-keystroke t
   "Allow `vi-dot' to re-execute for repeating lastchar of a key sequence.
 If this variable is t, `vi-dot' determines what key sequence
 it was invoked by, extracts the final character of that sequence, and
@@ -168,7 +152,9 @@ re-executes as many times as that final character is hit; so for example
 if `vi-dot' is bound to C-x z, typing C-x z z z repeats the previous command
 3 times.  If this variable is a sequence of characters, then re-execution
 only occurs if the final character by which `vi-dot' was invoked is a
-member of that sequence.  If this variable is nil, no re-execution occurs.")
+member of that sequence.  If this variable is nil, no re-execution occurs."
+  :group 'convenience
+  :type 'boolean)
   
 ;;;;; ****************** HACKS TO THE REST OF EMACS ******************* ;;;;;
 
@@ -350,7 +336,7 @@ can be modified by the global variable `vi-dot-repeat-on-final-keystroke'."
                                      "clobbered it, sorry")))))))
             (setq vi-dot-num-input-keys-at-self-insert num-input-keys)
             (loop repeat (prefix-numeric-value vi-dot-arg) do
-                  (funcall vi-dot-insert-function insertion)))
+                  (vi-self-insert insertion)))
         (call-interactively last-command)))
     (when vi-dot-repeat-char
       ;; A simple recursion here gets into trouble with max-lisp-eval-depth
@@ -362,6 +348,13 @@ can be modified by the global variable `vi-dot-repeat-on-final-keystroke'."
         (while (eq (read-event) vi-dot-repeat-char)
           (vi-dot vi-dot-arg))
         (setq unread-command-events (list last-input-event))))))
+
+(defun vi-self-insert (string)
+  (let ((i 0))
+    (while (< i (length string))
+      (let ((last-command-char (aref string i)))
+	(self-insert-command 1))
+      (setq i (1+ i)))))
 
 (defun vi-dot-message (format &rest args)
   "Like `message' but displays with `vi-dot-message-function' if non-nil."
