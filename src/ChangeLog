@@ -1,8 +1,9 @@
 2000-10-11  Kenichi Handa  <handa@mule.m17n.org>
 
-	* process.c (read_process_output): On adjusting multibyteness of
-	text to insert in a buffer, use make_string_unibyte/multibyte
-	instead of Fstring_as_unibyte/multibyte.
+	* process.c (read_process_output): Fix previous change.  Adjust
+	multibyteness of text to insert in a buffer by
+	make_string_unibyte/multibyte instead of
+	Fstring_as_unibyte/multibyte.
 
 2000-10-10  Andreas Schwab  <schwab@suse.de>
 
