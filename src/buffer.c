@@ -466,6 +466,9 @@ NAME should be a string which is not the name of an existing buffer.")
   b->mark = Fmake_marker ();
   b->name = name;
 
+  /* The multibyte status belongs to the base buffer.  */
+  b->enable_multibyte_characters = b->base_buffer->enable_multibyte_characters;
+
   /* Make sure the base buffer has markers for its narrowing.  */
   if (NILP (b->base_buffer->pt_marker))
     {
@@ -1735,6 +1738,7 @@ but the contents viewed as characters do change.")
      Lisp_Object flag;
 {
   Lisp_Object tail, markers;
+  struct buffer *other;
 
   if (current_buffer->base_buffer)
     error ("Cannot do `set-buffer-multibyte' on an indirect buffer");
@@ -1851,6 +1855,13 @@ but the contents viewed as characters do change.")
 	 between chars and bytes.  */
       set_intervals_multibyte (1);
     }
+
+  /* Copy this buffer's new multibyte status
+     into all of its indirect buffers.  */
+  for (other = all_buffers; other; other = other->next)
+    if (other->base_buffer == current_buffer && !NILP (other->name))
+      other->enable_multibyte_characters
+	= current_buffer->enable_multibyte_characters;
 
   return flag;
 }
