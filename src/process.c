@@ -3716,7 +3716,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
-#ifdef hpux
+#ifdef POLLING_PROBLEM_IN_SELECT
   /* AlainF 5-Jul-1996
      HP-UX 10.10 seem to have problems with signals coming in
      Causes "poll: interrupted system call" messages when Emacs is run
@@ -6412,7 +6412,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   int xerrno;
   /* Either nil or a cons cell, the car of which is of interest and
      may be changed outside of this routine.  */
-  Lisp_Object wait_for_cell = Qnil;
+  Lisp_Object wait_for_cell; 
+
+  wait_for_cell = Qnil;
 
   /* If waiting for non-nil in a cell, record where.  */
   if (CONSP (read_kbd))
