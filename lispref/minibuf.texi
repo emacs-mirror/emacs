@@ -863,7 +863,9 @@ see @ref{Completion Commands}.
 in the minibuffer to do completion.  The description refers to the
 situation when Partial Completion mode is disabled (as it is by
 default).  When enabled, this minor mode uses its own alternatives to
-some of the commands described below.
+some of the commands described below.  @xref{Completion Options,,,
+emacs, The GNU Emacs Manual}, for a short description of Partial
+Completion mode.
 
 @defvar minibuffer-local-completion-map
 @code{completing-read} uses this value as the local keymap when an
