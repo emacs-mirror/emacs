@@ -109,6 +109,7 @@
 ;; (ada-xref error 255)
 ;; (ada-stmt error 255)
 
+
 ;;; Code:
 
 ;;; Workarounds.  For a smooth run and to avoid some side effects.
@@ -458,7 +459,7 @@ in the emacs source directory."
 	     (setq cmd (concat "src/emacs -batch -l " fn))
 	     (setq status (call-process shell-file-name nil nil nil
 					shell-command-switch cmd))
-	     (if (= status 0)
+	     (if (equal status 0)
 		 (message "%s" file)
 	       (error "%s" status))
 	     (push file cus-test-libs-loaded))
