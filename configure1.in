@@ -2,7 +2,7 @@ dnl This is an autoconf script.
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.  You must have autoconf
-dnl version 1.7 or later.
+dnl version 1.8 or later.
 dnl
 dnl The following text appears in the resulting `configure' script,
 dnl explaining how to rebuild it.
@@ -1144,6 +1144,9 @@ AC_TIMEZONE
 
 dnl checks for compiler characteristics
 AC_CONST
+
+dnl check for Make feature
+AC_SET_MAKE
 
 dnl checks for operating system services
 AC_LONG_FILE_NAMES
