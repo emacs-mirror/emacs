@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.16 1999/11/10 10:46:01 gerd Exp $
+;; $Id: mh-comp.el,v 1.17 2000/04/27 18:56:42 gerd Exp $
 
 ;;; Code:
 
@@ -517,7 +517,9 @@ See also documentation for `\\[mh-send]' function."
 		      components)
 		     ((file-exists-p
 		       (setq components
-			     (expand-file-name mh-comp-formfile mh-etc)))
+			     (expand-file-name mh-comp-formfile
+					       ;; What is this mh-etc ??  -sm
+					       (and (boundp 'mh-etc) mh-etc))))
 		      components)
 		     (t
 		      (error (format "Can't find components file \"%s\""
@@ -691,7 +693,7 @@ See also documentation for `\\[mh-send]' function."
 (put 'mh-letter-mode 'mode-class 'special)
 
 ;;;###autoload
-(defun mh-letter-mode ()
+(define-derived-mode mh-letter-mode text-mode "MH-Letter"
   "Mode for composing letters in mh-e.\\<mh-letter-mode-map>
 When you have finished composing, type \\[mh-send-letter] to send the message
 using the MH mail handling system.
@@ -720,8 +722,6 @@ Variables controlling this mode (defaults in parentheses):
     File to be inserted into message by \\[mh-insert-signature].
 
 This command runs the normal hooks `text-mode-hook' and `mh-letter-mode-hook'."
-
-  (interactive)
   (or mh-user-path (mh-find-path))
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^[ \t]*[-_][-_][-_]+$\\|" paragraph-start))
@@ -736,19 +736,10 @@ This command runs the normal hooks `text-mode-hook' and `mh-letter-mode-hook'."
   (make-local-variable 'mh-sent-from-msg)
   (make-local-variable 'mail-header-separator)
   (setq mail-header-separator "--------") ;for Hyperbole
-  (use-local-map mh-letter-mode-map)
-  (setq major-mode 'mh-letter-mode)
-  (mh-set-mode-name "MH-Letter")
-  (set-syntax-table mh-letter-mode-syntax-table)
-  (run-hooks 'text-mode-hook)
   ;; if text-mode-hook turned on auto-fill, tune it for messages
-  (cond ((and (boundp 'auto-fill-hook) auto-fill-hook) ;emacs 18
-	 (make-local-variable 'auto-fill-hook)
-	 (setq auto-fill-hook 'mh-auto-fill-for-letter)))
-  (cond ((and (boundp 'auto-fill-function) auto-fill-function) ;emacs 19
-	 (make-local-variable 'auto-fill-function)
-	 (setq auto-fill-function 'mh-auto-fill-for-letter)))
-  (run-hooks 'mh-letter-mode-hook))
+  (when auto-fill-function
+    (make-local-variable 'auto-fill-function)
+    (setq auto-fill-function 'mh-auto-fill-for-letter)))
 
 
 (defun mh-auto-fill-for-letter ()
