@@ -445,6 +445,7 @@ This returns ARGS with the arguments that have been processed removed."
 (setq suspend-hook
       '(lambda ()
 	 (error "Suspending an emacs running under X makes no sense")))
+(setq interprogram-cut-function 'x-own-selection)
 
 ;;; Turn off window-splitting optimization; X is usually fast enough
 ;;; that this is only annoying.
