@@ -732,7 +732,9 @@ your /usr/spool/mail/$USER.
 You can also specify the file to get new mail from.  In this case, the
 file of new mail is not changed or deleted.  Noninteractively, you can
 pass the inbox file name as an argument.  Interactively, a prefix
-argument causes us to read a file name and use that file as the inbox."
+argument causes us to read a file name and use that file as the inbox.
+
+This function runs `rmail-get-new-mail-hook' before saving the updated file."
   (interactive
    (list (if current-prefix-arg
 	     (read-file-name "Get new mail from file: "))))
@@ -780,6 +782,7 @@ argument causes us to read a file name and use that file as the inbox."
 		  (narrow-to-region (point) (point-max))
 		  (goto-char (1+ (point-min)))
 		  (rmail-count-new-messages)
+		  (run-hooks 'rmail-get-new-mail-hook)
 		  (save-buffer)))
 	    ;; Delete the old files, now that babyl file is saved.
 	    (while delete-files
