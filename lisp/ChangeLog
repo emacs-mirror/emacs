@@ -1,3 +1,8 @@
+2004-08-30  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (prin1-char): Don't turn S-a into A.
+	Don't return a string that would read as the wrong character code.
+
 2004-08-29  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-auto-expand-rectangles): Remove
