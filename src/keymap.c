@@ -275,7 +275,7 @@ access_keymap (map, idx, t_ok)
   else if (INTEGERP (idx))
     /* Clobber the high bits that can be present on a machine
        with more than 24 bits of integer.  */
-    XFASTINT (idx) = XINT (idx) & ((1 << 24) - 1);
+    XFASTINT (idx) = XINT (idx) & (CHAR_META | (CHAR_META - 1));
 
   {
     Lisp_Object tail;
@@ -375,7 +375,7 @@ store_in_keymap (keymap, idx, def)
   else if (INTEGERP (idx))
     /* Clobber the high bits that can be present on a machine
        with more than 24 bits of integer.  */
-    XFASTINT (idx) = XINT (idx) & ((1 << 24) - 1);
+    XFASTINT (idx) = XINT (idx) & (CHAR_META | (CHAR_META - 1));
 
   /* Scan the keymap for a binding of idx.  */
   {
@@ -1861,16 +1861,22 @@ describe_vector_princ (elt)
      Lisp_Object elt;
 {
   Fprinc (elt, Qnil);
+  Fterpri (Qnil);
 }
 
 DEFUN ("describe-vector", Fdescribe_vector, Sdescribe_vector, 1, 1, 0,
-  "Print on `standard-output' a description of contents of VECTOR.\n\
+  "Insert a description of contents of VECTOR.\n\
 This is text showing the elements of vector matched against indices.")
   (vector)
      Lisp_Object vector;
 {
+  int count = specpdl_ptr - specpdl;
+
+  specbind (Qstandard_output, Fcurrent_buffer ());
   CHECK_VECTOR (vector, 0);
   describe_vector (vector, Qnil, describe_vector_princ, 0, Qnil);
+
+  return unbind_to (count, Qnil);
 }
 
 describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
