@@ -1,3 +1,9 @@
+2001-09-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eshell/em-unix.el (eshell-shuffle-files): Compare inodes with
+	`equal' instead of `=', since they can be cons cells.  From Nils
+	Goesche <cartan@cartan.de>.
+
 2001-09-10  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-annotate): Rewrote doc string.
