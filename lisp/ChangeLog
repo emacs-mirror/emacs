@@ -1,5 +1,8 @@
 2002-05-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* net/ldap.el (ldap-search-internal): Unfold folded lines before
+	parsing.
+
 	* cus-edit.el (customize-set-value): Rename `var' to `variable'
 	and `val' to `value'.
 	(customize-save-variable): Rename `var' to `'variable.
