@@ -8,14 +8,11 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.4
 
-** UTF-16 coding systems changed their behaviour.  Coding systems
-`mule-utf-16-le' and `mule-utf-16-be' now don't skip the first two
-bytes as BOM on decoding, and don't produce BOM bytes on encoding.
-The new coding systems `mule-utf-16-le-with-signature' and
-`mule-utf-16-be-with-signature' behave the same way as the previous
-`mule-utf-16-le' and `mule-utf-16-be' respectively.  So,
-`utf-16-le-with-signature-dos' is useful as the value of
-`selection-coding-system' in MS Windows.a
+** New UTF-16 based coding systems mule-utf-16le, mule-utf-16be,
+mule-utf-16le-with-signature, and mule-utf-16be-with-signature has
+been added.  And for backward compatiblity, these aliases are added:
+mule-utf-16-le -> mule-utf-16le-with-signature, mule-utf-16-be ->
+mule-utf-16be-with-signature.
 
 
 * Installation changes in Emacs 21.3

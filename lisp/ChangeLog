@@ -5,6 +5,10 @@
 	(mule-utf-16-le, utf-16-le, mule-utf-16-be, utf-16-be): New coding
 	system aliases for backward compatibility.
 
+	* international/ucs-tables.el (ucs-unify-8859, ucs-fragment-8859):
+	Adjusted for the name change: xxx-utf-16-{le,be} ->
+	xxx-utf-16{le,be}.
+
 2003-05-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (sort-coding-systems): Set lower
