@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.26 2000/10/02 06:49:21 miles Exp $
+;; Revision: $Id: diff-mode.el,v 1.27 2000/10/03 18:36:36 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1074,7 +1074,7 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
 	(diff-find-source-location other-file rev)
       (pop-to-buffer buf)
       (goto-char (+ pos (cdr src)))
-      (diff-hunk-status-msg line-offset (not switched) t))))
+      (diff-hunk-status-msg line-offset (diff-xor rev switched) t))))
 
 
 (defun diff-current-defun ()
