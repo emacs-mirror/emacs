@@ -1,5 +1,7 @@
 2004-11-06  Andreas Schwab  <schwab@suse.de>
 
+	* tempo.el (tempo-match-finder): Doc fix.
+
 	* emacs-lisp/easymenu.el (easy-menu-get-map): Fix last change.
 
 2004-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
