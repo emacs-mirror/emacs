@@ -53,7 +53,7 @@
 
 ;; The following files are part of the calendar/diary code:
 
-;;       diary.el, diary-ins.el     Diary functions
+;;       diary.el, diary-ins.el        Diary functions
 ;;       holidays.el                   Holiday functions
 ;;       cal-french.el                 French Revolutionary calendar
 ;;       cal-mayan.el                  Mayan calendars
@@ -90,8 +90,8 @@
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
 ;; pages 899-928.  ``Calendrical Calculations, Part II: Three Historical
 ;; Calendars'' by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
-;; Report Number UIUCDCS-R-92-1743, Department of Computer Science,
-;; University of Illinois, April, 1992.
+;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),
+;; pages 383-404.
 
 ;; Hard copies of these two papers can be obtained by sending email to
 ;; reingold@cs.uiuc.edu with the SUBJECT "send-paper-cal" (no quotes) and
@@ -3035,7 +3035,7 @@ the date of death is taken from the cursor position."
 shown by cursor."
   (interactive)
   (message
-   "Astromonical (Julian) day number after noon Universal Time: %d"
+   "Astronomical (Julian) day number after noon Universal Time: %d"
    (+ 1721425
       (calendar-absolute-from-gregorian
        (or (calendar-cursor-to-date)
