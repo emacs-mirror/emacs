@@ -4633,7 +4633,8 @@ x_set_glyph_string_background_width (s, start, last_x)
   
   if (start == s->row->used[s->area]
       && s->hl == DRAW_NORMAL_TEXT
-      && ((s->area == TEXT_AREA && s->row->fill_line_p)
+      && s->area == TEXT_AREA
+      && (s->row->fill_line_p
 	  || s->face->background != default_face->background
 	  || s->face->stipple != default_face->stipple))
     s->extends_to_end_of_line_p = 1;
