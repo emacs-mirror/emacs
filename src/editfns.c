@@ -658,7 +658,7 @@ MONTH is an integer between 1 and 12.  YEAR is an integer indicating the\n\
 four-digit year.  DOW is the day of week, an integer between 0 and 6, where\n\
 0 is Sunday.  DST is t if daylight savings time is effect, otherwise nil.\n\
 ZONE is an integer indicating the number of seconds east of Greenwich.\n\
-(Note that Common Lisp has different meanings for DOW and ZONE.)")
+\(Note that Common Lisp has different meanings for DOW and ZONE.)")
   (specified_time)
      Lisp_Object specified_time;
 {
