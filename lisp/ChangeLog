@@ -1,5 +1,9 @@
 2000-12-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/rmailsum.el (rmail-summary-expunge)
+	(rmail-summary-expunge-and-save): Use rmail-expunge-confirmed
+	instead of rmail-confirm-expunge.
+
 	* replace.el (perform-replace): Don't use an empty match adjacent
 	to a non-empty match when computing the next match before the
 	replacement is performed.
