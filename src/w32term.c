@@ -2374,6 +2374,7 @@ w32_read_socket (sd, bufp, numchars, waitp, expected)
 		  
 		  convert_to_key_event (&msg, keyp);
 		  add = key_event (keyp, bufp);
+		  XSETFRAME (bufp->frame_or_window, f);
 		  if (add == -1)
 		    {
 		      /* The key pressed generated two characters, most likely
@@ -3334,7 +3335,6 @@ x_make_frame_visible (f)
 	{
 	  x_set_offset (f, f->output_data.win32->left_pos, 
 			f->output_data.win32->top_pos, 0);
-	  SetForegroundWindow (FRAME_WIN32_WINDOW (f));
 	}
 
       f->output_data.win32->asked_for_visible = 1;
@@ -3744,7 +3744,7 @@ win32_initialize ()
     GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
   }
   
-  /*  AttachThreadInput (dwWinThreadId, dwMainThreadId, TRUE); */
+  AttachThreadInput (dwMainThreadId, dwWinThreadId, TRUE);
 
 }
 
