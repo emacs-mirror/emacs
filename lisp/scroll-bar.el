@@ -103,7 +103,10 @@ EVENT should be a scroll bar click or drag event."
 	 (portion-whole (nth 2 start-position)))
     (save-excursion
       (set-buffer (window-buffer window))
-      (goto-char (scroll-bar-scale portion-whole (buffer-size)))
+      ;; Calculate position relative to the accessible part of the buffer.
+      (goto-char (+ (point-min)
+		    (scroll-bar-scale portion-whole
+				      (- (point-max) (point-min)))))
       (beginning-of-line)
       (set-window-start window (point)))))
 
