@@ -147,7 +147,8 @@ directory name of the directory where the `.emacs' file was looked for.")
       (run-hooks 'emacs-startup-hook)
       (and term-setup-hook
 	   (run-hooks 'term-setup-hook))
-      (frame-notice-user-settings)
+      (if (fboundp 'frame-notice-user-settings)
+	  (frame-notice-user-settings))
       (and window-setup-hook
 	   (run-hooks 'window-setup-hook)))))
 
@@ -214,9 +215,10 @@ directory name of the directory where the `.emacs' file was looked for.")
     (setcdr command-line-args args))
 
   ;; Under X Windows, this creates the X frame and deletes the terminal frame.
-  (frame-initialize)
-
-  (face-initialize)
+  (if (fboundp 'frame-initialize)
+      (frame-initialize))
+  (if (fboundp 'face-initialize)
+      (face-initialize))
 
   (run-hooks 'before-init-hook)
 
@@ -293,6 +295,14 @@ directory name of the directory where the `.emacs' file was looked for.")
 		  (run-hooks 'term-setup-hook))
 	     ;; Don't let the hook be run twice.
 	     (setq term-setup-hook nil)
+
+	     ;; It's important to notice the user settings before we
+	     ;; display the startup message; otherwise, the settings
+	     ;; won't take effect until the user gives the first
+	     ;; keystroke, and that's distracting.
+	     (if (fboundp 'frame-notice-user-settings)
+		 (frame-notice-user-settings))
+
 	     (and window-setup-hook
 		  (run-hooks 'window-setup-hook))
 	     (setq window-setup-hook nil)
