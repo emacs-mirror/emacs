@@ -30,10 +30,11 @@ TOOLKIT_DEFINES = -DUSE_$(USE_X_TOOLKIT)
 
            OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 
+# ../src is needed to find config.h.
 ALL_CFLAGS= $(C_SWITCH_SITE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
   $(C_SWITCH_X_SYSTEM) $(C_SWITCH_MACHINE) $(CPPFLAGS) $(CFLAGS) \
   -DEMACS_BITMAP_FILES -DHAVE_CONFIG_H -Demacs \
-  -I. -I${srcdir} -I${srcdir}/../src
+  -I. -I../src -I${srcdir} -I${srcdir}/../src
 
 .c.o:
 	$(CC) -c ${ALL_CFLAGS} $<
