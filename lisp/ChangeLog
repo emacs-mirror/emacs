@@ -1,3 +1,8 @@
+2004-05-10  Miles Bader  <miles@gnu.org>
+
+	* lisp/progmodes/gud.el (gud-common-init): Only consider an existing
+	buffer an error if the debugger process is actually running.
+
 2004-05-10  Juanma Barranquero  <lektu@terra.es>
 
 	* subr.el (remove-overlays, read-passwd): Fix docstring.
