@@ -1,3 +1,19 @@
+2001-10-05  Miles Bader  <miles@gnu.org>
+
+	* cus-face.el (custom-face-attributes): Make sure each attribute
+	has a valid default value.  Remove hacks that mapped `nil' to
+	`off' and used nil to mean `unspecified'.  Remove `unspecified'
+	choices from all attributes (unspecified is handled by the parent
+	checklist).
+	* cus-edit.el (custom-face-edit-convert-widget) 
+	(custom-face-edit-deactivate, custom-face-edit-activate)
+	(custom-face-edit-delete, custom-face-edit-attribute-tag):
+	New functions.
+	(custom-face-edit): Specify a custom :convert-widget.
+	(custom-pre-filter-face-spec, custom-post-filter-face-spec): 
+	Don't pass in default filters that map between `nil' and `off' and
+	`unspecified' and `nil'.
+
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/compile.el (compilation-buffer-name): New function.
