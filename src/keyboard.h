@@ -331,3 +331,6 @@ extern void timer_start_idle P_ ((void));
 extern void timer_stop_idle P_ ((void));
 extern int lucid_event_type_list_p P_ ((Lisp_Object));
 extern void kbd_buffer_store_event P_ ((struct input_event *));
+#ifdef POLL_FOR_INPUT
+extern void poll_for_input_1 P_ ((void));
+#endif
