@@ -1,3 +1,8 @@
+2002-02-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (Vx_bitmap_file_path, x_stretch_cursor_p): Remove these
+	variables; cus-start.el doesn't need them anymore.
+
 2002-02-09  Kim F. Storm  <storm@cua.dk>
 
 	* insdel.c (make_gap_smaller): Preserve BEG_UNCHANGED during gap

@@ -1,3 +1,8 @@
+2002-02-11  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* cus-start.el: Don't warn about "x-*" symbols when building a
+	non-GUI version.
+
 2002-02-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* strokes.el (strokes-do-stroke, strokes-do-complex-stroke):
