@@ -54,15 +54,6 @@ enum text_cursor_kinds {
   filled_box_cursor, hollow_box_cursor, bar_cursor
 };
 
-/* This data type is used for the font_table field
-   of struct w32_display_info.  */
-
-struct font_info 
-{
-  XFontStruct *font;
-  char *name;
-};
-
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
@@ -131,7 +122,7 @@ struct w32_display_info
   /* A table of all the fonts we have already loaded.  */
   struct font_info *font_table;
 
-  /* The current capacity of x_font_table.  */
+  /* The current capacity of font_table.  */
   int font_table_size;
 
   /* These variables describe the range of text currently shown
@@ -202,10 +193,20 @@ extern struct w32_display_info one_w32_display_info;
    FONT-LIST-CACHE records previous values returned by x-list-fonts.  */
 extern Lisp_Object w32_display_name_list;
 
+/* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
+extern Lisp_Object Vx_pixel_size_width_font_regexp;
+
+/* A flag to control how to display unibyte 8-bit character.  */
+extern int unibyte_display_via_language_environment;
+
 extern struct w32_display_info *x_display_info_for_display ();
 extern struct w32_display_info *x_display_info_for_name ();
 
 extern struct w32_display_info *w32_term_init ();
+
+extern Lisp_Object w32_list_fonts ();
+extern struct font_info *w32_get_font_info (), *w32_query_font ();
+extern void w32_find_ccl_program();
 
 /* Each W32 frame object points to its own struct w32_display object
    in the output_data.w32 field.  The w32_display structure contains all
@@ -248,7 +249,15 @@ struct w32_output
      (see the explicit_parent field, below).  */
   Window parent_desc;
 
+  /* Default ASCII font of this frame. */
   XFontStruct *font;
+
+  /* The baseline position of the default ASCII font.  */
+  int font_baseline;
+
+  /* If a fontset is specified for this frame instead of font, this
+     value contains an ID of the fontset, else -1.  */
+  int fontset;
 
   /* Pixel values used for various purposes.
      border_pixel may be -1 meaning use a gray tile.  */
@@ -342,10 +351,14 @@ struct w32_output
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.w32->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.w32->background_pixel)
 #define FRAME_FONT(f) ((f)->output_data.w32->font)
+#define FRAME_FONTSET(f) ((f)->output_data.w32->fontset)
 #define FRAME_INTERNAL_BORDER_WIDTH(f) ((f)->output_data.w32->internal_border_width)
 
 /* This gives the w32_display_info structure for the display F is on.  */
 #define FRAME_W32_DISPLAY_INFO(f) (&one_w32_display_info)
+
+/* This is the 'font_info *' which frame F has.  */
+#define FRAME_W32_FONT_TABLE(f) (FRAME_W32_DISPLAY_INFO (f)->font_table)
 
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
 #define PIXEL_WIDTH(f) ((f)->output_data.w32->pixel_width)
@@ -585,7 +598,7 @@ w32_fill_rect (f,hdc,f->output_data.w32->background_pixel,lprect)
 #define w32_clear_area(f,hdc,x,y,nx,ny) \
 w32_fill_area (f,hdc,f->output_data.w32->background_pixel,x,y,nx,ny)
 
-extern XFontStruct *w32_load_font ();
+extern struct font_info *w32_load_font ();
 extern void w32_unload_font ();
 
 /* Define for earlier versions of Visual C */
