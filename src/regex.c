@@ -4463,8 +4463,10 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  mcnt = (int) Sword;
         matchsyntax:
 	  PREFETCH ();
-	  if (SYNTAX (*d++) != (enum syntaxcode) mcnt)
-            goto fail;
+	  /* Can't use *d++ here; SYNTAX may be an unsafe macro.  */
+	  d++;
+	  if (SYNTAX (d[-1]) != (enum syntaxcode) mcnt)
+	    goto fail;
           SET_REGS_MATCHED ();
 	  break;
 
@@ -4478,8 +4480,10 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  mcnt = (int) Sword;
         matchnotsyntax:
 	  PREFETCH ();
-	  if (SYNTAX (*d++) == (enum syntaxcode) mcnt)
-            goto fail;
+	  /* Can't use *d++ here; SYNTAX may be an unsafe macro.  */
+	  d++;
+	  if (SYNTAX (d[-1]) == (enum syntaxcode) mcnt)
+	    goto fail;
 	  SET_REGS_MATCHED ();
           break;
 
