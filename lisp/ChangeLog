@@ -1,3 +1,10 @@
+2004-11-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el: Use push.
+	(byte-compile-file-form-defalias): Rename from byte-compile-defalias.
+	(defalias): Remove the `byte-compile' property and add
+	a `byte-hunk-handler'.
+
 2004-11-11  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-search): Save match data for isearch.
@@ -36,7 +43,7 @@
 2004-11-11  Jay Belanger  <belanger@truman.edu>	
 
 	* calc/calc-ext.el (math-defcache):  Use defvar for the new
-	variables it creates. 
+	variables it creates.
 
 2004-11-11  Lars Hansen  <larsh@math.ku.dk>
 
