@@ -9,7 +9,7 @@
 ;; LCD Archive Entry:
 ;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1997/04/12 08:30:46 $|$Revision: 3.14 $|~/modes/edebug.el|
+;; |$Date: 1997/04/14 20:57:39 $|$Revision: 3.15 $|~/modes/edebug.el|
 
 ;; This file is part of GNU Emacs.
 
@@ -86,7 +86,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.14 $"))
+  (let ((raw-version "$Revision: 3.15 $"))
     (substring raw-version (string-match "[0-9.]*" raw-version)
 	       (match-end 0))))
      
@@ -4054,6 +4054,7 @@ May only be called from within edebug-recursive-edit."
   (define-key edebug-eval-mode-map "\C-j" 'edebug-eval-print-last-sexp)
   )
 
+(put 'edebug-eval-mode 'mode-class 'special)
 
 (defun edebug-eval-mode ()
   "Mode for evaluation list buffer while in Edebug.
