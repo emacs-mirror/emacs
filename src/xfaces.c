@@ -3107,14 +3107,14 @@ merge_face_vector_with_property (f, to, prop)
 		  if (STRINGP (value))
 		    to[LFACE_FAMILY_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face font family", value, Qnil);
+		    add_to_log ("Invalid face font family", value, Qnil);
 		}
 	      else if (EQ (keyword, QCheight))
 		{
 		  if (INTEGERP (value))
 		    to[LFACE_HEIGHT_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face font height", value, Qnil);
+		    add_to_log ("Invalid face font height", value, Qnil);
 		}
 	      else if (EQ (keyword, QCweight))
 		{
@@ -3122,7 +3122,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_weight (value) >= 0)
 		    to[LFACE_WEIGHT_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face weight", value, Qnil);
+		    add_to_log ("Invalid face weight", value, Qnil);
 		}
 	      else if (EQ (keyword, QCslant))
 		{
@@ -3130,7 +3130,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_slant (value) >= 0)
 		    to[LFACE_SLANT_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face slant", value, Qnil);
+		    add_to_log ("Invalid face slant", value, Qnil);
 		}
 	      else if (EQ (keyword, QCunderline))
 		{
@@ -3139,7 +3139,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_UNDERLINE_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face underline", value, Qnil);
+		    add_to_log ("Invalid face underline", value, Qnil);
 		}
 	      else if (EQ (keyword, QCoverline))
 		{
@@ -3148,7 +3148,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_OVERLINE_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face overline", value, Qnil);
+		    add_to_log ("Invalid face overline", value, Qnil);
 		}
 	      else if (EQ (keyword, QCstrike_through))
 		{
@@ -3157,7 +3157,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_STRIKE_THROUGH_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face strike-through", value, Qnil);
+		    add_to_log ("Invalid face strike-through", value, Qnil);
 		}
 	      else if (EQ (keyword, QCbox))
 		{
@@ -3169,7 +3169,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || NILP (value))
 		    to[LFACE_BOX_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face box", value, Qnil);
+		    add_to_log ("Invalid face box", value, Qnil);
 		}
 	      else if (EQ (keyword, QCinverse_video)
 		       || EQ (keyword, QCreverse_video))
@@ -3177,21 +3177,21 @@ merge_face_vector_with_property (f, to, prop)
 		  if (EQ (value, Qt) || NILP (value))
 		    to[LFACE_INVERSE_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face inverse-video", value, Qnil);
+		    add_to_log ("Invalid face inverse-video", value, Qnil);
 		}
 	      else if (EQ (keyword, QCforeground))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_FOREGROUND_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face foreground", value, Qnil);
+		    add_to_log ("Invalid face foreground", value, Qnil);
 		}
 	      else if (EQ (keyword, QCbackground))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_BACKGROUND_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face background", value, Qnil);
+		    add_to_log ("Invalid face background", value, Qnil);
 		}
 	      else if (EQ (keyword, QCstipple))
 		{
@@ -3200,7 +3200,7 @@ merge_face_vector_with_property (f, to, prop)
 		  if (!NILP (pixmap_p))
 		    to[LFACE_STIPPLE_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face stipple", value, Qnil);
+		    add_to_log ("Invalid face stipple", value, Qnil);
 #endif
 		}
 	      else if (EQ (keyword, QCwidth))
@@ -3209,7 +3209,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_swidth (value) >= 0)
 		    to[LFACE_SWIDTH_INDEX] = value;
 		  else
-		    add_to_log ("Illegal face width", value, Qnil);
+		    add_to_log ("Invalid face width", value, Qnil);
 		}
 	      else
 		add_to_log ("Invalid attribute %s in face property",
