@@ -5,7 +5,7 @@
 ;; Author:     Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Maintainer: Peter Kleiweg <kleiweg@let.rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1f, 25 Oct 2001
+;; Version:    1.1g, 9 Nov 2001
 ;; Keywords:   PostScript, languages
 
 ;; This file is part of GNU Emacs.
@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(defconst ps-mode-version "1.1f, 25 Oct 2001")
+(defconst ps-mode-version "1.1g, 9 Nov 2001")
 (defconst ps-mode-maintainer-address "Peter Kleiweg <kleiweg@let.rug.nl>")
 
 (require 'easymenu)
@@ -256,9 +256,12 @@ If nil, the following are tried in turn, until success:
    ps-mode-font-lock-keywords-1
    (list
     '("//\\w+" . font-lock-type-face)
-    '("^\\(/\\w+\\)\\>[[ \t]*\\(%.*\\)?\r?$"
-      . (1 font-lock-function-name-face))
-    '("^\\(/\\w+\\)\\>\\([ \t]*{\\|[ \t]*<<\\|.*\\<def\\>\\|[ \t]+[0-9]+[ \t]+dict\\>\\)"
+    `(,(concat
+	"^\\(/\\w+\\)\\>"
+	"\\([[ \t]*\\(%.*\\)?\r?$"	; Nothing but `[' or comment after the name.
+	"\\|[ \t]*\\({\\|<<\\)"		; `{' or `<<' following the name.
+	"\\|[ \t]+[0-9]+[ \t]+dict\\>"	; `[0-9]+ dict' following the name.
+	"\\|.*\\<def\\>\\)")		; `def' somewhere on the same line.
       . (1 font-lock-function-name-face))
     '("/\\w+" . font-lock-variable-name-face)
     (cons ps-mode-operators 'font-lock-keyword-face)))
@@ -523,7 +526,10 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
  	  ps-mode-font-lock-keywords-1
  	  ps-mode-font-lock-keywords-2
  	  ps-mode-font-lock-keywords-3)
- 	 t)))
+	 t))
+  (set (make-local-variable 'comment-start) "%")
+  ;; NOTE: `\' has a special meaning in strings only
+  (set (make-local-variable 'comment-start-skip) "%+[ \t]*"))
 
 (defun ps-mode-show-version ()
   "Show current version of PostScript mode."
@@ -573,15 +579,13 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
       ;; Search next bracket, stepping over escaped brackets.
       (if (not (looking-at "\\([^()\\\n]\\|\\\\.\\)*\\([()]\\)"))
           (setq level -1)
-        (if (string= "(" (match-string 2))
-	    (setq level (1+ level))
-          (setq level (1- level)))
-        (goto-char (setq pos (match-end 0)))))
+	(setq level (+ level (if (string= "(" (match-string 2)) 1 -1)))
+	(goto-char (setq pos (match-end 0)))))
     (if (not (= level 0))
         nil
       ;; Found string with nested brackets, now set match data nr 2.
-      (goto-char first)
-      (re-search-forward "\\(%\\)\\|\\((.*\\)" pos))))
+      (set-match-data (list first pos nil nil first pos))
+      pos)))
 
 ;; This function should search for a string or comment
 ;; If comment, return as match data nr 1
