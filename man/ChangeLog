@@ -1,3 +1,8 @@
+2004-06-21  Nick Roberts  <nickrob@gnu.org>
+
+	* misc.texi (Shell History Copying): Document comint-insert-input.
+	(Shell Ring): Describe comint-dynamic-list-input-ring here.
+
 2004-06-21  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Top): mention that only Emacs has mouse support.

@@ -1,3 +1,11 @@
+2004-06-23  Nick Roberts  <nickrob@gnu.org>
+
+	* comint.el: (comint-insert-clicked-input, comint-copy-old-input):
+	Remove.
+	(comint-insert-input, comint-mouse-insert-input): New functions
+	based on comint-insert-clicked-input for two bindings but just
+	one functionality.
+
 2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* net/goto-addr.el (goto-address-fontify): Fix help-echo text.
