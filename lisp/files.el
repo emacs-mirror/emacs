@@ -2041,6 +2041,50 @@ beginning and `after-revert-hook' at the end."
 	   (after-find-file nil nil t))
 	  (t (error "Recover-file cancelled.")))))
 
+(defun multiple-recover ()
+  "Recover auto save files from a previous Emacs session.
+This command first displays a Dired buffer showing you the
+previous sessions that you could recover from.
+To choose one, move point to the proper line and then type C-c C-c.
+Then you'll be asked about a number of files to recover."
+  (interactive)
+  (dired "~/.save*")
+  (goto-char (point-min))
+  (or (looking-at "Move to the session you want to recover,")
+      (let ((inhibit-read-only t))
+	(insert "Move to the session you want to recover,\n")
+	(insert "then type C-c C-c to select it.\n\n")))
+  (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
+  (define-key (current-local-map) "\C-c\C-c" 'multiple-recover-finish))
+
+(defun multiple-recover-finish ()
+  "Choose one saved session to recover auto-save files from.
+This command is used in the special Dired buffer created by
+M-x multiple-recover."
+  (interactive)
+  ;; Get the name of the session file to recover from.
+  (let ((file (dired-get-filename))
+	(buffer (get-buffer-create " *recover*")))
+    (unwind-protect
+	(save-excursion
+	  ;; Read in the auto-save-list file.
+	  (set-buffer buffer)
+	  (erase-buffer)
+	  (insert-file-contents file)
+	  (while (not (eobp))
+	    ;; Look at each file entry.
+	    (and (not (eolp))
+		 (let ((edited-file
+			(buffer-substring (point)
+					  (save-excursion (end-of-line) (point)))))
+		   ;; Offer to recover it.
+		   (if (y-or-n-p (format "Recover %s? " edited-file))
+		       (save-excursion
+			 (recover-file edited-file)))))
+	    ;; Skip to the next entry.
+	    (forward-line 2)))
+      (kill-buffer buffer))))
+
 (defun kill-some-buffers ()
   "For each buffer, ask whether to kill it."
   (interactive)
