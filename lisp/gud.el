@@ -413,13 +413,13 @@ available with older versions of GDB."
     (while 
 	(cond 
 	 ;; System V Release 3.2 uses this format
-	 ((string-match "\\(^0x\\w* in \\|^\\|\n\\)\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+	 ((string-match "\\(^\\|\n\\)\\*?\\(0x\\w* in \\)?\\([^:\n]*\\):\\([0-9]*\\):.*\n"
 			gud-marker-acc start)
 	  (setq gud-last-frame
 		(cons
-		 (substring gud-marker-acc (match-beginning 2) (match-end 2))
+		 (substring gud-marker-acc (match-beginning 3) (match-end 3))
 		 (string-to-int 
-		  (substring gud-marker-acc (match-beginning 3) (match-end 3))))))
+		  (substring gud-marker-acc (match-beginning 4) (match-end 4))))))
 	 ;; System V Release 4.0 quite often clumps two lines together
 	 ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n\\([0-9]+\\):" 
 			gud-marker-acc start)
@@ -451,12 +451,7 @@ available with older versions of GDB."
       (setq start (match-end 0)))
 
     ;; If we have an incomplete line, store it in gud-marker-acc.
-    ;; Otherwise clear gud-marker-acc. to avoid an
-    ;; unnecessary concat when this function runs next.
-    (setq gud-marker-acc 
-	  (if (and (numberp start) (= start (length gud-marker-acc)))
-	      (substring gud-marker-acc start)
-	    nil)))
+    (setq gud-marker-acc (substring gud-marker-acc (or start 0))))
   string)
 
 (defun gud-sdb-find-file (f)
