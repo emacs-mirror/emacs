@@ -3007,12 +3007,13 @@ Move point to the end of the last field."
           (message (nth 1 comment))
         (message "No comment available")))))
 
-(defun bibtex-make-field (field &optional called-by-yank)
+(defun bibtex-make-field (field &optional called-by-yank interactive)
   "Make a field named FIELD in current BibTeX entry.
 FIELD is either a string or a list of the form
 \(FIELD-NAME COMMENT-STRING INIT ALTERNATIVE-FLAG) as in
 `bibtex-entry-field-alist'.
-If CALLED-BY-YANK is non-nil, don't insert delimiters."
+If CALLED-BY-YANK is non-nil, don't insert delimiters.
+In that case, or when called interactively, also don't do (WHAT?)."
   (interactive
    (list (let ((completion-ignore-case t)
                (field-list (bibtex-field-list
@@ -3021,10 +3022,11 @@ If CALLED-BY-YANK is non-nil, don't insert delimiters."
                               (bibtex-type-in-head)))))
            (completing-read "BibTeX field name: "
                             (append (car field-list) (cdr field-list))
-                            nil nil nil bibtex-field-history))))
+                            nil nil nil bibtex-field-history))
+	 t))
   (unless (consp field)
     (setq field (list field)))
-  (if (or (interactive-p) called-by-yank)
+  (if (or interactive called-by-yank)
       (let (bibtex-help-message)
         (bibtex-find-text nil t t)
         (if (looking-at "[}\"]")
@@ -3047,7 +3049,7 @@ If CALLED-BY-YANK is non-nil, don't insert delimiters."
           ((fboundp init)
            (insert (funcall init)))))
   (unless called-by-yank (insert (bibtex-field-right-delimiter)))
-  (when (interactive-p)
+  (when interactivw
     (forward-char -1)
     (bibtex-print-help-message)))
 
@@ -3610,10 +3612,9 @@ Return t if test was successful, nil otherwise."
 
 (defun bibtex-find-text (arg &optional as-if-interactive no-error)
   "Go to end of text of current field; with ARG, go to beginning."
-  (interactive "P")
+  (interactive "P\np")
   (bibtex-inside-field)
-  (let ((bounds (bibtex-enclosing-field (or (interactive-p)
-                                            as-if-interactive))))
+  (let ((bounds (bibtex-enclosing-field as-if-interactive)))
     (if bounds
         (progn (if arg
                    (progn (goto-char (bibtex-start-of-text-in-field bounds))
