@@ -1,3 +1,9 @@
+2004-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: If 8-byte alignment is not supported, define
+	NO_DECL_ALIGN in src/config.h, instead of trivially defining
+	DECL_ALIGN.
+
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* info/.cvsignore: Ignore everything.  It's OK since .cvsignore does
