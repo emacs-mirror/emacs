@@ -471,99 +471,6 @@ then delete CATEGORY from the category set instead of adding it.  */)
   return Qnil;
 }
 
-/* Dump category table to buffer in human-readable format */
-
-static void
-describe_category (value, args)
-    Lisp_Object value, args;
-{
-  Lisp_Object mnemonics;
-
-  Findent_to (make_number (16), make_number (1));
-
-  if (NILP (value))
-    {
-      insert_string ("default\n");
-      return;
-    }
-
-  if (CHAR_TABLE_P (value))
-    {
-      insert_string ("deeper char-table ...\n");
-      return;
-    }
-
-  if (!CATEGORY_SET_P (value))
-    {
-      insert_string ("invalid\n");
-      return;
-    }
-
-  mnemonics = Fcategory_set_mnemonics (value);
-  insert_from_string (mnemonics, 0, 0, XSTRING (mnemonics)->size,
-		      STRING_BYTES (XSTRING (mnemonics)), 0);
-  insert_string ("\n");
-  return;
-}
-
-static Lisp_Object
-describe_category_1 (vector)
-     Lisp_Object vector;
-{
-  struct buffer *old = current_buffer;
-  set_buffer_internal (XBUFFER (Vstandard_output));
-  describe_vector (vector, Qnil, Qnil, describe_category, 0, Qnil, Qnil,
-		   (int *)0, 0);
-  {
-    int i;
-    Lisp_Object docs = XCHAR_TABLE (vector)->extras[0];
-    Lisp_Object elt;
-
-    if (!VECTORP (docs) || XVECTOR (docs)->size != 95)
-      {
-	insert_string ("Invalid first extra slot in this char table\n");
-	return Qnil;
-      }
-      
-    insert_string ("Meanings of mnemonice characters are:\n");
-    for (i = 0; i < 95; i++)
-      {
-	elt = XVECTOR (docs)->contents[i];
-	if (NILP (elt))
-	  continue;
-
-	insert_char (i + 32);
-	insert (": ", 2);
-	insert_from_string (elt, 0, 0, XSTRING (elt)->size,
-			    STRING_BYTES (XSTRING (elt)), 0);
-	insert ("\n", 1);
-      }
-  }
-
-  while (! NILP (XCHAR_TABLE (vector)->parent))
-    {
-      vector = XCHAR_TABLE (vector)->parent;
-      insert_string ("\nThe parent category table is:");
-      describe_vector (vector, Qnil, Qnil, describe_category, 0, Qnil, Qnil,
-		       (int *) 0, 0);
-    }
-
-  call0 (intern ("help-mode"));
-  set_buffer_internal (old);
-  return Qnil;
-}
-
-DEFUN ("describe-categories", Fdescribe_categories, Sdescribe_categories, 0, 0, "",
-       doc: /* Describe the category specifications in the current category table.
-The descriptions are inserted in a buffer, which is then displayed.  */)
-     ()
-{
-  internal_with_output_to_temp_buffer
-     ("*Help*", describe_category_1, current_buffer->category_table);
-
-  return Qnil;
-}
-
 /* Return 1 if there is a word boundary between two word-constituent
    characters C1 and C2 if they appear in this order, else return 0.
    Use the macro WORD_BOUNDARY_P instead of calling this function
@@ -699,7 +606,6 @@ See the documentation of the variable `word-combining-categories'.  */);
   defsubr (&Schar_category_set);
   defsubr (&Scategory_set_mnemonics);
   defsubr (&Smodify_category_entry);
-  defsubr (&Sdescribe_categories);
 
   category_table_version = 0;
 }
