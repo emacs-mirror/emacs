@@ -1,5 +1,11 @@
 1999-10-13  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* help.el (help-xref-interned): make it also work on variable-only and
+	  function-only symbols.
+	(help-make-xrefs): take advantage of the new `help-xref-interned'.
+	(help-follow): if the point under mouse is not highlighted, try
+	  `help-xref-interned' on the pointed-to symbol anyway.
+
 	* info.el (Info-on-current-buffer): new entry point.
 	(Info-find-node): split into two for Info-on-current-buffer to
 	  hook into it.

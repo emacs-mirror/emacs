@@ -1034,14 +1034,10 @@ that."
                           (and (fboundp sym) ; similarly
                                (help-xref-button 6 #'describe-function sym)))
                          ((match-string 5)) ; nothing for symbol
-                         ((and (boundp sym) (fboundp sym))
+                         ((or (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
-                          (help-xref-button 6 #'help-xref-interned sym))
-                         ((boundp sym)
-                          (help-xref-button 6 #'describe-variable sym))
-                         ((fboundp sym)
-                          (help-xref-button 6 #'describe-function sym)))))))
+                          (help-xref-button 6 #'help-xref-interned sym)))))))
               ;; An obvious case of a key substitution:
               (save-excursion              
                 (while (re-search-forward
@@ -1121,15 +1117,17 @@ See `help-make-xrefs'."
 
 Both variable and function documentation are extracted into a single
 help buffer."
-  (let ((fdoc (describe-function symbol)))
-    (describe-variable symbol)
-    ;; We now have a help buffer on the variable.  Insert the function
-    ;; text before it.
-    (with-current-buffer "*Help*"
-      (goto-char (point-min))
-      (let ((inhibit-read-only t))
-	(insert fdoc "\n\n" (symbol-name symbol) " is also a variable.\n\n"))
-      (help-setup-xref (list #'help-xref-interned symbol) nil))))
+  (let ((fdoc (when (fboundp symbol) (describe-function symbol))))
+    (when (or (boundp symbol) (not fdoc))
+      (describe-variable symbol)
+      ;; We now have a help buffer on the variable.  Insert the function
+      ;; text before it.
+      (when fdoc
+	(with-current-buffer "*Help*"
+	  (goto-char (point-min))
+	  (let ((inhibit-read-only t))
+	    (insert fdoc "\n\n" (symbol-name symbol) " is also a variable.\n\n"))
+	  (help-setup-xref (list #'help-xref-interned symbol) nil))))))
 
 (defun help-xref-mode (buffer)
   "Do a `describe-mode' for the specified BUFFER."
@@ -1167,21 +1165,32 @@ help buffer."
   (interactive)
   (help-follow (1- (point-max))))
 
-(defun help-follow (&optional pos)
+(defun help-follow (pos)
   "Follow cross-reference at POS, defaulting to point.
 
 For the cross-reference format, see `help-make-xrefs'."
   (interactive "d")
-  (let* ((help-data (or (and (not (= pos (point-max)))
-			     (get-text-property pos 'help-xref))
-			(and (not (= pos (point-min)))
-			     (get-text-property (1- pos) 'help-xref))))
+  (let* ((help-data
+	  (or (and (not (= pos (point-max)))
+		   (get-text-property pos 'help-xref))
+	      (and (not (= pos (point-min)))
+		   (get-text-property (1- pos) 'help-xref))
+	      ;; check if the symbol under point is a function or variable
+	      (let ((sym
+		     (intern
+		      (save-excursion
+			(goto-char pos) (skip-syntax-backward "w_")
+			(buffer-substring (point)
+					  (progn (skip-syntax-forward "w_")
+						 (point)))))))
+		(when (or (boundp sym) (fboundp sym))
+		  (list #'help-xref-interned sym)))))
          (method (car help-data))
          (args (cdr help-data)))
-    (setq help-xref-stack (cons (cons (point) help-xref-stack-item)
-				help-xref-stack))
-    (setq help-xref-stack-item nil)
     (when help-data
+      (setq help-xref-stack (cons (cons (point) help-xref-stack-item)
+				  help-xref-stack))
+      (setq help-xref-stack-item nil)
       ;; There is a reference at point.  Follow it.
       (apply method args))))
 
