@@ -1,5 +1,5 @@
 /* Keyboard macros.
-   Copyright (C) 1985, 1986, 1993, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -27,7 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "keyboard.h"
 
-Lisp_Object Qexecute_kbd_macro;
+Lisp_Object Qexecute_kbd_macro, Qkbd_macro_termination_hook;
 
 /* Kbd macro currently being executed (a string or vector).  */
 
@@ -273,6 +273,7 @@ pop_kbd_macro (info)
   tem = XCDR (info);
   executing_macro_index = XINT (XCAR (tem));
   real_this_command = XCDR (tem);
+  Frun_hooks (1, &Qkbd_macro_termination_hook);
   return Qnil;
 }
 
@@ -344,6 +345,8 @@ syms_of_macros ()
 {
   Qexecute_kbd_macro = intern ("execute-kbd-macro");
   staticpro (&Qexecute_kbd_macro);
+  Qkbd_macro_termination_hook = intern ("kbd-macro-termination-hook");
+  staticpro (&Qkbd_macro_termination_hook);
 
   defsubr (&Sstart_kbd_macro);
   defsubr (&Send_kbd_macro);
