@@ -420,16 +420,58 @@ Filesz      Memsz       Flags       Align
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#ifndef __NetBSD__
 #include <elf.h>
+#endif
 #include <sys/mman.h>
 #if defined (__sony_news) && defined (_SYSTYPE_SYSV)
 #include <sys/elf_mips.h>
 #include <sym.h>
 #endif /* __sony_news && _SYSTYPE_SYSV */
 
-#ifdef __alpha__
-# include <sym.h>	/* get COFF debugging symbol table declaration */
+#if defined (__alpha__) && !defined (__NetBSD__)
+#include <sym.h>	/* get COFF debugging symbol table declaration */
 #endif
+
+#ifdef __NetBSD__
+/*
+ * NetBSD does not have normal-looking user-land ELF support.
+ */
+# ifdef __alpha__
+#  define ELFSIZE	64
+# else
+#  define ELFSIZE	32
+# endif
+# include <sys/exec_elf.h>
+
+# define PT_LOAD	Elf_pt_load
+# define SHT_SYMTAB	Elf_sht_symtab
+# define SHT_DYNSYM	Elf_sht_dynsym
+# define SHT_NULL	Elf_sht_null
+# define SHT_NOBITS	Elf_sht_nobits
+# define SHT_REL	Elf_sht_rel
+# define SHT_RELA	Elf_sht_rela
+
+# define SHN_UNDEF	Elf_eshn_undefined
+# define SHN_ABS	Elf_eshn_absolute
+# define SHN_COMMON	Elf_eshn_common
+
+/*
+ * The magic of picking the right size types is handled by the ELFSIZE
+ * definition above.
+ */
+# ifdef __STDC__
+#  define ElfW(type)    Elf_##type
+# else
+#  define ElfW(type)    Elf_/**/type
+# endif
+
+# ifdef __alpha__
+#  include <sys/exec_ecoff.h>
+#  define HDRR		struct ecoff_symhdr
+#  define pHDRR		HDRR *
+# endif
+#endif /* __NetBSD__ */
 
 #if __GNU_LIBRARY__ - 0 >= 6
 # include <link.h>	/* get ElfW etc */
