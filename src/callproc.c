@@ -75,7 +75,7 @@ extern int errno;
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "ccl.h"
 #include "coding.h"
 #include "composite.h"
@@ -401,12 +401,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	{
 	  argument_coding.src_multibyte = STRING_MULTIBYTE (args[i]);
 	  if (CODING_REQUIRE_ENCODING (&argument_coding))
-	    {
-	      /* We must encode this argument.  */
-	      args[i] = encode_coding_string (args[i], &argument_coding, 1);
-	      if (argument_coding.type == coding_type_ccl)
-		setup_ccl_program (&(argument_coding.spec.ccl.encoder), Qnil);
-	    }
+	    /* We must encode this argument.  */
+	    args[i] = encode_coding_string (&argument_coding, args[i], 1);
 	  new_argv[i - 3] = XSTRING (args[i])->data;
 	}
       UNGCPRO;
@@ -714,19 +710,15 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	  else
 	    val = Qnil;
 	}
-      setup_coding_system (Fcheck_coding_system (val), &process_coding);
+      Fcheck_coding_system (val);
       /* In unibyte mode, character code conversion should not take
 	 place but EOL conversion should.  So, setup raw-text or one
 	 of the subsidiary according to the information just setup.  */
       if (NILP (current_buffer->enable_multibyte_characters)
 	  && !NILP (val))
-	setup_raw_text_coding_system (&process_coding);
+	val = raw_text_coding_system (val);
+      setup_coding_system (val, &process_coding);
     }
-  process_coding.src_multibyte = 0;
-  process_coding.dst_multibyte
-    = (BUFFERP (buffer)
-       ? ! NILP (XBUFFER (buffer)->enable_multibyte_characters)
-       : ! NILP (current_buffer->enable_multibyte_characters));
 
   immediate_quit = 1;
   QUIT;
@@ -742,8 +734,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     int inserted;
 
     saved_coding = process_coding;
-    if (process_coding.composing != COMPOSITION_DISABLED)
-      coding_allocate_composition_data (&process_coding, PT);
     while (1)
       {
 	/* Repeatedly read until we've filled as much as possible
@@ -780,95 +770,27 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	      insert_1_both (bufptr, nread, nread, 0, 1, 0);
 	    else
 	      {			/* We have to decode the input.  */
-		int size;
-		char *decoding_buf;
-
-	      repeat_decoding:
-		size = decoding_buffer_size (&process_coding, nread);
-		decoding_buf = (char *) xmalloc (size);
-		
-		if (process_coding.cmp_data)
-		  process_coding.cmp_data->char_offset = PT;
-		
-		decode_coding (&process_coding, bufptr, decoding_buf,
-			       nread, size);
-		
+		decode_coding_c_string (&process_coding, bufptr, nread,
+					buffer);
 		if (display_on_the_fly
-		    && saved_coding.type == coding_type_undecided
-		    && process_coding.type != coding_type_undecided)
+		    && CODING_REQUIRE_DETECTION (&saved_coding)
+		    && ! CODING_REQUIRE_DETECTION (&process_coding))
 		  {
 		    /* We have detected some coding system.  But,
 		       there's a possibility that the detection was
 		       done by insufficient data.  So, we give up
 		       displaying on the fly.  */
-		    xfree (decoding_buf);
+		    if (process_coding.produced > 0)
+		      del_range_2 (process_coding.dst_pos,
+				   process_coding.dst_pos_byte,
+				   process_coding.dst_pos
+				   + process_coding.produced_char,
+				   process_coding.dst_pos_byte
+				   + process_coding.produced, 0);
 		    display_on_the_fly = 0;
 		    process_coding = saved_coding;
 		    carryover = nread;
 		    continue;
-		  }
-		
-		if (process_coding.produced > 0)
-		  insert_1_both (decoding_buf, process_coding.produced_char,
-				 process_coding.produced, 0, 1, 0);
-		xfree (decoding_buf);
-
-		if (process_coding.result == CODING_FINISH_INCONSISTENT_EOL)
-		  {
-		    Lisp_Object eol_type, coding;
-
-		    if (process_coding.eol_type == CODING_EOL_CR)
-		      {
-			/* CRs have been replaced with LFs.  Undo
-			   that in the text inserted above.  */
-			unsigned char *p;
-			
-			move_gap_both (PT, PT_BYTE);
-			
-			p = BYTE_POS_ADDR (pt_byte_orig);
-			for (; p < GPT_ADDR; ++p)
-			  if (*p == '\n')
-			    *p = '\r';
-		      }
-		    else if (process_coding.eol_type == CODING_EOL_CRLF)
-		      {
-			/* CR LFs have been replaced with LFs.  Undo
-			   that by inserting CRs in front of LFs in
-			   the text inserted above.  */
-			EMACS_INT bytepos, old_pt, old_pt_byte, nCR;
-
-			old_pt = PT;
-			old_pt_byte = PT_BYTE;
-			nCR = 0;
-			
-			for (bytepos = PT_BYTE - 1;
-			     bytepos >= pt_byte_orig;
-			     --bytepos)
-			  if (FETCH_BYTE (bytepos) == '\n')
-			    {
-			      EMACS_INT charpos = BYTE_TO_CHAR (bytepos);
-			      TEMP_SET_PT_BOTH (charpos, bytepos);
-			      insert_1_both ("\r", 1, 1, 0, 1, 0);
-			      ++nCR;
-			    }
-
-			TEMP_SET_PT_BOTH (old_pt + nCR, old_pt_byte + nCR);
-		      }
-
-		    /* Set the coding system symbol to that for
-		       Unix-like EOL.  */
-		    eol_type = Fget (saved_coding.symbol, Qeol_type);
-		    if (VECTORP (eol_type)
-			&& ASIZE (eol_type) == 3
-			&& SYMBOLP (AREF (eol_type, CODING_EOL_LF)))
-		      coding = AREF (eol_type, CODING_EOL_LF);
-		    else
-		      coding = saved_coding.symbol;
-		    
-		    process_coding.symbol = coding;
-		    process_coding.eol_type = CODING_EOL_LF;
-		    process_coding.mode
-		      &= ~CODING_MODE_INHIBIT_INCONSISTENT_EOL;
 		  }
 		
 		nread -= process_coding.consumed;
@@ -878,15 +800,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		     better avoid overhead of bcopy.  */
 		  BCOPY_SHORT (bufptr + process_coding.consumed, bufptr,
 			       carryover);
-		if (process_coding.result == CODING_FINISH_INSUFFICIENT_CMP)
-		  {
-		    /* The decoding ended because of insufficient data
-		       area to record information about composition.
-		       We must try decoding with additional data area
-		       before reading more output for the process.  */
-		    coding_allocate_composition_data (&process_coding, PT);
-		    goto repeat_decoding;
-		  }
 	      }
 	  }
 
@@ -917,33 +830,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
       }
   give_up: ;
 
-    if (!NILP (buffer)
-	&& process_coding.cmp_data)
-      {
-	coding_restore_composition (&process_coding, Fcurrent_buffer ());
-	coding_free_composition_data (&process_coding);
-      }
-
-    {
-      int post_read_count = specpdl_ptr - specpdl;
-
-      record_unwind_protect (save_excursion_restore, save_excursion_save ());
-      inserted = PT - pt_orig;
-      TEMP_SET_PT_BOTH (pt_orig, pt_byte_orig);
-      if (SYMBOLP (process_coding.post_read_conversion)
-	  && !NILP (Ffboundp (process_coding.post_read_conversion)))
-	call1 (process_coding.post_read_conversion, make_number (inserted));
-
-      Vlast_coding_system_used = process_coding.symbol;
-
-      /* If the caller required, let the buffer inherit the
-	 coding-system used to decode the process output.  */
-      if (inherit_process_coding_system)
-	call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
+    Vlast_coding_system_used = CODING_ID_NAME (process_coding.id);
+    /* If the caller required, let the buffer inherit the
+       coding-system used to decode the process output.  */
+    if (inherit_process_coding_system)
+      call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
 	       make_number (total_read));
-
-      unbind_to (post_read_count, Qnil);
-    }
   }
 
   /* Wait for it to terminate, unless it already has.  */
