@@ -211,6 +211,7 @@ extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 
 extern Lisp_Object Vwindow_system_version;
 
+Lisp_Object Qface_set_after_frame_default;
 
 /* Error if we are not connected to X.  */
 void
@@ -1592,6 +1593,7 @@ x_set_font (f, arg, oldval)
 {
   Lisp_Object result;
   Lisp_Object fontset_name;
+  Lisp_Object frame;
 
   CHECK_STRING (arg, 1);
 
@@ -1614,6 +1616,9 @@ x_set_font (f, arg, oldval)
     }
   else
     abort ();
+
+  XSETFRAME (frame, f);
+  call1 (Qface_set_after_frame_default, frame);
 }
 
 void
@@ -5250,6 +5255,9 @@ syms_of_xfns ()
   Qdisplay = intern ("display");
   staticpro (&Qdisplay);
   /* This is the end of symbol initialization.  */
+
+  Qface_set_after_frame_default = intern ("face-set-after-frame-default");
+  staticpro (&Qface_set_after_frame_default);
 
   Fput (Qundefined_color, Qerror_conditions,
 	Fcons (Qundefined_color, Fcons (Qerror, Qnil)));
