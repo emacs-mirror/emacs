@@ -54,13 +54,13 @@ static struct entry
 env_vars[] = 
 {
   {"emacs_dir", NULL},
-  {"EMACSLOADPATH", "%emacs_dir%\\lisp"},
+  {"EMACSLOADPATH", "%emacs_dir%/lisp"},
   {"SHELL", "%COMSPEC%"},
-  {"EMACSDATA", "%emacs_dir%\\etc"},
-  {"EMACSPATH", "%emacs_dir%\\bin"},
-  {"EMACSLOCKDIR", "%emacs_dir%\\lock"},
-  {"INFOPATH", "%emacs_dir%\\info"},
-  {"EMACSDOC", "%emacs_dir%\\etc"},
+  {"EMACSDATA", "%emacs_dir%/etc"},
+  {"EMACSPATH", "%emacs_dir%/bin"},
+  {"EMACSLOCKDIR", "%emacs_dir%/lock"},
+  {"INFOPATH", "%emacs_dir%/info"},
+  {"EMACSDOC", "%emacs_dir%/etc"},
   {"TERM", "cmd"}
 };
 
