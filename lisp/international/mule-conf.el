@@ -301,6 +301,15 @@
  '((safe-charsets . t)))
 
 (make-coding-system
+ 'x-ctext 2 ?x
+ "Compound text based generic encoding for decoding unknown messages."
+ '((ascii t) (latin-iso8859-1 t) t t
+   nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
+   init-bol nil nil)
+ '((safe-charsets . t)
+   (mime-charset . x-ctext)))
+
+(make-coding-system
  'iso-safe 2 ?-
  "Convert all characters but ASCII to `?'."
  '(ascii nil nil nil
