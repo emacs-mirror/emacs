@@ -185,27 +185,47 @@ See arch logs.
 THINGS TO DO
 ------------
 
+** There are frequent input-related coredumps, with inconclusive
+   backtraces.  An example (from Mark Plaksin):
+
+	#0  0x40301571 in kill () from /lib/libc.so.6
+	#1  0x080eb371 in fatal_error_signal (sig=11612)
+	    at /home/happy/src/emacs/multi-tty-cvs/src/emacs.c:385
+	#2  <signal handler called>
+	#3  0x40301571 in kill () from /lib/libc.so.6
+	#4  0x080eb3cc in abort () at /home/happy/src/emacs/multi-tty-cvs/src/emacs.c:418
+	#5  0x080c8f18 in handle_one_xevent (dpyinfo=0x862ebb8, eventp=0xbfffef20,
+	    bufp_r=0xbfffefa4, numcharsp=0xbfffefa8, finish=0xbfffef1c)
+	    at /home/happy/src/emacs/multi-tty-cvs/src/xterm.c:5884
+	#6  0x080ca531 in XTread_socket (display=0x862ee20, bufp=0xbffff0f4, numchars=1,
+	    expected=1) at /home/happy/src/emacs/multi-tty-cvs/src/xterm.c:7221
+	#7  0x080f577a in read_avail_input (expected=1)
+	    at /home/happy/src/emacs/multi-tty-cvs/src/keyboard.c:6609
+	#8  0x080f59fc in handle_async_input ()
+	    at /home/happy/src/emacs/multi-tty-cvs/src/keyboard.c:6807
+	#9  0x0813aa41 in Fgarbage_collect ()
+	    at /home/happy/src/emacs/multi-tty-cvs/src/alloc.c:4549
+	#10 0x0817c06d in Fbyte_code (bytestr=1, vector=131, maxdepth=-1073745424)
+	    at /home/happy/src/emacs/multi-tty-cvs/src/bytecode.c:530
+	[...]
+
+   They seem to always happen in handle_one_xevent right after garbage
+   collection.
+
 ** There is a flicker during the startup of `emacs -nw'; it's as if
    the terminal is initialized, reset and then initialialized again.
    Debug this.  (Hint: narrow_foreground_group is called twice during
    startup.)
 
-** Dan Nicolaescu (dann at ics dot uci dot edu) suggests that -nw
-   should be added as an alias for -t in emacsclient.  Good idea.
-   (Alas, implementing this is not trivial, getopt_long does not seem
-   to support two-letter ``short'' options.)
+** Dan Nicolaescu suggests that -nw should be added as an alias for -t
+   in emacsclient.  Good idea.  (Alas, implementing this is not
+   trivial, getopt_long does not seem to support two-letter ``short''
+   options.)
 
-** Robert J. Chassell reports:
-
-   >   * After starting the frame in the VC, I saw this message in the
-   >     *Message* buffer
-   >
-   >         error in process filter: server-process-filter: \
-   >         Wrong type argument: sequencep,\
-   >          framep
-   >         error in process filter: Wrong type argument: sequencep, framep
-   >
-   >     This also happens when I start a new frame in an xterm.
+** Mark Plaksin suggests that emacsclient should accept the same
+   X-related command-line arguments as Emacs.  Most of the X-related
+   argument-handling is done in Lisp, so this should be quite easy to
+   implement.
 
 ** Very strange bug: visible-bell does not work on secondary
    terminals.  This might be something xterm (konsole) specific.
