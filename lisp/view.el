@@ -75,7 +75,9 @@ Buffer is removed from all windows displaying it, by using information in
 `view-return-to-alist' if that is available, otherwise by using
 `replace-buffer-in-windows'.")
 
+;;;###autoload
 (defvar view-mode nil "Non-nil if View mode is enabled.")
+;;;###autoload
 (make-variable-buffer-local 'view-mode)
 
 (defvar view-mode-hook nil
@@ -519,6 +521,7 @@ corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
   (interactive)
   (view-mode-exit))
 
+;;;###autoload
 (defun View-exit-and-edit ()
   "Exit View mode and make the current buffer editable."
   (interactive)
