@@ -286,10 +286,12 @@ The top-level Info directory is made by combining all the files named `dir'
 in all the directories in that path."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
-  (pop-to-buffer "*info*")
   (if file
-      (Info-goto-node (concat "(" file ")"))
-    (Info-directory)))
+      (progn (pop-to-buffer "*info*")
+	     (Info-goto-node (concat "(" file ")")))
+    (if (get-buffer "*info*")
+	(pop-to-buffer "*info*")
+      (Info-directory))))
 
 ;;;###autoload
 (defun info-standalone ()
@@ -353,16 +355,16 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	(if found
 	    (setq filename found)
 	  (error "Info file %s does not exist" filename))))
-  ;; Record the node we are leaving.
-  (if (and Info-current-file (not no-going-back))
-      (setq Info-history
-	    (cons (list Info-current-file Info-current-node (point))
-		  Info-history)))
   ;; Go into info buffer.
   (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
   (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
       (Info-mode))
+  ;; Record the node we are leaving.
+  (if (and Info-current-file (not no-going-back))
+      (setq Info-history
+	    (cons (list Info-current-file Info-current-node (point))
+		  Info-history)))
   (widen)
   (setq Info-current-node nil)
   (unwind-protect
@@ -1997,16 +1999,20 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
   (save-excursion
     (let ((buffer-read-only nil))
       (goto-char (point-min))
-      (if (looking-at "^File: [^,: \t]+,?[ \t]+")
-	  (progn
-	    (goto-char (match-end 0))
-	    (while
-		(looking-at "[ \t]*[^:, \t\n]+:[ \t]+\\([^:,\t\n]+\\),?")
-	      (goto-char (match-end 0))
-	      (put-text-property (match-beginning 1) (match-end 1)
-				 'face 'info-xref)
-	      (put-text-property (match-beginning 1) (match-end 1)
-				 'mouse-face 'highlight))))
+      (when (looking-at "^File: [^,: \t]+,?[ \t]+")
+	(goto-char (match-end 0))
+	(while
+	    (looking-at "[ \t]*\\([^:, \t\n]+\\):[ \t]+\\([^:,\t\n]+\\),?")
+	  (goto-char (match-end 0))
+	  (if (save-excursion
+		(goto-char (match-beginning 1))
+		(save-match-data (looking-at "Node:")))
+	      (put-text-property (match-beginning 2) (match-end 2)
+				 'face 'info-node)
+	    (put-text-property (match-beginning 2) (match-end 2)
+			       'face 'info-xref)
+	    (put-text-property (match-beginning 2) (match-end 2)
+			       'mouse-face 'highlight))))
       (goto-char (point-min))
       (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\)$"
 				 nil t)
@@ -2040,7 +2046,7 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
 				     (1+ (match-beginning 0))
 				     'face 'info-menu-5))
 	      (put-text-property (match-beginning 1) (match-end 1)
-				 'face 'info-node)
+				 'face 'info-xref)
 	      (put-text-property (match-beginning 1) (match-end 1)
 				 'mouse-face 'highlight))))
       (set-buffer-modified-p nil))))
