@@ -1142,9 +1142,12 @@ leading up from there to top level in the outline).
 setting @code{selective-display-ellipses} to @code{nil}.  Then there is
 no visible indication of the presence of invisible lines.
 
+@findex reveal-mode
   When incremental search finds text that is hidden by Outline mode,
 it makes that part of the buffer visible.  If you exit the search
-at that position, the text remains visible.
+at that position, the text remains visible.  You can also
+automatically make text visible as you navigate in it by using
+@kbd{M-x reveal-mode}.
 
 @node Outline Views
 @subsection Viewing One Outline in Multiple Views
