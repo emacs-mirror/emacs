@@ -129,8 +129,14 @@ CFLAGSCOMMONPOST = $(CFLAGSTARGETPOST)
 
 # Flags for use in the variety combinations
 CFLAGSHOT = /Ox /DNDEBUG
+# We used to have /GZ here (stack probe).
 # Note that GZ is specific to version 12 of the cl tool.  drj 2003-11-04
-CFLAGSCOOL = /Od /GZ
+# It is ignored on earlier versions of the cl tool.
+# /GZ here generates a dependency on the C library and when we are
+# building a DLL, mpsdy.dll, the linker step will fail (error LNK2001:
+# unresolved external symbol __chkesp).  See
+# http://support.microsoft.com/kb/q191669/
+CFLAGSCOOL = /Od
 CFLAGSINTERNAL = /Zi
 CFLAGSEXTERNAL =
 
