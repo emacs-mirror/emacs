@@ -10,7 +10,7 @@
 @ifinfo
 @dircategory Emacs
 @direntry 
-* Ebrowse::   A C++ class browser for Emacs.
+* Ebrowse: (ebrowse).   A C++ class browser for Emacs.
 @end direntry
 
 This file documents Ebrowse, a C++ class browser for GNU Emacs.
