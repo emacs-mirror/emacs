@@ -374,7 +374,8 @@ non-address headers.")
      (function (lambda (key value)
 		 (if (equal value _)
 		     (set-char-table-range tab key w))))
-     tab))
+     tab)
+    tab)
   "The syntax-table used for abbrev-expansion purposes.
 This is not actually made the current syntax table of the buffer, but
 simply controls the set of characters which may be a part of the name
