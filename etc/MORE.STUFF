@@ -15,31 +15,6 @@ Windows-32 version of Emacs, see the NTEmacs sites listed in the FAQ.
 Please submit a bug report if you find that any of the addresses
 listed here fail.
 
-* The LCD archive
-
-There is a large collection of Emacs Lisp code available for FTP at
-<URL:ftp://ftp.cis.ohio-state.edu> and various mirrors.  At this time,
-serious maintenance is resuming after a long hiatus.  
-
-To get started using this archive, do:
-
-	ftp ftp.cis.ohio-state.edu
-
-Once you're in FTP, do
-
-	cd pub/emacs-lisp
-	bin
-	get lispdir.el.Z
-	get LCD-datafile.Z
-
-and exit.  Then do:
-
-	gunzip *.Z
-
-The lispdir.el package will help you search for useful packages in the
-LCD-datafile, which is a list of the archive constants.  It will even
-fetch them for you on command.
-
 * The `Emacs Lisp List' at
   <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/ell.html> has pointers
   to sources of a large number of packages.
