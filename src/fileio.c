@@ -1526,8 +1526,8 @@ expand_and_dir_to_file (filename, defdir)
      stat behaves differently depending!  */
   if (XSTRING (abspath)->size > 1
       && XSTRING (abspath)->data[XSTRING (abspath)->size - 1] == '/')
-    abspath = Fsubstring (abspath, make_number (0),
-			  make_number (XSTRING (abspath)->size - 1));
+    /* We cannot take shortcuts; they might be wrong for magic file names.  */
+    abspath = Fdirectory_file_name (abspath);
 #endif
   return abspath;
 }
