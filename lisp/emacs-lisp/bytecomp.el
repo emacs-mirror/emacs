@@ -1246,70 +1246,100 @@ With argument, insert value in current buffer after the form."
 	    ((message "%s" (prin1-to-string value)))))))
 
 
+(defmacro byte-compile-protect-from-advice (&rest body)
+  ;; Temporarily deactivates advice of `defun/defmacro' while BODY is run.
+  ;; After completion of BODY the initial advice state is reinstated.
+  ;; If `defun/defmacro' are actively advised during compilation then the
+  ;; compilation of nested `defun/defmacro's produces incorrect code which
+  ;; is the motivation for this macro. It calls the functions `ad-is-active',
+  ;; `ad-activate' and `ad-deactivate' which will be reported as undefined
+  ;; functions during the compilation of the compiler.
+  (` (let (;; make sure no `require' activates them by
+	   ;; accident via a call to `ad-start-advice':
+	   (ad-advised-definers '(fset defalias define-function))
+	   defun-active-p defmacro-active-p)
+       (cond (;; check whether Advice is loaded:
+	      (fboundp 'ad-scan-byte-code-for-fsets)
+	      ;; save activation state of `defun/defmacro' and
+	      ;; deactivate them if their advice is active:
+	      (if (setq defun-active-p (ad-is-active 'defun))
+		  (ad-deactivate 'defun))
+	      (if (setq defmacro-active-p (ad-is-active 'defmacro))
+		  (ad-deactivate 'defmacro))))
+       (unwind-protect
+	   (progn
+	     (,@ body))
+	 ;; reactivate what was active before:
+	 (if defun-active-p
+	     (ad-activate 'defun))
+	 (if defmacro-active-p
+	     (ad-activate 'defmacro))))))
+
 (defun byte-compile-from-buffer (inbuffer &optional eval)
   ;; buffer --> output-buffer, or buffer --> eval form, return nil
-  (let (outbuffer)
-    (let (;; Prevent truncation of flonums and lists as we read and print them
-	  (float-output-format nil)
-	  (case-fold-search nil)
-	  (print-length nil)
-	  ;; Simulate entry to byte-compile-top-level
-	  (byte-compile-constants nil)
-	  (byte-compile-variables nil)
-	  (byte-compile-tag-number 0)
-	  (byte-compile-depth 0)
-	  (byte-compile-maxdepth 0)
-	  (byte-compile-output nil)
-;;	  #### This is bound in b-c-close-variables.
-;;	  (byte-compile-warnings (if (eq byte-compile-warnings t)
-;;				     byte-compile-warning-types
-;;				   byte-compile-warnings))
-	  )
-      (byte-compile-close-variables
-       (save-excursion
-	 (setq outbuffer
-	       (set-buffer (get-buffer-create " *Compiler Output*")))
-	 (erase-buffer)
-	 ;;	 (emacs-lisp-mode)
-	 (setq case-fold-search nil)
-
-	 ;; This is a kludge.  Some operating systems (OS/2, DOS) need to
-	 ;; write files containing binary information specially.
-	 ;; Under most circumstances, such files will be in binary
-	 ;; overwrite mode, so those OS's use that flag to guess how
-	 ;; they should write their data.  Advise them that .elc files
-	 ;; need to be written carefully.
-	 (setq overwrite-mode 'overwrite-mode-binary))
-       (displaying-byte-compile-warnings
+  (byte-compile-protect-from-advice
+   (let (outbuffer)
+     (let (;; Prevent truncation of flonums and lists as we read and print them
+	   (float-output-format nil)
+	   (case-fold-search nil)
+	   (print-length nil)
+	   ;; Simulate entry to byte-compile-top-level
+	   (byte-compile-constants nil)
+	   (byte-compile-variables nil)
+	   (byte-compile-tag-number 0)
+	   (byte-compile-depth 0)
+	   (byte-compile-maxdepth 0)
+	   (byte-compile-output nil)
+	   ;;	  #### This is bound in b-c-close-variables.
+	   ;;	  (byte-compile-warnings (if (eq byte-compile-warnings t)
+	   ;;				     byte-compile-warning-types
+	   ;;				   byte-compile-warnings))
+	   )
+       (byte-compile-close-variables
 	(save-excursion
-	  (set-buffer inbuffer)
-	  (goto-char 1)
-	  (while (progn
-		   (while (progn (skip-chars-forward " \t\n\^l")
-				 (looking-at ";"))
-		     (forward-line 1))
-		   (not (eobp)))
-	    (byte-compile-file-form (read inbuffer)))
-	  ;; Compile pending forms at end of file.
-	  (byte-compile-flush-pending)
-	  (and (not eval) (byte-compile-insert-header))
-	  (byte-compile-warn-about-unresolved-functions)
-	  ;; always do this?  When calling multiple files, it
-	  ;; would be useful to delay this warning until all have
-	  ;; been compiled.
-	  (setq byte-compile-unresolved-functions nil)))
-       (save-excursion
-	 (set-buffer outbuffer)
-	 (goto-char (point-min)))))
-    (if (not eval)
-	outbuffer
-      (while (condition-case nil
-		 (progn (setq form (read outbuffer))
-			t)
-	       (end-of-file nil))
-	(eval form))
-      (kill-buffer outbuffer)
-      nil)))
+	  (setq outbuffer
+		(set-buffer (get-buffer-create " *Compiler Output*")))
+	  (erase-buffer)
+	  ;;	 (emacs-lisp-mode)
+	  (setq case-fold-search nil)
+
+	  ;; This is a kludge.  Some operating systems (OS/2, DOS) need to
+	  ;; write files containing binary information specially.
+	  ;; Under most circumstances, such files will be in binary
+	  ;; overwrite mode, so those OS's use that flag to guess how
+	  ;; they should write their data.  Advise them that .elc files
+	  ;; need to be written carefully.
+	  (setq overwrite-mode 'overwrite-mode-binary))
+	(displaying-byte-compile-warnings
+	 (save-excursion
+	   (set-buffer inbuffer)
+	   (goto-char 1)
+	   (while (progn
+		    (while (progn (skip-chars-forward " \t\n\^l")
+				  (looking-at ";"))
+		      (forward-line 1))
+		    (not (eobp)))
+	     (byte-compile-file-form (read inbuffer)))
+	   ;; Compile pending forms at end of file.
+	   (byte-compile-flush-pending)
+	   (and (not eval) (byte-compile-insert-header))
+	   (byte-compile-warn-about-unresolved-functions)
+	   ;; always do this?  When calling multiple files, it
+	   ;; would be useful to delay this warning until all have
+	   ;; been compiled.
+	   (setq byte-compile-unresolved-functions nil)))
+	(save-excursion
+	  (set-buffer outbuffer)
+	  (goto-char (point-min)))))
+     (if (not eval)
+	 outbuffer
+       (while (condition-case nil
+		  (progn (setq form (read outbuffer))
+			 t)
+		(end-of-file nil))
+	 (eval form))
+       (kill-buffer outbuffer)
+       nil))))
 
 (defun byte-compile-insert-header ()
   (save-excursion
@@ -1786,23 +1816,24 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   ;;	'progn or t	-> a list of forms,
   ;;	'lambda		-> body of a lambda,
   ;;	'file		-> used at file-level.
-  (let ((byte-compile-constants nil)
-	(byte-compile-variables nil)
-	(byte-compile-tag-number 0)
-	(byte-compile-depth 0)
-	(byte-compile-maxdepth 0)
-	(byte-compile-output nil))
-    (if (memq byte-optimize '(t source))
-	(setq form (byte-optimize-form form for-effect)))
-    (while (and (eq (car-safe form) 'progn) (null (cdr (cdr form))))
-      (setq form (nth 1 form)))
-    (if (and (eq 'byte-code (car-safe form))
-	     (not (memq byte-optimize '(t byte)))
-	     (stringp (nth 1 form)) (vectorp (nth 2 form))
-	     (natnump (nth 3 form)))
-	form
-      (byte-compile-form form for-effect)
-      (byte-compile-out-toplevel for-effect output-type))))
+  (byte-compile-protect-from-advice
+   (let ((byte-compile-constants nil)
+	 (byte-compile-variables nil)
+	 (byte-compile-tag-number 0)
+	 (byte-compile-depth 0)
+	 (byte-compile-maxdepth 0)
+	 (byte-compile-output nil))
+     (if (memq byte-optimize '(t source))
+	 (setq form (byte-optimize-form form for-effect)))
+     (while (and (eq (car-safe form) 'progn) (null (cdr (cdr form))))
+       (setq form (nth 1 form)))
+     (if (and (eq 'byte-code (car-safe form))
+	      (not (memq byte-optimize '(t byte)))
+	      (stringp (nth 1 form)) (vectorp (nth 2 form))
+	      (natnump (nth 3 form)))
+	 form
+       (byte-compile-form form for-effect)
+       (byte-compile-out-toplevel for-effect output-type)))))
 
 (defun byte-compile-out-toplevel (&optional for-effect output-type)
   (if for-effect
