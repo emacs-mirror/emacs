@@ -4048,7 +4048,7 @@ decode_coding_sjis (coding)
 	}
       else if (c <= 0xFC && charset_kanji2)
 	{
-	  /* SJIS -> JISX0212 */
+	  /* SJIS -> JISX0213-2 */
 	  ONE_MORE_BYTE (c1);
 	  if (c1 < 0x40 || c1 == 0x7F || c1 > 0xFC)
 	    goto invalid_code;
