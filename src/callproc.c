@@ -42,6 +42,7 @@ extern char *strerror ();
 #endif
 
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
+#include "msdos.h"
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #include <sys/stat.h>
