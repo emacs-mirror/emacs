@@ -55,9 +55,14 @@
   :group 'lisp)
 
 (defcustom find-function-regexp
-  "^\\s-*(def\\(ine-skeleton\\|[^cgv\W]\\w+\\*?\\)\\s-+%s\\(\\s-\\|$\\)"
-"The regexp used by `find-function' to search for a function
-definition.  Note it must contain a `%s' at the place where `format'
+  ;; Match things like (defun foo ...), (defmacro foo ...),
+  ;; (define-skeleton foo ...), (define-generic-mode 'foo ...),
+  ;;  (define-derived-mode foo ...), (easy-mmode-define-minor-mode foo)
+  "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
+\[^cgv\W]\\w+\\*?\\)\\|easy-mmode-define-minor-mode\\)\\s-+'?\
+%s\\(\\s-\\|$\\)"
+  "The regexp used by `find-function' to search for a function definition.
+Note it must contain a `%s' at the place where `format'
 should insert the function name.  The default value avoids `defconst',
 `defgroup', `defvar'.
 
@@ -78,9 +83,9 @@ Please send improvements and fixes to the maintainer."
   :version "20.3")
 
 (defcustom find-function-source-path nil
-  "The default list of directories where find-function searches.
+  "The default list of directories where `find-function' searches.
 
-If this variable is `nil' then find-function searches `load-path' by
+If this variable is nil then `find-function' searches `load-path' by
 default."
   :type '(repeat directory)
   :group 'find-function)
@@ -103,9 +108,9 @@ See the functions `find-function' and `find-variable'."
 ;;; Functions:
 
 (defun find-function-search-for-symbol (symbol variable-p library)
-  "Search for SYMBOL in LIBRARY.
+  "Search for SYMBOL.
 If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
-`find-variable-regexp' is used."
+`find-variable-regexp' is used.   The search is done in library LIBRARY."
   (if (null library)
       (error "Don't know where `%s' is defined" symbol))
   (save-match-data
@@ -142,20 +147,20 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 		    (progn
 		      (beginning-of-line)
 		      (cons (current-buffer) (point)))
-		  (error "Cannot find definition of `%s' in library `%s'" 
+		  (error "Cannot find definition of `%s' in library `%s'"
 			 symbol library)))
 	    (set-syntax-table syn-table)))))))
 
 ;;;###autoload
 (defun find-function-noselect (function)
-  "Returns a pair (BUFFER . POINT) pointing to the definition of FUNCTION.
+  "Return a pair (BUFFER . POINT) pointing to the definition of FUNCTION.
 
 Finds the Emacs Lisp library containing the definition of FUNCTION
 in a buffer and the point of the definition.  The buffer is
 not selected.
 
 If the file where FUNCTION is defined is not known, then it is
-searched for in `find-function-source-path' if non `nil', otherwise
+searched for in `find-function-source-path' if non nil, otherwise
 in `load-path'."
   (if (not function)
       (error "You didn't specify a function"))
@@ -211,7 +216,7 @@ in `load-path'."
   "Read and return an interned symbol, defaulting to the one near point.
 
 If the optional VARIABLE-P is nil, then a function is gotten
-defaulting to the value of the function `function-at-point', otherwise 
+defaulting to the value of the function `function-at-point', otherwise
 a variable is asked for, with the default coming from
 `variable-at-point'."
   (let ((symb (funcall (if variable-p
@@ -239,11 +244,11 @@ a variable is asked for, with the default coming from
 	    (intern val)))))
 
 (defun find-function-do-it (symbol variable-p switch-fn)
-  "Find Emacs Lisp SYMBOL in a buffer and display it with SWITCH-FN.
-If VARIABLE-P is nil, a function definition is searched for, otherwise 
+  "Find Emacs Lisp SYMBOL in a buffer and display it.
+If VARIABLE-P is nil, a function definition is searched for, otherwise
 a variable definition is searched for.  The start of a definition is
 centered according to the variable `find-function-recenter-line'.
-See also `find-function-after-hook'.
+See also `find-function-after-hook'  It is displayed with function SWITCH-FN.
 
 Point is saved in the buffer if it is one of the current buffers."
   (let* ((orig-point (point))
@@ -274,14 +279,14 @@ places point before the definition.  Point is saved in the buffer if
 it is one of the current buffers.
 
 The library where FUNCTION is defined is searched for in
-`find-function-source-path', if non `nil', otherwise in `load-path'.
+`find-function-source-path', if non nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read))
   (find-function-do-it function nil 'switch-to-buffer))
 
 ;;;###autoload
 (defun find-function-other-window (function)
-  "Find the definition of the function near point in the other window.
+  "Find the definition of FUNCTION near point in the other window.
 
 See `find-function' for more details."
   (interactive (find-function-read))
@@ -289,7 +294,7 @@ See `find-function' for more details."
 
 ;;;###autoload
 (defun find-function-other-frame (function)
-  "Find the definition of the function near point in the another frame.
+  "Find the definition of FUNCTION near point in the another frame.
 
 See `find-function' for more details."
   (interactive (find-function-read))
@@ -297,14 +302,14 @@ See `find-function' for more details."
 
 ;;;###autoload
 (defun find-variable-noselect (variable)
-  "Returns a pair `(buffer . point)' pointing to the definition of SYMBOL.
+  "Return a pair `(buffer . point)' pointing to the definition of SYMBOL.
 
 Finds the Emacs Lisp library containing the definition of SYMBOL
 in a buffer and the point of the definition.  The buffer is
 not selected.
 
 The library where VARIABLE is defined is searched for in
-`find-function-source-path', if non `nil', otherwise in `load-path'."
+`find-function-source-path', if non nil, otherwise in `load-path'."
   (if (not variable)
       (error "You didn't specify a variable"))
   (let ((library (symbol-file variable)))
@@ -320,14 +325,14 @@ places point before the definition.  Point is saved in the buffer if
 it is one of the current buffers.
 
 The library where VARIABLE is defined is searched for in
-`find-function-source-path', if non `nil', otherwise in `load-path'.
+`find-function-source-path', if non nil, otherwise in `load-path'.
 See also `find-function-recenter-line' and `find-function-after-hook'."
   (interactive (find-function-read 'variable))
   (find-function-do-it variable t 'switch-to-buffer))
 
 ;;;###autoload
 (defun find-variable-other-window (variable)
-  "Find the definition of the variable near point in the other window.
+  "Find the definition of VARIABLE near point in the other window.
 
 See `find-variable' for more details."
   (interactive (find-function-read 'variable))
@@ -335,7 +340,7 @@ See `find-variable' for more details."
 
 ;;;###autoload
 (defun find-variable-other-frame (variable)
-  "Find the definition of the variable near point in the another frame.
+  "Find the definition of VARIABLE near point in the another frame.
 
 See `find-variable' for more details."
   (interactive (find-function-read 'variable))
