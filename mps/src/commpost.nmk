@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.23) $
+# $HopeName: MMsrc!commpost.nmk(trunk.24) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -16,7 +16,7 @@
 all: mpmss.exe amcss.exe amsss.exe awlut.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe mpm.lib \
-     abqtest.exe cbstest.exe mv2eptst.exe mv2test.exe
+     abqtest.exe cbstest.exe mv2eptst.exe mv2test.exe epvmss.exe
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
@@ -25,6 +25,7 @@ mpmss.exe amcss.exe amsss.exe awlut.exe dwstress.exe mpsicv.exe \
      lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
      thw3susp.exe abqtest.exe cbstest.exe mv2eptst.exe mv2test.exe \
+     epvmss.exe \
      mpm.lib mmdw.lib mmsw.lib poolawl.lib mpsplan.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
@@ -154,6 +155,10 @@ $(PFM)\$(VARIETY)\mv2eptst.exe: $(PFM)\$(VARIETY)\mv2eptst.obj \
 
 $(PFM)\$(VARIETY)\mv2test.exe: $(PFM)\$(VARIETY)\mv2test.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(ARENAANOBJ) $(TESTLIBOBJ)
+
+$(PFM)\$(VARIETY)\epvmss.exe: $(PFM)\$(VARIETY)\epvmss.obj \
+	$(PFM)\$(VARIETY)\fmtpstst.obj \
+	$(SWOBJ) $(TESTLIBOBJ) $(PLINTHOBJ) $(EVENTOBJ)
 
 $(PFM)\$(VARIETY)\mpm.lib: $(MPMOBJ)
 	$(ECHO) $@
