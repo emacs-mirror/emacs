@@ -1,5 +1,10 @@
 2000-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* mouse.el (mouse-popup-menubar): Supply the prompt string for
+	minor-mode keymaps, if they don't have one.
+
+2000-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* eshell/esh-module.el (eval-when-compile): Don't lose if
 	esh-module.el's file name is truncated to DOS 8+3 limits.
 
