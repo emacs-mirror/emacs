@@ -1,3 +1,15 @@
+2003-10-20  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-display-freq-count): Doc fix.
+
+	* ls-lisp.el (ls-lisp-insert-directory): Arg is now wildcard-regexp.
+	Don't check for foo*/ wildcard form here.
+	(insert-directory): Recognize foo*/ as a wildcard.
+	Separate wildcard-regexp variable from the arg, wildcard.
+
+	* subr.el (add-hook): Correctly detect when make-local-hook was used.
+	(remove-hook): Correctly handle strange cases about local hooks.
+
 2003-10-21  David Ponce  <david@dponce.com>
 
 	* ruler-mode.el (ruler-mode-left-fringe-cols): Add new optional
