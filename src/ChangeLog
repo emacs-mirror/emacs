@@ -1,3 +1,22 @@
+2000-06-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.h (struct ccl_program): New member eol_type.
+	(struct ccl_spec): New member cr_carryover.
+
+	* ccl.c (CCL_WRITE_CHAR): Convert NL according to ccl->eol_type.
+	(setup_ccl_program): Initialize ccl->eol_type to CODING_EOL_LF.
+
+	* coding.c (setup_coding_system) <4>: Reset member `cr_carryover'.
+	(ccl_coding_driver): On encoding, initialize ccl->eol_type.
+	(decode_eol_post_ccl): New function.
+	(decode_coding): Don't detect EOL format here for CCL based coding
+	systems.
+	(decode_coding) <coding_type_ccl>: Handle carryovered CR.  Call
+	decode_eol_post_ccl after running the CCL program.
+	(code_convert_region): Don't detect EOL format here for CCL based
+	coding systems.
+	(decode_coding_string): Likewise.
+
 2000-06-18  Ken Raeburn  <raeburn@gnu.org>
 
 	* charset.c (update_charset_table): Use XINT on "iso_final_char"

@@ -1,5 +1,16 @@
 2000-06-19  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/codepage.el:
+	(cp-coding-system-for-codepage-1): Delete special codes for
+	generating xxx-dos coding system because now a CCL based coding
+	system can handle EOL conversion by default.
+
+	* international/mule.el (make-coding-system): Generate subsidiary
+	coding systems for EOL handling variants even for a CCL based
+	coding system.
+
+2000-06-19  Kenichi Handa  <handa@etl.go.jp>
+
 	* international/isearch-x.el (isearch-minibuffer-input-method)
 	(isearch-minibuffer-input-method-function): These variables
 	deleted.
