@@ -62,14 +62,16 @@ if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
 fi
 
 ### Find out which version of Emacs this is.
-version=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
+shortversion=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
 	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\)\..*$/\1/'`
+version=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
+	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 if [ ! "${version}" ]; then
-  echo "${progname}: can't find current emacs version in \`./lisp/version.el'." >&2
+  echo "${progname}: can't find current Emacs version in \`./lisp/version.el'." >&2
   exit 1
 fi
 
-if grep -s "GNU Emacs version ${version}" ./man/emacs.texi > /dev/null; then
+if grep -s "GNU Emacs version ${shortversion}" ./man/emacs.texi > /dev/null; then
   true
 else
   echo "You must update the version number in \`./man/emacs.texi'"
@@ -115,7 +117,7 @@ if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
 fi
 
 ### Update getdate.c.
-(cd lib-src; make -f Makefile.in getdate.c YACC="bison -y")
+(cd lib-src; make -f Makefile getdate.c YACC="bison -y")
 
 echo "Creating staging directory: \`${tempparent}'"
 
@@ -138,7 +140,7 @@ mkdir ${tempdir}
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
 ln ChangeLog Makefile.in build-ins.in configure configure.in ${tempdir}
-ln make-dist vpath.sed ${tempdir}
+ln config.bat make-dist vpath.sed ${tempdir}
 ### Copy these files; they're cross-filesystem symlinks.
 cp config.sub ${tempdir}
 cp config.guess ${tempdir}
@@ -236,8 +238,8 @@ echo "Making links to \`src/s'."
 echo "Making links to \`lib-src'."
 (cd lib-src
  ln [a-zA-Z]*.[chy] [a-zA-Z]*.lex ../${tempdir}/lib-src
- ln ChangeLog Makefile.in README testfile vcdiff rcs2log ../${tempdir}/lib-src
- ln emacs.csh rcs-checkin ../${tempdir}/lib-src
+ ln ChangeLog Makefile.in.in README testfile vcdiff ../${tempdir}/lib-src
+ ln emacs.csh rcs2log rcs-checkin ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
  rm -f getdate.tab.c y.tab.c y.tab.h
  rm -f =* TAGS)
