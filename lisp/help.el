@@ -651,7 +651,8 @@ whose documentation describes the minor mode."
 		 (push (list pretty-minor-mode mode indicator)
 		       minor-modes))))
 	(if auto-fill-function
-	    (push '("Auto Fill" auto-fill-mode " Fill")
+ 	    ;; copy pure string so we can add face property to it below.
+ 	    (push (list (copy-sequence "Auto Fill") 'auto-fill-mode " Fill")
 		  minor-modes))
 	(setq minor-modes
 	      (sort minor-modes
