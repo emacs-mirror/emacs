@@ -118,10 +118,10 @@ static void list_of_items ();
 
 /* Allocate a widget_value, blocking input.  */
 
-widget_value
+widget_value *
 xmalloc_widget_value ()
 {
-  widget_value value;
+  widget_value *value;
 
   BLOCK_INPUT;
   value = malloc_widget_value ();
