@@ -97,3 +97,13 @@ If the logical name `EMACS_FILE_NAME' is defined, `find-file' that file."
 
 (setq dired-listing-switches
       "/SIZE/DATE/OWNER/WIDTH=(FILENAME=32,SIZE=5)")
+
+(setq print-region-function
+      '(lambda (start end command ign1 ign2 ign3 &rest switches)
+	 (write-region start end "sys$login:delete-me.txt")
+	 (send-command-to-subprocess
+	  1
+	  (concat command
+		  " sys$login:delete-me.txt/name=""GNUprintbuffer"" "
+		  (mapconcat 'identity switches " "))
+	  nil nil nil)))
