@@ -261,6 +261,10 @@ void hft_init ();
 void hft_reset ();
 #endif
 
+/* Temporary used by `sigblock' when defined in terms of signprocmask.  */
+
+SIGMASKTYPE sigprocmask_set;
+
 
 /* Specify a different file descriptor for further input operations.  */
 
