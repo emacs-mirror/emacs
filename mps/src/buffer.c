@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.53) $
+ * $HopeName: MMsrc!buffer.c(trunk.54) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -22,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.53) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.54) $");
 
 
 /* forward declarations */
@@ -224,8 +224,9 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   /* Dispatch to the buffer class method to perform any  */
   /* class-specific initialization of the buffer. */
   res = (*class->init)(buffer, pool, args);
-  if(res != ResOK)
-    return res;
+  if(res != ResOK) {
+    goto failInit;
+  }
 
   /* Attach the initialized buffer to the pool. */
   RingAppend(&pool->bufferRing, &buffer->poolRing);
@@ -233,6 +234,11 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   EVENT_PPU(BufferInit, buffer, pool, (unsigned)isMutator);
 
   return ResOK;
+
+failInit:
+  RingFinish(&buffer->poolRing);
+  buffer->sig = SigInvalid;
+  return res;
 }
 
 
