@@ -11,6 +11,12 @@
   directories, etc.  We suggest to use djtarnt.exe from the GNU FTP
   site.
 
+  If you are building out of CVS, then some files in this directory
+  (.bat files, nmake.defs and makefile.w32-in) may need the line-ends
+  fixing first. The easiest way to do this and avoid future conflicts
+  is to run the following command in this (emacs/nt) directory:
+     cvs update -kb
+
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later and nmake, or a Windows port of GCC 2.95 or later with Mingw
   and W32 API support and a port of GNU make.  You can use the Cygwin
