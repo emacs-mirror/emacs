@@ -296,12 +296,10 @@ readchar (readcharfun)
     {
       if (read_from_string_index >= read_from_string_limit)
 	c = -1;
-      else if (STRING_MULTIBYTE (readcharfun))
+      else
 	FETCH_STRING_CHAR_ADVANCE (c, readcharfun,
 				   read_from_string_index,
 				   read_from_string_index_byte);
-      else
-	c = XSTRING (readcharfun)->data[read_from_string_index++];
 
       return c;
     }
@@ -2124,13 +2122,15 @@ read1 (readcharfun, pch, first_in_list)
 	  return make_number (0);
 
 	if (force_multibyte)
-	  nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
+	  p = read_buffer + str_as_multibyte (read_buffer, end - read_buffer,
+					      p - read_buffer, &nchars);
 	else if (force_singlebyte)
 	  nchars = p - read_buffer;
 	else if (load_convert_to_unibyte)
 	  {
 	    Lisp_Object string;
-	    nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
+	    p = read_buffer + str_as_multibyte (read_buffer, end - read_buffer,
+						p - read_buffer, &nchars);
 	    if (p - read_buffer != nchars)
 	      {
 		string = make_multibyte_string (read_buffer, nchars,
@@ -2140,12 +2140,13 @@ read1 (readcharfun, pch, first_in_list)
 	  }
 	else if (EQ (readcharfun, Qget_file_char)
 		 || EQ (readcharfun, Qlambda))
-	  /* Nowadays, reading directly from a file
-	     is used only for compiled Emacs Lisp files,
-	     and those always use the Emacs internal encoding.
-	     Meanwhile, Qlambda is used for reading dynamic byte code
-	     (compiled with byte-compile-dynamic = t).  */
-	  nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
+	  /* Nowadays, reading directly from a file is used only for
+	     compiled Emacs Lisp files, and those always use the
+	     Emacs internal encoding.  Meanwhile, Qlambda is used
+	     for reading dynamic byte code (compiled with
+	     byte-compile-dynamic = t).  */
+	  p = read_buffer + str_as_multibyte (read_buffer, end - read_buffer,
+					      p - read_buffer, &nchars);
 	else
 	  /* In all other cases, if we read these bytes as
 	     separate characters, treat them as separate characters now.  */
