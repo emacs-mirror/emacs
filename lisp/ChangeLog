@@ -1,3 +1,22 @@
+2005-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-max-undo, cua-undo): Remove.
+	(cua--standard-movement-commands): Remove list.
+	Instead, set CUA property value to move for movement commands.
+	(cua-movement-commands): Remove.  Users must set CUA prop instead.
+	(cua--pre-command-handler): Check CUA property.
+	(cua--init-keymaps): Don't remap undo commands.
+	(cua-mode): Don't call cua--rectangle-on-off.
+
+	* emulation/cua-rect.el (cua--undo-list, cua--tidy-undo-counter)
+	(cua--rect-undo, cua--tidy-undo-lists, cua--rectangle-on-off): Remove.
+	(cua--rect-undo-set-point): New var.
+	(cua--rectangle-undo-boundary): Setup undo apply entry.
+	(cua--rect-undo-handler): New function for rectangle undo.
+	(cua--rect-start-position, cua--rect-end-position): Add.
+	(cua--rectangle-post-command): Call cua--rectangle-set-corners
+	for restored rectangle.  Set point if cua--rect-undo-set-point.
+
 2005-02-06  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-lang.el (calc-tex-language): Display more information

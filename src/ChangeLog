@@ -1,3 +1,7 @@
+2005-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* undo.c (Fprimitive_undo): Record max one dummmy apply element.
+
 2005-02-06  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (Frun_hook_with_args)
