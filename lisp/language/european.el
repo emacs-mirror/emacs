@@ -2,8 +2,9 @@
 
 ;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001  Free Software Foundation, Inc.
 
-;; Keywords: multilingual, European
+;; Keywords: multilingual, European, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -151,7 +152,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
 	     (nonascii-translation . latin-iso8859-4)
 	     (unibyte-syntax . "latin-4")
 	     (unibyte-display . iso-8859-4)
-	     (input-method . "latin-4-prefix")
+	     (input-method . "latin-4-postfix")
 	     (documentation . "\
 These languages are supported with the Latin-4 (ISO-8859-4) character set:
  Danish, English, Estonian, Finnish, German, Greenlandic, Lappish,
@@ -179,7 +180,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 	     (nonascii-translation . latin-iso8859-9)
 	     (unibyte-syntax . "latin-5")
 	     (unibyte-display . iso-latin-5)
-	     (input-method . "latin-5-prefix")
+	     (input-method . "latin-5-postfix")
 	     (documentation . "\
 These languages are supported with the Latin-5 (ISO-8859-9) character set:
 Bulgarian, Byelorussian, (Slavic) Macedonian, Russian, Serbian and
@@ -340,10 +341,16 @@ and it selects the Dutch tutorial."))
 	   (unibyte-syntax . "latin-2")
 	   (unibyte-display . iso-8859-2)
 	   (tutorial . "TUTORIAL.pl")
-	   (sample-text . ",B1!fFjJ3#qQsS6&?/<,(B")
+	   (sample-text . "P,Bs(Bjd,B<(B, ki,Bq(B-,B?(Be t,Bj(B chmurno,B6f(B w g,B31(Bb flaszy")
 	   (documentation . t))
  '("European"))
-
+
+(set-language-info-alist
+ "Georgian" `((coding-system georgian-ps)
+	      (coding-priority georgian-ps)
+	      (features codepages)
+	      (documentation . "Support for georgian-ps character set."))
+ '("Cyrillic"))
 
 ;; Definitions for the Mac Roman character sets and coding system.
 ;; The Mac Roman encoding uses all 128 code points in the range 128 to
@@ -549,14 +556,74 @@ and it selects the Dutch tutorial."))
 		    (setq w32-charset-info-alist
 			  (delete (assoc "iso10646-1")
 				  w32-charset-info-alist)))))
+	   ;; We can't find out whether or not the clipboard should be
+	   ;; encoded as utf-8 under X as far as I know.  (That may be
+	   ;; appropriate in some versions of XFree, at least.)
 	   (input-method . "rfc1345")
 	   (documentation . "\
 This language environment is a generic one for a subset of the Unicode
 character set encoded in UTF-8."))
  nil)
 
-;; This is conventional.
-(push '("\\.utf\\(-8\\)?\\'" . utf-8) file-coding-system-alist)
+(defconst diacritic-composition-pattern "\\C^\\c^+")
+
+;;;###autoload
+(defun diacritic-compose-region (beg end)
+  "Compose diacritic characters in the region.
+When called from a program, expects two arguments,
+positions (integers or markers) specifying the region."
+  (interactive "r")
+  (save-restriction
+    (narrow-to-region beg end)
+    (goto-char (point-min))
+    (while (re-search-forward diacritic-composition-pattern nil t)
+      (compose-region (match-beginning 0) (match-end 0)))))
+
+;;;###autoload
+(defun diacritic-compose-string (string)
+  "Compose diacritic characters in STRING and return the resulting string."
+  (let ((idx 0))
+    (while (setq idx (string-match diacritic-composition-pattern string idx))
+      (compose-string string idx (match-end 0))
+      (setq idx (match-end 0))))
+  string)
+      
+;;;###autoload
+(defun diacritic-compose-buffer ()
+  "Compose diacritic characters in the current buffer."
+  (interactive)
+  (diacritic-compose-region (point-min) (point-max)))
+
+;;;###autoload
+(defun diacritic-post-read-conversion (len)
+  (diacritic-compose-region (point) (+ (point) len))
+  len)
+
+;;;###autoload
+(defun diacritic-composition-function (from to pattern &optional string)
+  "Compose diacritic text in the region FROM and TO.
+The text matches the regular expression PATTERN.
+Optional 4th argument STRING, if non-nil, is a string containing text
+to compose.
+
+The return value is number of composed characters."
+  (if (< (1+ from) to)
+      (prog1 (- to from)
+	(if string
+	    (compose-string string from to)
+	  (compose-region from to))
+	(- to from))))
+
+;; Register a function to compose Unicode diacrtics and marks.
+(let ((patterns '(("\\C^\\c^+" . diacrtic-composition-function))))
+  (let ((c #x300))
+    (while (<= c #x362)
+      (aset composition-function-table (decode-char 'ucs c) patterns)
+      (setq c (1+ c)))
+    (setq c #x20d0)
+    (while (<= c #x20e3)
+      (aset composition-function-table (decode-char 'ucs c) patterns)
+      (setq c (1+ c)))))
 
 (provide 'european)
 
