@@ -54,7 +54,8 @@ dnl                           .../DIR/common/lock (lockfiles)])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessary, since pwd can
-#### give you automounter prefixes, which can go away.
+#### give you automounter prefixes, which can go away.  We do all this
+#### so Emacs can find its files when run uninstalled.
 case "${srcdir}" in
   /* ) ;;
   . )
