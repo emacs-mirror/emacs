@@ -1,3 +1,8 @@
+2002-07-12  Juanma Barranquero  <lektu@terra.es>
+
+	* timer.el (timer-set-time-with-usecs): Fix documentation. Simplify
+	extraction of time data.
+
 2002-07-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* files.el (insert-directory): Be sure to bind
@@ -4263,7 +4268,7 @@
 	(toplevel): Add completion-list-mode-finish to temp-buffer-show-hook.
 
 	* language/european.el ("Polish"): Change sample text.
-	From jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
+	From jsbien@mimuw.edu.pl (Janusz S. Bie$,1 d(B).
 
 	* progmodes/sh-script.el (sh-indent-line): Add optional PREFIX-ARG
 	parameter.
