@@ -185,8 +185,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
   (let ((m1 displayed-month)
         (y1 displayed-year)
         (m2 displayed-month)
-        (y2 displayed-year)
-        (lunar-phases-buffer "*Phases of Moon*"))
+        (y2 displayed-year))
     (increment-calendar-month m1 y1 -1)
     (increment-calendar-month m2 y2 1)
     (set-buffer (get-buffer-create lunar-phases-buffer))
@@ -225,25 +224,11 @@ This function is suitable for execution in a .emacs file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)
-           (date (calendar-current-date))
-           (displayed-month
-            (if arg
-                (cdr (assoc
-                      (capitalize
-                       (completing-read
-                        "Month name: "
-                        (mapcar 'list (append calendar-month-name-array nil))
-                        nil t))
-                      (calendar-make-alist calendar-month-name-array)))
-              (extract-calendar-month date)))
-           (displayed-year
-            (if arg
-                (calendar-read
-                 "Year (>0): "
-                 '(lambda (x) (> x 0))
-                 (int-to-string
-                  (extract-calendar-year (calendar-current-date))))
-              (extract-calendar-year date))))
+           (date (if arg
+                     (calendar-read-date t)
+                   (calendar-current-date)))
+           (displayed-month (extract-calendar-month date))
+           (displayed-year (extract-calendar-year date)))
       (calendar-phases-of-moon))))
 
 (defun diary-phases-of-moon ()
