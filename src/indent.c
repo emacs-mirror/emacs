@@ -1231,6 +1231,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   int prev_vpos = 0;
   int contin_hpos;		/* HPOS of last column of continued line.  */
   int prev_tab_offset;		/* Previous tab offset.  */
+  int continuation_glyph_width;
 
   XSETBUFFER (buffer, current_buffer);
   XSETWINDOW (window, win);
@@ -1258,6 +1259,12 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 #endif
 	width -= 1;
     }
+
+  continuation_glyph_width = 0;
+#ifdef HAVE_WINDOW_SYSTEM
+  if (!FRAME_WINDOW_P (XFRAME (win->frame)))
+    continuation_glyph_width = 1;
+#endif
 
   immediate_quit = 1;
   QUIT;
@@ -1382,7 +1389,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	{
 	  if (hscroll
 	      || (truncate_partial_width_windows
-		  && width < FRAME_COLS (XFRAME (WINDOW_FRAME (win))))
+		  && ((width + continuation_glyph_width)
+		      < FRAME_COLS (XFRAME (WINDOW_FRAME (win)))))
 	      || !NILP (current_buffer->truncate_lines))
 	    {
 	      /* Truncating: skip to newline, unless we are already past
@@ -1666,7 +1674,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		      hpos -= hscroll;
 		      /* Count the truncation glyph on column 0 */
 		      if (hscroll > 0)
-			hpos++;
+			hpos += continuation_glyph_width;
 		      tab_offset = 0;
 		    }
 		  contin_hpos = 0;
