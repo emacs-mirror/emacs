@@ -314,7 +314,7 @@ at the place of `..':
   from these, and therefore cannot be recognized automatically
   with the present coding system priorities.\n\n")
 
-      (let ((categories '(coding-category-iso-7 coding-category-iso-else))
+      (let ((categories '(coding-category-iso-7 coding-category-iso-7-else))
 	    coding-system codings)
 	(while categories
 	  (setq coding-system (symbol-value (car categories)))
@@ -468,7 +468,7 @@ but contains full information about each coding systems."
 	  coding-system)
       (while bases
 	(setq coding-system (car bases))
-	(if (interactive-p)
+	(if (null arg)
 	    (print-coding-system-briefly coding-system 'doc-string)
 	  (print-coding-system coding-system))
 	(setq bases (cdr bases))))))
