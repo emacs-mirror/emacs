@@ -449,12 +449,16 @@ preserving the comment indentation or line-starting decorations."
 		    (delete-region (point) (+ (point) chars-to-delete)))
 		;; Find the comment ender (should be on last line of buffer,
 		;; given the narrowing) and don't leave it on its own line.
+		;; Do this with a fill command, so as to preserve sentence
+		;; boundaries.
 		(goto-char (point-max))
 		(forward-line -1)
 		(search-forward "*/" nil 'move)
 		(beginning-of-line)
 		(if (looking-at "[ \t]*\\*/")
-		    (delete-indentation)))))
+		    (let ((fill-column (+ fill-column 9999)))
+		      (forward-line -1)
+		      (fill-region-as-paragraph (point) (point-max)))))))
 	;; Outside of comments: do ordinary filling.
 	(fill-paragraph arg)))))
 
