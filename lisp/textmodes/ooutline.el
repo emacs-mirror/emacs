@@ -372,7 +372,9 @@ Default is enough to cause the following heading to appear."
 	    (beginning-of-line)
 	    (let ((start-level (funcall outline-level)))
 	      (outline-next-heading)
-	      (max 1 (- (funcall outline-level) start-level))))))
+	      (if (eobp)
+		  1
+		(max 1 (- (funcall outline-level) start-level)))))))
   (save-excursion
    (save-restriction
     (beginning-of-line)
