@@ -1,5 +1,9 @@
 2000-01-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/copyright.el (copyright-update): Removed the
+	requirement for a trailing space from `copyright-regexp', to
+	support copyrights with owner specified on a separate line..
+	
 	* align.el: New file.
 
 	* menu-bar.el (menu-bar-tools-menu): Add EUDC submenu.
