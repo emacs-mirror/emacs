@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.6) $
+ * $HopeName: MMsrc!awlut.c(trunk.7) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -135,7 +135,7 @@ static mps_word_t *table_slot(mps_word_t *table, unsigned long n)
 static void set_table_slot(mps_word_t *table,
 			   unsigned long n, mps_word_t *p)
 {
-  assert(table[0] = (mps_word_t)table_wrapper);
+  assert(table[0] == (mps_word_t)table_wrapper);
   table[3+n] = (mps_word_t)p;
 }
 
