@@ -3,6 +3,8 @@
 	* xfns.c (Fx_change_window_property): Use long array when format is 32.
 	(Fx_window_property): If format is 32 and long is bigger than 32 bits,
 	convert long array returned from XGetWindowProperty to an int array.
+	(x_set_tool_bar_lines): Check that width and height is greater than
+	zero before clearing area.
 
 	* xselect.c (x_reply_selection_request): Pass long array to
 	XChangeProperty so that 64 bit longs are handeled correctly.
