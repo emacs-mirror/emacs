@@ -491,7 +491,6 @@ for \\[find-tag] (which see)."
 (define-key ctl-x-map "nd" 'narrow-to-defun)
 (define-key esc-map "(" 'insert-parentheses)
 (define-key esc-map ")" 'move-past-close-and-reindent)
-(define-key esc-map "\t" 'lisp-complete-symbol)
 
 (define-key ctl-x-map "\C-e" 'eval-last-sexp)
 
