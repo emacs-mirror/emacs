@@ -828,21 +828,32 @@ are shown; the contents of those subgroups are initially hidden."
 				    (custom-unlispify-tag-name group))))))
 
 ;;;###autoload
-(defun customize-group-other-window (symbol)
-  "Customize SYMBOL, which must be a customization group."
-  (interactive (list (completing-read "Customize group: (default emacs) "
-				      obarray 
-				      (lambda (symbol)
-					(get symbol 'custom-group))
-				      t)))
-
-  (when (stringp symbol)
-    (if (string-equal "" symbol)
-	(setq symbol 'emacs)
-      (setq symbol (intern symbol))))
-  (custom-buffer-create-other-window
-   (list (list symbol 'custom-group))
-   (format "*Customize Group: %s*" (custom-unlispify-tag-name symbol))))
+(defun customize-group-other-window (group)
+  "Customize GROUP, which must be a customization group."
+  (interactive (list (let ((completion-ignore-case t))
+		       (completing-read "Customize group: (default emacs) "
+					obarray 
+					(lambda (symbol)
+					  (or (get symbol 'custom-loads)
+					      (get symbol 'custom-group)))
+					t))))
+  (when (stringp group)
+    (if (string-equal "" group)
+	(setq group 'emacs)
+      (setq group (intern group))))
+  (or (get group 'custom-group)
+      (custom-load-symbol group))
+  (let ((name (format "*Customize Group: %s*"
+		      (custom-unlispify-tag-name group))))
+    (if (get-buffer name)
+	(let ((window (selected-window)))
+	  (switch-to-buffer-other-window name)
+	  (select-window window))
+      (custom-buffer-create-other-window
+       (list (list group 'custom-group))
+       name
+       (concat " for group "
+	       (custom-unlispify-tag-name group))))))
 
 ;;;###autoload
 (defalias 'customize-variable 'customize-option)
