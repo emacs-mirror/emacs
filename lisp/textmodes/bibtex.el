@@ -95,6 +95,13 @@ duplicates) from bibtex-mode. See also bibtex-sort-ignore-string-entries.
 This variable is buffer local.")
 (make-variable-buffer-local 'bibtex-maintain-sorted-entries)
 
+(defvar bibtex-parse-keys-timeout auto-save-timeout
+  "*Specifies interval for parsing buffer for keys.
+The buffer is checked every bibtex-parse-keys-timeout seconds if it is
+modified since last parsing and is parsed if necessary. This is needed
+only if buffer is maintained sorted (bibtex-maintain-sorted-entries
+non-nil).")
+
 (defvar bibtex-entry-field-alist
   '(
     ("Article" . (((("author" "Author1 [and Author2 ...] [and others]")
@@ -326,6 +333,8 @@ See the documentation of function bibtex-generate-autokey for further detail.")
   '(("\\\\\\\"a" "ae") ("\\\\\\\"o" "oe") ("\\\\\\\"u" "ue")
     ("\\\\\\\"s" "ss")
     ("\\\\\\\"A" "Ae") ("\\\\\\\"O" "Oe") ("\\\\\\\"U" "Ue")
+    ("\\\"a" "ae") ("\\\"o" "oe") ("\\\"u" "ue") ("\\\"s" "ss")
+    ("\\\"A" "Ae") ("\\\"O" "Oe") ("\\\"U" "Ue")
     ("{" "") ("}" ""))
   "Alist of (old-regexp new-string) pairs.
 Any part of name matching a old-regexp is replaced by new-string.
@@ -379,6 +388,8 @@ See the documentation of function bibtex-generate-autokey for further detail.")
   '(("\\\\\\\"a" "ae") ("\\\\\\\"o" "oe") ("\\\\\\\"u" "ue")
     ("\\\\\\\"s" "ss")
     ("\\\\\\\"A" "Ae") ("\\\\\\\"O" "Oe") ("\\\\\\\"U" "Ue")
+    ("\\\"a" "ae") ("\\\"o" "oe") ("\\\"u" "ue") ("\\\"s" "ss")
+    ("\\\"A" "Ae") ("\\\"O" "Oe") ("\\\"U" "Ue")
     ("{" "") ("}" ""))
   "Alist of (old-regexp new-string) pairs.
 Any part of title word matching a old-regexp is replaced by new-string.
@@ -413,8 +424,8 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 ;; Syntax Table, Keybindings and BibTeX Entry List
 (defvar bibtex-mode-syntax-table
   (let ((st (make-syntax-table)))
-    ;; [alarson:19920214.1004CST] make double quote a string quote
-    (modify-syntax-entry ?\" "\"" st)
+    (modify-syntax-entry ?\" "w" st)
+    ;; this was formerly "\"". Does this cause any problems? 
     (modify-syntax-entry ?$ "$$  " st)
     (modify-syntax-entry ?% "<   " st)
     (modify-syntax-entry ?'  "w   " st)
@@ -649,8 +660,11 @@ See the documentation of function bibtex-generate-autokey for further detail.")
    "\\("
      "\\(" "[^\"\\]" "\\)"      ;; every character except quote or backslash
      "\\|"
-     "\\(" "\"[A-Za-z-]" "\\)"  ;; a quote followed by a letter or dash 
-     "\\|"
+;;     "\\(" "\"[A-Za-z-]" "\\)"  ;; a quote followed by a letter or dash 
+;;     "\\|"
+;; last two lines commented out until lines like
+;;   author = "Stefan Sch"of"
+;; are supported by BibTeX
      "\\(" "\\\\.\\|\n"  "\\)"  ;; a backslash followed by any character
    "\\)*"
    "\""))
@@ -693,7 +707,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 ;; bibtex-field-const (see above))
 
 (defconst bibtex-reference-head
-  (concat "^\\( \\|\t\\)*\\("
+  (concat "^[ \t]*\\("
 	  bibtex-reference-type
 	  "\\)[ \t]*[({][ \t]*\\("
 	  bibtex-reference-key
@@ -706,11 +720,11 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 ;; Regexp defining format of the header line of a maybe empty
 ;; BibTeX reference entry (without reference key).
 
-(defconst bibtex-type-in-head 2)
+(defconst bibtex-type-in-head 1)
 ;; The regexp subexpression number of the type part in
 ;; bibtex-reference-head.
 
-(defconst bibtex-key-in-head 3)
+(defconst bibtex-key-in-head 2)
 ;; The regexp subexpression number of the key part in
 ;; bibtex-reference-head.
 
@@ -1457,8 +1471,8 @@ non-nil."
               (setq bibtex-completion-candidates compl))
           (error "File %s not in $BIBINPUTS paths" filename)))))
    bibtex-string-files)
-  (add-hook
-   'auto-save-hook
+  (run-with-idle-timer
+   bibtex-parse-keys-timeout bibtex-parse-keys-timeout 
    (function
     (lambda ()
       (if (and
