@@ -1,7 +1,7 @@
-2003-08-13  Karl Fogel  <kfogel@red-bean.com>
+2003-08-16  Chunyu Wang  <spr@db.cs.hit.edu.cn>  (tiny change)
 
-	* pcl-cvs.texi (Log Edit Mode): Fix typo.  Patch courtesy of
-	Chunyu Wang <spr@db.cs.hit.edu.cn>.
+	* pcl-cvs.texi (Log Edit Mode): Fix key binding for
+	log-edit-insert-changelog.
 
 2003-08-05  Richard M. Stallman  <rms@gnu.org>
 
