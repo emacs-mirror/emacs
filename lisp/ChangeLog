@@ -1,3 +1,17 @@
+2001-12-10  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-yank-word-or-char): New function.
+	(isearch-mode-map): Bind C-w to that.
+
+	* menu-bar.el (menu-bar-mode): Make arg optional.
+
+	* simple.el (line-move): Cope if next-single-property-change
+	or previous-single-property-change returns nil.
+
+	* emacs-lisp/lisp-mnt.el (lm-verify): New arg NON-FSF-OK.
+	Don't use interactive-p; instead, pass the proper args
+	in (interactive...).  Clean up most of the trouble-report strings.
+
 2001-12-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Insert the
@@ -13,8 +27,8 @@
 2001-12-07  Stephen Eglen  <stephen@gnu.org>
 
 	* iswitchb.el (iswitchb-visit-buffer): Use
-	`select-frame-set-input-focus'.  Needed when window manager
-	uses "click to focus" policy.  Doc fixes.
+	`select-frame-set-input-focus'--needed when window manager
+	uses "click to focus" policy.
 
 2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 

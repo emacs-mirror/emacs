@@ -44,6 +44,11 @@ width which is the minimum number of pixels necessary to display any
 of the currently defined fringe bitmaps.  The width of the built-in
 fringe bitmaps is 8 pixels.
 
+** C-w in incremental search now grabs either a character or a word,
+making the decision in a heuristic way.  This new job is done by the
+command `isearch-yank-word-or-char'.  To restore the old behavior,
+bind C-w to `isearch-yank-word' in `isearch-mode-map'.
+
 ** In GUD mode when talking to GDB, C-x C-a C-j "jumps" the program
 counter to the specified source line (the one where point is).
 
