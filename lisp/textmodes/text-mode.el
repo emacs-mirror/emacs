@@ -51,7 +51,7 @@ inherit all the commands defined in this map.")
     ()
   (setq text-mode-map (make-sparse-keymap))
   (define-key text-mode-map "\e\t" 'ispell-complete-word)
-  (define-key text-mode-map "\t" 'tab-to-tab-stop)
+  (define-key text-mode-map "\t" 'indent-relative)
   (define-key text-mode-map "\es" 'center-line)
   (define-key text-mode-map "\eS" 'center-paragraph))
 
@@ -76,47 +76,24 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   (setq major-mode 'text-mode)
   (run-hooks 'text-mode-hook))
 
-(defun spaced-text-mode ()
+(defun paragraph-indent-text-mode ()
   "Major mode for editing text, with leading spaces starting a paragraph.
 In this mode, you do not need blank lines between paragraphs
 when the first line of the following paragraph starts with whitespace.
 Special commands:
 \\{text-mode-map}
-Turning on Spaced Text mode runs the normal hook `spaced-text-mode-hook'."
+Turning on Paragraph-Indent Text mode runs the normal hooks
+`text-mode-hook' and `paragraph-indent-text-mode-hook'."
   (interactive)
   (kill-all-local-variables)
   (use-local-map text-mode-map)
-  (setq mode-name "Spaced Text")
-  (setq major-mode 'spaced-text-mode)
+  (setq mode-name "Parindent")
+  (setq major-mode 'paragraph-indent-text-mode)
   (setq local-abbrev-table text-mode-abbrev-table)
   (set-syntax-table text-mode-syntax-table)
-  (run-hooks 'text-mode-hook 'spaced-text-mode-hook))
-
-(defvar indented-text-mode-map ()
-  "Keymap for Indented Text mode.
-All the commands defined in Text mode are inherited unless overridden.")
-
-(if indented-text-mode-map
-    ()
-  ;; Make different definition for TAB before the one in text-mode-map, but
-  ;; share the rest.
-  (let ((newmap (make-sparse-keymap)))
-    (define-key newmap "\t" 'indent-relative)
-    (setq indented-text-mode-map (nconc newmap text-mode-map))))
+  (run-hooks 'text-mode-hook 'paragraph-indent-text-mode-hook))
       
-(defun indented-text-mode ()
-  "Major mode for editing text which is often indented.
-This is like Text mode except that TAB runs `indent-relative'.
-\\{text-mode-map}
-Turning on Indented Text mode runs the normal hook `indented-text-mode-hook'."
-  (interactive)
-  (text-mode)
-  (use-local-map indented-text-mode-map)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'indent-relative-maybe)
-  (setq mode-name "Indented Text")
-  (setq major-mode 'indented-text-mode)
-  (run-hooks 'text-mode-hook 'indented-text-mode-hook))
+(defalias 'indented-text-mode 'text-mode)
 
 (defun center-paragraph ()
   "Center each nonblank line in the paragraph at or after point.
