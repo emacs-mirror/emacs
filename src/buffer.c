@@ -1566,26 +1566,30 @@ buffer.")
 
   b = XBUFFER (buffer);
 
-  /* Redisplay the area the overlay has just left, or just enclosed.  */
-  {
-    Lisp_Object o_beg = OVERLAY_START (overlay);
-    Lisp_Object o_end = OVERLAY_END   (overlay);
-    int change_beg, change_end;
+  /* If the overlay has changed buffers, do a thorough redisplay.  */
+  if (! EQ (buffer, XMARKER (OVERLAY_START (overlay))->buffer))
+    windows_or_buffers_changed = 1;
+  else
+    /* Redisplay the area the overlay has just left, or just enclosed.  */
+    {
+      Lisp_Object o_beg = OVERLAY_START (overlay);
+      Lisp_Object o_end = OVERLAY_END   (overlay);
+      int change_beg, change_end;
 
-    o_beg = OVERLAY_POSITION (o_beg);
-    o_end = OVERLAY_POSITION (o_end);
+      o_beg = OVERLAY_POSITION (o_beg);
+      o_end = OVERLAY_POSITION (o_end);
 
-    if (XINT (o_beg) == XINT (beg))
-      redisplay_region (b, XINT (o_end), XINT (end));
-    else if (XINT (o_end) == XINT (end))
-      redisplay_region (b, XINT (o_beg), XINT (beg));
-    else
-      {
-	if (XINT (beg) < XINT (o_beg)) o_beg = beg;
-	if (XINT (end) > XINT (o_end)) o_end = end;
-	redisplay_region (b, XINT (o_beg), XINT (o_end));
-      }
-  }
+      if (XINT (o_beg) == XINT (beg))
+	redisplay_region (b, XINT (o_end), XINT (end));
+      else if (XINT (o_end) == XINT (end))
+	redisplay_region (b, XINT (o_beg), XINT (beg));
+      else
+	{
+	  if (XINT (beg) < XINT (o_beg)) o_beg = beg;
+	  if (XINT (end) > XINT (o_end)) o_end = end;
+	  redisplay_region (b, XINT (o_beg), XINT (o_end));
+	}
+    }
 
   b->overlays_before = Fdelq (overlay, b->overlays_before);
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
