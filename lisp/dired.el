@@ -1422,7 +1422,10 @@ Optional argument means return a file name relative to `default-directory'."
 	(set-buffer buf)
 	(goto-char (point-max))
 	(skip-chars-backward "\n\r\t ")
-	(setq target-lines (count-lines (point-min) (point))))
+	(setq target-lines (count-lines (point-min) (point)))
+	;; Don't forget to count the last line.
+	(if (not (bolp))
+	    (setq target-lines (1+ target-lines))))
       (if (<= (window-height window) (* 2 window-min-height))
 	  ;; At this point, every window on the frame is too small to split.
 	  (setq w2 (display-buffer buf))
