@@ -81,7 +81,7 @@
 ;;   footer).  A different algorithm should be used.  It is easy to
 ;;   compute how many blank lines there are before and after the page
 ;;   headers, and after the page footer.  But it is possible to compute
-;;   the number of blank lines before the page footer by euristhics
+;;   the number of blank lines before the page footer by heuristics
 ;;   only.  Is it worth doing?
 ;; - Allow a user option to mean that all the manpages should go in
 ;;   the same buffer, where they can be browsed with M-n and M-p.
@@ -351,6 +351,7 @@ make -a one of the switches, if your `man' program supports it.")
   (define-key Man-mode-map "q"    'Man-quit)
   (define-key Man-mode-map "m"    'man)
   (define-key Man-mode-map "\r"   'man-follow)
+  (define-key Man-mode-map [mouse-2]   'man-follow-mouse)
   (define-key Man-mode-map "?"    'describe-mode)
   )
 
@@ -418,16 +419,6 @@ This is necessary if one wants to dump man.el with Emacs."
 	   )))
 )
 
-(defsubst Man-match-substring (&optional n string)
-  "Return the substring matched by the last search.
-Optional arg N means return the substring matched by the Nth paren
-grouping.  Optional second arg STRING means return a substring from
-that string instead of from the current buffer."
-  (if (null n) (setq n 0))
-  (if string
-      (substring string (match-beginning n) (match-end n))
-    (buffer-substring (match-beginning n) (match-end n))))
-
 (defsubst Man-make-page-mode-string ()
   "Formats part of the mode line for Man mode."
   (format "%s page %d of %d"
@@ -471,13 +462,13 @@ and the Man-section-translations-alist variables)."
     (cond
      ;; "chmod(2V)" case ?
      ((string-match (concat "^" Man-reference-regexp "$") ref)
-      (setq name (Man-match-substring 1 ref)
-	    section (Man-match-substring 2 ref)))
+      (setq name (match-string 1 ref)
+	    section (match-string 2 ref)))
      ;; "2v chmod" case ?
      ((string-match (concat "^\\(" Man-section-regexp
 			    "\\) +\\(" Man-name-regexp "\\)$") ref)
-      (setq name (Man-match-substring 2 ref)
-	    section (Man-match-substring 1 ref))))
+      (setq name (match-string 2 ref)
+	    section (match-string 1 ref))))
     (if (string= name "")
 	ref				; Return the reference as is
       (if Man-downcase-section-letters-flag
@@ -517,7 +508,7 @@ This guess is based on the text surrounding the cursor."
 	      word
 	      (if (looking-at
 		   (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
-		  (format "(%s)" (Man-match-substring 1))
+		  (format "(%s)" (match-string 1))
 		"")))))
 
 
@@ -547,11 +538,10 @@ all sections related to a subject, put something appropriate into the
 			(format "Manual entry%s: "
 				(if (string= default-entry "")
 				    ""
-				  (format " (default %s)" default-entry))))))
+				  (format " (default %s)" default-entry)))
+			nil nil default-entry)))
 	   (if (string= input "")
-	       (if (string= default-entry "")
-		   (error "No man args given")
-		 default-entry)
+	       (error "No man args given")
 	     input))))
 
   ;; Possibly translate the "subject(section)" syntax into the
@@ -568,6 +558,13 @@ all sections related to a subject, put something appropriate into the
 	  (string= man-args ""))
       (error "No item under point")
     (man man-args)))
+
+(defun man-follow-mouse (e)
+  "Get a Un*x manual page of the item under the mouse and put it in a buffer."
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point e)
+    (call-interactively 'man-follow)))
 
 (defun Man-getpage-in-background (topic)
   "Use TOPIC to build and fire off the manpage and cleaning command."
@@ -713,6 +710,11 @@ Same for the ANSI bold and normal escape sequences."
   (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
     (replace-match "+")
     (put-text-property (1- (point)) (point) 'face 'bold))
+  (goto-char (point-min))
+  ;; Try to recognize common forms of cross references.
+  (while (re-search-forward "\\w+([0-9].?)" nil t)
+    (put-text-property (match-beginning 0) (match-end 0)
+		       'mouse-face 'highlight))
   (Man-softhyphen-to-minus)
   (message "%s man page made up" Man-arguments))
 
@@ -886,7 +888,7 @@ The following key bindings are currently in effect in the buffer:
 	    (while (and (not (eobp)) (/= (point) runningpoint))
 	      (setq runningpoint (point))
 	      (if (re-search-forward Man-hyphenated-reference-regexp end t)
-		  (let* ((word (Man-match-substring 0))
+		  (let* ((word (match-string 0))
 			 (len (1- (length word))))
 		    (if hyphenated
 			(setq word (concat hyphenated word)
@@ -912,7 +914,7 @@ The following key bindings are currently in effect in the buffer:
     (while (not (eobp))
       (setq header
 	    (if (looking-at Man-page-header-regexp)
-		(Man-match-substring 1)
+		(match-string 1)
 	      nil))
       ;; Go past both the current and the next Man-first-heading-regexp
       (if (re-search-forward Man-first-heading-regexp nil 'move 2)
