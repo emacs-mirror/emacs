@@ -79,8 +79,8 @@ same as ENDRECFUN."
 				    (function
 				     (lambda (a b)
 				       (> 0 (compare-buffer-substrings 
-					     nil (car a) (nth 1 a)
-					     nil (car b) (nth 1 b))))))
+					     nil (car a) (cdr a)
+					     nil (car b) (cdr b))))))
 				   (t
 				    'string<)))
 		  (sort sort-lists
@@ -92,8 +92,8 @@ same as ENDRECFUN."
 			       (function
 				(lambda (a b)
 				  (> 0 (compare-buffer-substrings 
-					nil (car (car a)) (nth 1 (car a))
-					nil (car (car b)) (nth 1 (car b)))))))
+					nil (car (car a)) (cdr (car a))
+					nil (car (car b)) (cdr (car b)))))))
 			      (t
 			       (function
 				(lambda (a b)
