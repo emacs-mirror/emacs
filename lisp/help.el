@@ -1199,7 +1199,10 @@ help buffer."
 	      args (cddr item))
 	(setq help-xref-stack (cdr help-xref-stack))))
     (apply method args)
-    (goto-char position)))
+    ;; We're not in the right buffer to do this, and we don't actually
+    ;; know which we should be in.
+    ;;(goto-char position)
+    ))
 
 (defun help-go-back ()
   "Invoke the [back] button (if any) in the Help mode buffer."
