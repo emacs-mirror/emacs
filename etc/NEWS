@@ -65,6 +65,8 @@ are recognized:
 `all'      -- delete all whitespace, including tabs, spaces and newlines;
 nil        -- just delete one character.
 
+Default value is `untabify'.
+
 [This change was made in Emacs 20.3 but not mentioned then.]
 
 ** The new user-option `confirm-kill-emacs' can be customized to
