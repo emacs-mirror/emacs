@@ -4332,19 +4332,7 @@ concat (s1, s2, s3)
 char *
 etags_getcwd ()
 {
-#ifdef MSDOS
-  char *p, path[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
-
-  getwd (path);
-  for (p = path; *p != '\0'; p++)
-    if (*p == '\\')
-      *p = '/';
-    else
-      *p = lowcase (*p);
-
-  return strdup (path);
-#else /* not MSDOS */
-#if HAVE_GETCWD
+#ifdef HAVE_GETCWD
   int bufsize = 200;
   char *path = xnew (bufsize, char);
 
@@ -4357,7 +4345,20 @@ etags_getcwd ()
     }
 
   return path;
-#else /* not MSDOS and not HAVE_GETCWD */
+#else /* not HAVE_GETCWD */
+#ifdef MSDOS
+  char *p, path[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
+
+  getwd (path);
+
+  for (p = path; *p != '\0'; p++)
+    if (*p == '\\')
+      *p = '/';
+    else
+      *p = lowcase (*p);
+
+  return strdup (path);
+#else /* not MSDOS */
   struct linebuffer path;
   FILE *pipe;
 
@@ -4368,8 +4369,8 @@ etags_getcwd ()
   pclose (pipe);
 
   return path.buffer;
-#endif /* not HAVE_GETCWD */
 #endif /* not MSDOS */
+#endif /* not HAVE_GETCWD */
 }
 
 /* Return a newly allocated string containing the filename
