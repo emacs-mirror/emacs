@@ -94,7 +94,7 @@
 	utf-8-translation-table-for-encode.
 
 	* international/mule-diag.el (describe-coding-system): Describe
-	`dependency' property..
+	`dependency' property.
 
 	* international/mule-conf.el (emacs-mule): Add property
 	`composition'.
