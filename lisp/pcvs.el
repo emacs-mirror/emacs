@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.14 2000/11/03 22:34:26 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.15 2000/11/06 07:17:33 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2112,12 +2112,14 @@ The exact behavior is determined also by `cvs-dired-use-hook'."
 ;; hook into uniquify
 ;;
 
-(defadvice uniquify-buffer-file-name (after pcl-cvs-uniquify activate)
-  (or ad-return-value
-      (save-excursion
-	(set-buffer (ad-get-arg 0))
-	(when (eq major-mode 'cvs-mode)
-	  (setq ad-return-value list-buffers-directory)))))
+;; Don't suck in advice.el unless necessary.
+(eval-after-load "uniquify"
+  '(defadvice uniquify-buffer-file-name (after pcl-cvs-uniquify activate)
+     (or ad-return-value
+	 (save-excursion
+	   (set-buffer (ad-get-arg 0))
+	   (when (eq major-mode 'cvs-mode)
+	     (setq ad-return-value list-buffers-directory))))))
 
 
 (provide 'pcvs)
