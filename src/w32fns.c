@@ -15135,7 +15135,7 @@ system to handle them.  */);
   init_x_parm_symbols ();
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
-	       doc: /* List of directories to search for bitmap files for w32.  */);
+	       doc: /* List of directories to search for window system bitmap files.  */);
   Vx_bitmap_file_path = decode_env_path ((char *) 0, "PATH");
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
