@@ -2255,7 +2255,7 @@ fi
 HAVE_X_SM=no
 if test "${HAVE_X11}" = "yes"; then
   AC_CHECK_HEADER(X11/SM/SMlib.h,
-    AC_CHECK_LIB(SM, SmcOpenConnection, HAVE_X_SM=yes, -lICE))
+    AC_CHECK_LIB(SM, SmcOpenConnection, HAVE_X_SM=yes, , -lICE))
 
   if test "${HAVE_X_SM}" = "yes"; then
     AC_DEFINE(HAVE_X_SM, 1, [Define to 1 if you have the SM library (-lSM).])
