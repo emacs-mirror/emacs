@@ -640,6 +640,28 @@ BUFFER can be either a buffer or the name of one."
     (and proc (memq (process-status proc) '(open run stop)))))
 
 ;;;###autoload
+(defun make-comint-in-buffer (name buffer program &optional startfile &rest switches)
+  "Make a comint process NAME in BUFFER, running PROGRAM.
+If BUFFER is nil, it defaults to NAME surrounded by `*'s.
+PROGRAM should be either a string denoting an executable program to create
+via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
+connection to be opened via `open-network-stream'.  If there is already a
+running process in that buffer, it is not restarted.  Optional third arg
+STARTFILE is the name of a file to send the contents of to the process.
+
+If PROGRAM is a string, any more args are arguments to PROGRAM."
+  (or (fboundp 'start-process)
+      (error "Multi-processing is not supported for this system"))
+  (setq buffer (get-buffer-create (or buffer (concat "*" name "*"))))
+  ;; If no process, or nuked process, crank up a new one and put buffer in
+  ;; comint mode.  Otherwise, leave buffer and existing process alone.
+  (unless (comint-check-proc buffer)
+    (with-current-buffer buffer
+      (comint-mode)) ; Install local vars, mode, keymap, ...
+    (comint-exec buffer name program startfile switches))
+  buffer)
+
+;;;###autoload
 (defun make-comint (name program &optional startfile &rest switches)
   "Make a comint process NAME in a buffer, running PROGRAM.
 The name of the buffer is made by surrounding NAME with `*'s.
@@ -650,16 +672,7 @@ running process in that buffer, it is not restarted.  Optional third arg
 STARTFILE is the name of a file to send the contents of to the process.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
-  (or (fboundp 'start-process)
-      (error "Multi-processing is not supported for this system"))
-  (let ((buffer (get-buffer-create (concat "*" name "*"))))
-    ;; If no process, or nuked process, crank up a new one and put buffer in
-    ;; comint mode.  Otherwise, leave buffer and existing process alone.
-    (unless (comint-check-proc buffer)
-      (with-current-buffer buffer
-	(comint-mode)) ; Install local vars, mode, keymap, ...
-      (comint-exec buffer name program startfile switches))
-    buffer))
+  (apply #'make-comint-in-buffer name nil program startfile switches))
 
 ;;;###autoload
 (defun comint-run (program)
