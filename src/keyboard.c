@@ -2639,7 +2639,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
     {
       Lisp_Object msg;
-      
+      int count = specpdl_ptr - specpdl;
+
+      specbind (Qmessage_truncate_lines, Qt);
       msg = XCDR (XCDR (c));
 
       if (!NILP (Vshow_help_function))
@@ -2657,6 +2659,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	    message (0);
 	}
 
+      unbind_to (count, Qnil);
       goto retry;
     }
   
