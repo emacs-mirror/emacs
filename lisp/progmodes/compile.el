@@ -97,40 +97,45 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 (defvar compilation-error-regexp-alist
   '(
     ;; NOTE!  This first one is repeated in grep-regexp-alist, below.
+
     ;; 4.3BSD grep, cc, lint pass 1:
-    ;; /usr/src/foo/foo.c(8): warning: w may be used before set
-    ;; or GNU utilities
-    ;; foo.c:8: error message
+    ;; 	/usr/src/foo/foo.c(8): warning: w may be used before set
+    ;; or GNU utilities:
+    ;; 	foo.c:8: error message
+    ;; or HP-UX 7.0 fc:
+    ;; 	foo.f          :16    some horrible error message
     ;;
     ;; We'll insist that the number be followed by a colon or closing
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
-    ("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:)]" 1 2)
+    ("^\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2)
+
     ;; 4.3BSD lint pass 2
-    ;; strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
+    ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
     ("[ \t:]+\\([^:( \t\n]+\\)[ \t]*[:(]*(+[ \t]*\\([0-9]+\\))[:) \t]*$" 1 2)
+
     ;; 4.3BSD lint pass 3
-    ;; bloofle defined( /users/wolfgang/foo.c(4) ), but never used
+    ;; 	bloofle defined( /users/wolfgang/foo.c(4) ), but never used
     ;; This used to be
     ;; ("[ \t(]+\\([^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]+" 1 2)
     ;; which is regexp Impressionism - it matches almost anything!
     ("([ \t]*\\([^:( \t\n]+\\)[ \t]*[:(][ \t]*\\([0-9]+\\))" 1 2)
+
     ;; Line 45 of "foo.c": bloofel undefined (who does this?)
     ("^[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+of[ \t]+\"\\([^\"\n]+\\)\":" 2 1)
-    ;; Apollo cc, 4.3BSD fc
-    ;; "foo.f", line 3: Error: syntax error near end of statement
-    ("^\"\\([^\"\n]+\\)\", line \\([0-9]+\\):" 1 2)
-    ;; HP-UX 7.0 fc
-    ;; foo.f          :16    some horrible error message
-    ("^\\([^ \t\n:]+\\)[ \t]*:\\([0-9]+\\)" 1 2)
-    ;; IBM AIX PS/2 C version 1.1
-    ;; ****** Error number 140 in line 8 of file errors.c ******
+
+    ;; Apollo cc, 4.3BSD fc:
+    ;;	"foo.f", line 3: Error: syntax error near end of statement
+    ;; or MIPS RISC CC - the one distributed with Ultrix:
+    ;;	ccom: Error: foo.c, line 2: syntax error
+    ("\\b\"?\\([^,\" \n\t]\\)\"?, line \\([0-9]+\\):" 1 2)
+
+    ;; IBM AIX PS/2 C version 1.1:
+    ;;	****** Error number 140 in line 8 of file errors.c ******
     ("in line \\([0-9]+\\) of file \\([^ \n]+[^. \n]\\)\\.? " 2 1)
     ;; IBM AIX lint is too painful to do right this way.  File name
     ;; prefixes entire sections rather than being on each line.
 
-    ;; MIPS RISC CC - the one distributed with Ultrix.
-    ("^[^,\n]+: \\([^,\n]+\\), line \\([0-9]+\\):" 1 2)
     )
   "Alist that specifies how to match errors in compiler output.
 Each element has the form (REGEXP FILE-IDX LINE-IDX).
