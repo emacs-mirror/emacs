@@ -1,5 +1,9 @@
 2004-03-29  Kenichi Handa  <handa@m17n.org>
 
+	* international/ucs-tables.el (ucs-insert): Fix the error message.
+
+2004-03-29  Kenichi Handa  <handa@m17n.org>
+
 	* international/mule-util.el (char-displayable-p): Fix generation
 	of XLFD file name.
 
