@@ -161,14 +161,6 @@ specifies a fraction of the frame's height; an integer specifies the
 maximum number of lines; @code{nil} means do not resize the minibuffer
 window automatically.  The default value is 0.25.
 
-@vindex minibuffer-scroll-overlap
-  Scrolling works specially in the minibuffer window.  When the
-minibuffer is just one line high, and it contains a long line of text
-that won't fit on the screen, scrolling automatically maintains an
-overlap of a certain number of characters from one continuation line to
-the next.  The variable @code{minibuffer-scroll-overlap} specifies how
-many characters of overlap; the default is 20.
-
   If while in the minibuffer you issue a command that displays help text
 of any sort in another window, you can use the @kbd{C-M-v} command while
 in the minibuffer to scroll the help text.  This lasts until you exit
