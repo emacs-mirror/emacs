@@ -166,7 +166,7 @@
 	      )))
   "Options to pass to the Unix-style shell. 
 Don't put `-c' here, as it is added automatically."
-  :type 'string
+  :type '(choice (const nil) string)
   :group 'viper-ex)
 
 (defcustom viper-glob-function
