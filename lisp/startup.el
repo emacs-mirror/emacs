@@ -217,6 +217,11 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	       (string= vc "simple"))
 	   (setq version-control 'never))))
 
+  (if (string-equal (getenv "LC_CTYPE") "iso_8859_1")
+      (progn 
+	(standard-display-european t)
+	(require 'iso-syntax)))
+
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
   ;;! to it, then it would be better to eliminate the option.
