@@ -232,6 +232,10 @@ chapter."
   (define-key texinfo-mode-map "\C-c\C-m\C-r" 'makeinfo-region)
   (define-key texinfo-mode-map "\C-c\C-m\C-b" 'makeinfo-buffer)
 
+  ; Bindings for texinfmt.el.
+  (define-key texinfo-mode-map "\C-c\C-e\C-r"    'texinfo-format-region)
+  (define-key texinfo-mode-map "\C-c\C-e\C-b"    'texinfo-format-buffer)
+
   ;; bindings for updating nodes and menus
 
   (define-key texinfo-mode-map "\C-c\C-um"   'texinfo-master-menu)
