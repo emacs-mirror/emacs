@@ -553,6 +553,11 @@ set its foreground and background to the default background and foreground."
 (defconst x-font-regexp-weight nil)
 (defconst x-font-regexp-slant nil)
 
+(defconst x-font-regexp-weight-subnum 1)
+(defconst x-font-regexp-slant-subnum 2)
+(defconst x-font-regexp-swidth-subnum 3)
+(defconst x-font-regexp-adstyle-subnum 4)
+
 ;;; Regexps matching font names in "Host Portable Character Representation."
 ;;;
 (let ((- 		"[-?]")
