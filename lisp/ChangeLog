@@ -23,12 +23,6 @@
 	* progmodes/cc-engine.el (c-backward-to-decl-anchor): Detect
 	leading labels correctly.
 
-2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
-
-	* progmodes/cc-defs.el (c-langelem-sym, c-langelem-pos,
-	c-langelem-2nd-pos): Added accessor functions for syntactic
-	elements.
-
 2003-08-02  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/ispell.el: Don't redo key bindings on loading, put
