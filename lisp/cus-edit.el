@@ -1847,7 +1847,7 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 	   (let* ((format (widget-get type :format))
 		  tag-format value-format)
 	     (unless (string-match ":" format)
-	       (error "Bad format."))
+	       (error "Bad format"))
 	     (setq tag-format (substring format 0 (match-end 0)))
 	     (setq value-format (substring format (match-end 0)))
 	     (push (widget-create-child-and-convert
@@ -2009,7 +2009,7 @@ Optional EVENT is the location for the menu."
 	 (set (or (get symbol 'custom-set) 'set-default))
 	  val)
     (cond ((eq state 'hidden)
-	   (error "Cannot set hidden variable."))
+	   (error "Cannot set hidden variable"))
 	  ((setq val (widget-apply child :validate))
 	   (goto-char (widget-get val :from))
 	   (error "%s" (widget-get val :error)))
@@ -2031,7 +2031,7 @@ Optional EVENT is the location for the menu."
 	 (set (or (get symbol 'custom-set) 'set-default))
 	 val)
     (cond ((eq state 'hidden)
-	   (error "Cannot set hidden variable."))
+	   (error "Cannot set hidden variable"))
 	  ((setq val (widget-apply child :validate))
 	   (goto-char (widget-get val :from))
 	   (error "%s" (widget-get val :error)))
@@ -2315,7 +2315,7 @@ Match frames with dark backgrounds.")
 
 (defvar custom-face-menu 
   '(("Set for Current Session" custom-face-set)
-    ("Save for Future Sessions" custom-face-save)
+    ("Save for Future Sessions" custom-face-save-command)
     ("Reset to Saved" custom-face-reset-saved
      (lambda (widget)
        (get (widget-value widget) 'saved-face)))
@@ -2394,8 +2394,13 @@ Optional EVENT is the location for the menu."
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
 
+(defun custom-face-save-command (widget)
+  "Save in `.emacs' the face attributes in WIDGET."
+  (custom-face-save widget)
+  (custom-save-all))
+
 (defun custom-face-save (widget)
-  "Make the face attributes in WIDGET default."
+  "Prepare for saving WIDGET's face attributes, but don't write `.emacs'."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
 	 (value (widget-value child)))
