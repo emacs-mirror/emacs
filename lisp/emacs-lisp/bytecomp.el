@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.68 $")
+(defconst byte-compile-version "$Revision: 2.69 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1028,13 +1028,21 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 (defun byte-compile-callargs-warn (form)
   (let* ((def (or (byte-compile-fdefinition (car form) nil)
 		  (byte-compile-fdefinition (car form) t)))
-	 (sig (and def (byte-compile-arglist-signature
-			 (if (eq 'lambda (car-safe def))
-			     (nth 1 def)
-			   (if (byte-code-function-p def)
-			       (aref def 0)
-			     '(&rest def))))))
+	 (sig (if def
+		  (byte-compile-arglist-signature
+		   (if (eq 'lambda (car-safe def))
+		       (nth 1 def)
+		     (if (byte-code-function-p def)
+			 (aref def 0)
+		       '(&rest def))))
+		(if (and (fboundp (car form))
+			 (subrp (symbol-function (car form))))
+		    (subr-arity (symbol-function (car form))))))
 	 (ncall (length (cdr form))))
+    ;; Check many or unevalled from subr-arity.
+    (if (and (cdr-safe sig)
+	     (not (numberp (cdr sig))))
+	(setcdr sig nil))
     (if sig
 	(if (or (< ncall (car sig))
 		(and (cdr sig) (> ncall (cdr sig))))
@@ -1759,7 +1767,7 @@ list that represents a doc string reference.
   (if byte-compile-output
       (let ((form (byte-compile-out-toplevel t 'file)))
 	(cond ((eq (car-safe form) 'progn)
-	       (mapcar 'byte-compile-output-file-form (cdr form)))
+	       (mapc 'byte-compile-output-file-form (cdr form)))
 	      (form
 	       (byte-compile-output-file-form form)))
 	(setq byte-compile-constants nil
@@ -1852,7 +1860,7 @@ list that represents a doc string reference.
 (put 'prog1 'byte-hunk-handler 'byte-compile-file-form-progn)
 (put 'prog2 'byte-hunk-handler 'byte-compile-file-form-progn)
 (defun byte-compile-file-form-progn (form)
-  (mapcar 'byte-compile-file-form (cdr form))
+  (mapc 'byte-compile-file-form (cdr form))
   ;; Return nil so the forms are not output twice.
   nil)
 
@@ -2363,7 +2371,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (if byte-compile-generate-call-tree
       (byte-compile-annotate-call-tree form))
   (byte-compile-push-constant (car form))
-  (mapcar 'byte-compile-form (cdr form)) ; wasteful, but faster.
+  (mapc 'byte-compile-form (cdr form))	; wasteful, but faster.
   (byte-compile-out 'byte-call (length (cdr form))))
 
 (defun byte-compile-variable-ref (base-op var)
@@ -2687,19 +2695,19 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (cond ((= count 0)
 	   (byte-compile-constant nil))
 	  ((< count 5)
-	   (mapcar 'byte-compile-form (cdr form))
+	   (mapc 'byte-compile-form (cdr form))
 	   (byte-compile-out
 	    (aref [byte-list1 byte-list2 byte-list3 byte-list4] (1- count)) 0))
 	  ((and (< count 256) (not (byte-compile-version-cond
 				    byte-compile-compatibility)))
-	   (mapcar 'byte-compile-form (cdr form))
+	   (mapc 'byte-compile-form (cdr form))
 	   (byte-compile-out 'byte-listN count))
 	  (t (byte-compile-normal-call form)))))
 
 (defun byte-compile-concat (form)
   (let ((count (length (cdr form))))
     (cond ((and (< 1 count) (< count 5))
-	   (mapcar 'byte-compile-form (cdr form))
+	   (mapc 'byte-compile-form (cdr form))
 	   (byte-compile-out
 	    (aref [byte-concat2 byte-concat3 byte-concat4] (- count 2))
 	    0))
@@ -2708,7 +2716,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	   (byte-compile-form ""))
 	  ((and (< count 256) (not (byte-compile-version-cond
 				    byte-compile-compatibility)))
-	   (mapcar 'byte-compile-form (cdr form))
+	   (mapc 'byte-compile-form (cdr form))
 	   (byte-compile-out 'byte-concatN count))
 	  ((byte-compile-normal-call form)))))
 
@@ -2822,7 +2830,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	((and (not (byte-compile-version-cond
 		    byte-compile-compatibility))
 	      (<= (length form) 256))
-	 (mapcar 'byte-compile-form (cdr form))
+	 (mapc 'byte-compile-form (cdr form))
 	 (if (cdr (cdr form))
 	     (byte-compile-out 'byte-insertN (length (cdr form)))
 	   (byte-compile-out 'byte-insert 0)))
@@ -3020,7 +3028,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (setq for-effect nil)))
 
 (defun byte-compile-funcall (form)
-  (mapcar 'byte-compile-form (cdr form))
+  (mapc 'byte-compile-form (cdr form))
   (byte-compile-out 'byte-call (length (cdr (cdr form)))))
 
 
