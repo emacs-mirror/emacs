@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.25 2000/12/03 16:17:49 schwab Exp $
+;; $Id: type-break.el,v 1.26 2003/04/11 13:06:22 jpw Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -97,7 +97,7 @@ use either \\[customize] or the function `type-break-mode'."
 (defcustom type-break-good-rest-interval (/ type-break-interval 6)
   "*Number of seconds of idle time considered to be an adequate typing rest.
 
-When this variable is non-`nil', emacs checks the idle time between
+When this variable is non-nil, emacs checks the idle time between
 keystrokes.  If this idle time is long enough to be considered a \"good\"
 rest from typing, then the next typing break is simply rescheduled for later.
 
@@ -145,7 +145,7 @@ guess a reasonably good pair of values for this variable."
   :group 'type-break)
 
 (defcustom type-break-query-mode t
-  "*Non-`nil' means ask whether or not to prompt user for breaks.
+  "*Non-nil means ask whether or not to prompt user for breaks.
 If so, call the function specified in the value of the variable
 `type-break-query-function' to do the asking."
   :type 'boolean
@@ -156,7 +156,7 @@ If so, call the function specified in the value of the variable
 It should take a string as an argument, the prompt.
 Usually this should be set to `yes-or-no-p' or `y-or-n-p'.
 
-To avoid being queried at all, set `type-break-query-mode' to `nil'."
+To avoid being queried at all, set `type-break-query-mode' to nil."
   :type '(radio function
                 (function-item yes-or-no-p)
                 (function-item y-or-n-p))
@@ -222,7 +222,7 @@ remove themselves after running.")
 ;; Mode line frobs
 
 (defcustom type-break-mode-line-message-mode nil
-  "*Non-`nil' means put type-break related messages in the mode line.
+  "*Non-nil means put type-break related messages in the mode line.
 Otherwise, messages typically go in the echo area.
 
 See also `type-break-mode-line-format' and its members."
