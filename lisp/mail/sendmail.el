@@ -537,12 +537,24 @@ the user from the mailer."
 				 (insert "\""))))
 			 (insert " <" login ">\n"))
 			((eq mail-from-style 'parens)
-			 (insert "From: " login " (" fullname)
-			 (let ((fullname-end (point-marker)))
-			   (backward-char (length fullname))
-			   ;; RFC 822 says ()\ must be escaped in comments.
-			   (while (re-search-forward "[()\\]" fullname-end 1)
-			     (replace-match "\\\\\\&" t)))
+			 (insert "From: " login " (")
+			 (let ((fullname-start (point)))
+			   (insert fullname)
+			   (let ((fullname-end (point-marker)))
+			     (goto-char fullname-start)
+			     ;; RFC 822 says \ and nonmatching parentheses
+			     ;; must be escaped in comments.
+			     ;; Escape every instance of ()\ ...
+			     (while (re-search-forward "[()\\]" fullname-end 1)
+			       (replace-match "\\\\\\&" t))
+			     ;; ... then undo escaping of matching parentheses,
+			     ;; including matching nested parentheses.
+			     (goto-char fullname-start)
+			     (while (re-search-forward 
+				     "\\(\\=\\|[^\\]\\(\\\\\\\\\\)*\\)\\\\(\\(\\([^\\]\\|\\\\\\\\\\)*\\)\\\\)"
+				     fullname-end 1)
+			       (replace-match "\\1(\\3)" t)
+			       (goto-char fullname-start))))
 			 (insert ")\n"))
 			((null mail-from-style)
 			 (insert "From: " login "\n")))))
