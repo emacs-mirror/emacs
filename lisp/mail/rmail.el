@@ -1795,9 +1795,8 @@ Returns t if a new message is displayed after the delete, or nil otherwise."
   (rmail-set-attribute "deleted" t)
   (let ((del-msg rmail-current-message))
     (if (rmail-summary-exists)
-	(save-excursion
-	  (set-buffer rmail-summary-buffer)
-	  (rmail-summary-mark-deleted del-msg)))
+	(rmail-select-summary
+	 (rmail-summary-mark-deleted del-msg)))
     (prog1 (rmail-next-undeleted-message (if backward -1 1))
       (rmail-maybe-display-summary))))
 
