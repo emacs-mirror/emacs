@@ -1,5 +1,10 @@
 2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* keymap.c (Fkey_description): Use empty_string.
+	(Fdescribe_bindings_internal, describe_buffer_bindings): Remove.
+	(syms_of_keymap): Setup inheritance between maps.
+	Don't export Sdescribe_bindings_internal any more.
+
 	* minibuf.c (keys_of_minibuf): Eliminate redundant bindings.
 
 2001-10-12  Gerd Moellmann  <gerd@gnu.org>
@@ -20,11 +25,14 @@
 
 2001-10-11  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* callint.c (Fcall_interactively): Remove unused code.  Use XCAR.
+
 	* xfns.c (x_create_bitmap_from_file, x_find_image_file):
 	* w32proc.c (sys_spawnve):
 	* w32fns.c (x_create_bitmap_from_file, x_find_image_file):
 	* w32.c (check_windows_init_file):
 	* sound.c (Fplay_sound):
+	* emacs.c (init_cmdargs):
 	* process.c (Fstart_process): Update calls to openp.
 
 	* callproc.c (Vexec_suffixes): New var.

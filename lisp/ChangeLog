@@ -1,5 +1,8 @@
 2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* frame.el (special-display-popup-frame): Obey new specs `same-window'
+	and `same-frame'.
+
 	* menu-bar.el (minibuffer-local-*map): Take inheritance into account.
 
 	* simple.el (minibuffer-local*-map): Remove redundant bindings.

@@ -15,6 +15,10 @@ in line with the output of other GNU tools.
 
 ** perl-mode has a new variable `perl-indent-continued-arguments'.
 
+** `special-display-buffer-names' and `special-display-regexps' now
+understand two new boolean pseudo-frame-parameters `same-frame' and
+`same-window'.
+
 ** When pure storage overflows while dumping, Emacs now prints how
 much pure storage it will approximately need.
 
@@ -71,6 +75,13 @@ accepts a float as UID parameter.
 ** `define-derived-mode' now accept nil as the parent.
 
 ** The local variable `no-byte-compile' in elisp files is now obeyed.
+
+** New functions `keymap-prompt' and `current-active-maps'.
+
+** New function `describe-buffer-bindings'.
+
+** New vars `exec-suffixes' and `load-suffixes' used when
+searching for an executable resp. an elisp file.
 
 ** Variable aliases have been implemented
 
