@@ -1759,7 +1759,7 @@ if test "${HAVE_X11}" = "yes"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
     AC_CHECK_HEADER(gif_lib.h,
-      AC_CHECK_LIB(ungif, DGifOpenFileName, HAVE_GIF=yes, , -lX11))
+      AC_CHECK_LIB(ungif, DGifOpen, HAVE_GIF=yes, , -lX11))
     CFLAGS="${old_c_flags}"
   fi
 
