@@ -1967,22 +1967,27 @@ window_fixed_size_p (w, width_p, check_siblings_p)
     }
   else if (BUFFERP (w->buffer))
     {
-      Lisp_Object val;
-      struct buffer *old = current_buffer;
-
-      current_buffer = XBUFFER (w->buffer);
-      val = find_symbol_value (Qwindow_size_fixed);
-      current_buffer = old;
-
-      fixed_p = 0;
-      if (!EQ (val, Qunbound))
+      if (w->height_fixed_p && !width_p)
+	fixed_p = 1;
+      else
 	{
-	  fixed_p = !NILP (val);
-	  
-	  if (fixed_p
-	      && ((EQ (val, Qheight) && width_p)
-		  || (EQ (val, Qwidth) && !width_p)))
-	    fixed_p = 0;
+	  struct buffer *old = current_buffer;
+	  Lisp_Object val;
+      
+	  current_buffer = XBUFFER (w->buffer);
+	  val = find_symbol_value (Qwindow_size_fixed);
+	  current_buffer = old;
+
+	  fixed_p = 0;
+	  if (!EQ (val, Qunbound))
+	    {
+	      fixed_p = !NILP (val);
+	      
+	      if (fixed_p
+		  && ((EQ (val, Qheight) && width_p)
+		      || (EQ (val, Qwidth) && !width_p)))
+		fixed_p = 0;
+	    }
 	}
 
       /* Can't tell if this one is resizable without looking at
@@ -2404,7 +2409,6 @@ BUFFER can be a buffer or buffer name.")
 {
   register Lisp_Object tem;
   register struct window *w = decode_window (window);
-  struct buffer *b;
 
   buffer = Fget_buffer (buffer);
   CHECK_BUFFER (buffer, 1);
@@ -4585,7 +4589,6 @@ A nil width parameter means no margin.")
      Lisp_Object window, left, right;
 {
   struct window *w = decode_window (window);
-  struct frame *f = XFRAME (w->frame);
 
   if (!NILP (left))
     CHECK_NUMBER_OR_FLOAT (left, 1);
