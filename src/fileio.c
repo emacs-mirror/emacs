@@ -6023,12 +6023,9 @@ provides a file dialog box.  */)
   if (NILP (dir))
     dir = current_buffer->directory;
   if (NILP (default_filename))
-    {
-      if (! NILP (initial))
-	default_filename = Fexpand_file_name (initial, dir);
-      else
-	default_filename = current_buffer->filename;
-    }
+    default_filename = !NILP (initial)
+      ? Fexpand_file_name (initial, dir)
+      : current_buffer->filename;
 
   /* If dir starts with user's homedir, change that to ~. */
   homedir = (char *) egetenv ("HOME");
@@ -6154,7 +6151,7 @@ provides a file dialog box.  */)
       if (! replace_in_history)
 	add_to_history = 1;
 
-      val = build_string ("");
+      val = empty_string;
     }
 
   unbind_to (count, Qnil);
