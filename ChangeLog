@@ -1,3 +1,7 @@
+2002-04-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* configure.in: Add --with-sound.
+
 2002-03-18  Kim F. Storm  <storm@cua.dk>
 
 	* configure.in: Test for sendto, recvfrom, getsockopt, setsockopt,
