@@ -7248,10 +7248,12 @@ fast_find_position (w, pos, hpos, vpos, x, y)
   int maybe_next_line_p = 0;
   int line_start_position;
   int yb = window_text_bottom_y (w);
-  struct glyph_row *row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  struct glyph_row *best_row = row;
-  int row_vpos = 0, best_row_vpos = 0;
+  struct glyph_row *row, *best_row;
+  int row_vpos, best_row_vpos;
   int current_x;
+
+  row = best_row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  row_vpos = best_row_vpos = MATRIX_ROW_VPOS (row, w->current_matrix);
 
   while (row->y < yb)
     {
