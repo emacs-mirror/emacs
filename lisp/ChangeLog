@@ -1,3 +1,15 @@
+1999-10-14  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: 
+	* international/fontset.el:
+	* international/mule-conf.el: Add latin-iso8859-1[45].
+
+	* language/european.el: Add Latin-8, Latin-9.  Modify some doc
+	strings.
+
+	* startup.el (iso-8859-n-locale-regexp): Modify for Latin-[89].
+	(command-line): Detect Latin-[89] locales.
+
 1999-10-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* international/mule-cmds.el (select-safe-coding-system)
