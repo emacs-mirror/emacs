@@ -2,7 +2,7 @@
 
 	* isearch.el (isearch-mode-map): Treat S-SPC like SPC.
 
-2004-12-10  Nick Roberts  <nickrob@snap.net.nz>
+2004-12-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xt-mouse.el (xterm-mouse-event): Correct cursor position in a
 	buffer with a display margin.
@@ -41,10 +41,9 @@
 	* edmacro.el: `edit-kbd-macro' is now bound to `C-x C-k e'.
 	(edmacro-finish-edit): Further update for keyboard macros that are
 	lambda forms.
-	(edmacro-sanitize-for-string): Correctly remove Meta modifier
-	(as suggested by Kim Storm).
+	(edmacro-sanitize-for-string): Correctly remove Meta modifier.
 
-2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-unfontify-region): Save buffer state.
 	(font-lock-default-unfontify-region): Don't save buffer state any more.
