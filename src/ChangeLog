@@ -1,3 +1,13 @@
+2004-05-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c: Prefix RIF functions with w32con_ to avoid
+	namespace clash with functions in term.c and w32term.c.
+
+	* w32menu.c (add_menu_item, w32_menu_display_help)
+	[USE_LISP_UNION_TYPE]: Cast from Lisp_Object using i member.
+
+	* w32term.h (display_x_get_resource, vga_stdcolor_name): Add prototype. 
+
 2004-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.h (DECL_ALIGN): Remove restriction on MS-DOS systems.
