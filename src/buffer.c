@@ -1635,6 +1635,109 @@ recenter_overlay_lists (buf, pos)
 
   XFASTINT (buf->overlay_center) = pos;
 }
+
+/* Fix up overlays that were garbled as a result of permuting markers
+   in the range START through END.  Any overlay with at least one
+   endpoint in this range will need to be unlinked from the overlay
+   list and reinserted in its proper place.
+   Such an overlay might even have negative size at this point.
+   If so, we'll reverse the endpoints.  Can you think of anything
+   better to do in this situation?  */
+void
+fix_overlays_in_range (start, end)
+     register int start, end;
+{
+  Lisp_Object tem, overlay;
+  Lisp_Object before_list, after_list;
+  Lisp_Object *ptail, *pbefore = &before_list, *pafter = &after_list;
+  int startpos, endpos;
+
+  /* This algorithm shifts links around instead of consing and GCing.
+     The loop invariant is that before_list (resp. after_list) is a
+     well-formed list except that its last element, the one that
+     *pbefore (resp. *pafter) points to, is still uninitialized.
+     So it's not a bug that before_list isn't initialized, although
+     it may look strange.  */
+  for (ptail = &current_buffer->overlays_before; CONSP (*ptail);)
+    {
+      overlay = XCONS (*ptail)->car;
+      endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+      if (endpos < start)
+	break;
+      startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+      if (endpos < end
+	  || (startpos >= start && startpos < end))
+	{
+	  /* If the overlay is backwards, fix that now.  */
+	  if (startpos > endpos)
+	    {
+	      int tem;
+	      Fset_marker (OVERLAY_START (overlay), endpos, Qnil);
+	      Fset_marker (OVERLAY_END (overlay), startpos, Qnil);
+	      tem = startpos; startpos = endpos; endpos = tem;
+	    }
+	  /* Add it to the end of the wrong list.  Later on,
+	     recenter_overlay_lists will move it to the right place.  */
+	  if (endpos < XINT (current_buffer->overlay_center))
+	    {
+	      *pafter = *ptail;
+	      pafter = &XCONS (*ptail)->cdr;
+	    }
+	  else
+	    {
+	      *pbefore = *ptail;
+	      pbefore = &XCONS (*ptail)->cdr;
+	    }
+	  *ptail = XCONS (*ptail)->cdr;
+	}
+      else
+	ptail = &XCONS (*ptail)->cdr;
+    }
+  for (ptail = &current_buffer->overlays_after; CONSP (*ptail);)
+    {
+      overlay = XCONS (*ptail)->car;
+      startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+      if (startpos >= end)
+	break;
+      endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+      if (startpos >= start
+	  || (endpos >= start && endpos < end))
+	{
+	  if (startpos > endpos)
+	    {
+	      int tem;
+	      Fset_marker (OVERLAY_START (overlay), endpos, Qnil);
+	      Fset_marker (OVERLAY_END (overlay), startpos, Qnil);
+	      tem = startpos; startpos = endpos; endpos = tem;
+	    }
+	  if (endpos < XINT (current_buffer->overlay_center))
+	    {
+	      *pafter = *ptail;
+	      pafter = &XCONS (*ptail)->cdr;
+	    }
+	  else
+	    {
+	      *pbefore = *ptail;
+	      pbefore = &XCONS (*ptail)->cdr;
+	    }
+	  *ptail = XCONS (*ptail)->cdr;
+	}
+      else
+	ptail = &XCONS (*ptail)->cdr;
+    }
+
+  /* Splice the constructed (wrong) lists into the buffer's lists,
+     and let the recenter function make it sane again.  */
+  *pbefore = current_buffer->overlays_before;
+  current_buffer->overlays_before = before_list;
+  recenter_overlay_lists (current_buffer,
+			  XINT (current_buffer->overlay_center));
+
+  *pafter = current_buffer->overlays_after;
+  current_buffer->overlays_after = after_list;
+  recenter_overlay_lists (current_buffer,
+			  XINT (current_buffer->overlay_center));
+}
 
 DEFUN ("overlayp", Foverlayp, Soverlayp, 1, 1, 0,
   "Return t if OBJECT is an overlay.")
