@@ -6400,8 +6400,7 @@ when reading the arguments; if it is nil, (this_command_key_count) is used.")
 	}
     }
 
-  while (! CONSP (cmd) || EQ (XCONS (cmd)->car, Qlambda)
-	 || EQ (XCONS (cmd)->car, Qautoload))
+  while (1)
     {
       final = Findirect_function (cmd);
 
