@@ -1312,8 +1312,8 @@ ARRAY may be a vector or a string, or a byte-code object.  INDEX starts at 0.")
 }
 
 DEFUN ("aset", Faset, Saset, 3, 3, 0,
-  "Store into the element of ARRAY at index INDEX the value NEWVAL.\n\
-ARRAY may be a vector or a string.  INDEX starts at 0.")
+  "Store into the element of ARRAY at index IDX the value NEWELT.\n\
+ARRAY may be a vector or a string.  IDX starts at 0.")
   (array, idx, newelt)
      register Lisp_Object array;
      Lisp_Object idx, newelt;
