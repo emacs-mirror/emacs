@@ -1259,7 +1259,7 @@ test "${exec_prefix}" != NONE &&
 changequote([, ])dnl
 
 AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile \
-	lwlib/Makefile src/Makefile.in, [
+	man/Makefile lwlib/Makefile src/Makefile.in, [
 
 ### Make the necessary directories, if they don't exist.
 for dir in ./src ./lib-src ./cpp ./oldXMenu ./lwlib ./etc ; do
