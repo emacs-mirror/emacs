@@ -460,7 +460,8 @@ Lisp_Object Qevent_symbol_elements;
 /* menu item parts */
 Lisp_Object Qmenu_alias;
 Lisp_Object Qmenu_enable;
-Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCbutton, QCtoggle, QCradio;
+Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
+Lisp_Object QCbutton, QCtoggle, QCradio;
 extern Lisp_Object Vdefine_key_rebound_commands;
 extern Lisp_Object Qmenu_item;
 
@@ -5552,14 +5553,18 @@ parse_menu_item (item, notreal, inmenubar)
      Lisp_Object item;
      int notreal, inmenubar;
 {
-  Lisp_Object def, tem;
+  Lisp_Object def, tem, item_string, start, type;
 
-  Lisp_Object type = Qnil;
-  Lisp_Object cachelist = Qnil;
-  Lisp_Object filter = Qnil;
-  Lisp_Object item_string, start;
+  Lisp_Object cachelist;
+  Lisp_Object filter;
+  Lisp_Object keyhint;
   int i;
   struct gcpro gcpro1, gcpro2, gcpro3;
+  int newcache = 0;
+
+  cachelist = Qnil;
+  filter = Qnil;
+  keyhint = Qnil;
 
 #define RET0					\
   if (1)					\
@@ -5666,9 +5671,25 @@ parse_menu_item (item, notreal, inmenubar)
 		XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]
 		  = XCONS (item)->car;
 	      else if (EQ (tem, QCfilter))
-		filter = XCONS (item)->car;
+		filter = item;
+	      else if (EQ (tem, QCkey_sequence))
+		{
+		  tem = XCONS (item)->car;
+		  if (NILP (cachelist)
+		      && (SYMBOLP (tem) || STRINGP (tem) || VECTORP (tem)))
+		    /* Be GC protected. Set keyhint to item instead of tem. */
+		    keyhint = item;
+		}
+	      else if (EQ (tem, QCkeys))
+		{
+		  tem = XCONS (item)->car;
+		  if (CONSP (tem) || STRINGP (tem) && NILP (cachelist))
+		    XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ]
+		      = tem;
+		}
 	      else if (EQ (tem, QCbutton) && CONSP (XCONS (item)->car))
 		{
+		  Lisp_Object type;
 		  tem = XCONS (item)->car;
 		  type = XCONS (tem)->car;
 		  if (EQ (type, QCtoggle) || EQ (type, QCradio))
@@ -5703,17 +5724,18 @@ parse_menu_item (item, notreal, inmenubar)
   def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
   if (!NILP (filter))
     {
-      def = menu_item_eval_property (Fcons (filter, Fcons (def, Qnil)));
+      def = menu_item_eval_property (Fcons (XCONS (filter)->car,
+					    Fcons (def, Qnil)));
       XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = def;
     }
 
   /* If we got no definition, this item is just unselectable text which
-     is ok when in a submenu and if there is an item string.  */
+     is OK in a submenu but not in the menubar.  */
   item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
   if (NILP (def))
     {
       UNGCPRO;
-      return (!inmenubar && STRINGP (item_string) ? 1 : 0);
+      return (inmenubar ? 0 : 1);
     }
  
   /* Enable or disable selection of item.  */
@@ -5730,6 +5752,7 @@ parse_menu_item (item, notreal, inmenubar)
     }
 
   /* See if this is a separate pane or a submenu.  */
+  def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
   tem = get_keymap_1 (def, 0, 1);
   if (!NILP (tem))
     {
@@ -5744,58 +5767,108 @@ parse_menu_item (item, notreal, inmenubar)
   /* This is a command.  See if there is an equivalent key binding. */
   if (NILP (cachelist))
     {
-      /* We have to create a cachelist. */
+      /* We have to create a cachelist.  */
       CHECK_IMPURE (start);
       XCONS (start)->cdr = Fcons (Fcons (Qnil, Qnil), XCONS (start)->cdr);
       cachelist = XCONS (XCONS (start)->cdr)->car;
-      /* We have not checked this before so check it now.  */
-      tem = def;
+      newcache = 1;
+      tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
+      if (!NILP (keyhint))
+	{
+	  XCONS (cachelist)->car = XCONS (keyhint)->car;
+	  newcache = 0;
+	}
+      else if (STRINGP (tem))
+	{
+	  XCONS (cachelist)->cdr = Fsubstitute_command_keys (tem);
+	  XCONS (cachelist)->car = Qt;
+	}
     }
-  else if (VECTORP (XCONS (cachelist)->car)) /* Saved key */
+  tem = XCONS (cachelist)->car;
+  if (!EQ (tem, Qt))
     {
-      tem = Fkey_binding (XCONS (cachelist)->car, Qnil);
-      if (EQ (tem, def) 
-	  /* If the command is an alias for another
-	     (such as easymenu.el and lmenu.el set it up),
-	     check if the original command matches the cached command.  */
-	  || (SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function)))
-	tem = Qnil;		/* Don't need to recompute key binding.  */
+      int chkcache = 0;
+      Lisp_Object prefix;
+
+      if (!NILP (tem))
+	tem = Fkey_binding (tem, Qnil);
+
+      prefix = XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ];
+      if (CONSP (prefix))
+	{
+	  def = XCONS (prefix)->car;
+	  prefix = XCONS (prefix)->cdr;
+	}
       else
-	tem = def;
+	def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
+
+      if (NILP (XCONS (cachelist)->car)) /* Have no saved key.  */
+	{
+	  if (newcache		/* Always check first time.  */
+	      /* Should we check everything when precomputing key
+		 bindings?  */
+	      /* || notreal */
+	      /* If something had no key binding before, don't recheck it
+		 because that is too slow--except if we have a list of
+		 rebound commands in Vdefine_key_rebound_commands, do
+		 recheck any command that appears in that list. */
+	      || (CONSP (Vdefine_key_rebound_commands)
+		  && !NILP (Fmemq (def, Vdefine_key_rebound_commands))))
+	    chkcache = 1;
+	}
+      /* We had a saved key. Is it still bound to the command?  */
+      else if (NILP (tem)
+	       || !EQ (tem, def)
+	       /* If the command is an alias for another
+		  (such as lmenu.el set it up), check if the
+		  original command matches the cached command.  */
+	       && !(SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function)))
+	chkcache = 1;		/* Need to recompute key binding.  */
+
+      if (chkcache)
+	{
+	  /* Recompute equivalent key binding.  If the command is an alias
+	     for another (such as lmenu.el set it up), see if the original
+	     command name has equivalent keys.  Otherwise look up the
+	     specified command itself.  We don't try both, because that
+	     makes lmenu menus slow. */
+	  if (SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function)
+	      && ! NILP (Fget (def, Qmenu_alias)))
+	    def = XSYMBOL (def)->function;
+	  tem = Fwhere_is_internal (def, Qnil, Qt, Qnil);
+	  XCONS (cachelist)->car = tem;
+	  if (NILP (tem))
+	    {
+	      XCONS (cachelist)->cdr = Qnil;
+	      chkcache = 0;
+	    }
+	}
+      else if (!NILP (keyhint) && !NILP (XCONS (cachelist)->car))
+	{
+	  tem = XCONS (cachelist)->car;
+	  chkcache = 1;
+	}
+
+      newcache = chkcache;
+      if (chkcache)
+	{
+	  tem = Fkey_description (tem);
+	  if (CONSP (prefix))
+	    {
+	      if (STRINGP (XCONS (prefix)->car))
+		tem = concat2 (XCONS (prefix)->car, tem);
+	      if (STRINGP (XCONS (prefix)->cdr))
+		tem = concat2 (tem, XCONS (prefix)->cdr);
+	    }
+	  XCONS (cachelist)->cdr = tem;
+	}
     }
-  /* If something had no key binding before, don't recheck it
-     because that is too slow--except if we have a list of rebound
-     commands in Vdefine_key_rebound_commands, do recheck any command
-     that appears in that list. */
-  else if (!NILP (XCONS (cachelist)->car))
-    tem = def;			/* Should signal an error here.  */
-  else if (
-	   /* Should we check everything when precomputing key bindings?  */
-	   /* notreal || */
-	   CONSP (Vdefine_key_rebound_commands)
-	   && !NILP (Fmemq (def, Vdefine_key_rebound_commands)))
-    tem = def;
-  else
-    tem = Qnil;
-  
-  if (!NILP (tem))
+
+  tem = XCONS (cachelist)->cdr;
+  if (newcache && !NILP (tem))
     {
-      /* Recompute equivalent key binding.
-         If the command is an alias for another
-	 (such as easymenu.el and lmenu.el set it up),
-	 see if the original command name has equivalent keys.
-	 Otherwise look up the specified command itself.
-	 We don't try both, because that makes easymenu menus slow.  */
-      if (SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function)
-	  && ! NILP (Fget (def, Qmenu_alias)))
-	tem = XSYMBOL (def)->function;
-      tem = Fwhere_is_internal (tem, Qnil, Qt, Qnil);
-      XCONS (cachelist)->car = tem;
-      XCONS (cachelist)->cdr
-	= (NILP (tem) ? Qnil
-	   :
-	   concat2 (build_string ("  ("),
-		    concat2 (Fkey_description (tem), build_string (")"))));
+      tem = concat3 (build_string ("  ("), tem, build_string (")"));
+      XCONS (cachelist)->cdr = tem;
     }
 
   /* If we only want to precompute equivalent key bindings, stop here. */
@@ -8493,6 +8566,10 @@ syms_of_keyboard ()
   staticpro (&QCfilter);
   QCbutton = intern (":button");
   staticpro (&QCbutton);
+  QCkeys = intern (":keys");
+  staticpro (&QCkeys);
+  QCkey_sequence = intern (":key-sequence");
+  staticpro (&QCkey_sequence);
   QCtoggle = intern (":toggle");
   staticpro (&QCtoggle);
   QCradio = intern (":radio");
