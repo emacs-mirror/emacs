@@ -1882,13 +1882,17 @@ tty_capable_p (tty, caps, fg, bg)
   return 1;
 }
 
-/* Return the tty display object specified by DISPLAY.
-   DISPLAY may be a frame or a string. */
+/* Return the tty display object specified by DISPLAY.  DISPLAY may be
+   a frame, a string, or nil for the display device of the current
+   frame. */
 
 static struct display *
 get_tty_display (Lisp_Object display)
 {
   struct display *d;
+
+  if (NILP (display))
+    display = selected_frame;
 
   if (! FRAMEP (display) && ! STRINGP (display))
     return 0;
