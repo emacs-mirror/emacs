@@ -443,7 +443,11 @@ and ignores this variable."
     (defalias 'file-locked-p 'ignore))
 
 (defcustom view-read-only nil
-  "*Non-nil means buffers visiting files read-only, do it in view mode."
+  "*Non-nil means buffers visiting files read-only do so in view mode.
+In fact, this means that all read-only buffers normally have
+View mode enabled, including buffers that are read-only because
+you visit a file you cannot alter, and buffers you make read-only
+using \\[toggle-read-only]."
   :type 'boolean
   :group 'view)
 
