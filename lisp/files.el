@@ -1550,6 +1550,9 @@ This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents' instead.
 \(Its calling sequence is different; see its documentation)."
   (interactive "fInsert file: ")
+  (if (file-directory-p filename)
+      (signal 'file-error (list "Opening input file" "file is a directory"
+				filename)))
   (let ((tem (insert-file-contents filename)))
     (push-mark (+ (point) (car (cdr tem))))))
 
