@@ -5518,14 +5518,11 @@ x_wm_set_icon_pixmap (f, pixmap_id)
     {
       Pixmap icon_pixmap = x_bitmap_pixmap (f, pixmap_id);
       f->display.x->wm_hints.icon_pixmap = icon_pixmap;
-      f->display.x->wm_hints.flags |= IconPixmapHint;
     }
   else
-    {
-      f->display.x->wm_hints.icon_pixmap = None;
-      f->display.x->wm_hints.flags &= ~IconPixmapHint;
-    }
+    f->display.x->wm_hints.icon_pixmap = None;
 
+  f->display.x->wm_hints.flags |= IconPixmapHint;
   XSetWMHints (FRAME_X_DISPLAY (f), window, &f->display.x->wm_hints);
 }
 
