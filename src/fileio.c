@@ -3324,6 +3324,7 @@ Non-nil second argument means save only current buffer.")
   Lisp_Object tail, buf;
   int auto_saved = 0;
   char *omessage = echo_area_glyphs;
+  int omessage_length = echo_area_glyphs_length;
   extern int minibuf_level;
   int do_handled_files;
   Lisp_Object oquit;
@@ -3420,7 +3421,12 @@ Non-nil second argument means save only current buffer.")
   record_auto_save ();
 
   if (auto_saved && NILP (no_message))
-    message1 (omessage ? omessage : "Auto-saving...done");
+    {
+      if (omessage)
+	message2 (omessage, omessage_length);
+      else
+	message1 ("Auto-saving...done");
+    }
 
   Vquit_flag = oquit;
 
