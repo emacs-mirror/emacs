@@ -135,7 +135,7 @@ fn_exp(out, in)
 	if (pass1)
 		{
 		pass1 = NO;
-		o.dsc$a_pointer = out;
+		o.dsc$a_pointer = (char *) out;
 		o.dsc$w_length = (short)OUTSIZE;
 		i.dsc$a_pointer = in;
 		i.dsc$w_length = (short)strlen(in);
