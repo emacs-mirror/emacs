@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.145 2002/09/05 06:31:11 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.146 2002/10/17 15:46:06 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -38,9 +38,12 @@
 
 ;; Customization Variables (the rest is in vc.el)
 
-(defvar vc-ignore-vc-files nil "Obsolete -- use `vc-handled-backends'.")
-(defvar vc-master-templates () "Obsolete -- use vc-BACKEND-master-templates.")
-(defvar vc-header-alist () "Obsolete -- use vc-BACKEND-header.")
+(defvar vc-ignore-vc-files nil)
+(make-obsolete-variable 'vc-ignore-vc-files 'vc-handled-backends)
+(defvar vc-master-templates ())
+(make-obsolete-variable 'vc-master-templates 'vc-BACKEND-master-templates)
+(defvar vc-header-alist ())
+(make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
 (defcustom vc-handled-backends '(RCS CVS SCCS)
   "*List of version control backends for which VC will be used.
