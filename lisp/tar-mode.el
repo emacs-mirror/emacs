@@ -748,14 +748,8 @@ appear on disk when you save the tar-file's buffer."
 		;; which determine the coding-system and decode the text.
 		(let ((coding
 		       (and set-auto-coding-function
-			    (funcall
-			     set-auto-coding-function
-			     (if (< (point-max) 4096)
-				 (buffer-substring-no-properties 1 (point-max))
-			       (concat
-				(buffer-substring-no-properties 1  1025)
-				(buffer-substring-no-properties
-				 (- (point-max) 3072) (point-max)))))))
+			    (save-excursion
+			      (funcall set-auto-coding-function (point-max)))))
 		      (multibyte enable-multibyte-characters)
 		      (detected (detect-coding-region
 				 1 (min 16384 (point-max)) t)))
