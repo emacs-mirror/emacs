@@ -589,7 +589,7 @@ See `shell-command-regexp'."
   (let ((limit (save-excursion (end-of-line nil) (point))))
     (if (re-search-forward (concat shell-command-regexp "\\([;&|][\\s ]*\\)+")
 			   limit 'move arg)
-	(skip-syntax-backward "^\\s "))))
+	(skip-syntax-backward " "))))
 
 
 (defun shell-backward-command (&optional arg)
@@ -597,11 +597,13 @@ See `shell-command-regexp'."
 See `shell-command-regexp'."
   (interactive "p")
   (let ((limit (save-excursion (comint-bol nil) (point))))
-    (skip-syntax-backward "\\s " limit)
+    (if (> limit (point))
+	(save-excursion (beginning-of-line) (setq limit (point))))
+    (skip-syntax-backward " " limit)
     (if (re-search-backward
 	 (format "[;&|]+[\\s ]*\\(%s\\)" shell-command-regexp) limit 'move arg)
 	(progn (goto-char (match-beginning 1))
-	       (skip-syntax-backward "^\\s ")))))
+	       (skip-chars-forward ";&|")))))
 
 
 (defun shell-get-current-command ()
