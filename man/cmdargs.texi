@@ -282,6 +282,8 @@ When Emacs is set-up to use the X windowing system, it inherits the
 use of a large number of environment variables from the X library.  See
 the X documentation for more information.
 
+@findex setenv
+@findex getenv
 The command @kbd{M-x setenv} sets a variable in the environment of the
 Emacs process and its subprocesses and @kbd{M-x getenv} gets the value
 of a variable.
