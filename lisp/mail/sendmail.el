@@ -485,11 +485,6 @@ the user from the mailer."
 	    (replace-match "\n"))
 	  (let ((case-fold-search t))
 	    (goto-char (point-min))
-	    ;; Find and handle any FCC fields.
-	    (goto-char (point-min))
-	    (if (re-search-forward "^FCC:" delimline t)
-		(mail-do-fcc delimline))
-	    (goto-char (point-min))
 	    (while (re-search-forward "^Resent-to:" delimline t)
 	      (setq resend-to-addresses
 		    (save-restriction
@@ -569,6 +564,10 @@ the user from the mailer."
 	    (goto-char (1+ delimline))
 	    (if (eval mail-mailer-swallows-blank-line)
 		(newline))
+	    ;; Find and handle any FCC fields.
+	    (goto-char (point-min))
+	    (if (re-search-forward "^FCC:" delimline t)
+		(mail-do-fcc delimline))
 	    (if mail-interactive
 		(save-excursion
 		  (set-buffer errbuf)
@@ -677,7 +676,6 @@ the user from the mailer."
 			      (widen)
 			      (narrow-to-region (point-max) (point-max))
 			      (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
-				      "From: " (user-login-name) "\n"
 				      "Date: " (mail-rfc822-date) "\n")
 			      (insert-buffer-substring curbuf beg2 end)
 			      (insert "\n\C-_")
@@ -704,7 +702,6 @@ the user from the mailer."
 		  (setq buffer-read-only nil)
 		  (erase-buffer)
 		  (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
-			  "From: " (user-login-name) "\n"
 			  "Date: " (mail-rfc822-date) "\n")
 		  (insert-buffer-substring curbuf beg2 end)
 		  (insert "\n\C-_")
