@@ -56,9 +56,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <config.h>
 #endif
 
-#ifdef SUNOS4
+#if defined (SUNOS4) || defined (__FreeBSD__)
+#define UNDO_RELOCATION
+#endif
+
+#ifdef UNDO_RELOCATION
 #include <link.h>
 #endif
+
+#ifdef __FreeBSD__
+#define link_dynamic _dynamic
+#define ld_un d_un
+#define ld_2 d_sdt
+#define ld_rel sdt_rel
+#define ld_hash sdt_hash
+#endif /* __FreeBSD__ */
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -208,7 +220,7 @@ unexec (new_name, a_name, bndry, bss_start, entry)
 
   /* Some other BSD systems use this file.
      We don't know whether this change is right for them.  */
-#ifdef SUNOS4
+#ifdef UNDO_RELOCATION
   /* Undo the relocations done at startup by ld.so.
      It will do these relocations again when we start the dumped Emacs.
      Doing them twice gives incorrect results.  */
@@ -219,6 +231,7 @@ unexec (new_name, a_name, bndry, bss_start, entry)
     unsigned long rel, erel;
     unsigned rel_size;
 
+#ifdef SUNOS4
     if (_DYNAMIC.ld_version < 2)
       {
 	rel = _DYNAMIC.ld_un.ld_1->ld_rel;
@@ -243,6 +256,12 @@ unexec (new_name, a_name, bndry, bss_start, entry)
       default:
 	fatal ("unknown machine type in unexec!\n");
       }
+#endif /* SUNOS4 */
+#ifdef __FreeBSD__
+    rel = _DYNAMIC.ld_un.ld_2->ld_rel;
+    erel = _DYNAMIC.ld_un.ld_2->ld_hash;
+    rel_size = 8;             /* sizeof(struct relocation_info) */
+#endif
 
     for (; rel < erel; rel += rel_size)
       {
@@ -259,7 +278,7 @@ unexec (new_name, a_name, bndry, bss_start, entry)
         write (new, old + N_TXTOFF (ohdr) + rpos, sizeof (unsigned long));
       }
   }
-#endif /* SUNOS4 */
+#endif /* UNDO_RELOCATION */
 
   fchmod (new, 0755);
 }
