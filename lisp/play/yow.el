@@ -52,6 +52,12 @@
 	   (with-output-to-temp-buffer "*Help*"
 	     (princ yow))))))
 
+(defsubst read-zippyism (prompt &optional require-match)
+  "Read a Zippyism from the minibuffer with completion, prompting with PROMPT.
+If optional second arg is non-nil, require input to match a completion."
+  (read-cookie prompt yow-file
+	       "Am I CONSING yet?..." "I have SEEN the CONSING!!"
+	       require-match))
 
 ; Yowza!! Feed zippy quotes to the doctor. Watch results.
 ; fun, fun, fun. Entertainment for hours...
