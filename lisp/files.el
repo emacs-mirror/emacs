@@ -847,11 +847,10 @@ again for another match.")
 
 (defconst interpreter-mode-alist
   '(("perl" . perl-mode)
-    ("scope" . tcl-mode)
     ("wish" . tcl-mode)
-    ("shell" . tcl-mode)
-    ("form" . tcl-mode)
+    ("wishx" . tcl-mode)
     ("tcl" . tcl-mode)
+    ("tclsh" . tcl-mode)
     ("awk" . awk-mode)
     ("gawk" . awk-mode)
     ("scm" . scheme-mode))
@@ -871,10 +870,13 @@ If it matches, mode MODE is selected.")
 
 (defun set-auto-mode ()
   "Select major mode appropriate for current buffer.
-This checks for a -*- mode tag in the buffer's text, or
-compares the filename against the entries in `auto-mode-alist'.  It does
-not check for the \"mode:\" local variable in the Local Variables
-section of the file; for that, use `hack-local-variables'.
+This checks for a -*- mode tag in the buffer's text,
+compares the filename against the entries in `auto-mode-alist',
+or checks the interpreter that runs this file against
+`interpreter-mode-alist'.
+
+It does not check for the `mode:' local variable in the
+Local Variables section of the file; for that, use `hack-local-variables'.
 
 If `enable-local-variables' is nil, this function does not check for a
 -*- mode tag."
@@ -958,11 +960,9 @@ If `enable-local-variables' is nil, this function does not check for a
 		  (let ((interpreter
 			 (save-excursion
 			   (goto-char (point-min))
-			   (if (looking-at "#! *")
-			       (progn
-				 (goto-char (match-end 0))
-				 (buffer-substring (point)
-						   (progn (end-of-line) (point))))
+			   (if (looking-at "#! *\\([^ \t\n]+\\)")
+			       (buffer-substring (match-beginning 1)
+						 (match-end 1))
 			     "")))
 			elt)
 		    ;; Map interpreter name to a mode.
