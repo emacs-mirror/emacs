@@ -1581,6 +1581,9 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** In image specifications, `:heuristic-mask' has been replaced
+with the more general `:mask' property.
+
 ** A `?' can be used in a symbol name without escaping it with a
 backslash.
 
@@ -2998,20 +3001,56 @@ around an image.
 
 `:algorithm ALGO'
 
-Apply an image algorithm to the image before displaying it.  ALGO must
-be a symbol specifying the algorithm.  Currently only `laplace' is
-supported which applies a Laplace edge detection algorithm to an image
-which is intended to display images "disabled."
+Apply an image algorithm to the image before displaying it.
 
-`:heuristic-mask BG'
+ALGO `laplace' or `emboss' means apply a Laplace or ``emboss''
+edge-detection algorithm to the image.
 
-If BG is not nil, build a clipping mask for the image, so that the
-background of a frame is visible behind the image.  If BG is t,
-determine the background color of the image by looking at the 4
-corners of the image, assuming the most frequently occuring color from
-the corners is the background color of the image.  Otherwise, BG must
-be a list `(RED GREEN BLUE)' specifying the color to assume for the
-background of the image.
+ALGO `(edge-detection :matrix MATRIX :color-adjust ADJUST)' means
+apply a general edge-detection algorithm.  MATRIX must be either a
+nine-element list or a nine-element vector of numbers.  A pixel at
+position x/y in the transformed image is computed from original pixels
+around that position.  MATRIX specifies, for each pixel in the
+neighborhood of x/y, a factor with which that pixel will influence the
+transformed pixel; element 0 specifies the factor for the pixel at
+x-1/y-1, element 1 the factor for the pixel at x/y-1 etc. as shown
+below.
+
+  (x-1/y-1  x/y-1  x+1/y-1
+   x-1/y    x/y    x+1/y
+   x-1/y+1  x/y+1  x+1/y+1)
+
+The resulting pixel is computed from the color intensity of the color
+resulting from summing up the RGB values of surrounding pixels,
+multiplied by the specified factors, and dividing that sum by the sum
+of the factors' absolute values.
+
+Laplace edge-detection currently uses a matrix of 
+
+  (1  0  0
+   0  0  0
+   9  9 -1)
+
+Emboss edge-detection uses a matrix of
+
+  ( 2 -1  0
+   -1  0  1
+    0  1 -2)
+
+`:mask MASK'
+
+If MASK is `heuristic' or `(heuristic BG)', build a clipping mask for
+the image, so that the background of a frame is visible behind the
+image.  If BG is not specified, or if BG is t, determine the
+background color of the image by looking at the 4 corners of the
+image, assuming the most frequently occuring color from the corners is
+the background color of the image.  Otherwise, BG must be a list `(RED
+GREEN BLUE)' specifying the color to assume for the background of the
+image.
+
+If MASK is nil, remove a mask from the image, if it has one.  Images
+in some formats include a mask which can be removed by specifying
+`:mask nil'.
 
 `:file FILE'
 

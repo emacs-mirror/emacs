@@ -1,3 +1,10 @@
+2000-09-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* image.el (create-image): Doc fix.
+
+	* toolbar/toolbar.el (toolbar-add-item): Use `:mask heuristic'
+	instead of `:heuristic-mask t'.
+
 2000-09-14  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Revert to Unix line endings.

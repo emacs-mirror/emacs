@@ -1,3 +1,21 @@
+2000-09-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (QCmatrix, QCcolor_adjustment, QCmask, Qemboss)
+	(Qedge_detection, Qheuristic): New symbols.
+	(syms_of_xfns): Initialize new symbols.
+	(lookup_image): Handle `:mask X', `:algorithm emboss', and
+	`algorithm (edge-detection ...)'.
+	(xbm_format, xpm_format, pbm_format, png_format, jpeg_format):
+	(tiff_format, gif_format, gs_format): Add `:mask'.
+	(XBM_MASK, XPM_MASK, PBM_MASK, PNG_MASK, JPEG_MASK, TIFF_MASK)
+	(GIF_MASK, GS_MASK): New enumerators.
+	(x_laplace_read_row, x_laplace_write_row): Functions removed.
+	(emboss_matrix, laplace_matrix): New variables.
+	(x_to_xcolors, x_from_xcolors, x_detect_edges, x_emboss)
+	(x_edge_detection): New functions.
+	(x_laplace): Rewritten in terms of x_detect_edges.
+	(x_build_heuristic_mask): If image has a mask, free it.
+
 2000-09-14  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Revert to Unix line endings.
