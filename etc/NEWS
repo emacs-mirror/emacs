@@ -1780,6 +1780,18 @@ modify their color-related behavior.
 The primitives `color-gray-p' and `color-supported-p' also work for
 any frame type.
 
+** Platform-independent functions to describe display capabilities.
+
+The new functions `display-mouse-p', `display-popup-menus-p',
+`display-graphic-p', `display-selections-p', `display-screens',
+`display-pixel-width', `display-pixel-height', `display-mm-width',
+`display-mm-height', `display-backing-store', `display-save-under',
+`display-planes', `display-color-cells', `display-visual-class', and
+`display-grayscale-p' describe the basic capabilities of a particular
+display.  Lisp programs should call these functions instead of testing
+the value of the variables `window-system' or `system-type', or calling
+platform-specific functions such as `x-display-pixel-width'.
+
 +++
 ** The minibuffer prompt is now actually inserted in the minibuffer.
 
