@@ -1390,10 +1390,14 @@ make_string (contents, nbytes)
      int nbytes;
 {
   register Lisp_Object val;
-  int nchars = chars_in_text (contents, nbytes);
+  int nchars, multibyte_nbytes;
+
+  parse_str_as_multibyte (contents, nbytes, &nchars, &multibyte_nbytes);
   val = make_uninit_multibyte_string (nchars, nbytes);
   bcopy (contents, XSTRING (val)->data, nbytes);
-  if (STRING_BYTES (XSTRING (val)) == XSTRING (val)->size)
+  if (nbytes == nchars || nbytes != multibyte_nbytes)
+    /* CONTENTS contains no multibyte sequences or contains an invalid
+       multibyte sequence.  We must make unibyte string.  */
     SET_STRING_BYTES (XSTRING (val), -1);
   return val;
 }
@@ -1953,6 +1957,15 @@ significance.")
     val = make_pure_vector ((EMACS_INT) nargs);
   else
     val = Fmake_vector (len, Qnil);
+
+  if (STRINGP (args[1]) && STRING_MULTIBYTE (args[1]))
+    /* BYTECODE-STRING must have been produced by Emacs 20.2 or the
+       earlier because they produced a raw 8-bit string for byte-code
+       and now such a byte-code string is loaded as multibyte while
+       raw 8-bit characters converted to multibyte form.  Thus, now we
+       must convert them back to the original unibyte form.  */
+    args[1] = Fstring_as_unibyte (args[1]);
+
   p = XVECTOR (val);
   for (index = 0; index < nargs; index++)
     {
