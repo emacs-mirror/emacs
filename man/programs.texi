@@ -446,6 +446,9 @@ inside a string.  This restriction is vital for making the indentation
 commands fast; you must simply accept it.  @xref{Defuns}, for more
 information on this.
 
+  Normally, lines are indented with tabs and spaces.  If you want Emacs
+to use spaces only, see @ref{Just Spaces}.
+
 @node Multi-line Indent
 @subsection Indenting Several Lines
 
