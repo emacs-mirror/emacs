@@ -124,6 +124,10 @@
 		    (goto-char (window-start window))
 		    (move-to-window-line  (cdr where))
 		    (move-to-column (+ (car where) (current-column)
+				       (if (string-match "\\` \\*Minibuf"
+							 (buffer-name))
+					   (- (minibuffer-prompt-width))
+					 0)
 				       (max 0 (1- (window-hscroll)))))
 		    (point))
 		where))
