@@ -381,11 +381,6 @@ static int scroll_conservatively;
 
 int scroll_margin;
 
-/* Number of characters of overlap to show, when scrolling a one-line
-   window such as a minibuffer.  */
-
-static int minibuffer_scroll_overlap;
-
 /* Number of windows showing the buffer of the selected window (or
    another buffer with the same base buffer).  keyboard.c refers to
    this.  */
@@ -410,36 +405,18 @@ Lisp_Object minibuf_prompt;
 int minibuf_prompt_width;
 int minibuf_prompt_pixel_width;
 
-/* Message to display instead of mini-buffer contents.  This is what
-   the functions error and message make, and command echoing uses it
-   as well.  It overrides the minibuf_prompt as well as the buffer.  */
-
-char *echo_area_glyphs;
-
-/* A Lisp string to display instead of mini-buffer contents, analogous
-   to echo_area_glyphs.  If this is a string, display that string.
-   Otherwise, if echo_area_glyphs is non-null, display that.  */
-
-Lisp_Object echo_area_message;
-
-/* This is the length of the message in echo_area_glyphs or
-   echo_area_message.  */
-
-int echo_area_glyphs_length;
-
-/* Value of echo_area_glyphs when it was last acted on.  If this is
-   nonzero, there is a message on the frame in the mini-buffer and it
-   should be erased as soon as it is no longer requested to appear.  */
-
-char *previous_echo_glyphs;
-Lisp_Object previous_echo_area_message;
-static int previous_echo_glyphs_length;
-
 /* This is the window where the echo area message was displayed.  It
    is always a mini-buffer window, but it may not be the same window
    currently active as a mini-buffer.  */
 
 Lisp_Object echo_area_window;
+
+/* List of pairs (MESSAGE . MULTIBYTE).  The function save_message
+   pushes the current message and the value of
+   message_enable_multibyte on the stack, the function restore_message
+   pops the stack and displays MESSAGE again.  */
+
+Lisp_Object Vmessage_stack;
 
 /* Nonzero means multibyte characters were enabled when the echo area
    message was specified.  */
@@ -494,6 +471,33 @@ static int line_number_display_limit_width;
    infinite.  nil means don't log at all.  */
 
 Lisp_Object Vmessage_log_max;
+
+/* Current, index 0, and last displayed echo area message.  Either
+   buffers from echo_buffers, or nil to indicate no message.  */
+
+Lisp_Object echo_area_buffer[2];
+
+/* The buffers referenced from echo_area_buffer.  */
+
+static Lisp_Object echo_buffer[2];
+
+/* A vector saved used in with_area_buffer to reduce consing.  */
+
+static Lisp_Object Vwith_echo_area_save_vector;
+
+/* Non-zero means display_echo_area should display the last echo area
+   message again.  Set by redisplay_preserve_echo_area.  */
+
+static int display_last_displayed_message_p;
+
+/* Nonzero if echo area is being used by print; zero if being used by
+   message.  */
+
+int message_buf_print;
+
+/* Maximum height for resizing mini-windows.  */
+
+static Lisp_Object Vmax_mini_window_height;
 
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
@@ -600,6 +604,15 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static Lisp_Object unwind_with_echo_area_buffer P_ ((Lisp_Object));
+static Lisp_Object with_echo_area_buffer_unwind_data P_ ((struct window *));
+static int resize_mini_window P_ ((struct window *));
+static void clear_garbaged_frames P_ ((void));
+static int current_message_1 P_ ((Lisp_Object *));
+static int truncate_message_1 P_ ((int));
+static int set_message_1 P_ ((char *s, Lisp_Object, int, int));
+static int display_echo_area P_ ((struct window *));
+static int display_echo_area_1 P_ ((struct window *));
 static Lisp_Object unwind_redisplay P_ ((Lisp_Object));
 static int string_char_and_length P_ ((unsigned char *, int, int *));
 static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
@@ -621,7 +634,7 @@ static void push_it P_ ((struct it *));
 static void pop_it P_ ((struct it *));
 static void sync_frame_with_window_matrix_rows P_ ((struct window *));
 static void redisplay_internal P_ ((int));
-static void echo_area_display P_ ((int));
+static int echo_area_display P_ ((int));
 static void redisplay_windows P_ ((Lisp_Object));
 static void redisplay_window P_ ((Lisp_Object, int));
 static void update_menu_bar P_ ((struct frame *, int));
@@ -1180,11 +1193,9 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      enum face_id base_face_id;
 {
   int highlight_region_p;
-  Lisp_Object value;
 
   /* Some precondition checks.  */
   xassert (w != NULL && it != NULL);
-  xassert (charpos < 0 || current_buffer == XBUFFER (w->buffer));
   xassert (charpos < 0 || (charpos > 0 && charpos <= ZV));
 
   /* If face attributes have been changed since the last redisplay,
@@ -1428,16 +1439,6 @@ start_display (it, w, pos)
 			 || FETCH_BYTE (BYTEPOS (pos) - 1) == '\n');
   if (!start_at_line_beg_p)
     reseat_at_previous_visible_line_start (it);
-
-#if NO_PROMPT_IN_BUFFER
-  /* Take the mini-buffer prompt width into account for tab
-     calculations.  */
-  if (MINI_WINDOW_P (w) && IT_CHARPOS (*it) == BEGV)
-    {
-      /* Why is mini-buffer_prompt_width guaranteed to be set here?  */
-      it->prompt_width = minibuf_prompt_pixel_width;
-    }
-#endif /* NO_PROMPT_IN_BUFFER */
 
   /* If window start is not at a line start, skip forward to POS to
      get the correct continuation_lines_width and current_x.  */
@@ -3318,9 +3319,7 @@ get_next_display_element (it)
 	     don't believe that it is worth doing.  */
 	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
-			|| (it->c != '\n'
-			    && it->c != '\t'
-			    && it->c != '\r')))
+			|| (it->c != '\n' && it->c != '\t')))
 		   || (it->c >= 127
 		       && it->len == 1))
 	    {
@@ -3461,8 +3460,6 @@ set_iterator_to_next (it)
 	 Advance in the display table definition.  Reset it to null if
 	 end reached, and continue with characters from buffers/
 	 strings.  */
-      struct face *face;
-      
       ++it->current.dpvec_index;
 
       /* Restore face and charset of the iterator to what they were
@@ -3998,16 +3995,6 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
   saved_glyph_row = it->glyph_row;
   it->glyph_row = NULL;
 
-#if NO_PROMPT_IN_BUFFER
-  /* Take a mini-buffer prompt into account.  */
-  if (MINI_WINDOW_P (it->w)
-      && IT_CHARPOS (*it) == BEGV)
-    {
-      it->current_x = minibuf_prompt_pixel_width;
-      it->hpos = minibuf_prompt_width;
-    }
-#endif
-
   while (1)
     {
       int x, i;
@@ -4168,8 +4155,6 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 {
   enum move_it_result skip, skip2 = MOVE_X_REACHED;
   int line_height;
-
-  xassert (XBUFFER (it->w->buffer) == current_buffer);
 
   while (1)
     {
@@ -4867,37 +4852,31 @@ message2_nolog (m, len, multibyte)
 
       if (m)
 	{
-	  echo_area_glyphs = m;
-	  echo_area_glyphs_length = len;
-	  echo_area_message = Qnil;
-
+	  set_message (m, Qnil, len, multibyte);
 	  if (minibuffer_auto_raise)
 	    Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
 	}
       else
-	{
-	  echo_area_glyphs = previous_echo_glyphs = NULL;
-	  echo_area_message = previous_echo_area_message = Qnil;
-	}
+	clear_message (1, 1);
 
-      do_pending_window_change ();
+      do_pending_window_change (0);
       echo_area_display (1);
-      do_pending_window_change ();
+      do_pending_window_change (0);
       if (frame_up_to_date_hook != 0 && ! gc_in_progress)
 	(*frame_up_to_date_hook) (f);
     }
 }
 
 
-/* Display an echo area message M with a specified length of LEN
-   chars.  The string may include null characters.  If M is not a
+/* Display an echo area message M with a specified length of NBYTES
+   bytes.  The string may include null characters.  If M is not a
    string, clear out any existing message, and let the mini-buffer
    text show through.  */
 
 void
-message3 (m, len, multibyte)
+message3 (m, nbytes, multibyte)
      Lisp_Object m;
-     int len;
+     int nbytes;
      int multibyte;
 {
   struct gcpro gcpro1;
@@ -4907,8 +4886,8 @@ message3 (m, len, multibyte)
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
   if (STRINGP (m))
-    message_dolog (XSTRING (m)->data, len, 1, multibyte);
-  message3_nolog (m, len, multibyte);
+    message_dolog (XSTRING (m)->data, nbytes, 1, multibyte);
+  message3_nolog (m, nbytes, multibyte);
 
   UNGCPRO;
 }
@@ -4917,9 +4896,9 @@ message3 (m, len, multibyte)
 /* The non-logging version of message3.  */
 
 void
-message3_nolog (m, len, multibyte)
+message3_nolog (m, nbytes, multibyte)
      Lisp_Object m;
-     int len, multibyte;
+     int nbytes, multibyte;
 {
   message_enable_multibyte = multibyte;
 
@@ -4929,7 +4908,7 @@ message3_nolog (m, len, multibyte)
 	putc ('\n', stderr);
       noninteractive_need_newline = 0;
       if (STRINGP (m))
-	fwrite (XSTRING (m)->data, len, 1, stderr);
+	fwrite (XSTRING (m)->data, nbytes, 1, stderr);
       if (cursor_in_echo_area == 0)
 	fprintf (stderr, "\n");
       fflush (stderr);
@@ -4942,36 +4921,31 @@ message3_nolog (m, len, multibyte)
 	   && FRAME_MESSAGE_BUF (selected_frame))
     {
       Lisp_Object mini_window;
+      Lisp_Object frame;
       struct frame *f;
 
       /* Get the frame containing the mini-buffer
 	 that the selected frame is using.  */
       mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
-      f = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
+      frame = XWINDOW (mini_window)->frame;
+      f = XFRAME (frame);
 
       FRAME_SAMPLE_VISIBILITY (f);
       if (FRAME_VISIBLE_P (selected_frame)
-	  && ! FRAME_VISIBLE_P (f))
-	Fmake_frame_visible (WINDOW_FRAME (XWINDOW (mini_window)));
+	  && !FRAME_VISIBLE_P (f))
+	Fmake_frame_visible (frame);
 
-      if (STRINGP (m))
+      if (STRINGP (m) && XSTRING (m)->size)
 	{
-	  echo_area_glyphs = NULL;
-	  echo_area_message = m;
-	  echo_area_glyphs_length = len;
-
-	  if (minibuffer_auto_raise)
-	    Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
+	  set_message (NULL, m, nbytes, multibyte);
+	  Fraise_frame (frame);
 	}
       else
-	{
-	  echo_area_glyphs = previous_echo_glyphs = NULL;
-	  echo_area_message = previous_echo_area_message = Qnil;
-	}
+	clear_message (1, 1);
 
-      do_pending_window_change ();
+      do_pending_window_change (0);
       echo_area_display (1);
-      do_pending_window_change ();
+      do_pending_window_change (0);
       if (frame_up_to_date_hook != 0 && ! gc_in_progress)
 	(*frame_up_to_date_hook) (f);
     }
@@ -5065,27 +5039,6 @@ message_with_string (m, string, log)
 }
 
 
-/* Truncate what will be displayed in the echo area
-   the next time we display it--but don't redisplay it now.  */
-
-void
-truncate_echo_area (len)
-     int len;
-{
-  /* A null message buffer means that the frame hasn't really been
-     initialized yet.  Error messages get reported properly by
-     cmd_error, so this must be just an informative message; toss it.  */
-  if (!noninteractive && INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
-    echo_area_glyphs_length = len;
-}
-
-
-/* Nonzero if FRAME_MESSAGE_BUF (selected_frame) is being used by
-   print; zero if being used by message.  */
-
-int message_buf_print;
-
-
 /* Dump an informative message to the minibuf.  If M is 0, clear out
    any existing message, and let the mini-buffer text show through.  */
 
@@ -5172,59 +5125,621 @@ message_nolog (m, a1, a2, a3)
 }
 
 
-/* Display echo_area_message or echo_area_glyphs in the current
-   mini-buffer.  */
+/* Display the current message in the current mini-buffer.  This is
+   only called from error handlers in process.c, and is not time
+   critical.  */
 
 void
 update_echo_area ()
 {
-  if (STRINGP (echo_area_message))
-    message3 (echo_area_message, echo_area_glyphs_length,
-	      !NILP (current_buffer->enable_multibyte_characters));
-  else
-    message2 (echo_area_glyphs, echo_area_glyphs_length,
-	      !NILP (current_buffer->enable_multibyte_characters));
+  if (!NILP (echo_area_buffer[0]))
+    {
+      Lisp_Object string;
+      string = Fcurrent_message ();
+      message3 (string, XSTRING (string)->size, 
+		!NILP (current_buffer->enable_multibyte_characters));
+    }
 }
 
 
-/* Redisplay the echo area of selected_frame.  If UPDATE_FRAME_P is
-   non-zero update selected_frame.  */
+/* Call FN with args A1..A5 with either the current or last displayed
+   echo_area_buffer as current buffer.
+
+   WHICH zero means use the current message buffer
+   echo_area_buffer[0].  If that is nil, choose a suitable buffer
+   from echo_buffer[] and clear it.
+
+   WHICH > 0 means use echo_area_buffer[1].  If that is nil, choose a
+   suitable buffer from echo_buffer[] and clear it.
+
+   If WHICH < 0, set echo_area_buffer[1] to echo_area_buffer[0], so
+   that the current message becomes the last displayed one, make
+   choose a suitable buffer for echo_area_buffer[0], and clear it.
+
+   Value is what FN returns. */
+
+static int
+with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5)
+     struct window *w;
+     int which;
+     int (*fn) ();
+     int a1, a2, a3, a4, a5;
+{
+  Lisp_Object buffer;
+  int i, this_one, the_other, clear_buffer_p, rc;
+  int count = specpdl_ptr - specpdl;
+
+  /* If buffers aren't life, make new ones.  */
+  for (i = 0; i < 2; ++i)
+    if (!BUFFERP (echo_buffer[i])
+	|| NILP (XBUFFER (echo_buffer[i])->name))
+      {
+	char name[30];
+	sprintf (name, " *Echo Area %d*", i);
+	echo_buffer[i] = Fget_buffer_create (build_string (name));
+      }
+
+  clear_buffer_p = 0;
+  
+  if (which == 0)
+    this_one = 0, the_other = 1;
+  else if (which > 0)
+    this_one = 1, the_other = 0;
+  else
+    {
+      this_one = 0, the_other = 1;
+      clear_buffer_p = 1;
+      
+      /* We need a fresh one in case the current echo buffer equals
+	 the one containing the last displayed echo area message.  */
+      if (!NILP (echo_area_buffer[this_one])
+	  && EQ (echo_area_buffer[this_one], echo_area_buffer[the_other]))
+	echo_area_buffer[this_one] = Qnil;
+      
+    }
+
+  /* Choose a suitable buffer from echo_buffer[] is we don't
+     have one.  */
+  if (NILP (echo_area_buffer[this_one]))
+    {
+      echo_area_buffer[this_one]
+	= (EQ (echo_area_buffer[the_other], echo_buffer[this_one])
+	   ? echo_buffer[the_other]
+	   : echo_buffer[this_one]);
+      clear_buffer_p = 1;
+    }
+
+  buffer = echo_area_buffer[this_one];
+
+  record_unwind_protect (unwind_with_echo_area_buffer,
+			 with_echo_area_buffer_unwind_data (w));
+
+  /* Make the echo area buffer current.  Note that for display
+     purposes, it is not necessary that the displayed window's buffer
+     == current_buffer, except for text property lookup.  So, let's
+     only set that buffer temporarily here without doing a full
+     Fset_window_buffer.  We must also change w->pointm, though,
+     because otherwise an assertions in unshow_buffer fails, and Emacs
+     aborts.  */
+  set_buffer_internal (XBUFFER (buffer));
+  if (w)
+    {
+      w->buffer = buffer;
+      set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
+    }
+  current_buffer->truncate_lines = Qnil;
+  current_buffer->undo_list = Qt;
+  current_buffer->read_only = Qnil;
+
+  if (clear_buffer_p && Z > BEG)
+    del_range (BEG, Z);
+
+  xassert (BEGV >= BEG);
+  xassert (ZV <= Z && ZV >= BEGV);
+
+  rc = fn (a1, a2, a3, a4, a5);
+
+  xassert (BEGV >= BEG);
+  xassert (ZV <= Z && ZV >= BEGV);
+
+  unbind_to (count, Qnil);
+  return rc;
+}
+
+
+/* Save state that should be preserved around the call to the function
+   FN called in with_echo_area_buffer.  */
+
+static Lisp_Object
+with_echo_area_buffer_unwind_data (w)
+     struct window *w;
+{
+  int i = 0;
+  Lisp_Object vector;
+
+  /* Reduce consing by keeping one vector in
+     Vwith_echo_area_save_vector.  */
+  vector = Vwith_echo_area_save_vector;
+  Vwith_echo_area_save_vector = Qnil;
+  
+  if (NILP (vector))
+    vector = Fmake_vector (make_number (9), Qnil);
+  
+  XSETBUFFER (XVECTOR (vector)->contents[i], current_buffer); ++i;
+  XVECTOR (vector)->contents[i++] = Vdeactivate_mark;
+  XVECTOR (vector)->contents[i++] = make_number (windows_or_buffers_changed);
+  XVECTOR (vector)->contents[i++] = make_number (beg_unchanged);
+  XVECTOR (vector)->contents[i++] = make_number (end_unchanged);
+  
+  if (w)
+    {
+      XSETWINDOW (XVECTOR (vector)->contents[i], w); ++i;
+      XVECTOR (vector)->contents[i++] = w->buffer;
+      XVECTOR (vector)->contents[i++]
+	= make_number (XMARKER (w->pointm)->charpos);
+      XVECTOR (vector)->contents[i++]
+	= make_number (XMARKER (w->pointm)->bytepos);
+    }
+  else
+    {
+      int end = i + 4;
+      while (i < end)
+	XVECTOR (vector)->contents[i++] = Qnil;
+    }
+
+  xassert (i == XVECTOR (vector)->size);
+  return vector;
+}
+
+
+/* Restore global state from VECTOR which was created by
+   with_echo_area_buffer_unwind_data.  */
+
+static Lisp_Object
+unwind_with_echo_area_buffer (vector)
+     Lisp_Object vector;
+{
+  int i = 0;
+  
+  set_buffer_internal (XBUFFER (XVECTOR (vector)->contents[i])); ++i;
+  Vdeactivate_mark = XVECTOR (vector)->contents[i]; ++i;
+  windows_or_buffers_changed = XFASTINT (XVECTOR (vector)->contents[i]); ++i;
+  beg_unchanged = XFASTINT (XVECTOR (vector)->contents[i]); ++i;
+  end_unchanged = XFASTINT (XVECTOR (vector)->contents[i]); ++i;
+
+  if (WINDOWP (XVECTOR (vector)->contents[i]))
+    {
+      struct window *w;
+      Lisp_Object buffer, charpos, bytepos;
+      
+      w = XWINDOW (XVECTOR (vector)->contents[i]); ++i;
+      buffer = XVECTOR (vector)->contents[i]; ++i;
+      charpos = XVECTOR (vector)->contents[i]; ++i;
+      bytepos = XVECTOR (vector)->contents[i]; ++i;
+      
+      w->buffer = buffer;
+      set_marker_both (w->pointm, buffer,
+		       XFASTINT (charpos), XFASTINT (bytepos));
+    }
+
+  Vwith_echo_area_save_vector = vector;
+  return Qnil;
+}
+
+
+/* Set up the echo area for use by print functions.  MULTIBYTE_P
+   non-zero means we will print multibyte.  */
+
+void
+setup_echo_area_for_printing (multibyte_p)
+     int multibyte_p;
+{
+  if (!message_buf_print)
+    {
+      /* A message has been output since the last time we printed.
+	 Choose a fresh echo area buffer.  */
+      if (EQ (echo_area_buffer[1], echo_buffer[0]))
+	echo_area_buffer[0] = echo_buffer[1]; 
+      else
+	echo_area_buffer[0] = echo_buffer[0];
+
+      /* Switch to that buffer and clear it.  */
+      set_buffer_internal (XBUFFER (echo_area_buffer[0]));
+      if (Z > BEG)
+	del_range (BEG, Z);
+      TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
+
+      /* Set up the buffer for the multibyteness we need.  */
+      if (multibyte_p
+	  != !NILP (current_buffer->enable_multibyte_characters))
+	Fset_buffer_multibyte (multibyte_p ? Qt : Qnil);
+
+      /* Raise the frame containing the echo area.  */
+      if (minibuffer_auto_raise)
+	{
+	  Lisp_Object mini_window;
+	  mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+	  Fraise_frame  (WINDOW_FRAME (XWINDOW (mini_window)));
+	}
+
+      message_buf_print = 1;
+    }
+  else if (current_buffer != XBUFFER (echo_area_buffer[0]))
+    /* Someone switched buffers between print requests.  */
+    set_buffer_internal (XBUFFER (echo_area_buffer[0]));
+}
+
+
+/* Display the current echo area message in window W.  Value is
+   non-zero if W's height is changed.  */
+
+static int
+display_echo_area (w)
+     struct window *w;
+{
+  return with_echo_area_buffer (w, display_last_displayed_message_p,
+				(int (*) ()) display_echo_area_1, w);
+}
+
+
+/* Helper for display_echo_area.  Display the current buffer which
+   contains the current echo area message in window W, a mini-window.
+   Change the height of W so that all of the message is displayed.
+   Value is non-zero if height of W was changed.  */
+
+static int
+display_echo_area_1 (w)
+     struct window *w;
+{
+  Lisp_Object window;
+  struct frame *f = XFRAME (w->frame);
+  struct text_pos start;
+  int window_height_changed_p = 0;
+
+  /* Do this before displaying, so that we have a large enough glyph
+     matrix for the display.  */
+  window_height_changed_p = resize_mini_window (w);
+
+  /* Display.  */
+  clear_glyph_matrix (w->desired_matrix);
+  XSETWINDOW (window, w);
+  SET_TEXT_POS (start, BEG, BEG_BYTE);
+  try_window (window, start);
+
+  /* The current buffer is the one containing the last displayed
+     echo area message.  */
+  XSETBUFFER (echo_area_buffer[1], current_buffer);
+
+  return window_height_changed_p;
+}
+
+
+/* Resize mini-window W to fit the size of its contents.  Value is
+   non-zero if the window height has been changed.  */
+
+static int
+resize_mini_window (w)
+     struct window *w;
+{
+  struct frame *f = XFRAME (w->frame);
+  int window_height_changed_p = 0;
+
+  xassert (MINI_WINDOW_P (w));
+  
+  if (!FRAME_MINIBUF_ONLY_P (f))
+    {
+      struct it it;
+      
+      init_iterator (&it, w, BEGV, BEGV_BYTE, NULL, DEFAULT_FACE_ID);
+      if (!it.truncate_lines_p)
+	{
+	  struct window *root = XWINDOW (FRAME_ROOT_WINDOW (f));
+	  int total_height = XFASTINT (root->height) + XFASTINT (w->height);
+	  int height, max_height;
+	  int unit = CANON_Y_UNIT (f);
+	  struct text_pos start;
+
+	  /* Compute the max. number of lines specified by the user.  */
+	  if (FLOATP (Vmax_mini_window_height))
+	    max_height = XFLOATINT (Vmax_mini_window_height) * total_height;
+	  else if (INTEGERP (Vmax_mini_window_height))
+	    max_height = XINT (Vmax_mini_window_height);
+
+	  /* Correct that max. height if it's bogus. */
+	  max_height = max (1, max_height);
+	  max_height = min (total_height, max_height);
+
+	  /* Find out the height of the text in the window.  */
+	  move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
+	  height = (unit - 1 + it.current_y + last_height) / unit;
+	  height = max (1, height);
+
+	  /* Compute a suitable window start.  */
+	  if (height > max_height)
+	    {
+	      height = max_height;
+	      init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
+	      move_it_vertically_backward (&it, (height - 1) * unit);
+	      start = it.current.pos;
+	    }
+	  else
+	    SET_TEXT_POS (start, BEGV, BEGV_BYTE);
+	  SET_MARKER_FROM_TEXT_POS (w->start, start);
+
+	  /* Change window's height, if necessary.  */
+	  if (height != XFASTINT (w->height))
+	    {
+	      Lisp_Object old_selected_window;
+	      
+	      old_selected_window = selected_window;
+	      XSETWINDOW (selected_window, w);
+	      change_window_height (height - XFASTINT (w->height), 0);
+	      selected_window = old_selected_window;
+	      window_height_changed_p = 1;
+	    }
+	}
+    }
+
+  return window_height_changed_p;
+}
+
+
+/* Value is the current message, a string, or nil if there is no
+   current message.  */
+
+Lisp_Object
+current_message ()
+{
+  Lisp_Object msg;
+
+  if (NILP (echo_area_buffer[0]))
+    msg = Qnil;
+  else
+    {
+      with_echo_area_buffer (0, 0, (int (*) ()) current_message_1, &msg);
+      if (NILP (msg))
+	echo_area_buffer[0] = Qnil;
+    }
+  
+  return msg;
+}
+
+
+static int
+current_message_1 (msg)
+     Lisp_Object *msg;
+{
+  if (Z > BEG)
+    *msg = make_buffer_string (BEG, Z, 1);
+  else
+    *msg = Qnil;
+  return 0;
+}
+
+
+/* Push the current message on Vmessage_stack for later restauration
+   by restore_message.  Value is non-zero if the current message isn't
+   empty.  This is a relatively infrequent operation, so it's not
+   worth optimizing.  */
+
+int
+push_message ()
+{
+  Lisp_Object msg;
+  msg = current_message ();
+  Vmessage_stack = Fcons (msg, Vmessage_stack);
+  return STRINGP (msg);
+}
+
+
+/* Restore message display from the top of Vmessage_stack.  */
+
+void
+restore_message ()
+{
+  Lisp_Object msg;
+  
+  xassert (CONSP (Vmessage_stack));
+  msg = XCAR (Vmessage_stack);
+  if (STRINGP (msg))
+    message3_nolog (msg, STRING_BYTES (XSTRING (msg)), STRING_MULTIBYTE (msg));
+  else
+    message3_nolog (msg, 0, 0);
+}
+
+
+/* Pop the top-most entry off Vmessage_stack.  */
+
+void
+pop_message ()
+{
+  xassert (CONSP (Vmessage_stack));
+  Vmessage_stack = XCDR (Vmessage_stack);
+}
+
+
+/* Check that Vmessage_stack is nil.  Called from emacs.c when Emacs
+   exits.  If the stack is not empty, we have a missing pop_message
+   somewhere.  */
+
+void
+check_message_stack ()
+{
+  if (!NILP (Vmessage_stack))
+    abort ();
+}
+
+
+/* Truncate to NCHARS what will be displayed in the echo area the next
+   time we display it---but don't redisplay it now.  */
+
+void
+truncate_echo_area (nchars)
+     int nchars;
+{
+  if (nchars == 0)
+    echo_area_buffer[0] = Qnil;
+  /* A null message buffer means that the frame hasn't really been
+     initialized yet.  Error messages get reported properly by
+     cmd_error, so this must be just an informative message; toss it.  */
+  else if (!noninteractive
+	   && INTERACTIVE
+	   && FRAME_MESSAGE_BUF (selected_frame)
+	   && !NILP (echo_area_buffer[0]))
+    with_echo_area_buffer (0, 0, (int (*) ()) truncate_message_1, nchars);
+}
+
+
+/* Helper function for truncate_echo_area.  Truncate the current
+   message to at most NCHARS characters.  */
+
+static int
+truncate_message_1 (nchars)
+     int nchars;
+{
+  if (BEG + nchars < Z)
+    del_range (BEG + nchars, Z);
+  if (Z == BEG)
+    echo_area_buffer[0] = Qnil;
+  return 0;
+}
+
+
+/* Set the current message to a substring of S or STRING.
+
+   If STRING is a Lisp string, set the message to the first NBYTES
+   bytes from STRING.  NBYTES zero means use the whole string.  If
+   STRING is multibyte, the message will be displayed multibyte.
+
+   If S is not null, set the message to the first LEN bytes of S.  LEN
+   zero means use the whole string.  MULTIBYTE_P non-zero means S is
+   multibyte.  Display the message multibyte in that case.  */
+
+void
+set_message (s, string, nbytes, multibyte_p)
+     char *s;
+     Lisp_Object string;
+     int nbytes;
+{
+  message_enable_multibyte
+    = ((s && multibyte_p)
+       || (STRINGP (string) && STRING_MULTIBYTE (string)));
+  
+  with_echo_area_buffer (0, -1, (int (*) ()) set_message_1,
+			 s, string, nbytes, multibyte_p);
+  message_buf_print = 0;
+}
+
+
+/* Helper function for set_message.  Arguments have the same meaning
+   as there.  This function is called with the echo area buffer being
+   current.  */
+
+static int
+set_message_1 (s, string, nbytes, multibyte_p)
+     char *s;
+     Lisp_Object string;
+     int nbytes, multibyte_p;
+{
+  xassert (BEG == Z);
+  
+  /* Change multibyteness of the echo buffer appropriately.  */
+  if (message_enable_multibyte
+      != !NILP (current_buffer->enable_multibyte_characters))
+    Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
+
+  /* Insert new message at BEG.  */
+  TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
+
+  if (STRINGP (string))
+    {
+      int nchars;
+      
+      if (nbytes == 0)
+	nbytes = XSTRING (string)->size_byte;
+      nchars = string_byte_to_char (string, nbytes);
+      
+      /* This function takes care of single/multibyte conversion.  We
+         just have to ensure that the echo area buffer has the right
+         setting of enable_multibyte_characters.  */
+      insert_from_string (string, 0, 0, nchars, nbytes, 1);
+    }
+  else if (s)
+    {
+      if (nbytes == 0)
+	nbytes = strlen (s);
+      
+      if (multibyte_p && NILP (current_buffer->enable_multibyte_characters))
+	{
+	  /* Convert from multi-byte to single-byte.  */
+	  int i, c, n;
+	  unsigned char work[1];
+	  
+	  /* Convert a multibyte string to single-byte.  */
+	  for (i = 0; i < nbytes; i += n)
+	    {
+	      c = string_char_and_length (s + i, nbytes - i, &n);
+	      work[0] = (SINGLE_BYTE_CHAR_P (c)
+			 ? c
+			 : multibyte_char_to_unibyte (c, Qnil));
+	      insert_1_both (work, 1, 1, 1, 0, 0);
+	    }
+	}
+      else if (!multibyte_p
+	       && !NILP (current_buffer->enable_multibyte_characters))
+	{
+	  /* Convert from single-byte to multi-byte.  */
+	  int i, c, n;
+	  unsigned char *msg = (unsigned char *) s;
+	  unsigned char *str, work[4];
+      
+	  /* Convert a single-byte string to multibyte.  */
+	  for (i = 0; i < nbytes; i++)
+	    {
+	      c = unibyte_char_to_multibyte (msg[i]);
+	      n = CHAR_STRING (c, work, str);
+	      insert_1_both (work, 1, n, 1, 0, 0);
+	    }
+	}
+      else
+	insert_1 (s, nbytes, 1, 0, 0);
+    }
+
+  return 0;
+}
+
+
+/* Clear messages.  CURRENT_P non-zero means clear the current
+   message.  LAST_DISPLAYED_P non-zero means clear the message
+   last displayed.  */
+
+void
+clear_message (current_p, last_displayed_p)
+     int current_p, last_displayed_p;
+{
+  if (current_p)
+    echo_area_buffer[0] = Qnil;
+  
+  if (last_displayed_p)
+    echo_area_buffer[1] = Qnil;
+  
+  message_buf_print = 0;
+}
+
+/* Clear garbaged frames.
+
+   This function is used where the old redisplay called
+   redraw_garbaged_frames which in turn called redraw_frame which in
+   turn called clear_frame.  The call to clear_frame was a source of
+   flickering.  I believe a clear_frame is not necessary.  It should
+   suffice in the new redisplay to invalidate all current matrices,
+   and ensure a complete redisplay of all windows.  */
 
 static void
-echo_area_display (update_frame_p)
-     int update_frame_p;
+clear_garbaged_frames ()
 {
-  Lisp_Object mini_window;
-  struct window *w;
-  struct frame *f;
-
-  mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
-  w = XWINDOW (mini_window);
-  f = XFRAME (WINDOW_FRAME (w));
-
-  /* Don't display if frame is invisible or not yet initialized.  */
-  if (!FRAME_VISIBLE_P (f) 
-      || !f->glyphs_initialized_p)
-    return;
-
-  /* When Emacs starts, selected_frame may be a visible terminal
-     frame, even if we run under a window system.  If we let this
-     through, a message would be displayed on the terminal.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  if (!inhibit_window_system && !FRAME_WINDOW_P (selected_frame))
-    return;
-#endif /* HAVE_WINDOW_SYSTEM */
-
-  /* Redraw garbaged frames.  */
   if (frame_garbaged)
     {
-      /* Old redisplay called redraw_garbaged_frames here which in
-	 turn called redraw_frame which in turn called clear_frame.
-	 The call to clear_frame is a source of flickering.  After
-	 checking the places where SET_FRAME_GARBAGED is called, I
-	 believe a clear_frame is not necessary.  It should suffice in
-	 the new redisplay to invalidate all current matrices, and
-	 ensure a complete redisplay of all windows.  */
       Lisp_Object tail, frame;
       
       FOR_EACH_FRAME (tail, frame)
@@ -5241,52 +5756,48 @@ echo_area_display (update_frame_p)
       frame_garbaged = 0;
       ++windows_or_buffers_changed;
     }
+}
 
-  if (echo_area_glyphs
-      || STRINGP (echo_area_message)
-      || minibuf_level == 0)
+
+/* Redisplay the echo area of selected_frame.  If UPDATE_FRAME_P is
+   non-zero update selected_frame.  Value is non-zero if the
+   mini-windows height has been changed.  */
+
+static int
+echo_area_display (update_frame_p)
+     int update_frame_p;
+{
+  Lisp_Object mini_window;
+  struct window *w;
+  struct frame *f;
+  int window_height_changed_p = 0;
+
+  mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+  w = XWINDOW (mini_window);
+  f = XFRAME (WINDOW_FRAME (w));
+
+  /* Don't display if frame is invisible or not yet initialized.  */
+  if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
+    return 0;
+
+  /* When Emacs starts, selected_frame may be a visible terminal
+     frame, even if we run under a window system.  If we let this
+     through, a message would be displayed on the terminal.  */
+#ifdef HAVE_WINDOW_SYSTEM
+  if (!inhibit_window_system && !FRAME_WINDOW_P (selected_frame))
+    return 0;
+#endif /* HAVE_WINDOW_SYSTEM */
+
+  /* Redraw garbaged frames.  */
+  if (frame_garbaged)
+    clear_garbaged_frames ();
+
+  if (!NILP (echo_area_buffer[0]) || minibuf_level == 0)
     {
-      struct it it;
-
       echo_area_window = mini_window;
-      clear_glyph_matrix (w->desired_matrix);
-      init_iterator (&it, w, -1, -1, w->desired_matrix->rows, DEFAULT_FACE_ID);
-      
-      if (STRINGP (echo_area_message)
-	  && echo_area_glyphs_length)
-	{
-	  prepare_desired_row (it.glyph_row);
-	  display_string (NULL, echo_area_message, Qnil, 0, 0,
-			  &it, -1, echo_area_glyphs_length, 0,
-			  message_enable_multibyte);
-	  it.glyph_row->truncated_on_right_p = 0;
-	  compute_line_metrics (&it);
-	}
-      else if (echo_area_glyphs
-	       && echo_area_glyphs_length)
-	{
-	  prepare_desired_row (it.glyph_row);
-	  display_string (echo_area_glyphs, Qnil, Qnil, 0, 0, &it,
-			  -1, echo_area_glyphs_length, 0,
-			  message_enable_multibyte);
-	  it.glyph_row->truncated_on_right_p = 0;
-	  compute_line_metrics (&it);
-	}
-      else
-	blank_row (w, it.glyph_row, 0);
-      
-      it.glyph_row->y = it.current_y;
-      it.current_y += it.glyph_row->height;
-
-      /* Clear the rest of the lines.  */
-      while (it.current_y < it.last_visible_y)
-	{
-	  ++it.glyph_row;
-	  blank_row (w, it.glyph_row, it.current_y);
-	  it.current_y += it.glyph_row->height;
-	}
-
+      window_height_changed_p = display_echo_area (w);
       w->must_be_updated_p = 1;
+      
       if (update_frame_p)
 	{
 	  /* Calling update_single_window is faster when we can use
@@ -5303,15 +5814,16 @@ echo_area_display (update_frame_p)
   else if (!EQ (mini_window, selected_window))
     windows_or_buffers_changed++;
 
+  if (NILP (echo_area_buffer[0]))
+    clear_message (0, 1);
+  
   /* Prevent redisplay optimization in redisplay_internal by resetting
      this_line_start_pos.  This is done because the mini-buffer now
      displays the message instead of its buffer text.  */
   if (EQ (mini_window, selected_window))
     CHARPOS (this_line_start_pos) = 0;
-  
-  previous_echo_glyphs = echo_area_glyphs;
-  previous_echo_area_message = echo_area_message;
-  previous_echo_glyphs_length = echo_area_glyphs_length;
+
+  return window_height_changed_p;
 }
 
 
@@ -6441,37 +6953,16 @@ redisplay_internal (preserve_echo_area)
   }
 
   /* Notice any pending interrupt request to change frame size.  */
-  do_pending_window_change ();
+  do_pending_window_change (1);
 
   /* Clear frames marked as garbaged.  */
   if (frame_garbaged)
-    {
-      /* Old redisplay called redraw_garbaged_frames here which in
-	 turn called redraw_frame which in turn called clear_frame.
-	 The call to clear_frame is a source of flickering.  After
-	 checking the places where SET_FRAME_GARBAGED is called, I
-	 believe a clear_frame is not necessary.  It should suffice in
-	 the new redisplay to invalidate all current matrices, and
-	 ensure a complete redisplay of all windows.  */
-      Lisp_Object tail, frame;
-      
-      FOR_EACH_FRAME (tail, frame)
-	{
-	  struct frame *f = XFRAME (frame);
-	  
-	  if (FRAME_VISIBLE_P (f) && FRAME_GARBAGED_P (f))
-	    {
-	      clear_current_matrices (f);
-	      f->garbaged = 0;
-	    }
-	}
-
-      frame_garbaged = 0;
-      ++windows_or_buffers_changed;
-    }
+    clear_garbaged_frames ();
 
   /* Build menubar and toolbar items.  */
   prepare_menu_bars ();
+
+ retry_1:
 
   if (windows_or_buffers_changed)
     update_mode_lines++;
@@ -6510,15 +7001,29 @@ redisplay_internal (preserve_echo_area)
   /* Normally the message* functions will have already displayed and
      updated the echo area, but the frame may have been trashed, or
      the update may have been preempted, so display the echo area
-     again here.  */
-  if (echo_area_glyphs
-      || STRINGP (echo_area_message)
-      || previous_echo_glyphs
-      || STRINGP (previous_echo_area_message))
+     again here.  Checking both message buffers captures the case that
+     the echo area should be cleared.  */
+  if (!NILP (echo_area_buffer[0]) || !NILP (echo_area_buffer[1]))
     {
-      echo_area_display (0);
+      int window_height_changed_p = echo_area_display (0);
       must_finish = 1;
+      if (fonts_changed_p)
+	goto retry;
+      else if (window_height_changed_p)
+	{
+	  consider_all_windows_p = 1;
+	  ++update_mode_lines;
+	  ++windows_or_buffers_changed;
+	}
     }
+  else if (w == XWINDOW (minibuf_window) && resize_mini_window (w))
+    {
+      /* Resized active mini-window to fit the size of what it is
+         showing.  */
+      ++windows_or_buffers_changed;
+      goto retry;
+    }
+  
 
   /* If showing the region, and mark has changed, we must redisplay
      the whole window.  The assignment to this_line_start_pos prevents
@@ -6682,7 +7187,7 @@ redisplay_internal (preserve_echo_area)
 	{
 	  if (!must_finish)
 	    {
-	      do_pending_window_change ();
+	      do_pending_window_change (1);
 
 	      /* We used to always goto end_of_redisplay here, but this 
 		 isn't enough if we have a blinking cursor.  */
@@ -6975,7 +7480,7 @@ update:
     }
 
   /* Change frame size now if a change is pending.  */
-  do_pending_window_change ();
+  do_pending_window_change (1);
 
   /* If we just did a pending size change, or have additional
      visible frames, redisplay again.  */
@@ -6983,7 +7488,7 @@ update:
     goto retry;
 
  end_of_redisplay:;
-  
+
   unbind_to (count, Qnil);
 }
 
@@ -6999,17 +7504,13 @@ update:
 void
 redisplay_preserve_echo_area ()
 {
-  if (!echo_area_glyphs
-      && !STRINGP (echo_area_message)
-      && (previous_echo_glyphs
-	  || STRINGP (previous_echo_area_message)))
+  if (!NILP (echo_area_buffer[1]))
     {
-      echo_area_glyphs = previous_echo_glyphs;
-      echo_area_message = previous_echo_area_message;
-      echo_area_glyphs_length = previous_echo_glyphs_length;
+      /* We have a previously displayed message, but no current
+	 message.  Redisplay the previous message.  */
+      display_last_displayed_message_p = 1;
       redisplay_internal (1);
-      echo_area_glyphs = NULL;
-      echo_area_message = Qnil;
+      display_last_displayed_message_p = 0;
     }
   else
     redisplay_internal (1);
@@ -7025,6 +7526,7 @@ unwind_redisplay (old_redisplaying_p)
      Lisp_Object old_redisplaying_p;
 {
   redisplaying_p = XFASTINT (old_redisplaying_p);
+  return Qnil;
 }
 
 
@@ -7641,8 +8143,7 @@ redisplay_window (window, just_this_one_p)
   if (MINI_WINDOW_P (w))
     {
       if (w == XWINDOW (echo_area_window)
-	  && (echo_area_glyphs
-	      || STRINGP (echo_area_message)))
+	  && !NILP (echo_area_buffer[0]))
 	{
 	  if (update_mode_line)
 	    /* We may have to update a tty frame's menu bar or a
@@ -8382,10 +8883,9 @@ redisplay_window (window, just_this_one_p)
 	 visible region.
 
 	 Note that mini-buffers sometimes aren't displaying any text.  */
-      if (! MINI_WINDOW_P (w)
+      if (!MINI_WINDOW_P (w)
 	  || (w == XWINDOW (minibuf_window)
-	      && !echo_area_glyphs
-	      && !STRINGP (echo_area_message)))
+	      && NILP (echo_area_buffer[0])))
 	{
 	  whole = ZV - BEGV;
 	  start = marker_position (w->start) - BEGV;
@@ -8978,11 +9478,6 @@ get_first_unchanged_at_end_row (w, delta, delta_bytes)
   /* Set row to the last row in W's current matrix displaying text.  */
   row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
   
-  /* End vpos should always be on text, except in an entirely empty
-     matrix.  */
-  xassert (MATRIX_ROW_DISPLAYS_TEXT_P (row)
-	   || MATRIX_ROW_VPOS (row, w->current_matrix) == 0);
-
   /* If matrix is entirely empty, no unchanged row exists.  */ 
   if (MATRIX_ROW_DISPLAYS_TEXT_P (row))
     {
@@ -10018,10 +10513,15 @@ compute_line_metrics (it)
 /* Append one space to the glyph row of iterator IT if doing a
    window-based redisplay.  DEFAULT_FACE_P non-zero means let the
    space have the default face, otherwise let it have the same face as
-   IT->face_id.  This function is called to make sure that there is
-   always one glyph at the end of a glyph row that the cursor can be
-   set on under window-systems.  (If there weren't such a glyph we
-   would not know how wide and tall the cursor should be displayed).  */
+   IT->face_id.
+
+   This function is called to make sure that there is always one glyph
+   at the end of a glyph row that the cursor can be set on under
+   window-systems.  (If there weren't such a glyph we would not know
+   how wide and tall a box cursor should be displayed).
+
+   At the same time this space let's a nicely handle clearing to the
+   end of the line if the row ends in italic text.  */
 
 static void
 append_space (it, default_face_p)
@@ -10268,45 +10768,6 @@ display_line (it)
      one after another in the buffer, in which case all calls to
      recenter_overlay_lists but the first will be pretty cheap.  */
   recenter_overlay_lists (current_buffer, IT_CHARPOS (*it));
-
-#if NO_PROMPT_IN_BUFFER
-  /* Show mini-buffer prompt, if at the beginning of a mini-buffer
-     window.  */
-  if (MINI_WINDOW_P (it->w) 
-      && MATRIX_ROW_START_CHARPOS (row) == BEG 
-      && it->vpos == 0)
-    {
-      if (NILP (minibuf_prompt))
-	minibuf_prompt_width = minibuf_prompt_pixel_width = 0;
-      else
-	{
-	  /* We would like to truncate the prompt a little bit before
-	     the right margin of the window, so that user input can
-	     start on the first line.  Set max_x to this position.  */
-	  int max_x = (it->last_visible_x - 4 * CANON_X_UNIT (it->f));
-
-	  /* We use a temporary iterator different from IT so that
-	     IT's settings are not overwritten when displaying
-	     the prompt.  */
-	  struct it ti;
-
-	  ti = *it;
-
-	  /* Display the prompt.  Set minibuf_prompt_width to the 
-	     number of glyphs generated for the prompt, set
-	     minibuf_prompt_pixel_width to its width in pixels.  */
-	  xassert (it->current_x == 0);
-	  display_string (NULL, minibuf_prompt, Qnil, 0, 0, &ti,
-			  0, 0, max_x, -1);
-	  minibuf_prompt_width = ti.hpos;
-	  minibuf_prompt_pixel_width = ti.current_x;
-
-	  /* Transfer pixel and hpos information to IT.  */
-	  it->hpos = ti.hpos;
-	  it->current_x = ti.current_x;
-	}
-    }
-#endif /* NO_PROMPT_IN_BUFFER */
 
   /* Move over display elements that are not visible because we are
      hscrolled.  This may stop at an x-position < IT->first_visible_x
@@ -11174,7 +11635,6 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
       else if (INTEGERP (eoltype)
 	       && CHAR_VALID_P (XINT (eoltype), 0))
 	{
-	  int c = XINT (eoltype);
 	  unsigned char work[4];
 
 	  eol_str_len = CHAR_STRING (XINT (eoltype), work, eol_str);
@@ -11932,12 +12392,14 @@ invisible_ellipsis_p (propval, list)
 void
 syms_of_xdisp ()
 {
-  echo_area_message = previous_echo_area_message = Qnil;
-  staticpro (&echo_area_message);
-  staticpro (&previous_echo_area_message);
+  Vwith_echo_area_save_vector = Qnil;
+  staticpro (&Vwith_echo_area_save_vector);
 
-  staticpro (&Qinhibit_redisplay);
+  Vmessage_stack = Qnil;
+  staticpro (&Vmessage_stack);
+  
   Qinhibit_redisplay = intern ("inhibit-redisplay");
+  staticpro (&Qinhibit_redisplay);
 
 #if GLYPH_DEBUG
   defsubr (&Sdump_glyph_matrix);
@@ -12007,6 +12469,14 @@ syms_of_xdisp ()
   staticpro (&last_arrow_string);
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
+  
+  echo_buffer[0] = echo_buffer[1] = Qnil;
+  staticpro (&echo_buffer[0]);
+  staticpro (&echo_buffer[1]);
+
+  echo_area_buffer[0] = echo_area_buffer[1] = Qnil;
+  staticpro (&echo_area_buffer[0]);
+  staticpro (&echo_area_buffer[1]);
 
   DEFVAR_LISP ("show-trailing-whitespace", &Vshow_trailing_whitespace,
     "Non-nil means highlight trailing whitespace.\n\
@@ -12162,6 +12632,12 @@ are displayed by converting them to the equivalent multibyte characters\n\
 according to the current language environment.  As a result, they are\n\
 displayed according to the current fontset.");
   unibyte_display_via_language_environment = 0;
+
+  DEFVAR_LISP ("max-mini-window-height", &Vmax_mini_window_height,
+    "*Maximum height for resizing mini-windows.\n\
+If a float, it specifies a fraction of the mini-window frame's height.\n\
+If an integer, it specifies a number of lines.");
+  Vmax_mini_window_height = make_float (0.25);
 }
 
 
@@ -12177,10 +12653,6 @@ init_xdisp ()
 
   mini_w = XWINDOW (minibuf_window);
   root_window = FRAME_ROOT_WINDOW (XFRAME (WINDOW_FRAME (mini_w)));
-
-  echo_area_glyphs = 0;
-  previous_echo_glyphs = 0;
-  echo_area_message = previous_echo_area_message = Qnil;
 
   if (!noninteractive)
     {
