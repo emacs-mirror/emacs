@@ -1,3 +1,9 @@
+2001-04-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* process.c (wait_reading_process_input) [!subprocesses]: Don't
+	reference waiting_for_user_input_p, it's not defined in the branch
+	without async subprocesses support.
+
 2001-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (delete_kboard): Prevent a dangling reference
