@@ -1,5 +1,5 @@
 2005-03-06  Richard M. Stallman  <rms@gnu.org>
-o
+
 	* building.texi (Starting GUD): Don't explain text vs graphical
 	GDB here.  Just mention it and xref.
 	Delete "just one debugger process".
