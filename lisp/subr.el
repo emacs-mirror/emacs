@@ -209,6 +209,21 @@ If N is bigger than the length of X, return X."
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
 	   x))))
 
+(defun delete-dups (list)
+  "Destructively return LIST, with `equal' duplicates removed.
+LIST must be a proper list.  The value of LIST after a call to
+this function is undefined.  Use \(setq LIST (delete-dups LIST))
+if you want to store the return value in LIST.  Of several
+`equal' occurrences of an element in LIST, the last one is kept."
+  (while (member (car list) (cdr list))
+    (pop list))
+  (let ((tail list))
+    (while tail
+      (while (member (cadr tail) (cddr tail))
+	(setcdr tail (cddr tail)))
+      (pop tail)))
+  list)
+
 (defun number-sequence (from &optional to inc)
   "Return a sequence of numbers from FROM to TO (both inclusive) as a list.
 INC is the increment used between numbers in the sequence and defaults to 1.
