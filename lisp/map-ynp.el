@@ -89,7 +89,8 @@ the current %s and exit."
 				      action object))))
 	 (user-keys (if action-alist
 			(concat (mapconcat (lambda (elt)
-					     (char-to-string (car elt)))
+					     (key-description
+					      (char-to-string (car elt))))
 					   action-alist ", ")
 				" ")
 		      ""))
