@@ -1,5 +1,10 @@
 1999-11-03  Gerd Moellmann  <gerd@gnu.org>
 
+	* minibuf.c (string_to_object): New.
+	(read_minibuf_noninteractive): New.
+	(read_minibuf): Call read_minibuf_noninteractive if
+	noninteractive.  Use string_to_object.
+
 	* doc.c (Fdocumentation_property): Fix bug bypassing UNGCPRO.
 
 1999-11-02  Dave Love  <fx@gnu.org>
