@@ -2663,7 +2663,7 @@ If there are no more overlay boundaries after POS, return (point-max).")
 DEFUN ("previous-overlay-change", Fprevious_overlay_change,
        Sprevious_overlay_change, 1, 1, 0,
   "Return the previous position before POS where an overlay starts or ends.\n\
-If there are no more overlay boundaries after POS, return (point-min).")
+If there are no more overlay boundaries before POS, return (point-min).")
   (pos)
      Lisp_Object pos;
 {
@@ -2672,11 +2672,17 @@ If there are no more overlay boundaries after POS, return (point-min).")
   Lisp_Object *overlay_vec;
   int len;
   int i;
+  Lisp_Object tail;
 
   CHECK_NUMBER_COERCE_MARKER (pos, 0);
 
   len = 10;
   overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+
+  /* At beginning of buffer, we know the answer;
+     avoid bug subtracting 1 below.  */
+  if (XINT (pos) == BEGV)
+    return pos;
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
@@ -2684,7 +2690,7 @@ If there are no more overlay boundaries after POS, return (point-min).")
   noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
 			   (int *) 0, &prevpos);
 
-  /* If any of these overlays starts before endpos,
+  /* If any of these overlays starts after prevpos,
      maybe use its starting point instead.  */
   for (i = 0; i < noverlays; i++)
     {
@@ -2692,6 +2698,22 @@ If there are no more overlay boundaries after POS, return (point-min).")
       int ostartpos;
 
       ostart = OVERLAY_START (overlay_vec[i]);
+      ostartpos = OVERLAY_POSITION (ostart);
+      if (ostartpos > prevpos && ostartpos < XINT (pos))
+	prevpos = ostartpos;
+    }
+
+  /* If any overlay ends at pos, consider its starting point too.  */
+  for (tail = current_buffer->overlays_before;
+       GC_CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      Lisp_Object overlay, ostart;
+      int ostartpos;
+
+      overlay = XCONS (tail)->car;
+
+      ostart = OVERLAY_START (overlay);
       ostartpos = OVERLAY_POSITION (ostart);
       if (ostartpos > prevpos && ostartpos < XINT (pos))
 	prevpos = ostartpos;
