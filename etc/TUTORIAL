@@ -698,6 +698,7 @@ window on the screen at the same time.
    Both windows display this tutorial.  The cursor stays in the top window.
 
 >> Type C-M-v to scroll the bottom window.
+   (If you don't have a real Meta key, type ESC C-v.)
 
 >> Type C-x o ("o" for "other") to move the cursor to the bottom window.
 >> Use C-v and M-v in the bottom window to scroll it.
