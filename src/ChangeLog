@@ -1,3 +1,17 @@
+2000-04-14  Dave Love  <fx@gnu.org>
+
+	* s/aix3-1.h, s/bsd4-2.h, s/bsd4-3.h, s/cxux.h, s/dgux.h, s/gnu.h:
+	* s/hpux.h, s/iris3-5.h, s/iris3-6.h, s/irix3-3.h, s/rtu.h:
+	* s/unipl5-0.h, s/unipl5-2.h, s/usg5-0.h, s/usg5-2-2.h, s/usg5-2.h:
+	* s/usg5-3.h, s/xenix.h, s/umax.h: Don't define autoconfiscated
+	NLIST_STRUCT.
+
+	* s/bsd386.h, s/freebsd.h, s/gnu.h, s/netbsd.h: Don't define
+	autoconfiscated HAVE_GETLOADAVG.
+
+	* s/nextstep.h, s/sco4.h, s/sco5.h: Don't define autoconfiscated
+	BROKEN_MKTIME.
+
 2000-04-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* filelock.c (MAKE_LOCK_NAME): Allocate 2 more bytes.
