@@ -1214,7 +1214,8 @@ Format conversion and character code conversion are both disabled,
 and multibyte characters are disabled in the resulting buffer.
 The major mode used is Fundamental mode regardless of the file name,
 and local variable specifications in the file are ignored.
-Automatic uncompression is also disabled.
+Automatic uncompression and adding a newline at the end of the
+file due to `require-final-newline' is also disabled.
 
 You cannot absolutely rely on this function to result in
 visiting the file literally.  If Emacs already has a buffer
@@ -2591,6 +2592,7 @@ After saving the buffer, this function runs `after-save-hook'."
 	    (widen)
 	    (save-excursion
 	      (and (> (point-max) 1)
+		   (not find-file-literally)
 		   (/= (char-after (1- (point-max))) ?\n)
 		   (not (and (eq selective-display t)
 			     (= (char-after (1- (point-max))) ?\r)))
