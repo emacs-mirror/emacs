@@ -79,8 +79,8 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref
-  '((((class color) (background light)) :foreground "blue")
-    (((class color) (background dark)) :foreground "cyan")
+  '((((class color) (background light)) :foreground "blue" :underline t)
+    (((class color) (background dark)) :foreground "cyan" :underline t)
     (t :underline t))
   "Face for Info cross-references."
   :group 'info)
@@ -455,6 +455,7 @@ Do the right thing if the file has been compressed or zipped."
 
 ;;;###autoload (add-hook 'same-window-regexps "\\*info\\*\\(\\|<[0-9]+>\\)")
 
+;;;###autoload (put 'info 'info-file "emacs")
 ;;;###autoload
 (defun info (&optional file buffer)
   "Enter Info, the documentation browser.
@@ -3261,6 +3262,7 @@ The locations are of the format used in `Info-history', i.e.
 			   (car elt)
 			 elt))
 		 (file (if (consp elt) (cdr elt) elt))
+		 (case-fold-search nil)
 		 (regexp (concat "\\`" (regexp-quote name)
 				 "\\(\\'\\|-\\)")))
 	    (if (string-match regexp (symbol-name command))
