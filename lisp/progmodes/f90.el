@@ -156,6 +156,19 @@
 
 ;;; Code:
 
+(eval-and-compile
+  (defconst f90-xemacs-flag (string-match "XEmacs\\|Lucid" emacs-version)
+    "Non-nil means F90 mode thinks it is running under XEmacs."))
+
+;; Most of these are just to quieten the byte-compiler.
+(eval-when-compile 
+  (defvar comment-auto-fill-only-comments)
+  (defvar font-lock-keywords)
+  (unless f90-xemacs-flag
+    ;; If you have GNU Emacs 19.22 or earlier, comment this out, or get imenu.
+    (require 'imenu)
+    (defvar current-menubar)))
+
 ;; User options
 
 (defgroup f90 nil
@@ -242,8 +255,13 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
   :type 'boolean
   :group 'f90)
 
-(defconst f90-xemacs-flag (string-match "XEmacs\\|Lucid" emacs-version)
-  "Non-nil means F90 mode thinks it is running under XEmacs.")
+(defcustom f90-mode-hook nil
+  "Hook run when entering F90 mode."
+  :type 'hook
+  :options '(f90-add-imenu-menu)
+  :group 'f90)
+
+;; User options end here.
 
 (defconst f90-keywords-re
   (regexp-opt '("allocatable" "allocate" "assign" "assignment" "backspace"
@@ -398,7 +416,8 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
 
 (defvar f90-font-lock-keywords
   f90-font-lock-keywords-2
-  "*Default expressions to highlight in F90 mode.")
+  "*Default expressions to highlight in F90 mode.
+Can be overridden by the value of `font-lock-maximum-decoration'.")
 
 
 (defvar f90-mode-syntax-table
@@ -686,77 +705,77 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
 
 (put 'f90-add-imenu-menu 'menu-enable '(not f90-imenu-flag))
 
-
-;; When compiling under GNU Emacs, load imenu during compilation.
-;; If you have 19.22 or earlier, comment this out, or get imenu.
-(or f90-xemacs-flag (eval-when-compile (require 'imenu)))
-
 
 ;; Abbrevs have generally two letters, except standard types `c, `i, `r, `t.
 (defvar f90-mode-abbrev-table
   (let (abbrevs-changed)
-    (define-abbrev-table 'f90-mode-abbrev-table 
-      '(("`al"  "allocate"      nil 0 t)
-        ("`ab"  "allocatable"   nil 0 t)
-        ("`as"  "assignment"    nil 0 t)
-        ("`ba"  "backspace"     nil 0 t)
-        ("`bd"  "block data"    nil 0 t)
-        ("`c"   "character"     nil 0 t)
-        ("`cl"  "close"         nil 0 t)
-        ("`cm"  "common"        nil 0 t)
-        ("`cx"  "complex"       nil 0 t)
-        ("`cn"  "contains"      nil 0 t)
-        ("`cy"  "cycle"         nil 0 t)
-        ("`de"  "deallocate"    nil 0 t)
-        ("`df"  "define"        nil 0 t)
-        ("`di"  "dimension"     nil 0 t)
-        ("`dw"  "do while"      nil 0 t)
-        ("`el"  "else"          nil 0 t)
-        ("`eli" "else if"       nil 0 t)
-        ("`elw" "elsewhere"     nil 0 t)
-        ("`eq"  "equivalence"   nil 0 t)
-        ("`ex"  "external"      nil 0 t)
-        ("`ey"  "entry"         nil 0 t)
-        ("`fl"  "forall"        nil 0 t)
-        ("`fo"  "format"        nil 0 t)
-        ("`fu"  "function"      nil 0 t)
-        ("`fa"  ".false."       nil 0 t)
-        ("`im"  "implicit none" nil 0 t)
-        ("`in " "include"       nil 0 t)
-        ("`i"   "integer"       nil 0 t)
-        ("`it"  "intent"        nil 0 t)
-        ("`if"  "interface"     nil 0 t)
-        ("`lo"  "logical"       nil 0 t)
-        ("`mo"  "module"        nil 0 t)
-        ("`na"  "namelist"      nil 0 t)
-        ("`nu"  "nullify"       nil 0 t)
-        ("`op"  "optional"      nil 0 t)
-        ("`pa"  "parameter"     nil 0 t)
-        ("`po"  "pointer"       nil 0 t)
-        ("`pr"  "print"         nil 0 t)
-        ("`pi"  "private"       nil 0 t)
-        ("`pm"  "program"       nil 0 t)
-        ("`pu"  "public"        nil 0 t)
-        ("`r"   "real"          nil 0 t)
-        ("`rc"  "recursive"     nil 0 t)
-        ("`rt"  "return"        nil 0 t)
-        ("`rw"  "rewind"        nil 0 t)
-        ("`se"  "select"        nil 0 t)
-        ("`sq"  "sequence"      nil 0 t)
-        ("`su"  "subroutine"    nil 0 t)
-        ("`ta"  "target"        nil 0 t)
-        ("`tr"  ".true."        nil 0 t)
-        ("`t"   "type"          nil 0 t)
-        ("`wh"  "where"         nil 0 t)
-        ("`wr"  "write"         nil 0 t)))
+    (define-abbrev-table 'f90-mode-abbrev-table nil)
+    ;; Use the 6th arg (SYSTEM-FLAG) of define-abbrev if possible.
+    ;; A little baroque to quieten the byte-compiler.
+    (mapcar
+     (function (lambda (element)
+                 (condition-case nil
+                     (apply 'define-abbrev f90-mode-abbrev-table
+                            (append element '(nil 0 t)))
+                   (wrong-number-of-arguments
+                    (apply 'define-abbrev f90-mode-abbrev-table
+                           (append element '(nil 0)))))))
+     '(("`al"  "allocate"     )
+       ("`ab"  "allocatable"  )
+       ("`as"  "assignment"   )
+       ("`ba"  "backspace"    )
+       ("`bd"  "block data"   )
+       ("`c"   "character"    )
+       ("`cl"  "close"        )
+       ("`cm"  "common"       )
+       ("`cx"  "complex"      )
+       ("`cn"  "contains"     )
+       ("`cy"  "cycle"        )
+       ("`de"  "deallocate"   )
+       ("`df"  "define"       )
+       ("`di"  "dimension"    )
+       ("`dw"  "do while"     )
+       ("`el"  "else"         )
+       ("`eli" "else if"      )
+       ("`elw" "elsewhere"    )
+       ("`eq"  "equivalence"  )
+       ("`ex"  "external"     )
+       ("`ey"  "entry"        )
+       ("`fl"  "forall"       )
+       ("`fo"  "format"       )
+       ("`fu"  "function"     )
+       ("`fa"  ".false."      )
+       ("`im"  "implicit none")
+       ("`in"  "include"      )
+       ("`i"   "integer"      )
+       ("`it"  "intent"       )
+       ("`if"  "interface"    )
+       ("`lo"  "logical"      )
+       ("`mo"  "module"       )
+       ("`na"  "namelist"     )
+       ("`nu"  "nullify"      )
+       ("`op"  "optional"     )
+       ("`pa"  "parameter"    )
+       ("`po"  "pointer"      )
+       ("`pr"  "print"        )
+       ("`pi"  "private"      )
+       ("`pm"  "program"      )
+       ("`pu"  "public"       )
+       ("`r"   "real"         )
+       ("`rc"  "recursive"    )
+       ("`rt"  "return"       )
+       ("`rw"  "rewind"       )
+       ("`se"  "select"       )
+       ("`sq"  "sequence"     )
+       ("`su"  "subroutine"   )
+       ("`ta"  "target"       )
+       ("`tr"  ".true."       )
+       ("`t"   "type"         )
+       ("`wh"  "where"        )
+       ("`wr"  "write"        )))
     f90-mode-abbrev-table)
   "Abbrev table for F90 mode.")
 
-(defcustom f90-mode-hook nil
-  "Hook run when entering F90 mode."
-  :type 'hook
-  :options '(f90-add-imenu-menu)
-  :group 'f90)
 
 ;;;###autoload
 (defun f90-mode ()
@@ -1369,32 +1388,18 @@ A block is a subroutine, if-endif, etc."
   (f90-next-block (- (or num 1))))
 
 
-(defvar f90-mark-subprogram-overlay nil
-  "Used internally by `f90-mark-subprogram' to highlight the subprogram.")
-(make-variable-buffer-local 'f90-mark-subprogram-overlay)
-
 (defun f90-mark-subprogram ()
-  "Put mark at end of F90 subprogram, point at beginning, push marks.
-If called interactively, highlight the subprogram with the face `highlight'.
-Call again to remove the highlighting."
+  "Put mark at end of F90 subprogram, point at beginning, push marks."
   (interactive)
   (let ((pos (point)) program)
     (f90-end-of-subprogram)
-    (push-mark (point) t)
+    (push-mark)
     (goto-char pos)
     (setq program (f90-beginning-of-subprogram))
-    ;; The keywords in the preceding lists assume case-insensitivity.
     (if f90-xemacs-flag
-	(zmacs-activate-region)
+        (zmacs-activate-region)
       (setq mark-active t
-            deactivate-mark nil)
-      (if (interactive-p)
-	  (if (overlayp f90-mark-subprogram-overlay)
-	      (if (overlay-buffer f90-mark-subprogram-overlay)
-		  (delete-overlay f90-mark-subprogram-overlay)
-		(move-overlay f90-mark-subprogram-overlay (point) (mark)))
-	    (setq f90-mark-subprogram-overlay (make-overlay (point) (mark)))
-	    (overlay-put f90-mark-subprogram-overlay 'face 'highlight))))
+            deactivate-mark nil))
     program))
 
 (defun f90-comment-region (beg-region end-region)
@@ -1570,7 +1575,7 @@ If run in the middle of a line, the line is not broken."
     (set-marker end-region-mark nil)
     (set-marker save-point nil)
     (if f90-xemacs-flag
-	(zmacs-deactivate-region)
+ 	(zmacs-deactivate-region)
       (deactivate-mark))))
 
 (defun f90-indent-subprogram ()
@@ -1681,7 +1686,7 @@ Update keyword case first."
             f90-cache-position (point)))
     (setq f90-cache-position nil)
     (if f90-xemacs-flag
-	(zmacs-deactivate-region)
+ 	(zmacs-deactivate-region)
       (deactivate-mark))))
 
 (defun f90-block-match (beg-block beg-name end-block end-name)
@@ -1774,18 +1779,15 @@ Leave point at the end of line."
   "Typing `\\[help-command] or `? lists all the F90 abbrevs.
 Any other key combination is executed normally."
   (interactive)
-  (let (e c)
+  (let (c)
     (insert last-command-char)
-    (if (not f90-xemacs-flag)
-        (setq c (read-event))
-      (setq e (next-command-event)
-            c (event-to-character e)))
+    (if f90-xemacs-flag
+        (setq c (event-to-character (next-command-event)))
+      (setq c (read-event)))
     ;; Insert char if not equal to `?'.
     (if (or (eq c ??) (eq c help-char))
 	(f90-abbrev-help)
-      (if f90-xemacs-flag
-	  (setq unread-command-event e)
-	(setq unread-command-events (list c))))))
+      (setq unread-command-events (list c)))))
 
 (defun f90-abbrev-help ()
   "List the currently defined abbrevs in F90 mode."
