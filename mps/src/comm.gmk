@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.33) $
+# $HopeName: MMsrc!comm.gmk(trunk.34) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -238,7 +238,7 @@ endif
 # just a convenient set of targets to build.
 
 all: mpmss amcss amsss awlut mpsicv lockcov poolncv mps.a \
-     lo.a locv qs finalcv arenacv bttest teletest
+     locv qs finalcv arenacv bttest teletest
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
@@ -247,7 +247,7 @@ all: mpmss amcss amsss awlut mpsicv lockcov poolncv mps.a \
 
 mpmss amcss amsss awlut mpsicv lockcov poolncv \
   locv qs finalcv arenacv bttest teletest epvmss \
-  mps.a lo.a awl.a mmsw.a: phony
+  mps.a lo.a awl.a mmsw.a mpsplan.a: phony
 ifdef VARIETY
 	$(MAKE) -f $(PFM).gmk TARGET=$@ variety
 else
@@ -339,6 +339,8 @@ $(PFM)/$(VARIETY)/arenacv: $(PFM)/$(VARIETY)/arenacv.o \
 	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
 
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(POOLNOBJ)
+
+$(PFM)/$(VARIETY)/mpsplan.a: $(PLINTHOBJ)
 
 $(PFM)/$(VARIETY)/mpm.a: $(MPMOBJ)
 
