@@ -58,7 +58,7 @@ inherit all the commands defined in this map.")
 
 (defun text-mode ()
   "Major mode for editing text written for humans to read.
-In this mode, paragraphs are delimited only by blank lines.
+In this mode, paragraphs are delimited only by blank or white lines.
 You can thus get the full benefit of adaptive filling
  (see the variable `adaptive-fill-mode').
 \\{text-mode-map}
@@ -69,7 +69,7 @@ Turning on Text mode runs the normal hook `text-mode-hook'."
   (setq local-abbrev-table text-mode-abbrev-table)
   (set-syntax-table text-mode-syntax-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "$\\|" page-delimiter))
+  (setq paragraph-start (concat "[ \t]*$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (setq mode-name "Text")
