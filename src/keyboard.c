@@ -9142,14 +9142,15 @@ before actual keyboard input.");
   Vunread_input_method_events = Qnil;
 
   DEFVAR_LISP ("meta-prefix-char", &meta_prefix_char,
-    "Meta-prefix character code.  Meta-foo as command input\n\
-turns into this character followed by foo.");
+    "Meta-prefix character code.\n\
+Meta-foo as command input turns into this character followed by foo.");
   XSETINT (meta_prefix_char, 033);
 
   DEFVAR_KBOARD ("last-command", Vlast_command,
-    "The last command executed.  Normally a symbol with a function definition,\n\
-but can be whatever was found in the keymap, or whatever the variable\n\
-`this-command' was set to by that command.\n\
+    "The last command executed.\n\
+Normally a symbol with a function definition, but can be whatever was found\n\
+in the keymap, or whatever the variable `this-command' was set to by that\n\
+command.\n\
 \n\
 The value `mode-exit' is special; it means that the previous command\n\
 read an event that told it to exit, and it did so and unread that event.\n\
@@ -9260,8 +9261,8 @@ In a vector or a char-table, an element which is nil means \"no translation\".")
   Vkeyboard_translate_table = Qnil;
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
-    "Non-nil means to always spawn a subshell instead of suspending,\n\
-even if the operating system has support for stopping a process.");
+    "Non-nil means to always spawn a subshell instead of suspending.\n\
+\(Even if the operating system has support for stopping a process.\)");
   cannot_suspend = 0;
 
   DEFVAR_BOOL ("menu-prompting", &menu_prompting,
