@@ -1,5 +1,7 @@
 2000-08-14  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/authors.el: New file.
+
 	* paren.el (show-paren-priority): New user option.
 	(show-paren-function): Set overlay priorities to
 	show-paren-priority.
