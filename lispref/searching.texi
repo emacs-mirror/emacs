@@ -548,24 +548,34 @@ numbering of any ordinary, non-shy groups.
 
 @item \@var{digit}
 matches the same text that matched the @var{digit}th occurrence of a
-@samp{\( @dots{} \)} construct.
+grouping (@samp{\( @dots{} \)}) construct.
 
-In other words, after the end of a @samp{\( @dots{} \)} construct, the
-matcher remembers the beginning and end of the text matched by that
-construct.  Then, later on in the regular expression, you can use
-@samp{\} followed by @var{digit} to match that same text, whatever it
-may have been.
+In other words, after the end of a group, the matcher remembers the
+beginning and end of the text matched by that group.  Later on in the
+regular expression you can use @samp{\} followed by @var{digit} to
+match that same text, whatever it may have been.
 
-The strings matching the first nine @samp{\( @dots{} \)} constructs
-appearing in a regular expression are assigned numbers 1 through 9 in
-the order that the open parentheses appear in the regular expression.
-So you can use @samp{\1} through @samp{\9} to refer to the text matched
-by the corresponding @samp{\( @dots{} \)} constructs.
+The strings matching the first nine grouping constructs appearing in
+the entire regular expression passed to a search or matching function
+are assigned numbers 1 through 9 in the order that the open
+parentheses appear in the regular expression.  So you can use
+@samp{\1} through @samp{\9} to refer to the text matched by the
+corresponding grouping constructs.
 
 For example, @samp{\(.*\)\1} matches any newline-free string that is
 composed of two identical halves.  The @samp{\(.*\)} matches the first
 half, which may be anything, but the @samp{\1} that follows must match
 the same exact text.
+
+If a particular grouping construct in the regular expression was never
+matched---for instance, if it appears inside of an alternative that
+wasn't used, or inside of a repetition that repeated zero times---then
+the corresponding @samp{\@var{digit}} construct never matches
+anything.  To use an artificial example,, @samp{\(foo\(b*\)\|lose\)\2}
+cannot match @samp{lose}: the second alternative inside the larger
+group matches it, but then @samp{\2} is undefined and can't match
+anything.  But it can match @samp{foobb}, because the first
+alternative matches @samp{foob} and @samp{\2} matches @samp{b}.
 
 @item \w
 @cindex @samp{\w} in regexp
@@ -1266,9 +1276,7 @@ future.
 This function returns, as a string, the text matched in the last search
 or match operation.  It returns the entire text if @var{count} is zero,
 or just the portion corresponding to the @var{count}th parenthetical
-subexpression, if @var{count} is positive.  If @var{count} is out of
-range, or if that subexpression didn't match anything, the value is
-@code{nil}.
+subexpression, if @var{count} is positive.
 
 If the last such operation was done against a string with
 @code{string-match}, then you should pass the same string as the
@@ -1277,6 +1285,10 @@ you should omit @var{in-string} or pass @code{nil} for it; but you
 should make sure that the current buffer when you call
 @code{match-string} is the one in which you did the searching or
 matching.
+
+The value is @code{nil} if @var{count} is out of range, or for a
+subexpression inside a @samp{\|} alternative that wasn't used or a
+repetition that repeated zero times.
 @end defun
 
 @defun match-string-no-properties count &optional in-string
@@ -1294,7 +1306,7 @@ the regular expression, and the value of the function is the starting
 position of the match for that subexpression.
 
 The value is @code{nil} for a subexpression inside a @samp{\|}
-alternative that wasn't used in the match.
+alternative that wasn't used or a repetition that repeated zero times.
 @end defun
 
 @defun match-end count
