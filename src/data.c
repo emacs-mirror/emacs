@@ -625,9 +625,9 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0, "Return SYMBOL's name
 }
 
 DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
-  "Set SYMBOL's function definition to NEWVAL, and return NEWVAL.")
-  (symbol, newdef)
-     register Lisp_Object symbol, newdef;
+  "Set SYMBOL's function definition to DEFINITION, and return DEFINITION.")
+  (symbol, definition)
+     register Lisp_Object symbol, definition;
 {
   CHECK_SYMBOL (symbol, 0);
   if (NILP (symbol) || EQ (symbol, Qt))
@@ -635,14 +635,14 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   if (!NILP (Vautoload_queue) && !EQ (XSYMBOL (symbol)->function, Qunbound))
     Vautoload_queue = Fcons (Fcons (symbol, XSYMBOL (symbol)->function),
 			     Vautoload_queue);
-  XSYMBOL (symbol)->function = newdef;
+  XSYMBOL (symbol)->function = definition;
   /* Handle automatic advice activation */
   if (CONSP (XSYMBOL (symbol)->plist) && !NILP (Fget (symbol, Qad_advice_info)))
     {
       call2 (Qad_activate, symbol, Qnil);
-      newdef = XSYMBOL (symbol)->function;
+      definition = XSYMBOL (symbol)->function;
     }
-  return newdef;
+  return definition;
 }
 
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 2, 0,
