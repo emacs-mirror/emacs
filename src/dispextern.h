@@ -1851,7 +1851,7 @@ extern int (* estimate_mode_line_height_hook) P_ ((struct frame *,
 				Images
  ***********************************************************************/
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Structure forward declarations.  */
 
@@ -1987,7 +1987,7 @@ struct image_cache
 
 #define IMAGE_CACHE_BUCKETS_SIZE 1001
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 
@@ -2145,9 +2145,15 @@ extern Lisp_Object Qforeground_color, Qbackground_color;
 
 /* Defined in xfns.c  */
 
-#ifdef HAVE_X_WINDOWS 
-
+#ifdef HAVE_X_WINDOWS
 void gamma_correct P_ ((struct frame *, XColor *));
+#endif
+#ifdef WINDOWSNT
+void gamma_correct P_ ((struct frame *, COLORREF *));
+#endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+
 void x_kill_gs_process P_ ((Pixmap, struct frame *));
 int x_screen_planes P_ ((struct frame *));
 void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -2168,7 +2174,7 @@ EXFUN (Fx_hide_busy_cursor, 1);
 extern int inhibit_busy_cursor;
 extern int display_busy_cursor_p;
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /* Defined in xmenu.c  */
