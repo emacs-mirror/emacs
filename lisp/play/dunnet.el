@@ -34,13 +34,14 @@
 ;;;  be writable by all.
 
 
-      (defvar dun-log-file "/usr/local/dunnet.score"
-	"Name of file to store score information for dunnet.")
+(defvar dun-log-file "/usr/local/dunnet.score"
+  "Name of file to store score information for dunnet.")
 
 (if nil
     (eval-and-compile (setq byte-compile-warnings nil)))
 
-(require 'cl)
+(eval-when-compile
+ (require 'cl))
 
 ;;;; Mode definitions for interactive mode
 
@@ -48,6 +49,8 @@
   "Major mode for running dunnet."
   (interactive)
   (text-mode)
+  (make-local-variable 'scroll-step)
+  (setq scroll-step 2)
   (use-local-map dungeon-mode-map)
   (setq major-mode 'dungeon-mode)
   (setq mode-name "Dungeon"))
@@ -2423,8 +2426,6 @@ nil
 		  nil nil nil nil nil nil nil nil nil nil      ;21-30
 		  nil nil nil nil nil nil nil nil nil nil      ;31-40
 		  nil (list obj-platinum) nil nil nil nil nil nil nil nil))
-
-(setq scroll-step 2)
 
 (setq dun-room-shorts nil)
 (dolist (x dun-rooms)
