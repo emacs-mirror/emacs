@@ -1433,7 +1433,7 @@ redisplay_window (window, just_this_one)
       /* If force-mode-line-update was called, really redisplay;
 	 that's how redisplay is forced after e.g. changing
 	 buffer-invisibility-spec.  */
-      && ! NILP (w->update_mode_line)
+      && NILP (w->update_mode_line)
       /* Can't use this case if highlighting a region.  */
       && !(!NILP (Vtransient_mark_mode) && !NILP (current_buffer->mark_active))
       && NILP (w->region_showing)
@@ -1443,7 +1443,7 @@ redisplay_window (window, just_this_one)
       && !EQ (window, minibuf_window))
     {
       pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0),
-			    PT, height + 1, 10000, width, hscroll,
+			    PT, height, 0, width, hscroll,
 			    pos_tab_offset (w, startp), w);
 
       if (pos.vpos < height)
@@ -1755,11 +1755,11 @@ try_window_id (window)
 
   /* Find position before which nothing is changed.  */
   bp = *compute_motion (start, 0, lmargin,
-			min (ZV, beg_unchanged + BEG), height + 1, 0,
+			min (ZV, beg_unchanged + BEG), height, 0,
 			width, hscroll, pos_tab_offset (w, start), w);
   if (bp.vpos >= height)
     {
-      if (PT < bp.bufpos && !bp.contin)
+      if (PT < bp.bufpos)
 	{
 	  /* All changes are below the frame, and point is on the frame.
 	     We don't need to change the frame at all.
