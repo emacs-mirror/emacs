@@ -152,11 +152,10 @@ and source-file directory for your debugger."
 			    (gud-visit-file       . gud-gdb-visit-file)
 			    (gud-set-break        . gud-gdb-set-break)))
 
-  (gud-def gud-step   "step"   "\C-cs"    "Step one source line with display")
-  (gud-def gud-stepi  "stepi"  "\C-ci"    "Step one instruction with display")
-  (gud-def gud-next   "next"   "\C-cn"    "Step one line (skip functions)")
+  (gud-def gud-step   "step"   "\C-c\C-s" "Step one source line with display")
+  (gud-def gud-stepi  "stepi"  "\C-c\C-i" "Step one instruction with display")
+  (gud-def gud-next   "next"   "\C-c\C-n" "Step one line (skip functions)")
   (gud-def gud-cont   "cont"   "\C-c\C-c" "Continue with display")
-  (gud-def gud-cont   "cont"   "\C-cc"    "Continue with display")
 
   (gud-def gud-finish "finish" "\C-c\C-f" "Finish executing current function")
   (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
@@ -204,11 +203,10 @@ and source-file directory for your debugger."
 			    (gud-visit-file       . gud-sdb-visit-file)
 			    (gud-set-break        . gud-sdb-set-break)))
 
-  (gud-def gud-step  "s"   "\C-cs"	"Step one source line with display")
-  (gud-def gud-stepi "i"   "\C-ci"	"Step one instruction with display")
-  (gud-def gud-next  "S"   "\C-cn"	"Step one source line (skip functions)")
+  (gud-def gud-step  "s"   "\C-c\C-s"	"Step one source line with display")
+  (gud-def gud-stepi "i"   "\C-c\C-i"	"Step one instruction with display")
+  (gud-def gud-next  "S"   "\C-c\C-n"	"Step one source line (skip functions)")
   (gud-def gud-cont  "c"   "\C-c\C-c"	"Continue with display")
-  (gud-def gud-cont  "c"   "\C-cc"	"Continue with display")
 
   (gud-common-init path)
 
@@ -249,11 +247,10 @@ and source-file directory for your debugger."
 			    (gud-visit-file       . gud-dbx-visit-file)
 			    (gud-set-break        . gud-dbx-set-break)))
 
-  (gud-def gud-step   "step"   "\C-cs"    "Step one source line with display")
-  (gud-def gud-stepi  "stepi"  "\C-ci"    "Step one instruction with display")
-  (gud-def gud-next   "next"   "\C-cn"    "Step one line (skip functions)")
+  (gud-def gud-step   "step"   "\C-c\C-s" "Step one source line with display")
+  (gud-def gud-stepi  "stepi"  "\C-c\C-i" "Step one instruction with display")
+  (gud-def gud-next   "next"   "\C-c\C-n" "Step one line (skip functions)")
   (gud-def gud-cont   "cont"   "\C-c\C-c" "Continue with display")
-  (gud-def gud-cont   "cont"   "\C-c"     "Continue with display")
 
   (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
   (gud-def gud-down   "down"   "\C-c>"    "Down N stack frames (numeric arg)")
