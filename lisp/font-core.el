@@ -218,26 +218,11 @@ your own function which is called when `font-lock-mode' is toggled via
 ;; Get rid of fontification for the old major mode.
 ;; We do this when changing major modes.
 (defun font-lock-change-mode ()
-  (let ((inhibit-read-only t)
-	(inhibit-point-motion-hooks t)
-	(inhibit-modification-hooks t)
-	(deactivate-mark nil)
-	(buffer-file-name nil)
-	(buffer-file-truename nil)
-	(buffer-undo-list t)
-	(modified (buffer-modified-p)))
-    (save-restriction
-      (widen)
-      (remove-list-of-text-properties
-       (point-min) (point-max) '(font-lock-face)))
-    (unless modified
-      (restore-buffer-modified-p nil)))
-  (when font-lock-defaults
-    (font-lock-unfontify-buffer)))
+  (font-lock-mode -1))
 
-(defun font-lock-default-function (font-lock-mode)
+(defun font-lock-default-function (mode)
   ;; Turn on Font Lock mode.
-  (when font-lock-mode
+  (when mode
     (font-lock-set-defaults)
     (set (make-local-variable 'char-property-alias-alist)
 	 (copy-tree char-property-alias-alist))
@@ -262,7 +247,7 @@ your own function which is called when `font-lock-mode' is toggled via
 	       (message "Fontifying %s...buffer size greater than font-lock-maximum-size"
 			(buffer-name)))))))
   ;; Turn off Font Lock mode.
-  (unless font-lock-mode
+  (unless mode
     ;; Remove `font-lock-face' as an alias for the `face' property.
     (set (make-local-variable 'char-property-alias-alist)
 	 (copy-tree char-property-alias-alist))
