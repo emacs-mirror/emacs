@@ -131,6 +131,9 @@ and that its contents match what the master file says.")
 (defvar vc-log-operation nil)
 (defvar vc-log-after-operation-hook nil)
 (defvar vc-checkout-writable-buffer-hook 'vc-checkout-writable-buffer)
+;; In a log entry buffer, this is a local variable
+;; that points to the buffer for which it was made
+;; (either a file, or a VC dired buffer).
 (defvar vc-parent-buffer nil)
 (defvar vc-parent-buffer-name nil)
 
