@@ -718,30 +718,6 @@ To make Lisp errors stop Emacs and return to GDB, put a breakpoint at
 For a short listing of Lisp functions running, type the GDB
 command @code{xbacktrace}.  
 
-If you want to examine Lisp function arguments, move up the stack, and
-each time you get to a frame for the function @code{Ffuncall}, type
-these GDB commands:
-
-@example
-p *args
-pr
-@end example
-
-@noindent
-To print the first argument that the function received, use these
-commands:
-
-@example
-p args[1]
-pr
-@end example
-
-@noindent
-You can print the other arguments likewise.  The argument @code{nargs}
-of @code{Ffuncall} says how many arguments @code{Ffuncall} received;
-these include the Lisp function itself and the arguments for that
-function.
-
 The file @file{.gdbinit} defines several other commands that are useful
 for examining the data types and contents of Lisp objects.  Their names
 begin with @samp{x}.  These commands work at a lower level than
@@ -749,32 +725,18 @@ begin with @samp{x}.  These commands work at a lower level than
 @code{pr} does not, such as when debugging a core dump or when Emacs has
 had a fatal signal.
 
-@item
-If the symptom of the bug is that Emacs fails to respond, don't assume
-Emacs is ``hung''---it may instead be in an infinite loop.  To find out
-which, make the problem happen under GDB and stop Emacs once it is not
-responding.  (If Emacs is using X directly, you can stop Emacs by typing
-@kbd{C-z} at the GDB job.)  Then try stepping with @samp{step}.  If
-Emacs is hung, the @samp{step} command won't return.  If it is looping,
-@samp{step} will return.
+@cindex debugging Emacs, tricks and techniques
+More detailed advice and other useful techniques for debugging Emacs
+are available in the file @file{etc/DEBUG} in the Emacs distribution.
+That file also includes instructions for investigating problems
+whereby Emacs stops responding (many people assume that Emacs is
+``hung'', whereas in fact it might be in an infinite loop).
 
-If this shows Emacs is hung in a system call, stop it again and examine
-the arguments of the call.  In your bug report, state exactly where in
-the source the system call is, and what the arguments are.
-
-If Emacs is in an infinite loop, please determine where the loop starts
-and ends.  The easiest way to do this is to use the GDB command
-@samp{finish}.  Each time you use it, Emacs resumes execution until it
-exits one stack frame.  Keep typing @samp{finish} until it doesn't
-return---that means the infinite loop is in the stack frame which you
-just tried to finish.
-
-Stop Emacs again, and use @samp{finish} repeatedly again until you get
-@emph{back to} that frame.  Then use @samp{next} to step through that
-frame.  By stepping, you will see where the loop starts and ends.  Also
-please examine the data being used in the loop and try to determine why
-the loop does not exit when it should.  Include all of this information
-in your bug report.
+In an installed Emacs, the file @file{etc/DEBUG} is in the same
+directory where the Emacs on-line documentation file @file{DOC},
+typically in the @file{/usr/local/share/emacs/@var{version}/etc/}
+directory.  The directory for your installation is stored in the
+variable @code{data-directory}.
 @end itemize
 
 Here are some things that are not necessary in a bug report:
