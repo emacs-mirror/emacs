@@ -585,7 +585,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	   ;; since we used it.
 	   (eval (cons 'and
 		       (mapcar '(lambda (elt)
-				  (let ((curr (file-attributes (car elt))))
+				  (let ((curr (file-attributes 
+					       ;; Handle symlinks
+					       (file-truename (car elt)))))
+				    
 				    ;; Don't compare the access time.
 				    (if curr (setcar (nthcdr 4 curr) 0))
 				    (setcar (nthcdr 4 (cdr elt)) 0)
