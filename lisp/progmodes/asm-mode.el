@@ -53,7 +53,7 @@
   "Mode for editing assembler code."
   :group 'languages)
 
-(defcustom asm-comment-char ?;
+(defcustom asm-comment-char ?\;
   "*The comment-start character assumed by Asm mode."
   :type 'character
   :group 'asm)
@@ -100,7 +100,7 @@ Features a private abbrev table and the following bindings:
 \\[asm-comment]\tsmart placement of assembler comments.
 
 The character used for making comments is set by the variable
-`asm-comment-char' (which defaults to `?;').
+`asm-comment-char' (which defaults to `?\\;').
 
 Alternatively, you may set this variable in `asm-mode-set-comment-hook',
 which is called near the beginning of mode initialization.
