@@ -5311,8 +5311,8 @@ move_it_vertically_backward (it, dy)
      struct it *it;
      int dy;
 {
-  int nlines, h, line_height;
-  struct it it2;
+  int nlines, h;
+  struct it it2, it3;
   int start_pos = IT_CHARPOS (*it);
   
   xassert (dy >= 0);
@@ -5342,7 +5342,7 @@ move_it_vertically_backward (it, dy)
   move_it_to (&it2, start_pos, -1, -1, it2.vpos + 1,
 	      MOVE_TO_POS | MOVE_TO_VPOS);
   xassert (IT_CHARPOS (*it) >= BEGV);
-  line_height = it2.max_ascent + it2.max_descent;
+  it3 = it2;
   
   move_it_to (&it2, start_pos, -1, -1, -1, MOVE_TO_POS);
   xassert (IT_CHARPOS (*it) >= BEGV);
@@ -5366,10 +5366,18 @@ move_it_vertically_backward (it, dy)
       /* The y-position we try to reach.  Note that h has been
          subtracted in front of the if-statement.  */
       int target_y = it->current_y + h - dy;
-
+      int y0 = it3.current_y;
+      int y1 = line_bottom_y (&it3);
+      int line_height = y1 - y0;
+      
       /* If we did not reach target_y, try to move further backward if
 	 we can.  If we moved too far backward, try to move forward.  */
       if (target_y < it->current_y
+	  /* This is heuristic.  In a window that's 3 lines high, with
+	     a line height of 13 pixels each, recentering with point
+	     on the bottom line will try to move -39/2 = 19 pixels
+	     backward.  Try to avoid moving into the first line.  */
+	  && it->current_y - target_y > line_height / 2
 	  && IT_CHARPOS (*it) > BEGV)
 	{
 	  move_it_vertically (it, target_y - it->current_y);
