@@ -354,8 +354,9 @@ file \"%s\") doesn't exist.  Remove its autoload section? "
 (defun update-directory-autoloads (dir)
   "Run \\[update-file-autoloads] on each .el file in DIR."
   (interactive "DUpdate autoloads for directory: ")
-  (mapcar 'update-file-autoloads
-	  (directory-files dir t "\\.el$"))
+  (let ((enable-local-eval nil))
+    (mapcar 'update-file-autoloads
+	    (directory-files dir t "^[^=].*\\.el$")))
   (if (interactive-p)
       (save-excursion
 	(set-buffer (find-file-noselect generated-autoload-file))
