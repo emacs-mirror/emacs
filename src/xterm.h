@@ -180,8 +180,16 @@ extern int x_pending_input;
 #define BLOCK_INPUT (x_input_blocked++)
 
 /* End critical section. */
+#ifdef SIGIO
+/* If doing interrupt input, and an interrupt came in when input was blocked,
+   reinvoke the interrupt handler now to deal with it.  */
+#define UNBLOCK_INPUT \
+  ((x_input_blocked--, (x_input_blocked < 0 ? (abort (), 0) : 0)),	\
+   (x_input_blocked == 0 && x_pending_input != 0 ? (kill (0, SIGIO), 0) : 0))
+#else
 #define UNBLOCK_INPUT \
   (x_input_blocked--, (x_input_blocked < 0 ? (abort (), 0) : 0))
+#endif
 
 #define TOTALLY_UNBLOCK_INPUT (x_input_blocked = 0)
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT
