@@ -1,3 +1,8 @@
+2001-10-02  Andreas Schwab  <schwab@suse.de>
+
+	* net/ange-ftp.el (ange-ftp-skip-msgs): Add 227 and 228 for Long
+	and Extended Passive Mode, resp.
+
 2001-10-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	These changes add support for Calendar-related items in the
