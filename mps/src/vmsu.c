@@ -2,7 +2,7 @@
  *
  *                     VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- *  $HopeName: MMsrc!vmsu.c(trunk.5) $
+ *  $HopeName: MMsrc!vmsu.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -38,8 +38,8 @@
 #include "std.h"
 #include "vm.h"
 
-#ifndef OS_SUNOS
-#error "vmsu.c is SunOS 4 specific, but OS_SUNOS is not set"
+#ifndef MPS_OS_SU
+#error "vmsu.c is SunOS 4 specific, but MPS_OS_SU is not set"
 #endif
 
 #include <limits.h>
@@ -69,6 +69,7 @@ typedef struct VMStruct
   Sig sig;
   int zero_fd;		/* file descriptor for /dev/zero */
   int none_fd;          /* fildes used for PROT_NONE (/etc/passwd) */
+  Addr grain;		/* page size */
   Addr base, limit;	/* boundaries of reserved space */
 } VMStruct;
 
@@ -97,8 +98,9 @@ Bool VMIsValid(VM vm, ValidationType validParam)
   AVER(vm->base != 0);
   AVER(vm->limit != 0);
   AVER(vm->base < vm->limit);
-  AVER(IsAligned(VMGrain(), vm->base));
-  AVER(IsAligned(VMGrain(), vm->limit));
+  AVER(IsPoT(vm->grain));
+  AVER(IsAligned(vm->grain, vm->base));
+  AVER(IsAligned(vm->grain, vm->limit));
   return(TRUE);
 }
 
@@ -147,6 +149,7 @@ Error VMCreate(VM *vmReturn, Addr size)
 
   vm->zero_fd = zero_fd;
   vm->none_fd = none_fd;
+  vm->grain = grain;
 
   /* See .assume.not-last. */
   addr = mmap((caddr_t)0, size, PROT_NONE, MAP_SHARED, none_fd, (off_t)0);
@@ -177,7 +180,6 @@ Error VMCreate(VM *vmReturn, Addr size)
 void VMDestroy(VM vm)
 {
   int r;
-  Addr grain;
 
   AVER(ISVALID(VM, vm));
 
@@ -189,10 +191,9 @@ void VMDestroy(VM vm)
 
   close(vm->zero_fd);
   close(vm->none_fd);
-  grain = VMGrain();
   r = munmap((caddr_t)vm->base, (int)(vm->limit - vm->base));
   AVER(r == 0);
-  r = munmap((caddr_t)vm, (int)AlignUp(grain, sizeof(VMStruct)));
+  r = munmap((caddr_t)vm, (int)AlignUp(vm->grain, sizeof(VMStruct)));
   AVER(r == 0);
 }
 
@@ -212,18 +213,14 @@ Addr VMLimit(VM vm)
 
 Error VMMap(VM vm, Addr base, Addr limit)
 {
-#ifdef DEBUG
-  Addr grain = VMGrain();
-#endif
-
   AVER(ISVALID(VM, vm));
   AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
   AVER((limit - base) <= INT_MAX); /* This should be redundant. */
-  AVER(IsAligned(grain, base));
-  AVER(IsAligned(grain, limit));
+  AVER(IsAligned(vm->grain, base));
+  AVER(IsAligned(vm->grain, limit));
 
   /* Map /dev/zero onto the area with a copy-on-write policy.  This */
   /* effectively populates the area with zeroed memory. */
@@ -243,17 +240,14 @@ Error VMMap(VM vm, Addr base, Addr limit)
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
   caddr_t addr;
-#ifdef DEBUG
-  Addr grain = VMGrain();
-#endif
 
   AVER(ISVALID(VM, vm));
   AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
   AVER(base >= vm->base);
   AVER(limit <= vm->limit);
-  AVER(IsAligned(grain, base));
-  AVER(IsAligned(grain, limit));
+  AVER(IsAligned(vm->grain, base));
+  AVER(IsAligned(vm->grain, limit));
 
   /* Map /etc/passwd onto the area, allowing no access.  This */
   /* effectively depopulates the area from memory, but keeps */
