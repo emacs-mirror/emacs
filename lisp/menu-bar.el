@@ -258,116 +258,101 @@ A large number or nil slows down menu responsiveness.")
   (raise-frame last-command-event)
   (select-frame last-command-event))
 
-(defvar menu-bar-update-buffers-last-buffers nil)
-(defvar menu-bar-update-buffers-last-frames nil)
-
 (defun menu-bar-update-buffers ()
-  (let ((buffers (buffer-list))
-	(frames (frame-list))
-	buffers-info
-	buffers-menu frames-menu)
-    (setq buffers-info
-	  (mapcar (function (lambda (buffer)
-			      (list buffer (buffer-modified-p buffer)
-				    (save-excursion
-				      (set-buffer buffer)
-				      buffer-read-only))))
-		  buffers))
-    (if (and (equal buffers-info menu-bar-update-buffers-last-buffers)
-	     (equal frames menu-bar-update-buffers-last-frames))
-	nil
-      (setq menu-bar-update-buffers-last-buffers buffers-info)
-      (setq menu-bar-update-buffers-last-frames frames)
-      ;; If requested, list only the N most recently selected buffers.
-      (if (and (integerp buffers-menu-max-size)
-	       (> buffers-menu-max-size 1))
-	  (if (> (length buffers) buffers-menu-max-size)
-	      (setcdr (nthcdr buffers-menu-max-size buffers) nil)))
+  (if (frame-or-buffer-changed-p)
+      (let ((buffers (buffer-list))
+	    (frames (frame-list))
+	    buffers-menu frames-menu)
+	;; If requested, list only the N most recently selected buffers.
+	(if (and (integerp buffers-menu-max-size)
+		 (> buffers-menu-max-size 1))
+	    (if (> (length buffers) buffers-menu-max-size)
+		(setcdr (nthcdr buffers-menu-max-size buffers) nil)))
 
-      ;; Make the menu of buffers proper.
-      (setq buffers-menu
-	    (cons "Select Buffer"
-		  (let ((tail buffers)
-			(maxbuf 0)
-			(maxlen 0)
-			alist
-			head)
-		    (while tail
-		      (or (eq ?\ (aref (buffer-name (car tail)) 0))
-			  (setq maxbuf
-				(max maxbuf
-				     (length (buffer-name (car tail))))))
-		      (setq tail (cdr tail)))
-		    (setq tail buffers)
-		    (while tail
-		      (let ((elt (car tail)))
-			(or (eq ?\ (aref (buffer-name elt) 0))
-			    (setq alist (cons
-					 (cons
-					  (format
-					   (format "%%%ds  %%s%%s  %%s"
-						   maxbuf)
-					   (buffer-name elt)
-					   (if (buffer-modified-p elt)
-					       "*" " ")
-					   (save-excursion
-					     (set-buffer elt)
-					     (if buffer-read-only "%" " "))
-					   (or (buffer-file-name elt)
-					       (save-excursion
-						 (set-buffer elt)
-						 list-buffers-directory)
-					       ""))
-					  elt)
-					 alist)))
-			(and alist (> (length (car (car alist))) maxlen)
-			     (setq maxlen (length (car (car alist))))))
-		      (setq tail (cdr tail)))
-		    (setq alist (nreverse alist))
-		    (nconc (mapcar '(lambda (pair)
-				      ;; This is somewhat risque, to use
-				      ;; the buffer name itself as the event type
-				      ;; to define, but it works.
-				      ;; It would not work to use the buffer
-				      ;; since a buffer as an event has its
-				      ;; own meaning.
-				      (nconc (list (buffer-name (cdr pair))
-						   (car pair)
-						   (cons nil nil))
-					     'menu-bar-select-buffer))
-				   alist)
-			   (list (cons 'list-buffers
-				       (cons
-					(concat (make-string (max (- (/ maxlen
-									2)
-								     8)
-								  0) ?\ )
-						"List All Buffers")
-					'list-buffers)))))))
+	;; Make the menu of buffers proper.
+	(setq buffers-menu
+	      (cons "Select Buffer"
+		    (let ((tail buffers)
+			  (maxbuf 0)
+			  (maxlen 0)
+			  alist
+			  head)
+		      (while tail
+			(or (eq ?\ (aref (buffer-name (car tail)) 0))
+			    (setq maxbuf
+				  (max maxbuf
+				       (length (buffer-name (car tail))))))
+			(setq tail (cdr tail)))
+		      (setq tail buffers)
+		      (while tail
+			(let ((elt (car tail)))
+			  (or (eq ?\ (aref (buffer-name elt) 0))
+			      (setq alist (cons
+					   (cons
+					    (format
+					     (format "%%%ds  %%s%%s  %%s"
+						     maxbuf)
+					     (buffer-name elt)
+					     (if (buffer-modified-p elt)
+						 "*" " ")
+					     (save-excursion
+					       (set-buffer elt)
+					       (if buffer-read-only "%" " "))
+					     (or (buffer-file-name elt)
+						 (save-excursion
+						   (set-buffer elt)
+						   list-buffers-directory)
+						 ""))
+					    elt)
+					   alist)))
+			  (and alist (> (length (car (car alist))) maxlen)
+			       (setq maxlen (length (car (car alist))))))
+			(setq tail (cdr tail)))
+		      (setq alist (nreverse alist))
+		      (nconc (mapcar '(lambda (pair)
+					;; This is somewhat risque, to use
+					;; the buffer name itself as the event
+					;; type to define, but it works.
+					;; It would not work to use the buffer
+					;; since a buffer as an event has its
+					;; own meaning.
+					(nconc (list (buffer-name (cdr pair))
+						     (car pair)
+						     (cons nil nil))
+					       'menu-bar-select-buffer))
+				     alist)
+			     (list
+			      (cons
+			       'list-buffers
+			       (cons
+				(concat (make-string (max (- (/ maxlen 2) 8) 0)
+						     ?\ )
+					"List All Buffers")
+				'list-buffers)))))))
 
 
-      ;; Make a Frames menu if we have more than one frame.
-      (if (cdr frames)
-	  (setq frames-menu
-		(cons "Select Frame"
-		      (mapcar '(lambda (frame)
-				 (nconc (list frame
-					      (cdr (assq 'name
-							 (frame-parameters frame)))
-					      (cons nil nil))
-					'menu-bar-select-frame))
-			      frames))))
-      (if buffers-menu
-	  (setq buffers-menu (cons 'keymap buffers-menu)))
-      (if frames-menu
-	  (setq frames-menu (cons 'keymap frames-menu)))
-      (define-key global-map [menu-bar buffer]
-	(cons "Buffers"
-	      (if (and buffers-menu frames-menu)
-		  (list 'keymap "Buffers and Frames"
-			(cons 'buffers (cons "Buffers" buffers-menu))
-			(cons 'frames (cons "Frames" frames-menu)))
-		(or buffers-menu frames-menu 'undefined)))))))
+	;; Make a Frames menu if we have more than one frame.
+	(if (cdr frames)
+	    (setq frames-menu
+		  (cons "Select Frame"
+			(mapcar '(lambda (frame)
+				   (nconc (list frame
+						(cdr (assq 'name
+							   (frame-parameters frame)))
+						(cons nil nil))
+					  'menu-bar-select-frame))
+				frames))))
+	(if buffers-menu
+	    (setq buffers-menu (cons 'keymap buffers-menu)))
+	(if frames-menu
+	    (setq frames-menu (cons 'keymap frames-menu)))
+	(define-key global-map [menu-bar buffer]
+	  (cons "Buffers"
+		(if (and buffers-menu frames-menu)
+		    (list 'keymap "Buffers and Frames"
+			  (cons 'buffers (cons "Buffers" buffers-menu))
+			  (cons 'frames (cons "Frames" frames-menu)))
+		  (or buffers-menu frames-menu 'undefined)))))))
 
 (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
 
