@@ -5884,10 +5884,17 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
 	value = Fcdr_safe (Fassq (symbol_int, name_alist_or_stem));
       else if (STRINGP (name_alist_or_stem))
 	{
-	  int len = STRING_BYTES (XSTRING (name_alist_or_stem));
-	  char *buf = (char *) alloca (len + 50);
-	  sprintf (buf, "%s-%d", XSTRING (name_alist_or_stem)->data,
-		   XINT (symbol_int) + 1);
+          int len = STRING_BYTES (XSTRING (name_alist_or_stem));
+          char *buf = (char *) alloca (len + 50);
+
+	  if (sizeof (int) == sizeof (EMACS_INT))
+	    sprintf (buf, "%s-%d", XSTRING (name_alist_or_stem)->data,
+		     XINT (symbol_int) + 1);
+	  else if (sizeof (long) == sizeof (EMACS_INT))
+	    sprintf (buf, "%s-%ld", XSTRING (name_alist_or_stem)->data,
+		     XINT (symbol_int) + 1);
+	  else
+	    abort ();
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])
