@@ -30,9 +30,8 @@ NOTE-END  */
 #if defined (__NetBSD__) || defined (__OpenBSD__)
 #undef START_FILES
 #undef RUN_TIME_REMAP
-#define START_FILES pre-crt0.o /usr/lib/crt0.o
-#define CANNOT_DUMP
 #undef UNEXEC
+#define UNEXEC unexelf.o
 #endif /* NetBSD || OpenBSD */
 
 /* Supposedly the following will overcome a kernel bug.  */
@@ -51,7 +50,9 @@ NOTE-END  */
 #endif
 
 /* Override what mips.h says about this.  */
+#if !defined (__NetBSD__)
 #undef LINKER
+#endif
 
 #ifdef ultrix
 /* Ultrix 4.2 (perhaps also 4.1) implements O_NONBLOCK
