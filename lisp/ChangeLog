@@ -1,3 +1,8 @@
+2002-06-10  Juanma Barranquero  <lektu@terra.es>
+
+	* emulation/viper-cmd.el (viper-smart-suffix-list): Fix typo.
+	(viper-ask-level): Fix typo.
+
 2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* language/cyrillic.el (cyrillic-alternativnyj-decode-table): Fix

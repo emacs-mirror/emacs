@@ -1991,7 +1991,7 @@ Undo previous insertion and inserts new."
   '("" "tex" "c" "cc" "C" "java" "el" "html" "htm" "xml"
     "pl" "flr" "P" "p" "h" "H")
   "*List of suffixes that Viper tries to append to filenames ending with a `.'.
-This is useful when you the current directory contains files with the same
+This is useful when the current directory contains files with the same
 prefix and many different suffixes.  Usually, only one of the suffixes
 represents an editable file.  However, file completion will stop at the `.'
 The smart suffix feature lets you hit RET in such a case, and Viper will
@@ -4693,7 +4693,7 @@ You can change it at any time by typing `M-x viper-set-expert-level RET'
  2 -- MASTER: C-c now has its standard Emacs meaning in Vi command state,
        so most Emacs commands can be used when Viper is in Vi state.
        Good progress---you are well on the way to level 3!
- 3 -- GRAND MASTER: Like 3, but most Emacs commands are available also
+ 3 -- GRAND MASTER: Like 2, but most Emacs commands are available also
        in Viper's insert state.
  4 -- GURU: Like 3, but user settings are respected for viper-no-multiple-ESC,
        viper-ex-style-motion, viper-ex-style-editing, and
