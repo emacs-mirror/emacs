@@ -1,3 +1,16 @@
+2001-11-29  Dave Love  <fx@gnu.org>
+
+	* progmodes/fortran.el: Fontify rewind, backspace.  Doc fixes.
+	(fortran-window-create, fortran-window-create-momentarily):
+	Rewrite, moving error condition.
+	(fortran-beginning-do, fortran-beginning-if): Fix regexps.
+	(fortran-mode-syntax-table): Revert last change.
+
+	* international/mule.el: Doc fixes.
+	(map-charset-chars): New function.
+	(register-char-codings): Use it to cope with generic chars in
+	safe-chars.
+
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/blackbox.el (blackbox-mode, blackbox): Doc fix.

@@ -1,3 +1,9 @@
+2001-11-29  Dave Love  <fx@gnu.org>
+
+	* coding.c (syms_of_coding) <Qchar_coding_system>: Give it an
+	extra extra slot.
+	(detect_coding_mask): Fix call of detect_coding_iso2022.
+
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* fileio.c (file-name-coding-system)
