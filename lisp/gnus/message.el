@@ -792,7 +792,8 @@ The cdr of ech entry is a function for applying the face to a region.")
 (defvar gnus-read-active-file)
 
 ;;; Regexp matching the delimiter of messages in UNIX mail format
-;;; (UNIX From lines), minus the initial ^.
+;;; (UNIX From lines), minus the initial ^.  It should be a copy
+;;; of rmail.el's rmail-unix-mail-delimiter.
 (defvar message-unix-mail-delimiter
   (let ((time-zone-regexp
 	 (concat "\\([A-Z]?[A-Z]?[A-Z][A-Z]\\( DST\\)?"
@@ -802,25 +803,39 @@ The cdr of ech entry is a function for applying the face to a region.")
     (concat
      "From "
 
-     ;; Username, perhaps with a quoted section that can contain spaces.
-     "\\("
-     "[^ \n]*"
-     "\\(\\|\".*\"[^ \n]*\\)"
-     "\\|<[^<>\n]+>"
-     "\\)  ?"
+     ;; Many things can happen to an RFC 822 mailbox before it is put into
+     ;; a `From' line.  The leading phrase can be stripped, e.g.
+     ;; `Joe <@w.x:joe@y.z>' -> `<@w.x:joe@y.z>'.  The <> can be stripped, e.g.
+     ;; `<@x.y:joe@y.z>' -> `@x.y:joe@y.z'.  Everything starting with a CRLF
+     ;; can be removed, e.g.
+     ;;		From: joe@y.z (Joe	K
+     ;;			User)
+     ;; can yield `From joe@y.z (Joe 	K Fri Mar 22 08:11:15 1996', and
+     ;;		From: Joe User
+     ;;			<joe@y.z>
+     ;; can yield `From Joe User Fri Mar 22 08:11:15 1996'.
+     ;; The mailbox can be removed or be replaced by white space, e.g.
+     ;;		From: "Joe User"{space}{tab}
+     ;;			<joe@y.z>
+     ;; can yield `From {space}{tab} Fri Mar 22 08:11:15 1996',
+     ;; where {space} and {tab} represent the Ascii space and tab characters.
+     ;; We want to match the results of any of these manglings.
+     ;; The following regexp rejects names whose first characters are
+     ;; obviously bogus, but after that anything goes.
+     "\\([^\0-\b\n-\r\^?].*\\)? "
 
      ;; The time the message was sent.
-     "\\([^ \n]*\\) *"			; day of the week
-     "\\([^ ]*\\) *"			; month
-     "\\([0-9]*\\) *"			; day of month
-     "\\([0-9:]*\\) *"			; time of day
+     "\\([^\0-\r \^?]+\\) +"				; day of the week
+     "\\([^\0-\r \^?]+\\) +"				; month
+     "\\([0-3]?[0-9]\\) +"				; day of month
+     "\\([0-2][0-9]:[0-5][0-9]\\(:[0-6][0-9]\\)?\\) *"	; time of day
 
      ;; Perhaps a time zone, specified by an abbreviation, or by a
      ;; numeric offset.
      time-zone-regexp
 
      ;; The year.
-     " [0-9][0-9]\\([0-9]*\\) *"
+     " \\([0-9][0-9]+\\) *"
 
      ;; On some systems the time zone can appear after the year, too.
      time-zone-regexp
@@ -828,7 +843,8 @@ The cdr of ech entry is a function for applying the face to a region.")
      ;; Old uucp cruft.
      "\\(remote from .*\\)?"
 
-     "\n")))
+     "\n"))
+  nil)
 
 (defvar message-unsent-separator
   (concat "^ *---+ +Unsent message follows +---+ *$\\|"
