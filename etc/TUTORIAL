@@ -59,8 +59,8 @@ move to a specific place within the text on the screen?
 There are several ways you can do this.  The most basic way is to use
 the commands C-p, C-b, C-f, and C-n.  Each of these commands moves the
 cursor one row or column in a particular direction on the screen.
-Here is a table showing these four commands and shows the directions
-they move:
+Here is a table showing these four commands and the directions they
+move:
  
 			  Previous line, C-p
 				  :
@@ -188,7 +188,7 @@ easily learn to use other advanced cursor motion commands as well.
 Most Emacs commands accept a numeric argument; for most commands, this
 serves as a repeat-count.  The way you give a command a repeat count
 is by typing C-u and then the digits before you type the command.  If
-you have a META (or EDIT or ALT) key, there is another alternative way
+you have a META (or EDIT or ALT) key, there is another, alternative way
 to enter a numeric argument: type the digits while holding down the
 META key.  We recommend learning the C-u method because it works on
 any terminal.  The numeric argument is also called a "prefix argument",
@@ -387,7 +387,7 @@ and spaces, do not save the deleted text.
    which follows that line.
 
 Note that a single C-k kills the contents of the line, and a second
-C-k kills the line itself, and make all the other lines move up.  C-k
+C-k kills the line itself, and makes all the other lines move up.  C-k
 treats a numeric argument specially: it kills that many lines AND
 their contents.  This is not mere repetition.  C-u 2 C-k kills two
 lines and their newlines; typing C-k twice would not do that.
@@ -741,7 +741,7 @@ To view documentation on your current major mode, type C-h m.
 >> Type C-x 1 to remove the documentation from the screen.
 
 Major modes are called major because there are also minor modes.
-Minor modes are alternatives not to the major modes, just minor
+Minor modes are not alternatives to the major modes, just minor
 modifications of them.  Each minor mode can be turned on or off by
 itself, independent of all other minor modes, and independent of your
 major mode.  So you can use no minor modes, or one minor mode, or any
@@ -753,7 +753,7 @@ in between words automatically whenever you insert text and make a
 line that is too wide.
 
 You can turn Auto Fill mode on by doing M-x auto fill mode<Return>.
-When the mode is on, you can turn it off by doing M-x
+When the mode is on, you can turn it off again by doing M-x
 auto fill mode<Return>.  If the mode is off, this command turns it on,
 and if the mode is on, this command turns it off.  We say that the
 command "toggles the mode".
@@ -810,8 +810,8 @@ you want to search for.  <Return> terminates a search.
 Did you see what happened?  Emacs, in an incremental search, tries to
 go to the occurrence of the string that you've typed out so far.  To
 go to the next occurrence of 'cursor' just type C-s again.  If no such
-occurrence exists Emacs beeps and tells you the search is currently
-"failing", C-g would also terminate the search.
+occurrence exists, Emacs beeps and tells you the search is currently
+"failing".  C-g would also terminate the search.
 
 NOTE: On some systems, typing C-s will freeze the screen and you will
 see no further output from Emacs.  This indicates that an operating
