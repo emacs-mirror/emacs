@@ -1,5 +1,10 @@
 2001-07-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (unload_color): Do nothing if PIXEL is -1.
+
+	* xfns.c (Fx_create_frame): Initialize frame colors to -1,
+	for the case that x_decode_colors signals an error.
+
 	* xdisp.c (add_to_log): Do nothing if called asynchronously.
 
 2001-07-09  Gerd Moellmann  <gerd@gnu.org>

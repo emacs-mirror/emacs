@@ -1,3 +1,8 @@
+2001-07-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (normal-top-level): Don't operate on the initial
+	frame if we failed to create one.
+
 2001-07-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/tty-colors.el: Fix the header line and copyright years.
