@@ -1031,6 +1031,8 @@ case "${canonical}" in
 				OVERRIDE_CPPFLAGS=" "
 				;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
+      *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
+      *-sysv5OpenUNIX* )  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-freebsd* )	        opsys=freebsd ;;
       *-nextstep* )             opsys=nextstep ;;
@@ -1082,6 +1084,8 @@ if test x"${opsys}" = x; then
     *-sysv2.2 | *-sysvr2.2 )		opsys=usg5-2-2 ;;
     *-sysv3* | *-sysvr3* )		opsys=usg5-3 ;;
     *-sysv4.2uw* )			opsys=unixware ;;
+    *-sysv5uw* )			opsys=unixware ;;
+    *-sysv5OpenUNIX* )			opsys=unixware ;;
     *-sysv4.1* | *-sysvr4.1* )
 	NON_GNU_CPP=/usr/lib/cpp
 	opsys=usg5-4 ;;
