@@ -344,6 +344,7 @@ It serves as a menu to find any of the occurrences in this buffer.
 		 list-matching-lines-default-context-lines))
   (let ((first t)
 	(buffer (current-buffer))
+	(dir default-directory)
 	(linenum 1)
 	(prevpos (point-min))
 	(final-context-start (make-marker)))
@@ -354,6 +355,7 @@ It serves as a menu to find any of the occurrences in this buffer.
     (with-output-to-temp-buffer "*Occur*"
       (save-excursion
 	(set-buffer standard-output)
+	(setq default-directory dir)
 	;; We will insert the number of lines, and "lines", later.
 	(insert " matching ")
 	(let ((print-escape-newlines t))
