@@ -10,6 +10,7 @@ CC=@CC@
 CFLAGS=@CFLAGS@
 CPP=@CPP@
 LN_S=@LN_S@
+# See below--@X_TOOLKIT_TYPE@ is used below.
 USE_X_TOOLKIT=@X_TOOLKIT_TYPE@
 
               TOP = .
@@ -27,9 +28,9 @@ USE_X_TOOLKIT=@X_TOOLKIT_TYPE@
       OLIT_SRCS = lwlib-Xol.c lwlib-Xolmb.c
       OLIT_OBJS = lwlib-Xol.o lwlib-Xolmb.o
 
-TOOLKIT_DEFINES = -DUSE_LUCID
-   TOOLKIT_SRCS = $($(USE_X_TOOLKIT)_SRCS)
-   TOOLKIT_OBJS = $($(USE_X_TOOLKIT)_OBJS)
+TOOLKIT_DEFINES = -DUSE_$(USE_X_TOOLKIT)
+   TOOLKIT_SRCS = $(@X_TOOLKIT_TYPE@_SRCS)
+   TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
 
            SRCS = lwlib.c $(TOOLKIT_SRCS) lwlib-utils.c
            OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
