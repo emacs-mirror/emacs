@@ -1858,6 +1858,59 @@ update_line (frame, vpos)
   current_frame->charstarts[vpos] = temp1;
 }
 
+/* A vector of size NFRAMES + 3 * NBUFFERS + 1, containing the session's
+   frames, buffers, buffer-read-only flags, and buffer-modified-flags,
+   and a trailing sentinel (so we don't need to add length checks).  */
+static Lisp_Object frame_and_buffer_state;
+
+DEFUN ("frame-or-buffer-changed-p", Fframe_or_buffer_changed_p,
+  Sframe_or_buffer_changed_p, 0, 0, 0,
+  "Return non-nil if the frame and buffer state appears to have changed.\n\
+The state variable is an internal vector containing all frames and buffers,\n\
+along with the buffers' read-only and modified flags, which allows a fast\n\
+check to see whether the menu bars might need to be recomputed.\n\
+If this function returns non-nil, it updates the internal vector to reflect\n\
+the current state.\n")
+  ()
+{
+  Lisp_Object tail, frame, buf;
+  Lisp_Object *vecp;
+  int n;
+  vecp = XVECTOR (frame_and_buffer_state)->contents;
+  FOR_EACH_FRAME (tail, frame)
+    if (!EQ (*vecp++, frame))
+      goto changed;
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      buf = XCONS (XCONS (tail)->car)->cdr;
+      if (!EQ (*vecp++, buf))
+	goto changed;
+      if (!EQ (*vecp++, XBUFFER (buf)->read_only))
+	goto changed;
+      if (!EQ (*vecp++, Fbuffer_modified_p (buf)))
+	goto changed;
+    }
+  return Qnil;
+ changed:
+  n = 1;
+  FOR_EACH_FRAME (tail, frame)
+    n++;
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+    n += 3;
+  frame_and_buffer_state = Fmake_vector (make_number (n), Qlambda);
+  vecp = XVECTOR (frame_and_buffer_state)->contents;
+  FOR_EACH_FRAME (tail, frame)
+    *vecp++ = frame;
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      buf = XCONS (XCONS (tail)->car)->cdr;
+      *vecp++ = buf;
+      *vecp++ = XBUFFER (buf)->read_only;
+      *vecp++ = Fbuffer_modified_p (buf);
+    }
+  return Qt;
+}
+
 DEFUN ("open-termscript", Fopen_termscript, Sopen_termscript,
   1, 1, "FOpen termscript file: ",
   "Start writing all terminal output to FILE as well as the terminal.\n\
@@ -2395,11 +2448,15 @@ syms_of_display ()
   defsubr (&Sredraw_frame);
 #endif
   defsubr (&Sredraw_display);
+  defsubr (&Sframe_or_buffer_changed_p);
   defsubr (&Sopen_termscript);
   defsubr (&Sding);
   defsubr (&Ssit_for);
   defsubr (&Ssleep_for);
   defsubr (&Ssend_string_to_terminal);
+
+  frame_and_buffer_state = Fmake_vector (make_number (1), Qlambda);
+  staticpro (&frame_and_buffer_state);
 
   DEFVAR_INT ("baud-rate", &baud_rate,
     "The output baud rate of the terminal.\n\
