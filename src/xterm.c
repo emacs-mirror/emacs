@@ -3554,7 +3554,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      break;
 
 	    case UnmapNotify:
-	      f = x_any_window_to_frame (dpyinfo, event.xunmap.window);
+	      f = x_top_window_to_frame (dpyinfo, event.xunmap.window);
 	      if (f)		/* F may no longer exist if
 				       the frame was deleted.  */
 		{
