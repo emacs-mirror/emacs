@@ -197,6 +197,11 @@ not with every window manager.)
 
 ** shell-mode now supports programmable completion using `pcomplete'.
 
+** The new command `comint-input-previous-argument' in comint-derived
+modes (shell-mode etc) inserts arguments from previous command lines,
+like bash's `ESC .' binding.  It is bound by default to `C-c .', but
+otherwise behaves quite similarly to the bash version.
+
 ** Controlling the left and right fringe widths.
 
 The left and right fringe widths can now be controlled by setting the
@@ -254,6 +259,21 @@ to new-kill-line, these commands now report:
 making the decision in a heuristic way.  This new job is done by the
 command `isearch-yank-word-or-char'.  To restore the old behavior,
 bind C-w to `isearch-yank-word' in `isearch-mode-map'.
+
+** M-x grep now tries to avoid appending `/dev/null' to the command line
+by using GNU grep `-H' option instead.  M-x grep will automatically
+detect whether this is possible or not the first time it is invoked.
+When `-H' is used, the grep command line supplied by the user is passed
+unchanged to the system to execute, which allows more complicated
+command lines to be used than was possible before.
+
+** The face-customization widget has been reworked to be less confusing.
+In particular, when you enable a face attribute using the corresponding
+check-box, there's no longer a redundant `*' option in value selection
+for that attribute; the values you can choose are only those which make
+sense for the attribute.  When an attribute is de-selected by unchecking
+its check-box, then the (now ignored, but still present temporarily in
+case you re-select the attribute) value is hidden.
 
 ** In GUD mode when talking to GDB, C-x C-a C-j "jumps" the program
 counter to the specified source line (the one where point is).
@@ -543,6 +563,10 @@ indentation of keywords and forms in loop forms.
 ** Indentation of backquoted forms has been made customizable in the
 cl-indent package.  See the new user option `lisp-backquote-indentation'.
 
+** When emacs is configured to use `xaw3d' scroll-bars, emacs will
+tell the scroll-bar library which colors to use for the bevels, to
+prevent the library from using dithering.
+
 ** New modes and packages
 
 +++
@@ -568,6 +592,14 @@ This manual is now part of the standard distribution and is installed,
 together with the Emacs User Manual, into the Info directory.  A menu
 item was added to the menu bar that makes it easy accessible
 (Help->More Manuals->Introduction to Emacs Lisp).
+
+*** The new global minor mode `read-file-name-electric-shadow-mode'
+modifies the way filenames being entered by the user in the minibuffer are
+displayed, so that it's clear when part of the entered filename will be
+ignored due to emacs' filename parsing rules.  The ignored portion can be
+made dim, invisible, or otherwise less visually noticable.  The display
+method may be displayed by customizing the variable
+`read-file-name-electric-shadow-properties'.
 
 *** The ruler-mode.el library provides a minor mode for displaying an
 "active" ruler in the header line.  You can use the mouse to visually
@@ -599,6 +631,11 @@ SQL buffer.
 (add-hook 'sql-set-sqli-hook
    (function (lambda ()
 	       (master-set-slave sql-buffer))))
+
+** Support for `magic cooky' standout modes has been removed.
+Emacs will still work on terminals that require magic cookies in order
+to use standout mode, however they will not be able to display
+mode-lines in inverse-video.
 
 
 * Lisp Changes in Emacs 21.3
@@ -787,6 +824,8 @@ supported, but new code should use the new functions.
 ** New function substring-no-properties.
 
 ** New function minibuffer-selected-window.
+
+** New function `call-process-shell-command'.
 
 ** File local variables.
 
@@ -1044,6 +1083,12 @@ This was actually done in Emacs-21.1, and was not documented.
 
 *** The new package Ibuffer provides a powerful, completely
 customizable replacement for buff-menu.el.
+
+*** The new package button.el implements simple and fast `clickable buttons'
+in emacs buffers.  `buttons' are much lighter-weight than the `widgets'
+implemented by widget.el, and can be used by lisp code that doesn't
+require the full power of widgets.  Emacs uses buttons for such things
+as help and apropos buffers.
 
 
 * Installation Changes in Emacs 21.1
