@@ -51,7 +51,9 @@ See `fringe-mode' for possible values and their effect."
   ;; Apply it to default-frame-alist.
   (let ((parameter (assq 'left-fringe default-frame-alist)))
     (if (consp parameter)
-	(setcdr parameter fringe-mode)
+	(setcdr parameter (if (consp fringe-mode)
+			      (car fringe-mode)
+			    fringe-mode))
       (setq default-frame-alist
 	    (cons (cons 'left-fringe (if (consp fringe-mode)
 					 (car fringe-mode)
@@ -59,7 +61,9 @@ See `fringe-mode' for possible values and their effect."
 		  default-frame-alist))))
   (let ((parameter (assq 'right-fringe default-frame-alist)))
     (if (consp parameter)
-	(setcdr parameter fringe-mode)
+	(setcdr parameter (if (consp fringe-mode)
+			      (cdr fringe-mode)
+			    fringe-mode))
       (setq default-frame-alist
 	    (cons (cons 'right-fringe (if (consp fringe-mode)
 					  (cdr fringe-mode)
