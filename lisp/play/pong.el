@@ -75,7 +75,7 @@
   :type 'color)
 
 (defcustom pong-border-color "white"
-  "*Color used for pong balls."
+  "*Color used for pong borders."
   :group 'pong
   :type 'color)
 
@@ -155,12 +155,9 @@
   '(((glyph colorize)
      (t ?\+))
     ((color-x color-x)
-     (mono-x grid-x))
-    ;; The colors used to be [0.5 0.5 0.5], but that produces a black
-    ;; color on 8-color tty's, which would make the border invisible.
-    ;; 0.51 produces white on such tty's, and at the same time has
-    ;; almost no effect on X and similar displays.
-    (((glyph color-x) [0.51 0.51 0.51])
+     (mono-x grid-x)
+     (color-tty color-tty))
+    (((glyph color-x) [0.5 0.5 0.5])
      (color-tty pong-border-color))))
 
 (defconst pong-blank	0)
