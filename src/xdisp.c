@@ -7603,7 +7603,7 @@ build_desired_tool_bar_string (f)
       plist = Fcopy_sequence (XCDR (image));
 
       /* Compute margin and relief to draw.  */
-      relief = (tool_bar_button_relief > 0
+      relief = (tool_bar_button_relief >= 0
 		? tool_bar_button_relief
 		: DEFAULT_TOOL_BAR_BUTTON_RELIEF);
       hmargin = vmargin = relief;
