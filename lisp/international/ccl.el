@@ -238,7 +238,7 @@
 
 ;; If REG is a CCL register symbol (e.g. r0, r1...), the register
 ;; number is embedded.  If OP is one of unconditional jumps, DATA is
-;; changed to an absolute jump address.
+;; changed to an relative jump address.
 
 (defun ccl-embed-code (op reg data &optional reg2)
   (if (and (> data 0) (get op 'jump-flag))
