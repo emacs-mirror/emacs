@@ -2831,7 +2831,9 @@ getdefdir (drive, dst)
   *p = '\0';
   errno = 0;
   _fixpath (in_path, dst);
-  if (errno)
+  /* _fixpath can set errno to ENOSYS on non-LFN systems because
+     it queries the LFN support, so ignore that error.  */
+  if ((errno && errno != ENOSYS) || *dst == '\0')
     return 0;
 
   msdos_downcase_filename (dst);
