@@ -400,19 +400,29 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
              (string (if date (eval string))))
         (list (list date string)))))))
 
-(defun holiday-advent (n string)
-  "Date of Nth day after advent (named STRING), if visible in calendar window."
-  (let ((year displayed-year)
-        (month displayed-month))
-    (increment-calendar-month month year -1)
-    (let ((advent (calendar-gregorian-from-absolute
-                   (+ n
-                      (calendar-dayname-on-or-before
-                       0
-                       (calendar-absolute-from-gregorian
-                        (list 12 3 year)))))))
-      (if (calendar-date-is-visible-p advent)
-          (list (list advent string))))))
+(defun holiday-advent (&optional n string)
+  "Date of Nth day after advent (named STRING), if visible in calendar window.
+Negative values of N are interpreted as days before advent.
+STRING is used purely for display purposes.  The return value has
+the form ((MONTH DAY YEAR) STRING), where the date is that of the
+Nth day before or after advent.
+
+For backwards compatability, if this function is called with no
+arguments, then it returns the value appropriate for advent itself."
+  ;; Backwards compatability layer.
+  (if (not n)
+      (holiday-advent 0 "Advent")
+    (let ((year displayed-year)
+          (month displayed-month))
+      (increment-calendar-month month year -1)
+      (let ((advent (calendar-gregorian-from-absolute
+                     (+ n
+                        (calendar-dayname-on-or-before
+                         0
+                         (calendar-absolute-from-gregorian
+                          (list 12 3 year)))))))
+        (if (calendar-date-is-visible-p advent)
+            (list (list advent string)))))))
 
 (defun holiday-easter-etc (&optional n string)
   "Date of Nth day after Easter (named STRING), if visible in calendar window.
