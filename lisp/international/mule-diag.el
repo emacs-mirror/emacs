@@ -1007,7 +1007,7 @@ the current buffer."
 	 (dolist (elt val)
 	   (let ((requested (car elt)))
 	     (if (stringp requested)
-		 (insert requested)
+		 (insert "\n    " requested)
 	       (let ((family (aref requested 0))
 		     (registry (aref requested 5)))
 		 (if (not family)
