@@ -1697,7 +1697,7 @@ ring directly.")
 
 (defun kill-new (string &optional replace)
   "Make STRING the latest kill in the kill ring.
-Set the kill-ring-yank pointer to point to it.
+Set `kill-ring-yank-pointer' to point to it.
 If `interprogram-cut-function' is non-nil, apply it to STRING.
 Optional second argument REPLACE non-nil means that STRING will replace
 the front of the kill ring, rather than being added to the list."
