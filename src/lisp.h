@@ -1493,3 +1493,27 @@ extern char *egetenv ();
  
 /* Set up the name of the machine we're running on.  */
 extern void init_system_name ();
+
+/* Some systems (e.g., NT) use a different path separator than Unix,
+   in addition to a device separator.  Default the path separator
+   to '/', and don't test for a device separator in IS_ANY_SEP.  */
+
+#ifndef DIRECTORY_SEP
+#define DIRECTORY_SEP '/'
+#endif
+#ifndef DEVICE_SEP
+#define DEVICE_SEP ':'
+#endif
+#ifndef IS_DIRECTORY_SEP
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
+#endif
+#ifndef IS_DEVICE_SEP
+#ifndef DEVICE_SEP
+#define IS_DEVICE_SEP(_c_) 0
+#else
+#define IS_DEVICE_SEP(_c_) ((_c_) == DEVICE_SEP)
+#endif
+#endif
+#ifndef IS_ANY_SEP
+#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))
+#endif
