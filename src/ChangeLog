@@ -1,3 +1,8 @@
+2003-12-02  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (handle_auto_composed_prop): Give limit to
+	Fnext_single_char_property_change.
+
 2003-07-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (xg_set_icon): Rewrite to compile with GTK 2.0 and 2.2.

@@ -1,3 +1,7 @@
+2003-12-02  Kenichi Handa  <handa@m17n.org>
+
+	* language/chinese.el (chinese-gb18030): Fix :charset-list.
+
 2003-11-26  Kenichi Handa  <handa@m17n.org>
 
 	* composite.el (auto-compose-chars): Fix previous change.
