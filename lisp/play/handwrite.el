@@ -73,7 +73,7 @@
 ;; Variables
 
 (defvar handwrite-psindex 0
-  "The index of the PostScript buffer")
+  "The index of the PostScript buffer.")
 (defvar menu-bar-handwrite-map (make-sparse-keymap "Handwrite functions."))
 (fset 'menu-bar-handwrite-map (symbol-value 'menu-bar-handwrite-map))
 
@@ -81,31 +81,35 @@
 ;; User definable variables
 
 (defvar handwrite-numlines 60
-  "*The number of lines on a page of the PostScript output")
+  "*The number of lines on a page of the PostScript output from `handwrite'.")
 (defvar handwrite-fontsize 11
-  "*The size of the font for the PostScript output")
+  "*The size of the font for the PostScript output from `handwrite'.")
 (defvar handwrite-linespace 12
-  "*The spacing for the PostScript output")
+  "*The spacing for the PostScript output from `handwrite'.")
 (defvar handwrite-xstart 30
-  "*Translation in the x-direction of the origin in the PostScript output")
+  "*X-axis translation in the PostScript output from `handwrite'.")
 (defvar handwrite-ystart 810
-  "*Translation in the y-direction of the origin in the PostScript output")
+  "*Y-axis translation in the PostScript output from `handwrite'.")
 (defvar handwrite-pagenumbering nil
-  "*If t then number each page of the PostScript output")
+  "*If non-nil, number each page of the PostScript output from `handwrite'.")
 (defvar handwrite-10pt-numlines 65
-  "*The number of lines on a page for the function handwrite-10pt")
+  "*The number of lines on a page for the function `handwrite-10pt'.")
 (defvar handwrite-11pt-numlines 60
-  "*The number of lines on a page for the function handwrite-11pt")
+  "*The number of lines on a page for the function `handwrite-11pt'.")
 (defvar handwrite-12pt-numlines 55
-  "*The number of lines on a page for the function handwrite-12pt")
+  "*The number of lines on a page for the function `handwrite-12pt'.")
 (defvar handwrite-13pt-numlines 50
-  "*The number of lines on a page for the function handwrite-13pt")
+  "*The number of lines on a page for the function `handwrite-13pt'.")
 
 
 ;; Interactive functions
 
-(defun  handwrite ()
-  "Turns the buffer into a handwritten document.
+;;;###autoload
+(defun handwrite ()
+  "Turns the buffer into a \"handwritten\" document.
+The functions `handwrite-10pt', `handwrite-11pt', `handwrite-12pt'
+and `handwrite-13pt' set up for various sizes of output.
+
 Variables: handwrite-linespace     (default 12)
            handwrite-fontsize      (default 11)
            handwrite-numlines      (default 60)
@@ -313,14 +317,15 @@ Variables: handwrite-linespace     (default 12)
 
 
 (defun handwrite-set-pagenumber ()
-  "Toggle the value of handwrite-pagenumbering"
+  "Toggle the value of `handwrite-pagenumbering'."
   (interactive)
   (if handwrite-pagenumbering
       (handwrite-set-pagenumber-off)(handwrite-set-pagenumber-on)))
 
 (defun handwrite-10pt ()
-  "Sets the variable `handwrite-fontsize' to 10 and finds correct
-values for `handwrite-linespace' and `handwrite-numlines'"
+  "Specify 10-point output for `handwrite.
+This sets `handwrite-fontsize' to 10 and finds correct
+values for `handwrite-linespace' and `handwrite-numlines'."
   (interactive)
   (setq handwrite-fontsize 10)
   (setq handwrite-linespace 11)
@@ -333,16 +338,17 @@ values for `handwrite-linespace' and `handwrite-numlines'"
     '("12 pt" . handwrite-12pt))
   (define-key menu-bar-handwrite-map [13pt]
     '("13 pt" . handwrite-13pt))
-  (message "Joepie set to 10 points"))
+  (message "Handwrite output size set to 10 points"))
 
 
 (defun handwrite-11pt ()
-  "Sets the variable `handwrite-fontsize' to 11 and finds correct
-values for `handwrite-linespace' and `handwrite-numlines'"
+  "Specify 11-point output for `handwrite.
+This sets `handwrite-fontsize' to 11 and finds correct
+values for `handwrite-linespace' and `handwrite-numlines'."
   (interactive)
   (setq handwrite-fontsize 11)
   (setq handwrite-linespace 12)
-  (setq handwrite-numlines handwrite-11pt-numlines )
+  (setq handwrite-numlines handwrite-11pt-numlines)
   (define-key menu-bar-handwrite-map [10pt]
     '("10 pt" . handwrite-10pt))
   (define-key menu-bar-handwrite-map [11pt]
@@ -351,11 +357,12 @@ values for `handwrite-linespace' and `handwrite-numlines'"
     '("12 pt" . handwrite-12pt))
   (define-key menu-bar-handwrite-map [13pt]
     '("13 pt" . handwrite-13pt))
-  (message "Joepie set to 11 points"))
+  (message "Handwrite output size set to 11 points"))
 
 (defun handwrite-12pt ()
-  "Sets the variable `handwrite-fontsize' to 12 and finds correct
-values for `handwrite-linespace' and `handwrite-numlines'"
+  "Specify 12-point output for `handwrite.
+This sets `handwrite-fontsize' to 12 and finds correct
+values for `handwrite-linespace' and `handwrite-numlines'."
   (interactive)
   (setq handwrite-fontsize 12)
   (setq handwrite-linespace 13)
@@ -368,11 +375,12 @@ values for `handwrite-linespace' and `handwrite-numlines'"
     '("12 pt *" . handwrite-12pt))
   (define-key menu-bar-handwrite-map [13pt]
     '("13 pt" . handwrite-13pt))
-  (message "Joepie set to 12 points"))
+  (message "Handwrite output size set to 12 points"))
 
 (defun handwrite-13pt ()
-  "Sets the variable `handwrite-fontsize' to 13 and finds correct
-values for `handwrite-linespace' and `handwrite-numlines'"
+  "Specify 13-point output for `handwrite.
+This sets `handwrite-fontsize' to 13 and finds correct
+values for `handwrite-linespace' and `handwrite-numlines'."
   (interactive)
   (setq handwrite-fontsize 13)
   (setq handwrite-linespace 14)
@@ -385,7 +393,7 @@ values for `handwrite-linespace' and `handwrite-numlines'"
     '("12 pt" . handwrite-12pt))
   (define-key menu-bar-handwrite-map [13pt]
     '("13 pt *" . handwrite-13pt))
-  (message "Joepie set to 13 points"))
+  (message "Handwrite output size set to 13 points"))
 
 
 ;; Internal Functions
@@ -1334,11 +1342,13 @@ end
 ;; Key bindings
 
 
-(define-key-after
-  (lookup-key global-map [menu-bar edit])
-  [handwrite]
-  '("Write by hand" . menu-bar-handwrite-map)
-  'spell)
+;;; I'd rather not fill up the menu bar menus with 
+;;; lots of random miscellaneous features. -- rms.
+;;;(define-key-after
+;;;  (lookup-key global-map [menu-bar edit])
+;;;  [handwrite]
+;;;  '("Write by hand" . menu-bar-handwrite-map)
+;;;  'spell)
 
 (define-key menu-bar-handwrite-map [numbering]
   '("Page numbering Off" . handwrite-set-pagenumber))
