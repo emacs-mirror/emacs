@@ -3306,8 +3306,8 @@ The default is t, which means that text is invisible\n\
 if it has a non-nil `invisible' property.\n\
 If the value is a list, a text character is invisible if its `invisible'\n\
 property is an element in that list.\n\
-If an element is a cons cell of the for (PROP . ELLIPSIS),\n\
-then characters with property value PROP is invisible,\n\
+If an element is a cons cell of the form (PROP . ELLIPSIS),\n\
+then characters with property value PROP are invisible,\n\
 and they have an ellipsis as well if ELLIPSIS is non-nil.");
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
