@@ -147,12 +147,14 @@
 	instead of using it.last_visible_y for the height of the window.
 
 	* w32proc.c (sys_spawnve): Quote more chars for Cygwin.
+	From Dan Holmsand <dan@eyebee.com>.
 
 	* w32.c (sys_open): Try to open file without _O_CREAT first, to be
-	able to write to hidden and system files.  Make file handles
-	non-inheritable.
+	able to write to hidden and system files.  From Dan Holmsand
+	<dan@eyebee.com>.
 
-	* fileio.c (Fcopy_file) [WINDOWSNT]: Use CopyFile.
+	* fileio.c (Fcopy_file) [WINDOWSNT]: Use CopyFile.  From Dan
+	Holmsand <dan@eyebee.com>.
 
 2001-04-09  Gerd Moellmann  <gerd@gnu.org>
 
