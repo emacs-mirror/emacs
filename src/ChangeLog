@@ -1,3 +1,9 @@
+2002-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* window.c: (minibuf_selected_window): Renamed from
+	Vminibuf_selected_window.  Users changed.
+	(syms_of_window): Staticpro it.
+
 2002-02-26  Kim F. Storm  <storm@cua.dk>
 
 	The following changes add a new Vminibuf_selected_window variable
