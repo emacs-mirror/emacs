@@ -1,6 +1,24 @@
+1999-12-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/usg5-4.h (LIBS_SYSTEM): Add -lgen because that's needed
+	for building with Motif.
+
+	* m/iris4d.h (UNEXEC) [USG5_4]: Use unexsgi.o instead of
+	unexelf.o.
+	
+	* m/iris5d.h (UNEXEC): Use unexsgi.o instead of unexelf.o.
+
 1999-12-01  Dave Love  <fx@gnu.org>
 
 	* emacs.c (main): Set LANG=C iff AX3_2 defined.
+
+1999-11-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* systime.h (EMACS_TIME_CMP, EMACS_TIME_EQ, EMACS_TIME_NE)
+	(EMACS_TIME_GT, EMACS_TIME_GE, EMACS_TIME_LT,EMACS_TIME_LE): New
+	macros.
+
+	* config.in (HAVE_SETITIMER, HAVE_UALARM): New.
 
 1999-11-28  eliz  <eliz@dlpx1>
 

@@ -1,5 +1,8 @@
 1999-12-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* calendar/appt.el (appt-convert-time): Handle "12:MMam", 
+	remove extraneous string-match.
+
 	* finder.el (finder-commentary): Activate Finder mode.
 
 1999-12-01  Anders Lindgren  <andersl@andersl.com>
