@@ -244,10 +244,10 @@ x_own_selection (selection_name, selection_value)
   selection_atom = symbol_to_x_atom (dpyinfo, display, selection_name);
 
   BLOCK_INPUT;
-  x_catch_errors (selected_frame);
+  x_catch_errors (display);
   XSetSelectionOwner (display, selection_atom, selecting_window, time);
-  x_check_errors (selected_frame, "Can't set selection: %s");
-  x_uncatch_errors (selected_frame);
+  x_check_errors (display, "Can't set selection: %s");
+  x_uncatch_errors (display);
   UNBLOCK_INPUT;
 
   /* Now update the local cache */
@@ -1049,7 +1049,7 @@ x_get_foreign_selection (selection_symbol, target_type)
     type_atom = symbol_to_x_atom (dpyinfo, display, target_type);
 
   BLOCK_INPUT;
-  x_catch_errors (selected_frame);
+  x_catch_errors (display);
   XConvertSelection (display, selection_atom, type_atom, target_property,
 		     requestor_window, requestor_time);
   XFlush (display);
@@ -1067,8 +1067,8 @@ x_get_foreign_selection (selection_symbol, target_type)
   wait_reading_process_input (secs, usecs, reading_selection_reply, 0);
 
   BLOCK_INPUT;
-  x_check_errors (selected_frame, "Cannot get selection: %s");
-  x_uncatch_errors (selected_frame);
+  x_check_errors (display, "Cannot get selection: %s");
+  x_uncatch_errors (display);
   x_stop_queuing_selection_requests (selected_frame);
   UNBLOCK_INPUT;
 
