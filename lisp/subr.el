@@ -230,13 +230,20 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 ;;;; Event manipulation functions.
 
+;; This code exists specifically to make sure that the
+;; resulting number does not appear in the .elc file.
+;; The number is negative on most machines, but not on all!
+(defconst listify-key-sequence-1
+   (lsh 1 7))
+(setq listify-key-sequence-1 (logior (lsh 1 23) listify-key-sequence-1))
+
 (defun listify-key-sequence (key)
   "Convert a key sequence to a list of events."
   (if (vectorp key)
       (append key nil)
     (mapcar (function (lambda (c)
 			(if (> c 127)
-			    (logxor c ?\M-\200)
+			    (logxor c listify-key-sequence-1)
 			  c)))
 	    (append key nil))))
 
