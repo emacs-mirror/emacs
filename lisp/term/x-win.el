@@ -619,6 +619,11 @@ This is in addition to the primary selection.")
 (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
 			    x-cut-buffer-max))
 
+;; Sun expects the menu bar cut and paste commands to use the clipboard.
+(if (string-match "X11/NeWS - Sun Microsystems Inc\\."
+		  (x-server-vendor))
+    (menu-bar-enable-clipboard))
+
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
 ;; precedence.
