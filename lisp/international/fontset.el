@@ -78,6 +78,9 @@
 	   (tibetan-1-column . "MuleTibetan-1")
 	   (latin-iso8859-14 . "ISO8859-14")
 	   (latin-iso8859-15 . "ISO8859-15")
+	   (mule-unicode-0100-24ff . "ISO10646-1")
+	   (japanese-jisx0213-1 . "JISX0213")
+	   (japanese-jisx0213-2 . "JISX0213")
 	   ))
       charset registry arg)
   (while l
