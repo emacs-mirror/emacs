@@ -2610,7 +2610,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   int save_errno;
   unsigned char *fn;
   struct stat st;
-  int tem, tem2;
+  int tem;
   int count = specpdl_ptr - specpdl;
 #ifdef VMS
   unsigned char *fname = 0;	/* If non-0, original filename (must rename) */
@@ -2783,14 +2783,14 @@ to the file, instead of any buffer contents, and END is ignored.")
     }
   else if (XINT (start) != XINT (end))
     {
-      tem2 = 1;
+      int nwritten = 0;
       if (XINT (start) < GPT)
 	{
 	  register int end1 = XINT (end);
 	  tem = XINT (start);
 	  failure = 0 > a_write (desc, &FETCH_CHAR (tem),
-				 min (GPT, end1) - tem, 1, &annotations);
-	  tem2 += min (GPT, end1) - tem;
+				 min (GPT, end1) - tem, tem, &annotations);
+	  nwritten += min (GPT, end1) - tem;
 	  save_errno = errno;
 	}
 
@@ -2799,14 +2799,15 @@ to the file, instead of any buffer contents, and END is ignored.")
 	  tem = XINT (start);
 	  tem = max (tem, GPT);
 	  failure = 0 > a_write (desc, &FETCH_CHAR (tem), XINT (end) - tem,
-				 tem2, &annotations);
-	  tem2 += XINT (end) - tem;
+				 tem, &annotations);
+	  nwritten += XINT (end) - tem;
 	  save_errno = errno;
 	}
-      if (tem2 == 1)
+
+      if (nwritten == 0)
 	{
 	  /* If file was empty, still need to write the annotations */
-	  failure = 0 > a_write (desc, "", 0, 1, &annotations);
+	  failure = 0 > a_write (desc, "", 0, XINT (start), &annotations);
 	  save_errno = errno;
 	}
     }
