@@ -1218,27 +1218,27 @@ triple click: expose body and subheadings.
 quad click: expose entire subtree.
 @end itemize
 @item @kbd{M-C-Mouse-2} exposes text under the heading clicked on
-@table @r
-@item single click
-expose body.
-@item double click
-expose subheadings.
-@item triple click
-expose body and subheadings.
-@item quad click
-expose entire subtree.
-@end table
+@itemize @asis
+@item
+single click: expose body.
+@item
+double click: expose subheadings.
+@item
+triple click: expose body and subheadings.
+@item
+quad click: expose entire subtree.
+@end itemize
 @item @kbd{M-C-Mouse-3} hides text under the heading clicked on or exits fold
-@table @r
-@item single click
-hide subtree.
-@item double click
-exit fold and hide text.
-@item triple click
-exit fold without hiding text.
-@item quad click
-exit all folds and hide text.
-@end table
+@itemize @asis
+@item
+single click: hide subtree.
+@item
+double click: exit fold and hide text.
+@item
+triple click: exit fold without hiding text.
+@item
+quad click: exit all folds and hide text.
+@end itemize
 @end table
 
 @vindex foldout-mouse-modifiers
