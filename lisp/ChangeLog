@@ -1,3 +1,20 @@
+2003-04-08  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (minor-mode-list): New variable.
+	(add-minor-mode): Add to it.
+
+	* files.el (file-chase-links): New arg LIMIT.
+	After that many iterations, just return what we've got.
+
+	* map-ynp.el (map-y-or-n-p): When formatting chars in ACTION-ALIST,
+	use single-key-description.
+
+	* emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
+	At end of buffer, just call `newline'.
+
+	* mail/rmailsum.el (rmail-make-basic-summary-line): If there's
+	no From field, still try to use the To field.
+
 2003-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-diag.el (print-coding-system-briefly): If
@@ -69,6 +86,49 @@
 
 	* emacs-lisp/lisp-mode.el (last-sexp-toggle-display):
 	Correct the starting point for previous-single-property-change.
+
+2003-04-06  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el: Handle multiple desktop files in different dirs.
+	Other cleanups.
+	Command line option --no-desktop introduced.
+	(desktop-read): Record buffers in the desktop file in
+	the same order as that in the buffer list,
+	(desktop-save): Put buffers in the order given in desktop file,
+	regardless of what handlers do.
+	(desktop-file-version): New variable. Version number of desktop
+	file format.
+	(desktop-create-buffer-form): Variable deleted.
+	(desktop-save): New customizable variable.
+	(desktop-kill): Changed to use `desktop-save'.
+	(desktop-file-name-format): New option: format in
+	which desktop file names should be saved.
+	(desktop-file-name): New function to convert a filename to the
+	format specified in `desktop-file-name-format'.
+	(desktop-create-buffer): Parameters renamed to descriptive
+	systematic names. These parameters are visible to handlers.
+	Renames:
+	ver    -> desktop-file-version
+	mim    -> desktop-buffer-minor-modes
+	pt     -> desktop-buffer-point
+	mk     -> desktop-buffer-mark
+	ro     -> desktop-buffer-read-only
+	locals -> desktop-buffer-locals
+	(desktop-buffer-major-mode, desktop-buffer-file-name)
+	(desktop-buffer-name): Unused customizable variables deleted.
+	(desktop-buffer-misc): Unused variable deleted.	
+	(desktop-save, desktop-buffer-dired-misc-data):
+	Use `desktop-file-name'.
+	(desktop-path): New customizable variable.  List of directories in
+	which to lookup the desktop file. Replaces hardcoded list.
+	(desktop-globals-to-clear): New variable replaces hardcoded list.
+	(desktop-clear-preserve-buffers-regexp): New customizable variable.
+	(desktop-after-read-hook): New hook run after a desktop is read.
+	(desktop-no-desktop-file-hook): New hook when no desktop file found.
+	(desktop-change-dir): New function.
+	(desktop-save-in-load-dir): New function. Save desktop in
+	directory from witch it was loaded.
+	(desktop-revert): New function. Revert to the last loaded desktop.
 
 2003-04-06  Masatake YAMATO  <jet@gyve.org>
 

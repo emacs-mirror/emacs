@@ -1,3 +1,7 @@
+2003-04-08  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Kinds of Files): Correct return value of file-symlink-p.
+
 2003-02-13  Kim F. Storm  <storm@cua.dk>
 
 	* objects.texi (Character Type): New \s escape for space.

@@ -318,11 +318,12 @@ command-line options to feed to TeX, and `tex-start-commands' which should hold
 TeX commands to use at startup.
 
 +++
-** New display feature: focus follows mouse.  If you set the variable
-mouse-autoselect-window to non-nil value, moving the mouse to a different
-Emacs window will select that window (minibuffer window can be selected
-only when it is active).  The default is nil, so that this feature is not
-enabled.
+** New display feature: focus follows the mouse from one Emacs window
+to another, even within a frame.  If you set the variable
+mouse-autoselect-window to non-nil value, moving the mouse to a
+different Emacs window will select that window (minibuffer window can
+be selected only when it is active).  The default is nil, so that this
+feature is not enabled.
 
 +++
 ** The new command `describe-char' (C-u C-x =) pops up a buffer with
@@ -1182,6 +1183,11 @@ timing measurements of code (including the garbage collection component).
 numbers.  For instance, (number-sequence 4 9) returns (4 5 6 7 8 9).
 By default, the separation is 1, but you can specify a different separation
 as the third argument.  (number-sequence 1.5 6 2) returns (1.5 3.5 5.5).
+
+** `file-chase-links' now takes an optional second argument LIMIT which 
+specifies the maximum number of links to chase through.  If after that
+many iterations the file name obtained is still a symbolic link,
+`file-chase-links' returns it anyway.
 
 ** `set-fontset-font', `fontset-info', `fontset-font' now operate on
 the default fontset if the argument NAME is nil..
