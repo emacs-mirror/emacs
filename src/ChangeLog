@@ -1,3 +1,11 @@
+2003-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (select_frame_for_redisplay): New function.
+	(redisplay_internal): Record also selected_frame for
+	unwind_redisplay.  Call select_frame_for_redisplay before
+	redrawing each frame.
+	(unwind_redisplay): Argument changed to a cons.
+
 2003-11-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fns.c (Fstring_to_multibyte): Doc fix.
