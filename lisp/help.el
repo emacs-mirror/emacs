@@ -703,32 +703,29 @@ whose documentation describes the minor mode."
 	(dolist (mode minor-mode-list)
 	  ;; Document a minor mode if it is listed in minor-mode-alist,
 	  ;; non-nil, and has a function definition.
-	  (and (boundp mode) (symbol-value mode)
-	       (fboundp mode)
-	       (let ((pretty-minor-mode mode))
-		 (if (string-match "\\(-minor\\)?-mode\\'"
-				   (symbol-name mode))
-		     (setq pretty-minor-mode
-			   (capitalize
-			    (substring (symbol-name mode)
-				       0 (match-beginning 0)))))
-		 (push (list pretty-minor-mode mode
-			     (format-mode-line (assq mode minor-mode-alist)))
-		       minor-modes))))
-	(if auto-fill-function
-	    ;; copy pure string so we can add face property to it below.
-	    (push (list (copy-sequence "Auto Fill") 'auto-fill-mode " Fill")
-		  minor-modes))
+	  (let ((fmode (or (get mode :minor-mode-function) mode)))
+	    (and (boundp mode) (symbol-value mode)
+		 (fboundp fmode)
+		 (let ((pretty-minor-mode
+			(if (string-match "\\(\\(-minor\\)?-mode\\)?\\'"
+					  (symbol-name fmode))
+			    (capitalize
+			     (substring (symbol-name fmode)
+					0 (match-beginning 0)))
+			  fmode)))
+		   (push (list fmode pretty-minor-mode
+			       (format-mode-line (assq mode minor-mode-alist)))
+			 minor-modes)))))
 	(setq minor-modes
 	      (sort minor-modes
-		    (lambda (a b) (string-lessp (car a) (car b)))))
+		    (lambda (a b) (string-lessp (cadr a) (cadr b)))))
 	(when minor-modes
 	  (princ "Summary of minor modes:\n")
 	  (make-local-variable 'help-button-cache)
 	  (with-current-buffer standard-output
 	    (dolist (mode minor-modes)
-	      (let ((pretty-minor-mode (nth 0 mode))
-		    (mode-function (nth 1 mode))
+	      (let ((mode-function (nth 0 mode))
+		    (pretty-minor-mode (nth 1 mode))
 		    (indicator (nth 2 mode)))
 		(setq indicator (if (zerop (length indicator))
 				    "no indicator"
