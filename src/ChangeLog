@@ -6,7 +6,8 @@
 	* s/darwin.h (select): Define select to sys_select only if
 	HAVE_CARBON is defined.
 	(HAVE_WORKING_VFORK): #undef it.  Define vfork to fork.
-
+	(DONT_REOPEN_PTY): #def it.
+	
 	* macterm.c (XTread_socket): Remove code to call
 	SendEventToEventTarget for keys with command modifiers when
 	mac_command_key_is_meta is nil.

@@ -302,6 +302,7 @@ struct kboard;
    does not exist.  */
 #undef HAVE_WORKING_VFORK
 #define vfork fork
+#define DONT_REOPEN_PTY
 
 #ifdef temacs
 #define malloc unexec_malloc
