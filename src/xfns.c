@@ -315,6 +315,38 @@ x_any_window_to_frame (wdesc)
     }
   return 0;
 }
+
+/* Return the frame whose principal (outermost) window is WDESC.
+   If WDESC is some other (smaller) window, we return 0.  */
+
+struct frame *
+x_top_window_to_frame (wdesc)
+     int wdesc;
+{
+  Lisp_Object tail, frame;
+  struct frame *f;
+  struct x_display *x;
+
+  for (tail = Vframe_list; XGCTYPE (tail) == Lisp_Cons;
+       tail = XCONS (tail)->cdr)
+    {
+      frame = XCONS (tail)->car;
+      if (XGCTYPE (frame) != Lisp_Frame)
+        continue;
+      f = XFRAME (frame);
+      if (f->display.nothing == 1) 
+	return 0;
+      x = f->display.x;
+      /* This frame matches if the window is its topmost widget.  */
+      if (wdesc == XtWindow (x->widget))
+	return f;
+      /* Match if the window is this frame's menubar.  */
+      if (x->menubar_widget 
+	  && wdesc == XtWindow (x->menubar_widget))
+	return f;
+    }
+  return 0;
+}
 #endif /* USE_X_TOOLKIT */
 
 
@@ -1768,12 +1800,11 @@ x_window (f, window_prompting, minibuffer_only)
 
   f->display.x->column_widget = pane_widget;
 
-  if (!minibuffer_only && FRAME_MENU_BAR_LINES (f) > 0)
+  if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
     initialize_frame_menubar (f);
 
   /* mappedWhenManaged to false tells to the paned window to not map/unmap 
-   * the emacs screen when changing menubar.  This reduces flickering a lot.
-   */
+     the emacs screen when changing menubar.  This reduces flickering.  */
 
   ac = 0;
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
