@@ -102,9 +102,10 @@
       (read-multibyte-character r0 r1)
       (if (r0 == ,(charset-id 'cyrillic-iso8859-5))
 	  (translate-character cyrillic-koi8-r-encode-table r0 r1))
-      (if (r0 != ,(charset-id 'eight-bit-graphic))
-	  (if (r0 != ,(charset-id 'eight-bit-control))
-	      (r1 = ??)))
+      (if (r0 != ,(charset-id 'ascii))
+	  (if (r0 != ,(charset-id 'eight-bit-graphic))
+	      (if (r0 != ,(charset-id 'eight-bit-control))
+		  (r1 = ??))))
       (write-repeat r1))))
   "CCL program to encode KOI8.")
 	     
@@ -200,9 +201,10 @@
     ((loop
       (read-multibyte-character r0 r1)
       (translate-character cyrillic-alternativnyj-encode-table r0 r1)
-      (if (r0 != ,(charset-id 'eight-bit-graphic))
-	  (if (r0 != ,(charset-id 'eight-bit-control))
-	      (r1 = ??)))
+      (if (r0 != ,(charset-id 'ascii))
+	  (if (r0 != ,(charset-id 'eight-bit-graphic))
+	      (if (r0 != ,(charset-id 'eight-bit-control))
+		  (r1 = ??))))
       (write-repeat r1))))
   "CCL program to encode Alternativnyj.")
 	     
