@@ -354,10 +354,11 @@ install-arch-indep: mkdir
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
-	   (cd etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
+	   (cd ./etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
 	   (cd $(docdir); chmod a+r DOC*; rm DOC) \
 	else true; fi
-	if [ x`(cd ./lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ] \
+	if [ -r ./lisp ] \
+	   && [ x`(cd ./lisp; /bin/pwd)` != x`(cd ${lispdir}; /bin/pwd)` ] \
 	   && [ x`(cd ${srcdir}/lisp; /bin/pwd)` != x`(cd ./lisp; /bin/pwd)` ]; \
 	then \
 	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
