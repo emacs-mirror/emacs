@@ -44,8 +44,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef __GO32__
 #ifndef __DJGPP__
 #define __DJGPP__ 1	/* V2 defines __DJGPP__ == 2 */
-#else
-You lose; /* Emacs for DOS must be compiled with DJGPP V1 */
 #endif
 #else
 You lose; /* Emacs for DOS must be compiled with DJGPP */
@@ -157,18 +155,36 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define _setjmp setjmp
 #define _longjmp longjmp
 
+#if __DJGPP__ < 2
+
 #define NO_MODE_T
 
-/* New chdir () routine. */
+/* New chdir () routine.
+   DJGPP v2.0 and later doesn't need it because its chdir() does
+   set the drive itself. */
 #ifdef chdir
 #undef chdir
 #endif
 #define chdir sys_chdir
 
-#define LIBS_SYSTEM -lpc
+#define LIBS_SYSTEM -lpc  /* isn't required in DJGPP v2.0, either */
+
+#endif /* __DJGPP__ < 2 */
+
+#if __DJGPP__ > 1
+
+#define DATA_START  (&etext + 1)
+#define TEXT_START  &start
+#define TEXT_END    &etext
+
+#define _NAIVE_DOS_REGS
+
+#else /* not __DJGPP__ > 1 */
 
 /* This somehow needs to be defined even though we use COFF.  */
 #define TEXT_START -1
+
+#endif /* not __DJGPP__ > 1 */
 
 #define ORDINARY_LINK
 
@@ -180,6 +196,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define NULL_DEVICE "nul"
 #define EXEC_SUFFIXES ".exe:.com:.bat:"
 
+#if __DJGPP__ < 2
 #define O_RDONLY        0x0001
 #define O_WRONLY        0x0002
 #define O_RDWR          0x0004
@@ -189,10 +206,11 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define O_APPEND        0x0800
 #define O_TEXT          0x4000
 #define O_BINARY        0x8000
+#define NO_MATHERR
+#endif
 
 #define HAVE_INVERSE_HYPERBOLIC
 #define FLOAT_CHECK_DOMAIN
-#define NO_MATHERR
 
 /* When $TERM is "internal" then this is substituted:  */
 #define INTERNAL_TERMINAL "pc|bios|IBM PC with colour display:\
@@ -210,8 +228,10 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
 /* Call init_gettimeofday when TZ changes.  */
+#if __DJGPP__ < 2
 #define LOCALTIME_CACHE
 #define tzset init_gettimeofday
+#endif
 
 /* bcopy under djgpp is quite safe */
 #define GAP_USE_BCOPY
@@ -220,6 +240,11 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* Mode line description of a buffer's type.  */
 #define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
+
+/* Do we have POSIX signals?  */
+#if __DJGPP__ > 1
+#define POSIX_SIGNALS
+#endif
 
 /* We have (the code to control) a mouse.  */
 #define HAVE_MOUSE
