@@ -987,7 +987,7 @@ as an argument limits undo to changes within the current region."
 	(undo-start))
       ;; get rid of initial undo boundary
       (undo-more 1))
-    ;; If we got this far, the next command should be a consecutive undo. 
+    ;; If we got this far, the next command should be a consecutive undo.
     (setq this-command 'undo)
     ;; Check to see whether we're hitting a redo record, and if
     ;; so, ask the user whether she wants to skip the redo/undo pair.
@@ -4120,12 +4120,12 @@ The completion list buffer is available as the value of `standard-output'.")
 
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
-(defface completion-emphasis 
+(defface completions-first-difference
   '((t (:inherit bold)))
   "Face put on the first uncommon character in completions in *Completions* buffer."
   :group 'completion)
 
-(defface completion-de-emphasis 
+(defface completions-common-part
   '((t (:inherit default)))
   "Face put on the common prefix substring in completions in *Completions* buffer."
   :group 'completion)
@@ -4158,26 +4158,28 @@ The completion list buffer is available as the value of `standard-output'.")
 	(save-match-data
 	  (if (minibufferp mainbuf)
 	      (setq completion-base-size 0))))
-       ;; Put emphasis and de-emphasis faces on completions.
+       ;; Put faces on first uncommon characters and common parts.
       (when completion-base-size
-	(let ((common-string-length (length 
-				     (substring mbuf-contents 
-						completion-base-size)))
-	      (element-start (next-single-property-change 
-			      (point-min)
-			      'mouse-face))
-	      element-common-end)
-	  (while element-start
-	    (setq element-common-end  (+ element-start common-string-length))
+	(let* ((common-string-length (length
+				      (substring mbuf-contents
+						 completion-base-size)))
+	       (element-start (next-single-property-change
+			       (point-min)
+			       'mouse-face))
+	       (element-common-end (+ element-start common-string-length))
+	       (maxp (point-max)))
+	  (while (and element-start (< element-common-end maxp))
 	    (when (and (get-char-property element-start 'mouse-face)
 		       (get-char-property element-common-end 'mouse-face))
 	      (put-text-property element-start element-common-end
-				 'font-lock-face 'completion-de-emphasis)
+				 'font-lock-face 'completions-common-part)
 	      (put-text-property element-common-end (1+ element-common-end)
-				 'font-lock-face 'completion-emphasis))
-	    (setq element-start (next-single-property-change 
+				 'font-lock-face 'completions-first-difference))
+	    (setq element-start (next-single-property-change
 				 element-start
-				 'mouse-face)))))
+				 'mouse-face))
+	    (if element-start
+		(setq element-common-end  (+ element-start common-string-length))))))
       ;; Insert help string.
       (goto-char (point-min))
       (if (display-mouse-p)

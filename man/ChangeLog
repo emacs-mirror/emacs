@@ -1,3 +1,7 @@
+2004-04-15  Kim F. Storm  <storm@cua.dk>
+
+	* cmdargs.texi (Initial Options): Add -Q.
+
 2004-04-05  Kim F. Storm  <storm@cua.dk>
 
 	* custom.texi (File Variables): Add safe-local-eval-forms.

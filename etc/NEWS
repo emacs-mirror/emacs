@@ -1604,13 +1604,19 @@ candidate is a directory.
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
 
-** Visual feedback of *Completions* buffer is enhanced.
-Faces are put on the common prefix substrings and the first uncommon
-charachters of each completion candidate in the *Completions* buffer.
-`completion-de-emphasis' is put on the common prefix substrings as the
-face; and `completion-emphasis' is put on the first uncommon
-charachters. By default `completion-de-emphasis' is inherited from
-`default' face. `completion-emphasis' is inherited from `bold' face.
+** Enhanced visual feedback in *Completions* buffer.
+
+Completions lists use faces to highlight what all completions
+have in common and where they begin to differ.
+
+The common prefix shared by all possible completions uses the face
+`completions-common-part', while the first character that isn't the
+same uses the face `completions-first-difference'.  By default,
+`completions-common-part' inherits from `default', and
+`completions-first-difference' inherits from `bold'.  The idea of
+`completions-common-part' is that you can use it to make the common
+parts less visible than normal, so that the rest of the differing
+parts is, by contrast, slightly highlighted.
 
 +++
 ** New user option `inhibit-startup-buffer-menu'.

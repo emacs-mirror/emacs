@@ -75,21 +75,32 @@ pops up the GUD buffer unless `gdb-show-main' is t. In this case
 it starts with two windows: one displaying the GUD buffer and the
 other with the source file with the main routine of the debugee.
 
-If `gdb-many-windows' is t the layout below will appear
-regardless of the value of `gdb-show-main' unless
+If `gdb-many-windows' is t, regardless of the value of
+`gdb-show-main', the layout below will appear unless
 `gdb-use-inferior-io-buffer' is nil when the source buffer
 occupies the full width of the frame. Keybindings are given in
 relevant buffer.
 
+Watch expressions appear in the speedbar/slowbar.
+
+The following interactive lisp functions help control operation :
+
+`gdb-many-windows'    - Toggle the number of windows gdb uses.
+`gdb-restore-windows' - To restore the window layout.
+
+See Info node `(emacs)GDB Graphical Interface' for a more
+detailed description of this mode.
+
+
 ---------------------------------------------------------------------
                                GDB Toolbar
 ---------------------------------------------------------------------
-GUD buffer (I/O of GDB)           | Locals buffer
+ GUD buffer (I/O of GDB)          | Locals buffer
                                   |
                                   |
                                   |
 ---------------------------------------------------------------------
-Source buffer                     | Input/Output (of debugee) buffer
+ Source buffer                    | Input/Output (of debugee) buffer
                                   | (comint-mode)
                                   |
                                   |
@@ -98,28 +109,12 @@ Source buffer                     | Input/Output (of debugee) buffer
                                   |
                                   |
 ---------------------------------------------------------------------
-Stack buffer                      | Breakpoints buffer
+ Stack buffer                     | Breakpoints buffer
  RET      gdb-frames-select       | SPC    gdb-toggle-breakpoint
                                   | RET    gdb-goto-breakpoint
                                   |   d    gdb-delete-breakpoint
 ---------------------------------------------------------------------
-
-All the buffers share the toolbar and source should always display in the same
-window e.g after typing g on a breakpoint in the breakpoints buffer. Breakpoint
-icons are displayed both by setting a break with gud-break and by typing break
-in the GUD buffer.
-
-This works best (depending on the size of your monitor) using most of the
-screen.
-
-Displayed expressions appear in separate frames. Arrays may be displayed
-as slices and visualised using the graph program from plotutils if installed.
-Pointers in structures may be followed in a tree-like fashion.
-
-The following interactive lisp functions help control operation :
-
-`gdb-many-windows'    - Toggle the number of windows gdb uses.
-`gdb-restore-windows' - To restore the window layout."
+"
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
@@ -223,6 +218,11 @@ speedbar."
        (list (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
 	     `(lambda () (gdb-var-create-handler ,expr))))))
   (select-window (get-buffer-window gud-comint-buffer)))
+
+(defun gdb-goto-info ()
+  (interactive)
+  (select-frame (make-frame))
+  (Info-goto-node "(emacs)GDB Graphical Interface"))
 
 (defconst gdb-var-create-regexp
 "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
@@ -1656,7 +1656,7 @@ the source buffer."
   (other-window 1))
 
 (defcustom gdb-many-windows nil
-  "Nil (the default value) means just pops up the GUD buffer
+  "Nil (the default value) means just pop up the GUD buffer
 unless `gdb-show-main' is t. In this case it starts with two
 windows: one displaying the GUD buffer and the other with the
 source file with the main routine of the debugee. Non-nil means

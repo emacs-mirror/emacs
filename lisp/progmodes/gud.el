@@ -92,7 +92,9 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 Used to grey out relevant toolbar icons.")
 
 (easy-mmode-defmap gud-menu-map
-  '(([refresh]	"Refresh" . gud-refresh)
+  '(([help]     menu-item "Help" gdb-goto-info
+                     :enable (eq gud-minor-mode 'gdba))
+    ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdba gdb dbx jdb))))
@@ -116,20 +118,17 @@ Used to grey out relevant toolbar icons.")
     ([print]	menu-item "Print Expression" gud-print
                      :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
-		     :enable (and (not gud-running)
-				  (eq gud-minor-mode 'gdba)))
+		     :enable (and (not gud-running) (eq gud-minor-mode 'gdba)))
     ([finish]	menu-item "Finish Function" gud-finish
 		     :enable (and (not gud-running)
 				  (memq gud-minor-mode
 					'(gdba gdb xdb jdb pdb bashdb))))
     ([stepi]	menu-item "Step Instruction" gud-stepi
                      :enable (and (not gud-running)
-				  (memq gud-minor-mode
-					'(gdba gdb dbx))))
+				  (memq gud-minor-mode '(gdba gdb dbx))))
     ([nexti]	menu-item "Next Instruction" gud-nexti
                      :enable (and (not gud-running)
-				  (memq gud-minor-mode
-					'(gdba gdb dbx))))
+				  (memq gud-minor-mode '(gdba gdb dbx))))
     ([step]	menu-item "Step Line" gud-step
                      :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
@@ -171,7 +170,8 @@ Used to grey out relevant toolbar icons.")
 		     (gud-stepi . "gud-si")
 		     (gud-nexti . "gud-ni")
 		     (gud-up . "gud-up")
-		     (gud-down . "gud-down"))
+		     (gud-down . "gud-down")
+		     (gdb-goto-info . "help"))
 		   map)
 	  (tool-bar-local-item-from-menu
 	   (car x) (cdr x) map gud-minor-mode-map)))))
