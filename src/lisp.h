@@ -387,6 +387,10 @@ extern size_t pure_size;
 #define make_number(N)		\
   ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
 
+#define make_fixnum(x) make_number (x)
+#define MOST_NEGATIVE_FIXNUM	((EMACS_INT) 1 << (VALBITS - 1))
+#define MOST_POSITIVE_FIXNUM	(MOST_NEGATIVE_FIXNUM - 1)
+
 /* During garbage collection, XGCTYPE must be used for extracting types
  so that the mark bit is ignored.  XMARKBIT accesses the markbit.
  Markbits are used only in particular slots of particular structure types.
@@ -467,6 +471,16 @@ extern Lisp_Object make_number ();
 #define XUNMARK(a) (XMARKBIT(a) = 0)
 
 #endif /* NO_UNION_TYPE */
+
+/* Largest and smallest representable fixnum values.  */
+
+#define MOST_NEGATIVE_FIXNUM	((EMACS_INT) 1 << (VALBITS - 1))
+#define MOST_POSITIVE_FIXNUM	(MOST_NEGATIVE_FIXNUM - 1)
+
+/* Value is non-zero if C integer I doesn't fit into a Lisp fixnum.  */
+
+#define FIXNUM_OVERFLOW_P(i) \
+  ((i) > MOST_POSITIVE_FIXNUM || (i) < MOST_NEGATIVE_FIXNUM)
 
 /* Extract a value or address from a Lisp_Object.  */
 
