@@ -205,6 +205,10 @@ is converted into a string by expressing it in decimal.")
 {
   register int argnum;
   register Lisp_Object tem;
+  struct gcpro gcpro1;
+
+  GCPRO1 (*args);
+  gcpro1.nvars = nargs;
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -220,6 +224,8 @@ is converted into a string by expressing it in decimal.")
 	  goto retry;
 	}
     }
+
+  UNGCPRO;
   return Qnil;
 }
 

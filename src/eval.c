@@ -1551,7 +1551,6 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
   register int i, numargs;
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
-  struct gcpro gcpro1;
   Lisp_Object fun;
 
   fun = args [0];
@@ -1614,13 +1613,7 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
       spread_arg = XCONS (spread_arg)->cdr;
     }
   
-  GCPRO1 (*funcall_args);
-  gcpro1.nvars = numargs + 1;
-  {
-    Lisp_Object val = Ffuncall (numargs + 1, funcall_args);
-    UNGCPRO;
-    return val;
-  }
+  return Ffuncall (numargs + 1, funcall_args);
 }
 
 /* Apply fn to arg */
@@ -1719,8 +1712,15 @@ Thus, (funcall 'cons 'x 'y) returns (x . y).")
 
   QUIT;
   if (consing_since_gc > gc_cons_threshold)
-    Fgarbage_collect ();
-
+    {
+      struct gcpro gcpro1;
+      
+      /* The backtrace protects the arguments for the rest of the function.  */
+      GCPRO1 (*args);
+      gcpro1.nvars = nargs;
+      Fgarbage_collect ();
+      UNGCPRO;
+    }
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
