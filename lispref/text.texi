@@ -2989,12 +2989,11 @@ for possible pointer shapes.
 
 @item line-spacing
 @kindex line-spacing @r{(text property)}
-A newline can have a @code{line-spacing} text or overlay property
-that controls the height of the corresponding display line.
-@c ???  Which display line is "corresponding"?
-The @code{line-spacing} property overrides the default frame line
-spacing and the buffer local @code{line-spacing} variable.  We will
-call the property value @var{line-spacing}.
+A newline can have a @code{line-spacing} text or overlay property that
+controls the height of the display line ending with that newline.  The
+property value overrides the default frame line spacing and the buffer
+local @code{line-spacing} variable.  We will call the property value
+@var{line-spacing}.
 
 If @var{line-spacing} is a positive integer, the value specifies
 additional vertical space, below the display line, in pixels.
@@ -3012,18 +3011,13 @@ is equivalent to using the @code{line-height} property.
 @item line-height
 @kindex line-height @r{(text property)}
 A newline can have a @code{line-height} text or overlay property that
-controls the total height of the corresponding display line.
-@c ???  Which display line is "corresponding"?
+controls the total height of the display line ending in that newline.
 We will call the property value @var{line-height}.
 
-If @var{line-height} is 0, the newline does not contribute to the
-height of the display row; instead the height of the newline glyph is
-reduced.
-@c ??? That is not clear.  Reduced how much?
-In that case, any @code{line-spacing} property on
-this newline is ignored.  This can be used to tile small images or
-image slices without adding blank areas between the images.
-@c ??? Precisely which of these features does ``this'' mean?
+If @var{line-height} is 0, the height of the line is determined solely
+from its contents; nothing is added.  Any @code{line-spacing} property
+on this newline is ignored.  This case is useful for tiling small
+images or image slices without adding blank areas between the images.
 
 If @var{line-height} is a positive integer, the value specifies the
 minimum line height in pixels.  The line's ascent height is
