@@ -445,10 +445,11 @@ and exists only for compatibility reasons."
 		    ;; initial contents tries to be the last element
 		    ;; on the syntactic analysis list for the current
 		    ;; line
-		    (let* ((syntax (c-guess-basic-syntax))
-			   (len (length syntax))
-			   (ic (format "%s" (car (nth (1- len) syntax)))))
-		      (cons ic 0))
+		    (and c-buffer-is-cc-mode
+			 (let* ((syntax (c-guess-basic-syntax))
+				(len (length syntax))
+				(ic (format "%s" (car (nth (1- len) syntax)))))
+			   (cons ic 0)))
 		    )))
 	  (offset (c-read-offset langelem)))
      (list langelem offset current-prefix-arg)))
