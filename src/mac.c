@@ -2769,7 +2769,9 @@ sys_select (n, rfds, wfds, efds, timeout)
 {
   if (!inhibit_window_system && rfds && FD_ISSET (0, rfds))
     return 1;
-  else if (inhibit_window_system || noninteractive)
+  else if (inhibit_window_system || noninteractive ||
+	   (timeout && (EMACS_SECS(*timeout)==0) && 
+	    (EMACS_USECS(*timeout)==0)))
     return select(n, rfds, wfds, efds, timeout);
   else
     {
@@ -2787,6 +2789,9 @@ sys_select (n, rfds, wfds, efds, timeout)
 	  EMACS_SET_SECS (one_second, 1);
 	  EMACS_SET_USECS (one_second, 0);
 	  
+	  if (timeout && EMACS_TIME_LT(*timeout, one_second))
+	    one_second = *timeout;
+
 	  if ((r = select (n, rfds, wfds, efds, &one_second)) > 0)
 	    return r;
 	  
