@@ -125,13 +125,22 @@ unsuccessful after disturbing the status quo, it removes config.status."
 ### Record all the arguments, so we can save them in config.status.
 arguments="$@"
 
+### Shell Magic: Quote the quoted arguments in ARGUMENTS.  At a later date,
+### in order to get the arguments back in $@, we have to do an
+###  `eval set x "$quoted_arguments"; shift'.
+quoted_arguments=
+for i in "$@"; do
+   quoted_arguments="$quoted_arguments '$i'"
+done
+
 ### Don't use shift -- that destroys the argument list, which autoconf needs
 ### to produce config.status.  It turns out that "set - ${arguments}" doesn't
 ### work portably.
-index=0
-while [ $index -lt $# ]; do
-  index=`expr $index + 1`
-  arg=`eval echo '$'$index`
+### However, it also turns out that many shells cannot expand ${10} at all.
+### So using an index variable doesn't work either.  It is possible to use
+### some shell magic to make 'set x "$arguments"; shift' work portably.
+while [ $# != 0 ]; do
+  arg="$1"; shift
   case "${arg}" in
 
     ## Anything starting with a hyphen we assume is an option.
@@ -197,14 +206,13 @@ Set it to either \`yes' or \`no'."
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
-            if [ $index = $# ]; then
+            if [ $# = 0 ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
     \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-            index=`expr $index + 1`
-            val=`eval echo '$'$index`
+            val="$1"; shift
 	  fi
           srcdir="${val}"
 	;;
@@ -217,14 +225,13 @@ Set it to either \`yes' or \`no'."
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
-            if [ $index = $# ]; then
+            if [ $# = 0 ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
     \`--${optname}=/usr/local/X11/include'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-            index=`expr $index + 1`
-            val=`eval echo '$'$index`
+            val="$1"; shift
 	  fi
 	  x_includes="${val}"
         ;;
@@ -232,14 +239,13 @@ Set it to either \`yes' or \`no'."
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
-            if [ $index = $# ]; then
+            if [ $# = 0 ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
     \`--${optname}=/usr/local/X11/lib'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-            index=`expr $index + 1`
-            val=`eval echo '$'$index`
+            val="$1"; shift
 	  fi
 	  x_libraries="${val}"
         ;;
@@ -256,7 +262,7 @@ Set it to either \`yes' or \`no'."
 	lisppath | locallisppath )
 	   ## If the value was omitted, get it from the next argument.
 	   if [ "${valomitted}" = "yes" ]; then
-	      if [ $index = $# ]; then
+	      if [ $# = 0 ]; then
 		 (echo \
 "$progname: You must give a value for the \`--${optname}' option,";
 		  echo \
@@ -264,11 +270,10 @@ Set it to either \`yes' or \`no'."
 		  echo "$short_usage") >&2
 		 exit 1
 	      fi
-	      index=`expr $index + 1`
-	      val=`eval echo '$'$index`
+	      val="$1"; shift
 	   fi
-	   eval "${optname}=\"${val}\""
-	   eval "${optname}_specified=1"
+	   eval "${opt}=\"${val}\""
+	   eval "${opt}_specified=1"
 	;;
 
 	## Verbose flag, tested by autoconf macros.
@@ -299,6 +304,9 @@ Set it to either \`yes' or \`no'."
 
   esac
 done
+
+### Get the arguments back.  See the diatribe on Shell Magic above.
+eval set x "$quoted_arguments"; shift
 
 if [ "${configuration}" = "" ]; then
   echo '- You did not tell me what kind of host system you want to configure.
@@ -1397,8 +1405,8 @@ topsrcdir=${srcdir}
 makefile_command='echo "creating src/Makefile";
   topsrcdir='"${topsrcdir}"';
 ( cd ./src;
-  cp ${topsrcdir}/src/Makefile.in junk.c;
-  eval `echo ${CPP} -I${topsrcdir}/src ${CPPFLAGS} junk.c \>junk.cpp`;
+  cp Makefile.in junk.c;
+  eval `echo ${CPP} -I. -I${topsrcdir}/src ${CPPFLAGS} junk.c \>junk.cpp`;
   < junk.cpp							'\
 '    sed -e '\''s/^#.*//'\''					'\
 '	-e '\''s/^[ \f\t][ \f\t]*$//'\''			'\
@@ -1418,6 +1426,12 @@ echo $makefile_command >>config.new
 echo exit 0 >>config.new
 mv -f config.new config.status
 chmod +x config.status
+# Don't let the fact that we just rewrote config.status make Makefile think
+# that it is now newer.  We have just rewritten all of the Makefiles as well.
+MFS="Makefile src/Makefile src/Makefile.in lib-src/Makefile oldXMenu/Makefile"
+for file in $MFS; do
+   chmod a+w $file; touch $file; chmod 444 $file
+done
 exit 0
 ]
 
