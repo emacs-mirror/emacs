@@ -1,6 +1,6 @@
 ;;; ps-print.el --- Print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 98, 99, 2000
+;; Copyright (C) 1993,94,95,96,97,98,99,2000
 ;; Free Software Foundation, Inc.
 
 ;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
@@ -10,12 +10,12 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/11/01 14:39:00 vinicius>
-;; Version:	6.3.1
+;; Time-stamp:	<2000/11/29 17:35:39 vinicius>
+;; Version:	6.3.2
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.3.1"
-  "ps-print.el, v 6.3.1 <2000/11/01 vinicius>
+(defconst ps-print-version "6.3.2"
+  "ps-print.el, v 6.3.2 <2000/11/29 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -207,6 +207,10 @@ Please send all bug fixes and enhancements to
 ;; The variable `ps-manual-feed' indicates if the printer will manually feed
 ;; paper.  If it's nil, automatic feeding takes place.  If it's non-nil, manual
 ;; feeding takes place.  The default is nil (automatic feeding).
+;;
+;; The variable `ps-end-with-control-d' specifies whether C-d (\x04) should be
+;; inserted at end of PostScript generated.  Non-nil means do so.  The default
+;; is nil (don't insert).
 ;;
 ;; If you're using Emacs for Windows 95/98/NT or MS-DOS, don't forget to
 ;; customize the following variables: `ps-printer-name',
@@ -662,6 +666,12 @@ Please send all bug fixes and enhancements to
 ;; The variable `ps-line-number' specifies whether to number each line;
 ;; non-nil means do so.  The default is nil (don't number each line).
 ;;
+;; The variable `ps-line-number-font' specifies the font for line number.
+;; The default is "Times-Italic".
+;;
+;; The variable `ps-line-number-font-size' specifies the font size in points
+;; for line number.  See `ps-font-size' for documentation.  The default is 6.
+;;
 ;; The variable `ps-line-number-step' specifies the interval that line number is
 ;; printed.  For example, if `ps-line-number-step' is set to 2, the printing
 ;; will look like:
@@ -1115,6 +1125,10 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
+;;    20001122
+;;	 `ps-line-number-font', `ps-line-number-font-size' and
+;;	 `ps-end-with-control-d'.
+;;
 ;;    20000821
 ;;	 `ps-even-or-odd-pages'
 ;;
@@ -1231,6 +1245,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to Corinne Ilvedson <cilvedson@draper.com> for line number font size
+;; suggestion.
 ;;
 ;; Thanks to Gord Wait <Gord_Wait@spectrumsignal.com> for
 ;; `ps-user-defined-prologue' example setting for HP PostScript printer.
@@ -1628,7 +1645,9 @@ an explicit filename is given as the last argument."
 (defcustom ps-lpr-switches lpr-switches
   "*A list of extra switches to pass to `ps-lpr-command'."
   :type '(repeat :tag "PostScript lpr Switches"
-		 (choice string symbol (repeat sexp)))
+		 (choice :menu-tag "PostScript lpr Switch"
+			 :tag "PostScript lpr Switch"
+			 string symbol (repeat sexp)))
   :group 'ps-print-printer)
 
 (defcustom ps-print-region-function nil
@@ -1642,6 +1661,11 @@ the sixth arguments are both nil."
   "*Non-nil means the printer will manually feed paper.
 
 If it's nil, automatic feeding takes place."
+  :type 'boolean
+  :group 'ps-print-printer)
+
+(defcustom ps-end-with-control-d ps-windows-system
+  "*Non-nil means insert C-d at end of PostScript file generated."
   :type 'boolean
   :group 'ps-print-printer)
 
@@ -2404,29 +2428,32 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'.
 
 Note also that ps-print DOESN'T download any font to your printer, instead
 it uses the fonts resident in your printer."
-  :type '(repeat (list :tag "Font Definition"
-		       (symbol :tag "Font Family")
-		       (cons :format "%v"
-			     (const :format "" fonts)
-			     (repeat :tag "Faces"
-				     (cons (choice (const normal)
-						   (const bold)
-						   (const italic)
-						   (const bold-italic)
-						   (symbol :tag "Face"))
-					   (string :tag "Font Name"))))
-		       (cons :format "%v"
-			     (const :format "" size)
-			     (number :tag "Reference Size"))
-		       (cons :format "%v"
-			     (const :format "" line-height)
-			     (number :tag "Line Height"))
-		       (cons :format "%v"
-			     (const :format "" space-width)
-			     (number :tag "Space Width"))
-		       (cons :format "%v"
-			     (const :format "" avg-char-width)
-			     (number :tag "Average Character Width"))))
+  :type '(repeat
+	  (list :tag "Font Definition"
+		(symbol :tag "Font Family")
+		(cons :format "%v"
+		      (const :format "" fonts)
+		      (repeat :tag "Faces"
+			      (cons (choice :menu-tag "Font Weight/Slant"
+					    :tag "Font Weight/Slant"
+					    (const normal)
+					    (const bold)
+					    (const italic)
+					    (const bold-italic)
+					    (symbol :tag "Face"))
+				    (string :tag "Font Name"))))
+		(cons :format "%v"
+		      (const :format "" size)
+		      (number :tag "Reference Size"))
+		(cons :format "%v"
+		      (const :format "" line-height)
+		      (number :tag "Line Height"))
+		(cons :format "%v"
+		      (const :format "" space-width)
+		      (number :tag "Space Width"))
+		(cons :format "%v"
+		      (const :format "" avg-char-width)
+		      (number :tag "Average Character Width"))))
   :group 'ps-print-font)
 
 (defcustom ps-font-family 'Courier
@@ -2436,7 +2463,9 @@ it uses the fonts resident in your printer."
 
 (defcustom ps-font-size   '(7 . 8.5)
   "*Font size, in points, for ordinary text, when generating PostScript."
-  :type '(choice (number :tag "Text Size")
+  :type '(choice :menu-tag "Ordinary Text Font Size"
+		 :tag "Ordinary Text Font Size"
+		 (number :tag "Text Size")
 		 (cons :tag "Landscape/Portrait"
 		       (number :tag "Landscape Text Size")
 		       (number :tag "Portrait Text Size")))
@@ -2449,7 +2478,9 @@ it uses the fonts resident in your printer."
 
 (defcustom ps-header-font-size       '(10 . 12)
   "*Font size, in points, for text in the header, when generating PostScript."
-  :type '(choice (number :tag "Header Size")
+  :type '(choice :menu-tag "Header Font Size"
+		 :tag "Header Font Size"
+		 (number :tag "Header Size")
 		 (cons :tag "Landscape/Portrait"
 		       (number :tag "Landscape Header Size")
 		       (number :tag "Portrait Header Size")))
@@ -2457,11 +2488,30 @@ it uses the fonts resident in your printer."
 
 (defcustom ps-header-title-font-size '(12 . 14)
   "*Font size, in points, for the top line of text in header, in PostScript."
-  :type '(choice (number :tag "Header Title Size")
+  :type '(choice :menu-tag "Header Title Font Size"
+		 :tag "Header Title Font Size"
+		 (number :tag "Header Title Size")
 		 (cons :tag "Landscape/Portrait"
 		       (number :tag "Landscape Header Title Size")
 		       (number :tag "Portrait Header Title Size")))
   :group 'ps-print-font)
+
+(defcustom ps-line-number-font      "Times-Italic"
+  "*Font for line-number, when generating PostScript."
+  :type 'string
+  :group 'ps-print-font
+  :group 'ps-print-miscellany)
+
+(defcustom ps-line-number-font-size 6
+  "*Font size, in points, for line number, when generating PostScript."
+  :type '(choice :menu-tag "Line Number Font Size"
+		 :tag "Line Number Font Size"
+		 (number :tag "Font Size")
+		 (cons :tag "Landscape/Portrait"
+		       (number :tag "Landscape Font Size")
+		       (number :tag "Portrait Font Size")))
+  :group 'ps-print-font
+  :group 'ps-print-miscellany)
 
 ;;; Colors
 
@@ -2577,7 +2627,9 @@ return a string to be inserted into the array.  For symbols with bound
 values, the value should be a string to be inserted into the array.
 In either case, function or variable, the string value has PostScript
 string delimiters added to it."
-  :type '(repeat (choice string symbol))
+  :type '(repeat (choice :menu-tag "Left Header"
+			 :tag "Left Header"
+			 string symbol))
   :group 'ps-print-headers)
 
 (defcustom ps-right-header
@@ -2587,7 +2639,9 @@ This applies to generating PostScript.
 
 See the variable `ps-left-header' for a description of the format of
 this variable."
-  :type '(repeat (choice string symbol))
+  :type '(repeat (choice :menu-tag "Right Header"
+			 :tag "Right Header"
+			 string symbol))
   :group 'ps-print-headers)
 
 (defcustom ps-razzle-dazzle t
@@ -2867,6 +2921,8 @@ The table depends on the current ps-print setup."
       ps-header-font-family     %s
       ps-header-font-size       %s
       ps-header-title-font-size %s
+      ps-line-number-font       %s
+      ps-line-number-font-size  %s
 
       ps-even-or-odd-pages   %s
       ps-selected-pages      %s
@@ -2930,6 +2986,8 @@ The table depends on the current ps-print setup."
    (ps-print-quote ps-header-font-family)
    (ps-print-quote ps-header-font-size)
    (ps-print-quote ps-header-title-font-size)
+   ps-line-number-font
+   (ps-print-quote ps-line-number-font-size)
    (ps-print-quote ps-even-or-odd-pages)
    (ps-print-quote ps-selected-pages)
    (ps-print-quote ps-last-selected-pages)))
@@ -3564,7 +3622,7 @@ and on the current ps-print setup."
 (defun ps-select-font (font-family sym font-size title-font-size)
   (let ((font-entry (cdr (assq font-family ps-font-info-database))))
     (or font-entry
-	(error "Don't have data to scale font %s. Known fonts families are %s"
+	(error "Don't have data to scale font %s.  Known fonts families are %s"
 	       font-family
 	       (mapcar 'car ps-font-info-database)))
     (let ((size (ps-lookup 'size)))
@@ -4608,13 +4666,16 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (mapcar 'ps-output ps-background-all-pages)
     (ps-output "}def\n/printLocalBackground{\n}def\n")
 
-    ;; Header fonts
-    (ps-output (format "/h0 %s(%s)cvn DefFont\n" ; /h0 14 /Helvetica-Bold DefFont
+    ;; Header/line number fonts
+    (ps-output (format "/h0 %s(%s)cvn DefFont\n" ; /h0 14/Helvetica-Bold DefFont
 		       ps-header-title-font-size-internal
 		       (ps-font 'ps-font-for-header 'bold))
-	       (format "/h1 %s(%s)cvn DefFont\n" ; /h1 12 /Helvetica DefFont
+	       (format "/h1 %s(%s)cvn DefFont\n" ; /h1 12/Helvetica DefFont
 		       ps-header-font-size-internal
-		       (ps-font 'ps-font-for-header 'normal)))
+		       (ps-font 'ps-font-for-header 'normal))
+	       (format "/L0 %s(%s)cvn DefFont\n" ; /L0 6/Times-Italic DefFont
+		       (ps-get-font-size 'ps-line-number-font-size)
+		       ps-line-number-font))
 
     (ps-output "\n" ps-print-prologue-2 "\n")
 
@@ -4652,8 +4713,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	     (ps-boolean-capitalized ps-manual-feed)
 	     "\nBMark /ManualFeed "
 	     (ps-boolean-constant ps-manual-feed)
-	     " EMark setpagedevice\n%%EndFeature\n"
-	     "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n")
+	     " EMark setpagedevice\n%%EndFeature\n\nBeginDoc\n%%EndSetup\n")
   (and ps-banner-page-when-duplexing
        (ps-output "\n%%Page: banner 0\nsave showpage restore\n")))
 
@@ -4837,6 +4897,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 			   ps-page-order ps-page-postscript ps-page-order)
 		 (format "\n%%%%Page: %d %d\n"
 			 ps-page-postscript ps-page-order))
+	       ;; spooling needs to redefine Lines and PageCount on each page
+	       "/Lines 0 def\n/PageCount 0 def\n"
 	       (format "%d BeginSheet\nBeginDSCPage\n"
 		       ps-n-up-printing))))
 
@@ -5452,19 +5514,19 @@ If FACE is not a valid face name, it is used default face."
     (save-excursion
       (let ((pages-per-sheet (mod ps-page-printed ps-n-up-printing))
 	    (total-lines (cdr ps-printing-region))
-	    (total-pages (ps-page-number))
-	    case-fold-search)
+	    (total-pages (ps-page-number)))
 	(set-buffer ps-spool-buffer)
-	;; Back to the PS output buffer to set the last page n-up printing
-	(goto-char (point-max))
-	(and (> pages-per-sheet 0)
-	     (re-search-backward "^[0-9]+ BeginSheet$" nil t)
-	     (replace-match (format "%d BeginSheet" pages-per-sheet) t))
-	;; Back to the PS output buffer to set the page count
-	(goto-char (point-min))
-	(and (re-search-forward "^/Lines 0 def\n/PageCount 0 def$" nil t)
-	     (replace-match (format "/Lines %d def\n/PageCount %d def"
-				    total-lines total-pages) t))))
+	(let (case-fold-search)
+	  ;; Back to the PS output buffer to set the last page n-up printing
+	  (goto-char (point-max))
+	  (and (> pages-per-sheet 0)
+	       (re-search-backward "^[0-9]+ BeginSheet$" nil t)
+	       (replace-match (format "%d BeginSheet" pages-per-sheet) t))
+	  ;; Back to the PS output buffer to set the page count
+	  (goto-char (point-min))
+	  (while (re-search-forward "^/Lines 0 def\n/PageCount 0 def$" nil t)
+	    (replace-match (format "/Lines %d def\n/PageCount %d def"
+				   total-lines total-pages) t)))))
     ;; Set dummy page
     (and ps-spool-duplex (= (mod ps-page-order 2) 1)
 	 (let ((ps-n-up-printing 0))
@@ -5482,6 +5544,8 @@ If FACE is not a valid face name, it is used default face."
 		    (1+ ps-page-order)
 		  ps-page-order))
 	       "\n\nEndDoc\n\n%%EOF\n")
+    (and ps-end-with-control-d
+	 (ps-output "\C-d"))
     (ps-flush-output))
   ;; disable selected pages
   (setq ps-selected-pages nil))
