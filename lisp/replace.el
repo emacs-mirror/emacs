@@ -379,6 +379,13 @@ It serves as a menu to find any of the occurrences in this buffer.
 		  (if (null tag)
 		      (setq tag (format "%3d" this-linenum)))
 		  (insert tag ?:)
+		  (put-text-property (save-excursion
+				       (beginning-of-line)
+				       (point))
+				     (save-excursion
+				       (end-of-line)
+				       (point))
+				     'mouse-face 'highlight)
 		  (setq tag nil)
 		  (forward-line 1)
 		  (setq this-linenum (1+ this-linenum))))
