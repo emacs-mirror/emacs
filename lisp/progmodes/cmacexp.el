@@ -45,7 +45,7 @@
 ;; Put the following in your ~/.emacs file.
 
 ;; If you want the *Macroexpansion* window to be not higher than
-;; necessary: 
+;; necessary:
 ;;(setq c-macro-shrink-window-flag t)
 ;;
 ;; If you use a preprocessor other than /lib/cpp (be careful to set a
@@ -112,6 +112,7 @@
 			    system-configuration)
 	      (file-exists-p "/opt/SUNWspro/SC3.0.1/bin/acomp"))
 	 "/opt/SUNWspro/SC3.0.1/bin/acomp -C -E")
+        ((file-exists-p "/usr/ccs/lib/cpp") "/usr/ccs/lib/cpp -C")
 	(t "/lib/cpp -C"))
   "The preprocessor used by the cmacexp package.
 
@@ -205,7 +206,7 @@ For use inside Lisp programs, see also `c-macro-expansion'."
   (let ((oldwinheight (window-height))
 	(alreadythere			;the window was already there
 	 (get-buffer-window (current-buffer)))
-	(popped nil))			;the window popped changing the layout 
+	(popped nil))			;the window popped changing the layout
     (or alreadythere
 	(progn
 	  (display-buffer (current-buffer) t)
@@ -247,7 +248,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 ;; Preprocess the buffer contents, then look for all the lines stored
 ;; in linelist starting from end of buffer.  The last line so found is
 ;; where START was, so return the substring from point to end of
-;; buffer. 
+;; buffer.
   (let ((inbuf (current-buffer))
 	(outbuf (get-buffer-create " *C Macro Expansion*"))
 	(filename (if (and buffer-file-name
