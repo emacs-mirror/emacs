@@ -708,7 +708,10 @@ extern Lisp_Object Qfunction_documentation;
 
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 3, 0,
        doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
-Associates the function with the current load file, if any.  */)
+Associates the function with the current load file, if any.
+The optional third argument DOCSTRING specifies the documentation string
+for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
+determined by DEFINITION.  */)
      (symbol, definition, docstring)
      register Lisp_Object symbol, definition, docstring;
 {
