@@ -1,10 +1,68 @@
+2004-06-20  Richard M. Stallman  <rms@gnu.org>
+
+	* xfaces.c (Finternal_copy_lisp_face): Small cleanup; doc fix.
+
+	* search.c (match_limit): Cleaner err msg when no match data available.
+
+	* window.c (syms_of_window): Doc fix.
+
+	* keyboard.c (command_loop_1): Handle values `only' and `identity'
+	for Vtransient_mark_mode.
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
+2004-06-21  David Kastrup  <dak@gnu.org>
+
+	* minibuf.c (Ftry_completion, Fall_completions): Do lazy binding
+	and unbinding of `case-fold-search' according to
+	`completion-ignore-case' around calls of string-match and
+	predicates, respectively.  Should give satisfactory performance
+	in all relevant cases.
+
+2004-06-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_draw_image_foreground_1): Subtract slice.x/y from
+	clip_x/y_origin.
+
+	* fns.c (string_to_multibyte): Use xmalloc/xfree instead of alloca.
+
+	* macfns.c (Fx_display_color_cells): Do not limit return value to 256.
+
+	* macterm.c (mac_initialize_display_info): Initialize n_planes correctly
+	on Mac OSX.
+
+2004-06-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (syms_of_buffer): Clarify `fill-column' docstring.
+
+2004-06-16  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (Vimage_types): Remove extern.
+
+2004-06-16  Miles Bader  <miles@gnu.org>
+
+	* image.c (lookup_image_type): Initialize image type if necessary.
+
+2004-06-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (try_cursor_movement): Exclude header line from scroll
+	margin at top of window.
+	(try_window_reusing_current_matrix): Calculate proper cursor position
+	after scrolling up with non-zero scroll margin, as the old cursor
+	position corresponds to value of PT before executing this command.
+	(try_window_id): Consider scroll margin at bottom of window too;
+	otherwise we fail to scroll when hl-line-mode is enabled.
+
+	* syntax.c (skip_chars): Only recognize [:class:] when it has the
+	proper format and class is a lower-case word.
+
 2004-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): New function.
 	(xg_get_gdk_pixmap_and_mask): Removed.
 	(update_frame_tool_bar): Call xg_get_image_for_pixmap instead of
 	xg_get_gdk_pixmap_and_mask.
-	
+
 	* xterm.h (struct x_display_info): Typo in comment fixed.
 
 2004-06-14  Juanma Barranquero  <lektu@terra.es>

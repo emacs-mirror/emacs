@@ -902,7 +902,8 @@ the buffer will not reset them.  However, using `dired-undo' to re-insert
 or delete subdirectories can bypass this machinery.  Hence, you sometimes
 may have to reset some subdirectory switches after a `dired-undo'.
 You can reset all subdirectory switches to the default using
-\\<dired-mode-map>\\[dired-reset-subdir-switches]."
+\\<dired-mode-map>\\[dired-reset-subdir-switches].
+See Info node `(emacs-xtra)Subdir switches' for more details."
   ;; Moves point if the next ARG files are redisplayed.
   (interactive "P\np")
   (if (and test-for-subdir (dired-get-subdir))
@@ -1751,7 +1752,8 @@ the buffer will not reset them.  However, using `dired-undo' to re-insert
 or delete subdirectories can bypass this machinery.  Hence, you sometimes
 may have to reset some subdirectory switches after a `dired-undo'.
 You can reset all subdirectory switches to the default using
-\\<dired-mode-map>\\[dired-reset-subdir-switches]."
+\\<dired-mode-map>\\[dired-reset-subdir-switches].
+See Info node `(emacs-xtra)Subdir switches' for more details."
   (interactive
    (list (dired-get-filename)
 	 (if current-prefix-arg

@@ -1,6 +1,7 @@
 ;;; ewoc.el --- utility to maintain a view of a list of objects in a buffer
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000   Free Software Foundation
+;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 04
+;;      Free Software Foundation
 
 ;; Author: Per Cederqvist <ceder@lysator.liu.se>
 ;;	Inge Wallin <inge@lysator.liu.se>
@@ -244,7 +245,7 @@ BUT if it is the header or the footer in EWOC return nil instead."
 
 (defun ewoc--create-node (data pretty-printer pos)
   "Call PRETTY-PRINTER with point set at POS in current buffer.
-Remember the start position. Create a wrapper containing that
+Remember the start position.  Create a wrapper containing that
 start position and the element DATA."
   (save-excursion
     ;; Remember the position as a number so that it doesn't move
@@ -263,7 +264,7 @@ start position and the element DATA."
 
 (defun ewoc--delete-node-internal (ewoc node)
   "Delete a data string from EWOC.
-Can not be used on the footer. Returns the wrapper that is deleted.
+Can not be used on the footer.  Returns the wrapper that is deleted.
 The start-marker in the wrapper is set to nil, so that it doesn't
 consume any more resources."
   (let ((dll (ewoc--dll ewoc))
@@ -303,14 +304,14 @@ The ewoc will be inserted in the current buffer at the current position.
 
 PRETTY-PRINTER should be a function that takes one argument, an
 element, and inserts a string representing it in the buffer (at
-point). The string PRETTY-PRINTER inserts may be empty or span
-several linse. A trailing newline will always be inserted
-automatically. The PRETTY-PRINTER should use insert, and not
-insert-before-markers.
+point).  The string PRETTY-PRINTER inserts may be empty or span
+several lines.  A trailing newline will always be inserted
+automatically.  The PRETTY-PRINTER should use `insert', and not
+`insert-before-markers'.
 
-Optional third argument HEADER is a string that will always be
-present at the top of the ewoc. HEADER should end with a
-newline.  Optionaly fourth argument FOOTER is similar, and will
+Optional second argument HEADER is a string that will always be
+present at the top of the ewoc.  HEADER should end with a
+newline.  Optional third argument FOOTER is similar, and will
 be inserted at the bottom of the ewoc."
   (let ((new-ewoc
 	 (ewoc--create (current-buffer)
@@ -394,9 +395,9 @@ MAP-FUNCTION is applied to the first element first.
 If MAP-FUNCTION returns non-nil the element will be refreshed (its
 pretty-printer will be called once again).
 
-Note that the buffer for EWOC will be current buffer when MAP-FUNCTION
-is called.  MAP-FUNCTION must restore the current buffer to BUFFER before
-it returns, if it changes it.
+Note that the buffer for EWOC will be the current buffer when
+MAP-FUNCTION is called.  MAP-FUNCTION must restore the current
+buffer before it returns, if it changes it.
 
 If more than two arguments are given, the remaining
 arguments will be passed to MAP-FUNCTION."
@@ -411,9 +412,9 @@ arguments will be passed to MAP-FUNCTION."
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
 Note that the buffer for EWOC will be current-buffer when PREDICATE
-is called. PREDICATE must restore the current buffer before it returns
+is called.  PREDICATE must restore the current buffer before it returns
 if it changes it.
-The PREDICATE is called with the element as its first argument. If any
+The PREDICATE is called with the element as its first argument.  If any
 ARGS are given they will be passed to the PREDICATE."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((node (ewoc--node-nth dll 1))
@@ -428,7 +429,7 @@ ARGS are given they will be passed to the PREDICATE."
 (defun ewoc-locate (ewoc &optional pos guess)
   "Return the node that POS (a buffer position) is within.
 POS may be a marker or an integer.  It defaults to point.
-GUESS should be a node that it is likely that POS is near.
+GUESS should be a node that it is likely to be near POS.
 
 If POS points before the first element, the first node is returned.
 If POS points after the last element, the last node is returned.
@@ -497,7 +498,7 @@ If the EWOC is empty, nil is returned."
 
 (defun ewoc-invalidate (ewoc &rest nodes)
   "Refresh some elements.
-The pretty-printer that for EWOC will be called for all NODES."
+The pretty-printer set for EWOC will be called for all NODES."
   (ewoc--set-buffer-bind-dll ewoc
     (dolist (node nodes)
       (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))))
@@ -564,13 +565,13 @@ number of elements needs to be refreshed."
 (defun ewoc-collect (ewoc predicate &rest args)
   "Select elements from EWOC using PREDICATE.
 Return a list of all selected data elements.
-PREDICATE is a function that takes a data element as its first argument.
-The elements on the returned list will appear in the same order as in
-the buffer.  You should not rely on in which order PREDICATE is
-called.
-Note that the buffer the EWOC is displayed in is current-buffer
-when PREDICATE is called.  If PREDICATE must restore current-buffer if
-it changes it.
+PREDICATE is a function that takes a data element as its first
+argument.  The elements on the returned list will appear in the
+same order as in the buffer.  You should not rely on the order of
+calls to PREDICATE.
+Note that the buffer the EWOC is displayed in is the current
+buffer when PREDICATE is called.  PREDICATE must restore it if it
+changes it.
 If more than two arguments are given the
 remaining arguments will be passed to PREDICATE."
   (ewoc--set-buffer-bind-dll-let* ewoc

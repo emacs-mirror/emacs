@@ -174,20 +174,21 @@ would only waste precious space."
   :type 'hook)
 
 (defcustom global-auto-revert-non-file-buffers nil
-  "When nil only file buffers are reverted by Global Auto-Revert Mode.
+  "When nil, Global Auto-Revert mode operates only on file-visiting buffers.
 
 When non-nil, both file buffers and buffers with a custom
 `revert-buffer-function' and a `buffer-stale-function' are
-reverted by Global Auto-Revert Mode.
+reverted by Global Auto-Revert mode.  These include the Buffer
+List buffer, and Dired buffers showing complete local
+directories.  Dired buffers do not auto-revert as a result of
+changes in subdirectories or in the contents, size, modes, etc.,
+of files.  You may still sometimes want to revert them manually.
 
-Use this option with care since it could lead to excessive reverts.
-Note also that for some non-file buffers the check whether the
-buffer needs updating may be imperfect, due to efficiency
-considerations, and may not take all information listed in the
-buffer into account.  Hence, a non-nil value for this option does
-not necessarily make manual updates useless for non-file buffers."
+Use this option with care since it could lead to excessive auto-reverts.
+For more information, see Info node `(emacs-xtra)Autorevert'."
   :group 'auto-revert
-  :type 'boolean)
+  :type 'boolean
+  :link '(info-link "(emacs-xtra)Autorevert"))
 
 (defcustom global-auto-revert-ignore-modes '()
   "List of major modes Global Auto-Revert Mode should not check."

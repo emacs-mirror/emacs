@@ -1455,7 +1455,7 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 	    {
 	      const unsigned char *class_beg = str + i_byte + 1;
 	      const unsigned char *class_end = class_beg;
-	      const unsigned char *class_limit = str + size_byte;
+	      const unsigned char *class_limit = str + size_byte - 2;
 	      /* Leave room for the null.	 */
 	      unsigned char class_name[CHAR_CLASS_MAX_LENGTH + 1];
 	      re_wctype_t cc;
@@ -1463,17 +1463,13 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 	      if (class_limit - class_beg > CHAR_CLASS_MAX_LENGTH)
 		class_limit = class_beg + CHAR_CLASS_MAX_LENGTH;
 
-	      while (class_end != class_limit
-		     && ! (*class_end >= 0200
-			   || *class_end <= 040
-			   || (*class_end == ':'
-			       && class_end[1] == ']')))
+	      while (class_end < class_limit
+		     && *class_end >= 'a' && *class_end <= 'z')
 		class_end++;
 
-	      if (class_end == class_limit
-		  || *class_end >= 0200
-		  || *class_end <= 040)
-		error ("Invalid ISO C character class");
+	      if (class_end == class_beg
+		  || *class_end != ':' || class_end[1] != ']')
+		goto not_a_class_name;
 
 	      bcopy (class_beg, class_name, class_end - class_beg);
 	      class_name[class_end - class_beg] = 0;
@@ -1488,6 +1484,7 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 	      continue;
 	    }
 
+	not_a_class_name:
 	  if (c == '\\')
 	    {
 	      if (i_byte == size_byte)

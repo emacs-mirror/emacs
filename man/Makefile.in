@@ -33,7 +33,7 @@ VPATH=@srcdir@
 
 # The makeinfo program is part of the Texinfo distribution.
 MAKEINFO = makeinfo
-INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
+INFO_TARGETS = ../info/emacs ../info/emacs-xtra ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
 		../info/info ../info/message ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
@@ -47,7 +47,8 @@ DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi
+		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
+                 emacs-xtra.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -173,6 +174,11 @@ dired-x.dvi: dired-x.texi
 	cd $(srcdir); $(MAKEINFO) ediff.texi
 ediff.dvi: ediff.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
+
+../info/emacs-xtra: emacs-xtra.texi
+	cd $(srcdir); $(MAKEINFO) emacs-xtra.texi
+emacs-xtra.dvi: emacs-xtra.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
 
 ../info/forms: forms.texi
 	cd $(srcdir); $(MAKEINFO) forms.texi

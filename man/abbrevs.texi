@@ -129,7 +129,7 @@ read with the minibuffer).
 @findex define-global-abbrev
   You can define an abbrev without inserting either the abbrev or its
 expansion in the buffer using the command @code{define-global-abbrev}.
-It reads two arguments--the abbrev, and its expansion.  The command
+It reads two arguments---the abbrev, and its expansion.  The command
 @code{define-mode-abbrev} does likewise for a mode-specific abbrev.
 
   To change the definition of an abbrev, just define a new definition.

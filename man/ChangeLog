@@ -1,3 +1,26 @@
+2004-06-20  Jesper Harder  <harder@ifa.au.dk>
+
+	* msdog.texi (Text and Binary, MS-DOS Printing): Use m-dash.
+	* custom.texi (Customization): do.
+	* anti.texi (Antinews): do.
+	* abbrevs.texi (Defining Abbrevs): do.
+
+	* programs.texi (Info Lookup): Fix keybinding for
+	info-lookup-symbol.
+
+2004-06-16  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, EMACSSOURCES):
+	Add emacs-xtra.
+	($(infodir)/emacs-xtra, emacs-xtra.dvi): New dependencies.
+	(clean): Add emacs-xtra and flymake.  Remove redundancies.
+
+2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, ../info/emacs-xtra):
+	Add emacs-xtra.
+	* emacs-xtra.texi: New file.
+
 2004-06-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.texi (Dired Enter): Mention conditions on `ls' switches.

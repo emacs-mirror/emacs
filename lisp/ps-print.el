@@ -3737,8 +3737,8 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
   (format-time-string "%Y-%m-%d"))
 
 
-(defalias 'ps-time-stamp-iso8601 'ps-time-stamp-yyyy-mm-dd
-  "Alias for `ps-time-stamp-yyyy-mm-dd' (which see).")
+;; Alias for `ps-time-stamp-yyyy-mm-dd' (which see).
+(defalias 'ps-time-stamp-iso8601 'ps-time-stamp-yyyy-mm-dd)
 
 
 (defun ps-time-stamp-hh:mm:ss ()

@@ -527,7 +527,8 @@ Not actually set up until the first time you use it.")
 
 (defun parse-colon-path (cd-path)
   "Explode a search path into a list of directory names.
-Directories are separated by occurrences of `path-separator'."
+Directories are separated by occurrences of `path-separator'
+\(which is colon in GNU and GNU-like systems)."
   ;; We could use split-string here.
   (and cd-path
        (let (cd-list (cd-start 0) cd-colon)
@@ -562,7 +563,8 @@ Directories are separated by occurrences of `path-separator'."
   "Make DIR become the current buffer's default directory.
 If your environment includes a `CDPATH' variable, try each one of
 that list of directories (separated by occurrences of
-`path-separator') when resolving a relative directory name."
+`path-separator') when resolving a relative directory name.
+The path separator is colon in GNU and GNU-like systems."
   (interactive
    (list (read-directory-name "Change default directory: "
 			 default-directory default-directory
@@ -3480,7 +3482,10 @@ this function is called.
 The idea behind the NOCONFIRM argument is that it should be
 non-nil if the buffer is going to be reverted without asking the
 user.  In such situations, one has to be careful with potentially
-time consuming operations.")
+time consuming operations.
+
+For more information on how this variable is used by Auto Revert mode,
+see Info node `(emacs-xtra)Supporting additional buffers'.")
 
 (defvar before-revert-hook nil
   "Normal hook for `revert-buffer' to run before reverting.

@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 92, 94, 96, 1997, 2000, 2001, 2002
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 94, 96, 1997, 2000, 2001, 2002,
+;;   2003, 2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -81,14 +81,15 @@ strings or patterns."
 					 query-replace-from-history-variable
 					 nil t)))
       ;; Warn if user types \n or \t, but don't reject the input.
-      (if (string-match "\\\\[nt]" from)
-	  (let ((match (match-string 0 from)))
-	    (cond
-	     ((string= match "\\n")
-	      (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
-	     ((string= match "\\t")
-	      (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
-	    (sit-for 2))))
+      (and regexp-flag
+	   (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
+	   (let ((match (match-string 3 from)))
+	     (cond
+	      ((string= match "\\n")
+	       (message "Note: `\\n' here doesn't match a newline; to do that, type C-q C-j instead"))
+	      ((string= match "\\t")
+	       (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
+	     (sit-for 2))))
 
     (save-excursion
       (setq to (read-from-minibuffer (format "%s %s with: " string from)
@@ -161,20 +162,62 @@ Fourth and fifth arg START and END specify the region to operate on.
 
 In TO-STRING, `\\&' stands for whatever matched the whole of REGEXP,
 and `\\=\\N' (where N is a digit) stands for
- whatever what matched the Nth `\\(...\\)' in REGEXP."
+whatever what matched the Nth `\\(...\\)' in REGEXP.
+
+When this function is called interactively, the replacement text
+can also contain `\\,' followed by a Lisp expression.  The escaped
+shorthands for `query-replace-regexp-eval' are also valid
+here: within the Lisp expression, you can use `\\&' for the whole
+match string, `\\N' for partial matches, `\\#&' and `\\#N' for
+the respective numeric values, and `\\#' for `replace-count'.
+
+If your Lisp expression is an identifier and the next
+letter in the replacement string would be interpreted as part of it,
+you can wrap it with an expression like `\\,(or \\#)'.  Incidentally,
+for this particular case you may also enter `\\#' in the replacement
+text directly.
+
+When you use `\\,' or `\\#' in the replacement, TO-STRING actually
+becomes a list with expanded shorthands.
+Use \\[repeat-complex-command] after this command to see details."
   (interactive
    (let ((common
 	  (query-replace-read-args "Query replace regexp" t)))
-     (list (nth 0 common) (nth 1 common) (nth 2 common)
-	   ;; These are done separately here
-	   ;; so that command-history will record these expressions
-	   ;; rather than the values they had this time.
-	   (if (and transient-mark-mode mark-active)
-	       (region-beginning))
-	   (if (and transient-mark-mode mark-active)
-	       (region-end)))))
-
+     (list
+      (nth 0 common)
+      (if (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]"
+			(nth 1 common))
+	  (let ((to-string (nth 1 common)) pos to-expr char prompt)
+	    (while (string-match
+		    "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]"
+		    to-string)
+	      (setq pos (match-end 0))
+	      (push (substring to-string 0 (- pos 2)) to-expr)
+	      (setq char (aref to-string (1- pos))
+		    to-string (substring to-string pos))
+	      (cond ((eq char ?\#)
+		     (push '(number-to-string replace-count) to-expr))
+		    ((eq char ?\,)
+		     (setq pos (read-from-string to-string))
+		     (push `(replace-quote ,(car pos)) to-expr)
+		     (setq to-string (substring to-string (cdr pos))))))
+	    (setq to-expr (nreverse (delete "" (cons to-string to-expr))))
+	    (replace-match-string-symbols to-expr)
+	    (cons 'replace-eval-replacement 
+		  (if (> (length to-expr) 1)
+		      (cons 'concat to-expr)
+		    (car to-expr))))
+	(nth 1 common))
+      (nth 2 common)
+      ;; These are done separately here
+      ;; so that command-history will record these expressions
+      ;; rather than the values they had this time.
+      (if (and transient-mark-mode mark-active)
+	  (region-beginning))
+      (if (and transient-mark-mode mark-active)
+	  (region-end)))))
   (perform-replace regexp to-string t t delimited nil nil start end))
+
 (define-key esc-map [?\C-%] 'query-replace-regexp)
 
 (defun query-replace-regexp-eval (regexp to-expr &optional delimited start end)
@@ -191,6 +234,7 @@ For convenience, when entering TO-EXPR interactively, you can use `\\&' or
 `\\0' to stand for whatever matched the whole of REGEXP, and `\\N' (where
 N is a digit) to stand for whatever matched the Nth `\\(...\\)' in REGEXP.
 Use `\\#&' or `\\#N' if you want a number instead of a string.
+In interactive use, `\\#' in itself stands for `replace-count'.
 
 In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer.
@@ -1012,6 +1056,7 @@ N     (match-string N)           (where N is a string of digits)
 #N    (string-to-number (match-string N))
 &     (match-string 0)
 #&    (string-to-number (match-string 0))
+#     replace-count
 
 Note that these symbols must be preceeded by a backslash in order to
 type them."
@@ -1031,7 +1076,9 @@ type them."
          ((string= "&" name)
           (setcar n '(match-string 0)))
          ((string= "#&" name)
-          (setcar n '(string-to-number (match-string 0))))))))
+          (setcar n '(string-to-number (match-string 0))))
+	 ((string= "#" name)
+	  (setcar n 'replace-count))))))
     (setq n (cdr n))))
 
 (defun replace-eval-replacement (expression replace-count)
@@ -1039,6 +1086,21 @@ type them."
     (if (stringp replacement)
         replacement
       (prin1-to-string replacement t))))
+
+(defun replace-quote (replacement)
+  "Quote a replacement string.
+This just doubles all backslashes in REPLACEMENT and
+returns the resulting string.  If REPLACEMENT is not
+a string, it is first passed through `prin1-to-string'
+with the `noescape' argument set.
+
+`match-data' is preserved across the call."
+  (save-match-data
+    (replace-regexp-in-string "\\\\" "\\\\"
+			      (if (stringp replacement)
+				  replacement
+				(prin1-to-string replacement t))
+			      t t)))
 
 (defun replace-loop-through-replacements (data replace-count)
   ;; DATA is a vector contaning the following values:

@@ -583,7 +583,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 	 (setq col (match-string-no-properties col))
 	 (setq col (- (string-to-number col) compilation-first-column)))
     (if (and end-col (setq end-col (match-string-no-properties end-col)))
-	(setq end-col (- (string-to-number end-col) compilation-first-column))
+	(setq end-col (- (string-to-number end-col) compilation-first-column -1))
       (if end-line (setq end-col -1)))
     (if (consp type)			; not a static type, check what it is.
 	(setq type (or (and (car type) (match-end (car type)) 1)
