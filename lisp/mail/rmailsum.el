@@ -764,7 +764,7 @@ Search, the `unseen' attribute is restored.")
 	    (setq rmail-summary-put-back-unseen nil))
 
 	(or (eq rmail-current-message msg-num)
-	    (let ((window (get-buffer-window rmail-view-buffer))
+	    (let ((window (get-buffer-window rmail-view-buffer t))
 		  (owin (selected-window)))
 	      (if isearch-mode
 		  (save-excursion
