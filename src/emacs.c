@@ -324,7 +324,7 @@ main (argc, argv, envp)
 
 #ifdef BSD
   {
-    inherited_pgroup = getpgrp (0);
+    inherited_pgroup = EMACS_GETPGRP (0);
     setpgrp (0, getpid ());
   }
 #endif
@@ -704,11 +704,8 @@ shut_down_emacs (sig, no_x, stuff)
   /* If we are controlling the terminal, reset terminal modes */
 #ifdef EMACS_HAVE_TTY_PGRP
   {
-#ifdef USG
-    int pgrp = getpgrp ();
-#else
-    int pgrp = getpgrp (0);
-#endif
+    int pgrp = EMACS_GETPGRP (0);
+
     int tpgrp;
     if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
 	&& tpgrp == pgrp)
