@@ -1,3 +1,12 @@
+2005-02-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-location-list): New variable.
+	(gdb-cdir): Delete
+	(gdb-info-breakpoints-custom, gdb-goto-breakpoint)
+	(gdb-source-info): Treat case when source file is in another
+	directory properly.
+	(gdb-get-location): New function.
+
 2005-02-07  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-prog.el (calc-write-parse-table-part)
