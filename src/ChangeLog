@@ -1,5 +1,11 @@
 2001-02-09  Kenichi Handa  <handa@etl.go.jp>
 
+	* charset.c (Fstring): If all arguments are less than 256, return
+	a unibyte string.
+
+	* editfns.c (Fchar_to_string): If CHARACTER is less than 256,
+	return a unibyte string.
+
 	* coding.c (code_convert_region): After detecting a coding, if
 	nothing found, set coding->composing to COMPOSITION_NO.
 	(decode_coding_string): Likewise.
