@@ -45,7 +45,7 @@
   ;; Do nothing if no window system to display results with.
   ;; Do nothing if executing keyboard macro.
   ;; Do nothing if input is pending.
-  (if (and window-system (not executing-kbd-macro) (sit-for 0))
+  (if (and window-system (not executing-kbd-macro) (sit-for 0 100))
       (let (pos dir mismatch (oldpos (point))
 		(face show-paren-face))
 	(cond ((eq (char-syntax (preceding-char)) ?\))
@@ -72,10 +72,7 @@
 		      (and (/= (char-syntax (char-after beg)) ?\$)
 			   (setq mismatch
 				 (/= (char-after (1- end))
-				     (logand (lsh (aref (syntax-table)
-							(char-after beg))
-						  -8)
-					     255))))))
+				     (matching-paren (char-after beg)))))))
 		;; If they don't properly match, use a different face,
 		;; or print a message.
 		(if mismatch
@@ -104,8 +101,8 @@
 				       (+ (point) dir) (point)
 				       (current-buffer))
 		       (setq show-paren-overlay-1
-			     (make-overlay (- pos dir) pos)))
-		     (overlay-put show-paren-overlay-1 'face face))
+			     (make-overlay (- pos dir) pos))
+		       (overlay-put show-paren-overlay-1 'face face)))
 		 ;; Otherwise, turn off any such highlighting.
 		 (and show-paren-overlay-1
 		      (overlay-buffer show-paren-overlay-1)
@@ -115,8 +112,8 @@
 		   (move-overlay show-paren-overlay (- pos dir) pos
 				 (current-buffer))
 		 (setq show-paren-overlay
-		       (make-overlay (- pos dir) pos)))
-	       (overlay-put show-paren-overlay 'face face))
+		       (make-overlay (- pos dir) pos))
+		 (overlay-put show-paren-overlay 'face face)))
 	      (t
 	       ;; If not at a paren that has a match,
 	       ;; turn off any previous paren highlighting.
