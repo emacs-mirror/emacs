@@ -230,7 +230,8 @@ can make the tags table file much smaller.
 
 You can tag function declarations and external variables in addition
 to function definitions by giving the @samp{--declarations} option to
-@code{etags}.
+@code{etags}.  You can tag struct members with the @samp{--members}
+option.
 
 @item
 In C++ code, in addition to all the tag constructs of C code, member
@@ -271,7 +272,7 @@ specifies (using Bourne shell syntax) that the commands
 @item
 In Lisp code, any function defined with @code{defun}, any variable
 defined with @code{defvar} or @code{defconst}, and in general the first
-argument of any expression that starts with @samp{(def} in column zero, is
+argument of any expression that starts with @samp{(def} in column zero is
 a tag.
 
 @item
@@ -285,7 +286,7 @@ set with @code{set!} at top level in the file.
 @itemize @bullet
 
 @item
-In Ada code, functions, procedures, packages, tasks, and types are
+In Ada code, functions, procedures, packages, tasks and types are
 tags.  Use the @samp{--packages-only} option to create tags for
 packages only.
 
@@ -330,7 +331,7 @@ In Cobol code, tags are paragraph names; that is, any word starting in
 column 8 and followed by a period.
 
 @item
-In Erlang code, the tags are the functions, records, and macros defined
+In Erlang code, the tags are the functions, records and macros defined
 in the file.
 
 @item
@@ -347,7 +348,7 @@ unless you specify @samp{--no-globals}.
 
 @item
 In Objective C code, tags include Objective C definitions for classes,
-class categories, methods, and protocols.  Tags for variables and
+class categories, methods and protocols.  Tags for variables and
 functions in classes are named @samp{@var{class}::@var{variable}} and
 @samp{@var{class}::@var{function}}.
 
@@ -477,7 +478,9 @@ standard input and mark the produced tags as belonging to the file
   @samp{etags --help} prints the list of the languages @code{etags}
 knows, and the file name rules for guessing the language.  It also prints
 a list of all the available @code{etags} options, together with a short
-explanation.
+explanation.  If followed by one or more @samp{--language=@var{lang}}
+options, prints detailed information about how tags are generated for
+@var{lang}. 
 
 @node Etags Regexps
 @subsection Etags Regexps
