@@ -188,7 +188,7 @@ Lisp_Object get_minibuffer ();
 static Lisp_Object read_minibuf ();
 
 /* Read from the minibuffer using keymap MAP, initial contents INITIAL
-   (a string), putting point minus BACKUP_N chars from the end of INITIAL,
+   (a string), putting point minus BACKUP_N bytes from the end of INITIAL,
    prompting with PROMPT (a string), using history list HISTVAR
    with initial position HISTPOS.  (BACKUP_N should be <= 0.)
 
@@ -369,8 +369,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   if (!NILP (initial))
     {
       Finsert (1, &initial);
-      if (!NILP (backup_n) && INTEGERP (backup_n))
-	Fgoto_char (make_number (PT + XFASTINT (backup_n)));
+      if (INTEGERP (backup_n))
+	Fforward_char (backup_n);
     }
 
   echo_area_glyphs = 0;
@@ -1607,7 +1607,7 @@ Return nil if there is no valid completion, else t.")
 #else /* Rewritten code */
   {
     register unsigned char *buffer_string;
-    int buffer_length, completion_length;
+    int buffer_nbytes, completion_nbytes;
 
     CHECK_STRING (completion, 0);
     tem = Fbuffer_string ();
@@ -1627,26 +1627,25 @@ Return nil if there is no valid completion, else t.")
       }
     buffer_string = XSTRING (tem)->data;
     completion_string = XSTRING (completion)->data;
-    buffer_length = XSTRING (tem)->size; /* ie ZV - BEGV */
-    completion_length = XSTRING (completion)->size;
-    i = buffer_length - completion_length;
-    /* Mly: I don't understand what this is supposed to do AT ALL */
+    buffer_nbytes = XSTRING (tem)->size; /* ie ZV_BYTE - BEGV_BYTE */
+    completion_nbytes = XSTRING (completion)->size;
+    i = buffer_nbytes - completion_nbytes;
     if (i > 0 ||
-	0 <= scmp (buffer_string, completion_string, buffer_length))
+	0 <= scmp (buffer_string, completion_string, buffer_nbytes))
       {
 	/* Set buffer to longest match of buffer tail and completion head. */
 	if (i <= 0) i = 1;
 	buffer_string += i;
-	buffer_length -= i;
-	while (0 <= scmp (buffer_string++, completion_string, buffer_length--))
+	buffer_nbytes -= i;
+	while (0 <= scmp (buffer_string++, completion_string, buffer_nbytes--))
 	  i++;
-	del_range (1, i + 1);
-	SET_PT (ZV);
+	del_range_byte (1, i + 1, 1);
+	SET_PT_BOTH (ZV, ZV_BYTE);
       }
     UNGCPRO;
   }
 #endif /* Rewritten code */
-  i = ZV - BEGV;
+  i = ZV_BYTE - BEGV_BYTE;
 
   /* If completion finds next char not unique,
      consider adding a space or a hyphen. */
@@ -1695,7 +1694,7 @@ Return nil if there is no valid completion, else t.")
 
   /* If got no characters, print help for user.  */
 
-  if (i == ZV - BEGV)
+  if (i == ZV_BYTE - BEGV_BYTE)
     {
       if (auto_help)
 	Fminibuffer_completion_help ();
@@ -1926,20 +1925,22 @@ temp_echo_area_glyphs (m)
      char *m;
 {
   int osize = ZV;
+  int osize_byte = ZV_BYTE;
   int opoint = PT;
+  int opoint_byte = PT_BYTE;
   Lisp_Object oinhibit;
   oinhibit = Vinhibit_quit;
 
   /* Clear out any old echo-area message to make way for our new thing.  */
   message (0);
 
-  SET_PT (osize);
+  SET_PT_BOTH (osize, osize_byte);
   insert_string (m);
-  SET_PT (opoint);
+  SET_PT_BOTH (opoint, opoint_byte);
   Vinhibit_quit = Qt;
   Fsit_for (make_number (2), Qnil, Qnil);
-  del_range (osize, ZV);
-  SET_PT (opoint);
+  del_range_both (osize, ZV, osize_byte, ZV_BYTE, 1);
+  SET_PT_BOTH (opoint, opoint_byte);
   if (!NILP (Vquit_flag))
     {
       Vquit_flag = Qnil;
