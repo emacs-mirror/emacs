@@ -1,3 +1,9 @@
+2005-02-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (TeX Language Mode): Add mention of LaTeX mode, and
+	change name to "TeX and LaTeX Language Modes."  Mention LaTeX mode
+	throughout manual.
+
 2005-02-06  Lute Kamstra  <lute@gnu.org>
 
 	* basic.texi (Undo): Fix typo.

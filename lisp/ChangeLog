@@ -1,3 +1,11 @@
+2005-02-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-lang.el (calc-tex-language): Display more information
+	in messages.
+
+	* calc/calccomp.el (math-compose-expr): Allow multiline matrices
+	in TeX mode.
+
 2005-02-06  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp.el (buffer-end): Doc fix.
