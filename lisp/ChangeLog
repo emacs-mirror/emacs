@@ -1,3 +1,26 @@
+2001-04-07  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el: Footer implementation.  Doc fix.
+	(ps-print-version): New version number (6.5.1).
+	(ps-header-frame-alist): New customization var for header frame
+	properties.
+	(ps-line-number-color): New customization var for line number color.
+	(ps-footer-offset, ps-footer-line-pad, ps-print-footer)
+	(ps-print-footer-frame, ps-footer-frame-alist, ps-footer-lines)
+	(ps-footer-font-family, ps-footer-font-size, ps-left-footer)
+	(ps-right-footer): New customization vars for footers.
+	(ps-footer-pad, ps-footer-font-size-internal): New internal vars for
+	footers.
+	(ps-setup, ps-get-page-dimensions, ps-generate-header-line)
+	(ps-generate-header, ps-begin-file, ps-begin-job, ps-begin-page): Code
+	fix.
+	(ps-prologue-file): Indentation fix.
+	(ps-print-quote): Fun eliminated.
+	(ps-value, ps-get, ps-put, ps-del): New funs for alist handling.
+	(ps-output-frame-properties): New fun.
+	(ps-fonts, ps-font-number, ps-rgb-color, ps-end-page, ps-next-page)
+	(ps-skip-newline): Replace defun by defsubst.
+	
 2001-04-05  Colin Walters <walters@cis.ohio-state.edu>
 
 	* eshell/eshell.el (eshell-command): Needed a "%s" format
