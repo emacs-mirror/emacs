@@ -966,6 +966,15 @@ whose names match the pattern."
   :version "20.4"
   :type 'boolean)
 
+(defcustom find-file-suppress-same-file-warnings nil
+  "*Non-nil means suppress warning messages for symlinked files.
+When nil, Emacs prints a warning when visiting a file that is already
+visited, but with a different name.  Setting this option to t
+suppresses this warning "
+  :group 'files
+  :version "21.1"
+  :type 'boolean)
+
 (defun find-file-noselect (filename &optional nowarn rawfile wildcards)
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
@@ -1008,6 +1017,7 @@ that are visiting the various files."
 	(if other
 	    (progn
 	      (or nowarn
+		  find-file-suppress-same-file-warnings
 		  (string-equal filename (buffer-file-name other))
 		  (message "%s and %s are the same file"
 			   filename (buffer-file-name other)))
