@@ -2331,7 +2331,12 @@ If it doesn't exist, generate a new one."
 ;; This function makes the same assumption as
 ;; `tramp-handle-set-visited-file-modtime'.
 (defun tramp-handle-verify-visited-file-modtime (buf)
-  "Like `verify-visited-file-modtime' for tramp files."
+  "Like `verify-visited-file-modtime' for tramp files.
+At the time `verify-visited-file-modtime' calls this function, we
+already know that the buffer is visiting a file and that
+`visited-file-modtime' does not return 0.  Do not call this
+function directly, unless those two cases are already taken care
+of."
   (with-current-buffer buf
     (let ((f (buffer-file-name)))
       (with-parsed-tramp-file-name f nil

@@ -1,3 +1,8 @@
+2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime): New
+	docstring.  From Luc Teirlinck.
+
 2004-07-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el: Describe `Auto Revert Tail Mode' in `Commentary'
