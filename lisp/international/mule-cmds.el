@@ -1753,6 +1753,7 @@ of buffer-file-coding-system set by this function."
     ("iw" . "Hebrew") ; e.g. X11R6.4
     ("sp" . "Latin-5") ; Serbian (Cyrillic alphabet), e.g. X11R6.4
     ("su" . "Latin-1") ; Finnish, e.g. Solaris 2.6
+    ("jp" . "Japanese") ; e.g. MS Windows
     )
   "List of pairs of locale regexps and language names.
 The first element whose locale regexp matches the start of a downcased locale
