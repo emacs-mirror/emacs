@@ -1,3 +1,8 @@
+2001-10-26  Masayuki Ataka  <ataka@milk.freemail.ne.jp>
+
+	* textmodes/texinfmt.el (texinfo-format-ifnotinfo): New function.
+	(ifnothtml): New alias.
+
 2001-10-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/text-mode.el (text-mode): Use define-derived-mode.
