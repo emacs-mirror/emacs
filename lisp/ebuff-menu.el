@@ -58,8 +58,8 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
   (interactive "P")
   (let (select buffer)
     (save-window-excursion
-      (save-window-excursion (list-buffers arg))
-      (setq buffer (window-buffer (Electric-pop-up-window "*Buffer List*")))
+      (setq buffer (list-buffers-noselect arg))
+      (Electric-pop-up-window buffer)
       (unwind-protect
 	  (progn
 	    (set-buffer buffer)
