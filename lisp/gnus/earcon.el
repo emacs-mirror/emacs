@@ -29,10 +29,10 @@
 (if (null (boundp 'running-xemacs))
     (defvar running-xemacs (string-match "XEmacs\\|Lucid" emacs-version)))
 
+(eval-when-compile (require 'cl))
 (require 'gnus)
 (require 'gnus-audio)
 (require 'gnus-art)
-(eval-when-compile (require 'cl))
 
 (defgroup earcon nil
   "Turn ** sounds ** into noise."
