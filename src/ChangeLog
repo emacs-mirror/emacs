@@ -25,6 +25,11 @@
 
 2003-07-09  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* buffer.h (struct buffer_text, struct buffer): Use EMACS_INT for
+	position and length information.
+
+2003-07-09  Stefan Monnier  <monnier@cs.yale.edu>
+
 	Change overlays_after and overlays_before so the overlays themselves
 	are linked into lists, rather than using cons cells.  After all each
 	Lisp_Misc already occupies 5 words, so we can add a `next' field to
