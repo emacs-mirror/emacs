@@ -30,6 +30,13 @@
 (defvar change-log-default-name nil
   "*Name of a change log file for \\[add-change-log-entry].")
 
+;;;###autoload
+(defvar add-log-current-defun-function nil
+  "\
+*If non-nil, function to guess name of current function from surrounding text.
+\\[add-change-log-entry] calls this function (if nil, `add-log-current-defun'
+instead) with no arguments.  It returns a string or nil if it cannot guess.")
+
 (defun change-log-name ()
   (or change-log-default-name
       (if (eq system-type 'vax-vms) "$CHANGE_LOG$.TXT" "ChangeLog")))
@@ -113,7 +120,8 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 	 (site-name (if whoami
 			(read-input "Site name: " (system-name))
 		      (system-name)))
-	 (defun (add-log-current-defun))
+	 (defun (funcall (or add-log-current-defun-function
+			     'add-log-current-defun)))
 	 paragraph-end entry)
 
     (setq file-name (find-change-log file-name))
@@ -202,9 +210,9 @@ Third arg OTHER-WINDOW non-nil means visit in other window."
 ;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
   "Find change log file in other window and add an entry for today.
-First arg (interactive prefix) non-nil means prompt for user name and site.
-Second arg is file name of change log.
-Interactively, with a prefix argument, the file name is prompted for."
+Optional arg (interactive prefix) non-nil means prompt for user name and site.
+Second arg is file name of change log.  \
+If nil, uses `change-log-default-name'."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
