@@ -1,5 +1,5 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000, 2001
+   Copyright (C) 1985, 86, 93, 94, 95, 97, 1998, 1999, 2000, 01, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -433,7 +433,7 @@ struct buffer_text
        This is actually a single marker ---
        successive elements in its marker `chain'
        are the other markers referring to this buffer.  */
-    Lisp_Object markers;
+    struct Lisp_Marker *markers;
   };
 
 /* This is the structure that the buffer Lisp object points to.  */
