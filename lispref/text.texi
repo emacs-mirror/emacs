@@ -3394,57 +3394,54 @@ buffer.
 @subsection Enabling Mouse-1 to Follow Links
 @cindex follow links
 
-  Traditionally, Emacs uses a @key{mouse-1} click to set point and a
-@key{mouse-2} click to follow a link, whereas most other applications
-use a @key{mouse-1} click for both purposes, depending on whether you
-click outside or inside a link.
+  The normal Emacs command for activating text in read-only buffers is
+@key{Mouse-2}, which includes following textual links.  However, most
+graphical applications use @key{Mouse-1} for following links.  For
+compatibility, @key{Mouse-1} follows links in Emacs too, when you
+click on a link quickly without moving the mouse.  The user can
+customize this behaviour through the variable
+@code{mouse-1-click-follows-link}.
 
-  Starting with Emacs release 21.4, the user visible behaviour of a
-@key{mouse-1} click on a link has been changed to match this
-context-sentitive dual behaviour.  The user can customize this
-behaviour through the variable @code{mouse-1-click-follows-link}.
-
-  However, at the Lisp level, @key{mouse-2} is still used as the
-action for the clickable text corresponding to the link, and the
-clickable text must be explicitly marked as a link for a @key{mouse-1}
-click to follow the link.
-
-  There are several methods that can be used to identify a clickable
-text as a link:
+  To define text as a link at the Lisp level, you should bind
+@key{Mouse-2} to a command to follow the link.  Then, to indicate
+that @key{Mouse-1} should also follow the link, here is what you do:
 
 @table @asis
-@item follow-link property
-
-  If the clickable text has a non-nil @code{follow-link} text or overlay
+@item @code{follow-link} property
+If the clickable text has a non-@code{nil} @code{follow-link} text or overlay
 property, the value of that property determines what to do.
 
-@item follow-link event
-
-  If there is a binding for the @code{follow-link} event, either on
+@item @code{follow-link} event
+If there is a binding for the @code{follow-link} event, either on
 the clickable text or in the local keymap, the binding of that event
-determines whether the mouse click position is inside a link:
+determines whether the mouse click position is inside a link.
+@end table
+
+  Regardless of where the @code{follow-link} value comes from, that
+value is used according to the following table to determine whether
+the given position is inside a link, and (if so) to compute an
+@dfn{action code} saying how @key{Mouse-1} should handle the link.
 
 @table @asis
-@item mouse-face
+@item @code{mouse-face}
+If the value is @code{mouse-face}, a position is inside a link if
+there is a non-@code{nil} @code{mouse-face} property at that position.
+The action code is always @code{t}.
 
-  If the binding is @code{mouse-face}, the mouse click position is
-inside a link if there is a non-nil @code{mouse-face} property at
-that position.  A value of @code{t} is used to determine what to do next.
-
-For example, here is how @key{mouse-1} are setup in info mode:
+For example, here is how Info mode handles @key{Mouse-1}:
 
 @example
 (define-key Info-mode-map [follow-link] 'mouse-face)
 @end example
 
 @item a function
+If the value is a function, @var{func}, then a position @var{pos} is
+inside a link if @code{(@var{func} @var{pos})} evaluates to
+non-@code{nil}.  The value returned by @var{func} serves as the action
+code.
 
-  If the binding is a function, @var{func}, the mouse click position,
-@var{pos}, is inside a link if the call @code{(@var{func} @var{pos})}
-returns non-@code{nil}.  The return value from that call determines
-what to do next.
-
-For example, here is how pcvs enables @key{mouse-1} on file names only:
+For example, here is how pcvs enables @key{Mouse-1} to follow links on
+file names only:
 
 @example
 (define-key map [follow-link]
@@ -3452,46 +3449,48 @@ For example, here is how pcvs enables @key{mouse-1} on file names only:
     (if (eq (get-char-property pos 'face) 'cvs-filename-face) t)))
 @end example
 
-@item anthing else
-
-  If the binding is anything else, the binding determines what to do.
-@end table
-
+@item anything else
+If the value is anything else, it is the action code.
 @end table
 
 @noindent
-The resulting value determined above is interpreted as follows:
+Here's how the action code determines what @key{Mouse-1} should do:
 
 @table @asis
 @item a string
-
-  If the value is a string, the @key{mouse-1} event is translated into
-the first character of the string, i.e. the action of the @key{mouse-1}
-click is the local or global binding of that character.
+If the action code is a string, the @key{Mouse-1} event is translated
+into the first character of the string, i.e., the action of the
+@key{Mouse-1} click is the local or global binding of that character.
+Thus, if the action code is @code{"foo"}, @key{Mouse-1} translates
+into @kbd{f}.
 
 @item a vector
+If the action code is is a vector, the @key{Mouse-1} event is
+translated into the first element of that vector, i.e,. the action of
+the @key{Mouse-1} click is the local or global binding of that event.
+Thus, if the action code is @code{[?f ?o ?o]}, @key{Mouse-1}
+translates into @kbd{f}.
 
-  If the value is is a vector, the @key{mouse-1} event is translated
-into the first element of that vector, i.e. the action of the
-@key{mouse-1} click is the local or global binding of that event.
-
-@item anthing else
-
-  For any other non-nil valule, the @key{mouse-1} event is translated
-into a @key{mouse-2} event at the same position.
+@item anything else
+For any other non-@code{nil} action code, the @code{mouse-1} event is
+translated into a @code{mouse-2} event at the same position.
 @end table
 
-  To use @key{mouse-1} on a button defined with @code{define-button-type},
-give the button a @code{follow-link} property with a value as
-specified above to determine how to follow the link.
+  To define @key{Mouse-1} to activate a button defined with
+@code{define-button-type}, give the button a @code{follow-link}
+property with a value as specified above to determine how to follow
+the link.
+@c ??? That is not clear.  This needs an example or an xref.
 
-  To use @key{mouse-1} on a widget defined with @code{define-widget},
-give the widget a @code{:follow-link} property with a value
-as specified above to determine how to follow the link.
+  To define @key{Mouse-1} on a widget defined with
+@code{define-widget}, give the widget a @code{:follow-link} property
+with a value as specified above to determine how to follow the link.
+@c ??? That is not clear.  This needs an example or an xref.
 
 @defun mouse-on-link-p pos
 @tindex mouse-on-link-p
-Return non-@code{nil} if @var{pos} is on a link in the current buffer.
+This function returns non-@code{nil} if position @var{pos} in the
+current buffer is on a link.
 @end defun
 
 @node Fields
