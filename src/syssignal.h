@@ -49,7 +49,6 @@ extern sigset_t empty_mask, full_mask;
 extern sigset_t sys_sigmask ();
 #define sigmask(SIG) (sys_sigmask (SIG))
 #endif /* ! defined (__GNUC__) */
-#endif
 
 #undef sigpause
 #define sigpause(MASK)    sigsuspend (&(MASK))
