@@ -248,15 +248,6 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	(delete (untranslated-canonical-name filesystem)
 		untranslated-filesystem-list)))
 
-;;; Override setting chosen at startup.
-(defun set-default-process-coding-system ()
-  (setq default-process-coding-system
-	(if default-enable-multibyte-characters
-	    '(undecided-dos . undecided-dos)
-	  '(raw-text-dos . raw-text-dos))))
-
-(add-hook 'before-init-hook 'set-default-process-coding-system)
-
 ;;; Support for printing under DOS/Windows, see lpr.el and ps-print.el.
 
 ;; Function to actually send data to the printer port.

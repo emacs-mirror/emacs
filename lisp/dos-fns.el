@@ -81,6 +81,15 @@ with a definition that really does change some file names."
 ;; See dos-vars.el for defcustom.
 (defvar msdos-shells)
 
+;;; Override setting chosen at startup.
+(defun set-default-process-coding-system ()
+  (setq default-process-coding-system
+	(if default-enable-multibyte-characters
+	    '(undecided-dos . undecided-dos)
+	  '(raw-text-dos . raw-text-dos))))
+
+(add-hook 'before-init-hook 'set-default-process-coding-system)
+
 (defvar register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)
     (cflag . 6) (flags . 7)
