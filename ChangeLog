@@ -1,3 +1,10 @@
+2001-11-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (SUBDIR_MAKEFILES): Add lispintro.
+	(lispref/Makefile): New target.
+	(mostlyclean, clean, distclean, maintainer-clean): Add lispintro.
+	(unlock, relock, info, dvi): Ditto.
+
 2001-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (uninstall, install-arch-indep): Don't install

@@ -1,0 +1,56 @@
+Basic Installation for  An Introduction to Programming in Emacs Lisp  version 2
+==================
+
+    # To see the table of contents of the emacs-lisp-intro-2.00.tar.gz
+    # file, execute the following at your shell prompt:
+
+    tar -tzvf emacs-lisp-intro-2.00.tar.gz
+
+    # To uncompress and untar the file, execute the following:
+
+    tar -xzvf emacs-lisp-intro-2.00.tar.gz
+
+    # The file will untar into a subdirectory called emacs-lisp-intro-2.00
+    # That directory will contain the Texinfo source for the book, the
+    # Info files and various other files.
+
+    cd emacs-lisp-intro-2.00
+
+    # To create a DVI file that can be printed directly or converted
+    # to PostScript or PDF and then printed, execute the following:
+
+    ./configure
+    make dvi
+
+    # To create an HTML file, execute the following 
+    #   (presumably you have already executed the `./configure' command
+    #    before running `make dvi'; if not execute `./configure' now);
+    # this will place HTML files into a emacs-lisp-intro/ subdirectory:
+
+    makeinfo --html --verbose emacs-lisp-intro.texi
+
+    # To create a single, large HTML file in the current directory,
+    # use the --no-split option, like this:
+
+    makeinfo --html --no-split --verbose emacs-lisp-intro.texi
+
+        # At the time of writing, `makeinfo' version 4.0b creates HTML
+        # files with %20 in addresses instead of a space.  Some
+        # browsers have difficulty following such references.  In
+        # GNU Emacs, you can replace the occurrences of %20 with a
+        # command such as
+        #              (replace-string "%20" " ")
+
+    # To create a single, large Info file in the current directory
+    # instead of the usual 16 smaller Info files, and also, to avoid
+    # indenting paragraphs, execute:
+
+    makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
+
+    # To create a single, large Plain text file in the current
+    # directory, execute:
+
+    makeinfo --fill-column=70 --no-split --paragraph-indent=0 \
+    --verbose --no-headers --output=emacs-lisp-intro.txt emacs-lisp-intro.texi
+
+###
