@@ -1,19 +1,21 @@
 /*  ==== MANUAL FIXED SMALL UNIT POOL ====
  *
- *  $HopeName$
+ *  $HopeName: MMsrc/!poolmfs.c(trunk.1)$
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
- *  This is the implementation of the MFS pool class.  PoolMFS operates in a
- *  very simple manner: each segment is divided into units.  Free units are
- *  kept on a linked list using a header stored in the unit itself.  The
- *  linked list it not ordered, so allocation and deallocation simply pop
- *  and push from the head of the list.  This is fast, but successive
- *  allocations might have poor locality if previous successive frees did.
+ *  This is the implementation of the MFS pool class.  PoolMFS operates
+ *  in a very simple manner: each segment is divided into units.  Free
+ *  units are kept on a linked list using a header stored in the unit
+ *  itself.  The linked list it not ordered, so allocation and
+ *  deallocation simply pop and push from the head of the list.  This is
+ *  fast, but successive allocations might have poor locality if
+ *  previous successive frees did.
  *
- *  **** RESTRICTION: This pool cannot allocate from the arena control pool,
- *  nor can it allocate sub-pools, as it is used in the arena bootstrap
- *  sequence.  See the arena manager implementation for details.
+ *  **** RESTRICTION: This pool cannot allocate from the arena control
+ *  pool, nor can it allocate sub-pools, as it is used in the arena
+ *  bootstrap sequence.  See the arena manager implementation for
+ *  details.
  *
  *  Notes
  *   1. The simple freelist policy might lead to poor locality of allocation
@@ -33,7 +35,7 @@
 #include "std.h"
 #include "lib.h"
 #include "deque.h"
-#include "arena.h"
+#include "poolar.h"
 #include "pool.h"
 #include "poolst.h"
 #include "poolmfs.h"
@@ -102,12 +104,14 @@ PoolMFSInfo PoolMFSGetInfo(void)
 
 Bool PoolMFSIsValid(PoolMFS poolMFS, ValidationType validParam)
 {
+  Arena arena;
+
   AVER(poolMFS != NULL);
   AVER(poolMFS->unroundedUnitSize >= UNIT_MIN);
   AVER(AlignUp(poolMFS->poolStruct.alignment, poolMFS->unroundedUnitSize) == poolMFS->unitSize);
   AVER(poolMFS->extendBy >= UNIT_MIN);
-  AVER(ROUND(poolMFS->unitSize, poolMFS->extendBy) == poolMFS->extendBy);
-  AVER(poolMFS->extendBy % poolMFS->unitSize == 0);
+  arena = SpaceArena(PoolSpace(&poolMFS->poolStruct));
+  AVER(IsAligned(ArenaGrain(arena), poolMFS->extendBy));
   AVER(poolMFS->unitsPerSeg == poolMFS->extendBy/poolMFS->unitSize);
   return(TRUE);
 }
@@ -122,7 +126,8 @@ Pool (PoolMFSPool)(PoolMFS poolMFS)
 }
 
 
-Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space, size_t extendBy, size_t unitSize)
+Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space,
+                    size_t extendBy, size_t unitSize)
 {
   Error e;
   PoolMFS poolMFS;
@@ -130,7 +135,8 @@ Error PoolMFSCreate(PoolMFS *poolMFSReturn, Space space, size_t extendBy, size_t
   AVER(poolMFSReturn != NULL);
   AVER(ISVALID(Space, space));
 
-  e = PoolAllocP((void **)&poolMFS, SpaceControlPool(space), sizeof(PoolMFSStruct));
+  e = PoolAllocP((void **)&poolMFS, SpaceControlPool(space),
+                 sizeof(PoolMFSStruct));
   if(e != ErrSUCCESS) return(e);
   
   e = PoolMFSInit(poolMFS, space, extendBy, unitSize);
@@ -180,7 +186,8 @@ static void destroy(Pool pool)
 }
 
 
-Error PoolMFSInit(PoolMFS poolMFS, Space space, size_t extendBy, size_t unitSize)
+Error PoolMFSInit(PoolMFS poolMFS, Space space, size_t extendBy,
+                  size_t unitSize)
 {
   AVER(poolMFS != NULL);
   AVER(ISVALID(Space, space));
@@ -193,13 +200,13 @@ Error PoolMFSInit(PoolMFS poolMFS, Space space, size_t extendBy, size_t unitSize
   poolMFS->unroundedUnitSize = unitSize;
 
   unitSize = AlignUp(ARCH_ALIGNMOD, unitSize);
-  extendBy  = ROUND(unitSize, extendBy);
-  AVER(extendBy % unitSize == 0);
+  extendBy = AlignUp(ArenaGrain(SpaceArena(space)), extendBy);
 
   poolMFS->extendBy = extendBy;
   poolMFS->unitSize = unitSize;
   poolMFS->unitsPerSeg = extendBy/unitSize;
   poolMFS->freeList = NULL;
+  poolMFS->segList = (Addr)0;
 
   AVER(ISVALID(PoolMFS, poolMFS));
 
@@ -209,8 +216,20 @@ Error PoolMFSInit(PoolMFS poolMFS, Space space, size_t extendBy, size_t unitSize
 
 void PoolMFSFinish(PoolMFS poolMFS)
 {
+  Addr seg;
+  Arena arena;
+  Pool arpool;
+
   AVER(ISVALID(PoolMFS, poolMFS));
-  PoolSegDestroyAll(&poolMFS->poolStruct);
+  arena = SpaceArena(PoolSpace(PoolMFSPool(poolMFS)));
+  arpool = PoolArenaPool(arena);
+
+  seg = poolMFS->segList;
+  while(seg != (Addr)0) {
+    Addr nextSeg = (Addr)ArenaGet(arena, seg, 1);
+    PoolFreeP(arpool, (void *)seg, poolMFS->extendBy);
+    seg = nextSeg;
+  }
   PoolFinish(&poolMFS->poolStruct);
 }
 
@@ -245,16 +264,19 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
 
   if(f == NULL)
   {
-    Seg seg;
+    Addr seg;
     Addr i, unitsPerSeg, unitSize, base;
+    Arena arena;
     Header header = NULL, next;
 
     /* Create a new segment and attach it to the pool. */
 
-    e = PoolSegCreate(&seg, pool, MFS->extendBy);
+    arena = SpaceArena(PoolSpace(pool));
+    e = PoolAllocP((void **)&seg, PoolArenaPool(arena), MFS->extendBy);
     if(e != ErrSUCCESS) return(e);
-    e = SegExtend(seg, MFS->extendBy);
-    if(e != ErrSUCCESS) return(e);
+    /* chain segs through Key1; can find them when finishing */
+    ArenaPut(arena, seg, 1, (void *)MFS->segList);
+    MFS->segList = seg;
 
     /* Sew together all the new empty units in the segment, working down */
     /* from the top so that they are in ascending order of address on the */
@@ -262,7 +284,7 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
 
     unitsPerSeg = MFS->unitsPerSeg;
     unitSize = MFS->unitSize;
-    base = SegBase(seg);
+    base = seg;
     next = NULL;
 
 #define SUB(b, s, i)    ((Header)((b)+(s)*(i)))
@@ -271,7 +293,7 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
     {
       header = SUB(base, unitSize, unitsPerSeg-i - 1);
       AVER(IsAligned(pool->alignment, (Addr)header));
-      AVER((Addr)header + unitSize <= SegBase(seg) + SegExtent(seg));
+      AVER((Addr)header + unitSize <= seg + ArenaSegSize(arena, seg));
       header->next = next;
       next = header;
     }
@@ -339,12 +361,14 @@ static Error describe(Pool pool, LibStream stream)
                 "  unrounded unit size %lu\n"
                 "  unit size %lu  segment size %lu\n"
                 "  units per segment %u\n"
-                "  free list begins at %p\n",
+                "  free list begins at %p\n"
+                "  seg list begin at %08lx\n",
                 (unsigned long)MFS->unroundedUnitSize,
                 (unsigned long)MFS->unitSize,
                 (unsigned long)MFS->extendBy,
                 MFS->unitsPerSeg,
-                MFS->freeList);
+                MFS->freeList,
+                MFS->segList);
 
   return(e);
 }
