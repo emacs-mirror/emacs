@@ -1,3 +1,12 @@
+2000-10-21  Miles Bader  <miles@gnu.org>
+
+	* window.c (pos_fully_visible_in_window_p): New function.
+	(Fpos_visible_in_window_p): Add FULLY argument.
+	Use pos_fully_visible_in_window_p.
+	(window_scroll_pixel_based, window_scroll_line_based): Update
+	calls to Fpos_visible_in_window_p.
+	* lisp.h (Fpos_visible_in_window_p): Update prototype
+
 2000-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (toplevel): Conditionalize compilation of mem_*
