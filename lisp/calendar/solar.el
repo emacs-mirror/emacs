@@ -274,8 +274,8 @@ is 'standard and daylight savings time (if available) when its value is
 
 Format used is given by `calendar-time-display-form'.  Converted to daylight
 savings time according to `calendar-daylight-savings-starts',
-`calendar-daylight-savings-ends', `calendar-daylight-switchover-time', and
-`calendar-daylight-savings-offset'."
+`calendar-daylight-savings-ends', `calendar-daylight-savings-starts-time',
+`calendar-daylight-savings-ends-time', and `calendar-daylight-savings-offset'."
   (let* ((year (extract-calendar-year date))
 	 (time (round (* 60 time)))
 	 (rounded-abs-date (+ (calendar-absolute-from-gregorian date)
@@ -283,12 +283,12 @@ savings time according to `calendar-daylight-savings-starts',
          (dst-starts (and calendar-daylight-savings-starts
                           (+ (calendar-absolute-from-gregorian
                               (eval calendar-daylight-savings-starts))
-			     (/ calendar-daylight-savings-switchover-time
+			     (/ calendar-daylight-savings-starts-time
 				60.0 24.0))))
          (dst-ends (and calendar-daylight-savings-ends
                         (+ (calendar-absolute-from-gregorian
                             (eval calendar-daylight-savings-ends))
-			   (/ (- calendar-daylight-savings-switchover-time
+			   (/ (- calendar-daylight-savings-ends-time
 				 calendar-daylight-time-offset)
 			      60.0 24.0))))
 	 (dst (and (not (eq style 'standard))
