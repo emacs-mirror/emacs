@@ -223,10 +223,10 @@ You should set this to t when using a non-system shell.\n\n"))))
 ;;; source-directory, set it to something that is a reasonable approximation
 ;;; on the user's machine.
 
-(add-hook 'before-init-hook 
-	  '(lambda ()
-	     (setq source-directory (file-name-as-directory 
-				     (expand-file-name ".." exec-directory)))))
+;(add-hook 'before-init-hook 
+;	  '(lambda ()
+;	     (setq source-directory (file-name-as-directory 
+;				     (expand-file-name ".." exec-directory)))))
 
 ;; Avoid creating auto-save file names containing invalid characters.
 (fset 'original-make-auto-save-file-name
