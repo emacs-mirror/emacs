@@ -11,9 +11,9 @@
 ;; LCD Archive Entry:
 ;; eldoc|Noah Friedman|friedman@prep.ai.mit.edu|
 ;; show function arglist or variable docstring in echo area|
-;; $Date: 1995/11/13 01:37:40 $|$Revision: 1.2 $|~/misc/eldoc.el.gz|
+;; $Date: 1995/11/18 22:32:07 $|$Revision: 1.3 $|~/misc/eldoc.el.gz|
 
-;; $Id: eldoc.el,v 1.2 1995/11/13 01:37:40 friedman Exp friedman $
+;; $Id: eldoc.el,v 1.3 1995/11/18 22:32:07 friedman Exp friedman $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -185,6 +185,7 @@ overwrite them unless it is more restrained."
 
 (defun eldoc-mode-print-current-symbol-info ()
   (and eldoc-mode
+       (not executing-macro)
        ;; Having this mode operate in the minibuffer makes it impossible to
        ;; see what you're doing.
        (not (eq (selected-window) (minibuffer-window)))
