@@ -319,7 +319,7 @@ You can enable directory tracking by adding this function to
 		(if (file-accessible-directory-p prompt-path)
 		    ;; Change directory
 		    (and (shell-process-cd prompt-path)
-			 (run-hooks dirtrack-directory-change-hook)
+			 (run-hooks 'dirtrack-directory-change-hook)
 			 dirtrack-debug
 			 (dirtrack-debug-message 
 			  (format "Changing directory to %s" prompt-path)))
