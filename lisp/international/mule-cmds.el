@@ -42,6 +42,11 @@
 (fset 'mule-describe-language-support-prefix
       mule-describe-language-support-map)
 
+(defvar mule-set-language-environment-map
+  (make-sparse-keymap "Set Language Environment"))
+(fset 'mule-set-language-environment-prefix
+      mule-set-language-environment-map)
+
 (define-key mule-keymap "m" 'toggle-enable-multibyte-characters)
 (define-key mule-keymap "f" 'set-buffer-file-coding-system)
 (define-key mule-keymap "t" 'set-terminal-coding-system)
@@ -54,30 +59,38 @@
 (define-key help-map "C" 'describe-current-coding-system)
 (define-key help-map "h" 'view-hello-file)
 
-(define-key mule-keymap [set-process-coding-system]
-  '(" ... of process" . set-current-process-coding-system))
-(define-key mule-keymap [set-keyboard-coding-system]
-  '(" ... of keyboard" . set-keyboard-coding-system))
-(define-key mule-keymap [set-terminal-coding-system]
-  '(" ... of terminal" . set-terminal-coding-system))
-(define-key mule-keymap [set-buffer-file-coding-system]
-  '(" ... of visiting file" . set-buffer-file-coding-system))
-(define-key mule-keymap [separator-mule]
-  '("Setting coding systems"))
-(define-key mule-keymap [describe-current-coding-system]
-  '("Describe current coding systems" . describe-current-coding-system))
-(define-key mule-keymap [describe-language-support]
-  '("Describe language support" . mule-describe-language-support-prefix))
 (define-key mule-keymap [view-hello-file]
   '("Show many languages" . view-hello-file))
+(define-key mule-keymap [mule-diag]
+  '("Show diagnosis for MULE" . mule-diag))
+(define-key mule-keymap [separator-coding-system]
+  '("--"))
+(define-key mule-keymap [set-process-coding-system]
+  '("Set coding system of process" . set-current-process-coding-system))
+(define-key mule-keymap [set-keyboard-coding-system]
+  '("Set coding system of keyboard" . set-keyboard-coding-system))
+(define-key mule-keymap [set-terminal-coding-system]
+  '("Set coding system of terminal" . set-terminal-coding-system))
+(define-key mule-keymap [set-buffer-file-coding-system]
+  '("Set coding system of buffer file" . set-buffer-file-coding-system))
+(define-key mule-keymap [describe-current-coding-system]
+  '("Describe current coding systems" . describe-current-coding-system))
+(define-key mule-keymap [separator-input-method]
+  '("--"))
 (define-key mule-keymap [describe-input-method]
   '("Describe input method" . describe-input-method))
 (define-key mule-keymap [select-input-method]
   '("Select input method" . select-input-method))
 (define-key mule-keymap [toggle-input-method]
   '("Toggle input method" . toggle-input-method))
+(define-key mule-keymap [separator-mule]
+  '("--"))
+(define-key mule-keymap [set-language-environment]
+  '("Set language environment" . mule-set-language-environment-prefix))
+(define-key mule-keymap [describe-language-support]
+  '("Describe language support" . mule-describe-language-support-prefix))
 (define-key mule-keymap [toggle-mule]
-  '("Toggle MULE" . toggle-enable-multibyte-characters))
+  '("Disable/enable multibyte character" . toggle-enable-multibyte-characters))
 
 ;; These are meaningless when running under X.
 (put 'set-keyboard-coding-system 'menu-enable
@@ -139,6 +152,13 @@ KEY is a symbol denoting the kind of required information."
      (interactive)
      (describe-language-support ,lang)))
 
+;; Return a lambda form which calls `set-language-environment' with
+;; argument LANG.
+(defun build-set-language-environment-function (lang)
+  `(lambda ()
+     (interactive)
+     (set-language-environment ,lang)))
+
 (defun set-language-info (language-name key info)
   "Set for LANGUAGE-NAME the information INFO under KEY.
 LANGUAGE-NAME is a string
@@ -148,7 +168,7 @@ INFO is any Lisp object which contains the actual information.
 Currently, the following KEYs are used by Emacs:
 charset: list of symbols whose values are charsets specific to the language.
 coding-system: list of coding systems specific to the langauge.
-setup-function: see the documentation of `set-language-envrionment'.
+setup-function: see the documentation of `set-language-environment'.
 tutorial: a tutorial file name written in the language.
 sample-text: one line short text containing characters of the language.
 documentation: a docstring describing how the language is supported,
@@ -172,11 +192,16 @@ should use prefix \"user-\" in the name of KEY."
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
     (setcdr key-slot info)
     ;; Setup menu.
-    (if (eq key 'documentation)
-	(define-key mule-describe-language-support-map
-	  (vector (intern language-name))
-	  (cons language-name
-		(build-describe-language-support-function language-name))))
+    (cond ((eq key 'documentation)
+	   (define-key mule-describe-language-support-map
+	     (vector (intern language-name))
+	     (cons language-name
+		   (build-describe-language-support-function language-name))))
+	  ((eq key 'setup-function)
+	   (define-key mule-set-language-environment-map
+	     (vector (intern language-name))
+	     (cons language-name
+		   (build-set-language-environment-function language-name)))))
     ))
 
 (defun set-language-info-alist (language-name alist)
@@ -195,9 +220,8 @@ ALIST is an alist of KEY and INFO.  See the documentation of
 				(function (lambda (elm) (assq key elm)))
 				t
 				initial-input)))
-    ;; In spite of the documentation, completing-read returns null
-    ;; string instead of nil if input is null.
-    (and (> (length name) 0) name)))
+    (and (> (length name) 0)
+	 (car (assoc-ignore-case (downcase name) language-info-alist)))))
 
 ;;; Multilingual input methods.
 
@@ -270,20 +294,18 @@ Return a cons of those names."
     (if (null language-name)
 	(error "No input method for the specified language"))
     (let* ((completion-ignore-case t)
-	   (key-slot
-	    (assq 'input-method
-		  (cdr (assoc language-name language-info-alist))))
+	   (key-slot (cdr (assq 'input-method
+				(assoc language-name language-info-alist))))
 	   (method-name
-	    (completing-read "Input method: " (cdr key-slot) nil t
+	    (completing-read "Input method: " key-slot nil t
 			     (if (and previous-input-method
 				      (string= language-name
 					       (car previous-input-method)))
 				 (cons (cdr previous-input-method) 0)))))
-      ;; In spite of the documentation, completing-read returns
-      ;; null string instead of nil if input is null.
       (if (= (length method-name) 0)
 	  (error "No input method specified"))
-      (list language-name method-name))))
+      (list language-name
+	    (car (assoc-ignore-case (downcase method-name) key-slot))))))
 
 (defun set-default-input-method (language-name method-name)
   "Set the default input method to METHOD-NAME for inputting LANGUAGE-NAME.
