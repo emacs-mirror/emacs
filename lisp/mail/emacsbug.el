@@ -54,7 +54,10 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   ;; the bug subject string is read.
   (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
   (condition-case nil
-      (let (user-point)
+      (let (user-point message-end-point)
+	(setq message-end-point
+	      (with-current-buffer (get-buffer "*Messages*")
+		(point-max-marker)))
 	(compose-mail (if (string-match "\\..*\\..*\\." emacs-version)
 			  ;; If there are four numbers in emacs-version,
 			  ;; this is a pretest version.
@@ -93,17 +96,14 @@ Prompts for bug subject.  Leaves you in a mail buffer."
 	      (insert "\n"))))
 	(let ((message-buf (get-buffer "*Messages*")))
 	  (if message-buf
-	      (progn
+	      (let (beg-pos
+		    (end-pos message-end-point))
+		(with-current-buffer message-buf
+		  (goto-char end-pos)
+		  (forward-line -10)
+		  (setq beg-pos (point)))
 		(insert "\n\nRecent messages:\n")
-		(insert-buffer-substring message-buf
-					 (save-excursion
-					   (set-buffer message-buf)
-					   (goto-char (point-max))
-					   (forward-line -10)
-					   (point))
-					 (save-excursion
-					   (set-buffer message-buf)
-					   (point-max))))))
+		(insert-buffer-substring message-buf beg-pos end-pos))))
 	;; This is so the user has to type something
 	;; in order to send easily.
 	(use-local-map (nconc (make-sparse-keymap) (current-local-map)))
