@@ -2531,7 +2531,8 @@ float_arith_driver (accum, argnum, code, nargs, args)
 
 
 DEFUN ("+", Fplus, Splus, 0, MANY, 0,
-  "Return sum of any number of arguments, which are numbers or markers.")
+  "Return sum of any number of arguments, which are numbers or markers.
+usage: (+ &rest NUMBERS-OR-MARKERS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2542,7 +2543,8 @@ DEFUN ("+", Fplus, Splus, 0, MANY, 0,
 DEFUN ("-", Fminus, Sminus, 0, MANY, 0,
   "Negate number or subtract numbers or markers.\n\
 With one arg, negates it.  With more than one arg,\n\
-subtracts all but the first from the first.")
+subtracts all but the first from the first.
+usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2551,7 +2553,8 @@ subtracts all but the first from the first.")
 }
 
 DEFUN ("*", Ftimes, Stimes, 0, MANY, 0,
-  "Returns product of any number of arguments, which are numbers or markers.")
+  "Returns product of any number of arguments, which are numbers or markers.
+usage: (* &rest NUMBERS-OR-MARKERS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2561,7 +2564,8 @@ DEFUN ("*", Ftimes, Stimes, 0, MANY, 0,
 
 DEFUN ("/", Fquo, Squo, 2, MANY, 0,
   "Returns first argument divided by all the remaining arguments.\n\
-The arguments must be numbers or markers.")
+The arguments must be numbers or markers.
+usage: (/ DIVIDEND DIVISOR &rest DIVISORS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2644,7 +2648,8 @@ Both X and Y must be numbers or markers.")
 
 DEFUN ("max", Fmax, Smax, 1, MANY, 0,
   "Return largest of all the arguments (which must be numbers or markers).\n\
-The value is always a number; markers are converted to numbers.")
+The value is always a number; markers are converted to numbers.
+usage: (max NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2654,7 +2659,8 @@ The value is always a number; markers are converted to numbers.")
 
 DEFUN ("min", Fmin, Smin, 1, MANY, 0,
   "Return smallest of all the arguments (which must be numbers or markers).\n\
-The value is always a number; markers are converted to numbers.")
+The value is always a number; markers are converted to numbers.
+usage: (min NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2664,7 +2670,8 @@ The value is always a number; markers are converted to numbers.")
 
 DEFUN ("logand", Flogand, Slogand, 0, MANY, 0,
   "Return bitwise-and of all the arguments.\n\
-Arguments may be integers, or markers converted to integers.")
+Arguments may be integers, or markers converted to integers.
+usage: (logand &rest INTS-OR-MARKERS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2674,7 +2681,8 @@ Arguments may be integers, or markers converted to integers.")
 
 DEFUN ("logior", Flogior, Slogior, 0, MANY, 0,
   "Return bitwise-or of all the arguments.\n\
-Arguments may be integers, or markers converted to integers.")
+Arguments may be integers, or markers converted to integers.
+usage: (logior &rest INTS-OR-MARKERS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2684,7 +2692,8 @@ Arguments may be integers, or markers converted to integers.")
 
 DEFUN ("logxor", Flogxor, Slogxor, 0, MANY, 0,
   "Return bitwise-exclusive-or of all the arguments.\n\
-Arguments may be integers, or markers converted to integers.")
+Arguments may be integers, or markers converted to integers.
+usage: (logxor &rest INTS-OR-MARKERS)")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
