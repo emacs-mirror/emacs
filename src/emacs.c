@@ -32,6 +32,10 @@ Boston, MA 02111-1307, USA.  */
 #include <ssdef.h>
 #endif
 
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #ifdef BSD_SYSTEM
 #include <sys/ioctl.h>
 #endif
@@ -1071,7 +1075,6 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
      to run until we've recognized this argument.  */
   {
     char *displayname = 0;
-    int i;
     int count_before = skip_args;
 
     /* Skip any number of -d options, but only use the last one.  */
@@ -1485,7 +1488,6 @@ sort_args (argc, argv)
   int incoming_used = 1;
   int from;
   int i;
-  int end_of_options = argc;
 
   /* Categorize all the options,
      and figure out which argv elts are option arguments.  */
@@ -1627,8 +1629,6 @@ all of which are called before Emacs is actually killed.")
   (arg)
      Lisp_Object arg;
 {
-  Lisp_Object hook, hook1;
-  int i;
   struct gcpro gcpro1;
 
   GCPRO1 (arg);
