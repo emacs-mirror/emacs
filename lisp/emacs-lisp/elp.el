@@ -1,12 +1,11 @@
 ;;; elp.el --- Emacs Lisp Profiler
 
-;; Copyright (C) 1994, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1994,1995,1997,1998 Free Software Foundation, Inc.
 
-;; Author:        1994-1997 Barry A. Warsaw
+;; Author:        1994-1998 Barry A. Warsaw
 ;; Maintainer:    tools-help@python.org
 ;; Created:       26-Feb-1994
-;; Version:       3.0
-;; Last Modified: 1997/04/21 17:45:15
+;; Version:       3.2
 ;; Keywords:      debugging lisp tools
 
 ;; This file is part of GNU Emacs.
@@ -191,7 +190,7 @@ In other words, a new unique buffer is create every time you run
 ;; end of user configuration variables
 
 
-(defconst elp-version "3.0"
+(defconst elp-version "3.2"
   "ELP version number.")
 
 (defconst elp-help-address "tools-help@python.org"
