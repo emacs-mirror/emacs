@@ -1,8 +1,7 @@
 2001-10-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c, dispnew.c, xterm.c, xdisp.c, xfaces.c, xmenu.c
-	* term.c:
-	Put doc strings in comments.
+	* term.c, alloc.c: Put doc strings in comments.
 
 2001-10-13  Gerd Moellmann  <gerd@gnu.org>
 
