@@ -20,7 +20,15 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Code:
+(defvar custom-declare-variable-list nil
+  "Record `defcustom' calls made before `custom.el' is loaded to handle them.
+Each element of this list holds the arguments to one call to `defcustom'.")
 
+;; Use this rather that defcustom, in subr.el and other files loaded
+;; before custom.el.
+(defun custom-declare-variable-early (&rest arguments)
+  (setq custom-declare-variable-list
+	(cons arguments custom-declare-variable-list)))
 
 ;;;; Lisp language features.
 
@@ -649,8 +657,13 @@ FILE should be the name of a library, with no directory name."
 
 ;;;; Input and display facilities.
 
-(defcustom read-quoted-char-radix 8
+(defvar read-quoted-char-radix 8
   "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
+Legitimate radix values are 8, 10 and 16.")
+
+(custom-declare-variable-early
+ 'read-quoted-char-radix 8 
+ "*Radix for \\[quoted-insert] and other uses of `read-quoted-char'.
 Legitimate radix values are 8, 10 and 16."
   :type '(choice (const 8) (const 10) (const 16))
   :group 'editing-basics)
@@ -1043,7 +1056,7 @@ configuration."
        (eq (car object) 'frame-configuration)))
 
 (defun functionp (object)
-  "Non-nil of OBJECT is a type of object that can be called as a function."
+  "Non-nil if OBJECT is a type of object that can be called as a function."
   (or (subrp object) (compiled-function-p object)
       (eq (car-safe object) 'lambda)
       (and (symbolp object) (fboundp object))))
