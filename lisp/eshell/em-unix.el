@@ -342,9 +342,11 @@ Remove the DIRECTORY(ies), if they are empty.")
 		 (eq system-type 'ms-dos))
 	     (setq attr (eshell-file-attributes (car files)))
 	     (nth 10 attr-target) (nth 10 attr)
+	     ;; Use equal, not -, since the inode and the device could
+	     ;; cons cells.
 	     (equal (nth 10 attr-target) (nth 10 attr))
 	     (nth 11 attr-target) (nth 11 attr)
-	     (= (nth 11 attr-target) (nth 11 attr)))
+	     (equal (nth 11 attr-target) (nth 11 attr)))
 	(eshell-error (format "%s: `%s' and `%s' are the same file\n"
 			      command (car files) target)))
        (t
@@ -366,14 +368,16 @@ Remove the DIRECTORY(ies), if they are empty.")
 		(let (eshell-warn-dot-directories)
 		  (if (and (not deep)
 			   (eq func 'rename-file)
-			   (= (nth 11 (eshell-file-attributes
-				       (file-name-directory
-					(directory-file-name
-					 (expand-file-name source)))))
-			      (nth 11 (eshell-file-attributes
-				       (file-name-directory
-					(directory-file-name
-					 (expand-file-name target)))))))
+			   ;; Use equal, since the device might be a
+			   ;; cons cell.
+			   (equal (nth 11 (eshell-file-attributes
+					   (file-name-directory
+					    (directory-file-name
+					     (expand-file-name source)))))
+				  (nth 11 (eshell-file-attributes
+					   (file-name-directory
+					    (directory-file-name
+					     (expand-file-name target)))))))
 		      (apply 'eshell-funcalln func source target args)
 		  (unless (file-directory-p target)
 		    (if verbose
