@@ -262,7 +262,7 @@ If that doesn't give a function, return nil."
 (defun describe-distribution ()
   "Display info on how to obtain the latest version of GNU Emacs."
   (interactive)
-  (view-find (expand-file-name "DISTRIB" data-directory)))
+  (view-file (expand-file-name "DISTRIB" data-directory)))
 
 (defun describe-copying ()
   "Display info on how you may redistribute copies of GNU Emacs."
