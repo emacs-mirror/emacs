@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -593,7 +593,7 @@ There should be no more than seven characters after the final `/'."
 	     (file-exists-p local-copy)
 	     (delete-file local-copy)))
 
-	  (decode-region-as-inserted-from-file
+	  (decode-coding-region-as-inserted-from-file
 	   (point) (+ (point) size) 
 	   (jka-compr-byte-compiler-base-file-name file)
 	   visit beg end replace)
