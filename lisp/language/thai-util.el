@@ -156,7 +156,7 @@ positions (integers or markers) specifying the region."
 	(narrow-to-region (point) (+ (point) len))
 	(thai-compose-region (point-min) (point-max))
 	(set-buffer-modified-p buffer-modified-p)
-	(point-max)))))
+	(- (point-max) (point-min))))))
 
 ;;;###autoload
 (defun thai-pre-write-conversion (from to)
@@ -174,4 +174,3 @@ positions (integers or markers) specifying the region."
 ;;; generated-autoload-file: "../loaddefs.el"
 ;;; End:
 ;;; thai-util.el ends here
-
