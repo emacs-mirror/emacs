@@ -1305,6 +1305,7 @@ single_submenu (item_key, item_name, maps)
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected;
           Lisp_Object help;
+          /* NTEMACS_TODO: implement popup/modeline help for menus. */
 
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
@@ -1750,7 +1751,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
       else
 	{
 	  /* Create a new item within current pane.  */
-	  Lisp_Object item_name, enable, descrip, def, type, selected;
+	  Lisp_Object item_name, enable, descrip, def, type, selected, help;
+          char *help_string;
+
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	  descrip
@@ -1758,13 +1761,18 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  def = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_DEFINITION];
 	  type = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_TYPE];
 	  selected = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_SELECTED];
+          help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
 
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
             item_name = string_make_unibyte (item_name);
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
-            item_name = string_make_unibyte (descrip);
+            descrip = string_make_unibyte (descrip);
+          if (STRINGP (help) && STRING_MULTIBYTE (help))
+            help_string = string_make_unibyte (help);
 #endif
+
+          help_string = STRINGP (help) ? XSTRING (help)->data : NULL;
 
 	  wv = xmalloc_widget_value ();
 	  if (prev_wv) 
@@ -1957,11 +1965,15 @@ w32_dialog_show (f, keymaps, title, error)
       {
 	
 	/* Create a new item within current pane.  */
-	Lisp_Object item_name, enable, descrip;
+	Lisp_Object item_name, enable, descrip, help;
+        char *help_string;
+
 	item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	descrip
 	  = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
+        help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
+        help_string = STRINGP (help) ? XSTRING (help)->data : NULL;
 	
 	if (NILP (item_name))
 	  {
