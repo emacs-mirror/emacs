@@ -2696,29 +2696,6 @@ unrequest_sigio () {}
 #ifndef HAVE_SELECT
 #include "sysselect.h"
 
-static struct time last_time  = {120, 120, 120, 120};
-
-static void
-check_timer (t)
-     struct time *t;
-{
-  int sec, min, hour, hund;
-
-  gettime (t);
-  sec  = t->ti_sec;
-  hund = t->ti_hund;
-  hour = t->ti_hour;
-  min  = t->ti_min;
-
-  /* Any chance of not getting here 24 hours or more since last time? */
-  if (hour == last_time.ti_hour
-      && min == last_time.ti_min
-      && sec == last_time.ti_sec)
-    return;
-
-  last_time  = *t;
-}
-
 #ifndef EMACS_TIME_ZERO_OR_NEG_P
 #define EMACS_TIME_ZERO_OR_NEG_P(time)	\
   ((long)(time).tv_sec < 0		\
@@ -2757,25 +2734,28 @@ sys_select (nfds, rfds, wfds, efds, timeout)
      just read it and wait -- that's more efficient.  */
   if (!timeout)
     {
-      do
-	check_timer (&t);  /* check timer even if some input is pending */
-      while (!detect_input_pending ());
+      while (!detect_input_pending ())
+	{
+#if __DJGPP__ >= 2
+	  __dpmi_yield ();
+#endif	  
+	}
     }
   else
     {
       EMACS_TIME clnow, cllast, cldiff;
 
-      check_timer (&t);
+      gettime (&t);
       EMACS_SET_SECS_USECS (cllast, t.ti_sec, t.ti_hund * 10000L);
 
       while (!check_input || !detect_input_pending ())
 	{
-	  check_timer (&t);
+	  gettime (&t);
 	  EMACS_SET_SECS_USECS (clnow, t.ti_sec, t.ti_hund * 10000L);
 	  EMACS_SUB_TIME (cldiff, clnow, cllast);
 
 	  /* When seconds wrap around, we assume that no more than
-	     1 minute passed since last `check_timer'.  */
+	     1 minute passed since last `gettime'.  */
 	  if (EMACS_TIME_NEG_P (cldiff))
 	    EMACS_SET_SECS (cldiff, EMACS_SECS (cldiff) + 60);
 	  EMACS_SUB_TIME (*timeout, *timeout, cldiff);
@@ -2784,6 +2764,9 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	  if (EMACS_TIME_ZERO_OR_NEG_P (*timeout))
 	    return 0;
 	  cllast = clnow;
+#if __DJGPP__ >= 2
+	  __dpmi_yield ();
+#endif	  
 	}
     }
   
