@@ -185,9 +185,13 @@ Note also that for some non-file buffers the check whether the
 buffer needs updating may be imperfect, due to efficiency
 considerations, and may not take all information listed in the
 buffer into account.  Hence, a non-nil value for this option does
-not necessarily make manual updates useless for non-file buffers."
+not necessarily make manual updates useless for non-file buffers.
+
+To find out to which buffers this option currently applies, as
+well as for further details, see Info node `(emacs-xtra)Autorevert'."
   :group 'auto-revert
-  :type 'boolean)
+  :type 'boolean
+  :link '(info-link "(emacs-xtra)Autorevert"))
 
 (defcustom global-auto-revert-ignore-modes '()
   "List of major modes Global Auto-Revert Mode should not check."
