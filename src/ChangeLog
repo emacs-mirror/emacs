@@ -1,3 +1,7 @@
+2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* window.c (Fscroll_left, Fscroll_right): Doc fix.
+
 2001-10-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (Finput_pending_p): Fix typo in doc-string.
