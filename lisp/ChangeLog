@@ -129,7 +129,7 @@
 	(ibuffer-mode-filter-group-map): Initialize in `defvar'.
 	(ibuffer-do-view-1): Use `make-frame' instead of `new-frame'.
 
-2003-04-21  Jan Nieuwenhuizen  <janneke@gnu.org>
+2003-04-25  Jan Nieuwenhuizen  <janneke@gnu.org>
 
 	* info.el (Info-unescape-quotes)
 	(Info-split-parameter-string)
