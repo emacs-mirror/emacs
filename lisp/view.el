@@ -829,7 +829,7 @@ If you don't specify a prefix argument, it uses the number of lines set by
 \\[View-scroll-page-backward-set-page-size].
 If LINES is more than a window-full, only the last window-full is shown."
   (interactive "P")
-  (let ((view-mode-auto-exit nil)
+  (let ((view-scroll-auto-exit nil)
 	(view-try-extend-at-buffer-end t))
     (view-scroll-lines lines nil view-page-size nil)))
 
