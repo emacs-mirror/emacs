@@ -1,19 +1,23 @@
+2003-05-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/autoload.el (make-autoload): Add arglist for
+	define-derived-mode.
+
 2003-05-15  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
-	* hl-line.el: Rewrote the local minor mode so that it can be
-	sticky as well and made sticky the default.  Reimplemented the
-	global minor mode.  Updated the commentary section to document
+	* hl-line.el: Rewrite the local minor mode so that it can be
+	sticky as well and made sticky the default.  Reimplement the
+	global minor mode.  Update the commentary section to document
 	these changes.
 	(hl-line-sticky-flag): New user option.
-	(hl-line-overlay): Made it buffer-local and gave it a docstring.
+	(hl-line-overlay): Make it buffer-local and give it a docstring.
 	(global-hl-line-overlay): New variable.
-	(hl-line-mode): Rewritten to use `hl-line-sticky-flag'.
-	(hl-line-highlight): Rewritten to use `hl-line-sticky-flag'.
-	(hl-line-unhighlight): Updated docstring.
-	(global-hl-line-mode): Implemented directly so that is does not
+	(hl-line-mode): Rewrite to use `hl-line-sticky-flag'.
+	(hl-line-highlight): Rewrite to use `hl-line-sticky-flag'.
+	(hl-line-unhighlight): Update docstring.
+	(global-hl-line-mode): Implement directly so that is does not
 	depend on `hl-line-mode' any more.
-	(global-hl-line-highlight, global-hl-line-unhighlight): New
-	functions.
+	(global-hl-line-highlight, global-hl-line-unhighlight): New functions.
 
 2003-05-15  Kenichi Handa  <handa@m17n.org>
 
@@ -28,9 +32,9 @@
 	(ps-generate-string-list, ps-header-footer-string): New funs.
 	(ps-lh-cache, ps-rh-cache, ps-lf-cache, ps-rf-cache): New vars.
 
-	* ps-mule.el (ps-mule-header-string-charsets): Call
-	ps-header-footer-string to avoid unnecessary calls to functions in
-	header and footer variables.
+	* ps-mule.el (ps-mule-header-string-charsets):
+	Call ps-header-footer-string to avoid unnecessary calls to functions
+	in header and footer variables.
 
 2003-05-15  John Paul Wallington  <jpw@gnu.org>
 
