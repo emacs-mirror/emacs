@@ -34,6 +34,7 @@ on file directories.
 * File Archives::       Operating on tar, zip, jar etc. archive files.
 * Remote Files::        Accessing files on other sites.
 * Quoted File Names::   Quoting special characters in file names.
+* File Conveniences::   Convenience Features for Finding Files.
 @end menu
 
 @node File Names
@@ -454,8 +455,12 @@ to make backup files.  By default, it is @code{nil}, since backup files
 are redundant when you store all the previous versions in a version
 control system.  @xref{VC Workfile Handling}.
 
+@vindex backup-enable-predicate
+@vindex temporary-file-directory
+@vindex small-temporary-file-directory
   The default value of the @code{backup-enable-predicate} variable
-prevents backup files being written for files in @file{/tmp}.
+prevents backup files being written for files in the directories named
+by @code{temporary-file-directory} or @code{small-temporary-file-directory}.
 
   At your option, Emacs can keep either a single backup file or a series of
 numbered backup files for each file that you edit.
@@ -487,15 +492,31 @@ newly saved contents, if you save again.
 @subsubsection Single or Numbered Backups
 
   If you choose to have a single backup file (this is the default),
-the backup file's name is constructed by appending @samp{~} to the
+the backup file's name is normally constructed by appending @samp{~} to the
 file name being edited; thus, the backup file for @file{eval.c} would
 be @file{eval.c~}.
+
+@vindex make-backup-file-name-function
+@vindex backup-directory-alist
+  You can change this behaviour by defining the variable
+@code{make-backup-file-name-function} to a suitable function.
+Alternatively you can customize the variable
+@var{backup-directory-alist} to specify that files matching certain
+patterns should be backed up in specific directories.  A typical use is
+to add an element @code{("." . @var{dir})} to make all backups in the
+directory with absolute name @var{dir}; the names will be mangled to
+prevent clashes between files with the same names originating in
+different directories.  Alternatively, adding, say, @code{("." ".~")}
+would make backups in the invisible sub-directory @file{.~} of the
+original file's directory.  The directories are created if necessary
+when the backup is made.
 
   If you choose to have a series of numbered backup files, backup file
 names are made by appending @samp{.~}, the number, and another @samp{~} to
 the original file name.  Thus, the backup files of @file{eval.c} would be
 called @file{eval.c.~1~}, @file{eval.c.~2~}, and so on, through names
-like @file{eval.c.~259~} and beyond.
+like @file{eval.c.~259~} and beyond.  @code{backup-directory-alist} can
+be used to control their location as for single backups.
 
   If protection stops you from writing backup files under the usual names,
 the backup file is written as @file{%backup%~} in your home directory.
@@ -2500,3 +2521,29 @@ themselves.  For example, if the only file name in @file{/tmp} that
 starts with @samp{foo} and ends with @samp{bar} is @file{foo*bar}, then
 specifying @file{/tmp/foo*bar} will visit just @file{/tmp/foo*bar}.
 Another way is to specify @file{/tmp/foo[*]bar}.
+
+@node File Conveniences
+@section Convenience Features for Finding Files
+
+@findex recentf-mode
+@vindex recentf-mode
+@findex recentf-save-list
+@findex recentf-edit-list
+The command @kbd{M-x recentf-mode} or the Customize option of the same
+name adds to the Files menu a submenu containing a list of recently
+opened files.  @kbd{recentf-save-list} saves the current file list to a
+file and @kbd{recentf-edit-list} edits it.
+
+@findex ff-find-other-file
+@vindex ff-other-file-alist
+The command @kbd{ff-find-other-file} finds a file related to the one
+visited by the current buffer, based on customizable patterns.
+Typically this will be the header file corresponding to a C/C++ source
+file, or vice versa.  The patterns describing the corresponding files
+are customizable via @code{ff-other-file-alist}.
+
+@c The Shadowfile package provides automatic file copying, allowing you to
+@c keep identical copies of files in more than one place---possibly on
+@c different machines.  When you save a file, it checks whether it is on
+@c the list of files with `shadows', and if so, it tries to copy it when
+@c you exit emacs (or use the @kbd{M-x shadow-copy-files} command).
