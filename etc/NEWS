@@ -781,6 +781,10 @@ appropriate for C-style escape sequences in strings.
 
 ** New modes and packages
 
+*** glasses-mode is a minor mode that makes
+unreadableIdentifiersLikeThis readable.  It works as glasses, without
+actually modifying content of a buffer.
+
 *** The package ebnf2ps translates an EBNF to a syntactic chart in
 PostScript.
 

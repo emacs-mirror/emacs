@@ -1,3 +1,7 @@
+2000-02-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 650000.
+
 2000-02-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* msdos.c (XMenuActivate): Turn off the cursor after displaying

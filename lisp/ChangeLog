@@ -1,3 +1,9 @@
+2000-02-07  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+
+	* mail/rmail.el (rmail-retry-failure): Use
+	rmail-beginning-of-message before rmail-toggle-header, because the
+	former toggles headers.
+
 2000-02-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-kill-junk): New interactive function.
