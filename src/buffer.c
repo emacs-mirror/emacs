@@ -364,12 +364,17 @@ The value is never nil.")
   BUF_OVERLAY_MODIFF (b) = 1;
   BUF_SAVE_MODIFF (b) = 1;
   BUF_INTERVALS (b) = 0;
+  BUF_UNCHANGED_MODIFIED (b) = 1;
+  BUF_OVERLAY_UNCHANGED_MODIFIED (b) = 1;
+  BUF_END_UNCHANGED (b) = 0;
+  BUF_BEG_UNCHANGED (b) = 0;
   *(BUF_GPT_ADDR (b)) = *(BUF_Z_ADDR (b)) = 0; /* Put an anchor '\0'.  */
 
   b->newline_cache = 0;
   b->width_run_cache = 0;
   b->width_table = Qnil;
   b->minibuffer_prompt_length = Qnil;
+  b->prevent_redisplay_optimizations_p = 1;
 
   /* Put this on the chain of all buffers including killed ones.  */
   b->next = all_buffers;
@@ -521,7 +526,8 @@ reset_buffer (b)
   XSETFASTINT (b->save_length, 0);
   b->last_window_start = 1;
   /* It is more conservative to start out "changed" than "unchanged".  */
-  b->clip_changed = 1;
+  b->clip_changed = 0;
+  b->prevent_redisplay_optimizations_p = 1;
   b->backed_up = Qnil;
   b->auto_save_modified = 0;
   b->auto_save_failure_time = -1;
@@ -1430,16 +1436,23 @@ void
 set_buffer_internal (b)
      register struct buffer *b;
 {
-  register struct buffer *old_buf;
-  register Lisp_Object tail, valcontents;
-  Lisp_Object tem;
-
-  if (current_buffer == b)
-    return;
-
-  /* Otherwise, force-mode-line-update doesn't work as expected.  */
-  windows_or_buffers_changed = 1;
-  set_buffer_internal_1 (b);
+  if (current_buffer != b)
+    {
+      /* Set windows_or_buffers_changed only if buffer is displayed
+	 somewhere.  This enables redisplay optimizations if a
+	 background task like deferred fontification changes buffers,
+	 but none that are currently displayed.  */
+      if (!windows_or_buffers_changed
+	  && selected_frame)
+	{
+	  Lisp_Object buffer;
+	  XSETBUFFER (buffer, b);
+	  if (!NILP (Fget_buffer_window (buffer, Qvisible)))
+	    ++windows_or_buffers_changed;
+	}
+  
+      set_buffer_internal_1 (b);
+    }
 }
 
 /* Set the current buffer to B, and do not set windows_or_buffers_changed.
@@ -3089,28 +3102,11 @@ modify_overlay (buf, start, end)
      we must do other windows.  */
   if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
     windows_or_buffers_changed = 1;
-  /* If it's not current, we can't use beg_unchanged, end_unchanged for it.  */
-  else if (buf != current_buffer)
-    windows_or_buffers_changed = 1;
   /* If multiple windows show this buffer, we must do other windows.  */
   else if (buffer_shared > 1)
     windows_or_buffers_changed = 1;
   else
-    {
-      if (unchanged_modified == MODIFF
-	  && overlay_unchanged_modified == OVERLAY_MODIFF)
-	{
-	  beg_unchanged = start - BEG;
-	  end_unchanged = Z - end;
-	}
-      else
-	{
-	  if (Z - end < end_unchanged)
-	    end_unchanged = Z - end;
-	  if (start - BEG < beg_unchanged)
-	    beg_unchanged = start - BEG;
-	}
-    }
+    BUF_COMPUTE_UNCHANGED (buf, start, end);
 
   ++BUF_OVERLAY_MODIFF (buf);
 }
