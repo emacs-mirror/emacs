@@ -1,7 +1,7 @@
 /*  impl.c.protnt
  *
  *               PROTECTION FOR WIN32
- *  $HopeName: MMsrc!protnt.c(trunk.8) $
+ *  $HopeName: MMsrc!protw3.c(trunk.9) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -14,7 +14,7 @@
 
 #include <windows.h>
 
-SRCID(protnt, "$HopeName: MMsrc!protnt.c(trunk.8) $");
+SRCID(protnt, "$HopeName: MMsrc!protw3.c(trunk.9) $");
 
 
 void ProtSetup(void)
@@ -56,7 +56,10 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
   if(er->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
     return EXCEPTION_CONTINUE_SEARCH;
 
-  AVER(er->ExceptionFlags == 0); /* continuable exception */
+  /* assert that the exception is continuable */
+  /* Note that Microsoft say that this field should be 0 or */
+  /* EXCEPTION_NONCONTINUABLE, but this is not true */
+  AVER((er->ExceptionFlags & EXCEPTION_NONCONTINUABLE) == 0);
 
   /* er->ExceptionRecord is pointer to next exception in chain */
   /* er->ExceptionAddress is where exception occurred */
