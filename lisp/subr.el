@@ -437,9 +437,9 @@ corresponds to the vertical position of the click in the scroll bar."
 		(car (nth 1 position)))
 	      'horizontal-scroll-bar)
 	  (cons (scroll-bar-scale pair (window-width window)) 0)
-	(let ((frame (if (framep window) window (window-frame window)))
-	      (x (/ (car pair) (frame-char-width frame)))
-	      (y (/ (cdr pair) (frame-char-height frame))))
+	(let* ((frame (if (framep window) window (window-frame window)))
+	       (x (/ (car pair) (frame-char-width frame)))
+	       (y (/ (cdr pair) (frame-char-height frame))))
 	  (cons x y))))))
 
 (defsubst posn-timestamp (position)
