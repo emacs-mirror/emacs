@@ -276,12 +276,15 @@ to display the file, like the @kbd{o} command.
 @item v
 @kindex v @r{(Dired)}
 @findex dired-view-file
-View the file described on the current line, using @kbd{M-x view-file}
-(@code{dired-view-file}).
+View the file described on the current line, using either an external
+viewing program or @kbd{M-x view-file} (@code{dired-view-file}).
 
-Viewing a file is like visiting it, but is slanted toward moving around
-in the file conveniently and does not allow changing the file.
-@xref{Misc File Ops,View File, Miscellaneous File Operations}.
+@vindex dired-view-command-alist
+External viewers are used for certain file types under the control of
+@code{dired-view-command-alist}.  Viewing a file with @code{view-file}
+is like visiting it, but is slanted toward moving around in the file
+conveniently and does not allow changing the file.  @xref{Misc File
+Ops,View File, Miscellaneous File Operations}.
 
 @item ^
 @kindex ^ @r{(Dired)}
@@ -658,39 +661,50 @@ command to multiple files:
 
 @itemize @bullet
 @item
-If you use @samp{*} in the shell command, then it runs just once, with
-the list of file names substituted for the @samp{*}.  The order of file
-names is the order of appearance in the Dired buffer.
+If you use @samp{*} surrounded by whitespace in the shell command,
+then the command runs just once, with the list of file names
+substituted for the @samp{*}.  The order of file names is the order of
+appearance in the Dired buffer.
 
 Thus, @kbd{! tar cf foo.tar * @key{RET}} runs @code{tar} on the entire
 list of file names, putting them into one tar file @file{foo.tar}.
 
+If you want to use @samp{*} as a shell wildcard with whitespace around
+it, write @samp{*""}.  In the shell, this is equivalent to @samp{*};
+but since the @samp{*} is not surrounded by whitespace, Dired does
+not treat it specially.
+
 @item
-If the command string doesn't contain @samp{*}, then it runs once
-@emph{for each file}, with the file name added at the end.
+If the command string doesn't contain @samp{*} surrounded by
+whitespace, then it runs once @emph{for each file}.  Normally the file
+name is added at the end.
 
 For example, @kbd{! uudecode @key{RET}} runs @code{uudecode} on each
 file.
-@end itemize
 
-What if you want to run the shell command once for each file, with the
-file name inserted in the middle?  You can use @samp{?} in the command
-instead of @samp{*}.  The current file name is substituted for
-@samp{?}.  You can use @samp{?} more than once.  For instance, here is
-how to uuencode each file, making the output file name by appending
-@samp{.uu} to the input file name:
+@item
+If the command string contains @samp{?} surrounded by whitespace, the
+current file name is substituted for @samp{?}.  You can use @samp{?}
+this way more than once in the command, and each occurrence is
+replaced.  For instance, here is how to uuencode each file, making the
+output file name by appending @samp{.uu} to the input file name:
 
 @example
 uuencode ? ? > ?.uu
 @end example
+@end itemize
 
-To use the file names in a more complicated fashion, you can use a
-shell loop.  For example, this shell command is another way to
-uuencode each file:
+To iterate over the file names in a more complicated fashion, use an
+explicit shell loop.  For example, this shell command is another way
+to uuencode each file:
 
 @example
-for file in *; do uuencode "$file" "$file" >"$file".uu; done
+for file in * ; do uuencode "$file" "$file" >"$file".uu; done
 @end example
+
+@noindent
+This simple example doesn't require a shell loop (you can do it
+with @samp{?}, but it illustrates the technique.
 
 The working directory for the shell command is the top-level directory
 of the Dired buffer.
