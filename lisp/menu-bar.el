@@ -517,6 +517,32 @@ Do the same for the keys of the same name."
 (define-key menu-bar-options-menu [customize]
   (list 'menu-item "Customize Emacs" menu-bar-custom-menu
 	:help "Full customization of every Emacs feature"))
+
+(defun menu-bar-options-save ()
+  "Save current values of Options menu items using Custom."
+  (interactive)
+  (dolist (elt '(debug-on-quit debug-on-error auto-compression-mode
+		 case-fold-search truncate-lines show-paren-mode
+		 transient-mark-mode global-font-lock-mode
+		 current-language-environment default-input-method))
+    (if (default-value elt)
+	(customize-save-variable elt (default-value elt))))
+  (if (memq 'turn-on-auto-fill text-mode-hook)
+      (customize-save-variable 'text-mode-hook
+			       (default-value 'text-mode-hook)))
+  (if (featurep 'saveplace)
+      (customize-save-variable 'save-place (default-value 'save-place)))
+  (if (featurep 'uniquify)
+      (customize-save-variable 'uniquify-buffer-name-style
+			       (default-value 'uniquify-buffer-name-style))))
+
+(define-key menu-bar-options-menu [save]
+  '(menu-item "Save options" menu-bar-options-save
+	      :help "Save options set from the menu above"))
+
+(define-key menu-bar-options-menu [custom-separator]
+  '("--"))
+
 (define-key menu-bar-options-menu [mule]
   ;; It is better not to use backquote here,
   ;; because that makes a bootstrapping problem
@@ -556,7 +582,8 @@ Do the same for the keys of the same name."
 			"Saving place in files %s"
 			"Save Emacs state for next session"
                         (require 'saveplace)
-			(setq-default save-place (not (default-value save-place)))))
+			(setq-default save-place
+				      (not (default-value save-place)))))
 (define-key menu-bar-options-menu [uniquify]
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
 			"Use Directory Names in Buffer Names"
@@ -602,14 +629,7 @@ Do the same for the keys of the same name."
 			"Highlight Syntax (Global Font Lock)"
 			"Syntax Highlighting %s"
 			"Highlights text based on language syntax"
-			;; Make sure a support mode is used;
-			;; otherwise Font Lock will be too slow.
-			(require 'font-lock)
-			(if (not global-font-lock-mode)
-			    (or font-lock-support-mode
-				(setq font-lock-support-mode 'lazy-lock-mode)))
-			(global-font-lock-mode)))
-
+			global-font-lock-mode))
 
 
 ;; The "Tools" menu items
@@ -1022,16 +1042,16 @@ key (or menu-item)"))
 		       ;; Now make the actual list of items,
 		       ;; ending with the list-buffers item.
 		       (nconc (mapcar (lambda (pair)
-					 ;; This is somewhat risque, to use
-					 ;; the buffer name itself as the event
-					 ;; type to define, but it works.
-					 ;; It would not work to use the buffer
-					 ;; since a buffer as an event has its
-					 ;; own meaning.
-					 (nconc (list (buffer-name (cdr pair))
-						      (car pair)
-						      (cons nil nil))
-						'menu-bar-select-buffer))
+					;; This is somewhat risque, to use
+					;; the buffer name itself as the event
+					;; type to define, but it works.
+					;; It would not work to use the buffer
+					;; since a buffer as an event has its
+					;; own meaning.
+					(nconc (list (buffer-name (cdr pair))
+						     (car pair)
+						     (cons nil nil))
+					       'menu-bar-select-buffer))
 				      alist)
 			      (list menu-bar-buffers-menu-list-buffers-entry)))))
 
@@ -1044,12 +1064,14 @@ key (or menu-item)"))
 		   (frames-menu
 		    (cons 'keymap
 			  (cons "Select Frame"
-				(mapcar (lambda (frame)
-					   (nconc (list frame
-							(cdr (assq 'name
-								   (frame-parameters frame)))
-							(cons nil nil))
-						  'menu-bar-select-frame))
+				(mapcar
+				 (lambda (frame)
+				   (nconc
+				    (list frame
+					  (cdr (assq 'name
+						     (frame-parameters frame)))
+					  (cons nil nil))
+					  'menu-bar-select-frame))
 					frames)))))
 	       ;; Put it underneath the Buffers menu.
 	       (setq buffers-menu (cons (cons 'frames (cons name frames-menu))
