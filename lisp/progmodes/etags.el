@@ -776,11 +776,12 @@ Assumes the tags table is the current buffer."
 			       (save-excursion (end-of-line) (point))
 			       t))
 	(progn (goto-char (match-end 0))
-	       (buffer-substring (point)
-				 (progn (forward-sexp -1)
-					(while (looking-at "\\s'")
-					  (forward-char 1))
-					(point))))
+	       (buffer-substring-no-properties
+                (point)
+                (progn (forward-sexp -1)
+                       (while (looking-at "\\s'")
+                         (forward-char 1))
+                       (point))))
       nil)))
 
 ;; Read a tag name from the minibuffer with defaulting and completion.

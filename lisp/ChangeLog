@@ -1,3 +1,8 @@
+2002-11-14  Per Cederqvist  <ceder@lysator.liu.se>  (tiny change)
+
+	* progmodes/etags.el (find-tag-default): Copy text at point without
+	properties.
+
 2002-11-11  Fabrice Bauzac  <fabrice.bauzac@wanadoo.fr>  (tiny change)
 
 	* dired-aux.el (dired-show-file-type): Format filename with "%s" to
