@@ -894,7 +894,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 	      ;; then replace that region with the output.
 	      (progn (setq buffer-read-only nil)
 		     (delete-region (max start end) (point-max))
-		     (delete-region (point-min) (max start end))
+		     (delete-region (point-min) (min start end))
 		     (call-process-region (point-min) (point-max)
 					  shell-file-name t t nil
 					  shell-command-switch command)
