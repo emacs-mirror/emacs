@@ -2398,6 +2398,16 @@ and so forth.  The remaining group tags are shown with
   (or (nth (1- (widget-get widget :custom-level)) custom-group-tag-faces)
       'custom-group-tag-face))
 
+(define-widget 'custom-group-visibility 'visibility
+  "An indicator and manipulator for hidden group contents."
+  :create 'custom-group-visibility-create)
+
+(defun custom-group-visibility-create (widget)
+  (let ((visible (widget-value widget)))
+    (if visible
+	(insert "--------")))
+  (widget-default-create widget))
+
 (defun custom-group-value-create (widget)
   "Insert a customize group for WIDGET in the current buffer."
   (let ((state (widget-get widget :custom-state))
@@ -2979,6 +2989,9 @@ The format is suitable for use with `easy-menu-define'."
   :type 'hook
   :group 'custom-buffer )
 
+(defun custom-state-buffer-message ()
+  (message "To set the value, invoke [State] and choose the Set operation"))
+
 (defun custom-mode ()
   "Major mode for editing customization buffers.
 
@@ -3002,6 +3015,8 @@ if that value is non-nil."
   (use-local-map custom-mode-map)
   (easy-menu-add custom-mode-menu)
   (make-local-variable 'custom-options)
+  (make-local-hook 'widget-edit-hook)
+  (add-hook 'widget-edit-hook 'custom-state-buffer-message nil t)
   (run-hooks 'custom-mode-hook))
 
 ;;; The End.
