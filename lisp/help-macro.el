@@ -84,16 +84,21 @@ A value of nil means skip the middle step, so that
 When invoked, FNAME shows HELP-LINE and reads a command using HELPED-MAP.
 If the command is the help character, FNAME displays HELP-TEXT
 and continues trying to read a command using HELPED-MAP.
+If HELP-TEXT contains the sequence `%THIS-KEY%', that is replaced
+with the key sequence that invoked FNAME.
 When FNAME finally does get a command, it executes that command
 and then returns."
-  (` (defun (, fname) ()
-	   (, help-text)
+ (let ((doc-fn (intern (concat (symbol-name fname) "-doc"))))
+  `(progn
+    (defun ,doc-fn () ,help-text)
+    (defun ,fname ()
+	   "Help command."
 	   (interactive)
 	   (let ((line-prompt
-		  (substitute-command-keys (, help-line))))
+		  (substitute-command-keys ,help-line)))
 	     (if three-step-help
 		 (message "%s" line-prompt))
-	     (let* ((help-screen (documentation (quote (, fname))))
+	     (let* ((help-screen (documentation (quote ,doc-fn)))
 		    ;; We bind overriding-local-map for very small
 		    ;; sections, *excluding* where we switch buffers
 		    ;; and where we execute the chosen help command.
@@ -101,9 +106,13 @@ and then returns."
 		    (minor-mode-map-alist nil)
 		    (prev-frame (selected-frame))
 		    config new-frame key char)
+	       (if (string-match "%THIS-KEY%" help-screen)
+		   (setq help-screen
+			 (replace-match (key-description (substring (this-command-keys) 0 -1))
+					t t help-screen)))
 	       (unwind-protect
 		   (progn
-		     (setcdr local-map (, helped-map))
+		     (setcdr local-map ,helped-map)
 		     (define-key local-map [t] 'undefined)
 		     ;; Make the scroll bar keep working normally.
 		     (define-key local-map [vertical-scroll-bar]
@@ -182,7 +191,7 @@ and then returns."
 		 (if new-frame (iconify-frame new-frame))
 		 (if config
 		     (set-window-configuration config))))))
-     ))
+     )))
 
 ;;; help-macro.el
 
