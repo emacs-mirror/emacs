@@ -566,26 +566,21 @@ which do not include a recognizable synopsis."
     (read-file-name "Synopsis for (file or dir): ")))
 
   (if (and file (file-directory-p file))
-      (with-temp-buffer
-	(mapcar
-	 (lambda (f)
-	   (if (string-match "\\.el\\'" f)
-	       (let ((syn (lm-synopsis f)))
-		 (if syn
-		     (progn
-		       (insert f ":")
-		       (lm-insert-at-column lm-comment-column syn "\n"))
-		   (when showall
-		     (insert f ":")
-		     (lm-insert-at-column lm-comment-column "NA\n"))))))
-	 (directory-files file)))
+      (with-output-to-temp-buffer "*Synopsis*"
+        (set-buffer standard-output)
+        (dolist (f (directory-files file nil ".*\\.el\\'"))
+          (let ((syn (lm-synopsis (expand-file-name f file))))
+            (when (or syn showall)
+              (insert f ":")
+              (lm-insert-at-column lm-comment-column (or syn "NA") "\n")))))
     (save-excursion
-      (if file
-	  (find-file file))
-      (prog1
-	  (lm-summary)
-	(if file
-	    (kill-buffer (current-buffer)))))))
+      (let ((must-kill (and file (not (get-file-buffer file)))))
+        (when file (find-file file))
+        (prog1
+            (if (interactive-p)
+                (message "%s" (lm-summary))
+              (lm-summary))
+          (when must-kill (kill-buffer (current-buffer))))))))
 
 (eval-when-compile (defvar report-emacs-bug-address))
 
