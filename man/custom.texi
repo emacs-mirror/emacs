@@ -1996,7 +1996,7 @@ loaded.
   Your site may also have a @dfn{site startup file}; this is named
 @file{site-start.el}, if it exists.  Emacs loads this library before it
 loads your init file.  To inhibit loading of this library, use the
-option @samp{-no-site-file}.
+option @samp{-no-site-file}.  @xref{Initial Options}.
 
   If you have a large amount of code in your @file{.emacs} file, you
 should rename it to @file{~/.emacs.el}, and byte-compile it.  @xref{Byte
