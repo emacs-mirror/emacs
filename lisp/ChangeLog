@@ -1,3 +1,8 @@
+2003-04-24  Sam Steingold  <sds@gnu.org>
+
+	* calendar/diary-lib.el (fancy-diary-display-mode): Bind "q" to
+	`quit-window' in the fancy diary buffer.
+
 2003-04-24  Lars Hansen  <larsh@math.ku.dk>
 
 	* subr.el (assq-delete-all): Ignore non-cons elememts.

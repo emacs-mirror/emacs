@@ -201,16 +201,16 @@ in a face description"
 			   ((string= "nil" attrvalue) nil)))))
 ;    (message "(%s)[%s]=[%s]" (print type) attrvalue ret)
     ret))
-	
+
 
 (defun diary-pull-attrs (entry fileglobattrs)
-  "Pull the face-related attributes off the entry, merge with the 
-fileglobattrs, and return the (possibly modified) entry and face 
-data in a list of attrname attrvalue values.  
+  "Pull the face-related attributes off the entry, merge with the
+fileglobattrs, and return the (possibly modified) entry and face
+data in a list of attrname attrvalue values.
 The entry will be modified to drop all tags that are used for face matching.
-If entry is nil, then the fileglobattrs are being searched for, 
-the fileglobattrs variable is ignored, and 
-diary-glob-file-regexp-prefix is prepended to the regexps before each 
+If entry is nil, then the fileglobattrs are being searched for,
+the fileglobattrs variable is ignored, and
+diary-glob-file-regexp-prefix is prepended to the regexps before each
 search."
   (save-excursion
     (let (regexp regnum attrname attr-list attrname attrvalue type)
@@ -248,7 +248,7 @@ search."
 		  type (nth 3 attr))
 	    (setq attrvalue nil)
 	    (if (string-match regexp entry)
-		(progn 
+		(progn
 		  (setq attrvalue (substring-no-properties entry
 							   (match-beginning regnum)
 							   (match-end regnum)))
@@ -258,8 +258,8 @@ search."
 		(setq ret-attr (append ret-attr (list attrname attrvalue))))
 	    (setq attr-list (cdr attr-list)))))))
   (list entry ret-attr))
-  
-  
+
+
 
 (defun list-diary-entries (date number)
   "Create and display a buffer containing the relevant lines in diary-file.
@@ -983,7 +983,7 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
 		      temp (diary-pull-attrs entry file-glob-attrs)
 		      marks (nth 1 temp))
 		(mark-visible-calendar-date
-		 (calendar-gregorian-from-absolute date) 
+		 (calendar-gregorian-from-absolute date)
 		 (if (< 0 (length marks))
 		     marks
 		   (if (consp mark)
@@ -1339,7 +1339,7 @@ best if they are nonmarking."
 			     entry
 			     specifier
 			     (if entry-start (copy-marker entry-start)
-			       nil) 
+			       nil)
 			     marks)
 	  (setq entry-found (or entry-found diary-entry)))))
     entry-found))
@@ -1733,7 +1733,8 @@ Prefix arg will make the entry nonmarking."
   "Diary"
   "Major mode used while displaying diary entries using Fancy Display."
   (set (make-local-variable 'font-lock-defaults)
-       '(fancy-diary-font-lock-keywords t)))
+       '(fancy-diary-font-lock-keywords t))
+  (define-key (current-local-map) "q" 'quit-window))
 
 
 (defvar fancy-diary-font-lock-keywords
