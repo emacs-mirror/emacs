@@ -761,7 +761,7 @@ See also `minibuffer-history-case-insensitive-variables'."
     (if (and (zerop minibuffer-history-position)
 	     (null minibuffer-text-before-history))
 	(setq minibuffer-text-before-history
-	      (minibuffer-contents-no-properties))
+	      (minibuffer-contents-no-properties)))
     (let ((history (symbol-value minibuffer-history-variable))
 	  (case-fold-search
 	   (if (isearch-no-upper-case-p regexp t) ; assume isearch.el is dumped
@@ -800,7 +800,7 @@ See also `minibuffer-history-case-insensitive-variables'."
       (goto-char (point-max))
       (delete-minibuffer-contents)
       (insert match-string)
-      (goto-char (+ (minibuffer-prompt-end) match-offset)))))
+      (goto-char (+ (minibuffer-prompt-end) match-offset))))
   (if (or (eq (car (car command-history)) 'previous-matching-history-element)
 	  (eq (car (car command-history)) 'next-matching-history-element))
       (setq command-history (cdr command-history))))
