@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.7 2001/07/16 07:46:48 pj Exp $
+;; Revision: $Id: pcvs-info.el,v 1.8 2001/12/31 20:28:40 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -318,14 +318,17 @@ FI-OR-TYPE can either be a symbol (a fileinfo-type) or a fileinfo."
     (and (not (eq type 'MESSAGE))
 	 (eq (car (memq func (cdr (assq type cvs-states)))) func))))
 
-(defun cvs-add-face (str face &optional keymap)
-  (when cvs-highlight
+(defun cvs-add-face (str face &optional keymap &rest properties)
+  (when (or cvs-highlight properties)
     (add-text-properties 0 (length str)
-			 (list* 'face face
-				(when keymap
-				  (list* 'mouse-face 'highlight
-					 (when (keymapp keymap)
-					   (list 'keymap keymap)))))
+			 (append
+			  (when cvs-highlight
+			    (list* 'face face
+				   (when keymap
+				     (list* 'mouse-face 'highlight
+					    (when (keymapp keymap)
+					      (list 'keymap keymap))))))
+			  properties)
 			 str))
   str)
 
@@ -349,7 +352,8 @@ For use by the cookie package."
 			   (cvs-add-face "*" 'cvs-marked-face)
 			 " "))
 	       (file (cvs-add-face (cvs-fileinfo->pp-name fileinfo)
-				   'cvs-filename-face t))
+				   'cvs-filename-face t
+				   'cvs-goal-column t))
 	       (base (or (cvs-fileinfo->base-rev fileinfo) ""))
 	       (head (cvs-fileinfo->head-rev fileinfo))
 	       (type
@@ -371,8 +375,8 @@ For use by the cookie package."
 		      (when (and head (not (string= head base))) head)
 		      ;; or nothing
 		      "")))
-	  (format "%-11s %s %-11s %-11s %s"
-	  	  side status type base file)))))))
+	   (format "%-11s %s %-11s %-11s %s"
+		   side status type base file)))))))
 
 
 (defun cvs-fileinfo-update (fi fi-new)

@@ -1,3 +1,11 @@
+2002-04-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* pcvs.el (cvs-mode-previous-line, cvs-mode-next-line): Move to
+	spot indicated by text property `cvs-goal-column', if present.
+
+	* pcvs-info.el (cvs-fileinfo-pp): Use text property
+	`cvs-goal-column' to indicate position of file name (if present).
+
 2002-04-03  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/mailabbrev.el (mail-abbrev-complete-alias):

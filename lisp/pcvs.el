@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.32 2001/12/20 18:43:35 pj Exp $
+;; Revision: $Id: pcvs.el,v 1.33 2002/01/25 22:41:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1089,13 +1089,25 @@ Full documentation is in the Texinfo file."
   "Go to the previous line.
 If a prefix argument is given, move by that many lines."
   (interactive "p")
-  (ewoc-goto-prev cvs-cookies arg))
+  (ewoc-goto-prev cvs-cookies arg)
+  (let ((fpos (next-single-property-change
+	       (point) 'cvs-goal-column
+	       (current-buffer) (line-end-position)))
+	(eol (line-end-position)))
+    (when (< fpos eol)
+      (goto-char fpos))))
 
 (defun-cvs-mode cvs-mode-next-line (arg)
   "Go to the next line.
 If a prefix argument is given, move by that many lines."
   (interactive "p")
-  (ewoc-goto-next cvs-cookies arg))
+  (ewoc-goto-next cvs-cookies arg)
+  (let ((fpos (next-single-property-change
+	       (point) 'cvs-goal-column
+	       (current-buffer) (line-end-position)))
+	(eol (line-end-position)))
+    (when (< fpos eol)
+      (goto-char fpos))))
 
 ;;;;
 ;;;; Mark handling
