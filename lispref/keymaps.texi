@@ -2150,6 +2150,10 @@ Used when the item is disabled and deselected.
 @end table
 @end table
 
+If @var{image} is a single image specification, Emacs draws the tool bar
+button in disabled state by applying an edge-detection algorithm to the
+image.
+
 @tindex auto-resize-tool-bar
 @defvar auto-resize-tool-bar
 If this variable is non-@code{nil}, the tool bar automatically resizes to
