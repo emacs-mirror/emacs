@@ -3626,6 +3626,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   int title_faces[4];		/* face to display the menu title */
   int buffers_num_deleted = 0;
   struct frame *sf = SELECTED_FRAME();
+  Lisp_Object saved_echo_area_message;
 
   /* Just in case we got here without a mouse present...  */
   if (have_mouse <= 0)
@@ -3673,6 +3674,11 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
       menu->text[0][7] = '\0';
       buffers_num_deleted = 1;
     }
+
+  /* We need to save the current echo area message, so that we could
+     restore it below, before we exit.  See the commentary below,
+     before the call to message_with_string.  */
+  saved_echo_area_message = Fcurrent_message ();
   state[0].menu = menu;
   mouse_off ();
   ScreenRetrieve (state[0].screen_behind = xmalloc (screensize));
@@ -3791,6 +3797,26 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   ScreenUpdate (state[0].screen_behind);
   if (screen_virtual_segment)
     dosv_refresh_virtual_screen (0, screen_size);
+
+  /* We have a situation here.  ScreenUpdate has just restored the
+     screen contents as it was before we started drawing this menu.
+     That includes any echo area message that could have been
+     displayed back then.  (In reality, that echo area message will
+     almost always be the ``keystroke echo'' that echoes the sequence
+     of menu items chosen by the user.)  However, if the menu had some
+     help messages, then displaying those messages caused Emacs to
+     forget about the original echo area message.  So when
+     ScreenUpdate restored it, it created a discrepancy between the
+     actual screen contents and what Emacs internal data structures
+     know about it.
+
+     To avoid this conflict, we force Emacs to restore the original
+     echo area message as we found it when we entered this function.
+     The irony of this is that we then erase the restored message
+     right away, so the only purpose of restoring it is so that
+     erasing it works correctly...  */
+  if (! NILP (saved_echo_area_message))
+    message_with_string ("%s", saved_echo_area_message, 0);
   message (0);
   while (statecount--)
     xfree (state[statecount].screen_behind);
