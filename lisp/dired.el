@@ -419,20 +419,24 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	  ;; kill-all-local-variables any longer.
 	  (setq buffer (create-file-buffer (directory-file-name dirname)))))
     (set-buffer buffer)
-    (if (not new-buffer-p)		; existing buffer ...
-	(if switches			; ... but new switches
-	    (dired-sort-other switches)	; this calls dired-revert
-	  ;; If directory has changed on disk, offer to revert.
-	  (if (let ((attributes (file-attributes dirname))
-		    (modtime (visited-file-modtime)))
-		(or (eq modtime 0)
-		    (not (eq (car attributes) t))
-		    (and (= (car (nth 5 attributes)) (car modtime))
-			 (= (nth 1 (nth 5 attributes)) (cdr modtime)))))
-	      nil
-	    (message
-	     (substitute-command-keys
-	      "Directory has changed on disk; type \\[revert-buffer] to update Dired"))))
+    (if (not new-buffer-p)     ; existing buffer ...
+	(cond (switches        ; ... but new switches     
+	       ;; file list may have changed
+	       (if (consp dir-or-list) 
+		   (setq dired-directory dir-or-list))
+	       ;; this calls dired-revert
+	       (dired-sort-other switches))  
+	      ;; If directory has changed on disk, offer to revert.
+	      ((if (let ((attributes (file-attributes dirname))
+			 (modtime (visited-file-modtime)))
+		     (or (eq modtime 0)
+			 (not (eq (car attributes) t))
+			 (and (= (car (nth 5 attributes)) (car modtime))
+			      (= (nth 1 (nth 5 attributes)) (cdr modtime)))))
+		   nil
+		 (message
+		  (substitute-command-keys
+		   "Directory has changed on disk; type \\[revert-buffer] to update Dired")))))
       ;; Else a new buffer
       (setq default-directory
 	    (if (file-directory-p dirname)
@@ -472,7 +476,9 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	(save-excursion
 	  (set-buffer (cdr (car blist)))
 	  (if (and (eq major-mode mode)
-		   (equal dired-directory dirname))
+		   (if (consp dired-directory)
+		       (equal (car dired-directory) dirname)
+		     (equal dired-directory dirname)))
 	      (setq found (cdr (car blist))
 		    blist nil)
 	    (setq blist (cdr blist))))))
@@ -2207,7 +2213,7 @@ With a prefix argument you can edit the current listing switches instead."
   ;; minor mode accordingly, others appear literally in the mode line.
   ;; With optional second arg NO-REVERT, don't refresh the listing afterwards.
   (setq dired-actual-switches switches)
-  (dired-sort-set-modeline)
+  (if (eq major-mode 'dired-mode) (dired-sort-set-modeline))
   (or no-revert (revert-buffer)))
 
 ;; To make this file smaller, the less common commands
