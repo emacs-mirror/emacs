@@ -111,10 +111,17 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-toggle-read-only] -- toggle read-only status of buffer on this line."
   (kill-all-local-variables)
   (use-local-map Buffer-menu-mode-map)
-  (setq truncate-lines t)
-  (setq buffer-read-only t)
   (setq major-mode 'Buffer-menu-mode)
   (setq mode-name "Buffer Menu")
+  (save-excursion
+    (goto-char (point-min))
+    (forward-line 2)
+    (while (not (eobp))
+      (put-text-property (point) (save-excursion (end-of-line) (point))
+			 'mouse-face 'highlight)
+      (forward-line 1)))
+  (setq truncate-lines t)
+  (setq buffer-read-only t)
   (run-hooks 'buffer-menu-mode-hook))
 
 (defvar Buffer-menu-buffer-column nil)
