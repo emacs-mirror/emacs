@@ -18,6 +18,8 @@ Emacs
 * Info: (info).		How to use the documentation browsing system.
 * Emacs: (emacs).	The extensible self-documenting text editor.
 * Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
+* Emacs Lisp Intro: (emacs-lisp-intro).
+  			A simple introduction to Emacs Lisp programming.
 * Elisp: (elisp).	The Emacs Lisp Reference Manual.
 
 * CL: (cl).		Partial Common Lisp support for Emacs Lisp.
