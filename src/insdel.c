@@ -1492,9 +1492,9 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte, replace)
    That way, undo will also handle markers properly.  */
 
 void
-replace_range (from, to, new, prepare, inherit)
+replace_range (from, to, new, prepare, inherit, nomarkers)
      Lisp_Object new;
-     int from, to, prepare, inherit;
+     int from, to, prepare, inherit, nomarkers;
 {
   int inschars = XSTRING (new)->size;
   int insbytes = XSTRING (new)->size_byte;
@@ -1558,11 +1558,12 @@ replace_range (from, to, new, prepare, inherit)
 
   deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
 
-  /* Relocate all markers pointing into the new, larger gap
-     to point at the end of the text before the gap.
-     Do this before recording the deletion,
-     so that undo handles this after reinserting the text.  */
-  adjust_markers_for_delete (from, from_byte, to, to_byte);
+  if (nomarkers)
+    /* Relocate all markers pointing into the new, larger gap
+       to point at the end of the text before the gap.
+       Do this before recording the deletion,
+       so that undo handles this after reinserting the text.  */
+    adjust_markers_for_delete (from, from_byte, to, to_byte);
 
   record_delete (from, deletion);
 
@@ -1658,9 +1659,10 @@ replace_range (from, to, new, prepare, inherit)
      adjusting the markers that bound the overlays.  */
   adjust_overlays_for_delete (from, nchars_del);
   adjust_overlays_for_insert (from, inschars);
-  adjust_markers_for_insert (from, from_byte,
-			     from + inschars, from_byte + outgoing_insbytes,
-			     combined_before_bytes, combined_after_bytes, 0);
+  if (nomarkers)
+    adjust_markers_for_insert (from, from_byte,
+			       from + inschars, from_byte + outgoing_insbytes,
+			       combined_before_bytes, combined_after_bytes, 0);
 
 #ifdef USE_TEXT_PROPERTIES
   offset_intervals (current_buffer, PT, inschars - nchars_del);
