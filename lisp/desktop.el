@@ -458,7 +458,8 @@ MODE is the major mode."
 			       (let (ret)
 				 (mapcar
 				  #'(lambda (mim)
-				      (and (symbol-value mim)
+				      (and (boundp mim)
+					   (symbol-value mim)
 					   (setq ret
 						 (cons (let ((special (assq mim desktop-minor-mode-table)))
 							(if special
