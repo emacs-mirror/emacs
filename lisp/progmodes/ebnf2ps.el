@@ -1,12 +1,12 @@
 ;;; ebnf2ps --- Translate an EBNF to a syntatic chart on PostScript
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2000/12/19 15:17:15 vinicius>
-;; Version:    3.4
+;; Time-stamp:        <2001/02/02 15:23:39 vinicius>
+;; Version:   3.5
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/Emacs.html
 
 ;; This file is part of GNU Emacs.
@@ -26,8 +26,9 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "3.4"
-  "ebnf2ps.el, v 3.4 <2000/12/19 vinicius>
+(defconst ebnf-version "3.5"
+  "ebnf2ps.el, v 3.5 <2001/02/02 vinicius>
+
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -4384,7 +4385,7 @@ end
      "\n%%BoundingBox: 0 0 "
      (format "%d %d" (1+ ebnf-eps-upper-x) (1+ ebnf-eps-upper-y))
      "\n%%Title: " filename
-     "\n%%CreationDate: " (time-stamp-hh:mm:ss) " " (time-stamp-mon-dd-yyyy)
+     "\n%%CreationDate: " (format-time-string "%T %b %d %Y")
      "\n%%Creator: " (user-full-name) " (using ebnf2ps v" ebnf-version ")"
      "\n%%DocumentNeededResources: font "
      (or ebnf-fonts-required
