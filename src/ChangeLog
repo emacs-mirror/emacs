@@ -1,3 +1,9 @@
+2004-11-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c: Move #include "systime.h" before <sys/resource.h>.
+	Don't include <sys/time.h> explicitly.
+	Include <stdio.h> unconditionally, not just on MacOS.
+
 2004-11-08  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_pattern_regexp): Cancel my previous change;
