@@ -219,9 +219,9 @@ Symbols are also allowed; their print names are used instead. */)
      register Lisp_Object s1, s2;
 {
   if (SYMBOLP (s1))
-    XSETSTRING (s1, XSYMBOL (s1)->name);
+    s1 = SYMBOL_NAME (s1);
   if (SYMBOLP (s2))
-    XSETSTRING (s2, XSYMBOL (s2)->name);
+    s2 = SYMBOL_NAME (s2);
   CHECK_STRING (s1);
   CHECK_STRING (s2);
 
@@ -346,9 +346,9 @@ Symbols are also allowed; their print names are used instead. */)
   register int i1, i1_byte, i2, i2_byte;
 
   if (SYMBOLP (s1))
-    XSETSTRING (s1, XSYMBOL (s1)->name);
+    s1 = SYMBOL_NAME (s1);
   if (SYMBOLP (s2))
-    XSETSTRING (s2, XSYMBOL (s2)->name);
+    s2 = SYMBOL_NAME (s2);
   CHECK_STRING (s1);
   CHECK_STRING (s2);
 
@@ -3255,7 +3255,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
 	 of what files are preloaded and when.  */
       if (! NILP (Vpurify_flag))
 	error ("(require %s) while preparing to dump",
-	       XSYMBOL (feature)->name->data);
+	       XSTRING (SYMBOL_NAME (feature))->data);
       
       /* A certain amount of recursive `require' is legitimate,
 	 but if we require the same feature recursively 3 times,
@@ -3269,7 +3269,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
 	}
       if (nesting > 2)
 	error ("Recursive `require' for feature `%s'",
-	       XSYMBOL (feature)->name->data);
+	       XSTRING (SYMBOL_NAME (feature))->data);
 
       /* Update the list for any nested `require's that occur.  */
       record_unwind_protect (require_unwind, require_nesting_list);
@@ -3292,7 +3292,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
       tem = Fmemq (feature, Vfeatures);
       if (NILP (tem))
 	error ("Required feature `%s' was not provided",
-	       XSYMBOL (feature)->name->data);
+	       XSTRING (SYMBOL_NAME (feature))->data);
 
       /* Once loading finishes, don't undo it.  */
       Vautoload_queue = Qt;
@@ -4796,8 +4796,8 @@ sxhash (obj, depth)
       break;
 
     case Lisp_Symbol:
-      hash = sxhash_string (XSYMBOL (obj)->name->data,
-			    XSYMBOL (obj)->name->size);
+      hash = sxhash_string (XSTRING (SYMBOL_NAME (obj))->data,
+			    XSTRING (SYMBOL_NAME (obj))->size);
       break;
 
     case Lisp_Misc:
