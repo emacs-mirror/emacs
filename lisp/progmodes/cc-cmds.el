@@ -2900,7 +2900,8 @@ command to conveniently insert and align the necessary backslashes."
 	      ;; The region includes the comment starter.
 	      (save-excursion
 		(goto-char (car c-lit-limits))
-		(if (looking-at (concat "\\(" comment-start-skip "\\)$"))
+		(if (and (looking-at (concat "\\(" comment-start-skip "\\)$"))
+			 (> here (match-end 0)))
 		    ;; Begin with the next line.
 		    (setq beg (c-point 'bonl))
 		  ;; Fake the fill prefix in the first line.
