@@ -1,101 +1,19 @@
-/* Copyright (C) 1985, 1986, 1987, 1988 Free Software Foundation, Inc.
+/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992
+   Free Software Foundation, Inc.
 
-		       NO WARRANTY
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2, or (at your option)
+    any later version.
 
-  BECAUSE THIS PROGRAM IS LICENSED FREE OF CHARGE, WE PROVIDE ABSOLUTELY
-NO WARRANTY, TO THE EXTENT PERMITTED BY APPLICABLE STATE LAW.  EXCEPT
-WHEN OTHERWISE STATED IN WRITING, FREE SOFTWARE FOUNDATION, INC,
-RICHARD M. STALLMAN AND/OR OTHER PARTIES PROVIDE THIS PROGRAM "AS IS"
-WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING,
-BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY
-AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE PROGRAM PROVE
-DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR
-CORRECTION.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
- IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW WILL RICHARD M.
-STALLMAN, THE FREE SOFTWARE FOUNDATION, INC., AND/OR ANY OTHER PARTY
-WHO MAY MODIFY AND REDISTRIBUTE THIS PROGRAM AS PERMITTED BELOW, BE
-LIABLE TO YOU FOR DAMAGES, INCLUDING ANY LOST PROFITS, LOST MONIES, OR
-OTHER SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
-USE OR INABILITY TO USE (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR
-DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY THIRD PARTIES OR
-A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS) THIS
-PROGRAM, EVEN IF YOU HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGES, OR FOR ANY CLAIM BY ANY OTHER PARTY.
-
-		GENERAL PUBLIC LICENSE TO COPY
-
-  1. You may copy and distribute verbatim copies of this source file
-as you receive it, in any medium, provided that you conspicuously and
-appropriately publish on each copy a valid copyright notice "Copyright
-(C) 1987 Free Software Foundation, Inc."; and include following the
-copyright notice a verbatim copy of the above disclaimer of warranty
-and of this License.  You may charge a distribution fee for the
-physical act of transferring a copy.
-
-  2. You may modify your copy or copies of this source file or
-any portion of it, and copy and distribute such modifications under
-the terms of Paragraph 1 above, provided that you also do the following:
-
-    a) cause the modified files to carry prominent notices stating
-    that you changed the files and the date of any change; and
-
-    b) cause the whole of any work that you distribute or publish,
-    that in whole or in part contains or is a derivative of this
-    program or any part thereof, to be licensed at no charge to all
-    third parties on terms identical to those contained in this
-    License Agreement (except that you may choose to grant more extensive
-    warranty protection to some or all third parties, at your option).
-
-    c) You may charge a distribution fee for the physical act of
-    transferring a copy, and you may at your option offer warranty
-    protection in exchange for a fee.
-
-Mere aggregation of another unrelated program with this program (or its
-derivative) on a volume of a storage or distribution medium does not bring
-the other program under the scope of these terms.
-
-  3. You may copy and distribute this program (or a portion or derivative
-of it, under Paragraph 2) in object code or executable form under the terms
-of Paragraphs 1 and 2 above provided that you also do one of the following:
-
-    a) accompany it with the complete corresponding machine-readable
-    source code, which must be distributed under the terms of
-    Paragraphs 1 and 2 above; or,
-
-    b) accompany it with a written offer, valid for at least three
-    years, to give any third party free (except for a nominal
-    shipping charge) a complete machine-readable copy of the
-    corresponding source code, to be distributed under the terms of
-    Paragraphs 1 and 2 above; or,
-
-    c) accompany it with the information you received as to where the
-    corresponding source code may be obtained.  (This alternative is
-    allowed only for noncommercial distribution and only if you
-    received the program in object code or executable form alone.)
-
-For an executable file, complete source code means all the source code for
-all modules it contains; but, as a special exception, it need not include
-source code for modules which are standard libraries that accompany the
-operating system on which the executable file runs.
-
-  4. You may not copy, sublicense, distribute or transfer this program
-except as expressly provided under this License Agreement.  Any attempt
-otherwise to copy, sublicense, distribute or transfer this program is void and
-your rights to use the program under this License agreement shall be
-automatically terminated.  However, parties who have received computer
-software programs from you with this License Agreement will not have
-their licenses terminated so long as such parties remain in full compliance.
-
-  5. If you wish to incorporate parts of this program into other free
-programs whose distribution conditions are different, write to the Free
-Software Foundation at 675 Mass Ave, Cambridge, MA 02139.  We have not yet
-worked out a simple rule that can be stated here, but we will often permit
-this.  We will be guided by the two goals of preserving the free status of
-all derivatives of our free software and of promoting the sharing and reuse of
-software.
-
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 In other words, you are welcome to use, share and improve this program.
 You are forbidden to forbid anyone else to use, share and improve
@@ -397,7 +315,100 @@ Filesz      Memsz       Flags       Align
 
 
  */
+
+/* Modified by wtien@urbana.mcd.mot.com of Motorola Inc. 
+ * 
+ * The above mechanism does not work if the unexeced ELF file is being
+ * re-layout by other applications (such as `strip'). All the applications 
+ * that re-layout the internal of ELF will layout all sections in ascending
+ * order of their file offsets. After the re-layout, the data2 section will 
+ * still be the LAST section in the section header vector, but its file offset 
+ * is now being pushed far away down, and causes part of it not to be mapped
+ * in (ie. not covered by the load segment entry in PHDR vector), therefore 
+ * causes the new binary to fail.
+ *
+ * The solution is to modify the unexec algorithm to insert the new data2
+ * section header right before the new bss section header, so their file
+ * offsets will be in the ascending order. Since some of the section's (all 
+ * sections AFTER the bss section) indexes are now changed, we also need to 
+ * modify some fields to make them point to the right sections. This is done 
+ * by macro PATCH_INDEX. All the fields that need to be patched are:
+ * 
+ * 1. ELF header e_shstrndx field.
+ * 2. section header sh_link and sh_info field.
+ * 3. symbol table entry st_shndx field.
+ *
+ * The above example now should look like:
 
+           **** SECTION HEADER TABLE ****
+[No]    Type    Flags   Addr         Offset       Size          Name
+        Link    Info    Adralgn      Entsize
+
+[1]     1       2       0x80480d4    0xd4         0x13          .interp
+        0       0       0x1          0            
+
+[2]     5       2       0x80480e8    0xe8         0x388         .hash
+        3       0       0x4          0x4          
+
+[3]     11      2       0x8048470    0x470        0x7f0         .dynsym
+        4       1       0x4          0x10         
+
+[4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
+        0       0       0x1          0            
+
+[5]     9       2       0x8049010    0x1010       0x338         .rel.plt
+        3       7       0x4          0x8          
+
+[6]     1       6       0x8049348    0x1348       0x3           .init
+        0       0       0x4          0            
+
+[7]     1       6       0x804934c    0x134c       0x680         .plt
+        0       0       0x4          0x4          
+
+[8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
+        0       0       0x4          0            
+
+[9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
+        0       0       0x4          0            
+
+[10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
+        0       0       0x4          0            
+
+[11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
+        0       0       0x4          0            
+
+[12]    1       3       0x8088330    0x3f330      0x20afc       .data
+        0       0       0x4          0            
+
+[13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
+        0       0       0x4          0            
+
+[14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
+        0       0       0x4          0x4          
+
+[15]    6       3       0x80a9874    0x60874      0x80          .dynamic
+        4       0       0x4          0x8          
+
+[16]    1       3       0x80a98f4    0x608f4      0x1cf0c       .data
+        0       0       0x4          0            
+
+[17]    8       3       0x80c6800    0x7d800      0             .bss
+        0       0       0x4          0            
+
+[18]    2       0       0            0x7d800      0x9b90        .symtab
+        19      371     0x4          0x10         
+
+[19]    3       0       0            0x87390      0x8526        .strtab
+        0       0       0x1          0            
+
+[20]    3       0       0            0x8f8b6      0x93          .shstrtab
+        0       0       0x1          0            
+
+[21]    1       0       0            0x8f949      0x68b7        .comment
+        0       0       0x1          0            
+
+ */
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -428,7 +439,23 @@ extern void fatal(char *, ...);
 #define NEW_PROGRAM_H(n) \
      (*(Elf32_Phdr *) ((byte *) new_program_h + new_file_h->e_phentsize * (n)))
 
+#define PATCH_INDEX(n) \
+  do { \
+	 if ((n) >= old_bss_index) \
+	   (n)++; } while (0)
 typedef unsigned char byte;
+
+/* Round X up to a multiple of Y.  */
+
+int
+round_up (x, y)
+     int x, y;
+{
+  int rem = x % y;
+  if (rem == 0)
+    return x;
+  return x - rem + y;
+}
 
 /* ****************************************************************
  * unexec
@@ -465,7 +492,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   Elf32_Off  new_data2_offset;
   Elf32_Addr new_data2_addr;
 
-  int n, old_bss_index, old_data_index, new_data2_index;
+  int n, nn, old_bss_index, old_data_index, new_data2_index;
   struct stat stat_buf;
 
   /* Open the old file & map it into the address space. */
@@ -570,8 +597,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   memcpy (new_file_h, old_file_h, old_file_h->e_ehsize);
   memcpy (new_program_h, old_program_h,
 	  old_file_h->e_phnum * old_file_h->e_phentsize);
-  memcpy (new_section_h, old_section_h,
-	  old_file_h->e_shnum * old_file_h->e_shentsize);
+
+  /* Modify the e_shstrndx if necessary. */
+  PATCH_INDEX (new_file_h->e_shstrndx);
 
   /* Fix up file header.  We'll add one section.  Section header is
    * further away now.
@@ -597,12 +625,19 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 
   for (n = new_file_h->e_phnum - 1; n >= 0; n--)
     {
+      /* Compute maximum of all requirements for alignment of section.  */
+      int alignment = (NEW_PROGRAM_H (n)).p_align;
+      if ((OLD_SECTION_H (old_bss_index)).sh_addralign > alignment)
+	alignment = OLD_SECTION_H (old_bss_index).sh_addralign;
+
       if (NEW_PROGRAM_H(n).p_vaddr + NEW_PROGRAM_H(n).p_filesz > old_bss_addr)
 	fatal ("Program segment above .bss in %s\n", old_name, 0);
 
       if (NEW_PROGRAM_H(n).p_type == PT_LOAD
-	  && (NEW_PROGRAM_H(n).p_vaddr + NEW_PROGRAM_H(n).p_filesz
-	      == old_bss_addr))
+	  && (round_up ((NEW_PROGRAM_H (n)).p_vaddr
+			+ (NEW_PROGRAM_H (n)).p_filesz,
+			alignment)
+	      == round_up (old_bss_addr, alignment)))
 	break;
     }
   if (n < 0)
@@ -629,19 +664,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
    * is set.  data2 section header gets added by copying the existing
    * .data header and modifying the offset, address and size.
    */
-
-  for (n = 1; n < new_file_h->e_shnum; n++)
-    {
-      if (NEW_SECTION_H(n).sh_offset >= new_data2_offset)
-	NEW_SECTION_H(n).sh_offset += new_data2_size;
-
-      if (NEW_SECTION_H(n).sh_addr
-	  && NEW_SECTION_H(n).sh_addr >= new_data2_addr)
-	NEW_SECTION_H(n).sh_addr += new_data2_size - old_bss_size;
-    }
-
-  new_data2_index = old_file_h->e_shnum;
-
   for (old_data_index = 1; old_data_index < old_file_h->e_shnum;
        old_data_index++)
     if (!strcmp (old_section_names + OLD_SECTION_H(old_data_index).sh_name,
@@ -650,38 +672,98 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (old_data_index == old_file_h->e_shnum)
     fatal ("Can't find .data in %s.\n", old_name, 0);
 
-  memcpy (&NEW_SECTION_H(new_data2_index), &OLD_SECTION_H(old_data_index),
-	  new_file_h->e_shentsize);
-
-  NEW_SECTION_H(new_data2_index).sh_addr = new_data2_addr;
-  NEW_SECTION_H(new_data2_index).sh_offset = new_data2_offset;
-  NEW_SECTION_H(new_data2_index).sh_size = new_data2_size;
-
-  NEW_SECTION_H(old_bss_index).sh_size = 0;
-  NEW_SECTION_H(old_bss_index).sh_addr = new_data2_addr + new_data2_size;
-
-  /* Write out the sections. .data and .data1 (and data2, called
-   * ".data" in the strings table) get copied from the current process
-   * instead of the old file.
-   */
-
-  for (n = new_file_h->e_shnum - 1; n; n--)
+  /* Walk through all section headers, insert the new data2 section right 
+     before the new bss section. */
+  for (n = 1, nn = 1; n < old_file_h->e_shnum; n++, nn++)
     {
       caddr_t src;
+      /* If it is bss section, insert the new data2 section before it. */
+      if (n == old_bss_index)
+	{
+	  /* Steal the data section header for this data2 section. */
+	  memcpy (&NEW_SECTION_H(nn), &OLD_SECTION_H(old_data_index),
+		  new_file_h->e_shentsize);
+	  
+	  NEW_SECTION_H(nn).sh_addr = new_data2_addr;
+	  NEW_SECTION_H(nn).sh_offset = new_data2_offset;
+	  NEW_SECTION_H(nn).sh_size = new_data2_size;
+	  /* Use the bss section's alignment. This will assure that the
+	     new data2 section always be placed in the same spot as the old
+	     bss section by any other application. */
+	  NEW_SECTION_H(nn).sh_addralign = OLD_SECTION_H(n).sh_addralign;
 
-      if (NEW_SECTION_H(n).sh_type == SHT_NULL
-	  || NEW_SECTION_H(n).sh_type == SHT_NOBITS)
+	  /* Now copy over what we have in the memory now. */
+	  memcpy (NEW_SECTION_H(nn).sh_offset + new_base, 
+		  (caddr_t) OLD_SECTION_H(n).sh_addr, 
+		  new_data2_size);
+	  nn++;
+	}
+      
+      memcpy (&NEW_SECTION_H(nn), &OLD_SECTION_H(n), 
+	      old_file_h->e_shentsize);
+      
+      /* The new bss section's size is zero, and its file offset and virtual
+	 address should be off by NEW_DATA2_SIZE. */
+      if (n == old_bss_index)
+	{
+	  /* NN should be `old_bss_index + 1' at this point. */
+	  NEW_SECTION_H(nn).sh_offset += new_data2_size;
+	  NEW_SECTION_H(nn).sh_addr += new_data2_size;
+	  /* Let the new bss section address alignment be the same as the
+	     section address alignment followed the old bss section, so 
+	     this section will be placed in exactly the same place. */
+	  NEW_SECTION_H(nn).sh_addralign = OLD_SECTION_H(nn).sh_addralign;
+	  NEW_SECTION_H(nn).sh_size = 0;
+	}
+      /* Any section that was original placed AFTER the bss section should now
+	 be off by NEW_DATA2_SIZE. */
+      else if (NEW_SECTION_H(nn).sh_offset >= new_data2_offset)
+	NEW_SECTION_H(nn).sh_offset += new_data2_size;
+      
+      /* If any section hdr refers to the section after the new .data
+	 section, make it refer to next one because we have inserted 
+	 a new section in between. */
+      
+      PATCH_INDEX(NEW_SECTION_H(nn).sh_link);
+      PATCH_INDEX(NEW_SECTION_H(nn).sh_info);
+      
+      /* Now, start to copy the content of sections. */
+      if (NEW_SECTION_H(nn).sh_type == SHT_NULL
+	  || NEW_SECTION_H(nn).sh_type == SHT_NOBITS)
 	continue;
-
+      
+      /* Write out the sections. .data and .data1 (and data2, called
+       * ".data" in the strings table) get copied from the current process
+       * instead of the old file.
+       */
       if (!strcmp (old_section_names + NEW_SECTION_H(n).sh_name, ".data")
 	  || !strcmp ((old_section_names + NEW_SECTION_H(n).sh_name),
 		      ".data1"))
-	src = (caddr_t) NEW_SECTION_H(n).sh_addr;
+	src = (caddr_t) OLD_SECTION_H(n).sh_addr;
       else
 	src = old_base + OLD_SECTION_H(n).sh_offset;
+      
+      memcpy (NEW_SECTION_H(nn).sh_offset + new_base, src,
+	      NEW_SECTION_H(nn).sh_size);
 
-      memcpy (NEW_SECTION_H(n).sh_offset + new_base, src,
-	      NEW_SECTION_H(n).sh_size);
+      /* If it is the symbol table, its st_shndx field needs to be patched. */
+      if (NEW_SECTION_H(nn).sh_type == SHT_SYMTAB
+	  || NEW_SECTION_H(nn).sh_type == SHT_DYNSYM)
+	{
+	  Elf32_Shdr *spt = &NEW_SECTION_H(nn);
+	  unsigned int num = spt->sh_size / spt->sh_entsize;
+	  Elf32_Sym * sym = (Elf32_Sym *) (NEW_SECTION_H(nn).sh_offset + 
+					   new_base);
+	  for (; num--; sym++)
+	    {
+	      if ((sym->st_shndx == SHN_UNDEF)
+		  || (sym->st_shndx == SHN_ABS)
+		  || (sym->st_shndx == SHN_COMMON))
+		continue;
+	
+	      PATCH_INDEX(sym->st_shndx);
+	    }
+	}
     }
 
   /* Close the files and make the new file executable */
