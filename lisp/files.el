@@ -330,7 +330,9 @@ accessible."
 The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level."
-  (if (string= filename "~")
+  (if (or (string= filename "~")
+	  (and (string= (substring filename 0 1) "~")
+	       (string-match "~[^/]*" filename)))
       (progn
 	(setq filename (expand-file-name filename))
 	(if (string= filename "")
@@ -1298,19 +1300,26 @@ Value is a list whose car is the name for the backup file
       (list (make-backup-file-name fn))
     (let* ((base-versions (concat (file-name-nondirectory fn) ".~"))
 	   (bv-length (length base-versions))
-	   (possibilities (file-name-all-completions
-			   base-versions
-			   (file-name-directory fn)))
-	   (versions (sort (mapcar
-			    (function backup-extract-version)
-			    possibilities)
-			   '<))
-	   (high-water-mark (apply 'max 0 versions))
-	   (deserve-versions-p
-	    (or version-control
-		(> high-water-mark 0)))
-	   (number-to-delete (- (length versions)
-				kept-old-versions kept-new-versions -1)))
+	   possibilities
+	   (versions nil)
+	   (high-water-mark 0)
+	   (deserve-versions-p nil)
+	   (number-to-delete 0))
+      (condition-case ()
+	  (setq possibilities (file-name-all-completions
+			       base-versions
+			       (file-name-directory fn))
+		versions (sort (mapcar
+				(function backup-extract-version)
+				possibilities)
+			       '<)
+		high-water-mark (apply 'max 0 versions)
+		deserve-versions-p (or version-control
+				       (> high-water-mark 0))
+		number-to-delete (- (length versions)
+				    kept-old-versions kept-new-versions -1))
+	(file-error
+	 (setq possibilities nil)))
       (if (not deserve-versions-p)
 	  (list (make-backup-file-name fn))
 	(cons (concat fn ".~" (int-to-string (1+ high-water-mark)) "~")
