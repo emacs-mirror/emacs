@@ -4099,7 +4099,7 @@ status_notify ()
 
 DEFUN ("set-process-coding-system", Fset_process_coding_system,
        Sset_process_coding_system, 1, 3, 0,
-  "Set coding-systems of PROCESS to DECODING (input from the process) and\n\
+  "Set coding systems of PROCESS to DECODING (input from the process) and\n\
 ENCODING (output to the process).")
   (proc, decoding, encoding)
      register Lisp_Object proc, decoding, encoding;
@@ -4125,7 +4125,7 @@ ENCODING (output to the process).")
 
 DEFUN ("process-coding-system",
        Fprocess_coding_system, Sprocess_coding_system, 1, 1, 0,
-  "Return a cons of coding-system for decoding and encoding of PROCESS.")
+  "Return a cons of coding systems for decoding and encoding of PROCESS.")
   (proc)
      register Lisp_Object proc;
 {
