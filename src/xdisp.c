@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 99, 2000
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 99, 2000, 2001
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -6360,6 +6360,17 @@ push_message ()
   msg = current_message ();
   Vmessage_stack = Fcons (msg, Vmessage_stack);
   return STRINGP (msg);
+}
+
+
+/* Handler for record_unwind_protect calling pop_message.  */
+
+Lisp_Object
+push_message_unwind (dummy)
+     Lisp_Object dummy;
+{
+  pop_message ();
+  return Qnil;
 }
 
 
