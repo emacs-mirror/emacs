@@ -51,7 +51,14 @@ extern sigset_t sys_sigmask ();
 
 #ifndef sigpause
 #define sigpause(SIG)    sys_sigpause (SIG)
+#else
+/* If sigpause is predefined, with POSIX_SIGNALS,
+   let's assume it needs this kind of argument.
+   This is true for Glibc 2.1.  */
+#undef SIGEMPTYMASK
+#define SIGEMPTYMASK sigmask (0)
 #endif
+
 #define sigblock(SIG)    sys_sigblock (SIG)
 #define sigunblock(SIG)  sys_sigunblock (SIG)
 #ifndef sigsetmask
