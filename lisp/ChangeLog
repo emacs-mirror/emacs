@@ -1,3 +1,8 @@
+2005-03-17  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-fallback): Check for `(car previous)'
+	before calling `isearch-other-end-state'.
+
 2005-03-17  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (move-beginning-of-line): Move to beginning of buffer
