@@ -1,5 +1,10 @@
 2001-04-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* server.el (server-visit-files): Set server-existing-buffer
+	correctly.
+	(server-visit-files): Run server-visit-hook after going to
+	line 1 so that the hook can set point as it sees fit.
+
 	* bindings.el (mode-line-modified): Unify help messages.
 
 2001-04-07  Eli Zaretskii  <eliz@is.elta.co.il>
