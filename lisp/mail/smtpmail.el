@@ -610,17 +610,16 @@ This is relative to `smtpmail-queue-dir'.")
 (defun smtpmail-deduce-address-list (smtpmail-text-buffer header-start header-end)
   "Get address list suitable for smtp RCPT TO: <address>."
   (require 'mail-utils)  ;; pick up mail-strip-quoted-names
-  (let
-      ((case-fold-search t)
-       (simple-address-list "")
-       this-line
-       this-line-end
-       addr-regexp)
     
-    (unwind-protect
-	(save-excursion
-	  ;;
-	  (set-buffer smtpmail-address-buffer) (erase-buffer)
+  (unwind-protect
+      (save-excursion
+	(set-buffer smtpmail-address-buffer) (erase-buffer)
+	(let
+	    ((case-fold-search t)
+	     (simple-address-list "")
+	     this-line
+	     this-line-end
+	     addr-regexp)
 	  (insert-buffer-substring smtpmail-text-buffer header-start header-end)
 	  (goto-char (point-min))
 	  ;; RESENT-* fields should stop processing of regular fields.
@@ -663,7 +662,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    (setq smtpmail-recipient-address-list recipient-address-list))
 
 	  )
-      )
+	)
     )
   )
 
