@@ -469,7 +469,8 @@ Other variables include those for buffer-specialised fontification functions,
 	   ;(font-lock-comment-start-regexp . ";")
 	   (font-lock-mark-block-function . mark-defun)))
 	(scheme-mode-defaults
-	 '(scheme-font-lock-keywords
+	 '((scheme-font-lock-keywords
+	    scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
 	   nil t (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
 	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . ";")
@@ -480,7 +481,9 @@ Other variables include those for buffer-specialised fontification functions,
 	;; However, we do specify a MARK-BLOCK function as that cannot result
 	;; in a mis-fontification even if it might not fontify enough.  --sm.
 	(tex-mode-defaults
-	 '(tex-font-lock-keywords nil nil ((?$ . "\"")) nil
+	 '((tex-font-lock-keywords
+	    tex-font-lock-keywords-1 tex-font-lock-keywords-2)
+	   nil nil ((?$ . "\"")) nil
 	   ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
 	   ;(font-lock-comment-start-regexp . "%")
 	   (font-lock-mark-block-function . mark-paragraph)))
@@ -1081,12 +1084,13 @@ The value of this variable is used when Font Lock mode is turned on."
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
-  (save-excursion
-    (save-match-data
-      ;; Rescan between start of lines enclosing the region.
-      (font-lock-fontify-region
-       (progn (goto-char beg) (beginning-of-line) (point))
-       (progn (goto-char end) (forward-line 1) (point))))))
+  (let ((inhibit-point-motion-hooks t))
+    (save-excursion
+      (save-match-data
+	;; Rescan between start of lines enclosing the region.
+	(font-lock-fontify-region
+	 (progn (goto-char beg) (beginning-of-line) (point))
+	 (progn (goto-char end) (forward-line 1) (point)))))))
 
 (defun font-lock-fontify-block (&optional arg)
   "Fontify some lines the way `font-lock-fontify-buffer' would.
@@ -1096,7 +1100,8 @@ no ARG is given and `font-lock-mark-block-function' is nil.
 If `font-lock-mark-block-function' non-nil and no ARG is given, it is used to
 delimit the region to fontify."
   (interactive "P")
-  (let (font-lock-beginning-of-syntax-function deactivate-mark)
+  (let ((inhibit-point-motion-hooks t) font-lock-beginning-of-syntax-function
+	deactivate-mark)
     ;; Make sure we have the right `font-lock-keywords' etc.
     (if (not font-lock-mode) (font-lock-set-defaults))
     (save-excursion
@@ -1467,11 +1472,11 @@ START should be at the beginning of a line."
 
 (defun font-lock-eval-keywords (keywords)
   ;; Evalulate KEYWORDS if a function (funcall) or variable (eval) name.
-  (if (symbolp keywords)
-      (font-lock-eval-keywords (if (fboundp keywords)
-				   (funcall keywords)
-				 (eval keywords)))
-    keywords))
+  (if (listp keywords)
+      keywords
+    (font-lock-eval-keywords (if (fboundp keywords)
+				 (funcall keywords)
+			       (eval keywords)))))
 
 (defun font-lock-value-in-major-mode (alist)
   ;; Return value in ALIST for `major-mode', or ALIST if it is not an alist.
@@ -1693,7 +1698,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 (defface font-lock-type-face
   '((((class grayscale) (background light)) (:foreground "Gray90" :bold t))
     (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
-    (((class color) (background light)) (:foreground "DarkOliveGreen"))
+    (((class color) (background light)) (:foreground "ForestGreen"))
     (((class color) (background dark)) (:foreground "PaleGreen"))
     (t (:bold t :underline t)))
   "Font Lock mode face used to highlight types."
@@ -1860,7 +1865,8 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	      (goto-char (or (scan-sexps (point) 1) (point-max))))
 	    (goto-char (match-end 2)))
 	(error t)))))
-
+
+;; Lisp.
 
 (defconst lisp-font-lock-keywords-1
   (eval-when-compile
@@ -1944,12 +1950,12 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       )))
   "Gaudy level highlighting for Lisp modes.")
 
-
 (defvar lisp-font-lock-keywords lisp-font-lock-keywords-1
   "Default expressions to highlight in Lisp modes.")
+
+;; Scheme.
 
-
-(defvar scheme-font-lock-keywords
+(defconst scheme-font-lock-keywords-1
   (eval-when-compile
     (list
      ;;
@@ -1971,32 +1977,43 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		     ((match-beginning 6) font-lock-variable-name-face)
 		     (t font-lock-type-face))
 	       nil t))
-     ;;
-     ;; Control structures.
-     (cons
-      (concat
-       "(" (regexp-opt
-	    '("begin" "call-with-current-continuation" "call/cc"
-	      "call-with-input-file" "call-with-output-file" "case" "cond"
-	      "do" "else" "for-each" "if" "lambda"
-	      "let" "let*" "let-syntax" "letrec" "letrec-syntax"
-	      ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
-	      "and" "or" "delay"
-	      ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
-	      ;;"quasiquote" "quote" "unquote" "unquote-splicing"
-	      "map" "syntax" "syntax-rules") t)
-       "\\>") 1)
-     ;;
-     ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
-     '("\\<<\\sw+>\\>" . font-lock-type-face)
-     ;;
-     ;; Scheme `:' keywords as references.
-     '("\\<:\\sw+\\>" . font-lock-reference-face)
      ))
+  "Subdued expressions to highlight in Scheme modes.")
+
+(defconst scheme-font-lock-keywords-2
+  (append scheme-font-lock-keywords-1
+   (eval-when-compile
+     (list
+      ;;
+      ;; Control structures.
+      (cons
+       (concat
+	"(" (regexp-opt
+	     '("begin" "call-with-current-continuation" "call/cc"
+	       "call-with-input-file" "call-with-output-file" "case" "cond"
+	       "do" "else" "for-each" "if" "lambda"
+	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
+	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
+	       "and" "or" "delay"
+	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
+	       ;;"quasiquote" "quote" "unquote" "unquote-splicing"
+	       "map" "syntax" "syntax-rules") t)
+	"\\>") 1)
+      ;;
+      ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
+      '("\\<<\\sw+>\\>" . font-lock-type-face)
+      ;;
+      ;; Scheme `:' keywords as references.
+      '("\\<:\\sw+\\>" . font-lock-reference-face)
+      )))
+  "Gaudy expressions to highlight in Scheme modes.")
+
+(defvar scheme-font-lock-keywords scheme-font-lock-keywords-1
   "Default expressions to highlight in Scheme modes.")
+
+;; TeX.
 
-
-(defvar tex-font-lock-keywords
+;(defvar tex-font-lock-keywords
 ;  ;; Regexps updated with help from Ulrik Dickow <dickow@nbi.dk>.
 ;  '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
 ;     2 font-lock-function-name-face)
@@ -2025,100 +2042,142 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;    ;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
 ;    ("\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)"
 ;     3 (if (match-beginning 2) 'bold 'italic) keep))
-  ;;
-  ;; Rewritten with the help of Alexandra Bac <abac@welcome.disi.unige.it>.
+
+;; Rewritten with the help of Alexandra Bac <abac@welcome.disi.unige.it>.
+(defconst tex-font-lock-keywords-1
   (eval-when-compile
-    (let (;;
-	  ;; Names of commands whose arg should be fontified with fonts.
-	  (bold (regexp-opt '("bf" "textbf" "textsc" "textup"
-			      "boldsymbol" "pmb") t))
-	  (italic (regexp-opt '("it" "textit" "textsl" "emph") t))
-	  (type (regexp-opt '("texttt" "textmd" "textrm" "textsf") t))
-	  ;;
-	  ;; Names of commands whose arg should be fontified as a heading, etc.
-	  (headings (regexp-opt
-		     '("title" "chapter" "part" "begin" "end"
-		       "section" "subsection" "subsubsection"
-		       "section*" "subsection*" "subsubsection*"
-		       "paragraph" "subparagraph" "subsubparagraph"
-		       "newcommand" "renewcommand" "newenvironment"
-		       "newtheorem"
-		       "newcommand*" "renewcommand*" "newenvironment*"
-		       "newtheorem*")
-		     t))
-	  (variables (regexp-opt
-		      '("newcounter" "newcounter*" "setcounter" "addtocounter"
-			"setlength" "addtolength" "settowidth")
+    (let* (;;
+	   ;; Names of commands whose arg should be fontified as heading, etc.
+	   (headings (regexp-opt '("title"  "begin" "end") t))
+	   ;; These commands have optional args.
+	   (headings-opt (regexp-opt
+			  '("chapter" "part"
+			    "section" "subsection" "subsubsection"
+			    "section*" "subsection*" "subsubsection*"
+			    "paragraph" "subparagraph" "subsubparagraph"
+			    "paragraph*" "subparagraph*" "subsubparagraph*"
+			    "newcommand" "renewcommand" "newenvironment"
+			    "newtheorem"
+			    "newcommand*" "renewcommand*" "newenvironment*"
+			    "newtheorem*")
+			  t))
+	   (variables (regexp-opt
+		       '("newcounter" "newcounter*" "setcounter" "addtocounter"
+			 "setlength" "addtolength" "settowidth")
+		       t))
+	   (includes (regexp-opt
+		      '("input" "include" "includeonly" "bibliography"
+			"epsfig" "psfig" "epsf")
 		      t))
-	  (citations (regexp-opt
-		      '("cite" "label" "index" "glossary"
-			"footnote" "footnotemark" "footnotetext"
-			"ref" "pageref" "vref" "eqref" "caption")
-		      t))
-	  (includes (regexp-opt
-		     '("input" "include" "includeonly" "nofiles"
-		       "includegraphics" "includegraphics*" "usepackage"
-		       "bibliography" "epsfig" "psfig" "epsf")
-		     t))
-	  ;;
-	  ;; Names of commands that should be fontified.
-	  (specials (regexp-opt
-		     '("\\" "linebreak" "nolinebreak" "pagebreak" "nopagebreak"
-		       "newline" "newpage" "clearpage" "cleardoublepage"
-		       "displaybreak" "allowdisplaybreaks" "enlargethispage")
-		     t))
-	  (general "\\([a-zA-Z@]+\\|[^ \t\n]\\)")
-	  ;;
-	  ;; Miscellany.
-	  (slash "\\\\")
-	  (arg "\\(\\[[^]]*\\]\\)?{\\([^}]+\\)")
-	  )
+	   (includes-opt (regexp-opt
+			  '("nofiles" "usepackage"
+			    "includegraphics" "includegraphics*")
+			  t))
+	   ;; Miscellany.
+	   (slash "\\\\")
+	   (opt "\\(\\[[^]]*\\]\\)?")
+	   (arg "{\\([^}]+\\)")
+	   (opt-depth (regexp-opt-depth opt))
+	   (arg-depth (regexp-opt-depth arg))
+	   )
       (list
        ;;
        ;; Heading args.
        (list (concat slash headings arg)
-	     (+ (regexp-opt-depth headings) (regexp-opt-depth arg))
+	     (+ (regexp-opt-depth headings) arg-depth)
+	     'font-lock-function-name-face)
+       (list (concat slash headings-opt opt arg)
+	     (+ (regexp-opt-depth headings-opt) opt-depth arg-depth)
 	     'font-lock-function-name-face)
        ;;
        ;; Variable args.
        (list (concat slash variables arg)
-	     (+ (regexp-opt-depth variables) (regexp-opt-depth arg))
+	     (+ (regexp-opt-depth variables) arg-depth)
 	     'font-lock-variable-name-face)
-       ;;
-       ;; Citation args.
-       (list (concat slash citations arg)
-	     (+ (regexp-opt-depth citations) (regexp-opt-depth arg))
-	     'font-lock-reference-face)
        ;;
        ;; Include args.
        (list (concat slash includes arg)
-	     (+ (regexp-opt-depth includes) (regexp-opt-depth arg))
+	     (+ (regexp-opt-depth includes) arg-depth)
+	     'font-lock-builtin-face)
+       (list (concat slash includes-opt opt arg)
+	     (+ (regexp-opt-depth includes-opt) opt-depth arg-depth)
 	     'font-lock-builtin-face)
        ;;
        ;; Definitions.  I think.
        '("^[ \t]*\\\\def\\\\\\(\\(\\w\\|@\\)+\\)"
 	 1 font-lock-function-name-face)
-       ;;
-       ;; Command names, special and general.
-       (cons (concat slash specials) 'font-lock-warning-face)
-       (concat slash general)
-       ;;
-       ;; Font environments.  It seems a bit dubious to use `bold' and `italic'
-       ;; faces since we might not be able to display those fonts.
-       (list (concat slash bold arg)
-	     (+ (regexp-opt-depth bold) (regexp-opt-depth arg))
-	     '(quote bold) 'keep)
-       (list (concat slash italic arg)
-	     (+ (regexp-opt-depth italic) (regexp-opt-depth arg))
-	     '(quote italic) 'keep)
-       (list (concat slash type arg)
-	     (+ (regexp-opt-depth type) (regexp-opt-depth arg))
-	     '(quote bold-italic) 'keep)
-       ;;
-       ;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
-       '("\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)"
-	 3 (if (match-beginning 2) 'bold 'italic) keep)
        )))
+  "Subdued expressions to highlight in TeX modes.")
+
+(defconst tex-font-lock-keywords-2
+  (append tex-font-lock-keywords-1
+   (eval-when-compile
+     (let* (;;
+	    ;; Names of commands whose arg should be fontified with fonts.
+	    (bold (regexp-opt '("bf" "textbf" "textsc" "textup"
+				"boldsymbol" "pmb") t))
+	    (italic (regexp-opt '("it" "textit" "textsl" "emph") t))
+	    (type (regexp-opt '("texttt" "textmd" "textrm" "textsf") t))
+	    ;;
+	    ;; Names of commands whose arg should be fontified as a citation.
+	    (citations (regexp-opt
+			'("label" "ref" "pageref" "vref" "eqref")
+			t))
+	    (citations-opt (regexp-opt
+			    '("cite" "caption" "index" "glossary"
+			      "footnote" "footnotemark" "footnotetext")
+			t))
+	    ;;
+	    ;; Names of commands that should be fontified.
+	    (specials (regexp-opt
+		       '("\\"
+			 "linebreak" "nolinebreak" "pagebreak" "nopagebreak"
+			 "newline" "newpage" "clearpage" "cleardoublepage"
+			 "displaybreak" "allowdisplaybreaks" "enlargethispage")
+		       t))
+	    (general "\\([a-zA-Z@]+\\**\\|[^ \t\n]\\)")
+	    ;;
+	    ;; Miscellany.
+	    (slash "\\\\")
+	    (opt "\\(\\[[^]]*\\]\\)?")
+	    (arg "{\\([^}]+\\)")
+	    (opt-depth (regexp-opt-depth opt))
+	    (arg-depth (regexp-opt-depth arg))
+	    )
+       (list
+	;;
+	;; Citation args.
+	(list (concat slash citations arg)
+	      (+ (regexp-opt-depth citations) arg-depth)
+	      'font-lock-reference-face)
+	(list (concat slash citations-opt opt arg)
+	      (+ (regexp-opt-depth citations-opt) opt-depth arg-depth)
+	      'font-lock-reference-face)
+	;;
+	;; Command names, special and general.
+	(cons (concat slash specials) 'font-lock-warning-face)
+	(concat slash general)
+	;;
+	;; Font environments.  It seems a bit dubious to use `bold' etc. faces
+	;; since we might not be able to display those fonts.
+	(list (concat slash bold arg)
+	      (+ (regexp-opt-depth bold) arg-depth)
+	      '(quote bold) 'keep)
+	(list (concat slash italic arg)
+	      (+ (regexp-opt-depth italic) arg-depth)
+	      '(quote italic) 'keep)
+	(list (concat slash type arg)
+	      (+ (regexp-opt-depth type) arg-depth)
+	      '(quote bold-italic) 'keep)
+	;;
+	;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
+	(list (concat "\\\\\\(\\(bf\\)\\|em\\|it\\(em\\)?\\|sl\\)\\>"
+		      "\\(\\([^}&\\]\\|\\\\[^\\]\\)+\\)")
+	      4 '(if (match-beginning 2) 'bold 'italic) 'keep)
+	))))
+   "Gaudy expressions to highlight in TeX modes.")
+
+(defvar tex-font-lock-keywords tex-font-lock-keywords-1
   "Default expressions to highlight in TeX modes.")
 
 ;;; User choices.
@@ -2131,8 +2190,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
   "Widget `:type' for members of the custom group `font-lock-extra-types'.
 Members should `:load' the package `font-lock' to use this widget."
   :args '((const :tag "none" nil)
-	  (repeat :tag "types"
-		  (string :tag "regexp"))))
+	  (repeat :tag "types" regexp)))
 
 (defcustom c-font-lock-extra-types '("FILE" "\\sw+_t")
   "*List of extra types to fontify in C mode.
