@@ -1479,16 +1479,19 @@ It can find the completion buffer in `standard-output'.")
   (completions)
      Lisp_Object completions;
 {
-  register Lisp_Object tail, elt;
+  Lisp_Object tail, elt;
   register int i;
   int column = 0;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
   struct buffer *old = current_buffer;
   int first = 1;
 
   /* Note that (when it matters) every variable
-     points to a non-string that is pointed to by COMPLETIONS.  */
-  GCPRO1 (completions);
+     points to a non-string that is pointed to by COMPLETIONS,
+     except for ELT.  ELT can be pointing to a string
+     when terpri or Findent_to calls a change hook.  */
+  elt = Qnil;
+  GCPRO2 (completions, elt);
 
   if (BUFFERP (Vstandard_output))
     set_buffer_internal (XBUFFER (Vstandard_output));
