@@ -1,3 +1,8 @@
+2001-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in, mem-limits.h, dispnew.c, emacs.c, fileio.c:
+	* process.c, sysdep.c, unexec.c: Test GNU_LINUX, not LINUX.
+
 2001-12-11  Andrew Innes  <andrewi@gnu.org>
 
 	* insdel.c (make_gap) [DOUG_LEA_MALLOC]: Call make_gap_smaller if

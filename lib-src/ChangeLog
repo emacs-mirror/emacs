@@ -1,3 +1,7 @@
+2001-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (clean): Don't delete ../etc/DOC*.
+
 2001-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Moved back.
