@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.32) $
+ * $HopeName: MMsrc!config.h(MMdevel_drj_arena_hysteresis.2) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -165,6 +165,7 @@
 #define MPS_PROD_STRING         "epcore"
 #define MPS_PROD_EPCORE
 #define ARENA_SIZE              ((Size)2<<20)
+#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)0)
 /* .nosync.why: ScriptWorks is single-threaded when using the MM. */
 #define THREAD_SINGLE
 #define PROTECTION_NONE
@@ -173,6 +174,7 @@
 #define MPS_PROD_STRING         "dylan"
 #define MPS_PROD_DYLAN
 #define ARENA_SIZE              ((Size)1<<30)
+#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_MULTI
 #define PROTECTION
 
@@ -183,6 +185,7 @@
 #define ARENA_SIZE              ((Size)2<<20)
 #else
 #define ARENA_SIZE              ((Size)64<<20)
+#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #endif /* MPS_OS_S7 */
 #define THREAD_MULTI
 #define PROTECTION
