@@ -891,7 +891,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "o" 'dired-find-file-other-window)
     (define-key map "\C-o" 'dired-display-file)
     (define-key map "p" 'dired-previous-line)
-    (define-key map "q" 'dired-quit)
+    (define-key map "q" 'quit-window)
     (define-key map "s" 'dired-sort-toggle-or-edit)
     (define-key map "t" 'dired-do-toggle)
     (define-key map "u" 'dired-unmark)
@@ -1153,11 +1153,6 @@ Keybindings:
   (run-hooks 'dired-mode-hook))
 
 ;; Idiosyncratic dired commands that don't deal with marks.
-
-(defun dired-quit ()
-  "Bury the current dired buffer."
-  (interactive)
-  (bury-buffer))
 
 (defun dired-summary ()
   "Summarize basic Dired commands and show recent Dired errors."
