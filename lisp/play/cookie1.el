@@ -30,8 +30,7 @@
 ;; the NSA Trunk Trawler.
 ;;
 ;; The two entry points are `cookie' and `cookie-insert'.  The helper
-;; functions `pick-random' and `shuffle-vector' may be of interest to
-;; programmers.
+;; function `shuffle-vector' may be of interest to programmers.
 ;;
 ;; The code expects phrase files to be in one of two formats:
 ;;
@@ -121,10 +120,6 @@ subsequent calls on the same file won't go to disk."
 	  (message endmsg)
 	  (set sym (apply 'vector result)))))))
 
-(defun pick-random (n)
-  "Returns a random number from 0 to N-1 inclusive."
-  (% (logand 0777777 (random)) n))
-
 ; Thanks to Ian G Batten <BattenIG@CS.BHAM.AC.UK>
 ; [of the University of Birmingham Computer Science Department]
 ; for the iterative version of this shuffle.
@@ -137,7 +132,7 @@ subsequent calls on the same file won't go to disk."
 	temp
 	(len (length vector)))
     (while (< i len)
-      (setq j (+ i (pick-random (- len i))))
+      (setq j (+ i (random (- len i))))
       (setq temp (aref vector i))
       (aset vector i (aref vector j))
       (aset vector j temp)
