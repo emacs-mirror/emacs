@@ -60,6 +60,7 @@ struct ccl_program {
 struct ccl_spec {
   struct ccl_program decoder;
   struct ccl_program encoder;
+  unsigned char valid_codes[256];
 };
 
 /* Alist of fontname patterns vs corresponding CCL program.  */
