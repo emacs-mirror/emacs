@@ -1,9 +1,14 @@
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
+	* charset.h (MIN_CHARSET_OFFICIAL_DIMENSION1): Define it as 0x80,
+	not 0x81.
+	(MIN_CHAR_OFFICIAL_DIMENSION1): Define it as ((0x81 - 0x70) << 7).
+
 	* coding.c (encode_coding_sjis_big5): Use translation table for
 	encoding, not decoding.  Fix the handling of latin-jisx0201.
 	Check for the charset katakana-jisx0201 too.
 	(ONE_MORE_CHAR): Call translate_char with CHARSET arg -1.
+	(detect_coding_sjis): Check the byte sequence more regidly.
 
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
