@@ -30,38 +30,33 @@
 
 ;;; Code:
 
-(defvar gulp-search-path (concat source-directory "lisp/")
-  "*The search path for the packages to request updates of.")
-
 (defvar gulp-discard "^;+ *Maintainer: *FSF *$"
   "*The regexp matching the packages not requiring the request for updates.")
-
-(defvar gulp-packages (directory-files gulp-search-path nil "\\.el$" t)
-  "The list of files to consider.")
 
 (defvar gulp-tmp-buffer " *gulp*" "The name of the temporary buffer.")
 
 (defvar gulp-max-len 2000
-  "*All the interecting info should be among characters 1 through gulp-max-len.")
+  "*Distance into a Lisp source file to scan for keywords.")
 
 (defvar gulp-request-header
   "This message was created automatically.
 Apparently, you are the maintainer of the following package(s):\n\n"
-  "*The first line of the mesage.")
+  "*Text to use at the start of a message sent to request updates.")
 
 (defvar gulp-request-end
   "\nIf your copy is newer than mine, please email me the patches ASAP.\n\n"
-  "*The punch line.")
+  "*Text to add at the end of a message sent to request updates.")
 
-(defun gulp-send-requests ()
-  "Send requests for updates to the authors of the packages.
-Consider each file in `gulp-packages;.
+(defun gulp-send-requests (dir)
+  "Send requests for updates to the authors of Lisp packages in directory DIR.
 The prepared message consists of `gulp-request-header', followed by the
 list of packages with modification times, concluded with `gulp-request-end'.
-You will NOT be given an opportunity to edit the message, only to send or cancel.
+You can't edit the message, but you can confirm whether to send it.
 The list of rejected addresses will be put into `gulp-tmp-buffer'."
-  (interactive)
-  (let (mail-setup-hook msg node (m-p-alist aaaa)) ;; (gulp-create-m-p-alist gulp-packages)))
+  (interactive "DRequest updates for Lisp directory: ")
+  (let ((m-p-alist (gulp-create-m-p-alist
+		    (directory-files dir nil "\\.el$" t)))
+	mail-setup-hook msg node)
     (while (setq node (car m-p-alist))
       (setq msg (gulp-create-message (cdr node)))
       (setq mail-setup-hook '(lambda () (goto-char (point-max)) (insert msg)))
