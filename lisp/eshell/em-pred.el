@@ -255,7 +255,6 @@ EXAMPLES:
 
 (defun eshell-pred-initialize ()
   "Initialize the predicate/modifier code."
-  (make-local-hook 'eshell-parse-argument-hook)
   (add-hook 'eshell-parse-argument-hook
 	    'eshell-parse-arg-modifier t t)
   (define-key eshell-command-map [(meta ?q)] 'eshell-display-predicate-help)
