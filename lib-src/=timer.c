@@ -213,7 +213,7 @@ getevent ()
   notify ();
 }
 
-void
+SIGTYPE
 sigcatch (sig)
      int sig;
 /* dispatch on incoming signal, then restore it */
@@ -262,7 +262,18 @@ main (argc, argv)
   signal (SIGTERM, sigcatch);
 
 #ifndef USG
-  fcntl (0, F_SETFL, FASYNC);
+  if (fcntl (0, F_SETOWN, getpid ()) == -1)
+    {
+      fprintf (stderr, "%s: can't set ownership of stdin\n", pname);
+      fprintf (stderr, "%s\n", sys_errlist[errno]);
+      exit (1);
+    }
+  if (fcntl (0, F_SETFL, fcntl (0, F_GETFL, 0) | FASYNC) == -1)
+    {
+      fprintf (stderr, "%s: can't request asynchronous I/O on stdin\n", pname);
+      fprintf (stderr, "%s\n", sys_errlist[errno]);
+      exit (1);
+    }
 #endif /* USG */
 
   while (1) pause ();
