@@ -1,3 +1,8 @@
+2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (distclean): Remove Makefile in the build
+	directory, not in the source directory.
+
 2001-12-20  Werner Lemberg  <wl@gnu.org>
 
 	* international/mule-diag.el (describe-coding-system,
