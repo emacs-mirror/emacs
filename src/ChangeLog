@@ -1,3 +1,19 @@
+2003-06-10  Andreas Schwab  <schwab@suse.de>
+
+	* window.c (window_scroll_pixel_based): Move outside a
+	multi-glyph character before setting new window start.
+
+2003-06-10  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Fix check for reaching BEGV.
+	Don't try to make last line fully visible if it is past end of window.
+
+	* window.c (window_scroll_pixel_based): Don't call Fbolp;
+	instead, see if the new start pos is at beginning of line.
+
+	* window.c (window_scroll_pixel_based): Exit the move_it_by_lines
+	loop whenever it stops making progress.
+
 2003-06-04  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encoding_buffer_size): If coding->type is

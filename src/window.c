@@ -4049,14 +4049,17 @@ window_scroll_pixel_based (window, n, whole, noerror)
   else
     move_it_by_lines (&it, n, 1);
 
-  /* End if we end up at ZV or BEGV.  */
+  /* We failed if we find ZV is already on the screen (scrolling up,
+     means there's nothing past the end), or if we can't start any
+     earlier (scrolling down, means there's nothing past the top).  */
   if ((n > 0 && IT_CHARPOS (it) == ZV)
       || (n < 0 && IT_CHARPOS (it) == CHARPOS (start)))
     {
       if (IT_CHARPOS (it) == ZV)
 	{
-	  if (it.current_y + it.max_ascent + it.max_descent
-	      > it.last_visible_y)
+	  if (it.current_y < it.last_visible_y
+	      && (it.current_y + it.max_ascent + it.max_descent
+		  >= it.last_visible_y))
 	    {
 	      /* The last line was only partially visible, make it fully
 		 visible.  */
@@ -4091,10 +4094,23 @@ window_scroll_pixel_based (window, n, whole, noerror)
 
   if (! vscrolled)
     {
+      int pos = IT_CHARPOS (it);
+      int bytepos;
+
+      /* If in the middle of a multi-glyph character move forward to
+	 the next character.  */
+      if (in_display_vector_p (&it))
+	{
+	  ++pos;
+	  move_it_to (&it, pos, -1, -1, -1, MOVE_TO_POS);
+	}
+
       /* Set the window start, and set up the window for redisplay.  */
-      set_marker_restricted (w->start, make_number (IT_CHARPOS (it)),
+      set_marker_restricted (w->start, make_number (pos),
 			     w->buffer);
-      w->start_at_line_beg = Fbolp ();
+      bytepos = XMARKER (w->start)->bytepos;
+      w->start_at_line_beg = ((pos == BEGV || FETCH_BYTE (bytepos - 1) == '\n')
+			      ? Qt : Qnil);
       w->update_mode_line = Qt;
       XSETFASTINT (w->last_modified, 0);
       XSETFASTINT (w->last_overlay_modified, 0);
@@ -4124,7 +4140,12 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	     in the scroll margin at the top.  */
 	  move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 	  while (it.current_y < this_scroll_margin)
-	    move_it_by_lines (&it, 1, 1);
+	    {
+	      int prev = it.current_y;
+	      move_it_by_lines (&it, 1, 1);
+	      if (prev == it.current_y)
+		break;
+	    }
 	  SET_PT_BOTH (IT_CHARPOS (it), IT_BYTEPOS (it));
 	}
       else if (n < 0)
