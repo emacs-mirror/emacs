@@ -822,8 +822,11 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	    /* We set the multi-byte form of C at BUF.  */
 	    len = CHAR_STRING (c, workbuf, buf);
 	  else
-	    /* We have a string in Vglyph_table.  */
-	    len = GLYPH_LENGTH (tbase, g), buf = GLYPH_STRING (tbase, g);
+	    {
+	      /* We have a string in Vglyph_table.  */
+	      len = GLYPH_LENGTH (tbase, g);
+	      buf = GLYPH_STRING (tbase, g);
+	    }
 	  
 	  produced = encode_coding (&terminal_coding, buf, dst,
 				     len, dst_end - dst, &processed);
