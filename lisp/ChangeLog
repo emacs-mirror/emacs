@@ -1,3 +1,74 @@
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* textmodes/reftex-toc.el
+	(reftex-toc-load-all-files-for-promotion): Remove useless use of
+	format.  Doc fix.
+
+	* textmodes/refer.el (refer-find-entry-internal): Remove extra
+	format string arguments.
+
+	* tar-mode.el (tar-parse-octal-integer-safe): Add missing format
+	string argument.
+
+	* progmodes/xscheme.el (verify-xscheme-buffer): Fix format
+	strings.
+
+	* play/zone.el (zone-call): Fix format string.
+
+	* net/webjump.el (webjump-builtin): Add missing format string
+	argument.
+
+	* midnight.el (midnight-delay-set): Remove extra format string
+	argument.
+
+	* mail/rmail.el (rmail-get-new-mail): Remove useless use of
+	format.
+
+	* hexl.el (hexl-insert-char): Add missing format string argument.
+
+	* format.el (format-decode): Fix format string.
+
+	* emulation/vi.el (vi-mode): Remove extra format string argument.
+	(vi-repeat-last-search): Likewise.
+	(vi-reverse-last-search): Likewise.
+	(vi-goto-mark): Likewise.
+	(vi-reverse-last-find-char): Likewise.
+	(vi-repeat-last-find-char): Likewise.
+	(vi-locate-def): Likewise.
+
+	* emacs-lisp/lisp-mnt.el (lm-verify): Remove useless use of
+	format.
+
+	* ediff-util.el (ediff-toggle-read-only): Remove extra format
+	string argument.
+	(ediff-toggle-regexp-match): Likewise.
+
+	* dired-aux.el (dired-do-query-replace-regexp): Add missing
+	format string argument.
+
+	* calc/calc-map.el (calc-get-operator): Remove extra format
+	string argument.
+
+	* calc/calc-forms.el (calc-convert-time-zones): Fix format string.
+
+	* calc/calc-ext.el (calc-do-prefix-help): Remove extra format
+	string argument.
+
+	* eshell/esh-mode.el (eshell-send-invisible): Fix format string.
+
+	* eshell/em-hist.el (eshell-hist-word-reference): Fix format
+	string.
+
+	* emulation/viper-ex.el (ex-mark): Remove extra format string
+	argument.
+
+	* emacs-lisp/cl-macs.el (defstruct): Remove extra format string
+	argument.
+	(cl-struct-setf-expander): Likewise.
+
+	* vc.el (with-vc-file): Fix unsafe uses of error.
+	(vc-cancel-version): Likewise.
+
 2004-02-08  Jan Nieuwenhuizen  <jan.nieuwenhuizen@aspiratie.nl>  (tiny change)
 
 	* progmodes/gud.el (gud-jdb-marker-filter): Add period as optional

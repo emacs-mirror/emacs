@@ -1,3 +1,9 @@
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* nnlistserv.el (nnlistserv-kk-wash-article): Fix paren nesting.
+
+	* gnus-score.el (gnus-summary-increase-score): Fix format string.
+
 2003-06-25  Sam Steingold  <sds@gnu.org>
 
 	* gnus-group.el (gnus-group-suspend): Avoid some consing.
