@@ -2168,11 +2168,11 @@ swallow_events ()
 
 /* Caches for modify_event_symbol.  */
 static Lisp_Object accent_key_syms;
-static Lisp_Object vendor_key_syms;
+static Lisp_Object system_key_syms;
 static Lisp_Object func_key_syms;
 static Lisp_Object mouse_syms;
 
-Lisp_Object Vvendor_key_alist;
+Lisp_Object Vsystem_key_alist;
 
 /* This is a list of keysym codes for special "accent" characters.
    It parallels lispy_accent_keys.  */
@@ -2452,17 +2452,17 @@ make_lispy_event (event)
 				      (sizeof (lispy_accent_keys)
 				       / sizeof (lispy_accent_keys[0])));
 
-      /* Handle vendor-specific keysyms.  */
+      /* Handle system-specific keysyms.  */
       if (event->code & (1 << 28))
 	{
 	  /* We need to use an alist rather than a vector as the cache
 	     since we can't make a vector long enuf.  */
-	  if (NILP (vendor_key_syms))
-	    vendor_key_syms = Fcons (Qnil, Qnil);
+	  if (NILP (system_key_syms))
+	    system_key_syms = Fcons (Qnil, Qnil);
 	  return modify_event_symbol (event->code & 0xffffff,
 				      event->modifiers,
-				      Qfunction_key, Vvendor_key_alist,
-				      0, &vendor_key_syms, 0xffffff);
+				      Qfunction_key, Vsystem_key_alist,
+				      0, &system_key_syms, 0xffffff);
 	}
 
       return modify_event_symbol (event->code - 0xff00,
@@ -5906,10 +5906,10 @@ buffer's local map, and the minor mode keymaps and text property keymaps.");
   DEFVAR_BOOL ("track-mouse", &do_mouse_tracking,
 	       "*Non-nil means generate motion events for mouse motion.");
 
-  DEFVAR_LISP ("vendor-key-alist", &Vvendor_key_alist,
-    "Alist of vendor-specific X windows key symbols.\n\
+  DEFVAR_LISP ("system-key-alist", &Vsystem_key_alist,
+    "Alist of system-specific X windows key symbols.\n\
 Each element should have the form (N . SYMBOL) where N is the\n\
-numeric keysym code (sans the \"vendor-specific\" bit 1<<28)\n\
+numeric keysym code (sans the \"system-specific\" bit 1<<28)\n\
 and SYMBOL is its name.");
   Vmenu_bar_final_items = Qnil;
 }
