@@ -79,6 +79,9 @@ some of the `ls' switches are not supported; see the doc string of
 (defvar dired-chmod-program "chmod"
   "Name of chmod command (usually `chmod').")
 
+(defvar dired-touch-program "touch"
+  "Name of touch command (usually `touch').")
+
 ;;;###autoload
 (defcustom dired-ls-F-marks-symlinks nil
   "*Informs dired about how `ls -lF' marks symbolic links.
@@ -315,10 +318,10 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;; Fixme: we could also put text properties on the permission
    ;; fields with keymaps to frob the permissions, somewhat a la XEmacs.
    (list (concat dired-re-maybe-mark dired-re-inode-size
-		 "[-d]....\\(w\\)..\\(w\\).")	; group writable
-	 '(1 font-lock-warning-face))
+		 "[-d]....\\(w\\)....")	; group writable
+	 '(1 font-lock-comment-face))
    (list (concat dired-re-maybe-mark dired-re-inode-size
-		 "[-d]....\\(w\\)....")	; world writable
+		 "[-d].......\\(w\\).")	; world writable
 	 '(1 font-lock-comment-face))
    ;;
    ;; Subdirectories.
@@ -919,6 +922,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map "Q" 'dired-do-query-replace-regexp)
     (define-key map "R" 'dired-do-rename)
     (define-key map "S" 'dired-do-symlink)
+    (define-key map "T" 'dired-do-touch)
     (define-key map "X" 'dired-do-shell-command)
     (define-key map "Z" 'dired-do-compress)
     (define-key map "!" 'dired-do-shell-command)
@@ -1189,6 +1193,9 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map [menu-bar operate chmod]
       '(menu-item "Change Mode..." dired-do-chmod
 		  :help "Change mode (attributes) of marked files"))
+    (define-key map [menu-bar operate touch]
+      '(menu-item "Change Timestamp..." dired-do-touch
+		  :help "Change timestamp of marked files"))
     (define-key map [menu-bar operate load]
       '(menu-item "Load" dired-do-load
 		  :help "Load marked Emacs Lisp files"))
@@ -1630,7 +1637,7 @@ DIR must be a directory name, not a file name."
 	 (s " ")
 	 (yyyy "[0-9][0-9][0-9][0-9]")
 	 (dd "[ 0-3][0-9]")
-	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
+	 (HH:MM "[ 0-2][0-9][:.][0-5][0-9]")
 	 (seconds "[0-6][0-9]\\([.,][0-9]+\\)?")
 	 (zone "[-+][0-2][0-9][0-5][0-9]")
 	 (iso-mm-dd "[01][0-9]-[0-3][0-9]")
@@ -2333,8 +2340,8 @@ if there are no flagged files."
 (defvar dired-no-confirm nil
   "A list of symbols for commands dired should not confirm.
 Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
-`copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink' and
-`uncompress'.")
+`copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink',
+`touch' and `uncompress'.")
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
   "Return FUNCTION's result on ARGS after showing which files are marked.
@@ -2975,6 +2982,10 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
 
 (autoload 'dired-do-chown "dired-aux"
   "Change the owner of the marked (or next ARG) files."
+  t)
+
+(autoload 'dired-do-touch "dired-aux"
+  "Change the timestamp of the marked (or next ARG) files."
   t)
 
 (autoload 'dired-do-print "dired-aux"

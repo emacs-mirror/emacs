@@ -3280,7 +3280,7 @@ usage: (format STRING &rest OBJECTS)  */)
     int i;
     info = (struct info *) alloca (nbytes);
     bzero (info, nbytes);
-    for (i = 0; i <= nargs; i++)
+    for (i = 0; i < nargs; i++)
       info[i].start = -1;
     discarded = (char *) alloca (SBYTES (args[0]));
     bzero (discarded, SBYTES (args[0]));

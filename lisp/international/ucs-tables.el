@@ -1247,12 +1247,14 @@ unification on input operations."
   "Insert the Emacs character representation of the given Unicode.
 Interactively, prompts for a hex string giving the code."
   (interactive "sUnicode (hex): ")
-  (let ((c (decode-char 'ucs (if (integerp arg)
-				 arg
-			       (string-to-number arg 16)))))
+  (or (integerp arg)
+      (setq arg (string-to-number arg 16)))
+  (let ((c (decode-char 'ucs arg)))
     (if c
 	(insert c)
-      (error "Character can't be decoded to UCS"))))
+      (if (or (< arg 0) (> arg #x10FFFF))
+	  (error "Not a Unicode character code: 0x%X" arg)
+	(error "Character U+%04X is not yet supported" arg)))))
 
 ;;; Dealing with non-8859 character sets.
 

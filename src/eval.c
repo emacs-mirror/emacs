@@ -1,5 +1,5 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000, 2001, 2002
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000, 2001, 02, 2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1812,13 +1812,11 @@ then strings and vectors are not accepted.  */)
   /* Lists may represent commands.  */
   if (!CONSP (fun))
     return Qnil;
-  funcar = Fcar (fun);
-  if (!SYMBOLP (funcar))
-    return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+  funcar = XCAR (fun);
   if (EQ (funcar, Qlambda))
-    return Fassq (Qinteractive, Fcdr (Fcdr (fun)));
+    return Fassq (Qinteractive, Fcdr (XCDR (fun)));
   if (EQ (funcar, Qautoload))
-    return Fcar (Fcdr (Fcdr (Fcdr (fun))));
+    return Fcar (Fcdr (Fcdr (XCDR (fun))));
   else
     return Qnil;
 }

@@ -227,7 +227,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ("`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)'" nil nil
       (2 compilation-info-face)
       (3 compilation-line-face nil t)
-      (1 (compilation-error-properties 2 3 nil nil nil 2 nil)
+      (1 (compilation-error-properties 2 3 nil nil nil 0 nil)
 	 append)))
 
     (mips-1
@@ -1076,11 +1076,17 @@ variable exists."
     (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
 	(apply 'compilation-start compilation-arguments))))
 
+;; This points to the location from where the next error will be found.
+;; The global commands next/previous/first-error... as well as
+;; (mouse-)goto-error use this.
+(defvar compilation-current-error nil)
+
 ;; A function name can't be a hook, must be something with a value.
 (defconst compilation-turn-on-font-lock 'turn-on-font-lock)
 
 (defun compilation-setup (&optional minor)
   "Prepare the buffer for the compilation parsing commands to work."
+  (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-error-screen-columns)
   (setq compilation-last-buffer (current-buffer))
   (if minor
@@ -1233,7 +1239,7 @@ Just inserts the text, but uses `insert-before-markers'."
 	  ;; count this message only if none of the above are true
 	  (setq n (,1+ n)))))
 
-(defun compilation-next-error (n &optional different-file)
+(defun compilation-next-error (n &optional different-file pt)
   "Move point to the next error in the compilation buffer.
 Prefix arg N says how many error messages to move forwards (or
 backwards, if negative).
@@ -1241,11 +1247,11 @@ Does NOT find the source line like \\[next-error]."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
+  (or pt (setq pt (point)))
   (setq compilation-last-buffer (current-buffer))
-  (let* ((pt (point))
-	(msg (get-text-property pt 'message))
-	(loc (car msg))
-	last)
+  (let* ((msg (get-text-property pt 'message))
+	 (loc (car msg))
+	 last)
     (if (zerop n)
 	(unless (or msg			; find message near here
 		    (setq msg (get-text-property (max (1- pt) 1) 'message)))
@@ -1263,13 +1269,15 @@ Does NOT find the source line like \\[next-error]."
 		(setq msg (get-text-property pt 'message))
 	      (setq pt (point)))))
       (setq last (nth 2 (car msg)))
-      ;; These loops search only either forwards or backwards
-      (compilation-loop > next-single-property-change 1-
-			(if (get-buffer-process (current-buffer))
-			    "No more %ss yet"
-			  "Moved past last %s"))
-      (compilation-loop < previous-single-property-change 1+
-			"Moved back before first %s"))
+      (if (>= n 0)
+	  (compilation-loop > next-single-property-change 1-
+			    (if (get-buffer-process (current-buffer))
+				"No more %ss yet"
+			      "Moved past last %s"))
+	;; don't move "back" to message at or before point
+	(setq pt (previous-single-property-change pt 'message))
+	(compilation-loop < previous-single-property-change 1+
+			  "Moved back before first %s")))
     (goto-char pt)
     (or msg
 	(error "No %s here" compilation-error))))
@@ -1327,6 +1335,7 @@ Prefix arg N says how many files to move backwards (or forwards, if negative)."
   (mouse-set-point event)
   (if (get-text-property (point) 'directory)
       (dired-other-window (car (get-text-property (point) 'directory)))
+    (setq compilation-current-error (point))
     (next-error 0)))
 
 (defun compile-goto-error ()
@@ -1338,6 +1347,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
   (if (get-text-property (point) 'directory)
       (dired-other-window (car (get-text-property (point) 'directory)))
     (push-mark)
+    (setq compilation-current-error (point))
     (next-error 0)))
 
 ;; Return a compilation buffer.
@@ -1393,10 +1403,12 @@ See variable `compilation-error-regexp-alist' for customization ideas."
   (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
   (let* ((columns compilation-error-screen-columns) ; buffer's local value
 	 (last 1)
-	 (loc (compilation-next-error (or n 1)))
+	 (loc (compilation-next-error (or n 1) nil
+				      (or compilation-current-error (point-min))))
 	 (end-loc (nth 2 loc))
 	 (marker (point-marker)))
-    (setq loc (car loc))
+    (setq compilation-current-error (point-marker)
+	  loc (car loc))
     ;; If loc contains no marker, no error in that file has been visited.  If
     ;; the marker is invalid the buffer has been killed.  So, recalculate all
     ;; markers for that file.
@@ -1448,10 +1460,10 @@ With prefix arg N, visit the source code of the Nth error.
 This operates on the output from the \\[compile] command."
   (interactive "p")
   (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
-  (goto-char (point-min))
+  (setq compilation-current-error (point-min))
   (next-error n))
 
-(defvar compilation-skip-to-next-location nil
+(defvar compilation-skip-to-next-location t
   "*If non-nil, skip multiple error messages for the same source location.")
 
 (defcustom compilation-skip-threshold 1

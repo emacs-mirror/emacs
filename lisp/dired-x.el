@@ -1517,8 +1517,7 @@ to mark all zero length files."
               ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
               (setq uid (buffer-substring (+ (point) 1)
 					  (progn (forward-word 1) (point))))
-              (re-search-forward "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|\
-Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)")
+              (re-search-forward dired-move-to-filename-regexp)
               (goto-char (match-beginning 1))
               (forward-char -1)
               (setq size (string-to-int (buffer-substring (save-excursion

@@ -1,3 +1,134 @@
+2004-04-03  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-property-list): Add `font-lock-face'.
+
+	* dired.el (dired-font-lock-keywords): Fix permission regexps.
+
+2004-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-handle-moz-url, x-dnd-insert-utf16-text): Use
+	utf-16le on little endian machines and utf-16be otherwise.
+
+2004-04-02  David Kastrup  <dak@gnu.org>
+
+	* net/browse-url.el (browse-url-generic): Use call-process
+	instead of start-process to allow browsers that fork and detach.
+
+2004-04-01  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* compile.el (compilation-current-error): New var.
+	(compilation-setup, compile-mouse-goto-error)
+	(compile-goto-error, next-error): Use it.
+	(compilation-skip-to-next-location): Default to t, which gives
+	contiguous skipping like old compile (where this was redundant).
+	(compilation-next-error): Prevent previous-* commands from moving
+	back to message at or just before point.
+
+2004-04-01  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gdb-ui.el (gdb-view-source-function, gdb-view-assembler)
+	(gdb-source-info): Don't display source at startup, if required.
+	(gdb-show-main): New option.
+	(gdba): Update documentation.
+	(gdb-source): Cover case of auto-display output.
+
+2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el: Delete obsolete autoload's and defvar's.
+	(auto-revert-check-vc-info): New user option.
+	(auto-revert-vc-cvs-file-version, auto-revert-vc-buffer-p)
+	(auto-revert-handler-vc): Delete.
+	(auto-revert-handler): Treat return value `fast' of
+	buffer-stale-function specially.  Check `auto-revert-check-vc-info'.
+
+	* buff-menu.el (Buffer-menu-mode): Make the buffer-stale-function
+	return `fast'.
+
+	* files.el (buffer-stale-function): Doc change.
+
+2004-03-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: New tip on Tips section.
+	(pr-version): New version number (6.7.4).
+	(pr-shell-file-name): Initialization fix.
+
+2004-03-31  Juri Linkov  <juri@jurta.org>
+
+	* dired.el: Add autoload for `dired-do-touch'.
+	(dired-touch-program): New var.
+	(dired-mode-map): Bind `dired-do-touch' to T and add menu-item.
+	(dired-no-confirm): Add `touch' to docstring.
+
+	* dired-aux.el (dired-do-touch): New fun.
+	(dired-do-chxxx): Add argument -t for touch operation.
+
+	* dired-x.el (dired-mark-sexp): Replace hard-coded month names by
+	`dired-move-to-filename-regexp'.
+
+2004-03-31  H,Ae(Bkan Granath  <hakan.granath@kau.se>  (tiny change)
+
+	* dired.el (dired-move-to-filename-regexp): Add . to HH:MM.
+
+2004-03-30  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el (ebnf-eps-finish-and-write): Write a buffer if
+	and only if the buffer was modified.
+
+2004-03-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Delete pairs for U+2308..U+230B.
+
+2004-03-29  Nick Roberts  <nick@nick.uklinux.net>
+
+	* progmodes/gud.el (gud-gdb-marker-filter): Include "\n" in regexp
+	to detect the beginning of a level 2 or 3 annotation.
+
+2004-03-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/ucs-tables.el (ucs-insert): Fix the error message.
+
+2004-03-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-util.el (char-displayable-p): Fix generation
+	of XLFD file name.
+
+	* Makefile.in (setwins, setwins_almost): Change directory to $wd
+	before finding directories by `find'.
+
+2004-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (interactive-form): Delete.  Now implemented in C.
+
+	* pcvs.el (cvs-parse-process): Workaround for Darwin.
+
+	* vc.el (vc-version-diff, vc-default-diff-tree): Change `rel' -> `rev'.
+	(vc-diff-label): New fun.
+	(vc-diff-internal): Use it.
+
+	* progmodes/gdb-ui.el (gdb-post-prompt): Fix test.
+
+2004-03-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el (ebnf-abn-parser): Handle initial comments.
+
+	* progmodes/ebnf-ebx.el: New file, implement a parser for EBNF used to
+	specify XML (EBNFX).
+
+	* progmodes/ebnf2ps.el: Doc fix.
+	(ebnf-version): New version number (4.1).
+	(ebnf-syntax): Adjust customization.
+	(ebnf-style-database): Add ebnfx entry.
+	(ebnf-syntax-alist): Add ebnfx initialization.
+	(ebnf-ebx-parser, ebnf-ebx-initialize): Autoloaded funs from ebnf-ebx.
+
+	* printing.el: Doc fix.
+	(pr-version): New version number (6.7.3).
+	(pr-menu-position): Adjust X and Y positions when mouse-pixel-position
+	returns nil for mouse position.  Reported by Drew Adams
+	<drew.adams@oracle.com>.
+	(pr-update-menus): Modify interactive declaration.  Reported by Drew
+	Adams <drew.adams@oracle.com>.
+
 2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-ann3, gdb-send-item)
@@ -286,12 +417,14 @@
 	functions.
 	(auto-revert-buffers): Delete call to auto-revert-buffer-p.
 
-	* dired.el (dired-directory-changed-p, dired-buffer-stale-p): New funs.
+	* dired.el (dired-directory-changed-p): New fun, extracted from
+	dired-internal-noselect.
+	(dired-buffer-stale-p): New fun.
 	(dired-internal-noselect): Use dired-directory-changed-p.
 	Eliminate revert messages.
 	(dired-mode): Set buffer-stale-function to dired-buffer-stale-p.
 
-2004-03-23  Kenichi Handa  <handa@etlken2>
+2004-03-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Setup syntaxes for more parentheses
 	Unicode characters.
@@ -940,12 +1073,12 @@
 
 2004-02-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf-abn.el: Doc fix.
+	* progmodes/ebnf-abn.el: Doc fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-repeat): Code fix.
 
-	* ebnf2ps.el: Doc fix.
+	* progmodes/ebnf2ps.el: Doc fix.
 	(ebnf-syntax-directory, ebnf-syntax-file): New funs.
 
 2004-02-28  Juri Linkov  <juri@jurta.org>
@@ -1011,8 +1144,8 @@
 
 2004-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf2ps.el: Doc fix.  For compatibility with Emacs 20, define
-	assq-delete-all if it's not defined.
+	* progmodes/ebnf2ps.el: Doc fix.  For compatibility with Emacs 20,
+	define assq-delete-all if it's not defined.
 	(ebnf-generate-region): Code fix.
 
 	* printing.el: Doc fix.
@@ -1021,12 +1154,13 @@
 
 2004-02-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ebnf-abn.el: New file, implements an ABNF parser.
+	* progmodes/ebnf-abn.el: New file, implements an ABNF parser.
 
-	* ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New arrow shapes:
-	semi-up-hollow, semi-up-full, semi-down-hollow and semi-down-full.
-	Fix a bug on productions like test = {"test"}* | ( "tt" ["test"] ).
-	Reported by Markus Dreyer <mdreyer@ix.urz.uni-heidelberg.de>.
+	* progmodes/ebnf2ps.el: Doc fix.  Accept ABNF (Augmented BNF).  New
+	arrow shapes: semi-up-hollow, semi-up-full, semi-down-hollow and
+	semi-down-full.  Fix a bug on productions like test = {"test"}* | (
+	"tt" ["test"] ).  Reported by Markus Dreyer
+	<mdreyer@ix.urz.uni-heidelberg.de>.
 	(ebnf-version): New version number (4.0).
 	(ebnf-print-directory, ebnf-print-file, ebnf-spool-directory)
 	(ebnf-spool-file, ebnf-eps-directory, ebnf-eps-file)
@@ -1046,18 +1180,19 @@
 	(ebnf-make-terminal1, ebnf-make-or-more1, ebnf-make-repeat)
 	(ebnf-token-repeat): Code fix.
 
-	* ebnf-yac.el: Doc fix.  Handle Bison pragmas %nonassoc, %right, %left
-	and %prec.  Suggested by Matthew K. Junker <junker@alum.mit.edu>.
+	* progmodes/ebnf-yac.el: Doc fix.  Handle Bison pragmas %nonassoc,
+	%right, %left and %prec.  Suggested by Matthew K. Junker
+	<junker@alum.mit.edu>.
 	(ebnf-yac-definitions, ebnf-yac-lex): Code fix.
 
-	* ebnf-iso.el: Doc fix.
+	* progmodes/ebnf-iso.el: Doc fix.
 	(ebnf-iso-token-table, ebnf-iso-non-terminal-chars): Adjust vars.
 	(ebnf-iso-lex): Code fix.
 
-	* ebnf-bnf.el: Doc fix.
+	* progmodes/ebnf-bnf.el: Doc fix.
 	(ebnf-bnf-lex): Code fix.
 
-	* ebnf-otz.el: Doc fix.
+	* progmodes/ebnf-otz.el: Doc fix.
 
 2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
 

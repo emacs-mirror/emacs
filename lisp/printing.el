@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2004/03/10 20:37:21 vinicius>
+;; Time-stamp: <2004/03/31 23:14:47 vinicius>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7.2
+;; Version: 6.7.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst pr-version "6.7.2"
-  "printing.el, v 6.7.2 <2004/02/29 vinicius>
+(defconst pr-version "6.7.4"
+  "printing.el, v 6.7.4 <2004/03/31 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <vinicius@cpqd.com.br>
@@ -186,6 +186,10 @@ Please send all bug fixes and enhancements to
 ;;    message.  Instead, save the dynamic buffer to a file or copy it in
 ;;    another buffer and, then, print the file or the new static buffer.
 ;;    An example of dynamic buffer is the *Messages* buffer.
+;;
+;; 4. When running Emacs on Windows with cygwin, check if the
+;;    `pr-shell-file-name' variable is set to the proper shell.  This shell
+;;    will execute the commands to preview/print the buffer, file or directory.
 ;;
 ;;
 ;; Using `printing'
@@ -2304,7 +2308,8 @@ It's used by `pr-interface'."
 
 
 (defcustom pr-shell-file-name
-  (if (eq pr-path-style 'windows)
+  (if (and (not pr-cygwin-system)
+	   ps-windows-system)
       "cmdproxy.exe"
     shell-file-name)
   "*Specify file name to load inferior shells from."
@@ -4572,8 +4577,8 @@ See `pr-visible-entry-alist'.")
     (defun pr-menu-position (entry index horizontal)
       (let ((pos (cdr (pr-e-mouse-pixel-position))))
 	(list
-	 (list (car pos)		; X
-	       (- (cdr pos)		; Y
+	 (list (or (car pos) 0)		; X
+	       (- (or (cdr pos) 0)	; Y
 		  (* (pr-menu-index entry index) pr-menu-char-height)))
 	 (selected-frame))))		; frame
     )
@@ -4582,9 +4587,9 @@ See `pr-visible-entry-alist'.")
     (defun pr-menu-position (entry index horizontal)
       (let ((pos (cdr (pr-e-mouse-pixel-position))))
 	(list
-	 (list (- (car pos)		; X
+	 (list (- (or (car pos) 0)	; X
 		  (* horizontal pr-menu-char-width))
-	       (- (cdr pos)		; Y
+	       (- (or (cdr pos) 0)	; Y
 		  (* (pr-menu-index entry index) pr-menu-char-height)))
 	 (selected-frame))))		; frame
     ))
@@ -4656,7 +4661,7 @@ otherwise, update PostScript printer menu iff `pr-ps-printer-menu-modified' is
 non-nil, update text printer menu iff `pr-txt-printer-menu-modified' is
 non-nil, and update PostScript File menus iff `pr-ps-utility-menu-modified' is
 non-nil."
-  (interactive)
+  (interactive "P")
   (pr-update-var 'pr-ps-name pr-ps-printer-alist)
   (pr-update-var 'pr-txt-name pr-txt-printer-alist)
   (pr-update-var 'pr-ps-utility pr-ps-utility-alist)

@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.373 2004/03/26 16:17:12 monnier Exp $
+;; $Id: vc.el,v 1.374 2004/03/28 22:00:19 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1677,10 +1677,10 @@ saving the buffer."
 	  (message "No changes to %s since latest version" file)
 	(vc-version-diff file nil nil)))))
 
-(defun vc-version-diff (file rel1 rel2)
-  "List the differences between FILE's versions REL1 and REL2.
-If REL1 is empty or nil it means to use the current workfile version;
-REL2 empty or nil means the current file contents.  FILE may also be
+(defun vc-version-diff (file rev1 rev2)
+  "List the differences between FILE's versions REV1 and REV2.
+If REV1 is empty or nil it means to use the current workfile version;
+REV2 empty or nil means the current file contents.  FILE may also be
 a directory, in that case, generate diffs between the correponding
 versions of all registered files in or below it."
   (interactive
@@ -1689,7 +1689,7 @@ versions of all registered files in or below it."
                                     "File or dir to diff: (default visited file) "
                                   "File or dir to diff: ")
                                 default-directory buffer-file-name t)))
-         (rel1-default nil) (rel2-default nil))
+         (rev1-default nil) (rev2-default nil))
      ;; compute default versions based on the file state
      (cond
       ;; if it's a directory, don't supply any version default
@@ -1697,54 +1697,54 @@ versions of all registered files in or below it."
        nil)
       ;; if the file is not up-to-date, use current version as older version
       ((not (vc-up-to-date-p file))
-       (setq rel1-default (vc-workfile-version file)))
+       (setq rev1-default (vc-workfile-version file)))
       ;; if the file is not locked, use last and previous version as default
       (t
-       (setq rel1-default (vc-call previous-version file
+       (setq rev1-default (vc-call previous-version file
                                    (vc-workfile-version file)))
-       (if (string= rel1-default "") (setq rel1-default nil))
-       (setq rel2-default (vc-workfile-version file))))
+       (if (string= rev1-default "") (setq rev1-default nil))
+       (setq rev2-default (vc-workfile-version file))))
      ;; construct argument list
      (list file
-           (read-string (if rel1-default
+           (read-string (if rev1-default
 			    (concat "Older version: (default "
-				    rel1-default ") ")
+				    rev1-default ") ")
 			  "Older version: ")
-			nil nil rel1-default)
-           (read-string (if rel2-default
+			nil nil rev1-default)
+           (read-string (if rev2-default
 			    (concat "Newer version: (default "
-				    rel2-default ") ")
+				    rev2-default ") ")
 			  "Newer version (default: current source): ")
-			nil nil rel2-default))))
+			nil nil rev2-default))))
   (if (file-directory-p file)
       ;; recursive directory diff
       (progn
         (vc-setup-buffer "*vc-diff*")
-	(if (string-equal rel1 "") (setq rel1 nil))
-	(if (string-equal rel2 "") (setq rel2 nil))
+	(if (string-equal rev1 "") (setq rev1 nil))
+	(if (string-equal rev2 "") (setq rev2 nil))
         (let ((inhibit-read-only t))
           (insert "Diffs between "
-                  (or rel1 "last version checked in")
+                  (or rev1 "last version checked in")
                   " and "
-                  (or rel2 "current workfile(s)")
+                  (or rev2 "current workfile(s)")
                   ":\n\n"))
         (let ((dir (file-name-as-directory file)))
           (vc-call-backend (vc-responsible-backend dir)
-                           'diff-tree dir rel1 rel2))
+                           'diff-tree dir rev1 rev2))
 	(vc-exec-after `(let ((inhibit-read-only t))
 			  (insert "\nEnd of diffs.\n"))))
     ;; Single file diff.  It is important that the vc-controlled buffer
     ;; is still current at this time, because any local settings in that
     ;; buffer should affect the diff command.
-    (vc-diff-internal file rel1 rel2))
+    (vc-diff-internal file rev1 rev2))
   (set-buffer "*vc-diff*")
   (if (and (zerop (buffer-size))
 	   (not (get-buffer-process (current-buffer))))
       (progn
-	(if rel1
-	    (if rel2
-		(message "No changes to %s between %s and %s" file rel1 rel2)
-	      (message "No changes to %s since %s" file rel1))
+	(if rev1
+	    (if rev2
+		(message "No changes to %s between %s and %s" file rev1 rev2)
+	      (message "No changes to %s since %s" file rev1))
 	  (message "No changes to %s since latest version" file))
 	nil)
     (pop-to-buffer (current-buffer))
@@ -1758,29 +1758,40 @@ versions of all registered files in or below it."
 		      (shrink-window-if-larger-than-buffer)))
     t))
 
-(defun vc-diff-internal (file rel1 rel2)
-  "Run diff to compare FILE's revisions REL1 and REL2.
+(defun vc-diff-label (file file-rev rev)
+  (concat (file-relative-name file)
+	  (format-time-string "\t%d %b %Y %T %z\t"
+			      (nth 5 (file-attributes file-rev)))
+	  rev))
+
+(defun vc-diff-internal (file rev1 rev2)
+  "Run diff to compare FILE's revisions REV1 and REV2.
 Diff output goes to the *vc-diff* buffer.  The exit status of the diff
 command is returned.
 
 This function takes care to set up a proper coding system for diff output.
 If both revisions are available as local files, then it also does not
 actually call the backend, but performs a local diff."
-  (if (or (not rel1) (string-equal rel1 ""))
-      (setq rel1 (vc-workfile-version file)))
-  (if (string-equal rel2 "")
-      (setq rel2 nil))
-  (let ((file-rel1 (vc-version-backup-file file rel1))
-        (file-rel2 (if (not rel2)
+  (if (or (not rev1) (string-equal rev1 ""))
+      (setq rev1 (vc-workfile-version file)))
+  (if (string-equal rev2 "")
+      (setq rev2 nil))
+  (let ((file-rev1 (vc-version-backup-file file rev1))
+        (file-rev2 (if (not rev2)
                        file
-                     (vc-version-backup-file file rel2)))
+                     (vc-version-backup-file file rev2)))
         (coding-system-for-read (vc-coding-system-for-diff file)))
-    (if (and file-rel1 file-rel2)
+    (if (and file-rev1 file-rev2)
         (apply 'vc-do-command "*vc-diff*" 1 "diff" nil
 	       (append (vc-switches nil 'diff)
-		       (list (file-relative-name file-rel1)
-			     (file-relative-name file-rel2))))
-      (vc-call diff file rel1 rel2))))
+		       ;; Provide explicit labels like RCS or CVS would do
+		       ;; so diff-mode refers to `file' rather than to
+		       ;; `file-rev1' when trying to find/apply/undo hunks.
+		       (list "-L" (vc-diff-label file file-rev1 rev1)
+			     "-L" (vc-diff-label file file-rev2 rev2)
+			     (file-relative-name file-rev1)
+			     (file-relative-name file-rev2))))
+      (vc-call diff file rev1 rev2))))
 
 
 (defun vc-switches (backend op)
@@ -1804,9 +1815,9 @@ actually call the backend, but performs a local diff."
 (defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
 (make-obsolete 'vc-diff-switches-list 'vc-switches "21.4")
 
-(defun vc-default-diff-tree (backend dir rel1 rel2)
+(defun vc-default-diff-tree (backend dir rev1 rev2)
   "List differences for all registered files at and below DIR.
-The meaning of REL1 and REL2 is the same as for `vc-version-diff'."
+The meaning of REV1 and REV2 is the same as for `vc-version-diff'."
   ;; This implementation does an explicit tree walk, and calls
   ;; vc-BACKEND-diff directly for each file.  An optimization
   ;; would be to use `vc-diff-internal', so that diffs can be local,
@@ -1821,7 +1832,7 @@ The meaning of REL1 and REL2 is the same as for `vc-version-diff'."
       `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
          (message "Looking at %s" ',f)
          (vc-call-backend ',(vc-backend f)
-                          'diff ',f ',rel1 ',rel2))))))
+                          'diff ',f ',rev1 ',rev2))))))
 
 (defun vc-coding-system-for-diff (file)
   "Return the coding system for reading diff output for FILE."

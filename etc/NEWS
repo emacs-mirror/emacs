@@ -88,12 +88,22 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** M-x compile has been completely overhauled
+** M-x compile has become more robust and reliable
 
-It now uses font-lock for turning compiler output into hypertext.  Quite a few
-more kinds of messages are recognized.  Messages that are recognized as
-warnings or informational come in orange or green, instead of red.
-Informational messages are by default skipped with `next-error'.
+Quite a few more kinds of messages are recognized.  Messages that are
+recognized as warnings or informational come in orange or green, instead of
+red.  Informational messages are by default skipped with `next-error'
+(controlled by `compilation-skip-threshold').
+
+Location data is collected on the fly as the *compilation* buffer changes.
+This means you could modify messages to make them point to different files.
+This also means you can not go to locations of messages you may have deleted.
+
+The variable `compilation-error-regexp-alist' has now become customizable.  If
+you had added your own regexps to this, you'll probably need to include a
+leading `^', otherwise they'll match anywhere on a line.  There is now also a
+`compilation-mode-font-lock-keywords' and it nicely handles all the checks
+that configure outputs and -o options so you see at a glance where you are.
 
 The new file etc/compilation.txt gives examples of each type of message.
 
@@ -637,6 +647,13 @@ mouse-autoselect-window to non-nil value, moving the mouse to a
 different Emacs window will select that window (minibuffer window can
 be selected only when it is active).  The default is nil, so that this
 feature is not enabled.
+
+** On X, when the window manager requires that you click on a frame to
+select it (give it focus), the selected window and cursor position
+normally changes according to the mouse click position.  If you set
+the variable x-mouse-click-focus-ignore-position to t, the selected
+window and cursor position do not changes when you click on a frame
+to give it focus.
 
 +++
 ** The new command `describe-char' (C-u C-x =) pops up a buffer with

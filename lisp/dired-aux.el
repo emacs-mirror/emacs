@@ -186,7 +186,7 @@ List has a form of (file-name full-file-name (attribute-list))"
    (directory-files dir)))
 
 (defun dired-do-chxxx (attribute-name program op-symbol arg)
-  ;; Change file attributes (mode, group, owner) of marked files and
+  ;; Change file attributes (mode, group, owner, timestamp) of marked files and
   ;; refresh their file lines.
   ;; ATTRIBUTE-NAME is a string describing the attribute to the user.
   ;; PROGRAM is the program used to change the attribute.
@@ -203,7 +203,10 @@ List has a form of (file-name full-file-name (attribute-list))"
 	  (dired-bunch-files 10000
 			     (function dired-check-process)
 			     (append
-			      (list operation program new-attribute)
+			      (list operation program)
+			      (if (eq op-symbol 'touch)
+				  '("-t") nil)
+			      (list new-attribute)
 			      (if (string-match "gnu" system-configuration)
 				  '("--") nil))
 			     files))
@@ -235,6 +238,12 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
   (if (memq system-type '(ms-dos windows-nt))
       (error "chown not supported on this system"))
   (dired-do-chxxx "Owner" dired-chown-program 'chown arg))
+
+(defun dired-do-touch (&optional arg)
+  "Change the timestamp of the marked (or next ARG) files.
+This calls touch."
+  (interactive "P")
+  (dired-do-chxxx "Timestamp" dired-touch-program 'touch arg))
 
 ;; Process all the files in FILES in batches of a convenient size,
 ;; by means of (FUNCALL FUNCTION ARGS... SOME-FILES...).

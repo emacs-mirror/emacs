@@ -1,6 +1,6 @@
 ;;; pcvs.el --- a front-end to CVS
 
-;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000,02,2003
+;; Copyright (C) 1991,92,93,94,95,95,97,98,99,2000,02,03,2004
 ;; 		 Free Software Foundation, Inc.
 
 ;; Author: (The PCL-CVS Trust) pcl-cvs@cyclic.com
@@ -12,7 +12,7 @@
 ;;	(Stefan Monnier) monnier@cs.yale.edu
 ;;	(Greg Klanderman) greg@alphatech.com
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
-;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
+;; Maintainer: (Stefan Monnier) monnier@gnu.org
 ;; Keywords: CVS, version control, release management
 
 ;; This file is part of GNU Emacs.
@@ -669,6 +669,14 @@ DCD is the `dont-change-disc' flag to use when parsing that output.
 SUBDIR is the subdirectory (if any) where this command was run.
 OLD-FIS is the list of fileinfos on which the cvs command was applied and
   which should be considered up-to-date if they are missing from the output."
+  (when (eq system-type 'darwin)
+    ;; Fixup the ^D^H^H inserted at beginning of buffer sometimes on MacOSX
+    ;; because of the call to `process-send-eof'.
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "^\\^D+" nil t)
+	(let ((inhibit-read-only t))
+	  (delete-region (match-beginning 0) (match-end 0))))))
   (let* ((fileinfos (cvs-parse-buffer 'cvs-parse-table dcd subdir))
 	 last)
     (with-current-buffer cvs-buffer
