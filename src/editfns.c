@@ -49,6 +49,7 @@ extern Lisp_Object make_time ();
 extern void insert_from_buffer ();
 static int tm_diff ();
 static void update_buffer_properties ();
+size_t emacs_strftime ();
 void set_time_zone_rule ();
 
 Lisp_Object Vbuffer_access_fontify_functions;
@@ -835,17 +836,18 @@ by text that describes the specified date and time in TIME:\n\
 \n\
 %Y is the year, %y within the century, %C the century.\n\
 %G is the year corresponding to the ISO week, %g within the century.\n\
-%m is the numeric month, %b and %h the abbreviated name, %B the full name.\n\
+%m is the numeric month.\n\
+%b and %h are the locale's abbreviated month name, %B the full name.\n\
 %d is the day of the month, zero-padded, %e is blank-padded.\n\
 %u is the numeric day of week from 1 (Monday) to 7, %w from 0 (Sunday) to 6.\n\
-%a is the abbreviated name of the day of week, %A the full name.\n\
+%a is the locale's abbreviated name of the day of week, %A the full name.\n\
 %U is the week number starting on Sunday, %W starting on Monday,\n\
  %V according to ISO 8601.\n\
 %j is the day of the year.\n\
 \n\
 %H is the hour on a 24-hour clock, %I is on a 12-hour clock, %k is like %H\n\
  only blank-padded, %l is like %I blank-padded.\n\
-%p is AM or PM.\n\
+%p is the locale's equivalent of either AM or PM.\n\
 %M is the minute.\n\
 %S is the second.\n\
 %Z is the time zone name, %z is the numeric form.\n\
@@ -858,7 +860,7 @@ by text that describes the specified date and time in TIME:\n\
 %R is like \"%H:%M\", %T is like \"%H:%M:%S\", %r is like \"%I:%M:%S %p\".\n\
 %X is the locale's \"preferred\" time format.\n\
 \n\
-Finally, %n is like \n, %t is like \t, %% is a literal %.\n\
+Finally, %n is a newline, %t is a tab, %% is a literal %.\n\
 \n\
 Certain flags and modifiers are available with some format controls.\n\
 The flags are `_' and `-'.  For certain characters X, %_X is like %X,\n\
