@@ -49,8 +49,12 @@
 
 /* Whether to use ISO C Amendment 1 wide char functions.
    Those should not be used for Emacs since it uses its own.  */
+#if defined _LIBC
+#define WIDE_CHAR_SUPPORT 1
+#else
 #define WIDE_CHAR_SUPPORT \
-  (defined _LIBC || HAVE_WCTYPE_H && HAVE_WCHAR_H && HAVE_BTOWC && !emacs)
+	(HAVE_WCTYPE_H && HAVE_WCHAR_H && HAVE_BTOWC && !emacs)
+#endif
 
 /* For platform which support the ISO C amendement 1 functionality we
    support user defined character classes.  */
