@@ -1,3 +1,8 @@
+2003-04-01  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (frame.o): Add dependency on blockinput.h and files
+	included from it (atimer.h and systime.h).
+
 2003-03-31  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in ($(BLD)/frame.$(O)): Add dependency on

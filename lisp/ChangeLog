@@ -1,5 +1,13 @@
-2003-03-31  Nick Roberts  <nick@nick.uklinux.net>
+2003-04-01  Kim F. Storm  <storm@cua.dk>
 
+	* simple.el (pop-global-mark-quick-repeat): Remove defcustom.
+	(set-mark-command): Unconditionally repeat pop-global-mark without
+	C-x prefix.  Fix doc.
+
+	* emulation/cua-base.el (cua-set-mark): Unconditionally repeat
+	pop-global-mark without C-x prefix.  Fix doc.
+
+2003-03-31  Nick Roberts  <nick@nick.uklinux.net>
 	* gdb-ui.el (gdb-inferior-io-mode): Remove Unix pathname for cat
 	so that it can run on NT also.
 

@@ -1,3 +1,8 @@
+2003-04-01  Kim F. Storm  <storm@cua.dk>
+
+	* makefile.MPW (frame.c.x): Add dependency on BLOCKINPUT_H_GROUP.
+	(xdisp.c.x): Fix to use BLOCKINPUT_H_GROUP.
+
 2003-03-21  Kim F. Storm  <storm@cua.dk>
 
 	* makefile.MPW (xdisp.c.x):  Add dependency on blockinput.h and
