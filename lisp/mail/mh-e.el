@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985,86,87,88,90,92,93,94,95,97 Free Software Foundation, Inc.
 
-;; Maintainer: Stephen Gildea <gildea@lcs.mit.edu>
+;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Version: 5.0.2
 ;; Keywords: mail
 ;; Bug-reports: include `M-x mh-version' output in any correspondence
@@ -37,10 +37,10 @@
 ;; Questions posting there for information on getting MH and mh-e.
 
 ;; mh-e is an Emacs interface to the MH mail system.
-;; The mailing list mh-e@x.org is for discussion of mh-e and
+;; There is a mailing list for discussion of mh-e and
 ;; announcements of new versions.  Send a "subscribe" message to
-;; mh-e-request@x.org to be added.  Do not report bugs here; mail
-;; them directly to the author (see top of mh-e.el source).
+;; mh-e-request@gnu.ai.mit.edu to be added.  Do not report bugs here; mail
+;; them directly to the maintainer (see top of mh-e.el source).
 ;; Include the output of M-x mh-version in any bug report.
 
 ;; mh-e works with GNU Emacs 18 or 19, and MH 6.
@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.15 1997/04/12 19:25:28 rms Exp rms $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.16 1997/07/23 21:39:50 rms Exp rms $")
 
 ;;; Code:
 
