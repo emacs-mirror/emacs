@@ -1,3 +1,7 @@
+2000-06-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* Makefile.in (srcdir): Define for update-subdirs.
+
 2000-06-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* find-lisp.el: New file.
