@@ -1320,26 +1320,30 @@ the current buffer's major mode.")
   return unbind_to (count, Qnil);
 }
 
-DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2, "BSwitch to buffer: ",
-  "Select buffer BUFFER in the current window.\n\
-BUFFER may be a buffer or a buffer name.\n\
-Optional second arg NORECORD non-nil means\n\
-do not put this buffer at the front of the list of recently selected ones.\n\
-\n\
-WARNING: This is NOT the way to work on another buffer temporarily\n\
-within a Lisp program!  Use `set-buffer' instead.  That avoids messing with\n\
-the window-buffer correspondences.")
-  (buffer, norecord)
+/* If switching buffers in WINDOW would be an error, return
+   a C string saying what the error would be.  */
+
+char *
+no_switch_window (window)
+     Lisp_Object window;
+{
+  Lisp_Object tem;
+  if (EQ (minibuf_window, window))
+    return "Cannot switch buffers in minibuffer window";
+  tem = Fwindow_dedicated_p (window);
+  if (!NILP (tem))
+    return "Cannot switch buffers in a dedicated window";
+  return NULL;
+}
+
+/* Switch to buffer BUFFER in the selected window.
+   If NORECORD is non-nil, don't call record_buffer.  */
+
+Lisp_Object
+switch_to_buffer_1 (buffer, norecord)
      Lisp_Object buffer, norecord;
 {
   register Lisp_Object buf;
-  Lisp_Object tem;
-
-  if (EQ (minibuf_window, selected_window))
-    error ("Cannot switch buffers in minibuffer window");
-  tem = Fwindow_dedicated_p (selected_window);
-  if (!NILP (tem))
-    error ("Cannot switch buffers in a dedicated window");
 
   if (NILP (buffer))
     buf = Fother_buffer (Fcurrent_buffer (), Qnil, Qnil);
@@ -1362,6 +1366,26 @@ the window-buffer correspondences.")
 		      buf);
 
   return buf;
+}
+
+DEFUN ("switch-to-buffer", Fswitch_to_buffer, Sswitch_to_buffer, 1, 2, "BSwitch to buffer: ",
+  "Select buffer BUFFER in the current window.\n\
+BUFFER may be a buffer or a buffer name.\n\
+Optional second arg NORECORD non-nil means\n\
+do not put this buffer at the front of the list of recently selected ones.\n\
+\n\
+WARNING: This is NOT the way to work on another buffer temporarily\n\
+within a Lisp program!  Use `set-buffer' instead.  That avoids messing with\n\
+the window-buffer correspondences.")
+  (buffer, norecord)
+     Lisp_Object buffer, norecord;
+{
+  char *err;
+
+  err = no_switch_window (selected_window);
+  if (err) error (err);
+
+  return switch_to_buffer_1 (buffer, norecord);
 }
 
 DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 3, 0,
