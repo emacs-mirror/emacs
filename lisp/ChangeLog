@@ -6,6 +6,9 @@
 
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el: Provide `help' for the sake of define-minor-mode
+	which generates defcustoms with requires.
+
 	* jit-lock.el (jit-lock-after-change): If we're in text that
 	matches a multi-line font-lock pattern, make sure the whole text
 	will be redisplayed.

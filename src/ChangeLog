@@ -1,5 +1,13 @@
 2000-10-16  Gerd Moellmann  <gerd@gnu.org>
 	
+	* xdisp.c (find_last_unchanged_at_beg_row): Renamed from
+	get_last_unchanged_at_beg_row.
+	(find_first_unchanged_at_end_row): Renamed from
+	get_first_unchanged_at_end_row.
+	(find_first_unchanged_at_end_row): Convert assertions to
+	unconditional tests which abort.  When looking for a row in
+	unchanged text, don't go further back than first_text_row.
+
 	* xdisp.c (try_scrolling) <cursor in scroll margin at the bottom>:
 	Don't add in the last line's height when deciding if the new
 	position is below the scroll margin.
