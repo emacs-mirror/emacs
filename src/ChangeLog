@@ -9,6 +9,10 @@
 	* frame.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
 
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 21.1 released.
+
 2001-10-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xfns.c (x_laplace_read_row, x_laplace_write_row): Prototypes

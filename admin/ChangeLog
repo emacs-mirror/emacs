@@ -1,5 +1,9 @@
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* Version 21.1 released.
+
+2001-10-20  Gerd Moellmann  <gerd@gnu.org>
+
 	* admin.el (add-release-logs): Put the log entry in lispref, too.
 
 2001-10-20  Miles Bader  <miles@gnu.org>
