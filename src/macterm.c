@@ -253,8 +253,6 @@ extern Lisp_Object Vcommand_line_args, Vsystem_name;
 
 extern Lisp_Object Vx_no_window_manager;
 
-extern Lisp_Object Qface, Qmouse_face;
-
 extern int errno;
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
