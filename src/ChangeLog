@@ -1,3 +1,8 @@
+2000-10-31  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* minibuf.c (read_minibuf): Reset the undo history just before
+	starting the recursive-edit.
+
 2000-10-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (menu_face_change_count): New variable.
