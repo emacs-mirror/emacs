@@ -3530,9 +3530,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	  break;
 
 	case ReparentNotify:
-	  f = x_window_to_frame (event.xreparent.window);
+	  f = x_top_window_to_frame (event.xreparent.window);
 	  if (f)
-	    f->display.x->parent_desc = event.xreparent.parent;
+	    {
+	      int x, y;
+	      f->display.x->parent_desc = event.xreparent.parent;
+	      x_real_positions (f, &x, &y);
+	      f->display.x->left_pos = x;
+	      f->display.x->top_pos = y;
+	    }
 	  break;
 
 	case Expose:
@@ -4027,7 +4033,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
           f = x_any_window_to_frame (event.xconfigure.window);
 #ifdef USE_X_TOOLKIT
           if (f
+#if 0
               && ! event.xconfigure.send_event
+#endif
               && (event.xconfigure.window == XtWindow (f->display.x->widget)))
             {
               Window win, child;
@@ -4058,6 +4066,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
               f->display.x->pixel_height = event.xconfigure.height;
               f->display.x->left_pos = event.xconfigure.x;
               f->display.x->top_pos = event.xconfigure.y;
+
+	      /* What we have now is the position of Emacs's own window.
+		 Convert that to the position of the window manager window.  */
+	      {
+		int x, y;
+		x_real_positions (f, &x, &y);
+		f->display.x->left_pos = x;
+		f->display.x->top_pos = y;
+	      }
             }
           goto OTHER;
 #else /* not USE_X_TOOLKIT */
@@ -4109,6 +4126,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      f->display.x->pixel_height = event.xconfigure.height;
 	      f->display.x->left_pos = event.xconfigure.x;
 	      f->display.x->top_pos = event.xconfigure.y;
+
+	      /* What we have now is the position of Emacs's own window.
+		 Convert that to the position of the window manager window.  */
+	      {
+		int x, y;
+		x_real_positions (f, &x, &y);
+		f->display.x->left_pos = x;
+		f->display.x->top_pos = y;
+	      }
 	    }
 #endif /* not USE_X_TOOLKIT */
 	  break;
@@ -5148,6 +5174,10 @@ x_calc_absolute_position (f)
 			     - 2 * f->display.x->border_width - win_y
 			     - PIXEL_HEIGHT (f)
 			     + f->display.x->top_pos);
+  /* The left_pos and top_pos
+     are now relative to the top and left screen edges,
+     so the flags should correspond.  */
+  f->display.x->size_hint_flags &= ~ (XNegative | YNegative);
 #else /* ! defined (HAVE_X11) */
   WINDOWINFO_TYPE parentinfo;
 
@@ -5163,21 +5193,32 @@ x_calc_absolute_position (f)
 #endif /* ! defined (HAVE_X11) */
 }
 
+/* CHANGE_GRAVITY is 1 when calling from Fset_frame_position,
+   to really change the position, and 0 when calling from
+   x_make_frame_visible (in that case, XOFF and YOFF are the current
+   position values).  */
+
 x_set_offset (f, xoff, yoff, change_gravity)
      struct frame *f;
      register int xoff, yoff;
      int change_gravity;
 {
-  f->display.x->top_pos = yoff;
-  f->display.x->left_pos = xoff;
-  f->display.x->size_hint_flags &= ~ (XNegative | YNegative);
-  if (xoff < 0)
-    f->display.x->size_hint_flags |= XNegative;
-  if (yoff < 0)
-    f->display.x->size_hint_flags |= YNegative;
+  if (change_gravity)
+    {
+      f->display.x->top_pos = yoff;
+      f->display.x->left_pos = xoff;
+      f->display.x->size_hint_flags &= ~ (XNegative | YNegative);
+      if (xoff < 0)
+	f->display.x->size_hint_flags |= XNegative;
+      if (yoff < 0)
+	f->display.x->size_hint_flags |= YNegative;
+      f->display.x->win_gravity = NorthWestGravity;
+    }
   x_calc_absolute_position (f);
 
   BLOCK_INPUT;
+  x_wm_set_size_hint (f, 0, 0);
+
 #ifdef USE_X_TOOLKIT
   XMoveWindow (XDISPLAY XtWindow (f->display.x->widget),
 	       f->display.x->left_pos, f->display.x->top_pos);
@@ -5185,12 +5226,6 @@ x_set_offset (f, xoff, yoff, change_gravity)
   XMoveWindow (XDISPLAY FRAME_X_WINDOW (f),
 	       f->display.x->left_pos, f->display.x->top_pos);
 #endif /* not USE_X_TOOLKIT */
-#ifdef HAVE_X11
-  if (change_gravity)
-    f->display.x->win_gravity = NorthWestGravity;
-
-  x_wm_set_size_hint (f, 0, 0);
-#endif /* ! defined (HAVE_X11) */
   UNBLOCK_INPUT;
 }
 
