@@ -344,6 +344,22 @@ With argument, print output into current buffer."
 			   expr))
 		     (set-syntax-table stab)))))))
 
+;; Change defvar into defconst within FORM,
+;; and likewise for other constructs as necessary.
+(defun eval-defun-1 (form)
+  (cond ((and (eq (car form) 'defvar)
+	      (cdr-safe (cdr-safe form)))
+	 ;; Force variable to be bound.
+	 (cons 'defconst (cdr form)))
+	((and (eq (car form) 'defcustom)
+	      (default-boundp (nth 1 form)))
+	 ;; Force variable to be bound.
+	 (set-default (nth 1 form) (eval (nth 2 form)))
+	 form)
+	((eq (car form) 'progn)
+	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
+	(t form)))
+
 (defun eval-defun (eval-defun-arg-internal)
   "Evaluate defun that point is in or before.
 The value is displayed in the minibuffer.
@@ -372,15 +388,8 @@ Return the result of evaluation."
 	 (setq beg (point))
 	 (setq form (read (current-buffer)))
 	 (setq end (point)))
-       ;; Alter the form if necessary.
-       (cond ((and (eq (car form) 'defvar)
-		   (cdr-safe (cdr-safe form)))
-	      ;; Force variable to be bound.
-	      (setq form (cons 'defconst (cdr form))))
-	     ((and (eq (car form) 'defcustom)
-		   (default-boundp (nth 1 form)))
-	      ;; Force variable to be bound.
-	      (set-default (nth 1 form) (eval (nth 2 form)))))
+       ;; Alter the form if necessary, changing defvar into defconst, etc.
+       (setq form (eval-defun-1 (macroexpand form)))
        (list beg end standard-output
 	     `(lambda (ignore)
 	       ;; Skipping to the end of the specified region
