@@ -860,15 +860,15 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 {
   register int *reg = ccl->reg;
   register int ic = ccl->ic;
-  register int code, field1, field2;
+  register int code = 0, field1, field2;
   register Lisp_Object *ccl_prog = ccl->prog;
   unsigned char *src = source, *src_end = src + src_bytes;
   unsigned char *dst = destination, *dst_end = dst + dst_bytes;
   int jump_address;
-  int i, j, op;
+  int i = 0, j, op;
   int stack_idx = ccl->stack_idx;
   /* Instruction counter of the current CCL code. */
-  int this_ic;
+  int this_ic = 0;
   /* CCL_WRITE_CHAR will produce 8-bit code of range 0x80..0x9F.  But,
      each of them will be converted to multibyte form of 2-byte
      sequence.  For that conversion, we remember how many more bytes
@@ -878,7 +878,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   if (ic >= ccl->eof_ic)
     ic = CCL_HEADER_MAIN;
 
-  if (ccl->buf_magnification ==0) /* We can't produce any bytes.  */
+  if (ccl->buf_magnification == 0) /* We can't produce any bytes.  */
     dst = NULL;
 
   /* Set mapping stack pointer. */
@@ -1824,8 +1824,12 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  bcopy (msg, dst, msglen);
 	  dst += msglen;
 	}
+      
       if (ccl->status == CCL_STAT_INVALID_CMD)
 	{
+#if 0 /* If the remaining bytes contain 0x80..0x9F, copying them
+	 results in an invalid multibyte sequence.  */
+
 	  /* Copy the remaining source data.  */
 	  int i = src_end - src;
 	  if (dst_bytes && (dst_end - dst) < i)
@@ -1833,6 +1837,10 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  bcopy (src, dst, i);
 	  src += i;
 	  dst += i;
+#else
+	  /* Signal that we've consumed everything.  */
+	  src = src_end;
+#endif
 	}
     }
 
@@ -1841,7 +1849,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   ccl->stack_idx = stack_idx;
   ccl->prog = ccl_prog;
   ccl->eight_bit_control = (extra_bytes > 0);
-  if (consumed) *consumed = src - source;
+  if (consumed)
+    *consumed = src - source;
   return (dst ? dst - destination : 0);
 }
 
