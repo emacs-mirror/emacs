@@ -786,6 +786,7 @@ run `normal-mode' explicitly."
 ;;; so more common ones above are found faster.
 				  ("\\.s\\'" . asm-mode)
 				  ("ChangeLog\\'" . change-log-mode)
+				  ("change.log\\'" . change-log-mode)
 				  ("ChangeLog.[0-9]+\\'" . change-log-mode)
 				  ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
 ;; The following should come after the ChangeLog pattern
@@ -819,6 +820,9 @@ run `normal-mode' explicitly."
 				  ;; .emacs following a directory delimiter
 				  ;; in either Unix or VMS syntax.
 				  ("[]>:/]\\..*emacs\\'" . emacs-lisp-mode)
+				  ;; _emacs following a directory delimiter
+				  ;; in MsDos syntax
+				  ("[:/]_emacs\\'" . emacs-lisp-mode)
 				  ("\\.ml\\'" . lisp-mode)))
   "\
 Alist of filename patterns vs corresponding major mode functions.
@@ -827,6 +831,10 @@ Visiting a file whose name matches REGEXP causes FUNCTION to be called.")
 
 (defconst inhibit-local-variables-regexps '("\\.tar$")
   "List of regexps; if one matches a file name, don't look for local vars.")
+
+(defvar user-init-file
+  "" ; set by command-line
+  "File name including directory of user's initialization file.")
 
 (defun set-auto-mode ()
   "Select major mode appropriate for current buffer.
@@ -1279,13 +1287,21 @@ we do not remove backup version numbers, only true file version numbers."
 (defun make-backup-file-name (file)
   "Create the non-numeric backup file name for FILE.
 This is a separate function so you can redefine it for customization."
-  (concat file "~"))
+  (if (eq system-type 'ms-dos)
+      (let ((fn (file-name-nondirectory file)))
+	(concat (file-name-directory file)
+		(if (string-match "\\([^.]*\\)\\(\\..*\\)?" fn)
+		    (substring fn 0 (match-end 1)))
+		".bak"))
+    (concat file "~")))
 
 (defun backup-file-name-p (file)
   "Return non-nil if FILE is a backup file name (numeric or not).
 This is a separate function so you can redefine it for customization.
 You may need to redefine `file-name-sans-versions' as well."
-  (string-match "~$" file))
+  (if (eq system-type 'ms-dos)
+      (string-match "\\.bak$" file)
+    (string-match "~$" file)))
 
 ;; This is used in various files.
 ;; The usage of bv-length is not very clean,
