@@ -2,6 +2,7 @@
 
 	* ses.el (ses-print-cell): If print format too wide for column
 	width, truncate decimal places if that helps to avoid "#####" fill.
+	* ses.el (ses-initial-column-width): Revert previous change.
 
 2004-01-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
