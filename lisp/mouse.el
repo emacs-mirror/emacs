@@ -509,17 +509,17 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 (defvar help-modes-map '(keymap "Modes"))
 (defvar help-admin-map '(keymap "Administrivia"))
 
-(define-key help-menu-map "a"
+(define-key help-menu-map [apropos]
   (cons "Is there a command that..." help-apropos-map))
-(define-key help-menu-map "k"
+(define-key help-menu-map [keys]
   (cons "Key Commands <==> Functions" help-keys-map))
-(define-key help-menu-map "m"
+(define-key help-menu-map [manuals]
   (cons "Manual and tutorial" help-manual-map))
-(define-key help-menu-map "x"
+(define-key help-menu-map [misc]
   (cons "Odds and ends" help-misc-map))
-(define-key help-menu-map "M"
+(define-key help-menu-map [modes]
   (cons "Modes" help-modes-map))
-(define-key help-menu-map "z"
+(define-key help-menu-map [admin]
   (cons "Administrivia" help-admin-map))
 
 (define-key help-apropos-map "c" '("Command Apropos" . command-apropos))
