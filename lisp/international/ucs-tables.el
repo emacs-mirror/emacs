@@ -702,6 +702,28 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	 (?\,H<(B . ?\x00BC) ;; VULGAR FRACTION ONE QUARTER
 	 (?\,H=(B . ?\x00BD) ;; VULGAR FRACTION ONE HALF
 	 (?\,H>(B . ?\x00BE) ;; VULGAR FRACTION THREE QUARTERS
+	 (?\,H@(B . ?\x05B0) ;; HEBREW POINT SHEVA
+	 (?\,HA(B . ?\x05B1) ;; HEBREW POINT HATAF SEGOL
+	 (?\,HB(B . ?\x05B2) ;; HEBREW POINT HATAF PATAH
+	 (?\,HC(B . ?\x05B3) ;; HEBREW POINT HATAF QAMATS
+	 (?\,HD(B . ?\x05B4) ;; HEBREW POINT HIRIQ
+	 (?\,HE(B . ?\x05B5) ;; HEBREW POINT TSERE
+	 (?\,HF(B . ?\x05B6) ;; HEBREW POINT SEGOL
+	 (?\,HG(B . ?\x05B7) ;; HEBREW POINT PATAH
+	 (?\,HH(B . ?\x05B8) ;; HEBREW POINT QAMATS
+	 (?\,HI(B . ?\x05B9) ;; HEBREW POINT HOLAM
+	 (?\,HK(B . ?\x05BB) ;; HEBREW POINT QUBUTS
+	 (?\,HL(B . ?\x05BC) ;; HEBREW POINT DAGESH
+	 (?\,HM(B . ?\x05BD) ;; HEBREW POINT METEG
+	 (?\,HN(B . ?\x05BE) ;; HEBREW POINT MAQAF
+	 (?\,HO(B . ?\x05BF) ;; HEBREW POINT RAFE
+	 (?\,HP(B . ?\x05C0) ;; HEBREW PUNCTUATION PASEQ
+	 (?\,HQ(B . ?\x05C1) ;; HEBREW POINT SHIN DOT
+	 (?\,HR(B . ?\x05C2) ;; HEBREW POINT SIN DOT
+	 (?\,HS(B . ?\x05C3) ;; HEBREW PUNCTUATION SOF PASUQ
+	 (?\,H[(B . ?\x202D) ;; LEFT-TO-RIGHT OVERRIDE
+	 (?\,H\(B . ?\x202E) ;; RIGHT-TO-LEFT OVERRIDE
+	 (?\,H](B . ?\x202C) ;; POP DIRECTIONAL FORMATTING
 	 (?\,H_(B . ?\x2017) ;; DOUBLE LOW LINE
 	 (?\,H`(B . ?\x05D0) ;; HEBREW LETTER ALEF
 	 (?\,Ha(B . ?\x05D1) ;; HEBREW LETTER BET
@@ -730,6 +752,8 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	 (?\,Hx(B . ?\x05E8) ;; HEBREW LETTER RESH
 	 (?\,Hy(B . ?\x05E9) ;; HEBREW LETTER SHIN
 	 (?\,Hz(B . ?\x05EA) ;; HEBREW LETTER TAV
+	 (?\,H{(B . ?\x202A) ;; LEFT-TO-RIGHT EMBEDDING
+	 (?\,H|(B . ?\x202B) ;; RIGHT-TO-LEFT EMBEDDING
 	 (?\,H}(B . ?\x200E) ;; LEFT-TO-RIGHT MARK
 	 (?\,H~(B . ?\x200F) ;; RIGHT-TO-LEFT MARK
 	 ))
