@@ -1,3 +1,15 @@
+2004-11-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* simple.el (next-error-buffer-p): allow for inclusive and
+	exclusive tests for finding a buffer
+	(next-error-find-buffer): pass the exclusive and inclusive tests
+	to next-error-buffer-p
+
+	* replace.el (occur-next-error): switch to the Occur buffer when
+	appropriate, and use the exclusive filter to
+	next-error-find-buffer to do it.  Use the absolute value of the
+	motion amount.  
+
 2004-11-29  Kenichi Handa  <handa@m17n.org>
 
 	* startup.el (command-line): Decode all buffer names by

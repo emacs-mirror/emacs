@@ -734,17 +734,23 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   "Move to the Nth (default 1) next match in an Occur mode buffer.
 Compatibility function for \\[next-error] invocations."
   (interactive "p")
-  (when reset
-    (occur-find-match 0 #'next-single-property-change "No first match"))
-  (occur-find-match
-   (prefix-numeric-value argp)
-   (if (> 0 (prefix-numeric-value argp))
-       #'previous-single-property-change
-     #'next-single-property-change)
-   "No more matches")
-  ;; In case the *Occur* buffer is visible in a nonselected window.
-  (set-window-point (get-buffer-window (current-buffer)) (point))
-  (occur-mode-goto-occurrence))
+  ;; we need to run occur-find-match from within the Occur buffer
+  (with-current-buffer 
+      (if (next-error-buffer-p (current-buffer))
+	  (current-buffer)
+	(next-error-find-buffer nil nil (lambda() (eq major-mode 'occur-mode))))
+    
+    (when reset
+      (goto-char (point-min)))
+    (occur-find-match
+     (abs (prefix-numeric-value argp))
+     (if (> 0 (prefix-numeric-value argp))
+	 #'previous-single-property-change
+       #'next-single-property-change)
+     "No more matches")
+    ;; In case the *Occur* buffer is visible in a nonselected window.
+    (set-window-point (get-buffer-window (current-buffer)) (point))
+    (occur-mode-goto-occurrence)))
 
 
 (defcustom list-matching-lines-default-context-lines 0

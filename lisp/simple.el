@@ -123,21 +123,33 @@ to navigate in it.")
 
 (make-variable-buffer-local 'next-error-function)
 
-(defsubst next-error-buffer-p (buffer &optional extra-test)
-  "Test if BUFFER is a next-error capable buffer."
+(defsubst next-error-buffer-p (buffer 
+			       &optional 
+			       extra-test-inclusive 
+			       extra-test-exclusive)
+  "Test if BUFFER is a next-error capable buffer.
+EXTRA-TEST-INCLUSIVE is called to allow extra buffers.
+EXTRA-TEST-INCLUSIVE is called to disallow buffers."
   (with-current-buffer buffer
-    (or (and extra-test (funcall extra-test))
-	next-error-function)))
+    (or (and extra-test-inclusive (funcall extra-test-inclusive))
+	(and (if extra-test-exclusive (funcall extra-test-exclusive) t)
+	 next-error-function))))
 
-(defun next-error-find-buffer (&optional other-buffer extra-test)
-  "Return a next-error capable buffer."
+(defun next-error-find-buffer (&optional other-buffer 
+					 extra-test-inclusive 
+					 extra-test-exclusive)
+  "Return a next-error capable buffer.
+OTHER-BUFFER will disallow the current buffer.
+EXTRA-TEST-INCLUSIVE is called to allow extra buffers.
+EXTRA-TEST-INCLUSIVE is called to disallow buffers."
   (or
    ;; 1. If one window on the selected frame displays such buffer, return it.
    (let ((window-buffers
           (delete-dups
            (delq nil (mapcar (lambda (w)
                                (if (next-error-buffer-p
-                                    (window-buffer w) extra-test)
+                                    (window-buffer w) 
+				    extra-test-inclusive extra-test-exclusive)
                                    (window-buffer w)))
                              (window-list))))))
      (if other-buffer
@@ -147,24 +159,29 @@ to navigate in it.")
    ;; 2. If next-error-last-buffer is set to a live buffer, use that.
    (if (and next-error-last-buffer
             (buffer-name next-error-last-buffer)
-            (next-error-buffer-p next-error-last-buffer extra-test)
+            (next-error-buffer-p next-error-last-buffer 
+				 extra-test-inclusive extra-test-exclusive)
             (or (not other-buffer)
                 (not (eq next-error-last-buffer (current-buffer)))))
        next-error-last-buffer)
    ;; 3. If the current buffer is a next-error capable buffer, return it.
    (if (and (not other-buffer)
-            (next-error-buffer-p (current-buffer) extra-test))
+            (next-error-buffer-p (current-buffer) 
+				 extra-test-inclusive extra-test-exclusive))
        (current-buffer))
    ;; 4. Look for a next-error capable buffer in a buffer list.
    (let ((buffers (buffer-list)))
      (while (and buffers
-                 (or (not (next-error-buffer-p (car buffers) extra-test))
+                 (or (not (next-error-buffer-p 
+			   (car buffers) 
+			   extra-test-inclusive extra-test-exclusive))
                      (and other-buffer (eq (car buffers) (current-buffer)))))
        (setq buffers (cdr buffers)))
      (if buffers
          (car buffers)
        (or (and other-buffer
-                (next-error-buffer-p (current-buffer) extra-test)
+                (next-error-buffer-p (current-buffer) 
+				     extra-test-inclusive extra-test-exclusive)
                 ;; The current buffer is a next-error capable buffer.
                 (progn
                   (if other-buffer
