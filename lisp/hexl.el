@@ -584,13 +584,13 @@ You may also type up to 3 octal digits, to insert a character with that code"
     (let ((ch (logior character 32)))
       (if (and (>= ch ?a) (<= ch ?f))
 	  (- ch (- ?a 10))
-	(error (format "Invalid hex digit `%c'." ch))))))
+	(error "Invalid hex digit `%c'." ch)))))
 
 (defun hexl-oct-char-to-integer (character)
   "Take a char and return its value as if it was a octal digit."
   (if (and (>= character ?0) (<= character ?7))
       (- character ?0)
-    (error (format "Invalid octal digit `%c'." character))))
+    (error "Invalid octal digit `%c'." character)))
 
 (defun hexl-printable-character (ch)
   "Return a displayable string for character CH."
