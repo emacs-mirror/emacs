@@ -186,9 +186,7 @@ same as ENDRECFUN."
 	      sort-lists (cdr sort-lists)
 	      old (cdr old)))
       (goto-char (point-max))
-      (insert-buffer-substring old-buffer
-			       last
-			       max)
+      (insert-buffer-substring old-buffer last max)
 
       ;; Copy the reordered text from the temporary buffer
       ;; to the buffer we sorted (OLD-BUFFER).
@@ -203,7 +201,7 @@ same as ENDRECFUN."
 	(delete-region min max)
 	;; Now replace the separator " " with the sorted text.
 	(goto-char (point-max))
-	(insert-buffer-substring temp-buffer 1 (1+ (- max min)))
+	(insert-buffer-substring temp-buffer)
 	(delete-region min (1+ min))))))
 
 ;;;###autoload
