@@ -1,3 +1,8 @@
+2001-08-14  Andrew Innes  <andrewi@gnu.org>
+
+	* w32term.c (x_draw_glyph_string): Draw relief (if any) before
+	drawing glyph string.
+
 2001-08-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/hiuxwe2.h: New file, for the HITACHI SR2001/SR2201 series
