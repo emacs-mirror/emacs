@@ -1,5 +1,8 @@
 2001-05-14  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* eval.c (Fdefvar): Only record (defvar <var>) in the load-history
+	in <var> has no default value yet.
+
 	* xfaces.c (try_alternative_families): First try the FAMILY.
 	And if nothing is found in the end, try again with scalable fonts.
 	(try_font_list): Let try_alternative_families do a bit more of
@@ -10,7 +13,7 @@
 
 	* xterm.c (note_mouse_highlight): Avoid changing the mouse
 	pointer shape when show_mouse_face has already done it.
-	
+
 	* xterm.c (x_draw_glyphs): Fix computation of rightmost x for
 	full-width rows.
 
