@@ -530,7 +530,8 @@ With prefix ARG only self insert."
   (or (stringp tag)
       (error "No tag selected"))
   (setq tag (downcase tag))
-  (message (or (cdr (assoc tag sgml-tag-help))
+  (message "%s"
+	   (or (cdr (assoc tag sgml-tag-help))
 	       (and (eq (aref tag 0) ?/)
 		    (cdr (assoc (substring tag 1) sgml-tag-help)))
 	       "No description available")))
