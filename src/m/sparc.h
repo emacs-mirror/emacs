@@ -43,13 +43,6 @@ NOTE-END  */
 #define sparc
 #endif
 
-#ifdef __GNUC__
-# define C_OPTIMIZE_SWITCH -O
-#else
-     /* This level of optimization is reported to work.  */
-# define C_OPTIMIZE_SWITCH -O2
-#endif
-
 /* Use type int rather than a union, to represent Lisp_Object */
 
 #define NO_UNION_TYPE
