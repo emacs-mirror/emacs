@@ -48,7 +48,9 @@ that scroll bar position."
 
 
 ;;;; Helpful functions for enabling and disabling scroll bars.
-(defvar scroll-bar-mode nil)
+;;; This is not documented because you can't change the 
+;;; mode properly by setting it.
+(defvar scroll-bar-mode t)
 
 (defun scroll-bar-mode (flag)
   "Toggle display of vertical scroll bars on each frame.
