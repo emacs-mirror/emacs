@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.94 $")
+(defconst byte-compile-version "$Revision$")
 
 ;; This file is part of GNU Emacs.
 
@@ -1615,7 +1615,7 @@ With argument, insert value in current buffer after the form."
 
     (insert
      ";ELC"
-     (if (byte-compile-version-cond byte-compile-compatibility) 18 21)
+     (if (byte-compile-version-cond byte-compile-compatibility) 18 22)
      "\000\000\000\n"
      )
     (insert ";;; Compiled by "
