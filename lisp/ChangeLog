@@ -1,3 +1,8 @@
+2000-11-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* window.el (fit-window-to-buffer): Be sure to acquire at least
+	one text line even if the buffer is empty.
+
 2000-11-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-file-writable-p) 
