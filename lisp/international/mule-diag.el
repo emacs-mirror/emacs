@@ -676,7 +676,11 @@ see the function `describe-fontset' for the format of the list."
 	(set-buffer standard-output)
 	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
 	(insert "------------\t\t\t\t\t\t  ----- -----\n")
-	(let ((fontsets (fontset-list)))
+	(let ((fontsets
+	       (sort (fontset-list)
+		     (function (lambda (x y)
+				 (string< (fontset-plain-name x)
+					  (fontset-plain-name y)))))))
 	  (while fontsets
 	    (print-fontset (car fontsets) arg)
 	    (setq fontsets (cdr fontsets))))))))
