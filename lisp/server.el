@@ -205,11 +205,8 @@ Prefix arg means just kill any existing server communications subprocess."
 		      ;; ARG is a line number option.
 		      (setq lineno (read (substring arg 1)))
 		    ;; ARG is a file name.
-		    ;; Collapse multiple slashes to single slashes,
-		    ;; since in Emacs a multiple slash is not equiv to one.
-		    ;; However, don't do this at the start of the file name.
-		    (while (string-match "//+" arg 1)
-		      (setq arg (replace-match "/" t t arg)))
+		    ;; Collapse multiple slashes to single slashes.
+		    (setq arg (command-line-normalize-file-name arg))
 		    (setq files
 			  (cons (list arg lineno)
 				files))
