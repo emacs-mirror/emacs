@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.15 2001/03/22 21:31:51 rv Exp $
+;; $Id: whitespace.el,v 1.16 2001/07/16 12:22:59 pj Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -700,6 +700,7 @@ use either \\[customize] or the function `whitespace-global-mode'
   :group 'whitespace
   :require 'whitespace)
 
+;;;###autoload
 (defun whitespace-global-mode (&optional arg)
   "Toggle using Whitespace mode in new buffers.
 With ARG, turn the mode on if and only iff ARG is positive.
