@@ -1794,14 +1794,16 @@ ARRAY is a vector, string, char-table, or bool-vector.")
 	  int len = CHAR_STRING (charval, workbuf, str);
 	  int size_byte = STRING_BYTES (XSTRING (array));
 	  unsigned char *p1 = p, *endp = p + size_byte;
-	  int this_len, i;
+	  int i;
 
-	  for (i = 0; i < size; i++)
-	    {
-	      this_len = MULTIBYTE_FORM_LENGTH (p1, endp - p1);
-	      if (len != this_len)
-		error ("Attempt to change byte length of a string");
-	    }
+	  if (size != size_byte)
+	    while (p1 < endp)
+	      {
+		int this_len = MULTIBYTE_FORM_LENGTH (p1, endp - p1);
+		if (len != this_len)
+		  error ("Attempt to change byte length of a string");
+		p1 += this_len;
+	      }
 	  for (i = 0; i < size_byte; i++)
 	    *p++ = str[i % len];
 	}
