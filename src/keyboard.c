@@ -141,6 +141,10 @@ int num_input_keys;
 /* Last input character read as a command.  */
 Lisp_Object last_command_char;
 
+/* Last input character read as a command, not counting menus
+   reached by the mouse.  */
+Lisp_Object last_nonmenu_event;
+
 /* Last input character read for any purpose.  */
 Lisp_Object last_input_char;
 
@@ -1052,9 +1056,22 @@ static Lisp_Object kbd_buffer_get_event ();
    -1 means do not do redisplay, but do do autosaving.
    1 means do both.  */
 
+/* The arguments MAPS and NMAPS are for menu prompting.
+   MAPS is an array of keymaps;  NMAPS is the length of MAPS.
+
+   PREV_EVENT is the previous input event, or nil if we are reading
+   the first event of a key sequence.
+
+   If we use a mouse menu to read the input, we store 1 into *USED_MOUSE_MENU.
+   Otherwise we store 0 there.  */
+
 Lisp_Object
-read_char (commandflag)
+read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
      int commandflag;
+     int nmaps;
+     Lisp_Object *maps;
+     Lisp_Object prev_event;
+     int *used_mouse_menu;
 {
   register Lisp_Object c;
   int count;
@@ -1118,9 +1135,17 @@ read_char (commandflag)
     {
       Lisp_Object tem0;
 
-      tem0 = sit_for (echo_keystrokes, 0, 1, 1);
-      if (EQ (tem0, Qt))
+      /* After a mouse event, start echoing right away.
+	 This is because we are probably about to display a menu,
+	 and we don't want to delay before doing so.  */
+      if (XTYPE (prev_event) == Lisp_Cons)
 	echo ();
+      else
+	{
+	  tem0 = sit_for (echo_keystrokes, 0, 1, 1);
+	  if (EQ (tem0, Qt))
+	    echo ();
+	}
     }
 
   /* Maybe auto save due to number of keystrokes or idle time.  */
@@ -1136,55 +1161,65 @@ read_char (commandflag)
       restore_getcjmp (temp);
     }
 
+  /* Try reading a character via menu prompting.
+     Try this before the sit-for, because the sit-for
+     would do the wrong thing if we are supposed to do
+     menu prompting.  */
+  c = Qnil;
+  if (INTERACTIVE && !NILP (prev_event))
+    c = read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu);
+
   /* Slow down auto saves logarithmically in size of current buffer,
      and garbage collect while we're at it.  */
-  {
-    int delay_level, buffer_size;
+  if (NILP (c))
+    {
+      int delay_level, buffer_size;
 
-    if (! MINI_WINDOW_P (XWINDOW (selected_window)))
-      last_non_minibuf_size = Z - BEG;
-    buffer_size = (last_non_minibuf_size >> 8) + 1;
-    delay_level = 0;
-    while (buffer_size > 64)
-      delay_level++, buffer_size -= buffer_size >> 2;
-    if (delay_level < 4) delay_level = 4;
-    /* delay_level is 4 for files under around 50k, 7 at 100k,
-       9 at 200k, 11 at 300k, and 12 at 500k.  It is 15 at 1 meg.  */
+      if (! MINI_WINDOW_P (XWINDOW (selected_window)))
+	last_non_minibuf_size = Z - BEG;
+      buffer_size = (last_non_minibuf_size >> 8) + 1;
+      delay_level = 0;
+      while (buffer_size > 64)
+	delay_level++, buffer_size -= buffer_size >> 2;
+      if (delay_level < 4) delay_level = 4;
+      /* delay_level is 4 for files under around 50k, 7 at 100k,
+	 9 at 200k, 11 at 300k, and 12 at 500k.  It is 15 at 1 meg.  */
 
-    /* Auto save if enough time goes by without input.  */
-    if (commandflag != 0
-	&& num_input_chars > last_auto_save
-	&& XTYPE (Vauto_save_timeout) == Lisp_Int
-	&& XINT (Vauto_save_timeout) > 0)
-      {
-	Lisp_Object tem0;
-	int delay = delay_level * XFASTINT (Vauto_save_timeout) / 4;
-	tem0 = sit_for (delay, 0, 1, 1);
-	if (EQ (tem0, Qt))
-	  {
-	    jmp_buf temp;
-	    save_getcjmp (temp);
-	    Fdo_auto_save (Qnil, Qnil);
-	    restore_getcjmp (temp);
+      /* Auto save if enough time goes by without input.  */
+      if (commandflag != 0
+	  && num_input_chars > last_auto_save
+	  && XTYPE (Vauto_save_timeout) == Lisp_Int
+	  && XINT (Vauto_save_timeout) > 0)
+	{
+	  Lisp_Object tem0;
+	  int delay = delay_level * XFASTINT (Vauto_save_timeout) / 4;
+	  tem0 = sit_for (delay, 0, 1, 1);
+	  if (EQ (tem0, Qt))
+	    {
+	      jmp_buf temp;
+	      save_getcjmp (temp);
+	      Fdo_auto_save (Qnil, Qnil);
+	      restore_getcjmp (temp);
 
-	    /* If we have auto-saved and there is still no input
-	       available, garbage collect if there has been enough
-	       consing going on to make it worthwhile.  */
-	    if (!detect_input_pending ()
-		&& consing_since_gc > gc_cons_threshold / 2)
-	      Fgarbage_collect ();
-	  }
-      }
-  }
+	      /* If we have auto-saved and there is still no input
+		 available, garbage collect if there has been enough
+		 consing going on to make it worthwhile.  */
+	      if (!detect_input_pending ()
+		  && consing_since_gc > gc_cons_threshold / 2)
+		Fgarbage_collect ();
+	    }
+	}
+    }
 
   /* Actually read a character, waiting if necessary.  */
-  c = kbd_buffer_get_event ();
+  if (NILP (c))
+    c = kbd_buffer_get_event ();
 
   if (NILP (c))
     abort ();			/* Don't think this can happen. */
 
   /* Terminate Emacs in batch mode if at eof.  */
-  if (noninteractive && c < 0)
+  if (noninteractive && XTYPE (c) == Lisp_Int && XINT (c) < 0)
     Fkill_emacs (make_number (1));
 
  non_reread:
@@ -1278,7 +1313,7 @@ read_char (commandflag)
       if (EQ (c, make_number (040)))
 	{
 	  cancel_echoing ();
-	  c = read_char (0);
+	  c = read_char (0, 0, 0, Qnil, 0);
 	}
     }
 
@@ -1543,8 +1578,8 @@ kbd_buffer_get_event ()
 	kbd_fetch_ptr = kbd_buffer;
       /* Do the redirection specified by the focus_frame
 	 member now, before we return this event.  */
-      kbd_fetch_ptr->frame =
-	XFRAME (FRAME_FOCUS_FRAME (kbd_fetch_ptr->frame));
+      kbd_fetch_ptr->frame
+	= XFRAME (FRAME_FOCUS_FRAME (kbd_fetch_ptr->frame));
 
 #ifdef MULTI_FRAME
       XSET (Vlast_event_frame, Lisp_Frame, kbd_fetch_ptr->frame);
@@ -2233,54 +2268,85 @@ static int echo_flag;
 static int echo_now;
 
 /* Read a character like read_char but optionally prompt based on maps
-   LOCAL and GLOBAL.
+   in the array MAPS.  NMAPS is the length of MAPS.
+
+   PREV_EVENT is the previous input event, or nil if we are reading
+   the first event of a key sequence.
+
+   If we use a mouse menu to read the input, we store 1 into *USED_MOUSE_MENU.
+   Otherwise we store 0 there.
 
    The prompting is done based on the prompt-string of the map
    and the strings associated with various map elements.  */
 
 Lisp_Object
-read_char_menu_prompt (prompt, local, global)
-     int prompt;
-     Lisp_Object local, global;
+read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
+     int nmaps;
+     Lisp_Object *maps;
+     Lisp_Object prev_event;
+     int *used_mouse_menu;
 {
-  register Lisp_Object rest, name;
-  Lisp_Object hmap;
+  int mapno;
+  register Lisp_Object name;
   int nlength;
   int width = FRAME_WIDTH (selected_frame) - 4;
-  char *menu = (char *) alloca (width);
+  char *menu = (char *) alloca (width + 4);
+  int idx = -1;
+  Lisp_Object rest, vector;
+
+  *used_mouse_menu = 0;
 
   /* Use local over global Menu maps */
 
-  if (menu_prompting)
-    return read_char (!prompt);
+  if (! menu_prompting)
+    return Qnil;
 
-  /* We can't get prompt strings from dense keymaps.  */
-  if (CONSP (local)
-      && EQ (Fcar (local), Qkeymap)
-      && !(CONSP (XCONS (local)->cdr)
-	   && XTYPE (XCONS (XCONS (local)->cdr)->car) == Lisp_Vector))
-    hmap = local;
-  else if (CONSP (global)
-	   && EQ (Fcar (global), Qkeymap)
-	   && !(CONSP (XCONS (global)->cdr)
-		&& XTYPE (XCONS (XCONS (global)->cdr)->car) == Lisp_Vector))
-    hmap = global;
-  else
-    return read_char (!prompt);
+  /* Get the menu name from the first map that has one (a prompt string).  */
+  for (mapno = 0; mapno < nmaps; mapno++)
+    {
+      name = map_prompt (maps[mapno]);
+      if (!NILP (name))
+	break;
+    }
 
-  /* Get the map's prompt string.  */
-  name = map_prompt (hmap);
+  /* If we don't have any menus, just read a character normally.  */
   if (NILP (name))
-    return read_char (!prompt);
+    return Qnil;
+
+#ifdef HAVE_X_MENU
+  /* If we got to this point via a mouse click,
+     use a real menu for mouse selection.  */
+  if (XTYPE (prev_event) == Lisp_Cons)
+    {
+      /* Display the menu and get the selection.  */
+      Lisp_Object *realmaps
+	= (Lisp_Object *) alloca (nmaps * sizeof (Lisp_Object));
+      Lisp_Object value;
+      int nmaps1 = 0;
+
+      /* Use the maps that are not nil.  */
+      for (mapno = 0; mapno < nmaps; mapno++)
+	if (!NILP (maps[mapno]))
+	  realmaps[nmaps1++] = maps[mapno];
+
+      value = Fx_popup_menu (prev_event, Flist (nmaps1, realmaps));
+      if (NILP (value))
+	XSET (value, Lisp_Int, quit_char);
+      *used_mouse_menu = 1;
+      return value;
+    }
+#endif /* HAVE_X_MENU */
 
   /* Prompt string always starts with map's prompt, and a space.  */
   strcpy (menu, XSTRING (name)->data);
   nlength = XSTRING (name)->size;
+  menu[nlength++] = ':';
   menu[nlength++] = ' ';
   menu[nlength] = 0;
 
-  /* Start prompting at start of map.  */
-  rest = hmap;			/* Current menu item */
+  /* Start prompting at start of first map.  */
+  mapno = 0;
+  rest = maps[mapno];
 
   /* Present the documented bindings, a line at a time.  */
   while (1)
@@ -2290,54 +2356,92 @@ read_char_menu_prompt (prompt, local, global)
       Lisp_Object obj;
       int ch;
 
-      /* If reached end of map, start at beginning.  */
-      if (NILP (Fcdr (rest))) rest = hmap;
-
       /* Loop over elements of map.  */
-      while (!NILP (rest) && i < width)
+      while (i < width)
 	{
-	  Lisp_Object s;
+	  Lisp_Object s, elt;
 
-	  /* Look for conses whose cadrs are strings.  */
-	  s = Fcar_safe (Fcdr_safe (Fcar_safe (rest)));
-	  if (XTYPE (s) != Lisp_String)
-	    /* Ignore all other elements.  */
-	    ;
-	  /* If first such element, or enough room, add string to prompt.  */
-	  else if (XSTRING (s)->size + i < width
-		   || !notfirst)
+	  /* If reached end of map, start at beginning of next map.  */
+	  if (NILP (rest))
 	    {
-	      int thiswidth;
-
-	      /* Punctuate between strings.  */
-	      if (notfirst)
+	      mapno++;
+	      /* At end of last map, wrap around to first map if just starting,
+		 or end this line if already have something on it.  */
+	      if (mapno == nmaps)
 		{
-		  strcpy (menu + i, ", ");
-		  i += 2;
+		  if (notfirst)
+		    break;
+		  else
+		    mapno = 0;
 		}
-	      notfirst = 1;
+	      rest = maps[mapno];
+	    }
 
-	      /* Add as much of string as fits.  */
-	      thiswidth = XSTRING (s)->size;
-	      if (thiswidth + i > width)
-		thiswidth = width - i;
-	      bcopy (XSTRING (s)->data, menu + i, thiswidth);
-	      i += thiswidth;
+	  /* Look at the next element of the map.  */
+	  if (idx >= 0)
+	    elt = XVECTOR (vector)->contents[idx];
+	  else
+	    elt = Fcar_safe (rest);
+
+	  if (idx < 0 && XTYPE (elt) == Lisp_Vector)
+	    {
+	      /* If we found a dense table in the keymap,
+		 advanced past it, but start scanning its contents.  */
+	      rest = Fcdr_safe (rest);
+	      vector = elt;
+	      idx = 0;
 	    }
 	  else
 	    {
-	      /* If some elts don't fit, show there are more.  */
-	      strcpy (menu + i, "...");
-	      break;
-	    }
+	      /* An ordinary element.  */
+	      s = Fcar_safe (Fcdr_safe (elt));
+	      if (XTYPE (s) != Lisp_String)
+		/* Ignore the element if it has no prompt string.  */
+		;
+	      /* If we have room for the prompt string, add it to this line.
+		 If this is the first on the line, always add it.  */
+	      else if (XSTRING (s)->size + i < width
+		       || !notfirst)
+		{
+		  int thiswidth;
 
-	  /* Move past this element.  */
-	  rest = Fcdr_safe (rest);
+		  /* Punctuate between strings.  */
+		  if (notfirst)
+		    {
+		      strcpy (menu + i, ", ");
+		      i += 2;
+		    }
+		  notfirst = 1;
+
+		  /* Add as much of string as fits.  */
+		  thiswidth = XSTRING (s)->size;
+		  if (thiswidth + i > width)
+		    thiswidth = width - i;
+		  bcopy (XSTRING (s)->data, menu + i, thiswidth);
+		  i += thiswidth;
+		}
+	      else
+		{
+		  /* If this element does not fit, end the line now,
+		     and save the element for the next line.  */
+		  strcpy (menu + i, "...");
+		  break;
+		}
+
+	      /* Move past this element.  */
+	      if (idx >= 0 && idx + 1 >= XVECTOR (rest)->size)
+		/* Handle reaching end of dense table.  */
+		idx = -1;
+	      if (idx >= 0)
+		idx++;
+	      else
+		rest = Fcdr_safe (rest);
+	    }
 	}
 
       /* Prompt with that and read response.  */
       message1 (menu);
-      obj = read_char (1);
+      obj = read_char (1, 0, 0, Qnil, 0);
 
       if (XTYPE (obj) != Lisp_Int)
 	return obj;
@@ -2350,7 +2454,6 @@ read_char_menu_prompt (prompt, local, global)
 	return obj;
     }
 }
-
 
 /* Reading key sequences.  */
 
@@ -2518,6 +2621,8 @@ read_key_sequence (keybuf, bufsize, prompt)
   int fkey_start = 0, fkey_end = 0;
   Lisp_Object fkey_map = Vfunction_key_map;
 
+  last_nonmenu_event = Qnil;
+
   if (INTERACTIVE)
     {
       if (prompt)
@@ -2561,6 +2666,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 || (first_binding >= nmaps && fkey_start < t))
     {
       Lisp_Object key;
+      int used_mouse_menu = 0;
 
       if (t >= bufsize)
 	error ("key sequence too long");
@@ -2578,10 +2684,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 	{
 	  struct buffer *buf;
 
-	  if (!prompt && INTERACTIVE)
-	    key = read_char_menu_prompt (prompt, Qnil, Qnil);
-	  else
-	    key = read_char (!prompt);
+	  key = read_char (!prompt, nmaps, submaps, last_nonmenu_event,
+			   &used_mouse_menu);
 
 	  /* The above routines return -1 at the end of a macro.
 	     Emacs 18 handles this by returning immediately with a
@@ -2593,7 +2697,10 @@ read_key_sequence (keybuf, bufsize, prompt)
 
 #ifdef MULTI_FRAME
 	  /* What buffer was this event typed/moused at?  */
-	  if (XTYPE (key) == Lisp_Int || XTYPE (key) == Lisp_Symbol)
+	  if (used_mouse_menu)
+	    /* Never change last_event_buffer for using a menu.  */
+	    buf = last_event_buffer;
+	  else if (XTYPE (key) == Lisp_Int || XTYPE (key) == Lisp_Symbol)
 	    buf = (XBUFFER
 		   (XWINDOW
 		    (FRAME_SELECTED_WINDOW
@@ -2638,6 +2745,12 @@ read_key_sequence (keybuf, bufsize, prompt)
 				   submaps + first_binding)
 		       + first_binding);
       keybuf[t++] = key;
+      /* Normally, last_nonmenu_event gets the previous key we read.
+	 But when a mouse popup menu is being used,
+	 we don't update last_nonmenu_event; it continues to hold the mouse
+	 event that preceded the first level of menu.  */
+      if (!used_mouse_menu)
+	last_nonmenu_event = key;
 
       /* If the sequence is unbound, see if we can hang a function key
 	 off the end of it.  We only want to scan real keyboard input
@@ -3418,10 +3531,16 @@ syms_of_keyboard ()
 
   DEFVAR_LISP ("disabled-command-hook", &Vdisabled_command_hook,
     "Value is called instead of any command that is disabled\n\
-(has a non-nil `disabled' property).");
+\(has a non-nil `disabled' property).");
 
   DEFVAR_LISP ("last-command-char", &last_command_char,
     "Last terminal input key that was part of a command.");
+
+  DEFVAR_LISP ("last-nonmenu-event", &last_nonmenu_event,
+    "Last terminal input key in a command, except for mouse menus.\n\
+Mouse menus give back keys that don't look like mouse events;\n\
+this variable holds the actual mouse event that led to the menu,\n\
+so that you can determine whether the command was run by mouse or not.");
 
   DEFVAR_LISP ("last-input-char", &last_input_char,
     "Last terminal input key.");
@@ -3503,9 +3622,13 @@ If string is of length N, character codes N and up are untranslated.");
   Vkeyboard_translate_table = Qnil;
 
   DEFVAR_BOOL ("menu-prompting", &menu_prompting,
-    "Non-nil means prompt with menus in echo area when appropriate.\n\
+    "Non-nil means prompt with menus when appropriate.\n\
 This is done when reading from a keymap that has a prompt string,\n\
-for elements that have prompt strings.");
+for elements that have prompt strings.\n\
+The menu is displayed on the screen\n\
+if X menus were enabled at configuration\n\
+time and the previous event was a mouse click prefix key.\n\
+Otherwise, menu prompting uses the echo area.");
   menu_prompting = 1;
 
   DEFVAR_LISP ("menu-prompt-more-char", &menu_prompt_more_char,
