@@ -215,7 +215,7 @@ Hostname matching is stricter in this case than for
 
 (defvar thing-at-point-url-regexp
   (concat
-   "\\(https?://\\|ftp://\\|gopher://\\|telnet://\\|wais://\\|file:/\\|s?news:\\|mailto:\\)"
+   "\\<\\(https?://\\|ftp://\\|gopher://\\|telnet://\\|wais://\\|file:/\\|s?news:\\|mailto:\\)"
    thing-at-point-url-path-regexp)
   "A regular expression probably matching a complete URL.")
 
