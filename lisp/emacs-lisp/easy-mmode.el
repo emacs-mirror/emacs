@@ -218,7 +218,8 @@ With zero or negative ARG turn mode off.
 
        ;; If the mode is global, call the function according to the default.
        ,(if globalp
-	    `(if (and load-file-name ,mode)
+	    `(if (and load-file-name ,mode
+		      (not purify-flag))
 		 (eval-after-load load-file-name '(,mode 1)))))))
 
 ;;;
