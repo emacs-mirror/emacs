@@ -38,12 +38,24 @@
 (defvar mh-lib nil
   "Directory containing the MH library.
 This directory contains, among other things,
-the mhl program and the components file.")
+the components file.")
+
+(defvar mh-lib-progs nil
+  "Directory containing MH helper programs.
+This directory contains, among other things, 
+the mhl program.")
+
+(defvar mh-nmh-p nil
+  "Non-nil if nmh is installed on this system instead of MH")
 
 ;;;###autoload
 (put 'mh-progs 'risky-local-variable t)
 ;;;###autoload
 (put 'mh-lib 'risky-local-variable t)
+;;;###autoload
+(put 'mh-lib-progs 'risky-local-variable t)
+;;;###autoload
+(put 'mh-nmh-p 'risky-local-variable t)
 
 ;;; User preferences:
 
@@ -532,7 +544,7 @@ Non-nil third argument means not to show the message."
 (defvar mail-user-agent 'mh-e-user-agent) ;from reporter.el 3.2
 
 (defun mh-find-path ()
-  ;; Set mh-progs and mh-lib.
+  ;; Set mh-progs, mh-lib, and mh-libs-progs
   ;; (This step is necessary if MH was installed after this Emacs was dumped.)
   ;; From profile file, set mh-user-path, mh-draft-folder,
   ;; mh-unseen-seq, mh-previous-seq, mh-inbox.
@@ -587,7 +599,8 @@ Non-nil third argument means not to show the message."
 
 (defun mh-find-progs ()
   "Find the `inc' and `mhl' programs of MH.
-Set the `mh-progs' and `mh-lib' variables to the file names."
+Set the `mh-progs' and `mh-lib', and `mh-lib-progs' variables to the
+directory names."
   (or (and mh-progs (mh-file-command-p (expand-file-name "inc" mh-progs)))
       (setq mh-progs
 	    (or (mh-path-search exec-path "inc")
@@ -596,38 +609,53 @@ Set the `mh-progs' and `mh-lib' variables to the file names."
 				  "/usr/bin/mh/" ;Ultrix 4.2
 				  "/usr/new/mh/" ;Ultrix <4.2
 				  "/usr/contrib/mh/bin/" ;BSDI
+				  "/usr/pkg/bin/"	; NetBSD
 				  "/usr/local/bin/"
 				  )
 				"inc"))))
+  (or (null mh-progs)
+      (let ((mh-base mh-progs))
+	(while (let ((dir-name (file-name-nondirectory
+				(directory-file-name mh-base))))
+		 (or (string= "mh" dir-name)
+		     (string= "bin" dir-name)))
+	  (setq mh-base
+		(file-name-directory (directory-file-name mh-base))))
+	(or (and mh-lib 
+		 (file-exists-p (expand-file-name "components" mh-lib)))
+	    (setq mh-lib
+		  ;; Look for a lib directory roughly parallel to the bin
+		  ;; directory:  Strip any trailing `mh' or `bin' path
+		  ;; components, then look for lib/mh or mh/lib.
+		  (or (mh-path-search
+		       (list (expand-file-name "lib/mh" mh-base)
+			     (expand-file-name "etc/nmh" mh-base) ; NetBSD
+			     (expand-file-name "mh/lib" mh-base))
+		       "components"
+		       'file-exists-p))))
+	(or (and mh-lib-progs
+		 (mh-file-command-p (expand-file-name "mhl" mh-lib-progs)))
+	    (setq mh-lib-progs
+		  (or (mh-path-search
+		       (list (expand-file-name "lib/mh" mh-base)
+			     (expand-file-name "libexec/nmh" mh-base) ; NetBSD
+			     (expand-file-name "mh/lib" mh-base))
+		       "mhl")
+		      (mh-path-search '("/usr/local/bin/mh/") "mhl")
+		      (mh-path-search exec-path "mhl") ;unlikely
+		      )))))
+  (unless (and mh-progs mh-lib mh-lib-progs)
+    (error "Cannot find the commands `inc' and `mhl' and the file `components'"))
+  (setq mh-nmh-p (not (null
+		       (or (string-match "nmh" mh-lib-progs)
+			   (string-match "nmh" mh-lib))))))
 
-  (or (and mh-lib (mh-file-command-p (expand-file-name "mhl" mh-lib)))
-      (null mh-progs)
-      (setq mh-lib
-	    ;; Look for a lib directory roughly parallel to the bin
-	    ;; directory:  Strip any trailing `mh' or `bin' path
-	    ;; components, then look for lib/mh or mh/lib.
-	    (or (let ((mh-base mh-progs))
-		  (while (let ((dir-name (file-name-nondirectory
-					  (directory-file-name mh-base))))
-			   (or (string= "mh" dir-name)
-			       (string= "bin" dir-name)))
-		    (setq mh-base
-			  (file-name-directory (directory-file-name mh-base))))
-		  (mh-path-search
-		   (list (expand-file-name "lib/mh/" mh-base)
-			 (expand-file-name "mh/lib/" mh-base))
-		   "mhl"))
-		(mh-path-search '("/usr/local/bin/mh/") "mhl")
-		(mh-path-search exec-path "mhl") ;unlikely
-		)))
-  (unless (and mh-progs mh-lib)
-    (error "Cannot find the commands `inc' and `mhl'")))
-
-(defun mh-path-search (path file)
+(defun mh-path-search (path file &optional func-p)
   ;; Search PATH, a list of directory names, for FILE.
   ;; Returns the element of PATH that contains FILE, or nil if not found.
   (while (and path
-	      (not (mh-file-command-p (expand-file-name file (car path)))))
+	      (not (funcall (or func-p 'mh-file-command-p)
+			    (expand-file-name file (car path)))))
     (setq path (cdr path)))
   (car path))
 
@@ -646,7 +674,7 @@ Set the `mh-progs' and `mh-lib' variables to the file names."
   ;; mh-exec-cmd will display to the user.
   ;; The MH 5 version of install-mh might try prompt the user
   ;; for information, which would fail here.
-  (mh-exec-cmd (expand-file-name "install-mh" mh-lib) "-auto")
+  (mh-exec-cmd (expand-file-name "install-mh" mh-lib-progs) "-auto")
   ;; now try again to read the profile file
   (erase-buffer)
   (condition-case err
@@ -918,7 +946,7 @@ Set the `mh-progs' and `mh-lib' variables to the file names."
 (defun mh-exec-lib-cmd-output (command &rest args)
   ;; Execute MH library command COMMAND with ARGS.
   ;; Put the output into buffer after point.  Set mark after inserted text.
-  (apply 'mh-exec-cmd-output (expand-file-name command mh-lib) nil args))
+  (apply 'mh-exec-cmd-output (expand-file-name command mh-lib-progs) nil args))
 
 
 (defun mh-handle-process-error (command status)
