@@ -459,12 +459,14 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	(progn
 	  ;; Don't be confused by apparent local-variables spec
 	  ;; in the last message in the RMAIL file.
-	  (find-file file-name)
+	  (let ((enable-local-variables nil))
+	    (find-file file-name))
 	  (if (and (verify-visited-file-modtime existed)
 		   (eq major-mode 'rmail-mode))
 	      (progn (rmail-forget-messages)
 		     (rmail-set-message-counters))))
-      (find-file file-name))
+      (let ((enable-local-variables nil))
+	(find-file file-name)))
     (if (eq major-mode 'rmail-edit-mode)
 	(error "Exit Rmail Edit mode before getting new mail"))
     (if (and existed (> (buffer-size) 0))
