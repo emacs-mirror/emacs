@@ -6,7 +6,7 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-(defconst viper-version "2.85 of January 24, 1996"
+(defconst viper-version "2.85 of February 14, 1996"
   "The current version of Viper")
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
@@ -467,7 +467,7 @@ it better fits your working style.")
 (vip-deflocalvar vip-replace-overlay nil "")
 (put 'vip-replace-overlay 'permanent-local t)
 
-(if (vip-window-display-p)
+(if (vip-has-face-support-p)
     (progn
       (make-face 'vip-replace-overlay-face)
       (vip-hide-face 'vip-replace-overlay-face)
@@ -493,7 +493,7 @@ is non-nil.")
 It is used only with TTYs or if `vip-use-replace-region-delimiters'
 is non-nil.")
 (defvar vip-use-replace-region-delimiters 
-  (or (not (vip-window-display-p)) (not (vip-color-display-p)))
+  (or (not (vip-has-face-support-p)) (not (vip-color-display-p)))
   "*If non-nil, Viper will always use `vip-replace-region-end-delimiter' and
 `vip-replace-region-start-delimiter' to delimit replacement regions, even on
 color displays. By default, the delimiters are used only on TTYs or
@@ -1379,7 +1379,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
        ))
        
   ;; minibuffer faces
-  (if (vip-window-display-p)
+  (if (vip-has-face-support-p)
       (setq vip-minibuffer-current-face
 	    (cond ((eq state 'emacs-state) vip-minibuffer-emacs-face)
 		  ((eq state 'vi-state) vip-minibuffer-vi-face)
@@ -1832,7 +1832,9 @@ behaves as in Emacs, any number of multiple escapes is allowed."
   (if (atom com)
       ;; com is a single char, so we construct prefix-arg 
       ;; and if char is ?, describe prefix arg, otherwise exit by
-      ;; pushing the char back
+      ;; pushing the char back into vip-set-unread-command-events
+      ;; Since char is a command, the command will execute with the prefix
+      ;; argument that we just constructed.
       (progn
 	(setq prefix-arg (cons value com))
 	(while (= char ?U)
@@ -2518,27 +2520,26 @@ Undo previous insertion and inserts new."
   
 
 (defun vip-set-search-face ()
-  (if (not (vip-window-display-p))
-      ()
-    (defvar vip-search-face
-      (progn
-	(make-face 'vip-search-face)
-	(vip-hide-face 'vip-search-face)
-	(or (face-differs-from-default-p 'vip-search-face)
-	    ;; face wasn't set in .vip or .Xdefaults
-	    (if (vip-can-use-colors "Black" "khaki")
-		(progn
-		  (set-face-background 'vip-search-face "khaki")
-		  (set-face-foreground 'vip-search-face "Black"))
-	      (copy-face 'italic 'vip-search-face)
-	      (set-face-underline-p 'vip-search-face t)))
-	'vip-search-face)
+  (if (vip-has-face-support-p)
+      (defvar vip-search-face
+	(progn
+	  (make-face 'vip-search-face)
+	  (vip-hide-face 'vip-search-face)
+	  (or (face-differs-from-default-p 'vip-search-face)
+	      ;; face wasn't set in .vip or .Xdefaults
+	      (if (vip-can-use-colors "Black" "khaki")
+		  (progn
+		    (set-face-background 'vip-search-face "khaki")
+		    (set-face-foreground 'vip-search-face "Black"))
+		(copy-face 'italic 'vip-search-face)
+		(set-face-underline-p 'vip-search-face t)))
+	  'vip-search-face)
         "*Face used to flash out the search pattern.")
     ))
   
   
 (defun vip-set-minibuffer-faces ()
-  (if (not (vip-window-display-p))
+  (if (not (vip-has-face-support-p))
       ()
     (defvar vip-minibuffer-emacs-face
       (progn
@@ -2554,7 +2555,7 @@ Undo previous insertion and inserts new."
 		       'vip-minibuffer-emacs-face "darkseagreen2")
 		      (set-face-foreground
 		       'vip-minibuffer-emacs-face "Black"))
-		  (copy-face 'highlight 'vip-minibuffer-emacs-face))
+		  (copy-face 'modeline 'vip-minibuffer-emacs-face))
 	      ;; emacs state is the main state in the minibuffer
 	      (if (vip-can-use-colors "Black" "pink")
 		  (progn
@@ -2585,7 +2586,7 @@ Undo previous insertion and inserts new."
 		     'vip-minibuffer-insert-face "darkseagreen2")
 		    (set-face-foreground
 		     'vip-minibuffer-insert-face "Black"))
-		(copy-face 'highlight 'vip-minibuffer-insert-face))
+		(copy-face 'modeline 'vip-minibuffer-insert-face))
 	      (vip-italicize-face 'vip-minibuffer-insert-face)))
 	'vip-minibuffer-insert-face)
       "Face used in the Minibuffer when it is in Insert state.")
@@ -3826,7 +3827,10 @@ controlled by the sign of prefix numeric value."
 	(com (vip-getCom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
     (forward-paragraph val)
-    (if com (vip-execute-com 'vip-forward-paragraph nil com))))
+    (if com
+	(progn
+	  (backward-char 1)
+	  (vip-execute-com 'vip-forward-paragraph nil com)))))
 
 (defun vip-backward-paragraph (arg)
   "Backward paragraph."
@@ -3836,7 +3840,11 @@ controlled by the sign of prefix numeric value."
 	(com (vip-getCom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
     (backward-paragraph val)
-    (if com (vip-execute-com 'vip-backward-paragraph nil com))))
+    (if com
+	(progn
+	  (forward-char 1)
+	  (vip-execute-com 'vip-backward-paragraph nil com)
+	  (backward-char 1)))))
 
 ;; should be mode-specific etc.
 
@@ -4831,7 +4839,8 @@ One can use `` and '' to temporarily jump 1 step back."
 	  ((vip-valid-register reg '(letter))
 	   (let* ((val (get-register (1+ (- reg ?a))))
 		  (buf (if (not val) 
-			   (error vip-EmptyTextmarker reg)
+			   (error 
+			    (format vip-EmptyTextmarker reg))
 			 (marker-buffer val)))
 		  (pos (marker-position val))
 		  line-no text (s pos) (e pos))
@@ -5147,13 +5156,13 @@ Please, specify your level now: ")
     (setq color-display-p (if (vip-window-display-p) 
 			      (vip-color-display-p)
 			    'non-x)
-	  minibuffer-vi-face (if (vip-window-display-p)
+	  minibuffer-vi-face (if (vip-has-face-support-p)
 				 (vip-get-face vip-minibuffer-vi-face)
 			       'non-x)
-	  minibuffer-insert-face (if (vip-window-display-p)
+	  minibuffer-insert-face (if (vip-has-face-support-p)
 				     (vip-get-face vip-minibuffer-insert-face)
 				   'non-x)
-	  minibuffer-emacs-face (if (vip-window-display-p)
+	  minibuffer-emacs-face (if (vip-has-face-support-p)
 				    (vip-get-face vip-minibuffer-emacs-face)
 				  'non-x)
 	  frame-parameters (if (fboundp 'frame-parameters)
@@ -5401,6 +5410,7 @@ Mail anyway (y or n)? ")
   (add-hook 'compilation-mode-hook     'viper-mode)  
 
   (add-hook 'perl-mode-hook     'viper-mode)  
+  (add-hook 'tcl-mode-hook     'viper-mode)  
   
   (defvar emerge-startup-hook nil)
   (add-hook 'emerge-startup-hook 'vip-change-state-to-emacs)
