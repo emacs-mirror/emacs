@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 
-;; Maintainer: Milan Zamazal <pdm@fi.muni.cz>
+;; Maintainer: Pavel Jan,Am(Bk <Pavel@Janik.cz>
 ;; Keywords: multilingual, Czech
 
 ;; This file is part of GNU Emacs.

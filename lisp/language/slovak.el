@@ -3,8 +3,8 @@
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 
 ;; Authors:    Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>,
-;;             Milan Zamazal <pdm@fi.muni.cz>
-;; Maintainer: Milan Zamazal <pdm@fi.muni.cz>
+;;             Milan Zamazal <pdm@zamazal.org>
+;; Maintainer: Pavel Jan,Am(Bk <Pavel@Janik.cz>
 ;; Keywords: multilingual, Slovak
 
 ;; This file is part of GNU Emacs.
