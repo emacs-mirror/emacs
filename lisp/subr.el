@@ -28,8 +28,9 @@
 A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
 self-quoting; the result of evaluating the lambda expression is the
 expression itself.  The lambda expression may then be treated as a
-function, i. e. stored as the function value of a symbol, passed to
-funcall or mapcar, etcetera.
+function, i.e., stored as the function value of a symbol, passed to
+funcall or mapcar, etc.
+
 ARGS should take the same form as an argument list for a `defun'.
 DOCSTRING should be a string, as described for `defun'.  It may be omitted.
 INTERACTIVE should be a call to the function `interactive', which see.
