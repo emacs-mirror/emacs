@@ -1781,6 +1781,17 @@ When the option @code{add-log-keep-changes-together} is set, @kbd{C-x 4
 a} adds to any existing entry for the file rather than starting a new
 entry.
 
+@vindex change-log-version-info-enabled
+@vindex change-log-version-number-regexp-list
+@cindex file version in change log entries
+  If the value of the variable @code{change-log-version-info-enabled} is
+non-nil, the file's version number is automatically added to change log
+entries.  The search for the file's version number is performed based on
+regular expressions from the variable
+@code{change-log-version-number-regexp-list}, which can be cutsomized
+(versions of files that are under version control systems are known to
+Emacs through the version-control interface).
+
 @cindex Change Log mode
 @findex change-log-mode
   The change log file is visited in Change Log mode.  In this major
