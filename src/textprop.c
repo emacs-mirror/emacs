@@ -70,6 +70,7 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 
 Lisp_Object Vinhibit_point_motion_hooks;
 Lisp_Object Vdefault_text_properties;
+Lisp_Object Vchar_property_alias_alist;
 Lisp_Object Vtext_property_default_nonsticky;
 
 /* verify_interval_modification saves insertion hooks here
@@ -2176,6 +2177,15 @@ syms_of_textprop ()
 The value of a property in this list is seen as the value for every
 character that does not have its own value for that property.  */);
   Vdefault_text_properties = Qnil;
+
+  DEFVAR_LISP ("char-property-alias-alist", &Vchar_property_alias_alist,
+	       doc: /* Alist of alternative properties for properties without a value.
+Each element should look like (PROPERTY ALTERNATIVE1 ALTERNATIVE2...).
+If a piece of text has no direct value for a particular property, then
+this alist is consulted.  If that property appears in the alist, then
+the first non-nil value from the associated alternative properties is
+returned. */);
+  Vchar_property_alias_alist = Qnil;
 
   DEFVAR_LISP ("inhibit-point-motion-hooks", &Vinhibit_point_motion_hooks,
 	       doc: /* If non-nil, don't run `point-left' and `point-entered' text properties.
