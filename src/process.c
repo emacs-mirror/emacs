@@ -2217,7 +2217,6 @@ set_socket_options (s, opts, no_error)
       Lisp_Object val;
       char *name, *arg;
       struct socket_options *sopt;
-      int optnum, opttype;
       int ret = 0;
 
       opt = XCAR (opts);
@@ -2494,7 +2493,7 @@ DEFUN ("make-network-process", Fmake_network_process, Smake_network_process,
        0, MANY, 0, 
        doc: /* Create and return a network server or client process.
 
-In emacs, network connections are represented by process objects, so
+In Emacs, network connections are represented by process objects, so
 input and output work as for subprocesses and `delete-process' closes
 a network connection.  However, a network process has no process id,
 it cannot be signalled, and the status codes are different from normal
@@ -2607,7 +2606,9 @@ process' buffer.
 
 The following special call returns t iff a given KEY VALUE
 pair is supported on this system:
-  (make-network-process :feature KEY VALUE)  */)
+  (make-network-process :feature KEY VALUE)
+
+usage: (make-network-process &rest ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2630,7 +2631,6 @@ pair is supported on this system:
     struct _emacs_addrinfo *ai_next;
   } ai, *res, *lres;
 #endif /* HAVE_GETADDRINFO */
-  struct sockaddr *sa = 0;
   struct sockaddr_in address_in;
 #ifdef HAVE_LOCAL_SOCKETS
   struct sockaddr_un address_un;
