@@ -1051,9 +1051,6 @@ void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 int x_alloc_nearest_color P_ ((struct frame *, Colormap, XColor *));
 
-extern void pixel_to_glyph_coords P_ ((struct frame *, int, int,
-				       int *, int *, XRectangle *, int));
-
 /* Defined in xterm.c */
 
 extern void cancel_mouse_face P_ ((struct frame *));
@@ -1183,3 +1180,9 @@ extern int x_session_have_connection P_ ((void));
 #define XCHAR2B_BYTE2(chp) \
   ((chp)->byte2)
 
+
+#define STORE_NATIVE_RECT(nr,rx,ry,rwidth,rheight)	\
+  ((nr).x = (rx),					\
+   (nr).y = (ry),					\
+   (nr).width = (rwidth),				\
+   (nr).height = (rheight))
