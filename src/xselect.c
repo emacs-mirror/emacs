@@ -834,7 +834,11 @@ x_clear_frame_selections (f)
 	{
 	  for (; CONSP (hooks); hooks = Fcdr (hooks))
 	    call1 (Fcar (hooks), selection_symbol);
+#if 0 /* This can crash when deleting a frame
+	 from x_connection_closed.  Anyway, it seems unnecessary;
+	 something else should cause a redisplay.  */
 	  redisplay_preserve_echo_area ();
+#endif
 	}
 
       Vselection_alist = Fcdr (Vselection_alist);
@@ -854,7 +858,9 @@ x_clear_frame_selections (f)
 	  {
 	    for (; CONSP (hooks); hooks = Fcdr (hooks))
 	      call1 (Fcar (hooks), selection_symbol);
+#if 0 /* See above */
 	    redisplay_preserve_echo_area ();
+#endif
 	  }
 	XCONS (rest)->cdr = Fcdr (XCONS (rest)->cdr);
 	break;
