@@ -456,10 +456,10 @@ that uses or sets the mark."
       (save-restriction
 	(goto-char (point-min))
 	(widen)
-	(beginning-of-line)
+	(forward-line 0)
 	(setq start (point))
 	(goto-char opoint)
-	(beginning-of-line)
+	(forward-line 0)
 	(if (/= start 1)
 	    (message "line %d (narrowed line %d)"
 		     (1+ (count-lines 1 (point)))
