@@ -15449,11 +15449,11 @@ system which uses fontsets).
 ;;;***
 
 ;;;### (autoloads (char-displayable-p detect-coding-with-language-environment
-;;;;;;  detect-coding-with-priority coding-system-equal coding-system-translation-table-for-encode
+;;;;;;  detect-coding-with-priority coding-system-translation-table-for-encode
 ;;;;;;  coding-system-translation-table-for-decode coding-system-pre-write-conversion
 ;;;;;;  coding-system-post-read-conversion lookup-nested-alist set-nested-alist
 ;;;;;;  truncate-string-to-width store-substring string-to-sequence)
-;;;;;;  "mule-util" "international/mule-util.el" (16211 37839))
+;;;;;;  "mule-util" "international/mule-util.el" (16747 27100))
 ;;; Generated autoloads from international/mule-util.el
 
 (autoload (quote string-to-sequence) "mule-util" "\
@@ -15559,13 +15559,6 @@ Return the value of CODING-SYSTEM's `translation-table-for-decode' property.
 Return the value of CODING-SYSTEM's `translation-table-for-encode' property.
 
 \(fn CODING-SYSTEM)" nil nil)
-
-(autoload (quote coding-system-equal) "mule-util" "\
-Return t if and only if CODING-SYSTEM-1 and CODING-SYSTEM-2 are identical.
-Two coding systems are identical if two symbols are equal
-or one is an alias of the other.
-
-\(fn CODING-SYSTEM-1 CODING-SYSTEM-2)" nil nil)
 
 (autoload (quote detect-coding-with-priority) "mule-util" "\
 Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
