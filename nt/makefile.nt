@@ -84,23 +84,25 @@ all:		$(BLD) $(ALL)
 		cd ..\nt
 
 
-emacs.bat:	emacs.bat.in
-		echo @echo off > emacs.bat
+$(INSTALL_DIR)\bin\emacs.bat:	emacs.bat.in
+		echo @echo off > $@
 		echo REM !!! Warning: This file automatically generated !!! >> emacs.bat
-		echo set emacs_dir=$(INSTALL_DIR)>> emacs.bat
-		type emacs.bat.in >> emacs.bat
+		echo set emacs_dir=$(INSTALL_DIR)>> $@
+		type emacs.bat.in >> $@
 
-debug.bat:	debug.bat.in
-		echo @echo off > debug.bat
+$(INSTALL_DIR)\bin\debug.bat:	debug.bat.in
+		echo @echo off > $@
 		echo REM !!! Warning: This file automatically generated !!! >> debug.bat
-		echo set emacs_dir=$(INSTALL_DIR)>> debug.bat
-		type debug.bat.in >> debug.bat
+		echo set emacs_dir=$(INSTALL_DIR)>> $@
+		type debug.bat.in >> $@
+
+batch_files: $(INSTALL_DIR)\bin\emacs.bat $(INSTALL_DIR)\bin\debug.bat
 
 #
 # Build and install emacs in INSTALL_DIR
 #
 INSTALL_CMD	= $(MAKE) -f makefile.nt install
-install:	all emacs.bat debug.bat
+install:	all batch_files
 		- mkdir $(INSTALL_DIR)
 		cd ..\lib-src
 		$(INSTALL_CMD)
@@ -109,8 +111,6 @@ install:	all emacs.bat debug.bat
 		cd ..\lisp
 		$(INSTALL_CMD)
 		cd ..\nt		
-		- $(CP) emacs.bat $(INSTALL_DIR)\bin
-		- $(CP) debug.bat $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\addpm.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\ddeclient.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\cmdproxy.exe $(INSTALL_DIR)\bin
@@ -127,12 +127,10 @@ install:	all emacs.bat debug.bat
 # This installs executables from ..\bin into the installation directory
 # without building anything.
 #
-fast_install:
+fast_install:	batch_files
 		- mkdir $(INSTALL_DIR)\data
 		$(CP) ..\lib-src\DOC $(INSTALL_DIR)\etc
 		- mkdir $(INSTALL_DIR)\bin
-		- $(CP) emacs.bat $(INSTALL_DIR)\bin
-		- $(CP) debug.bat $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\addpm.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\runemacs.exe $(INSTALL_DIR)\bin
 		- $(DEL) ..\same-dir.tst
