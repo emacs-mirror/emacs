@@ -99,17 +99,64 @@ This must be bound to a mouse click."
 
 (defun mouse-set-region (click)
   "Set the region to the text that the mouse is dragged over.
-This must be bound to a mouse click."
+This must be bound to a mouse drag event."
   (interactive "e")
   (let ((posn (event-start click))
 	(end (event-end click)))
     (select-window (posn-window posn))
     (if (numberp (posn-point posn))
 	(goto-char (posn-point posn)))
-    (sit-for 1)
+    ;; If mark is highlighted, no need to bounce the cursor.
+    (or (and transient-mark-mode
+	     (eq (framep (selected-frame)) 'x))
+	(sit-for 1))
     (push-mark)
     (if (numberp (posn-point end))
 	(goto-char (posn-point end)))))
+
+(defun mouse-drag-region (click)
+  "Set the region to the text that the mouse is dragged over.
+This must be bound to a button-down mouse event."
+  (interactive "e")
+  (let ((posn (event-start click))
+	done event (mark-active nil))
+    (select-window (posn-window posn))
+    ;; Set point temporarily, so user sees where it is.
+    (if (numberp (posn-point posn))
+	(goto-char (posn-point posn)))
+    ;; Turn off the old mark when we set up an empty region.
+    (setq deactivate-mark t)))
+
+;;;Nice hack, but too slow.
+;;;(defun mouse-drag-region-1 (click)
+;;;  "Set the region to the text that the mouse is dragged over.
+;;;This must be bound to a button-down mouse event."
+;;;  (interactive "e")
+;;;  (let (newmark)
+;;;    (let ((posn (event-start click))
+;;;	  done event omark (mark-active t))
+;;;      (select-window (posn-window posn))
+;;;      (setq omark (and mark-active (mark)))
+;;;      (if (numberp (posn-point posn))
+;;;	  (goto-char (posn-point posn)))
+;;;      ;; Set mark temporarily, so highlighting does what we want.
+;;;      (set-marker (mark-marker) (point))
+;;;      (track-mouse
+;;;	(while (not done)
+;;;	  (setq event (read-event))
+;;;	  (if (eq (car-safe event) 'mouse-movement)
+;;;	      (goto-char (posn-point (event-start event)))
+;;;	    ;; Exit when we get the drag event; ignore that event.
+;;;	    (setq done t))))
+;;;      (if (/= (mark) (point))
+;;;	  (setq newmark (mark)))
+;;;      ;; Restore previous mark status.
+;;;      (if omark (set-marker (mark-marker) omark)))
+;;;    ;; Now, if we dragged, set the mark at the proper place.
+;;;    (if newmark
+;;;	(push-mark newmark t)
+;;;      ;; Turn off the old mark when we set up an empty region.
+;;;      (setq deactivate-mark t))))
 
 (defun mouse-set-mark (click)
   "Set mark at the position clicked on with the mouse.
@@ -603,11 +650,10 @@ and selects that window."
 
 ;;; Bindings for mouse commands.
 
-;; This won't be needed once the drag and down events
-;; are properly implemented.
+(define-key global-map [down-mouse-1] 'mouse-drag-region)
 (global-set-key [mouse-1]	'mouse-set-point)
-
 (global-set-key [drag-mouse-1]	'mouse-set-region)
+
 (global-set-key [mouse-2]	'mouse-yank-at-click)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
 
