@@ -5539,7 +5539,16 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   Lisp_Object lispstream;
   int count = specpdl_ptr - specpdl;
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
-  int message_p = push_message ();
+  int message_p = 0;
+
+  if (max_specpdl_size < specpdl_size + 40)
+    max_specpdl_size = specpdl_size + 40;
+
+  if (minibuf_level)
+    no_message = Qt;
+
+  if (NILP (no_message));
+    message_p = push_message ();
   
   /* Ordinarily don't quit within this function,
      but don't make it impossible to quit (in case we get hung in I/O).  */
@@ -5548,9 +5557,6 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 
   /* No GCPRO needed, because (when it matters) all Lisp_Object variables
      point to non-strings reached from Vbuffer_alist.  */
-
-  if (minibuf_level)
-    no_message = Qt;
 
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("auto-save-hook"));
