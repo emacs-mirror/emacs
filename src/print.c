@@ -627,7 +627,7 @@ debug_print (arg)
      Lisp_Object arg;
 {
   Fprin1 (arg, Qexternal_debugging_output);
-  printf ("\n");
+  fprintf (stderr, "\n");
 }
 
 #ifdef LISP_FLOAT_TYPE
