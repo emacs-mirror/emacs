@@ -254,8 +254,14 @@ static int se_is_so;	/* 1 if same string both enters and leaves
 
 /* internal state */
 
+/* The largest frame width in any call to calculate_costs.  */
+int max_frame_width;
+/* The largest frame height in any call to calculate_costs.  */
+int max_frame_height;
+
 /* Number of chars of space used for standout marker at beginning of line,
    or'd with 0100.  Zero if no standout marker at all.
+   The length of these vectors is max_frame_height.
 
    Used IFF TN_standout_width >= 0. */
 
@@ -1014,7 +1020,8 @@ per_line_cost (str)
 
 #ifndef old
 /* char_ins_del_cost[n] is cost of inserting N characters.
-   char_ins_del_cost[-n] is cost of deleting N characters. */
+   char_ins_del_cost[-n] is cost of deleting N characters.
+   The length of this vector is based on max_frame_width.  */
 
 int *char_ins_del_vector;
 
@@ -1115,30 +1122,33 @@ calculate_costs (frame)
      chars_wasted and copybuf are only used here in term.c in cases where
      the term hook isn't called. */
 
+  max_frame_height = max (max_frame_height, FRAME_HEIGHT (frame));
+  max_frame_width = max (max_frame_width, FRAME_WIDTH (frame));
+
   if (chars_wasted != 0)
-    chars_wasted = (char *) xrealloc (chars_wasted, FRAME_HEIGHT (frame));
+    chars_wasted = (char *) xrealloc (chars_wasted, max_frame_height);
   else
-    chars_wasted = (char *) xmalloc (FRAME_HEIGHT (frame));
+    chars_wasted = (char *) xmalloc (max_frame_height);
 
   if (copybuf != 0)
-    copybuf = (char *) xrealloc (copybuf, FRAME_HEIGHT (frame));
+    copybuf = (char *) xrealloc (copybuf, max_frame_height);
   else
-    copybuf = (char *) xmalloc (FRAME_HEIGHT (frame));
+    copybuf = (char *) xmalloc (max_frame_height);
 
   if (char_ins_del_vector != 0)
     char_ins_del_vector
       = (int *) xrealloc (char_ins_del_vector,
 			  (sizeof (int)
-			   + 2 * FRAME_WIDTH (frame) * sizeof (int)));
+			   + 2 * max_frame_width * sizeof (int)));
   else
     char_ins_del_vector
       = (int *) xmalloc (sizeof (int)
-			 + 2 * FRAME_WIDTH (frame) * sizeof (int));
+			 + 2 * max_frame_width * sizeof (int));
 
-  bzero (chars_wasted, FRAME_HEIGHT (frame));
-  bzero (copybuf, FRAME_HEIGHT (frame));
+  bzero (chars_wasted, max_frame_height);
+  bzero (copybuf, max_frame_height);
   bzero (char_ins_del_vector, (sizeof (int)
-			       + 2 * FRAME_WIDTH (frame) * sizeof (int)));
+			       + 2 * max_frame_width * sizeof (int)));
 
   if (f && (!TS_ins_line && !TS_del_line))
     do_line_insertion_deletion_costs (frame,
