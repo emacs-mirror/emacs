@@ -1,3 +1,8 @@
+2000-11-01  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* gnus.texi (Fancy Mail Splitting): Explain
+	`nnmail-split-fancy-with-parent'.
+
 2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff.texi: Replaced @command with @code & acknowledgements.
