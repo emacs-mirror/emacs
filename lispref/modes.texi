@@ -1223,6 +1223,11 @@ symbol whose value is void.
 There is one exception: if the value of @var{symbol} is a string, it is
 displayed verbatim: the @code{%}-constructs are not recognized.
 
+Unless @var{symbol} is marked as ``risky'' (i.e., it has a
+non-@code{nil} @code{risky-local-variable} property), all properties in
+any strings, as well as all @code{:eval} and @code{:propertize} forms in
+the value of that symbol will be ignored.
+
 @item (@var{string} @var{rest}@dots{}) @r{or} (@var{list} @var{rest}@dots{})
 A list whose first element is a string or list means to process all the
 elements recursively and concatenate the results.  This is the most
@@ -1302,7 +1307,7 @@ directory.
    '(which-func-mode ("" which-func-format "--"))
    '(line-number-mode "L%l--")
    '(column-number-mode "C%c--")
-   '(-3 . "%p")
+   '(-3 "%p")
    "-%-"))
 @end group
 @end example
@@ -1360,7 +1365,7 @@ also specifies addition of the @code{help-echo} text property.
 
 @example
 @group
-((-3 . "%p")
+((-3 "%p")
  (size-indication-mode (8 " of %I"))
 @end group
 @group
