@@ -295,7 +295,7 @@ struct glyph
   /* Type of font used to display the character glyph. Used to
      determine which set of functions to use to obtain font metrics
      for the glyph. Value should be an enumerator of the type
-     w32_char_font_type. */
+     w32_char_font_type.  */
   unsigned w32_font_type : 2;
 #endif
 
@@ -375,7 +375,7 @@ struct glyph
 
 /* Construct a glyph code from a character glyph GLYPH.  If the
    character is multibyte, return -1 as we can't use glyph table for a
-   multibyte character. */
+   multibyte character.  */
      
 #define GLYPH_FROM_CHAR_GLYPH(GLYPH)				\
   ((GLYPH).u.ch < 256						\
@@ -575,7 +575,7 @@ struct glyph_row
      to any text; it is some buffer position if the row corresponds to
      an empty display line that displays a line end.  This is what old
      redisplay used to do.  (Except in code for terminal frames, this
-     kludge is no longer use, I believe. --gerd).
+     kludge is no longer used, I believe. --gerd).
 
      See also start, end, displays_text_p and ends_at_zv_p for cleaner
      ways to do it.  The special meaning of positions 0 and -1 will be
@@ -667,12 +667,12 @@ struct glyph_row
      of lbearing or rbearing.  */
   unsigned contains_overlapping_glyphs_p : 1;
 
-  /* 1 means this row is a wide as the window it is displayed in, including
+  /* 1 means this row is as wide as the window it is displayed in, including
      scroll bars, fringes, and internal borders.  This also
      implies that the row doesn't have marginal areas.  */
   unsigned full_width_p : 1;
 
-  /* Non-zero means row is a mode or top-line.  */
+  /* Non-zero means row is a mode or header-line.  */
   unsigned mode_line_p : 1;
 
   /* 1 in a current row means this row is overlapped by another row.  */
@@ -685,7 +685,7 @@ struct glyph_row
   
   /* 1 means this line starts in the middle of a character consisting
      of more than one glyph.  Some glyphs have been put in the
-     previoius row, the rest are put in this row.  */
+     previous row, the rest are put in this row.  */
   unsigned starts_in_middle_of_char_p : 1;
 
   /* 1 in a current row means this row overlaps others.  */
@@ -719,7 +719,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 #define MATRIX_MODE_LINE_ROW(MATRIX) \
      ((MATRIX)->rows + (MATRIX)->nrows - 1)
 
-/* Return a pointer to the row reserved for the top line in MATRIX.
+/* Return a pointer to the row reserved for the header line in MATRIX.
    This is always the first row in MATRIX because that's the only
    way that works in frame-based redisplay.  */
 
@@ -748,7 +748,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 #define MATRIX_ROW_START_CHARPOS(ROW) ((ROW)->start.pos.charpos)
 #define MATRIX_ROW_START_BYTEPOS(ROW) ((ROW)->start.pos.bytepos)
 
-/* Return character/ byte position at which ROW ends.  */
+/* Return the character/ byte position at which ROW ends.  */
      
 #define MATRIX_ROW_END_CHARPOS(ROW) ((ROW)->end.pos.charpos)
 #define MATRIX_ROW_END_BYTEPOS(ROW) ((ROW)->end.pos.bytepos)
@@ -914,7 +914,7 @@ extern struct glyph_row scratch_glyph_row;
       ? MATRIX_MODE_LINE_ROW (MATRIX)->height	\
       : 0)
 
-/* Return the height of the top line in glyph matrix MATRIX, or zero
+/* Return the height of the header line in glyph matrix MATRIX, or zero
    if not known.  This macro is called under circumstances where
    MATRIX might not have been allocated yet.  */
 
@@ -936,7 +936,7 @@ extern struct glyph_row scratch_glyph_row;
 	 : estimate_mode_line_height (XFRAME ((W)->frame),	\
 				      MODE_LINE_FACE_ID)))
 
-/* Return the current height of the top line of window W.  If not
+/* Return the current height of the header line of window W.  If not
    known from current_header_line_height, look at W's current glyph
    matrix, or return an estimation based on the height of the font of
    the face `header-line'.  */
@@ -954,7 +954,7 @@ extern struct glyph_row scratch_glyph_row;
 #define DESIRED_MODE_LINE_HEIGHT(W) \
      MATRIX_MODE_LINE_HEIGHT ((W)->desired_matrix)
 
-/* Return the height of the desired top line of window W.  */
+/* Return the height of the desired header line of window W.  */
 
 #define DESIRED_HEADER_LINE_HEIGHT(W) \
      MATRIX_HEADER_LINE_HEIGHT ((W)->desired_matrix)
@@ -990,7 +990,7 @@ extern struct glyph_row scratch_glyph_row;
       ? CURRENT_MODE_LINE_HEIGHT (W)		\
       : 0)
 
-/* Height in pixels of the top line.  Zero if W doesn't have a top
+/* Height in pixels of the header line.  Zero if W doesn't have a header
    line.  */
      
 #define WINDOW_DISPLAY_HEADER_LINE_HEIGHT(W)	\
@@ -1004,7 +1004,7 @@ extern struct glyph_row scratch_glyph_row;
      (WINDOW_DISPLAY_PIXEL_HEIGHT ((W))		\
       - WINDOW_DISPLAY_MODE_LINE_HEIGHT ((W)))
 
-/* Pixel height of window W without mode and top line.  */
+/* Pixel height of window W without mode and header line.  */
      
 #define WINDOW_DISPLAY_TEXT_HEIGHT(W)		\
      (WINDOW_DISPLAY_PIXEL_HEIGHT ((W))		\
@@ -1053,7 +1053,7 @@ extern struct glyph_row scratch_glyph_row;
 #define FRAME_TO_WINDOW_PIXEL_X(W, X) \
      ((X) - WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X ((W)))
 
-/* Convert frame relative pixel X to window relative pixel Y.  */
+/* Convert frame relative pixel Y to window relative pixel Y.  */
      
 #define FRAME_TO_WINDOW_PIXEL_Y(W, Y) \
      ((Y) - WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y ((W)))
@@ -1109,7 +1109,7 @@ extern struct glyph_row scratch_glyph_row;
 	 ? WINDOW_DISPLAY_LEFT_AREA_PIXEL_WIDTH ((W))	\
 	 : WINDOW_DISPLAY_RIGHT_AREA_PIXEL_WIDTH ((W))))
      
-/* Value is non-zero if window W has a mode line.  */
+/* Value is non-zero if window W wants a mode line.  */
 
 #define WINDOW_WANTS_MODELINE_P(W)					\
      (!MINI_WINDOW_P (W)						\
@@ -1118,7 +1118,7 @@ extern struct glyph_row scratch_glyph_row;
       && BUFFERP ((W)->buffer)						\
       && !NILP (XBUFFER ((W)->buffer)->mode_line_format))
 
-/* Value is non-zero if window W wants a top line.  */
+/* Value is non-zero if window W wants a header line.  */
 
 #define WINDOW_WANTS_HEADER_LINE_P(W)					\
      (!MINI_WINDOW_P (W)						\
@@ -1249,7 +1249,7 @@ struct face
   /* Non-zero means characters in this face have a box that thickness
      around them.  If it is negative, the absolute value indicates the
      thickness, and the horizontal lines of box (top and bottom) are
-     drawn inside of characters glyph area.  The vartical lines of box
+     drawn inside of characters glyph area.  The vertical lines of box
      (left and right) are drawn as the same way as the case that this
      value is positive.  */
   int box_line_width;
@@ -1297,7 +1297,7 @@ struct face
   unsigned underline_defaulted_p : 1; 
 
   /* 1 means that either no color is specified for the corresponding
-     attribute or that the the specified color couldn't be loaded.
+     attribute or that the specified color couldn't be loaded.
      Use the foreground color when drawing in that case. */
   unsigned overline_color_defaulted_p : 1;
   unsigned strike_through_color_defaulted_p : 1;
@@ -1335,7 +1335,7 @@ struct face
 
 #define FACE_TTY_DEFAULT_FG_COLOR ((unsigned long) -2)
 
-/* Color index indicating that face uses an unsigned background color.  */
+/* Color index indicating that face uses an unknown background color.  */
 
 #define FACE_TTY_DEFAULT_BG_COLOR ((unsigned long) -3)
 
@@ -1588,7 +1588,7 @@ struct it
   Lisp_Object *dpvec, *dpend;
 
   /* Length in bytes of the char that filled dpvec.  A value of zero
-     means that no character such character is involved.  */
+     means that no such character is involved.  */
   int dpvec_char_len;
 
   /* Face id of the iterator saved in case a glyph from dpvec contains
@@ -1751,7 +1751,7 @@ struct it
   int last_visible_y;
 
   /* Additional space in pixels between lines (for window systems
-     only.).  */
+     only.)  */
   int extra_line_spacing;
 
   /* If non-null, glyphs are produced in glyph_row with each call to
@@ -1901,7 +1901,7 @@ struct redisplay_interface
      redisplay.  CURSOR_ON_P non-zero means switch cursor on.
      MOUSE_FACE_OVERWRITTEN_P non-zero means that some lines in W
      that contained glyphs in mouse-face were overwritten, so we
-     have to update the mouse hightlight.  */
+     have to update the mouse highlight.  */
   void (*update_window_end_hook) P_ ((struct window *w, int cursor_on_p,
 				      int mouse_face_overwritten_p));
   
@@ -1949,7 +1949,7 @@ extern int (* estimate_mode_line_height_hook) P_ ((struct frame *,
 struct image;
 
 
-/* Each image format (JPEG, IIFF, ...) supported is described by
+/* Each image format (JPEG, TIFF, ...) supported is described by
    a structure of the type below.  */
 
 struct image_type
@@ -2015,7 +2015,7 @@ struct image
 #define DEFAULT_IMAGE_HEIGHT 30
 
   /* Percent of image height used as ascent.  A value of
-     CENTERED_IMAGE_ASCENT means draw center the image centered on the
+     CENTERED_IMAGE_ASCENT means draw the image centered on the
      line.  */
   int ascent;
 #define DEFAULT_IMAGE_ASCENT 50
