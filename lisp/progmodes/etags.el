@@ -1149,7 +1149,7 @@ where they were found."
 
       ;; Get the local value in the tags table buffer before switching buffers.
       (setq goto-func goto-tag-location-function)
-      (find-file-of-tag-noselect file)
+      (tag-find-file-of-tag-noselect file)
       (widen)
       (push-mark)
       (funcall goto-func tag-info)
@@ -1157,7 +1157,7 @@ where they were found."
       ;; Return the buffer where the tag was found.
       (current-buffer))))
 
-(defun find-file-of-tag-noselect (file)
+(defun tag-find-file-of-tag-noselect (file)
   ;; Find the right line in the specified file.
   ;; If we are interested in compressed-files,
   ;; we search files with extensions.
@@ -1191,8 +1191,8 @@ where they were found."
 	  (error "File %s not found" file))
       (set-buffer the-buffer))))
 
-(defun find-file-of-tag (file)
-  (let ((buf (find-file-of-tag-noselect file)))
+(defun tag-find-file-of-tag (file)
+  (let ((buf (tag-find-file-of-tag-noselect file)))
     (condition-case nil
 	(switch-to-buffer buf)
       (error (pop-to-buffer buf)))))
@@ -1391,7 +1391,7 @@ where they were found."
 			  'action (lambda (button)
 				    (let ((tag-info (button-get button 'tag-info))
 					  (goto-func (button-get button 'goto-func)))
-				      (find-file-of-tag (button-get button 'file-path))
+				      (tag-find-file-of-tag (button-get button 'file-path))
 				      (widen)
 				      (funcall goto-func tag-info)))
 			  'face 'tags-tag-face
@@ -1475,7 +1475,7 @@ where they were found."
 				'action (lambda (button)
 					  (let ((tag-info (button-get button 'tag-info))
 						(goto-func (button-get button 'goto-func)))
-					    (find-file-of-tag (button-get button 'file-path))
+					    (tag-find-file-of-tag (button-get button 'file-path))
 					    (widen)
 					    (funcall goto-func tag-info)))
 				'face 'tags-tag-face
@@ -1485,7 +1485,7 @@ where they were found."
 	  (make-text-button pt (point)
 			    'file-path file-path
 			    'action (lambda (button)
-				      (find-file-of-tag (button-get button 'file-path))
+				      (tag-find-file-of-tag (button-get button 'file-path))
 				      ;; Get the local value in the tags table
 				      ;; buffer before switching buffers.
 				      (goto-char (point-min)))

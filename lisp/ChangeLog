@@ -1,5 +1,13 @@
 2003-04-06  Masatake YAMATO  <jet@gyve.org>
 
+	* progmodes/etags.el (tag-find-file-of-tag): Renamed from 
+	find-file-of-tag to avoid name space pollution.
+	(tag-find-file-of-tag-noselect): Likewise.
+	(etags-list-tags, etags-tags-apropos): Use 
+	tag-find-file-of-tag instead of find-file-of-tag.
+	
+2003-04-06  Masatake YAMATO  <jet@gyve.org>
+
 	* info.el (Info-goto-emacs-command-node): If command 
 	is given as a string, convert it to a symbol.
 
