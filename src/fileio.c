@@ -1706,6 +1706,7 @@ expand_and_dir_to_file (filename, defdir)
   return abspath;
 }
 
+void
 barf_or_query_if_file_exists (absname, querystring, interactive)
      Lisp_Object absname;
      unsigned char *querystring;
