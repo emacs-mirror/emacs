@@ -1,5 +1,15 @@
 2000-11-14  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/checkdoc.el (checkdoc-minor-mode) <defvar>: Remove.
+	(checkdoc-minor-mode-map): New map, replaces checkdoc-minor-keymap.
+	(checkdoc-minor-keymap): Backward compatibility.
+	(checkdoc-minor-menu): Don't bother checking checkdoc-minor-keymap.
+	(checkdoc-minor-mode) <defun>: Use easy-mmode-define-minor-mode.
+	(checkdoc-this-string-valid-engine): Be a bit more strict
+	to avoid matching substrings of `...' quoted vars/funs.
+	(checkdoc-defun-info): Only look for `interactive' if alone.
+	(debug-ignored-errors): Add "arg doesn't appear in docstring".
+
 	* progmodes/compile.el (grep): `tag-default' can be nil.
 
 	* newcomment.el (comment-indent): Paren typo.
