@@ -1,7 +1,7 @@
 2002-03-01  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/texnfo-upd.el (texinfo-start-menu-description): Remove
-	extra paren in regexp.  From Michael Scholz <scholz-micha@gmx.de>
+	extra paren in regexp.
 
 2002-03-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
