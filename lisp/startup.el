@@ -916,11 +916,23 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		      (setq user-init-file t)
 		      (load user-init-file-1 t t)
 		      
-		      ;; If we did not find the user's init file,
-		      ;; set user-init-file conclusively to nil;
-		      ;; don't let it be set from default.el.
-		      (if (eq user-init-file t)
-			  (setq user-init-file user-init-file-1))
+		      (when (eq user-init-file t)
+			;; If we did not find ~/.emacs, try
+			;; ~/.emacs.d/.emacs.
+			(let ((otherfile
+			       (expand-file-name
+				(file-name-nondirectory user-init-file-1)
+				(file-name-as-directory
+				 (expand-file-name
+				  ".emacs.d"
+				  (file-name-directory user-init-file-1))))))
+			  (load otherfile t t)
+
+			  ;; If we did not find the user's init file,
+			  ;; set user-init-file conclusively.
+			  ;; Don't let it be set from default.el.
+			  (when (eq user-init-file t)
+			    (setq user-init-file user-init-file-1))))
 		      
 		      ;; If we loaded a compiled file, set
 		      ;; `user-init-file' to the source version if that
