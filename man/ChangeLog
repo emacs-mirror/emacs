@@ -1,3 +1,10 @@
+2000-05-20  Karl Eichwalder  <ke@suse.de>
+
+	* cmdargs.texi, custom.texi, dired-x.texi, ediff.texi,
+	entering.texi, files.texi, frames.texi, misc.texi, msdog.texi,
+	mule.texi, programs.texi, rmail.texi, sending.texi, text.texi,
+	trouble.texi: Fix markup; mostly replace @code with @env.
+	
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (INFO_TARGETS): Add info/ebrowse.
