@@ -194,7 +194,10 @@ that Viper doesn't know about.")
     (eq (device-class (selected-device)) 'color)))
    
 (defsubst vip-get-cursor-color ()
-  (cdr (assoc 'cursor-color (frame-parameters))))
+  (if vip-emacs-p
+      (cdr (assoc 'cursor-color (frame-parameters)))
+    (color-instance-name (frame-property (selected-frame) 'cursor-color))))
+  
   
 ;; OS/2
 (cond ((eq (vip-device-type) 'pm)
@@ -934,15 +937,17 @@ to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
 
 ;; This function lets function-key-map convert key sequences into logical
 ;; keys. This does a better job than vip-read-event when it comes to kbd
-;; macros, since it enables certain macros to be shared between X and TTY
-;; modes.
+;; macros, since it enables certain macros to be shared between X and TTY modes
+;; by correctly mapping key sequences for Left/Right/... (one an ascii
+;; terminal) into logical keys left, right, etc.
 (defun vip-read-key () 
   (let ((overriding-local-map vip-overriding-map) 
+	(inhibit-quit t)
         key) 
     (use-global-map vip-overriding-map) 
     (setq key (elt (read-key-sequence nil) 0)) 
     (use-global-map global-map) 
-    key)) 
+    key))
 
 
 ;; Emacs has a bug in eventp, which causes (eventp nil) to return (nil)
