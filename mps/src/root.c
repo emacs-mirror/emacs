@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc/!root.c(trunk.1)$
+ *  $HopeName: MMsrc/!root.c(trunk.2)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -69,7 +69,7 @@ Bool RootIsValid(Root root, ValidationType validParam)
 
 static Error create(Root *rootReturn, Pool pool,
                     RefRank rank, RootMode mode,
-		    RootType type, RootUnion theUnion)
+                    RootType type, RootUnion theUnion)
 {
   Root root;
   Error e;
@@ -121,7 +121,7 @@ Error RootCreateTable(Root *rootReturn, Pool pool,
 
 Error RootCreateFun(Root *rootReturn, Pool pool,
                     RefRank rank, RootMode mode,
-                    void (*scan)(void *p, int i, Trace trace),
+                    Error (*scan)(void *p, int i, Trace trace),
                     void *p, int i)
 {
   RootUnion theUnion;
@@ -181,15 +181,18 @@ Error RootScan(Root root, Trace trace, RefRank rank)
       what = base;
       limit = (Addr *)root->the.table.limit;
       while(what < limit) {
-	e = TraceFix(trace, rank, what);
-	if(e != ErrSUCCESS) return e;
-	++what;
+        e = TraceFix(trace, rank, what);
+        if(e != ErrSUCCESS)
+          return e;
+        ++what;
       }
     }
     break;
 
     case RootFUN:
-    (*root->the.fun.scan)(root->the.fun.p, root->the.fun.i, trace);
+    e = (*root->the.fun.scan)(root->the.fun.p, root->the.fun.i, trace);
+    if(e != ErrSUCCESS)
+      return e;
     break;
 
     default:
