@@ -611,12 +611,15 @@ float_to_string (buf, data)
      double data;
 {
   unsigned char *cp;
-  int width = -1;
+  int width;
       
   if (NILP (Vfloat_output_format)
       || XTYPE (Vfloat_output_format) != Lisp_String)
   lose:
-    sprintf (buf, "%.20g", data);
+    {
+      sprintf (buf, "%.17g", data);
+      width = -1;
+    }
   else			/* oink oink */
     {
       /* Check that the spec we have is fully valid.
@@ -632,6 +635,7 @@ float_to_string (buf, data)
       cp += 2;
 
       /* Check the width specification.  */
+      width = -1;
       if ('0' <= *cp && *cp <= '9')
 	for (width = 0; (*cp >= '0' && *cp <= '9'); cp++)
 	  width = (width * 10) + (*cp - '0');
@@ -654,9 +658,9 @@ float_to_string (buf, data)
 
   /* Make sure there is a decimal point with digit after, or an
      exponent, so that the value is readable as a float.  But don't do
-     this with "%.0f"; it's legal for that not to produce a decimal
-     point.  */
-  if (*cp != 'f' || width != 0)
+     this with "%.0f"; it's valid for that not to produce a decimal
+     point.  Note that width can be 0 only for %.0f.  */
+  if (width != 0)
     {
       for (cp = buf; *cp; cp++)
 	if ((*cp < '0' || *cp > '9') && *cp != '-')
@@ -1038,7 +1042,7 @@ Use `g' to choose the shorter of those two formats for the number at hand.\n\
 The precision in any of these cases is the number of digits following\n\
 the decimal point.  With `f', a precision of 0 means to omit the\n\
 decimal point.  0 is not allowed with `e' or `g'.\n\n\
-A value of nil means to use `%.20g'.");
+A value of nil means to use `%.17g'.");
   Vfloat_output_format = Qnil;
   Qfloat_output_format = intern ("float-output-format");
   staticpro (&Qfloat_output_format);
