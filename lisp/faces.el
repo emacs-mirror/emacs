@@ -1496,9 +1496,11 @@ created."
 
 (defface mode-line
   '((((type x) (class color))
-     (:box (:line-width 2 :style released-button) :background "grey75"))
+     (:box (:line-width 2 :style released-button)
+	   :background "grey75" :foreground "black"))
     (((type w32) (class color))
-     (:box (:line-width 2 :style released-button) :background "grey75"))
+     (:box (:line-width 2 :style released-button)
+	   :background "grey75" :foreground "black"))
     (t
      (:inverse-video t)))
   "Basic mode line face."
@@ -1511,9 +1513,11 @@ created."
 
 (defface header-line
   '((((type x) (class color))
-     (:box (:line-width 2 :style released-button) :background "grey75"))
+     (:box (:line-width 2 :style released-button)
+	   :background "grey75" :foreground "black"))
     (((type w32) (class color))
-     (:box (:line-width 2 :style released-button) :background "grey75"))
+     (:box (:line-width 2 :style released-button)
+	   :background "grey75" :foreground "black"))
     (t
      (:inverse-video t)))
   "Basic header-line face."
@@ -1523,11 +1527,14 @@ created."
 
 (defface tool-bar
   '((((type x) (class color))
-     (:box (:line-width 1 :style released-button) :background "grey75"))
+     (:box (:line-width 1 :style released-button)
+	   :background "grey75" :foreground "black"))
     (((type x) (class mono))
-     (:box (:line-width 1 :style released-button) :background "grey"))
+     (:box (:line-width 1 :style released-button)
+	   :background "grey" :foreground "black"))
     (((type w32) (class color))
-     (:box (:line-width 1 :style released-button) :background "grey75"))
+     (:box (:line-width 1 :style released-button)
+	   :background "grey75" :foreground "black"))
     (t
      ()))
   "Basic tool-bar face."
