@@ -1687,17 +1687,19 @@ It returns t if it got any new messages."
 			 (delete-region (point) (search-backward ":"))
 			 (insert ": 8bit")))
 		   (if base64-header-field-end
-		       (save-excursion
-			 (base64-decode-region (1+ header-end)
-					       (- (point) 2))
-			 ;; Change "base64" to "8bit", to reflect the
-			 ;; decoding we just did.
-			 (goto-char (1+ header-end))
-			 (while (search-forward "\r\n" (point-max) t)
-			   (replace-match "\n"))
-			 (goto-char base64-header-field-end)
-			 (delete-region (point) (search-backward ":"))
-			 (insert ": 8bit")))
+		       (condition-case nil
+			   (save-excursion
+			     (base64-decode-region (1+ header-end)
+						   (- (point) 2))
+			     ;; Change "base64" to "8bit", to reflect the
+			     ;; decoding we just did.
+			     (goto-char (1+ header-end))
+			     (while (search-forward "\r\n" (point-max) t)
+			       (replace-match "\n"))
+			     (goto-char base64-header-field-end)
+			     (delete-region (point) (search-backward ":"))
+			     (insert ": 8bit"))
+			 (error nil)))
 		   (setq last-coding-system-used nil)
 		   (or rmail-enable-mime
 		       (not rmail-enable-multibyte)
@@ -1827,13 +1829,15 @@ It returns t if it got any new messages."
 		       (delete-region (point) (search-backward ":"))
 		       (insert ": 8bit")))
 		 (if base64-header-field-end
-		     (save-excursion
-		       (base64-decode-region header-end (point))
-		       ;; Change "base64" to "8bit", to reflect the
-		       ;; decoding we just did.
-		       (goto-char base64-header-field-end)
-		       (delete-region (point) (search-backward ":"))
-		       (insert ": 8bit"))))
+		     (condition-case nil
+			 (save-excursion
+			   (base64-decode-region header-end (point))
+			   ;; Change "base64" to "8bit", to reflect the
+			   ;; decoding we just did.
+			   (goto-char base64-header-field-end)
+			   (delete-region (point) (search-backward ":"))
+			   (insert ": 8bit"))
+		       (error nil))))
 
 	       (save-excursion
 		 (save-restriction
