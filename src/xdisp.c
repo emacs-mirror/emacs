@@ -8717,6 +8717,10 @@ redisplay_internal (preserve_echo_area)
 	  /* This has already been done above if
 	     consider_all_windows_p is set.  */
 	  mark_window_display_accurate_1 (w, 1);
+	  
+	  last_arrow_position = COERCE_MARKER (Voverlay_arrow_position);
+	  last_arrow_string = Voverlay_arrow_string;
+	  
 	  if (frame_up_to_date_hook != 0)
 	    frame_up_to_date_hook (sf);
 	}
