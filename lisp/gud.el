@@ -213,6 +213,14 @@ we're in the GUD buffer)."
 (defun gud-gdb-find-file (f)
   (find-file-noselect f))
 
+(defvar gdb-minibuffer-local-map nil
+  "Keymap for minibuffer prompting of gdb startup command.")
+(if gdb-minibuffer-local-map
+    ()
+  (setq gdb-minibuffer-local-map (copy-keymap minibuffer-local-map))
+  (define-key
+    gdb-minibuffer-local-map "\C-i" 'comint-dynamic-complete-filename))
+
 ;;;###autoload
 (defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
@@ -223,7 +231,7 @@ and source-file directory for your debugger."
 			       (if (consp gud-gdb-history)
 				   (car gud-gdb-history)
 				 "gdb ")
-			       nil nil
+			       gdb-minibuffer-local-map nil
 			       '(gud-gdb-history . 1))))
   (gud-overload-functions '((gud-massage-args . gud-gdb-massage-args)
 			    (gud-marker-filter . gud-gdb-marker-filter)
