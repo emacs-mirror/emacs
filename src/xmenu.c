@@ -1520,6 +1520,9 @@ set_frame_menubar (f, first_time)
   Widget menubar_widget = f->display.x->menubar_widget;
   Lisp_Object tail, items, frame;
   widget_value *wv, *first_wv, *prev_wv = 0;
+  int previous_menu_items_used = f->menu_bar_items_used;
+  Lisp_Object *previous_items
+    = (Lisp_Object *) alloca (previous_menu_items_used * sizeof (Lisp_Object));
   int i;
   int id;
   int count;
@@ -1540,10 +1543,15 @@ set_frame_menubar (f, first_time)
   wv->enabled = 1;
   first_wv = wv;
   items = FRAME_MENU_BAR_ITEMS (f);
+
+  /* Save the frame's previous menu bar contents data.  */
+  bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
+	 previous_menu_items_used * sizeof (Lisp_Object));
+
+  /* Fill in the current menu bar contents.  */
   menu_items = f->menu_bar_vector;
   menu_items_allocated = XVECTOR (menu_items)->size;
   init_menu_items ();
-
   for (i = 0; i < XVECTOR (items)->size; i += 3)
     {
       Lisp_Object key, string, maps;
@@ -1564,6 +1572,24 @@ set_frame_menubar (f, first_time)
       prev_wv = wv;
     }
 
+  finish_menu_items ();
+
+  /* If there has been no change in the Lisp-level contents
+     of the menu bar, skip redisplaying it.  Just exit.  */
+
+  for (i = 0; i < previous_menu_items_used; i++)
+    if (menu_items_used == i
+	|| (previous_items[i] != XVECTOR (menu_items)->contents[i]))
+      break;
+  if (i == menu_items_used && i == previous_menu_items_used)
+    {
+      free_menubar_widget_value_tree (first_wv);
+      menu_items = Qnil;
+
+      unbind_to (specpdl_count, Qnil);
+      return;
+    }
+
   /* Now GC cannot happen during the lifetime of the widget_value,
      so it's safe to store data from a Lisp_String.  */
   wv = first_wv->contents;
@@ -1576,8 +1602,6 @@ set_frame_menubar (f, first_time)
       wv->name = (char *) XSTRING (string)->data;
       wv = wv->next;
     }
-
-  finish_menu_items ();
 
   f->menu_bar_vector = menu_items;
   f->menu_bar_items_used = menu_items_used;
@@ -1633,9 +1657,9 @@ set_frame_menubar (f, first_time)
 
   update_frame_menubar (f);
 
-  unbind_to (specpdl_count, Qnil);
-
   UNBLOCK_INPUT;
+
+  unbind_to (specpdl_count, Qnil);
 }
 
 /* Called from Fx_create_frame to create the inital menubar of a frame
