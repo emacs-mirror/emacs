@@ -274,6 +274,11 @@
 	(sql-interactive-mode): Use ?_ and ?. instead of 95 and 46 when
 	setting font-lock-defaults' SYNTAX-ALIST.
 
+1999-09-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* map-ynp.el (map-y-or-n-p): If we read -1, for end of keyboard
+	macro, try again.
+
 1999-09-28  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (custom-comment): Change widget definition.
