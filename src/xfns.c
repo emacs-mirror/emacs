@@ -6823,9 +6823,12 @@ static struct image_type xpm_type =
 
 #ifdef ALLOC_XPM_COLORS
 
-static void xpm_init_color_cache P_ ((void));
+static void xpm_init_color_cache P_ ((struct frame *, XpmAttributes *));
 static void xpm_free_color_cache P_ ((void));
 static int xpm_lookup_color P_ ((struct frame *, char *, XColor *));
+static int xpm_color_bucket P_ ((char *));
+static struct xpm_cached_color *xpm_cache_color P_ ((struct frame *, char *,
+						     XColor *, int));
 
 /* An entry in a hash table used to cache color definitions of named
    colors.  This cache is necessary to speed up XPM image loading in
@@ -6850,16 +6853,32 @@ struct xpm_cached_color
 #define XPM_COLOR_CACHE_BUCKETS	1001
 struct xpm_cached_color **xpm_color_cache;
 
-
 /* Initialize the color cache.  */
 
 static void
-xpm_init_color_cache ()
+xpm_init_color_cache (f, attrs)
+     struct frame *f;
+     XpmAttributes *attrs;
 {
   size_t nbytes = XPM_COLOR_CACHE_BUCKETS * sizeof *xpm_color_cache;
   xpm_color_cache = (struct xpm_cached_color **) xmalloc (nbytes);
   memset (xpm_color_cache, 0, nbytes);
   init_color_table ();
+
+  if (attrs->valuemask & XpmColorSymbols)
+    {
+      int i;
+      XColor color;
+      
+      for (i = 0; i < attrs->numsymbols; ++i)
+	if (XParseColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
+			 attrs->colorsymbols[i].value, &color))
+	  {
+	    color.pixel = lookup_rgb_color (f, color.red, color.green,
+					    color.blue);
+	    xpm_cache_color (f, attrs->colorsymbols[i].name, &color, -1);
+	  }
+    }
 }
 
 
@@ -6884,6 +6903,49 @@ xpm_free_color_cache ()
 }
 
 
+/* Return the bucket index for color named COLOR_NAME in the color
+   cache.  */
+
+static int
+xpm_color_bucket (color_name)
+     char *color_name;
+{
+  unsigned h = 0;
+  char *s;
+  
+  for (s = color_name; *s; ++s)
+    h = (h << 2) ^ *s;
+  return h %= XPM_COLOR_CACHE_BUCKETS;
+}
+
+
+/* On frame F, cache values COLOR for color with name COLOR_NAME.
+   BUCKET, if >= 0, is a precomputed bucket index.  Value is the cache
+   entry added.  */
+
+static struct xpm_cached_color *
+xpm_cache_color (f, color_name, color, bucket)
+     struct frame *f;
+     char *color_name;
+     XColor *color;
+     int bucket;
+{
+  size_t nbytes;
+  struct xpm_cached_color *p;
+  
+  if (bucket < 0)
+    bucket = xpm_color_bucket (color_name);
+      
+  nbytes = sizeof *p + strlen (color_name);
+  p = (struct xpm_cached_color *) xmalloc (nbytes);
+  strcpy (p->name, color_name);
+  p->color = *color;
+  p->next = xpm_color_cache[bucket];
+  xpm_color_cache[bucket] = p;
+  return p;
+}
+
+
 /* Look up color COLOR_NAME for frame F in the color cache.  If found,
    return the cached definition in *COLOR.  Otherwise, make a new
    entry in the cache and allocate the color.  Value is zero if color
@@ -6895,13 +6957,8 @@ xpm_lookup_color (f, color_name, color)
      char *color_name;
      XColor *color;
 {
-  unsigned h = 0;
-  const char *s;
   struct xpm_cached_color *p;
-
-  for (s = color_name; *s; ++s)
-    h = (h << 2) ^ *s;
-  h %= XPM_COLOR_CACHE_BUCKETS;
+  int h = xpm_color_bucket (color_name);
 
   for (p = xpm_color_cache[h]; p; p = p->next)
     if (strcmp (p->name, color_name) == 0)
@@ -6912,17 +6969,11 @@ xpm_lookup_color (f, color_name, color)
   else if (XParseColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
 			color_name, color))
     {
-      size_t nbytes;
       color->pixel = lookup_rgb_color (f, color->red, color->green,
 				       color->blue);
-      nbytes = sizeof *p + strlen (color_name);
-      p = (struct xpm_cached_color *) xmalloc (nbytes);
-      strcpy (p->name, color_name);
-      p->color = *color;
-      p->next = xpm_color_cache[h];
-      xpm_color_cache[h] = p;
+      p = xpm_cache_color (f, color_name, color, h);
     }
-
+  
   return p != NULL;
 }
 
@@ -7080,7 +7131,7 @@ xpm_load (f, img)
   /* Create a pixmap for the image, either from a file, or from a
      string buffer containing data in the same format as an XPM file.  */
 #ifdef ALLOC_XPM_COLORS
-  xpm_init_color_cache ();
+  xpm_init_color_cache (f, &attrs);
 #endif
   
   specified_file = image_spec_value (img->spec, QCfile, NULL);
