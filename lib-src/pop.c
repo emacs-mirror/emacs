@@ -1184,6 +1184,7 @@ socket_connection (host, flags)
 			  (struct sockaddr_in *) 0,
 			  "KPOPV0.1");
       free ((char *) ticket);
+      free (realhost);
       if (rem != KSUCCESS)
 	{
 	  strcpy (pop_error, KRB_ERROR);
