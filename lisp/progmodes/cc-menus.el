@@ -39,8 +39,9 @@
     (load "cc-defs" nil t)))
 
 ;; Dummy definitions to shut up the compiler in case imenu doesn't exist.
-(defvar imenu-generic-expression)
-(defvar imenu-case-fold-search)
+(eval-when-compile
+  (defvar imenu-generic-expression)
+  (defvar imenu-case-fold-search))
 (or (fboundp 'imenu-progress-message)
     (defun imenu-progress-message (&rest args) nil))
 
