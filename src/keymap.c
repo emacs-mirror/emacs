@@ -273,11 +273,11 @@ get_keymap (object, error, autoload)
 	      if (autoload)
 		{
 		  struct gcpro gcpro1, gcpro2;
-		  
+
 		  GCPRO2 (tem, object);
 		  do_autoload (tem, object);
 		  UNGCPRO;
-		  
+
 		  goto autoload_retry;
 		}
 	      else
@@ -292,17 +292,17 @@ get_keymap (object, error, autoload)
   return Qnil;
 }
 
-/* Return the parent map of the keymap MAP, or nil if it has none.
-   We assume that MAP is a valid keymap.  */
+/* Return the parent map of KEYMAP, or nil if it has none.
+   We assume that KEYMAP is a valid keymap.  */
 
-DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
-       doc: /* Return the parent keymap of KEYMAP.  */)
-     (keymap)
+Lisp_Object
+keymap_parent (keymap, autoload)
      Lisp_Object keymap;
+     int autoload;
 {
   Lisp_Object list;
 
-  keymap = get_keymap (keymap, 1, 1);
+  keymap = get_keymap (keymap, 1, autoload);
 
   /* Skip past the initial element `keymap'.  */
   list = XCDR (keymap);
@@ -313,9 +313,16 @@ DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
 	return list;
     }
 
-  return get_keymap (list, 0, 1);
+  return get_keymap (list, 0, autoload);
 }
 
+DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
+       doc: /* Return the parent keymap of KEYMAP.  */)
+     (keymap)
+     Lisp_Object keymap;
+{
+  return keymap_parent (keymap, 1);
+}
 
 /* Check whether MAP is one of MAPS parents.  */
 int
@@ -324,7 +331,7 @@ keymap_memberp (map, maps)
 {
   if (NILP (map)) return 0;
   while (KEYMAPP (maps) && !EQ (map, maps))
-    maps = Fkeymap_parent (maps);
+    maps = keymap_parent (maps, 0);
   return (EQ (map, maps));
 }
 
@@ -337,7 +344,7 @@ PARENT should be nil or another keymap.  */)
      Lisp_Object keymap, parent;
 {
   Lisp_Object list, prev;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
   int i;
 
   /* Force a keymap flush for the next call to where-is.
@@ -349,9 +356,9 @@ PARENT should be nil or another keymap.  */)
      This is a very minor correctness (rather than safety) issue.  */
   where_is_cache_keymaps = Qt;
 
+  GCPRO2 (keymap, parent);
   keymap = get_keymap (keymap, 1, 1);
-  GCPRO1 (keymap);
-  
+
   if (!NILP (parent))
     {
       parent = get_keymap (parent, 1, 1);
@@ -432,7 +439,7 @@ fix_submap_inheritance (map, event, submap)
   if (!CONSP (submap))
     return;
 
-  map_parent = Fkeymap_parent (map);
+  map_parent = keymap_parent (map, 0);
   if (!NILP (map_parent))
     parent_entry =
       get_keymap (access_keymap (map_parent, event, 0, 0, 0), 0, 0);
@@ -452,7 +459,7 @@ fix_submap_inheritance (map, event, submap)
 	{
 	  Lisp_Object tem;
 
-	  tem = Fkeymap_parent (submap_parent);
+	  tem = keymap_parent (submap_parent, 0);
 
 	  if (KEYMAPP (tem))
 	    {
@@ -512,10 +519,13 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
     {
       /* See if there is a meta-map.  If there's none, there is
          no binding for IDX, unless a default binding exists in MAP.  */
-      Lisp_Object meta_map =
-	get_keymap (access_keymap (map, meta_prefix_char,
-				   t_ok, noinherit, autoload),
-		    0, autoload);
+      struct gcpro gcpro1;
+      Lisp_Object meta_map;
+      GCPRO1 (map);
+      meta_map = get_keymap (access_keymap (map, meta_prefix_char,
+					    t_ok, noinherit, autoload),
+			     0, autoload);
+      UNGCPRO;
       if (CONSP (meta_map))
 	{
 	  map = meta_map;
@@ -529,15 +539,15 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	return Qnil;
     }
 
+  /* t_binding is where we put a default binding that applies,
+     to use in case we do not find a binding specifically
+     for this key sequence.  */
   {
     Lisp_Object tail;
+    Lisp_Object t_binding = Qnil;
+    struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
-    /* t_binding is where we put a default binding that applies,
-       to use in case we do not find a binding specifically
-       for this key sequence.  */
-
-    Lisp_Object t_binding;
-    t_binding = Qnil;
+    GCPRO4 (map, tail, idx, t_binding);
 
     /* If `t_ok' is 2, both `t' and generic-char bindings are accepted.
        If it is 1, only generic-char bindings are accepted.
@@ -557,7 +567,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	    /* If NOINHERIT, stop finding prefix definitions
 	       after we pass a second occurrence of the `keymap' symbol.  */
 	    if (noinherit && EQ (binding, Qkeymap))
-	      return Qnil;
+	      RETURN_UNGCPRO (Qnil);
 	  }
 	else if (CONSP (binding))
 	  {
@@ -621,11 +631,11 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	    val = get_keyelt (val, autoload);
 	    if (KEYMAPP (val))
 	      fix_submap_inheritance (map, idx, val);
-	    return val;
+	    RETURN_UNGCPRO (val);
 	  }
 	QUIT;
       }
-
+    UNGCPRO;
     return get_keyelt (t_binding, autoload);
   }
 }
@@ -644,7 +654,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
 Lisp_Object
 get_keyelt (object, autoload)
-     register Lisp_Object object;
+     Lisp_Object object;
      int autoload;
 {
   while (1)
@@ -686,7 +696,7 @@ get_keyelt (object, autoload)
 		  }
 	    }
 	  else
-	    /* Invalid keymap */
+	    /* Invalid keymap.  */
 	    return object;
 	}
 
@@ -713,8 +723,11 @@ get_keyelt (object, autoload)
       /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
       else
 	{
+	  struct gcpro gcpro1;
 	  Lisp_Object map;
+	  GCPRO1 (object);
 	  map = get_keymap (Fcar_safe (object), 0, autoload);
+	  UNGCPRO;
 	  return (!CONSP (map) ? object /* Invalid keymap */
 		  : access_keymap (map, Fcdr (object), 0, 0, autoload));
 	}
@@ -821,18 +834,91 @@ store_in_keymap (keymap, idx, def)
     XSETCDR (insertion_point,
 	     Fcons (Fcons (idx, def), XCDR (insertion_point)));
   }
-  
+
   return def;
 }
 
 EXFUN (Fcopy_keymap, 1);
 
+Lisp_Object
+copy_keymap_item (elt)
+     Lisp_Object elt;
+{
+  Lisp_Object res, tem;
+
+  if (!CONSP (elt))
+    return elt;
+
+  res = tem = elt;
+
+  /* Is this a new format menu item.  */
+  if (EQ (XCAR (tem), Qmenu_item))
+    {
+      /* Copy cell with menu-item marker.  */
+      res = elt = Fcons (XCAR (tem), XCDR (tem));
+      tem = XCDR (elt);
+      if (CONSP (tem))
+	{
+	  /* Copy cell with menu-item name.  */
+	  XSETCDR (elt, Fcons (XCAR (tem), XCDR (tem)));
+	  elt = XCDR (elt);
+	  tem = XCDR (elt);
+	}
+      if (CONSP (tem))
+	{
+	  /* Copy cell with binding and if the binding is a keymap,
+	     copy that.  */
+	  XSETCDR (elt, Fcons (XCAR (tem), XCDR (tem)));
+	  elt = XCDR (elt);
+	  tem = XCAR (elt);
+	  if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
+	    XSETCAR (elt, Fcopy_keymap (tem));
+	  tem = XCDR (elt);
+	  if (CONSP (tem) && CONSP (XCAR (tem)))
+	    /* Delete cache for key equivalences.  */
+	    XSETCDR (elt, XCDR (tem));
+	}
+    }
+  else
+    {
+      /* It may be an old fomat menu item.
+	 Skip the optional menu string.  */
+      if (STRINGP (XCAR (tem)))
+	{
+	  /* Copy the cell, since copy-alist didn't go this deep.  */
+	  res = elt = Fcons (XCAR (tem), XCDR (tem));
+	  tem = XCDR (elt);
+	  /* Also skip the optional menu help string.  */
+	  if (CONSP (tem) && STRINGP (XCAR (tem)))
+	    {
+	      XSETCDR (elt, Fcons (XCAR (tem), XCDR (tem)));
+	      elt = XCDR (elt);
+	      tem = XCDR (elt);
+	    }
+	  /* There may also be a list that caches key equivalences.
+	     Just delete it for the new keymap.  */
+	  if (CONSP (tem)
+	      && CONSP (XCAR (tem))
+	      && (NILP (XCAR (XCAR (tem)))
+		  || VECTORP (XCAR (XCAR (tem)))))
+	    {
+	      XSETCDR (elt, XCDR (tem));
+	      tem = XCDR (tem);
+	    }
+	  if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
+	    XSETCDR (elt, Fcopy_keymap (tem));
+	}
+      else if (EQ (XCAR (tem), Qkeymap))
+	res = Fcopy_keymap (elt);
+    }
+  return res;
+}
+
 void
 copy_keymap_1 (chartable, idx, elt)
      Lisp_Object chartable, idx, elt;
 {
-  if (CONSP (elt) && EQ (XCAR (elt), Qkeymap))
-    Faset (chartable, idx, Fcopy_keymap (elt));
+  Faset (chartable, idx, copy_keymap_item (elt));
 }
 
 DEFUN ("copy-keymap", Fcopy_keymap, Scopy_keymap, 1, 1, 0,
@@ -845,112 +931,34 @@ is not copied.  */)
      (keymap)
      Lisp_Object keymap;
 {
-  /* FIXME: This doesn't properly copy menu-items in vectors.  */
-  /* FIXME: This also copies the parent keymap.  */
-
   register Lisp_Object copy, tail;
+  keymap = get_keymap (keymap, 1, 0);
+  copy = tail = Fcons (Qkeymap, Qnil);
+  keymap = XCDR (keymap);		/* Skip the `keymap' symbol.  */
 
-  copy = Fcopy_alist (get_keymap (keymap, 1, 0));
-
-  for (tail = copy; CONSP (tail); tail = XCDR (tail))
+  while (CONSP (keymap) && !EQ (XCAR (keymap), Qkeymap))
     {
-      Lisp_Object elt;
-
-      elt = XCAR (tail);
+      Lisp_Object elt = XCAR (keymap);
       if (CHAR_TABLE_P (elt))
 	{
 	  Lisp_Object indices[3];
-
 	  elt = Fcopy_sequence (elt);
-	  XSETCAR (tail, elt);
-
 	  map_char_table (copy_keymap_1, Qnil, elt, elt, 0, indices);
 	}
       else if (VECTORP (elt))
 	{
 	  int i;
-
 	  elt = Fcopy_sequence (elt);
-	  XSETCAR (tail, elt);
-
 	  for (i = 0; i < ASIZE (elt); i++)
-	    if (CONSP (AREF (elt, i)) && EQ (XCAR (AREF (elt, i)), Qkeymap))
-	      ASET (elt, i, Fcopy_keymap (AREF (elt, i)));
+	    ASET (elt, i, copy_keymap_item (AREF (elt, i)));
 	}
-      else if (CONSP (elt) && CONSP (XCDR (elt)))
-	{
-	  Lisp_Object tem;
-	  tem = XCDR (elt);
-
-	  /* Is this a new format menu item.  */
-	  if (EQ (XCAR (tem),Qmenu_item))
-	    {
-	      /* Copy cell with menu-item marker.  */
-	      XSETCDR (elt,
-		       Fcons (XCAR (tem), XCDR (tem)));
-	      elt = XCDR (elt);
-	      tem = XCDR (elt);
-	      if (CONSP (tem))
-		{
-		  /* Copy cell with menu-item name.  */
-		  XSETCDR (elt,
-			   Fcons (XCAR (tem), XCDR (tem)));
-		  elt = XCDR (elt);
-		  tem = XCDR (elt);
-		};
-	      if (CONSP (tem))
-		{
-		  /* Copy cell with binding and if the binding is a keymap,
-		     copy that.  */
-		  XSETCDR (elt,
-			   Fcons (XCAR (tem), XCDR (tem)));
-		  elt = XCDR (elt);
-		  tem = XCAR (elt);
-		  if (CONSP (tem) && EQ (XCAR (tem), Qkeymap))
-		    XSETCAR (elt, Fcopy_keymap (tem));
-		  tem = XCDR (elt);
-		  if (CONSP (tem) && CONSP (XCAR (tem)))
-		    /* Delete cache for key equivalences.  */
-		    XSETCDR (elt, XCDR (tem));
-		}
-	    }
-	  else
-	    {
-	      /* It may be an old fomat menu item.
-		 Skip the optional menu string.
-	      */
-	      if (STRINGP (XCAR (tem)))
-		{
-		  /* Copy the cell, since copy-alist didn't go this deep.  */
-		  XSETCDR (elt,
-			   Fcons (XCAR (tem), XCDR (tem)));
-		  elt = XCDR (elt);
-		  tem = XCDR (elt);
-		  /* Also skip the optional menu help string.  */
-		  if (CONSP (tem) && STRINGP (XCAR (tem)))
-		    {
-		      XSETCDR (elt,
-			       Fcons (XCAR (tem), XCDR (tem)));
-		      elt = XCDR (elt);
-		      tem = XCDR (elt);
-		    }
-		  /* There may also be a list that caches key equivalences.
-		     Just delete it for the new keymap.  */
-		  if (CONSP (tem)
-		      && CONSP (XCAR (tem))
-		      && (NILP (XCAR (XCAR (tem)))
-			  || VECTORP (XCAR (XCAR (tem)))))
-		    XSETCDR (elt, XCDR (tem));
-		}
-	      if (CONSP (elt)
-		  && CONSP (XCDR (elt))
-		  && EQ (XCAR (XCDR (elt)), Qkeymap))
-		XSETCDR (elt, Fcopy_keymap (XCDR (elt)));
-	    }
-
-	}
+      else if (CONSP (elt))
+	elt = Fcons (XCAR (elt), copy_keymap_item (XCDR (elt)));
+      XSETCDR (tail, Fcons (elt, Qnil));
+      tail = XCDR (tail);
+      keymap = XCDR (keymap);
     }
-  
+  XSETCDR (tail, keymap);
   return copy;
 }
 
@@ -993,29 +1001,20 @@ the front of KEYMAP.  */)
   int length;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+  GCPRO3 (keymap, key, def);
   keymap = get_keymap (keymap, 1, 1);
 
   if (!VECTORP (key) && !STRINGP (key))
-      key = wrong_type_argument (Qarrayp, key);
+    key = wrong_type_argument (Qarrayp, key);
 
   length = XFASTINT (Flength (key));
   if (length == 0)
-    return Qnil;
-
-  /* Check for valid [remap COMMAND] bindings.  */
-  if (VECTORP (key) && EQ (AREF (key, 0), Qremap)
-      && (length != 2 || !SYMBOLP (AREF (key, 1))))
-    wrong_type_argument (Qvectorp, key);
+    RETURN_UNGCPRO (Qnil);
 
   if (SYMBOLP (def) && !EQ (Vdefine_key_rebound_commands, Qt))
     Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
 
-  GCPRO3 (keymap, key, def);
-
-  if (VECTORP (key))
-    meta_bit = meta_modifier;
-  else
-    meta_bit = 0x80;
+  meta_bit = VECTORP (key) ? meta_modifier : 0x80;
 
   idx = 0;
   while (1)
@@ -1073,7 +1072,6 @@ Returns nil if COMMAND is not remapped.  */)
      (command)
      Lisp_Object command;
 {
-  /* This will GCPRO the command argument.  */
   ASET (remap_command_vector, 1, command);
   return Fkey_binding (remap_command_vector, Qnil, Qt);
 }
@@ -1097,7 +1095,7 @@ usable as a general function for probing keymaps.  However, if the
 third optional argument ACCEPT-DEFAULT is non-nil, `lookup-key' will
 recognize the default bindings, just as `read-key-sequence' does.  */)
      (keymap, key, accept_default)
-     register Lisp_Object keymap;
+     Lisp_Object keymap;
      Lisp_Object key;
      Lisp_Object accept_default;
 {
@@ -1106,32 +1104,17 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
   register Lisp_Object c;
   int length;
   int t_ok = !NILP (accept_default);
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
 
+  GCPRO2 (keymap, key);
   keymap = get_keymap (keymap, 1, 1);
-
-  /* Perform command remapping initiated by Fremap_command directly.
-     This is strictly not necessary, but it is faster and it returns
-     nil instead of 1 if KEYMAP doesn't contain command remappings.  */
-  if (EQ (key, remap_command_vector))
-    {
-      /* KEY has format [remap COMMAND]. 
-	 Lookup `remap' in KEYMAP; result is nil or a keymap containing
-	 command remappings.  Then lookup COMMAND in that keymap.  */
-      if ((keymap = access_keymap (keymap, Qremap, t_ok, 0, 1), !NILP (keymap))
-	  && (keymap = get_keymap (keymap, 0, 1), CONSP (keymap)))
-	return access_keymap (keymap, AREF (key, 1), t_ok, 0, 1);
-      return Qnil;
-    }
 
   if (!VECTORP (key) && !STRINGP (key))
     key = wrong_type_argument (Qarrayp, key);
 
   length = XFASTINT (Flength (key));
   if (length == 0)
-    return keymap;
-
-  GCPRO1 (key);
+    RETURN_UNGCPRO (keymap);
 
   idx = 0;
   while (1)
@@ -1413,7 +1396,7 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
       if (!NILP (local))
 	keymaps = Fcons (local, keymaps);
     }
-  
+
   return keymaps;
 }
 
@@ -1692,9 +1675,9 @@ accessible_keymaps_1 (key, cmd, maps, tail, thisseq, is_metized)
 	      int meta_bit = meta_modifier;
 	      Lisp_Object last = make_number (XINT (Flength (thisseq)) - 1);
 	      tem = Fcopy_sequence (thisseq);
-	      
+
 	      Faset (tem, last, make_number (XINT (key) | meta_bit));
-	      
+
 	      /* This new sequence is the same length as
 		 thisseq, so stick it in the list right
 		 after this one.  */
@@ -1830,13 +1813,13 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	      for (i = 0; i < ASIZE (elt); i++)
 		accessible_keymaps_1 (make_number (i), AREF (elt, i),
 				      maps, tail, thisseq, is_metized);
-					
+
 	    }
 	  else if (CONSP (elt))
 	    accessible_keymaps_1 (XCAR (elt), XCDR (elt),
 				  maps, tail, thisseq,
 				  is_metized && INTEGERP (XCAR (elt)));
-				    
+
 	}
     }
 
@@ -1954,7 +1937,7 @@ push_key_description (c, p, force_multibyte)
      int force_multibyte;
 {
   unsigned c2;
-  
+
   /* Clear all the meaningless bits above the meta bit.  */
   c &= meta_modifier | ~ - meta_modifier;
   c2 = c & ~(alt_modifier | ctrl_modifier | hyper_modifier
@@ -2048,7 +2031,7 @@ push_key_description (c, p, force_multibyte)
   else
     {
       int valid_p = SINGLE_BYTE_CHAR_P (c) || char_valid_p (c, 0);
-      
+
       if (force_multibyte && valid_p)
 	{
 	  if (SINGLE_BYTE_CHAR_P (c))
@@ -2281,7 +2264,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 		Faccessible_keymaps (get_keymap (XCAR (found), 1, 0), Qnil));
       found = XCDR (found);
     }
- 
+
   GCPRO5 (definition, keymaps, maps, found, sequences);
   found = Qnil;
   sequences = Qnil;
@@ -2310,7 +2293,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 	   keymaps bound to `menu-bar' and `tool-bar' and other
 	   non-ascii prefixes like `C-down-mouse-2'.  */
 	continue;
-      
+
       QUIT;
 
       while (CONSP (map))
@@ -2455,7 +2438,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
      return the best we could find.  */
   if (!NILP (firstonly))
     return Fcar (found);
-    
+
   return found;
 }
 
@@ -2514,7 +2497,7 @@ remapped command in the returned list.  */)
 	  Lisp_Object args[2];
 	  where_is_cache = Fmake_hash_table (0, args);
 	  where_is_cache_keymaps = Qt;
-	  
+
 	  /* Fill in the cache.  */
 	  GCPRO5 (definition, keymaps, firstonly, noindirect, no_remap);
 	  where_is_internal (definition, keymaps, firstonly, noindirect, no_remap);
@@ -2531,7 +2514,7 @@ remapped command in the returned list.  */)
       defns = (Lisp_Object *) alloca (n * sizeof *defns);
       for (i = 0; CONSP (sequences); sequences = XCDR (sequences))
 	defns[i++] = XCAR (sequences);
-      
+
       /* Verify that the key bindings are not shadowed.  Note that
 	 the following can GC.  */
       GCPRO2 (definition, keymaps);
@@ -3315,7 +3298,7 @@ describe_vector (vector, elt_prefix, args, elt_describer,
       if (!NILP (shadow) && complete_char)
 	{
 	  Lisp_Object tem;
-	  
+
 	  ASET (kludge, 0, make_number (character));
 	  tem = shadow_lookup (shadow, kludge, Qt);
 
@@ -3425,7 +3408,7 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 		   !NILP (tem2))
 	       && !NILP (Fequal (tem2, definition)))
 	  i++;
-      
+
 
       /* If we have a range of more than one character,
 	 print where the range reaches to.  */
