@@ -2,7 +2,7 @@
 #
 # Build the MMsrc compound at tip of the trunk, and run QA tests
 # 
-# $HopeName: HOMEmm!bin:mmqa:MMQA_src_trunk(trunk.4) $
+# $HopeName: HOMEmm!bin:mmqa:MMQA_src_trunk(trunk.5) $
 
 
 script="`basename $0`"
@@ -30,12 +30,16 @@ mkdir MMQA_src_trunk &&
 cd MMQA_src_trunk ||
   die "Unable to get to Builds/MMQA_src_trunk directory"
 
-hope co -compound MMsrc -branch trunk -recursive \
-  -writable-files quit -missing-dir create -extra-files skip ||
+build=`pwd`
+mmsrc=$build/src
+mmqa=$build/mmqa
+
+
+hope co -compound MMsrc -branch trunk -recursive -missing-dir create ||
   die "Unable to check out MMsrc(trunk) from HOPE"
 
-mmsrc=`pwd`/src
-
+hope co -compound MMQA -branch trunk -recursive -missing-dir create ||
+  die "Unable to check out MMQA(trunk) from HOPE"
 
 
 ## Build a library
@@ -68,16 +72,6 @@ mmqa_tests () {
 }
 
 
-cd $HOME/Builds &&
-rm -rf MMQA &&
-mkdir MMQA &&
-cd MMQA ||
-  die "Unable to get to Builds/MMQA directory"
-
-hope co -compound MMQA -branch trunk -recursive -missing-dir create ||
-  die "Unable to check out MMQA(trunk) from HOPE"
-
-
 ### SW builds have different compilation options, so they ought to be
 ### done separately.  Do them first.
 
@@ -85,7 +79,7 @@ cd $mmsrc
 build_lib mmsw.a
 build_lib mpsplan.a
 
-cd $HOME/Builds/MMQA &&
+cd $mmqa &&
 mmqa_tests testsets/dailysw mmsw.a &&
 mmqa_tests testsets/dailyswa mmsw.a we
 
@@ -95,15 +89,13 @@ mmqa_tests testsets/dailyswa mmsw.a we
 cd $mmsrc
 gnumake -rf $platform.gmk clean ||
   die "Unable to clean up trunk"
-
 build_lib mmdw.a
 build_lib mpsplan.a
 
-cd $HOME/Builds/MMQA &&
+cd $mmqa &&
 mmqa_tests testsets/dailydw mmdw.a
 
 
 # If the tests succeeded, delete the junk
 cd $HOME/Builds &&
-rm -rf MMQA_src_trunk &&
-rm -rf MMQA
+rm -rf MMQA_src_trunk
