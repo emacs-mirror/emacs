@@ -1,3 +1,9 @@
+2002-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* insdel.c (make_gap_smaller): Preserve BEG_UNCHANGED during gap
+	reduction.  This fixes a display problem where stray newlines were
+	inserted in the window (corrected by C-l).  Clarified code (IMHO).
+
 2002-02-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dispextern.h (CURRENT_MODE_LINE_FACE_ID): Fix last change.
