@@ -1447,9 +1447,6 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
 	(widen))
     (goto-char position)
     (switch-to-buffer buffer)))
-(define-key ctl-x-map "\C-@" 'pop-global-mark)
-(define-key ctl-x-map [?\C-\ ] 'pop-global-mark)
-
 
 (defvar next-line-add-newlines t
   "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error.")
