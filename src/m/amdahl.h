@@ -90,10 +90,6 @@ compiler is so brain damaged that it is not even worth trying to use it.
 
 /* #define VIRT_ADDR_VARIES*/
 
-#ifdef HAVE_ALLOCA
-#define LIB_STANDARD -lPW -lc
-#endif
-
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
    when Emacs is dumped.  If you define this, the preloaded Lisp
