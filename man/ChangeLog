@@ -1,3 +1,8 @@
+2005-03-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calendar.texi (Calendar Systems): Say that the Persian calendar
+	implemented here is the arithmetical one championed by Birashk.
+
 2005-03-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* programs.texi (Fortran Motion): Fix previous change.
@@ -21,7 +26,7 @@
 	(Longlines): New node.
 	(Auto Fill): Don't index "word wrap" here.
 	(Filling): Add Longlines to menu.
-	
+
 2005-03-29  Richard M. Stallman  <rms@gnu.org>
 
 	* xresources.texi: Minor fixes.
