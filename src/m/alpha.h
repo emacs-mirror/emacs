@@ -154,7 +154,7 @@ NOTE-END
 
 #ifdef __ELF__
 #undef UNEXEC
-#define UNEXEC unexelf1.o
+#define UNEXEC unexelf.o
 #endif
 
 #ifndef __ELF__
