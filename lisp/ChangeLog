@@ -1,5 +1,10 @@
 2000-11-27  Miles Bader  <miles@gnu.org>
 
+	* wid-edit.el (widget-field-buffer, widget-field-start) 
+	(widget-field-end): Handle widget field `pseudo-overlays'.
+	(widget-field-value-delete): Delete WIDGET from `widget-field-new'
+	if it's there instead of in `widget-field-list'.
+
 	* help.el (help-manyarg-func-alist): Correct entry for `vconcat'.
 	(help-make-xrefs): Delete extraneous newlines at the end of the
 	docstring.
