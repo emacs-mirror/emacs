@@ -44,8 +44,6 @@
 (cc-require 'cc-defs)
 (cc-require 'cc-vars)
 
-(require 'cl)
-
 
 ;; Some support functions that are used when the language specific
 ;; constants are built.  Since the constants are built during compile
@@ -78,6 +76,13 @@
 	    (setq count (1+ count) start (match-end 0)))
 	  count))))
 
+  (defun c-delete-duplicates (list)
+    (let ((tail list))
+      (while tail
+	(setcdr tail (delete (car tail) (cdr tail)))
+	(setq tail (cdr tail)))
+      list))
+
   (defun c-make-keywords-re (adorn &rest lists)
     "Make a regexp that matches all the strings in all the lists.
 Duplicates in the lists are removed.  The regexp may contain zero or
@@ -85,18 +90,18 @@ more submatch expressions.  If ADORN is non-nil there will be at least
 one submatch which matches the whole keyword, and the regexp will also
 not match a prefix of any identifier.  Adorned regexps cannot be
 appended."
-    (setq lists (delete-duplicates (apply 'append (nconc lists '(nil)))
-				   :test 'string-equal))
-    (if lists
-	(let ((re (c-regexp-opt lists)))
-	  ;; Add our own grouping parenthesis around re instead of
-	  ;; passing adorn to regexp-opt, since it in XEmacs makes the
-	  ;; top level grouping "shy".
-	  (if adorn
-	      (concat "\\(" re "\\)\\>\\([^_]\\|$\\)")
-	    re))
-      "\\<\\>"				; Matches nothing.
-      ))
+    (let ((list (copy-sequence (apply 'append lists))))
+      (setq list (c-delete-duplicates list))
+      (if list
+	  (let ((re (c-regexp-opt list)))
+	    ;; Add our own grouping parenthesis around re instead of
+	    ;; passing adorn to regexp-opt, since it in XEmacs makes the
+	    ;; top level grouping "shy".
+	    (if adorn
+		(concat "\\(" re "\\)\\>\\([^_]\\|$\\)")
+	      re))
+	"\\<\\>"				; Matches nothing.
+	)))
   (put 'c-make-keywords-re 'lisp-indent-function 1)
   )
 
@@ -432,26 +437,26 @@ appended."
 
 ;; All keywords as a list.
 (c-lang-defconst c-keywords
-  all (delete-duplicates (append (c-lang-var c-primitive-type-kwds)
-				 (c-lang-var c-specifier-kwds)
-				 (c-lang-var c-class-kwds)
-				 (c-lang-var c-other-decl-block-kwds)
-				 (c-lang-var c-block-decls-with-vars)
-				 (c-lang-var c-other-decl-kwds)
-				 (c-lang-var c-decl-spec-kwds)
-				 (c-lang-var c-protection-kwds)
-				 (c-lang-var c-block-stmt-1-kwds)
-				 (c-lang-var c-block-stmt-2-kwds)
-				 (c-lang-var c-simple-stmt-kwds)
-				 (c-lang-var c-asm-stmt-kwds)
-				 (c-lang-var c-label-kwds)
-				 (c-lang-var c-expr-kwds)
-				 (c-lang-var c-lambda-kwds)
-				 (c-lang-var c-inexpr-block-kwds)
-				 (c-lang-var c-inexpr-class-kwds)
-				 (c-lang-var c-bitfield-kwds)
-				 nil)
-			 :test 'string-equal))
+  all (c-delete-duplicates
+       (append (c-lang-var c-primitive-type-kwds)
+	       (c-lang-var c-specifier-kwds)
+	       (c-lang-var c-class-kwds)
+	       (c-lang-var c-other-decl-block-kwds)
+	       (c-lang-var c-block-decls-with-vars)
+	       (c-lang-var c-other-decl-kwds)
+	       (c-lang-var c-decl-spec-kwds)
+	       (c-lang-var c-protection-kwds)
+	       (c-lang-var c-block-stmt-1-kwds)
+	       (c-lang-var c-block-stmt-2-kwds)
+	       (c-lang-var c-simple-stmt-kwds)
+	       (c-lang-var c-asm-stmt-kwds)
+	       (c-lang-var c-label-kwds)
+	       (c-lang-var c-expr-kwds)
+	       (c-lang-var c-lambda-kwds)
+	       (c-lang-var c-inexpr-block-kwds)
+	       (c-lang-var c-inexpr-class-kwds)
+	       (c-lang-var c-bitfield-kwds)
+	       nil)))
 (c-lang-defvar c-keywords (c-lang-var c-keywords))
 
 ;; All keywords as an adorned regexp.
