@@ -4142,19 +4142,20 @@ Optional second arg XRM_STRING is a string of resources in xrdb format.")
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string, 1);
 
-  /* This is what opens the connection and sets x_current_display.
-     This also initializes many symbols, such as those used for input. */
-  x_term_init (XSTRING (display)->data);
-
-#ifdef HAVE_X11
-  XFASTINT (Vwindow_system_version) = 11;
-
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
   else
     xrm_option = (unsigned char *) 0;
 
   validate_x_resource_name ();
+
+  /* This is what opens the connection and sets x_current_display.
+     This also initializes many symbols, such as those used for input. */
+  x_term_init (XSTRING (display)->data, xrm_option,
+	       XSTRING (Vx_resource_name)->data);
+
+#ifdef HAVE_X11
+  XFASTINT (Vwindow_system_version) = 11;
 
   BLOCK_INPUT;
   xrdb = x_load_resources (x_current_display, xrm_option,
