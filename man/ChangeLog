@@ -2,8 +2,8 @@
 
 	* emacs.texi (Top): Update menu to reflect new Keyboard Macros
 	chapter.
-	* emacs.texi (Intro): Include kmacro.texi after fixit.texi
-	instead of after custom.texi. (Suggested by Kim Storm.)
+	(Intro): Include kmacro.texi after fixit.texi instead of after
+	custom.texi. (As suggested by Kim Storm.)
 
 2003-08-18  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
