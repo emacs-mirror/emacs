@@ -1585,8 +1585,7 @@ textget_direct (plist, prop)
 }
 
 /* Set point in BUFFER to POSITION.  If the target position is 
-   before an invisible character which is not displayed with a special glyph,
-   move back to an ok place to display.  */
+   before an intangible character, move to an ok place.  */
 
 void
 set_point (position, buffer)
