@@ -43,6 +43,10 @@ description of aspects specific to the Mac.
 
 * Changes in Emacs 21.1
 
+** Some packages are declared obsolete, to be removed in a future
+version.  They are:  auto-show, c-mode, hscroll, ooutline.  Their
+implementations have been moved to lisp/obsolete.
+
 +++
 ** The new user-option `even-window-heights' can be set to nil
 to prevent `display-buffer' from evening out window heights.
@@ -2074,6 +2078,9 @@ appropriate for reading truly binary files.
 
 ** Code that uses `concat' with integer args now gets an error, as
 long promised.
+
+** `scroll-left' and `scroll-right' are only effective when
+`automatic-hscrolling' is nil.
 
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
