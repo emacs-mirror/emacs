@@ -1130,8 +1130,8 @@ Both LENGTH and INIT must be numbers.")
 }
 
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
-  "Return a newly created bitstring of length LENGTH, with INIT as each element.\n\
-Both LENGTH and INIT must be numbers.  INIT matters only in whether it is t or nil.")
+  "Return a new bool-vector of length LENGTH, using INIT for as each element.\n\
+LENGTH must be a number.  INIT matters only in whether it is t or nil.")
   (length, init)
      Lisp_Object length, init;
 {
