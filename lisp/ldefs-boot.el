@@ -78,7 +78,6 @@ name
 
 (autoload (quote ada-mode) "ada-mode" "\
 Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2003/11/17 19:02:52 $.
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}

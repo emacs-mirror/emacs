@@ -1,4 +1,3 @@
-/* $XConsortium: XDestAssoc.c,v 10.17 91/02/08 13:11:50 rws Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*

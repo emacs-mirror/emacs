@@ -1,7 +1,5 @@
 ;;; url-gw.el --- Gateway munging for URL loading
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Created: $Date: 2004/04/04 04:44:10 $
-;; $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

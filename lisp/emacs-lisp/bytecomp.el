@@ -8,10 +8,6 @@
 ;; Maintainer: FSF
 ;; Keywords: lisp
 
-;;; This version incorporates changes up to version 2.10 of the
-;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.144 $")
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -1860,10 +1856,7 @@ With argument, insert value in current buffer after the form."
 	    " on "
 	    (current-time-string) "\n;;; from file " filename "\n")
     (insert ";;; in Emacs version " emacs-version "\n")
-    (insert ";;; with bytecomp version "
-	    (progn (string-match "[0-9.]+" byte-compile-version)
-		   (match-string 0 byte-compile-version))
-	    "\n;;; "
+    (insert ";;; "
 	    (cond
 	     ((eq byte-optimize 'source) "with source-level optimization only")
 	     ((eq byte-optimize 'byte) "with byte-level optimization only")

@@ -76,8 +76,10 @@ it starts with two windows: one displaying the GUD buffer and the
 other with the source file with the main routine of the debugee.
 
 If `gdb-many-windows' is t the layout below will appear
-regardless of the value of `gdb-show-main'. Keybindings are given
-in relevant buffer.
+regardless of the value of `gdb-show-main' unless
+`gdb-use-inferior-io-buffer' is nil when the source buffer
+occupies the full width of the frame. Keybindings are given in
+relevant buffer.
 
 ---------------------------------------------------------------------
                                GDB Toolbar
@@ -1110,8 +1112,7 @@ static char *magick[] = {
 			  (save-excursion
 			    (goto-line (string-to-number line))
 			    (gdb-put-breakpoint-icon (eq flag ?y)))))))))
-	  (end-of-line)))))
-  (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
+	  (end-of-line))))))
 
 (defun gdb-mouse-toggle-breakpoint (event)
   "Toggle breakpoint with mouse click in left margin."
@@ -1193,8 +1194,6 @@ static char *magick[] = {
     (gdb-enqueue-input
      (list (concat "server delete " (match-string 1) "\n") 'ignore))))
 
-(defvar gdb-source-window nil)
-
 (defun gdb-goto-breakpoint ()
   "Display the file in the source buffer at the breakpoint specified on the
 current line."
@@ -1207,11 +1206,10 @@ current line."
       (let ((line (match-string 2))
 	    (file (match-string 1)))
 	(save-selected-window
-	  (select-window gdb-source-window)
-	  (switch-to-buffer (find-file-noselect
-			     (if (file-exists-p file)
-				 file
-			       (expand-file-name file gdb-cdir))))
+	  (gdb-display-buffer (find-file-noselect
+			       (if (file-exists-p file)
+				   file
+				 (expand-file-name file gdb-cdir))))
 	  (goto-line (string-to-number line))))))
 
 (defun gdb-mouse-goto-breakpoint (event)
@@ -1510,8 +1508,7 @@ the source buffer."
 	(progn
 	  (walk-windows
 	   #'(lambda (win)
-	      (if (or (eq gud-comint-buffer (window-buffer win))
-		      (eq gdb-source-window win))
+	      (if (eq gud-comint-buffer (window-buffer win))
 		  (set-window-dedicated-p win t))))
 	  (setq answer (get-buffer-window buf))
 	  (if (not answer)
@@ -1523,8 +1520,7 @@ the source buffer."
 		  (setq must-split t)))))
       (walk-windows
        #'(lambda (win)
-	  (if (or (eq gud-comint-buffer (window-buffer win))
-		  (eq gdb-source-window win))
+	  (if (eq gud-comint-buffer (window-buffer win))
 	      (set-window-dedicated-p win nil)))))
     (if must-split
 	(let* ((largest (get-largest-window))
@@ -1537,17 +1533,9 @@ the source buffer."
 (defun gdb-display-source-buffer (buffer)
   (if (eq gdb-selected-view 'source)
       (progn
-	(if (window-live-p gdb-source-window)
-	    (set-window-buffer gdb-source-window buffer)
-	  (gdb-display-buffer buffer)
-	  (setq gdb-source-window (get-buffer-window buffer)))
-	      gdb-source-window)
-    (if (window-live-p gdb-source-window)
-	(set-window-buffer gdb-source-window
-			   (gdb-get-buffer 'gdb-assembler-buffer))
-      (let ((buf (gdb-get-buffer 'gdb-assembler-buffer)))
-	(gdb-display-buffer buf)
-	(setq gdb-source-window (get-buffer-window buf))))
+	(gdb-display-buffer buffer)
+	(get-buffer-window buffer))
+    (gdb-display-buffer (gdb-get-buffer 'gdb-assembler-buffer))
     nil))
 
 
@@ -1615,25 +1603,15 @@ the source buffer."
 (defun gdb-view-source-function ()
   (interactive)
   (if gdb-view-source
-      (if (window-live-p gdb-source-window)
-	      (set-window-buffer gdb-source-window
-		     (if gud-last-last-frame
-			 (gud-find-file (car gud-last-last-frame))
-		       (gud-find-file gdb-main-file)))
-	(setq gdb-source-window
-	      (display-buffer
-	       (if gud-last-last-frame
-		   (gud-find-file (car gud-last-last-frame))
-		 (gud-find-file gdb-main-file))))))
+      (gdb-display-buffer
+       (if gud-last-last-frame
+	   (gud-find-file (car gud-last-last-frame))
+	 (gud-find-file gdb-main-file))))
   (setq gdb-selected-view 'source))
 
 (defun gdb-view-assembler()
   (interactive)
-  (if (window-live-p gdb-source-window)
-      (set-window-buffer gdb-source-window
-			 (gdb-get-create-buffer 'gdb-assembler-buffer))
-    (setq gdb-source-window 
-	  (display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))))
+  (gdb-display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))
   (setq gdb-selected-view 'assembler))
 
 ;(defun gdb-view-both()
@@ -1666,7 +1644,6 @@ the source buffer."
 	   (gud-find-file (car gud-last-last-frame))
 	 (gud-find-file gdb-main-file))
      (gdb-get-create-buffer 'gdb-assembler-buffer)))
-  (setq gdb-source-window (get-buffer-window (current-buffer)))
   (when gdb-use-inferior-io-buffer
     (split-window-horizontally)
     (other-window 1)
@@ -1679,8 +1656,11 @@ the source buffer."
   (other-window 1))
 
 (defcustom gdb-many-windows nil
-  "Nil means that gdb starts with just two windows : the GUD and
-the source buffer."
+  "Nil (the default value) means just pops up the GUD buffer
+unless `gdb-show-main' is t. In this case it starts with two
+windows: one displaying the GUD buffer and the other with the
+source file with the main routine of the debugee. Non-nil means
+display the layout shown for `gdba'."
   :type 'boolean
   :group 'gud)
 
@@ -1691,7 +1671,9 @@ the source buffer."
 	(if (null arg)
 	    (not gdb-many-windows)
 	  (> (prefix-numeric-value arg) 0)))
-  (gdb-restore-windows))
+  (condition-case nil
+      (gdb-restore-windows)
+    (error nil)))
 
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdba.
@@ -1713,7 +1695,6 @@ This arrangement depends on the value of `gdb-many-windows'."
 	     (gud-find-file (car gud-last-last-frame))
 	   (gud-find-file gdb-main-file))
        (gdb-get-create-buffer 'gdb-assembler-buffer)))
-    (setq gdb-source-window (get-buffer-window (current-buffer)))
     (other-window 1)))
 
 (defun gdb-reset ()
@@ -1760,7 +1741,6 @@ buffers."
        (if gdb-view-source
 	   (gud-find-file gdb-main-file)
 	 (gdb-get-create-buffer 'gdb-assembler-buffer)))
-      (setq gdb-source-window (get-buffer-window (current-buffer)))
       (other-window 1))))
 
 ;;from put-image
@@ -1997,8 +1977,7 @@ BUFFER nil or omitted means use the current buffer."
 		      (progn (setq gdb-view-source nil) t))
 		  (eq gdb-selected-view 'assembler))
 	      (progn
-		(set-window-buffer
-		 gdb-source-window
+		(gdb-display-buffer
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
 		;;update with new frame for machine code if necessary
 		(gdb-invalidate-assembler))))))

@@ -2441,7 +2441,7 @@ Build a menu of the possible matches."
 	(message "Searching indices...")
 	(goto-char (point-min))
 	(re-search-forward "\\* Menu: *\n" nil t)
-	(while (re-search-forward "\\*.*: (\\([^)]+\\))" nil t)
+	(while (re-search-forward "\\*.*: *(\\([^)]+\\))" nil t)
 	  (add-to-list 'manuals (match-string 1)))
 	(dolist (manual manuals)
 	  (message "Searching %s" manual)

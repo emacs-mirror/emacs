@@ -1,7 +1,4 @@
 ;;; url-irc.el --- IRC URL interface
-;; Author: $Author: miles $
-;; Created: $Date: 2004/04/04 04:44:10 $
-;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

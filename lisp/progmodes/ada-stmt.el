@@ -3,8 +3,6 @@
 ;; Copyright(C) 1987, 93, 94, 96, 97, 98, 99, 2000
 ;;   Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.17 $
-
 ;; This file is part of GNU Emacs.
 
 ;; Authors: Daniel Pfeiffer, Markus Heritsch, Rolf Ebert <ebert@waporo.muc.de>

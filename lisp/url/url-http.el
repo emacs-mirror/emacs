@@ -1,6 +1,5 @@
 ;;; url-http.el --- HTTP retrieval routines
 ;; Author: Bill Perry <wmperry@gnu.org>
-;; Version: $Revision: 1.2 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1727,13 +1727,13 @@ Prefix arg will make the entry nonmarking."
      arg)))
 
 ;;;###autoload
-(define-derived-mode diary-mode text-mode
+(define-derived-mode diary-mode fundamental-mode
   "Diary"
   "Major mode for editing the diary file."
   (set (make-local-variable 'font-lock-defaults)
        '(diary-font-lock-keywords t)))
 
-(define-derived-mode fancy-diary-display-mode text-mode
+(define-derived-mode fancy-diary-display-mode fundamental-mode
   "Diary"
   "Major mode used while displaying diary entries using Fancy Display."
   (set (make-local-variable 'font-lock-defaults)

@@ -1,3 +1,8 @@
+2004-04-09  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (distclean clean): Remove nmake specific
+	stamp-subdir test.
+
 2004-02-28  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (all): Depends on ${WORLD} instead of ${TIT} and

@@ -1,4 +1,3 @@
-/* $XConsortium: XCrAssoc.c,v 10.17 91/01/06 12:04:57 rws Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*

@@ -489,6 +489,13 @@ Value can be toggled within `ido' using `ido-toggle-prefix'."
   :type 'boolean
   :group 'ido)
 
+(defcustom ido-confirm-unique-completion nil
+  "*Non-nil means that even a unique completion must be confirmed.
+This means that \\[ido-complete] must always be followed by \\[ido-exit-minibuffer]
+even when there is only one unique completion."
+  :type 'boolean
+  :group 'ido)
+
 (defcustom ido-cannot-complete-command 'ido-completion-help
   "*Command run when `ido-complete' can't complete any more.
 The most useful values are `ido-completion-help', which pops up a
@@ -1899,7 +1906,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 ((and ido-use-filename-at-point
 	       (setq fn (ffap-string-at-point))
-	       (not (string-match "^http:/" fn)) 
+	       (not (string-match "^http:/" fn))
 	       (setq d (file-name-directory fn))
 	       (file-directory-p d))
 	  (setq ido-current-directory d)
@@ -2056,7 +2063,11 @@ If INITIAL is non-nil, it specifies the initial input string."
 		     (string-equal ido-current-directory "/")
 		     (string-match "..[@:]\\'" (car ido-matches)))))
       ;; only one choice, so select it.
-      (exit-minibuffer))
+      (if (not ido-confirm-unique-completion)
+	  (exit-minibuffer)
+	(setq ido-rescan (not ido-enable-prefix))
+	(delete-region (minibuffer-prompt-end) (point))
+	(insert (car ido-matches))))
 
      (t ;; else there could be some completions
       (setq res ido-common-match-string)
@@ -3396,6 +3407,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	(ido-work-directory-match-only nil)
 	(ido-ignore-files (cons "[^/]\\'" ido-ignore-files))
 	(ido-report-no-match nil)
+	(ido-confirm-unique-completion t)
 	(ido-auto-merge-work-directories-length -1))
     (ido-file-internal 'write 'write-file nil "Write file: ")))
 
@@ -3544,7 +3556,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	    (setq refresh t))
 	   ((and ido-directory-nonreadable
 		 (file-directory-p (concat ido-current-directory (file-name-directory contents))))
-	    (ido-set-current-directory 
+	    (ido-set-current-directory
 	     (concat ido-current-directory (file-name-directory contents)))
 	    (setq refresh t))
 	   (t

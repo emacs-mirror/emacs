@@ -5,7 +5,6 @@
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.51 2003/09/01 15:45:19 miles Exp $
 ;; Keywords: calendar, todo
 
 ;; This file is part of GNU Emacs.
@@ -92,12 +91,6 @@
 ;;      the whole source code for autoloads, because there are several
 ;;      extensions that are not explicitly listed in the above quick
 ;;      installation.
-;;
-;;  Version
-;;
-;;      Which version of todo-mode.el does this documentation refer to?
-;;
-;;      $Id: todo-mode.el,v 1.51 2003/09/01 15:45:19 miles Exp $
 ;;
 ;;  Pre-Requisites
 ;;

@@ -1,7 +1,4 @@
 ;;; url-parse.el --- Uniform Resource Locator parser
-;; Author: $Author: miles $
-;; Created: $Date: 2004/04/04 04:44:10 $
-;; Version: $Revision: 1.3 $
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
