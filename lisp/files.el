@@ -2203,7 +2203,8 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 			      (substring pattern (match-beginning 0)))
 		      beg (1+ (match-end 0))))
 	      (call-process shell-file-name nil t nil
-			    "-c" (concat insert-directory-program
+			    "-c" (concat "\\"  ;; Disregard shell aliases!
+					 insert-directory-program
 					 " -d "
 					 (if (stringp switches)
 					     switches
