@@ -1,3 +1,36 @@
+2002-04-13  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (find_entries): Delete tags previously obtained from
+	file xxx.c's #line directives when parsing file xxx.y.  This is
+	generally done for automatically generated files containing
+	#line directives.  This handles the case when xxx.y is tagged
+	before xxx.c, and the entries of xxx.c pointing to xxx.y should
+	be discarded.
+	(language): Added the metasource member.  Initializers changed.
+	(invalidate_nodes): New function.
+	(readline): Discard lines after having found a #line
+  	directive pointing to an already tagged file.  This handles the
+	case when xxx.y is tagged before xxx.c, and the entries of
+	xxx.c pointing to xxx.y should be discarded.
+	(fdesc): New structure for keeping track of input files.
+	(fdesc): Remove `file' member (a string) and use instead a pointer
+	to a file description structure.
+	(curfile, curfiledir, curtagfname, curlang, nocharno,
+	forced_lang): Global variables removed in favor of fdhead and
+	curfdp, pointers to file description strucures.
+	(longopts, main, print_help): Use the CTAGS conditional to include
+	or exclude options that work on etags or ctags only.
+	(process_file, find_entries, pfnote, add_node, put_entries,
+	readline): Use fdhead and curfdp.
+	(process_file, find_entries): Do not take an arg string, all
+	callers changed.
+
+	* etags.c (longopts, print_help, main): Test CTAGS to disallow
+	options that are not right for either etags or ctags.
+
+	* etags.c (number_len, total_size_of_entries): Define them also
+	in CTAGS mode, because gcc does not compile all refs away.
+
 2002-04-14  Colin Walters  <walters@debian.org>
 
 	* update-game-score.c (lock_file): If the lock file is older than
@@ -41,7 +74,7 @@
 	(read_score): Trim newline only in `getline' case.
 
 2002-04-05  Colin Walters  <walters@debian.org>
-	
+
 	* update-game-score.c (toplevel): Include pwd.h.
 	(struct score_entry): Add username field.
 	(push_score): Use it.
@@ -51,8 +84,8 @@
 	(read_score): Read it.
 	(push_score): Handle it.
 	(write_scores) Write it.
-	(read_score): Handle arbitrary length data. 
-	
+	(read_score): Handle arbitrary length data.
+
 2002-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ebrowse.c (add_declarator): Fix the first call to add_member_defn.
@@ -119,7 +152,7 @@
 	file on left nodes.
 	(put_entries): Print here the name of the file.
 	(put_entries): Print the entries starting from the first file.
-	(number_len, total_size_of_entries): Define these only iin etags
+	(number_len, total_size_of_entries): Define these only in etags
 	mode, make the second work only on the right nodes.
 
 	* etags.c: Make all global variables static.
