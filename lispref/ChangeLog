@@ -1,7 +1,27 @@
+2003-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Minor Mode Conventions): Specify only some kinds
+	of list values as args to minor modes.
+
+	* files.texi (File Name Expansion): Warn about iterative use
+	of substitute-in-file-name.
+
+	* advice.texi (Activation of Advice): Clean up previous change.
+
 2003-07-06  Markus Rost  <rost@math.ohio-state.edu>
 
 	* advice.texi (Activation of Advice): Note that ad-start-advice is
 	turned on by default.
+
+2003-06-30  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Buffer Contents): Document current-word.
+	(Change Hooks): Not called for *Messages*.
+
+	* functions.texi (Defining Functions): Explain about redefining
+	primitives.
+	(Function Safety): Renamed.  Minor changes.
+	Comment out the detailed criteria for what is safe.
 
 2003-06-22  Andreas Schwab  <schwab@suse.de>
 

@@ -1,3 +1,13 @@
+2003-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Font Lock): Add xref for format info on
+	font-lock-remove-keywords.
+
+	* building.texi (Compilation): Document what happens with asynch
+	children of compiler process.
+
+	* help.texi (Library Keywords): Use @multitable.
+
 2003-07-04  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.texi (Top, Help-Small-Screen): Remove accidentally added

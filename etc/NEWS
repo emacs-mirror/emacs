@@ -89,7 +89,12 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
-** New minor mode `vis-mode' toggles invisibility in the current buffer.
++++
+** The old bindings C-M-delete and C-M-backspace have been deleted,
+since there are situations where one or the other will shut down
+the operating system or your X server.
+
+** New minor mode, Visible mode, toggles invisibility in the current buffer.
 When enabled, it makes all invisible text visible.  When disabled, it
 restores the previous value of `buffer-invisibility-spec'. 
 
@@ -1593,6 +1598,14 @@ timing measurements of code (including the garbage collection component).
 
 * Lisp Changes in Emacs 21.4
 
+** The new function `window-inside-edges' returns the edges of the
+actual text portion of the window, not including the scroll bar or
+divider line, the fringes, the display margins, the header line and
+the mode line.
+
+** The new functions `window-pixel-edges' and `window-inside-pixel-edges'
+return window edges in units of pixels, rather than columns and lines.
+
 ** The kill-buffer-hook is now permanent-local.
 
 ** The `local-map' property now also works at the ends of overlays and
@@ -1613,6 +1626,30 @@ in the keymap.
 parameter of the `checkout' backend function.
 Old code still works thanks to a default `find-version' behavior that
 uses the old `destfile' parameter.
+
+** The new macro dynamic-completion-table supports using functions
+as a dynamic completion table.
+
+  (dynamic-completion-table FUN)
+
+FUN is called with one argument, the string for which completion is required,
+and it should return an alist containing all the intended possible
+completions. This alist may be a full list of possible completions so that FUN
+can ignore the value of its argument. If completion is performed in the
+minibuffer, FUN will be called in the buffer from which the minibuffer was
+entered. dynamic-completion-table then computes the completion.
+
+** The new macro lazy-completion-table initializes a variable
+as a lazy completion table.
+
+  (lazy-completion-table VAR FUN &rest ARGS)
+
+If the completion table VAR is used for the first time (e.g., by passing VAR
+as an argument to `try-completion'), the function FUN is called with arguments
+ARGS. FUN must return the completion table that will be stored in VAR. If
+completion is requested in the minibuffer, FUN will be called in the buffer
+from which the minibuffer was entered. The return value of
+`lazy-completion-table' must be used to initialize the value of VAR.
 
 ** `minor-mode-list' now holds a list of minor mode commands.
 

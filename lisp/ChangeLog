@@ -1,3 +1,48 @@
+2003-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* ehelp.el (ehelp-command): Use defalias to define ehelp-command.
+	Give it a doc string, and autoload it.
+
+	* desktop.el (desktop-buffer-info, desktop-buffer-mh):
+	Use with-no-warnings.
+
+	* info.el (Info-search): If find invisible text, search again.
+
+	* isearch.el (search-whitespace-regexp): Add a shy group around it.
+
+	* man.el (Man-name-regexp): Match + as part of name.
+
+	* simple.el (visible-mode): Renamed from vis-mode.
+	(vis-mode-saved-buffer-invisibility-spec): Doc fix.
+
+	* simple.el (current-word): New arg REALLY-WORD specifies
+	don't include punctuation chars.
+
+	* emacs-lisp/debug.el (debug, debugger-env-macro):
+	Use with-no-warnings while accessing and binding
+	unread-command-char.
+
+	* international/mule-cmds.el (set-display-table-and-terminal-coding-system):
+	Use explicit loop instead of calling standard-display-default.
+
+	* net/ange-ftp.el (ange-ftp-file-symlink-p):
+	Use condition-case to catch error in ange-ftp-get-files.
+
+	* net/browse-url.el (browse-url-browser-function):
+	Add alternative for Epiphany.
+	(browse-url-epiphany-program, browse-url-epiphany-arguments)
+	(browse-url-epiphany-startup-arguments)
+	(browse-url-epiphany-new-window-is-tab): New variables.
+	(browse-url-epiphany, browse-url-epiphany-sentinel): New functions.
+
+	* progmodes/compile.el (compile-auto-highlight): Default now t.
+	(compile): Doc fix.
+	(compilation-next-error): Fix previous change.
+
+	* textmodes/tex-mode.el (tex-main-file): Use with-no-warnings.
+
+	* textmodes/sgml-mode.el (xml-mode): Add autoload cookie.
+
 2003-07-07  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-source-info): Display current frame when
@@ -1459,6 +1504,13 @@
 	earlier changes.
 
 2003-06-30  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile-auto-highlight): Default now t.
+	(compile): Doc fix.
+
+	* progmodes/compile.el (compilation-next-error): Fix previous change.
+
+	* emacs-lisp/debug.el (debug): 
 
 	* loadup.el (pure-space-overflow): Set it if overflow.
 

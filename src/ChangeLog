@@ -1,3 +1,9 @@
+2003-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (reseat_1): Set it->area to TEXT_AREA.
+
+	* alloc.c (Fgarbage_collect): Doc fix.
+
 2003-07-07  Nozomu Ando  <nand@mac.com>  (tiny change)
 
 	* buffer.c (Fkill_buffer): Clear charpos cache if necessary.
