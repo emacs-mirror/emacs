@@ -408,16 +408,61 @@ The value is never nil.")
   return buf;
 }
 
-DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer, 2, 2,
+
+/* Clone per-buffer values of buffer FROM.
+
+   Buffer TO gets the same per-buffer values as FROM, with the
+   following exceptions: (1) TO's name is left untouched, (2) markers
+   are copied and made to refer to TO, and (3) overlay lists are
+   copied.  */
+
+static void
+clone_per_buffer_values (from, to)
+     struct buffer *from, *to;
+{
+  Lisp_Object to_buffer;
+  int offset;
+
+  XSETBUFFER (to_buffer, to);
+  
+  for (offset = PER_BUFFER_VAR_OFFSET (name) + sizeof (Lisp_Object);
+       offset < sizeof *to;
+       offset += sizeof (Lisp_Object))
+    {
+      Lisp_Object obj;
+
+      obj = PER_BUFFER_VALUE (from, offset);
+      if (MARKERP (obj))
+	{
+	  struct Lisp_Marker *m = XMARKER (obj);
+	  obj = Fmake_marker ();
+	  XMARKER (obj)->insertion_type = m->insertion_type;
+	  set_marker_both (obj, to_buffer, m->charpos, m->bytepos);
+	}
+
+      PER_BUFFER_VALUE (to, offset) = obj;
+    }
+
+  to->overlays_after = Fcopy_sequence (from->overlays_after);
+  to->overlays_before = Fcopy_sequence (to->overlays_before);
+  bcopy (from->local_flags, to->local_flags, sizeof to->local_flags);
+}
+
+
+DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
+       2, 3,
        "bMake indirect buffer (to buffer): \nBName of indirect buffer: ",
   "Create and return an indirect buffer for buffer BASE-BUFFER, named NAME.\n\
 BASE-BUFFER should be an existing buffer (or buffer name).\n\
-NAME should be a string which is not the name of an existing buffer.")
-  (base_buffer, name)
-     register Lisp_Object base_buffer, name;
+NAME should be a string which is not the name of an existing buffer.\n\
+Optional argument CLONE non-nil means preserve BASE-BUFFER's state,\n\
+such as major and minor modes, in the indirect buffer.
+CLONE nil means the indirect buffer's state is reset to default values.")
+  (base_buffer, name, clone)
+     Lisp_Object base_buffer, name, clone;
 {
-  register Lisp_Object buf;
-  register struct buffer *b;
+  Lisp_Object buf;
+  struct buffer *b;
 
   buf = Fget_buffer (name);
   if (!NILP (buf))
@@ -498,14 +543,19 @@ NAME should be a string which is not the name of an existing buffer.")
       XMARKER (b->base_buffer->zv_marker)->insertion_type = 1;
     }
 
-  /* Give the indirect buffer markers for its narrowing.  */
-  b->pt_marker = Fmake_marker ();
-  set_marker_both (b->pt_marker, buf, BUF_PT (b), BUF_PT_BYTE (b));
-  b->begv_marker = Fmake_marker ();
-  set_marker_both (b->begv_marker, buf, BUF_BEGV (b), BUF_BEGV_BYTE (b));
-  b->zv_marker = Fmake_marker ();
-  set_marker_both (b->zv_marker, buf, BUF_ZV (b), BUF_ZV_BYTE (b));
-  XMARKER (b->zv_marker)->insertion_type = 1;
+  if (NILP (clone))
+    {
+      /* Give the indirect buffer markers for its narrowing.  */
+      b->pt_marker = Fmake_marker ();
+      set_marker_both (b->pt_marker, buf, BUF_PT (b), BUF_PT_BYTE (b));
+      b->begv_marker = Fmake_marker ();
+      set_marker_both (b->begv_marker, buf, BUF_BEGV (b), BUF_BEGV_BYTE (b));
+      b->zv_marker = Fmake_marker ();
+      set_marker_both (b->zv_marker, buf, BUF_ZV (b), BUF_ZV_BYTE (b));
+      XMARKER (b->zv_marker)->insertion_type = 1;
+    }
+  else
+    clone_per_buffer_values (b->base_buffer, b);
 
   return buf;
 }
