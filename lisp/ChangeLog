@@ -1,3 +1,7 @@
+2003-01-26  Richard M. Stallman  <rms@gnu.org>
+
+	* thingatpt.el (thing-at-point-file-name-chars): Undo previous change.
+
 2003-01-25  Bill Wohler  <wohler@newt.com>
 
 	* mh-e: Created directory. ChangeLog will appear in a week when we
