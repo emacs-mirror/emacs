@@ -1,5 +1,7 @@
 2001-07-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-other-meta-char): Fix last change.
+	
 	* isearch.el (isearch-other-meta-char): Don't modify mode-line and
 	similar events for which fake prefix keys are generated.  It's no
 	longer necessary since read_key_sequence doesn't modify these
