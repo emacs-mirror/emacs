@@ -14,5 +14,6 @@ check-doc-strings	check doc strings against documentation
 cus-test.el		tests for custom types and load problems
 diff-tar-files		show files added/removed between two tar files
 make-emacs		build Emacs in various ways
+make-tarball.txt	instructions to create pretest or release tarballs
 quick-install-emacs	install emacs quickly (`incrementally')
 revdiff			get CVS diffs of files
