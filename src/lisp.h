@@ -1149,6 +1149,10 @@ extern void defvar_int ();
 #define DEFVAR_INT(lname, vname, doc) defvar_int (lname, vname)
 #define DEFVAR_PER_BUFFER(lname, vname, type, doc)  \
  defvar_per_buffer (lname, vname, type, 0)
+#define DEFVAR_DISPLAY(lname, vname, doc) \
+ defvar_display (lname, \
+		 (int)((char *)(get_perdisplay (selected_frame)->vname) \
+		       - (char *)get_perdisplay (selected_frame)))
 
 /* Structure for recording Lisp call stack for backtrace purposes.  */
 
