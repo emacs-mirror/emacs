@@ -608,9 +608,11 @@ This does not change the name of the visited file (if any).")
 
   XSET (buf, Lisp_Buffer, current_buffer);
   Fsetcar (Frassq (buf, Vbuffer_alist), name);
-  if (NILP (current_buffer->filename) && !NILP (current_buffer->auto_save_file_name))
+  if (NILP (current_buffer->filename)
+      && !NILP (current_buffer->auto_save_file_name))
     call0 (intern ("rename-auto-save-file"));
-  return name;
+  /* refetch since that last call may have done GC */
+  return current_buffer->name;
 }
 
 DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 2, 0,
