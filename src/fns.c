@@ -1273,7 +1273,9 @@ DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
   for (i = 0; i < num && !NILP (list); i++)
     {
       QUIT;
-      list = Fcdr (list);
+      if (! CONSP (list))
+	wrong_type_argument (Qlistp, list);
+      list = XCDR (list);
     }
   return list;
 }
@@ -1316,7 +1318,9 @@ The value is actually the tail of LIST whose car is ELT.")
   for (tail = list; !NILP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
-      tem = Fcar (tail);
+      if (! CONSP (tail))
+	wrong_type_argument (Qlistp, list);
+      tem = XCAR (tail);
       if (! NILP (Fequal (elt, tem)))
 	return tail;
       QUIT;
@@ -1558,7 +1562,9 @@ to be sure of changing the value of `foo'.")
   prev = Qnil;
   while (!NILP (tail))
     {
-      tem = Fcar (tail);
+      if (! CONSP (tail))
+	wrong_type_argument (Qlistp, list);
+      tem = XCAR (tail);
       if (EQ (elt, tem))
 	{
 	  if (NILP (prev))
@@ -1592,7 +1598,9 @@ to be sure of changing the value of `foo'.")
   prev = Qnil;
   while (!NILP (tail))
     {
-      tem = Fcar (tail);
+      if (! CONSP (tail))
+	wrong_type_argument (Qlistp, list);
+      tem = XCAR (tail);
       if (! NILP (Fequal (elt, tem)))
 	{
 	  if (NILP (prev))
@@ -1622,7 +1630,9 @@ Returns the beginning of the reversed list.")
   while (!NILP (tail))
     {
       QUIT;
-      next = Fcdr (tail);
+      if (! CONSP (tail))
+	wrong_type_argument (Qlistp, list);
+      next = XCDR (tail);
       Fsetcdr (tail, prev);
       prev = tail;
       tail = next;
@@ -2551,7 +2561,7 @@ Takes one argument, which is the string to display to ask the question.\n\
 It should end in a space; `y-or-n-p' adds `(y or n) ' to it.\n\
 No confirmation of the answer is requested; a single character is enough.\n\
 Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses\n\
-the bindings in query-replace-map; see the documentation of that variable\n\
+the bindings in `query-replace-map'; see the documentation of that variable\n\
 for more information.  In this case, the useful bindings are `act', `skip',\n\
 `recenter', and `quit'.\)\n\
 \n\
