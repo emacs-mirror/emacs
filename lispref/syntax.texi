@@ -721,6 +721,14 @@ signaled.  If it reaches the beginning or end between groupings but
 before count is used up, @code{nil} is returned.
 @end defun
 
+@defvar multibyte-syntax-as-symbol
+@tindex multibyte-syntax-as-symbol
+If this variable is non-@code{nil}, @code{scan-sexps} treats all
+non-@sc{ASCII} characters as symbol constituents regardless
+of what the syntax table says about them.  (However, text properties
+can still override the syntax.)
+@end defvar
+
 @defvar parse-sexp-ignore-comments
 @cindex skipping comments
 If the value is non-@code{nil}, then comments are treated as
