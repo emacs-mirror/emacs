@@ -458,6 +458,34 @@ static Lisp_Object property_change_reply;
 static struct prop_location *property_change_reply_object;
 
 static struct prop_location *property_change_wait_list;
+
+static Lisp_Object
+queue_selection_requests_unwind (frame)
+     Lisp_Object frame;
+{
+  FRAME_PTR f = XFRAME (frame);
+
+  if (! NILP (frame))
+    x_stop_queuing_selection_requests (FRAME_X_DISPLAY (f));
+}
+
+/* Return some frame whose display info is DPYINFO.
+   Return nil if there is none.  */
+
+static Lisp_Object
+some_frame_on_display (dpyinfo)
+     struct x_display_info *dpyinfo;
+{
+  Lisp_Object list, frame;
+
+  FOR_EACH_FRAME (list, frame)
+    {
+      if (FRAME_X_DISPLAY_INFO (XFRAME (frame)) == dpyinfo)
+	return frame;
+    }
+
+  return Qnil;
+}
 
 /* Send the reply to a selection request event EVENT.
    TYPE is the type of selection data requested.
@@ -516,8 +544,21 @@ x_reply_selection_request (event, format, data, size, type)
       /* Send an INCR selection.  */
       struct prop_location *wait_object;
       int had_errors;
+      int count = specpdl_ptr - specpdl;
+      Lisp_Object frame;
 
-      x_start_queuing_selection_requests (display);
+      frame = some_frame_on_display (dpyinfo);
+
+      /* If the display no longer has frames, we can't expect
+	 to get many more selection requests from it, so don't
+	 bother trying to queue them.  */
+      if (!NILP (frame))
+	{
+	  x_start_queuing_selection_requests (display);
+
+	  record_unwind_protect (queue_selection_requests_unwind,
+				 frame);
+	}
 
       if (x_window_to_frame (window)) /* #### debug */
 	error ("attempt to transfer an INCR to ourself!");
@@ -528,11 +569,11 @@ x_reply_selection_request (event, format, data, size, type)
 					    PropertyDelete);
 
       XChangeProperty (display, window, reply.property, dpyinfo->Xatom_INCR,
-		       32, PropModeReplace, (unsigned char *)
-		       &bytes_remaining, 1);
+		       32, PropModeReplace,
+		       (unsigned char *) &bytes_remaining, 1);
       XSelectInput (display, window, PropertyChangeMask);
       /* Tell 'em the INCR data is there...  */
-      (void) XSendEvent (display, window, False, 0L, (XEvent *) &reply);
+      XSendEvent (display, window, False, 0L, (XEvent *) &reply);
       XFlush (display);
 
       had_errors = x_had_errors_p (display);
@@ -585,7 +626,8 @@ x_reply_selection_request (event, format, data, size, type)
 
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, 0);
-      x_stop_queuing_selection_requests (display);
+
+      unbind_to (count, Qnil);
     }
 
   XFlush (display);
@@ -1051,6 +1093,8 @@ x_get_foreign_selection (selection_symbol, target_type)
   Atom selection_atom = symbol_to_x_atom (dpyinfo, display, selection_symbol);
   Atom type_atom;
   int secs, usecs;
+  int count = specpdl_ptr - specpdl;
+  Lisp_Object frame;
 
   if (CONSP (target_type))
     type_atom = symbol_to_x_atom (dpyinfo, display, XCONS (target_type)->car);
@@ -1067,7 +1111,19 @@ x_get_foreign_selection (selection_symbol, target_type)
   reading_selection_window = requestor_window;
   reading_which_selection = selection_atom;
   XCONS (reading_selection_reply)->car = Qnil;
-  x_start_queuing_selection_requests (display);
+
+  frame = some_frame_on_display (dpyinfo);
+
+  /* If the display no longer has frames, we can't expect
+     to get many more selection requests from it, so don't
+     bother trying to queue them.  */
+  if (!NILP (frame))
+    {
+      x_start_queuing_selection_requests (display);
+
+      record_unwind_protect (queue_selection_requests_unwind,
+			     frame);
+    }
   UNBLOCK_INPUT;
 
   /* This allows quits.  Also, don't wait forever.  */
@@ -1078,7 +1134,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   BLOCK_INPUT;
   x_check_errors (display, "Cannot get selection: %s");
   x_uncatch_errors (display);
-  x_stop_queuing_selection_requests (display);
+  unbind_to (count, Qnil);
   UNBLOCK_INPUT;
 
   if (NILP (XCONS (reading_selection_reply)->car))
