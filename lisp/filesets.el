@@ -262,26 +262,27 @@ COND-FN takes one argument: the current element."
   :type 'sexp
   :group 'filesets)
 
-(defcustom filesets-menu-path nil
-  "*The menu under which the filesets menu should be inserted.
+(when filesets-running-xemacs
+  (defcustom filesets-menu-path nil
+    "*The menu under which the filesets menu should be inserted.
 XEmacs specific; see `add-submenu' for documentation."
-  :set (function filesets-set-default)
-  :type 'sexp
-  :group 'filesets)
+    :set (function filesets-set-default)
+    :type 'sexp
+    :group 'filesets)
 
-(defcustom filesets-menu-before "File"
-  "*The name of a menu before which this menu should be added.
+  (defcustom filesets-menu-before "File"
+    "*The name of a menu before which this menu should be added.
 XEmacs specific; see `add-submenu' for documentation."
-  :set (function filesets-set-default)
-  :type 'sexp
-  :group 'filesets)
+    :set (function filesets-set-default)
+    :type 'sexp
+    :group 'filesets)
 
-(defcustom filesets-menu-in-menu nil
-  "*Use that instead of `current-menubar' as the menu to change.
+  (defcustom filesets-menu-in-menu nil
+    "*Use that instead of `current-menubar' as the menu to change.
 XEmacs specific; see `add-submenu' for documentation."
-  :set (function filesets-set-default)
-  :type 'sexp
-  :group 'filesets)
+    :set (function filesets-set-default)
+    :type 'sexp
+    :group 'filesets))
 
 (defcustom filesets-menu-shortcuts-flag t
   "*Non-nil means to prepend menus with hopefully unique shortcuts."
@@ -305,12 +306,13 @@ XEmacs specific; see `add-submenu' for documentation."
   (if filesets-running-xemacs
       "~/.xemacs/filesets-cache.el"
       "~/.filesets-cache.el")
-  "*File to be used for saving the filesets menu between (X)Emacs
-sessions.  Set this to \"\", to disable caching of menus.
+  "*File to be used for saving the filesets menu between sessions.
+Set this to \"\", to disable caching of menus.
 Don't forget to check out `filesets-menu-ensure-use-cached'."
   :set (function filesets-set-default)
   :type 'file
   :group 'filesets)
+(put 'filesets-menu-cache-file 'risky-local-variable t)
 
 (defcustom filesets-menu-cache-contents
   '(filesets-be-docile-flag
@@ -378,8 +380,9 @@ Don't forget to check out `filesets-menu-ensure-use-cached'."
   :group 'filesets)
 
 (defcustom filesets-cache-hostname-flag nil
-  "*Non-nil means cache the hostname. If the current name differs from
-the cached one, rebuild the menu and create a new cache file."
+  "*Non-nil means cache the hostname.
+If the current name differs from the cached one,
+rebuild the menu and create a new cache file."
   :set (function filesets-set-default)
   :type 'boolean
   :group 'filesets)
@@ -407,7 +410,7 @@ will not be rewrapped if their length exceeds this value."
   :type 'integer
   :group 'filesets)
 
-(defcustom filesets-browse-dir-fn 'dired
+(defcustom filesets-browse-dir-function 'dired
   "*A function or command used for browsing directories.
 When using an external command, \"%s\" will be replaced with the
 directory's name.
@@ -425,7 +428,7 @@ Note: You have to manually rebuild the menu if you change this value."
 			   :value nil))
   :group 'filesets)
 
-(defcustom filesets-open-file-fn 'filesets-find-or-display-file
+(defcustom filesets-open-file-function 'filesets-find-or-display-file
   "*The function used for opening files.
 
 `filesets-find-or-display-file' ... Filesets' default function for
@@ -448,7 +451,7 @@ Caveat: Changes will take effect only after rebuilding the menu."
 			   :value nil))
   :group 'filesets)
 
-(defcustom filesets-save-buffer-fn 'save-buffer
+(defcustom filesets-save-buffer-function 'save-buffer
   "*The function used to save a buffer.
 Caveat: Changes will take effect after rebuilding the menu."
   :set (function filesets-set-default)
@@ -495,7 +498,7 @@ computer environments."
 (defcustom filesets-tree-max-level 3
   "*Maximum scan depth for directory trees.
 A :tree fileset is defined by a base directory the contents of which
-will be recursively added to the menu.  filesets-tree-max-level tells up
+will be recursively added to the menu.  `filesets-tree-max-level' tells up
 to which level the directory structure should be scanned/listed,
 i.e. how deep the menu should be.  Try something like
 
@@ -551,6 +554,7 @@ the filename."
 				       (function :tag "Function"
 						 :value nil)))))
   :group 'filesets)
+(put 'filesets-commands 'risky-local-variable t)
 
 (defcustom filesets-external-viewers
   (let
@@ -694,7 +698,7 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
 					      :value :capture-output)
 				      (boolean :tag "Boolean"))))))
   :group 'filesets)
-
+(put 'filesets-external-viewers 'risky-local-variable t)
 
 (defcustom filesets-ingroup-patterns
   '(("^.+\\.tex$" t
@@ -882,6 +886,7 @@ With duplicates removed, it would be:
 				  (const :format "" :value :preprocess)
 				  (function :tag "Function")))))))
   :group 'filesets)
+(put 'filesets-ingroup-patterns 'risky-local-variable t)
 
 (defcustom filesets-data
   nil
@@ -945,7 +950,7 @@ optional.
 
 In conjunction with the :tree tag, :save is void.  :open refers to the
 function used for opening files in a directory, not for opening the
-directory.  For browsing directories, `filesets-browse-dir-fn' is used.
+directory.  For browsing directories, `filesets-browse-dir-function' is used.
 
 Before using :ingroup, make sure that the file type is already
 defined in `filesets-ingroup-patterns'."
@@ -1007,6 +1012,7 @@ defined in `filesets-ingroup-patterns'."
 			       :value (:open)
 			       (const :format "" :value :open)
 			       (function :tag "Function")))))))
+(put 'filesets-data 'risky-local-variable t)
 
 
 (defcustom filesets-query-user-limit 15
@@ -1345,19 +1351,19 @@ not be opened."
       (filesets-find-or-display-file nil (cadr (assoc viewer lst))))))
 
 (defun filesets-browser-name ()
-  "Get the directory browser's name as defined in `filesets-browse-dir-fn'."
+  "Get the directory browser's name as defined in `filesets-browse-dir-function'."
   (cond
-   ((listp filesets-browse-dir-fn)
-    (car filesets-browse-dir-fn))
+   ((listp filesets-browse-dir-function)
+    (car filesets-browse-dir-function))
    (t
-    filesets-browse-dir-fn)))
+    filesets-browse-dir-function)))
 
 (defun filesets-browse-dir (dir)
-  "Browse DIR using `filesets-browse-dir-fn'."
-  (if (functionp filesets-browse-dir-fn)
-      (funcall filesets-browse-dir-fn dir)
-    (let ((name (car filesets-browse-dir-fn))
-	  (args (format (cadr filesets-browse-dir-fn) (expand-file-name dir))))
+  "Browse DIR using `filesets-browse-dir-function'."
+  (if (functionp filesets-browse-dir-function)
+      (funcall filesets-browse-dir-function dir)
+    (let ((name (car filesets-browse-dir-function))
+	  (args (format (cadr filesets-browse-dir-function) (expand-file-name dir))))
       (with-temp-buffer
 	(start-process (concat "Filesets:" name)
 		       "*Filesets external directory browser*"
@@ -1418,14 +1424,14 @@ See `filesets-data'."
 Use FILESET-ENTRY for finding the open function, if provided."
   (filesets-data-get (or fileset-entry
 			 (filesets-get-fileset-from-name fileset-name))
-		     ':open filesets-open-file-fn t))
+		     ':open filesets-open-file-function t))
 
 (defun filesets-entry-get-save-fn (fileset-name &optional fileset-entry)
   "Get the save-function for FILESET-NAME.
 Use FILESET-ENTRY for finding the save function, if provided."
   (filesets-data-get (or fileset-entry
 			 (filesets-get-fileset-from-name fileset-name))
-		     ':save filesets-save-buffer-fn t))
+		     ':save filesets-save-buffer-function t))
 
 (defun filesets-entry-get-files (entry)
   "Get the file list for fileset ENTRY."
