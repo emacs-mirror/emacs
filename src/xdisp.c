@@ -1221,7 +1221,7 @@ Lisp_Object
 safe_eval (sexpr)
      Lisp_Object sexpr;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   struct gcpro gcpro1;
   Lisp_Object val;
 
@@ -1241,7 +1241,7 @@ safe_call (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   Lisp_Object val;
   struct gcpro gcpro1;
 
@@ -2012,7 +2012,7 @@ handle_fontified_prop (it)
 	  prop = Fget_char_property (pos, Qfontified, Qnil),
 	  NILP (prop)))
     {
-      int count = specpdl_ptr - specpdl;
+      int count = BINDING_STACK_SIZE ();
       Lisp_Object val;
 
       val = Vfontification_functions;
@@ -2641,7 +2641,7 @@ handle_single_display_prop (it, prop, object, position)
 	      /* Evaluate IT->font_height with `height' bound to the
 		 current specified height to get the new height.  */
 	      Lisp_Object value;
-	      int count = specpdl_ptr - specpdl;
+	      int count = BINDING_STACK_SIZE ();
 	      
 	      specbind (Qheight, face->lface[LFACE_HEIGHT_INDEX]);
 	      value = safe_eval (it->font_height);
@@ -5785,7 +5785,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
 {
   Lisp_Object buffer;
   int this_one, the_other, clear_buffer_p, rc;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
 
   /* If buffers aren't life, make new ones.  */
   ensure_echo_area_buffers ();
@@ -6810,7 +6810,7 @@ prepare_menu_bars ()
   if (all_windows)
     {
       Lisp_Object tail, frame;
-      int count = specpdl_ptr - specpdl;
+      int count = BINDING_STACK_SIZE ();
 
       record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
 
@@ -6914,7 +6914,7 @@ update_menu_bar (f, save_match_data)
 	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
-	  int count = specpdl_ptr - specpdl;
+	  int count = BINDING_STACK_SIZE ();
 
 	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  if (save_match_data)
@@ -7006,7 +7006,7 @@ update_tool_bar (f, save_match_data)
 	      != !NILP (w->region_showing)))
 	{
 	  struct buffer *prev = current_buffer;
-	  int count = specpdl_ptr - specpdl;
+	  int count = BINDING_STACK_SIZE ();
 
 	  /* Set current_buffer to the buffer of the selected
 	     window of the frame, so that we get the right local
@@ -7794,7 +7794,7 @@ redisplay_internal (preserve_echo_area)
 
   /* Record a function that resets redisplaying_p to its old value
      when we leave this function.  */
-  count = specpdl_ptr - specpdl;
+  count = BINDING_STACK_SIZE ();
   record_unwind_protect (unwind_redisplay, make_number (redisplaying_p));
   ++redisplaying_p;
   
@@ -9262,7 +9262,7 @@ redisplay_window (window, just_this_one_p)
   /* Record it now because it's overwritten.  */
   int current_matrix_up_to_date_p = 0;
   int temp_scroll_step = 0;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   int rc;
 
   SET_TEXT_POS (lpoint, PT, PT_BYTE);
