@@ -464,8 +464,13 @@ end of the buffer."
   "Arguments to pass to `occur-1' to revert an Occur mode buffer.
 See `occur-revert-function'.")
 
-(defcustom occur-hook '(turn-on-font-lock)
-  "Hooks run when `occur' is called."
+(defcustom occur-mode-hook '(turn-on-font-lock)
+  "Hook run when entering Occur mode."
+  :type 'hook
+  :group 'matching)
+
+(defcustom occur-hook nil
+  "Hook run when `occur' is called."
   :type 'hook
   :group 'matching)
 
@@ -482,7 +487,8 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   (setq major-mode 'occur-mode)
   (setq mode-name "Occur")
   (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
-  (make-local-variable 'occur-revert-arguments))
+  (make-local-variable 'occur-revert-arguments)
+  (run-hooks 'occur-mode-hook))
 
 (defun occur-revert-function (ignore1 ignore2)
   "Handle `revert-buffer' for Occur mode buffers."
