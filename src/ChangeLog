@@ -1,3 +1,9 @@
+2004-04-20  John Paul Wallington  <jpw@gnu.org>
+
+	* fns.c (Fassoc, Feql): Fix indentation.
+
+	* fontset.c (regularize_fontname): Renamed from	regulalize_fontname.
+
 2004-04-19  John Paul Wallington  <jpw@gnu.org>
 
 	* fns.c (Feql): New function.
