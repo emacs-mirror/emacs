@@ -911,7 +911,7 @@ This variable determines if @code{display-buffer} should even out window
 heights if the buffer gets displayed in an existing window, above or
 beneath another existing window.  If @code{even-window-heights} is
 @code{t}, the default, window heights will be evened out.  If
-@code{even-window-heights} is @code{nil}, the orginal window heights
+@code{even-window-heights} is @code{nil}, the original window heights
 will be left alone.
 @end defopt
 

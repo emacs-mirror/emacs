@@ -76,7 +76,7 @@ binary (radix 2), @samp{#O@var{integer}} reads @var{integer} in octal
 (radix 8), @samp{#X@var{integer}} reads @var{integer} in hexadecimal
 (radix 16), and @samp{#@var{radix}r@var{integer}} reads @var{integer}
 in radix @var{radix} (where @var{radix} is between 2 and 36,
-inclusivley).  Case is not significant for the letter after @samp{#}
+inclusively).  Case is not significant for the letter after @samp{#}
 (@samp{B}, @samp{O}, etc.) that denotes the radix.
 
   To understand how various functions work on integers, especially the

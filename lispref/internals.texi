@@ -1409,7 +1409,7 @@ Size of carryover in decoding.
 Coding-system for encoding the output to this process.
 
 @item encoding_buf
-A working buffer for enecoding.
+A working buffer for encoding.
 
 @item encoding_carryover
 Size of carryover in encoding.

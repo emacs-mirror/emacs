@@ -2945,7 +2945,7 @@ front-nonsticky by default, this makes @var{property} nonsticky in both
 directions by default.
 
 The text properties @code{front-sticky} and @code{rear-nonsticky}, when
-used, take precedence over the default @var{nonstickiness} specifed in
+used, take precedence over the default @var{nonstickiness} specified in
 @code{text-property-default-nonsticky}.
 @end defvar
 

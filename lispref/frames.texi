@@ -1631,7 +1631,7 @@ variable to some other string, around a call to @code{x-get-resource}.
 
   The functions in this section describe the basic capabilities of a
 particular display.  Lisp programs can use them to adapt their behavior
-to what the display can do.  For example, a program that ordinarly uses
+to what the display can do.  For example, a program that ordinarily uses
 a popup menu could use the minibuffer if popup menus are not supported.
 
   The optional argument @var{display} in these functions specifies which

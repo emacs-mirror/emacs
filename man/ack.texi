@@ -1177,7 +1177,7 @@ Emacs text to Postscript.
 
 @item
 Tom Tromey and Chris Lindblad wrote @file{tcl.el}, a major mode for
-editing Tcl/Tk source files and running a Tcl interpeter as an Emacs
+editing Tcl/Tk source files and running a Tcl interpreter as an Emacs
 subprocess.
 
 @item

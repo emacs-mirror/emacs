@@ -2244,7 +2244,7 @@ character, multiplied by @var{factor}.
 @item :align-to @var{hpos}
 Specifies that the space should be wide enough to reach @var{hpos}.  The
 value @var{hpos} is measured in units of the normal character width.  It
-may be an interer or a floating point number.
+may be an integer or a floating point number.
 @end table
 
   Exactly one of the above properties should be used.  You can also
