@@ -286,20 +286,23 @@ that, when executed, define the same abbrevs that you currently have.
 @findex read-abbrev-file
 @findex quietly-read-abbrev-file
 @vindex abbrev-file-name
-  @kbd{M-x read-abbrev-file} reads a file name using the minibuffer and
-then reads the file, defining abbrevs according to the contents of the
-file.  @kbd{M-x quietly-read-abbrev-file} is the same except that it
-does not display a message in the echo area saying that it is doing its
-work; it is actually useful primarily in the @file{.emacs} file.  If an
-empty argument is given to either of these functions, they use the file
-name specified in the variable @code{abbrev-file-name}, which is by
-default @code{"~/.abbrev_defs"}.
+  @kbd{M-x read-abbrev-file} reads a file name using the minibuffer
+and then reads the file, defining abbrevs according to the contents of
+the file.  The function @code{quietly-read-abbrev-file} is similar
+except that it does not display a message in the echo area; you cannot
+invoke it interactively, and it is used primarily in the @file{.emacs}
+file.  If either of these functions is called with @code{nil} as the
+argument, it uses the file name specified in the variable
+@code{abbrev-file-name}, which is by default @code{"~/.abbrev_defs"}.
+That file is your standard abbrev definition file, and Emacs loads
+abbrevs from it automatically when it starts up.
 
 @vindex save-abbrevs
-  Emacs will offer to save abbrevs automatically if you have changed any of
-them, whenever it offers to save all files (for @kbd{C-x s} or @kbd{C-x
-C-c}).  This feature can be inhibited by setting the variable
-@code{save-abbrevs} to @code{nil}.
+  Emacs will offer to save abbrevs automatically if you have changed
+any of them, whenever it offers to save all files (for @kbd{C-x s} or
+@kbd{C-x C-c}).  It saves them in the file specified by
+@code{abbrev-file-name}.  This feature can be inhibited by setting the
+variable @code{save-abbrevs} to @code{nil}.
 
 @findex insert-abbrevs
 @findex define-abbrevs
