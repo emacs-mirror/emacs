@@ -80,6 +80,7 @@ Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
 Lisp_Object Vmouse_position_function;
 Lisp_Object Vmouse_highlight;
+Lisp_Object Vdelete_frame_functions;
 
 static void
 set_menu_bar_lines_1 (window, n)
@@ -1092,8 +1093,9 @@ A frame may not be deleted if its minibuffer is used by other frames.
 Normally, you may not delete a frame if all other frames are invisible,
 but if the second optional argument FORCE is non-nil, you may do so.
 
-This function runs `delete-frame-hook' before actually deleting the
-frame.  The hook is called with one argument FRAME.  */)
+This function runs `delete-frame-functions' before actually deleting the
+frame, unless the frame is a tooltip.
+The functions are run with one arg, the frame to be deleted.  */)
      (frame, force)
      Lisp_Object frame, force;
 {
@@ -1152,11 +1154,12 @@ frame.  The hook is called with one argument FRAME.  */)
 	}
     }
 
-  /* Run `delete-frame-hook'.  */
-  if (!NILP (Vrun_hooks))
+  /* Run `delete-frame-functions' unless frame is a tooltip.  */
+  if (!NILP (Vrun_hooks)
+      && NILP (Fframe_parameter (frame, intern ("tooltip"))))
     {
       Lisp_Object args[2];
-      args[0] = intern ("delete-frame-hook");
+      args[0] = intern ("delete-frame-functions");
       args[1] = frame;
       Frun_hook_with_args (2, args);
     }
@@ -2528,6 +2531,12 @@ mouse, while keyboard input turns off the highlight even when the mouse
 is over the clickable text.  However, the mouse shape still indicates
 when the mouse is over clickable text.  */);
   Vmouse_highlight = Qt;
+
+  DEFVAR_LISP ("delete-frame-functions", &Vdelete_frame_functions,
+	       doc: /* Functions to be run before deleting a frame.
+The functions are run with one arg, the frame to be deleted.
+See `delete-frame'.  */);
+  Vdelete_frame_functions = Qnil;
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
 		 doc: /* Minibufferless frames use this frame's minibuffer.

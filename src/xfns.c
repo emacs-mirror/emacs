@@ -11143,7 +11143,12 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->height = 0;
   SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
-
+  
+  /* Add `tooltip' frame parameter's default value. */
+  if (NILP (Fframe_parameter (frame, intern ("tooltip"))))
+    Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),
+					    Qnil));
+  
   /* Set up faces after all frame parameters are known.  This call
      also merges in face attributes specified for new frames.
 

@@ -1,3 +1,16 @@
+2002-10-02  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* frame.c (Vdelete_frame_functions): New variable.
+	(syms_of_frame): Initialize and defvar it.
+	(Fdelete_frame): Use it instead of delete-frame-hook.  Don't run
+	it when frame's `tooltip' parameter is non-nil.
+
+	* xfns.c (x_create_tip_frame): Set `tooltip' frame parameter to t.
+
+	* w32fns.c (x_create_tip_frame): Likewise
+
+	* macfns.c (x_create_tip_frame): Likewise.
+
 2002-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_encode_char): For DIM=1 charset, set ccl->reg[2] to
