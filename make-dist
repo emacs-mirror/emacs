@@ -104,7 +104,7 @@ echo "Creating subdirectories."
 # I think we're not going to distribute anything in external-lisp, so
 # I've removed it from this list.
 for subdir in lisp lisp/calc-2.02 lisp/term local-lisp \
-	      src src/m src/s lib-src oldXMenu \
+	      src src/m src/s src/bitmaps lib-src oldXMenu \
 	      etc lock cpp info man shortnames vms; do
   mkdir ${tempdir}/${subdir}
 done
@@ -165,6 +165,10 @@ echo "Making links to \`src'."
  if [ -z "${newer}" ]; then
    etags *.h *.c ../lisp/*.el
  fi)
+
+echo "Making links to \`src/bitmaps'."
+(cd src/bitmaps
+ ln README *.xbm ../../${tempdir}/src/bitmaps)
 
 echo "Making links to \`src/m'."
 (cd src/m
