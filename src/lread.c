@@ -3543,8 +3543,14 @@ incompatible byte codes can make Emacs crash when it tries to execute\n\
 them.");
   load_dangerous_libraries = 0;
 
-  Vbytecomp_version_regexp = build_string ("^;;;.in Emacs version");
-  staticpro (&Vbytecomp_version_regexp);
+  DEFVAR_LISP ("bytecomp-version-regexp", &Vbytecomp_version_regexp,
+     "Regular expression matching safe to load compiled Lisp files.\n\
+When Emacs loads a compiled Lisp file, it reads the first 512 bytes\n\
+from the file, and matches them against this regular expression.\n\
+When the regular expression matches, the file is considered to be safe\n\
+to load.  See also `load-dangerous-libraries'.");
+  Vbytecomp_version_regexp
+    = build_string ("^;;;.\\(in Emacs\\|emacs\\) version");
 
   /* Vsource_directory was initialized in init_lread.  */
 
