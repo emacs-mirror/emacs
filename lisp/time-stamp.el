@@ -1,8 +1,8 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
-;; Copyright 1989, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright 1989, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <1997-04-28 11:51:22 gildea>
+;; Maintainer's Time-stamp: <1997-06-01 17:02:45 gildea>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
@@ -66,23 +66,47 @@ If nil, no notification is given."
                  (const ask) (const warn))
   :group 'time-stamp)
 
-(defcustom time-stamp-format "%Y-%02m-%02d %02H:%02M:%02S %u"
+(defcustom time-stamp-format "%:y-%02m-%02d %02H:%02M:%02S %u"
   "*Format of the string inserted by \\[time-stamp].
 The value may be a string or a list.  Lists are supported only for
 backward compatibility; see variable `time-stamp-old-format-warn'.
 
-A string is used with `format-time-string'.
-In addition to the features of `format-time-string',
-you can use the following %-constructs:
+A string is used verbatim except for character sequences beginning with %:
 
-%f  file name without directory
-%F  full file name
-%h  mail host name
-%s  system name
-%u  user's login name
+%:a  weekday name: `Monday'.		%#A gives uppercase: `MONDAY'
+%3a  abbreviated weekday: `Mon'.	%3A gives uppercase: `MON'
+%:b  month name: `January'.		%#B gives uppercase: `JANUARY'
+%3b  abbreviated month: `Jan'.		%3B gives uppercase: `JAN'
+%02d day of month
+%02H 24-hour clock hour
+%02I 12-hour clock hour
+%02m month number
+%02M minute
+%#p  `am' or `pm'.			%P  gives uppercase: `AM' or `PM'
+%02S seconds
+%w   day number of week, Sunday is 0
+%02y 2-digit year: `97'			%:y 4-digit year: `1997'
+%z   time zone name: `est'.		%Z  gives uppercase: `EST'
+
+Non-date items:
+%%   a literal percent character: `%'
+%f   file name without directory	%F  gives absolute pathname
+%s   system name
+%u   user's login name
+%h   mail host name
+
+Decimal digits between the % and the type character specify the
+field width.  Strings are truncated on the right; years on the left.
+A leading zero causes numbers to be zero-filled.
 
 For example, to get the format used by the `date' command,
-use \"%3a %3b %2d %02H:%02M:%02S %Z %Y\"."
+use \"%3a %3b %2d %02H:%02M:%02S %Z %:y\".
+
+In the future these formats will be aligned more with format-time-string.
+Because of this transition, the default padding for numeric formats will
+change in a future version.  Therefore either a padding width should be
+specified, or the : modifier should be used to explicitly request the
+historical default."
   :type 'string
   :group 'time-stamp)
 
@@ -221,33 +245,218 @@ With arg, turn time stamping on if and only if arg is positive."
 (defconst time-stamp-no-file "(no file)"
   "String to use when the buffer is not associated with a file.")
 
-(defun time-stamp-string-preprocess (format)
-  "Process occurrences in FORMAT of %f, %F, %h, %s and %u.
-These are replaced with the file name (nondirectory part),
-full file name, host name for mail, system name, and user name.
-Do not alter other %-combinations, and do detect %%."
-  (let ((result "") (pos 0) (case-fold-search nil))
-    (while (string-match "%[%uhfFs]" format pos)
-      (setq result (concat result (substring format pos (match-beginning 0))))
-      (let ((char (aref format (1+ (match-beginning 0)))))
-	(cond ((= char ?%)
-	       (setq result (concat result "%%")))
-	      ((= char ?u)
-	       (setq result (concat result (user-login-name))))
-	      ((= char ?f)
-	       (setq result (concat result
-				    (if buffer-file-name
-					(file-name-nondirectory buffer-file-name)
-				      time-stamp-no-file))))
-	      ((= char ?F)
-	       (setq result (concat result
-				    (or buffer-file-name time-stamp-no-file))))
-	      ((= char ?s)
-	       (setq result (concat result (system-name))))
-	      ((= char ?h)
-	       (setq result (concat result (time-stamp-mail-host-name))))))
-      (setq pos (match-end 0)))
-    (concat result (substring format pos))))
+;;; time-stamp is transitioning to using the new, expanded capabilities
+;;; of format-time-string.  During the process, this function implements
+;;; intermediate, compatible formats and complains about old, soon to
+;;; be unsupported, formats.  This function will get a lot (a LOT) shorter
+;;; when the transition is complete and we can just pass most things
+;;; straight through to format-time-string.
+;;;      At all times, all the formats recommended in the doc string
+;;; of time-stamp-format will work not only in the current version of
+;;; Emacs, but in all versions that have been released within the past
+;;; two years.
+;;;      The : modifier is a temporary conversion feature used to resolve
+;;; ambiguous formats--formats that are changing (over time) incompatibly.
+(defun time-stamp-string-preprocess (format &optional time)
+  ;; Uses a FORMAT to format date, time, file, and user information.
+  ;; Optional second argument TIME is only for testing.
+  ;; Implements non-time extensions to format-time-string
+  ;; and all time-stamp-format compatibility.
+  (let ((fmt-len (length format))
+	(ind 0)
+	cur-char
+	(prev-char nil)
+	(result "")
+	field-index
+	field-width
+	field-result
+	alt-form change-case require-padding
+	(paren-level 0))
+    (while (< ind fmt-len)
+      (setq cur-char (aref format ind))
+      (setq
+       result
+       (concat result
+      (cond
+       ((eq cur-char ?%)
+	;; eat any additional args to allow for future expansion
+	(setq alt-form nil change-case nil require-padding nil)
+	(while (progn
+		 (setq ind (1+ ind))
+		 (setq cur-char (if (< ind fmt-len)
+				    (aref format ind)
+				  ?\0))
+		 (or (eq ?. cur-char)
+		     (eq ?, cur-char) (eq ?: cur-char) (eq ?@ cur-char)
+		     (eq ?- cur-char) (eq ?+ cur-char) (eq ?_ cur-char) 
+		     (eq ?\  cur-char) (eq ?# cur-char) (eq ?^ cur-char)
+		     (and (eq ?\( cur-char)
+			  (not (eq prev-char ?\\))
+			  (setq paren-level (1+ paren-level)))
+		     (if (and (eq ?\) cur-char)
+			      (not (eq prev-char ?\\))
+			      (> paren-level 0))
+			 (setq paren-level (1- paren-level))
+		       (and (> paren-level 0)
+			    (< ind fmt-len)))))
+	  (setq prev-char cur-char)
+	  ;; some characters we actually use
+	  (cond ((eq cur-char ?:)
+		 (setq alt-form t))
+		((eq cur-char ?#)
+		 (setq change-case t))))
+	;; get format width
+	(setq field-index ind)
+	(setq ind (1- ind))
+	(while (progn
+		 (setq ind (1+ ind))
+		 (setq cur-char (if (< ind fmt-len)
+				    (aref format ind)
+				  ?\0))
+		 (and (<= ?0 cur-char) (>= ?9 cur-char))))
+	(setq field-width (substring format field-index ind))
+	(setq field-result
+	(cond
+	 ((eq cur-char ?%)
+	  "%")
+	 ((eq cur-char ?a)		;day of week
+	  (if change-case
+	      (format-time-string "%#A" time)
+	    (or alt-form (not (string-equal field-width ""))
+		(time-stamp-conv-warn "%a" "%:a"))
+	    (if (and alt-form (not (string-equal field-width "")))
+		""			;discourage "%:3a"
+	      (format-time-string "%A" time))))
+	 ((eq cur-char ?A)
+	  (if alt-form
+	      (format-time-string "%A" time)
+	    (or change-case (not (string-equal field-width ""))
+		(time-stamp-conv-warn "%A" "%#A"))
+	    (format-time-string "%#A" time)))
+	 ((eq cur-char ?b)		;month name
+	  (if change-case
+	      (format-time-string "%#B" time)
+	    (or alt-form (not (string-equal field-width ""))
+		(time-stamp-conv-warn "%b" "%:b"))
+	    (if (and alt-form (not (string-equal field-width "")))
+		""			;discourage "%:3b"
+	    (format-time-string "%B" time))))
+	 ((eq cur-char ?B)
+	  (if alt-form
+	      (format-time-string "%B" time)
+	    (or change-case (not (string-equal field-width ""))
+		(time-stamp-conv-warn "%B" "%#B"))
+	    (format-time-string "%#B" time)))
+	 ((eq cur-char ?d)		;day of month, 1-31
+	  (time-stamp-do-number cur-char))
+	 ((eq cur-char ?H)		;hour, 0-23
+	  (time-stamp-do-number cur-char))
+	 ((eq cur-char ?I)		;hour, 1-12
+	  (time-stamp-do-number cur-char))
+	 ((eq cur-char ?m)		;month number, 1-12
+	  (time-stamp-do-number cur-char))
+	 ((eq cur-char ?M)		;minute, 0-59
+	  (time-stamp-do-number cur-char))
+	 ((eq cur-char ?p)		;am or pm
+	  (or change-case
+	      (time-stamp-conv-warn "%p" "%#p"))
+	  (format-time-string "%#p" time))
+	 ((eq cur-char ?P)		;AM or PM
+	  (format-time-string "%p" time))
+	 ((eq cur-char ?S)		;seconds, 00-60
+	  (time-stamp-do-number cur-char))
+	 ((eq cur-char ?w)		;weekday number, Sunday is 0
+	  (format-time-string "%w" time))
+	 ((eq cur-char ?y)		;year
+	  (or alt-form (not (string-equal field-width ""))
+	      (time-stamp-conv-warn "%y" "%:y"))
+	  (string-to-int (format-time-string "%Y" time)))
+	 ((eq cur-char ?Y)		;4-digit year, new style
+	  (string-to-int (format-time-string "%Y" time)))
+	 ((eq cur-char ?z)		;time zone lower case
+	  (if change-case
+	      ""			;discourage %z variations
+	    (format-time-string "%#Z" time)))
+	 ((eq cur-char ?Z)
+	  (if change-case
+	      (format-time-string "%#Z" time)
+	    (format-time-string "%Z" time)))
+	 ((eq cur-char ?f)		;buffer-file-name, base name only
+	  (if buffer-file-name
+	      (file-name-nondirectory buffer-file-name)
+	    time-stamp-no-file))
+	 ((eq cur-char ?F)		;buffer-file-name, full path
+	  (or buffer-file-name
+	      time-stamp-no-file))
+	 ((eq cur-char ?s)		;system name
+	  (system-name))
+	 ((eq cur-char ?u)		;user name
+	  (user-login-name))
+	 ((eq cur-char ?h)		;mail host name
+	  (time-stamp-mail-host-name))
+	 ))
+	(if (string-equal field-width "")
+	    field-result
+	  (let ((padded-result
+		 (format (format "%%%s%c"
+				 field-width
+				 (if (numberp field-result) ?d ?s))
+			 (or field-result ""))))
+	    (let ((initial-length (length padded-result))
+		  (desired-length (string-to-int field-width)))
+	      (if (> initial-length desired-length)
+		  ;; truncate strings on right, years on left
+		  (if (stringp field-result)
+		      (substring padded-result 0 desired-length)
+		    (if (eq cur-char ?y)
+			(substring padded-result (- desired-length))
+		      padded-result))	;non-year numbers don't truncate
+		padded-result)))))
+       (t
+	(char-to-string cur-char)))))
+      (setq ind (1+ ind)))
+    result))
+
+(defun time-stamp-do-number (format-char)
+  ;; Handle compatible cases where only
+  ;; the default width/padding will change.
+  ;; Uses dynamic vars field-width, time.
+  (let ((format-string (concat "%" (char-to-string format-char))))
+    (and (not alt-form) (string-equal field-width "")
+	 (time-stamp-conv-warn format-string
+			       (format "%%:%c" format-char)))
+    (if (and alt-form (not (string-equal field-width "")))
+	""				;discourage "%:2d" and the like
+      (string-to-int (format-time-string format-string time)))))
+
+(defvar time-stamp-conversion-warn t
+  "Non-nil to warn about soon-to-be-unsupported forms in time-stamp-format.
+In would be a bad idea to disable these warnings!
+You really need to update your files instead.
+
+The new formats will work with old versions of Emacs.
+New formats are being recommended now to allow time-stamp-format
+to change in the future to be compatible with format-time-string.
+The new forms being recommended now will continue to work then.")
+
+
+(defun time-stamp-conv-warn (old-form new-form)
+  ;; Display a warning about a soon-to-be-obsolete format.
+  (cond
+   (time-stamp-conversion-warn
+    (save-excursion
+      (set-buffer (get-buffer-create "*Time-stamp-compatibility*"))
+      (goto-char (point-max))
+      (if (bobp)
+	  (progn
+	    (insert
+	     "The formats recognized in time-stamp-format will change in a future release\n"
+	     "to be compatible with the new, expanded format-time-string function.\n\n"
+	     "The following obsolescent time-stamp-format construct(s) were found:\n\n")))
+      (insert "\"" old-form "\" -- use " new-form "\n"))
+    (display-buffer "*Time-stamp-compatibility*"))))
+  
+
 
 (defun time-stamp-string ()
   "Generate the new string to be inserted by \\[time-stamp]."
