@@ -1689,10 +1689,14 @@ If the value is nil, don't make a backup."
   "Save current buffer in visited file if modified.  Versions described below.
 By default, makes the previous version into a backup file
  if previously requested or if this is the first save.
-With 1 or 3 \\[universal-argument]'s, marks this version
+With 1 \\[universal-argument], marks this version
  to become a backup when the next save is done.
-With 2 or 3 \\[universal-argument]'s,
+With 2 \\[universal-argument]'s,
  unconditionally makes the previous version into a backup file.
+With 3 \\[universal-argument]'s, marks this version
+ to become a backup when the next save is done,
+ and unconditionally makes the previous version into a backup file.
+
 With argument of 0, never makes the previous version into a backup file.
 
 If a file's name is FOO, the names of its numbered backup versions are
