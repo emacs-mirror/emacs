@@ -1468,6 +1468,7 @@ edit files while running shell commands.
 @include display.texi
 @include search.texi
 @include fixit.texi
+@include kmacro.texi
 @include files.texi
 @include buffers.texi
 @include windows.texi
@@ -1487,7 +1488,6 @@ edit files while running shell commands.
 @include calendar.texi
 @include misc.texi
 @include custom.texi
-@include kmacro.texi
 @include trouble.texi
 @include cmdargs.texi
 @include xresources.texi
