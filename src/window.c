@@ -1858,9 +1858,24 @@ Returns the window displaying BUFFER.")
       if (!NILP (tem))
 	return call1 (Vspecial_display_function, buffer);
 
+      tem = Fassoc (XBUFFER (buffer)->name, Vspecial_display_buffer_names);
+      if (!NILP (tem))
+	return call2 (Vspecial_display_function, buffer, XCONS (tem)->cdr);
+      
       for (tem = Vspecial_display_regexps; CONSP (tem); tem = XCONS (tem)->cdr)
-	if (fast_string_match (XCONS (tem)->car, XBUFFER (buffer)->name) >= 0)
-	  return call1 (Vspecial_display_function, buffer);
+	{
+	  Lisp_Object car = XCONS (tem)->car;
+	  if (STRINGP (car)
+	      && fast_string_match (car, XBUFFER (buffer)->name) >= 0)
+	    return call1 (Vspecial_display_function, buffer);
+	  else if (CONSP (car)
+		   && STRINGP (XCONS (car)->car)
+		   && fast_string_match (XCONS (car)->car,
+					 XBUFFER (buffer)->name) >= 0)
+	    return call2 (Vspecial_display_function,
+			  buffer,
+			  XCONS (car)->cdr);
+	}
     }
 
 #ifdef MULTI_FRAME
@@ -3245,20 +3260,28 @@ where `pop-up-frame-alist' would hold the default frame parameters.");
   DEFVAR_LISP ("special-display-buffer-names", &Vspecial_display_buffer_names,
     "*List of buffer names that should have their own special frames.\n\
 Displaying a buffer whose name is in this list makes a special frame for it\n\
-using `special-display-function'.  See also `special-display-regexps'.");
+using `special-display-function'.\n\
+Instead of a buffer name, the list entries can be cons cells.  In that\n\
+case the car should be a buffer name, and the cdr data to be passed as a 
+second argument to `special-display-function'.\n\
+See also `special-display-regexps'.");
   Vspecial_display_buffer_names = Qnil;
 
   DEFVAR_LISP ("special-display-regexps", &Vspecial_display_regexps,
     "*List of regexps saying which buffers should have their own special frames.\n\
 If a buffer name matches one of these regexps, it gets its own frame.\n\
 Displaying a buffer whose name is in this list makes a special frame for it\n\
-using `special-display-function'.  See also `special-display-buffer-names'.");
+using `special-display-function'.\n\
+Instead of a buffer name, the list entries can be cons cells.  In that\n\
+case the car should be the regexp, and the cdr data to be passed as a 
+second argument to `special-display-function'.\n\
+See also `special-display-buffer-names'.");
   Vspecial_display_regexps = Qnil;
 
   DEFVAR_LISP ("special-display-function", &Vspecial_display_function,
     "Function to call to make a new frame for a special buffer.\n\
-It is called with one argument, the buffer,\n\
-and should return a window displaying that buffer.\n\
+It is called with two arguments, the buffer and optional buffer specific\n\
+data, and should return a window displaying that buffer.\n\
 The default value makes a separate frame for the buffer,\n\
 using `special-display-alist' to specify the frame parameters.\n\
 \n\
