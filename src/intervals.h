@@ -209,8 +209,10 @@ extern void delete_interval P_ ((INTERVAL));
 extern INLINE void offset_intervals P_ ((struct buffer *, int, int));
 extern void graft_intervals_into_buffer P_ ((INTERVAL, int, int,
 					     struct buffer *, int));
-extern void set_point P_ ((int, struct buffer *));
-extern INLINE void temp_set_point P_ ((int, struct buffer *));
+extern void set_point P_ ((struct buffer *, int));
+extern INLINE void temp_set_point P_ ((struct buffer *, int));
+extern void set_point_both P_ ((struct buffer *, int, int));
+extern INLINE void temp_set_point_both P_ ((struct buffer *, int, int));
 extern void verify_interval_modification P_ ((struct buffer *, int, int));
 extern INTERVAL balance_intervals P_ ((INTERVAL));
 extern INLINE void copy_intervals_to_string P_ ((Lisp_Object, struct buffer *,
