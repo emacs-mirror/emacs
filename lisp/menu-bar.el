@@ -392,6 +392,9 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Cut" kill-region
 	      :enable (and mark-active (not buffer-read-only))
 	      :help "Cut (kill) text in region between mark and current pos"))
+(define-key menu-bar-edit-menu [mark-whole-buffer]
+  '(menu-item "Mark Buffer" mark-whole-buffer
+	      :help "Mark the whole buffer for a subsequent cut/copy."))
 (define-key menu-bar-edit-menu [undo]
   '(menu-item "Undo" undo
 	      :enable (and (not buffer-read-only)
