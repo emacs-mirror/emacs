@@ -29,11 +29,14 @@
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 #include <sys/types.h>
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /* The `emacs' switch turns on certain matching commands
    that make sense only in Emacs. */
 #ifdef emacs
 
-#include "config.h"
 #include "lisp.h"
 #include "buffer.h"
 #include "syntax.h"
