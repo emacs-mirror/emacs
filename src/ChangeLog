@@ -1,5 +1,13 @@
 2001-04-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* lisp.h (echoing, echo_message_buffer, cancel_echoing): Declare.
+
+	* keyboard.c (echoing, echo_message_buffer): Make externally
+	visible.
+	
+	* xdisp.c (with_echo_area_buffer): Avoid confusion from reusing
+	the buffer that was used for echoing.
+
 	* xfaces.c (best_matching_font): Remove unused parameter PATTERN.
 	(first_font_matching): Removed unused function.
 	(x_face_list_fonts): Remove unused parameter SCALABLE_P.
