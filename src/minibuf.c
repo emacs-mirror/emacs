@@ -162,26 +162,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   val = current_buffer->directory;
   Fset_buffer (get_minibuffer (minibuf_level));
   current_buffer->directory = val;
+  Fredirect_frame_focus (Fselected_frame (), mini_frame);
   Fmake_local_variable (Qprint_escape_newlines);
   print_escape_newlines = 1;
 
-#ifdef MULTI_FRAME
-  /* If the minibuffer window is on another frame, shift this frame's
-     focus to that window, and arrange to put it back later.  */
-  if (XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)))
-      != selected_frame)
-    {
-      record_unwind_protect (read_minibuf_unwind,
-			     Fcons (Fselected_frame (),
-				    FRAME_FOCUS_FRAME (selected_frame)));
-
-      Fredirect_frame_focus (Fselected_frame (), mini_frame);
-    }
-  else
-    record_unwind_protect (read_minibuf_unwind, Qnil);
-#else
   record_unwind_protect (read_minibuf_unwind, Qnil);
-#endif
 
   Vminibuf_scroll_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
@@ -311,12 +296,6 @@ read_minibuf_unwind (data)
     = minibuf_save_vector[minibuf_level].history_position;
   Vminibuffer_history_variable
     = minibuf_save_vector[minibuf_level].history_variable;
-
-#ifdef MULTI_FRAME
-  /* Redirect the focus of the frame that called the minibuffer.  */
-  if (CONSP (data))
-    Fredirect_frame_focus (XCONS (data)->car, XCONS (data)->cdr);
-#endif
 }
 
 
