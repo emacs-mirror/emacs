@@ -223,7 +223,7 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
   "Edit file FILENAME in hexl-mode.
 Switch to a buffer visiting file FILENAME, creating one in none exists."
   (interactive "fFilename: ")
-  (if (eq system-type 'ms-dos)
+  (if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
       (find-file-binary filename)
     (find-file filename))
   (if (not (eq major-mode 'hexl-mode))
