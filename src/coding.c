@@ -928,7 +928,6 @@ coding_set_destination (coding)
       coding->destination = (BUF_BEG_ADDR (XBUFFER (coding->dst_object))
 			     + coding->dst_pos_byte - 1);
       if (coding->src_pos < 0)
-	/* The source and destination is in the same buffer.  */
 	coding->dst_bytes = (GAP_END_ADDR
 			     - (coding->src_bytes - coding->consumed)
 			     - coding->destination);
@@ -958,10 +957,8 @@ coding_alloc_by_making_gap (coding, bytes)
      struct coding_system *coding;
      EMACS_INT bytes;
 {
-  Lisp_Object this_buffer;
-
-  this_buffer = Fcurrent_buffer ();
-  if (EQ (this_buffer, coding->dst_object))
+  if (BUFFERP (coding->dst_object)
+      && EQ (coding->src_object, coding->dst_object))
     {
       EMACS_INT add = coding->src_bytes - coding->consumed;
 
@@ -971,6 +968,9 @@ coding_alloc_by_making_gap (coding, bytes)
     }
   else
     {
+      Lisp_Object this_buffer;
+
+      this_buffer = Fcurrent_buffer ();
       set_buffer_internal (XBUFFER (coding->dst_object));
       make_gap (bytes);
       set_buffer_internal (XBUFFER (this_buffer));
@@ -4130,8 +4130,8 @@ decode_coding_raw_text (coding)
      struct coding_system *coding;
 {
   coding->chars_at_source = 1;
-  coding->consumed_char = coding->src_chars;
-  coding->consumed = coding->src_bytes;
+  coding->consumed_char = 0;
+  coding->consumed = 0;
   coding->result = CODING_RESULT_SUCCESS;
 }
 
@@ -5124,13 +5124,19 @@ produce_chars (coding)
 		    }
 		  if (dst == dst_end)
 		    {
-		      EMACS_INT offset = src - coding->source;
+		      coding->consumed = src - coding->source;
 
-		      dst = alloc_destination (coding, src_end - src + 1, dst);
-		      dst_end = coding->destination + coding->dst_bytes;
-		      coding_set_source (coding);
-		      src = coding->source + offset;
-		      src_end = coding->source + coding->src_bytes;
+		    if (EQ (coding->src_object, coding->dst_object))
+		      dst_end = src;
+		    if (dst == dst_end)
+		      {
+			dst = alloc_destination (coding, src_end - src + 1,
+						 dst);
+			dst_end = coding->destination + coding->dst_bytes;
+			coding_set_source (coding);
+			src = coding->source + coding->consumed;
+			src_end = coding->source + coding->src_bytes;
+		      }
 		    }
 		  *dst++ = c;
 		  produced_chars++;
@@ -5157,13 +5163,19 @@ produce_chars (coding)
 		  }
 		if (dst >= dst_end - 1)
 		  {
-		    EMACS_INT offset = src - coding->source;
+		    coding->consumed = src - coding->source;
 
-		    dst = alloc_destination (coding, src_end - src + 2, dst);
-		    dst_end = coding->destination + coding->dst_bytes;
-		    coding_set_source (coding);
-		    src = coding->source + offset;
-		    src_end = coding->source + coding->src_bytes;
+		    if (EQ (coding->src_object, coding->dst_object))
+		      dst_end = src;
+		    if (dst >= dst_end - 1)
+		      {
+			dst = alloc_destination (coding, src_end - src + 2,
+						 dst);
+			dst_end = coding->destination + coding->dst_bytes;
+			coding_set_source (coding);
+			src = coding->source + coding->consumed;
+			src_end = coding->source + coding->src_bytes;
+		      }
 		  }
 		EMIT_ONE_BYTE (c);
 	      }
@@ -5204,6 +5216,8 @@ produce_chars (coding)
 	      *dst++ = c;
 	    }
 	}
+      coding->consumed = coding->src_bytes;
+      coding->consumed_char = coding->src_chars;
     }
 
   produced = dst - (coding->destination + coding->produced);
@@ -7574,6 +7588,7 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
     }
 
   Fputhash (alias, spec, Vcoding_system_hash_table);
+  Vcoding_system_alist = Fcons (Fcons (alias, Qnil), Vcoding_system_alist);
 
   return Qnil;
 }
@@ -7847,40 +7862,6 @@ syms_of_coding ()
   ASET (Vcoding_category_table, coding_category_undecided,
 	intern ("coding-category-undecided"));
 
-  {
-    Lisp_Object args[coding_arg_max];
-    Lisp_Object plist[14];
-    int i;
-
-    for (i = 0; i < coding_arg_max; i++)
-      args[i] = Qnil;
-
-    plist[0] = intern (":name");
-    plist[1] = args[coding_arg_name] = Qno_conversion;
-    plist[2] = intern (":mnemonic");
-    plist[3] = args[coding_arg_mnemonic] = make_number ('=');
-    plist[4] = intern (":coding-type");
-    plist[5] = args[coding_arg_coding_type] = Qraw_text;
-    plist[6] = intern (":ascii-compatible-p");
-    plist[7] = args[coding_arg_ascii_compatible_p] = Qt;
-    plist[8] = intern (":default-char");
-    plist[9] = args[coding_arg_default_char] = make_number (0);
-    plist[10] = intern (":docstring");
-    plist[11] = build_string ("Do no conversion.\n\
-\n\
-When you visit a file with this coding, the file is read into a\n\
-unibyte buffer as is, thus each byte of a file is treated as a\n\
-character.");
-    plist[12] = intern (":eol-type");
-    plist[13] = args[coding_arg_eol_type] = Qunix;
-    args[coding_arg_plist] = Flist (14, plist);
-    Fdefine_coding_system_internal (coding_arg_max, args);
-  }
-
-  setup_coding_system (Qno_conversion, &keyboard_coding);
-  setup_coding_system (Qno_conversion, &terminal_coding);
-  setup_coding_system (Qno_conversion, &safe_terminal_coding);
-
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
   defsubr (&Sread_non_nil_coding_system);
@@ -8153,6 +8134,40 @@ The other way to read escape sequences in a file without decoding is
 to explicitly specify some coding system that doesn't use ISO2022's
 escape sequence (e.g `latin-1') on reading by \\[universal-coding-system-argument].  */);
   inhibit_iso_escape_detection = 0;
+
+  {
+    Lisp_Object args[coding_arg_max];
+    Lisp_Object plist[14];
+    int i;
+
+    for (i = 0; i < coding_arg_max; i++)
+      args[i] = Qnil;
+
+    plist[0] = intern (":name");
+    plist[1] = args[coding_arg_name] = Qno_conversion;
+    plist[2] = intern (":mnemonic");
+    plist[3] = args[coding_arg_mnemonic] = make_number ('=');
+    plist[4] = intern (":coding-type");
+    plist[5] = args[coding_arg_coding_type] = Qraw_text;
+    plist[6] = intern (":ascii-compatible-p");
+    plist[7] = args[coding_arg_ascii_compatible_p] = Qt;
+    plist[8] = intern (":default-char");
+    plist[9] = args[coding_arg_default_char] = make_number (0);
+    plist[10] = intern (":docstring");
+    plist[11] = build_string ("Do no conversion.\n\
+\n\
+When you visit a file with this coding, the file is read into a\n\
+unibyte buffer as is, thus each byte of a file is treated as a\n\
+character.");
+    plist[12] = intern (":eol-type");
+    plist[13] = args[coding_arg_eol_type] = Qunix;
+    args[coding_arg_plist] = Flist (14, plist);
+    Fdefine_coding_system_internal (coding_arg_max, args);
+  }
+
+  setup_coding_system (Qno_conversion, &keyboard_coding);
+  setup_coding_system (Qno_conversion, &terminal_coding);
+  setup_coding_system (Qno_conversion, &safe_terminal_coding);
 }
 
 char *
