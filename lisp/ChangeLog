@@ -1,5 +1,7 @@
 1999-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (insert-buffer): Doc fix.
+
 	* apropos.el (apropos-mode): Add autoload cookie.
 
 1999-12-06  Sam Steingold  <sds@goems.com>
