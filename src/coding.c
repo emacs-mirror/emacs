@@ -2125,9 +2125,10 @@ encode_coding_emacs_mule (coding)
 	  if (leading_codes[1])
 	    EMIT_ONE_BYTE (leading_codes[1]);
 	  if (dimension == 1)
-	    EMIT_ONE_BYTE (code);
+	    EMIT_ONE_BYTE (code | 0x80);
 	  else
 	    {
+	      code |= 0x8080;
 	      EMIT_ONE_BYTE (code >> 8);
 	      EMIT_ONE_BYTE (code & 0xFF);
 	    }
