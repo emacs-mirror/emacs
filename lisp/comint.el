@@ -1448,7 +1448,7 @@ Similarly for Soar, Scheme, etc."
 		  (overlay-put over 'mouse-face 'highlight)
 		  (overlay-put over
 			       'help-echo
-			       "mouse-2: insert previous clicked-on input")
+			       "mouse-2: insert after prompt as new input")
 		  (overlay-put over 'evaporate t))))
 	    (unless comint-use-prompt-regexp-instead-of-fields
 	      ;; Make an overlay for the terminating newline
