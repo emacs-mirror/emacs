@@ -4049,7 +4049,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 #ifdef emacs
 			MAKE_CHAR_MULTIBYTE (buf_ch);
 #endif
-			buf_ch = RE_TRANSLATE (buf_ch);
+			buf_ch = RE_TRANSLATE (translate, buf_ch);
 #ifdef emacs
 			MAKE_CHAR_UNIBYTE (buf_ch);
 #endif
