@@ -1243,7 +1243,7 @@ count_match (str1, str2)
 /* Char insertion/deletion cost vector, from term.c */
 extern int *char_ins_del_vector;
 
-#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_HEIGHT((f))])
+#define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_WIDTH((f))])
 
 static void
 update_line (frame, vpos)
