@@ -811,6 +811,21 @@ Emacs build procedure and installed together with the Emacs User
 Manual.  A menu item was added to the menu bar that makes it easy
 accessible (Help->More Manuals->Emacs Lisp Reference).
 
+*** Tramp is now part of the distribution.
+
+This package is similar to Ange-FTP: it allows you to edit remote
+files.  But whereas Ange-FTP uses FTP to access the remote host,
+Tramp uses a shell connection.  The shell connection is always used
+for filename completion and directory listings and suchlike, but for
+the actual file transfer, you can choose between the so-called
+`inline' methods (which transfer the files through the shell
+connection using base64 or uu encoding) and the `out-of-band' methods
+(which invoke an external copying program such as `rcp' or `scp' or
+`rsync' to do the copying).
+
+Shell connections can be acquired via `rsh', `ssh', `telnet' and also
+`su' and `sudo'.
+
 ---
 ** Indentation of simple and extended loop forms has been added to the
 cl-indent package.  The new user options
