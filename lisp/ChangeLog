@@ -8,6 +8,8 @@
 	
 2000-09-25  Dave Love  <fx@gnu.org>
 
+	* startup.el (fancy-splash-head): Check XPM is available.
+
 	* autoinsert.el (auto-insert): Doc fix.
 	(auto-insert-alist): Following GNU notices, don't say `copyright
 	_by_'.  Use line-beginning-position.

@@ -1,3 +1,8 @@
+2000-09-25  Dave Love  <fx@gnu.org>
+
+	* sorted-doc.c: Include config.h.
+	[!HAVE_STDLIB_H]: Declare malloc.
+
 2000-09-14  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Revert to Unix line endings.
