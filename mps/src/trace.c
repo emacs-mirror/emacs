@@ -1,8 +1,8 @@
-/*  impl.c.trace
+ /*  impl.c.trace
  *
  *                GENERIC TRACER IMPLEMENTATION
  *
- *  $HopeName: MMsrc!trace.c(trunk.5) $
+ *  $HopeName: MMsrc!trace.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -293,11 +293,6 @@ ScanState TraceScanState(Trace trace)
   return &trace->ss;
 }
 
-/* thread safe */
-Trace TraceOfScanState(ScanState ss)
-{
-  return PARENT(TraceStruct, ss, ss);
-}
 
 void TraceCondemn(Trace trace, RefSig refsig)
 {
@@ -319,13 +314,12 @@ void TraceNoteMarked(Trace trace, RefRank rank, Addr count)
   trace->work[rank].marked += count;
 }
 
-void TraceNoteScanned(Trace trace, RefRank rank, Addr count)
+void TraceNoteScanned(Trace trace, Addr count)
 {
   AVER(ISVALID(Trace, trace));
-  AVER(ISVALID(RefRank, rank));
   AVER(count > 0);
   
-  trace->work[rank].scanned += count;
+  trace->work[trace->rank].scanned += count;
 }
 
 
@@ -335,23 +329,20 @@ Error TraceFix(ScanState ss, Ref *refIO)
   Pool pool;
   Ref ref;
   Trace trace = PARENT(TraceStruct, ss, ss);
-  RefRank rank;
 
   AVER(ISVALID(Trace, trace));
   AVER(refIO != NULL);
-  rank = trace->rank;
-  AVER(ISVALID(RefRank, rank));
 
   arena = SpaceArena(trace->space);
   ref = *refIO;
   if(PoolOfAddr(&pool, arena, ref))
-    return PoolFix(pool, trace, rank, arena, refIO);
+    return PoolFix(pool, trace, arena, refIO);
 
   return ErrSUCCESS;
 }
 
 
-Error TraceScanArea(Addr *base, Addr *limit, Trace trace, RefRank rank)
+Error TraceScanArea(ScanState ss, Addr *base, Addr *limit)
 {
   Error e;
 
@@ -360,7 +351,7 @@ Error TraceScanArea(Addr *base, Addr *limit, Trace trace, RefRank rank)
   AVER(base < limit);
 
   while(base < limit) {
-    e = TraceFix(TraceScanState(trace), (Ref *)base);
+    e = TraceFix(ss, base);
     if(e != ErrSUCCESS)
       return e;
     ++base;
@@ -402,7 +393,7 @@ Error TraceRunAtomic(Trace trace)
       AVER(RootRank(root) <= RefRankEXACT); /* see above */
 
       if(RootRank(root) == rank) {
-        e = RootScan(root, trace, rank);
+        e = RootScan(root, trace);
         if(e != ErrSUCCESS) return e;
       }
 
@@ -443,7 +434,7 @@ Error TraceRun(Trace trace, Bool *finishedReturn)
         DequeNode next = DequeNodeNext(node);
         Pool pool = DEQUENODEELEMENT(Pool, spaceDeque, node);
       
-        e = PoolScan(pool, trace, rank);
+        e = PoolScan(pool, trace);
         if(e != ErrSUCCESS) {
           ShieldLeave(shield);
           return e;
