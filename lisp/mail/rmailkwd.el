@@ -33,8 +33,9 @@
 
 (defconst rmail-attributes
   (cons 'rmail-keywords
-	(mapcar '(lambda (s) (intern s rmail-label-obarray))
-		'("deleted" "answered" "filed" "forwarded" "unseen" "edited"))))
+	(mapcar (function (lambda (s) (intern s rmail-label-obarray)))
+		'("deleted" "answered" "filed" "forwarded" "unseen" "edited"
+		  "resent"))))
 
 (defconst rmail-deleted-label (intern "deleted" rmail-label-obarray))
 
