@@ -6643,8 +6643,8 @@ do_check_ram_size (void)
 
   if (Gestalt (gestaltPhysicalRAMSize, &physical_ram_size) != noErr
       || Gestalt (gestaltLogicalRAMSize, &logical_ram_size) != noErr
-      || physical_ram_size > 256 * 1024 * 1024
-      || logical_ram_size > 256 * 1024 * 1024)
+      || physical_ram_size > (1 << VALBITS)
+      || logical_ram_size > (1 << VALBITS))
     {
       StopAlert (RAM_TOO_LARGE_ALERT_ID, NULL);
       exit (1);
