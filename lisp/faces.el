@@ -173,7 +173,9 @@ If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "font"))
   (if (stringp font)
-      (setq font (or (query-fontset font)
+      (setq font (or (and (fontset-name-p font)
+			  (or (query-fontset font)
+			      (instanciate-fontset font)))
 		     (x-resolve-font-name font 'default frame))))
   (internal-set-face-1 face 'font font 3 frame))
 
