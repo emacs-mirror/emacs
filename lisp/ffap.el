@@ -396,6 +396,7 @@ Returned values:
       (cond
        ((eq strategy 'accept) 'accept)
        ((eq strategy 'reject) nil)
+       ((not (fboundp 'open-network-stream)) nil)
        ;; assume (eq strategy 'ping)
        (t
 	(or quiet
