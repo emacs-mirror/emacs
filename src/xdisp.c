@@ -4556,6 +4556,8 @@ pint2str (buf, width, d)
    If EOL_FLAG is 1, set also a mnemonic character for end-of-line
    type of CODING_SYSTEM.  Return updated pointer into BUF.  */
 
+static char invalid_eol_type[] = "(*invalid*)";
+
 static char *
 decode_mode_spec_coding (coding_system, buf, eol_flag)
      Lisp_Object coding_system;
@@ -4593,8 +4595,10 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 
       if (eol_flag)
 	{
+	  unsigned char *eol_str;
+	  int eol_str_len;
 	  /* The EOL conversion we are using.  */
-	  int eoltype;
+	  Lisp_Object eoltype;
 	  /* The EOL conversion that is normal on this system.  */
 
 	  if (NILP (eolvalue))	/* Not yet decided.  */
@@ -4608,7 +4612,18 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 			  ? eol_mnemonic_dos : eol_mnemonic_mac));
 
 	  /* Mention the EOL conversion if it is not the usual one.  */
-	  *buf++ = eoltype;
+	  if (STRINGP (eoltype))
+	    {
+	      eol_str = XSTRING (eoltype)->data;
+	      eol_str_len = XSTRING (eoltype)->size;
+	    }
+	  else
+	    {
+	      eol_str = invalid_eol_type;
+	      eol_str_len = sizeof (invalid_eol_type) - 1;
+	    }
+	  strcpy (buf, eol_str);
+	  buf += eol_str_len;
 	}
     }
   return buf;
