@@ -261,19 +261,19 @@ wrong, use this command again to toggle back to the right mode."
 	(coding-system-for-read 'iso-2022-7bit))
     (find-file-read-only (expand-file-name "HELLO" data-directory))))
 
-(defun universal-coding-system-argument ()
+(defun universal-coding-system-argument (coding-system)
   "Execute an I/O command using the specified coding system."
-  (interactive)
-  (let* ((default (and buffer-file-coding-system
+  (interactive
+   (let ((default (and buffer-file-coding-system
 		       (not (eq (coding-system-type buffer-file-coding-system)
 				t))
-		       buffer-file-coding-system))
-	 (coding-system (read-coding-system
-			 (if default
-			     (format "Coding system for following command (default, %s): " default)
-			   "Coding system for following command: ")
-			 default))
-	 (keyseq (read-key-sequence
+		       buffer-file-coding-system)))
+     (list (read-coding-system
+	    (if default
+		(format "Coding system for following command (default, %s): " default)
+	      "Coding system for following command: ")
+	    default))))
+  (let* ((keyseq (read-key-sequence
 		  (format "Command to execute with %s:" coding-system)))
 	 (cmd (key-binding keyseq))
 	 prefix)
