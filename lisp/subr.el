@@ -1894,7 +1894,10 @@ See also `with-temp-file' and `with-output-to-string'."
 	 (kill-buffer nil)))))
 
 (defmacro with-local-quit (&rest body)
-  "Execute BODY with `inhibit-quit' temporarily bound to nil."
+  "Execute BODY, allowing quits to terminate BODY but not escape further.
+When a quit terminates BODY, `with-local-quit' requests another quit when
+it finishes.  That quit will be processed in turn, the next time quitting
+is again allowed."
   (declare (debug t) (indent 0))
   `(condition-case nil
        (let ((inhibit-quit nil))
