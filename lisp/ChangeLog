@@ -1,5 +1,7 @@
 2000-10-12  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* faces.el (header-line): Change tty-variant to use underlining.
+
 	* isearch.el (isearch-set-lazy-highlight-faces-at): New function.
 	(isearch-highlight): Restore lazy-isearch face properties at old
 	position, and suppress them at new position.
