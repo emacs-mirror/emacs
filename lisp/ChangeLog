@@ -1,3 +1,8 @@
+2004-02-16  Jay Belanger  <belanger@truman.edu>  (tiny change).
+
+	* calc/calc-embed.el (calc-do-embedded-activate): Add autoload
+	cookie.  Don't check if we are looking-at open-formula.
+
 2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
 	* subr.el (match-string-no-properties): Use substring-no-properties.
