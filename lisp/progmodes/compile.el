@@ -207,8 +207,6 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;;	"foo.f", line 3: Error: syntax error near end of statement
     ;; IBM RS6000:
     ;;  "vvouch.c", line 19.5: 1506-046 (S) Syntax error.
-    ;; Unknown compiler:
-    ;;  File "foobar.ml", lines 5-8, characters 20-155: blah blah
     ;; Microtec mcc68k:
     ;;  "foo.c", line 32 pos 1; (E) syntax error; unexpected symbol: "lossage"
     ;; GNAT (as of July 94):
@@ -217,6 +215,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;;  "src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
     (".*\"\\([^,\" \n\t]+\\)\", lines? \
 \\([0-9]+\\)\\([\(.]\\([0-9]+\\)\)?\\)?[:., (-]" 1 2 4)
+
+    ;; Caml compiler:
+    ;;  File "foobar.ml", lines 5-8, characters 20-155: blah blah
+   ("^File \"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[-0-9]*, characters? \\([0-9]+\\)" 1 2 3)
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
