@@ -1895,7 +1895,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
     if (ret)
       {
 	error ("%s/%s %s", XSTRING (host)->data, portstring,
-	       gai_strerror (ret));
+	       strerror (ret));
       }
     immediate_quit = 0;
   }
