@@ -1,8 +1,13 @@
 2000-12-06  Andrew Innes  <andrewi@gnu.org>
 
+	* nmake.defs (CURDIR): New define.
+	(INSTALL_DIR): Use it.
+
 	* gmake.defs (NEW_CYGWIN): New define.
 	(DQUOTE) [NEW_CYGWIN]: Cygnus changed the quoting rules since b20,
 	so we need to adjust how we escape embedded quotes.
+	(SETLOADPATH): Set EMACSLOADPATH to an absolute directory,
+	relative to $(CURDIR).
 
 2000-11-25  Jason Rumney  <jasonr@gnu.org>
 

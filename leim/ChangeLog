@@ -1,3 +1,9 @@
+2000-12-06  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (buildlisppath): Set to an absolute directory,
+	relative to $(CURDIR).
+	(INSTALLDIR): Use forward slash.
+
 2000-11-24  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (.SUFFIXES): New target, include .elc .el.

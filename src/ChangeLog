@@ -1,3 +1,13 @@
+2000-12-06  Andrew Innes  <andrewi@gnu.org>
+
+	* w32term.h (CP_INVALID): Rename to CP_UNKNOWN.
+
+	* w32fns.c (xlfd_charset_of_font): Don't overwrite fontname
+	argument.
+	(w32_codepage_for_font): Rename CP_INVALID to CP_UNKNOWN.
+	(w32_list_fonts): Don't choke if pattern doesn't specify a
+	codepage.
+
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (adjust_glyph_matrix): Don't reuse a window's current
