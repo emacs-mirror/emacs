@@ -3877,9 +3877,6 @@ x_window_to_scroll_bar (display, window_id)
       if (! GC_FRAMEP (frame))
 	abort ();
 
-      if (FRAME_X_DISPLAY (XFRAME (frame)) != display)
-        continue;
-
       /* Scan this frame's scroll bar list for a scroll bar with the
          right window ID.  */
       condemned = FRAME_CONDEMNED_SCROLL_BARS (XFRAME (frame));
@@ -3890,7 +3887,8 @@ x_window_to_scroll_bar (display, window_id)
 			       condemned = Qnil,
 			       ! GC_NILP (bar));
 	   bar = XSCROLL_BAR (bar)->next)
-	if (SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)) == window_id)
+	if (SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)) == window_id &&
+            FRAME_X_DISPLAY (XFRAME (frame)) == display)
 	  return XSCROLL_BAR (bar);
     }
 

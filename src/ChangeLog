@@ -1,3 +1,8 @@
+2003-11-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_window_to_scroll_bar): Move check of display to
+	where window_id is compared.
+
 2003-11-17  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct it): New member first_vpos.
