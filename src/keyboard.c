@@ -97,6 +97,7 @@ struct backtrace
 #ifdef MULTI_PERDISPLAY
 PERDISPLAY *current_perdisplay;
 PERDISPLAY *all_perdisplays;
+int display_locked;
 #else
 PERDISPLAY the_only_perdisplay;
 #endif
@@ -750,6 +751,7 @@ cmd_error (data)
   Vinhibit_quit = Qnil;
 #ifdef MULTI_PERDISPLAY
   current_perdisplay = 0;
+  display_locked = 0;
 #endif
 
   return make_number (0);
@@ -948,7 +950,9 @@ command_loop_1 ()
   int no_direct;
   int prev_modiff;
   struct buffer *prev_buffer;
-  PERDISPLAY *global_perdisplay = current_perdisplay;
+#ifdef MULTI_PERDISPLAY
+  PERDISPLAY *outer_perdisplay = current_perdisplay;
+#endif
 
   Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
@@ -1271,7 +1275,8 @@ command_loop_1 ()
 	finalize_kbd_macro_chars ();
 
 #ifdef MULTI_PERDISPLAY
-      current_perdisplay = global_perdisplay;
+      current_perdisplay = outer_perdisplay;
+      display_locked = (current_perdisplay != 0);
 #endif
     }
 }
@@ -1457,8 +1462,9 @@ Lisp_Object print_help ();
 static Lisp_Object kbd_buffer_get_event ();
 static void record_char ();
 
-static PERDISPLAY *read_char_perdisplay;
+#ifdef MULTI_PERDISPLAY
 static jmp_buf wrong_display_jmpbuf;
+#endif
 
 /* read a character from the keyboard; call the redisplay if needed */
 /* commandflag 0 means do not do auto-saving, but do do redisplay.
@@ -1720,25 +1726,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (NILP (c))
     {
       PERDISPLAY *perd;
-      /* Check for something on one of the side queues.  If we're already
-	 locked to a particular display, just check that one; otherwise
-	 check all of them, but give priority to the most recently used
-	 display.  */
-      if (current_perdisplay)
-	{
-	  if (CONSP (current_perdisplay->kbd_queue))
-	    perd = current_perdisplay;
-	  else
-	    perd = 0;
-	}
-      else if (read_char_perdisplay && CONSP (read_char_perdisplay->kbd_queue))
-	perd = read_char_perdisplay;
-      else
+      /* Check for something on one of the side queues.  Give priority to
+	 the current display, but if we're not locked, then check the other
+	 displays as well.  */
+      if (current_perdisplay && CONSP (current_perdisplay->kbd_queue))
+	perd = current_perdisplay;
+      else if (!display_locked)
 	{
 	  for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
 	    if (CONSP (perd->kbd_queue))
 	      break;
 	}
+      else
+	perd = 0;
 
       /* If we found something on a side queue, use that.
 	 Otherwise, read from the main queue, and if that gives us
@@ -1762,7 +1762,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		  redisplay ();
 		}
 	    }
-	  if (current_perdisplay && perd != current_perdisplay)
+	  if (display_locked && perd != current_perdisplay)
 	    {
 	      Lisp_Object *tailp = &perd->kbd_queue;
 	      while (CONSP (*tailp))
@@ -1773,17 +1773,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	      goto wrong_display;
 	    }
 	}
-      if (!read_char_perdisplay)
-	read_char_perdisplay = perd;
-      if (perd != read_char_perdisplay)
+#ifdef MULTI_PERDISPLAY
+      if (!current_perdisplay)
+	current_perdisplay = perd;
+      if (perd != current_perdisplay)
 	{
 	  /* We shouldn't get here if we were locked onto one display!  */
-	  if (current_perdisplay)
+	  if (display_locked)
 	    abort ();
 	  perd->kbd_queue = Fcons (c, perd->kbd_queue);
-	  read_char_perdisplay = perd;
+	  current_perdisplay = perd;
 	  longjmp (wrong_display_jmpbuf, 1);
 	}
+#endif
     }
   /* Terminate Emacs in batch mode if at eof.  */
   if (noninteractive && INTEGERP (c) && XINT (c) < 0)
@@ -4821,7 +4823,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last)
 	  struct buffer *buf = current_buffer;
 
 	  {
-	    PERDISPLAY *interrupted_perdisplay = read_char_perdisplay;
+#ifdef MULTI_PERDISPLAY
+	    PERDISPLAY *interrupted_perdisplay = current_perdisplay;
 	    if (setjmp (wrong_display_jmpbuf))
 	      {
 		while (t > 0)
@@ -4830,6 +4833,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last)
 		mock_input = 0;
 		goto replay_sequence;
 	      }
+#endif
 	    key = read_char (NILP (prompt), nmaps, submaps, last_nonmenu_event,
 			     &used_mouse_menu);
 	  }
