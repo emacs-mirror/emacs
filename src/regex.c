@@ -4099,13 +4099,26 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	      int room = (startpos >= size1
 			  ? size2 + size1 - startpos
 			  : size1 - startpos);
-	      buf_ch = RE_STRING_CHAR (d, room);
-	      if (! target_multibyte)
-		MAKE_CHAR_MULTIBYTE (buf_ch);
-	      buf_ch = TRANSLATE (buf_ch);
 
-	      if (! fastmap[CHAR_LEADING_CODE (buf_ch)])
-		goto advance;
+	      if (multibyte)
+		{
+		  /* Case of Emacs.  */
+		  if (target_multibyte)
+		    buf_ch = RE_STRING_CHAR (d, room);
+		  else
+		    {
+		      buf_ch = *d;
+		      MAKE_CHAR_MULTIBYTE (buf_ch);
+		    }
+		  buf_ch = TRANSLATE (buf_ch);
+		  if (! fastmap[CHAR_LEADING_CODE (buf_ch)])
+		    goto advance;
+		}
+	      else
+		{
+		  if (! fastmap[TRANSLATE (*d)])
+		    goto advance;
+		}
 	    }
 	}
 
