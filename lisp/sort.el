@@ -248,8 +248,7 @@ Fields are separated by whitespace and numbered from 1 up.
 Specified field must contain a number in each line of the region.
 With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
-FIELD, BEG and END.  BEG and END specify region to sort.
-If you want to sort floating-point numbers, try `sort-float-fields'."
+FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
   (sort-fields-1 field beg end
 		 (function (lambda ()
@@ -264,26 +263,26 @@ If you want to sort floating-point numbers, try `sort-float-fields'."
 				  (point))))))
 		 nil))
 
-;;;###autoload
-(defun sort-float-fields (field beg end)
-  "Sort lines in region numerically by the ARGth field of each line.
-Fields are separated by whitespace and numbered from 1 up.  Specified field
-must contain a floating point number in each line of the region.  With a
-negative arg, sorts by the ARGth field counted from the right.  Called from a
-program, there are three arguments: FIELD, BEG and END.  BEG and END specify
-region to sort."
-  (interactive "p\nr")
-  (sort-fields-1 field beg end
-		 (function (lambda ()
-			     (sort-skip-fields field)
-			     (string-to-number
-			      (buffer-substring
-			       (point)
-			       (save-excursion
-				 (re-search-forward
-				  "[+-]?[0-9]*\.?[0-9]*\\([eE][+-]?[0-9]+\\)?")
-				 (point))))))
-		 nil))
+;;;;;###autoload
+;;(defun sort-float-fields (field beg end)
+;;  "Sort lines in region numerically by the ARGth field of each line.
+;;Fields are separated by whitespace and numbered from 1 up.  Specified field
+;;must contain a floating point number in each line of the region.  With a
+;;negative arg, sorts by the ARGth field counted from the right.  Called from a
+;;program, there are three arguments: FIELD, BEG and END.  BEG and END specify
+;;region to sort."
+;;  (interactive "p\nr")
+;;  (sort-fields-1 field beg end
+;;		 (function (lambda ()
+;;			     (sort-skip-fields field)
+;;			     (string-to-number
+;;			      (buffer-substring
+;;			       (point)
+;;			       (save-excursion
+;;				 (re-search-forward
+;;				  "[+-]?[0-9]*\.?[0-9]*\\([eE][+-]?[0-9]+\\)?")
+;;				 (point))))))
+;;		 nil))
 
 ;;;###autoload
 (defun sort-fields (field beg end)
