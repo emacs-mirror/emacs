@@ -122,8 +122,14 @@ with name concatenation.")
 If non-nil this pattern is passed to `imenu-create-index-with-pattern'
 to create a buffer index.
 
-It is an alist with elements that look like this: (MENU-TITLE
-REGEXP INDEX). 
+The value should be an alist with elements that look like this:
+ (MENU-TITLE REGEXP INDEX)
+or like this:
+ (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
+with zero or more ARGUMENTS.  The former format creates a simple element in
+the index alist when it matches; the latter creates a special element
+of the form  (NAME FUNCTION NAME POSITION-MARKER ARGUMENTS...)
+with FUNCTION and ARGUMENTS beiong copied from `imenu-generic-expression'.
 
 MENU-TITLE is a string used as the title for the submenu or nil if the
 entries are not nested.
@@ -153,9 +159,13 @@ The variable is buffer-local.")
   "The function to use for creating a buffer index.
 
 It should be a function that takes no arguments and returns an index
-of the current buffer as an alist.  The elements in the alist look
-like: (INDEX-NAME . INDEX-POSITION).  You may also nest index list like
-\(INDEX-NAME . INDEX-ALIST).
+of the current buffer as an alist.
+
+Simple elements in the alist look like (INDEX-NAME . INDEX-POSITION).
+Special elements look like (INDEX-NAME FUNCTION ARGUMENTS...).
+A nested sub-alist element looks like (INDEX-NAME SUB-ALIST).
+The function `imenu--subalist-p' tests an element and returns t
+ if it is a sub-alist.
 
 This function is called within a `save-excursion'.
 
@@ -180,6 +190,10 @@ index and it should return nil when it doesn't find another index.")
 This function is called after the function pointed out by
 `imenu-prev-index-position-function'.")
 (make-variable-buffer-local 'imenu-extract-index-name-function)
+
+(defun imenu--subalist-p (item)
+  (and (consp (cdr item)) (listp (cadr item))
+       (not (eq (caadr item) 'lambda))))
 
 ;;;
 ;;; Macro to display a progress message.
@@ -462,7 +476,7 @@ This function is called after the function pointed out by
 	   (cond
 	    ((markerp (cdr item))
 	     (set-marker (cdr item) nil))
-	    ((consp (cdr item))
+	    ((imenu--subalist-p item)
 	     (imenu--cleanup (cdr item))))))
 	alist)
        t))
@@ -473,7 +487,7 @@ This function is called after the function pointed out by
      (function
       (lambda (item)
 	(cond
-	 ((listp (cdr item))
+	 ((imenu--subalist-p item)
 	  (append (list (setq counter (1+ counter))
 			(car item) 'keymap (car item))
 		  (imenu--create-keymap-2 (cdr item) (+ counter 10) commands)))
@@ -637,20 +651,27 @@ pattern.
 	    (lambda (pat) 
 	      (let ((menu-title (car pat))
 		    (regexp (cadr pat))
-		    (index (caddr pat)))
-		    (if (and (not found) ; Only allow one entry;
-			     (looking-at regexp))
-			(let ((beg (make-marker))
-			      (end (match-end index)))
-			  (set-marker beg (match-beginning index))
-			  (setq found t)
-			  (push 
-			   (cons (buffer-substring-no-properties beg end) beg)
-			   (cdr 
-			    (or (assoc menu-title index-alist)
-				(car (push 
-				      (cons menu-title '()) 
-				      index-alist))))))))))
+		    (index (caddr pat))
+		    (function (cadddr pat))
+		    (rest (cddddr pat)))
+		(if (and (not found) ; Only allow one entry;
+			 (looking-at regexp))
+		    (let ((beg (make-marker))
+			  (end (match-end index)))
+		      (set-marker beg (match-beginning index))
+		      (setq found t)
+		      (push 
+		       (let ((name
+			      (buffer-substring-no-properties beg end)))
+			 (if function
+			     (nconc (list name function name beg)
+				    rest)
+			   (cons name beg)))
+		       (cdr 
+			(or (assoc menu-title index-alist)
+			    (car (push 
+				  (cons menu-title '()) 
+				  index-alist))))))))))
 	   patterns))))
     (imenu-progress-message prev-pos 100 t)
     (let ((main-element (assq nil index-alist)))
@@ -700,7 +721,7 @@ Returns t for rescan and otherwise a position number."
 	   t)
 	  (t
 	   (setq choice (assoc name prepared-index-alist))
-	   (if (listp (cdr choice))
+	   (if (imenu--subalist-p choice)
 	       (imenu--completion-buffer (cdr choice) prompt)
 	     choice)))))
 
@@ -857,12 +878,17 @@ See `imenu-choose-buffer-index' for more information."
 	       ;; widen if outside narrowing
 	       (widen))
 	   (goto-char (marker-position (cdr index-item))))
-	  (t
+	  ((imenu--subalist-p index-item)
 	   (if (or (< (cdr index-item) (point-min))
 		   (> (cdr index-item) (point-max)))
 	       ;; widen if outside narrowing
 	       (widen))
-	   (goto-char (cdr index-item)))))))
+	   (goto-char (cdr index-item)))
+	  (t
+	   ;; A special item with a function.
+	   (let ((function (cadr index-item))
+		 (rest (cddr index-item)))
+	     (apply function (car index-item) rest)))))))
 
 (provide 'imenu)
 
