@@ -17,10 +17,17 @@
 
 	* mail/rfc822.el (rfc822-nuke-whitespace): Likewise.
 
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Likewise.
+
+	* progmodes/cperl-mode.el (cperl-electric-keyword)
+	(cperl-electric-pod, cperl-do-auto-fill): Likewise.
+
 	* textmodes/reftex-ref.el (reftex-reference): Likewise.
 
 	* textmodes/table.el (table-generate-source): Use ?\\ instead of
 	space in "work in progress" message.
+
+	* emacs-lisp/tq.el (tq-create): Fix quoted lambda expression.
 
 2003-02-17  Dave Love  <fx@gnu.org>
 
