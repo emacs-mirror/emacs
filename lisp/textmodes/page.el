@@ -100,13 +100,17 @@ thus showing a page other than the one point was originally in."
 		  (setq adjust 1)))
 	    (forward-page (- arg adjust)))))
     ;; Find the end of the page.
+    (set-match-data nil)
     (forward-page)
     ;; If we stopped due to end of buffer, stay there.
     ;; If we stopped after a page delimiter, put end of restriction
     ;; at the beginning of that line.
-    (if (save-excursion
-	  (goto-char (match-beginning 0)) ; was (beginning-of-line)
-	  (looking-at page-delimiter))
+    ;; Before checking the match that was found,
+    ;; verify that forward-page actually set the match data.
+    (if (and (match-beginning 0)
+	     (save-excursion
+	       (goto-char (match-beginning 0)) ; was (beginning-of-line)
+	       (looking-at page-delimiter)))
 	(beginning-of-line))
     (narrow-to-region (point)
 		      (progn
