@@ -772,6 +772,8 @@ a case-insensitive match is tried."
 	    (while (re-search-forward "^\\* Menu:" nil t)
 	      (let (beg nodename end)
 		(forward-line 1)
+		(while (and (eolp) (not (eobp)))
+		  (forward-line 1))
 		(setq beg (point))
 		(or (search-backward "\n\^_" nil 'move)
 		    (looking-at "\^_")
