@@ -88,7 +88,7 @@ corresponding to the mode line clicked."
       (propertize current-input-method-title
 		  'help-echo (concat ,(purecopy "Input method: ")
 				     current-input-method
-				     ,(purecopy ".  mouse-2 toggles, \
+				     ,(purecopy ".  mouse-2 disables, \
 mouse-3 describes"))
 		  'local-map mode-line-input-method-map)))
     ,(propertize "%Z"
@@ -133,22 +133,32 @@ Normally nil in most modes, since there is no process to display.")
 (make-variable-buffer-local 'mode-line-modified)
 
 (setq-default mode-line-format
-  (list (purecopy "-")
-   'mode-line-mule-info
-   'mode-line-modified
-   'mode-line-frame-identification
-   'mode-line-buffer-identification
-   (purecopy "   ")
-   'global-mode-string
-   (purecopy "   %[(")
-   '(:eval (mode-line-mode-name)) 'mode-line-process 'minor-mode-alist
-   (purecopy "%n")
-   (purecopy ")%]--")
-   '(which-func-mode ("" which-func-format "--"))
-   (purecopy '(line-number-mode "L%l--"))
-   (purecopy '(column-number-mode "C%c--"))
-   (purecopy '(-3 . "%p"))
-   (purecopy "-%-")))
+  (let* ((help-echo
+	  ;; The multi-line message doesn't work terribly well on the
+	  ;; bottom mode line...  Better ideas?
+;;; 	  "\
+;;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
+;;; drag-mouse-1: resize, C-mouse-2: split horizontally"
+	  "mouse-1: select window, mouse-2: delete others, mouse-3: delete ...")
+	 (dashes (propertize "--" 'help-echo help-echo)))
+    (list
+     (propertize "-" 'help-echo help-echo)
+     'mode-line-mule-info
+     'mode-line-modified
+     'mode-line-frame-identification
+     'mode-line-buffer-identification
+     (propertize "   " 'help-echo help-echo)
+     'global-mode-string
+     (propertize "   %[(" 'help-echo help-echo)
+     '(:eval (mode-line-mode-name)) 'mode-line-process 'minor-mode-alist
+     (propertize "%n" 'help-echo "mouse-2: widen"
+		 'local-map (make-mode-line-mouse2-map #'widen))
+     (propertize ")%]--" 'help-echo help-echo)
+     `(which-func-mode ("" which-func-format ,dashes))
+     `(line-number-mode ("L%l" ,dashes))
+     `(column-number-mode ("C%c" ,dashes))
+     (purecopy '(-3 . "%p"))
+     (propertize "-%-" 'help-echo help-echo))))
 
 (defvar minor-mode-alist nil "\
 Alist saying how to show minor modes in the mode line.
@@ -337,6 +347,8 @@ buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
 	 ".cps" ".fns" ".kys" ".pgs" ".tps" ".vrs")))
 
+;; Packages should add to this list appropriately when they are
+;; loaded, rather than listing everything here.
 (setq debug-ignored-errors
       '(beginning-of-line beginning-of-buffer end-of-line
 	end-of-buffer end-of-file buffer-read-only
