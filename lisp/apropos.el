@@ -458,25 +458,42 @@ found."
 		point1 (point))
 	  (princ symbol)		        ; print symbol name
 	  (setq point2 (point))
-	  ;; don't calculate key-bindings unless needed
+	  ;; Calculate key-bindings if we want them.
 	  (and do-keys
 	       (commandp symbol)
 	       (indent-to 30 1)
-	       (insert
-		(if (setq item (save-excursion
-				 (set-buffer old-buffer)
-				 (where-is-internal symbol)))
+	       (if (let ((keys
+			  (save-excursion
+			    (set-buffer old-buffer)
+			    (where-is-internal symbol)))
+			 filtered)
+		     ;; Copy over the list of key sequences,
+		     ;; omitting any that contain a buffer or a frame.
+		     (while keys
+		       (let ((key (car keys))
+			     (i 0)
+			     loser)
+			 (while (< i (length key))
+			   (if (or (framep (aref key i))
+				   (bufferp (aref key i)))
+			       (setq loser t))
+			   (setq i (1+ i)))
+			 (or loser
+			     (setq filtered (cons key filtered))))
+		       (setq keys (cdr keys)))
+		     (setq item filtered))
+		   ;; Convert the remaining keys to a string and insert.
+		   (insert
 		    (mapconcat
-		     (if apropos-keybinding-face
-			 (lambda (key)
-			   (setq key (key-description key))
+		     (lambda (key)
+		       (setq key (key-description key))
+		       (if apropos-keybinding-face
 			   (put-text-property 0 (length key)
 					      'face apropos-keybinding-face
-					      key)
-			   key)
-		       'key-description)
-		     item ", ")
-		  "(not bound to any keys)")))
+					      key))
+		       key)
+		     item ", "))
+		 (insert "(not bound to any keys)"))))
 	  (terpri)
 	  ;; only now so we don't propagate text attributes all over
 	  (put-text-property point1 point2 'item
