@@ -1,3 +1,7 @@
+1999-10-23  Dave Love  <fx@gnu.org>
+
+	* nnvirtual.el (nnvirtual-create-mapping): Don't use mapc.
+
 1999-10-19  Dave Love  <fx@gnu.org>
 
 	* pop3.el: Merge changes from version `1.3s' which we weren't sent.
