@@ -257,15 +257,17 @@ scientific notation in calc-mode.")
 (defun calc-mode-var-list-restore-saved-values ()
   (let ((newvarlist '()))
     (save-excursion
-      (let (pos)
-        (set-buffer (find-file-noselect (substitute-in-file-name
-                                         calc-settings-file)))
-        (goto-char (point-min))
-        (when (and (search-forward ";;; Mode settings stored by Calc" nil t)
-                   (progn
-                     (forward-line 1)
-                     (setq pos (point))
-                     (search-forward "\n;;; End of mode settings" nil t)))
+      (let (pos
+            (file (substitute-in-file-name calc-settings-file)))
+        (when (and
+               (file-regular-p file)
+               (set-buffer (find-file-noselect file))
+               (goto-char (point-min))
+               (search-forward ";;; Mode settings stored by Calc" nil t)
+               (progn
+                 (forward-line 1)
+                 (setq pos (point))
+                 (search-forward "\n;;; End of mode settings" nil t)))
           (beginning-of-line)
           (calc-mode-var-list-restore-default-values)
           (eval-region pos (point))
