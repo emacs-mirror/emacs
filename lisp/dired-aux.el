@@ -1320,11 +1320,11 @@ When operating on multiple or marked files, you specify a directory,
 and new copies of these files are made in that directory
 with the same names that the files currently have."
   (interactive "P")
-n  (let ((dired-recursive-copies dired-recursive-copies))
+  (let ((dired-recursive-copies dired-recursive-copies))
     (dired-do-create-files 'copy (function dired-copy-file)
-			     (if dired-copy-preserve-time "Copy [-p]" "Copy")
-			     arg dired-keep-marker-copy
-			     nil dired-copy-how-to-fn)))
+			   (if dired-copy-preserve-time "Copy [-p]" "Copy")
+			   arg dired-keep-marker-copy
+			   nil dired-copy-how-to-fn)))
 
 ;;;###autoload
 (defun dired-do-symlink (&optional arg)
