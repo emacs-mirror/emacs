@@ -1,3 +1,9 @@
+2002-03-02  Richard M. Stallman  <rms@gnu.org>
+
+	* find-dired.el (find-grep-dired): Call shell-quote-argument.
+	Specify the -e option.
+	Rename arg to `regexp'.
+
 2002-03-02  Milan Zamazal  <pdm@zamazal.org>
 
 	* textmodes/tildify.el (tildify-string-alist): Add entry for xml-mode.
