@@ -456,7 +456,7 @@ concat (nargs, args, target_type, last_special)
 		if (this_len_byte > 1)
 		  some_multibyte = 1;
 	      }
-	  else
+	  else if (STRINGP (this))
 	    {
 	      result_len_byte += XSTRING (this)->size_byte;
 	      if (STRING_MULTIBYTE (this))
