@@ -29,4 +29,8 @@
 /* This works around a bug in ISC 4.0 and 3.0; it fails
    to clear the "POSIX process" flag on an exec.
    It won't be needed for 4.1.  */
+/* neg@brooktrout.com reported that he did not have this function
+   on ISC 3.1.  I don't know who to believe or what to do,
+   so I am leaving it alone until someone tells me
+   precisely when this function is needed -- rms.  */
 #define EXTRA_INITIALIZE __setostype (0)
