@@ -1,3 +1,13 @@
+2004-07-17  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* emacs-lisp/testcover.el: New category "potentially-1valued" for
+	functions that are not erroneous if either 1-valued or
+	multi-valued.  Detect functions in this class.
+	(testcover-1value-functions, testcover-compose-functions,
+	testcover-progn-functions) Added some additional functions to lists.
+	(testcover-mark): Bugfix when marking up the definition for an
+	empty function.
+
 2004-07-17  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (occur-read-primary-args): Pass default to read-from-minibuffer.
