@@ -952,6 +952,13 @@ case "${canonical}" in
     machine=mips opsys=gnu-linux
   ;;
 
+  ## UXP/DS
+  sparc-fujitsu-sysv4* )
+    machine=sparc opsys=uxpds
+    NON_GNU_CPP=/usr/ccs/lib/cpp
+    RANLIB="ar -ts"
+  ;;
+
   * )
     unported=yes
   ;;
