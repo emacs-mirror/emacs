@@ -222,8 +222,13 @@ When Refill mode is on, the current paragraph will be formatted when
 changes are made within it.  Self-inserting characters only cause
 refilling if they would cause auto-filling."
   nil " Refill" '(("\177" . backward-delete-char-untabify))
-  ;; This provides the test for recursive paragraph filling.
-  (make-local-variable 'fill-paragraph-function)
+  ;; Remove old state if necessary
+  (when refill-ignorable-overlay
+    (delete-overlay refill-ignorable-overlay)
+    (kill-local-variable 'refill-ignorable-overlay))
+  (when refill-late-fill-paragraph-function
+    (setq fill-paragraph-function refill-late-fill-paragraph-function)
+    (kill-local-variable 'refill-late-fill-paragraph-function))
   (if refill-mode
       (progn
 	(add-hook 'after-change-functions 'refill-after-change-function nil t)
@@ -231,6 +236,7 @@ refilling if they would cause auto-filling."
 	(add-hook 'pre-command-hook 'refill-pre-command-function nil t)
 	(set (make-local-variable 'refill-late-fill-paragraph-function)
 	     fill-paragraph-function)
+	;; This provides the test for recursive paragraph filling.
 	(set (make-local-variable 'fill-paragraph-function)
 	     'refill-fill-paragraph)
 	;; When using justification, doing DEL on 2 spaces should remove
@@ -245,8 +251,6 @@ refilling if they would cause auto-filling."
 	(auto-fill-mode 0))
     (remove-hook 'after-change-functions 'refill-after-change-function t)
     (remove-hook 'post-command-hook 'refill-post-command-function t)
-    (delete-overlay refill-ignorable-overlay)
-    (setq fill-paragraph-function refill-late-fill-paragraph-function)
     (kill-local-variable 'backward-delete-char-untabify-method)))
 
 (provide 'refill)
