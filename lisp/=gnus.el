@@ -50,11 +50,16 @@
 (require 'nntp)
 (require 'mail-utils)
 
-(defvar gnus-nntp-server (or (getenv "NNTPSERVER") gnus-default-nntp-server)
+(defvar gnus-nntp-server (or (getenv "NNTPSERVER")
+			     (and (boundp 'gnus-default-nntp-server)
+				  gnus-default-nntp-server))
   "The name of the host running NNTP server.
 If it is a string such as `:DIRECTORY', the user's private DIRECTORY
 is used as a news spool.
 Initialized from the NNTPSERVER environment variable.")
+
+(defvar gnus-nntp-service "nntp"
+  "The name of the network service for GNUS to use.  Usually \"nntp\".")
 
 (defvar gnus-signature-file "~/.signature"
   "*Your .signature file. Use `.signature-DISTRIBUTION' instead if exists.")
@@ -819,13 +824,13 @@ User customizable variables:
  gnus-nntp-server
     Specifies the name of the host running the NNTP server. If its
     value is a string such as `:DIRECTORY', the user's private
-    DIRECTORY is used as a news spool. The variable is initialized
-    from the NNTPSERVER environment variable.
+    DIRECTORY is used as a news spool.  If its value is `::', then
+    the local news spool on the current machine is used directly.
+    The `NNTPSERVER' environment variable specifies the initial value
+    for this variable.
 
  gnus-nntp-service
-    Specifies a NNTP service name. It is usually \"nntp\" or 119.  Nil
-    forces GNUS to use a local news spool if the variable
-    `gnus-nntp-server' is set to the local host name.
+    Specifies a NNTP service name.  It is usually \"nntp\".
 
  gnus-startup-file
     Specifies a startup file (.newsrc). If there is a file named
@@ -4713,16 +4718,15 @@ Run gnus-Open-server-hook just before opening news server."
     ;; If no server name is given, local host is assumed.
     (if (string-equal gnus-nntp-server "")
 	(setq gnus-nntp-server (system-name)))
-    (cond ((string-match ":" gnus-nntp-server)
+    (cond ((string= gnus-nntp-server) "::")
+	   (require 'nnspool)
+	   (gnus-define-access-method 'nnspool)
+	   (message "Looking up local news spool..."))
+	  ((string-match ":" gnus-nntp-server)
 	   ;; :DIRECTORY
 	   (require 'mhspool)
 	   (gnus-define-access-method 'mhspool)
 	   (message "Looking up private directory..."))
-	  ((and (null gnus-nntp-service)
-	        (string-equal gnus-nntp-server (system-name)))
-	   (require 'nnspool)
-	   (gnus-define-access-method 'nnspool)
-	   (message "Looking up local news spool..."))
 	  (t
 	   (gnus-define-access-method 'nntp)
 	   (message "Connecting to NNTP server on %s..." gnus-nntp-server)))
