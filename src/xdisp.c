@@ -6976,6 +6976,7 @@ clear_garbaged_frames ()
 	    {
 	      clear_current_matrices (f);
 	      f->garbaged = 0;
+	      Fredraw_frame (frame);
 	    }
 	}
 
