@@ -1,6 +1,6 @@
 /*  ==== POOL CLASS AMC TEST ====
  *
- *  $HopeName: MMsrc!amcdev.c(trunk.4) $
+ *  $HopeName: MMsrc!amcss.c(trunk.1) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -241,13 +241,13 @@ static void *test(void *arg, size_t s)
   die(mps_ap_create(&buffer, pool), "BufferCreate");
 
   die(mps_root_create_table(&exactRoot, space,
-  		      MPS_RANK_EXACT, 0,
-  		      &exactRoots[0], NR_EXACT_ROOTS*sizeof(mps_addr_t)),
+  		      MPS_RANK_EXACT, (mps_rm_t)0,
+  		      &exactRoots[0], NR_EXACT_ROOTS),
   		      "RootCreateTable");
 
   die(mps_root_create_table(&ambigRoot, space,
-  		      RefRankAMBIG, 0,
-  		      &ambigRoots[0], NR_AMBIG_ROOTS*sizeof(mps_addr_t)),
+  		      RefRankAMBIG, (mps_rm_t)0,
+  		      &ambigRoots[0], NR_AMBIG_ROOTS),
   		      "RootCreateTable");
 
   for(i=0; i<NR_EXACT_ROOTS; ++i)
