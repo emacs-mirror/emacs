@@ -24,6 +24,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "syntax.h"
 #include "window.h"
+#include "keyboard.h"
 
 Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
 
@@ -301,7 +302,7 @@ internal_self_insert (c1, noautofill)
 #ifdef HAVE_FACES
   /* If previous command specified a face to use, use it.  */
   if (!NILP (Vself_insert_face)
-      && EQ (last_command, Vself_insert_face_command))
+      && EQ (current_kboard->Vlast_command, Vself_insert_face_command))
     {
       Lisp_Object before, after;
       XSETINT (before, PT - 1);
