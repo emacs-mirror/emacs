@@ -1527,7 +1527,6 @@ For a complete description, type \
   (setq buffer-read-only t)
   (setq indent-tabs-mode nil)
   (update-calendar-mode-line)
-  (make-local-variable 'calendar-window-configuration);; Windows on entry.
   (make-local-variable 'calendar-mark-ring)
   (make-local-variable 'displayed-month);;  Month in middle of window.
   (make-local-variable 'displayed-year));;  Year in middle of window.
