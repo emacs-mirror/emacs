@@ -1,3 +1,8 @@
+2002-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (pop-to-mark-command): Do not set this-command.
+	(set-mark-command): Always jump to mark when called with arg.
+
 2002-04-18  Francesco Potorti`  <pot@gnu.org>
 
 	* comint.el (comint-watch-for-password-prompt): Remove whitespace
