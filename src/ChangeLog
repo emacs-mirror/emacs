@@ -1,3 +1,12 @@
+2000-08-14  Dave Love  <fx@gnu.org>
+
+	* alloc.c [HAVE_UNISTD_H]: Include unistd.h; don't declare sbrk.
+	[!HAVE_UNISTD_H]: Use POINTER_TYPE to declare sbrk.
+	(lisp_free): Declare and make static.
+
+	* window.c: Fix embedded comment.
+	(syms_of_window): Fix doc string.
+
 2000-08-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* keymap.c (push_key_description): If C without modifiers is < 32, 
