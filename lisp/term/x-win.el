@@ -2126,6 +2126,9 @@ This is in addition to, but in preference to, the primary selection."
   (cond ((>= (length text) x-cut-buffer-max)
 	 (x-set-cut-buffer "" push)
 	 (setq x-last-selected-text-cut ""))
+	;; Don't store a multibyte string that contains
+	;; eight-bit-control/graphic chars because they can't be
+	;; restored correctly by x-get-cut-buffer.
 	((and (multibyte-string-p text)
 	      (let ((charsets (find-charset-string text)))
 		(or (memq 'eight-bit-control charsets)
