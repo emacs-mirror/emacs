@@ -92,7 +92,9 @@ Non-nil means use highlight, nil means use minibuffer messages."
   :type 'number)
 
 (defcustom flyspell-persistent-highlight t
-  "*Non-nil means that hilighted words are not removed until the word are corrected."
+  "*Non-nil means misspelled words remain highlighted until corrected.
+If this variable is nil, only the most recently detected misspelled word
+is highlighted."
   :group 'flyspell
   :type 'boolean)
 
