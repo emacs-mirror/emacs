@@ -346,7 +346,7 @@ line."
 (defvar mail-abbrev-mode-regexp 
   "^\\(Resent-\\)?\\(To\\|From\\|CC\\|BCC\\|Reply-to\\):"
   "*Regexp to select mail-headers in which mail-abbrevs should be expanded.
-This string it will be handed to `looking-at' with the point at the beginning
+This string will be handed to `looking-at' with point at the beginning
 of the current line; if it matches, abbrev mode will be turned on, otherwise
 it will be turned off.  (You don't need to worry about continuation lines.)
 This should be set to match those mail fields in which you want abbreviations
