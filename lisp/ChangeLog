@@ -6,7 +6,7 @@
 
 	* dired.el (dired-re-dot): Make it handle trailing /.
 	(dired-get-filename): Update documentation string.
-	Revert previous change and fix typo in earlier version..
+	Revert previous change and fix typo in earlier version.
 
 2003-06-10  Kim F. Storm  <storm@cua.dk>
 
