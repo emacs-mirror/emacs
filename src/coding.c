@@ -5522,7 +5522,11 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       if (encodep)
 	result = encode_coding (coding, src, dst, len_byte, 0);
       else
-	result = decode_coding (coding, src, dst, len_byte, 0);
+	{
+	  if (coding->composing != COMPOSITION_DISABLED)
+	    coding->cmp_data->char_offset = from + inserted;
+	  result = decode_coding (coding, src, dst, len_byte, 0);
+	}
 
       /* The buffer memory is now:
 	 +--------+-------converted-text----+--+------original-text----+---+
