@@ -1410,18 +1410,6 @@ create_process (process, new_argv, current_dir)
   setup_coding_system (XPROCESS (process)->encode_coding_system,
 		       proc_encode_coding_system[outchannel]);
 
-  if ((!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters))
-      || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
-    {
-      /* In unibyte mode, character code conversion should not take
-	 place but EOL conversion should.  So, setup raw-text or one
-	 of the subsidiary according to the information just setup.  */
-      if (!NILP (XPROCESS (process)->decode_coding_system))
-	setup_raw_text_coding_system (proc_decode_coding_system[inchannel]);
-      if (!NILP (XPROCESS (process)->encode_coding_system))
-	setup_raw_text_coding_system (proc_encode_coding_system[outchannel]);
-    }
-
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
 #ifdef POSIX_SIGNALS
@@ -2109,15 +2097,11 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (XPROCESS (proc)->decode_coding_system,
 		       proc_decode_coding_system[inch]);
-  proc_decode_coding_system[inch]->src_multibyte = 1;
-  proc_decode_coding_system[inch]->dst_multibyte = 0;
   if (!proc_encode_coding_system[outch])
     proc_encode_coding_system[outch]
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (XPROCESS (proc)->encode_coding_system,
 		       proc_encode_coding_system[outch]);
-  proc_encode_coding_system[inch]->src_multibyte = 0;
-  proc_encode_coding_system[inch]->dst_multibyte = 1;
 
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
   XPROCESS (proc)->decoding_carryover = make_number (0);
@@ -2956,6 +2940,10 @@ read_process_output (proc, channel)
 
       text = decode_coding_string (make_unibyte_string (chars, nbytes),
 				   coding, 0);
+      if (NILP (buffer_defaults.enable_multibyte_characters))
+	/* We had better return unibyte string.  */
+	text = string_make_unibyte (text);
+
       Vlast_coding_system_used = coding->symbol;
       /* A new coding system might be found.  */
       if (!EQ (p->decode_coding_system, coding->symbol))
@@ -3201,7 +3189,25 @@ send_process (proc, buf, len, object)
   if ((STRINGP (object) && STRING_MULTIBYTE (object))
       || (BUFFERP (object)
 	  && !NILP (XBUFFER (object)->enable_multibyte_characters)))
-    coding->src_multibyte = 1;
+    {
+      coding->src_multibyte = 1;
+      if (!EQ (coding->symbol, XPROCESS (proc)->encode_coding_system))
+	/* The coding system for encoding was changed to raw-text
+	   because we sent a unibyte text previously.  Now we are
+	   sending a multibyte text, thus we must encode it by the
+	   original coding system specified for the current
+	   process.  */
+	setup_coding_system (XPROCESS (proc)->encode_coding_system,
+			     coding);
+    }
+  else
+    {
+      coding->src_multibyte = 0;
+        /* For sending a unibyte text, character code conversion
+	 should not take place but EOL conversion should.  So, setup
+	 raw-text or one of the subsidiary.  */
+      setup_raw_text_coding_system (coding);
+    }
   coding->dst_multibyte = 0;
 
   if (CODING_REQUIRE_ENCODING (coding))
@@ -4507,11 +4513,6 @@ init_process ()
     }
   bzero (proc_decode_coding_system, sizeof proc_decode_coding_system);
   bzero (proc_encode_coding_system, sizeof proc_encode_coding_system);
-
-  Vdefault_process_coding_system
-    = (NILP (buffer_defaults.enable_multibyte_characters)
-       ? Fcons (Qraw_text, Qnil)
-       : Fcons (Qemacs_mule, Qnil));
 }
 
 void
