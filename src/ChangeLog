@@ -1,3 +1,8 @@
+1999-11-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (set_lface_from_font_name): Fix previous change.
+	(recompute_basic_faces): Change assert to abort.
+
 1999-11-25  Dave Love  <fx@gnu.org>
 
 	* fns.c (Fnthcdr, Fnreverse): Inline cdr.
@@ -7,7 +12,7 @@
 1999-11-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (set_lface_from_font_name): New parameter may_fail_p.
-	Callers changed.  If specified font name is bogus, and mail_fail_p
+	Callers changed.  If specified font name is bogus, and may_fail_p
 	is not set, try to use a reasonable default.
 
 	* dispnew.c (direct_output_for_insert): Set glyph row's
