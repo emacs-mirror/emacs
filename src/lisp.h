@@ -1,5 +1,5 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000, 2001, 2002
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2000, 2001, 2002, 2003
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2265,6 +2265,7 @@ EXFUN (Fstring_make_multibyte, 1);
 EXFUN (Fstring_make_unibyte, 1);
 EXFUN (Fstring_as_multibyte, 1);
 EXFUN (Fstring_as_unibyte, 1);
+EXFUN (Fstring_to_multibyte, 1);
 EXFUN (Fsubstring, 3);
 extern Lisp_Object substring_both P_ ((Lisp_Object, int, int, int, int));
 EXFUN (Fnth, 2);
@@ -3020,6 +3021,7 @@ extern void unmark_byte_stack P_ ((void));
 /* defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
 EXFUN (Fexecute_kbd_macro, 3);
+EXFUN (Fcancel_kbd_macro_events, 0);
 extern void init_macros P_ ((void));
 extern void syms_of_macros P_ ((void));
 
