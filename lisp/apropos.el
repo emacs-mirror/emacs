@@ -508,7 +508,8 @@ alphabetically by symbol name; but this function also sets
 	  (if (and apropos-label-face
 		   (symbolp apropos-label-face))
 	      `(face ,apropos-label-face
-		     mouse-face highlight)))
+		     mouse-face highlight
+		     help-echo "mouse-2: display help on this item")))
     (with-output-to-temp-buffer "*Apropos*"
       (let ((p apropos-accumulator)
 	    (old-buffer (current-buffer))
