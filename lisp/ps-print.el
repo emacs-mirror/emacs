@@ -3142,6 +3142,16 @@ page-height == bm + print-height + tm - ho - hh
     (and has-local-background (ps-output "} def\n"))))
 
 
+;; Return a list of the distinct elements of LIST.
+;; Elements are compared with `equal'.
+(defun ps-remove-duplicates (list)
+  (let (new (tail list))
+    (while tail
+      (or (member (car tail) new)
+	  (setq new (cons (car tail) new)))
+      (setq tail (cdr tail)))
+    (nreverse new)))
+
 (defun ps-begin-file ()
   (ps-get-page-dimensions)
   (setq ps-showline-count (if ps-printing-region (car ps-printing-region) 1)
@@ -3161,11 +3171,10 @@ page-height == bm + print-height + tm - ho - hh
 	     (if ps-landscape-mode "Landscape" "Portrait")
 	     "\n%% DocumentFonts: Times-Roman Times-Italic "
 	     (mapconcat 'identity
-			(remove-duplicates
+			(ps-remove-duplicates
 			 (append (ps-fonts 'ps-font-for-text)
 				 (list (ps-font 'ps-font-for-header 'normal)
-				       (ps-font 'ps-font-for-header 'bold)))
-			 :test 'equal)
+				       (ps-font 'ps-font-for-header 'bold))))
 			" ")
 	     "\n%%Pages: (atend)\n"
 	     "%%EndComments\n\n")
