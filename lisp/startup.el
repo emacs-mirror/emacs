@@ -504,6 +504,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		(or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
 	       (t
 		(or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp")))))
+  (setq small-temporary-file-directory
+	(if (eq system-type 'ms-dos)
+	    (getenv "TMPDIR")
+	  temporary-file-directory))
 
   ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
