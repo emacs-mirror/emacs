@@ -27,12 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-alg-2 () nil)
-
 
 (defun calc-derivative (var num)
   (interactive "sDifferentiate with respect to: \np")
@@ -3582,6 +3579,8 @@
 	       (and fprime
 		    (math-normalize accum))))
 	(list 'calcFunc-taylor expr var num))))
+
+(provide 'calcalg2)
 
 ;;; arch-tag: f2932ec8-dd63-418b-a542-11a644b9d4c4
 ;;; calcalg2.el ends here
