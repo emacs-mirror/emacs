@@ -1041,7 +1041,8 @@ insdel.o: insdel.c window.h buffer.h INTERVAL_SRC blockinput.h charset.h\
    $(config_h)
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
-   systty.h systime.h dispextern.h intervals.h blockinput.h xterm.h $(config_h)
+   systty.h systime.h dispextern.h syntax.h intervals.h blockinput.h \
+   xterm.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    puresize.h charset.h $(config_h)
 lastfile.o: lastfile.c  $(config_h)
