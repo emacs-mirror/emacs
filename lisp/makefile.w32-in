@@ -134,10 +134,12 @@ WINS=\
 	language \
 	mail \
 	net \
+	obsolete \
 	play \
 	progmodes \
 	term \
-	textmodes
+	textmodes \
+	toolbar
 
 doit:
 
