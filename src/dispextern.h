@@ -2096,6 +2096,7 @@ void x_set_menu_resources_from_menu_face P_ ((struct frame *, Widget));
 void update_face_from_frame_parameter P_ ((struct frame *, Lisp_Object,
 					   Lisp_Object));
 char *x_charset_registry P_ ((int));
+Lisp_Object tty_color_name P_ ((struct frame *, int));
 void clear_face_cache P_ ((int));
 unsigned long load_color P_ ((struct frame *, struct face *, Lisp_Object,
 			      enum lface_attribute_index));
