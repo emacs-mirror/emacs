@@ -46,9 +46,9 @@
 
 (define-coding-system-alias 'iso-2022-cn 'iso-2022-cn-ext)
 
-(define-prefix-command 'describe-chinese-support-map)
-(define-key-after describe-language-support-map [Chinese]
-  '("Chinese" . describe-chinese-support-map)
+(define-prefix-command 'describe-chinese-environment-map)
+(define-key-after describe-language-environment-map [Chinese]
+  '("Chinese" . describe-chinese-environment-map)
   t)
 
 (define-prefix-command 'setup-chinese-environment-map)
@@ -116,7 +116,7 @@
 		(coding-system . (cn-gb-2312 hz-gb-2312 iso-2022-cn))
 		(sample-text . "Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B")
 		(documentation . ("Support for Chinese GB2312 character set."
-				  . describe-chinese-support-map))
+				  . describe-chinese-environment-map))
 		))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -175,7 +175,7 @@
 		  (coding-system . (cn-big5 iso-2022-cn))
 		  (sample-text . "Cantonese ($(0GnM$(B,$(0N]0*Hd(B)	$(0*/=((B, $(0+$)p(B")
 		  (documentation . ("Support for Chinese Big5 character set."
-				    . describe-chinese-support-map))
+				    . describe-chinese-environment-map))
 		  ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -196,7 +196,7 @@
 			     chinese-cns11643-7))
 		 (coding-system . (iso-2022-cn))
 		 (documentation . ("Support for Chinese CNS character sets."
-				   . describe-chinese-support-map))
+				   . describe-chinese-environment-map))
 		 ))
 
 ;;; chinese.el ends here
