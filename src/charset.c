@@ -208,8 +208,10 @@ string_to_non_ascii_char (str, len, actual_len, exclude_tail_garbage)
 	  if (cmpchar_id >= 0)
 	    {
 	      c = MAKE_COMPOSITE_CHAR (cmpchar_id);
-	      str += cmpchar_table[cmpchar_id]->len;
+	      str += cmpchar_table[cmpchar_id]->len - 1;
 	    }
+	  else
+	    str += bytes - 1;
 	}
       else
 	{
@@ -230,7 +232,7 @@ string_to_non_ascii_char (str, len, actual_len, exclude_tail_garbage)
 	  if (CHARSET_DEFINED_P (charset)
 	      && CHARSET_DIMENSION (charset) == 2
 	      && str < endp)
-	    c2 = *str & 0x7F;
+	    c2 = *str++ & 0x7F;
 	  c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
 	}
     } while (0);
