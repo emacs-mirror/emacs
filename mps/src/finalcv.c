@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.1) $
+ * $HopeName: MMsrc!finalcv.c(trunk.2) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -30,11 +30,13 @@
  * finalization.
  */
 
-
 #include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
 #include "fmtdy.h"
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
 
 #include "poolmrg.h" /* .hack.no-interface */
 

@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.12) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.13) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -16,7 +16,8 @@
 #ifndef mpmtypes_h
 #define mpmtypes_h
 
-#include "std.h"
+#include "config.h"	/* this must come first: it defines target options */
+#include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "mpslib.h"
 
 

@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.5) $
+# $HopeName: MMsrc!comm.gmk(trunk.6) $
 # Copyright (C) 1995,1996 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -113,9 +113,9 @@ endif
 # Some flags depend on the target.  Alas.
 ifdef TARGET
 ifeq ($(TARGET),mmsw.a)
-CFLAGSTARGET = -DTARGET_VM_RM
+CFLAGSTARGET = -DCONFIG_PROD_EPCORE
 else
-CFLAGSTARGET =
+CFLAGSTARGET = -DCONFIG_PROD_MPS
 endif
 endif
 
@@ -128,16 +128,16 @@ CFLAGSCOMMON = \
 #            variety.
 
 # These flags are added to compilations for the "df" variety.
-CFDF = -DTARGET_VAR_DF $(CFLAGSDEBUG)
+CFDF = -DCONFIG_VAR_DF $(CFLAGSDEBUG)
 
 # These flags are added to compilations for the "dp" variety.
-CFDP = -DTARGET_VAR_DP $(CFLAGSDEBUG)
+CFDP = -DCONFIG_VAR_DP $(CFLAGSDEBUG)
 
 # These flags are added to compilations for the "ds" variety.
-CFDS = -DTARGET_VAR_DS $(CFLAGSDEBUG)
+CFDS = -DCONFIG_VAR_DS $(CFLAGSDEBUG)
 
 # These flags are added to compilations for the "ro" variety.
-CFRO = -DTARGET_VAR_RO $(CFLAGSOPTIMIZE)
+CFRO = -DCONFIG_VAR_RO $(CFLAGSOPTIMIZE)
 
 # These map the source file lists onto object files and dependency files
 # in the platform/variety directory.
