@@ -11107,7 +11107,7 @@ notice_overwritten_cursor (w, start_x, end_x)
       && w->phys_cursor_on_p
       && output_cursor.vpos == w->phys_cursor.vpos
       && start_x <= w->phys_cursor.x
-      && end_x > w->phys_cursor.x)
+      && (end_x < 0 || end_x > w->phys_cursor.x))
     w->phys_cursor_on_p = 0;
 }
 
