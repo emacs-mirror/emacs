@@ -96,13 +96,13 @@
     (modify-syntax-entry ?\) ")(  " st)
     (modify-syntax-entry ?\; "<   " st)
     (modify-syntax-entry ?\" "\"    " st)
-    (modify-syntax-entry ?' "  p" st)
-    (modify-syntax-entry ?` "  p" st)
+    (modify-syntax-entry ?' "'   " st)
+    (modify-syntax-entry ?` "'   " st)
 
     ;; Special characters
-    (modify-syntax-entry ?, "_ p" st)
-    (modify-syntax-entry ?@ "_ p" st)
-    (modify-syntax-entry ?# "_ p14" st)
+    (modify-syntax-entry ?, "'   " st)
+    (modify-syntax-entry ?@ "'   " st)
+    (modify-syntax-entry ?# "'  14" st)
     (modify-syntax-entry ?\\ "\\   " st)
     st))
 
