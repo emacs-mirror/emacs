@@ -56,16 +56,11 @@ extern int this_command_key_count;
 /* Extract the fields of a position.  */
 #define POSN_WINDOW(posn) (XCONS (posn)->car)
 #define POSN_BUFFER_POSN(posn) (XCONS (XCONS (posn)->cdr)->car)
-#define POSN_SCROLLBAR_BUTTON POSN_BUFFER_POSN
 #define POSN_WINDOW_POSN(posn) (XCONS (XCONS (XCONS (posn)->cdr)->cdr)->car)
 #define POSN_TIMESTAMP(posn) \
   (XCONS (XCONS (XCONS (XCONS (posn)->cdr)->cdr)->cdr)->car)
 
 /* Some of the event heads.  */
-extern Lisp_Object Qvscrollbar_part, Qvslider_part;
-extern Lisp_Object Qvthumbup_part, Qvthumbdown_part;
-extern Lisp_Object Qhscrollbar_part, Qhslider_part;
-extern Lisp_Object Qhthumbleft_part, Qhthumbright_part;
 extern Lisp_Object Qswitch_frame;
 
 /* Properties on event heads.  */
@@ -77,7 +72,7 @@ extern Lisp_Object Qevent_kind, Qevent_symbol_elements;
 
 /* The values of Qevent_kind properties.  */
 extern Lisp_Object Qfunction_key, Qmouse_click, Qmouse_movement;
-extern Lisp_Object Qscrollbar_click;
+extern Lisp_Object Qscrollbar_movement;
 
 /* Getting the kind of an event head.  */
 #define EVENT_HEAD_KIND(event_head) \
