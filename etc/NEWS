@@ -57,10 +57,6 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
-** The new command `ediff-backup' compares a file with its most recent
-backup using `ediff'.  If you specify the name of a backup file,
-`ediff-backup' compares it with the file of which it is a backup.
-
 +++
 ** The mode line position information now comes before the major mode.
 When the file is maintained under version control, that information
@@ -114,9 +110,6 @@ Setting these variables directly does not take effect until next time
 the Buffers menu is regenerated.
 
 +++
-** `C-u C-x =' now displays text properties of the character at point.
-
-+++
 ** The commands M-x customize-face and M-x customize-face-other-window
 now look at the character after point.  If a face or faces are
 specified for that character, the commands by default customize those
@@ -126,12 +119,19 @@ faces.
 Cyrillic-KOI8-T, Bulgarian, Belarusian, Ukrainian, UTF-8,
 Windows-1255, Welsh, Latin-7, Lithuanian, Latvian.
 
+---
 ** New input methods: latin-alt-postfix, latin-postfix, latin-prefix,
 ukrainian-computer, belarusian, bulgarian-bds, russian-computer,
 vietnamese-telex, lithuanian-numeric, lithuanian-keyboard,
 latvian-keyboard, welsh, georgian, rfc1345, ucs, sgml,
 bulgarian-phonetic, dutch.
 
+---
+** A new coding system `euc-tw' has been added for traditional Chinese
+in CNS encoding; it accepts both Big 5 and CNS as input; on saving,
+Big 5 is then converted to CNS.
+
+---
 ** Many new coding systems are available by loading the `code-pages'
 library.  These include complete versions of most of those in
 codepage.el, based Unicode mappings.
@@ -224,15 +224,14 @@ window so as to center point.  If its value is an integer, it says how
 many columns to scroll.  If the value is a floating-point number, it
 gives the fraction of the window's width to scroll the window.
 
+The variable `automatic-hscrolling' was renamed to
+`auto-hscroll-mode'.  The old name is still available as an alias.
+
 +++
 ** The user option `tex-start-options-string' has been replaced
 by two new user options: `tex-start-options', which should hold
 command-line options to feed to TeX, and `tex-start-commands' which should hold
 TeX commands to use at startup.
-
-+++
-** The variable `automatic-hscrolling' was renamed to `auto-hscroll-mode'.
-The old name is still available as an alias.
 
 +++
 ** New display feature: focus follows mouse.  If you set the variable
@@ -590,11 +589,6 @@ it inserts non-ASCII chars if you hit M-i), you will need to add
 
 to your .emacs to revert to the old behavior.
 
----
-** A new coding system `euc-tw' has been added for traditional Chinese
-in CNS encoding; it accepts both Big 5 and CNS as input; on saving,
-Big 5 is then converted to CNS.
-
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
 automatically at startup, if it exists.  When Emacs offers to save
@@ -665,6 +659,10 @@ Typing the = key now offers to perform the word-by-word comparison of the
 currently highlighted regions in an inferior Ediff session. If you answer 'n'
 then it reverts to the old behavior and asks the user to select regions for
 comparison.
+
+** The new command `ediff-backup' compares a file with its most recent
+backup using `ediff'.  If you specify the name of a backup file,
+`ediff-backup' compares it with the file of which it is a backup.
 
 +++
 ** Etags changes.
@@ -988,6 +986,13 @@ There is also Global Reveal mode which affects all buffers.
 ---
 *** The new package ibuffer provides a powerful, completely
 customizable replacement for buff-menu.el.
+
+*** The new package table.el implements editable, WYSIWYG, embedded
+`text tables' in Emacs buffers.  It simulates the effect of putting
+these tables in a special major mode.  The package emulates WYSIWYG
+table editing available in modern word processors.  The package also
+can generate a table source in typesetting and markup languages such
+as latex and html from the visually laid out text table.
 
 ---
 ** Support for `magic cookie' standout modes has been removed.

@@ -1,3 +1,9 @@
+2002-08-18  Richard M. Stallman  <rms@gnu.org>
+
+	* table.el: New file.
+
+	* font-core.el (font-lock-mode): Set change-major-mode-hook locally.
+
 2002-08-18  Andreas Schwab  <schwab@suse.de>
 
 	* ibuf-ext.el (ibuffer-list-buffer-modes): Doc fix.
@@ -9,7 +15,6 @@
 	outside a LaTeX file.
 	(reftex-syntax-table-for-bib): Set a default in case this is being
 	used outside a LaTeX file.
-
 
 2002-08-17  Richard M. Stallman  <rms@gnu.org>
 
