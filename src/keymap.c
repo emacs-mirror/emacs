@@ -426,7 +426,23 @@ fix_submap_inheritance (map, event, submap)
     parent_entry = Qnil;
 
   if (! EQ (parent_entry, submap))
-    Fset_keymap_parent (submap, parent_entry);
+    {
+      Lisp_Object submap_parent;
+      submap_parent = submap;
+      while (1)
+	{
+	  Lisp_Object tem;
+	  tem = Fkeymap_parent (submap_parent);
+	  if (EQ (tem, parent_entry))
+	    return;
+          if (CONSP (tem)
+	      && EQ (XCONS (tem)->car, Qkeymap))
+	    submap_parent = tem;
+	  else
+	    break;
+	}
+      Fset_keymap_parent (submap_parent, parent_entry);
+    }
 }
 
 /* Look up IDX in MAP.  IDX may be any sort of event.
