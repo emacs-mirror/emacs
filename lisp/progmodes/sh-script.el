@@ -663,7 +663,10 @@ with your script for an edit-interpret-debug cycle."
 	       (buffer-substring (match-beginning 2)
 				 (match-end 2))))))
     (if interpreter
-	(sh-set-shell interpreter nil nil)))
+	(sh-set-shell interpreter nil nil)
+      ;; If we don't know the shell for this file,
+      ;; set the syntax table anyway, for the user's normal choice of shell.
+      (set-syntax-table (sh-feature sh-mode-syntax-table))))
   (run-hooks 'sh-mode-hook))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
