@@ -552,7 +552,7 @@ If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.  If SUFFIXES is nil, it is equivalent to '(\"\").
 If non-nil, PREDICATE is used instead of `file-readable-p'.
 PREDICATE can also be an integer to pass to the access(2) function,
-in which case file-name-handlers are ignored.
+in which case file-name-handlers are ignored (this use is deprecated).
 For compatibility with XEmacs, PREDICATE can also be a symbol among
 `executable', `readable', `writable', or `exists' or a list of one
 of those symbols."
