@@ -376,7 +376,10 @@ This is relative to `smtpmail-queue-dir'.")
       (while (not (eobp))
 	(setq file-msg (buffer-substring (point) (line-end-position)))
 	(load file-msg)
-	(setq tembuf (find-file-noselect file-msg))
+	;; Insert the message literally: it is already encoded as per
+	;; the MIME headers, and code conversions might guess the
+	;; encoding wrongly.
+	(setq tembuf (find-file-noselect file-msg nil t))
 	(if (not (null smtpmail-recipient-address-list))
 	    (if (not (smtpmail-via-smtp smtpmail-recipient-address-list 
 					tembuf))
