@@ -1130,11 +1130,6 @@ all of which are called before Emacs is actually killed.")
   if (!NILP (Vrun_hooks) && !noninteractive)
     call1 (Vrun_hooks, intern ("kill-emacs-hook"));
 
-  /* If we have an auto-save list file,
-     kill it because we are exiting Emacs deliberately (not crashing).  */
-  if (STRINGP (Vauto_save_list_file_name))
-    unlink (XSTRING (Vauto_save_list_file_name)->data);
-
   UNGCPRO;
 
 /* Is it really necessary to do this deassign
@@ -1144,6 +1139,12 @@ all of which are called before Emacs is actually killed.")
  #endif  */
 
   shut_down_emacs (0, 0, STRINGP (arg) ? arg : Qnil);
+
+  /* If we have an auto-save list file,
+     kill it because we are exiting Emacs deliberately (not crashing).
+     Do it after shut_down_emacs, which does an auto-save.  */
+  if (STRINGP (Vauto_save_list_file_name))
+    unlink (XSTRING (Vauto_save_list_file_name)->data);
 
   exit (INTEGERP (arg) ? XINT (arg)
 #ifdef VMS
