@@ -2140,11 +2140,11 @@ This function does not do any hidden buffer changes."
 		     (goto-char pos))
 		 (< pos start)))))))
 
-(defsubst c-end-of-current-token (&optional back-limit)
+(defun c-end-of-current-token (&optional back-limit)
   ;; Move to the end of the current token.  Do not move if not in the
   ;; middle of one.  BACK-LIMIT may be used to bound the backward
   ;; search; if given it's assumed to be at the boundary between two
-  ;; tokens.
+  ;; tokens.  Return non-nil if the point is moved, nil otherwise.
   (let ((start (point)))
     (cond ((< (skip-syntax-backward "w_" (1- start)) 0)
 	   (skip-syntax-forward "w_"))
@@ -2157,7 +2157,8 @@ This function does not do any hidden buffer changes."
 		      ;; syntax, but move forward in case it doesn't so that
 		      ;; we don't leave point earlier than we started with.
 		      (forward-char))
-		    (< (point) start)))))))
+		    (< (point) start)))))
+    (> (point) start)))
 
 (defconst c-jump-syntax-balanced
   (if (memq 'gen-string-delim c-emacs-features)
@@ -4404,35 +4405,52 @@ brace."
   (unless (= (point) (c-point 'boi))
     ;; What we have below is actually an extremely stripped variant of
     ;; c-beginning-of-statement-1.
-    (let ((pos (point)))
+    (let ((pos (point)) c-maybe-labelp)
       ;; Switch syntax table to avoid stopping at line continuations.
       (save-restriction
 	(if lim (narrow-to-region lim (point-max)))
 	(while (and (progn
 		      (c-backward-syntactic-ws)
 		      (c-safe (goto-char (scan-sexps (point) -1)) t))
-		    (not (c-crosses-statement-barrier-p (point) pos)))
+		    (not (c-crosses-statement-barrier-p (point) pos))
+		    (not c-maybe-labelp))
 	  (setq pos (point)))
 	(goto-char pos)))))
 
-(defsubst c-search-decl-header-end ()
+(defun c-search-decl-header-end ()
   ;; Search forward for the end of the "header" of the current
   ;; declaration.  That's the position where the definition body
   ;; starts, or the first variable initializer, or the ending
   ;; semicolon.  I.e. search forward for the closest following
   ;; (syntactically relevant) '{', '=' or ';' token.  Point is left
   ;; _after_ the first found token, or at point-max if none is found.
-  (if (c-major-mode-is 'c++-mode)
-      ;; In C++ we need to take special care to handle those pesky
-      ;; template brackets.
-      (while (and (c-syntactic-re-search-forward "[;{=<]" nil 'move t)
-		  (when (eq (char-before) ?<)
-		    (c-with-syntax-table c++-template-syntax-table
-		      (if (c-safe (goto-char (c-up-list-forward (point))))
-			  t
-			(goto-char (point-max))
-			nil)))))
-    (c-syntactic-re-search-forward "[;{=]" nil 'move t t)))
+
+  (let ((base (point)))
+    (if (c-major-mode-is 'c++-mode)
+
+	;; In C++ we need to take special care to handle operator
+	;; tokens and those pesky template brackets.
+	(while (and
+		(c-syntactic-re-search-forward "[;{<=]" nil 'move t t)
+		(or
+		 (c-end-of-current-token base)
+		 ;; Handle operator identifiers, i.e. ignore any
+		 ;; operator token preceded by "operator".
+		 (save-excursion
+		   (and (c-safe (c-backward-sexp) t)
+			(looking-at "operator\\([^_]\\|$\\)")))
+		 (and (eq (char-before) ?<)
+		      (c-with-syntax-table c++-template-syntax-table
+			(if (c-safe (goto-char (c-up-list-forward (point))))
+			    t
+			  (goto-char (point-max))
+			  nil)))))
+	  (setq base (point)))
+
+      (while (and
+	      (c-syntactic-re-search-forward "[;{=]" nil 'move t t)
+	      (c-end-of-current-token base))
+	(setq base (point))))))
 
 (defun c-beginning-of-decl-1 (&optional lim)
   ;; Go to the beginning of the current declaration, or the beginning
@@ -6094,7 +6112,7 @@ This function does not do any hidden buffer changes."
 			   ;; The '}' is unbalanced.
 			   nil
 			 (c-end-of-decl-1)
-			 (> (point) indent-point))))))
+			 (>= (point) indent-point))))))
 	    (goto-char placeholder)
 	    (c-add-stmt-syntax 'topmost-intro-cont nil nil nil
 			       containing-sexp paren-state))
