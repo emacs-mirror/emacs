@@ -1050,7 +1050,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 	 (all-colors (or color-map-colors x-colors))
 	 (this-color nil)
 	 (defined-colors nil))
-    (message "Defining colors...")
     (while all-colors
       (setq this-color (car all-colors)
 	    all-colors (cdr all-colors))
