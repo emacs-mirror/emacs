@@ -792,13 +792,20 @@
   :unify-map "is13194"
   :code-offset #x180000)
 
-(define-charset  'indian-glyph
+(define-charset 'indian-glyph
   "Glyphs for Indian characters."
   :short-name "Indian glyph"
   :iso-final-char ?4
   :emacs-mule-id 240
   :code-space [32 127 32 127]
   :code-offset #x180100)
+
+(define-charset 'devanagari-glyph
+  "Glyphs for Devanagari script.  Subset of `indian-glyph'."
+  :short-name "Devanagari glyph"
+  :code-space [0 255]
+  :code-offset #x180100)
+
 
 ;; Actual Glyph for 1-column width.
 (define-charset 'indian-1-column
@@ -991,15 +998,15 @@
 ;; (Can we avoid that and do it anyhow (with lazy loading)?)
 (unify-charset 'chinese-sisheng)
 (unify-charset 'indian-is13194)
-;; (unify-charset 'ipa)
-;; (unify-charset 'tibetan)
-;; (unify-charset 'ethiopic)
+(unify-charset 'korean-ksc5601)
+(unify-charset 'ipa)
+(unify-charset 'tibetan)
+(unify-charset 'ethiopic)
 ;; (unify-charset 'japanese-jisx0208-1978)
-;; (unify-charset 'japanese-jisx0208)
-;; (unify-charset 'japanese-jisx0212)
-;; (unify-charset 'japanese-jisx0213-1)
-;; (unify-charset 'japanese-jisx0213-2)
-;; (unify-charset 'korean-ksc5601)
+(unify-charset 'japanese-jisx0208)
+(unify-charset 'japanese-jisx0212)
+(unify-charset 'japanese-jisx0213-1)
+(unify-charset 'japanese-jisx0213-2)
 
 
 ;; These are tables for translating characters on decoding and
