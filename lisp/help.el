@@ -331,13 +331,8 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 		(princ " at that spot"))
 	    (princ " runs the command ")
 	    (prin1 defn)
-	    (princ "\n")
-	    (let ((doc (documentation defn)))
-	      (if doc
-		  (progn (terpri)
-			 (princ doc)
-                         (help-setup-xref (cons #'describe-key key) (interactive-p)))
-		(princ "not documented")))
+	    (princ "\n   which is ")
+	    (describe-function-1 defn nil)
 	    (print-help-return-message)))))))
 
 (defun describe-mode ()
@@ -579,71 +574,80 @@ C-w Display information on absence of warranty for GNU Emacs."
 	;; Use " is " instead of a colon so that
 	;; it is easier to get out the function name using forward-sexp.
 	(princ " is ")
-	(let* ((def (symbol-function function))
-	       file-name
-	       (beg (if (commandp def) "an interactive " "a ")))
-	  (princ (cond ((or (stringp def)
-			    (vectorp def))
-			"a keyboard macro")
-		       ((subrp def)
-			(concat beg "built-in function"))
-		       ((byte-code-function-p def)
-			(concat beg "compiled Lisp function"))
-		       ((symbolp def)
-			(format "alias for `%s'" def))
-		       ((eq (car-safe def) 'lambda)
-			(concat beg "Lisp function"))
-		       ((eq (car-safe def) 'macro)
-			"a Lisp macro")
-		       ((eq (car-safe def) 'mocklisp)
-			"a mocklisp function")
-		       ((eq (car-safe def) 'autoload)
-			(setq file-name (nth 1 def))
-			(format "%s autoloaded Lisp %s"
-				(if (commandp def) "an interactive" "an")
-				(if (nth 4 def) "macro" "function")
-				))
-		       (t "")))
-	  (or file-name
-	      (setq file-name (describe-function-find-file function)))
-	  (if file-name
-	      (progn
-		(princ " in `")
-		;; We used to add .el to the file name,
-		;; but that's completely wrong when the user used load-file.
-		(princ file-name)
-		(princ "'")))
-	  (princ ".")
-	  (terpri)
-	  (let* ((inner-function (if (and (listp def) 'macro)
-				     (cdr def)
-				   def))
-		 (arglist (cond ((byte-code-function-p inner-function)
-				(car (append inner-function nil)))
-			       ((eq (car-safe inner-function) 'lambda)
-				(nth 1 inner-function))
-			       (t t))))
-	    (if (listp arglist)
-		(progn
-		  (princ (cons function
-			       (mapcar (lambda (arg)
-					 (if (memq arg '(&optional &rest))
-					     arg
-					   (intern (upcase (symbol-name arg)))))
-				       arglist)))
-		  (terpri))))
-	  (let ((doc (documentation function)))
-	    (if doc
-		(progn (terpri)
-		       (princ doc)
-                       (help-setup-xref (cons #'describe-function function) (interactive-p)))
-	      (princ "not documented"))))
+	(describe-function-1 function nil)
 	(print-help-return-message)
 	(save-excursion
 	  (set-buffer standard-output)
 	  ;; Return the text we displayed.
 	  (buffer-string)))
     (message "You didn't specify a function")))
+
+(defun describe-function-1 (function parens)
+  (let* ((def (symbol-function function))
+	 file-name string need-close
+	 (beg (if (commandp def) "an interactive " "a ")))
+    (setq string
+	  (cond ((or (stringp def)
+		     (vectorp def))
+		 "a keyboard macro")
+		((subrp def)
+		 (concat beg "built-in function"))
+		((byte-code-function-p def)
+		 (concat beg "compiled Lisp function"))
+		((symbolp def)
+		 (format "alias for `%s'" def))
+		((eq (car-safe def) 'lambda)
+		 (concat beg "Lisp function"))
+		((eq (car-safe def) 'macro)
+		 "a Lisp macro")
+		((eq (car-safe def) 'mocklisp)
+		 "a mocklisp function")
+		((eq (car-safe def) 'autoload)
+		 (setq file-name (nth 1 def))
+		 (format "%s autoloaded Lisp %s"
+			 (if (commandp def) "an interactive" "an")
+			 (if (nth 4 def) "macro" "function")
+			 ))
+		(t "")))
+    (when (and parens (not (equal string "")))
+      (setq need-close t)
+      (princ "("))
+    (princ string)
+    (or file-name
+	(setq file-name (describe-function-find-file function)))
+    (if file-name
+	(progn
+	  (princ " in `")
+	  ;; We used to add .el to the file name,
+	  ;; but that's completely wrong when the user used load-file.
+	  (princ file-name)
+	  (princ "'")))
+    (if need-close (princ ")"))
+    (princ ".")
+    (terpri)
+    (let* ((inner-function (if (and (listp def) 'macro)
+			       (cdr def)
+			     def))
+	   (arglist (cond ((byte-code-function-p inner-function)
+			   (car (append inner-function nil)))
+			  ((eq (car-safe inner-function) 'lambda)
+			   (nth 1 inner-function))
+			  (t t))))
+      (if (listp arglist)
+	  (progn
+	    (princ (cons function
+			 (mapcar (lambda (arg)
+				   (if (memq arg '(&optional &rest))
+				       arg
+				     (intern (upcase (symbol-name arg)))))
+				 arglist)))
+	    (terpri))))
+    (let ((doc (documentation function)))
+      (if doc
+	  (progn (terpri)
+		 (princ doc)
+		 (help-setup-xref (cons #'describe-function function) (interactive-p)))
+	(princ "not documented")))))
 
 ;; We return 0 if we can't find a variable to return.
 (defun variable-at-point ()
