@@ -641,7 +641,8 @@ record_load_unwind (old)
 DEFUN ("load", Fload, Sload, 1, 5, 0,
        doc: /* Execute a file of Lisp code named FILE.
 First try FILE with `.elc' appended, then try with `.el',
- then try FILE unmodified.  Environment variable references in FILE
+ then try FILE unmodified (the exact suffixes are determined by
+`load-suffixes').  Environment variable references in FILE
  are replaced with their values by calling `substitute-in-file-name'.
 This function searches the directories in `load-path'.
 If optional second arg NOERROR is non-nil,

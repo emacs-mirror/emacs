@@ -2302,11 +2302,13 @@ Emacs is running.  */);
 	       doc: /* Non-nil means Emacs is running without interactive terminal.  */);
 
   DEFVAR_LISP ("kill-emacs-hook", &Vkill_emacs_hook,
-	       doc: /* Hook to be run whenever kill-emacs is called.
-Since kill-emacs may be invoked when the terminal is disconnected (or
+	       doc: /* Hook to be run when kill-emacs is called.
+Since `kill-emacs' may be invoked when the terminal is disconnected (or
 in other similar situations), functions placed on this hook should not
 expect to be able to interact with the user.  To ask for confirmation,
-see `kill-emacs-query-functions' instead.  */);
+see `kill-emacs-query-functions' instead.
+
+The hook is not run in batch mode, i.e., if `noninteractive' is non-nil.  */);
   Vkill_emacs_hook = Qnil;
 
   empty_string = build_string ("");
