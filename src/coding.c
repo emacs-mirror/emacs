@@ -2598,6 +2598,8 @@ encode_coding_sjis_big5 (coding, source, destination,
 		}
 	      else if (charset == charset_katakana_jisx0201)
 		EMIT_ONE_BYTE (c1 | 0x80);
+	      else if (charset == charset_latin_jisx0201)
+		EMIT_ONE_BYTE (c1);
 	      else
 		/* There's no way other than producing the internal
 		   codes as is.  */
