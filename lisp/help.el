@@ -436,12 +436,19 @@ of the key sequence that ran this command."
 
 (defun view-emacs-news (&optional arg)
   "Display info on recent changes to Emacs.
-With numeric argument display information on correspondingly older changes."
+With numeric argument, display information on correspondingly older changes."
   (interactive "P")
-  (let* ((arg (if arg (prefix-numeric-value arg) 0)))
-    (find-file-read-only
-     (expand-file-name (concat (make-string arg ?O) "NEWS")
-		       data-directory))))
+  (let* ((arg (if arg (prefix-numeric-value arg) 0))
+	 (file (cond ((eq arg 0) "NEWS")
+		     ((eq arg 1) "ONEWS")
+		     (t
+		      (nth (- arg 2)
+			   (nreverse (directory-files data-directory
+						      nil "^NEWS\\.[0-9]+$"
+						      nil)))))))
+    (if file
+	(find-file-read-only (expand-file-name file data-directory))
+      (error "No such old news"))))
 
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
