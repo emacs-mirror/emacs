@@ -227,21 +227,6 @@ we're in the GUD buffer)."
 
     output))
 
-(defun gud-new-keymap (map)
-  "Return a new keymap which inherits from MAP and has name `Gud'."
-  (nconc (make-sparse-keymap "Gud") map))
-
-(defun gud-make-debug-menu ()
-  "Make sure the current local map has a [menu-bar debug] submap.
-If it doesn't, replace it with a new map that inherits it,
-and create such a submap in that new map."
-  (if (and (current-local-map)
-	   (lookup-key (current-local-map) [menu-bar debug]))
-      nil
-    (use-local-map (gud-new-keymap (current-local-map)))
-    (define-key (current-local-map) [menu-bar debug]
-      (cons "Gud" (gud-new-keymap gud-menu-map)))))
-
 (defun gud-gdb-find-file (f)
   (save-excursion
     (let ((buf (find-file-noselect f)))
@@ -1476,6 +1461,22 @@ Obeying it means displaying in another window the specified file and line."
   (recenter arg)
   (or gud-last-frame (setq gud-last-frame gud-last-last-frame))
   (gud-display-frame))
+
+
+(defun gud-new-keymap (map)
+  "Return a new keymap which inherits from MAP and has name `Gud'."
+  (nconc (make-sparse-keymap "Gud") map))
+
+(defun gud-make-debug-menu ()
+  "Make sure the current local map has a [menu-bar debug] submap.
+If it doesn't, replace it with a new map that inherits it,
+and create such a submap in that new map."
+  (if (and (current-local-map)
+	   (lookup-key (current-local-map) [menu-bar debug]))
+      nil
+    (use-local-map (gud-new-keymap (current-local-map)))
+    (define-key (current-local-map) [menu-bar debug]
+      (cons "Gud" (gud-new-keymap gud-menu-map)))))
 
 ;;; Code for parsing expressions out of C code.  The single entry point is
 ;;; find-c-expr, which tries to return an lvalue expression from around point.
