@@ -1,3 +1,29 @@
+2005-03-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (activate-mark-hook, deactivate-mark-hook): Add defvars.
+	(push-mark-command): Run activate-mark-hook.
+
+2005-03-06  Richard M. Stallman  <rms@gnu.org>
+
+	* help-mode.el (help-mode-finish): Don't alter the element
+	in view-return-to-alist if there already is one.
+
+	* jit-lock.el (jit-lock-stealth-fontify): When calling sit-for,
+	make sure the current buffer is the expected one.
+
+	* novice.el (disabled-command-function): Output in *Disabled Command*.
+	Explicitly ignore non-keyboard events, and explicitly handle C-g.
+
+	* textmodes/flyspell.el (flyspell-large-region):
+	Pass args differently for aspell.
+
+	* files.el (mode-require-final-newline): Doc fix.
+
+2005-03-03  Stephan Stahl  <stahl@eos.franken.de> (tiny change)
+
+	* progmodes/which-func.el (which-function): 
+	Specify NOERROR when calling imenu--make-index-alist.
+
 2005-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (normal-erase-is-backspace): Define default value.
