@@ -686,43 +686,41 @@ The return value is the end position of composed characters,
 or nil if no characters are composed."
   (setq pos (1- pos))
   (if string
-      (let ((ch (aref string pos))
-	    start end components ch composition)
-	(when (and (>= pos 0)
-		   ;; Previous character is latin.
-		   (aref (char-category-set ch) ?l)
-		   (/= ch 32))
-	  (setq start pos
-		end (length string)
-		components (list ch)
-		pos (1+ pos))
-	  (while (and
-		  (< pos end)
-		  (setq ch (aref string pos)
-			composition
-			(get-char-code-property ch 'diacritic-composition)))
-	    (setq components (cons ch (cons composition components))
-		  pos (1+ pos)))
-	  (compose-string string start pos (nreverse components))
-	  pos))
-    (let ((ch (char-after pos))
-	  start end components composition)
-      (when (and (>= pos (point-min))
-		 (aref (char-category-set ch) ?l)
-		 (/= ch 32))
-	(setq start pos
-	      end (point-max)
-	      components (list ch)
-	      pos (1+ pos))
-	(while (and
-		(< pos end)
-		(setq ch (char-after pos)
-		      composition
-		      (get-char-code-property ch 'diacritic-composition)))
-	  (setq components (cons ch (cons composition components))
-		pos (1+ pos)))
-	(compose-region start pos (nreverse components))
-	pos))))
+      (if (>= pos 0)
+	  (let ((ch (aref string pos))
+		start end components ch composition)
+	    (when (and (>= ch 32) (or (< ch 127) (>= ch 160)))
+	      (setq start pos
+		    end (length string)
+		    components (list ch)
+		    pos (1+ pos))
+	      (while (and
+		      (< pos end)
+		      (setq ch (aref string pos)
+			    composition
+			    (get-char-code-property ch
+						    'diacritic-composition)))
+		(setq components (cons ch (cons composition components))
+		      pos (1+ pos)))
+	      (compose-string string start pos (nreverse components))
+	      pos)))
+    (if (>= pos (point-min))
+	(let ((ch (char-after pos))
+	      start end components composition)
+	  (when (and (>= ch 32) (or (< ch 127) (>= ch 160)))
+	    (setq start pos
+		  end (point-max)
+		  components (list ch)
+		  pos (1+ pos))
+	    (while (and
+		    (< pos end)
+		    (setq ch (char-after pos)
+			  composition
+			  (get-char-code-property ch 'diacritic-composition)))
+	      (setq components (cons ch (cons composition components))
+		    pos (1+ pos)))
+	    (compose-region start pos (nreverse components))
+	    pos)))))
 
 (provide 'european)
 
