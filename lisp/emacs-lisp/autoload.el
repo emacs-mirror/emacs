@@ -379,19 +379,23 @@ Autoload section for %s is up to date."
       (if (interactive-p) (save-buffer)))))
 
 ;;;###autoload
-(defun update-autoloads-from-directory (dir)
+(defun update-autoloads-from-directories (&rest dirs)
   "\
-Update loaddefs.el with all the current autoloads from DIR, and no old ones.
+Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
 This uses `update-file-autoloads' (which see) do its work."
   (interactive "DUpdate autoloads from directory: ")
-  (setq dir (expand-file-name dir))
-  (let ((files (directory-files dir t "^[^=].*\\.el$")))
+  (let ((files (apply 'nconc
+		      (mapcar (function (lambda (dir)
+					  (directory-files (expand-file-name dir)
+							   t
+							   "^[^=].*\\.el$")))
+			      dirs)))
+	autoloads-file
+	top-dir)
+    (setq autoloads-file (locate-library generated-autoload-file))
+    (setq top-dir (file-name-directory autoloads-file))
     (save-excursion
-      (set-buffer (find-file-noselect
-		   (if (file-exists-p generated-autoload-file)
-		       (expand-file-name generated-autoload-file)
-		     (expand-file-name generated-autoload-file
-				       dir))))
+      (set-buffer (find-file-noselect autoloads-file))
       (save-excursion
 	(goto-char (point-min))
 	(while (search-forward generate-autoload-section-header nil t)
@@ -400,7 +404,7 @@ This uses `update-file-autoloads' (which see) do its work."
 			 (end-of-file nil)))
 		 (file (nth 3 form)))
 	    (cond ((not (stringp file)))
-		  ((not (file-exists-p (expand-file-name file dir)))
+		  ((not (file-exists-p (expand-file-name file top-dir)))
 		   ;; Remove the obsolete section.
 		   (let ((begin (match-beginning 0)))
 		     (search-forward generate-autoload-section-trailer)
@@ -415,8 +419,8 @@ This uses `update-file-autoloads' (which see) do its work."
 ;;;###autoload
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
-Calls `update-autoloads-from-directory' on each command line argument."
-  (mapcar 'update-autoloads-from-directory command-line-args-left)
+Calls `update-autoloads-from-directories' on the command line arguments."
+  (apply 'update-autoloads-from-directories command-line-args-left)
   (setq command-line-args-left nil))
 
 (provide 'autoload)
