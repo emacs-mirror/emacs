@@ -7,6 +7,9 @@
 #ifdef _WINSOCKAPI_
 #undef _WINSOCKAPI_
 #endif
+#ifdef _WINSOCK_H
+#undef _WINSOCK_H
+#endif
 
 /* avoid confusion with our version of select */
 #ifdef select
@@ -21,9 +24,6 @@
 #undef FD_ISSET
 #undef FD_ZERO
 #endif
-
-/* allow us to provide our own version of fd_set */
-#define fd_set ws_fd_set
 
 /* avoid duplicate definition of timeval */
 #ifdef HAVE_TIMEVAL
@@ -43,7 +43,9 @@
 #undef FD_CLR
 #undef FD_ISSET
 #undef FD_ZERO
-#undef fd_set
+
+/* allow us to provide our own version of fd_set */
+#define fd_set ws_fd_set
 #include "w32.h"
 
 #ifdef HAVE_TIMEVAL
