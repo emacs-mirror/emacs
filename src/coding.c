@@ -4870,7 +4870,7 @@ decode_eol_post_ccl (coding, ptr, bytes)
 int
 decode_coding (coding, source, destination, src_bytes, dst_bytes)
      struct coding_system *coding;
-     const const unsigned char *source;
+     const unsigned char *source;
      unsigned char *destination;
      int src_bytes, dst_bytes;
 {
