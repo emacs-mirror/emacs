@@ -855,11 +855,11 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
   /* If OBJ is (error STRING), just return STRING.
      That is not only faster, it also avoids the need to allocate
      space here when the error is due to memory full.  */
-  if (CONSP (obj) && EQ (XCONS (obj)->car, Qerror)
-      && CONSP (XCONS (obj)->cdr)
-      && STRINGP (XCONS (XCONS (obj)->cdr)->car)
-      && NILP (XCONS (XCONS (obj)->cdr)->cdr))
-    return XCONS (XCONS (obj)->cdr)->car;
+  if (CONSP (obj) && EQ (XCAR (obj), Qerror)
+      && CONSP (XCDR (obj))
+      && STRINGP (XCAR (XCDR (obj)))
+      && NILP (XCDR (XCDR (obj))))
+    return XCAR (XCDR (obj));
 
   print_error_message (obj, Vprin1_to_string_buffer);
 
@@ -909,7 +909,7 @@ print_error_message (data, stream)
   /* For file-error, make error message by concatenating
      all the data items.  They are all strings.  */
   if (!NILP (file_error) && CONSP (tail))
-    errmsg = XCONS (tail)->car, tail = XCONS (tail)->cdr;
+    errmsg = XCAR (tail), tail = XCDR (tail);
 
   if (STRINGP (errmsg))
     Fprinc (errmsg, stream);
@@ -1266,7 +1266,7 @@ print_object (obj, printcharfun, escapeflag)
       {
 	char pigbuf[350];	/* see comments in float_to_string */
 
-	float_to_string (pigbuf, XFLOAT(obj)->data);
+	float_to_string (pigbuf, XFLOAT_DATA (obj));
 	strout (pigbuf, -1, -1, printcharfun, 0);
       }
       break;
@@ -1814,10 +1814,10 @@ print_object (obj, printcharfun, escapeflag)
 			    printcharfun, escapeflag);
 	    }
 	  strout ("[alist-elt] ", -1, -1, printcharfun, 0);
-	  print_object (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->car,
+	  print_object (XCAR (XBUFFER_LOCAL_VALUE (obj)->cdr),
 			printcharfun, escapeflag);
 	  strout ("[default-value] ", -1, -1, printcharfun, 0);
-	  print_object (XCONS (XBUFFER_LOCAL_VALUE (obj)->cdr)->cdr,
+	  print_object (XCDR (XBUFFER_LOCAL_VALUE (obj)->cdr),
 			printcharfun, escapeflag);
 	  PRINTCHAR ('>');
 	  break;
