@@ -3986,7 +3986,8 @@ load_overlay_strings (it, charpos)
      int charpos;
 {
   extern Lisp_Object Qafter_string, Qbefore_string, Qwindow, Qpriority;
-  Lisp_Object ov, overlay, window, str, invisible;
+  Lisp_Object overlay, window, str, invisible;
+  struct Lisp_Overlay *ov;
   int start, end;
   int size = 20;
   int n = 0, i, j, invis_p;
@@ -4026,9 +4027,9 @@ load_overlay_strings (it, charpos)
   while (0)
 
   /* Process overlay before the overlay center.  */
-  for (ov = current_buffer->overlays_before; CONSP (ov); ov = XCDR (ov))
+  for (ov = current_buffer->overlays_before; ov; ov = ov->next)
     {
-      overlay = XCAR (ov);
+      XSETMISC (overlay, ov);
       xassert (OVERLAYP (overlay));
       start = OVERLAY_POSITION (OVERLAY_START (overlay));
       end = OVERLAY_POSITION (OVERLAY_END (overlay));
@@ -4066,9 +4067,9 @@ load_overlay_strings (it, charpos)
     }
 
   /* Process overlays after the overlay center.  */
-  for (ov = current_buffer->overlays_after; CONSP (ov); ov = XCDR (ov))
+  for (ov = current_buffer->overlays_after; ov; ov = ov->next)
     {
-      overlay = XCAR (ov);
+      XSETMISC (overlay, ov);
       xassert (OVERLAYP (overlay));
       start = OVERLAY_POSITION (OVERLAY_START (overlay));
       end = OVERLAY_POSITION (OVERLAY_END (overlay));
