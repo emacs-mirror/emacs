@@ -1,3 +1,9 @@
+2003-05-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-delete-file): Fix free variable reference.
+	(vc-annotate-display): Remove obsolesence declaration; it isn't
+	obsolete.
+
 2003-05-25  Kevin Ryde  <user42@zip.com.au>
 
 	* info-look.el (autoconf-mode setups): Recognise AH_ and AU_ entries
