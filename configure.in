@@ -2,7 +2,7 @@ dnl This is an autoconf script.
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
-AC_PREREQ(1.106)dnl
+AC_PREREQ(1.110)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h)
 
@@ -100,6 +100,7 @@ fi
 
 AC_CANONICAL_HOST
 canonical=$host
+configuration=$host_alias
 
 changequote(, )dnl
 
@@ -1089,6 +1090,10 @@ if test $ok_so_far = yes; then
   AC_DEFINE(HAVE_INET_SOCKETS)
 fi
 
+if test -f /usr/lpp/X11/bin/smt.exp; then
+  AC_DEFINE(HAVE_AIX_SMT_EXP)
+fi
+
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
 
@@ -1099,10 +1104,6 @@ version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
 changequote([, ])dnl
 if test x"${version}" = x; then
   AC_MSG_ERROR(can't find current emacs version in \`${srcdir}/lisp/version.el'.)
-fi
-
-if test -f /usr/lpp/X11/bin/smt.exp; then
-  AC_DEFINE(HAVE_AIX_SMT_EXP)
 fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
@@ -1217,6 +1218,7 @@ changequote([, ])dnl
 
 AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile \
 	lwlib/Makefile src/Makefile.in, [
+
 ### Make the necessary directories, if they don't exist.
 for dir in ./src ./lib-src ./cpp ./oldXMenu ./lwlib ./etc ; do
   if test ! -d ${dir}; then
