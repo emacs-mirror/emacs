@@ -375,7 +375,7 @@ read_minibuf_unwind (data)
      so run the hook.  */
   if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
       && !NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qminibuffer_exit_hook);
+    safe_run_hooks (Qminibuffer_exit_hook);
 
   /* Erase the minibuffer we were using at this level.  */
   Fset_buffer (XWINDOW (minibuf_window)->buffer);
