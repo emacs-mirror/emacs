@@ -785,14 +785,19 @@ echo_char (c)
       /* Replace a dash from echo_dash with a space, otherwise
 	 add a space at the end as a separator between keys.  */
       if (STRINGP (echo_string)
-	  && SCHARS (echo_string) > 0)
+	  && SCHARS (echo_string) > 1)
 	{
-	  Lisp_Object last_char, idx;
+	  Lisp_Object last_char, prev_char, idx;
+
+	  idx = make_number (SCHARS (echo_string) - 2);
+	  prev_char = Faref (echo_string, idx);
 
 	  idx = make_number (SCHARS (echo_string) - 1);
 	  last_char = Faref (echo_string, idx);
 
-	  if (XINT (last_char) == '-')
+	  /* We test PREV_CHAR to make sure this isn't the echoing
+	     of a minus-sign.  */
+	  if (XINT (last_char) == '-' && XINT (prev_char) != ' ')
 	    Faset (echo_string, idx, make_number (' '));
 	  else
 	    echo_string = concat2 (echo_string, build_string (" "));
