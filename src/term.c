@@ -1858,7 +1858,7 @@ produce_glyphs (it)
     }
   else if (SINGLE_BYTE_CHAR_P (it->c))
     {
-      /* Comming here means that it->c is from display table, thus we
+      /* Coming here means that it->c is from display table, thus we
 	 must send the code as is to the terminal.  Although there's
 	 no way to know how many columns it occupies on a screen, it
 	 is a good assumption that a single byte code has 1-column
