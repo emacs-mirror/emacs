@@ -1944,12 +1944,13 @@ kbd_buffer_get_event ()
 	{
 	  Lisp_Object value;
 
+	  /* If the user destroys the only frame, Emacs should exit.  */
+	  value = Fvisible_frame_list ();
+	  if (! CONSP (value) || ! CONSP (XCONS (value)->cdr))
+	    kill (getpid (), SIGHUP);
+
 	  Fdelete_frame (event->frame_or_window, Qt);
 	  kbd_fetch_ptr = event + 1;
-
-	  value = Fvisible_frame_list ();
-	  if (! CONSP (value))
-	    kill (getpid (), SIGHUP);
 	}
 #endif
       /* Just discard these, by returning nil.
@@ -3072,26 +3073,25 @@ read_avail_input (expected)
       /* Now read; for one reason or another, this will not block.  */
       while (1)
 	{
-	  int value = read (fileno (stdin), cbuf, nread);
+	  nread = read (fileno (stdin), cbuf, nread);
 #ifdef AIX
 	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
 	     This looks incorrect, but it isn't, because _BSD causes
 	     O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
 	     and that causes a value other than 0 when there is no input.  */
-	  if (value == 0)
+	  if (nread == 0)
 	    kill (SIGHUP, 0);
 #endif
+	  /* This code is wrong, but at least it gets the right results.
+	     Fix it for 19.23.  */
 	  /* Retry the read if it is interrupted.  */
-	  if (value >= 0
+	  if (nread >= 0
 	      || ! (errno == EAGAIN || errno == EFAULT
 #ifdef EBADSLT
 		    || errno == EBADSLT
 #endif
 		    ))
-	    {
-	      nread = value;
-	      break;
-	    }
+	    break;
 	}
 
 #ifndef FIONREAD
