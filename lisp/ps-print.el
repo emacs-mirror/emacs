@@ -1,6 +1,7 @@
 ;;; ps-print.el --- Print text from the buffer as PostScript
 
-;; Copyright (C) 1993-2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 96, 97, 98, 99, 2000
+;; Free Software Foundation, Inc.
 
 ;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
 ;; Author:	Jacques Duthen (was <duthen@cegelec-red.fr>)
