@@ -1,19 +1,41 @@
+2003-05-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* which-func.el (which-func-format): Make it risky-local-variable.
+	(which-func-table): New var.
+	(which-func-current): Make it into a constant modeline spec.
+	(which-func-previous): Remove.
+	(which-func-update): Only update the selected window.
+	(which-func-update-1): Use the new var to allow the current
+	function to be different for a buffer shown in two windows.
+
+	* subr.el (with-selected-window): New macro.
+	(dolist, dotimes, with-current-buffer): Use backquotes.
+	(when, unless, save-match-data, combine-after-change-calls)
+	(with-output-to-string, with-temp-buffer): Add `declare' info.
+	(listify-key-sequence): Don't allocate unnecessarily.
+	(read-quoted-char): Allow up to base 36.
+	(prepare-change-group): Remove unimplemented argument.
+
+	* wid-edit.el (pp-to-string, Info-goto-node): Don't autoload.
+	(widget-choose, widget-map-buttons): Use with-current-buffer.
+	(widget-field-add-space): Change to nil (and to defconst).
+	(widget-info-link-action): Use `info'.
+
 2003-05-17  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-info-frames-custom): Reverse contrast of face for
 	selected frame.
 	(gdb-annotation-rules): Stop using frames-invalid and
-	breakpoints-invalid annotations. Update after post-prompt instead.
+	breakpoints-invalid annotations.  Update after post-prompt instead.
 	(gdb-post-prompt): Update frames and breakpoints here.
 	(gdb-invalidate-frame-and-assembler)
 	(gdb-invalidate-breakpoints-and-assembler): Remove.
 	(gdb-current-address): Remove.
 	(gdb-previous-address): New variable.
 	(gud-until): Extend to work in Assembler buffer
-	(gdb-append-to-inferior-io): Select IO buffer when there is
-	output.
+	(gdb-append-to-inferior-io): Select IO buffer when there is output.
 	(gdb-assembler-custom): Try to get line marker (arrow) to display
-	in window. Correct parsing for OS dependent output syntax of Gdb
+	in window.  Correct parsing for OS dependent output syntax of Gdb
 	command, where.
 	(gdb-frame-handler): Correct parsing for OS dependent output
 	syntax of Gdb command, frame.
