@@ -4102,8 +4102,9 @@ E.g.,
 ;;(define-key minibuffer-local-completion-map "\C-r" 'ange-ftp-re-read-dir)
 ;;(define-key minibuffer-local-must-match-map "\C-r" 'ange-ftp-re-read-dir)
 
-;; The autoload cookie is to make sure the doc is always available.
-;;;###autoload (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
+;;;###autoload
+(defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
+
 ;;;###autoload
 (defun ange-ftp-reread-dir (&optional dir)
   "Reread remote directory DIR to update the directory cache.
