@@ -154,6 +154,24 @@ against the file name, and TYPE is nil for text, t for binary.")
       (remove-hook 'write-file-hooks 'save-to-unix-hook)
       (remove-hook 'after-save-hook 'revert-from-unix-hook))))
 
+;;; Avoid creating auto-save file names containing illegal characters
+;;; (primarily "*", eg. for the *mail* buffer).
+(fset 'original-make-auto-save-file-name
+      (symbol-function 'make-auto-save-file-name))
+
+(defun make-auto-save-file-name ()
+  "Return file name to use for auto-saves of current buffer.
+Does not consider `auto-save-visited-file-name' as that variable is checked
+before calling this function.  You can redefine this for customization.
+See also `auto-save-file-name-p'."
+  (let ((name (original-make-auto-save-file-name))
+	(start 0))
+    ;; destructively replace occurences of * or ? with $
+    (while (string-match "[?*]" name start)
+      (aset name (match-beginning 0) ?$)
+      (setq start (1+ (match-end 0))))
+    name))
+
 ;;; Fix interface to (X-specific) mouse.el
 (defalias 'x-set-selection 'ignore)
 (fset 'x-get-selection '(lambda (&rest rest) ""))
