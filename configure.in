@@ -1939,10 +1939,9 @@ fi
 
 AC_FUNC_GETLOADAVG
 
-AC_CHECK_FUNCS(ftello)
+AC_FUNC_FSEEKO
 
-# UNIX98 PTYs.  AC_SYS_LARGEFILE should have defined _XOPEN_SOURCE
-# if we need it.
+# UNIX98 PTYs.
 AC_CHECK_FUNCS(grantpt)
 
 # PTY-related GNU extensions.
