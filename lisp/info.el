@@ -83,6 +83,22 @@ The Lisp code is executed when the node is selected.")
   :type 'integer
   :group 'info)
 
+(defcustom Info-use-header-line t
+  "*Non-nil means to put the beginning-of-node links in an emacs header-line.
+A header-line does not scroll with the rest of the buffer."
+  :type 'boolean
+  :group 'info)
+
+(defface info-header-xref
+  '((t (:weight bold)))
+  "Face for Info cross-references in a node header."
+  :group 'info)
+
+(defface info-header-node
+  '((t (:weight bold :slant italic)))
+  "Face for Info nodes in a node header."
+  :group 'info)
+
 (defvar Info-directory-list nil
   "List of directories to search for Info documentation files.
 nil means not yet initialized.  In this case, Info uses the environment
@@ -873,6 +889,9 @@ a case-insensitive match is tried."
     (if (numberp nodepos)
 	(+ (- nodepos lastfilepos) (point)))))
 
+(defvar Info-header-line nil
+  "If the info node header is hidden, the text of the header.")
+
 (defun Info-select-node ()
 "Select the info node that point is in.
 Bind this in case the user sets it to nil."
@@ -895,6 +914,7 @@ Bind this in case the user sets it to nil."
       ;; Find the end of it, and narrow.
       (beginning-of-line)
       (let (active-expression)
+	;; Narrow to the node contents
 	(narrow-to-region (point)
 			  (if (re-search-forward "\n[\^_\f]" nil t)
 			      (prog1
@@ -907,6 +927,9 @@ Bind this in case the user sets it to nil."
 			    (point-max)))
 	(if Info-enable-active-nodes (eval active-expression))
 	(if Info-fontify (Info-fontify-node))
+	(if Info-use-header-line
+	    (Info-setup-header-line)
+	  (setq Info-header-line nil))
 	(run-hooks 'Info-selection-hook)))))
 
 (defun Info-set-mode-line ()
@@ -918,6 +941,16 @@ Bind this in case the user sets it to nil."
 				   (or buffer-file-name "")))
 	 ") "
 	 (or Info-current-node ""))))
+
+;; Skip the node header and make it into a header-line.  This function
+;; should be called when the node is already narrowed.
+(defun Info-setup-header-line ()
+  (goto-char (point-min))
+  (forward-line 1)
+  (set (make-local-variable 'Info-header-line)
+       (buffer-substring (point-min) (1- (point))))
+  (setq header-line-format 'Info-header-line)
+  (narrow-to-region (point) (point-max)))
 
 ;; Go to an info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
@@ -1101,15 +1134,20 @@ if ERRORNAME is nil, just return nil.
 Bind this in case the user sets it to nil."
   (let ((case-fold-search t))
     (save-excursion
-      (goto-char (point-min))
-      (forward-line 1)
-      (if (re-search-backward (concat name ":") nil t)
-	  (progn
+      (save-restriction
+	(goto-char (point-min))
+	(when Info-header-line
+	  ;; expose the header line in the buffer
+	  (widen)
+	  (forward-line -1))
+	(let ((bound (point)))
+	  (forward-line 1)
+	  (cond ((re-search-backward (concat name ":") nil bound)
 	    (goto-char (match-end 0))
 	    (Info-following-node-name))
-	(if (eq errorname t)
-	    nil
-	  (error "Node has no %s" (capitalize (or errorname name))))))))
+		((not (eq errorname t))
+		 (error "Node has no %s"
+			(capitalize (or errorname name))))))))))
 
 (defun Info-following-node-name (&optional allowedchars)
   "Return the node name in the buffer following point.
@@ -2321,18 +2359,29 @@ the variable `Info-file-list-for-emacs'."
       (goto-char (point-min))
       (when (looking-at "^File: [^,: \t]+,?[ \t]+")
 	(goto-char (match-end 0))
-	(while
-	    (looking-at "[ \t]*\\([^:, \t\n]+\\):[ \t]+\\([^:,\t\n]+\\),?")
+	(while (looking-at "[ \t]*\\([^:, \t\n]+\\):[ \t]+\\([^:,\t\n]+\\),?")
 	  (goto-char (match-end 0))
-	  (if (save-excursion
-		(goto-char (match-beginning 1))
-		(save-match-data (looking-at "Node:")))
-	      (put-text-property (match-beginning 2) (match-end 2)
-				 'face 'info-node)
-	    (put-text-property (match-beginning 2) (match-end 2)
-			       'face 'info-xref)
-	    (put-text-property (match-beginning 2) (match-end 2)
-			       'mouse-face 'highlight))))
+	  (let* ((nbeg (match-beginning 2))
+		 (nend (match-end 2))
+		 (tbeg (match-beginning 1))
+		 (tag (buffer-substring tbeg (match-end 1))))
+	    (if (string-equal tag "Node")
+		(put-text-property nbeg nend 'face 'info-header-node)
+	      (put-text-property nbeg nend 'face 'info-header-xref)
+	      (put-text-property nbeg nend 'mouse-face 'highlight)
+	      (put-text-property tbeg nend
+				 'help-echo
+				 (concat "Goto node "
+					 (buffer-substring nbeg nend)))
+	      (let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
+					   ("Next" . Info-next)
+					   ("Up" . Info-up))))))
+		(when fun
+		  (let ((keymap (make-sparse-keymap)))
+		    (define-key keymap [header-line mouse-1] fun)
+		    (define-key keymap [header-line mouse-2] fun)
+		    (put-text-property tbeg nend 'local-map keymap))))
+	      ))))
       (goto-char (point-min))
       (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*+\\|=+\\|-+\\)$"
 				nil t)
