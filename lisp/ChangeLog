@@ -1,3 +1,53 @@
+2000-01-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* textmodes/ispell-merged.el (xemacsp, version18p, version-20p):
+	Add ispell- prefix.
+
+2000-01-10  Ken Stevens  <k.stevens@ieee.org>
+
+	* ispell.el:  Only define dictionaries in menus when they exist.
+	(version18p): New variable.
+	(version20p): New variable.
+	(xemacsp): New variable.
+	(ispell-choices-win-default-height): Fix for XEmacs visibility.
+	(ispell-dictionary-alist1): Added Brasileiro dictionary.
+	(ispell-dictionary-alist6): Russian command lines no longer accept
+        run-together words.
+	(ispell-local-dictionary-alist): Add koi8-r to customize definition.
+	(ispell-dictionary-alist): Add koi8-r to customize definition.
+	(check-ispell-version): Added documentation string.  Returns
+        library path when called non-interactively.
+	(ispell-menu-map-needed): Uses new variables.
+	(ispell-library-path): New variable.
+	(ispell-decode-string): XEmacs fix for bogus variable bindings.
+	(ispell-word): Improved documentation string.  Test for valid
+	character mappings.  Correctly check typed in word changes that can
+	result in single words split into multiple words.  Returns
+	replacement word.
+	(ispell-command-loop): Fixes XEmacs display bugs.  Show word to
+	replace in recursive query replace mode.  Help message for
+	recursive edit mode.
+	(ispell-show-choices): Protect against bad framepop bindings.
+	(ispell-help): Fix to work with XEmacs.
+	(ispell-highlight-spelling-error): Use new variables.
+	(ispell-overlay-window): Fix to work with XEmacs.
+	(ispell-parse-output): Passed and returns location information
+	tracking spelling corrections.  Doesn't recheck same word on
+	current line.
+	(ispell-init-process): Protect against bogus XEmacs variable binding.
+	Fix call to single argument in sleep-for.  Use new variables.
+	(ispell-region): Passed and returns location information tracking
+	spelling corrections.  Doesn't check same word on current line.
+	Improved documentation string.  Doesn't resend a line already
+	checked to the ispell process - fixes bug in LaTeX parsing.
+	(ispell-begin-skip-region-regexp): No longer skips <TT> in SGML.
+	(ispell-skip-region): No longer skips <TT> in SGML.
+	(ispell-process-line): Tracks location information with spelling
+	corrections.  Added documentation string.  Accounts for words
+	already accepted on this line.  Don't allow query-replace on line
+	starting with math characters.  Doesn't resend a line already sent
+	to ispell process.  Fixes alignment error bug.
+	
 2000-01-10  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* dired-x.el (dired-guess-shell-alist-default): 
