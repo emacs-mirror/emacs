@@ -55,6 +55,10 @@
 
 1999-12-26  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
 	
+	* progmodes/compile.el (compilation-goto-locus): Delete hideshow
+	overlays if they interfere.
+	(compilation-find-file): Make intangible overlays tangible.
+	
 	* progmodes/hideshow.el: Generally, synch w/ maintainer
 	version 5.9.
 
