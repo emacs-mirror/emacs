@@ -660,15 +660,16 @@ buffer and calling the hook.  It gets one argument, the buffer to display.")
 
   GCPRO1(args);
   name = Feval (Fcar (args));
-  UNGCPRO;
-
   CHECK_STRING (name, 0);
   temp_output_buffer_setup (XSTRING (name)->data);
   buf = Vstandard_output;
+  UNGCPRO;
 
-  val = Fprogn (Fcdr (args));
+  val = Fprogn (XCDR (args));
 
+  GCPRO1 (val);
   temp_output_buffer_show (buf);
+  UNGCPRO;
 
   return unbind_to (count, val);
 }
@@ -1247,8 +1248,8 @@ print_preprocess (obj)
 	{
 	case Lisp_String:
 	  /* A string may have text properties, which can be circular.  */
-	  traverse_intervals (XSTRING (obj)->intervals, 0, 0,
-			      print_preprocess_string, Qnil);
+	  traverse_intervals_noorder (XSTRING (obj)->intervals,
+				      print_preprocess_string, Qnil);
 	  break;
 
 	case Lisp_Cons:
@@ -1467,7 +1468,7 @@ print_object (obj, printcharfun, escapeflag)
 	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
 	    {
 	      traverse_intervals (XSTRING (obj)->intervals,
-				  0, 0, print_interval, printcharfun);
+				  0, print_interval, printcharfun);
 	      PRINTCHAR (')');
 	    }
 
