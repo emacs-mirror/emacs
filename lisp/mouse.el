@@ -95,7 +95,7 @@ PREFIX is the prefix argument (if any) to pass to the command."
       ;; expects this to be set from a menu keymap.
       (setq last-command-event (car (last event)))
       ;; mouse-major-mode-menu was using `command-execute' instead.
-      (call-interactively cmd)))))))
+      (call-interactively cmd))))
 
 (defvar mouse-major-mode-menu-prefix)	; dynamically bound
 
