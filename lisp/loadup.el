@@ -122,6 +122,18 @@
 
 (load "version.el")  ;Don't get confused if someone compiled version.el by mistake.
 
+;; Determine which last version number to use
+;; based on the executables that now exist.
+(if (and (fboundp 'dump-emacs) (not (eq system-type 'ms-dos)))
+    (let* ((base (concat "emacs-" emacs-version))
+	   (files (file-name-all-completions base default-directory))
+	   (versions (mapcar (function (lambda (name)
+					 (string-to-int (substring name (1+ (length base))))))
+			     files)))
+      (setq emacs-version (format "%s.%d"
+				  emacs-version
+				  (1+ (apply 'max versions))))))
+
 ;; Note: all compiled Lisp files loaded above this point
 ;; must be among the ones parsed by make-docfile
 ;; to construct DOC.  Any that are not processed
