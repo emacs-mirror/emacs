@@ -118,7 +118,10 @@ is nil, raise an error."
     (mapcar
      (function (lambda (x) 
 		 (cond ((stringp x) nil)
-		       ((consp x) nil)
+		       ((consp x)
+			;; Remove any feature names that this file provided.
+			(if (eq (car x) 'provide)
+			    (setq features (delq (cdr x) features))))
 		       ((boundp x) (makunbound x))
 		       ((fboundp x)
 			(fmakunbound x)
