@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA ALLOCATION FEATURES
  *
- * $HopeName: MMsrc!arena.c(trunk.77) $
+ * $HopeName: MMsrc!arena.c(trunk.78) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .sources: design.mps.arena is the main design document.
@@ -10,7 +10,7 @@
 #include "poolmv.h"
 #include "mpm.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.77) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.78) $");
 
 
 /* ArenaControlPool -- get the control pool */
@@ -143,13 +143,12 @@ Bool ArenaCheck(Arena arena)
  * methods, not the generic Create.  This is because the class is
  * responsible for allocating the descriptor.
  */
-Res ArenaInit(Arena arena, Lock lock, ArenaClass class)
+Res ArenaInit(Arena arena, ArenaClass class)
 {
   Res res;
 
   /* We do not check the arena argument, because it's _supposed_ to */
   /* point to an uninitialized block of memory. */
-  /* We do not check the lock argument, because it's uninitialized. */
   AVERT(ArenaClass, class);
 
   arena->class = class;
@@ -178,11 +177,11 @@ Res ArenaInit(Arena arena, Lock lock, ArenaClass class)
   arena->chunkSerial = (Serial)0;
   ChunkCacheEntryInit(&arena->chunkCache);
 
-  res = GlobalsInit(ArenaGlobals(arena), lock);
-  if (res != ResOK)
-    return res;
-
   LocusInit(arena);
+
+  res = GlobalsInit(ArenaGlobals(arena));
+  if (res != ResOK)
+    goto failGlobalsInit;
 
   arena->sig = ArenaSig;
 
@@ -191,10 +190,12 @@ Res ArenaInit(Arena arena, Lock lock, ArenaClass class)
   if (res != ResOK) 
     goto failReservoirInit;
 
+  AVERT(Arena, arena);
   return ResOK;
 
 failReservoirInit:
   GlobalsFinish(ArenaGlobals(arena));
+failGlobalsInit:
   return res;
 }
 
@@ -227,23 +228,15 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   if (res != ResOK) 
     goto failControlInit;
 
-  /* initialize the message stuff, design.mps.message */
-  { /* @@@@ in the wrong place */
-    void *v;
-
-    res = ControlAlloc(&v, arena, BTSize(MessageTypeLIMIT), FALSE);
-    if (res != ResOK)
-      goto failEnabledBTAlloc;
-    arena->enabledMessageTypes = v;
-    BTResRange(arena->enabledMessageTypes, 0, MessageTypeLIMIT);
-  }
+  res = GlobalsCompleteCreate(ArenaGlobals(arena));
+  if (res != ResOK) 
+    goto failGlobalsCompleteCreate;
 
   AVERT(Arena, arena);
-  ArenaAnnounce(arena);
   *arenaReturn = arena;
   return ResOK;
 
-failEnabledBTAlloc:
+failGlobalsCompleteCreate:
   ControlFinish(arena);
 failControlInit:
 failStripeSize:
@@ -262,9 +255,9 @@ failInit:
 void ArenaFinish(Arena arena)
 {
   ReservoirFinish(ArenaReservoir(arena));
-  LocusFinish(arena);
-  GlobalsFinish(ArenaGlobals(arena));
   arena->sig = SigInvalid;
+  GlobalsFinish(ArenaGlobals(arena));
+  LocusFinish(arena);
   RingFinish(&arena->chunkRing);
 }
 
@@ -275,21 +268,7 @@ void ArenaDestroy(Arena arena)
 {
   AVERT(Arena, arena);
 
-  ArenaDenounce(arena);
-
-  /* .message.queue.empty: Empty the queue of messages before */
-  /* proceeding to finish the arena.  It is important that this */
-  /* is done before destroying the finalization pool as otherwise */
-  /* the message queue would have dangling pointers to messages */
-  /* whose memory has been unmapped. */
-  MessageEmpty(arena);
-
-  /* throw away the BT used by messages */
-  if (arena->enabledMessageTypes != NULL) {
-    ControlFree(arena, (void *)arena->enabledMessageTypes, 
-                BTSize(MessageTypeLIMIT));
-    arena->enabledMessageTypes = NULL;
-  }
+  GlobalsPrepareToDestroy(ArenaGlobals(arena));
 
   /* Empty the reservoir - see impl.c.reserv.reservoir.finish */
   ReservoirSetLimit(ArenaReservoir(arena), 0);
