@@ -296,7 +296,9 @@ Switch to a buffer visiting file FILENAME, creating one in none exists."
    (list
     (let ((completion-ignored-extensions nil))
       (read-file-name "Filename: " nil nil 'ret-must-match))))
-  (find-file-literally filename)
+  ;; Ignore the user's setting of default-major-mode.
+  (let ((default-major-mode 'hexl-mode))
+    (find-file-literally filename))
   (if (not (eq major-mode 'hexl-mode))
       (hexl-mode)))
 
