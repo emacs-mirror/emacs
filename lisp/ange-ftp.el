@@ -740,8 +740,8 @@ since setting `ange-ftp-default-user' directly does not affect
 the cached information."
   :group 'ange-ftp
   :type '(choice (const :tag "Default" nil)
-		 (const :tag "Prompt" t)
-		 string))
+		 string
+		 (other :tag "Prompt" t)))
 
 (defcustom ange-ftp-netrc-default-user nil
   "Alternate default user name to use when none is specified.
@@ -782,9 +782,9 @@ if there is one."
 If a string, then use that string as the password.
 If nil, prompt the user for a password."
   :group 'ange-ftp
-  :type '(choice (const :tag "User address" t)
-		 (const :tag "Prompt" nil)
-		 string))
+  :type '(choice (const :tag "Prompt" nil)
+		 string
+		 (other :tag "User address" t)))
 
 (defcustom ange-ftp-dumb-unix-host-regexp nil
   "*If non-nil, regexp matching hosts on which `dir' command lists directory."
