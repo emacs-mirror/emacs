@@ -1324,7 +1324,7 @@ With prefix arg N, insert the Nth element."
 		 (mod (- (or yank-pointer 0) n)
 		      length)))
 
-      (erase-field)
+      (delete-field)
       (insert (nth yank-pointer ring))
       (goto-char (point-max)))))
 
@@ -1393,7 +1393,7 @@ If there is no completion possible, say so and continue searching."
   (setq isearch-string (buffer-string))
   (if (isearch-complete1)
       (progn
-	(erase-field)
+	(delete-field)
 	(insert isearch-string))))
 
 
