@@ -1,5 +1,6 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4964,6 +4965,166 @@ integers, including negative integers.")
 
 
 
+
+
+
+#include "md5.h"
+
+DEFUN ("md5", Fmd5, Smd5, 1, 5, 0,
+  "Return MD5 hash of OBJECT, a buffer or string.\n\
+\n\
+The two optional arguments START and END are character positions;\n\
+they can be in either order.\n\
+\n\
+The third optional argument CODING-SYSTEM specify coding system text\n\
+should be converted to before computing digest.  If nil, uses the\n\
+current format or guesses.\n\
+\n\
+Fourth optional argument NOERROR doesn't do anything (for XEmacs\n\
+compatibility).")
+  (object, start, end, coding_system, noerror)
+     Lisp_Object object, start, end, coding_system, noerror;
+{
+  unsigned char digest[16];
+  unsigned char value[33];
+  int i;
+  int size;
+  int size_byte = 0;
+  int start_char = 0, end_char = 0;
+  int start_byte = 0, end_byte = 0;
+  register int b, e;
+  register struct buffer *bp;
+  int temp;
+
+  if (STRINGP(object))
+    {
+      if (NILP (coding_system))
+	{
+	  /* we should guess coding system */
+	  if (STRING_MULTIBYTE (object))
+	    {
+	      /* we make a unibyte string and guess it's coding system
+		 (is this correct?) */
+	      object = string_make_unibyte (object);
+	      coding_system = detect_coding_system 
+		(XSTRING(object)->data, STRING_BYTES(XSTRING (object)), 1);
+	    }
+	  else
+	    {
+	      /* guess coding system */
+	      coding_system = detect_coding_system
+		(XSTRING(object)->data, STRING_BYTES(XSTRING (object)), 1);
+	    }
+
+	  /* encode unibyte string into desired coding system 
+	     (yes encoding functions handle unibyte source) */
+	  object = code_convert_string1 (object, coding_system, Qnil, 1);
+	}
+      else
+	{
+	  /* convert string into given coding system */
+	  if (STRING_MULTIBYTE (object))
+	    {
+	      /* just encode it */
+	      object = code_convert_string1 (object, coding_system, Qnil, 1);
+	    } else {
+	      /* assume string is encoded */
+	    }
+	}
+
+      size = XSTRING (object)->size;
+      size_byte = STRING_BYTES (XSTRING (object));
+
+      if (!NILP (start))
+	{
+	  CHECK_NUMBER (start, 1);
+
+	  start_char = XINT (start);
+
+	  if (start_char < 0)
+	    start_char += size;
+
+	  start_byte = string_char_to_byte (object, start_char);
+	}
+
+      if (NILP (end))
+	{
+	  end_char = size;
+	  end_byte = size_byte;
+	}
+      else
+	{
+	  CHECK_NUMBER (end, 2);
+	  
+	  end_char = XINT (end);
+
+	  if (end_char < 0)
+	    end_char += size;
+	  
+	  end_byte = string_char_to_byte (object, end_char);
+	}
+      
+      if (!(0 <= start_char && start_char <= end_char && end_char <= size))
+	args_out_of_range_3 (object, make_number (start_char),
+			     make_number (end_char));
+    }
+  else
+    {
+      CHECK_BUFFER(object, 0);
+
+      bp = XBUFFER (object);
+	  
+      if (NILP (start))
+	b = BUF_BEGV (bp);
+      else
+	{
+	  CHECK_NUMBER_COERCE_MARKER (start, 0);
+	  b = XINT (start);
+	}
+
+      if (NILP (end))
+	e = BUF_ZV (bp);
+      else
+	{
+	  CHECK_NUMBER_COERCE_MARKER (end, 1);
+	  e = XINT (end);
+	}
+      
+      if (b > e)
+	temp = b, b = e, e = temp;
+      
+      if (!(BUF_BEGV (bp) <= b && e <= BUF_ZV (bp)))
+	args_out_of_range (start, end);
+      
+      if (NILP (coding_system))
+	{
+	  /* we should guess coding system of buffer */
+	  coding_system = XBUFFER (object)->buffer_file_coding_system;
+	  if (NILP (coding_system))
+	    {
+	      /* xxx this can (and should) be handled. I do not know how. */
+	      Fsignal (Qerror, 
+		       Fcons (build_string ("No coding system found"), Qnil));
+	    }
+	}
+
+      object = make_buffer_string (b, e, 0);
+
+      if (STRING_MULTIBYTE (object))
+	object = code_convert_string1 (object, coding_system, Qnil, 1);
+    }
+
+  md5_buffer (XSTRING(object)->data + start_byte, 
+	      STRING_BYTES(XSTRING (object)) - (size_byte - end_byte), 
+	      digest);
+
+  for (i = 0; i < 16; i++)
+    sprintf (&value[2*i], "%02x", digest[i]);
+  value[32] = '\0';
+
+  return make_string (value, 32);
+}
+
 
 void
 syms_of_fns ()
@@ -5111,6 +5272,7 @@ invoked by mouse clicks and mouse menu items.");
   defsubr (&Sbase64_decode_region);
   defsubr (&Sbase64_encode_string);
   defsubr (&Sbase64_decode_string);
+  defsubr (&Smd5);
 }
 
 
