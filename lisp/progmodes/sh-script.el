@@ -572,8 +572,8 @@ documents - you must insert literal tabs by hand.")
   '((bash sh-append posix
 	  "." "alias" "bg" "bind" "builtin" "compgen" "complete"
           "declare" "dirs" "disown" "enable" "fc" "fg" "help" "history"
-          "jobs" "kill" "let" "local" "popd" "printf" "pushd" "source"
-	  "suspend" "typeset" "unalias")
+          "jobs" "kill" "let" "local" "popd" "printf" "pushd" "shopt"
+          "source" "suspend" "typeset" "unalias")
 
     ;; The next entry is only used for defining the others
     (bourne sh-append shell
@@ -796,35 +796,35 @@ See `sh-feature'.")
 
 (defvar sh-font-lock-keywords
   '((csh sh-append shell
-	 '("\\${?[#?]?\\([A-Za-z_][A-Za-z0-9_]*\\|0\\)" 1
-	   font-lock-variable-name-face))
+	 ("\\${?[#?]?\\([A-Za-z_][A-Za-z0-9_]*\\|0\\)" 1
+          font-lock-variable-name-face))
 
     (es sh-append executable-font-lock-keywords
-	'("\\$#?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\)" 1
-	  font-lock-variable-name-face))
+	("\\$#?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\)" 1
+         font-lock-variable-name-face))
 
     (rc sh-append es)
 
     (sh sh-append shell
 	;; Variable names.
-	'("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
+	("\\$\\({#?\\)?\\([A-Za-z_][A-Za-z0-9_]*\\|[-#?@!]\\)" 2
 	  font-lock-variable-name-face)
 	;; Function names.
-	'("^\\(\\sw+\\)[ \t]*(" 1 font-lock-function-name-face)
-	'("\\<\\(function\\)\\>[ \t]*\\(\\sw+\\)?"
+	("^\\(\\sw+\\)[ \t]*(" 1 font-lock-function-name-face)
+	("\\<\\(function\\)\\>[ \t]*\\(\\sw+\\)?"
 	  (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
 
     ;; The next entry is only used for defining the others
     (shell sh-append executable-font-lock-keywords
            ;; Using font-lock-string-face here confuses sh-get-indent-info.
-           '("\\\\$" 0 font-lock-warning-face)
-	   '("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
-	   '("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
+           ("\\\\$" 0 font-lock-warning-face)
+	   ("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
+	   ("\\${?\\([A-Za-z_][A-Za-z0-9_]*\\|[0-9]+\\|[$*_]\\)" 1
 	     font-lock-variable-name-face))
     (rpm sh-append rpm2
-	 '("%{?\\(\\sw+\\)"  1 font-lock-keyword-face))
+	 ("%{?\\(\\sw+\\)"  1 font-lock-keyword-face))
     (rpm2 sh-append shell
-	  '("^\\(\\sw+\\):"  1 font-lock-variable-name-face)))
+	  ("^\\(\\sw+\\):"  1 font-lock-variable-name-face)))
   "Default expressions to highlight in Shell Script modes.  See `sh-feature'.")
 
 (defvar sh-font-lock-keywords-1
@@ -1568,7 +1568,9 @@ in ALIST."
 		    (setq val
 			  (apply 'sh-append
 				 (let ((sh-shell (car (cdr val))))
-				   (sh-feature alist))
+                                   (if (assq sh-shell alist)
+                                       (sh-feature alist)
+                                     (eval sh-shell)))
 				 (cddr val)))))
 	(if function
 	    (nconc alist
