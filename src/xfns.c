@@ -3231,6 +3231,7 @@ This function is an internal primitive--use `make-frame' instead.")
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
   bzero (f->output_data.x, sizeof (struct x_output));
   f->output_data.x->icon_bitmap = -1;
+  f->output_data.x->fontset = -1;
 
   f->icon_name
     = x_get_arg (dpyinfo, parms, Qicon_name, "iconName", "Title", string);
