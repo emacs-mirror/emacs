@@ -532,8 +532,11 @@ popped up to accept a comment."
 
 ;;; Here is a checkin hook that may prove useful to sites using the
 ;;; ChangeLog facility supported by Emacs.
-(defun vc-comment-to-change-log ()
-  (let ((log (find-change-log)))
+(defun vc-comment-to-change-log (&optional file)
+   "Update change log from comments entered into VC for the current file.
+Optional FILE specifies the change log file name; see `find-change-log'.
+See `vc-update-change-log'."
+  (let ((log (find-change-log file)))
     (if log
 	(let ((default-directory (or (file-name-directory log)
 				     default-directory)))
