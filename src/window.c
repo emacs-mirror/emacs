@@ -3714,7 +3714,12 @@ There are two ways to use a list as an element:\n\
 In the first case, FRAME-PARAMETERS are used to create the frame.\n\
 In the latter case, FUNCTION is called with BUFFER as the first argument,\n\
 followed by OTHER-ARGS--it can display BUFFER in any way it likes.\n\
-All this is done by the function found in `special-display-function'.");
+All this is done by the function found in `special-display-function'.\n\
+\n\
+If this variable appears \"not to work\", because you add a name to it\n\
+but that buffer still appears in the selected window, look at the\n\
+values of `same-window-buffer-names' and `same-window-regexps'.\n\
+Those variables take precedence over this one.");
   Vspecial_display_buffer_names = Qnil;
 
   DEFVAR_LISP ("special-display-regexps", &Vspecial_display_regexps,
@@ -3729,7 +3734,12 @@ There are two ways to use a list as an element:\n\
 In the first case, FRAME-PARAMETERS are used to create the frame.\n\
 In the latter case, FUNCTION is called with the buffer as first argument,\n\
 followed by OTHER-ARGS--it can display the buffer in any way it likes.\n\
-All this is done by the function found in `special-display-function'.");
+All this is done by the function found in `special-display-function'.\n\
+\n\
+If this variable appears \"not to work\", because you add a regexp to it\n\
+but the matching buffers still appear in the selected window, look at the\n\
+values of `same-window-buffer-names' and `same-window-regexps'.\n\
+Those variables take precedence over this one.");
   Vspecial_display_regexps = Qnil;
 
   DEFVAR_LISP ("special-display-function", &Vspecial_display_function,
