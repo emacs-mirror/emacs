@@ -203,7 +203,6 @@ Set it to either \`yes' or \`no'."
             val=`eval echo '$'$index`
 	  fi
 	  x_includes="${val}"
-	  C_SWITCH_X_SITE="-I\"${x_includes}\""
         ;;
 	"x_libraries" )
 	  ## If the value was omitted, get it from the next argument.
@@ -219,7 +218,6 @@ Set it to either \`yes' or \`no'."
             val=`eval echo '$'$index`
 	  fi
 	  x_libraries="${val}"
-	  LD_SWITCH_X_SITE="-L\"${x_libraries}\""
         ;;
 
 	## Should this use the "development configuration"?
@@ -952,26 +950,8 @@ AC_HAVE_HEADERS(sys/timeb.h sys/time.h)
 AC_STDC_HEADERS
 AC_TIME_WITH_SYS_TIME
 
-dnl checks for library files
-AC_HAVE_LIBRARY(-ldnet)
-
 dnl checks for typedefs
 AC_RETSIGTYPE
-
-dnl checks for functions
-AC_ALLOCA
-AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir)
-ok_so_far=true
-AC_FUNC_CHECK(socket,, ok_so_far=)
-if test -n "$ok_so_far"; then
-  AC_HEADER_CHECK(netinet/in.h,, ok_so_far=)
-fi
-if test -n "$ok_so_far"; then
-  AC_HEADER_CHECK(arpa/inet.h,, ok_so_far=)
-fi
-if test -n "$ok_so_far"; then
-  AC_DEFINE(HAVE_INET_SOCKETS)
-fi
 
 dnl checks for structure members
 AC_STRUCT_TM
@@ -1009,37 +989,48 @@ case "${with_x10}" in
   ;;
 esac
 
-### If the user hasn't specified where we should find X, try
-### letting autoconf figure that out.
-if [ "0${x_includes}" = 0 ] && [ "0${x_libraries}" = 0 ]; then
-  ]
-    AC_FIND_X
-  [
-  if [ "0${x_includes}" != 0 ]; then
-    C_SWITCH_X_SITE="-I\"${x_includes}\""
-  fi
-  if [ "0${x_libraries}" != 0 ]; then
-    LD_SWITCH_X_SITE="-L\"${x_libraries}\""
-  fi
-fi
-
 case "${window_system}" in
   "none" | "x11" | "x10" ) ;;
   "" )
-    echo "  No window system specified.  Looking for X11."
-    window_system=none
-    if [ -r /usr/lib/libX11.a \
+    # --x-includes or --x-libraries implies --with-x11.
+    if [ -n "${x_includes}" ] || [ -n "${x_libraries}" ]; then
+      window_system=x11
+    else
+      echo "  No window system specified.  Looking for X11."
+      # If the user didn't specify a window system and we found X11, use it.
+      if [ -r /usr/lib/libX11.a \
 	 -o -d /usr/include/X11 \
          -o -d /usr/X386/include \
 	 -o -d ${x_includes}/X11 ]; then
-      window_system=x11
+        window_system=x11
+      fi
     fi
   ;;
   * )
-    echo "Don't specify the window system more than once." >&2
+    echo "Don't specify a window system more than once." >&2
     exit 1
   ;;
 esac
+
+case "${window_system}" in
+  "" | "x11" )
+    ### If the user hasn't specified where we should find X, try
+    ### letting autoconf figure that out.
+    if [ -z "${x_includes}" ] && [ -z "${x_libraries}" ]; then
+      ]
+      AC_FIND_X
+      [
+    fi
+    if [ -n "${x_includes}" ] || [ -n "${x_libraries}" ]; then
+      window_system=x11
+    fi
+  ;;
+esac
+
+[ -z "${window_system}" ] && window_system=none
+
+[ -n "${x_libraries}" ] && LD_SWITCH_X_SITE="-L${x_libraries}"
+[ -n "${x_includes}" ] && C_SWITCH_X_SITE="-I${x_includes}"
 
 case "${window_system}" in
   x11 )
@@ -1092,6 +1083,19 @@ echo '
 #endif
 @configure@ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
 @configure@ c_switch_system=C_SWITCH_SYSTEM
+
+#ifndef LIB_X11_LIB
+#define LIB_X11_LIB
+#endif
+
+#ifndef LIBX11_MACHINE
+#define LIBX11_MACHINE
+#endif
+
+#ifndef LIBX11_SYSTEM
+#define LIBX11_SYSTEM
+#endif
+@configure@ LIBX=LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
 
 #ifdef UNEXEC
 @configure@ unexec=UNEXEC
@@ -1146,33 +1150,43 @@ fi
 LISP_FLOAT_TYPE=yes
 
 
-#### Add the X libraries to the list, and check for some functions found there.
-CFLAGS_save="$CFLAGS"
-CFLAGS="${CFLAGS} ${LD_SWITCH_X_SITE}"
-]
-AC_HAVE_LIBRARY(-lXbsd)
-[
-LIBS_save="$LIBS"
-if [ "${HAVE_X11}" = "yes" ] ; then
-  LIBS="-lX11 ${LIBS}"
-fi
-]
-AC_HAVE_FUNCS(XrmSetDatabase random)
-[
-CFLAGS="$CFLAGS_save"
-LIBS="$LIBS_save"
+#### Add the libraries to LIBS and check for some functions.
 
-case "${window_system}:${LIBS}" in
-  x11:*-lXbsd* )
-    if [ -d /usr/X386/include ]; then
+]
+DEFS="$c_switch_system $DEFS"
+LIBS="$libsrc_libs"
+
+dnl If found, this defines HAVE_LIBDNET, which m/pmax.h checks,
+dnl and also adds -ldnet to LIBS, which Autoconf uses for checks.
+AC_HAVE_LIBRARY(-ldnet)
+
+AC_HAVE_LIBRARY(-lXbsd, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd"
+    if test -d /usr/X386/include; then
       HAVE_XFREE386=yes
-      if [ "${C_SWITCH_X_SITE}" = "" ]; then
-	C_SWITCH_X_SITE="-I/usr/X386/include"
-      fi
-    fi
-  ;;
-esac
+      test -z "${C_SWITCH_X_SITE}" && C_SWITCH_X_SITE="-I/usr/X386/include"
+    fi)
 
+if test "${HAVE_X11}" = "yes"; then
+  DEFS="$C_SWITCH_X_SITE $DEFS"
+  LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
+  AC_HAVE_FUNCS(XrmSetDatabase random)
+fi
+
+AC_ALLOCA
+AC_HAVE_FUNCS(gettimeofday gethostname dup2 rename closedir)
+
+ok_so_far=true
+AC_FUNC_CHECK(socket, , ok_so_far=)
+if test -n "$ok_so_far"; then
+  AC_HEADER_CHECK(netinet/in.h, , ok_so_far=)
+fi
+if test -n "$ok_so_far"; then
+  AC_HEADER_CHECK(arpa/inet.h, , ok_so_far=)
+fi
+if test -n "$ok_so_far"; then
+  AC_DEFINE(HAVE_INET_SOCKETS)
+fi
+[
 #### Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
 	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\)\..*$/\1/'`
@@ -1245,5 +1259,11 @@ Configured for \`${canonical}'.
   Where do we find X Windows libraries?                   }${x_libraries}
 
 "
+
+# Remove any trailing slashes in these variables.
+test -n "${prefix}" &&
+  prefix=`echo "${prefix}" | sed 's,\([^/]\)/*$,\1,'`
+test -n "${exec_prefix}" &&
+  exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
 AC_OUTPUT(Makefile)
