@@ -1167,11 +1167,10 @@ is encoded in the same coding system that will be used to save the file,
 `buffer-file-coding-system'.  If the output is going to replace the region,
 then it is decoded from that same coding system.
 
-The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER, REPLACE,
-ERROR-BUFFER.  If REPLACE is non-nil, that means insert the output
-in place of text from START to END, putting point and mark around it.
-Noninteractive callers can specify coding systems by binding
-`coding-system-for-read' and `coding-system-for-write'.
+The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER,
+REPLACE, ERROR-BUFFER.  Noninteractive callers can specify coding
+systems by binding `coding-system-for-read' and
+`coding-system-for-write'.
 
 If the output is one line, it is displayed in the echo area,
 but it is nonetheless available in buffer `*Shell Command Output*'
@@ -1186,7 +1185,11 @@ If OUTPUT-BUFFER is not a buffer and not nil,
 insert output in the current buffer.
 In either case, the output is inserted after point (leaving mark after it).
 
-If optional fifth argument ERROR-BUFFER is non-nil, it is a buffer
+If REPLACE, the optional fifth argument, is non-nil, that means insert
+the output in place of text from START to END, putting point and mark
+around it.
+
+If optional fifth sixth ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
 If it is nil, error output is mingled with regular output."
   (interactive (let ((string
