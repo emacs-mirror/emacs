@@ -1,6 +1,6 @@
 /* impl.h.splay: SPLAY TREE HEADER
  *
- * $HopeName: MMsrc!splay.h(trunk.3) $
+ * $Id$
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .source: design.mps.splay

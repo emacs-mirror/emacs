@@ -1,6 +1,6 @@
 /* impl.h.meter: METER INTERFACE
  *
- * $HopeName: MMsrc!meter.h(trunk.7) $
+ * $Id$
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .sources: mps.design.metrics.

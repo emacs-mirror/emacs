@@ -1,6 +1,6 @@
 /*  impl.c.than: ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.20) $
+ *  $Id$
  *  Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  *  This is a single-threaded implementation of the threads manager.
@@ -14,7 +14,7 @@
 
 #include "mpm.h"
 
-SRCID(than, "$HopeName: MMsrc!than.c(trunk.20) $");
+SRCID(than, "$Id$");
 
 
 typedef struct ThreadStruct {   /* ANSI fake thread structure */

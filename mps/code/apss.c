@@ -1,6 +1,6 @@
 /* impl.c.apss: AP MANUAL ALLOC STRESS TEST
  *
- * $HopeName: MMsrc!apss.c(trunk.5) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 

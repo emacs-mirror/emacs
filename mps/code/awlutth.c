@@ -1,6 +1,6 @@
 /* impl.c.awlutth: THREADING UNIT TEST USING POOL CLASS AWL
  *
- * $HopeName: MMsrc!awlutth.c(trunk.2) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * DESIGN

@@ -1,7 +1,7 @@
 /* impl.c.eventpro: Event processing routines
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName: MMsrc!eventpro.c(trunk.4) $
+ * $Id$
  */
 
 #include "config.h"

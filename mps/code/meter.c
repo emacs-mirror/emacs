@@ -1,6 +1,6 @@
 /* impl.c.meter: METERS
  *
- * $HopeName: MMsrc!meter.c(trunk.10) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * TRANSGRESSIONS
@@ -13,7 +13,7 @@
 #include "meter.h"
 #include "mpm.h"
 
-SRCID(meter, "$HopeName: MMsrc!meter.c(trunk.10) $");
+SRCID(meter, "$Id$");
 
 
 /* MeterInit -- initialize a meter */

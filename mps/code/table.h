@@ -1,7 +1,7 @@
 /* impl.h.table: Interface for a dictionary
  * Copyright (C) 1997, 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName: MMsrc!table.h(trunk.2) $
+ * $Id$
  */
 
 #ifndef table_h

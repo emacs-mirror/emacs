@@ -1,6 +1,6 @@
 /* impl.h.prmcfr:  PROTECTION MUTATOR CONTEXT (FREEBSD)
  *
- * $HopeName: $
+ * $Id$
  * Copyright (C) 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MPS developers.

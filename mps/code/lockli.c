@@ -1,6 +1,6 @@
 /* impl.c.lockli: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
- * $HopeName: MMsrc!lockli.c(trunk.2) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .linux: This implementation currently just supports LinuxThreads 
@@ -36,7 +36,7 @@
 #error "lockli.c is specific to LinuxThreads but MPS_OS_LI not defined"
 #endif
 
-SRCID(lockli, "$HopeName: MMsrc!lockli.c(trunk.2) $");
+SRCID(lockli, "$Id$");
 
 
 /* LockAttrSetRecursive -- Set mutexattr to permit recursive locking

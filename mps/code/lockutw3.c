@@ -1,6 +1,6 @@
 /* impl.c.lockutw3: LOCK UTILIZATION TEST
  *
- * $HopeName: MMsrc!lockutw3.c(trunk.9) $
+ * $Id$
  * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  */
 

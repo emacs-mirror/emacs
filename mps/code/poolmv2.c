@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.19) $
+ * $Id$
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A manual-variable pool designed to take advantage of
@@ -16,7 +16,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.19) $");
+SRCID(poolmv2, "$Id$");
 
 
 /* Signatures */

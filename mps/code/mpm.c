@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.35) $
+ * $Id$
  * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  *
  * .purpose: Miscellaneous support for the implementation of the MPM
@@ -15,7 +15,7 @@
 #include <limits.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.35) $");
+SRCID(mpm, "$Id$");
 
 
 /* MPMCheck -- test MPM assumptions */

@@ -1,5 +1,5 @@
 @REM impl.bat.hqbuild: setup for SWIG autobuild system
-@REM $HopeName: MMsrc!hqbuild:tools:hqbuild.bat(trunk.6) $
+@REM $Id$
 @REM Copyright (C) 1996-1998 Harlequin Group plc.  All rights reserved.
 @REM Called by SWIG autobuild system
 @

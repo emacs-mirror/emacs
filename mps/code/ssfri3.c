@@ -1,6 +1,6 @@
 /* impl.c.ssfri3: FREEBSD/INTEL STACK SCANNING
  *
- * $HopeName: MMsrc!sslii3.c(trunk.1) $
+ * $Id$
  * Copyright (C) 1999.  Harlequin Group plc.  All rights reserved.
  *
  *  This scans the stack and fixes the registers which may contain
@@ -32,7 +32,7 @@
 
 #include "mpm.h"
 
-SRCID(ssfri3, "$HopeName: MMsrc!sslii3.c(trunk.1) $");
+SRCID(ssfri3, "$Id$");
 
 /* .assume.asm.order */
 #define ASMV(x) __asm__ volatile (x)

@@ -1,6 +1,6 @@
 /* impl.h.mpsacl: MEMORY POOL SYSTEM ARENA CLASS "CL"
  *
- * $HopeName: MMsrc!mpsacl.h(trunk.3) $
+ * $Id$
  * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  */
 

@@ -1,6 +1,6 @@
 /* impl.c.teletest: TELEMETRY TEST
  *
- * $HopeName: MMsrc!teletest.c(trunk.6) $
+ * $Id$
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .source: The command parser here was taken and adapted from bttest.c.
@@ -14,7 +14,7 @@
 #include <stdlib.h>
 
 
-SRCID(teletest, "$HopeName: MMsrc!teletest.c(trunk.6) $");
+SRCID(teletest, "$Id$");
 
 
 static mps_arena_t arena; 

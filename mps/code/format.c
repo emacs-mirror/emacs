@@ -1,6 +1,6 @@
 /* impl.c.format: OBJECT FORMATS
  *
- * $HopeName: MMsrc!format.c(trunk.21) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -10,7 +10,7 @@
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(trunk.21) $");
+SRCID(format, "$Id$");
 
 
 /* FormatCheck -- check a format */

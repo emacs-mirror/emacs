@@ -1,6 +1,6 @@
 /* .impl.h.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.h(trunk.7) $
+ * $Id$
  * Copyright (C) 1995 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the interface to the manual-variable pool class.

@@ -1,6 +1,6 @@
 #!/bin/nawk -f
 # impl.awk.idlench: IDENTIFIER LENGTH CHECK
-# $HopeName: MMsrc!idlench.awk(trunk.2) $
+# $Id$
 # Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
 #
 # READERSHIP
