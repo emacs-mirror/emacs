@@ -467,15 +467,20 @@ XClearWindow (display, w)
 /* Mac replacement for XCopyArea.  */
 
 static void
-mac_draw_bitmap (display, w, gc, x, y, bitmap, overlay_p)
+mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
      Display *display;
      WindowPtr w;
      GC gc;
-     int x, y;
-     BitMap *bitmap;
+     int x, y, width, height;
+     unsigned short *bits;
      int overlay_p;
 {
+  BitMap bitmap;
   Rect r;
+
+  bitmap.rowBytes = sizeof(unsigned short);
+  bitmap.baseAddr = bits;
+  SetRect (&(bitmap.bounds), 0, 0, width, height);
 
 #if TARGET_API_MAC_CARBON
   SetPort (GetWindowPort (w));
@@ -484,7 +489,7 @@ mac_draw_bitmap (display, w, gc, x, y, bitmap, overlay_p)
 #endif
 
   mac_set_colors (gc);
-  SetRect (&r, x, y, x + bitmap->bounds.right, y + bitmap->bounds.bottom);
+  SetRect (&r, x, y, x + bitmap.bounds.right, y + bitmap.bounds.bottom);
 
 #if TARGET_API_MAC_CARBON
   {
@@ -492,12 +497,12 @@ mac_draw_bitmap (display, w, gc, x, y, bitmap, overlay_p)
 
     LockPortBits (GetWindowPort (w));
     pmh = GetPortPixMap (GetWindowPort (w));
-    CopyBits (bitmap, (BitMap *) *pmh, &(bitmap->bounds), &r,
+    CopyBits (&bitmap, (BitMap *) *pmh, &(bitmap.bounds), &r,
 	      overlay_p ? srcOr : srcCopy, 0);
     UnlockPortBits (GetWindowPort (w));
   }
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits (bitmap, &(w->portBits), &(bitmap->bounds), &r,
+  CopyBits (&bitmap, &(w->portBits), &(bitmap.bounds), &r,
 	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
 }
@@ -1344,10 +1349,7 @@ x_draw_fringe_bitmap (w, row, p)
 
   if (p->which)
     {
-      unsigned char *bits = p->bits + p->dh;
-      BitMap bitmap;
-
-      mac_create_bitmap_from_bitmap_data (&bitmap, bits, p->wd, p->h);
+      unsigned short *bits = p->bits + p->dh;
 
       gcv.foreground = (p->cursor_p
 			? (p->overlay_p ? face->background
@@ -1355,9 +1357,8 @@ x_draw_fringe_bitmap (w, row, p)
 			: face->foreground);
       gcv.background = face->background;
 
-      mac_draw_bitmap (display, window, &gcv, p->x, p->y, &bitmap,
-		       p->overlay_p);
-      mac_free_bitmap (&bitmap);
+      mac_draw_bitmap (display, window, &gcv, p->x, p->y, 
+		       p->wd, p->h, bits, p->overlay_p);
     }
 
   mac_reset_clipping (display, window);
