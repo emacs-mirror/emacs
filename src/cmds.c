@@ -105,7 +105,7 @@ With positive ARG, a non-empty line at the end counts as one line\n\
     }
 
   negp = count <= 0;
-  pos = scan_buffer ('\n', pos2, count - negp, &shortage);
+  pos = scan_buffer ('\n', pos2, count - negp, &shortage, 1);
   if (shortage > 0
       && (negp
 	  || (ZV > BEGV
