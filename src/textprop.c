@@ -655,6 +655,7 @@ get_char_property_and_overlay (position, prop, object, overlay)
 
 DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
+Both overlay properties and text properties are checked.
 OBJECT is optional and defaults to the current buffer.
 If POSITION is at the end of OBJECT, the value is nil.
 If OBJECT is a buffer, then overlay properties are considered as well as
