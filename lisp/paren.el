@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993, 1996 Free Software Foundation, Inc.
 
-;; Author: rms@gnu.ai.mit.edu
+;; Author: rms@gnu.org
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
 

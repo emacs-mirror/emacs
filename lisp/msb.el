@@ -72,7 +72,7 @@
 ;;  Alon Albert <alon@milcse.rtsg.mot.com>
 ;;  Kevin Broadey, <KevinB@bartley.demon.co.uk>
 ;;  Ake Stenhof <ake@cadpoint.se>
-;;  Richard Stallman <rms@gnu.ai.mit.edu>
+;;  Richard Stallman <rms@gnu.org>
 ;;  Steve Fisk <fisk@medved.bowdoin.edu>
 
 ;; This version turned into a global minor mode and subsequently

@@ -558,7 +558,7 @@ If SILENT, don't prompt the user."
 		 (concat " - \"" xemacs-codename "\""))))
     (t emacs-version))))
 
-;; Written by "Mr. Per Persson" <pp@gnu.ai.mit.edu>.
+;; Written by "Mr. Per Persson" <pp@gnu.org>.
 (defun gnus-inews-insert-mime-headers ()
   "Insert MIME headers.
 Assumes ISO-Latin-1 is used iff 8-bit characters are present."

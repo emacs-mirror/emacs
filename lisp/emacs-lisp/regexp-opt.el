@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
-;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
+;; Author: Simon Marshall <simon@gnu.org>
 ;; Keywords: strings, regexps
 
 ;; This file is part of GNU Emacs.

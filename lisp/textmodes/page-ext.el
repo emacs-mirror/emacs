@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1990, 1991, 1993, 1994 Free Software Foundation
 
-;; Maintainer: Robert J. Chassell <bob@gnu.ai.mit.edu>
+;; Maintainer: Robert J. Chassell <bob@gnu.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -122,7 +122,7 @@
 ;;     59 Temple Place - Suite 330
 ;;     Boston, MA 02111-1307  USA.
 ;;     (617) 542-5942
-;;     gnu@prep.ai.mit.edu
+;;     gnu@gnu.org
 ;; 
 ;;     
 ;;     House Subcommittee on Intellectual Property,

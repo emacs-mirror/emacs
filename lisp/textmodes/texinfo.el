@@ -5,7 +5,7 @@
 
 ;; Author: Robert J. Chassell
 ;; Date:   [Set date below for texinfo-version]
-;; Maintainer: bug-texinfo@prep.ai.mit.edu
+;; Maintainer: bug-texinfo@gnu.org
 ;; Keywords: maint, tex, docs
 
 ;; This file is part of GNU Emacs.
@@ -287,7 +287,7 @@ chapter."
   '(;; All but the first 2 had an OVERRIDE of t.
     ;; It didn't seem to be any better, and it's slower--simon.
     ("^\\(@c\\|@comment\\)\\>.*" . font-lock-comment-face) ;comments
-    ;; Robert J. Chassell <bob@gnu.ai.mit.edu> says remove this line.
+    ;; Robert J. Chassell <bob@gnu.org> says remove this line.
     ;;("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
     ("@\\([a-zA-Z]+\\|[^ \t\n]\\)" 1 font-lock-keyword-face) ;commands
     ("^\\*\\(.*\\)[\t ]*$" 1 font-lock-function-name-face t) ;menu items

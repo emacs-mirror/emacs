@@ -1,7 +1,7 @@
 ;;; gnus-vm.el --- vm interface for Gnus
 ;; Copyright (C) 1994,95,96,97,98 Free Software Foundation, Inc.
 
-;; Author: Per Persson <pp@gnu.ai.mit.edu>
+;; Author: Per Persson <pp@gnu.org>
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.

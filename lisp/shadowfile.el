@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
-;; Author: Boris Goldowsky <boris@gnu.ai.mit.edu>
+;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -71,7 +71,7 @@
 ;;  - It will not make directories for you, it just fails to copy files
 ;;  that belong in non-existent directories.
 ;;
-;;  Please report any bugs to me (boris@gnu.ai.mit.edu).  Also let me know
+;;  Please report any bugs to me (boris@gnu.org).  Also let me know
 ;;  if you have suggestions or would like to be informed of updates.
 
 ;;; Code:

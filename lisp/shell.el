@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988, 93, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu> then
-;;	Simon Marshall <simon@gnu.ai.mit.edu>
+;;	Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: processes
 
@@ -29,7 +29,7 @@
 ;; Please send me bug reports, bug fixes, and extensions, so that I can
 ;; merge them into the master source.
 ;;     - Olin Shivers (shivers@cs.cmu.edu)
-;;     - Simon Marshall (simon@gnu.ai.mit.edu)
+;;     - Simon Marshall (simon@gnu.org)
 
 ;; This file defines a a shell-in-a-buffer package (shell mode) built
 ;; on top of comint mode.  This is actually cmushell with things

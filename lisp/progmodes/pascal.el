@@ -56,7 +56,7 @@
 ;; package.  This may not be true however, since I never use this mode
 ;; myself and therefore would never notice them anyway.   If you do
 ;; find any bugs, you may submit them to: espensk@stud.cs.uit.no
-;; as well as to bug-gnu-emacs@prep.ai.mit.edu.
+;; as well as to bug-gnu-emacs@gnu.org.
 
 ;;; Code:
 

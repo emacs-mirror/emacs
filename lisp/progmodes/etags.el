@@ -2,7 +2,7 @@
 ;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1998
 ;;	Free Software Foundation, Inc.
 
-;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: tools
 
 ;; This file is part of GNU Emacs.

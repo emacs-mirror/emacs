@@ -39,7 +39,7 @@
 ;; mh-e is an Emacs interface to the MH mail system.
 ;; There is a mailing list for discussion of mh-e and
 ;; announcements of new versions.  Send a "subscribe" message to
-;; mh-e-request@gnu.ai.mit.edu to be added.  Do not report bugs here; mail
+;; mh-e-request@gnu.org to be added.  Do not report bugs here; mail
 ;; them directly to the maintainer (see top of mh-e.el source).
 ;; Include the output of M-x mh-version in any bug report.
 
@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.19 1998/04/15 06:31:29 kwzh Exp rms $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.20 1998/05/03 07:34:07 rms Exp kwzh $")
 
 ;;; Code:
 

@@ -41,15 +41,15 @@
 ;;	tower@gnu.org Jul 18 1986
 ;; bound rmail-output to C-o; and changed header-field commands binding to
 ;; agree with the new C-c C-f usage in sendmail
-;; 	tower@prep Sep  3 1986
+;; 	tower@gnu.org Sep  3 1986
 ;; added news-rotate-buffer-body
-;;	tower@prep Oct 17 1986
+;;	tower@gnu.org Oct 17 1986
 ;; made messages more user friendly, cleaned up news-inews
 ;; move posting and mail code to new file rnewpost.el
-;;	tower@prep Oct 29 1986
+;;	tower@gnu.org Oct 29 1986
 ;; added caesar-region, rename news-caesar-buffer-body, hacked accordingly
-;;	tower@prep Nov 21 1986
-;; added tower@prep 22 Apr 87
+;;	tower@gnu.org Nov 21 1986
+;; added tower@gnu.org 22 Apr 87
 
 ;;; Code:
 
@@ -922,7 +922,7 @@ FName to link to message: ")
    newname))
 
 ;;; caesar-region written by phr@gnu.org  Nov 86
-;;; modified by tower@prep Nov 86
+;;; modified by tower@gnu.org Nov 86
 (defun caesar-region (&optional n)
   "Caesar rotation of region by N, default 13, for decrypting netnews."
   (interactive (if current-prefix-arg	; Was there a prefix arg?

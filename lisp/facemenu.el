@@ -2,7 +2,7 @@
 
 ;; Copyright (c) 1994, 1995, 1996 Free Software Foundation, Inc.
 
-;; Author: Boris Goldowsky <boris@gnu.ai.mit.edu>
+;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
 
 ;; This file is part of GNU Emacs.

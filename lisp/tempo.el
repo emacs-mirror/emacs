@@ -101,7 +101,7 @@
 ;; tempo.el. Thanks.
 
 ;; Nelson Minar <nelson@santafe.edu>
-;; Richard Stallman <rms@gnu.ai.mit.edu>
+;; Richard Stallman <rms@gnu.org>
 ;; Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Glen Whitney <Glen.Whitney@math.lsa.umich.edu>
 

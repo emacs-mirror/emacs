@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
-;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
+;; Author: Simon Marshall <simon@gnu.org>
 ;; Keywords: faces files
 ;; Version: 3.14
 
@@ -236,7 +236,7 @@
 ;  "Submit via mail a bug report on fast-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.14"
+;    (reporter-submit-bug-report "simon@gnu.org" "fast-lock 3.14"
 ;     '(fast-lock-cache-directories fast-lock-minimum-size
 ;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
 ;       fast-lock-verbose)

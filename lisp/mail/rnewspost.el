@@ -30,14 +30,14 @@
 ;; - couldn't see handling the special meaning of the Keyword: poster
 ;; - not worth the code space to support the old A news Title: (which
 ;;   Subject: replaced) and Article-I.D.: (which Message-ID: replaced)
-;;	tower@prep Nov 86
+;;	tower@gnu.org Nov 86
 ;; changed C-c C-r key-binding due to rename of news-caesar-buffer-body
-;;	tower@prep 21 Nov 86
-;; added (require 'rnews)	tower@prep 22 Apr 87
+;;	tower@gnu.org 21 Nov 86
+;; added (require 'rnews)	tower@gnu.org 22 Apr 87
 ;; restricted call of news-show-all-headers in news-post-news & news-reply
-;;	tower@prep 28 Apr 87
-;; commented out Posting-Front-End to save USENET bytes tower@prep Jul 31 87
-;; commented out -n and -t args in news-inews     tower@prep 15 Oct 87
+;;	tower@gnu.org 28 Apr 87
+;; commented out Posting-Front-End to save USENET bytes tower@gnu.org Jul 31 87
+;; commented out -n and -t args in news-inews     tower@gnu.org 15 Oct 87
 
 ;Now in paths.el.
 ;(defvar news-inews-program "inews"

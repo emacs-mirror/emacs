@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
 
-;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
+;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
 
 ;; This file is part of GNU Emacs.

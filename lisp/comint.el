@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97, 98, 99 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu> then
-;;	Simon Marshall <simon@gnu.ai.mit.edu>
+;;	Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: processes
 
@@ -29,7 +29,7 @@
 ;; Please send me bug reports, bug fixes, and extensions, so that I can
 ;; merge them into the master source.
 ;;     - Olin Shivers (shivers@cs.cmu.edu)
-;;     - Simon Marshall (simon@gnu.ai.mit.edu)
+;;     - Simon Marshall (simon@gnu.org)
 
 ;; This file defines a general command-interpreter-in-a-buffer package
 ;; (comint mode). The idea is that you can build specific process-in-a-buffer

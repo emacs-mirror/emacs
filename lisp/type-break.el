@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.21 1999/03/30 21:37:10 kwzh Exp fx $
+;; $Id: type-break.el,v 1.22 1999/04/27 19:00:42 fx Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
@@ -60,9 +60,9 @@
 
 ;; This package was inspired by Roland McGrath's hanoi-break.el.
 ;; Several people contributed feedback and ideas, including
-;;      Roland McGrath <roland@gnu.ai.mit.edu>
+;;      Roland McGrath <roland@gnu.org>
 ;;      Kleanthes Koniaris <kgk@martigny.ai.mit.edu>
-;;      Mark Ashton <mpashton@gnu.ai.mit.edu>
+;;      Mark Ashton <mpashton@gnu.org>
 ;;      Matt Wilding <wilding@cli.com>
 ;;      Robert S. Boyer <boyer@cs.utexas.edu>
 
