@@ -3681,12 +3681,11 @@ FRAME 0 means change the face on all frames, and change the default\n\
     {
       if (!UNSPECIFIEDP (value))
 	{
-	  Lisp_Object test = Qnil;
-
-	  if (!EQ (face, Qdefault))
-	    /* The default face must have an absolute size, otherwise, we do
-	       a test merge with a random height to see if VALUE's ok. */
-	    test = merge_face_heights (value, make_number(10), Qnil, Qnil);
+	  Lisp_Object test =
+	    (EQ (face, Qdefault) ? value :
+	     /* The default face must have an absolute size, otherwise, we do
+		a test merge with a random height to see if VALUE's ok. */
+	     merge_face_heights (value, make_number(10), Qnil, Qnil));
 
 	  if (!INTEGERP(test) || XINT(test) <= 0)
 	    signal_error ("Invalid face height", value);
@@ -4571,13 +4570,16 @@ Default face attributes override any local face attributes.")
   Lisp_Object global_lface, local_lface, *gvec, *lvec;
 
   CHECK_LIVE_FRAME (frame, 1);
-
   global_lface = lface_from_face_name (NULL, face, 1);
   local_lface = lface_from_face_name (XFRAME (frame), face, 0);
   if (NILP (local_lface))
     local_lface = Finternal_make_lisp_face (face, frame);
 
-  /* Make every specified global attribute override the local one.  */
+  /* Make every specified global attribute override the local one.
+     BEWARE!! This is only used from `face-set-after-frame-default' where
+     the local frame is defined from default specs in `face-defface-spec'
+     and those should be overridden by global settings.  Hence the strange
+     "global before local" priority.  */
   lvec = XVECTOR (local_lface)->contents;
   gvec = XVECTOR (global_lface)->contents;
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
