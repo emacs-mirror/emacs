@@ -342,6 +342,7 @@ Return value is t unless exit is due to typing `q'."
 		(setq ispell-bad-words (cdr ispell-bad-words))
 		(set-marker next nil)))
 	    t)
+	(ispell-dehighlight)
 	(if ispell-window-configuration
 	    (set-window-configuration ispell-window-configuration))
 	(cond ((null ispell-bad-words)
@@ -536,6 +537,7 @@ L lookup; Q quit\n")
     (if (null message)
 	(setq first-line (concat "No near misses for '" word "'"))
       (setq first-line (concat "Near misses for '" word "'")))
+    (ispell-highlight start end)
     (while flag
       (ispell-show-choices word message first-line)
       (message "Ispell command: ")
@@ -622,6 +624,28 @@ L lookup; Q quit\n")
   (if (get-buffer " *problems in info file*")
       (kill-emacs 1))
   (write-region (point-min) (point-max) "ispell.info"))
+
+(defvar ispell-highlight t
+  "*Non-nil means to highlight ispell words.")
+
+(defvar ispell-overlay nil)
+
+(defun ispell-dehighlight ()
+  (and ispell-overlay
+       (progn
+	 (delete-overlay ispell-overlay)
+	 (setq ispell-overlay nil))))
+
+(defun ispell-highlight (start end)
+  (and ispell-highlight 
+       (progn
+	 (or ispell-overlay
+	     (progn
+	       (setq ispell-overlay (make-overlay start end))
+	       (overlay-put ispell-overlay 'face
+			    (if (internal-find-face 'ispell)
+				'ispell 'region))))
+	 (move-overlay ispell-overlay start end (current-buffer)))))
 
 ;;;; ispell-complete-word
 
