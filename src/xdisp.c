@@ -3792,8 +3792,11 @@ handle_auto_composed_prop (it)
 	  
 	  /* As Fnext_single_char_property_change is very slow, we
 	     limit the search to the current line.  */
-	  if (! STRINGP (it->string))
+	  if (STRINGP (it->string))
+	    limit = SCHARS (it->string);
+	  else
 	    limit = make_number (find_next_newline_no_quit (pos, 1));
+
 	  next = (Fnext_single_property_change
 		     (make_number (pos), Qauto_composed, it->string, limit));
 	  if (XINT (next) < XINT (limit))
