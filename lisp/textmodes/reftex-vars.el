@@ -1,9 +1,9 @@
 ;;; reftex-vars.el - Configuration variables for RefTeX
-;; Copyright (c) 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.9
-;; Keywords:   tex
+;; Version: 4.10
+;;
 
 ;; This file is part of GNU Emacs.
 
@@ -1126,6 +1126,12 @@ Requires the `texmathp.el' library which is part of AUCTeX."
   :group 'reftex-index-support
   :type 'string)
 
+(defcustom reftex-index-phrase-file-extension ".rip"
+  "File extension for the index phrase file.
+This extension will be added to the base name of the master file."
+  :group 'reftex-index-support
+  :type 'string)
+
 (defcustom reftex-index-phrases-logical-and-regexp " *&& *"
   "Regexp matching the `and' operator for index arguments in phrases file.
 When several index arguments in a phrase line are separated by this
@@ -1458,6 +1464,12 @@ information.  When this variable is t,
   of the file to be written."
   :group 'reftex-optimizations-for-large-documents
   :type 'boolean)
+
+(defcustom reftex-parse-file-extension ".rel"
+  "*File extension for the file in which parser information is stored.
+This extension is added to the base name of the master file."
+  :group 'reftex-optimizations-for-large-documents
+  :type 'string)
 
 (defcustom reftex-use-multiple-selection-buffers nil
   "*Non-nil means use a separate selection buffer for each label type.

@@ -1,8 +1,8 @@
 ;;; reftex.el --- Minor mode for doing \label, \ref, \cite, \index in LaTeX
-;; Copyright (c) 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.9
+;; Version:    4.10
 ;; Keywords:   tex
 
 ;; This file is part of GNU Emacs.
@@ -300,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.9"
+(defconst reftex-version "RefTeX version 4.10"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -1224,8 +1224,9 @@ Valid actions are: readable, restore, read, kill, write."
          (master (reftex-TeX-master-file))
 	 (enable-local-variables nil)
          (file (if (string-match "\\.[a-zA-Z]+\\'" master)
-                   (concat (substring master 0 (match-beginning 0)) ".rel")
-                 (concat master ".rel"))))
+                   (concat (substring master 0 (match-beginning 0)) 
+			   reftex-parse-file-extension)
+                 (concat master reftex-parse-file-extension))))
     (cond
      ((eq action 'readable)
       (file-readable-p file))

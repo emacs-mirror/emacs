@@ -1,9 +1,9 @@
 ;;; reftex-index.el - Index support with RefTeX
-;; Copyright (c) 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.9
-;; Keywords:   tex
+;; Version: 4.10
+;;
 
 ;; This file is part of GNU Emacs.
 
@@ -1187,7 +1187,8 @@ You get a chance to edit the entry in the phrases buffer - finish with
   (interactive)
   (reftex-access-scan-info)
   (let* ((master (reftex-TeX-master-file))
-	 (name (concat (file-name-sans-extension master) ".rip")))
+	 (name (concat (file-name-sans-extension master)
+		       reftex-index-phrase-file-extension)))
     (find-file name)
     (unless (eq major-mode 'reftex-index-phrases-mode)
       (reftex-index-phrases-mode))
@@ -1452,7 +1453,7 @@ the document and stores the list in `reftex-index-phrases-files'."
 	      reftex-index-phrases-macro-data))
       ;; Reverse the list, so that the first macro is first
       (if (null reftex-index-phrases-macro-data)
-	  (error "No valid MACRO DEFINITION line in .rip file (make sure to use TAB separators)"))
+	  (error "No valid MACRO DEFINITION line in %s file (make sure to use TAB separators)" reftex-index-phrase-file-extension))
       (setq reftex-index-phrases-macro-data 
 	    (nreverse reftex-index-phrases-macro-data))
       (goto-char (point-min)))))
