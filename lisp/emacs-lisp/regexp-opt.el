@@ -93,14 +93,20 @@ quoted or not.  If optional PAREN is non-nil, ensure that the returned regexp
 is enclosed by at least one regexp grouping construct.
 The returned regexp is typically more efficient than the equivalent regexp:
 
- (let ((open-paren (if PAREN \"\\\\(\" \"\")) (close-paren (if PAREN \"\\\\)\" \"\")))
-   (concat open-paren (mapconcat 'regexp-quote STRINGS \"\\\\|\") close-paren))"
+ (let ((open (if PAREN \"\\\\(\" \"\")) (close (if PAREN \"\\\\)\" \"\")))
+   (concat open (mapconcat 'regexp-quote STRINGS \"\\\\|\") close))
+
+If PAREN is `words', then the resulting regexp is additionally surrounded
+by \\=\\< and \\>."
   (save-match-data
     ;; Recurse on the sorted list.
-    (let ((max-lisp-eval-depth (* 1024 1024))
-	  (completion-ignore-case nil))
-      (setq paren (cond ((stringp paren) paren) (paren "\\(")))
-      (regexp-opt-group (sort (copy-sequence strings) 'string-lessp) paren))))
+    (let* ((max-lisp-eval-depth (* 1024 1024))
+	   (completion-ignore-case nil)
+	   (words (eq paren 'words))
+	   (open (cond ((stringp paren) paren) (paren "\\(")))
+	   (sorted-strings (sort (copy-sequence strings) 'string-lessp))
+	   (re (regexp-opt-group sorted-strings open)))
+      (if words (concat "\\<" re "\\>") re))))
 
 ;;;###autoload
 (defun regexp-opt-depth (regexp)
