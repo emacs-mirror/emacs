@@ -847,7 +847,7 @@ Completion ignores case if the ambient value of\n\
 	{
 	  CHECK_NUMBER (position, 0);
 	  /* Convert to distance from end of input.  */
-	  pos = XINT (position) - 1 - XSTRING (init)->size;
+	  pos = XINT (position) - XSTRING (init)->size;
 	}
     }
 
