@@ -979,17 +979,17 @@ check_fontset_name (name)
 }
 
 DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
-  "Modify fontset NAME to use FONTNAME for character CHAR.\n\
+  "Modify fontset NAME to use FONTNAME for CHARACTER.\n\
 \n\
-CHAR may be a cons; (FROM . TO), where FROM and TO are\n\
+CHARACTER may be a cons; (FROM . TO), where FROM and TO are\n\
 non-generic characters.  In that case, use FONTNAME\n\
 for all characters in the range FROM and TO (inclusive).\n\
 \n\
 If NAME is t, an entry in the default fontset is modified.\n\
 In that case, FONTNAME should be a registry and encoding name\n\
-of a font for CHAR.")
-  (name, ch, fontname, frame)
-     Lisp_Object name, ch, fontname, frame;
+of a font for CHARACTER.")
+  (name, character, fontname, frame)
+     Lisp_Object name, character, fontname, frame;
 {
   Lisp_Object fontset, elt;
   Lisp_Object realized;
@@ -998,14 +998,14 @@ of a font for CHAR.")
 
   fontset = check_fontset_name (name);
 
-  if (CONSP (ch))
+  if (CONSP (character))
     {
       /* CH should be (FROM . TO) where FROM and TO are non-generic
 	 characters.  */
-      CHECK_NUMBER (XCAR (ch), 1);
-      CHECK_NUMBER (XCDR (ch), 1);
-      from = XINT (XCAR (ch));
-      to = XINT (XCDR (ch));
+      CHECK_NUMBER (XCAR (character), 1);
+      CHECK_NUMBER (XCDR (character), 1);
+      from = XINT (XCAR (character));
+      to = XINT (XCDR (character));
       if (!char_valid_p (from, 0) || !char_valid_p (to, 0))
 	error ("Character range should be by non-generic characters.");
       if (!NILP (name)
@@ -1014,8 +1014,8 @@ of a font for CHAR.")
     }
   else
     {
-      CHECK_NUMBER (ch, 1);
-      from = XINT (ch);
+      CHECK_NUMBER (character, 1);
+      from = XINT (character);
       to = from;
     }
   if (!char_valid_p (from, 1))
