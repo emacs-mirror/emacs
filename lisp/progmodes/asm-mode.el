@@ -123,7 +123,6 @@ Special commands:\\{asm-mode-map}
   (setq comment-end "")
   (make-local-variable 'comment-column)
   (setq comment-column 32)
-  (auto-fill-mode 1)
   (setq fill-prefix "\t")
   (run-hooks 'asm-mode-hook)
   )
