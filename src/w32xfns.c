@@ -84,9 +84,17 @@ signal_quit ()
 void
 select_palette (FRAME_PTR f, HDC hdc)
 {
+  struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
+
+  if (!display_info->has_palette)
+    return;
+
+  if (display_info->palette == 0)
+    abort ();
+
   if (!NILP (Vw32_enable_palette))
     f->output_data.w32->old_palette =
-      SelectPalette (hdc, one_w32_display_info.palette, FALSE);
+      SelectPalette (hdc, display_info->palette, FALSE);
   else
     f->output_data.w32->old_palette = NULL;
 
