@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.46) $
+ * $HopeName: MMsrc!poolawl.c(trunk.47) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -46,7 +46,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.46) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.47) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -622,8 +622,10 @@ static Res AWLWhiten(Pool pool, Trace trace, Seg seg)
     /* Check the buffer is black. */
     /* This really ought to change when we have a non-trivial */
     /* pre-flip phase. @@@@ ('coz then we'll be allocating white) */
-    AVER(BTIsSetRange(group->mark, scanLimitIndex, limitIndex));
-    AVER(BTIsSetRange(group->scanned, scanLimitIndex, limitIndex));
+    if(scanLimitIndex != limitIndex) {
+      AVER(BTIsSetRange(group->mark, scanLimitIndex, limitIndex));
+      AVER(BTIsSetRange(group->scanned, scanLimitIndex, limitIndex));
+    }
 
     /* We didn't condemn the buffer, subtract it from the count. */
     /* @@@@ We could subtract all the free grains. */
