@@ -301,15 +301,15 @@ no args if that value is non-nil."
 			;; So quickly rule out most other uses of colon
 			;; and do no indentation for them.
 			(and (eq last-command-char ?:)
-			     (not (looking-at "case[ \t]"))
-			     (save-excursion
-			       (forward-word 1)
-			       (skip-chars-forward " \t")
-			       (< (point) end))
-			     ;; Do re-indent double colons
-			     (save-excursion
-			       (end-of-line 1)
-			       (looking-at ":")))
+			     (or (not (or (looking-at "case[ \t]")
+					  (save-excursion
+					    (forward-word 1)
+					    (skip-chars-forward " \t")
+					    (>= (point) end))))
+				 ;; Do re-indent double colons
+				 (save-excursion
+				   (end-of-line 1)
+				   (looking-at ":"))))
 			(progn
 			  (beginning-of-defun)
 			  (let ((pps (parse-partial-sexp (point) end)))
