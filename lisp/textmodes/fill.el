@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,2002
+;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,02,2003
 ;;               Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -785,7 +785,18 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 
       ;; Narrow to include only the comment, and then fill the region.
       (let* ((fill-prefix fill-prefix)
-	     (comment-re (concat "[ \t]*\\(?:" comment-start-skip "\\)"))
+	     (commark
+	      (comment-string-strip (buffer-substring comstart comin) nil t))
+	     (comment-re
+	      (if (string-match comment-start-skip (concat commark "a"))
+		  (concat "[ \t]*" (regexp-quote commark)
+			  ;; Make sure we only match comments that use
+			  ;; the exact same comment marker.
+			  "[^" (substring commark -1) "]")
+		;; If the commark needs to be followed by some special
+		;; set of characters (like @c in TeXinfo), we can't
+		;; rely just on `commark'.
+		(concat "[ \t]*\\(?:" comment-start-skip "\\)")))
 	     (comment-fill-prefix	; Compute a fill prefix.
 	      (save-excursion
 		(goto-char comstart)
