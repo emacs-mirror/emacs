@@ -82,6 +82,10 @@ Define a word in the buffer as an abbrev (@code{inverse-add-global-abbrev}).
 @item C-x a i l
 Define a word in the buffer as a mode-specific abbrev
 (@code{inverse-add-mode-abbrev}).
+@item M-x define-global-abbrev @key{RET} @var{abbrev} @key{RET} @var{exp} @key{RET}
+Define @var{abbrev} as an abbrev expanding into @var{exp}.
+@item M-x define-mode-abbrev @key{RET} @var{abbrev} @key{RET} @var{exp} @key{RET}
+Define @var{abbrev} as a mode-specific abbrev expanding into @var{exp}.
 @item M-x kill-all-abbrevs
 This command discards all abbrev definitions currently in effect,
 leaving a blank slate.
@@ -120,6 +124,13 @@ expansion, use command @kbd{C-x a i g}
 l}.  These commands are called ``inverse'' because they invert the
 meaning of the two text strings they use (one from the buffer and one
 read with the minibuffer).
+
+@findex define-mode-abbrev
+@findex define-global-abbrev
+  You can define an abbrev without inserting either the abbrev or its
+expansion in the buffer using the command @code{define-global-abbrev}.
+It reads two arguments--the abbrev, and its expansion.  The command
+@code{define-mode-abbrev} does likewise for a mode-specific abbrev.
 
   To change the definition of an abbrev, just define a new definition.
 When the abbrev has a prior definition, the abbrev definition commands
