@@ -772,6 +772,7 @@ the user from the mailer."
 (defun mail-text ()
   "Move point to beginning of message text."
   (interactive)
+  (expand-abbrev)
   (goto-char (point-min))
   (search-forward (concat "\n" mail-header-separator "\n")))
 
