@@ -746,9 +746,37 @@ in Calc algebraic input.")
 	       (setq math-exp-token 'string
 		     math-expr-data (math-match-substring math-exp-str 1)
 		     math-exp-pos (match-end 0))))
-	    ((and (= ch ?\\) (memq calc-language '(tex latex))
+	    ((and (= ch ?\\) (eq calc-language 'tex)
 		  (< math-exp-pos (1- (length math-exp-str))))
 	     (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}" 
+                               math-exp-str math-exp-pos)
+		 (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)" 
+                               math-exp-str math-exp-pos))
+	     (setq math-exp-token 'symbol
+		   math-exp-pos (match-end 0)
+		   math-expr-data (math-restore-dashes
+			     (math-match-substring math-exp-str 1)))
+	     (let ((code (assoc math-expr-data math-latex-ignore-words)))
+	       (cond ((null code))
+		     ((null (cdr code))
+		      (math-read-token))
+		     ((eq (nth 1 code) 'punc)
+		      (setq math-exp-token 'punc
+			    math-expr-data (nth 2 code)))
+                      ((and (eq (nth 1 code) 'mat)
+                            (string-match " *{" math-exp-str math-exp-pos))
+		      (setq math-exp-pos (match-end 0)
+			    math-exp-token 'punc
+			    math-expr-data "[")
+		      (let ((right (string-match "}" math-exp-str math-exp-pos)))
+			(and right
+			     (setq math-exp-str (copy-sequence math-exp-str))
+			     (aset math-exp-str right ?\])))))))
+	    ((and (= ch ?\\) (eq calc-language 'latex)
+		  (< math-exp-pos (1- (length math-exp-str))))
+	     (or (string-match "\\\\hbox *{\\([a-zA-Z0-9]+\\)}" 
+                               math-exp-str math-exp-pos)
+                 (string-match "\\\\text *{\\([a-zA-Z0-9]+\\)}" 
                                math-exp-str math-exp-pos)
 		 (string-match "\\(\\\\\\([a-zA-Z]+\\|[^a-zA-Z]\\)\\)" 
                                math-exp-str math-exp-pos))
