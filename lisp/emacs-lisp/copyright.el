@@ -1,6 +1,6 @@
 ;;; copyright.el --- update the copyright notice in current buffer
 
-;; Copyright (C) 1991, 1992-1995, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 92, 93, 94, 95, 1998 Free Software Foundation, Inc.
 
 ;; Author: Daniel.Pfeiffer@Informatik.START.dbp.de
 ;;		 fax (+49 69) 7588-2389
