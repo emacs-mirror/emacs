@@ -2622,8 +2622,8 @@ Setting this variable automatically makes it local to the current buffer."
 			 (forward-char 1))))
 		   (if (and enable-kinsoku enable-multibyte-characters)
 		       (kinsoku (save-excursion
-				  (forward-line 0) (point)))))))
-	      ;; Let fill-point be set to the place where we end up.
+				  (forward-line 0) (point))))
+		   ;; Let fill-point be set to the place where we end up.
 		   (point)))))
 	  ;; If that place is not the beginning of the line,
 	  ;; break the line there.
