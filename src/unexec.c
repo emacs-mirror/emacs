@@ -74,6 +74,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 * COFF
 
 Define this if your system uses COFF for executables.
+
+* COFF_ENCAPSULATE
+
+Define this if you are using the GNU coff encapsulated a.out format.
+This is closer to a.out than COFF. You should *not* define COFF if
+you define COFF_ENCAPSULATE
+
 Otherwise we assume you use Berkeley format.
 
 * NO_REMAP
@@ -165,7 +172,13 @@ pointer looks like an int) but not on all machines.
 
 #ifndef CANNOT_UNEXEC /* most of rest of file */
 
+#ifdef COFF_ENCAPSULATE
+int need_coff_header = 1;
+#include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
+#else
 #include <a.out.h>
+#endif
+
 /* Define getpagesize () if the system does not.
    Note that this may depend on symbols defined in a.out.h
  */
@@ -173,7 +186,7 @@ pointer looks like an int) but not on all machines.
 
 #ifndef makedev			/* Try to detect types.h already loaded */
 #include <sys/types.h>
-#endif
+#endif /* makedev */
 #include <stdio.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -218,7 +231,7 @@ static EXEC_HDR_TYPE hdr, ohdr;
 
 #else /* not HPUX */
 
-#if defined (USG) && !defined (IBMAIX) && !defined (IRIS)
+#if defined (USG) && !defined (IBMAIX) && !defined (IRIS) && !defined (COFF_ENCAPSULATE)
 static struct bhdr hdr, ohdr;
 #define a_magic fmagic
 #define a_text tsize
@@ -240,6 +253,11 @@ static EXEC_HDR_TYPE hdr, ohdr;
 
 static int unexec_text_start;
 static int unexec_data_start;
+
+#ifdef COFF_ENCAPSULATE
+/* coffheader is defined in the GNU a.out.encap.h file.  */
+struct coffheader coffheader;
+#endif
 
 #endif /* not COFF */
 
@@ -624,6 +642,16 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   /* Get symbol table info from header of a.out file if given one. */
   if (a_out >= 0)
     {
+#ifdef COFF_ENCAPSULATE
+      if (read (a_out, &coffheader, sizeof coffheader) != sizeof coffheader)
+	{
+	  PERROR(a_name);
+	}
+      if (coffheader.f_magic != COFF_MAGIC)
+	{
+	  ERROR1("%s doesn't have legal coff magic number\n", a_name);
+	}
+#endif
       if (read (a_out, &ohdr, sizeof hdr) != sizeof hdr)
 	{
 	  PERROR (a_name);
@@ -637,7 +665,14 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
     }
   else
     {
+#ifdef COFF_ENCAPSULATE
+      /* We probably could without too much trouble. The code is in gld
+       * but I don't have that much time or incentive.
+       */
+      ERROR0 ("can't build a COFF file from scratch yet");
+#else
       bzero (hdr, sizeof hdr);
+#endif
     }
 
   unexec_text_start = (long) start_of_text ();
@@ -665,6 +700,32 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 #endif
 
 #endif /* not NO_REMAP */
+
+#ifdef COFF_ENCAPSULATE
+  /* We are encapsulating BSD format within COFF format.  */
+  {
+    struct coffscn *tp, *dp, *bp;
+    tp = &coffheader.scns[0];
+    dp = &coffheader.scns[1];
+    bp = &coffheader.scns[2];
+    tp->s_size = hdr.a_text + sizeof(struct exec);
+    dp->s_paddr = data_start;
+    dp->s_vaddr = data_start;
+    dp->s_size = hdr.a_data;
+    bp->s_paddr = dp->s_vaddr + dp->s_size;
+    bp->s_vaddr = bp->s_paddr;
+    bp->s_size = hdr.a_bss;
+    coffheader.tsize = tp->s_size;
+    coffheader.dsize = dp->s_size;
+    coffheader.bsize = bp->s_size;
+    coffheader.text_start = tp->s_vaddr;
+    coffheader.data_start = dp->s_vaddr;
+  }
+  if (write (new, &coffheader, sizeof coffheader) != sizeof coffheader)
+    {
+      PERROR(new_name);
+    }
+#endif /* COFF_ENCAPSULATE */
 
   if (write (new, &hdr, sizeof hdr) != sizeof hdr)
     {

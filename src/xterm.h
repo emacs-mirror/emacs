@@ -158,7 +158,8 @@ extern int x_pending_input;
 #define BLOCK_INPUT (x_input_blocked++)
 
 /* End critical section. */
-#define UNBLOCK_INPUT (x_input_blocked--, (x_input_blocked < 0 ? abort () : 0))
+#define UNBLOCK_INPUT \
+  (x_input_blocked--, (x_input_blocked < 0 ? (abort (), 0) : 0))
 
 #define TOTALLY_UNBLOCK_INPUT (x_input_blocked = 0)
 #define UNBLOCK_INPUT_RESIGNAL UNBLOCK_INPUT

@@ -26,7 +26,23 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 Lisp_Object Qarith_error;
 
 #ifdef LISP_FLOAT_TYPE
+
 #include <math.h>
+#include <errno.h>
+
+extern int errno;
+
+/* Avoid traps on VMS from sinh and cosh.
+   All the other functions set errno instead.  */
+
+#ifdef VMS
+#undef cosh
+#undef sinh
+#define cosh(x) ((exp(x)+exp(-x))*0.5)
+#define sinh(x) ((exp(x)-exp(-x))*0.5)
+#endif /* VMS */
+
+static float_error ();
 
 /* Nonzero while executing in floating point.
    This tells float_error what to do.  */
@@ -34,13 +50,19 @@ Lisp_Object Qarith_error;
 static int in_float;
 
 /* If an argument is out of range for a mathematical function,
-   that is detected with a signal.  Here is the actual argument
-   value to use in the error message.  */
+   here is the actual argument value to use in the error message.  */
 
 static Lisp_Object float_error_arg;
 
-#define IN_FLOAT(d, num) \
-(in_float = 1, float_error_arg = num, (d), in_float = 0)
+/* Evaluate the floating point expression D, recording NUM
+   as the original argument for error messages.
+   D is normally an assignment expression.
+   Handle errors which may result in signals or may set errno.  */
+
+#define IN_FLOAT(D, NUM) \
+(in_float = 1, errno = 0, float_error_arg = NUM, (D),		\
+ (errno == ERANGE || errno == EDOM ? float_error () : 0),	\
+ in_float = 0)
 
 /* Extract a Lisp number as a `double', or signal an error.  */
 
@@ -476,7 +498,6 @@ Rounds the value toward zero.")
   return num;
 }
 
-#ifdef BSD
 static
 float_error (signo)
      int signo;
@@ -484,21 +505,21 @@ float_error (signo)
   if (! in_float)
     fatal_error_signal (signo);
 
+#ifdef BSD
 #ifdef BSD4_1
   sigrelse (SIGILL);
 #else /* not BSD4_1 */
   sigsetmask (0);
 #endif /* not BSD4_1 */
+#else
+  /* Must reestablish handler each time it is called.  */
+  signal (SIGILL, float_error);
+#endif /* BSD */
 
   in_float = 0;
 
   Fsignal (Qarith_error, Fcons (float_error_arg, Qnil));
 }
-
-/* Another idea was to replace the library function `infnan'
-   where SIGILL is signaled.  */
-
-#endif /* BSD */
 
 init_floatfns ()
 {

@@ -48,22 +48,27 @@ struct screen_glyphs
     int height;
     int width;
 
-    int *used;			/* Vector of widths (in chars) of lines. */
-    /* Vector of line contents.
-       m->glyphs[V][H] is the glyph at position V, H.
-       Note that ->glyphs[...][screen_width] is always 0
-       and so is ->glyphs[...][-1].  */
+    /* Contents of the screen.
+       glyphs[V][H] is the glyph at position V, H.
+       Note that glyphs[V][-1],
+                 glyphs[V][used[V]],
+	     and glyphs[V][screen_width] are always '\0'.  */
     GLYPH **glyphs;
     /* long vector from which the strings in `glyphs' are taken.  */
     GLYPH *total_contents;
 
+    /* When representing a desired screen,
+         enable[n] == 0 means that line n is same as current screen.
+       When representing current screen contents,
+         enable[n] == 0 means that line n is blank.  */
+    char *enable;
+
+    /* Everything on line n after column used[n] is considered blank.  */
+    int *used;
+
     /* highlight[n] != 0 iff line n is highlighted.  */
     char *highlight;
 
-    /* When representing a desired screen, enable[n] == 0 implies line
-       n is same as current screen.  When representing current screen
-       contents, enable[n] == 0 implies line n is blank.  */
-    char *enable;
 
     /* Buffer offset of this line's first char. */
     int   *bufp;

@@ -26,13 +26,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/param.h>
 #include <pwd.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #ifdef emacs
 #include "config.h"
 #endif
 
 extern char *getenv ();
-extern int getuid ();
+extern uid_t getuid ();
 extern struct passwd *getpwuid ();
 extern struct passwd *getpwnam ();
 

@@ -479,10 +479,10 @@ x_decode_color (arg, def)
     return WHITE_PIX_DEFAULT;
 
 #ifdef HAVE_X11
-  if (XFASTINT (x_screen_planes) <= 2)
+  if (XFASTINT (x_screen_planes) == 1)
     return def;
 #else
-  if (DISPLAY_CELLS <= 2)
+  if (DISPLAY_CELLS == 1)
     return def;
 #endif
 
@@ -956,7 +956,7 @@ x_set_icon_type (s, arg, oldval)
     return;
 
   BLOCK_INPUT;
-  if (NULL (arg))
+  if (NILP (arg))
     result = x_text_icon (s, 0);
   else
     result = x_bitmap_icon (s, 0);
@@ -1327,14 +1327,14 @@ key of the form INSTANCE.COMPONENT.ATTRIBUTE, with class \"Emacs.CLASS\".")
   char *class_key;
 
   CHECK_STRING (attribute, 0);
-  if (!NULL (name))
+  if (!NILP (name))
     CHECK_STRING (name, 1);
-  if (!NULL (class))
+  if (!NILP (class))
     CHECK_STRING (class, 2);
-  if (NULL (name) != NULL (class))
+  if (NILP (name) != NILP (class))
     error ("x-get-resource: must specify both NAME and CLASS or neither");
 
-  if (NULL (name))
+  if (NILP (name))
     {
       name_key = (char *) alloca (XSTRING (invocation_name)->size + 1
 				  + XSTRING (attribute)->size + 1);
@@ -1424,7 +1424,6 @@ x_get_arg (alist, param, screen_name, attribute, type)
      enum resource_types type;
 {
   register Lisp_Object tem;
-  int i;
 
   tem = Fassq (param, alist);
   if (EQ (tem, Qnil))
@@ -1437,13 +1436,27 @@ x_get_arg (alist, param, screen_name, attribute, type)
 	 component name.  */
       if (XTYPE (screen_name) == Lisp_String)
 	{
-	  sterile_name = make_uninit_string (XSTRING (screen_name)->size);
+	  int i;
 
-	  for (i = 0; i < XSTRING (sterile_name)->size; i++)
+	  sterile_name = make_uninit_string (XSTRING (screen_name)->size);
+	  for (i = 0; i < XSTRING (screen_name)->size; i++)
 	    {
 	      int c = XSTRING (screen_name)->data[i];
-	      if (c == ':' || c == '.' || c == '*' || isspace (c))
-		c = '_';
+
+	      switch (c)
+		{
+		case ':':
+		case '.':
+		case '*':
+		case ' ':
+		case '\t':
+		case '\n':
+		  c = '_';
+		  break;
+		default:
+		  break;
+		}
+
 	      XSTRING (sterile_name)->data[i] = c;
 	    }
 	}
@@ -1452,9 +1465,9 @@ x_get_arg (alist, param, screen_name, attribute, type)
 
       tem = Fx_get_resource (build_string (attribute),
 			     sterile_name,
-			     (NULL (sterile_name) ? Qnil : screen_class));
+			     (NILP (sterile_name) ? Qnil : screen_class));
 
-      if (NULL (tem))
+      if (NILP (tem))
 	return Qnil;
 
       switch (type)
@@ -1677,7 +1690,7 @@ x_window (s)
 		     screen_visual, /* set in Fx_open_connection */
 		     attribute_mask, &attributes);
 
-  class_hints.res_name = s->name;
+  class_hints.res_name = (char *) XSTRING (s->name)->data;
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (x_current_display, s->display.x->window_desc, &class_hints);
 
@@ -1823,13 +1836,13 @@ x_make_gc (s)
 
 DEFUN ("x-create-screen", Fx_create_screen, Sx_create_screen,
        1, 1, 0,
-  "Make a new X window, which is considered a \"screen\" in Emacs terms.\n\
+  "Make a new X window, which is called a \"screen\" in Emacs terms.\n\
 Return an Emacs screen object representing the X window.\n\
 ALIST is an alist of screen parameters.\n\
 The value of ``x-screen-defaults'' is an additional alist\n\
 of default parameters which apply when not overridden by ALIST.\n\
 If the parameters specify that the screen should not have a minibuffer,\n\
-then ``global-minibuffer-screen'' must be a screen whose minibuffer can\n\
+then ``default-minibuffer-screen'' must be a screen whose minibuffer can\n\
 be shared by the new screen.")
   (parms)
      Lisp_Object parms;
@@ -1846,7 +1859,7 @@ be shared by the new screen.")
     error ("X windows are not in use or not initialized");
 
   name = x_get_arg (parms, intern ("name"), Qnil, "Title", string);
-  if (NULL (name))
+  if (NILP (name))
     name = build_string (x_id_name);
   if (XTYPE (name) != Lisp_String)
     error ("x-create-screen: name parameter must be a string");
@@ -1859,10 +1872,10 @@ be shared by the new screen.")
       s = make_minibuffer_screen ();
       minibuffer_only = 1;
     }
-  else if (! EQ (tem, Qnil))
-    s = make_screen_without_minibuffer (tem);
-  else
+  else if (EQ (tem, Qnil) || EQ (tem, Qt))
     s = make_screen (1);
+  else
+    s = make_screen_without_minibuffer (tem);
 
   /* Set the name; the functions to which we pass s expect the
      name to be set.  */
@@ -1873,6 +1886,9 @@ be shared by the new screen.")
   s->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
   bzero (s->display.x, sizeof (struct x_display));
 
+  /* Note that the screen has no physical cursor right now.  */
+  s->phys_cursor_x = -1;
+
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
   x_default_parameter (s, parms, "font",
@@ -1882,7 +1898,7 @@ be shared by the new screen.")
   x_default_parameter (s, parms, "border-width",
 		      make_number (2), "BorderWidth", number);
   x_default_parameter (s, parms, "internal-border-width",
-		      make_number (4), "InternalBorderWidth", number);
+		      make_number (1), "InternalBorderWidth", number);
 
   /* Also do the stuff which must be set before the window exists. */
   x_default_parameter (s, parms, "foreground-color",
@@ -2066,7 +2082,7 @@ be shared by the new screen.")
 			 (XTYPE (tem) == Lisp_String
 			  ? (char *) XSTRING (tem)->data : ""),
 			 XSTRING (s->name)->data,
-			 !NULL (hscroll), !NULL (vscroll));
+			 !NILP (hscroll), !NILP (vscroll));
 	}
       else
 	{
@@ -2099,10 +2115,10 @@ be shared by the new screen.")
 
       pixelwidth = (width * FONT_WIDTH (s->display.x->font)
 		    + 2 * s->display.x->internal_border_width
-		    + (!NULL (vscroll) ? VSCROLL_WIDTH : 0));
+		    + (!NILP (vscroll) ? VSCROLL_WIDTH : 0));
       pixelheight = (height * FONT_HEIGHT (s->display.x->font)
 		     + 2 * s->display.x->internal_border_width
-		     + (!NULL (hscroll) ? HSCROLL_HEIGHT : 0));
+		     + (!NILP (hscroll) ? HSCROLL_HEIGHT : 0));
       
       BLOCK_INPUT;
       s->display.x->window_desc
@@ -2158,9 +2174,9 @@ be shared by the new screen.")
 
   Fmodify_screen_parameters (screen, parms);
 
-  if (!NULL (vscroll))
+  if (!NILP (vscroll))
     install_vertical_scrollbar (s, pixelwidth, pixelheight);
-  if (!NULL (hscroll))
+  if (!NILP (hscroll))
     install_horizontal_scrollbar (s, pixelwidth, pixelheight);
 
   /* Make the window appear on the screen and enable display.  */
@@ -2178,7 +2194,7 @@ DEFUN ("focus-screen", Ffocus_screen, Sfocus_screen, 1, 1, 0,
   (screen)
      Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
 
   if (SCREEN_IS_X (XSCREEN (screen)))
     {
@@ -2291,7 +2307,7 @@ x_set_horizontal_scrollbar (s, val, oldval)
      struct screen *s;
      Lisp_Object val, oldval;
 {
-  if (!NULL (val))
+  if (!NILP (val))
     {
       if (s->display.x->window_desc != 0)
 	{
@@ -2325,7 +2341,7 @@ x_set_vertical_scrollbar (s, val, oldval)
      struct screen *s;
      Lisp_Object val, oldval;
 {
-  if (!NULL (val))
+  if (!NILP (val))
     {
       if (s->display.x->window_desc != 0)
 	{
@@ -2878,7 +2894,7 @@ DEFUN ("x-pixel-width", Fx_pixel_width, Sx_pixel_width, 1, 1, 0,
   (screen)
      Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   return make_number (XSCREEN (screen)->display.x->pixel_width);
 }
 
@@ -2887,7 +2903,7 @@ DEFUN ("x-pixel-height", Fx_pixel_height, Sx_pixel_height, 1, 1, 0,
   (screen)
      Lisp_Object screen;
 {
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   return make_number (XSCREEN (screen)->display.x->pixel_height);
 }
 
@@ -2929,7 +2945,7 @@ numbers X0, Y0, X1, Y1 in the cursor pixel.")
 {
   register int x0, y0, x1, y1, top, left, n_chars, n_lines;
 
-  CHECK_SCREEN (screen, 0);
+  CHECK_LIVE_SCREEN (screen, 0);
   CHECK_NUMBER (X0, 0);
   CHECK_NUMBER (Y0, 1);
   CHECK_NUMBER (X1, 2);
@@ -3528,7 +3544,7 @@ DEFUN ("x-track-pointer", Fx_track_pointer, Sx_track_pointer, 1, 1, "e",
 	  int len = SCREEN_CURRENT_GLYPHS (s)->used[x_mouse_y];
 	  int p = SCREEN_CURRENT_GLYPHS (s)->bufp[x_mouse_y];
 	  int tab_width = XINT (b->tab_width);
-	  int ctl_arrow_p = !NULL (b->ctl_arrow);
+	  int ctl_arrow_p = !NILP (b->ctl_arrow);
 	  unsigned char c;
 	  int mode_line_vpos = XFASTINT (w->height) + XFASTINT (w->top) - 1;
 	  int in_mode_line = 0;
@@ -3691,38 +3707,6 @@ x_draw_pixmap (s, x, y, image_data, width, height)
 	      s->display.x->normal_gc, 0, 0, width, height, x, y);
 }
 #endif
-
-x_read_mouse_position (s, x, y)
-     struct screen *s;
-     int *x, *y;
-{
-  Window w;
-  int ix, iy;
-  int ibw = s->display.x->internal_border_width;
-
-#ifdef HAVE_X11
-  Window root_window;
-  int root_x, root_y;
-  unsigned int keys_and_buttons;
-
-  BLOCK_INPUT;
-  if (XQueryPointer (x_current_display, s->display.x->window_desc,
-       	      &root_window, &w, &root_x, &root_y, &ix, &iy,
-       	      &keys_and_buttons) == False)
-    {
-      UNBLOCK_INPUT;
-      error ("Pointer not on same screen as window.");
-    }
-  UNBLOCK_INPUT;
-#else
-  BLOCK_INPUT;
-  XQueryMouse (s->display.x->window_desc, &ix, &iy, &w);
-  UNBLOCK_INPUT;
-#endif /* not HAVE_X11 */
-
-  x_mouse_x = *x = (ix - ibw) / FONT_WIDTH (s->display.x->font);
-  x_mouse_y = *y = (iy - ibw) / FONT_HEIGHT (s->display.x->font);
-}
 
 #if 0
 
@@ -3920,7 +3904,7 @@ the mouse event.")
 	    }
 	}
       
-      if (!NULL (arg))
+      if (!NILP (arg))
 	return Qnil;
 
       /* Wait till we get another mouse event.  */
@@ -3990,7 +3974,7 @@ also be depressed for NEWSTRING to appear.")
   if (keysym == NoSymbol)
     error ("Keysym does not exist");
 
-  if (NULL (modifiers))
+  if (NILP (modifiers))
     XRebindKeysym (x_current_display, keysym, modifier_list, 0,
 		   XSTRING (newstring)->data, XSTRING (newstring)->size);
   else
@@ -3998,7 +3982,7 @@ also be depressed for NEWSTRING to appear.")
       register Lisp_Object rest, mod;
       register int i = 0;
 
-      for (rest = modifiers; !NULL (rest); rest = Fcdr (rest))
+      for (rest = modifiers; !NILP (rest); rest = Fcdr (rest))
 	{
 	  if (i == 16)
 	    error ("Can't have more than 16 modifiers");
@@ -4040,7 +4024,7 @@ See the documentation of `x-rebind-key' for more information.")
   for (i = 0; i <= 15; strings = Fcdr (strings), i++)
     {
       item = Fcar (strings);
-      if (!NULL (item))
+      if (!NILP (item))
 	{
 	  CHECK_STRING (item, 2);
 	  strsize = XSTRING (item)->size;
@@ -4080,7 +4064,7 @@ This problem will be fixed in X version 11.")
   int i, strsize;
   
   CHECK_NUMBER (keycode, 1);
-  if (!NULL (shift_mask))
+  if (!NILP (shift_mask))
     CHECK_NUMBER (shift_mask, 2);
   CHECK_STRING (newstring, 3);
   strsize = XSTRING (newstring)->size;
@@ -4089,7 +4073,7 @@ This problem will be fixed in X version 11.")
 
   keysym = ((unsigned) (XINT (keycode))) & 255;
 
-  if (NULL (shift_mask))
+  if (NILP (shift_mask))
     {
       for (i = 0; i <= 15; i++)
 	XRebindCode (keysym, i<<11, rawstring, strsize);
@@ -4123,7 +4107,7 @@ See the documentation of `x-rebind-key' for more information.")
   for (i = 0; i <= 15; strings = Fcdr (strings), i++)
     {
       item = Fcar (strings);
-      if (!NULL (item))
+      if (!NILP (item))
 	{
 	  CHECK_STRING (item, 2);
 	  strsize = XSTRING (item)->size;

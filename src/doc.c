@@ -31,7 +31,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define O_RDONLY 0
 #endif
 
-#undef NULL
 #include "lisp.h"
 #include "buffer.h"
 
@@ -348,7 +347,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   int length;
   struct gcpro gcpro1;
 
-  if (NULL (str))
+  if (NILP (str))
     return Qnil;
 
   CHECK_STRING (str, 0);
@@ -388,7 +387,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  tem = Fintern (make_string (start, length), Qnil);
 	  tem = Fwhere_is_internal (tem, keymap, Qnil, Qt, Qnil);
 
-	  if (NULL (tem))	/* but not on any keys */
+	  if (NILP (tem))	/* but not on any keys */
 	    {
 	      new = (unsigned char *) xrealloc (buf, bsize += 4);
 	      bufp += new - buf;
@@ -429,10 +428,10 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	     in case it is a local variable.  */
 	  name = Fintern (make_string (start, length), Qnil);
 	  tem = Fboundp (name);
-	  if (! NULL (tem))
+	  if (! NILP (tem))
 	    {
 	      tem = Fsymbol_value (name);
-	      if (! NULL (tem))
+	      if (! NILP (tem))
 		tem = get_keymap_1 (tem, 0);
 	    }
 
@@ -440,7 +439,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  oldbuf = current_buffer;
 	  set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
 
-	  if (NULL (tem))
+	  if (NILP (tem))
 	    {
 	      name = Fsymbol_name (name);
 	      insert_string ("\nUses keymap \"");

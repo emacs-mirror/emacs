@@ -52,9 +52,6 @@ extern int sys_nerr;
 #include <sys/time.h>
 #endif
 
-#ifdef NULL
-#undef NULL
-#endif
 #include "config.h"
 #include "lisp.h"
 #include "buffer.h"
@@ -269,7 +266,7 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.")
   char *buf;
 
   CHECK_STRING (file, 0);
-  if (NULL (file))
+  if (NILP (file))
     return Qnil;
   buf = (char *) alloca (XSTRING (file)->size + 10);
   return build_string (file_name_as_directory (buf, XSTRING (file)->data));
@@ -435,7 +432,7 @@ it returns a file name such as \"[X]Y.DIR.1\".")
 
   CHECK_STRING (directory, 0);
 
-  if (NULL (directory))
+  if (NILP (directory))
     return Qnil;
 #ifdef VMS
   /* 20 extra chars is insufficient for VMS, since we might perform a
@@ -658,7 +655,7 @@ See also the function `substitute-in-file-name'.")
 #endif /* not VMS */
       && !newdir)
     {
-      if (NULL (defalt))
+      if (NILP (defalt))
 	defalt = current_buffer->directory;
       CHECK_STRING (defalt, 1);
       newdir = XSTRING (defalt)->data;
@@ -994,7 +991,7 @@ See also the function `substitute-in-file-name'.")
 #endif /* not VMS */
       && !newdir)
     {
-      if (NULL (defalt))
+      if (NILP (defalt))
 	defalt = current_buffer->directory;
       CHECK_STRING (defalt, 1);
       newdir = XSTRING (defalt)->data;
@@ -1354,7 +1351,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive)
       tem = do_yes_or_no_p (format1 ("File %s already exists; %s anyway? ",
 				     XSTRING (absname)->data, querystring));
       UNGCPRO;
-      if (NULL (tem))
+      if (NILP (tem))
 	Fsignal (Qfile_already_exists,
 		 Fcons (build_string ("File already exists"),
 			Fcons (absname, Qnil)));
@@ -1385,7 +1382,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   CHECK_STRING (newname, 1);
   filename = Fexpand_file_name (filename, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
-  if (NULL (ok_if_already_exists)
+  if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
     barf_or_query_if_file_exists (newname, "copy to it",
 				  XTYPE (ok_if_already_exists) == Lisp_Int);
@@ -1417,7 +1414,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   if (fstat (ifd, &st) >= 0)
     {
 #ifdef HAVE_TIMEVAL
-      if (!NULL (keep_date))
+      if (!NILP (keep_date))
 	{
 #ifdef USE_UTIME
 /* AIX has utimes() in compatibility package, but it dies.  So use good old
@@ -1521,7 +1518,7 @@ This is what happens in interactive use with M-x.")
   CHECK_STRING (newname, 1);
   filename = Fexpand_file_name (filename, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
-  if (NULL (ok_if_already_exists)
+  if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
     barf_or_query_if_file_exists (newname, "rename to it",
 				  XTYPE (ok_if_already_exists) == Lisp_Int);
@@ -1572,7 +1569,7 @@ This is what happens in interactive use with M-x.")
   CHECK_STRING (newname, 1);
   filename = Fexpand_file_name (filename, Qnil);
   newname = Fexpand_file_name (newname, Qnil);
-  if (NULL (ok_if_already_exists)
+  if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
     barf_or_query_if_file_exists (newname, "make it a new name",
 				  XTYPE (ok_if_already_exists) == Lisp_Int);
@@ -1615,7 +1612,7 @@ This happens for interactive use with M-x.")
   filename = Fexpand_file_name (filename, Qnil);
 #endif
   newname = Fexpand_file_name (newname, Qnil);
-  if (NULL (ok_if_already_exists)
+  if (NILP (ok_if_already_exists)
       || XTYPE (ok_if_already_exists) == Lisp_Int)
     barf_or_query_if_file_exists (newname, "make it a link",
 				  XTYPE (ok_if_already_exists) == Lisp_Int);
@@ -1653,7 +1650,7 @@ If STRING is nil or a null string, the logical name NAME is deleted.")
      Lisp_Object string;
 {
   CHECK_STRING (varname, 0);
-  if (NULL (string))
+  if (NILP (string))
     delete_logical_name (XSTRING (varname)->data);
   else
     {
@@ -1809,10 +1806,10 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     return (access (XSTRING (abspath)->data, 2) >= 0) ? Qt : Qnil;
   dir = Ffile_name_directory (abspath);
 #ifdef VMS
-  if (!NULL (dir))
+  if (!NILP (dir))
     dir = Fdirectory_file_name (dir);
 #endif /* VMS */
-  return (access (!NULL (dir) ? (char *) XSTRING (dir)->data : "", 2) >= 0
+  return (access (!NILP (dir) ? (char *) XSTRING (dir)->data : "", 2) >= 0
 	  ? Qt : Qnil);
 }
 
@@ -1947,7 +1944,7 @@ before the error is signaled.")
   struct gcpro gcpro1;
   
   GCPRO1 (filename);
-  if (!NULL (current_buffer->read_only))
+  if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only();
 
   CHECK_STRING (filename, 0);
@@ -1964,7 +1961,7 @@ before the error is signaled.")
 #endif /* not APOLLO */
     {
       if (fd >= 0) close (fd);
-      if (NULL (visit))
+      if (NILP (visit))
 	report_file_error ("Opening input file", Fcons (filename, Qnil));
       st.st_mtime = -1;
       how_much = 0;
@@ -1985,7 +1982,7 @@ before the error is signaled.")
       error ("maximum buffer size exceeded");
   }
 
-  if (NULL (visit))
+  if (NILP (visit))
     prepare_to_modify_buffer (point, point);
 
   move_gap (point);
@@ -2025,7 +2022,7 @@ before the error is signaled.")
 
  notfound:
 
-  if (!NULL (visit))
+  if (!NILP (visit))
     {
       current_buffer->undo_list = Qnil;
 #ifdef APOLLO
@@ -2036,7 +2033,7 @@ before the error is signaled.")
       current_buffer->auto_save_modified = MODIFF;
       XFASTINT (current_buffer->save_length) = Z - BEG;
 #ifdef CLASH_DETECTION
-      if (!NULL (current_buffer->filename))
+      if (!NILP (current_buffer->filename))
 	unlock_file (current_buffer->filename);
       unlock_file (filename);
 #endif /* CLASH_DETECTION */
@@ -2082,7 +2079,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 #endif /* VMS */
 
   /* Special kludge to simplify auto-saving */
-  if (NULL (start))
+  if (NILP (start))
     {
       XFASTINT (start) = BEG;
       XFASTINT (end) = Z;
@@ -2099,7 +2096,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 #endif /* CLASH_DETECTION */
 
   desc = -1;
-  if (!NULL (append))
+  if (!NILP (append))
     desc = open (fn, O_WRONLY);
 
   if (desc < 0)
@@ -2118,7 +2115,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 	Lisp_Object temp_name;
 	temp_name = Ffile_name_directory (filename);
 
-	if (!NULL (temp_name))
+	if (!NILP (temp_name))
 	  {
 	    temp_name = Fmake_temp_name (concat2 (temp_name,
 						  build_string ("$$SAVE$$")));
@@ -2164,7 +2161,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   record_unwind_protect (close_file_unwind, make_number (desc));
 
-  if (!NULL (append))
+  if (!NILP (append))
     if (lseek (desc, 0, 2) < 0)
       {
 #ifdef CLASH_DETECTION
@@ -2297,7 +2294,7 @@ to the file, instead of any buffer contents, and END is ignored.")
       XFASTINT (current_buffer->save_length) = Z - BEG;
       current_buffer->filename = filename;
     }
-  else if (!NULL (visit))
+  else if (!NILP (visit))
     return Qnil;
 
   if (!auto_saving)
@@ -2463,7 +2460,7 @@ Non-nil second argumet means save only current buffer.")
 
   /* Vrun_hooks is nil before emacs is dumped, and inc-vers.el will
      eventually call do-auto-save, so don't err here in that case. */
-  if (!NULL (Vrun_hooks))
+  if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("auto-save-hook"));
 
   for (tail = Vbuffer_alist; XGCTYPE (tail) == Lisp_Cons;
@@ -2497,7 +2494,7 @@ Non-nil second argumet means save only current buffer.")
 	      continue;
 	    }
 	  set_buffer_internal (b);
-	  if (!auto_saved && NULL (nomsg))
+	  if (!auto_saved && NILP (nomsg))
 	    message1 ("Auto-saving...");
 	  internal_condition_case (auto_save_1, Qt, auto_save_error);
 	  auto_saved++;
@@ -2510,7 +2507,7 @@ Non-nil second argumet means save only current buffer.")
   if (auto_saved)
     record_auto_save ();
 
-  if (auto_saved && NULL (nomsg))
+  if (auto_saved && NILP (nomsg))
     message1 (omessage ? omessage : "Auto-saving...done");
 
   auto_saving = 0;
@@ -2563,24 +2560,24 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
       string = Fsubstitute_in_file_name (string);
       name = Ffile_name_nondirectory (string);
       realdir = Ffile_name_directory (string);
-      if (NULL (realdir))
+      if (NILP (realdir))
 	realdir = dir;
       else
 	realdir = Fexpand_file_name (realdir, dir);
     }
 
-  if (NULL (action))
+  if (NILP (action))
     {
       specdir = Ffile_name_directory (string);
       val = Ffile_name_completion (name, realdir);
       if (XTYPE (val) != Lisp_String)
 	{
-	  if (NULL (Fstring_equal (string, orig_string)))
+	  if (NILP (Fstring_equal (string, orig_string)))
 	    return string;
 	  return (val);
 	}
 
-      if (!NULL (specdir))
+      if (!NILP (specdir))
 	val = concat2 (specdir, val);
 #ifndef VMS
       {
@@ -2641,9 +2638,9 @@ DIR defaults to current buffer's directory default.")
   register char *homedir;
   int count;
 
-  if (NULL (dir))
+  if (NILP (dir))
     dir = current_buffer->directory;
-  if (NULL (defalt))
+  if (NILP (defalt))
     defalt = current_buffer->filename;
 
   /* If dir starts with user's homedir, change that to ~. */
@@ -2661,7 +2658,7 @@ DIR defaults to current buffer's directory default.")
   if (insert_default_directory)
     {
       insdef = dir;
-      if (!NULL (initial))
+      if (!NILP (initial))
 	{
 	  Lisp_Object args[2];
 
@@ -2694,10 +2691,10 @@ DIR defaults to current buffer's directory default.")
 #endif
 
   UNGCPRO;
-  if (NULL (val))
+  if (NILP (val))
     error ("No file name specified");
   tem = Fstring_equal (val, insdef);
-  if (!NULL (tem) && !NULL (defalt))
+  if (!NILP (tem) && !NILP (defalt))
     return defalt;
   return Fsubstitute_in_file_name (val);
 }
@@ -2720,9 +2717,9 @@ DIR defaults to current buffer's directory default.")
   register char *homedir;
   int count;
 
-  if (NULL (dir))
+  if (NILP (dir))
     dir = current_buffer->directory;
-  if (NULL (defalt))
+  if (NILP (defalt))
     defalt = current_buffer->filename;
 
   /* If dir starts with user's homedir, change that to ~. */
@@ -2737,7 +2734,7 @@ DIR defaults to current buffer's directory default.")
       XSTRING (dir)->data[0] = '~';
     }
 
-  if (!NULL (initial))
+  if (!NILP (initial))
     insdef = initial;
   else if (insert_default_directory)
     insdef = dir;
@@ -2759,10 +2756,10 @@ DIR defaults to current buffer's directory default.")
 #endif
 
   UNGCPRO;
-  if (NULL (val))
+  if (NILP (val))
     error ("No file name specified");
   tem = Fstring_equal (val, insdef);
-  if (!NULL (tem) && !NULL (defalt))
+  if (!NILP (tem) && !NILP (defalt))
     return defalt;
   return Fsubstitute_in_file_name (val);
 }

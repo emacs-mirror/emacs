@@ -103,7 +103,7 @@ quotify_arg (exp)
      register Lisp_Object exp;
 {
   if (XTYPE (exp) != Lisp_Int && XTYPE (exp) != Lisp_String
-      && !NULL (exp) && !EQ (exp, Qt))
+      && !NILP (exp) && !EQ (exp, Qt))
     return Fcons (Qquote, Fcons (exp, Qnil));
 
   return exp;
@@ -131,7 +131,7 @@ static void
 check_mark ()
 {
   Lisp_Object tem = Fmarker_buffer (current_buffer->mark);
-  if (NULL (tem) || (XBUFFER (tem) != current_buffer))
+  if (NILP (tem) || (XBUFFER (tem) != current_buffer))
     error ("The mark is not set now");
 }
 
@@ -221,7 +221,7 @@ retry:
   else if (EQ (funcar, Qlambda))
     {
       specs = Fassq (Qinteractive, Fcdr (Fcdr (fun)));
-      if (NULL (specs))
+      if (NILP (specs))
 	goto lose;
       specs = Fcar (Fcdr (specs));
     }
@@ -236,7 +236,7 @@ retry:
     {
       i = num_input_chars;
       specs = Feval (specs);
-      if (i != num_input_chars || !NULL (record))
+      if (i != num_input_chars || !NILP (record))
 	Vcommand_history
 	  = Fcons (Fcons (function, quotify_args (Fcopy_sequence (specs))),
 		   Vcommand_history);
@@ -251,13 +251,13 @@ retry:
       if (*string == '*')
 	{
 	  string++;
-	  if (!NULL (current_buffer->read_only))
+	  if (!NILP (current_buffer->read_only))
 	    Fbarf_if_buffer_read_only ();
 	}
       else if (*string == '@')
 	{
 	  string++;
-	  if (!NULL (Vmouse_window))
+	  if (!NILP (Vmouse_window))
 	    Fselect_window (Vmouse_window);
 	}
       else break;
@@ -379,7 +379,7 @@ retry:
 
 	case 'K':		/* Mouse click.  */
 	  args[i] = last_command_char;
-	  if (NULL (Fmouse_click_p (args[i])))
+	  if (NILP (Fmouse_click_p (args[i])))
 	    error ("%s must be bound to a mouse click.",
 		   (XTYPE (function) == Lisp_Symbol
 		    ? (char *) XSYMBOL (function)->name->data
@@ -394,7 +394,7 @@ retry:
 	  break;
 
 	case 'N':		/* Prefix arg, else number from minibuffer */
-	  if (!NULL (prefix_arg))
+	  if (!NILP (prefix_arg))
 	    goto have_prefix_arg;
 	case 'n':		/* Read number from minibuffer.  */
 	  do
@@ -470,7 +470,7 @@ retry:
       if (varies[i] == 0)
 	arg_from_tty = 1;
 
-      if (NULL (visargs[i]) && XTYPE (args[i]) == Lisp_String)
+      if (NILP (visargs[i]) && XTYPE (args[i]) == Lisp_String)
 	visargs[i] = args[i];
 
       tem = (unsigned char *) index (tem, '\n');
@@ -482,7 +482,7 @@ retry:
 
   args[0] = function;
 
-  if (arg_from_tty || !NULL (record))
+  if (arg_from_tty || !NILP (record))
     {
       visargs[0] = function;
       for (i = 1; i < count + 1; i++)
@@ -519,7 +519,7 @@ Its numeric meaning is what you would get from `(interactive \"p\")'.")
      may use XSETINT.  */
   XFASTINT (val) = 0;
 
-  if (NULL (raw))
+  if (NILP (raw))
     XFASTINT (val) = 1;
   else if (XTYPE (raw) == Lisp_Symbol)
     XSETINT (val, -1);

@@ -55,10 +55,13 @@ struct screen
   int cursor_x;
   int cursor_y;
 
-  /* Actual cursor position of this screen.
+  /* Actual cursor position of this screen, and the character under it.
      (Not used for terminal screens.)  */
   int phys_cursor_x;
   int phys_cursor_y;
+  /* This is handy for undrawing the cursor, because current_glyphs is
+     not always accurate when in do_scrolling.  */
+  GLYPH phys_cursor_glyph;
 
   /* Size of this screen, in units of characters.  */
   int height;
@@ -120,7 +123,7 @@ struct screen
   /* Nonzero if this screen should be redrawn.  */
   char garbaged;
 
-  /* True if screen actually has a  minibuffer window on it.
+  /* True if screen actually has a minibuffer window on it.
      0 if using a minibuffer window that isn't on this screen.  */
   char has_minibuffer;
      
@@ -152,9 +155,14 @@ typedef struct screen *SCREEN_PTR;
 
 #define WINDOW_SCREEN(w) (w)->screen
 
+#define SCREENP(s) (XTYPE(s) == Lisp_Screen)
+#define SCREEN_LIVE_P(s) ((s)->display.nothing != 0)
 #define SET_SCREEN_GARBAGED(s) (screen_garbaged = 1, s->garbaged = 1)
 #define SCREEN_IS_TERMCAP(s) ((s)->output_method == output_termcap)
 #define SCREEN_IS_X(s) ((s)->output_method == output_x_window)
+#define SCREEN_MINIBUF_ONLY_P(s) \
+  EQ (SCREEN_ROOT_WINDOW (s), SCREEN_MINIBUF_WINDOW (s))
+#define SCREEN_HAS_MINIBUF(s) ((s)->has_minibuffer)
 #define SCREEN_CURRENT_GLYPHS(s) (s)->current_glyphs
 #define SCREEN_DESIRED_GLYPHS(s) (s)->desired_glyphs
 #define SCREEN_TEMP_GLYPHS(s) (s)->temp_glyphs
@@ -172,7 +180,6 @@ typedef struct screen *SCREEN_PTR;
 #define SCREEN_MINIBUF_WINDOW(s) (s)->minibuffer_window
 #define SCREEN_ROOT_WINDOW(s) (s)->root_window
 #define SCREEN_SELECTED_WINDOW(s) (s)->selected_window
-#define SCREENP(s) (XTYPE(s) == Lisp_Screen)
 #define SET_GLYPHS_SCREEN(glyphs,screen) ((glyphs)->screen = (screen))
 #define SCREEN_INSERT_COST(s) (s)->insert_line_cost    
 #define SCREEN_DELETE_COST(s) (s)->delete_line_cost    
@@ -182,9 +189,20 @@ typedef struct screen *SCREEN_PTR;
 #define SCREEN_SCROLL_BOTTOM_VPOS(s) (s)->scroll_bottom_vpos
 #define SCREEN_FOCUS_SCREEN(s) (s)->focus_screen
 
-#define CHECK_SCREEN(x, i) \
-  { if (XTYPE ((x)) != Lisp_Screen) x = wrong_type_argument (Qscreenp, (x)); }
-extern Lisp_Object Qscreenp;
+#define CHECK_SCREEN(x, i)				\
+  {							\
+    if (! SCREENP (x))					\
+      x = wrong_type_argument (Qscreenp, (x));		\
+  }
+
+#define CHECK_LIVE_SCREEN(x, i)				\
+  {							\
+    if (! SCREENP (x)					\
+	|| ! SCREEN_LIVE_P (XSCREEN (x)))		\
+      x = wrong_type_argument (Qlive_screen_p, (x));	\
+  }
+
+extern Lisp_Object Qscreenp, Qlive_screen_p;
 
 extern struct screen *selected_screen;
 extern struct screen *last_nonminibuf_screen;
@@ -195,7 +213,6 @@ extern struct screen *make_minibuffer_screen ();
 extern struct screen *make_screen_without_minibuffer ();
 
 extern Lisp_Object Vscreen_list;
-extern Lisp_Object Vglobal_minibuffer_screen;
 extern Lisp_Object Vdefault_screen_alist;
 
 extern Lisp_Object Vterminal_screen;
@@ -212,8 +229,13 @@ extern int selected_screen;
 #define XSCREEN(s) selected_screen
 #define WINDOW_SCREEN(w) selected_screen
 
+#define SCREENP(s) (XTYPE(s) == Lisp_Screen)
+#define SCREEN_LIVE_P(s) 1
 #define SET_SCREEN_GARBAGED(s) (screen_garbaged = 1)
 #define SCREEN_IS_TERMCAP(s) 1
+#define SCREEN_IS_X(s) 0
+#define SCREEN_IS_MINIBUF_ONLY(s) 0
+#define SCREEN_HAS_MINIBUF(s) 1
 #define SCREEN_CURRENT_GLYPHS(s) current_glyphs
 #define SCREEN_DESIRED_GLYPHS(s) desired_glyphs
 #define SCREEN_TEMP_GLYPHS(s) temp_glyphs
@@ -231,7 +253,6 @@ extern int selected_screen;
 #define SCREEN_MINIBUF_WINDOW(s) minibuf_window
 #define SCREEN_ROOT_WINDOW(s) root_window
 #define SCREEN_SELECTED_WINDOW(s) selected_window
-#define SCREENP(s) 0
 #define SET_GLYPHS_SCREEN(glyphs,screen)
 #define SCREEN_INSERT_COST(screen)  insert_line_cost    
 #define SCREEN_DELETE_COST(screen)  delete_line_cost    

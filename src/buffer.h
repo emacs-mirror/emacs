@@ -128,7 +128,6 @@ struct buffer_text
 				   for this buffer.  It is incremented for
 				   each such event, and never otherwise
 				   changed.  */
-
   };
 
 struct buffer
@@ -148,7 +147,7 @@ struct buffer
     /* Flags saying which DEFVAR_PER_BUFFER variables
        are local to this buffer.  */
     int local_var_flags;
-    /* Value of text.modified as of when visited file was read or written. */
+    /* Value of text.modiff as of when visited file was read or written. */
     int save_modified;
     /* Set to the modtime of the visited file when read or written.
        -1 means visited file was nonexistent.

@@ -97,7 +97,7 @@ check_memory_limits (address)
     }
 
     if (EXCEEDS_ELISP_PTR (address))
-      (*warnfunction) ("Warning: memory in use exceeds lisp pointer size");
+      memory_full ();
 }
 
 /* Obtain SIZE bytes of space.  If enough space is not presently available

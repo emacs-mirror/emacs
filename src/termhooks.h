@@ -45,37 +45,30 @@ extern int (*set_terminal_window_hook) ();
 
 extern int (*read_socket_hook) ();
 
-/* Hook for Emacs to call to tell the window-system-specific code to
-   enable/disable low-level tracking.  The value of ENABLE tells the
-   window system event handler whether it should notice or ignore
-   subsequent mouse movement and mouse button releases.
+/* Return the current position of the mouse.  This should clear
+   mouse_moved until the next motion event arrives.  */
+extern void (*mouse_position_hook) ( /* SCREEN_PTR *s,
+					Lisp_Object *x,
+					Lisp_Object *y,
+					Lisp_Object *time */ );
 
-   If this is 0, Emacs should assume that there is no mouse (or at
-   least no mouse tracking) available.
-
-   If called with ENABLE non-zero, the window system event handler
-   should call set_pointer_loc with the new mouse co-ordinates
-   whenever the mouse moves, and enqueue a mouse button event for
-   button releases as well as button presses.
-
-   If called with ENABLE zero, the window system event handler should
-   ignore mouse movement events, and not enqueue events for mouse
-   button releases.  */
-extern int (*mouse_tracking_enable_hook) ( /* int ENABLE */ );
+/* The window system handling code should set this if the mouse has
+   moved since the last call to the mouse_position_hook.  Calling that
+   hook should clear this.  */
+extern int mouse_moved;
 
 /* When a screen's focus redirection is changed, this hook tells the
    window system code to re-decide where to put the highlight.  Under
-   X, this means that the system lies about where the focus is.  */
+   X, this means that Emacs lies about where the focus is.  */
 extern void (*screen_rehighlight_hook) ( /* void */ );
 
 /* If nonzero, send all terminal output characters to this stream also.  */
-
 extern FILE *termscript;
 
-#ifdef XINT
 /* Expedient hack: only provide the below definitions to files that
    are prepared to handle lispy things.  XINT is defined iff lisp.h
-   has been included in the file before this file.  */
+   has been included before this file.  */
+#ifdef XINT
 
 /* The keyboard input buffer is an array of these structures.  Each one
    represents some sort of input event - a keystroke, a mouse click, or
@@ -93,8 +86,9 @@ struct input_event {
 				   was typed.
 				   Note that this includes meta-keys, and
 				   the modifiers field of the event
-				   is unused.  */
-
+				   is unused.
+				   .timestamp gives a timestamp (in
+				   milliseconds) for the keystroke.  */
     non_ascii_keystroke,	/* .code is a number identifying the
 				   function key.  A code N represents
 				   a key whose name is
@@ -104,7 +98,9 @@ struct input_event {
 				   .modifiers holds the state of the
 				   modifier keys.
 				   .screen is the screen in which the key
-				   was typed.  */
+				   was typed.
+				   .timestamp gives a timestamp (in
+				   milliseconds) for the keystroke.  */
     mouse_click,		/* The button number is in .code.
 				   .modifiers holds the state of the
 				   modifier keys.

@@ -155,7 +155,7 @@ VECTOR is a 128-element vector of bindings for ASCII characters.")
   (object)
      Lisp_Object object;
 {
-  return (NULL (get_keymap_1 (object, 0)) ? Qnil : Qt);
+  return (NILP (get_keymap_1 (object, 0)) ? Qnil : Qt);
 }
 
 /* Check that OBJECT is a keymap (after dereferencing through any
@@ -232,7 +232,7 @@ access_keymap (map, idx)
 
     /* A dense keymap indexed by a character?  */
     if (XTYPE (idx) == Lisp_Int
-	&& ! NULL (table))
+	&& ! NILP (table))
       return XVECTOR (table)->contents[XFASTINT (idx)];
 
     /* This lookup will not involve a vector reference.  */
@@ -269,7 +269,7 @@ get_keyelt (object)
       tem = Fkeymapp (map);
 
       /* If the contents are (KEYMAP . ELEMENT), go indirect.  */
-      if (!NULL (tem))
+      if (!NILP (tem))
 	object = access_keymap (map, Fcdr (object));
       
       /* If the keymap contents looks like (STRING . DEFN),
@@ -306,7 +306,7 @@ store_in_keymap (keymap, idx, def)
     Lisp_Object table = keymap_table (keymap);
 
     /* A dense keymap indexed by a character?  */
-    if (XTYPE (idx) == Lisp_Int	&& !NULL (table))
+    if (XTYPE (idx) == Lisp_Int	&& !NILP (table))
       XVECTOR (table)->contents[XFASTINT (idx)] = def;
 
     /* Must be a sparse keymap, or a dense keymap indexed by a symbol.  */
@@ -315,7 +315,7 @@ store_in_keymap (keymap, idx, def)
 	/* Point to the pointer to the start of the assoc-list part
 	   of the keymap.  */
 	register Lisp_Object *assoc_head
-	  = (NULL (table)
+	  = (NILP (table)
 	     ? & XCONS (keymap)->cdr
 	     : & XCONS (XCONS (keymap)->cdr)->cdr);
 	register Lisp_Object defining_pair;
@@ -328,7 +328,7 @@ store_in_keymap (keymap, idx, def)
 	/* Point to the pair where idx is bound, if any.  */
 	defining_pair = Fassq (idx, *assoc_head);
 
-	if (NULL (defining_pair))
+	if (NILP (defining_pair))
 	  *assoc_head = Fcons (Fcons (idx, def), *assoc_head);
 	else
 	  Fsetcdr (defining_pair, def);
@@ -367,7 +367,7 @@ is not copied.")
 
 	  for (i = 0; i < DENSE_TABLE_SIZE; i++)
 	    if (XTYPE (XVECTOR (copy)->contents[i]) != Lisp_Symbol)
-	      if (! NULL (Fkeymapp (XVECTOR (table)->contents[i])))
+	      if (! NILP (Fkeymapp (XVECTOR (table)->contents[i])))
 		XVECTOR (table)->contents[i]
 		  = Fcopy_keymap (XVECTOR (table)->contents[i]);
 	  XCONS (tail)->car = table;
@@ -384,7 +384,7 @@ is not copied.")
       elt = XCONS (tail)->car;
       if (CONSP (elt)
 	  && XTYPE (XCONS (elt)->cdr) != Lisp_Symbol
-	  && ! NULL (Fkeymapp (XCONS (elt)->cdr)))
+	  && ! NILP (Fkeymapp (XCONS (elt)->cdr)))
 	XCONS (elt)->cdr = Fcopy_keymap (XCONS (elt)->cdr);
 
       tail = XCONS (tail)->cdr;
@@ -461,14 +461,14 @@ the front of KEYMAP.")
 
       cmd = get_keyelt (access_keymap (keymap, c));
 
-      if (NULL (cmd))
+      if (NILP (cmd))
 	{
 	  cmd = Fmake_sparse_keymap ();
 	  store_in_keymap (keymap, c, cmd);
 	}
 
       tem = Fkeymapp (cmd);
-      if (NULL (tem))
+      if (NILP (tem))
 	error ("Key sequence %s uses invalid prefix characters",
 	       XSTRING (key)->data);
 
@@ -533,7 +533,7 @@ it takes to reach a non-prefix command.")
 	return cmd;
 
       tem = Fkeymapp (cmd);
-      if (NULL (tem))
+      if (NILP (tem))
 	return make_number (idx);
 
       keymap = get_keymap (cmd);
@@ -568,6 +568,11 @@ append_key (key_sequence, key)
 
 /* Global, local, and minor mode keymap stuff.				*/
 
+/* We can't put these variables inside current_minor_maps, since under
+   DGUX they dump as pure.  Bleah.  */
+static Lisp_Object *cmm_modes, *cmm_maps;
+static int cmm_size;
+
 /* Store a pointer to an array of the keymaps of the currently active
    minor modes in *buf, and return the number of maps it contains.
 
@@ -588,9 +593,6 @@ int
 current_minor_maps (modeptr, mapptr)
      Lisp_Object **modeptr, **mapptr;
 {
-  static Lisp_Object *modes, *maps;
-  static int size;
-
   int i = 0;
   Lisp_Object alist, assoc, var;
 
@@ -599,39 +601,39 @@ current_minor_maps (modeptr, mapptr)
        alist = XCONS (alist)->cdr)
     if (CONSP (assoc = XCONS (alist)->car)
 	&& XTYPE (var = XCONS (assoc)->car) == Lisp_Symbol
-	&& ! NULL (Fboundp (var))
-	&& ! NULL (Fsymbol_value (var)))
+	&& ! NILP (Fboundp (var))
+	&& ! NILP (Fsymbol_value (var)))
       {
-	if (i >= size)
+	if (i >= cmm_size)
 	  {
 	    Lisp_Object *newmodes, *newmaps;
 
-	    if (maps)
+	    if (cmm_maps)
 	      {
-		newmodes = (Lisp_Object *) realloc (modes, size *= 2);
-		newmaps  = (Lisp_Object *) realloc (maps,  size);
+		newmodes = (Lisp_Object *) realloc (cmm_modes, cmm_size *= 2);
+		newmaps  = (Lisp_Object *) realloc (cmm_maps,  cmm_size);
 	      }
 	    else
 	      {
-		newmodes = (Lisp_Object *) malloc (size = 30);
-		newmaps  = (Lisp_Object *) malloc (size);
+		newmodes = (Lisp_Object *) malloc (cmm_size = 30);
+		newmaps  = (Lisp_Object *) malloc (cmm_size);
 	      }
 
 	    if (newmaps && newmodes)
 	      {
-		modes = newmodes;
-		maps = newmaps;
+		cmm_modes = newmodes;
+		cmm_maps = newmaps;
 	      }
 	    else
 	      break;
 	  }
-	modes[i] = var;
-	maps [i] = XCONS (assoc)->cdr;
+	cmm_modes[i] = var;
+	cmm_maps [i] = XCONS (assoc)->cdr;
 	i++;
       }
 
-  if (modeptr) *modeptr = modes;
-  if (mapptr)  *mapptr  = maps;
+  if (modeptr) *modeptr = cmm_modes;
+  if (mapptr)  *mapptr  = cmm_maps;
   return i;
 }
 
@@ -647,22 +649,22 @@ The binding is probably a symbol with a function definition.")
 
   nmaps = current_minor_maps (0, &maps);
   for (i = 0; i < nmaps; i++)
-    if (! NULL (maps[i]))
+    if (! NILP (maps[i]))
       {
 	value = Flookup_key (maps[i], key);
-	if (! NULL (value) && XTYPE (value) != Lisp_Int)
+	if (! NILP (value) && XTYPE (value) != Lisp_Int)
 	  return value;
       }
 
-  if (! NULL (current_buffer->keymap))
+  if (! NILP (current_buffer->keymap))
     {
       value = Flookup_key (current_buffer->keymap, key);
-      if (! NULL (value) && XTYPE (value) != Lisp_Int)
+      if (! NILP (value) && XTYPE (value) != Lisp_Int)
 	return value;
     }
 
   value = Flookup_key (current_global_map, key);
-  if (! NULL (value) && XTYPE (value) != Lisp_Int)
+  if (! NILP (value) && XTYPE (value) != Lisp_Int)
     return value;
   
   return Qnil;
@@ -677,7 +679,7 @@ The binding is probably a symbol with a function definition.")
 {
   register Lisp_Object map;
   map = current_buffer->keymap;
-  if (NULL (map))
+  if (NILP (map))
     return Qnil;
   return Flookup_key (map, keys);
 }
@@ -711,11 +713,11 @@ that come after prefix bindings.")
   nmaps = current_minor_maps (&modes, &maps);
 
   for (i = j = 0; i < nmaps; i++)
-    if (! NULL (maps[i])
-	&& ! NULL (binding = Flookup_key (maps[i], key))
+    if (! NILP (maps[i])
+	&& ! NILP (binding = Flookup_key (maps[i], key))
 	&& XTYPE (binding) != Lisp_Int)
       {
-	if (! NULL (get_keymap_1 (binding, 0)))
+	if (! NILP (get_keymap_1 (binding, 0)))
 	  maps[j++] = Fcons (modes[i], binding);
 	else if (j == 0)
 	  return Fcons (Fcons (modes[i], binding), Qnil);
@@ -754,7 +756,7 @@ which is shared with other buffers in the same major mode.")
 {
   register Lisp_Object map;
   map = current_buffer->keymap;
-  if (NULL (map))
+  if (NILP (map))
     {
       map = Fmake_sparse_keymap ();
       current_buffer->keymap = map;
@@ -785,7 +787,7 @@ KEY is a string representing a sequence of keystrokes.")
   (keys)
      Lisp_Object keys;
 {
-  if (!NULL (current_buffer->keymap))
+  if (!NILP (current_buffer->keymap))
     Flocal_set_key (keys, Qnil);
   return Qnil;
 }
@@ -802,7 +804,7 @@ as a function.")
   Lisp_Object map;
   map = Fmake_sparse_keymap ();
   Ffset (name, map);
-  if (!NULL (mapvar))
+  if (!NILP (mapvar))
     Fset (mapvar, map);
   else
     Fset (name, map);
@@ -825,7 +827,7 @@ If KEYMAP is nil, that means no local keymap.")
   (keymap)
      Lisp_Object keymap;
 {
-  if (!NULL (keymap))
+  if (!NILP (keymap))
     keymap = get_keymap (keymap);
 
   current_buffer->keymap = keymap;
@@ -880,7 +882,7 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
      This is a breadth-first traversal, where tail is the queue of
      nodes, and maps accumulates a list of all nodes visited.  */
 
-  while (!NULL (tail))
+  while (!NILP (tail))
     {
       register Lisp_Object thisseq = Fcar (Fcar (tail));
       register Lisp_Object thismap = Fcdr (Fcar (tail));
@@ -908,14 +910,14 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 		  register Lisp_Object cmd;
 
 		  cmd = get_keyelt (XVECTOR (table)->contents[i]);
-		  if (NULL (cmd)) continue;
+		  if (NILP (cmd)) continue;
 		  tem = Fkeymapp (cmd);
-		  if (!NULL (tem))
+		  if (!NILP (tem))
 		    {
 		      cmd = get_keymap (cmd);
 		      /* Ignore keymaps that are already added to maps.  */
 		      tem = Frassq (cmd, maps);
-		      if (NULL (tem))
+		      if (NILP (tem))
 			{
 			  /* If the last key in thisseq is meta-prefix-char,
 			     turn it into a meta-ized keystroke.  We know
@@ -960,12 +962,12 @@ so that the KEYS increase in length.  The first element is (\"\" . KEYMAP).")
 
 	      /* Ignore definitions that aren't keymaps themselves.  */
 	      tem = Fkeymapp (cmd);
-	      if (!NULL (tem))
+	      if (!NILP (tem))
 		{
 		  /* Ignore keymaps that have been seen already.  */
 		  cmd = get_keymap (cmd);
 		  tem = Frassq (cmd, maps);
-		  if (NULL (tem))
+		  if (NILP (tem))
 		    {
 		      /* let elt be the event defined by this map entry.  */
 		      elt = XCONS (elt)->car;
@@ -1171,10 +1173,10 @@ indirect definition itself.")
   register Lisp_Object maps;
   Lisp_Object found;
 
-  if (NULL (global_keymap))
+  if (NILP (global_keymap))
     global_keymap = current_global_map;
 
-  if (!NULL (local_keymap))
+  if (!NILP (local_keymap))
     maps = nconc2 (Faccessible_keymaps (get_keymap (local_keymap)),
 		   Faccessible_keymaps (get_keymap (global_keymap)));
   else
@@ -1182,7 +1184,7 @@ indirect definition itself.")
 
   found = Qnil;
 
-  for (; !NULL (maps); maps = Fcdr (maps))
+  for (; !NILP (maps); maps = Fcdr (maps))
     {
       register this = Fcar (Fcar (maps)); /* Key sequence to reach map */
       register map = Fcdr (Fcar (maps)); /* The map that it reaches */
@@ -1245,7 +1247,7 @@ indirect definition itself.")
 	    break;
 
 	  /* Search through indirections unless that's not wanted.  */
-	  if (NULL (noindirect))
+	  if (NILP (noindirect))
 	    binding = get_keyelt (binding);
 
 	  /* End this iteration if this element does not match
@@ -1255,7 +1257,7 @@ indirect definition itself.")
 	    {
 	      Lisp_Object tem;
 	      tem = Fequal (binding, definition);
-	      if (NULL (tem))
+	      if (NILP (tem))
 		continue;
 	    }
 	  else
@@ -1281,16 +1283,16 @@ indirect definition itself.")
 
 	     Either nil or number as value from Flookup_key
 	     means undefined.  */
-	  if (!NULL (local_keymap))
+	  if (!NILP (local_keymap))
 	    {
 	      binding = Flookup_key (local_keymap, sequence);
-	      if (!NULL (binding) && XTYPE (binding) != Lisp_Int)
+	      if (!NILP (binding) && XTYPE (binding) != Lisp_Int)
 		{
 		  if (XTYPE (definition) == Lisp_Cons)
 		    {
 		      Lisp_Object tem;
 		      tem = Fequal (binding, definition);
-		      if (NULL (tem))
+		      if (NILP (tem))
 			continue;
 		    }
 		  else
@@ -1301,7 +1303,7 @@ indirect definition itself.")
 
 	  /* It is a true unshadowed match.  Record it.  */
 
-	  if (!NULL (firstonly))
+	  if (!NILP (firstonly))
 	    return sequence;
 	  found = Fcons (sequence, found);
 	}
@@ -1392,7 +1394,7 @@ describe_buffer_bindings (descbuf)
   }
 
   start1 = XBUFFER (descbuf)->keymap;
-  if (!NULL (start1))
+  if (!NILP (start1))
     {
       insert_string ("Local Bindings:\n");
       insert_string (heading);
@@ -1428,13 +1430,13 @@ describe_map_tree (startmap, partial, shadow)
   maps = Faccessible_keymaps (startmap);
   GCPRO1 (maps);
 
-  for (; !NULL (maps); maps = Fcdr (maps))
+  for (; !NILP (maps); maps = Fcdr (maps))
     {
       elt = Fcar (maps);
       sh = Fcar (elt);
 
       /* If there is no shadow keymap given, don't shadow.  */
-      if (NULL (shadow))
+      if (NILP (shadow))
 	sh = Qnil;
 
       /* If the sequence by which we reach this keymap is zero-length,
@@ -1460,7 +1462,7 @@ describe_map_tree (startmap, partial, shadow)
 	 show through), describe the map.  Otherwise, sh is a command
 	 that completely shadows the current map, and we shouldn't
 	 bother.  */
-      if (NULL (sh) || !NULL (Fkeymapp (sh)))
+      if (NILP (sh) || !NILP (Fkeymapp (sh)))
 	describe_map (Fcdr (elt), Fcar (elt), partial, sh);
     }
 
@@ -1484,7 +1486,7 @@ describe_command (definition)
   else
     {
       tem1 = Fkeymapp (definition);
-      if (!NULL (tem1))
+      if (!NILP (tem1))
 	insert_string ("Prefix Command\n");
       else
 	insert_string ("??\n");
@@ -1503,7 +1505,7 @@ describe_map (map, keys, partial, shadow)
 {
   register Lisp_Object keysdesc;
 
-  if (!NULL (keys) && Flength (keys) > 0)
+  if (!NILP (keys) && Flength (keys) > 0)
     keysdesc = concat2 (Fkey_description (keys),
 			build_string (" "));
   else
@@ -1560,24 +1562,24 @@ describe_alist (alist, elt_prefix, elt_describer, partial, shadow)
       tem2 = get_keyelt (Fcdr_safe (Fcar (alist)));
 
       /* Don't show undefined commands or suppressed commands.  */
-      if (NULL (tem2)) continue;
+      if (NILP (tem2)) continue;
       if (XTYPE (tem2) == Lisp_Symbol && partial)
 	{
 	  this = Fget (tem2, suppress);
-	  if (!NULL (this))
+	  if (!NILP (this))
 	    continue;
 	}
 
       /* Don't show a command that isn't really visible
 	 because a local definition of the same key shadows it.  */
 
-      if (!NULL (shadow))
+      if (!NILP (shadow))
 	{
 	  Lisp_Object tem;
 
 	  XVECTOR (kludge)->contents[0] = tem1;
 	  tem = Flookup_key (shadow, kludge);
-	  if (!NULL (tem)) continue;
+	  if (!NILP (tem)) continue;
 	}
 
       if (first)
@@ -1586,7 +1588,7 @@ describe_alist (alist, elt_prefix, elt_describer, partial, shadow)
 	  first = 0;
 	}
 
-      if (!NULL (elt_prefix))
+      if (!NILP (elt_prefix))
 	insert1 (elt_prefix);
 
       /* THIS gets the string to describe the character TEM1.  */
@@ -1651,26 +1653,26 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
       QUIT;
       tem1 = get_keyelt (XVECTOR (vector)->contents[i]);
 
-      if (NULL (tem1)) continue;      
+      if (NILP (tem1)) continue;      
 
       /* Don't mention suppressed commands.  */
       if (XTYPE (tem1) == Lisp_Symbol && partial)
 	{
 	  this = Fget (tem1, suppress);
-	  if (!NULL (this))
+	  if (!NILP (this))
 	    continue;
 	}
 
       /* If this command in this map is shadowed by some other map,
 	 ignore it.  */
-      if (!NULL (shadow))
+      if (!NILP (shadow))
 	{
 	  Lisp_Object tem;
 	  
 	  XVECTOR (kludge)->contents[0] = make_number (i);
 	  tem = Flookup_key (shadow, kludge);
 
-	  if (!NULL (tem)) continue;
+	  if (!NILP (tem)) continue;
 	}
 
       if (first)
@@ -1680,7 +1682,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
 	}
 
       /* Output the prefix that applies to every entry in this map.  */
-      if (!NULL (elt_prefix))
+      if (!NILP (elt_prefix))
 	insert1 (elt_prefix);
 
       /* Get the string to describe the character I, and print it.  */
@@ -1702,7 +1704,7 @@ describe_vector (vector, elt_prefix, elt_describer, partial, shadow)
       if (i != XINT (dummy))
 	{
 	  insert (" .. ", 4);
-	  if (!NULL (elt_prefix))
+	  if (!NILP (elt_prefix))
 	    insert1 (elt_prefix);
 
 	  XFASTINT (dummy) = i;
@@ -1729,9 +1731,9 @@ apropos_accum (symbol, string)
   register Lisp_Object tem;
 
   tem = Fstring_match (string, Fsymbol_name (symbol), Qnil);
-  if (!NULL (tem) && !NULL (apropos_predicate))
+  if (!NILP (tem) && !NILP (apropos_predicate))
     tem = call1 (apropos_predicate, symbol);
-  if (!NULL (tem))
+  if (!NILP (tem))
     apropos_accumulate = Fcons (symbol, apropos_accumulate);
 }
 

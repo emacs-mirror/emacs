@@ -33,7 +33,7 @@ On reaching end of buffer, stop and signal error.")
   (n)
      Lisp_Object n;
 {
-  if (NULL (n))
+  if (NILP (n))
     XFASTINT (n) = 1;
   else
     CHECK_NUMBER (n, 0);
@@ -58,7 +58,7 @@ On attempt to pass beginning or end of buffer, stop and signal error.")
   (n)
      Lisp_Object n;
 {
-  if (NULL (n))
+  if (NILP (n))
     XFASTINT (n) = 1;
   else
     CHECK_NUMBER (n, 0);
@@ -82,7 +82,7 @@ With positive ARG, a non-empty line at the end counts as one line\n\
   int pos;
   int count, shortage, negp;
 
-  if (NULL (n))
+  if (NILP (n))
     count = 1;
   else
     {
@@ -109,7 +109,7 @@ If scan reaches end of buffer, stop there without error.")
   (n)
      Lisp_Object n;
 {
-  if (NULL (n))
+  if (NILP (n))
     XFASTINT (n) = 1;
   else
     CHECK_NUMBER (n, 0);
@@ -129,7 +129,7 @@ If scan reaches end of buffer, stop there without error.")
   register int pos;
   register int stop;
 
-  if (NULL (n))
+  if (NILP (n))
     XFASTINT (n) = 1;
   else
     CHECK_NUMBER (n, 0);
@@ -155,7 +155,7 @@ ARG was explicitly specified.")
 {
   CHECK_NUMBER (n, 0);
 
-  if (NULL (killflag))
+  if (NILP (killflag))
     {
       if (XINT (n) < 0)
 	{
@@ -225,7 +225,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
 
   arg = Fprefix_numeric_value (arg1);
 
-  if (!NULL (current_buffer->read_only))
+  if (!NILP (current_buffer->read_only))
     Fsignal (Qbuffer_read_only, Qnil);
 
   /* Inserting a newline at the end of a line
@@ -245,7 +245,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
       if (flag)
 	insert (&c1, 1);
       else
-	internal_self_insert ('\n', !NULL (arg1));
+	internal_self_insert ('\n', !NILP (arg1));
       XFASTINT (arg)--;		/* Ok since old and new vals both nonneg */
     }
 
@@ -265,10 +265,10 @@ internal_self_insert (c1, noautofill)
   register enum syntaxcode synt;
   register int c = c1;
 
-  if (!NULL (Vbefore_change_function) || !NULL (Vafter_change_function))
+  if (!NILP (Vbefore_change_function) || !NILP (Vafter_change_function))
     hairy = 1;
 
-  if (!NULL (current_buffer->overwrite_mode)
+  if (!NILP (current_buffer->overwrite_mode)
       && point < ZV
       && c != '\n' && FETCH_CHAR (point) != '\n'
       && (FETCH_CHAR (point) != '\t'
@@ -278,18 +278,18 @@ internal_self_insert (c1, noautofill)
       del_range (point, point + 1);
       hairy = 1;
     }
-  if (!NULL (current_buffer->abbrev_mode)
+  if (!NILP (current_buffer->abbrev_mode)
       && SYNTAX (c) != Sword
-      && NULL (current_buffer->read_only)
+      && NILP (current_buffer->read_only)
       && point > BEGV && SYNTAX (FETCH_CHAR (point - 1)) == Sword)
     {
       tem = Fexpand_abbrev ();
-      if (!NULL (tem))
+      if (!NILP (tem))
 	hairy = 1;
     }
   if ((c == ' ' || c == '\n')
       && !noautofill
-      && !NULL (current_buffer->auto_fill_function)
+      && !NILP (current_buffer->auto_fill_function)
       && current_column () > XFASTINT (current_buffer->fill_column))
     {
       if (c1 != '\n')
@@ -303,7 +303,7 @@ internal_self_insert (c1, noautofill)
     insert (&c1, 1);
   synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
-      && !NULL (Vblink_paren_function) && INTERACTIVE)
+      && !NILP (Vblink_paren_function) && INTERACTIVE)
     {
       call0 (Vblink_paren_function);
       hairy = 1;

@@ -221,18 +221,20 @@ message (m, a1, a2, a3)
       Fmake_screen_visible (WINDOW_SCREEN (XWINDOW (minibuf_window)));
 #endif
 
+      {
 #ifdef NO_ARG_ARRAY
-      int a[3];
-      a[0] = a1;
-      a[1] = a2;
-      a[2] = a3;
+	int a[3];
+	a[0] = a1;
+	a[1] = a2;
+	a[2] = a3;
 
-      doprnt (SCREEN_MESSAGE_BUF (selected_screen),
-	      SCREEN_WIDTH (selected_screen), m, 0, 3, a);
+	doprnt (SCREEN_MESSAGE_BUF (selected_screen),
+		SCREEN_WIDTH (selected_screen), m, 0, 3, a);
 #else
-      doprnt (SCREEN_MESSAGE_BUF (selected_screen),
-	      SCREEN_WIDTH (selected_screen), m, 0, 3, &a1);
+	doprnt (SCREEN_MESSAGE_BUF (selected_screen),
+		SCREEN_WIDTH (selected_screen), m, 0, 3, &a1);
 #endif				/* NO_ARG_ARRAY */
+      }
 
       echo_area_glyphs = SCREEN_MESSAGE_BUF (selected_screen);
 
@@ -391,12 +393,12 @@ redisplay ()
 
   tlbufpos = this_line_bufpos;
   tlendpos = this_line_endpos;
-  if (!all_windows && tlbufpos > 0 && NULL (w->update_mode_line)
+  if (!all_windows && tlbufpos > 0 && NILP (w->update_mode_line)
       && SCREEN_VISIBLE_P (XSCREEN (w->screen))
       /* Make sure recorded data applies to current buffer, etc */
       && this_line_buffer == current_buffer
       && current_buffer == XBUFFER (w->buffer)
-      && NULL (w->force_start)
+      && NILP (w->force_start)
       /* Point must be on the line that we have info recorded about */
       && point >= tlbufpos
       && point <= Z - tlendpos
@@ -557,7 +559,7 @@ update:
   if (pause)
     {
       this_line_bufpos = 0;
-      if (!NULL (last_arrow_position))
+      if (!NILP (last_arrow_position))
 	{
 	  last_arrow_position = Qt;
 	  last_arrow_string = Qt;
@@ -643,11 +645,11 @@ mark_window_display_accurate (window, flag)
 {
   register struct window *w;
 
-  for (;!NULL (window); window = w->next)
+  for (;!NILP (window); window = w->next)
     {
       w = XWINDOW (window);
 
-      if (!NULL (w->buffer))
+      if (!NILP (w->buffer))
 	XFASTINT (w->last_modified)
 	  = !flag ? 0
 	    : XBUFFER (w->buffer) == current_buffer
@@ -655,9 +657,9 @@ mark_window_display_accurate (window, flag)
       w->window_end_valid = Qt;
       w->update_mode_line = Qnil;
 
-      if (!NULL (w->vchild))
+      if (!NILP (w->vchild))
 	mark_window_display_accurate (w->vchild, flag);
-      if (!NULL (w->hchild))
+      if (!NILP (w->hchild))
 	mark_window_display_accurate (w->hchild, flag);
     }
 
@@ -680,7 +682,7 @@ static void
 redisplay_windows (window)
      Lisp_Object window;
 {
-  for (; !NULL (window); window = XWINDOW (window)->next)
+  for (; !NILP (window); window = XWINDOW (window)->next)
     redisplay_window (window, 0);
 }
 
@@ -708,17 +710,17 @@ redisplay_window (window, just_this_one)
 
   /* If this is a combination window, do its children; that's all.  */
 
-  if (!NULL (w->vchild))
+  if (!NILP (w->vchild))
     {
       redisplay_windows (w->vchild);
       return;
     }
-  if (!NULL (w->hchild))
+  if (!NILP (w->hchild))
     {
       redisplay_windows (w->hchild);
       return;
     }
-  if (NULL (w->buffer))
+  if (NILP (w->buffer))
     abort ();
   
   height = window_internal_height (w);
@@ -770,12 +772,12 @@ redisplay_window (window, just_this_one)
       SET_PT (marker_position (w->pointm));
       if (point < BEGV)
 	{
-	  point = BEGV;
+	  SET_PT (BEGV);
 	  Fset_marker (w->pointm, make_number (point), Qnil);
 	}
       else if (point > (ZV - 1))
 	{
-	  point = ZV;
+	  SET_PT (ZV);
 	  Fset_marker (w->pointm, make_number (point), Qnil);
 	}
     }
@@ -788,7 +790,7 @@ redisplay_window (window, just_this_one)
 
   /* Handle case where place to start displaying has been specified,
      unless the specified location is outside the visible range.  */
-  if (!NULL (w->force_start))
+  if (!NILP (w->force_start))
     {
       w->update_mode_line = Qt;
       w->force_start = Qnil;
@@ -862,7 +864,7 @@ redisplay_window (window, just_this_one)
     }
   /* If current starting point was originally the beginning of a line
      but no longer is, find a new starting point.  */
-  else if (!NULL (w->start_at_line_beg)
+  else if (!NILP (w->start_at_line_beg)
 	   && !(startp == BEGV
 		|| FETCH_CHAR (startp - 1) == '\n'))
     {
@@ -943,7 +945,7 @@ recenter:
 done:
   /* If window not full width, must redo its mode line
      if the window to its side is being redone */
-  if ((!NULL (w->update_mode_line)
+  if ((!NILP (w->update_mode_line)
        || (!just_this_one && width < SCREEN_WIDTH (s) - 1))
       && height != XFASTINT (w->height))
     display_mode_line (w);
@@ -1432,7 +1434,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
   register GLYPH *p1prev;
   SCREEN_PTR s = XSCREEN (w->screen);
   int tab_width = XINT (current_buffer->tab_width);
-  int ctl_arrow = !NULL (current_buffer->ctl_arrow);
+  int ctl_arrow = !NILP (current_buffer->ctl_arrow);
   int width = XFASTINT (w->width) - 1
     - (XFASTINT (w->width) + XFASTINT (w->left) != SCREEN_WIDTH (s));
   struct position val;
@@ -1442,13 +1444,13 @@ display_text_line (w, start, vpos, hpos, taboffset)
   int truncate = hscroll
     || (truncate_partial_width_windows
 	&& XFASTINT (w->width) < SCREEN_WIDTH (s))
-    || !NULL (current_buffer->truncate_lines);
+    || !NILP (current_buffer->truncate_lines);
   int selective
     = XTYPE (current_buffer->selective_display) == Lisp_Int
       ? XINT (current_buffer->selective_display)
-	: !NULL (current_buffer->selective_display) ? -1 : 0;
+	: !NILP (current_buffer->selective_display) ? -1 : 0;
 #ifndef old
-  int selective_e = selective && !NULL (current_buffer->selective_display_ellipses);
+  int selective_e = selective && !NILP (current_buffer->selective_display_ellipses);
 #endif
   register struct screen_glyphs *desired_glyphs = SCREEN_DESIRED_GLYPHS (s);
   register struct Lisp_Vector *dp = window_display_table (w);
@@ -1768,7 +1770,7 @@ display_mode_line (w)
   if (SCREEN_IS_X (s)
       && ! SCREEN_MINIBUF_ONLY_P (s)
       && w == XWINDOW (s->selected_window)
-      && (NULL (Fstring_equal (XBUFFER (w->buffer)->name, s->name))))
+      && (NILP (Fstring_equal (XBUFFER (w->buffer)->name, s->name))))
     x_set_name (s, XBUFFER (w->buffer)->name, Qnil);
 #endif
 }
@@ -1875,7 +1877,7 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
       {
 	register Lisp_Object tem;
 	tem = Fboundp (elt);
-	if (!NULL (tem))
+	if (!NILP (tem))
 	  {
 	    tem = Fsymbol_value (elt);
 	    /* If value is a string, output that string literally:
@@ -1911,17 +1913,17 @@ display_mode_element (w, vpos, hpos, depth, minendcol, maxendcol, elt)
 	      goto invalid;
 	    /* elt is now the cdr, and we know it is a cons cell.
 	       Use its car if CAR has a non-nil value.  */
-	    if (!NULL (tem))
+	    if (!NILP (tem))
 	      {
 		tem = Fsymbol_value (car);
-		if (!NULL (tem))
+		if (!NILP (tem))
 		  { elt = XCONS (elt)->car; goto tail_recurse; }
 	      }
 	    /* Symbol's value is nil (or symbol is unbound)
 	       Get the cddr of the original list
 	       and if possible find the caddr and use that.  */
 	    elt = XCONS (elt)->cdr;
-	    if (NULL (elt))
+	    if (NILP (elt))
 	      break;
 	    else if (XTYPE (elt) != Lisp_Cons)
 	      goto invalid;
@@ -2015,7 +2017,7 @@ decode_mode_spec (w, c, maxwidth)
     case 'f': 
       obj = current_buffer->filename;
 #if 0
-      if (NULL (obj))
+      if (NILP (obj))
 	return "[none]";
       else if (XTYPE (obj) == Lisp_String && XSTRING (obj)->size > maxwidth)
 	{
@@ -2037,7 +2039,7 @@ decode_mode_spec (w, c, maxwidth)
       break;
 
     case '*':
-      if (!NULL (current_buffer->read_only))
+      if (!NILP (current_buffer->read_only))
 	return "%";
       if (MODIFF > current_buffer->save_modified)
 	return "*";
@@ -2047,7 +2049,7 @@ decode_mode_spec (w, c, maxwidth)
       /* status of process */
 #ifdef subprocesses
       obj = Fget_buffer_process (Fcurrent_buffer ());
-      if (NULL (obj))
+      if (NILP (obj))
 	return "no process";
       obj = Fsymbol_name (Fprocess_status (obj));
       break;

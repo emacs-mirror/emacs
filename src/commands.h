@@ -58,7 +58,7 @@ extern Lisp_Object Vexecuting_macro;
 
 /* Nonzero if input is coming from the keyboard */
 
-#define INTERACTIVE (NULL (Vexecuting_macro) && !noninteractive)
+#define INTERACTIVE (NILP (Vexecuting_macro) && !noninteractive)
 
 /* Set this nonzero to force reconsideration of mode line. */
 

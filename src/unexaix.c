@@ -5,8 +5,8 @@
   when Emacs was dumped, the dumped data won't work.
   No one has been able to prevent the address from varying.
 
-  The following comments should be in etc/MACHINES if this dumping
-  is ever made to work:
+  The following comments should be in share-lib/MACHINES if this
+  dumping is ever made to work:
 
   Note that Emacs can store the pure Lisp data in a shared segment on
   this machine, but only if you put this command in one of the boot

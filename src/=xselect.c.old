@@ -28,11 +28,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define MAX_SELECTION(dpy) (((dpy)->max_request_size << 3) - 100)
 #define SELECTION_LENGTH(len,format) ((len) * ((format) >> 3))
 
-/* The last 23 bits of the timestamp of the last mouse button event. */
-extern Time mouse_timestamp;
+/* From keyboard.c.  This is almost always the right timestamp for
+   ownership arbitration, since the last event was either the
+   keystroke bound to the command now running, or something else read
+   by that command.  */
+extern unsigned long last_event_timestamp;
 
 /* t if a mouse button is depressed. */
-
 extern Lisp_Object Vmouse_grabbed;
 
 /* When emacs became the PRIMARY selection owner. */
@@ -113,7 +115,7 @@ This is done with the X11 selection mechanism.")
 
   if (EQ (Qnil, Vx_selection_value)) /* We are not the owner. */
     {
-      event_time = mouse_timestamp;
+      event_time = last_event_timestamp;
       XSetSelectionOwner (x_current_display, XA_PRIMARY,
 			  selecting_window,  event_time);
       owner_window = XGetSelectionOwner (x_current_display, XA_PRIMARY);
@@ -150,7 +152,7 @@ DEFUN ("x-own-clipboard", Fx_own_clipboard, Sx_own_clipboard,
 
   if (EQ (Qnil, Vx_clipboard_value))
     {
-      event_time = mouse_timestamp;
+      event_time = last_event_timestamp;
       XSetSelectionOwner (x_current_display, Xatom_clipboard,
 			  selecting_window,  event_time);
       owner_window = XGetSelectionOwner (x_current_display, Xatom_clipboard);
@@ -489,7 +491,7 @@ This is done with the X11 selection mechanism.")
     return Vx_selection_value;
 
   BLOCK_INPUT;
-  requestor_time = mouse_timestamp;
+  requestor_time = last_event_timestamp;
   requestor_window = selected_screen->display.x->window_desc;
   XConvertSelection (x_current_display, XA_PRIMARY, XA_STRING,
 		     Xatom_emacs_selection, requestor_window, requestor_time);
@@ -520,7 +522,7 @@ This is done with the X11 selection mechanism.")
     return Vx_selection_value;
 
   BLOCK_INPUT;
-  requestor_time = mouse_timestamp;
+  requestor_time = last_event_timestamp;
   requestor_window = selected_screen->display.x->window_desc;
   XConvertSelection (x_current_display, Xatom_clipboard, XA_STRING,
 		     Xatom_clipboard_selection,

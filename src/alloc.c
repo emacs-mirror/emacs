@@ -329,7 +329,7 @@ Any number of arguments, even zero arguments, are allowed.")
   XFASTINT (len) = nargs;
   val = Fmake_list (len, Qnil);
   val_tail = val;
-  while (!NULL (val_tail))
+  while (!NILP (val_tail))
     {
       XCONS (val_tail)->car = *args++;
       val_tail = XCONS (val_tail)->cdr;
@@ -425,14 +425,14 @@ significance.")
   register struct Lisp_Vector *p;
 
   XFASTINT (len) = nargs;
-  if (!NULL (Vpurify_flag))
+  if (!NILP (Vpurify_flag))
     val = make_pure_vector (len);
   else
     val = Fmake_vector (len, Qnil);
   p = XVECTOR (val);
   for (index = 0; index < nargs; index++)
     {
-      if (!NULL (Vpurify_flag))
+      if (!NILP (Vpurify_flag))
 	args[index] = Fpurecopy (args[index]);
       p->contents[index] = args[index];
     }
@@ -905,7 +905,7 @@ Does not copy symbols.")
   register Lisp_Object new, tem;
   register int i;
 
-  if (NULL (Vpurify_flag))
+  if (NILP (Vpurify_flag))
     return obj;
 
   if ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) ((char *) pure + PURESIZE)
@@ -1041,7 +1041,7 @@ Garbage collection happens automatically if you cons more than\n\
 
   /* Save a copy of the contents of the stack, for debugging.  */
 #if MAX_SAVE_STACK > 0
-  if (NULL (Vpurify_flag))
+  if (NILP (Vpurify_flag))
     {
       i = &stack_top_variable - stack_bottom;
       if (i < 0) i = -i;

@@ -163,7 +163,7 @@ make_screen (mini_p)
     {
       XWINDOW (mini_window)->buffer = Qt;
       Fset_window_buffer (mini_window,
-			  (NULL (Vminibuffer_list)
+			  (NILP (Vminibuffer_list)
 			   ? get_minibuffer (0)
 			   : Fcar (Vminibuffer_list)));
     }
@@ -190,7 +190,7 @@ make_screen_without_minibuffer (mini_window)
   register struct screen *s;
 
   /* Choose the minibuffer window to use.  */
-  if (NULL (mini_window))
+  if (NILP (mini_window))
     {
       if (XTYPE (Vdefault_minibuffer_screen) != Lisp_Screen)
 	error ("default-minibuffer-screen must be set when creating minibufferless screens.");
@@ -207,7 +207,7 @@ make_screen_without_minibuffer (mini_window)
   /* Install the chosen minibuffer window, with proper buffer.  */
   s->minibuffer_window = mini_window;
   Fset_window_buffer (mini_window,
-		      (NULL (Vminibuffer_list)
+		      (NILP (Vminibuffer_list)
 		       ? get_minibuffer (0)
 		       : Fcar (Vminibuffer_list)));
   return s;
@@ -246,7 +246,7 @@ make_minibuffer_screen ()
   /* Put the proper buffer in that window.  */
 
   Fset_window_buffer (mini_window,
-		      (NULL (Vminibuffer_list)
+		      (NILP (Vminibuffer_list)
 		       ? get_minibuffer (0)
 		       : Fcar (Vminibuffer_list)));
   return s;
@@ -289,7 +289,7 @@ focus on that screen.")
 #ifdef HAVE_X_WINDOWS
 #ifdef MULTI_SCREEN
   if (XSCREEN (screen)->output_method == output_x_window
-      && NULL (no_enter))
+      && NILP (no_enter))
     {
       Ffocus_screen (screen);
     }
@@ -323,7 +323,7 @@ DEFUN ("screen-root-window", Fscreen_root_window, Sscreen_root_window, 0, 1, 0,
   (screen)
      Lisp_Object screen;
 {
-  if (NULL (screen))
+  if (NILP (screen))
     XSET (screen, Lisp_Screen, selected_screen);
   else
     CHECK_LIVE_SCREEN (screen, 0);
@@ -337,7 +337,7 @@ DEFUN ("screen-selected-window", Fscreen_selected_window,
   (screen)
      Lisp_Object screen;
 {
-  if (NULL (screen))
+  if (NILP (screen))
     XSET (screen, Lisp_Screen, selected_screen);
   else
     CHECK_LIVE_SCREEN (screen, 0);
@@ -381,7 +381,7 @@ next_screen (screen, minibuf)
 
 	    /* Decide whether this screen is eligible to be returned,
 	       according to minibuf.  */
-	    if ((NULL (minibuf) && ! SCREEN_MINIBUF_ONLY_P (XSCREEN (s)))
+	    if ((NILP (minibuf) && ! SCREEN_MINIBUF_ONLY_P (XSCREEN (s)))
 		|| XTYPE (minibuf) != Lisp_Window
 		|| EQ (SCREEN_MINIBUF_WINDOW (XSCREEN (s)), minibuf)
 		|| EQ (s, screen))
@@ -420,18 +420,18 @@ prev_screen (screen, minibuf)
 	  if (XTYPE (scr) != Lisp_Screen)
 	    abort ();
 
-	  if (EQ (screen, scr) && !NULL (prev))
+	  if (EQ (screen, scr) && !NILP (prev))
 	    return prev;
 
 	  /* Decide whether this screen is eligible to be returned,
 	     according to minibuf.  */
-	  if ((NULL (minibuf) && ! SCREEN_MINIBUF_ONLY_P (XSCREEN (scr)))
+	  if ((NILP (minibuf) && ! SCREEN_MINIBUF_ONLY_P (XSCREEN (scr)))
 	      || XTYPE (minibuf) != Lisp_Window
 	      || EQ (SCREEN_MINIBUF_WINDOW (XSCREEN (scr)), minibuf))
 	    prev = scr;
 	}
 
-      if (NULL (prev))
+      if (NILP (prev))
 	/* We went through the whole screen list without finding a single
 	   acceptable screen.  Return the original screen.  */
 	prev = screen;
@@ -450,7 +450,7 @@ Lisp_Object screen, miniscreen;
 {
   Lisp_Object tail;
 
-  if (NULL (screen))
+  if (NILP (screen))
     XSET (screen, Lisp_Screen, selected_screen);
   else
     CHECK_LIVE_SCREEN (screen, 0);
@@ -760,7 +760,7 @@ window when a screen doesn't have its own minibuffer.")
 {
   CHECK_LIVE_SCREEN (screen, 0);
 
-  if (NULL (focus_screen))
+  if (NILP (focus_screen))
     focus_screen = screen;
   else
     CHECK_LIVE_SCREEN (focus_screen, 1);
@@ -941,7 +941,7 @@ but that the idea of the actual height of the screen should not be changed.")
   register struct screen *s;
 
   CHECK_NUMBER (rows, 0);
-  if (NULL (screen))
+  if (NILP (screen))
     s = selected_screen;
   else
     {
@@ -955,7 +955,7 @@ but that the idea of the actual height of the screen should not be changed.")
 	x_set_window_size (s, s->width, XINT (rows));
     }
   else
-    change_screen_size (s, XINT (rows), 0, !NULL (pretend));
+    change_screen_size (s, XINT (rows), 0, !NILP (pretend));
   return Qnil;
 }
 
@@ -968,7 +968,7 @@ but that the idea of the actual width of the screen should not be changed.")
 {
   register struct screen *s;
   CHECK_NUMBER (cols, 0);
-  if (NULL (screen))
+  if (NILP (screen))
     s = selected_screen;
   else
     {
@@ -982,7 +982,7 @@ but that the idea of the actual width of the screen should not be changed.")
 	x_set_window_size (s, XINT (cols), s->height);
     }
   else
-    change_screen_size (selected_screen, 0, XINT (cols), !NULL (pretend));
+    change_screen_size (selected_screen, 0, XINT (cols), !NILP (pretend));
   return Qnil;
 }
 

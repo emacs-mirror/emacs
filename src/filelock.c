@@ -33,7 +33,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <fcntl.h>
 #endif /* USG */
 
-#undef NULL
 #include "lisp.h"
 #include "paths.h"
 #include "buffer.h"
@@ -98,9 +97,9 @@ lock_file (fn)
   /* See if this file is visited and has changed on disk since it was visited.  */
   {
     register Lisp_Object subject_buf = Fget_file_buffer (fn);
-    if (!NULL (subject_buf)
-	&& NULL (Fverify_visited_file_modtime (subject_buf))
-	&& !NULL (Ffile_exists_p (fn)))
+    if (!NILP (subject_buf)
+	&& NILP (Fverify_visited_file_modtime (subject_buf))
+	&& !NILP (Ffile_exists_p (fn)))
       call1 (intern ("ask-user-about-supersession-threat"), fn);
   }
 
@@ -112,7 +111,7 @@ lock_file (fn)
   /* Else consider breaking the lock */
   attack = call2 (intern ("ask-user-about-lock"), fn,
 		  lock_file_owner_name (lfname));
-  if (!NULL (attack))
+  if (!NILP (attack))
     /* User says take the lock */
     {
       lock_superlock (lfname);
@@ -298,12 +297,12 @@ or else nothing is done if current buffer isn't visiting a file.")
   (fn)
      Lisp_Object fn;
 {
-  if (NULL (fn))
+  if (NILP (fn))
     fn = current_buffer->filename;
   else
     CHECK_STRING (fn, 0);
   if (current_buffer->save_modified < MODIFF
-      && !NULL (fn))
+      && !NILP (fn))
     lock_file (fn);
   return Qnil;    
 }

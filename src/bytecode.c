@@ -450,7 +450,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bgotoifnil:
 	  op = FETCH2;
-	  if (NULL (POP))
+	  if (NILP (POP))
 	    {
 	      QUIT;
 	      pc = XSTRING (string_saved)->data + op;
@@ -459,7 +459,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bgotoifnonnil:
 	  op = FETCH2;
-	  if (!NULL (POP))
+	  if (!NILP (POP))
 	    {
 	      QUIT;
 	      pc = XSTRING (string_saved)->data + op;
@@ -468,7 +468,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bgotoifnilelsepop:
 	  op = FETCH2;
-	  if (NULL (TOP))
+	  if (NILP (TOP))
 	    {
 	      QUIT;
 	      pc = XSTRING (string_saved)->data + op;
@@ -478,7 +478,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bgotoifnonnilelsepop:
 	  op = FETCH2;
-	  if (!NULL (TOP))
+	  if (!NILP (TOP))
 	    {
 	      QUIT;
 	      pc = XSTRING (string_saved)->data + op;
@@ -492,7 +492,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case BRgotoifnil:
-	  if (NULL (POP))
+	  if (NILP (POP))
 	    {
 	      QUIT;
 	      pc += *pc - 128;
@@ -501,7 +501,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case BRgotoifnonnil:
-	  if (!NULL (POP))
+	  if (!NILP (POP))
 	    {
 	      QUIT;
 	      pc += *pc - 128;
@@ -511,7 +511,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case BRgotoifnilelsepop:
 	  op = *pc++;
-	  if (NULL (TOP))
+	  if (NILP (TOP))
 	    {
 	      QUIT;
 	      pc += op - 128;
@@ -521,7 +521,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case BRgotoifnonnilelsepop:
 	  op = *pc++;
-	  if (!NULL (TOP))
+	  if (!NILP (TOP))
 	    {
 	      QUIT;
 	      pc += op - 128;
@@ -598,7 +598,7 @@ If the third argument is incorrect, Emacs may crash.")
 	    {
 	      if (CONSP (v1))
 		v1 = XCONS (v1)->cdr;
-	      else if (!NULL (v1))
+	      else if (!NILP (v1))
 		{
 		  immediate_quit = 0;
 		  v1 = wrong_type_argument (Qlistp, v1);
@@ -622,7 +622,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Blistp:
-	  TOP = CONSP (TOP) || NULL (TOP) ? Qt : Qnil;
+	  TOP = CONSP (TOP) || NILP (TOP) ? Qt : Qnil;
 	  break;
 
 	case Beq:
@@ -636,21 +636,21 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bnot:
-	  TOP = NULL (TOP) ? Qt : Qnil;
+	  TOP = NILP (TOP) ? Qt : Qnil;
 	  break;
 
 	case Bcar:
 	  v1 = TOP;
 	docar:
 	  if (CONSP (v1)) TOP = XCONS (v1)->car;
-	  else if (NULL (v1)) TOP = Qnil;
+	  else if (NILP (v1)) TOP = Qnil;
 	  else Fcar (wrong_type_argument (Qlistp, v1));
 	  break;
 
 	case Bcdr:
 	  v1 = TOP;
 	  if (CONSP (v1)) TOP = XCONS (v1)->cdr;
-	  else if (NULL (v1)) TOP = Qnil;
+	  else if (NILP (v1)) TOP = Qnil;
 	  else Fcdr (wrong_type_argument (Qlistp, v1));
 	  break;
 

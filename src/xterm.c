@@ -30,7 +30,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X_WINDOWS
 
 #include "lisp.h"
-#undef NULL
 
 /* On 4.3 this loses if it comes after xterm.h.  */
 #include <signal.h>
@@ -368,6 +367,7 @@ XTreset_terminal_modes ()
    where display update commands will take effect.
    This does not affect the place where the cursor-box is displayed.  */
 
+static
 XTcursor_to (row, col)
      register int row, col;
 {
@@ -401,8 +401,6 @@ dumpglyphs (s, left, top, gp, n, hl, font)
      int hl;
      FONT_TYPE *font;
 {
-  char buf[s->width];
-  register char *cp = buf;
   register int len;
   Window window = s->display.x->window_desc;
   GC drawing_gc =   (hl == 2 ? s->display.x->cursor_gc

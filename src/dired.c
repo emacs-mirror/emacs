@@ -46,8 +46,6 @@ extern struct direct *readdir ();
 
 #endif
 
-#undef NULL
-
 #include "lisp.h"
 #include "buffer.h"
 #include "commands.h"
@@ -81,7 +79,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   int length;
   Lisp_Object list, name;
 
-  if (!NULL (match))
+  if (!NILP (match))
     {
       CHECK_STRING (match, 3);
       /* Compile it now so we don't get an error after opendir */
@@ -110,10 +108,10 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
       len = NAMLEN (dp);
       if (dp->d_ino)
 	{
-	  if (NULL (match)
+	  if (NILP (match)
 	      || (0 <= re_search (&searchbuf, dp->d_name, len, 0, len, 0)))
 	    {
-	      if (!NULL (full))
+	      if (!NILP (full))
 		{
 		  int index = XSTRING (dirname)->size;
 		  int total = len + index;
@@ -140,7 +138,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 	}
     }
   closedir (d);
-  if (!NULL (nosort))
+  if (!NILP (nosort))
     return list;
   return Fsort (Fnreverse (list), Qstring_lessp);
 }
@@ -233,7 +231,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
      ** It would not actually be helpful to the user to ignore any possible
      completions when making a list of them.**  */
 
-  for (passcount = !!all_flag; NULL (bestmatch) && passcount < 2; passcount++)
+  for (passcount = !!all_flag; NILP (bestmatch) && passcount < 2; passcount++)
     {
       if (!(d = opendir (XSTRING (Fdirectory_file_name (dirname))->data)))
 	report_file_error ("Opening directory", Fcons (dirname, Qnil));
@@ -254,7 +252,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
 	  len = NAMLEN (dp);
 
-	  if (!NULL (Vquit_flag) && NULL (Vinhibit_quit))
+	  if (!NILP (Vquit_flag) && NILP (Vinhibit_quit))
 	    goto quit;
 	  if (!dp->d_ino
 	      || len < XSTRING (file)->size
@@ -297,7 +295,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
 	      matchcount++;
 
-	      if (all_flag || NULL (bestmatch))
+	      if (all_flag || NILP (bestmatch))
 		{
 		  /* This is a possible completion */
 		  if (directoryp)
@@ -341,7 +339,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
   unbind_to (count, Qnil);
 
-  if (all_flag || NULL (bestmatch))
+  if (all_flag || NILP (bestmatch))
     return bestmatch;
   if (matchcount == 1 && bestmatchsize == XSTRING (file)->size)
     return Qt;
