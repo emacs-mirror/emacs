@@ -513,12 +513,34 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       (setq dir-or-list dirname))
     (dired-internal-noselect dir-or-list switches)))
 
+;; The following is an internal dired function.  It returns non-nil if
+;; the directory visited by the current dired buffer has changed on
+;; disk.  DIRNAME should be the directory name of that directory.
+(defun dired-directory-changed-p (dirname)
+  (not (let ((attributes (file-attributes dirname))
+		    (modtime (visited-file-modtime)))
+		(or (eq modtime 0)
+		    (not (eq (car attributes) t))
+		    (and (= (car (nth 5 attributes)) (car modtime))
+			 (= (nth 1 (nth 5 attributes)) (cdr modtime)))))))
+
+(defun dired-buffer-stale-p (&optional noconfirm)
+  "Return non-nil if current dired buffer needs updating.
+If NOCONFIRM is non-nil, then this function always returns nil
+for a remote directory.  This feature is used by Auto Revert Mode."
+  (let ((dirname
+	 (if (consp dired-directory) (car dired-directory) dired-directory)))
+    (and (stringp dirname)
+	 (not (when noconfirm (file-remote-p dirname)))
+	 (file-readable-p dirname)
+	 (dired-directory-changed-p dirname))))
+
 ;; Separate function from dired-noselect for the sake of dired-vms.el.
 (defun dired-internal-noselect (dir-or-list &optional switches mode)
   ;; If there is an existing dired buffer for DIRNAME, just leave
   ;; buffer as it is (don't even call dired-revert).
   ;; This saves time especially for deep trees or with ange-ftp.
-  ;; The user can type `g'easily, and it is more consistent with find-file.
+  ;; The user can type `g' easily, and it is more consistent with find-file.
   ;; But if SWITCHES are given they are probably different from the
   ;; buffer's old value, so call dired-sort-other, which does
   ;; revert the buffer.
@@ -544,20 +566,14 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	  ;; kill-all-local-variables any longer.
 	  (setq buffer (create-file-buffer (directory-file-name dirname)))))
     (set-buffer buffer)
-    (if (not new-buffer-p)     ; existing buffer ...
-	(cond (switches        ; ... but new switches
+    (if (not new-buffer-p)		; existing buffer ...
+	(cond (switches			; ... but new switches
 	       ;; file list may have changed
 	       (setq dired-directory dir-or-list)
 	       ;; this calls dired-revert
 	       (dired-sort-other switches))
 	      ;; If directory has changed on disk, offer to revert.
-	      ((if (let ((attributes (file-attributes dirname))
-			 (modtime (visited-file-modtime)))
-		     (or (eq modtime 0)
-			 (not (eq (car attributes) t))
-			 (and (= (car (nth 5 attributes)) (car modtime))
-			      (= (nth 1 (nth 5 attributes)) (cdr modtime)))))
-		   nil
+	      ((when (dired-directory-changed-p dirname)
 		 (message "%s"
 			  (substitute-command-keys
 			   "Directory has changed on disk; type \\[revert-buffer] to update Dired")))))
@@ -634,7 +650,6 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       ;; based on dired-directory, e.g. with ange-ftp to a SysV host
       ;; where ls won't understand -Al switches.
       (run-hooks 'dired-before-readin-hook)
-      (message "Reading directory %s..." dirname)
       (if (consp buffer-undo-list)
 	  (setq buffer-undo-list nil))
       (let (buffer-read-only
@@ -643,7 +658,6 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	(widen)
 	(erase-buffer)
 	(dired-readin-insert))
-      (message "Reading directory %s...done" dirname)
       (goto-char (point-min))
       ;; Must first make alist buffer local and set it to nil because
       ;; dired-build-subdir-alist will call dired-clear-alist first
@@ -1201,6 +1215,8 @@ If HDR is non-nil, insert a header line with the directory name."
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
 
+(defvar buffer-stale-function)
+
 (defun dired-mode (&optional dirname switches)
   "\
 Mode for \"editing\" directory listings.
@@ -1279,6 +1295,8 @@ Keybindings:
 	(propertized-buffer-identification "%17b"))
   (set (make-local-variable 'revert-buffer-function)
        (function dired-revert))
+  (set (make-local-variable 'buffer-stale-function)
+       (function dired-buffer-stale-p))
   (set (make-local-variable 'page-delimiter)
        "\n\n")
   (set (make-local-variable 'dired-directory)
