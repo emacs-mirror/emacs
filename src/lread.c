@@ -1870,12 +1870,20 @@ init_lread ()
 	  if (!NILP (Vinstallation_directory))
 	    {
 	      /* Add to the path the lisp subdir of the
-		 installation dir.  */
-	      Lisp_Object tem;
+		 installation dir, if it exists.  */
+	      Lisp_Object tem, tem1;
 	      tem = Fexpand_file_name (build_string ("lisp"),
 				       Vinstallation_directory);
-	      if (NILP (Fmember (tem, Vload_path)))
-		Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+	      tem1 = Ffile_exists_p (tem);
+	      if (!NILP (tem1))
+		{
+		  if (NILP (Fmember (tem, Vload_path)))
+		    Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+		}
+	      else
+		/* That dir doesn't exist, so add the build-time
+		   Lisp dirs instead.  */
+		Vload_path = nconc2 (Vload_path, dump_path);
 	    }
 	}
     }
@@ -1897,7 +1905,8 @@ init_lread ()
 	  {
 	    dirfile = Fdirectory_file_name (dirfile);
 	    if (access (XSTRING (dirfile)->data, 0) < 0)
-	      fprintf (stderr, "Warning: lisp library (%s) does not exist.\n",
+	      fprintf (stderr,
+		       "Warning: Lisp directory `%s' does not exist.\n",
 		       XSTRING (Fcar (path_tail))->data);
 	  }
       }
