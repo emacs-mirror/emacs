@@ -605,10 +605,11 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
   register wchar_t *cp;         /* Steps through x_2byte_buffer[].  */
 
   /* Allocate double the window width, as this buffer may contain MBCS
-     characters under w32.  */
-  char *x_1byte_buffer
-    = (char *) alloca (2 * FRAME_WINDOW_WIDTH (f) * sizeof (*x_1byte_buffer));
-  register char *bp;            /* Steps through x_1byte_buffer[].  */ 
+     characters under w32.  Unsigned to let GetCharABCWidths work.  */
+  unsigned char *x_1byte_buffer
+    = (unsigned char *) alloca (2 * FRAME_WINDOW_WIDTH (f)
+                                * sizeof (*x_1byte_buffer));
+  register unsigned char *bp;       /* Steps through x_1byte_buffer[]. */ 
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
   Window window = FRAME_W32_WINDOW (f);
@@ -957,7 +958,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 				  || font->tm.tmDescent >
                                      line_height - baseline
 				  || (!cmpcharp
-				      && FONT_WIDTH (font) > glyph_width)));
+				      && FONT_MAX_WIDTH (font) > glyph_width)));
 
         if (font && (just_foreground || (cmpcharp && gidx > 0)))
           background_filled = 1;
@@ -967,6 +968,7 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
         else if (!font
                  || FONT_HEIGHT (font) < line_height
                  || FONT_WIDTH (font) < glyph_width
+                 || FONT_MAX_WIDTH (font) != FONT_WIDTH (font)
                  || cmpcharp)
           {
 	    /* Fill in the background for the current run.  */
@@ -1000,7 +1002,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
             if (!cmpcharp)
 	      {
                 int multibyte_pos_offset = 0;
-                if (require_clipping || FONT_WIDTH (font) != glyph_width)
+                if (require_clipping || FONT_WIDTH (font) != glyph_width
+                    || FONT_MAX_WIDTH (font) != FONT_WIDTH (font))
                   {
                     RECT clip_rectangle;
                     LPRECT clip_region = NULL;
@@ -1063,6 +1066,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
                 RECT clip_rectangle;
                 LPRECT clip_region = NULL;
                 UINT fuOptions = 0;
+                ABC char_placement;
+                int char_width = 0;
 
                 if (require_clipping)
 		  {
@@ -1102,6 +1107,31 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 				  * FONT_WIDTH (FRAME_FONT (f)));
 
                     i = 1;
+
+                    /* Truetype fonts often contain underhangs to
+                       handle composition characters. This works
+                       against our attempts to position the characters
+                       manually, so we need to compensate for this.
+                    */
+                    if (print_via_unicode ?
+                        GetCharABCWidthsW (hdc, *x_2byte_buffer,
+                                           *x_2byte_buffer,
+                                           &char_placement)
+                        : GetCharABCWidths (hdc, *x_1byte_buffer,
+                                            *x_1byte_buffer,
+                                            &char_placement))
+                      {
+                        char_width = char_placement.abcA
+                          + char_placement.abcB + char_placement.abcC;
+                        x_offset += FONT_WIDTH (font) - char_width;
+                      }
+                    /* Don't let characters go beyond the glyph
+                       boundary whatever their over/underhangs. */
+                    if (x_offset > glyph_width - char_width)
+                      x_offset = glyph_width - char_width;
+
+                    if (x_offset < 0)
+                      x_offset = 0;
 
 		    /* Draw the first character at the normal position.  */
                     if (print_via_unicode)
@@ -1199,6 +1229,31 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 			x_offset = (cmpcharp->col_offset[gidx]
 				    * FONT_WIDTH (FRAME_FONT(f)));
 		      }
+
+                    /* Truetype fonts often contain underhangs to
+                       handle composition characters. This works
+                       against our attempts to position the characters
+                       manually, so we need to compensate for this.
+                    */
+                    if (print_via_unicode ?
+                        GetCharABCWidthsW (hdc, *(x_2byte_buffer + i),
+                                           *(x_2byte_buffer + i),
+                                           &char_placement)
+                        : GetCharABCWidths (hdc, *(x_1byte_buffer + i),
+                                            *(x_1byte_buffer + i),
+                                            &char_placement))
+                      {
+                        char_width = char_placement.abcA
+                          + char_placement.abcB + char_placement.abcC;
+                        x_offset += FONT_WIDTH (font) - char_width;
+                      }
+                    /* Don't let characters go beyond the glyph
+                       boundary whatever their over/underhangs. */
+                    if (x_offset > glyph_width - char_width)
+                      x_offset = glyph_width - char_width;
+
+                    if (x_offset < 0)
+                      x_offset = 0;
 
                     if (print_via_unicode)
                       ExtTextOutW (hdc, left + x_offset,
