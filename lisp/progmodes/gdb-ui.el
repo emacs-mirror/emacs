@@ -1836,6 +1836,9 @@ BUFFER nil or omitted means use the current buffer."
   (let ((start (progn (beginning-of-line) (- (point) 1)))
 	(end (progn (end-of-line) (+ (point) 1)))
 	(putstring (if enabled "B" "b")))
+    (add-text-properties
+     0 1 '(help-echo "mouse-1: set/clear bkpt, mouse-3: enable/disable bkpt")
+     putstring)
     (if enabled (add-text-properties
 		 0 1 `(gdb-bptno ,bptno gdb-enabled t) putstring)
       (add-text-properties
