@@ -45,6 +45,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #ifdef LISP_FLOAT_TYPE
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
 #include <math.h>
 #endif /* LISP_FLOAT_TYPE */
 
