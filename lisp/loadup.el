@@ -70,6 +70,8 @@
 (load "language/english")
 (load "language/ethiopic")
 (load "language/european")
+(load "language/czech")
+(load "language/slovak")
 (load "language/greek")
 (load "language/hebrew")
 (load "language/japanese")
