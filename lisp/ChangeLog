@@ -1,3 +1,7 @@
+2002-02-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (menu-bar-tools-menu): Add an item for Calculator.
+
 2002-02-15  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* simple.el (mark-word): Mark more if repeated.
