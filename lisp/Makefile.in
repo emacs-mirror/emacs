@@ -42,9 +42,6 @@ ETAGS = ../lib-src/etags
 # Files which should not be compiled.  If you change the name `DONTCOMPILE'
 # to something different, you'll have to change make-dist as well, and
 # modify the lists in $lisp and $shortlisp on src/Makefile.in.
-#
-# - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
-#   no point compiling it, although it doesn't hurt.
 
 DONTCOMPILE = \
 	$(lisp)/cus-load.el \
@@ -55,13 +52,6 @@ DONTCOMPILE = \
 	$(lisp)/forms-d2.el \
 	$(lisp)/forms-pass.el \
 	$(lisp)/generic-x.el \
-	$(lisp)/international/latin-1.el \
-	$(lisp)/international/latin-2.el \
-	$(lisp)/international/latin-3.el \
-	$(lisp)/international/latin-4.el \
-	$(lisp)/international/latin-5.el \
-	$(lisp)/international/latin-8.el \
-	$(lisp)/international/latin-9.el \
 	$(lisp)/international/latin1-disp.el \
 	$(lisp)/international/mule-conf.el \
 	$(lisp)/language/czech.el \
