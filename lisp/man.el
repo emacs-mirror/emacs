@@ -460,14 +460,14 @@ See the variable `Man-notify' for the different notification behaviors."
 
 (defun Man-set-fonts ()
   (goto-char (point-min))
-  (while (re-search-forward "\\(.\b.\\)+" nil t)
+  (while (re-search-forward "\\(.\b\\)+" nil t)
     (let ((st (match-beginning 0)) (en (match-end 0)))
       (goto-char st)
       (if window-system
-	  (put-text-property st en 'face 
+	  (put-text-property st (if (= en (point-max)) en (1+ en)) 'face 
 			     (if (looking-at "_") 'underline 'bold)))
       (while (and (< (point) en) (looking-at ".\b"))
-	(replace-match "") (forward-char 1)))))
+	(replace-match "")))))
 
 (defun Man-bgproc-sentinel (process msg)
   "Manpage background process sentinel."
