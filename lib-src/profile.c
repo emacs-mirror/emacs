@@ -1,5 +1,5 @@
 /* profile.c --- generate periodic events for profiling of Emacs Lisp code.
- Copyright (C) 1992, 1994 Free Software Foundation, Inc.
+ Copyright (C) 1992, 1994, 1999 Free Software Foundation, Inc.
 
  Author: Boaz Ben-Zvi <boaz@lcs.mit.edu>
 
@@ -30,8 +30,8 @@ Boston, MA 02111-1307, USA.  */
  **  abstraction : a stopwatch
  **  operations: reset_watch, get_time
  */
-#include <stdio.h>
 #include <../src/config.h>
+#include <stdio.h>
 #include <../src/systime.h>
 
 static EMACS_TIME TV1, TV2;

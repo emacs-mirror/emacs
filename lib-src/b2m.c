@@ -18,14 +18,6 @@
 /* Made conformant to the GNU coding standards January, 1995
    by Francesco Potorti` <pot@cnuce.cnr.it>. */
 
-#include <stdio.h>
-#include <time.h>
-#include <sys/types.h>
-#include <getopt.h>
-#ifdef MSDOS
-#include <fcntl.h>
-#endif
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 /* On some systems, Emacs defines static as nothing for the sake
@@ -33,8 +25,12 @@
 #undef static
 #endif
 
-#ifdef STDC_HEADERS
-#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <sys/types.h>
+#include <getopt.h>
+#ifdef MSDOS
+#include <fcntl.h>
 #endif
 
 #undef TRUE

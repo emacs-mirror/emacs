@@ -1,5 +1,5 @@
 /* Communication subprocess for GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1992, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1987, 1992, 1994, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -26,12 +26,8 @@ Boston, MA 02111-1307, USA.  */
    up to the Emacs which then executes them.  */
 
 #define NO_SHORTNAMES
-#include <signal.h>
 #include <../src/config.h>
-#undef read
-#undef write
-#undef open
-#undef close
+#include <signal.h>
 #undef signal
 
 #if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
@@ -63,10 +59,6 @@ void fatal_error ();
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
 #endif
 
 #ifndef errno

@@ -1,5 +1,5 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1987, 1994, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,17 +21,10 @@ Boston, MA 02111-1307, USA.  */
 
 #define NO_SHORTNAMES
 #include <../src/config.h>
-#undef read
-#undef write
-#undef open
-#undef close
 #undef signal
 
 #include <stdio.h>
 #include <getopt.h>
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

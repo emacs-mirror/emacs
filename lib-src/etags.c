@@ -1,5 +1,5 @@
 /* Tags file maker to go with GNU Emacs
-   Copyright (C) 1984, 87, 88, 89, 93, 94, 95, 98
+   Copyright (C) 1984, 87, 88, 89, 93, 94, 95, 98, 99
    Free Software Foundation, Inc. and Ken Arnold
 
 This file is not considered part of GNU Emacs.
@@ -40,6 +40,15 @@ char pot_etags_version[] = "@(#) pot revision number is 12.11";
 # define DEBUG FALSE
 #endif
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+  /* On some systems, Emacs defines static as nothing for the sake
+     of unexec.  We don't want that here since we don't use unexec. */
+# undef static
+# define ETAGS_REGEXPS
+# define LONG_OPTIONS
+#endif
+
 #ifdef MSDOS
 # include <string.h>
 # include <fcntl.h>
@@ -52,15 +61,6 @@ char pot_etags_version[] = "@(#) pot revision number is 12.11";
 # include <string.h>
 # include <io.h>
 # define MAXPATHLEN _MAX_PATH
-#endif
-
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-  /* On some systems, Emacs defines static as nothing for the sake
-     of unexec.  We don't want that here since we don't use unexec. */
-# undef static
-# define ETAGS_REGEXPS
-# define LONG_OPTIONS
 #endif
 
 #if !defined (MSDOS) && !defined (WINDOWSNT) && defined (STDC_HEADERS)
@@ -498,7 +498,7 @@ void
 print_version ()
 {
   printf ("%s (GNU Emacs %s)\n", (CTAGS) ? "ctags" : "etags", VERSION);
-  puts ("Copyright (C) 1996 Free Software Foundation, Inc. and Ken Arnold");
+  puts ("Copyright (C) 1999 Free Software Foundation, Inc. and Ken Arnold");
   puts ("This program is distributed under the same terms as Emacs");
 
   exit (GOOD);

@@ -1,6 +1,6 @@
 /* movemail foo bar -- move file foo to file bar,
    locking file foo the way /bin/mail respects.
-   Copyright (C) 1986, 1992, 1993, 1994, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1986, 92, 93, 94, 96, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -100,12 +100,6 @@ Boston, MA 02111-1307, USA.  */
 int _fmode = _O_BINARY;
 #endif /* WINDOWSNT */
 
-/* Cancel substitutions made by config.h for Emacs.  */
-#undef open
-#undef read
-#undef write
-#undef close
-
 #ifdef USG
 #include <fcntl.h>
 #include <unistd.h>
@@ -119,10 +113,6 @@ int _fmode = _O_BINARY;
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
 #endif
 
 #if defined (XENIX) || defined (WINDOWSNT)

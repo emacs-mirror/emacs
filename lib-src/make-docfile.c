@@ -1,5 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 1986, 92, 93, 94, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 92, 93, 94, 97, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -70,10 +70,6 @@ int scan_c_file ();
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
 #endif
 
 /* Stdio stream for output to the DOC file.  */

@@ -1,3 +1,23 @@
+1999-10-19  Paul Eggert  <eggert@twinsun.com>
+
+	Add support for large files.  Merge glibc 2.1.2.
+	
+	* b2m.c, emacsclient.c, emacsserver.c, fakemail.c, make-docfile.c,
+	movemail.c, pop.c:
+	Do not include <stdlib.h>, as <config.h> does this now.
+
+	* b2m.c, emacsserver.c, etags.c, profile.c:
+	Include <config.h> before any system include files.
+	
+	* emacsclient.c, emacsserver.c, fakemail.c, movemail.c, pop.c,
+	test-distrib.c:
+	(read, write, open, close): Do not undef.
+
+	* getopt.c, getopt1.c: Adopt glibc 2.1.2, with the following fix:
+	(const): Do not define if HAVE_CONFIG_H; that's config.h's job.
+
+	* getopt.h: Adopt glibc 2.1.2.
+ 	
 1999-10-15  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (pop.o): Depend on config.h.

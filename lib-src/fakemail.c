@@ -1,5 +1,5 @@
 /* sendmail-like interface to /bin/mail for system V,
-   Copyright (C) 1985, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 1999 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -48,13 +48,6 @@ main ()
 #undef static
 #endif
 
-#ifdef read
-#undef read
-#undef write
-#undef open
-#undef close
-#endif
-
 #ifdef WINDOWSNT
 #include "ntlib.h"
 #endif
@@ -68,10 +61,6 @@ main ()
 /* This is to declare cuserid.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
 #endif
 
 /* Type definitions */
