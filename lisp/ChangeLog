@@ -1,5 +1,7 @@
 2002-06-08  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (find-file-noselect-1): Undo previous change.
+
 	* bookmark.el (bookmark-file-or-variation-thereof): Doc fix.
 
 2002-06-07  Karl Fogel  <kfogel@red-bean.com>
