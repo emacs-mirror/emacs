@@ -1,5 +1,7 @@
 2003-03-12  Kenichi Handa  <handa@etlken2>
 
+	* files.el (insert-directory): Decode by what specified.
+
 	* language/japan-util.el (setup-japanese-environment-internal):
 	By defalt, use japanese-iso-8bit for file names, and prefer
 	japanese-shift-jis on DOS and Windows.
