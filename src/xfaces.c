@@ -460,6 +460,7 @@ int menu_face_changed_default;
 
 struct font_name;
 struct table_entry;
+struct named_merge_point;
 
 static void map_tty_color P_ ((struct frame *, struct face *,
 			       enum lface_attribute_index, int *));
@@ -518,11 +519,10 @@ static int face_numeric_slant P_ ((Lisp_Object));
 static int face_numeric_swidth P_ ((Lisp_Object));
 static int face_fontset P_ ((Lisp_Object *));
 static char *choose_face_font P_ ((struct frame *, Lisp_Object *, int, int, int*));
-static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*, Lisp_Object));
-static void merge_face_inheritance P_ ((struct frame *f, Lisp_Object,
-					Lisp_Object *, Lisp_Object));
-static void merge_face_vector_with_property P_ ((struct frame *, Lisp_Object *,
-						 Lisp_Object));
+static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*,
+				    struct named_merge_point *));
+static int merge_face_ref P_ ((struct frame *, Lisp_Object, Lisp_Object *,
+			       int, struct named_merge_point *));
 static int set_lface_from_font_name P_ ((struct frame *, Lisp_Object,
 					 Lisp_Object, int, int));
 static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
@@ -3151,6 +3151,49 @@ check_lface (lface)
 #endif /* GLYPH_DEBUG == 0 */
 
 
+
+/* Face-merge cycle checking.  */
+
+/* A `named merge point' is simply a point during face-merging where we
+   look up a face by name.  We keep a stack of which named lookups we're
+   currently processing so that we can easily detect cycles, using a
+   linked- list of struct named_merge_point structures, typically
+   allocated on the stack frame of the named lookup functions which are
+   active (so no consing is required).  */
+struct named_merge_point
+{
+  Lisp_Object face_name;
+  struct named_merge_point *prev;
+};
+
+
+/* If a face merging cycle is detected for FACE_NAME, return 0,
+   otherwise add NEW_NAMED_MERGE_POINT, which is initialized using
+   FACE_NAME, as the head of the linked list
+   pointed to by NAMED_MERGE_POINTS, and return 1.  */
+
+static INLINE int
+push_named_merge_point (struct named_merge_point *new_named_merge_point,
+			Lisp_Object face_name,
+			struct named_merge_point **named_merge_points)
+{
+  struct named_merge_point *prev;
+
+  for (prev = *named_merge_points; prev; prev = prev->prev)
+    if (EQ (face_name, prev->face_name))
+	break;
+
+  new_named_merge_point->face_name = face_name;
+  new_named_merge_point->prev = *named_merge_points;
+
+  *named_merge_points = new_named_merge_point;
+
+  return 1;
+}
+
+
+
+
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
    to make it a symvol.  If FACE_NAME is an alias for another face,
    return that face's name.  */
@@ -3401,6 +3444,8 @@ merge_face_heights (from, to, invalid, gcpro)
       else if (FLOATP (to))
 	/* relative X relative => relative */
 	result = make_float (XFLOAT_DATA (from) * XFLOAT_DATA (to));
+      else if (UNSPECIFIEDP (to))
+	result = from;
     }
   else if (FUNCTIONP (from))
     /* FROM is a function, which use to adjust TO.  */
@@ -3432,14 +3477,15 @@ merge_face_heights (from, to, invalid, gcpro)
    completely specified and contain only absolute attributes.  Every
    specified attribute of FROM overrides the corresponding attribute of
    TO; relative attributes in FROM are merged with the absolute value in
-   TO and replace it.  CYCLE_CHECK is used internally to detect loops in
-   face inheritance; it should be Qnil when called from other places.  */
+   TO and replace it.  NAMED_MERGE_POINTS is used internally to detect
+   loops in face inheritance; it should be 0 when called from other
+   places.  */
 
 static INLINE void
-merge_face_vectors (f, from, to, cycle_check)
+merge_face_vectors (f, from, to, named_merge_points)
      struct frame *f;
      Lisp_Object *from, *to;
-     Lisp_Object cycle_check;
+     struct named_merge_point *named_merge_points;
 {
   int i;
 
@@ -3450,7 +3496,7 @@ merge_face_vectors (f, from, to, cycle_check)
      other code uses `unspecified' as a generic value for face attributes. */
   if (!UNSPECIFIEDP (from[LFACE_INHERIT_INDEX])
       && !NILP (from[LFACE_INHERIT_INDEX]))
-    merge_face_inheritance (f, from[LFACE_INHERIT_INDEX], to, cycle_check);
+    merge_face_ref (f, from[LFACE_INHERIT_INDEX], to, 0, named_merge_points);
 
   /* If TO specifies a :font attribute, and FROM specifies some
      font-related attribute, we need to clear TO's :font attribute
@@ -3469,7 +3515,8 @@ merge_face_vectors (f, from, to, cycle_check)
     if (!UNSPECIFIEDP (from[i]))
       {
 	if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
-	  to[i] = merge_face_heights (from[i], to[i], to[i], cycle_check);
+	  to[i] = merge_face_heights (from[i], to[i], to[i],
+				      named_merge_points);
 	else
 	  to[i] = from[i];
       }
@@ -3479,61 +3526,45 @@ merge_face_vectors (f, from, to, cycle_check)
   to[LFACE_INHERIT_INDEX] = Qnil;
 }
 
-/* Merge face attributes from the face on frame F whose name is
-   INHERITS, into the vector of face attributes TO; INHERITS may also be
-   a list of face names, in which case they are applied in order.
-   CYCLE_CHECK is used to detect loops in face inheritance.
-   Returns true if any of the inherited attributes are `font-related'.  */
+/* Merge the named face FACE_NAME on frame F, into the vector of face
+   attributes TO.  NAMED_MERGE_POINTS is used to detect loops in face
+   inheritance.  Returns true if FACE_NAME is a valid face name and
+   merging succeeded.  */
 
-static void
-merge_face_inheritance (f, inherit, to, cycle_check)
+static int
+merge_named_face (f, face_name, to, named_merge_points)
      struct frame *f;
-     Lisp_Object inherit;
+     Lisp_Object face_name;
      Lisp_Object *to;
-     Lisp_Object cycle_check;
+     struct named_merge_point *named_merge_points;
 {
-  if (SYMBOLP (inherit) && !EQ (inherit, Qunspecified))
-    /* Inherit from the named face INHERIT.  */
+  struct named_merge_point named_merge_point;
+
+  if (push_named_merge_point (&named_merge_point,
+			      face_name, &named_merge_points))
     {
-      Lisp_Object lface;
+      Lisp_Object from[LFACE_VECTOR_SIZE];
+      int ok = get_lface_attributes (f, face_name, from, 0);
 
-      /* Make sure we're not in an inheritance loop.  */
-      cycle_check = CYCLE_CHECK (cycle_check, inherit, 15);
-      if (NILP (cycle_check))
-	/* Cycle detected, ignore any further inheritance.  */
-	return;
+      if (ok)
+	merge_face_vectors (f, from, to, named_merge_points);
 
-      lface = lface_from_face_name (f, inherit, 0);
-      if (!NILP (lface))
-	merge_face_vectors (f, XVECTOR (lface)->contents, to, cycle_check);
+      return ok;
     }
-  else if (CONSP (inherit))
-    /* Handle a list of inherited faces by calling ourselves recursively
-       on each element.  Note that we only do so for symbol elements, so
-       it's not possible to infinitely recurse.  */
-    {
-      while (CONSP (inherit))
-	{
-	  if (SYMBOLP (XCAR (inherit)))
-	    merge_face_inheritance (f, XCAR (inherit), to, cycle_check);
-
-	  /* Check for a circular inheritance list.  */
-	  cycle_check = CYCLE_CHECK (cycle_check, inherit, 15);
-	  if (NILP (cycle_check))
-	    /* Cycle detected.  */
-	    break;
-
-	  inherit = XCDR (inherit);
-	}
-    }
+  else
+    return 0;
 }
 
 
-/* Given a Lisp face attribute vector TO and a Lisp object PROP that
-   is a face property, determine the resulting face attributes on
-   frame F, and store them in TO.  PROP may be a single face
-   specification or a list of such specifications.  Each face
-   specification can be
+/* Merge face attributes from the lisp `face reference' FACE_REF on
+   frame F into the face attribute vector TO.  If ERR_MSGS is non-zero,
+   problems with FACE_REF cause an error message to be shown.  Return
+   non-zero if no errors occurred (regardless of the value of ERR_MSGS).
+   NAMED_MERGE_POINTS is used to detect loops in face inheritance or
+   list structure; it may be 0 for most callers.
+
+   FACE_REF may be a single face specification or a list of such
+   specifications.  Each face specification can be:
 
    1. A symbol or string naming a Lisp face.
 
@@ -3548,22 +3579,26 @@ merge_face_inheritance (f, inherit, to, cycle_check)
    Face specifications earlier in lists take precedence over later
    specifications.  */
 
-static void
-merge_face_vector_with_property (f, to, prop)
+static int
+merge_face_ref (f, face_ref, to, err_msgs, named_merge_points)
      struct frame *f;
+     Lisp_Object face_ref;
      Lisp_Object *to;
-     Lisp_Object prop;
+     int err_msgs;
+     struct named_merge_point *named_merge_points;
 {
-  if (CONSP (prop))
+  int ok = 1;			/* Succeed without an error? */
+
+  if (CONSP (face_ref))
     {
-      Lisp_Object first = XCAR (prop);
+      Lisp_Object first = XCAR (face_ref);
 
       if (EQ (first, Qforeground_color)
 	  || EQ (first, Qbackground_color))
 	{
 	  /* One of (FOREGROUND-COLOR . COLOR) or (BACKGROUND-COLOR
 	     . COLOR).  COLOR must be a string.  */
-	  Lisp_Object color_name = XCDR (prop);
+	  Lisp_Object color_name = XCDR (face_ref);
 	  Lisp_Object color = first;
 
 	  if (STRINGP (color_name))
@@ -3574,23 +3609,28 @@ merge_face_vector_with_property (f, to, prop)
 		to[LFACE_BACKGROUND_INDEX] = color_name;
 	    }
 	  else
-	    add_to_log ("Invalid face color", color_name, Qnil);
+	    {
+	      if (err_msgs)
+		add_to_log ("Invalid face color", color_name, Qnil);
+	      ok = 0;
+	    }
 	}
       else if (SYMBOLP (first)
 	       && *SDATA (SYMBOL_NAME (first)) == ':')
 	{
 	  /* Assume this is the property list form.  */
-	  while (CONSP (prop) && CONSP (XCDR (prop)))
+	  while (CONSP (face_ref) && CONSP (XCDR (face_ref)))
 	    {
-	      Lisp_Object keyword = XCAR (prop);
-	      Lisp_Object value = XCAR (XCDR (prop));
+	      Lisp_Object keyword = XCAR (face_ref);
+	      Lisp_Object value = XCAR (XCDR (face_ref));
+	      int err = 0;
 
 	      if (EQ (keyword, QCfamily))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_FAMILY_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face font family", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCheight))
 		{
@@ -3598,10 +3638,10 @@ merge_face_vector_with_property (f, to, prop)
 		    merge_face_heights (value, to[LFACE_HEIGHT_INDEX],
 					Qnil, Qnil);
 
-		  if (NILP (new_height))
-		    add_to_log ("Invalid face font height", value, Qnil);
-		  else
+		  if (! NILP (new_height))
 		    to[LFACE_HEIGHT_INDEX] = new_height;
+		  else
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCweight))
 		{
@@ -3609,7 +3649,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_weight (value) >= 0)
 		    to[LFACE_WEIGHT_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face weight", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCslant))
 		{
@@ -3617,7 +3657,7 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_slant (value) >= 0)
 		    to[LFACE_SLANT_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face slant", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCunderline))
 		{
@@ -3626,7 +3666,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_UNDERLINE_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face underline", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCoverline))
 		{
@@ -3635,7 +3675,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_OVERLINE_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face overline", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCstrike_through))
 		{
@@ -3644,7 +3684,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || STRINGP (value))
 		    to[LFACE_STRIKE_THROUGH_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face strike-through", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCbox))
 		{
@@ -3656,7 +3696,7 @@ merge_face_vector_with_property (f, to, prop)
 		      || NILP (value))
 		    to[LFACE_BOX_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face box", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCinverse_video)
 		       || EQ (keyword, QCreverse_video))
@@ -3664,21 +3704,21 @@ merge_face_vector_with_property (f, to, prop)
 		  if (EQ (value, Qt) || NILP (value))
 		    to[LFACE_INVERSE_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face inverse-video", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCforeground))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_FOREGROUND_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face foreground", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCbackground))
 		{
 		  if (STRINGP (value))
 		    to[LFACE_BACKGROUND_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face background", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCstipple))
 		{
@@ -3687,7 +3727,7 @@ merge_face_vector_with_property (f, to, prop)
 		  if (!NILP (pixmap_p))
 		    to[LFACE_STIPPLE_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face stipple", value, Qnil);
+		    err = 1;
 #endif
 		}
 	      else if (EQ (keyword, QCwidth))
@@ -3696,52 +3736,51 @@ merge_face_vector_with_property (f, to, prop)
 		      && face_numeric_swidth (value) >= 0)
 		    to[LFACE_SWIDTH_INDEX] = value;
 		  else
-		    add_to_log ("Invalid face width", value, Qnil);
+		    err = 1;
 		}
 	      else if (EQ (keyword, QCinherit))
 		{
-		  if (SYMBOLP (value))
-		    to[LFACE_INHERIT_INDEX] = value;
-		  else
-		    {
-		      Lisp_Object tail;
-		      for (tail = value; CONSP (tail); tail = XCDR (tail))
-			if (!SYMBOLP (XCAR (tail)))
-			  break;
-		      if (NILP (tail))
-			to[LFACE_INHERIT_INDEX] = value;
-		      else
-			add_to_log ("Invalid face inherit", value, Qnil);
-		    }
+		  /* This is not really very useful; it's just like a
+		     normal face reference.  */
+		  if (! merge_face_ref (f, value, to,
+					err_msgs, named_merge_points))
+		    err = 1;
 		}
 	      else
-		add_to_log ("Invalid attribute %s in face property",
-			    keyword, Qnil);
+		err = 1;
 
-	      prop = XCDR (XCDR (prop));
+	      if (err)
+		{
+		  add_to_log ("Invalid face attribute %S %S", keyword, value);
+		  ok = 0;
+		}
+
+	      face_ref = XCDR (XCDR (face_ref));
 	    }
 	}
       else
 	{
-	  /* This is a list of face specs.  Specifications at the
-	     beginning of the list take precedence over later
-	     specifications, so we have to merge starting with the
-	     last specification.  */
-	  Lisp_Object next = XCDR (prop);
-	  if (!NILP (next))
-	    merge_face_vector_with_property (f, to, next);
-	  merge_face_vector_with_property (f, to, first);
+	  /* This is a list of face refs.  Those at the beginning of the
+	     list take precedence over what follows, so we have to merge
+	     from the end backwards.  */
+	  Lisp_Object next = XCDR (face_ref);
+
+	  if (! NILP (next))
+	    ok = merge_face_ref (f, next, to, err_msgs, named_merge_points);
+
+	  if (! merge_face_ref (f, first, to, err_msgs, named_merge_points))
+	    ok = 0;
 	}
     }
   else
     {
-      /* PROP ought to be a face name.  */
-      Lisp_Object lface = lface_from_face_name (f, prop, 0);
-      if (NILP (lface))
-	add_to_log ("Invalid face text property value: %s", prop, Qnil);
-      else
-	merge_face_vectors (f, XVECTOR (lface)->contents, to, Qnil);
+      /* FACE_REF ought to be a face name.  */
+      ok = merge_named_face (f, face_ref, to, named_merge_points);
+      if (!ok && err_msgs)
+	add_to_log ("Invalid face reference: %s", face_ref, Qnil);
     }
+
+  return ok;
 }
 
 
@@ -5569,7 +5608,8 @@ lookup_named_face (f, symbol, c)
 
   get_lface_attributes (f, symbol, symbol_attrs, 1);
   bcopy (default_face->lface, attrs, sizeof attrs);
-  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
+
   return lookup_face (f, attrs, c, NULL);
 }
 
@@ -5708,7 +5748,7 @@ lookup_derived_face (f, symbol, c, face_id)
 
   get_lface_attributes (f, symbol, symbol_attrs, 1);
   bcopy (default_face->lface, attrs, sizeof attrs);
-  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
   return lookup_face (f, attrs, c, default_face);
 }
 
@@ -5721,9 +5761,8 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
   Lisp_Object lface;
   lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 			Qunspecified);
-  merge_face_vector_with_property (XFRAME (selected_frame),
-				   XVECTOR (lface)->contents,
-				   plist);
+  merge_face_ref (XFRAME (selected_frame), plist, XVECTOR (lface)->contents,
+		  1, 0);
   return lface;
 }
 
@@ -5802,7 +5841,7 @@ x_supports_face_attributes_p (f, attrs, def_face)
 
       bcopy (def_attrs, merged_attrs, sizeof merged_attrs);
 
-      merge_face_vectors (f, attrs, merged_attrs, Qnil);
+      merge_face_vectors (f, attrs, merged_attrs, 0);
 
       face = FACE_FROM_ID (f, lookup_face (f, merged_attrs, 0, 0));
 
@@ -6058,7 +6097,7 @@ face for italic. */)
 
   for (i = 0; i < LFACE_VECTOR_SIZE; i++)
     attrs[i] = Qunspecified;
-  merge_face_vector_with_property (f, attrs, attributes);
+  merge_face_ref (f, attributes, attrs, 1, 0);
 
   def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
   if (def_face == NULL)
@@ -6934,7 +6973,7 @@ realize_named_face (f, symbol, id)
 
   /* Merge SYMBOL's face with the default face.  */
   get_lface_attributes (f, symbol, symbol_attrs, 1);
-  merge_face_vectors (f, symbol_attrs, attrs, Qnil);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
 
   /* Realize the face.  */
   new_face = realize_face (c, attrs, 0, NULL, id);
@@ -7399,7 +7438,7 @@ compute_char_face (f, ch, prop)
       Lisp_Object attrs[LFACE_VECTOR_SIZE];
       struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
       bcopy (default_face->lface, attrs, sizeof attrs);
-      merge_face_vector_with_property (f, attrs, prop);
+      merge_face_ref (f, prop, attrs, 1, 0);
       face_id = lookup_face (f, attrs, ch, NULL);
     }
 
@@ -7485,7 +7524,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
-    merge_face_vector_with_property (f, attrs, prop);
+    merge_face_ref (f, prop, attrs, 1, 0);
 
   /* Now merge the overlay data.  */
   noverlays = sort_overlays (overlay_vec, noverlays, w);
@@ -7496,7 +7535,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
       prop = Foverlay_get (overlay_vec[i], propname);
       if (!NILP (prop))
-	merge_face_vector_with_property (f, attrs, prop);
+	merge_face_ref (f, prop, attrs, 1, 0);
 
       oend = OVERLAY_END (overlay_vec[i]);
       oendpos = OVERLAY_POSITION (oend);
@@ -7507,8 +7546,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   /* If in the region, merge in the region face.  */
   if (pos >= region_beg && pos < region_end)
     {
-      Lisp_Object region_face = lface_from_face_name (f, Qregion, 0);
-      merge_face_vectors (f, XVECTOR (region_face)->contents, attrs, Qnil);
+      merge_named_face (f, Qregion, attrs, 0);
 
       if (region_end < endpos)
 	endpos = region_end;
@@ -7604,16 +7642,13 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
-    merge_face_vector_with_property (f, attrs, prop);
+    merge_face_ref (f, prop, attrs, 1, 0);
 
   /* If in the region, merge in the region face.  */
   if (bufpos
       && bufpos >= region_beg
       && bufpos < region_end)
-    {
-      Lisp_Object region_face = lface_from_face_name (f, Qregion, 0);
-      merge_face_vectors (f, XVECTOR (region_face)->contents, attrs, Qnil);
-    }
+    merge_named_face (f, Qregion, attrs, 0);
 
   /* Look up a realized face with the given face attributes,
      or realize a new one for ASCII characters.  */

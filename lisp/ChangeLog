@@ -231,6 +231,40 @@
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
 2004-06-03  Karl Fogel  <kfogel@red-bean.com>
+2004-06-07  Karl Fogel  <kfogel@red-bean.com>
+
+	* saveplace.el (save-place-alist-to-file): Bind `print-length'
+	and `print-level' to nil when writing out `save-place-alist'.  
+	Thanks to Kai Grossjohann <kai@emptydomain.de> for enlightenment.
+	
+2004-06-07  Juanma Barranquero  <lektu@terra.es>
+
+	* completion.el (completion-kill-region): Doc fix.
+
+	* format.el (format-insert-annotations)
+	(format-annotate-location): Doc fixes.
+	(format-subtract-regions): Make arguments match their use in
+	docstring.
+
+	* simple.el (kill-region): Doc fix.
+
+	* subr.el (insert-buffer-substring-no-properties)
+	(insert-buffer-substring-as-yank): Doc fixes.
+
+2004-06-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	Update docstring.
+	(dired-reset-subdir-switches): New function.
+
+	* dired.el (dired-undo): Call `dired-build-subdir-alist'.
+	Limit scope of `buffer-read-only' binding.
+
+2004-06-06  Emilio C. Lopes  <eclig@gmx.net>
+
+	* eshell/esh-cmd.el (eshell/which): Respect commands quoted with
+	eshell-explicit-command-char.
+
 2004-06-06  Juanma Barranquero  <lektu@terra.es>
 
 	* help-fns.el (help-argument-name): Inherit from italic face only

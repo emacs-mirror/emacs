@@ -2043,7 +2043,7 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
-** The sentinel is now called whan a network process is deleted with
+** The sentinel is now called when a network process is deleted with
 delete-process.  The status message passed to the sentinel for a
 deleted network process is "deleted".  The message passed to the
 sentinel when the connection is closed by the remote peer has been
@@ -3051,6 +3051,13 @@ inheritance is used when determining the value of a face attribute.
 +++
 ** New functions face-attribute-relative-p and merge-face-attribute
 help with handling relative face attributes.
+
+** The priority of faces in an :inherit attribute face-list is reversed.
+If a face contains an :inherit attribute with a list of faces, earlier
+faces in the list override later faces in the list; in previous releases
+of Emacs, the order was the opposite.  This change was made so that
+:inherit face-lists operate identically to face-lists in text `face'
+properties.
 
 +++
 ** Enhancements to process support

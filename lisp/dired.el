@@ -1448,14 +1448,13 @@ Keybindings:
 (defun dired-undo ()
   "Undo in a dired buffer.
 This doesn't recover lost files, it just undoes changes in the buffer itself.
-You can use it to recover marks, killed lines or subdirs.
-In the latter case, you have to do \\[dired-build-subdir-alist] to
-parse the buffer again."
+You can use it to recover marks, killed lines or subdirs."
   (interactive)
   (let (buffer-read-only)
-    (undo)
-    (message "Change in Dired buffer undone.
-Actual changes in files cannot be undone by Emacs.")))
+    (undo))
+  (dired-build-subdir-alist)
+  (message "Change in Dired buffer undone.
+Actual changes in files cannot be undone by Emacs."))
 
 (defun dired-next-line (arg)
   "Move down lines then position at filename.

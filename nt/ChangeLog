@@ -1,3 +1,8 @@
+2004-06-07  Juanma Barranquero  <lektu@terra.es>
+
+	* INSTALL: Clarify paragraph about compatibility between image
+	libraries and builds of Emacs with several compilers.
+
 2004-06-06  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (bootstrap-nmake): When nmake'ing bootstrap on
