@@ -422,14 +422,25 @@ find_composition (pos, limit, start, end, prop, object)
     return 0;
 
   if (limit > pos)		/* search forward */
-    val = Fnext_single_property_change (make_number (pos), Qcomposition,
-					object, make_number (limit));
+    {
+      val = Fnext_single_property_change (make_number (pos), Qcomposition,
+					  object, make_number (limit));
+      pos = XINT (val);
+      if (pos == limit)
+	return 0;
+    }
   else				/* search backward */
-    val = Fprevious_single_property_change (make_number (pos), Qcomposition,
-					    object, make_number (limit));
-  pos = XINT (val);
-  if (pos == limit)
-    return 0;
+    {
+      if (get_property_and_range (pos - 1, Qcomposition, prop, start, end,
+				  object))
+	return 1;
+      val = Fprevious_single_property_change (make_number (pos), Qcomposition,
+					      object, make_number (limit));
+      pos = XINT (val);
+      if (pos == limit)
+	return 0;
+      pos--;
+    }
   get_property_and_range (pos, Qcomposition, prop, start, end, object);
   return 1;
 }
