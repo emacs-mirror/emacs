@@ -1359,7 +1359,7 @@ LIST should have been created by calling `match-data' previously.")
   register Lisp_Object marker;
 
   if (!CONSP (list) && !NILP (list))
-    list = wrong_type_argument (Qconsp, list, 0);
+    list = wrong_type_argument (Qconsp, list);
 
   /* Unless we find a marker with a buffer in LIST, assume that this 
      match data came from a string.  */

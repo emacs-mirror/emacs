@@ -58,7 +58,7 @@ check_case_table (obj)
   register Lisp_Object tem;
 
   while (tem = Fcase_table_p (obj), NILP (tem))
-    obj = wrong_type_argument (Qcase_table_p, obj, 0);
+    obj = wrong_type_argument (Qcase_table_p, obj);
   return (obj);
 }   
 

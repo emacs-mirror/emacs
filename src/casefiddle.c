@@ -65,7 +65,7 @@ casify_object (flag, obj)
 	    }
 	  return obj;
 	}
-      obj = wrong_type_argument (Qchar_or_string_p, obj, 0);
+      obj = wrong_type_argument (Qchar_or_string_p, obj);
     }
 }
 
