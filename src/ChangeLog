@@ -1,3 +1,8 @@
+2004-07-17  Juanma Barranquero  <lektu@terra.es>
+
+	* keyboard.c (not_single_kboard_state): Do nothing unless
+	MULTI_KBOARD is defined.
+
 2004-07-17  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (coordinates_in_window): Inside the window but outside
