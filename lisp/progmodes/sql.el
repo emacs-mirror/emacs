@@ -4,8 +4,8 @@
 
 ;; Author: Alex Schroeder <a.schroeder@bsiag.ch>
 ;; Maintainer: Alex Schroeder <a.schroeder@bsiag.ch>
-;; Version: 1.2.1
-;; Keywords: processes SQL
+;; Version: 1.3.2
+;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
 
@@ -45,12 +45,12 @@
 ;; facilitate your plans.
 
 ;; sql-interactive-mode is used to interact with a SQL interpreter
-;; process in the *SQL* buffer.  The *SQL* buffer is created by
-;; calling a SQL interpreter-specific entry function.  Do *not* call
-;; sql-interactive-mode by itself.
+;; process in a SQLi buffer (usually called `*SQL*').  The SQLi buffer
+;; is created by calling a SQL interpreter-specific entry function.  Do
+;; *not* call sql-interactive-mode by itself.
 
 ;; The list of currently supported interpreters and the corresponding
-;; entry function used to create the *SQL* buffers is shown with
+;; entry function used to create the SQLi buffers is shown with
 ;; `sql-help' (M-x sql-help).
 
 ;; Since sql-interactive-mode is built on top of the general
@@ -61,7 +61,7 @@
 
 ;; sql-mode can be used to enable syntactic hilighting for SQL
 ;; statements in another buffer.  SQL statements can then be sent to
-;; the SQL process in the *SQL* buffer.  sql-mode has already been
+;; the SQL process in the SQLi buffer.  sql-mode has already been
 ;; used as a template to a simple PL/SQL mode.
 
 ;; For documentation on the functionality provided by comint mode, and
@@ -89,7 +89,10 @@
 
 ;; Add better hilight support for other brands; there is a bias towards
 ;; Oracle because that's what I use at work.  Anybody else just send in
-;; your lists of reserved words, keywords and builtin functions!
+;; your lists of reserved words, keywords and builtin functions!  As
+;; long as I don't receive any feedback, everything is hilighted with
+;; ANSI keywords only.  I received the list of ANSI keywords from a
+;; user; if you know of any changes, let me know.
 
 ;; Add different hilighting levels.
 
@@ -100,6 +103,7 @@
 ;; Yair Friedman <yfriedma@JohnBryce.Co.Il>
 ;; Gregor Zych <zych@pool.informatik.rwth-aachen.de>
 ;; nino <nino@inform.dk>
+
 
 
 ;;; Code:
@@ -136,9 +140,7 @@ Customizing your password will store it in your ~/.emacs file."
   :group 'SQL)
 
 (defcustom sql-server ""
-  "*Default server.
-
-Currently, this is only used by MS isql."
+  "*Default server or host."
   :type 'string
   :group 'SQL)
 
@@ -184,6 +186,17 @@ The program can also specify a TCP connection.  See `make-comint'."
 
 (defcustom sql-mysql-program "mysql"
   "*Command to start mysql by TcX.
+
+Starts `sql-interactive-mode' after doing some setup.
+
+The program can also specify a TCP connection.  See `make-comint'."
+  :type 'file
+  :group 'SQL)
+
+;; Customisation for Solid
+
+(defcustom sql-solid-program "solsql"
+  "*Command to start SOLID SQL Editor.
 
 Starts `sql-interactive-mode' after doing some setup.
 
@@ -262,7 +275,13 @@ The program can also specify a TCP connection.  See `make-comint'."
 ;; Passwords are not kept in a history.
 
 (defvar sql-buffer nil
-  "Current *SQL* buffer.")
+  "Current SQLi buffer.
+
+The global value of sql-buffer is the name of the latest SQLi buffer
+created.  Any SQL buffer created will make a local copy of this value.
+See `sql-interactive-mode' for more on multiple sessions.  If you want
+to change the SQLi buffer a SQL mode sends its SQL strings to, change
+the local value of sql-buffer using \\[sql-change-sqli-buffer].")
 
 (defvar sql-prompt-regexp nil
   "Prompt used to initialize `comint-prompt-regexp'.
@@ -297,6 +316,7 @@ You can change it on `sql-interactive-mode-hook'.")
 
 (defvar sql-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'sql-send-paragraph)
     (define-key map "\C-c\C-r" 'sql-send-region)
     (define-key map "\C-c\C-b" 'sql-send-buffer)
     (define-key map "\t" 'indent-relative)
@@ -309,8 +329,15 @@ You can change it on `sql-interactive-mode-hook'.")
  sql-mode-menu sql-mode-map 
  "Menu for `sql-mode'."
  '("SQL"
-   ["Send Region" sql-send-region mark-active]
-   ["Send Buffer" sql-send-buffer t]
+   ["Send Paragraph" sql-send-paragraph (and (buffer-live-p sql-buffer)
+					     (get-buffer-process sql-buffer))]
+   ["Send Region" sql-send-region (and mark-active 
+				       (buffer-live-p sql-buffer)
+				       (get-buffer-process sql-buffer))]
+   ["Send Buffer" sql-send-buffer (and (buffer-live-p sql-buffer)
+				       (get-buffer-process sql-buffer))]
+   ["Show SQLi buffer" sql-show-sqli-buffer t]
+   ["Change SQLi buffer" sql-change-sqli-buffer t]
    ["Pop to SQLi buffer after send" 
     sql-toggle-pop-to-buffer-after-send-region
     :style toggle
@@ -536,17 +563,18 @@ can be changed by some entry functions to provide more hilighting.")
   "Shows short help for the SQL modes.
 
 Use an entry function to open an interactive SQL buffer.  This buffer is
-usually named *SQL*.  The name of the major mode is SQLi.
+usually named `*SQL*'.  The name of the major mode is SQLi.
 
 Use the following commands to start a specific SQL interpreter:
 
-    psql (PostGres): \\[sql-postgres]
+    PostGres: \\[sql-postgres]
 
 Other non-free SQL implementations are also supported:
 
-    mysql: \\[sql-mysql]
-    SQL*Plus: \\[sql-oracle]
-    dbaccess Informix: \\[sql-informix]
+    MySQL: \\[sql-mysql]
+    Solid: \\[sql-solid]
+    Oracle: \\[sql-oracle]
+    Informix: \\[sql-informix]
     Sybase: \\[sql-sybase]
     Ingres: \\[sql-ingres]
     Microsoft: \\[sql-ms]
@@ -589,11 +617,11 @@ even in old versions of Emacs."
 (defun sql-get-login (&rest what)
   "Get username, password and database from the user.
 
-The variables `sql-user', `sql-password', `sql-server' and
-`sql-database' can be customised.  They are used as the default
-values.  Usernames, servers and databases are stored in
-`sql-user-history', `sql-server-history' and `database-history'.
-Passwords are not stored in a history.
+The variables `sql-user', `sql-password', `sql-server', and
+`sql-database' can be customised.  They are used as the default values.
+Usernames, servers and databases are stored in `sql-user-history',
+`sql-server-history' and `database-history'.  Passwords are not stored
+in a history.
 
 Parameter WHAT is a list of the arguments passed to this function.
 The function asks for the username if WHAT contains symbol `user', for
@@ -619,6 +647,34 @@ function like this: (sql-get-login 'user 'password 'database)."
       (setq sql-database 
 	    (read-from-minibuffer "Database: " sql-database nil nil
 				  sql-database-history))))
+
+(defun sql-change-sqli-buffer ()
+  "Change the SQLi buffer SQL strings are sent to.
+
+Call this function in a SQL buffer in order to change the SQLi buffer
+SQL strings are sent to.  Calling this function sets `sql-buffer'.  
+
+If you call it from a SQL buffer, this changes the local copy of
+`sql-buffer'.  
+
+If you call it from anywhere else, it changes the global copy of
+`sql-buffer'."
+  (interactive)
+  (let ((new-buffer (get-buffer (read-buffer "New SQLi buffer: " nil t))))
+    (if new-buffer
+	(setq sql-buffer new-buffer))))
+
+(defun sql-show-sqli-buffer ()
+  "Show the name of current SQLi buffer.
+
+This is the buffer SQL strings are sent to.  It is stored in the
+variable `sql-buffer'.  See `sql-help' on how to create such a buffer."
+  (interactive)
+  (if (null (buffer-live-p sql-buffer))
+      (message "There is no SQLi buffer.")
+    (if (null (get-buffer-process sql-buffer))
+	(message "Buffer %s has no process." (buffer-name sql-buffer))
+      (message "Current SQLi buffer is %s." (buffer-name sql-buffer)))))
 
 (defun sql-copy-column ()
   "Copy current column to the end of buffer.
@@ -668,6 +724,17 @@ Inserts SELECT or commas if appropriate."
 	  (display-buffer sql-buffer)))
     (message "No SQL process started.")))
 
+(defun sql-send-paragraph ()
+  "Send the current paragraph to the SQL process."
+  (interactive)
+  (let ((start (save-excursion
+		 (backward-paragraph)
+		 (point)))
+	(end (save-excursion
+	       (forward-paragraph)
+	       (point))))
+    (sql-send-region start end)))
+
 (defun sql-send-buffer ()
   "Send the buffer contents to the SQL process."
   (interactive)
@@ -692,18 +759,22 @@ sql-toggle-pop-to-buffer-after-send-region to VALUE."
 (defun sql-mode ()
   "Major mode to edit SQL.
 
-You can send SQL statements to the *SQL* buffer using
+You can send SQL statements to the SQLi buffer using
 \\[sql-send-region].  Such a buffer must exist before you can do this.
-See `sql-help'.
+See `sql-help' on how to create SQLi buffers.
 
 \\{sql-mode-map} 
 Customization: Entry to this mode runs the `sql-mode-hook'.
 
-Here is an example for your .emacs file.  It opens every file ending in
-.sql with sql-mode.
+When you put a buffer in SQL mode, the buffer stores the last SQLi
+buffer created as its destination in the variable `sql-buffer'.  This
+will be the buffer \\[sql-send-region] sends the region to.  If this
+SQLi buffer is killed, \\[sql-send-region] is no longer able to
+determine where the strings should be sent to.  You can change the
+value of `sql-buffer' using \\[sql-change-sqli-buffer].
 
-\(setq auto-mode-alist (append auto-mode-alist
-                              \(list '(\"\\\\.sql$\" . sql-mode))))"
+For information on how to create multiple SQLi buffers, see
+`sql-interactive-mode'."
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'sql-mode)
@@ -715,6 +786,9 @@ Here is an example for your .emacs file.  It opens every file ending in
 			     nil t ((95 . "w") (46 . "w"))))
   (make-local-variable 'comment-start)
   (setq comment-start "--")
+  ;; The following will make each buffer in sql-mode remeber the
+  ;; "current" SQLi buffer.
+  (make-local-variable 'sql-buffer)
   (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
   (run-hooks 'sql-mode-hook))
@@ -741,9 +815,27 @@ Use \\[sql-accumulate-and-indent] to enter multi-line statements.
 
 If you want to make multiple SQL buffers, rename the `*SQL*' buffer
 using \\[rename-buffer] or \\[rename-uniquely] and start a new process.
+See `sql-help' for a list of available entry functions.  The last buffer
+created by such an entry function is the current SQLi buffer.  SQL
+buffers will send strings to the SQLi buffer current at the time of
+their creation.  See `sql-mode' for details.
+
+Sample session using two connections:
+
+1. Create first SQLi buffer by calling an entry function.
+2. Rename buffer \"*SQL*\" to \"*Connection 1*\".
+3. Create a SQL buffer \"test1.sql\".
+4. Create second SQLi buffer by calling an entry function.
+5. Rename buffer \"*SQL*\" to \"*Connection 2*\".
+6. Create a SQL buffer \"test2.sql\".
+
+Now \\[sql-send-region] in buffer \"test1.sql\" will send the region to
+buffer \"*Connection 1*\", \\[sql-send-region] in buffer \"test2.sql\"
+will send the region to buffer \"*Connection 2*\".
 
 If you accidentally suspend your process, use \\[comint-continue-subjob]
-to continue it.
+to continue it.  On some operating systems, this will not work because
+the signals are not supported.
 
 \\{sql-interactive-mode-map}
 Customization: Entry to this mode runs the hooks on `comint-mode-hook'
@@ -763,7 +855,7 @@ cause the window to scroll to the end of the buffer.
 If you want to make SQL buffers limited in length, add the function
 `comint-truncate-buffer' to `comint-output-filter-functions'.
 
-Here is an example for your .emacs file.  It keeps the *SQL* Buffer a
+Here is an example for your .emacs file.  It keeps the SQLi buffer a
 certain length and stores all inputs in an input-ring file.
 
 \(add-hook 'sql-interactive-mode-hook
@@ -819,12 +911,12 @@ Sentinels will always get the two parameters PROCESS and EVENT."
 (defun sql-oracle ()
   "Run sqlplus by Oracle as an inferior process.
 
-If buffer *SQL* exists but no process is running, make a new process.
+If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
-Interpreter used comes from variable `sql-oracle-program'.  Login
-uses the variables `sql-user', `sql-password' and `sql-database' as
+Interpreter used comes from variable `sql-oracle-program'.  Login uses
+the variables `sql-user', `sql-password', and `sql-database' as
 defaults, if set.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
@@ -872,13 +964,13 @@ The default comes from `process-coding-system-alist' and
 (defun sql-sybase ()
   "Run isql by SyBase as an inferior process.
 
-If buffer *SQL* exists but no process is running, make a new process.
+If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
 Interpreter used comes from variable `sql-sybase-program'.  Login uses
-the variables `sql-user', `sql-password' and `sql-database' as defaults,
-if set.
+the variables `sql-user', `sql-password', and `sql-database' as
+defaults, if set.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
@@ -921,7 +1013,7 @@ The default comes from `process-coding-system-alist' and
 (defun sql-informix ()
   "Run dbaccess by Informix as an inferior process.
 
-If buffer *SQL* exists but no process is running, make a new process.
+If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
@@ -959,23 +1051,24 @@ The default comes from `process-coding-system-alist' and
 
 (defun sql-mysql ()
   "Run mysql by TcX as an inferior process.
-Note that the widespread idea that mysql is free software
-is inaccurate; its license is too restrictive.
-We urge you to use PostGres instead.
+
+Note that the widespread idea that mysql is free software is inaccurate;
+its license is too restrictive.  We urge you to use PostGres instead.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
 Interpreter used comes from variable `sql-mysql-program'.  Login uses
-the variable `sql-database' as default, if set.
+the variables `sql-user', `sql-password', `sql-database', and
+`sql-server' as defaults, if set.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
-before \\[sql-informix].  You can also specify this with \\[set-buffer-process-coding-system]
+before \\[sql-mysql].  You can also specify this with \\[set-buffer-process-coding-system]
 in the SQL buffer, after you start the process.
 The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
@@ -984,13 +1077,15 @@ The default comes from `process-coding-system-alist' and
   (interactive)
   (if (comint-check-proc "*SQL*")
       (pop-to-buffer "*SQL*")
-    (sql-get-login 'user 'password 'database)
+    (sql-get-login 'user 'password 'database 'server)
     (message "Login...")
     ;; Put all parameters to the program (if defined) in a list and call
     ;; make-comint.
     (let ((params))
       (if (not (string= "" sql-database))
-	  (setq params (append (list (concat "--host=" sql-database)) params)))
+	  (setq params (append (list sql-database) params)))
+      (if (not (string= "" sql-server))
+	  (setq params (append (list (concat "--host=" sql-server)) params)))
       (if (not (string= "" sql-password))
 	  (setq params (append (list (concat "--password=" sql-password)) params)))
       (if (not (string= "" sql-user))
@@ -1006,10 +1101,57 @@ The default comes from `process-coding-system-alist' and
 
 
 
+(defun sql-solid ()
+  "Run solsql by Solid as an inferior process.
+
+If buffer `*SQL*' exists but no process is running, make a new process.
+If buffer exists and a process is running, just switch to buffer
+`*SQL*'.
+
+Interpreter used comes from variable `sql-solid-program'.  Login uses
+the variables `sql-user', `sql-password', and `sql-server' as
+defaults, if set.
+
+The buffer is put in sql-interactive-mode, giving commands for sending
+input.  See `sql-interactive-mode'.
+
+To specify a coding system for converting non-ASCII characters
+in the input and output to the process, use \\[universal-coding-system-argument]
+before \\[sql-solid].  You can also specify this with \\[set-buffer-process-coding-system]
+in the SQL buffer, after you start the process.
+The default comes from `process-coding-system-alist' and
+`default-process-coding-system'.
+
+\(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
+  (interactive)
+  (if (comint-check-proc "*SQL*")
+      (pop-to-buffer "*SQL*")
+    (sql-get-login 'user 'password 'server)
+    (message "Login...")
+    ;; Put all parameters to the program (if defined) in a list and call
+    ;; make-comint.
+    (let ((params))
+      ;; It only makes sense if both username and password are there.
+      (if (not (or (string= "" sql-user)
+		   (string= "" sql-password)))
+	  (setq params (append (list sql-user sql-password) params)))
+      (if (not (string= "" sql-server))
+	  (setq params (append (list sql-server) params)))
+      (set-buffer (apply 'make-comint "SQL" sql-solid-program 
+			 nil params)))
+    (setq sql-prompt-regexp "^")
+    (setq sql-prompt-length 0)
+    (setq sql-buffer (current-buffer))
+    (sql-interactive-mode)
+    (message "Login...done")
+    (pop-to-buffer sql-buffer)))
+
+
+
 (defun sql-ingres ()
   "Run sql by Ingres as an inferior process.
 
-If buffer *SQL* exists but no process is running, make a new process.
+If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
@@ -1048,12 +1190,12 @@ The default comes from `process-coding-system-alist' and
 (defun sql-ms ()
   "Run isql by Microsoft as an inferior process.
 
-If buffer *SQL* exists but no process is running, make a new process.
+If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
 Interpreter used comes from variable `sql-ms-program'.  Login uses the
-variables `sql-user', `sql-password', `sql-server' and `sql-database'
+variables `sql-user', `sql-password', `sql-database', and `sql-server'
 as defaults, if set.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
@@ -1061,7 +1203,7 @@ input.  See `sql-interactive-mode'.
 
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
-before \\[sql-sybase].  You can also specify this with \\[set-buffer-process-coding-system]
+before \\[sql-ms].  You can also specify this with \\[set-buffer-process-coding-system]
 in the SQL buffer, after you start the process.
 The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
@@ -1102,7 +1244,7 @@ The default comes from `process-coding-system-alist' and
 (defun sql-postgres ()
   "Run psql by Postgres as an inferior process.
 
-If buffer *SQL* exists but no process is running, make a new process.
+If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer
 `*SQL*'.
 
