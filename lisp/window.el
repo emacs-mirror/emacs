@@ -196,6 +196,16 @@ new mode line."
                (progn
                  (set-window-point new-w old-point)
                  (select-window new-w)))))
+    (split-window-save-restore-data new-w old-w)))
+
+(defun split-window-save-restore-data (new-w old-w)
+  (save-excursion
+    (set-buffer (window-buffer))
+    (if view-mode
+	(let ((old-info (assq old-w view-return-to-alist)))
+	  (setq view-return-to-alist
+		(cons (cons new-w (cons (and old-info (car (cdr old-info))) t))
+		      view-return-to-alist))))
     new-w))
 
 (defun split-window-horizontally (&optional arg)
@@ -204,10 +214,11 @@ This window becomes the leftmost of the two, and gets ARG columns.
 Negative arg means select the size of the rightmost window instead.
 No arg means split equally."
   (interactive "P")
-  (let ((size (and arg (prefix-numeric-value arg))))
+  (let ((old-w (selected-window))
+	(size (and arg (prefix-numeric-value arg))))
     (and size (< size 0)
 	 (setq size (+ (window-width) size)))
-    (split-window nil size t)))
+    (split-window-save-restore-data (split-window nil size t) old-w)))
 
 (defun enlarge-window-horizontally (arg)
   "Make current window ARG columns wider."
