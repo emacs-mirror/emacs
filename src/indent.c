@@ -2069,6 +2069,8 @@ whether or not it is currently displayed in some window.  */)
     }
   else
     {
+      int it_start;
+
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
 
@@ -2078,13 +2080,14 @@ whether or not it is currently displayed in some window.  */)
 	 we end up with the iterator placed at where it thinks X is 0,
 	 while the end position is really at some X > 0, the same X that
 	 PT had.  */
+      it_start = IT_CHARPOS (it);
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
       move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
 
       /* Move back if we got too far.  This may happen if
 	 truncate-lines is on and PT is beyond right margin.  */
-      if (IT_CHARPOS (it) > PT && it.vpos > 0 && XINT (lines) > 0)
+      if (IT_CHARPOS (it) > it_start && XINT (lines) > 0)
 	move_it_by_lines (&it, -1, 0);
 
       it.vpos = 0;
