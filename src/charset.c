@@ -1233,67 +1233,140 @@ strwidth (str, len)
      unsigned char *str;
      int len;
 {
-  unsigned char *endp = str + len;
+  return c_string_width (str, len, -1, NULL, NULL);
+}
+
+/* Return width of string STR of length LEN when displayed in the
+   current buffer.  The width is measured by how many columns it
+   occupies on the screen.  If PRECISION > 0, return the width of
+   longest substring that doesn't exceed PRECISION, and set number of
+   characters and bytes of the substring in *NCHARS and *NBYTES
+   respectively.  */
+
+int
+c_string_width (str, len, precision, nchars, nbytes)
+     unsigned char *str;
+     int precision, *nchars, *nbytes;
+{
+  int i = 0, i_byte = 0;
   int width = 0;
+  int chars;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
-  while (str < endp)
+  while (i_byte < len)
     {
-      Lisp_Object disp;
-      int thislen;
-      int c = STRING_CHAR_AND_LENGTH (str, endp - str, thislen);
+      int bytes, thiswidth;
+      Lisp_Object val;
 
-      /* Get the way the display table would display it.  */
       if (dp)
-	disp = DISP_CHAR_VECTOR (dp, c);
-      else
-	disp = Qnil;
+	{
+	  int c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
 
-      if (VECTORP (disp))
-	width += XVECTOR (disp)->size;
+	  chars = 1;
+	  val = DISP_CHAR_VECTOR (dp, c);
+	  if (VECTORP (val))
+	    thiswidth = XVECTOR (val)->size;
+	  else
+	    thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
+	}
       else
-	width += ONE_BYTE_CHAR_WIDTH (*str);
+	{
+	  chars = 1;
+	  PARSE_MULTIBYTE_SEQ (str + i_byte, len - i_byte, bytes);
+	  thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
+	}
 
-      str += thislen;
+      if (precision > 0
+	  && (width + thiswidth > precision))
+	{
+	  *nchars = i;
+	  *nbytes = i_byte;
+	  return width;
+	}
+      i++;
+      i_byte += bytes;
+      width += thiswidth;
+  }
+
+  if (precision > 0)
+    {
+      *nchars = i;
+      *nbytes = i_byte;
     }
+
   return width;
 }
 
+/* Return width of Lisp string STRING when displayed in the current
+   buffer.  The width is measured by how many columns it occupies on
+   the screen while paying attention to compositions.  If PRECISION >
+   0, return the width of longest substring that doesn't exceed
+   PRECISION, and set number of characters and bytes of the substring
+   in *NCHARS and *NBYTES respectively.  */
+
 int
-lisp_string_width (str)
-     Lisp_Object str;
+lisp_string_width (string, precision, nchars, nbytes)
+     Lisp_Object string;
+     int precision, *nchars, *nbytes;
 {
-  int len = XSTRING (str)->size, len_byte = STRING_BYTES (XSTRING (str));
-  int i = 0, i_byte;
+  int len = XSTRING (string)->size;
+  int len_byte = STRING_BYTES (XSTRING (string));
+  unsigned char *str = XSTRING (string)->data;
+  int i = 0, i_byte = 0;
   int width = 0;
-  int start, end, start_byte;
-  Lisp_Object prop;
-  int cmp_id;
+  struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i < len)
     {
-      if (find_composition (i, len, &start, &end, &prop, str))
+      int chars, bytes, thiswidth;
+      Lisp_Object val;
+      int cmp_id;
+      int ignore, end;
+
+      if (find_composition (i, -1, &ignore, &end, &val, string)
+	  && ((cmp_id = get_composition_id (i, i_byte, end - i, val, string))
+	      >= 0))
 	{
-	  start_byte = string_char_to_byte (str, start);
-	  if (i < start)
-	    {
-	      i_byte = string_char_to_byte (str, i);
-	      width += strwidth (XSTRING (str)->data + i_byte,
-				 start_byte - i_byte);
-	    }
-	  cmp_id
-	    = get_composition_id (start, start_byte, end - start, prop, str);
-	  if (cmp_id >= 0)
-	    width += composition_table[cmp_id]->width;
-	  i = end;
+	  thiswidth = composition_table[cmp_id]->width;
+	  chars = end - i;
+	  bytes = string_char_to_byte (string, end) - i_byte;
+	}
+      else if (dp)
+	{
+	  int c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+
+	  chars = 1;
+	  val = DISP_CHAR_VECTOR (dp, c);
+	  if (VECTORP (val))
+	    thiswidth = XVECTOR (val)->size;
+	  else
+	    thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
 	}
       else
 	{
-	  i_byte = string_char_to_byte (str, i);
-	  width += strwidth (XSTRING (str)->data + i_byte, len_byte - i_byte);
-	  i = len;
+	  chars = 1;
+	  PARSE_MULTIBYTE_SEQ (str + i_byte, len_byte - i_byte, bytes);
+	  thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
 	}
+
+      if (precision > 0
+	  && (width + thiswidth > precision))
+	{
+	  *nchars = i;
+	  *nbytes = i_byte;
+	  return width;
+	}
+      i += chars;
+      i_byte += bytes;
+      width += thiswidth;
+  }
+
+  if (precision > 0)
+    {
+      *nchars = i;
+      *nbytes = i_byte;
     }
+
   return width;
 }
 
@@ -1310,7 +1383,7 @@ taken to occupy `tab-width' columns.")
   Lisp_Object val;
 
   CHECK_STRING (str, 0);
-  XSETFASTINT (val, lisp_string_width (str));
+  XSETFASTINT (val, lisp_string_width (str, -1, NULL, NULL));
   return val;
 }
 
