@@ -356,7 +356,6 @@ If the third argument is incorrect, Emacs may crash.")
 		case Lisp_Buffer_Local_Value:
 		case Lisp_Some_Buffer_Local_Value:
 		case Lisp_Buffer_Objfwd:
-		case Lisp_Void:
 		  v2 = Fsymbol_value (v1);
 		}
 	    }
