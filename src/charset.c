@@ -740,14 +740,20 @@ The width is measured by how many columns it occupies on the screen.")
   (ch)
        Lisp_Object ch;
 {
-  Lisp_Object val;
+  Lisp_Object val, disp;
   int c;
 
   CHECK_NUMBER (ch, 0);
 
-  c = XFASTINT (ch);
-  if (SINGLE_BYTE_CHAR_P (c))
-    XSETFASTINT (val, ONE_BYTE_CHAR_WIDTH (c));
+  c = XINT (ch);
+
+  /* Get the way the display table would display it.  */
+  disp = DISP_CHAR_VECTOR (buffer_display_table (current_buffer), (c));
+
+  if (VECTORP (disp))
+    XSETINT (val, XVECTOR (disp)->size);
+  else if (SINGLE_BYTE_CHAR_P (c))
+    XSETINT (val, ONE_BYTE_CHAR_WIDTH (c));
   else if (COMPOSITE_CHAR_P (c))
     {
       int id = COMPOSITE_CHAR_ID (XFASTINT (ch));
@@ -765,6 +771,7 @@ The width is measured by how many columns it occupies on the screen.")
 /* Return width of string STR of length LEN when displayed in the
    current buffer.  The width is measured by how many columns it
    occupies on the screen.  */
+
 int
 strwidth (str, len)
      unsigned char *str;
@@ -772,29 +779,43 @@ strwidth (str, len)
 {
   unsigned char *endp = str + len;
   int width = 0;
+  struct Lisp_Char_Table *dp = buffer_display_table (current_buffer);
 
-  while (str < endp) {
-    if (*str == LEADING_CODE_COMPOSITION)
-      {
-	int id = str_cmpchar_id (str, endp - str);
+  while (str < endp)
+    {
+      if (*str == LEADING_CODE_COMPOSITION)
+	{
+	  int id = str_cmpchar_id (str, endp - str);
 
-	if (id < 0)
-	  {
-	    width += 4;
-	    str++;
-	  }
-	else
-	  {
-	    width += cmpchar_table[id]->width;
-	    str += cmpchar_table[id]->len;
-	  }
-      }
-    else
-      {
-	width += ONE_BYTE_CHAR_WIDTH (*str);
-	str += BYTES_BY_CHAR_HEAD (*str);
-      }
-  }
+	  if (id < 0)
+	    {
+	      width += 4;
+	      str++;
+	    }
+	  else
+	    {
+	      width += cmpchar_table[id]->width;
+	      str += cmpchar_table[id]->len;
+	    }
+	}
+      else
+	{
+	  Lisp_Object disp;
+	  int thiswidth;
+	  int c = STRING_CHAR (str, endp - str);
+
+	  /* Get the way the display table would display it.  */
+	  disp = DISP_CHAR_VECTOR (dp, c);
+
+	  if (VECTORP (disp))
+	    thiswidth = XVECTOR (disp)->size;
+	  else
+	    thiswidth = ONE_BYTE_CHAR_WIDTH (*str);
+
+	  width += thiswidth;
+	  str += BYTES_BY_CHAR_HEAD (*str);
+	}
+    }
   return width;
 }
 
