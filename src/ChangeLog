@@ -1,3 +1,8 @@
+2000-01-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* data.c (set_internal): Fix the criteria for whether
+	to swap out the old cached binding.
+
 2000-01-19  Dave Love  <fx@gnu.org>
 
 	* lread.c: (syms_of_lread) [user-init-file]: Doc change.
