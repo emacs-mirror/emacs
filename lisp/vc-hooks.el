@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.118 2000/09/06 10:41:10 gerd Exp $
+;; $Id: vc-hooks.el,v 1.119 2000/09/12 13:00:30 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -289,7 +289,10 @@ If the file is not registered, or the master name is not known, return nil."
   ;; TODO: This should ultimately become obsolete, at least up here
   ;; in vc-hooks.
   (or (vc-file-getprop file 'vc-name)
-      (if (vc-backend file)
+      ;; force computation of the property by calling
+      ;; vc-BACKEND-registered explicitly
+      (if (and (vc-backend file)
+	       (vc-call-backend (vc-backend file) 'registered file))
 	  (vc-file-getprop file 'vc-name))))
 
 (defun vc-checkout-model (file)
