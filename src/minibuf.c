@@ -824,11 +824,14 @@ The argument given to PREDICATE is the alist element or the symbol from the obar
 
       /* Is this element a possible completion? */
 
-      if (XTYPE (eltstring) == Lisp_String &&
-	  XSTRING (string)->size <= XSTRING (eltstring)->size &&
-	  XSTRING (eltstring)->data[0] != ' ' &&
-	  0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
-		    XSTRING (string)->size))
+      if (XTYPE (eltstring) == Lisp_String
+	  && XSTRING (string)->size <= XSTRING (eltstring)->size
+	  /* Reject alternatives that start with space
+	     unless the input starts with space.  */
+	  && ((XSTRING (string)->size > 0 && XSTRING (string)->data[0] == ' ')
+	      || XSTRING (eltstring)->data[0] != ' ')
+	  && 0 > scmp (XSTRING (eltstring)->data, XSTRING (string)->data,
+		       XSTRING (string)->size))
 	{
 	  /* Yes. */
 	  /* Ignore this element if there is a predicate
