@@ -1,3 +1,8 @@
+2000-07-26  Sam Steingold  <sds@gnu.org>
+
+	* editfns.c (lisp_time_argument): Added third argument `usec'.
+	(Ffloat_time): new built-in Lisp function.
+
 2000-07-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispextern.h (GLYPH_FROM_CHAR_GLYPH): Use CHARACTERBITS bits
@@ -118,7 +123,7 @@
 
 	* xterm.c (note_mouse_highlight): Process overlays in the right
 	order of priority.
-	
+
 	* keyboard.c (show_help_echo, gen_help_event): Extend comments.
 
 	* xterm.c (note_mouse_highlight): If help-echo was found in an
@@ -126,7 +131,7 @@
 	found.
 
 	* window.c (foreach_window_1): Fix typo reversing an if-condition.
-	
+
 	* window.c (foreach_window): Instead of a fake variable argument
 	list, take one USER_DATA argument.
 	(foreach_window_1): Likewise, and call callback functions with two
@@ -224,7 +229,7 @@
 	* xfaces.c (face-alternative-font-family-alist): Remove
 	DEFVAR_LISP; staticpro instead.
 
-	* xmenu.c (menu_help_callback): Call show_help_echo with 
+	* xmenu.c (menu_help_callback): Call show_help_echo with
 	new arguments.
 
 	* keyboard.c (show_help_echo): Add parameter WINDOW.

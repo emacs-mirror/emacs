@@ -122,7 +122,7 @@ init_editfns ()
   tem = Fstring_equal (Vuser_login_name, Vuser_real_login_name);
   Vuser_full_name = Fuser_full_name (NILP (tem)? make_number (geteuid())
 				     : Vuser_login_name);
-  
+
   p = (unsigned char *) getenv ("NAME");
   if (p)
     Vuser_full_name = build_string (p);
@@ -685,7 +685,7 @@ save_excursion_save ()
   return Fcons (Fpoint_marker (),
 		Fcons (Fcopy_marker (current_buffer->mark, Qnil),
 		       Fcons (visible ? Qt : Qnil,
-			      current_buffer->mark_active)));		       
+			      current_buffer->mark_active)));
 }
 
 Lisp_Object
@@ -978,7 +978,7 @@ If POS is out of range, the value is nil.")
       CHECK_NUMBER_COERCE_MARKER (pos, 0);
       if (XINT (pos) < BEGV || XINT (pos) >= ZV)
 	return Qnil;
-      
+
       pos_byte = CHAR_TO_BYTE (XINT (pos));
     }
 
@@ -1104,22 +1104,22 @@ name, or nil if there is no such user.")
   Lisp_Object full;
 
   if (NILP (uid))
-    return Vuser_full_name; 
+    return Vuser_full_name;
   else if (NUMBERP (uid))
     pw = (struct passwd *) getpwuid (XINT (uid));
-  else if (STRINGP (uid)) 
+  else if (STRINGP (uid))
     pw = (struct passwd *) getpwnam (XSTRING (uid)->data);
   else
     error ("Invalid UID specification");
 
   if (!pw)
     return Qnil;
-  
+
   p = (unsigned char *) USER_FULL_NAME;
   /* Chop off everything after the first comma. */
   q = (unsigned char *) index (p, ',');
   full = make_string (p, q ? q - p : strlen (p));
-  
+
 #ifdef AMPERSAND_FULL_NAME
   p = XSTRING (full)->data;
   q = (unsigned char *) index (p, '&');
@@ -1191,12 +1191,26 @@ resolution finer than a second.")
 
 
 static int
-lisp_time_argument (specified_time, result)
+lisp_time_argument (specified_time, result, usec)
      Lisp_Object specified_time;
      time_t *result;
+     int *usec;
 {
   if (NILP (specified_time))
-    return time (result) != -1;
+    {
+      if (usec)
+        {
+          EMACS_TIME t;
+
+          if (-1 == EMACS_GET_TIME (t))
+            return 0;
+          *usec = EMACS_USECS (t);
+          *result = EMACS_SECS (t);
+          return 1;
+        }
+      else
+        return time (result) != -1;
+    }
   else
     {
       Lisp_Object high, low;
@@ -1204,11 +1218,47 @@ lisp_time_argument (specified_time, result)
       CHECK_NUMBER (high, 0);
       low = Fcdr (specified_time);
       if (CONSP (low))
-	low = Fcar (low);
+        {
+          if (usec)
+            {
+              Lisp_Object usec_l = Fcdr (low);
+              if (CONSP (usec_l))
+                usec_l = Fcar (usec_l);
+              if (NILP (usec_l))
+                *usec = 0;
+              else
+                {
+                  CHECK_NUMBER (usec_l, 0);
+                  *usec = XINT (usec_l);
+                }
+            }
+          low = Fcar (low);
+        }
+      else if (usec)
+        *usec = 0;
       CHECK_NUMBER (low, 0);
       *result = (XINT (high) << 16) + (XINT (low) & 0xffff);
       return *result >> 16 == XINT (high);
     }
+}
+
+DEFUN ("float-time", Ffloat_time, Sfloat_time, 0, 1, 0,
+  "Return the current time, as a float number of seconds since the epoch.\n\
+If an argument is given, it specifies a time to convert to float\n\
+instead of the current time.  The argument should have the forms:\n\
+ (HIGH . LOW) or (HIGH LOW USEC) or (HIGH LOW . USEC).\n\
+Thus, you can use times obtained from `current-time'\n\
+and from `file-attributes'.")
+  (specified_time)
+     Lisp_Object specified_time;
+{
+  time_t sec;
+  int usec;
+
+  if (! lisp_time_argument (specified_time, &sec, &usec))
+    error ("Invalid time specification");
+
+  return make_float (sec + usec * 0.0000001);
 }
 
 /* Write information into buffer S of size MAXSIZE, according to the
@@ -1328,7 +1378,7 @@ DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
 
   CHECK_STRING (format_string, 1);
 
-  if (! lisp_time_argument (time, &value))
+  if (! lisp_time_argument (time, &value, NULL))
     error ("Invalid time specification");
 
   format_string = code_convert_string_norecord (format_string,
@@ -1385,8 +1435,8 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
   struct tm save_tm;
   struct tm *decoded_time;
   Lisp_Object list_args[9];
-  
-  if (! lisp_time_argument (specified_time, &time_spec))
+
+  if (! lisp_time_argument (specified_time, &time_spec, NULL))
     error ("Invalid time specification");
 
   decoded_time = localtime (&time_spec);
@@ -1460,7 +1510,7 @@ If you want them to stand for years in this century, you must do that yourself."
       char tzbuf[100];
       char *tzstring;
       char **oldenv = environ, **newenv;
-      
+
       if (EQ (zone, Qt))
 	tzstring = "UTC0";
       else if (STRINGP (zone))
@@ -1475,7 +1525,7 @@ If you want them to stand for years in this century, you must do that yourself."
       else
 	error ("Invalid time zone specification");
 
-      /* Set TZ before calling mktime; merely adjusting mktime's returned 
+      /* Set TZ before calling mktime; merely adjusting mktime's returned
 	 value doesn't suffice, since that would mishandle leap seconds.  */
       set_time_zone_rule (tzstring);
 
@@ -1518,7 +1568,7 @@ and from `file-attributes'.")
   char buf[30];
   register char *tem;
 
-  if (! lisp_time_argument (specified_time, &value))
+  if (! lisp_time_argument (specified_time, &value, NULL))
     value = -1;
   tem = (char *) ctime (&value);
 
@@ -1578,7 +1628,7 @@ the data it can't find.")
   struct tm *t;
   struct tm gmt;
 
-  if (lisp_time_argument (specified_time, &value)
+  if (lisp_time_argument (specified_time, &value, NULL)
       && (t = gmtime (&value)) != 0
       && (gmt = *t, t = localtime (&value)) != 0)
     {
@@ -1644,7 +1694,7 @@ If TZ is t, use Universal Time.")
 /* These two values are known to load tz files in buggy implementations,
    i.e. Solaris 1 executables running under either Solaris 1 or Solaris 2.
    Their values shouldn't matter in non-buggy implementations.
-   We don't use string literals for these strings, 
+   We don't use string literals for these strings,
    since if a string in the environment is in readonly
    storage, it runs afoul of bugs in SVR4 and Solaris 2.3.
    See Sun bugs 1113095 and 1114114, ``Timezone routines
@@ -2402,7 +2452,7 @@ Both characters must have the same length of multi-byte form.")
 	    }
 
 	  /* Take care of the case where the new character
-	     combines with neighboring bytes.  */ 
+	     combines with neighboring bytes.  */
 	  if (maybe_byte_combining
 	      && (maybe_byte_combining == COMBINING_AFTER
 		  ? (pos_byte_next < Z_BYTE
@@ -2433,7 +2483,7 @@ Both characters must have the same length of multi-byte form.")
 		pos--;
 	      else
 		INC_POS (pos_byte_next);
-		
+
 	      if (! NILP (noundo))
 		current_buffer->undo_list = tem;
 
@@ -2511,7 +2561,7 @@ It returns the number of characters changed.")
 	  if (nc != oc)
 	    {
 	      /* Take care of the case where the new character
-		 combines with neighboring bytes.  */ 
+		 combines with neighboring bytes.  */
 	      if (!ASCII_BYTE_P (nc)
 		  && (CHAR_HEAD_P (nc)
 		      ? ! CHAR_HEAD_P (FETCH_BYTE (pos_byte + 1))
@@ -2848,7 +2898,7 @@ properties to add to the result ")
 
   properties = string = Qnil;
   GCPRO2 (properties, string);
-  
+
   /* First argument must be a string.  */
   CHECK_STRING (args[0], 0);
   string = Fcopy_sequence (args[0]);
@@ -3015,7 +3065,7 @@ Use %% to put a single % into the output.")
 		  && *format != 'i' && *format != 'X' && *format != 'c')
 		error ("Invalid format operation %%%c", *format);
 
-	    thissize = 30;	
+	    thissize = 30;
 	    if (*format == 'c'
 		&& (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
 		    || XINT (args[n]) == 0))
@@ -3048,7 +3098,7 @@ Use %% to put a single % into the output.")
 	    args[n] = tem;
 	    goto string;
 	  }
-	
+
 	if (thissize < minlen)
 	  thissize = minlen;
 
@@ -3147,7 +3197,7 @@ Use %% to put a single % into the output.")
 		      info = (struct info *) alloca (nbytes);
 		      bzero (info, nbytes);
 		    }
-		  
+
 		  info[n].start = start;
 		  info[n].end = nchars;
 		}
@@ -3214,17 +3264,17 @@ Use %% to put a single % into the output.")
   /* If the format string has text properties, or any of the string
      arguments has text properties, set up text properties of the
      result string.  */
-  
+
   if (XSTRING (args[0])->intervals || info)
     {
       Lisp_Object len, new_len, props;
       struct gcpro gcpro1;
-      
+
       /* Add text properties from the format string.  */
       len = make_number (XSTRING (args[0])->size);
       props = text_property_list (args[0], make_number (0), len, Qnil);
       GCPRO1 (props);
-      
+
       if (CONSP (props))
 	{
 	  new_len = make_number (XSTRING (val)->size);
@@ -3317,7 +3367,7 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.")
    Traverses the entire marker list of the buffer to do so, adding an
    appropriate amount to some, subtracting from some, and leaving the
    rest untouched.  Most of this is copied from adjust_markers in insdel.c.
-  
+
    It's the caller's job to ensure that START1 <= END1 <= START2 <= END2.  */
 
 void
@@ -3354,7 +3404,7 @@ transpose_markers (start1, end1, start2, end2,
   /* The difference between the region's lengths */
   diff = (end2 - start2) - (end1 - start1);
   diff_byte = (end2_byte - start2_byte) - (end1_byte - start1_byte);
-  
+
   /* For shifting each marker in a region by the length of the other
      region plus the distance between the regions.  */
   amt1 = (end2 - start2) + (start2 - end1);
@@ -3443,7 +3493,7 @@ Transposing beyond buffer boundaries is an error.")
      1. Adjacent (contiguous) regions, or separate but equal regions
      (no, really equal, in this case!), or
      2. Separate regions of unequal size.
-     
+
      The worst case is usually No. 2.  It means that (aside from
      potential need for getting the gap out of the way), there also
      needs to be a shifting of the text between the two regions.  So
@@ -3722,7 +3772,7 @@ functions if all the text being accessed has this property.");
 
   DEFVAR_LISP ("system-name", &Vsystem_name,
 	       "The name of the machine Emacs is running on.");
-  
+
   DEFVAR_LISP ("user-full-name", &Vuser_full_name,
 	       "The full name of the user logged in.");
 
@@ -3798,6 +3848,7 @@ functions if all the text being accessed has this property.");
   defsubr (&Semacs_pid);
   defsubr (&Scurrent_time);
   defsubr (&Sformat_time_string);
+  defsubr (&Sfloat_time);
   defsubr (&Sdecode_time);
   defsubr (&Sencode_time);
   defsubr (&Scurrent_time_string);
