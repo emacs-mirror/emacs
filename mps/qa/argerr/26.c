@@ -1,6 +1,8 @@
-/* test wrong 3rd arg to mps_alloc
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = wrong 3rd arg to mps_alloc
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

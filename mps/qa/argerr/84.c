@@ -1,6 +1,8 @@
-/* test null ld for is_stale
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = null ld for is_stale
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

@@ -1,6 +1,8 @@
-/* test UNALIGNED addr to mps_commit
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = UNALIGNED addr to mps_commit
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

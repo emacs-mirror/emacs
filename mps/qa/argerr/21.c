@@ -1,6 +1,8 @@
-/* test UNALIGNED 1st arg to mps_alloc
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = UNALIGNED 1st arg to mps_alloc
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

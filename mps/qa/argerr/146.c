@@ -1,6 +1,8 @@
-/* test null scan state to fix (function)
-   language c
-   link testlib.o newfmt.o
+/* TEST_HEADER
+ summary = null scan state to fix (function)
+ language = c
+ link = testlib.o newfmt.o
+END_HEADER
 */
 
 #include "testlib.h"

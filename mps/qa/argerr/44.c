@@ -1,6 +1,8 @@
-/* test extendBy > maxSize for pool_create (MV)
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = extendBy > maxSize for pool_create (MV)
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"

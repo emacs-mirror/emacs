@@ -1,6 +1,8 @@
-/* test UNALIGNED &root_t for mps_root_create
-   language c
-   link testlib.o
+/* TEST_HEADER
+ summary = UNALIGNED &root_t for mps_root_create
+ language = c
+ link = testlib.o
+END_HEADER
 */
 
 #include "testlib.h"
