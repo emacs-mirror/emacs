@@ -1,3 +1,32 @@
+2004-10-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_get_window_bounds): Add extern.
+	(x_real_positions): Use mac_get_window_bounds.
+
+	* macmenu.c (update_submenu_strings): Apply 2004-09-07 change for
+	xmenu.c (YAILOM).
+	
+	* macterm.c [!MAC_OSX]: Include Windows.h.
+	(front_emacs_window): Rename from mac_front_window.  All uses
+	changed.  Return the frontmost non-tooltip emacs window.
+	(mac_get_window_bounds): New function.
+	(x_calc_absolute_position): Use the difference of width and height
+	between the inner and outer window.
+	(x_set_offset): Specify window position by the coordinae of the
+	outer window.  Adjust the position if the title bar is completely
+	outside the screen.
+	(app_is_suspended, app_sleep_time): Remove unused variables.
+	(do_app_resume, do_app_suspend): Remove their contents because
+	window-activate/deactivate events will do the job.
+	(do_zoom_window): Remove unused variables.  Make compliant to the
+	standard way of zooming.  Set f->left_pos and f->top_pos.
+	(XTread_socket): Don't use argument `expected'.  Don't use
+	FrontWindow to determine the clicked window.  Exclude unprocessed
+	mouseUp cases in the early stage.  Add parentheses to fix operator
+	precedence.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Don't specify drag area.
+
+
 2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
 
 	* config.in: Regenerate.

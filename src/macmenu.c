@@ -1322,7 +1322,7 @@ update_submenu_strings (first_wv)
 
   for (wv = first_wv; wv; wv = wv->next)
     {
-      if (wv->lname && ! NILP (wv->lname))
+      if (STRINGP (wv->lname))
         {
           wv->name = SDATA (wv->lname);
 
@@ -1336,7 +1336,7 @@ update_submenu_strings (first_wv)
             }
         }
 
-      if (wv->lkey && ! NILP (wv->lkey))
+      if (STRINGP (wv->lkey))
         wv->key = SDATA (wv->lkey);
 
       if (wv->contents)

@@ -312,6 +312,9 @@ static Lisp_Object x_default_scroll_bar_color_parameter P_ ((struct frame *,
 							     Lisp_Object,
 							     char *, char *,
 							     int));
+
+extern void mac_get_window_bounds P_ ((struct frame *, Rect *, Rect *));
+
 /* Store the screen positions of frame F into XPTR and YPTR.
    These are the positions of the containing window manager window,
    not Emacs's own window.  */
@@ -321,33 +324,15 @@ x_real_positions (f, xptr, yptr)
      FRAME_PTR f;
      int *xptr, *yptr;
 {
-  Point pt;
-  GrafPtr oldport;
+  Rect inner, outer;
 
-  GetPort (&oldport);
-  SetPortWindowPort (FRAME_MAC_WINDOW (f));
+  mac_get_window_bounds (f, &inner, &outer);
 
-#if TARGET_API_MAC_CARBON
-  {
-    Rect r;
+  f->x_pixels_diff = inner.left - outer.left;
+  f->y_pixels_diff = inner.top - outer.top;
 
-    GetWindowPortBounds (FRAME_MAC_WINDOW (f), &r);
-    SetPt (&pt, r.left, r.top);
-  }
-#else /* not TARGET_API_MAC_CARBON */
-  SetPt (&pt,
-	 FRAME_MAC_WINDOW (f)->portRect.left,
-	 FRAME_MAC_WINDOW (f)->portRect.top);
-#endif /* not TARGET_API_MAC_CARBON */
-  LocalToGlobal (&pt);
-  SetPort (oldport);
-
-  /* MAC has no frame pixel diff.  */
-  f->x_pixels_diff = 0;
-  f->y_pixels_diff = 0;
-
-  *xptr = pt.h;
-  *yptr = pt.v;
+  *xptr = outer.left;
+  *yptr = outer.top;
 }
 
 
