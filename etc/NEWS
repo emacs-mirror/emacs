@@ -624,6 +624,9 @@ in line with the output of other GNU tools.
 ** f90-mode has new navigation commands `f90-end-of-block',
 `f90-beginning-of-block', `f90-next-block', `f90-previous-block'.
 
+** prolog-mode has a new variable `prolog-font-lock-keywords'
+to support use of font-lock.
+
 ** `special-display-buffer-names' and `special-display-regexps' now
 understand two new boolean pseudo-frame-parameters `same-frame' and
 `same-window'.
