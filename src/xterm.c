@@ -3351,7 +3351,7 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
   unsigned long mask = GCForeground | GCLineWidth | GCGraphicsExposures;
   unsigned long pixel;
   unsigned long background = di->relief_background;
-  Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+  Colormap cmap = FRAME_X_COLORMAP (f);
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *dpy = FRAME_X_DISPLAY (f);
 
@@ -12990,6 +12990,7 @@ x_term_init (display_name, xrm_option, resource_name)
 				     DefaultScreen (dpyinfo->display));
   dpyinfo->visual = select_visual (dpyinfo->display, dpyinfo->screen,
 				   &dpyinfo->n_planes);
+  dpyinfo->cmap = DefaultColormapOfScreen (dpyinfo->screen);
   dpyinfo->height = HeightOfScreen (dpyinfo->screen);
   dpyinfo->width = WidthOfScreen (dpyinfo->screen);
   dpyinfo->root_window = RootWindowOfScreen (dpyinfo->screen);
@@ -13016,6 +13017,21 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_highlight_frame = 0;
   dpyinfo->image_cache = make_image_cache ();
 
+  /* See if a private colormap is requested.  */
+  if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen)
+      && dpyinfo->visual->class == PseudoColor)
+    {
+      Lisp_Object value;
+      value = display_x_get_resource (dpyinfo,
+				      build_string ("privateColormap"),
+				      build_string ("PrivateColormap"),
+				      Qnil, Qnil);
+      if (STRINGP (value)
+	  && (!strcmp (XSTRING (value)->data, "true")
+	      || !strcmp (XSTRING (value)->data, "on")))
+	dpyinfo->cmap = XCopyColormapAndFree (dpyinfo->display, dpyinfo->cmap);
+    }
+      
   {
     int screen_number = XScreenNumberOfScreen (dpyinfo->screen);
     double pixels = DisplayHeight (dpyinfo->display, screen_number);
