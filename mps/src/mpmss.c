@@ -1,6 +1,6 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- *  $HopeName: MMsrc!mpmss.c(trunk.11) $
+ *  $HopeName: MMsrc!mpmss.c(trunk.12) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -27,7 +27,8 @@ extern mps_class_t PoolClassMFS(void);
 #define TEST_LOOPS 10
 
 
-static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int i), ...)
+static mps_res_t stress(mps_class_t class, mps_space_t space,
+                        size_t (*size)(int i), ...)
 {
   mps_res_t res;
   mps_pool_t pool;
@@ -71,7 +72,7 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
     for(i=TEST_SET_SIZE/2; i<TEST_SET_SIZE; ++i) {
       mps_free(pool, (mps_addr_t)ps[i], ss[i]);
       /*    if(i == TEST_SET_SIZE/2)
-	    PoolDescribe((Pool)pool, mps_lib_stdout); */
+            PoolDescribe((Pool)pool, mps_lib_stdout); */
     }
     /* allocate some new objects */
     for(i=TEST_SET_SIZE/2; i<TEST_SET_SIZE; ++i) {
@@ -108,7 +109,7 @@ static size_t fixedSizeSize = 0;
 
 static size_t fixedSize(int i)
 {
-  (void)i;
+  testlib_unused(i);
   return fixedSizeSize;
 }
 
