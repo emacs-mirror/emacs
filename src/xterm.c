@@ -6700,7 +6700,7 @@ x_load_font (f, fontname, size)
        because XListFonts (called in x_list_font) of some X server has
        a bug of not finding a font even if the font surely exists and
        is loadable by XLoadQueryFont.  */
-    if (!NILP (font_names))
+    if (size > 0 && !NILP (font_names))
       fontname = (char *) XSTRING (XCONS (font_names)->car)->data;
 
     BLOCK_INPUT;
