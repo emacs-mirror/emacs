@@ -219,8 +219,16 @@ release the mouse button.  Otherwise, it does not."
 		  (mouse-scroll-subr (1+ (- mouse-row bottom))
 				     mouse-drag-overlay start-point)))))
 
-	     ;; Otherwise, we have no idea where the mouse is.
-	     (t)))))
+	     (t
+	      (let ((mouse-y (cdr (cdr (mouse-position))))
+		    (menu-bar-lines (or (cdr (assq 'menu-bar-lines
+						   (frame-parameters)))
+					0)))
+
+		;; Are we on the menu bar?
+		(and (integerp mouse-y) (< mouse-y menu-bar-lines)
+		     (mouse-scroll-subr (- mouse-y menu-bar-lines)
+					mouse-drag-overlay start-point))))))))
 
       (if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
 	       (eq (posn-window (event-end event)) start-window)
