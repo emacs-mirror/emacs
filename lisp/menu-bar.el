@@ -1040,8 +1040,9 @@ key (or menu-item)"))
 					       data-directory))
 		  (goto-address)))
 	      :help "Where to find some extra packages and possible updates"))
-(define-key menu-bar-help-menu [emacs-version]
-  '(menu-item "Show Emacs Version" emacs-version))
+(define-key menu-bar-help-menu [about]
+  '(menu-item "About Emacs" display-splash-screen
+	      :help "Display splash screen, version, and instructions"))
 (define-key menu-bar-help-menu [sep2]
   '("--"))
 (define-key menu-bar-help-menu [finder-by-keyword]
