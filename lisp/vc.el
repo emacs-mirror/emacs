@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.275 2000/10/03 11:22:13 spiegel Exp $
+;; $Id: vc.el,v 1.276 2000/10/03 12:24:15 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -138,6 +138,8 @@
 ;; * print-log (file)
 ;;     Insert the revision log of FILE into the current buffer.
 ;; - show-log-entry (version)
+;; - wash-log (file)
+;;     Remove all non-comment information from the output of print-log
 ;; - comment-history (file)
 ;; - update-changelog (files)
 ;;     Find changelog entries for FILES, or for all files at or below
@@ -1206,6 +1208,12 @@ for vc-log-operation-hook."
   "Retrieve a copy of the revision REV of FILE.
 If WRITABLE is non-nil, make sure the retrieved file is writable.
 REV defaults to the latest revision."
+  (and writable
+       (not rev)
+       (vc-call make-version-backups file)
+       (vc-up-to-date-p file)
+       (copy-file file (vc-version-backup-file-name file)
+		  'ok-if-already-exists 'keep-date))
   (with-vc-properties
    file
    (condition-case err
@@ -1280,7 +1288,9 @@ Runs the normal hook `vc-checkin-hook'."
       file
       ;; Change buffers to get local value of vc-checkin-switches.
       (with-current-buffer (or (get-file-buffer file) (current-buffer))
-	(vc-call checkin file rev comment))
+	(let ((backup-file (vc-version-backup-file file)))
+	  (vc-call checkin file rev comment)
+	  (if backup-file (delete-file backup-file))))
       `((vc-state up-to-date)
 	(vc-checkout-time ,(nth 5 (file-attributes file)))
 	(vc-workfile-version nil)))
@@ -1493,11 +1503,12 @@ files in or below it."
 				    rel2-default ") ")
 			  "Newer version (default: current source): ")
 			nil nil rel2-default))))
-  (if (string-equal rel1 "") (setq rel1 nil))
-  (if (string-equal rel2 "") (setq rel2 nil))
   (vc-setup-buffer "*vc-diff*")
   (if (file-directory-p file)
+      ;; recursive directory diff
       (let ((inhibit-read-only t))
+	(if (string-equal rel1 "") (setq rel1 nil))
+	(if (string-equal rel2 "") (setq rel2 nil))
 	(insert "Diffs between "
 		(or rel1 "last version checked in")
 		" and "
@@ -1514,9 +1525,19 @@ files in or below it."
 	       (vc-call-backend ',(vc-backend file) 'diff ',f ',rel1 ',rel2)))))
 	(vc-exec-after `(let ((inhibit-read-only t))
 			  (insert "\nEnd of diffs.\n"))))
-    
-    (cd (file-name-directory file))
-    (vc-call diff file rel1 rel2))
+    ;; single file diff
+    (if (or (not rel1) (string-equal rel1 ""))
+	(setq rel1 (vc-workfile-version file)))
+    (if (string-equal rel2 "")
+	(setq rel2 nil))
+    (let ((file-rel1 (vc-version-backup-file file rel1))
+	  (file-rel2 (if (not rel2) 
+			 file 
+		       (vc-version-backup-file file rel2))))
+      (if (and file-rel1 file-rel2)
+	  (vc-do-command t 1 "diff" nil diff-switches file-rel1 file-rel2)
+	(cd (file-name-directory file))
+	(vc-call diff file rel1 rel2))))
   (if (and (zerop (buffer-size))
 	   (not (get-buffer-process (current-buffer))))
       (progn
@@ -2156,30 +2177,43 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
   (let ((file buffer-file-name)
 	;; This operation should always ask for confirmation.
 	(vc-suppress-confirm nil)
-	(obuf (current-buffer)))
+	(obuf (current-buffer))
+	status)
     (unless (vc-workfile-unchanged-p file)
-      (vc-diff nil t)
+      (setq status (vc-diff nil t))
       (vc-exec-after `(message nil))
-      (unwind-protect
-	  (if (not (yes-or-no-p "Discard changes? "))
-	      (error "Revert canceled"))
-	(if (and (window-dedicated-p (selected-window))
-		 (one-window-p t))
-	    (make-frame-invisible)
-	  (delete-window))))
+      (when status
+	(unwind-protect
+	    (if (not (yes-or-no-p "Discard changes? "))
+		(error "Revert canceled"))
+	  (if (and (window-dedicated-p (selected-window))
+		   (one-window-p t))
+	      (make-frame-invisible)
+	    (delete-window)))))
     (set-buffer obuf)
     ;; Do the reverting
     (message "Reverting %s..." file)
     (vc-revert-file file)
     (message "Reverting %s...done" file)))
 
+(defun vc-version-backup-file (file &optional rev)
+  "If version backups should be used for FILE, and there exists
+such a backup for REV or the current workfile version of file,
+return the name of it; otherwise return nil."
+  (when (vc-call make-version-backups file)
+    (let ((backup-file (vc-version-backup-file-name file rev)))
+      (and (file-exists-p backup-file)
+	   backup-file))))
+
 (defun vc-revert-file (file)
   "Revert FILE back to the version it was based on."
-  ;; TODO: With local version caching, this function will get the 
-  ;; base version locally and not from the server.
   (with-vc-properties
    file
-   (vc-call revert file)
+   (let ((backup-file (vc-version-backup-file file)))
+     (if (not backup-file)
+	 (vc-call revert file)
+       (copy-file backup-file file 'ok-if-already-exists 'keep-date)
+       (delete-file backup-file)))
    `((vc-state up-to-date)
      (vc-checkout-time ,(nth 5 (file-attributes file)))))
   (vc-resynch-buffer file t t))
@@ -2288,7 +2322,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	  (and registered    ; Never move if not registered in new-backend yet.
 	       ;; move if new-backend comes later in vc-handled-backends
 	       (or (memq new-backend (memq old-backend vc-handled-backends))
-		   (y-or-n-p "Final transfer ? "))))
+		   (y-or-n-p "Final transfer? "))))
 	 (comment nil))
     (if (eq old-backend new-backend)
 	(error "%s is the current backend of %s" new-backend file))
@@ -2296,20 +2330,28 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 	(set-file-modes file (logior (file-modes file) 128))
       ;; `registered' might have switched under us.
       (vc-switch-backend file old-backend)
-      (let ((copy (and edited (make-temp-name file)))
-	    (rev (vc-workfile-version file)))
+      (let* ((rev (vc-workfile-version file))
+	     (modified-file (and edited (make-temp-name file)))
+	     (unmodified-file (and modified-file (vc-version-backup-file file))))
 	;; Go back to the base unmodified file.
 	(unwind-protect
 	    (progn
-	      (when copy (copy-file file copy)) ; (vc-revert-file file))
-	                                        ; TODO: uncomment when we
-	                                        ; have local version caching
+	      (when modified-file
+		(copy-file file modified-file)
+		;; If we have a local copy of the unmodified file, handle that
+		;; here and not in vc-revert-file because we don't want to
+		;; delete that copy -- it is still useful for OLD-BACKEND.
+		(if unmodified-file
+		    (copy-file unmodified-file file 'ok-if-already-exists)
+		  (if (y-or-n-p "Get base version from master? ")
+		      (vc-revert-file file))))
 	      (vc-call-backend new-backend 'receive-file file rev))
-	  (when copy
+	  (when modified-file
 	    (vc-switch-backend file new-backend)
 	    (unless (eq (vc-checkout-model file) 'implicit)
 	      (vc-checkout file t nil))
-	    (rename-file copy file 'ok-if-already-exists)))))
+	    (rename-file modified-file file 'ok-if-already-exists)
+	    (vc-file-setprop file 'vc-checkout-time nil)))))
     (when move
       (vc-switch-backend file old-backend)
       (setq comment (vc-call comment-history file))
@@ -2317,6 +2359,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (vc-switch-backend file new-backend)
     (when (or move edited)
       (vc-file-setprop file 'vc-state 'edited)
+      (vc-mode-line file)
       (vc-checkin file nil comment (stringp comment)))))
 
 (defun vc-default-unregister (backend file)
