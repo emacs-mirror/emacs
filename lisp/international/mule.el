@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-(defconst mule-version "5.0 (AOI)" "\
+(defconst mule-version "5.0 (SAKAKI)" "\
 Version number and name of this version of MULE (multilingual environment).")
 
 (defconst mule-version-date "1999.12.7" "\
