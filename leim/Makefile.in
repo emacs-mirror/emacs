@@ -73,11 +73,12 @@ TIT-BIG5=\
 
 CHINESE-TIT=${TIT-GB} ${TIT-BIG5}
 
-NON-TIT-GB=quail/py-punct.el
+NON-TIT-GB=${srcdir}/quail/py-punct.el
 
-NON-TIT-BIG5=quail/quick-b5.el quail/tsang-b5.el quail/pypunct-b5.el
+NON-TIT-BIG5=${srcdir}/quail/quick-b5.el ${srcdir}/quail/tsang-b5.el \
+	     ${srcdir}/quail/pypunct-b5.el
 
-NON-TIT-CNS=quail/quick-cns.el quail/tsang-cns.el
+NON-TIT-CNS=${srcdir}/quail/quick-cns.el ${srcdir}/quail/tsang-cns.el
 
 CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5} ${NON-TIT-CNS}
 
@@ -87,31 +88,31 @@ CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5}
 
 CHINESE-CNS=${NON-TIT-CNS} 
 
-JAPANESE=quail/japanese.el skk/skkdic.el
+JAPANESE=${srcdir}/quail/japanese.el ${srcdir}/skk/skkdic.el
 
-KOREAN=	quail/hangul.el		\
-	quail/hangul3.el	\
-	quail/hanja.el		\
-	quail/hanja-jis.el	\
-	quail/symbol-ksc.el
+KOREAN=	${srcdir}/quail/hangul.el	\
+	${srcdir}/quail/hangul3.el	\
+	${srcdir}/quail/hanja.el	\
+	${srcdir}/quail/hanja-jis.el	\
+	${srcdir}/quail/symbol-ksc.el
 
-THAI=quail/thai.el
+THAI=${srcdir}/quail/thai.el
 
-VIETNAMESE=quail/viqr.el
+VIETNAMESE=${srcdir}/quail/viqr.el
 
-LAO=quail/lao.el quail/lrt.el
+LAO=${srcdir}/quail/lao.el ${srcdir}/quail/lrt.el
 
-INDIAN=quail/devanagari.el
+INDIAN=${srcdir}/quail/devanagari.el
 
-TIBETAN=quail/tibetan.el
+TIBETAN=${srcdir}/quail/tibetan.el
 
-LATIN=quail/latin-pre.el quail/latin-post.el
+LATIN=${srcdir}/quail/latin-pre.el ${srcdir}/quail/latin-post.el
 
-GREEK=quail/greek.el
+GREEK=${srcdir}/quail/greek.el
 
-RUSSIAN=quail/cyrillic.el quail/cyril-jis.el
+RUSSIAN=${srcdir}/quail/cyrillic.el ${srcdir}/quail/cyril-jis.el
 
-MISC=quail/ethiopic.el quail/ipa.el
+MISC=${srcdir}/quail/ethiopic.el ${srcdir}/quail/ipa.el
 
 CHINESE=${CHINESE-GB} ${CHINESE-BIG5} ${CHINESE-CNS}
 EASTASIA=${CHINESE} ${JAPANESE} ${KOREAN}
@@ -141,7 +142,7 @@ ${TIT}:
 	${RUN-EMACS}  -l ${buildlisppath}/international/quail \
 	    -f batch-byte-compile ${TIT}
 
-leim-list.el: ${SUBDIRS} ${TIT}
+leim-list.el: ${SUBDIRS} ${WORLD}
 	if [ x`(cd ${srcdir}; /bin/pwd)` = x`(/bin/pwd)` ] ; then \
 	  ${RUN-EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\")" ; \
