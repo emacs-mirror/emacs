@@ -1651,7 +1651,7 @@ Return nil if there is no such person."
 	 (status (apply 'vc-do-command 2 command file options)))
     ;; Some RCS versions don't understand "--brief"; work around this.
     (if (eq status 2)
-	(apply 'vc-do-command 1 command file (if cmp options (cdr options)))
+	(apply 'vc-do-command 1 command file (if cmp (cdr options) options))
       status)))
 
 (defun vc-check-headers ()
