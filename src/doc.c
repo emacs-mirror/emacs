@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "lisp.h"
 #include "buffer.h"
+#include "keyboard.h"
 
 Lisp_Object Vdoc_file_name;
 
@@ -172,7 +173,13 @@ subcommands.)");
     }
 
   if (NILP (raw))
-    doc = Fsubstitute_command_keys (doc);
+    {
+      struct gcpro gcpro1;
+
+      GCPRO1 (doc);
+      doc = Fsubstitute_command_keys (doc);
+      UNGCPRO;
+    }
   return doc;
 }
 
@@ -353,17 +360,21 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   int idx;
   int bsize;
   unsigned char *new;
-  register Lisp_Object tem;
+  Lisp_Object tem;
   Lisp_Object keymap;
   unsigned char *start;
   int length;
-  struct gcpro gcpro1;
+  Lisp_Object name;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   if (NILP (str))
     return Qnil;
 
   CHECK_STRING (str, 0);
-  GCPRO1 (str);
+  tem = Qnil;
+  keymap = Qnil;
+  name = Qnil;
+  GCPRO4 (str, tem, keymap, name);
 
   keymap = current_buffer->keymap;
 
@@ -419,7 +430,6 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else if (strp[0] == '\\' && (strp[1] == '{' || strp[1] == '<'))
 	{
 	  struct buffer *oldbuf;
-	  Lisp_Object name;
 
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
@@ -444,7 +454,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	    {
 	      tem = Fsymbol_value (name);
 	      if (! NILP (tem))
-		tem = get_keymap_1 (tem, 0);
+		tem = get_keymap_1 (tem, 0, 1);
 	    }
 
 	  /* Now switch to a temp buffer.  */
@@ -487,9 +497,8 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
     tem = make_string (buf, bufp - buf);
   else
     tem = str;
-  UNGCPRO;
   free (buf);
-  return tem;
+  RETURN_UNGCPRO (tem);
 }
 
 syms_of_doc ()
