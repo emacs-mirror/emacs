@@ -647,6 +647,17 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
   (force-mode-line-update)
 
+  ;; If we ended in the middle of some intangible text,
+  ;; move to the further end of that intangible text.
+  (let ((after (if (eobp) nil
+		 (get-text-property (point) 'intangible)))
+	(before (if (bobp) nil
+		  (get-text-property (1- (point)) 'intangible))))
+    (when (and before after (eq before after))
+      (if isearch-forward
+	  (goto-char (next-single-property-change (point) 'intangible))
+	(goto-char (previous-single-property-change (point) 'intangible)))))
+
   (if (and (> (length isearch-string) 0) (not nopush))
       ;; Update the ring data.
       (isearch-update-ring isearch-string isearch-regexp))
@@ -1613,13 +1624,13 @@ If there is no completion possible, say so and continue searching."
        ;; Check that invisibility runs up to END.
        (save-excursion
 	 (goto-char beg)
-	 (let 
-	     ;; can-be-opened keeps track if we can open some overlays.
-	     ((can-be-opened (eq search-invisible 'open))
-	      ;; the list of overlays that could be opened
-	      (crt-overlays nil))
+	 (let (
+	       ;; can-be-opened keeps track if we can open some overlays.
+	       (can-be-opened (eq search-invisible 'open))
+	       ;; the list of overlays that could be opened
+	       (crt-overlays nil))
 	   (when (and can-be-opened isearch-hide-immediately) 
-	       (isearch-close-unecessary-overlays beg end))
+	     (isearch-close-unecessary-overlays beg end))
 	   ;; If the following character is currently invisible,
 	   ;; skip all characters with that same `invisible' property value.
 	   ;; Do that over and over.
