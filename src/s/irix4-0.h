@@ -2,11 +2,12 @@
 
 #define USG5_3
 
-/* Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used. */
 #define HAVE_ALLOCA
-#undef C_ALLOCA
-#define alloca __builtin_alloca
+#ifndef NOT_C_CODE
+#include <alloca.h>
+#endif
+
+#undef NEED_SIOCTL
 
 /* use K&R C */
 #ifndef __GNUC__
