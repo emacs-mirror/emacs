@@ -1564,13 +1564,14 @@ value is reasonable when this function is called.")
       /* This computation used to temporarily move point, but that can
 	 have unwanted side effects due to text properties.  */
       pos = *vmotion (startpos, -top, w);
+
       Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
       w->start_at_line_beg = ((pos.bufpos == BEGV
 			       || FETCH_CHAR (pos.bufpos - 1) == '\n') ? Qt
 			      : Qnil);
       /* We need to do this, so that the window-scroll-functions
 	 get called.  */
-      w->force_start = Qt;
+      w->optional_new_start = Qt;
 
       set_buffer_internal (obuf);
     }
