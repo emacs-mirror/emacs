@@ -661,6 +661,8 @@ extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
 
 extern Lisp_Object Vterminal_frame;
+
+extern Lisp_Object Vmouse_highlight;
 
 /* Device-independent scroll bar stuff.  */
 
