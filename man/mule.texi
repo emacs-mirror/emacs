@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999, 2000 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International, Major Modes, Frames, Top
 @chapter International Character Set Support
@@ -786,12 +786,18 @@ coding system, as well as C mode.  If you specify the coding explicitly
 in the file, that overrides @code{file-coding-system-alist}.
 
 @vindex auto-coding-alist
-  The variable @code{auto-coding-alist} is the strongest way to specify
-the coding system for certain patterns of file names; this variable even
-overrides @samp{-*-coding:-*-} tags in the file itself.  Emacs uses this
-feature for tar and archive files, to prevent Emacs from being confused
-by a @samp{-*-coding:-*-} tag in a member of the archive and thinking it
-applies to the archive file as a whole.
+@vindex auto-coding-regexp-alist
+  The variables @code{auto-coding-alist} and
+@code{auto-coding-regexp-alist} are the strongest way to specify the
+coding system for certain patterns of file names, or for files
+containing certain patterns; these variables even override
+@samp{-*-coding:-*-} tags in the file itself.  Emacs uses
+@code{auto-coding-alist} for tar and archive files, to prevent Emacs
+from being confused by a @samp{-*-coding:-*-} tag in a member of the
+archive and thinking it applies to the archive file as a whole.
+Likewise, Emacs uses @code{auto-coding-regexp-alist} to ensure that
+RMAIL files, whose names in general don't match any particular pattern,
+are decoded correctly.
 
   If Emacs recognizes the encoding of a file incorrectly, you can
 reread the file using the correct coding system by typing @kbd{C-x
