@@ -153,7 +153,10 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
           (path ())
           ;; set non-nil when somebody works out the indentation to use
           calculated
-          (last-point indent-point)
+	  ;; If non-nil, this is an indentation to use
+	  ;; if nothing else specifies it more firmly.
+	  tentative-calculated
+	  (last-point indent-point)
           ;; the position of the open-paren of the innermost containing list
           (containing-form-start (elt state 1))
           ;; the column of the above
@@ -169,7 +172,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
           (forward-char 1)
           (parse-partial-sexp (point) indent-point 1 t)
           ;; Move to the car of the relevant containing form
-          (let (tem function method)
+          (let (tem function method tentative-defun)
             (if (not (looking-at "\\sw\\|\\s_"))
                 ;; This form doesn't seem to start with a symbol
                 (setq function nil method nil)
@@ -209,13 +212,13 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
             (cond ((null function))
                   ((null method)
                    (when (null (cdr path))
-                       ;; (package prefix was stripped off above)
-                       (setq method (cond ((string-match "\\`def"
-                                                         function)
-                                         lisp-indent-defun-method)
-                                          ((string-match "\\`\\(with\\|do\\)-"
-                                                         function)
-                                         '(&lambda &body))))))
+		     ;; (package prefix was stripped off above)
+		     (cond ((string-match "\\`def"
+					  function)
+			    (setq tentative-defun t))
+			   ((string-match "\\`\\(with\\|do\\)-"
+					  function)
+			    (setq method '(&lambda &body))))))
                   ;; backwards compatibility.  Bletch.
                   ((eq method 'defun)
                    (setq method lisp-indent-defun-method)))
@@ -234,7 +237,26 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
                   ((eq (char-after (1- containing-sexp)) ?\#)
                    ;; "#(...)"
                    (setq calculated (1+ sexp-column)))
-                  ((null method))
+                  ((null method)
+		   ;; If this looks like a call to a `def...' form,
+		   ;; think about indenting it as one, but do it
+		   ;; tentatively for cases like
+		   ;; (flet ((defunp ()
+		   ;;          nil)))
+		   ;; Set both normal-indent and tentative-calculated.
+		   ;; The latter ensures this value gets used
+		   ;; if there are no relevant containing constructs.
+		   ;; The former ensures this value gets used
+		   ;; if there is a relevant containing construct
+		   ;; but we are nested within the structure levels
+		   ;; that it specifies indentation for.
+		   (if tentative-defun
+		       (setq tentative-calculated
+			     (common-lisp-indent-call-method
+			      function lisp-indent-defun-method
+			      path state indent-point
+			      sexp-column normal-indent)
+			     normal-indent tentative-calculated)))
                   ((integerp method)
                    ;; convenient top-level hack.
                    ;;  (also compatible with lisp-indent-function)
@@ -253,25 +275,30 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
                                           (t
                                            ;; other body form
                                            normal-indent))))
-                  ((symbolp method)
-                   (let ((lisp-indent-error-function function))
-                     (setq calculated (funcall method
-                                               path state indent-point
-                                               sexp-column normal-indent))))
-                  (t
-                   (let ((lisp-indent-error-function function))
-                     (setq calculated (lisp-indent-259
-                                       method path state indent-point
-                                       sexp-column normal-indent))))))
+		  (t
+		   (setq calculated
+			 (common-lisp-indent-call-method
+			  function method path state indent-point
+			  sexp-column normal-indent)))))
           (goto-char containing-sexp)
           (setq last-point containing-sexp)
           (unless calculated
-              (condition-case ()
-                   (progn (backward-up-list 1)
-                          (setq depth (1+ depth)))
-                (error (setq depth lisp-indent-maximum-backtracking))))))
-      calculated)))
+	    (condition-case ()
+		(progn (backward-up-list 1)
+		       (setq depth (1+ depth)))
+	      (error (setq depth lisp-indent-maximum-backtracking))))))
+      (or calculated tentative-calculated))))
 
+
+(defun common-lisp-indent-call-method (function method path state indent-point
+				       sexp-column normal-indent)
+  (let ((lisp-indent-error-function function))
+    (if (symbolp method)
+	(funcall method
+		 path state indent-point
+		 sexp-column normal-indent)
+      (lisp-indent-259 method path state indent-point
+		       sexp-column normal-indent))))
 
 (defun lisp-indent-report-bad-format (m)
   (error "%s has a badly-formed %s property: %s"
