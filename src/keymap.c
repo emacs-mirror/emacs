@@ -625,7 +625,7 @@ get_keyelt (object, autoload)
 	    {
 	      Lisp_Object key;
 	      key = Fcdr (object);
-	      if (INTEGERP (key) && (XINT (key) & meta_modifier))
+	      if (INTEGERP (key) && (XUINT (key) & meta_modifier))
 		{
 		  object = access_keymap (map, meta_prefix_char, 0, 0);
 		  map = get_keymap_1 (object, 0, autoload);

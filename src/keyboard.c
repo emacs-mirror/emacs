@@ -8192,7 +8192,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      key = keybuf[fkey_end++];
 	      /* Look up meta-characters by prefixing them
 		 with meta_prefix_char.  I hate this.  */
-	      if (INTEGERP (key) && XINT (key) & meta_modifier)
+	      if (INTEGERP (key) && XUINT (key) & meta_modifier)
 		{
 		  fkey_next
 		    = get_keymap_1
@@ -8316,7 +8316,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    key = keybuf[keytran_end++];
 	    /* Look up meta-characters by prefixing them
 	       with meta_prefix_char.  I hate this.  */
-	    if (INTEGERP (key) && XINT (key) & meta_modifier)
+	    if (INTEGERP (key) && XUINT (key) & meta_modifier)
 	      {
 		keytran_next
 		  = get_keymap_1

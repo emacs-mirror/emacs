@@ -1,3 +1,9 @@
+2000-06-19  Ken Raeburn  <raeburn@gnu.org>
+
+	* keyboard.c (follow_key, read_key_sequence): Use XUINT on key
+	value, or checks for CHAR_META will fail.
+	* keymap.c (get_keyelt): Likewise.
+
 2000-06-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.h (struct ccl_program): New member eol_type.
