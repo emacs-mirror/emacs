@@ -2651,7 +2651,9 @@ Use `store-match-data' to reinstate the data in this list.
 If INTEGERS (the optional first argument) is non-nil, always use integers
 \(rather than markers) to represent buffer positions.
 If REUSE is a list, reuse it as part of the value.  If REUSE is long enough
-to hold all the values, and if INTEGERS is non-nil, no consing is done.  */)
+to hold all the values, and if INTEGERS is non-nil, no consing is done.
+
+Return value is undefined if the last search failed.  */)
      (integers, reuse)
      Lisp_Object integers, reuse;
 {
