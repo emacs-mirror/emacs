@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.13) $
+ * $HopeName: MMsrc!arenacv.c(trunk.14) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .coverage: At the moment, we're only trying to cover the new code
@@ -31,7 +31,6 @@
  * .tract-seg: Test allocation and iteration, using both low-level 
  * tracts and higher-level segments. To do this, contrive a set of 
  * allocation and iteration functions which are interchangeable.
- * 
  */
 
 /* Type definitions for the interchangability interface */
@@ -181,7 +180,7 @@ static Res allocAsSeg(AllocInfoStruct *aiReturn, SegPref pref,
 {
   Res res;
   Seg seg;
-  res = SegAlloc(&seg, EnsureSegClass(), pref, size, pool, FALSE);
+  res = SegAlloc(&seg, SegClassGet(), pref, size, pool, FALSE);
   if (res == ResOK) {
     aiReturn->the.segData.seg = seg;
   }
