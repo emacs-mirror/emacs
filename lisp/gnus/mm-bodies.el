@@ -60,7 +60,7 @@ If there is more than one non-ASCII MULE charset, then list of found
 MULE charsets are returned.
 If successful, the MIME charset is returned.
 If no encoding was done, nil is returned."
-  (if (not (featurep 'mule))
+  (if (not (mm-multibyte-p))
       ;; In the non-Mule case, we search for non-ASCII chars and
       ;; return the value of `mail-parse-charset' if any are found.
       (save-excursion
