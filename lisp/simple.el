@@ -52,9 +52,11 @@ Other major modes are defined by comparison with this one."
 
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.
-The newline is marked with the text-property `hard'.
+If `use-hard-newlines' is non-nil, the newline is marked with the
+text-property `hard'.
 With ARG, insert that many newlines.
-In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
+Call `auto-fill-function' if the current column number is greater
+than the value of `fill-column' and ARG is `nil'."
   (interactive "*P")
   (barf-if-buffer-read-only)
   ;; Inserting a newline at the end of a line produces better redisplay in
@@ -568,15 +570,17 @@ in *Help* buffer.  See also the command `describe-char-after'."
 (defvar read-expression-history nil)
 
 (defcustom eval-expression-print-level 4
-  "*Value to use for `print-level' when printing value in `eval-expression'."
+  "*Value to use for `print-level' when printing value in `eval-expression'.
+Nil means no limit."
   :group 'lisp
-  :type '(choice (const nil) integer)
+  :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-print-length 12
-  "*Value to use for `print-length' when printing value in `eval-expression'."
+  "*Value to use for `print-length' when printing value in `eval-expression'.
+Nil means no limit."
   :group 'lisp
-  :type '(choice (const nil) integer)
+  :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-debug-on-error t
@@ -2439,7 +2443,7 @@ the Transient Mark mode."
   :version "21.1"
   :group 'editing-basics)
 
-(defun next-line (arg)
+(defun next-line (&optional arg)
   "Move cursor vertically down ARG lines.
 If there is no character in the target line exactly under the current column,
 the cursor is positioned after the character in that line which spans this
@@ -2460,6 +2464,7 @@ If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
+  (unless arg (setq arg 1))
   (if (and next-line-add-newlines (= arg 1))
       (if (save-excursion (end-of-line) (eobp))
 	  ;; When adding a newline, don't expand an abbrev.
@@ -2474,7 +2479,7 @@ and more reliable (no dependence on goal column, etc.)."
       (line-move arg)))
   nil)
 
-(defun previous-line (arg)
+(defun previous-line (&optional arg)
   "Move cursor vertically up ARG lines.
 If there is no character in the target line exactly over the current column,
 the cursor is positioned after the character in that line which spans this
@@ -2491,6 +2496,7 @@ If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
+  (unless arg (setq arg 1))
   (if (interactive-p)
       (condition-case nil
 	  (line-move (- arg))
