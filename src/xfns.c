@@ -3431,7 +3431,7 @@ static XFontSet xic_create_xfontset P_ ((struct frame *, char *));
 static XIMStyle best_xim_style P_ ((XIMStyles *, XIMStyles *));
 
 
-/* Supported XIM styles, ordered by preferenc.  */
+/* Supported XIM styles, ordered by preference.  */
 
 static XIMStyle supported_xim_styles[] =
 {
@@ -3887,9 +3887,8 @@ x_window (f, window_prompting, minibuffer_only)
 
 #ifdef HAVE_X_I18N
   FRAME_XIC (f) = NULL;
-#ifdef USE_XIM
-  create_frame_xic (f);
-#endif
+  if (use_xim)
+    create_frame_xic (f);
 #endif
 
   f->output_data.x->wm_hints.input = True;
@@ -3992,19 +3991,20 @@ x_window (f)
 		     attribute_mask, &attributes);
 
 #ifdef HAVE_X_I18N
-#ifdef USE_XIM
-  create_frame_xic (f);
-  if (FRAME_XIC (f))
+  if use_xim
     {
-      /* XIM server might require some X events. */
-      unsigned long fevent = NoEventMask;
-      XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
-      attributes.event_mask |= fevent;
-      attribute_mask = CWEventMask;
-      XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-			       attribute_mask, &attributes);
+      create_frame_xic (f);
+      if (FRAME_XIC (f))
+	{
+	  /* XIM server might require some X events. */
+	  unsigned long fevent = NoEventMask;
+	  XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+	  attributes.event_mask |= fevent;
+	  attribute_mask = CWEventMask;
+	  XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				   attribute_mask, &attributes);
+	}
     }
-#endif
 #endif /* HAVE_X_I18N */
   
   validate_x_resource_name ();
