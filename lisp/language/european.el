@@ -516,6 +516,9 @@ but it selects the Dutch tutorial."))
     ((loop
       (read-multibyte-character r0 r1)
       (translate-character mac-roman-encoder r0 r1)
+      (if (r0 != ,(charset-id 'eight-bit-graphic))
+ 	  (if (r0 != ,(charset-id 'eight-bit-control))
+ 	      (r1 = ??)))
       (write-repeat r1))))
   "CCL program to encode Mac Roman")
 
