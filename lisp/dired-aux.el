@@ -517,7 +517,7 @@ and use this command with a prefix argument (the value does not matter)."
 	     (string-match "\\.z$" file))
 	   (if (not (dired-check-process (concat "Uncompressing " file)
 					 "gunzip" file))
-	       (substring file 0 -3)))
+	       (substring file 0 -2)))
 	  (t
 	   ;;; Try gzip; if we don't have that, use compress.
 	   (condition-case nil
