@@ -1,6 +1,6 @@
 ;;; ehelp.el --- bindings for electric-help mode
 
-;; Copyright (C) 1986, 1995, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1995, 2000, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, extensions
@@ -200,13 +200,13 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
 		   (progn (setq unread-command-events nil)
 			  (throw 'exit t)))))
     (let (up down both neither
-	  (standard (and (eq (key-binding " ")
+	  (standard (and (eq (key-binding " " nil t)
 			     'scroll-up)
-			 (eq (key-binding "\^?")
+			 (eq (key-binding "\^?" nil t)
 			     'scroll-down)
-			 (eq (key-binding "q")
+			 (eq (key-binding "q" nil t)
 			     'electric-help-exit)
-			 (eq (key-binding "r")
+			 (eq (key-binding "r" nil t)
 			     'electric-help-retain))))
       (Electric-command-loop
         'exit
@@ -272,7 +272,7 @@ will select it.)"
   (interactive)
   (error "%s is undefined -- Press %s to exit"
 	 (mapconcat 'single-key-description (this-command-keys) " ")
-	 (if (eq (key-binding "q") 'electric-help-exit)
+	 (if (eq (key-binding "q" nil t) 'electric-help-exit)
 	     "q"
 	   (substitute-command-keys "\\[electric-help-exit]"))))
 
@@ -280,10 +280,10 @@ will select it.)"
 ;>>> this needs to be hairified (recursive help, anybody?)
 (defun electric-help-help ()
   (interactive)
-  (if (and (eq (key-binding "q") 'electric-help-exit)
-	   (eq (key-binding " ") 'scroll-up)
-	   (eq (key-binding "\^?") 'scroll-down)
-	   (eq (key-binding "r") 'electric-help-retain))
+  (if (and (eq (key-binding "q" nil t) 'electric-help-exit)
+	   (eq (key-binding " " nil t) 'scroll-up)
+	   (eq (key-binding "\^?" nil t) 'scroll-down)
+	   (eq (key-binding "r" nil t) 'electric-help-retain))
       (message "SPC scrolls up, DEL scrolls down, q exits burying help buffer, r exits")
     (message "%s" (substitute-command-keys "\\[scroll-up] scrolls up, \\[scroll-down] scrolls down, \\[electric-help-exit] exits burying help buffer, \\[electric-help-retain] exits")))
   (sit-for 2))
