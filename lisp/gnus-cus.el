@@ -34,7 +34,7 @@
 ;; by the user.
 (defun gnus-make-face (color)
   ;; Create entry for face with COLOR.
-  (custom-face-lookup color nil nil nil nil nil))
+  (custom-face-lookup color nil nil 'as-is 'as-is 'as-is))
 
 (defvar gnus-face-light-name-list
   '("light blue" "light cyan" "light yellow" "light pink"
@@ -329,38 +329,39 @@ alone.")
 				     ((eq gnus-background-mode 'dark)
 				      (list (list "From" nil 
 						  (custom-face-lookup 
-						   "dark blue" nil nil t t nil))
+						   "dark blue" nil nil t t 
+						   'as-is))
 					    (list "Subject" nil 
 						  (custom-face-lookup
-						   "pink" nil nil t t nil))
+						   "pink" nil nil t t 'as-is))
 					    (list "Newsgroups:.*," nil
 						  (custom-face-lookup
-						   "yellow" nil nil t t nil))
+						   "yellow" nil nil t t 'as-is))
 					    (list "" 
 						  (custom-face-lookup
-						   "cyan" nil nil t nil nil)
+						   "cyan" nil nil t 'as-is 'as-is)
 						  (custom-face-lookup
 						   "forestgreen"
-						   nil nil nil t nil))))
+						   nil nil 'as-is t 'as-is))))
 				     (t
 				      (list (list "From" nil 
 						  (custom-face-lookup
 						   "RoyalBlue"
-						   nil nil t t nil))
+						   nil nil t t 'as-is))
 					    (list "Subject" nil 
 						  (custom-face-lookup
 						   "firebrick"
-						   nil nil t t nil))
+						   nil nil t t 'as-is))
 					    (list "Newsgroups:.*," nil
 						  (custom-face-lookup
-						   "indianred" nil nil t t nil))
+						   "indianred" nil nil t t 'as-is))
 					    (list ""
 						  (custom-face-lookup
 						   "DarkGreen"
-						   nil nil t nil nil)
+						   nil nil t 'as-is 'as-is)
 						  (custom-face-lookup
 						   "DarkGreen"
-						   nil nil nil t nil))))))
+						   nil nil nil t 'as-is))))))
 		  (data ((type . repeat)
 			 (header . nil)
 			 (data (type . list)
@@ -449,63 +450,63 @@ mark:    The article's mark.")
 					((< score default) . italic)))
 				     ((eq gnus-background-mode 'dark)
 				      (list (cons '(= mark gnus-canceled-mark)
-						  (custom-face-lookup "yellow" "black" nil nil nil nil))
+						  (custom-face-lookup "yellow" "black" nil 'as 'as 'as))
 					    (cons '(and (> score default) 
 							(or (= mark gnus-dormant-mark)
 							    (= mark gnus-ticked-mark)))
-						  (custom-face-lookup "pink" nil nil t nil nil))
+						  (custom-face-lookup "pink" nil nil t 'as 'as))
 					    (cons '(and (< score default) 
 							(or (= mark gnus-dormant-mark)
 							    (= mark gnus-ticked-mark)))
-						  (custom-face-lookup "pink" nil nil nil t nil))
+						  (custom-face-lookup "pink" nil nil 'as t 'as))
 					    (cons '(or (= mark gnus-dormant-mark)
 						       (= mark gnus-ticked-mark))
-						  (custom-face-lookup "pink" nil nil nil nil nil))
+						  (custom-face-lookup "pink" nil nil 'as 'as 'as))
 
 					    (cons '(and (> score default) (= mark gnus-ancient-mark))
-						  (custom-face-lookup "dark blue" nil nil t nil nil))
+						  (custom-face-lookup "dark blue" nil nil t 'as 'as))
 					    (cons '(and (< score default) (= mark gnus-ancient-mark))
-						  (custom-face-lookup "SkyBlue" nil nil nil t nil))
+						  (custom-face-lookup "SkyBlue" nil nil 'as t 'as))
 					    (cons '(= mark gnus-ancient-mark)
-						  (custom-face-lookup "SkyBlue" nil nil nil nil nil))
+						  (custom-face-lookup "SkyBlue" nil nil 'as 'as 'as))
 
 					    (cons '(and (> score default) (= mark gnus-unread-mark))
-						  (custom-face-lookup "white" nil nil t nil nil))
+						  (custom-face-lookup "white" nil nil t 'as 'as))
 					    (cons '(and (< score default) (= mark gnus-unread-mark))
-						  (custom-face-lookup "white" nil nil nil t nil))
+						  (custom-face-lookup "white" nil nil 'as t 'as))
 					    (cons '(= mark gnus-unread-mark)
-						  (custom-face-lookup "white" nil nil nil nil nil))
+						  (custom-face-lookup "white" nil nil 'as 'as 'as))
 
 					    (cons '(> score default) 'bold)
 					    (cons '(< score default) 'italic)))
 				     (t
 				      (list (cons '(= mark gnus-canceled-mark)
-						  (custom-face-lookup "yellow" "black" nil nil nil nil))
+						  (custom-face-lookup "yellow" "black" nil 'as 'as 'as))
 					    (cons '(and (> score default) 
 							(or (= mark gnus-dormant-mark)
 							    (= mark gnus-ticked-mark)))
-						  (custom-face-lookup "firebrick" nil nil t nil nil))
+						  (custom-face-lookup "firebrick" nil nil t 'as 'as))
 					    (cons '(and (< score default) 
 							(or (= mark gnus-dormant-mark)
 							    (= mark gnus-ticked-mark)))
-						  (custom-face-lookup "firebrick" nil nil nil t nil))
+						  (custom-face-lookup "firebrick" nil nil 'as t 'as))
 					    (cons '(or (= mark gnus-dormant-mark)
 						       (= mark gnus-ticked-mark))
-						  (custom-face-lookup "firebrick" nil nil nil nil nil))
+						  (custom-face-lookup "firebrick" nil nil 'as 'as 'as))
 
 					    (cons '(and (> score default) (= mark gnus-ancient-mark))
-						  (custom-face-lookup "RoyalBlue" nil nil t nil nil))
+						  (custom-face-lookup "RoyalBlue" nil nil t 'as 'as))
 					    (cons '(and (< score default) (= mark gnus-ancient-mark))
-						  (custom-face-lookup "RoyalBlue" nil nil nil t nil))
+						  (custom-face-lookup "RoyalBlue" nil nil 'as t 'as))
 					    (cons '(= mark gnus-ancient-mark)
-						  (custom-face-lookup "RoyalBlue" nil nil nil nil nil))
+						  (custom-face-lookup "RoyalBlue" nil nil 'as 'as 'as))
 
 					    (cons '(and (> score default) (/= mark gnus-unread-mark))
-						  (custom-face-lookup "DarkGreen" nil nil t nil nil))
+						  (custom-face-lookup "DarkGreen" nil nil t 'as 'as))
 					    (cons '(and (< score default) (/= mark gnus-unread-mark))
-						  (custom-face-lookup "DarkGreen" nil nil nil t nil))
+						  (custom-face-lookup "DarkGreen" nil nil 'as t 'as))
 					    (cons '(/= mark gnus-unread-mark)
-						  (custom-face-lookup "DarkGreen" nil nil nil nil nil))
+						  (custom-face-lookup "DarkGreen" nil nil 'as 'as 'as))
 
 					    (cons '(> score default) 'bold)
 					    (cons '(< score default) 'italic)))))
