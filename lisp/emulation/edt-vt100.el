@@ -35,14 +35,13 @@
 ;; Get keyboard function key mapping to EDT keys.
 (load "edt-lk201" nil t)
 
-(defun edt-set-screen-width-80 ()
-  "Set screen width to 80 columns."
-  (interactive)
-  (vt100-wide-mode -1)
-  (message "Screen width 80"))
+;; The following functions are called by the EDT screen width commands defined
+;; in edt.el.
 
-(defun edt-set-screen-width-132 ()
-  "Set screen width to 132 columns."
-  (interactive)
-  (vt100-wide-mode 1)
-  (message "Screen width 132"))
+(defun edt-set-term-width-80 ()
+  "Set terminal width to 80 columns."
+  (vt100-wide-mode -1))
+
+(defun edt-set-term-width-132 ()
+  "Set terminal width to 132 columns."
+  (vt100-wide-mode 1))
