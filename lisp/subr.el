@@ -711,11 +711,13 @@ Legitimate radix values are 8, 10 and 16."
   "Like `read-char', but do not allow quitting.
 Also, if the first character read is an octal digit,
 we read any number of octal digits and return the
-soecified character code.  Any nondigit terminates the sequence.
+specified character code.  Any nondigit terminates the sequence.
 If the terminator is RET, it is discarded;
 any other terminator is used itself as input.
 
-The optional argument PROMPT specifies a string to use to prompt the user."
+The optional argument PROMPT specifies a string to use to prompt the user.
+The variable `read-quoted-char-radix' controls which radix to use
+for numeric input."
   (let ((message-log-max nil) done (first t) (code 0) char)
     (while (not done)
       (let ((inhibit-quit first)
