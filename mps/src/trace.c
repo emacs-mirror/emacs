@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.89) $
+ * $HopeName: MMsrc!trace.c(trunk.90) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.89) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.90) $");
 
 
 /* Types
@@ -360,12 +360,15 @@ unsigned long TraceGen1RampmodeSize = 2000uL;
 unsigned long TraceRampGenSize = 6000uL;
 unsigned long TraceGen2RampmodeSize = 1000000uL;
 unsigned long TraceGen2plusRampmodeSizeMultiplier = 1uL;
+
 Serial TraceRampGenFollows = 1;
 Serial TraceFinalGen = 0; /* default: no final generation */
 Serial TraceTopGen = 2;
 
 double TraceGen0IncrementalityMultiple = 0.5;
-double TraceMortalityEstimate = 0.8;
+double TraceEphemeralMortality = 0.85;
+double TraceTopGenMortality = 0.2;
+double TraceWorkFactor = 4.0;
 
 
 /* TraceSetWhiteUnion
