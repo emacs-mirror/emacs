@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.65) $
+# $HopeName: MMsrc!comm.gmk(trunk.66) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -361,7 +361,7 @@ $(PFM)/$(VARIETY)/teletest: $(PFM)/$(VARIETY)/teletest.o \
 	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
-	$(MPMOBJ)
+	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/mpsicv: $(PFM)/$(VARIETY)/mpsicv.o \
 	$(FMTDYTSTOBJ) $(MPMOBJ) $(AMCOBJ) $(TESTLIBOBJ)
