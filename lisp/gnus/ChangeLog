@@ -1,3 +1,8 @@
+2002-03-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* qp.el (quoted-printable-decode-region): Doc addition.
+	From: Eli Zaretskii <eliz@is.elta.co.il>
+
 2002-02-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-art.el (gnus-article-edit-done): Widen the article buffer.

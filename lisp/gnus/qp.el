@@ -35,7 +35,10 @@
 (defun quoted-printable-decode-region (from to &optional coding-system)
   "Decode quoted-printable in the region between FROM and TO, per RFC 2045.
 If CODING-SYSTEM is non-nil, decode bytes into characters with that
-coding-system."
+coding-system.
+
+Interactively, you can supply the CODING-SYSTEM argument
+with \\[universal-coding-system-argument]."
   (interactive
    ;; Let the user determine the coding system with "C-x RET c".
    (list (region-beginning) (region-end) coding-system-for-read))
