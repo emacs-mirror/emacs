@@ -994,6 +994,7 @@ This is useful for inserting control characters."
 	        	  (scroll-other-window -8)
 	        	(error nil)))
 	             (t
+	              (forward-line -1)
 	              (backward-page)
 	              (forward-line 1)
 	              (tpu-line-to-top-of-window))))
@@ -1116,7 +1117,8 @@ kills modified buffers without asking."
   (if (tpu-check-match)
       (move-overlay tpu-search-overlay
                     (tpu-match-beginning) (tpu-match-end) (current-buffer))
-    (unless (= (overlay-start tpu-search-overlay) (overlay-end tpu-search-overlay))
+    (unless (equal (overlay-start tpu-search-overlay)
+		   (overlay-end tpu-search-overlay))
       (move-overlay tpu-search-overlay 1 1 (current-buffer)))))
 
 (defun tpu-search nil
@@ -1665,7 +1667,11 @@ or each line of the entire buffer if no region is selected."
 (defun tpu-trim-line-ends nil
   "Removes trailing whitespace from every line in the buffer."
   (interactive)
-  (picture-clean))
+  (save-match-data
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward "[ \t][ \t]*$" nil t)
+	(delete-region (match-beginning 0) (match-end 0))))))
 
 
 ;;;
