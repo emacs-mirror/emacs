@@ -1,3 +1,17 @@
+2004-04-26  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_object): Print non-ascii characters in bool
+	vector representation as octal escapes.
+
+	* lisp.h (BOOL_VECTOR_BITS_PER_CHAR): Define.
+	* print.c (print_object): Use it instead of BITS_PER_CHAR for
+	bool vectors.
+	* lread.c (read1): Likewise.
+	* alloc.c (Fmake_bool_vector): Likewise.
+	* data.c (Faref, Faset): Likewise.
+	* fns.c (Fcopy_sequence, concat, internal_equal, Ffillarray)
+	(mapcar1): Likewise.
+	
 2004-04-26  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
 
 	* lread.c (init_lread): Fixing typo HAVE_CARBON test logic
