@@ -115,7 +115,7 @@ See definition of `print-region-1' for calling conventions.")
 	    ;; Run a separate program to get page headers.
 	    (print-region-new-buffer start end)
 	    (call-process-region start end lpr-page-header-program
-				 t t lpr-page-header-options)
+				 t t lpr-page-header-switches)
 	    (setq start (point-min) end (point-max))))
       (apply (or print-region-function 'call-process-region)
 	     (nconc (list start end lpr-command
