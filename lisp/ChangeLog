@@ -1,3 +1,7 @@
+1999-12-06  Dave Love  <fx@gnu.org>
+
+	* ffap.el: Autoload the ffap alias directly.
+
 1999-12-06  Inge Frick  <inge@nada.kth.se>
 
 	* dired-aux.el (dired-do-shell-command): Changed documentation.
