@@ -461,7 +461,7 @@ static void merge_face_vectors P_ ((Lisp_Object *from, Lisp_Object *));
 static void merge_face_vector_with_property P_ ((struct frame *, Lisp_Object *,
 						 Lisp_Object));
 static int set_lface_from_font_name P_ ((struct frame *, Lisp_Object, char *,
-					 int));
+					 int, int));
 static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
 static struct face *make_realized_face P_ ((Lisp_Object *, int, Lisp_Object));
 static void free_realized_faces P_ ((struct face_cache *));
@@ -2705,29 +2705,33 @@ lface_fully_specified_p (attrs)
 
 /* Set font-related attributes of Lisp face LFACE from XLFD font name
    FONT_NAME.  If FORCE_P is zero, set only unspecified attributes of
-   LFACE.  Ignore fields of FONT_NAME containing wildcards.  Value is
-   zero if not successful because FONT_NAME was not in a valid format.
-   A valid format is one that is suitable for split_font_name, see the
-   comment there.  */
+   LFACE.  MAY_FAIL_P non-zero means return 0 if FONT_NAME isn't a
+   valid font name; otherwise this function tries to use a reasonable
+   default font.
+
+   Ignore fields of FONT_NAME containing wildcards.  Value is zero if
+   not successful because FONT_NAME was not in a valid format and
+   MAY_FAIL_P was non-zero.  A valid format is one that is suitable
+   for split_font_name, see the comment there.  */
    
 static int
-set_lface_from_font_name (f, lface, font_name, force_p)
+set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
      struct frame *f;
      Lisp_Object lface;
      char *font_name;
-     int force_p;
+     int force_p, may_fail_p;
 {
   struct font_name font;
   char *buffer;
   int pt;
   int free_font_name_p = 0;
+  int have_font_p = 0;
 
   /* If FONT_NAME contains wildcards, use the first matching font.  */
   if (index (font_name, '*') || index (font_name, '?'))
     {
-      if (!first_font_matching (f, font_name, &font))
-	return 0;
-      free_font_name_p = 1;
+      if (first_font_matching (f, font_name, &font))
+	free_font_name_p = have_font_p = 1;
     }
   else
     {
@@ -2742,17 +2746,38 @@ set_lface_from_font_name (f, lface, font_name, force_p)
 	  font_info = fs_load_font (f, FRAME_X_FONT_TABLE (f),
 				    CHARSET_ASCII, font_name, -1);
 	  UNBLOCK_INPUT;
-	  
-	  if (!font_info)
-	    return 0;
-	  
-	  font.name = STRDUPA (font_info->full_name);
-	  split_font_name (f, &font, 1);
+
+	  if (font_info)
+	    {
+	      font.name = STRDUPA (font_info->full_name);
+	      split_font_name (f, &font, 1);
+	      have_font_p = 1;
+	    }
 	}
-      
-      /* FONT_NAME should not be a fontset name, here.  */
-      xassert (xstricmp (font.fields[XLFD_REGISTRY], "fontset") != 0);
     }
+
+  /* If FONT_NAME is completely bogus try to use something reasonable
+     if this function must succeed.  Otherwise, give up.  */
+  if (!have_font_p)
+    {
+      if (may_fail_p)
+	return 0;
+      else if (first_font_matching (f, "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
+				    &font)
+	       || first_font_matching (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+				       &font)
+	       || first_font_matching (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
+				       &font)
+	       || first_font_matching (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1",
+				       &font)
+	       || first_font_matching (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1",
+				       &font)
+	       || first_font_matching (f, "fixed", &font))
+	free_font_name_p = 1;
+      else
+	abort ();
+    }
+      
 
   /* Set attributes only if unspecified, otherwise face defaults for
      new frames would never take effect.  */
@@ -3410,7 +3435,7 @@ frame.")
       else
 	f = check_x_frame (frame);
       
-      if (!set_lface_from_font_name (f, lface, XSTRING (value)->data, 1))
+      if (!set_lface_from_font_name (f, lface, XSTRING (value)->data, 1, 1))
 	signal_error ("Invalid font name", value);
       
       font_related_attr_p = 1;
@@ -5526,7 +5551,7 @@ realize_default_face (f)
 	  UNBLOCK_INPUT;
 	  
 	  /* Set weight etc. from the ASCII font.  */
-	  if (!set_lface_from_font_name (f, lface, font_info->full_name, 0))
+	  if (!set_lface_from_font_name (f, lface, font_info->full_name, 0, 0))
 	    return 0;
 	  
 	  /* Remember registry and encoding of the frame font.  */
@@ -5554,7 +5579,7 @@ realize_default_face (f)
 	  /* Frame parameters contain a real font.  Fill default face
 	     attributes from that font.  */
 	  if (!set_lface_from_font_name (f, lface,
-					 XSTRING (frame_font)->data, 0))
+					 XSTRING (frame_font)->data, 0, 0))
 	    return 0;
 	  
 	  /* Remember registry and encoding of the frame font.  */
