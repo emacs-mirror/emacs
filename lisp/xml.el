@@ -104,15 +104,24 @@ CHILD-NAME should be a lower case symbol."
 	      (push child match))))
     (nreverse match)))
 
-(defun xml-get-attribute (node attribute)
+(defun xml-get-attribute-or-nil (node attribute)
   "Get from NODE the value of ATTRIBUTE.
-An empty string is returned if the attribute was not found."
+nil is returned if the attribute was not found.
+
+See also `xml-get-attribute'."
   (if (xml-node-attributes node)
       (let ((value (assoc attribute (xml-node-attributes node))))
 	(if value
 	    (cdr value)
-	  ""))
-    ""))
+	  nil))
+    nil))
+
+(defsubst xml-get-attribute (node attribute)
+  "Get from NODE the value of ATTRIBUTE.
+An empty string is returned if the attribute was not found.
+
+See also `xml-get-attribute-or-nil'."
+  (or (xml-get-attribute-or-nil node attribute) ""))
 
 ;;*******************************************************************
 ;;**
