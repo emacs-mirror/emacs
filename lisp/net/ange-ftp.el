@@ -2938,7 +2938,8 @@ this also returns nil."
 	       (setq ent (ange-ftp-get-files name t))
 	       (gethash "." ent))
 	  ;; i.e. it's a directory by child lookup
-	  (gethash file (ange-ftp-get-files dir))))))
+	  (and (setq ent (ange-ftp-get-files dir t))
+	       (gethash file ent))))))
 
 (defun ange-ftp-internal-delete-file-entry (name &optional dir-p)
   (when dir-p
