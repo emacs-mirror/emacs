@@ -1,3 +1,8 @@
+2003-07-13  Markus Rost  <rost@math.ohio-state.edu>
+
+	* buffers.texi (List Buffers): Adjust to new format of *Buffer
+	List*.
+
 2003-07-07  Luc Teirlinck  <teirllm@mail.auburn.edu>
 
 	* info.texi (Help-Inv, Help-M, Help-Xref): Update following

@@ -89,6 +89,68 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** sql changes.
+
+*** The variable `sql-product' controls the highlightng of different
+SQL dialects.  This variable can be set globally via Customize, on a
+buffer-specific basis via local variable settings, or for the current
+session using the new SQL->Product submenu.  (This menu replaces the
+SQL->Highlighting submenu.)
+
+The following values are supported:
+
+    ansi	ANSI Standard (default)
+    db2		DB2
+    informix    Informix
+    ingres      Ingres
+    interbase	Interbase
+    linter	Linter
+    ms		Microsoft
+    mysql	MySQL
+    oracle	Oracle
+    postgres	Postgres
+    solid       Solid
+    sqlite      SQLite
+    sybase      Sybase
+
+The current product name will be shown on the mode line following the
+SQL mode indicator.
+
+The technique of setting `sql-mode-font-lock-defaults' directly in
+your .emacs will no longer establish the default highlighting -- Use
+`sql-product' to accomplish this.
+
+*** The function `sql-add-product-keywords' can be used to add
+font-lock rules to the product specific rules.  For example, to have
+all identifiers ending in "_t" under MS SQLServer treated as a type,
+you would use the following line in your .emacs file:
+
+  (sql-add-product-keywords 'ms
+             '("\\<\\w+_t\\>" . font-lock-type-face))
+
+*** Oracle support includes keyword highlighting for Oracle 9i.  Most
+SQL and PL/SQL keywords are implemented.  SQL*Plus commands are
+highlighted in `font-lock-doc-face'.
+
+*** Microsoft SQLServer support has been significantly improved.
+Keyword highlighting for SqlServer 2000 is implemented.
+sql-interactive-mode defaults to use osql, rather than isql, because
+osql flushes it's error stream more frequently.  Thus error messages
+are displayed when they occur rather than when the session is
+terminated.
+
+If the username and password are not provided to `sql-ms', osql is
+called with the -E command line argument to use the operating system
+credentials to authenticate the user.
+
+*** Imenu support has been enhanced to locate tables, views, indexes,
+packages, procedures, functions, triggers, sequences, rules, and
+defaults.
+
+*** Added SQL->Start SQLi Session menu entry which calls the
+appropriate sql-interactive-mode wrapper for the current setting of
+`sql-product'.
+
 ** M-x view-file and commands that use it now avoid interfering
 with special modes such as Tar mode.
 
@@ -102,7 +164,7 @@ the operating system or your X server.
 
 ** New minor mode, Visible mode, toggles invisibility in the current buffer.
 When enabled, it makes all invisible text visible.  When disabled, it
-restores the previous value of `buffer-invisibility-spec'. 
+restores the previous value of `buffer-invisibility-spec'.
 
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.

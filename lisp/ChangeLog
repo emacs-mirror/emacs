@@ -1,3 +1,8 @@
+2003-07-13  Juanma Barranquero  <lektu@terra.es>
+
+	* frame.el (modify-all-frames-parameters): Reinstalled (copyright
+	papers received).
+
 2003-07-13  Karl Eichwalder  <ke@suse.de>
 
 	* textmodes/po.el (po-find-charset): White space at the start of the

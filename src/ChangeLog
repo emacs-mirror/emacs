@@ -1,3 +1,16 @@
+2003-07-13  Terje Rosten  <terjeros@phys.ntnu.no>
+
+	* xterm.c (x_bitmap_icon,x_wm_set_icon_pixmap): Modify to add mask,
+	and use the Gtk+ function gtk_window_icon_from_file if available.
+
+	* xfns.c (x_bitmap_mask, x_create_bitmap_mask): New functions to
+	handle mask of bitmaps.
+	(x_allocate_bitmap_record, x_destroy_bitmap): Modify to handle the
+	mask property.
+	(xg_set_icon): New function, wrapper for gtk_window_icon_from_file.
+
+	* xterm.h (xg_set_icon): New function.
+
 2003-07-12  Paul Eggert  <eggert@twinsun.com>
 
 	* unexelf.c (unexec): Consider a section to precede the .bss
