@@ -565,12 +565,15 @@ the TRANSLATIONS list: PARAMETER and FUNCTION \(spelled in uppercase).
 Annotations listed under the pseudo-property PARAMETER are considered to be
 arguments of the immediately surrounding annotation; the text between the
 opening and closing parameter annotations is deleted from the buffer but saved
-as a string.  The surrounding annotation should be listed under the
-pseudo-property FUNCTION.  Instead of inserting a text-property for this
-annotation, the function listed in the VALUE slot is called to make whatever
-changes are appropriate.  The function's first two arguments are the START and
-END locations, and the rest of the arguments are any PARAMETERs found in that
-region.
+as a string.
+
+The surrounding annotation should be listed under the pseudo-property
+FUNCTION.  Instead of inserting a text-property for this annotation,
+the function listed in the VALUE slot is called to make whatever
+changes are appropriate.  It can also return a list of the form
+\(START LOC PROP VALUE) which specifies a property to put on.  The
+function's first two arguments are the START and END locations, and
+the rest of the arguments are any PARAMETERs found in that region.
 
 Any annotations that are found by NEXT-FN but not defined by TRANSLATIONS
 are saved as values of the `unknown' text-property \(which is list-valued).
