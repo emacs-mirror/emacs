@@ -900,20 +900,23 @@ when given no argument at the beginning of a line."
   "Function to call to make a killed region available to other programs.
 
 Most window systems provide some sort of facility for cutting and
-pasting text between the windows of different programs.  On startup,
-this variable is set to a function which emacs will call whenever text
-is put in the kill ring to make the new kill available to other
+pasting text between the windows of different programs.
+This variable holds a function that Emacs calls whenever text
+is put in the kill ring, to make the new kill available to other
 programs.
 
-The function takes one argument, TEXT, which is a string containing
-the text which should be made available.")
+The function takes one or two arguments.
+The first argument, TEXT, is a string containing
+the text which should be made available.
+The second, PUSH, if non-nil means this is a \"new\" kill;
+nil means appending to an \"old\" kill.")
 
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
 
 Most window systems provide some sort of facility for cutting and
-pasting text between the windows of different programs.  On startup,
-this variable is set to a function which emacs will call to obtain
+pasting text between the windows of different programs.
+This variable holds a function that Emacs calls to obtain
 text that other programs have provided for pasting.
 
 The function should be called with no arguments.  If the function
@@ -957,7 +960,7 @@ If `interprogram-cut-function' is non-nil, apply it to STRING."
       (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
   (setq kill-ring-yank-pointer kill-ring)
   (if interprogram-cut-function
-      (funcall interprogram-cut-function string)))
+      (funcall interprogram-cut-function string t)))
 
 (defun kill-append (string before-p)
   "Append STRING to the end of the latest kill in the kill ring.
