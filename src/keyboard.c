@@ -11285,11 +11285,13 @@ Useful to set before you dump a modified Emacs.  */);
 
   DEFVAR_LISP ("keyboard-translate-table", &Vkeyboard_translate_table,
 	       doc: /* Translate table for keyboard input, or nil.
-Each character is looked up in this string and the contents used instead.
-The value may be a string, a vector, or a char-table.
-If it is a string or vector of length N,
-character codes N and up are untranslated.
-In a vector or a char-table, an element which is nil means "no translation".
+If non-nil, the value should be a char-table.  Each character read
+from the keyboard is looked up in this char-table.  If the value found
+there is non-nil, then it is used instead of the actual input character.
+
+The value can also be a string or vector, but this is considered obsolete.
+If it is a string or vector of length N, character codes N and up are left
+untranslated.  In a vector, an element which is nil means "no translation".
 
 This is applied to the characters supplied to input methods, not their
 output.  See also `translation-table-for-input'.  */);

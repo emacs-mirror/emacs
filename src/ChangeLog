@@ -1,3 +1,27 @@
+2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c (syms_of_keyboard): Fix `keyboard-translate-table'
+	docstring.
+
+	* fns.c (Fclear_string): Declare `len' before call to CHECK_STRING.
+
+2004-07-06  John Paul Wallington  <jpw@gnu.org>
+
+	* eval.c (Fdefmacro): Signal an error if NAME is not a symbol.
+
+	* fns.c (Fclear_string): Signal an error if STRING is not a string.
+
+2004-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macterm.c (mac_initialize_display_info): Use CGGetActiveDisplayList
+	instead of CGMainDisplayID (only in OSX 10.2 and later).
+
+2004-07-04  John Paul Wallington  <jpw@gnu.org>
+
+	* fileio.c (read_file_name_completion_ignore_case): New variable.
+	(syms_of_fileio): Declare and initialise it.
+	(Fread_file_name): Bind `completion-ignore-case' to respect it.
+
 2004-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (dos_rawgetc): Use make_number to produce Lisp objects

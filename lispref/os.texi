@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/os
@@ -237,7 +237,7 @@ This normal hook is run, once, just before loading all the init files
 This normal hook is run, once, just after loading all the init files
 (the user's init file, @file{default.el}, and/or @file{site-start.el}),
 before loading the terminal-specific library and processing the
-command-line arguments.
+command-line action arguments.
 @end defvar
 
 @defvar emacs-startup-hook
@@ -248,7 +248,7 @@ arguments, just before @code{term-setup-hook}.
 
 @defvar user-init-file
 @tindex user-init-file
-This variable holds the file name of the user's init file.  If the
+This variable holds the absolute file name of the user's init file.  If the
 actual init file loaded is a compiled file, such as @file{.emacs.elc},
 the value refers to the corresponding source file.
 @end defvar
@@ -471,20 +471,31 @@ been saved, is lost when the Emacs process is killed.  Because killing
 Emacs inadvertently can lose a lot of work, Emacs queries for
 confirmation before actually terminating if you have buffers that need
 saving or subprocesses that are running.  This is done in the function
-@code{save-buffers-kill-emacs}.
+@code{save-buffers-kill-emacs}, the higher level function from which
+@code{kill-emacs} is usually called.
 
 @defvar kill-emacs-query-functions
 After asking the standard questions, @code{save-buffers-kill-emacs}
 calls the functions in the list @code{kill-emacs-query-functions}, in
 order of appearance, with no arguments.  These functions can ask for
 additional confirmation from the user.  If any of them returns
-@code{nil}, Emacs is not killed.
+@code{nil}, @code{save-buffers-kill-emacs} does not kill Emacs, and
+does not run the remaining functions in this hook.  Calling
+@code{kill-emacs} directly does not run this hook.
 @end defvar
 
 @defvar kill-emacs-hook
 This variable is a normal hook; once @code{save-buffers-kill-emacs} is
-finished with all file saving and confirmation, it runs the functions in
-this hook.  This hook is not run in batch mode.
+finished with all file saving and confirmation, it calls
+@code{kill-emacs} which runs the functions in this hook.
+@code{kill-emacs} does not run this hook in batch mode.
+
+@code{kill-emacs} may be invoked directly (that is not via
+@code{save-buffers-kill-emacs}) if the terminal is disconnected, or in
+similar situations where interaction with the user is not possible.
+Thus, if your hook needs to interact with the user, put it on
+@code{kill-emacs-query-functions}; if it needs to run regardless of
+how Emacs is killed, put it on @code{kill-emacs-hook}.
 @end defvar
 
 @node Suspending Emacs
@@ -508,7 +519,7 @@ give input to some other job such as a shell merely by moving to a
 different window.  Therefore, suspending is not allowed when Emacs is using
 a window system (X or MS Windows).
 
-@defun suspend-emacs string
+@defun suspend-emacs &optional string
 This function stops Emacs and returns control to the superior process.
 If and when the superior process resumes Emacs, @code{suspend-emacs}
 returns @code{nil} to its caller in Lisp.
@@ -542,10 +553,10 @@ Emacs is suspended.  But it is read and executed by the shell.
           (function (lambda ()
                       (or (y-or-n-p
                             "Really suspend? ")
-                          (error "Suspend cancelled")))))
+                          (error "Suspend canceled")))))
      @result{} (lambda nil
           (or (y-or-n-p "Really suspend? ")
-              (error "Suspend cancelled")))
+              (error "Suspend canceled")))
 @end group
 @group
 (add-hook 'suspend-resume-hook
@@ -694,8 +705,10 @@ Emacs was dumped.  @xref{Building Emacs}.)
 @deffn Command getenv var
 @cindex environment variable access
 This function returns the value of the environment variable @var{var},
-as a string.  Within Emacs, the environment variable values are kept in
-the Lisp variable @code{process-environment}.
+as a string.  @var{var} should be a string.  If @var{var} is undefined
+in the environment, @code{getenv} returns @code{nil}.  If returns
+@samp{""} if @var{var} is set but null.  Within Emacs, the environment
+variable values are kept in the Lisp variable @code{process-environment}.
 
 @example
 @group
@@ -717,11 +730,22 @@ HOME=/user/lewis
 @end deffn
 
 @c Emacs 19 feature
-@deffn Command setenv variable value
+@deffn Command setenv variable &optional value
 This command sets the value of the environment variable named
-@var{variable} to @var{value}.  Both arguments should be strings.  This
-function works by modifying @code{process-environment}; binding that
-variable with @code{let} is also reasonable practice.
+@var{variable} to @var{value}.  @var{variable} should be a string.
+Internally, Emacs Lisp can handle any string.  However, normally
+@var{variable} should be a valid shell identifier, that is, a sequence
+of letters, digits and underscores, starting with a letter or
+underscore.  Otherwise, errors may occur if subprocesses of Emacs try
+to access the value of @var{variable}.  If @var{value} is omitted or
+@code{nil}, @code{setenv} removes @var{variable} from the environment.
+Otherwise, @var{value} should be a string.
+
+@code{setenv} works by modifying @code{process-environment}; binding
+that variable with @code{let} is also reasonable practice.
+
+@code{setenv} returns the new value of @var{variable}, or @code{nil}
+if it removed @var{variable} from the environment.
 @end deffn
 
 @defvar process-environment
@@ -801,6 +825,10 @@ an error.  On some platforms, access to load averages requires
 installing Emacs as setuid or setgid so that it can read kernel
 information, and that usually isn't advisable.
 
+If the 1-minute load average is available, but the 5- or 15-minute
+averages are not, this function returns a shortened list containing
+the available averages.
+
 @example
 @group
 (load-average)
@@ -820,12 +848,14 @@ lewis@@rocky[5] % uptime
 @end defun
 
 @defun emacs-pid
-This function returns the process @acronym{ID} of the Emacs process.
+This function returns the process @acronym{ID} of the Emacs process,
+as an integer.
 @end defun
 
 @defvar tty-erase-char
 This variable holds the erase character that was selected
 in the system's terminal driver, before Emacs was started.
+The value is @code{nil} if Emacs is running under a window system.
 @end defvar
 
 @defun setprv privilege-name &optional setp getprv
@@ -836,7 +866,7 @@ whether the privilege is to be turned on or off.  Its default is
 @code{nil}.  The function returns @code{t} if successful, @code{nil}
 otherwise.
 
-  If the third argument, @var{getprv}, is non-@code{nil}, @code{setprv}
+If the third argument, @var{getprv}, is non-@code{nil}, @code{setprv}
 does not change the privilege, but returns @code{t} or @code{nil}
 indicating whether the privilege is currently enabled.
 @end defun
@@ -845,8 +875,9 @@ indicating whether the privilege is currently enabled.
 @section User Identification
 
 @defvar init-file-user
-This variable says which user's init files should be used by Emacs---or
-@code{nil} if none.  The value reflects command-line options such as
+This variable says which user's init files should be used by
+Emacs---or @code{nil} if none.  @code{""} stands for the user who
+originally logged in.  The value reflects command-line options such as
 @samp{-q} or @samp{-u @var{user}}.
 
 Lisp packages that load files of customizations, or any other sort of
@@ -873,7 +904,8 @@ is set, that value is used.  Otherwise, if the environment variable
 on the effective @acronym{UID}, not the real @acronym{UID}.
 
 If you specify @var{uid}, the value is the user name that corresponds
-to @var{uid} (which should be an integer).
+to @var{uid} (which should be an integer), or @code{nil} if there is
+no such user.
 
 @example
 @group
@@ -904,7 +936,7 @@ of the environment variable @code{NAME}, if that is set.
 If the Emacs job's user-id does not correspond to any known user (and
 provided @code{NAME} is not set), the value is @code{"unknown"}.
 
-If @var{uid} is non-@code{nil}, then it should be an integer (a user-id)
+If @var{uid} is non-@code{nil}, then it should be a number (a user-id)
 or a string (a login name).  Then @code{user-full-name} returns the full
 name corresponding to that user-id or login name.  If you specify a
 user-id or login name that isn't defined, it returns @code{nil}.
@@ -956,7 +988,8 @@ The argument @var{time-value}, if given, specifies a time to format
 instead of the current time.  The argument should be a list whose first
 two elements are integers.  Thus, you can use times obtained from
 @code{current-time} (see below) and from @code{file-attributes}
-(@pxref{File Attributes}).
+(@pxref{Definition of file-attributes}).  @var{time-value} can also be
+a cons of two integers, but this is considered obsolete.
 
 @example
 @group
@@ -971,7 +1004,7 @@ two elements are integers.  Thus, you can use times obtained from
 This function returns the system's time value as a list of three
 integers: @code{(@var{high} @var{low} @var{microsec})}.  The integers
 @var{high} and @var{low} combine to give the number of seconds since
-0:00 January 1, 1970 (local time), which is
+0:00 January 1, 1970 UTC (Coordinated Universal Time), which is
 @ifnottex
 @var{high} * 2**16 + @var{low}.
 @end ifnottex
@@ -984,7 +1017,8 @@ start of the current second (or 0 for systems that return time with
 the resolution of only one second).
 
 The first two elements can be compared with file time values such as you
-get with the function @code{file-attributes}.  @xref{File Attributes}.
+get with the function @code{file-attributes}.
+@xref{Definition of file-attributes}.
 @end defun
 
 @c Emacs 19 feature
@@ -1001,20 +1035,21 @@ if the user has specified a time zone that does not use a seasonal time
 adjustment, then the value is constant through time.
 
 If the operating system doesn't supply all the information necessary to
-compute the value, both elements of the list are @code{nil}.
+compute the value, the unknown elements of the list are @code{nil}.
 
 The argument @var{time-value}, if given, specifies a time to analyze
-instead of the current time.  The argument should be a cons cell
-containing two integers, or a list whose first two elements are
-integers.  Thus, you can use times obtained from @code{current-time}
-(see above) and from @code{file-attributes} (@pxref{File Attributes}).
+instead of the current time.  The argument should have the same form
+as for @code{current-time-string} (see above).  Thus, you can use
+times obtained from @code{current-time} (see above) and from
+@code{file-attributes}.  @xref{Definition of file-attributes}.
 @end defun
 
 @defun set-time-zone-rule tz
 This function specifies the local time zone according to @var{tz}.  If
 @var{tz} is @code{nil}, that means to use an implementation-defined
 default time zone.  If @var{tz} is @code{t}, that means to use
-Universal Time.
+Universal Time.  Otherwise, @var{tz} should be a string specifying a
+time zone rule.
 @end defun
 
 @defun float-time &optional time-value
@@ -1022,7 +1057,7 @@ This function returns the current time as a floating-point number of
 seconds since the epoch.  The argument @var{time-value}, if given,
 specifies a time to convert instead of the current time.  The argument
 should have the same form as for @code{current-time-string} (see
-above), and it also accepts the output of @code{current-time} and
+above).  Thus, it accepts the output of @code{current-time} and
 @code{file-attributes}.
 
 @emph{Warning}: Since the result is floating point, it may not be
@@ -1036,7 +1071,7 @@ exact.  Do not use this function if precise time stamps are required.
 to strings or to calendrical information.  There is also a function to
 convert calendrical information to a time value.  You can get time
 values from the functions @code{current-time} (@pxref{Time of Day}) and
-@code{file-attributes} (@pxref{File Attributes}).
+@code{file-attributes} (@pxref{Definition of file-attributes}).
 
 Many operating systems are limited to time values that contain 32 bits
 of information; these systems typically handle only the times from
@@ -1189,6 +1224,7 @@ Here is what the elements mean:
 @table @var
 @item seconds
 The number of seconds past the minute, as an integer between 0 and 59.
+On some operating systems, this is 60 for leap seconds.
 @item minutes
 The number of minutes past the hour, as an integer between 0 and 59.
 @item hour
@@ -1225,9 +1261,9 @@ yourself before you call @code{encode-time}.
 The optional argument @var{zone} defaults to the current time zone and
 its daylight savings time rules.  If specified, it can be either a list
 (as you would get from @code{current-time-zone}), a string as in the
-@code{TZ} environment variable, or an integer (as you would get from
-@code{decode-time}).  The specified zone is used without any further
-alteration for daylight savings time.
+@code{TZ} environment variable, @code{t} for Universal Time, or an
+integer (as you would get from @code{decode-time}).  The specified
+zone is used without any further alteration for daylight savings time.
 
 If you pass more than seven arguments to @code{encode-time}, the first
 six are used as @var{seconds} through @var{year}, the last argument is
@@ -1309,15 +1345,18 @@ because most timer functions don't do a lot of work.  Indeed, for a
 timer to call a function that takes substantial time to run is likely
 to be annoying.
 
-@defun run-at-time time repeat function &rest args
-This function arranges to call @var{function} with arguments @var{args}
-at time @var{time}.  The argument @var{function} is a function to call
-later, and @var{args} are the arguments to give it when it is called.
-The time @var{time} is specified as a string.
+@deffn Command run-at-time time repeat function &rest args
+This sets up a timer that calls the function @var{function} with
+arguments @var{args} at time @var{time}.  If @var{repeat} is a number
+(integer or floating point), the timer also runs every @var{repeat}
+seconds after that.  If @var{repeat} is @code{nil}, the timer runs
+only once.
+
+@var{time} may specify an absolute or a relative time.
 
 Absolute times may be specified in a wide variety of formats; this
-function tries to accept all the commonly used date formats.  Valid
-formats include these two,
+function tries to accept all the commonly used date formats.  The most
+convenient formats are strings.  Valid such formats include these two,
 
 @example
 @var{year}-@var{month}-@var{day} @var{hour}:@var{min}:@var{sec} @var{timezone}
@@ -1330,7 +1369,7 @@ where in both examples all fields are numbers; the format that
 @code{current-time-string} returns is also allowed, and many others
 as well.
 
-To specify a relative time, use numbers followed by units.
+To specify a relative time as a string, use numbers followed by units.
 For example:
 
 @table @samp
@@ -1345,13 +1384,9 @@ denotes exactly 103 months, 123 days, and 10862 seconds from now.
 For relative time values, Emacs considers a month to be exactly thirty
 days, and a year to be exactly 365.25 days.
 
-If @var{time} is a number (integer or floating point), that specifies a
-relative time measured in seconds.
-
-The argument @var{repeat} specifies how often to repeat the call.  If
-@var{repeat} is @code{nil}, there are no repetitions; @var{function} is
-called just once, at @var{time}.  If @var{repeat} is a number, it
-specifies a repetition period measured in seconds.
+Not all convenient formats are strings.  If @var{time} is a number
+(integer or floating point), that specifies a relative time measured
+in seconds.
 
 In most cases, @var{repeat} has no effect on when @emph{first} call
 takes place---@var{time} alone specifies that.  There is one exception:
@@ -1362,7 +1397,7 @@ functions like @code{display-time}.
 The function @code{run-at-time} returns a timer value that identifies
 the particular scheduled future action.  You can use this value to call
 @code{cancel-timer} (see below).
-@end defun
+@end deffn
 
 @defmac with-timeout (seconds timeout-forms@dots{}) body@dots{}
 Execute @var{body}, but give up after @var{seconds} seconds.  If
@@ -1388,7 +1423,7 @@ calls one of those primitives.  So use @code{with-timeout} only with a
 a timer to avoid waiting too long for an answer.  @xref{Yes-or-No
 Queries}.
 
-@defun run-with-idle-timer secs repeat function &rest args
+@deffn Command run-with-idle-timer secs repeat function &rest args
 Set up a timer which runs when Emacs has been idle for @var{secs}
 seconds.  The value of @var{secs} may be an integer or a floating point
 number.
@@ -1400,7 +1435,7 @@ remains idle for @var{secs} seconds.
 
 The function @code{run-with-idle-timer} returns a timer value which you
 can use in calling @code{cancel-timer} (see below).
-@end defun
+@end deffn
 
 @cindex idleness
   Emacs becomes ``idle'' when it starts waiting for user input, and it
@@ -1426,8 +1461,8 @@ set up to repeat will subsequently run another time, one by one.
 @defun cancel-timer timer
 Cancel the requested action for @var{timer}, which should be a value
 previously returned by @code{run-at-time} or @code{run-with-idle-timer}.
-This cancels the effect of that call to @code{run-at-time}; the arrival
-of the specified time will not cause anything special to happen.
+This cancels the effect of that call to one of these functions; the
+arrival of the specified time will not cause anything special to happen.
 @end defun
 
 @node Terminal Input
@@ -1450,7 +1485,7 @@ functions.
 @cindex input modes
 @cindex terminal input modes
 
-@defun set-input-mode interrupt flow meta quit-char
+@defun set-input-mode interrupt flow meta &optional quit-char
 This function sets the mode for reading keyboard input.  If
 @var{interrupt} is non-null, then Emacs uses input interrupts.  If it is
 @code{nil}, then it uses @sc{cbreak} mode.  The default setting is
@@ -1523,31 +1558,30 @@ being read; then subsequences containing it are checked first with
 @c Emacs 19 feature
 @defvar extra-keyboard-modifiers
 This variable lets Lisp programs ``press'' the modifier keys on the
-keyboard.  The value is a bit mask:
-
-@table @asis
-@item 1
-The @key{SHIFT} key.
-@item 2
-The @key{LOCK} key.
-@item 4
-The @key{CTL} key.
-@item 8
-The @key{META} key.
-@end table
-
-Each time the user types a keyboard key, it is altered as if the
-modifier keys specified in the bit mask were held down.
+keyboard.  The value is a character.  Only the modifiers of the
+character matter.  Each time the user types a keyboard key, it is
+altered as if those modifier keys were held down.  For instance, if
+you bind @code{extra-keyboard-modifiers} to @code{?\C-\M-a}, then all
+keyboard input characters typed during the scope of the binding will
+have the control and meta modifiers applied to them.  The character
+@code{?\C-@@}, equivalent to the integer 0, does not count as a control
+character for this purpose, but as a character with no modifiers.
+Thus, setting @code{extra-keyboard-modifiers} to zero cancels any
+modification.
 
 When using a window system, the program can ``press'' any of the
 modifier keys in this way.  Otherwise, only the @key{CTL} and @key{META}
 keys can be virtually pressed.
+
+Note that this variable applies only to events that really come from
+the keyboard, and has no effect on mouse events or any other events.
 @end defvar
 
 @defvar keyboard-translate-table
 This variable is the translate table for keyboard characters.  It lets
 you reshuffle the keys on the keyboard without changing any command
 bindings.  Its value is normally a char-table, or else @code{nil}.
+(It can also be a string or vector, but this is considered obsolete.)
 
 If @code{keyboard-translate-table} is a char-table
 (@pxref{Char-Tables}), then each character read from the keyboard is
@@ -1587,6 +1621,11 @@ Note that this translation is the first thing that happens to a
 character after it is read from the terminal.  Record-keeping features
 such as @code{recent-keys} and dribble files record the characters after
 translation.
+
+Note also that this translation is done before the characters are
+supplied to input methods (@pxref{Input Methods}).  Use
+@code{translation-table-for-input} (@pxref{Translation of Characters}),
+if you want to translate characters after input methods operate.
 @end defvar
 
 @defun keyboard-translate from to
@@ -1699,7 +1738,7 @@ to turn the character that follows into a Hyper character:
 
 Finally, if you have enabled keyboard character set decoding using
 @code{set-keyboard-coding-system}, decoding is done after the
-translations listed above.  @xref{Specifying Coding Systems}.  In future
+translations listed above.  @xref{Terminal I/O Encoding}.  In future
 Emacs versions, character set decoding may be done before the other
 translations.
 
@@ -1804,7 +1843,10 @@ often than to actual Emacs bugs.  Once you are certain which characters
 were actually output, you can determine reliably whether they correspond
 to the Termcap specifications in use.
 
-See also @code{open-dribble-file} in @ref{Terminal Input}.
+You close the termscript file by calling this function with an
+argument of @code{nil}.
+
+See also @code{open-dribble-file} in @ref{Recording Input}.
 
 @example
 @group
@@ -1969,10 +2011,16 @@ terminals, the flow control problem is gradually disappearing.  For the
 mean time, Emacs provides a convenient way of enabling flow control if
 you want it: call the function @code{enable-flow-control}.
 
-@deffn Command enable-flow-control
-This function enables use of @kbd{C-s} and @kbd{C-q} for output flow
-control, and provides the characters @kbd{C-\} and @kbd{C-^} as aliases
-for them using @code{keyboard-translate-table} (@pxref{Translating Input}).
+@deffn Command enable-flow-control &optional arg
+When @var{arg} is a positive integer, this function enables use of
+@kbd{C-s} and @kbd{C-q} for output flow control, and provides the
+characters @kbd{C-\} and @kbd{C-^} as aliases for them using
+@code{keyboard-translate-table} (@pxref{Translating Input}).
+
+When @var{arg} is a negative integer or zero, it disables these
+features.  When @var{arg} is @code{nil} or omitted, it toggles.
+Interactively, @var{arg} is the prefix argument.  If non-@code{nil},
+its numeric value is used.
 @end deffn
 
 You can use the function @code{enable-flow-control-on} in your
@@ -1994,7 +2042,7 @@ if the terminal type is one of @var{termtypes}.  For example:
 @item
 @cindex @sc{cbreak}
 It sets @sc{cbreak} mode for terminal input, and tells the operating
-system to handle flow control, with @code{(set-input-mode nil t)}.
+system to handle flow control.  This is done using @code{set-input-mode}.
 
 @item
 It sets up @code{keyboard-translate-table} to translate @kbd{C-\} and
@@ -2061,17 +2109,18 @@ saved session to restore.  For Emacs, this argument is @samp{--smid
 Emacs supports saving state by using a hook called
 @code{emacs-save-session-functions}.  Each function in this hook is
 called when the session manager tells Emacs that the window system is
-shutting down.  The functions are called with the current buffer set
-to a temporary buffer.  Each functions can use @code{insert} to add
-Lisp code to this buffer.  At the end, Emacs saves the buffer in a
-file that Emacs will load in order to restart the saved session.
+shutting down.  The functions are called with no arguments and with the
+current buffer set to a temporary buffer.  Each function can use
+@code{insert} to add Lisp code to this buffer.  At the end, Emacs
+saves the buffer in a file that a subsequent Emacs invocation will
+load in order to restart the saved session.
 
 If a function in @code{emacs-save-session-functions} returns
 non-@code{nil}, Emacs tells the session manager to cancel the
 shutdown.
 @end defvar
 
-Here is an example that just inserts some text into *scratch* when
+Here is an example that just inserts some text into @samp{*scratch*} when
 Emacs is restarted by the session manager.
 
 @example

@@ -2171,7 +2171,7 @@ mode-lines in inverse-video.
 ** New package benchmark.el contains simple support for convenient
 timing measurements of code (including the garbage collection component).
 
-** The new Lisp library fringe.el controls the apperance of fringes.
+** The new Lisp library fringe.el controls the appearance of fringes.
 
 ** `cfengine-mode' is a major mode for editing GNU Cfengine
 configuration files.
@@ -2952,6 +2952,11 @@ variable is used by read-file-name-internal to filter the completion list.
 ** The new variable `read-file-name-function' can be used by lisp code
 to override the internal read-file-name function.
 
+
+** The new variable `read-file-name-completion-ignore-case' specifies
+whether completion ignores case when reading a file name with the
+`read-file-name' function.
+
 +++
 ** The new function `read-directory-name' can be used instead of
 `read-file-name' to read a directory name; when used, completion
@@ -3557,6 +3562,11 @@ it in that buffer.
 ---
 ** In `replace-match', the replacement text no longer inherits
 properties from surrounding text.
+
++++
+** `(match-data t)' will append the buffer as a final element of the
+match data if the last match was on a buffer.  `set-match-data' will
+accept this for restoring the match state.
 
 +++
 ** New function `buffer-local-value'.
