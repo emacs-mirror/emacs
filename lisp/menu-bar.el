@@ -36,6 +36,8 @@
 (defvar menu-bar-file-menu (make-sparse-keymap "File"))
 (define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
 
+(defvar vc-menu-map (make-sparse-keymap "Version Control"))
+
 (define-key menu-bar-file-menu [exit-emacs]
   '("Exit Emacs" . save-buffers-kill-emacs))
 
@@ -72,6 +74,8 @@
   '("Kill (Current) Buffer" . kill-this-buffer))
 (define-key menu-bar-file-menu [insert-file]
   '("Insert File" . insert-file))
+(define-key menu-bar-file-menu [vc-menu]
+  (cons "Version Control" vc-menu-map))
 (define-key menu-bar-file-menu [revert-buffer]
   '("Revert Buffer" . revert-buffer))
 (define-key menu-bar-file-menu [write-file]
