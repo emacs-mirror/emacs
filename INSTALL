@@ -681,6 +681,16 @@ Emacs, chdir to that directory and type these commands:
     config msdos
     make install
 
+Running "config msdos" checks for several programs that are required
+to configure and build Emacs; if one of those programs is not found,
+CONFIG.BAT stops and prints an error message.  If you have DJGPP
+version 2.0 or 2.01, it will complain about a program called
+DJECHO.EXE.  These old versions of DJGPP shipped that program under
+the name ECHO.EXE, so you can simply copy ECHO.EXE to DJECHO.EXE and
+rerun CONFIG.BAT.  If you have neither ECHO.EXE nor DJECHO.EXE, you
+should be able to find them in your djdevNNN.zip archive (where NNN is
+the DJGPP version number).
+
 To install the international fonts, chdir to the intlfonts-X.Y
 directory created when you unpacked the intlfonts distribution (X.Y is
 the version number of the fonts' distribution), and type the following
