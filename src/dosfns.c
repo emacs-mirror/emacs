@@ -588,7 +588,7 @@ The following are known:\n\
 	865	Norway/Denmark");
 
   DEFVAR_INT ("dos-timezone-offset", &dos_timezone_offset,
-    "The current timezone offset to UTC in minutes.
+    "The current timezone offset to UTC in minutes.\n\
 Implicitly modified when the TZ variable is changed.");
   
   DEFVAR_LISP ("dos-version", &Vdos_version,
