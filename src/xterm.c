@@ -7127,7 +7127,7 @@ note_mouse_highlight (f, x, y)
 		{
 		  Lisp_Object before = Foverlay_start (overlay);
 		  Lisp_Object after = Foverlay_end (overlay);
-		  Lisp_Object ignore;
+		  int ignore;
 
 		  /* Note that we might not be able to find position
 		     BEFORE in the glyph matrix if the overlay is
