@@ -1,3 +1,8 @@
+2002-06-20  Francesco Potorti`  <pot@gnu.org>
+
+	* progmodes/etags.el (tag-implicit-name-match-p): New function.
+	(etags-recognize-tags-table): Use it for implicit tag names.
+
 2002-06-20  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-get-old-input-default): Strip text properties
@@ -43,7 +48,7 @@
 	(describe-text-properties-1):
 	New subroutine, broken out from describe-text-properties.
 	Output a newline before each section of the output.
-	
+
 	* international/mule-diag.el (describe-char-after):
 	Moved to descr-text.el.
 
@@ -77,7 +82,7 @@
 	(batch-byte-recompile-directory): Undo previous change.
 
 	* comint.el (comint-skip-input): New function.
-	(comint-interrupt-subjob, comint-kill-subjob, comint-quit-subjob) 
+	(comint-interrupt-subjob, comint-kill-subjob, comint-quit-subjob)
 	(comint-stop-subjob): Use comint-skip-input.
 
 	* ielm.el (ielm-eval-input): Use error-message-string.
@@ -104,7 +109,7 @@
 
 	* play/zone.el (zone-timer): New variable holds the idle timer.
 	(zone): Don't fiddle with the idle timer at all.
-	(zone-when-idle): Put the idle timer in zone-timer. 
+	(zone-when-idle): Put the idle timer in zone-timer.
 	If one is already set up, cancel it and make a new one.
 	(zone-leave-me-alone): Likewise.
 
@@ -141,7 +146,7 @@
 	if node has no next, previous or up links.
 	Hide the part of the first line that is used in the header.
 	Use Info-next-link-keymap, etc.
-	(Info-next-link-keymap, Info-prev-link-keymap) 
+	(Info-next-link-keymap, Info-prev-link-keymap)
 	(Info-up-link-keymap): New variables.
 
 	* international/mule-diag.el (describe-char-after): Doc fix.
@@ -172,22 +177,22 @@
 	(calc-refresh): Ditto.
 
 2002-06-12  Colin Walters  <walters@debian.org>
-	
+
 	* font-core.el (font-lock-core-only): Variable deleted.  All uses
 	removed.
 	(font-lock-set-defaults): Variable alist settings moved back into
 	font-lock-set-defaults-1.
 	(turn-on-font-lock-if-enabled): Always turn on font-lock unless it
 	is specifically excluded by the user.
-	
+
 	* font-lock.el (font-lock-set-defaults-1): Set variable alist here.
-	
+
 	* help-mode.el (help-mode): Don't set `font-lock-defaults'.
-	
+
 	* ibuffer.el (ibuffer-mode): Don't set `font-lock-defaults'.
-	
+
 	* info.el (Info-mode): Don't set `font-lock-defaults'.
-	
+
 	* replace.el (occur-mode): Don't set `font-lock-defaults'.
 
 	* help-mode.el (help-highlight-p, help-highlight-face): Variable
@@ -230,7 +235,7 @@
 	properties as well as overlays
 	(comint-snapshot-last-prompt): Snapshot using text properties.
 	(comint-get-old-input-default, comint-extract-string): Don't copy
-	text properties. 
+	text properties.
 
 	* simple.el (line-move-finish): Inhibit field motion when
 	computing `line-end'.
@@ -243,7 +248,7 @@
 	highlight-enabling variables anymore.
 	(comint-highlight-input, comint-highlight-prompt): Variables
 	removed.
-	
+
 	* faces.el (display-supports-face-attributes-p): New function.
 	(face-spec-set-match-display): Support `supports' predicate.
 	(italic): Try underlining for displays that don't support real italics.
@@ -294,10 +299,10 @@
 
 	* subr.el (copy-list): Moved here from cl.el.
 	(copy-tree): Renamed here from `cl-copy-tree' in cl-extra.el.
-	
+
 	* emacs-lisp/cl-extra.el (cl-copy-tree): Moved to `copy-tree' in
 	subr.el.  Add a defalias with the old name.
-	
+
 	* emacs-lisp/cl.el (copy-list): Moved to subr.el.
 
 	* replace.el (occur-mode): Don't set up categories.  Do set
@@ -327,8 +332,8 @@
 	`font-lock-defaults', and be sure to set `font-lock-core-only'.
 	(ibuffer-compile-format): Don't pass third argument
 	to column functions.
-	(filename-and-process): Ditto.	
-	
+	(filename-and-process): Ditto.
+
 	* ibuf-macs.el (define-ibuffer-column): Don't create a third
 	argument for the generated function.
 
