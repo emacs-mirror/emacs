@@ -786,8 +786,8 @@ If nil, uses `change-log-default-name'."
 	  (indent-to indentation))
 	(setq end (point))))
     ;; Fill the inserted text, preserving open-parens at bol.
-    (let ((paragraph-separate (concat paragraph-separate "\\|^\\s *\\s("))
-	  (paragraph-start (concat paragraph-start "\\|^\\s *\\s(")))
+    (let ((paragraph-separate (concat paragraph-separate "\\|\\s *\\s("))
+	  (paragraph-start (concat paragraph-start "\\|\\s *\\s(")))
       (beginning-of-line)
       (fill-region (point) end))
     ;; Canonicalize the white space at the end of the entry so it is
