@@ -954,6 +954,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     if (!IS_DIRECTORY_SEP (temp[i - 1])) temp[i++] = DIRECTORY_SEP;
     temp[i] = 0;
 
+#ifndef WINDOWSNT
     /* We can't signal an Elisp error here; we're in a vfork.  Since
        the callers check the current directory before forking, this
        should only return an error if the directory's permissions
@@ -961,6 +962,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
        at least check.  */
     if (chdir (temp) < 0)
       _exit (errno);
+#endif
 
     /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
     while (i > 2 && IS_DIRECTORY_SEP (temp[i - 1]))
@@ -1020,6 +1022,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   }
 #ifdef WINDOWSNT
   prepare_standard_handles (in, out, err, handles);
+  set_process_dir (XSTRING (current_dir)->data);
 #else  /* not WINDOWSNT */
   /* Make sure that in, out, and err are not actually already in
      descriptors zero, one, or two; this could happen if Emacs is
