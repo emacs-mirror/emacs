@@ -132,9 +132,12 @@ text indented by a margin setting."
   "*Regexp describing the end of a sentence.
 All paragraph boundaries also end sentences, regardless.
 
-In order to be recognized as the end of a sentence, the ending period,
-question mark, or exclamation point must be followed by two spaces,
-unless it's inside some sort of quotes or parenthesis."
+The default value specifies that in order to be recognized as the end
+of a sentence, the ending period, question mark, or exclamation point
+must be followed by two spaces, unless it's inside some sort of quotes
+or parenthesis.
+
+See also the variable `sentence-end-double-space' and Info node `Sentences'."
   :group 'paragraphs
   :type 'regexp)
 
