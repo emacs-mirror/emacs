@@ -1,3 +1,8 @@
+2003-06-05  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* info.el (Info-mode): Mention `c' and remove duplicate mention
+	of `q' in documentation string.
+
 2003-06-05  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* shell.el (shell-mode): Put `shell-filter-ctrl-a-ctrl-b' on
