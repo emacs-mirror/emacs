@@ -179,6 +179,7 @@ DEFUN ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "p",
        doc: /* Move point to end of current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
+To ignore intangibility, bind `inhibit-text-motion-hooks' to t.
 
 This command does not move point across a field boundary unless doing so
 would move beyond there to a different line; if N is nil or 1, and
@@ -187,12 +188,38 @@ boundaries bind `inhibit-field-text-motion' to t.  */)
      (n)
      Lisp_Object n;
 {
+  int newpos;
+
   if (NILP (n))
     XSETFASTINT (n, 1);
   else
     CHECK_NUMBER (n);
 
-  SET_PT (XINT (Fline_end_position (n)));
+  while (1)
+    {
+      newpos = XINT (Fline_end_position (n));
+      SET_PT (newpos);
+
+      if (PT > newpos
+	  && FETCH_CHAR (PT - 1) == '\n')
+	{
+	  /* If we skipped over a newline that follows
+	     an invisible intangible run,
+	     move back to the last tangible position
+	     within the line.  */
+
+	  SET_PT (PT - 1);
+	  break;
+	}
+      else if (PT > newpos && PT < ZV
+	       && FETCH_CHAR (PT) != '\n')
+	/* If we skipped something intangible
+	   and now we're not really at eol,
+	   keep going.  */
+	n = make_number (1);
+      else
+	break;
+    }
 
   return Qnil;
 }
