@@ -4087,7 +4087,6 @@ Garbage collection happens automatically if you cons more than
 `gc-cons-threshold' bytes of Lisp data since previous garbage collection.  */)
      ()
 {
-  register struct gcpro *tail;
   register struct specbinding *bind;
   struct catchtag *catch;
   struct handler *handler;
@@ -4201,15 +4200,18 @@ Garbage collection happens automatically if you cons more than
      || GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS)
   mark_stack ();
 #else
-  for (tail = gcprolist; tail; tail = tail->next)
-    for (i = 0; i < tail->nvars; i++)
-      if (!XMARKBIT (tail->var[i]))
-	{
-	  /* Explicit casting prevents compiler warning about
-	     discarding the `volatile' qualifier.  */
-	  mark_object ((Lisp_Object *)&tail->var[i]);
-	  XMARK (tail->var[i]);
-	}
+  {
+    register struct gcpro *tail;
+    for (tail = gcprolist; tail; tail = tail->next)
+      for (i = 0; i < tail->nvars; i++)
+	if (!XMARKBIT (tail->var[i]))
+	  {
+	    /* Explicit casting prevents compiler warning about
+	       discarding the `volatile' qualifier.  */
+	    mark_object ((Lisp_Object *)&tail->var[i]);
+	    XMARK (tail->var[i]);
+	  }
+  }
 #endif
 
   mark_byte_stack ();
