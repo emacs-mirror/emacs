@@ -2408,6 +2408,7 @@ Output stream used is value of `standard-output'.")
       if (backlist->nargs == UNEVALLED)
 	{
 	  Fprin1 (Fcons (*backlist->function, *backlist->args), Qnil);
+	  write_string ("\n", -1);
 	}
       else
 	{
@@ -2432,8 +2433,8 @@ Output stream used is value of `standard-output'.")
 		  Fprin1 (backlist->args[i], Qnil);
 		}
 	    }
+	  write_string (")\n", -1);
 	}
-      write_string (")\n", -1);
       backlist = backlist->next;
     }
 
@@ -2462,7 +2463,7 @@ If N is more than the number of frames, the value is nil.")
   CHECK_NATNUM (nframes, 0);
 
   /* Find the frame requested.  */
-  for (i = 0; i < XFASTINT (nframes); i++)
+  for (i = 0; backlist && i < XFASTINT (nframes); i++)
     backlist = backlist->next;
 
   if (!backlist)
