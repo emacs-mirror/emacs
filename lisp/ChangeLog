@@ -1,3 +1,9 @@
+2005-02-24  Kim F. Storm  <storm@cua.dk>
+
+	* international/iso-acc.el (iso-accents-compose): Fix crash
+	during redisplay.  Call force-window-update after read-event
+	and delete-region to signal that window is not accurate.
+
 2005-02-23  Richard M. Stallman  <rms@gnu.org>
 
 	* calendar/appt.el (appt-time-msg-list): 3rd elt of each
