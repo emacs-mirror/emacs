@@ -496,13 +496,15 @@ edit.
 
 @findex mail-complete
 @kindex M-TAB @r{(Mail mode)}
-  While editing a header field that contains mailing addresses, such as
-@samp{To:}, @samp{CC:} and @samp{BCC:}, you can complete a mailing
-address by typing @kbd{M-@key{TAB}} (@code{mail-complete}).  It inserts
-the full name corresponding to the address, if it can determine the full
-name.  The variable @code{mail-complete-style} controls whether to insert
-the full name, and what style to use, as in @code{mail-from-style}
-(@pxref{Mail Headers}).
+  While editing a header field that contains mailing addresses, such
+as @samp{To:}, @samp{CC:} and @samp{BCC:}, you can complete a mailing
+address by typing @kbd{M-@key{TAB}} (@code{mail-complete}).  It
+inserts the full name corresponding to the address, if it can
+determine the full name.  The variable @code{mail-complete-style}
+controls whether to insert the full name, and what style to use, as in
+@code{mail-from-style} (@pxref{Mail Headers}).  (If your window
+manager defines @kbd{M-@key{TAB}} to switch windows, you can type this
+Emacs command as @kbd{@key{ESC} @key{TAB}}.)
 
   For completion purposes, the valid mailing addresses are taken to be
 the local users' names plus your personal mail aliases.  You can
