@@ -333,11 +333,10 @@ If POS is only out of view because of horizontal scrolling, return non-nil.
 POS defaults to point in WINDOW; WINDOW defaults to the selected window.
 
 If POS is visible, return t if PARTIALLY is nil; if PARTIALLY is non-nil,
-return value is a list (X Y FULLY [RTOP RBOT]) where X and Y are the pixel
-coordinates relative to the top left corner of the window, and FULLY is t if the
-character after POS is fully visible and nil otherwise.  If FULLY is nil,
-RTOP and RBOT are the number of pixels invisible at the top and bottom row
-of the window.  */)
+return value is a list (X Y PARTIAL) where X and Y are the pixel coordinates
+relative to the top left corner of the window. PARTIAL is nil if the character
+after POS is fully visible; otherwise it is a cons (RTOP . RBOT) where RTOP
+and RBOT are the number of pixels invisible at the top and bottom of the row.  */)
      (pos, window, partially)
      Lisp_Object pos, window, partially;
 {
@@ -376,12 +375,10 @@ of the window.  */)
   if (!NILP (in_window) && !NILP (partially))
     in_window = Fcons (make_number (x),
 		       Fcons (make_number (y),
-			      Fcons (fully_p ? Qt : Qnil,
-				     (fully_p
-				      ? Qnil
-				      : Fcons (make_number (rtop),
-					       Fcons (make_number (rbot),
-						      Qnil))))));
+			      Fcons ((fully_p ? Qnil
+				     : Fcons (make_number (rtop),
+					      make_number (rbot))),
+				     Qnil)));
   return in_window;
 }
 
@@ -4578,7 +4575,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
     }
   else if (auto_window_vscroll_p)
     {
-      if (NILP (XCAR (XCDR (XCDR (tem)))))
+      if (tem = XCAR (XCDR (XCDR (tem))), CONSP (tem))
 	{
 	  int px;
 	  int dy = WINDOW_FRAME_LINE_HEIGHT (w);
@@ -4586,13 +4583,13 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	    dy = window_box_height (w) - next_screen_context_lines * dy;
 	  dy *= n;
 
-	  if (n < 0 && (px = XINT (Fnth (make_number (3), tem))) > 0)
+	  if (n < 0 && (px = XINT (XCAR (tem))) > 0)
 	    {
 	      px = max (0, -w->vscroll - min (px, -dy));
 	      Fset_window_vscroll (window, make_number (px), Qt);
 	      return;
 	    }
-	  if (n > 0 && (px = XINT (Fnth (make_number (4), tem))) > 0)
+	  if (n > 0 && (px = XINT (XCDR (tem))) > 0)
 	    {
 	      px = max (0, -w->vscroll + min (px, dy));
 	      Fset_window_vscroll (window, make_number (px), Qt);
