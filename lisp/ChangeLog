@@ -1,3 +1,37 @@
+2004-08-08  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (define-ibuffer-column size): Use `string-to-number'
+	instead of `string-to-int'.
+	(define-ibuffer-column mode): Fix indentation.
+
+2004-08-08  Lars Hansen  <larsh@math.ku.dk>
+
+	* wid-edit.el (widget-sexp-validate): Allow whitespace after
+	expression.
+
+2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (global-unset-key, local-unset-key): Doc fixes.
+
+	* novice.el (disabled-command-function): New variable renamed from
+	`disabled-command-hook'.
+	(disabled-command-hook): Keep the _variable_ as alias for
+	`disabled-command-function' and make obsolete.
+	(disabled-command-function): Function renamed from
+	`disabled-command-hook'.  Adapt code to name change of the variable.
+
+2004-08-07  Satyaki Das  <satyaki@theforce.stanford.edu>  (tiny change)
+
+	* simple.el (completion-root-regexp): New defvar.
+	(completion-setup-function): Use it instead of a literal string.
+
+2004-08-07  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax): Add `rx' syntax.
+	(reb-lisp-mode): Require `rx' feature when `re-reb-syntax' is `rx'.
+	(reb-lisp-syntax-p, reb-change-syntax): `rx' is a Lisp syntax.
+	(reb-cook-regexp): Call `rx-to-string' when `re-reb-syntax' is `rx'.
+
 2004-08-04  Kenichi Handa  <handa@m17n.org>
 
 	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix

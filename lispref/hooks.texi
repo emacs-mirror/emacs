@@ -64,7 +64,7 @@ however, we have renamed all of those.)
 @item diary-display-hook
 @item diary-hook
 @item dired-mode-hook
-@item disabled-command-hook
+@item disabled-command-function
 @item echo-area-clear-hook
 @item edit-picture-hook
 @item electric-buffer-menu-mode-hook

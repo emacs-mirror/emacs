@@ -1,3 +1,27 @@
+2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c: Declare Qdisabled_command_function instead of
+	Qdisabled_command_hook.
+	(Fcommand_execute): Use Qdisabled_command_function instead of
+	Qdisabled_command_hook.
+	(syms_of_keyboard): Ditto.
+
+2004-08-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Flocal_key_binding, Fglobal_key_binding)
+	(syms_of_keymap) <key-translation-map>: Doc fixes.
+
+2004-08-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (window_list_1): YAILOM.
+
+	* fileio.c (make_temp_name): Handle multibyte prefixes.
+
+2004-08-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c (syms_of_keyboard) <overriding-terminal-local-map>:
+	Doc fix.
+
 2004-08-03  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_string): Adjust coding->consumed, and

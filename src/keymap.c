@@ -1603,7 +1603,7 @@ is non-nil, `key-binding' returns the unmapped command.  */)
 
 DEFUN ("local-key-binding", Flocal_key_binding, Slocal_key_binding, 1, 2, 0,
        doc: /* Return the binding for command KEYS in current local keymap only.
-KEYS is a string, a sequence of keystrokes.
+KEYS is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
 
 If optional argument ACCEPT-DEFAULT is non-nil, recognize default
@@ -1622,7 +1622,7 @@ bindings; see the description of `lookup-key' for more details about this.  */)
 
 DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 2, 0,
        doc: /* Return the binding for command KEYS in current global keymap only.
-KEYS is a string, a sequence of keystrokes.
+KEYS is a string or vector, a sequence of keystrokes.
 The binding is probably a symbol with a function definition.
 This function's return values are the same as those of `lookup-key'
 \(which see).
@@ -3752,7 +3752,7 @@ key, typing `ESC O P x' would return [f1 x].  */);
   DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
 	       doc: /* Keymap of key translations that can override keymaps.
 This keymap works like `function-key-map', but comes after that,
-and applies even for keys that have ordinary bindings.  */);
+and its non-prefix bindings override ordinary bindings.  */);
   Vkey_translation_map = Qnil;
 
   staticpro (&Vmouse_events);

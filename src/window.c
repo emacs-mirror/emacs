@@ -1830,7 +1830,7 @@ window_list_1 (window, minibuf, all_frames)
   rest = Fmemq (window, list);
   if (!NILP (rest) && !EQ (rest, list))
     {
-      for (tail = list; XCDR (tail) != rest; tail = XCDR (tail))
+      for (tail = list; !EQ (XCDR (tail), rest); tail = XCDR (tail))
 	;
       XSETCDR (tail, Qnil);
       list = nconc2 (rest, list);
