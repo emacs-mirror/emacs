@@ -5,6 +5,8 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
+;; $Id: vc-hooks.el,v 1.101.1.1 1998/02/27 18:29:46 spiegel Exp $
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
