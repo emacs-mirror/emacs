@@ -1,6 +1,6 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el.
 
-;;; Copyright (C) 1991, 1992, 1993, 1994 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 ;;;
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keywords: maint
@@ -150,7 +150,13 @@ are used."
     (save-excursion
       (unwind-protect
 	  (progn
-	    (set-buffer (find-file-noselect file))
+	    (if visited
+		(set-buffer visited)
+	      ;; It is faster to avoid visiting the file.
+	      (set-buffer (get-buffer-create " *generate-autoload-file*"))
+	      (kill-all-local-variables)
+	      (erase-buffer)
+	      (insert-file-contents file nil))
 	    (save-excursion
 	      (save-restriction
 		(widen)
