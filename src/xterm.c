@@ -457,7 +457,14 @@ dumpglyphs (f, left, top, gp, n, hl)
 	FONT_TYPE *font = FACE_FONT (face);
 	GC gc = FACE_GC (face);
 
-	if (cf != 0)
+	/* Cursor display take full precidence.  */
+	if (hl == 2)
+	  {
+	    gc   = (f->display.x->cursor_gc);
+	  }
+
+	/* Then comes faces of the text itself.  */
+	else if (cf != 0)
 	  {
 	    /* The face codes on the glyphs must be valid indices into the
 	       frame's face table.  */
@@ -467,10 +474,12 @@ dumpglyphs (f, left, top, gp, n, hl)
 	    if (cf == 1)
 	      face = FRAME_MODE_LINE_FACE (f);
 	    else
-	      face = intern_face (FRAME_FACES (f) [cf]);
+	      face = intern_face (f, FRAME_FACES (f) [cf]);
 	    font = FACE_FONT (face);
 	    gc = FACE_GC (face);
 	  }
+
+	/* Then comes the distinction between modeline and normal text.  */
 	else if (hl == 0)
 	  ;
 	else if (hl == 1)
@@ -479,23 +488,18 @@ dumpglyphs (f, left, top, gp, n, hl)
 	    font = FACE_FONT (face);
 	    gc   = FACE_GC   (face);
 	  }
-	else if (hl == 2)
-	  {
-	    gc   = (f->display.x->cursor_gc);
-	  }
 
 	XDrawImageString (x_current_display, window, gc,
 			  left, top + FONT_BASE (font), buf, len);
-	left += len * FONT_WIDTH (font);
 
 	/* We should probably check for XA_UNDERLINE_POSITION and
 	   XA_UNDERLINE_THICKNESS properties on the font, but let's
 	   just get the thing working, and come back to that.  */
 	{
-	  int underline_position = 2;
+	  int underline_position = 1;
 
-	  if (font->descent < underline_position)
-	    underline_position = font->descent;
+	  if (font->descent <= underline_position)
+	    underline_position = font->descent - 1;
 
 	  if (face->underline)
 	    XFillRectangle (x_current_display, FRAME_X_WINDOW (f),
