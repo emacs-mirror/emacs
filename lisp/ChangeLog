@@ -1,6 +1,21 @@
+2001-11-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* server.el (server-process-filter): Run pore/post-comment-hook
+	before/after visiting the file.
+
+	* info-look.el (makefile-mode): Add info for automake.
+	(autoconf-mode): Fix the name of the index for automake.
+
+	* international/latin-9.el: Give pilcrow punctuation syntax.
+
 2001-11-15  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el: Documentation fixes.
+
+2001-11-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* smerge-mode.el (smerge-match-conflict): Fix typo.
+	(smerge-diff): Be careful to read match-data early enough.
 
 2001-11-14  Colin Walters  <walters@verbum.org>
 
@@ -12,16 +27,16 @@
 	(calcFunc-ceil, calcFunc-round): Ditto.
 
 	* calc/calc-bin.el (calcFunc-clip): Ditto.
-	
+
 	* calc/calc-ext.el (calcFunc-evalv): Ditto.
-	
+
 	* calc/calc-math.el (calcFunc-sqrt, calcFunc-hypot): Ditto.
-	
+
 	* calc/calc-misc.el (math-fixnump, math-fixnatnump)
 	(calcFunc-trunc, calcFunc-floor, calc-report-bug): Ditto.
 
 	* calc/calc-units.el (calcFunc-unsimplify): Ditto.
-	
+
 	* calc-aent.el, calc-ext.el, calc-incom.el, calc-misc.el
 	* calc-sel.el, calc-vec.el, calc-alg.el, calc-fin.el
 	* calc-keypd.el, calc-mode.el, calc-stat.el, calc-yank.el
@@ -40,7 +55,7 @@
 
 2001-11-13  Gerd Moellmann  <gerd@gnu.org>
 
-	* mouse.el (mouse-drag-region): Don't run the up-event 
+	* mouse.el (mouse-drag-region): Don't run the up-event
 	handler if window start changed due to the down-mouse event.
 
 2001-11-13  Richard M. Stallman  <rms@gnu.org>
@@ -51,22 +66,21 @@
 
 2001-11-13  Simon Josefsson  <jas@extundo.com>
 
-	* mail/smtpmail.el: Cleanup previous patch, by "Stefan Monnier"
-	<monnier+gnu/emacs@RUM.cs.yale.edu>.
+	* mail/smtpmail.el: Cleanup previous patch.  From "Stefan Monnier"
+	<monnier+gnu/emacs@flint.cs.yale.edu>.
 
 	* mail/smtpmail.el (top-level): Autoload starttls, mail-utils and
 	rfc2104.  Require base64 and cl.
 	(smtpmail-smtp-service): Doc fix.  :type fix.
 	(smtpmail-debug-info): Doc fix.
 	(smtpmail-debug-verb, smtpmail-auth-credentials)
-	(smtpmail-starttls-credentials, smtpmail-auth-supported): New
-	variables.
+	(smtpmail-starttls-credentials, smtpmail-auth-supported):
+	New variables.
 	(smtpmail-deduce-address-list, smtpmail-send-it): Don't require
 	mail-utils (it is autoloaded).
 	(smtpmail-cred-server, smtpmail-cred-port, smtpmail-cred-key)
 	(smtpmail-cred-user, smtpmail-cred-cert, smtpmail-cred-passwd)
-	(smtpmail-find-credentials, smtpmail-intersection): New utility
-	functions.
+	(smtpmail-find-credentials, smtpmail-intersection): New utility funs.
 	(smtpmail-via-smtp): Support STARTTLS, if binary is installed.
 	(smtpmail-via-smtp): Support AUTH.
 	(smtpmail-via-smtp): Use `smtpmail-debug-verb' to control VERB.
