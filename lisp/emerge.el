@@ -22,7 +22,7 @@
 ;;; Code:
 
 ;;;###autoload
-(defvar menu-bar-emerge-menu (make-sparse-keymap "menu-bar-emerge-map"))
+(defvar menu-bar-emerge-menu (make-sparse-keymap "Emerge"))
 ;;;###autoload
 (fset 'menu-bar-emerge-menu (symbol-value 'menu-bar-emerge-menu))
 
