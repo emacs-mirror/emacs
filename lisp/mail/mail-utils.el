@@ -38,6 +38,17 @@
 Otherwise, (the default) use a smaller, somewhat faster, and
 often correct parser.")
 
+;; Returns t if file FILE is an Rmail file.
+;;;###autoload
+(defun mail-file-babyl-p (file)
+  (let ((buf (generate-new-buffer " *rmail-file-p*")))
+    (unwind-protect
+	(save-excursion
+	  (set-buffer buf)
+	  (insert-file-contents file nil 0 100)
+	  (looking-at "BABYL OPTIONS:"))
+      (kill-buffer buf))))
+
 (defun mail-string-delete (string start end)
   "Returns a string containing all of STRING except the part
 from START (inclusive) to END (exclusive)."
