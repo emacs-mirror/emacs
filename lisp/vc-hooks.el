@@ -242,9 +242,7 @@ visiting FILE."
 	(make-local-variable 'make-backup-files)
 	(setq make-backup-files nil))))
 
-(or (memq 'vc-find-file-hook find-file-hooks)
-    (setq find-file-hooks
-	  (cons 'vc-find-file-hook find-file-hooks)))
+(add-hook 'find-file-hooks 'vc-find-file-hook)
 
 ;;; more hooks, this time for file-not-found
 (defun vc-file-not-found-hook ()
@@ -255,9 +253,7 @@ Returns t if checkout was successful, nil otherwise."
 	(require 'vc)
 	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
 
-(or (memq 'vc-file-not-found-hook find-file-not-found-hooks)
-    (setq find-file-not-found-hooks
-	  (cons 'vc-file-not-found-hook find-file-not-found-hooks)))
+(add-hook 'find-file-not-found-hooks 'vc-file-not-found-hook)
 
 ;;; Now arrange for bindings and autoloading of the main package.
 ;;; Bindings for this have to go in the global map, as we'll often
