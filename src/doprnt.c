@@ -240,7 +240,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
 	      if (lispstrings)
 		{
 		  string = ((struct Lisp_String *)args[cnt])->data;
-		  tem = ((struct Lisp_String *)args[cnt])->size;
+		  tem = STRING_BYTES ((struct Lisp_String *)args[cnt]);
 		  cnt++;
 		}
 	      else
