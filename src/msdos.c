@@ -2461,6 +2461,14 @@ check_timer (t)
   last_time  = *t;
 }
 
+#ifndef EMACS_TIME_ZERO_OR_NEG_P
+#define EMACS_TIME_ZERO_OR_NEG_P(time)	\
+  ((long)(time).tv_sec < 0		\
+   || ((time).tv_sec == 0		\
+       && (long)(time).tv_usec <= 0))
+#endif
+
+
 /* Only event queue is checked.  */
 int
 sys_select (nfds, rfds, wfds, efds, timeout)
@@ -2469,7 +2477,6 @@ sys_select (nfds, rfds, wfds, efds, timeout)
      EMACS_TIME *timeout;
 {
   int check_input;
-  long timeoutval, clnow, cllast;
   struct time t;
 
   check_input = 0;
@@ -2496,19 +2503,25 @@ sys_select (nfds, rfds, wfds, efds, timeout)
     }
   else
     {
-      timeoutval = EMACS_SECS (*timeout) * 100 + EMACS_USECS (*timeout) / 10000;
+      EMACS_TIME clnow, cllast, cldiff;
+
       check_timer (&t);
-      cllast = t.ti_sec * 100 + t.ti_hund;
+      EMACS_SET_SECS_USECS (cllast, t.ti_sec, t.ti_hund * 10000L);
 
       while (!check_input || !detect_input_pending ())
 	{
 	  check_timer (&t);
-	  clnow = t.ti_sec * 100 + t.ti_hund;
-	  if (clnow < cllast) /* time wrap */
-	    timeoutval -= clnow + 6000 - cllast;
-	  else
-	    timeoutval -= clnow - cllast;
-	  if (timeoutval <= 0)  /* Stop on timer being cleared */
+	  EMACS_SET_SECS_USECS (clnow, t.ti_sec, t.ti_hund * 10000L);
+	  EMACS_SUB_TIME (cldiff, clnow, cllast);
+
+	  /* When seconds wrap around, we assume that no more than
+	     1 minute passed since last `check_timer'.  */
+	  if (EMACS_TIME_NEG_P (cldiff))
+	    EMACS_SET_SECS (cldiff, EMACS_SECS (cldiff) + 60);
+	  EMACS_SUB_TIME (*timeout, *timeout, cldiff);
+
+	  /* Stop when timeout value crosses zero.  */
+	  if (EMACS_TIME_ZERO_OR_NEG_P (*timeout))
 	    return 0;
 	  cllast = clnow;
 	}
