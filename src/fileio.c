@@ -4050,7 +4050,10 @@ actually used.")
   if (! coding_system_decided)
     {
       /* The coding system is not yet decided.  Decide it by an
-	 optimized method for handling `coding:' tag.  */
+	 optimized method for handling `coding:' tag.
+
+	 Note that we can get here only if the buffer was empty
+	 before the insertion.  */
       Lisp_Object val;
       val = Qnil;
 
