@@ -1,3 +1,19 @@
+2002-11-18  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el (cyrillic-iso-8bit): Make it safe.
+
+	* language/european.el (iso-latin-1): Make it safe.
+	(iso-latin-2, iso-latin-3, iso-latin-4, iso-latin-5, iso-latin-8) 
+	(iso-latin-9): Likewise.
+
+	* language/greek.el (greek-iso-8bit): Make it safe.
+
+	* language/hebrew.el (hebrew-iso-8bit): Make it safe.
+
+	* language/lao.el (lao): Make it safe.
+
+	* language/thai.el (thai-tis620): Make it safe.
+
 2002-11-17   Markus Rost  <rost@math.ohio-state.edu>
 
 	* speedbar.el (defgroup speedbar): Use group 'etags instead of
@@ -121,6 +137,10 @@
 	properties.
 
 2002-11-14  Kenichi Handa  <handa@m17n.org>
+
+	* gud.el: Provide gud, not mygud.
+
+	* gdb-ui.el: Don't require mygud.
 
 	* progmodes/cc-vars.el: Don't cc-bytecomp-defun char-table-p.
 
