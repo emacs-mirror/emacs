@@ -1049,8 +1049,10 @@ isfloat_string (cp)
     }
   return (*cp == 0
 	  && (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
+	      || state == (DOT_CHAR|TRAIL_INT)
 	      || state == (LEAD_INT|E_CHAR|EXP_INT)
-	      || state == (LEAD_INT|DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)));
+	      || state == (LEAD_INT|DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)
+	      || state == (DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)));
 }
 #endif /* LISP_FLOAT_TYPE */
 

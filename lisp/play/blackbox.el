@@ -81,27 +81,20 @@
   (define-key blackbox-mode-map "\C-e" 'bb-eol)
   (define-key blackbox-mode-map "\C-a" 'bb-bol)
   (define-key blackbox-mode-map " " 'bb-romp)
+  (define-key blackbox-mode-map [insert] 'bb-romp)
   (define-key blackbox-mode-map "\C-m" 'bb-done)
+  (define-key blackbox-mode-map [kp-enter] 'bb-done)
 
   ;; This is a kluge.  What we really want is a general
   ;; feature for reminding terminal keys to the functions
-  ;; corresponding to them in local maps
-  (if (featurep 'keypad)
-      (let (keys)
-	(if (setq keys (function-key-sequence ?u)) ; Up Arrow
-	    (define-key blackbox-mode-map keys 'bb-up))
-	(if (setq keys (function-key-sequence ?d)) ; Down Arrow
-	    (define-key blackbox-mode-map keys 'bb-down))
-	(if (setq keys (function-key-sequence ?l)) ; Left Arrow
-	    (define-key blackbox-mode-map keys 'bb-left))
-	(if (setq keys (function-key-sequence ?r)) ; Right Arrow
-	    (define-key blackbox-mode-map keys 'bb-right))
-	(if (setq keys (function-key-sequence ?e)) ; Enter
-	    (define-key blackbox-mode-map keys 'bb-done))
-	(if (setq keys (function-key-sequence ?I)) ; Insert
-	    (define-key blackbox-mode-map keys 'bb-romp))
-	)))
-
+  ;; corresponding to them in local maps.
+  (mapcar (function
+	   (lambda (funk)
+	     (mapcar (function
+		      (lambda (key)
+			(define-key blackbox-mode-map key funk)))
+		     (where-is-internal funk))))
+	  '(previous-line next-line backward-character forward-character)))
 
 ;; Blackbox mode is suitable only for specially formatted data.
 (put 'blackbox-mode 'mode-class 'special)
@@ -139,9 +132,10 @@ your score.
 
 Overview of play:
 
-To play blackbox, call the function `blackbox'.  An optional prefix
-argument specifies the number of balls to be hidden in the box; the
-default is four.
+\\<blackbox-mode-map>\
+To play blackbox, type \\[blackbox].  An optional prefix argument
+specifies the number of balls to be hidden in the box; the default is
+four.
 
 The cursor can be moved around the box with the standard cursor
 movement keys.
@@ -150,14 +144,14 @@ To shoot a ray, move the cursor to the edge of the box and press SPC.
 The result will be determined and the playfield updated.
 
 You may place or remove balls in the box by moving the cursor into the
-box and pressing \\<bb-romp>.
+box and pressing \\[bb-romp].
 
 When you think the configuration of balls you have placed is correct,
-press \\<bb-done>.  You will be informed whether you are correct or not, and
-be given your score.  Your score is the number of letters and numbers
-around the outside of the box plus five for each incorrectly placed
-ball.  If you placed any balls incorrectly, they will be indicated
-with `x', and their actual positions indicated with `o'.
+press \\[bb-done].  You will be informed whether you are correct or
+not, and be given your score.  Your score is the number of letters and
+numbers around the outside of the box plus five for each incorrectly
+placed ball.  If you placed any balls incorrectly, they will be
+indicated with `x', and their actual positions indicated with `o'.
 
 Details:
 
@@ -408,7 +402,8 @@ a reflection."
     (bb-update-board c)
     (1+ (bb-show-bogus-balls-2 (cdr list-1) list-2 c)))))
 
-;; blackbox.el ends here
+(defun bb-outside-box (x y)
+  (or (= x -1) (= x 8) (= y -1) (= y 8)))
 
 (defun bb-goto (pos)
   (goto-char (+ (* (car pos) 2) (* (cdr pos) 22) 26)))

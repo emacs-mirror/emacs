@@ -245,15 +245,15 @@ configuration, and other parameters set as specified in CONFIGURATION."
 ;;;; Convenience functions for accessing and interactively changing
 ;;;; frame parameters.
 
-(defun frame-width (&optional frame)
+(defun frame-height (&optional frame)
   "Return number of lines available for display on FRAME.
 If FRAME is omitted, describe the currently selected frame."
-  (cdr (assq 'width (frame-parameters frame))))
+  (cdr (assq 'height (frame-parameters frame))))
 
 (defun frame-width (&optional frame)
   "Return number of columns available for display on FRAME.
 If FRAME is omitted, describe the currently selected frame."
-  (cdr (assq 'height (frame-parameters frame))))
+  (cdr (assq 'width (frame-parameters frame))))
 
 (defun set-frame-height (h)
   (interactive "NHeight: ")
