@@ -22,12 +22,12 @@ but not for ``the'' type of an object.
 
 @cindex primitive type
   A few fundamental object types are built into Emacs.  These, from
-which all other types are constructed, are called @dfn{primitive
-types}.  Each object belongs to one and only one primitive type.  These
-types include @dfn{integer}, @dfn{float}, @dfn{cons}, @dfn{symbol},
-@dfn{string}, @dfn{vector}, @dfn{subr}, and @dfn{byte-code function}, plus
-several special types, such as @dfn{buffer}, that are related to
-editing.  (@xref{Editing Types}.)
+which all other types are constructed, are called @dfn{primitive types}.
+Each object belongs to one and only one primitive type.  These types
+include @dfn{integer}, @dfn{float}, @dfn{cons}, @dfn{symbol},
+@dfn{string}, @dfn{vector}, @dfn{hash-table}, @dfn{subr}, and
+@dfn{byte-code function}, plus several special types, such as
+@dfn{buffer}, that are related to editing.  (@xref{Editing Types}.)
 
   Each primitive type has a corresponding Lisp function that checks
 whether an object is a member of that type.
@@ -469,6 +469,11 @@ objects, so that its presence in a data structure may be recognized
 reliably.  In a given context, usually only one of these uses is
 intended.  But you can use one symbol in all of these ways,
 independently.
+
+  A symbol whose name starts with a colon (@samp{:}) is called a
+@dfn{keyword symbol}.  These symbols automatically act as constants, and
+are normally used only by comparing an unknown symbol with a few
+specific alternatives.
 
 @cindex @samp{\} in symbols
 @cindex backslash in symbols
@@ -1697,7 +1702,7 @@ types.  In most cases, it is more convenient to use type predicates than
 This function returns a symbol naming the primitive type of
 @var{object}.  The value is one of the symbols @code{symbol},
 @code{integer}, @code{float}, @code{string}, @code{cons}, @code{vector},
-@code{char-table}, @code{bool-vector}, @code{subr},
+@code{char-table}, @code{bool-vector}, @code{hash-table}, @code{subr},
 @code{compiled-function}, @code{marker}, @code{overlay}, @code{window},
 @code{buffer}, @code{frame}, @code{process}, or
 @code{window-configuration}.
@@ -1794,8 +1799,9 @@ Symbols}.
 This function returns @code{t} if @var{object1} and @var{object2} have
 equal components, @code{nil} otherwise.  Whereas @code{eq} tests if its
 arguments are the same object, @code{equal} looks inside nonidentical
-arguments to see if their elements are the same.  So, if two objects are
-@code{eq}, they are @code{equal}, but the converse is not always true.
+arguments to see if their elements or contents are the same.  So, if two
+objects are @code{eq}, they are @code{equal}, but the converse is not
+always true.
 
 @example
 @group
@@ -1858,9 +1864,19 @@ contents are entirely @sc{ascii} (@pxref{Text Representations}).
 @end group
 @end example
 
-Two distinct buffers are never @code{equal}, even if their contents
-are the same.
+However, two distinct buffers are never considered @code{equal}, even if
+their textual contents are the same.
 @end defun
 
-  The test for equality is implemented recursively, and circular lists may
-therefore cause infinite recursion (leading to an error).
+  The test for equality is implemented recursively; for example, given
+two cons cells @var{x} and @var{y}, @code{(equal @var{x} @var{y})}
+returns @code{t} if and only if both the expressions below return
+@code{t}:
+
+@example
+(equal (car @var{x}) (car @var{y}))
+(equal (cdr @var{x}) (cdr @var{y}))
+@end example
+
+Because of this recursive method, circular lists may therefore cause
+infinite recursion (leading to an error).
