@@ -1,3 +1,7 @@
+2004-10-28  John Paul Wallington  <jpw@gnu.org>
+
+	* files.el (set-auto-mode): Call `throw' correctly.
+
 2004-10-28  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-file-list-for-emacs): Add ("Info" . "info")
