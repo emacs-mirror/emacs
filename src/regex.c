@@ -3933,7 +3933,9 @@ static int bcmp_translate _RE_ARGS((re_char *s1, re_char *s2,
    : ((regoff_t) ((ptr) - string2 + size1)))
 
 /* Call before fetching a character with *d.  This switches over to
-   string2 if necessary.  */
+   string2 if necessary.
+   Check re_match_2_internal for a discussion of why end_match_2 might
+   not be within string2 (but be equal to end_match_1 instead).  */
 #define PREFETCH()							\
   while (d == dend)							\
     {									\
@@ -4463,15 +4465,6 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
   for (mcnt = 1; mcnt < num_regs; mcnt++)
     regstart[mcnt] = regend[mcnt] = REG_UNSET_VALUE;
 
-  /* Shorten strings to `stop'.  */
-  if (stop <= size1)
-    {
-      size1 = stop;
-      size2 = 0;
-    }
-  else if (stop <= size1 + size2)
-    size2 = stop - size1;
-
   /* We move `string1' into `string2' if the latter's empty -- but not if
      `string1' is null.	 */
   if (size2 == 0 && string1 != NULL)
@@ -4484,25 +4477,42 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
   end1 = string1 + size1;
   end2 = string2 + size2;
 
-  /* Compute where to stop matching, within the two strings.  */
-  end_match_1 = end1;
-  end_match_2 = end2;
-
   /* `p' scans through the pattern as `d' scans through the data.
      `dend' is the end of the input string that `d' points within.  `d'
      is advanced into the following input string whenever necessary, but
      this happens before fetching; therefore, at the beginning of the
      loop, `d' can be pointing at the end of a string, but it cannot
      equal `string2'.  */
-  if (size1 > 0 && pos <= size1)
+  if (pos >= size1)
     {
-      d = string1 + pos;
-      dend = end_match_1;
+      /* Only match within string2.  */
+      d = string2 + pos - size1;
+      dend = end_match_2 = string2 + stop - size1;
+      end_match_1 = end1;	/* Just to give it a value.  */
     }
   else
     {
-      d = string2 + pos - size1;
-      dend = end_match_2;
+      if (stop <= size1)
+	{
+	  /* Only match within string1.  */
+	  end_match_1 = string1 + stop;
+	  /* BEWARE!
+	     When we reach end_match_1, PREFETCH normally switches to string2.
+	     But in the present case, this means that just doing a PREFETCH
+	     makes us jump from `stop' to `gap' within the string.
+	     What we really want here is for the search to stop as
+	     soon as we hit end_match_1.  That's why we set end_match_2
+	     to end_match_1 (since PREFETCH fails as soon as we hit
+	     end_match_2).  */
+	  end_match_2 = end_match_1;
+	}
+      else
+	{
+	  end_match_1 = end1;
+	  end_match_2 = string2 + stop - size1;
+	}
+      d = string1 + pos;
+      dend = end_match_1;
     }
 
   DEBUG_PRINT1 ("The compiled pattern is: ");
@@ -4980,9 +4990,12 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	    {
 	      if (!bufp->not_bol) break;
 	    }
-	  else if (d[-1] == '\n' && bufp->newline_anchor)
+	  else
 	    {
-	      break;
+	      unsigned char c;
+	      GET_CHAR_BEFORE_2 (c, d, string1, end1, string2, end2);
+	      if (c == '\n' && bufp->newline_anchor)
+		break;
 	    }
 	  /* In all other cases, we fail.  */
 	  goto fail;
