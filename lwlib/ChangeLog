@@ -4,7 +4,7 @@
 	(xrdb-cpp.o): Remove target.
 	Remove unused defines.
 
-	* xrdb.c, xrdb-cpp.c: Remove unused file.
+	* xrdb.c, xrdb-cpp.c, Imakefile: Remove unused file.
 
 	* lwlib.c (instantiate_widget_instance): Remove duplicated
 	prototype.
