@@ -656,24 +656,13 @@ If file does not exist, returns nil.")
   else					/* if we can't tell, assume worst */
     values[9] = Qt;
 #else					/* file gid will be egid */
-#ifdef WINDOWSNT
-  values[9] = Qnil;	/* sorry, no group IDs on NT */
-#else  /* not WINDOWSNT */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
-#endif /* not WINDOWSNT */
 #endif	/* BSD4_2 (or BSD4_3) */
 #ifdef BSD4_3
 #undef BSD4_2 /* ok, you can look again without throwing up */
 #endif
-#ifdef WINDOWSNT
-  /* Fill in the inode and device values specially...see nt.c.  */
-  if (!get_inode_and_device_vals (filename, &values[10], &values[11])) {
-      return Qnil;
-  }
-#else  /* not WINDOWSNT */
   values[10] = make_number (s.st_ino);
   values[11] = make_number (s.st_dev);
-#endif /* not WINDOWSNT */
   return Flist (sizeof(values) / sizeof(values[0]), values);
 }
 
