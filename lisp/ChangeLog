@@ -9,7 +9,8 @@
 
 	* progmodes/octave-mod.el (octave-mode-map): Change C-c i bindings
 	to C-c C-i.  Duplicate its bindings with last char a ctl char.
-
+	Also change C-c f to C-c C-f.
+	
 2003-01-20  Markus Rost  <rost@math.ohio-state.edu>
 
 	* ls-lisp.el (ls-lisp-use-insert-directory-program): Make default

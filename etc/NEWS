@@ -1045,6 +1045,12 @@ Keyboard macros can now be debugged and edited interactively.
 C-x C-k SPC will step through the last keyboard macro one key sequence
 at a time, prompting for the actions to take.
 
+---
+** The old Octave mode bindings C-c f and C-c i have been changed
+to C-c C-f and C-c C-i.  The C-c C-i subcommands now have duplicate
+bindings on control characters--thus, C-c C-i C-b is the same as
+C-c C-i b, and so on.
+
 +++
 ** Calc is now part of the Emacs distribution.
 
