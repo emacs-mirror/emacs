@@ -1,3 +1,18 @@
+2000-12-20  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-util.el (gnus-add-text-properties-when): New function.
+	(gnus-remove-text-properties-when): Ditto.
+
+	* gnus-cite.el (gnus-article-hide-citation): Use them.
+	(gnus-article-toggle-cited-text): Use them.
+	
+	* gnus-art.el (gnus-signature-toggle): Use them.
+	(gnus-article-show-hidden-text): Ditto.
+	(gnus-article-hide-text): Ditto.
+
+	* gnus-art.el (gnus-article-describe-key): Use prompt.
+	(gnus-article-describe-key-briefly): Ditto.
+
 2000-12-19  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el (mm-charset-synonym-alist): Fix a typo.

@@ -468,57 +468,63 @@ always hide."
   (gnus-set-format 'cited-closed-text-button t)
   (save-excursion
     (set-buffer gnus-article-buffer)
-    (cond
-     ((gnus-article-check-hidden-text 'cite arg)
-      t)
-     ((gnus-article-text-type-exists-p 'cite)
-      (let ((buffer-read-only nil))
-	(gnus-article-hide-text-of-type 'cite)))
-     (t
       (let ((buffer-read-only nil)
-	    (marks (gnus-dissect-cited-text))
+	    marks
 	    (inhibit-point-motion-hooks t)
 	    (props (nconc (list 'article-type 'cite)
 			  gnus-hidden-properties))
-	    beg end start)
-	(while marks
-	  (setq beg nil
-		end nil)
-	  (while (and marks (string= (cdar marks) ""))
-	    (setq marks (cdr marks)))
-	  (when marks
-	    (setq beg (caar marks)))
-	  (while (and marks (not (string= (cdar marks) "")))
-	    (setq marks (cdr marks)))
-	  (when marks
+	    (point (point-min))
+	    found beg end start)
+	(while (setq point 
+		     (text-property-any point (point-max) 
+					'gnus-callback
+					'gnus-article-toggle-cited-text))
+	  (setq found t)
+	  (goto-char point)
+	  (gnus-article-toggle-cited-text
+	   (get-text-property point 'gnus-data) arg)
+	  (forward-line 1)
+	  (setq point (point)))
+	(unless found
+	  (setq marks (gnus-dissect-cited-text))
+	  (while marks
+	    (setq beg nil
+		  end nil)
+	    (while (and marks (string= (cdar marks) ""))
+	      (setq marks (cdr marks)))
+	    (when marks
+	      (setq beg (caar marks)))
+	    (while (and marks (not (string= (cdar marks) "")))
+	      (setq marks (cdr marks)))
+	    (when marks
 	    (setq end (caar marks)))
-	  ;; Skip past lines we want to leave visible.
-	  (when (and beg end gnus-cited-lines-visible)
-	    (goto-char beg)
-	    (forward-line (if (consp gnus-cited-lines-visible)
-			      (car gnus-cited-lines-visible)
-			    gnus-cited-lines-visible))
-	    (if (>= (point) end)
-		(setq beg nil)
-	      (setq beg (point-marker))
-	      (when (consp gnus-cited-lines-visible)
-		(goto-char end)
-		(forward-line (- (cdr gnus-cited-lines-visible)))
-		(if (<= (point) beg)
-		    (setq beg nil)
+	    ;; Skip past lines we want to leave visible.
+	    (when (and beg end gnus-cited-lines-visible)
+	      (goto-char beg)
+	      (forward-line (if (consp gnus-cited-lines-visible)
+				(car gnus-cited-lines-visible)
+			      gnus-cited-lines-visible))
+	      (if (>= (point) end)
+		  (setq beg nil)
+		(setq beg (point-marker))
+		(when (consp gnus-cited-lines-visible)
+		  (goto-char end)
+		  (forward-line (- (cdr gnus-cited-lines-visible)))
+		  (if (<= (point) beg)
+		      (setq beg nil)
 		  (setq end (point-marker))))))
-	  (when (and beg end)
-	    ;; We use markers for the end-points to facilitate later
-	    ;; wrapping and mangling of text.
-	    (setq beg (set-marker (make-marker) beg)
-		  end (set-marker (make-marker) end))
-	    (gnus-add-text-properties beg end props)
-	    (goto-char beg)
-	    (unless (save-excursion (search-backward "\n\n" nil t))
-	      (insert "\n"))
-	    (put-text-property
-	     (setq start (point-marker))
-	     (progn
+	    (when (and beg end)
+	      ;; We use markers for the end-points to facilitate later
+	      ;; wrapping and mangling of text.
+	      (setq beg (set-marker (make-marker) beg)
+		    end (set-marker (make-marker) end))
+	      (gnus-add-text-properties-when 'article-type nil beg end props)
+	      (goto-char beg)
+	      (unless (save-excursion (search-backward "\n\n" nil t))
+		(insert "\n"))
+	      (put-text-property
+	       (setq start (point-marker))
+	       (progn
 	       (gnus-article-add-button
 		(point)
 		(progn (eval gnus-cited-closed-text-button-line-format-spec)
@@ -526,42 +532,51 @@ always hide."
 		`gnus-article-toggle-cited-text
 		(list (cons beg end) start))
 	       (point))
-	     'article-type 'annotation)
-	    (set-marker beg (point)))))))))
+	       'article-type 'annotation)
+	      (set-marker beg (point))))))))
 
-(defun gnus-article-toggle-cited-text (args)
-  "Toggle hiding the text in REGION."
+(defun gnus-article-toggle-cited-text (args &optional arg)
+  "Toggle hiding the text in REGION.
+ARG can be nil or a number.  Positive means hide, negative
+means show, nil means toggle."
   (let* ((region (car args))
 	 (beg (car region))
 	 (end (cdr region))
 	 (start (cadr args))
 	 (hidden
-	  (text-property-any
-	   beg (1- end)
-	   (car gnus-hidden-properties) (cadr gnus-hidden-properties)))
+	  (text-property-any beg (1- end) 'article-type 'cite))
 	 (inhibit-point-motion-hooks t)
 	 buffer-read-only)
-    (funcall
-     (if hidden
-	 'remove-text-properties 'gnus-add-text-properties)
-     beg end gnus-hidden-properties)
-    (save-excursion
-      (goto-char start)
-      (gnus-delete-line)
-      (put-text-property
-       (point)
-       (progn
-	 (gnus-article-add-button
-	  (point)
-	  (progn (eval
-		  (if hidden
-		      gnus-cited-opened-text-button-line-format-spec
-		    gnus-cited-closed-text-button-line-format-spec))
-		 (point))
-	  `gnus-article-toggle-cited-text
-	  args)
-	 (point))
-       'article-type 'annotation))))
+    (when (or (null arg)
+	      (zerop arg)
+	      (and (> arg 0) (not hidden))
+	      (and (< arg 0) hidden))
+      (if hidden
+	  (gnus-remove-text-properties-when
+	   'article-type 'cite beg end 
+	   (cons 'article-type (cons 'cite
+				     gnus-hidden-properties)))
+	(gnus-add-text-properties-when
+	 'article-type nil beg end 
+	 (cons 'article-type (cons 'cite
+				   gnus-hidden-properties))))
+      (save-excursion
+	(goto-char start)
+	(gnus-delete-line)
+	(put-text-property
+	 (point)
+	 (progn
+	   (gnus-article-add-button
+	    (point)
+	    (progn (eval
+		    (if hidden
+			gnus-cited-opened-text-button-line-format-spec
+		      gnus-cited-closed-text-button-line-format-spec))
+		   (point))
+	    `gnus-article-toggle-cited-text
+	    args)
+	   (point))
+	 'article-type 'annotation)))))
 
 (defun gnus-article-hide-citation-maybe (&optional arg force)
   "Toggle hiding of cited text that has an attribution line.
