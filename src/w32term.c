@@ -5501,11 +5501,10 @@ expose_area (w, row, r, area)
      RECT *r;
      enum glyph_row_area area;
 {
-  int x;
   struct glyph *first = row->glyphs[area];
   struct glyph *end = row->glyphs[area] + row->used[area];
   struct glyph *last;
-  int first_x;
+  int first_x, start_x, x;
 
   /* Set x to the window-relative start position for drawing glyphs of
      AREA.  The first glyph of the text area can be partially visible.
@@ -5526,6 +5525,18 @@ expose_area (w, row, r, area)
 		   NULL, NULL, 0);
   else
     {
+      /* Set START_X to the window-relative start position for drawing glyphs of
+	 AREA.  The first glyph of the text area can be partially visible.
+	 The first glyphs of other areas cannot.  */
+      if (area == LEFT_MARGIN_AREA)
+	start_x = 0;
+      else if (area == TEXT_AREA)
+	start_x = row->x + window_box_width (w, LEFT_MARGIN_AREA);
+      else
+	start_x = (window_box_width (w, LEFT_MARGIN_AREA)
+		   + window_box_width (w, TEXT_AREA));
+      x = start_x;
+
       /* Find the first glyph that must be redrawn.  */
       while (first < end
              && x + first->pixel_width < r->left)
@@ -5543,7 +5554,7 @@ expose_area (w, row, r, area)
           x += last->pixel_width;
           ++last;
         }
-      
+
       /* Repaint.  */
       if (last > first)
         x_draw_glyphs (w, first_x - start_x, row, area,
