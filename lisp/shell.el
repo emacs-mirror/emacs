@@ -121,6 +121,13 @@
   :group 'shell)
 
 ;;;###autoload
+(defcustom shell-dumb-shell-regexp "cmd\\(proxy\\)?\\.exe"
+  "Regexp to match shells that don't save their command history.
+For shells that match this regexp, Emacs will write out the
+command history when the shell finishes."
+  :type 'regexp
+  :group 'shell)
+
 (defcustom shell-prompt-pattern "^[^#$%>\n]*[#$%>] *"
   "Regexp to match prompts in the inferior shell.
 Defaults to \"^[^#$%>\\n]*[#$%>] *\", which works pretty well.
@@ -421,12 +428,32 @@ buffer."
 	    (equal (file-truename comint-input-ring-file-name)
 		   (file-truename "/dev/null")))
 	(setq comint-input-ring-file-name nil))
+    ;; Arrange to write out the input ring on exit, if the shell doesn't
+    ;; do this itself.
+    (if (and comint-input-ring-file-name
+	     (string-match shell-dumb-shell-regexp shell))
+	(set-process-sentinel (get-buffer-process (current-buffer))
+			      #'shell-write-history-on-exit))
     (setq shell-dirstack-query
 	  (cond ((string-equal shell "sh") "pwd")
 		((string-equal shell "ksh") "echo $PWD ~-")
 		(t "dirs"))))
   (run-hooks 'shell-mode-hook)
   (comint-read-input-ring t))
+
+(defun shell-write-history-on-exit (process event)
+  "Called when the shell process is stopped.
+
+Writes the input history to a history file
+`comint-comint-input-ring-file-name' using `comint-write-input-ring'
+and inserts a short message in the shell buffer.
+
+This function is a sentinel watching the shell interpreter process.
+Sentinels will always get the two parameters PROCESS and EVENT."
+  ;; Write history.
+  (comint-write-input-ring)
+  (if (buffer-live-p (process-buffer process))
+      (insert (format "\nProcess %s %s\n" process event))))
 
 ;;;###autoload
 (defun shell ()
