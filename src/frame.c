@@ -79,6 +79,7 @@ Lisp_Object Qtty_color_mode;
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
 Lisp_Object Vmouse_position_function;
+Lisp_Object Vmouse_highlight;
 
 static void
 set_menu_bar_lines_1 (window, n)
@@ -2534,6 +2535,14 @@ argument, and returns whatever this function returns.
 This abnormal hook exists for the benefit of packages like `xt-mouse.el'
 which need to do mouse handling at the Lisp level.  */);
   Vmouse_position_function = Qnil;
+
+  DEFVAR_LISP ("mouse-highlight", &Vmouse_highlight,
+	       doc: /* If non-nil, clickable text is highlighted when mouse is over it.  
+If the value is an integer, highlighting is only shown after moving the
+mouse, while keyboard input turns off the highlight even when the mouse
+is over the clickable text.  However, the mouse shape still indicates
+when the mouse is over clickable text.  */);
+  Vmouse_highlight = make_number (1);
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
 		 doc: /* Minibufferless frames use this frame's minibuffer.
