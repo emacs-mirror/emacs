@@ -1469,26 +1469,31 @@ Similarly for Soar, Scheme, etc."
 	  (funcall comint-input-sender proc input)
 
 	  ;; Optionally delete echoed input (after checking it).
- 	  (if comint-process-echoes
-	      (let* ((echo-len (- comint-last-input-end
-				  comint-last-input-start))
-		     (echo-end (+ comint-last-input-end echo-len)))
-		;; Wait for all input to be echoed:
-		(while (and (accept-process-output proc)
-			    (> echo-end (point-max))
-			    (= 0 (compare-buffer-substrings
-				  nil comint-last-input-start
-				  (- (point-max) echo-len)
-				  ;; Above difference is equivalent to
-				  ;; (+ comint-last-input-start
-				  ;;    (- (point-max) comint-last-input-end))
-				  nil comint-last-input-end (point-max)))))
- 		(if (and
- 		     (<= echo-end (point-max))
- 		     (= 0 (compare-buffer-substrings
- 			   nil comint-last-input-start comint-last-input-end
- 			   nil comint-last-input-end echo-end)))
- 		    (delete-region comint-last-input-end echo-end))))
+ 	  (when comint-process-echoes
+	    (let ((echo-len (- comint-last-input-end
+			       comint-last-input-start)))
+	      ;; Wait for all input to be echoed:
+	      (while (and (accept-process-output proc)
+			  (> (+ comint-last-input-end echo-len)
+			     (point-max))
+			  (zerop
+			   (compare-buffer-substrings
+			    nil comint-last-input-start
+			    (- (point-max) echo-len)
+			    ;; Above difference is equivalent to
+			    ;; (+ comint-last-input-start
+			    ;;    (- (point-max) comint-last-input-end))
+			    nil comint-last-input-end (point-max)))))
+	      (if (and
+		   (<= (+ comint-last-input-end echo-len)
+		       (point-max))
+		   (zerop
+		    (compare-buffer-substrings
+		     nil comint-last-input-start comint-last-input-end
+		     nil comint-last-input-end
+		     (+ comint-last-input-end echo-len))))
+		  (delete-region comint-last-input-end
+				 (+ comint-last-input-end echo-len)))))
 
 	  ;; This used to call comint-output-filter-functions,
 	  ;; but that scrolled the buffer in undesirable ways.
