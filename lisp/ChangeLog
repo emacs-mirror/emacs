@@ -1,3 +1,11 @@
+2001-07-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-prefix-map): Moved back to vc-hooks.el.
+	(vc-dired-mode-map): Fix the madness.
+
+	* vc-hooks.el (vc-mode): Dummy function for doc purposes.
+	(vc-prefix-map): Moved back from vc.el.
+
 2001-07-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/mail-extr.el (mail-extr-all-top-level-domains): Increase
