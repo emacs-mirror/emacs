@@ -499,7 +499,7 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
   "Return the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
   (cdr (cdr (cdr (cdr x)))))
 
-(defun last (x &optional n)
+(defun last* (x &optional n)
   "Returns the last link in the list LIST.
 With optional argument N, returns Nth-to-last link (default 1)."
   (if n
