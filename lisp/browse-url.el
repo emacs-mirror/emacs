@@ -101,10 +101,16 @@
 ;; <URL:ftp://sig.enst.fr/pub/multicast/mMosaic/> (the latter with
 ;; development support for Java applets).
 
-;; I recommend Nelson Minar <nelson@santafe.edu>'s excellent
+;; I [Denis Howe] recommend Nelson Minar <nelson@santafe.edu>'s excellent
 ;; html-helper-mode.el for editing HTML and thank Nelson for
 ;; his many useful comments on this code.
 ;; <URL:http://www.santafe.edu/%7Enelson/hhm-beta/>
+
+;; See also hm--html-menus <URL:http://www.tnt.uni-hannover.de/%7Emuenkel/
+;; software/own/hm--html-menus/>.  For composing correct HTML see also
+;; PSGML the general SGML structure editor package
+;; <URL:ftp://ftp.lysator.liu.se/pub/sgml>; hm--html-menus can be used
+;; with this.
 
 ;; This package generalises function html-previewer-process in Marc
 ;; Andreessen <marca@ncsa.uiuc.edu>'s html-mode (LCD
@@ -169,6 +175,9 @@
 ;; Browse URLs in Usenet messages by clicking mouse-2:
 ;;	(eval-after-load "gnus"
 ;;	  '(define-key gnus-article-mode-map [mouse-2] 'browse-url-at-mouse))
+;; [The current version of Gnus provides a standard feature to
+;; activate URLs in article buffers for invocation of browse-url with
+;; mouse-2.]
 
 ;; Use the Emacs w3 browser when not running under X11:
 ;;	(or (eq window-system 'x)
@@ -852,17 +861,23 @@ Default to the URL around or before point."
 ;; --- mailto ---
 
 ;;;###autoload
-(defun browse-url-mail (url)
+(defun browse-url-mail (url &optional new-window)
   "Open a new mail message buffer within Emacs.
-Default to the mailto URL around or before point."
+Default to using the mailto: URL around or before point as the
+recipient's address.  Supplying a non-nil interactive prefix argument
+will cause the mail to be composed in another window rather than the
+current one."
   (interactive (browse-url-interactive-arg "Mailto URL: "))
   (save-excursion
-    ;; open mail buffer, specifying TO and REPLYBUFFER
-    (mail nil (if (string-match "^mailto:" url)
+    (let ((func (if new-window
+		    'compose-mail-other-window
+		  'compose-mail))
+	  (to (if (string-match "^mailto:" url)
 		  (substring url 7)
-		url)
-	  nil nil nil
-	  (current-buffer))))
+		url)))
+      (apply func
+	     (list to nil nil nil nil nil (cons 'insert-buffer
+						(current-buffer)))))))
 
 ;; --- Random browser ---
 
