@@ -709,7 +709,7 @@ Frames
 * Window System Selections::Transferring text to and from other windows.
 * Color Names::	            Getting the definitions of color names.
 * Resources::		    Getting resource values from the server.
-* Server Data::		    Getting info about the X server.
+* Display Feature Testing:: Determining the features of a terminal.
 
 Positions
 
