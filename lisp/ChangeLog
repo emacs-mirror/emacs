@@ -1,3 +1,13 @@
+2002-04-29  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: New file.
+
+	* emulation/cua-rect.el: New file.
+
+	* emulation/cua-gmrk.el: New file.
+
+	* emulation/keypad.el: New file.
+
 2002-04-29  Triet Hoai Lai  <thlai@ee.usyd.edu.au>
 
 	* language/vietnamese.el (viet-tcvn-decode-table, ccl-decode-tcvn)
