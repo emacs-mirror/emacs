@@ -83,6 +83,7 @@
 (load "international/mule-cmds")
 (load "case-table")
 (load "international/utf-8")
+(load "international/utf-16")
 (load "international/characters")
 
 (let ((set-case-syntax-set-multibyte t))
@@ -117,7 +118,6 @@
 (load "language/georgian")
 
 (load "international/ucs-tables")
-(ucs-unify-8859 'encode-only)
 
 (update-coding-systems-internal)
 
