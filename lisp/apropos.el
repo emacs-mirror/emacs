@@ -875,7 +875,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 
 
 (defun apropos-macrop (symbol)
-  "T if SYMBOL is a Lisp macro."
+  "Return t if SYMBOL is a Lisp macro."
   (and (fboundp symbol)
        (consp (setq symbol
 		    (symbol-function symbol)))
