@@ -1,3 +1,37 @@
+2000-03-21  Kenichi HANDA  <handa@etl.go.jp>
+
+	* term/x-win.el: Fontsets related initialization is simplified.
+
+	* international/mule-diag.el (describe-font): Don't refer to
+	global-fontset-alist, instead call font-list.
+	(describe-fontset, list-fontsets, mule-diag): Likewise.
+	(print-fontset): Adjusted for the change of fontset
+	implementation.
+
+	* international/fontset.el (x-charset-registries): Variable
+	removed, instead the corresponding data is stored in the default
+	fontset.
+	(register-alternate-fontnames): Function removed.
+	(resolved-ascii-font): Variable removed.
+	(x-compose-font-name): Ignore the second argument REDOCE.
+	(x-complement-fontset-spec): Complement only an ASCII font and
+	element for those charsets than can use that ASCII font.
+	(generate-fontset-menu): Don't refer to global-fontset-alist,
+	instead call fontset-list.
+	(uninstantiated-fontset-alist): Variable removed.
+	(x-style-funcs-alist): Likewise.
+	(fontset-default-styles): Likewise.
+	(x-modify-font-name): Function removed.
+	(create-fontset-from-fontset-spec): Ignore the argument
+	STYLE-VARIANT.
+	(create-fontset-from-ascii-font): Docsting adjusted for the above
+	change.
+	(instantiate-fontset, resolve-fontset-name): Functions removed.
+	(fontset-list): Now implemented by C code.
+	
+	* faces.el (read-face-font): Fix TABLE arg to completing-read.
+	(describe-face): Include `font' attribute in the description.
+
 2000-03-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/quail.el (quail-set-keyboard-layout): Typo fixed.

@@ -4,6 +4,10 @@
 	characters, not charset.  In addition, they recover fontset
 	facilities while utilizing the new font selection mechanism.
 
+	* Makefile.in (fontset.o): Depend on dispextern.h.
+
+	* alloc.c (mark_face_cache): Don't mark face->registry.
+
 	* dispextern.h (struct glyph): New member glyph_not_available_p.
 	Use 22 bits for face_id.
 	(enum lface_attribute_index): Add LFACE_FONT_INDEX.
@@ -57,6 +61,8 @@
 
 	* frame.c (make_frame): Don't allocate f->fontset_data.
 	(Fdelete_frame): Don't free f->fontset_data.
+
+	* msdos.c (XMenuActivate): Args to lookup_derived_face changed.
 
 	* xdisp.c (charset_at_position): Function removed.
 	(init_iterator): Don't set member charset of struct `it'.
@@ -115,7 +121,8 @@
 	(syms_of_xfaces): Remove code for Qx_charset_registry and
 	Vface_default_registry.
 
-	* xterm.c: Include fontset.h after dispextern.h.
+	* xterm.c: Include fontset.h after dispextern.h.  Undo the changes
+	related to PER_CHAR_METRIC done by Gerd on 2000-03-03.
 	(x_per_char_metric): Don't try FONT->default_char.  Even if
 	pcm->width is zero, glyph bits may exist.
 	(x_encode_char): Always initialize char2b->byte1.
