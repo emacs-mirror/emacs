@@ -2580,14 +2580,15 @@ showing that buffer, popping the buffer up if necessary.")
      register Lisp_Object n;
 {
   register Lisp_Object window;
-  register int ht;
+  register int defalt;
   register struct window *w;
   register int count = specpdl_ptr - specpdl;
 
   window = Fother_window_for_scrolling ();
 
   w = XWINDOW (window);
-  ht = window_internal_height (w);
+  defalt = window_internal_height (w) - next_screen_context_lines;
+  if (defalt < 1) defalt = 1;
 
   /* Don't screw up if window_scroll gets an error.  */
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
@@ -2596,9 +2597,9 @@ showing that buffer, popping the buffer up if necessary.")
   SET_PT (marker_position (w->pointm));
 
   if (NILP (n))
-    window_scroll (window, ht - next_screen_context_lines, 1);
+    window_scroll (window, defalt, 1);
   else if (EQ (n, Qminus))
-    window_scroll (window, next_screen_context_lines - ht, 1);
+    window_scroll (window, -defalt, 1);
   else
     {
       if (CONSP (n))
