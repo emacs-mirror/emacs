@@ -1,3 +1,8 @@
+2000-10-26  Dave Love  <fx@gnu.org>
+
+	* s/sol2-5.h: Don't define SYSTEM_MALLOC so that we can find out
+	when it's necessary.
+
 2000-10-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (size_window): Compute size difference from sum of old

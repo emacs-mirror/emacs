@@ -9,6 +9,9 @@
 	
 2000-10-26  Dave Love  <fx@gnu.org>
 
+	* menu-bar.el: Modify some menu item help strings.
+	(menu-bar-help-menu): Add link to MORE.STUFF.
+
 	* cus-edit.el (custom-mode): Add `special' mode-class property.
 
 	* wid-browse.el (widget-browse-mode): Likewise.
@@ -79,7 +82,7 @@
 
 	* wid-edit.el (widget-field-keymap, widget-text-keymap): Don't
 	inherit from global-map and don't nullify menu-bar and tool-bar
-	bindings since keymap properties DTRT.
+	bindings.
 
 2000-10-25  Miles Bader  <miles@lsi.nec.co.jp>
 
