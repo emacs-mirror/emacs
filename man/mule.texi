@@ -1159,6 +1159,6 @@ command names.
 For Latin-1, Latin-2 and Latin-3, @kbd{M-x iso-accents-mode} installs a
 minor mode which provides a facility like the @code{latin-1-prefix}
 input method but independent of the Leim package.  This mode is
-buffer-local.  It can be customized to various languages !  with
-@kbd{M-x iso-accents-customize}.}
+buffer-local.  It can be customized for various languages with @kbd{M-x
+iso-accents-customize}.}
 @end itemize
