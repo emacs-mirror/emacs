@@ -191,6 +191,67 @@ init_syntax_once ()
 /* Get the interface, including the syntax bits.  */
 #include "regex.h"
 
+/* isalpha etc. are used for the character classes.  */
+#include <ctype.h>
+
+#ifdef emacs
+
+/* 1 if C is an ASCII character.  */
+#define IS_REAL_ASCII(c) ((c) < 0200)
+
+/* 1 if C is a unibyte character.  */
+#define ISUNIBYTE(c) (SINGLE_BYTE_CHAR_P ((c)))
+
+/* The Emacs definitions should not be directly affected by locales.  */
+
+/* In Emacs, these are only used for single-byte characters.  */
+#define ISDIGIT(c) ((c) >= '0' && (c) <= '9')
+#define ISCNTRL(c) ((c) < ' ')
+#define ISXDIGIT(c) (((c) >= '0' && (c) <= '9')		\
+		     || ((c) >= 'a' && (c) <= 'f')	\
+		     || ((c) >= 'A' && (c) <= 'F'))
+
+/* This is only used for single-byte characters.  */
+#define ISBLANK(c) ((c) == ' ' || (c) == '\t')
+
+/* The rest must handle multibyte characters.  */
+
+#define ISGRAPH(c) (SINGLE_BYTE_CHAR_P (c)				\
+		    ? (c) > ' ' && !((c) >= 0177 && (c) <= 0237)	\
+		    : 1)
+
+#define ISPRINT(c) (SINGLE_BYTE_CHAR_P (c)		\
+		    ? (c) >= ' ' && !((c) >= 0177 && (c) <= 0237)	\
+		    : 1)
+
+#define ISALNUM(c) (IS_REAL_ASCII (c)			\
+		    ? (((c) >= 'a' && (c) <= 'z')	\
+		       || ((c) >= 'A' && (c) <= 'Z')	\
+		       || ((c) >= '0' && (c) <= '9'))	\
+		    : SYNTAX (c) == Sword)
+
+#define ISALPHA(c) (IS_REAL_ASCII (c)			\
+		    ? (((c) >= 'a' && (c) <= 'z')	\
+		       || ((c) >= 'A' && (c) <= 'Z'))	\
+		    : SYNTAX (c) == Sword)
+
+#define ISLOWER(c) (LOWERCASEP (c))
+
+#define ISPUNCT(c) (IS_REAL_ASCII (c)				\
+		    ? ((c) > ' ' && (c) < 0177			\
+		       && !(((c) >= 'a' && (c) <= 'z')		\
+		            || ((c) >= 'A' && (c) <= 'Z')	\
+		            || ((c) >= '0' && (c) <= '9')))	\
+		    : SYNTAX (c) != Sword)
+
+#define ISSPACE(c) (SYNTAX (c) == Swhitespace)
+
+#define ISUPPER(c) (UPPERCASEP (c))
+
+#define ISWORD(c) (SYNTAX (c) == Sword)
+
+#else /* not emacs */
+
 /* Jim Meyering writes:
 
    "... Some ctype macros are valid only for character codes that
@@ -208,50 +269,15 @@ init_syntax_once ()
 #define ISASCII(c) isascii(c)
 #endif
 
-/* isalpha etc. are used for the character classes.  */
-#include <ctype.h>
+/* 1 if C is an ASCII character.  */
+#define IS_REAL_ASCII(c) ((c) < 0200)
 
-/* In Emacs, these are only used for single-byte characters.  */
+/* This distinction is not meaningful, except in Emacs.  */
+#define ISUNIBYTE(c) 1
+
 #define ISDIGIT(c) (ISASCII (c) && isdigit (c))
 #define ISCNTRL(c) (ISASCII (c) && iscntrl (c))
 #define ISXDIGIT(c) (ISASCII (c) && isxdigit (c))
-
-#ifdef emacs
-
-/* This is only used for single-byte characters.  */
-#define ISBLANK(c) ((c) == ' ' || (c) == '\t')
-
-/* The rest must handle multibyte characters.  */
-
-#define ISGRAPH(c) (SINGLE_BYTE_CHAR_P (c)				\
-		    ? ISASCII (c) && isprint (c) && !isspace (c)	\
-		    : 1)
-
-#define ISPRINT(c) (SINGLE_BYTE_CHAR_P (c)		\
-		    ? ISASCII (c) && isalnum (c)	\
-		    : 1)
-
-#define ISALNUM(c) (SINGLE_BYTE_CHAR_P (c)		\
-		    ? ISASCII (c) && isalnum (c)	\
-		    : SYNTAX (c) == Sword)
-
-#define ISALPHA(c) (SINGLE_BYTE_CHAR_P (c)		\
-		    ? ISASCII (c) && isalpha (c)	\
-		    : SYNTAX (c) == Sword)
-
-#define ISLOWER(c) (LOWERCASEP (c))
-
-#define ISPUNCT(c) (SINGLE_BYTE_CHAR_P (c)		\
-		    ? ISASCII (c) && ispunct (c)	\
-		    : SYNTAX (c) != Sword)
-
-#define ISSPACE(c) (SYNTAX (c) == Swhitespace)
-
-#define ISUPPER(c) (UPPERCASEP (c))
-
-#define ISWORD(c) (SYNTAX (c) == Sword)
-
-#else /* not emacs */
 
 #ifdef isblank
 #define ISBLANK(c) (ISASCII (c) && isblank (c))
@@ -1809,12 +1835,16 @@ struct range_table_work_area
 #define BIT_ALNUM 0x1
 #define BIT_ALPHA 0x2
 #define BIT_WORD  0x4
+#define BIT_ASCII 0x8
+#define BIT_NONASCII 0x10
 #define BIT_GRAPH 0x20
 #define BIT_LOWER 0x40
 #define BIT_PRINT 0x80
 #define BIT_PUNCT 0x100
 #define BIT_SPACE 0x200
 #define BIT_UPPER 0x400
+#define BIT_UNIBYTE 0x800
+#define BIT_MULTIBYTE 0x1000
 
 /* Set a range (RANGE_START, RANGE_END) to WORK_AREA.  */
 #define SET_RANGE_TABLE_WORK_AREA(work_area, range_start, range_end)	\
@@ -1869,7 +1899,9 @@ struct range_table_work_area
     || STREQ (string, "space") || STREQ (string, "print")		\
     || STREQ (string, "punct") || STREQ (string, "graph")		\
     || STREQ (string, "cntrl") || STREQ (string, "blank")		\
-    || STREQ (string, "word"))
+    || STREQ (string, "word")						\
+    || STREQ (string, "ascii") || STREQ (string, "nonascii")		\
+    || STREQ (string, "unibyte") || STREQ (string, "multibyte"))
 
 #ifndef MATCH_MAY_ALLOCATE
 
@@ -2360,17 +2392,21 @@ regex_compile (pattern, size, syntax, bufp)
 			int ch;
 			boolean is_alnum = STREQ (str, "alnum");
 			boolean is_alpha = STREQ (str, "alpha");
+			boolean is_ascii = STREQ (str, "ascii");
 			boolean is_blank = STREQ (str, "blank");
 			boolean is_cntrl = STREQ (str, "cntrl");
 			boolean is_digit = STREQ (str, "digit");
 			boolean is_graph = STREQ (str, "graph");
 			boolean is_lower = STREQ (str, "lower");
+			boolean is_multibyte = STREQ (str, "multibyte");
+			boolean is_nonascii = STREQ (str, "nonascii");
 			boolean is_print = STREQ (str, "print");
 			boolean is_punct = STREQ (str, "punct");
 			boolean is_space = STREQ (str, "space");
+			boolean is_unibyte = STREQ (str, "unibyte");
 			boolean is_upper = STREQ (str, "upper");
-			boolean is_xdigit = STREQ (str, "xdigit");
 			boolean is_word = STREQ (str, "word");
+			boolean is_xdigit = STREQ (str, "xdigit");
 
 			if (!IS_CHAR_CLASS (str))
 			  FREE_STACK_RETURN (REG_ECTYPE);
@@ -2393,11 +2429,15 @@ regex_compile (pattern, size, syntax, bufp)
 
 			    if (is_alnum) bit = BIT_ALNUM;
 			    if (is_alpha) bit = BIT_ALPHA;
+			    if (is_ascii) bit = BIT_ASCII;
 			    if (is_graph) bit = BIT_GRAPH;
 			    if (is_lower) bit = BIT_LOWER;
+			    if (is_multibyte) bit = BIT_MULTIBYTE;
+			    if (is_nonascii) bit = BIT_NONASCII;
 			    if (is_print) bit = BIT_PRINT;
 			    if (is_punct) bit = BIT_PUNCT;
 			    if (is_space) bit = BIT_SPACE;
+			    if (is_unibyte) bit = BIT_UNIBYTE;
 			    if (is_upper) bit = BIT_UPPER;
 			    if (is_word) bit = BIT_WORD;
 			    if (bit)
@@ -2426,6 +2466,12 @@ regex_compile (pattern, size, syntax, bufp)
 				|| (is_upper  && ISUPPER (ch))
 				|| (is_xdigit && ISXDIGIT (ch)))
 			      SET_LIST_BIT (translated);
+			    if (   (is_ascii  && IS_REAL_ASCII (ch))
+				|| (is_nonascii && !IS_REAL_ASCII (ch))
+				|| (is_unibyte && ISUNIBYTE (ch))
+				|| (is_multibyte && !ISUNIBYTE (ch)))
+			      SET_LIST_BIT (translated);
+
 			    if (   (is_word   && ISWORD (ch)))
 			      SET_LIST_BIT (translated);
 			  }
@@ -3434,7 +3480,7 @@ re_compile_fastmap (bufp)
 	    if (p[j / BYTEWIDTH] & (1 << (j % BYTEWIDTH)))
 	      fastmap[j] = 1;
 
-	  /* If we can match a syntax class, we can match
+	  /* If we can match a character class, we can match
 	     any character set.  */
 	  if (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
 	      && CHARSET_RANGE_TABLE_BITS (&p[-2]) != 0)
@@ -3450,8 +3496,7 @@ re_compile_fastmap (bufp)
 	      /* Make P points the range table. */
 	      p += CHARSET_BITMAP_SIZE (&p[-2]);
 
-	      /* Extract the number of ranges in range table into
-		 COUNT.	 */
+	      /* Extract the number of ranges in range table into COUNT.  */
 	      EXTRACT_NUMBER_AND_INCR (count, p);
 	      for (; count > 0; count--, p += 2 * 3) /* XXX */
 		{
@@ -4802,11 +4847,15 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 		if (  (class_bits & BIT_ALNUM && ISALNUM (c))
 		    | (class_bits & BIT_ALPHA && ISALPHA (c))
+		    | (class_bits & BIT_ASCII && IS_REAL_ASCII (c))
 		    | (class_bits & BIT_GRAPH && ISGRAPH (c))
 		    | (class_bits & BIT_LOWER && ISLOWER (c))
+		    | (class_bits & BIT_MULTIBYTE && !ISUNIBYTE (c))
+		    | (class_bits & BIT_NONASCII && !IS_REAL_ASCII (c))
 		    | (class_bits & BIT_PRINT && ISPRINT (c))
 		    | (class_bits & BIT_PUNCT && ISPUNCT (c))
 		    | (class_bits & BIT_SPACE && ISSPACE (c))
+		    | (class_bits & BIT_UNIBYTE && ISUNIBYTE (c))
 		    | (class_bits & BIT_UPPER && ISUPPER (c))
 		    | (class_bits & BIT_WORD  && ISWORD (c)))
 		  not = !not;
