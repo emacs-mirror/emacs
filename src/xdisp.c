@@ -5594,15 +5594,18 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
   saved_glyph_row = it->glyph_row;
   it->glyph_row = NULL;
 
+#define BUFFER_POS_REACHED_P()			    \
+  ((op & MOVE_TO_POS) != 0			    \
+   && BUFFERP (it->object)			    \
+   && IT_CHARPOS (*it) >= to_charpos)
+
   while (1)
     {
       int x, i, ascent = 0, descent = 0;
 
       /* Stop when ZV or TO_CHARPOS reached.  */
       if (!get_next_display_element (it)
-	  || ((op & MOVE_TO_POS) != 0
-	      && BUFFERP (it->object)
-	      && IT_CHARPOS (*it) >= to_charpos))
+	  || BUFFER_POS_REACHED_P ())
 	{
 	  result = MOVE_POS_MATCH_OR_ZV;
 	  break;
@@ -5689,7 +5692,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 #ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
-			      if (!get_next_display_element (it))
+			      if (!get_next_display_element (it)
+				  || BUFFER_POS_REACHED_P ())
 				{
 				  result = MOVE_POS_MATCH_OR_ZV;
 				  break;
@@ -5761,7 +5765,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 #ifdef HAVE_WINDOW_SYSTEM
 	  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 	    {
-	      if (!get_next_display_element (it))
+	      if (!get_next_display_element (it)
+		  || BUFFER_POS_REACHED_P ())
 		{
 		  result = MOVE_POS_MATCH_OR_ZV;
 		  break;
@@ -5777,6 +5782,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 	  break;
 	}
     }
+
+#undef BUFFER_POS_REACHED_P
 
   /* Restore the iterator settings altered at the beginning of this
      function.  */
