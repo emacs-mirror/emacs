@@ -970,12 +970,16 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
 
   SetPort (GetWindowPort (w));
-  mac_set_colors (gc);
+
+  ForeColor (blackColor);
+  BackColor (whiteColor);
 
   LockPortBits (GetWindowPort (w));
   pmh = GetPortPixMap (GetWindowPort (w));
   CopyBits ((BitMap *) *pmh, (BitMap *) *pmh, &src_r, &dest_r, srcCopy, 0);
   UnlockPortBits (GetWindowPort (w));
+
+  mac_set_colors (gc);
 #else /* not TARGET_API_MAC_CARBON */
   Rect src_r, dest_r;
 
@@ -11649,6 +11653,8 @@ do_window_update (WindowPtr win)
           BeginUpdate (win);
           handling_window_update = 1;
 
+	  XClearWindow (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
+
           expose_frame (f, 0, 0, 0, 0);
 
           handling_window_update = 0;
@@ -12829,8 +12835,6 @@ void make_mac_frame (struct frame *f)
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
   
   NewMacWindow(f);
-  FRAME_BACKGROUND_PIXEL (f) = 0xffffff;
-  FRAME_FOREGROUND_PIXEL (f) = 0;
 
   f->output_data.mac->cursor_pixel = 0;
   f->output_data.mac->border_pixel = 0x00ff00;

@@ -1,5 +1,12 @@
 2002-06-17  Andrew Choi  <akochoi@shaw.ca>
 
+	* macterm.c (mac_scroll_area): Set foreground and backcolor to
+	black and white before scrolling.  Restore frame background and
+	foreground color after scrolling.
+	(do_window_update): Call XClearWindow before calling expose_frame.
+	(make_mac_frame): Don't set FRAME_BACKGROUND_PIXEL and
+	FRAME_FOREGROUND_PIXEL of frame.
+	
 	* macterm.c (XTread_socket): If Vmac_command_key_is_meta is nil,
 	test Mac command key as <ALT> key.
 
