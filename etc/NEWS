@@ -2440,8 +2440,14 @@ call to `message', the echo area will not be resized to display that
 message; it will be truncated instead, as it was done in 20.x.
 Default value is nil.
 
++++
 ** The user option `line-number-display-limit' can now be set to nil,
 meaning no limit.
+
++++
+** The new user option `line-number-display-limit-width' controls
+the maximum width of lines in a buffer for which Emacs displays line
+numbers in the mode line.  The default is 200.
 
 ** `select-safe-coding-system' now also checks the most preferred
 coding-system if buffer-file-coding-system is `undecided' and
