@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.16 1997/07/23 21:39:50 rms Exp rms $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.17 1997/09/04 20:25:56 rms Exp rms $")
 
 ;;; Code:
 
@@ -437,7 +437,7 @@ configuration, if one exists.  Finish by running mh-quit-hook."
   (run-hooks 'mh-before-quit-hook) 
   (mh-update-sequences)
   (mh-invalidate-show-buffer)
-  (bury-buffer (current-buffer))
+  (quit-window)
   (if (get-buffer mh-show-buffer)
       (bury-buffer mh-show-buffer))
   (if mh-previous-window-config
