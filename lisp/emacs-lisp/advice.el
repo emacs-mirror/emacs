@@ -4,7 +4,7 @@
 
 ;; Author: Hans Chalupsky <hans@cs.buffalo.edu>
 ;; Created: 12 Dec 1992
-;; Version: advice.el,v 2.10 1994/02/21 10:34:03 hans Exp
+;; Version: advice.el,v 2.11 1994/02/24 22:51:43 hans Exp
 ;; Keywords: extensions, lisp, tools
 
 ;; This file is part of GNU Emacs.
@@ -26,7 +26,7 @@
 ;; LCD Archive Entry:
 ;; advice|Hans Chalupsky|hans@cs.buffalo.edu|
 ;; Overloading mechanism for Emacs Lisp functions|
-;; 1994/02/21 10:34:03|2.10|~/packages/advice.el.Z|
+;; 1994/02/24 22:51:43|2.11|~/packages/advice.el.Z|
 
 
 ;;; Commentary:
@@ -1938,98 +1938,6 @@
 ;; from advising plain functions or subrs.
 
 
-;;; Change Log:
-
-;; advice.el,v
-;; Revision 2.10  1994/02/21  10:34:03  hans
-;; 	* Removed all support for Emacs-18 and associated conditional code.
-;; 	* Made some minor changes to the documentation which is now
-;; 	  slightly out-of-date.
-;;
-;; Revision 2.9  1994/02/21  08:03:39  hans
-;; 	* Lots of cosmetic changes to make documentation strings
-;; 	  conform to the standard conventions.
-;; 	* Some minor changes to the general documentation.
-;; 	* This version is the last one that still supports a v18 Emacs.
-;; 	  It will be made available as `advice18.el'.
-;;
-;; Revision 2.8  1994/02/20  01:46:02  hans
-;; 	* (ad-enable-definition-hooks): Disabled definition hooks for
-;; 	  the combination of a v18 Emacs with a v19 byte-compiler,
-;; 	  because it breaks the rather important `interactive-p'.
-;;
-;; Revision 2.7  1994/02/20  01:09:18  hans
-;; 	* Fixed the problematic interaction between the byte-compiler and
-;; 	  Advice when `ad-activate-on-definition' was t which
-;; 	  resulted in erroneous compilation of nested `defun/defmacro's:
-;; 	* (byte-compile-from-buffer, byte-compile-top-level): Now
-;; 	  advised to temporarily deactivate the advice of `defun/defmacro'.
-;; 	* (ad-advised-definers, ad-advised-byte-compilers): New variables.
-;; 	* (ad-execute-defadvices): Contains the new advices for the
-;; 	  byte-compiler entry points. Uses new variables to copy advice infos.
-;; 	* (ad-enable-definition-hooks, ad-disable-definition-hooks):
-;; 	  Additionally en/disable the advised byte-compiler entry
-;; 	  points. Uses new variables to do so.
-;;
-;; Revision 2.6  1994/02/18  11:02:00  hans
-;; 	* (defadvice): Implement jwz's idea of a `freeze' option which
-;; 	  expands the `defadvice' into a dumpable `defun/defmacro'
-;; 	  whose documentation can be written to the `DOC' file.
-;; 	* (ad-make-advised-docstring, ad-make-single-advice-docstring):
-;; 	  New STYLE option for `plain' and `freeze' styles. Slightly
-;; 	  changed the default formatting of advised docstrings.
-;; 	* (ad-make-plain-docstring, ad-make-freeze-docstring): New functions.
-;;
-;; Revision 2.5  1994/02/18  06:52:25  hans
-;; 	* Merged with version of Lemacs 19.9: Infinite recursion bug in jwz's
-;; 	  adaption of `ad-docstring' fixed with use of `ad-real-documentation'.
-;; 	* (ad-recover-all, ad-scan-byte-code-for-fsets): Removed
-;; 	  unused condition variable `ignore-errors'.
-;;
-;; Revision 2.4  1994/02/18  06:01:56  hans
-;; 	* (ad-save-real-definition): New macro to save real
-;; 	  definitions of functions used by Advice with all the
-;; 	  necessary byte-compile properties.
-;; 	* Now also save real definition of `documentation'.
-;; 	* (ad-subr-arglist, ad-docstring, ad-make-advised-docstring):
-;; 	  Use `ad-real-documentation' to avoid interference with
-;; 	  advised version.
-;;
-;; Revision 2.3  1994/01/25  05:25:00  hans
-;; 	* (ad-execute-defadvices): Copy advice infos to make sure they
-;; 	  are not allocated in pure space during preloading (otherwise
-;; 	  we cannot modify them later on).
-;;
-;; Revision 2.2  1993/12/23  02:32:34  hans
-;; 	* Merged with the version of the Emacs 19.22 distribution:
-;; 	  (ad-start-advice-on-load): Default is now t.
-;; 	  New value for `Keywords' header specification.
-;;
-;; Revision 2.1  1993/05/26  00:07:58  hans
-;; 	* advise `defalias' and `define-function' to properly handle forward
-;; 	  advice in Emacs-19.7 and later
-;; 	* fix minor bug in `ad-preactivate-advice'
-;; 	* merge with FSF installation of version 2.0
-;;
-;; Revision 2.0 1993/05/18 01:29:02 hans
-;;	* Totally revamped: Now also works with v19s, function indirection
-;;	  instead of body copying for original function calls, caching of
-;;	  advised definitions, en/disable mechanism, more and better
-;;        interactive functions, forward advice support for jwz's compiler,
-;;        definition hooks, portable argument access, argument list definition
-;;        for advised functions, preactivation mechanism, pretty comprehensive
-;;        docs (still no info file)
-;;
-;; Revision 1.8 1992/12/15 22:54:45 hans
-;;	* Replaced non-standard `member' with `memq'.
-;;
-;; Revision 1.7 1992/12/14 22:41:49 hans
-;;	* First publicly released version
-;;
-;; Revision 1.1 1992/12/12 05:37:33 hans
-;;	* Created
-
-
 ;;; Code:
 
 ;; @ Advice implementation:
@@ -2049,11 +1957,12 @@
 ;; @@ Variable definitions:
 ;; ========================
 
-(defconst ad-version "2.10")
+(defconst ad-version "2.11")
 
-(defconst ad-lemacs-p
-  (string-match "Lucid" emacs-version)
-  "Non-nil if we run Lucid's version of Emacs-19.")
+(defmacro ad-lemacs-p ()
+  ;;Expands into Non-nil constant if we run Lucid's version of Emacs-19.
+  ;;Unselected conditional code will be optimized away during compilation.
+  (string-match "Lucid" emacs-version))
 
 ;;;###autoload
 (defvar ad-start-advice-on-load t
@@ -4012,8 +3921,6 @@ definition will be compiled too.  FUNCTION defaults to the value of
 
 (defvar ad-advised-definers
   '(defun defmacro fset defalias define-function))
-(defvar ad-advised-byte-compilers
-  '(byte-compile-from-buffer byte-compile-top-level))
 
 (defadvice defun (after ad-definition-hooks first disable preact)
   "Whenever a function gets re/defined with `defun' all hook functions
@@ -4089,7 +3996,14 @@ functions in `ad-definition-hooks' will be run after the re/definition with
 ;; Both advices are forward advices, hence, they will only be activated if
 ;; automatic advice activation is enabled, but since that is the actual
 ;; situation where we have a problem, we can be sure that the advices will 
-;; be active when we need it.
+;; be active when we need them.
+
+;; We only need this in Lemacs, because in Emacs it is
+;; now taken care of directly by the byte-compiler:
+(cond ((ad-lemacs-p)
+
+(defvar ad-advised-byte-compilers
+  '(byte-compile-from-buffer byte-compile-top-level))
 
 (defadvice byte-compile-from-buffer (around ad-deactivate-defun-defmacro
 					    first disable preact)
@@ -4107,11 +4021,14 @@ functions in `ad-definition-hooks' will be run after the re/definition with
     (ad-with-originals (defun defmacro)
       ad-do-it)))
 
+)) ;; end of cond
+
 ;; Make sure advice-infos are not allocated in pure space 
 ;; (this might not be necessary anymore):
 (ad-dolist (advised-function (cons 'documentation
 				   (append ad-advised-definers
-					   ad-advised-byte-compilers)))
+					   (if (ad-lemacs-p)
+					       ad-advised-byte-compilers))))
   (ad-set-advice-info advised-function (ad-copy-advice-info advised-function)))
 
 
@@ -4266,9 +4183,10 @@ See `ad-real-byte-code' for original documentation."
   (ad-dolist (definer ad-advised-definers)
     (ad-enable-advice definer 'after 'ad-definition-hooks)
     (ad-activate definer 'compile))
-  (ad-dolist (byte-compiler ad-advised-byte-compilers)
-    (ad-enable-advice byte-compiler 'around 'ad-deactivate-defun-defmacro)
-    (ad-activate byte-compiler 'compile))
+  (if (ad-lemacs-p)
+      (ad-dolist (byte-compiler ad-advised-byte-compilers)
+	(ad-enable-advice byte-compiler 'around 'ad-deactivate-defun-defmacro)
+	(ad-activate byte-compiler 'compile)))
   ;; Now redefine byte-code...
   (ad-real-fset 'byte-code (symbol-function 'ad-advised-byte-code)))
 
@@ -4278,9 +4196,10 @@ See `ad-real-byte-code' for original documentation."
   (ad-dolist (definer ad-advised-definers)
     (ad-disable-advice definer 'after 'ad-definition-hooks)
     (ad-update definer))
-  (ad-dolist (byte-compiler ad-advised-byte-compilers)
-    (ad-disable-advice byte-compiler 'around 'ad-deactivate-defun-defmacro)
-    (ad-update byte-compiler 'compile)))
+  (if (ad-lemacs-p)
+      (ad-dolist (byte-compiler ad-advised-byte-compilers)
+	(ad-disable-advice byte-compiler 'around 'ad-deactivate-defun-defmacro)
+	(ad-update byte-compiler 'compile))))
 
 
 ;; @@ Starting, stopping and recovering from the advice package magic:
@@ -4339,3 +4258,4 @@ Use only in REAL emergencies."
 (provide 'advice)
 
 ;;; advice.el ends here
+
