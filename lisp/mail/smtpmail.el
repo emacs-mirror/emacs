@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -457,7 +457,9 @@ This is relative to `smtpmail-queue-dir'.")
   (let ((cred (smtpmail-find-credentials
 	       smtpmail-starttls-credentials host port)))
     (if (null (and cred (condition-case ()
-			    (call-process "starttls")
+			    (progn
+			      (require 'starttls)
+			      (call-process starttls-program))
 			  (error nil))))
 	;; The normal case.
 	(open-network-stream "SMTP" process-buffer host port)
