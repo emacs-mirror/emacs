@@ -2,9 +2,9 @@
 !
 !                      STACK SCANNING
 !
-!  $HopeName: MMsrc/!thsusp.s(MMdevel_dsm_0.2)$
+!  $HopeName: MMsrc!sssusp.s(trunk.1) $
 !
-!  Copyright (C) 1995 Harlequin Group, all rights reserved
+!  Copyright (C) 1996 Harlequin Group, all rights reserved
 !
 !  This scans the stack and the preserved integer registers.
 !  See design.mps.thread-manager
@@ -22,7 +22,7 @@
 .text
   .align 4
   .global _StackScan
-_StackScan:               !(stackBot, trace, rank)
+_StackScan:               !(ss, stackBot)
   save %sp,-120,%sp       !23 required + 6 globals = 29 words, 8-aligned
 
   std %g6,[%fp-8]         !double stores
@@ -30,11 +30,10 @@ _StackScan:               !(stackBot, trace, rank)
   std %g2,[%fp-24]
   ta 3                    !flushes register windows onto stack
 
-  sub %fp,24,%o0          !stackTop (base)
-  mov %i0,%o1             !stackBot (limit)
-  mov %i1,%o2             !trace
-  call _TraceScanArea     !(stackTop,stackBot,trace,rank) returns e
-  mov %i2,%o3  !delay-slot!rank
+  mov %i0,%o0             !ss
+  sub %fp,24,%o1          !stackTop (base)
+  call _TraceScanArea     !(ss,stackTop,stackBot) returns e
+  mov %i1,%o2          !ds!stackBot (limit)
 
   ret
   restore %g0,%o0,%o0  !ds!return e
