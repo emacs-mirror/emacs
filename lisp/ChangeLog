@@ -1,13 +1,17 @@
+2000-01-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* play/pong.el: New file.
+
 2000-01-05  Carsten Dominik  <cd@gnu.org>
 
-	* textmodes/reftex-vars.el (reftex-parse-file-extension,
-	 reftex-index-phrase-file-extension): New options.
+	* textmodes/reftex-vars.el (reftex-parse-file-extension)
+	(reftex-index-phrase-file-extension): New options.
 
 	* textmodes/reftex-index.el (reftex-index-visit-phrases-buffer):
-	 Use new option `reftex-index-phrase-file-extension'.
+	Use new option `reftex-index-phrase-file-extension'.
 
 	* textmodes/reftex.el (reftex-access-parse-file): Use new option
-	 `reftex-parse-file-extension'.
+	`reftex-parse-file-extension'.
 
 2000-01-05  Dave Love  <fx@gnu.org>
 
@@ -19,8 +23,8 @@
 
 2000-01-05  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
 
-	* progmodes/hideshow.el (hs-discard-overlays, hs-flag-region,
-	hs-show-block): Don't use `mapcar' when not accumulating.
+	* progmodes/hideshow.el (hs-discard-overlays, hs-flag-region)
+	(hs-show-block): Don't use `mapcar' when not accumulating.
 
 	Fix buglet in local variables initialization.
 
@@ -56,8 +60,8 @@
 	(ps-header-lines, ps-left-header, ps-right-header): No more buffer
 	local.
 	(ps-spool-config): Initialization fix.
-	(ps-print-prologue-1, ps-print-prologue-2,
-	ps-print-duplex-feature): PostScript code moved to separated file.
+	(ps-print-prologue-1, ps-print-prologue-2)
+	(ps-print-duplex-feature): PostScript code moved to separated file.
 	(ps-background-image): Little code reformating.
 	(ps-begin-file, ps-begin-job): Fix code.
 	(ps-postscript-code-directory, ps-mark-code-directory): New vars.
@@ -65,7 +69,7 @@
 
 2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-vars.el: eliminated.
+	* ps-vars.el: Eliminated.
 
 	* ps-mule.el: ps-vars eliminated, ps-multibyte-buffer now is
 	`;;;###autoload'.
