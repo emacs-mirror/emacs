@@ -526,12 +526,11 @@ operation.
 @vindex custom-file
   The customization buffer normally saves customizations in
 @file{~/.emacs}.  If you wish, you can save customizations in another
-file instead.  To make this work, your @file{~/.emacs} should load
-that file and should also set @code{custom-file} to the name of that
-file.  For example:
+file instead.  To make this work, your @file{~/.emacs} should set
+@code{custom-file} to the name of that file.  Emacs will then load
+the file right after your @file{.emacs}.  For example:
 
 @example
-(load "~/.emacs-custom")
 (setq custom-file "~/.emacs-custom")
 @end example
 
