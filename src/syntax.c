@@ -230,7 +230,7 @@ are listed in the documentation of `modify-syntax-entry'.")
    for make-docfile to see.  We cannot put this in the real DEFUN
    due to limits in the Unix cpp.
 
-DEFUN ("modify-syntax-entry", foo, bar, 0, 0, 0,
+DEFUN ("modify-syntax-entry", foo, bar, 2, 3, 0,
   "Set syntax for character CHAR according to string S.\n\
 The syntax is changed only for table TABLE, which defaults to\n\
  the current buffer's syntax table.\n\
@@ -263,7 +263,7 @@ this flag:\n\
  p means C is a prefix character for `backward-prefix-chars';\n\
    such characters are treated as whitespace when they occur\n\
    between expressions.")
-
+  (char, s, table)
 */
 
 DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3, 
