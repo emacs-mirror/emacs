@@ -1205,7 +1205,7 @@ The sample text is a string that comes from the variable
 
 (defun describe-face (face &optional frame)
   "Display the properties of face FACE on FRAME.
-Interactevely, FACE defaults to the faces of the character after point
+Interactively, FACE defaults to the faces of the character after point
 and FRAME defaults to the selected frame.
 
 If the optional argument FRAME is given, report on face FACE in that frame.
