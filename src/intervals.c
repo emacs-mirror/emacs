@@ -1,5 +1,5 @@
 /* Code for doing intervals.
-   Copyright (C) 1991, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1071,7 +1071,7 @@ make_new_interval (intervals, start, length)
   split_interval_right (slot, length + 1);
   return slot;
 }
-
+
 /* Insert the intervals of SOURCE into BUFFER at POSITION.
 
    This is used in insdel.c when inserting Lisp_Strings into
@@ -1225,7 +1225,7 @@ textget (plist, prop)
     }
   return Qnil;
 }
-
+
 /* Set point in BUFFER to POSITION.  If the target position is in
    after an invisible character which is not displayed with a special glyph,
    move back to an ok place to display.  */
@@ -1256,22 +1256,24 @@ set_point (position, buffer)
     abort ();
 
   /* Position Z is really one past the last char in the buffer.  */
-  if (position == BUF_Z (buffer))
+  if (position == BUF_ZV (buffer))
     iposition = position - 1;
 
   /* Set TO to the interval containing the char after POSITION,
      and TOPREV to the interval containing the char before POSITION.
      Either one may be null.  They may be equal.  */
   to = find_interval (buffer->intervals, iposition);
-  if (to->position == position)
+  if (position == BUF_BEGV (buffer))
+    toprev = 0;
+  else if (to->position == position)
     toprev = previous_interval (to);
   else if (iposition != position)
     toprev = to, to = 0;
   else
     toprev = to;
 
-  buffer_point = (BUF_PT (buffer) == BUF_Z (buffer)
-		  ? BUF_Z (buffer) - 1
+  buffer_point = (BUF_PT (buffer) == BUF_ZV (buffer)
+		  ? BUF_ZV (buffer) - 1
 		  : BUF_PT (buffer));
 
   /* Set FROM to the interval containing the char after PT,
@@ -1279,7 +1281,9 @@ set_point (position, buffer)
      Either one may be null.  They may be equal.  */
   /* We could cache this and save time. */
   from = find_interval (buffer->intervals, buffer_point);
-  if (from->position == BUF_PT (buffer))
+  if (from->position == BUF_BEGV (buffer))
+    fromprev = 0;
+  else if (from->position == BUF_PT (buffer))
     fromprev = previous_interval (from);
   else if (buffer_point != BUF_PT (buffer))
     fromprev = from, from = 0;
@@ -1353,6 +1357,22 @@ temp_set_point (position, buffer)
 {
   buffer->text.pt = position;
 }
+
+/* Call the modification hook functions in LIST, each with START and END.  */
+
+static void
+call_mod_hooks (list, start, end)
+     Lisp_Object list, start, end;
+{
+  struct gcpro gcpro1;
+  GCPRO1 (list);
+  while (!NILP (list))
+    {
+      call2 (Fcar (list), start, end);
+      list = Fcdr (list);
+    }
+  UNGCPRO;
+}
 
 /* Check for read-only intervals and signal an error if we find one.
    Then check for any modification hooks in the range START up to
@@ -1367,11 +1387,15 @@ verify_interval_modification (buf, start, end)
      int start, end;
 {
   register INTERVAL intervals = buf->intervals;
-  register INTERVAL i;
-  Lisp_Object hooks = Qnil;
-  register prev_mod_hook = Qnil;
-  register Lisp_Object mod_hook;
+  register INTERVAL i, prev;
+  Lisp_Object hooks;
+  register Lisp_Object prev_mod_hooks;
+  Lisp_Object mod_hooks;
   struct gcpro gcpro1;
+
+  hooks = Qnil;
+  prev_mod_hooks = Qnil;
+  mod_hooks = Qnil;
 
   if (NULL_INTERVAL_P (intervals))
     return;
@@ -1383,43 +1407,93 @@ verify_interval_modification (buf, start, end)
       end = temp;
     }
 
-  if (start == BUF_Z (buf))
+  /* For an insert operation, check the two chars around the position.  */
+  if (start == end)
     {
-      /* This should not be getting called on empty buffers. */
-      if (BUF_Z (buf) == 1)
-	abort ();
+      INTERVAL prev;
+      Lisp_Object before, after;
 
-      i = find_interval (intervals, start - 1);
-      if (! END_STICKY_P (i))
-	return;
-    }
-  else
-    i = find_interval (intervals, start);
+      /* Set I to the interval containing the char after START,
+	 and PREV to the interval containing the char before START.
+	 Either one may be null.  They may be equal.  */
+      i = find_interval (intervals,
+			 (start == BUF_ZV (buf) ? start - 1 : start));
 
-  do
-    {
-      if (! INTERVAL_WRITABLE_P (i))
-	error ("Attempt to modify read-only text");
+      if (start == BUF_BEGV (buf))
+	prev = 0;
+      if (i->position == start)
+	prev = previous_interval (i);
+      else if (i->position < start)
+	prev = i;
+      if (start == BUF_ZV (buf))
+	i = 0;
 
-      mod_hook = Fget (Qmodification, i->plist);
-      if (! NILP (mod_hook) && ! EQ (mod_hook, prev_mod_hook))
+      if (NULL_INTERVAL_P (prev))
 	{
-	  hooks = Fcons (mod_hook, hooks);
-	  prev_mod_hook = mod_hook;
+	  after = textget (i, Qread_only);
+	  if (! NILP (after))
+	    error ("Attempt to insert within read-only text");
+	}
+      else if (NULL_INTERVAL_P (i))
+	{
+	  before = textget (prev, Qread_only);
+	  if (! NILP (before))
+	    error ("Attempt to insert within read-only text");
+	}
+      else
+	{
+	  before = textget (prev, Qread_only);
+	  after = textget (i, Qread_only);
+	  if (! NILP (before) && EQ (before, after))
+	    error ("Attempt to insert within read-only text");
 	}
 
-      i = next_interval (i);
+      /* Run both mod hooks (just once if they're the same).  */
+      if (!NULL_INTERVAL_P (prev))
+	prev_mod_hooks = textget (prev->plist, Qmodification_hooks);
+      if (!NULL_INTERVAL_P (i))
+	mod_hooks = textget (i->plist, Qmodification_hooks);
+      GCPRO1 (mod_hooks);
+      if (! NILP (prev_mod_hooks))
+	call_mod_hooks (prev_mod_hooks, make_number (start),
+			make_number (end));
+      UNGCPRO;
+      if (! NILP (mod_hooks) && ! EQ (mod_hooks, prev_mod_hooks))
+	call_mod_hooks (mod_hooks, make_number (start), make_number (end));
     }
-  while (! NULL_INTERVAL_P (i) && i->position <= end);
-
-  GCPRO1 (hooks);
-  hooks = Fnreverse (hooks);
-  while (! EQ (hooks, Qnil))
+  else
     {
-      call2 (Fcar (hooks), start, end - 1);
-      hooks = Fcdr (hooks);
+      /* Loop over intervals on or next to START...END,
+	 collecting their hooks.  */
+
+      i = find_interval (intervals, start);
+      do
+	{
+	  if (! INTERVAL_WRITABLE_P (i))
+	    error ("Attempt to modify read-only text");
+
+	  mod_hooks = textget (i->plist, Qmodification_hooks);
+	  if (! NILP (mod_hooks) && ! EQ (mod_hooks, prev_mod_hooks))
+	    {
+	      hooks = Fcons (mod_hooks, hooks);
+	      prev_mod_hooks = mod_hooks;
+	    }
+
+	  i = next_interval (i);
+	}
+      /* Keep going thru the interval containing the char before END.  */
+      while (! NULL_INTERVAL_P (i) && i->position < end);
+
+      GCPRO1 (hooks);
+      hooks = Fnreverse (hooks);
+      while (! EQ (hooks, Qnil))
+	{
+	  call_mod_hooks (Fcar (hooks), make_number (start),
+			  make_number (end));
+	  hooks = Fcdr (hooks);
+	}
+      UNGCPRO;
     }
-  UNGCPRO;
 }
 
 /* Balance an interval node if the amount of text in its left and right
