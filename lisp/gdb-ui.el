@@ -174,7 +174,8 @@ The following interactive lisp functions help control operation :
       (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
   (gdb-enqueue-input (list "set height 0\n" 'ignore))
   ;; find source file and compilation directory here
-  (gdb-enqueue-input (list "server list\n" 'ignore))
+  (gdb-enqueue-input (list "server list\n" 'ignore))          ; C program
+  (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
   (gdb-enqueue-input (list "server info source\n"
 			   'gdb-source-info))
   ;;
@@ -518,10 +519,7 @@ This filter may simply queue output for a later time."
 ;; any newlines.
 ;;
 
-(defcustom gud-gdba-command-name 
-  (if (eq window-system 'w32)
-      "gdb -annotate=2 -noasync"
-    "gdb -annotate=2")
+(defcustom gud-gdba-command-name "gdb -annotate=2 -noasync"
   "Default command to execute an executable under the GDB-UI debugger."
   :type 'string
   :group 'gud)
@@ -2148,8 +2146,10 @@ This arrangement depends on the value of `gdb-many-windows'."
 buffers."
   (goto-char (point-min))
   (when (search-forward "directory is " nil t)
-    (looking-at "\\S-*")
-    (setq gdb-cdir (match-string 0))
+    (if (looking-at "\\S-*:\\(\\S-*\\)")
+	(setq gdb-cdir (match-string 1))
+      (looking-at "\\S-*")
+      (setq gdb-cdir (match-string 0)))
     (search-forward "Located in ")
     (looking-at "\\S-*")
     (setq gdb-main-file (match-string 0))
