@@ -1,3 +1,14 @@
+2000-01-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* composite.el (compose-last-chars): New argument COMPONENTS.  It
+	it is non-nil, compose preceding characters by compose-region with
+	COMPONENTS.
+
+	* international/quail.el (quail-input-string-to-events): New function.
+	(quail-input-method): Convert input string to events here.
+	(quail-start-translation): Return input string, not event list.
+	(quail-start-conversion): Likewise.
+
 2001-01-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* tooltip.el (tooltip-cancel-delayed-tip) 
