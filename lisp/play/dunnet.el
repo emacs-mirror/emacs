@@ -2,9 +2,9 @@
 
 ;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
-;; Author: Ron Schnell <ronnie@media.mit.edu>
+;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992
-;; Version: 2.0
+;; Version: 2.01
 ;; Keywords: games
 
 ;; This file is part of GNU Emacs.
@@ -180,30 +180,32 @@ your objects, to give off an eerie glow."))
 "It is comfortably hot in here."
 "It is refreshingly hot in here."
 "You are dead now.")))
-	(if (and (= dun-sauna-level 3) 
-		 (or (member obj-rms dun-inventory)
-		     (member obj-rms (nth dun-current-room dun-room-objects))))
+	(if (= dun-sauna-level 3) 
 	    (progn
-	      (dun-mprincl 
+	      (if (or (member obj-rms dun-inventory)
+		      (member obj-rms (nth dun-current-room dun-room-objects)))
+		  (progn
+		    (dun-mprincl 
 "You notice the wax on your statuette beginning to melt, until it completely
 melts off.  You are left with a beautiful diamond!")
-	      (if (member obj-rms dun-inventory)
-		  (progn
-		    (dun-remove-obj-from-inven obj-rms)
-		    (setq dun-inventory (append dun-inventory 
-						(list obj-diamond))))
-		(dun-remove-obj-from-room dun-current-room obj-rms)
-		(dun-replace dun-room-objects dun-current-room
-			 (append (nth dun-current-room dun-room-objects)
-				 (list obj-diamond))))
-	      (if (member obj-floppy dun-inventory)
+		    (if (member obj-rms dun-inventory)
+			(progn
+			  (dun-remove-obj-from-inven obj-rms)
+			  (setq dun-inventory (append dun-inventory 
+						      (list obj-diamond))))
+		      (dun-remove-obj-from-room dun-current-room obj-rms)
+		      (dun-replace dun-room-objects dun-current-room
+				   (append (nth dun-current-room dun-room-objects)
+					   (list obj-diamond))))))
+	      (if (or (member obj-floppy dun-inventory)
+		      (member obj-floppy (nth dun-current-room dun-room-objects)))
 		  (progn
 		    (dun-mprincl
 "You notice your floppy disk beginning to melt.  As you grab for it, the 
 disk bursts into flames, and disintegrates.")
 		    (dun-remove-obj-from-inven obj-floppy)
-		    (dun-remove-obj-from-room dun-current-room obj-floppy)))))
-	)))
+		    (dun-remove-obj-from-room dun-current-room obj-floppy))))))))
+
 
 (defun dun-die (murderer)
   (dun-mprinc "\n")
@@ -327,6 +329,8 @@ through.")))))
 	    (dun-mprincl "I don't know what that is.")
 	  (if (and (not (member objnum 
 				(nth dun-current-room dun-room-objects)))
+		   (not (and (member obj-jar dun-inventory)
+			     (member objnum dun-jar)))
 		   (not (member objnum 
 				(nth dun-current-room dun-room-silents)))
 		   (not (member objnum dun-inventory)))
@@ -346,30 +350,33 @@ For an explosive time, go to Fourth St. and Vermont.")
 		(dun-mprincl "I see nothing special about that.")))))))))
 
 (defun dun-take (obj)
-  (if dun-inbus
-      (dun-mprincl "You can't take anything while on the bus.")
-  (setq obj (dun-firstword obj))
-  (if (not obj)
-      (dun-mprincl "You must supply an object.")
-    (if (string= obj "all")
-	(let (gotsome)
-	  (setq gotsome nil)
-	  (dolist (x (nth dun-current-room dun-room-objects))
-	    (if (and (>= x 0) (not (= x obj-special)))
-		(progn
-		  (setq gotsome t)
-		  (dun-mprinc (cadr (nth x dun-objects)))
-		  (dun-mprinc ": ")
-		  (dun-take-object x))))
-	  (if (not gotsome)
-	      (dun-mprincl "Nothing to take.")))
-      (let (objnum)
-	(setq objnum (cdr (assq (intern obj) dun-objnames)))
-	(if (eq objnum nil)
-	    (progn
-	      (dun-mprinc "I don't know what that is.")
-	      (dun-mprinc "\n"))
-	  (dun-take-object objnum)))))))
+    (setq obj (dun-firstword obj))
+    (if (not obj)
+	(dun-mprincl "You must supply an object.")
+      (if (string= obj "all")
+	  (let (gotsome)
+	    (if dun-inbus
+		(dun-mprincl "You can't take anything while on the bus.")
+	      (setq gotsome nil)
+	      (dolist (x (nth dun-current-room dun-room-objects))
+		(if (and (>= x 0) (not (= x obj-special)))
+		    (progn
+		      (setq gotsome t)
+		      (dun-mprinc (cadr (nth x dun-objects)))
+		      (dun-mprinc ": ")
+		      (dun-take-object x))))
+	      (if (not gotsome)
+		  (dun-mprincl "Nothing to take."))))
+	(let (objnum)
+	  (setq objnum (cdr (assq (intern obj) dun-objnames)))
+	  (if (eq objnum nil)
+	      (progn
+		(dun-mprinc "I don't know what that is.")
+		(dun-mprinc "\n"))
+	    (if (and dun-inbus (not (and (member objnum dun-jar)
+					 (member obj-jar dun-inventory))))
+		(dun-mprincl "You can't take anything while on the bus.")
+	      (dun-take-object objnum)))))))
 
 (defun dun-take-object (objnum)
   (if (and (member objnum dun-jar) (member obj-jar dun-inventory))
@@ -415,7 +422,7 @@ For an explosive time, go to Fourth St. and Vermont.")
 
 (defun dun-dig (args)
   (if dun-inbus
-      (dun-mprincl "You can't dig while on the bus.")
+      (dun-mprincl "Digging here reveals nothing.")
   (if (not (member 0 dun-inventory))
       (dun-mprincl "You have nothing with which to dig.")
     (if (not (nth dun-current-room dun-diggables))
@@ -429,11 +436,12 @@ For an explosive time, go to Fourth St. and Vermont.")
 (defun dun-climb (obj)
   (let (objnum)
     (setq objnum (dun-objnum-from-args obj))
-    (cond ((null objnum)
-	   (dun-mprincl "I don't know that name."))
+    (cond ((not objnum)
+	   (dun-mprincl "I don't know what that object is."))
 	  ((and (not (eq objnum obj-special))
 		(not (member objnum (nth dun-current-room dun-room-objects)))
 		(not (member objnum (nth dun-current-room dun-room-silents)))
+		(not (and (member objnum dun-jar) (member obj-jar dun-inventory)))
 		(not (member objnum dun-inventory)))
 	   (dun-mprincl "I don't see that here."))
 	  ((and (eq objnum obj-special)
@@ -461,8 +469,6 @@ notice that the tree is very unsteady.")))))
 	  (dun-remove-obj-from-inven obj-food))))))
 
 (defun dun-put (args)
-  (if dun-inbus
-      (dun-mprincl "You can't do that while on the bus")
     (let (newargs objnum objnum2 obj)
       (setq newargs (dun-firstwordl args))
       (if (not newargs)
@@ -488,7 +494,7 @@ notice that the tree is very unsteady.")))))
 				      (nth dun-current-room dun-room-silents)))
 			 (not (member objnum2 dun-inventory)))
 		    (dun-mprincl "That indirect object is not here.")
-		  (dun-put-objs objnum objnum2))))))))))
+		  (dun-put-objs objnum objnum2)))))))))
 
 (defun dun-put-objs (obj1 obj2)
   (if (and (= obj2 obj-drop) (not dun-nomail))
@@ -732,15 +738,20 @@ engulf you, and you burn to death.")
 	(if (not (member obj-bus (nth dun-current-room dun-room-objects)))
 	    (dun-mprincl "You can't go that way.")
 	  (if (= dir in)
-	      (if (member obj-license dun-inventory)
-		  (progn
-		    (dun-mprincl 
-		     "You board the bus and get in the driver's seat.")
-		    (setq dun-nomail t)
-		    (setq dun-inbus t))
-		(dun-mprincl "You are not licensed for this type of vehicle."))
-	    (dun-mprincl "You hop off the bus.")
-	    (setq dun-inbus nil)))
+	      (if dun-inbus
+		  (dun-mprincl
+		   "You are already in the bus!")
+		(if (member obj-license dun-inventory)
+		    (progn
+		      (dun-mprincl 
+		       "You board the bus and get in the driver's seat.")
+		      (setq dun-nomail t)
+		      (setq dun-inbus t))
+		  (dun-mprincl "You are not licensed for this type of vehicle.")))
+	    (if (not dun-inbus)
+		(dun-mprincl "You are already off the bus!")
+	      (dun-mprincl "You hop off the bus.")
+	      (setq dun-inbus nil))))
       (if (= dun-current-room fifth-oaktree-intersection)
 	  (if (not dun-inbus)
 	      (progn
@@ -799,7 +810,7 @@ huge rocks sliding down from the ceiling, and blocking your way out.\n")
       (dun-mprincl 
        "The temperature has returned to normal room temperature."))
   (if (= dun-sauna-level 1)
-      (dun-mprincl "It is now luke warm in here.  You begin to sweat."))
+      (dun-mprincl "It is now luke warm in here.  You are perspiring."))
   (if (= dun-sauna-level 2)
       (dun-mprincl "It is pretty hot in here.  It is still very comfortable."))
   (if (= dun-sauna-level 3)
@@ -891,7 +902,7 @@ to swim.")
 
 (defun dun-help (args)
   (dun-mprincl
-"Welcome to dunnet (2.0), by Ron Schnell (ronnie@media.mit.edu).
+"Welcome to dunnet (2.01), by Ron Schnell (ronnie@driver-aces.com).
 Here is some useful information (read carefully because there are one
 or more clues in here):
 - If you have a key that can open a door, you do not need to explicitly
@@ -924,8 +935,11 @@ or more clues in here):
 
 - To run this game in batch mode (no emacs window), use:
      emacs -batch -l dunnet
+NOTE: This game *should* be run in batch mode!
 
-If you have questions or comments, please contact ronnie@media.mit.edu."))
+If you have questions or comments, please contact ronnie@driver-aces.com
+My home page is http://www.driver-aces.com/ronnie.html
+"))
 
 (defun dun-flush (args)
   (if (not (= dun-current-room bathroom))
@@ -1289,8 +1303,8 @@ for a moment, then straighten yourself up.
 	  (dun-rot13)
 	(error (yank)))
       (eval-current-buffer)
-      (kill-buffer (current-buffer))
-      (switch-to-buffer old-buffer))
+      (kill-buffer (current-buffer)))
+      (switch-to-buffer old-buffer)
     result))
 
 ;;; Functions to remove an object either from a room, or from inventory.
@@ -1593,25 +1607,25 @@ is a room that can contain objects."
 	      (
 "You are at the northeast end of a northeast/southwest passageway.
 Stairs lead up out of sight."
-               "Ne end of ne/sw cave passage"       ;37
+               "NE end of NE/SW cave passage"       ;37
 	       )
 	      (
 "You are at the junction of northeast/southwest and east/west passages."
-               "Ne/sw-e/w junction"                      ;38
+               "NE/SW-E/W junction"                      ;38
 	       )
 	      (
 "You are at the southwest end of a northeast/southwest passageway."
-               "Sw end of ne/sw cave passage"        ;39
+               "SW end of NE/SW cave passage"        ;39
 	       )
 	      (
-"You are at the east end of an e/w passage.  There are stairs leading up
+"You are at the east end of an E/W passage.  There are stairs leading up
 to a room above."
-               "East end of e/w cave passage"    ;40
+               "East end of E/W cave passage"    ;40
 	       )
 	      (
-"You are at the west end of an e/w passage.  There is a hole on the ground
+"You are at the west end of an E/W passage.  There is a hole on the ground
 which leads down out of sight."
-               "West end of e/w cave passage"    ;41
+               "West end of E/W cave passage"    ;41
 	       )
 	      (
 "You are in a room which is bare, except for a horseshoe shaped boulder
@@ -1675,7 +1689,7 @@ to the northeast."
 	       )
 	      (
 "You are in a crawlway that leads northeast or southwest."
-               "Ne crawlway"                              ;55
+               "NE crawlway"                              ;55
 	       )
 	      (
 "You are in a small crawlspace.  There is a hole in the ground here, and
@@ -1847,7 +1861,7 @@ door to the west."
 	      (
 "You are at the north end of a north/south tunnel.  Stairs lead up and
 down from here.  There is a garbage disposal here."
-               "North end of n/s tunnel"             ;92
+               "North end of N/S tunnel"             ;92
                )
 	      (
 "You are at the top of some stairs near the subway station.  There is
@@ -1869,7 +1883,7 @@ type."
 	       )
 	      (
 "You are in a north/south hallway."
-               "Endgame n/s hallway"           ;96
+               "Endgame N/S hallway"           ;96
 	       )
 	      (
 "You have reached a question room.  You must answer a question correctly in
@@ -1878,7 +1892,7 @@ order to get by.  Use the 'answer' command to answer the question."
 	       )
 	      (
 "You are in a north/south hallway."
-               "Endgame n/s hallway"           ;98
+               "Endgame N/S hallway"           ;98
 	       )
 	      (
 "You are in a second question room."
@@ -1886,7 +1900,7 @@ order to get by.  Use the 'answer' command to answer the question."
 	       )
 	      (
 "You are in a north/south hallway."
-               "Endgame n/s hallway"           ;100
+               "Endgame N/S hallway"           ;100
 	       )
 	      (
 "You are in a third question room."
@@ -2078,10 +2092,10 @@ A hole leads north."
 (setq dun-objnames '(
 		 (shovel . 0) 
 		 (lamp . 1)
-		 (cpu . 2) (board . 2) (card . 2)
+		 (cpu . 2) (board . 2) (card . 2) (chip . 2)
 		 (food . 3) 
 		 (key . 4) 
-		 (paper . 5)
+		 (paper . 5) (slip . 5)
 		 (rms . 6) (statue . 6) (statuette . 6)  (stallman . 6)
 		 (diamond . 7)
 		 (weight . 8)
@@ -2127,13 +2141,14 @@ A hole leads north."
 		 (cliff . -20) 
 		 (skeleton . -21) (dinosaur . -21)
 		 (fish . -22)
-		 (tanks . -23)
+		 (tanks . -23) (tank . -23)
 		 (switch . -24)
 		 (blackboard . -25)
 		 (disposal . -26) (garbage . -26)
 		 (ladder . -27)
 		 (subway . -28) (train . -28) 
-		 (pc . -29) (drive . -29)
+		 (pc . -29) (drive . -29) (coconut . -30) (coconuts . -30)
+		 (lake . -32) (water . -32)
 ))
 
 (dolist (x dun-objnames)
@@ -2208,8 +2223,8 @@ nil))
 ;;; room description.  They are permanent.
 
 (setq dun-room-silents (list nil
-        (list obj-tree)                        ;; dead-end
-        (list obj-tree)                        ;; e-w-dirt-road
+        (list obj-tree obj-coconut)            ;; dead-end
+        (list obj-tree obj-coconut)            ;; e-w-dirt-road
         nil nil nil nil nil nil
         (list obj-bin)                         ;; mailroom
         (list obj-computer)                    ;; computer-room
@@ -2219,7 +2234,10 @@ nil))
         (list obj-ladder)                      ;; weight-room
         (list obj-button obj-ladder)           ;; maze-button-room
         nil nil nil
-        nil nil nil nil nil nil nil
+        nil nil nil nil
+	(list obj-lake)                        ;; lakefront-north
+	(list obj-lake)                        ;; lakefront-south
+	nil
         (list obj-chute)                       ;; cave-entrance
         nil nil nil nil nil
         (list obj-painting obj-bed)            ;; bedroom
@@ -2390,7 +2408,7 @@ names:
 "The dial points to a temperature scale which has long since faded away."
 nil
 nil
-"It is a velvet painting of Elvis Presly.  It seems to be nailed to the
+"It is a velvet painting of Elvis Presley.  It seems to be nailed to the
 wall, and you cannot move it."
 "It is a queen sized bed, with a very firm mattress."
 "The urinal is very clean compared with everything else in the cave.  There
@@ -2593,7 +2611,7 @@ treasures for points?" "4" "four")
 Welcome to Unix\n
 Please clean up your directories.  The filesystem is getting full.
 Our tcp/ip link to gamma is a little flaky, but seems to work.
-The current version of ftp can only send files from the current
+The current version of ftp can only send files from your home
 directory, and deletes them after they are sent!  Be careful.
 
 Note: Restricted bourne shell in use.\n")))
@@ -2862,7 +2880,9 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
       (if (string= args "endgame")
 	  (dun-rlogin-endgame)
 	(if (not (string= args "gamma"))
-	    (dun-mprincl "No such host.")
+	    (if (string= args "pokey")
+		(dun-mprincl "Can't rlogin back to localhost")
+	      (dun-mprincl "No such host."))
 	  (if (not dun-ethernet)
 	      (dun-mprincl "Host not responding.")
 	    (dun-mprinc "Password: ")
