@@ -1875,6 +1875,23 @@ See also the documentation of make-char.")
     XCHAR_TABLE (char_table)->contents[code1] = value;
   return value;
 }
+
+/* Look up the element in TABLE at index CH,
+   and return it as an integer.
+   If the element is nil, return CH itself.
+   (Actually we do that for any non-integer.)  */
+
+int
+char_table_translate (table, ch)
+     Lisp_Object table;
+     int ch;
+{
+  Lisp_Object value;
+  value = Faref (table, make_number (ch));
+  if (! INTEGERP (value))
+    return ch;
+  return XINT (value);
+}
 
 /* Map C_FUNCTION or FUNCTION over SUBTABLE, calling it for each
    character or group of characters that share a value.
