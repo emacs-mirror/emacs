@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.122 2000/10/04 09:50:21 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.123 2000/10/05 22:47:21 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -459,14 +459,40 @@ to do that, use this command a second time with no argument."
     (toggle-read-only)))
 (define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
 
-(defun vc-default-make-version-backups (backend file)
+(defun vc-default-make-version-backups-p (backend file)
   "Return non-nil if unmodified repository versions should 
 be backed up locally.  The default is to switch off this feature."
   nil)
 
-(defun vc-version-backup-file-name (file &optional rev)
-  "Return a backup file name for REV or the current version of FILE."
-  (concat file ".~" (or rev (vc-workfile-version file)) "~"))
+(defun vc-version-backup-file-name (file &optional rev manual regexp)
+  "Return a backup file name for REV or the current version of FILE.
+If MANUAL is non-nil it means that a name for backups created by
+the user should be returned; if REGEXP is non-nil that means to return
+a regexp for matching all such backup files, regardless of the version."
+  (let ((delim (if manual "~" "#")))
+    (if regexp
+        (concat (regexp-quote (file-name-nondirectory file))
+                "." delim "[0-9.]+" delim)
+      (expand-file-name (concat (file-name-nondirectory file) 
+                                "." delim 
+                                (or rev (vc-workfile-version file))
+                                delim)
+                        (file-name-directory file)))))
+
+(defun vc-delete-automatic-version-backups (file)
+  "Delete all existing automatic version backups for FILE."
+  (mapcar
+   (lambda (f)
+     (delete-file f))
+   (directory-files (file-name-directory file) t
+                    (vc-version-backup-file-name file nil nil t))))
+
+(defun vc-make-version-backup (file)
+  "Make a backup copy of FILE, which is assumed in sync with the repository.
+Before doing that, check if there are any old backups and get rid of them."
+  (vc-delete-automatic-version-backups file)
+  (copy-file file (vc-version-backup-file-name file)
+             nil 'keep-date))
 
 (defun vc-before-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
@@ -477,9 +503,8 @@ be backed up locally.  The default is to switch off this feature."
     (and (vc-backend file)
 	 (vc-up-to-date-p file)
 	 (eq (vc-checkout-model file) 'implicit)
-	 (vc-call make-version-backups file)
-	 (copy-file file (vc-version-backup-file-name file) 
-		    'ok-if-already-exists 'keep-date))))
+	 (vc-call make-version-backups-p file)
+         (vc-make-version-backup file))))
 
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
