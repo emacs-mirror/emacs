@@ -1,6 +1,6 @@
 ;;; libc.el -- lookup C symbols in the GNU C Library Reference Manual.
 
-;; Copyright (C) 1993--1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;;; Author: Ralph Schleicher <rs@purple.UL.BaWue.DE>
 ;;; Keywords: local c info
