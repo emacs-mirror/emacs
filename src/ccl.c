@@ -614,7 +614,8 @@ static int stack_idx_of_map_multiple;
   } while (0)
 
 #define CCL_CALL_FOR_MAP_INSTRUCTION(symbol, ret_ic)		\
-  do {								\
+if (1)								\
+  {								\
     struct ccl_program called_ccl;				\
     if (stack_idx >= 256					\
 	|| (setup_ccl_program (&called_ccl, (symbol)) != 0))	\
@@ -632,7 +633,8 @@ static int stack_idx_of_map_multiple;
     ccl_prog = called_ccl.prog;					\
     ic = CCL_HEADER_MAIN;					\
     goto ccl_repeat;						\
-  } while (0)
+  }								\
+else
 
 #define CCL_MapSingle		0x12 /* Map by single code conversion map
 					1:ExtendedCOMMNDXXXRRRrrrXXXXX
@@ -672,29 +674,35 @@ static int stack_idx_of_map_multiple;
 				   r[7] = LOWER_BYTE (SJIS (Y, Z) */
 
 /* Terminate CCL program successfully.  */
-#define CCL_SUCCESS		   	\
-  do {				   	\
+#define CCL_SUCCESS			\
+if (1)					\
+  {					\
     ccl->status = CCL_STAT_SUCCESS;	\
-    goto ccl_finish;		   	\
-  } while (0)
+    goto ccl_finish;			\
+  }					\
+else
 
 /* Suspend CCL program because of reading from empty input buffer or
    writing to full output buffer.  When this program is resumed, the
    same I/O command is executed.  */
 #define CCL_SUSPEND(stat)	\
-  do {				\
+if (1)				\
+  {				\
     ic--;			\
     ccl->status = stat;		\
     goto ccl_finish;		\
-  } while (0)
+  }				\
+else
 
 /* Terminate CCL program because of invalid command.  Should not occur
    in the normal case.  */
 #define CCL_INVALID_CMD		     	\
-  do {				     	\
+if (1)					\
+  {				     	\
     ccl->status = CCL_STAT_INVALID_CMD;	\
     goto ccl_error_handler;	     	\
-  } while (0)
+  }					\
+else
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */
@@ -1213,93 +1221,90 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      if (!src)
 		CCL_INVALID_CMD;
 
-	      do {
-		if (src >= src_end)
-		  {
-		    src++;
-		    goto ccl_read_multibyte_character_suspend;
-		  }
+	      if (src >= src_end)
+		{
+		  src++;
+		  goto ccl_read_multibyte_character_suspend;
+		}
 	      
-		i = *src++;
-		if (i == '\n' && ccl->eol_type != CODING_EOL_LF)
-		  {
-		    /* We are encoding.  */ 
-		    if (ccl->eol_type == CODING_EOL_CRLF)
-		      {
-			if (ccl->cr_consumed)
-			  ccl->cr_consumed = 0;
-			else
-			  {
-			    ccl->cr_consumed = 1;
-			    i = '\r';
-			    src--;
-			  }
-		      }
-		    else
-		      i = '\r';
-		    reg[rrr] = i;
-		    reg[RRR] = CHARSET_ASCII;
-		  }
-		else if (i < 0x80)
-		  {
-		    /* ASCII */
-		    reg[rrr] = i;
-		    reg[RRR] = CHARSET_ASCII;
-		  }
-		else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION1)
-		  {
-		    if (src >= src_end)
-		      goto ccl_read_multibyte_character_suspend;
-		    reg[RRR] = i;
-		    reg[rrr] = (*src++ & 0x7F);
-		  }
-		else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION2)
-		  {
-		    if ((src + 1) >= src_end)
-		      goto ccl_read_multibyte_character_suspend;
-		    reg[RRR] = i;
-		    i = (*src++ & 0x7F);
-		    reg[rrr] = ((i << 7) | (*src & 0x7F));
-		    src++;
-		  }
-		else if ((i == LEADING_CODE_PRIVATE_11)
-			 || (i == LEADING_CODE_PRIVATE_12))
-		  {
-		    if ((src + 1) >= src_end)
-		      goto ccl_read_multibyte_character_suspend;
-		    reg[RRR] = *src++;
-		    reg[rrr] = (*src++ & 0x7F);
-		  }
-		else if ((i == LEADING_CODE_PRIVATE_21)
-			 || (i == LEADING_CODE_PRIVATE_22))
-		  {
-		    if ((src + 2) >= src_end)
-		      goto ccl_read_multibyte_character_suspend;
-		    reg[RRR] = *src++;
-		    i = (*src++ & 0x7F);
-		    reg[rrr] = ((i << 7) | (*src & 0x7F));
-		    src++;
-		  }
-		else if (i == LEADING_CODE_8_BIT_CONTROL)
-		  {
-		    if (src >= src_end)
-		      goto ccl_read_multibyte_character_suspend;
-		    reg[RRR] = CHARSET_8_BIT_CONTROL;
-		    reg[rrr] = (*src++ - 0x20);
-		  }
-		else if (i >= 0xA0)
-		  {
-		    reg[RRR] = CHARSET_8_BIT_GRAPHIC;
-		    reg[rrr] = i;
-		  }
-		else
-		  {
-		    /* INVALID CODE.  Return a single byte character.  */
-		    reg[RRR] = CHARSET_ASCII;
-		    reg[rrr] = i;
-		  }
-		break;
-	      } while (1);
+	      i = *src++;
+	      if (i == '\n' && ccl->eol_type != CODING_EOL_LF)
+		{
+		  /* We are encoding.  */ 
+		  if (ccl->eol_type == CODING_EOL_CRLF)
+		    {
+		      if (ccl->cr_consumed)
+			ccl->cr_consumed = 0;
+		      else
+			{
+			  ccl->cr_consumed = 1;
+			  i = '\r';
+			  src--;
+			}
+		    }
+		  else
+		    i = '\r';
+		  reg[rrr] = i;
+		  reg[RRR] = CHARSET_ASCII;
+		}
+	      else if (i < 0x80)
+		{
+		  /* ASCII */
+		  reg[rrr] = i;
+		  reg[RRR] = CHARSET_ASCII;
+		}
+	      else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION1)
+		{
+		  if (src >= src_end)
+		    goto ccl_read_multibyte_character_suspend;
+		  reg[RRR] = i;
+		  reg[rrr] = (*src++ & 0x7F);
+		}
+	      else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION2)
+		{
+		  if ((src + 1) >= src_end)
+		    goto ccl_read_multibyte_character_suspend;
+		  reg[RRR] = i;
+		  i = (*src++ & 0x7F);
+		  reg[rrr] = ((i << 7) | (*src & 0x7F));
+		  src++;
+		}
+	      else if ((i == LEADING_CODE_PRIVATE_11)
+		       || (i == LEADING_CODE_PRIVATE_12))
+		{
+		  if ((src + 1) >= src_end)
+		    goto ccl_read_multibyte_character_suspend;
+		  reg[RRR] = *src++;
+		  reg[rrr] = (*src++ & 0x7F);
+		}
+	      else if ((i == LEADING_CODE_PRIVATE_21)
+		       || (i == LEADING_CODE_PRIVATE_22))
+		{
+		  if ((src + 2) >= src_end)
+		    goto ccl_read_multibyte_character_suspend;
+		  reg[RRR] = *src++;
+		  i = (*src++ & 0x7F);
+		  reg[rrr] = ((i << 7) | (*src & 0x7F));
+		  src++;
+		}
+	      else if (i == LEADING_CODE_8_BIT_CONTROL)
+		{
+		  if (src >= src_end)
+		    goto ccl_read_multibyte_character_suspend;
+		  reg[RRR] = CHARSET_8_BIT_CONTROL;
+		  reg[rrr] = (*src++ - 0x20);
+		}
+	      else if (i >= 0xA0)
+		{
+		  reg[RRR] = CHARSET_8_BIT_GRAPHIC;
+		  reg[rrr] = i;
+		}
+	      else
+		{
+		  /* INVALID CODE.  Return a single byte character.  */
+		  reg[RRR] = CHARSET_ASCII;
+		  reg[rrr] = i;
+		}
 	      break;
 
 	    ccl_read_multibyte_character_suspend:
