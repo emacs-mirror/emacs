@@ -1,3 +1,8 @@
+2000-12-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-diag.el (describe-char-after): Fix typo.
+	(describe-character-set): Fix typo.
+
 2000-12-01  Miles Bader  <miles@gnu.org>
 
 	* image-file.el (image-file-name-regexp): Automatically add
