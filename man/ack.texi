@@ -1,13 +1,13 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1994, 1995, 1996, 1997, 1999 Free Software Foundation, Inc.
+@c Copyright (C) 1994,1995,1996,1997,1999,2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Acknowledgments, Screen, Concept Index, Top
 @chapter Acknowledgments
 
 Many people have contributed code included in the Free Software
 Foundation's distribution of GNU Emacs.  To show our appreciation for
-their public spirit, we list here those who have written substantial
-portions.
+their public spirit, we list here, in alphabetical order, those who have
+written substantial portions.
 
 @itemize @bullet
 @item
@@ -490,6 +490,11 @@ used in mail messages and news articles,
 @end itemize
 
 @item
+Gerd Moellmann wrote the new display engine for Emacs 21, the
+@code{ebrowse} C@t{++} browser, and @file{jit-lock.el},
+@file{tooltip.el}, and @file{authors.el} packages.
+
+@item
 Keith Moore wrote @file{aixcc.lex}, a pre-processor designed to help
 Emacs parse the error messages produced by the AIX C compiler.
 
@@ -695,9 +700,6 @@ oriented subprocesses,
 @end itemize
 
 @item
-Sam Shteingold wrote @file{gulp.el}.
-
-@item
 Espen Skoglund wrote @file{pascal.el}, a mode for editing Pascal code.
 
 @item
@@ -737,7 +739,7 @@ Peter Stephenson contributed @file{vcursor.el}, which implements a
 copying text.
 
 @item
-Sam Steingold wrote @file{midnight.el}.
+Sam Steingold wrote @file{gulp.el} and @file{midnight.el}.
 
 @item
 Jonathan Stigelman wrote @file{hilit19.el}, a package providing
@@ -819,11 +821,19 @@ and news articles,
 @end itemize
 
 @item
-Morten Welinder wrote:
+Morten Welinder introduced face support into the MS-DOS port of Emacs,
+and also wrote:
 @itemize @bullet
 @item
 @file{desktop.el}, facilities for saving some of Emacs's state between
 sessions,
+@item
+@file{timer.el}, the Emacs facility to run commands at a given time or
+frequency, or when Emacs is idle,
+@item
+@file{pc-win.el}, the MS-DOS ``window-system'' support,
+@item
+@file{arc-mode.el}, the mode for editing compressed archives,
 @item
 @file{s-region.el}, commands for setting the region using the shift key
 and motion commands, and
@@ -868,7 +878,11 @@ Tom Wurgler wrote @file{emacs-lock.el}, which makes it harder
 to exit with valuable buffers unsaved.
 
 @item
-Eli Zaretskii made many standard Emacs features work on MS-DOS.
+Eli Zaretskii made many standard Emacs features work on MS-DOS.  He also
+wrote @file{tty-colors.el}, which implements transparent mapping of X
+colors to tty colors, and (together with Kenichi Handa)
+@file{codepage.el}, a package for editing text encoded in DOS/Windows
+code pages.
 
 @item
 Jamie Zawinski wrote:
