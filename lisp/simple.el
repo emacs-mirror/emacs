@@ -790,7 +790,7 @@ and put point at the end, but don't alter the mark.
 If the output is one line, it is displayed in the echo area,
 but it is nonetheless available in buffer `*Shell Command Output*'
 even though that buffer is not automatically displayed.
-If there is no output. or ifoutput is inserted in the current buffer,
+If there is no output, or if output is inserted in the current buffer,
 then `*Shell Command Output*' is deleted.
 
 If the optional fourth argument OUTPUT-BUFFER is non-nil,
@@ -868,77 +868,6 @@ In either case, the output is inserted after point (leaving mark after it)."
 					      (progn (end-of-line) (point))))))
 		(t 
 		 (set-window-start (display-buffer buffer) 1))))))))
-
-(defun universal-argument ()
-  "Begin a numeric argument for the following command.
-Digits or minus sign following \\[universal-argument] make up the numeric argument.
-\\[universal-argument] following the digits or minus sign ends the argument.
-\\[universal-argument] without digits or minus sign provides 4 as argument.
-Repeating \\[universal-argument] without digits or minus sign
- multiplies the argument by 4 each time."
-  (interactive nil)
-  (let ((factor 4)
-	key)
-;;    (describe-arg (list factor) 1)
-    (setq key (read-key-sequence nil t))
-    (while (equal (key-binding key) 'universal-argument)
-      (setq factor (* 4 factor))
-;;      (describe-arg (list factor) 1)
-      (setq key (read-key-sequence nil t)))
-    (prefix-arg-internal key factor nil)))
-
-(defun prefix-arg-internal (key factor value)
-  (let ((sign 1))
-    (if (and (numberp value) (< value 0))
-	(setq sign -1 value (- value)))
-    (if (eq value '-)
-	(setq sign -1 value nil))
-;;    (describe-arg value sign)
-    (while (equal key "-")
-      (setq sign (- sign) factor nil)
-;;      (describe-arg value sign)
-      (setq key (read-key-sequence nil t)))
-    (while (and (stringp key)
-		(= (length key) 1)
-		(not (string< key "0"))
-		(not (string< "9" key)))
-      (setq value (+ (* (if (numberp value) value 0) 10)
-		     (- (aref key 0) ?0))
-	    factor nil)
-;;      (describe-arg value sign)
-      (setq key (read-key-sequence nil t)))
-    (setq prefix-arg
-	  (cond (factor (list factor))
-		((numberp value) (* value sign))
-		((= sign -1) '-)))
-    ;; Calling universal-argument after digits
-    ;; terminates the argument but is ignored.
-    (if (eq (key-binding key) 'universal-argument)
-	(progn
-	  (describe-arg value sign)
-	  (setq key (read-key-sequence nil t))))
-    (setq unread-command-events (listify-key-sequence key))))
-
-(defun describe-arg (value sign)
-  (cond ((numberp value)
-	 (message "Arg: %d" (* value sign)))
-	((consp value)
-	 (message "Arg: [%d]" (car value)))
-	((< sign 0)
-	 (message "Arg: -"))))
-
-(defun digit-argument (arg)
-  "Part of the numeric argument for the next command.
-\\[universal-argument] following digits or minus sign ends the argument."
-  (interactive "P")
-  (prefix-arg-internal (char-to-string (logand last-command-char ?\177))
-		       nil arg))
-
-(defun negative-argument (arg)
-  "Begin a negative numeric argument for the next command.
-\\[universal-argument] following digits or minus sign ends the argument."
-  (interactive "P")
-  (prefix-arg-internal "-" nil arg))
 
 (defun forward-to-indentation (arg)
   "Move forward ARG lines and position at first nonblank character."
