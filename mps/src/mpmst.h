@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.61) $
+ * $HopeName: MMsrc!mpmst.h(trunk.62) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -125,6 +125,7 @@ typedef struct PoolStruct {     /* generic structure */
   RingStruct actionRing;        /* actions are attached to pool */
   Serial actionSerial;          /* serial of next action */
   Align alignment;              /* alignment for units */
+  Format format;                /* format only if class->attr&AttrFMT */
   double fillMutatorSize;       /* bytes filled, mutator buffers */
   double emptyMutatorSize;      /* bytes emptied, mutator buffers */
   double fillInternalSize;      /* bytes filled, internal buffers */

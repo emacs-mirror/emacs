@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.57) $
+ * $HopeName: MMsrc!pool.c(trunk.58) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.57) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.58) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -73,17 +73,24 @@ Bool PoolClassCheck(PoolClass class)
 
 Bool PoolCheck(Pool pool)
 {
+  /* Checks ordered as per struct decl in impl.h.mpmst.pool */
   CHECKS(Pool, pool);
-  CHECKU(Arena, pool->arena);
   /* Break modularity for checking efficiency */
   CHECKL(pool->serial < pool->arena->poolSerial);
   CHECKD(PoolClass, pool->class);
+  CHECKU(Arena, pool->arena);
   CHECKL(RingCheck(&pool->arenaRing));
   CHECKL(RingCheck(&pool->bufferRing));
+  /* Cannot check pool->bufferSerial */
   CHECKL(RingCheck(&pool->segRing));
   CHECKL(RingCheck(&pool->actionRing));
-  /* Cannot check pool->bufferSerial */
+  /* Cannot check pool->actionSerial */
   CHECKL(AlignCheck(pool->alignment));
+  /* normally pool->format iff pool->class->attr&AttrFMT, but not */
+  /* during pool initialization */
+  if(pool->format != NULL) {
+    CHECKL((pool->class->attr & AttrFMT) != 0);
+  }
   CHECKL(pool->fillMutatorSize >= 0.0);
   CHECKL(pool->emptyMutatorSize >= 0.0);
   CHECKL(pool->fillInternalSize >= 0.0);
@@ -127,6 +134,7 @@ Res PoolInitV(Pool pool, Arena arena,
   pool->bufferSerial = (Serial)0;
   pool->actionSerial = (Serial)0;
   pool->alignment = MPS_PF_ALIGN;
+  pool->format = NULL;
   pool->fillMutatorSize = 0.0;
   pool->emptyMutatorSize = 0.0;
   pool->fillInternalSize = 0.0;
@@ -472,6 +480,15 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
                "  arena $P ($U)\n", 
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,
+               NULL);
+  if(res != ResOK)
+    return res;
+  if(NULL != pool->format) {
+    res = FormatDescribe(pool->format, stream);
+    if(res != ResOK)
+      return res;
+  }
+  res = WriteF(stream,
                "  fillMutatorSize $UKb\n",
                  (WriteFU)(pool->fillMutatorSize / 1024),
                "  emptyMutatorSize $UKb\n",
@@ -513,6 +530,26 @@ Arena (PoolArena)(Pool pool)
   /* AVERT(Pool, pool); */
 
   return pool->arena;
+}
+
+
+/* PoolFormat
+ *
+ * Returns the format of the pool (the format of objects in the
+ * pool).  If the pool is unformatted or doesn't declare a format
+ * then this function returns FALSE and does not update *formatReturn.
+ * Otherwise this function returns TRUE and *formatReturn is updated
+ * to be the pool's format. */
+Bool PoolFormat(Format *formatReturn, Pool pool)
+{
+  AVER(formatReturn != NULL);
+  AVERT(Pool, pool);
+
+  if(pool->format) {
+    *formatReturn = pool->format;
+    return TRUE;
+  }
+  return FALSE;
 }
 
 
