@@ -1,3 +1,8 @@
+2001-08-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.in (machine): Add an entry for
+	hppa1.1-hitachi-hiuxwe2*.
+
 2001-05-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist (LANG): Set LC_ALL and LANGUAGE to C, unset
