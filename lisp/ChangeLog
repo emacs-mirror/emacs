@@ -1,5 +1,9 @@
 2001-05-17  Gerd Moellmann  <gerd@gnu.org>
 
+	* mail/rmail.el (rmail-require-mime-maybe): New function.
+	(rmail): Use it.
+	(rmail-mode): Handle the case of finding Rmail files.
+
 	* emacs-lisp/elp.el (elp-instrument-function): Handle advised
 	functions.
 
