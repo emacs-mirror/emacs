@@ -5,6 +5,8 @@
 
 2001-11-13  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* newcomment.el (comment-normalize-vars): Handle a nil comment-padding.
+
 	* progmodes/ada-mode.el (ada-fill-comment-prefix): GNAT wants 2 spaces.
 	From Emmanuel Briot <briot@act-europe.fr>.
 
