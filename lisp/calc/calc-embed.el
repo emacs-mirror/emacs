@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-embed.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -202,8 +202,8 @@ This is not required to be present for user-written mode annotations.")
 	     (if (buffer-name (aref calc-embedded-info 0))
 		 (save-excursion
 		   (set-buffer (aref calc-embedded-info 0))
-		   (or (y-or-n-p "Cancel Calc Embedded mode in buffer %s? "
-				 (buffer-name))
+		   (or (y-or-n-p (format "Cancel Calc Embedded mode in buffer %s? "
+					 (buffer-name)))
 		       (keyboard-quit))
 		   (calc-embedded nil)))
 	     (calc-embedded arg end obeg oend)))
@@ -308,7 +308,7 @@ This is not required to be present for user-written mode annotations.")
 	  (error (nth 2 (aref info 8)))))
     (calc-wrapper
      (setq str (math-showing-full-precision
-		(math-format-nice-expr (aref info 8) (screen-width))))
+		(math-format-nice-expr (aref info 8) (frame-width))))
      (calc-edit-mode (list 'calc-embedded-finish-edit info))
      (insert str "\n")))
   (calc-show-edit-buffer)
