@@ -232,9 +232,11 @@ This respects narrowing, created by \\[narrow-to-region] and friends."
   (interactive "*")
   (save-match-data
     (save-excursion
+      (let (eol bol)         
       (goto-char (point-min))
-      (while (re-search-forward "\\s-+$" nil t)
-        (delete-region (match-beginning 0) (match-end 0))))))
+      (while (re-search-forward "\\s-$" nil t)
+	(skip-syntax-backward "-" (save-excursion (forward-line 0) (point)))
+	(delete-region (point) (match-end 0)))))))
 
 (defun newline-and-indent ()
   "Insert a newline, then indent according to major mode.
