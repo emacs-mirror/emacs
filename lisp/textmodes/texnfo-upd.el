@@ -547,7 +547,7 @@ Signal an error if not end of menu."
   (save-excursion
     (if (re-search-forward "^@end menu" nil t)
 	(point)
-      (error "Menu does not have an end."))))
+      (error "Menu does not have an end"))))
 
 (defun texinfo-delete-old-menu (beginning first)
   "Delete the old menu.  Point must be in or after menu.
@@ -629,13 +629,13 @@ complements the node name rather than repeats it as a title does."
       (if (search-forward "* " (save-excursion (end-of-line) (point)) t)
 	  (progn (skip-chars-forward " \t")
 		 (setq beginning (point)))
-	(error "This is not a line in a menu!"))
+	(error "This is not a line in a menu"))
 
       (cond
 	;; "Double colon" entry line; menu entry and node name are the same,
        ((search-forward "::" (save-excursion (end-of-line) (point)) t)
 	(if (looking-at "[ \t]*[^ \t\n]+")
-	    (error "Descriptive text already exists."))
+	    (error "Descriptive text already exists"))
 	(skip-chars-backward ": \t")
 	(setq node-name (buffer-substring beginning (point))))
 
@@ -648,7 +648,7 @@ complements the node name rather than repeats it as a title does."
 			       (save-excursion (forward-line 1) (point)) t)
 	    (progn
 	      (if (looking-at "[ \t]*[^ \t\n]+")
-		  (error "Descriptive text already exists."))
+		  (error "Descriptive text already exists"))
 	      (skip-chars-backward "., \t")
 	      (setq node-name (buffer-substring beginning (point))))
 	  ;; Menu entry line ends in a return.
@@ -657,9 +657,9 @@ complements the node name rather than repeats it as a title does."
 	  (skip-chars-backward " \t\n")
 	  (setq node-name (buffer-substring beginning (point)))
 	  (if (= 0 (length node-name))
-	      (error "No node name on this line.")
+	      (error "No node name on this line")
 	    (insert "."))))
-       (t (error "No node name on this line.")))
+       (t (error "No node name on this line")))
       ;; Search for node that matches node name, and copy the section title.
       (if (re-search-forward
 	   (concat
@@ -686,7 +686,7 @@ complements the node name rather than repeats it as a title does."
 		   (progn (end-of-line)
 			  (skip-chars-backward " \t")
 			  (point)))))
-	(error "Cannot find node to match node name in menu entry.")))
+	(error "Cannot find node to match node name in menu entry")))
     ;; Return point to the menu and insert the title.
     (end-of-line)
     (delete-region
@@ -797,12 +797,12 @@ title of the section containing the menu."
 
     ;; Move point to location after `top'.
     (if (not (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t))
-	(error "This buffer needs a Top node!"))
+	(error "This buffer needs a Top node"))
 
     (let ((first-chapter
 	   (save-excursion
 	     (or (re-search-forward "^@node" nil t)
-		 (error "Too few nodes for a master menu!"))
+		 (error "Too few nodes for a master menu"))
 	     (point))))
       (if (search-forward texinfo-master-menu-header first-chapter t)
 	  (progn
@@ -892,12 +892,12 @@ However, there does not need to be a title field."
   ;; Insert a master menu only after `Top' node and before next node
   ;; \(or include file if there is no next node\).
   (if (not (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t))
-      (error "This buffer needs a Top node!"))
+      (error "This buffer needs a Top node"))
   (let ((first-chapter
 	 (save-excursion (re-search-forward "^@node\\|^@include") (point))))
     (if (not (re-search-forward "^@menu" first-chapter t))
 	(error
-	 "Buffer lacks ordinary `Top' menu in which to insert master.")))
+	 "Buffer lacks ordinary `Top' menu in which to insert master")))
   (beginning-of-line)
   (delete-region      ; buffer must have ordinary top menu
    (point)
@@ -1002,7 +1002,7 @@ and leave point on the line before the `@end menu' line."
 		      (goto-char end-of-menu)
 		      ;; handle multi-line description
 		      (if (not (re-search-backward "^\\* " nil t))
-			  (error "No entries in menu."))
+			  (error "No entries in menu"))
 		      (point))))
     (while (< (point) last-entry)
       (if (re-search-forward  "^\\* " end-of-menu t)
@@ -1047,7 +1047,7 @@ error if the node is not the top node and a section is not found."
 		(point))))
        (t
 	(error
-	 "texinfo-specific-section-type: Chapter or section not found."))))))
+	 "texinfo-specific-section-type: Chapter or section not found"))))))
 
 (defun texinfo-hierarchic-level ()
   "Return the general hierarchal level of the next node in a texinfo file.
@@ -1533,7 +1533,7 @@ Info `g*' command is inadequate."
       ;; update a single node
       (let ((auto-fill-function nil) (auto-fill-hook nil))
 	(if (not (re-search-backward "^@node" (point-min) t))
-	    (error "Node line not found before this position."))
+	    (error "Node line not found before this position"))
 	(texinfo-sequentially-update-the-node)
 	(message
 	 "Done...sequentially updated the node .  You may save the buffer."))
@@ -1543,7 +1543,7 @@ Info `g*' command is inadequate."
 	  (beginning (region-beginning))
 	  (end (region-end)))
       (if (= end beginning)
-	  (error "Please mark a region!"))
+	  (error "Please mark a region"))
       (save-restriction
 	(narrow-to-region beginning end)
 	(goto-char beginning)
@@ -1820,7 +1820,7 @@ Thus, normally, each included file contains one, and only one, chapter."
     (widen)
     (goto-char (point-min))
     (if (not (re-search-forward "^@node" nil t))
-	(error "No `@node' line found in %s !" (buffer-name)))
+	(error "No `@node' line found in %s" (buffer-name)))
     (beginning-of-line)
     (texinfo-check-for-node-name)
     (setq next-node-name (texinfo-copy-node-name))
@@ -1837,7 +1837,7 @@ Thus, normally, each included file contains one, and only one, chapter."
     (switch-to-buffer (find-file-noselect (car files)))
     (goto-char (point-min))
     (if (not (re-search-forward "^@node [ \t]*top[ \t]*\\(,\\|$\\)" nil t))
-	(error "This buffer needs a Top node!"))
+	(error "This buffer needs a Top node"))
     (beginning-of-line)
     (texinfo-delete-existing-pointers)
     (end-of-line)
@@ -1857,7 +1857,7 @@ Thus, normally, each included file contains one, and only one, chapter."
 	(widen)
 	(goto-char (point-min))
 	(if (not (re-search-forward "^@node" nil t))
-	    (error "No `@node' line found in %s !" (buffer-name)))
+	    (error "No `@node' line found in %s" (buffer-name)))
 	(beginning-of-line)
 	(texinfo-check-for-node-name)
 	(setq next-node-name (texinfo-copy-node-name))
@@ -1873,7 +1873,7 @@ Thus, normally, each included file contains one, and only one, chapter."
       (switch-to-buffer (find-file-noselect (car files)))
       (goto-char (point-min))
       (if (not (re-search-forward "^@node" nil t))
-	  (error "No `@node' line found in %s !" (buffer-name)))
+	  (error "No `@node' line found in %s" (buffer-name)))
       (beginning-of-line)
 
       ;; Update other menus and nodes if requested.
