@@ -1,5 +1,7 @@
 2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* config.in: Regenerate.
+
 	* gtkutil.c: Include signal.h and syssignal.h.
 	(xg_get_file_name): Block and unblock __SIGRTMIN if defined.
 

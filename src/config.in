@@ -1,8 +1,7 @@
 /* src/config.in.  Generated from configure.in by autoheader.  */
 
 /* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004
-             Free Software Foundation, Inc.
+   Copyright (C) 1988, 93, 94, 99, 2000, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -220,6 +219,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if using GTK. */
 #undef HAVE_GTK
+
+/* Define to 1 if you have GTK and pthread (-lpthread). */
+#undef HAVE_GTK_AND_PTHREAD
 
 /* Define to 1 if GTK has both file selection and chooser dialog. */
 #undef HAVE_GTK_FILE_BOTH
@@ -441,6 +443,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
 
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H
@@ -969,13 +974,7 @@ Boston, MA 02111-1307, USA.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
 #define RE_TRANSLATE(TBL, C) CHAR_TABLE_TRANSLATE (TBL, C)
-#ifdef make_number
-/* If make_number is a macro, use it.  */
-#define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_number (0)))
-#else
-/* If make_number is a function, avoid it.  */
-#define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
-#endif
+#define RE_TRANSLATE_P(TBL) (XFASTINT (TBL) != 0)
 #endif
 
 /* Avoid link-time collision with system mktime if we will use our own.  */
