@@ -156,6 +156,7 @@ not the default value itself."
     (put symbol 'custom-requests requests)
     ;; Do the actual initialization.
     (funcall initialize symbol default))
+  (setq current-load-list (cons symbol current-load-list))
   (run-hooks 'custom-define-hook)
   symbol)
 
