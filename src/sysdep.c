@@ -697,11 +697,11 @@ sys_subshell ()
       close_process_descs ();	/* Close Emacs's pipes/ptys */
 #endif
 
-#ifdef PRIO_PROCESS
+#ifdef SET_EMACS_PRIORITY
       {
 	extern int emacs_priority;
 
-	if (emacs_priority)
+	if (emacs_priority < 0)
 	  nice (-emacs_priority);
       }
 #endif
