@@ -368,7 +368,8 @@ nas returned by the `event-start' and `event-end' functions."
 
 ;; Some programs still use this as a function.
 (defun baud-rate ()
-  "Obsolete function returning the value of the `baud-rate' variable."
+  "Obsolete function returning the value of the `baud-rate' variable.
+Please convert your programs to use the variable `baud-rate' directly."
   baud-rate)
 
 
