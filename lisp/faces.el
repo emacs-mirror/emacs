@@ -504,7 +504,7 @@ If that can't be done, return nil."
   "Make the font of the given face be bold, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face bold: ")))
-  (if (eq frame t)
+  (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face (if (memq 'italic (face-font face t))
 			      '(bold italic) '(bold))
 		     t)
@@ -541,7 +541,7 @@ If NOERROR is non-nil, return nil on failure."
   "Make the font of the given face be italic, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face italic: ")))
-  (if (eq frame t)
+  (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face (if (memq 'bold (face-font face t))
 			      '(bold italic) '(italic))
 		     t)
@@ -578,7 +578,7 @@ If NOERROR is non-nil, return nil on failure."
   "Make the font of the given face be bold and italic, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face bold-italic: ")))
-  (if (eq frame t)
+  (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face '(bold italic) t)
     (let ((ofont (face-font face frame))
 	  font)
@@ -630,7 +630,7 @@ If NOERROR is non-nil, return nil on failure."
   "Make the font of the given face be non-bold, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face non-bold: ")))
-  (if (eq frame t)
+  (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face (if (memq 'italic (face-font face t))
 			      '(italic) nil)
 		     t)
@@ -662,7 +662,7 @@ If NOERROR is non-nil, return nil on failure."
   "Make the font of the given face be non-italic, if possible.  
 If NOERROR is non-nil, return nil on failure."
   (interactive (list (read-face-name "Make which face non-italic: ")))
-  (if (eq frame t)
+  (if (and (eq frame t) (listp (face-font face t)))
       (set-face-font face (if (memq 'bold (face-font face t))
 			      '(bold) nil)
 		     t)
@@ -892,15 +892,17 @@ selected frame."
       ;; Also fill them in from X resources.
       (while rest
 	(setcdr (car rest) (copy-sequence (cdr (car rest))))
-	(if (listp (face-font (cdr (car rest))))
-	    (let ((bold (memq 'bold (face-font (cdr (car rest)))))
-		  (italic (memq 'italic (face-font (cdr (car rest))))))
-	      (if (and bold italic)
-		  (make-face-bold-italic (car (car rest)) frame)
-		(if bold
-		    (make-face-bold (car (car rest)) frame)
-		  (if italic
-		      (make-face-italic (car (car rest)) frame))))))
+	(condition-case nil
+	    (if (listp (face-font (cdr (car rest))))
+		(let ((bold (memq 'bold (face-font (cdr (car rest)))))
+		      (italic (memq 'italic (face-font (cdr (car rest))))))
+		  (if (and bold italic)
+		      (make-face-bold-italic (car (car rest)) frame)
+		    (if bold
+			(make-face-bold (car (car rest)) frame)
+		      (if italic
+			  (make-face-italic (car (car rest)) frame))))))
+	  (error nil))
 	(make-face-x-resource-internal (cdr (car rest)) frame t)
 	(setq rest (cdr rest)))
 
