@@ -753,12 +753,24 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	 ;; Otherwise if Font Lock mode is on, set or add the keywords now.
 	 (if (eq append 'set)
 	     (setq font-lock-keywords keywords)
+	   (font-lock-remove-keywords keywords)
 	   (let ((old (if (eq (car-safe font-lock-keywords) t)
 			  (cdr font-lock-keywords)
 			font-lock-keywords)))
 	     (setq font-lock-keywords (if append
 					  (append old keywords)
 					(append keywords old))))))))
+
+;;;###autoload
+(defun font-lock-remove-keywords (keywords)
+  "Remove highlighting KEYWORDS from the current buffer."
+  (setq font-lock-keywords (copy-list font-lock-keywords))
+  (dolist (keyword keywords)
+    (setq font-lock-keywords
+	  (delete keyword
+		  (delete (font-lock-compile-keyword keyword)
+			  font-lock-keywords)))))
+
 
 ;;; Global Font Lock mode.
 
@@ -1096,8 +1108,15 @@ The value of this variable is used when Font Lock mode is turned on."
 	  ;; check to see if we should expand the beg/end area for
 	  ;; proper multiline matches
 	  (setq beg (if (get-text-property beg 'font-lock-multiline)
+			;; if the text-property is non-nil, (1+ beg)
+			;; is valid.  We need to use (1+ beg) for the
+			;; case where (get-text-property (1- beg)) is nil
+			;; in which case we want to keep BEG but
+			;; previous-single-property-change will return
+			;; the previous change (if any) rather than
+			;; the one at BEG.
 			(or (previous-single-property-change
-			     beg 'font-lock-multiline)
+			     (1+ beg) 'font-lock-multiline)
 			    (point-min))
 		      beg))
 	  (setq end (or (text-property-any end (point-max)
