@@ -1,3 +1,8 @@
+2002-01-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* process.c (send_process): Set src_multibyte to 1 after the call
+	top setup_coding_system, not before the call.
+
 2002-01-05  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_draw_glyphs): Don't call notice_overwritten_cursor

@@ -3276,7 +3276,6 @@ send_process (proc, buf, len, object)
 	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
       || EQ (object, Qt))
     {
-      coding->src_multibyte = 1;
       if (!EQ (coding->symbol, XPROCESS (proc)->encode_coding_system))
 	/* The coding system for encoding was changed to raw-text
 	   because we sent a unibyte text previously.  Now we are
@@ -3285,6 +3284,10 @@ send_process (proc, buf, len, object)
 	   process.  */
 	setup_coding_system (XPROCESS (proc)->encode_coding_system,
 			     coding);
+      /* src_multibyte should be set to 1 _after_ a call to
+	 setup_coding_system, since it resets src_multibyte to
+	 zero.  */
+      coding->src_multibyte = 1;
     }
   else
     {
