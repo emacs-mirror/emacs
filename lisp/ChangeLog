@@ -1,3 +1,17 @@
+2004-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (no-fringe-bitmap, undef-fringe-bitmap)
+	(left-truncation-fringe-bitmap, right-truncation-fringe-bitmap)
+	(up-arrow-fringe-bitmap, down-arrow-fringe-bitmap)
+	(continued-line-fringe-bitmap, continuation-line-fringe-bitmap)
+	(overlay-arrow-fringe-bitmap, top-left-angle-fringe-bitmap)
+	(top-right-angle-fringe-bitmap, bottom-left-angle-fringe-bitmap)
+	(bottom-right-angle-fringe-bitmap, left-bracket-fringe-bitmap)
+	(right-bracket-fringe-bitmap, filled-box-cursor-fringe-bitmap)
+	(hollow-box-cursor-fringe-bitmap, hollow-square-fringe-bitmap)
+	(bar-cursor-fringe-bitmap, hbar-cursor-fringe-bitmap)
+	(empty-line-fringe-bitmap): Define standard fringe bitmaps id's.
+	
 2004-02-08  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/reftex-toc.el
