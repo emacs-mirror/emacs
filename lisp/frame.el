@@ -686,6 +686,13 @@ Otherwise, that variable should be nil."
       (setq arg (1+ arg)))
     (select-frame-set-input-focus frame)))
 
+(defun iconify-or-deiconify-frame ()
+  "Iconify the selected frame, or deiconify if it's currently an icon."
+  (interactive)
+  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
+      (iconify-frame)
+    (make-frame-visible)))
+
 (defun make-frame-names-alist ()
   (let* ((current-frame (selected-frame))
 	 (falist
