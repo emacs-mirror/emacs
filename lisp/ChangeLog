@@ -1,5 +1,8 @@
 2002-05-22  Colin Walters  <walters@cis.ohio-state.edu>
 
+	* info.el (Info-mode-hook): Change `font-lock-mode' to
+	`turn-on-font-lock'.
+
 	* font-core.el (font-lock-function): New variable.
 	(font-lock-default-function): New function, created from
 	`font-lock-mode'.
