@@ -124,10 +124,14 @@ new mode line."
 
 (defun split-window-horizontally (&optional arg)
   "Split current window into two windows side by side.
-This window becomes the leftmost of the two, and gets
-ARG columns.  No arg means split equally."
+This window becomes the leftmost of the two, and gets ARG columns.
+Negative arg means select the size of the rightmost window instead.
+No arg means split equally."
   (interactive "P")
-  (split-window nil (and arg (prefix-numeric-value arg)) t))
+  (let ((size (and arg (prefix-numeric-value arg))))
+    (and size (< size 0)
+	 (setq size (+ (window-width) size)))
+    (split-window nil size t)))
 
 (defun enlarge-window-horizontally (arg)
   "Make current window ARG columns wider."
