@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.38) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.39) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -102,17 +102,18 @@ typedef struct MessageClassStruct *MessageClass; /* design.mps.message */
 
 /* Pool*Method -- see design.mps.class-interface */
 
+/* Order of types corresponds to PoolClassStruct in impl.h.mpmst */
+
 typedef Res (*PoolInitMethod)(Pool pool, va_list args);
 typedef void (*PoolFinishMethod)(Pool pool);
 typedef Res (*PoolAllocMethod)(Addr *pReturn, Pool pool, Size size);
 typedef void (*PoolFreeMethod)(Pool pool, Addr old, Size size);
 typedef Res (*PoolBufferInitMethod)(Pool pool, Buffer buf, va_list args);
-typedef void (*PoolBufferFinishMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolBufferFillMethod)(Seg *segReturn,
                                     Addr *baseReturn, Addr *limitReturn,
                                     Pool pool, Buffer buffer, Size size);
 typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer);
-typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream);
+typedef void (*PoolBufferFinishMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
 typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg);
@@ -122,6 +123,11 @@ typedef Res (*PoolFixMethod)(Pool pool, ScanState ss, Seg seg,
                              Ref *refIO);
 typedef void (*PoolReclaimMethod)(Pool pool, Trace trace, Seg seg);
 typedef double (*PoolBenefitMethod)(Pool pool, Action action);
+typedef Res (*PoolActMethod)(Pool pool, Action action);
+typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
+                               void (*f)(Addr, void *, unsigned long),
+			       void *p, unsigned long s);
+typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream);
 
 
 /* Message*Method -- design.mps.message */
@@ -134,9 +140,6 @@ typedef void (*MessageFinalizationRefMethod)
 /* Message Types -- design.mps.message and elsewhere */
 
 typedef struct MessageFinalizationStruct *MessageFinalization;
-
-
-typedef Res (*PoolActMethod)(Pool pool, Action action);
 
 
 /* Format*Method -- see design.mps.format-interface */

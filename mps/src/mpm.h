@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.68) $
+ * $HopeName: MMsrc!mpm.h(trunk.69) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -350,6 +350,9 @@ extern void MessageNoFinalizationRef(Ref *refReturn,
                                      Arena arena, Message message);
 
 extern Res PoolNoAct(Pool pool, Action action);
+extern void PoolNoWalk(Pool pool, Seg seg,
+                       void (*f)(Addr, void *, unsigned long),
+		       void *, unsigned long);
 extern Res PoolCollectAct(Pool pool, Action action);
 
 

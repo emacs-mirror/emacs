@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.47) $
+ * $HopeName: MMsrc!mpmst.h(trunk.48) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -83,9 +83,9 @@ typedef struct PoolClassStruct {
   PoolFreeMethod free;          /* free memory to pool */
   PoolBufferInitMethod bufferInit;      /* additional buffer init */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
-  PoolBufferEmptyMethod bufferEmpty;      /* out-of-line commit */
+  PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
   PoolBufferFinishMethod bufferFinish;  /* additional buffer finish */
-  PoolTraceBeginMethod traceBegin;
+  PoolTraceBeginMethod traceBegin;      /* no idea what this does @@@@ */
   PoolWhitenMethod whiten;      /* whiten objects in a segment */
   PoolGreyMethod grey;          /* grey non-white objects */
   PoolBlackenMethod blacken;    /* blacken grey objects without scanning */
@@ -94,6 +94,7 @@ typedef struct PoolClassStruct {
   PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
   PoolBenefitMethod benefit;    /* calculate benefit of action */
   PoolActMethod act;            /* do an action */
+  PoolWalkMethod walk;          /* walk over a segment */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   Sig endSig;                   /* .class.end-sig */
 } PoolClassStruct;
