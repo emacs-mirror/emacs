@@ -501,7 +501,7 @@ other kinds of prefix arguments are ignored."
 	;; but we didn't want to do that.
 	(set-buffer compilation-last-buffer)))
 
-  (next-error 1))
+  (next-error 0))
 
 (defun compilation-buffer-p (buffer)
   (assq 'compilation-error-list (buffer-local-variables buffer)))
