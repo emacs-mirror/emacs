@@ -398,7 +398,7 @@ enum draw_glyphs_face
   DRAW_IMAGE_SUNKEN
 };
 
-static void x_update_window_end P_ ((struct window *, int));
+static void x_update_window_end P_ ((struct window *, int, int));
 static void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
 void x_delete_display P_ ((struct x_display_info *));
 static unsigned int x_x_to_emacs_modifiers P_ ((struct x_display_info *,
@@ -657,24 +657,45 @@ x_draw_vertical_border (w)
 }
    
    
-/* End update of window W (which is equal to updated_window).  Draw
-   vertical borders between horizontally adjacent windows, and display
-   W's cursor if CURSOR_ON_P is non-zero.  W may be a menu bar
-   pseudo-window in case we don't have X toolkit support.  Such
-   windows don't have a cursor, so don't display it here.  */
+/* End update of window W (which is equal to updated_window).
+
+   Draw vertical borders between horizontally adjacent windows, and
+   display W's cursor if CURSOR_ON_P is non-zero.
+
+   MOUSE_FACE_OVERWRITTEN_P non-zero means that some row containing
+   glyphs in mouse-face were overwritten.  In that case we have to
+   make sure that the mouse-highlight is properly redrawn.
+
+   W may be a menu bar pseudo-window in case we don't have X toolkit
+   support.  Such windows don't have a cursor, so don't display it
+   here.  */
 
 static void
-x_update_window_end (w, cursor_on_p)
+x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
      struct window *w;
-     int cursor_on_p;
+     int cursor_on_p, mouse_face_overwritten_p;
 {
   if (!w->pseudo_window_p)
     {
+      struct x_display_info *dpyinfo
+	= FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
+      
       BLOCK_INPUT;
+
+      /* If a row with mouse-face was overwritten, arrange for
+	 XTframe_up_to_date to redisplay the mouse highlight.  */
+      if (mouse_face_overwritten_p)
+	{
+	  dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+	  dpyinfo->mouse_face_window = Qnil;
+	}
+      
       if (cursor_on_p)
 	x_display_and_set_cursor (w, 1, output_cursor.hpos,
 				  output_cursor.vpos,
 				  output_cursor.x, output_cursor.y);
+      
       x_draw_vertical_border (w);
       UNBLOCK_INPUT;
     }
@@ -710,6 +731,7 @@ XTframe_up_to_date (f)
   if (FRAME_X_P (f))
     {
       struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
       if (dpyinfo->mouse_face_deferred_gc
 	  || f == dpyinfo->mouse_face_mouse_frame)
 	{
@@ -7079,6 +7101,24 @@ clear_mouse_face (dpyinfo)
   dpyinfo->mouse_face_window = Qnil;
 }
 
+
+/* Clear any mouse-face on window W.  This function is part of the
+   redisplay interface, and is called from try_window_id and similar
+   functions to ensure the mouse-highlight is off.  */
+
+static void
+x_clear_mouse_face (w)
+     struct window *w;
+{
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
+  Lisp_Object window;
+
+  XSETWINDOW (window, w);
+  if (EQ (window, dpyinfo->mouse_face_window))
+    clear_mouse_face (dpyinfo);
+}
+
+
 /* Just discard the mouse face information for frame F, if any.
    This is used when the size of F is changed.  */
 
@@ -13435,6 +13475,7 @@ static struct redisplay_interface x_redisplay_interface =
   x_update_window_end,
   XTcursor_to,
   x_flush,
+  x_clear_mouse_face,
   x_get_glyph_overhangs,
   x_fix_overlapping_area
 };
