@@ -65,6 +65,8 @@ case "${srcdir}" in
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
+    ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
+    CDPATH=
     if test "${PWD}" != "" && test "`(cd ${PWD} ; sh -c pwd)`" = "`pwd`"  ;
     then
       srcdir="$PWD"
@@ -939,6 +941,8 @@ fi
 
 if test x"${x_includes}" = x; then
   bitmapdir=/usr/include/X11/bitmaps
+elif test -d "${x_includes}/X11/bitmaps"; then
+  bitmapdir="${x_includes}/X11/bitmaps"
 else
   bitmapdir="${x_includes}/bitmaps"
 fi
@@ -1152,8 +1156,11 @@ AC_TRY_LINK([#include <netdb.h>],
 
 AC_FUNC_ALLOCA
 
-# logb and frexp are found in -lm on most systems.
-AC_CHECK_LIB(m, logb)
+# fmod, logb, and frexp are found in -lm on most systems.
+# On HPUX 9.01, -lm does not contain logb, so check for fmod.
+# If some other system has -lm with logb and/or frexp but not fmod,
+# we will have to try yet again...
+AC_CHECK_LIB(m, fmod)
 AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
 random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid \
 strerror fpathconf select mktime eaccess getpagesize)
