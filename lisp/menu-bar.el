@@ -340,13 +340,6 @@ A large number or nil slows down menu responsiveness.")
 	(setq buffers-menu (cons 'keymap buffers-menu)))
     (if frames-menu
 	(setq frames-menu (cons 'keymap frames-menu)))
-    (setq foo1 buffers-menu foo2 frames-menu foo3
-	  (cons "Buffers"
-	    (if (and buffers-menu frames-menu)
-		(list 'keymap "Buffers and Frames"
-		      (cons "Buffers" buffers-menu)
-		      (cons "Frames" frames-menu))
-	      (or buffers-menu frames-menu 'undefined))))
     (define-key global-map [menu-bar buffer]
       (cons "Buffers"
 	    (if (and buffers-menu frames-menu)
