@@ -1,3 +1,25 @@
+2002-07-14  Ken Raeburn  <raeburn@gnu.org>
+
+	* lisp.h (SMBP): Deleted.  All uses changed to STRING_MULTIBYTE.
+	(STRING_SET_UNIBYTE): New macro.
+	(SET_STRING_BYTES): Deleted.  Callers (all of which supplied a
+	length of -1) changed to use STRING_SET_UNIBYTE.
+
+	* abbrev.c, alloc.c, buffer.c, bytecode.c, callint.c, callproc.c,
+	casefiddle.c, category.c, ccl.c, charset.c, charset.h, coding.c,
+	composite.c, data.c, dired.c, dispnew.c, disptab.h, doc.c,
+	dosfns.c, editfns.c, emacs.c, eval.c, fileio.c, filelock.c, fn.c,
+	fontset.c, frame.c, indent.c, insdel.c, intervals.c, keyboard.c,
+	keymap.c, lread.c, mac.c, macfns.c, macmenu.c, macterm.c,
+	minibuf.c, msdos.c, print.c, process.c, search.c, sound.c,
+	sunfns.c, syntax.c, syntax.h, sysdep.c, textprop.c, undo.c,
+	w16select.c, w32.c, w32fns.c, w32menu.c, w32proc.c, w32select.c,
+	w32term.c, window.c, xdisp.c, xfaces.c, xfns.c, xmenu.c,
+	xselect.c, xsmfns.c, xterm.c: Most uses of XSTRING combined with
+	STRING_BYTES or indirection changed to SCHARS, SBYTES,
+	STRING_INTERVALS, SREF, SDATA; explicit size_byte references left
+	unchanged for now.
+
 2002-07-13  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (command_loop_1): Invert check on Vmemory_full.
