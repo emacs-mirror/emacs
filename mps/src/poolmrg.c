@@ -1,6 +1,6 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.38) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.39) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * DESIGN
@@ -30,14 +30,14 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.38) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.39) $");
 
 
 /* Types */
 
 /* enumerate the states of a Guardian */
 enum {
-  MRGGuardianFREE,
+  MRGGuardianFREE = 1,
   MRGGuardianPREFINAL,
   MRGGuardianFINAL,
   MRGGuardianPOSTFINAL
