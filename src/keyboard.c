@@ -4348,6 +4348,41 @@ static int lispy_accent_codes[] =
 #else
   0,
 #endif
+#ifdef XK_dead_abovering
+  XK_dead_abovering,
+#else
+  0,
+#endif
+#ifdef XK_dead_iota
+  XK_dead_iota,
+#else
+  0,
+#endif
+#ifdef XK_dead_belowdot
+  XK_dead_belowdot,
+#else
+  0,
+#endif
+#ifdef XK_dead_voiced_sound
+  XK_dead_voiced_sound,
+#else
+  0,
+#endif
+#ifdef XK_dead_semivoiced_sound
+  XK_dead_semivoiced_sound,
+#else
+  0,
+#endif
+#ifdef XK_dead_hook
+  XK_dead_hook,
+#else
+  0,
+#endif
+#ifdef XK_dead_horn
+  XK_dead_horn,
+#else
+  0,
+#endif
 };
 
 /* This is a list of Lisp names for special "accent" characters.
@@ -4368,6 +4403,13 @@ static char *lispy_accent_keys[] =
   "dead-caron",
   "dead-doubleacute",
   "dead-abovedot",
+  "dead-abovering",
+  "dead-iota",
+  "dead-belowdot",
+  "dead-voiced-sound",
+  "dead-semivoiced-sound",
+  "dead-hook",
+  "dead-horn",
 };
 
 #ifdef HAVE_NTGUI
@@ -4534,6 +4576,10 @@ char *lispy_function_keys[] =
 
 #else /* not HAVE_NTGUI */
 
+/* This should be dealt with in XTread_socket now, and that doesn't
+   depend on the client system having the Kana syms defined.  See also
+   the XK_kana_A case below.  */
+#if 0
 #ifdef XK_kana_A
 static char *lispy_kana_keys[] =
   {
@@ -4568,6 +4614,7 @@ static char *lispy_kana_keys[] =
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x4f0 .. 0x4ff */
   };
 #endif /* XK_kana_A */
+#endif /* 0 */
 
 #define FUNCTION_KEY_OFFSET 0xff00
 
@@ -4822,6 +4869,7 @@ make_lispy_event (event)
 				      (sizeof (lispy_accent_keys)
 				       / sizeof (lispy_accent_keys[0])));
 
+#if 0
 #ifdef XK_kana_A
       if (event->code >= 0x400 && event->code < 0x500)
 	return modify_event_symbol (event->code - 0x400,
@@ -4831,6 +4879,7 @@ make_lispy_event (event)
 				    (sizeof (lispy_kana_keys)
 				     / sizeof (lispy_kana_keys[0])));
 #endif /* XK_kana_A */
+#endif /* 0 */
 
 #ifdef ISO_FUNCTION_KEY_OFFSET
       if (event->code < FUNCTION_KEY_OFFSET
@@ -5974,8 +6023,12 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
 	{
 	  int len = SBYTES (name_alist_or_stem);
 	  char *buf = (char *) alloca (len + 50);
-	  sprintf (buf, "%s-%d", SDATA (name_alist_or_stem),
-		   XINT (symbol_int) + 1);
+	  if (sizeof (int) == sizeof (EMACS_INT))
+	    sprintf (buf, "%s-%d", SDATA (name_alist_or_stem),
+		     XINT (symbol_int) + 1);
+	  else if (sizeof (long) == sizeof (EMACS_INT))
+	    sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
+		     XINT (symbol_int) + 1);
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])
