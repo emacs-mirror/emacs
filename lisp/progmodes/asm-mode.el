@@ -6,7 +6,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -58,9 +58,7 @@
   (define-key asm-mode-map ";"		'asm-comment)
   (define-key asm-mode-map ":"		'asm-colon)
   (define-key asm-mode-map "\C-i"	'tab-to-tab-stop)
-  (define-key asm-mode-map "\C-j"	'asm-newline)
-  (define-key asm-mode-map "\C-m"	'asm-newline)
-  )
+  (define-key asm-mode-map "\C-j"	'asm-newline))
 
 (defvar asm-code-level-empty-comment-pattern nil)
 (defvar asm-flush-left-empty-comment-pattern nil)
@@ -69,7 +67,7 @@
 ;;;###autoload
 (defun asm-mode ()
   "Major mode for editing typical assembler code.
-Features a private asm-mode-abbrev-table and the following bindings:
+Features a private abbrev table and the following bindings:
 
 \\[asm-colon]\toutdent a preceding label, tab to next tab stop.
 \\[tab-to-tab-stop]\ttab to next tab stop.
@@ -77,13 +75,13 @@ Features a private asm-mode-abbrev-table and the following bindings:
 \\[asm-comment]\tsmart placement of assembler comments.
 
 The character used for making comments is set by the variable
-asm-comment-char (which defaults to ?;).  You may want to set this
-appropriately for the assembler on your machine in defaults.el.
+`asm-comment-char' (which defaults to `;').  You may want to set this
+appropriately for the assembler on your machine in `defaults.el'.
 
-Alternatively, you may set this variable in asm-set-comment-hook, which is
+Alternatively, you may set this variable in `asm-set-comment-hook', which is
 called near the beginning of mode initialization.
 
-Turning on asm-mode calls the value of the variable asm-mode-hook,
+Turning on `asm-mode' calls the value of the variable `asm-mode-hook',
 if that value is non-nil, at the end of initialization.
 
 Special commands:\\{asm-mode-map}
