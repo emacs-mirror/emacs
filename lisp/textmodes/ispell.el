@@ -781,18 +781,12 @@ or \\[ispell-region] to update the Ispell process."
 	    (ispell-check-only		; called from ispell minor mode.
 	     (beep))
 	    (t				; prompt for correct word.
-	     (unwind-protect
-		 (progn
-		   (if ispell-highlight-p ;highlight word
-		       (ispell-highlight-spelling-error start end t))
-		   (save-window-excursion
-		     (setq replace (ispell-command-loop
-				    (car (cdr (cdr poss)))
-				    (car (cdr (cdr (cdr poss))))
-				    (car poss)))))
-	       ;; protected
-	       (if ispell-highlight-p	; clear highlight
-		   (ispell-highlight-spelling-error start end)))
+	     (save-window-excursion
+	       (setq replace (ispell-command-loop
+			      (car (cdr (cdr poss)))
+			      (car (cdr (cdr (cdr poss))))
+			      (car poss)
+			      start end)))
 	     (cond ((equal 0 replace)
 		    (ispell-add-per-file-word-list (car poss)))
 		   (replace
@@ -887,216 +881,239 @@ If so, ask if it needs to be saved."
   (setq ispell-pdict-modified-p nil))
 
 
-(defun ispell-command-loop (miss guess word)
+(defun ispell-command-loop (miss guess word start end)
   "Display possible corrections from list MISS.
 GUESS lists possibly valid affix construction of WORD.
 Returns nil to keep word.
 Returns 0 to insert locally into buffer-local dictionary.
 Returns string for new chosen word.
 Returns list for new replacement word (will be rechecked).
+Highlights the word, which is assumed to run from START to END.
 Global `ispell-pdict-modified-p' becomes a list where the only value
 indicates whether the dictionary has been modified when option `a' or `i' is
 used."
-  (let ((count ?0)
-	(line 2)
-	(max-lines (- (window-height) 4)) ; assure 4 context lines.
-	(choices miss)
-	(window-min-height (min window-min-height
-				ispell-choices-win-default-height))
-	(command-characters '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m ))
-	(skipped 0)
-	char num result)
-    (save-excursion
-      (set-buffer (get-buffer-create ispell-choices-buffer))
-      (setq mode-line-format "--  %b  --")
-      (erase-buffer)
-      (if guess
-	  (progn
-	    (insert "Affix rules generate and capitalize "
-		    "this word as shown below:\n\t")
-	    (while guess
-	      (if (> (+ 4 (current-column) (length (car guess)))
-		     (window-width))
-		  (progn
-		    (insert "\n\t")
-		    (setq line (1+ line))))
-	      (insert (car guess) "    ")
-	      (setq guess (cdr guess)))
-	    (insert "\nUse option `i' if this is a correct composition"
-		    " from the derivative root.\n")
-	    (setq line (+ line (if choices 3 2)))))
-      (while (and choices
-		  (< (if (> (+ 7 (current-column) (length (car choices))
-			       (if (> count ?~) 3 0))
-			    (window-width))
-			 (progn
-			   (insert "\n")
-			   (setq line (1+ line)))
-		       line)
-		     max-lines))
-	;; not so good if there are over 20 or 30 options, but then, if
-	;; there are that many you don't want to scan them all anyway...
-	(while (memq count command-characters) ; skip command characters.
-	  (setq count (1+ count)
-		skipped (1+ skipped)))
-	(insert "(" count ") " (car choices) "  ")
-	(setq choices (cdr choices)
-	      count (1+ count)))
-      (setq count (- count ?0 skipped)))
+  (let (highlighted
+	(oldwin)
+	(textbuf (current-buffer)))
+    (unwind-protect
+	(let ((count ?0)
+	      (line 2)
+	      (max-lines (- (window-height) 4)) ; assure 4 context lines.
+	      (choices miss)
+	      (window-min-height (min window-min-height
+				      ispell-choices-win-default-height))
+	      (command-characters '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m ))
+	      (skipped 0)
+	      char num result)
+	  (save-excursion
+	    (set-buffer (get-buffer-create ispell-choices-buffer))
+	    (setq mode-line-format "--  %b  --")
+	    (erase-buffer)
+	    (if guess
+		(progn
+		  (insert "Affix rules generate and capitalize "
+			  "this word as shown below:\n\t")
+		  (while guess
+		    (if (> (+ 4 (current-column) (length (car guess)))
+			   (window-width))
+			(progn
+			  (insert "\n\t")
+			  (setq line (1+ line))))
+		    (insert (car guess) "    ")
+		    (setq guess (cdr guess)))
+		  (insert "\nUse option `i' if this is a correct composition"
+			  " from the derivative root.\n")
+		  (setq line (+ line (if choices 3 2)))))
+	    (while (and choices
+			(< (if (> (+ 7 (current-column) (length (car choices))
+				     (if (> count ?~) 3 0))
+				  (window-width))
+			       (progn
+				 (insert "\n")
+				 (setq line (1+ line)))
+			     line)
+			   max-lines))
+	      ;; not so good if there are over 20 or 30 options, but then, if
+	      ;; there are that many you don't want to scan them all anyway...
+	      (while (memq count command-characters) ; skip command characters.
+		(setq count (1+ count)
+		      skipped (1+ skipped)))
+	      (insert "(" count ") " (car choices) "  ")
+	      (setq choices (cdr choices)
+		    count (1+ count)))
+	    (setq count (- count ?0 skipped)))
 
-    (let ((choices-window (get-buffer-window ispell-choices-buffer)))
-      (if choices-window
-	  (if (not (equal line (window-height choices-window)))
-	      (progn
-		(save-excursion
-		  (let ((cur-point (point)))
-		    (move-to-window-line (- line (window-height choices-window)))
-		    (if (<= (point) cur-point)
-			(set-window-start (selected-window) (point)))))
-		(select-window (previous-window))
-		(enlarge-window (- line (window-height choices-window))))
-	    (select-window choices-window))
-	(ispell-overlay-window (max line
-				    ispell-choices-win-default-height))
-	(switch-to-buffer ispell-choices-buffer)))
-    (goto-char (point-min))
-    (select-window (next-window))
-    (while
-	(eq
-	 t
-	 (setq
-	  result
-	  (progn
-	    (undo-boundary)
-	    (message (concat "C-h or ? for more options; SPC to leave "
-			     "unchanged, Character to replace word"))
-	    (let ((inhibit-quit t))
-	      (setq char (if (fboundp 'read-char-exclusive)
-			     (read-char-exclusive)
-			   (read-char))
-		    skipped 0)
-	      (if (or quit-flag (= char ?\C-g)) ; C-g is like typing X
-		  (setq char ?X
-			quit-flag nil)))
-	    ;; Adjust num to array offset skipping command characters.
-	    (let ((com-chars command-characters))
-	      (while com-chars
-		(if (and (> (car com-chars) ?0) (< (car com-chars) char))
-		    (setq skipped (1+ skipped)))
-		(setq com-chars (cdr com-chars)))
-	      (setq num (- char ?0 skipped)))
-
-	    (cond
-	     ((= char ? ) nil)		; accept word this time only
-	     ((= char ?i)		; accept and insert word into pers dict
-	      (process-send-string ispell-process (concat "*" word "\n"))
-	      (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
-	      nil)
-	     ((or (= char ?a) (= char ?A)) ; accept word without insert
-	      (process-send-string ispell-process (concat "@" word "\n"))
-	      (if (null ispell-pdict-modified-p)
-		  (setq ispell-pdict-modified-p
-			(list ispell-pdict-modified-p)))
-	      (if (= char ?A) 0))	; return 0 for ispell-add buffer-local
-	     ((or (= char ?r) (= char ?R)) ; type in replacement
-	      (if (or (= char ?R) ispell-query-replace-choices)
-		  (list (read-string "Query-replacement for: " word) t)
-		(cons (read-string "Replacement for: " word) nil)))
-	     ((or (= char ??) (= char help-char) (= char ?\C-h))
-	      (ispell-help)
-	      t)
-	     ;; Quit and move point back.
-	     ((= char ?x)
-	      (ispell-pdict-save ispell-silently-savep)
-	      (message "Exited spell-checking")
-	      (setq ispell-quit t)
-	      nil)
-	     ;; Quit and preserve point.
-	     ((= char ?X)
-	      (ispell-pdict-save ispell-silently-savep)
-	      (message
-	       (substitute-command-keys
-		(concat "Spell-checking suspended;"
-			" use C-u \\[ispell-word] to resume")))
-	      (setq ispell-quit (max (point-min)
-				     (- (point) (length word))))
-	      nil)
-	     ((= char ?q)
-	      (if (y-or-n-p "Really kill Ispell process? ")
-		  (progn
-		    (ispell-kill-ispell t) ; terminate process.
-		    (setq ispell-quit (or (not ispell-checking-message)
-					  (point))
-			  ispell-pdict-modified-p nil))
-		t))			; continue if they don't quit.
-	     ((= char ?l)
-	      (let ((new-word (read-string
-			       "Lookup string (`*' is wildcard): "
-			       word))
-		    (new-line 2))
-		(if new-word
+	  (let ((choices-window (get-buffer-window ispell-choices-buffer)))
+	    (if choices-window
+		(if (not (equal line (window-height choices-window)))
 		    (progn
 		      (save-excursion
-			(set-buffer (get-buffer-create
-				     ispell-choices-buffer))
-			(erase-buffer)
-			(setq count ?0
-			      skipped 0
-			      mode-line-format "--  %b  --"
-			      miss (lookup-words new-word)
-			      choices miss)
-			(while (and choices ; adjust choices window.
-				    (< (if (> (+ 7 (current-column)
-						 (length (car choices))
-						 (if (> count ?~) 3 0))
-					      (window-width))
-					   (progn
-					     (insert "\n")
-					     (setq new-line
-						   (1+ new-line)))
-					 new-line)
-				       max-lines))
-			  (while (memq count command-characters)
-			    (setq count (1+ count)
-				  skipped (1+ skipped)))
-			  (insert "(" count ") " (car choices) "  ")
-			  (setq choices (cdr choices)
-				count (1+ count)))
-			(setq count (- count ?0 skipped)))
+			(let ((cur-point (point)))
+			  (move-to-window-line (- line (window-height choices-window)))
+			  (if (<= (point) cur-point)
+			      (set-window-start (selected-window) (point)))))
 		      (select-window (previous-window))
-		      (if (/= new-line line)
-			  (progn
-			    (if (> new-line line)
-				(enlarge-window (- new-line line))
-			      (shrink-window (- line new-line)))
-			    (setq line new-line)))
-		      (select-window (next-window)))))
-	      t)			; reselect from new choices
-	     ((= char ?u)
-	      (process-send-string ispell-process
-				   (concat "*" (downcase word) "\n"))
-	      (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
-	      nil)
-	     ((= char ?m)		; type in what to insert
-	      (process-send-string
-	       ispell-process (concat "*" (read-string "Insert: " word)
-				      "\n"))
-	      (setq ispell-pdict-modified-p '(t))
-	      (cons word nil))
-	     ((and (>= num 0) (< num count))
-	      (if ispell-query-replace-choices ; Query replace flag
-		  (list (nth num miss) 'query-replace)
-		(nth num miss)))
-	     ((= char ?\C-l)
-	      (redraw-display) t)
-	     ((= char ?\C-r)
-	      (save-window-excursion (recursive-edit)) t)
-	     ((= char ?\C-z)
-	      (funcall (key-binding "\C-z"))
-	      t)
-	     (t (ding) t))))))
-    result))
+		      (enlarge-window (- line (window-height choices-window))))
+		  (select-window choices-window))
+	      (ispell-overlay-window (max line
+					  ispell-choices-win-default-height))
+	      (switch-to-buffer ispell-choices-buffer)))
+	  (goto-char (point-min))
 
+	  ;; This is the window that holds the buffer.
+	  (setq oldwin (next-window))
+
+	  ;; Select it.
+	  (select-window oldwin)
+	  ;; Put point at the end of the word.
+	  (goto-char end)
+
+	  ;; Highlight the word.
+	  (if ispell-highlight-p
+	      (progn
+		(ispell-highlight-spelling-error start end t)
+		(setq highlighted t)))
+
+	  (while
+	      (eq
+	       t
+	       (setq
+		result
+		(progn
+		  (undo-boundary)
+		  (message (concat "C-h or ? for more options; SPC to leave "
+				   "unchanged, Character to replace word"))
+		  (let ((inhibit-quit t))
+		    (setq char (if (fboundp 'read-char-exclusive)
+				   (read-char-exclusive)
+				 (read-char))
+			  skipped 0)
+		    (if (or quit-flag (= char ?\C-g)) ; C-g is like typing X
+			(setq char ?X
+			      quit-flag nil)))
+		  ;; Adjust num to array offset skipping command characters.
+		  (let ((com-chars command-characters))
+		    (while com-chars
+		      (if (and (> (car com-chars) ?0) (< (car com-chars) char))
+			  (setq skipped (1+ skipped)))
+		      (setq com-chars (cdr com-chars)))
+		    (setq num (- char ?0 skipped)))
+
+		  (cond
+		   ((= char ? ) nil)		; accept word this time only
+		   ((= char ?i)		; accept and insert word into pers dict
+		    (process-send-string ispell-process (concat "*" word "\n"))
+		    (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
+		    nil)
+		   ((or (= char ?a) (= char ?A)) ; accept word without insert
+		    (process-send-string ispell-process (concat "@" word "\n"))
+		    (if (null ispell-pdict-modified-p)
+			(setq ispell-pdict-modified-p
+			      (list ispell-pdict-modified-p)))
+		    (if (= char ?A) 0))	; return 0 for ispell-add buffer-local
+		   ((or (= char ?r) (= char ?R)) ; type in replacement
+		    (if (or (= char ?R) ispell-query-replace-choices)
+			(list (read-string "Query-replacement for: " word) t)
+		      (cons (read-string "Replacement for: " word) nil)))
+		   ((or (= char ??) (= char help-char) (= char ?\C-h))
+		    (ispell-help)
+		    t)
+		   ;; Quit and move point back.
+		   ((= char ?x)
+		    (ispell-pdict-save ispell-silently-savep)
+		    (message "Exited spell-checking")
+		    (setq ispell-quit t)
+		    nil)
+		   ;; Quit and preserve point.
+		   ((= char ?X)
+		    (ispell-pdict-save ispell-silently-savep)
+		    (message
+		     (substitute-command-keys
+		      (concat "Spell-checking suspended;"
+			      " use C-u \\[ispell-word] to resume")))
+		    (setq ispell-quit (max (point-min)
+					   (- (point) (length word))))
+		    nil)
+		   ((= char ?q)
+		    (if (y-or-n-p "Really kill Ispell process? ")
+			(progn
+			  (ispell-kill-ispell t) ; terminate process.
+			  (setq ispell-quit (or (not ispell-checking-message)
+						(point))
+				ispell-pdict-modified-p nil))
+		      t))			; continue if they don't quit.
+		   ((= char ?l)
+		    (let ((new-word (read-string
+				     "Lookup string (`*' is wildcard): "
+				     word))
+			  (new-line 2))
+		      (if new-word
+			  (progn
+			    (save-excursion
+			      (set-buffer (get-buffer-create
+					   ispell-choices-buffer))
+			      (erase-buffer)
+			      (setq count ?0
+				    skipped 0
+				    mode-line-format "--  %b  --"
+				    miss (lookup-words new-word)
+				    choices miss)
+			      (while (and choices ; adjust choices window.
+					  (< (if (> (+ 7 (current-column)
+						       (length (car choices))
+						       (if (> count ?~) 3 0))
+						    (window-width))
+						 (progn
+						   (insert "\n")
+						   (setq new-line
+							 (1+ new-line)))
+					       new-line)
+					     max-lines))
+				(while (memq count command-characters)
+				  (setq count (1+ count)
+					skipped (1+ skipped)))
+				(insert "(" count ") " (car choices) "  ")
+				(setq choices (cdr choices)
+				      count (1+ count)))
+			      (setq count (- count ?0 skipped)))
+			    (select-window (previous-window))
+			    (if (/= new-line line)
+				(progn
+				  (if (> new-line line)
+				      (enlarge-window (- new-line line))
+				    (shrink-window (- line new-line)))
+				  (setq line new-line)))
+			    (select-window (next-window)))))
+		    t)			; reselect from new choices
+		   ((= char ?u)
+		    (process-send-string ispell-process
+					 (concat "*" (downcase word) "\n"))
+		    (setq ispell-pdict-modified-p '(t)) ; dictionary modified!
+		    nil)
+		   ((= char ?m)		; type in what to insert
+		    (process-send-string
+		     ispell-process (concat "*" (read-string "Insert: " word)
+					    "\n"))
+		    (setq ispell-pdict-modified-p '(t))
+		    (cons word nil))
+		   ((and (>= num 0) (< num count))
+		    (if ispell-query-replace-choices ; Query replace flag
+			(list (nth num miss) 'query-replace)
+		      (nth num miss)))
+		   ((= char ?\C-l)
+		    (redraw-display) t)
+		   ((= char ?\C-r)
+		    (save-window-excursion (recursive-edit)) t)
+		   ((= char ?\C-z)
+		    (funcall (key-binding "\C-z"))
+		    t)
+		   (t (ding) t))))))
+	  result)
+      ;; Unhighlight the word we highlighted.
+      (and highlighted ispell-highlight-p
+	   (save-window-excursion
+	     (select-window oldwin)
+	     (ispell-highlight-spelling-error start end nil))))))
 
 
 ;;;###autoload
@@ -1263,7 +1280,7 @@ otherwise it is displayed normally."
 	(buffer-read-only nil)		; Allow highlighting read-only buffers.
 	(text (buffer-substring start end)) ; Save highlight region
 	(inhibit-quit t)		; inhibit interrupt processing here.
-	(buffer-undo-list nil))		; don't clutter the undo list.
+	(buffer-undo-list t))		; don't clutter the undo list.
     (delete-region start end)
     (insert-char ?  (- end start))	; mimimize amount of redisplay
     (sit-for 0)				; update display
@@ -1300,16 +1317,14 @@ The variable `ispell-highlight-face' selects the face to use for highlighting."
 
 
 ;;; Choose a highlight function at load time.
-(fset 'ispell-highlight-spelling-error
-      (symbol-function
-       (cond
-	((string-match "Lucid" emacs-version)
-	 'ispell-highlight-spelling-error-lucid)
-	((and (string-lessp "19" emacs-version) (featurep 'faces)
-	      window-system)
-	 'ispell-highlight-spelling-error-overlay)
-	(t 'ispell-highlight-spelling-error-generic))))
-
+(defun ispell-highlight-spelling-error (start end highlight)
+  (cond
+   ((string-match "Lucid" emacs-version)
+    (ispell-highlight-spelling-error-lucid start end highlight))
+   ((and (string-lessp "19" emacs-version) (featurep 'faces)
+	 window-system)
+    (ispell-highlight-spelling-error-overlay start end highlight))
+   (t (ispell-highlight-spelling-error-generic start end highlight))))
 
 (defun ispell-overlay-window (height)
   "Create a window covering the top HEIGHT lines of the current window.
@@ -1650,28 +1665,20 @@ With prefix argument, set the default directory."
 				   (concat "Ispell misalignment: word "
 					   "`%s' point %d; please retry")
 				   (car poss) word-start))
-			      (unwind-protect
-				  (progn
-				    (if ispell-highlight-p
-					(ispell-highlight-spelling-error
-					 word-start word-end t))
-				    (sit-for 0)	; update screen display
-				    (if ispell-keep-choices-win
-					(setq replace
-					      (ispell-command-loop
-					       (car (cdr (cdr poss)))
-					       (car (cdr (cdr (cdr poss))))
-					       (car poss)))
-				      (save-window-excursion
-					(setq replace
-					      (ispell-command-loop
-					       (car (cdr (cdr poss)))
-					       (car (cdr (cdr (cdr poss))))
-					       (car poss))))))
-				;; protected
-				(if ispell-highlight-p
-				    (ispell-highlight-spelling-error
-				     word-start word-end)))
+			      (if ispell-keep-choices-win
+				  (setq replace
+					(ispell-command-loop
+					 (car (cdr (cdr poss)))
+					 (car (cdr (cdr (cdr poss))))
+					 (car poss)
+					 word-start word-end))
+				(save-window-excursion
+				  (setq replace
+					(ispell-command-loop
+					 (car (cdr (cdr poss)))
+					 (car (cdr (cdr (cdr poss))))
+					 (car poss)
+					 word-start word-end))))
 			      (cond
 			       ((and replace (listp replace))
 				;; REPLACEMENT WORD entered.  Recheck line
@@ -1828,16 +1835,9 @@ Standard ispell choices are then available."
 	     (setq possibilities (mapcar 'upcase possibilities)))
 	    ((string-match "^[A-Z]" word)
 	     (setq possibilities (mapcar 'capitalize possibilities))))
-	   (unwind-protect
-	       (progn
-		 (if ispell-highlight-p	; highlight word
-		     (ispell-highlight-spelling-error start end t))
-		 (save-window-excursion
-		   (setq replacement
-			 (ispell-command-loop possibilities nil word))))
-	     ;; protected
-	     (if ispell-highlight-p
-		 (ispell-highlight-spelling-error start end))) ; un-highlight
+	   (save-window-excursion
+	     (setq replacement
+		   (ispell-command-loop possibilities nil word start end)))
 	   (cond
 	    ((equal 0 replacement)	; BUFFER-LOCAL ADDITION
 	     (ispell-add-per-file-word-list word))
