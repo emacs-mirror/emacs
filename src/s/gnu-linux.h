@@ -159,14 +159,8 @@ Boston, MA 02111-1307, USA.  */
 #ifdef __ELF__
 /* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
    says where to find X windows at run time.  */
-#ifndef __GNUC__
+
 #define LD_SWITCH_SYSTEM LD_SWITCH_X_SITE_AUX
-#else /* GCC */
-/* We use ./prefix-args because we don't know whether LD_SWITCH_X_SITE_AUX
-   has anything in it.  It can be empty.
-   This works ok in src.  Luckily lib-src does not use LD_SWITCH_SYSTEM.  */
-#define LD_SWITCH_SYSTEM `./prefix-args -Xlinker LD_SWITCH_X_SITE_AUX`
-#endif /* GCC */
 #endif /* __ELF__ */
 
 /* As of version 1.1.51, Linux did not actually implement SIGIO.
