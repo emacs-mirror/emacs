@@ -1,3 +1,7 @@
+2003-05-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (cyrillic-koi8-t): Alias of koi8-t.
+
 2003-05-15  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Avoid unnecessary calls to funs in header and footer
