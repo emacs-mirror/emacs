@@ -13826,8 +13826,10 @@ versions of Windows) characters.");
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
 #endif
-  staticpro (&tip_timer);
   tip_timer = Qnil;
+  staticpro (&tip_timer);
+  tip_frame = Qnil;
+  staticpro (&tip_frame);
 
   defsubr (&Sx_file_dialog);
 }
