@@ -458,7 +458,7 @@ The value is an integer constructed by adding the following bits together:\n\
   0x40	Grey key returns kp-key    (if numlock OFF)\n\
  \n\
   0x200	ALT-0..ALT-9 in top-row produces shifted codes.");
-  dos_keypad_mode = 0x70;
+  dos_keypad_mode = 0x75;
   
   DEFVAR_INT ("dos-keyboard-layout", &dos_keyboard_layout,
     "Contains the country code for the current keyboard layout.\n\
