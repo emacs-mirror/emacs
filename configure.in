@@ -873,7 +873,11 @@ if test x"${opsys}" = x; then
 	opsys=usg5-4 ;;
     *-sysv4.[2-9]* | *-sysvr4.[2-9]* )
 	if [ x$NON_GNU_CPP = x ]; then
-	  NON_GNU_CPP=/usr/ccs/lib/cpp
+	  if [ -f /usr/ccs/lib/cpp ]; then
+	    NON_GNU_CPP=/usr/ccs/lib/cpp
+	  else
+	    NON_GNU_CPP=/lib/cpp
+	  fi
 	fi
 	opsys=usg5-4-2 ;;
     *-sysv4* | *-sysvr4* )		opsys=usg5-4 ;;
@@ -1235,12 +1239,6 @@ AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 AC_CHECK_LIB(pthreads, cma_open)
 
-dnl If we can find a tparm in libcurses.a, it means we have ncurses.
-AC_CHECK_LIB(curses, tparm, HAVE_NCURSES=yes)
-if test x"${HAVE_NCURSES}" = "xyes" ; then
-  AC_DEFINE(HAVE_NCURSES)
-fi
-
 AC_MSG_CHECKING(for XFree86)
 if test -d /usr/X386/include; then
   HAVE_XFREE386=yes
@@ -1373,7 +1371,13 @@ AC_CHECK_LIB(m, sqrt)
 
 AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
 random lrand48 bcopy bcmp logb frexp fmod ftime res_init setsid \
-strerror fpathconf select mktime eaccess getpagesize tzset)
+strerror fpathconf select mktime eaccess getpagesize tzset setlocale)
+
+# Check this now, so that we will NOT find the above functions in ncurses.
+# That is because we have not set up to link ncurses in lib-src.
+# It's better to believe a function is not available
+# than to expect to find it in ncurses.
+AC_CHECK_LIB(ncurses, tparm)
 
 AC_MSG_CHECKING(whether localtime caches TZ)
 AC_CACHE_VAL(emacs_cv_localtime_cache,
