@@ -2714,14 +2714,27 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	(dolist (var byte-compile-lexical-environment)
 	  (when (byte-compile-lexvar-on-stack-p var)
 	    (setq byte-compile-depth (1+ byte-compile-depth))))
-	;; If there are args, output a tag to record the initial stack-depth for the optimizer
+	;; If there are args, output a tag to record the initial
+	;; stack-depth for the optimizer
 	(when (> byte-compile-depth 0)
 	  (byte-compile-out-tag (byte-compile-make-tag)))
 	;; If this is the top-level of a lexically bound lambda expression,
 	;; perhaps some parameters on stack need to be copied into a heap
 	;; environment, so check for them, and do so if necessary.
-	(let ((lforminfo (byte-compile-compute-lforminfo form)))
-	  (byte-compile-maybe-push-heap-environment lforminfo)
+	(let ((lforminfo (byte-compile-make-lforminfo)))
+	  ;; Add any lexical variable that's on the stack to the analysis set.
+	  (dolist (var byte-compile-lexical-environment)
+	    (when (byte-compile-lexvar-on-stack-p var)
+	      (byte-compile-lforminfo-add-var lforminfo (car var) t)))
+	  ;; Analyze the body
+	  (unless (null (byte-compile-lforminfo-vars lforminfo))
+	    (byte-compile-lforminfo-analyze lforminfo form nil nil))
+	  ;; If the analysis revealed some argument need to be in a heap
+	  ;; environment (because they're closed over by an embedded
+	  ;; lambda), put them there.
+	  (setq byte-compile-lexical-environment
+		(append byte-compile-lexical-environment
+			(byte-compile-maybe-push-heap-environment lforminfo)))
 	  (dolist (arginfo (byte-compile-lforminfo-vars lforminfo))
 	    (when (byte-compile-lvarinfo-closed-over-p arginfo)
 	      (byte-compile-bind (car arginfo)

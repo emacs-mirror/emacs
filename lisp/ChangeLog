@@ -1,5 +1,11 @@
 2004-04-11  Miles Bader  <miles@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-top-level): Correctly
+	analyze lexically-bound arguments.
+
+	* emacs-lisp/byte-lexbind.el (byte-compile-lforminfo-analyze):
+	Use `append' instead of `nconc'.
+
 	* emacs-lisp/byte-lexbind.el (byte-compile-make-lvarinfo): Don't
 	use backquote to make a mutable data-structure.
 	(byte-compile-lvarinfo-num-refs, byte-compile-lvarinfo-num-sets):

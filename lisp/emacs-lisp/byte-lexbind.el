@@ -240,10 +240,15 @@ LFORMINFO."
 	     (byte-compile-lforminfo-analyze-forms lforminfo form 3
 						   ignore closure-flag))
 	    ((eq fun 'function)
+	     ;; Analyze an embedded lambda expression [note: we only recognize
+	     ;; it within (function ...) as the (lambda ...) for is actually a
+	     ;; macro returning (function (lambda ...))].
 	     (when (and (consp (cadr form)) (eq (car (cadr form)) 'lambda))
+	       ;; shadow bound variables
 	       (setq ignore
-		     (nconc (byte-compile-arglist-vars (cadr (cadr form)))
-			    ignore))
+		     (append (byte-compile-arglist-vars (cadr (cadr form)))
+			     ignore))
+	       ;; analyze body of lambda
 	       (byte-compile-lforminfo-analyze-forms
 		lforminfo (cadr form) 2
 		ignore
@@ -263,9 +268,12 @@ LFORMINFO."
 	    ((eq fun 'let*)
 	     (dolist (clause (cadr form))
 	       (if (symbolp clause)
+		   ;; shadow bound (to nil) variable
 		   (push clause ignore)
+		 ;; analyze variable init
 		 (byte-compile-lforminfo-analyze lforminfo (cadr clause)
 						 ignore closure-flag)
+		 ;; shadow bound variable
 		 (push (car clause) ignore)))
 	     ;; analyze body
 	     (byte-compile-lforminfo-analyze-forms lforminfo form 2
@@ -285,12 +293,16 @@ LFORMINFO."
 		       (not byte-compile-use-downward-closures)
 		       (byte-compile-lforminfo-make-closure-flag)))))
 	    ((and (consp fun) (eq (car fun) 'lambda))
-	     ;; embedded lambda.  These are inlined by the compiler, so
+	     ;; Embedded lambda.  These are inlined by the compiler, so
 	     ;; we don't treat them like a real closure, more like `let'.
+	     ;; analyze inits
 	     (byte-compile-lforminfo-analyze-forms lforminfo form 2
 						   ignore closure-flag)
+	     
+	     ;; shadow bound variables
 	     (setq ignore (nconc (byte-compile-arglist-vars (cadr fun))
 				 ignore))
+	     ;; analyze body
 	     (byte-compile-lforminfo-analyze-forms lforminfo fun 2
 						   ignore closure-flag))
 	    (t
@@ -374,6 +386,7 @@ The returned lexical environment contains two sets of variables:
   (let ((closure nil)
 	(lforminfo (byte-compile-make-lforminfo))
 	(args (byte-compile-arglist-vars (cadr form))))
+    ;; Add variables from surrounding lexical environment to analysis set
     (dolist (lexvar closed-over-lexenv)
       (when (and (byte-compile-lexvar-in-heap-p lexvar)
 		 (not (memq (car lexvar) args)))
