@@ -198,7 +198,17 @@ nil for FUNCTION means all messages."
       (setq rmail-summary-buffer sumbuf))
     ;; Now display the summary buffer and go to the right place in it.
     (or was-in-summary
-	(pop-to-buffer sumbuf))
+	(if (one-window-p)
+	    ;; If there is just one window, put the summary on the top.
+	    (progn
+	      (split-window)
+	      (select-window (next-window (frame-first-window)))
+	      (pop-to-buffer sumbuf)
+	      ;; If pop-to-buffer did not use that window, delete that
+	      ;; window.  (This can happen if it uses another frame.)
+	      (if (not (eq sumbuf (window-buffer (frame-first-window))))
+		  (delete-other-windows)))
+	  (pop-to-buffer sumbuf)))
     (rmail-summary-goto-msg mesg t t)
     (message "Computing summary lines...done")))
 
