@@ -11,6 +11,9 @@ To be done by Sergey Poznyakoff <gray@Mirddin.farlep.net>.
 gracefully if something isn't supported over Tramp.
 To be done by Andre Spiegel <spiegel@gnu.org>.
 
+** define-minor-mode should not put :require into defcustom.
+See msg from rms to emacs-devel on 21 Dec.
+
 * FATAL ERRORS
 
 ** Investigate face cache related crash.
@@ -196,9 +199,10 @@ set.
 
 ** Check the Emacs manual.
 
-Each manual section should be proof-read by at least two people.
-After each file name, on the same line or the following line, come the
-names of the people who have checked it.
+Each manual section should be checked for factual correctness
+regarding recent changes by at least two people.  After each file
+name, on the same line or the following line, come the names of the
+people who have checked it.
 
 
 SECTION             READERS
@@ -234,7 +238,7 @@ man/msdog.texi
 man/mule.texi       "Luc Teirlinck"
 man/m-x.texi        "Luc Teirlinck"
 man/picture.texi
-man/programs.texi   "Stephen Eglen"
+man/programs.texi
 man/regs.texi       "Luc Teirlinck"
 man/rmail.texi
 man/screen.texi     "Luc Teirlinck"
@@ -247,9 +251,10 @@ man/xresources.texi
 
 ** Check the Emacs Lisp manual.
 
-Each manual section should be proof-read by at least two people.
-After each file name, on the same line or the following line, come the
-names of the people who have checked it.
+Each manual section should be checked for factual correctness
+regarding recent changes by at least two people.  After each file
+name, on the same line or the following line, come the names of the
+people who have checked it.
 
 SECTION                  READERS
 ----------------------------------
