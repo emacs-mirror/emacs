@@ -551,7 +551,7 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
       Lisp_Object face;
 
       if ((face = fringe_faces[which], NILP (face))
-	  || (face_id = lookup_named_face (f, face, 'A', 1), face_id < 0))
+	  || (face_id = lookup_named_face (f, face, 1), face_id < 0))
 	face_id = FRINGE_FACE_ID;
     }
 
