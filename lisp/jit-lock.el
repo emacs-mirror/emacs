@@ -38,8 +38,8 @@
     (let ((modified (make-symbol "modified")))
       `(let ((,modified (buffer-modified-p)))
 	 ,@body
-	 (unless ,modified)
-	   (restore-buffer-modified-p nil))))
+	 (unless ,modified
+	   (restore-buffer-modified-p nil)))))
   
   (defmacro with-buffer-prepared-for-font-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
