@@ -529,8 +529,6 @@ reads the sentence before point, and prints the Doctor's answer."
   (setq obj nil)
   (make-local-variable 'feared)
   (setq feared nil)
-  (make-local-variable 'observation-list)
-  (setq observation-list nil)
   (make-local-variable 'repetitive-shortness)
   (setq repetitive-shortness '(0 . 0))
   (make-local-variable '**mad**)
@@ -1466,7 +1464,6 @@ Hack on previous word, setting global variable OWNER to correct result."
 	       (t
 		(doctor-type '(i give up \. you need a lesson in creative
 				 writing \.\.\.))
-		;;(push monosyllables observation-list)
 		)))
 	(t
 	 (cond ((equal sent (doctor-assm '(yes)))
