@@ -318,13 +318,14 @@ If optional argument QUERY is non-nil, query for the help mode."
   (or mode (setq mode (info-lookup-select-mode)))
   (or (info-lookup->mode-value topic mode)
       (error "No %s help available for `%s'" topic mode))
-  (let ((entry (or (assoc (if (info-lookup->ignore-case topic mode)
-			      (downcase item) item)
-			  (info-lookup->completions topic mode))
-		   (error "Not documented as a %s: %s" topic (or item ""))))
-	(modes (info-lookup->all-modes topic mode))
-	(window (selected-window))
-	found doc-spec node prefix suffix doc-found)
+  (let* ((completions (info-lookup->completions topic mode))
+         (ignore-case (info-lookup->ignore-case topic mode))
+         (entry (or (assoc (if ignore-case (downcase item) item) completions)
+                    (assoc-ignore-case item completions)
+                    (error "Not documented as a %s: %s" topic (or item ""))))
+         (modes (info-lookup->all-modes topic mode))
+         (window (selected-window))
+         found doc-spec node prefix suffix doc-found)
     (if (or (not info-lookup-other-window-flag)
 	    (eq (current-buffer) (get-buffer "*info*")))
 	(info)
@@ -356,7 +357,12 @@ If optional argument QUERY is non-nil, query for the help mode."
 		 nil))
 	  (condition-case nil
 	      (progn
-		(Info-menu (or (cdr entry) item))
+                ;; Don't use Info-menu, it forces case-fold-search to t
+                (let ((case-fold-search nil))
+                  (re-search-forward
+                   (concat "^\\* " (regexp-quote (or (cdr entry) (car entry)))
+                           ":")))
+                (Info-follow-nearest-node)
 		(setq found t)
 		(if (or prefix suffix)
 		    (let ((case-fold-search
@@ -364,12 +370,12 @@ If optional argument QUERY is non-nil, query for the help mode."
 			  (buffer-read-only nil))
 		      (goto-char (point-min))
 		      (re-search-forward
-		       (concat prefix (regexp-quote item) suffix))
+		       (concat prefix (regexp-quote (car entry)) suffix))
 		      (goto-char (match-beginning 0))
 		      (and (display-color-p) info-lookup-highlight-face
 			   ;; Search again for ITEM so that the first
 			   ;; occurrence of ITEM will be highlighted.
-			   (re-search-forward (regexp-quote item))
+			   (re-search-forward (regexp-quote (car entry)))
 			   (let ((start (match-beginning 0))
 				 (end (match-end 0)))
 			     (if (overlayp info-lookup-highlight-overlay)
@@ -382,6 +388,11 @@ If optional argument QUERY is non-nil, query for the help mode."
 	    (error nil)))
 	(setq doc-spec (cdr doc-spec)))
       (setq modes (cdr modes)))
+    ;; Alert the user if case was munged, and do this after bringing up the
+    ;; info buffer since that can print messages
+    (unless (or ignore-case
+                (string-equal item (car entry)))
+      (message "Found in differnt case: %s" (car entry)))
     (or doc-found
 	(error "Info documentation for lookup was not found"))
     ;; Don't leave the Info buffer if the help item couldn't be looked up.
