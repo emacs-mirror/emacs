@@ -462,6 +462,8 @@ If this is nil, Supercite keymap is not installed.")
   (define-key sc-electric-mode-map "g"    'sc-eref-goto)
   (define-key sc-electric-mode-map "?"    'describe-mode)
   (define-key sc-electric-mode-map "\C-h" 'describe-mode)
+  (define-key sc-electric-mode-map [f1]   'describe-mode)
+  (define-key sc-electric-mode-map [help] 'describe-mode)
   )
 
 (defvar sc-minibuffer-local-completion-map nil
