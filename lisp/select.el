@@ -134,7 +134,9 @@ Cut buffers are considered obsolete; you should use selections instead."
 
 (defun xselect-convert-to-string (selection type value)
   (cond ((stringp value)
-	 value)
+	 ;; Return the type as well, so that xselect.c could honor
+	 ;; requests whose type is STRING.
+	 (cons type value))
 	((overlayp value)
 	 (save-excursion
 	   (or (buffer-name (overlay-buffer value))
