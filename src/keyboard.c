@@ -2780,7 +2780,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  || (VECTORP (Vkeyboard_translate_table)
 	      && XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
 	  || (CHAR_TABLE_P (Vkeyboard_translate_table)
-	      && CHAR_TABLE_ORDINARY_SLOTS > (unsigned) XFASTINT (c)))
+	      && CHAR_VALID_P (XINT (c), 0)))
 	{
 	  Lisp_Object d;
 	  d = Faref (Vkeyboard_translate_table, c);
