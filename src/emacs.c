@@ -1,11 +1,11 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -130,30 +130,9 @@ fatal_error_signal (sig)
 
   fatal_error_in_progress = 1;
 
-  /* If we are controlling the terminal, reset terminal modes */
-#ifdef EMACS_HAVE_TTY_PGRP
-  {
-    int tpgrp;
-    if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
-	&& tpgrp == getpgrp (0))
-      {
-	reset_sys_modes ();
-	if (sig != SIGTERM)
-	  fprintf (stderr, "Fatal error (%d).", sig);
-      }
-  }
-#endif /* uses pgrp */
-
-  /* Clean up */
-  kill_buffer_processes (Qnil);
-  Fdo_auto_save (Qt, Qnil);
-
-#ifdef CLASH_DETECTION
-  unlock_all_files ();
-#endif /* CLASH_DETECTION */
+  shut_down_emacs (sig);
 
 #ifdef VMS
-  kill_vms_processes ();
   LIB$STOP (SS$_ABORT);
 #else
   /* Signal the same code; this time it will really be fatal.  */
@@ -618,21 +597,6 @@ all of which are called before Emacs is actually killed.")
   if (!NILP (Vrun_hooks) && !noninteractive)
     call1 (Vrun_hooks, intern ("kill-emacs-hook"));
 
-  kill_buffer_processes (Qnil);
-
-#ifdef VMS
-  kill_vms_processes ();
-#endif /* VMS */
-
-  Fdo_auto_save (Qt, Qnil);
-
-#ifdef CLASH_DETECTION
-  unlock_all_files ();
-#endif /* CLASH_DETECTION */
-
-  fflush (stdout);
-  reset_sys_modes ();
-
 #ifdef HAVE_X_WINDOWS
   if (!noninteractive && EQ (Vwindow_system, intern ("x")))
     Fx_close_current_connection ();
@@ -646,12 +610,9 @@ all of which are called before Emacs is actually killed.")
   stop_vms_input ();
  #endif  */
   stuff_buffered_input (arg);
-#ifdef SIGIO
-  /* There is a tendency for a SIGIO signal to arrive within exit,
-     and cause a SIGHUP because the input descriptor is already closed.  */
-  unrequest_sigio ();
-  signal (SIGIO, SIG_IGN);
-#endif
+
+  shut_down_emacs (0);
+
   exit ((XTYPE (arg) == Lisp_Int) ? XINT (arg)
 #ifdef VMS
 	: 1
@@ -661,6 +622,60 @@ all of which are called before Emacs is actually killed.")
 	);
   /* NOTREACHED */
 }
+
+
+/* Perform an orderly shutdown of Emacs.  Autosave any modified
+   buffers, kill any child processes, clean up the terminal modes (if
+   we're in the foreground), and other stuff like that.  Don't perform
+   any redisplay; this may be called when Emacs is shutting down in
+   the background, or after its X connection has died.
+
+   If SIG is a signal number, print a message for it.
+
+   This is called by fatal signal handlers, X protocol error handlers,
+   and Fkill_emacs.  */
+void
+shut_down_emacs (sig)
+     int sig;
+{
+  /* If we are controlling the terminal, reset terminal modes */
+#ifdef EMACS_HAVE_TTY_PGRP
+  {
+    int tpgrp;
+    if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
+	&& tpgrp == getpgrp (0))
+      {
+	fflush (stdout);
+	reset_sys_modes ();
+	if (sig && sig != SIGTERM)
+	  fprintf (stderr, "Fatal error (%d).", sig);
+      }
+  }
+#else
+  fflush (stdout);
+  reset_sys_modes ();
+#endif
+
+  kill_buffer_processes (Qnil);
+  Fdo_auto_save (Qt, Qnil);
+
+#ifdef CLASH_DETECTION
+  unlock_all_files ();
+#endif
+
+#ifdef VMS
+  kill_vms_processes ();
+#endif
+
+#ifdef SIGIO
+  /* There is a tendency for a SIGIO signal to arrive within exit,
+     and cause a SIGHUP because the input descriptor is already closed.  */
+  unrequest_sigio ();
+  signal (SIGIO, SIG_IGN);
+#endif
+}
+
+
 
 #ifndef CANNOT_DUMP
 /* Nothing like this can be implemented on an Apollo.
