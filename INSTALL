@@ -75,12 +75,15 @@ or in a separate directory.
 3a) To build in the top-level Emacs source directory, go to that
 directory and run the program `configure' as follows:
 
-    ./configure CONFIGURATION-NAME [--OPTION[=VALUE]] ...
+    ./configure [CONFIGURATION-NAME] [--OPTION[=VALUE]] ...
 
 The CONFIGURATION-NAME argument should be a configuration name given
-in `./etc/MACHINES'.  If omitted, `configure' will try to guess your
-system type; if it cannot, you must find the appropriate configuration
-name in `./etc/MACHINES' and specify it explicitly.
+in `./etc/MACHINES', with the system version number added at the end.
+
+You should try first omitting CONFIGURATION-NAME.  This way,
+`configure' will try to guess your system type.  If it cannot guess,
+or if something goes wrong in building or installing Emacs this way,
+try again specifying the proper CONFIGURATION-NAME explicitly.
 
 If you don't want X support, specify `--with-x=no'.  If you omit this
 option, `configure' will try to figure out for itself whether your
