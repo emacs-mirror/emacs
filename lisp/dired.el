@@ -1351,11 +1351,20 @@ DIR must be a directory name, not a file name."
 ;;; Functions for finding the file name in a dired buffer line.
 
 (defvar dired-move-to-filename-regexp
-  " \\([A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff] [0-3 ][0-9]\
-\\|[0-3 ][0-9] [A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff]\\)\
- [ 0-9][0-9][:0-9][0-9][ 0-9] "
-  "Regular expression to match a month abbreviation and date/time.
-The month name and day-of-month are allowed in either order.")
+   (let* ((l "[A-Za-z\xa0-\xff]")
+ 	 (k "[^\x00-\xff]")
+ 	 (s " ")
+ 	 (yyyy "[0-9][0-9][0-9][0-9]")
+ 	 (mm "[ 0-1][0-9]")
+ 	 (dd "[ 0-3][0-9]")
+ 	 (HH:MM "[ 0-2][0-9]:[0-5][0-9]")
+ 	 (western (concat "\\(" l l l s dd "\\|" dd s l l l "\\)"
+			  s "\\(" HH:MM "\\|" s yyyy "\\)"))
+ 	 (japanese (concat mm k " " dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
+     (concat s "\\(" western "\\|" japanese "\\)" s))
+  "Regular expression to match a date and time in a directory listing.
+The default value is designed to recognize dates and times
+regardless of the language.")
 
 (defvar dired-permission-flags-regexp
   "\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)"
