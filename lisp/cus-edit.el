@@ -3757,6 +3757,8 @@ if that value is non-nil."
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t)
   (run-hooks 'custom-mode-hook))
 
+(put 'custom-mode 'mode-class 'special)
+
 (add-to-list
  'debug-ignored-errors
  "^No user options have changed defaults in recent Emacs versions$")
