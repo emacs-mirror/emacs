@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -113,6 +113,7 @@ DONTCOMPILE = \
 # bootstrapping.
 
 COMPILE_FIRST = \
+	$(lisp)/emacs-lisp/macroexp.el \
 	$(lisp)/emacs-lisp/byte-opt.el \
 	$(lisp)/emacs-lisp/bytecomp.el \
 	$(lisp)/subr.el \
@@ -216,17 +217,23 @@ $(DONTCOMPILE:.el=.elc):
 
 compile: subdirs.el doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
-	wd=$(lisp); $(setwins);	\
-	elpat=`echo $$wins | tr ' 	' '\012\012' | \
-		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
-	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) | \
-		tr '	 ' '\012\012' | sort | uniq -u`; \
-	for el in $(COMPILE_FIRST) $$els; do \
-	  if test -f $$el; \
-	  then \
-	    echo Compiling $$el; \
-	    $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
-	  fi \
+	wd=$(lisp); $(setwins);						    \
+	elpat=`echo $$wins | tr ' 	' '\012\012' |			    \
+		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	    \
+	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) |  \
+		tr '	 ' '\012\012' | sort | uniq -u`;		    \
+	for el in $(COMPILE_FIRST) $$els; do				    \
+	  if test -f $$el;						    \
+	  then								    \
+	    echo Compiling $$el;					    \
+	    case "$$el" in						    \
+	      */macroexp.el)						    \
+		$(emacs) --eval '(setq max-lisp-eval-depth 450)'	    \
+			 -f batch-byte-compile-if-not-done $$el || exit 1;; \
+	      *)							    \
+		$(emacs) -f batch-byte-compile-if-not-done $$el || exit 1;; \
+            esac;							    \
+	  fi								    \
 	done
 
 # Compile all Lisp files, except those from DONTCOMPILE.  This

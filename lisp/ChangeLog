@@ -1,5 +1,9 @@
 2002-06-14  Miles Bader  <miles@gnu.org>
 
+	* Makefile.in (COMPILE_FIRST): Add `emacs-lisp/macroexp.el'.
+	(compile): Add a special case that compiles `emacs-lisp/macroexp.el'
+	with an increased max-lisp-eval-depth.
+
 	* emacs-lisp/bytecomp.el: Provide `bytecomp-preload', at the
 	beginning of the file.  Require `byte-lexbind' at compile time.
 	Add a few doc string.
