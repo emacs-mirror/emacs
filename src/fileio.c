@@ -3653,7 +3653,7 @@ The value is a list of the form (HIGH . LOW), like the time values\n\
 that `file-attributes' returns.")
   ()
 {
-  return long_to_cons (current_buffer->modtime);
+  return long_to_cons ((unsigned long) current_buffer->modtime);
 }
 
 DEFUN ("set-visited-file-modtime", Fset_visited_file_modtime,
