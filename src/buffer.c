@@ -1,5 +1,5 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001
+   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 2002
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -184,6 +184,7 @@ static void free_buffer_text P_ ((struct buffer *b));
 static Lisp_Object copy_overlays P_ ((struct buffer *, Lisp_Object));
 static void modify_overlay P_ ((struct buffer *, int, int));
 
+extern char * emacs_strerror P_ ((int));
 
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
@@ -4350,6 +4351,18 @@ static int mmap_initialized_p;
 
 #define MEM_ALIGN	sizeof (double)
 
+/* Predicate returning true if part of the address range [START ..
+   END[ is currently mapped.  Used to prevent overwriting an existing
+   memory mapping.
+
+   Default is to conservativly assume the address range is occupied by
+   something else.  This can be overridden by system configuration
+   files if system-specific means to determine this exists.  */
+
+#ifndef MMAP_ALLOCATED_P
+#define MMAP_ALLOCATED_P(start, end) 1
+#endif
+
 /* Function prototypes.  */
 
 static int mmap_free_1 P_ ((struct mmap_region *));
@@ -4442,16 +4455,13 @@ mmap_enlarge (r, npages)
     }
   else if (npages > 0)
     {
-      struct mmap_region *r2;
-      
       nbytes = npages * mmap_page_size;
       
       /* Try to map additional pages at the end of the region.  We
 	 cannot do this if the address range is already occupied by
 	 something else because mmap deletes any previous mapping.
 	 I'm not sure this is worth doing, let's see.  */
-      r2 = mmap_find (region_end, region_end + nbytes);
-      if (r2 == NULL)
+      if (!MMAP_ALLOCATED_P (region_end, region_end + nbytes))
 	{
 	  POINTER_TYPE *p;
       
@@ -4971,8 +4981,9 @@ init_buffer ()
   if (NILP (buffer_defaults.enable_multibyte_characters))
     Fset_buffer_multibyte (Qnil);
 
-  /* If PWD is accurate, use it instead of calling getwd.  This is faster
-     when PWD is right, and may avoid a fatal error.  */
+  /* If PWD is accurate, use it instead of calling getwd.  PWD is
+     sometimes a nicer name, and using it may avoid a fatal error if a
+     parent directory is searchable but not readable.  */
   if ((pwd = getenv ("PWD")) != 0
       && (IS_DIRECTORY_SEP (*pwd) || (*pwd && IS_DEVICE_SEP (pwd[1])))
       && stat (pwd, &pwdstat) == 0
@@ -5233,7 +5244,7 @@ nil here means use current buffer's major mode.  */);
 		     doc: /* Symbol for current buffer's major mode.  */);
 
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
-                     make_number (Lisp_String),
+                     Qnil,
 		     doc: /* Pretty name of current buffer's major mode (a string).  */);
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil,
@@ -5285,6 +5296,9 @@ It does not apply to sending output to subprocesses, however.
 If this is nil, the buffer is saved without any code conversion
 unless some coding system is specified in `file-coding-system-alist'
 for the buffer file.
+
+If the text to be saved cannot be encoded as specified by this variable,
+an alternative encoding is selected by `select-safe-coding-system', which see.
 
 The variable `coding-system-for-write', if non-nil, overrides this variable.
 
@@ -5468,7 +5482,7 @@ from happening repeatedly and making Emacs nonfunctional.  */);
   Vbefore_change_functions = Qnil;
 
   DEFVAR_LISP ("after-change-functions", &Vafter_change_functions,
-	       doc: /* List of function to call after each text change.
+	       doc: /* List of functions to call after each text change.
 Three arguments are passed to each function: the positions of
 the beginning and end of the range of changed text,
 and the length in bytes of the pre-change text replaced by that range.
