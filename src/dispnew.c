@@ -1328,13 +1328,16 @@ update_frame (f, force, inhibit_hairy_id)
   if (!pause)
     {
       if ((cursor_in_echo_area
-	   && FRAME_HAS_MINIBUF_P (f)
-	   && EQ (FRAME_MINIBUF_WINDOW (f), minibuf_window))
-	  /* If we are showing a message instead of the minibuffer,
-	     show the cursor for the message instead of for the
-	     (now hidden) minibuffer contents.  */
-	  || (EQ (minibuf_window, selected_window)
-	      && echo_area_glyphs != 0))
+	   /* If we are showing a message instead of the minibuffer,
+	      show the cursor for the message instead of for the
+	      (now hidden) minibuffer contents.  */
+	   || (EQ (minibuf_window, selected_window)
+	       && EQ (minibuf_window, echo_area_window)
+	       && echo_area_glyphs != 0))
+	  /* These cases apply only to the frame that contains
+	     the active minibuffer window.  */
+	  && FRAME_HAS_MINIBUF_P (f)
+	  && EQ (FRAME_MINIBUF_WINDOW (f), minibuf_window))
 	{
 	  int top = XINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top);
 	  int row, col;
