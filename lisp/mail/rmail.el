@@ -96,8 +96,8 @@ and the value of the environment variable MAIL overrides it).")
   "Regexp marking the end of an mmdf message")
 
 (defvar rmail-message-filter nil
-  "If non nil, is a filter function for new headers in RMAIL.
-Called with region narrowed to unformatted header.")
+  "If non nil, a filter function for new messages in RMAIL.
+Called with region narrowed to the message, including headers.")
 
 (defvar rmail-reply-prefix "Re: "
   "String to prepend to Subject line when replying to a message.")
