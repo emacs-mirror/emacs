@@ -74,7 +74,9 @@ Lisp_Object Vsystem_type;
    but instead should use the virtual terminal under which it was started */
 int inhibit_window_system;
 
-/* If nonzero, set Emacs to run at this priority.  */
+/* If nonzero, set Emacs to run at this priority.  This is also used
+   in child_setup and sys_suspend to make sure subshells run at normal
+   priority; Those functions have their own extern declaration.  */
 int emacs_priority;
 
 #ifdef HAVE_X_WINDOWS
@@ -303,7 +305,7 @@ main (argc, argv, envp)
 
 #ifdef PRIO_PROCESS
   if (emacs_priority)
-    setpriority (PRIO_PROCESS, getpid (), emacs_priority);
+    nice (emacs_priority);
   setuid (getuid ());
 #endif /* PRIO_PROCESS */
 
