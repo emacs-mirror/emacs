@@ -117,6 +117,10 @@ init_editfns ()
       Vuser_full_name = build_string (r);
     }
 #endif /* AMPERSAND_FULL_NAME */
+
+  p = getenv ("NAME");
+  if (p)
+    Vuser_full_name = build_string (p);
 }
 
 DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
