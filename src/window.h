@@ -269,7 +269,7 @@ extern Lisp_Object Vmouse_event;
 
 EXFUN (Fnext_window, 3);
 EXFUN (Fselect_window, 1);
-EXFUN (Fdisplay_buffer, 2);
+EXFUN (Fdisplay_buffer, 3);
 EXFUN (Fset_window_buffer, 2);
 extern Lisp_Object make_window P_ ((void));
 extern void delete_window P_ ((Lisp_Object));
