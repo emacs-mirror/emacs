@@ -30,6 +30,10 @@
 ;; 
 ;; See `custom.el'.
 
+;; No commands should have names starting with `custom-' because
+;; that interferes with completion.  Use `customize-' for commands
+;; that the user will run with M-x, and `Custom-' for interactive commands.
+
 ;;; Code:
 
 (require 'cus-face)
@@ -579,8 +583,6 @@ A and B should be members of a `custom-group' property."
 	(t
 	 (not (eq (nth 1 a) 'custom-group) ))))
 
-(defalias 'custom-browse-sort-predicate 'ignore)
-
 (defun custom-menu-sort-predicate (a b)
   "Return t iff A should come before B in a customization menu.
 A and B should be members of a `custom-group' property."
@@ -600,7 +602,7 @@ A and B should be members of a `custom-group' property."
 (defvar custom-options nil
   "Customization widgets in the current buffer.")
 
-(defun custom-set ()
+(defun Custom-set ()
   "Set changes in all modified options."
   (interactive)
   (let ((children custom-options))
@@ -609,7 +611,7 @@ A and B should be members of a `custom-group' property."
 		(widget-apply child :custom-set)))
 	    children)))
 
-(defun custom-save ()
+(defun Custom-save ()
   "Set all modified group members and save them."
   (interactive)
   (let ((children custom-options))
@@ -620,9 +622,9 @@ A and B should be members of a `custom-group' property."
   (custom-save-all))
 
 (defvar custom-reset-menu 
-  '(("Current" . custom-reset-current)
-    ("Saved" . custom-reset-saved)
-    ("Standard Settings" . custom-reset-standard))
+  '(("Current" . Custom-reset-current)
+    ("Saved" . Custom-reset-saved)
+    ("Standard Settings" . Custom-reset-standard))
   "Alist of actions for the `Reset' button.
 The key is a string containing the name of the action, the value is a
 lisp function taking the widget as an element which will be called
@@ -637,7 +639,7 @@ when the action is chosen.")
     (if answer
 	(funcall answer))))
 
-(defun custom-reset-current (&rest ignore)
+(defun Custom-reset-current (&rest ignore)
   "Reset all modified group members to their current value."
   (interactive)
   (let ((children custom-options))
@@ -646,7 +648,7 @@ when the action is chosen.")
 		(widget-apply child :custom-reset-current)))
 	    children)))
 
-(defun custom-reset-saved (&rest ignore)
+(defun Custom-reset-saved (&rest ignore)
   "Reset all modified or set group members to their saved value."
   (interactive)
   (let ((children custom-options))
@@ -655,7 +657,7 @@ when the action is chosen.")
 		(widget-apply child :custom-reset-saved)))
 	    children)))
 
-(defun custom-reset-standard (&rest ignore)
+(defun Custom-reset-standard (&rest ignore)
   "Reset all modified, set, or saved group members to their standard settings."
   (interactive)
   (let ((children custom-options))
@@ -701,7 +703,7 @@ If the variable has a `custom-type' property, it must be a widget and the
 		   (eval-minibuffer prompt)))))))
 
 ;;;###autoload
-(defun custom-set-value (var val)
+(defun customize-set-value (var val)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
 
 If VARIABLE has a `variable-interactive' property, that is used as if
@@ -715,7 +717,7 @@ If VARIABLE has a `custom-type' property, it must be a widget and the
   (set var val))
 
 ;;;###autoload
-(defun custom-set-variable (var val)
+(defun customize-set-variable (var val)
   "Set the default for VARIABLE to VALUE.  VALUE is a Lisp object.
 
 If VARIABLE has a `custom-set' property, that is used for setting
@@ -992,14 +994,14 @@ on an active field to invoke its action.  Invoke ")
 		 :tag "Set"
 		 :help-echo "Set all modifications for this session."
 		 :action (lambda (widget &optional event)
-			   (custom-set)))
+			   (Custom-set)))
   (widget-insert " ")
   (widget-create 'push-button
 		 :tag "Save"
 		 :help-echo "\
 Make the modifications default for future sessions."
 		 :action (lambda (widget &optional event)
-			   (custom-save)))
+			   (Custom-save)))
   (widget-insert " ")
   (if custom-reset-button-menu
       (widget-create 'push-button
@@ -1012,19 +1014,19 @@ Make the modifications default for future sessions."
 		   :tag "Reset"
 		   :help-echo "\
 Reset all visible items in this buffer to their current settings."
-		   :action 'custom-reset-current)
+		   :action 'Custom-reset-current)
     (widget-insert " ")
     (widget-create 'push-button
 		   :tag "Reset to Saved"
 		   :help-echo "\
 Reset all visible items in this buffer to their saved settings."
-		   :action 'custom-reset-saved)
+		   :action 'Custom-reset-saved)
     (widget-insert " ")
     (widget-create 'push-button
 		   :tag "Reset to Standard"
 		   :help-echo "\
 Reset all visible items in this buffer to their standard settings."
-		   :action 'custom-reset-standard))
+		   :action 'Custom-reset-standard))
   (widget-insert "   ")
   (widget-create 'push-button
 		 :tag "Bury Buffer"
@@ -2458,8 +2460,7 @@ and so forth.  The remaining group tags are shown with
 	     (insert " " tag "\n")
 	     (widget-put widget :buttons buttons)
 	     (message "Creating group...")
-	     (let* ((members (sort (copy-sequence (get symbol 'custom-group))
-				   'custom-browse-sort-predicate))
+	     (let* ((members (copy-sequence (get symbol 'custom-group)))
 		    (prefixes (widget-get widget :custom-prefixes))
 		    (custom-prefix-list (custom-prefix-add symbol prefixes))
 		    (length (length members))
@@ -2841,7 +2842,7 @@ Leave point at the location of the call, or after the last expression."
 (unless (string-match "XEmacs" emacs-version)
   (defconst custom-help-menu
     '("Customize"
-      ["Update menu..." custom-menu-update t]
+      ["Update menu..." Custom-menu-update t]
       ["Group..." customize-group t]
       ["Variable..." customize-variable t]
       ["Face..." customize-face t]
@@ -2863,7 +2864,7 @@ Leave point at the location of the call, or after the last expression."
 	    (easy-menu-create-keymaps (car custom-help-menu)
 				      (cdr custom-help-menu)))))
 
-  (defun custom-menu-update (event)
+  (defun Custom-menu-update (event)
     "Update customize menu."
     (interactive "e")
     (add-hook 'custom-define-hook 'custom-menu-reset)
@@ -2972,16 +2973,16 @@ The format is suitable for use with `easy-menu-define'."
   (suppress-keymap custom-mode-map)
   (define-key custom-mode-map "q" 'bury-buffer))
 
-(easy-menu-define custom-mode-menu 
+(easy-menu-define Custom-mode-menu 
     custom-mode-map
   "Menu used in customization buffers."
   `("Custom"
     ,(customize-menu-create 'customize)
-    ["Set" custom-set t]
-    ["Save" custom-save t]
-    ["Reset to Current" custom-reset-current t]
-    ["Reset to Saved" custom-reset-saved t]
-    ["Reset to Standard Settings" custom-reset-standard t]
+    ["Set" Custom-set t]
+    ["Save" Custom-save t]
+    ["Reset to Current" Custom-reset-current t]
+    ["Reset to Saved" Custom-reset-saved t]
+    ["Reset to Standard Settings" Custom-reset-standard t]
     ["Info" (Info-goto-node "(custom)The Customization Buffer") t]))
 
 (defcustom custom-mode-hook nil
@@ -3001,11 +3002,11 @@ Move to next button or editable field.     \\[widget-forward]
 Move to previous button or editable field. \\[widget-backward]
 Invoke button under the mouse pointer.     \\[widget-button-click]
 Invoke button under point.		   \\[widget-button-press]
-Set all modifications.			   \\[custom-set]
-Make all modifications default.		   \\[custom-save]
-Reset all modified options. 		   \\[custom-reset-current]
-Reset all modified or set options.	   \\[custom-reset-saved]
-Reset all options.			   \\[custom-reset-standard]
+Set all modifications.			   \\[Custom-set]
+Make all modifications default.		   \\[Custom-save]
+Reset all modified options. 		   \\[Custom-reset-current]
+Reset all modified or set options.	   \\[Custom-reset-saved]
+Reset all options.			   \\[Custom-reset-standard]
 
 Entry to this mode calls the value of `custom-mode-hook'
 if that value is non-nil."
@@ -3013,7 +3014,7 @@ if that value is non-nil."
   (setq major-mode 'custom-mode
 	mode-name "Custom")
   (use-local-map custom-mode-map)
-  (easy-menu-add custom-mode-menu)
+  (easy-menu-add Custom-mode-menu)
   (make-local-variable 'custom-options)
   (make-local-hook 'widget-edit-hook)
   (add-hook 'widget-edit-hook 'custom-state-buffer-message nil t)
