@@ -1,3 +1,7 @@
+2001-10-12  Andrew Innes  <andrewi@gnu.org>
+
+	* inc/pwd.h (uid_t, gid_t): New typedefs.
+
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
