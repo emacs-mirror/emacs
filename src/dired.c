@@ -621,22 +621,6 @@ If file does not exist, returns nil.")
   if (lstat (XSTRING (filename)->data, &s) < 0)
     return Qnil;
 
-#ifdef MSDOS
-  {
-    char *tmpnam = XSTRING (Ffile_name_nondirectory (filename))->data;
-    int l = strlen (tmpnam);
-
-    if (l >= 5 
-	&& S_ISREG (s.st_mode)
-	&& (stricmp (&tmpnam[l - 4], ".com") == 0
-	    || stricmp (&tmpnam[l - 4], ".exe") == 0
-	    || stricmp (&tmpnam[l - 4], ".bat") == 0))
-      {
-	s.st_mode |= S_IEXEC;
-      }
-  }
-#endif /* MSDOS */
-
   switch (s.st_mode & S_IFMT)
     {
     default:
