@@ -1,3 +1,8 @@
+2001-02-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (transform-make-coding-system-args): Make
+	it work also for coding systems not using CCL.
+
 2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (previous-matching-history-element)
