@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.76";
+char pot_etags_version[] = "@(#) pot revision number is 11.77";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -52,6 +52,11 @@ char pot_etags_version[] = "@(#) pot revision number is 11.76";
 # include <string.h>
 # include <io.h>
 # define MAXPATHLEN _MAX_PATH
+#endif
+
+#if !defined (MSDOS) && !defined (WINDOWSNT) && defined (STDC_HEADERS)
+#include <stdlib.h>
+#include <string.h>
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -107,7 +112,7 @@ extern int errno;
 #define streq(s,t)	((DEBUG &&!(s)&&!(t)&&(abort(),1)) || !strcmp(s,t))
 #define strneq(s,t,n)	((DEBUG &&!(s)&&!(t)&&(abort(),1)) || !strncmp(s,t,n))
 
-#define lowcase(c)	tolower ((unsigned char)c)
+#define lowcase(c)	tolower ((char)c)
 
 #define	iswhite(arg)	(_wht[arg])	/* T if char is white		*/
 #define	begtoken(arg)	(_btk[arg])	/* T if char can start token	*/
@@ -150,6 +155,7 @@ char *savenstr (), *savestr ();
 char *etags_strchr (), *etags_strrchr ();
 char *etags_getcwd ();
 char *relative_filename (), *absolute_filename (), *absolute_dirname ();
+void grow_linebuffer ();
 long *xmalloc (), *xrealloc ();
 
 typedef void Lang_function ();
@@ -232,9 +238,6 @@ NODE *head;			/* the head of the binary tree of tags */
  * `readline' reads a line from a stream into a linebuffer and works
  * regardless of the length of the line.
  */
-#define GROW_LINEBUFFER(buf,toksize)					\
-while (buf.size < toksize)						\
-  buf.buffer = (char *) xrealloc (buf.buffer, buf.size *= 2)
 struct linebuffer
 {
   long size;
@@ -967,7 +970,7 @@ main (argc, argv)
 		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
 		   tagfile, argbuffer[i].what, tagfile);
 	  if (system (cmd) != GOOD)
-	    fatal ("failed to execute shell command");
+	    fatal ("failed to execute shell command", NULL);
 	}
       append_to_tagfile = TRUE;
     }
@@ -1339,7 +1342,7 @@ add_node (node, cur_node_p)
     {
       /* Etags Mode */
       if (last_node == NULL)
-	fatal ("internal error in add_node", 0);
+	fatal ("internal error in add_node", NULL);
       last_node->right = node;
       last_node = node;
     }
@@ -1405,7 +1408,7 @@ put_entries (node)
   else
     {
       if (node->name == NULL)
-	error ("internal error: NULL name in ctags mode.", 0);
+	error ("internal error: NULL name in ctags mode.", NULL);
 
       if (cxref_style)
 	{
@@ -1666,12 +1669,12 @@ in_word_set (str, len)
 /*%>*/
 
 enum sym_type
-C_symtype(str, len, c_ext)
+C_symtype (str, len, c_ext)
      char *str;
      int len;
      int c_ext;
 {
-  register struct C_stab_entry *se = in_word_set(str, len);
+  register struct C_stab_entry *se = in_word_set (str, len);
 
   if (se == NULL || (se->c_ext && !(c_ext & se->c_ext)))
     return st_none;
@@ -1847,7 +1850,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
     case dignorerest:
       return FALSE;
     default:
-      error ("internal error: definedef value.", 0);
+      error ("internal error: definedef value.", NULL);
     }
 
   /*
@@ -1993,7 +1996,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
 	{
 	  objdef = omethodtag;
 	  methodlen = len;
-	  GROW_LINEBUFFER (token_name, methodlen+1);
+	  grow_linebuffer (&token_name, methodlen+1);
 	  strncpy (token_name.buffer, str, len);
 	  token_name.buffer[methodlen] = '\0';
 	  return TRUE;
@@ -2008,7 +2011,7 @@ consider_token (str, len, c, c_ext, cblev, parlev, is_func)
 	{
 	  objdef = omethodtag;
 	  methodlen += len;
-	  GROW_LINEBUFFER (token_name, methodlen+1);
+	  grow_linebuffer (&token_name, methodlen+1);
 	  strncat (token_name.buffer, str, len);
 	  return TRUE;
 	}
@@ -2099,7 +2102,7 @@ do {									\
 
 /* This macro should never be called when tok.valid is FALSE, but
    we must protect about both invalid input and internal errors. */
-#define make_tag(isfun)  do \
+#define make_C_tag(isfun)  do \
 if (tok.valid) {							\
   char *name = NULL;							\
   if (CTAGS || tok.named)						\
@@ -2311,7 +2314,7 @@ C_entries (c_ext, inf)
 			      && is_func)
 			    /* function defined in C++ class body */
 			    {
-			      GROW_LINEBUFFER (token_name,
+			      grow_linebuffer (&token_name,
 					       strlen(structtag)+2+toklen+1);
 			      strcpy (token_name.buffer, structtag);
 			      strcat (token_name.buffer, "::");
@@ -2322,7 +2325,7 @@ C_entries (c_ext, inf)
 			  else if (objdef == ocatseen)
 			    /* Objective C category */
 			    {
-			      GROW_LINEBUFFER (token_name,
+			      grow_linebuffer (&token_name,
 					       strlen(objtag)+2+toklen+1);
 			      strcpy (token_name.buffer, objtag);
 			      strcat (token_name.buffer, "(");
@@ -2339,7 +2342,7 @@ C_entries (c_ext, inf)
 			    }
 			  else
 			    {
-			      GROW_LINEBUFFER (token_name, toklen+1);
+			      grow_linebuffer (&token_name, toklen+1);
 			      strncpy (token_name.buffer,
 				       newlb.buffer+tokoff, toklen);
 			      token_name.buffer[toklen] = '\0';
@@ -2367,7 +2370,7 @@ C_entries (c_ext, inf)
 				switch_line_buffers ();
 			    }
 			  else
-			    make_tag (is_func);
+			    make_C_tag (is_func);
 			}
 		      midtoken = FALSE;
 		    }
@@ -2389,7 +2392,7 @@ C_entries (c_ext, inf)
 		      funcdef = finlist;
 		      continue;
 		    case flistseen:
-		      make_tag (TRUE);
+		      make_C_tag (TRUE);
 		      funcdef = fignore;
 		      break;
 		    case ftagseen:
@@ -2424,13 +2427,13 @@ C_entries (c_ext, inf)
 	    {
 	    case  otagseen:
 	      objdef = oignore;
-	      make_tag (TRUE);
+	      make_C_tag (TRUE);
 	      break;
 	    case omethodtag:
 	    case omethodparm:
 	      objdef = omethodcolon;
 	      methodlen += 1;
-	      GROW_LINEBUFFER (token_name, methodlen+1);
+	      grow_linebuffer (&token_name, methodlen+1);
 	      strcat (token_name.buffer, ":");
 	      break;
 	    }
@@ -2442,7 +2445,7 @@ C_entries (c_ext, inf)
 	      case ftagseen:
 		if (yacc_rules)
 		  {
-		    make_tag (FALSE);
+		    make_C_tag (FALSE);
 		    funcdef = fignore;
 		  }
 		break;
@@ -2458,7 +2461,7 @@ C_entries (c_ext, inf)
 	    switch (typdef)
 	      {
 	      case tend:
-		make_tag (FALSE);
+		make_C_tag (FALSE);
 		/* FALLTHRU */
 	      default:
 		typdef = tnone;
@@ -2481,7 +2484,7 @@ C_entries (c_ext, inf)
 	    {
 	    case omethodtag:
 	    case omethodparm:
-	      make_tag (TRUE);
+	      make_C_tag (TRUE);
 	      objdef = oinbody;
 	      break;
 	    }
@@ -2496,7 +2499,7 @@ C_entries (c_ext, inf)
 	  if (cblev == 0 && typdef == tend)
 	    {
 	      typdef = tignore;
-	      make_tag (FALSE);
+	      make_C_tag (FALSE);
 	      break;
 	    }
 	  if (funcdef != finlist && funcdef != fignore)
@@ -2522,7 +2525,7 @@ C_entries (c_ext, inf)
 		  if (*lp != '*')
 		    {
 		      typdef = tignore;
-		      make_tag (FALSE);
+		      make_C_tag (FALSE);
 		    }
 		  break;
 		} /* switch (typdef) */
@@ -2541,7 +2544,7 @@ C_entries (c_ext, inf)
 	    break;
 	  if (objdef == ocatseen && parlev == 1)
 	    {
-	      make_tag (TRUE);
+	      make_C_tag (TRUE);
 	      objdef = oignore;
 	    }
 	  if (--parlev == 0)
@@ -2556,7 +2559,7 @@ C_entries (c_ext, inf)
 	      if (cblev == 0 && typdef == tend)
 		{
 		  typdef = tignore;
-		  make_tag (FALSE);
+		  make_C_tag (FALSE);
 		}
 	    }
 	  else if (parlev < 0)	/* can happen due to ill-conceived #if's. */
@@ -2576,13 +2579,13 @@ C_entries (c_ext, inf)
 	    case stagseen:
 	    case scolonseen:	/* named struct */
 	      structdef = sinbody;
-	      make_tag (FALSE);
+	      make_C_tag (FALSE);
 	      break;
 	    }
 	  switch (funcdef)
 	    {
 	    case flistseen:
-	      make_tag (TRUE);
+	      make_C_tag (TRUE);
 	      /* FALLTHRU */
 	    case fignore:
 	      funcdef = fnone;
@@ -2591,12 +2594,12 @@ C_entries (c_ext, inf)
 	      switch (objdef)
 		{
 		case otagseen:
-		  make_tag (TRUE);
+		  make_C_tag (TRUE);
 		  objdef = oignore;
 		  break;
 		case omethodtag:
 		case omethodparm:
-		  make_tag (TRUE);
+		  make_C_tag (TRUE);
 		  objdef = oinbody;
 		  break;
 		default:
@@ -2658,7 +2661,7 @@ C_entries (c_ext, inf)
 	case '\0':
 	  if (objdef == otagseen)
 	    {
-	      make_tag (TRUE);
+	      make_C_tag (TRUE);
 	      objdef = oignore;
 	    }
 	  /* If a macro spans multiple lines don't reset its state. */
@@ -3089,7 +3092,7 @@ Pascal_functions (inf)
 	    continue;
 
 	  /* save all values for later tagging */
-	  GROW_LINEBUFFER (tline, strlen (lb.buffer) + 1);
+	  grow_linebuffer (&tline, strlen (lb.buffer) + 1);
 	  strcpy (tline.buffer, lb.buffer);
 	  save_lineno = lineno;
 	  save_lcno = linecharno;
@@ -3535,7 +3538,7 @@ Prolog_functions (inf)
       else if (isspace (dbp[0])) /* Not a predicate */
 	continue;
       else if (dbp[0] == '/' && dbp[1] == '*')	/* comment. */
-	prolog_skip_comment (&lb, inf, &lineno, &linecharno);
+	prolog_skip_comment (&lb, inf);
       else if (len = prolog_pred (dbp, last)) 
 	{
 	  /* Predicate.  Store the function name so that we only
@@ -3968,7 +3971,7 @@ add_regex (regexp_pattern)
 
   if (regexp_pattern[0] == '\0')
     {
-      error ("missing regexp", 0);
+      error ("missing regexp", NULL);
       return;
     }
   if (regexp_pattern[strlen(regexp_pattern)-1] != regexp_pattern[0])
@@ -3979,7 +3982,7 @@ add_regex (regexp_pattern)
   name = scan_separators (regexp_pattern);
   if (regexp_pattern[0] == '\0')
     {
-      error ("null regexp", 0);
+      error ("null regexp", NULL);
       return;
     }
   (void) scan_separators (name);
@@ -4411,8 +4414,8 @@ relative_filename (file, dir)
   dp = dir;
   while (*fp++ == *dp++)
     continue;
-  fp--, dp--;			/* back to the first different char */
-  do
+  fp--, dp--;			/* back to the first differing char */
+  do				/* look at the equal chars until / */
     fp--, dp--;
   while (*fp != '/');
 
@@ -4526,6 +4529,17 @@ absolute_dirname (file, cwd)
   return res;
 }
 
+/* Increase the size of a linebuffer. */
+void
+grow_linebuffer (bufp, toksize)
+     struct linebuffer *bufp;
+     int toksize;
+{
+  while (bufp->size < toksize)
+    bufp->size *= 2;
+  bufp->buffer = (char *) xrealloc (bufp->buffer, bufp->size);
+}
+
 /* Like malloc but get fatal error if memory is exhausted.  */
 long *
 xmalloc (size)
@@ -4533,7 +4547,7 @@ xmalloc (size)
 {
   long *result = (long *) malloc (size);
   if (result == NULL)
-    fatal ("virtual memory exhausted", 0);
+    fatal ("virtual memory exhausted", NULL);
   return result;
 }
 
@@ -4544,6 +4558,6 @@ xrealloc (ptr, size)
 {
   long *result =  (long *) realloc (ptr, size);
   if (result == NULL)
-    fatal ("virtual memory exhausted");
+    fatal ("virtual memory exhausted", NULL);
   return result;
 }
