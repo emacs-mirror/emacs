@@ -30,6 +30,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/bitmaps/gray>
 #include "xlwmenuP.h"
 
+static int disable_add_grab, disable_grab_pointer;
+
 static int pointer_grabbed;
 static XEvent menu_post_event;
 
@@ -1446,7 +1448,8 @@ pop_up_menu (mw, event)
     {
       XEvent *ev = (XEvent *) event;
 
-      XtAddGrab ((Widget) mw, True, True);
+      if (!disable_add_grab)
+	XtAddGrab ((Widget) mw, True, True);
 
       /* notes the absolute position of the menubar window */
       mw->menu.windows [0].x = ev->xmotion.x_root - ev->xmotion.x;
@@ -1456,12 +1459,18 @@ pop_up_menu (mw, event)
 #ifdef emacs
   x_catch_errors ();
 #endif
-  XtGrabPointer ((Widget)mw, False,
-		 (PointerMotionMask | PointerMotionHintMask | ButtonReleaseMask
-		  | ButtonPressMask),
-		 GrabModeAsync, GrabModeAsync, None, mw->menu.cursor_shape,
-		 event->time);
-  pointer_grabbed = 1;
+  if (!disable_grab_pointer)
+    {
+      XtGrabPointer ((Widget)mw, False,
+		     (PointerMotionMask
+		      | PointerMotionHintMask
+		      | ButtonReleaseMask
+		      | ButtonPressMask),
+		     GrabModeAsync, GrabModeAsync, None,
+		     mw->menu.cursor_shape,
+		     event->time);
+      pointer_grabbed = 1;
+    }
 #ifdef emacs
   if (x_had_errors_p ())
     {
