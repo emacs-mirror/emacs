@@ -1,3 +1,7 @@
+2001-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* frame.c (Fmouse_position): Doc fix.
+
 2001-09-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (init_from_display_pos): Don't compare the result
