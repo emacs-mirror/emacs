@@ -490,6 +490,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 	  block_copy_start += sizeof (f_ohdr);
 	}
       /* Loop through section headers, copying them in */
+      lseek (a_out, sizeof (f_hdr) + f_hdr.f_opthdr, 0);
       for (scns = f_hdr.f_nscns; scns > 0; scns--) {
 	if (read (a_out, &scntemp, sizeof (scntemp)) != sizeof (scntemp))
 	  {
@@ -657,7 +658,9 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
    * will not adjust the file pointer for that section correctly.
    */
 
-  lseek (a_out, sizeof (f_hdr) + sizeof (f_ohdr), 0);
+  /* This used to use sizeof (f_ohdr) instead of .f_opthdr.
+     .f_opthdr is said to be right when there is no optional header.  */
+  lseek (a_out, sizeof (f_hdr) + f_hdr.f_opthdr, 0);
 
   for (scns = f_hdr.f_nscns; scns > 0; scns--)
     {
