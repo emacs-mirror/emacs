@@ -2001,7 +2001,7 @@ Find text by calling @var{function}, and highlight the matches
 it finds using @code{font-lock-keyword-face}.
 
 When @var{function} is called, it receives one argument, the limit of
-the search; it should searching at point, and not search beyond the
+the search; it should begin searching at point, and not search beyond the
 limit.  It should return non-@code{nil} if it succeeds, and set the
 match data to describe the match that was found.  Returning @code{nil}
 indicates failure of the search.
