@@ -1874,22 +1874,7 @@ case "${canonical}" in
     machine=pmax opsys=mach-bsd4-3
   ;;
 
-  ## Motorola Delta machines
-  m68k-motorola-sysv* | m68000-motorola-sysv* )
-    machine=delta opsys=usg5-3
-    if test -z "`type gnucc | grep 'not found'`"
-    then
-      if test -s /etc/167config
-      then CC="gnucc -m68040"
-      else CC="gnucc -m68881"
-      fi
-    else
-      if test -z "`type gcc | grep 'not found'`"
-      then CC=gcc
-      else CC=cc
-      fi
-    fi
-  ;;
+  ## Motorola Delta m88k
   m88k-motorola-sysv4* )
     # jbotte@bnr.ca says that UNIX_System_V <hostName> 4.0 R40V4.3 m88k mc88110
     # needs POSIX_SIGNALS and therefore needs usg5-4-2.
