@@ -71,7 +71,7 @@ extern Display *x_current_display;
 #define	ButtonReleaseMask ButtonReleased
 #endif /* not HAVE_X11 */
 
-Lisp_Object Qmenu_enable;
+extern Lisp_Object Qmenu_enable;
 Lisp_Object xmenu_show ();
 extern int x_error_handler ();
 
@@ -424,9 +424,6 @@ xmenu_show (parent, startx, starty, line_list, enable_list, pane_list,
 
 syms_of_xmenu ()
 {
-  Qmenu_enable = intern ("menu-enable");
-
-  staticpro (&Qmenu_enable);
   defsubr (&Sx_popup_menu);
 }
 
