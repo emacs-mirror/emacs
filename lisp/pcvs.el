@@ -14,7 +14,6 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.52 2003/05/01 00:46:41 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 

@@ -4,7 +4,6 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.14 2003/01/14 21:53:39 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
