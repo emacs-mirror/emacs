@@ -2432,8 +2432,8 @@ for Unicode characters in the range U+0100..U+24FF, U+2500..U+33FF,
 U+E000..U+FFFF respectively.
 
 ** The new coding system `mule-utf-8' is added.  It provides a limited
-support for decoding/encoding UTF-8 text.  For the detail, please see
-the documentation of this coding system.
+support for decoding/encoding UTF-8 text.  For the details, please see
+the documentation string of this coding system.
 
 ** The new character sets `japanese-jisx0213-1' and
 `japanese-jisx0213-2' are introduced for the new Japanese standard JIS
