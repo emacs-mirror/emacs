@@ -126,6 +126,7 @@ typedef GtkWidget *xt_or_gtk_widget;
 struct x_bitmap_record
 {
   Pixmap pixmap;
+  int have_mask;
   Pixmap mask;
   char *file;
   int refcount;
