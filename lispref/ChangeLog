@@ -1,3 +1,8 @@
+2005-03-08  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Specified Space): Property :width is support on
+	non-graphic terminals, :height is not.
+
 2005-03-07  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Overlay Arrow, Fringe Bitmaps, Customizing Bitmaps):
@@ -22,7 +27,7 @@
 	(Images, Image Descriptors): Minor cleanups.
 	(GIF Images): Patents have expired.
 	(Showing Images): Explain default text for insert-image.
-	(Manipulating Button Types): Merged into Manipulating Buttons. 
+	(Manipulating Button Types): Merged into Manipulating Buttons.
 	(Making Buttons): Explain return values.
 	(Button Buffer Commands): Add xref.
 	(Inverse Video): Update mode-line-inverse-video.
@@ -66,9 +71,9 @@
 	* os.texi (Translating Input): Replace flow-control example
 	with a less obsolete example that uses `keyboard-translate'.
 
-	* objects.texi (Hash Table Type, Circular Objects): 
+	* objects.texi (Hash Table Type, Circular Objects):
 	Get rid of "Emacs 21".
-	
+
 	* modes.texi (Mode Line Format): Get rid of "Emacs 21".
 	(Mode Line Data, Properties in Mode, Header Lines): Likewise.
 
