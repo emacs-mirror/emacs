@@ -1,3 +1,15 @@
+2004-11-15  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fsafe_plist_get): New defun.
+	(syms_of_fns): Defsubr it.
+
+	* lisp.h (Fsafe_plist_get): Add EXFUN.
+
+	* xdisp.c (store_mode_line_string, produce_stretch_glyph):
+	Use Fsafe_plist_get.
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Fix image map element parsing.  Use Fsafe_plist_get.
+
 2004-11-15  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_next_display_element): Fix previous change.
