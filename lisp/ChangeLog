@@ -1,3 +1,10 @@
+2003-06-10  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-fontify-node): Make `invisible' property
+	non-sticky so that whitespace added by filling stays visible.
+	Make refilling less agressive by starting at beginning of current
+	line rather than beginning of current paragraph.
+
 2003-06-09  Andreas Schwab  <schwab@suse.de>
 
 	* dired.el (dired-get-filename): Complain only about "." and "..",
