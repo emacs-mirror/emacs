@@ -1185,10 +1185,10 @@ be changed with @code{setq} in any buffer; the only way to change it is
 with @code{setq-default}.
 
   @strong{Warning:} When a variable has buffer-local values in one or
-more buffers, you can get Emacs very confused by binding the variable
-with @code{let}, changing to a different current buffer in which a
-different binding is in effect, and then exiting the @code{let}.  This
-can scramble the values of the buffer-local and default bindings.
+more buffers, binding the variable with @code{let} and changing to a
+different current buffer in which a different binding is in
+effect, and then exiting the @code{let}, the variable may not be
+restored to the value it had before the @code{let}.
 
   To preserve your sanity, avoid using a variable in that way.  If you
 use @code{save-excursion} around each piece of code that changes to a
@@ -1197,22 +1197,23 @@ different current buffer, you will not have this problem
 
 @example
 @group
-(setq foo 'b)
+(setq foo 'g)
 (set-buffer "a")
 (make-local-variable 'foo)
 @end group
 (setq foo 'a)
 (let ((foo 'temp))
+  ;; foo @result{} 'temp  ; @r{let binding in buffer @samp{a}}
   (set-buffer "b")
+  ;; foo @result{} 'g     ; @r{the global value since foo is not local in @samp{b}}
   @var{body}@dots{})
 @group
-foo @result{} 'a      ; @r{The old buffer-local value from buffer @samp{a}}
-               ;   @r{is now the default value.}
+foo @result{} 'a        ; @r{we are still in buffer @samp{b}, but exiting the let}
+                 ; @r{restored the local value in buffer @samp{a}}
 @end group
 @group
-(set-buffer "a")
-foo @result{} 'temp   ; @r{The local @code{let} value that should be gone}
-               ;   @r{is now the buffer-local value in buffer @samp{a}.}
+(set-buffer "a") ; @r{This can be seen here:}
+foo @result{} 'a        ; @r{we are back to the local value in buffer @samp{a}}
 @end group
 @end example
 
