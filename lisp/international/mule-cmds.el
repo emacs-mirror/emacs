@@ -1835,8 +1835,8 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
 (defun encode-coding-char (char coding-system)
   "Encode CHAR by CODING-SYSTEM and return the resulting string.
 If CODING-SYSTEM can't safely encode CHAR, return nil."
-  (let ((str1 (char-to-string char))
-	(str2 (make-string 2 char))
+  (let ((str1 (string-as-multibyte (char-to-string char)))
+	(str2 (string-as-multibyte (make-string 2 char)))
 	(safe-charsets (and coding-system
 			    (coding-system-get coding-system 'safe-charsets)))
 	(charset (char-charset char))
@@ -1851,9 +1851,9 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
       ;; string and two-char string, then check how many bytes at the
       ;; tail of both encoded strings are the same.
 
-      (setq enc1 (string-as-unibyte (encode-coding-string str1 coding-system))
+      (setq enc1 (encode-coding-string str1 coding-system)
 	    i1 (length enc1)
-	    enc2 (string-as-unibyte (encode-coding-string str2 coding-system))
+	    enc2 (encode-coding-string str2 coding-system)
 	    i2 (length enc2))
       (while (and (> i1 0) (= (aref enc1 (1- i1)) (aref enc2 (1- i2))))
 	(setq i1 (1- i1) i2 (1- i2)))
