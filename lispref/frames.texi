@@ -42,6 +42,7 @@ This predicate returns @code{t} if @var{object} is a frame, and
 * Mouse Position::		Asking where the mouse is, or moving it.
 * Pop-Up Menus::		Displaying a menu for the user to select from.
 * Dialog Boxes::                Displaying a box to ask yes or no.
+* Pointer Shapes::              Specifying the shape of the mouse pointer.
 * X Selections::		Transferring text to and from other X clients.
 * X Connections::	        Opening and closing the X server connection.
 * Resources::		        Getting resource values from the server.
@@ -77,11 +78,25 @@ Each element has the form:
 @example
 (@var{parameter} . @var{value})
 @end example
+@end defvar
+
+@defvar initial-frame-alist
+This is an alist specifying frame parameters for the initial Emacs frame.
+
+Emacs creates the initial X frame before it reads the user's init file,
+which is the first occasion that the user has to set this variable.  So
+after reading the init file, Emacs modifies the parameters according to
+the value of this variable.  In most cases, that is good enough.
+However, for window position parameters, it may be inconvenient that the
+window initially appears in the wrong place or the wrong size.  The way
+to overcome this annoyance is to specify the initial frame's geometry
+with an X resource.
+@end defvar
 
 If you use options that specify window appearance when you invoke Emacs,
-they take effect by adding elements to @code{default-frame-alist}.
-@xref{Command Arguments,,, emacs, The GNU Emacs Manual}.
-@end defvar
+they take effect by adding elements to @code{default-frame-alist}.  One
+exception is @samp{-geometry}, which adds to @code{initial-frame-alist}
+instead.  @xref{Command Arguments,,, emacs, The GNU Emacs Manual}.
 
 @defvar before-make-frame-hook
 A normal hook run by @code{make-frame} before it actually creates the
@@ -168,10 +183,21 @@ name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
 
 @item left
-The screen position of the left edge, in pixels.
+The screen position of the left edge, in pixels.  The value may be
+@code{-} instead of a number; that represents @samp{-0} in a geometry
+specification.
 
 @item top
-The screen position of the top edge, in pixels.
+The screen position of the top edge, in pixels.  The value may be
+@code{-} instead of a number; that represents @samp{-0} in a geometry
+specification.
+
+@item user-position
+Non-@code{nil} if the screen position of the frame was explicitly
+requested by the user (for example, with the @samp{-geometry} option).
+Nothing automatically makes this parameter non-@code{nil}; it is up to
+Lisp programs that call @code{make-frame} to specify this parameter as
+well as specifying the @code{left} and @code{top} parameters.
 
 @item height
 The height of the frame contents, in characters.  (To get the height in
@@ -221,7 +247,7 @@ server defines the meaningful color names.
 The color to use for the background of text.
 
 @item mouse-color
-The color for the mouse cursor.
+The color for the mouse pointer.
 
 @item cursor-color
 The color for the cursor that shows point.
@@ -267,10 +293,8 @@ it and see if it works.)
 
   You can read or change the size and position of a frame using the
 frame parameters @code{left}, @code{top}, @code{height} and
-@code{width}.  When you create a frame, you must specify either both
-size parameters or neither.  Likewise, you must specify either both
-position parameters or neither.  Whatever geometry parameters you don't
-specify are chosen by the window manager in its usual fashion.
+@code{width}.  Whatever geometry parameters you don't specify are chosen
+by the window manager in its usual fashion.
 
   Here are some special features for working with sizes and positions:
 
@@ -820,6 +844,35 @@ display a real dialog box; so instead it displays the same items in a
 pop-up menu in the center of the frame.
 @end defun
 
+@node Pointer Shapes
+@section Pointer Shapes
+@cindex pointer shape
+@cindex mouse pointer shape
+
+  These variables specify which mouse pointer shape to use in various
+situations:
+
+@table @code
+@item x-pointer-shape
+@vindex x-pointer-shape
+This variable specifies the pointer shape to use ordinarily in the Emacs
+frame.
+
+@item x-sensitive-text-pointer-shape
+@vindex x-sensitive-text-pointer-shape
+This variable specifies the pointer shape to use when the mouse
+is over mouse-sensitive text.
+@end table
+
+  These variables affect newly created frames.  They do not normally
+affect existing frames; however, if you set the mouse color of a frame,
+that also updates its pointer shapes based on the current values of
+these variables.  @xref{X Frame Parameters}.
+
+  The values you can use, to specify either of these pointer shapes, are
+defined in the file @file{lisp/x-win.el}.  Use @kbd{M-x apropos
+@key{RET} x-pointer @key{RET}} to see a list of them.
+
 @node X Selections
 @section X Selections
 @cindex selection (for X windows)
@@ -1036,8 +1089,4 @@ This variable's value is is @code{t} if no X window manager is in use.
 @item
 The functions @code{x-pixel-width} and @code{x-pixel-height} return the
 width and height of an X Window frame, measured in pixels.
-
-@item
-x-pointer-shape, x-nontext-pointer-shape, x-mode-pointer-shape.
-x-cross-pointer-shape.
 @end ignore
