@@ -1,4 +1,4 @@
-2001-11-05  Dale Hagglund <rdh@yottayotta.com>
+2001-11-05  Dale Hagglund  <rdh@yottayotta.com>
 
 	* unexelf.c (unexec): Don't use `mmap'.  Instead, read and write
 	the program image directly.
