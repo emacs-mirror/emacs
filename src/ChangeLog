@@ -1,8 +1,8 @@
 2000-06-30  Kenichi Handa  <handa@etl.go.jp>
 
-	* coding.c (decode_coding_string): Even if the length of text is
+	* coding.c (code_convert_region): Even if the length of text is
 	zero, try to convert it if coding->type is coding_type_ccl.
-	(encode_coding_string): Likewise.
+	(decode_coding_string, encode_coding_string): Likewise.
 
 2000-06-28  Gerd Moellmann  <gerd@gnu.org>
 
