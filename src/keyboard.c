@@ -4927,7 +4927,7 @@ input_available_signal (signo)
   extern int select_alarmed;
 #endif
 
-#ifdef USG
+#if defined(USG) && !defined(POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
      must reestablish each time */
   signal (signo, input_available_signal);
@@ -7365,7 +7365,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
 
-#ifdef USG
+#if defined(USG) && !defined(POSIX_SIGNALS)
   if (!read_socket_hook && NILP (Vwindow_system))
     {
       /* USG systems forget handlers when they are used;
