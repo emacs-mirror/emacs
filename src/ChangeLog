@@ -1,3 +1,17 @@
+2002-07-01  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (timer_last_idleness_start_time): New variable.
+	(timer_start_idle): Set that.
+	(read_key_sequence): Use that to reset timer_idleness_start_time
+	to previous value.
+	
+	* window.c (Frecenter): With arg, set optional_new_start.
+
+	* xdisp.c (redisplay_internal): Make optional_new_start really work.
+
+	* minibuf.c (Fminibuffer_complete_and_exit): Move to end of
+	buffer for completion.
+
 2002-06-29  Ken Raeburn  <raeburn@gnu.org>
 
 	* xdisp.c (store_mode_line_string): Lisp_Object/int mixup.

@@ -1,3 +1,10 @@
+2002-07-01  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-index): Get immediate error if used in `dir'.
+
+	* textmodes/picture.el (picture-forward-column) 
+	(picture-move-down): Never deactivate the mark.
+
 2002-06-30  Simon Josefsson  <jas@extundo.com>
 
 	* menu-bar.el (menu-bar-options-menu): Move elisp mode names from
