@@ -1,6 +1,6 @@
 ;;; xt-mouse.el --- support the mouse when emacs run in an xterm
 
-;; Copyright (C) 1994, 2000, 2001 Free Software Foundation
+;; Copyright (C) 1994, 2000, 2001, 2005 Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: mouse, terminals
@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Enable mouse support when running inside an xterm or Linux console.
+;; Enable mouse support when running inside an xterm.
 
 ;; This is actually useful when you are running X11 locally, but is
 ;; working on remote machine over a modem line or through a gateway.
@@ -32,14 +32,14 @@
 ;; It works by translating xterm escape codes into generic emacs mouse
 ;; events so it should work with any package that uses the mouse.
 
-;; The xterm mouse escape codes are supposedly also supported by the
-;; Linux console, but I have not been able to verify this.
-
 ;; You don't have to turn off xterm mode to use the normal xterm mouse
 ;; functionality, it is still available by holding down the SHIFT key
 ;; when you press the mouse button.
 
 ;;; Todo:
+
+;; The xterm mouse escape codes are supposedly also supported by the
+;; Linux console, but I have not been able to verify this.
 
 ;; Support multi-click -- somehow.
 
@@ -146,9 +146,9 @@
     (setq xterm-mouse-x x
 	  xterm-mouse-y y)
     (if w
-	(list mouse (posn-at-x-y (- x left) (- y top) w))
+	(list mouse (posn-at-x-y (- x left) (- y top) w t))
       (list mouse
-	    (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w)))))))
+	    (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t)))))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
