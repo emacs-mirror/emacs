@@ -2910,7 +2910,8 @@ An argument specifies the modification time value to use\n\
 	 call the corresponding file handler.  */
       handler = Ffind_file_name_handler (filename);
       if (!NILP (handler))
-	return call3 (handler, Qset_visited_file_modtime, filename, Qnil);
+	/* The handler can find the file name the same way we did.  */
+	return call3 (handler, Qset_visited_file_modtime, Qnil);
       else if (stat (XSTRING (filename)->data, &st) >= 0)
 	current_buffer->modtime = st.st_mtime;
     }
