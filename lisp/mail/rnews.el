@@ -684,7 +684,7 @@ one for moving forward and one for moving backward."
 	     (news-write-certifications)
 	     (message "Updating %s... done" news-startup-file)
 	     (message "Now do some real work")
-	     (and (fboundp 'bury-buffer) (bury-buffer (current-buffer)))
+	     (quit-window)
 	     (switch-to-buffer news-buffer-save)
 	     (setq news-user-group-list ()))
     (message "")))
