@@ -2386,8 +2386,13 @@ by `current-window-configuration' (which see).")
   if (NILP (XBUFFER (new_current_buffer)->name))
     new_current_buffer = Qnil;
 
-  /* Mark all windows now on frame as "deleted".
-     Restoring the new configuration "undeletes" any that are in it.  */
+  /* Kludge Alert!
+     Mark all windows now on frame as "deleted".
+     Restoring the new configuration "undeletes" any that are in it.
+
+     Save their current buffers in their height fields, since we may
+     need it later, if the buffer saved in the configuration is now
+     dead.  */
   delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
   for (k = 0; k < saved_windows->size; k++)
@@ -2423,6 +2428,11 @@ by `current-window-configuration' (which see).")
 		}
 	    }
 	}
+
+      /* If we squirreled away the buffer in the window's height,
+	 restore it now.  */
+      if (XTYPE (w->height) == Lisp_Buffer)
+	w->buffer = w->height;
       w->left = p->left;
       w->top = p->top;
       w->width = p->width;
@@ -2506,7 +2516,7 @@ static void
 delete_all_subwindows (w)
      register struct window *w;
 {
-  register int count = 1;
+  w->height = w->buffer;       /* See Fset_window_configuration for excuse.  */
   w->buffer = Qnil;
   if (!NILP (w->next))
     delete_all_subwindows (XWINDOW (w->next));
