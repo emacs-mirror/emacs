@@ -2479,7 +2479,9 @@ You type        Translation\n\
 	if (!SYMBOLP (modes[i]))
 	  abort();
 
-	p = title = (char *) alloca (40 + XSYMBOL (modes[i])->name->size);
+	p = title = (char *) alloca (42 + XSYMBOL (modes[i])->name->size);
+	*p++ = '\f';
+	*p++ = '\n';
 	*p++ = '`';
 	bcopy (XSYMBOL (modes[i])->name->data, p,
 	       XSYMBOL (modes[i])->name->size);
@@ -2505,17 +2507,17 @@ You type        Translation\n\
   if (!NILP (start1))
     {
       describe_map_tree (start1, 1, shadow, prefix,
-			 "Major Mode Bindings", nomenu, 0, 0);
+			 "\f\nMajor Mode Bindings", nomenu, 0, 0);
       shadow = Fcons (start1, shadow);
     }
 
   describe_map_tree (current_global_map, 1, shadow, prefix,
-		     "Global Bindings", nomenu, 0, 1);
+		     "\f\nGlobal Bindings", nomenu, 0, 1);
 
   /* Print the function-key-map translations under this prefix.  */
   if (!NILP (Vfunction_key_map))
     describe_map_tree (Vfunction_key_map, 0, Qnil, prefix,
-		       "Function key map translations", nomenu, 1, 0);
+		       "\f\nFunction key map translations", nomenu, 1, 0);
 
   call0 (intern ("help-mode"));
   Fset_buffer (descbuf);
