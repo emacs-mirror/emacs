@@ -1,3 +1,8 @@
+2001-05-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* net/goto-addr.el (goto-address-at-point): Deal with URLs
+	part of which look like email addresses.
+
 2001-05-18  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (compile-files-CMD, bootstrap-clean-CMD): Use
