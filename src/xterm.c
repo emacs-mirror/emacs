@@ -11578,16 +11578,6 @@ x_update_window_cursor (w, on)
 
 /* Icons.  */
 
-/* Refresh bitmap kitchen sink icon for frame F
-   when we get an expose event for it.  */
-
-void
-refreshicon (f)
-     struct frame *f;
-{
-  /* Normally, the window manager handles this function.  */
-}
-
 /* Make the x-window of frame F use the gnu icon bitmap.  */
 
 int
