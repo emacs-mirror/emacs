@@ -3793,7 +3793,7 @@ handle_auto_composed_prop (it)
 	  /* As Fnext_single_char_property_change is very slow, we
 	     limit the search to the current line.  */
 	  if (STRINGP (it->string))
-	    limit = SCHARS (it->string);
+	    limit = make_number (SCHARS (it->string));
 	  else
 	    limit = make_number (find_next_newline_no_quit (pos, 1));
 
