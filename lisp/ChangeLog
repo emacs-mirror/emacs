@@ -1,3 +1,36 @@
+2005-03-18  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-new-loop):
+	Make arguments beg and end optional.
+	(isearch-update): Remove optional arguments nil from
+	isearch-lazy-highlight-new-loop.
+	(isearch-lazy-highlight-search): Let-bind case-fold-search to
+	isearch-lazy-highlight-case-fold-search instead of
+	isearch-case-fold-search, and let-bind isearch-regexp to
+	isearch-lazy-highlight-regexp.  Use
+	isearch-lazy-highlight-last-string instead of isearch-string.
+
+	* replace.el (perform-replace): Remove bindings of global
+	variables isearch-string, isearch-regexp, isearch-case-fold-search.
+	Add three new arguments to `replace-highlight'.
+	(replace-highlight): Add arguments string, regexp, case-fold.
+	Let-bind isearch-string, isearch-regexp, isearch-case-fold-search
+	to allow isearch-lazy-highlight-new-loop to use these values
+	to set corresponding isearch-lazy-highlight-... internal
+	variables whose values lazy highlighting will use regardless of
+	changes to global variables isearch-string, isearch-regexp,
+	isearch-case-fold-search during lazy highlighting loop.
+	(replace-dehighlight): Rename `isearch-lazy-highlight-cleanup'
+	to `lazy-highlight-cleanup'.
+
+	* textmodes/ispell.el (ispell-lazy-highlight): New defcustom.
+	(ispell-highlight-face): Set default face to `isearch' when
+	lazy highlighting is enabled.
+	(ispell-highlight-spelling-error-overlay): Set `ispell-overlay'
+	priority to 1.  Add lazy highlighting.
+	(ispell-highlight-spelling-error-xemacs): Remove obsolete arg
+	from `isearch-dehighlight'.
+
 2005-03-18  David Ponce  <david@dponce.com>
 
 	* files.el (hack-local-variables): Do a case-insensitive search
