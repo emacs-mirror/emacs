@@ -467,7 +467,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (insert (or title title "Calc Edit Mode. ")
 	    "Press `C-c C-c'"
             (if allow-ret "" " or RET")
-	    " to finish, `C-x k RET' to cancel.\n")))
+	    " to finish, `C-x k RET' to cancel.\n\n")))
 (put 'calc-edit-mode 'mode-class 'special)
 
 (defun calc-show-edit-buffer ()
@@ -485,7 +485,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	      (delete-window win))))
     (set-buffer-modified-p nil)
     (goto-char (point-min))
-    (forward-line 1)))
+    (forward-line 2)))
 
 (defun calc-edit-return ()
   (interactive)
@@ -522,6 +522,8 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (goto-char (point-min))
     (when (looking-at "Calc Edit\\|Editing ")
       (forward-line 1))
+    (if (looking-at "^ *$")
+        (forward-line 1))
     (if (buffer-modified-p)
 	(eval calc-edit-handler))
     (if one-window
