@@ -3,8 +3,9 @@
 ;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Maintainer: ttn@netcom.com
-;; Version: 5.3 + CVS hacks by ceder@lysator.liu.se made in Jan-Feb 1994.
+;; Modified by:
+;;   Per Cederqvist <ceder@lysator.liu.se>
+;;   Andre Spiegel <spiegel@berlin.informatik.uni-stuttgart.de>
 
 ;; This file is part of GNU Emacs.
 
@@ -24,6 +25,9 @@
 
 ;;; Commentary:
 
+;; This is the always-loaded portion of VC.
+;; It takes care VC-related activities that are done when you visit a file,
+;; so that vc.el itself is loaded only when you use a VC command.
 ;; See the commentary of vc.el.
 
 ;;; Code:
@@ -53,14 +57,19 @@ Otherwise, not displayed.")
 (put 'vc-mode 'permanent-local t)
 
 ;; We need a notion of per-file properties because the version
-;; control state of a file is expensive to derive --- we don't
-;; want to recompute it even on every find.
+;; control state of a file is expensive to derive --- we compute
+;; them when the file is initially found, keep them up to date 
+;; during any subsequent VC operations, and forget them when
+;; the buffer is killed.
 
 (defmacro vc-error-occurred (&rest body)
   (list 'condition-case nil (cons 'progn (append body '(nil))) '(error t)))
 
 (defvar vc-file-prop-obarray [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
   "Obarray for per-file properties.")
+
+(defvar vc-buffer-backend t)
+(make-variable-buffer-local 'vc-buffer-backend)
 
 (defun vc-file-setprop (file property value)
   ;; set per-file property
@@ -69,6 +78,36 @@ Otherwise, not displayed.")
 (defun vc-file-getprop (file property)
   ;; get per-file property
   (get (intern file vc-file-prop-obarray) property))
+
+;;; functions that operate on RCS revision numbers
+
+(defun vc-occurrences (object sequence)
+  ;; return the number of occurences of OBJECT in SEQUENCE
+  ;; (is it really true that Emacs Lisp doesn't provide such a function?)
+  (let ((len (length sequence)) (index 0) (occ 0))
+    (while (< index len)
+      (if (eq object (elt sequence index))
+	  (setq occ (1+ occ)))
+      (setq index (1+ index)))
+    occ))
+
+(defun vc-trunk-p (rev)
+  ;; return t if REV is a revision on the trunk
+  (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))
+
+(defun vc-branch-p (rev)
+  ;; return t if REV is the branch part of a revision, 
+  ;; i.e. a revision without a minor number
+  (eq 0 (% (vc-occurrences ?. rev) 2)))
+
+(defun vc-minor-revision (rev)
+  ;; return the minor revision number of REV, 
+  ;; i.e. the number after the last dot.
+  (substring rev (1+ (string-match "\\.[0-9]+\\'" rev))))
+
+(defun vc-branch-part (rev)
+  ;; return the branch part of a revision number REV
+  (substring rev 0 (string-match "\\.[0-9]+\\'" rev)))
 
 ;;; actual version-control code starts here
 
@@ -108,25 +147,29 @@ Otherwise, not displayed.")
   ;; If it is, do a (throw 'found (cons MASTER 'CVS)).
   ;; Note: If the file is ``cvs add''ed but not yet ``cvs commit''ed 
   ;; the MASTER will not actually exist yet.  The other parts of VC
-  ;; checks for this condition.  This function returns something random if 
+  ;; checks for this condition.  This function returns nil if 
   ;; DIRNAME/BASENAME is not handled by CVS.
   (if (and (file-directory-p (concat dirname "CVS/"))
 	   (file-readable-p (concat dirname "CVS/Entries")))
-      (let ((bufs nil))
+      (let ((bufs nil) (fold case-fold-search))
 	(unwind-protect
 	    (save-excursion
 	      (setq bufs (list
 			  (find-file-noselect (concat dirname "CVS/Entries"))))
 	      (set-buffer (car bufs))
 	      (goto-char (point-min))
+	      ;; make sure the file name is searched 
+	      ;; case-sensitively
+	      (setq case-fold-search nil)
 	      (cond
 	       ((re-search-forward
 		 (concat "^/" (regexp-quote basename) "/\\([^/]*\\)/")
 		 nil t)
+		(setq case-fold-search fold)  ;; restore the old value
 		;; We found it.  Store away version number, now
 		;; that we are anyhow so close to finding it.
 		(vc-file-setprop (concat dirname basename) 
-				 'vc-your-latest-version
+				 'vc-workfile-version
 				 (buffer-substring (match-beginning 1)
 						   (match-end 1)))
 		(setq bufs (cons (find-file-noselect 
@@ -139,7 +182,9 @@ Otherwise, not displayed.")
 						  (1- (point-max))))
 			       basename
 			       ",v")))
-		  (throw 'found (cons master 'CVS))))))
+		  (throw 'found (cons master 'CVS))))
+	       (t (setq case-fold-search fold)  ;; restore the old value
+		  nil)))
 	  (mapcar (function kill-buffer) bufs)))))
 
 (defun vc-name (file)
@@ -161,12 +206,17 @@ Otherwise, not displayed.")
 		   (vc-file-setprop file 'vc-name (car name-and-type))
 		   (vc-file-setprop file 'vc-backend (cdr name-and-type))))))))
 
+(defun vc-buffer-backend ()
+  "Return the version-control type of the visited file, or nil if none."
+  (if (eq vc-buffer-backend t)
+      (setq vc-buffer-backend (vc-backend-deduce (buffer-file-name)))
+    vc-buffer-backend))
+
 (defun vc-toggle-read-only (&optional verbose)
   "Change read-only status of current buffer, perhaps via version control.
 If the buffer is visiting a file registered with version control,
 then check the file in or out.  Otherwise, just change the read-only flag
-of the buffer.
-If you provide a prefix argument, we pass it on to `vc-next-action'."
+of the buffer.  With prefix argument, ask for version number."
   (interactive "P")
   (if (vc-backend-deduce (buffer-file-name))
       (vc-next-action verbose)
@@ -179,31 +229,32 @@ The value is set in the current buffer, which should be the buffer
 visiting FILE.  Second optional arg LABEL is put in place of version
 control system name."
   (interactive (list buffer-file-name nil))
-  (if file
-      (let ((vc-type (vc-backend-deduce file)))
-	(setq vc-mode
-	      (if vc-type
-		  (concat " " (or label (symbol-name vc-type))
-			  (if vc-display-status
-			      (vc-status file vc-type)))))
-	;; Even root shouldn't modify a registered file without
-	;; locking it first.
-	(and vc-type
-	     (not buffer-read-only)
-	     (zerop (user-uid))
-	     (require 'vc)
-	     (not (equal (user-login-name) (vc-locking-user file)))
-	     (setq buffer-read-only t))
-	(and (null vc-type)
-	     (file-symlink-p file)
-	     (let ((link-type (vc-backend-deduce (file-symlink-p file))))
-	       (if link-type
-		   (message
-		    "Warning: symbolic link to %s-controlled source file"
-		    link-type))))
-	(force-mode-line-update)
-	;;(set-buffer-modified-p (buffer-modified-p))  ;;use this if Emacs 18
-	vc-type)))
+  (let ((vc-type (vc-backend-deduce file)))
+    (setq vc-mode
+	  (concat " " (or label (symbol-name vc-type))
+		  (if vc-display-status (vc-status file vc-type))))
+;;;    ;; Make the buffer read-only if the file is not locked
+;;;    ;; (or unchanged, in the CVS case).
+;;;    (if (not (vc-locking-user file))
+;;;	(setq buffer-read-only t))
+    ;; Even root shouldn't modify a registered file without
+    ;; locking it first.
+    (and vc-type
+	 (not buffer-read-only)
+	 (zerop (user-uid))
+	 (require 'vc)
+	 (not (equal (user-login-name) (vc-locking-user file)))
+	 (setq buffer-read-only t))
+    (and (null vc-type)
+	 (file-symlink-p file)
+	 (let ((link-type (vc-backend-deduce (file-symlink-p file))))
+	   (if link-type
+	       (message
+		"Warning: symbolic link to %s-controlled source file"
+		link-type))))
+    (force-mode-line-update)
+    ;;(set-buffer-modified-p (buffer-modified-p)) ;;use this if Emacs 18
+    vc-type))
 
 (defun vc-status (file vc-type)
   ;; Return string for placement in modeline by `vc-mode-line'.
@@ -326,18 +377,25 @@ control system name."
 	  (set-buffer-modified-p nil)
 	  status))))
 
+(defun vc-file-clearprops (file)
+  ;; clear all properties of a given file
+  (setplist (intern file vc-file-prop-obarray) nil))
+
 ;;; install a call to the above as a find-file hook
 (defun vc-find-file-hook ()
   ;; Recompute whether file is version controlled,
   ;; if user has killed the buffer and revisited.
-  (if buffer-file-name
-      (vc-file-setprop buffer-file-name 'vc-backend nil))
-  (if (and (vc-mode-line buffer-file-name) (not vc-make-backup-files))
-      (progn
-	;; Use this variable, not make-backup-files,
-	;; because this is for things that depend on the file name.
-	(make-local-variable 'backup-inhibited)
-	(setq backup-inhibited t))))
+  (cond 
+   (buffer-file-name
+    (vc-file-clearprops buffer-file-name)
+    (cond
+     ((vc-backend-deduce buffer-file-name)
+      (vc-mode-line buffer-file-name)
+      (cond ((not vc-make-backup-files)
+	     ;; Use this variable, not make-backup-files,
+	     ;; because this is for things that depend on the file name.
+	     (make-local-variable 'backup-inhibited)
+	     (setq backup-inhibited t))))))))
 
 (add-hook 'find-file-hooks 'vc-find-file-hook)
 
@@ -351,6 +409,15 @@ Returns t if checkout was successful, nil otherwise."
 	(not (vc-error-occurred (vc-checkout buffer-file-name))))))
 
 (add-hook 'find-file-not-found-hooks 'vc-file-not-found-hook)
+
+;; Discard info about a file when we kill its buffer.
+(defun vc-kill-buffer-hook ()
+  (if (stringp (buffer-file-name))
+      (progn
+	(vc-file-clearprops (buffer-file-name))
+	(kill-local-variable 'vc-buffer-backend))))
+
+;;;(add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
 
 ;;; Now arrange for bindings and autoloading of the main package.
 ;;; Bindings for this have to go in the global map, as we'll often
@@ -402,7 +469,7 @@ Returns t if checkout was successful, nil otherwise."
   (put 'vc-version-other-window 'menu-enable 'vc-mode)
   (put 'vc-diff 'menu-enable 'vc-mode)
   (put 'vc-update-change-log 'menu-enable
-       '(eq (vc-backend-deduce (buffer-file-name)) 'RCS))
+       '(eq (vc-buffer-backend) 'RCS))
   (put 'vc-print-log 'menu-enable 'vc-mode)
   (put 'vc-cancel-version 'menu-enable 'vc-mode)
   (put 'vc-revert-buffer 'menu-enable 'vc-mode)
