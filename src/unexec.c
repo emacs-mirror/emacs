@@ -973,7 +973,6 @@ copy_text_and_data (new, a_out)
 #endif
 
     end = ptr + mcount_offset - EDATA_OFFSET;
-    printf ("Writing from %08x to %08x\n", ptr, end);
 
     write_segment (new, ptr, end);
 
@@ -982,14 +981,12 @@ copy_text_and_data (new, a_out)
     proforma[2] = bss_end;	/* becomes _minbrk */
     proforma[3] = bss_end;	/* becomes _curbrk */
 
-    puts ("Writing 'args_proforma' (16 bytes)");
     write (new, proforma, 16);
 
     temp_ptr = ptr;
     ptr = end + 16;
     end = temp_ptr + hdr.a_text;
 
-    printf ("Writing from %08x to %08x\n", ptr, end);
     write_segment (new, ptr, end);
   }
 
