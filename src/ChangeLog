@@ -16,16 +16,6 @@
 
 	* alloc.c: Include stdio.h.  Test STDC_HEADERS, not __STDC__.
 
-2000-03-27  gerd  <gerd@dlpx1>
-
-	* alloc.c (mark_maybe_object): New function.
-	(mark_memory): Use it.
-	(SETJMP_WILL_LIKELY_WORK, SETJMP_WILL_NOT_WORK): New macros.
-	(setjmp_tested_p, longjmp_done): New variables.
-	(test_setjmp): New function.
-	(mark_stack) [!GC_SETJMP_WORKS]: Call test_setjmp.
-	(init_alloc): Initialize setjmp_tested_p and longjmp_done.
-
 2000-03-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (REGEX_FREE_STACK, RESET_FAIL_STACK): Make them usable as
