@@ -157,12 +157,14 @@ or a cons cell (background-color . COLOR)."
 
 (defcustom cpp-face-light-list nil
   "Alist of names and faces to be used for light backgrounds."
-  :type '(repeat (cons string face))
+  :type '(repeat (cons string (choice face
+				      (cons (const background-color) string))))
   :group 'cpp)
 
 (defcustom cpp-face-dark-list nil
   "Alist of names and faces to be used for dark backgrounds."
-  :type '(repeat (cons string face))
+  :type '(repeat (cons string (choice face
+				      (cons (const background-color) string))))
   :group 'cpp)
 
 (defcustom cpp-face-mono-list
