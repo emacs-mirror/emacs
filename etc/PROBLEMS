@@ -1,69 +1,6 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
-* Improving performance with slow X connections
-
-If you don't need X Input Methods (XIM) for entering text in some
-language you use, you can improve performance on WAN links by
-configuring Emacs with option `--without-xim'.  Configuring Emacs
-without XIM does not affect the use of Emacs' own input methods, which
-are part of the Leim package.
-
-If the connection is very slow, you might also want to consider
-switching off scroll bars, menu bar, and tool bar.
-
-* Getting a Meta key on the FreeBSD console
-
-By default, neither Alt nor any other key acts as a Meta key on
-FreeBSD, but this can be changed using kbdcontrol(1).  Dump the
-current keymap to a file with the command
-
-  $ kbdcontrol -d >emacs.kbd
-
-Edit emacs.kbd, and give the key you want to be the Meta key the
-definition `meta'.  For instance, if your keyboard has a ``Windows''
-key with scan code 105, change the line for scan code 105 in emacs.kbd
-to look like this
-
-  105   meta   meta   meta   meta   meta   meta   meta   meta    O
-
-to make the Windows key the Meta key.  Load the new keymap with
-
-  $ kbdcontrol -l emacs.kbd
-
-* Emacs' xterm-mouse-mode doesn't work on the Gnome terminal.
-
-A symptom of this bug is that double-clicks insert a control sequence
-into the buffer.  The reason this happens is an apparent
-incompatibility of the Gnome terminal with Xterm, which also affects
-other programs using the Xterm mouse interface.  A problem report has
-been filed.
-
-* Emacs pauses for several seconds when changing the default font
-
-This has been reported for fvwm 2.2.5 and the window manager of KDE
-2.1.  The reason for the pause is Xt waiting for a ConfigureNotify
-event from the window manager, which the window manager doesn't send.
-Xt stops waiting after a default timeout of usually 5 seconds.
-
-A workaround for this is to add something like
-
-emacs.waitForWM: false
-
-to your X resources.  Alternatively, add `(wait-for-wm . nil)' to a
-frame's parameter list, like this:
-
-   (modify-frame-parameters nil '((wait-for-wm . nil)))
-
-(this should go into your `.emacs' file).
-
-* Underlines appear at the wrong position.
-
-This is caused by fonts having a wrong UNDERLINE_POSITION property.
-An example is the font 7x13 on XFree prior to version 4.1.  To
-circumvent this problem, set x-use-underline-position-properties to
-nil in your .emacs.
-
 * Building Emacs with GCC 2.9x fails in the `src' directory.
 
 This may happen if you use a development version of GNU `cpp' from one
@@ -140,6 +77,70 @@ patch to assert.h should solve this:
   
   #else /* debugging enabled */
   
+
+
+* Improving performance with slow X connections
+
+If you don't need X Input Methods (XIM) for entering text in some
+language you use, you can improve performance on WAN links by
+configuring Emacs with option `--without-xim'.  Configuring Emacs
+without XIM does not affect the use of Emacs' own input methods, which
+are part of the Leim package.
+
+If the connection is very slow, you might also want to consider
+switching off scroll bars, menu bar, and tool bar.
+
+* Getting a Meta key on the FreeBSD console
+
+By default, neither Alt nor any other key acts as a Meta key on
+FreeBSD, but this can be changed using kbdcontrol(1).  Dump the
+current keymap to a file with the command
+
+  $ kbdcontrol -d >emacs.kbd
+
+Edit emacs.kbd, and give the key you want to be the Meta key the
+definition `meta'.  For instance, if your keyboard has a ``Windows''
+key with scan code 105, change the line for scan code 105 in emacs.kbd
+to look like this
+
+  105   meta   meta   meta   meta   meta   meta   meta   meta    O
+
+to make the Windows key the Meta key.  Load the new keymap with
+
+  $ kbdcontrol -l emacs.kbd
+
+* Emacs' xterm-mouse-mode doesn't work on the Gnome terminal.
+
+A symptom of this bug is that double-clicks insert a control sequence
+into the buffer.  The reason this happens is an apparent
+incompatibility of the Gnome terminal with Xterm, which also affects
+other programs using the Xterm mouse interface.  A problem report has
+been filed.
+
+* Emacs pauses for several seconds when changing the default font
+
+This has been reported for fvwm 2.2.5 and the window manager of KDE
+2.1.  The reason for the pause is Xt waiting for a ConfigureNotify
+event from the window manager, which the window manager doesn't send.
+Xt stops waiting after a default timeout of usually 5 seconds.
+
+A workaround for this is to add something like
+
+emacs.waitForWM: false
+
+to your X resources.  Alternatively, add `(wait-for-wm . nil)' to a
+frame's parameter list, like this:
+
+   (modify-frame-parameters nil '((wait-for-wm . nil)))
+
+(this should go into your `.emacs' file).
+
+* Underlines appear at the wrong position.
+
+This is caused by fonts having a wrong UNDERLINE_POSITION property.
+An example is the font 7x13 on XFree prior to version 4.1.  To
+circumvent this problem, set x-use-underline-position-properties to
+nil in your .emacs.
 
 * When using Xaw3d scroll bars without arrows, the very first mouse
 click in a scroll bar might be ignored by the scroll bar widget.  This
@@ -351,6 +352,30 @@ MS-Windows version of Emacs.  This is due to some change in the Bash
 port or in the Cygwin library which apparently make Bash ignore the
 keyboard interrupt event sent by Emacs to Bash.  (Older Cygwin ports
 of Bash, up to b20.1, did receive SIGINT from Emacs.)
+
+* Accessing remote files with ange-ftp hangs the MS-Windows version of Emacs.
+
+If the FTP client is the Cygwin port of GNU `ftp', this appears to be
+due to some bug in the Cygwin DLL or some incompatibility between it
+and the implementation of asynchronous subprocesses in the Windows
+port of Emacs.  Specifically, some parts of the FTP server responses
+are not flushed out, apparently due to buffering issues, which
+confuses ange-ftp.
+
+The solution is to downgrade to an older version of the Cygwin DLL
+(version 1.3.2 was reported to solve the problem), or use the stock
+Windows FTP client, usually found in the `C:\WINDOWS' directory.  To
+force ange-ftp use the stock Windows client, set the variable
+`ange-ftp-ftp-program-name' to the absolute file name of the client's
+executable.  For example:
+
+ (setq ange-ftp-ftp-program-name "c:/windows/ftp.exe")
+
+If you want to stick with the Cygwin FTP client, you can work around
+this problem by putting this in your `.emacs' file:
+
+ (setq ange-ftp-ftp-program-args '("-i" "-n" "-g" "-v" "--prompt" "")
+
 
 * The latest released version of the W3 package doesn't run properly
 with Emacs 21 and needs work.  However, these problems are already
