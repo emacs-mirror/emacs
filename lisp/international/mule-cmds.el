@@ -398,6 +398,7 @@ non-nil, it is used to sort CODINGS in the different way than above."
 			 (if (eq (coding-system-type base) 2)
 			     ;; For ISO based coding systems, prefer
 			     ;; one that doesn't use escape sequences.
+			     ;; Fixme: coding-system-spec
 			     (let* ((extra-spec (coding-system-spec base))
 				    (flags (aref extra-spec 3)))
 			       (if (/= (logand flags #x40) 0)
@@ -2023,18 +2024,14 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
 (defun encode-coding-char (char coding-system)
   "Encode CHAR by CODING-SYSTEM and return the resulting string.
 If CODING-SYSTEM can't safely encode CHAR, return nil."
-  (let ((str1 (string-as-multibyte (char-to-string char)))
-	(str2 (string-as-multibyte (make-string 2 char)))
-	(safe-chars (and coding-system
-			 (coding-system-get coding-system 'safe-chars)))
-	(charset (char-charset char))
+  (let ((str1 (string-as-multibyte (string char)))
+	(str2 (string-as-multibyte (string char char)))
 	enc1 enc2 i1 i2)
-    (when (or (eq safe-chars t)
-	      (eq charset 'ascii)
-	      (and safe-chars (aref safe-chars char)))
+    (when (memq (coding-system-base coding-system)
+		(find-coding-systems-string str1))
       ;; We must find the encoded string of CHAR.  But, just encoding
       ;; CHAR will put extra control sequences (usually to designate
-      ;; ASCII charaset) at the tail if type of CODING is ISO 2022.
+      ;; ASCII charset) at the tail if type of CODING is ISO 2022.
       ;; To exclude such tailing bytes, we at first encode one-char
       ;; string and two-char string, then check how many bytes at the
       ;; tail of both encoded strings are the same.
