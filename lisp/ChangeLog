@@ -1,5 +1,7 @@
 2001-01-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* frame.el (frame-initialize): Doc fix.
+
 	* time-stamp.el (time-stamp-string): Doc fix.
 
 	* woman.el (WoMan-log-1): Make the log buffer writable.  From
