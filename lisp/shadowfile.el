@@ -92,7 +92,7 @@
   "*If t, always copy shadow files without asking.
 If nil \(the default), always ask.  If not nil and not t, ask only if there
 is no buffer currently visiting the file."
-  :type '(choice (const t) (const nil) (const :tag "Ask if no buffer" maybe))
+  :type '(choice (const t) (const nil) (other :tag "Ask if no buffer" maybe))
   :group 'shadow)
 
 (defcustom shadow-inhibit-message nil
