@@ -634,7 +634,9 @@ Instead, these commands are available:
   "Expunge and save RMAIL file."
   (interactive)
   (rmail-expunge)
-  (save-buffer))
+  (save-buffer)
+  (if (rmail-summary-exists)
+      (rmail-select-summary (set-buffer-modified-p nil))))
 
 (defun rmail-quit ()
   "Quit out of RMAIL."
