@@ -42,8 +42,8 @@ EMACS = ${dot}${dot}/src/emacs
 
 buildlisppath=${srcdir}/${dot}${dot}/lisp
 
-# How to run Emacs.  This forces Emacs to use new Emacs Lisp libraries.
-RUN-EMACS = ${EMACS} -batch
+# How to run Emacs.
+RUN-EMACS = ${EMACS} -batch --no-init-file --no-site-file
 
 # Subdirectories to be made if ${srcdir} is different from the current
 # directory.
