@@ -1,0 +1,72 @@
+This directory tree holds version 20.0 of GNU Emacs, the extensible,
+customizable, self-documenting real-time display editor.
+
+You may encounter bugs in this release.  If you do, please report
+them; your bug reports are valuable contributions to the FSF, since
+they allow us to notice and fix problems on machines we don't have, or
+in code we don't use often.  See the file BUGS for more information on
+how to report bugs.
+
+See the files `etc/NEWS' and `etc/news.texi' for information on new
+features and other user-visible changes since the last version of
+Emacs.
+
+The file INSTALL in this directory says how to bring up GNU Emacs on
+Unix, once you have loaded the entire subtree of this directory.
+
+The file etc/PROBLEMS contains information on many common problems that
+occur in building, installing and running Emacs.
+
+Reports of bugs in Emacs should be sent to the mailing list
+bug-gnu-emacs@gnu.org.  See the "Bugs" section of the Emacs
+manual for more information on how to report bugs.  (The file `BUGS'
+in this directory explains how you can find and read that section
+using the Info files that come with Emacs.)  See `etc/MAILINGLISTS'
+for more information on mailing lists relating to GNU packages.
+
+The `etc' subdirectory contains several other files, named in
+capital letters, which you should look at when installing GNU Emacs.
+
+The file `configure' is a shell script to acclimate Emacs to the
+oddities of your processor and operating system.  It creates the file
+`Makefile' (a script for the `make' program), which automates the
+process of building and installing Emacs.  See INSTALL for more
+detailed information.
+
+The file `configure.in' is the input used by the autoconf program to
+construct the `configure' script.  Since Emacs has configuration
+requirements that autoconf can't meet, `configure.in' uses an unholy
+marriage of custom-baked configuration code and autoconf macros; it
+may be wise to avoid rebuilding `configure' from `configure.in' when
+possible.
+
+The file `Makefile.in' is a template used by `configure' to create
+`Makefile'.
+
+The file `make-dist' is a shell script to build a distribution tar
+file from the current Emacs tree, containing only those files
+appropriate for distribution.  If you make extensive changes to Emacs,
+this script will help you distribute your version to others.
+
+There are several subdirectories:
+
+`src' holds the C code for Emacs (the Emacs Lisp interpreter and its
+    primitives, the redisplay code, and some basic editing functions).
+`lisp' holds the Emacs Lisp code for Emacs (most everything else).
+`lib-src' holds the source code for some utility programs for use by
+    or with Emacs, like movemail and etags.
+`etc' holds miscellaneous architecture-independent data files
+    Emacs uses, like the tutorial text and the Zippy the Pinhead quote
+    database.  The contents of the `lisp', `info' and `man'
+    subdirectories are architecture-independent too.
+
+`info' holds the Info documentation tree for Emacs.
+`man' holds the source code for the Emacs manual.
+
+   Note that the Emacs Lisp manual sources are distributed separately.
+(They are twice as large as the Emacs manual in the man subdirectory.)
+
+`msdos' holds configuration files for compiling Emacs under MSDOG.
+`vms' holds instructions and useful files for running Emacs under VMS.
+`nt' holds various command files and documentation files that pertain
+    to running Emacs on Windows NT.

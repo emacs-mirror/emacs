@@ -1,0 +1,23 @@
+#!/bin/sh
+# Write into $1/subdirs.el a list of subdirs of directory $1.
+cd $1
+for file in *; do
+    case $file in
+	*.elc | *.el | term | RCS | Old | . | .. | =* | *~ | *.orig | *.rej)
+	  ;;	
+	*)
+	    if [ -d $file ]; then
+	      subdirs="\"$file\" $subdirs"
+	    fi
+	  ;;
+    esac
+done
+
+if [ "x$subdirs" = x ]; then
+  rm -f subdirs.el
+else
+  echo ";; In load-path, after this directory should come
+;; certain of its subdirectories.  Here we specify them." > subdirs.el
+
+  echo "(normal-top-level-add-to-load-path '($subdirs))" >> subdirs.el
+fi

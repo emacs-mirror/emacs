@@ -1,0 +1,165 @@
+		      Building and Installing Emacs
+		      on Windows NT and Windows 95
+
+You need a compiler package to build and install Emacs on NT or Win95.
+If you don't have one, precompiled versions are available in
+ftp://ftp.cs.washington.edu/pub/ntemacs/<version>.
+
+Configuring:
+
+(1) In previous versions, you needed to edit makefile.def
+    to reflect the compiler package that you are using.  You should no
+    longer have to do this if you have defined the INCLUDE and LIB 
+    environment variables, as is customary for use with Windows compilers.
+    (Unless you are using MSVCNT 1.1, in which case you will need
+    to set MSVCNT11 to be a non-zero value at the top of makefile.def.)
+
+(2) Choose the directory into which Emacs will be installed, and
+    edit makefile.def to define INSTALL_DIR to be this directory.  
+    (Alternatively, if you have INSTALL_DIR set as an environment
+    variable, the build process will ignore the value in makefile.def
+    and use the value of the environment variable instead.)  Note 
+    that if it is not installed in the directory in which it is built,
+    the ~16 MB of lisp files will be copied into the installation directory.
+
+    Also, makefile.def is sometimes unpacked read-only; use
+   
+    > attrib -r makefile.def
+
+    to make it writable.
+
+(3) You may need to edit nt/paths.h to specify some other device
+    instead of `C:'.
+
+Building:
+
+(4) The target to compile the sources is "all", and is recursive starting 
+    one directory up.  The makefiles for the NT port are in files named 
+    "makefile.nt".  To get things started, type in this directory:
+
+    > nmake -f makefile.nt all
+
+    or use the ebuild.bat file.
+
+    When the files are compiled, you will see some warning messages declaring
+    that some functions don't return a value, or that some data conversions
+    will be lossy, etc.  You can safely ignore these messages.  The warnings
+    may be fixed in the main FSF source at some point, but until then we
+    will just live with them.
+
+    NOTE: You should not have to edit src\paths.h to get Emacs to run
+    correctly.  All of the variables in src\paths.h are configured
+    during start up using the nt\emacs.bat file (which gets installed 
+    as bin\emacs.bat -- see below).
+
+Installing:
+
+(5) Currently, Emacs requires a number of environment variables to be set
+    for it to run correctly.  A batch file, emacs.bat, is provided that 
+    sets these variables appropriately and then runs the executable
+    (emacs.bat is generated using the definition of INSTALL_DIR in
+    nt\makefile.def and the contents of nt\emacs.bat.in).
+
+(6) The install process will install the files necessary to run Emacs in 
+    INSTALL_DIR (which may be the directory in which it was built), 
+    and create a program manager/folder icon in a folder called GNU Emacs.
+    From this directory, type:
+
+    > nmake -f makefile.nt install
+
+    or use the install.bat file.
+
+(7) Create the Emacs startup file.  This file can be named either .emacs,
+    as on Unix, or _emacs.  Note that Emacs requires the environment 
+    variable HOME to be set in order for it to locate the startup file.  
+    HOME could be set, for example, in the System panel of the Control
+    Panel on NT, or in autoexec.bat on Win95.
+
+(8) Start up Emacs.
+
+    The installation process should have run the addpm.exe program, which
+    does two things.  First, it will create a set of registry keys that
+    tell Emacs where to find its support files (lisp, info, etc.).
+    Second, it will create a folder containing an icon linked to
+    runemacs.exe (a wrapper program for invoking Emacs).  You can
+    also invoke addpm.exe by hand, giving the absolute directory name
+    of the installation directory as the first argument:
+
+        addpm.exe %INSTALL_DIR%
+
+    Now, to run Emacs, simply click on the icon in the newly created
+    folder or invoke runemacs.exe from a command prompt.
+
+    Another alternative for running Emacs is to use the emacs.bat batch
+    file in the bin directory (this was the traditional method of invoking
+    Emacs).  Edit the emacs.bat file to change the emacs_dir environment
+    variable to point to the Emacs installation directory and invoke the
+    emacs.bat file to run Emacs.
+
+    Note that, on Win95, you are likely to get "Out of environment space"
+    messages when invoking the emacs.bat batch file.  The problem is that
+    the console process in which the script is executed runs out of memory
+    in which to set the Emacs environment variables.  To get around this
+    problem, create a shortcut icon to the emacs.bat script.  Then right
+    click on the icon and select Properties.  In the dialog box that pops
+    up, select the Memory tab and then change the Environment memory
+    allocation from "Auto" to "1024".  Close the dialog box and then
+    double click on the icon to start Emacs.
+
+Debugging:
+
+(9) You should be able to debug Emacs using the MSVC debugger as you would
+    any other program.  To ensure that Emacs uses the lisp files associated
+    with the source distribution that you are debugging, it is useful
+    to set the Emacs environment variables to point Emacs to the
+    source distribution.  You can use the debug.bat batch file in this
+    directory to setup the environment and invoke msdev on the
+    emacs.exe executable.
+
+    Emacs functions implemented in C use a naming convention that
+    reflects their names in lisp.  The names of the C routines are
+    the lisp names prefixed with 'F', and with dashes converted to 
+    underscores.  For example, the function call-process is implemented
+    in C by Fcall_process.  Similarly, lisp variables are prefixed
+    with 'V', again with dashes converted to underscores.  These 
+    conventions enable you to easily set breakpoints or examine familiar
+    lisp variables by name.
+
+    Since Emacs data is often in the form of a lisp object, and the
+    Lisp_Object type is difficult to examine manually in the debugger,
+    Emacs provides a helper routine called debug_print that prints out
+    a readable representation of a Lisp_Object.  The output from 
+    debug_print is sent to stderr, and to the debugger via the
+    OutputDebugString routine.  The output sent to stderr should be
+    displayed in the console window that was opened when the emacs.exe
+    executable was started.  The output sent to the debugger should be
+    displayed in its "Debug" output window.
+
+    When you are in the process of debugging Emacs and you would like
+    to examine the contents of a Lisp_Object variable, popup the
+    QuickWatch window (QuickWatch has an eyeglass symbol on its button
+    in the toolbar).  In the text field at the top of the window, enter
+    debug_print(<variable>) and hit return.  For example, start
+    and run Emacs in the debugger until it is waiting for user input.
+    Then click on the Break button in the debugger to halt execution.
+    Emacs should halt in ZwUserGetMessage waiting for an input event.
+    Use the Call Stack window to select the procedure w32_msp_pump
+    up the call stack (see below for why you have to do this).  Open
+    the QuickWatch window and enter debug_print(Vexec_path).  Evaluating
+    this expression will then print out the contents of the lisp
+    variable exec-path.
+
+    If QuickWatch reports that the symbol is unknown, then check the
+    call stack in the Call Stack window.  If the selected frame in the
+    call stack is not an Emacs procedure, then the debugger won't
+    recognize Emacs symbols.  Instead, select a frame that is inside
+    an Emacs procedure and try using debug_print again.
+
+    If QuickWatch invokes debug_print but nothing happens, then check
+    the thread that is selected in the debugger.  If the selected
+    thread is not the last thread to run (the "current" thread), then
+    it cannot be used to execute debug_print.  Use the Debug menu
+    to select the current thread and try using debug_print again.
+    Note that the debugger halts execution (e.g., due to a breakpoint)
+    in the context of the current thread, so this should only be a problem
+    if you've explicitly switched threads.

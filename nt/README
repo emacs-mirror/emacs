@@ -1,0 +1,61 @@
+		 Emacs for Windows NT and Windows 95
+
+This directory contains support for compiling and running GNU Emacs on
+Windows NT and Windows 95.  This port supports all of the major
+functionality of the Unix version, including subprocesses, windowing
+features (fonts, colors, scroll bars, multiple frames, etc.), and
+networking support.
+
+Precompiled distributions are also available; ftp to
+
+	ftp://ftp.cs.washington.edu/pub/ntemacs/latest
+
+for the latest precompiled distributions.
+
+* Preliminaries
+
+To compile Emacs, you will need a Microsoft C compiler package.  For
+NT, this can be any of the SDK compilers from NT 3.1 and up, Microsoft
+Visual C++ for NT (versions 1.0 and up), or Microsoft Visual C++
+(versions 2.0 and up).  For Windows 95, this can be Microsoft Visual
+C++ versions 2.0 and up.
+
+* Building and installing
+
+See the INSTALL file in this directory for detailed instructions on
+building and installing Emacs on your system.
+
+* Further information
+
+If you have access to the World Wide Web, I would recommend pointing
+your favorite web browser to the document (if you haven't already):
+
+	http://www.cs.washington.edu/homes/voelker/ntemacs.html
+
+This web document serves as a FAQ and a source for further information
+about the port and related software packages.
+
+There is also a mailing list for discussing issues related to this
+port of Emacs.  For information about the list, send a message to
+ntemacs-users-request@cs.washington.edu with the word "info" in the
+*body* of the message.  To subscribe to the list, send a message to
+the same address with the word "subscribe" in the body of the message;
+similarly, to unsubscribe from the list, send a message with the word
+"unsubscribe" in the message body.
+
+You are also always welcome to send me mail directly.  If you don't
+hear from me immediately, however, don't worry; it sometimes takes me
+a few days (or longer) to get to all of my mail regarding Emacs.
+
+* Reporting bugs
+
+If you encounter bugs in this port of Emacs, first check the FAQ on
+the web page above to see if the bug is already known and if there are
+any workarounds.  If not, then I would like to hear about it; either
+send a bug report to the mailing list, or to me directly (I would
+recommend sending to the list first).
+
+Enjoy.
+
+-geoff
+(voelker@cs.washington.edu)

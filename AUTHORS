@@ -1,0 +1,558 @@
+!1 This file is largely machine-readable; it should be easy to do
+!2 simple transformations on it mechanically, e.g. to combine lines
+!3 by the same author.  The parenthesized token is always "(changed)"
+!4 or "(wrote)" or occasionally "(co-wrote)".  The file name is
+!5 sometimes replaced or followed by a comment in [brackets].
+!6 Two authors, Kågedal (K{a-ring}gedal) and Potortì
+!7 (Potort{i-grave}), have non-ASCII letters in their names.
+!8
+Abrahamsen, Per (changed) lisp/easymenu.el
+Abrahamsen, Per (changed) lisp/frame.el
+Abrahamsen, Per (changed) src/window.c
+Abrahamsen, Per (wrote) lisp/double.el
+Adams, Jay K. (wrote) lisp/jka-compr.el
+Arceneax, Joe (changed) lisp/term/x-win.el
+Arceneax, Joe (changed) src/xfns.c
+Arceneax, Joe (changed) src/xselect.c
+Arceneax, Joe (changed) src/xterm.c
+Arceneax, Joe (changed) src/xterm.h
+Arceneax, Joe (wrote) src/xrdb.c
+Ben-Gershon, Michael (changed) src/unexec.c
+Ben-Gershon, Michael (wrote) src/m/acorn.h
+Ben-Zvi, Boaz (wrote) lisp/profile.el
+Berry, Karl (changed) src/s/isc2-2.h
+Blandy, Jim (changed) lisp/add-log.el
+Blitz Product Development Corporation (wrote) lisp/ispell.el
+Bothner, Per (changed) src/process.c
+Bothner, Per (changed) src/sysdep.c
+Bothner, Per (wrote) lisp/term.el
+Bresz, Frank (wrote) lisp/diff.el
+Broadey, Kevin (wrote) lisp/foldout.el
+Brown, David M. (wrote) lisp/array.el
+Buhrman, Jan-Hein (changed) lisp/env.el
+Burton, Bill (wrote) src/m/sequent-ptx.h
+Burton, Bill (wrote) src/s/ptx.h
+Byers, Gary (changed) src/s/xenix.h
+Carey, Shawn M. (wrote) src/s/freebsd.h
+Cederqvist, Per (changed) lisp/vc-hooks.el
+Cederqvist, Per (changed) lisp/vc.el
+Chalupsky, Hans (changed) lisp/bytecomp.el
+Chalupsky, Hans (wrote) lisp/advice.el
+Chalupsky, Hans (wrote) lisp/trace.el
+Chassell, Robert J. (wrote) lisp/page-ext.el
+Clamen, Stewart (wrote) lisp/cal-mayan.el
+Clark, James (changed) src/unexec.c
+Clark, James (wrote) lisp/sgml-mode.el
+Cutting, Doug (wrote) lisp/disass.el
+Decker, Eric (changed) src/m/hp9000s800.h
+Decker, Eric (changed) src/s/hpux.h
+Decker, Eric (changed) src/sysdep.c
+Dodd, Lawrence R. (changed) lisp/fortran.el
+Dodd, Lawrence R. (changed) lisp/info.el
+Dodd, Lawrence R. (changed) lisp/ispell4.el
+Dodd, Lawrence R. (co-wrote) lisp/dired-x.el
+Draves, Scot (wrote) lisp/tq.el
+Dukhovni, Viktor (wrote) src/unexsunos4.c
+Dutt, G. Dinesh (changed) lisp/etags.el
+Dwork, Jeff (changed) lisp/ehelp.el
+Eggert, Paul (changed) configure.in
+Eggert, Paul (changed) lib-src/rcs-checkin
+Eggert, Paul (changed) lisp/calendar.el
+Eggert, Paul (changed) lisp/gnus.el
+Eggert, Paul (changed) lisp/gnuspost.el
+Eggert, Paul (changed) lisp/timezone.el
+Eggert, Paul (changed) lisp/vc-hooks.el
+Eggert, Paul (changed) lisp/vc.el
+Eggert, Paul (changed) src/callproc.c
+Eggert, Paul (changed) src/cmds.c
+Eggert, Paul (changed) src/config.h.in
+Eggert, Paul (changed) src/editfns.c
+Eggert, Paul (changed) src/editfns.c
+Eggert, Paul (changed) src/floatfns.c
+Eggert, Paul (changed) src/systime.h
+Eggert, Paul (changed) src/uaf.h
+Eggert, Paul (wrote) lib-src/rcs2log
+Eggert, Paul (wrote) lib-src/vcdiff
+Eggert, Paul (wrote) lisp/cal-dst.el
+Eriksen, Hans Henrik (wrote) lisp/simula.el
+Ernst, Michael (changed) lisp/dired.el
+Ernst, Michael (changed) lisp/fill.el
+Ernst, Michael (changed) lisp/rmailsum.el
+Ernst, Michael (wrote) lisp/reposition.el
+Fish, Frederic N. III (changed) src/unexec.c
+Fleehart, Tim (co-wrote) src/makefile.nt
+Fogel, Karl (changed) src/editfns.c
+Fogel, Karl (wrote) lisp/bookmark.el
+Fogel, Karl (wrote) lisp/mail-hist.el
+Fogel, Karl (wrote) lisp/saveplace.el
+Friedman, Noah (changed) lisp/timer.el
+Friedman, Noah (wrote) lisp/rlogin.el
+Friedman, Noah (wrote) lisp/rsz-mini.el
+Friedman, Noah (wrote) lisp/type-break.el
+Gabryelski, Keith (wrote) lib-src/hexl.c
+Gabryelski, Keith (wrote) lisp/hexl-mode.el
+Gallagher, Kevin (wrote) lisp/edt.el
+Gallagher, Kevin (wrote) lisp/flow-ctrl.el
+Gayle, Howard (wrote) lisp/case-table.el
+Gayle, Howard (wrote) lisp/disp-table.el
+Gayle, Howard (wrote) lisp/iso-ascii.el
+Gayle, Howard (wrote) lisp/iso-insert.el
+Gayle, Howard (wrote) lisp/iso-swed.el
+Gayle, Howard (wrote) lisp/iso-syntax.el
+Gayle, Howard (wrote) lisp/iso-transl.el
+Gayle, Howard (wrote) lisp/swedish.el
+Gayle, Howard (wrote) src/casetab.c
+Gildea, Stephen (changed) lisp/tex-mode.el
+Gildea, Stephen (wrote) etc/refcard.tex
+Gildea, Stephen (wrote) lisp/mh-comp.el
+Gildea, Stephen (wrote) lisp/mh-e.el
+Gildea, Stephen (wrote) lisp/mh-funcs.el
+Gildea, Stephen (wrote) lisp/mh-mime.el
+Gildea, Stephen (wrote) lisp/mh-pick.el
+Gildea, Stephen (wrote) lisp/mh-seq.el
+Gildea, Stephen (wrote) lisp/mh-utils.el
+Gildea, Stephen (wrote) lisp/tex-mode.el
+Gildea, Stephen (wrote) lisp/time-stamp.el
+Gillespie, David (wrote) lisp/cl-compat.el
+Gillespie, David (wrote) lisp/cl-extra.el
+Gillespie, David (wrote) lisp/cl-macs.el
+Gillespie, David (wrote) lisp/cl-seq.el
+Gillespie, David (wrote) lisp/cl.el
+Gillespie, David (wrote) lisp/complete.el
+Gillespie, David (wrote) lisp/edmacro.el
+Gillespie, David (wrote) man/cl.texinfo
+Goldowsky, Boris (changed) lisp/fill.el
+Goldowsky, Boris (changed) lisp/indent.el
+Goldowsky, Boris (changed) lisp/paragraphs.el
+Goldowsky, Boris (changed) lisp/simple.el
+Goldowsky, Boris (changed) lisp/tex-mode.el
+Goldowsky, Boris (changed) src/cmds.c
+Goldowsky, Boris (changed) src/fileio.c
+Goldowsky, Boris (changed) src/xfaces.c
+Goldowsky, Boris (wrote) lisp/avoid.el
+Goldowsky, Boris (wrote) lisp/enriched.el
+Goldowsky, Boris (wrote) lisp/facemenu.el
+Goldowsky, Boris (wrote) lisp/shadowfile.el
+Grabowski, John (changed) src/xfns.c
+Greiner, Kevin J. (changed) lisp/gud.el
+Gschwind, Michael (wrote) lisp/iso-cvt.el
+Hageman, Tom (changed) lib-src/etags.c
+Hartman, K. Shane (changed) lisp/rmail.el
+Hartman, K. Shane (changed) lisp/rmailedit.el
+Hartman, K. Shane (changed) lisp/rmailsum.el
+Hartman, K. Shane (wrote) lisp/chistory.el
+Hartman, K. Shane (wrote) lisp/echistory.el
+Hartman, K. Shane (wrote) lisp/electric.el
+Hartman, K. Shane (wrote) lisp/emacsbug.el
+Hartman, K. Shane (wrote) lisp/helper.el
+Hartman, K. Shane (wrote) lisp/mim-mode.el
+Hartman, K. Shane (wrote) lisp/mim-syntax.el
+Hartman, K. Shane (wrote) lisp/picture.el
+Hartman, K. Shane (wrote) lisp/view.el
+Heuer, Karl (changed) [miscellaneous changes throughout]
+Hewlett-Packard (changed) lib-src/emacsclient.c
+Hewlett-Packard (changed) lib-src/emacsserver.c
+Hewlett-Packard (changed) lisp/server.el
+Hewlett-Packard (changed) src/keyboard.c
+Holst, Anders (wrote) lisp/hippie-exp.el
+Horsley, Thomas (changed) src/sysdep.c
+Horsley, Thomas (wrote) src/s/cxux.h
+Horsley, Thomas (wrote) src/s/cxux7.h
+Indiana University Foundation (changed) src/buffer.c
+Indiana University Foundation (changed) src/buffer.h
+Indiana University Foundation (changed) src/indent.c
+Indiana University Foundation (changed) src/search.c
+Indiana University Foundation (changed) src/xdisp.c
+Indiana University Foundation (wrote) src/region-cache.c
+Indiana University Foundation (wrote) src/region-cache.h
+Ingebrigtsen, Lars Magne (wrote) lisp/gnus-uu.el
+International Business Machines (changed) src/emacs.c
+International Business Machines (changed) src/fileio.c
+International Business Machines (changed) src/m/ibmrt.h
+International Business Machines (changed) src/process.c
+International Business Machines (changed) src/sysdep.c
+International Business Machines (changed) src/unexec.c
+International Business Machines (wrote) src/m/ibmrt-aix.h
+Ishikawa, Chiaki (changed) src/m/aviion.h
+Ishikawa, Chiaki (changed) src/s/dgux.h
+Johnson, Michael K. (changed) configure.in
+Johnson, Michael K. (changed) src/emacs.c
+Johnson, Michael K. (changed) src/m/intel386.h
+Johnson, Michael K. (changed) src/mem-limits.h
+Johnson, Michael K. (changed) src/process.c
+Johnson, Michael K. (changed) src/s/template.h
+Johnson, Michael K. (changed) src/sysdep.c
+Johnson, Michael K. (changed) src/syssignal.h
+Johnson, Michael K. (changed) src/systty.h
+Johnson, Michael K. (changed) src/unexec.c
+Johnson, Michael K. (changed) src/ymakefile
+Johnson, Michael K. (wrote) src/s/linux.h
+Jones, Kyle E. (wrote) lisp/life.el
+Jones, Kyle E. (wrote) lisp/mldrag.el
+Kamens, Jonathan I. (changed) lisp/rmail.el
+Kamens, Jonathan I. (changed) lisp/rmailout.el
+Kamens, Jonathan I. (changed) lisp/vc.el
+Kautz, Henry (wrote) lisp/bib-mode.el
+Kautz, Henry (wrote) lisp/refbib.el
+Kaye, Howard (wrote) lisp/sort.el
+Kelsey, Joseph M. (changed) src/fileio.c
+Kelsey, Joseph M. (changed) src/vms-pwd.h
+Kelsey, Joseph M. (changed) src/vmsfns.c
+Kelsey, Joseph M. (wrote) src/dir.h
+Kelsey, Joseph M. (wrote) src/uaf.h
+Kendall, Sam (changed) lib-src/etags.c
+Kendall, Sam (changed) lisp/etags.el
+Kifer, Michael (changed) lisp/appt.el
+Kifer, Michael (wrote) lisp/ediff.el
+Kifer, Michael (wrote) lisp/viper.el [under the name vip19]
+King, Richard (changed) lisp/rnews.el
+King, Richard (changed) lisp/rnewspost.el
+King, Richard (changed) src/cmds.c
+King, Richard (changed) src/search.c
+King, Richard (wrote) lisp/backquote.el
+King, Richard (wrote) lisp/userlock.el
+King, Richard (wrote) src/filelock.c
+Kolodney, Larry K. (wrote) lib-src/cvtmail.c
+Krawitz, Robert (wrote) src/xmenu.c
+Kremer, Sebastian (changed) lisp/add-log.el
+Kremer, Sebastian (wrote) lisp/dired-aux.el
+Kremer, Sebastian (wrote) lisp/dired.el
+Kremer, Sebastian (wrote) lisp/find-dired.el
+Kremer, Sebastian (wrote) lisp/ls-lisp.el
+Kumar, Kishore (changed) lisp/terminal.el
+Kågedal, David (wrote) lisp/tempo.el
+LaLiberte, Daniel (changed) [miscellaneous changes to the manual]
+LaLiberte, Daniel (co-wrote) lisp/hideif.el
+LaLiberte, Daniel (wrote) lisp/cust-print.el
+LaLiberte, Daniel (wrote) lisp/edebug.el
+LaLiberte, Daniel (wrote) lisp/isearch.el
+Lambert, Mark (changed) src/process.c
+Lambert, Mark (changed) src/process.h
+Larson, Aaron (changed) lisp/bibtex.el
+Larus, James R. (wrote) lisp/mh-e.el
+Lepied, Frederic (changed) lisp/gnus.el
+Lindberg, Lars (changed) lisp/dabbrev.el
+Lindberg, Lars (co-wrote) lisp/imenu.el
+Lindberg, Lars (wrote) lisp/msb.el
+Love, Dave (changed) lisp/gud.el
+Lucid, Inc. (changed) src/bytecode.c
+Lucid, Inc. (wrote) lisp/byte-opt.el
+Lucid, Inc. (wrote) lisp/byte-run
+Lucid, Inc. (wrote) lisp/bytecomp.el
+Lucid, Inc. (wrote) lisp/delsel.el
+Lucid, Inc. (wrote) lisp/disass.el
+Lucid, Inc. (wrote) lisp/faces.el
+Lucid, Inc. (wrote) lisp/font-lock.el
+Lucid, Inc. (wrote) lisp/lmenu.el
+Lucid, Inc. (wrote) lisp/lselect.el
+Lucid, Inc. (wrote) lisp/mailabbrev.el
+Lucid, Inc. (wrote) lisp/select.el
+Lucid, Inc. (wrote) src/xfaces.c
+Lucid, Inc. (wrote) src/xselect.c
+MCC (changed) lib-src/etags.c
+MIT (changed) lib-src/emacsclient.c
+MIT (changed) lib-src/emacsserver.c
+MIT (changed) lib-src/movemail.c
+MIT (changed) lisp/rmail.el
+MIT (changed) lisp/rmailedit.el
+MIT (changed) lisp/rmailkwd.el
+MIT (changed) lisp/rmailmsc.el
+MIT (changed) lisp/rmailout.el
+MIT (changed) lisp/rmailsum.el
+MIT (changed) lisp/scribe.el
+MIT (changed) lisp/server.el
+MIT (changed) src/lisp.h
+MIT (changed) src/sysdep.c
+MIT (changed) src/unexec.c
+MIT (wrote) src/xmenu.c
+Mager, Neil M. (wrote) lisp/appt.el
+Manheimer, Kenneth (wrote) lisp/allout.el
+Manheimer, Kenneth (wrote) lisp/icomplete.el
+Mann, William F. (changed) lisp/perl-mode.el
+Mann, William F. (wrote) lisp/perl-mode.el
+Mansfield, Niall (changed) lib-src/etags.c
+Marick, Brian (co-wrote) lisp/hideif.el
+Marko, Kohtala (changed) lisp/info.el
+Markowitz, Sidney (changed) lisp/doctor.el
+Marshall, Simon (changed) lisp/ada.el
+Marshall, Simon (changed) lisp/comint.el
+Marshall, Simon (changed) lisp/font-lock.el
+Marshall, Simon (changed) lisp/fortran.el
+Marshall, Simon (changed) lisp/mouse.el
+Marshall, Simon (changed) lisp/outline.el
+Marshall, Simon (changed) lisp/pascal.el
+Marshall, Simon (changed) lisp/perl-mode.el
+Marshall, Simon (changed) lisp/rmail.el
+Marshall, Simon (changed) lisp/sendmail.el
+Marshall, Simon (changed) lisp/shell.el
+Marshall, Simon (changed) lisp/texinfo.el
+Martin, Charles R. (wrote) lisp/autoinsert.el
+McGary, Greg (changed) lisp/tar-mode.el
+McGrath, Roland (changed) [miscellaneous changes throughout]
+McGrath, Roland (changed) lisp/add-log.el
+McGrath, Roland (wrote) lisp/autoload.el
+McGrath, Roland (wrote) lisp/compile.el
+McGrath, Roland (wrote) lisp/etags.el
+McGrath, Roland (wrote) lisp/find-dired.el
+McGrath, Roland (wrote) lisp/map-ynp.el
+McGrath, Roland (wrote) lisp/upd-copyr.el
+Megginson, David (wrote) lisp/derived.el
+Mlynarik, Richard (changed) lisp/rmail.el
+Mlynarik, Richard (wrote) lib-src/env.c
+Mlynarik, Richard (wrote) lisp/cl-indent.el
+Mlynarik, Richard (wrote) lisp/ebuff-menu.el
+Mlynarik, Richard (wrote) lisp/ehelp.el
+Mlynarik, Richard (wrote) lisp/rfc822.el
+Mlynarik, Richard (wrote) lisp/terminal.el
+Mohan, Mosur (changed) lib-src/etags.c
+Morgenthaler, Jeff (changed) lisp/flow-ctrl.el
+Morgenthaler, Jeff (changed) lisp/term/vt200.el
+Morgenthaler, Jeff (changed) lisp/term/vt201.el
+Morgenthaler, Jeff (changed) lisp/term/vt220.el
+Morgenthaler, Jeff (changed) lisp/term/vt240.el
+Motorola (changed) lisp/buff-menu.el
+Mueller, Ulrich (changed) lisp/gud.el
+Naggum, Erik (changed) src/editfns.c
+Naggum, Erik (changed) src/editfns.c
+Nakano, Hiroshi (changed) src/ralloc.c
+Nakano, Hiroshi (changed) src/unexelf.c
+Narasimhan, Sundar (changed) lisp/rnews.el
+Narasimhan, Sundar (changed) lisp/rnewspost.el
+NeXT, Inc. (wrote) src/unexnext.c
+Neale, Mark (changed) lisp/fortran.el
+Neitzel, Martin (changed) lisp/sc.el
+Neumann, Thomas (wrote) lisp/makefile.el
+Nguyen, Thien-Thi (wrote) lisp/hideshow.el
+Nickelsen, Jurgen (wrote) lisp/ws-mode.el
+Norden, Jeff (wrote) lisp/kermit.el
+Norman, Andrew (wrote) lisp/ange-ftp.el
+Oram, Andrew (changed) [miscellaneous changes to files in man/]
+Oram, Andrew (changed) man/calendar.texi
+Pfeiffer, Daniel (wrote) lisp/sh-script.el
+Pfeiffer, Daniel (wrote) lisp/skeleton.el
+Pfeiffer, Daniel (wrote) lisp/two-column.el
+Pierresteguy, Frederic (changed) lisp/compile.el
+Pierresteguy, Frederic (changed) lisp/rmail.el
+Pierresteguy, Frederic (changed) lisp/rmailsum.el
+Pierresteguy, Frederic (changed) src/editfns.c
+Pierresteguy, Frederic (changed) src/lisp.h
+Pierresteguy, Frederic (changed) src/xfns.c
+Pierresteguy, Frederic (changed) src/xmenu.c
+Pierresteguy, Frederic (changed) src/xterm.c
+Pierresteguy, Frederic (changed) src/xterm.h
+Pierresteguy, Frederic (wrote) src/widget.c
+Plaunt, Christian (wrote) lisp/soundex.el
+Potortì, Francesco A. (changed) lib-src/etags.c
+Potortì, Francesco A. (changed) lisp/man.el
+Potortì, Francesco A. (changed) lisp/rlogin.el
+Potortì, Francesco A. (changed) lisp/vc-hooks.el
+Potortì, Francesco A. (changed) src/filelock.c
+Potortì, Francesco A. (changed) src/search.c
+Potortì, Francesco A. (wrote) lisp/cmacexp.el
+Potortì, Francesco A. (wrote) src/m/delta.h
+Prange, Michael D. (changed) lisp/tex-mode.el
+Prange, Michael D. (wrote) lisp/fortran.el
+Ram, Ashwin (wrote) lisp/refer.el
+Raymond, Eric S. (changed) [miscellaneous changes throughout]
+Raymond, Eric S. (changed) lisp/blackbox.el
+Raymond, Eric S. (changed) lisp/etags.el
+Raymond, Eric S. (changed) lisp/flow-ctrl.el
+Raymond, Eric S. (changed) lisp/mailalias.el
+Raymond, Eric S. (changed) lisp/tar-mode.el
+Raymond, Eric S. (wrote) lisp/asm-mode.el, lisp/gud.el, lisp/vc.el
+Reilly, Paul (changed) src/s/dgux.h
+Reilly, Paul (changed) src/xfns.c
+Reilly, Paul (changed) src/xmenu.c
+Reilly, Paul (wrote) src/s/dgux5-4r2.h
+Reilly, Paul (wrote) src/s/dgux5-4r3.h
+Reingold, Edward M. (changed) lisp/tex-mode.el
+Reingold, Edward M. (changed) man/calendar.texi
+Reingold, Edward M. (changed) man/text.texi
+Reingold, Edward M. (co-wrote) lisp/cal-mayan.el
+Reingold, Edward M. (wrote) lisp/cal-french.el
+Reingold, Edward M. (wrote) lisp/cal-menu.el
+Reingold, Edward M. (wrote) lisp/calendar.el
+Reingold, Edward M. (wrote) lisp/solar.el
+Riepel, Rob (wrote) lisp/tpu-doc.el
+Riepel, Rob (wrote) lisp/tpu-edt.el
+Riepel, Rob (wrote) lisp/tpu-extras.el
+Riepel, Rob (wrote) lisp/tpu-mapper.el
+Riepel, Rob (wrote) lisp/vt-control.el
+Roberts, Roland B (changed) lisp/files.el
+Roberts, Roland B (changed) lisp/sort.el
+Roberts, Roland B (changed) lisp/vms-patch.el
+Roberts, Roland B (changed) lisp/vmsproc.el
+Roberts, Roland B (changed) src/buffer.h
+Roberts, Roland B (changed) src/callproc.c
+Roberts, Roland B (changed) src/dired.c
+Roberts, Roland B (changed) src/process.c
+Roberts, Roland B (changed) src/sysdep.c
+Roberts, Roland B (changed) src/systty.h
+Roberts, Roland B (changed) src/vmspaths.h
+Roberts, Roland B (changed) vms/build.com
+Roberts, Roland B (changed) vms/compile.com
+Roberts, Roland B (changed) vms/kepteditor.com
+Roberts, Roland B (changed) vms/precomp.com
+Roberts, Roland B (wrote) lisp/vms-pmail.el
+Roberts, Roland B (wrote) vms/logout.com
+Roberts, Roland B (wrote) vms/mailemacs.com
+Robinson, John (wrote) lisp/term/bg-mouse.el
+Rosenblatt, William (wrote) lisp/float.el
+Rozas, Guillermo J. (changed) lisp/scheme.el
+Rozas, Guillermo J. (changed) lisp/xscheme.el
+Rozas, Guillermo J. (wrote) lib-src/fakemail.c
+Rupprecht, Wolfgang (changed) lisp/lisp-mode.el
+Rupprecht, Wolfgang (changed) lisp/loadup.el
+Rupprecht, Wolfgang (changed) lisp/sort.el
+Rupprecht, Wolfgang (changed) src/alloc.c
+Rupprecht, Wolfgang (changed) src/callint.c
+Rupprecht, Wolfgang (changed) src/config.h.in
+Rupprecht, Wolfgang (changed) src/crt0.c
+Rupprecht, Wolfgang (changed) src/data.c
+Rupprecht, Wolfgang (changed) src/fns.c
+Rupprecht, Wolfgang (changed) src/lisp.h
+Rupprecht, Wolfgang (changed) src/lread.c
+Rupprecht, Wolfgang (changed) src/m/sun3.h
+Rupprecht, Wolfgang (changed) src/print.c
+Rupprecht, Wolfgang (changed) src/ymakefile
+Rupprecht, Wolfgang (wrote) lisp/float-sup.el
+Rupprecht, Wolfgang (wrote) lisp/term/sup-mouse.el
+Rupprecht, Wolfgang (wrote) src/floatfns.c
+Salem, James B. (wrote) lisp/completion.el
+Schelter, William (wrote) lisp/telnet.el
+Schlumberger Technology Corporation (changed) lisp/gud.el
+Schmid, Gregor (wrote) lisp/tcl-mode.el
+Schnell, Ronald S. (wrote) lisp/dunnet.el
+Schnoebelen, Philippe (wrote) lisp/gomoku.el
+Schnoebelen, Philippe (wrote) lisp/mpuz.el
+Schoef, Stefan (wrote) lisp/bibtex.el
+Schoepf, Rainer (changed) src/alloc.c
+Schoepf, Rainer (changed) src/lisp.h
+Schoepf, Rainer (wrote) src/m/alpha.h
+Schoepf, Rainer (wrote) src/unexalpha.c
+Shivers, Olin (wrote) lisp/cmuscheme.el
+Shivers, Olin (wrote) lisp/comint.el
+Shivers, Olin (wrote) lisp/inf-lisp.el
+Shivers, Olin (wrote) lisp/shell.el
+Skoglund, Espen (wrote) lisp/pascal.el
+Sladkey, Rick (changed) lisp/gud.el
+Sladkey, Rick (changed) lisp/replace.el
+Sladkey, Rick (changed) lisp/simple.el
+Sladkey, Rick (changed) src/intervals.c
+Sladkey, Rick (changed) src/intervals.h
+Sladkey, Rick (wrote) lisp/backquote.el
+Smith, David M. (wrote) lisp/ielm.el
+Sommerfeld, William (wrote) lib-src/emacsclient.c
+Sommerfeld, William (wrote) lib-src/emacsserver.c
+Sommerfeld, William (wrote) lisp/scribe.el
+Sommerfeld, William (wrote) lisp/server.el
+Stallman, Richard (changed) [miscellaneous changes throughout]
+Stenhoff, Ake (co-wrote) lisp/imenu.el
+Stevens, Ken et al (wrote) lisp/ispell.el
+Stigelman, Jonathan (wrote) lisp/hilit19.el
+Stoller, Leigh (changed) lib-src/emacsclient.c
+Stoller, Leigh (changed) lib-src/emacsserver.c
+Stoller, Leigh (changed) lisp/server.el
+Strassman, Steve (wrote) lisp/spook.el
+Sugou, Shinichirou (changed) lib-src/etags.c
+Suhr, Steven (changed) src/scroll.c
+Sun Microsystems, Inc. (changed) lib-src/emacsclient.c
+Sun Microsystems, Inc. (changed) lib-src/emacsserver.c
+Sun Microsystems, Inc. (changed) lisp/server.el
+Sun Microsystems, Inc. (wrote) etc/emacs.icon
+Sun Microsystems, Inc. (wrote) etc/emacstool.1
+Sun Microsystems, Inc. (wrote) lib-src/emacstool.c
+Sun Microsystems, Inc. (wrote) lisp/term/sun-curs.el
+Sun Microsystems, Inc. (wrote) lisp/term/sun-fns.el
+Sun Microsystems, Inc. (wrote) lisp/term/sun-mouse.el
+Sun Microsystems, Inc. (wrote) lisp/term/sun.el
+Sun Microsystems, Inc. (wrote) src/sunfns.c
+Sylvan, Kayvan (changed) lisp/sc.el
+Thomas, Spencer (changed) lib-src/emacsclient.c
+Thomas, Spencer (changed) lib-src/emacsserver.c
+Thomas, Spencer (changed) lisp/server.el
+Thomas, Spencer (wrote) lisp/dabbrev.el
+Thomas, Spencer (wrote) src/unexec.c
+Thompson, Jim (wrote) lisp/ps-print.el
+Tower, Leonard H. Jr. (changed) lisp/rnews.el
+Tower, Leonard H. Jr. (changed) lisp/rnewspost.el
+Tromey, Tom (changed) lisp/buff-menu.el
+Tromey, Tom (changed) lisp/makefile.el
+Tromey, Tom (changed) lisp/man.el
+Tromey, Tom (changed) src/doc.c
+Tromey, Tom (changed) src/xfns.c
+Umeda, Masanobu (wrote) gnuspost.el
+Umeda, Masanobu (wrote) lib-src/tcp.c
+Umeda, Masanobu (wrote) lisp/gnus.el
+Umeda, Masanobu (wrote) lisp/gnusmail.el
+Umeda, Masanobu (wrote) lisp/gnusmisc.el
+Umeda, Masanobu (wrote) lisp/mhspool.el
+Umeda, Masanobu (wrote) lisp/nnspool.el
+Umeda, Masanobu (wrote) lisp/nntp.el
+Umeda, Masanobu (wrote) lisp/prolog.el
+Umeda, Masanobu (wrote) lisp/rmailsort.el
+Umeda, Masanobu (wrote) man/gnus.texi
+Vail, Jonathan (changed) lisp/vc.el
+Van Artsdalen, James (changed) src/s/usg5-4.h
+Van Artsdalen, James (changed) src/unexec.c
+Voelker, Geoff (changed) src/callproc.c
+Voelker, Geoff (changed) src/dired.c
+Voelker, Geoff (changed) src/editfns.c
+Voelker, Geoff (changed) src/fileio.c
+Voelker, Geoff (changed) src/keyboard.c
+Voelker, Geoff (changed) src/lisp.h
+Voelker, Geoff (changed) src/lread.c
+Voelker, Geoff (changed) src/sysdep.c
+Voelker, Geoff (changed) src/term.c
+Voelker, Geoff (co-wrote) src/makefile.nt
+Voelker, Geoff (wrote) lisp/makefile.nt
+Voelker, Geoff (wrote) lisp/winnt.el
+Voelker, Geoff (wrote) src/nt.c
+Voelker, Geoff (wrote) src/nt.h
+Voelker, Geoff (wrote) src/ntheap.c
+Voelker, Geoff (wrote) src/ntheap.h
+Voelker, Geoff (wrote) src/ntinevt.c
+Voelker, Geoff (wrote) src/ntproc.c
+Voelker, Geoff (wrote) src/ntterm.c
+Voelker, Geoff (wrote) src/s/windowsnt.h
+Vromans, Johan (wrote) lisp/forms.el
+Vromans, Johan (wrote) lisp/iso-acc.el
+Warsaw, Barry (changed) lisp/cplus-md.el
+Warsaw, Barry (changed) lisp/gud.el
+Warsaw, Barry (changed) src/syntax.c
+Warsaw, Barry (changed) src/syntax.h
+Warsaw, Barry (wrote) lisp/cc-mode.el [originally named lisp/cplus-md1.el]
+Warsaw, Barry (wrote) lisp/elp.el
+Warsaw, Barry (wrote) lisp/man.el
+Warsaw, Barry (wrote) lisp/regi.el
+Warsaw, Barry (wrote) lisp/reporter.el
+Warsaw, Barry (wrote) lisp/supercite.el
+Welinder, Morten (changed) src/editfns.c
+Welinder, Morten (changed) src/frame.c
+Welinder, Morten (changed) src/frame.h
+Welinder, Morten (changed) src/minibuf.c
+Welinder, Morten (changed) src/msdos.c
+Welinder, Morten (changed) src/sysdep.c
+Welinder, Morten (changed) src/xfaces.c
+Welinder, Morten (changed) src/xmenu.c
+Welinder, Morten (wrote) src/dosfns.c
+Welinder, Morten (wrote) [many MSDOS files]
+Welinder, Morten (wrote) lisp/desktop.el
+Welinder, Morten (wrote) lisp/term/pc-win.el
+Welinder, Morten (wrote) src/msdos.h
+Wells, Joseph Brian (wrote) lisp/apropos.el
+Wells, Joseph Brian (wrote) lisp/mail-extr.el
+Wells, Joseph Brian (wrote) lisp/resume.el
+Williams, Mike (wrote) lisp/mouse-sel.el
+Williams, Mike (wrote) lisp/thingatpt.el
+Willisson, Pace (wrote) lisp/ispell.el
+Wollman, Garrett (changed) lisp/sendmail.el
+Wood, Stephen A. (changed) lisp/fortran.el
+Worley, Dale (changed) lisp/mail-extr.el
+Zakharevich, Ilya (changed) lisp/simple.el [under the name modifier.el]
+Zawinski, Jamie (changed) src/bytecode.c
+Zawinski, Jamie (wrote) lisp/byte-opt.el
+Zawinski, Jamie (wrote) lisp/byte-run.el
+Zawinski, Jamie (wrote) lisp/bytecomp.el
+Zawinski, Jamie (wrote) lisp/disass.el
+Zawinski, Jamie (wrote) lisp/tar-mode.el
