@@ -50,6 +50,8 @@
   :type 'hook
   :group 'change-log)
 
+;; Many modes set this variable, so avoid warnings.
+;;;###autoload
 (defcustom add-log-current-defun-function nil
   "*If non-nil, function to guess name of surrounding function.
 It is used by `add-log-current-defun' in preference to built-in rules.
