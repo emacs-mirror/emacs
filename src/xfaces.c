@@ -510,7 +510,8 @@ static int font_list_1 P_ ((struct frame *, Lisp_Object, Lisp_Object,
 static int font_list P_ ((struct frame *, Lisp_Object, Lisp_Object,
 			  Lisp_Object, struct font_name **));
 static int try_font_list P_ ((struct frame *, Lisp_Object *, 
-			      Lisp_Object, Lisp_Object, struct font_name **));
+			      Lisp_Object, Lisp_Object, struct font_name **,
+			      int));
 static int try_alternative_families P_ ((struct frame *f, Lisp_Object,
 					 Lisp_Object, struct font_name **));
 static int cmp_font_names P_ ((const void *, const void *));
@@ -6324,21 +6325,28 @@ try_alternative_families (f, family, registry, fonts)
    match.  A value of nil means include fonts of any registry and
    encoding.
    
+   If PREFER_FACE_FAMILY is nonzero, perfer face's family to FAMILY.
+   Otherwise, prefer FAMILY.
+
    Return in *FONTS a pointer to a vector of font_name structures for
    the fonts matched.  Value is the number of fonts found.  */
 
 static int
-try_font_list (f, attrs, family, registry, fonts)
+try_font_list (f, attrs, family, registry, fonts, prefer_face_family)
      struct frame *f;
      Lisp_Object *attrs;
      Lisp_Object family, registry;
      struct font_name **fonts;
+     int prefer_face_family;
 {
   int nfonts = 0;
   Lisp_Object face_family = attrs[LFACE_FAMILY_INDEX];
+  Lisp_Object try_family;
 
-  if (STRINGP (face_family))
-    nfonts = try_alternative_families (f, face_family, registry, fonts);
+  try_family = prefer_face_family ? face_family : family;
+
+  if (STRINGP (try_family))
+    nfonts = try_alternative_families (f, try_family, registry, fonts);
 
 #ifdef MAC_OS
   /* When realizing the default face and a font spec does not matched
@@ -6346,12 +6354,15 @@ try_font_list (f, attrs, family, registry, fonts)
      default font.  On the Mac, this is mac-roman, which does not work
      if the family is -etl-fixed, e.g.  The following widens the
      choices and fixes that problem.  */
-  if (nfonts == 0 && STRINGP (face_family) && STRINGP (registry)
+  if (nfonts == 0 && STRINGP (try_family) && STRINGP (registry)
       && xstricmp (SDATA (registry), "mac-roman") == 0)
-    nfonts = try_alternative_families (f, face_family, Qnil, fonts);
+    nfonts = try_alternative_families (f, try_family, Qnil, fonts);
 #endif
 
-  if (nfonts == 0 && !NILP (family))
+  if (! prefer_face_family)
+    family = face_family;
+
+  if (nfonts == 0 && STRINGP (family))
     nfonts = try_alternative_families (f, family, registry, fonts);
 
   /* Try font family of the default face or "fixed".  */
@@ -6425,7 +6436,9 @@ choose_face_font (f, attrs, fontset, c)
 
   /* Get a list of fonts matching that pattern and choose the
      best match for the specified face attributes from it.  */
-  nfonts = try_font_list (f, attrs, XCAR (pattern), XCDR (pattern), &fonts);
+  nfonts = try_font_list (f, attrs, XCAR (pattern), XCDR (pattern), &fonts,
+			  (SINGLE_BYTE_CHAR_P (c)
+			   || CHAR_CHARSET (c) == charset_latin_iso8859_1));
   width_ratio = (SINGLE_BYTE_CHAR_P (c)
 		 ? 1
 		 : CHARSET_WIDTH (CHAR_CHARSET (c)));
