@@ -343,7 +343,7 @@ If the value is neither t nor nil, RMAIL does not show MIME decoded message
 until a user explicitly requires it."
   :type '(choice (const :tag "on" t)
 		 (const :tag "off" nil)
-		 (sexp :tag "when asked" :format "%t\n" ask))
+		 (other :tag "when asked" ask))
   :group 'rmail)
 
 ;;;###autoload
