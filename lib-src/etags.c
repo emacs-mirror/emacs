@@ -658,12 +658,12 @@ main (argc, argv)
 	}
     }
 
-  if (optind == argc)
+  if (optind == argc && nincluded_files == 0)
     {
       fprintf (stderr, "%s: No input files specified.\n", progname);
 
     usage:
-      fprintf (stderr, "%s: Try '%s --help' for a complete list of options.\n",
+      fprintf (stderr, "%s: Try `%s --help' for a complete list of options.\n",
 	       progname, progname);
       exit (BAD);
     }
