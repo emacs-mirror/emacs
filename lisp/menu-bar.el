@@ -269,11 +269,10 @@ A large number or nil slows down menu responsiveness."
 
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
 
-(define-key menu-bar-edit-menu [paste] '("Paste Most Recent" . yank))
-
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
 (define-key menu-bar-edit-menu [select-paste] '("Select and Paste" . yank-menu))
+(define-key menu-bar-edit-menu [paste] '("Paste" . yank))
 (define-key menu-bar-edit-menu [copy] '("Copy" . menu-bar-kill-ring-save))
 (define-key menu-bar-edit-menu [cut] '("Cut" . kill-region))
 (define-key menu-bar-edit-menu [undo] '("Undo" . undo))
