@@ -16,13 +16,8 @@
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, you can either send email to this
-;; program's author (see below) or write to:
-;;
-;;              The Free Software Foundation, Inc.
-;;              675 Massachusetts Avenue.
-;;              Cambridge, MA 02139, USA. 
-;;
+;; along with this program; if not, write to: The Free Software Foundation,
+;; Inc.; 675 Massachusetts Avenue.; Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
@@ -37,8 +32,24 @@
 (defvar rlogin-program "rlogin"
   "*Name of program to invoke rlogin")
 
+(defvar rlogin-explicit-args nil
+  "*List of arguments to pass to rlogin on the command line.")
+
 (defvar rlogin-mode-hook nil
   "*Hooks to run after setting current buffer to rlogin-mode.")
+
+;; I think this is so obnoxious I refuse to enable it by default. 
+;; In any case, there is a bug with regards to generating a quit while
+;; reading keyboard input in a process filter, so until that's fixed it's
+;; not safe to enable this anyway. 
+(defvar rlogin-password-paranoia nil
+  "*If non-`nil', query user for a password in the minibuffer when a
+Password: prompt appears.  Stars will echo as characters are type. 
+
+It's also possible to selectively enter passwords without echoing them in
+the minibuffer using the function `rlogin-password'.")
+
+(defvar rlogin-last-input-line nil nil)
 
 ;; Initialize rlogin mode map.
 (defvar rlogin-mode-map '())
@@ -52,32 +63,76 @@
        (define-key rlogin-mode-map "\C-d" 'rlogin-delchar-or-send-Ctrl-D)))
 
 ;;;###autoload
-(defun rlogin (host)
-  (interactive "sOpen rlogin connection to host: ")
-  (let* ((buffer-name (concat "rlogin-" host))
-         (*buffer-name* (concat "*" buffer-name "*")))
-    (cond ((not (comint-check-proc *buffer-name*))
-           (let* ((xargs-name (intern-soft "explicit-rlogin-args"))
-                  (xargs (and xargs-name (boundp xargs-name) (symbol-value xargs-name)))
-                  (process-connection-type nil)
-                  proc)
-             (if xargs
-                 (setq xargs (append xargs host))
-               (setq xargs (list host)))
-             (set-buffer (apply 'make-comint buffer-name rlogin-program nil xargs))
-             (setq proc (get-process buffer-name))
-             (set-marker (process-mark proc) (point-min))
-             (set-process-filter proc 'rlogin-filter)
-             (rlogin-mode))))
-    (switch-to-buffer *buffer-name*)))
+(defun rlogin (&optional prefix host)
+  "Open a network login connection to HOST via the `rlogin' program.
+Input is sent line-at-a-time to the remote connection.
+
+Communication with HOST is recorded in a buffer *rlogin-HOST*.
+If a prefix argument is given and the buffer *rlogin-HOST* already exists,
+a new buffer with a different connection will be made. 
+
+The variable `rlogin-program' contains the name of the actual program to
+run.  It can be a relative or absolute path. 
+
+The variable `rlogin-explicit-args' is a list of arguments to give to
+the rlogin when starting."
+  (interactive (list current-prefix-arg
+                     (read-from-minibuffer "Open rlogin connection to host: ")))
+  (let* ((buffer-name (format "*rlogin-%s*" host))
+         (args (if (and rlogin-explicit-args (listp rlogin-explicit-args))
+                   (cons host rlogin-explicit-args)
+                 (list host))))
+    (and prefix (setq buffer-name 
+                      (buffer-name (generate-new-buffer buffer-name))))
+    (switch-to-buffer buffer-name)
+    (or (comint-check-proc buffer-name)
+        (progn
+          (comint-mode)
+          (comint-exec (current-buffer) buffer-name rlogin-program nil args)
+          (setq proc (get-process buffer-name))
+          (set-marker (process-mark proc) (point-min))
+          (set-process-filter proc 'rlogin-filter)
+          (rlogin-mode)))))
+
+;;;###autoload
+(defun rlogin-with-args (host args)
+  "Open a new rlogin connection to HOST, even if one already exists. 
+String ARGS is given as arguments to the `rlogin' program, overriding the
+value of `rlogin-explicit-args'."
+  (interactive (list (read-from-minibuffer "Open rlogin connection to host: ")
+                     (read-from-minibuffer "with arguments: ")))
+  (let ((old-match-data (match-data))
+        (rlogin-explicit-args nil))
+    (unwind-protect
+        (progn
+          (while (string-match "[ \t]*\\([^ \t]\\)+$" args)
+            (setq rlogin-explicit-args 
+                  (cons (substring args 
+                                   (match-beginning 1)
+                                   (match-end 1))
+                        rlogin-explicit-args)
+                  args (substring args 0 (match-beginning 0)))))
+      (store-match-data old-match-data))
+    (rlogin 1 host)))
+
+;;;###autoload
+(defun rlogin-password ()
+  "Play the paranoia game by not echoing entered password in buffer 
+(stars will echo in the minibuffer instead."
+  (interactive)
+  (let ((input (comint-read-noecho "Enter password: " 'stars)))
+    (insert-before-markers "\n")
+    (comint-send-string (get-buffer-process (current-buffer))
+                        (format "%s\n" input))))
 
 ;;;###autoload
 (defun rlogin-mode ()
   (interactive)
+  (kill-all-local-variables)
   (comint-mode)
   (setq comint-prompt-regexp shell-prompt-pattern)
   (setq major-mode 'rlogin-mode)
-  (setq mode-name "Rlogin")
+  (setq mode-name "rlogin")
   (use-local-map rlogin-mode-map)
   (run-hooks 'rlogin-mode-hook))
 
@@ -99,13 +154,21 @@
                 (goto-char (point-min))
                 (while (search-forward "\C-m" nil t)
                   (delete-char -1))
-                (setq string (buffer-substring (point-min) (point-max)))
+                (and rlogin-password-paranoia
+                     (setq string (buffer-substring (point-min) (point-max))))
                 (goto-char (point-max))))
             (set-marker (process-mark proc) (point)))
           (and moving 
                (goto-char (process-mark proc))))
       (set-buffer old-buffer)
-      (store-match-data old-match-data))))
+      (store-match-data old-match-data)))
+  (and rlogin-password-paranoia 
+       (string= "Password:" string)
+       (let ((input (comint-read-noecho "Enter password: " 'stars)))
+         (and input
+              (progn
+                (insert-before-markers "\n")
+                (comint-send-string proc (format "%s\n" input)))))))
 
 (defun rlogin-send-Ctrl-C ()
   (interactive)
@@ -128,4 +191,3 @@ buffer."
     (delete-char arg)))
 
 ;;; rlogin.el ends here
-
