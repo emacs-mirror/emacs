@@ -1,3 +1,12 @@
+2003-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char-display): New function.
+	(describe-char): Pay attention to display table on describing how
+	a character is displayed.
+
+	* international/mule-cmds.el (encoded-string-description): Prepend
+	"0x" to each encoded byte.
+
 2003-09-28  Andreas Schwab  <schwab@suse.de>
 
 	* find-file.el (ff-special-constructs): Add autoload cookie.

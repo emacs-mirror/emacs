@@ -1,3 +1,8 @@
+2003-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Finternal_char_font): Change return value to
+	cons (FONT-NAME . GLYPH-CODE).
+
 2003-09-28  Eli Zaretskii  <eliz@elta.co.il>
 
 	* term.c (tty_setup_colors): Treat any negative argument as -1.
