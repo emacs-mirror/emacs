@@ -1126,6 +1126,25 @@ redisplay_window (window, just_this_one)
       BUF_PT (current_buffer) = new_pt;
     }
 
+  /* If any of the character widths specified in the display table
+     have changed, invalidate the width run cache.  It's true that this
+     may be a bit late to catch such changes, but the rest of
+     redisplay goes (non-fatally) haywire when the display table is
+     changed, so why should we worry about doing any better?  */
+  if (current_buffer->width_run_cache)
+    {
+      struct Lisp_Vector *disptab = buffer_display_table ();
+
+      if (! disptab_matches_widthtab (disptab,
+                                      XVECTOR (current_buffer->width_table)))
+        {
+          invalidate_region_cache (current_buffer,
+                                   current_buffer->width_run_cache,
+                                   BEG, Z);
+          recompute_width_table (current_buffer, disptab);
+        }
+    }
+
   /* If window-start is screwed up, choose a new one.  */
   if (XMARKER (w->start)->buffer != current_buffer)
     goto recenter;
@@ -1984,15 +2003,20 @@ fix_glyph (f, glyph, cface)
   return glyph;
 }
 
-/* Display one line of window w, starting at position START in W's buffer.
-   Display starting at horizontal position HPOS, which is normally zero
-   or negative.  A negative value causes output up to hpos = 0 to be discarded.
-   This is done for negative hscroll, or when this is a continuation line
-   and the continuation occurred in the middle of a multi-column character.
+/* Display one line of window W, starting at position START in W's buffer.
+
+   Display starting at horizontal position HPOS, expressed relative to
+   W's left edge.  In situations where the text at START shouldn't
+   start at the left margin (i.e. when the window is hscrolled, or
+   we're continuing a line which left off in the midst of a
+   multi-column character), HPOS should be negative; we throw away
+   characters up 'til hpos = 0.  So, HPOS must take hscrolling into
+   account.
 
    TABOFFSET is an offset for ostensible hpos, used in tab stop calculations.
 
-   Display on position VPOS on the frame.  (origin 0).
+   Display on position VPOS on the frame.  It is origin 0, relative to
+   the top of the frame, not W.
 
    Returns a STRUCT POSITION giving character to start next line with
    and where to display it, including a zero or negative hpos.
@@ -2102,7 +2126,8 @@ display_text_line (w, start, vpos, hpos, taboffset)
   else
     region_beg = region_end = -1;
 
-  if (MINI_WINDOW_P (w) && start == 1
+  if (MINI_WINDOW_P (w)
+      && start == 1
       && vpos == XFASTINT (w->top))
     {
       if (! NILP (minibuf_prompt))
@@ -2119,13 +2144,45 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	minibuf_prompt_width = 0;
     }
 
-  desired_glyphs->bufp[vpos] = pos;
+  end = ZV;
+
+  /* If we're hscrolled at all, use compute_motion to skip over any
+     text off the left edge of the window.  compute_motion may know
+     tricks to do this faster than we can.  */
+  if (hpos < 0)
+    {
+      struct position *left_edge
+        = compute_motion (pos, vpos, hpos,
+                          end, vpos, 0,
+                          width, hscroll, taboffset, w);
+
+      /* Retrieve the buffer position and column provided by
+         compute_motion.  We can't assume that the column will be
+         zero, because you may have multi-column characters crossing
+         the left margin.  
+
+         compute_motion may have moved us past the screen position we
+         requested, if we hit a multi-column character, or the end of
+         the line.  If so, back up.  */
+      if (left_edge->vpos > vpos
+          || left_edge->hpos > 0)
+        {
+          pos = left_edge->bufpos - 1;
+          hpos = left_edge->prevhpos;
+        }
+      else
+        {
+          pos = left_edge->bufpos;
+          hpos = left_edge->hpos;
+        }
+    }
+
+  desired_glyphs->bufp[vpos] = start;
   p1 = desired_glyphs->glyphs[vpos] + hpos;
   p1start = p1;
   charstart = desired_glyphs->charstarts[vpos] + hpos;
   /* In case we don't ever write anything into it...  */
   desired_glyphs->charstarts[vpos][XFASTINT (w->left)] = -1;
-  end = ZV;
   leftmargin = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
   endp = leftmargin + width;
 
