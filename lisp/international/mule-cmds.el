@@ -1626,7 +1626,8 @@ of `buffer-file-coding-system' set by this function."
 	    (setq l (cons input-method (delete input-method l))))
 	  (insert ":\n")
 	  (while l
-	    (when (string= language-name (nth 1 (car l)))
+	    (when (eq t (compare-strings language-name nil nil
+					 (nth 1 (car l)) nil nil t))
 	      (insert "  " (car (car l)))
 	      (search-backward (car (car l)))
 	      (help-xref-button 0 'help-input-method (car (car l)))
@@ -1885,7 +1886,10 @@ If the language name is nil, there is no corresponding language environment.")
      (".*8859[-_]?14\\>" . "Latin-8")
      (".*8859[-_]?15\\>" . "Latin-9")
      (".*utf\\(-?8\\)\\>" . "UTF-8")
-     (".*@euro\\>" . "Latin-9"))) ; utf-8@euro exists, so put this last
+     ;; @euro actually indicates the monetary component, but it
+     ;; probably implies a Latin-9 codeset component.
+     ;; utf-8@euro exists, so put this last.
+     (".*@euro\\>" . "Latin-9")))
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name whose charsets corresponds to that locale.
@@ -1922,17 +1926,26 @@ start of KEY, or nil if there is no match."
       (setq alist (cdr alist)))
     (cdr element)))
 
+(defun locale-charset-match-p (charset1 charset2)
+  "Whether charset names CHARSET1 and CHARSET2 are equivalent.
+Matching is done ignoring case and any hyphens and underscores in the
+names.  E.g. `ISO_8859-1' and `iso88591' both match `iso-8859-1'."
+  (setq charset1 (replace-regexp-in-string "[-_]" "" charset1))
+  (setq charset2 (replace-regexp-in-string "[-_]" "" charset2))
+  (eq t (compare-strings charset1 nil nil charset2 nil nil t)))
+
 (defun set-locale-environment (&optional locale-name)
   "Set up multi-lingual environment for using LOCALE-NAME.
 This sets the language environment, the coding system priority,
 the default input method and sometimes other things.
 
-LOCALE-NAME should be a string
-which is the name of a locale supported by the system;
-often it is of the form xx_XX.CODE, where xx is a language,
-XX is a country, and CODE specifies a character set and coding system.
-For example, the locale name \"ja_JP.EUC\" might name a locale
-for Japanese in Japan using the `japanese-iso-8bit' coding-system.
+LOCALE-NAME should be a string which is the name of a locale supported
+by the system; often it is of the form xx_XX.CODE, where xx is a
+language, XX is a country, and CODE specifies a character set and
+coding system.  For example, the locale name \"ja_JP.EUC\" might name
+a locale for Japanese in Japan using the `japanese-iso-8bit'
+coding-system.  The name may also have a modifier suffix, e.g. `@euro'
+or `@cyrillic'.
 
 If LOCALE-NAME is nil, its value is taken from the environment
 variables LC_ALL, LC_CTYPE and LANG (the first one that is set).
@@ -2032,7 +2045,15 @@ See also `locale-charset-language-names', `locale-language-names',
 
 	(when coding-system
 	  (prefer-coding-system coding-system)
-	  (setq locale-coding-system coding-system))))))
+	  (setq locale-coding-system coding-system))
+	(let ((codeset (langinfo 'codeset))
+	      (coding-system (car (coding-system-priority-list))))
+	  (when codeset
+	    (unless (locale-charset-match-p (symbol-name coding-system)
+					    (langinfo 'codeset))
+	      (message "\
+Warning: Default coding system `%s' doesn't agree with
+the system code set `%s' for this locale." coding-system codeset))))))))))
 
 ;;; Character code property
 (put 'char-code-property-table 'char-table-extra-slots 0)
