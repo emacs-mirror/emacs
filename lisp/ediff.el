@@ -26,8 +26,8 @@
 ;;; Commentary:
 ;;  ----------
 
-;; Never read those diff(1) outputs again!
-;; Apply patch(1) selectively, like a pro!
+;; Never read those diff outputs again!
+;; Apply patch selectively, like a pro!
 
 ;; This package provides a convenient way of simultaneous brousing through
 ;; the differences between a pair of files or buffers.  The two files being
@@ -52,8 +52,8 @@
 
 ;; Ediff is complimentary to Emerge.  While Emerge is better at heavy-duty
 ;; tasks that involve merging of files, Ediff is by far superior
-;; for browsing through files compared via diff(1) and for patching files
-;; with patch(1).  Furthermore, I feel that Ediff is more convenient for
+;; for browsing through files compared via diff and for patching files
+;; with patch.  Furthermore, I feel that Ediff is more convenient for
 ;; merging tasks where one of the files is a designated output.  This
 ;; situation arises while patching files or when comparing an old version
 ;; of a file with a newer version (in such cases, it is often desirable to
@@ -125,7 +125,7 @@
 
 ;;  1. Ediff is unlikely to run under Emacs 18 without some further work.
 ;;  2. If running Lucid Emacs, Ediff requires at least version 19.9.
-;;  3. I didn't test Ediff on FSF versions older than 19.19.
+;;  3. I didn't test Ediff on Emacs versions older than 19.19.
 ;;  4. The function vc-ediff requires the vc.el version that comes with
 ;;     Emacs 19.22.
 
@@ -153,13 +153,13 @@
 ;;
 ;; To use Ediff, put this in your .emacs file:
 ;;
-;;  (autoload 'ediff-buffers "ediff" "Visual interface to diff(1)" t)
-;;  (autoload 'ediff  "ediff"  "Visual interface to diff(1)" t)
-;;  (autoload 'ediff-files "ediff" "Visual interface to diff(1)" t)
-;;  (autoload 'ediff-files-remote "ediff" "Visual interface to diff(1)") 
-;;  (autoload 'epatch  "ediff"  "Visual interface to patch(1)" t)
-;;  (autoload 'ediff-patch-file "ediff" "Visual interface to patch(1)" t)
-;;  (autoload 'ediff-patch-buffer "ediff" "Visual interface to patch(1)" t)
+;;  (autoload 'ediff-buffers "ediff" "Visual interface to diff" t)
+;;  (autoload 'ediff  "ediff"  "Visual interface to diff" t)
+;;  (autoload 'ediff-files "ediff" "Visual interface to diff" t)
+;;  (autoload 'ediff-files-remote "ediff" "Visual interface to diff") 
+;;  (autoload 'epatch  "ediff"  "Visual interface to patch" t)
+;;  (autoload 'ediff-patch-file "ediff" "Visual interface to patch" t)
+;;  (autoload 'ediff-patch-buffer "ediff" "Visual interface to patch" t)
 ;;  (autoload 'vc-ediff "ediff"
 ;;  	    	    	"Interface to diff & version control via vc.el" t) 
 ;;  (autoload 'rcs-ediff "ediff"
@@ -180,23 +180,6 @@
 ;;
 ;; When you byte-compile Ediff, you will get some warnings about functions
 ;; being undefined.  These can be safely ignored.
-;;
-;;   Warning:
-;;   =======
-;;
-;;    If you are using advice.el (directly or indirectly, via one of the
-;;    other packages), Ediff may not compile properly.  In this case, you
-;;    should do:
-;;
-;;    	  M-x ad-deactivate-all RET
-;;
-;;  	  M-x byte-compile-file RET ediff.el RET
-;;
-;;  	  M-x ad-activate-all RET
-;;
-;;    This precaution will not be needed starting with GNU Emacs 19.23 and
-;;    Lucid Emacs 19.10, due to fixing a bug in advice.el.
-
 
 ;;; Customization:
 ;;  -------------
@@ -249,11 +232,11 @@
 ;; displays, Ediff uses ediff-current-diff-face-A and
 ;; ediff-current-diff-face-B to highlight the current difference regions.
 ;; Other (non-current) difference regions are displayed in alternating
-;; faces: ediff-even/odd-diff-face-A/B. (In GNU Emacs, the odd and the even
+;; faces: ediff-even/odd-diff-face-A/B.   The odd and the even
 ;; faces are actually identical on monochrome displays, because it is
-;; rather poor in what you can do on such a display. So, I chose to use
-;; italics to highlight other differences. Any ideas would be welcome. In
-;; Lucid Emacs, the situation is better because it supports pixmaps.)
+;; rather poor in what you can do on such a display.  So, I chose to use
+;; italics to highlight other differences. Any ideas would be welcome.
+;;
 ;; There are two ways to change the default setting for highlighting faces:
 ;; either change the variables, as in
 ;;
@@ -306,13 +289,13 @@
 ;; exception is when you may want to generate differences with context
 ;; lines in order to send a patch file through email.  Then, you might want
 ;; to set ediff-diff-options to '-c'. Sometimes, you may also want to tell
-;; diff(1) to ignore spaces and such. Use the option '-w' for that. Diff(1)
+;; diff to ignore spaces and such. Use the option '-w' for that. Diff
 ;; has several other useful options (type 'man diff' to find out).
 ;;
-;; The output from diff(1) is found in *ediff-diff* buffer.  However, this
+;; The output from diff is found in *ediff-diff* buffer.  However, this
 ;; makes sense only if you also intend to use Ediff to browse through the
 ;; diff'ed files before sending the patch.  This is because diff.el is much
-;; faster in yielding the output of diff(1) ;; (Ediff is a big gun, if used
+;; faster in yielding the output of diff ;; (Ediff is a big gun, if used
 ;; for this simple purpose).
 ;;
 ;; The last set of variables that can be modified is
@@ -405,8 +388,7 @@
 ;;  1. The undo command doesn't restore deleted regions well. That is, if
 ;;  you delete all characters in a difference region and then invoke
 ;;  `undo', the reinserted text will most likely be reinserted outside of
-;;  what Ediff thinks is the current difference region. This bug seems to
-;;  be present only in GNU Emacs. Lucid Emacs does fine in this respect.
+;;  what Ediff thinks is the current difference region.
 
 ;;  2. You may get an error if your colormap doesn't have the colors requested
 ;;  by Ediff (on a color display). If this happens, you should create your 
@@ -571,7 +553,7 @@
 ;;     Fixed a bug with ediffing narrowed buffers, reported by Kevin
 ;;     Broadey <KevinB@bartley.demon.co.uk>.
 ;;     Made Ediff to work with files that have incomplete last line.
-;;     Made Ediff execute diff(1) and patch(1) using Bourne Shell, which
+;;     Made Ediff execute diff and patch using Bourne Shell, which
 ;;     should eliminate problems with $prompt that some people had.
 
 ;; Thu March 24, 1994
@@ -706,7 +688,7 @@ wa/wb - save buf A/B    A/B - toggle read-only buf A/B        ? - toggle help")
   "* Options to pass to ediff-patch-program.")
   
 (defvar ediff-shell "sh"
-  "* The shell used to run diff(1) and patch(1).  If user's .profile or
+  "* The shell used to run diff and patch.  If user's .profile or
 .cshrc files are set up correctly, any shell will do.  However, some people
 set $prompt or other things incorrectly, which leads to undesirable output
 messages.  These may cause Ediff to fail.  In such a case, set ediff-shell
@@ -726,7 +708,7 @@ Lines that do not match are assumed to be error messages.")
 (defvar ediff-patch-buf nil
   "The buffer of the patch file.")
 (defvar ediff-patch-diagnostics nil
-  "The buffer where patch(1) would display its diagnostics.")
+  "The buffer where patch would display its diagnostics.")
   
 
 ;; Copying diffs betw buffers.    
@@ -843,10 +825,9 @@ councide. ")
   "Number of differences found.")
   
 (emerge-defvar-local ediff-diff-buffer nil
-  "Buffer containing the output of diff(1), which is used by Ediff to step
-through files.")
+  "Buffer containing the output of diff, used by Ediff to step through files.")
 (emerge-defvar-local ediff-diff-error-buffer nil
-  "Buffer containing the output of diff(1) when diff returns errors.")
+  "Buffer containing the output of diff, when diff returns errors.")
   
 (emerge-defvar-local ediff-this-buffer-control-sessions  nil
   "Keeps the list of ediff-control buffers associated with each buffer A/B
@@ -875,7 +856,6 @@ of the current diff.")
       (fset 'ediff-overlay-start (symbol-function 'extent-start-position))
       (fset 'ediff-overlay-end (symbol-function 'extent-end-position))
       (fset 'ediff-overlay-get (symbol-function 'extent-property)))
-  ;; GNU definitions
   (fset 'ediff-overlayp (symbol-function 'overlayp))
   (fset 'ediff-make-overlay (symbol-function 'make-overlay))
   (fset 'ediff-delete-overlay (symbol-function 'delete-overlay))
@@ -1439,8 +1419,7 @@ Else, read patch file into a new buffer."
 (defun vc-ediff (rev)
   "Run ediff on version REV of the current buffer in another window.
 If the current buffer is named `F', the version is named `F.~REV~'.
-If `F.~REV~' already exists, it is used instead of being re-created.
-Note: this function will work starting with GNU Emacs 19.22."
+If `F.~REV~' already exists, it is used instead of being re-created."
   (interactive "sVersion to ediff with (default is the latest version): ")
   (or (featurep 'vc)
       (if (locate-library "vc") ;; if vc.el is available
@@ -2920,8 +2899,8 @@ control buffer is in effect in case it is not the current buffer."
 	   ediff-current-diff-overlay-A begin-A end-A-hilit)
 	  (ediff-move-overlay
 	   ediff-current-diff-overlay-B begin-B end-B-hilit))
-      ;; GNU stuff has a bug, which requires that ediff-move-overlay will
-      ;; have the buffer as a parameter. Will be fixed in 19.23
+      ;; Emacs 19.22 has a bug, which requires that ediff-move-overlay will
+      ;; have the buffer as a parameter.  Believed fixed in 19.23.
       (ediff-move-overlay ediff-current-diff-overlay-A
 			  begin-A end-A-hilit ediff-A-buffer)
       (ediff-move-overlay ediff-current-diff-overlay-B
