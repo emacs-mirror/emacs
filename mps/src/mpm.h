@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.137) $
+ * $HopeName: MMsrc!mpm.h(trunk.138) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -272,8 +272,6 @@ extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
   ((*(pool)->fix)(pool, ss, seg, refIO))
 extern void PoolFixEmergency(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
-extern double PoolBenefit(Pool pool, Action action);
-extern Res PoolAct(Pool pool, Action action);
 extern void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
                      void *v, unsigned long s);
 extern Res PoolTrivInit(Pool pool, va_list arg);
@@ -312,8 +310,6 @@ extern void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolNoScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg);
 extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
-extern double PoolNoBenefit(Pool pool, Action action);
-extern Res PoolNoAct(Pool pool, Action action);
 extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
@@ -329,7 +325,6 @@ extern void PoolNoFramePopPending(Pool pool, Buffer buf,
 extern void PoolNoWalk(Pool pool, Seg seg,
                        FormattedObjectsStepMethod,
 		       void *, unsigned long);
-extern Res PoolCollectAct(Pool pool, Action action);
 extern PoolDebugMixin PoolNoDebugMixin(Pool pool);
 extern BufferClass PoolNoBufferClass(void);
 
@@ -514,14 +509,6 @@ extern Res TraceScanAreaMasked(ScanState ss,
                                Addr *base, Addr *limit, Word mask);
 extern void TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
                                Seg seg, Ref *refIO);
-
-
-/* Action Interface -- see design.mps.action */
-
-extern Bool ActionCheck(Action action);
-extern void ActionInit(Action action, Pool pool);
-extern void ActionFinish(Action action);
-extern void ActionPoll(Arena arena);
 
 
 /* Arena Interface -- see impl.c.arena */
