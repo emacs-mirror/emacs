@@ -94,15 +94,19 @@ and then returns."
 	     (if three-step-help
 		 (message line-prompt))
 	     (let* ((help-screen (documentation (quote (, fname))))
-		    (overriding-local-map (make-sparse-keymap))
+		    ;; We bind overriding-local-map for very small
+		    ;; sections, *excluding* where we switch buffers
+		    ;; and where we execute the chosen help command.
+		    (local-map (make-sparse-keymap))
 		    (minor-mode-map-alist nil)
 		    config key char)
 	       (unwind-protect
 		   (progn
-		     (setcdr overriding-local-map (, helped-map))
-		     (define-key overriding-local-map [t] 'undefined)
+		     (setcdr local-map (, helped-map))
+		     (define-key local-map [t] 'undefined)
 		     (if three-step-help
-			 (setq key (read-key-sequence nil)
+			 (setq key (let ((overriding-local-map local-map))
+				     (read-key-sequence nil))
 			       char (aref key 0))
 		       (setq char ??))
 		     (if (or (eq char ??) (eq char help-char))
@@ -122,7 +126,8 @@ and then returns."
 					   (equal key "\M-v"))
 				       (scroll-down)))
 			       (error nil))
-			     (let ((cursor-in-echo-area t))
+			     (let ((cursor-in-echo-area t)
+				   (overriding-local-map local-map))
 			       (setq key (read-key-sequence
 					  (format "Type one of the options listed%s: "
 						  (if (pos-visible-in-window-p
@@ -135,7 +140,9 @@ and then returns."
 			 (setq unread-command-events
 			       (cons char unread-command-events)
 			       config nil)
-		       (let ((defn (key-binding key)))
+		       (let ((defn
+			       (let ((overriding-local-map local-map))
+				 (key-binding key))))
 			 (if defn
 			     (progn
 			       (if config
