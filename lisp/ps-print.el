@@ -1954,7 +1954,7 @@ EndDSCPage\n"))
 (defun ps-article-author ()
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward "^From:[ \t]+\\(.*\\)$")
+    (if (re-search-forward "^From:[ \t]+\\(.*\\)$" nil t)
 	(let ((fromstring (buffer-substring (match-beginning 1) (match-end 1))))
 	  (cond
 
@@ -2027,7 +2027,7 @@ EndDSCPage\n"))
 (defun ps-info-file ()
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward "File:[ \t]+\\([^, \t\n]*\\)")
+    (if (re-search-forward "File:[ \t]+\\([^, \t\n]*\\)" nil t)
 	(buffer-substring (match-beginning 1) (match-end 1))
       "File ???")))
 
@@ -2036,7 +2036,7 @@ EndDSCPage\n"))
 (defun ps-info-node ()
   (save-excursion
     (goto-char (point-min))
-    (if (re-search-forward "Node:[ \t]+\\([^,\t\n]*\\)")
+    (if (re-search-forward "Node:[ \t]+\\([^,\t\n]*\\)" nil t)
 	(buffer-substring (match-beginning 1) (match-end 1))
       "Node ???")))
 
