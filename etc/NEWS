@@ -89,7 +89,8 @@ in case it has been renamed.
 
 Calc is an advanced desk calculator and mathematical tool written in
 Emacs Lisp.  Its documentation is in a separate manual; within Emacs,
-type "C-h i m calc RET" to read that manual.
+type "C-h i m calc RET" to read that manual.  A reference card is
+available in `etc/calccard.tex' and `etc/calccard.ps'.
 
 *** The ruler-mode.el library provides a minor mode for displaying an
 "active" ruler in the header line.  You can use the mouse to visually
