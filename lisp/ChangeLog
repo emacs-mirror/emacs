@@ -1,3 +1,8 @@
+2002-08-07  Richard M. Stallman  <rms@gnu.org>
+
+	* warnings.el (warning-prefix-function, warning-series) 
+	(warning-fill-prefix, warning-group-format): Add autoload cookies.
+
 2002-08-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (select-safe-coding-system): Call

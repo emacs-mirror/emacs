@@ -1,3 +1,12 @@
+2002-08-07  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (mark_object): Detect long lists for debugging.
+	(mark_object_loop_halt): New variable.
+
+	* s/hpux10.h (C_SWITCH_SYSTEM): #undef it.
+
+	* data.c (Fmake_variable_frame_local): Doc fix.
+
 2002-08-01  David Ponce  <david@dponce.com>
 
 	* w32menu.c (local_heap, local_alloc, local_free): New macros.
