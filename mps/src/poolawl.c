@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.70) $
+ * $HopeName: MMsrc!poolawl.c(trunk.71) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  *
@@ -44,7 +44,7 @@
 #include "chain.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.70) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.71) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -842,7 +842,7 @@ static Res awlScanObject(Arena arena, ScanState ss,
   Res res;
   Bool dependent;       /* is there a dependent object? */
   Addr dependentObject; /* base address of dependent object */
-  Seg dependentSeg;     /* segment of dependent object */
+  Seg dependentSeg = NULL; /* segment of dependent object */
 
   AVERT(Arena, arena);
   AVERT(ScanState, ss);
