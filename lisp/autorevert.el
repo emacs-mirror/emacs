@@ -1,6 +1,6 @@
 ;;; autorevert --- revert buffers when files on disk change
 
-;; Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: convenience
@@ -161,16 +161,6 @@ would only waste precious space."
 
 When non-nil, both file buffers and buffers with a custom
 `revert-buffer-function' are reverted by Global Auto-Revert Mode."
-  :group 'auto-revert
-  :type 'boolean)
-
-(defcustom global-auto-revert-non-file-buffers nil
-  "When nil only file buffers are reverted by Global Auto-Revert Mode.
-
-When non-nil, both file buffers and buffers with a custom
-`revert-buffer-function' are reverted by Global Auto-Revert Mode.
-
-Use this option with care since it could lead to excessive reverts."
   :group 'auto-revert
   :type 'boolean)
 
