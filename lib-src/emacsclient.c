@@ -380,7 +380,8 @@ main (argc, argv)
 	 /* `stat' failed */
 	 if (errno == ENOENT)
 	   fprintf (stderr,
-		    "%s: can't find socket; have you started the server?\n",
+		    "%s: can't find socket; have you started the server?\n\
+To start the server in Emacs, type \"M-x server-start\".\n",
 		    argv[0]);
 	 else
 	   fprintf (stderr, "%s: can't stat %s: %s\n",
