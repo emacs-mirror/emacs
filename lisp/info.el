@@ -330,6 +330,26 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	       (save-buffers-kill-emacs)))
     (info)))
 
+;; See if the the accessible portion of the buffer begins with a node
+;; delimiter, and the node header line which follows matches REGEXP.
+;; Typically, this test will be followed by a loop that examines the
+;; rest of the buffer with (search-forward "\n\^_"), and it's a pity
+;; to have the overhead of this special test inside the loop.
+
+;; This function changes match-data, but supposedly the caller might
+;; want to use the results of re-search-backward.
+
+;; The return value is the value of point at the beginning of matching
+;; REGERXP, if the function succeeds, nil otherwise.
+(defun Info-node-at-bob-matching (regexp)
+  (and (bobp)			; are we at beginning of buffer?
+       (looking-at "\^_")	; does it begin with node delimiter?
+       (let (beg)
+	 (forward-line 1)
+	 (setq beg (point))
+	 (forward-line 1)	; does the line after delimiter match REGEXP?
+	 (re-search-backward regexp beg t))))
+
 ;; Go to an info node specified as separate filename and nodename.
 ;; no-going-back is non-nil if recovering from an error in this function;
 ;; it says do not attempt further (recursive) error recovery.
@@ -501,47 +521,36 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                     ;; Now search from our advised position
                     ;; (or from beg of buffer)
                     ;; to find the actual node.
-                    (catch 'foo
-		      (if (and (eq (point) (point-min))
-			       (looking-at "\^_")
-			       (= (forward-line 1) 0))
-			  (let ((beg (point)))
+		    ;; First, check whether the node is right
+		    ;; where we are, in case the buffer begins
+		    ;; with a node.
+		    (or (Info-node-at-bob-matching regexp)
+			(catch 'foo
+			  (while (search-forward "\n\^_" nil t)
 			    (forward-line 1)
-			    (if (re-search-backward regexp beg t)
-				(progn
-				  (beginning-of-line)
-				  (throw 'foo t)))))
-                      (while (search-forward "\n\^_" nil t)
-                        (forward-line 1)
-                        (let ((beg (point)))
-                          (forward-line 1)
-                          (if (re-search-backward regexp beg t)
-                              (progn
-                                (beginning-of-line)
-                                (throw 'foo t)))))
-                      (error
-                       "No such anchor in tag table or node in tag table or file: %s"
-                       nodename))))
+			    (let ((beg (point)))
+			      (forward-line 1)
+			      (if (re-search-backward regexp beg t)
+				  (progn
+				    (beginning-of-line)
+				    (throw 'foo t)))))
+			  (error
+			   "No such anchor in tag table or node in tag table or file: %s"
+			   nodename)))))
 	      (goto-char (max (point-min) (- guesspos 1000)))
 	      ;; Now search from our advised position (or from beg of buffer)
 	      ;; to find the actual node.
-	      (catch 'foo
-		(if (and (eq (point) (point-min))
-			 (looking-at "\^_")
-			 (= (forward-line 1) 0))
-		    (let ((beg (point)))
+	      ;; First, check whether the node is right where we are, in case
+	      ;; the buffer begins with a node.
+	      (or (Info-node-at-bob-matching regexp)
+		  (catch 'foo
+		    (while (search-forward "\n\^_" nil t)
 		      (forward-line 1)
-		      (if (re-search-backward regexp beg t)
-			  (progn
-			    (beginning-of-line)
-			    (throw 'foo t)))))
-		(while (search-forward "\n\^_" nil t)
-		  (forward-line 1)
-		  (let ((beg (point)))
-		    (forward-line 1)
-		    (if (re-search-backward regexp beg t)
-			(throw 'foo t))))
-		(error "No such node: %s" nodename))))
+		      (let ((beg (point)))
+			(forward-line 1)
+			(if (re-search-backward regexp beg t)
+			    (throw 'foo t))))
+		    (error "No such node: %s" nodename)))))
           (Info-select-node)
 	  (goto-char (point-min))))
     ;; If we did not finish finding the specified node,
@@ -877,7 +886,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   (or Info-current-file-completions
       (let ((compl nil)
 	    ;; Bind this in case the user sets it to nil.
-	    (case-fold-search t))
+	    (case-fold-search t)
+	    (node-regexp "Node: *\\([^,\n]*\\) *[,\n\t]"))
 	(save-excursion
 	  (save-restriction
 	    (if (marker-buffer Info-tag-table-marker)
@@ -892,21 +902,16 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 				compl))))
 	      (widen)
 	      (goto-char (point-min))
-	      (if (and (looking-at "\^_")
-		       (= (forward-line 1) 0))
-		  (let ((beg (point)))
-		    (forward-line 1)
-		    (if (re-search-backward "Node: *\\([^,\n]*\\) *[,\n\t]"
-					    beg t)
-			(setq compl 
-			      (list (buffer-substring (match-beginning 1)
-						      (match-end 1)))))))
+	      ;; If the buffer begins with a node header, process that first.
+	      (if (Info-node-at-bob-matching node-regexp)
+		  (setq compl (list (buffer-substring (match-beginning 1)
+						      (match-end 1)))))
+	      ;; Now for the rest of the nodes.
 	      (while (search-forward "\n\^_" nil t)
 		(forward-line 1)
 		(let ((beg (point)))
 		  (forward-line 1)
-		  (if (re-search-backward "Node: *\\([^,\n]*\\) *[,\n\t]"
-					  beg t)
+		  (if (re-search-backward node-regexp beg t)
 		      (setq compl 
 			    (cons (list (buffer-substring (match-beginning 1)
 							  (match-end 1)))
