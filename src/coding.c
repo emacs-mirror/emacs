@@ -4388,8 +4388,8 @@ code_convert_string (str, coding, encodep, nocopy)
   if (encodep)
     str = make_unibyte_string (buf, len + coding->produced);
   else
-    str = make_multibyte_string (buf, len + coding->produced_char,
-				 len + coding->produced);
+    str = make_string_from_bytes (buf, len + coding->produced_char,
+				  len + coding->produced);
   return str;
 }
 
