@@ -1,3 +1,27 @@
+2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h: Add x_handle_dnd_message, x_check_property_data,
+	x_fill_property_data, x_property_data_to_lisp and check_x_display_info.
+
+	* xterm.c (handle_one_xevent): Call x_handle_dnd_message for
+	ClientMessages.
+
+	* xselect.c: Include termhooks.h and X11/Xproto.h
+	(x_check_property_data, x_fill_property_data)
+	(x_property_data_to_lisp, mouse_position_for_drop)
+	(Fx_get_atom_name, x_handle_dnd_message): New functions for DND support.
+	(Fx_send_client_event): Moved here from xfns.c.
+	(syms_of_xselect): Add Sx_get_atom_name and Sx_send_client_message.
+
+	* xfns.c (x-send-client-message): Moved to xselect.c
+	(Fx_change_window_property): Add optional arguments TYPE, FORMAT and
+	OUTER_P.
+	(Fx_window_property): Add optional arguments TYPE, SOURCE, DELETE_P,
+	VECTOR_RET_P.  Handle AnyPropertyType.  Call x_property_data_to_lisp
+	if vector_ret_p is true.
+	(syms_of_xfns): Sx_send_client_message moved to xselect.c.
+	
+
 2004-02-02  Eli Zaretskii  <eliz@elta.co.il>
 
 	* fileio.c (Fcopy_file): If NEWNAME is a directory, expand the
