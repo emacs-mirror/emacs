@@ -74,7 +74,7 @@ Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
 Lisp_Object Qbuffer_or_string_p;
 Lisp_Object Qboundp, Qfboundp;
-Lisp_Object Qchar_table_p;
+Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 
 Lisp_Object Qcdr;
 Lisp_Object Qad_advice_info, Qad_activate;
@@ -320,6 +320,17 @@ DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0, "T if OBJECT is a 
      Lisp_Object object;
 {
   if (CHAR_TABLE_P (object))
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("vector-or-char-table-p", Fvector_or_char_table_p,
+       Svector_or_char_table_p, 1, 1, 0,
+       "T if OBJECT is a char-table or vector.")
+  (object)
+     Lisp_Object object;
+{
+  if (VECTORP (object) || CHAR_TABLE_P (object))
     return Qt;
   return Qnil;
 }
@@ -2382,6 +2393,7 @@ syms_of_data ()
 #endif /* LISP_FLOAT_TYPE */
 
   Qchar_table_p = intern ("char-table-p");
+  Qvector_or_char_table_p = intern ("vector-or-char-table-p");
 
   Qcdr = intern ("cdr");
 
@@ -2568,6 +2580,7 @@ syms_of_data ()
   staticpro (&Qnumber_or_marker_p);
 #endif /* LISP_FLOAT_TYPE */
   staticpro (&Qchar_table_p);
+  staticpro (&Qvector_or_char_table_p);
 
   staticpro (&Qboundp);
   staticpro (&Qfboundp);
@@ -2627,6 +2640,7 @@ syms_of_data ()
   defsubr (&Sstringp);
   defsubr (&Svectorp);
   defsubr (&Schar_table_p);
+  defsubr (&Svector_or_char_table_p);
   defsubr (&Sbool_vector_p);
   defsubr (&Sarrayp);
   defsubr (&Ssequencep);
