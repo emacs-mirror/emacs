@@ -1,3 +1,10 @@
+2000-05-21  Dave Love  <fx@gnu.org>
+
+	* movemail.c: Include config.h, not ../src/config.h.
+	(Errmsg): Bump length.
+
+	* pop.c (ERROR_MAX): Increase to 160.
+
 2000-05-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (DEFAULT_OUTFILE): Set to `BROWSE'.
@@ -20,7 +27,6 @@
 	(lang_names): Install it.
 	(Texinfo_suffixes): New variable.
 
->>>>>>> 2.24
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (xmalloc, xrealloc): Rewritten.
