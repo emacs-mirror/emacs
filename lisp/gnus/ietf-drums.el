@@ -29,6 +29,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'time-date)
 (require 'mm-util)
 
