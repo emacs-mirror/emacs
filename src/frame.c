@@ -130,6 +130,7 @@ set_menu_bar_lines_1 (window, n)
 {
   struct window *w = XWINDOW (window);
 
+  XSETFASTINT (w->last_modified, 0);
   XSETFASTINT (w->top, XFASTINT (w->top) + n);
   XSETFASTINT (w->height, XFASTINT (w->height) - n);
 
@@ -165,8 +166,13 @@ set_menu_bar_lines (f, value, oldval)
   else
     nlines = 0;
 
-  FRAME_MENU_BAR_LINES (f) = nlines;
-  set_menu_bar_lines_1 (f->root_window, nlines - olines);
+  if (nlines != olines)
+    {
+      windows_or_buffers_changed++;
+      FRAME_WINDOW_SIZES_CHANGED (f) = 1;
+      FRAME_MENU_BAR_LINES (f) = nlines;
+      set_menu_bar_lines_1 (f->root_window, nlines - olines);
+    }
 }
 
 #ifdef MULTI_FRAME
