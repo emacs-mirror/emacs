@@ -262,7 +262,7 @@ static Lisp_Object make_fontset P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
 static void accumulate_script_ranges P_ ((Lisp_Object, Lisp_Object,
 					  Lisp_Object));
-static Lisp_Object find_font_encoding P_ ((char *));
+static Lisp_Object find_font_encoding P_ ((Lisp_Object));
 
 static void set_fontset_font P_ ((Lisp_Object, Lisp_Object));
 
@@ -973,6 +973,7 @@ fs_load_font (f, fontname, charset)
      int charset;
 {
   struct font_info *fontp;
+  Lisp_Object fullname;
 
   if (!fontname)
     /* No way to get fontname.  */
@@ -983,12 +984,13 @@ fs_load_font (f, fontname, charset)
     return fontp;
 
   fontname = fontp->full_name;
+  fullname = build_string (fontp->full_name);
 
   if (charset < 0)
     {
       Lisp_Object charset_symbol;
 
-      charset_symbol = find_font_encoding (fontname);
+      charset_symbol = find_font_encoding (fullname);
       if (CONSP (charset_symbol))
 	charset_symbol = XCAR (charset_symbol);
       charset = XINT (CHARSET_SYMBOL_ID (charset_symbol));
@@ -1001,8 +1003,8 @@ fs_load_font (f, fontname, charset)
     {
       fontp->vertical_centering
 	= (STRINGP (Vvertical_centering_font_regexp)
-	   && (fast_c_string_match_ignore_case
-	       (Vvertical_centering_font_regexp, fontname) >= 0));
+	   && (fast_string_match_ignore_case
+	       (Vvertical_centering_font_regexp, fullname) >= 0));
 
       if (find_ccl_program_func)
 	(*find_ccl_program_func) (fontp);
@@ -1023,7 +1025,7 @@ fs_load_font (f, fontname, charset)
 
 static Lisp_Object
 find_font_encoding (fontname)
-     char *fontname;
+     Lisp_Object fontname;
 {
   Lisp_Object tail, elt;
 
@@ -1032,7 +1034,7 @@ find_font_encoding (fontname)
       elt = XCAR (tail);
       if (CONSP (elt)
 	  && STRINGP (XCAR (elt))
-	  && fast_c_string_match_ignore_case (XCAR (elt), fontname) >= 0
+	  && fast_string_match_ignore_case (XCAR (elt), fontname) >= 0
 	  && (SYMBOLP (XCDR (elt))
 	      ? CHARSETP (XCDR (elt))
 	      : CONSP (XCDR (elt)) && CHARSETP (XCAR (XCDR (elt)))))
@@ -1444,9 +1446,9 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
     }
 
   if (STRINGP (font_spec))
-    encoding = find_font_encoding ((char *) SDATA (font_spec));
+    encoding = find_font_encoding (font_spec);
   else
-    encoding = find_font_encoding ((char *) SDATA (registry));
+    encoding = find_font_encoding (registry);
   if (SYMBOLP (encoding))
     {
       CHECK_CHARSET (encoding);
