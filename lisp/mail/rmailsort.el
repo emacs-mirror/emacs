@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.17 1994/03/12 04:53:41 kwzh Exp kwzh $
+;; Version: $Header: /gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.18 1994/03/23 21:49:16 kwzh Exp kwzh $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -178,7 +178,10 @@ If 1st argument REVERSE is non-nil, sort them in reverse order.
 	(setq quit-flag nil)
 	(buffer-enable-undo)
 	(rmail-set-message-counters)
-	(rmail-show-message current-message)))))
+	(rmail-show-message current-message)
+	(if (rmail-summary-exists)
+	    (rmail-select-summary
+	     (rmail-update-summary)))))))
 
 (defun rmail-fetch-field (msg field)
   "Return the value of the header FIELD of MSG.
