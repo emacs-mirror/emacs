@@ -66,7 +66,6 @@
 
 <ul>
 <li> <code><a href="#MPS_ARCH_AL">MPS_ARCH_AL</a></code> </li>
-<li> <code><a href="#MPS_ARCH_M6">MPS_ARCH_M6</a></code> </li>
 <li> function <code><a href="#mps_fix">mps_fix</a></code> </li>
 <li> macro <code><a href="#MPS_FIX1">MPS_FIX1</a></code> </li>
 <li> macro <code><a href="#MPS_FIX12">MPS_FIX12</a></code> </li>
@@ -77,7 +76,6 @@
 <li> <code><a href="#MPS_RES_PARAM">MPS_RES_PARAM</a></code> </li>
 <li> <code><a href="#MPS_RM_CONST">MPS_RM_CONST</a></code> </li>
 <li> <code><a href="#MPS_RM_PROT">MPS_RM_PROT</a></code> </li>
-<li> <code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code> </li>
 <li> function <code><a href="#mps_sac_alloc">mps_sac_alloc</a></code> </li>
 <li> macro <code><a href="#MPS_SAC_ALLOC_FAST">MPS_SAC_ALLOC_FAST</a></code> </li>
 <li> constant <code><a href="#MPS_SAC_CLASS_LIMIT">MPS_SAC_CLASS_LIMIT</a></code> </li>
@@ -117,9 +115,6 @@
 <li> function <code><a href="#mps_arena_spare_commit_limit">mps_arena_spare_commit_limit</a></code> </li>
 <li> function <code><a href="#mps_arena_spare_commit_limit_set">mps_arena_spare_commit_limit_set</a></code> </li>
 <li> function <code><a href="#mps_arena_spare_committed">mps_arena_spare_committed</a></code> </li>
-<li> function <code><a href="#mps_assert_default">mps_assert_default</a></code> </li>
-<li> function <code><a href="#mps_assert_install">mps_assert_install</a></code> </li>
-<li> type <code><a href="#mps_assert_t">mps_assert_t</a></code> </li>
 <li> function <code><a href="#mps_bool_t">mps_bool_t</a></code> </li>
 <li> function <code><a href="#mps_class_amc">mps_class_amc</a></code> </li>
 <li> function <code><a href="#mps_class_mvff">mps_class_mvff</a></code> </li>
@@ -149,9 +144,6 @@
 <li> function <code><a href="#mps_lib_memcpy">mps_lib_memcpy</a></code> </li>
 <li> function <code><a href="#mps_lib_memset">mps_lib_memset</a></code> </li>
 <li> <code><a href="#mps_lib_telemetry_control">mps_lib_telemetry_control</a></code> </li>
-<li> <code><a href="#mps_message_collection_stats_condemned_size">mps_message_collection_stats_condemned_size</a></code> </li>
-<li> <code><a href="#mps_message_collection_stats_live_size">mps_message_collection_stats_live_size</a></code> </li>
-<li> <code><a href="#mps_message_sollection_stats_not_condemned_size">mps_message_sollection_stats_not_condemned_size</a></code> </li>
 <li> function <code><a href="#mps_message_discard">mps_message_discard</a></code> </li>
 <li> function <code><a href="#mps_message_finalization_ref">mps_message_finalization_ref</a></code> </li>
 <li> function <code><a href="#mps_message_gc_condemned_size">mps_message_gc_condemned_size</a></code> </li>
@@ -162,7 +154,6 @@
 <li> function <code><a href="#mps_message_queue_type">mps_message_queue_type</a></code> </li>
 <li> type <code><a href="#mps_message_t">mps_message_t</a></code> </li>
 <li> function <code><a href="#mps_message_type">mps_message_type</a></code> </li>
-<li> <code><a href="#mps_message_type_collection_stats">mps_message_type_collection_stats</a></code> </li>
 <li> function <code><a href="#mps_message_type_disable">mps_message_type_disable</a></code> </li>
 <li> function <code><a href="#mps_message_type_enable">mps_message_type_enable</a></code> </li>
 <li> function <code><a href="#mps_message_type_finalization">mps_message_type_finalization</a></code> </li>
@@ -193,6 +184,7 @@
 <li> function <code><a href="#mps_telemetry_flush">mps_telemetry_flush</a></code> </li>
 <li> function <code><a href="#mps_telemetry_intern">mps_telemetry_intern</a></code> </li>
 <li> function <code><a href="#mps_telemetry_label">mps_telemetry_label</a></code> </li>
+<li> type <code><a href="#mps_thr_t">mps_thr_t</a></code> </li>
 </ul>
 
 <h3><code><a id="MPS_ARCH_AL" name="MPS_ARCH_AL">MPS_ARCH_AL</a></code></h3>
@@ -274,70 +266,6 @@ typedef struct RegisterFile {
 
 <p>I'm not sure that the user ought to be using these symbols. GavinM
 1997-05-01</p>
-
-
-<h3><code><a id="MPS_ARCH_M6" name="MPS_ARCH_M6">MPS_ARCH_M6</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#MPS_ARCH_M6">MPS_ARCH_M6</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#MPS_ARCH_M6">MPS_ARCH_M6</a></code> is a C
-preprocessor macro that indicates, if defined, that the target
-processor architecture of the compilation is a member of the Motorola
-68000 family. It is defined, if appropriate, by "mpstd.h".</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>None.</p>
-
-
-<h4>Resources</h4>
-
-<p>msptd.h.</p>
-
-
-<h4>Description</h4>
-
-<p>See summary.</p>
-
-
-<h4>Example</h4>
-
-<pre>
-#ifdef MPS_ARCH_M6
-
-typedef struct RegisterFile {
-  unsigned long d[8];
-  unsigned long a[8];
-  unsigned long usp, msp, isp, pc, sr;
-} RegisterFile;
-
-#endif /* MPS_ARCH_M6 */
-</pre>
-
-
-<h4>Error Handling</h4>
-
-<p>Not applicable.</p>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code>MPS_PF_*</code>,
-
-<code>MPS_OS_*</code>,
-
-<code>MPS_BUILD_*</code>,
-
-<code>MPS_ARCH_*</code></p>
 
 
 <h3>function <code><a id="mps_fix" name="mps_fix">mps_fix</a></code></h3>
@@ -1302,9 +1230,7 @@ the MPS.</p>
 href="#mps_root_create_table">mps_root_create_table</a></code>,
 
 <code><a
-href="#mps_root_create_table_masked">mps_root_create_table_masked</a></code>,
-
-<code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code></p>
+href="#mps_root_create_table_masked">mps_root_create_table_masked</a></code>.</p>
 
 
 <h4>Notes</h4>
@@ -1333,97 +1259,6 @@ should think about producing some guidelines on how to use it. - pekka
 <p>There may be problems if the client wants the OS to access the
 root. Lots of OSes can't cope with writing to protected pages. So
 we'll need to document that caveat too. drj 1998-05-20</p>
-
-
-<h3><code><a id="MPS_RM_PROT_INNER" name="MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code> is
-a constant used in root mode arguments to indicate partially
-protectable roots.</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>Root.</p>
-
-
-<h4>Type</h4>
-
-<p>Integral constant.</p>
-
-
-<h4>Resources</h4>
-
-<p>mps.h</p>
-
-
-<h4>Description</h4>
-
-<p><code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code> is
-a preprocessor macro defining a constant that can be OR'ed with other
-<code>MPS_RM_*</code> constants, and passed as the root mode argument
-to certain root creation functions (<code><a
-href="#mps_root_create_fmt">mps_root_create_fmt</a></code>, <code><a
-href="#mps_root_create_table">mps_root_create_table</a></code>,
-<code><a
-href="#mps_root_create_table_masked">mps_root_create_table_masked</a></code>).</p>
-
-<p>Passing <code><a
-href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code> means that the
-MPS may place a hardware write barrier on any pages which are entirely
-covered by the root. Format methods and any scanning function (except
-for the one for this root) may not write data in this root. They may
-read it.</p>
-
-
-<h4>Example</h4>
-
-<pre>
-res = mps_root_create_table(&amp;mmRoot, arena, mps_rank_exact(),
-                            MPS_RM_PROT | MPS_RM_PROT_INNER,
-                            (mps_addr_t)&amp;Objects, rootCOUNT);
-</pre>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code><a href="#mps_root_create_fmt">mps_root_create_fmt</a></code>,
-
-<code><a
-href="#mps_root_create_table">mps_root_create_table</a></code>,
-
-<code><a
-href="#mps_root_create_table_masked">mps_root_create_table_masked</a></code>,
-
-<code><a href="#MPS_RM_PROT">MPS_RM_PROT</a></code></p>
-
-
-<h4>Notes</h4>
-
-<p>To specify <code><a
-href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code>, you must also
-specify <code><a href="#MPS_RM_PROT">MPS_RM_PROT</a></code>. The
-meaning of <code><a href="#MPS_RM_PROT">MPS_RM_PROT</a></code> is
-overridden by <code><a
-href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code>.</p>
-
-
-<h4>Internal Notes</h4>
-
-<p>Future meaning: The MPS may place a hardware read and/or write
-barrier on any pages which are entirely covered by the root. Format
-methods and scanning functions (except for the one for this root) may
-not read or write data in this root.</p>
 
 
 <h3>function <code><a id="mps_sac_alloc" name="mps_sac_alloc">mps_sac_alloc</a></code></h3>
@@ -4530,209 +4365,6 @@ href="#mps_arena_spare_commit_limit">mps_arena_spare_commit_limit</a></code></p>
 <p>None.</p>
 
 
-<h3>function <code><a id="mps_assert_default" name="mps_assert_default">mps_assert_default</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#mps_assert_default">mps_assert_default</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#mps_assert_default">mps_assert_default</a></code> returns a pointer to the default assertion handler.</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>Assertion.</p>
-
-
-<h4>Syntax</h4>
-
-
-<h4>Arguments</h4>
-
-<p>None.</p>
-
-
-<h4>Initial/Default Values</h4>
-
-<p>None.</p>
-
-
-<h4>Returned Values</h4>
-
-<p>A pointer to the default assertion handler.</p>
-
-
-<h4>Resources</h4>
-
-<p>mps.h</p>
-
-
-<h4>Description</h4>
-
-<p><code><a href="#mps_assert_default">mps_assert_default</a></code> returns a pointer to the default assertion handler. It is intended tobe used in conjunction with <code><a href="#mps_assert_install">mps_assert_install</a></code>.</p>
-
-<p>You may also call the default assertion handler directly, in which case the first, second,and third arguments must be non-NULL pointers to zero-terminated strings.</p>
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-<p>Can't fail.</p>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code><a href="#mps_assert_install">mps_assert_install</a></code></p>
-
-<p>"Assertion Protocol"</p>
-
-
-<h4>Notes</h4>
-
-<p>None.</p>
-
-
-<h3>function <code><a id="mps_assert_install" name="mps_assert_install">mps_assert_install</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#mps_assert_install">mps_assert_install</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#mps_assert_install">mps_assert_install</a></code> installs the specified assertion handler as the current assertionhandler.</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>Assertion.</p>
-
-
-<h4>Syntax</h4>
-
-<p><code>mps_assert_t mps_assert_install(void my_assertion_handler);</code></p>
-
-
-<h4>Arguments</h4>
-
-<p>my_assertion_handler the handler that you want to install</p>
-
-
-<h4>Returned Values</h4>
-
-<p>A pointer to the previously installed assertion handler.</p>
-
-
-<h4>Resources</h4>
-
-<p>mps.h</p>
-
-
-<h4>Description</h4>
-
-<p><code><a href="#mps_assert_install">mps_assert_install</a></code> installs the specified assertion handler as the current assertionhandler. It returns a pointer to the previously installed assertion handler. Note that there is oneMPS assertion handler for the entire process (in particular it is <em>not</em> per arena).</p>
-
-
-<h4>Example</h4>
-
-<pre>
-mps_assert_t old_handler;
-
-void my_assertion_handler(const char *cond,
-const char *id,
-const char *file, unsigned int line)
-{
-  fatal_error_dialog("The Memory Pool System detected an inconsistency"
-                     "in file %s at line%u: %s\n", file, line, cond);
-  old_handler(cond, id, file, line);
-  abort();
-  NOTREACHED;
-}
-
-/* ... */
-
-  /* install the handler: */
-  old_handler = mps_assert_install(my_assertion_handler);
-
-  /* ... use the MPS ... */
-
-  /* restore the old handler */
-  (void) mps_assert_install(old_handler);
-</pre>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code><a href="#mps_assert_default">mps_assert_default</a></code></p>
-
-
-<h4>Notes</h4>
-
-<p>None.</p>
-
-
-<h3>type <code><a id="mps_assert_t" name="mps_assert_t">mps_assert_t</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#mps_assert_t">mps_assert_t</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#mps_assert_t">mps_assert_t</a></code> is the type of assertion handlers in the MPS.</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>Assertion.</p>
-
-
-<h4>Syntax</h4>
-
-<p><code>typedef void (*mps_assert_t)(const char *, const char *, const char *, unsigned);
-</code></p>
-
-
-<h4>Resources</h4>
-
-<p>mps.h</p>
-
-
-<h4>Description</h4>
-
-<p><code><a href="#mps_assert_t">mps_assert_t</a></code> is the type of assertion handlers in the MPS.</p>
-
-<p></p>
-
-
-<h4>Example</h4>
-
-
-<h4>See Also</h4>
-
-
-<h4>Notes</h4>
-
-<p>None.</p>
-
-
 <h3>function <code><a id="mps_bool_t" name="mps_bool_t">mps_bool_t</a></code></h3>
 
 
@@ -7203,198 +6835,6 @@ mpsliban.c</p>
 href="#mps_telemetry_control">mps_telemetry_control</a></code></p>
 
 
-<h3><code><a id="mps_message_collection_stats_condemned_size" name="mps_message_collection_stats_condemned_size">mps_message_collection_stats_condemned_size</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#mps_message_collection_stats_condemned_size">mps_message_collection_stats_condemned_size</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#mps_message_collection_stats_condemned_size">mps_message_collection_stats_condemned_size</a></code> returns the "condemned size" property of thespecified message in the specified arena.</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>Message, GC.</p>
-
-
-<h4>Syntax</h4>
-
-<p><code>size_t mps_message_collection_stats_condemned_size(mps_message_t message)</code></p>
-
-
-<h4>Arguments</h4>
-
-<p>message -- a message of a message type that supports this method</p>
-
-
-<h4>Initial/Default Values</h4>
-
-<p> Not applicable.</p>
-
-
-<h4>Returned Values</h4>
-
-<p>An approximate size for the set of objects condemned in the collection that generated themessage.</p>
-
-
-<h4>Resources</h4>
-
-<p>Not applicable.</p>
-
-
-<h4>Description</h4>
-
-<p>Currently, the only type of message that supports this property, is <code><a href="#mps_message_type_collection_stats">mps_message_type_collection_stats</a></code>, which is generated whenever a garbage collection completes. Thismethod returns an approximation to the size of the set of objects that were condemned in thatcollection.</p>
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code>mps_message_*</code></p>
-
-
-<h4>Notes</h4>
-
-
-<h3><code><a id="mps_message_collection_stats_live_size" name="mps_message_collection_stats_live_size">mps_message_collection_stats_live_size</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#mps_message_collection_stats_live_size">mps_message_collection_stats_live_size</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#mps_message_collection_stats_live_size">mps_message_collection_stats_live_size</a></code> returns the "live size" property of the specifiedmessage in the specified arena.</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>Message, GC.</p>
-
-
-<h4>Syntax</h4>
-
-<p><code>size_t mps_message_collection_stats_live_size(mps_message_t message)</code></p>
-
-
-<h4>Arguments</h4>
-
-<p>message -- a message of a message type that supports this method</p>
-
-
-<h4>Initial/Default Values</h4>
-
-<p>Not applicable.</p>
-
-
-<h4>Returned Values</h4>
-
-<p>The total size of the condemned objects that survived the collection that generated themessage.</p>
-
-
-<h4>Resources</h4>
-
-<p>Not applicable.</p>
-
-
-<h4>Description</h4>
-
-<p>Currently, the only type of message that supports this property, is <code><a href="#mps_message_type_collection_stats">mps_message_type_collection_stats</a></code>, which is generated whenever a garbage collection completes. Thismethod returns the size of the set of objects that were condemned in that collection, but survived.</p>
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code>mps_message_*</code></p>
-
-
-<h4>Notes</h4>
-
-
-<h3><code><a id="mps_message_sollection_stats_not_condemned_size" name="mps_message_sollection_stats_not_condemned_size">mps_message_sollection_stats_not_condemned_size</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#mps_message_collection_stats_not_condemned_size">mps_message_collection_stats_not_condemned_size</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#mps_message_collection_stats_not_condemned_size">mps_message_collection_stats_not_condemned_size</a></code> returns the "not condemned size" propertyof the specified message in the specified arena.</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>Message, GC.</p>
-
-
-<h4>Syntax</h4>
-
-<p><code>size_t mps_message_collection_stats_not_condemned_size(mps_message_t message)</code></p>
-
-
-<h4>Arguments</h4>
-
-<p>message -- a message of a message type that supports this method</p>
-
-
-<h4>Initial/Default Values</h4>
-
-<p> Not applicable.</p>
-
-
-<h4>Returned Values</h4>
-
-<p>An approximate size for the set of objects that were in collected pools, but were notcondemned in the collection that generated the message.</p>
-
-
-<h4>Resources</h4>
-
-<p>Not applicable.</p>
-
-
-<h4>Description</h4>
-
-<p>Currently, the only type of message that supports this property, is <code><a href="#mps_message_type_collection_stats">mps_message_type_collection_stats</a></code>, which is generated whenever a garbage collection completes. Thismethod returns an approximation to the size of the set of objects that were in collected pools, butwere not condemned in that collection.</p>
-
-
-<h4>Example</h4>
-
-
-<h4>Error Handling</h4>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code>mps_message_*</code></p>
-
-
-<h4>Notes</h4>
-
-
 <h3>function <code><a id="mps_message_discard" name="mps_message_discard">mps_message_discard</a></code></h3>
 
 
@@ -7669,7 +7109,7 @@ is used to indicate that the client has no further use for the specified message
 
 <h4>Name</h4>
 
-<p><code class="source"> mps_message_gc_not_condemned_size </code></p>
+<p><code><a href="#mps_message_gc_not_condemned_size">mps_message_gc_not_condemned_size</a></code></p>
 
 
 <h4>Summary</h4>
@@ -8033,107 +7473,6 @@ is used to indicate that the client has no further use for the specified message
 <p>
 
 <code>mps_message_*</code></p>
-
-
-<h3><code><a id="mps_message_type_collection_stats" name="mps_message_type_collection_stats">mps_message_type_collection_stats</a></code></h3>
-
-
-<h4>Name</h4>
-
-<p><code><a href="#mps_message_type_collection_stats">mps_message_type_collection_stats</a></code></p>
-
-
-<h4>Summary</h4>
-
-<p><code><a href="#mps_message_type_collection_stats">mps_message_type_collection_stats</a></code> returns the type of garbage collection statistic messages.</p>
-
-
-<h4>Associated Protocols</h4>
-
-<p>Message, gc.</p>
-
-
-<h4>Syntax</h4>
-
-<p><code>mps_message_type_t mps_message_type_collection_stats() </code></p>
-
-
-<h4>Arguments</h4>
-
-
-<h4>Initial/Default Values</h4>
-
-<p>Not applicable.</p>
-
-
-<h4>Returned Values</h4>
-
-<p>The type of garbage collection statistic messages.</p>
-
-
-<h4>Resources</h4>
-
-<p>Not applicable.</p>
-
-
-<h4>Description</h4>
-
-<p><code><a href="#mps_message_type_collection_stats">mps_message_type_collection_stats</a></code> returns the type of garbage collection statisticmessages. Garbage collection statistic messages are used by the MPS to give the client informationabout garbage collections that have occurred. Such information may be useful in analysing theclient's memory usage over time.</p>
-
-<p>The access methods specific to a message of this type are:</p>
-
-<ul>
-
-  <li><p><code><a href="#mps_message_collection_stats_live_size">mps_message_collection_stats_live_size</a></code></p></li>
-
-  <li><p><code><a href="#mps_message_collection_stats_condemned_size">mps_message_collection_stats_condemned_size</a></code></p></li>
-
-  <li><p><code><a href="#mps_message_collection_stats_not_condemned_size">mps_message_collection_stats_not_condemned_size</a></code></p></li>
-
-</ul>
-
-
-<h4>Example</h4>
-
-<pre>
-{
-  mps_message_type_t type;
-
-  if(mps_message_queue_type(&amp;type, arena)) {
-    if(type == mps_message_type_collection_stats()) {
-      size_t live, condemned, not_condemned;
-      mps_message_t message;
-      mps_bool_t got_message;
-      got_message = mps_message_get(&amp;message, arena, type);
-      assert(got_message);
-      live = mps_message_collection_stats_live_size(message);
-      condemned = mps_message_collection_stats_condemned_size(message);
-      not_condemned = mps_message_collection_stats_not_condemned_size(message);
-      mps_message_discard(arena, message);
-      process_collection_stats(live, condemned, not_condemned);
-    } else {
-      unknown_message_type();
-    }
-  }
-}
-</pre>
-
-
-<h4>Error Handling</h4>
-
-<p>Cannot fail.</p>
-
-
-<h4>See Also</h4>
-
-<p>
-
-<code>mps_message_*</code>.</p>
-
-<p>"Message Protocol", "GC Protocol"</p>
-
-
-<h4>Notes</h4>
 
 
 <h3>function <code><a id="mps_message_type_disable" name="mps_message_type_disable">mps_message_type_disable</a></code></h3>
@@ -8524,14 +7863,13 @@ is used to indicate that the client has no further use for the specified message
 
 <h4>Error Handling</h4>
 
-<p>If a corrupted fencepost is found, an assert will fire. You can install an assert handlerusing <code><a href="#mps_assert_install">mps_assert_install</a></code>, but you'll probably want to look at the problem with adebugger instead.</p>
+<p>If a corrupted fencepost is found, an assert will fire. You will
+probably want to look at the problem with a debugger.</p>
 
 
 <h4>See Also</h4>
 
 <p>
-
-<code><a href="#mps_assert_install">mps_assert_install</a></code>,
 
 <code>mps_class_*_debug</code></p>
 
@@ -8541,9 +7879,7 @@ is used to indicate that the client has no further use for the specified message
 
 <h4>Name</h4>
 
-<p>
-  <code><a href="#mps_pool_debug_option_s">mps_pool_debug_option_s</a></code>
-</p>
+<p><code><a href="#mps_pool_debug_option_s">mps_pool_debug_option_s</a></code></p>
 
 
 <h4>Summary</h4>
@@ -9196,8 +8532,6 @@ href="#mps_root_create_table">mps_root_create_table</a></code>,
 
 <code><a href="#MPS_RM_PROT">MPS_RM_PROT</a></code>,
 
-<code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code>,
-
 <code><a href="#MPS_RM_CONST">MPS_RM_CONST</a></code></p>
 
 
@@ -9404,8 +8738,6 @@ href="#mps_root_create_table_masked">mps_root_create_table_masked</a></code>,
 
 <code><a href="#MPS_RM_PROT">MPS_RM_PROT</a></code>,
 
-<code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code>,
-
 <code><a href="#MPS_RM_CONST">MPS_RM_CONST</a></code></p>
 
 
@@ -9506,8 +8838,6 @@ int main(void)
 href="#mps_root_create_table">mps_root_create_table</a></code>,
 
 <code><a href="#MPS_RM_PROT">MPS_RM_PROT</a></code>,
-
-<code><a href="#MPS_RM_PROT_INNER">MPS_RM_PROT_INNER</a></code>,
 
 <code><a href="#MPS_RM_CONST">MPS_RM_CONST</a></code></p>
 
@@ -10442,6 +9772,8 @@ href="#mps_telemetry_control">mps_telemetry_control</a></code>,
 <code><a href="#mps_thr_t">mps_thr_t</a></code></p>
 
 
+<h3>type <code><a id="mps_thr_t" name="mps_thr_t">mps_thr_t</a></code></h3>
+
 <h4>Name</h4>
 
 <p><code><a href="#mps_thr_t">mps_thr_t</a></code></p>
@@ -10547,6 +9879,16 @@ href="#mps_stack_scan_ambig">mps_stack_scan_ambig</a></code></p>
   <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
 
   <td>Quite a bit of proof-reading, to insert missing spaces.  Also reformatted for easier editing, including the "See Also" sections.</td>
+
+</tr>
+
+<tr valign="top">
+
+  <td>2002-06-21</td>
+
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
+
+  <td>Removed obsolete symbols.</td>
 
 </tr>
 
