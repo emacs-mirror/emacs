@@ -127,7 +127,6 @@ set_case_table (table, standard)
      int standard;
 {
   Lisp_Object up, canon, eqv;
-  Lisp_Object indices[3];
 
   check_case_table (table);
 
