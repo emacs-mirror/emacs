@@ -1,6 +1,17 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Emacs hangs when changing the default font
+
+This has been reported for fvwm 2.2.5 and the window manager of KDE
+2.1.  The reason for the hang is that Xt waits indefinitely for a
+ConfigureNotify event from the window manager.  A workaround is to add
+something like
+
+emacs.waitForWM: false
+
+to your X resources.
+
 * Underlines appear at the wrong position.
 
 This is caused by fonts having a wrong UNDERLINE_POSITION property.

@@ -1,3 +1,16 @@
+2001-06-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (handle_invisible_prop): Deal with overlay strings at
+	the start of invisible text.
+	(setup_for_ellipsis): New function.
+	(next_overlay_string): After all overlay strings have been
+	processed, display an ellipsis if necessary.
+	(load_overlay_strings, get_overlay_strings): Add parameter CHARPOS.
+	(push_it): Initialize display_ellipsis_p on the iterator's stack.
+
+	* dispextern.h (struct iterator_stack_entry): Add member
+	display_ellipsis_p.
+
 2001-06-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* widget.c (EmacsFrameSetCharSize): Set XtNwaitForWm depending
