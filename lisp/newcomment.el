@@ -251,8 +251,10 @@ this function before any other, so the rest of the code can assume that
 the variables are properly set."
   (unless (and (not comment-start) noerror)
     (unless comment-start
-      (set (make-local-variable 'comment-start)
-	   (read-string "No comment syntax is defined.  Use: ")))
+      (let ((cs (read-string "No comment syntax is defined.  Use: ")))
+	(if (zerop (length cs))
+	    (error "No comment syntax defined")
+	  (set (make-local-variable 'comment-start) cs))))
     ;; comment-use-syntax
     (when (eq comment-use-syntax 'undecided)
       (set (make-local-variable 'comment-use-syntax)
