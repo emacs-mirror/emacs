@@ -310,7 +310,10 @@ are used."
 	  (set-buffer existing-buffer))
       ;; We must read/write the file without any code conversion.
       (let ((coding-system-for-read 'no-conversion))
-	(set-buffer (find-file-noselect generated-autoload-file)))
+	(set-buffer (find-file-noselect
+		     (expand-file-name generated-autoload-file
+				       (expand-file-name "lisp"
+							 source-directory)))))
       (save-excursion
 	(save-restriction
 	  (widen)
