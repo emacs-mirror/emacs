@@ -146,8 +146,10 @@ make_frame (mini_p)
   f->current_glyphs = 0;
   f->desired_glyphs = 0;
   f->visible = 0;
+  f->async_visible = 0;
   f->display.nothing = 0;
   f->iconified = 0;
+  f->async_iconified = 0;
   f->wants_modeline = 1;
   f->auto_raise = 0;
   f->auto_lower = 0;
