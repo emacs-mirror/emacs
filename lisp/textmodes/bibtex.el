@@ -26,21 +26,17 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; TODO:
-;;  Distribute texinfo file.
-;;  A better concept for intermixing quote and brace delimiters is
-;;  needed.
-
-;;; PURPOSE:
+;;; Commentary:
 ;;  Major mode for editing and validating BibTeX files.
 
-
-;;; USAGE:
+;;  Usage:
 ;;  See documentation for function bibtex-mode (or type "\M-x describe-mode"
 ;;  when you are in bibtex-mode).
 
+;;  Todo:
+;;  Distribute texinfo file.
 
-;;; KNOWN BUGS:
+;;  Known Bugs:
 ;;   1. using regular expressions to match the entire BibTeX entry dies
 ;;      on long entries (e.g. those containing abstracts) since
 ;;      the length of regular expression matches is fairly limited.
@@ -48,10 +44,11 @@
 ;;      error message "Can't find enclosing Bibtex field" instead of
 ;;      moving to the empty string. [reported by gernot@cs.unsw.oz.au]
 
-;;; (current keeper: schoef@informatik.uni-oldenburg.de
-;;;  previous: alarson@src.honeywell.com)
-
-;;; USER OPTIONS:
+;; (current keeper: schoef@informatik.uni-oldenburg.de
+;;  previous: alarson@src.honeywell.com)
+
+;;; Code:
+;; User Options:
 
 (defvar bibtex-field-left-delimiter "{"
   "*Set this to { or \" according to your personal preferences.
@@ -402,7 +399,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 
 
 
-;;; SYNTAX TABLE, KEYBINDINGS and BIBTEX-ENTRY-LIST
+;; Syntax Table, Keybindings and BibTeX Entry List
 (defvar bibtex-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; [alarson:19920214.1004CST] make double quote a string quote
@@ -522,7 +519,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 
 
 
-;;; INTERNAL VARIABLES
+;; Internal Variables
 
 (defvar bibtex-pop-previous-search-point nil)
 ;; Next point where bibtex-pop-previous starts looking for a similar
@@ -538,7 +535,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 (make-variable-buffer-local 'bibtex-completion-candidates)
 
 
-;;; FUNCTIONS to parse the BibTeX entries
+;; Functions to Parse the BibTeX Entries
 
 (defun bibtex-cfield (name text)
   ;; Create a regexp for a BibTeX field of name NAME and text TEXT.
@@ -650,7 +647,7 @@ See the documentation of function bibtex-generate-autokey for further detail.")
 
 
 
-;;; HELPER FUNCTIONS
+;; Helper Functions
 
 (defun assoc-ignore-case (string alist)
   ;; Return non-nil if STRING is `equal' to the car of an element of
@@ -718,11 +715,12 @@ See the documentation of function bibtex-generate-autokey for further detail.")
   (while (re-search-forward "^@[^{]*{[ \t]*\\([^, ]*\\)" nil t)
     (if (and bibtex-sort-ignore-string-entries
 	     (string-equal "@string{"
-                           (downcase (buffer-substring
+                           (downcase (buffer-substring-no-properties
                                       (match-beginning 0)
                                       (match-beginning 1)))))
 	nil
-      (funcall fun (buffer-substring (match-beginning 1) (match-end 1))))))
+      (funcall fun (buffer-substring-no-properties
+                    (match-beginning 1) (match-end 1))))))
 
 (defun bibtex-flash-head ()
   ;; Flash at BibTeX reference head before point, if exists.
@@ -951,7 +949,7 @@ The generation algorithm works as follows:
                               (bibtex-find-text nil)
                               (point))))
                   (bibtex-autokey-change
-                   (buffer-substring start end)
+                   (buffer-substring-no-properties start end)
                    bibtex-autokey-name-change-strings))
               "")))
          (namelist
@@ -999,7 +997,8 @@ The generation algorithm works as follows:
             (goto-char min)
             (if (search-forward-regexp
                  "^[ \t]*year[ \t]*=[ \t]*\\([0-9]*\\)" max t)
-                (buffer-substring (match-beginning 1) (match-end 1))
+                (buffer-substring-no-properties
+                 (match-beginning 1) (match-end 1))
               "")))
          (yearpart
           (if (equal yearfield "")
@@ -1022,7 +1021,7 @@ The generation algorithm works as follows:
                                      (bibtex-find-text nil)
                                      (point))))
                          (bibtex-autokey-change
-                          (buffer-substring start end)
+                          (buffer-substring-no-properties start end)
                           bibtex-autokey-titleword-change-strings))
                      "")))
                 case-fold-search
@@ -1115,7 +1114,7 @@ The generation algorithm works as follows:
 
 
 
-;;; INTERACTIVE FUNCTIONS:
+;; Interactive Functions:
 
 ;;;###autoload
 (defun bibtex-mode () 
@@ -1233,7 +1232,7 @@ non-nil."
                  (append
                   compl
                   (list
-                   (list (buffer-substring
+                   (list (buffer-substring-no-properties
                           (match-beginning bibtex-name-in-string)
                           (match-end bibtex-name-in-string)))))))
               (kill-buffer bufname)
@@ -1283,9 +1282,9 @@ non-nil."
                      "\\(^@[a-z]+[ \t\n]*[{(][ \t\n]*\\([^ ,\t\n]+\\)[ \t\n]*,\\)\\|\\(^[ \t\n]*crossref[ \t\n]*=[ \t\n]*[{\"]\\([^ ,\t\n]*\\)[}\"],$\\)"
                      nil t)
                   (if (match-beginning 2)
-                      (setq label (buffer-substring 
+                      (setq label (buffer-substring-no-properties 
                                    (match-beginning 2) (match-end 2)))
-                    (setq label (buffer-substring
+                    (setq label (buffer-substring-no-properties
                                  (match-beginning 4) (match-end 4))))
                   (if (not (assoc label labels))
                       (setq labels
@@ -1331,7 +1330,7 @@ non-nil."
              "^[ \t]*\\([A-Za-z]+\\)[ \t\n]*=" nil t)
             (let ((mb (match-beginning 1))
                   (me (match-end 1)))
-              (buffer-substring
+              (buffer-substring-no-properties
                (if (looking-at "^[ \t]*OPT")
                    (+ 3 mb)
                  mb)
@@ -1340,7 +1339,8 @@ non-nil."
           (progn
             (re-search-backward
              "^@\\([A-Za-z]+\\)[ \t\n]*[{(][^, \t\n]*[ \t\n]*," nil t)
-            (buffer-substring (match-beginning 1) (match-end 1))))
+            (buffer-substring-no-properties
+             (match-beginning 1) (match-end 1))))
          (entry-list
           (assoc-ignore-case reference-type
                                bibtex-entry-field-alist))
@@ -1374,7 +1374,11 @@ non-nil."
 (defun bibtex-make-field (e-t)
   "Makes a field named E-T in current BibTeX entry."
   (interactive "sBibTeX entry type: ")
-  (let ((name  (elt e-t 0)))
+  (let ((name (if (consp e-t)
+                  (elt e-t 0)
+                e-t)))
+    (bibtex-find-text nil)
+    (forward-char 1)
     (insert ",\n")
     (indent-to-column bibtex-name-alignment)
     (insert name " = ")
@@ -1491,7 +1495,7 @@ Bugs:
                  (string-equal
                   "@string"
                   (downcase
-                   (buffer-substring
+                   (buffer-substring-no-properties
                     (match-beginning 1)
                     (match-end 1))))))
             nil))
@@ -1503,18 +1507,20 @@ Bugs:
       (lambda ()
         (search-forward ","))))))
   
-(defun bibtex-find-entry-location (entry-name &optional maybedup)
+(defun bibtex-find-entry-location (entry-name &optional ignore-errors)
   "Looking for place to put the BibTeX entry named ENTRY-NAME.
 Searches from beginning of buffer. Buffer is assumed to be in sorted
 order, without duplicates (see \\[bibtex-sort-entries]), if it is not,
-an error will be signalled. If optional argument MAYBEDUP is non-nil
-no error/warning messages about ENTRY-NAME being a (potential)
-duplicate of an existing entry will be emitted. This function returns
-`nil' if ENTRY-NAME is a duplicate of an existing entry and t in all
-other cases."
+an error will be signalled. However, if optional argument
+IGNORE-ERRORS is non-nil, no error messages about duplicate entries or
+sort order violences are signalled, but the error handling is assumed
+to be made in the calling function. Nil is returned, if any error
+occured during search for location of the new entry, and t in all
+other cases. If an error occured, point is not moved."
   (interactive "sBibtex entry key: ")
-  (let ((nodup t)
+  (let ((noerr t)
         (previous nil)
+        (pnt (point))
 	point)
     (beginning-of-first-bibtex-entry)
     (or
@@ -1523,9 +1529,9 @@ other cases."
         (function
          (lambda (current)
            (cond ((string-equal entry-name current)
-                  (setq nodup nil)
+                  (setq noerr nil)
                   (bibtex-beginning-of-entry)
-                  (if maybedup
+                  (if ignore-errors
                       (throw 'done t)
                     (error "Entry duplicates existing!")))
                  ((or (null previous)
@@ -1545,7 +1551,7 @@ other cases."
                           (if (and
                                (integerp idx)
                                (zerop idx)
-                               (not maybedup)
+;;                               (not ignore-errors)
                                (not (equal entry-name "")))
                               (progn
                                 (message
@@ -1554,10 +1560,19 @@ other cases."
                                 (ding t))))
                         (throw 'done t))))
                  ((string-equal previous current)
-                  (error "Duplicate here with previous!"))
-                 (t (error "Entries out of order here!")))))))
+                  (setq noerr nil)
+                  (if ignore-errors
+                      (throw 'done t)
+                    (error "Duplicate here with previous!")))
+                 (t
+                  (setq noerr nil)
+                  (if ignore-errors
+                      (throw 'done t)
+                    (error "Entries out of order here!"))))))))
      (goto-char (point-max)))
-    nodup))
+    (if (not noerr)
+        (goto-char pnt))
+    noerr))
 
 (defun bibtex-validate-buffer ()
   "Validate if the current BibTeX buffer is syntactically correct.
@@ -1693,10 +1708,10 @@ intermixed with \\[bibtex-pop-next] (bibtex-pop-next)."
       ; construct regexp for previous field with same name as this one
       (let ((matching-entry
 	     (bibtex-cfield
-	      (buffer-substring (if (looking-at "OPT")
-				    (+ (point) (length "OPT"))
-				  (point))
-				stop-name)
+	      (buffer-substring-no-properties (if (looking-at "OPT")
+                                                  (+ (point) (length "OPT"))
+                                                (point))
+                                              stop-name)
 	      bibtex-field-text)))
 	; if executed several times in a row, start each search where the
 	; last one finished
@@ -1713,8 +1728,9 @@ intermixed with \\[bibtex-pop-next] (bibtex-pop-next)."
 	(cond
 	 ((re-search-backward matching-entry (point-min) t arg)
 	  (setq new-text
-		(buffer-substring (match-beginning bibtex-text-in-cfield)
-				  (match-end bibtex-text-in-cfield)))
+		(buffer-substring-no-properties
+                 (match-beginning bibtex-text-in-cfield)
+                 (match-end bibtex-text-in-cfield)))
           ;; change delimiters, if any changes needed
           (cond
            ((and
@@ -1768,10 +1784,10 @@ intermixed with \\[bibtex-pop-previous] (bibtex-pop-previous)."
       ; ignoring possible OPT's
       (let ((matching-entry
 	     (bibtex-cfield
-	      (buffer-substring (if (looking-at "OPT")
-				    (+ (point) (length "OPT"))
-				  (point))
-				stop-name)
+	      (buffer-substring-no-properties (if (looking-at "OPT")
+                                                  (+ (point) (length "OPT"))
+                                                (point))
+                                              stop-name)
 	      bibtex-field-text)))
 	
 	; if executed several times in a row, start each search where the
@@ -1790,8 +1806,9 @@ intermixed with \\[bibtex-pop-previous] (bibtex-pop-previous)."
 	(cond
 	 ((re-search-forward matching-entry (point-max) t arg)
 	  (setq new-text
-		(buffer-substring (match-beginning bibtex-text-in-cfield)
-				  (match-end bibtex-text-in-cfield)))
+		(buffer-substring-no-properties
+                 (match-beginning bibtex-text-in-cfield)
+                 (match-end bibtex-text-in-cfield)))
           ;; change delimiters, if any changes needed
           (cond
            ((and
@@ -1882,11 +1899,12 @@ given, calculate a new entry label."
                             (not crossref-there)
                             (assoc
                              (downcase
-                              (buffer-substring
+                              (buffer-substring-no-properties
                                (+ (length "OPT") begin-name) end-name))
                              (car (car (cdr
                                         (assoc-ignore-case
-                                         (buffer-substring begin-type end-type)
+                                         (buffer-substring-no-properties
+                                          begin-type end-type)
                                          bibtex-entry-field-alist))))))
                            ;; field is not really optional
                            (progn
@@ -1899,8 +1917,9 @@ given, calculate a new entry label."
                              (forward-char)
                              ;; and loop to go through next test
                              (error "Mandatory field ``%s'' is empty"
-                                    (buffer-substring begin-name
-                                                      end-name)))
+                                    (buffer-substring-no-properties
+                                     begin-name
+                                     end-name)))
                          ;; field is optional
                          (delete-region begin-field end-field))
                      ;; otherwise: not empty, delete "OPT"
@@ -1932,16 +1951,17 @@ given, calculate a new entry label."
                                        bibtex-field-right-delimiter))
                           ;; if empty quotes, complain
                           (forward-char 1)
-                          (if (not (or (equal (buffer-substring
+                          (if (not (or (equal (buffer-substring-no-properties
                                                begin-name
                                                (+ begin-name 3))
                                               "OPT")
-                                       (equal (buffer-substring
+                                       (equal (buffer-substring-no-properties
                                                begin-name
                                                (+ begin-name 3))
                                               "opt")))
                               (error "Mandatory field ``%s'' is empty"
-                                     (buffer-substring begin-name end-name))))
+                                     (buffer-substring-no-properties
+                                      begin-name end-name))))
                          (t
                           (goto-char end-field)))))))))
     (goto-char start)
@@ -1959,7 +1979,7 @@ given, calculate a new entry label."
                 (bibtex-beginning-of-entry)
                 (if (search-forward-regexp
                      bibtex-reference-head eob t)
-                    (buffer-substring
+                    (buffer-substring-no-properties
                      (match-beginning bibtex-key-in-head)
                      (match-end bibtex-key-in-head))))))
     (if (or
@@ -1988,12 +2008,14 @@ given, calculate a new entry label."
               (kill-region start end)
               (let ((success (bibtex-find-entry-location autokey t)))
                 (yank)
-                (bibtex-beginning-of-entry)
-                (search-forward-regexp bibtex-reference-head)
                 (setq kill-ring (cdr kill-ring))
+                (if success
+                    (bibtex-beginning-of-entry)
+                  (goto-char start))
+                (search-forward-regexp bibtex-reference-head)
                 (if (not success)
                     (error
-                     "Duplicated key (change manually and enter `bibtex-sort-entries')")))))))))
+                     "BibTeX buffer was or has become invalid (call `bibtex-validate-buffer')")))))))))
 
 (defun bibtex-complete-string ()
   "Complete word fragment before point to longest prefix of a defined string.
@@ -2004,7 +2026,7 @@ If point is not after the part of a word, all strings are listed."
                 (re-search-backward "[ \t{\"]")
                 (forward-char 1)
                 (point)))
-         (part-of-word (buffer-substring beg end))
+         (part-of-word (buffer-substring-no-properties beg end))
          (string-list (copy-sequence bibtex-completion-candidates))
          (case-fold-search t)
          (completion (save-excursion
@@ -2019,7 +2041,9 @@ If point is not after the part of a word, all strings are listed."
                              (goto-char (match-beginning 0))
                              (setq string-list
                                    (cons
-                                    (list (buffer-substring pnt (point)))
+                                    (list
+                                     (buffer-substring-no-properties
+                                      pnt (point)))
                                     string-list))
                              (goto-char strt)))
                          (setq string-list
@@ -2118,10 +2142,9 @@ If point is not after the part of a word, all strings are listed."
 
 
 
-;;; MAKE BIBTEX a FEATURE
+;; Make BibTeX a Feature
 
 (provide 'bibtex)
 
 
 ;;; bibtex.el ends here
-
