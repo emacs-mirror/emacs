@@ -65,14 +65,20 @@ same as ENDRECFUN."
 	(setq sort-lists
 	      (if (fboundp 'sortcar)
 		  (sortcar sort-lists
-			   (cond ((numberp (car (car sort-lists)))
+			   (cond ((floatp (car (car sort-lists)))
+				  'f<)
+				 ((numberp (car (car sort-lists)))
 				  '<)
 				 ((consp (car (car sort-lists)))
 				  'buffer-substring-lessp)
 				 (t
 				  'string<)))
 		  (sort sort-lists
-			(cond ((numberp (car (car sort-lists)))
+			(cond ((floatp (car (car sort-lists)))
+			       (function
+				(lambda (a b)
+				  (f< (car a) (car b)))))
+			      ((numberp (car (car sort-lists)))
 			       (function
 				(lambda (a b)
 				  (< (car a) (car b)))))
@@ -221,7 +227,7 @@ REVERSE (non-nil means reverse order), BEG and END (region to sort)."
   "Sort lines in region numerically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.
 Specified field must contain a number in each line of the region.
-With a negative arg, sorts by the -ARG'th field, in decending order.
+With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
 FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
@@ -238,10 +244,30 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 				  (point))))))
 		 nil))
 
+(defun sort-float-fields (field beg end)
+  "Sort lines in region numerically by the ARGth field of each line.
+Fields are separated by whitespace and numbered from 1 up.  Specified field
+must contain a floating point number in each line of the region.  With a
+negative arg, sorts by the ARGth field counted from the right.  Called from a
+program, there are three arguments: FIELD, BEG and END.  BEG and END specify
+region to sort."
+  (interactive "p\nr")
+  (sort-fields-1 field beg end
+		 (function (lambda ()
+			     (sort-skip-fields (1- field))
+			     (string-to-float
+			      (buffer-substring
+			       (point)
+			       (save-excursion
+				 (re-search-forward
+				  "[+-]?[0-9]*\.?[0-9]*\\([eE][+-]?[0-9]+\\)?")
+				 (point))))))
+		 nil))
+
 (defun sort-fields (field beg end)
   "Sort lines in region lexicographically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.
-With a negative arg, sorts by the -ARG'th field, in decending order.
+With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
 FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
@@ -252,28 +278,32 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 		 (function (lambda () (skip-chars-forward "^ \t\n")))))
 
 (defun sort-fields-1 (field beg end startkeyfun endkeyfun)
-  (let ((reverse (< field 0))
-	(tbl (syntax-table)))
-    (setq field (max 1 field (- field)))
+  (let ((tbl (syntax-table)))
+    (if (zerop field) (setq field 1))
     (unwind-protect
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region beg end)
 	    (goto-char (point-min))
 	    (set-syntax-table sort-fields-syntax-table)
-	    (sort-subr reverse
+	    (sort-subr nil
 		       'forward-line 'end-of-line
 		       startkeyfun endkeyfun)))
       (set-syntax-table tbl))))
 
 (defun sort-skip-fields (n)
-  (let ((eol (save-excursion (end-of-line 1) (point))))
-    (forward-word n)
-    (if (> (point) eol)
+  (let ((bol (point))
+	(eol (save-excursion (end-of-line 1) (point))))
+    (if (> n 0) (forward-word n)
+      (end-of-line)
+      (forward-word (1+ n)))
+    (if (or (and (>= (point) eol) (> n 0))
+	    ;; this is marginally wrong; if the first line of the sort
+	    ;; at bob has the wrong number of fields the error won't be
+	    ;; reported until the next short line.
+	    (and (< (point) bol) (< n 0)))
 	(error "Line has too few fields: %s"
-	       (buffer-substring (save-excursion
-				   (beginning-of-line) (point))
-				 eol)))
+	       (buffer-substring bol eol)))
     (skip-chars-forward " \t")))
 
 
@@ -294,6 +324,9 @@ With a negative prefix arg sorts in reverse order.
 For example: to sort lines in the region by the first word on each line
  starting with the letter \"f\",
  RECORD-REGEXP would be \"^.*$\" and KEY would be \"\\=\\<f\\w*\\>\""
+  ;; using negative prefix arg to mean "reverse" is now inconsistent with
+  ;; other sort-.*fields functions but then again this was before, since it
+  ;; didn't use the magnitude of the arg to specify anything.
   (interactive "P\nsRegexp specifying records to sort: 
 sRegexp specifying key within record: \nr")
   (cond ((or (equal key-regexp "") (equal key-regexp "\\&"))
@@ -376,3 +409,34 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	    (sort-subr reverse 'forward-line 'end-of-line
 		       (function (lambda () (move-to-column col-start) nil))
 		       (function (lambda () (move-to-column col-end) nil)))))))))
+
+(defun reverse-region (beg end)
+  "Reverse the order of lines in a region.
+From a program takes two point or marker arguments, BEG and END."
+  (interactive "r")
+  (if (> beg end)
+      (let (mid) (setq mid end end beg beg mid)))
+  (save-excursion
+    ;; put beg at the start of a line and end and the end of one --
+    ;; the largest possible region which fits this criteria
+    (goto-char beg)
+    (or (bolp) (forward-line 1))
+    (setq beg (point))
+    (goto-char end)
+    ;; the test for bolp is for those times when end is on an empty line;
+    ;; it is probably not the case that the line should be included in the
+    ;; reversal; it isn't difficult to add it afterward.
+    (or (and (eolp) (not (bolp))) (progn (forward-line -1) (end-of-line)))
+    (setq end (point-marker))
+    ;; the real work.  this thing cranks through memory on large regions.
+    (let (ll (do t))
+      (while do
+	(goto-char beg)
+	(setq ll (cons (buffer-substring (point) (progn (end-of-line) (point)))
+		       ll))
+	(setq do (/= (point) end))
+	(delete-region beg (if do (1+ (point)) (point))))
+      (while (cdr ll)
+	(insert (car ll) "\n")
+	(setq ll (cdr ll)))
+      (insert (car ll)))))
