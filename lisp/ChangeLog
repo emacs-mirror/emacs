@@ -1,5 +1,7 @@
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* follow.el (follow-avoid-tail-recenter): Doc fix.
+
 	* custom.el (custom-set-variables): Avoid reversing the list
 	of args needlessly.
 
