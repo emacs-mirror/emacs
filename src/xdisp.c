@@ -10169,8 +10169,8 @@ try_window_reusing_current_matrix (w)
    Window redisplay reusing current matrix when buffer has changed
  ************************************************************************/
 
-static struct glyph_row *get_last_unchanged_at_beg_row P_ ((struct window *));
-static struct glyph_row *get_first_unchanged_at_end_row P_ ((struct window *,
+static struct glyph_row *find_last_unchanged_at_beg_row P_ ((struct window *));
+static struct glyph_row *find_first_unchanged_at_end_row P_ ((struct window *,
 							     int *, int *));
 static struct glyph_row *
 find_last_row_displaying_text P_ ((struct glyph_matrix *, struct it *,
@@ -10220,7 +10220,7 @@ find_last_row_displaying_text (matrix, it, start)
    was built.  */
 
 static struct glyph_row *
-get_last_unchanged_at_beg_row (w)
+find_last_unchanged_at_beg_row (w)
      struct window *w;
 {
   int first_changed_pos = BEG + BEG_UNCHANGED;
@@ -10266,7 +10266,7 @@ get_last_unchanged_at_beg_row (w)
    exists, i.e. all rows are affected by changes.  */
    
 static struct glyph_row *
-get_first_unchanged_at_end_row (w, delta, delta_bytes)
+find_first_unchanged_at_end_row (w, delta, delta_bytes)
      struct window *w;
      int *delta, *delta_bytes;
 {
@@ -10275,10 +10275,14 @@ get_first_unchanged_at_end_row (w, delta, delta_bytes)
 
   *delta = *delta_bytes = 0;
 
-  /* A value of window_end_pos >= end_unchanged means that the window
+  /* Display must not have been paused, otherwise the current matrix
+     is not up to date.  */
+  if (NILP (w->window_end_valid))
+    abort ();
+  
+  /* A value of window_end_pos >= END_UNCHANGED means that the window
      end is in the range of changed text.  If so, there is no
      unchanged row at the end of W's current matrix.  */
-  xassert (!NILP (w->window_end_valid));
   if (XFASTINT (w->window_end_pos) >= END_UNCHANGED)
     return NULL;
 
@@ -10313,18 +10317,19 @@ get_first_unchanged_at_end_row (w, delta, delta_bytes)
       
       /* Search backward from ROW for a row displaying a line that
 	 starts at a minimum position >= last_unchanged_pos_old.  */
-      while (row >= first_text_row)
+      for (; row > first_text_row; --row)
 	{
-	  xassert (row->enabled_p);
-	  xassert (MATRIX_ROW_DISPLAYS_TEXT_P (row));
+	  if (!row->enabled_p || !MATRIX_ROW_DISPLAYS_TEXT_P (row))
+	    abort ();
 	  
 	  if (MATRIX_ROW_START_CHARPOS (row) >= last_unchanged_pos_old)
 	    row_found = row;
-	  --row;
 	}
     }
 
-  xassert (!row_found || MATRIX_ROW_DISPLAYS_TEXT_P (row_found));
+  if (row_found && !MATRIX_ROW_DISPLAYS_TEXT_P (row_found))
+    abort ();
+  
   return row_found;
 }
 
@@ -10564,7 +10569,7 @@ try_window_id (w)
      last row in W's current matrix not affected by changes at the
      start of current_buffer.  Value is null if changes start in the
      first line of window.  */
-  last_unchanged_at_beg_row = get_last_unchanged_at_beg_row (w);
+  last_unchanged_at_beg_row = find_last_unchanged_at_beg_row (w);
   if (last_unchanged_at_beg_row)
     {
       init_to_row_end (&it, w, last_unchanged_at_beg_row);
@@ -10595,7 +10600,7 @@ try_window_id (w)
      first_unchanged_at_end_row have to be adjusted due to text
      changes.  */
   first_unchanged_at_end_row
-    = get_first_unchanged_at_end_row (w, &delta, &delta_bytes);
+    = find_first_unchanged_at_end_row (w, &delta, &delta_bytes);
   IF_DEBUG (debug_delta = delta);
   IF_DEBUG (debug_delta_bytes = delta_bytes);
   
