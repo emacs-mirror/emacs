@@ -1,5 +1,7 @@
 2002-04-27  Richard M. Stallman  <rms@gnu.org>
 
+	* info.el (Info-header-line): Mark it as risky-local-variable.
+
 	* subr.el (insert-for-yank): Replace `category' property
 	with whatever properties it stands for.
 
