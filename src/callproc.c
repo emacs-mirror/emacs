@@ -255,7 +255,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       {
 	if (fd[0] >= 0)
 	  close (fd[0]);
-#ifdef USG
+#if defined (USG) && !defined (IRIX)
         setpgrp ();
 #else
         setpgrp (pid, pid);
@@ -519,7 +519,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   close (out);
   close (err);
 
-#ifdef USG
+#if defined (USG) && !defined (IRIX)
   setpgrp ();			/* No arguments but equivalent in this case */
 #else
   setpgrp (pid, pid);

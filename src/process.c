@@ -1265,7 +1265,7 @@ create_process (process, new_argv, current_dir)
 	  ioctl (xforkin, TIOCSCTTY, 0);
 #endif
 #else /* not HAVE_SETSID */
-#ifdef USG
+#if defined (USG) && !defined (IRIX)
 	/* It's very important to call setpgrp() here and no time
 	   afterwards.  Otherwise, we lose our controlling tty which
 	   is set when we open the pty. */
@@ -1282,7 +1282,7 @@ create_process (process, new_argv, current_dir)
 	    int j = open ("/dev/tty", O_RDWR, 0);
 	    ioctl (j, TIOCNOTTY, 0);
 	    close (j);
-#ifndef USG
+#if !defined (USG) || defined (IRIX)
 	    /* In order to get a controlling terminal on some versions
 	       of BSD, it is necessary to put the process in pgrp 0
 	       before it opens the terminal.  */
