@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 1.1 $")
+(defconst byte-compile-version "$Revision: 2.65 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -762,24 +762,31 @@ otherwise pop it")
 
 ;;; compile-time evaluation
 
-(defun byte-compile-eval (x)
+(defun byte-compile-eval (form)
+  "Eval FORM and mark the functions defined therein.
+Each function's symbol gets marked with the `byte-compile-noruntime' property."
   (let ((hist-orig load-history)
 	(hist-nil-orig current-load-list))
-    (prog1 (eval x)
-      (when (and nil (memq 'noruntime byte-compile-warnings))
+    (prog1 (eval form)
+      (when (memq 'noruntime byte-compile-warnings)
 	(let ((hist-new load-history)
 	      (hist-nil-new current-load-list))
-	  (while (not (eq hist-new hist-orig))
-	    (dolist (s (pop hist-new))
-	      (cond
-	       ((symbolp s) (put s 'byte-compile-noruntime t))
-	       ((and (consp s) (eq 'autoload (car s)))
-		(put (cdr s) 'byte-compile-noruntime t)))))
-	  (while (not (eq hist-nil-new hist-nil-orig))
+	  ;; Go through load-history, look for newly loaded files
+	  ;; and mark all the functions defined therein.
+	  (while (and hist-new (not (eq hist-new hist-orig)))
+	    (let ((xs (pop hist-new)))
+	      ;; Make sure the file was not already loaded before.
+	      (unless (assoc (car xs) hist-orig)
+		(dolist (s xs)
+		  (cond
+		   ((symbolp s) (put s 'byte-compile-noruntime t))
+		   ((and (consp s) (eq 'autoload (car s)))
+		    (put (cdr s) 'byte-compile-noruntime t)))))))
+	  ;; Go through current-load-list for the locally defined funs.
+	  (while (and hist-nil-new (not (eq hist-nil-new hist-nil-orig)))
 	    (let ((s (pop hist-nil-new)))
 	      (when (symbolp s)
 		(put s 'byte-compile-noruntime t)))))))))
-
 
 
 ;;; byte compiler messages
