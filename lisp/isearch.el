@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/11/15 16:53:29 $|$Revision: 1.76 $
+;; |$Date: 1994/11/15 16:56:44 $|$Revision: 1.77 $
 
 ;; This file is part of GNU Emacs.
 
@@ -480,8 +480,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	isearch-yank-flag nil
 	isearch-invalid-regexp nil
 	isearch-within-brackets nil
-	;; Use (baud-rate) for now, for sake of other versions.
-	isearch-slow-terminal-mode (and (<= (baud-rate) search-slow-speed)
+	isearch-slow-terminal-mode (and (<= baud-rate search-slow-speed)
 					(> (window-height)
 					   (* 4 search-slow-window-lines)))
 	isearch-other-end nil
@@ -1026,8 +1025,7 @@ and the meta character is unread so that it applies to editing the string."
 		;; Convert the event back into its raw form,
 		;; with the dummy prefix implicit in the mouse event,
 		;; so it will get split up once again.
-		(progn (setq foo key)
-		       (setq unread-command-events
+		(progn (setq unread-command-events
 			     (cdr unread-command-events))
 		       (setq main-event (car unread-command-events))
 		       (setcar (cdr (event-start main-event))
@@ -1392,11 +1390,7 @@ since they have special meaning in a regexp."
 (defvar last-command-event)
 
 (defun isearch-char-to-string (c)
-  (if (integerp c)
-      (make-string 1 c)
-    (if (and (symbolp c) (get c 'ascii-character))
-	(make-string 1 (get c 'ascii-character))
-      (make-string 1 (event-to-character c)))))
+  (make-string 1 c))
 
 (defun isearch-text-char-description (c)
   (if (and (integerp c) (or (< c ?\ ) (= c ?\^?)))
