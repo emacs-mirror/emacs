@@ -72,10 +72,10 @@ Please send improvements and fixes to the maintainer."
   :version "21.1")
 
 (defcustom find-variable-regexp
-  "^\\s-*(def[^uma]\\(\\w\\|\\s_\\)+\\*?\\s-+%s\\(\\s-\\|$\\)"
+  "^\\s-*(def[^umag]\\(\\w\\|\\s_\\)+\\*?\\s-+%s\\(\\s-\\|$\\)"
   "The regexp used by `find-variable' to search for a variable definition.
 It should match right up to the variable name.  The default value
-avoids `defun', `defmacro', `defalias', `defadvice'.
+avoids `defun', `defmacro', `defalias', `defadvice', `defgroup'.
 
 Please send improvements and fixes to the maintainer."
   :type 'regexp
