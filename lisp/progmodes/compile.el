@@ -1088,9 +1088,9 @@ Selects a window with point at SOURCE, with another window displaying ERROR."
 	    (set-window-start w marker))
 	  (setq name
 		(expand-file-name
-		 (read-file-name
-		  (format "Find this error in: (default %s) "
-			  filename) dir filename t)))
+		 (read-file-name (format "Find this error in: (default %s) "
+					 filename)
+				 dir filename t)))
 	  (if (file-directory-p name)
 	      (setq name (concat (file-name-as-directory name) filename)))
 	  (if (file-exists-p name)
