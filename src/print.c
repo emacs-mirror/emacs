@@ -583,7 +583,8 @@ temp_output_buffer_setup (bufname)
   Ferase_buffer ();
   XSETBUFFER (buf, current_buffer);
 
-  call1 (Vrun_hooks, Qtemp_buffer_setup_hook);
+  if (!NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qtemp_buffer_setup_hook);
 
   unbind_to (count, Qnil);
 
