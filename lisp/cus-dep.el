@@ -66,7 +66,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 			  (setq is-autoloaded t)))
 		    (let ((expr (read (current-buffer))))
 		      (condition-case nil
-			  (progn
+			  (let ((custom-dont-initialize t))
 			    (eval expr)
 			    (put (nth 1 expr) 'custom-autoloaded is-autoloaded)
 			    (put (nth 1 expr) 'custom-where name))
