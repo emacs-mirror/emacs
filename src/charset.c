@@ -467,6 +467,11 @@ update_charset_table (charset_id, dimension, chars, width, direction,
     CHARSET_TABLE_ENTRY (charset)
       = Fmake_vector (make_number (CHARSET_MAX_IDX), Qnil);
 
+  if (NILP (long_name))
+    long_name = short_name;
+  if (NILP (description))
+    description = long_name;
+
   /* Get byte length of multibyte form, base leading-code, and
      extended leading-code of the charset.  See the comment under the
      title "GENERAL NOTE on CHARACTER SET (CHARSET)" in charset.h.  */
@@ -1631,7 +1636,7 @@ syms_of_charset ()
 			make_number ('B'),
 			make_number (0),
 			build_string ("ASCII"),
-			build_string ("ASCII"),
+			Qnil,	/* same as above */
 			build_string ("ASCII (ISO646 IRV)"));
   CHARSET_SYMBOL (CHARSET_ASCII) = Qascii;
   Fput (Qascii, Qcharset, CHARSET_TABLE_ENTRY (CHARSET_ASCII));
@@ -1643,8 +1648,8 @@ syms_of_charset ()
 			make_number (-1),
 			make_number (-1),
 			build_string ("8-bit control code (0x80..0x9F)"),
-			build_string ("8-bit control code (0x80..0x9F)"),
-			build_string ("8-bit control code (0x80..0x9F)"));
+			Qnil,	/* same as above */
+			Qnil);	/* same as above */
   CHARSET_SYMBOL (CHARSET_8_BIT_CONTROL) = Qeight_bit_control;
   Fput (Qeight_bit_control, Qcharset,
 	CHARSET_TABLE_ENTRY (CHARSET_8_BIT_CONTROL));
@@ -1655,9 +1660,9 @@ syms_of_charset ()
 			make_number (0),
 			make_number (-1),
 			make_number (-1),
-			build_string ("8-bit graphic char"),
 			build_string ("8-bit graphic char (0xA0..0xFF)"),
-			build_string ("8-bit graphic char (0xA0..0xFF)"));
+			Qnil,	/* same as above */
+			Qnil);	/* same as above */
   CHARSET_SYMBOL (CHARSET_8_BIT_GRAPHIC) = Qeight_bit_graphic;
   Fput (Qeight_bit_graphic, Qcharset,
 	CHARSET_TABLE_ENTRY (CHARSET_8_BIT_GRAPHIC));
