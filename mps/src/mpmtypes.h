@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.47) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.48) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -46,7 +46,7 @@ typedef unsigned RootMode;
 typedef Size Epoch;                     /* design.mps.ld */
 typedef unsigned TraceId;               /* design.mps.tracer */
 typedef unsigned TraceSet;              /* design.mps.tracer */
-typedef unsigned TraceState;		/* design.mps.tracer */
+typedef unsigned TraceState;            /* design.mps.tracer */
 typedef unsigned AccessSet;             /* design.mps.type.access-set */
 typedef unsigned Attr;                  /* design.mps.type.attr */
 typedef unsigned FormatVariety;         
@@ -55,6 +55,7 @@ typedef unsigned Serial;                /* design.mps.type.serial */
 typedef struct RingStruct *Ring;        /* design.mps.ring */
 typedef Word *BT;                       /* design.mps.bt */
 typedef struct BufferStruct *Buffer;    /* design.mps.buffer */
+typedef unsigned BufferMode;            /* design.mps.buffer */
 typedef struct APStruct *AP;            /* design.mps.buffer */
 typedef struct FormatStruct *Format;    /* design.mps.format */
 typedef struct LDStruct *LD;            /* design.mps.ld */
@@ -72,9 +73,9 @@ typedef Arena Space;                    /* until all files have been updated */
 typedef struct VMStruct *VM;            /* impl.c.vm* */
 typedef struct RootStruct *Root;        /* impl.c.root */
 typedef struct ThreadStruct *Thread;    /* impl.c.th* */
-typedef struct ActionStruct *Action;	/* design.mps.action */
+typedef struct ActionStruct *Action;    /* design.mps.action */
 typedef struct MutatorFaultContextStruct
-	*MutatorFaultContext;           /* design.mps.prot */
+        *MutatorFaultContext;           /* design.mps.prot */
 
 
 /* Arena*Method -- see @@@@ */
@@ -88,7 +89,7 @@ typedef Res (*ArenaExtendMethod)(Arena arena, Addr base, Size size);
 typedef Res (*ArenaRetractMethod)(Arena arena, Addr base, Size size);
 typedef Bool (*ArenaIsReservedAddrMethod)(Arena arena, Addr addr);
 typedef Res (*ArenaSegAllocMethod)(Seg *segReturn, SegPref pref,
-				   Size size, Pool pool);
+                                   Size size, Pool pool);
 typedef void (*ArenaSegFreeMethod)(Seg seg);
 typedef Addr (*ArenaSegBaseMethod)(Seg seg);
 typedef Addr (*ArenaSegLimitMethod)(Seg seg);
@@ -130,7 +131,7 @@ typedef void (*PoolBufferEmptyMethod)(Pool pool, Buffer buffer);
 typedef void (*PoolBufferFinishMethod)(Pool pool, Buffer buf);
 typedef Res (*PoolTraceBeginMethod)(Pool pool, Trace trace);
 typedef Res (*PoolAccessMethod)(Pool pool, Seg seg, Addr addr,
-			        AccessSet mode, MutatorFaultContext context);
+                                AccessSet mode, MutatorFaultContext context);
 typedef Res (*PoolWhitenMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolGreyMethod)(Pool pool, Trace trace, Seg seg);
 typedef void (*PoolBlackenMethod)(Pool pool, TraceSet traceSet, Seg seg);
@@ -145,7 +146,7 @@ typedef double (*PoolBenefitMethod)(Pool pool, Action action);
 typedef Res (*PoolActMethod)(Pool pool, Action action);
 typedef void (*PoolWalkMethod)(Pool pool, Seg seg,
                                FormattedObjectsStepMethod f,
-			       void *p, unsigned long s);
+                               void *p, unsigned long s);
 typedef Res (*PoolDescribeMethod)(Pool pool, mps_lib_FILE *stream);
 
 
@@ -197,9 +198,9 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define TraceIdNONE     ((TraceId)-1)   /* design.mps.tracer */
 #define RefSetEMPTY     BS_EMPTY(RefSet)
 #define RefSetUNIV      BS_UNIV(RefSet)
-#define TraceSetEMPTY	BS_EMPTY(TraceSet) /* design.mps.tracer */
-#define RankSetEMPTY	BS_EMPTY(RankSet)
-#define RankSetUNIV	((1uL<<RankMAX)-1)
+#define TraceSetEMPTY   BS_EMPTY(TraceSet) /* design.mps.tracer */
+#define RankSetEMPTY    BS_EMPTY(RankSet)
+#define RankSetUNIV     ((1uL<<RankMAX)-1)
 #define AttrFMT         ((Attr)(1<<0))  /* design.mps.type.attr */
 #define AttrSCAN        ((Attr)(1<<1))
 #define AttrPM_NO_READ  ((Attr)(1<<2))
@@ -224,6 +225,13 @@ typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p,
 #define SegPrefRefSet   ((SegPrefKind)2)
 #define SegPrefGen      ((SegPrefKind)3)
 #define SegPrefCollected  ((SegPrefKind)4)
+
+/* Buffer modes */
+#define BufferModeATTACHED      ((BufferMode)(1<<0))
+#define BufferModeFLIPPED       ((BufferMode)(1<<1))
+#define BufferModeLOGGED        ((BufferMode)(1<<2))
+/* Composite Buffer modes */
+#define BufferModeTRAPPED       (BufferModeFLIPPED|BufferModeLOGGED)
 
 
 /* Rank constants -- see design.mps.type.rank */

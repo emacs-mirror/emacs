@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.54) $
+ * $HopeName: MMsrc!mpmst.h(trunk.55) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -300,6 +300,7 @@ typedef struct BufferStruct {
   Pool pool;                    /* owning pool */
   RingStruct poolRing;          /* buffers are attached to pools */
   Bool isMutator;               /* TRUE iff buffer used by mutator */
+  BufferMode mode;		/* Attached/Logged/Flipped/etc */
   double fillSize;              /* bytes filled in this buffer */
   double emptySize;             /* bytes emptied from this buffer */
   RankSet rankSet;              /* ranks of references being created */
@@ -611,6 +612,7 @@ typedef struct ArenaStruct {
   Bool clamped;                 /* prevent background activity */
   Size actionInterval;          /* design.mps.arena.poll.interval */
 
+  Bool bufferLogging;           /* design.mps.buffer.logging.control */
   double fillMutatorSize;       /* total bytes filled, mutator buffers */
   double emptyMutatorSize;      /* total bytes emptied, mutator buffers */
   double allocMutatorSize;      /* fill-empty, only asymptotically accurate */
