@@ -21,12 +21,6 @@
 
 ;;; Code:
 
-(defun add-timeout (secs function object &optional resignal)
-  (run-at-time secs resignal function object))
-
-(defun disable-timeout (timeout)
-  (cancel-timer timeout))
-
 (defun copy-tree (tree)
   (if (consp tree)
       (cons (copy-tree (car tree))
@@ -41,19 +35,6 @@
       tree)))
 
 (defalias 'current-time-seconds 'current-time)
-
-(defun keymap-parent (keymap)
-  (let ((tail (cdr keymap)))
-    (while (and tail (not (eq (car tail) 'keymap)))
-      (setq tail (cdr tail)))
-    tail))
-
-(defun set-keymap-parent (keymap new-parent)
-  (let ((tail keymap))
-    (while (and tail (cdr tail) (not (eq (car (cdr tail)) 'keymap)))
-      (setq tail (cdr tail)))
-    (if tail
-	(setcdr tail new-parent))))
 
 (defun remprop (symbol prop)
   (let ((plist (symbol-plist symbol)))
@@ -210,7 +191,6 @@ bottom of the buffer stack."
 ;; (defalias 'screen-char-width 'frame-char-width)
 ;; (defalias 'screen-configuration-to-register 'frame-configuration-to-register)
 ;; (defalias 'screen-focus 'frame-focus)
-(defalias 'screen-height 'frame-height)
 (defalias 'screen-list 'frame-list)
 ;; (defalias 'screen-live-p 'frame-live-p)
 (defalias 'screen-parameters 'frame-parameters)
@@ -221,7 +201,6 @@ bottom of the buffer stack."
 (defalias 'lower-screen 'lower-frame)
 (defalias 'raise-screen 'raise-frame)
 (defalias 'screen-visible-p 'frame-visible-p)
-(defalias 'screen-width 'frame-width)
 (defalias 'screenp 'framep)
 (defalias 'select-screen 'select-frame)
 (defalias 'selected-screen 'selected-frame)
