@@ -886,6 +886,10 @@ non-nil, load the document in a new Galeon window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
 the effect of `browse-url-new-window-flag'.
 
+If `browse-url-galeon-new-window-is-tab' is non-nil, then whenever a
+document would otherwise be loaded in a new window, it is loaded in a
+new tab in an existing window instead.
+
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
@@ -903,8 +907,9 @@ used instead of `browse-url-new-window-flag'."
                           (if (browse-url-maybe-new-window new-window)
 			      (if browse-url-galeon-new-window-is-tab
 				  '("--new-tab")
-				'("--new-window" "--no-raise")))
-                          (list "-x" url)))))
+				'("--new-window" "--noraise"))
+                            '("--existing"))
+                          (list url)))))
     (set-process-sentinel process
 			  `(lambda (process change)
 			     (browse-url-galeon-sentinel process ,url)))))
