@@ -4997,14 +4997,18 @@ return the font name used for CHARACTER.  */)
 
       if (! face)
 	return Qnil;
-      if (NILP (character))
-	return build_string (face->font_name);
-      CHECK_CHARACTER (character);
-      face_id = FACE_FOR_CHAR (f, face, XINT (character), -1, Qnil);
-      face = FACE_FROM_ID (f, face_id);
-      return (face->font && face->font_name
-	      ? build_string (face->font_name)
-	      : Qnil);
+#ifdef HAVE_WINDOW_SYSTEM
+      if (!NILP (character))
+	{
+	  CHECK_CHARACTER (character);
+	  face_id = FACE_FOR_CHAR (f, face, XINT (character), -1, Qnil);
+	  face = FACE_FROM_ID (f, face_id);
+	  return (face->font && face->font_name
+		  ? build_string (face->font_name)
+		  : Qnil);
+	}
+#endif
+      return build_string (face->font_name);
     }
 }
 
