@@ -756,6 +756,8 @@ exited abnormally with code %d\n"
   "Keymap for compilation log buffers.
 `compilation-minor-mode-map' is a cdr of this.")
 
+(put 'compilation-mode 'mode-class 'special)
+
 ;;;###autoload
 (defun compilation-mode ()
   "Major mode for compilation log buffers.
