@@ -75,10 +75,10 @@ Info node `(elisp)Image Descriptors')."
 			     (:type xpm :file ,(concat icon ".xpm"))))))
     (when image
       (unless (memq 'xbm image)
-	(setq image (append image '(:heuristic-mask t))))
-       (if (memq :enable props)
- 	(let ((dis (append image '(:algorithm laplace))))
- 	  (setq image (vector image image dis dis))))
+	(setq image (append image '(:mask heuristict))))
+      (if (memq :enable props)
+	  (let ((dis (append image '(:algorithm laplace))))
+	    (setq image (vector image image dis dis))))
       (define-key-after (or map toolbar-global-map) (vector key)
 	`(menu-item ,(symbol-name key) ,def :image ,image ,@props)))))
 
