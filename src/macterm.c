@@ -10860,11 +10860,9 @@ init_font_name_table ()
 
 
 /* Return a list of at most MAXNAMES font specs matching the one in
-   PATTERN.  Note that each '*' in the PATTERN matches exactly one
-   field of the font spec, unlike X in which an '*' in a font spec can
-   match a number of fields.  The result is in the Mac implementation
-   all fonts must be specified by a font spec with all 13 fields
-   (although many of these can be "*'s").  */
+   PATTERN.  Cache matching fonts for patterns in
+   dpyinfo->name_list_element to avoid looking them up again by
+   calling mac_font_pattern_match (slow).  */
 
 Lisp_Object
 x_list_fonts (struct frame *f,
@@ -10873,13 +10871,27 @@ x_list_fonts (struct frame *f,
               int maxnames)
 {
   char *ptnstr;
-  Lisp_Object newlist = Qnil;
+  Lisp_Object newlist = Qnil, tem, key;
   int n_fonts = 0;
   int i;
   struct gcpro gcpro1, gcpro2;
+  struct mac_display_info *dpyinfo = f ? FRAME_MAC_DISPLAY_INFO (f) : NULL;
 
   if (font_name_table == NULL)  /* Initialize when first used.  */
     init_font_name_table ();
+
+  if (dpyinfo)
+    {
+      tem = XCDR (dpyinfo->name_list_element);
+      key = Fcons (pattern, make_number (maxnames));
+
+      newlist = Fassoc (key, tem);
+      if (!NILP (newlist))
+	{
+	  newlist = Fcdr_safe (newlist);
+	  goto label_cached;
+	}
+    }
 
   ptnstr = XSTRING (pattern)->data;
 
@@ -10902,6 +10914,14 @@ x_list_fonts (struct frame *f,
 
   UNGCPRO;
 
+  if (dpyinfo)
+    {
+      XSETCDR (dpyinfo->name_list_element,
+	       Fcons (Fcons (key, newlist),
+		      XCDR (dpyinfo->name_list_element)));
+    }
+ label_cached:
+  
   return newlist;
 }
 
