@@ -129,14 +129,10 @@ Boston, MA 02111-1307, USA.  */
 /* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
 #define PREFER_VSUSP
 
-/* wjs@wang.com (William Smith) says this is needed on 3.2.4.2.  */
-#define POSIX_SIGNALS
-
-/* wjs@wiis.wang.com says SCO 3.2 v4.2 "has sockets",
-   but only for network connections.
-   It doesn't have the kind of sockets that emacsclient.c
-   and emacsserver.c would use.  */
-#define NO_SOCKETS_IN_FILE_SYSTEM
+/* SCO Unix has Posix signals, but in 3.2.5 something broken that causes
+ * all keyboard-quit signals to be lost after the first one. */
+#undef POSIX_SIGNALS
+#define sigblock(sig) (sigprocmask (SIG_BLOCK, SIGEMPTYMASK | sig, NULL))
 
 #ifndef PENDING_OUTPUT_COUNT
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
