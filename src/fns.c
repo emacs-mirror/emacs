@@ -1336,7 +1336,7 @@ map_char_table (c_function, function, chartable, depth, indices)
      Lisp_Object (*c_function) (), function, chartable, depth, *indices;
 {
   int i;
-  int size = XCHAR_TABLE (chartable)->size;
+  int size = CHAR_TABLE_ORDINARY_SLOTS;
 
   /* Make INDICES longer if we are about to fill it up.  */
   if ((depth % 10) == 9)
