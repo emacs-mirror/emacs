@@ -1904,10 +1904,14 @@ check_it (it)
       xassert (STRINGP (it->string));
       xassert (IT_STRING_CHARPOS (*it) >= 0);
     }
-  else if (it->method == next_element_from_buffer)
+  else
     {
-      /* Check that character and byte positions agree.  */
-      xassert (IT_CHARPOS (*it) == BYTE_TO_CHAR (IT_BYTEPOS (*it)));
+      xassert (IT_STRING_CHARPOS (*it) < 0);
+      if (it->method == next_element_from_buffer)
+	{
+	  /* Check that character and byte positions agree.  */
+	  xassert (IT_CHARPOS (*it) == BYTE_TO_CHAR (IT_BYTEPOS (*it)));
+	}
     }
 
   if (it->dpvec)
@@ -2020,6 +2024,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
   it->base_face_id = base_face_id;
+  it->string = Qnil;
+  IT_STRING_CHARPOS (*it) = IT_STRING_BYTEPOS (*it) = -1;
 
   /* The window in which we iterate over current_buffer:  */
   XSETWINDOW (it->window, w);
@@ -17684,6 +17690,11 @@ produce_image_glyph (it)
   it->ascent = it->phys_ascent = glyph_ascent = image_ascent (img, face);
   it->descent = it->phys_descent = img->height + 2 * img->vmargin - it->ascent;
   it->pixel_width = img->width + 2 * img->hmargin;
+
+  /* It's quite possible for images to have an ascent greater than
+     their height, so don't get confused in that case.  */
+  if (it->descent < 0)
+    it->descent = 0;
 
   /* If this glyph is alone on the last line, adjust it.ascent to minimum row ascent.  */
   face_ascent = face->font ? FONT_BASE (face->font) : FRAME_BASELINE_OFFSET (it->f);

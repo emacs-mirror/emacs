@@ -1,5 +1,5 @@
 /* Functions for the X window system.
-   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 01, 02, 03
+   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 99, 2000,01,02,03,04
      Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -5315,7 +5315,6 @@ lookup_image (f, spec)
 	}
 
       UNBLOCK_INPUT;
-      xassert (!interrupt_input_blocked);
     }
 
   /* We're using IMG, so set its timestamp to `now'.  */

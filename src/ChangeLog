@@ -1,3 +1,17 @@
+2004-02-25  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (check_it): Check string/string_pos consistency.
+	(init_iterator): Initialize string-related fields properly.
+
+2004-02-11  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (produce_image_glyph): Force negative descents to zero.
+
+2004-02-10  Miles Bader  <miles@gnu.org>
+
+	* xfns.c (lookup_image): Remove xassert(!interrupt_input_blocked);
+	BLOCK_INPUT can be nested, so it doesn't make much sense.
+
 2004-02-24  Michael Mauger <mmaug@yahoo.com>
 
 	* w32fns.c (slurp_file, xbm_scan, xbm_load_image)
