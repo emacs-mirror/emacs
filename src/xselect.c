@@ -1,5 +1,5 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001, 2003
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001, 2003, 2004
    Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -2608,7 +2608,7 @@ are ignored.  */)
   if (event.xclient.format != 8 && event.xclient.format != 16
       && event.xclient.format != 32)
     error ("FORMAT must be one of 8, 16 or 32");
-  
+
   if (FRAMEP (dest) || NILP (dest))
     {
       struct frame *fdest = check_x_frame (dest);

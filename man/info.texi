@@ -62,6 +62,11 @@ The GNU Project distributes most of its on-line manuals in the
 @dfn{Info format}, which you read using an @dfn{Info reader}.  You are
 probably using an Info reader to read this now.
 
+There are two primary Info readers: @code{info}, a stand-alone program
+designed just to read Info files, and the @code{info} package in GNU
+Emacs, a general-purpose editor.  At present, only the Emacs reader
+supports using a mouse.
+
 @ifinfo
 If you are new to the Info reader and want to learn how to use it,
 type the command @kbd{h} now.  It brings you to a programmed
@@ -84,7 +89,7 @@ Started' chapter.
 @comment  node-name,  next,  previous,  up
 @chapter Getting Started
 
-This first part of the Info manual describes how to get around inside
+This first part of this Info manual describes how to get around inside
 of Info.  The second part of the manual describes various advanced
 Info commands, and how to write an Info as distinct from a Texinfo
 file.  The third part briefly explains how to generate Info files from
@@ -111,7 +116,7 @@ stand-alone program designed just to read Info files.
 @item
 Type @code{emacs} at the command line; then type @kbd{C-h i}
 (@kbd{Control-h}, followed by @kbd{i}).  This approach uses the Info
-mode of the Emacs program, an editor with many other capabilities.
+mode of the Emacs editor.
 @end enumerate
 
 In either case, then type @kbd{mInfo} (just the letters), followed by
@@ -270,9 +275,10 @@ command.  Another @kbd{n} command now would take you to the next
 node, @samp{Help-^L}.
 
 @format
->> But do not type @kbd{n} yet.  First, try the @kbd{p} command,
-   or click the middle mouse button on the @samp{Prev} link.  That
-   takes you to the @samp{Previous} node.  Then use @kbd{n} to return here.
+>> But do not type @kbd{n} yet.  First, try the @kbd{p} command, or
+   (in Emacs) click the middle mouse button on the @samp{Prev} link.
+   That takes you to the @samp{Previous} node.  Then use @kbd{n} to
+   return here.
 @end format
 
   If you read this in Emacs, you will see an @samp{Info} item in the
@@ -288,8 +294,8 @@ to.  You could make Info skip past an important warning that was
 coming up.
 
 @format
->> Now do an @kbd{n}, or click the middle mouse button on the @samp{Next}
-   link, to get to the node @samp{Help-^L} and learn more.
+>> Now do an @kbd{n}, or (in Emacs) click the middle mouse button on
+   the @samp{Next} link, to get to the node @samp{Help-^L} and learn more.
 @end format
 
 @node Help-^L, Help-Inv, Help-P, Getting Started

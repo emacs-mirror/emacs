@@ -1212,6 +1212,7 @@ is used to further constrain the set of candidates.  */)
 			   || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
   int matchcount = 0;
+  int bindcount = -1;
   Lisp_Object bucket, zero, end, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
@@ -1290,21 +1291,22 @@ is used to further constrain the set of candidates.  */)
 	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
-	  if (CONSP (Vcompletion_regexp_list))
-	    {
-	      int count = SPECPDL_INDEX ();
-	      specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
-	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-		   regexps = XCDR (regexps))
-		{
-		  tem = Fstring_match (XCAR (regexps), eltstring, zero);
-		  if (NILP (tem))
-		    break;
+	  {
+	    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+		 regexps = XCDR (regexps))
+	      {
+		if (bindcount < 0) {
+		  bindcount = SPECPDL_INDEX ();
+		  specbind (Qcase_fold_search,
+			    completion_ignore_case ? Qt : Qnil);
 		}
-	      unbind_to (count, Qnil);
-	      if (CONSP (regexps))
-		continue;
-	    }
+		tem = Fstring_match (XCAR (regexps), eltstring, zero);
+		if (NILP (tem))
+		  break;
+	      }
+	    if (CONSP (regexps))
+	      continue;
+	  }
 
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
@@ -1315,6 +1317,10 @@ is used to further constrain the set of candidates.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
+		  if (bindcount >= 0) {
+		    unbind_to (bindcount, Qnil);
+		    bindcount = -1;
+		  }
 		  GCPRO4 (tail, string, eltstring, bestmatch);
 		  tem = type == 3
 		    ? call2 (predicate, elt,
@@ -1396,6 +1402,11 @@ is used to further constrain the set of candidates.  */)
 	}
     }
 
+  if (bindcount >= 0) {
+    unbind_to (bindcount, Qnil);
+    bindcount = -1;
+  }
+
   if (NILP (bestmatch))
     return Qnil;		/* No completions found */
   /* If we are ignoring case, and there is no exact match,
@@ -1458,6 +1469,7 @@ are ignored unless STRING itself starts with a space.  */)
 		       && (!SYMBOLP (XCAR (alist))
 			   || NILP (XCAR (alist))));
   int index = 0, obsize = 0;
+  int bindcount = -1;
   Lisp_Object bucket, tem;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
@@ -1542,21 +1554,22 @@ are ignored unless STRING itself starts with a space.  */)
 	  XSETFASTINT (zero, 0);
 
 	  /* Ignore this element if it fails to match all the regexps.  */
-	  if (CONSP (Vcompletion_regexp_list))
-	    {
-	      int count = SPECPDL_INDEX ();
-	      specbind (Qcase_fold_search, completion_ignore_case ? Qt : Qnil);
-	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-		   regexps = XCDR (regexps))
-		{
-		  tem = Fstring_match (XCAR (regexps), eltstring, zero);
-		  if (NILP (tem))
-		    break;
+	  {
+	    for (regexps = Vcompletion_regexp_list; CONSP (regexps);
+		 regexps = XCDR (regexps))
+	      {
+		if (bindcount < 0) {
+		  bindcount = SPECPDL_INDEX ();
+		  specbind (Qcase_fold_search,
+			    completion_ignore_case ? Qt : Qnil);
 		}
-	      unbind_to (count, Qnil);
-	      if (CONSP (regexps))
-		continue;
-	    }
+		tem = Fstring_match (XCAR (regexps), eltstring, zero);
+		if (NILP (tem))
+		  break;
+	      }
+	    if (CONSP (regexps))
+	      continue;
+	  }
 
 	  /* Ignore this element if there is a predicate
 	     and the predicate doesn't like it. */
@@ -1567,6 +1580,10 @@ are ignored unless STRING itself starts with a space.  */)
 		tem = Fcommandp (elt, Qnil);
 	      else
 		{
+		  if (bindcount >= 0) {
+		    unbind_to (bindcount, Qnil);
+		    bindcount = -1;
+		  }
 		  GCPRO4 (tail, eltstring, allmatches, string);
 		  tem = type == 3
 		    ? call2 (predicate, elt,
@@ -1580,6 +1597,11 @@ are ignored unless STRING itself starts with a space.  */)
 	  allmatches = Fcons (eltstring, allmatches);
 	}
     }
+
+  if (bindcount >= 0) {
+    unbind_to (bindcount, Qnil);
+    bindcount = -1;
+  }
 
   return Fnreverse (allmatches);
 }

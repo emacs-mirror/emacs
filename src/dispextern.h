@@ -1,5 +1,5 @@
 /* Interface definitions for display code.
-   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+   Copyright (C) 1985,93,94,97,98,99, 2000,01,02,03, 2004
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2644,8 +2644,6 @@ void w32_reset_fringes P_ ((void));
 /* Defined in image.c */
 
 #ifdef HAVE_WINDOW_SYSTEM
-
-extern Lisp_Object Vimage_types;
 
 extern int x_bitmap_height P_ ((struct frame *, int));
 extern int x_bitmap_width P_ ((struct frame *, int));

@@ -999,7 +999,8 @@ Use `isearch-exit' to quit without signaling."
 
   (if (equal isearch-string "")
       (setq isearch-success t)
-    (if (and isearch-success (equal (match-end 0) (match-beginning 0))
+    (if (and isearch-success
+	     (equal (point) isearch-other-end)
 	     (not isearch-just-started))
 	;; If repeating a search that found
 	;; an empty string, ensure we advance.
@@ -1764,7 +1765,13 @@ If there is no completion possible, say so and continue searching."
   (let ((cursor-in-echo-area ellipsis)
 	(m (concat
 	    (isearch-message-prefix c-q-hack ellipsis isearch-nonincremental)
-	    isearch-message
+	    (if (and (not isearch-success)
+                     (string-match " +$" isearch-message))
+                (concat
+                 (substring isearch-message 0 (match-beginning 0))
+                 (propertize (substring isearch-message (match-beginning 0))
+                             'face 'trailing-whitespace))
+              isearch-message)
 	    (isearch-message-suffix c-q-hack ellipsis)
 	    )))
     (if c-q-hack
@@ -1811,7 +1818,11 @@ If there is no completion possible, say so and continue searching."
 
 ;; Searching
 
-(defvar isearch-search-fun-function nil "Override `isearch-function-fun'.")
+(defvar isearch-search-fun-function nil
+  "Override `isearch-search-fun'.
+This function should return the search function for isearch to use.
+It will call this function with three arguments
+as if it were `search-forward'.")
 
 (defun isearch-search-fun ()
   "Return the function to use for the search.

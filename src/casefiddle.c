@@ -1,5 +1,6 @@
 /* GNU Emacs case conversion functions.
-   Copyright (C) 1985, 1994, 1997 Free Software Foundation, Inc.
+   Copyright (C) 1985,94,97,98,99, 2001, 2002, 2004
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -109,8 +110,12 @@ casify_object (flag, obj)
 	      /* The work is not yet finished because of a multibyte
 		 character just encountered.  */
 	      int fromlen, j_byte = i;
-	      char *buf
-		= (char *) alloca ((len - i) * MAX_MULTIBYTE_LENGTH + i);
+	      char *buf;
+	      int bufsize;
+	      USE_SAFE_ALLOCA;
+
+	      bufsize = (len - i) * MAX_MULTIBYTE_LENGTH + i;
+	      SAFE_ALLOCA (buf, char *, bufsize);
 
 	      /* Copy data already handled.  */
 	      bcopy (SDATA (obj), buf, i);
@@ -132,6 +137,7 @@ casify_object (flag, obj)
 		}
 	      obj = make_multibyte_string (buf, SCHARS (obj),
 					   j_byte);
+	      SAFE_FREE (bufsize);
 	    }
 	  return obj;
 	}

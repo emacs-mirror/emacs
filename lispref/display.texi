@@ -2892,7 +2892,6 @@ type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
 @code{pbm}, @code{jpeg}, @code{tiff}, and @code{png}.
 
 @defvar image-types
-@vindex image-types
 This variable contains a list of those image type symbols that are
 potentially supported in the current configuration.
 @emph{Potentially} here means that Emacs knows about the image types,
@@ -2904,7 +2903,6 @@ To know which image types are really available, use
 @end defvar
 
 @defvar image-library-alist
-@vindex image-library-alist
 This in an alist of image types vs external libraries needed to
 display them.
 
@@ -2913,9 +2911,9 @@ where the car is a supported image format from @code{image-types}, and
 the rest are strings giving alternate filenames for the corresponding
 external libraries to load.
 
-They are tried in the order they appear on the list; if none of them
-can be loaded, the running session of Emacs won't support the image
-type.  No entries are needed for @code{pbm} and @code{xbm} images;
+Emacs tries to load the libraries in the order they appear on the
+list; if none is loaded, the running session of Emacs won't support
+the image type.  @code{pbm} and @code{xbm} don't need to be listed;
 they're always supported.
 
 This variable is ignored if the image libraries are statically linked
@@ -2925,9 +2923,9 @@ into Emacs.
 @defun  image-type-available-p type
 @findex image-type-available-p
 
-This function returns non-nil if image type TYPE is available, i.e.,
-if images of this type can be loaded and displayed in Emacs.  TYPE
-should be one of the types contained in @code{image-types}.
+This function returns non-nil if image type @var{TYPE} is available,
+i.e., if images of this type can be loaded and displayed in Emacs.
+@var{TYPE} should be one of the types contained in @code{image-types}.
 
 For image types whose support libraries are statically linked, this
 function always returns @code{t}; for other image types, it returns

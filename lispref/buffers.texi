@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/buffers
@@ -227,8 +227,8 @@ An error is signaled if @var{buffer-or-name} does not identify an
 existing buffer.
 @end defmac
 
-@anchor{Definition of with-temp-buffer}
 @defmac with-temp-buffer body...
+@anchor{Definition of with-temp-buffer}
 The @code{with-temp-buffer} macro evaluates the @var{body} forms
 with a temporary buffer as the current buffer.  It saves the identity of
 the current buffer, creates a temporary buffer and makes it current,

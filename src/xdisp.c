@@ -6311,6 +6311,7 @@ add_to_log (format, arg1, arg2)
   char *buffer;
   int len;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  USE_SAFE_ALLOCA;
 
   /* Do nothing if called asynchronously.  Inserting text into
      a buffer may call after-change-functions and alike and
@@ -6327,10 +6328,12 @@ add_to_log (format, arg1, arg2)
   msg = Fformat (3, args);
 
   len = SBYTES (msg) + 1;
-  buffer = (char *) alloca (len);
+  SAFE_ALLOCA (buffer, char *, len);
   bcopy (SDATA (msg), buffer, len);
 
   message_dolog (buffer, len - 1, 1, 0);
+  SAFE_FREE (len);
+
   UNGCPRO;
 }
 
@@ -11263,7 +11266,7 @@ try_cursor_movement (window, startp, scroll_step)
       && (FRAME_WINDOW_P (f)
 	  || !overlay_arrow_in_current_buffer_p ()))
     {
-      int this_scroll_margin;
+      int this_scroll_margin, top_scroll_margin;
       struct glyph_row *row = NULL;
 
 #if GLYPH_DEBUG
@@ -11275,6 +11278,10 @@ try_cursor_movement (window, startp, scroll_step)
       this_scroll_margin = max (0, scroll_margin);
       this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
       this_scroll_margin *= FRAME_LINE_HEIGHT (f);
+
+      top_scroll_margin = this_scroll_margin;
+      if (WINDOW_WANTS_HEADER_LINE_P (w))
+	top_scroll_margin += CURRENT_HEADER_LINE_HEIGHT (w);
 
       /* Start with the row the cursor was displayed during the last
 	 not paused redisplay.  Give up if that row is not valid.  */
@@ -11336,7 +11343,7 @@ try_cursor_movement (window, startp, scroll_step)
 		     && (MATRIX_ROW_START_CHARPOS (row) > PT
 			 || (MATRIX_ROW_START_CHARPOS (row) == PT
 			     && MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P (row)))
-		     && (row->y > this_scroll_margin
+		     && (row->y > top_scroll_margin
 			 || CHARPOS (startp) == BEGV))
 		{
 		  xassert (row->enabled_p);
@@ -11364,7 +11371,7 @@ try_cursor_movement (window, startp, scroll_step)
 		++row;
 
 	      /* If within the scroll margin, scroll.  */
-	      if (row->y < this_scroll_margin
+	      if (row->y < top_scroll_margin
 		  && CHARPOS (startp) != BEGV)
 		scroll_p = 1;
 	    }
@@ -12537,9 +12544,8 @@ try_window_reusing_current_matrix (w)
 	 position.  */
       if (pt_row)
 	{
-	  w->cursor.vpos -= MATRIX_ROW_VPOS (first_reusable_row,
-					     w->current_matrix);
-	  w->cursor.y -= first_reusable_row->y;
+	  w->cursor.vpos -= nrows_scrolled;
+	  w->cursor.y -= first_reusable_row->y - start_row->y;
 	}
 
       /* Scroll the display.  */
@@ -12583,6 +12589,29 @@ try_window_reusing_current_matrix (w)
       /* Disable rows not reused.  */
       for (row -= nrows_scrolled; row < bottom_row; ++row)
 	row->enabled_p = 0;
+
+      /* Point may have moved to a different line, so we cannot assume that
+	 the previous cursor position is valid; locate the correct row.  */
+      if (pt_row)
+	{
+	  for (row = MATRIX_ROW (w->current_matrix, w->cursor.vpos);
+	       row < bottom_row && PT >= MATRIX_ROW_END_CHARPOS (row);
+	       row++)
+	    {
+	      w->cursor.vpos++;
+	      w->cursor.y = row->y;
+	    }
+	  if (row < bottom_row)
+	    {
+	      struct glyph *glyph = row->glyphs[TEXT_AREA] + w->cursor.hpos;
+	      while (glyph->charpos < PT)
+		{
+		  w->cursor.hpos++;
+		  w->cursor.x += glyph->pixel_width;
+		  glyph++;
+		}
+	    }
+	}
 
       /* Adjust window end.  A null value of last_text_row means that
 	 the window end is in reused rows which in turn means that
@@ -13367,9 +13396,9 @@ try_window_id (w)
 
     if ((w->cursor.y < this_scroll_margin
 	 && CHARPOS (start) > BEGV)
-	/* Don't take scroll margin into account at the bottom because
-	   old redisplay didn't do it either.  */
-	|| w->cursor.y + cursor_height > it.last_visible_y)
+	/* Old redisplay didn't take scroll margin into account at the bottom,
+	   but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
+	|| w->cursor.y + cursor_height + this_scroll_margin > it.last_visible_y)
       {
 	w->cursor.vpos = -1;
 	clear_glyph_matrix (w->desired_matrix);

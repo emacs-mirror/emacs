@@ -1,5 +1,5 @@
 /* Synchronous subprocess invocation for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,99, 2000, 2001
+   Copyright (C) 1985,86,87,88,93,94,95,99, 2000,01,02,03,04
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -222,7 +222,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   register int pid;
   char buf[16384];
   char *bufptr = buf;
-  int bufsize = 16384;
+  int bufsize = sizeof buf;
   int count = SPECPDL_INDEX ();
 
   register const unsigned char **new_argv

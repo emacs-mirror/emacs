@@ -3899,12 +3899,13 @@ Otherwise check for the existence of a global face.  */)
 DEFUN ("internal-copy-lisp-face", Finternal_copy_lisp_face,
        Sinternal_copy_lisp_face, 4, 4, 0,
        doc: /* Copy face FROM to TO.
-If FRAME is t, copy the global face definition of FROM to the
-global face definition of TO.  Otherwise, copy the frame-local
-definition of FROM on FRAME to the frame-local definition of TO
-on NEW-FRAME, or FRAME if NEW-FRAME is nil.
+If FRAME is t, copy the global face definition of FROM.
+Otherwise, copy the frame-local definition of FROM on FRAME.
+If NEW-FRAME is a frame, copy that data into the frame-local
+definition of TO on NEW-FRAME.  If NEW-FRAME is nil.
+FRAME controls where the data is copied to.
 
-Value is TO.  */)
+The value is TO.  */)
      (from, to, frame, new_frame)
      Lisp_Object from, to, frame, new_frame;
 {
@@ -3912,8 +3913,6 @@ Value is TO.  */)
 
   CHECK_SYMBOL (from);
   CHECK_SYMBOL (to);
-  if (NILP (new_frame))
-    new_frame = frame;
 
   if (EQ (frame, Qt))
     {
@@ -3925,6 +3924,8 @@ Value is TO.  */)
   else
     {
       /* Copy frame-local definition of FROM.  */
+      if (NILP (new_frame))
+	new_frame = frame;
       CHECK_LIVE_FRAME (frame);
       CHECK_LIVE_FRAME (new_frame);
       lface = lface_from_face_name (XFRAME (frame), from, 1);

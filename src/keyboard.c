@@ -670,6 +670,8 @@ static void handle_interrupt P_ ((void));
    to support it.  */
 static int cannot_suspend;
 
+extern Lisp_Object Qidentity, Qonly;
+
 /* Install the string STR as the beginning of the string of echoing,
    so that it serves as a prompt for the next character.
    Also start echoing.  */
@@ -1807,6 +1809,16 @@ command_loop_1 ()
 	    }
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
+	}
+
+      /* Setting transient-mark-mode to `only' is a way of
+	 turning it on for just one command.  */
+      if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
+	{
+	  if (EQ (Vtransient_mark_mode, Qidentity))
+	    Vtransient_mark_mode = Qnil;
+	  if (EQ (Vtransient_mark_mode, Qonly))
+	    Vtransient_mark_mode = Qidentity;
 	}
 
     finalize:

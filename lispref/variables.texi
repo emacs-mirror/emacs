@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
+@c 2000, 2003, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/variables
@@ -260,8 +261,8 @@ These kinds of bindings work somewhat like ordinary local bindings, but
 they are localized depending on ``where'' you are in Emacs, rather than
 localized in time.
 
-@anchor{Definition of max-specpdl-size}
 @defvar max-specpdl-size
+@anchor{Definition of max-specpdl-size}
 @cindex variable limit error
 @cindex evaluation error
 @cindex infinite recursion

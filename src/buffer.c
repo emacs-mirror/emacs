@@ -5437,7 +5437,7 @@ nil here means use current buffer's major mode.  */);
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column,
 		     make_number (Lisp_Int),
 		     doc: /* *Column beyond which automatic line-wrapping should happen.
-Interactively, you can set this using \\[set-fill-column].  */);
+Interactively, you can set the buffer local value using \\[set-fill-column].  */);
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
 		     make_number (Lisp_Int),
@@ -5847,7 +5847,11 @@ If the buffer has never been shown in a window, the value is nil.  */);
 	       doc: /* *Non-nil means deactivate the mark when the buffer contents change.
 Non-nil also enables highlighting of the region whenever the mark is active.
 The variable `highlight-nonselected-windows' controls whether to highlight
-all windows or just the selected window.  */);
+all windows or just the selected window.
+
+If the value is `lambda', that enables Transient Mark mode temporarily
+until the next buffer modification.  If a command sets the value to `only',
+that enables Transient Mark mode for the following command only.  */);
   Vtransient_mark_mode = Qnil;
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,

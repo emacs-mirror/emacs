@@ -1,3 +1,12 @@
+2004-06-21  Kenichi Handa  <handa@m17n.org>
+
+	* make-dist: Link leim-ext.el into tempdir.
+
+2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* info/dir (File): Add emacs-xtra.
+	* Makefile.in (install-arch-indep, uninstall): Add emacs-xtra.
+
 2004-06-12  Juri Linkov  <juri@jurta.org>
 
 	* info/dir: Move menu help lines from `* Menu:' to file header.

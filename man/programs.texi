@@ -1061,9 +1061,9 @@ use in your program.
 
 @findex info-lookup-symbol
 @findex info-lookup-file
-@kindex C-h C-i
+@kindex C-h S
   For C, Lisp, and other languages that have documentation in Info,
-you can use @kbd{C-h C-i} (@code{info-lookup-symbol}) to view the Info
+you can use @kbd{C-h S} (@code{info-lookup-symbol}) to view the Info
 documentation for a symbol.  You specify the symbol with the
 minibuffer; the default is the symbol appearing in the buffer at
 point.

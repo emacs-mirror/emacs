@@ -580,6 +580,21 @@ xstrdup (s)
 }
 
 
+/* Unwind for SAFE_ALLOCA */
+
+Lisp_Object
+safe_alloca_unwind (arg)
+     Lisp_Object arg;
+{
+  register struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+
+  p->dogc = 0;
+  xfree (p->pointer);
+  p->pointer = 0;
+  return Qnil;
+}
+
+
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
    allcated memory block (for strings, for conses, ...).  */
@@ -2935,6 +2950,7 @@ make_save_value (pointer, integer)
   p = XSAVE_VALUE (val);
   p->pointer = pointer;
   p->integer = integer;
+  p->dogc = 0;
   return val;
 }
 
@@ -4969,6 +4985,7 @@ mark_object (arg)
       if (XMARKER (obj)->gcmarkbit)
 	break;
       XMARKER (obj)->gcmarkbit = 1;
+
       switch (XMISCTYPE (obj))
 	{
 	case Lisp_Misc_Buffer_Local_Value:
@@ -4993,6 +5010,8 @@ mark_object (arg)
 	  /* DO NOT mark thru the marker's chain.
 	     The buffer's markers chain does not preserve markers from gc;
 	     instead, markers are removed from the chain when freed by gc.  */
+	  break;
+
 	case Lisp_Misc_Intfwd:
 	case Lisp_Misc_Boolfwd:
 	case Lisp_Misc_Objfwd:
@@ -5002,7 +5021,21 @@ mark_object (arg)
 	     since all markable slots in current buffer marked anyway.  */
 	  /* Don't need to do Lisp_Objfwd, since the places they point
 	     are protected with staticpro.  */
+	  break;
+
 	case Lisp_Misc_Save_Value:
+	  {
+	    register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
+	    /* If DOGC is set, POINTER is the address of a memory
+	       area containing INTEGER potential Lisp_Objects.  */
+	    if (ptr->dogc)
+	      {
+		Lisp_Object *p = (Lisp_Object *) ptr->pointer;
+		int nelt;
+		for (nelt = ptr->integer; nelt > 0; nelt--, p++)
+		  mark_maybe_object (*p);
+	      }
+	  }
 	  break;
 
 	case Lisp_Misc_Overlay:

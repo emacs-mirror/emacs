@@ -1,10 +1,142 @@
+2004-06-23  David Kastrup  <dak@gnu.org>
+
+	* search.c (Freplace_match): Adjust the match-data more
+	thoroughly when replacing strings in the buffer.
+	search.c (match-data): When INTEGERS is non-nil and the last match
+	was in a buffer, add the buffer as last element to the match data.
+	(Fset_match_data): If an additional element of the match-data is
+	a buffer, restore it to last_thing_searched.
+	(save_search_regs): Save last_thing_searched as part of the match
+	data.
+	(restore_match_data): Restore it again.
+
+2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymap.c (Ftext_char_description): Doc fix.
+	* doc.c (Fsnarf_documentation): Doc fix.
+
+2004-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fmapcar, Fmapconcat): GCPRO the args array.
+
+	* lisp.h (struct Lisp_Save_Value): New member dogc.
+	(SAFE_ALLOCA_LISP): Change second arg to number of elements.
+	Set dogc member in Lisp_Save_Value object so it will be GC'ed.
+	(SAFE_FREE_LISP): New macro.
+
+	* alloc.c (safe_alloca_unwind): Clear dogc and pointer members.
+	(make_save_value): Init new dogc member.
+	(mark_object): Mark Lisp_Save_Value pointer array if dogc is set.
+
+	* fns.c (Fmapconcat, Fmapcar): Use new SAFE_ALLOCA_LISP and
+	SAFE_FREE_LISP macros.
+
+2004-06-22  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (SAFE_ALLOCA_LISP): New macro to allocate Lisp_Objects.
+	Temporarily inhibits GC if memory is xmalloc'ed, as the Lisp_Objects
+	in that memory area are unknown to GC.  Add comments.
+
+	* fns.c (Fmapconcat, Fmapcar): Use SAFE_ALLOCA_LISP.
+
+2004-06-21  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (MAX_ALLOCA): Define here.
+	(safe_alloca_unwind): Add prototype.
+	(USE_SAFE_ALLOCA, SAFE_ALLOCA, SAFE_FREE): New macros.
+
+	* alloc.c (safe_alloca_unwind): New function.
+
+	* casefiddle.c (casify_object): Use SAFE_ALLOCA.
+
+	* charset.c (Fstring): Use SAFE_ALLOCA.
+
+	* coding.c (MAX_ALLOCA): Remove define.
+
+	* data.c (MAX_ALLOCA): Remove define.
+	(Faset): Use SAFE_ALLOCA.
+
+	* editfns.c (Fformat, Ftranspose_regions): Use SAFE_ALLOCA.
+
+	* fns.c (string_make_multibyte, string_to_multibyte)
+	(string_make_unibyte, Fmapconcat, Fmapcar): Use SAFE_ALLOCA.
+	(MAX_ALLOCA): Remove define.
+	(Fbase64_encode_region, Fbase64_encode_string)
+	(Fbase64_decode_region, Fbase64_decode_string): Use SAFE_ALLOCA.
+	(Fbase64_encode_region, Fbase64_encode_string): Fix potential
+	memory leak if encoding fails.
+
+	* xdisp.c (add_to_log): Use SAFE_ALLOCA.
+
+2004-06-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* print.c (Fwith_output_to_temp_buffer): Doc fix.
+
+2004-06-20  Richard M. Stallman  <rms@gnu.org>
+
+	* xfaces.c (Finternal_copy_lisp_face): Small cleanup; doc fix.
+
+	* search.c (match_limit): Cleaner err msg when no match data available.
+
+	* window.c (syms_of_window): Doc fix.
+
+	* keyboard.c (command_loop_1): Handle values `only' and `identity'
+	for Vtransient_mark_mode.
+
+	* buffer.c (syms_of_buffer): Doc fix.
+
+2004-06-21  David Kastrup  <dak@gnu.org>
+
+	* minibuf.c (Ftry_completion, Fall_completions): Do lazy binding
+	and unbinding of `case-fold-search' according to
+	`completion-ignore-case' around calls of string-match and
+	predicates, respectively.  Should give satisfactory performance
+	in all relevant cases.
+
+2004-06-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_draw_image_foreground_1): Subtract slice.x/y from
+	clip_x/y_origin.
+
+	* fns.c (string_to_multibyte): Use xmalloc/xfree instead of alloca.
+
+	* macfns.c (Fx_display_color_cells): Do not limit return value to 256.
+
+	* macterm.c (mac_initialize_display_info): Initialize n_planes correctly
+	on Mac OSX.
+
+2004-06-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.c (syms_of_buffer): Clarify `fill-column' docstring.
+
+2004-06-16  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (Vimage_types): Remove extern.
+
+2004-06-16  Miles Bader  <miles@gnu.org>
+
+	* image.c (lookup_image_type): Initialize image type if necessary.
+
+2004-06-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (try_cursor_movement): Exclude header line from scroll
+	margin at top of window.
+	(try_window_reusing_current_matrix): Calculate proper cursor position
+	after scrolling up with non-zero scroll margin, as the old cursor
+	position corresponds to value of PT before executing this command.
+	(try_window_id): Consider scroll margin at bottom of window too;
+	otherwise we fail to scroll when hl-line-mode is enabled.
+
+	* syntax.c (skip_chars): Only recognize [:class:] when it has the
+	proper format and class is a lower-case word.
+
 2004-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): New function.
 	(xg_get_gdk_pixmap_and_mask): Removed.
 	(update_frame_tool_bar): Call xg_get_image_for_pixmap instead of
 	xg_get_gdk_pixmap_and_mask.
-	
+
 	* xterm.h (struct x_display_info): Typo in comment fixed.
 
 2004-06-14  Juanma Barranquero  <lektu@terra.es>

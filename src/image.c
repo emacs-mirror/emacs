@@ -689,6 +689,10 @@ lookup_image_type (symbol)
 {
   struct image_type *type;
 
+  /* We must initialize the image-type if it hasn't been already.  */
+  if (NILP (Finit_image_library (symbol)))
+    return 0;			/* unimplemented */
+
   for (type = image_types; type; type = type->next)
     if (EQ (symbol, *type->type))
       break;

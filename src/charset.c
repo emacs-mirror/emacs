@@ -1645,11 +1645,16 @@ usage: (string &rest CHARACTERS)  */)
      int n;
      Lisp_Object *args;
 {
-  int i;
-  unsigned char *buf = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH * n);
-  unsigned char *p = buf;
+  int i, bufsize;
+  unsigned char *buf, *p;
   int c;
   int multibyte = 0;
+  Lisp_Object ret;
+  USE_SAFE_ALLOCA;
+
+  bufsize = MAX_MULTIBYTE_LENGTH * n;
+  SAFE_ALLOCA (buf, unsigned char *, bufsize);
+  p = buf;
 
   for (i = 0; i < n; i++)
     {
@@ -1667,7 +1672,10 @@ usage: (string &rest CHARACTERS)  */)
 	*p++ = c;
     }
 
-  return make_string_from_bytes (buf, n, p - buf);
+  ret = make_string_from_bytes (buf, n, p - buf);
+  SAFE_FREE (bufsize);
+
+  return ret;
 }
 
 #endif /* emacs */

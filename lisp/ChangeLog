@@ -1,3 +1,112 @@
+2004-06-24  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/grep.el (grep-error-screen-columns): New variable.
+	(grep-regexp-alist): Give it the full functionality of gnu style
+	compilation messages with line and column ranges.  Ask me for the
+	perl script I'm working on, that uses these.
+
+2004-06-23  Nick Roberts  <nickrob@gnu.org>
+
+	* comint.el: (comint-insert-clicked-input, comint-copy-old-input):
+	Remove.
+	(comint-insert-input, comint-mouse-insert-input): New functions
+	based on comint-insert-clicked-input for two bindings but just
+	one functionality.
+
+2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* net/goto-addr.el (goto-address-fontify): Fix help-echo text.
+
+2004-06-23  Lars Hansen  <larsh@math.ku.dk>
+
+	* files.el (write-contents-functions): Doc fix.
+
+2004-06-21  Juanma Barranquero  <lektu@terra.es>
+
+	* image.el (image-library-alist): Rewrite docstring in active
+	voice.
+
+2004-06-20  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-set-region-1): Set transient-mark-mode to `only'.
+
+	* isearch.el (isearch-repeat): Avoid testing old match data.
+	(isearch-message): Display trailing space in special font
+	when search is failing.
+	(isearch-search-fun-function): Doc fix.
+
+	* autorevert.el (global-auto-revert-non-file-buffers): Doc fix.
+
+2004-06-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frame.el (show-trailing-whitespace): Doc fix.
+
+	* cus-edit.el (custom-variable-documentation): New function.
+	(custom-variable): Use it.
+
+2004-06-19  Nick Roberts  <nickrob@gnu.org>
+
+	* man.el (Man-getpage-in-background): Revert previous change but
+	make cygwin a special case.
+
+2004-06-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (global-auto-revert-non-file-buffers): Update
+	docstring.
+
+2004-06-19  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-error-properties): Store one
+	more than end-col, if present, so that transient-mark-mode will
+	highlight last char too.
+	* progmodes/grep.el (grep-regexp-alist): Match columns and column
+	ranges, if present.
+
+2004-06-18  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Double percent signs in for loops.
+
+2004-06-17  David Kastrup  <dak@gnu.org>
+
+	* replace.el (query-replace-read-args): Only warn about use of \n
+	and \t when we are doing a regexp replacement and the actual
+	escaped character is n or t.
+	(query-replace-regexp): Add \, and \# interpretation to
+	interactive call and document it.
+	(query-replace-regexp-eval, replace-match-string-symbols): add \#
+	as shortkey for replace-count.
+	(replace-quote): New function for doubling backslashes.
+
+2004-06-17  Juanma Barranquero  <lektu@terra.es>
+
+	* files.el (parse-colon-path, cd): Mention in docstring that the
+	path separator is colon in GNU-like systems.
+
+	* newcomment.el (comment-region-internal): Fix docstring.
+
+	* emacs-lisp/ewoc.el (ewoc-create, ewoc-map, ewoc-locate)
+	(ewoc-invalidate, ewoc-collect): Doc fixes.
+	(ewoc--create-node, ewoc--delete-node-internal):
+	Fix typos in docstring.
+
+2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (buffer-stale-function): Add hyperlink to emacs-xtra
+	manual to docstring.
+
+2004-06-15  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-time-stamp-iso8601): Comment doc string of defalias.
+
+2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired-aux.el (dired-do-redisplay, dired-maybe-insert-subdir):
+	Add hyperlink to emacs-xtra manual to docstring.
+
+	* autorevert.el (global-auto-revert-non-file-buffers): Add
+	hyperlink to emacs-xtra manual to docstring, as well as an
+	info-link.
+
 2004-06-14  Juanma Barranquero  <lektu@terra.es>
 
 	* image.el (image-library-alist): New variable to map image types

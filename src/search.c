@@ -2589,15 +2589,20 @@ since only regular expressions have distinguished subexpressions.  */)
   /* Adjust search data for this change.  */
   {
     int oldend = search_regs.end[sub];
+    int oldstart = search_regs.start[sub];
     int change = newpoint - search_regs.end[sub];
     int i;
 
     for (i = 0; i < search_regs.num_regs; i++)
       {
-	if (search_regs.start[i] > oldend)
+	if (search_regs.start[i] >= oldend)
 	  search_regs.start[i] += change;
-	if (search_regs.end[i] > oldend)
+	else if (search_regs.start[i] > oldstart)
+	  search_regs.start[i] = oldstart;
+	if (search_regs.end[i] >= oldend)
 	  search_regs.end[i] += change;
+	else if (search_regs.end[i] > oldstart)
+	  search_regs.end[i] = oldstart;
       }
   }
 
@@ -2622,8 +2627,10 @@ match_limit (num, beginningp)
 
   CHECK_NUMBER (num);
   n = XINT (num);
-  if (n < 0 || search_regs.num_regs <= 0)
-    args_out_of_range (num, make_number (search_regs.num_regs));
+  if (n < 0)
+    args_out_of_range (num, 0);
+  if (search_regs.num_regs <= 0)
+    error ("No match data, because no search succeeded");
   if (n >= search_regs.num_regs
       || search_regs.start[n] < 0)
     return Qnil;
@@ -2664,8 +2671,11 @@ All the elements are markers or nil (nil if the Nth pair didn't match)
 if the last match was on a buffer; integers or nil if a string was matched.
 Use `store-match-data' to reinstate the data in this list.
 
-If INTEGERS (the optional first argument) is non-nil, always use integers
-\(rather than markers) to represent buffer positions.
+If INTEGERS (the optional first argument) is non-nil, always use
+integers \(rather than markers) to represent buffer positions.  In
+this case, and if the last match was in a buffer, the buffer will get
+stored as one additional element at the end of the list.
+
 If REUSE is a list, reuse it as part of the value.  If REUSE is long enough
 to hold all the values, and if INTEGERS is non-nil, no consing is done.
 
@@ -2682,10 +2692,10 @@ Return value is undefined if the last search failed.  */)
 
   prev = Qnil;
 
-  data = (Lisp_Object *) alloca ((2 * search_regs.num_regs)
+  data = (Lisp_Object *) alloca ((2 * search_regs.num_regs + 1)
 				 * sizeof (Lisp_Object));
 
-  len = -1;
+  len = 0;
   for (i = 0; i < search_regs.num_regs; i++)
     {
       int start = search_regs.start[i];
@@ -2712,22 +2722,29 @@ Return value is undefined if the last search failed.  */)
 	    /* last_thing_searched must always be Qt, a buffer, or Qnil.  */
 	    abort ();
 
-	  len = i;
+	  len = 2*(i+1);
 	}
       else
 	data[2 * i] = data [2 * i + 1] = Qnil;
     }
 
+  if (BUFFERP(last_thing_searched)
+      && ! NILP (integers))
+    {
+      XSETBUFFER(data[len], last_thing_searched);
+      len++;
+    }
+
   /* If REUSE is not usable, cons up the values and return them.  */
   if (! CONSP (reuse))
-    return Flist (2 * len + 2, data);
+    return Flist (len, data);
 
   /* If REUSE is a list, store as many value elements as will fit
      into the elements of REUSE.  */
   for (i = 0, tail = reuse; CONSP (tail);
        i++, tail = XCDR (tail))
     {
-      if (i < 2 * len + 2)
+      if (i < len)
 	XSETCAR (tail, data[i]);
       else
 	XSETCAR (tail, Qnil);
@@ -2736,8 +2753,8 @@ Return value is undefined if the last search failed.  */)
 
   /* If we couldn't fit all value elements into REUSE,
      cons up the rest of them and add them to the end of REUSE.  */
-  if (i < 2 * len + 2)
-    XSETCDR (prev, Flist (2 * len + 2 - i, data + i));
+  if (i < len)
+    XSETCDR (prev, Flist (len - i, data + i));
 
   return reuse;
 }
@@ -2758,8 +2775,8 @@ LIST should have been created by calling `match-data' previously.  */)
   if (!CONSP (list) && !NILP (list))
     list = wrong_type_argument (Qconsp, list);
 
-  /* Unless we find a marker with a buffer in LIST, assume that this
-     match data came from a string.  */
+  /* Unless we find a marker with a buffer or an explicit buffer
+     in LIST, assume that this match data came from a string.  */
   last_thing_searched = Qt;
 
   /* Allocate registers if they don't already exist.  */
@@ -2790,42 +2807,49 @@ LIST should have been created by calling `match-data' previously.  */)
 
 	search_regs.num_regs = length;
       }
+
+    for (i = 0; i < length; i++)
+      {
+	marker = Fcar (list);
+	if (NILP (marker))
+	  {
+	    search_regs.start[i] = -1;
+	    list = Fcdr (list);
+	  }
+	else
+	  {
+	    int from;
+	    
+	    if (MARKERP (marker))
+	      {
+		if (XMARKER (marker)->buffer == 0)
+		  XSETFASTINT (marker, 0);
+		else
+		  XSETBUFFER (last_thing_searched, XMARKER (marker)->buffer);
+	      }
+	    
+	    CHECK_NUMBER_COERCE_MARKER (marker);
+	    from = XINT (marker);
+	    list = Fcdr (list);
+	    
+	    marker = Fcar (list);
+	    if (MARKERP (marker) && XMARKER (marker)->buffer == 0)
+	      XSETFASTINT (marker, 0);
+	    
+	    CHECK_NUMBER_COERCE_MARKER (marker);
+	    search_regs.start[i] = from;
+	    search_regs.end[i] = XINT (marker);
+	  }
+	list = Fcdr (list);
+      }
+
+    for (; i < search_regs.num_regs; i++)
+      search_regs.start[i] = -1;
   }
 
-  for (i = 0; i < search_regs.num_regs; i++)
-    {
-      marker = Fcar (list);
-      if (NILP (marker))
-	{
-	  search_regs.start[i] = -1;
-	  list = Fcdr (list);
-	}
-      else
-	{
-	  int from;
-
-	  if (MARKERP (marker))
-	    {
-	      if (XMARKER (marker)->buffer == 0)
-		XSETFASTINT (marker, 0);
-	      else
-		XSETBUFFER (last_thing_searched, XMARKER (marker)->buffer);
-	    }
-
-	  CHECK_NUMBER_COERCE_MARKER (marker);
-	  from = XINT (marker);
-	  list = Fcdr (list);
-
-	  marker = Fcar (list);
-	  if (MARKERP (marker) && XMARKER (marker)->buffer == 0)
-	    XSETFASTINT (marker, 0);
-
-	  CHECK_NUMBER_COERCE_MARKER (marker);
-	  search_regs.start[i] = from;
-	  search_regs.end[i] = XINT (marker);
-	}
-      list = Fcdr (list);
-    }
+  if (CONSP(list) && BUFFERP(XCAR(list))) {
+    XSETBUFFER(last_thing_searched, XCAR(list));
+  }
 
   return Qnil;
 }
@@ -2834,6 +2858,7 @@ LIST should have been created by calling `match-data' previously.  */)
    during the execution of a sentinel or filter. */
 static int search_regs_saved;
 static struct re_registers saved_search_regs;
+static Lisp_Object saved_last_thing_searched;
 
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
    if asynchronous code (filter or sentinel) is running. */
@@ -2845,6 +2870,8 @@ save_search_regs ()
       saved_search_regs.num_regs = search_regs.num_regs;
       saved_search_regs.start = search_regs.start;
       saved_search_regs.end = search_regs.end;
+      saved_last_thing_searched = last_thing_searched;
+      last_thing_searched = Qnil;
       search_regs.num_regs = 0;
       search_regs.start = 0;
       search_regs.end = 0;
@@ -2867,7 +2894,8 @@ restore_match_data ()
       search_regs.num_regs = saved_search_regs.num_regs;
       search_regs.start = saved_search_regs.start;
       search_regs.end = saved_search_regs.end;
-
+      last_thing_searched = saved_last_thing_searched;
+      saved_last_thing_searched = Qnil;
       search_regs_saved = 0;
     }
 }

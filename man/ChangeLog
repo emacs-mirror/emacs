@@ -1,3 +1,36 @@
+2004-06-21  Nick Roberts  <nickrob@gnu.org>
+
+	* misc.texi (Shell History Copying): Document comint-insert-input.
+	(Shell Ring): Describe comint-dynamic-list-input-ring here.
+
+2004-06-21  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Top): mention that only Emacs has mouse support.
+	(Getting Started): mention this in a few other places.
+
+2004-06-20  Jesper Harder  <harder@ifa.au.dk>
+
+	* msdog.texi (Text and Binary, MS-DOS Printing): Use m-dash.
+	* custom.texi (Customization): do.
+	* anti.texi (Antinews): do.
+	* abbrevs.texi (Defining Abbrevs): do.
+
+	* programs.texi (Info Lookup): Fix keybinding for
+	info-lookup-symbol.
+
+2004-06-16  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, EMACSSOURCES):
+	Add emacs-xtra.
+	($(infodir)/emacs-xtra, emacs-xtra.dvi): New dependencies.
+	(clean): Add emacs-xtra and flymake.  Remove redundancies.
+
+2004-06-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, ../info/emacs-xtra):
+	Add emacs-xtra.
+	* emacs-xtra.texi: New file.
+
 2004-06-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.texi (Dired Enter): Mention conditions on `ls' switches.

@@ -2074,11 +2074,25 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   :group 'custom-buffer
   :version "20.3")
 
+(defun custom-variable-documentation (variable)
+  "Return documentation of VARIABLE for use in Custom buffer.
+Normally just return the docstring.  But if VARIABLE automatically
+becomes buffer local when set, append a message to that effect."
+  (if (and (local-variable-if-set-p variable)
+	   (or (not (local-variable-p variable))
+	       (with-temp-buffer
+		 (local-variable-if-set-p variable))))
+      (concat (documentation-property variable 'variable-documentation)
+	      "\n
+This variable automatically becomes buffer-local when set outside Custom.
+However, setting it through Custom sets the default value.")
+    (documentation-property variable 'variable-documentation)))
+
 (define-widget 'custom-variable 'custom
   "Customize variable."
   :format "%v"
   :help-echo "Set or reset this variable."
-  :documentation-property 'variable-documentation
+  :documentation-property #'custom-variable-documentation
   :custom-category 'option
   :custom-state nil
   :custom-menu 'custom-variable-menu-create

@@ -2094,7 +2094,7 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		  int dim, M, L;
 		  int size, required;
 		  int produced_chars;
-		  
+
 		  ONE_MORE_BYTE (dim);
 		  ONE_MORE_BYTE (M);
 		  ONE_MORE_BYTE (L);
@@ -4548,10 +4548,6 @@ struct conversion_buffer
   unsigned char *data;
 };
 
-/* Don't use alloca for allocating memory space larger than this, lest
-   we overflow their stack.  */
-#define MAX_ALLOCA 16*1024
-
 /* Allocate LEN bytes of memory for BUF (struct conversion_buffer).  */
 #define allocate_conversion_buffer(buf, len)		\
   do {							\
@@ -6654,7 +6650,7 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
 					accept_latin_extra));
 		}
 	    }
-	      
+
 	  if (! encodable
 	      && ((CHAR_TABLE_P (translation_table)
 		   && ! NILP (Faref (translation_table, ch)))

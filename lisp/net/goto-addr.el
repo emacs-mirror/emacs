@@ -168,7 +168,7 @@ and `goto-address-fontify-p'."
 		(overlay-put this-overlay
                              'mouse-face goto-address-url-mouse-face)
 		(overlay-put this-overlay
-			     'help-echo "mouse-2: follow URL")
+			     'help-echo "mouse-2, C-c RET: follow URL")
 		(overlay-put this-overlay
                              'keymap goto-address-highlight-keymap)
 		(overlay-put this-overlay 'goto-address t)))
@@ -182,7 +182,7 @@ and `goto-address-fontify-p'."
                 (overlay-put this-overlay 'mouse-face
                              goto-address-mail-mouse-face)
 		(overlay-put this-overlay
-			     'help-echo "mouse-2: mail this address")
+			     'help-echo "mouse-2, C-c RET: mail this address")
                 (overlay-put this-overlay
                              'keymap goto-address-highlight-keymap)
 		(overlay-put this-overlay 'goto-address t))))))))

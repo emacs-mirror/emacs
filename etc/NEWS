@@ -2150,6 +2150,9 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** If a command sets transient-mark-mode to `only', that 
+enables Transient Mark mode for the following command, only.
+
 +++
 ** Cleaner way to enter key sequences.
 
@@ -2177,6 +2180,10 @@ current input method to input a character.
 ** New functions posn-at-point and posn-at-x-y return
 click-event-style position information for a given visible buffer
 position or for a given window pixel coordinate.
+
+** skip-chars-forward and skip-chars-backward now handle
+character classes such as [:alpha:], along with individual characters
+and ranges.
 
 ** Function pos-visible-in-window-p now returns the pixel coordinates
 and partial visiblity state of the corresponding row, if the PARTIALLY

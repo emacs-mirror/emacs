@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
+@c 2001, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/minibuf
@@ -214,8 +215,8 @@ functions that do minibuffer input with completion, discard text
 properties unconditionally, regardless of the value of this variable.
 @end defvar
 
-@anchor{Definition of minibuffer-local-map}
 @defvar minibuffer-local-map
+@anchor{Definition of minibuffer-local-map}
 This is the default local keymap for reading from the minibuffer.  By
 default, it makes the following bindings:
 
@@ -531,7 +532,7 @@ etc.
 
 Use of a cons cell as the value for @var{initial} arguments is
 deprecated in user code.
- 
+
 @node Completion
 @section Completion
 @cindex completion
@@ -726,8 +727,8 @@ example for @code{try-completion}:
 @end smallexample
 @end defun
 
-@anchor{Definition of test-completion}
 @defun test-completion string collection &optional predicate
+@anchor{Definition of test-completion}
 This function returns non-@code{nil} if @var{string} is a valid
 completion possibility specified by @var{collection} and
 @var{predicate}.  The arguments are the same as in
@@ -1755,6 +1756,7 @@ This is a normal hook that is run whenever the minibuffer is exited.
 @end defvar
 
 @defvar minibuffer-help-form
+@anchor{Definition of minibuffer-help-form}
 The current value of this variable is used to rebind @code{help-form}
 locally inside the minibuffer (@pxref{Help Functions}).
 @end defvar
