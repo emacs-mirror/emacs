@@ -565,7 +565,12 @@ If there is no frame by that name, signal an error."
 	(error "There is no frame named `%s'" name))
     (make-frame-visible frame)
     (raise-frame frame)
-    (select-frame frame)))
+    (select-frame frame)
+    ;; Ensure, if possible, that frame gets input focus.
+    (if (eq window-system 'w32)
+	(w32-focus-frame frame)
+      (when focus-follows-mouse
+	(set-mouse-position (selected-frame) (1- (frame-width)) 0)))))
 
 ;;;; Frame configurations
 
