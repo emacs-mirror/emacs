@@ -858,8 +858,8 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
   return value;
 }
 
-/* Print an error message for the error DATA
-   onto Lisp output stream STREAM (suitable for the print functions).  */
+/* Print an error message for the error DATA onto Lisp output stream
+   STREAM (suitable for the print functions).  */
 
 void
 print_error_message (data, stream)
@@ -874,15 +874,17 @@ print_error_message (data, stream)
   if (EQ (errname, Qerror))
     {
       data = Fcdr (data);
-      if (!CONSP (data)) data = Qnil;
+      if (!CONSP (data))
+	data = Qnil;
       errmsg = Fcar (data);
       file_error = Qnil;
     }
   else
     {
+      Lisp_Object error_conditions;
       errmsg = Fget (errname, Qerror_message);
-      file_error = Fmemq (Qfile_error,
-			  Fget (errname, Qerror_conditions));
+      error_conditions = Fget (errname, Qerror_conditions);
+      file_error = Fmemq (Qfile_error, error_conditions);
     }
 
   /* Print an error message including the data items.  */
@@ -900,18 +902,23 @@ print_error_message (data, stream)
   else
     write_string_1 ("peculiar error", -1, stream);
 
-  for (i = 0; CONSP (tail); tail = Fcdr (tail), i++)
+  for (i = 0; CONSP (tail); tail = XCDR (tail), i++)
     {
+      Lisp_Object obj;
+
       write_string_1 (i ? ", " : ": ", 2, stream);
-      if (!NILP (file_error))
-	Fprinc (Fcar (tail), stream);
+      obj = XCAR (tail);
+      if (!NILP (file_error) || EQ (errname, Qend_of_file))
+	Fprinc (obj, stream);
       else
-	Fprin1 (Fcar (tail), stream);
+	Fprin1 (obj, stream);
     }
+  
   UNGCPRO;
 }
-
 
+
+
 /*
  * The buffer should be at least as large as the max string size of the
  * largest float, printed in the biggest notation.  This is undoubtedly
