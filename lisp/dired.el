@@ -397,18 +397,28 @@ BODY should not be too long as it is expanded four times."
      ;; save-excursion loses, again
      (dired-move-to-filename)))
 
-(defun dired-get-marked-files (&optional localp arg)
+(defun dired-get-marked-files (&optional localp arg filter)
   "Return the marked files' names as list of strings.
 The list is in the same order as the buffer, that is, the car is the
   first marked file.
-Values returned are normally absolute pathnames.
+Values returned are normally absolute file names.
 Optional arg LOCALP as in `dired-get-filename'.
-Optional second argument ARG forces to use other files.  If ARG is an
-  integer, use the next ARG files.  If ARG is otherwise non-nil, use
-  current file.  Usually ARG comes from the current prefix arg."
-  (save-excursion
-    (nreverse (dired-map-over-marks (dired-get-filename localp) arg))))
-
+Optional second argument ARG specifies files near point
+ instead of marked files.  If ARG is an integer, use the next ARG files.
+  If ARG is otherwise non-nil, use file.  Usually ARG comes from
+  the command's prefix arg.
+Optional third argument FILTER, if non-nil, is a function to select
+  some of the files--those for which (funcall FILTER FILENAME) is non-nil."
+  (let ((all-of-them
+	 (save-excursion
+	   (dired-map-over-marks (dired-get-filename localp) arg)))
+	result)
+    (if (not filter)
+	(nreverse all-of-them)
+      (dolist (file all-of-them)
+	(if (funcall filter file)
+	    (push file result)))
+      result)))
 
 ;; Function dired-ls is redefinable for VMS, ange-ftp, Prospero or
 ;; other special applications.
