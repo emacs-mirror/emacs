@@ -1,5 +1,7 @@
 2002-07-02  Richard M. Stallman  <rms@gnu.org>
 
+	* net/ange-ftp.el (ange-ftp-hook-function): Add file-remote-p prop.
+
 	* files.el (hack-one-local-variable-constantp): New function.
 	(hack-one-local-variable-eval-safep): New function.
 	Check for `eval:' calling fn with `safe-local-eval-function' property.
