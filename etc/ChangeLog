@@ -1,3 +1,21 @@
+2002-05-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* charsets/gb18030-2.awk: New file.
+	
+	* charsets/gb18030-4.awk: Renamed from gb18030.awk.
+
+	* charsets/gb18030-2.map, charsets/gb18030-2.map: New files.
+
+	* charsets/Makefile (MAPS): Delete gb18030-bmp.map, add
+	gb18030-2.map and gb18030-4.map.
+	(gb18030-bmp.map): This target deleted.
+	(gb18030-2.map, gb18030-4.map): New targets.
+
+2002-05-09  Kenichi Handa  <handa@etl.go.jp>
+
+	* charsets/gb18030.awk (END): Initialize lastgb and
+	gbtable[lastgb] correctly.
+
 2002-05-29  Dave Love  <fx@gnu.org>
 
 	* charsets/8859-11.map: New file.
@@ -49,6 +67,7 @@
 	* charsets/windows-1250.map, charsets/windows-1251.map:
 	* charsets/windows-1252.map: New file.
 
+>>>>>>> 1.102.2.6
 2002-05-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* charsets/Makefile (MAPS): Add gbk.map and gb18030-bmp.map.
@@ -67,15 +86,15 @@
 
 	* gnus.xpm: Remove garbages.
 
-2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* letter.xpm: New file, XPM variant of letter.xbm.
 
-2001-12-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Move back.
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
 
@@ -130,7 +149,7 @@
 	* HELLO: Fix the Italian and Maltese entries.  From Trevor Spiteri
 	<tbspit@eng.um.edu.mt>.
 
-2001-08-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* HELLO: Slovak language name added to be compatible with other
 	languages.
@@ -147,7 +166,7 @@
 	per config.sub and config.guess.  Reported by Ryo Furue
 	<furufuru@ccsr.u-tokyo.ac.jp>.
 
-2001-08-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.sk: Updated in accordance with the English version.
 	From Miroslav Va,B9(Bko <vasko@debian.cz>.
@@ -157,16 +176,16 @@
 	* TUTORIAL.ko: Updated in accordance with the English version.
 	From Koaunghi Un <koaunghi@world.kaist.ac.kr>.
 
-2001-08-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs: Update from Milan Zamazal.
 
-2001-08-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs, TUTORIAL.sk, cs-refcard.tex, sk-refcard.tex: e-mail
 	address of Milan Zamazal changed.
 
-2001-08-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL, TUTORIAL.cs: Be consistent when naming CONTROL and
 	META keys.
@@ -198,7 +217,7 @@
 	* sk-dired-ref.tex: New files.
 
 	* cs-survival.tex, cs-dired-ref.ps, cs-dired-ref.tex: New files.
-	From Pavel@Janik.cz (Pavel Jan,Bm(Bk).
+	From Pavel@Janik.cz (Pavel Jan,Am(Bk).
 
 2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 

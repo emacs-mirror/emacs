@@ -1,4 +1,7 @@
-2002-05-29  Kenichi Handa  <handa@etl.go.jp>
+2002-05-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (define-charset): New args :min-code and
+	:max-code.
 
 	* international/mule-conf.el (chinese-gbk): Change :code-offset to
 	#x160000.

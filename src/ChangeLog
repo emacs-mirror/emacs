@@ -1,7 +1,7 @@
 2002-05-29  Kenichi Handa  <handa@etl.go.jp>
 
-	* charset.h: New enums charset_arg_min_code and
-	charset_arg_max_code.
+	* charset.h (enum define_charset_arg_index): New enums
+	charset_arg_min_code and charset_arg_max_code.
 	(struct charset): New member char_index_offset.
 
 	* charset.c (CODE_POINT_TO_INDEX): Take charset->char_index_offset
