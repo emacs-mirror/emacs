@@ -1352,21 +1352,6 @@ lw_allow_resizing (w, flag)
      Boolean flag;
 {
 #if defined (USE_MOTIF)
-  if (flag)
-    {
-      /* Enable the edit widget for resizing. */
-      Arg al[1];
-      
-      XtSetArg (al[0], XtNallowShellResize, 0);
-      XtSetValues (w, al, 1);
-    }
-  else
-    {
-      /* Disable the edit widget from resizing. */
-      Arg al[1];
-      
-      XtSetArg (al[0], XtNallowShellResize, 0);
-      XtSetValues (w, al, 1);
-    }
+  xm_manage_resizing (w, flag);
 #endif
 }
