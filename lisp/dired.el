@@ -1315,12 +1315,12 @@ If it does not match, nil is returned instead of the new string.
 Optional arg LITERAL means to take NEWTEXT literally.
 Optional arg GLOBAL means to replace all matches."
   (if global
-      (let ((start 0))
+      (let ((start 0) ret)
 	(while (string-match regexp string start)
 	  (let ((from-end (- (length string) (match-end 0))))
-	    (setq string (replace-match newtext t literal string))
+	    (setq ret (setq string (replace-match newtext t literal string)))
 	    (setq start (- (length string) from-end))))
-	  string)
+	  ret)
     (if (not (string-match regexp string 0))
 	nil
       (replace-match newtext t literal string))))
