@@ -861,7 +861,7 @@
   (set-case-syntax-pair ?$,1 R(B ?$,1 S(B tbl)
   (set-case-syntax-pair ?$,1 T(B ?$,1 U(B tbl)
   (set-case-syntax-pair ?$,1 V(B ?$,1 W(B tbl)
-;  (set-case-syntax-pair ?$,1!8(B ?,A(B tbl)	; these two have different length!
+;;;  (set-case-syntax-pair ?$,1!8(B ?,A(B tbl)	; these two have different length!
   (set-case-syntax-pair ?$,1!9(B ?$,1!:(B tbl)
   (set-case-syntax-pair ?$,1!;(B ?$,1!<(B tbl)
   (set-case-syntax-pair ?$,1!=(B ?$,1!>(B tbl)
