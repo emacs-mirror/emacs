@@ -1153,6 +1153,7 @@ different buffer menu using the function `msb'."
 
 (defun msb-unload-hook ()
   (msb-mode 0))
+(add-hook 'msb-unload-hook 'msb-unload-hook)
 
 (provide 'msb)
 (eval-after-load "msb" '(run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
