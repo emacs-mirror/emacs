@@ -440,8 +440,7 @@ WIDGET is the widget to apply the filter entries of MENU on."
 	     (get symbol 'custom-tag)
 	   (concat (get symbol 'custom-tag) "...")))
 	(t
-	 (save-excursion
-	   (set-buffer (get-buffer-create " *Custom-Work*"))
+	 (with-current-buffer (get-buffer-create " *Custom-Work*")
 	   (erase-buffer)
 	   (princ symbol (current-buffer))
 	   (goto-char (point-min))
@@ -3695,49 +3694,42 @@ or (if there were none) at the end of the buffer."
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.\n")
-      (mapcar
-       (lambda (symbol)
-	 (let ((spec (car-safe (get symbol 'theme-value)))
-	       (value (get symbol 'saved-value))
-	       (requests (get symbol 'custom-requests))
-	       (now (not (or (custom-variable-p symbol)
-			     (and (not (boundp symbol))
-				  (not (eq (get symbol 'force-value)
-					   'rogue))))))
-	       (comment (get symbol 'saved-variable-comment))
-	       sep)
-	   (when (or (and spec
-			  (eq (nth 0 spec) 'user)
-			  (eq (nth 1 spec) 'set))
-		     comment
-		     (and (null spec) (get symbol 'saved-value)))
-	     (unless (bolp)
-	       (princ "\n"))
-	     (princ " '(")
-	     (prin1 symbol)
-	     (princ " ")
-	     (prin1 (car value))
-	     (cond ((or now requests comment)
-		    (princ " ")
-		    (if now
-			(princ "t")
-		      (princ "nil"))
-		    (cond ((or requests comment)
-			   (princ " ")
-			   (if requests
-			       (prin1 requests)
-			     (princ "nil"))
-			   (cond (comment
-				  (princ " ")
-				  (prin1 comment)
-				  (princ ")"))
-				 (t
-				  (princ ")"))))
-			  (t
-			   (princ ")"))))
-		   (t
-		    (princ ")"))))))
-       saved-list)
+      (dolist (symbol saved-list)
+	(let ((spec (car-safe (get symbol 'theme-value)))
+	      (value (get symbol 'saved-value))
+	      (requests (get symbol 'custom-requests))
+	      (now (not (or (custom-variable-p symbol)
+			    (and (not (boundp symbol))
+				 (not (eq (get symbol 'force-value)
+					  'rogue))))))
+	      (comment (get symbol 'saved-variable-comment))
+	      sep)
+	  ;; Check `requests'.
+	  (dolist (request requests)
+	    (when (and (symbolp request) (not (featurep request)))
+	      (message "Unknown requested feature: %s" request)
+	      (setq requests (delq request requests))))
+	  (when (or (and spec
+			 (eq (nth 0 spec) 'user)
+			 (eq (nth 1 spec) 'set))
+		    comment
+		    (and (null spec) (get symbol 'saved-value)))
+	    (unless (bolp)
+	      (princ "\n"))
+	    (princ " '(")
+	    (prin1 symbol)
+	    (princ " ")
+	    (prin1 (car value))
+	    (when (or now requests comment)
+	      (princ " ")
+	      (prin1 now)
+	      (when (or requests comment)
+		(princ " ")
+		(prin1 requests)
+		(when comment
+		  (princ " ")
+		  (prin1 comment))))
+	    (princ ")"))))
       (if (bolp)
 	  (princ " "))
       (princ ")")
@@ -3769,40 +3761,32 @@ or (if there were none) at the end of the buffer."
   ;; If you edit it by hand, you could mess it up, so be careful.
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.\n")
-      (mapcar
-       (lambda (symbol)
-	 (let ((theme-spec (car-safe (get symbol 'theme-face)))
-	       (value (get symbol 'saved-face))
-	       (now (not (or (get symbol 'face-defface-spec)
-			     (and (not (custom-facep symbol))
-				  (not (get symbol 'force-face))))))
-	       (comment (get symbol 'saved-face-comment)))
-	   (when (or (and theme-spec
-			  (eq (nth 0 theme-spec) 'user)
-			  (eq (nth 1 theme-spec) 'set))
-		     comment
-		     (and (null theme-spec) (get symbol 'saved-face)))
-	     ;; Don't print default face here.
-	     (unless (bolp)
-	       (princ "\n"))
-	     (princ " '(")
-	     (prin1 symbol)
-	     (princ " ")
-	     (prin1 value)
-	     (cond ((or now comment)
-		    (princ " ")
-		    (if now
-			(princ "t")
-		      (princ "nil"))
-		    (cond (comment
-			   (princ " ")
-			   (prin1 comment)
-			   (princ ")"))
-			  (t
-			   (princ ")"))))
-		   (t
-		    (princ ")"))))))
-       saved-list)
+      (dolist (symbol saved-list)
+	(let ((spec (car-safe (get symbol 'theme-face)))
+	      (value (get symbol 'saved-face))
+	      (now (not (or (get symbol 'face-defface-spec)
+			    (and (not (custom-facep symbol))
+				 (not (get symbol 'force-face))))))
+	      (comment (get symbol 'saved-face-comment)))
+	  (when (or (and spec
+			 (eq (nth 0 spec) 'user)
+			 (eq (nth 1 spec) 'set))
+		    comment
+		    (and (null spec) (get symbol 'saved-face)))
+	    ;; Don't print default face here.
+	    (unless (bolp)
+	      (princ "\n"))
+	    (princ " '(")
+	    (prin1 symbol)
+	    (princ " ")
+	    (prin1 value)
+	    (when (or now comment)
+	      (princ " ")
+	      (prin1 now)
+	      (when comment
+		(princ " ")
+		(prin1 comment)))
+	    (princ ")"))))
       (if (bolp)
 	  (princ " "))
       (princ ")")
