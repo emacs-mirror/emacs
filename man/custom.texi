@@ -200,7 +200,7 @@ the active fields and other features.
 @menu
 * Groups: Customization Groups.
                              How options are classified in a structure.
-* Changing an Option::       How to edit a value and set an option.
+* Changing a Variable::      How to edit a value and set an option.
 * Saving Customizations::    Details of saving customizations.
 * Face Customization::       How to edit the attributes of a face.
 * Specific Customization::   Making a customization buffer for specific
