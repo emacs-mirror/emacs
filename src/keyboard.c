@@ -699,7 +699,7 @@ echo_prompt (str)
     {
       if (multibyte_p)
 	{
-	  unsigned char *p = XSTRING (str)->data, *lastp;
+	  unsigned char *p = XSTRING (str)->data, *lastp = p;
 	  unsigned char *pend = p + ECHOBUFSIZE - 4;
 
 	  while (p < pend)
