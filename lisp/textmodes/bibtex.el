@@ -1489,8 +1489,8 @@ an undefined location.
     (end-of-bibtex-entry)
     ;; sct@dcs.edinburgh.ac.uk
     (save-excursion
-      (previous-line 1)
-      (end-of-line)
+      (backward-char 1)
+      (skip-syntax-backward " >")
       (if (eq (preceding-char) ?,)
  	  (backward-delete-char 1)))
     (skip-whitespace-and-comments)))
