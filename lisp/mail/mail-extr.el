@@ -1533,7 +1533,6 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 		    (while (re-search-forward mail-extr-bad-dot-pattern nil t)
 		      (replace-match "\\1 \\2" t))))))
 
-
       ;; Loop over the words (and other junk) in the name.
       (goto-char (point-min))
       (while (not name-done-flag)
@@ -1647,23 +1646,6 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	    (if initial
 		(insert initial ". ")))))
 	 
-	 ;; Handle & substitution
-	 ;; This is turned off because an & from the passwd file
-	 ;; should not really get into a mail address without
-	 ;; being substituted, and people use it for other things.
-;;;	 ((and (or (bobp)
-;;;		   (eq ?\  (preceding-char)))
-;;;	       (looking-at "&\\( \\|\\'\\)"))
-;;;	  (mail-extr-delete-char 1)
-;;;	  (capitalize-region
-;;;	   (point)
-;;;	   (progn
-;;;	     (insert-buffer-substring canonicalization-buffer
-;;;				      mbox-beg mbox-end)
-;;;	     (point)))
-;;;	  (setq disable-initial-guessing-flag t)
-;;;	  (setq word-found-flag t))
-	 
 	 ;; Handle *Stupid* VMS date stamps
 	 ((looking-at mail-extr-stupid-vms-date-stamp-pattern)
 	  (replace-match "" t))
@@ -1726,6 +1708,28 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	  (setq word-found-flag t)
 	  (setq name-done-flag t))
 	 
+	 ;; Handle & substitution, when & is last and is not first.
+	 ((and (> word-count 0)
+	       (eq ?\  (preceding-char))
+	       (eq (following-char) ?&)
+	       (eq (1+ (point)) (point-max)))
+	  (mail-extr-delete-char 1)
+	  (capitalize-region
+	   (point)
+	   (progn
+	     (insert-buffer-substring canonicalization-buffer
+				      mbox-beg mbox-end)
+	     (point)))
+	  (setq disable-initial-guessing-flag t)
+	  (setq word-found-flag t))
+
+	 ;; Handle & between names, as in "Bob & Susie".
+	 ((and (> word-count 0) (eq (following-char) ?\&))
+	  (setq name-beg (point))
+	  (setq name-end (1+ name-beg))
+	  (setq word-found-flag t)
+	  (goto-char name-end))
+
 	 ;; Regular name words
 	 ((looking-at mail-extr-name-pattern)
 	  (setq name-beg (point))
