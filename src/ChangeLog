@@ -1,5 +1,12 @@
 2000-04-19  Dave Love  <fx@gnu.org>
 
+	* s/bsd386.h, s/freebsd.h, s/gnu.h, s/netbsd.h: Revert 2000-04-14
+	change.
+
+	* Makefile.in (LIBS): Don't use.
+	(GETLOADAVG_OBJ): Define again.
+	(otherobj): Add GETLOADAVG_OBJ.
+
 	* buffer.c (Fmake_indirect_buffer): Escape newline in doc.
 
 2000-04-18  Gerd Moellmann  <gerd@gnu.org>
