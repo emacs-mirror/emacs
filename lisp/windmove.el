@@ -98,7 +98,13 @@
 ;;
 ;; Put the following line in your `.emacs' file:
 ;;
-;;     (windmove-default-keybindings)    ; default keybindings
+;;     (windmove-default-keybindings)         ; shifted arrow keys
+;;
+;; or
+;;
+;;     (windmove-default-keybindings 'hyper)  ; etc.
+;;
+;; to use another modifier key.
 ;;
 ;;
 ;; If you wish to enable wrap-around, also add a line like:
@@ -110,7 +116,7 @@
 ;; causes the occasional creation of a "lost column" between windows,
 ;; so that two adjacent windows do not actually touch, you may want to
 ;; increase the value of `windmove-window-distance-delta' to 2 or 3:
-;;     
+;;
 ;;     (setq windmove-window-distance-delta 2)
 ;;
 
@@ -589,13 +595,16 @@ If no window is at the desired location, an error is signaled."
 ;; probably want to use different bindings in that case.
 
 ;;;###autoload
-(defun windmove-default-keybindings ()
-  "Set up default keybindings for `windmove'."
+(defun windmove-default-keybindings (&optional modifier)
+  "Set up keybindings for `windmove'.
+Keybindings are of the form MODIFIER-{left,right,up,down}.
+Default MODIFIER is 'shift."
   (interactive)
-  (global-set-key [(shift left)]  'windmove-left)
-  (global-set-key [(shift up)]    'windmove-up)
-  (global-set-key [(shift right)] 'windmove-right)
-  (global-set-key [(shift down)]  'windmove-down))
+  (unless modifier (setq modifier 'shift))
+  (global-set-key (vector (list modifier 'left))  'windmove-left)
+  (global-set-key (vector (list modifier 'right)) 'windmove-right)
+  (global-set-key (vector (list modifier 'up))    'windmove-up)
+  (global-set-key (vector (list modifier 'down))  'windmove-down))
 
 
 (provide 'windmove)
