@@ -6878,6 +6878,13 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
   if (nargs < 1 + XINT (target_idx))
     error ("Too few arguments for operation: %s",
 	   SDATA (SYMBOL_NAME (operation)));
+  /* For write-region, if the 6th argument (i.e. VISIT, the 5th
+     argument to write-region) is string, it must be treated as a
+     target file name.  */
+  if (EQ (operation, Qwrite_region)
+      && nargs > 5
+      && STRINGP (args[5]))
+    target_idx = 4;
   target = args[XINT (target_idx) + 1];
   if (!(STRINGP (target)
 	|| (EQ (operation, Qopen_network_stream) && INTEGERP (target))))
