@@ -1,3 +1,13 @@
+2000-06-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* xlwmenuP.h (_XlwMenu_part): Add free_top_shadow_color_p and
+	free_bottom_shadow_color_p.
+
+	* xlwmenu.c (make_shadow_gcs): Set free_top_shadow_color_p
+	and free_top_shadow_color_p flags in the menu widget if
+	top and bottom shadow colors must be freed.
+	(release_shadow_gcs): Free colors only if they must be freed.
+
 2000-06-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xlwmenu.c (make_shadow_gcs): Free and copy colors so that

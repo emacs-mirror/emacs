@@ -745,7 +745,7 @@ then used.
 Default: @code{t}
 
 A non-@code{nil} value means that @code{-q} is passed to gzip overriding a
-verbose GNU zip's @samp{GZIP} environment variable.
+verbose GNU zip's @env{GZIP} environment variable.
 
 @item dired-guess-shell-znew-switches nil
 @vindex dired-guess-shell-znew-switches nil
