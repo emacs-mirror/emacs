@@ -37,16 +37,6 @@ typedef struct OpaqueWindowPtr* Window;
 typedef WindowPtr Window;
 #endif
 
-/* A definition of XColor for non-X frames.  */
-#ifndef HAVE_X_WINDOWS
-typedef struct {
-  unsigned long pixel;
-  unsigned short red, green, blue;
-  char flags;
-  char pad;
-} XColor;
-#endif
-
 #define FACE_DEFAULT (~0)
 
 
