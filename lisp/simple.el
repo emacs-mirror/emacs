@@ -4042,8 +4042,10 @@ For more details, see `delete-key-deletes-forward'."
 		  ([C-delete] [C-backspace] kill-word backward-kill-word)
 		  ([M-delete] [M-backspace] kill-word backward-kill-word)
 		  ([C-M-delete] [C-M-backspace] kill-sexp backward-kill-sexp)
-		  (,esc-map
-		   [C-delete] [C-backspace] kill-sexp backward-kill-sexp))))
+		  (,esc-map [C-delete] [C-backspace] kill-sexp
+			    backward-kill-sexp)
+		  (,isearch-mode-map [backspace] [delete] isearch-delete-char
+				     isearch-other-control-char))))
 	   (dolist (binding bindings)
 	     (let ((map global-map))
 	       (when (keymapp (car binding))
