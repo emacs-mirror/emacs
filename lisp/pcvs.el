@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.9 2000/08/16 20:27:37 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.10 2000/09/29 03:14:36 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -55,6 +55,8 @@
 ;;; Todo:
 
 ;; ******** FIX THE DOCUMENTATION *********
+;; 
+;; - use UP-TO-DATE rather than DEAD when cleaning before `examine'.
 ;; 
 ;; - hide fileinfos without getting rid of them (will require ewok work).
 ;; - add toolbar entries
@@ -1445,7 +1447,7 @@ Signal an error if there is no backup file."
     (when (and tb (buffer-live-p tb) (not (buffer-modified-p tb)))
       (let ((win (get-buffer-window tb t)))
 	(kill-buffer tb)
-	(when (window-live-p win) (delete-window win)))))
+	(when (window-live-p win) (ignore-errors (delete-window win))))))
   ;; switch back to the *cvs* buffer
   (when (and cvs-buf (buffer-live-p cvs-buf)
 	     (not (get-buffer-window cvs-buf t)))
@@ -1470,21 +1472,21 @@ Signal an error if there is no backup file."
 
 (defun cvs-retrieve-revision (fileinfo rev)
   "Retrieve the given REVision of the file in FILEINFO into a new buffer."
-  (save-excursion
-    (let* ((file (cvs-fileinfo->full-path fileinfo))
-	   (buf (create-file-buffer (concat file "." rev))))
-      (set-buffer buf)
-      (message "Retrieving revision %s..." rev)
-      (let ((res (call-process cvs-program nil t nil
-			       "-q" "update" "-p" "-r" rev file)))
-	(when (and res (not (and (equal 0 res))))
-	  (error "Something went wrong retrieving revision %s: %s" rev res))
-	(set-buffer-modified-p nil)
-	(let ((buffer-file-name (expand-file-name file)))
-	  (after-find-file))
-	(toggle-read-only 1)
-	(message "Retrieving revision %s... Done" rev)
-	buf))))
+  (let* ((file (cvs-fileinfo->full-path fileinfo))
+	 (buffile (concat file "." rev)))
+    (or (find-buffer-visiting buffile)
+	(with-current-buffer (create-file-buffer buffile)
+	  (message "Retrieving revision %s..." rev)
+	  (let ((res (call-process cvs-program nil t nil
+				   "-q" "update" "-p" "-r" rev file)))
+	    (when (and res (not (and (equal 0 res))))
+	      (error "Something went wrong retrieving revision %s: %s" rev res))
+	    (set-buffer-modified-p nil)
+	    (let ((buffer-file-name (expand-file-name file)))
+	      (after-find-file))
+	    (toggle-read-only 1)
+	    (message "Retrieving revision %s... Done" rev)
+	    (current-buffer))))))
 
 (eval-and-compile (autoload 'smerge-ediff "smerge-mode"))
 
@@ -2013,7 +2015,7 @@ this file, or a list of arguments to send to the program."
 ;;
 
 ;;;###autoload
-(defcustom cvs-dired-action 'cvs-examine
+(defcustom cvs-dired-action 'cvs-quickdir
   "The action to be performed when opening a CVS directory.
 Sensible values are `cvs-examine', `cvs-status' and `cvs-quickdir'."
   :group 'pcl-cvs
