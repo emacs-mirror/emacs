@@ -926,33 +926,31 @@ It returns t if it got any new messages."
     (while files
       (setq file (file-truename
 		  (expand-file-name (substitute-in-file-name (car files))))
-	    ;;>> un*x specific <<
-	    ;; The "+" used to be "~", which is an extremely poor choice;
-	    ;; it might accidentally be deleted when space is low
-	    ;; (as happened to me!).
-	    tofile (concat file "+"))
-      ;; If getting from mail spool directory,
-      ;; use movemail to move rather than just renaming,
-      ;; so as to interlock with the mailer.
-      (setq movemail (string= file
-			      (file-truename
-			       (concat rmail-spool-directory
-				       (file-name-nondirectory file))))
-	    popmail (string-match "^po:" (file-name-nondirectory file)))
+	    tofile (expand-file-name
+		    ;; Generate name to move to from inbox name,
+		    ;; in case of multiple inboxes that need moving.
+		    (concat ".newmail-" (file-name-nondirectory file))
+		    ;; Use the directory of this rmail file
+		    ;; because it's a nuisance to use the homedir
+		    ;; if that is on a full disk and this rmail
+		    ;; file isn't.
+		    (file-name-directory
+		     (expand-file-name buffer-file-name))))
+      ;; Always use movemail to rename the file,
+      ;; since there can be mailboxes in various directories.
+      (setq movemail t)
+;;;      ;; If getting from mail spool directory,
+;;;      ;; use movemail to move rather than just renaming,
+;;;      ;; so as to interlock with the mailer.
+;;;      (setq movemail (string= file
+;;;			      (file-truename
+;;;			       (concat rmail-spool-directory
+;;;				       (file-name-nondirectory file)))))
+      (setq popmail (string-match "^po:" (file-name-nondirectory file)))
       (if popmail (setq file (file-name-nondirectory file)
 			renamep t))
       (if movemail
 	  (progn
-	    (setq tofile (expand-file-name
-			   ;; Generate name to move to from inbox name,
-			   ;; in case of multiple inboxes that need moving.
-			   (concat ".newmail-" (file-name-nondirectory file))
-			   ;; Use the directory of this rmail file
-			   ;; because it's a nuisance to use the homedir
-			   ;; if that is on a full disk and this rmail
-			   ;; file isn't.
-			   (file-name-directory
-			     (expand-file-name buffer-file-name))))
 	    ;; On some systems, /usr/spool/mail/foo is a directory
 	    ;; and the actual inbox is /usr/spool/mail/foo/foo.
 	    (if (file-directory-p file)
