@@ -2336,6 +2336,10 @@ configuration files.
 * Lisp Changes in Emacs 21.4
 
 +++
+** read-from-minibuffer now accepts an additional argument KEEP-ALL
+saying to put all inputs in the history list, even empty ones.
+
++++
 ** The new variable search-spaces-regexp controls how to search
 for spaces in a regular expression.  If it is non-nil, it should be a
 regular expression, and any series of spaces stands for that regular
