@@ -4336,7 +4336,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (let ((fn (get operation 'ange-ftp)))
     (if fn (save-match-data (apply fn args))
       (ange-ftp-run-real-handler operation args))))
-
+;;;###autoload
+;;; These file names are remote file names.
+(put 'ange-ftp-hook-function 'file-remote-p t)
 
 ;;; This regexp takes care of real ange-ftp file names (with a slash
 ;;; and colon).
