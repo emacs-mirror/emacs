@@ -698,16 +698,21 @@ and initial semicolons."
        ;; A line with some code, followed by a comment?  Remember that the
        ;; semi which starts the comment shouldn't be part of a string or
        ;; character.
-       ((progn
-	  (while (not (looking-at ";\\|$"))
-	    (skip-chars-forward "^;\n\"\\\\?")
-	    (cond
-	     ((eq (char-after (point)) ?\\) (forward-char 2))
-	     ((memq (char-after (point)) '(?\" ??)) (forward-sexp 1))))
-	  (looking-at ";+[\t ]*"))
+       ((condition-case nil
+	    (save-restriction
+	      (narrow-to-region (point-min)
+				(save-excursion (end-of-line) (point)))
+	      (while (not (looking-at ";\\|$"))
+		(skip-chars-forward "^;\n\"\\\\?")
+		(cond
+		 ((eq (char-after (point)) ?\\) (forward-char 2))
+		 ((memq (char-after (point)) '(?\" ??)) (forward-sexp 1))))
+	      (looking-at ";+[\t ]*"))
+	  (error nil))
 	(setq has-comment t)
 	(setq comment-fill-prefix
-	      (concat (make-string (current-column) ? )
+	      (concat (make-string (/ (current-column) 8) ?\t)
+		      (make-string (% (current-column) 8) ?\ )
 		      (buffer-substring (match-beginning 0) (match-end 0)))))))
 
     (if (not has-comment)
@@ -715,13 +720,14 @@ and initial semicolons."
 
       ;; Narrow to include only the comment, and then fill the region.
       (save-restriction
+	(beginning-of-line)
 	(narrow-to-region
 	 ;; Find the first line we should include in the region to fill.
 	 (save-excursion
 	   (while (and (zerop (forward-line -1))
 		       (looking-at "^[ \t]*;")))
 	   ;; We may have gone to far.  Go forward again.
-	   (or (looking-at "^[ \t]*;")
+	   (or (looking-at ".*;")
 	       (forward-line 1))
 	   (point))
 	 ;; Find the beginning of the first line past the region to fill.
@@ -734,7 +740,7 @@ and initial semicolons."
 	(let ((paragraph-start (concat paragraph-start "\\|[ \t;]*$"))
 	      (paragraph-separate (concat paragraph-start "\\|[ \t;]*$"))
 	      (fill-prefix comment-fill-prefix))
-	  (fill-paragraph justify))))
+	  (fill-region (point-min) (point-max) justify t))))
     t))
 
 
