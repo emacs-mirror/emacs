@@ -133,23 +133,56 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
       (insert "  ")
       (goto-char (point-min))
 
-      (let ((prefixcol 0))
+      ;; This is the actual filling loop.
+      (let ((prefixcol 0) linebeg)
 	(while (not (eobp))
+	  (setq linebeg (point))
 	  (move-to-column (1+ fill-column))
 	  (if (eobp)
 	      nil
-	    (skip-chars-backward "^ \n")
+	    ;; Move back to start of word.
+	    (skip-chars-backward "^ \n" linebeg)
+	    ;; Don't break after a period followed by just one space.
+	    ;; Move back to the previous place to break.
+	    ;; The reason is that if a period ends up at the end of a line,
+	    ;; further fills will assume it ends a sentence.
+	    ;; If we now know it does not end a sentence,
+	    ;; avoid putting it at the end of the line.
+	    (while (and (> (point) (+ linebeg 2))
+			(eq (preceding-char) ?\ )
+			(eq (char-after (- (point) 2)) ?\.))
+	      (forward-char -2)
+	      (skip-chars-backward "^ \n" linebeg))
 	    (if (if (zerop prefixcol) (bolp) (>= prefixcol (current-column)))
-		(skip-chars-forward "^ \n")
+		;; Keep at least one word even if fill prefix exceeds margin.
+		;; This handles all but the first line of the paragraph.
+		(progn
+		  (skip-chars-forward " ")
+		  (skip-chars-forward "^ \n"))
+	      ;; Normally, move back over the single space between the words.
 	      (forward-char -1)))
-	  ;; Inserting the newline first prevents losing track of point.
+	    (if (and fill-prefix (zerop prefixcol)
+		     (< (- (point) (point-min)) (length fill-prefix))
+		     (string= (buffer-substring (point-min) (point))
+			      (substring fill-prefix 0 (- (point) (point-min)))))
+		;; Keep at least one word even if fill prefix exceeds margin.
+		;; This handles the first line of the paragraph.
+		(progn
+		  (skip-chars-forward " ")
+		  (skip-chars-forward "^ \n")))
+	  ;; Replace all whitespace here with one newline.
+	  ;; Insert before deleting, so we don't forget which side of
+	  ;; the whitespace point or markers used to be on.
 	  (skip-chars-backward " ")
 	  (insert ?\n)
 	  (delete-horizontal-space)
+	  ;; Insert the fill prefix at start of each line.
+	  ;; Set prefixcol so whitespace in the prefix won't get lost.
 	  (and (not (eobp)) fill-prefix (not (equal fill-prefix ""))
 	       (progn
 		 (insert fill-prefix)
 		 (setq prefixcol (current-column))))
+	  ;; Justify the line just ended, if desired.
 	  (and justify-flag (not (eobp))
 	       (progn
 		 (forward-line -1)
