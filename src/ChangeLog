@@ -1,3 +1,9 @@
+2001-02-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (setup_echo_area_for_printing): Set truncate_lines to
+	nil, otherwise we're left with truncate_lines t when a message
+	is printed with message-truncate-lines bound to t.
+
 2001-02-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Fmove_to_window_line): Undo last change.
