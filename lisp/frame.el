@@ -108,7 +108,8 @@ These supersede the values given in `default-frame-alist'.")
 		  (if (and (consp (car tail))
 			   (memq (car (car tail)) '(height width top left)))
 		      (setq initial-frame-alist
-			    (delq tail initial-frame-alist)))))
+			    (delq tail initial-frame-alist)))
+		  (setq tail (cdr tail))))
 	      ;; Handle `reverse' as a parameter.
 	      (if (cdr (or (assq 'reverse initial-frame-alist)
 			   (assq 'reverse default-frame-alist)
