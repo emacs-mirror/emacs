@@ -105,6 +105,42 @@ bind C-w to `isearch-yank-word' in `isearch-mode-map'.
 ** In GUD mode when talking to GDB, C-x C-a C-j "jumps" the program
 counter to the specified source line (the one where point is).
 
+** GUD mode improvements fo jdb:
+
+*** Search for source files using jdb classpath and class
+    information. Fast startup since there is no need to scan all
+    source files up front. There is also no need to create and maintain
+    lists of source directories to scan. Look at `gud-jdb-use-classpath'
+    and `gud-jdb-classpath' customization variables documentation.
+
+*** Supports the standard breakpoint (gud-break, gud-clear)
+    set/clear operations from java source files under the classpath, stack
+    traversal (gud-up, gud-down), and run until current stack finish
+    (gud-finish).
+
+*** Supports new jdb (Java 1.2 and later) in addition to oldjdb
+    (Java 1.1 jdb).
+
+*** The previous method of searching for source files has been
+    preserved in case someone still wants/needs to use it.
+    Set gud-jdb-use-classpath to nil.
+
+  Added Customization Variables
+
+*** gud-jdb-command-name.  What command line to use to invoke jdb.
+
+*** gud-jdb-use-classpath. Allows selection of java source file searching
+    method: set to t for new method, nil to scan gud-jdb-directories for
+    java sources (previous method).
+
+*** gud-jdb-directories. List of directories to scan and search for java
+    classes using the original gud-jdb method (if gud-jdb-use-classpath
+    is nil).
+
+  Minor Improvements
+
+*** Do not allow debugger output history variable to grow without bounds.
+
 ** hide-ifdef-mode now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
 changes the behavior of motion commands line C-e and C-p.

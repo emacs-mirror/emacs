@@ -2,6 +2,40 @@
 
 	* window.el (window-body-height): New function.
 
+2002-01-18  Zoltan Kemenczy  <kemenczy@rogers.com>
+
+	* gud.el (easy-mmode-defmap): Enable "Up Stack", "Down Stack", and
+	"Finish Function" menu map entries for jdb mode.
+	(gud-jdb-use-classpath): New customization variable.
+	(gud-jdb-command-name): Add customization.
+	(gud-jdb-classpath, gud-marker-acc-max-length): New variables.
+	(gud-jdb-classpath-string): New variable.
+	(gud-jdb-source-files, gud-jdb-class-source-alist): Add doc strings.
+	(gud-jdb-build-source-files-list): Likewise.
+	(gud-jdb-massage-args): Record any command argument classpath
+	string in `gud-jdb-classpath-string'.
+	(gud-jdb-lowest-stack-level): New function, finds bottom of current
+	java call stack in jdb output.
+	(gud-jdb-find-source-using-classpath, gud-jdb-find-source)
+	(gud-jdb-parse-classpath-string): New functions.
+	(gud-jdb-marker-filter): Search/detect classpath information in
+	jdb's output.  marker regexp updated to match oldjdb and jdb output
+	formats.  Expand search for source files to include new/old methods
+	using new functions above.  Do not allow `gud-marker-acc' to grow
+	without bound.
+	(jdb): Set classpath information (if available) as jdb is started.
+	Change `gud-break' and `gud-remove'
+	to use new %c ("class") escape in format strings.  Add
+	`gud-finish', `gud-up', `gud-down' command string functions, and
+	add them to the local menu map.  Update `comint-prompt-regexp' for
+	jdb and oldjdb.  If attaching to an already running java VM and
+	configured to use classpath, send command to query for classpath,
+	else use previous method for finding and parsing java
+	sources.  Set `gud-jdb-find-source' function accordingly.
+	(gud-mode): Doc fix.
+	(gud-format-command): Add support for new %c ("class") escape.
+	(gud-find-class): New function in support of %c escape.
+
 2002-01-17  Richard M. Stallman  <rms@gnu.org>
 
 	* ibuf-ext.el: Enable byte-compile-dynamic.
