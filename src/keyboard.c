@@ -1645,7 +1645,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (!NILP (c))
 	break;
       if (commandflag >= 0 && !input_pending && !detect_input_pending ())
-	redisplay ();
+	{
+	  prepare_menu_bars ();
+	  redisplay ();
+	}
     }
 
   /* Terminate Emacs in batch mode if at eof.  */
