@@ -1164,13 +1164,13 @@ See also the function `substitute-in-file-name'.")
   /* Finally, if no prefix has been specified and nm is not absolute,
      then it must be expanded relative to default_directory. */
 
-  if (
+  if (1
 #ifndef DOS_NT
       /* /... alone is not absolute on DOS and Windows. */
-      !IS_DIRECTORY_SEP (nm[0])
+      && !IS_DIRECTORY_SEP (nm[0])
 #endif
 #ifdef WINDOWSNT
-      !(IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
+      && !(IS_DIRECTORY_SEP (nm[0]) && IS_DIRECTORY_SEP (nm[1]))
 #endif
 #ifdef VMS
       && !index (nm, ':')
