@@ -334,7 +334,9 @@ the face is also set; its value is the face name."
       (goto-char start)
       (beginning-of-line)
       (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
-      (let ((buffer-read-only nil)
+      (let ((inhibit-read-only t)
+	    ;; Prevent warnings if the disk file has been altered.
+	    (buffer-file-name)
 	    ;; Suppress all undo activity.
 	    (buffer-undo-list t)
 	    (modified (buffer-modified-p))
@@ -452,7 +454,9 @@ the face is also set; its value is the face name."
 (defun font-lock-unfontify-region (beg end)
   (let ((modified (buffer-modified-p))
 	(buffer-undo-list t)
-	(buffer-read-only nil))
+	(inhibit-read-only t)
+	;; Prevent warnings if the disk file has been altered.
+	(buffer-file-name))
     (remove-text-properties beg end '(face nil))
     (set-buffer-modified-p modified)))
 
@@ -493,7 +497,9 @@ the face is also set; its value is the face name."
   (let ((case-fold-search font-lock-keywords-case-fold-search)
 	(keywords font-lock-keywords)
 	(count 0)
-	(buffer-read-only nil)
+	;; Prevent warnings if the disk file has been altered.
+	(buffer-file-name)
+	(inhibit-read-only t)
 	(buffer-undo-list t)
 	(modified (buffer-modified-p))
 	(old-syntax (syntax-table))
