@@ -249,7 +249,7 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
   (setq local-abbrev-table perl-mode-abbrev-table)
   (set-syntax-table perl-mode-syntax-table)
   (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^$\\|" page-delimiter))
+  (setq paragraph-start (concat "$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
