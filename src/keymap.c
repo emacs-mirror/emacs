@@ -974,7 +974,7 @@ KEY is a string or a vector of symbols and characters meaning a
 sequence of keystrokes and events.  Non-ASCII characters with codes
 above 127 (such as ISO Latin-1) can be included if you use a vector.
 Using [t] for KEY creates a default definition, which applies to any
-event type that has no other definition in thus keymap.
+event type that has no other definition in this keymap.
 
 DEF is anything that can be a key's definition:
  nil (means key is undefined in this keymap),
