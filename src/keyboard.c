@@ -5929,7 +5929,7 @@ is nil, then the event will be put off until after the current key sequence.\n\
 `read-key-sequence' checks `function-key-map' for function key\n\
 sequences, where they wouldn't conflict with ordinary bindings.  See\n\
 `function-key-map' for more details.")
-  (prompt, continue_echo)
+  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame)
 #endif
 
 DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
