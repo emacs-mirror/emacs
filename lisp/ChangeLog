@@ -1,5 +1,12 @@
 2000-11-15  Dave Love  <fx@gnu.org>
 
+	* wid-edit.el (widget-specify-field, widget-specify-button): If
+	:help-echo is a function, set help-echo of overlay to
+	widget-mouse-help.
+	(widget-mouse-help): New function.
+	(widget-echo-help): Rewritten for :help-echo functions only taking
+	a widget arg.
+
 	* net/eudc-bob.el (eudc-bob-can-display-inline-images): Use
 	display-graphic-p.
 	(eudc-bob-display-jpeg) <!eudc-xemacs-p>: Test create-image bound
