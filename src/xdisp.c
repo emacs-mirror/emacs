@@ -14163,7 +14163,6 @@ If third optional arg NO-PROPS is non-nil, string is not propertized.  */)
      Lisp_Object format, window, no_props;
 {
   struct it it;
-  struct face *face;
   int len;
   struct window *w;
   struct buffer *old_buffer = NULL;
