@@ -1,3 +1,28 @@
+2000-10-23  Andrew Choi  <akochoi@i-cable.com>
+
+	* cus-edit.el (custom-button-face): Use 3D look for mac.
+	(custom-button-pressed-face): Likewise.
+
+	* faces.el (set-face-attributes-from-resources): Handle mac frames
+	in the same way as x and w32 frames.
+	(face-valid-attribute-values): Likewise.
+	(read-face-attribute): Likewise.
+	(defined-colors): Likewise.
+	(color-defined-p): Likewise.
+	(color-values): Likewise.
+	(display-grayscale-p): Likewise.
+	(face-set-after-frame-default): Likewise.
+	(mode-line): Same default face as for x and w32.
+	(tool-bar): Likewise.
+
+	* frame.el: Remove call to frame-notice-user-settings at end of
+	the file.
+
+	* info.el (Info-fontify-node): make underlines invisible for mac
+	as for x, pc, and w32 frame types.
+
+	* term/mac-win.el: New file.
+
 2000-10-22  Dave Love  <fx@gnu.org>
 
 	* textmodes/refill.el: New file.

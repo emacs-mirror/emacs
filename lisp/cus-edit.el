@@ -1711,6 +1711,9 @@ and `face'."
     (((type w32) (class color))		; Like default modeline
      (:box (:line-width 2 :style released-button)
 	   :background "lightgrey" :foreground "black"))
+    (((type mac) (class color))		; Like default modeline
+     (:box (:line-width 2 :style released-button)
+	   :background "lightgrey" :foreground "black"))
     (t
      nil))
   "Face used for buttons in customization buffers."
@@ -1722,6 +1725,9 @@ and `face'."
      (:box (:line-width 2 :style pressed-button)
 	   :background "lightgrey" :foreground "black"))
     (((type w32) (class color))
+     (:box (:line-width 2 :style pressed-button)
+	   :background "lightgrey" :foreground "black"))
+    (((type mac) (class color))
      (:box (:line-width 2 :style pressed-button)
 	   :background "lightgrey" :foreground "black"))
     (t

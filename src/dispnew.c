@@ -60,6 +60,10 @@ Boston, MA 02111-1307, USA.  */
 #include "w32term.h"
 #endif /* HAVE_NTGUI */
 
+#ifdef macintosh
+#include "macterm.h"
+#endif /* macintosh */
+
 /* Include systime.h after xterm.h to avoid double inclusion of time.h.  */
 
 #include "systime.h"
@@ -6086,6 +6090,16 @@ init_display ()
       return;
     }
 #endif /* HAVE_NTGUI */
+
+#ifdef macintosh
+  if (!inhibit_window_system) 
+    {
+      Vwindow_system = intern ("mac");
+      Vwindow_system_version = make_number (1);
+      adjust_frame_glyphs_initially ();
+      return;
+    }
+#endif /* macintosh */
 
   /* If no window system has been specified, try to use the terminal.  */
   if (! isatty (0))

@@ -300,7 +300,7 @@ specifies an invalid attribute."
 
 (defun set-face-attributes-from-resources (face frame)
   "Set attributes of FACE from X resources for FRAME."
-  (when (memq (framep frame) '(x w32))
+  (when (memq (framep frame) '(x w32 mac))
     (dolist (definition face-x-resources)
       (let ((attribute (car definition)))
 	(dolist (entry (cdr definition))
@@ -777,7 +777,7 @@ an integer value."
 	    ((:height)
 	     'integerp)
 	    (:stipple
-	     (and (memq window-system '(x w32))
+	     (and (memq window-system '(x w32 mac))
 		  (mapcar #'list
 			  (apply #'nconc
 				 (mapcar (lambda (dir)
@@ -1231,7 +1231,7 @@ is used.  If nil or omitted, use the selected frame."
 The argument FRAME specifies which frame to try.
 The value may be different for frames on different display types.
 If FRAME doesn't support colors, the value is nil."
-  (if (memq (framep (or frame (selected-frame))) '(x w32))
+  (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
       (xw-defined-colors frame)
     (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
@@ -1243,7 +1243,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 \"unspecified-fg\" or \"unspecified-bg\", the value is nil."
   (if (member color '(unspecified "unspecified-bg" "unspecified-fg"))
       nil
-    (if (member (framep (or frame (selected-frame))) '(x w32))
+    (if (member (framep (or frame (selected-frame))) '(x w32 mac))
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
@@ -1258,7 +1258,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 \"unspecified-fg\" or \"unspecified-bg\", the value is nil."
   (if (member color '(unspecified "unspecified-fg" "unspecified-bg"))
       nil
-    (if (memq (framep (or frame (selected-frame))) '(x w32))
+    (if (memq (framep (or frame (selected-frame))) '(x w32 mac))
 	(xw-color-values color frame)
       (tty-color-values color frame))))
 (defalias 'x-color-values 'color-values)
@@ -1268,7 +1268,7 @@ If COLOR is the symbol `unspecified' or one of the strings
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display."
-  (if (memq (framep-on-display display) '(x w32))
+  (if (memq (framep-on-display display) '(x w32 mac))
       (xw-display-color-p display)
     (tty-display-color-p display)))
 (defalias 'x-display-color-p 'display-color-p)
@@ -1445,7 +1445,7 @@ Initialize colors of certain faces from frame parameters."
       (when spec
 	(face-spec-set face spec frame))
       (internal-merge-in-global-face face frame)
-      (when (memq window-system '(x w32))
+      (when (memq window-system '(x w32 mac))
 	(make-face-x-resource-internal face frame))))
 
   ;; Initialize attributes from frame parameters.
@@ -1527,7 +1527,7 @@ created."
 
 
 (defface mode-line
-  '((((type x w32) (class color))
+  '((((type x w32 mac) (class color))
      (:box (:line-width 2 :style released-button)
 	   :background "grey75" :foreground "black"))
     (t
@@ -1572,7 +1572,7 @@ created."
 
 
 (defface tool-bar
-  '((((type x w32) (class color))
+  '((((type x w32 mac) (class color))
      (:box (:line-width 1 :style released-button)
 	   :background "grey75" :foreground "black"))
     (((type x) (class mono))

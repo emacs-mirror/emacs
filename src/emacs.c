@@ -1110,6 +1110,25 @@ main (argc, argv, envp)
 	 CANNOT_DUMP is defined.  */
       syms_of_keyboard ();
 
+#ifdef macintosh
+      /* init_window_once calls make_terminal_frame which on Mac OS creates
+         a full-fledge output_mac type frame.  This does not work correctly
+         before syms_of_textprop, syms_of_macfns, syms_of_ccl,
+         syms_of_fontset, syms_of_xterm, syms_of_search, x_term_init, and
+         init_keyboard have already been called.  */
+      syms_of_textprop ();
+      syms_of_macfns ();
+      syms_of_ccl ();
+      syms_of_fontset ();
+      syms_of_macterm ();
+      syms_of_macmenu ();
+      syms_of_data ();
+      syms_of_search ();
+      
+      x_term_init ();
+      init_keyboard ();
+#endif
+
       init_window_once ();	/* Init the window system */
       init_fileio_once ();	/* Must precede any path manipulation.  */
     }
@@ -1306,7 +1325,10 @@ main (argc, argv, envp)
       /* The basic levels of Lisp must come first */
       /* And data must come first of all
 	 for the sake of symbols like error-message */
+#ifndef macintosh
+      /* Called before init_window_once for Mac OS.  */
       syms_of_data ();
+#endif
       syms_of_alloc ();
       syms_of_lread ();
       syms_of_print ();
@@ -1322,7 +1344,10 @@ main (argc, argv, envp)
       syms_of_casetab ();
       syms_of_callproc ();
       syms_of_category ();
+#ifndef macintosh
+      /* Called before init_window_once for Mac OS.  */
       syms_of_ccl ();
+#endif
       syms_of_charset ();
       syms_of_cmds ();
 #ifndef NO_DIR_LIBRARY
@@ -1345,7 +1370,10 @@ main (argc, argv, envp)
       syms_of_minibuf ();
       syms_of_mocklisp ();
       syms_of_process ();
+#ifndef macintosh
+      /* Called before init_window_once for Mac OS.  */
       syms_of_search ();
+#endif
       syms_of_frame ();
       syms_of_syntax ();
       syms_of_term ();
@@ -1353,8 +1381,10 @@ main (argc, argv, envp)
 #ifdef HAVE_SOUND
       syms_of_sound ();
 #endif
-
+#ifndef macintosh
+      /* Called before init_window_once for Mac OS.  */
       syms_of_textprop ();
+#endif
       syms_of_composite ();
 #ifdef VMS
       syms_of_vmsproc ();
@@ -1374,7 +1404,9 @@ main (argc, argv, envp)
 #endif /* HAVE_X_WINDOWS */
 
 #ifndef HAVE_NTGUI
+#ifndef macintosh
       syms_of_xmenu ();
+#endif
 #endif
 
 #ifdef HAVE_NTGUI
@@ -1411,7 +1443,10 @@ main (argc, argv, envp)
 #endif /* VMS */
       init_display ();	/* Determine terminal type.  init_sys_modes uses results */
     }
+#ifndef macintosh
+  /* Called before init_window_once for Mac OS.  */
   init_keyboard ();	/* This too must precede init_sys_modes */
+#endif
 #ifdef VMS
   init_vmsproc ();	/* And this too. */
 #endif /* VMS */

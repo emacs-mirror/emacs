@@ -40,7 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifdef macintosh
-#include "macterm.h"
+#include "macgui.h"
 #endif
 
 /* Structure forward declarations.  Some are here because function

@@ -1164,4 +1164,3 @@ If nil, don't show a cursor except in the selected window."
 (provide 'frame)
 
 ;;; frame.el ends here
-(frame-notice-user-settings): 

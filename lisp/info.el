@@ -2427,7 +2427,7 @@ the variable `Info-file-list-for-emacs'."
 	;; This is a serious problem for trying to handle multiple
 	;; frame types at once.  We want this text to be invisible
 	;; on frames that can display the font above.
-	(if (memq (framep (selected-frame)) '(x pc w32))
+	(if (memq (framep (selected-frame)) '(x pc w32 mac))
 	    (add-text-properties (match-end 1) (match-end 2)
 				 '(invisible t intangible t))))
       (goto-char (point-min))

@@ -42,6 +42,9 @@ Boston, MA 02111-1307, USA.  */
 #ifdef MSDOS
 #include "msdos.h"
 #endif
+#ifdef macintosh
+#include "macterm.h"
+#endif
 
 #ifndef max
 #define max(a, b) ((a) < (b) ? (b) : (a))

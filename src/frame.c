@@ -29,6 +29,9 @@ Boston, MA 02111-1307, USA.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
+#ifdef macintosh
+#include "macterm.h"
+#endif
 #include "buffer.h"
 /* These help us bind and responding to switch-frame events.  */
 #include "commands.h"
@@ -43,11 +46,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef MSDOS
 #include "msdos.h"
 #include "dosfns.h"
-#endif
-
-#ifdef macintosh
-extern struct mac_output *NewMacWindow ();
-extern void DisposeMacWindow (struct mac_output *);
 #endif
 
 /* Evaluate this expression to rebuild the section of syms_of_frame
@@ -582,25 +580,15 @@ make_terminal_frame ()
     f->output_method = output_termcap;
 #else
 #ifdef macintosh
-  f->output_data.mac = NewMacWindow(f);
-  f->output_data.mac->background_pixel = 0xffffff;
-  f->output_data.mac->foreground_pixel = 0;
-  f->output_data.mac->n_param_faces = 0;
-  f->output_data.mac->n_computed_faces = 0;
-  f->output_data.mac->size_computed_faces = 0;  
-  f->output_method = output_mac;
-  f->auto_raise = 1;
-  f->auto_lower = 1;
-  init_frame_faces (f);
-#else  /* !macintosh */
+  make_mac_terminal_frame (f);
+#else
   f->output_data.x = &tty_display;
-#endif /* !macintosh */
+#endif /* macintosh */
 #endif /* MSDOS */
 
-#ifndef macintosh
   if (!noninteractive)
     init_frame_faces (f);
-#endif
+
   return f;
 }
 
@@ -1286,14 +1274,6 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     x_destroy_window (f);
-#endif
-
-/* Done by x_destroy_window above already */
-#if 0
-#ifdef macintosh
-  if (FRAME_MAC_P (f))
-    DisposeMacWindow (f->output_data.mac);
-#endif
 #endif
 
   f->output_data.nothing = 0;
@@ -2227,11 +2207,6 @@ enabled such bindings for that variable with `make-variable-frame-local'.")
 #ifdef MSDOS
   if (FRAME_MSDOS_P (f))
     IT_set_frame_parameters (f, alist);
-  else
-#endif
-#ifdef macintosh
-  if (FRAME_MAC_P (f))
-    mac_set_frame_parameters (f, alist);
   else
 #endif
 

@@ -1,0 +1,33 @@
+GNU Emacs for Mac OS
+
+This directory contains the files needed to build GNU Emacs on the Mac
+OS (8.1-9.0).  Many of the major features of the Unix version are
+supported: multiple frames, colors, scroll bars, menu bars, use of the
+mouse, fontsets, international characters, input methods, and coding
+systems.
+
+Mac OS specific support includes document drag-and-drop in the Finder,
+transfer of text to and from other applications via the clipboard, and
+sending AppleScript commands to other applications from Emacs.
+
+The following are not yet supported: unexec (dump-emacs), asynchronous
+subprocesses (start-process), and networking
+(open-network-connection).
+
+There is basic support for synchronous subprocesses (call-process)
+although Unix commands that are used will need to be ported to the
+Mac.
+
+Metrowerks CodeWarrior Pro 5 or Pro 6 or MPW-GM (August 2000) can be
+used to build Emacs on the Mac OS.  See the INSTALL file in this
+directory for instructions on building Emacs.
+
+Binary distributions are available at
+
+  http://mac-emacs.sourceforge.net/index.html
+
+At this site you can also find an FAQ, mailing lists, and dicussion
+forums for discussing issues related to running GNU Emacs on Mac OS.
+
+Andrew.
+<akochoi@users.sourceforge.net>

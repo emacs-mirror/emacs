@@ -51,6 +51,9 @@ extern int tgetnum P_ ((char *id));
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
+#ifdef macintosh
+#include "macterm.h"
+#endif
 
 static void turn_on_face P_ ((struct frame *, int face_id));
 static void turn_off_face P_ ((struct frame *, int face_id));

@@ -218,6 +218,33 @@ Boston, MA 02111-1307, USA.  */
 #define FONT_WIDTH FONT_MAX_WIDTH
 #endif /* WINDOWSNT */
 
+#ifdef macintosh
+#include "macterm.h"
+#define x_display_info mac_display_info
+#define check_x check_mac
+
+extern XGCValues *XCreateGC (void *, WindowPtr, unsigned long, XGCValues *);
+
+static INLINE GC
+x_create_gc (f, mask, xgcv)
+     struct frame *f;
+     unsigned long mask;
+     XGCValues *xgcv;
+{
+  GC gc;
+  gc = XCreateGC (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), mask, xgcv);
+  return gc;
+}
+
+static INLINE void
+x_free_gc (f, gc)
+     struct frame *f;
+     GC gc;
+{
+  XFreeGC (FRAME_MAC_DISPLAY (f), gc);
+}
+#endif
+
 #include "buffer.h"
 #include "dispextern.h"
 #include "blockinput.h"
@@ -1304,7 +1331,6 @@ defined_color (f, color_name, color_def, alloc)
 #endif
 #ifdef macintosh
   else if (FRAME_MAC_P (f))
-    /* FIXME: mac_defined_color doesn't exist!  */
     return mac_defined_color (f, color_name, color_def, alloc);
 #endif
   else
@@ -1800,8 +1826,11 @@ static struct frame *font_frame;
    font height, then for weight, then for slant.'  This variable can be
    set via set-face-font-sort-order.  */
 
+#ifdef macintosh
+static int font_sort_order[4] = { XLFD_SWIDTH, XLFD_POINT_SIZE, XLFD_WEIGHT, XLFD_SLANT };
+#else
 static int font_sort_order[4];
-
+#endif
 
 /* Look up FONT.fields[FIELD_INDEX] in TABLE which has DIM entries.
    TABLE must be sorted by TABLE[i]->name in ascending order.  Value
@@ -2242,7 +2271,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
   names = XListFonts (dpy, pattern, nfonts, &n);
   UNBLOCK_INPUT;
 #endif /* HAVE_X_WINDOWS */
-#ifdef WINDOWSNT
+#if defined (WINDOWSNT) || defined (macintosh)
   /* NTEMACS_TODO : currently this uses w32_list_fonts, but it may be
      better to do it the other way around. */
   Lisp_Object lfonts;
@@ -2255,7 +2284,11 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
 
   /* Get the list of fonts matching PATTERN.  */
   BLOCK_INPUT;
+#ifdef WINDOWSNT
   lfonts = w32_list_fonts (f, lpattern, 0, nfonts);
+#else /* macintosh */
+  lfonts = x_list_fonts (f, lpattern, 0, nfonts);
+#endif
   UNBLOCK_INPUT;
 
   /* Count fonts returned */
@@ -2273,7 +2306,7 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
       names[i] = XSTRING (XCAR (tem))->data;
       tem = XCDR (tem);
     }
-#endif /* WINDOWSNT */
+#endif /* defined (WINDOWSNT) || defined (macintosh) */
 
   if (names)
     {
@@ -4121,6 +4154,7 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
 {
   Lisp_Object value = Qnil;
 #ifndef WINDOWSNT
+#ifndef macintosh
   CHECK_STRING (resource, 0);
   CHECK_STRING (class, 1);
   CHECK_LIVE_FRAME (frame, 2);
@@ -4128,6 +4162,7 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
   UNBLOCK_INPUT;
+#endif /* not macintosh */
 #endif /* not WINDOWSNT */
   return value;
 }
@@ -4871,6 +4906,9 @@ prepare_face_for_display (f, face)
 	  xgcv.font = face->font->fid;
 #endif
 #ifdef WINDOWSNT
+	  xgcv.font = face->font;
+#endif
+#ifdef macintosh
 	  xgcv.font = face->font;
 #endif
 	  mask |= GCFont;
@@ -6181,6 +6219,18 @@ realize_x_face (cache, attrs, c, base_face)
 	fontset = default_face->fontset;
       face->fontset = make_fontset_for_ascii_face (f, fontset);
       face->font = NULL;	/* to force realize_face to load font */
+
+#ifdef macintosh
+      /* Load the font if it is specified in ATTRS.  This fixes
+         changing frame font on the Mac.  */
+      if (STRINGP (attrs[LFACE_FONT_INDEX]))
+        {
+          struct font_info *font_info =
+            FS_LOAD_FONT (f, 0, XSTRING (attrs[LFACE_FONT_INDEX])->data, -1);
+          if (font_info)
+            face->font = font_info->font;
+        }
+#endif
     }
 
   /* Load colors, and set remaining attributes.  */
@@ -7037,7 +7087,7 @@ A value of nil means don't allow any scalable fonts.\n\
 A value of t means allow any scalable font.\n\
 Otherwise, value must be a list of regular expressions.  A font may be\n\
 scaled if its name matches a regular expression in the list.");
-#ifdef WINDOWSNT
+#if defined (WINDOWSNT) || defined (macintosh)
   /* Windows uses mainly truetype fonts, so disallowing scalable fonts
      by default limits the fonts available severely. */
   Vscalable_fonts_allowed = Qt;

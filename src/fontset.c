@@ -1397,9 +1397,15 @@ syms_of_fontset ()
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
     = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
+#ifdef macintosh
+  FONTSET_ASCII (Vdefault_fontset)
+    = Fcons (make_number (0),
+	     build_string ("-apple-monaco-medium-r-*--*-120-*-*-*-*-mac-roman"));
+#else
   FONTSET_ASCII (Vdefault_fontset)
     = Fcons (make_number (0),
 	     build_string ("-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1"));
+#endif
   AREF (Vfontset_table, 0) = Vdefault_fontset;
   next_fontset_id = 1;
 

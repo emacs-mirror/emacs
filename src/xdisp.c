@@ -194,13 +194,16 @@ Boston, MA 02111-1307, USA.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
+#ifdef macintosh
+#include "macterm.h"
+#endif
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
 #define INFINITY 10000000
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)
 extern void set_frame_menubar P_ ((struct frame *f, int, int));
 extern int pending_menu_activation;
 #endif
@@ -767,7 +770,7 @@ window_text_bottom_y (w)
 {
   struct frame *f = XFRAME (w->frame);
   int height = XFASTINT (w->height) * CANON_Y_UNIT (f);
-  
+
   if (WINDOW_WANTS_MODELINE_P (w))
     height -= CURRENT_MODE_LINE_HEIGHT (w);
   return height;
@@ -6392,6 +6395,8 @@ echo_area_display (update_frame_p)
   if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
     return 0;
 
+/* The terminal frame is used as the first Emacs frame on the Mac OS.  */
+#ifndef macintosh
 #ifdef HAVE_WINDOW_SYSTEM
   /* When Emacs starts, selected_frame may be a visible terminal
      frame, even if we run under a window system.  If we let this
@@ -6400,6 +6405,7 @@ echo_area_display (update_frame_p)
       && !NILP (Vwindow_system))
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
+#endif
 
   /* Redraw garbaged frames.  */
   if (frame_garbaged)
@@ -6732,7 +6738,7 @@ update_menu_bar (f, save_match_data)
 
   if (FRAME_WINDOW_P (f)
       ?
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)
       FRAME_EXTERNAL_MENU_BAR (f) 
 #else
       FRAME_MENU_BAR_LINES (f) > 0
@@ -6779,8 +6785,14 @@ update_menu_bar (f, save_match_data)
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 	  
 	  /* Redisplay the menu bar in case we changed it.  */
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
-	  if (FRAME_WINDOW_P (f))
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)
+	  if (FRAME_WINDOW_P (f)
+#if defined (macintosh)
+              /* All frames on Mac OS share the same menubar.  So only the
+                 selected frame should be allowed to set it.  */
+              && f == SELECTED_FRAME ()
+#endif
+	     )
 	    set_frame_menubar (f, 0, 0);
 	  else
 	    /* On a terminal screen, the menu bar is an ordinary screen
@@ -9666,7 +9678,7 @@ redisplay_window (window, just_this_one_p)
 
       if (FRAME_WINDOW_P (f))
 	{
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (macintosh)
 	  redisplay_menu_p = FRAME_EXTERNAL_MENU_BAR (f);
 #else
 	  redisplay_menu_p = FRAME_MENU_BAR_LINES (f) > 0;
@@ -12111,6 +12123,10 @@ display_menu_bar (w)
 #endif
 #ifdef USE_X_TOOLKIT
   if (FRAME_X_P (f))
+    return;
+#endif
+#ifdef macintosh
+  if (FRAME_MAC_P (f))
     return;
 #endif
 

@@ -1,3 +1,73 @@
+2000-10-23  Andrew Choi  <akochoi@i-cable.com>
+
+	* dispextern.h [macintosh]: Include macgui.h instead of macterm.h.
+
+	* dispnew.c [macintosh]: Include macterm.h.
+	(init_display) [macintosh]: initialization for window system.
+
+	* emacs.c (main) [macintosh]: Call syms_of_textprop,
+	syms_of_macfns, syms_of_ccl, syms_of_fontset, syms_of_xterm,
+	syms_of_search, x_term_init, and init_keyboard before calling
+	init_window_once.  Also, call syms_of_xmenu.
+
+	* fontset.c (syms_of_fontset) [macintosh]: Set ASCII font of
+	default fontset to Monaco.
+
+	* frame.c [macintosh]: Include macterm.h.  Remove declarations of
+	NewMacWindow and DisposeMacWindow.
+	(make_terminal_frame) [macintosh]: Call make_mac_terminal_frame
+	instead of calling NewMacWindow and setting fields of
+	f->output_data.mac directly.  Call init_frame_faces.
+	(Fdelete_frame) [macintosh]: Remove unused code.
+	(Fmodify_frame_parameters) [macintosh]: Call
+	x_set_frame_parameters instead of mac_set_frame_parameters.
+
+	* frame.h [macintosh]: Define menu_bar_lines field in struct
+	frame.  Define FRAME_EXTERNAL_MENU_BAR macro.
+
+	* keyboard.c [macintosh]: Include macterm.h.
+	(kbd_buffer_get_event) [macintosh]: Generate delete_window_event
+	and menu_bar_activate_event type events as for X and NT.
+	(make_lispy_event) [macintosh]: Construct lisp events of type
+	MENU_BAR_EVENT as for X and NT.
+
+	* sysdep.c [macintosh]: Remove declaration for sys_signal.
+	Include stdlib.h.  Remove definition of Vx_bitmap_file_path.
+	(sys_subshell) [macintosh]: Remove definition entirely.
+	(init_sys_modes) [macintosh]: Do not initialize Vwindow_system and
+	Vwindow_system_version here.  Remove initialization of
+	Vx_bitmap_file_path.
+	(read_input_waiting): Correct the number of parameters passed to
+	read_socket_hook.
+	Move all Macintosh functions to mac/mac.c.
+
+	* term.c [macintosh]: Include macterm.h.
+
+	* window.c [macintosh]: Include macterm.h.
+
+	* xdisp.c [macintosh]: Include macterm.h.  Declare
+	set_frame_menubar and pending_menu_activation.
+	(echo_area_display) [macintosh]: Do not return if terminal frame
+	is the selected frame.
+	(update_menu_bar) [macintosh]: Check FRAME_EXTERNAL_MENU_BAR (f).
+	Allow only the selected frame to set menu bar.
+	(redisplay_window) [macintosh]: Obtain menu bar to redisplay by
+	calling FRAME_EXTERNAL_MENU_BAR (f).
+	(display_menu_bar) [macintosh]: Check FRAME_MAC_P (f).
+
+	* xfaces.c [macintosh]: Include macterm.h.  Define x_display_info
+	and check_x.  Declare XCreateGC.  Define x_create_gc and
+	x_free_gc.  Initialize font_sort_order.
+	(x_face_list_fonts) [macintosh]: Use the same code as WINDOWSNT,
+	but call x_list_fonts instead of w32_list_fonts.
+	(Finternal_face_x_get_resource) [macintosh]: Do not call
+	display_x_get_resource.
+	(prepare_face_for_display) [macintosh]: Set xgcv.font.
+	(realize_x_face) [macintosh]: Load the font if it is specified in
+	ATTRS.
+	(syms_of_xfaces) [macintosh]: Initialize Vscalable_fonts_allowed
+	to Qt.
+
 2000-10-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (fix_submap_inheritance): Don't do anything if parent_entry

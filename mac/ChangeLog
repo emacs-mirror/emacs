@@ -1,0 +1,67 @@
+2000-10-20  Andrew Choi  <akochoi@users.sourceforge.net>
+
+	* INSTALL: New file.
+
+	* README: New file.
+
+	* TODO: New file.
+
+	* emacs-cw5.mcp.xml: New file.
+
+	* emacs-cw6.mcp.xml: New file.
+
+	* makefile.MPW: New file.
+
+	* inc/alloca.h: New file.
+
+	* inc/cmdline-defs-cw5.h: New file.
+
+	* inc/cmdline-defs-cw6.h: New file.
+
+	* inc/config.h: New file.
+
+	* inc/dirent.h: New file.
+
+	* inc/epaths.h: New file.
+
+	* inc/m-mac.h: New file.
+
+	* inc/macgui.h: New file.
+
+	* inc/macterm.h: New file.
+
+	* inc/pwd.h: New file.
+
+	* inc/s-mac.h: New file.
+
+	* inc/termio.h: New file.
+
+	* inc/utime.h: New file.
+
+	* inc/utsname.h: New file.
+
+	* inc/sys/file.h: New file.
+
+	* inc/sys/ioctl.h: New file.
+
+	* inc/sys/param.h: New file.
+
+	* inc/sys/stat.h: New file.
+
+	* inc/sys/time.h: New file.
+
+	* inc/sys/types.h: New file.
+
+	* src/Emacs.r: New file.
+
+	* src/EmacsMPW.r: New file.
+
+	* src/chdir.c: New file.
+	
+	* src/mac.c: New file.
+
+	* src/macfns.c: New file.
+
+	* src/macmenu.c: New file.
+
+	* src/macterm.c: New file.
