@@ -43,9 +43,10 @@
 
 ;; Maybe this should go.
 (defcustom smiley-data-directory (nnheader-find-etc-directory "smilies")
-  "*Directory to search for the smiley image files.
+  "*If non-nil, a directory to search for the smiley image files.
 This is in addition to the normal image search path."
-  :type 'directory
+  :type '(choice directory
+		 (const nil))
   :group 'smiley)
 
 ;; The XEmacs version has a baroque, if not rococo, set of these.
