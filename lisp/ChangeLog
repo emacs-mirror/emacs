@@ -1,3 +1,9 @@
+2003-01-25  Markus Rost  <rost@math.ohio-state.edu>
+
+	* international/mule-cmds.el (set-language-info)
+	(current-language-environment): Simplify setting the type of
+	current-language-environment.
+
 2003-01-25  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--init-keymaps): Move C-S-x and C-S-c
@@ -6,12 +12,12 @@
 	from C-h b look normal when cua-mode is enabled (no C-S-x/c bindings).
 
 2003-01-25  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-        * ediff.el (ediff-revision): better defaults.
-	
+
+	* ediff.el (ediff-revision): better defaults.
+
 	* ediff-vers.el (ediff-vc-latest-version): new function.
 	(ediff-vc-internal): use latest version instead of working version.
-	
+
 2003-01-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* info.el (Info-extract-menu-node-name): When looking for end of menu
@@ -2139,7 +2145,8 @@
 
 2002-11-09  Dave Love  <fx@gnu.org>
 
-	* international/mule-cmds.el (current-language-environment): Fix :type.
+	* international/mule-cmds.el (current-language-environment):
+	Fix :type.
 
 	* international/ucs-tables.el: Revert to using
 	translation-table-for-input instead of keyboard-translate-table.
