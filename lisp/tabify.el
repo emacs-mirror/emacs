@@ -36,7 +36,7 @@ The variable `tab-width' controls the spacing of tab stops."
   (interactive "r")
   (save-excursion
     (save-restriction
-      (narrow-to-region start end)
+      (narrow-to-region (point-min) end)
       (goto-char start)
       (while (search-forward "\t" nil t)	; faster than re-search
 	(let ((start (point))
