@@ -39,6 +39,9 @@
   ;; Customize information for this option is in `cus-edit.el'.
   "Hook called after defining each customize option.")
 
+(defvar custom-current-group-alist nil
+  "Alist of (FILE . GROUP) indicating the current group to use for FILE.")
+
 ;;; The `defcustom' Macro.
 
 (defun custom-initialize-default (symbol value)
@@ -114,6 +117,8 @@ not the default value itself."
     (put symbol 'variable-documentation doc))
   (let ((initialize 'custom-initialize-reset)
 	(requests nil))
+    (unless (memq :group args)
+      (custom-add-to-group (custom-current-group) symbol 'custom-variable))
     (while args
       (let ((arg (car args)))
 	(setq args (cdr args))
@@ -262,6 +267,9 @@ information."
 
 ;;; The `defgroup' Macro.
 
+(defun custom-current-group ()
+  (cdr (assoc load-file-name custom-current-group-alist)))
+
 (defun custom-declare-group (symbol members doc &rest args)
   "Like `defgroup', but SYMBOL is evaluated as a normal argument."
   (while members
@@ -286,6 +294,10 @@ information."
 	      (t
 	       (custom-handle-keyword symbol keyword value
 				      'custom-group))))))
+  ;; Record the group on the `current' list.
+  (let ((elt (assoc load-file-name custom-current-group-alist)))
+    (if elt (setcdr elt symbol)
+      (push (cons load-file-name symbol) custom-current-group-alist)))
   (run-hooks 'custom-define-hook)
   symbol)
 
@@ -332,6 +344,8 @@ If there already is an entry for OPTION and WIDGET, nothing is done."
 (defun custom-handle-all-keywords (symbol args type)
   "For customization option SYMBOL, handle keyword arguments ARGS.
 Third argument TYPE is the custom option type."
+  (unless (memq :group args)
+    (custom-add-to-group (custom-current-group) symbol 'custom-face))
   (while args
     (let ((arg (car args)))
       (setq args (cdr args))
