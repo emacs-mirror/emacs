@@ -57,7 +57,7 @@
 ; Randomize the seed in the random number generator.
 (random t)
 
-(defconst cookie-delimiter "\n%%\n\\|\0"
+(defconst cookie-delimiter "\n%%\n\\|\n%\n\\|\0"
   "Delimiter used to separate cookie file entries.")
 
 (defvar cookie-cache (make-vector 511 0)
@@ -115,7 +115,7 @@ and subsequent calls on the same file won't go to disk."
 	  (while (progn (skip-chars-forward " \t\n\r\f") (not (eobp)))
 	    (let ((beg (point)))
 	      (re-search-forward cookie-delimiter)
-	      (setq result (cons (buffer-substring beg (1- (point)))
+	      (setq result (cons (buffer-substring beg (match-beginning 0))
 				 result))))
 	  (kill-buffer buf)
 	  (message "%s" endmsg)
