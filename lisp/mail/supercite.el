@@ -1698,7 +1698,7 @@ entered, regardless of the value of `sc-electric-references-p'.  See
   (setq sc-fixup-whitespace-p (not sc-fixup-whitespace-p)
 	sc-auto-fill-region-p (not sc-auto-fill-region-p))
   (sc-set-mode-string)
-  (set-buffer-modified-p (buffer-modified-p)))
+  (force-mode-line-update))
 
 (defun sc-toggle-var (variable)
   "Boolean toggle VARIABLE's value.
