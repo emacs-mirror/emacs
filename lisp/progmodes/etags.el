@@ -1,5 +1,5 @@
 ;;; etags.el --- etags facility for Emacs
-;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1998
+;; Copyright (C) 1985, 86, 88, 89, 92, 93, 94, 95, 96, 98, 2000
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -633,6 +633,11 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 			      (setq tags-table-set-list
 				    (cons tags-table-list
 					  tags-table-set-list)))
+			  ;; Clear out buffers holding old tables.
+			  (dolist (table tags-table-list)
+			    (let ((buffer (find-buffer-visiting table)))
+			      (if buffer
+				  (kill-buffer buffer))))
 			  (setq tags-table-list (list local-tags-file-name))))
 
 		      ;; Recompute tags-table-computed-list.
@@ -783,6 +788,11 @@ Assumes the tags table is the current buffer."
 	    (find-tag-tag prompt)))))
 
 (defvar find-tag-history nil)
+
+;; Dynamic bondage:
+(eval-when-compile
+  (defvar etags-case-fold-search)
+  (defvar etags-syntax-table))
 
 ;;;###autoload
 (defun find-tag-noselect (tagname &optional next-p regexp-p)
@@ -1108,27 +1118,27 @@ where they were found."
        ;; It is annoying to flash messages on the screen briefly,
        ;; and this message is not useful.  -- rms
        ;; (message "%s is an `etags' TAGS file" buffer-file-name)
-       (mapcar (lambda (elt) (set (make-local-variable (car elt)) (cdr elt)))
-	       '((file-of-tag-function . etags-file-of-tag)
-		 (tags-table-files-function . etags-tags-table-files)
-		 (tags-completion-table-function . etags-tags-completion-table)
-		 (snarf-tag-function . etags-snarf-tag)
-		 (goto-tag-location-function . etags-goto-tag-location)
-		 (find-tag-regexp-search-function . re-search-forward)
-		 (find-tag-regexp-tag-order . (tag-re-match-p))
-		 (find-tag-regexp-next-line-after-failure-p . t)
-		 (find-tag-search-function . search-forward)
-		 (find-tag-tag-order . (tag-exact-file-name-match-p
-					tag-exact-match-p
-					tag-symbol-match-p
-					tag-word-match-p
-					tag-any-match-p))
-		 (find-tag-next-line-after-failure-p . nil)
-		 (list-tags-function . etags-list-tags)
-		 (tags-apropos-function . etags-tags-apropos)
-		 (tags-included-tables-function . etags-tags-included-tables)
-		 (verify-tags-table-function . etags-verify-tags-table)
-		 ))))
+       (mapc (lambda (elt) (set (make-local-variable (car elt)) (cdr elt)))
+	     '((file-of-tag-function . etags-file-of-tag)
+	       (tags-table-files-function . etags-tags-table-files)
+	       (tags-completion-table-function . etags-tags-completion-table)
+	       (snarf-tag-function . etags-snarf-tag)
+	       (goto-tag-location-function . etags-goto-tag-location)
+	       (find-tag-regexp-search-function . re-search-forward)
+	       (find-tag-regexp-tag-order . (tag-re-match-p))
+	       (find-tag-regexp-next-line-after-failure-p . t)
+	       (find-tag-search-function . search-forward)
+	       (find-tag-tag-order . (tag-exact-file-name-match-p
+				      tag-exact-match-p
+				      tag-symbol-match-p
+				      tag-word-match-p
+				      tag-any-match-p))
+	       (find-tag-next-line-after-failure-p . nil)
+	       (list-tags-function . etags-list-tags)
+	       (tags-apropos-function . etags-tags-apropos)
+	       (tags-included-tables-function . etags-tags-included-tables)
+	       (verify-tags-table-function . etags-verify-tags-table)
+	       ))))
 
 ;; Return non-nil iff the current buffer is a valid etags TAGS file.
 (defun etags-verify-tags-table ()
@@ -1285,9 +1295,10 @@ where they were found."
 (defmacro tags-with-face (face &rest body)
   "Execute BODY, give output to `standard-output' face FACE."
   (let ((pp (gensym "twf-")))
-    `(let ((,pp (with-current-buffer standard-output (point))))
+    `(let ((,old-point (with-current-buffer standard-output (point))))
        ,@body
-       (put-text-property ,pp (with-current-buffer standard-output (point))
+       (put-text-property ,old-point (with-current-buffer standard-output
+				       (point))
 			  'face ,face standard-output))))
 
 (defun etags-tags-apropos-additional (regexp)
@@ -1373,13 +1384,13 @@ where they were found."
 ;; variables which do nothing.
 (defun tags-recognize-empty-tags-table ()
   (and (zerop (buffer-size))
-       (mapcar (lambda (sym) (set (make-local-variable sym) 'ignore))
-	       '(tags-table-files-function
-		 tags-completion-table-function
-		 find-tag-regexp-search-function
-		 find-tag-search-function
-		 tags-apropos-function
-		 tags-included-tables-function))
+       (mapc (lambda (sym) (set (make-local-variable sym) 'ignore))
+	     '(tags-table-files-function
+	       tags-completion-table-function
+	       find-tag-regexp-search-function
+	       find-tag-search-function
+	       tags-apropos-function
+	       tags-included-tables-function))
        (set (make-local-variable 'verify-tags-table-function)
             (lambda () (zerop (buffer-size))))))
 
@@ -1818,6 +1829,19 @@ for \\[find-tag] (which see)."
 	     (display-completion-list
 	      (all-completions pattern 'tags-complete-tag nil)))
 	   (message "Making completion list...%s" "done")))))
+
+(dolist (x '("^No tags table in use; use .* to select one$"
+	     "^There is no default tag$"
+	     "^No previous tag locations$"
+	     "^File .* is not a valid tags table$"
+	     "^No \\(more \\|\\)tags \\(matching\\|containing\\) "
+	     "^Rerun etags: `.*' not found in "
+	     "^All files processed$"
+	     "^No .* or .* in progress$"
+	     "^File .* not in current tags tables$"
+	     "^No tags table loaded"
+	     "^Nothing to complete$"))
+	(add-to-list 'debug-ignored-errors x))
 
 (provide 'etags)
 
