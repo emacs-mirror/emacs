@@ -125,11 +125,6 @@ describing how the process finished.")
 Each function is called with two arguments: the compilation buffer,
 and a string describing how the process finished.")
 
-(defvar compilation-last-buffer nil
-  "The most recent compilation buffer.
-A buffer becomes most recent when its compilation is started
-or when it is used with \\[next-error] or \\[compile-goto-error].")
-
 (defvar compilation-in-progress nil
   "List of compilation processes now running.")
 (or (assq 'compilation-in-progress minor-mode-alist)
@@ -968,7 +963,7 @@ exited abnormally with code %d\n"
 	  (select-window outwin)
 	  (goto-char (point-max))))
     ;; Make it so the next C-x ` will use this buffer.
-    (setq compilation-last-buffer outbuf)))
+    (setq next-error-last-buffer outbuf)))
 
 (defun compilation-set-window-height (window)
   "Set the height of WINDOW according to `compilation-window-height'."
@@ -1099,6 +1094,10 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
   (compilation-setup)
+  ;; note that compilation-next-error-function is for interfacing
+  ;; with the next-error function in simple.el, and it's only
+  ;; coincidentally named similarly to compilation-next-error
+  (setq next-error-function 'compilation-next-error-function)
   (run-mode-hooks 'compilation-mode-hook))
 
 (defmacro define-compilation-mode (mode name doc &rest body)
@@ -1160,7 +1159,6 @@ Optional argument MINOR indicates this is called from
   (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-error-screen-columns)
   (make-local-variable 'overlay-arrow-position)
-  (setq compilation-last-buffer (current-buffer))
   (set (make-local-variable 'font-lock-extra-managed-props)
        '(directory message help-echo mouse-face debug))
   (set (make-local-variable 'compilation-locs)
@@ -1277,8 +1275,16 @@ Just inserts the text, but uses `insert-before-markers'."
 	    (insert-before-markers string)
 	    (run-hooks 'compilation-filter-hook))))))
 
+;;; test if a buffer is a compilation buffer, assuming we're in the buffer
+(defsubst compilation-buffer-internal-p ()
+  "Test if inside a compilation buffer."
+  (local-variable-p 'compilation-locs))
+
+;;; test if a buffer is a compilation buffer, using compilation-buffer-internal-p
 (defsubst compilation-buffer-p (buffer)
-  (local-variable-p 'compilation-locs buffer))
+  "Test if BUFFER is a compilation buffer."
+  (with-current-buffer buffer
+    (compilation-buffer-internal-p)))
 
 (defmacro compilation-loop (< property-change 1+ error)
   `(while (,< n 0)
@@ -1309,7 +1315,6 @@ Does NOT find the source line like \\[next-error]."
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
   (or pt (setq pt (point)))
-  (setq compilation-last-buffer (current-buffer))
   (let* ((msg (get-text-property pt 'message))
 	 (loc (car msg))
 	 last)
@@ -1346,25 +1351,6 @@ forwards, if negative).
 Does NOT find the source line like \\[previous-error]."
   (interactive "p")
   (compilation-next-error (- n)))
-
-(defun next-error-no-select (n)
-  "Move point to the next error in the compilation buffer and highlight match.
-Prefix arg N says how many error messages to move forwards (or
-backwards, if negative).
-Finds and highlights the source line like \\[next-error], but does not
-select the source buffer."
-  (interactive "p")
-  (next-error n)
-  (pop-to-buffer compilation-last-buffer))
-
-(defun previous-error-no-select (n)
-  "Move point to previous error in compilation buffer and highlight match.
-Prefix arg N says how many error messages to move backwards (or
-forwards, if negative).
-Finds and highlights the source line like \\[previous-error], but does not
-select the source buffer."
-  (interactive "p")
-  (next-error-no-select (- n)))
 
 (defun compilation-next-file (n)
   "Move point to the next error for a different file than the current one.
@@ -1403,55 +1389,17 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.
-;; If compilation-last-buffer is set to a live buffer, use that.
 ;; Otherwise, look for a compilation buffer and signal an error
 ;; if there are none.
 (defun compilation-find-buffer (&optional other-buffer)
-  (if (and (not other-buffer)
-	   (compilation-buffer-p (current-buffer)))
-      ;; The current buffer is a compilation buffer.
-      (current-buffer)
-    (if (and compilation-last-buffer (buffer-name compilation-last-buffer)
-	     (compilation-buffer-p compilation-last-buffer)
-	     (or (not other-buffer) (not (eq compilation-last-buffer
-					     (current-buffer)))))
-	compilation-last-buffer
-      (let ((buffers (buffer-list)))
-	(while (and buffers (or (not (compilation-buffer-p (car buffers)))
-				(and other-buffer
-				     (eq (car buffers) (current-buffer)))))
-	  (setq buffers (cdr buffers)))
-	(if buffers
-	    (car buffers)
-	  (or (and other-buffer
-		   (compilation-buffer-p (current-buffer))
-		   ;; The current buffer is a compilation buffer.
-		   (progn
-		     (if other-buffer
-			 (message "This is the only compilation buffer."))
-		     (current-buffer)))
-	      (error "No compilation started!")))))))
+  (next-error-find-buffer other-buffer 'compilation-buffer-internal-p))
 
 ;;;###autoload
-(defun next-error (&optional n)
-  "Visit next compilation error message and corresponding source code.
-Prefix arg N says how many error messages to move forwards (or
-backwards, if negative).
-
-\\[next-error] normally uses the most recently started compilation or
-grep buffer.  However, it can operate on any buffer with output from
-the \\[compile] and \\[grep] commands, or, more generally, on any
-buffer in Compilation mode or with Compilation Minor mode enabled.  To
-specify use of a particular buffer for error messages, type
-\\[next-error] in that buffer.
-
-Once \\[next-error] has chosen the buffer for error messages,
-it stays with that buffer until you use it in some other buffer which
-uses Compilation mode or Compilation Minor mode.
-
-See variable `compilation-error-regexp-alist' for customization ideas."
+(defun compilation-next-error-function (n &optional reset)
   (interactive "p")
-  (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
+  (set-buffer (compilation-find-buffer))
+  (when reset
+    (setq compilation-current-error nil))
   (let* ((columns compilation-error-screen-columns) ; buffer's local value
 	 (last 1)
 	 (loc (compilation-next-error (or n 1) nil
@@ -1497,27 +1445,6 @@ See variable `compilation-error-regexp-alist' for customization ideas."
 		(setcdr (nthcdr 2 col) `(,(point-marker)))))))))
     (compilation-goto-locus marker (nth 3 loc) (nth 3 end-loc))
     (setcdr (nthcdr 3 loc) t)))		; Set this one as visited.
-
-;;;###autoload (define-key ctl-x-map "`" 'next-error)
-
-(defun previous-error (n)
-  "Visit previous compilation error message and corresponding source code.
-Prefix arg N says how many error messages to move backwards (or
-forwards, if negative).
-
-This operates on the output from the \\[compile] and \\[grep] commands."
-  (interactive "p")
-  (next-error (- n)))
-
-(defun first-error (n)
-  "Restart at the first error.
-Visit corresponding source code.
-With prefix arg N, visit the source code of the Nth error.
-This operates on the output from the \\[compile] command."
-  (interactive "p")
-  (set-buffer (setq compilation-last-buffer (compilation-find-buffer)))
-  (setq compilation-current-error nil)
-  (next-error n))
 
 (defun compilation-fake-loc (marker file &optional line col)
   "Preassociate MARKER with FILE.
