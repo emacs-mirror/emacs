@@ -1,5 +1,10 @@
 2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* mailcap.el (mailcap-mime-data): Mark as risky.
+
+	* gnus.el (gnus-group, gnus-summary, gnus-summary-sort): Fix
+	custom-manual entries.
+
 	* time-date.el: Removed.  Merged into ../calendar/time-date.el.
 
 2004-08-02  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -11247,7 +11252,7 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 2002 Free Software Foundation, Inc.
+    Copyright (C) 2002 2004 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

@@ -70,7 +70,7 @@
 ;; These belong to gnus-group.el.
 (defgroup gnus-group nil
   "Group buffers."
-  :link '(custom-manual "(gnus)The Group Buffer")
+  :link '(custom-manual "(gnus)Group Buffer")
   :group 'gnus)
 
 (defgroup gnus-group-foreign nil
@@ -111,7 +111,7 @@
 ;; These belong to gnus-sum.el.
 (defgroup gnus-summary nil
   "Summary buffers."
-  :link '(custom-manual "(gnus)The Summary Buffer")
+  :link '(custom-manual "(gnus)Summary Buffer")
   :group 'gnus)
 
 (defgroup gnus-summary-exit nil
@@ -155,7 +155,7 @@
 
 (defgroup gnus-summary-sort nil
   "Sorting the summary buffer."
-  :link '(custom-manual "(gnus)Sorting")
+  :link '(custom-manual "(gnus)Sorting the Summary Buffer")
   :group 'gnus-summary)
 
 (defgroup gnus-summary-visual nil
