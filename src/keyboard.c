@@ -2697,7 +2697,8 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	{
 	  kbd_fetch_ptr = event + 1;
 	  input_pending = readable_events (0);
-	  x_activate_menubar (XFRAME (event->frame_or_window));
+	  if (FRAME_LIVE_P (XFRAME (event->frame_or_window)))
+	    x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
       /* Just discard these, by returning nil.
