@@ -17,7 +17,7 @@ please also report the version of Emacs, if any, that ps-print was
 distributed with.
 
 Please send all bug fixes and enhancements to
-	Jacques Duthen <duthen@cegelec-red.fr>.
+	Jacques Duthen <duthen@club-internet.fr>>.
 ")
 
 ;; This file is part of GNU Emacs.
