@@ -219,6 +219,32 @@
 		  (error "%S: Invalid op in vip-check-version" op))))
     (cond ((memq op '(= > >=)) nil)
 	  ((memq op '(< <=)) t))))
+	  
+;;;; warn if it is a wrong version of emacs
+;;(if (or (vip-check-version '< 19 29 'emacs)
+;;	(vip-check-version '< 19 12 'xemacs))
+;;    (progn
+;;      (with-output-to-temp-buffer " *vip-info*"
+;;	(switch-to-buffer " *vip-info*")
+;;	(insert
+;;	 (format "
+;;
+;;This version of Viper requires 
+;;
+;;\t Emacs 19.29 and higher
+;;\t OR
+;;\t XEmacs 19.12 and higher
+;;
+;;It is unlikely to work under Emacs version %s
+;;that you are using... " emacs-version))
+;;
+;;	(if noninteractive
+;;	    ()
+;;	  (beep 1)
+;;	  (beep 1)
+;;	  (insert "\n\nType any key to continue... ")
+;;	  (vip-read-event)))
+;;      (kill-buffer " *vip-info*")))
   
 
 (defun vip-get-visible-buffer-window (wind)
@@ -665,6 +691,50 @@
 	  (setq elt (nconc elt (list form)))))
     form
     ))
+
+;; This is here because Emacs changed the way local hooks work.
+;;
+;;Add to the value of HOOK the function FUNCTION.
+;;FUNCTION is not added if already present.
+;;FUNCTION is added (if necessary) at the beginning of the hook list
+;;unless the optional argument APPEND is non-nil, in which case
+;;FUNCTION is added at the end.
+;;
+;;HOOK should be a symbol, and FUNCTION may be any valid function.  If
+;;HOOK is void, it is first set to nil.  If HOOK's value is a single
+;;function, it is changed to a list of functions."
+(defun vip-add-hook (hook function &optional append)
+  (if (not (boundp hook)) (set hook nil))
+  ;; If the hook value is a single function, turn it into a list.
+  (let ((old (symbol-value hook)))
+    (if (or (not (listp old)) (eq (car old) 'lambda))
+	(setq old (list old)))
+    (if (member function old)
+	nil
+      (set hook (if append
+		    (append old (list function)) ; don't nconc
+		  (cons function old))))))
+
+;; This is here because of Emacs's changes in the semantics of add/remove-hooks
+;; and due to the bugs they introduced.
+;;
+;; Remove from the value of HOOK the function FUNCTION.
+;; HOOK should be a symbol, and FUNCTION may be any valid function.  If
+;; FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
+;; list of hooks to run in HOOK, then nothing is done.  See `vip-add-hook'."
+(defun vip-remove-hook (hook function)
+  (if (or (not (boundp hook))		;unbound symbol, or
+	  (null (symbol-value hook))	;value is nil, or
+	  (null function))		;function is nil, then
+      nil				;Do nothing.
+    (let ((hook-value (symbol-value hook)))
+      (if (consp hook-value)
+	  ;; don't side-effect the list
+	  (setq hook-value (delete function (copy-sequence hook-value)))
+	(if (equal hook-value function)
+	    (setq hook-value nil)))
+      (set hook hook-value))))
+
     
     
 ;; like read-event, but in XEmacs also try to convert to char, if possible
@@ -676,6 +746,18 @@
       (or (event-to-character event)
 	  event))
     ))
+
+;; This function lets function-key-map convert key sequences into logical
+;; keys. This does a better job than vip-read-event when it comes to kbd
+;; macros, since it enables certain macros to be shared between X and TTY
+;; modes.
+(defun vip-read-key () 
+  (let ((overriding-local-map vip-overriding-map) 
+        key) 
+    (use-global-map vip-overriding-map) 
+    (setq key (elt (read-key-sequence nil) 0)) 
+    (use-global-map global-map) 
+    key)) 
 
 
 ;; Emacs has a bug in eventp, which causes (eventp nil) to return (nil)
