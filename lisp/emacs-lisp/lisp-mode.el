@@ -114,12 +114,11 @@
     ()
    (setq shared-lisp-mode-map (make-sparse-keymap))
    (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
-   (define-key shared-lisp-mode-map "\177" 'backward-delete-char-untabify)
-   (define-key shared-lisp-mode-map "\t" 'lisp-indent-line))
+   (define-key shared-lisp-mode-map "\177" 'backward-delete-char-untabify))
 
 (defvar emacs-lisp-mode-map ()
   "Keymap for Emacs Lisp mode.
-All commands in shared-lisp-mode-map are inherited by this map.")
+All commands in `shared-lisp-mode-map' are inherited by this map.")
 
 (if emacs-lisp-mode-map
     ()
