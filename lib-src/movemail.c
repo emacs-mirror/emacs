@@ -795,12 +795,12 @@ pop_retr (server, msgno, arg)
       return (NOTOK);
     }
 
-  while (! (ret = pop_retrieve_next (server, &line)))
+  while ((ret = pop_retrieve_next (server, &line)) >= 0)
     {
       if (! line)
 	break;
 
-      if (mbx_write (line, arg) != OK)
+      if (mbx_write (line, ret, arg) != OK)
 	{
 	  strcpy (Errmsg, strerror (errno));
 	  pop_close (server);
@@ -826,8 +826,9 @@ pop_retr (server, msgno, arg)
 			 && (a[4] == ' '))
 
 int
-mbx_write (line, mbf)
+mbx_write (line, len, mbf)
      char *line;
+     int len;
      FILE *mbf;
 {
 #ifdef MOVEMAIL_QUOTE_POP_FROM_LINES
@@ -844,7 +845,7 @@ mbx_write (line, mbf)
       line++;
       len--;
     }
-  if (fputs (line, mbf) == EOF) 
+  if (fwrite (line, 1, len, mbf) != len) 
     return (NOTOK);
   if (fputc (0x0a, mbf) == EOF)
     return (NOTOK);

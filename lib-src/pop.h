@@ -59,7 +59,8 @@ extern popserver pop_open _ARGS((char *host, char *username, char *password,
 extern int pop_stat _ARGS((popserver server, int *count, int *size));
 extern int pop_list _ARGS((popserver server, int message, int **IDs,
 			   int **size));
-extern char *pop_retrieve _ARGS((popserver server, int message, int markfrom));
+extern int pop_retrieve _ARGS((popserver server, int message, int markfrom,
+			       char **));
 extern int pop_retrieve_first _ARGS((popserver server, int message,
 				     char **response));
 extern int pop_retrieve_next _ARGS((popserver server, char **line));

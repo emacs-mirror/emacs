@@ -130,16 +130,24 @@ extern int h_errno;
 #endif
 #endif
 
-static int socket_connection (/* char *, int */);
-static char *getline (/* popserver */);
-static int sendline (/* popserver, char * */);
-static int fullwrite (/* int, char *, int */);
-static int getok (/* popserver */);
+#ifndef _P
+# ifdef __STDC__
+#  define _P(a) a
+# else
+#  define _P(a) ()
+# endif /* __STDC__ */
+#endif /* ! __P */
+
+static int socket_connection _P((char *, int));
+static int getline _P((popserver, char **));
+static int sendline _P((popserver, char *));
+static int fullwrite _P((int, char *, int));
+static int getok _P((popserver));
 #if 0
-static int gettermination (/* popserver */);
+static int gettermination _P((popserver));
 #endif
-static void pop_trash (/* popserver */);
-static char *find_crlf (/* char * */);
+static void pop_trash _P((popserver));
+static char *find_crlf _P((char *, int));
 
 #define ERROR_MAX 80		/* a pretty arbitrary size */
 #define POP_PORT 110
@@ -373,7 +381,7 @@ pop_stat (server, count, size)
       return (-1);
     }
      
-  if (sendline (server, "STAT") || (! (fromserver = getline (server))))
+  if (sendline (server, "STAT") || (getline (server, &fromserver) < 0))
     return (-1);
 
   if (strncmp (fromserver, "+OK ", 4))
@@ -469,7 +477,7 @@ pop_list (server, message, IDs, sizes)
 	  free ((char *) *sizes);
 	  return (-1);
 	}
-      if (! (fromserver = getline (server)))
+      if (getline (server, &fromserver) < 0)
 	{
 	  free ((char *) *IDs);
 	  free ((char *) *sizes);
@@ -514,7 +522,7 @@ pop_list (server, message, IDs, sizes)
 	}
       for (i = 0; i < how_many; i++)
 	{
-	  if (pop_multi_next (server, &fromserver))
+	  if (pop_multi_next (server, &fromserver) <= 0)
 	    {
 	      free ((char *) *IDs);
 	      free ((char *) *sizes);
@@ -533,7 +541,7 @@ pop_list (server, message, IDs, sizes)
 	    }
 	  (*sizes)[i] = atoi (fromserver);
 	}
-      if (pop_multi_next (server, &fromserver))
+      if (pop_multi_next (server, &fromserver) < 0)
 	{
 	  free ((char *) *IDs);
 	  free ((char *) *sizes);
@@ -563,17 +571,21 @@ pop_list (server, message, IDs, sizes)
  *	markfrom
  * 		If true, then mark the string "From " at the beginning
  * 		of lines with '>'.
+ *	msg_buf	Output parameter to which a buffer containing the
+ * 		message is assigned.
  * 
- * Return value: A string pointing to the message, if successful, or
- * 	null with pop_error set if not.
+ * Return value: The number of bytes in msg_buf, which may contain
+ * 	embedded nulls, not including its final null, or -1 on error
+ * 	with pop_error set.
  *
  * Side effects: May kill connection on error.
  */
-char *
-pop_retrieve (server, message, markfrom)
+int
+pop_retrieve (server, message, markfrom, msg_buf)
      popserver server;
      int message;
      int markfrom;
+     char **msg_buf;
 {
   int *IDs, *sizes, bufsize, fromcount = 0, cp = 0;
   char *ptr, *fromserver;
@@ -582,15 +594,15 @@ pop_retrieve (server, message, markfrom)
   if (server->in_multi)
     {
       strcpy (pop_error, "In multi-line query in pop_retrieve");
-      return (0);
+      return (-1);
     }
 
   if (pop_list (server, message, &IDs, &sizes))
-    return (0);
+    return (-1);
 
   if (pop_retrieve_first (server, message, &fromserver))
     {
-      return (0);
+      return (-1);
     }
 
   /*
@@ -608,17 +620,16 @@ pop_retrieve (server, message, markfrom)
     {
       strcpy (pop_error, "Out of memory in pop_retrieve");
       pop_retrieve_flush (server);
-      return (0);
+      return (-1);
     }
 
-  while (! (ret = pop_retrieve_next (server, &fromserver)))
+  while ((ret = pop_retrieve_next (server, &fromserver)) >= 0)
     {
-      int linesize;
-
       if (! fromserver)
 	{
 	  ptr[cp] = '\0';
-	  return (ptr);
+	  *msg_buf = ptr;
+	  return (cp);
 	}
       if (markfrom && fromserver[0] == 'F' && fromserver[1] == 'r' &&
 	  fromserver[2] == 'o' && fromserver[3] == 'm' &&
@@ -632,23 +643,19 @@ pop_retrieve (server, message, markfrom)
 		{
 		  strcpy (pop_error, "Out of memory in pop_retrieve");
 		  pop_retrieve_flush (server);
-		  return (0);
+		  return (-1);
 		}
 	      fromcount = 0;
 	    }
 	  ptr[cp++] = '>';
 	}
-      linesize = strlen (fromserver);
-      bcopy (fromserver, &ptr[cp], linesize);
-      cp += linesize;
+      bcopy (fromserver, &ptr[cp], ret);
+      cp += ret;
       ptr[cp++] = '\n';
     }
 
-  if (ret)
-    {
-      free (ptr);
-      return (0);
-    }
+  free (ptr);
+  return (-1);
 }     
 
 int
@@ -660,6 +667,14 @@ pop_retrieve_first (server, message, response)
   sprintf (pop_error, "RETR %d", message);
   return (pop_multi_first (server, pop_error, response));
 }
+
+/*
+  Returns a negative number on error, 0 to indicate that the data has
+  all been read (i.e., the server has returned a "." termination
+  line), or a positive number indicating the number of bytes in the
+  returned buffer (which is null-terminated and may contain embedded
+  nulls, but the returned bytecount doesn't include the final null).
+  */
 
 int
 pop_retrieve_next (server, line)
@@ -685,6 +700,14 @@ pop_top_first (server, message, lines, response)
   sprintf (pop_error, "TOP %d %d", message, lines);
   return (pop_multi_first (server, pop_error, response));
 }
+
+/*
+  Returns a negative number on error, 0 to indicate that the data has
+  all been read (i.e., the server has returned a "." termination
+  line), or a positive number indicating the number of bytes in the
+  returned buffer (which is null-terminated and may contain embedded
+  nulls, but the returned bytecount doesn't include the final null).
+  */
 
 int
 pop_top_next (server, line)
@@ -714,7 +737,7 @@ pop_multi_first (server, command, response)
       return (-1);
     }
 
-  if (sendline (server, command) || (! (*response = getline (server))))
+  if (sendline (server, command) || (getline (server, response) < 0))
     {
       return (-1);
     }
@@ -738,12 +761,22 @@ pop_multi_first (server, command, response)
     }
 }
 
+/*
+  Read the next line of data from SERVER and place a pointer to it
+  into LINE.  Return -1 on error, 0 if there are no more lines to read
+  (i.e., the server has returned a line containing only "."), or a
+  positive number indicating the number of bytes in the LINE buffer
+  (not including the final null).  The data in that buffer may contain
+  embedded nulls, but does not contain the final CRLF. When returning
+  0, LINE is set to null. */
+
 int
 pop_multi_next (server, line)
      popserver server;
      char **line;
 {
   char *fromserver;
+  int ret;
 
   if (! server->in_multi)
     {
@@ -751,8 +784,7 @@ pop_multi_next (server, line)
       return (-1);
     }
 
-  fromserver = getline (server);
-  if (! fromserver)
+  if ((ret = getline (server, &fromserver)) < 0)
     {
       return (-1);
     }
@@ -768,13 +800,13 @@ pop_multi_next (server, line)
       else
 	{
 	  *line = fromserver + 1;
-	  return (0);
+	  return (ret - 1);
 	}
     }
   else
     {
       *line = fromserver;
-      return (0);
+      return (ret);
     }
 }
 
@@ -783,21 +815,20 @@ pop_multi_flush (server)
      popserver server;
 {
   char *line;
+  int ret;
 
   if (! server->in_multi)
     {
       return (0);
     }
 
-  while (! pop_multi_next (server, &line))
+  while ((ret = pop_multi_next (server, &line)))
     {
-      if (! line)
-	{
-	  return (0);
-	}
+      if (ret < 0)
+	return (-1);
     }
 
-  return (-1);
+  return (0);
 }
 
 /* Function: pop_delete
@@ -888,7 +919,7 @@ pop_last (server)
   if (sendline (server, "LAST"))
     return (-1);
 
-  if (! (fromserver = getline (server)))
+  if (getline (server, &fromserver) < 0)
     return (-1);
 
   if (! strncmp (fromserver, "-ERR", 4))
@@ -1234,16 +1265,22 @@ socket_connection (host, flags)
  * Arguments:
  * 	server	The server from which to get the line of text.
  *
- * Returns: A non-null pointer if successful, or a null pointer on any
- * 	error, with an error message copied into pop_error.
+ * Returns: The number of characters in the line, which is returned in
+ * 	LINE, not including the final null.  A return value of 0
+ * 	indicates a blank line.  A negative return value indicates an
+ * 	error (in which case the contents of LINE are undefined.  In
+ * 	case of error, an error message is copied into pop_error.
  *
  * Notes: The line returned is overwritten with each call to getline.
  *
  * Side effects: Closes the connection on error.
+ *
+ * THE RETURNED LINE MAY CONTAIN EMBEDDED NULLS!
  */
-static char *
-getline (server)
+static int
+getline (server, line)
      popserver server;
+     char **line;
 {
 #define GETLINE_ERROR "Error reading from server: "
 
@@ -1252,7 +1289,8 @@ getline (server)
 
   if (server->data)
     {
-      char *cp = find_crlf (server->buffer + server->buffer_index);
+      char *cp = find_crlf (server->buffer + server->buffer_index,
+			    server->data);
       if (cp)
 	{
 	  int found;
@@ -1266,8 +1304,11 @@ getline (server)
 	  server->buffer_index += data_used;
 
 	  if (pop_debug)
+	    /* Embedded nulls will truncate this output prematurely,
+	       but that's OK because it's just for debugging anyway. */
 	    fprintf (stderr, "<<< %s\n", server->buffer + found);
-	  return (server->buffer + found);
+	  *line = server->buffer + found;
+	  return (data_used - 2);
 	}
       else
 	{
@@ -1302,7 +1343,7 @@ getline (server)
 	    {
 	      strcpy (pop_error, "Out of memory in getline");
 	      pop_trash (server);
-	      return (0);
+	      return (-1);
 	    }
 	}
       ret = RECV (server->file, server->buffer + server->data,
@@ -1313,13 +1354,13 @@ getline (server)
 	  strncat (pop_error, strerror (errno),
 		   ERROR_MAX - sizeof (GETLINE_ERROR));
 	  pop_trash (server);
-	  return (0);
+	  return (-1);
 	}
       else if (ret == 0)
 	{
 	  strcpy (pop_error, "Unexpected EOF from server in getline");
 	  pop_trash (server);
-	  return (0);
+	  return (-1);
 	}
       else
 	{
@@ -1327,7 +1368,8 @@ getline (server)
 	  server->data += ret;
 	  server->buffer[server->data] = '\0';
 	       
-	  cp = find_crlf (server->buffer + search_offset);
+	  cp = find_crlf (server->buffer + search_offset,
+			  server->data - search_offset);
 	  if (cp)
 	    {
 	      int data_used = (cp + 2) - server->buffer;
@@ -1337,7 +1379,8 @@ getline (server)
 
 	      if (pop_debug)
 		fprintf (stderr, "<<< %s\n", server->buffer);
-	      return (server->buffer);
+	      *line = server->buffer;
+	      return (data_used - 2);
 	    }
 	  /* As above, the "- 1" here is to account for the fact that
 	     we may have read a CR without its accompanying LF. */
@@ -1442,7 +1485,7 @@ getok (server)
 {
   char *fromline;
 
-  if (! (fromline = getline (server)))
+  if (getline (server, &fromline) < 0)
     {
       return (-1);
     }
@@ -1481,8 +1524,7 @@ gettermination (server)
 {
   char *fromserver;
 
-  fromserver = getline (server);
-  if (! fromserver)
+  if (getline (server, &fromserver) < 0)
     return (-1);
 
   if (strcmp (fromserver, "."))
@@ -1555,18 +1597,18 @@ pop_trash (server)
 #endif
 }
 
-/* Return a pointer to the first CRLF in IN_STRING,
-   or 0 if it does not contain one.  */
+/* Return a pointer to the first CRLF in IN_STRING, which can contain
+   embedded nulls and has LEN characters in it not including the final
+   null, or 0 if it does not contain one.  */
 
 static char *
-find_crlf (in_string)
+find_crlf (in_string, len)
      char *in_string;
+     int len;
 {
-  while (1)
+  while (len--)
     {
-      if (! *in_string)
-	return (0);
-      else if (*in_string == '\r')
+      if (*in_string == '\r')
 	{
 	  if (*++in_string == '\n')
 	    return (in_string - 1);
@@ -1574,7 +1616,7 @@ find_crlf (in_string)
       else
 	in_string++;
     }
-  /* NOTREACHED */
+  return (0);
 }
 
 #endif /* MAIL_USE_POP */
