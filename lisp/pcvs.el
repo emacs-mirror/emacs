@@ -358,7 +358,7 @@ from the current buffer."
 	 (dir default-directory)
 	 (buf (cond
 	       (name (cvs-get-buffer-create name))
-	       ((and (bufferp cvs-temp-buffer) (buffer-name cvs-temp-buffer))
+	       ((and (bufferp cvs-temp-buffer) (buffer-live-p cvs-temp-buffer))
 		cvs-temp-buffer)
 	       (t
 		(set (make-local-variable 'cvs-temp-buffer)
@@ -528,39 +528,49 @@ If non-nil, NEW means to create a new buffer no matter what."
 	     (files (nth 1 dir+files+rest))
 	     (rest (nth 2 dir+files+rest)))
 
-	;; setup the (current) process buffer
-	(set (make-local-variable 'cvs-postprocess)
-	     (if (null rest)
-		 ;; this is the last invocation
-		 postprocess
-	       ;; else, we have to register ourselves to be rerun on the rest
-	       `(cvs-run-process ',args ',rest ',postprocess ',single-dir)))
 	(add-hook 'kill-buffer-hook
 		  (lambda ()
 		    (let ((proc (get-buffer-process (current-buffer))))
 		      (when (processp proc)
 			(set-process-filter proc nil)
-			(set-process-sentinel proc nil)
-			(delete-process proc))))
+			;; Abort postprocessing but leave the sentinel so it
+			;; will update the list of running procs.
+			(process-put proc 'cvs-postprocess nil)
+			(interrupt-process proc))))
 		  nil t)
 
 	;; create the new process and setup the procbuffer correspondingly
-	(let* ((args (append (cvs-flags-query 'cvs-cvs-flags nil 'noquery)
+	(let* ((msg (cvs-header-msg args fis))
+	       (args (append (cvs-flags-query 'cvs-cvs-flags nil 'noquery)
 			     (if cvs-cvsroot (list "-d" cvs-cvsroot))
 			     args
 			     files))
 	       ;; If process-connection-type is nil and the repository
 	       ;; is accessed via SSH, a bad interaction between libc,
 	       ;; CVS and SSH can lead to garbled output.
-	       ;; It might be a glibc-specific problem (but it also happens
+	       ;; It might be a glibc-specific problem (but it can also happens
 	       ;; under Mac OS X, it seems).
-	       ;; Until the problem is cleared, we'll use a pty rather than
-	       ;; a pipe.
-	       ;; (process-connection-type nil) ; Use a pipe, not a pty.
+	       ;; It seems that using a pty can help circumvent the problem,
+	       ;; but at the cost of screwing up when the process thinks it
+	       ;; can ask for user input (such as password or host-key
+	       ;; confirmation).  A better workaround is to set CVS_RSH to
+	       ;; an appropriate script, or to use a later version of CVS.
+	       (process-connection-type nil) ; Use a pipe, not a pty.
 	       (process
 		;; the process will be run in the selected dir
 		(let ((default-directory (cvs-expand-dir-name dir)))
 		  (apply 'start-process "cvs" procbuf cvs-program args))))
+	  ;; setup the process.
+	  (process-put process 'cvs-buffer cvs-buffer)
+	  (with-current-buffer cvs-buffer (cvs-update-header msg 'add))
+	  (process-put process 'cvs-header msg)
+	  (process-put
+	   process 'cvs-postprocess
+	   (if (null rest)
+	       ;; this is the last invocation
+	       postprocess
+	     ;; else, we have to register ourselves to be rerun on the rest
+	     `(cvs-run-process ',args ',rest ',postprocess ',single-dir)))
 	  (set-process-sentinel process 'cvs-sentinel)
 	  (set-process-filter process 'cvs-update-filter)
 	  (set-marker (process-mark process) (point-max))
@@ -636,33 +646,35 @@ If non-nil, NEW means to create a new buffer no matter what."
 This is responsible for parsing the output from the cvs update when
 it is finished."
   (when (memq (process-status proc) '(signal exit))
-    (if (null (buffer-name (process-buffer proc)))
-	;;(set-process-buffer proc nil)
-	(error "cvs' process buffer was killed")
-      (let* ((obuf (current-buffer))
-	     (procbuffer (process-buffer proc)))
-	(set-buffer (with-current-buffer procbuffer cvs-buffer))
-	(setq cvs-mode-line-process (symbol-name (process-status proc)))
-	(force-mode-line-update)
-	(set-buffer procbuffer)
-	(let ((cvs-postproc cvs-postprocess))
-	  ;; Since the buffer and mode line will show that the
-	  ;; process is dead, we can delete it now.  Otherwise it
-	  ;; will stay around until M-x list-processes.
-	  (delete-process proc)
-	  (setq cvs-postprocess nil)
-	  ;; do the postprocessing like parsing and such
-	  (save-excursion (eval cvs-postproc))
-	  ;; check whether something is left
-	  (unless cvs-postprocess
-	    ;; IIRC, we enable undo again once the process is finished
-	    ;; for cases where the output was inserted in *vc-diff* or
-	    ;; in a file-like buffer.  -stef
-	    (buffer-enable-undo)
-	    (with-current-buffer cvs-buffer
-	      (message "CVS process has completed in %s" (buffer-name)))))
-	;; This might not even be necessary
-	(set-buffer obuf)))))
+    (let ((cvs-postproc (process-get proc 'cvs-postprocess))
+	  (cvs-buf (process-get proc 'cvs-buffer)))
+      ;; Since the buffer and mode line will show that the
+      ;; process is dead, we can delete it now.  Otherwise it
+      ;; will stay around until M-x list-processes.
+      (process-put proc 'postprocess nil)
+      (delete-process proc)
+      ;; Don't do anything if the main buffer doesn't exist any more.
+      (when (buffer-live-p cvs-buf)
+	(with-current-buffer cvs-buf
+	  (cvs-update-header (process-get proc 'cvs-header) nil)
+	  (setq cvs-mode-line-process (symbol-name (process-status proc)))
+	  (force-mode-line-update)
+	  (when cvs-postproc
+	    (if (null (buffer-live-p (process-buffer proc)))
+		;;(set-process-buffer proc nil)
+		(error "cvs' process buffer was killed")
+	      (with-current-buffer (process-buffer proc)
+		;; do the postprocessing like parsing and such
+		(save-excursion (eval cvs-postproc))
+		;; check whether something is left
+		(unless (get-buffer-process (current-buffer))
+		  ;; IIRC, we enable undo again once the process is finished
+		  ;; for cases where the output was inserted in *vc-diff* or
+		  ;; in a file-like buffer.  --Stef
+		  (buffer-enable-undo)
+		  (with-current-buffer cvs-buffer
+		    (message "CVS process has completed in %s"
+			     (buffer-name))))))))))))
 
 (defun cvs-parse-process (dcd &optional subdir old-fis)
   "Parse the output of a cvs process.
@@ -770,7 +782,7 @@ before calling the real function `" (symbol-name fun-1) "'.\n")
 (defun-cvs-mode cvs-mode-kill-process ()
   "Kill the temporary buffer and associated process."
   (interactive)
-  (when (and (bufferp cvs-temp-buffer) (buffer-name cvs-temp-buffer))
+  (when (and (bufferp cvs-temp-buffer) (buffer-live-p cvs-temp-buffer))
     (let ((proc (get-buffer-process cvs-temp-buffer)))
       (when proc (delete-process proc)))))
 
@@ -1133,7 +1145,7 @@ Full documentation is in the Texinfo file."
 	     (eq (ewoc-buffer cvs-cookies) buf)
 	     (setq check 'cvs-temp-buffer)
 	     (or (null cvs-temp-buffer)
-		 (null (buffer-name cvs-temp-buffer))
+		 (null (buffer-live-p cvs-temp-buffer))
 		 (and (eq (with-current-buffer cvs-temp-buffer cvs-buffer) buf)
 		      (equal (with-current-buffer cvs-temp-buffer
 			       default-directory)
@@ -1822,11 +1834,6 @@ POSTPROC is a list of expressions to be evaluated at the very end (after
 		;; absence of `cvs update' output has a specific meaning.
 		(or fis (list (cvs-create-fileinfo 'DIRCHANGE "" "." ""))))))
 	(push `(cvs-parse-process ',dont-change-disc nil ',old-fis) postproc)))
-    (let ((msg (cvs-header-msg args fis)))
-      (cvs-update-header msg 'add)
-      (push `(with-current-buffer cvs-buffer
-	       (cvs-update-header ',msg nil))
-	    postproc))
     (setq postproc (if (cdr postproc) (cons 'progn postproc) (car postproc)))
     (with-current-buffer buf
       (let ((inhibit-read-only t)) (erase-buffer))

@@ -5238,6 +5238,7 @@ Enabling Visible mode makes all invisible text temporarily visible.
 Disabling Visible mode turns off that effect.  Visible mode
 works by saving the value of `buffer-invisibility-spec' and setting it to nil."
   :lighter " Vis"
+  :group 'editing-basics
   (when (local-variable-p 'vis-mode-saved-buffer-invisibility-spec)
     (setq buffer-invisibility-spec vis-mode-saved-buffer-invisibility-spec)
     (kill-local-variable 'vis-mode-saved-buffer-invisibility-spec))

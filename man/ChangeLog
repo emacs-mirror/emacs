@@ -1,3 +1,29 @@
+2005-04-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Troubleshooting Commands): Remove comment about
+	installation.
+	(Installation): Remove section.
+	(Customizable Variables): New section.
+	(Basic Embedded Mode, Customizing Embedded Mode, Graphics)
+	(Graphical Devices): Add references to Customizable Variables.
+
+2005-04-01  Lute Kamstra  <lute@gnu.org>
+
+	* maintaining.texi (Change Log): add-change-log-entry uses
+	add-log-mailing-address.
+
+2005-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Reverting): Move `auto-revert-check-vc-info' to
+	`VC Mode Line' and put in an xref to that node.
+	(VC Mode Line): Move `auto-revert-check-vc-info' here and clarify
+	its description.
+
+2005-03-31  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* calendar.texi (Calendar Systems): Say that the Persian calendar
+	implemented here is the arithmetical one championed by Birashk.
+
 2005-03-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* programs.texi (Fortran Motion): Fix previous change.
@@ -21,7 +47,7 @@
 	(Longlines): New node.
 	(Auto Fill): Don't index "word wrap" here.
 	(Filling): Add Longlines to menu.
-	
+
 2005-03-29  Richard M. Stallman  <rms@gnu.org>
 
 	* xresources.texi: Minor fixes.

@@ -1622,13 +1622,15 @@ a remote mailbox, PASSWORD is the password if it should be
 supplied as a separate argument to `movemail' or nil otherwise, GOT-PASSWORD
 is non-nil if the user has supplied the password interactively.
 "
-  (if (string-match "^\\([^:]+\\)://\\(\\([^:@]+\\)\\(:\\([^@]+\\)\\)?@\\)?.*" file)
+  (cond
+   ((string-match "^\\([^:]+\\)://\\(\\([^:@]+\\)\\(:\\([^@]+\\)\\)?@\\)?.*" file)
       (let (got-password supplied-password
 	    (proto (match-string 1 file))
 	    (user  (match-string 3 file))
 	    (pass  (match-string 5 file))
 	    (host  (substring file (or (match-end 2)
 				       (+ 3 (match-end 1))))))
+	
 	(if (not pass)
 	    (when rmail-remote-password-required
 	      (setq got-password (not (rmail-have-password)))
@@ -1645,8 +1647,22 @@ is non-nil if the user has supplied the password interactively.
 	  (list file
 		(or (string-equal proto "pop") (string-equal proto "imap"))
 		supplied-password
-		got-password)))
-    (list file nil nil nil)))
+		got-password))))
+   
+   ((string-match "^po:\\([^:]+\\)\\(:\\(.*\\)\\)?" file)
+    (let (got-password supplied-password
+          (proto "pop")
+	  (user  (match-string 1 file))
+	  (host  (match-string 3 file)))
+      
+      (when rmail-remote-password-required
+	(setq got-password (not (rmail-have-password)))
+	(setq supplied-password (rmail-get-remote-password nil)))
+
+      (list file "pop" supplied-password got-password)))
+   
+   (t
+    (list file nil nil nil))))
 
 (defun rmail-insert-inbox-text (files renamep)
   ;; Detect a locked file now, so that we avoid moving mail
@@ -1686,15 +1702,7 @@ is non-nil if the user has supplied the password interactively.
 		     (expand-file-name buffer-file-name))))
       ;; Always use movemail to rename the file,
       ;; since there can be mailboxes in various directories.
-      (setq movemail t)
-;;;      ;; If getting from mail spool directory,
-;;;      ;; use movemail to move rather than just renaming,
-;;;      ;; so as to interlock with the mailer.
-;;;      (setq movemail (string= file
-;;;			      (file-truename
-;;;			       (concat rmail-spool-directory
-;;;				       (file-name-nondirectory file)))))
-      (if (and movemail (not popmail))
+      (if (not popmail)
 	  (progn
 	    ;; On some systems, /usr/spool/mail/foo is a directory
 	    ;; and the actual inbox is /usr/spool/mail/foo/foo.
@@ -1716,23 +1724,6 @@ is non-nil if the user has supplied the password interactively.
 	    ((or (file-exists-p tofile) (and (not popmail)
 					     (not (file-exists-p file))))
 	     nil)
-	    ((and (not movemail) (not popmail))
-	     ;; Try copying.  If that fails (perhaps no space) and
-	     ;; we're allowed to blow away the inbox, rename instead.
-	     (if rmail-preserve-inbox
-		 (copy-file file tofile nil)
-	       (condition-case nil
-		   (copy-file file tofile nil)
-		 (error
-		  ;; Third arg is t so we can replace existing file TOFILE.
-		  (rename-file file tofile t))))
-	     ;; Make the real inbox file empty.
-	     ;; Leaving it deleted could cause lossage
-	     ;; because mailers often won't create the file.
-	     (if (not rmail-preserve-inbox)
-		 (condition-case ()
-		     (write-region (point) (point) file)
-		   (file-error nil))))
 	    (t
 	     (with-temp-buffer
 	       (let ((errors (current-buffer)))

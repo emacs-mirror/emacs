@@ -1,4 +1,108 @@
-2005-03-31  Kenichi Handa  <handa@etlken2>
+2005-04-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (visible-mode): Use explicit :group keyword.
+	This changes the group of `visible-mode-hook' from paren-blinking
+	to editing-basics.
+
+2005-04-02  Sergey Poznyakoff  <gray@Mirddin.farlep.net>  (tiny change)
+
+	* mail/rmail.el (rmail-parse-url): Bugfix. Parse traditional
+	mailbox specifications as well as URLs.
+	(rmail-insert-inbox-text): Remove unused conditional branches.
+
+2005-04-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-gnuplot-name, calc-gnuplot-plot-command)
+	(calc-gnuplot-print-command): Move definitions to calc.el.
+
+	* calc/calc-embed.el (calc-embedded-announce-formula)
+	(calc-embedded-open-formula, calc-embedded-close-formula)
+	(calc-embedded-open-word, calc-embedded-close-word)
+	(calc-embedded-open-plain, calc-embedded-close-plain)
+	(calc-embedded-open-new-formula, calc-embedded-close-new-formula)
+	(calc-embedded-open-mode, calc-embedded-close-mode):
+	Move definitions to calc.el.
+
+	* calc/calc.el (calc-settings-file, calc-language-alist):
+	Make customizable.
+	(calc-embedded-announce-formula, calc-embedded-open-formula)
+	(calc-embedded-close-formula, calc-embedded-open-word)
+	(calc-embedded-close-word, calc-embedded-open-plain)
+	(calc-embedded-close-plain, calc-embedded-open-new-formula)
+	(calc-embedded-close-new-formula, calc-embedded-open-mode)
+	(calc-embedded-close-mode, calc-gnuplot-name)
+	(calc-gnuplot-plot-command, calc-gnuplot-print-command): Move here
+	from other files and make customizable.
+
+2005-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-temp-buffer, cvs-mode-kill-process, cvs-buffer-check):
+	Use buffer-live-p.
+	(cvs-mode-run): Don't call cvs-update-header here.
+	(cvs-run-process): Call cvs-update-header.
+	Use process properties for cvs-postprocess and cvs-buffer so that
+	the sentinel can behave better if the temp buffer is killed.
+	Use a pipe rather than a tty, to better handle unexpected prompts.
+	(cvs-sentinel): Rewrite.  Call cvs-update-header.
+
+2005-04-01  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-workfile-unchanged-p): Disable mtime check when
+	we go via Tramp or Ange-FTP.  Suggested by Kai Grossjohann.
+
+2005-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* generic.el (define-generic-mode): Add indentation rule.
+
+2005-03-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (mode-require-final-newline): Make Custom correctly
+	report a nil value and allow to set it to nil via Custom.
+	Doc fix.
+
+2005-04-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Enable the correct case setting for
+	dotless-i and dotted-I.
+
+2005-04-01  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-internal): Fall back to non-ido command if
+	initial directory is on slow ftp (or tramp) host.
+
+2005-03-31  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/autoload.el (make-autoload):
+	Handle define-global-minor-mode.
+
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode):
+	Rename from easy-mmode-define-global-mode.
+	(easy-mmode-define-global-mode): Alias for define-global-minor-mode.
+
+	* progmodes/scheme.el (scheme-mode-syntax-table):
+	Update syntax of | and # for two-character comment syntax.
+
+2005-03-31  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-global-mode)
+	(define-minor-mode): Call custom-current-group at load-time.
+
+	* generic.el (define-generic-mode): Add debug declaration.
+	Add defcustom for the mode hook.
+	(generic-mode-internal): Use run-mode-hooks.
+
+2005-03-31  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-1-click-follows-link): Increase to 450 ms.
+	(mouse-fixup-help-message): New defun called by show_help_echo
+	to fixup mouse-2 prefix in help messages when applicable.
+
+	* tooltip.el (tooltip-show-help-function): Don't fixup message here.
+
+2005-03-31  Kenichi Handa  <handa@m17n.org>
+
+	* language/thai-word.el (thai-find-word-ends): Pay attention to
+	the case that we reach the end of buffer.
 
 	* textmodes/fill.el (fill-text-properties-at): New function.
 	(fill-newline): Use fill-text-properties-at instead of
@@ -69,13 +173,13 @@
 	* org.el (org-agenda-phases-of-moon, org-agenda-sunrise-sunset)
 	(org-agenda-convert-date, org-agenda-goto-calendar): New commands.
 	(org-diary-default-entry): New function.
-	(org-get-entries-from-diary): Better parsing of diary entries
+	(org-get-entries-from-diary): Better parsing of diary entries.
 	(org-agenda-check-no-diary): New function.
 	("diary-lib"): Advice to function `add-to-diary-list', to allow
 	linking to diary entries.
-	(org-agenda-execute-calendar-command): New function
-	(org-agenda): Improved visible section in window.  And
-	use `org-fit-agenda-window'.
+	(org-agenda-execute-calendar-command): New function.
+	(org-agenda): Improve visible section in window.
+	Use `org-fit-agenda-window'.
 	(org-fit-agenda-window): New option.
 	(org-move-subtree-down): Better handling of empty lines
 	at end of subtree.
@@ -84,12 +188,10 @@
 	(org-fontify-done-headline): New option.
 	(org-headline-done-face): New face.
 	(org-set-font-lock-defaults): Use `org-headline-done-face'.
-	(org-table-copy-down): renamed from
-	`org-table-copy-from-above'.  When current field is non-empty, it
-	is copied to next row.
-	(org-table-copy-from-above): Fixed bug which made it
-	impossible to copy fields containing only a single non-white
-	character.
+	(org-table-copy-down): Rename from `org-table-copy-from-above'.
+	When current field is non-empty, it is copied to next row.
+	(org-table-copy-from-above): Fix bug which made it
+	impossible to copy fields containing only a single non-white character.
 
 2005-03-30  Kim F. Storm  <storm@cua.dk>
 

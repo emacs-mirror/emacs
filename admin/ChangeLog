@@ -1,3 +1,16 @@
+2005-03-30  Marcelo Toledo  <marcelo@marcelotoledo.org>
+
+	* FOR-RELEASE (Documentation): Added check the Emacs Tutorial. The
+        first line of every tutorial must begin with a sentence saying
+        "Emacs Tutorial" in the respective language.  This should be
+        followed by "See end for copying conditions", likewise in the
+        respective language.
+
+2005-03-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* FOR-RELEASE (TO BE DONE SHORTLY BEFORE RELEASE): New section.
+	Add `undo-ask-before-discard' to it.
+
 2005-03-02  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs: Only use the mkdir --verbose option if the

@@ -1,8 +1,8 @@
 Tasks needed before the next release.
 
-* THINGS THAT HAVE TO BE DONE SHORTLY BEFORE RELEASE
+* TO BE DONE SHORTLY BEFORE RELEASE
 
-`undo-ask-before-discard', currently set to t for debugging purposes
+** `undo-ask-before-discard', currently set to t for debugging purposes
 has to be set to nil: when t, it can leak memory and cause other problems.
 
 * NEW FEATURES
@@ -22,6 +22,8 @@ See msg from rms to emacs-devel on 21 Dec.
 
 
 * FATAL ERRORS
+
+** Make unexec handle memory mapping policy of the latest versions of Linux.
 
 ** Investigate reported crashes in compact_small_strings.
 
@@ -150,7 +152,7 @@ man/basic.texi      "Luc Teirlinck"  Chong Yidong
 man/buffers.texi    "Luc Teirlinck"  Chong Yidong
 man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
 man/calendar.texi   joakim@verona.se  Chong Yidong
-man/cmdargs.texi    Chong Yidong
+man/cmdargs.texi    Chong Yidong     "Luc Teirlinck"
 man/commands.texi   "Luc Teirlinck"  Chong Yidong
 man/custom.texi     Chong Yidong
 man/dired.texi      Chong Yidong     joakim@verona.se
@@ -216,7 +218,7 @@ lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
 lispref/functions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/help.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/hooks.texi
+lispref/hooks.texi	 Lute Kamstra
 lispref/internals.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/intro.texi	 "Luc Teirlinck"
 lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
@@ -244,6 +246,42 @@ lispref/text.texi        Chong Yidong
 lispref/tips.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/variables.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
+
+** Check the Emacs Tutorial.
+
+The first line of every tutorial must begin with a sentence saying
+"Emacs Tutorial" in the respective language.  This should be followed
+by "See end for copying conditions", likewise in the respective
+language.
+
+After each file name, on the same line or the following line, come the
+names of the people who have checked it.
+
+
+SECTION                  READERS
+----------------------------------
+etc/TUTORIAL             rms
+etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
+etc/TUTORIAL.cn
+etc/TUTORIAL.cs
+etc/TUTORIAL.de
+etc/TUTORIAL.es          Marcelo Toledo
+etc/TUTORIAL.fr
+etc/TUTORIAL.it
+etc/TUTORIAL.ja
+etc/TUTORIAL.ko
+etc/TUTORIAL.nl		 Lute Kamstra
+etc/TUTORIAL.pl
+etc/TUTORIAL.pt_BR       Marcelo Toledo
+etc/TUTORIAL.ro
+etc/TUTORIAL.ru
+etc/TUTORIAL.sk
+etc/TUTORIAL.sl
+etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
+etc/TUTORIAL.th
+etc/TUTORIAL.zh
+
+
 
 
 Local variables:

@@ -1,3 +1,56 @@
+2005-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* alloc.c (allocate_string_data): Call BLOCK_INPUT before calling
+	mallopt.
+
+	* ralloc.c (r_alloc_init): Ditto.
+
+2005-04-01  Kenichi Handa  <handa@m17n.org>
+
+	* lisp.h (Vascii_upcase_table, Vascii_canon_table,
+	Vascii_eqv_table): Extern them.
+
+	* casetab.c (set_case_table): If standard is nonzero, setup
+	Vascii_upcase_table, Vascii_canon_table, and Vascii_eqv_table.
+
+	* search.c (looking_at_1): Use current_buffer->case_canon_table,
+	not DOWNCASE_TABLE.
+	(string_match_1): Likewise.
+	(fast_c_string_match_ignore_case): Use Vascii_canon_table, not
+	Vascii_downcase_table.
+	(fast_string_match_ignore_case): Likewise.
+	(search_buffer): Fix checking of boyer-moore usability.
+	(boyer_moore): Calculate translate_prev_byte1/2/3 in advance.  No
+	need of tranlating characters in PAT.  Fix calculation of
+	simple_translate.
+
+2005-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c [HAVE_XAW3D]: Include ThreeD.h for XtNbeNiceToColormap.
+	(x_create_toolkit_scroll_bar): Test XtNbeNiceToColormap before using it.
+	Use XtNtopShadowPixel and XtNbottomShadowPixel.
+	(x_set_toolkit_scroll_bar_thumb): Remove ugly old hack that didn't
+	really work and that breaks with some versions of Xaw3d.
+
+2005-03-31  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (syms_of_coding): Fix previous change.
+
+2005-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (search_embedded_absfilename): Fix last change.
+
+2005-03-25  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (syms_of_coding): Suggest to use set-coding-category in
+	the docstring of coding-category-list.
+
+2005-03-31  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (Qmouse_fixup_help_message): New var.
+	(syms_of_keyboard): Intern and staticpro it.
+	(show_help_echo): Apply mouse-fixup-help-message to help string.
+
 2005-03-30  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (display_line): Allow multiple overlay arrows in window.
@@ -15,7 +68,7 @@
 
 2005-03-26  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
-	* w32term.h (x_output): add focus_state.
+	* w32term.h (x_output): Add focus_state.
 
 	* w32term.c (x_focus_changed, w32_detect_focus_change): New functions.
 	(w32_read_socket) [WM_SETFOCUS]: Call w32_detect_focus_change.

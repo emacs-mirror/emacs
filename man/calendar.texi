@@ -691,6 +691,12 @@ Their calendar consists of twelve months of which the first six have 31
 days, the next five have 30 days, and the last has 29 in ordinary years
 and 30 in leap years.  Leap years occur in a complicated pattern every
 four or five years.
+The calendar implemented here is the arithmetical Persian calendar
+championed by Birashk, based on a 2,820-year cycle.  It differs from
+the astronomical Persian calendar, which is based on astronomical
+events.  As of this writing the first future discrepancy is projected
+to occur on March 20, 2025.  It is currently not clear what the
+official calendar of Iran will be that far into the future.
 
 @cindex Chinese calendar
   The Chinese calendar is a complicated system of lunar months arranged

@@ -217,58 +217,72 @@ FUNCTION-LIST is a list of functions to call to do some
 additional setup.
 
 See the file generic-x.el for some examples of `define-generic-mode'."
-  (let* ((name-unquoted (if (eq (car-safe mode) 'quote) ; Backward compatibility.
-			    (eval mode)
-			  mode))
-	 (name-string (symbol-name name-unquoted))
+  (declare (debug (sexp def-form def-form def-form form def-form
+			&optional stringp))
+	   (indent 1))
+
+  ;; Backward compatibility.
+  (when (eq (car-safe mode) 'quote)
+    (setq mode (eval mode)))
+  (let* ((mode-name (symbol-name mode))
 	 (pretty-name (capitalize (replace-regexp-in-string
-				   "-mode\\'" "" name-string))))
+				   "-mode\\'" "" mode-name)))
+	 (mode-hook (intern (concat mode-name "-hook"))))
 
     `(progn
        ;; Add a new entry.
-       (add-to-list 'generic-mode-list ,name-string)
+       (add-to-list 'generic-mode-list ,mode-name)
 
        ;; Add it to auto-mode-alist
        (dolist (re ,auto-mode-list)
-	 (add-to-list 'auto-mode-alist (cons re ',name-unquoted)))
+	 (add-to-list 'auto-mode-alist (cons re ',mode)))
 
-       (defun ,name-unquoted ()
+       (defcustom ,mode-hook nil
+	 ,(concat "Hook run when entering " pretty-name " mode.")
+	 :type 'hook
+	 :group (or (custom-current-group)
+		    ',(intern (replace-regexp-in-string
+			       "-mode\\'" "" mode-name))))
+
+       (defun ,mode ()
 	 ,(or docstring
 	      (concat pretty-name " mode.\n"
 		      "This a generic mode defined with `define-generic-mode'."))
 	 (interactive)
-	 (generic-mode-internal ',name-unquoted ,comment-list ,keyword-list
+	 (generic-mode-internal ',mode ,comment-list ,keyword-list
 				,font-lock-list ,function-list)))))
 
 ;;;###autoload
-(defun generic-mode-internal (mode comments keywords font-lock-list funs)
+(defun generic-mode-internal (mode comment-list keyword-list
+				   font-lock-list function-list)
   "Go into the generic mode MODE."
-  (let* ((modename (symbol-name mode))
-	 (generic-mode-hooks (intern (concat modename "-hook")))
+  (let* ((mode-name (symbol-name mode))
 	 (pretty-name (capitalize (replace-regexp-in-string
-				   "-mode\\'" "" modename))))
+				   "-mode\\'" "" mode-name)))
+	 (mode-hook (intern (concat mode-name "-hook"))))
 
     (kill-all-local-variables)
 
     (setq major-mode mode
 	  mode-name pretty-name)
 
-    (generic-mode-set-comments comments)
+    (generic-mode-set-comments comment-list)
 
     ;; Font-lock functionality.
     ;; Font-lock-defaults is always set even if there are no keywords
     ;; or font-lock expressions, so comments can be highlighted.
     (setq generic-font-lock-keywords
 	  (append
-	   (when keywords
-	     (list (generic-make-keywords-list keywords font-lock-keyword-face)))
+	   (when keyword-list
+	     (list (generic-make-keywords-list keyword-list
+					       font-lock-keyword-face)))
 	   font-lock-list))
     (setq font-lock-defaults '(generic-font-lock-keywords nil))
 
     ;; Call a list of functions
-    (mapcar 'funcall funs)
+    (mapcar 'funcall function-list)
 
-    (run-hooks generic-mode-hooks)))
+    (run-mode-hooks mode-hook)))
 
 ;;;###autoload
 (defun generic-mode (mode)
@@ -392,7 +406,7 @@ This hook will be installed if the variable
 
 (defun generic-mode-ini-file-find-file-hook ()
   "Hook function to enter Default-Generic mode automatically for INI files.
-Done if the first few lines of a file in Fundamental mode look like an 
+Done if the first few lines of a file in Fundamental mode look like an
 INI file.  This hook is NOT installed by default."
   (and (eq major-mode 'fundamental-mode)
        (save-excursion

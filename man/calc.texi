@@ -165,7 +165,7 @@ longer Info tutorial.)
 * Embedded Mode::         Working with formulas embedded in a file.
 * Programming::           Calc as a programmable calculator.
 
-* Installation::          Installing Calc as a part of GNU Emacs.
+* Customizable Variables:: Customizable Variables.
 * Reporting Bugs::        How to report bugs and make suggestions.
 
 * Summary::               Summary of Calc commands and functions.
@@ -10613,11 +10613,6 @@ If this happens, the easiest workaround is to type @kbd{M-# L}
 loaded right away.  This will cause Emacs to take up a lot more
 memory than it would otherwise, but it's guaranteed to fix the problem.
 
-If you seem to run into this problem no matter what you do, or if
-even the @kbd{M-# L} command crashes, Calc may have been improperly
-installed.  @xref{Installation}, for details of the installation
-process.
-
 @node Recursion Depth, Caches, Autoloading Problems, Troubleshooting Commands
 @subsection Recursion Depth
 
@@ -12306,7 +12301,7 @@ if this file exists, and this file becomes the one that Calc will
 use in the future for commands like @kbd{m m}.  The default settings
 file name is @file{~/.calc.el}.  You can see the current file name by
 giving a blank response to the @kbd{m F} prompt.  See also the
-discussion of the @code{calc-settings-file} variable; @pxref{Installation}.
+discussion of the @code{calc-settings-file} variable; @pxref{Customizable Variables}.
 
 If the file name you give is your user init file (typically
 @file{~/.emacs}), @kbd{m F} will not automatically load the new file.  This
@@ -29109,7 +29104,7 @@ of the @samp{*Gnuplot Commands*} buffer.
 @vindex calc-gnuplot-print-command
 @vindex calc-gnuplot-print-device
 @vindex calc-gnuplot-print-output
-If you are installing Calc you may wish to configure the default and
+You may wish to configure the default and
 printer devices and output files for the whole system.  The relevant
 Lisp variables are @code{calc-gnuplot-default-device} and @code{-output},
 and @code{calc-gnuplot-print-device} and @code{-output}.  The output
@@ -29122,7 +29117,8 @@ display or print the output of GNUPLOT, respectively.  These may be
 @code{nil} if no command is necessary, or strings which can include
 @samp{%s} to signify the name of the file to be displayed or printed.
 Or, these variables may contain Lisp expressions which are evaluated
-to display or print the output.
+to display or print the output.  These variables are customizable
+(@pxref{Customizable Variables}).
 
 @kindex g x
 @pindex calc-graph-display
@@ -29910,7 +29906,8 @@ Similarly, Calc will use @TeX{} language for @code{tex-mode},
 @code{plain-tex-mode} and @code{context-mode}, C language for
 @code{c-mode} and @code{c++-mode}, FORTRAN language for
 @code{fortran-mode} and @code{f90-mode}, Pascal for @code{pascal-mode},
-and eqn for @code{nroff-mode}.  These can be overridden with Calc's mode
+and eqn for @code{nroff-mode} (@pxref{Customizable Variables}).  
+These can be overridden with Calc's mode
 changing commands (@pxref{Mode Settings in Embedded Mode}).  If no
 suitable language is available, Calc will continue with its current language.
 
@@ -30612,10 +30609,10 @@ for @code{Save} have no effect.
 
 @noindent
 You can modify Embedded mode's behavior by setting various Lisp
-variables described here.  Use @kbd{M-x set-variable} or
-@kbd{M-x edit-options} to adjust a variable on the fly, or
-put a suitable @code{setq} statement in your Calc init file (or 
-@file{~/.emacs}) to set a variable permanently.  (Another possibility would
+variables described here.  These variables are customizable 
+(@pxref{Customizable Variables}), or you can use @kbd{M-x set-variable}
+or @kbd{M-x edit-options} to adjust a variable on the fly.
+(Another possibility would
 be to use a file-local variable annotation at the end of the
 file; @pxref{File Variables, , Local Variables in Files, emacs, the
 Emacs manual}.)
@@ -30760,7 +30757,7 @@ is simply a newline, @code{"\n"}.  If you change this, it is a
 good idea still to end with a newline so that mode annotations
 will appear on lines by themselves.
 
-@node Programming, Installation, Embedded Mode, Top
+@node Programming, Customizable Variables, Embedded Mode, Top
 @chapter Programming
 
 @noindent
@@ -34610,70 +34607,204 @@ used the first time, your hook should add a variable to the
 list and also call @code{make-local-variable} itself.
 @end defvar
 
-@node Installation, Reporting Bugs, Programming, Top
-@appendix Installation
+@node Customizable Variables, Reporting Bugs, Programming, Top
+@appendix Customizable Variables
 
-@noindent
-As of Calc 2.02g, Calc is integrated with GNU Emacs, and thus requires
-no separate installation of its Lisp files and this manual.
+GNU Calc is controlled by many variables, most of which can be reset
+from within Calc.  Some variables are less involved with actual
+calculation, and can be set outside of Calc using Emacs's
+customization facilities.  These variables are listed below.
+Typing @kbd{M-x customize-variable RET @var{variable-name} RET}
+will bring up a buffer in which the variable's value can be redefined.
+Typing @kbd{M-x customize-group RET calc RET} will bring up a buffer which
+contains all of Calc's customizable variables.  (These variables can
+also be reset by putting the appropriate lines in your .emacs file;
+@xref{Init File, ,Init File, emacs, The GNU Emacs Manual}.)
 
-@appendixsec The GNUPLOT Program
+Some of the customizable variables are regular expressions.  A regular
+expression is basically a pattern that Calc can search for.
+See @ref{Regexp Search,, Regular Expression Search, emacs, The GNU Emacs Manual}
+to see how regular expressions work.
 
-@noindent
-Calc's graphing commands use the GNUPLOT program.  If you have GNUPLOT
-but you must type some command other than @file{gnuplot} to get it,
-you should add a command to set the Lisp variable @code{calc-gnuplot-name}
-to the appropriate file name.  You may also need to change the variables
-@code{calc-gnuplot-plot-command} and @code{calc-gnuplot-print-command} in
-order to get correct displays and hardcopies, respectively, of your
-plots.
+@table @code
 
-@ifinfo
-@example
+@item calc-settings-file
 
-@end example
-@end ifinfo
-
-@appendixsec Settings File
-
-@noindent
 @vindex calc-settings-file
-Another variable you might want to set is @code{calc-settings-file},
-which holds the file name in which commands like @kbd{m m} and @kbd{Z P}
-store ``permanent'' definitions.  The default value for this variable
-is @code{"~/.calc.el"}.  If @code{calc-settings-file} is not your user
-init file (typically @file{~/.emacs}) and if the variable
-@code{calc-loaded-settings-file} is @code{nil}, then Calc will
-automatically load your settings file (if it exists) the first time
-Calc is invoked.
+The variable @code{calc-settings-file} holds the file name in
+which commands like @kbd{m m} and @kbd{Z P} store ``permanent''
+definitions.  
+If @code{calc-settings-file} is not your user init file (typically
+@file{~/.emacs}) and if the variable @code{calc-loaded-settings-file} is
+@code{nil}, then Calc will automatically load your settings file (if it
+exists) the first time Calc is invoked.
 
-@ifinfo
+The default value for this variable is @code{"~/.calc.el"}.
+
+@item calc-gnuplot-name
+
+See @ref{Graphics}.@*
+The variable @code{calc-gnuplot-name} should be the name of the
+GNUPLOT program (a string).  If you have GNUPLOT installed on your
+system but Calc is unable to find it, you may need to set this
+variable.  (@pxref{Customizable Variables})
+You may also need to set some Lisp variables to show Calc how to run
+GNUPLOT on your system, see @ref{Devices, ,Graphical Devices} .  The default value
+of @code{calc-gnuplot-name} is @code{"gnuplot"}.
+
+@item  calc-gnuplot-plot-command
+@itemx calc-gnuplot-print-command
+
+See @ref{Devices, ,Graphical Devices}.@*
+The variables @code{calc-gnuplot-plot-command} and
+@code{calc-gnuplot-print-command} represent system commands to
+display and print the output of GNUPLOT, respectively.  These may be
+@code{nil} if no command is necessary, or strings which can include
+@samp{%s} to signify the name of the file to be displayed or printed.
+Or, these variables may contain Lisp expressions which are evaluated
+to display or print the output.
+
+The default value of @code{calc-gnuplot-plot-command} is @code{nil},
+and the default value of @code{calc-gnuplot-print-command} is
+@code{"lp %s"}.
+
+@item calc-language-alist
+
+See @ref{Basic Embedded Mode}.@*
+The variable @code{calc-language-alist} controls the languages that
+Calc will associate with major modes.  When Calc embedded mode is
+enabled, it will try to use the current major mode to
+determine what language should be used.  (This can be overridden using
+Calc's mode changing commands, @xref{Mode Settings in Embedded Mode}.)
+The variable @code{calc-language-alist} consists of a list of pairs of
+the form  @code{(@var{KEY} . @var{VALUE})}; for example, 
+@code{(latex-mode . latex)} is one such pair.  If Calc embedded is
+activated in a buffer whose major mode is @var{KEY}, it will set itself
+to use the language @var{VALUE}.
+
+The default value of @code{calc-language-alist} is
 @example
-
+   ((latex-mode . latex)
+    (tex-mode   . tex)
+    (plain-tex-mode . tex)
+    (context-mode . tex)
+    (nroff-mode . eqn)
+    (pascal-mode . pascal)
+    (c-mode . c)
+    (c++-mode . c)
+    (fortran-mode . fortran)
+    (f90-mode . fortran))
 @end example
-@end ifinfo
-@appendixsec Testing the Installation
 
-@noindent
-To test your installation of Calc, start a new Emacs and type @kbd{M-# c}
-to make sure the autoloads and key bindings work.  Type @kbd{M-# i}
-to make sure Calc can find its Info documentation.  Press @kbd{q} to
-exit the Info system and @kbd{M-# c} to re-enter the Calculator.
-Type @kbd{20 S} to compute the sine of 20 degrees; this will test the
-autoloading of the extensions modules.  The result should be
-0.342020143326.  Finally, press @kbd{M-# c} again to make sure the
-Calculator can exit.
+@item calc-embedded-announce-formula
 
-You may also wish to test the GNUPLOT interface; to plot a sine wave,
-type @kbd{' [0 ..@: 360], sin(x) @key{RET} g f}.  Type @kbd{g q} when you
-are done viewing the plot.
+See @ref{Customizing Embedded Mode}.@*
+The variable @code{calc-embedded-announce-formula} helps determine
+what formulas @kbd{M-# a} will activate in a buffer.  It is a
+regular expression, and when activating embedded formulas with
+@kbd{M-# a}, it will tell Calc that what follows is a formula to be
+activated.  (Calc also uses other patterns to find formulas, such as
+@samp{=>} and @samp{:=}.)  
 
-Calc is now ready to use.  If you wish to go through the Calc Tutorial,
-press @kbd{M-# t} to begin.
-@example
+The default pattern is @code{"%Embed\n\\(% .*\n\\)*"}, which checks
+for @samp{%Embed} followed by any number of lines beginning with
+@samp{%} and a space.
 
-@end example
-@node Reporting Bugs, Summary, Installation, Top
+@item  calc-embedded-open-formula
+@itemx calc-embedded-close-formula
+
+See @ref{Customizing Embedded Mode}.@*
+The variables @code{calc-embedded-open-formula} and
+@code{calc-embedded-open-formula} control the region that Calc will
+activate as a formula when Embedded mode is entered with @kbd{M-# e}.
+They are regular expressions; 
+Calc normally scans backward and forward in the buffer for the
+nearest text matching these regular expressions to be the ``formula
+delimiters''.
+
+The simplest delimiters are blank lines.  Other delimiters that
+Embedded mode understands by default are:
+@enumerate
+@item
+The @TeX{} and La@TeX{} math delimiters @samp{$ $}, @samp{$$ $$},
+@samp{\[ \]}, and @samp{\( \)};
+@item
+Lines beginning with @samp{\begin} and @samp{\end} (except matrix delimiters);
+@item
+Lines beginning with @samp{@@} (Texinfo delimiters).
+@item
+Lines beginning with @samp{.EQ} and @samp{.EN} (@dfn{eqn} delimiters);
+@item
+Lines containing a single @samp{%} or @samp{.\"} symbol and nothing else.
+@end enumerate
+
+@item  calc-embedded-open-word
+@itemx calc-embedded-close-word
+
+See @ref{Customizing Embedded Mode}.@*
+The variables @code{calc-embedded-open-word} and
+@code{calc-embedded-close-word} control the region that Calc will
+activate when Embedded mode is entered with @kbd{M-# w}.  They are
+regular expressions.
+
+The default values of @code{calc-embedded-open-word} and
+@code{calc-embedded-close-word} are @code{"^\\|[^-+0-9.eE]"} and 
+@code{"$\\|[^-+0-9.eE]"} respectively.
+
+@item  calc-embedded-open-plain
+@itemx calc-embedded-close-plain
+
+See @ref{Customizing Embedded Mode}.@*
+The variables @code{calc-embedded-open-plain} and
+@code{calc-embedded-open-plain} are used to delimit ``plain''
+formulas.  Note that these are actual strings, not regular
+expressions, because Calc must be able to write these string into a
+buffer as well as to recognize them.
+
+The default string for @code{calc-embedded-open-plain} is 
+@code{"%%% "}, note the trailing space.  The default string for 
+@code{calc-embedded-close-plain} is @code{" %%%\n"}, without
+the trailing newline here, the first line of a Big mode formula
+that followed might be shifted over with respect to the other lines.
+
+@item  calc-embedded-open-new-formula
+@itemx calc-embedded-close-new-formula
+
+See @ref{Customizing Embedded Mode}.@*
+The variables @code{calc-embedded-open-new-formula} and
+@code{calc-embedded-close-new-formula} are strings which are
+inserted before and after a new formula when you type @kbd{M-# f}.
+
+The default value of @code{calc-embedded-open-new-formula} is
+@code{"\n\n"}.  If this string begins with a newline character and the
+@kbd{M-# f} is typed at the beginning of a line, @kbd{M-# f} will skip
+this first newline to avoid introducing unnecessary blank lines in the
+file.  The default value of @code{calc-embedded-close-new-formula} is
+also @code{"\n\n"}.  The final newline is omitted by @w{@kbd{M-# f}}
+if typed at the end of a line.  (It follows that if @kbd{M-# f} is
+typed on a blank line, both a leading opening newline and a trailing
+closing newline are omitted.)
+
+@item  calc-embedded-open-mode
+@itemx calc-embedded-close-mode
+
+See @ref{Customizing Embedded Mode}.@*
+The variables @code{calc-embedded-open-mode} and
+@code{calc-embedded-close-mode} are strings which Calc will place before
+and after any mode annotations that it inserts.  Calc never scans for
+these strings; Calc always looks for the annotation itself, so it is not
+necessary to add them to user-written annotations.
+
+The default value of @code{calc-embedded-open-mode} is @code{"% "}
+and the default value of @code{calc-embedded-close-mode} is
+@code{"\n"}.  
+If you change the value of @code{calc-embedded-close-mode}, it is a good
+idea still to end with a newline so that mode annotations will appear on
+lines by themselves.
+
+@end table
+
+@node Reporting Bugs, Summary, Customizable Variables, Top
 @appendix Reporting Bugs
 
 @noindent

@@ -2804,6 +2804,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 
 * Lisp Changes in Emacs 22.1
 
+---
+** easy-mmode-define-global-mode has been renamed to
+define-global-minor-mode.  The old name remains as an alias.
+
 +++
 ** The new function `filter-buffer-substring' extracts a buffer
 substring, passes it through a set of filter functions, and returns
