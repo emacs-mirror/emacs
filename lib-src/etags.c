@@ -32,7 +32,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.30";
+char pot_etags_version[] = "@(#) pot revision number is 11.42";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -105,7 +105,7 @@ extern int errno;
 #define streq(s,t)	(strcmp (s, t) == 0)
 #define strneq(s,t,n)	(strncmp (s, t, n) == 0)
 
-#define lowcase(c)	((c) | ' ')
+#define lowcase(c)	tolower ((unsigned char)c)
 
 #define	iswhite(arg)	(_wht[arg])	/* T if char is white		*/
 #define	begtoken(arg)	(_btk[arg])	/* T if char can start token	*/
@@ -263,12 +263,11 @@ logical no_warnings;		/* -w: suppress warnings */
 logical cxref_style;		/* -x: create cxref style output */
 logical cplusplus;		/* .[hc] means C++, not C */
 logical noindentypedefs;	/* -I: ignore indentation in C */
-#define permit_duplicates TRUE	/* allow duplicate tags */
 
 struct option longopts[] =
 {
   { "append",			no_argument,	   NULL, 'a' },
-  { "backward-search",		no_argument,	   NULL, 'B' }, 
+  { "backward-search",		no_argument,	   NULL, 'B' },
   { "c++",			no_argument,	   NULL, 'C' },
   { "cxref",			no_argument,	   NULL, 'x' },
   { "defines",			no_argument,	   NULL, 'd' },
@@ -284,14 +283,14 @@ struct option longopts[] =
   { "regex",			required_argument, NULL, 'r' },
   { "typedefs",			no_argument,	   NULL, 't' },
   { "typedefs-and-c++",		no_argument,	   NULL, 'T' },
-  { "update",			no_argument,	   NULL, 'u' }, 
+  { "update",			no_argument,	   NULL, 'u' },
   { "version",			no_argument,	   NULL, 'V' },
-  { "vgrind",			no_argument,	   NULL, 'v' }, 
+  { "vgrind",			no_argument,	   NULL, 'v' },
   { 0 }
 };
 
 #ifdef ETAGS_REGEXPS
-/* Structure defining a regular expression.  Elements are 
+/* Structure defining a regular expression.  Elements are
    the compiled pattern, and the name string. */
 struct pattern
 {
@@ -338,8 +337,7 @@ struct lang_entry lang_names[] =
 /* Table of file name suffixes and corresponding language functions. */
 struct lang_entry lang_suffixes[] =
 {
-  /* Assume that ".s" or ".a" is assembly code. -wolfgang.
-     Or even ".sa". */
+  /* Assembly code */
   { "a", Asm_labels },		/* Unix assembler */
   { "asm", Asm_labels },	/* Microcontroller assembly */
   { "def", Asm_labels },	/* BSO/Tasking definition includes  */
@@ -349,24 +347,25 @@ struct lang_entry lang_suffixes[] =
   { "sa", Asm_labels },		/* Unix assembler */
   { "src", Asm_labels },	/* BSO/Tasking C compiler output */
 
-  /* .aux, .bbl, .clo, .cls, .dtx or .tex implies LaTeX source code. */
-  { "aux", TeX_functions },
-  { "bbl", TeX_functions },
+  /* LaTeX source code */
+  { "bib", TeX_functions },
   { "clo", TeX_functions },
   { "cls", TeX_functions },
-  { "dtx", TeX_functions },
+  { "ltx", TeX_functions },
   { "sty", TeX_functions },
+  { "TeX", TeX_functions },
   { "tex", TeX_functions },
 
-  /* .l or .el or .lisp (or .cl or .clisp or ...) implies lisp source code */
+  /* Lisp source code */
   { "cl", Lisp_functions },
   { "clisp", Lisp_functions },
   { "el", Lisp_functions },
   { "l", Lisp_functions },
   { "lisp", Lisp_functions },
   { "lsp", Lisp_functions },
+  { "ml", Lisp_functions },
 
-  /* .scm or .sm or .scheme implies scheme source code */
+  /* Scheme source code */
   { "SCM", Scheme_functions },
   { "SM", Scheme_functions },
   { "oak", Scheme_functions },
@@ -382,11 +381,10 @@ struct lang_entry lang_suffixes[] =
   { "c", default_C_entries },
   { "h", default_C_entries },
 
-  /* .pc is a Pro*C file. */
+  /* Pro*C file. */
   { "pc", plain_C_entries },
 
-  /* .C or .H or .c++ or .cc or .cpp or .cxx or .h++ or .hh or .hxx:
-     a C++ file */
+  /* C++ file */
   { "C", Cplusplus_entries },
   { "H", Cplusplus_entries },
   { "c++", Cplusplus_entries },
@@ -395,24 +393,26 @@ struct lang_entry lang_suffixes[] =
   { "cxx", Cplusplus_entries },
   { "h++", Cplusplus_entries },
   { "hh", Cplusplus_entries },
+  { "hpp", Cplusplus_entries },
   { "hxx", Cplusplus_entries },
 
-  /* .y: a yacc file */
+  /* Yacc file */
   { "y", Yacc_entries },
 
-  /* .cs or .hs: a C* file */
+  /* C* file */
   { "cs", Cstar_entries },
   { "hs", Cstar_entries },
 
-  /* .F, .f and .for are FORTRAN. */
+  /* Fortran */
   { "F", Fortran_functions },
   { "f", Fortran_functions },
+  { "f90", Fortran_functions },
   { "for", Fortran_functions },
 
-  /* .pl implies prolog source code */
-  { "pl", Prolog_functions },
+  /* Prolog source code */
+  { "prolog", Prolog_functions },
 
-  /* .p or .pas: a Pascal file */
+  /* Pascal file */
   { "p", Pascal_functions },
   { "pas", Pascal_functions },
 
@@ -444,14 +444,13 @@ If no language is specified and no matching suffix is found,\n\
 Fortran is tried first; if no tags are found, C is tried next.");
 }
 
+#ifndef VERSION
+# define VERSION "19"
+#endif
 void
 print_version ()
 {
-#ifdef VERSION
-  printf ("%s for Emacs version %s.\n", (CTAGS) ? "CTAGS" : "ETAGS", VERSION);
-#else
-  printf ("%s for Emacs version 19.\n", (CTAGS) ? "CTAGS" : "ETAGS");
-#endif  
+  printf ("%s for Emacs version %s\n", (CTAGS) ? "ctags" : "etags", VERSION);
 
   exit (GOOD);
 }
@@ -584,14 +583,14 @@ typedef struct	{
  to it will be processed to completion; in particular, up to and
  including the call following that in which the last matching name
  is returned, the function ignores the value of in_spec, and will
- only start processing a new spec with the following call. 
+ only start processing a new spec with the following call.
  If an error occurs, on return out_spec contains the value
  of in_spec when the error occurred.
 
  With each successive filename returned in out_spec, the
  function's return value is one. When there are no more matching
  names the function returns zero. If on the first call no file
- matches in_spec, or there is any other error, -1 is returned. 
+ matches in_spec, or there is any other error, -1 is returned.
 */
 
 #include	<rmsdef.h>
@@ -636,10 +635,10 @@ fn_exp (out, in)
   lib$find_file_end(&context);
   pass1 = TRUE;
   return retval;
-}	
+}
 
 /*
-  v1.01 nmm 19-Aug-85 gfnames - return in successive calls the 
+  v1.01 nmm 19-Aug-85 gfnames - return in successive calls the
   name of each file specified by the provided arg expanding wildcards.
 */
 char *
@@ -675,7 +674,7 @@ system (cmd)
 char *massage_name (s)
      char *s;
 {
-  char *start = s;	
+  char *start = s;
 
   for ( ; *s; s++)
     if (*s == VERSION_DELIM)
@@ -684,7 +683,7 @@ char *massage_name (s)
 	break;
       }
     else
-      *s = tolower(*s);
+      *s = lowcase (*s);
   return start;
 }
 #endif /* VMS */
@@ -705,7 +704,7 @@ main (argc, argv)
 #ifdef VMS
   logical got_err;
 #endif
- 
+
 #ifdef DOS_NT
   _fmode = O_BINARY;   /* all of files are treated as binary files */
 #endif /* DOS_NT */
@@ -1108,7 +1107,9 @@ find_entries (file, inf)
   NODE *old_last_node;
   extern NODE *last_node;
 
-  /* The memory block pointed by curfile is never released for simplicity. */
+  /* Memory leakage here: the memory block pointed by curfile is never
+     released.  The amount of memory leaked here is the sum of the
+     lengths of the input file names. */
   curfile = savestr (file);
   cp = etags_strrchr (file, '.');
 
@@ -1257,24 +1258,16 @@ add_node (node, cur_node_p)
 			   node->file, lineno, node->name);
 		  fprintf (stderr, "Second entry ignored\n");
 		}
-	      return;
 	    }
-	  if (!cur_node->been_warned && !no_warnings)
+	  else if (!cur_node->been_warned && !no_warnings)
 	    {
-	      fprintf (stderr,
-		  "Duplicate entry in files %s and %s: %s (Warning only)\n",
-		       node->file, cur_node->file, node->name);
+	      fprintf
+		(stderr,
+		 "Duplicate entry in files %s and %s: %s (Warning only)\n",
+		 node->file, cur_node->file, node->name);
+	      cur_node->been_warned = TRUE;
 	    }
-	  cur_node->been_warned = TRUE;
 	  return;
-	}
-
-      /* Maybe refuse to add duplicate nodes.  */
-      if (!permit_duplicates)
-	{
-	  if (streq (node->name, cur_node->name)
-	      && streq (node->file, cur_node->file))
-	    return;
 	}
 
       /* Actually add the node */
@@ -1469,41 +1462,41 @@ in_word_set  (str, len)
 
   static struct C_stab_entry  wordlist[] =
     {
-      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, 
-      {"",}, 
+      {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",}, {"",},
+      {"",},
       {"volatile", 	0,	st_C_typespec},
-      {"",}, 
+      {"",},
       {"long",     	0,	st_C_typespec},
       {"char",     	0,	st_C_typespec},
       {"class",   	C_PLPL,	st_C_struct},
-      {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",}, {"",},
       {"const",    	0,	st_C_typespec},
-      {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",}, {"",},
       {"auto",     	0,	st_C_typespec},
-      {"",}, {"",}, 
+      {"",}, {"",},
       {"define",   	0,	st_C_define},
-      {"",}, 
+      {"",},
       {"void",     	0,	st_C_typespec},
-      {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",},
       {"extern",   	0,	st_C_typespec},
       {"static",   	0,	st_C_typespec},
-      {"",}, 
+      {"",},
       {"domain",  	C_STAR,	st_C_struct},
-      {"",}, 
+      {"",},
       {"typedef",  	0,	st_C_typedef},
       {"double",   	0,	st_C_typespec},
       {"enum",     	0,	st_C_enum},
-      {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",}, {"",},
       {"int",      	0,	st_C_typespec},
-      {"",}, 
+      {"",},
       {"float",    	0,	st_C_typespec},
-      {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",},
       {"struct",  	0,	st_C_struct},
-      {"",}, {"",}, {"",}, {"",}, 
+      {"",}, {"",}, {"",}, {"",},
       {"union",   	0,	st_C_struct},
-      {"",}, 
+      {"",},
       {"short",    	0,	st_C_typespec},
-      {"",}, {"",}, 
+      {"",}, {"",},
       {"unsigned", 	0,	st_C_typespec},
       {"signed",   	0,	st_C_typespec},
     };
@@ -1568,7 +1561,7 @@ typedef enum
 TYPEDST typdef;
 
 
- /* 
+ /*
   * struct-like structures (enum, struct and union) are recognized
   * using another simple finite automaton.  `structdef' is its state
   * variable.
@@ -1585,7 +1578,7 @@ STRUCTST structdef;
 
 /*
  * When structdef is stagseen, scolonseen, or sinbody, structtag is the
- * struct tag, and structtype is the type of the preceding struct-like  
+ * struct tag, and structtype is the type of the preceding struct-like
  * keyword.
  */
 char *structtag = "<uninited>";
@@ -1730,9 +1723,9 @@ consider_token (str, len, c, c_ext, cblev, is_func)
    * file is plain C.  This is because a struct tag may have the same
    * name as another tag, and this loses with ctags.
    *
-   * This if statement deals with the typdef state machine as 
+   * This if statement deals with the typdef state machine as
    * follows: if typdef==ttypedseen and token is struct/union/class/enum,
-   * return FALSE.  All the other code here is for the structdef 
+   * return FALSE.  All the other code here is for the structdef
    * state machine.
    */
   switch (toktype)
@@ -1769,7 +1762,7 @@ consider_token (str, len, c, c_ext, cblev, is_func)
   /* Detect GNU macros. */
   if (definedef == dnone)
     if (strneq (str, "DEFUN", len)	/* Used in emacs */
-#if FALSE	
+#if FALSE
 	   These are defined inside C functions, so currently they
 	   are not met anyway.
 	|| strneq (str, "EXFUN", len) /* Used in glibc */
@@ -1968,7 +1961,7 @@ C_entries (c_ext, inf)
 	    }
 	  continue;
 	}
-      else 
+      else
 	switch (c)
 	  {
 	  case '"':
@@ -2333,9 +2326,13 @@ C_entries (c_ext, inf)
 	    {
 	      if (typdef == tinbody)
 		typdef = tend;
-	      if (FALSE)	/* too risky */
-		if (structdef == sinbody)
-		  free (structtag);
+	      /* Memory leakage here: the string pointed by structtag is
+	         never released, because I fear to miss something and
+	         break things while freeing the area.  The amount of
+	         memory leaked here is the sum of the lenghts of the
+	         struct tags.
+	      if (structdef == sinbody)
+		free (structtag); */
 
 	      structdef = snone;
 	      structtag = "<error>";
@@ -2788,7 +2785,7 @@ Pascal_functions (inf)
 	    }
 	}
     }				/* while not eof */
-  
+
   free (tline.buffer);
 }
 
@@ -2836,7 +2833,7 @@ L_getit ()
     continue;
   if (cp == dbp)
     return;
-  
+
   pfnote (NULL, TRUE, lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 }
 
@@ -2974,7 +2971,8 @@ struct TEX_tabent *TEX_toktab = NULL;	/* Table with tag tokens */
    The value of environment var TEXTAGS is prepended to this.  */
 
 char *TEX_defenv = "\
-:chapter:section:subsection:subsubsection:eqno:label:ref:cite:bibitem:typeout";
+:chapter:section:subsection:subsubsection:eqno:label:ref:cite:bibitem\
+:part:appendix:entry:index";
 
 void TEX_mode ();
 struct TEX_tabent *TEX_decode_env ();
@@ -3366,7 +3364,7 @@ add_regex (regexp_pattern)
 }
 
 /*
- * Do the subtitutions indicated by the regular expression and
+ * Do the substitutions indicated by the regular expression and
  * arguments.
  */
 char *
@@ -3414,20 +3412,7 @@ substitute (in, out, regs)
 	      size += regs->end[dig2] - regs->start[dig2];
 	    }
 	  else
-	    {
-	      switch (*out)
-		{
-		case '\t':
-		  result[size++] = '\t';
-		  break;
-		case '\\':
-		  *out = '\\';
-		  break;
-		default:
-		  result[size++] = *out;
-		  break;
-		}
-	    }
+	    result[size++] = *out;
 	}
       else
 	result[size++] = *out;
@@ -3688,7 +3673,7 @@ concat (s1, s2, s3)
 }
 
 /* Does the same work as the system V getcwd, but does not need to
-   guess buffer size in advance. */
+   guess the buffer size in advance. */
 char *
 etags_getcwd ()
 {
@@ -3701,7 +3686,7 @@ etags_getcwd ()
     if (*p == '\\')
       *p++ = '/';
     else
-      *p++ = tolower (*p);
+      *p++ = lowcase (*p);
 
   return strdup (path);
 #else /* not DOS_NT */
