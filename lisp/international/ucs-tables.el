@@ -1275,7 +1275,7 @@ charsets are handled automatically by the coding system used if it can
 represent them.  Thus, say, an e-acute from the Latin-1 charset (the
 unified representation) in a buffer saved as Latin-9 will be encoded
 directly to a byte value 233.  By default, in contrast, you would be
-promtped for a general coding system to use for saving the file, which
+prompted for a general coding system to use for saving the file, which
 can cope with separate Latin-1 and Latin-9 representations of e-acute.
 
 See also command `unify-8859-on-decoding-mode'."
