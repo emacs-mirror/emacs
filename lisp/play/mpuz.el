@@ -40,8 +40,8 @@
 (random t)				; randomize
 
 (defcustom mpuz-silent 'error
-  "*Set this to `nil' if you want dings on inputs.
-`t' means never ding, and `error' means only ding on wrong input."
+  "*Set this to nil if you want dings on inputs.
+t means never ding, and `error' means only ding on wrong input."
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
 		 (const :tag "If correct" error))
