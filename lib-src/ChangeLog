@@ -1,3 +1,22 @@
+2000-01-31  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+
+	* etags.c [MSDOS]: Set MSDOS to 1 if #defined, 0 otherwise.
+	(get_compressor_from_suffix, process_file): Use MSDOS in if clause.
+	(etags_strchr, etags_strrchr): Use const char * and int as arguments.
+	(getenv, getcwd): Only declare them if necessary.
+	(EMACS_NAME): New constant macro.
+	(print_version): Use it.
+	(P_) [__STDC__]: Macro for defining function prototypes.
+	(all functions): Made them static.
+
+2000-01-31  Fabrice Popineau  <Fabrice.Popineau@supelec.fr>
+
+	* etags.c [WINDOWSNT]: #include <direct.h>
+
+2000-01-31  Martin Buchholz  <martin@xemacs.org>
+
+	* etags.c: Prototypes and static for all the functions.
+
 2000-01-29  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* movemail.c (main): Improve error message if can't create lock file.
