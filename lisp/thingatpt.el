@@ -1,8 +1,10 @@
 ;;; thingatpt.el --- Get the `thing' at point
 
-;; Copyright (C) 1991,92,93,94,95,96,97,1998 Free Software Foundation, Inc.
+;; Copyright (C) 1991,92,93,94,95,96,97,1998,2000
+;;  Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
+;; Maintainer: FSF
 ;; Keywords: extensions, matching, mouse
 ;; Created: Thu Mar 28 13:48:23 1991
 
@@ -54,7 +56,7 @@
   "Move forward to the end of the next THING."
   (let ((forward-op (or (get thing 'forward-op)
 			(intern-soft (format "forward-%s" thing)))))
-    (if (fboundp forward-op)
+    (if (functionp forward-op)
 	(funcall forward-op (or n 1))
       (error "Can't determine how to move over a %s" thing))))
 
