@@ -1,5 +1,8 @@
 2003-04-09  Kenichi Handa  <handa@m17n.org>
 
+	* international/fontset.el: Specify rescale ratio 1.3 for CDAC
+	fonts.
+
 	* international/mule-conf.el: Register ?\221 and ?\226 in
 	latin-extra-code-table.
 

@@ -1,4 +1,4 @@
-2003-04-09  Kenichi Handa  <handa@etlken2>
+2003-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Vface_font_rescale_alist): New variable.
 	(struct font_name): New member rescale_ratio.
@@ -34,7 +34,7 @@
 	* mac.c (init_mac_osx_environment): Switch libexec and bin so
 	that self-contained application finds libexec files.
 
-2003-04-08  Kenichi Handa  <handa@etlken2>
+2003-04-08  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (code_convert_region_unwind): Set
 	Vlast_coding_system_used to the argument.
