@@ -1,3 +1,8 @@
+1999-11-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/compile.el (compilation-parse-errors): Use
+	compilation-buffer-p instead of testing major-mode.
+
 1999-11-18  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* mail/rmailedit.el (rmail-cease-edit): Run rmail-mode-hook.
