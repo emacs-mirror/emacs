@@ -6715,14 +6715,19 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	    char_width = CharWidth (c);
 	    font->per_char[c - 0x20].width = char_width;
 	    font->per_char[c - 0x20].rbearing = char_width;
-	    min_width = min (min_width, char_width);
-	    max_width = max (max_width, char_width);
-          }
+	    /* Some Japanese fonts (in SJIS encoding) return 0 as the
+	       character width of 0x7f.  */
+	    if (char_width > 0)
+	      {
+		min_width = min (min_width, char_width);
+		max_width = max (max_width, char_width);
+	      }
+            }
 	font->min_bounds.width = min_width;
 	font->max_bounds.width = max_width;
       }
     }
-
+  
   TextFont (old_fontnum);  /* restore previous font number, size and face */
   TextSize (old_fontsize);
   TextFace (old_fontface);
