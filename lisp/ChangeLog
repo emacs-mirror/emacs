@@ -1,3 +1,13 @@
+2000-12-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* version.el (emacs-version): Print X scroll bar information.
+
+	* scroll-bar.el (toplevel): Check for x-toolkit-scroll-bars
+	instead of x-toolkit-scroll-bars-p.
+
+	* loadup.el (toplevel): Check for x-toolkit-scroll-bars instead
+	of x-toolkit-scroll-bars-p.
+
 2000-12-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ffap.el (ffap-bindings): Make interactive and add an autoload
@@ -10,17 +20,18 @@
 	characters to 'term-send-raw in term-raw-map.
 
 2000-12-25  Michael Kifer  <kifer@cs.sunysb.edu>
-	* viper-init (viper-restore-cursor-type): added condition-case
+	
+	* viper-init (viper-restore-cursor-type): Added condition-case
 	guard.
 	
-	* ediff-init.el (ediff-quit-hook,ediff-suspend-hook): changed
+	* ediff-init.el (ediff-quit-hook,ediff-suspend-hook): Changed
 	initialization; use add-hook.
-	(ediff-file-remote-p): use file-local-copy.
+	(ediff-file-remote-p): Use file-local-copy.
 	
-	* ediff-ptch.el (ediff-prompt-for-patch-buffer): improved defaults.
+	* ediff-ptch.el (ediff-prompt-for-patch-buffer): Improved defaults.
 	
-	* ediff.el (ediff-patch-buffer): bug fix.
-	(ediff-revision): allow selection of the file at the prompt.
+	* ediff.el (ediff-patch-buffer): Bug fix.
+	(ediff-revision): Allow selection of the file at the prompt.
 	
 2000-12-23  Stefan Monnier  <monnier@cs.yale.edu>
 

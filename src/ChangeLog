@@ -1,5 +1,13 @@
 2000-12-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (syms_of_xterm): DEFVAR_LISP x-toolkit-scroll-bars
+	instead of x-toolkit-scroll-bars-p.
+	(Vx_toolkit_scroll_bars): Renamed from x_toolkit_scroll_bars_p.
+
+	* w32term.c (syms_of_xterm): DEFVAR_LISP x-toolkit-scroll-bars
+	instead of x-toolkit-scroll-bars-p.
+	(Vx_toolkit_scroll_bars): Renamed from x_toolkit_scroll_bars_p.
+	
 	* dispnew.c (struct redisplay_history) [GLYPH_DEBUG]: New.
 	(REDISPLAY_HISTORY_SIZE) [GLYPH_DEBUG]: New macro.
 	(redisplay_history, history_idx, history_tick) [GLYPH_DEBUG]: New
