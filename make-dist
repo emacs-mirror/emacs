@@ -33,6 +33,12 @@ progname="$0"
 ### Print out each line we read, for debugging's sake.
 #set -v
 
+LANGUAGE=C
+LC_ALL=C
+LC_MESSAGES=
+LANG=
+export LANGUAGE LC_ALL LC_MESSAGES LANG
+
 ## Don't restrict access to any files.
 umask 0
 
