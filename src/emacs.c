@@ -40,6 +40,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "intervals.h"
 
 #include "systty.h"
+#include "blockinput.h"
 #include "syssignal.h"
 #include "process.h"
 
