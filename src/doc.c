@@ -75,6 +75,22 @@ munge_doc_file_name (name)
 static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
 
+static unsigned char *read_bytecode_pointer;
+
+/* readchar in lread.c calls back here to fetch the next byte.
+   If UNREADFLAG is 1, we unread a byte.  */
+
+int
+read_bytecode_char (unreadflag)
+{
+  if (unreadflag)
+    {
+      read_bytecode_pointer--;
+      return 0;
+    }
+  return *read_bytecode_pointer++;
+}
+
 /* Extract a doc string from a file.  FILEPOS says where to get it.
    If it is an integer, use that position in the standard DOC-... file.
    If it is (FILE . INTEGER), use FILE as the file name
@@ -247,35 +263,12 @@ get_doc_string (filepos, unibyte, definition)
 	*to++ = *from++;
     }
 
+  /* If DEFINITION, read from this buffer
+     the same way we would read bytes from a file.  */
   if (definition)
     {
-      char *p = get_doc_string_buffer + offset;
-      char *start_ptr;
-      Lisp_Object bytestring, vector;
-
-      if (*p++ != '(')
-	return Qnil;
-      start_ptr = p;
-      if (*p++ != '"')
-	return Qnil;
-      while (*p != '"')
-	{
-	  if (*p == '\\')
-	    p++;
-	  p++;
-	}
-      p++;
-      bytestring = Fread (make_unibyte_string (start_ptr, p - start_ptr));
-      if (*p++ != ' ')
-	return Qnil;
-      if (*p++ != '.')
-	return Qnil;
-      if (*p++ != ' ')
-	return Qnil;
-      if (to[-1] != ')')
-	return Qnil;
-      vector = Fread (make_string (p, to - p - 1));
-      return Fcons (bytestring, vector);
+      read_bytecode_pointer = get_doc_string_buffer + offset;
+      return Fread (Qlambda);
     }
 
   if (unibyte)
