@@ -1415,9 +1415,9 @@
 
 (defun byte-optimize-lapcode (lap &optional for-effect)
   "Simple peephole optimizer.  LAP is both modified and returned."
-  (let (lap0 off0
-	lap1 off1
-	lap2 off2
+  (let (lap0
+	lap1
+	lap2
 	(keep-going 'first-time)
 	(add-depth 0)
 	rest tmp tmp2 tmp3
