@@ -2807,6 +2807,7 @@ See also `comint-dynamic-complete-filename'."
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
   (let ((window (get-buffer-window "*Completions*")))
+    (setq completions (sort completions 'string-lessp))
     (if (and (eq last-command this-command)
 	     window (window-live-p window) (window-buffer window)
 	     (buffer-name (window-buffer window))
@@ -2833,7 +2834,7 @@ Typing SPC flushes the help buffer."
 
       (let ((conf (current-window-configuration)))
 	(with-output-to-temp-buffer "*Completions*"
-	  (display-completion-list (sort completions 'string-lessp)))
+	  (display-completion-list completions))
 	(message "Type space to flush; repeat completion command to scroll")
 	(let (key first)
 	  (if (save-excursion
