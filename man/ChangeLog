@@ -1,3 +1,8 @@
+2000-06-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* mule.texi (set-buffer-process-coding-system): Documentation
+	fixed.
+
 2000-06-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* reftex.texi: @setfilename to ../info/reftex.
