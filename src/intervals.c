@@ -2063,7 +2063,7 @@ get_local_map (position, buffer)
   /* Use the local map only if it is valid.  */
   /* Do allow symbols that are defined as keymaps.  */
   if (SYMBOLP (prop) && !NILP (prop))
-    prop = Findirect_function (prop);
+    prop = indirect_function (prop);
   if (!NILP (prop)
       && (tem = Fkeymapp (prop), !NILP (tem)))
     return prop;
