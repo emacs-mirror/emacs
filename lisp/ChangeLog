@@ -1,3 +1,36 @@
+2005-02-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-alg.el: Add simplification rules for calcFunc-sec,
+	calcFunc-csc, calcFunc-cot, calcFunc-sech, calcFunc-csch and
+	calcFunc-coth.
+	(math-simplify-sqrt): Add simplifications.
+
+	* calc/calc-arith.el (math-real-if-arg-functions): Add functions
+	to list.
+
+	* calc/calc-ext.el: Add functions to autoloads.
+
+	* calc/calc-math.el (calc-sec, calc-csc, calc-cot, calc-sech)
+	(calc-csch, calc-coth, calcFunc-sec, calcFunc-csc, calcFunc-cot)
+	(calcFunc-sech, calcFunc-csch, calcFunc-coth, math-sec-raw)
+	(math-csc-raw, math-cot-raw): New functions.
+
+	* calc/calc-rules.el (calc-DistribRules, calc-NegateRules): Add	rules.
+
+	* calc/calc-undo.el (calc-handle-undo): Remove prefix from
+	the variable name in a message.
+
+	* calc/calc-units.el: Add simplification rules for calcFunc-sec,
+	calcFunc-csc, calcFunc-cot.
+
+	* calc/calcalg2.el: Add derivative and integration rules for
+	calcFunc-sec, calcFunc-csc, calcFunc-cot, calcFunc-sech,
+	calcFunc-csch, calcFunc-coth.
+	(math-do-integral-methods): Add to checks for when to use
+	substitutions.
+
+	* calc/calccomp.el (math-eqn-special-funcs): Add functions to list.
+
 2005-02-15  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Add
