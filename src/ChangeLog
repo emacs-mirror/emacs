@@ -1,5 +1,8 @@
 2002-03-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* emacs.c (main): Update the Copyright year in the blurb printed
+	by "emacs --version".
+
 	* xdisp.c (message_with_string): Fix syntax of a call to GCPRO2.
 
 	* xterm.c (XTread_socket): If XK_ISO_Lock and
