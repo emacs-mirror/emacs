@@ -1,3 +1,14 @@
+2000-01-20  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* emacs-lisp/cl-macs.el (dolist, dotimes): Moved to subr.el.
+
+	* subr.el (dolist, dotimes): Moved from cl-macs.el.
+
+	* mail/undigest.el (rmail-digest-end-regexps): 
+	Variable replaces rmail-digest-end-regexp.
+	Allows multiple regexps for detecting the end line.
+	(undigestify-rmail-message): Corresponding changes.
+
 2000-01-19  Dave Love  <fx@gnu.org>
 
 	* files.el (user-init-file): Don't declare here -- is primitive.
