@@ -1810,7 +1810,6 @@ init_from_display_pos (it, w, pos)
      but the call to init_iterator below will move us to the
      after-string.  */
   init_iterator (it, w, charpos, bytepos, NULL, DEFAULT_FACE_ID);
-  xassert (IT_CHARPOS (*it) == CHARPOS (pos->pos));
 
   /* If position is within an overlay string, set up IT to
      the right overlay string.  */
