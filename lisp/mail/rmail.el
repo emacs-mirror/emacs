@@ -2016,7 +2016,13 @@ see the documentation of `rmail-resend'."
 	    (search-forward-regexp
 	     (concat "^" (regexp-quote mail-header-separator) "$"))
 	    (forward-line 1)
-	    (insert-buffer forward-buffer))))))
+	    (insert "------- Start of forwarded message -------\n")
+	    (insert-buffer forward-buffer)
+	    (forward-line -1)
+	    (exchange-point-and-mark)
+	    (insert "------- End of forwarded message -------\n")
+	    (forward-line -1)
+            (exchange-point-and-mark))))))
 
 (defun rmail-resend (address &optional from comment mail-alias-file)
   "Resend current message to ADDRESSES.
