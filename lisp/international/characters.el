@@ -661,9 +661,15 @@
   (while (<= c #x200b)
     (set-case-syntax c " " tbl)
     (setq c (1+ c)))
-  (setq c #x2010)
+  (while (<= c #x200F)
+    (set-case-syntax c "." tbl)
+    (setq c (1+ c)))
+  ;; Fixme: These aren't all right:
   (while (<= c #x2027)
     (set-case-syntax c "_" tbl)
+    (setq c (1+ c)))
+  (while (<= c #x206F)
+    (set-case-syntax c "." tbl)
     (setq c (1+ c)))
 
   ;; Roman numerals
@@ -671,6 +677,24 @@
   (while (<= c #x216f)
     (set-case-syntax-pair c (+ c #x10) tbl)
     (setq c (1+ c)))
+
+  ;; Arrows
+  (setq c #x2190)
+  (while (<= c #c21FF)
+    (set-case-syntax-pair c "." tbl)
+    (setq c (1+ c)))
+  ;; Mathematical Operators
+  (while (<= c #x22FF)
+    (set-case-syntax-pair c "." tbl)
+    (setq c (1+ c)))
+  ;; Miscellaneous Technical
+  (while (<= c #x23FF)
+    (set-case-syntax-pair c "." tbl)
+    (setq c (1+ c)))
+  ;; Control Pictures
+  (while (<= c #x243F)
+    (set-case-syntax-pair c "_" tbl)
+    (set c (1+ c)))
 
   ;; Circled Latin
   (setq c #x24b6)
@@ -809,6 +833,8 @@
 (optimize-char-table (standard-category-table))
 (optimize-char-table (standard-syntax-table))
 
+;; The Unicode blocks actually extend past some of these ranges with
+;; undefined codepoints.
 (let ((script-list nil))
   (dolist
       (elt
