@@ -1,6 +1,7 @@
 2004-11-08  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (fast_find_position): Fix start pos if header line present.
+	(note_mouse_highlight): Clear mouse face if we move out of text area.
 
 2004-11-08  Eli Zaretskii  <eliz@gnu.org>
 
