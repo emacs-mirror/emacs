@@ -1,3 +1,8 @@
+2003-11-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (number-sequence): Improve handling of floating point
+	arguments (suggested by Kim Storm).  Allow negative arguments.
+
 2003-11-26  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (standard-display-european-internal):
