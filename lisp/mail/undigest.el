@@ -30,6 +30,7 @@
 
 (require 'rmail)
 
+;;;###autoload
 (defun undigestify-rmail-message ()
   "Break up a digest message into its constituent messages.
 Leaves original message, deleted, before the undigestified messages."
@@ -132,6 +133,7 @@ Leaves original message, deleted, before the undigestified messages."
 	     (delete-region (point-min) (point-max))
 	     (rmail-show-message rmail-current-message))))))
 
+;;;###autoload
 (defun unforward-rmail-message ()
   "Extract a forwarded message from the containing message.
 This puts the forwarded message into a separate rmail message

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/rmailsort.el,v 1.23 1996/01/14 14:30:11 kwzh Exp kwzh $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/rmailsort.el,v 1.24 1996/01/20 07:41:37 kwzh Exp rms $
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -34,6 +34,7 @@
 
 ;; Sorting messages in Rmail buffer
 
+;;;###autoload
 (defun rmail-sort-by-date (reverse)
   "Sort messages of current Rmail file by date.
 If prefix argument REVERSE is non-nil, sort them in reverse order."
@@ -44,6 +45,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			  (rmail-make-date-sortable
 			   (rmail-fetch-field msg "Date"))))))
 
+;;;###autoload
 (defun rmail-sort-by-subject (reverse)
   "Sort messages of current Rmail file by subject.
 If prefix argument REVERSE is non-nil, sort them in reverse order."
@@ -58,6 +60,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 				(substring key (match-end 0))
 			      key))))))
 
+;;;###autoload
 (defun rmail-sort-by-author (reverse)
   "Sort messages of current Rmail file by author.
 If prefix argument REVERSE is non-nil, sort them in reverse order."
@@ -70,6 +73,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			    (or (rmail-fetch-field msg "From")
 				(rmail-fetch-field msg "Sender") "")))))))
 
+;;;###autoload
 (defun rmail-sort-by-recipient (reverse)
   "Sort messages of current Rmail file by recipient.
 If prefix argument REVERSE is non-nil, sort them in reverse order."
@@ -83,6 +87,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 				(rmail-fetch-field msg "Apparently-To") "")
 			    ))))))
 
+;;;###autoload
 (defun rmail-sort-by-correspondent (reverse)
   "Sort messages of current Rmail file by other correspondent.
 If prefix argument REVERSE is non-nil, sort them in reverse order."
@@ -104,6 +109,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
       (setq fields (cdr fields)))
     ans))
 
+;;;###autoload
 (defun rmail-sort-by-lines (reverse)
   "Sort messages of current Rmail file by number of lines.
 If prefix argument REVERSE is non-nil, sort them in reverse order."
@@ -114,6 +120,7 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			  (count-lines (rmail-msgbeg msg)
 				       (rmail-msgend msg))))))
 
+;;;###autoload
 (defun rmail-sort-by-keywords (reverse labels)
   "Sort messages of current Rmail file by labels.
 If prefix argument REVERSE is non-nil, sort them in reverse order.
