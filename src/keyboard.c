@@ -2341,7 +2341,7 @@ some_mouse_moved ()
 static int
 readable_events ()
 {
-  timer_check (0);
+  timer_check (1);
   if (kbd_fetch_ptr != kbd_store_ptr)
     return 1;
 #ifdef HAVE_MOUSE
@@ -2881,16 +2881,25 @@ timer_check (do_it_now)
 {
   EMACS_TIME nexttime;
   EMACS_TIME now;
-  Lisp_Object timers = Vtimer_list;
+  Lisp_Object timers, timer;
+  /* Nonzero if we generate some events.  */
+  int events_generated = 0;
+  struct gcpro gcpro1, gcpro2;
 
-  EMACS_GET_TIME (now);
   EMACS_SET_SECS (nexttime, -1);
   EMACS_SET_USECS (nexttime, -1);
+
+  timers = Vtimer_list;
+  timer = Qnil;
+  GCPRO2 (timers, timer);
+
+  if (CONSP (timers))
+    EMACS_GET_TIME (now);
 
   while (CONSP (timers))
     {
       int triggertime;
-      Lisp_Object timer, *vector;
+      Lisp_Object *vector;
       EMACS_TIME timer_time;
       EMACS_TIME difference;
 
@@ -2909,14 +2918,30 @@ timer_check (do_it_now)
 		      (XINT (vector[1]) << 16) | (XINT (vector[2])));
       EMACS_SET_USECS (timer_time, XINT (vector[3]));
       EMACS_SUB_TIME (difference, timer_time, now);
+      /* If event is past, run it if it hasn't been run.  */
       if (EMACS_TIME_NEG_P (difference))
 	{
 	  if (NILP (vector[0]))
 	    {
+	      /* Mark the timer as triggered to prevent problems if the lisp
+		 code fails to reschedule it right.  */
+	      vector[0] = Qt;
+
+	      /* Run the timer or queue a timer event.  */
 	      if (do_it_now)
-		apply1 (vector[5], vector[6]);
+		{
+		  Lisp_Object tem, event;
+		  tem = get_keymap_1 (Vspecial_event_map, 0, 0);
+		  tem = get_keyelt (access_keymap (tem, Qtimer_event, 0, 0),
+				    1);
+		  event = Fcons (Qtimer_event, Fcons (timer, Qnil));
+		  Fcommand_execute (tem, Qnil, Fvector (1, &event));
+		  /* Since we have handled the event,
+		     we don't need to tell the caller to wake up and do it.  */
+		}
 	      else
 		{
+		  /* Generate a timer event so the caller will handle it.  */
 		  struct input_event event;
 
 		  event.kind = timer_event;
@@ -2927,17 +2952,28 @@ timer_check (do_it_now)
 		  event.frame_or_window = Fcons (Fselected_frame (), timer);
 		  kbd_buffer_store_event (&event);
 
-		  /* Mark the timer as triggered to prevent problems if the lisp
-		     code fails to reschedule it right.  */
-		  vector[0] = Qt;
+		  /* Tell caller to handle this event right away.  */
+		  events_generated = 1;
 		  EMACS_SET_SECS (nexttime, 0);
 		  EMACS_SET_USECS (nexttime, 0);
 		}
 	    }
 	}
       else
-	return difference;
+	/* When we encounter a timer that is still waiting,
+	   return the amount of time to wait before it is ripe.  */
+	{
+	  UNGCPRO;
+	  /* But if we generated an event,
+	     tell the caller to handle it now.  */
+	  if (events_generated)
+	    return nexttime;
+	  return difference;
+	}
     }
+  /* No timers are pending in the future.  */
+  /* Return 0 if we generated an event, and -1 if not.  */
+  UNGCPRO;
   return nexttime;
 }
 
@@ -3409,7 +3445,7 @@ make_lispy_event (event)
       break;
 
     case timer_event:
-      return Fcons (Qtimer_event, Fcdr (event->frame_or_window));
+      return Fcons (Qtimer_event, Fcons (Fcdr (event->frame_or_window), Qnil));
 
 #ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
