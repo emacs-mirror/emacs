@@ -96,6 +96,10 @@ Boston, MA 02111-1307, USA.  */
 #ifdef LINUX
 #define LINKER $(CC) -nostdlib
 #define LD_SWITCH_MACHINE -Xlinker -m -Xlinker elf32ppc
+/* s/gnu-linux.h defines this to `-z nocombreloc' which does not work here
+   because prefix-args is not used.  */
+#undef LD_SWITCH_SYSTEM_TEMACS
+#define LD_SWITCH_MACHINE_TEMACS -Xlinker -znocombreloc
 #endif
 
 #if 0  /* This breaks things on PPC GNU/Linux ecept for Yellowdog,

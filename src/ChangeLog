@@ -1,3 +1,8 @@
+2001-10-23  Andreas Schwab  <schwab@suse.de>
+
+	* m/macppc.h [LINUX]: Undef LD_SWITCH_SYSTEM_TEMACS and override
+	LD_SWITCH_MACHINE_TEMACS with "-Xlinker -znocombreloc".
+
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (display_line): Fix computation of continuation lines
