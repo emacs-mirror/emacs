@@ -1,3 +1,7 @@
+2000-12-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (syms_of_xdisp): Fix last change.
+
 2000-12-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (syms_of_xdisp): Doc fix.
