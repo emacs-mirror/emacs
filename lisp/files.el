@@ -509,10 +509,12 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
     ;; Compute and save the abbreviated homedir name.
     ;; We defer computing this until the first time it's needed, to
     ;; give time for directory-abbrev-alist to be set properly.
+    ;; We include a slash at the end, to avoid spurious matches
+    ;; such as `/usr/foobar' when the home dir is `/usr/foo'.
     (or abbreviated-home-dir
 	(setq abbreviated-home-dir
 	      (let ((abbreviated-home-dir "$foo"))
-		(concat "^" (abbreviate-file-name (expand-file-name "~"))))))
+		(concat "^" (abbreviate-file-name (expand-file-name "~/"))))))
     ;; If FILENAME starts with the abbreviated homedir,
     ;; make it start with `~' instead.
     (if (string-match abbreviated-home-dir filename)
