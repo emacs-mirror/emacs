@@ -218,12 +218,13 @@ extern Lisp_Object Qmode_line, Qmode_line_inactive, Qheader_line;
 extern Lisp_Object Voverriding_local_map;
 extern Lisp_Object Voverriding_local_map_menu_flag;
 extern Lisp_Object Qmenu_item;
+extern Lisp_Object Qwhen;
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 Lisp_Object Qredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
-Lisp_Object QCeval, Qwhen, QCfile, QCdata, QCpropertize;
+Lisp_Object QCeval, QCfile, QCdata, QCpropertize;
 Lisp_Object Qfontified;
 Lisp_Object Qgrow_only;
 Lisp_Object Qinhibit_eval_during_redisplay;
@@ -15658,8 +15659,6 @@ syms_of_xdisp ()
   staticpro (&QCeval);
   QCpropertize = intern (":propertize");
   staticpro (&QCpropertize);
-  Qwhen = intern ("when");
-  staticpro (&Qwhen);
   QCfile = intern (":file");
   staticpro (&QCfile);
   Qfontified = intern ("fontified");
