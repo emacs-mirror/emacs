@@ -420,9 +420,11 @@ LD=ld
 
 ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 
-/* A macro which other sections of ymakefile can redefine to munge the
+/* A macro which other sections of Makefile can redefine to munge the
    flags before they're passed to LD.  This is helpful if you have
-   redefined LD to something odd, like "gcc".  */
+   redefined LD to something odd, like "gcc".
+   (The YMF prefix is a holdover from the old name "ymakefile".)
+  */
 #ifndef YMF_PASS_LDFLAGS
 #define YMF_PASS_LDFLAGS(flags) flags
 #endif
@@ -976,7 +978,7 @@ extraclean: distclean
 
 /* The rule for the [sm] files has to be written a little funny to
    avoid looking like a C comment to CPP. */
-SOURCES = *.[ch] [sm]/?* COPYING ymakefile \
+SOURCES = *.[ch] [sm]/?* COPYING Makefile \
 	config.h.in README COPYING ChangeLog vms.pp-trans
 unlock:
 	chmod u+w $(SOURCES)
