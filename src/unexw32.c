@@ -155,6 +155,10 @@ _start (void)
      having us exit.  */
   SetConsoleCtrlHandler ((PHANDLER_ROUTINE) ctrl_c_handler, TRUE);
 
+  /* Prevent Emacs from being locked up (eg. in batch mode) when
+     accessing devices that aren't mounted (eg. removable media drives).  */
+  SetErrorMode (SEM_FAILCRITICALERRORS);
+
   /* Invoke the NT CRT startup routine now that our housecleaning
      is finished.  */
 #ifdef HAVE_NTGUI
