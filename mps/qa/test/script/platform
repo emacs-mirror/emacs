@@ -5,8 +5,7 @@
 # to record in the test results.
 #
 
-&platform_settings;
-&identify;
+1;
 
 #
 # Set lots of variable correctly, depending on the platform
@@ -41,7 +40,7 @@ sub platform_settings {
 sub settings_nt {
  $dirsep = "\\";
  $cc_command = "cl";
- $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /DMMQA_VERS_$INTERFACE_VERSION";
+ $cc_opts = "/nologo /DWIN32 /D_WINDOWS /W3 /Zi /Oy- /DMMQA_VERS_$MPS_INTERFACE_VERSION /DMMQA_PROD_$MPS_PRODUCT";
  $cc_link = "$obj_dir/platform.obj";
  $cc_link_opts = "/link /NODEFAULTLIB:LIBCMT /debugtype:both /pdb:none /debug:full";
  $cc_include = "/I$testlib_dir /I$MPS_INCLUDE_DIR";
@@ -61,7 +60,7 @@ sub settings_nt {
  $stdout_dup = "| $script_dir/ntx86bin/tee.exe";
  $stdin_red = "<";
  $platmailfile = \&nt_mailfile;
- $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c";
+ $stringscommand = "$script_dir/ntx86bin/strings.exe -20 -c 2>&1";
  $exesuff = ".exe";
 }
 
@@ -83,7 +82,7 @@ sub settings_unix {
  $cc_opts = "-ansi -pedantic -Wall -Wstrict-prototypes ".
   "-Winline -Waggregate-return -Wnested-externs -Wcast-qual ".
   "-Wshadow -Wmissing-prototypes -Wcast-align ".
-  "-O -g -ggdb3 -DMMQA_VERS_$INTERFACE_VERSION";
+  "-O -g -ggdb3 -DMMQA_VERS_$MPS_INTERFACE_VERSION -DMMQA_PROD_$MPS_PRODUCT";
  $cc_include = "-I$testlib_dir -I$MPS_INCLUDE_DIR";
  $cc_def = "-D";
  $cc_defeq = "=";
@@ -101,7 +100,7 @@ sub settings_unix {
  $stdout_dup = "| tee";
  $stdin_red = "<";
  $platmailfile = \&unix_mailfile;
- $stringscommand = "strings";
+ $stringscommand = "strings 2>&1";
  $exesuff = "";
 }
 

@@ -18,7 +18,7 @@ sub mpslibvers {
   "compilation", "unknown",
   "release", "unknown");
 
- $_ = &convdirseps("$stringscommand $exefile$exesuff |");
+ $_ = &convdirseps("$stringscommand $exefile|");
  &debug("OPEN >>$_<<");
 
  if (open(STRINGS, $_)) {
@@ -47,7 +47,7 @@ sub run_exe {
  local ($exefile, $interact, $stdin) = @_;
 
  $identify{"time"} = localtime;
- &mpslibvers($exefile);
+ &mpslibvers($exefile.$exesuff);
  &log_system($exefile, $interact, $testlogfile, $stdin);
  &read_results($testlogfile);
  &verdict;

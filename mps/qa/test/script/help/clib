@@ -1,7 +1,7 @@
 compile test libraries
-% $HopeName: MMQA_harness!script:help:clib(trunk.2) $
+% $HopeName: MMQA_harness!script:help:clib(trunk.3) $
 
-Usage: qa clib [-i MMQA_MPS_INCLUDE_DIR] [-v MMQA_INTERFACE_VERSION]
+Usage: qa clib [<options>]
 
 'clib' recompiles the test libraries (as listed in testlib:manifest)
 You must run clib before running tests with 'run', and you are
