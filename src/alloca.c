@@ -90,6 +90,9 @@ typedef char *pointer;
 
 #ifdef emacs
 #define malloc xmalloc
+#ifdef EMACS_FREE
+#define free EMACS_FREE
+#endif
 #endif
 extern pointer malloc ();
 
