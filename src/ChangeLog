@@ -1,3 +1,8 @@
+2002-03-08  Juanma Barranquero  <lektu@terra.es>
+
+	* w32fns.c (Fx_display_color_cells): Force 24+ bit color depths to
+	24-bit.
+
 2002-03-06  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_draw_hollow_cursor): Draw same size as block cursor.
