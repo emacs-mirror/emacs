@@ -9,7 +9,10 @@
 	argument MULTIBYTEP.  Callers changed.
 	(detect_coding_mask, detect_coding_system): New argument
 	MULTIBYTEP.  Callers changed.
-
+	(decode_coding_string): Set coding->src_multibyte and
+	coding->dst_multibyte before calling detect_coding and detect_eol.
+	Update them after some coding system is detected.
+	
 2000-12-13  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keymap.c (get_keyelt): Only eval the filter if `autoload' is set.
