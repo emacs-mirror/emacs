@@ -3823,6 +3823,9 @@ x_setup_relief_colors (s)
 
   if (s->face->use_box_color_for_shadows_p)
     color = s->face->box_color;
+  else if (s->first_glyph->type == IMAGE_GLYPH
+	   && !IMAGE_BACKGROUND_TRANSPARENT (s->img, s->f, 0))
+    color = IMAGE_BACKGROUND (s->img, s->f, 0);
   else
     {
       XGCValues xgcv;
