@@ -1490,10 +1490,15 @@ the explanation of how to avoid this problem.
 
 * Emacs compiled for MSDOS cannot find some Lisp files, or other
 run-time support files, when long filename support is enabled.
-(Usually, this problem will manifest itself when Emacs exits
+
+Usually, this problem will manifest itself when Emacs exits
 immediately after flashing the startup screen, because it cannot find
 the Lisp files it needs to load at startup.  Redirect Emacs stdout
-and stderr to a file to see the error message printed by Emacs.)
+and stderr to a file to see the error message printed by Emacs.
+
+Another manifestation of this problem is that Emacs is unable to load
+the support for editing program sources in languages such as C and
+Lisp.
 
 This can happen if the Emacs distribution was unzipped without LFN
 support, thus causing long filenames to be truncated to the first 6
@@ -1502,6 +1507,14 @@ You should unzip the files again with a utility that supports long
 filenames (such as djtar from DJGPP or InfoZip's UnZip program
 compiled with DJGPP v2).  The MSDOG section of the file INSTALL
 explains this issue in more detail.
+
+Another possible reason for such failures is that Emacs compiled for
+MSDOS is used on Windows NT, where long file names are not supported
+by this version of Emacs, but the distribution was unpacked by an
+unzip program that preserved the long file names instead of truncating
+them to DOS 8+3 limits.  To be useful on NT, the MSDOS port of Emacs
+must be unzipped by a DOS utility, so that long file names are
+properly truncated.
 
 * Emacs compiled with DJGPP complains at startup:
 
