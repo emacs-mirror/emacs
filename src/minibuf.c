@@ -339,8 +339,13 @@ get_minibuffer (depth)
     }
   else
     {
+      int count = specpdl_ptr - specpdl;
+
       reset_buffer (XBUFFER (buf));
-      Fkill_all_local_variables (buf);
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      Fset_buffer (buf);
+      Fkill_all_local_variables ();
+      unbind_to (count, Qnil);
     }
 
   return buf;
@@ -925,7 +930,8 @@ Args: PROMPT, TABLE, PREDICATE, REQUIRE-MATCH, INITIAL-INPUT, HIST.\n\
 PROMPT is a string to prompt with; normally it ends in a colon and a space.\n\
 TABLE is an alist whose elements' cars are strings, or an obarray.\n\
 PREDICATE limits completion to a subset of TABLE.\n\
-See `try-completion' for more details on completion, TABLE, and PREDICATE.\n\
+See `try-completion' and `all-completions' for more details
+ on completion, TABLE, and PREDICATE.\n\
 \n\
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless\n\
  the input is (or completes to) an element of TABLE or is null.\n\
