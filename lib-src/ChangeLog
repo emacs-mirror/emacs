@@ -1,3 +1,12 @@
+2002-04-07  Colin Walters  <walters@verbum.org>
+
+	* update-game-score.c (SCORE_FILE_PREFIX): Don't hardcode.
+	(get_user_id): Take struct passwd as an argument.
+	(get_home_dir): New function.
+	(main): Read in user information here.  Discover home directory if
+	necessary.
+	(read_score): Trim newline only in `getline' case.
+
 2002-04-05  Colin Walters  <walters@debian.org>
 	
 	* update-game-score.c (toplevel): Include pwd.h.
