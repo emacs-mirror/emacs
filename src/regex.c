@@ -20,7 +20,6 @@
    USA.	 */
 
 /* TODO:
-   - detect nasty infinite loops like "\\(\\)+?ab" when matching "ac".
    - use analyze_first to optimize non-empty loops
    - optimize succeed_n and jump_n away when possible
    - clean up multibyte issues
@@ -532,6 +531,12 @@ typedef enum
 	   indefinitely).  */
   on_failure_jump_loop,
 
+	/* Just like `on_failure_jump_loop', except that it checks for
+	   a different kind of loop (the kind that shows up with non-greedy
+	   operators).  This operation has to be immediately preceded
+	   by a `no_op'.  */
+  on_failure_jump_nastyloop,
+
         /* A smart `on_failure_jump' used for greedy * and + operators.
 	   It analyses the loop before which it is put and if the
 	   loop does not require backtracking, it changes itself to
@@ -940,6 +945,11 @@ print_partial_compiled_pattern (start, end)
 	case on_failure_keep_string_jump:
 	  extract_number_and_incr (&mcnt, &p);
 	  printf ("/on_failure_keep_string_jump to %d", p + mcnt - start);
+	  break;
+
+	case on_failure_jump_nastyloop:
+	  extract_number_and_incr (&mcnt, &p);
+	  printf ("/on_failure_jump_nastyloop to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_loop:
@@ -2179,19 +2189,19 @@ regex_compile (pattern, size, syntax, bufp)
 	    else		/* not greedy */
 	      { /* I wish the greedy and non-greedy cases could be merged. */
 
+		GET_BUFFER_SPACE (7); /* We might use less.  */
 		if (many_times_ok)
 		  {
 		    /* The non-greedy multiple match looks like a repeat..until:
 		       we only need a conditional jump at the end of the loop */
-		    GET_BUFFER_SPACE (3);
-		    STORE_JUMP (on_failure_jump, b, laststart);
+		    BUF_PUSH (no_op);
+		    STORE_JUMP (on_failure_jump_nastyloop, b, laststart);
 		    b += 3;
 		    if (zero_times_ok)
 		      {
 			/* The repeat...until naturally matches one or more.
 			   To also match zero times, we need to first jump to
 			   the end of the loop (its conditional jump). */
-			GET_BUFFER_SPACE (3);
 			INSERT_JUMP (jump, laststart, b);
 			b += 3;
 		      }
@@ -2199,7 +2209,6 @@ regex_compile (pattern, size, syntax, bufp)
 		else
 		  {
 		    /* non-greedy a?? */
-		    GET_BUFFER_SPACE (6);
 		    INSERT_JUMP (jump, laststart, b + 3);
 		    b += 3;
 		    INSERT_JUMP (on_failure_jump, laststart, laststart + 6);
@@ -3514,6 +3523,7 @@ re_compile_fastmap (bufp)
 	    case on_failure_jump:
 	    case on_failure_keep_string_jump:
 	    case on_failure_jump_loop:
+	    case on_failure_jump_nastyloop:
 	    case on_failure_jump_smart:
 	      p++;
 	      break;
@@ -3526,6 +3536,7 @@ re_compile_fastmap (bufp)
 
 	case on_failure_jump:
 	case on_failure_keep_string_jump:
+	case on_failure_jump_nastyloop:
 	case on_failure_jump_loop:
 	case on_failure_jump_smart:
 	handle_on_failure_jump:
@@ -3708,7 +3719,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
   int anchored_start = 0;
 
   /* Nonzero if we have to concern multibyte character.	 */
-  int multibyte = bufp->multibyte;
+  const boolean multibyte = bufp->multibyte;
 
   /* Check for out-of-range STARTPOS.  */
   if (startpos < 0 || startpos > total_size)
@@ -5067,6 +5078,30 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  PUSH_FAILURE_POINT (p - 3, NULL);
 	  break;
 
+	  /* A nasty loop is introduced by the non-greedy *? and +?.
+	     With such loops, the stack only ever contains one failure point
+	     at a time, so that a plain on_failure_jump_loop kind of
+	     cycle detection cannot work.  Worse yet, such a detection
+	     can not only fail to detect a cycle, but it can also wrongly
+	     detect a cycle (between different instantiations of the same
+	     loop.
+	     So the method used for those nasty loops is a little different:
+	     We use a special cycle-detection-stack-frame which is pushed
+	     when the on_failure_jump_nastyloop failure-point is *popped*.
+	     This special frame thus marks the beginning of one iteration
+	     through the loop and we can hence easily check right here
+	     whether something matched between the beginning and the end of
+	     the loop.  */
+	case on_failure_jump_nastyloop:
+	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
+	  DEBUG_PRINT3 ("EXECUTING on_failure_jump_nastyloop %d (to %p):\n",
+			mcnt, p + mcnt);
+
+	  assert ((re_opcode_t)p[-4] == no_op);
+	  CHECK_INFINITE_LOOP (p - 4, d);
+	  PUSH_FAILURE_POINT (p - 3, d);
+	  break;
+
 
 	  /* Simple loop detecting on_failure_jump:  just check on the
 	     failure stack if the same spot was already hit earlier.  */
@@ -5428,6 +5463,11 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      assert (str == NULL);
 	      goto continue_failure_jump;
 
+	    case on_failure_jump_nastyloop:
+	      assert ((re_opcode_t)pat[-2] == no_op);
+	      PUSH_FAILURE_POINT (pat - 2, str);
+	      /* Fallthrough */
+
 	    case on_failure_jump_loop:
 	    case on_failure_jump:
 	    case succeed_n:
@@ -5436,6 +5476,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      EXTRACT_NUMBER_AND_INCR (mcnt, pat);
 	      p = pat + mcnt;
 	      break;
+
+	    case no_op:
+	      /* A special frame used for nastyloops. */
+	      goto fail;
 
 	    default:
 	      abort();
