@@ -1303,7 +1303,7 @@ and announce itself normally when it is run.")
 #endif /* not WINDOWSNT */
 #endif
   unexec (XSTRING (intoname)->data,
-	  !NILP (symname) ? XSTRING (symname)->data : 0, &my_edata, 0, 0);
+	  !NILP (symname) ? XSTRING (symname)->data : 0, my_edata, 0, 0);
 #endif /* not VMS */
 
   Vpurify_flag = tem;
