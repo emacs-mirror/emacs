@@ -1494,22 +1494,17 @@ Control characters turn into C-whatever, etc.")
 
   key = EVENT_HEAD (key);
 
-  switch (XTYPE (key))
+  if (INTEGERP (key))		/* Normal character */
     {
-    case Lisp_Int:		/* Normal character */
       *push_key_description (XUINT (key), tem) = 0;
       return build_string (tem);
-
-    case Lisp_Symbol:		/* Function key or event-symbol */
-      return Fsymbol_name (key);
-
-      /* Buffer names in the menubar can trigger this.  */
-    case Lisp_String:
-      return Fcopy_sequence (key);
-
-    default:
-      error ("KEY must be an integer, cons, symbol, or string");
     }
+  else if (SYMBOLP (key))	/* Function key or event-symbol */
+    return Fsymbol_name (key);
+  else if (STRINGP (key))	/* Buffer names in the menubar.  */
+    return Fcopy_sequence (key);
+  else
+    error ("KEY must be an integer, cons, symbol, or string");
 }
 
 char *
