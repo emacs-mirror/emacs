@@ -32,6 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_WINDOW_SYSTEM
 
 extern Lisp_Object Qtop, Qbottom, Qcenter;
+extern Lisp_Object Qup, Qdown, Qleft, Qright;
 
 /* Non-nil means that newline may flow into the right fringe.  */
 
@@ -706,9 +707,10 @@ update_window_fringes (w, force_p)
   int rn, nrows = w->current_matrix->nrows;
   int y;
   int redraw_p = 0;
-  Lisp_Object ind;
-  int boundary_pos = 0, arrow_pos = 0;
-  int empty_pos = 0;
+  Lisp_Object boundary_top = Qnil, boundary_bot = Qnil;
+  Lisp_Object arrow_top = Qnil, arrow_bot = Qnil;
+  Lisp_Object empty_pos;
+  Lisp_Object ind = Qnil;
 
   if (w->pseudo_window_p)
     return 0;
@@ -716,23 +718,29 @@ update_window_fringes (w, force_p)
   if (!MINI_WINDOW_P (w)
       && (ind = XBUFFER (w->buffer)->indicate_buffer_boundaries, !NILP (ind)))
     {
-      int do_eob = 1, do_bob = 1;
-      Lisp_Object arrows;
-
-      if (CONSP (ind))
-	arrows = XCDR (ind), ind = XCAR (ind);
+      if (EQ (ind, Qleft) || EQ (ind, Qright))
+	boundary_top = boundary_bot = arrow_top = arrow_bot = ind;
+      else if (CONSP (ind) && CONSP (XCAR (ind)))
+	{
+	  Lisp_Object pos;
+	  if (pos = Fassq (Qt, ind), !NILP (pos))
+	    boundary_top = boundary_bot = arrow_top = arrow_bot = XCDR (pos);
+	  if (pos = Fassq (Qtop, ind), !NILP (pos))
+	    boundary_top = XCDR (pos);
+	  if (pos = Fassq (Qbottom, ind), !NILP (pos))
+	    boundary_bot = XCDR (pos);
+	  if (pos = Fassq (Qup, ind), !NILP (pos))
+	    arrow_top = XCDR (pos);
+	  if (pos = Fassq (Qdown, ind), !NILP (pos))
+	    arrow_bot = XCDR (pos);
+	}
       else
-	arrows = ind;
+	ind = Qnil;
+    }
 
-      if (EQ (ind, Qleft))
-	boundary_pos = -1;
-      else if (EQ (ind, Qright))
-	boundary_pos = 1;
-
-      if (EQ (arrows, Qleft))
-	arrow_pos = -1;
-      else if (EQ (arrows, Qright))
-	arrow_pos = 1;
+  if (!NILP (ind))
+    {
+      int do_eob = 1, do_bob = 1;
 
       for (y = 0, rn = 0;
 	   y < yb && rn < nrows;
@@ -753,17 +761,17 @@ update_window_fringes (w, force_p)
 	  row->indicate_bob_p = row->indicate_top_line_p = 0;
 	  row->indicate_eob_p = row->indicate_bottom_line_p = 0;
 
-	  if (!NILP (ind)
+	  if (!NILP (boundary_top)
 	      && MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer)))
 	    row->indicate_bob_p = do_bob, do_bob = 0;
-	  else if (!NILP (arrows)
+	  else if (!NILP (arrow_top)
 		   && (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0) == rn)
 	    row->indicate_top_line_p = 1;
 
-	  if (!NILP (ind)
+	  if (!NILP (boundary_bot)
 	      && MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer)))
 	    row->indicate_eob_p = do_eob, do_eob = 0;
-	  else if (!NILP (arrows)
+	  else if (!NILP (arrow_bot)
 		   && y + row->height >= yb)
 	    row->indicate_bottom_line_p = 1;
 
@@ -775,10 +783,9 @@ update_window_fringes (w, force_p)
 	}
     }
 
-  if (EQ (XBUFFER (w->buffer)->indicate_empty_lines, Qright))
-    empty_pos = 1;
-  else if (EQ (XBUFFER (w->buffer)->indicate_empty_lines, Qleft))
-    empty_pos = -1;
+  empty_pos = XBUFFER (w->buffer)->indicate_empty_lines;
+  if (!NILP (empty_pos) && !EQ (empty_pos, Qright))
+    empty_pos = WINDOW_LEFT_FRINGE_WIDTH (w) == 0 ? Qright : Qleft;
 
   for (y = 0, rn = 0;
        y < yb && rn < nrows;
@@ -802,20 +809,20 @@ update_window_fringes (w, force_p)
 	  left = row->left_user_fringe_bitmap;
 	  left_face_id = row->left_user_fringe_face_id;
 	}
-      else if (row->indicate_bob_p && boundary_pos <= 0)
-	left = ((row->indicate_eob_p && boundary_pos < 0)
+      else if (row->indicate_bob_p && EQ (boundary_top, Qleft))
+	left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
 		? LEFT_BRACKET_BITMAP : TOP_LEFT_ANGLE_BITMAP);
-      else if (row->indicate_eob_p && boundary_pos < 0)
+      else if (row->indicate_eob_p && EQ (boundary_bot, Qleft))
 	left = BOTTOM_LEFT_ANGLE_BITMAP;
       else if (row->truncated_on_left_p)
 	left = LEFT_TRUNCATION_BITMAP;
       else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
 	left = CONTINUATION_LINE_BITMAP;
-      else if (row->indicate_empty_line_p && empty_pos <= 0)
+      else if (row->indicate_empty_line_p && EQ (empty_pos, Qleft))
 	left = ZV_LINE_BITMAP;
-      else if (row->indicate_top_line_p && arrow_pos <= 0)
+      else if (row->indicate_top_line_p && EQ (arrow_top, Qleft))
 	left = UP_ARROW_BITMAP;
-      else if (row->indicate_bottom_line_p && arrow_pos < 0)
+      else if (row->indicate_bottom_line_p && EQ (arrow_bot, Qleft))
 	left = DOWN_ARROW_BITMAP;
       else
 	left = NO_FRINGE_BITMAP;
@@ -828,22 +835,20 @@ update_window_fringes (w, force_p)
 	  right = row->right_user_fringe_bitmap;
 	  right_face_id = row->right_user_fringe_face_id;
 	}
-      else if (row->indicate_bob_p && boundary_pos > 0)
-	right = ((row->indicate_eob_p && boundary_pos >= 0)
+      else if (row->indicate_bob_p && EQ (boundary_top, Qright))
+	right = ((row->indicate_eob_p && EQ (boundary_bot, Qright))
 		 ? RIGHT_BRACKET_BITMAP : TOP_RIGHT_ANGLE_BITMAP);
-      else if (row->indicate_eob_p && boundary_pos >= 0)
+      else if (row->indicate_eob_p && EQ (boundary_bot, Qright))
 	right = BOTTOM_RIGHT_ANGLE_BITMAP;
       else if (row->truncated_on_right_p)
 	right = RIGHT_TRUNCATION_BITMAP;
       else if (row->continued_p)
 	right = CONTINUED_LINE_BITMAP;
-      else if (row->indicate_top_line_p && arrow_pos > 0)
+      else if (row->indicate_top_line_p && EQ (arrow_top, Qright))
 	right = UP_ARROW_BITMAP;
-      else if (row->indicate_bottom_line_p && arrow_pos >= 0)
+      else if (row->indicate_bottom_line_p && EQ (arrow_bot, Qright))
 	right = DOWN_ARROW_BITMAP;
-      else if (row->indicate_empty_line_p
-	       && (empty_pos > 0
-		   || (WINDOW_LEFT_FRINGE_WIDTH (w) == 0 && empty_pos == 0)))
+      else if (row->indicate_empty_line_p && EQ (empty_pos, Qright))
 	right = ZV_LINE_BITMAP;
       else
 	right = NO_FRINGE_BITMAP;
@@ -1247,7 +1252,8 @@ DEFUN ("fringe-bitmaps-at-pos", Ffringe_bitmaps_at_pos, Sfringe_bitmaps_at_pos,
 If WINDOW is nil, use selected window.  If POS is nil, use value of point
 in that window.  Return value is a cons (LEFT . RIGHT) where LEFT and RIGHT
 are the fringe bitmap numbers for the bitmaps in the left and right fringe,
-resp.  Return nil if POS is not visible in WINDOW.  */)
+resp.  If left or right fringe is empty, the corresponding element is nil.
+Return nil if POS is not visible in WINDOW.  */)
   (pos, window)
      Lisp_Object pos, window;
 {
@@ -1274,8 +1280,10 @@ resp.  Return nil if POS is not visible in WINDOW.  */)
   row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   row = row_containing_pos (w, textpos, row, NULL, 0);
   if (row)
-    return Fcons (make_number (row->left_fringe_bitmap),
-		  make_number (row->right_fringe_bitmap));
+    return Fcons ((row->left_fringe_bitmap == NO_FRINGE_BITMAP
+		   ? Qnil : make_number (row->left_fringe_bitmap)),
+		  (row->right_fringe_bitmap == NO_FRINGE_BITMAP
+		   ? Qnil : make_number (row->right_fringe_bitmap)));
   else
     return Qnil;
 }
