@@ -1056,10 +1056,10 @@ esac
 #### Some systems specify a CPP to use unless we are using GCC.
 #### Now that we know whether we are using GCC, we can decide whether
 #### to use that one.
-if [ x$NON_GNU_CPP = x ] || [ x$GCC = x1 ]
+if [ "x$NON_GNU_CPP" = x ] || [ x$GCC = x1 ]
 then true
 else
-  CPP=$NON_GNU_CPP
+  CPP="$NON_GNU_CPP"
 fi
 
 #### Some systems specify a CC to use unless we are using GCC.
