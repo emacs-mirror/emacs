@@ -67,7 +67,7 @@ corresponding to the mode line clicked."
 
 (defun mode-line-toggle-modified (event)
   "Toggle the buffer-modified flag from the mode-line."
-  (interacive "e")
+  (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
     (set-buffer-modified-p (not (buffer-modified-p)))
@@ -76,7 +76,7 @@ corresponding to the mode line clicked."
 
 (defun mode-line-widen (event)
   "Widen a buffer from the mode-line."
-  (interacive "e")
+  (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
     (widen)
@@ -85,7 +85,7 @@ corresponding to the mode line clicked."
 
 (defun mode-line-abbrev-mode (event)
   "Turn off `abbrev-mode' from the mode-line."
-  (interacive "e")
+  (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
     (abbrev-mode)
@@ -94,7 +94,7 @@ corresponding to the mode line clicked."
 
 (defun mode-line-auto-fill-mode (event)
   "Turn off `auto-fill-mode' from the mode-line."
-  (interacive "e")
+  (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
     (auto-fill-mode)
@@ -183,7 +183,7 @@ Normally nil in most modes, since there is no process to display.")
 					      "R"
 					    "Not r")))))
 	 'local-map (purecopy (make-mode-line-mouse2-map
-			       #'mode-linetoggle-read-only)))
+			       #'mode-line-toggle-read-only)))
 	(propertize
 	 "%1+"
 	 'help-echo  (purecopy (lambda (window object point)
