@@ -2311,7 +2311,7 @@ See also `c-font-lock-extra-types'.")
     ;; Anders Lindgren <andersl@andersl.com> points out that it is quicker to
     ;; use MATCH-ANCHORED to effectively anchor the regexp on the left.
     ;; This must come after the one for keywords and targets.
-    '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:"
+    '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:[ \t]*$"
 	   (beginning-of-line) (end-of-line)
 	   (1 font-lock-constant-face)))
     )))
@@ -2777,8 +2777,8 @@ See also `java-font-lock-extra-types'.")
   "Gaudy level highlighting for Java mode.
 See also `java-font-lock-extra-types'.")
 
-;; Regexps written with help from Fred White <fwhite@bbn.com> and
-;; Anders Lindgren <andersl@andersl.com>.
+;; Regexps written with help from Fred White <fwhite@bbn.com>,
+;; Anders Lindgren <andersl@andersl.com> and Carl Manning <caroma@ai.mit.edu>.
 (let* ((java-keywords
 	(eval-when-compile
 	  (regexp-opt
@@ -2816,7 +2816,7 @@ See also `java-font-lock-extra-types'.")
    ;;
    ;; Fontify class names.
    '("\\<\\(class\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-type-face) (2 font-lock-function-name-face nil t))
+     (1 font-lock-keyword-face) (2 font-lock-type-face nil t))
    ;;
    ;; Fontify package names in import directives.
    '("\\<\\(import\\|package\\)\\>[ \t]*\\(\\sw+\\)?"
@@ -2832,8 +2832,8 @@ See also `java-font-lock-extra-types'.")
     ;;
     ;; Fontify class names.
     `(eval .
-      (cons (concat "\\<\\(" (,@ java-type-names) "\\)\\>")
-	    'font-lock-type-face))
+      (cons (concat "\\<\\(" (,@ java-type-names) "\\)\\>[^.]")
+	    '(1 font-lock-type-face)))
     ;;
     ;; Fontify all builtin keywords (except below).
     (concat "\\<\\(" java-keywords "\\|" java-type-specs "\\)\\>")
@@ -2842,7 +2842,7 @@ See also `java-font-lock-extra-types'.")
     (list "\\<\\(break\\|case\\|continue\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
 	  '(1 font-lock-keyword-face) '(2 font-lock-constant-face nil t))
     ;; This must come after the one for keywords and targets.
-    '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:"
+    '(":" ("^[ \t]*\\(\\sw+\\)[ \t]*:[ \t]*$"
 	   (beginning-of-line) (end-of-line)
 	   (1 font-lock-constant-face)))
     ;;
