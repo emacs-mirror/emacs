@@ -978,6 +978,11 @@ case "${canonical}" in
     RANLIB="ar -ts"
   ;;
 
+  ## UXP/V
+  f301-fujitsu-uxpv4.1)
+    machine=f301 opsys=uxpv
+  ;;
+
   * )
     unported=yes
   ;;
