@@ -1,3 +1,8 @@
+1999-10-24  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-default-keybindings): No need to use
+	read-kbd-macro in keybindings.
+
 1999-10-23  Dave Love  <fx@gnu.org>
 
 	* elide-head.el: New file.
