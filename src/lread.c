@@ -302,6 +302,10 @@ readchar (readcharfun)
 
       return c;
     }
+
+  if (EQ (readcharfun, Qlambda))
+    return read_bytecode_char (0);
+
   if (EQ (readcharfun, Qget_file_char))
     {
       c = getc (instream);
@@ -391,6 +395,8 @@ unreadchar (readcharfun, c)
       read_from_string_index_byte
 	= string_char_to_byte (readcharfun, read_from_string_index);
     }
+  else if (EQ (readcharfun, Qlambda))
+    read_bytecode_char (1);
   else if (EQ (readcharfun, Qget_file_char))
     ungetc (c, instream);
   else
