@@ -629,10 +629,14 @@ This returns ARGS with the arguments that have been processed removed."
 
 (setq screen-creation-function 'x-create-screen)
 (x-read-resources)
-(x-pop-initial-window)
+;(x-pop-initial-window)
 
 (setq suspend-hook
       '(lambda ()
 	 (error "Suspending an emacs running under X makes no sense")))
+
+;;; Turn off window-splitting optimization; X is usually fast enough
+;;; that this is only annoying.
+(setq split-window-keep-point t)
 
 (define-key global-map "\C-z" 'iconify-emacs)
