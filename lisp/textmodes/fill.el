@@ -315,7 +315,9 @@ If the charset has no such property, do nothing."
     (if (eq charset 'ascii)
 	(setq ch (preceding-char)
 	      charset (char-charset ch)))
-    (setq func (get-charset-property charset 'fill-find-break-point-function))
+    (if (charsetp charset)
+	(setq func
+	      (get-charset-property charset 'fill-find-break-point-function)))
     (if (and func (fboundp func))
 	(funcall func limit))))
 
