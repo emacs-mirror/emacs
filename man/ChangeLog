@@ -1,3 +1,15 @@
+2003-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.texi: New file describing enhanced keyboard macro
+	functionality.  Replaces old description in custom.texi.
+
+	* custom.texi (Customization): Add xref to Keyboard Macros chapter.
+	(Keyboard Macros): Move to new kmacro.texi file.
+
+	* emacs.texi (Keyboard Macros): Reference new keyboard macro topics.
+
+	* calc.texi (Queries in Macros): Update xref to keyboard macro query.
+
 2003-08-17  Alex Schroeder  <alex@gnu.org>
 
 	* misc.texi (Saving Emacs Sessions): Manual M-x desktop-save not
