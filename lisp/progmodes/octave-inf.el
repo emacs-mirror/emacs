@@ -243,11 +243,10 @@ This is implemented using the Octave command `completion_matches' which
 is NOT available with versions of Octave prior to 2.0."
   (interactive)
   (let* ((end (point))
-	 (command (save-excursion
-		    (skip-syntax-backward "w_")
-		    (and (looking-at comint-prompt-regexp)
-			 (goto-char (match-end 0)))
-		    (buffer-substring-no-properties (point) end)))
+	 (command
+	  (save-excursion
+	    (skip-syntax-backward "w_" (comint-line-beginning-position))
+	    (buffer-substring-no-properties (point) end)))
 	 (proc (get-buffer-process inferior-octave-buffer))
 	 (filter (process-filter proc)))
     (cond (inferior-octave-complete-impossible
