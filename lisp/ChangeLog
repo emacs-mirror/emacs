@@ -21,12 +21,6 @@
 	ucs-unicode-to-mule-cjk to new hash tables with realistic
 	parameters.
 
-2002-12-16  Dave Love  <fx@gnu.org>
-
-	* international/mule-cmds.el (standard-keyboard-coding-systems):
-	Deleted.
-	(set-locale-environment): Don't use it.
-
 2002-12-18  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* info.el (Info-dir-remove-duplicates): Avoid infloop when
