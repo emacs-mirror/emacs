@@ -1326,8 +1326,9 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
 (defvar calendar-setup nil
   "The frame set up of the calendar.
 The choices are `one-frame' (calendar and diary together in one separate,
-dedicated frame) or `two-frames' (calendar and diary in separate, dedicated
-frames); with any other value the current frame is used.")
+dedicated frame), `two-frames' (calendar and diary in separate, dedicated
+frames), `calendar-only' (calendar in a separate, dedicated frame); with
+any other value the current frame is used.")
 
 ;;;###autoload
 (defun calendar (&optional arg)
@@ -1336,6 +1337,8 @@ The original function `calendar' has been renamed `calendar-basic-setup'."
   (interactive "P")
   (cond ((equal calendar-setup 'one-frame) (calendar-one-frame-setup arg))
         ((equal calendar-setup 'two-frames) (calendar-two-frame-setup arg))
+        ((equal calendar-setup 'calendar-only)
+         (calendar-only-one-frame-setup arg))
         (t (calendar-basic-setup arg))))
 
 (defun calendar-basic-setup (&optional arg)
