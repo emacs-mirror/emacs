@@ -141,15 +141,21 @@ but still shows the full information."
       (setq charset-info-list
 	    (cons (list (charset-id charset)	; ID-NUM
 			charset			; CHARSET-NAME
-			(if (eq charset 'ascii)	; MULTIBYTE-FORM
-			    "xx"
-			  (let ((str (format "%2X" (aref info 6))))
-			    (if (> (aref info 7) 0)
-				(setq str (format "%s %2X" str (aref info 7))))
-			    (setq str (concat str " XX"))
-			    (if (> (aref info 2) 1)
-				(setq str (concat str " XX")))
-			    str))
+			(cond ((eq charset 'ascii) ; MULTIBYTE-FORM
+			       "xx")
+			      ((eq charset 'eight-bit-control)
+			       (format "%2X Xx" (aref info 6)))
+			      ((eq charset 'eight-bit-graphic)
+			       "XX")
+			      (t
+			       (let ((str (format "%2X" (aref info 6))))
+				 (if (> (aref info 7) 0)
+				     (setq str (format "%s %2X"
+						       str (aref info 7))))
+				 (setq str (concat str " XX"))
+				 (if (> (aref info 2) 1)
+				     (setq str (concat str " XX")))
+				 str)))
 			(aref info 2)		; DIMENSION
 			(aref info 3)		; CHARS
 			(aref info 8)		; FINAL-CHAR
@@ -192,8 +198,8 @@ but still shows the full information."
       (indent-to 40)
       (insert (nth 2 elt))		; MULTIBYTE-FORM
       (indent-to 56)
-      (insert (format "%d %2d %c"	; ISO specs
-		      (nth 3 elt) (nth 4 elt) (nth 5 elt)))
+      (insert (format "%d %2d " (nth 3 elt) (nth 4 elt)) ; DIMENSION and CHARS
+	      (if (< (nth 5 elt) 0) "none" (nth 5 elt))) ; FINAL-CHAR
       (insert "\n"))))
 
 
@@ -371,10 +377,12 @@ detailed meanings of these arguments."
 		     ((char-table-p charset)
 		      (aref charset i))
 		     (t (funcall charset (+ (* row 256) i)))))
-      (if (or (< ch 32) (and (>= ch 127) (<= ch 255)))
+      (if (and (char-table-p charset)
+	       (or (< ch 32) (and (>= ch 127) (<= ch 255))))
 	  ;; Don't insert a control code.
 	  (setq ch 32))
-      (insert (format "%3c" ch))
+      (indent-to (+ (* (% i 16) 3) 6))
+      (insert ch)
       (setq i (1+ i))))
   (insert "\n"))
 
@@ -388,11 +396,16 @@ detailed meanings of these arguments."
 	min max)
     (insert (format "Characters in the charset %s.\n" charset))
 
-    (if (= chars 94)
-	(setq min 33 max 126)
-      (setq min 32 max 127))
-    (or (= plane 0)
-	(setq min (+ min 128) max (+ max 128)))
+    (cond ((eq charset 'eight-bit-control)
+	   (setq min 128 max 159))
+	  ((eq charset 'eight-bit-graphic)
+	   (setq min 160 max 255))
+	  (t
+	   (if (= chars 94)
+	       (setq min 33 max 126)
+	     (setq min 32 max 127))
+	   (or (= plane 0)
+	       (setq min (+ min 128) max (+ max 128)))))
 
     (if (= dim 1)
 	(list-block-of-chars charset 0 min max)
