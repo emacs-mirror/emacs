@@ -3000,7 +3000,6 @@ With prefix arg, silently save all file-visiting buffers, then kill."
       (apply operation arguments))))
 
 (define-key ctl-x-map "\C-f" 'find-file)
-(define-key ctl-x-map "\C-q" 'toggle-read-only)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)
 (define-key ctl-x-map "\C-v" 'find-alternate-file)
 (define-key ctl-x-map "\C-s" 'save-buffer)
