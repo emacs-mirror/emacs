@@ -102,6 +102,7 @@
 (load "language/devanagari")	 ; This should be loaded after indian.
 (load "language/malayalam")	 ; This should be loaded after indian.
 (load "language/tamil")		 ; This should be loaded after indian.
+(load "language/kannada")	 ; This should be loaded after indian.
 (load "language/english")
 (load "language/ethiopic")
 (load "language/european")
