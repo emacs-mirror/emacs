@@ -80,16 +80,16 @@ when you do (add-hook 'find-file-hooks 'auto-insert).
 With \\[auto-insert], this is always treated as if it were `t'."
   :type '(choice (const :tag "Insert if possible" t)
                  (const :tag "Do nothing" nil)
-                 (const :tag "insert if possible, mark as unmodified." 
+                 (other :tag "insert if possible, mark as unmodified." 
                         not-modified))
   :group 'auto-insert)
 
 (defcustom auto-insert-query 'function
   "*If non-`nil', ask user before auto-inserting.
 When this is `function', only ask when called non-interactively."
-  :type '(choice (const :tag "Ask" t)
-                 (const :tag "Don't ask" nil)
-                 (const :tag "Ask if called non-interactively" function))
+  :type '(choice (const :tag "Don't ask" nil)
+                 (const :tag "Ask if called non-interactively" function)
+                 (other :tag "Ask" t))
   :group 'auto-insert)
 
 (defcustom auto-insert-prompt "Perform %s auto-insertion? "
