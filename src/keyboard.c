@@ -171,6 +171,9 @@ static int inhibit_local_menu_bar_menus;
 /* Nonzero means C-g should cause immediate error-signal.  */
 int immediate_quit;
 
+/* The user's ERASE setting.  */
+Lisp_Object Vtty_erase_char;
+
 /* Character to recognize as the help char.  */
 Lisp_Object Vhelp_char;
 
@@ -8127,10 +8130,19 @@ This includes key sequences read from keyboard macros.\n\
 The number is effectively the number of interactive command invocations.");
   num_input_keys = 0;
 
+  DEFVAR_INT ("num-nonmacro-input-chars", &num_nonmacro_input_chars,
+    "Number of characters read from the keyboard so far.\n\
+Does not include characters read from keyboard macros.");
+  num_nonmacro_input_chars = 0;
+
   DEFVAR_LISP ("last-event-frame", &Vlast_event_frame,
     "The frame in which the most recently read event occurred.\n\
 If the last event came from a keyboard macro, this is set to `macro'.");
   Vlast_event_frame = Qnil;
+
+  /* This variable is set up in sysdep.c.  */
+  DEFVAR_LISP ("tty-erase-char", &Vtty_erase_char,
+    "The ERASE character as set by the user with stty.");
 
   DEFVAR_LISP ("help-char", &Vhelp_char,
     "Character to recognize as meaning Help.\n\
