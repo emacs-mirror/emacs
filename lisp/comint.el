@@ -611,7 +611,8 @@ Useful within mode or mode hooks.
 The structure of the history file should be one input command per line, and
 most recent command last.
 See also `comint-input-ignoredups' and `comint-write-input-ring'."
-  (cond ((null comint-input-ring-file-name)
+  (cond ((or (null comint-input-ring-file-name)
+	     (equal comint-input-ring-file-name ""))
 	 nil)
 	((not (file-readable-p comint-input-ring-file-name))
 	 (message "Cannot read history file %s" comint-input-ring-file-name))
@@ -650,6 +651,7 @@ Useful within process sentinels.
 
 See also `comint-read-input-ring'."
   (cond ((or (null comint-input-ring-file-name)
+	     (equal comint-input-ring-file-name "")
 	     (null comint-input-ring) (ring-empty-p comint-input-ring))
 	 nil)
 	((not (file-writable-p comint-input-ring-file-name))
