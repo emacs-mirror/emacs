@@ -49,58 +49,64 @@
 ;;; Basic functions.
 
 ;;;###autoload
-(defun indian-to-devanagari (ch)
-  "Convert IS 13194 characters to Devanagari basic characters."
-  (let ((charcodes (split-char ch)))
+(defun indian-to-devanagari (char)
+  "Convert IS 13194 character CHAR to Devanagari basic characters.
+If CHAR is not IS 13194, return CHAR as is."
+  (let ((charcodes (split-char char)))
     (if (eq (car charcodes) 'indian-is13194)
 	(make-char 'indian-2-column ?\x21 (nth 1 charcodes))
-      ch)))
+      char)))
 
 ;;;###autoload
-(defun devanagari-to-indian (ch)
-  "Convert Devanagari basic characters to IS 13194 characters."
-  (let* ((charcodes (split-char ch))
-	 (charset (car charcodes))
-	 (code-h  (car (cdr charcodes))))
+(defun devanagari-to-indian (char)
+  "Convert Devanagari basic character CHAR to IS 13194 characters.
+If CHAR is not Devanagari basic character, return CHAR as is."
+  (let ((charcodes (split-char char)))
     (if (and (eq (car charcodes) 'indian-2-column)
 	     (= (nth 1 charcodes) ?\x21))
 	(make-char 'indian-is13194 (nth 2 charcodes))
-      ch)))
+      char)))
 
 ;;;###autoload
 (defun indian-to-devanagari-region (from to)
-  "Convert IS 13194 characters in region to Devanagari basic characters."
+  "Convert IS 13194 characters in region to Devanagari basic characters.
+When called from a program, expects two arguments,
+positions (integers or markers) specifying the region."
   (interactive "r")
-  (save-restriction 
-    (narrow-to-region from to)
-    (goto-char (point-min))
-;   (while (re-search-forward "\\cd" nil t)
-    (while (re-search-forward "." nil t)
-      (let* ((devanagari-char (indian-to-devanagari (preceding-char))))
-	(delete-char -1)
-	(insert devanagari-char)))))
+  (save-excursion
+    (goto-char from)
+    (while (< (point) to)
+      (let ((char (following-char)))
+	(if (eq (char-charset char) 'indian-is13194)
+	    (progn
+	      (delete-char 1)
+	      (insert (indian-to-devanagari char)))
+	  (forward-char 1))))))
 
 ;;;###autoload
 (defun devanagari-to-indian-region (from to)
-  "Convert Devanagari basic characters in region to Indian characters."
+  "Convert Devanagari basic characters in region to Indian characters.
+When called from a program, expects two arguments,
+positions (integers or markers) specifying the region."
   (interactive "r")
-  (save-restriction
-    (narrow-to-region from to)
-    (goto-char (point-min))
-;   (while (re-search-forward "\\cD" nil t) ; Devanagari Character Code.
-    (while (re-search-forward "." nil t) 
-      (let* ((indian-char (devanagari-to-indian (preceding-char))))
-	(delete-char -1)
-	(insert indian-char)))))
+  (save-excursion
+    (goto-char from)
+    (while (< (point) to)
+      (let ((char (following-char)))
+	(if (eq (char-charset char) 'indian-2-column)
+	    (progn
+	      (delete-char -1)
+	      (insert (devanagari-to-indian char)))
+	  (forward-char 1))))))
 
 ;;;###autoload
-(defun indian-to-devanagari-string (str)
-  "Convert Indian String to Devanagari Basic Character String."
-  (let* ((len (length str))
+(defun indian-to-devanagari-string (string)
+  "Convert Indian characters in STRING to Devanagari Basic characters."
+  (let* ((len (length string))
 	 (i 0)
 	 (vec (make-vector len 0)))
     (while (< i len)
-      (aset vec i (indian-to-devanagari (aref str i)))
+      (aset vec i (indian-to-devanagari (aref string i)))
       (setq i (1+ i)))
     (concat vec)))
 
@@ -256,12 +262,12 @@ of '$(5!*!&!'(B' and nukta sign.")
 ;; Finally, convert 2-column glyphs to 1-column glyph
 ;; if such a glyph exist.
 ;;
-;; => $(6![(B (ml.mr) $(6!X(B / $(6!D(B (ml.mr) $(6"F(B (mr ml) $(6!\(B
+;; => $(6!X(B (ml.mr) $(6![(B / $(6!D(B (ml.mr) $(6"F(B (mr ml) $(6!\(B
 ;;
 ;; Compose the glyph.
 ;;
-;; => 2$(6!X@![(B1/2$(6!D@"FP!\(B1
-;; => 2$(6!X@![(B12$(6!D@"FP!\(B1
+;; => 4$(6!Xt%![0!X![1(B/4$(6!Dt%"Fv#!\0!D"F!\1(B
+;; => 4$(6!Xt%![0!X![14!Dt%"Fv#!\0!D"F!\1(B
 ;;
 
 ;;
@@ -269,7 +275,7 @@ of '$(5!*!&!'(B' and nukta sign.")
 ;; 
 ;;
 ;; IMPORTANT:  
-;;        There may be many rules which you many want to be suppressed.
+;;        There may be many rules that you many want to suppress.
 ;;        In that case, please comment out that rule.
 ;;
 ;;        RULES WILL BE EVALUATED FROM FIRST TO LAST.
@@ -277,7 +283,7 @@ of '$(5!*!&!'(B' and nukta sign.")
 ;;
 ;; TO DO: 
 ;;        Prepare multiple specific list of rules for each languages
-;;        which adopts Devanagari script.
+;;        that adopt Devanagari script.
 ;;
 
 (defconst devanagari-char-to-glyph-rules
@@ -558,20 +564,18 @@ of '$(5!*!&!'(B' and nukta sign.")
 ;; glyphs-to-characters conversion.
 ;;
 
-(defun max-match-len (regexp-str)
-  "Return the possible length of matched string of given regexp.
-Only [...] pattern of regexp is recognized.
-The last character of inside of [....] is used for its length."
-  (let ((dest-str regexp-str))
-    (while (string-match "\\[\\([^\]]\\)+\\]" dest-str)
-      (setq dest-str 
-	    (concat (substring dest-str 0 (match-beginning 0))
-		    (substring dest-str (match-beginning 1) (match-end 1))
-		    (substring dest-str (match-end 0)))))
-    (length dest-str)))
+(defun max-match-len (regexp)
+  "Return the maximum length of text that can match the pattern REGEXP.
+Only [...] pattern of regexp is recognized."
+  (let ((len 0)
+	(index 0))
+    (while (string-match "\\[\\([^\]]\\)+\\]" regexp index)
+      (setq len (+ len (- (match-beginning 0) index) 1)
+	    index (match-end 0)))
+    len))
 
-;; Return t iff LIST1 and LIST2 has a same member.
-(defun rule-intersection (list1 list2)
+;; Return t iff at least one member appears in both LIST1 and LIST2.
+(defun intersecting-p (list1 list2)
   (let ((found nil))
     (while (and list1 (not found))
       (if (memq (car list1) list2)
@@ -579,28 +583,32 @@ The last character of inside of [....] is used for its length."
 	(setq list1 (cdr list1))))
     found))
 
-(defun string-conversion-by-rule (src-str symbol &rest specs)
-  "Convert string SRC-STR to a new string according to
-the rules described in the each character's SYMBOL property.  The
-rules are described in the forms of '((regexp str <specs>) ...), and
-the character sequence in the string which matches to 'regexp' are
-replaced with str.  If SPECS are not specified, only rules with no
-<specs> would be applied.  If SPECS are specified, then rules with no
-<specs> specified and rules with <spec> matches with SPECS would be
-applied.  Rules are tested in the order of the list, thus more
-specific rules should be placed in front of less important rules.  No
-composite character is supported, thus such must be converted by
-decompose-char before applying to this function.  If rule is given in
-the forms of regexp '...\\(...\\)...', then inside the parenthesis is
-the subject of the match.  Otherwise, the entire expression is the
-subject of the match."
+(defun string-conversion-by-rule (source symbol &rest specs)
+  "Convert string SOURCE by rules stored in SYMBOL property of each character.
+The remaining arguments forms a list SPECS that restricts applicable rules.
+
+The rules has the form ((REGEXP STR RULE-SPEC ...) ...).
+Each character sequence in STRING that matches REGEXP is
+replaced by STR.
+
+If SPECS is nil, only rules with no RULE-SPECs is applied.  Otherwise
+rules with no RULE-SPECS and rules that have at least one member of
+SPECS in RULE-SPECs is applied.
+
+Rules are tested in the order of the list, thus more specific rules
+should be placed in front of less specific rules.
+
+If rule is given in the forms of regexp '...\\(...\\)...', a character
+sequence that matches the pattern inside of the parenthesis is the
+subject of the match.  Otherwise, the entire expression is the subject
+of the match."
   (let ((pos 0) 
 	(dst-str ""))
-    (while (< pos (length src-str))
+    (while (< pos (length source))
       (let ((found nil)
 	    (rules (get-char-code-property 
 		    (string-to-char 
-		     (substring src-str pos)) symbol)))
+		     (substring source pos)) symbol)))
 	(while rules
 	  (let* ((rule (car rules))
 		 (regexp (car rule))
@@ -608,7 +616,7 @@ subject of the match."
 		 (rule-specs (cdr (cdr rule)))
 		 search-pos)
 	    (if (not (or (null rule-specs)
-			 (rule-intersection specs rule-specs)))
+			 (intersecting-p specs rule-specs)))
 		(setq rules (cdr rules))
 	      (if (null (string-match "\\\\(.+\\\\)" regexp))
 		  (progn
@@ -619,7 +627,7 @@ subject of the match."
 						    (string-match "^[^\\\\]*" regexp)
 						    (match-end 0))))))
 	      (if (< search-pos 0) (setq search-pos 0))
-	      (if (string-match regexp src-str search-pos)
+	      (if (string-match regexp source search-pos)
 		  (if (= (match-beginning 1) pos)
 		      (progn
 			(setq dst-str (concat dst-str replace-str))
@@ -631,7 +639,7 @@ subject of the match."
 		(setq rules (cdr rules))))))
 	;; proceed to next position
 	(if (not found)
-	    (setq dst-str (concat dst-str (substring src-str pos (1+ pos)))
+	    (setq dst-str (concat dst-str (substring source pos (1+ pos)))
 		  pos (1+ pos)))))
     dst-str))
 
@@ -641,12 +649,12 @@ subject of the match."
 ;;
 
 ;;;###autoload
-(defun char-to-glyph-devanagari (src-str &rest langs)
-  "Convert Devanagari characters in the string to Devanagari glyphs.  
+(defun char-to-glyph-devanagari (string &rest langs)
+  "Convert Devanagari characters in STRING to Devanagari glyphs.  
 Ligatures and special rules are processed."
   (apply 
    'string-conversion-by-rule 
-   (append (list src-str 'char-to-glyph) langs)))
+   (append (list string 'char-to-glyph) langs)))
 
 ;; Example:
 ;;(char-to-glyph-devanagari "$(5!X![!F!h!D!\(B") => "$(5!X!["F!D!\(B"
@@ -656,7 +664,7 @@ Ligatures and special rules are processed."
 ;; Phase 2: Compose Glyphs to form One Glyph.
 ;;
 
-;; Each list consist of glyph, application-priority and application-direction.
+;; Each list consists of glyph, application-priority and application-direction.
 ;;
 ;; Glyphs will be ordered from low priority number to high priority number.
 ;; If application-priority is omitted, it is assumed to be 0.
@@ -1044,21 +1052,22 @@ Ligatures and special rules are processed."
 ;; Determine composition priority and rule of the array of Glyphs.
 ;; Sort the glyphs with their priority.
 
-(defun devanagari-reorder-glyphs-for-composition (glyph-alist)
-  (let* ((pos 0)
-	 (ordered-glyphs '()))
-    (while (< pos (length glyph-alist))
-      (let* ((glyph (aref glyph-alist pos)))
+(defun devanagari-reorder-glyphs-for-composition (string start end)
+  (let ((pos start)
+	(ordered-glyphs nil))
+    (while (< pos end)
+      (let ((glyph (aref string pos)))
 	(setq pos (1+ pos))
 	(setq ordered-glyphs 
-	      (append ordered-glyphs (list (assq glyph devanagari-composition-rules))))))
+	      (append ordered-glyphs
+		      (list (assq glyph devanagari-composition-rules))))))
     (sort ordered-glyphs '(lambda (x y) (< (car (cdr x)) (car (cdr y)))))))
 
-;;(devanagari-compose-to-one-glyph "$(5"5!X![(B") => "2$(6!XP"5@![(B1"
+! ;;(devanagari-compose-to-one-glyph "$(5"5!X![(B") => "4$(6!Xv#"5t%![0!X"5![1(B"
 
 (defun devanagari-compose-to-one-glyph (devanagari-string)
   (let* ((o-glyph-list (devanagari-reorder-glyphs-for-composition
-			(string-to-vector devanagari-string)))
+			devanagari-string 0 (length devanagari-string)))
 	 ;; List of glyphs to be composed.
 	 (cmp-glyph-list (list (car (car o-glyph-list)))) 
 	 (o-glyph-list (cdr o-glyph-list)))
@@ -1077,11 +1086,31 @@ Ligatures and special rules are processed."
     (if (= (length cmp-glyph-list) 1) (char-to-string (car cmp-glyph-list))
       (apply 'compose-chars cmp-glyph-list))))
 
+(defun devanagari-composition-component (string &optional start end)
+  (or start (setq start 0))
+  (or end (setq end (length string)))
+  (let* ((o-glyph-list (devanagari-reorder-glyphs-for-composition
+			string start end))
+	 ;; List of glyphs to be composed.
+	 (cmp-glyph-list (list (car (car o-glyph-list)))))
+    (setq o-glyph-list (cdr o-glyph-list))
+    (while o-glyph-list
+      (let* ((o-glyph (car o-glyph-list))
+	     (glyph (if (< 2 (length o-glyph))
+			;; default composition
+			(list (car (cdr (cdr o-glyph))) (car o-glyph))
+		      ;; composition with a specified rule
+		      (list '(mr . ml) (car o-glyph)))))
+	(setq o-glyph-list (cdr o-glyph-list))
+	(setq cmp-glyph-list (append cmp-glyph-list glyph))))
+    ;; Convert glyphs to 1-column width if possible.
+    (devanagari-wide-to-narrow cmp-glyph-list)))
+
 ;; Utility function for Phase 2.5
-;; Check whether given glyph is a Devanagari vertical modifier or not.
+
+;; Check whether GLYPH is a Devanagari vertical modifier or not.
 ;; If it is a vertical modifier, whether it should be 1-column shape or not
 ;; depends on previous non-vertical modifier.
-   ; return nil if it is not vertical modifier.
 (defun devanagari-vertical-modifier-p (glyph)
   (string-match (char-to-string glyph)
 		"[$(5!"!]!^!_!`!a!b!c!h!i"p"q"r#K#L#M(B]"))
@@ -1092,12 +1121,13 @@ Ligatures and special rules are processed."
 		"[$(5![(B]"))
 
 (defun devanagari-wide-to-narrow-char (char)
-  "Return the corresponding narrow character if it exists."
+  "Convert Devanagari character CHAR to the corresponding narrow character.
+If there's no corresponding narrow character, return CHAR as is."
   (let ((narrow (cdr (assq char devanagari-1-column-char))))
-    (if narrow narrow char)))
+    (or narrow char)))
 
 ;;
-;;    Phase 2.5  Convert Appropriate Character to 1-column shape.
+;;    Phase 2.5  Convert appropriate character to 1-column shape.
 ;;
 ;; This is temporary and should be removed out when Emacs supports 
 ;; variable width characters.
@@ -1121,7 +1151,8 @@ Ligatures and special rules are processed."
     (cond ((null src-list) '())
 	  ; not glyph code
 	  ((not (numberp glyph)) 
-	   (cons glyph (devanagari-wide-to-narrow-iter (cdr src-list) 2-col-glyph)))
+	   (cons glyph
+		 (devanagari-wide-to-narrow-iter (cdr src-list) 2-col-glyph)))
 	  ; glyphs to be processed regardless of the value of "2-col-glyph"
 	  ((devanagari-non-vertical-modifier-p glyph)
 	   (cons (devanagari-wide-to-narrow-char glyph)
@@ -1132,7 +1163,8 @@ Ligatures and special rules are processed."
 	       (cons glyph
 		     (devanagari-wide-to-narrow-iter (cdr src-list) t))
 	       (cons (devanagari-wide-to-narrow-char glyph)
-		     (devanagari-wide-to-narrow-iter (cdr src-list) 2-col-glyph))))
+		     (devanagari-wide-to-narrow-iter (cdr src-list)
+						     2-col-glyph))))
 	  ; normal glyph
 	  (t
 	   (if (cdr (assq glyph devanagari-1-column-char))
@@ -1147,65 +1179,18 @@ Ligatures and special rules are processed."
 ;; 
 
 ;;
-;; Decomposition of composite font.
+;; Decomposition of composite sequence.
 ;;
-
-(defun devanagari-normalize-narrow-glyph (charlist)
-  (let ((wide-char (car (rassoc (car charlist) devanagari-1-column-char))))
-    (if (null charlist) nil
-      (cons (if (null wide-char) (car charlist) wide-char)
-	    (devanagari-normalize-narrow-glyph (cdr charlist))))))
-
-(defvar devanagari-decomposition-rules
-  '(
-    (?$(5"p(B -10)
-    )
-  )
-
-(defun devanagari-reorder-glyphs-for-decomposition (glyphlist)
-  "This function re-orders glyph list for decomposition."
-  (sort glyphlist 
-	'(lambda (x y) 
-	   (let ((xx (nth 1 (assoc x devanagari-decomposition-rules)))
-		 (yy (nth 1 (assoc y devanagari-decomposition-rules))))
-	     (if (null xx) (setq xx 0))
-	     (if (null yy) (setq yy 0))
-	     (< xx yy)))))
-
-(defun devanagari-decompose-char (glyph)
-  "This function decomposes one Devanagari composite glyph to 
-   basic Devanagari characters as a string."
-  (let ((glyphlist 
-	 (if (eq (car (split-char glyph)) 'composition) 
-	     (string-to-list (decompose-composite-char glyph))
-	   (list glyph))))
-    (setq glyphlist (devanagari-normalize-narrow-glyph glyphlist))
-    (setq glyphlist (devanagari-reorder-glyphs-for-decomposition glyphlist))
-    (string-conversion-by-rule 
-     (mapconcat 'char-to-string glyphlist "") 'glyph-to-char)))
 
 ;;;###autoload
 (defun devanagari-decompose-string (str)
-  "Decompose Devanagari glyph string STR to basic Devanagari character string."
-  (let ((len (length str))
-	(i 0)
-	(dst ""))
-    (while (< i len)
-      (setq dst (concat dst (devanagari-decompose-char (aref str i)))
-	    i (1+ i)))
-    dst))
+  "Decompose Devanagari string STR"
+  (decompose-string (copy-sequence str)))
 
 ;;;###autoload
 (defun devanagari-decompose-region (from to)
   (interactive "r")
-  (save-restriction
-    (narrow-to-region from to)
-    (goto-char (point-min))
-    (while (re-search-forward "." nil t)
-      (let* ((match-b (match-beginning 0)) (match-e (match-end 0))
-	     (decmps (devanagari-decompose-string (buffer-substring match-b match-e))))
-	(delete-char -1)
-	(insert decmps)))))
+  (decompose-region from to))
 
 ;;;
 ;;; Composition
@@ -1213,37 +1198,34 @@ Ligatures and special rules are processed."
 
 ;;;###autoload
 (defun devanagari-compose-string (str &rest langs)
-  (let ((len (length str))
-	(src (devanagari-decompose-string str)) (dst "") rest match-b match-e)
-    (while (string-match devanagari-composite-glyph-unit src)
-      (setq match-b (match-beginning 0) match-e (match-end 0))
-      (setq dst 
-	    (concat dst 
-		    (substring src 0 match-b)
-		    (devanagari-compose-to-one-glyph 
-		     (apply 
-		      'char-to-glyph-devanagari
-		      (cons (substring src match-b match-e)
-			    langs)))))
-      (setq src (substring src match-e)))
-    (setq dst (concat dst src))
-    dst))
+  (setq str (copy-sequence str))
+  (let ((idx 0)
+	rest match-b match-e)
+    (while (string-match devanagari-composite-glyph-unit str idx)
+      (let* ((match-b (match-beginning 0))
+	     (match-e (match-end 0))
+	     (cmps (devanagari-composition-component
+		    (apply 
+		     'char-to-glyph-devanagari
+		     (cons (substring str match-b match-e) langs)))))
+	(compose-string str match-b match-e cmps)
+	(setq idx match-e))))
+  str)
 
 ;;;###autoload
 (defun devanagari-compose-region (from to &rest langs)
   (interactive "r")
-  (save-restriction
-    (narrow-to-region from to)
-    (goto-char (point-min))
-    (while (re-search-forward devanagari-composite-glyph-unit nil t)
-      (let* ((match-b (match-beginning 0)) (match-e (match-end 0))
-	     (cmps (devanagari-compose-to-one-glyph
-		    (apply 
-		     'char-to-glyph-devanagari
-		     (cons (buffer-substring match-b match-e)
-			   langs)))))
-	(delete-region match-b match-e)
-	(insert cmps)))))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region from to)
+      (goto-char (point-min))
+      (while (re-search-forward devanagari-composite-glyph-unit nil t)
+	(let* ((match-b (match-beginning 0)) (match-e (match-end 0))
+	       (cmps (devanagari-composition-component
+		      (apply 
+		       'char-to-glyph-devanagari
+		       (cons (buffer-substring match-b match-e) langs)))))
+	  (compose-region match-b match-e cmps))))))
 
 ;; For pre-write and post-read conversion
 
@@ -1260,20 +1242,18 @@ Ligatures and special rules are processed."
 
 ;;;###autoload
 (defun in-is13194-devanagari-post-read-conversion (len)
-  (let ((pos (point))
-	(buffer-modified-p (buffer-modified-p)))
-    (prog1
-	(devanagari-compose-from-is13194-region pos (+ pos len))
-      (set-buffer-modified-p buffer-modified-p))))
+  (let ((pos (point)))
+    (devanagari-compose-from-is13194-region pos (+ pos len))))
 
 ;;;###autoload
 (defun devanagari-decompose-to-is13194-region (from to)
   "Decompose Devanagari characters in the region to IS 13194 characters."
   (interactive "r")
-  (save-restriction
-    (narrow-to-region from to)
-    (devanagari-decompose-region (point-min) (point-max))
-    (devanagari-to-indian-region (point-min) (point-max))))
+  (save-excursion
+    (save-restriction
+      (narrow-to-region from to)
+      (devanagari-decompose-region (point-min) (point-max))
+      (devanagari-to-indian-region (point-min) (point-max)))))
 
 ;;;###autoload
 (defun in-is13194-devanagari-pre-write-conversion (from to)
@@ -1303,8 +1283,6 @@ Ligatures and special rules are processed."
     (narrow-to-region from to)
     (indian-decode-itrans-region (point-min) (point-max))
     (devanagari-compose-from-is13194-region (point-min) (point-max))))
-
-;; Test comment.
 
 ;;
 (provide 'devan-util)
