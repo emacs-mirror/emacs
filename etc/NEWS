@@ -14,6 +14,9 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 21.4
 
+** You can build Emacs with Gtk+ widgets by specifying `--with-x-toolkit=gtk'
+when you run configure.  This requires Gtk+ 2.0 or newer.
+
 ---
 ** Emacs can now be built without sound support.
 
