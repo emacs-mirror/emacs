@@ -1,3 +1,7 @@
+2005-03-30  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_line): Allow multiple overlay arrows in window.
+
 2005-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fexpand_file_name): Use IS_DEVICE_SEP.
