@@ -1,10 +1,11 @@
-;;; icomplete.el --- minibuffer completion incremental feedback
+;;;_+ icomplete.el - minibuffer completion incremental feedback
 
 ;; Copyright (C) 1992, 1993, 1994, 1997 Free Software Foundation, Inc.
 
-;; Author: Ken Manheimer <klm@python.org>
-;; Maintainer: Ken Manheimer <klm@python.org>
-;; Created: Mar 1993 klm@nist.gov - first release to usenet
+;; Author: Ken Manheimer <klm@i.am>
+;; Maintainer: Ken Manheimer <klm@i.am>
+;; Created: Mar 1993 Ken Manheimer, klm@nist.gov - first release to usenet
+;; Last update: Ken Manheimer <klm@i.am>, 11/18/1999.
 ;; Keywords: help, abbrev
 
 ;; This file is part of GNU Emacs.
@@ -38,19 +39,14 @@
 ;; customize icomplete setup for interoperation with other
 ;; minibuffer-oriented packages.
 
-;; To activate icomplete mode, simply add the following to .emacs:
-;; (icomplete-mode)
-;; You can subsequently deactivate it by invoking the function
-;; icomplete-mode with a negative prefix-arg (C-U -1 ESC-x
-;; icomplete-mode).  Also, you can prevent activation of the mode
-;; during package load by first setting the variable `icomplete-mode'
-;; to nil.  Icompletion can be enabled any time after the package is
-;; loaded by invoking icomplete-mode without a prefix arg.
-
-;; This version of icomplete runs on Emacs 19.18 and later.  (It
-;; depends on the incorporation of minibuffer-setup-hook.)  The elisp
-;; archives, ftp://archive.cis.ohio-state.edu/pub/gnu/emacs/elisp-archive,
-;; probably still has a version that works in GNU Emacs v18.
+;; To activate icomplete mode, load the package and use the
+;; `icomplete-mode' function.  You can subsequently deactivate it by
+;; invoking the function icomplete-mode with a negative prefix-arg
+;; (C-U -1 ESC-x icomplete-mode).  Also, you can prevent activation of
+;; the mode during package load by first setting the variable
+;; `icomplete-mode' to nil.  Icompletion can be enabled any time after
+;; the package is loaded by invoking icomplete-mode without a prefix
+;; arg.
 
 ;; Thanks to everyone for their suggestions for refinements of this
 ;; package.  I particularly have to credit Michael Cook, who
@@ -72,9 +68,8 @@
   :prefix "icomplete-"
   :group 'minibuffer)
 
-;;;_* User Customization variables
 (defcustom icomplete-mode nil
-  "Toggle incremental minibuffer completion.
+  "*Toggle incremental minibuffer completion.
 As text is typed into the minibuffer, prospective completions are indicated 
 in the minibuffer.
 Setting this variable directly does not take effect;
@@ -85,6 +80,12 @@ use either \\[customize] or the function `icomplete-mode'."
   :type 'boolean
   :group 'icomplete
   :require 'icomplete)
+
+;;;_* User Customization variables
+(defcustom icomplete-prospects-length 80
+  "*Length of string displaying the prospects."
+  :type 'integer
+  :group 'icomplete)
 
 (defcustom icomplete-compute-delay .3
   "*Completions-computation stall, used only with large-number
@@ -215,7 +216,9 @@ Usually run by inclusion in `minibuffer-setup-hook'."
 			       (run-hooks 'icomplete-post-command-hook)))
 		   nil t)
 	 (run-hooks 'icomplete-minibuffer-setup-hook))))
-
+;
+
+
 ;;;_* Completion
 
 ;;;_ > icomplete-tidy ()
@@ -306,76 +309,51 @@ are exhibited within the square braces.)"
   (let ((comps (all-completions name candidates predicate))
                                         ; "-determined" - only one candidate
         (open-bracket-determined (if require-match "(" "["))
-        (close-bracket-determined (if require-match ")" "]"))
+        (close-bracket-determined (if require-match ")" "]")))
+    ;; `concat'/`mapconcat' is the slow part.  With the introduction of
+    ;; `icomplete-prospects-length', there is no need for `catch'/`throw'.
+    (if (null comps) (format " %sNo matches%s"
+			     open-bracket-determined
+			     close-bracket-determined)
+      (let* ((most-try (try-completion name (mapcar (function list) comps)))
+	     (most (if (stringp most-try) most-try (car comps)))
+	     (most-len (length most))
+	     (determ (and (> most-len (length name))
+			  (concat open-bracket-determined
+				  (substring most (length name))
+				  close-bracket-determined)))
+	     (open-bracket-prospects "{")
+	     (close-bracket-prospects "}")
                                         ;"-prospects" - more than one candidate
-        (open-bracket-prospects "{")
-        (close-bracket-prospects "}")
-        )
-    (catch 'input
-      (cond ((null comps) (format " %sNo matches%s"
-				  open-bracket-determined
-				  close-bracket-determined))
-	    ((null (cdr comps))		;one match
-	     (concat (if (and (> (length (car comps))
-				 (length name)))
-			 (concat open-bracket-determined
-				 (substring (car comps) (length name))
-				 close-bracket-determined)
-		       "")
-		     " [Matched"
-		     (let ((keys (and icomplete-show-key-bindings
-				      (commandp (intern-soft (car comps)))
-				      (icomplete-get-keys (car comps)))))
-		       (if keys
-			   (concat "; " keys)
-			 ""))
-		     "]"))
-	    (t				;multiple matches
-	     (let* ((most
-		     (try-completion name candidates
-				     (and predicate
-					  ;; Wrap predicate in impatience - ie,
-					  ;; `throw' up when pending input is
-					  ;; noticed.  Adds some overhead to
-					  ;; predicate, but should be worth it.
-					  (function
-					   (lambda (item)
-					     (if (input-pending-p)
-						 (throw 'input "")
-					       (apply predicate
-						      item nil)))))))
-		    (most-len (length most))
-		    most-is-exact
-		    (alternatives
-		     (substring
-		      (apply (function concat)
-			     (mapcar (function
-				      (lambda (com)
-					(if (input-pending-p)
-					    (throw 'input ""))
-					(if (= (length com) most-len)
-					    ;; Most is one exact match,
-					    ;; note that and leave out
-					    ;; for later indication:
-					    (progn
-					      (setq most-is-exact t)
-					      ())
-					  (concat ","
-						  (substring com
-							     most-len)))))
-				     comps))
-		      1)))
-	       (concat (and (> most-len (length name))
-			    (concat open-bracket-determined
-				    (substring most (length name))
-				    close-bracket-determined))
-		       open-bracket-prospects
-		       (if most-is-exact
-			   ;; Add a ',' at the front to indicate "complete but
-			   ;; not unique":
-			   (concat "," alternatives)
-			 alternatives)
-		       close-bracket-prospects)))))))
+	     (prospects-len 0)
+	     prospects most-is-exact comp)
+	(if (eq most-try t)
+	    (setq prospects nil)
+	  (while (and comps (< prospects-len icomplete-prospects-length))
+	    (setq comp (substring (car comps) most-len)
+		  comps (cdr comps))
+	    (cond ((string-equal comp "") (setq most-is-exact t))
+		  ((member comp prospects))
+		  (t (setq prospects (cons comp prospects)
+			   prospects-len (+ (length comp) 1 prospects-len))))))
+	(if prospects
+	    (concat determ
+		    open-bracket-prospects
+		    (and most-is-exact ",")
+		    (mapconcat 'identity
+			       (sort prospects (function string-lessp))
+			       ",")
+		    (and comps ",...")
+		    close-bracket-prospects)
+	  (concat determ
+		  " [Matched"
+		  (let ((keys (and icomplete-show-key-bindings
+				   (commandp (intern-soft most))
+				   (icomplete-get-keys most))))
+		    (if keys
+			(concat "; " keys)
+		      ""))
+		  "]"))))))
 
 (if icomplete-mode
     (icomplete-mode 1))
