@@ -451,14 +451,6 @@ If N, return the Nth ancestor instead."
 		     (file-name-nondirectory file))))
   (copy-file file to))
 
-(defun gnus-kill-all-overlays ()
-  "Delete all overlays in the current buffer."
-  (let* ((overlayss (overlay-lists))
-	 (buffer-read-only nil)
-	 (overlays (delq nil (nconc (car overlayss) (cdr overlayss)))))
-    (while overlays
-      (delete-overlay (pop overlays)))))
-
 (defvar gnus-work-buffer " *gnus work*")
 
 (defun gnus-set-work-buffer ()
