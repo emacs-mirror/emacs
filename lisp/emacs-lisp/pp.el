@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1989, 1993 Free Software Foundation, Inc.
 
-;; Author: Randal Schwartz <merlyn@ora.com>
+;; Author: Randal Schwartz <merlyn@stonehenge.com>
 
 ;; This file is part of GNU Emacs.
 
