@@ -1,3 +1,10 @@
+2000-09-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (set-face-attribute, face-spec-reset-face)
+	(face-spec-set): Avoid consing by removing calls to `apply'.
+
+	* frame.el (frame-parameter): Move to C code.
+
 2000-09-05  Dave Love  <fx@gnu.org>
 
 	* help.el (help-manyarg-func-alist): Add ml-prefix-argument-loop,

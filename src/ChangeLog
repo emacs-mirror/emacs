@@ -1,5 +1,10 @@
 2000-09-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.c (Qdisplay_type): New variable.
+	(syms_of_frame_1): Initialize it.
+	(Fframe_parameter): New function that avoids consing.
+	(syms_of_frame): Defsubr it.
+
 	* buffer.c (Fother_buffer): Consider buffers as invisible when
 	they are displayed in a window on an invisible frame.
 
