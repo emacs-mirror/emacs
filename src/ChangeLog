@@ -1,3 +1,7 @@
+2004-03-02  Kenichi Handa  <handa@m17n.org>
+
+	* doc.c (Fsubstitute_command_keys): Fix counding bytes.
+
 2004-03-02  Kim F. Storm  <storm@cua.dk>
 
 	* window.h (struct window): New member overlay_arrow_bitmap.
