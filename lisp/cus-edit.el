@@ -2459,6 +2459,10 @@ restoring it to the state of a variable that has never been customized."
   :tag "Attributes"
   :extra-offset 12
   :button-args '(:help-echo "Control whether this attribute has any effect.")
+  :value-to-internal 'custom-face-edit-fix-value
+  :match (lambda (widget value)
+	   (widget-checklist-match widget 
+				   (custom-face-edit-fix-value widget value)))
   :convert-widget 'custom-face-edit-convert-widget
   :args (mapcar (lambda (att)
 		  (list 'group
@@ -2467,6 +2471,26 @@ restoring it to the state of a variable that has never been customized."
 			(list 'const :format "" :value (nth 0 att))
 			(nth 1 att)))
 		custom-face-attributes))
+
+(defun custom-face-edit-fix-value (widget value)
+  "Ignoring WIDGET, convert :bold and :italic in VALUE to new form."
+  (let (result)
+    (while value
+      (assert (cdr value))
+      (let ((key (car value))
+	    (val (car (cdr value))))
+	(cond ((eq key :italic)
+	       (push :slant result)
+	       (push (if val 'italic 'normal) result))
+	      ((eq key :bold)
+	       (push :weight result)
+	       (push (if val 'bold 'normal) result))
+	      (t 
+	       (push key result)
+	       (push val result))))
+      (setq value (cdr (cdr value))))
+    (setq result (nreverse result))
+    result))
 
 (defun custom-face-edit-convert-widget (widget)
   "Convert :args as widget types in WIDGET."
