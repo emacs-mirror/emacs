@@ -56,7 +56,7 @@ simply put this in your `~/.emacs' file:
 
 (make-variable-buffer-local 'save-place)
 
-(defvar save-place-file "~/.emacs-places"
+(defvar save-place-file (convert-standard-filename "~/.emacs-places")
   "*Name of the file that records `save-place-alist' value.")
 
 (defvar save-place-version-control 'nospecial
