@@ -55,6 +55,9 @@
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of bug report.")
 
+(defvar report-emacs-bug-text-prompt nil
+  "The automatically-created initial prompt of bug report.")
+
 (defcustom report-emacs-bug-no-confirmation nil
   "*If non-nil, suppress the confirmations asked for the sake of novice users."
   :group 'emacsbug
@@ -75,7 +78,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   ;; If there are four numbers in emacs-version, this is a pretest
   ;; version.
   (let ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
-	user-point message-end-point)
+	user-point prompt-beg-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
 	    (point-max-marker)))
@@ -92,6 +95,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
       (delete-region (point) (point-max))
       (insert signature)
       (backward-char (length signature)))
+    (setq prompt-beg-point (point))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
       (insert "This bug report will be sent to the Free Software Foundation,\n")
@@ -112,11 +116,20 @@ usually do not have translators to read other languages for them.\n\n")
 	  (insert ".\n\n")
 	(insert ",\nand to the gnu.emacs.bug news group.\n\n")))
 
+    (insert "Please describe exactly what actions triggered the bug\n"
+	    "and the precise symptoms of the bug:")
+    (setq report-emacs-bug-text-prompt
+	  (buffer-substring prompt-beg-point (point)))
+
+    (insert "\n\n")
+    (setq user-point (point))
+    (insert "\n\n\n")
+
     (insert "In " (emacs-version) "\n")
     (if (and system-configuration-options
 	     (not (equal system-configuration-options "")))
 	(insert "configured using `configure "
-		system-configuration-options "'\n"))
+		system-configuration-options "'\n\n"))
     (insert "Important settings:\n")
     (mapcar
      '(lambda (var)
@@ -127,11 +140,7 @@ usually do not have translators to read other languages for them.\n\n")
     (insert (format "  default-enable-multibyte-characters: %s\n"
 		    default-enable-multibyte-characters))
     (insert "\n")
-    (insert "Please describe exactly what actions triggered the bug\n"
-	    "and the precise symptoms of the bug:\n\n")
-    (setq user-point (point))
-    (insert "\n\n\n"
-	    "Recent input:\n")
+    (insert "Recent input:\n")
     (let ((before-keys (point)))
       (insert (mapconcat (lambda (key)
 			   (if (or (integerp key)
@@ -239,12 +248,8 @@ and send the mail again using \\[mail-send-and-exit].")))
 
     ;; Unclutter
     (mail-text)
-    (let ((p (point)))
-      (if (re-search-forward (concat "^In " (emacs-version)) nil t)
-	  (delete-region p (match-beginning 0))))
-    (if (re-search-forward "Please describe.+\n.+precise symptoms.+bug:\n*"
-			   (point-max) t)
-	(replace-match "Symptoms:\n"))))
+    (if (looking-at report-emacs-bug-text-prompt)
+	(replace-match "Symptoms:"))))
 
 (provide 'emacsbug)
 
