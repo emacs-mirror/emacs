@@ -297,7 +297,7 @@ it is usually a mistake for a Lisp function to use any subroutine
 that uses or sets the mark."
   (interactive)
   (push-mark (point))
-  (push-mark (point-max))
+  (push-mark (point-max) nil t)
   (goto-char (point-min)))
 
 (defun count-lines-region (start end)
@@ -1103,9 +1103,14 @@ comes the newest one."
   (setq this-command 'yank)
   (let ((before (< (point) (mark t))))
     (delete-region (point) (mark t))
-    (set-mark (point))
+    (set-marker (mark-marker) (point) (current-buffer))
     (insert (current-kill arg))
-    (if before (exchange-point-and-mark)))
+    (if before
+	;; This is like exchange-point-and-mark, but doesn't activate the mark.
+	;; It is cleaner to avoid activation, even though the command
+	;; loop would deactivate the mark because we inserted text.
+	(goto-char (prog1 (mark t)
+		     (set-marker (mark-marker) (point) (current-buffer))))))
   nil)
 
 (defun yank (&optional arg)
@@ -1123,7 +1128,11 @@ See also the command \\[yank-pop]."
 			 ((eq arg '-) -1)
 			 (t (1- arg)))))
   (if (consp arg)
-      (exchange-point-and-mark))
+      ;; This is like exchange-point-and-mark, but doesn't activate the mark.
+      ;; It is cleaner to avoid activation, even though the command
+      ;; loop would deactivate the mark because we inserted text.
+      (goto-char (prog1 (mark t)
+		   (set-marker (mark-marker) (point) (current-buffer)))))
   nil)
 
 (defun rotate-yank-pointer (arg)
@@ -1244,16 +1253,16 @@ purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")
   (if (null arg)
       (progn
-	(push-mark)
-	(set-mark (mark t)))
+	(push-mark nil nil t))
     (if (null (mark t))
 	(error "No mark set in this buffer")
       (goto-char (mark t))
       (pop-mark))))
 
-(defun push-mark (&optional location nomsg)
+(defun push-mark (&optional location nomsg activate)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
-Displays \"Mark set\" unless the optional second arg NOMSG is non-nil.
+Display `Mark set' unless the optional second arg NOMSG is non-nil.
+Activate the mark if optional third arg ACTIVATE is non-nil.
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information.
@@ -1269,6 +1278,7 @@ In Transient Mark mode, this does not activate the mark."
   (set-marker (mark-marker) (or location (point)) (current-buffer))
   (or nomsg executing-macro (> (minibuffer-depth) 0)
       (message "Mark set"))
+  (if activate (set-mark (mark t)))
   nil)
 
 (defun pop-mark ()
@@ -1757,7 +1767,8 @@ In programs, it is faster to call `forward-word' with negative arg."
   (push-mark
     (save-excursion
       (forward-word arg)
-      (point))))
+      (point))
+    nil t))
 
 (defun kill-word (arg)
   "Kill characters forward until encountering the end of a word.
