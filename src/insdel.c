@@ -25,6 +25,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "blockinput.h"
 
+static void insert_1 ();
+static void insert_from_string_1 ();
+
 /* Move gap to position `pos'.
    Note that this can quit!  */
 
@@ -284,10 +287,19 @@ insert (string, length)
      register unsigned char *string;
      register length;
 {
-  register Lisp_Object temp;
+  if (length > 0)
+    {
+      insert_1 (string, length);
+      signal_after_change (point-length, 0, length);
+    }
+}
 
-  if (length < 1)
-    return;
+static void
+insert_1 (string, length)
+     register unsigned char *string;
+     register length;
+{
+  register Lisp_Object temp;
 
   /* Make sure point-max won't overflow after this insertion.  */
   XSET (temp, Lisp_Int, length + Z);
@@ -314,8 +326,6 @@ insert (string, length)
   ZV += length;
   Z += length;
   SET_PT (point + length);
-
-  signal_after_change (point-length, 0, length);
 }
 
 /* Insert the part of the text of STRING, a Lisp object assumed to be
@@ -332,11 +342,21 @@ insert_from_string (string, pos, length, inherit)
      register int pos, length;
      int inherit;
 {
+  if (length > 0)
+    {
+      insert_from_string_1 (string, pos, length, inherit);
+      signal_after_change (point-length, 0, length);
+    }
+}
+
+static void
+insert_from_string_1 (string, pos, length, inherit)
+     Lisp_Object string;
+     register int pos, length;
+     int inherit;
+{
   register Lisp_Object temp;
   struct gcpro gcpro1;
-
-  if (length < 1)
-    return;
 
   /* Make sure point-max won't overflow after this insertion.  */
   XSET (temp, Lisp_Int, length + Z);
@@ -370,8 +390,6 @@ insert_from_string (string, pos, length, inherit)
 			       current_buffer, inherit);
 
   SET_PT (point + length);
-
-  signal_after_change (point-length, 0, length);
 }
 
 /* Insert the character C before point */
@@ -401,9 +419,13 @@ insert_before_markers (string, length)
      unsigned char *string;
      register int length;
 {
-  register int opoint = point;
-  insert (string, length);
-  adjust_markers (opoint - 1, opoint, length);
+  if (length > 0)
+    {
+      register int opoint = point;
+      insert_1 (string, length);
+      adjust_markers (opoint - 1, opoint, length);
+      signal_after_change (point-length, 0, length);
+    }
 }
 
 /* Insert part of a Lisp string, relocating markers after.  */
@@ -413,9 +435,13 @@ insert_from_string_before_markers (string, pos, length, inherit)
      register int pos, length;
      int inherit;
 {
-  register int opoint = point;
-  insert_from_string (string, pos, length, inherit);
-  adjust_markers (opoint - 1, opoint, length);
+  if (length > 0)
+    {
+      register int opoint = point;
+      insert_from_string_1 (string, pos, length, inherit);
+      adjust_markers (opoint - 1, opoint, length);
+      signal_after_change (point-length, 0, length);
+    }
 }
 
 /* Delete characters in current buffer
