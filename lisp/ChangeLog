@@ -1,3 +1,13 @@
+2005-04-05  David Ponce  <david@dponce.com>
+
+	* cus-edit.el (face): Derive from symbol widget.  Display sample
+	of the current face on the fly.
+	(widget-face-sample-face-get, widget-face-notify): New functions.
+	(widget-face-value-create): Remove.
+
+	* wid-edit.el (widget-field-end): Temporarily remove field
+	narrowing before to call `get-char-property'.
+
 2005-04-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (math-read-replacement-list): Add subscripts.
