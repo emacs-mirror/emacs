@@ -1,3 +1,12 @@
+2001-11-29  Dave Love  <fx@gnu.org>
+
+	* progmodes/fortran.el: Fontify rewind, backspace.  Doc fixes.
+	(fortran-beginning-do, fortran-beginning-if): Fix regexp typos.
+
+	* international/mule.el (map-charset-chars): New function.
+	(register-char-codings): Use it to cope with generic chars in
+	safe-chars.
+
 2001-11-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Fix off-by-two error.

@@ -1,3 +1,8 @@
+2001-11-29  Dave Love  <fx@gnu.org>
+
+	* coding.c (syms_of_coding) <Qchar_coding_system>: Give it an
+	extra extra slot.
+
 2001-11-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_glyphs): Don't call notice_overwritten_cursor if
