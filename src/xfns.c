@@ -5526,24 +5526,29 @@ x_clear_image (f, img)
      struct frame *f;
      struct image *img;
 {
+  BLOCK_INPUT;
+  
   if (img->pixmap)
     {
-      BLOCK_INPUT;
       XFreePixmap (FRAME_X_DISPLAY (f), img->pixmap);
       img->pixmap = 0;
-      UNBLOCK_INPUT;
+    }
+
+  if (img->mask)
+    {
+      XFreePixmap (FRAME_X_DISPLAY (f), img->mask);
+      img->mask = 0;
     }
       
   if (img->ncolors)
     {
-      BLOCK_INPUT;
       x_free_colors (f, img->colors, img->ncolors);
-      UNBLOCK_INPUT;
-      
       xfree (img->colors);
       img->colors = NULL;
       img->ncolors = 0;
     }
+  
+  UNBLOCK_INPUT;
 }
 
 
@@ -5652,20 +5657,23 @@ clear_image_cache (f, force_p)
     {
       EMACS_TIME t;
       unsigned long old;
-      int i, any_freed_p = 0;
+      int i, nfreed;
 
       EMACS_GET_TIME (t);
       old = EMACS_SECS (t) - XFASTINT (Vimage_cache_eviction_delay);
+
+      /* Block input so that we won't be interrupted by a SIGIO
+	 while being in an inconsistent state.  */
+      BLOCK_INPUT;
       
-      for (i = 0; i < c->used; ++i)
+      for (i = nfreed = 0; i < c->used; ++i)
 	{
 	  struct image *img = c->images[i];
 	  if (img != NULL
-	      && (force_p
-		  || (img->timestamp > old)))
+	      && (force_p || img->timestamp < old))
 	    {
 	      free_image (f, img);
-	      any_freed_p = 1;
+	      ++nfreed;
 	    }
 	}
 
@@ -5673,11 +5681,22 @@ clear_image_cache (f, force_p)
 	 Emacs was iconified for a longer period of time.  In that
 	 case, current matrices may still contain references to
 	 images freed above.  So, clear these matrices.  */
-      if (any_freed_p)
+      if (nfreed)
 	{
-	  clear_current_matrices (f);
+	  Lisp_Object tail, frame;
+	  
+	  FOR_EACH_FRAME (tail, frame)
+	    {
+	      struct frame *f = XFRAME (frame);
+	      if (FRAME_X_P (f)
+		  && FRAME_X_IMAGE_CACHE (f) == c)
+		clear_current_matrices (f);
+	    }
+
 	  ++windows_or_buffers_changed;
 	}
+
+      UNBLOCK_INPUT;
     }
 }
 
