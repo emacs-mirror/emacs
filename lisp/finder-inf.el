@@ -2230,6 +2230,9 @@
     ("picture.el"
         "\"Picture mode\" -- editing using quarter-plane screen model"
         (convenience wp))
+    ("po.el"
+        "basic support of PO translation files"
+        (i18n  files))
     ("refbib.el"
         "convert refer-style references to ones usable by Latex bib"
         (bib  tex))
@@ -2305,6 +2308,9 @@
     ("underline.el"
         "insert/remove underlining (done by overstriking) in Emacs"
         (wp))
+    ("xml-lite.el"
+        "an indentation-engine for XML"
+        (xml))
     ("tool-bar.el"
         "setting up the tool bar"
         (mouse frames))
