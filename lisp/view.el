@@ -262,7 +262,7 @@ This function runs the normal hook `view-mode-hook'.
   (setq goal-column nil)
 
   (run-hooks 'view-mode-hook)
-  (message
+  (message "%s"
      (substitute-command-keys
       "Type \\[help-command] for help, \\[describe-mode] for commands, \\[view-exit] to quit.")))
 
@@ -343,7 +343,8 @@ Arg is number of lines to scroll."
 	(scroll-up lines)))
     (cond ((pos-visible-in-window-p (point-max))
 	   (goto-char (point-max))
-	   (message (substitute-command-keys
+	   (message "%s"
+		    (substitute-command-keys
 		     "End.  Type \\[view-exit] to quit viewing."))))
     (move-to-window-line -1)
     (beginning-of-line)))
