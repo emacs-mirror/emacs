@@ -1,5 +1,21 @@
 2000-11-08  Dave Love  <fx@gnu.org>
 
+	* cu-exit.xpm, prev-ur.xpm, next-ur.xpm, post.xpm, fuwo.xpm:
+	* followup.xpm, uu-post.xpm, uu-decode.xpm, mail-reply.xpm:
+	* reply.xpm, reply-wo.xpm, rot13.xpm, save-aif.xpm, save-art.xpm:
+	* exit-summ.xpm: New files, renamed from icons by Luis Fernandes.
+
+	* gnus-sum.el: Put some defvars in eval-when-compile.
+	(gnus-summary-mode-hook): Add :options.
+	(gnus-summary-make-menu-bar): Add some :help, used by tool bar.
+	(gnus-summary-tool-bar-map): New variable.
+	(gnus-summary-make-tool-bar): New function.
+	(gnus-summary-mode): Put kill-all-local-variables first.
+
+	* gnus-group.el (gnus-group-toolbar-map): New variable.
+	(gnus-group-make-tool-bar): Rewritten.
+	(gnus-group-mode): Put kill-all-local-variables first.
+
 	* rfc2047.el: Require gnus-util.
 
 	* nnml.el (gnus-sorted-intersection): Autoload.
@@ -383,7 +399,7 @@
 
 	* catchup.xpm, exit-gnus.xpm, gnntg.xpm, subscribe.xpm:
 	* describe-group.xpm, get-news.xpm, kill-group.xpm:
-	* unsubscribe.xpm: New files.
+	* unsubscribe.xpm: New files.  Renamed icons from Luis Fernandes.
 
 	* mm-decode.el (mm-valid-and-fit-image-p): Don't test
 	display-graphic-p here.

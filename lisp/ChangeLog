@@ -1,3 +1,8 @@
+2000-11-08  Dave Love  <fx@gnu.org>
+
+	* ediff-wind.el (ediff-control-frame-parameters): Zero
+	tool-bar-lines.
+
 2000-11-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (shell-command, display-message-or-buffer)
