@@ -1,3 +1,7 @@
+2003-09-23  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (bootstrap-clean): Fix misplaced `!'.
+
 2003-09-22  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gud.el (perldb): Add gud-until to list of commands.
