@@ -199,7 +199,7 @@ Echo astronomical (Julian) day number unless NOECHO is t."
 
 (defun diary-astro-day-number ()
   "Astronomical (Julian) day number diary entry."
-  (format "Astronomical (Julian) day number %s"
+  (format "Astronomical (Julian) day number at noon UTC: %s.0"
           (calendar-astro-date-string date)))
 
 (provide 'cal-julian)
