@@ -247,6 +247,9 @@ With prefix arg, prompt for diff switches."
 				  'diff-parse-differences
 				  nil nil nil nil nil nil no-async))
 	  (set-buffer buf)
+	  (set (make-local-variable 'revert-buffer-function)
+	       `(lambda (ignore-auto noconfirm)
+		  (diff ',old ',new ',switches ',no-async)))
 	  (set (make-local-variable 'diff-old-file) old)
 	  (set (make-local-variable 'diff-new-file) new)
 	  (set (make-local-variable 'diff-old-temp-file) old-alt)
