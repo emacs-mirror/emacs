@@ -1,5 +1,10 @@
 2000-09-17  Dave Love  <fx@gnu.org>
 
+	* tmm.el: Replace mapcar with mapc in several places.
+
+	* loadhist.el (unload-feature): Maybe call elp-restore-list and
+	ad-unadvise.
+
 	* international/latin1-disp.el: New file.
 
 	* calendar/cal-move.el (scroll-calendar-left)
