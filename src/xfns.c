@@ -124,7 +124,7 @@ extern double atof ();
 
 int gray_bitmap_width = gray_width;
 int gray_bitmap_height = gray_height;
-unsigned char *gray_bitmap_bits = gray_bits;
+char *gray_bitmap_bits = gray_bits;
 
 /* The name we're using in resource queries.  Most often "emacs".  */
 
