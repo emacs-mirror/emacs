@@ -267,7 +267,7 @@
 
 ;;; Mode commands.
 
-(defun calc-save-modes (&optional quiet)
+(defun calc-save-modes ()
   (interactive)
   (calc-wrapper
    (let (pos
@@ -308,11 +308,7 @@
 	       vals (cdr vals))))
      (run-hooks 'calc-mode-save-hook)
      (insert ";;; End of mode settings\n")
-     (if quiet
-	 ;; FIXME: why is this here? -cgw 2001.11.12
-	 (let ((executing-kbd-macro ""))   ; what a kludge!
-	   (save-buffer))
-       (save-buffer)))))
+     (save-buffer))))
 
 (defun calc-settings-file-name (name &optional arg)
   (interactive
