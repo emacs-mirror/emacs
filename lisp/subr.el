@@ -82,27 +82,31 @@ change the list."
   "(dolist (VAR LIST [RESULT]) BODY...): loop over a list.
 Evaluate BODY with VAR bound to each car from LIST, in turn.
 Then evaluate RESULT to get return value, default nil."
-  (let ((temp (gensym "--dolist-temp--")))
-    (list 'block nil
-	  (list* 'let (list (list temp (nth 1 spec)) (car spec))
-		 (list* 'while temp (list 'setq (car spec) (list 'car temp))
-			(append body (list (list 'setq temp
-						 (list 'cdr temp)))))
-		 (if (cdr (cdr spec))
-		     (cons (list 'setq (car spec) nil) (cdr (cdr spec)))
-		   '(nil))))))
+  (let ((temp (make-symbol "--dolist-temp--")))
+    (list 'let (list (list temp (nth 1 spec)) (car spec))
+	  (list 'while temp
+		(list 'setq (car spec) (list 'car temp))
+		(cons 'progn
+		      (append body
+			      (list (list 'setq temp (list 'cdr temp))))))
+	  (if (cdr (cdr spec))
+	      (cons 'progn
+		    (cons (list 'setq (car spec) nil) (cdr (cdr spec))))))))
 
 (defmacro dotimes (spec &rest body)
   "(dotimes (VAR COUNT [RESULT]) BODY...): loop a certain number of times.
 Evaluate BODY with VAR bound to successive integers running from 0,
 inclusive, to COUNT, exclusive.  Then evaluate RESULT to get
 the return value (nil if RESULT is omitted)."
-  (let ((temp (gensym "--dotimes-temp--")))
-    (list 'block nil
-	  (list* 'let (list (list temp (nth 1 spec)) (list (car spec) 0))
-		 (list* 'while (list '< (car spec) temp)
-			(append body (list (list 'incf (car spec)))))
-		 (or (cdr (cdr spec)) '(nil))))))
+  (let ((temp (make-symbol "--dotimes-temp--")))
+    (list 'let (list (list temp (nth 1 spec)) (list (car spec) 0))
+	   (list 'while (list '< (car spec) temp)
+		 (cons 'progn
+		       (append body (list (list 'setq (car spec)
+						(list '1+ (car spec)))))))
+	   (if (cdr (cdr spec))
+	       (car (cdr (cdr spec)))
+	     nil))))
 
 (defsubst caar (x)
   "Return the car of the car of X."
