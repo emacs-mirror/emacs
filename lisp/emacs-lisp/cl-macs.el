@@ -2241,7 +2241,7 @@ The type name can then be used in `typecase', `check-type', etc."
 	    ((eq type 'real) `(numberp ,val))
 	    ((eq type 'fixnum) `(integerp ,val))
 	    ;; FIXME: Should `character' accept things like ?\C-\M-a ?  -stef
-	    ((memq type '(character string-char))) `(char-valid-p ,val)
+	    ((memq type '(character string-char)) `(char-valid-p ,val))
 	    (t
 	     (let* ((name (symbol-name type))
 		    (namep (intern (concat name "p"))))
