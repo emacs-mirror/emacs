@@ -1,3 +1,8 @@
+2000-05-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* search.c (Fre_search_forward, Fre_search_backward)
+	(Fposix_search_backward, Fposix_search_forward): Doc fix.
+
 2000-05-30  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (detect_coding_iso2022): Fix code for checking
