@@ -2433,21 +2433,10 @@ are used in other contexts too.  For example, the hook
 
   The recommended way to add a hook function to a normal hook is by
 calling @code{add-hook} (see below).  The hook functions may be any of
-the valid kinds of functions that @code{funcall} accepts (@pxref{What Is
-a Function}).  Most normal hook variables are initially void;
-@code{add-hook} knows how to deal with this.
-
-With @code{add-hook}, you can also add hook functions to the
-buffer-local value of a hook variable.  If necessary, @code{add-hook}
-first makes the hook variable buffer-local and adds @code{t} to the
-buffer-local value.  The element @code{t} in the buffer-local value of
-a hook variable acts as a signal for the various functions that run
-hooks to run the default value of the hook variable as well; @code{t}
-is basically substituted with the elements of the default value of a
-hook variable.  Since @code{add-hook} normally adds hook functions to
-the front of hook variables, this means that the hook functions in the
-buffer-local value are called before the hook functions in the default
-value of hook variables.
+the valid kinds of functions that @code{funcall} accepts (@pxref{What
+Is a Function}).  Most normal hook variables are initially void;
+@code{add-hook} knows how to deal with this.  You can add hooks either
+globally or buffer-locally with @code{add-hook}.
 
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
@@ -2480,16 +2469,15 @@ been added with @code{add-hook}.
 @defun run-hooks &rest hookvars
 This function takes one or more normal hook variable names as
 arguments, and runs each hook in turn.  Each argument should be a
-symbol that is a hook variable.  These arguments are processed in the
-order specified.
+symbol that is a normal hook variable.  These arguments are processed
+in the order specified.
 
 If a hook variable has a non-@code{nil} value, that value may be a
-function or a list of functions.  If the value is a function (either a
-lambda expression or a symbol with a function definition), it is called.
-If it is a list, the elements are called, in order.  The hook functions
-are called with no arguments.  Nowadays, storing a single function in
-the hook variable is semi-obsolete; you should always use a list of
-functions.
+function or a list of functions.  (The former option is considered
+obsolete.)  If the value is a function (either a lambda expression or
+a symbol with a function definition), it is called.  If it is a list
+that isn't a function, its elements are called, consecutively.  All
+the hook functions are called with no arguments.
 
 For example, here's how @code{emacs-lisp-mode} runs its mode hook:
 
@@ -2511,8 +2499,9 @@ its parent modes' mode hooks until the end.
 @end defmac
 
 @defun run-hook-with-args hook &rest args
-This function is the way to run an abnormal hook.  It calls each of
-the hook functions, passing each of them the arguments @var{args}.
+This function is the way to run an abnormal hook and always call all
+of the hook functions.  It calls each of the hook functions one by
+one, passing each of them the arguments @var{args}.
 @end defun
 
 @defun run-hook-with-args-until-failure hook &rest args
@@ -2534,10 +2523,9 @@ the last hook function that was called.  If all hook functions return
 
 @defun add-hook hook function &optional append local
 This function is the handy way to add function @var{function} to hook
-variable @var{hook}.  The argument @var{function} is not added if it
-is already present on @var{hook} (comparisons are performed with
-@code{equal}; @pxref{Equality Predicates}).  @var{function} may be any
-valid Lisp function with the proper number of arguments.  For example,
+variable @var{hook}.  You can use it for abnormal hooks as well as for
+normal hooks.  @var{function} can be any Lisp function that can accept
+the proper number of arguments for @var{hook}.  For example,
 
 @example
 (add-hook 'text-mode-hook 'my-text-hook-function)
@@ -2546,8 +2534,8 @@ valid Lisp function with the proper number of arguments.  For example,
 @noindent
 adds @code{my-text-hook-function} to the hook called @code{text-mode-hook}.
 
-You can use @code{add-hook} for abnormal hooks as well as for normal
-hooks.
+If @var{function} is already present in @var{hook} (comparing using
+@code{equal}), then @code{add-hook} does not add it a second time.
 
 It is best to design your hook functions so that the order in which they
 are executed does not matter.  Any dependence on the order is ``asking
@@ -2566,10 +2554,9 @@ functions in the default value as well as in the local value.
 
 @defun remove-hook hook function &optional local
 This function removes @var{function} from the hook variable
-@var{hook}.  The argument @var{function} is compared with elements of
-@var{hook} by means of @code{equal} (@pxref{Equality Predicates}).
-This means that you can remove symbols with a function definition as
-well as lambda expressions.
+@var{hook}.  It compares @var{function} with elements of @var{hook}
+using @code{equal}, so it works for both symbols and lambda
+expressions.
 
 If @var{local} is non-@code{nil}, that says to remove @var{function}
 from the buffer-local hook list instead of from the global hook list.
