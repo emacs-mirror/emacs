@@ -72,6 +72,27 @@ Boston, MA 02111-1307, USA.  */
 /* Define if we have the X11R5 or newer version of Xlib.  */
 #undef HAVE_X11R5
 
+/* Define if we have the XPM libary.  */
+#undef HAVE_XPM
+
+/* Define if we have the PNG library.  */
+#undef HAVE_PNG
+
+/* Define if we have the JPEG library.  */
+#undef HAVE_JPEG
+
+/* Define if we have the TIFF library.  */
+#undef HAVE_TIFF
+
+/* Define if we have the GIF library.  */
+#undef HAVE_GIF
+
+/* Define if libXaw3d is available.  */
+#undef HAVE_XAW3D
+
+/* Define if we should use toolkit scroll bars.  */
+#undef USE_TOOLKIT_SCROLL_BARS
+
 /* Define if netdb.h declares h_errno.  */
 #undef HAVE_H_ERRNO
 
@@ -79,7 +100,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_X_WINDOWS
 #define HAVE_WINDOW_SYSTEM
 #define MULTI_KBOARD
-#define HAVE_FACES
 #define HAVE_MOUSE
 #endif
 
@@ -118,11 +138,24 @@ Boston, MA 02111-1307, USA.  */
 /* Define to support using a Hesiod database to find the POP server.  */
 #undef HESIOD
 
+/* Header for Voxware or PCM sound card driver.  */
+#undef HAVE_MACHINE_SOUNDCARD_H
+#undef HAVE_SYS_SOUNDCARD_H
+
+/* Define HAVE_SOUND if we have sound support.  */
+#ifdef HAVE_MACHINE_SOUNDCARD_H
+#define HAVE_SOUND 1
+#endif
+#ifdef HAVE_SYS_SOUNDCARD_H
+#define HAVE_SOUND 1
+#endif
+
 /* Some things figured out by the configure script, grouped as they are in
    configure.in.  */
 #ifndef _ALL_SOURCE  /* suppress warning if this is pre-defined */
 #undef _ALL_SOURCE
 #endif
+
 #undef HAVE_SYS_SELECT_H
 #undef HAVE_SYS_TIMEB_H
 #undef HAVE_SYS_TIME_H
