@@ -880,6 +880,7 @@ x_set_frame_parameters (f, alist)
   int i, p;
   int left_no_change = 0, top_no_change = 0;
   int icon_left_no_change = 0, icon_top_no_change = 0;
+  int fullscreen_is_being_set = 0;
 
   struct gcpro gcpro1, gcpro2;
 
@@ -944,6 +945,7 @@ x_set_frame_parameters (f, alist)
 	  register Lisp_Object param_index, old_value;
 
 	  old_value = get_frame_param (f, prop);
+ 	  fullscreen_is_being_set = EQ (prop, Qfullscreen);
 	  
 	  if (NILP (Fequal (val, old_value)))
 	    {
@@ -1034,7 +1036,7 @@ x_set_frame_parameters (f, alist)
 	XSETINT (icon_top, 0);
     }
 
-  if (FRAME_VISIBLE_P (f))
+  if (FRAME_VISIBLE_P (f) && fullscreen_is_being_set)
     {
       /* If the frame is visible already and the fullscreen parameter is
          being set, it is too late to set WM manager hints to specify
@@ -1042,9 +1044,7 @@ x_set_frame_parameters (f, alist)
          Here we first get the width, height and position that applies to
          fullscreen.  We then move the frame to the appropriate
          position.  Resize of the frame is taken care of in the code after
-         this if-statement.
-         If fullscreen is not specified, x_fullscreen_adjust returns
-         the current parameters and then x_fullscreen_move does nothing. */
+         this if-statement. */
       int new_left, new_top;
       
       x_fullscreen_adjust (f, &width, &height, &new_top, &new_left);
