@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:rankfmt.c(trunk.4) $
 rankfmt.c
    See comments in header file for usage.
 */
@@ -201,6 +201,105 @@ mycell *allocone(mps_ap_t ap, int size, mps_rank_t rank) {
  mycell *q;
 
  die(allocrone(&exfmt_root, ap, size, rank), "Reserve: ");
+ q = exfmt_root;
+ return q;
+}
+
+mps_res_t reservoir_allocrdumb(mps_addr_t *addr, mps_ap_t ap,
+                               size_t size, mps_rank_t rank) {
+ mycell *q;
+ size_t bytes;
+ mps_res_t res;
+ size_t alignment;
+
+ bytes = offsetof(struct data, ref) + size;
+
+ alignment = MPS_PF_ALIGN; /* needed to make it as wide as size_t */
+
+/* twiddle the value of size to make it aligned */
+ bytes = (bytes+alignment-1) & ~(alignment-1);
+
+ do
+ {
+  res = mps_reserve_with_reservoir_permit(addr, ap, bytes);
+  if (res) goto Finish;
+  INCCOUNT(RESERVE_COUNT);
+  q=*addr;
+  q->data.tag = (mps_word_t) wrapper;
+  q->data.assoc = NULL;
+  q->data.id = nextid;
+  q->data.copycount = 0;
+  q->data.numrefs = 0;
+  q->data.checkedflag = 0;
+  q->data.rank = rank;
+  q->data.size = bytes;
+ }
+ while (!mps_commit(ap, *addr, bytes));
+ INCCOUNT(ALLOC_COUNT);
+ commentif(alloccomments, "allocated id %li at %p.", nextid, q);
+ nextid += 1;
+
+Finish:
+ return res;
+}
+
+mycell *reservoir_allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank) {
+ mycell *q;
+
+ die(reservoir_allocrdumb(&exfmt_root, ap, size, rank), "Reserve: ");
+ q = exfmt_root;
+ return q;
+}
+
+mps_res_t reservoir_allocrone(mps_addr_t *addr, mps_ap_t ap,
+                              int size, mps_rank_t rank) {
+ mycell *q;
+ int i;
+ size_t bytes;
+ size_t alignment;
+ mps_res_t res;
+
+ bytes = offsetof(struct data, ref) + size*sizeof(struct refitem);
+
+ alignment = MPS_PF_ALIGN; /* needed to make it as wide as size_t */
+
+/* twiddle the value of size to make it aligned */
+ bytes = (bytes+alignment-1) & ~(alignment-1);
+
+ do
+ {
+  res = mps_reserve_with_reservoir_permit(addr, ap, bytes);
+  if (res) goto Finish;
+  INCCOUNT(RESERVE_COUNT);
+  q=*addr;
+  q->data.tag = MCdata + (mps_word_t) wrapper;
+  q->data.assoc = NULL;
+  q->data.id = nextid;
+  q->data.copycount = 0;
+  q->data.numrefs = size;
+  q->data.checkedflag = 0;
+  q->data.rank = rank;
+  q->data.size = bytes;
+
+  for(i=0; i<size; i+=1)
+  {
+   q->data.ref[i].addr = NULL;
+   q->data.ref[i].id   = 0;
+  }
+ }
+ while (!mps_commit(ap, *addr, bytes));
+ INCCOUNT(ALLOC_COUNT);
+ commentif(alloccomments, "allocated id %li at %p.", nextid, q);
+ nextid += 1;
+
+Finish:
+ return res;
+}
+
+mycell *reservoir_allocone(mps_ap_t ap, int size, mps_rank_t rank) {
+ mycell *q;
+
+ die(reservoir_allocrone(&exfmt_root, ap, size, rank), "Reserve: ");
  q = exfmt_root;
  return q;
 }
