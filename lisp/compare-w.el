@@ -1,6 +1,6 @@
 ;;; compare-w.el --- compare text between windows for Emacs
 
-;; Copyright (C) 1986, 1989, 1993, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1989, 1993, 1997, 2003 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience files
@@ -37,26 +37,99 @@
   :group 'tools)
 
 (defcustom compare-windows-whitespace "\\(\\s-\\|\n\\)+"
-  "*Regexp that defines whitespace sequences for \\[compare-windows].
+  "*Regexp or function that defines whitespace sequences for `compare-windows'.
 That command optionally ignores changes in whitespace.
 
 The value of `compare-windows-whitespace' is normally a regexp, but it
 can also be a function.  The function's job is to categorize any
 whitespace around (including before) point; it should also advance
-past any whitespace.  The function is called in each buffer, with
+past any whitespace.  The function is called in each window, with
 point at the current scanning point.  It gets one argument, the point
-where `compare-windows' was originally called; it should not look at
+where \\[compare-windows] was originally called; it should not look at
 any text before that point.
 
-If the function returns the same value for both buffers, then the
+If the function returns the same value for both windows, then the
 whitespace is considered to match, and is skipped."
   :type '(choice regexp function)
   :group 'compare-w)
 
-(defcustom compare-ignore-case nil
-  "*Non-nil means \\[compare-windows] ignores case differences."
+(defcustom compare-ignore-whitespace nil
+  "*Non-nil means `compare-windows' ignores whitespace."
   :type 'boolean
   :group 'compare-w)
+
+(defcustom compare-ignore-case nil
+  "*Non-nil means `compare-windows' ignores case differences."
+  :type 'boolean
+  :group 'compare-w)
+
+(defcustom compare-windows-sync 'compare-windows-sync-default-function
+  "*Function or regexp that is used to synchronize points in two
+windows if before calling `compare-windows' points are located
+on mismatched positions.
+
+The value of `compare-windows-sync' can be a function.  The
+function's job is to advance points in both windows to the next
+matching text.  If the value of `compare-windows-sync' is a
+regexp, then points in both windows are advanced to the next
+occurrence of this regexp.
+
+The current default value is the general function
+`compare-windows-sync-default-function' that is able to
+synchronize points by using quadratic algorithm to find the first
+matching 32-character string in two windows.
+
+The other useful values of this variable could be such functions
+as `forward-word', `forward-sentence', `forward-paragraph', or a
+regexp containing some field separator or a newline, depending on
+the nature of the difference units separator.  The variable can
+be made buffer-local.
+
+If the value of this variable is `nil', then function `ding' is
+called to beep or flash the screen when points are mismatched."
+  :type '(choice regexp function)
+  :group 'compare-w)
+
+(defcustom compare-windows-sync-string-size 32
+  "*Size of string from one window that is searched in second window.
+
+Small number makes difference regions more fine-grained, but it
+may fail by finding the wrong match.  The bigger number makes
+difference regions more coarse-grained.
+
+The default value 32 is good for the most cases."
+  :type 'integer
+  :group 'compare-w)
+
+(defcustom compare-windows-recenter nil
+  "*List of two values, each of which is used as argument of
+function `recenter' called in each of two windows to place
+matching points side-by-side.
+
+The value `(-1 0)' is useful if windows are split vertically,
+and the value `((4) (4))' for horizontally split windows."
+  :type '(list sexp sexp)
+  :group 'compare-w)
+
+(defcustom compare-windows-highlight t
+  "*Non-nil means compare-windows highlights the differences."
+  :type 'boolean
+  :group 'compare-w)
+
+(defface compare-windows-face
+  '((((type tty pc) (class color))
+     (:background "turquoise3"))
+    (((class color) (background light))
+     (:background "paleturquoise"))
+    (((class color) (background dark))
+     (:background "paleturquoise4"))
+    (t (:underline t)))
+  "Face for highlighting of compare-windows difference regions."
+  :group 'compare-w)
+
+(defvar compare-windows-overlay1 nil)
+(defvar compare-windows-overlay2 nil)
+(defvar compare-windows-sync-point nil)
 
 ;;;###autoload
 (defun compare-windows (ignore-whitespace)
@@ -70,18 +143,34 @@ If both windows display the same buffer,
 the mark is pushed twice in that buffer:
 first in the other window, then in the selected window.
 
-A prefix arg means ignore changes in whitespace.
-The variable `compare-windows-whitespace' controls how whitespace is skipped.
-If `compare-ignore-case' is non-nil, changes in case are also ignored."
+A prefix arg means reverse the value of variable
+`compare-ignore-whitespace'.  If `compare-ignore-whitespace' is
+nil, then a prefix arg means ignore changes in whitespace.  If
+`compare-ignore-whitespace' is non-nil, then a prefix arg means
+don't ignore changes in whitespace.  The variable
+`compare-windows-whitespace' controls how whitespace is skipped.
+If `compare-ignore-case' is non-nil, changes in case are also
+ignored.
+
+If `compare-windows-sync' is non-nil, then successive calls of
+this command work in interlaced mode:
+on first call it advances points to the next difference,
+on second call it synchronizes points by skipping the difference,
+on third call it again advances points to the next difference and so on."
   (interactive "P")
   (let* (p1 p2 maxp1 maxp2 b1 b2 w2
 	    (progress 1)
 	    (opoint1 (point))
 	    opoint2
-	    (skip-func (if ignore-whitespace
-			 (if (stringp compare-windows-whitespace)
-			     'compare-windows-skip-whitespace
-			   compare-windows-whitespace))))
+	    (skip-func (if (if ignore-whitespace ; XOR
+                               (not compare-ignore-whitespace)
+                             compare-ignore-whitespace)
+                           (if (stringp compare-windows-whitespace)
+                               'compare-windows-skip-whitespace
+                             compare-windows-whitespace)))
+	    (sync-func (if (stringp compare-windows-sync)
+                           'compare-windows-sync-regexp
+                         compare-windows-sync)))
     (setq p1 (point) b1 (current-buffer))
     (setq w2 (next-window (selected-window)))
     (if (eq w2 (selected-window))
@@ -99,9 +188,8 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
     (push-mark)
 
     (while (> progress 0)
-      ;; If both buffers have whitespace next to point,
+      ;; If both windows have whitespace next to point,
       ;; optionally skip over it.
-
       (and skip-func
 	   (save-excursion
 	     (let (p1a p2a w1 w2 result1 result2)
@@ -124,10 +212,36 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 	(setq p1 (+ p1 progress) p2 (+ p2 progress)))
       ;; Advance point now rather than later, in case we're interrupted.
       (goto-char p1)
-      (set-window-point w2 p2))
+      (set-window-point w2 p2)
+      (when compare-windows-recenter
+        (recenter (car compare-windows-recenter))
+        (with-selected-window w2 (recenter (cadr compare-windows-recenter)))))
 
     (if (= (point) opoint1)
-	(ding))))
+	(if (not sync-func)
+            (ding)
+          ;; If points are not advanced (i.e. already on mismatch position),
+          ;; then synchronize points between both windows
+          (save-excursion
+            (setq compare-windows-sync-point nil)
+            (funcall sync-func)
+            (setq p1 (point))
+            (set-buffer b2)
+            (goto-char p2)
+            (funcall sync-func)
+            (setq p2 (point)))
+          (goto-char p1)
+          (set-window-point w2 p2)
+          (when compare-windows-recenter
+            (recenter (car compare-windows-recenter))
+            (with-selected-window w2 (recenter (cadr compare-windows-recenter))))
+          ;; If points are still not synchronized, then ding
+          (when (and (= p1 opoint1) (= p2 opoint2))
+            ;; Display error message when current points in two windows
+            ;; are unmatched and next matching points can't be found.
+            (compare-windows-dehighlight)
+            (ding)
+            (message "No more matching points"))))))
 
 ;; Move forward over whatever might be called whitespace.
 ;; compare-windows-whitespace is a regexp that matches whitespace.
@@ -135,7 +249,6 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
 ;; and find the latest point at which a match ends.
 ;; Don't try starting points before START, though.
 ;; Value is non-nil if whitespace is found.
-
 ;; If there is whitespace before point, but none after,
 ;; then return t, but don't advance point.
 (defun compare-windows-skip-whitespace (start)
@@ -158,6 +271,90 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
     (goto-char end)
     (or (/= beg opoint)
 	(/= end opoint))))
+
+;; Move forward to the next synchronization regexp.
+(defun compare-windows-sync-regexp ()
+  (if (stringp compare-windows-sync)
+      (re-search-forward compare-windows-sync nil t)))
+
+;; Function works in two passes: one call on each window.
+;; On the first call both matching points are computed,
+;; and one of them is stored in compare-windows-sync-point
+;; to be used when this function is called on second window.
+(defun compare-windows-sync-default-function ()
+  (if (not compare-windows-sync-point)
+      (let* ((w2 (next-window (selected-window)))
+             (b2 (window-buffer w2))
+             (point-max2 (with-current-buffer b2 (point-max)))
+             (op2 (window-point w2))
+             (op1 (point))
+             (region-size compare-windows-sync-string-size)
+             (string-size compare-windows-sync-string-size)
+             in-bounds-p s1 p2 p12s p12)
+        (while (and
+                ;; until matching points are found
+                (not p12s)
+                ;; until size exceeds the maximum points of both buffers
+                ;; (bounds below take care to not overdo in each of them)
+                (or (setq in-bounds-p (< region-size (max (- (point-max) op1)
+                                                          (- point-max2 op2))))
+                    ;; until string size becomes smaller than 4
+                    (> string-size 4)))
+          (if in-bounds-p
+              ;; make the next search in the double-sized region;
+              ;; on first iteration it is 2*compare-windows-sync-string-size,
+              ;; on last iterations it exceeds both buffers maximum points
+              (setq region-size (* region-size 2))
+            ;; if region size exceeds the maximum points of both buffers,
+            ;; then start to halve the string size until 4;
+            ;; this helps to find differences near the end of buffers
+            (setq string-size (/ string-size 2)))
+          (let ((p1 op1)
+                (bound1 (- (min (+ op1 region-size) (point-max)) string-size))
+                (bound2 (min (+ op2 region-size) point-max2)))
+            (while (< p1 bound1)
+              (setq s1 (buffer-substring-no-properties p1 (+ p1 string-size)))
+              (setq p2 (with-current-buffer b2
+                         (goto-char op2)
+                         (let ((case-fold-search compare-ignore-case))
+                           (search-forward s1 bound2 t))))
+              (when p2
+                (setq p2 (- p2 string-size))
+                (setq p12s (cons (list (+ p1 p2) p1 p2) p12s)))
+              (setq p1 (1+ p1)))))
+        (when p12s
+          ;; use closest matching points (i.e. points with minimal sum)
+          (setq p12 (cdr (assq (apply 'min (mapcar 'car p12s)) p12s)))
+          (goto-char (car p12))
+          (compare-windows-highlight op1 (car p12) op2 (cadr p12) b2))
+        (setq compare-windows-sync-point (or (cadr p12) t)))
+    ;; else set point in the second window to the pre-calculated value
+    (if (numberp compare-windows-sync-point)
+        (goto-char compare-windows-sync-point))
+    (setq compare-windows-sync-point nil)))
+
+;; Highlight differences
+(defun compare-windows-highlight (beg1 end1 beg2 end2 buf2)
+  (when compare-windows-highlight
+    (if compare-windows-overlay1
+        (move-overlay compare-windows-overlay1 beg1 end1 (current-buffer))
+      (setq compare-windows-overlay1 (make-overlay beg1 end1 (current-buffer)))
+      (overlay-put compare-windows-overlay1 'face 'compare-windows-face)
+      (overlay-put compare-windows-overlay1 'priority 1))
+    (if compare-windows-overlay2
+        (move-overlay compare-windows-overlay2 beg2 end2 buf2)
+      (setq compare-windows-overlay2 (make-overlay beg2 end2 buf2))
+      (overlay-put compare-windows-overlay2 'face 'compare-windows-face)
+      (overlay-put compare-windows-overlay2 'priority 1))
+    ;; Remove highlighting before next command is executed
+    (add-hook 'pre-command-hook 'compare-windows-dehighlight)))
+
+(defun compare-windows-dehighlight ()
+  "Remove highlighting created by `compare-windows-highlight'."
+  (interactive)
+  (remove-hook 'pre-command-hook 'compare-windows-dehighlight)
+  (and compare-windows-overlay1 (delete-overlay compare-windows-overlay1))
+  (and compare-windows-overlay2 (delete-overlay compare-windows-overlay2)))
 
 (provide 'compare-w)
 
