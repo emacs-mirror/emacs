@@ -970,14 +970,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 	  (condition-case ()
 	      (progn
 		(dired-uncache dir)
-		(dired-insert-subdir dir)
-		(let ((switches (cdr (assoc-string dir dired-switches-alist))))
-		  (and switches
-		       (string-match "R" switches)
-		       (dolist (cur-ass (copy-sequence old-subdir-alist))
-			 (when (dired-in-this-tree (car cur-ass) dir)
-			   (setq old-subdir-alist
-				 (delete cur-ass old-subdir-alist)))))))
+		(dired-insert-subdir dir))
 	    (error nil))))))
 
 (defun dired-uncache (dir)
