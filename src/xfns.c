@@ -2601,8 +2601,8 @@ FACE is a face name - a symbol.\n\
 The return value is a list of strings, suitable as arguments to\n\
 set-face-font.\n\
 \n\
-The list does not include fonts Emacs can't use (i.e.  proportional\n\
-fonts), even if they match PATTERN and FACE.")
+Fonts Emacs can't use (i.e. proportional fonts) may or may not be excluded\n\
+even if they match PATTERN and FACE.")
   (pattern, face, frame)
     Lisp_Object pattern, face, frame;
 {
