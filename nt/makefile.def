@@ -157,7 +157,7 @@ $(BLD):         $(OBJDIR)
 		-mkdir $(BLD)
 
 CP		= copy
-CP_DIR		= xcopy /f/r/i/e/d
+CP_DIR		= xcopy /f/r/i/e/d/k
 
 !if "$(OS_TYPE)" == "windows95"
 DEL		= deltree /y
