@@ -1,3 +1,8 @@
+2004-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* Makefile.in (recompile): Revert 2004-11-19 change.
+	(compile): Likewise.
+
 2004-11-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* Makefile.in (compile): Set `max-specpdl-size' before compiling.

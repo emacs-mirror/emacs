@@ -1,3 +1,7 @@
+2004-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* eval.c (init_eval_once): Increase `max_specpdl_size' to 650.
+
 2004-11-19  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (Vsearch_whitespace_regexp): New variable.
