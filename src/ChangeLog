@@ -1,3 +1,8 @@
+2003-11-25  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (Fredirect_debugging_output) [!GNU_LINUX]: Do not
+	define this defun on systems that cannot use stderr as lvalue.
+
 2003-11-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/freebsd.h (LD_SWITCH_SYSTEM_TEMACS)
