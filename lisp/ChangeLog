@@ -2,7 +2,7 @@
 
 	* hi-lock.el (hi-lock-refontify): Don't call non-existent
 	jit-lock-fontify-buffer; it should anyway be unneccessary to
-	dp anything special when jit-lock is active.
+	do anything special when jit-lock is active.
 	(hi-yellow, hi-pink, hi-green, hi-blue): Fix defface specs.
 
 2000-11-22  Dave Love  <fx@gnu.org>
@@ -33,8 +33,7 @@
 
 	* recentf.el (recentf-menu-items-for-commands)
 	(recentf-make-menu-items, recentf-make-menu-item)
-	(recentf-filter-changer): Added :help and :active menu-item
-	properties.
+	(recentf-filter-changer): Added :help and :active menu-item properties.
 	
 	(recentf-build-dir-rules, recentf-dump-variable)
 	(recentf-edit-list, recentf-open-files-item)
@@ -44,6 +43,15 @@
 2000-11-23  Miles Bader  <miles@gnu.org>
 
 	* faces.el (menu): Make inverse-video on ttys too.
+
+2000-11-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* simple.el (comment-line-break-function): Use the new name
+	indent-new-comment-line -> comment-indent-new-line.
+	(clone-indirect-buffer): Don't ignore NORECORD.
+	(next-completion): Properly handle the case where items are adjacent.
+
+	* mouse.el (popup-menu): Stupid typo.
 
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
