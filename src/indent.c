@@ -1171,6 +1171,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  if (newpos >= to)
 	    {
 	      pos = min (to, newpos);
+	      pos_byte = CHAR_TO_BYTE (pos);
 	      goto after_loop;
 	    }
 
