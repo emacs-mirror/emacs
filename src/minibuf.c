@@ -507,7 +507,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   if (inherit_input_method)
     {
-      /* `current-input-method' is buffer local.  So, remeber it in
+      /* `current-input-method' is buffer local.  So, remember it in
 	 INPUT_METHOD before changing the current buffer.  */
       input_method = Fsymbol_value (Qcurrent_input_method);
       enable_multibyte = current_buffer->enable_multibyte_characters;
@@ -608,7 +608,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
-     but it's important to save time here in the usual case).  */
+     but it's important to save time here in the usual case.)  */
   if (!NILP (Vminibuffer_setup_hook) && !EQ (Vminibuffer_setup_hook, Qunbound)
       && !NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qminibuffer_setup_hook);
@@ -819,7 +819,7 @@ If optional second arg INITIAL-CONTENTS is non-nil, it is a string
   is STRING, but point is placed at position POSITION in the minibuffer.
 Third arg KEYMAP is a keymap to use whilst reading;
   if omitted or nil, the default is `minibuffer-local-map'.
-If fourth arg READ is non-nil, then interpret the result as a lisp object
+If fourth arg READ is non-nil, then interpret the result as a Lisp object
   and return that object:
   in other words, do `(car (read-from-string INPUT-STRING))'
 Fifth arg HIST, if non-nil, specifies a history list
@@ -969,7 +969,7 @@ the current input method and the setting of `enable-multibyte-characters'.  */)
 
 DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
        doc: /* Read the name of a command and return as a symbol.
-Prompts with PROMPT.  By default, return DEFAULT-VALUE.  */)
+Prompt with PROMPT.  By default, return DEFAULT-VALUE.  */)
      (prompt, default_value)
      Lisp_Object prompt, default_value;
 {
@@ -992,7 +992,7 @@ Prompts with PROMPT.  By default, return DEFAULT-VALUE.  */)
 #ifdef NOTDEF
 DEFUN ("read-function", Fread_function, Sread_function, 1, 1, 0,
        doc: /* One arg PROMPT, a string.  Read the name of a function and return as a symbol.
-Prompts with PROMPT.  */)
+Prompt with PROMPT.  */)
      (prompt)
      Lisp_Object prompt;
 {
@@ -1003,7 +1003,7 @@ Prompts with PROMPT.  */)
 
 DEFUN ("read-variable", Fread_variable, Sread_variable, 1, 2, 0,
        doc: /* Read the name of a user variable and return it as a symbol.
-Prompts with PROMPT.  By default, return DEFAULT-VALUE.
+Prompt with PROMPT.  By default, return DEFAULT-VALUE.
 A user variable is one whose documentation starts with a `*' character.  */)
      (prompt, default_value)
      Lisp_Object prompt, default_value;
@@ -1026,10 +1026,11 @@ A user variable is one whose documentation starts with a `*' character.  */)
 }
 
 DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
-       doc: /* One arg PROMPT, a string.  Read the name of a buffer and return as a string.
-Prompts with PROMPT.
+       doc: /* Read the name of a buffer and return as a string.
+Prompt with PROMPT.
 Optional second arg DEF is value to return if user enters an empty line.
-If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are allowed.  */)
+If optional third arg REQUIRE-MATCH is non-nil,
+ only existing buffer names are allowed.  */)
      (prompt, def, require_match)
      Lisp_Object prompt, def, require_match;
 {
@@ -2406,7 +2407,7 @@ t means to return a list of all possible completions of STRING.
   Vminibuffer_completion_predicate = Qnil;
 
   DEFVAR_LISP ("minibuffer-completion-confirm", &Vminibuffer_completion_confirm,
-	       doc: /* Non-nil => demand confirmation of completion before exiting minibuffer.  */);
+	       doc: /* Non-nil means to demand confirmation of completion before exiting minibuffer.  */);
   Vminibuffer_completion_confirm = Qnil;
 
   DEFVAR_LISP ("minibuffer-completing-file-name",
