@@ -553,9 +553,14 @@ and TO is ignored."
 
   ;; If the most preferred coding system has the property mime-charset,
   ;; append it to the defaults.
-  (let* ((preferred (symbol-value (car coding-category-list)))
-	 (base (coding-system-base preferred)))
-    (and (coding-system-get preferred 'mime-charset)
+  (let ((tail coding-category-list)
+	preferred base)
+    (while (and tail
+		(not (setq preferred (symbol-name (car tail)))))
+      (setq tail (cdr tail)))
+    (and (coding-system-p preferred)
+	 (setq base (coding-system-base preferred))
+	 (coding-system-get preferred 'mime-charset)
 	 (not (assq preferred default-coding-system))
 	 (not (rassq base default-coding-system))
 	 (setq default-coding-system
