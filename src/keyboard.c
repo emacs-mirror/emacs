@@ -5624,10 +5624,12 @@ static Lisp_Object
 menu_item_eval_property (sexpr)
      Lisp_Object sexpr;
 {
+  int count = specpdl_ptr - specpdl;
   Lisp_Object val;
+  specbind (Qinhibit_redisplay, Qt);
   val = internal_condition_case_1 (Feval, sexpr, Qerror,
 				   menu_item_eval_property_1);
-  return val;
+  return unbind_to (count, val);
 }
 
 /* This function parses a menu item and leaves the result in the
