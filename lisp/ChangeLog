@@ -1,7 +1,15 @@
 2000-07-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* lpr.el (lpr-page-header-switches): Add `-h' switch.
+	(print-region-1): Don't hard code `-h' here.
+
 	* Makefile.in (TAGS-LISP): Don't use `$(lispsource)'.
 
+2000-07-01  Francesco Potorti`  <pot@gnu.org>
+
+	* rmail.el (mail-unsent-separator): Changed "the" to "\\w+", as
+	exim can use "your message" instead of "the message".
+	
 2000-07-05  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-diff.el (ediff-wordify): Use syntax table.

@@ -1,5 +1,7 @@
 2000-07-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (window_loop): Add missing gcpro1 local variable.
+	
 	* window.c (Fwindow_list): Reverse list at the end.
 	(candidate_window_p): Add parameter OWINDOW.  ALL_FRAMES nil
 	means allow windows on OWINDOW's frame, only.
