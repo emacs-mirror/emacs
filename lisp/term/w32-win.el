@@ -635,7 +635,7 @@ This is in addition to the primary selection.")
 (setq split-window-keep-point t)
 
 ;; Don't show the frame name; that's redundant.
-(setq-default mode-line-buffer-identification '("Emacs: %12b"))
+(setq-default mode-line-frame-identification "  ")
 
 ;;; Set to a system sound if you want a fancy bell.
 (set-message-beep 'ok)
