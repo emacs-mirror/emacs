@@ -1,6 +1,6 @@
 ;;; autoload.el --- maintain autoloads in loaddefs.el.
 
-;;; Copyright (C) 1991, 1992 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1992, 1993 Free Software Foundation, Inc.
 ;;;
 ;; Author: Roland McGrath <roland@gnu.ai.mit.edu>
 ;; Keyword: internal
@@ -96,7 +96,6 @@ If FILE is being visited in a buffer, the contents of the buffer
 are used."
   (interactive "fGenerate autoloads for file: ")
   (let ((outbuf (current-buffer))
-	(inbuf (find-file-noselect file))
 	(autoloads-done '())
 	(load-name (let ((name (file-name-nondirectory file)))
 		     (if (string-match "\\.elc?$" name)
@@ -105,6 +104,7 @@ are used."
 	(print-length nil)
 	(floating-output-format "%20e")
 	(done-any nil)
+	(visited (get-file-buffer file))
 	output-end)
 
     ;; If the autoload section we create here uses an absolute
@@ -122,63 +122,70 @@ are used."
 	  (setq file (substring file (length default-directory)))))
 
     (message "Generating autoloads for %s..." file)
-    (save-excursion
-      (set-buffer inbuf)
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (skip-chars-forward " \t\n\f")
-	    (cond ((looking-at (regexp-quote generate-autoload-cookie))
-		   (search-forward generate-autoload-cookie)
-		   (skip-chars-forward " \t")
-		   (setq done-any t)
-		   (if (eolp)
-		       ;; Read the next form and make an autoload.
-		       (let* ((form (prog1 (read (current-buffer))
-				      (forward-line 1)))
-			      (autoload (make-autoload form load-name))
-			      (doc-string-elt (get (car-safe form)
-						   'doc-string-elt)))
-			 (if autoload
-			     (setq autoloads-done (cons (nth 1 form)
-							autoloads-done))
-			   (setq autoload form))
-			 (if (and doc-string-elt
-				  (stringp (nth doc-string-elt autoload)))
-			     ;; We need to hack the printing because the
-			     ;; doc-string must be printed specially for
-			     ;; make-docfile (sigh).
-			     (let* ((p (nthcdr (1- doc-string-elt) autoload))
-				    (elt (cdr p)))
-			       (setcdr p nil)
-			       (princ "\n(" outbuf)
-			       (mapcar (function (lambda (elt)
-						   (prin1 elt outbuf)
-						   (princ " " outbuf)))
-				       autoload)
-			       (princ "\"\\\n" outbuf)
-			       (princ (substring (prin1-to-string (car elt)) 1)
-				      outbuf)
-			       (if (null (cdr elt))
-				   (princ ")" outbuf)
-				 (princ " " outbuf)
-				 (princ (substring (prin1-to-string (cdr elt))
-						   1)
-					outbuf))
-			       (terpri outbuf))
-			   (print autoload outbuf)))
-		     ;; Copy the rest of the line to the output.
-		     (let ((begin (point)))
-		       (forward-line 1)
-		       (princ (buffer-substring begin (point)) outbuf))))
-		  ((looking-at ";")
-		   ;; Don't read the comment.
-		   (forward-line 1))
-		  (t
-		   (forward-sexp 1)
-		   (forward-line 1))))))
+    (unwind-protect
+	(progn
+	  (set-buffer (find-file-noselect file))
+	  (save-excursion
+	    (save-restriction
+	      (widen)
+	      (goto-char (point-min))
+	      (while (not (eobp))
+		(skip-chars-forward " \t\n\f")
+		(cond ((looking-at (regexp-quote generate-autoload-cookie))
+		       (search-forward generate-autoload-cookie)
+		       (skip-chars-forward " \t")
+		       (setq done-any t)
+		       (if (eolp)
+			   ;; Read the next form and make an autoload.
+			   (let* ((form (prog1 (read (current-buffer))
+					  (forward-line 1)))
+				  (autoload (make-autoload form load-name))
+				  (doc-string-elt (get (car-safe form)
+						       'doc-string-elt)))
+			     (if autoload
+				 (setq autoloads-done (cons (nth 1 form)
+							    autoloads-done))
+			       (setq autoload form))
+			     (if (and doc-string-elt
+				      (stringp (nth doc-string-elt autoload)))
+				 ;; We need to hack the printing because the
+				 ;; doc-string must be printed specially for
+				 ;; make-docfile (sigh).
+				 (let* ((p (nthcdr (1- doc-string-elt)
+						   autoload))
+					(elt (cdr p)))
+				   (setcdr p nil)
+				   (princ "\n(" outbuf)
+				   (mapcar (function (lambda (elt)
+						       (prin1 elt outbuf)
+						       (princ " " outbuf)))
+					   autoload)
+				   (princ "\"\\\n" outbuf)
+				   (princ (substring
+					   (prin1-to-string (car elt)) 1)
+					  outbuf)
+				   (if (null (cdr elt))
+				       (princ ")" outbuf)
+				     (princ " " outbuf)
+				     (princ (substring
+					     (prin1-to-string (cdr elt))
+					     1)
+					    outbuf))
+				   (terpri outbuf))
+			       (print autoload outbuf)))
+			 ;; Copy the rest of the line to the output.
+			 (let ((begin (point)))
+			   (forward-line 1)
+			   (princ (buffer-substring begin (point)) outbuf))))
+		      ((looking-at ";")
+		       ;; Don't read the comment.
+		       (forward-line 1))
+		      (t
+		       (forward-sexp 1)
+		       (forward-line 1)))))))
+      (or visited
+	  ;; We created this buffer, so we should kill it.
+	  (kill-buffer (current-buffer)))
       (set-buffer outbuf)
       (setq output-end (point-marker)))
     (if done-any
