@@ -826,7 +826,8 @@ Otherwise, list elements are:\n\
 10. inode number.  If inode number is larger than the Emacs integer,\n\
   this is a cons cell containing two integers: first the high part,\n\
   then the low 16 bits.\n\
-11. Device number.\n\
+11. Device number.  If it is larger than the Emacs integer, this is\n\
+  a cons cell, similar to the inode number.\n\
 \n\
 If file does not exist, returns nil.")
   (filename)
