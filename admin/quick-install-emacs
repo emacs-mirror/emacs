@@ -8,7 +8,7 @@
 PUBLIC_LIBSRC_BINARIES='b2m emacsclient etags ctags ebrowse'
 PUBLIC_LIBSRC_SCRIPTS='grep-changelog rcs-checkin'
 
-AVOID="CVS -DIC README COPYING ChangeLog ~ Makefile makefile stamp-subdir .cvsignore \.[cho]$ make-docfile testfile test-distrib"
+AVOID="CVS -DIC README COPYING ChangeLog ~ \.orig$ \.rej$ Makefile makefile stamp-subdir .cvsignore \.[cho]$ make-docfile testfile test-distrib"
 
 # Prune old binaries lying around in the source tree
 PRUNE=no
@@ -131,17 +131,17 @@ fi
 
 CONFIG_STATUS="$BUILD/config.status"
 function get_config_var () {
-  if ! $NAWK -F% '$2 == "@'$1'@" { print $3; ok=1; exit; }; END { exit(!ok); }' $CONFIG_STATUS
+  if ! sed -n "s/^s\(.\)@$1@\1\(.*\)\1.*$/\2/p" $CONFIG_STATUS | head -1 | grep ''
   then
     echo 1>&2 "$me: $1: Configuration variable not found in $CONFIG_STATUS"
     exit 4
   fi
 }
 
-test x"$SRC" = x && SRC="`get_config_var srcdir`"
-test x"$prefix" = x && prefix="`get_config_var prefix`"
-test x"$VERSION" = x && VERSION="`get_config_var version`"
-test x"$ARCH" = x && ARCH="`get_config_var host`"
+test x"$SRC" = x && { SRC="`get_config_var srcdir`" || exit 4 ; }
+test x"$prefix" = x && { prefix="`get_config_var prefix`" || exit 4 ; }
+test x"$VERSION" = x && { VERSION="`get_config_var version`" || exit 4 ; }
+test x"$ARCH" = x && { ARCH="`get_config_var host`" || exit 4 ; }
 
 DST_SHARE="$prefix/share/emacs/$VERSION"
 DST_BIN="$prefix/bin"
