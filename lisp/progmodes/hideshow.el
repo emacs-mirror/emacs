@@ -3,7 +3,7 @@
 ;; Copyright (C) 1994, 95, 96, 97, 98 Free Software Foundation
 
 ;; Author: Thien-Thi Nguyen <ttn@netcom.com>
-;;	Dan Nicolaescu <done@ece.arizona.edu>
+;;	Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
 ;; Maintainer-Version: 4.22
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
@@ -92,7 +92,7 @@
 ;;     ware@cis.ohio-state.edu         Pete Ware
 ;;     d.love@dl.ac.uk                 Dave Love
 ;;
-;; Special thanks go to Dan Nicolaescu <done@ece.arizona.edu>, who
+;; Special thanks go to Dan Nicolaescu <dann@ics.uci.edu>, who
 ;; reimplemented hideshow using overlays (rather than selective display),
 ;; added isearch magic, folded in custom.el compatibility, generalized
 ;; comment handling, incorporated mouse support, and maintained the code
