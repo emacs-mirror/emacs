@@ -76,6 +76,7 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
+;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
 
@@ -1189,6 +1190,7 @@ European languages which are distributed with Windows as
 
 See the documentation of `create-fontset-from-fontset-spec for the format.")
 
+;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (progn
       ;; Create the standard fontset.
@@ -1399,6 +1401,7 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
      (x-popup-menu
       last-nonmenu-event
     ;; Append list of fontsets currently defined.
+      ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
       (if (fboundp 'new-fontset)
       (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
   (if fonts
