@@ -92,6 +92,7 @@ libexecdir=@libexecdir@
 # Where to install Emacs's man pages, and what extension they should have.
 mandir=@mandir@
 manext=.1
+man1dir=$(mandir)/man1
 
 # Where to install and expect the info files describing Emacs.	In the
 # past, this defaulted to a subdirectory of ${prefix}/lib/emacs, but
@@ -360,7 +361,7 @@ install-arch-indep: mkdir
 	   done); \
 	else true; fi
 	thisdir=`/bin/pwd`; cd ${srcdir}/etc; for page in emacs etags ctags ; do \
-	  (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 ${mandir}/$${page}${manext}); \
+	  (cd $${thisdir}; ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 ${man1dir}/$${page}${manext}); \
 	done
 
 ### Build all the directories we're going to install Emacs in.	Since
@@ -368,7 +369,7 @@ install-arch-indep: mkdir
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
 ### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
 mkdir: FRC
-	$(srcdir)/mkinstalldirs ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
+	$(srcdir)/mkinstalldirs ${COPYDESTS} ${lockdir} ${infodir} ${man1dir} \
 	  ${bindir} ${datadir} ${docdir} ${libexecdir} \
 	  `echo ${locallisppath} | sed 's/:/ /g'`
 	-chmod a+rwx ${lockdir}
@@ -397,7 +398,7 @@ uninstall:
 	  fi ;						\
 	done
 	(cd ${infodir} && rm -f cl* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
-	(cd ${mandir}  && rm -f emacs.1 etags.1 ctags.1)
+	(cd ${man1dir}  && rm -f emacs.1 etags.1 ctags.1)
 	(cd ${bindir}  && rm -f emacs-${version} $(EMACS))
 
 
