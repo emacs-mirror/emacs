@@ -1,3 +1,35 @@
+2004-05-23  Nick Roberts  <nickrob@gnu.org>
+
+	* progmodes/gdb-ui.el (gdb-server-prefix): New variable.
+	(gud-watch, gdb-send-item, gdb-breakpoints-mode, gdb-frames-mode)
+	(gdb-locals-mode, gdb-send-item, gdb-toggle-breakpoint)
+	(gdb-delete-breakpoint, gdb-frames-select, gdb-threads-buffer)
+	(gdb-registers-buffer, gdb-reset, gdb-assembler-buffer): Handle
+	new value for gud-minor-mode (gdbmi).
+	(gdb-buffer-type, gdb-input-queue, gdb-prompting)
+	(gdb-output-sink, gdb-current-item, gdb-pending-triggers): Change
+	from local to global gdb variable set.
+	(gdb-ann3): Initialise above gdb variable set.
+	(gdb-var-update, gdb-var-update-handler, gdb-enqueue-input)
+	(gdb-dequeue-input, gdb-source, gdb-pre-prompt, gdb-prompt)
+	(gdb-subprompt, gdb-starting, gdb-stopping, gdb-frame-begin)
+	(gdb-stopped, gdb-post-prompt, gdb-concat-output)
+	(def-gdb-auto-update-trigger, def-gdb-auto-update-handler)
+	(gdb-info-locals-handler, gdb-invalidate-assembler)
+	(gdb-get-current-frame, gdb-frame-handler): Handle gdb variable
+	set as global variables.
+	(gdb-get-create-buffer): Don't make gud-comint buffer-local.
+	Handle gdbmi.
+	(gdb-info-breakpoints-custom): Fix regexp.
+	(def-gdb-var): Delete.
+
+	* progmodes/gud.el (gud-menu-map, gud-speedbar-menu-items)
+	(gud-speedbar-buttons, gud-sentinel, gud-display-line)
+	(gud-basic-call): Handle new value for gud-minor-mode (gdbmi) for
+	a new mode. The file (gdb-mi.el) for this mode will be included
+	with the GDB distribution (6.2 onwards) and will use GDB/MI as its
+	primary interface.
+
 2004-05-23  Jesper Harder  <harder@ifa.au.dk>
 
 	* progmodes/grep.el (grep-tree): Ensure that DIR argument is
