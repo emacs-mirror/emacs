@@ -1191,6 +1191,9 @@ If within a string or comment, move by sentences instead of statements."
 (defun c-indent-region (start end)
   (save-excursion
     (goto-char start)
+    ;; Advance to first nonblank line.
+    (skip-chars-forward " \t\n")
+    (beginning-of-line)
     (let ((endmark (copy-marker end))
 	  (c-tab-always-indent t))
       (while (and (bolp) (not (eolp)))
