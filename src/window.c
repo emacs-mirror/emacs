@@ -615,8 +615,9 @@ static
 unshow_buffer (w)
      register struct window *w;
 {
-  Lisp_Object buf = w->buffer;
+  Lisp_Object buf;
 
+  buf = w->buffer;
   if (XBUFFER (buf) != XMARKER (w->pointm)->buffer)
     abort ();
 
@@ -1219,7 +1220,8 @@ window_loop (type, obj, mini, frames)
 		   on the frame, find a new buffer to display there.  */
 		if (NILP (XWINDOW (w)->parent))
 		  {
-		    Lisp_Object new_buffer = Fother_buffer (obj, Qnil);
+		    Lisp_Object new_buffer;
+		    new_buffer = Fother_buffer (obj, Qnil);
 		    if (NILP (new_buffer))
 		      new_buffer
 			= Fget_buffer_create (build_string ("*scratch*"));
@@ -1252,7 +1254,8 @@ window_loop (type, obj, mini, frames)
 	    if (EQ (XWINDOW (w)->buffer, obj))
 	      {
 		/* Find another buffer to show in this window.  */
-		Lisp_Object another_buffer = Fother_buffer (obj, Qnil);
+		Lisp_Object another_buffer;
+		another_buffer = Fother_buffer (obj, Qnil);
 		if (NILP (another_buffer))
 		  another_buffer
 		    = Fget_buffer_create (build_string ("*scratch*"));
@@ -1735,8 +1738,9 @@ Returns the window displaying BUFFER.")
 #endif
       )
     {
-      Lisp_Object frames = Qnil;
-      
+      Lisp_Object frames;
+
+      frames = Qnil;      
 #ifdef MULTI_FRAME
       if (FRAME_MINIBUF_ONLY_P (selected_frame))
 	XSET (frames, Lisp_Frame, last_nonminibuf_frame);
