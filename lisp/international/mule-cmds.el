@@ -298,11 +298,9 @@ startup."
 	(error "Can't prefer the coding system `%s'" coding-system))
     (set coding-category (or base coding-system))
     (update-coding-systems-internal)
-    (if (not (eq coding-category (car coding-category-list)))
+    (or (eq coding-category (car coding-category-list))
 	;; We must change the order.
-	(setq coding-category-list
-	      (cons coding-category
-		    (delq coding-category coding-category-list))))
+	(set-coding-priority (list coding-category)))
     (if (and base (interactive-p))
 	(message "Highest priority is set to %s (base of %s)"
 		 base coding-system))
