@@ -1,6 +1,6 @@
 # impl.gmk.dc: GNUMAKEFILE FRAGMENT FOR DIGITAL C COMPILER (DEC UNIX/OSF)
 #
-# $HopeName: MMsrc!dc.gmk(trunk.2) $
+# $HopeName: !dc.gmk(trunk.3) $
 # Copyright(C) 1997, 1998 Harlequin Group, all rights reserved
 #
 # See design.buildsys.unix

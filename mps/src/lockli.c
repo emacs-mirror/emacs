@@ -1,6 +1,6 @@
 /* impl.c.lockli: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
- * $HopeName: $
+ * $HopeName: !lockli.c(trunk.1) $
  * Copyright (C) 2000 Harlequin Ltd.  All rights reserved.
  *
  *  .linux: This implementation currently just supports LinuxThreads 
@@ -32,7 +32,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-SRCID(lockli, "$HopeName: $");
+SRCID(lockli, "$HopeName: !lockli.c(trunk.1) $");
 
 
 /* LockAttrSetRecursive -- Set mutexattr to permimt recursive locking

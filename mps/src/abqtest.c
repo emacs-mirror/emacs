@@ -1,6 +1,6 @@
 /* impl.c.abqtest: AVAILABLE BLOCK QUEUE TEST
  *
- * $HopeName: MMsrc!abqtest.c(trunk.3) $
+ * $HopeName: !abqtest.c(trunk.4) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -17,7 +17,7 @@
 #include <math.h>
 
 
-SRCID(abqtest, "$HopeName: MMsrc!abqtest.c(trunk.3) $");
+SRCID(abqtest, "$HopeName: !abqtest.c(trunk.4) $");
 
 
 static ABQStruct abq; /* the ABQ which we will use */

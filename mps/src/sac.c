@@ -1,13 +1,13 @@
 /* impl.h.sac: SEGREGATED ALLOCATION CACHES
  *
- * $HopeName: MMsrc!sac.c(MM_epcore_brisling.5) $
+ * $HopeName: !sac.c(trunk.2) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 #include "sac.h"
 
-SRCID(sac, "$HopeName: MMsrc!sac.c(MM_epcore_brisling.5) $");
+SRCID(sac, "$HopeName: !sac.c(trunk.2) $");
 
 
 /* SACCheck -- check function for SACs */

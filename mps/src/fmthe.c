@@ -1,6 +1,6 @@
 /* impl.c.fmthe: DYLAN-LIKE OBJECT FORMAT WITH HEADERS
  *
- * $HopeName$
+ * $HopeName: !fmthe.c(trunk.1) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .source: This was derived from impl.c.fmtdy -- it's probably a good idea to

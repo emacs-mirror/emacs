@@ -1,6 +1,6 @@
 /*  impl.c.protlii3: PROTECTION FOR LINUX (INTEL 386)
  *
- *  $HopeName: MMsrc!protlii3.c(trunk.3) $
+ *  $HopeName: !protlii3.c(trunk.4) $
  *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * SOURCES
@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <signal.h>
 
-SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.3) $");
+SRCID(protlii3, "$HopeName: !protlii3.c(trunk.4) $");
 
 
 /* Useful stuff that doesn't appear to be in any header files. */

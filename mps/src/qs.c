@@ -1,6 +1,6 @@
 /*  impl.c.qs: QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.14) $
+ *  $HopeName: !qs.c(trunk.15) $
  *  Copyright (C) 1995, 1996, 1998 Harlequin Group plc, all rights reserved.
  *
  *  The purpose of this program is to act as a "real" client of the MM.

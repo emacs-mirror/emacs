@@ -1,6 +1,6 @@
 /* impl.c.locv: Leaf Object Pool Class Coverage Test
  *
- * $HopeName: MMsrc!locv.c(trunk.14) $
+ * $HopeName: !locv.c(trunk.15) $
  *
  * Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
  *

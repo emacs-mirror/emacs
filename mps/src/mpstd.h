@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.24) $
+ * $HopeName: !mpstd.h(trunk.25) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * Detect the target platform using predefined preprocessor symbols

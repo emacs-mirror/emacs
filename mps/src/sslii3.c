@@ -1,6 +1,6 @@
 /* impl.c.sslii3: LINUX/INTEL STACK SCANNING
  *
- * $HopeName: MMsrc!sslii3.c(trunk.1) $
+ * $HopeName: !sslii3.c(trunk.2) $
  * Copyright (C) 1999.  Harlequin Group plc.  All rights reserved.
  *
  *  This scans the stack and fixes the registers which may contain 
@@ -32,7 +32,7 @@
 
 #include "mpm.h"
 
-SRCID(sslii3, "$HopeName: MMsrc!sslii3.c(trunk.1) $");
+SRCID(sslii3, "$HopeName: !sslii3.c(trunk.2) $");
 
 /* .assume.asm.order */
 #define ASMV(x) __asm__ volatile (x)

@@ -1,6 +1,6 @@
 /* impl.h.mpslib: HARLEQUIN MEMORY POOL SYSTEM LIBRARY INTERFACE
  *
- * $HopeName: MMsrc!mpslib.h(trunk.7) $
+ * $HopeName: !mpslib.h(trunk.8) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS client application developers, MPS developers.

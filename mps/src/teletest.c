@@ -1,6 +1,6 @@
 /*  impl.c.teletest: TELEMETRY TEST
  *
- *  $HopeName: MMsrc!teletest.c(trunk.3) $
+ *  $HopeName: !teletest.c(trunk.4) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: The command parser here was taken and adapted from bttest.c.
@@ -20,7 +20,7 @@
 #endif /* MPS_OS_SU */
 
 
-SRCID(teletest, "$HopeName: MMsrc!teletest.c(trunk.3) $");
+SRCID(teletest, "$HopeName: !teletest.c(trunk.4) $");
 
 
 static mps_arena_t arena; 

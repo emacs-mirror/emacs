@@ -1,6 +1,6 @@
 /* impl.c.sacss: SAC MANUAL ALLOC STRESS TEST
  *
- * $HopeName: MMsrc!sacss.c(MM_epcore_brisling.3) $
+ * $HopeName: !sacss.c(trunk.2) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 

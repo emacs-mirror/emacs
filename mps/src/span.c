@@ -1,6 +1,6 @@
 /* impl.c.span: ANSI STACK PROBE
  *
- * $HopeName: MMsrc!span.c(trunk.1) $
+ * $HopeName: !span.c(trunk.2) $
  * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(span, "$HopeName: MMsrc!span.c(trunk.1) $");
+SRCID(span, "$HopeName: !span.c(trunk.2) $");
 
 
 /* StackProbe -- probe above the stack to provoke early stack overflow */

@@ -1,6 +1,6 @@
 /*  impl.h.th: THREAD MANAGER
  *
- *  $HopeName: MMsrc!th.h(trunk.7) $
+ *  $HopeName: !th.h(trunk.8) $
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  * .readership: MM developers.

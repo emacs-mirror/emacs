@@ -1,6 +1,6 @@
 /* impl.h.mpscmv2: MEMORY POOL SYSTEM CLASS "MV2"
  *
- * $HopeName: MMsrc!mpscmv2.h(MMdevel_gavinm_splay.4) $
+ * $HopeName: !mpscmv2.h(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc. All rights reserved.
  */
 

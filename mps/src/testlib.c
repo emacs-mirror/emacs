@@ -1,6 +1,6 @@
 /* impl.c.testlib: Test library
  *
- * $HopeName: MMsrc!testlib.c(trunk.16) $
+ * $HopeName: !testlib.c(trunk.17) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.

@@ -1,6 +1,6 @@
 /* impl.h.mpsio: HARLEQUIN MEMORY POOL SYSTEM I/O INTERFACE
  *
- * $HopeName: MMsrc!mpsio.h(trunk.2) $
+ * $HopeName: !mpsio.h(trunk.3) $
  * Copyright (C) 1996 Harlequin Limited.  All rights reserved.
  *
  * .readership: For MPS client application developers, MPS developers.

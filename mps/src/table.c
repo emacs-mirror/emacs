@@ -1,6 +1,6 @@
 /* impl.h.table: A dictionary mapping a Word to a void*
  *
- * $HopeName$
+ * $HopeName: !table.c(trunk.3) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .note.good-hash: As is common in hash table implementations, we

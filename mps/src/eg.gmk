@@ -1,6 +1,6 @@
 # impl.gmk.eg: GNUMAKEFILE FRAGMENT FOR EGCS
 #
-# $HopeName$
+# $HopeName: !eg.gmk(trunk.1) $
 # Copyright (C) 1996, 1997, 1998 Harlequin Group, all rights reserved
 #
 # This file is included by platform makefiles that use the EGCS

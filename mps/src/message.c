@@ -1,6 +1,6 @@
 /* impl.c.message: MPS / CLIENT MESSAGES
  *
- * $HopeName: MMsrc!message.c(trunk.9) $
+ * $HopeName: !message.c(trunk.10) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All Rights Reserved.
  *
  * READERSHIP
@@ -20,7 +20,7 @@
 
 #include "mpm.h"
 
-SRCID(message, "$HopeName: MMsrc!message.c(trunk.9) $");
+SRCID(message, "$HopeName: !message.c(trunk.10) $");
 
 
 /* Maps from a Ring pointer to the message */

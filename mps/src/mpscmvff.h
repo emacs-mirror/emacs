@@ -1,6 +1,6 @@
 /* impl.h.mpscmvff: MEMORY POOL SYSTEM CLASS "MVFF"
  *
- * $HopeName: MMsrc!mpscmvff.h(trunk.3) $
+ * $HopeName: !mpscmvff.h(trunk.4) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 

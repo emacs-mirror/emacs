@@ -1,6 +1,6 @@
 /* impl.c.meter: METERS
  *
- * $HopeName: MMsrc!meter.c(trunk.7) $
+ * $HopeName: !meter.c(trunk.9) $
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * TRANSGRESSIONS

@@ -1,6 +1,6 @@
 /* impl.h.cbs: CBS -- Coalescing Block Structure
  *
- * $HopeName$
+ * $HopeName: !cbs.h(trunk.2) $
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.cbs.

@@ -1,6 +1,6 @@
 /* impl.c.pool: PROTOCOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!protocol.c(MMdevel_tony_inheritance.2) $
+ * $HopeName: !protocol.c(trunk.2) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 
 
-SRCID(protocol, "$HopeName: MMsrc!protocol.c(MMdevel_tony_inheritance.2) $");
+SRCID(protocol, "$HopeName: !protocol.c(trunk.2) $");
 
 
 Bool ProtocolClassCheck(ProtocolClass class)

@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.22) $
+ * $HopeName: !seg.c(trunk.23) $
  * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -28,7 +28,7 @@
 
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.22) $");
+SRCID(seg, "$HopeName: !seg.c(trunk.23) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */

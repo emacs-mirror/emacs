@@ -1,7 +1,7 @@
 /* impl.c.replay: Allocation replayer
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * $HopeName: MMsrc!replay.c(MMdevel_alloc_replay.3) $
+ * $HopeName: !replay.c(trunk.2) $
  */
 
 #include "config.h"
