@@ -211,11 +211,12 @@ Default value, nil, means edit the string instead."
       (or (vectorp (nth 1 map))
 	  (char-table-p (nth 1 map))
 	  (error "The initialization of isearch-mode-map must be updated"))
-      ;; Make Latin-1, Latin-2 and Latin-3 characters
+      ;; Make Latin-1, Latin-2, Latin-3 and Latin-4 characters
       ;; search for themselves.
-      (set-char-table-range (nth 1 map) [129] 'isearch-printing-char)
-      (set-char-table-range (nth 1 map) [130] 'isearch-printing-char)
-      (set-char-table-range (nth 1 map) [131] 'isearch-printing-char)
+      (aset (nth 1 map) (make-char 'latin-iso8859-1) 'isearch-printing-char)
+      (aset (nth 1 map) (make-char 'latin-iso8859-2) 'isearch-printing-char)
+      (aset (nth 1 map) (make-char 'latin-iso8859-3) 'isearch-printing-char)
+      (aset (nth 1 map) (make-char 'latin-iso8859-4) 'isearch-printing-char)
       ;; Make function keys, etc, exit the search.
       (define-key map [t] 'isearch-other-control-char)
       ;; Control chars, by default, end isearch mode transparently.
@@ -1164,7 +1165,9 @@ If you want to search for just a space, type C-q SPC."
   ;; Append the char to the search string, update the message and re-search.
   (isearch-process-search-string 
    (isearch-char-to-string char) 
-   (isearch-text-char-description char)))
+   (if (>= char 0200)
+       (char-to-string char)
+     (isearch-text-char-description char))))
 
 (defun isearch-process-search-string (string message)
   (setq isearch-string (concat isearch-string string)
