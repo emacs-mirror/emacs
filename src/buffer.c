@@ -5044,8 +5044,8 @@ don't override it.  This is the same as (default-value\n\
   DEFVAR_PER_BUFFER ("header-line-format",
 		     &current_buffer->header_line_format, 
 		     Qnil,
-   "Analogous to `mode-line-format', but for a mode line displayed\n\
-at the top of windows.");
+   "Analogous to `mode-line-format', but for the mode line that can be\n\
+displayed at the top of a window.");
   
   DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format, 
 		     Qnil, 0);
