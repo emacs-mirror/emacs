@@ -843,7 +843,7 @@ cmd_error (data)
   old_length = Vprint_length;
   XSETFASTINT(Vprint_level, 10);
   XSETFASTINT(Vprint_length, 10);
-  cmd_error_internal (data, 0);
+  cmd_error_internal (data, NULL);
   Vprint_level = old_level;
   Vprint_length = old_length;
 
@@ -2118,7 +2118,7 @@ record_char (c)
 	  if (XUINT (c) < 0x100)
 	    putc (XINT (c), dribble);
 	  else
-	    fprintf (dribble, " 0x%x", XUINT (c));
+	    fprintf (dribble, " 0x%x", (int) XUINT (c));
 	}
       else
 	{
@@ -4358,7 +4358,7 @@ menu_bar_items (old)
     else
       {
 	/* No, so use major and minor mode keymaps.  */
-	nmaps = current_minor_maps (0, &tmaps) + 2;
+	nmaps = current_minor_maps (NULL, &tmaps) + 2;
 	maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
 	bcopy (tmaps, maps, (nmaps - 2) * sizeof (maps[0]));
 #ifdef USE_TEXT_PROPERTIES
