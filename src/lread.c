@@ -1004,8 +1004,6 @@ read_escape (readcharfun)
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun);
-      if ((c & 0xff) >= 'a' && (c & 0xff) <= 'z')
-	return c - ('a' - 'A');
       return c | shift_modifier;
 
     case 'H':
@@ -2046,6 +2044,16 @@ init_lread ()
 		/* That dir doesn't exist, so add the build-time
 		   Lisp dirs instead.  */
 		Vload_path = nconc2 (Vload_path, dump_path);
+
+	      /* Add site-list under the installation dir, if it exists.  */
+	      tem = Fexpand_file_name (build_string ("site-lisp"),
+				       Vinstallation_directory);
+	      tem1 = Ffile_exists_p (tem);
+	      if (!NILP (tem1))
+		{
+		  if (NILP (Fmember (tem, Vload_path)))
+		    Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+		}
 	    }
 	}
     }
