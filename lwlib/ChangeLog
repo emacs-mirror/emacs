@@ -1,3 +1,14 @@
+2000-03-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (xm_manage_resizing): Rewritten.
+
+	* lwlib.c (lw_modify_all_widgets): Return non-zero if widget
+	tree was changed.
+	(merge_widget_value): Add parameter CHANGE_P.  Set *CHANGE_P
+	to 1 if a change occurs.
+
+	* lwlib.h (lw_modify_all_widgets): Change prototype.
+
 2000-03-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* xlwmenu.c (make_shadow_gcs): Use the widget's colormap instead
