@@ -141,7 +141,8 @@ validate_interval_range (object, begin, end, force)
       /* User-level Positions in strings start with 0,
 	 but the interval code always wants positions starting with 1.  */
       XFASTINT (*begin) += 1;
-      XFASTINT (*end) += 1;
+      if (begin != end)
+	XFASTINT (*end) += 1;
       i = s->intervals;
 
       if (s->size == 0)
@@ -173,7 +174,10 @@ validate_plist (list)
       register int i;
       register Lisp_Object tail;
       for (i = 0, tail = list; !NILP (tail); i++)
-	tail = Fcdr (tail);
+	{
+	  tail = Fcdr (tail);
+	  QUIT;
+	}
       if (i & 1)
 	error ("Odd length text property list");
       return list;
