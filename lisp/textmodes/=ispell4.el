@@ -273,7 +273,8 @@ q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[is
 	  (delete-temp nil))
       (unwind-protect
 	  (progn
-	    (cond ((null filename)
+	    (cond ((or (null filename)
+		       (find-file-name-handler buffer-file-name))
 		   (setq filename (make-temp-name "/usr/tmp/ispell"))
 		   (setq delete-temp t)
 		   (write-region (point-min) (point-max) filename))
