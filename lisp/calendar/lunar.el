@@ -96,19 +96,19 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                      (solar-sin-degrees (+ 166.56
                                            (* 132.87 time)
                                            (* -0.009173 time time))))))
-         (sun-anomaly (solar-mod
+         (sun-anomaly (mod
                        (+ 359.2242
                           (* 29.105356 index)
                           (* -0.0000333 time time)
                           (* -0.00000347 time time time))
                        360.0))
-         (moon-anomaly (solar-mod
+         (moon-anomaly (mod
                         (+ 306.0253
                            (* 385.81691806 index)
                            (* 0.0107306 time time)
                            (* 0.00001236 time time time))
                         360.0))
-         (moon-lat (solar-mod
+         (moon-lat (mod
                     (+ 21.2964
                        (* 390.67050646 index)
                        (* -0.0016528 time time)
