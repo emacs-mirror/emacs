@@ -17,7 +17,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
 #ifdef HAVE_CONFIG_H
+
 #include <config.h>
+
+/* Get the O_* definitions for open et al.  */
+#include <sys/file.h>
+#ifdef USG5
+#include <fcntl.h>
+#endif
+
 #else /* not HAVE_CONFIG_H */
 
 #if defined(HAVE_STRING_H) || defined(STDC_HEADERS)
