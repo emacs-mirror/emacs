@@ -1,3 +1,12 @@
+2002-12-15  Dave Love  <fx@gnu.org>
+
+	* international/utf-8.el (ucs-mule-cjk-to-unicode)
+	(utf-subst-table-for-encode, ucs-unicode-to-mule-cjk)
+	(utf-subst-table-for-decode): Specify :size, :rehash-size.
+	(utf-translate-cjk): :set rewritten to load subst-... files.  Add
+	:set-after.
+	(ccl-decode-mule-utf-8): Consider CJK translation for r3<#x3400.
+
 2002-12-15  Gustav H,Ae(Bllberg  <gustav@virtutech.se>  (tiny change)
 
 	* progmodes/compile.el (compile-reinitialize-errors): Don't mark the
