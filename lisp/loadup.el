@@ -111,6 +111,9 @@
 (garbage-collect)
 (load "vc-hooks")
 
+;; We specify .el in case someone compiled version.el by mistake.
+(load "version.el")
+
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,
 ;you may load them with a "site-load.el" file.
@@ -119,8 +122,6 @@
 ;For other systems, you must edit ../src/ymakefile.
 (if (load "site-load" t)
     (garbage-collect))
-
-(load "version.el")  ;Don't get confused if someone compiled version.el by mistake.
 
 ;; Determine which last version number to use
 ;; based on the executables that now exist.
