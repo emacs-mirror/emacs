@@ -265,7 +265,7 @@ region to sort."
   (sort-fields-1 field beg end
 		 (function (lambda ()
 			     (sort-skip-fields (1- field))
-			     (string-to-float
+			     (string-to-number
 			      (buffer-substring
 			       (point)
 			       (save-excursion
