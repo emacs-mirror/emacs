@@ -1316,7 +1316,7 @@ cached information about equivalent key sequences.")
   /* Display them in a menu.  */
   BLOCK_INPUT;
   
-  selection = w32menu_show (f, xpos, ypos, menu, &hmenu, &error_name);
+  selection = w32menu_show (f, xpos, ypos, menu, hmenu, &error_name);
   
   UNBLOCK_INPUT;
   
