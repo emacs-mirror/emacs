@@ -1748,13 +1748,15 @@ is specified, returning t if it is specified."
 				   (beginning-of-line)
 				   (set-window-start (selected-window) (point)))
 				 (setq enable-local-eval
-				       (y-or-n-p (format "Process `eval' or hook local variables in file %s? "
-							 (file-name-nondirectory buffer-file-name)))))))))
+				       (y-or-n-p (format "Process `eval' or hook local variables in %s? "
+							 (if buffer-file-name
+							     (concat "file " (file-name-nondirectory buffer-file-name))
+							   (concat "buffer " (buffer-name)))))))))))
 	     (if (eq var 'eval)
 		 (save-excursion (eval val))
 	       (make-local-variable var)
 	       (set var val))
-	   (message "Ignoring `eval:' in file's local variables")))
+	   (message "Ignoring `eval:' in the local variables list")))
 	;; Ordinary variable, really set it.
 	(t (make-local-variable var)
 	   (set var val))))
