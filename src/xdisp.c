@@ -1542,6 +1542,14 @@ try_window (window, pos)
     {
       val = *display_text_line (w, pos, vpos, val.hpos, tab_offset);
       tab_offset += width;
+      /* For the first line displayed, display_text_line
+	 subtracts the prompt width from the tab offset.
+	 But it does not affect the value of our variable tab_offset.
+	 So we do the subtraction again,
+	 for the sake of continuation lines of that first line.  */
+      if (MINI_WINDOW_P (w) && vpos == XFASTINT (w->top))
+	tab_offset -= minibuf_prompt_width;
+
       if (val.vpos) tab_offset = 0;
       vpos++;
       if (pos != val.bufpos)
@@ -2257,6 +2265,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 			       w->width > 10 ? w->width - 4 : -1)
 	       - hpos);
 	  hpos += minibuf_prompt_width;
+	  taboffset -= minibuf_prompt_width;
 	}
       else
 	minibuf_prompt_width = 0;
