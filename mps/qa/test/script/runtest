@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.19) $
+# $HopeName: MMQA_harness!script:runtest(trunk.20) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -67,32 +67,6 @@ sub setstdin {
  return $stdin;
 }
 
-sub clib {
- local ($success) = (1);
-
- &logcomment("Compiling test libraries from $testlib_dir.");
-
- open(MANIFEST, "$testlib_dir/manifest");
-
- while ($tlfile = <MANIFEST>) {
-  unless ($tlfile =~ /^%/) {
-   chop($tlfile);
-   $tlfile = $testlib_dir."/".$tlfile;
-   $tlobj = $tlfile;
-   $tlobj =~ s/\.c/$obj_suffix/;
-   $tlobj =~ s/$testlib_dir/$obj_dir/;
-
-   if (&compile($tlfile, $tlobj)) {
-   } else {
-    $success = 0;
-    &logcomment(" failed on %tlfile.");
-   }
-  }
- }
- close(MANIFEST);
- $success;
-}
-
 sub run_test {
  local ($testfile, $interact, $report_type, $logfile) = @_;
 
@@ -106,6 +80,13 @@ sub run_test {
  for $lang ($test_header{"language"}) {
 
   if ($lang =~ /^c$/) {
+   unless ($DANGEROUS eq "on") {
+    $_ = &test_clib();
+    if ($_) {
+     print "Warning: $_\n";
+     die "-- recompile test libraries (\"qa clib\") before running tests.\n";
+    }
+   }
    $stdin = &setstdin;
    $linkfiles = $test_header{"link"};
    $objfile = "$obj_dir/tmp_test";
