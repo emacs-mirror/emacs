@@ -142,6 +142,8 @@ To get the number of bytes, use `string-bytes'. */)
     XSETFASTINT (val, SCHARS (sequence));
   else if (VECTORP (sequence))
     XSETFASTINT (val, XVECTOR (sequence)->size);
+  else if (SUB_CHAR_TABLE_P (sequence))
+    XSETFASTINT (val, SUB_CHAR_TABLE_ORDINARY_SLOTS);
   else if (CHAR_TABLE_P (sequence))
     XSETFASTINT (val, MAX_CHAR);
   else if (BOOL_VECTOR_P (sequence))
