@@ -22,8 +22,8 @@
 @c @syncodeindex tp fn
 
 @ifnottex
-This Info file contains edition 2.7 of the GNU Emacs Lisp
-Reference Manual, corresponding to Emacs version 21.1.
+This Info file contains edition 2.8 of the GNU Emacs Lisp
+Reference Manual, corresponding to Emacs version 21.2.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in intro.texi
 
@@ -31,8 +31,8 @@ Published by the Free Software Foundation
 59 Temple Place, Suite 330
 Boston, MA  02111-1307  USA
 
-Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000
- Free Software Foundation, Inc. 
+Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999,
+ 2000, 2001, 2002 Free Software Foundation, Inc. 
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -52,19 +52,19 @@ Software Foundation raise funds for GNU development.''
 @subtitle For Emacs Version 21
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-@subtitle Revision 2.7, May 2000
+@subtitle Revision 2.8, January 2002
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
 @author and the GNU Manual Group
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000
-Free Software Foundation, Inc. 
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
+1999, 2000, 2001, 2002 Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.7 @*
-Revised for Emacs Version 21.1,@*
-May 2000.@*
+Edition 2.8 @*
+Revised for Emacs Version 21.2,@*
+January 2002.@*
 @sp 2
 ISBN 1-882114-73-6
 
@@ -92,8 +92,8 @@ Cover art by Etienne Suvasa.
 @node Top, Introduction, (dir), (dir)
 
 @ifnottex
-This Info file contains edition 2.7 of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version 21.1.
+This Info file contains edition 2.8 of the GNU Emacs Lisp
+Reference Manual, corresponding to GNU Emacs version 21.2.
 @end ifnottex
 
 @menu
