@@ -10,12 +10,16 @@ if (@qa_args) {
   &printhelp($_);
  }
 } else {
+ opendir(DIR, $script_dir."/help");
+
  print "Help topics:\n";
- foreach (<$script_dir/help/*>) {
-  /\/([^\/]*)$/;
-  &summhelp($1);
+ foreach (readdir(DIR)) {
+  unless (/^\./) {
+   &summhelp($_);
+  }
  }
  print "For help on a topic, type 'qa help <topic>'.\n";
+ closedir(DIR);
 }
 
 sub summhelp {
