@@ -61,3 +61,7 @@
 #define NO_MATHERR
 
 #define AMPERSAND_FULL_NAME
+
+/* Needed to avoid hanging when child process writes an error message
+   and exits -- enami tsugutomo <enami@ba2.so-net.or.jp>.  */
+#define vfork fork

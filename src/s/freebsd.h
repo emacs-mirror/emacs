@@ -88,3 +88,7 @@
 #include <sys/wait.h>
 #endif
 #define WRETCODE(w) (_W_INT(w) >> 8)
+
+/* Needed to avoid hanging when child process writes an error message
+   and exits -- enami tsugutomo <enami@ba2.so-net.or.jp>.  */
+#define vfork fork
