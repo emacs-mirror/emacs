@@ -36,7 +36,8 @@
 
 ;;; Code:
 
-(define-key calendar-mode-map [down-mouse-2] 'calendar-mouse-date-menu)
+(define-key calendar-mode-map [mouse-2] 'calendar-mouse-2-date-menu)
+(define-key calendar-mode-map [mouse-3] 'calendar-mouse-3-date-menu)
   
 (define-key calendar-mode-map [menu-bar moon]
   '("Moon" . calendar-phases-of-moon))
@@ -176,12 +177,13 @@
 (put 'insert-monthly-diary-entry 'menu-enable '(calendar-cursor-to-date))
 (put 'insert-weekly-diary-entry 'menu-enable '(calendar-cursor-to-date))
 
-(defun calendar-event-to-date ()
-  "Date of last event.  Value is nil if last event was not done on a date."
+(defun calendar-event-to-date (&optional error)
+  "Date of last event.
+If event is not on a specific date, signals an error if optional parameter
+ERROR is t, otherwise just returns nil."
   (save-excursion
-    (set-buffer (window-buffer (posn-window (event-start last-input-event))))
     (goto-char (posn-point (event-start last-input-event)))
-    (calendar-cursor-to-date)))
+    (calendar-cursor-to-date error)))
 
 (defun calendar-mouse-insert-hebrew-diary-entry (event)
   "Pop up menu to insert a Hebrew-date diary entry."
@@ -248,6 +250,7 @@
       (append
        (list
         (concat (calendar-date-string date) " (Gregorian)")
+        (list (calendar-day-of-year-string date))
         (list (format "ISO date: %s" (calendar-iso-date-string date)))
         (list (format "Julian date: %s" (calendar-julian-date-string date)))
         (list (format "Astronomical (Julian) date (before noon): %s"
@@ -264,48 +267,53 @@
 	(list
          (format "Mayan date: %s" (calendar-mayan-date-string date)))))))))
 
-(defun calendar-mouse-date-menu (event)
-  "Pop up menu for selected date."
+(defun calendar-mouse-2-date-menu (event)
+  "Pop up menu for Mouse-2 for selected date in the calendar window."
   (interactive "e")
-  (let ((selection
-         (x-popup-menu
-          event
-          (if (calendar-event-to-date)
-              (list "Menu"
-                     (list
-                      (calendar-date-string
-                       (or (calendar-event-to-date)
-                           (error "Mouse is not on a date!"))
-                       t t)
-                      '("Diary entries" . calendar-mouse-view-diary-entries)
-                      '("Holidays" . calendar-mouse-holidays)
-                      '("Mark date" . calendar-mouse-set-mark)
-                      '("Sunrise/sunset" . calendar-mouse-sunrise/sunset)
-                      '("Other calendars" . calendar-mouse-print-dates)))
-            (list "Menu"
-                   (list
-                    (let ((m1 displayed-month)
-                          (y1 displayed-year)
-                          (m2 displayed-month)
-                          (y2 displayed-year))
-                      (increment-calendar-month m1 y1 -1)
-                      (increment-calendar-month m2 y2 1)
-                      (if (= y1 y2)
-                          (format "%s--%s, %d"
-                              (substring (calendar-month-name m1) 0 3)
-                              (substring (calendar-month-name m2) 0 3) y2)
-                        (format "%s, %d--%s, %d"
-                                (substring (calendar-month-name m1) 0 3) y1
-                                (substring (calendar-month-name m2) 0 3) y2)))
-                     '("Scroll forward" . scroll-calendar-left-three-months)
-                     '("Scroll backward" . scroll-calendar-right-three-months)
-                     '("Show diary" . show-all-diary-entries)
-                     '("Mark diary entries" . mark-diary-entries)
-                     '("List holidays" . list-calendar-holidays)
-                     '("Mark holidays" . mark-calendar-holidays)
-                     '("Unmark" . calendar-unmark)
-                     '("Lunar phases" . calendar-phases-of-moon)
-                     '("Exit calendar" . exit-calendar)))))))
+  (let* ((date (calendar-event-to-date t))
+         (selection
+          (x-popup-menu
+           event
+           (list "Menu"
+                 (list
+                  (calendar-date-string date t t)
+                  '("Diary entries" . calendar-mouse-view-diary-entries)
+                  '("Holidays" . calendar-mouse-holidays)
+                  '("Mark date" . calendar-mouse-set-mark)
+                  '("Sunrise/sunset" . calendar-mouse-sunrise/sunset)
+                  '("Other calendars" . calendar-mouse-print-dates))))))
+    (and selection (call-interactively selection))))
+
+(defun calendar-mouse-3-date-menu (event)
+  "Pop up menu for Mouse-3 in the calendar window."
+  (interactive "e")
+  (let* ((m1 displayed-month)
+         (y1 displayed-year)
+         (m2 displayed-month)
+         (y2 displayed-year)
+         (junk (increment-calendar-month m1 y1 -1))
+         (junk (increment-calendar-month m2 y2 1))
+         (selection
+          (x-popup-menu
+           event
+           (list "Menu"
+                 (list
+                   (if (= y1 y2)
+                       (format "%s--%s, %d"
+                               (substring (calendar-month-name m1) 0 3)
+                               (substring (calendar-month-name m2) 0 3) y2)
+                     (format "%s, %d--%s, %d"
+                             (substring (calendar-month-name m1) 0 3) y1
+                             (substring (calendar-month-name m2) 0 3) y2))
+                   '("Scroll forward" . scroll-calendar-left-three-months)
+                   '("Scroll backward" . scroll-calendar-right-three-months)
+                   '("Show diary" . show-all-diary-entries)
+                   '("Mark diary entries" . mark-diary-entries)
+                   '("List holidays" . list-calendar-holidays)
+                   '("Mark holidays" . mark-calendar-holidays)
+                   '("Unmark" . calendar-unmark)
+                   '("Lunar phases" . calendar-phases-of-moon)
+                   '("Exit calendar" . exit-calendar))))))
     (and selection (call-interactively selection))))
 
 (run-hooks 'cal-menu-load-hook)
