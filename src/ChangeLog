@@ -20,25 +20,31 @@
 	* xmenu.c (popup_get_selection): Only pop down dialogs
 	on C-g and Escape.
 	(popup_get_selection): Remove parameter down_on_keypress.
-	(create_and_show_popup_menu, create_and_show_dialog): Remove 
+	(create_and_show_popup_menu, create_and_show_dialog): Remove
 	parameter down_on_keypress to popup_get_selection.
 
 2004-12-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h: Change HAVE_CARBON to MAC_OS.
 	(struct glyph_string): Likewise.
+
 	* emacs.c (main) [MAC_OS8]: Call mac_term_init instead of
 	mac_initialize.
+
 	* fileio.c (Fnext_read_file_uses_dialog_p, Fread_file_name):
 	Change TARGET_API_MAC_CARBON to HAVE_CARBON.
+
 	* fns.c (vector): Change MAC_OSX to MAC_OS.
+
 	* frame.c (x_set_frame_parameters, x_report_frame_params)
 	(x_set_fullscreen): Remove #ifndef HAVE_CARBON.
 	(x_set_border_width, Vdefault_frame_scroll_bars): Change
 	HAVE_CARBON to MAC_OS.
+
 	* image.c [MAC_OS]: Include sys/stat.h.
 	[MAC_OS && !MAC_OSX]: Include sys/param.h, ImageCompression.h, and
 	QuickTimeComponents.h.
+
 	* mac.c [!MAC_OSX] (mac_wait_next_event): Add extern.
 	[!MAC_OSX] (select): Use mac_wait_next_event.
 	[!MAC_OSX] (run_mac_command): Change EXEC_SUFFIXES to
@@ -57,6 +63,7 @@
 	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]: Use CFSocket and
 	RunLoop for simultaneously monitoring two kinds of inputs, window
 	events and process outputs, without periodically polling.
+
 	* macfns.c (mac_initialized): Remove extern.
 	(stricmp): Put in #if 0.  All callers changed to use xstricmp in
 	xfaces.c.
@@ -82,11 +89,13 @@
 	TARGET_API_MAC_CARBON'.
 	(mac_frame_parm_handlers): Set handlers for Qfullscreen.
 	(syms_of_macfns) [MAC_OSX]: Initialize mac_in_use to 0.
+
 	* macgui.h [!MAC_OSX]: Don't include Controls.h.  Include
 	Windows.h.
 	(Window): Typedef to WindowPtr and move outside `#if
 	TARGET_API_MAC_CARBON'.
 	(XSizeHints): New struct.
+
 	* macterm.c (x_update_begin, x_update_end)
 	[TARGET_API_MAC_CARBON]: Disable screen updates during update of a
 	frame.
@@ -142,12 +151,15 @@
 	Add entries to x_display_list and x_display_name_list.
 	(x_delete_display): New function.
 	(mac_initialize): Don't call mac_initialize_display_info.
-	(syms_of_macterm) [!MAC_OSX]: Don't call Fprovide.	
+	(syms_of_macterm) [!MAC_OSX]: Don't call Fprovide.
+
 	* macterm.h (check_mac): Add extern.
 	(struct mac_output): New member size_hints.
 	(FRAME_SIZE_HINTS): New macro.
 	(mac_unload_font): Add extern.
+
 	* xdisp.c (expose_window, expose_frame): Remove kludges for Mac.
+
 	* xfaces.c (clear_font_table) [MAC_OS]: call mac_unload_font.
 
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
@@ -165,7 +177,7 @@
 	(handle_single_display_spec): Renamed from handle_single_display_prop.
 	Rewritten to be easier to understand.
 
-	* Change in load-history format.  Functions now get (defun . NAME),
+	Change in load-history format.  Functions now get (defun . NAME),
 	and variables get just NAME.
 
 	* data.c (Fdefalias): Use (defun . FN_NAME) in LOADHIST_ATTACH.
@@ -304,7 +316,7 @@
 
 	* sysdep.c (select_alarm): Call SIGNAL_THREAD_CHECK.
 
-	* process.c (send_process_trap, sigchld_handler): Call 
+	* process.c (send_process_trap, sigchld_handler): Call
 	SIGNAL_THREAD_CHECK.
 
 	* data.c (arith_error): Call SIGNAL_THREAD_CHECK.

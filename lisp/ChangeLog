@@ -32,7 +32,7 @@
 	With --dired output format, detect and distinguish lines
 	that are really error messages.
 	(insert-directory-adj-pos): New function.
-	
+
 	* bookmark.el (bookmark-jump): Nice error if BOOKMARK is nil.
 
 	* battery.el (battery-mode-line-format): Remove initial spaces.
@@ -61,14 +61,14 @@
 	Now takes an arg TYPE to specify looking for a particular
 	type of definition only.
 
-	* emacs-lisp/debug.el (debugger-make-xrefs): 
+	* emacs-lisp/debug.el (debugger-make-xrefs):
 	Call symbol-file with `defun'.
 
-	* emacs-lisp/find-func.el (find-function-noselect): 
+	* emacs-lisp/find-func.el (find-function-noselect):
 	Call symbol-file with `defun'.
 	(find-variable-noselect): Call symbol-file with `defvar'.
 
-	* eshell/esh-cmd.el (eshell-find-alias-function): 
+	* eshell/esh-cmd.el (eshell-find-alias-function):
 	Call symbol-file with `defun'.
 
 	* eshell/esh-test.el (eshell-test-goto-func):
@@ -88,14 +88,14 @@
 	(undo): Set and test it.
 	(buffer-disable-undo): Moved here from buffer.c.
 	Clear out undo-list-saved.
-	
-	* international/mule.el (decode-coding-inserted-region): 
+
+	* international/mule.el (decode-coding-inserted-region):
 	Set buffer-undo-list in a correct and optimal way.
 
 	* progmodes/cperl-mode.el (cperl-find-bad-style): Use with-no-warnings.
 	(cperl-font-lock-unfontify-region-function): No need to save and
 	restore info, since font-lock.el does it for us.
-	
+
 	* ansi-color.el (save-buffer-state): Definition deleted.
 	(ansi-color-unfontify-region): Don't use save-buffer-state.
 
@@ -105,10 +105,10 @@
 
 2004-12-27  Kevin Ryde  <user42@zip.com.au>
 
-        * simple.el (next-matching-history-element): Use same
+	* simple.el (next-matching-history-element): Use same
 	`interactive' form as previous-matching-history-element.
 
-        * ffap.el (ffap-string-at-point-mode-alist): Add "*" to url chars,
+	* ffap.el (ffap-string-at-point-mode-alist): Add "*" to url chars,
         it can appear unencoded and has been seen from yahoo.
 
 2004-12-27  Sergey Poznyakoff <gray@Mirddin.farlep.net>  (tiny change)
