@@ -366,14 +366,17 @@ Therefore, you need to have `(display-time)' in your .emacs file."
 	 (appt-disp-buf (set-buffer (get-buffer-create appt-buffer-name))))
 
     (appt-select-lowest-window)
-    (split-window)
-      
-    (pop-to-buffer appt-disp-buf)
+    (if (cdr (assq 'unsplittable (frame-parameters)))
+	;; In an unsplittable frame, use something somewhere else.
+	(display-buffer appt-disp-buf)
+      ;; Otherwise, split the bottom window and use the lower part.
+      (split-window)
+      (pop-to-buffer appt-disp-buf))
     (setq mode-line-format 
 	  (concat "-------------------- Appointment in "
 		  min-to-app " minutes. " new-time " %-"))
     (insert-string appt-msg)
-    (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf))
+    (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))
     (set-buffer-modified-p nil)
     (select-window this-window)
     (if appt-audible
@@ -382,7 +385,7 @@ Therefore, you need to have `(display-time)' in your .emacs file."
 (defun appt-delete-window ()
   "Function called to undisplay appointment messages.
 Usually just deletes the appointment buffer."
-  (delete-window (get-buffer-window appt-buffer-name))
+  (delete-window (get-buffer-window appt-buffer-name t))
   (kill-buffer appt-buffer-name)
   (if appt-audible
       (beep 1)))
