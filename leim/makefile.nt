@@ -36,7 +36,7 @@ dot = .
 # byte-compile Emacs Lisp files, and generate the file leim-list.el.
 BUILT_EMACS = $(dot)$(dot)\src\$(BLD)\emacs.exe
 
-buildlisppath=$(dot)$(dot)/lisp
+buildlisppath=$(MAKEDIR:\=/)/$(dot)$(dot)/lisp
 
 # How to run Emacs.
 RUN_EMACS = $(BUILT_EMACS) -batch --no-init-file --no-site-file --multibyte
@@ -144,7 +144,7 @@ $(TIT): $(SUBDIRS)
 	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
 	    --eval "(batch-titdic-convert t)" -dir quail $(srcdir)/CXTERM-DIC
 	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
-	    -f batch-byte-compile $(TIT)
+	    -f batch-byte-compile $(TIT:.elc=.el)
 
 .SUFFIXES: .elc .el
 
