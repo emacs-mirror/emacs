@@ -1,6 +1,6 @@
 ;;; indent.el --- indentation commands for Emacs
 
-;; Copyright (C) 1985, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1995, 2001 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -65,9 +65,7 @@ The function actually called to indent is determined by the value of
 	  (and (not tab-always-indent)
 	       (> (current-column) (current-indentation))))
       (insert-tab prefix-arg)
-    (if prefix-arg
-	(funcall indent-line-function prefix-arg)
-      (funcall indent-line-function))))
+    (funcall indent-line-function)))
 
 (defun insert-tab (&optional prefix-arg)
   (let ((count (prefix-numeric-value prefix-arg)))
