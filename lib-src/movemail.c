@@ -34,7 +34,7 @@ Boston, MA 02111-1307, USA.  */
 /*
  * Modified January, 1986 by Michael R. Gretzinger (Project Athena)
  *
- * Added POP (Post Office Protocol) service.  When compiled -DPOP
+ * Added POP (Post Office Protocol) service.  When compiled -DMAIL_USE_POP
  * movemail will accept input filename arguments of the form
  * "po:username".  This will cause movemail to open a connection to
  * a pop server running on $MAILHOST (environment variable).  Movemail
