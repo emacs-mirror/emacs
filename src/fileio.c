@@ -256,9 +256,12 @@ report_file_error (string, data)
 {
   Lisp_Object errstring;
   int errorno = errno;
+  char *str;
 
   synchronize_system_messages_locale ();
-  errstring = code_convert_string_norecord (build_string (strerror (errorno)),
+  str = strerror (errorno);
+  errstring = code_convert_string_norecord (make_unibyte_string (str,
+								 strlen (str)),
 					    Vlocale_coding_system, 0);
 
   while (1)
@@ -2251,7 +2254,8 @@ duplicates what `expand-file-name' does.  */)
 	       convert what we substitute into multibyte.  */
 	    while (*o)
 	      {
-		int c = unibyte_char_to_multibyte (*o++);
+		int c = unibyte_char_to_multibyte (*o);
+		o++;
 		x += CHAR_STRING (c, x);
 	      }
 	  }
