@@ -160,6 +160,11 @@
 	(isearch-char-to-string): Removed.  Callers changed to use
 	char-to-string.
 
+1999-09-26  Oleg S. Tihonov  <tihonov@ffke-campus.mipt.ru>
+
+	* ispell.el (ispell-dictionary-alist-6): Don't use "-C"
+	option for Russian.
+
 1999-09-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* faces.el (face-differs-from-default-p): Compare face 

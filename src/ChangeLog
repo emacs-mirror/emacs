@@ -281,6 +281,11 @@
 	* xdisp.c (echo_area_display): Turn off code that returned
 	without doing anything when using a terminal frame.
 
+1999-09-17  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* unexelf.c (unexec): Don't get confused by a short section
+	just before the bss section.
+
 1999-09-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs.c (main): Remove unused variables.
