@@ -1,3 +1,9 @@
+2002-05-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* cus-edit.el (customize-set-value): Rename `var' to `variable'
+	and `val' to `value'.
+	(customize-save-variable): Rename `var' to `'variable.
+
 2002-05-12  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/fortran.el (fortran-preprocessor-re): New variable.
