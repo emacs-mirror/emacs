@@ -392,6 +392,17 @@ doesn't add newlines at all.  @code{nil} is the default value, but a few
 major modes set it to @code{t} in particular buffers.
 @end defopt
 
+@deffn Command set-visited-file-name filename &optional no-query
+This function changes the visited file name of the current buffer to
+@var{filename}.  It also renames the buffer based on @var{filename},
+appending a string like @samp{<2>} if necessary to make a unique buffer
+name.  It marks the buffer as @emph{modified},a since the contents do not
+(as far as Emacs knows) match the actual file's contents.
+
+If the specified file already exists, @code{set-visited-file-name}
+asks for confirmation unless @var{no-query} is non-@code{nil}.
+@end deffn
+
 @node Reading from Files
 @comment  node-name,  next,  previous,  up
 @section Reading from Files
@@ -1234,6 +1245,8 @@ as well as Unix syntax.
 * File Name Expansion::   Converting relative file names to absolute ones.
 * Unique File Names::     Generating names for temporary files.
 * File Name Completion::  Finding the completions for a given file name.
+* Standard File Names::   If your package uses a fixed file name,
+                            how to handle various operating systems simply.
 @end menu
 
 @node File Name Components
@@ -1738,6 +1751,53 @@ completion-ignored-extensions
 @end example
 @end defopt
 
+@node Standard File Names
+@subsection Standard File Names
+
+  Most of the file names used in Lisp programs are entered by the user.
+But occasionally a Lisp program needs to specify a standard file name
+for a particular use---typically, to hold customization information
+about each user.  For example, abbrev definitions are stored (by
+default) in the file @file{~/.abbrev_defs}; the @code{completion}
+package stores completions in the file @file{~/.completions}.  These are
+two of the many standard file names used by parts of Emacs for certain
+purposes.
+
+  Various operating systems have their own conventions for valid file
+names and for which file names to use for user profile data.  A Lisp
+program which reads a file using a standard file name ought to use, on
+each type of system, a file name suitable for that system.  The function
+@code{convert-standard-filename} makes this easy to do.
+
+@defun convert-standard-filename filename
+This function alters the file name @var{filename} to fit the conventions
+of the operating system in use, and returns the result as a new string.
+@end defun
+
+  The recommended way to specify a standard file name in a Lisp program
+is to choose a name which fits the conventions of GNU and Unix systems,
+usually with a nondirectory part that starts with a period, and pass it
+to @code{convert-standard-filename} instead of using it directly.  Here
+is an example from the @code{completion} package:
+
+@example
+(defvar save-completions-file-name
+        (convert-standard-filename "~/.completions")
+  "*The file name to save completions to.")
+@end example
+
+  On GNU and Unix systems, and on some other systems as well,
+@code{convert-standard-filename} returns its argument unchanged.  On
+some other systems, it alters the name to fit the systems's conventions.
+
+  For example, on MS-DOS the alterations made by this function include
+converting a leading @samp{.}  to @samp{_}, converting a @samp{_} in the
+middle of the name to @samp{.} if there is no other @samp{.}, inserting
+a @samp{.} after eight characters if there is none, and truncating to
+three characters after the @samp{.}.  (It makes other changes as well.)
+Thus, @file{.abbrev_defs} becomes @file{_abbrev.def}, and
+@file{.completions} becomes @file{_complet.ion}.
+
 @node Contents of Directories
 @section Contents of Directories
 @cindex directory-oriented functions
@@ -1884,7 +1944,7 @@ Here are the operations that a magic file name handler gets to handle:
 @code{delete-file},@*
 @code{diff-latest-backup-file},
 @code{directory-file-name},
-@code{directory-files},
+@code{directory-files}, @code{dired-call-process},
 @code{dired-compress-file}, @code{dired-uncache},
 @code{expand-file-name},@*
 @code{file-accessible-directory-p},
@@ -1894,13 +1954,16 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-name-as-directory}, @code{file-name-completion},
 @code{file-name-directory}, @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
+@code{file-ownership-preserved-p},
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
 @code{file-truename}, @code{file-writable-p},
+@code{find-backup-file-name},
 @code{get-file-buffer},
-@code{insert-directory},
-@code{insert-file-contents}, @code{load}, @code{make-directory},
+@code{insert-directory}, @code{insert-file-contents},
+@code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
-@code{set-visited-file-modtime}, @code{unhandled-file-name-directory},
+@code{set-visited-file-modtime}, @code{shell-command}.
+@code{unhandled-file-name-directory}, @code{vc-registered},
 @code{verify-visited-file-modtime}, @code{write-region}.
 
 Handlers for @code{insert-file-contents} typically need to clear the
@@ -2133,16 +2196,17 @@ is always local in all buffers.
 @cindex file types on MS-DOS
 @cindex text files and binary files
 @cindex binary files and text files
+@cindex Windows file types
 
-  Emacs on MS-DOS makes a distinction between text files and binary
-files.  This is necessary because ordinary text files on MS-DOS use a
-two character sequence between lines: carriage-return and linefeed
-(@sc{crlf}).  Emacs expects just a newline character (a linefeed) between
-lines.  When Emacs reads or writes a text file on MS-DOS, it needs to
-convert the line separators.  This means it needs to know which files
-are text files and which are binary.  It makes this decision when
-visiting a file, and records the decision in the variable
-@code{buffer-file-type} for use when the file is saved.
+  Emacs on MS-DOS and on Windows NT or 95 makes a distinction between
+text files and binary files.  This is necessary because ordinary text
+files on MS-DOS use a two character sequence between lines:
+carriage-return and linefeed (@sc{crlf}).  Emacs expects just a newline
+character (a linefeed) between lines.  When Emacs reads or writes a text
+file on MS-DOS, it needs to convert the line separators.  This means it
+needs to know which files are text files and which are binary.  It makes
+this decision when visiting a file, and records the decision in the
+variable @code{buffer-file-type} for use when the file is saved.
 
   @xref{MS-DOS Subprocesses}, for a related feature for subprocesses.
 
