@@ -1034,7 +1034,23 @@ See also the function `substitute-in-file-name'.")
   if (NILP (default_directory))
     default_directory = current_buffer->directory;
   if (! STRINGP (default_directory))
-    default_directory = build_string ("/");
+    {
+#ifdef DOS_NT
+      /* "/" is not considered a root directory on DOS_NT, so using "/"
+	 here causes an infinite recursion in, e.g., the following:
+
+            (let (default-directory)
+	      (expand-file-name "a"))
+
+	 To avoid this, we set default_directory to the root of the
+	 current drive.  */
+      extern char *emacs_root_dir (void);
+
+      default_directory = build_string (emacs_root_dir ());
+#else
+      default_directory = build_string ("/");
+#endif
+    }
 
   if (!NILP (default_directory))
     {
