@@ -420,9 +420,11 @@ terminal specified by the @env{TERM} variable.  This defaults to
 @item TMPDIR
 Used by the Emerge package as a prefix for temporary files.
 @item TZ
-This specifies the current time zone and possibly also daylight savings
-information.  On MS-DOS, the default is based on country code; see the
-file @file{msdos.c} for details.
+This specifies the current time zone and possibly also daylight
+savings information.  On MS-DOS, if @code{TZ} is not set in the
+environment when Emacs starts, Emacs defines a default value as
+appropriate for the country code returned by DOS.  MS Windows
+does not use @code{TZ} at all.
 @item USER
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
 defaults to @samp{root}.
