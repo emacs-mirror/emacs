@@ -15,7 +15,7 @@ for sophisticated activities.  We don't recommend using them for
 ordinary editing.
 
   Arguments starting with @samp{-} are @dfn{options}, and so is
-@samp{+@var{linenum}.  All other arguments specify files to visit.
+@samp{+@var{linenum}}.  All other arguments specify files to visit.
 Emacs visits the specified files while it starts up.  The last file
 name on your command line becomes the current buffer; the other files
 are also visited in other buffers.  If there are two files, they are
