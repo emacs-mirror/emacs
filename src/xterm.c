@@ -13437,8 +13437,13 @@ x_list_fonts (f, pattern, size, maxnames)
 		    }
 		}
 	    }
+	  
 	  if (!try_XLoadQueryFont)
-	    XFreeFontNames (names);
+	    {
+	      BLOCK_INPUT;
+	      XFreeFontNames (names);
+	      UNBLOCK_INPUT;
+	    }
 	}
 
       /* Now store the result in the cache.  */
@@ -13490,7 +13495,9 @@ x_list_fonts (f, pattern, size, maxnames)
 		    = (thisinfo->min_bounds.width == 0
 		       ? make_number (0)
 		       : make_number (thisinfo->max_bounds.width));
+		  BLOCK_INPUT;
 		  XFreeFont (dpy, thisinfo);
+		  UNBLOCK_INPUT;
 		}
 	      else
 		/* For unknown reason, the previous call of XListFont had
