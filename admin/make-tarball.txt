@@ -44,7 +44,7 @@ For each step, check for possible errors.
 
 11. For a pretest, do:
     rsync -aP emacs-NEW.tar.gz emacs-OLD-NEW.xdelta compile-NEW.log \
-    emacs-NEW.announce alpha.gnu.org:/home/alpha/gnu/emacs/pretest/
+    emacs-NEW.announce alpha.gnu.org:/home/alpha/gnu/emacs/pretest/.
     *release instructions missing*
 
 12. Verify that after five minutes at most the files appear on
