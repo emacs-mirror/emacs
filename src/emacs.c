@@ -1223,7 +1223,7 @@ sort_args (argc, argv)
 
 	  /* If we have found "--", don't consider
 	     any more arguments as options.  */
-	  if (argv[from][1] == '-')
+	  if (argv[from][1] == '-' && argv[from][2] == 0)
 	    {
 	      /* Leave the "--", and everything following it, at the end.  */
 	      for (; from < argc; from++)
