@@ -1261,12 +1261,12 @@ update_frame (f, force, inhibit_hairy_id)
 #ifdef HAVE_X_WINDOWS
   if (FRAME_X_P (f))
     {
-      leftmost = downto = f->display.x->internal_border_width;
+      leftmost = downto = f->output_data.x->internal_border_width;
       if (desired_frame->enable[0])
 	{
 	  current_frame->top_left_x[FRAME_HEIGHT (f) - 1] = leftmost;
 	  current_frame->top_left_y[FRAME_HEIGHT (f) - 1]
-	    = PIXEL_HEIGHT (f) - f->display.x->internal_border_width
+	    = PIXEL_HEIGHT (f) - f->output_data.x->internal_border_width
 	      - current_frame->pix_height[FRAME_HEIGHT (f) - 1];
 	  current_frame->top_left_x[0] = leftmost;
 	  current_frame->top_left_y[0] = downto;
@@ -1627,9 +1627,9 @@ update_line (frame, vpos)
     {
       current_frame->pix_width[vpos]
 	= current_frame->used[vpos]
-	  * FONT_WIDTH (frame->display.x->font);
+	  * FONT_WIDTH (frame->output_data.x->font);
       current_frame->pix_height[vpos]
-	= frame->display.x->line_height;
+	= frame->output_data.x->line_height;
     }
 #endif /* HAVE_X_WINDOWS */
 

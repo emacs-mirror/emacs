@@ -169,7 +169,7 @@ static int next_menubar_widget_id;
 
 #ifdef USE_X_TOOLKIT
 
-/* Return the frame whose ->display.x->id equals ID, or 0 if none.  */
+/* Return the frame whose ->output_data.x->id equals ID, or 0 if none.  */
 
 static struct frame *
 menubar_id_to_frame (id)
@@ -186,7 +186,7 @@ menubar_id_to_frame (id)
       f = XFRAME (frame);
       if (f->display.nothing == 1)
 	continue;
-      if (f->display.x->id == id)
+      if (f->output_data.x->id == id)
 	return f;
     }
   return 0;
@@ -830,8 +830,8 @@ cached information about equivalent key sequences.")
 	  CHECK_LIVE_WINDOW (window, 0);
 	  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
 
-	  xpos = (FONT_WIDTH (f->display.x->font) * XWINDOW (window)->left);
-	  ypos = (f->display.x->line_height * XWINDOW (window)->top);
+	  xpos = (FONT_WIDTH (f->output_data.x->font) * XWINDOW (window)->left);
+	  ypos = (f->output_data.x->line_height * XWINDOW (window)->top);
 	}
       else
 	/* ??? Not really clean; should be CHECK_WINDOW_OR_FRAME,
@@ -1151,17 +1151,17 @@ popup_get_selection (initial_event, dpyinfo, id)
 x_activate_menubar (f)
      FRAME_PTR f;
 {
-  if (f->display.x->saved_button_event->type != ButtonPress)
+  if (f->output_data.x->saved_button_event->type != ButtonPress)
     return;
 
   set_frame_menubar (f, 0, 1);
 
   BLOCK_INPUT;
-  XtDispatchEvent ((XEvent *) f->display.x->saved_button_event);
+  XtDispatchEvent ((XEvent *) f->output_data.x->saved_button_event);
   UNBLOCK_INPUT;
 
   /* Ignore this if we get it a second time.  */
-  f->display.x->saved_button_event->type = 0;
+  f->output_data.x->saved_button_event->type = 0;
 }
 
 /* Detect if a dialog or menu has been posted.  */
@@ -1481,7 +1481,7 @@ static void
 update_frame_menubar (f)
      FRAME_PTR f;
 {
-  struct x_display *x = f->display.x;
+  struct x_output *x = f->output_data.x;
   int columns, rows;
   int menubar_changed;
   
@@ -1543,15 +1543,15 @@ set_frame_menubar (f, first_time, deep_p)
      int first_time;
      int deep_p;
 {
-  Widget menubar_widget = f->display.x->menubar_widget;
+  Widget menubar_widget = f->output_data.x->menubar_widget;
   Lisp_Object tail, items, frame;
   widget_value *wv, *first_wv, *prev_wv = 0;
   int i;
   LWLIB_ID id;
 
-  if (f->display.x->id == 0)
-    f->display.x->id = next_menubar_widget_id++;
-  id = f->display.x->id;
+  if (f->output_data.x->id == 0)
+    f->output_data.x->id = next_menubar_widget_id++;
+  id = f->output_data.x->id;
 
   if (! menubar_widget)
     deep_p = 1;
@@ -1701,42 +1701,42 @@ set_frame_menubar (f, first_time, deep_p)
   if (menubar_widget)
     {
       /* Disable resizing (done for Motif!) */
-      lw_allow_resizing (f->display.x->widget, False);
+      lw_allow_resizing (f->output_data.x->widget, False);
 
       /* The third arg is DEEP_P, which says to consider the entire
 	 menu trees we supply, rather than just the menu bar item names.  */
       lw_modify_all_widgets (id, first_wv, deep_p);
 
       /* Re-enable the edit widget to resize.  */
-      lw_allow_resizing (f->display.x->widget, True);
+      lw_allow_resizing (f->output_data.x->widget, True);
     }
   else
     {
       menubar_widget = lw_create_widget ("menubar", "menubar", id, first_wv, 
-					 f->display.x->column_widget,
+					 f->output_data.x->column_widget,
 					 0,
 					 popup_activate_callback,
 					 menubar_selection_callback,
 					 popup_deactivate_callback);
-      f->display.x->menubar_widget = menubar_widget;
+      f->output_data.x->menubar_widget = menubar_widget;
     }
 
   {
     int menubar_size 
-      = (f->display.x->menubar_widget
-	 ? (f->display.x->menubar_widget->core.height
-	    + f->display.x->menubar_widget->core.border_width)
+      = (f->output_data.x->menubar_widget
+	 ? (f->output_data.x->menubar_widget->core.height
+	    + f->output_data.x->menubar_widget->core.border_width)
 	 : 0);
 
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
         Dimension ibw = 0;
-        XtVaGetValues (f->display.x->column_widget,
+        XtVaGetValues (f->output_data.x->column_widget,
 		       XtNinternalBorderWidth, &ibw, NULL);
         menubar_size += ibw;
       }
 
-    f->display.x->menubar_height = menubar_size;
+    f->output_data.x->menubar_height = menubar_size;
   }
   
   free_menubar_widget_value_tree (first_wv);
@@ -1771,12 +1771,12 @@ free_frame_menubar (f)
   Widget menubar_widget;
   int id;
 
-  menubar_widget = f->display.x->menubar_widget;
+  menubar_widget = f->output_data.x->menubar_widget;
   
   if (menubar_widget)
     {
       BLOCK_INPUT;
-      lw_destroy_all_widgets ((LWLIB_ID) f->display.x->id);
+      lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
       UNBLOCK_INPUT;
     }
 }
@@ -1989,7 +1989,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   /* Actually create the menu.  */
   menu_id = widget_id_tick++;
   menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
-			   f->display.x->widget, 1, 0,
+			   f->output_data.x->widget, 1, 0,
 			   popup_selection_callback,
 			   popup_deactivate_callback);
 
@@ -2210,7 +2210,7 @@ xdialog_show (f, keymaps, title, error)
   /* Actually create the dialog.  */
   dialog_id = widget_id_tick++;
   menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
-			   f->display.x->widget, 1, 0,
+			   f->output_data.x->widget, 1, 0,
 			   dialog_selection_callback, 0);
   lw_modify_all_widgets (dialog_id, first_wv->contents, True);
   /* Free the widget_value objects we used to specify the contents.  */
@@ -2321,14 +2321,14 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
     /* Find the position of the outside upper-left corner of
        the inner window, with respect to the outer window.  */
-    if (f->display.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
+    if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
       {
 	BLOCK_INPUT;
 	XTranslateCoordinates (FRAME_X_DISPLAY (f),
 
 			       /* From-window, to-window.  */
-			       f->display.x->window_desc,
-			       f->display.x->parent_desc,
+			       f->output_data.x->window_desc,
+			       f->output_data.x->parent_desc,
 
 			       /* From-position, to-position.  */
 			       0, 0, &win_x, &win_y,
@@ -2343,8 +2343,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #endif /* HAVE_X_WINDOWS */
 
   /* Adjust coordinates to be root-window-relative.  */
-  x += f->display.x->left_pos;
-  y += f->display.x->top_pos;
+  x += f->output_data.x->left_pos;
+  y += f->output_data.x->top_pos;
  
   /* Create all the necessary panes and their items.  */
   i = 0;

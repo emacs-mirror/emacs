@@ -87,13 +87,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    (assq FACE-NAME global-face-data) returns a vector describing the
    global parameters for that face.
 
-   Let PARAM-FACE be FRAME->display.x->param_faces[Faref (FACE-VECTOR, 2)].
+   Let PARAM-FACE be FRAME->output_data.x->param_faces[Faref (FACE-VECTOR, 2)].
    PARAM_FACE is a struct face whose members are the Xlib analogues of
    the parameters in FACE-VECTOR.  If an element of FACE-VECTOR is
    nil, then the corresponding member of PARAM_FACE is FACE_DEFAULT.
    These faces are called "parameter faces", because they're the ones
    lisp manipulates to control what gets displayed.  Elements 0 and 1
-   of FRAME->display.x->param_faces are special - they describe the
+   of FRAME->output_data.x->param_faces are special - they describe the
    default and mode line faces.  None of the faces in param_faces have
    GC's.  (See src/dispextern.h for the definiton of struct face.
    lisp/faces.el maintains the isomorphism between face_alist and
@@ -104,9 +104,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    properties.  The resulting faces are called "computed faces"; none
    of their members are FACE_DEFAULT; they are completely specified.
    They then call intern_compute_face to search
-   FRAME->display.x->computed_faces for a matching face, add one if
+   FRAME->output_data.x->computed_faces for a matching face, add one if
    none is found, and return the index into
-   FRAME->display.x->computed_faces.  FRAME's glyph matrices use these
+   FRAME->output_data.x->computed_faces.  FRAME's glyph matrices use these
    indices to record the faces of the matrix characters, and the X
    display hooks consult compute_faces to decide how to display these
    characters.  Elements 0 and 1 of computed_faces always describe the
@@ -231,17 +231,17 @@ intern_face (f, face)
   if (face->foreground != FACE_DEFAULT)
     xgcv.foreground = face->foreground;
   else
-    xgcv.foreground = f->display.x->foreground_pixel;
+    xgcv.foreground = f->output_data.x->foreground_pixel;
 
   if (face->background != FACE_DEFAULT)
     xgcv.background = face->background;
   else
-    xgcv.background = f->display.x->background_pixel;
+    xgcv.background = f->output_data.x->background_pixel;
 
   if (face->font && face->font != (XFontStruct *) FACE_DEFAULT)
     xgcv.font = face->font->fid;
   else
-    xgcv.font = f->display.x->font->fid;
+    xgcv.font = f->output_data.x->font->fid;
 
   xgcv.graphics_exposures = 0;
 
@@ -699,21 +699,21 @@ frame_update_line_height (f)
      FRAME_PTR f;
 {
   int i;
-  int biggest = FONT_HEIGHT (f->display.x->font);
+  int biggest = FONT_HEIGHT (f->output_data.x->font);
 
-  for (i = 0; i < f->display.x->n_param_faces; i++)
-    if (f->display.x->param_faces[i] != 0
-	&& f->display.x->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
+  for (i = 0; i < f->output_data.x->n_param_faces; i++)
+    if (f->output_data.x->param_faces[i] != 0
+	&& f->output_data.x->param_faces[i]->font != (XFontStruct *) FACE_DEFAULT)
       {
-	int height = FONT_HEIGHT (f->display.x->param_faces[i]->font);
+	int height = FONT_HEIGHT (f->output_data.x->param_faces[i]->font);
 	if (height > biggest)
 	  biggest = height;
       }
 
-  if (biggest == f->display.x->line_height)
+  if (biggest == f->output_data.x->line_height)
     return 0;
 
-  f->display.x->line_height = biggest;
+  f->output_data.x->line_height = biggest;
   return 1;
 }
 #endif /* not HAVE_X_WINDOWS */
@@ -1105,7 +1105,7 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
       face->font = 0; /* The one and only font.  */
 #else
       XFontStruct *font = load_font (f, attr_value);
-      if (face->font != f->display.x->font)
+      if (face->font != f->output_data.x->font)
 	unload_font (f, face->font);
       face->font = font;
       if (frame_update_line_height (f))

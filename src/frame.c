@@ -158,7 +158,7 @@ make_frame (mini_p)
   f->desired_glyphs = 0;
   f->visible = 0;
   f->async_visible = 0;
-  f->display.nothing = 0;
+  f->output_data.nothing = 0;
   f->iconified = 0;
   f->async_iconified = 0;
   f->wants_modeline = 1;
@@ -377,7 +377,7 @@ make_terminal_frame ()
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
-  f->display.nothing = 1;	/* Nonzero means frame isn't deleted.  */
+  f->output_data.nothing = 1;	/* Nonzero means frame isn't deleted.  */
   return f;
 }
 
@@ -1036,7 +1036,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     x_destroy_window (f);
 #endif
 
-  f->display.nothing = 0;
+  f->output_data.nothing = 0;
 
   /* If we've deleted the last_nonminibuf_frame, then try to find
      another one.  */
