@@ -1,8 +1,14 @@
+2003-03-19  Simon Marshall  <simon@gnu.org>
+
+	* progmodes/make-mode.el (makefile-font-lock-syntactic-keywords):
+	New variable.
+	(makefile-mode): Use it for value of font-lock-syntactic-keywords.
+
 2003-03-19  John Paul Wallington  <jpw@gnu.org>
 
 	* cus-theme.el (custom-theme-create): Add autoload cookie.
 
-2003-03-19  Kenichi Handa  <handa@etlken2>
+2003-03-19  Kenichi Handa  <handa@m17n.org>
 
 	* dired.el (dired-get-filename): Pay attention to the case that
 	`read' returns a unibyte string.  Don't encode the file name by
