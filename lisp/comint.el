@@ -854,15 +854,17 @@ See `comint-magic-space' and `comint-replace-by-expanded-history-before-point'.
 Returns t if successful."
   (interactive)
   (if (and comint-input-autoexpand
-	   (string-match "[!^]" (funcall comint-get-old-input)))
+	   (string-match "[!^]" (funcall comint-get-old-input))
+	   (save-excursion (beginning-of-line)
+			   (looking-at comint-prompt-regexp)))
       ;; Looks like there might be history references in the command.
       (let ((previous-modified-tick (buffer-modified-tick)))
 	(message "Expanding history references...")
-	(comint-replace-by-expanded-history-before-point)
+	(comint-replace-by-expanded-history-before-point silent)
 	(/= previous-modified-tick (buffer-modified-tick)))))
 
 
-(defun comint-replace-by-expanded-history-before-point ()
+(defun comint-replace-by-expanded-history-before-point (silent)
   "Expand directory stack reference before point.
 See `comint-replace-by-expanded-history'.  Returns t if successful."
   (save-excursion
