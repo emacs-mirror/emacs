@@ -25,7 +25,7 @@
 (defconst vip-ex-work-buf (get-buffer-create vip-ex-work-buf-name))
 
 
-;;; Completion in :set command
+;;; Variable completion in :set command
   
 ;; The list of Ex commands. Used for completing command names.
 (defconst ex-token-alist
@@ -183,8 +183,8 @@ reversed.")
 	  ((looking-at "k[a-z][^a-z]")
 	   (setq ex-token "kmark")
 	   (forward-char 1)
-	   (exchange-point-and-mark)) ;; this is canceled out by another
-				      ;; exchange-point-and-mark at the end
+	   (exchange-point-and-mark))   ; this is canceled out by another
+					; exchange-point-and-mark at the end
 	  ((looking-at "k") (vip-check-sub "kmark"))
 	  ((looking-at "n") (if (looking-at "nu")
 				(vip-check-sub "number")
@@ -399,7 +399,7 @@ A token has a type, \(command, address, end-mark\), and a value."
       (setq completion-result
 	    (try-completion string-to-complete ex-token-alist))
       
-      (cond ((eq completion-result t)  ;; exact match--do nothing
+      (cond ((eq completion-result t)  ; exact match--do nothing
 	     (vip-tmp-insert-at-eob " (Sole completion)"))
 	    ((eq completion-result nil)
 	     (vip-tmp-insert-at-eob " (No match)"))
@@ -609,8 +609,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 	       (setq address (point-marker)))))
 	  ((eq ex-token-type 'end)
 	   (setq address (point-max-marker)))
-	  ((eq ex-token-type 'plus) t);; do nothing
-	  ((eq ex-token-type 'minus) t);; do nothing
+	  ((eq ex-token-type 'plus) t)  ; do nothing
+	  ((eq ex-token-type 'minus) t) ; do nothing
 	  ((eq ex-token-type 'search-forward)
 	   (save-excursion
 	     (ex-search-address t)
@@ -701,13 +701,14 @@ A token has a type, \(command, address, end-mark\), and a value."
     (save-excursion 
       (set-buffer buf)
       (setq cf buffer-file-name)
-      (setq pf (ex-next nil t))) ;; this finds alternative file name
+      (setq pf (ex-next nil t))) ; this finds alternative file name
     (if (and (null cf) (string-match "[^\\]%\\|\\`%" cmd))
 	(error "No current file to substitute for `\%'"))
     (if (and (null pf) (string-match "[^\\]#\\|\\`#" cmd))
 	(error "No alternate file to substitute for `#'"))
     (save-excursion
-      (set-buffer (get-buffer-create " ex-tmp"))
+      (set-buffer (get-buffer-create " *ex-tmp*"))
+      (erase-buffer)
       (insert cmd)
       (goto-char (point-min))
       (while (re-search-forward "%\\|#" nil t)
@@ -721,7 +722,6 @@ A token has a type, \(command, address, end-mark\), and a value."
 	      (replace-match pf)))))
       (end-of-line)
       (setq ret (buffer-substring (point-min) (point)))
-      (kill-buffer (current-buffer))
       (message "%s" ret))
     ret))
 
@@ -763,7 +763,7 @@ A token has a type, \(command, address, end-mark\), and a value."
 	      (skip-chars-forward " \t")))
 	;; this takes care of :r, :w, etc., when they get file names
 	;; from the history list
-	(if (member ex-token '("read" "write" "edit" "visual"))
+	(if (member ex-token '("read" "write" "edit" "visual" "next"))
 	    (progn
 	      (setq ex-file (buffer-substring (point)  (1- (point-max))))
 	      (setq ex-file
@@ -838,8 +838,8 @@ A token has a type, \(command, address, end-mark\), and a value."
 		      (ex-cmd-accepts-multiple-files-p ex-token)))
       )
     
-    (setq beg (string-match "[^ \t]" str)   ;; delete leading blanks
-	  end (string-match "[ \t]*$" str)) ;; delete trailing blanks
+    (setq beg (string-match "[^ \t]" str)   ; delete leading blanks
+	  end (string-match "[ \t]*$" str)) ; delete trailing blanks
     (if (member ex-token '("read" "write"))
 	  (if (string-match "[\t ]*!" str)
 	      ;; this is actually a shell command
@@ -967,7 +967,7 @@ A token has a type, \(command, address, end-mark\), and a value."
 	    (princ "\n=============\n")
 	    (princ "\nThe numbers can be given as counts to :next. ")
 	    (princ "\n\nPress any key to continue...\n\n"))
-	  (vip-read-char-exclusive))))))
+	  (vip-read-event))))))
 
 (defun ex-cd ()
   "Ex cd command. Default directory of this buffer changes."
@@ -1099,23 +1099,35 @@ with the first file in its argument list."
 ;; splits the string FILESPEC into substrings separated by newlines `\012'
 ;; each line assumed to be a file name. find-file's each file thus obtained.
 (defun ex-find-file (filespec)
-  (let (s f filebuf)
+  (let (s f filebuf status)
     (if (string-match "[^a-zA-Z0-9_.-/]" filespec)
 	(progn
 	  (save-excursion 
-	    (set-buffer (get-buffer-create " ex-tmp"))
-	    (call-process ex-find-file-shell nil t nil
-			  ex-find-file-shell-options 
-			  "-c"
-			  (format "echo %s | tr ' ' '\\012'" filespec))
+	    (set-buffer (get-buffer-create " *ex-tmp*"))
+	    (erase-buffer)
+	    (setq status
+		  (call-process ex-find-file-shell nil t nil
+				ex-find-file-shell-options 
+				"-c"
+				(format "echo %s | tr ' ' '\\012'" filespec)))
 	    (goto-char (point-min))
+	    ;; Give an error, if no match.
+	    (if (> status 0)
+		(save-excursion
+		  (skip-chars-forward " \t\n\j")
+		  (if (looking-at "echo:")
+		      (vip-forward-word 1))
+		  (error "%S%s"
+			 filespec
+			 (buffer-substring (point) (vip-line-pos 'end)))
+		  ))
 	    (while (not (eobp))
 	      (setq s (point))
 	      (end-of-line)
 	      (setq f (buffer-substring s (point)))
 	      (setq filebuf (find-file-noselect f))
 	      (forward-to-indentation 1))
-	    (kill-buffer (current-buffer))))
+	    ))
       (setq filebuf (find-file-noselect (setq f filespec))))
     (switch-to-buffer filebuf)
     ))
@@ -1265,9 +1277,8 @@ with the first file in its argument list."
 	  (progn
 	    (vip-get-ex-file)
 	    (if (or (char-or-string-p ex-offset)
-		    (not (string= "" ex-file)))
-		    ;(and (not (string= "" ex-file)) 
-		    ;     (not (string-match "[0-9]+" ex-file))))
+		    (and (not (string= "" ex-file)) 
+		         (not (string-match "^[0-9]+$" ex-file))))
 		(progn
 		  (ex-edit t)
 		  (throw 'ex-edit nil))
@@ -1289,7 +1300,9 @@ with the first file in its argument list."
 			    (get-lru-window) (selected-window)))
 		     (b (window-buffer w)))
 		(set-window-buffer w (get-file-buffer (car l)))
-		(bury-buffer b))
+		(bury-buffer b)
+		;; this puts "next <count>" in the ex-command history
+		(ex-fixup-history vip-last-ex-prompt ex-file))
 	    (error "Not that many undisplayed files")))))))
 
 
@@ -1495,7 +1508,7 @@ with the first file in its argument list."
 	  ((member var '("nows" "nowrapscan"))
 	   (setq var "vip-search-wrap-around-t"
 		 val "nil")))
-    (if (eq val 0) ;; value must be set by the user
+    (if (eq val 0) ; value must be set by the user
 	(let ((cursor-in-echo-area t))
 	  (message (format ":set %s = <Value>" var))
 	  ;; if there are unread events, don't wait
@@ -1644,9 +1657,12 @@ If REPEAT use previous regexp which is ex-reg-exp or vip-s-string"
 	delim pat repl)
     (if repeat (setq ex-token nil) (setq delim (vip-get-ex-pat)))
     (if (null ex-token)
-	(setq pat (if r-flag vip-s-string ex-reg-exp)
-	      repl ex-repl
-	      delim (string-to-char pat))
+	(progn
+	  (setq pat (if r-flag vip-s-string ex-reg-exp))
+	  (or (stringp pat)
+	      (error "No previous pattern to use in substitution"))
+	  (setq repl ex-repl
+		delim (string-to-char pat)))
       (setq pat (if (string= ex-token "") vip-s-string ex-token))
       (setq vip-s-string pat
 	    ex-reg-exp pat)
@@ -1871,16 +1887,26 @@ If REPEAT use previous regexp which is ex-reg-exp or vip-s-string"
 (defun vip-info-on-file ()
   "Give information on the file visited by the current buffer."
   (interactive)
-  (message "%s: pos=%d(%d) line=%d(%d) col=%d %s"
-           (if (buffer-file-name)
-	       (abbreviate-file-name (buffer-file-name))
-	     "[No visited file]")
-	   (point) (1- (point-max))
-           (count-lines (point-min) (vip-line-pos 'end))
-           (count-lines (point-min) (point-max))
-	   (1+ (current-column))
-	   (if (buffer-modified-p) "[Modified]" "[Unchanged]")
-  ))
+  (let (file info)
+    (setq file (if (buffer-file-name)
+		   (concat (abbreviate-file-name (buffer-file-name)) ":")
+		 (concat (buffer-name) " [Not visiting any file]:"))
+	  info (format "line=%d/%d pos=%d/%d col=%d %s"
+		       (count-lines (point-min) (vip-line-pos 'end))
+		       (count-lines (point-min) (point-max))
+		       (point) (1- (point-max))
+		       (1+ (current-column))
+		       (if (buffer-modified-p) "[Modified]" "[Unchanged]")))
+    (if (< (+ 1 (length info) (length file))
+	   (window-width (minibuffer-window)))
+	(message (concat file " " info))
+      (save-window-excursion
+	(with-output-to-temp-buffer " *vip-info*"
+	  (princ (concat "\n"
+			 file "\n\n\t" info
+			 "\n\n\nPress any key to continue...\n\n")))
+	(vip-read-event)))
+    ))
 
 
 (provide 'viper-ex)
