@@ -622,14 +622,15 @@ system.  Alternatively, you can specify a cron entry:
 to run it every morning at 1am."
   (interactive "P")
   (let* ((diary-display-hook 'fancy-diary-display)
-         (diary-list-include-blanks t)
          (text (progn (list-diary-entries (calendar-current-date)
                                           (if ndays ndays diary-mail-days))
                       (set-buffer fancy-diary-buffer)
                       (buffer-substring (point-min) (point-max)))))
     (compose-mail diary-mail-addr
-                  (concat "Diary entries generated "
-                          (calendar-date-string (calendar-current-date))))
+		  (if (string-equal text "")
+		      "No entries found"
+		    (concat "Diary entries generated "
+			    (calendar-date-string (calendar-current-date)))))
     (insert text)
     (funcall (get mail-user-agent 'sendfunc))))
 
