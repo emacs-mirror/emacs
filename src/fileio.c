@@ -3457,6 +3457,38 @@ DEFUN ("recent-auto-save-p", Frecent_auto_save_p, Srecent_auto_save_p,
 /* Reading and completing file names */
 extern Lisp_Object Ffile_name_completion (), Ffile_name_all_completions ();
 
+/* In the string VAL, change each $ to $$ and return the result.  */
+
+static Lisp_Object
+double_dollars (val)
+     Lisp_Object val;
+{
+  register unsigned char *old, *new;
+  register int n;
+  int osize, count;
+
+  osize = XSTRING (val)->size;
+  /* Quote "$" as "$$" to get it past substitute-in-file-name */
+  for (n = osize, count = 0, old = XSTRING (val)->data; n > 0; n--)
+    if (*old++ == '$') count++;
+  if (count > 0)
+    {
+      old = XSTRING (val)->data;
+      val = Fmake_string (make_number (osize + count), make_number (0));
+      new = XSTRING (val)->data;
+      for (n = osize; n > 0; n--)
+	if (*old != '$')
+	  *new++ = *old++;
+	else
+	  {
+	    *new++ = '$';
+	    *new++ = '$';
+	    old++;
+	  }
+    }
+  return val;
+}
+
 DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_internal,
   3, 3, 0,
   "Internal subroutine for read-file-name.  Do not call this.")
@@ -3511,33 +3543,10 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
       if (!NILP (specdir))
 	val = concat2 (specdir, val);
 #ifndef VMS
-      {
-	register unsigned char *old, *new;
-	register int n;
-	int osize, count;
-
-	osize = XSTRING (val)->size;
-	/* Quote "$" as "$$" to get it past substitute-in-file-name */
-	for (n = osize, count = 0, old = XSTRING (val)->data; n > 0; n--)
-	  if (*old++ == '$') count++;
-	if (count > 0)
-	  {
-	    old = XSTRING (val)->data;
-	    val = Fmake_string (make_number (osize + count), make_number (0));
-	    new = XSTRING (val)->data;
-	    for (n = osize; n > 0; n--)
-	      if (*old != '$')
-		*new++ = *old++;
-	      else
-		{
-		  *new++ = '$';
-		  *new++ = '$';
-		  old++;
-		}
-	  }
-      }
-#endif /* Not VMS */
+      return double_dollars (val);
+#else /* not VMS */
       return val;
+#endif /* not VMS */
     }
   UNGCPRO;
 
@@ -3599,8 +3608,10 @@ DIR defaults to current buffer's directory default.")
 	  args[1] = initial;
 	  insdef = Fconcat (2, args);
 	  pos = make_number (XSTRING (dir)->size);
-	  insdef1 = Fcons (insdef, pos);
+	  insdef1 = Fcons (double_dollars (insdef), pos);
 	}
+      else
+	insdef1 = double_dollars (insdef);
     }
   else
     insdef = Qnil, insdef1 = Qnil;
