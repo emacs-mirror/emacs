@@ -1,3 +1,183 @@
+2000-08-22  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in: New file.
+
+	* unexw32.c (unexec): Ignore old_name, and use the actual location
+	of the current executable instead.  Base new_name on this.
+
+	* w32proc.c (create_child): Remove reference to security
+	descriptor, which isn't needed and doesn't compile with mingw32.
+
+	* w32term.c [USE_CRT_DLL]: Remove unnecessary extern, which screws
+	up dllimport attributes.
+	(x_update_window_end): Update prototype.
+
+	* unexec.c (write_segment) [USE_CRT_DLL]: Remove unnecessary
+	extern, which screws up dllimport attributes.
+
+	* sysdep.c [USE_CRT_DLL]: Remove unnecessary extern, which screws
+	up dllimport attributes.
+
+	* strftime.c [USE_CRT_DLL]: Remove unnecessary extern, which
+	screws up dllimport attributes.
+
+	* process.c [USE_CRT_DLL]: Remove unnecessary extern, which screws
+	up dllimport attributes.
+	(create_process) [USE_CRT_DLL]: Remove unnecessary extern, which
+	screws up dllimport attributes.
+
+	* lread.c [USE_CRT_DLL]: Remove unnecessary extern, which screws
+	up dllimport attributes.
+
+	* keyboard.c [USE_CRT_DLL]: Remove unnecessary extern, which
+	screws up dllimport attributes.
+
+	* floatfns.c [USE_CRT_DLL]: Remove unnecessary extern, which
+	screws up dllimport attributes.
+
+	* fileio.c [USE_CRT_DLL]: Remove unnecessary extern, which screws
+	up dllimport attributes.
+
+	* emacs.c (malloc_initialize_hook) [USE_CRT_DLL]: Remove
+	unnecessary extern, which screws up dllimport attributes.
+	(main): Ditto.
+
+	* editfns.c [USE_CRT_DLL]: Remove unnecessary extern, which screws
+	up dllimport attributes.
+
+	* dispnew.c (window_change_signal) [USE_CRT_DLL]: Remove
+	unnecessary extern, which screws up dllimport attributes.
+
+	* callproc.c [USE_CRT_DLL]: Remove unnecessary extern, which
+	screws up dllimport attributes.
+
+	* buffer.c [USE_CRT_DLL]: Remove unnecessary extern, which screws
+	up dllimport attributes.
+
+	* w32proc.c (IsValidLocale): Extern missing from mingw32 headers.
+
+	* w32bdf.c (search_file_line): 
+	(set_bdf_font_info): 
+	(seek_char): 
+	(w32_get_bdf_glyph): 
+	(w32_BDF_to_x_font): Fix compile warnings.
+
+	* w32menu.c: Include keyboard.h before frame.h.  Fix compile
+	warnings.
+
+	* w32select.c: Include keyboard.h before frame.h.
+
+	* w32fns.c (max): Define macro.
+	(JOHAB_CHARSET): Define if not known.
+	(MOD_ALT, MOD_CONTROL, MOD_SHIFT, MOD_WIN): Define if not known.
+	(Fx_show_tip): Synch with X version.
+
+	* w32xfns.c: Include keyboard.h before frame.h.
+
+	* w32fns.c: Include keyboard.h before frame.h.
+
+	* w32term.c: Include keyboard.h before frame.h.
+
+	* fontset.c: Include keyboard.h before frame.h.
+
+	* w32inevt.c: Include keyboard.h before frame.h.
+	(MOUSE_MOVED): Define if not known.
+
+	* minibuf.c: Include keyboard.h before frame.h.
+
+	* keyboard.c: Include keyboard.h before frame.h.
+
+	* indent.c: Include keyboard.h before frame.h.
+
+	* dispnew.c: Include keyboard.h before frame.h.
+
+	* buffer.c: Include keyboard.h before frame.h.
+
+	* alloc.c: Include keyboard.h before frame.h.
+
+	* print.c: Include keyboard.h before frame.h.
+
+	* process.c: Include keyboard.h before frame.h.
+
+	* scroll.c: Include keyboard.h before frame.h.
+
+	* sysdep.c: Include keyboard.h before frame.h.
+
+	* term.c: Include keyboard.h before frame.h.
+
+	* window.c: Include keyboard.h before frame.h.
+
+	* xdisp.c: Include keyboard.h before frame.h.
+	Separate GLYPH_DEBUG and DEBUG_TRACE_MOVE.
+
+	* frame.c: Include keyboard.h before frame.h.
+
+	* w32heap.h: Undefine min, max.
+
+	* w32gui.h: Undefine min, max.
+
+	* unexw32.c: Change PUCHAR to PCHAR.
+	(PTR_TO_OFFSET): Cast ptr to unsigned char *.
+	(relocate_offset): 
+	(get_section_info): 
+	(copy_executable_and_dump_data): Remove unnecessary static defs.
+	(copy_executable_and_dump_data): Fix compile warnings.
+
+	* sysdep.c (NULL) [WINDOWSNT]: Define NULL if not defined.
+
+	* w32console.c (min): Define macro.
+	(clear_frame, write_glyphs): Fix compile warning.
+
+	* w32proc.c (compare_env): 
+	(find_child_console): Fix compile warning.
+
+	* w32.c (sys_strerror): Use sys_nerr instead of _sys_nerr.  Use
+	sys_errlist instead of _sys_errlist.
+	(get_emacs_configuration_options): New function.
+
+	* s/ms-w32.h (sys_nerr): Provide default definition.
+	(strdup, strupr, strnicmp, stricmp, tzset, tzname): Map to same
+	name with _ prepended.
+	(NSIG): Define if not known.
+	(get_emacs_configuration): Provide extern declaration.
+	(get_emacs_configuration_options): Provide extern declaration.
+	(EMACS_CONFIG_OPTIONS): Call get_emacs_configuration_options.
+
+	* w32.c (gettimeofday): Use struct timeb, not struct _timeb.
+	(map_w32_filename): 
+	(read_unc_volume): Fix compile warning.
+
+	* s/ms-w32.h (_WINSOCK_H): Define to prevent normal winsock
+	definitions from being used.
+
+	* lisp.h [WINDOWSNT]: Don't declare externs for getenv, ctime and getwd.
+
+	* w32.c (unc_volume_file_attributes): 
+	(open_unc_volume): Make arg const.
+
+	* sysdep.c [WINDOWSNT]: Remove extern decl of errno.
+	(read_input_waiting): Remove excess parameter.
+
+	* w32.c (init_environment): Call _access.
+	(check_windows_init_file): Call _close.
+	(init_user_info): Call _putenv.
+	(init_environment): Call _putenv and _strdup.
+	(init_ntproc): Reset volume info cache on startup.
+
+	* s/ms-w32.h (malloc, free, realloc, calloc): Rename if
+	USE_CRT_DLL is defined, so Emacs can use GNU malloc even though it
+	cannot override the CRT malloc.
+
+	* makefile.nt (LOCAL_FLAGS): Define USE_CRT_DLL if requested.
+	(LINK_FLAGS): Append to original value of LINK_FLAGS.
+
+	* w32heap.c [!USE_CRT_DLL]: Don't define _heap_init and _heap_term
+	unless we are linking with a static CRT.
+	(RVA_TO_PTR): Cast result to unsigned char*.
+
+	* w32.c (GetCachedVolumeInformation): Use xmalloc, xfree and xstrdup.
+	(add_volume_info): Use xstrdup.
+
 2000-08-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* minibuf.c (Vcompletion_auto_help): Renamed from `auto_help'.
@@ -5616,5 +5796,5 @@
 See ChangeLog.8 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
