@@ -1,3 +1,94 @@
+2003-06-30  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-sort-entry-class): new entry
+	catch-all.
+	(bibtex-sort-ignore-string-entries): default value t.
+	(bibtex-entry-kill-ring-max): Reintroduced as it was removed
+	erroneously in previous version.
+	(bibtex-string-files): Docstring reflects new parsing scheme.
+	(bibtex-autokey-transcriptions): Merge some rewrite entries, fix
+	docstring, add # as one of the chars to crush
+	(bibtex-autokey-prefix-string, bibtex-autokey-names)
+	(bibtex-autokey-names-stretch, bibtex-autokey-additional-names)
+	(bibtex-autokey-name-change-strings)
+	(bibtex-autokey-name-case-convert, bibtex-autokey-name-length)
+	(bibtex-autokey-name-separator, bibtex-autokey-year-length)
+	(bibtex-autokey-use-crossref, bibtex-autokey-titlewords)
+	(bibtex-autokey-title-terminators)
+	(bibtex-autokey-titlewords-stretch)
+	(bibtex-autokey-titleword-ignore)
+	(bibtex-autokey-titleword-case-convert)
+	(bibtex-autokey-titleword-abbrevs)
+	(bibtex-autokey-titleword-abbrevs)
+	(bibtex-autokey-titleword-change-strings)
+	(bibtex-autokey-titleword-length)
+	(bibtex-autokey-titleword-separator)
+	(bibtex-autokey-name-year-separator)
+	(bibtex-autokey-year-title-separator)
+	(bibtex-autokey-before-presentation-function)
+	(bibtex-entry-type-history, bibtex-entry-maybe-empty-head): Fix
+	docstring.
+	(bibtex-strings, bibtex-reference-keys): Use
+	lazy-completion-table and make-variable-buffer-local.
+	(bibtex-sort-entry-class-alist): Use downcase, account for
+	catch-all.
+	(bibtex-braced-string-syntax-table)
+	(bibtex-quoted-string-syntax-table): New variables.
+	(bibtex-parse-nested-braces): Remove.
+	(bibtex-parse-field-string): Use syntax table and forward-sexp.
+	(bibtex-parse-association): Simplify.
+	(bibtex-parse-field-name): Obey bibtex-autoadd-commas.
+	(bibtex-parse-field-text): Simplify.
+	(bibtex-search-forward-field, bibtex-search-backward-field):
+	argument BOUND can take value t.
+	(bibtex-start-of-field, bibtex-start-of-name-in-field)
+	(bibtex-end-of-name-in-field, bibtex-end-of-field)
+	(bibtex-start-of-text-in-field, bibtex-end-of-text-in-field)
+	(bibtex-start-of-text-in-string, bibtex-end-of-text-in-string)
+	(bibtex-end-of-string, bibtex-type-in-head): Use defsubst.
+	(bibtex-skip-to-valid-entry): Return buffer position of beginning
+	and ending of entry. Update for changes of bibtex-search-entry.
+	Simplify.
+	(bibtex-map-entries): FUN is called with three arguments.
+	(bibtex-search-entry): Return a cons pair with buffer positions of
+	beginning and end of entry.
+	(bibtex-enclosing-field): Simplify.
+	(bibtex-format-entry): Use booktitle to set a missing title.
+	(bibtex-autokey-get-names): Fiddle with regexps.
+	(bibtex-generate-autokey): Use identity.
+	(bibtex-parse-keys): Use simplified parsing algorithm if
+	bibtex-parse-keys-fast is non-nil. Simplify. Change order of
+	arguments. Return alist of keys.
+	(bibtex-parse-strings): Simplify. Return alist of strings.
+	(bibtex-complete-string-cleanup): Fix docstring.
+	(bibtex-read-key): New function.
+	(bibtex-mode): Fix docstring. Do not parse for keys and
+	strings when the mode is entered. Set fill-paragraph-function to
+	bibtex-fill-field. Setup font-lock-mark-block-function the way
+	font-lock intended.
+	(bibtex-entry): Use bibtex-read-key. Obey bibtex-autofill-types.
+	(bibtex-parse-entry, bibtex-autofill-entry): New functions.
+	(bibtex-print-help-message, bibtex-remove-OPT-or-ALT)
+	(bibtex-Preamble): Avoid hard coded constants.
+	(bibtex-make-field): Fix docstring. Simplify.
+	(bibtex-beginning-of-entry): Always return new position of point.
+	(bibtex-end-of-entry): Rearrange cond clauses.
+	(bibtex-count-entries, bibtex-validate, bibtex-reformat): Update
+	for changes of bibtex-map-entries.
+	(bibtex-ispell-abstract): Do not move point.
+	(bibtex-entry-index): Use downcase. Simplify.
+	(bibtex-lessp): Handle catch-all.
+	(bibtex-find-crossref): Turned into a command.
+	(bibtex-find-entry): Simplify. Use bibtex-read-key. Fix regexp.
+	(bibtex-clean-entry): Use bibtex-read-key. Handle string and
+	preamble entries.
+	(bibtex-fill-field-bounds): New function.
+	(bibtex-fill-field): New command. Bound to
+	fill-paragraph-function.
+	(bibtex-fill-entry): Use bibtex-fill-field-bounds
+	(bibtex-String): Use bibtex-strings. Always obey
+	bibtex-sort-ignore-string-entries.
+
 2003-07-05  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (ibuffer-backward-line, ibuffer-forward-line)
