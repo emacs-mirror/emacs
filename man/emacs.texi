@@ -5,7 +5,7 @@
 @setfilename ../info/emacs
 @synindex pg cp
 
-@ifinfo
+@ifnottex
 @c The edition number appears in several places in this file
 This is the fourteenth edition of the @cite{GNU Emacs Manual},
 updated for Emacs version 21.1
@@ -23,31 +23,27 @@ Boston, MA  02111-1307 USA
 Copyright (C) 1985, 1986,1987,1993,1994,1995,1996,1997,1998,1999,2000
    Free Software Foundation, Inc.
 
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
+``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License''.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
 
 @ignore
-Permission is granted to process this file through Tex and print the
+Permission is granted to process this file through TeX and print the
 results, provided the printed document carries copying permission
 notice identical to this one except for the removal of this paragraph
 (this paragraph not being relevant to the printed manual).
 
 @end ignore
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-sections entitled ``The GNU Manifesto'', ``Distribution'' and ``GNU
-General Public License'' are included exactly as in the original, and
-provided that the entire resulting derived work is distributed under the
-terms of a permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that the sections entitled ``The GNU Manifesto'',
-``Distribution'' and ``GNU General Public License'' may be included in a
-translation approved by the Free Software Foundation instead of in the
-original English.
-@end ifinfo
+@end ifnottex
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  the manual should go
@@ -82,23 +78,18 @@ Published by the Free Software Foundation @*
 59 Temple Place, Suite 330 @*
 Boston, MA  02111-1307 USA
 @sp 1
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
+``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License''.
 
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that the
-sections entitled ``The GNU Manifesto'', ``Distribution'' and ``GNU
-General Public License'' are included exactly as in the original, and
-provided that the entire resulting derived work is distributed under the
-terms of a permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that the sections entitled ``The GNU Manifesto'',
-``Distribution'' and ``GNU General Public License'' may be included in a
-translation approved by the Free Software Foundation instead of in the
-original English.
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
 
 @sp 2
 Cover art by Etienne Suvasa.
@@ -142,6 +133,7 @@ and Sending Mail and Registers and Minibuffer.
 * Copying::	        The GNU General Public License gives you permission
 			  to redistribute GNU Emacs on certain terms;
 			  it also explains that there is no warranty.
+* GNU Free Documentation License:: The license for this documentation.
 * Intro::	        An introduction to Emacs concepts.
 * Glossary::	        The glossary.
 * Antinews::	        Information about Emacs version 19.
@@ -949,7 +941,7 @@ S. T. Wu, Tom Wurgler, Eli Zaretskii, Jamie Zawinski, Ian T. Zimmermann,
 Reto Zimmermann, and Neal Ziring.
 @end iftex
 
-@node Copying, Intro, Distrib, Top
+@node Copying, GNU Free Documentation License, Distrib, Top
 @unnumbered GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991
 
@@ -1345,7 +1337,9 @@ consider it more useful to permit linking proprietary applications with the
 library.  If this is what you want to do, use the GNU Library General
 Public License instead of this License.
 
-@node Intro, Glossary, Copying, Top
+@include doclicense.texi
+
+@node Intro, Glossary, GNU Free Documentation License, Top
 @unnumbered Introduction
 
   You are reading about GNU Emacs, the GNU incarnation of the advanced,
