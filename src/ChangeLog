@@ -1,3 +1,10 @@
+2002-04-09  Kenichi Handa  <handa@etl.go.jp>
+
+	* fileio.c (Finsert_file_contents): Fix calculation of `inserted'.
+	Fix arguments to insert_from_buffer.
+
+	* xdisp.c (display_mode_element): Fix calculation of `bytepos'.
+
 2002-03-11  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (produce_chars): Set the variable `multibytep' correctly.
