@@ -32,6 +32,7 @@
 (defvar sort-fold-case nil
   "*Non-nil if the buffer sort functions should ignore case.")
 
+;;;###autoload
 (defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)
   "General text sorting routine to divide buffer into records and sort them.
 Arguments are REVERSE NEXTRECFUN ENDRECFUN &optional STARTKEYFUN ENDKEYFUN.
