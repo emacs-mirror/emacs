@@ -971,6 +971,7 @@ Optional argument HASHSIZE specifies the table size."
   (define-key gnus-group-mode-map "Q" 'gnus-group-quit)
   (define-key gnus-group-mode-map "?" 'gnus-group-describe-briefly)
   (define-key gnus-group-mode-map "\C-c\C-i" 'gnus-info-find-node)
+  (define-key gnus-group-mode-map   [mouse-2] 'gnus-mouse-pick-group)
 
   ;; Make a menu bar item.
   (define-key gnus-group-mode-map [menu-bar GNUS]
@@ -1231,6 +1232,11 @@ Various hooks for customization:
   (buffer-flush-undo (current-buffer))
   (setq buffer-read-only t)		;Disable modification
   (run-hooks 'gnus-group-mode-hook))
+
+(defun gnus-mouse-pick-group (e)
+  (interactive "e")
+  (mouse-set-point e)
+  (gnus-group-read-group nil))
 
 ;;;###autoload
 (defun gnus (&optional confirm)
@@ -1845,6 +1851,7 @@ The hook gnus-exit-gnus-hook is called before actually quitting."
   (define-key gnus-summary-mode-map "Q" 'gnus-summary-quit)
   (define-key gnus-summary-mode-map "?" 'gnus-summary-describe-briefly)
   (define-key gnus-summary-mode-map "\C-c\C-i" 'gnus-info-find-node)
+  (define-key gnus-summary-mode-map [mouse-2] 'gnus-mouse-pick-article)
 
   (define-key gnus-summary-mode-map [menu-bar misc]
 	(cons "Misc" (make-sparse-keymap "misc")))
@@ -1862,9 +1869,9 @@ The hook gnus-exit-gnus-hook is called before actually quitting."
 	'("Mark as Read" . gnus-summary-mark-as-read))
 
   (define-key gnus-summary-mode-map [menu-bar misc quit]
-	'("Quit GNUS" . gnus-summary-quit))
+	'("Quit Group" . gnus-summary-quit))
   (define-key gnus-summary-mode-map [menu-bar misc exit]
-	'("Exit GNUS" . gnus-summary-exit))
+	'("Exit Group" . gnus-summary-exit))
 
   (define-key gnus-summary-mode-map [menu-bar sort]
 	(cons "Sort" (make-sparse-keymap "sort")))
@@ -1906,51 +1913,65 @@ The hook gnus-exit-gnus-hook is called before actually quitting."
 	(cons "Action" (make-sparse-keymap "action")))
 
   (define-key gnus-summary-mode-map [menu-bar action kill-same-subject]
-	'("kill-same-subject" . gnus-summary-kill-same-subject))
+	'("Kill Same Subject" . gnus-summary-kill-same-subject))
   (define-key gnus-summary-mode-map [menu-bar action kill-thread]
-	'("kill-thread" . gnus-summary-kill-thread))
+	'("Kill Thread" . gnus-summary-kill-thread))
   (define-key gnus-summary-mode-map [menu-bar action delete-marked-with]
-	'("delete-marked-with" . gnus-summary-delete-marked-with))
+	'("Delete Marked With" . gnus-summary-delete-marked-with))
   (define-key gnus-summary-mode-map [menu-bar action delete-marked-as-read]
-	'("delete-marked-as-read" . gnus-summary-delete-marked-as-read))
+	'("Delete Marked As Read" . gnus-summary-delete-marked-as-read))
   (define-key gnus-summary-mode-map [menu-bar action catchup-and-exit]
-	'("catchup-and-exit" . gnus-summary-catchup-and-exit))
+	'("Catchup And Exit" . gnus-summary-catchup-and-exit))
   (define-key gnus-summary-mode-map [menu-bar action catchup-to-here]
-	'("catchup-to-here" . gnus-summary-catchup-to-here))
+	'("Catchup to Here" . gnus-summary-catchup-to-here))
+
+  (define-key gnus-summary-mode-map [menu-bar action ignore]
+    '("---"))
 
   (define-key gnus-summary-mode-map [menu-bar action save-in-file]
-	'("save-in-file" . gnus-summary-save-in-file))
+	'("Save in File" . gnus-summary-save-in-file))
   (define-key gnus-summary-mode-map [menu-bar action save-article]
-	'("save-article" . gnus-summary-save-article))
+	'("Save Article" . gnus-summary-save-article))
 
+  (define-key gnus-summary-mode-map [menu-bar action lambda]
+    '("---"))
+
+  (define-key gnus-summary-mode-map [menu-bar action forward]
+	'("Forward" . gnus-summary-mail-forward))
   (define-key gnus-summary-mode-map [menu-bar action followup-with-original]
-	'("followup-with-original" . gnus-summary-followup-with-original))
+	'("Followup with Original" . gnus-summary-followup-with-original))
   (define-key gnus-summary-mode-map [menu-bar action followup]
-	'("followup" . gnus-summary-followup))
+	'("Followup" . gnus-summary-followup))
   (define-key gnus-summary-mode-map [menu-bar action reply-with-original]
-	'("reply-with-original" . gnus-summary-reply-with-original))
+	'("Reply with Original" . gnus-summary-reply-with-original))
   (define-key gnus-summary-mode-map [menu-bar action reply]
-	'("reply" . gnus-summary-reply))
+	'("Reply" . gnus-summary-reply))
+  (define-key gnus-summary-mode-map [menu-bar action post]
+	'("Post News" . gnus-summary-post-news))
 
   (define-key gnus-summary-mode-map [menu-bar move]
 	(cons "Move" (make-sparse-keymap "move")))
 
+  (define-key gnus-summary-mode-map [menu-bar move isearch-article]
+	'("Search in Article" . gnus-summary-isearch-article))
+  (define-key gnus-summary-mode-map [menu-bar move search-through-articles]
+	'("Search through Articles" . gnus-summary-search-article-forward))
   (define-key gnus-summary-mode-map [menu-bar move down-thread]
-	'("down-thread" . gnus-summary-down-thread))
+	'("Down Thread" . gnus-summary-down-thread))
   (define-key gnus-summary-mode-map [menu-bar move prev-same-subject]
-	'("prev-same-subject" . gnus-summary-prev-same-subject))
+	'("Prev Same Subject" . gnus-summary-prev-same-subject))
   (define-key gnus-summary-mode-map [menu-bar move prev-group]
-	'("prev-group" . gnus-summary-prev-group))
+	'("Prev Group" . gnus-summary-prev-group))
   (define-key gnus-summary-mode-map [menu-bar move next-unread-same-subject]
-	'("next-unread-same-subject" . gnus-summary-next-unread-same-subject))
+	'("Next Unread Same Subject" . gnus-summary-next-unread-same-subject))
   (define-key gnus-summary-mode-map [menu-bar move next-unread-article]
-	'("next-unread-article" . gnus-summary-next-unread-article))
+	'("Next Unread Article" . gnus-summary-next-unread-article))
   (define-key gnus-summary-mode-map [menu-bar move next-thread]
-	'("next-thread" . gnus-summary-next-thread))
+	'("Next Thread" . gnus-summary-next-thread))
   (define-key gnus-summary-mode-map [menu-bar move next-group]
-	'("next-group" . gnus-summary-next-group))
+	'("Next Group" . gnus-summary-next-group))
   (define-key gnus-summary-mode-map [menu-bar move first-unread-article]
-	'("first-unread-article" . gnus-summary-first-unread-article))
+	'("First Unread Article" . gnus-summary-first-unread-article))
   )
 
 
@@ -2281,6 +2302,11 @@ Various hooks for customization:
   (setq selective-display-ellipses t)	;Display `...'
   ;;(setq case-fold-search t)
   (run-hooks 'gnus-summary-mode-hook))
+
+(defun gnus-mouse-pick-article (e)
+  (interactive "e")
+  (mouse-set-point e)
+  (gnus-summary-next-page nil))
 
 (defun gnus-summary-setup-buffer ()
   "Initialize Summary buffer."
