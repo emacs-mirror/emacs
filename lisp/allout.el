@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.34 2002/08/30 11:03:28 lektu Exp $||
+;; Version: $Id: allout.el,v 1.35 2002/12/16 00:20:42 rost Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -150,7 +150,7 @@ just the header."
 Outline topic header lines are identified by a leading topic
 header prefix, which mostly have the value of this var at their front.
 \(Level 1 topics are exceptions.  They consist of only a single
-character, which is typically set to the allout-primary-bullet.  Many
+character, which is typically set to the `allout-primary-bullet'.  Many
 outlines start at level 2 to avoid this discrepancy."
   :type 'string
   :group 'allout)
@@ -164,8 +164,8 @@ prefix, which is concluded by bullets that includes the value of this
 var and the respective allout-*-bullets-string vars.
 
 The value of an asterisk (`*') provides for backwards compatibility
-with the original emacs outline mode.  See allout-plain-bullets-string
-and allout-distinctive-bullets-string for the range of available
+with the original emacs outline mode.  See `allout-plain-bullets-string'
+and `allout-distinctive-bullets-string' for the range of available
 bullets."
   :type 'string
   :group 'allout)
@@ -313,7 +313,7 @@ Stylish and constant prefixes (as well as old-style prefixes) are
 always respected by the topic maneuvering functions, regardless of
 this variable setting.
 
-The setting of this var is not relevant when allout-old-style-prefixes
+The setting of this var is not relevant when `allout-old-style-prefixes'
 is non-nil."
   :type 'boolean
   :group 'allout)
@@ -409,9 +409,9 @@ formatted copy."
 ;;; You have to reactivate allout-mode - `(allout-mode t)' - to
 ;;; institute changes to this var.
 (defvar allout-keybindings-list ()
-  "*List of allout-mode key / function bindings, for allout-mode-map.
+  "*List of `allout-mode' key / function bindings, for `allout-mode-map'.
 
-String or vector key will be prefaced with allout-command-prefix,
+String or vector key will be prefaced with `allout-command-prefix',
 unless optional third, non-nil element is present.")
 (setq allout-keybindings-list
       '(
@@ -497,7 +497,7 @@ Outline mode uses emacs change-triggered functions to detect unruly
 changes to concealed regions.  Set this var non-nil to disable the
 protection, potentially increasing text-entry responsiveness a bit.
 
-This var takes effect at allout-mode activation, so you may have to
+This var takes effect at `allout-mode' activation, so you may have to
 deactivate and then reactivate the mode if you want to toggle the
 behavior."
   :type 'boolean
@@ -509,7 +509,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.34 $"))
+  (let ((rcs-rev "$Revision: 1.35 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -531,7 +531,7 @@ behavior."
 
 Any line whose beginning matches this regexp is considered a
 heading.  This var is set according to the user configuration vars
-by set-allout-regexp.")
+by `set-allout-regexp'.")
 (make-variable-buffer-local 'allout-regexp)
 ;;;_   = allout-bullets-string
 (defvar allout-bullets-string ""
@@ -543,19 +543,19 @@ and `allout-distinctive-bullets-string'.")
 (make-variable-buffer-local 'allout-bullets-string)
 ;;;_   = allout-bullets-string-len
 (defvar allout-bullets-string-len 0
-  "Length of current buffers' allout-plain-bullets-string.")
+  "Length of current buffers' `allout-plain-bullets-string'.")
 (make-variable-buffer-local 'allout-bullets-string-len)
 ;;;_   = allout-line-boundary-regexp
 (defvar allout-line-boundary-regexp ()
   "Allout-regexp with allout-style beginning-of-line anchor.
 
 \(Ie, C-j, *or* C-m, for prefixes of hidden topics).  This is properly
-set when allout-regexp is produced by `set-allout-regexp', so
+set when `allout-regexp' is produced by `set-allout-regexp', so
 that (match-beginning 2) and (match-end 2) delimit the prefix.")
 (make-variable-buffer-local 'allout-line-boundary-regexp)
 ;;;_   = allout-bob-regexp
 (defvar allout-bob-regexp ()
-  "Like allout-line-boundary-regexp, for headers at beginning of buffer.
+  "Like `allout-line-boundary-regexp', for headers at beginning of buffer.
 \(match-beginning 2) and \(match-end 2) delimit the prefix.")
 (make-variable-buffer-local 'allout-bob-regexp)
 ;;;_   = allout-header-subtraction
@@ -564,7 +564,7 @@ that (match-beginning 2) and (match-end 2) delimit the prefix.")
 (make-variable-buffer-local 'allout-header-subtraction)
 ;;;_   = allout-plain-bullets-string-len
 (defvar allout-plain-bullets-string-len (length allout-plain-bullets-string)
-  "Length of allout-plain-bullets-string, updated by set-allout-regexp.")
+  "Length of `allout-plain-bullets-string', updated by `set-allout-regexp'.")
 (make-variable-buffer-local 'allout-plain-bullets-string-len)
 
 
@@ -730,12 +730,12 @@ See doc string for allout-keybindings-list for format of binding list."
     map))
 ;;;_   = allout-prior-bindings - being deprecated.
 (defvar allout-prior-bindings nil
-  "Variable for use in V18, with allout-added-bindings, for
+  "Variable for use in V18, with `allout-added-bindings', for
 resurrecting, on mode deactivation, bindings that existed before
 activation.  Being deprecated.")
 ;;;_   = allout-added-bindings - being deprecated
 (defvar allout-added-bindings nil
-  "Variable for use in V18, with allout-prior-bindings, for
+  "Variable for use in V18, with `allout-prior-bindings', for
 resurrecting, on mode deactivation, bindings that existed before
 activation.  Being deprecated.")
 ;;;_  : Menu bar
@@ -804,7 +804,7 @@ activation.  Being deprecated.")
 ;;;_   > allout-resumptions (name &optional value)
 (defun allout-resumptions (name &optional value)
 
-  "Registers or resumes settings over allout-mode activation/deactivation.
+  "Registers or resumes settings over `allout-mode' activation/deactivation.
 
 First arg is NAME of variable affected.  Optional second arg is list
 containing allout-mode-specific VALUE to be imposed on named
@@ -880,12 +880,12 @@ allout-pre- and -post-command-hooks.")
 (defvar allout-isearch-did-quit nil
   "Distinguishes isearch conclusion and cancellation.
 
-Maintained by allout-isearch-abort \(which is wrapped around the real
-isearch-abort), and monitored by allout-isearch-expose for action.")
+Maintained by `allout-isearch-abort' \(which is wrapped around the real
+isearch-abort), and monitored by `allout-isearch-expose' for action.")
 (make-variable-buffer-local 'allout-isearch-did-quit)
 ;;;_   = allout-override-protect nil
 (defvar allout-override-protect nil
-  "Used in allout-mode for regulate of concealed-text protection mechanism.
+  "Used in `allout-mode' for regulate of concealed-text protection mechanism.
 
 Allout outline mode regulates alteration of concealed text to protect
 against inadvertent, unnoticed changes.  This is for use by specific,
@@ -907,11 +907,11 @@ the way that before-change-functions and undo interact.")
 ;;;_   = file-var-bug hack
 (defvar allout-v18/19-file-var-hack nil
   "Horrible hack used to prevent invalid multiple triggering of outline
-mode from prop-line file-var activation.  Used by allout-mode function
+mode from prop-line file-var activation.  Used by `allout-mode' function
 to track repeats.")
 ;;;_   > allout-write-file-hook ()
 (defun allout-write-file-hook ()
-  "In outline mode, run as a local-write-file-hooks activity.
+  "In outline mode, run as a `local-write-file-hooks' activity.
 
 Currently just sets `allout-during-write-cue', so allout-change-protection
 knows to keep inactive during file write."
@@ -924,16 +924,16 @@ knows to keep inactive during file write."
 (make-variable-buffer-local 'allout-mode)
 ;;;_  > allout-mode-p ()
 (defmacro allout-mode-p ()
-  "Return t if allout-mode is active in current buffer."
+  "Return t if `allout-mode' is active in current buffer."
   'allout-mode)
 ;;;_  = allout-explicitly-deactivated
 (defvar allout-explicitly-deactivated nil
   "Allout-mode was last deliberately deactivated.
-So allout-post-command-business should not reactivate it...")
+So `allout-post-command-business' should not reactivate it...")
 (make-variable-buffer-local 'allout-explicitly-deactivated)
 ;;;_  > allout-init (&optional mode)
 (defun allout-init (&optional mode)
-  "Prime allout-mode to enable/disable auto-activation, wrt `allout-layout'.
+  "Prime `allout-mode' to enable/disable auto-activation, wrt `allout-layout'.
 
 MODE is one of the following symbols:
 
@@ -1046,10 +1046,10 @@ In addition to outline navigation and exposure, allout includes:
 and many other features.
 
 Below is a description of the bindings, and then explanation of
-special allout-mode features and terminology.  See also the outline
+special `allout-mode' features and terminology.  See also the outline
 menubar additions for quick reference to many of the features, and see
 the docstring of the variable `allout-init' for instructions on
-priming your emacs session for automatic activation of allout-mode.
+priming your emacs session for automatic activation of `allout-mode'.
 
 
 The bindings are dictated by the `allout-keybindings-list' and
@@ -1173,7 +1173,7 @@ PREFIX: The leading text of a topic which which distinguishes it from
 PREFIX-LEAD:
 	The string at the beginning of a topic prefix, normally a `.'.
 	It can be customized by changing the setting of
-	`allout-header-prefix' and then reinitializing allout-mode.
+	`allout-header-prefix' and then reinitializing `allout-mode'.
 
 	By setting the prefix-lead to the comment-string of a
 	programming language, you can embed allout-structuring in
@@ -1237,7 +1237,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
      ;; off on second invocation, so we detect it as best we can, and
      ;; skip everything.
      ((and same-complex-command		; Still in same complex command
-				       ; as last time allout-mode invoked.
+				       ; as last time `allout-mode' invoked.
 	  active			; Already activated.
 	  (not explicit-activation)	; Prop-line file-vars don't have args.
 	  (string-match "^19.1[89]"	; Bug only known to be in v19.18 and
@@ -1432,7 +1432,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 (make-variable-buffer-local 'allout-recent-prefix-end)
 ;;;_  = allout-recent-end-of-subtree
 (defvar allout-recent-end-of-subtree 0
-  "Buffer point last returned by allout-end-of-current-subtree.")
+  "Buffer point last returned by `allout-end-of-current-subtree'.")
 (make-variable-buffer-local 'allout-recent-end-of-subtree)
 ;;;_  > allout-prefix-data (beg end)
 (defmacro allout-prefix-data (beg end)
@@ -1446,8 +1446,8 @@ For reference by `allout-recent' funcs.  Returns BEGINNING."
   "Return depth of last heading encountered by an outline maneuvering function.
 
 All outline functions which directly do string matches to assess
-headings set the variables allout-recent-prefix-beginning and
-allout-recent-prefix-end if successful.  This function uses those settings
+headings set the variables `allout-recent-prefix-beginning' and
+`allout-recent-prefix-end' if successful.  This function uses those settings
 to return the current depth."
 
   '(max 1 (- allout-recent-prefix-end
@@ -1455,11 +1455,11 @@ to return the current depth."
 	     allout-header-subtraction)))
 ;;;_  > allout-recent-prefix ()
 (defmacro allout-recent-prefix ()
-  "Like allout-recent-depth, but returns text of last encountered prefix.
+  "Like `allout-recent-depth', but returns text of last encountered prefix.
 
 All outline functions which directly do string matches to assess
-headings set the variables allout-recent-prefix-beginning and
-allout-recent-prefix-end if successful.  This function uses those settings
+headings set the variables `allout-recent-prefix-beginning' and
+`allout-recent-prefix-end' if successful.  This function uses those settings
 to return the current depth."
   '(buffer-substring allout-recent-prefix-beginning
 		     allout-recent-prefix-end))
@@ -1468,8 +1468,8 @@ to return the current depth."
   "Like allout-recent-prefix, but returns bullet of last encountered prefix.
 
 All outline functions which directly do string matches to assess
-headings set the variables allout-recent-prefix-beginning and
-allout-recent-prefix-end if successful.  This function uses those settings
+headings set the variables `allout-recent-prefix-beginning' and
+`allout-recent-prefix-end' if successful.  This function uses those settings
 to return the current depth of the most recently matched topic."
   '(buffer-substring (1- allout-recent-prefix-end)
 		     allout-recent-prefix-end))
@@ -1509,7 +1509,7 @@ Actually, returns prefix beginning point."
 ;;;_   : Location attributes
 ;;;_    > allout-depth ()
 (defsubst allout-depth ()
-  "Like allout-current-depth, but respects hidden as well as visible topics."
+  "Like `allout-current-depth', but respects hidden as well as visible topics."
   (save-excursion
     (if (allout-goto-prefix)
 	(allout-recent-depth)
@@ -1890,7 +1890,7 @@ Returns that character position."
   "When not already there, position point at beginning of current topic's body.
 
 If already there, move cursor to bullet for hot-spot operation.
-\(See allout-mode doc string for details on hot-spot operation.)"
+\(See `allout-mode' doc string for details on hot-spot operation.)"
   (interactive)
   (let ((start-point (point)))
     (allout-end-of-prefix)
@@ -1993,7 +1993,7 @@ DONT-COMPLAIN is non-nil."
 ;;;_  - Linear
 ;;;_   > allout-next-sibling (&optional depth backward)
 (defun allout-next-sibling (&optional depth backward)
-  "Like allout-forward-current-level, but respects invisible topics.
+  "Like `allout-forward-current-level', but respects invisible topics.
 
 Traverse at optional DEPTH, or current depth if none specified.
 
@@ -2019,7 +2019,7 @@ Return depth if successful, nil otherwise."
         nil))))
 ;;;_   > allout-previous-sibling (&optional depth backward)
 (defun allout-previous-sibling (&optional depth backward)
-  "Like allout-forward-current-level,but backwards & respect invisible topics.
+  "Like `allout-forward-current-level',but backwards & respect invisible topics.
 
 Optional DEPTH specifies depth to traverse, default current depth.
 
@@ -2086,7 +2086,7 @@ buffer) if headings are exhausted."
   "Move to the previous heading line.
 
 With argument, repeats or can move forward if negative.
-A heading line is one that starts with a `*' (or that allout-regexp
+A heading line is one that starts with a `*' (or that `allout-regexp'
 matches)."
   (interactive "p")
   (allout-next-visible-heading (- arg)))
@@ -2266,23 +2266,23 @@ are exempt from this restriction."
   "Outline internal var, for `allout-pre-command-business' hot-spot operation.
 
 When set, tells post-processing to reposition on topic bullet, and
-then unset it.  Set by allout-pre-command-business when implementing
+then unset it.  Set by `allout-pre-command-business' when implementing
 hot-spot operation, where literal characters typed over a topic bullet
 are mapped to the command of the corresponding control-key on the
-allout-mode-map.")
+`allout-mode-map'.")
 (make-variable-buffer-local 'allout-post-goto-bullet)
 ;;;_   > allout-post-command-business ()
 (defun allout-post-command-business ()
-  "Outline post-command-hook function.
+  "Outline `post-command-hook' function.
 
-- Null allout-override-protect, so it's not left open.
+- Null `allout-override-protect', so it's not left open.
 
-- Implement (and clear) allout-post-goto-bullet, for hot-spot
+- Implement (and clear) `allout-post-goto-bullet', for hot-spot
   outline commands.
 
 - Massages buffer-undo-list so successive, standard character self-inserts are
   aggregated.  This kludge compensates for lack of undo bunching when
-  before-change-functions is used."
+  `before-change-functions' is used."
 
 					; Apply any external change func:
   (if (not (allout-mode-p))		; In allout-mode.
@@ -2329,11 +2329,11 @@ allout-mode-map.")
     ))
 ;;;_   > allout-pre-command-business ()
 (defun allout-pre-command-business ()
-  "Outline pre-command-hook function for outline buffers.
+  "Outline `pre-command-hook' function for outline buffers.
 Implements special behavior when cursor is on bullet char.
 
 Self-insert characters are reinterpreted control-character references
-into the allout-mode-map.  The allout-mode post-command hook will
+into the `allout-mode-map'.  The `allout-mode' post-command hook will
 position a cursor that has moved as a result of such reinterpretation,
 on the destination topic's bullet, when the cursor wound up in the
 
@@ -2381,7 +2381,7 @@ char."
 		      this-command mapped-binding)))))))
 ;;;_   > allout-find-file-hook ()
 (defun allout-find-file-hook ()
-  "Activate allout-mode when `allout-auto-activation' & `allout-layout' are non-nil.
+  "Activate `allout-mode' when `allout-auto-activation' & `allout-layout' are non-nil.
 
 See `allout-init' for setup instructions."
   (if (and allout-auto-activation
@@ -2392,7 +2392,7 @@ See `allout-init' for setup instructions."
 (defun allout-isearch-rectification ()
   "Rectify outline exposure before, during, or after isearch.
 
-Called as part of allout-post-command-business."
+Called as part of `allout-post-command-business'."
 
   (let ((isearching (and (boundp 'isearch-mode) isearch-mode)))
     (cond ((and isearching (not allout-pre-was-isearching))
@@ -2452,7 +2452,7 @@ Returns the endpoint of the region."
   (setq allout-isearch-did-quit nil))
 ;;;_   > allout-enwrap-isearch ()
 (defun allout-enwrap-isearch ()
-  "Impose allout-mode isearch-abort wrapper for dynamic exposure in isearch.
+  "Impose `allout-mode' isearch-abort wrapper for dynamic exposure in isearch.
 
 The function checks to ensure that the rebinding is done only once."
 
@@ -2482,7 +2482,7 @@ The function checks to ensure that the rebinding is done only once."
           (fset 'isearch-abort 'allout-isearch-abort)))))
 ;;;_   > allout-isearch-abort ()
 (defun allout-isearch-abort ()
-  "Wrapper for allout-real-isearch-abort \(which see), to register
+  "Wrapper for `allout-real-isearch-abort' \(which see), to register
 actual quits."
   (interactive)
   (setq allout-isearch-did-quit nil)
@@ -2494,7 +2494,7 @@ actual quits."
 ;;; Prevent unnecessary font-lock while isearching!
 (defvar isearch-was-font-locking nil)
 (defun isearch-inhibit-font-lock ()
-  "Inhibit font-lock while isearching - for use on isearch-mode-hook."
+  "Inhibit font-lock while isearching - for use on `isearch-mode-hook'."
   (if (and (allout-mode-p) (boundp 'font-lock-mode) font-lock-mode)
       (setq isearch-was-font-locking t
 	    font-lock-mode nil)))
@@ -2532,7 +2532,7 @@ Offer one suitable for current depth DEPTH as default."
   )
 ;;;_   > allout-distinctive-bullet (bullet)
 (defun allout-distinctive-bullet (bullet)
-  "True if bullet is one of those on allout-distinctive-bullets-string."
+  "True if bullet is one of those on `allout-distinctive-bullets-string'."
   (string-match (regexp-quote bullet) allout-distinctive-bullets-string))
 ;;;_   > allout-numbered-type-prefix (&optional prefix)
 (defun allout-numbered-type-prefix (&optional prefix)
@@ -2572,7 +2572,7 @@ All the arguments are optional.
 
 PRIOR-BULLET indicates the bullet of the prefix being changed, or
 nil if none.  This bullet may be preserved (other options
-notwithstanding) if it is on the allout-distinctive-bullets-string,
+notwithstanding) if it is on the `allout-distinctive-bullets-string',
 for instance.
 
 Second arg NEW indicates that a new topic is being opened after the
@@ -2904,7 +2904,7 @@ topic prior to the current one."
 ;;;_   : Topic Modification
 ;;;_    = allout-former-auto-filler
 (defvar allout-former-auto-filler nil
-  "Name of modal fill function being wrapped by allout-auto-fill.")
+  "Name of modal fill function being wrapped by `allout-auto-fill'.")
 ;;;_    > allout-auto-fill ()
 (defun allout-auto-fill ()
   "Allout-mode autofill function.
@@ -3022,7 +3022,7 @@ non-nil NUMBER-CONTROL forces denumbering.  Non-nil INDEX (and
 non-nil NUMBER-CONTROL) forces a numbered-prefix form.  If non-nil
 INDEX is a number, then that number is used for the numbered
 prefix.  Non-nil and non-number means that the index for the
-numbered prefix will be derived by allout-make-topic-prefix.
+numbered prefix will be derived by `allout-make-topic-prefix'.
 
 Fifth arg DO-SUCCESSORS t means re-resolve count on succeeding
 siblings.
@@ -3089,7 +3089,7 @@ this function."
   ) ; defun
 ;;;_    > allout-rebullet-topic (arg)
 (defun allout-rebullet-topic (arg)
-  "Like allout-rebullet-topic-grunt, but start from topic visible at point.
+  "Like `allout-rebullet-topic-grunt', but start from topic visible at point.
 
 Descends into invisible as well as visible topics, however.
 
@@ -3117,7 +3117,7 @@ With repeat count, shift topic depth by that amount."
                                                do-successors)
 
   "Rebullet the topic at point, visible or invisible, and all
-contained subtopics.  See allout-rebullet-heading for rebulleting
+contained subtopics.  See `allout-rebullet-heading' for rebulleting
 behavior.
 
 All arguments are optional.
@@ -3455,7 +3455,7 @@ Non-topic yanks work no differently than normal yanks.
 If a topic is being yanked into a bare topic prefix, the depth of the
 yanked topic is adjusted to the depth of the topic prefix.
 
-  1 we're yanking in an allout-mode buffer
+  1 we're yanking in an `allout-mode' buffer
   2 the stuff being yanked starts with a valid outline header prefix, and
   3 it is being yanked at the end of a line which consists of only a valid
     topic prefix.
@@ -3472,7 +3472,7 @@ exactly like normal yanks.
 Numbering of yanked topics, and the successive siblings at the depth
 into which they're being yanked, is adjusted.
 
-Allout-yank-pop works with allout-yank just like normal yank-pop
+`Allout-yank-pop' works with `allout-yank' just like normal yank-pop
 works with normal yank in non-outline buffers."
 
   (interactive "*P")
@@ -3482,7 +3482,7 @@ works with normal yank in non-outline buffers."
       (allout-yank-processing)))
 ;;;_    > allout-yank-pop (&optional arg)
 (defun allout-yank-pop (&optional arg)
-  "Yank-pop like allout-yank when popping to bare outline prefixes.
+  "Yank-pop like `allout-yank' when popping to bare outline prefixes.
 
 Adapts level of popped topics to level of fresh prefix.
 
@@ -3561,7 +3561,7 @@ See `allout-flag-region' for more details."
 
 This is a way to give restricted peek at a concealed locality without the
 expense of exposing its context, but can leave the outline with aberrant
-exposure.  allout-hide-current-entry-completely or allout-show-offshoot
+exposure.  `allout-hide-current-entry-completely' or `allout-show-offshoot'
 should be used after the peek to rectify the exposure."
 
   (interactive)
@@ -3583,7 +3583,7 @@ should be used after the peek to rectify the exposure."
 
   "If point is visible, show all direct subheadings of this heading.
 
-Otherwise, do allout-show-to-offshoot, and then show subheadings.
+Otherwise, do `allout-show-to-offshoot', and then show subheadings.
 
 Optional LEVEL specifies how many levels below the current level
 should be shown, or all levels if t.  Default is 1.
@@ -3633,7 +3633,7 @@ point of non-opened subtree?)"
   "Like `allout-hide-current-entry'; hides completely if within hidden region.
 
 Specifically intended for aberrant exposure states, like entries that were
-exposed by allout-show-entry but are within otherwise concealed regions."
+exposed by `allout-show-entry' but are within otherwise concealed regions."
   (interactive)
   (save-excursion
     (allout-goto-prefix)
@@ -3645,10 +3645,10 @@ exposed by allout-show-entry but are within otherwise concealed regions."
                          ?\r)))
 ;;;_   > allout-show-to-offshoot ()
 (defun allout-show-to-offshoot ()
-  "Like allout-show-entry, but reveals all concealed ancestors, as well.
+  "Like `allout-show-entry', but reveals all concealed ancestors, as well.
 
-As with allout-hide-current-entry-completely, useful for rectifying
-aberrant exposure states produced by allout-show-entry."
+As with `allout-hide-current-entry-completely', useful for rectifying
+aberrant exposure states produced by `allout-show-entry'."
 
   (interactive)
   (save-excursion
@@ -3698,10 +3698,10 @@ aberrant exposure states produced by allout-show-entry."
 ;;;_   > allout-hide-current-entry-completely ()
 ; ... allout-hide-current-entry-completely also for isearch dynamic exposure:
 (defun allout-hide-current-entry-completely ()
-  "Like allout-hide-current-entry, but conceal topic completely.
+  "Like `allout-hide-current-entry', but conceal topic completely.
 
 Specifically intended for aberrant exposure states, like entries that were
-exposed by allout-show-entry but are within otherwise concealed regions."
+exposed by `allout-show-entry' but are within otherwise concealed regions."
   (interactive)
   (save-excursion
     (allout-goto-prefix)
@@ -3926,7 +3926,7 @@ Examples:
 ;;;_   > allout-old-expose-topic (spec &rest followers)
 (defun allout-old-expose-topic (spec &rest followers)
 
-  "Deprecated.  Use allout-expose-topic \(with different schema
+  "Deprecated.  Use `allout-expose-topic' \(with different schema
 format) instead.
 
 Dictate wholesale exposure scheme for current topic, according to SPEC.
@@ -4004,8 +4004,8 @@ Optional FOLLOWER arguments dictate exposure for succeeding siblings."
 ;;;_   > allout-new-exposure '()
 (defmacro allout-new-exposure (&rest spec)
   "Literal frontend for `allout-expose-topic', doesn't evaluate arguments.
-Some arguments that would need to be quoted in allout-expose-topic
-need not be quoted in allout-new-exposure.
+Some arguments that would need to be quoted in `allout-expose-topic'
+need not be quoted in `allout-new-exposure'.
 
 Cursor is left at start position.
 
