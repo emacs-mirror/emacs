@@ -117,8 +117,8 @@ This file documents GNU Emacs Lisp.
 
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-This is edition 2.3 of the GNU Emacs Lisp Reference
-Manual.  It corresponds to Emacs Version 19.25.
+This is edition 2.4 of the GNU Emacs Lisp Reference
+Manual.  It corresponds to Emacs Version 19.29.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in ==> intro.texi <==
 @c huh?  i only found three real places where the edition is stated, and
@@ -126,10 +126,10 @@ Manual.  It corresponds to Emacs Version 19.25.
 @c than the foobar edition").  --mew 13sep93
 
 Published by the Free Software Foundation
-675 Massachusetts Avenue
-Cambridge, MA 02139 USA
+59 Temple Place, Suite 330
+Boston, MA  02111-1307 USA
 
-Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
@@ -179,10 +179,10 @@ instead of in the original English.
 @sp 1
 @center @titlefont{Reference Manual}
 @sp 2
-@center GNU Emacs Version 19.25
+@center GNU Emacs Version 19.29
 @center for Unix Users
 @sp 1
-@center Edition 2.3, June 1994
+@center Edition 2.4, June 1995
 @sp 2
 @center @titlefont{Volume 1}
 @sp 3
@@ -190,19 +190,19 @@ instead of in the original English.
 @center and the GNU Manual Group
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995 Free Software Foundation, Inc. 
 
 @sp 2
-Edition 2.3 @*
-Revised for Emacs Version 19.25,@*
-June, 1994.@*
+Edition 2.4 @*
+Revised for Emacs Version 19.29,@*
+June, 1995.@*
 @sp 2
-ISBN 1-882114-40-X
+ISBN 1-882114-71-X
 
 @sp 2
 Published by the Free Software Foundation @*
-675 Massachusetts Avenue @*
-Cambridge, MA 02139 USA
+59 Temple Place, Suite 330 @*
+Boston, MA  02111-1307 USA
 
 @sp 1
 Permission is granted to make and distribute verbatim copies of this
@@ -230,15 +230,15 @@ Cover art by Etienne Suvasa.
 @node Top, Copying, (dir), (dir)
 
 @ifinfo
-This Info file contains edition 2.3 of the GNU Emacs Lisp Reference
-Manual, corresponding to GNU Emacs version 19.25.
+This Info file contains edition 2.4 of the GNU Emacs Lisp Reference
+Manual, corresponding to GNU Emacs version 19.29.
 @end ifinfo
 
 @menu
 * Copying::                 Conditions for copying and changing GNU Emacs.
 * Introduction::            Introduction and conventions used.
 
-* Types of Lisp Object::    Data types in Emacs Lisp.
+* Lisp Data Types::         Data types of objects in Emacs Lisp.
 * Numbers::                 Numbers and arithmetic functions.
 * Strings and Characters::  Strings, and functions that work on them.
 * Lists::                   Lists, cons cells, and related functions.
@@ -258,7 +258,7 @@ Manual, corresponding to GNU Emacs version 19.25.
 * Byte Compilation::        Compilation makes programs run faster.
 * Debugging::               Tools and tips for debugging Lisp programs.
 
-* Streams::                 Converting Lisp objects to text and back.
+* Read and Print::          Converting Lisp objects to text and back.
 * Minibuffers::             Using the minibuffer to read input.
 * Command Loop::            How the editor command loop works,
                               and how you can call its subroutines.
@@ -284,7 +284,7 @@ Manual, corresponding to GNU Emacs version 19.25.
 * Processes::               Running and communicating with subprocesses.
 * System Interface::        Getting the user id, system type, environment
                               variables, and other such things.
-* Display::                 Parameters controlling screen usage.
+* Display::	            Parameters controlling screen usage.
                               The bell.  Waiting for input.
 * Calendar::		    Customizing the calendar and diary.
 
@@ -297,8 +297,6 @@ Appendices
 * Standard Buffer-Local Variables::  List of variables local in all buffers.
 * Standard Keymaps::        List of standard keymaps.
 * Standard Hooks::          List of standard hook variables.
-
-* Antinews::		    Information about Emacs 18.
 
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
@@ -346,14 +344,14 @@ Programming Types
 * Character Type::      The representation of letters, numbers and
                         control characters.
 * Sequence Type::       Both lists and arrays are classified as sequences.
-* List Type::           Lists gave Lisp its name (not to mention reputation).
+* Cons Cell Type::      Cons cells, and lists (which are made from cons cells).
 * Array Type::          Arrays include strings and vectors.
 * String Type::         An (efficient) array of characters.
 * Vector Type::         One-dimensional arrays.
 * Symbol Type::         A multi-use object that refers to a function,
                         variable, property list, or itself.
-* Lisp Function Type::  A piece of executable code you can call from elsewhere.
-* Lisp Macro Type::     A method of expanding an expression into another
+* Function Type::       A piece of executable code you can call from elsewhere.
+* Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
 * Byte-Code Type::      A function written in Lisp, then compiled.
@@ -385,12 +383,12 @@ Numbers
 * Arithmetic Operations::     How to add, subtract, multiply and divide.
 * Bitwise Operations::        Logical and, or, not, shifting.
 * Numeric Conversions::	      Converting float to integer and vice versa.
-* Transcendental Functions::  Trig, exponential and logarithmic functions.
+* Math Functions::            Trig, exponential and logarithmic functions.
 * Random Numbers::            Obtaining random integers, predictable or not.
 
 Strings and Characters
 
-* Intro to Strings::        Basic properties of strings and characters.
+* String Basics::           Basic properties of strings and characters.
 * Predicates for Strings::  Testing whether an object is a string or char.
 * Creating Strings::        Functions to allocate new strings.
 * Text Comparison::         Comparing characters or strings.
@@ -473,7 +471,7 @@ Errors
 * Signaling Errors::        How to report an error.
 * Processing of Errors::    What Emacs does when you report an error.
 * Handling Errors::         How you can trap errors and continue execution.
-* Error Names::             How errors are classified for trapping them.
+* Error Symbols::           How errors are classified for trapping them.
 
 Variables
 
@@ -540,7 +538,7 @@ Loading
 
 * How Programs Do Loading:: The @code{load} function and others.
 * Autoload::                Setting up a function to autoload.
-* Features::                Loading a library if it isn't already loaded.
+* Named Features::          Loading a library if it isn't already loaded.
 * Repeated Loading::        Precautions about loading a file twice.
 
 Byte Compilation
@@ -554,6 +552,7 @@ Debugging Lisp Programs
 * Syntax Errors::           How to find syntax errors.
 * Compilation Errors::      How to find errors that show up in 
                               byte compilation.
+* Edebug::                  A source-level Emacs Lisp debugger.
                                 
 The Lisp Debugger
 
@@ -593,13 +592,12 @@ Completion
 
 * Basic Completion::        Low-level functions for completing strings.
                               (These are too low level to use the minibuffer.)
-* Programmed Completion::   Finding the completions for a given file name.
 * Minibuffer Completion::   Invoking the minibuffer with completion.
 * Completion Commands::     Minibuffer commands that do completion.
 * High-Level Completion::   Convenient special cases of completion
                               (reading buffer name, file name, etc.)
 * Reading File Names::      Using completion to read file names.
-* Lisp Symbol Completion::  Completing the name of a symbol.
+* Programmed Completion::   Finding the completions for a given file name.
 
 Command Loop
 
@@ -768,6 +766,32 @@ Windows
 * Resizing Windows::        Changing the size of a window.
 * Window Configurations::   Saving and restoring the state of the screen.
 
+Frames
+
+* Creating Frames::	    Creating additional frames.
+* Multiple Displays::       Creating frames on other X displays.
+* Frame Parameters::	    Controlling frame size, position, font, etc.
+* Frame Titles::            Automatic updating of frame titles.
+* Deleting Frames::	    Frames last until explicitly deleted.
+* Finding All Frames::	    How to examine all existing frames.
+* Frames and Windows::	    A frame contains windows;
+			      display of text always works through windows.
+* Minibuffers and Frames::  How a frame finds the minibuffer to use.
+* Input Focus::		    Specifying the selected frame.
+* Visibility of Frames::    Frames may be visible or invisible, or icons.
+* Raising and Lowering::    Raising a frame makes it hide other X windows;
+			      lowering it makes the others hide them.
+* Frame Configurations::    Saving the state of all frames.
+* Mouse Tracking::	    Getting events that say when the mouse moves.
+* Mouse Position::	    Asking where the mouse is, or moving it.
+* Pop-Up Menus::	    Displaying a menu for the user to select from.
+* Dialog Boxes::            Displaying a box to ask yes or no.
+* Pointer Shapes::          Specifying the shape of the mouse pointer.
+* X Selections::	    Transferring text to and from other X clients.
+* Color Names::	            Getting the definitions of color names.
+* Resources::		    Getting resource values from the server.
+* Server Data::		    Getting info about the X server.
+
 Positions
 
 * Point::                   The special position where editing takes place.
@@ -782,8 +806,6 @@ Motion
 * Buffer End Motion::       Moving to the beginning or end of the buffer.
 * Text Lines::              Moving in terms of lines of text.
 * Screen Lines::            Moving in terms of lines as displayed.
-* Vertical Motion::         Implementation of @code{next-line} and
-                              @code{previous-line}.
 * List Motion::             Moving by parsing lists and sexps.
 * Skipping Characters::     Skipping characters belonging to a certain set.
 
@@ -811,12 +833,12 @@ Text
 * Undo::                    Undoing changes to the text of a buffer.
 * Auto Filling::            How auto-fill mode is implemented to break lines.
 * Filling::                 Functions for explicit filling.
+* Margins::                 How to specify margins for filling commands.
 * Sorting::                 Functions for sorting parts of the buffer.
 * Indentation::             Functions to insert or adjust indentation.
 * Columns::                 Computing horizontal positions, and using them.
 * Case Changes::            Case conversion of parts of the buffer.
 * Substitution::            Replacing a given character wherever it appears.
-* Underlining::             Inserting or deleting underlining-by-overstrike.
 * Registers::               How registers are implemented.  Accessing
                               the text or position stored in a register.
                               
@@ -825,7 +847,7 @@ The Kill Ring
 * Kill Ring Concepts::      What text looks like in the kill ring.
 * Kill Functions::          Functions that kill text.
 * Yank Commands::           Commands that access the kill ring.
-* Low Level Kill Ring::	    Functions and variables for kill ring access.
+* Low-Level Kill Ring::	    Functions and variables for kill ring access.
 * Internals of Kill Ring::  Variables that hold kill-ring data.
 
 Indentation
@@ -888,7 +910,7 @@ Processes
                               an asynchronous subprocess.
 * Output from Processes::   Collecting output from an asynchronous subprocess.
 * Sentinels::               Sentinels run when process run-status changes.
-* TCP::                     Opening network connections.
+* Network::                 Opening network connections.
 
 Receiving Output from Processes
 
