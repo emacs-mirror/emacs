@@ -445,10 +445,11 @@ decode_status (l, symbol, code, coredump)
 
 /* Return a string describing a process status list.  */
 
-Lisp_Object
-status_message (status)
-     Lisp_Object status;
+static Lisp_Object
+status_message (p)
+     struct Lisp_Process *p;
 {
+  Lisp_Object status = p->status;
   Lisp_Object symbol;
   int code, coredump;
   Lisp_Object string, string2;
@@ -469,6 +470,8 @@ status_message (status)
     }
   else if (EQ (symbol, Qexit))
     {
+      if (NETCONN1_P (p))
+	return build_string (code == 0 ? "deleted\n" : "connection broken by remote peer\n");
       if (code == 0)
 	return build_string ("finished\n");
       string = Fnumber_to_string (make_number (code));
@@ -764,6 +767,7 @@ nil, indicating the current buffer's process.  */)
     {
       XPROCESS (process)->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
       XSETINT (XPROCESS (process)->tick, ++process_tick);
+      status_notify ();
     }
   else if (XINT (XPROCESS (process)->infd) >= 0)
     {
@@ -774,18 +778,7 @@ nil, indicating the current buffer's process.  */)
       XSETINT (XPROCESS (process)->tick, ++process_tick);
       status_notify ();
     }
-  /* Do not call remove_process here; either status_notify has already done
-     it, or will do so the next time emacs polls for input.  Thus network
-     processes are not immediately removed, and their sentinel will be
-     called.
-
-     Since Fdelete_process is called by kill_buffer_processes, this also
-     means that a network process sentinel will run after the buffer is
-     dead, which would not be the case if status_notify() were called
-     unconditionally here.  This way process sentinels observe consistent
-     behavior with regard to buffer-live-p.
-  */
-  /* remove_process (process); */
+  remove_process (process);
   return Qnil;
 }
 
@@ -4703,7 +4696,7 @@ read_process_output_error_handler (error)
    starting with our buffered-ahead character if we have one.
    Yield number of decoded characters read.
 
-   This function reads at most 1024 characters.
+   This function reads at most 4096 characters.
    If you want to read all available subprocess output,
    you must call it repeatedly until it returns zero.
 
@@ -4723,7 +4716,7 @@ read_process_output (proc, channel)
   register int opoint;
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = XINT (p->decoding_carryover);
-  int readmax = 1024;
+  int readmax = 4096;
 
 #ifdef VMS
   VMS_PROC_STUFF *vs, *get_vms_process_pointer();
@@ -4755,16 +4748,6 @@ read_process_output (proc, channel)
       bcopy (vs->inputBuffer, chars + carryover, nbytes);
     }
 #else /* not VMS */
-
-#ifdef DATAGRAM_SOCKETS
-  /* A datagram is one packet; allow at least 1500+ bytes of data
-     corresponding to the typical Ethernet frame size.  */
-  if (DATAGRAM_CHAN_P (channel))
-    {
-      /* carryover = 0; */  /* Does carryover make sense for datagrams? */
-      readmax += 1024;
-    }
-#endif
 
   chars = (char *) alloca (carryover + readmax);
   if (carryover)
@@ -6399,7 +6382,7 @@ status_notify ()
 	  /* Get the text to use for the message.  */
 	  if (!NILP (p->raw_status_low))
 	    update_status (p);
-	  msg = status_message (p->status);
+	  msg = status_message (p);
 
 	  /* If process is terminated, deactivate it or delete it.  */
 	  symbol = p->status;
