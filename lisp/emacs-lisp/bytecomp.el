@@ -1401,11 +1401,16 @@ With argument, insert value in current buffer after the form."
 	      ;; in files loaded early in loadup.el.
 	      "\n(if (and (boundp 'emacs-version)\n"
 	      "\t (or (and (boundp 'epoch::version) epoch::version)\n"
-	      "\t     (string-lessp emacs-version \"19\")))\n"
+	      (if byte-compile-dynamic-docstrings
+		  "\t     (string-lessp emacs-version \"19.28.90\")))\n"
+		"\t     (string-lessp emacs-version \"19\")))\n")
 	      "    (error \"`"
-	      ;; This escapes all backslashes in FILENAME.  Needed on Windows.
-	      (substring (prin1-to-string filename) 1 -1)
-	      "' was compiled for Emacs 19\"))\n\n"
+	      ;; prin1-to-string is used to quote backslashes.
+	      (substring (prin1-to-string (file-name-nondirectory filename))
+			 1 -1)
+	      (if byte-compile-dynamic-docstrings
+		  "' was compiled for Emacs 19.29 or later\"))\n\n"
+		"' was compiled for Emacs 19\"))\n\n")
 	      )))
 
 
