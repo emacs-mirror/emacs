@@ -871,6 +871,29 @@ buffer neither as ISO 8859-7 nor as UTF-8.
 
 To work around this, install some add-on package such as Mule-UCS.
 
+* Problems when using Emacs with UTF-8 locales
+
+Some systems, including recent versions of GNU/Linux, have terminals
+or X11 subsystems that can be configured to provide Unicode/UTF-8
+input and display.  Normally, such a system sets environment variables
+such as LANG, LC_CTYPE, or LC_ALL to a string which ends with a
+`.UTF-8'.  For example, a system like this in a French locale might
+use `fr_FR.UTF-8' as the value of LANG.
+
+Since Unicode support in Emacs, as of v21.1, is not yet complete (see
+the previous entry in this file), UTF-8 support is not enabled by
+default, even in UTF-8 locales.  Thus, some Emacs features, such as
+non-ASCII keyboard input, might appear to be broken in these locales.
+To solve these problems, you need to turn on some options in your
+`.emacs' file.  Specifically, the following customizations should make
+Emacs work correctly with UTF-8 input and text:
+
+    (setq locale-coding-system 'utf-8)
+    (set-terminal-coding-system 'utf-8)
+    (set-keyboard-coding-system 'utf-8)
+    (set-selection-coding-system 'utf-8)
+    (prefer-coding-system 'utf-8)
+
 * The `oc-unicode' package doesn't work with Emacs 21.
 
 This package tries to define more private charsets than there are free
