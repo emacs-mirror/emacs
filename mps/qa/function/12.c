@@ -57,6 +57,7 @@ static void test(void)
 
 /* turn on comments about copying and scanning */
  formatcomments = BLAH;
+ fixcomments = BLAH;
 
  cdie(mps_space_create(&space), "create space");
 
@@ -158,7 +159,7 @@ cells = allocone(ap[0], NCELLS);
  checkfrom(cells);
  }
 
- commentif(BLAH, "Finished main loop");
+ comment("Finished main loop");
 
  for (i=0; i<NAPS; i++)
  {
