@@ -3594,6 +3594,10 @@ actually used.  */)
   CHECK_STRING (filename);
   filename = Fexpand_file_name (filename, Qnil);
 
+  /* The value Qnil means that the coding system is not yet
+     decided.  */
+  coding_system = Qnil;
+
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename, Qinsert_file_contents);
@@ -3713,9 +3717,6 @@ actually used.  */)
 	}
     }
 
-  /* The value Qnil means that the coding system is not yet
-     decided.  */
-  coding_system = Qnil;
   if (BEG < Z)
     {
       /* Decide the coding system to use for reading the file now
@@ -4405,8 +4406,9 @@ actually used.  */)
 	current_buffer->enable_multibyte_characters = Qnil;
     }
 
-  if (CODING_REQUIRE_DETECTION (&coding)
-      || CODING_REQUIRE_DECODING (&coding))
+  if ((CODING_REQUIRE_DETECTION (&coding)
+       || CODING_REQUIRE_DECODING (&coding))
+      && (inserted > 0 || CODING_REQUIRE_FLUSHING (&coding)))
     {
       move_gap_both (PT, PT_BYTE);
       GAP_SIZE += inserted;
