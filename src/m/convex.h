@@ -1,4 +1,4 @@
-/* machine description file for convex C1.
+/* machine description file for Convex (all models).
    Copyright (C) 1987, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -46,21 +46,25 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  * to be corrected before they can be used as byte counts.  */
 
 /* #define WORD_MACHINE */
-
+  
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
-
-/* convex already defined... */
+#ifndef convex  /* The compiler doesn't always do this.  */
+#define convex
+#endif
 
 /* Use type int rather than a union, to represent Lisp_Object */
 /* This is desirable for most machines.  */
 
 #define NO_UNION_TYPE
 
-/* crt0.c should use the vax-bsd style of entry.
-   Ralph Sobek <Ralph.Sobek@cerfacs.fr> says must ignore one arg.  */
-
+#ifndef __GNUC__ /* David M. Cooke <dcooke@haven.larc.nasa.gov>
+		    and Ralph Sobek <Ralph.Sobek@cerfacs.fr> agree
+		    must ignore one arg when compiled with convex compiler.  */
 #define CRT0_DUMMIES ignore,
+#else 
+#define CRT0_DUMMIES
+#endif
 
 /* crt0.c should define a symbol `start' and do .globl with a dot.  */
 
@@ -131,7 +135,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Posix stuff for Convex OS 8.1 and up. */
 
-#define C_SWITCH_MACHINE -pcc
 #define LD_SWITCH_MACHINE \
     -e__start -L /usr/lib \
     '-A__iob=___ap$$iob' '-A_use_libc_sema=___ap$$use_libc_sema'
@@ -167,3 +170,15 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LD_SWITCH_MACHINE -X -NL -fn -Enoposix -A__iob=___ap\$$iob \
  -A_use_libc_sema=___ap\$$use_libc_sema -L /usr/lib
 #endif
+
+/* Avoid error in xrdb.c - d.m.cooke@larc.nasa.gov.  */
+#define DECLARE_GETPWUID_WITH_UID_T
+
+/* Call getpgrp properly.  */
+#define GETPGRP_NO_ARG
+
+/* Tested for both Convex C and GNUC by d.m.cooke@larc.nasa.gov.  */
+#define LIBS_MACHINE -lC2
+
+/* Avoid error in getloadavg.c.  */
+#define NLIST_NAME_UNION  1
