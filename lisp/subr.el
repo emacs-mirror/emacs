@@ -614,10 +614,7 @@ Accept any number of arguments, but ignore them."
   (while t
     (signal 'error (list (apply 'format args)))))
 
-(defun user-original-login-name ()
-  "Return user's login name from original login.
-This tries to remain unaffected by `su', by looking in environment variables."
-  (or (getenv "LOGNAME") (getenv "USER") (user-login-name)))
+(defalias 'user-original-login-name 'user-login-name)
 
 (defun start-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
