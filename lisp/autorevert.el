@@ -97,6 +97,7 @@ Global Auto-Revert Mode applies to all buffers."
 Never set this variable directly, use the command `auto-revert-mode'
 instead.")
 
+;;;###autoload
 (defcustom global-auto-revert-mode nil
   "When on, buffers are automatically reverted when files on disk change.
 
