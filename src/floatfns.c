@@ -77,6 +77,8 @@ extract_float (num)
     return XFLOAT (num)->data;
   return (double) XINT (num);
 }
+
+/* Trig functions.  */
 
 DEFUN ("acos", Facos, Sacos, 1, 1, 0,
   "Return the inverse cosine of ARG.")
@@ -85,16 +87,6 @@ DEFUN ("acos", Facos, Sacos, 1, 1, 0,
 {
   double d = extract_float (num);
   IN_FLOAT (d = acos (d), num);
-  return make_float (d);
-}
-
-DEFUN ("acosh", Facosh, Sacosh, 1, 1, 0,
-  "Return the inverse hyperbolic cosine of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = acosh (d), num);
   return make_float (d);
 }
 
@@ -108,16 +100,6 @@ DEFUN ("asin", Fasin, Sasin, 1, 1, 0,
   return make_float (d);
 }
 
-DEFUN ("asinh", Fasinh, Sasinh, 1, 1, 0,
-  "Return the inverse hyperbolic sine of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = asinh (d), num);
-  return make_float (d);
-}
-
 DEFUN ("atan", Fatan, Satan, 1, 1, 0,
   "Return the inverse tangent of ARG.")
   (num)
@@ -128,16 +110,38 @@ DEFUN ("atan", Fatan, Satan, 1, 1, 0,
   return make_float (d);
 }
 
-DEFUN ("atanh", Fatanh, Satanh, 1, 1, 0,
-  "Return the inverse hyperbolic tangent of ARG.")
+DEFUN ("cos", Fcos, Scos, 1, 1, 0,
+  "Return the cosine of ARG.")
   (num)
      register Lisp_Object num;
 {
   double d = extract_float (num);
-  IN_FLOAT (d = atanh (d), num);
+  IN_FLOAT (d = cos (d), num);
+  return make_float (d);
+}
+
+DEFUN ("sin", Fsin, Ssin, 1, 1, 0,
+  "Return the sine of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = sin (d), num);
+  return make_float (d);
+}
+
+DEFUN ("tan", Ftan, Stan, 1, 1, 0,
+  "Return the tangent of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = tan (d), num);
   return make_float (d);
 }
 
+#if 0 /* Leave these out unless we find there's a reason for them.  */
+
 DEFUN ("bessel-j0", Fbessel_j0, Sbessel_j0, 1, 1, 0,
   "Return the bessel function j0 of ARG.")
   (num)
@@ -203,36 +207,10 @@ The first arg (the order) is truncated to an integer.")
   IN_FLOAT (f2 = yn (i1, f2), num1);
   return make_float (f2);
 }
+
+#endif
 
-DEFUN ("cube-root", Fcube_root, Scube_root, 1, 1, 0,
-  "Return the cube root of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = cbrt (d), num);
-  return make_float (d);
-}
-
-DEFUN ("cos", Fcos, Scos, 1, 1, 0,
-  "Return the cosine of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = cos (d), num);
-  return make_float (d);
-}
-
-DEFUN ("cosh", Fcosh, Scosh, 1, 1, 0,
-  "Return the hyperbolic cosine of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = cosh (d), num);
-  return make_float (d);
-}
+#if 0 /* Leave these out unless we see they are worth having.  */
 
 DEFUN ("erf", Ferf, Serf, 1, 1, 0,
   "Return the mathematical error function of ARG.")
@@ -251,6 +229,28 @@ DEFUN ("erfc", Ferfc, Serfc, 1, 1, 0,
 {
   double d = extract_float (num);
   IN_FLOAT (d = erfc (d), num);
+  return make_float (d);
+}
+
+DEFUN ("log-gamma", Flog_gamma, Slog_gamma, 1, 1, 0,
+  "Return the log gamma of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = lgamma (d), num);
+  return make_float (d);
+}
+
+#endif
+
+DEFUN ("cube-root", Fcube_root, Scube_root, 1, 1, 0,
+  "Return the cube root of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = cbrt (d), num);
   return make_float (d);
 }
 
@@ -273,49 +273,9 @@ DEFUN ("expm1", Fexpm1, Sexpm1, 1, 1, 0,
   IN_FLOAT (d = expm1 (d), num);
   return make_float (d);
 }
-
-DEFUN ("log-gamma", Flog_gamma, Slog_gamma, 1, 1, 0,
-  "Return the log gamma of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = lgamma (d), num);
-  return make_float (d);
-}
-
-DEFUN ("log", Flog, Slog, 1, 1, 0,
-  "Return the natural logarithm of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = log (d), num);
-  return make_float (d);
-}
-
-DEFUN ("log10", Flog10, Slog10, 1, 1, 0,
-  "Return the logarithm base 10 of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = log10 (d), num);
-  return make_float (d);
-}
-
-DEFUN ("log1p", Flog1p, Slog1p, 1, 1, 0,
-  "Return the log (1+x) of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = log1p (d), num);
-  return make_float (d);
-}
 
 DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
-  "Return the exponential x ** y.")
+  "Return the exponential X ** Y.")
   (num1, num2)
      register Lisp_Object num1, num2;
 {
@@ -349,14 +309,86 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   IN_FLOAT (f1 = pow (f1, f2), num1);
   return make_float (f1);
 }
-
-DEFUN ("sin", Fsin, Ssin, 1, 1, 0,
-  "Return the sine of ARG.")
+
+DEFUN ("log", Flog, Slog, 1, 1, 0,
+  "Return the natural logarithm of ARG.")
   (num)
      register Lisp_Object num;
 {
   double d = extract_float (num);
-  IN_FLOAT (d = sin (d), num);
+  IN_FLOAT (d = log (d), num);
+  return make_float (d);
+}
+
+DEFUN ("log10", Flog10, Slog10, 1, 1, 0,
+  "Return the logarithm base 10 of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = log10 (d), num);
+  return make_float (d);
+}
+
+DEFUN ("log1p", Flog1p, Slog1p, 1, 1, 0,
+  "Return the log (1+x) of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = log1p (d), num);
+  return make_float (d);
+}
+
+DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
+  "Return the square root of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = sqrt (d), num);
+  return make_float (d);
+}
+
+#ifndef /* Not clearly worth adding.  */
+
+DEFUN ("acosh", Facosh, Sacosh, 1, 1, 0,
+  "Return the inverse hyperbolic cosine of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = acosh (d), num);
+  return make_float (d);
+}
+
+DEFUN ("asinh", Fasinh, Sasinh, 1, 1, 0,
+  "Return the inverse hyperbolic sine of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = asinh (d), num);
+  return make_float (d);
+}
+
+DEFUN ("atanh", Fatanh, Satanh, 1, 1, 0,
+  "Return the inverse hyperbolic tangent of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = atanh (d), num);
+  return make_float (d);
+}
+
+DEFUN ("cosh", Fcosh, Scosh, 1, 1, 0,
+  "Return the hyperbolic cosine of ARG.")
+  (num)
+     register Lisp_Object num;
+{
+  double d = extract_float (num);
+  IN_FLOAT (d = cosh (d), num);
   return make_float (d);
 }
 
@@ -370,26 +402,6 @@ DEFUN ("sinh", Fsinh, Ssinh, 1, 1, 0,
   return make_float (d);
 }
 
-DEFUN ("sqrt", Fsqrt, Ssqrt, 1, 1, 0,
-  "Return the square root of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = sqrt (d), num);
-  return make_float (d);
-}
-
-DEFUN ("tan", Ftan, Stan, 1, 1, 0,
-  "Return the tangent of ARG.")
-  (num)
-     register Lisp_Object num;
-{
-  double d = extract_float (num);
-  IN_FLOAT (d = tan (d), num);
-  return make_float (d);
-}
-
 DEFUN ("tanh", Ftanh, Stanh, 1, 1, 0,
   "Return the hyperbolic tangent of ARG.")
   (num)
@@ -399,6 +411,7 @@ DEFUN ("tanh", Ftanh, Stanh, 1, 1, 0,
   IN_FLOAT (d = tanh (d), num);
   return make_float (d);
 }
+#endif
 
 DEFUN ("abs", Fabs, Sabs, 1, 1, 0,
   "Return the absolute value of ARG.")
@@ -531,34 +544,36 @@ init_floatfns ()
 syms_of_floatfns ()
 {
   defsubr (&Sacos);
-  defsubr (&Sacosh);
   defsubr (&Sasin);
-  defsubr (&Sasinh);
   defsubr (&Satan);
+  defsubr (&Scos);
+  defsubr (&Ssin);
+  defsubr (&Stan);
+#if 0
+  defsubr (&Sacosh);
+  defsubr (&Sasinh);
   defsubr (&Satanh);
+  defsubr (&Scosh);
+  defsubr (&Ssinh);
+  defsubr (&Stanh);
   defsubr (&Sbessel_y0);
   defsubr (&Sbessel_y1);
   defsubr (&Sbessel_yn);
   defsubr (&Sbessel_j0);
   defsubr (&Sbessel_j1);
   defsubr (&Sbessel_jn);
-  defsubr (&Scube_root);
-  defsubr (&Scos);
-  defsubr (&Scosh);
   defsubr (&Serf);
   defsubr (&Serfc);
+  defsubr (&Slog_gamma);
+#endif
+  defsubr (&Scube_root);
   defsubr (&Sexp);
   defsubr (&Sexpm1);
-  defsubr (&Slog_gamma);
+  defsubr (&Sexpt);
   defsubr (&Slog);
   defsubr (&Slog10);
   defsubr (&Slog1p);
-  defsubr (&Sexpt);
-  defsubr (&Ssin);
-  defsubr (&Ssinh);
   defsubr (&Ssqrt);
-  defsubr (&Stan);
-  defsubr (&Stanh);
 
   defsubr (&Sabs);
   defsubr (&Sfloat);
