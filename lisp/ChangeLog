@@ -1,3 +1,7 @@
+2001-09-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-goto-node): Doc fix.
+
 2001-09-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-intersects-p): New function.
