@@ -39,7 +39,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 extern void abort ();
 
 #ifndef VMS
-#ifdef EMACS_BITMAP_FILES
+#if 1 /* Used to be #ifdef EMACS_BITMAP_FILES, but this should always work.  */
 #include "bitmaps/gray.xbm"
 #else
 #include <X11/bitmaps/gray>
