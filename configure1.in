@@ -365,21 +365,11 @@ if [ `pwd` != `(cd ${srcdir} && pwd)` ] \
 fi
 
 ### Make the necessary directories, if they don't exist.
-if [ ! -d ./src ]; then
-  mkdir ./src
-fi
-if [ ! -d ./lib-src ]; then
-  mkdir ./lib-src
-fi
-if [ ! -d ./cpp ]; then
-  mkdir ./cpp
-fi
-if [ ! -d ./oldXMenu ]; then
-  mkdir ./oldXMenu
-fi
-if [ ! -d ./etc ]; then
-  mkdir ./etc
-fi
+for dir in ./src ./lib-src ./cpp ./oldXMenu ./etc ; do
+  if [ ! -d ${dir} ]; then
+    mkdir ${dir}
+  fi
+done
 
 #### Given the configuration name, set machfile and opsysfile to the
 #### names of the m/*.h and s/*.h files we should use.
@@ -1132,6 +1122,23 @@ if [ x"${REL_ALLOC}" = x ]; then
 fi
 
 LISP_FLOAT_TYPE=yes
+
+
+#### Add the X libraries to the list, and check for some functions found there.
+CFLAGS_save="$CFLAGS"
+CFLAGS="${CFLAGS} ${LD_SWITCH_X_SITE}"
+]
+AC_HAVE_LIBRARY(-lXbsd)
+[
+LIBS_save="$LIBS"
+if [ "${HAVE_X11}" = "yes" ] ; then
+  LIBS="-lX11 ${LIBS}"
+fi
+]
+AC_HAVE_FUNCS(XrmSetDatabase random)
+[
+CFLAGS="$CFLAGS_save"
+LIBS="$LIBS_save"
 
 
 #### Find out which version of Emacs this is.
