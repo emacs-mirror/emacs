@@ -1250,7 +1250,7 @@ host_vendor=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\2/'`
 host_os=`echo $ac_cv_host | sed 's/^\([^-]*\)-\([^-]*\)-\(.*\)$/\3/'`
 
 canonical=$host
-configuration=$host_alias
+configuration=${host_alias-$host}
 
 ### If you add support for a new configuration, add code to this
 ### switch statement to recognize your configuration name and select

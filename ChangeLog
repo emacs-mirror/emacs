@@ -1,3 +1,8 @@
+2001-10-20  Miles Bader  <miles@gnu.org>
+
+	* configure.in (configuration): Set from `host' if `host_alias'
+	isn't defined.
+
 2001-10-19  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Make ready for autoconf 2.5x.
