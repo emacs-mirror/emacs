@@ -1,6 +1,6 @@
 \input texinfo  @c -*-texinfo-*-
 
-@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.5 2000/10/01 00:10:51 monnier Exp $"
+@c "@(#)$Name:  $:$Id: pcl-cvs.texi,v 1.6 2000/10/07 19:15:54 eliz Exp $"
 
 @c Documentation for the GNU Emacs CVS mode.
 @c Copyright (C) 1991-2000  Free Software Foundation, Inc.
@@ -26,9 +26,9 @@
 @settitle PCL-CVS - Emacs Front-End to CVS
 @c %**end of header
 
-@c @dircategory Emacs
+@dircategory Emacs
 @direntry
-* PCL-CVS: (pcl-cvs).	Emacs front-end to CVS
+* PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 @end direntry
 @setchapternewpage on
      
