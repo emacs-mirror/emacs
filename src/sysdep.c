@@ -3262,7 +3262,7 @@ strerror (errnum)
 
 int
 emacs_open (path, oflag, mode)
-     char *path;
+     const char *path;
      int oflag, mode;
 {
   register int rtnval;
@@ -3685,7 +3685,7 @@ readdirver (dirp)
 
 int
 set_file_times (filename, atime, mtime)
-     char *filename;
+     const char *filename;
      EMACS_TIME atime, mtime;
 {
 #ifdef HAVE_UTIMES
