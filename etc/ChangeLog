@@ -1,3 +1,9 @@
+1999-10-24  Noah Friedman  <friedman@splode.com>
+
+	* yow.lines: Add more quotes.  Correct a misquote.
+
+	* spook.lines: Add more phrases.
+
 1999-10-23  Paul Eggert  <eggert@twinsun.com>
 
 	* etc/NEWS: Describe new functions and variables for locales.
@@ -5,7 +11,7 @@
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* TUTORIAL.ro: Change copyright statement.
-	
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.
@@ -262,7 +268,7 @@
 
 	* NEWS: Preserved jimb's last change (documenting kill on
 	read-only buffers).
-	
+
 	Added documentation on new info features.
 
 1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
@@ -388,7 +394,7 @@
 	and lib-src, the old etc's ChangeLog has been duplicated in the
 	new etc and lib-src.  That means that each contains complete and
 	coherent information, although each contains extraneous
-	information.	 
+	information.
 
 1992-04-08  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
@@ -671,7 +677,7 @@
 
 	* timer.c, getdate.y (new files) and Makefile:
 	  Sub-process support for run-at-time in timer.el.
-	  Doesn't yet work correctly for USG. 
+	  Doesn't yet work correctly for USG.
 
 1990-01-10  Jim Kingdon  (kingdon at pogo)
 
