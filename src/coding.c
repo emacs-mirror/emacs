@@ -366,6 +366,10 @@ Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
 Lisp_Object Qstart_process, Qopen_network_stream;
 Lisp_Object Qtarget_idx;
 
+/* If a symbol has this property, evaluate the value to define the
+   symbol as a coding system.  */
+Lisp_Object Qcoding_system_define_form;
+
 Lisp_Object Vselect_safe_coding_system_function;
 
 int coding_system_require_warning;
@@ -6375,7 +6379,14 @@ The value of property should be a vector of length 5.  */)
      (coding_system)
      Lisp_Object coding_system;
 {
-  CHECK_SYMBOL (coding_system);
+  Lisp_Object define_form;
+
+  define_form = Fget (coding_system, Qcoding_system_define_form);
+  if (! NILP (define_form))
+    {
+      Fput (coding_system, Qcoding_system_define_form, Qnil);
+      safe_eval (define_form);
+    }
   if (!NILP (Fcoding_system_p (coding_system)))
     return coding_system;
   while (1)
@@ -7594,6 +7605,9 @@ syms_of_coding ()
 
   Qutf_8 = intern ("utf-8");
   staticpro (&Qutf_8);
+
+  Qcoding_system_define_form = intern ("coding-system-define-form");
+  staticpro (&Qcoding_system_define_form);
 
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
