@@ -533,6 +533,13 @@ This returns ARGS with the arguments that have been processed removed."
 	(392976 . f35)
     	(392977 . f36)
 	(393056 . req)
+	;; These are for Sun under X11R6
+	(393072 . props)
+	(393073 . front)
+	(393074 . copy)
+	(393075 . open)
+	(393076 . paste)
+	(393077 . cut)
 	))
 
 ;;;; Selections and cut buffers
