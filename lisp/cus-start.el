@@ -209,8 +209,7 @@
       ;; into an expression which produces that value.
       (quoter (lambda (sexp)
 		(if (or (memq sexp '(t nil))
-			(and (symbolp sexp)
-			     (eq (aref (symbol-name sexp) 0) ?:))
+			(keywordp sexp)
 			(and (listp sexp)
 			     (memq (car sexp) '(lambda)))
 			(stringp sexp)
