@@ -2453,12 +2453,14 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  do
 	    {
 	      int old_timers_run = timers_run;
+	      struct buffer *old_buffer = current_buffer;
 	      
 	      timer_delay = timer_check (1);
 
 	      /* If a timer has run, this might have changed buffers
 		 an alike.  Make read_key_sequence aware of that.  */
 	      if (timers_run != old_timers_run
+		  && old_buffer != current_buffer
 		  && waiting_for_user_input_p == -1)
 		record_asynch_buffer_change ();
 	      
@@ -2678,6 +2680,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (XINT (read_kbd) != 0)
 	{
 	  int old_timers_run = timers_run;
+	  struct buffer *old_buffer = current_buffer;
 	  int leave = 0;
 	
 	  if (detect_input_pending_run_timers (do_display))
@@ -2690,7 +2693,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  /* If a timer has run, this might have changed buffers
 	     an alike.  Make read_key_sequence aware of that.  */
 	  if (timers_run != old_timers_run
-	      && waiting_for_user_input_p == -1)
+	      && waiting_for_user_input_p == -1
+	      && old_buffer != current_buffer)
 	    record_asynch_buffer_change ();
 
 	  if (leave)
