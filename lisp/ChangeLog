@@ -2,6 +2,7 @@
 
 	* info.el (Info-fontify-node): Individually refill menus and
 	paragraphs to preserve menu items and varying indentation.
+	Only color first 9 menu items differently.
 
 2003-06-05  Juanma Barranquero  <lektu@terra.es>
 
