@@ -3,7 +3,7 @@
 (defgroup eshell-alias nil
   "Command aliases allow for easy definition of alternate commands."
   :tag "Command aliases"
-  :link '(info-link "(eshell.info)Command aliases")
+  :link '(info-link "(eshell)Command aliases")
   :group 'eshell-module)
 
 (defgroup eshell-banner nil
@@ -11,7 +11,7 @@
 It exists so that others wishing to create their own Eshell extension
 modules may have a simple template to begin with."
   :tag "Login banner"
-  :link '(info-link "(eshell.info)Login banner")
+  :link '(info-link "(eshell)Login banner")
   :group 'eshell-module)
 
 (defgroup eshell-basic nil
@@ -100,7 +100,7 @@ some of the edit/review concepts inherent in the design of Plan 9's
 Most likely you will have to turn this option on and play around with
 it to get a real sense of how it works."
   :tag "Smart display of output"
-  :link '(info-link "(eshell.info)Smart display of output")
+  :link '(info-link "(eshell)Smart display of output")
   :group 'eshell-module)
 
 (defgroup eshell-term nil
