@@ -158,6 +158,7 @@ get_next_token (char * buf, char ** pSrc)
 	  if (p[0] == escape_char && escape_char != '"')
 	    {
 	      escape_char_run++;
+	      p++;
 	      continue;
 	    }
 	  else if (p[0] == '"')
