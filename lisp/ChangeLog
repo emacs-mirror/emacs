@@ -10,6 +10,8 @@
 
 2000-12-08  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* autoinsert.el (auto-insert-alist): Add missing final \n.
+
 	* pcvs-defs.el (cvs-menu): Move.  Make submenu for diff commands.
 	(cvs-menu-map): Remove.
 	* pcvs.el (cvs-menu): Use `cvs-menu' rather than `cvs-menu-map'.
