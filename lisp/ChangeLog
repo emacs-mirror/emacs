@@ -1,3 +1,7 @@
+1999-12-09  Dave Love  <fx@gnu.org>
+
+	* mail/footnote.el: New file.
+
 1999-12-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (after-find-file): Use auto-save-visited-file-name if
