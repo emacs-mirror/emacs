@@ -33,19 +33,19 @@
 ;; supporting outline structuring and manipulation of syntax-
 ;; sensitive text, eg programming languages.  (For an example, see the
 ;; allout code itself, which is organized in outline structure.)
-;; 
+;;
 ;; It also includes such things as topic-oriented repositioning, cut, and
 ;; paste; integral outline exposure-layout; incremental search with
 ;; dynamic exposure/concealment of concealed text; automatic topic-number
 ;; maintenance; and many other features.
-;; 
+;;
 ;; See the docstring of the variables `outline-layout' and
 ;; `outline-auto-activation' for details on automatic activation of
 ;; allout outline-mode as a minor mode.  (It has changed since allout
 ;; 3.x, for those of you that depend on the old method.)
 ;;
-;; Note - the lines beginning with ';;;_' are outline topic headers.
-;;        Just 'ESC-x eval-current-buffer' to give it a whirl.
+;; Note - the lines beginning with `;;;_' are outline topic headers.
+;;        Just `ESC-x eval-current-buffer' to give it a whirl.
 
 ;;Ken Manheimer	      				   301 975-3539
 ;;ken.manheimer@nist.gov			   FAX: 301 963-9137
@@ -80,8 +80,8 @@ With value `t', auto-mode-activation and auto-layout are enabled.
 With value `ask', auto-mode-activation is enabled, and endorsement for
 performing auto-layout is asked of the user each time.
 
-With value `activate', only auto-mode-activation is enabled, auto-
-layout is not.
+With value `activate', only auto-mode-activation is enabled,
+auto-layout is not.
 
 With value `nil', neither auto-mode-activation nor auto-layout are
 enabled.
@@ -95,9 +95,9 @@ this variable.")
 Buffer-specific.
 
 A list value specifies a default layout for the current buffer, to be
-applied upon activation of allout outline-mode.  Any non-nil value
-will automatically trigger allout outline-mode, provided `outline-
-init' has been called to enable it.
+applied upon activation of allout outline-mode.  Any non-nil value will
+automatically trigger allout outline-mode, provided `outline-init'
+has been called to enable it.
 
 See the docstring for `outline-init' for details on setting up for
 auto-mode-activation, and for `outline-expose-topic' for the format of
@@ -116,10 +116,9 @@ activated when the file is visited, followed by the equivalent of
 `\(outline-expose-topic 0 : -1 -1 0\)'.  \(This is the layout used for
 the allout.el, itself.)
 
-Also, allout's mode-specific provisions will make topic prefixes
-default to the comment-start string, if any, of the language of the
-file.  This is modulo the setting of `outline-use-mode-specific-
-leader', which see.") 
+Also, allout's mode-specific provisions will make topic prefixes default
+to the comment-start string, if any, of the language of the file.  This
+is modulo the setting of `outline-use-mode-specific-leader', which see.")
 (make-variable-buffer-local 'outline-layout)
 
 ;;;_  = outline-header-prefix
@@ -140,7 +139,7 @@ Outline topic header lines are identified by a leading topic header
 prefix, which is concluded by bullets that includes the value of this
 var and the respective outline-*-bullets-string vars.
 
-The value of an asterisk ('*') provides for backwards compatibility
+The value of an asterisk (`*') provides for backwards compatibility
 with the original emacs outline mode.  See outline-plain-bullets-string
 and outline-distinctive-bullets-string for the range of available
 bullets.")
@@ -150,10 +149,10 @@ bullets.")
 					     "+-:.;,")
   "*The bullets normally used in outline topic prefixes.
 
-See 'outline-distinctive-bullets-string' for the other kind of
+See `outline-distinctive-bullets-string' for the other kind of
 bullets.
 
-DO NOT include the close-square-bracket, ']', as a bullet.
+DO NOT include the close-square-bracket, `]', as a bullet.
 
 Outline mode has to be reactivated in order for changes to the value
 of this var to take effect.")
@@ -167,10 +166,10 @@ rotation, and are not altered by automatic rebulleting, as when
 shifting the level of a topic.  See `outline-plain-bullets-string' for
 the selection of alternating bullets.
 
-You must run 'set-outline-regexp' in order for changes
+You must run `set-outline-regexp' in order for changes
 to the value of this var to effect outline-mode operation.
 
-DO NOT include the close-square-bracket, ']', on either of the bullet
+DO NOT include the close-square-bracket, `]', on either of the bullet
 strings.")
 (make-variable-buffer-local 'outline-distinctive-bullets-string)
 
@@ -180,7 +179,7 @@ strings.")
 
 Allout outline mode will use the mode-specific `outline-mode-leaders'
 and/or comment-start string, if any, to lead the topic prefix string,
-so topic headers look like comments in the programming language. 
+so topic headers look like comments in the programming language.
 
 String values are used as they stand.
 
@@ -194,12 +193,12 @@ Set to the symbol for either of `outline-mode-leaders' or
 Value `nil' means to always use the default \(`.'\).
 
 comment-start strings that do not end in spaces are tripled, and an
-'_' underscore is tacked on the end, to distinguish them from regular
+`_' underscore is tacked on the end, to distinguish them from regular
 comment strings.  comment-start strings that do end in spaces are not
-tripled, but an underscore is substituted for the space.  \[This
+tripled, but an underscore is substituted for the space.  [This
 presumes that the space is for appearance, not comment syntax.  You
 can use `outline-mode-leaders' to override this behavior, when
-incorrect.\]")
+incorrect.]")
 ;;;_  = outline-mode-leaders
 (defvar outline-mode-leaders '()
   "Specific outline-prefix leading strings per major modes.
@@ -214,7 +213,7 @@ from regular comments that start at bol.")
 
 ;;;_  = outline-old-style-prefixes
 (defvar outline-old-style-prefixes nil
-  "*When non-nil, use only old-and-crusty outline-mode '*' topic prefixes.
+  "*When non-nil, use only old-and-crusty outline-mode `*' topic prefixes.
 
 Non-nil restricts the topic creation and modification
 functions to asterix-padded prefixes, so they look exactly
@@ -230,7 +229,7 @@ are always respected by the topic maneuvering functions.")
 Non-nil enables topic creation, modification, and repositioning
 functions to vary the topic bullet char (the char that marks the topic
 depth) just preceding the start of the topic text) according to level.
-Otherwise, only asterisks ('*') and distinctive bullets are used.
+Otherwise, only asterisks (`*') and distinctive bullets are used.
 
 This is how an outline can look (but sans indentation) with stylish
 prefixes:
@@ -282,11 +281,11 @@ disables numbering maintenance.")
   "*Bullet signifying file cross-references, for `outline-resolve-xref'.
 
 Set this var to the bullet you want to use for file cross-references.
-Set it 'nil' if you want to inhibit this capability.")
+Set it to nil if you want to inhibit this capability.")
 
 ;;;_ + LaTeX formatting
 ;;;_  - outline-number-pages
-(defvar outline-number-pages nil 
+(defvar outline-number-pages nil
   "*Non-nil turns on page numbering for LaTeX formatting of an outline.")
 ;;;_  - outline-label-style
 (defvar outline-label-style "\\large\\bf"
@@ -314,7 +313,7 @@ formatted copy.")
 ;;;_ + Miscellaneous customization
 
 ;;;_  = outline-keybindings-list
-;;; You have to reactivate outline-mode - '(outline-mode t)' - to
+;;; You have to reactivate outline-mode - `(outline-mode t)' - to
 ;;; institute changes to this var.
 (defvar outline-keybindings-list ()
   "*List of outline-mode key / function bindings.
@@ -379,8 +378,8 @@ Ie, it is indented to be just past the header prefix.  This is
 relevant mostly for use with indented-text-mode, or other situations
 where auto-fill occurs.
 
-[This feature no longer depends in any way on the 'filladapt.el'
-lisp-archive package.]")
+\[This feature no longer depends in any way on the `filladapt.el'
+lisp-archive package.\]")
 (make-variable-buffer-local 'outline-use-hanging-indents)
 
 ;;;_  = outline-reindent-bodies
@@ -444,9 +443,9 @@ by set-outline-regexp.")
 (defvar outline-bullets-string ""
   "A string dictating the valid set of outline topic bullets.
 
-This var should *not* be set by the user - it is set by 'set-outline-regexp',
-and is produced from the elements of 'outline-plain-bullets-string'
-and 'outline-distinctive-bullets-string'.")
+This var should *not* be set by the user - it is set by `set-outline-regexp',
+and is produced from the elements of `outline-plain-bullets-string'
+and `outline-distinctive-bullets-string'.")
 (make-variable-buffer-local 'outline-bullets-string)
 ;;;_   = outline-bullets-string-len
 (defvar outline-bullets-string-len 0
@@ -457,7 +456,7 @@ and 'outline-distinctive-bullets-string'.")
   "Outline-regexp with outline-style beginning-of-line anchor.
 
 \(Ie, C-j, *or* C-m, for prefixes of hidden topics).  This is properly
-set when outline-regexp is produced by 'set-outline-regexp', so
+set when outline-regexp is produced by `set-outline-regexp', so
 that (match-beginning 2) and (match-end 2) delimit the prefix.")
 (make-variable-buffer-local 'outline-line-boundary-regexp)
 ;;;_   = outline-bob-regexp
@@ -530,7 +529,7 @@ invoking it directly."
 		  (and (memq use-leader '(t comment-start))
 		       comment-start
 		       ;; Use comment-start, maybe tripled, and with
-		       ;; underscore: 
+		       ;; underscore:
 		       (concat
 			(if (string= " "
 				     (substring comment-start
@@ -630,12 +629,12 @@ See doc string for outline-keybindings-list for format of binding list."
 	    keymap-list)
     map))
 ;;;_   = outline-prior-bindings - being deprecated.
-(defvar outline-prior-bindings nil 
+(defvar outline-prior-bindings nil
   "Variable for use in V18, with outline-added-bindings, for
 resurrecting, on mode deactivation, bindings that existed before
 activation.  Being deprecated.")
 ;;;_   = outline-added-bindings - being deprecated
-(defvar outline-added-bindings nil 
+(defvar outline-added-bindings nil
   "Variable for use in V18, with outline-prior-bindings, for
 resurrecting, on mode deactivation, bindings that existed before
 activation.  Being deprecated.")
@@ -658,7 +657,7 @@ can distinguish nil vs no value), and the registration is popped
 from the list."
 
   (let ((on-list (assq name outline-mode-prior-settings))
-        prior-capsule                   ; By 'capsule' i mean a list
+        prior-capsule                   ; By `capsule' i mean a list
                                         ; containing a value, so we can
                                         ; distinguish nil from no value.
         )
@@ -721,7 +720,7 @@ It's automatically reset to nil after every buffer modification.")
 (make-variable-buffer-local 'outline-override-protect)
 ;;;_   > outline-unprotected (expr)
 (defmacro outline-unprotected (expr)
-  "Evaluate EXPRESSION with `outline-override-protect' let-bound 't'."
+  "Evaluate EXPRESSION with `outline-override-protect' let-bound to t."
   (` (let ((outline-override-protect t))
        (, expr))))
 ;;;_   = outline-undo-aggregation
@@ -740,8 +739,8 @@ to track repeats.")
 (defun outline-write-file-hook ()
   "In outline mode, run as a local-write-file-hooks activity.
 
-Currently just sets 'outline-during-write-cue', so outline-change-
-protection knows to keep inactive during file write."
+Currently just sets `outline-during-write-cue', so outline-change-protection
+knows to keep inactive during file write."
   (setq outline-during-write-cue t)
   nil)
 
@@ -764,11 +763,11 @@ So outline-post-command-business should not reactivate it...")
 
 MODE is one of the following symbols:
 
- - nil \(or no argument) deactivate auto-activation/layou;
- - 'activate', enable auto-activation only;
- - 'ask', enable auto-activation, and enable auto-layout but with
+ - nil \(or no argument) deactivate auto-activation/layout;
+ - `activate', enable auto-activation only;
+ - `ask', enable auto-activation, and enable auto-layout but with
    confirmation for layout operation solicited from user each time;
- - 'report', just report and return the current auto-activation state;
+ - `report', just report and return the current auto-activation state;
  - anything else \(eg, t) for auto-activation and auto-layout, without
    any confirmation check.
 
@@ -805,7 +804,7 @@ the following two lines in your emacs init file:
       ;; convenience aliases, for consistent ref to respective vars:
       ((hook 'outline-find-file-hook)
        (curr-mode 'outline-auto-activation))
-	
+
     (cond ((not mode)
 	   (setq find-file-hooks (delq hook find-file-hooks))
 	   (if (interactive-p)
@@ -816,7 +815,7 @@ the following two lines in your emacs init file:
 	     ;; Just punt and use the reports from each of the modes:
 	     (outline-init (symbol-value curr-mode))))
 	  (t (add-hook 'find-file-hooks hook)
-	     (set curr-mode		; 'set', not 'setq'!
+	     (set curr-mode		; `set', not `setq'!
 		  (cond ((eq mode 'activate)
 			 (message
 			  "Outline mode auto-activation enabled.")
@@ -832,7 +831,7 @@ the following two lines in your emacs init file:
 			((message
 			  "Outline mode auto-activation and -layout enabled.")
 			 'full)))))))
-		   
+
 ;;;_  > outline-mode (&optional toggle)
 ;;;_   : Defun:
 (defun outline-mode (&optional toggle)
@@ -884,7 +883,7 @@ C-c ,	outline-open-supertopic	... a sibling of the current topic's parent.
 	---------------------------------
 C-c >	outline-shift-in	Shift current topic and all offspring deeper.
 C-c <	outline-shift-out	... less deep.
-C-c<CR>	outline-rebullet-topic	Reconcile bullets of topic and its' offspring
+C-c<CR>	outline-rebullet-topic	Reconcile bullets of topic and its offspring
 				- distinctive bullets are not changed, others
 				  alternated according to nesting depth.
 C-c *	outline-rebullet-current-heading Prompt for alternate bullet for
@@ -962,11 +961,11 @@ CHILDREN:
 	The immediate offspring of a topic.
 SIBLINGS:
 	Topics having the same parent and depth.
-	       
+
 Topic text constituents:
 
 HEADER:	The first line of a topic, include the topic PREFIX and header
-	text. 
+	text.
 PREFIX: The leading text of a topic which which distinguishes it from
 	normal text.  It has a strict form, which consists of a
 	prefix-lead string, padding, and a bullet.  The bullet may be
@@ -976,7 +975,7 @@ PREFIX: The leading text of a topic which which distinguishes it from
 	The relative length of the PREFIX determines the nesting depth
 	of the topic.
 PREFIX-LEAD:
-	The string at the beginning of a topic prefix, normally a '.'.
+	The string at the beginning of a topic prefix, normally a `.'.
 	It can be customized by changing the setting of
 	`outline-header-prefix' and then reinitializing outline-mode.
 
@@ -989,8 +988,8 @@ PREFIX-PADDING:
 	Spaces or asterisks which separate the prefix-lead and the
 	bullet, according to the depth of the topic.
 BULLET: A character at the end of the topic prefix, it must be one of
-	the characters listed on 'outline-plain-bullets-string' or
-        'outline-distinctive-bullets-string'.  (See the documentation
+	the characters listed on `outline-plain-bullets-string' or
+        `outline-distinctive-bullets-string'.  (See the documentation
         for these variables for more details.)  The default choice of
 	bullet when generating varies in a cycle with the depth of the
 	topic.
@@ -1000,21 +999,21 @@ BODY:	Same as ENTRY.
 
 EXPOSURE:
  	The state of a topic which determines the on-screen visibility
-	of its' offspring and contained text.
+	of its offspring and contained text.
 CONCEALED:
 	Topics and entry text whose display is inhibited.  Contiguous
-	units of concealed text is represented by '...' ellipses.
-	(Ref the 'selective-display' var.)
+	units of concealed text is represented by `...' ellipses.
+	(Ref the `selective-display' var.)
 
 	Concealed topics are effectively collapsed within an ancestor.
 CLOSED:	A topic whose immediate offspring and body-text is concealed.
-OPEN:	A topic that is not closed, though its' offspring or body may be."
+OPEN:	A topic that is not closed, though its offspring or body may be."
 ;;;_    . Code
   (interactive "P")
 
   (let* ((active (and (not (equal major-mode 'outline))
 		     (outline-mode-p)))
-				       ; Massage universal-arg 'toggle' val:
+				       ; Massage universal-arg `toggle' val:
 	 (toggle (and toggle
 		     (or (and (listp toggle)(car toggle))
 			 toggle)))
@@ -1048,7 +1047,7 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
 	  (string-match "^19.1[89]"	; Bug only known to be in v19.18 and
 			emacs-version)); 19.19.
       t)
-	  
+
      ;; Deactivation:
      ((and (not explicit-activation)
 	  (or active toggle))
@@ -1131,7 +1130,7 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
 	(use-local-map (produce-outline-mode-map outline-keybindings-list
 						(current-local-map)))
 	)
-		 
+
 				       ; selective-display is the
 				       ; emacs conditional exposure
 				       ; mechanism:
@@ -1200,7 +1199,7 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
 	  (goto-char 0)
 	  (outline-this-or-next-heading)
 	  (condition-case err
-	      (progn 
+	      (progn
 		(apply 'outline-expose-topic (list outline-layout))
 		(message "Adjusting '%s' exposure... done." (buffer-name)))
 	    ;; Problem applying exposure - notify user, but don't
@@ -1235,7 +1234,7 @@ OPEN:	A topic that is not closed, though its' offspring or body may be."
 (defmacro outline-prefix-data (beg end)
   "Register outline-prefix state data - BEGINNING and END of prefix.
 
-For reference by 'outline-recent' funcs.  Returns BEGINNING."
+For reference by `outline-recent' funcs.  Returns BEGINNING."
   (` (setq outline-recent-prefix-end (, end)
 	   outline-recent-prefix-beginning (, beg))))
 ;;;_  > outline-recent-depth ()
@@ -1366,7 +1365,7 @@ Returns the location of the heading, or nil if none found."
 
   '(if (re-search-forward outline-line-boundary-regexp nil 0)
        (progn				; Got valid location state - set vars:
-	 (outline-prefix-data 
+	 (outline-prefix-data
 	  (goto-char (or (match-beginning 2)
 			 outline-recent-prefix-beginning))
 	  (or (match-end 2) outline-recent-prefix-end)))))
@@ -1390,7 +1389,7 @@ Return the location of the beginning of the heading, or nil if not found."
 	 (or (re-search-backward outline-line-boundary-regexp nil 0)
 	     (looking-at outline-bob-regexp))
 	 (progn				; Got valid location state - set vars:
-	   (outline-prefix-data 
+	   (outline-prefix-data
 	    (goto-char (or (match-beginning 2)
 			   outline-recent-prefix-beginning))
 	    (or (match-end 2) outline-recent-prefix-end))))))
@@ -1428,7 +1427,7 @@ The other function parameters are for internal recursion, and should
 not be specified by external callers.  ORIG-DEPTH is depth of topic at
 starting point, and PREV-DEPTH is depth of prior topic."
 
-  (let ((original (not orig-depth))	; 'orig-depth' set only in recursion.
+  (let ((original (not orig-depth))	; `orig-depth' set only in recursion.
 	chart curr-depth)
 
     (if original			; Just starting?
@@ -1487,14 +1486,14 @@ starting point, and PREV-DEPTH is depth of prior topic."
 			  '(?\n ?\^M))
 		    (forward-char -1))
 	       (setq outline-recent-end-of-subtree (point))))
-    
+
     chart				; (nreverse chart) not necessary,
 					; and maybe not preferable.
     ))
 ;;;_   > outline-chart-siblings (&optional start end)
 (defun outline-chart-siblings (&optional start end)
   "Produce a list of locations of this and succeeding sibling topics.
-Effectively a top-level chart of siblings.  See 'outline-chart-subtree'
+Effectively a top-level chart of siblings.  See `outline-chart-subtree'
 for an explanation of charts."
   (save-excursion
     (if (outline-goto-prefix)
@@ -1549,10 +1548,10 @@ exposed reside.
  - bare positive values indicate that this topic header should be
    opened.
  - Lists signify the beginning and end points of regions that should
-   be flagged, and the flag to employ.  (For concealment: '\(\?r\)', and
+   be flagged, and the flag to employ.  (For concealment: `\(\?r\)', and
    exposure:"
   (while spec
-    (cond ((listp spec) 
+    (cond ((listp spec)
 	   )
 	  )
     (setq spec (cdr spec)))
@@ -1908,15 +1907,15 @@ Changes to concealed regions are ignored while file is being written.
 \(This is for the sake of functions that do change the file during
 writes, like crypt and zip modes.)
 
-Locally bound in outline buffers to 'before-change-function', which
+Locally bound in outline buffers to `before-change-function', which
 in emacs 19 is run before any change to the buffer.  (Has no effect
-in Emacs 18, which doesn't support before-change-function.) 
+in Emacs 18, which doesn't support before-change-function.)
 
-Any functions which set ['this-command' to 'undo', or which set]
-'outline-override-protect' non-nil (as does, eg, outline-flag-chars)
+Any functions which set [`this-command' to `undo', or which set]
+`outline-override-protect' non-nil (as does, eg, outline-flag-chars)
 are exempt from this restriction."
   (if (and (outline-mode-p)
-					; outline-override-protect 
+					; outline-override-protect
 					; set by functions that know what
 					; they're doing, eg outline internals:
 	   (not outline-override-protect)
@@ -1951,7 +1950,7 @@ are exempt from this restriction."
 		(rehide-completely (save-excursion (outline-goto-prefix)
 						   (outline-hidden-p)))
 		rehide-place)
-				       
+
 	    (save-excursion
 	      (if (condition-case err
 		      ;; Condition case to catch keyboard quits during reads.
@@ -1966,7 +1965,7 @@ are exempt from this restriction."
 					; until they respond:
 					; Then interpret the response:
 			(while
-			    (progn 
+			    (progn
 			      (message (concat "Change inside concealed"
 					       " region - do it? "
 					       "(n or 'y'/'r'eclose)"))
@@ -1981,7 +1980,7 @@ are exempt from this restriction."
 				      t)
 				     ((eq response ??)
 				      (message
-				       "'r' means 'yes, then reclose")
+				       "`r' means `yes, then reclose'")
 				      nil)
 				     (t (message "Please answer y, n, or r")
 					(sit-for 1)
@@ -2092,7 +2091,7 @@ motion command to relocate the cursor off of a bullet char."
 	   outline-mode
 	   (eq this-command 'self-insert-command)
 	   (eq (point)(outline-current-bullet-pos)))
-	   
+
       (let* ((this-key-num (if (numberp last-command-event)
 			       last-command-event))
 	     mapped-binding)
@@ -2222,7 +2221,7 @@ Fourth arg SOLICIT non-nil provokes solicitation from the user of a
 choice among the valid bullets.  (This overrides other all the
 options, including, eg, a distinctive PRIOR-BULLET.)
 
-Fifth arg, NUMBER-CONTROL, matters only if 'outline-numbered-bullet'
+Fifth arg, NUMBER-CONTROL, matters only if `outline-numbered-bullet'
 is non-nil *and* soliciting was not explicitly invoked.  Then
 NUMBER-CONTROL non-nil forces prefix to either numbered or
 denumbered format, depending on the value of the sixth arg, INDEX.
@@ -2388,7 +2387,7 @@ Nuances:
                                         ; Positioning and vertical
                                         ; padding - only if not
                                         ; opening-on-blank:
-        (progn 
+        (progn
           (goto-char ref-topic)
           (setq dbl-space               ; Determine double space action:
                 (or (and (<= relative-depth 0)	; not descending;
@@ -2495,7 +2494,7 @@ Nuances:
 ;;;_     ; buffer boundaries - special provisions for beginning and end ob
 ;;;_     ; level 1 topics have special provisions also - double space.
 ;;;_     ; location of new topic
-;;;_    . 
+;;;_    .
 ;;;_   > outline-open-subtopic (arg)
 (defun outline-open-subtopic (arg)
   "Open new topic header at deeper level than the current one.
@@ -2563,7 +2562,7 @@ Note that refill of indented paragraphs is not done."
 	   ;; *before* the prefix was changed, so we infer it relative
 	   ;; to the new margin and the shift in depth:
 	   (old-margin (+ old-depth (- new-margin new-depth))))
-             
+
       ;; Process lines up to (but excluding) next topic header:
       (outline-unprotected
        (save-match-data
@@ -2572,7 +2571,7 @@ Note that refill of indented paragraphs is not done."
 				     nil
 				     t)
 		  ;; Register the indent data, before we reset the
-		  ;; match data with a subsequent 'looking-at':
+		  ;; match data with a subsequent `looking-at':
 		  (setq old-indent-begin (match-beginning 1)
 			old-indent-end (match-end 1))
 		  (not (looking-at outline-regexp)))
@@ -2587,7 +2586,7 @@ Note that refill of indented paragraphs is not done."
 	     (indent-to (+ new-margin excess)))))))))
 ;;;_    > outline-rebullet-current-heading (arg)
 (defun outline-rebullet-current-heading (arg)
-  "Like non-interactive version 'outline-rebullet-heading'.
+  "Like non-interactive version `outline-rebullet-heading'.
 
 But \(only\) affects visible heading containing point.
 
@@ -2621,7 +2620,7 @@ Second arg DEPTH forces the topic prefix to that depth, regardless
 of the topics current depth.
 
 Third arg NUMBER-CONTROL can force the prefix to or away from
-numbered form.  It has effect only if 'outline-numbered-bullet' is
+numbered form.  It has effect only if `outline-numbered-bullet' is
 non-nil and soliciting was not explicitly invoked (via first arg).
 Its effect, numbering or denumbering, then depends on the setting
 of the forth arg, INDEX.
@@ -2637,8 +2636,8 @@ numbered prefix will be derived by outline-make-topic-prefix.
 Fifth arg DO-SUCCESSORS t means re-resolve count on succeeding
 siblings.
 
-Cf vars 'outline-stylish-prefixes', 'outline-old-style-prefixes',
-and 'outline-numbered-bullet', which all affect the behavior of
+Cf vars `outline-stylish-prefixes', `outline-old-style-prefixes',
+and `outline-numbered-bullet', which all affect the behavior of
 this function."
 
   (let* ((current-depth (outline-depth))
@@ -2922,7 +2921,7 @@ Leaves primary topic's trailing vertical whitespace, if any."
 		  (and (outline-next-heading)
 		       (>= (outline-recent-depth) depth))))
 	    (forward-char 1)))
-	
+
     (kill-region beg (point))
     (sit-for 0)
     (save-excursion
@@ -2955,12 +2954,12 @@ however, are left exactly like normal, non-outline-specific yanks."
       (exchange-point-and-mark))
   (let* ((subj-beg (point))
 	 (subj-end (mark-marker))
-	 ;; 'resituate' if yanking an entire topic into topic header:
+	 ;; `resituate' if yanking an entire topic into topic header:
 	 (resituate (and (outline-e-o-prefix-p)
 			 (looking-at (concat "\\(" outline-regexp "\\)"))
 			 (outline-prefix-data (match-beginning 1)
 					      (match-end 1))))
-	 ;; 'rectify-numbering' if resituating (where several topics may
+	 ;; `rectify-numbering' if resituating (where several topics may
 	 ;; be resituating) or yanking a topic into a topic slot (bol):
 	 (rectify-numbering (or resituate
 				(and (bolp) (looking-at outline-regexp)))))
@@ -3039,7 +3038,7 @@ however, are left exactly like normal, non-outline-specific yanks."
 		  (if (looking-at " ") (delete-char 1))))
 	    (exchange-point-and-mark))))
     (if rectify-numbering
-	(progn 
+	(progn
 	  (save-excursion
                                         ; Give some preliminary feedback:
 	    (message "... reconciling numbers") (sit-for 0)
@@ -3113,9 +3112,9 @@ by pops to non-distinctive yanks.  Bug..."
   (interactive)
   (if (not outline-file-xref-bullet)
       (error
-       "outline cross references disabled - no 'outline-file-xref-bullet'")
+       "outline cross references disabled - no `outline-file-xref-bullet'")
     (if (not (string= (outline-current-bullet) outline-file-xref-bullet))
-        (error "current heading lacks cross-reference bullet '%s'"
+        (error "current heading lacks cross-reference bullet `%s'"
                outline-file-xref-bullet)
       (let (file-name)
         (save-excursion
@@ -3128,7 +3127,7 @@ by pops to non-distinctive yanks.  Bug..."
         (setq file-name
               (if (not (= (aref file-name 0) ?:))
                   (expand-file-name file-name)
-                                        ; A registry-files ref, strip the ':'
+                                        ; A registry-files ref, strip the `:'
                                         ; and try to follow it:
                 (let ((reg-ref (reference-registered-file
                                 (substring file-name 1) nil t)))
@@ -3181,7 +3180,7 @@ See `outline-flag-region' for more details."
 
   "Produce a list representing exposed topics in current region.
 
-This list can then be used by 'outline-process-exposed' to manipulate
+This list can then be used by `outline-process-exposed' to manipulate
 the subject region.
 
 List is composed of elements that may themselves be lists representing
@@ -3189,7 +3188,7 @@ exposed components in subtopic.
 
 Each component list contains:
  - a number representing the depth of the topic,
- - a string representing the header-prefix (ref. 'outline-header-prefix'),
+ - a string representing the header-prefix (ref. `outline-header-prefix'),
  - a string representing the bullet character,
  - and a series of strings, each containing one line of the exposed
    portion of the topic entry."
@@ -3198,7 +3197,7 @@ Each component list contains:
   (save-excursion
     (let* (strings pad result depth bullet beg next done) ; State vars.
       (goto-char start)
-      (beginning-of-line)		
+      (beginning-of-line)
       (if (not (outline-goto-prefix))	; Get initial position within a topic:
 	  (outline-next-visible-heading 1))
       (while (and (not done)
@@ -3361,7 +3360,7 @@ warn people about the change, and then deprecate this alias."
 
   (interactive "p")
   ;;(beep)
-  ;;(message (format "Use '%s' instead of '%s' (%s)."
+  ;;(message (format "Use `%s' instead of `%s' (%s)."
   ;;		   "outline-show-children"
   ;;		   "outline-show-current-children"
   ;;		   (buffer-name (current-buffer))))
@@ -3452,7 +3451,7 @@ exposed by outline-show-entry but are within otherwise concealed regions."
 ;;;_   > outline-show-current-subtree (&optional arg)
 (defun outline-show-current-subtree (&optional arg)
   "Show everything within the current topic.  With a repeat-count,
-expose this topic and its' siblings."
+expose this topic and its siblings."
   (interactive "P")
   (save-excursion
     (if (<= (outline-current-depth) 0)
@@ -3471,7 +3470,7 @@ expose this topic and its' siblings."
   "Close the current topic, or containing topic if this one is already closed.
 
 If this topic is closed and it's a top level topic, close this topic
-and its' siblings.
+and its siblings.
 
 If optional arg JUST-CLOSE is non-nil, do not treat the parent or
 siblings, even if the target topic is already closed."
@@ -3510,7 +3509,7 @@ siblings, even if the target topic is already closed."
   (outline-show-children t))
 ;;;_   > outline-hide-current-leaves ()
 (defun outline-hide-current-leaves ()
-  "Hide the bodies of the current topic and all its' offspring."
+  "Hide the bodies of the current topic and all its offspring."
   (interactive)
   (outline-back-to-current-heading)
   (outline-hide-region-body (point) (progn (outline-end-of-current-subtree)
@@ -3565,9 +3564,9 @@ list) dictates the exposure for the corresponding topic.
 Non-null lists recursively designate exposure specs for respective
 subtopics of the current topic.
 
-The ':' repeat spec is used to specify exposure for any number of
+The `:' repeat spec is used to specify exposure for any number of
 successive siblings, up to the trailing ones for which there are
-explicit specs following the ':'.
+explicit specs following the `:'.
 
 Simple (numeric and null-list) specs are interpreted as follows:
 
@@ -3578,9 +3577,9 @@ Simple (numeric and null-list) specs are interpreted as follows:
      - positive numbers open to the relative depth indicated by the
        number, but do not force already opened subtopics to be closed.
      - 0 means to close topic - hide all offspring.
-  :  - 'repeat'
+  :  - `repeat'
        apply prior element to all siblings at current level, *up to*
-       those siblings that would be covered by specs following the ':'
+       those siblings that would be covered by specs following the `:'
        on the list.  Ie, apply to all topics at level but the last
        ones.  \(Only first of multiple colons at same level is
        respected - subsequent ones are discarded.)
@@ -3627,7 +3626,7 @@ Examples:
 		((eq curr-elem '-) (outline-show-current-entry))
 		((eq curr-elem ':)
 		 (setq stay t)
-		 ;; Expand the 'repeat' spec to an explicit version,
+		 ;; Expand the `repeat' spec to an explicit version,
 		 ;; w.r.t. remaining siblings:
 		 (let ((residue	   ; = # of sibs not covered by remaining spec
 			;; Dang - could be nice to make use of the chart, sigh:
@@ -3685,9 +3684,9 @@ Simple (numeric and null-list) specs are interpreted as follows:
     absolute value of the number.
   - positive numbers just open to the relative depth indicated by the number.
   - 0 just closes
- - '*' completely opens the topic, including bodies.
- - '+' shows all the sub headers, but not the bodies
- - '-' exposes the body and immediate offspring of the corresponding topic.
+ - `*' completely opens the topic, including bodies.
+ - `+' shows all the sub headers, but not the bodies
+ - `-' exposes the body and immediate offspring of the corresponding topic.
 
 If the spec is a list, the first element must be a number, which
 dictates the exposure depth of the topic as a whole.  Subsequent
@@ -3747,7 +3746,7 @@ need not be quoted in outline-new-exposure.
 
 Cursor is left at start position.
 
-Use this instead of obsolete 'outline-exposure'.
+Use this instead of obsolete `outline-exposure'.
 
 Examples:
 \(outline-exposure (-1 () () () 1) 0)
@@ -3757,7 +3756,7 @@ Examples:
 \(outline-exposure : -1 0)
 	Close all topics at current level to expose only their
 	immediate children, except for the last topic at the current
-	level, in which even its' immediate children are hidden.
+	level, in which even its immediate children are hidden.
 \(outline-exposure -2 : -1 *)
         Expose children and grandchildren of first topic at current
 	level, and expose children of subsequent topics at current
@@ -3769,7 +3768,7 @@ Examples:
 	(list 'outline-expose-topic (list 'quote spec))))
 ;;;_   > outline-exposure '()
 (defmacro outline-exposure (&rest spec)
-  "Being deprecated - use more recent 'outline-new-exposure' instead.
+  "Being deprecated - use more recent `outline-new-exposure' instead.
 
 Literal frontend for `outline-old-expose-topic', doesn't evaluate arguments
 and retains start position."
@@ -3794,7 +3793,7 @@ if the entire topic was concealed, in a list if the entry was concealed.")
 Used by isearch-terminate/outline-provisions and
 isearch-done/outline-provisions")
 
-           
+
 ;;;_  > outline-enwrap-isearch ()
 (defun outline-enwrap-isearch ()
   "Impose outline-mode isearch-mode wrappers for dynamic exposure in isearch.
@@ -3817,7 +3816,7 @@ The function checks to ensure that the rebindings are done only once."
                                         ; Ensure load of isearch-mode:
     (if (or (and (fboundp 'isearch-mode)
                  (fboundp 'isearch-quote-char))
-            (condition-case error 
+            (condition-case error
                 (load-library outline-enwrap-isearch-mode)
               (file-error (message "Skipping isearch-mode provisions - %s '%s'"
                                    (car (cdr error))
@@ -3827,17 +3826,17 @@ The function checks to ensure that the rebindings are done only once."
                           (setq outline-enwrap-isearch-mode nil))))
         ;; Isearch-mode loaded, encapsulate specific entry points for
         ;; outline dynamic-exposure business:
-        (progn 
-                
+        (progn
+
 	  ;; stash crucial isearch-mode funcs under known, private
 	  ;; names, then register wrapper functions under the old
-	  ;; names, in their stead: 'isearch-quit' is pre isearch v 1.2.
+	  ;; names, in their stead: `isearch-quit' is pre isearch v 1.2.
           (fset 'real-isearch-terminate
-                                        ; 'isearch-quit is pre v 1.2:
+                                        ; `isearch-quit' is pre v 1.2:
                 (or (if (fboundp 'isearch-quit)
                         (symbol-function 'isearch-quit))
                     (if (fboundp 'isearch-abort)
-                                        ; 'isearch-abort' is v 1.2 and on:
+                                        ; `isearch-abort' is v 1.2 and on:
                         (symbol-function 'isearch-abort))))
           (fset 'isearch-quit 'isearch-terminate/outline-provisions)
           (fset 'isearch-abort 'isearch-terminate/outline-provisions)
@@ -4008,7 +4007,7 @@ string across latex processing."
   "Express line for exact \(literal\) representation across latex processing.
 
 Adjust line contents so it is unaltered \(from the original line)
-across latex processing, within the context of a 'verbatim'
+across latex processing, within the context of a `verbatim'
 environment.  Leaves point at the end of the line."
   (beginning-of-line)
   (let ((beg (point))
@@ -4112,7 +4111,7 @@ BULLET string, and a list of TEXT strings for the body."
 	 (curr-line)
 	 body-content bop)
 					; Do the head line:
-    (insert-string (concat "\\OneHeadLine{\\verb\1 " 
+    (insert-string (concat "\\OneHeadLine{\\verb\1 "
 			   (outline-latex-verb-quote bullet)
 			   "\1}{"
 			   depth
@@ -4240,7 +4239,7 @@ Optional arg DO-DEFAULTING indicates to accept empty input (CR)."
       (message "%s" new-prompt)
 
       ;; We do our own reading here, so we can circumvent, eg, special
-      ;; treatment for '?' character.  (Might oughta change minibuffer
+      ;; treatment for `?' character.  (Might oughta change minibuffer
       ;; keymap instead, oh well.)
       (setq got
             (char-to-string (let ((cursor-in-echo-area nil)) (read-char))))
@@ -4291,7 +4290,7 @@ Optional arg SUCCESSIVE-BACKSLASHES is used internally for recursion."
 (if (not (fboundp 'add-hook))
     (defun add-hook (hook function &optional append)
       "Add to the value of HOOK the function FUNCTION unless already present.
-\(It becomes the first hook on the list unless optional APPEND is non-nil, in 
+\(It becomes the first hook on the list unless optional APPEND is non-nil, in
 which case it becomes the last).  HOOK should be a symbol, and FUNCTION may be
 any valid function.  HOOK's value should be a list of functions, not a single
 function.  If HOOK is void, it is first set to nil."
@@ -4302,7 +4301,7 @@ function.  If HOOK is void, it is first set to nil."
 	      (let ((tail (assoc (cdr function) (symbol-value hook))))
 		(equal function tail))
 	    (memq function (symbol-value hook)))
-	  (set hook 
+	  (set hook
 	       (if append
 		   (nconc (symbol-value hook) (list function))
 		 (cons function (symbol-value hook)))))))
@@ -4316,7 +4315,7 @@ function.  If HOOK is void, it is first set to nil."
       (setq bullet (solicit-char-in-string
 		    "ISearch for topic with bullet: "
 		    (regexp-sans-escapes outline-bullets-string))))
-       
+
   (let ((isearch-regexp t)
 	(isearch-string (concat "^"
 				outline-header-prefix
@@ -4325,7 +4324,7 @@ function.  If HOOK is void, it is first set to nil."
     (isearch-repeat 'forward)
     (isearch-mode t)))
 ;;;_  ? Re hooking up with isearch - use isearch-op-fun rather than
-;;;	wrapping the isearch functions. 
+;;;	wrapping the isearch functions.
 
 ;;;_* Local emacs vars.
 ;;; The following `outline-layout' local variable setting:
