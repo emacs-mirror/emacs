@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.39) $
+ * $HopeName: MMsrc!poolmv.c(trunk.40) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -30,13 +30,15 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.39) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.40) $");
 
 
-#define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
-#define SPANPOOL(mv)    (MFSPool(&(mv)->spanPoolStruct))
+#define mvBlockPool(mv) MFSPool(&(mv)->blockPoolStruct)
+#define mvSpanPool(mv) MFSPool(&(mv)->spanPoolStruct)
+
 
 #define PoolPoolMV(pool) PARENT(MVStruct, poolStruct, pool)
+
 
 Pool (MVPool)(MV mv)
 {
@@ -44,6 +46,8 @@ Pool (MVPool)(MV mv)
   return &mv->poolStruct;
 }
 
+
+/* MVDebug -- MV Debug pool class */
 
 typedef struct MVDebugStruct {
   MVStruct MVStruct;             /* MV structure */
@@ -124,10 +128,10 @@ typedef struct MVSpanStruct {
 } MVSpanStruct;
 
 
-#define SpanSize(span) (AddrOffset((span)->base.base,                 \
-                                   (span)->limit.limit))
-#define SpanInsideSentinels(span) (AddrOffset((span)->base.limit,     \
-                                              (span)->limit.base))
+#define SpanSize(span) \
+  AddrOffset((span)->base.base, (span)->limit.limit)
+#define SpanInsideSentinels(span) \
+  AddrOffset((span)->base.limit, (span)->limit.base)
 
 
 /* MVSpanCheck -- check the consistency of a span structure */
@@ -142,7 +146,7 @@ static Bool MVSpanCheck(MVSpan span)
 
   CHECKL(RingCheck(&span->spans));
   CHECKU(MV, span->mv);
-  CHECKL(TractCheck(span->tract));
+  CHECKD_NOSIG(Tract, span->tract);
   CHECKL(MVBlockCheck(&span->base));
   CHECKL(MVBlockCheck(&span->limit));
   /* The block chain starts with the base sentinel. */
@@ -150,7 +154,7 @@ static Bool MVSpanCheck(MVSpan span)
   /* Since there is a limit sentinel, the chain can't end just after the */
   /* base sentinel... */
   CHECKL(span->base.next != NULL);
-  /* ...and it's sure to have at least two blocks on it. */
+  /* ... and it's sure to have at least two blocks on it. */
   CHECKL(span->blockCount >= 2);
   /* This is just defined this way.  It shouldn't change. */
   CHECKL(span->limit.next == NULL);
@@ -175,6 +179,7 @@ static Bool MVSpanCheck(MVSpan span)
   /* Each tract of the span must refer to the span */
   arena = PoolArena(TractPool(span->tract));
   TRACT_FOR(tract, addr, arena, base, limit) {
+    CHECKD_NOSIG(Tract, tract);
     CHECKL(TractP(tract) == (void *)span);
   }
   CHECKL(addr == limit);
@@ -319,7 +324,7 @@ static Bool MVSpanAlloc(Addr *addrReturn, MVSpan span, Size size,
       if (gap == span->largest) { /* we've used a 'largest' gap */
         AVER(span->largestKnown);
         span->largestKnown = FALSE;
-        span->largest = SpanSize(span) +1;  /* .design.largest */
+        span->largest = SpanSize(span) + 1;  /* .design.largest */
       }
 
       span->space -= size;
@@ -487,7 +492,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
          (size <= span->space)) {
         Addr new;
 
-        if(MVSpanAlloc(&new, span, size, BLOCKPOOL(mv))) {
+        if(MVSpanAlloc(&new, span, size, mvBlockPool(mv))) {
           mv->space -= size;
           AVER(AddrIsAligned(new, pool->alignment));
           *pReturn = new;
@@ -501,7 +506,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   /* pool with a new region which will hold the requested allocation. */
   /* Allocate a new span descriptor and initialize it to point at the */
   /* region. */
-  res = PoolAlloc((Addr *)&span, SPANPOOL(mv), sizeof(MVSpanStruct),
+  res = PoolAlloc((Addr *)&span, mvSpanPool(mv), sizeof(MVSpanStruct),
                   withReservoirPermit);
   if(res != ResOK)
     return res;
@@ -521,7 +526,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
     res = ArenaAlloc(&base, SegPrefDefault(), regionSize, pool,
                      withReservoirPermit);
     if (res != ResOK) {
-      PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
+      PoolFree(mvSpanPool(mv), (Addr)span, sizeof(MVSpanStruct));
       return res;
     }
   }
@@ -532,6 +537,7 @@ static Res MVAlloc(Addr *pReturn, Pool pool, Size size,
   span->mv = mv;
   /* Set the p field for each tract of the span  */
   TRACT_FOR(tract, addr, arena, base, limit) {
+    AVER(TractCheck(tract));
     AVER(TractP(tract) == NULL);
     AVER(TractPool(tract) == pool);
     TractSetP(tract, (void *)span);
@@ -597,7 +603,7 @@ static void MVFree(Pool pool, Addr old, Size size)
 
   /* Unfortunately, if allocating the new block descriptor fails we */
   /* can't do anything, and the memory is lost.  See note 2. */
-  res = MVSpanFree(span, base, limit, BLOCKPOOL(mv));
+  res = MVSpanFree(span, base, limit, mvBlockPool(mv));
   if(res != ResOK)
     mv->lost += size;
   else
@@ -614,7 +620,7 @@ static void MVFree(Pool pool, Addr old, Size size)
     ArenaFree(TractBase(span->tract), span->size, pool);
     RingRemove(&span->spans);
     RingFinish(&span->spans);
-    PoolFree(SPANPOOL(mv), (Addr)span, sizeof(MVSpanStruct));
+    PoolFree(mvSpanPool(mv), (Addr)span, sizeof(MVSpanStruct));
   }
 }
 
@@ -650,9 +656,9 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "  blockPool $P ($U)\n",
-               (WriteFP)BLOCKPOOL(mv), (WriteFU)BLOCKPOOL(mv)->serial,
+               (WriteFP)mvBlockPool(mv), (WriteFU)mvBlockPool(mv)->serial,
                "  spanPool  $P ($U)\n",
-               (WriteFP)SPANPOOL(mv), (WriteFU)SPANPOOL(mv)->serial,
+               (WriteFP)mvSpanPool(mv), (WriteFU)mvSpanPool(mv)->serial,
                "  extendBy  $W\n",  (WriteFW)mv->extendBy,
                "  avgSize   $W\n",  (WriteFW)mv->avgSize,
                "  maxSize   $W\n",  (WriteFW)mv->maxSize,
@@ -855,6 +861,6 @@ Bool MVCheck(MV mv)
   CHECKL(mv->extendBy > 0);
   CHECKL(mv->avgSize > 0);
   CHECKL(mv->extendBy >= mv->avgSize);
-  /* Could do more checks here. */
+  /* @@@@ Could do more checks here. */
   return TRUE;
 }
