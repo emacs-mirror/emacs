@@ -199,7 +199,7 @@ the manpage buffer.")
 (defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
   "*Regular expression describing a manpage section within parentheses.")
 
-(defvar Man-heading-regexp "^[ \t]*[A-Z][A-Z \t]+$"
+(defvar Man-heading-regexp "^[ \t]*\\([A-Z][A-Z \t]+\\)$"
   "*Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
@@ -631,7 +631,7 @@ The following key bindings are currently in effect in the buffer:
   (let ((case-fold-search nil))
     (while (re-search-forward Man-heading-regexp (point-max) t)
       (aput 'Man-sections-alist
-	    (buffer-substring (Man-linepos 'bol) (Man-linepos)))
+	    (buffer-substring (match-beginning 1) (match-end 1)))
       (forward-line 1))))
 
 (defun Man-build-references-alist ()
