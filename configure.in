@@ -2854,17 +2854,20 @@ typedef unsigned size_t;
 #  endif
 #endif
 
+/* On Mac OS X, these macros are already defined in precompiled headers.  */
+#ifndef MAC_OSX
 /* avoid deprecated functions */
-#ifdef HAVE_MEMCPY
-#  define bcopy(a,b,s) memcpy (b,a,s)
-#endif
-#ifdef HAVE_MEMSET
-#  define bzero(a,s) memset (a,0,s)
-#endif
-#ifdef HAVE_MEMCMP
-#  define BCMP memcmp
-#  define bcmp memcmp
-#endif
+#  ifdef HAVE_MEMCPY
+#    define bcopy(a,b,s) memcpy (b,a,s)
+#  endif
+#  ifdef HAVE_MEMSET
+#    define bzero(a,s) memset (a,0,s)
+#  endif
+#  ifdef HAVE_MEMCMP
+#    define BCMP memcmp
+#    define bcmp memcmp
+#  endif
+#endif /* MAC_OSX */
 
 #endif /* EMACS_CONFIG_H */
 
