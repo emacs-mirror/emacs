@@ -526,16 +526,15 @@ count_combining (str, len, i)
      unsigned char *str;
      int len, i;
 {
-  int j = i - 1;
+  int j = i - 1, bytes;
 
   if (i == 0 || i == len || CHAR_HEAD_P (str[i]))
     return 0;
   while (j >= 0 && !CHAR_HEAD_P (str[j])) j--;
   if (j < 0 || ! BASE_LEADING_CODE_P (str[j]))
     return 0;
-  j = i + 1;
-  while (j < len && ! CHAR_HEAD_P (str[j])) j++;
-  return j - i;
+  PARSE_MULTIBYTE_SEQ (str + j, len - j, bytes);
+  return (bytes <= i - j ? 0 : bytes - (i - j));
 }
 
 /* This structure holds information of an argument of `concat' that is
@@ -898,13 +897,19 @@ string_char_to_byte (string, char_index)
     {
       while (best_above > char_index)
 	{
-	  int best_above_byte_saved = --best_above_byte;
+	  unsigned char *pend = XSTRING (string)->data + best_above_byte;
+	  unsigned char *pbeg = pend - best_above_byte;
+	  unsigned char *p = pend - 1;
+	  int bytes;
 
-	  while (best_above_byte > 0
-		 && !CHAR_HEAD_P (XSTRING (string)->data[best_above_byte]))
+	  while (p > pbeg  && !CHAR_HEAD_P (*p)) p--;
+	  PARSE_MULTIBYTE_SEQ (p, pend - p, bytes);
+	  if (bytes == pend - p)
+	    best_above_byte -= bytes;
+	  else if (bytes > pend - p)
+	    best_above_byte -= (pend - p);
+	  else
 	    best_above_byte--;
-	  if (!BASE_LEADING_CODE_P (XSTRING (string)->data[best_above_byte]))
-	    best_above_byte = best_above_byte_saved;
 	  best_above--;
 	}
       i = best_above;
@@ -964,13 +969,19 @@ string_byte_to_char (string, byte_index)
     {
       while (best_above_byte > byte_index)
 	{
-	  int best_above_byte_saved = --best_above_byte;
+	  unsigned char *pend = XSTRING (string)->data + best_above_byte;
+	  unsigned char *pbeg = pend - best_above_byte;
+	  unsigned char *p = pend - 1;
+	  int bytes;
 
-	  while (best_above_byte > 0
-		 && !CHAR_HEAD_P (XSTRING (string)->data[best_above_byte]))
+	  while (p > pbeg  && !CHAR_HEAD_P (*p)) p--;
+	  PARSE_MULTIBYTE_SEQ (p, pend - p, bytes);
+	  if (bytes == pend - p)
+	    best_above_byte -= bytes;
+	  else if (bytes > pend - p)
+	    best_above_byte -= (pend - p);
+	  else
 	    best_above_byte--;
-	  if (!BASE_LEADING_CODE_P (XSTRING (string)->data[best_above_byte]))
-	    best_above_byte = best_above_byte_saved;
 	  best_above--;
 	}
       i = best_above;
