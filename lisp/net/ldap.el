@@ -1,6 +1,6 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <Oscar.Figueiredo@di.epfl.ch>
 ;; Maintainer: Oscar Figueiredo <Oscar.Figueiredo@di.epfl.ch>
@@ -583,9 +583,10 @@ an alist of attribute/value pairs."
 	    (save-excursion
 	      (set-buffer bufval)
 	      (erase-buffer)
+	      (set-buffer-multibyte nil)
 	      (insert-file-contents-literally value)
 	      (delete-file value)
-	      (setq value (buffer-substring (point-min) (point-max))))
+	      (setq value (buffer-string)))
 	    (setq record (cons (list name value)
 			       record))
 	    (forward-line 1))
