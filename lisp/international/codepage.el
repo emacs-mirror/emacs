@@ -116,7 +116,8 @@ variety is actually just an alias for the -unix variety)."
 	       " characters using IBM codepage " coding-name)
        (cons ccl-decoder-unix ccl-encoder-unix)
        `((safe-charsets ascii ,iso-name)
-	 (valid-codes (0 . 255))))
+	 (valid-codes (0 . 255))
+	 (charset-origin-alist ,(list iso-name (symbol-name coding) encoder))))
       ;;; Make coding systems CODING-unix, CODING-dos, CODING-mac.
       (make-subsidiary-coding-system coding)
       (put coding 'eol-type (vector (intern (format "%s-unix" coding))
