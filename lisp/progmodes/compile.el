@@ -294,36 +294,37 @@ Returns the compilation buffer created."
 	  (goto-char (point-max)))
       ;; Pop up the compilation buffer.
       (setq outwin (display-buffer outbuf))
-      (set-buffer outbuf)
-      (compilation-mode)
-      (buffer-disable-undo (current-buffer))
-      (setq buffer-read-only t)
-      (set (make-local-variable 'compilation-parse-errors-function) parser)
-      (set (make-local-variable 'compilation-error-message) error-message)
-      (set (make-local-variable 'compilation-error-regexp-alist) regexp-alist)
-      (setq default-directory thisdir
-	    compilation-directory-stack (list default-directory))
-      (set-window-start outwin (point-min))
-      (setq mode-name name-of-mode)
-      (or (eq outwin (selected-window))
-	  (set-window-point outwin (point-min)))
-      (and compilation-window-height
-	   (= (window-width outwin) (frame-width))
-	   (let ((w (selected-window)))
-	     (unwind-protect
-		 (progn
-		   (select-window outwin)
-		   (enlarge-window (- compilation-window-height
-				      (window-height))))
-	       (select-window w))))
-      ;; Start the compilation.
-      (let ((proc (start-process-shell-command (downcase mode-name)
-					       outbuf
-					       command)))
-	(set-process-sentinel proc 'compilation-sentinel)
-	(set-process-filter proc 'compilation-filter)
-	(set-marker (process-mark proc) (point) outbuf)
-	(setq compilation-in-progress (cons proc compilation-in-progress))))
+      (save-excursion
+	(set-buffer outbuf)
+	(compilation-mode)
+	(buffer-disable-undo (current-buffer))
+	(setq buffer-read-only t)
+	(set (make-local-variable 'compilation-parse-errors-function) parser)
+	(set (make-local-variable 'compilation-error-message) error-message)
+	(set (make-local-variable 'compilation-error-regexp-alist) regexp-alist)
+	(setq default-directory thisdir
+	      compilation-directory-stack (list default-directory))
+	(set-window-start outwin (point-min))
+	(setq mode-name name-of-mode)
+	(or (eq outwin (selected-window))
+	    (set-window-point outwin (point-min)))
+	(and compilation-window-height
+	     (= (window-width outwin) (frame-width))
+	     (let ((w (selected-window)))
+	       (unwind-protect
+		   (progn
+		     (select-window outwin)
+		     (enlarge-window (- compilation-window-height
+					(window-height))))
+		 (select-window w))))
+	;; Start the compilation.
+	(let ((proc (start-process-shell-command (downcase mode-name)
+						 outbuf
+						 command)))
+	  (set-process-sentinel proc 'compilation-sentinel)
+	  (set-process-filter proc 'compilation-filter)
+	  (set-marker (process-mark proc) (point) outbuf)
+	  (setq compilation-in-progress (cons proc compilation-in-progress)))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
 
