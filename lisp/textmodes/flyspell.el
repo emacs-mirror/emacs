@@ -1353,6 +1353,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 ;*    pointed out words are then searched in the region a checked with */
 ;*    regular flyspell means.                                          */
 ;*---------------------------------------------------------------------*/
+;;;###autoload
 (defun flyspell-region (beg end)
   "Flyspell text between BEG and END."
   (interactive "r")
@@ -1370,6 +1371,7 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-buffer ...                                              */
 ;*---------------------------------------------------------------------*/
+;;;###autoload
 (defun flyspell-buffer ()
   "Flyspell whole buffer."
   (interactive)
