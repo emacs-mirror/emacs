@@ -1,3 +1,8 @@
+2000-03-03  Jason Rumney  <jasonr@gnu.org>
+
+	* keyboard.c (make_lispy_event): Call buffer_posn_from_coords with
+	correct parameters.
+
 2000-03-03  Ken Raeburn  <raeburn@gnu.org>
 
 	* unexelf.c (PT_LOAD, SHT_*, SHN_*) [__NetBSD__]: Only provide
