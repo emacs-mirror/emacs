@@ -33,9 +33,9 @@
   :group 'pp)
 
 (defun pp-to-string (object)
-  "Return a string containing the pretty-printed representation of OBJECT,
-any Lisp object.  Quoting characters are used when needed to make output
-that `read' can handle, whenever this is possible."
+  "Return a string containing the pretty-printed representation of OBJECT.
+OBJECT can be any Lisp object.  Quoting characters are used as needed
+to make output that `read' can handle, whenever this is possible."
   (save-excursion
     (set-buffer (generate-new-buffer " pp-to-string"))
     (unwind-protect
@@ -76,7 +76,7 @@ that `read' can handle, whenever this is possible."
 ;;;###autoload
 (defun pp (object &optional stream)
   "Output the pretty-printed representation of OBJECT, any Lisp object.
-Quoting characters are printed when needed to make output that `read'
+Quoting characters are printed as needed to make output that `read'
 can handle, whenever this is possible.
 Output stream is STREAM, or value of `standard-output' (which see)."
   (princ (pp-to-string object) (or stream standard-output)))
@@ -85,8 +85,8 @@ Output stream is STREAM, or value of `standard-output' (which see)."
 (defun pp-eval-expression (expression)
   "Evaluate EXPRESSION and pretty-print value into a new display buffer.
 If the pretty-printed value fits on one line, the message line is used
-instead.  Value is also consed on to front of variable  values 's
-value."
+instead.  The value is also consed onto the front of the list
+in the variable `values'."
   (interactive "xPp-eval: ")
   (setq values (cons (eval expression) values))
   (let* ((old-show-function temp-buffer-show-function)
