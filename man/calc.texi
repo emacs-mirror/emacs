@@ -476,10 +476,9 @@ large and might be intimidating to the first-time user.  If you plan to
 use Calc only as a traditional desk calculator, all you really need to
 read is the ``Getting Started'' chapter of this manual and possibly the
 first few sections of the tutorial.  As you become more comfortable with
-the program you can learn its additional features.  In terms of efficiency,
-scope and depth, Calc cannot replace a powerful tool like Mathematica.
-But Calc has the advantages of convenience, portability, and availability
-of the source code.  And, of course, it's free!
+the program you can learn its additional features.  Calc does not
+have the scope and depth of a fully-functional symbolic math package,
+but Calc has the advantages of convenience, portability, and freedom.
 
 @node About This Manual, Notations Used in This Manual, What is Calc, Getting Started
 @section About This Manual
@@ -1365,13 +1364,13 @@ to look around for other data types that might be worth having.
 
 Around this time, my friend Rick Koshi showed me his nifty new HP-28
 calculator.  It allowed the user to manipulate formulas as well as
-numerical quantities, and it could also operate on matrices.  I decided
-that these would be good for Calc to have, too.  And once things had
-gone this far, I figured I might as well take a look at serious algebra
-systems like Mathematica, Macsyma, and Maple for further ideas.  Since
-these systems did far more than I could ever hope to implement, I decided
-to focus on rewrite rules and other programming features so that users
-could implement what they needed for themselves.
+numerical quantities, and it could also operate on matrices.  I
+decided that these would be good for Calc to have, too.  And once
+things had gone this far, I figured I might as well take a look at
+serious algebra systems for further ideas.  Since these systems did
+far more than I could ever hope to implement, I decided to focus on
+rewrite rules and other programming features so that users could
+implement what they needed for themselves.
 
 Rick complained that matrices were hard to read, so I put in code to
 format them in a 2D style.  Once these routines were in place, Big mode
@@ -1412,16 +1411,14 @@ parts.  Bob Weiner helped immensely with the Lucid Emacs port.
 Among the books used in the development of Calc were Knuth's @emph{Art
 of Computer Programming} (especially volume II, @emph{Seminumerical
 Algorithms}); @emph{Numerical Recipes} by Press, Flannery, Teukolsky,
-and Vetterling; Bevington's @emph{Data Reduction and Error Analysis for
-the Physical Sciences}; @emph{Concrete Mathematics} by Graham, Knuth,
-and Patashnik; Steele's @emph{Common Lisp, the Language}; the @emph{CRC
-Standard Math Tables} (William H. Beyer, ed.); and Abramowitz and
-Stegun's venerable @emph{Handbook of Mathematical Functions}.  I
-consulted the user's manuals for the HP-28 and HP-48 calculators, as
-well as for the programs Mathematica, SMP, Macsyma, Maple, MathCAD,
-Gnuplot, and others.  Also, of course, Calc could not have been written
-without the excellent @emph{GNU Emacs Lisp Reference Manual}, by Bil
-Lewis and Dan LaLiberte.
+and Vetterling; Bevington's @emph{Data Reduction and Error Analysis
+for the Physical Sciences}; @emph{Concrete Mathematics} by Graham,
+Knuth, and Patashnik; Steele's @emph{Common Lisp, the Language}; the
+@emph{CRC Standard Math Tables} (William H. Beyer, ed.); and
+Abramowitz and Stegun's venerable @emph{Handbook of Mathematical
+Functions}.  Also, of course, Calc could not have been written without
+the excellent @emph{GNU Emacs Lisp Reference Manual}, by Bil Lewis and
+Dan LaLiberte.
 
 Final thanks go to Richard Stallman, without whose fine implementations
 of the Emacs editor, language, and environment, Calc would have been
@@ -14645,8 +14642,7 @@ if the matrix justification mode so specifies.
 @pindex calc-mathematica-language
 @cindex Mathematica language
 The @kbd{d M} (@code{calc-mathematica-language}) command selects the
-conventions of Mathematica, a powerful and popular mathematical tool
-from Wolfram Research, Inc.  Notable differences in Mathematica mode
+conventions of Mathematica.  Notable differences in Mathematica mode
 are that the names of built-in functions are capitalized, and function
 calls use square brackets instead of parentheses.  Thus the Calc
 formula @samp{sin(2 x)} is entered and displayed @w{@samp{Sin[2 x]}} in
@@ -14669,8 +14665,7 @@ Subscripts use double square brackets: @samp{a[[i]]}.
 @pindex calc-maple-language
 @cindex Maple language
 The @kbd{d W} (@code{calc-maple-language}) command selects the
-conventions of Maple, another mathematical tool from the University
-of Waterloo.
+conventions of Maple.
 
 Maple's language is much like C.  Underscores are allowed in symbol
 names; square brackets are used for subscripts; explicit @samp{*}s for
@@ -17968,14 +17963,6 @@ would decrease below @var{salvage}, it only decreases to @var{salvage}
 and the depreciation is zero for all subsequent periods.  The @code{ddb}
 function returns the amount the book value decreased in the specified
 period.
-
-The Calc financial function names were borrowed mostly from Microsoft
-Excel and Borland's Quattro.  The @code{ratel} function corresponds to
-@samp{@@CGR} in Borland's Reflex.  The @code{nper} and @code{nperl}
-functions correspond to @samp{@@TERM} and @samp{@@CTERM} in Quattro,
-respectively.  Beware that the Calc functions may take their arguments
-in a different order than the corresponding functions in your favorite
-spreadsheet.
 
 @node Binary Functions, , Financial Functions, Arithmetic
 @section Binary Number Functions
