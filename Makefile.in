@@ -628,10 +628,13 @@ dvi:
 ### special emacs executable is built from Lisp sources, which is then
 ### used to compile Lisp files.  The last step is a "normal" make.
 
-bootstrap: clean
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
-	(cd src; $(MAKE) $(MFLAGS) bootstrap)
-	-(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
-	$(MAKE) $(MFLAGS) clean
-	$(MAKE) $(MFLAGS)
+bootstrap: clean bootstrap-lisp-1 bootstrap-src bootstrap-lisp clean all info
 
+bootstrap-lisp-1:
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
+
+bootstrap-lisp:
+	-(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
+
+bootstrap-src:
+	(cd src; $(MAKE) $(MFLAGS) bootstrap)
