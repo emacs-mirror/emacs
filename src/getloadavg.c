@@ -436,8 +436,10 @@ extern int errno;
 
 # endif /* LOAD_AVE_TYPE */
 
-# ifdef __GNU__
-/* GNU hurd systems act sort of like NeXT ones, for load average purposes.  */
+# if defined(__GNU__) && !defined (NeXT)
+/* Note that NeXT Openstep defines __GNU__ even though it should not.  */
+/* GNU system acts much like NeXT, for load average purposes,
+   but not exactly.  */
 #  define NeXT
 #  define host_self mach_host_self
 # endif
