@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName$
+ * $HopeName: MMsrc!finalcv.c(trunk.1) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -47,6 +47,10 @@
 #define CHURN_FACTOR 1000
 #define ONE_SLOT_SIZE (3*sizeof(mps_word_t))
 #define MAGIC_0 36	/* source is person.richard */
+/* The number that a half of all numbers generated from rnd are less
+ * than.  Hence, probability a-half, or P a-half */
+/* see impl.h.testlib */
+#define P_A_HALF (1024uL*1024uL*1024uL - 1)	/* 2^30 - 1 */
 
 /* tags an integer according to dylan format */
 static mps_word_t dylan_int(mps_word_t x)
@@ -180,6 +184,32 @@ test(void *arg, size_t s)
     mps_free(mrg, mrg_obj[i], sizeof(mps_addr_t));
   }
 
+  /* design.mps.poolmrg.test.ut.alloc */
+  for(i = 0; i < N_ROOTS; ++i) {
+    do {
+      MPS_RESERVE_BLOCK(e, p, ap, ONE_SLOT_SIZE);
+      assert(e == MPS_RES_OK);
+      dylan_init(p, ONE_SLOT_SIZE, root, 1);
+    } while(!mps_commit(ap, p, ONE_SLOT_SIZE));
+    e = mps_alloc(&mrg_obj[i], mrg, sizeof(mps_addr_t));
+    assert(e == MPS_RES_OK);
+    /* design.mps.poolmrg.test.ut.refer */
+    *(mps_addr_t *)mrg_obj[i] = p;
+    root[i] = p;
+  }
+  p = NULL;
+
+  /* design.mps.poolmrg.test.ut.drop */
+  for(i = 0; i < N_ROOTS; ++i) {
+    if(rnd() < P_A_HALF) {
+      root[i] = NULL;
+    }
+  }
+  /* design.mps.poolmrg.test.ut.churn */
+  churn(ap);
+
+  /* design.mps.poolmrg.test.ut.not */
+
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root[0]);
   mps_root_destroy(mps_root[1]);
@@ -202,6 +232,12 @@ main(void)
   mps_tramp(&r, test, space, 0);
   mps_thread_dereg(thread);
   mps_space_destroy(space);
+
+  if(rc) {
+    printf("Defects found, exiting with non-zero status.\n");
+  } else {
+    printf("No defects found.\n");
+  }
 
   return rc;
 }

@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.2) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.3) $
  * Copyright(C) 1995,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -13,12 +13,6 @@
  * 
  * See design.mps.poolmrg.
  * 
- * .update.wasold: At the moment the fix interface provides no way for
- * the caller to determine whether the referent was in old space.
- * This is necessary for finalization.  For now, the callsite to fix
- * (which will need to be changed when the fix interface changes) bears
- * this tag.
- *
  * .access.exact: There is no way to to determine the "correct" rank to
  * scan at when an access fault is taken (we should use whatever rank the
  * tracer is at).  We default to scanning at the RankEXACT.
@@ -35,7 +29,7 @@
 #include "poolmrg.h"
 
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.2) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.3) $");
 
 #define MRGSig          ((Sig)0x519B0349)
 
@@ -183,7 +177,6 @@ static Res MRGGroupScan(ScanState ss, MRGGroup group, MRG mrg)
   Space space;
   Addr *refpart;
   Word guardians, i;
-  int wasOld = 0;
 
   space = PoolSpace(MRGPool(mrg));
 
@@ -196,11 +189,11 @@ static Res MRGGroupScan(ScanState ss, MRGGroup group, MRG mrg)
   TRACE_SCAN_BEGIN(ss) {
     for(i=0; i<guardians; ++i) {
       if(!TRACE_FIX1(ss, refpart[i])) continue;
-      res = TRACE_FIX2(ss, &refpart[i]);	/* .update.wasold */
+      res = TRACE_FIX2(ss, &refpart[i]);
       if(res != ResOK) {
 	return res;
       }
-      if(wasOld && ss->rank == RankFINAL) {	/* .improve.rank */
+      if(ss->rank == RankFINAL && !ss->wasMarked) {	/* .improve.rank */
 	RingStruct *linkpart =
 	  (RingStruct *)SegBase(space, group->linkseg);
 	RingRemove(&linkpart[i]);

@@ -1,7 +1,7 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.13) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpmst.h(trunk.14) $
+ * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
  *
@@ -537,6 +537,7 @@ typedef struct ScanStateStruct {
   TraceId traceId;              /* trace ID of scan */
   Rank rank;                    /* reference rank of scanning */
   Addr weakSplat;               /* value of weak refs to unforwarded objects */
+  Bool wasMarked;               /* design.mps.fix.protocol.was-ready */
 } ScanStateStruct;
 
 typedef struct TraceStruct {
