@@ -31,9 +31,18 @@
 
 ;;; Code:
 
+(defvar load-history-loaded nil
+  "Non-nil means we have loaded the file `etc/fns-VERSION.el'.
+That file records the part of `load-history' for preloaded files,
+which is cleared out before dumping to make Emacs smaller.")
+
 (defun symbol-file (sym)
   "Return the input source from which SYM was loaded.
 This is a file name, or nil if the source was a buffer with no associated file."
+  (unless load-history-loaded
+    (load (expand-file-name (format "fns-%s.el" emacs-version)
+			    data-directory))
+    (setq load-history-loaded t))
   (catch 'foundit
     (mapcar
      (function (lambda (x) (if (memq sym (cdr x)) (throw 'foundit (car x)))))
