@@ -114,7 +114,8 @@ controls the reading of arguments for an interactive call.
 @subsection Using @code{interactive}
 
   This section describes how to write the @code{interactive} form that
-makes a Lisp function an interactively-callable command.
+makes a Lisp function an interactively-callable command, and how to
+obtain the interactive form of a command.
 
 @defspec interactive arg-descriptor
 @cindex argument descriptors
@@ -227,6 +228,17 @@ Actual reading of arguments is controlled by the rest of the prompt
 string (starting with the first character that is not @samp{*} or
 @samp{@@}).
 @end itemize
+
+@cindex obtaining interactive form of a function
+@defun interactive-form function
+This function returns the interactive form of @var{function}.  If
+@var{function} is a command (@pxref{Interactive Call}), the value is a
+list of the form @code{(interactive @var{spec})}, where @var{spec} is
+the descriptor specification used by the command's @code{interactive}
+form to compute the function's arguments (@pxref{Using Interactive}).
+If @var{function} is not a command, @code{interactive-form} returns
+@code{nil}.
+@end defun
 
 @node Interactive Codes
 @comment  node-name,  next,  previous,  up
@@ -735,9 +747,11 @@ input events in a string (@pxref{Strings of Events}).
 @tindex clear-this-command-keys
 @defun clear-this-command-keys
 This function empties out the table of events for
-@code{this-command-keys} to return.  This is useful after reading a
-password, to prevent the password from echoing inadvertently as part of
-the next command in certain cases.
+@code{this-command-keys} to return, and also cause the function
+@code{recent-keys} (@pxref{Recording Input}) to return an empty
+vector.  This is useful after reading a password, to prevent the
+password from echoing inadvertently as part of the next command in
+certain cases.
 @end defun
 
 @defvar last-nonmenu-event
@@ -2776,3 +2790,8 @@ The variable is always local to the current terminal and cannot be
 buffer-local.  @xref{Multiple Displays}.
 @end defvar
 
+@defvar kbd-macro-termination-hook
+This normal hook (@pxref{Standard Hooks}) is run when a keyboard
+macro terminates, regardless of what caused it to terminate (reaching
+the macro end or an error which ended the macro prematurely).
+@end defvar
