@@ -134,7 +134,7 @@ use either \\[customize] or the function `delete-selection-mode'."
 
 (put 'insert-parentheses 'delete-selection t)
 
-;; This is very useful for cancelling a selection in the minibuffer without 
+;; This is very useful for cancelling a selection in the minibuffer without
 ;; aborting the minibuffer.
 (defun minibuffer-keyboard-quit ()
   "Abort recursive edit.
@@ -145,15 +145,22 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       (setq deactivate-mark t)
     (abort-recursive-edit)))
 
-(define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit) 
-(define-key minibuffer-local-ns-map "\C-g" 'minibuffer-keyboard-quit) 
-(define-key minibuffer-local-completion-map "\C-g" 'minibuffer-keyboard-quit) 
-(define-key minibuffer-local-must-match-map "\C-g" 'minibuffer-keyboard-quit) 
-(define-key minibuffer-local-isearch-map "\C-g" 'minibuffer-keyboard-quit) 
+(define-key minibuffer-local-map "\C-g" 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-ns-map "\C-g" 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-completion-map "\C-g" 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-must-match-map "\C-g" 'minibuffer-keyboard-quit)
+(define-key minibuffer-local-isearch-map "\C-g" 'minibuffer-keyboard-quit)
+
+(defun delsel-unload-hook ()
+  (define-key minibuffer-local-map "\C-g" 'abort-recursive-edit)
+  (define-key minibuffer-local-ns-map "\C-g" 'abort-recursive-edit)
+  (define-key minibuffer-local-completion-map "\C-g" 'abort-recursive-edit)
+  (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
+  (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit))
 
 (provide 'delsel)
 
-;; This is the standard way mechanism to put the mode into effect
+;; This is the standard way to put the mode into effect
 ;; if delete-selection-mode has already been set to t
 ;; when this file is loaded.
 (when delete-selection-mode
