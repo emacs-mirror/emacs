@@ -107,7 +107,6 @@ static Lisp_Object store_in_keymap P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 static void fix_submap_inheritance P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 static Lisp_Object define_as_prefix P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object describe_buffer_bindings P_ ((Lisp_Object));
 static void describe_command P_ ((Lisp_Object));
 static void describe_translation P_ ((Lisp_Object));
 static void describe_map P_ ((Lisp_Object, Lisp_Object,
@@ -805,6 +804,8 @@ store_in_keymap (keymap, idx, def)
   return def;
 }
 
+EXFUN (Fcopy_keymap, 1);
+
 void
 copy_keymap_1 (chartable, idx, elt)
      Lisp_Object chartable, idx, elt;
@@ -928,7 +929,7 @@ is not copied.")
 
 	}
     }
-	      
+  
   return copy;
 }
 
@@ -1803,7 +1804,7 @@ spaces are put between sequence elements, etc.")
     keys = wrong_type_argument (Qarrayp, keys);
 
   if (len == 0)
-    return build_string ("");
+    return empty_string;
   return Fconcat (len * 2 - 1, args);
 }
 
@@ -2456,25 +2457,6 @@ where_is_internal_1 (binding, key, definition, noindirect, this, last,
 
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */
 
-DEFUN ("describe-bindings-internal", Fdescribe_bindings_internal, Sdescribe_bindings_internal, 0, 2, "",
-  "Show a list of all defined keys, and their definitions.\n\
-We put that list in a buffer, and display the buffer.\n\
-\n\
-The optional argument MENUS, if non-nil, says to mention menu bindings.\n\
-\(Ordinarily these are omitted from the output.)\n\
-The optional argument PREFIX, if non-nil, should be a key sequence;\n\
-then we display only bindings that start with that prefix.")
-  (menus, prefix)
-     Lisp_Object menus, prefix;
-{
-  register Lisp_Object thisbuf;
-  XSETBUFFER (thisbuf, current_buffer);
-  internal_with_output_to_temp_buffer ("*Help*",
-				       describe_buffer_bindings,
-				       list3 (thisbuf, prefix, menus));
-  return Qnil;
-}
-
 DEFUN ("describe-buffer-bindings", Fdescribe_buffer_bindings, Sdescribe_buffer_bindings, 1, 3, 0,
   "Insert the list of all defined keys and their definitions.\n\
 The list is inserted in the current buffer, while the bindings are\n\
@@ -2607,18 +2589,6 @@ You type        Translation\n\
   UNGCPRO;
   return Qnil;
 }
-
-/* ARG is (BUFFER PREFIX MENU-FLAG).  */
- 
-static Lisp_Object
-describe_buffer_bindings (arg)
-     Lisp_Object arg;
-{
-  Fset_buffer (Vstandard_output);
-  return Fdescribe_buffer_bindings (XCAR (arg), XCAR (XCDR (arg)),
-				    XCAR (XCDR (XCDR (arg))));
-}
-
 
 /* Insert a description of the key bindings in STARTMAP,
     followed by those of all maps reachable through STARTMAP.
@@ -3379,14 +3349,18 @@ don't alter it yourself.");
   DEFVAR_LISP ("minibuffer-local-ns-map", &Vminibuffer_local_ns_map,
     "Local keymap for the minibuffer when spaces are not allowed.");
   Vminibuffer_local_ns_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (Vminibuffer_local_ns_map, Vminibuffer_local_map);
 
   DEFVAR_LISP ("minibuffer-local-completion-map", &Vminibuffer_local_completion_map,
     "Local keymap for minibuffer input with completion.");
   Vminibuffer_local_completion_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (Vminibuffer_local_completion_map, Vminibuffer_local_map);
 
   DEFVAR_LISP ("minibuffer-local-must-match-map", &Vminibuffer_local_must_match_map,
     "Local keymap for minibuffer input with completion, for exact match.");
   Vminibuffer_local_must_match_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (Vminibuffer_local_must_match_map,
+		      Vminibuffer_local_completion_map);
 
   DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,
     "Alist of keymaps to use for minor modes.\n\
@@ -3476,7 +3450,6 @@ and applies even for keys that have ordinary bindings.");
   defsubr (&Ssingle_key_description);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
-  defsubr (&Sdescribe_bindings_internal);
   defsubr (&Sdescribe_buffer_bindings);
   defsubr (&Sapropos_internal);
 }
