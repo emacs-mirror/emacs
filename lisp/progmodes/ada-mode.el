@@ -109,11 +109,11 @@
 ;;; LCD Archive Entry:
 ;;; ada-mode|Rolf Ebert|<ebert@inf.enst.fr>
 ;;; |Major-mode for Ada
-;;; |$Date: 1995/02/09 00:01:34 $|$Revision: 1.1 $|
+;;; |$Date: 1995/02/09 00:17:31 $|$Revision: 1.2 $|
 
 
-(defconst ada-mode-version (substring "$Revision: 1.1 $" 11 -2)
-  "$Id: ada-mode.el,v 1.1 1995/02/09 00:01:34 rms Exp rms $
+(defconst ada-mode-version (substring "$Revision: 1.2 $" 11 -2)
+  "$Id: ada-mode.el,v 1.2 1995/02/09 00:17:31 rms Exp simon $
 
 Report bugs to: Rolf Ebert <ebert@inf.enst.fr>")
 
@@ -3673,7 +3673,9 @@ This does fairly subdued highlighting.")
   "For consideration as a value of `ada-font-lock-keywords'.
 This does a lot more highlighting.")
 
-(defvar ada-font-lock-keywords ada-font-lock-keywords-2
+(defvar ada-font-lock-keywords (if font-lock-maximum-decoration
+				   ada-font-lock-keywords-2
+				 ada-font-lock-keywords-1)
   "*Expressions to highlight in Ada mode.")
 
 ;;;
