@@ -1,3 +1,8 @@
+2005-03-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Stack Buffer): Mention reverse contrast for
+	*selected* frame (might not be current frame).
+
 2005-03-22  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Embedded Mode): Add new information on changing
