@@ -1,5 +1,17 @@
 2000-01-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* sound.c (struct sound): Renamed from struct sound_file.
+	(struct sound): Add members `data' and `header_size'.
+	(enum sound_attr): Add SOUND_DATA.
+	(current_sound, current_sound_device): Variables renamed from
+	sound_file and sound_device.
+	(parse_sound): Parse :data.
+	(parse_sound): Handle sound data in strings.
+	(find_sound_type): Function renamed from find_sound_file_type.
+	(wav_init, au_init): Fail if sound's header_size is smaller than 
+	needed header size.
+	(wav_play, au_play): Play sounds from string data.
+
 	* puresize.h (BASE_PURE_SIZE): Increase to 600000.
 
 	* lisp.h: Add prototype for allocate_string_data.
