@@ -1,3 +1,10 @@
+2003-09-21  Kim F. Storm  <storm@cua.dk>
+
+	* frame.c (Vdefault_frame_scroll_bars): New variable.
+	(x_set_vertical_scroll_bars): Use it instead of hardcoded values.
+	(syms_of_frame): DEFVAR_LISP it, and initialize according to
+	window-system default scroll bar position.
+
 2003-09-19  Dave Love  <fx@gnu.org>
 
 	* alloc.c (GC_MALLOC_CHECK): Move conditional undef after lisp.h.
