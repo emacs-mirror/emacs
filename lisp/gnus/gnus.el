@@ -1021,6 +1021,15 @@ you could set this variable:
   "Default default new newsgroups the first time Gnus is run.
 Should be set in paths.el, and shouldn't be touched by the user.")
 
+(defcustom gnus-local-domain nil
+  "Local domain name without a host name.
+The DOMAINNAME environment variable is used instead if it is defined.
+If the `system-name' function returns the full Internet name, there is
+no need to set this variable."
+  :group 'gnus-message
+  :type '(choice (const :tag "default" nil)
+		 string))
+
 (defvar gnus-local-organization nil
   "String with a description of what organization (if any) the user belongs to.
 Obsolete variable; use `message-user-organization' instead.")
