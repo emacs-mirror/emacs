@@ -59,7 +59,8 @@
 
 (defcustom auto-insert-mode nil
   "Toggle auto-insert-mode.
-You must modify via \\[customize] for this variable to have an effect."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `auto-insert-mode'.
   :set (lambda (symbol value)
 	 (auto-insert-mode (or value 0)))
   :initialize 'custom-initialize-default
