@@ -73,35 +73,40 @@
 
 (defun isearch-minibuffer-self-insert ()
   (interactive)
-  (setq unread-command-events (cons last-command-event unread-command-events))
-  (let ((continue t)
-	event)
-    (while continue
-      (setq event (car unread-command-events))
-      (if (eq (lookup-key isearch-mode-map (vector event))
-	      'isearch-printing-char)
-	  (progn
-	    (insert event)
-	    (setq unread-command-events (cdr unread-command-events)))
-	(setq continue nil))))
-  (or unread-command-events
-      (exit-minibuffer)))
+  (let ((events (cons last-command-event unread-post-input-method-events)))
+    (catch 'isearch-tag
+      (while events
+	(let* ((event (car events))
+	       (cmd (lookup-key isearch-mode-map (vector event))))
+	  (cond ((eq cmd 'isearch-printing-char)
+		 (insert event)
+		 (setq events (cdr events)))
+		((eq cmd 'exit-minibuffer)
+		 (setq events (cdr events))
+		 (throw 'isearch-tag nil))
+		(t
+		 (throw 'isearch-tag nil))))))
+    (setq unread-post-input-method-events events)
+    (or unread-post-input-method-events
+	(exit-minibuffer))))
 
 ;;;###autoload
 (defun isearch-process-search-multibyte-characters (last-char)
-  (let ((overriding-terminal-local-map nil)
-	;; Let input method work rather tersely.
-	(input-method-verbose-flag nil)
-	(minibuffer-local-map isearch-minibuffer-local-map)
-	str)
-    (setq unread-input-method-events
-	  (cons last-char unread-input-method-events))
-    (setq str (read-multilingual-string
-	       (concat (isearch-message-prefix) isearch-message)
-	       nil
-	       current-input-method))
-    (if (and str (> (length str) 0))
-	(isearch-process-search-string str str)
-      (isearch-update))))
+  (if (eq this-command 'isearch-printing-char)
+      (let ((overriding-terminal-local-map nil)
+	    ;; Let input method work rather tersely.
+	    (input-method-verbose-flag nil)
+	    (minibuffer-local-map isearch-minibuffer-local-map)
+	    str)
+	(setq unread-input-method-events
+	      (cons last-char unread-input-method-events))
+	(setq str (read-multilingual-string
+		   (concat (isearch-message-prefix) isearch-message)
+		   nil
+		   current-input-method))
+	(if (and str (> (length str) 0))
+	    (isearch-process-search-string str str)
+	  (isearch-update)))
+    (isearch-process-search-char last-char)))
 
 ;;; isearch-x.el ends here
