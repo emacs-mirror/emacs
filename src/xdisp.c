@@ -13790,14 +13790,18 @@ display_string (string, lisp_string, face_string, face_string_pos,
 		{
 		  int i, n;
 
-		  for (i = row->used[TEXT_AREA] - 1; i > 0; --i)
-		    if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
-		      break;
-		  for (n = row->used[TEXT_AREA]; i < n; ++i)
+		  if (it->current_x > it->last_visible_x)
 		    {
-		      row->used[TEXT_AREA] = i;
-		      produce_special_glyphs (it, IT_TRUNCATION);
+		      for (i = row->used[TEXT_AREA] - 1; i > 0; --i)
+			if (!CHAR_GLYPH_PADDING_P (row->glyphs[TEXT_AREA][i]))
+			  break;
+		      for (n = row->used[TEXT_AREA]; i < n; ++i)
+			{
+			  row->used[TEXT_AREA] = i;
+			  produce_special_glyphs (it, IT_TRUNCATION);
+			}
 		    }
+		  produce_special_glyphs (it, IT_TRUNCATION);
 		}
 	      it->glyph_row->truncated_on_right_p = 1;
 	    }
