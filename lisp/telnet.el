@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This mode is intended to be used for telnet or rsh to a remode host;
+;; This mode is intended to be used for telnet or rsh to a remote host;
 ;; `telnet' and `rsh' are the two entry points.  Multiple telnet or rsh
 ;; sessions are supported.
 ;;
@@ -37,6 +37,9 @@
 ;; remote system.  The mode tries to do other useful translations based
 ;; on what it sees coming back from the other system before the password
 ;; query.  It knows about UNIX, ITS, TOPS-20 and Explorer systems.
+;;
+;; You can use the global telnet-host-properties to associate a telnet
+;; program and login name with each host you regularly telnet to.
 
 ;;; Code:
 
@@ -49,6 +52,13 @@
 ;; manner
 
 (require 'comint)
+
+(defvar telnet-host-properties
+  "Specify which telnet program to use for particular hosts.
+Each element has the form (HOSTNAME PROGRAM [LOGIN-NAME])
+HOSTNAME says which machine the element applies to.
+PROGRAM says which program to run, to talk to that machine.
+LOGIN-NAME, which is optional, says what to log in as on that machine.")
 
 (defvar telnet-new-line "\r")
 (defvar telnet-mode-map nil)
@@ -181,16 +191,23 @@ rejecting one login and prompting again for a username and password.")
 ;;;###autoload
 (defun telnet (host)
   "Open a network login connection to host named HOST (a string).
-Communication with HOST is recorded in a buffer `*telnet-HOST*'.
+Communication with HOST is recorded in a buffer `*PROGRAM-HOST*'
+where PROGRAM is the telnet program being used.  This program
+is controlled by the contents of the global variable `telnet-host-properties',
+falling back on the value of the global variable `telnet-program'.
 Normally input is edited in Emacs and sent a line at a time."
-  (interactive "sOpen telnet connection to host: ")
+  (interactive "sOpen connection to host: ")
   (let* ((comint-delimiter-argument-list '(?\  ?\t))
-         (name (concat "telnet-" (comint-arguments host 0 nil) ))
+	 (properties (cdr (assoc host telnet-host-properties)))
+	 (telnet-program (if properties (car properties) telnet-program))
+         (name (concat telnet-program "-" (comint-arguments host 0 nil) ))
 	 (buffer (get-buffer (concat "*" name "*")))
+	 (telnet-options (if (cdr properties) (cons "-l" (cdr properties))))
 	 process)
     (if (and buffer (get-buffer-process buffer))
 	(pop-to-buffer (concat "*" name "*"))
-      (pop-to-buffer (make-comint name telnet-program))
+      (pop-to-buffer 
+       (apply 'make-comint name telnet-program nil telnet-options))
       (setq process (get-buffer-process (current-buffer)))
       (set-process-filter process 'telnet-initial-filter)
       ;; Don't send the `open' cmd till telnet is ready for it.
