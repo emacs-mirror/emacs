@@ -370,16 +370,13 @@ Otherwise, it saves all modified buffers without asking."
   '(("\\([a-zA-Z]?:?[^:( \t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
-;; The system null device. (Should reference NULL_DEVICE from C.)
-(defvar grep-null-device "/dev/null" "The system null device.")
-
 (defvar grep-program
   ;; Currently zgrep has trouble.  It runs egrep instead of grep,
   ;; and it doesn't pass along long options right.
   "grep"
 ;;;  (if (equal (condition-case nil	; in case "zgrep" isn't in exec-path
 ;;;		 (call-process "zgrep" nil nil nil
-;;;			       "foo" grep-null-device)
+;;;			       "foo" null-device)
 ;;;	       (error nil))
 ;;;	     1)
 ;;;      "zgrep"
@@ -391,7 +388,7 @@ Otherwise, it saves all modified buffers without asking."
 (defvar grep-command
   (if (equal (condition-case nil	; in case "grep" isn't in exec-path
 		 (call-process grep-program nil nil nil
-			       "-e" "foo" grep-null-device)
+			       "-e" "foo" null-device)
 	       (error nil))
 	     1)
       (format "%s -n -e " grep-program)
@@ -400,7 +397,7 @@ Otherwise, it saves all modified buffers without asking."
 
 (defvar grep-find-use-xargs
   (if (equal (call-process "find" nil nil nil
-			   grep-null-device "-print0")
+			   null-device "-print0")
 	     0)
       'gnu)
   "Whether \\[grep-find] uses the `xargs' utility by default.
@@ -580,8 +577,8 @@ if that history list is empty)."
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
   (let* ((compilation-process-setup-function 'grep-process-setup)
-	 (buf (compile-internal (if grep-null-device
-				    (concat command-args " " grep-null-device)
+	 (buf (compile-internal (if null-device
+				    (concat command-args " " null-device)
 				  command-args)
 				"No more grep hits" "grep"
 				;; Give it a simpler regexp to match.
@@ -616,7 +613,7 @@ easily repeat a find command."
   (interactive
    (list (read-from-minibuffer "Run find (like this): "
 			       grep-find-command nil nil 'grep-find-history)))
-  (let ((grep-null-device nil))		; see grep
+  (let ((null-device nil))		; see grep
     (grep command-args)))
 
 (defcustom compilation-scroll-output nil
