@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.13) $
+# $HopeName: MMQA_harness!script:runtest(trunk.14) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -8,12 +8,42 @@
 
 # general routines first
 
+sub mpslibvers {
+ local ($exefile) = @_;
+
+ %mpslibvers = (
+  "product", "unknown",
+  "platform", "unknown",
+  "variety", "unknown",
+  "compilation", "unknown",
+  "hopeversion", "unknown",
+  "version", "unknown");
+
+ if (open(STRINGS, $stringscommand." ".$exefile.$exesuff." |")) {
+  while (<STRINGS>) {
+   if (/HQNMPS/) {
+    if (/product\.(\w+)/) { $mpslibvers{product} = $1; }
+    if (/variety\.(\w+)/) { $mpslibvers{variety} = $1; }
+    if (/platform\.(\w+)/) { $mpslibvers{platform} = $1; }
+    if (/\$HopeName:\s*([^\$]+)\s*\$\s*([^,]+)/) {
+     $mpslibvers{hopeversion} = $1;
+     $mpslibvers{version}     = $2; 
+    }
+    if (/compiled on (.+)$/) { $mpslibvers{compilation} = $1; }
+   }
+  }
+  close STRINGS;
+ }
+}
+
 # file, "yes", "result" for try
 # file, "no", "full" for run
 
 sub run_exe {
  local ($exefile, $interact, $stdin) = @_;
 
+ $identify{"time"} = localtime;
+ &mpslibvers($exefile);
  &log_system($exefile, $interact, $testlogfile, $stdin);
  &read_results($testlogfile);
  &verdict;
