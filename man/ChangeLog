@@ -1,3 +1,20 @@
+2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
+	Tramp version 2.0.39 released.
+
+2004-02-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Customizing Completion): Explain new functions
+	`tramp-parse-shostkeys' and `tramp-parse-sknownhosts'.
+	(all): Savannah URLs unified to "http://savannah.nongnu.org".
+	(Top): Refer to Savannah mailing list as the major one.  Mention
+	older mailing lists in HTML mode only.
+	(Auto-save and Backup): Add auto-save.  Based on wording of Kai.
+	(Frequently Asked Questions): Remote hosts must not be Unix-like
+	for "smb" method.
+	(Password caching): New node.
+	(External transfer methods): Refer to password caching for "smb"
+	method.
+
 2004-02-23  Nick Roberts  <nick@nick.uklinux.net>
 
 	* building.texi (Watch Expressions):  Update.

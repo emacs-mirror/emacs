@@ -1,3 +1,102 @@
+2004-02-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
+	Version 2.0.39 of Tramp released.
+
+	* net/tramp.el (tramp-handle-file-local-copy)
+	(tramp-handle-write-region, tramp-open-connection-rsh): Variable
+	name typo.  Small change.  From Patrick Tullmann
+	<tullmann@flux.utah.edu>.
+	(tramp-process-connection-type): New variable.
+	(tramp-maybe-open-connection): Use it.
+	(tramp-do-copy-or-rename-via-buffer): Handle KEEP-DATE arg, if
+	possible.
+	(tramp-touch): Set last-modified time of a remote file.
+	(tramp-handle-write-region): Say which function is used when
+	encoding.
+
+	
+2004-02-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* net/tramp-smb.el (tramp-smb-handle-file-writable-p): Handle the
+	case of non-existing filename, too.  Reported by Christoph Bauer
+	<c_bauer@informatik.uni-kl.de>.
+	(tramp-smb-get-file-entries): The directory in question should
+	have permissions "drwxrwxrwx".  Just virtual, because we don't
+	know the real permissions.  Don't we know?
+	(tramp-smb-prompt): Add virtual prompt from listing shares, too.
+	(tramp-smb-errors): Add "NT_STATUS_ACCOUNT_LOCKED_OUT".
+	(tramp-smb-wait-for-output): Optimize algorithm getting pending
+	output.  If it was received chunkwise, there have been problems.
+	Remove the "prompt not found" error message; it is obvious.
+	Simplify algorithm.
+	(tramp-smb-process-running): Removed.  Since we acknowledge the
+	virtual prompt for shares, there's no need for distinction of
+	reading shares (process ends afterwards) and interactive mode of
+	smblient.
+	(tramp-smb-open-connection): Setting process sentinel removed.
+	(tramp-smb-errors): Add "NT_STATUS_WRONG_PASSWORD" and
+	"NT_STATUS_NETWORK_ACCESS_DENIED".
+	(tramp-smb-maybe-open-connection): Set `process-connection-type'
+	to 'pty.  Suggested by Piet van Oostrum <piet@cs.uu.nl>.
+	(top-level): Setting default value in `tramp-default-method-alist'
+	corrected.  Order of USER and HOST have been wrong.  Nobody
+	claimed for months ...
+	(tramp-smb-maybe-open-connection): Use
+	`tramp-process-connection-type'.
+	(tramp-smb-open-connection): Clear password cache if login has
+	failed.
+
+	* net/tramp.el (tramp-completion-mode) Don't check for 'xemacs but
+	`tramp-unified-filenames'.
+	(tramp-completion-mode): Make test for XEmacs explicitely.
+	`event-to-character' can exists in Emacs packages too.  Reported
+	by Matt Swift <swift@alum.mit.edu>.
+	(tramp-buffer-name): Buffer name must contain the user if exists.
+	Reported by Adrian Phillips <a.phillips@met.no>.
+	(tramp-do-copy-or-rename-file): Handle out-of-band methods.  Call
+	`tramp-do-copy-or-rename-file-out-of-band' this case.
+	(tramp-do-copy-or-rename-file-out-of-band): Renamed from
+	`tramp-do-copy-or-rename-file-one-local', because it handles also
+	the case both files use the same out-of-band method.
+	Implementation added.
+	(tramp-handle-file-local-copy, tramp-handle-write-region):
+	Out-of-band handling removed.  `copy-file' called instead, which
+	calls `tramp-do-copy-or-rename-file-out-of-band'.
+	(tramp-action-password): Check for out-of-band method removed.
+	This function is used for 'login-program.
+	(tramp-post-connection): Use `tramp-method-out-of-band-p' when
+	appropriate.
+	(tramp-completion-function-alist-ssh): Add `tramp-parse-shostkeys'
+	and `tramp-parse-sknownhosts'.
+	(tramp-completion-function-alist): It's a defvar now, because we
+	want to apply the optimized `tramp-set-completion-function'
+	instead of a static list.
+	(tramp-set-completion-function): Implementation tuned.  Avoid
+	double entries, and entries where the function or the
+	file/directory doesn't exist.
+	(tramp-parse-shostkeys, tramp-parse-sknownhosts): New functions
+	for SSH2.
+	(tramp-file-name-handler-alist): Add `dired-compress-file' entry.
+	(tramp-handle-dired-compress-file): New function.
+	(tramp-async-proc): New variable.
+	(tramp-handle-shell-command): Adding asynchronous processes.  They
+	are far from being perfect, but it works at least for
+	`find-grep-dired' and `find-name-dired' in Emacs 21.4.
+	(top-level): Require password.el if visible.  Should be mandatory
+	once No Gnus has found its way into (X)Emacs.
+	(tramp-read-passwd): Invoke `password-read' if available,
+	`read-passwd' otherwise. `ange-ftp-read-passwd' isn't used as
+	fallback any longer.
+	(tramp-clear-passwd): New function.
+	(tramp-process-actions, tramp-process-multi-actions): Clear
+	password cache if login has failed.
+
+	* net/tramp-ftp.el (Commentary): Remove pointer to EFS.  It has
+	its own module.
+	(tramp-ftp-file-name-handler): Unset `ange-ftp-ftp-name-arg' and
+	`ange-ftp-ftp-name-res'.  There could be incorrect values from
+	previous calls in case the "ftp" method is used in the Tramp file
+	name.  Reported by Katsumi Yamaoka <yamaoka@jpl.org>.
+
 2004-02-28  Richard M. Stallman  <rms@gnu.org>
 
 	* term.el (term-mouse-paste): Call mouse-set-point.

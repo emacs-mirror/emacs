@@ -5,7 +5,7 @@
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
 @macro trampver{}
-2.0.38
+2.0.39
 @end macro
 
 @c Other flags from configuration
@@ -60,6 +60,3 @@
 @c Otherwise, '/dev/null/' is taken, which leaves this part empty.
 
 
-@ignore
-   arch-tag: e0fe322c-e06b-46eb-bb5b-d091b521f41c
-@end ignore
