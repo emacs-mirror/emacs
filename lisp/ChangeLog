@@ -1,5 +1,17 @@
 2003-04-23  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (view-read-only): Doc fix.
+
+	* simple.el (back-to-indentation): Call backward-prefix-chars.
+
+	* help-mode.el (help-make-xrefs): Clean up the loop that scans
+	over a keymap inserted by \\{...}; it now stops at end of buffer.
+
+	* filesets.el: Don't call filesets-init.
+
+	* emacs-lisp/bytecomp.el (byte-compile-defun): Generate and
+	compile a defalias form, unless byte-compile-compatibility.
+
 	* progmodes/scheme.el (scheme-mode-syntax-table):
 	Use prefix syntax for ', `, comma, @ and #.
 
