@@ -214,7 +214,7 @@ adjust_markers (from, to, amount)
 
   marker = current_buffer->markers;
 
-  while (!NULL (marker))
+  while (!NILP (marker))
     {
       m = XMARKER (marker);
       mpos = m->bufpos;
@@ -352,7 +352,7 @@ insert_from_string (string, pos, length)
   GPT += length;
   ZV += length;
   Z += length;
-  point += length;
+  SET_PT (point + length);
 
   signal_after_change (point-length, 0, length);
 }
@@ -473,22 +473,22 @@ modify_region (start, end)
 prepare_to_modify_buffer (start, end)
      Lisp_Object start, end;
 {
-  if (!NULL (current_buffer->read_only))
+  if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only ();
 
   if (check_protected_fields)
     Fregion_fields (start, end, Qnil, Qt);
 
 #ifdef CLASH_DETECTION
-  if (!NULL (current_buffer->filename)
+  if (!NILP (current_buffer->filename)
       && current_buffer->save_modified >= MODIFF)
     lock_file (current_buffer->filename);
 #else
   /* At least warn if this file has changed on disk since it was visited.  */
-  if (!NULL (current_buffer->filename)
+  if (!NILP (current_buffer->filename)
       && current_buffer->save_modified >= MODIFF
-      && NULL (Fverify_visited_file_modtime (Fcurrent_buffer ()))
-      && !NULL (Ffile_exists_p (current_buffer->filename)))
+      && NILP (Fverify_visited_file_modtime (Fcurrent_buffer ()))
+      && !NILP (Ffile_exists_p (current_buffer->filename)))
     call1 (intern ("ask-user-about-supersession-threat"),
 	   current_buffer->filename);
 #endif /* not CLASH_DETECTION */
@@ -519,12 +519,12 @@ signal_before_change (start, end)
 {
   /* If buffer is unmodified, run a special hook for that case.  */
   if (current_buffer->save_modified >= MODIFF
-      && !NULL (Vfirst_change_function))
+      && !NILP (Vfirst_change_function))
     {
       call0 (Vfirst_change_function);
     }
   /* Now in any case run the before-change-function if any.  */
-  if (!NULL (Vbefore_change_function))
+  if (!NILP (Vbefore_change_function))
     {
       int count = specpdl_ptr - specpdl;
       Lisp_Object function;
@@ -551,7 +551,7 @@ signal_before_change (start, end)
 signal_after_change (pos, lendel, lenins)
      int pos, lendel, lenins;
 {
-  if (!NULL (Vafter_change_function))
+  if (!NILP (Vafter_change_function))
     {
       int count = specpdl_ptr - specpdl;
       Lisp_Object function;

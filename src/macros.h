@@ -1,5 +1,5 @@
-/* Fundamental definitions for emulating mocklisp.
-   Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+/* Definitions for keyboard macro interpretation in GNU Emacs.
+   Copyright (C) 1985 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,15 +17,15 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* This is the main entry point to mocklisp execution.
- When eval sees a mocklisp function being called, it calls here
- with the unevaluated argument list */
 
-extern Lisp_Object ml_apply ();
-extern Lisp_Object Fml_if ();
-extern Lisp_Object Fml_nargs ();
-extern Lisp_Object Fml_arg ();
-extern Lisp_Object Fml_interactive ();
-extern Lisp_Object Fml_provide_prefix_argument ();
-extern Lisp_Object Fml_prefix_argument_loop ();
-extern Lisp_Object Finsert_string ();
+/* Kbd macro currently being executed (a string) */
+
+extern Lisp_Object Vexecuting_macro;
+
+/* Index of next character to fetch from that macro */
+
+extern int executing_macro_index;
+
+/* Nonzero while defining a kbd macro */
+
+extern int defining_kbd_macro;

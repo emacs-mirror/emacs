@@ -1,5 +1,5 @@
-/* Fundamental definitions for emulating mocklisp.
-   Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+/* Definitions for interface to indent.c
+   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -17,15 +17,18 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* This is the main entry point to mocklisp execution.
- When eval sees a mocklisp function being called, it calls here
- with the unevaluated argument list */
 
-extern Lisp_Object ml_apply ();
-extern Lisp_Object Fml_if ();
-extern Lisp_Object Fml_nargs ();
-extern Lisp_Object Fml_arg ();
-extern Lisp_Object Fml_interactive ();
-extern Lisp_Object Fml_provide_prefix_argument ();
-extern Lisp_Object Fml_prefix_argument_loop ();
-extern Lisp_Object Finsert_string ();
+struct position
+  {
+    int bufpos;
+    int hpos;
+    int vpos;
+    int prevhpos;
+    int contin;
+  };
+
+struct position *compute_motion ();
+struct position *vmotion ();
+
+/* Value of point when current_column was called */
+extern int last_known_column_point;

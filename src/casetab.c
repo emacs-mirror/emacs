@@ -45,8 +45,8 @@ See `set-case-table' for more information on these data structures.")
   (XTYPE (obj) == Lisp_String && XSTRING (obj)->size == 256)
 
   return (STRING256_P (down)
-	  && (NULL (up) || STRING256_P (up))
-	  && ((NULL (canon) && NULL (eqv))
+	  && (NILP (up) || STRING256_P (up))
+	  && ((NILP (canon) && NILP (eqv))
 	      || (STRING256_P (canon) && STRING256_P (eqv)))
 	  ? Qt : Qnil);
 }
@@ -57,7 +57,7 @@ check_case_table (obj)
 {
   register Lisp_Object tem;
 
-  while (tem = Fcase_table_p (obj), NULL (tem))
+  while (tem = Fcase_table_p (obj), NILP (tem))
     obj = wrong_type_argument (Qcase_table_p, obj, 0);
   return (obj);
 }   
@@ -132,13 +132,13 @@ set_case_table (table, standard)
   canon = Fcar_safe (Fcdr_safe (Fcdr_safe (table)));
   eqv = Fcar_safe (Fcdr_safe (Fcdr_safe (Fcdr_safe (table))));
 
-  if (NULL (up))
+  if (NILP (up))
     {
       up = Fmake_string (make_number (256), make_number (0));
       compute_trt_inverse (XSTRING (down)->data, XSTRING (up)->data);
     }
 
-  if (NULL (canon))
+  if (NILP (canon))
     {
       register int i;
       unsigned char *upvec = XSTRING (up)->data;

@@ -310,7 +310,7 @@ DEFUN ("spawn-subprocess", Fspawn_subprocess, Sspawn_subprocess, 1, 3, 0,
 	    prev->next = next;
 	  else
 	    process_list = next;
-	  if (! NULL (ptr->exit_handler))
+	  if (! NILP (ptr->exit_handler))
 	    Feval (Fcons (ptr->exit_handler, Fcons (make_number (ptr->name),
 						    Qnil)));
 	  sys$dassgn (ptr->mbx_chan);
@@ -327,7 +327,7 @@ DEFUN ("spawn-subprocess", Fspawn_subprocess, Sspawn_subprocess, 1, 3, 0,
       free (ptr);
       return Qnil;
     }
-  if (NULL (input_handler))
+  if (NILP (input_handler))
     input_handler = Qdefault_subproc_input_handler;
   ptr->input_handler = input_handler;
   ptr->exit_handler = exit_handler;
@@ -447,7 +447,7 @@ process_command_input ()
   have_process_input = 0;
   start_mbx_input ();
   clear_waiting_for_input ();    /* Otherwise Ctl-g will cause crash. JCB */
-  if (! NULL (expr))
+  if (! NILP (expr))
     Feval (expr);
 }
 
@@ -471,7 +471,7 @@ process_exit ()
 	    prev->next = next;
 	  else
 	    process_list = next;
-	  if (! NULL (ptr->exit_handler))
+	  if (! NILP (ptr->exit_handler))
 	    Feval (Fcons (ptr->exit_handler, Fcons (make_number (ptr->name),
 						    Qnil)));
 	  sys$dassgn (ptr->mbx_chan);
@@ -605,9 +605,9 @@ or nil depending upon whether the privilege is already enabled.")
     }
   if (! found)
     error ("Unknown privilege name %s", XSTRING (priv)->data);
-  if (NULL (getprv))
+  if (NILP (getprv))
     {
-      if (sys$setprv (NULL (value) ? 0 : 1, prvmask, 0, 0) == SS$_NORMAL)
+      if (sys$setprv (NILP (value) ? 0 : 1, prvmask, 0, 0) == SS$_NORMAL)
 	return Qt;
       return Qnil;
     }
@@ -679,7 +679,7 @@ translate_id (pid, owner)
   char * p;
   int prcnam[2];
 
-  if (NULL (pid)
+  if (NILP (pid)
       || XTYPE (pid) == Lisp_String && XSTRING (pid)->size == 0
       || XTYPE (pid) == Lisp_Int && XFASTINT (pid) == 0)
     {

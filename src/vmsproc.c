@@ -437,7 +437,7 @@ if you quit, the process is killed.")
 
   CHECK_STRING (args[0], 0);
 
-  if (nargs <= 1 || NULL (args[1]))
+  if (nargs <= 1 || NILP (args[1]))
     args[1] = build_string ("NLA0:");
   else
     args[1] = Fexpand_file_name (args[1], current_buffer->directory);
@@ -589,12 +589,12 @@ if you quit, the process is killed.")
       if (vs->iosb[0] & 1)
 	{
 	  immediate_quit = 0;
-	  if (!NULL (buffer))
+	  if (!NILP (buffer))
 	    {
 	      vs->iosb[1] = clean_vms_buffer (vs->inputBuffer, vs->iosb[1]);
 	      InsCStr (vs->inputBuffer, vs->iosb[1]);
 	    }
-	  if (!NULL (display) && INTERACTIVE)
+	  if (!NILP (display) && INTERACTIVE)
 	  redisplay_preserve_echo_area ();
 	  immediate_quit = 1;
 	  QUIT;

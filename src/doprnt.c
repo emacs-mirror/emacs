@@ -68,10 +68,10 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	  int size_bound;
 
 	  fmt++;
-	  /* Copy this one %-spec into fmtcopy.  */
+	  /* Copy this one %-spec into fmtcpy.  */
 	  string = fmtcpy;
 	  *string++ = '%';
-	  while (1)
+	  while (string < fmtcpy + sizeof fmtcpy - 1)
 	    {
 	      *string++ = *fmt;
 	      if (! (*fmt >= '0' && *fmt <= '9') && *fmt != '-' && *fmt != ' ')

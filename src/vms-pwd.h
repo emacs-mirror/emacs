@@ -1,5 +1,5 @@
-/* Fundamental definitions for emulating mocklisp.
-   Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+/* GNU Emacs password definition file.
+   Copyright (C) 1986 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -17,15 +17,18 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* This is the main entry point to mocklisp execution.
- When eval sees a mocklisp function being called, it calls here
- with the unevaluated argument list */
+#ifdef VMS
+/* On VMS, we read the UAF file and emulate some of the necessary
+   fields for Emacs. */
+#include "uaf.h"
 
-extern Lisp_Object ml_apply ();
-extern Lisp_Object Fml_if ();
-extern Lisp_Object Fml_nargs ();
-extern Lisp_Object Fml_arg ();
-extern Lisp_Object Fml_interactive ();
-extern Lisp_Object Fml_provide_prefix_argument ();
-extern Lisp_Object Fml_prefix_argument_loop ();
-extern Lisp_Object Finsert_string ();
+struct passwd {
+  char pw_name[UAF$S_USERNAME+1];
+  char pw_passwd[UAF$S_PWD];
+  short pw_uid;
+  short pw_gid;
+  char pw_gecos[UAF$S_OWNER+1];
+  char pw_dir[UAF$S_DEFDEV+UAF$S_DEFDIR+1];
+  char pw_shell[UAF$S_DEFCLI+1];
+};
+#endif /* VMS */

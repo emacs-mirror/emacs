@@ -32,7 +32,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 * {
 *  Lisp_Object elt;
 *
-*   while (!NULL (args))
+*   while (!NILP (args))
 *     {
 *       elt = Fcar (args);
 *       Ffset (Fcar (elt), Fcons (Qmocklisp, Fcdr (elt)));
@@ -50,11 +50,11 @@ DEFUN ("ml-if", Fml_if, Sml_if, 0, UNEVALLED, 0, "Mocklisp version of `if'.")
   struct gcpro gcpro1;
 
   GCPRO1 (args);
-  while (!NULL (args))
+  while (!NILP (args))
     {
       val = Feval (Fcar (args));
       args = Fcdr (args);
-      if (NULL (args)) break;
+      if (NILP (args)) break;
       if (XINT (val))
 	{
 	  val = Feval (Fcar (args));
@@ -156,7 +156,7 @@ DEFUN ("ml-prefix-argument-loop", Fml_prefix_argument_loop, Sml_prefix_argument_
   struct gcpro gcpro1;
 
   /* Set `arg' in case we call a built-in function that looks at it.  Still are a few. */
-  if (NULL (Vcurrent_prefix_arg))
+  if (NILP (Vcurrent_prefix_arg))
     i = 1;
   else
     {

@@ -261,7 +261,10 @@ syms_of_casefiddle ()
 keys_of_casefiddle ()
 {
   initial_define_key (control_x_map, Ctl('U'), "upcase-region");
+  Fput (intern ("upcase-region"), Qdisabled, Qt);
   initial_define_key (control_x_map, Ctl('L'), "downcase-region");
+  Fput (intern ("downcase-region"), Qdisabled, Qt);
+
   initial_define_key (meta_map, 'u', "upcase-word");
   initial_define_key (meta_map, 'l', "downcase-word");
   initial_define_key (meta_map, 'c', "capitalize-word");

@@ -67,8 +67,8 @@ main (argc,argv)
   int depth;
   Pixmap pix;
   char *string = "Kill the head and the body will die.";
-  char dash_list[] = {6, 4, 6, 4};
-  int dashes = 4;
+  char dash_list[] = {4, 4};
+  int dashes = 2;
 
   if (argc < 2)
     dpy_string = "localhost:0.0";
@@ -105,24 +105,19 @@ main (argc,argv)
 		       &gc_values);
 
   gc_values.foreground = obtain_color ("red");
-  gc_values.function = GXor;
   gc_values.line_width = 3;
   gc_values.line_style = LineOnOffDash;
   gc_values.cap_style = CapRound;
   gc_values.join_style = JoinRound;
   line_xor_gc = XCreateGC (dpy, window,
 			   GCForeground | GCBackground | GCLineStyle
-			   | GCJoinStyle | GCCapStyle | GCLineWidth
-			   | GCFunction,
+			   | GCJoinStyle | GCCapStyle | GCLineWidth,
 			   &gc_values);
   XSetDashes (dpy, line_xor_gc, 0, dash_list, dashes);
 
-  gc_values.background = WhitePixel (dpy, DefaultScreen (dpy));
-  gc_values.foreground = obtain_color ("blue");
   line_xor_inv_gc = XCreateGC (dpy, window,
-			       GCForeground | GCBackground
-			       | GCLineWidth | GCFunction,
-			       &gc_values);
+			   GCForeground | GCBackground | GCLineWidth,
+			   &gc_values);
 
   depth = DefaultDepthOfScreen (ScreenOfDisplay (dpy, DefaultScreen (dpy)));
   pix = XCreateBitmapFromData (dpy, window, page_glyf_bits,
@@ -137,25 +132,20 @@ main (argc,argv)
       switch (event.type)
 	{
 	case ButtonPress:
-#if 0
-	  if (event.xbutton.state && ShiftMask)
-#endif
-	    switch (event.xbutton.button)
-	      {
-	      case Button1:
-		XDrawLine (dpy, window, line_xor_gc, 25, 75, 125, 75);
-		XFlush (dpy);
-		XDrawLine (dpy, window, line_xor_gc, 25, 75, 125, 75);
-		break;
+	  switch (event.xbutton.button)
+	    {
+	    case Button1:
+	      XDrawLine (dpy, window, line_xor_gc, 25, 75, 300, 75);
+	      break;
 
-	      case Button2:
-		XDrawLine (dpy, window, line_xor_gc, 25, 75, 125, 75);
-		break;
+	    case Button2:
+	      XDrawLine (dpy, window, line_xor_inv_gc, 25, 25, 300, 25);
+	      break;
 
-	      case Button3:
-		XDrawLine (dpy, window, line_xor_gc, 25, 75, 125, 75);
-		break;
-	      }
+	    case Button3:
+	      XDrawLine (dpy, window, line_xor_gc, 25, 25, 25, 125);
+	      break;
+	    }
 	  break;
 
 	case KeyPress:

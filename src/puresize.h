@@ -21,9 +21,19 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
    At one point, this was defined in config.h, meaning that changing
    PURESIZE would make Make recompile all of Emacs.  But only a few
-   files actually use PURESIZE, so we split it out to its own .h file.  */
+   files actually use PURESIZE, so we split it out to its own .h file.
 
+   Make sure to include this file after config.h, since that tells us
+   whether we are running X windows, which tells us how much pure
+   storage to allocate.  */
+
+#ifndef PURESIZE
+#ifdef HAVE_X_WINDOWS
 #define PURESIZE 200000
+#else
+#define PURESIZE 196000
+#endif
+#endif
 
 #ifdef VIRT_ADDR_VARIES
 
