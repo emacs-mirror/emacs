@@ -74,7 +74,7 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	  (setq display-time-string "")
 	  (setq display-time-process
 		(start-process "display-time" nil
-			       (concat exec-directory "wakeup")
+			       (expand-file-name "wakeup" exec-directory)
 			       (int-to-string display-time-interval)))
 	  (process-kill-without-query display-time-process)
 	  (set-process-sentinel display-time-process 'display-time-sentinel)
