@@ -4,6 +4,10 @@
 	Allow pop-global-mark to be repeated with C-x C-SPC C-SPC...
 	C-u C-u C-SPC now unconditionally sets the mark.
 
+	* emulation/cua-base.el (cua-set-mark): Doc fixes.
+	Allow pop-global-mark to be repeated with C-x C-SPC C-SPC...
+	C-u C-u C-SPC now unconditionally sets the mark.
+
 2003-03-20  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-parse-attlist): Fix typo in attribute parsing.
