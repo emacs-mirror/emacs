@@ -1,3 +1,14 @@
+2000-02-16  Dave Love  <fx@gnu.org>
+
+	* faces.el: Don't require custom.  Add more specific :groups to
+	various deffaces.
+	(set-face-attribute): Purecopy args.
+	(read-face-name): Default to name at point and use it in prompt.
+	Remove colon from arg in all callers.
+	(list-faces-display): Hyperlink to face descriptions and customize
+	buffers.
+	(defined-colors): Fix typo for x-defined-colors.
+
 2000-02-16  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* wid-edit.el (widget-match-inline): An atom never matches a
