@@ -1070,6 +1070,16 @@ typedef unsigned char UCHAR;
    itself.  */
 #define CHARACTERBITS 19
 
+/* The maximum byte size consumed by push_key_description.
+   All callers should assure that at least this size of memory is
+   allocated at the place pointed by the second argument.
+
+   Thers are 6 modifiers, each consumes 2 chars.
+   The octal form of a character code consumes
+   (1 + CHARACTERBITS / 3 + 1) chars (including backslash at the head).
+   We need one more byte for string terminator `\0'.  */
+#define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
+
 #ifdef USE_X_TOOLKIT
 #ifdef NO_UNION_TYPE
 /* Use this for turning a (void *) into a Lisp_Object, as when the
