@@ -72,7 +72,7 @@ Please send improvements and fixes to the maintainer."
   :version "21.1")
 
 (defcustom find-variable-regexp
-  "^\\s-*(def[^uma\W]\\w+\\*?\\s-+%s\\(\\s-\\|$\\)"
+  "^\\s-*(def[^uma]\\(\\w\\|\\s_\\)+\\*?\\s-+%s\\(\\s-\\|$\\)"
   "The regexp used by `find-variable' to search for a variable definition.
 It should match right up to the variable name.  The default value
 avoids `defun', `defmacro', `defalias', `defadvice'.
@@ -80,7 +80,7 @@ avoids `defun', `defmacro', `defalias', `defadvice'.
 Please send improvements and fixes to the maintainer."
   :type 'regexp
   :group 'find-function
-  :version "20.3")
+  :version "21.1")
 
 (defcustom find-function-source-path nil
   "The default list of directories where `find-function' searches.
@@ -186,31 +186,7 @@ in `load-path'."
 		 ((symbol-file function)))))
       (find-function-search-for-symbol function nil library))))
 
-(defun function-at-point ()
-  (or (condition-case ()
-	  (let ((stab (syntax-table)))
-	    (unwind-protect
-		(save-excursion
-		  (set-syntax-table emacs-lisp-mode-syntax-table)
-		  (or (not (zerop (skip-syntax-backward "_w")))
-		      (eq (char-syntax (char-after (point))) ?w)
-		      (eq (char-syntax (char-after (point))) ?_)
-		      (forward-sexp -1))
-		  (skip-chars-forward "`'")
-		  (let ((obj (read (current-buffer))))
-		    (and (symbolp obj) (fboundp obj) obj)))
-	      (set-syntax-table stab)))
-	(error nil))
-      (condition-case ()
-	  (save-excursion
-	    (save-restriction
-	      (narrow-to-region (max (point-min) (- (point) 1000)) (point-max))
-	      (backward-up-list 1)
-	      (forward-char 1)
-	      (let (obj)
-		(setq obj (read (current-buffer)))
-		(and (symbolp obj) (fboundp obj) obj))))
-	(error nil))))
+(defalias 'function-at-point 'function-called-at-point)
 
 (defun find-function-read (&optional variable-p)
   "Read and return an interned symbol, defaulting to the one near point.
