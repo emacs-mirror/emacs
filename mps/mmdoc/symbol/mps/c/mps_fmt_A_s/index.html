@@ -1,378 +1,300 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
 
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
+<head>
 
- <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
+<title>MPS C Interface: type mps_fmt_A_s</title>
 
-  <head>
+</head>
 
-   <title>MPS C Interface: type mps_fmt_A_s</title>
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
 
-  </head>
+<div align="center">
 
-  <body bgcolor='#FFFFFF' text='#000000' link='#000099' vlink='#660066' alink='#FF0000'>
+<h1>MPS C Interface: type mps_fmt_A_s</h1>
 
-   <div align='center'>
+<p>draft</p>
 
-    <h1>MPS C Interface: type mps_fmt_A_s</h1>
+<address>
+<a href="mailto:nb@ravenbrook.com">Nick Barnes</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2002-04-15
+</address>
 
-    <p>draft</p>
+</div>
 
-    <address>drj, 1997-05-13</address>
+<h2><a id="section-name" name="section-name">Name</a></h2>
 
-   </div>
+<p>mps_fmt_A_s</p>
 
-   <h2>
+<h2><a id="section-summary" name="section-summary">Summary</a></h2>
 
-    <a id='section-name' name='section-name'>Name</a>
+<p><pre>mps_fmt_A_s</pre>
 
-   </h2>
+is
 
-   <p>mps_fmt_A_s</p>
+a structure used to create object formats of variant A.</p>
 
-   <h2>
+<h2><a id="section-associated-protocols" name="section-associated-protocols">Associated Protocols</a></h2>
 
-    <a id='section-summary' name='section-summary'>Summary</a>
+<p>Format.</p>
 
-   </h2>
+<h2><a id="section-type" name="section-type">Type</a></h2>
 
-   <p>
-
-    <pre>mps_fmt_A_s</pre>
-
-     is
-
-    a structure used to create object formats of variant A.
-
-   </p>
-
-   <h2>
-
-    <a id='section-associated-protocols' name='section-associated-protocols'>Associated Protocols</a>
-
-   </h2>
-
-   <p>Format.</p>
-
-   <h2>
-
-    <a id='section-type' name='section-type'>Type</a>
-
-   </h2>
-
-   <p>
-
-    <pre>typedef struct mps_fmt_A_s {
-
+<p><pre>typedef struct mps_fmt_A_s {
   mps_align_t     align;
-
   mps_fmt_scan_t  scan;
-
   mps_fmt_skip_t  skip;
-
   mps_fmt_copy_t  copy;
-
   mps_fmt_fwd_t   fwd;
-
   mps_fmt_isfwd_t isfwd;
-
   mps_fmt_pad_t   pad;
+} mps_fmt_A_s;</pre></p>
 
-} mps_fmt_A_s;</pre>
+<h2><a id="section-resources" name="section-resources">Resources</a></h2>
 
-   </p>
+<p><code class="filename">mps.h</code></p>
 
-   <h2>
+<h2><a id="section-description" name="section-description">Description</a></h2>
 
-    <a id='section-resources' name='section-resources'>Resources</a>
+<p>Objects of this type are intended to be used in the creation of
+object formats.  Object formats describe the layout of client objects.</p>
 
-   </h2>
+<p><code>mps_fmt_A_s</code> is a structure that represents the
+particular collection of methods and values that describes an object
+format of variant A.</p>
 
-   <p>mps.h</p>
+<p>Broadly speaking, the object formats of this variant are suitable
+for use in copying or moving memory managers.</p>
 
-   <h2>
+<p><code>mps_fmt_A_s</code> has the following methods:
+<code>scan</code>, <code>skip</code>, <code>copy</code>,
+<code>fwd</code>, <code>isfwd</code>, <code>pad</code>, and the
+following value: <code>align</code>.</p>
 
-    <a id='section-description' name='section-description'>Description</a>
+<p><code>align</code> is an integer value defines the alignment of
+objects allocated with this format.  It should be large enough to
+satisfy the alignment requirements of any field in the objects, and it
+cannot be larger than the arena alignment.  For details of the
+methods, consult the reference pages for the type of each method.</p>
 
-   </h2>
+<h2><a id="section-example" name="section-example">Example</a></h2>
 
-   <p>
+<blockquote><pre>
+mps_fmt_t create_format(mps_arena_t arena)
+{
+  mps_fmt my_format;
+  mps_res_t res;
+  mps_fmt_A_s my_format_A = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_copy, &amp;my_fwd,
+                              &amp;my_isfwd, &amp;my_pad };
 
-    Objects of this type are intended to be used in the creation of object formats.  Object formats describe the layout of client objects.  
+  res = mps_fmt_create_A(&amp;my_format, arena, &amp;my_format_A);
+  assert(res != MPS_RES_OK);
 
-    <code>mps_fmt_A_s</code>
+  return my_format;
+}
+</pre></blockquote>
 
-     is a structure that represents the particular collection of methods and values that describes an object format of variant A.
+<h2><a id="section-see-also" name="section-see-also">See Also</a></h2>
+<p>
+mps_fmt_create_A,
+mps_fmt_scan_t,
+mps_fmt_skip_t
+mps_fmt_copy_t,
+mps_fmt_fwd_t,
+mps_isfwd_t,
+mps_pad_t,
+mps_align_t,
+mps_fmt_B_s
+</p>
 
-   </p>
+<h2><a id="section-A" name="section-A">A. References</a></h2>
 
-   <p>Broadly speaking, the object formats of this variant are suitable for use in copying or moving memory managers.</p>
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
 
-   <p>
+<table>
 
-    <code>mps_fmt_A_s</code>
+<tr valign="top">
 
-     has the following methods: scan, skip, copy, fwd, isfwd, pad, and the following value: align.
+  <td>1997-05-13 15:16:19 +01</td>
 
-   </p>
+<td />
 
-   <p>align is an integer value defines the alignment of objects allocated with this format.  It should be large enough to satisfy the alignment requirements of any field in the objects, and it cannot be larger than the arena alignment.  For details of the methods, consult the reference pages for the type of each method.</p>
+  <td>New document saved</td>
 
-   <h2>
+</tr>
 
-    <a id='section-example' name='section-example'>Example</a>
+<tr valign="top">
 
-   </h2>
+  <td>1997-06-10 15:59:51 -04</td>
 
-   <p>mps_fmt_t create_format(mps_arena_t arena)</p>
+<td />
 
-   <p>{</p>
+  <td>Some minor edits.</td>
 
-   <p>  mps_fmt_A_s my_format_A = { my_alignment, &amp;my_scan, &amp;my_skip, &amp;my_copy, &amp;my_fwd,</p>
+</tr>
 
-   <p>                              &amp;my_isfwd, &amp;my_pad };</p>
+<tr valign="top">
 
-   <p>  mps_fmt my_format;</p>
+  <td>1997-06-21 15:09:57 -04</td>
 
-   <p>  mps_res_t res;</p>
+<td />
 
-   <p>  res = mps_fmt_create_A(&amp;my_format, arena, &amp;my_format_A);</p>
+  <td>Some edits.</td>
 
-   <p>
+</tr>
 
-    <br />
+<tr valign="top">
 
-      assert(res != MPS_RES_OK);
+  <td>1997-06-21 15:11:09 -04</td>
 
-   </p>
+  <td>lmb</td>
 
-   <p>  return my_format;</p>
+  <td>Corrected typo; added comma.</td>
 
-   <p>}  </p>
+</tr>
 
-   <h2>
+<tr valign="top">
 
-    <a id='section-see-also' name='section-see-also'>See Also</a>
+  <td>1997-06-21 15:14:42 -04</td>
 
-   </h2>
+  <td>lmb</td>
 
-   <p>
+  <td>Changed title.</td>
 
-    mps_fmt_create_A, 
+</tr>
 
-    mps_fmt_scan_t, 
+<tr valign="top">
 
-    mps_fmt_skip_t
+  <td>1997-06-21 16:46:32 -04</td>
 
-    , 
+  <td>lmb</td>
 
-    mps_fmt_copy_t, 
+  <td>Changed a typo.</td>
 
-    mps_fmt_fwd_t, 
+</tr>
 
-    mps_isfwd_t, 
+<tr valign="top">
 
-    mps_pad_t, 
+  <td>1997-10-28 12:52:14 -05</td>
 
-    mps_align_t, 
+  <td>lmb</td>
 
-    mps_fmt_B_s
+  <td>Added some quotes</td>
 
-   </p>
+</tr>
 
-   <h2>
+<tr valign="top">
 
-    <a id='section-A' name='section-A'>A. References</a>
+  <td>2000-05-22 16:28:07 +01</td>
 
-   </h2>
+  <td>pekka</td>
 
-   <h2>
+  <td>clean up</td>
 
-    <a id='section-B' name='section-B'>B. Document History</a>
+</tr>
 
-   </h2>
+<tr valign="top">
 
-   <table>
+  <td>2000-05-23 15:35:29 +01</td>
 
-    <tr valign='top'>
+<td />
 
-     <td>1997-05-13 15:16:19 +01</td>
+  <td>fix title and summary</td>
 
-     <td />
+</tr>
 
-     <td>New document saved</td>
+<tr valign="top">
 
-    </tr>
+  <td>2000-05-23 15:35:50 +01</td>
 
-    <tr valign='top'>
+  <td>pekka</td>
 
-     <td>1997-06-10 15:59:51 -04</td>
+  <td>fix title and summary</td>
 
-     <td />
+</tr>
 
-     <td>Some minor edits.</td>
+<tr valign="top">
 
-    </tr>
+  <td>2000-05-23 16:37:33 +01</td>
 
-    <tr valign='top'>
+  <td>pekka</td>
 
-     <td>1997-06-21 15:09:57 -04</td>
+  <td>change tag from symbol.mps.c.mps_fmt_A_s; remove lame descriptions of methods; clarify</td>
 
-     <td />
+</tr>
 
-     <td>Some edits.</td>
+<tr valign="top">
 
-    </tr>
+  <td>2000-07-06 16:58:29 +01</td>
 
-    <tr valign='top'>
+  <td>pekka</td>
 
-     <td>1997-06-21 15:11:09 -04</td>
+  <td>Remove A_t; add example</td>
 
-     <td>lmb</td>
+</tr>
 
-     <td>Corrected typo; added comma.</td>
+<tr valign="top">
 
-    </tr>
+  <td>2000-07-06 17:00:09 +01</td>
 
-    <tr valign='top'>
+  <td>pekka</td>
 
-     <td>1997-06-21 15:14:42 -04</td>
+  <td>fix tag</td>
 
-     <td>lmb</td>
+</tr>
 
-     <td>Changed title.</td>
+<tr valign="top">
 
-    </tr>
+  <td>2000-07-06 17:11:08 +01</td>
 
-    <tr valign='top'>
+  <td>pekka</td>
 
-     <td>1997-06-21 16:46:32 -04</td>
+  <td>improve description</td>
 
-     <td>lmb</td>
+</tr>
 
-     <td>Changed a typo.</td>
+<tr valign="top">
 
-    </tr>
+  <td>2001-09-26</td>
 
-    <tr valign='top'>
+  <td><a href="mailto:ndl@ravenbrook.com">NDL</a></td>
 
-     <td>1997-10-28 12:52:14 -05</td>
+  <td>Converted from xml to html (second pass).</td>
 
-     <td>lmb</td>
+</tr>
 
-     <td>Added some quotes</td>
+<tr valign="top">
 
-    </tr>
+  <td>2002-04-15</td>
 
-    <tr valign='top'>
+  <td><a href="mailto:nb@ravenbrook.com">NB</a></td>
 
-     <td>2000-05-22 16:28:07 +01</td>
+  <td>Reformatted and adopted.</td>
 
-     <td>pekka</td>
+</tr>
 
-     <td>clean up</td>
+</table>
 
-    </tr>
+<hr />
 
-    <tr valign='top'>
+<p><small>Copyright &copy; 2001 Ravenbrook Limited.  This document is
+provided "as is", without any express or implied warranty.  In no
+event will the authors be held liable for any damages arising from the
+use of this document.  You may not duplicate or reproduce this
+document in any form without the express permission of the copyright
+holder.</small></p>
 
-     <td>2000-05-23 15:35:29 +01</td>
+<div align="center">
 
-     <td />
+<p><code>$Id$</code></p>
 
-     <td>fix title and summary</td>
+</div>
 
-    </tr>
+</body>
 
-    <tr valign='top'>
-
-     <td>2000-05-23 15:35:50 +01</td>
-
-     <td>pekka</td>
-
-     <td>fix title and summary</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-05-23 16:37:33 +01</td>
-
-     <td>pekka</td>
-
-     <td>change tag from symbol.mps.c.mps_fmt_A_s; remove lame descriptions of methods; clarify</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-07-06 16:58:29 +01</td>
-
-     <td>pekka</td>
-
-     <td>Remove A_t; add example</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-07-06 17:00:09 +01</td>
-
-     <td>pekka</td>
-
-     <td>fix tag</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2000-07-06 17:11:08 +01</td>
-
-     <td>pekka</td>
-
-     <td>improve description</td>
-
-    </tr>
-
-    <tr valign='top'>
-
-     <td>2001-09-26</td>
-
-     <td>
-
-      <a href='mailto:ndl@ravenbrook.com'>NDL</a>
-
-     </td>
-
-     <td>Converted from xml to html (second pass).</td>
-
-    </tr>
-
-   </table>
-
-   <hr />
-
-   <p>
-
-    <small>Copyright &copy; 2001 Ravenbrook Limited.  This document is provided "as is", without any express or implied warranty.  In no event will the authors be held liable for any damages arising from the use of this document.  You may not duplicate or reproduce this document in any form without the express permission of the copyright holder.</small>
-
-   </p>
-
-   <div align='center'>
-
-    <p>
-
-     <code>$Id$</code>
-
-    </p>
-
-   </div>
-
-  </body>
-
- </html>
+</html>
 
