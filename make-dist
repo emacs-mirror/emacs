@@ -443,7 +443,7 @@ echo "Making links to \`nt/inc/netinet'"
 
 echo "Making links to \`nt/icons'"
 (cd nt/icons
- ln [a-z]*.ico ../../../${tempdir}/nt/icons)
+ ln [a-z]*.ico ../../${tempdir}/nt/icons)
 
 echo "Making links to \`msdos'"
 (cd msdos
