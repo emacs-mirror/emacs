@@ -221,48 +221,40 @@
 
 ;;; Code:
 
-;;;;; variable declarations ;;;;;
+;;;;; Set up keymap ;;;;;
 
-(provide 'two-column)
-
-(defvar tc-prefix "\C-x6"
-  "Prefix tc-mode-map gets bound to.
-If you'd like to bind it to function key <f2>, see the prolog of the
-source file, lisp/two-column.el")
-
+;;;###autoload
 (defvar tc-mode-map nil
-  "Keymap that contains all commands useful with two-column minor mode.
-This gets bound globally to `tc-prefix' since minor modes have
-no local keymap.")
+  "Keymap for commands for two-column mode.")
 
+;;;###autoload
 (if tc-mode-map
     ()
   (setq tc-mode-map (make-sparse-keymap))
   (define-key tc-mode-map "1" 'tc-merge)
-  (define-key tc-mode-map "2" 'tc-split)
+  (define-key tc-mode-map "2" 'tc-two-columns)
   (define-key tc-mode-map "b" 'tc-associate-buffer)
   (define-key tc-mode-map "k" 'tc-kill-association)
   (define-key tc-mode-map "\C-l" 'tc-recenter)
   (define-key tc-mode-map "o" 'tc-associated-buffer)
-  (define-key tc-mode-map "u" 'tc-unmerge)
+  (define-key tc-mode-map "s" 'tc-split)
   (define-key tc-mode-map "{" 'shrink-window-horizontally)
   (define-key tc-mode-map "}" 'enlarge-window-horizontally)
   (define-key tc-mode-map " " 'tc-scroll-up)
   (define-key tc-mode-map "\^?" 'tc-scroll-down)
   (define-key tc-mode-map "\C-m" 'tc-scroll-line))
 
-(global-set-key tc-prefix tc-mode-map)
-
+;;;###autoload
+(global-set-key "\C-x6" tc-mode-map)
+
+;;;;; variable declarations ;;;;;
 
 ;; markers seem to be the only buffer-id not affected by renaming
 ;; a buffer.  This nevertheless loses when a buffer is killed.
 (defvar tc-other nil
   "Marker to the associated buffer, if non-nil.")
 (make-variable-buffer-local 'tc-other)
-
-
-(defvar tc-buffer-list ()
-  "An alist of markers to associated buffers.  (Backs up `tc-other')")
+(put 'tc-other 'permanent-local t)
 
 (setq minor-mode-alist (cons '(tc-other " 2C") minor-mode-alist))
 
@@ -274,12 +266,14 @@ no local keymap.")
 
 (defvar tc-separator ""
   "*A string inserted between the two columns when merging.
-This gets set locally by \\[tc-unmerge].")
+This gets set locally by \\[tc-split].")
+(put 'tc-separator 'permanent-local t)
 
 (defvar tc-window-width 40
   "*The width of the first column.  (Must be at least `window-min-width')
 This value is local for every buffer that sets it.")
 (make-variable-buffer-local 'tc-window-width)
+(put 'tc-window-width 'permanent-local t)
 
 (defvar tc-beyond-fill-column 4
   "*Base for calculating `fill-column' for a buffer in two-column minor mode.
@@ -288,7 +282,7 @@ minus this value.")
 
 (defvar tc-mode-hook nil
   "Function called, if non-nil, whenever turning on two-column minor mode.
-It can get called by \\[tc-split] (tc-split), \\[tc-unmerge] (tc-unmerge)
+It can get called by \\[tc-two-columns] (tc-two-columns), \\[tc-split] (tc-split)
 and \\[tc-associate-buffer] (tc-associate-buffer), on both buffers.")
 
 ;;;;; base functions ;;;;;
@@ -296,15 +290,7 @@ and \\[tc-associate-buffer] (tc-associate-buffer), on both buffers.")
 ;; the access method for the other buffer.  this tries to remedy against
 ;; lost local variables and lost buffers.
 (defun tc-other ()
-  (if (or tc-other
-	  (setq tc-other
-		; assoc with a different predicate, since we don't know
-		; which marker points to this buffer
-		(let ((bl tc-buffer-list))
-		  (while (and bl (not (eq (current-buffer)
-					  (marker-buffer (car (car bl))))))
-		    (setq bl (cdr bl)))
-		  (cdr (car bl)))))
+  (if tc-other
       (or (prog1
 	      (marker-buffer tc-other)
 	    (setq mode-line-format tc-mode-line-format ))
@@ -316,7 +302,7 @@ and \\[tc-associate-buffer] (tc-associate-buffer), on both buffers.")
 	    (kill-local-variable 'mode-line-format)
 	    nil))))
 
-(defun tc-split (&optional buffer)
+(defun tc-two-columns (&optional buffer)
   "Split current window vertically for two-column editing.
 
 When called the first time, associates a buffer with the current
@@ -333,7 +319,7 @@ the associated buffer having empty lines next to them.
 
 You have the following commands at your disposal:
 
-\\[tc-split]   Rearrange screen
+\\[tc-two-columns]   Rearrange screen
 \\[tc-associate-buffer]   Reassociate buffer after changing major mode
 \\[tc-scroll-up]   Scroll both buffers up by a screenfull
 \\[tc-scroll-down]   Scroll both buffers down by a screenful
@@ -353,11 +339,11 @@ The appearance of the screen can be customized by the variables
   (interactive "P")
   ; first go to full width, so that we can certainly split into
   ; two windows
-  (if (< (window-width) (screen-width))
+  (if (< (window-width) (frame-width))
       (enlarge-window 99999 t))
   (split-window-horizontally
    (max window-min-width (min tc-window-width
-			      (- (screen-width) window-min-width))))
+			      (- (frame-width) window-min-width))))
   (if (tc-other)
       (progn
 	(other-window 1)
@@ -384,26 +370,18 @@ The appearance of the screen can be customized by the variables
 	    mode-line-format tc-mode-line-format
 	    tc-other other
 	    other (point-marker))
-      (setq tc-buffer-list (cons (cons tc-other other)
-					 tc-buffer-list))
       (run-hooks tc-mode-hook)
       (other-window -1)
-      (setq tc-buffer-list
-	    (cons (cons other
-			(save-excursion
-			  (set-buffer (tc-other))
-			  tc-other))
-		  tc-buffer-list))
       (setq tc-other other))))
 
-(fset 'tc-mode 'tc-split)
+(fset 'tc-mode 'tc-two-columns)
 
 (defun tc-associate-buffer ()
   "Associate another buffer with this one in two-column minor mode.
 Can also be used to associate a just previously visited file, by
 accepting the proposed default buffer.
 
-See  \\[tc-split]  and  `lisp/two-column.el'  for further details."
+See  \\[tc-two-columns]  and  `lisp/two-column.el'  for further details."
   (interactive)
   (let ((b1 (current-buffer))
 	(b2 (or (tc-other)
@@ -418,13 +396,13 @@ See  \\[tc-split]  and  `lisp/two-column.el'  for further details."
       (setq b1 (and (assq 'tc-window-width (buffer-local-variables))
 		    tc-window-width)))
     ; if other buffer has a local width, adjust here too
-    (if b1 (setq tc-window-width (- (screen-width) b1)))
-    (tc-split b2)))
+    (if b1 (setq tc-window-width (- (frame-width) b1)))
+    (tc-two-columns b2)))
 
-(defun tc-unmerge (arg)
+(defun tc-split (arg)
   "Unmerge a two-column text into two buffers in two-column minor mode.
 The text is unmerged at the cursor's column which becomes the local
-value of tc-window-width.  Only lines that have the ARG same
+value of `tc-window-width'.  Only lines that have the ARG same
 preceding characters at that column get split.  The ARG preceding
 characters without any leading whitespace become the local value for
 `tc-separator'.  This way lines that continue across both
@@ -437,9 +415,9 @@ separator you like and then unmerge that line.  E.g.:
 First column's text    sSs  Second columns text
 		       \\___/\\
 			/    \\
-   5 character Separator      You type  M-5 \\[tc-unmerge]  with the point here
+   5 character Separator      You type  M-5 \\[tc-split]  with the point here
 
-See  \\[tc-split]  and  `lisp/two-column.el'  for further details."
+See  \\[tc-two-columns]  and  `lisp/two-column.el'  for further details."
   (interactive "p")
   (and (tc-other)
        (if (y-or-n-p (concat "Overwrite associated buffer `"
@@ -459,10 +437,10 @@ See  \\[tc-split]  and  `lisp/two-column.el'  for further details."
       (backward-char arg)
       (setq chars (buffer-substring (point) point))
       (skip-chars-forward " \t" point)
-      (make-variable-buffer-local 'tc-separator)
+      (make-local-variable 'tc-separator)
       (setq tc-separator (buffer-substring (point) point)
 	    tc-window-width (current-column)))
-    (tc-split)
+    (tc-two-columns)
     (setq other (tc-other))
     ; now we're ready to actually unmerge
     (save-excursion
@@ -495,14 +473,7 @@ If the associated buffer is unmodified and empty, it is killed."
   (let ((buffer (current-buffer)))
     (save-excursion
       (and (tc-other)
-	   (prog2
-	    (setq tc-buffer-list
-		  (delq (assq tc-other tc-buffer-list)
-			tc-buffer-list))
-	    (set-buffer (tc-other))
-	    (setq tc-buffer-list
-		  (delq (assq tc-other tc-buffer-list)
-			tc-buffer-list)))
+	   (set-buffer (tc-other))
 	   (or (not (tc-other))
 	       (eq buffer (tc-other)))
 	   (if (and (not (buffer-modified-p))
@@ -563,7 +534,7 @@ off trailing spaces with \\[beginning-of-buffer] \\[replace-regexp] [ SPC TAB ] 
 	  (insert tc-separator string))
 	(next-line 1)			; add one if necessary
 	(set-buffer b2))))
-  (if (< (window-width) (screen-width))
+  (if (< (window-width) (frame-width))
       (enlarge-window 99999 t)))
 
 ;;;;; utility functions ;;;;;
@@ -642,5 +613,7 @@ gets scrolled to the same line."
   "Make current window ARG columns narrower."
   (interactive "p")
   (enlarge-window-horizontally (- arg)))
+
+(provide 'two-column)
 
 ;;; two-column.el ends here
