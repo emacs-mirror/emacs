@@ -952,7 +952,6 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	     (while (and alist
 			 (null (match-beginning (car (car alist)))))
 	       (setq alist (cdr alist)))
-	     (setq losing-data (match-data))
 	     (if alist
 		 (setq alist (car alist))
 	       (error "compilation-parse-errors: impossible regexp match!"))
