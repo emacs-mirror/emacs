@@ -1,3 +1,7 @@
+2002-06-28  John Wiegley  <johnw@gnu.org>
+
+	* pcmpl-cvs.el: Added my name as the maintainer of this file.
+
 2002-06-28  Andreas Schwab  <schwab@suse.de>
 
 	* shell.el (explicit-bash-args): New user option.
