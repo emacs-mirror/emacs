@@ -3088,6 +3088,8 @@ modify_overlay (buf, start, end)
       start = end; end = temp;
     }
 
+  BUF_COMPUTE_UNCHANGED (buf, start, end);
+  
   /* If this is a buffer not in the selected window,
      we must do other windows.  */
   if (buf != XBUFFER (XWINDOW (selected_window)->buffer))
@@ -3095,8 +3097,6 @@ modify_overlay (buf, start, end)
   /* If multiple windows show this buffer, we must do other windows.  */
   else if (buffer_shared > 1)
     windows_or_buffers_changed = 1;
-  else
-    BUF_COMPUTE_UNCHANGED (buf, start, end);
 
   ++BUF_OVERLAY_MODIFF (buf);
 }
