@@ -165,6 +165,50 @@
 	("turkish-alt-postfix"): New Turkish input method which inserts
 	Latin-5 characters.
 
+After the release of 20.4, development was split into two separate
+code lines.  One line contained the code for Emacs 21, and the other
+one the code for the 20.x releases after 20.4.  The following change
+log entries up to the entry ``20.4 released'' are for the 20.x code
+line.  Change logs above this notice are those for the 21.x code line.
+
+2000-06-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.7 released.
+	
+2000-05-23  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt ($(TIT)): Set emacs_dir in the environment before
+	running emacs, to ensure load-path is correct.
+	(leim-list.el): Ditto.
+
+2000-02-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.6 released.
+	
+1999-12-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.5 released.
+	
+1999-11-22  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt: No need to generate subdirs.el.
+
+1999-11-21  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt: New file.
+
+1999-09-19  Ken'ichi Handa  <handa@gnu.org>
+
+	* quail/latin-alt.el ("turkish-latin-3-alt-postfix"): Renamed from
+	turkish-postfix.
+	("turkish-postfix"): New Turkish input method which inserts
+	Latin-5 characters.
+
+	* quail/latin-alt.el ("turkish-latin-3-alt-postfix"): Renamed from
+	turkish-alt-postfix.
+	("turkish-alt-postfix"): New Turkish input method which inserts
+	Latin-5 characters.
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.

@@ -471,6 +471,52 @@
 
 	* configure.in: Grok sparc64-*-linux-gnu*.
 
+After the release of 20.4, development was split into two separate
+code lines.  One line contained the code for Emacs 21, and the other
+one the code for the 20.x releases after 20.4.  The following change
+log entries up to the entry ``20.4 released'' are for the 20.x code
+line.  Change logs above this notice are those for the 21.x code line.
+
+2000-06-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.7 released.
+	
+2000-06-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Add powerpc*-*-linux-gnu*.
+
+2000-05-20  NIIBE Yutaka  <gniibe@mri.co.jp>
+
+	* configure.in: Check for grandpt and getpt.
+
+2000-02-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.6 released.
+	
+2000-02-18  Dave Love  <fx@gnu.org>
+
+	* configure.in: Define NON_GNU_CPP on alpha-dec-osf5+.
+
+2000-02-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Add support for arm*-g*-linux-gnu* systems.
+
+1999-12-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.5 released.
+	
+1999-11-28  Dave Love  <fx@gnu.org>
+
+	* configure.in: Recognize sparc64-*-linux-gnu*.
+
+1999-11-11  Erik Naggum  <erik@naggum.no>
+
+	* configure.in (bitmapdir): Allow for both "bitmaps" directories.
+
+1999-08-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Make --no-debug work again by removing -gcoff.
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.

@@ -81,6 +81,28 @@
 
 	* sedleim.inp (SHELL, MAKESHELL): Use /xyzzy/command as the shell.
 
+After the release of 20.4, development was split into two separate
+code lines.  One line contained the code for Emacs 21, and the other
+one the code for the 20.x releases after 20.4.  The following change
+log entries up to the entry ``20.4 released'' are for the 20.x code
+line.  Change logs above this notice are those for the 21.x code line.
+
+2000-06-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.7 released.
+	
+2000-02-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.6 released.
+	
+1999-12-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.5 released.
+	
+1999-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp (SHELL, MAKESHELL): Use /xyzzy/command as the shell.
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.

@@ -11194,6 +11194,583 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 	* buffer.c (syms_of_buffer): Make
 	default-enable-multibyte-characters a user variable.
 
+After the release of 20.4, development was split into two separate
+code lines.  One line contained the code for Emacs 21, and the other
+one the code for the 20.x releases after 20.4.  The following change
+log entries up to the entry ``20.4 released'' are for the 20.x code
+line.  Change logs above this notice are those for the 21.x code line.
+
+2000-06-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.7 released.
+	
+2000-06-01  Andrew Innes  <andrewi@gnu.org>
+
+	* w32proc.c (w32_executable_type): Determine whether program is a
+	GUI app.
+	(sys_spawnve): Tell create_child whether app is a GUI app.
+	(create_child): Don't hide window for GUI apps.
+	(syms_of_ntproc): Update docstring for w32-start-process-show-window.
+
+2000-05-30  Andrew Innes  <andrewi@gnu.org>
+
+	* w32.c (sys_socket): Revert the previous fix, and use a better
+	approach for detecting when a socket cannot be made
+	non-inheritable by duplicating the handle.
+
+2000-05-30  Dave Love  <fx@gnu.org>
+
+	* s/irix5-0.h (LD_SWITCH_SYSTEM): Don't define to `-G 0'.
+	(C_SWITCH_SYSTEM) [__GNUC__]: Put in #if 0.
+
+2000-05-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* m/iris5d.h (UNEXEC): Use unexsgi.
+
+2000-05-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (redisplay_window): Set startp_byte (not startp) to
+	ZV_BYTE.
+
+2000-05-23  Andrew Innes  <andrewi@gnu.org>
+
+	* w32.c (sys_socket): To work around a problem with MS Proxy
+	winsock, don't attempt to make sockets non-inheritable if the
+	proxy winsock appears to be present.
+
+2000-05-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/gnu-linux.h (setpgrp): Don't define it here because this
+	prevents compilation on GNU/Linux systems with glib 2.2.
+
+	* callproc.c, emacs.c, sysdep.c (setpgrp) [HAVE_SETPGID]: Define
+	as setpgid.
+	
+2000-05-20  NIIBE Yutaka  <gniibe@mri.co.jp>
+	
+	* s/gnu-linux.h (UNIX98_PTYS) [HAVE_GRANTPT]: Define.
+	(PTY_ITERATION, PTY_NAME_SPRINTF, PTY_OPEN, PTY_TTY_NAME_SPRINTF)
+	[HAVE_GRANTPT]: Define.
+	(C_SWITCH_SYSTEM): Add -D_XOPEN_SOURCE.
+
+	* sysdep.c (setup_pty): Treat case that UNIX98_PTYS is defined
+	like SYSV_PTYS.
+
+	* config.in (HAVE_GRANDPT, HAVE_GETPT): New defines.
+
+	* process.c (toplevel) [UNIX98_PTYS]: Include stdlib.h.
+
+2000-05-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* buffer.c (Fbury_buffer): Avoid trouble from burying a killed
+	buffer.
+
+	* keyboard.c (lispy_mouse_names): Variable removed.
+	(Vlispy_mouse_stem): New variable.
+	(syms_of_keyboard): Initialize Vlispy_mouse_stem.
+	(make_lispy_event) <mouse_click, scroll_bar_click>: Don't abort
+	for any mouse button number.  Increase size of mouse_syms and
+	button_down_location as needed.  Call modify_event_symbol with
+	different arguments.
+	(make_lispy_event) <scroll_bar_click> [USE_TOOLKIT_SCROLL_BARS]:
+	Call modify_event_symbol with different arguments.
+	(make_lispy_event) <w32_scroll_bar_click> [WINDOWSNT]: Don't abort
+	for any button number.  Call modify_event_symbol with different
+	arguments.
+	(modify_event_symbol): Rename NAME_ALIST to NAME_ALIST_OR_STEM.
+	Accept a string for NAME_ALIST_OR_STEM.
+
+	* fns.c (larger_vector): New function.
+
+	* keyboard.c (Fclear_this_command_keys): Clear recent_keys
+	vector, too.
+
+2000-05-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.c (frames_bury_buffer): Don't add a buffer to the frame's
+	buffer list that wasn't selected in that frame.
+
+	* filelock.c (get_boot_time): To obtain an 8 char file name, use a
+	2 char prefix, and call make_temp_name with second arg non-zero.
+
+	* fileio.c (make_temp_name): New function, extracted from
+	Fmake_temp_name.
+	(Fmake_temp_name): Use it.
+
+2000-05-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* unexelf.c, m/iris4d.h, m/iris5d.h: Use most current development 
+	versions.
+
+2000-05-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.c (w32_BDF_TextOut): Change bytelen arg to char_len
+	as used by callers.
+
+	* w32term.c (dumpglyphs): Fill background if character goes
+        higher or lower than normal. W32_TEXTOUT outputs chars not
+        bytes. Handle bdf fonts when getting width of composite chars
+        component. Allow for multibyte first glyph in composite char.
+
+2000-05-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_menu_show): Call ENCODE_SYSTEM for item_name
+	and descrip.
+
+2000-05-11  Andrew Innes  <andrewi@gnu.org>
+
+	* w32.c (sys_socket): Check return value of DuplicateHandle,
+        try to use original socket if it fails.
+
+2000-05-11  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (code_convert_string): GCPRO str before calling
+	temp_output_buffer_setup.
+
+2000-05-05  Gerd Moellmann  <gerd@gnu.org>
+	
+	* insdel.c (insert_from_buffer_1): Adjust FROM position by number
+	of inserted characters when BUF equals the current buffer, and PT
+	is in front of or equal to FROM.
+	
+2000-05-04  Andrew Innes  <andrewi@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_GETMINMAXINFO>: Reduce the maximum
+	tracking limits to fit within the Windows 9x 16-bit limit.
+
+2000-05-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (Fsignal): If lisp_eval_depth or spepdl_size are near
+	to the limits, increase the limits.
+
+	* s/openbsd.h (LIBS_TERMCAP): Undefine.
+
+	* process.c (send_process): Remove local variable `procname' that
+	might become invalid when a GC happens.  Instead, access the
+	process name slot directly.
+	
+	* s/freebsd.h (LIBS_TERMCAP): Define only for __FreeBSD_version
+	<= 400000.
+
+	* sysdep.c (read_intput_waiting): Add prototype.
+	(read_input_waiting): Call read_socket_hook with 4 arguments.
+
+2000-02-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.6 released.
+	
+2000-02-25  Miyashita Hisashi  <himi@bird.scphys.kyoto-u.ac.jp>
+
+	* ccl.c (ccl_driver) [CCL_MapMultiple]: When the mapped value is
+	`lambda', set reg[RRR] to the map index.
+	(ccl_driver) [CCL_MapSingle]: When the mapped value is found, set
+	reg[RRR] to 0.  Otherwise, set it to -1.
+
+2000-02-25  Andrew Innes  <andrewi@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_GETMINMAXINFO>: Allow resizing
+	the Emacs frame above the screen size.
+
+2000-02-23  Andrew Innes  <andrewi@gnu.org>
+
+	* w32select.c (Fw32_get_clipboard_data): Force data to be decoded
+	even if it doesn't contain non-ascii characters, as if it were
+	compound text.
+
+	* w32menu.c: Include charset.h and coding.h.
+	(single_submenu, w32_menu_show) [!HAVE_MULTILINGUAL_MENU]: Encode
+	mulitbyte strings with w32-system-coding-system before using in
+	menus.
+
+	* w32fns.c (x_set_name): Encode multibyte name with
+	w32-system-coding-system before using as frame title.
+	(x_set_title): Ditto.
+
+	* coding.h (ENCODE_SYSTEM) [WINDOWSNT]: New macro.
+	(DECODE_SYSTEM) [WINDOWSNT]: New macro.
+	[WINDOWSNT]: Add extern for Vw32_system_coding_system.
+
+	* fileio.c (Ffile_writable_p) [WINDOWSNT]: If a file (or
+	directory) doesn't exist, assume it can be created regardless of
+	whether the parent directory is writable.  This is the correct
+	thing to do, if we are not going to check the ACLs.
+
+	* w32.c (init_environment): Provide default values for all
+	required environment variables, and always set emacs_dir based on
+	the location of emacs.exe if it appears to be in a standard
+	location.
+	(init_user_info): Abort if HOME or SHELL isn't set.
+
+2000-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_write_glyphs): Allocate a screen_buf buffer as
+	large as CODING_MODE_LAST_BLOCK requires.
+
+2000-02-20  Dave Love  <fx@gnu.org>
+
+	* gmalloc.c: Don't define away `const'; config.h does that.
+
+2000-02-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (decode_mode_spec_coding): Delete superfluous code to
+	avoid infinite error signalling.
+
+2000-02-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* .gdbinit (xbacktrace, xprintsym, xreload): New commands.
+
+2000-02-15  Andrew Innes  <andrewi@gnu.org>
+
+	* w32proc.c (sys_kill): Fake Ctrl-C keystroke to simulate SIGINT,
+	and Ctrl-Break to simulate SIGQUIT (known as SIGBREAK in MSVC).
+
+2000-02-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* m/arm.h: New file.
+	
+	* s/freebsd.h (BROKEN_PTY_READ_AFTER_EAGAIN): Define.
+
+	* process.c (send_process) [BROKEN_PTY_READ_AFTER_EAGAIN]:
+	Workaround for FreeBSD bug.  Clear output queue after EAGAIN in
+	write(2).
+
+2000-02-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/hpux10.h (HAVE_XRMSETDATABASE): Define if not already defined.
+
+2000-02-09  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (CCL_MAKE_CHAR): New macro.
+	(ccl_driver) <CCL_TranslateCharacter>: Check the validity of
+	registers by CCL_MAKE_CHAR before calling translate_char.
+	<CCL_TranslateCharacterConstTbl> Likewise.
+	
+2000-02-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/irix6-5.h: Undo previous change.
+
+	* s/irix5-0.h (LD_SWITCH_SYSTEM): Define only for GCC < 2.95.
+
+2000-02-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* m/alpha.h: Revert to version from 20.5.
+
+2000-02-02  Kenichi Handa  <handa@etl.go.jp>
+
+	* ccl.c (ccl_driver) <CCL_WriteExprRegister>: Set jump_address
+	instead of incrementing ic directly.
+	<CCL_WriteExprConst> Likewise.
+	<ccl_set_expr>: Set ic to jump_address.
+
+2000-01-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/irix6-5.h [__GNUC__ && __GNUC_MINOR__ >= 95]: Undef
+	LD_SWITCH_SYSTEM inherited from irix5-0.h.
+
+2000-01-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* m/news-risc.h (LD_SWITCH_MACHINE): Define differently for GCC.
+	
+2000-01-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/hpux9.h (NO_EDITRES): Define even if HAVE_LIBXMU.
+
+1999-12-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* s/usg5-4.h (LIBS_SYSTEM): Add -lgen because that's needed
+	for building with Motif.
+	
+1999-11-22  Paul Eggert  <eggert@twinsun.com>
+
+	* m/alpha.h (malloc, realloc, calloc): Remove decls;
+	stdlib.h now does this.
+
+1999-08-21  Dave Love  <fx@gnu.org>
+
+	* aix3-2-5.h (C_DEBUG_SWITCH): Use -g -O.
+	* aix4-1.h: Likewise.
+
+	* irix6-5.h (C_DEBUG_SWITCH): Set for debug and optimize.
+	
+1999-12-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.5 released.
+	
+1999-12-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (Ffind_operation_coding_system): Cancel previous change.
+
+	* fileio.c (decide_coding_unwind): Renamed from
+	set_auto_coding_unwind.
+	(Finsert_file_contents): Make single unwind protect to call both
+	Vset_auto_coding_function and Ffind_operation_coding_system.
+
+	* insdel.c (adjust_markers_for_delete): Make it non-static.
+
+1999-12-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* unexelf.c (unexec): Put handling of .lit4 and .lit8 in
+	#ifdef __sgi.
+
+1999-12-03  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c (unexec): Don't copy .got section.
+
+1999-12-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Fwrite_region): Don't call 
+	Vselect_safe_coding_sytem_function if noninteractive.
+
+1999-12-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* m/iris4d.h, m/iris5d.h: Use unexsgi.o instead of unexelf.o.
+
+1999-12-01  Dave Love  <fx@gnu.org>
+
+	* emacs.c (main): Set LANG=C iff AIX3_2 defined.
+
+1999-11-28  Alexandre Oliva  <oliva@dcc.unicamp.br>
+
+	* unexelf.c: Auto-detect .sbss section.
+	(round_up): Make it static.
+	(unexec): Declare alignment as Elf Word.  Skip ``Program
+	segment above .bss'' test on MIPS without .sbss.
+	Copy sections .got and .sdata1 sections.  Adjust offsets in
+	sections .sdata, .lit4, .lit8, .got and .sdata1.
+
+1999-11-28  Alexandre Oliva  <oliva@dcc.unicamp.br>
+
+	* unexelf.c: Merge IRIX debugging info patch from unexsgi.c
+	* m/iris4d.h: Use unexelf for IRIX 5.*.
+	* m/iris5d.h: Use unexelf for IRIX 6.*.
+
+1999-11-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* coding.c (Ffind_operation_coding_system): Call functions after
+	changing the current buffer to a temporary buffer.
+
+1999-11-24  Ken'ichi Handa  <handa@gnu.org>
+
+	* fileio.c (Finsert_file_contents): Set buffer-file-coding-system
+	of the current buffer via Fset.
+
+1999-11-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* unexaix.c (unexec): Use unsigned instead of uintptr_t because
+	that fails on IBM PowerPC, AIX 4.2.
+
+1999-11-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* buffer.c (syms_of_buffer): Add %z, %Z, %m and %& to the doc
+	string of mode-line-format.  Remove the obsolete %t.
+
+1999-11-21  Jason Rumney <jasonr@gnu.org>
+
+	* w32fns.c (x_to_w32_font): Assign Y-resolution to resy
+        instead of pixel.
+
+1999-11-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* unexelf.c (unexec): Put new code rounding up the bss section's
+	sh_offset in #if 0.  Add corresponding code from 20.4 in #else.
+
+1999-11-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* keyboard.c (echo_char): Assure sufficient memory for
+	push_key_description.
+
+1999-11-16  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c: Include coding.c
+	(write_glyphs): Convert glyphs for display using
+	terminal_coding_system instead of GLYPH_FOLLOW_ALIASES.
+
+1999-11-16  Dave Love  <fx@gnu.org>
+
+	* doc.c (Fdocumentation): Remove gcpro here too.
+
+1999-11-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* doc.c (Fdocumentation_property): Don't GCPRO.
+
+1999-11-11  Ken'ichi Handa  <handa@gnu.org>
+
+	* editfns.c (Ftranslate_region): Check the buffer multibyteness.
+
+1999-11-07  Andrew Innes  <andrewi@gnu.org>
+
+	* w32fns.c (x_set_name): Coerce title string to unibyte.
+	(x_set_title): Ditto.
+
+	* w32menu.c: Undef HAVE_MULTILINGUAL_MENU.
+	(single_submenu):
+	(w32_menu_show) [!HAVE_MULTILINGUAL_MENU]: Coerce menu strings to
+	unibyte.
+
+	* w32.c (map_w32_filename): Force file functions to fail if the
+	name is too long, by returning an invalid name.
+	(open_unc_volume): Add cast.
+	(open_unc_volume): Make argument const.
+	(unc_volume_file_attributes): Ditto.
+
+	* makefile.nt (LINK_FLAGS): Include function-level (COFF format)
+	debug information in release builds, to get meaningful stack
+	traces on crashes.  Also remove spurious spaces in various places,
+	and all dependencies on lisp.h.
+
+	* w32term.c (my_set_focus): Return a value;
+	(my_set_foreground_window): Ditto.
+	(w32_initialize): Change return type to void, and add forward
+	declaration.
+
+	* w32fns.c (Fw32_shell_execute): Fix typo in docstring.
+	(Fw32_shell_execute): Allow OPERATION to be nil, to perform the
+	default action.
+	
+1999-11-02  Gerd Moellmann  <gerd@gnu.org>
+
+	* doc.c (Fdocumentation_property): Fix bug bypassing UNGCPRO.
+
+1999-11-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* doc.c (Fdocumentation_property): Remove register keyword
+	from local variable `tem'.
+
+1999-10-28  Ken'ichi Handa  <handa@gnu.org>
+
+	* coding.c (code_convert_region): Update `dst' correctly.
+
+1999-10-18  Dave Love  <fx@gnu.org>
+
+	* doc.c (Fdocumentation_property): Gcpro `tem`.
+
+1999-10-13  Dave Love  <fx@gnu.org>
+
+	* filelock.c (lock_file): Move gcpro of `fn'.
+
+1999-10-14  Ken'ichi Handa  <handa@gnu.org>
+
+	* fns.c (Fstring_as_multibyte): Call
+	register_composite_chars_string for a multibyte string.
+
+1999-10-13  Ken'ichi Handa  <handa@gnu.org>
+
+	* lread.c (Fload): Calculate bytes of filename correctly.
+	(openp): Likewise.
+
+1999-09-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* category.c (modify_lower_category_set): Set default value of
+	TABLE correctly.
+
+	* coding.c (DECODE_CHARACTER_ASCII): Decode ASCII invocated to GR
+	correctly.
+
+	* minibuf.c (Fminibuffer_complete_word): Calculate string byte
+	size correctly.
+
+1999-09-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* keymap.c (Fsingle_key_description): Make tem big enough.
+	(describe_buffer_bindings): Make buf big enough.
+
+1999-09-19  Miyashita Hisashi  <himi@bird.scphys.kyoto-u.ac.jp>
+
+	* charset.c (str_cmpchar_id):  Before xmalloc, copy data in STR to
+	a buffer that is safe from memory relocation.
+
+1999-09-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* charset.h: (register_composite_chars_region): Extern it.
+	(register_composite_chars_string): Extern it.
+
+	* charset.c (str_cmpchar_id): New argument REGISTERP.  Caller
+	changed.
+	(register_composite_chars_region): New function.
+	(register_composite_chars_string): New function.
+
+	* alloc.c (make_string): Call register_composite_chars_string for
+	a multibyte string. 
+	(make_multibyte_string): Likewise.
+	(make_string_from_bytes): Likewise.
+	(make_specified_string): Likewise.
+
+	* buffer.c (Fset_buffer_multibyte): On setting the buffer
+	multibyte, call register_composite_chars_region.
+
+	* insdel.c (insert_1_both): Call register_composite_chars_region
+	after the insertion.
+	(adjust_after_replace): Likewise.
+
+	* indent.c (MULTIBYTE_BYTES_WIDTH): Adjusted for the change of
+	str_cmpchar_id.
+
+1999-09-15  Richard Stallman  <rms@gnu.org>
+
+	* filelock.c (Vtemporary_file_directory): New variable.
+	(syms_of_filelock): Set up Lisp variable.
+
+1999-09-14  Richard Stallman  <rms@gnu.org>
+
+	* filelock.c (get_boot_time): Make the temp name in the proper dir.
+
+1999-09-07  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (fix_submap_inheritance): Do nothing if the proper
+	parent is an ancestor of SUBMAP; otherwise, add it as the
+	ultimate ancestor.
+
+1999-09-06  Michael Sperber [Mr. Preprocessor]  <sperber@informatik.uni-tuebingen.de>
+
+	* s/aix4-2.h (ALIGN_DATA_RELOC): Undefined to support new
+	unexaix.c.
+
+	* s/aix3-1.h (ALIGN_DATA_RELOC): Defined to support new unexaix.c.
+
+1999-09-06  Dave Love  <fx@gnu.org>
+
+	* unexaix.c: New version incorporating Michael Sperber's changes
+	from XEmacs.  Should solve problems on AIX 4.3.
+
+1999-08-13  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (run_hook_list_with_args): Gcpro `globals'.
+	(run_hook_with_args): Likewise.
+
+1999-08-10  Richard M. Stallman  <rms@gnu.org>
+
+	* window.h (struct window): New field too_small_ok.
+
+	* window.c (set_window_height, set_window_width): 
+	If window starts out "too small", set its too_small_ok flag.
+	If window's too_small_ok flag is set, don't delete it
+	unless it is so small it would cause a crash.
+
+	* charset.h (BCOPY_SHORT): Fix typo `unsigined'.
+
+1999-08-10  Alexandre Oliva  <oliva@dcc.unicamp.br>
+
+	* unexelf.c [__linux__ && __alpha__] (HAS_SBSS_SECTION): Define.
+
+1999-08-04  Andreas Schwab  <schwab@gnu.org>
+
+	* insdel.c (insert_from_string_1): Check gap size against number
+	of outgoing bytes, not incoming bytes.
+
+1999-08-01  Richard Stallman  <rms@gnu.org>
+
+	* fns.c (internal_equal): Correct overlay comparison.
+
+1999-07-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (getdefdir): Don't return failure indication when
+	_fixpath sets errno to ENOSYS.
+
+1999-07-21  Joe Ramey  <ramey@ti.com>
+
+	* filelock.c (lock_if_free): Return -1 if check_lock_owner
+	has returned -1 (lockfile exists but is not a symlink?)
+
 1999-07-14  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.

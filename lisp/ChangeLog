@@ -1,5 +1,9 @@
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* bytecomp.el (byte-compile-defvar-or-defconst): Only cons onto
+	current-load-list in top-level forms.  Else this leaks a cons cell
+	every time a defun is called.
+	
 	* mail/mail-utils.el (rmail-dont-reply-to): Fix last change.
 	
 2000-09-25  Dave Love  <fx@gnu.org>

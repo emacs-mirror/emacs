@@ -132,6 +132,54 @@
 
 	* emacs.bat.in (EMACSLOADPATH): Include leim.
 
+After the release of 20.4, development was split into two separate
+code lines.  One line contained the code for Emacs 21, and the other
+one the code for the 20.x releases after 20.4.  The following change
+log entries up to the entry ``20.4 released'' are for the 20.x code
+line.  Change logs above this notice are those for the 21.x code line.
+
+2000-06-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* Version 20.7 released.
+	
+2000-05-12  Jason Rumney  <jasonr@gnu.org>
+	
+	* INSTALL: Remove point 5 and other references to emacs.bat.
+	Renumber following points. Add note in point 1 about emacs.bat
+	and debug.bat being removed.
+
+2000-02-20  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt: Remove all references to emacs.bat and debug.bat.
+
+	* emacs.bat.in: Remove obsolete file.
+
+	* debug.bat.in: Remove obsolete file.
+
+1999-11-22  Andrew Innes  <andrewi@gnu.org>
+
+	* install.bat: Pass on command line arguments to make.
+	
+	* makefile.nt (fast_install): Bring commands up-to-date, and fix
+	typo.
+
+1999-11-21  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (all): Build leim if present.
+	(install): Install leim if present.
+	(clean): Clean leim if present.
+
+	* addpm.c (env_vars): Include leim in default EMACSLOADPATH
+	definition.
+
+	* emacs.bat.in (EMACSLOADPATH): Include leim.
+
+1999-11-04  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.def (ARCH_CFLAGS): Disable the frame pointer omission
+	optimization, to ensure accurate stack traces.  The performance
+	loss is negligible.
+
 1999-07-12  Richard Stallman  <rms@gnu.org>
 
 	* Version 20.4 released.
