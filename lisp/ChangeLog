@@ -1,3 +1,10 @@
+2000-12-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (combine-run-hooks): Remove.
+
+	* emacs-lisp/edebug.el (define-minor-mode): Improve the spec
+	and remove the rogue second spec.
+
 2000-12-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/compile.el (compilation-forget-errors): Fix indentation.
