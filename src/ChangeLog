@@ -1,3 +1,16 @@
+2003-09-30  Richard M. Stallman  <rms@gnu.org>
+
+	* term.c (set_tty_color_mode): Calculate current_mode_spec
+	regardless of value of VAL.
+
+	* intervals.c (graft_intervals_into_buffer): 
+	Set BUF_INTERVALS (buffer)->up_obj when appropriate.
+	Handle over_used when splitting UNDER.
+
+2003-09-30  YAMAMOTO  Mitsuharu <mituharu@math.s.chiba-u.ac.jp>
+
+	* regex.c (regex_compile): Free the stack when returning from function.
+
 2003-09-28  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Finternal_char_font): Change return value to

@@ -1,3 +1,33 @@
+2003-09-30  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/ada-mode.el (ada-mode): Don't use advice.
+	Instead, set which-func-functions.
+
+	* progmodes/which-func.el (which-func-modes): Add ada-mode.
+	(which-func-functions): New variable.
+	(which-function): Use that.
+
+	* info.el (Info-mode): Double each `%' in header line.
+
+	* emacs-lisp/lisp-mnt.el (lm-with-file):
+	When FILE is nil, run BODY in current buffer.
+
+	* mail/emacsbug.el (report-emacs-bug): Mention major and minor modes.
+
+	* help.el (describe-mode): Start with a brief list of minor modes.
+	Find them thru minor-mode-list so as to find them all.
+	Show them in alphabetical order.
+
+	* mail/sendmail.el (mail-aliases): Doc fix.
+
+	* progmodes/sh-script.el (sh-mode-syntax-table): Add defvar.
+
+2003-09-30  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
+
+	* mail/rmailsum.el (rmail-make-summary-line-1):
+	Change comma after last label to a space.
+	(rmail-summary-font-lock-keywords): Adapt to that change.
+
 2003-09-30  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/scheme.el (scheme-mode-variables): When setting
@@ -197,6 +227,7 @@
 	* progmodes/gud.el (perldb): Add gud-until to list of commands.
 	Update gud-remove.
 
+>>>>>>> 1.5409
 2003-09-22  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sh-script.el (sh-mode-default-syntax-table):
