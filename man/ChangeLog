@@ -1,10 +1,8 @@
 2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
-	Version 2.0.29 released.
-
-	* tramp.texi (Installation): In Emacs, use M-x
-	texinfo-format-buffer RET, not M-x makeinfo-buffer RET.  Reported
-	by gebser@ameritech.net.
+	* tramp.texi: Version 2.0.29 released.
+	(Installation): In Emacs, use M-x texinfo-format-buffer RET, not
+	M-x makeinfo-buffer RET.  Reported by gebser@ameritech.net.
 
 2003-02-01  Michael Albinus  <Michael.Albinus@alcatel.de>
 
