@@ -1408,6 +1408,12 @@ the empty string (which it commonly does).  A patch for that is
 available from the CC Mode web site (http://www.python.org/emacs/
 cc-mode/).
 
+**** The variables `c-hanging-comment-starter-p' and
+`c-hanging-comment-ender-p', which controlled how comment starters and
+enders were filled, are not used anymore.  The new version of the
+function `c-fill-paragraph' keeps the comment starters and enders as
+they were before the filling.
+
 **** It's now possible to selectively turn off auto filling.
 The variable c-ignore-auto-fill is used to ignore auto fill mode in
 specific contexts, e.g. in preprocessor directives and in string
