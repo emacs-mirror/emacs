@@ -3492,43 +3492,6 @@ handle_single_display_prop (it, prop, object, position,
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
     }
-  else if (CONSP (prop)
-	   && (EQ (XCAR (prop), Qleft_fringe)
-	       || EQ (XCAR (prop), Qright_fringe))
-	   && CONSP (XCDR (prop)))
-    {
-      unsigned face_id = DEFAULT_FACE_ID;
-
-      /* `(left-fringe BITMAP FACE)'.  */
-      if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
-	return 0;
-
-#ifdef HAVE_WINDOW_SYSTEM
-      value = XCAR (XCDR (prop));
-      if (!NUMBERP (value)
-	  || !valid_fringe_bitmap_id_p (XINT (value)))
-	return 0;
-
-      if (CONSP (XCDR (XCDR (prop))))
-	{
-	  Lisp_Object face_name = XCAR (XCDR (XCDR (prop)));
-	  face_id = lookup_named_face (it->f, face_name, 'A');
-	  if (face_id < 0)
-	    return 0;
-	}
-
-      if (EQ (XCAR (prop), Qleft_fringe))
-	{
-	  it->left_user_fringe_bitmap = XINT (value);
-	  it->left_user_fringe_face_id = face_id;
-	}
-      else
-	{
-	  it->right_user_fringe_bitmap = XINT (value);
-	  it->right_user_fringe_face_id = face_id;
-	}
-#endif /* HAVE_WINDOW_SYSTEM */
-    }
   else if (!it->string_from_display_prop_p)
     {
       /* `((margin left-margin) VALUE)' or `((margin right-margin)
@@ -3546,6 +3509,64 @@ handle_single_display_prop (it, prop, object, position,
       /* Let's stop at the new position and assume that all
 	 text properties change there.  */
       it->stop_charpos = position->charpos;
+
+      if (CONSP (prop)
+	  && (EQ (XCAR (prop), Qleft_fringe)
+	      || EQ (XCAR (prop), Qright_fringe))
+	  && CONSP (XCDR (prop)))
+	{
+	  unsigned face_id = DEFAULT_FACE_ID;
+
+	  /* Save current settings of IT so that we can restore them
+	     when we are finished with the glyph property value.  */
+
+	  /* `(left-fringe BITMAP FACE)'.  */
+	  if (FRAME_TERMCAP_P (it->f) || FRAME_MSDOS_P (it->f))
+	    return 0;
+
+#ifdef HAVE_WINDOW_SYSTEM
+	  value = XCAR (XCDR (prop));
+	  if (!NUMBERP (value)
+	      || !valid_fringe_bitmap_id_p (XINT (value)))
+	    return 0;
+
+	  if (CONSP (XCDR (XCDR (prop))))
+	    {
+	      Lisp_Object face_name = XCAR (XCDR (XCDR (prop)));
+
+	      face_id = lookup_named_face (it->f, face_name, 'A');
+	      if (face_id < 0)
+		return 0;
+	    }
+
+	  push_it (it);
+
+	  it->area = TEXT_AREA;
+	  it->what = IT_IMAGE;
+	  it->image_id = -1; /* no image */
+	  it->position = start_pos;
+	  it->object = NILP (object) ? it->w->buffer : object;
+	  it->method = next_element_from_image;
+	  it->face_id = face_id;
+
+	  /* Say that we haven't consumed the characters with
+	     `display' property yet.  The call to pop_it in
+	     set_iterator_to_next will clean this up.  */
+	  *position = start_pos;
+
+	  if (EQ (XCAR (prop), Qleft_fringe))
+	    {
+	      it->left_user_fringe_bitmap = XINT (value);
+	      it->left_user_fringe_face_id = face_id;
+	    }
+	  else
+	    {
+	      it->right_user_fringe_bitmap = XINT (value);
+	      it->right_user_fringe_face_id = face_id;
+	    }
+#endif /* HAVE_WINDOW_SYSTEM */
+	  return 1;
+	}
 
       location = Qunbound;
       if (CONSP (prop) && CONSP (XCAR (prop)))
@@ -17680,11 +17701,20 @@ produce_image_glyph (it)
   xassert (it->what == IT_IMAGE);
 
   face = FACE_FROM_ID (it->f, it->face_id);
+  xassert (face);
+  /* Make sure X resources of the face is loaded.  */
+  PREPARE_FACE_FOR_DISPLAY (it->f, face);
+
+  if (it->image_id < 0)
+    {
+      /* Fringe bitmap.  */
+      it->nglyphs = 0;
+      return;
+    }
+
   img = IMAGE_FROM_ID (it->f, it->image_id);
   xassert (img);
-
-  /* Make sure X resources of the face and image are loaded.  */
-  PREPARE_FACE_FOR_DISPLAY (it->f, face);
+  /* Make sure X resources of the image is loaded.  */
   prepare_image_for_display (it->f, img);
 
   it->ascent = it->phys_ascent = glyph_ascent = image_ascent (img, face);
