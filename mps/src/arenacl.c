@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.21) $
+ * $HopeName: MMsrc!arenacl.c(trunk.22) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.arena.client.
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpsacl.h"
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.21) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.22) $");
 
 
 /* ClientArenaStruct -- Client Arena Structure */
@@ -220,14 +220,16 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   lock = (Lock)PointerAdd(base, clArenaSize);
   arena = ClientArena2Arena(clientArena);
   /* impl.c.arena.init.caller */
-  ArenaInit(arena, lock, class);
+  res = ArenaInit(arena, lock, class);
+  if (res != ResOK)
+    return res;
 
   /* have to have a valid arena before calling ChunkCreate */
   clientArena->sig = ClientArenaSig;
 
   res = clientChunkCreate(&chunk, chunkBase, limit, clientArena);
   if (res != ResOK)
-    return res;
+    goto failChunkCreate;
   arena->primary = chunk;
 
   /* Set the zone shift to divide the initial chunk into the same */
@@ -240,6 +242,10 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
   AVERT(ClientArena, clientArena);
   *arenaReturn = arena;
   return ResOK;
+
+failChunkCreate:
+  ArenaFinish(arena);
+  return res;
 }
 
 
