@@ -29,8 +29,12 @@
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
+#if 0 /* These appear to be unnecessary for 1.1, and they break
+	 emacs when compiled under FreeBSD-1.0.
+	 Shawn M. Carey <smcarey@mailbox.syr.edu>  */
 #define A_TEXT_OFFSET(x) (sizeof (struct exec))
 #define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
+#endif
 
 #define LIBS_DEBUG
 #define LIBS_SYSTEM -lutil
