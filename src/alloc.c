@@ -4311,9 +4311,13 @@ Garbage collection happens automatically if you cons more than
 
 #if (GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE \
      || GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES)
-  for (tail = gcprolist; tail; tail = tail->next)
-    for (i = 0; i < tail->nvars; i++)
-      XUNMARK (tail->var[i]);
+  {
+    register struct gcpro *tail;
+
+    for (tail = gcprolist; tail; tail = tail->next)
+      for (i = 0; i < tail->nvars; i++)
+	XUNMARK (tail->var[i]);
+  }
 #endif
 
   unmark_byte_stack ();
