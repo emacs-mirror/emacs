@@ -24,26 +24,16 @@
 
 ;;; Commentary:
 ;;
-;; Must be run before the user has changed the value of any options!
+;; This file adds customize support for built-in variables.
+
+;; While dumping Emacs, this file is loaded, but it only records
+;; the standard values; it does not do the rest of the job.
+;; Later on, if the user makes a customization buffer,
+;; this file is loaded again with (require 'cus-start);
+;; then it does the whole job.
 
 ;;; Code:
 
-(defun custom-start-quote (sexp)
-  ;; This is copied from `cus-edit.el'.
-  "Quote SEXP iff it is not self quoting."
-  (if (or (memq sexp '(t nil))
-	  (and (symbolp sexp)
-	       (eq (aref (symbol-name sexp) 0) ?:))
-	  (and (listp sexp)
-	       (memq (car sexp) '(lambda)))
-	  (stringp sexp)
-	  (numberp sexp)
-	  (and (fboundp 'characterp)
-	       (characterp sexp)))
-      sexp
-    (list 'quote sexp)))
-
-;; Add support for build in variables.
 (let ((all '(;; abbrev.c 
 	     (abbrev-all-caps abbrev-mode boolean)
 	     (pre-abbrev-expand-hook abbrev-mode hook)
@@ -131,15 +121,15 @@
 							  :format "%t")))
 	     ;; lread.c
 	     (load-path environment 
-			(repeat (choice :tag "Current or Specific Dir"
-					(const :tag "use current" nil)
-					(directory :tag "Specific"))))
+			(repeat (choice :tag "[Current dir?]"
+					(const :tag " current dir" nil)
+					(directory :format "%v"))))
 	     ;; minibuf.c
 	     (completion-auto-help minibuffer boolean)
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (minibuffer-auto-raise minibuffer boolean)
 	     ;; process.c
-	     (delete-exited-processes proces-basics boolean)
+	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c
 	     (parse-sexp-ignore-comments editing-basics boolean)
 	     (words-include-escapes editing-basics boolean)
@@ -195,7 +185,21 @@
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))))
-      this symbol group type)
+      this symbol group type
+      ;; This function turns a value
+      ;; into an expression which produces that value.
+      (quoter (lambda (sexp)
+		(if (or (memq sexp '(t nil))
+			(and (symbolp sexp)
+			     (eq (aref (symbol-name sexp) 0) ?:))
+			(and (listp sexp)
+			     (memq (car sexp) '(lambda)))
+			(stringp sexp)
+			(numberp sexp)
+			(and (fboundp 'characterp)
+			     (characterp sexp)))
+		    sexp
+		  (list 'quote sexp)))))
   (while all 
     (setq this (car all)
 	  all (cdr all)
@@ -204,13 +208,24 @@
 	  type (nth 2 this))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
-	(message "Intrinsic `%S' not bound" symbol)
-      ;; This is called before any user can have changed the value.
-      (put symbol 'factory-value 
-	   (list (custom-start-quote (default-value symbol))))
-      ;; Add it to the right group.
-      (custom-add-to-group group symbol 'custom-variable)
-      ;; Set the type.
-      (put symbol 'custom-type type))))
+	(message "Built-in variable `%S' not bound" symbol)
+      ;; Save the standard value, unless we already did.
+      (or (get symbol 'standard-value)
+	  (put symbol 'standard-value 
+	       (list (funcall quoter (default-value symbol)))))
+      ;; If this is NOT while dumping Emacs,
+      ;; set up the rest of the customization info.
+      (unless purify-flag
+	;; Add it to the right group.
+	(custom-add-to-group group symbol 'custom-variable)
+	;; Set the type.
+	(put symbol 'custom-type type)))))
+
+;; Record cus-start as loaded
+;; if we have set up all the info that we can set up.
+;; Don't record cus-start as loaded
+;; if we have set up only the standard values.
+(unless purify-flag
+  (provide 'cus-start))
 
 ;;; cus-start.el ends here.
