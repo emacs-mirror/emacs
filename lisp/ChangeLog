@@ -1,3 +1,29 @@
+2000-10-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el: New charsets mule-unicode-2500-33ff
+	and mule-unicode-e000-ffff.
+
+	* international/mule.el (unicode-char): New function.
+	(char-unicode): New function.
+	(make-coding-system): Accept a symbol of translation table as a
+	value of property `safe-chars'.
+
+	* international/mule-cmds.el (encode-coding-char): Check property
+	safe-chars instead of safe-charsets.
+
+	* international/fontset.el (fontset-default): Modified for
+	mule-unicode-2500-33ff and mule-unicode-e000-ffff.
+	(x-font-name-charset-alist): Likewise.
+	(ccl-encode-unicode-font): New CCL program.  Record it in
+	font-ccl-encoder-alist to be used for fonts "ISO10646-1".
+
+	* language/european.el (mac-roman-decoder, mac-roman-encoder): New
+	translation tables.
+	(decode-mac-roman, encode-mac-roman): Definition of these CCL
+	programs are modified and moved from mac-win.el.
+	(mac-roman): Definition of this coding system is modified and
+	moved from mac-win.el.
+
 2000-10-29  Miles Bader  <miles@gnu.org>
 
 	* custom.el (custom-add-to-group): Allow multiple entries for a

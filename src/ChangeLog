@@ -1,3 +1,7 @@
+2000-10-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* fns.c (Foptimize_char_table): Fix arg for CHARSET_DIMENSION.
+
 2000-10-29  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (FONT_DESCENT): Negate descent of BDF fonts.
