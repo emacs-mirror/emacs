@@ -3816,8 +3816,11 @@ pure_alloc (size, type)
   
   if (pure_bytes_used + nbytes > pure_size)
     {
-      beg = purebeg = (char *) xmalloc (PURESIZE);
-      pure_size = PURESIZE;
+      /* Don't allocate a large amount here,
+	 because it might get mmap'd and then its address
+	 might not be usable.  */
+      beg = purebeg = (char *) xmalloc (10000);
+      pure_size = 10000;
       pure_bytes_used_before_overflow += pure_bytes_used;
       pure_bytes_used = 0;
     }
