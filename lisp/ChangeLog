@@ -1,3 +1,8 @@
+2005-03-17  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (move-beginning-of-line): Move to beginning of buffer
+	line, as well as beginning of screen line.
+
 2005-03-16  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (mark-diary-entries): Use new optional
