@@ -91,7 +91,7 @@ string_cat_and_replace (char *s1, const char *s2, int n, char a, char b)
    Returns 1 if successful; 0 if fails.  */
    
 int
-mac_to_unix_pathname (const char *mfn, char *ufn, int ufnbuflen)
+mac_to_posix_pathname (const char *mfn, char *ufn, int ufnbuflen)
 {
   const char *p, *q, *pe;
 	
@@ -150,7 +150,7 @@ extern char *get_temp_dir_name ();
    above in algorithm.  */
    
 int
-unix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
+posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
 {
   const char *p, *q, *pe;
   char expanded_pathname[MAXPATHLEN+1];
@@ -280,7 +280,7 @@ stat_noalias (const char *path, struct stat *buf)
   char mac_pathname[MAXPATHLEN+1];
   CInfoPBRec cipb;
 
-  if (unix_to_mac_pathname (path, mac_pathname, MAXPATHLEN+1) == 0)
+  if (posix_to_mac_pathname (path, mac_pathname, MAXPATHLEN+1) == 0)
     return -1;
 
   c2pstr (mac_pathname);
@@ -420,7 +420,7 @@ mkdir (const char *dirname, int mode)
   if (find_true_pathname (dirname, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
 	
-  if (unix_to_mac_pathname (true_pathname, mac_pathname, MAXPATHLEN+1) == 0)
+  if (posix_to_mac_pathname (true_pathname, mac_pathname, MAXPATHLEN+1) == 0)
     return -1;
 
   c2pstr (mac_pathname);
@@ -440,7 +440,7 @@ sys_rmdir (const char *dirname)
   HFileParam hfpb;
   char mac_pathname[MAXPATHLEN+1];
 	
-  if (unix_to_mac_pathname (dirname, mac_pathname, MAXPATHLEN+1) == 0)
+  if (posix_to_mac_pathname (dirname, mac_pathname, MAXPATHLEN+1) == 0)
     return -1;
 
   c2pstr (mac_pathname);
@@ -480,7 +480,7 @@ utime (const char *path, const struct utimbuf *times)
   else
     strcpy (fully_resolved_name, true_pathname);
 
-  if (!unix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
+  if (!posix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
     return -1;
 
   c2pstr (mac_pathname);
@@ -542,7 +542,7 @@ access (const char *path, int mode)
   else
     strcpy (fully_resolved_name, true_pathname);
 
-  if (!unix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
+  if (!posix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
     return -1;
 
   c2pstr (mac_pathname);
@@ -600,7 +600,7 @@ sys_open (const char *path, int oflag)
   else
     strcpy (fully_resolved_name, true_pathname);
 
-  if (!unix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
+  if (!posix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
     return -1;
   else
     {
@@ -624,7 +624,7 @@ sys_creat (const char *path, mode_t mode)
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
 
-  if (!unix_to_mac_pathname (true_pathname, mac_pathname, MAXPATHLEN+1))
+  if (!posix_to_mac_pathname (true_pathname, mac_pathname, MAXPATHLEN+1))
     return -1;
   else
     {
@@ -656,7 +656,7 @@ sys_unlink (const char *path)
   else
     strcpy (fully_resolved_name, true_pathname);
 
-  if (!unix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
+  if (!posix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
     return -1;
   else
     return unlink (mac_pathname);
@@ -717,12 +717,12 @@ sys_rename (const char * old_name, const char * new_name)
   if (strcmp (fully_resolved_old_name, true_new_pathname) == 0)
     return 0;
 
-  if (!unix_to_mac_pathname (fully_resolved_old_name,
+  if (!posix_to_mac_pathname (fully_resolved_old_name,
 			     mac_old_name,
 			     MAXPATHLEN+1))
     return -1;
 		
-  if (!unix_to_mac_pathname(true_new_pathname, mac_new_name, MAXPATHLEN+1))
+  if (!posix_to_mac_pathname(true_new_pathname, mac_new_name, MAXPATHLEN+1))
     return -1;
 
   /* If a file with new_name already exists, rename deletes the old
@@ -752,7 +752,7 @@ sys_fopen (const char *name, const char *mode)
   else
     strcpy (fully_resolved_name, true_pathname);
 
-  if (!unix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
+  if (!posix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
     return 0;
   else
     {
@@ -1381,7 +1381,7 @@ readlink (const char *path, char *buf, int bufsiz)
   Str255 directory_name, mac_pathname;
   CInfoPBRec cipb;
 
-  if (unix_to_mac_pathname (path, mac_sym_link_name, MAXPATHLEN+1) == 0)
+  if (posix_to_mac_pathname (path, mac_sym_link_name, MAXPATHLEN+1) == 0)
     return -1;
 
   c2pstr (mac_sym_link_name);
@@ -1406,7 +1406,7 @@ readlink (const char *path, char *buf, int bufsiz)
       return -1;
     }
 
-  if (mac_to_unix_pathname (mac_pathname, buf, bufsiz) == 0)
+  if (mac_to_posix_pathname (mac_pathname, buf, bufsiz) == 0)
     {
       errno = ENOENT;
       return -1;
@@ -1631,7 +1631,7 @@ get_temp_dir_name ()
       else 
 	return NULL;
 
-      if (!mac_to_unix_pathname (full_path, unix_dir_name, MAXPATHLEN+1))
+      if (!mac_to_posix_pathname (full_path, unix_dir_name, MAXPATHLEN+1))
 	return NULL;
     
       dir = opendir (unix_dir_name);  /* check whether temp directory exists */
@@ -1714,7 +1714,7 @@ get_path_to_system_folder ()
   if (!path_from_vol_dir_name (full_path, 255, vol_ref_num, dir_id, "\p"))
     return NULL;
 
-  if (!mac_to_unix_pathname (full_path, system_folder_unix_name, MAXPATHLEN+1))
+  if (!mac_to_posix_pathname (full_path, system_folder_unix_name, MAXPATHLEN+1))
     return NULL;
     
   return system_folder_unix_name;
@@ -1929,13 +1929,13 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
   TargetID targ;
   unsigned long ref_con, len;
  	
-  if (unix_to_mac_pathname (workdir, macworkdir, MAXPATHLEN+1) == 0)
+  if (posix_to_mac_pathname (workdir, macworkdir, MAXPATHLEN+1) == 0)
     return -1;
-  if (unix_to_mac_pathname (infn, macinfn, MAXPATHLEN+1) == 0)
+  if (posix_to_mac_pathname (infn, macinfn, MAXPATHLEN+1) == 0)
     return -1;
-  if (unix_to_mac_pathname (outfn, macoutfn, MAXPATHLEN+1) == 0)
+  if (posix_to_mac_pathname (outfn, macoutfn, MAXPATHLEN+1) == 0)
     return -1;
-  if (unix_to_mac_pathname (errfn, macerrfn, MAXPATHLEN+1) == 0)
+  if (posix_to_mac_pathname (errfn, macerrfn, MAXPATHLEN+1) == 0)
     return -1;
   
   paramlen = strlen (macworkdir) + strlen (macinfn) + strlen (macoutfn)
@@ -1987,7 +1987,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
     
       if (strncmp (newargv[0], "~emacs/", 7) == 0)
 	{
-	  if (unix_to_mac_pathname (newargv[0], tempmacpathname, MAXPATHLEN+1)
+	  if (posix_to_mac_pathname (newargv[0], tempmacpathname, MAXPATHLEN+1)
 	      == 0)
 	    return -1;
 	}
@@ -2004,7 +2004,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 
 	  if (NILP (path))
 	    return -1;
-	  if (unix_to_mac_pathname (XSTRING (path)->data, tempmacpathname,
+	  if (posix_to_mac_pathname (XSTRING (path)->data, tempmacpathname,
 				    MAXPATHLEN+1) == 0)
 	    return -1;
 	}
@@ -2012,7 +2012,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
     }
   else
     {      
-      if (unix_to_mac_pathname (argv[0], macappname, MAXPATHLEN+1) == 0)
+      if (posix_to_mac_pathname (argv[0], macappname, MAXPATHLEN+1) == 0)
 	return -1;
 
       newargv = (char **) alloca (sizeof (char *) * argc);
@@ -2027,7 +2027,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 		  char tempcmdname[MAXPATHLEN+1], tempmaccmdname[MAXPATHLEN+1];
 		  strncpy (tempcmdname, argv[j], t-argv[j]);
 		  tempcmdname[t-argv[j]] = '\0';
-		  if (unix_to_mac_pathname (tempcmdname, tempmaccmdname,
+		  if (posix_to_mac_pathname (tempcmdname, tempmaccmdname,
 					    MAXPATHLEN+1) == 0)
 		    return -1;
 		  newargv[j] = (char *) alloca (strlen (tempmaccmdname)
@@ -2038,7 +2038,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 	      else
 		{
 		  char tempmaccmdname[MAXPATHLEN+1];
-		  if (unix_to_mac_pathname (argv[j], tempmaccmdname,
+		  if (posix_to_mac_pathname (argv[j], tempmaccmdname,
 					    MAXPATHLEN+1) == 0)
 		    return -1;
 		  newargv[j] = (char *) alloca (strlen (tempmaccmdname)+1);
@@ -2183,7 +2183,7 @@ opendir (const char *dirname)
     }
 
   /* Handle typical cases: not accessing all mounted volumes.  */
-  if (!unix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
+  if (!posix_to_mac_pathname (fully_resolved_name, mac_pathname, MAXPATHLEN+1))
     return 0;
 
   /* Emacs calls opendir without the trailing '/', Mac needs trailing ':' */
@@ -2343,7 +2343,7 @@ getwd (char *path)
   if (path_from_vol_dir_name (mac_pathname, 255, 0, 0, "\p") == 0)
     return NULL;
 
-  if (mac_to_unix_pathname (mac_pathname, path, MAXPATHLEN+1) == 0)
+  if (mac_to_posix_pathname (mac_pathname, path, MAXPATHLEN+1) == 0)
     return 0;
   else
     return path;
@@ -2486,35 +2486,35 @@ component.")
 }
 
 
-DEFUN ("mac-filename-to-unix", Fmac_filename_to_unix, Smac_filename_to_unix, 1,
+DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix, Smac_file_name_to_posix, 1,
        1, 0,
-    "Convert Macintosh filename to Unix form.")
+    "Convert Macintosh filename to Posix form.")
   (mac_filename)
     Lisp_Object mac_filename;
 {
-  char unix_filename[MAXPATHLEN+1];
+  char posix_filename[MAXPATHLEN+1];
 
   CHECK_STRING (mac_filename, 0);
   
-  if (mac_to_unix_pathname(XSTRING (mac_filename)->data, unix_filename,
+  if (mac_to_posix_pathname (XSTRING (mac_filename)->data, posix_filename,
 			   MAXPATHLEN))
-    return build_string (unix_filename);
+    return build_string (posix_filename);
   else
     return Qnil;
 }
 
 
-DEFUN ("unix-filename-to-mac", Funix_filename_to_mac, Sunix_filename_to_mac, 1,
+DEFUN ("posix-file-name-to-mac", Fposix_file_name_to_mac, Sposix_file_name_to_mac, 1,
        1, 0,
     "Convert Unix filename to Mac form.")
-  (unix_filename)
-    Lisp_Object unix_filename;
+  (posix_filename)
+    Lisp_Object posix_filename;
 {
   char mac_filename[MAXPATHLEN+1];
 
-  CHECK_STRING (unix_filename, 0);
+  CHECK_STRING (posix_filename, 0);
   
-  if (unix_to_mac_pathname(XSTRING (unix_filename)->data, mac_filename,
+  if (posix_to_mac_pathname (XSTRING (posix_filename)->data, mac_filename,
 			   MAXPATHLEN))
     return build_string (mac_filename);
   else
@@ -2633,6 +2633,6 @@ syms_of_mac ()
   defsubr (&Sx_selection_exists_p);
 
   defsubr (&Sdo_applescript);
-  defsubr (&Smac_filename_to_unix);
-  defsubr (&Sunix_filename_to_mac);
+  defsubr (&Smac_file_name_to_posix);
+  defsubr (&Sposix_file_name_to_mac);
 }

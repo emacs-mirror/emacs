@@ -11590,7 +11590,7 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 
 	  if (path_from_vol_dir_name (path_name, 255, fs.vRefNum, fs.parID,
 				      fs.name) &&
-	      mac_to_unix_pathname (path_name, unix_path_name, 255))
+	      mac_to_posix_pathname (path_name, unix_path_name, 255))
             drag_and_drop_file_list = Fcons (build_string (unix_path_name),
 					     drag_and_drop_file_list);
         }
