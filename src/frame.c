@@ -1633,8 +1633,9 @@ store_frame_param (f, prop, val)
   if (EQ (prop, Qbuffer_predicate))
     f->buffer_predicate = val;
 
-  if (EQ (prop, Qmenu_bar_lines))
-    set_menu_bar_lines (f, val, make_number (FRAME_MENU_BAR_LINES (f)));
+  if (! FRAME_X_P (f))
+    if (EQ (prop, Qmenu_bar_lines))
+      set_menu_bar_lines (f, val, make_number (FRAME_MENU_BAR_LINES (f)));
 
   if (EQ (prop, Qminibuffer) && WINDOWP (val))
     {
