@@ -807,30 +807,36 @@ where both MAJOR-MODE and FONT-LOCK-KEYWORDS are symbols.  If NOT-SYNTACTICALLY
 is non-nil, syntactic fontification (strings and comments) is not performed.
 If CASE-FOLD is non-nil, the case of the keywords is ignored when fontifying.")
 
+(defvar font-lock-defaults nil
+  "If set by a major mode, this specifies the defaults for Font Lock mode.")
+
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
 Sets `font-lock-keywords', `font-lock-keywords-case-fold-search' and
 `font-lock-no-comments' using `font-lock-defaults-alist'.
 Also sets `font-lock-syntax-table' for C and C++ modes."
-  (let ((defaults (cdr (assq major-mode font-lock-defaults-alist))))
-    ;; Keywords?
-    (if (not font-lock-keywords)	; if not already set.
-	(setq font-lock-keywords (eval (nth 0 defaults))))
-    ;; Syntactic?
-    (if (nth 1 defaults)
-	(set (make-local-variable 'font-lock-no-comments) t))
-    ;; Case fold?
-    (if (nth 2 defaults)
-	(set (make-local-variable 'font-lock-keywords-case-fold-search) t))
-    ;; Syntax table?
-    (cond ((eq major-mode 'c-mode)
-	   (make-local-variable 'font-lock-syntax-table)
-	   (setq font-lock-syntax-table (copy-syntax-table (syntax-table)))
-	   (modify-syntax-entry ?_ "w" font-lock-syntax-table))
-	  ((eq major-mode 'c++-c-mode)
-	   (make-local-variable 'font-lock-syntax-table)
-	   (setq font-lock-syntax-table (copy-syntax-table (syntax-table)))
-	   (modify-syntax-entry ?_ "w" font-lock-syntax-table)))))
+  ;; If font-lock-keywords is already set, assume the major mode
+  ;; has done exactly what it wants.
+  (or font-lock-keywords
+      (let ((defaults (or font-lock-defaults
+			  (cdr (assq major-mode font-lock-defaults-alist)))))
+	;; Keywords?
+	(setq font-lock-keywords (eval (nth 0 defaults)))
+	;; Syntactic?
+	(if (nth 1 defaults)
+	    (set (make-local-variable 'font-lock-no-comments) t))
+	;; Case fold?
+	(if (nth 2 defaults)
+	    (set (make-local-variable 'font-lock-keywords-case-fold-search) t))
+	;; Syntax table?
+	(cond ((eq major-mode 'c-mode)
+	       (make-local-variable 'font-lock-syntax-table)
+	       (setq font-lock-syntax-table (copy-syntax-table (syntax-table)))
+	       (modify-syntax-entry ?_ "w" font-lock-syntax-table))
+	      ((eq major-mode 'c++-c-mode)
+	       (make-local-variable 'font-lock-syntax-table)
+	       (setq font-lock-syntax-table (copy-syntax-table (syntax-table)))
+	       (modify-syntax-entry ?_ "w" font-lock-syntax-table))))))
 
 ;; Install ourselves:
 
