@@ -58,6 +58,17 @@
   "Minor mode to automatically scroll truncated lines horizontally."
   :group 'editing)
 
+
+(defcustom hscroll-global-mode nil
+  "Toggle horizontal scrolling.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 (hscroll-global-mode (if value 1 -1)))
+  :initialize 'custom-initialize-default
+  :group 'hscroll
+  :type 'boolean
+  :require 'hscroll)
+
 (defcustom hscroll-margin 5 
   "*How many columns away from the edge of the window point is allowed to get
 before HScroll will horizontally scroll the window."
@@ -171,7 +182,7 @@ will have no effect on it).
 	 (newmode (if (null arg)
 		      (not oldmode)
 		    (> (prefix-numeric-value arg) 0))))
-
+    (setq hscroll-global-mode newmode)
     (if newmode
 	;; turn it on
 	(if (not hscroll-mode)
@@ -239,6 +250,9 @@ invoked as well (i.e., it can be bound to a key)."
 ;;; 
 ;;; It's not a bug, it's a *feature*
 ;;; 
+
+(if hscroll-global-mode
+    (hscroll-global-mode 1))
 
 (provide 'hscroll)
 
