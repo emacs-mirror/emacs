@@ -2,7 +2,7 @@
 
 	* ccl.h (sturct ccl_program): New member suppress_error.
 
-	* ccl.c (ccl_driver): If ccl->suppress_error is nonzeor, don't
+	* ccl.c (ccl_driver): If ccl->suppress_error is nonzero, don't
 	insert error message to the output.
 	(setup_ccl_program): Initialize ccl->suppress_error to 0.
 
