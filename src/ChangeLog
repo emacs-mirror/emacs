@@ -1,8 +1,19 @@
+2000-07-25  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (find_field): Honor special `boundary' fields.
+	(Qboundary): New variables.
+	(syms_of_editfns): Initialize Qboundary.
+	(Fconstrain_to_field): Add the INHIBIT-CAPTURE-PROPERTY argument.
+	Use scan_buffer instead of find_before_next_newline, because it
+	allows us to detect the boundary case where there's a newline at
+	the search limit.
+	* lisp.h (Fconstrain_to_field): Update external declaration.
+
 2000-07-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* print.c (temp_output_buffer_setup): Don't call1 Vrun_hooks
 	if that is nil.
-	
+
 2000-07-24  Dave Love  <fx@gnu.org>
 
 	* s/sunos4-0.h, s/sol2.h:

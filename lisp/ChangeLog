@@ -1,3 +1,9 @@
+2000-07-25  Miles Bader  <miles@gnu.org>
+
+	* simple.el (line-move): Pass INHIBIT-CAPTURE-PROPERTY argument to
+	constrain-to-field.  Pass nil ESCAPE-FROM-EDGE argument to
+	constrain-to-field.
+
 2000-07-24  Andrew Innes  <andrewi@gnu.org>
 
 	* timer.el (timer-activate-when-idle): Add optional parameter
