@@ -136,6 +136,10 @@ int next_face_id;
 /* The number of the face to use to indicate the region.  */
 int region_face;
 
+/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
+   We assume that they're both character-cell fonts.  */
+extern int same_size_fonts ();
+
 /* This is what appears in a slot in a face to signify that the face
    does not specify that display aspect.  */
 #define FACE_DEFAULT (~0)
@@ -143,7 +147,7 @@ int region_face;
 Lisp_Object Qface, Qwindow, Qpriority;
 
 static void build_face ();
-static Lisp_Object face_name_id_number ();
+int face_name_id_number ();
 
 struct face *intern_face ();
 static void ensure_face_ready ();
@@ -406,6 +410,13 @@ unload_color (f, pixel)
      struct frame *f;
      Pixel pixel;
 {
+  /* Since faces get built by copying parameters from other faces, the
+     allocation counts for the colors get all screwed up.  I don't see
+     any solution that will take less than 10 minutes, and it's better
+     to have a color leak than a crash, so I'm just dyking this out.
+     This isn't really a color leak, anyway - if we ask for it again,
+     we'll get the same pixel.  */
+#if 0
   Colormap cmap;
   Display *dpy = x_current_display;
   if (pixel == FACE_DEFAULT
@@ -416,6 +427,7 @@ unload_color (f, pixel)
   BLOCK_INPUT;
   XFreeColors (dpy, cmap, &pixel, 1, 0);
   UNBLOCK_INPUT;
+#endif
 }
 
 /* Initializing face arrays for frames. */
@@ -552,21 +564,6 @@ ensure_face_ready (f, id)
 
 /* Computing faces appropriate for a given piece of text in a buffer.  */
 
-/* Return non-zero if FONT1 and FONT2 have the same size bounding box.
-   We assume that they're both character-cell fonts.  */
-static int
-same_size_fonts (font1, font2)
-     XFontStruct *font1, *font2;
-{
-  XCharStruct *bounds1 = &font1->min_bounds;
-  XCharStruct *bounds2 = &font2->min_bounds;
-
-  return (bounds1->width == bounds2->width
-	  && bounds1->ascent == bounds2->ascent
-	  && bounds1->descent == bounds2->descent);
-}
-
-
 /* Modify face TO by copying from FROM all properties which have
    nondefault settings.  */
 static void 
@@ -575,7 +572,6 @@ merge_faces (from, to)
 {
   /* Only merge the font if it's the same size as the base font.  */
   if (from->font != (XFontStruct *) FACE_DEFAULT
-      && ! from->font->per_char
       && same_size_fonts (from->font, to->font))
     to->font = from->font;
   if (from->foreground != FACE_DEFAULT)
@@ -689,7 +685,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
 
   if (!NILP (prop))
     {
-      facecode = face_name_id_number (frame, prop);
+      facecode = face_name_id_number (f, prop);
       if (facecode >= 0 && facecode < FRAME_N_FACES (f)
 	  && FRAME_FACES (f) [facecode] != 0)
 	merge_faces (FRAME_FACES (f) [facecode], &face);
@@ -746,7 +742,7 @@ compute_char_face (f, w, pos, region_beg, region_end, endptr)
 	  Lisp_Object oend;
 	  int oendpos;
 
-	  facecode = face_name_id_number (frame, prop);
+	  facecode = face_name_id_number (f, prop);
 	  if (facecode >= 0 && facecode < FRAME_N_FACES (f)
 	      && FRAME_FACES (f) [facecode] != 0)
 	    merge_faces (FRAME_FACES (f) [facecode], &face);
@@ -949,14 +945,14 @@ DEFUN ("internal-next-face-id", Finternal_next_face_id, Sinternal_next_face_id,
    but it's as easy to use the "right" frame to look it up
    as to use any other one.)  */
 
-static Lisp_Object
-face_name_id_number (frame, name)
-     Lisp_Object frame, name;
+int
+face_name_id_number (f, name)
+     FRAME_PTR f;
+     Lisp_Object name;
 {
   Lisp_Object tem;
 
-  CHECK_FRAME (frame, 0);
-  tem = Fcdr (Fassq (name, XFRAME (frame)->face_alist));
+  tem = Fcdr (Fassq (name, f->face_alist));
   if (NILP (tem))
     return 0;
   CHECK_VECTOR (tem, 0);
