@@ -394,8 +394,12 @@ The value must be an integer, and is represented textually
 in the customization buffer.
 
 @item number
-The value must be a number, and is represented textually in the
-customization buffer.
+The value must be a number (floating point or integer), and is
+represented textually in the customization buffer.
+
+@item float
+The value must be a floating point number, and is represented
+textually in the customization buffer.
 
 @item string
 The value must be a string, and the customization buffer shows just the
