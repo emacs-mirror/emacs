@@ -273,14 +273,24 @@ struct buffer
     /* t means the mark and region are currently active.  */
     Lisp_Object mark_active;
 
-    /* List of fields in this buffer.  */
-    Lisp_Object fieldlist;
+    /* List of overlays that end at or before the current center,
+       in order of end-position.  */
+    Lisp_Object overlays_before;
+
+    /* List of overlays that end after  the current center,
+       in order of start-position.  */
+    Lisp_Object overlays_after;
+
+    /* Position where the overlay lists are centered.  */
+    Lisp_Object overlay_center;
 };
+
+/* This points to the current buffer.  */
 
 extern struct buffer *current_buffer;
 
 /* This structure holds the default values of the buffer-local variables
-   defined with DefBufferLispVar, that have special slots in each buffer.
+   that have special slots in each buffer.
    The default value occupies the same slot in this structure
    as an individual buffer's value occupies in that buffer.
    Setting the default value also goes through the alist of buffers
@@ -298,7 +308,7 @@ extern struct buffer buffer_defaults;
    is turned on in the buffer's local_var_flags slot.
 
    If a slot in this structure is zero, then even though there may
-   be a DefBufferLispVar for the slot, there is no default valuefeor it;
+   be a Lisp-level local variable for the slot, it has no default value,
    and the corresponding slot in buffer_defaults is not used.  */
 
 extern struct buffer buffer_local_flags;
@@ -317,12 +327,12 @@ extern struct buffer buffer_local_symbols;
    buffer_slot_type_mismatch will signal an error.  The value Qnil may
    always be safely stored in any slot.  */
 extern struct buffer buffer_local_types;
-
-/* Point in the current buffer. */
-
+
+/* Point in the current buffer.  This is an obsolete alias
+   and should be eliminated.  */
 #define point (current_buffer->text.pt + 0)
 
-/* Return character at position n.  No range checking */
+/* Return character at position n.  No range checking.  */
 #define FETCH_CHAR(n) *(((n)>= GPT ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
 
 /* BUFFER_CEILING_OF (resp. BUFFER_FLOOR_OF), when applied to n, return
@@ -335,6 +345,9 @@ extern struct buffer buffer_local_types;
 
 extern void reset_buffer ();
 
+extern Lisp_Object Fbuffer_name ();
+extern Lisp_Object Fget_file_buffer ();
+
 /* Functions to call before and after each text change. */
 extern Lisp_Object Vbefore_change_function;
 extern Lisp_Object Vafter_change_function;
@@ -343,31 +356,32 @@ extern Lisp_Object Qfirst_change_hook;
 
 extern Lisp_Object Vdeactivate_mark;
 extern Lisp_Object Vtransient_mark_mode;
+
+/* Overlays */
 
-/* Fields.
+/* Overlays are ordinary Lisp objects, and users can alter their contents.
+   Therefore, we cannot assume that they remain valid--we must check.  */
 
-A field is like a marker but it defines a region rather than a
-point.  Like a marker, a field is asocated with a buffer.
-The field mechanism uses the marker mechanism in the
-sense that its start and end points are maintained as markers
-updated in the usual way as the buffer changes.
+/* 1 if the OV is a cons cell whose car is a cons cell.  */
+#define OVERLAY_VALID(OV) (CONSP ((OV)) && CONSP (XCONS ((OV))->car))
 
-A field can be protected or unprotected.  If it is protected,
-no modifications can be made that affect the field in its buffer,
-when protected field checking is enabled.
+/* Return the marker that stands for where OV starts in the buffer.  */
+#define OVERLAY_START(OV) (XCONS (XCONS ((OV))->car)->car)
 
-Each field also contains an alist, in which you can store
-whatever you like.  */
+/* Return the marker that stands for where OV ends in the buffer.  */
+#define OVERLAY_END(OV) (XCONS (XCONS ((OV))->car)->cdr)
 
-/* Slots in a field:  */
+/* Return the actual buffer position for the marker P,
+   if it is a marker and points into the current buffer.
+   Otherwise, zero.  */
 
-#define FIELD_BUFFER(f) (XVECTOR(f)->contents[1])
-#define FIELD_START_MARKER(f) (XVECTOR(f)->contents[2])
-#define FIELD_END_MARKER(f) (XVECTOR(f)->contents[3])
-#define FIELD_PROTECTED_FLAG(f) (XVECTOR(f)->contents[4])
-#define FIELD_ALIST(f) (XVECTOR(f)->contents[5])
+#define OVERLAY_POSITION(P)					\
+ ((MARKERP ((P)) && XMARKER ((P))->buffer == current_buffer)	\
+  ? marker_position ((P)) : 0)
 
-/* Allocation of buffer data. */
+
+/* Allocation of buffer text.  */
+
 #ifdef REL_ALLOC
 #define BUFFER_ALLOC(data,size) ((unsigned char *) r_alloc (&data, (size)))
 #define BUFFER_REALLOC(data,size) ((unsigned char *) r_re_alloc (&data, (size)))
@@ -379,15 +393,3 @@ whatever you like.  */
 #define BUFFER_FREE(data) (free ((data)))
 #define R_ALLOC_DECLARE(var,data)
 #endif
-
-/* VAX C is non-ANSI wrt extern declarations and requires the struct
-   re_pattern_buffer to completely defined for searchbuf's declaration.  */
-#ifdef VMS
-#include "regex.h"
-#endif /* VMS */
-
-/* A search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer searchbuf;
-
-extern Lisp_Object Fbuffer_name ();
-extern Lisp_Object Fget_file_buffer ();
