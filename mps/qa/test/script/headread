@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:headread(trunk.15) $
+# $HopeName: MMQA_harness!script:headread(trunk.16) $
 #
 # subroutines to assist in
 #  1. reading test headers
@@ -42,12 +42,12 @@ sub readheader {
 
  $_ = "";
  while (! /TEST_HEADER/) {
-  ($_ = <IN>) || die "Couldn't find start of test header in $infile.\n";
+  defined($_=<IN>) || die "Couldn't find start of test header in $infile.\n";
  }
  s/.*TEST_HEADER//;
  $line = $_;
  while (! /END_HEADER/) {
-  ($_ = <IN> || die "Couldn't find end of test header in $infile.\n");
+  defined($_=<IN>) || die "Couldn't find end of test header in $infile.\n";
   chop;
   if ($line =~ /\\$/) {
    chop($line);
@@ -93,7 +93,7 @@ sub readheader {
   $testid = "$infile (writeable)";
  }
  if ($testid =~ /^\$HopeName:/) {
-  $testid =~ s/^\$HopeName: MMQA_harness!script:headread(trunk.15) $/$1/;
+  $testid =~ s/^\$HopeName: MMQA_harness!script:headread(trunk.16) $/$1/;
  }
 #
 # Compatibility with old tests
