@@ -637,7 +637,7 @@ Keywords supported:  :test :size
 The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
   (let ((cl-test (or (car (cdr (memq :test cl-keys))) 'eql))
 	(cl-size (or (car (cdr (memq :size cl-keys))) 20)))
-    (make-hash-table :size cl-size :test cl-size)))
+    (make-hash-table :size cl-size :test cl-test)))
 
 (defun cl-hash-table-p (x)
   "Return t if OBJECT is a hash table."
