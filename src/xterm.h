@@ -305,6 +305,16 @@ extern struct x_display_info *x_display_info_for_display ();
 extern struct x_display_info *x_display_info_for_name ();
 
 extern struct x_display_info *x_term_init ();
+
+#ifdef MULTI_PERDISPLAY
+/* The perdisplay structure itself has to be accessible in files that don't
+   need to know about X.  So we'll define get_perdisplay as a function to
+   retrieve that structure opaquely.  But sources that include this header
+   will automatically get the macro version, and save a function call.  */
+
+#define get_perdisplay_macro(f) (&(f)->display.x->display_info->perdisplay)
+#define get_perdisplay(f) get_perdisplay_macro (f)
+#endif
 
 /* Each X frame object points to its own struct x_display object
    in the display.x field.  The x_display structure contains all
