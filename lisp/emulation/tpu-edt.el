@@ -4,7 +4,7 @@
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
-;; Version: 4.2
+;; Version: 4.4
 ;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
@@ -184,7 +184,7 @@
 ;;    (tpu-edt)
 
 ;;    ; Set scroll margins 10% (top) and 15% (bottom).
-;;    (tpu-set-scroll-margins "10%" "15%")       
+;;    (tpu-set-scroll-margins "10%" "15%")
 
 ;;    ; Load the vtxxx terminal control functions.
 ;;    (load "vt-control" t)
@@ -275,7 +275,7 @@
 ;;;
 ;;;  Version Information
 ;;;
-(defconst tpu-version "4.2" "TPU-edt version number.")
+(defconst tpu-version "4.4" "TPU-edt version number.")
 
 
 ;;;
@@ -369,6 +369,13 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   "If non-nil, TPU-edt is searching in the forward direction.")
 (defvar tpu-search-last-string ""
   "Last text searched for by the TPU-edt search commands.")
+(defvar tpu-search-overlay (make-overlay 0 0)
+  "Search highlight overlay.")
+(overlay-put tpu-search-overlay 'face 'bold)
+
+(defvar tpu-replace-overlay (make-overlay 0 0)
+  "Replace highlight overlay.")
+(overlay-put tpu-replace-overlay 'face 'highlight)
 
 (defvar tpu-regexp-p nil
   "If non-nil, TPU-edt uses regexp search and replace routines.")
@@ -1119,6 +1126,12 @@ kills modified buffers without asking."
 	(read-from-minibuffer re-prompt nil nil nil 'tpu-regexp-prompt-hist)
       (read-string re-prompt))))
 
+(defun tpu-search-highlight nil
+  (if (tpu-check-match)
+      (move-overlay tpu-search-overlay
+                    (tpu-match-beginning) (tpu-match-end) (current-buffer))
+    (move-overlay tpu-search-overlay 0 0 (current-buffer))))
+
 (defun tpu-search nil
   "Search for a string or regular expression.
 The search is performed in the current direction."
@@ -1564,46 +1577,50 @@ A negative argument means replace all occurrences of the search string."
     ;; Loop on replace question - yes, no, all, last, or quit.
     (while doit
       (if (not (tpu-check-match)) (setq doit nil)
-	(progn (message "Replace? Type Yes, No, All, Last, or Quit: ")
-	       (let ((ans (read-char)))
+	(progn
+	  (move-overlay tpu-replace-overlay
+			(tpu-match-beginning) (tpu-match-end) (current-buffer))
+	  (message "Replace? Type Yes, No, All, Last, or Quit: ")
+	  (let ((ans (read-char)))
 
-		 (cond ((or (= ans ?y) (= ans ?Y) (= ans ?\r) (= ans ?\ ))
-			(let ((beg (point)))
-			  (replace-match to (not case-replace) (not tpu-regexp-p))
-			  (setq strings (1+ strings))
-			  (if tpu-searching-forward (forward-char -1) (goto-char beg)))
-			(tpu-search-internal from t))
+	    (cond ((or (= ans ?y) (= ans ?Y) (= ans ?\r) (= ans ?\ ))
+		   (let ((beg (point)))
+		     (replace-match to (not case-replace) (not tpu-regexp-p))
+		     (setq strings (1+ strings))
+		     (if tpu-searching-forward (forward-char -1) (goto-char beg)))
+		   (tpu-search-internal from t))
 
-		       ((or (= ans ?n) (= ans ?N) (= ans ?\C-?))
-			(tpu-search-internal from t))
+		  ((or (= ans ?n) (= ans ?N) (= ans ?\C-?))
+		   (tpu-search-internal from t))
 
-		       ((or (= ans ?a) (= ans ?A))
-			(save-excursion
-			  (let ((beg (point)))
-			    (replace-match to (not case-replace) (not tpu-regexp-p))
-			    (setq strings (1+ strings))
-			    (if tpu-searching-forward (forward-char -1) (goto-char beg)))
-			  (tpu-search-internal-core from t)
-			  (while (tpu-check-match)
-			    (let ((beg (point)))
-			      (replace-match to (not case-replace) (not tpu-regexp-p))
-			      (setq strings (1+ strings))
-			      (if tpu-searching-forward (forward-char -1) (goto-char beg)))
-			    (tpu-search-internal-core from t)))
-			(setq doit nil))
+		  ((or (= ans ?a) (= ans ?A))
+		   (save-excursion
+		     (let ((beg (point)))
+		       (replace-match to (not case-replace) (not tpu-regexp-p))
+		       (setq strings (1+ strings))
+		       (if tpu-searching-forward (forward-char -1) (goto-char beg)))
+		     (tpu-search-internal-core from t)
+		     (while (tpu-check-match)
+		       (let ((beg (point)))
+			 (replace-match to (not case-replace) (not tpu-regexp-p))
+			 (setq strings (1+ strings))
+			 (if tpu-searching-forward (forward-char -1) (goto-char beg)))
+		       (tpu-search-internal-core from t)))
+		   (setq doit nil))
 
-		       ((or (= ans ?l) (= ans ?L))
-			(let ((beg (point)))
-			  (replace-match to (not case-replace) (not tpu-regexp-p))
-			  (setq strings (1+ strings))
-			  (if tpu-searching-forward (forward-char -1) (goto-char beg)))
-			(setq doit nil))
+		  ((or (= ans ?l) (= ans ?L))
+		   (let ((beg (point)))
+		     (replace-match to (not case-replace) (not tpu-regexp-p))
+		     (setq strings (1+ strings))
+		     (if tpu-searching-forward (forward-char -1) (goto-char beg)))
+		   (setq doit nil))
 
-		       ((or (= ans ?q) (= ans ?Q))
-			(setq doit nil)))))))
+		  ((or (= ans ?q) (= ans ?Q))
+		   (tpu-unset-match)
+		   (setq doit nil)))))))
 
-    (message "Replaced %s occurrence%s." strings
-	     (if (not (= 1 strings)) "s" ""))))
+    (move-overlay tpu-replace-overlay 0 0 (current-buffer))
+    (message "Replaced %s occurrence%s." strings (if (not (= 1 strings)) "s" ""))))
 
 (defun tpu-emacs-replace (&optional dont-ask)
   "A TPU-edt interface to the emacs replace functions.  If TPU-edt is
@@ -1987,6 +2004,11 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
   (setq tpu-reverse t)
   (tpu-set-search)
   (tpu-update-mode-line))
+
+(defun tpu-toggle-direction nil
+  "Change the current TPU direction."
+  (interactive)
+  (if tpu-advance (tpu-backup-direction) (tpu-advance-direction)))
 
 
 ;;;
@@ -2477,6 +2499,7 @@ If FILE is nil, try to load a default file.  The default file names are
 	   (autoload 'ispell-complete-word "ispell" "Complete word at or before point" t)
 	   (autoload 'ispell-buffer "ispell" "Check spelling of entire buffer" t)
 	   (autoload 'ispell-region "ispell" "Check spelling of region" t)))
+    (add-hook 'post-command-hook 'tpu-search-highlight)
     (tpu-set-mode-line t)
     (tpu-advance-direction)
     ;; set page delimiter, display line truncation, and scrolling like TPU
@@ -2491,6 +2514,7 @@ If FILE is nil, try to load a default file.  The default file names are
   (cond
    (tpu-edt-mode
     (tpu-reset-control-keys nil)
+    (remove-hook 'post-command-hook 'tpu-search-highlight)
     (tpu-set-mode-line nil)
     (setq-default page-delimiter "^\f")
     (setq-default truncate-lines nil)
