@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <time.h>
 #include "testlib.h"
 
 /* err_text
@@ -209,6 +210,19 @@ void easy_tramp(void (*f)(void))
  void *result;
 
  mps_tramp(&result, call_f, &f, (size_t)0);
+}
+
+/* pause(n) waits for n seconds
+*/
+
+void pause(unsigned long sec) {
+ clock_t c;
+
+ c = clock();
+ if (c != -1) {
+  c = c + sec*CLOCKS_PER_SEC;
+  while (clock() < c);
+ }
 }
 
 /* nabbed from "ML for the Working Programmer"
