@@ -1,3 +1,15 @@
+2001-10-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* mail/mailalias.el (mail-directory-stream): Do not double
+	variables in the lambda-list.
+
+	* play/gomoku.el (gomoku-init-display): Ditto.
+
+	* play/landmark.el (lm-init-display): Ditto.
+
+	* delim-col.el (delimit-columns-rectangle-max): Ditto.
+	(delimit-columns-rectangle-line): Ditto.
+
 2001-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-region-internal): Don't rebind
