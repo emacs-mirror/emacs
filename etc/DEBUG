@@ -437,6 +437,28 @@ some extra checks, such as look for broken relations between byte and
 character positions in buffers and strings; the resulting diagnostics
 might pinpoint the cause of the problem.
 
+** Debugging the TTY (non-windowed) version
+
+The most convenient method of debugging the character-terminal display
+is to do that on a window system such as X.  Begin by starting an
+xterm window, then type these commands inside that window:
+
+  $ tty
+  $ echo $TERM
+
+Let's say these commands print "/dev/ttyp4" and "xterm", respectively.
+
+Now start Emacs (the normal, windowed-display session, i.e. without
+the `-nw' option), and invoke "M-x gdb RET emacs RET" from there.  Now
+type these commands at GDB's prompt:
+
+  (gdb) set args -nw -t /dev/ttyp4
+  (gdb) set environment TERM xterm
+  (gdb) run
+
+The debugged Emacs should now start in no-window mode with its display
+directed to the xterm window you opened above.
+
 ** Running Emacs built with malloc debugging packages
 
 If Emacs exhibits bugs that seem to be related to use of memory
