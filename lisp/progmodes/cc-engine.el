@@ -271,6 +271,53 @@
     (if lim (goto-char (max (point) lim)))))
 
 
+;; Moving by tokens, where a token is defined as all symbols and
+;; identifiers which aren't syntactic whitespace.  COUNT specifies the
+;; number of tokens to move forward; a negative COUNT moves backward.
+;; If BALANCED is true, move over balanced parens, otherwise move into
+;; them.  Also, if BALANCED is true, never move out of an enclosing
+;; paren.  LIM sets the limit for the movement.  Point is always left
+;; at the beginning of a token or at LIM.  Returns the number of
+;; tokens left to move (positive or negative).  If BALANCED is true, a
+;; move over a balanced paren counts as one.
+
+(defun c-forward-token-1 (&optional count balanced lim)
+  (let* ((jump-syntax (if balanced
+			  '(?w ?_ ?\" ?\\ ?/ ?$ ?' ?\( ?\))
+			'(?w ?_ ?\" ?\\ ?/ ?$ ?'))))
+    (or count (setq count 1))
+    (condition-case nil
+	(while (progn
+		 (c-forward-syntactic-ws lim)
+		 (> count 0))
+	  (if (memq (char-syntax (char-after)) jump-syntax)
+	      (goto-char (scan-sexps (point) 1))
+	    (forward-char))
+	  (setq count (1- count)))
+      (error
+       (and lim (> (point) lim) (goto-char lim))))
+    count))
+
+(defun c-backward-token-1 (&optional count balanced lim)
+  (let* ((jump-syntax (if balanced
+			  '(?w ?_ ?\" ?\\ ?/ ?$ ?' ?\( ?\))
+			'(?w ?_ ?\" ?\\ ?/ ?$ ?')))
+	 last)
+    (or count (setq count 1))
+    (condition-case nil
+	(while (> count 0)
+	  (setq last (point))
+	  (c-backward-syntactic-ws lim)
+	  (if (memq (char-syntax (char-before)) jump-syntax)
+	      (goto-char (scan-sexps (point) -1))
+	    (backward-char))
+	  (setq count (1- count)))
+      (error
+       (goto-char last)
+       (and lim (< (point) lim) (goto-char lim))))
+    count))
+
+
 ;; Return `c' if in a C-style comment, `c++' if in a C++ style
 ;; comment, `string' if in a string literal, `pound' if on a
 ;; preprocessor line, or nil if not in a comment at all.  Optional LIM
@@ -376,24 +423,30 @@
   ;; If the argument is a cons of two buffer positions (such as
   ;; returned by c-literal-limits), and that range contains a C++
   ;; style line comment, then an extended range is returned that
-  ;; contains all adjacent line comments (i.e. all comments with no
-  ;; empty lines or non-whitespace characters between them).
-  ;; Otherwise the argument is returned.
+  ;; contains all adjacent line comments (i.e. all comments that
+  ;; starts in the same column with no empty lines or non-whitespace
+  ;; characters between them).  Otherwise the argument is returned.
   (save-excursion
     (condition-case nil
 	(if (and (consp range) (progn
 				 (goto-char (car range))
 				 (looking-at "//")))
-	    (let ((beg (point)))
+	    (let ((col (current-column))
+		  (beg (point))
+		  (end (cdr range)))
 	      (while (and (not (bobp))
 			  (forward-comment -1)
-			  (looking-at "//"))
+			  (looking-at "//")
+			  (= col (current-column)))
 		(setq beg (point)))
-	      (cons beg (progn
-			  (goto-char (cdr range))
-			  (while (looking-at "[ \t]*//")
-			    (forward-comment 1))
-			  (point))))
+	      (goto-char end)
+	      (while (progn
+		       (skip-chars-forward " \t")
+		       (and (looking-at "//")
+			    (= col (current-column))))
+		(forward-comment 1)
+		(setq end (point)))
+	      (cons beg end))
 	  range)
       (error range))))
 
@@ -850,35 +903,32 @@
   ;; speed.
   (or
    ;; this will pick up enum lists
-   (condition-case ()
-       (save-excursion
-	 (goto-char containing-sexp)
-	 (forward-sexp -1)
-	 (if (and (or (looking-at "enum[\t\n ]+")
-		      (progn (forward-sexp -1)
-			     (looking-at "enum[\t\n ]+")))
-		  (progn (c-end-of-statement-1)
-			 (> (point) containing-sexp)))
-	     (point)))
-     (error nil))
+   (c-safe
+    (save-excursion
+      (goto-char containing-sexp)
+      (forward-sexp -1)
+      (let (bracepos)
+	(if (and (or (looking-at "enum[\t\n ]+")
+		     (progn (forward-sexp -1)
+			    (looking-at "enum[\t\n ]+")))
+		 (setq bracepos (c-safe (scan-lists (point) 1 -1)))
+		 (not (c-crosses-statement-barrier-p (point)
+						     (- bracepos 2))))
+	    (point)))))
    ;; this will pick up array/aggregate init lists, even if they are nested.
    (save-excursion
-     (let (bufpos failedp)
+     (let (bufpos okp)
        (while (and (not bufpos)
 		   containing-sexp)
 	 (if (consp containing-sexp)
 	     (setq containing-sexp (car brace-state)
 		   brace-state (cdr brace-state))
-	   ;; see if significant character just before brace is an equal
+	   ;; see if the open brace is preceded by a = in this statement
 	   (goto-char containing-sexp)
-	   (setq failedp nil)
-	   (condition-case ()
-	       (progn
-		 (forward-sexp -1)
-		 (forward-sexp 1)
-		 (c-forward-syntactic-ws containing-sexp))
-	     (error (setq failedp t)))
-	   (if (or failedp (not (eq (char-after) ?=)))
+	   (setq okp t)
+	   (while (and (setq okp (= (c-backward-token-1 1 t) 0))
+		       (not (memq (char-after) '(?= ?{ ?\;)))))
+	   (if (not (and okp (eq (char-after) ?=)))
 	       ;; lets see if we're nested. find the most nested
 	       ;; containing brace
 	       (setq containing-sexp (car brace-state)
@@ -1109,7 +1159,12 @@
 			   (c-forward-syntactic-ws indent-point)))
 		(setq placeholder (c-point 'boi))
 		(and (or (looking-at "enum[ \t\n]+")
-			 (eq char-before-ip ?=))
+			 (save-excursion
+			   (goto-char indent-point)
+			   (while (and (> (point) placeholder)
+				       (= (c-backward-token-1 1 t) 0)
+				       (/= (char-after) ?=)))
+			   (eq (char-after) ?=)))
 		     (save-excursion
 		       (skip-chars-forward "^;(" indent-point)
 		       (not (memq (char-after) '(?\; ?\()))
@@ -1122,7 +1177,9 @@
 	     ;; CASE 5A.5: ordinary defun open
 	     (t
 	      (goto-char placeholder)
-	      (c-add-syntax 'defun-open (c-point 'bol))
+	      (if inclass-p
+		  (c-add-syntax 'defun-open (c-point 'boi))
+		(c-add-syntax 'defun-open (c-point 'bol)))
 	      )))
 	   ;; CASE 5B: first K&R arg decl or member init
 	   ((c-just-after-func-arglist-p)
@@ -1302,7 +1359,7 @@
 		 (looking-at c-access-key))
 	    (c-add-syntax 'access-label (c-point 'bonl))
 	    (c-add-syntax 'inclass (aref inclass-p 0)))
-	   ;; CASE 5F: extern-lang-close?
+	   ;; CASE 5F: extern-lang-close or namespace-close?
 	   ((and inenclosing-p
 		 (eq char-after-ip ?}))
 	    (setq tmpsymbol (if (eq inenclosing-p 'extern)
@@ -1389,9 +1446,9 @@
 			(goto-char (aref inclass-p 0)))
 		    (cond
 		     ((eq inenclosing-p 'extern)
-		      (c-add-syntax 'inextern-lang))
+		      (c-add-syntax 'inextern-lang (c-point 'boi)))
 		     ((eq inenclosing-p 'namespace)
-		      (c-add-syntax 'innamespace))
+		      (c-add-syntax 'innamespace (c-point 'boi)))
 		     (t (c-add-syntax 'inclass (c-point 'boi))))
 		    ))
 	      ))
@@ -1566,7 +1623,12 @@
 	       ((or (save-excursion
 		      (goto-char placeholder)
 		      (looking-at "\\<enum\\>"))
-		    (eq char-before-ip ?=))
+		    (save-excursion
+		      (goto-char indent-point)
+		      (while (and (> (point) placeholder)
+				  (= (c-backward-token-1 1 t) 0)
+				  (/= (char-after) ?=)))
+		      (eq (char-after) ?=)))
 		(c-add-syntax 'brace-list-open placeholder))
 	       ;; CASE 9B.3: catch-all for unknown construct.
 	       (t
@@ -1642,17 +1704,15 @@
 			       (c-beginning-of-statement-1 lim))
 			   (c-point 'boi))))
 	    (cond
-	     ;; CASE 14A: does this close an inline?
-	     ((let ((inclass-p (progn
-				 (goto-char containing-sexp)
-				 (c-search-uplist-for-classkey state))))
-		;; inenclosing-p in higher level let*
-		(setq inenclosing-p (and inclass-p
-					 (progn
-					   (goto-char (aref inclass-p 0))
-					   (looking-at c-extra-toplevel-key))))
-		(and inclass-p (not inenclosing-p)))
-	      (c-add-syntax 'inline-close relpos))
+	     ;; CASE 14A: does this close an inline or a function in
+	     ;; an extern block or namespace?
+	     ((progn
+		(goto-char containing-sexp)
+		(setq placeholder (c-search-uplist-for-classkey state)))
+	      (goto-char (aref placeholder 0))
+	      (if (looking-at c-extra-toplevel-key)
+		  (c-add-syntax 'defun-close relpos)
+		(c-add-syntax 'inline-close relpos)))
 	     ;; CASE 14B: if there an enclosing brace that hasn't
 	     ;; been narrowed out by a class, then this is a
 	     ;; block-close
