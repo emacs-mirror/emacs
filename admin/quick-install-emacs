@@ -140,8 +140,10 @@ function get_config_var () {
 
 test x"$SRC" = x && { SRC="`get_config_var srcdir`" || exit 4 ; }
 test x"$prefix" = x && { prefix="`get_config_var prefix`" || exit 4 ; }
-test x"$VERSION" = x && { VERSION="`get_config_var version`" || exit 4 ; }
 test x"$ARCH" = x && { ARCH="`get_config_var host`" || exit 4 ; }
+
+VERSION=`grep 'defconst[	 ]*emacs-version' $SRC/lisp/version.el \
+         | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 
 DST_SHARE="$prefix/share/emacs/$VERSION"
 DST_BIN="$prefix/bin"
