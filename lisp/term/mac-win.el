@@ -1,6 +1,7 @@
 ;;; mac-win.el --- parse switches controlling interface with Mac window system
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
 ;; Keywords: terminals
@@ -1013,16 +1014,16 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (define-key function-key-map [M-return] [?\M-\C-m])
 (define-key function-key-map [tab] [?\t])
 (define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [backspace] [127])
+(define-key function-key-map [backspace] [?\d])
 (define-key function-key-map [M-backspace] [?\M-\d])
 (define-key function-key-map [escape] [?\e])
 (define-key function-key-map [M-escape] [?\M-\e])
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
-(put 'return 'ascii-character 13)
+(put 'return 'ascii-character ?\C-m)
 (put 'tab 'ascii-character ?\t)
-(put 'backspace 'ascii-character 127)
+(put 'backspace 'ascii-character ?\d)
 (put 'escape 'ascii-character ?\e)
 
 
@@ -1268,7 +1269,7 @@ Switch to a buffer editing the last file dropped."
 
 (unless (eq system-type 'darwin)
   ;; This variable specifies the Unix program to call (as a process) to
-  ;; deteremine the amount of free space on a file system (defaults to
+  ;; determine the amount of free space on a file system (defaults to
   ;; df).  If it is not set to nil, ls-lisp will not work correctly
   ;; unless an external application df is implemented on the Mac.
   (setq directory-free-space-program nil)
@@ -1276,19 +1277,16 @@ Switch to a buffer editing the last file dropped."
   ;; Set this so that Emacs calls subprocesses with "sh" as shell to
   ;; expand filenames Note no subprocess for the shell is actually
   ;; started (see run_mac_command in sysdep.c).
-  (setq shell-file-name "sh"))
+  (setq shell-file-name "sh")
+
+  ;; To display filenames in Chinese or Japanese, replace mac-roman with
+  ;; big5 or sjis
+  (setq file-name-coding-system 'mac-roman))
 
 ;; X Window emulation in macterm.c is not complete enough to start a
 ;; frame without a minibuffer properly.  Call this to tell ediff
 ;; library to use a single frame.
 ; (ediff-toggle-multiframe)
-
-(if (eq system-type 'darwin)
-    ;; On Darwin filenames are encoded in UTF-8
-    (setq file-name-coding-system 'utf-8)
-  ;; To display filenames in Chinese or Japanese, replace mac-roman with
-  ;; big5 or sjis
-  (setq file-name-coding-system 'mac-roman))
 
 ;; If Emacs is started from the Finder, change the default directory
 ;; to the user's home directory.
@@ -1307,5 +1305,5 @@ Switch to a buffer editing the last file dropped."
 
 ;; (prefer-coding-system 'mac-roman)
 
-;;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
+;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
 ;;; mac-win.el ends here

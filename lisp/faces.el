@@ -1881,6 +1881,9 @@ created."
 
 
 (defface minibuffer-prompt '((((background dark)) :foreground "cyan")
+			     ;; Don't use blue because many users of
+			     ;; the MS-DOS port customize their
+			     ;; foreground color to be blue.
 			     (((type pc)) :foreground "magenta")
 			     (t :foreground "dark blue"))
   "Face for minibuffer prompts."
@@ -2048,6 +2051,8 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'basic-faces)
 
 (defface escape-glyph '((((background dark)) :foreground "cyan")
+			;; See the comment in minibuffer-prompt for
+			;; the reason not to use blue on MS-DOS.
 			(((type pc)) :foreground "magenta")
 			(t :foreground "blue"))
   "Face for characters displayed as ^-sequences or \-sequences."

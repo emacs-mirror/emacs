@@ -338,7 +338,6 @@ detailed description of this mode.
 			 (match-string 3)
 			 nil nil)))
 	  (push var gdb-var-list)
-	  (setq speedbar-update-flag t)
 	  (speedbar 1)
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
@@ -433,7 +432,18 @@ detailed description of this mode.
 		     `(lambda () (gdb-var-evaluate-expression-handler
 				  ,varnum t)))))))
   (setq gdb-pending-triggers
-   (delq 'gdb-var-update gdb-pending-triggers)))
+   (delq 'gdb-var-update gdb-pending-triggers))
+  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+    ;; dummy command to update speedbar at right time
+    (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
+    ;; keep gdb-pending-triggers non-nil till end
+    (push 'gdb-speedbar-timer gdb-pending-triggers)))
+
+(defun gdb-speedbar-timer-fn ()
+  (setq gdb-pending-triggers
+	(delq 'gdb-speedbar-timer gdb-pending-triggers))
+  (with-current-buffer gud-comint-buffer
+    (speedbar-timer-fn)))
 
 (defun gdb-var-delete ()
   "Delete watched expression from the speedbar."
@@ -882,12 +892,12 @@ happens to be appropriate."
 	(gdb-invalidate-threads)
 	(unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
 	  ;; FIXME: with GDB-6 on Darwin, this might very well work.
-	  (dolist (frame (frame-list))
-	    (when (string-equal (frame-parameter frame 'name) "Speedbar")
-	      (setq gdb-var-changed t)    ; force update
-	      (dolist (var gdb-var-list)
-		(setcar (nthcdr 5 var) nil))))
-	  (gdb-var-update))))
+	  ;; only needed/used with speedbar/watch expressions
+	  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+	    (setq gdb-var-changed t)    ; force update
+	    (dolist (var gdb-var-list)
+	      (setcar (nthcdr 5 var) nil))
+	    (gdb-var-update)))))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) t)

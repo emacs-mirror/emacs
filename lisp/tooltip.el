@@ -488,7 +488,7 @@ MSG is either a help string to display, or nil to cancel the display."
 	     (setq pos (posn-at-x-y (car pos) (cdr pos) (car mp)))
 	     (windowp (posn-window pos)))
 	(with-current-buffer (window-buffer (posn-window pos))
-	  (if (mouse-on-link-p (posn-point pos))
+	  (if (mouse-on-link-p pos)
 	      (setq msg (concat
 		    (cond
 		     ((eq mouse-1-click-follows-link 'double) "double-")

@@ -709,7 +709,8 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
   ;; First decode the head.
   (save-restriction
     (message-narrow-to-head)
-    (mail-decode-encoded-word-region (point-min) (point-max)))
+    (let ((rfc2047-quote-decoded-words-containing-tspecials t))
+      (mail-decode-encoded-word-region (point-min) (point-max))))
   (unless handles
     (setq handles (mm-dissect-buffer t)))
   (goto-char (point-min))

@@ -534,6 +534,7 @@ one optional arguments, diff-number to refine.")
 (defun ediff-set-diff-overlays-in-one-buffer (buf-type diff-list)
   (let* ((current-diff -1)
 	 (buff (ediff-get-buffer buf-type))
+	 (ctl-buf ediff-control-buffer)
 	 ;; ediff-extract-diffs puts the type of diff-list as the first elt
 	 ;; of this list. The type is either 'points or 'words
 	 (diff-list-type (car diff-list))
@@ -580,8 +581,9 @@ one optional arguments, diff-number to refine.")
       (if (eq diff-list-type 'words)
 	  (progn
 	    (ediff-with-current-buffer buff (goto-char pt-saved))
-	    (setq begin (ediff-goto-word (1+ begin) buff)
-		  end (ediff-goto-word end buff 'end))
+	    (ediff-with-current-buffer ctl-buf
+	      (setq begin (ediff-goto-word (1+ begin) buff)
+		    end (ediff-goto-word end buff 'end)))
 	    (if (> end limit) (setq end limit))
 	    (if (> begin end) (setq begin end))
 	    (setq pt-saved (ediff-with-current-buffer buff (point)))))
@@ -864,6 +866,7 @@ delimiter regions"))
   (let* ((current-diff -1)
 	 (reg-start (ediff-get-diff-posn buf-type 'beg region-num))
 	 (buff (ediff-get-buffer buf-type))
+	 (ctl-buf ediff-control-buffer)
 	 combined-merge-diff-list
 	 diff-overlay-list list-element
 	 begin end overlay)
@@ -892,8 +895,9 @@ delimiter regions"))
 	    () ; skip this diff
 	  ;; Put overlays at appropriate places in buffers
 	  ;; convert lines to points, if necessary
-	  (setq begin (ediff-goto-word (1+ begin) buff)
-		end (ediff-goto-word end buff 'end))
+	  (ediff-with-current-buffer ctl-buf
+	    (setq begin (ediff-goto-word (1+ begin) buff)
+		  end (ediff-goto-word end buff 'end)))
 	  (setq overlay (ediff-make-bullet-proof-overlay begin end buff))
 	  ;; record all overlays for this difference region
 	  (setq diff-overlay-list (nconc diff-overlay-list (list overlay))))
@@ -1326,17 +1330,73 @@ arguments to `skip-chars-forward'."
 	(while (> n 1)
 	  (funcall fwd-word-fun)
 	  (skip-chars-forward ediff-whitespace)
-	  (setq n (1- n))))
-      (if (and flag (> n 0))
-	  (funcall fwd-word-fun))
+	  (setq n (1- n)))
+	(if (and flag (> n 0))
+	    (funcall fwd-word-fun)))
       (point))))
 
 (defun ediff-same-file-contents (f1 f2)
-  "Return t if F1 and F2 have identical contents."
-  (let ((res
-	 (apply 'call-process ediff-cmp-program nil nil nil
- 		(append ediff-cmp-options (list f1 f2)))))
-    (and (numberp res) (eq res 0))))
+  "Return t if files F1 and F2 have identical contents."
+  (if (and (not (file-directory-p f1))
+           (not (file-directory-p f2)))
+      (let ((res
+	     (apply 'call-process ediff-cmp-program nil nil nil
+		    (append ediff-cmp-options (list f1 f2)))))
+	(and (numberp res) (eq res 0))))
+  )
+
+
+(defun ediff-same-contents (d1 d2 &optional filter-re)
+  "Returns t iff D1 and D2 have the same content.
+D1 and D2 can either be both directories or both regular files.
+Symlinks and the likes are not handled.
+If FILTER-RE is non-nil, recursive checking in directories
+affects only files whose names match the expression."
+  ;; Normalize empty filter RE to nil.
+  (unless (length filter-re) (setq filter-re nil))
+  ;; Indicate progress
+  (message "Comparing '%s' and '%s' modulo '%s'" d1 d2 filter-re)
+  (cond
+   ;; D1 & D2 directories => recurse
+   ((and (file-directory-p d1)
+         (file-directory-p d2))
+    (if (null ediff-recurse-to-subdirectories)
+	(if (y-or-n-p "Compare subdirectories recursively? ")
+	    (setq ediff-recurse-to-subdirectories 'yes)
+	  (setq ediff-recurse-to-subdirectories 'no)))
+    (if (eq ediff-recurse-to-subdirectories 'yes)
+	(let* ((all-entries-1 (directory-files d1 t filter-re))
+	       (all-entries-2 (directory-files d2 t filter-re))
+	       (entries-1 (remove-if (lambda (s)
+				       (string-match "^\\.\\.?$"
+						     (file-name-nondirectory s))) 
+				     all-entries-1))
+	       (entries-2 (remove-if (lambda (s)
+				       (string-match "^\\.\\.?$"
+						     (file-name-nondirectory s)))
+				     all-entries-2))
+	       )
+	  ;; First, check only the names (works quickly and ensures a
+	  ;; precondition for subsequent code)
+	  (if (and (= (length entries-1) (length entries-2))
+		   (every (lambda (a b) (equal (file-name-nondirectory a)
+					       (file-name-nondirectory b)))
+			  entries-1 entries-2))
+	      ;; With name equality established, compare the entries
+	      ;; through recursion.
+	      (every (lambda (a b)
+		       (ediff-same-contents a b filter-re))
+		     entries-1 entries-2)
+	    )
+	  ))
+    ) ; end of the directories case
+   ;; D1 & D2 are both files => compare directly
+   ((and (file-regular-p d1)
+         (file-regular-p d2))
+    (ediff-same-file-contents d1 d2))
+   ;; Otherwise => false: unequal contents
+   )
+  )
 
 
 ;;; Local Variables:

@@ -1,5 +1,7 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
-;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2005 Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004, 2005
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -50,6 +52,7 @@ Value is what BODY returns."
 
 (require 'qp)
 (require 'mm-util)
+(require 'ietf-drums)
 ;; Fixme: Avoid this (used for mail-parse-charset) mm dependence on gnus.
 (require 'mail-prsvr)
 (require 'base64)
@@ -639,6 +642,9 @@ By default, the region is treated as containing addresses (see
     "=\\?\\([^][\000-\040()<>@,\;:\\\"/?.=]+\\)\\?\\(B\\|Q\\)\
 \\?\\([!->@-~ +]*\\)\\?="))
 
+(defvar rfc2047-quote-decoded-words-containing-tspecials nil
+  "If non-nil, quote decoded words containing special characters.")
+
 ;; Fixme: This should decode in place, not cons intermediate strings.
 ;; Also check whether it needs to worry about delimiting fields like
 ;; encoding.
@@ -673,14 +679,66 @@ By default, the region is treated as containing addresses (see
 	  (insert (rfc2047-parse-and-decode
 		   (prog1
 		       (match-string 0)
-		     (delete-region (match-beginning 0) (match-end 0)))))
-	  ;; Remove newlines between decoded words, though such things
-	  ;; essentially must not be there.
+		     (delete-region e (match-end 0)))))
+	  (while (looking-at rfc2047-encoded-word-regexp)
+	    (insert (rfc2047-parse-and-decode
+		     (prog1
+			 (match-string 0)
+		       (delete-region (point) (match-end 0))))))
 	  (save-restriction
 	    (narrow-to-region e (point))
 	    (goto-char e)
+	    ;; Remove newlines between decoded words, though such
+	    ;; things essentially must not be there.
 	    (while (re-search-forward "[\n\r]+" nil t)
 	      (replace-match " "))
+	    ;; Quote decoded words if there are special characters
+	    ;; which might violate RFC2822.
+	    (when (and rfc2047-quote-decoded-words-containing-tspecials
+		       (let ((regexp (car (rassq
+					   'address-mime
+					   rfc2047-header-encoding-alist))))
+			 (when regexp
+			   (save-restriction
+			     (widen)
+			     (beginning-of-line)
+			     (while (and (memq (char-after) '(?  ?\t))
+					 (zerop (forward-line -1))))
+			     (looking-at regexp)))))
+	      (let (quoted)
+		(goto-char e)
+		(skip-chars-forward " \t")
+		(setq start (point))
+		(setq quoted (eq (char-after) ?\"))
+		(goto-char (point-max))
+		(skip-chars-backward " \t")
+		(if (setq quoted (and quoted
+				      (> (point) (1+ start))
+				      (eq (char-before) ?\")))
+		    (progn
+		      (backward-char)
+		      (setq start (1+ start)
+			    end (point-marker)))
+		  (setq end (point-marker)))
+		(goto-char start)
+		(while (search-forward "\"" end t)
+		  (when (prog2
+			    (backward-char)
+			    (zerop (% (skip-chars-backward "\\\\") 2))
+			  (goto-char (match-beginning 0)))
+		    (insert "\\"))
+		  (forward-char))
+		(when (and (not quoted)
+			   (progn
+			     (goto-char start)
+			     (re-search-forward
+			      (concat "[" ietf-drums-tspecials "]")
+			      end t)))
+		  (goto-char start)
+		  (insert "\"")
+		  (goto-char end)
+		  (insert "\""))
+		(set-marker end nil)))
 	    (goto-char (point-max)))
 	  (when (and (mm-multibyte-p)
 		     mail-parse-charset

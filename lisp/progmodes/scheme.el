@@ -330,6 +330,10 @@ See `run-hooks'."
 	       "map" "syntax" "syntax-rules") t)
 	"\\>") 1)
       ;;
+      ;; It wouldn't be Scheme w/o named-let.
+      '("(let\\s-+\\(\\sw+\\)"
+        (1 font-lock-function-name-face))
+      ;;
       ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
       '("\\<<\\sw+>\\>" . font-lock-type-face)
       ;;

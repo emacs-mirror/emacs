@@ -408,9 +408,9 @@
 
 (put 'calcFunc-tan\' 'math-derivative-1
      (function (lambda (u) (math-to-radians-2
-			    (math-div 1 (math-sqr
-					 (math-normalize
-					  (list 'calcFunc-cos u))))))))
+			    (math-sqr
+                             (math-normalize
+                              (list 'calcFunc-sec u)))))))
 
 (put 'calcFunc-sec\' 'math-derivative-1
      (function (lambda (u) (math-to-radians-2 
@@ -432,9 +432,9 @@
 (put 'calcFunc-cot\' 'math-derivative-1
      (function (lambda (u) (math-neg
                             (math-to-radians-2
-                             (math-div 1 (math-sqr
-                                          (math-normalize
-                                           (list 'calcFunc-sin u)))))))))
+                             (math-sqr
+                              (math-normalize
+                               (list 'calcFunc-csc u))))))))
 
 (put 'calcFunc-arcsin\' 'math-derivative-1
      (function (lambda (u)
@@ -461,9 +461,9 @@
      (function (lambda (u) (math-normalize (list 'calcFunc-sinh u)))))
 
 (put 'calcFunc-tanh\' 'math-derivative-1
-     (function (lambda (u) (math-div 1 (math-sqr
-					(math-normalize
-					 (list 'calcFunc-cosh u)))))))
+     (function (lambda (u) (math-sqr
+                            (math-normalize
+                             (list 'calcFunc-sech u))))))
 
 (put 'calcFunc-sech\' 'math-derivative-1
      (function (lambda (u) (math-neg
@@ -477,11 +477,11 @@
                              (math-normalize (list 'calcFunc-csch u))
                              (math-normalize (list 'calcFunc-coth u)))))))
 
-(put 'calcFunc-tanh\' 'math-derivative-1
+(put 'calcFunc-coth\' 'math-derivative-1
      (function (lambda (u) (math-neg
-                            (math-div 1 (math-sqr
-                                         (math-normalize
-                                          (list 'calcFunc-sinh u))))))))
+                            (math-sqr
+                             (math-normalize
+                              (list 'calcFunc-csch u)))))))
 
 (put 'calcFunc-arcsinh\' 'math-derivative-1
      (function (lambda (u)
@@ -1664,8 +1664,8 @@
 
 (math-defintegral calcFunc-tan
   (and (equal u math-integ-var)
-       (math-neg (math-from-radians-2
-		  (list 'calcFunc-ln (list 'calcFunc-cos u))))))
+       (math-from-radians-2
+        (list 'calcFunc-ln (list 'calcFunc-sec u)))))
 
 (math-defintegral calcFunc-sec
   (and (equal u math-integ-var)

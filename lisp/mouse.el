@@ -769,6 +769,8 @@ If the click is in the echo area, display the `*Messages*' buffer."
 
 (defun mouse-on-link-p (pos)
   "Return non-nil if POS is on a link in the current buffer.
+POS must be a buffer position in the current buffer or an mouse
+event location in the selected window, see `event-start'.
 
 A clickable link is identified by one of the following methods:
 
@@ -787,7 +789,7 @@ is a non-nil `mouse-face' property at POS.  Return t in this case.
 
 - If the value is a function, FUNC, POS is inside a link if
 the call \(FUNC POS) returns non-nil.  Return the return value
-from that call.
+from that call.  Arg is \(posn-point POS) if POS is a mouse event,
 
 - Otherwise, return the value itself.
 
@@ -803,17 +805,22 @@ click is the local or global binding of that event.
 
 - Otherwise, the mouse-1 event is translated into a mouse-2 event
 at the same position."
-  (let ((action
-	 (or (get-char-property pos 'follow-link)
-	     (save-excursion
-	       (goto-char pos)
-	       (key-binding [follow-link] nil t)))))
-    (cond
-     ((eq action 'mouse-face)
-      (and (get-char-property pos 'mouse-face) t))
-     ((functionp action)
-      (funcall action pos))
-     (t action))))
+  (if (consp pos)
+      (setq pos (and (eq (selected-window) (posn-window pos))
+		     (posn-point pos))))
+  (when pos
+    (let ((action
+	   (or (get-char-property pos 'follow-link)
+	       (save-excursion
+		 (goto-char pos)
+		 (key-binding [follow-link] nil t)))))
+      (cond
+       ((eq action 'mouse-face)
+	(and (get-char-property pos 'mouse-face) t))
+       ((functionp action)
+	(funcall action pos))
+       (t action)))))
+
 
 (defun mouse-drag-region-1 (start-event)
   (mouse-minibuffer-check start-event)
@@ -831,7 +838,9 @@ at the same position."
 		     (nth 3 bounds)
 		   ;; Don't count the mode line.
 		   (1- (nth 3 bounds))))
-	 on-link remap-double-click
+	 (on-link (and mouse-1-click-follows-link
+		       (eq start-window (selected-window))))
+	 remap-double-click
 	 (click-count (1- (event-click-count start-event))))
     (setq mouse-selection-click-count click-count)
     (setq mouse-selection-click-count-buffer (current-buffer))
@@ -841,7 +850,7 @@ at the same position."
     (if (< (point) start-point)
 	(goto-char start-point))
     (setq start-point (point))
-    (setq on-link (and mouse-1-click-follows-link
+    (setq on-link (and on-link
 		       (mouse-on-link-p start-point)))
     (setq remap-double-click (and on-link
 				  (eq mouse-1-click-follows-link 'double)

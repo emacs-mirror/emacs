@@ -250,7 +250,11 @@ variable unless you are comfortable with that."
   :type 'boolean)
 
 (defcustom imap-debug nil
-  "If non-nil, random debug spews are placed in *imap-debug* buffer."
+  "If non-nil, random debug spews are placed in *imap-debug* buffer.
+Note that username, passwords and other privacy sensitive
+information (such as e-mail) may be stored in the *imap-debug*
+buffer.  It is not written to disk, however.  Do not enable this
+variable unless you are comfortable with that."
   :group 'imap
   :type 'boolean)
 

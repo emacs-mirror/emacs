@@ -156,7 +156,7 @@ handling each buffer and does not process any further buffers
 \(until the next run of the timer) if user input is available.
 When nil, Auto-Revert Mode checks files and reverts buffers,
 with quitting disabled, without paying attention to user input.
-Thus, Emacs might be non-responsive at times."
+Thus, with this setting, Emacs might be non-responsive at times."
   :group 'auto-revert
   :type 'boolean)
 

@@ -70,6 +70,16 @@
    window-system
    ))
 
+(defun viper-color-display-p ()
+  (condition-case nil
+      (viper-cond-compile-for-xemacs-or-emacs
+       (eq (device-class (selected-device)) 'color) ; xemacs form
+       (if (fboundp 'display-color-p) ; emacs form
+	   (display-color-p)
+	 (x-display-color-p))
+	)
+    (error nil)))
+
 ;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun viper-window-display-p ()
   (and (viper-device-type) (not (memq (viper-device-type) '(tty stream pc)))))
@@ -97,6 +107,7 @@ In all likelihood, you don't need to bother with this setting."
 (defun viper-has-face-support-p ()
   (cond ((viper-window-display-p))
 	(viper-force-faces)
+	((viper-color-display-p))
 	(viper-emacs-p (memq (viper-device-type) '(pc)))
 	(viper-xemacs-p (memq (viper-device-type) '(tty pc)))))
 

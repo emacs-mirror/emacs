@@ -1,3 +1,198 @@
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/hideif.el (hide-ifdef-use-define-alist): Use
+	completing-read.  Suggested by Juan-Leon Lahoz Garcia.
+
+2005-02-22  Simon Josefsson  <jas@extundo.com>
+
+	* net/browse-url.el (browse-url-netscape-new-window-is-tab): New
+	variable.
+	(browse-url-netscape): Use it.  Suggested by "Johann 'Myrkraverk'
+	Oskarsson" <myrkraverk@users.sourceforget.net>.
+
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-on-link-p): If arg POS is a mouse event,
+	check that window of that event is the selected window.
+	(mouse-drag-region-1): Compare mouse event window to selected
+	window before setting point.
+
+	* tooltip.el (tooltip-show-help-function): Pass event to
+	mouse-on-link-p so it can check selected window.
+
+2005-02-22  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-header-string-charsets): Delete it.
+	(ps-mule-show-warning): New function.
+	(ps-mule-begin-job): Use ps-mule-show-warning if unprintable
+	characters are found.
+
+	* ps-print.el (ps-header-footer-string): Return a list of header
+	and footer strings.
+
+2005-02-21  Wolfgang Jenkner  <wjenkner@inode.at>  (tiny change)
+
+	* pcvs.el (cvs-retrieve-revision): Fix thinko.
+
+2005-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (blink-cursor-mode): Use define-minor-mode.
+
+	* term/mac-win.el (function-key-map): Use char-names more consistently.
+	(file-name-coding-system): Only set it for MacOS-9.  The other case is
+	already handled in mule-cmds.el (where it also works when mac-win.el
+	is not used).
+
+2005-02-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-pre-write-conversion): Always use
+	" *code-converting-work*" buffer for work.
+
+	* textmodes/ispell.el (ispell-dictionary-alist): Fix docstring.
+
+2005-02-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/scheme.el (scheme-font-lock-keywords-2): Handle named-let.
+
+2005-02-20  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el (undo-more): Restore defadvice, but only the part that
+	allows changes outside the restricted area of the buffer.
+
+2005-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move): Add fourth optional arg try-vscroll which
+	must be set to perform auto-window-vscroll.
+	When moving backwards and doing auto-window-vscroll, automatically
+	vscroll to the last part of lines which are taller than the window.
+	(next-line, previous-line): Set try-vscroll arg on line-move.
+
+2005-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* replace.el (query-replace, query-replace-regexp)
+	(replace-string, replace-regexp): When operating on region, make
+	the minibuffer prompt say so.
+
+	* isearch.el (isearch-forward): Document isearch-query-replace and
+	isearch-query-replace-regexp keybindings.
+
+2005-02-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token): Add local variable.
+
+	* calc/calc-prog.el (calc-user-define-edit): Add local variable.
+	(calc-edit-top): Move declaration to earlier in file.
+	(calc-edit-macro-repeats): Add local variables.
+
+	* calc/calcalg2.el: Add differentiation rule for calcFunc-coth.
+	Adjust differentiation rules for calcFunc-tan, calcFunc-cot,
+	calcFunc-tanh.
+	Adjust integration rule for calcFunc-tan.
+
+2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-cmd.el (viper-prefix-commands): Make into a defconst.
+	(viper-exec-buffer-search): Use regexp-quote to quote buffer string.
+	(viper-minibuffer-setup-sentinel): Make some variables buffer-local.
+	(viper-skip-separators): Bug fix.
+	(viper-set-searchstyle-toggling-macros): Allow to unset macros in a
+	particular major mode.
+	(viper-del-backward-char-in-replace): Don't put deleted char on the
+	kill ring.
+
+	* viper-ex.el (viper-color-display-p): New function.
+	(viper-has-face-support-p): Use viper-color-display-p.
+
+	* viper-keym.el (viper-gnus-modifier-map): New keymap.
+
+	* viper-macs.el (viper-unrecord-kbd-macro): Bug fix.
+
+	* viper-util.el (viper-glob-unix-files): Fix shell status check.
+	(viper-file-remote-p): Make equivalent to file-remote-p.
+
+	* viper.el (viper-major-mode-modifier-list): Use
+	viper-gnus-modifier-map.
+
+2005-02-19  David Kastrup  <dak@gnu.org>
+
+	* subr.el (subregexp-context-p): Fix garbled doc string by adding
+	quoting.
+
+2005-02-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-math.el (calc-arctan, calc-tanh, calc-arctanh):
+	Removed extra definitions.
+	(calc-coth): New function.
+	(calcFunc-cot): Fix `let'.
+
+2005-02-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* faces.el (escape-glyph, minibuffer-prompt): Add commentary for
+	the reasons we use "type pc" in these faces.
+
+	* button.el (button): Ditto.
+
+2005-02-19  Michael Mauger  <mmaug@yahoo.com>
+
+	* replace.el (query-replace-read-from): Set the value of
+	query-replace-from-history-variable to handle the case of an empty
+	string entered to accept the suggested default.
+
+	* net/tramp.el (tramp-file-name-for-operation): Use
+	dired-call-process instead of dired-call-process-command.
+
+2005-02-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-trig-inverses, math-div-trig)
+	(math-div-non-trig): New variables.
+	(math-combine-prod-trig, math-div-new-trig, math-div-new-non-trig)
+	(math-div-isolate-trig, math-div-isolate-trig-term): New functions.
+	(math-combine-prod, math-div-symb-fancy): Add simplifications for
+	trig expressions.
+
+2005-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-update-handler)
+	(gdb-speedbar-timer-fn): Ensure speedbar updates with new values
+	for watch expressions,
+	(gdb-var-create-handler): Don't set speedbar-update-flag.
+	(gdb-post-prompt): Simplify test for speedbar.
+
+2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff.el (ediff-set-diff-overlays-in-one-buffer,
+	ediff-set-fine-overlays-in-one-buffer,ediff-goto-word) make sure
+	we use the syntax table of the correct buffer.
+	(ediff-same-file-contents,ediff-same-contents): enhancements thanks to
+	Felix Gatzemeier.
+
+	* ediff-init.el (ediff-hide-face): checks for definedness of functions.
+	(ediff-file-remote-p): make synonymous with file-remote-p.
+	In all deffaces ediff-*-face-*, use min-colors.
+
+	* ediff-mult.el (ediff-meta-mark-equal-files): make use of
+        ediff-recurse-to-subdirectories.
+	(ediff-mark-if-equal): check that the arguments are strings, use
+	ediff-same-contents (after to Felix Gatzemeier).
+
+	* ediff.el (ediff-merge-on-startup): don't set buffer-modified-p to
+	nil.
+
+2005-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-message-re): Fix up Subversion regexp.
+
+2005-02-18  David Kastrup  <dak@gnu.org>
+
+	* progmodes/meta-mode.el (meta-mark-active): Fix condition to just
+	use `mark-active' when defined.
+
+2005-02-18  Kenichi Handa  <handa@m17n.org>
+
+	* ps-print.el (ps-font-info-database): New entry
+	ZapfChancery-MediumItalic with correct font name.  Fix font name
+	of the entry Zapf-Chancery-MediumItalic.
+
 2005-02-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-stop-on-user-input): Further doc fix.
@@ -82,8 +277,8 @@
 
 2005-02-15  Lute Kamstra  <lute@gnu.org>
 
-	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Add
-	;;;###autoload to `outline-regexp'.  Suggested by Stefan Monnier
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Add ;;;###autoload to `outline-regexp'.  Suggested by Stefan Monnier
 	<monnier@iro.umontreal.ca>
 	(lisp-outline-level): Improve efficiency.  Suggested by David
 	Kastrup <dak@gnu.org>.
@@ -158,7 +353,7 @@
 	* simple.el (eval-expression-print-format):
 	Avoid warning about edebug-active.
 
-	* help.el (help-for-help-internal): Renamed from help-for-help.
+	* help.el (help-for-help-internal): Rename from help-for-help.
 	(help-for-help): Define with defalias.
 
 	* font-core.el (font-lock-default-function): Use with-no-warnings.
@@ -191,7 +386,7 @@
 2005-02-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-location-list): New variable.
-	(gdb-cdir): Delete
+	(gdb-cdir): Delete.
 	(gdb-info-breakpoints-custom, gdb-goto-breakpoint)
 	(gdb-source-info): Treat case when source file is in another
 	directory properly.
@@ -202,8 +397,7 @@
 	* calc/calc-prog.el (calc-write-parse-table-part)
 	(calc-fix-token-name): Fix a check for language type.
 
-	* calc/calccomp.el (math-compose-expr): Fix a check for language
-	type.
+	* calc/calccomp.el (math-compose-expr): Fix a check for language type.
 
 2005-02-07  Andre Spiegel  <spiegel@gnu.org>
 
