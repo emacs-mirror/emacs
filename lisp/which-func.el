@@ -73,21 +73,21 @@
 
 (defcustom which-func-modes 
   '(emacs-lisp-mode c-mode c++-mode perl-mode makefile-mode sh-mode)
-  "List of major modes for which `which-func-mode' should be used.
+  "List of major modes for which Which Function mode should be used.
 For other modes it is disabled.  If this is equal to t,
-then current-function recognition is enabled in any mode."
+then Which Function mode is enabled in any major mode that supports it."
   :group 'which-func
   :type '(choice (const :tag "All modes" t)
-		 (list (symbol :tag "Major mode"))))
+		 (repeat (symbol :tag "Major mode"))))
 
 (defcustom which-func-non-auto-modes nil
   "List of major modes where Which Function mode is inactive till Imenu is used.
-
-Note that the menu is never computed automatically if the buffer size
-exceeds `which-func-maxout'."
-
+This means that Which Function mode won't really do anything
+until you use Imenu, in these modes.  Note that files
+larger than `which-func-maxout' behave in this way too;
+Which Function mode doesn't do anything until you use Imenu."
   :group 'which-func
-  :type '(list (symbol :tag "Major mode")))
+  :type '(repeat (symbol :tag "Major mode")))
 
 (defcustom which-func-maxout 100000
   "Don't automatically compute the Imenu menu if buffer is this big or bigger.
