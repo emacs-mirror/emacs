@@ -3764,7 +3764,7 @@ make_lispy_event (event)
 	    else
 	      {
 		int pixcolumn, pixrow;
-		column -= XINT (XWINDOW (window)->left);
+		column -= WINDOW_LEFT_MARGIN (XWINDOW (window));
 		row -= XINT (XWINDOW (window)->top);
 		glyph_to_pixel_coords (f, column, row, &pixcolumn, &pixrow);
 		XSETINT (event->x, pixcolumn);
@@ -4027,7 +4027,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
       if (WINDOWP (window))
 	{
 	  int pixcolumn, pixrow;
-	  column -= XINT (XWINDOW (window)->left);
+	  column -= WINDOW_LEFT_MARGIN (XWINDOW (window));
 	  row -= XINT (XWINDOW (window)->top);
 	  glyph_to_pixel_coords (frame, column, row, &pixcolumn, &pixrow);
 	  XSETINT (x, pixcolumn);
