@@ -897,6 +897,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
 	    Lisp_Object type;
 
+	    type = PER_BUFFER_TYPE (offset);
 	    if (! NILP (type) && ! NILP (newval)
 		&& XTYPE (newval) != XINT (type))
 	      buffer_slot_type_mismatch (offset);
