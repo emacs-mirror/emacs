@@ -54,6 +54,8 @@
 
 ;;; Code:
 
+(require 'mule-diag)			; for non-iso-charset-alist
+
 (defun cp-make-translation-table (v)
   "Return a translation table made from 128-long vector V.
 V comprises characters encodable by mule-utf-8."
@@ -174,7 +176,7 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 	       (translate-character ,decoder r0 r1)
 	       ;; Allow fragmentation on decoding -- relevant for
 	       ;; Cyrillic, Greek and, possibly Arabic and Hebrew.
-	       (translate-character utf-8-translation-table-for-decode r0 r1)
+	       (translate-character utf-translation-table-for-decode r0 r1)
 	       (write-multibyte-character r0 r1)
 	       (repeat))))))
 	 (ccl-encoder
