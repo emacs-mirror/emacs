@@ -400,7 +400,6 @@ x_window_to_frame (dpyinfo, wdesc)
       if (f->output_data.w32->hourglass_window == wdesc)
         return f;
 
-      /* TODO: Check tooltips when supported.  */
       if (FRAME_W32_WINDOW (f) == wdesc)
         return f;
     }
@@ -660,6 +659,8 @@ struct x_frame_parm_table
   void (*setter) P_ ((struct frame *, Lisp_Object, Lisp_Object));
 };
 
+BOOL my_show_window P_ ((struct frame *, HWND, int));
+void my_set_window_pos P_ ((HWND, HWND, int, int, int, int, UINT));
 static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
 static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
 static void x_change_window_heights P_ ((Lisp_Object, int));
@@ -4685,8 +4686,23 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       goto dflt;
 
     case WM_MENUSELECT:
+#if OLD_MENU_HELP
       wmsg.dwModifiers = w32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+#else
+      {
+	/* Try to process these directly: the relevant parts of redisplay
+	   are supposed to be re-entrant now.  This should allow tooltips
+	   to be shown for menus.  */
+	HMENU menu = (HMENU) lParam;
+	UINT menu_item = (UINT) LOWORD (wParam);
+	UINT flags = (UINT) HIWORD (wParam);
+
+	BLOCK_INPUT;
+	w32_menu_display_help (menu, menu_item, flags);
+	UNBLOCK_INPUT;
+      }
+#endif
       return 0;
 
     case WM_MEASUREITEM:
@@ -5036,6 +5052,43 @@ my_create_window (f)
     abort ();
   GetMessage (&msg, NULL, WM_EMACS_DONE, WM_EMACS_DONE);
 }
+
+
+/* Create a tooltip window. Unlike my_create_window, we do not do this
+   indirectly via the Window thread, as we do not need to process Window
+   messages for the tooltip.  Creating tooltips indirectly also creates
+   deadlocks when tooltips are created for menu items.  */
+void 
+my_create_tip_window (f)
+     struct frame *f;
+{
+  HWND hwnd;
+
+  FRAME_W32_WINDOW (f) = hwnd
+    = CreateWindow (EMACS_CLASS,
+		    f->namebuf,
+		    f->output_data.w32->dwStyle,
+		    f->output_data.w32->left_pos,
+		    f->output_data.w32->top_pos,
+		    PIXEL_WIDTH (f),
+		    PIXEL_HEIGHT (f),
+		    FRAME_W32_WINDOW (SELECTED_FRAME ()), /* owner */
+		    NULL,
+		    hinst,
+		    NULL);
+
+  if (hwnd)
+    {
+      SetWindowLong (hwnd, WND_FONTWIDTH_INDEX, FONT_WIDTH (f->output_data.w32->font));
+      SetWindowLong (hwnd, WND_LINEHEIGHT_INDEX, f->output_data.w32->line_height);
+      SetWindowLong (hwnd, WND_BORDER_INDEX, f->output_data.w32->internal_border_width);
+      SetWindowLong (hwnd, WND_BACKGROUND_INDEX, FRAME_BACKGROUND_PIXEL (f));
+
+      /* Do this to discard the default setting specified by our parent. */
+      ShowWindow (hwnd, SW_HIDE);
+    }
+}
+
 
 /* Create and set up the w32 window for frame F.  */
 
@@ -13014,7 +13067,6 @@ x_create_tip_frame (dpyinfo, parms, text)
      struct w32_display_info *dpyinfo;
      Lisp_Object parms, text;
 {
-#if 0 /* TODO : w32 version */
   struct frame *f;
   Lisp_Object frame, tem;
   Lisp_Object name;
@@ -13027,7 +13079,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   Lisp_Object buffer;
   struct buffer *old_buffer;
 
-  check_x ();
+  check_w32 ();
 
   /* Use this general default value to start with until we know if
      this frame has a specified name.  */
@@ -13072,13 +13124,11 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
   bzero (f->output_data.w32, sizeof (struct w32_output));
-#if 0
-  f->output_data.w32->icon_bitmap = -1;
-#endif
-  f->output_data.w32->fontset = -1;
+
+  FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
 
-#ifdef GLYPH_DEBUG
+#if 0 /* GLYPH_DEBUG TODO: image support.  */
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
@@ -13092,7 +13142,7 @@ x_create_tip_frame (dpyinfo, parms, text)
      be set.  */
   if (EQ (name, Qunbound) || NILP (name))
     {
-      f->name = build_string (dpyinfo->x_id_name);
+      f->name = build_string (dpyinfo->w32_id_name);
       f->explicit_name = 0;
     }
   else
@@ -13123,21 +13173,15 @@ x_create_tip_frame (dpyinfo, parms, text)
     
     /* Try out a font which we hope has bold and italic variations.  */
     if (!STRINGP (font))
-      font = x_new_font (f, "-*-courier new-normal-r-*-*-*-100-*-*-*-*-iso8859-1");
-    if (!STRINGP (font))
-      font = x_new_font (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-Courier New-normal-r-*-*-*-100-*-*-c-*-iso8859-1");
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-*-medium-r-normal-*-*-140-*-*-c-*-iso8859-1");
-    if (! STRINGP (font))
-      /* This was formerly the first thing tried, but it finds too many fonts
-	 and takes too long.  */
-      font = x_new_font (f, "-*-*-medium-r-*-*-*-*-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_font (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1");
+      font = x_new_font (f, "-*-Fixedsys-normal-r-*-*-12-*-*-*-c-*-iso8859-1");
     UNBLOCK_INPUT;
     if (! STRINGP (font))
-      font = build_string ("fixed");
+      font = build_string ("Fixedsys");
 
     x_default_parameter (f, parms, Qfont, font,
 			 "font", "Font", RES_TYPE_STRING);
@@ -13145,7 +13189,6 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   x_default_parameter (f, parms, Qborder_width, make_number (2),
 		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
-  
   /* This defaults to 2 in order to match xterm.  We recognize either
      internalBorderWidth or internalBorder (which is what xterm calls
      it).  */
@@ -13159,8 +13202,9 @@ x_create_tip_frame (dpyinfo, parms, text)
 	parms = Fcons (Fcons (Qinternal_border_width, value),
 		       parms);
     }
-
-  x_default_parameter (f, parms, Qinternal_border_width, make_number (1),
+  /* Default internalBorderWidth for tooltips to 2 on Windows to match
+     other programs.  */
+  x_default_parameter (f, parms, Qinternal_border_width, make_number (2),
 		       "internalBorderWidth", "internalBorderWidth",
 		       RES_TYPE_NUMBER);
 
@@ -13183,7 +13227,8 @@ x_create_tip_frame (dpyinfo, parms, text)
      end up in init_iterator with a null face cache, which should not
      happen.  */
   init_frame_faces (f);
-  
+
+  f->output_data.w32->dwStyle = WS_BORDER | WS_POPUP | WS_DISABLED;
   f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
   window_prompting = x_figure_window_size (f, parms);
 
@@ -13203,35 +13248,10 @@ x_create_tip_frame (dpyinfo, parms, text)
     }
 
   f->output_data.w32->size_hint_flags = window_prompting;
-  {
-    XSetWindowAttributes attrs;
-    unsigned long mask;
-    
-    BLOCK_INPUT;
-    mask = CWBackPixel | CWOverrideRedirect | CWEventMask;
-    if (DoesSaveUnders (dpyinfo->screen))
-      mask |= CWSaveUnder;
 
-    /* Window managers looks at the override-redirect flag to
-       determine whether or net to give windows a decoration (Xlib
-       3.2.8).  */
-    attrs.override_redirect = True;
-    attrs.save_under = True;
-    attrs.background_pixel = FRAME_BACKGROUND_PIXEL (f);
-    /* Arrange for getting MapNotify and UnmapNotify events.  */
-    attrs.event_mask = StructureNotifyMask;
-    tip_window
-      = FRAME_W32_WINDOW (f)
-      = XCreateWindow (FRAME_W32_DISPLAY (f),
-		       FRAME_W32_DISPLAY_INFO (f)->root_window,
-		       /* x, y, width, height */
-		       0, 0, 1, 1,
-		       /* Border.  */
-		       1,
-		       CopyFromParent, InputOutput, CopyFromParent,
-		       mask, &attrs);
-    UNBLOCK_INPUT;
-  }
+  BLOCK_INPUT;
+  my_create_tip_window (f);
+  UNBLOCK_INPUT;
 
   x_make_gc (f);
 
@@ -13293,8 +13313,6 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   /* Discard the unwind_protect.  */
   return unbind_to (count, frame);
-#endif /* TODO */
-  return Qnil;
 }
 
 
@@ -13311,10 +13329,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
      int width, height;
      int *root_x, *root_y;
 {
-#ifdef TODO /* Tool tips not supported. */
   Lisp_Object left, top;
-  int win_x, win_y;
-  Window root, child;
   unsigned pmask;
   
   /* User-specified position?  */
@@ -13323,11 +13338,14 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
   
   /* Move the tooltip window where the mouse pointer is.  Resize and
      show it.  */
-  if (!INTEGERP (left) && !INTEGERP (top))
+  if (!INTEGERP (left) || !INTEGERP (top))
     {
+      POINT pt;
+
       BLOCK_INPUT;
-      XQueryPointer (FRAME_X_DISPLAY (f), FRAME_X_DISPLAY_INFO (f)->root_window,
-		     &root, &child, root_x, root_y, &win_x, &win_y, &pmask);
+      GetCursorPos (&pt);
+      *root_x = pt.x;
+      *root_y = pt.y;
       UNBLOCK_INPUT;
     }
 
@@ -13343,16 +13361,14 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
   if (INTEGERP (left))
     *root_x = XINT (left);
-  else if (*root_x + XINT (dx) + width > FRAME_X_DISPLAY_INFO (f)->width)
+  else if (*root_x + XINT (dx) + width > FRAME_WIDTH (f))
     *root_x -= width + XINT (dx);
   else
     *root_x += XINT (dx);
-
-#endif /* Tooltip support.  */
 }
 
 
-#ifdef TODO /* Tooltip support not complete.  */
+#ifdef TEST_TOOLTIPS /* Tooltip support in progress.  */
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
        doc: /* Show STRING in a \"tooltip\" window on frame FRAME.
 A tooltip window is a small window displaying a string.
@@ -13362,10 +13378,10 @@ FRAME nil or omitted means use the selected frame.
 PARMS is an optional list of frame parameters which can be
 used to change the tooltip's appearance.
 
-Automatically hide the tooltip after TIMEOUT seconds.
-TIMEOUT nil means use the default timeout of 5 seconds.
+Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
+means use the default timeout of 5 seconds.
 
-If the list of frame parameters PARAMS contains a `left' parameters,
+If the list of frame parameters PARAMS contains a `left' parameter,
 the tooltip is displayed at that x-position.  Otherwise it is
 displayed at the mouse position, with offset DX added (default is 5 if
 DX isn't specified).  Likewise for the y-position; if a `top' frame
@@ -13386,7 +13402,7 @@ Text larger than the specified size is clipped.  */)
   int i, width, height;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int old_windows_or_buffers_changed = windows_or_buffers_changed;
-  int count = specpdl_ptr - specpdl;
+  int count = BINDING_STACK_SIZE ();
   
   specbind (Qinhibit_redisplay, Qt);
 
@@ -13433,9 +13449,11 @@ Text larger than the specified size is clipped.  */)
 	    }
 
 	  BLOCK_INPUT;
-	  compute_tip_xy (f, parms, dx, dy, &root_x, &root_y);
-	  XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		       root_x, root_y - PIXEL_HEIGHT (f));
+	  compute_tip_xy (f, parms, dx, dy, PIXEL_WIDTH (f),
+			  PIXEL_HEIGHT (f), &root_x, &root_y);
+	  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
+			root_x, root_y, 0, 0,
+			SWP_NOSIZE | SWP_NOACTIVATE);
 	  UNBLOCK_INPUT;
 	  goto start_timer;
 	}
@@ -13463,7 +13481,7 @@ Text larger than the specified size is clipped.  */)
 
   /* Create a frame for the tooltip, and record it in the global
      variable tip_frame.  */
-  frame = x_create_tip_frame (FRAME_W32_DISPLAY_INFO (f), parms);
+  frame = x_create_tip_frame (FRAME_W32_DISPLAY_INFO (f), parms, string);
   f = XFRAME (frame);
 
   /* Set up the frame's root window.  */
@@ -13523,7 +13541,8 @@ Text larger than the specified size is clipped.  */)
       else
 	row_width = row->pixel_width;
       
-      height += row->height;
+      /* TODO: find why tips do not draw along baseline as instructed.  */
+      height += row->height * 2;
       width = max (width, row_width);
     }
 
@@ -13537,9 +13556,10 @@ Text larger than the specified size is clipped.  */)
   compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
 
   BLOCK_INPUT;
-  XMoveResizeWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		     root_x, root_y - height, width, height);
-  XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+  SetWindowPos (FRAME_W32_WINDOW (f), HWND_TOPMOST,
+		     root_x, root_y - height, width, height,
+		     SWP_NOACTIVATE);
+  my_show_window (f, FRAME_W32_WINDOW (f), SW_SHOWNORMAL);
   UNBLOCK_INPUT;
 
   /* Draw into the window.  */
@@ -14706,7 +14726,7 @@ versions of Windows) characters.  */);
 
   hourglass_atimer = NULL;
   hourglass_shown_p = 0;
-#ifdef TODO /* Tooltip support not complete.  */
+#if TEST_TOOLTIPS /* Tooltip support in progress.  */
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
 #endif
@@ -14714,6 +14734,9 @@ versions of Windows) characters.  */);
   staticpro (&tip_timer);
   tip_frame = Qnil;
   staticpro (&tip_frame);
+
+  last_show_tip_args = Qnil;
+  staticpro (&last_show_tip_args);
 
   defsubr (&Sx_file_dialog);
 }
