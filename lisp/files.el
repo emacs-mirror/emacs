@@ -551,11 +551,12 @@ colon-separated list of directories when resolving a relative directory name."
 If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.  If SUFFIXES is nil, it is equivalent to '(\"\").
 If non-nil, PREDICATE is used instead of `file-readable-p'.
-PREDICATE can also be an integer to pass to the access(2) function,
-in which case file-name-handlers are ignored (this use is deprecated).
-For compatibility with XEmacs, PREDICATE can also be a symbol among
-`executable', `readable', `writable', or `exists' or a list of one
-of those symbols."
+PREDICATE can also be an integer to pass to the `access' system call,
+in which case file-name handlers are ignored.  This usage is deprecated.
+
+For compatibility, PREDICATE can also be one of the symbols
+`executable', `readable', `writable', or `exists', or a list of
+one or more of those symbols."
   (if (and predicate (symbolp predicate) (not (functionp predicate)))
       (setq predicate (list predicate)))
   (when (and (consp predicate) (not (functionp predicate)))
@@ -768,14 +769,32 @@ documentation for additional customization information."
     (pop-to-buffer buffer t norecord)
     (raise-frame (window-frame (selected-window)))))
 
+(defun find-file-read-args (prompt)
+  (list (let ((find-file-default
+	       (and buffer-file-name
+		    (abbreviate-file-name buffer-file-name)))
+	      (minibuffer-setup-hook
+	       '((lambda ()
+		   (setq minibuffer-default find-file-default)
+		   ;; Clear out this hook so it does not interfere
+		   ;; with any recursive minibuffer usage.
+		   (setq minibuffer-setup-hook nil)))))
+	  (read-file-name prompt nil default-directory))
+	current-prefix-arg))
+
 (defun find-file (filename &optional wildcards)
   "Edit file FILENAME.
 Switch to a buffer visiting file FILENAME,
 creating one if none already exists.
+Interactively, the default if you just type RET is the current directory,
+but the visited file name is available through the minibuffer history:
+type M-n to pull it into the minibuffer.
+
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  Wildcard expansion
 can be suppressed by setting `find-file-wildcards'."
-  (interactive "FFind file: \np")
+  (interactive
+   (find-file-read-args "Find file: "))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -785,9 +804,14 @@ can be suppressed by setting `find-file-wildcards'."
   "Edit file FILENAME, in another window.
 May create a new window, or reuse an existing one.
 See the function `display-buffer'.
+
+Interactively, the default if you just type RET is the current directory,
+but the visited file name is available through the minibuffer history:
+type M-n to pull it into the minibuffer.
+
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
-  (interactive "FFind file in other window: \np")
+  (interactive (find-file-read-args "FFind file in other window: "))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -800,9 +824,14 @@ expand wildcards (if any) and visit multiple files."
   "Edit file FILENAME, in another frame.
 May create a new frame, or reuse an existing one.
 See the function `display-buffer'.
+
+Interactively, the default if you just type RET is the current directory,
+but the visited file name is available through the minibuffer history:
+type M-n to pull it into the minibuffer.
+
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
-  (interactive "FFind file in other frame: \np")
+  (interactive (find-file-read-args "FFind file in other frame: "))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -813,9 +842,9 @@ expand wildcards (if any) and visit multiple files."
 
 (defun find-file-read-only (filename &optional wildcards)
   "Edit file FILENAME but don't allow changes.
-Like `find-file' but marks buffer as read-only.
+Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only: \np")
+  (interactive (find-file-read-args "fFind file read-only: "))
   (find-file filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -824,7 +853,7 @@ Use \\[toggle-read-only] to permit editing."
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only other window: \np")
+  (interactive (find-file-read-args "fFind file read-only other window: "))
   (find-file-other-window filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -833,7 +862,7 @@ Use \\[toggle-read-only] to permit editing."
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only other frame: \np")
+  (interactive (find-file-read-args "fFind file read-only other frame: "))
   (find-file-other-frame filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
