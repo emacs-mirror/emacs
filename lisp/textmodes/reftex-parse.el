@@ -551,7 +551,7 @@ of master file."
   ;; exact (t) or approximate (nil).
 
   (let ((docstruct (symbol-value reftex-docstruct-symbol))
-        (cnt 0) rtn
+        (cnt 0) rtn rtn-if-no-other
         found)
     (save-excursion
       (while (not rtn)
@@ -591,8 +591,8 @@ of master file."
                           (setq rtn1 (car list) list nil))
                          ((looking-at (reftex-make-regexp-allow-for-ctrl-m
                                        (nth 7 (car list))))
-                          ;; Same title
-                          (setq rtn1 (car list) list nil cnt 2))))
+                          ;; Same title: remember, but keep looking
+			  (setq rtn-if-no-other (car list)))))
                     (pop list))
                   rtn1))
                ((match-end 7)
@@ -637,6 +637,10 @@ of master file."
                          (symbol-value reftex-docstruct-symbol))))
                (t
                 (error "This should not happen (reftex-where-am-I)"))))))
+    ;; Check if there was only a by-name match for the section.
+    (when (and (not rtn) rtn-if-no-other)
+      (setq rtn rtn-if-no-other
+	    cnt 2))
     (cons rtn (eq cnt 1))))
 
 (defun reftex-notice-new (&optional n force)
@@ -1002,7 +1006,12 @@ of master file."
   ;; Return a string with the current section number.
   ;; When LEVEL is non-nil, increase section numbers on that level.
   (let* ((depth (1- (length reftex-section-numbers))) idx n (string "")
-	 (appendix (get 'reftex-section-numbers 'appendix)))
+	 (appendix (get 'reftex-section-numbers 'appendix))
+	 (partspecial (and (not reftex-part-resets-chapter)
+			   (equal level 0))))
+    ;; partspecial means, this is a part statement.
+    ;; Parts do not reset the chapter counter, and the part number is
+    ;; not included in the numbering of other sectioning levels.
     (when level
       (when (and (> level -1) (not star))
         (aset reftex-section-numbers 
@@ -1010,28 +1019,52 @@ of master file."
       (setq idx (1+ level))
       (when (not star)
 	(while (<= idx depth)
-	  (aset reftex-section-numbers idx 0)
+	  (if (or (not partspecial)
+		  (not (= idx 1)))
+	      (aset reftex-section-numbers idx 0))
 	  (incf idx))))
-    (setq idx 0)
-    (while (<= idx depth)
-      (setq n (aref reftex-section-numbers idx))
-      (setq string (concat string (if (not (string= string "")) "." "")
-                           (int-to-string n)))
-      (incf idx))
-    (save-match-data
-      (if (string-match "\\`\\([@0]\\.\\)+" string)
-          (setq string (replace-match "" nil nil string)))
-      (if (string-match "\\(\\.0\\)+\\'" string)
-          (setq string (replace-match "" nil nil string)))
-      (if (and appendix
-	       (string-match "\\`[0-9]+" string))
-	  (setq string 
-		(concat
-		 (char-to-string
-		  (1- (+ ?A (string-to-int (match-string 0 string)))))
-		 (substring string (match-end 0))))))
-    (if star
-        (concat (make-string (1- (length string)) ?\ ) "*")
-      string)))
+    (if partspecial
+	(setq string (concat "Part " (reftex-roman-number
+				      (aref reftex-section-numbers 0))))
+      (setq idx (if reftex-part-resets-chapter 0 1))
+      (while (<= idx depth)
+	(setq n (aref reftex-section-numbers idx))
+	(if (not (and partspecial (not (equal string ""))))
+	    (setq string (concat string (if (not (string= string "")) "." "")
+				 (int-to-string n))))
+	(incf idx))
+      (save-match-data
+	(if (string-match "\\`\\([@0]\\.\\)+" string)
+	    (setq string (replace-match "" nil nil string)))
+	(if (string-match "\\(\\.0\\)+\\'" string)
+	    (setq string (replace-match "" nil nil string)))
+	(if (and appendix
+		 (string-match "\\`[0-9]+" string))
+	    (setq string 
+		  (concat
+		   (char-to-string
+		    (1- (+ ?A (string-to-int (match-string 0 string)))))
+		   (substring string (match-end 0))))))
+      (if star
+	  (concat (make-string (1- (length string)) ?\ ) "*")
+	string))))
+
+(defun reftex-roman-number (n)
+  ;; Return as a string the roman number equal to N.
+  (let ((nrest n)
+	(string "")
+	(list '((1000 . "M") ( 900 . "CM") ( 500 . "D") ( 400 . "CD")
+		( 100 . "C") (  90 . "XC") (  50 . "L") (  40 . "XL")
+		(  10 . "X") (   9 . "IX") (   5 . "V") (   4 . "IV")
+		(   1 . "I")))
+	listel i s)
+    (while (>= nrest 1)
+      (setq listel (pop list)
+	    i (car listel)
+	    s (cdr listel))
+      (while (>= nrest i)
+	(setq string (concat string s)
+	      nrest (- nrest i))))
+    string))
 
 ;;; reftex-parse.el ends here

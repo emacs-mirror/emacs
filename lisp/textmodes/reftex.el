@@ -327,8 +327,12 @@
   (modify-syntax-entry ?\[ "." reftex-syntax-table-for-bib)
   (modify-syntax-entry ?\] "." reftex-syntax-table-for-bib))
 
+;; The following definitions are out of place, but I need them here
+;; to make the compilation of reftex-mode not complain.
 (defvar reftex-auto-view-crossref-timer nil
   "The timer used for auto-view-crossref.")
+(defvar reftex-toc-auto-recenter-timer nil
+  "The idle timer used to recenter the toc window.")
 
 ;;;###autoload
 (defun turn-on-reftex ()
@@ -381,6 +385,10 @@ on the menu bar.
 	  (and reftex-auto-view-crossref
 	       (reftex-toggle-auto-view-crossref))
 	  (put 'reftex-auto-view-crossref 'initialized t))
+	(unless (get 'reftex-auto-recenter-toc 'initialized)
+	  (and reftex-auto-recenter-toc
+	       (reftex-toggle-auto-toc-recenter))
+	  (put 'reftex-auto-recenter-toc 'initialized t))
 
 	;; Prepare the special syntax tables.
 	(setq reftex-syntax-table (copy-syntax-table (syntax-table)))
@@ -695,8 +703,6 @@ the label information is recompiled on next use."
 (defvar reftex-callback-fwd t)
 (defvar reftex-last-toc-master nil
   "Stores the name of the tex file that `reftex-toc' was last run on.")
-(defvar reftex-auto-view-crossref-timer nil
-  "The timer used for auto-view-crossref.")
 ;; Marker for return point from recursive edit
 (defvar reftex-recursive-edit-marker (make-marker))
 
@@ -1641,14 +1647,18 @@ When DIE is non-nil, throw an error if file not found."
   "Make a fancyref \\Fref reference." t)
 (autoload 'reftex-show-label-location "reftex-ref")
 (autoload 'reftex-query-label-type "reftex-ref")
-
+(autoload 'reftex-goto-label "reftex-ref"
+  "Prompt for label name and go to that location." t)
 
 ;;; =========================================================================
 ;;;
 ;;; Table of contents
 
 (autoload 'reftex-toc "reftex-toc"
- "Show the table of contents for the current document." t)
+  "Show the table of contents for the current document." t)
+(autoload 'reftex-toc-recenter "reftex-toc"
+  "Display the TOC window and highlight line corresponding to current position." t)
+(autoload 'reftex-toggle-auto-toc-recenter "reftex-toc" t)
 
 
 ;;; =========================================================================
@@ -2313,7 +2323,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 (if (featurep 'xemacs) (require 'overlay))
 
 ;; We keep a vector with several different overlays to do our highlighting.
-(defvar reftex-highlight-overlays [nil nil])
+(defvar reftex-highlight-overlays [nil nil nil])
 
 ;; Initialize the overlays
 (aset reftex-highlight-overlays 0 (make-overlay 1 1))
@@ -2321,6 +2331,9 @@ IGNORE-WORDS List of words which should be removed from the string."
 	     'face 'highlight)
 (aset reftex-highlight-overlays 1 (make-overlay 1 1))
 (overlay-put (aref reftex-highlight-overlays 1)
+	     'face reftex-cursor-selected-face)
+(aset reftex-highlight-overlays 2 (make-overlay 1 1))
+(overlay-put (aref reftex-highlight-overlays 2)
 	     'face reftex-cursor-selected-face)
 
 ;; Two functions for activating and deactivation highlight overlays
@@ -2344,6 +2357,7 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;; The default bindings in the mode map.
 (loop for x in
       '(("\C-c="  . reftex-toc)
+	("\C-c-"  . reftex-toc-recenter)
 	("\C-c("  . reftex-label)
 	("\C-c)"  . reftex-reference)
 	("\C-c["  . reftex-citation)
@@ -2393,6 +2407,7 @@ IGNORE-WORDS List of words which should be removed from the string."
  "Menu used in RefTeX mode"
  `("Ref"
    ["Table of Contents"       reftex-toc t]
+   ["Recenter TOC"            reftex-toc-recenter t]
    "--"
    ["\\label"                 reftex-label t]
    ["\\ref"                   reftex-reference t]
@@ -2414,14 +2429,13 @@ IGNORE-WORDS List of words which should be removed from the string."
     ["Entire Document"        reftex-parse-all t]
     ["Save to File"           (reftex-access-parse-file 'write)
      (> (length (symbol-value reftex-docstruct-symbol)) 0)]
-    ["Restore from File"      (reftex-access-parse-file 'restore) t]
-    "--"
-    ["Reset RefTeX Mode"       reftex-reset-mode t])
+    ["Restore from File"      (reftex-access-parse-file 'restore) t])
    ("Global Actions"
     ["Search Whole Document"  reftex-search-document t]
     ["Replace in Document"    reftex-query-replace-document t]
     ["Grep on Document"       reftex-grep-document t]
     "--"
+    ["Goto Label"             reftex-goto-label t]
     ["Find Duplicate Labels"  reftex-find-duplicate-labels t]
     ["Change Label and Refs"  reftex-change-label t]
     ["Renumber Simple Labels" reftex-renumber-simple-labels t]
@@ -2438,6 +2452,10 @@ IGNORE-WORDS List of words which should be removed from the string."
     ["Auto-Save Parse Info"
      (setq reftex-save-parse-info (not reftex-save-parse-info))
      :style toggle :selected reftex-save-parse-info]
+    "--"
+    "TOC RECENTER"
+    ["Automatic Recenter" reftex-toggle-auto-toc-recenter
+     :style toggle :selected reftex-toc-auto-recenter-timer]
     "--"
     "CROSSREF INFO"
     ["Automatic Info" reftex-toggle-auto-view-crossref
@@ -2491,6 +2509,8 @@ IGNORE-WORDS List of words which should be removed from the string."
 		(list 'get 'reftex-docstruct-symbol 
 		      (list 'quote 'reftex-index-macros-style)))))
        reftex-index-macros-builtin))
+   "--"
+    ["Reset RefTeX Mode"       reftex-reset-mode t]
    "--"
    ("Customize"
     ["Browse RefTeX Group" reftex-customize t]

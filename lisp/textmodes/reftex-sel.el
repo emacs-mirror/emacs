@@ -89,17 +89,40 @@ During a selection process, these are the local bindings.
   ;; We do not set a local map - reftex-select-item does this.
   (run-hooks 'reftex-select-bib-mode-hook))
 
+;;; (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
+;;;   ;; Find the correct offset data, like insert-docstruct would, but faster.
+;;;   ;; Buffer BUF knows the correct docstruct to use.
+;;;   ;; Basically this finds the first docstruct entry after HERE-I-AM which
+;;;   ;; is of allowed type.  The optional arguments specify what is allowed.
+;;;   (catch 'exit
+;;;     (save-excursion
+;;;       (set-buffer buf)
+;;;       (reftex-access-scan-info)
+;;;       (let* ((rest (memq here-am-I (symbol-value reftex-docstruct-symbol)))
+;;; 	     entry)
+;;; 	(while (setq entry (pop rest))
+;;; 	  (if (or (and typekey
+;;; 		       (stringp (car entry))
+;;; 		       (or (equal typekey " ")
+;;; 			   (equal typekey (nth 1 entry))))
+;;; 		  (and toc (eq (car entry) 'toc))
+;;; 		  (and index (eq (car entry) 'index))
+;;; 		  (and file
+;;; 		       (memq (car entry) '(bof eof file-error))))
+;;; 	      (throw 'exit entry)))
+;;; 	nil))))
+
 (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
   ;; Find the correct offset data, like insert-docstruct would, but faster.
   ;; Buffer BUF knows the correct docstruct to use.
-  ;; Basically this finds the first docstruct entry after HERE-I-AM which
+  ;; Basically this finds the first docstruct entry before HERE-I-AM which
   ;; is of allowed type.  The optional arguments specify what is allowed.
   (catch 'exit
     (save-excursion
       (set-buffer buf)
       (reftex-access-scan-info)
-      (let* ((rest (memq here-am-I (symbol-value reftex-docstruct-symbol)))
-	     entry)
+      (let* ((rest (symbol-value reftex-docstruct-symbol))
+	     lastentry entry)
 	(while (setq entry (pop rest))
 	  (if (or (and typekey
 		       (stringp (car entry))
@@ -109,7 +132,9 @@ During a selection process, these are the local bindings.
 		  (and index (eq (car entry) 'index))
 		  (and file
 		       (memq (car entry) '(bof eof file-error))))
-	      (throw 'exit entry)))
+	      (setq lastentry entry))
+	  (if (eq entry here-am-I)
+	      (throw 'exit (or lastentry entry))))
 	nil))))
 
 (defun reftex-insert-docstruct
@@ -149,7 +174,7 @@ During a selection process, these are the local bindings.
 					   'font-lock-constant-face
 					   'font-lock-reference-face))
          all cell text label typekey note comment master-dir-re
-         offset from to index-tag docstruct-symbol)
+	 prev-inserted offset from to index-tag docstruct-symbol)
 
     ;; Pop to buffer buf to get the correct buffer-local variables
     (save-excursion
@@ -176,8 +201,6 @@ During a selection process, these are the local bindings.
       (incf index)
       (setq from (point))
 
-      (if (eq cell here-I-am) (setq offset 'attention))
-
       (cond
 
        ((memq (car cell) '(bib thebib label-numbers appendix
@@ -187,7 +210,8 @@ During a selection process, these are the local bindings.
        ((memq (car cell) '(bof eof file-error))
         ;; Beginning or end of a file
         (when files
-	  (if (eq offset 'attention) (setq offset cell))
+	  (setq prev-inserted cell)
+;	  (if (eq offset 'attention) (setq offset cell))
           (insert
            " File " (if (string-match master-dir-re (nth 1 cell))
                    (substring (nth 1 cell) (match-end 0))
@@ -209,7 +233,8 @@ During a selection process, these are the local bindings.
         ;; a table of contents entry
         (when (and toc
 		   (<= (nth 5 cell) reftex-toc-max-level))
-	  (if (eq offset 'attention) (setq offset cell))
+	  (setq prev-inserted cell)
+;	  (if (eq offset 'attention) (setq offset cell))
           (setq reftex-active-toc cell)
           (insert (concat toc-indent (nth 2 cell) "\n"))
 	  (setq to (point))
@@ -244,7 +269,8 @@ During a selection process, these are the local bindings.
 
           ;; Yes we want this one
           (incf cnt)
-	  (if (eq offset 'attention) (setq offset cell))
+	  (setq prev-inserted cell)
+;	  (if (eq offset 'attention) (setq offset cell))
 
 	  (setq label (concat xr-prefix label))
           (when comment (setq label (concat "% " label)))
@@ -278,7 +304,8 @@ During a selection process, these are the local bindings.
 	(when (and index-entries
 		   (or (eq t index-entries)
 		       (string= index-entries (nth 1 cell))))
-	  (if (eq offset 'attention) (setq offset cell))
+	  (setq prev-inserted cell)
+;	  (if (eq offset 'attention) (setq offset cell))
 	  (setq index-tag (format "<%s>" (nth 1 cell)))
 	  (and font
 	       (put-text-property 0 (length index-tag)
@@ -301,7 +328,13 @@ During a selection process, these are the local bindings.
 	  (when mouse-face
 	    (put-text-property from (1- to)
 			       'mouse-face mouse-face))	  
-          (goto-char to)))))
+          (goto-char to))))
+
+      (if (eq cell here-I-am) 
+	  (setq offset 'attention))
+      (if (and prev-inserted (eq offset 'attention))
+	  (setq offset prev-inserted))
+      )
 
     (when (reftex-refontify)
       ;; we need to fontify the buffer

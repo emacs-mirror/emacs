@@ -9,9 +9,9 @@
 @synindex ky cp
 @syncodeindex vr cp
 @syncodeindex fn cp
-@set VERSION 4.18
-@set EDITION 4.18
-@set DATE July 2002
+@set VERSION 4.19
+@set EDITION 4.19
+@set DATE August 2002
 @c %**end of header
 @finalout
 
@@ -409,15 +409,8 @@ contains style files which trigger appropriate settings in
 additional customizations will be necessary.@refill
 
 @item
-@b{Useful Settings}@* To make @b{Ref@TeX{}} faster for large documents,
-try these:@refill
-@lisp
-(setq reftex-enable-partial-scans t)
-(setq reftex-save-parse-info t)
-(setq reftex-use-multiple-selection-buffers t)
-@end lisp
-
-To integrate with AUCTeX, use
+@b{Useful Settings}@*
+To integrate RefTeX with AUCTeX, use
 @lisp
 (setq reftex-plug-into-AUCTeX t)
 @end lisp
@@ -528,6 +521,7 @@ mode.  See, however, the variable
 Show calling point in another window.  This is the point from where
 @code{reftex-toc} was last called.
 
+@page
 @tablesubheading{Exiting}
 @item q
 Hide the @file{*toc*} buffer, return to the position where
@@ -606,11 +600,38 @@ current document is using the @code{xr} package (@pxref{xr (LaTeX
 package)}), @b{Ref@TeX{}} will switch to one of the external
 documents.@refill
 
+@item a
+Toggle the automatic recentering of the @file{*toc*} buffer.  When this
+option is on, moving around in the document will cause the @file{*toc*}
+to always highlight the current section.  This can be enabled by default
+with the variable @code{reftex-auto-recenter-toc}.
+
 @end table
 
 @vindex reftex-toc-map
 In order to define additional commands for the @file{*toc*} buffer, the
 keymap @code{reftex-toc-map} may be used.@refill
+
+@findex reftex-toc-recenter
+@vindex reftex-auto-recenter-toc
+@vindex reftex-idle-time
+@cindex @file{*toc*} buffer, recentering
+@cindex Table of contents buffer, recentering
+@kindex C-c -
+If you call @code{reftex-toc} while the @file{*toc*} buffer already
+exists, the cursor will immediately jump to the right place, i.e. the
+section from which @code{reftex-toc} was called will be highlighted.
+The command @kbd{C-c -} (@code{reftex-toc-recenter}) will only redisplay
+the @file{*toc*} buffer and highlight the correct line without actually
+selecting the @file{*toc*} window.  This can be useful to quickly find
+out where in the document you currently are.  If you want the TOC buffer
+to show the current section automatically whenever you stop typing, try
+@lisp
+(setq reftex-auto-recenter-toc t)
+@end lisp
+When this is turned on, the toc buffer will be recentered whenever Emacs
+is idle for more than @code{reftex-idle-time} seconds.
+
 
 @cindex Sectioning commands
 @cindex KOMA-Script, LaTeX classes
@@ -1508,10 +1529,11 @@ the entries described above:
 @kindex C-c &
 @kindex S-mouse-2
 
-When point is idle on the argument of a @code{\ref} macro, the echo area
-will display some information about the label referenced there.  Note
-that the information is only displayed if the echo area is not occupied
-by a different message.  
+When point is idle for more than @code{reftex-idle-time} seconds on the
+argument of a @code{\ref} macro, the echo area will display some
+information about the label referenced there.  Note that the information
+is only displayed if the echo area is not occupied by a different
+message.
 
 @b{Ref@TeX{}} can also display the label definition corresponding to a
 @code{\ref} macro, or all reference locations corresponding to a
@@ -1808,10 +1830,10 @@ files correctly.@refill
 @findex reftex-view-crossref
 @findex reftex-mouse-view-crossref
 
-When point is idle on the argument of a @code{\cite} macro, the echo area
-will display some information about the article cited there.  Note
-that the information is only displayed if the echo area is not occupied
-by a different message.  
+When point is idle for more than @code{reftex-idle-time} seconds on the
+argument of a @code{\cite} macro, the echo area will display some
+information about the article cited there.  Note that the information is
+only displayed if the echo area is not occupied by a different message.
 
 @b{Ref@TeX{}} can also display the @code{\bibitem} or BibTeX database
 entry corresponding to a @code{\cite} macro, or all citation locations
@@ -2578,6 +2600,7 @@ entire set of options.@refill
 Here is a summary of the available key bindings.
 
 @kindex C-c =
+@kindex C-c -
 @kindex C-c (
 @kindex C-c )
 @kindex C-c [
@@ -2590,6 +2613,7 @@ Here is a summary of the available key bindings.
 @kindex C-c >
 @example
 @kbd{C-c =}      @code{reftex-toc}
+@kbd{C-c -}      @code{reftex-toc-recenter}
 @kbd{C-c (}      @code{reftex-label}
 @kbd{C-c )}      @code{reftex-reference}
 @kbd{C-c [}      @code{reftex-citation}
@@ -2839,6 +2863,11 @@ the new extension must also be known to AUCTeX via the variable
 @node Optimizations, Problems and Work-Arounds, Finding Files, Top
 @section Optimizations
 @cindex Optimizations
+
+@b{Note added 2002.  Computers have gotten a lot faster, so most of the
+optimizations discussed below will not be necessary on new machines.  I
+am leaving this stuff in the manual for people who want to write thick
+books, where some of it still might be useful.}
 
 Implementing the principle of least surprises, the default settings of
 @b{Ref@TeX{}} ensure a safe ride for beginners and casual users.  However,
@@ -3397,11 +3426,11 @@ Thanks to the people on the Net who have used @b{Ref@TeX{}} and helped
 developing it with their reports.  In particular thanks to @i{Fran
 Burstall, Alastair Burt, Lars Clausen, Soren Dayton, Stephen Eglen, Karl
 Eichwalder, Erik Frik, Erik Frisk, Peter Galbraith, Kai Grossjohann,
-Frank Harrell, Stephan Heuel, Alan Ho, Dieter Kraft, Adrian Lanz, Rory
-Molinari, Stefan Monnier, Laurent Mugnier, Sudeep Kumar Palat, Daniel
-Polani, Alan Shutko, Robin Socha, Richard Stanton, Allan Strand, Jan
-Vroonhof, Christoph Wedler, Alan Williams, Roland Winkler, Eli
-Zaretskii}.@refill
+Frank Harrell, Stephan Heuel, Alan Ho, Lute Kamstra, Dieter Kraft,
+Adrian Lanz, Rory Molinari, Stefan Monnier, Laurent Mugnier, Sudeep
+Kumar Palat, Daniel Polani, Alan Shutko, Robin Socha, Richard Stanton,
+Allan Strand, Jan Vroonhof, Christoph Wedler, Alan Williams, Roland
+Winkler, Eli Zaretskii}.@refill
 
 The @code{view-crossref} feature was inspired by @i{Peter Galbraith's}
 @file{bib-cite.el}.@refill
@@ -3543,6 +3572,13 @@ document.  With prefix arg, replace only word-delimited matches.  No
 active TAGS table is required.@refill
 @end deffn
 
+@deffn Command reftex-goto-label
+Prompt for a label (with completion) and jump to the location of this
+label.  Optional prefix argument @var{other-window} goes to the label in
+another window.
+@end deffn
+
+
 @deffn Command reftex-change-label
 Query replace @var{from} with @var{to} in all @code{\label} and
 @code{\ref} commands.  Works on the entire multifile document.  No
@@ -3636,6 +3672,23 @@ The maximum level of toc entries which will be included in the TOC.
 Section headings with a bigger level will be ignored.  In RefTeX,
 chapters are level 1, sections level 2 etc.  This variable can be
 changed from within the @file{*toc*} buffer with the @kbd{t} key.@refill
+@end defopt
+
+@defopt reftex-part-resets-chapter
+Non-@code{nil} means, @code{\part} is like any other sectioning command.
+This means, part numbers will be included in the numbering of chapters, and
+chapter counters will be reset for each part.
+When @code{nil} (the default), parts are special, do not reset the
+chapter counter and also do not show up in chapter numbers.
+@end defopt
+
+@defopt reftex-auto-recenter-toc
+Non-@code{nil} means, initially turn automatic recentering of toc on.
+When active, the @file{*TOC*} buffer will always show the section you
+are currently working in.  Recentering happens whenever Emacs is idle
+for more than `reftex-idle-time' seconds.
+This feature can be turned on and off from the menu 
+(Ref->Options).
 @end defopt
 
 @defopt reftex-toc-split-windows-horizontally
@@ -4512,17 +4565,18 @@ integer indicating which subgroup of the match should be highlighted.
 @defopt reftex-auto-view-crossref
 Non-@code{nil} means, initially turn automatic viewing of crossref info
 on.  Automatic viewing of crossref info normally uses the echo area.
-Whenever point is on the argument of a @code{\ref} or @code{\cite}
-macro, and no other message is being displayed, the echo area will
-display information about that cross reference.  You can also set the
-variable to the symbol @code{window}.  In this case a small temporary
-window is used for the display.  This feature can be turned on and of
-from the menu (Ref->Options).@refill
+Whenever point is idle for more than @code{reftex-idle-time} seconds on
+the argument of a @code{\ref} or @code{\cite} macro, and no other
+message is being displayed, the echo area will display information about
+that cross reference.  You can also set the variable to the symbol
+@code{window}.  In this case a small temporary window is used for the
+display.  This feature can be turned on and off from the menu
+(Ref->Options).@refill
 @end defopt
 
 @defopt reftex-idle-time
-Time (secs) Emacs has to be idle before automatic crossref display is
-done.@refill
+Time (secs) Emacs has to be idle before automatic crossref display 
+or toc recentering is done.@refill
 @end defopt
 
 @defopt reftex-cite-view-format
@@ -5392,7 +5446,6 @@ Files in @code{reftex-default-bibliography} will be searched along
 @item
 Reading a parse file now checks consistency.
 @end itemize
-@end ignore
 @noindent @b{Version 4.00}
 @itemize @bullet
 @item
@@ -5494,6 +5547,7 @@ Small bug fixes.
 @item
 Improved interaction with Emacs LaTeX mode.
 @end itemize
+@end ignore
 @noindent @b{Version 4.17}
 @itemize @bullet
 @item 
@@ -5521,6 +5575,31 @@ Small bug fixes.
 @item
 @code{reftex-citation} uses the word before the cursor as a default
 search string.
+@item
+Simplified several regular expressions for speed.
+@item
+Better support for chapterbib.
+@end itemize
+@noindent @b{Version 4.19}
+@itemize @bullet
+@item
+New command `reftex-toc-recenter' (@kbd{C-c -}) which shows the current
+section in the TOC buffer without selecting the TOC window.
+@item
+Recentering happens automatically in idle time when the option
+@code{reftex-auto-recenter-toc} is turned on.
+@item
+Fixed several bugs related to automatic cursor positioning in the TOC
+buffer.
+@item
+The highlight in the TOC buffer stays when the focus moves to a
+different window.
+@item
+New command `reftex-goto-label'.
+@item
+Part numbers are no longer included in chapter numbers, and a new
+part does not reset the chapter counter.  See new option
+@code{reftex-part-resets-chapter}.
 @end itemize
 
 @node Index,  , , Top

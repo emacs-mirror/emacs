@@ -421,7 +421,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 		   (reftex-offer-label-menu type)))
     (reftex-ensure-compiled-variables)
     (set-marker reftex-select-return-marker nil)
-    ;; If the first entry is the symbol 'concat, concat all all labels.
+    ;; If the first entry is the symbol 'concat, concat all labels.
     ;; We keep the cdr of the first label for typekey etc information.
     (if (eq (car labels) 'concat)
 	(setq labels (list (list (mapconcat 'car (cdr labels) ",")
@@ -801,5 +801,37 @@ When called with 2 C-u prefix args, disable magic word recognition."
   (format "\\Fref{%s}" label))
 (defun reftex-format-fref (label def-fmt)
   (format "\\fref{%s}" label))
+
+
+;(defun reftex-goto-label ()
+;  (interactive)
+;  (reftex-access-scan-info)
+;  (let* ((docstruct (symbol-value reftex-docstruct-symbol))
+;	 (label (completing-read "Label: " docstruct
+;				 (lambda (x) (stringp (car x))) t))
+;	 (selection (assoc label docstruct)))
+;    (reftex-show-label-location selection t nil 'stay)
+;    (reftex-unhighlight 0)))
+
+(defun reftex-goto-label (&optional other-window)
+  "Prompt for a label (with completion) and jump to the location of this label.
+Optional prefix argument OTHER-WINDOW goes to the label in another window."
+  (interactive "P")
+  (reftex-access-scan-info)
+  (let* ((wcfg (current-window-configuration))
+	 (docstruct (symbol-value reftex-docstruct-symbol))
+	 (label (completing-read "Label: " docstruct
+				 (lambda (x) (stringp (car x))) t))
+	 (selection (assoc label docstruct))
+	 (where (progn
+		  (reftex-show-label-location selection t nil 'stay)
+		  (point-marker))))
+    (unless other-window
+      (set-window-configuration wcfg)
+      (switch-to-buffer (marker-buffer where))
+      (goto-char where))      
+    (reftex-unhighlight 0)))
+
+
 
 ;;; reftex-ref.el ends here

@@ -265,6 +265,26 @@ This variable can be changed from within the *toc* buffer with the `t' key."
   :group 'reftex-table-of-contents-browser
   :type 'integer)
 
+(defcustom reftex-part-resets-chapter nil
+  "*Non-nil means, \\part is like any other sectioning command.
+This means, part numbers will be included in the numbering of chapters, and
+chapter counters will be reset for each part.
+When nil (the default), parts are special, do not reset the chapter counter
+and also do not show up in chapter numbers."
+  :group 'reftex-table-of-contents-browser
+  :type 'boolean)
+
+
+(defcustom reftex-auto-recenter-toc nil
+  "*Non-nil means, initially turn automatic recentering of toc on.
+When active, the *TOC* buffer will always show the section you
+are currently working in.  Recentering happens whenever Emacs is idle for
+more than `reftex-idle-time' seconds.
+This feature can be turned on and off from the menu 
+(Ref->Options)."
+  :group 'reftex-table-of-contents-browser
+  :type 'boolean)
+
 (defcustom reftex-toc-split-windows-horizontally nil
   "*Non-nil means, create TOC window by splitting window horizontally."
   :group 'reftex-table-of-contents-browser
@@ -1298,12 +1318,12 @@ which subgroup of the match should be highlighted."
 (defcustom reftex-auto-view-crossref t
   "*Non-nil means, initially turn automatic viewing of crossref info on.
 Automatic viewing of crossref info normally uses the echo area.
-Whenever point is on the argument of a \\ref or \\cite macro, and no
-other message is being displayed, the echo area will display
-information about that cross reference.  You can also set the variable
-to the symbol `window'.  In this case a small temporary window is
-used for the display.
-This feature can be turned on and of from the menu 
+Whenever point is idle for more than `reftex-idle-time' seconds on the
+argument of a \\ref or \\cite macro, and no other message is being
+displayed, the echo area will display information about that cross
+reference.  You can also set the variable to the symbol `window'.  In
+this case a small temporary window is used for the display.
+This feature can be turned on and off from the menu 
 (Ref->Options)."
   :group 'reftex-viewing-cross-references
   :type '(choice (const :tag "off" nil)
@@ -1311,7 +1331,8 @@ This feature can be turned on and of from the menu
 		 (const :tag "in Other Window" window)))
 
 (defcustom reftex-idle-time 1.2
-  "*Time (secs) Emacs has to be idle before automatic crossref display is done."
+  "*Time (secs) Emacs has to be idle before automatic crossref display is done.
+Applies also to toc recentering."
   :group 'reftex-viewing-cross-references
   :type 'number)
 

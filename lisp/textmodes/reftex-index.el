@@ -30,9 +30,11 @@
 (require 'reftex)
 ;;;
 
+;; START remove for XEmacs release
 (defvar mark-active)
 (defvar zmacs-regions)
 (defvar transient-mark-mode)
+;; END remove for XEmacs release
 (defun reftex-index-selection-or-word (&optional arg phrase)
   "Put selection or the word near point into the default index macro.
 This uses the information in `reftex-index-default-macro' to make an index
