@@ -8,7 +8,6 @@
 	* emulation/cua-base.el (cua-set-mark): 
 	Check pop-global-mark-quick-repeat.
 
-
 2003-03-24  John Paul Wallington  <jpw@gnu.org>
 
 	* emerge.el (emerge-show-file-name): Read event irrespective of
