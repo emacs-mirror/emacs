@@ -19,17 +19,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* Ability to read images from memory instead of a file added by
-   William Perry <wmperry@gnu.org> */
-
-/* Image support (XBM, XPM, PBM, JPEG, TIFF, GIF, PNG, GS). tooltips,
-   tool-bars, busy-cursor, file selection dialog added by Gerd
-   Moellmann <gerd@gnu.org>.  */
-
-/* Completely rewritten by Richard Stallman.  */
-
-/* Rewritten for X11 by Joseph Arceneaux */
-
 #include <config.h>
 #include <signal.h>
 #include <stdio.h>
@@ -57,6 +46,8 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_X_WINDOWS
 
 #include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 /* On some systems, the character-composition stuff is broken in X11R5.  */
 
@@ -7599,7 +7590,7 @@ x_build_heuristic_mask (f, file, img, how)
 
 static int pbm_image_p P_ ((Lisp_Object object));
 static int pbm_load P_ ((struct frame *f, struct image *img));
-static int pbm_scan_number P_ ((FILE *fp));
+static int pbm_scan_number P_ ((unsigned char **, unsigned char *));
 
 /* The symbol `pbm' identifying images of this type.  */
 
@@ -7611,6 +7602,7 @@ enum pbm_keyword_index
 {
   PBM_TYPE,
   PBM_FILE,
+  PBM_DATA,
   PBM_ASCENT,
   PBM_MARGIN,
   PBM_RELIEF,
@@ -7625,7 +7617,8 @@ enum pbm_keyword_index
 static struct image_keyword pbm_format[PBM_LAST] =
 {
   {":type",		IMAGE_SYMBOL_VALUE,			1},
-  {":file",		IMAGE_STRING_VALUE,			1},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":data",		IMAGE_STRING_VALUE,			0},
   {":ascent",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
   {":margin",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
   {":relief",		IMAGE_INTEGER_VALUE,			0},
@@ -7659,36 +7652,39 @@ pbm_image_p (object)
       || (fmt[PBM_ASCENT].count 
 	  && XFASTINT (fmt[PBM_ASCENT].value) > 100))
     return 0;
-  return 1;
+
+  /* Must specify either :data or :file.  */
+  return fmt[PBM_DATA].count + fmt[PBM_FILE].count == 1;
 }
 
 
-/* Scan a decimal number from PBM input file FP and return it.  Value
-   is -1 at end of file or if an error occurs.  */
+/* Scan a decimal number from *S and return it.  Advance *S while
+   reading the number.  END is the end of the string.  Value is -1 at
+   end of input.  */
 
 static int
-pbm_scan_number (fp)
-     FILE *fp;
+pbm_scan_number (s, end)
+     unsigned char **s, *end;
 {
   int c, val = -1;
 
-  while (!feof (fp))
+  while (*s < end)
     {
       /* Skip white-space.  */
-      while ((c = fgetc (fp)) != EOF && isspace (c))
+      while (*s < end && (c = *(*s)++, isspace (c)))
 	;
 
       if (c == '#')
 	{
 	  /* Skip comment to end of line.  */
-	  while ((c = fgetc (fp)) != EOF && c != '\n')
+	  while (*s < end && (c = *(*s)++, c != '\n'))
 	    ;
 	}
       else if (isdigit (c))
 	{
 	  /* Read decimal number.  */
 	  val = c - '0';
-	  while ((c = fgetc (fp)) != EOF && isdigit (c))
+	  while (*s < end && (c = *(*s)++, isdigit (c)))
 	    val = 10 * val + c - '0';
 	  break;
 	}
@@ -7700,6 +7696,42 @@ pbm_scan_number (fp)
 }
 
 
+/* Read FILE into memory.  Value is a pointer to a buffer allocated
+   with xmalloc holding FILE's contents.  Value is null if an error
+   occured.  *SIZE is set to the size of the file.  */
+
+static char *
+pbm_read_file (file, size)
+     Lisp_Object file;
+     int *size;
+{
+  FILE *fp = NULL;
+  char *buf = NULL;
+  struct stat st;
+
+  if (stat (XSTRING (file)->data, &st) == 0
+      && (fp = fopen (XSTRING (file)->data, "r")) != NULL
+      && (buf = (char *) xmalloc (st.st_size),
+	  fread (buf, 1, st.st_size, fp) == st.st_size))
+    {
+      *size = st.st_size;
+      fclose (fp);
+    }
+  else
+    {
+      if (fp)
+	fclose (fp);
+      if (buf)
+	{
+	  xfree (buf);
+	  buf = NULL;
+	}
+    }
+  
+  return buf;
+}
+
+
 /* Load PBM image IMG for use on frame F.  */
 
 static int 
@@ -7707,50 +7739,60 @@ pbm_load (f, img)
      struct frame *f;
      struct image *img;
 {
-  FILE *fp;
-  char magic[2];
   int raw_p, x, y;
   int width, height, max_color_idx = 0;
   XImage *ximg;
   Lisp_Object file, specified_file;
   enum {PBM_MONO, PBM_GRAY, PBM_COLOR} type;
   struct gcpro gcpro1;
+  unsigned char *contents = NULL;
+  unsigned char *end, *p;
+  int size;
 
   specified_file = image_spec_value (img->spec, QCfile, NULL);
-  file = x_find_image_file (specified_file);
+  file = Qnil;
   GCPRO1 (file);
-  if (!STRINGP (file))
+
+  if (STRINGP (specified_file))
     {
-      image_error ("Cannot find image file %s", specified_file, Qnil);
+      file = x_find_image_file (specified_file);
+      if (!STRINGP (file))
+	{
+	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+
+      contents = pbm_read_file (file, &size);
+      if (contents == NULL)
+	{
+	  image_error ("Error reading `%s'", file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+
+      p = contents;
+      end = contents + size;
+    }
+  else
+    {
+      Lisp_Object data;
+      data = image_spec_value (img->spec, QCdata, NULL);
+      p = XSTRING (data)->data;
+      end = p + STRING_BYTES (XSTRING (data));
+    }
+
+  /* Check magic number.  */
+  if (end - p < 2 || *p++ != 'P')
+    {
+      image_error ("Not a PBM image: %s", file, Qnil);
+    error:
+      xfree (contents);
       UNGCPRO;
       return 0;
     }
 
-  fp = fopen (XSTRING (file)->data, "r");
-  if (fp == NULL)
-    {
-      UNGCPRO;
-      return 0;
-    }
-
-  /* Read first two characters.  */
-  if (fread (magic, sizeof *magic, 2, fp) != 2)
-    {
-      fclose (fp);
-      image_error ("Not a PBM image file: %s", file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
-
-  if (*magic != 'P')
-    {
-      fclose (fp);
-      image_error ("Not a PBM image file: %s", file, Qnil);
-      UNGCPRO;
-      return 0;
-    }
-
-  switch (magic[1])
+  switch (*p++)
     {
     case '1':
       raw_p = 0, type = PBM_MONO;
@@ -7777,40 +7819,33 @@ pbm_load (f, img)
       break;
 
     default:
-      fclose (fp);
-      image_error ("Not a PBM image file: %s", file, Qnil);
-      UNGCPRO;
-      return 0;
+      image_error ("Not a PBM image: %s", file, Qnil);
+      goto error;
     }
 
   /* Read width, height, maximum color-component.  Characters
      starting with `#' up to the end of a line are ignored.  */
-  width = pbm_scan_number (fp);
-  height = pbm_scan_number (fp);
+  width = pbm_scan_number (&p, end);
+  height = pbm_scan_number (&p, end);
 
   if (type != PBM_MONO)
     {
-      max_color_idx = pbm_scan_number (fp);
+      max_color_idx = pbm_scan_number (&p, end);
       if (raw_p && max_color_idx > 255)
 	max_color_idx = 255;
     }
   
-  if (width < 0 || height < 0
+  if (width < 0
+      || height < 0
       || (type != PBM_MONO && max_color_idx < 0))
-    {
-      fclose (fp);
-      UNGCPRO;
-      return 0;
-    }
+    goto error;
 
   BLOCK_INPUT;
   if (!x_create_x_image_and_pixmap (f, file, width, height, 0,
 				    &ximg, &img->pixmap))
     {
-      fclose (fp);
       UNBLOCK_INPUT;
-      UNGCPRO;
-      return 0;
+      goto error;
     }
   
   /* Initialize the color hash table.  */
@@ -7826,12 +7861,12 @@ pbm_load (f, img)
 	    if (raw_p)
 	      {
 		if ((x & 7) == 0)
-		  c = fgetc (fp);
+		  c = *p++;
 		g = c & 0x80;
 		c <<= 1;
 	      }
 	    else
-	      g = pbm_scan_number (fp);
+	      g = pbm_scan_number (&p, end);
 
 	    XPutPixel (ximg, x, y, (g
 				    ? FRAME_FOREGROUND_PIXEL (f)
@@ -7846,31 +7881,29 @@ pbm_load (f, img)
 	    int r, g, b;
 	    
 	    if (type == PBM_GRAY)
-	      r = g = b = raw_p ? fgetc (fp) : pbm_scan_number (fp);
+	      r = g = b = raw_p ? *p++ : pbm_scan_number (&p, end);
 	    else if (raw_p)
 	      {
-		r = fgetc (fp);
-		g = fgetc (fp);
-		b = fgetc (fp);
+		r = *p++;
+		g = *p++;
+		b = *p++;
 	      }
 	    else
 	      {
-		r = pbm_scan_number (fp);
-		g = pbm_scan_number (fp);
-		b = pbm_scan_number (fp);
+		r = pbm_scan_number (&p, end);
+		g = pbm_scan_number (&p, end);
+		b = pbm_scan_number (&p, end);
 	      }
 	    
 	    if (r < 0 || g < 0 || b < 0)
 	      {
-		fclose (fp);
 		xfree (ximg->data);
 		ximg->data = NULL;
 		XDestroyImage (ximg);
 		UNBLOCK_INPUT;
 		image_error ("Invalid pixel value in file `%s'",
 			     file, Qnil);
-		UNGCPRO;
-		return 0;
+		goto error;
 	      }
 	    
 	    /* RGB values are now in the range 0..max_color_idx.
@@ -7882,8 +7915,6 @@ pbm_load (f, img)
 	  }
     }
   
-  fclose (fp);
-
   /* Store in IMG->colors the colors allocated for the image, and
      free the color table.  */
   img->colors = colors_in_color_table (&img->ncolors);
@@ -7898,6 +7929,7 @@ pbm_load (f, img)
   img->height = height;
 
   UNGCPRO;
+  xfree (contents);
   return 1;
 }
 
@@ -7976,10 +8008,8 @@ png_image_p (object)
 	  && XFASTINT (fmt[PNG_ASCENT].value) > 100))
     return 0;
 
-  /* Must specify either the :data or :file keyword.  This should
-     probably be moved up into parse_image_spec, since it seems to be
-     a general requirement. */
-  return fmt[PNG_FILE].count || fmt[PNG_DATA].count;
+  /* Must specify either the :data or :file keyword.  */
+  return fmt[PNG_FILE].count + fmt[PNG_DATA].count == 1;
 }
 
 
@@ -8465,10 +8495,8 @@ jpeg_image_p (object)
 	  && XFASTINT (fmt[JPEG_ASCENT].value) > 100))
     return 0;
 
-  /* Must specify either the :data or :file keyword.  This should
-     probably be moved up into parse_image_spec, since it seems to be
-     a general requirement. */
-  return fmt[JPEG_FILE].count || fmt[JPEG_DATA].count;
+  /* Must specify either the :data or :file keyword.  */
+  return fmt[JPEG_FILE].count + fmt[JPEG_DATA].count == 1;
 }
 
 
@@ -8830,10 +8858,8 @@ tiff_image_p (object)
 	  && XFASTINT (fmt[TIFF_ASCENT].value) > 100))
     return 0;
   
-  /* Must specify either the :data or :file keyword.  This should
-     probably be moved up into parse_image_spec, since it seems to be
-     a general requirement.  */
-  return fmt[TIFF_FILE].count || fmt[TIFF_DATA].count;
+  /* Must specify either the :data or :file keyword.  */
+  return fmt[TIFF_FILE].count + fmt[TIFF_DATA].count == 1;
 }
 
 
@@ -9154,10 +9180,8 @@ gif_image_p (object)
 	  && XFASTINT (fmt[GIF_ASCENT].value) > 100))
     return 0;
   
-  /* Must specify either the :data or :file keyword.  This should
-     probably be moved up into parse_image_spec, since it seems to be
-     a general requirement.  */
-  return fmt[GIF_FILE].count || fmt[GIF_DATA].count;
+  /* Must specify either the :data or :file keyword.  */
+  return fmt[GIF_FILE].count + fmt[GIF_DATA].count == 1;
 }
 
 /* Reading a GIF image from memory
