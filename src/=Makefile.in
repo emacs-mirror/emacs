@@ -21,7 +21,7 @@ CPP = $(CC) -E -Is -Im
 # Just to avoid uncertainty.
 SHELL = /bin/sh
 
-SUBMAKEFLAGS = CC='${CC}' LN_S='${LN_S}' CFLAGS='${CFLAGS}'
+SUBMAKEFLAGS = CC='${CC}' LN_S='${LN_S}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
 
 all: doall
 
