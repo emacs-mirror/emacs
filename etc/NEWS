@@ -1598,6 +1598,14 @@ candidate is a directory.
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
 
+** Visual feedback of *Completions* buffer is enhanced.
+Faces are put on the common prefix substrings and the first uncommon
+charachters of each completion candidate in the *Completions* buffer.
+`completion-de-emphasis' is put on the common prefix substrings as the
+face; and `completion-emphasis' is put on the first uncommon
+charachters. By default `completion-de-emphasis' is inherited from
+`default' face. `completion-emphasis' is inherited from `bold' face.
+
 +++
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
