@@ -127,9 +127,9 @@
 
 ;; These are meaningless when running under X.
 (put 'set-terminal-coding-system 'menu-enable
-     '(null window-system))
+     '(not (eq window-system 'x)))
 (put 'set-keyboard-coding-system 'menu-enable
-     '(null window-system))
+     '(not (eq window-system 'x)))
 ;; This is meaningless when the current buffer has no process.
 (put 'set-buffer-process-coding-system 'menu-enable
      '(get-buffer-process (current-buffer)))
