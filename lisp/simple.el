@@ -1,6 +1,6 @@
 ;;; simple.el --- basic editing commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -1291,6 +1291,9 @@ When the `track-eol' feature is doing its job, the value is 9999.")
   (move-to-column (or goal-column temporary-goal-column))
   nil)
 
+;;; Many people have said they rarely use this feature, and often type
+;;; it by accident.  Maybe it shouldn't even be on a key.
+(put 'set-goal-column 'disabled t)
 
 (defun set-goal-column (arg)
   "Set the current horizontal position as a goal for \\[next-line] and \\[previous-line].
