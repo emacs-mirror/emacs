@@ -567,14 +567,38 @@ buffers that currently exist in your Emacs job, type
 
 >> Try C-x C-b now.
 
-See how each buffer has a name, and it may also have a file name
-for the file whose contents it holds.  Some buffers do not correspond
-to files.  For example, the buffer named "*Buffer List*" does
-not have any file.  It is the buffer which contains the buffer
-list that was made by C-x C-b.  ANY text you see in an Emacs window
+See how each buffer has a name, and it may also have a file name for
+the file whose contents it holds.  ANY text you see in an Emacs window
 is always part of some buffer.
 
 >> Type C-x 1 to get rid of the buffer list.
+
+When you have several buffers, only of of them is "current" at any
+time.  That buffer is the one you edit.  If you want to edit another
+buffer, you need to "switch" to it.  If you want to switch to a buffer
+that corresponds to a file, you can do it by visiting the file again
+with C-x C-f.  But there is an easier way: use the C-x b command.
+In that command, you have to type the buffer's name.
+
+>> Type C-x b foo <Return> to go back to the buffer "foo" which holds
+   the text of the file "foo".  Then type C-x b TUTORIAL <Return>
+   to come back to this tutorial.
+
+Most of the time, the buffer's name is the same as the file name
+(without the file directory part).  However, this is not always true.
+The buffer list you make with C-x C-b always shows you the name of
+every buffer.
+
+ANY text you see in an Emacs window is always part of some buffer.
+Some buffers do not correspond to files.  For example, the buffer
+named "*Buffer List*" does not have any file.  It is the buffer which
+contains the buffer list that you made with C-x C-b.  The buffer named
+"*Messages*" also does not correspond to any file; it contains the
+messages that have appeared on the bottom line during your Emacs
+session.
+
+>> Type C-x b *Messages* <Return> to look at the buffer of messages.
+   Then type C-b TUTORIAL <Return> to come back to this tutorial.
 
 If you make changes to the text of one file, then find another file,
 this does not save the first file.  Its changes remain inside Emacs,
