@@ -1096,6 +1096,7 @@ otherwise pop it")
   ;; Returns non-nil if FORM is a constant.
   (` (cond ((consp (, form)) (eq (car (, form)) 'quote))
 	   ((not (symbolp (, form))))
+	   ((keywordp (, form)))
 	   ((memq (, form) '(nil t))))))
 
 (defmacro byte-compile-close-variables (&rest body)
