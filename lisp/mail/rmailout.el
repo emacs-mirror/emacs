@@ -30,6 +30,7 @@
 (defvar rmail-output-file-alist nil
   "*Alist matching regexps to suggested output Rmail files.
 This is a list of elements of the form (REGEXP . NAME-EXP).
+The suggestion is taken if REGEXP matches anywhere in the message buffer.
 NAME-EXP may be a string constant giving the file name to use,
 or more generally it may be any kind of expression that returns
 a file name as a string.")
