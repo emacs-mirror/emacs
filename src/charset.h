@@ -634,6 +634,34 @@ else
    ? 1							\
    : multibyte_form_length (str, len))
 
+/* If P is before LIMIT, advance P to the next character boundary.  It
+   assumes that P is already at a character boundary of the sane
+   mulitbyte form whose end address is LIMIT.  */
+
+#define NEXT_CHAR_BOUNDARY(p, limit)	\
+  do {					\
+    if ((p) < (limit))			\
+      (p) += BYTES_BY_CHAR_HEAD (*(p));	\
+  } while (0)
+
+
+/* If P is after LIMIT, advance P to the previous character boundary.
+   It assumes that P is already at a character boundary of the sane
+   mulitbyte form whose beginning address is LIMIT.  */
+
+#define PREV_CHAR_BOUNDARY(p, limit)					\
+  do {									\
+    if ((p) > (limit))							\
+      {									\
+	const unsigned char *p0 = (p);					\
+	do {								\
+	  p0--;								\
+	} while (p0 >= limit && ! CHAR_HEAD_P (*p0));			\
+	(p) = (BYTES_BY_CHAR_HEAD (*p0) == (p) - p0) ? p0 : (p) - 1;	\
+      }									\
+  } while (0)
+
+
 #ifdef emacs
 
 /* Increase the buffer byte position POS_BYTE of the current buffer to
