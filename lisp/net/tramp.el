@@ -117,6 +117,7 @@
 ;; syntax on XEmacs is that EFS hooks into XEmacs in many places, but
 ;; Tramp only knows how to deal with `file-name-handler-alist', not
 ;; the other places.
+;;;###autoload
 (defvar tramp-unified-filenames (not (featurep 'xemacs))
   "Non-nil means to use unified Ange-FTP/Tramp filename syntax.
 Nil means to use a separate filename syntax for Tramp.")
