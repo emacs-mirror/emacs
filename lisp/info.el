@@ -1192,18 +1192,22 @@ If FORK is a string, it is the name to use for the new buffer."
 				      (progn (search-forward "\n\^_")
 					     (1- (point))))
 		    (goto-char (point-min))
+		    ;; Find the subfile we just searched.
 		    (search-forward (concat "\n" osubfile ": "))
-		    (beginning-of-line)
+		    ;; Skip that one.
+		    (forward-line 1)
+		    ;; Make a list of all following subfiles.
+		    ;; Each elt has the form (VIRT-POSITION . SUBFILENAME).
 		    (while (not (eobp))
 		      (re-search-forward "\\(^.*\\): [0-9]+$")
 		      (goto-char (+ (match-end 1) 2))
-		      (setq list (cons (cons (read (current-buffer))
+		      (setq list (cons (cons (+ (point-min)
+						(read (current-buffer)))
 					     (match-string-no-properties 1))
 				       list))
 		      (goto-char (1+ (match-end 0))))
-		    (setq list (nreverse list)
-			  current (car (car list))
-			  list (cdr list))))
+		    ;; Put in forward order
+		    (setq list (nreverse list))))
 		(while list
 		  (message "Searching subfile %s..." (cdr (car list)))
 		  (Info-read-subfile (car (car list)))
