@@ -2164,6 +2164,9 @@ scan_lists (from, count, depth, sexpflag)
 	      INC_BOTH (from, from_byte);
 	      if (!depth && sexpflag) goto done;
 	      break;
+	    default:
+	      /* Ignore whitespace, punctuation, quote, endcomment.  */
+	      break;
 	    }
 	}
 
@@ -2211,7 +2214,10 @@ scan_lists (from, count, depth, sexpflag)
 	     into a word character.  Note that this cannot be true
 	     if we decremented FROM in the if-statement above.  */
 	  if (code != Sendcomment && char_quoted (from, from_byte))
-	    code = Sword;
+	    {
+	      DEC_BOTH (from, from_byte);
+	      code = Sword;
+	    }
 	  else if (SYNTAX_PREFIX (c))
 	    continue;
 
@@ -2331,6 +2337,9 @@ scan_lists (from, count, depth, sexpflag)
 		}
 	      DEC_BOTH (from, from_byte);
 	      if (!depth && sexpflag) goto done2;
+	      break;
+	    default:
+	      /* Ignore whitespace, punctuation, quote, endcomment.  */
 	      break;
 	    }
 	}
@@ -2675,6 +2684,7 @@ do { prev_from = from;				\
 	  curlevel->prev = curlevel->last;
 	  break;
 
+	case Scomment_fence: /* Can't happen because it's handled above.  */
 	case Scomment:
 	  if (commentstop || boundary_stop) goto done;
 	startincomment:
@@ -2770,6 +2780,10 @@ do { prev_from = from;				\
 	  break;
 
 	case Smath:
+	  /* FIXME: We should do something with it.  */
+	  break;
+	default:
+	  /* Ignore whitespace, punctuation, quote, endcomment.  */
 	  break;
 	}
     }
