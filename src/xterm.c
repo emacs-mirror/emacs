@@ -9997,7 +9997,8 @@ XTread_socket (sd, bufp, numchars, expected)
 			       &event);
 	      else
 		{
-		  XSelectionRequestEvent *eventp = (XSelectionRequestEvent *) &event;
+		  XSelectionRequestEvent *eventp
+		    = (XSelectionRequestEvent *) &event;
 
 		  if (numchars == 0)
 		    abort ();
@@ -10019,12 +10020,16 @@ XTread_socket (sd, bufp, numchars, expected)
 	      break;
 
 	    case PropertyNotify:
-#ifdef USE_X_TOOLKIT
+#if 0 /* This is plain wrong.  In the case that we are waiting for a
+	 PropertyNotify used as an ACK in incremental selection
+	 transfer, the property will be on the receiver's window.  */
+#if defined USE_X_TOOLKIT
 	      if (!x_any_window_to_frame (dpyinfo, event.xproperty.window))
 		goto OTHER;
-#endif /* not USE_X_TOOLKIT */
+#endif
+#endif
 	      x_handle_property_notify (&event.xproperty);
-	      break;
+	      goto OTHER;
 
 	    case ReparentNotify:
 	      f = x_top_window_to_frame (dpyinfo, event.xreparent.window);
