@@ -1,3 +1,7 @@
+2003-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h: Removed xg_ignore_next_thumb.
+
 2003-03-18  Kenichi Handa  <handa@etlken2>
 
 	* coding.c (Vchar_coding_system_table): Remove this variable.

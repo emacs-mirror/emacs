@@ -198,11 +198,6 @@ extern void xg_initialize P_ ((void));
    to indicate that the callback should do nothing.  */
 extern int xg_ignore_gtk_scrollbar;
 
-/* After we send a scroll bar event,  x_set_toolkit_scroll_bar_thumb will
-   be called.  For some reason that needs to be debugged, it gets called
-   with bad values.  Thus, we set this variable to ignore those calls.  */
-extern int xg_ignore_next_thumb;
-
 /* If a detach of a menu is done, this is the menu widget that got
    detached.  Must be set to NULL before popping up popup menus.
    Used with xg_keep_popup to delay deleting popup menus when they
