@@ -432,8 +432,9 @@ split_interval_left (interval, offset)
 }
 
 /* Find the interval containing text position POSITION in the text
-   represented by the interval tree TREE.  POSITION is relative to
-   the beginning of that text.
+   represented by the interval tree TREE.  POSITION is a buffer
+   position; the earliest position is 1.  If POSITION is at the end of
+   the buffer, return the interval containing the last character.
 
    The `position' field, which is a cache of an interval's position,
    is updated in the interval found.  Other functions (e.g., next_interval)
@@ -444,25 +445,25 @@ find_interval (tree, position)
      register INTERVAL tree;
      register int position;
 {
-  register int relative_position = position;
+  /* The distance from the left edge of the subtree at TREE
+                    to POSITION.  */
+  register int relative_position = position - BEG;
 
   if (NULL_INTERVAL_P (tree))
     return NULL_INTERVAL;
 
-  if (position > TOTAL_LENGTH (tree))
+  if (relative_position > TOTAL_LENGTH (tree))
     abort ();			/* Paranoia */
-#if 0
-    position = TOTAL_LENGTH (tree);
-#endif
 
   while (1)
     {
-      if (relative_position <= LEFT_TOTAL_LENGTH (tree))
+      if (relative_position < LEFT_TOTAL_LENGTH (tree))
 	{
 	  tree = tree->left;
 	}
-      else if (relative_position > (TOTAL_LENGTH (tree)
-				    - RIGHT_TOTAL_LENGTH (tree)))
+      else if (! NULL_RIGHT_CHILD (tree)
+	       && relative_position >= (TOTAL_LENGTH (tree)
+					- RIGHT_TOTAL_LENGTH (tree)))
 	{
 	  relative_position -= (TOTAL_LENGTH (tree)
 				- RIGHT_TOTAL_LENGTH (tree));
@@ -470,8 +471,10 @@ find_interval (tree, position)
 	}
       else
 	{
-	  tree->position = LEFT_TOTAL_LENGTH (tree)
-	                   + position - relative_position + 1;
+	  tree->position =
+	    (position - relative_position /* the left edge of *tree */
+	     + LEFT_TOTAL_LENGTH (tree)); /* the left edge of this interval */
+
 	  return tree;
 	}
     }
@@ -639,16 +642,16 @@ adjust_intervals_for_insertion (tree, position, length)
   if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
     abort ();
 
-  /* If inserting at point-max of a buffer, that position
-     will be out of range. */
-  if (position > TOTAL_LENGTH (tree))
-    position = TOTAL_LENGTH (tree);
+  /* If inserting at point-max of a buffer, that position will be out
+     of range.  Remember that buffer positions are 1-based.  */
+  if (position > BEG + TOTAL_LENGTH (tree))
+    position = BEG + TOTAL_LENGTH (tree);
 
   i = find_interval (tree, position);
   /* If we are positioned between intervals, check the stickiness of
      both of them. */
   if (position == i->position
-      && position != 1)
+      && position != BEG)
     {
       register INTERVAL prev = previous_interval (i);
 
@@ -747,11 +750,14 @@ delete_interval (i)
     }
 }
 
-/* Find the interval in TREE corresponding to the character position FROM
-   and delete as much as possible of AMOUNT from that interval, starting
-   after the relative position of FROM within it.  Return the amount
-   actually deleted, and if the interval was zeroed-out, delete that
-   interval node from the tree.
+/* Find the interval in TREE corresponding to the relative position
+   FROM and delete as much as possible of AMOUNT from that interval.
+   Return the amount actually deleted, and if the interval was
+   zeroed-out, delete that interval node from the tree.
+
+   Note that FROM is actually origin zero, aka relative to the
+   leftmost edge of tree.  This is appropriate since we call ourselves
+   recursively on subtrees.
 
    Do this by recursing down TREE to the interval in question, and
    deleting the appropriate amount of text. */
@@ -767,7 +773,7 @@ interval_deletion_adjustment (tree, from, amount)
     return 0;
 
   /* Left branch */
-  if (relative_position <= LEFT_TOTAL_LENGTH (tree))
+  if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
       int subtract = interval_deletion_adjustment (tree->left,
 						   relative_position,
@@ -776,8 +782,8 @@ interval_deletion_adjustment (tree, from, amount)
       return subtract;
     }
   /* Right branch */
-  else if (relative_position > (TOTAL_LENGTH (tree)
-				- RIGHT_TOTAL_LENGTH (tree)))
+  else if (relative_position >= (TOTAL_LENGTH (tree)
+				 - RIGHT_TOTAL_LENGTH (tree)))
     {
       int subtract;
 
@@ -792,55 +798,28 @@ interval_deletion_adjustment (tree, from, amount)
   /* Here -- this node */
   else
     {
-      /* If this is a zero-length, marker interval, then
-	 we must skip it. */
+      /* How much can we delete from this interval?  */
+      int my_amount = ((tree->total_length 
+			- RIGHT_TOTAL_LENGTH (tree))
+		       - relative_position);
 
-      if (relative_position == LEFT_TOTAL_LENGTH (tree) + 1)
-	{
-	  /* This means we're deleting from the beginning of this interval. */
-	  register int my_amount = LENGTH (tree);
+      if (amount > my_amount)
+	amount = my_amount;
 
-	  if (amount < my_amount)
-	    {
-	      tree->total_length -= amount;
-	      return amount;
-	    }
-	  else
-	    {
-	      tree->total_length -= my_amount;
-	      if (LENGTH (tree) != 0)
-		abort ();	/* Paranoia */
-
-	      delete_interval (tree);
-	      return my_amount;
-	    }
-	}
-      else			/* Deleting starting in the middle. */
-	{
-	  register int my_amount = ((tree->total_length
-				     - RIGHT_TOTAL_LENGTH (tree))
-				    - relative_position + 1);
-
-	  if (amount <= my_amount)
-	    {
-	      tree->total_length -= amount;
-	      return amount;
-	    }
-	  else
-	    {
-	      tree->total_length -= my_amount;
-	      return my_amount;
-	    }
-	}
+      tree->total_length -= amount;
+      if (LENGTH (tree) == 0)
+	delete_interval (tree);
+      
+      return amount;
     }
 
   /* Never reach here */
 }
 
-/* Effect the adjustments necessary to the interval tree of BUFFER
-   to correspond to the deletion of LENGTH characters from that buffer
-   text.  The deletion is effected at position START (relative to the
-   buffer). */
+/* Effect the adjustments necessary to the interval tree of BUFFER to
+   correspond to the deletion of LENGTH characters from that buffer
+   text.  The deletion is effected at position START (which is a
+   buffer position, i.e. origin 1). */
 
 static void
 adjust_intervals_for_deletion (buffer, start, length)
@@ -854,6 +833,10 @@ adjust_intervals_for_deletion (buffer, start, length)
   if (NULL_INTERVAL_P (tree))
     return;
 
+  if (start > BEG + TOTAL_LENGTH (tree)
+      || start + length > BEG + TOTAL_LENGTH (tree))
+    abort ();
+
   if (length == TOTAL_LENGTH (tree))
     {
       buffer->intervals = NULL_INTERVAL;
@@ -866,11 +849,11 @@ adjust_intervals_for_deletion (buffer, start, length)
       return;
     }
 
-  if (start > TOTAL_LENGTH (tree))
-    start = TOTAL_LENGTH (tree);
+  if (start > BEG + TOTAL_LENGTH (tree))
+    start = BEG + TOTAL_LENGTH (tree);
   while (left_to_delete > 0)
     {
-      left_to_delete -= interval_deletion_adjustment (tree, start,
+      left_to_delete -= interval_deletion_adjustment (tree, start - 1,
 						      left_to_delete);
       tree = buffer->intervals;
       if (left_to_delete == tree->total_length)
@@ -1030,6 +1013,9 @@ reproduce_tree (source, parent)
   return t;
 }
 
+#if 0
+/* Nobody calls this.  Perhaps it's a vestige of an earlier design.  */
+
 /* Make a new interval of length LENGTH starting at START in the
    group of intervals INTERVALS, which is actually an interval tree.
    Returns the new interval.
@@ -1070,6 +1056,7 @@ make_new_interval (intervals, start, length)
   split_interval_right (slot, length + 1);
   return slot;
 }
+#endif
 
 /* Insert the intervals of SOURCE into BUFFER at POSITION.
 
@@ -1244,7 +1231,6 @@ set_point (position, buffer)
      register struct buffer *buffer;
 {
   register INTERVAL to, from, toprev, fromprev, target;
-  register int iposition = position;
   int buffer_point;
   register Lisp_Object obj;
   int backwards = (position < BUF_PT (buffer)) ? 1 : 0;
@@ -1265,20 +1251,14 @@ set_point (position, buffer)
       return;
     }
 
-  /* Position Z is really one past the last char in the buffer.  */
-  if (position == BUF_ZV (buffer))
-    iposition = position - 1;
-
   /* Set TO to the interval containing the char after POSITION,
      and TOPREV to the interval containing the char before POSITION.
      Either one may be null.  They may be equal.  */
-  to = find_interval (buffer->intervals, iposition);
+  to = find_interval (buffer->intervals, position);
   if (position == BUF_BEGV (buffer))
     toprev = 0;
   else if (to->position == position)
     toprev = previous_interval (to);
-  else if (iposition != position)
-    toprev = to, to = 0;
   else
     toprev = to;
 
@@ -1390,10 +1370,6 @@ get_local_map (position, buffer)
   if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
     abort ();
 
-  /* Position Z is really one past the last char in the buffer.  */
-  if (position == BUF_ZV (buffer))
-    return current_buffer->keymap;
-
   interval = find_interval (buffer->intervals, position);
   prop = textget (interval->plist, Qlocal_map);
   if (NILP (prop))
@@ -1465,8 +1441,7 @@ verify_interval_modification (buf, start, end)
       /* Set I to the interval containing the char after START,
 	 and PREV to the interval containing the char before START.
 	 Either one may be null.  They may be equal.  */
-      i = find_interval (intervals,
-			 (start == BUF_ZV (buf) ? start - 1 : start));
+      i = find_interval (intervals, start);
 
       if (start == BUF_BEGV (buf))
 	prev = 0;
