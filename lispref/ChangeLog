@@ -1,3 +1,7 @@
+2004-04-18  Jesper Harder  <harder@ifa.au.dk>
+
+	* tips.texi (Coding Conventions): defopt -> defcustom.
+
 2004-04-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* sequences.texi: Various clarifications.
