@@ -1948,15 +1948,15 @@ stat (const char * path, struct stat * buf)
       buf->st_nlink = 2;	/* doesn't really matter */
       fake_inode = 0;		/* this doesn't either I think */
     }
-  else if (!NILP (Vw32_get_true_file_attributes))
+  else if (!NILP (Vw32_get_true_file_attributes)
+	   /* No access rights required to get info.  */
+	   && (fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING, 0, NULL))
+	      != INVALID_HANDLE_VALUE)
     {
       /* This is more accurate in terms of gettting the correct number
 	 of links, but is quite slow (it is noticable when Emacs is
 	 making a list of file name completions). */
       BY_HANDLE_FILE_INFORMATION info;
-
-      /* No access rights required to get info.  */
-      fh = CreateFile (name, 0, 0, NULL, OPEN_EXISTING, 0, NULL);
 
       if (GetFileInformationByHandle (fh, &info))
 	{
