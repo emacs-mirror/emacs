@@ -1433,11 +1433,8 @@ Optional DEFAULT is password to start with."
 		      (case-fold-search t)
 		      (quoted-printable-header-field-end
 		       (save-excursion
-			 ;; Back up to end of previous line, in case the
-			 ;; Content-Transfer-Encoding field comes first.
-			 (forward-char -1)
 			 (re-search-forward
-			  "\ncontent-transfer-encoding\\(\n?[\t ]\\)*:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
+			  "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
 			  header-end t)))
 		      (size
 		       ;; Get the numeric value from the Content-Length field.
@@ -1488,7 +1485,7 @@ Optional DEFAULT is password to start with."
 		       ;; Change "quoted-printable" to "8bit",
 		       ;; to reflect the decoding we just did.
 		       (goto-char quoted-printable-header-field-end)
-		       (zap-to-char -1 ?:)
+		       (delete-region (point) (search-backward ":"))
 		       (insert ": 8bit"))))
 
 	       (save-excursion
