@@ -8,7 +8,7 @@ MAKE = make
 # ==================== Things `configure' might edit ====================
 
 CC=cc
-CONFIG_CFLAGS=-g
+DEFS=-g
 srcdir=.
 
 # ============================= Targets ==============================
@@ -19,7 +19,7 @@ CPP = $(CC) -E -Is -Im
 # Just to avoid uncertainty.
 SHELL = /bin/sh
 
-CFLAGS=${CONFIG_CFLAGS}
+CFLAGS=${DEFS}
 
 all: doall
 
@@ -72,7 +72,7 @@ relock:
 xmakefile: ymakefile config.h
 	-rm -f xmakefile xmakefile.new junk.c junk.cpp
 	cp ymakefile junk.c
-	$(CPP) junk.c > junk.cpp \
+	${CPP} ${CFLAGS} junk.c > junk.cpp \
 	-DC_SWITCH_SITE="`echo ${CFLAGS}' ' \
 			  | sed -e 's/-g /C_DEBUG_SWITCH /' \
 				-e 's/-O /C_OPTIMIZE_SWITCH /'`"
@@ -86,8 +86,7 @@ xmakefile: ymakefile config.h
 	chmod 444 xmakefile
 	rm -f junk.c junk.cpp
 
-tagsfiles = [a-z]*.h [a-z]*.c ../lisp/[a-z]*.el ../lisp/term/[a-z]*.el \
-	    ../external-lisp/*.el
+tagsfiles = [a-z]*.h [a-z]*.c ../lisp/[a-z]*.el ../lisp/term/[a-z]*.el
 TAGS: $(tagsfiles)
 	etags $(tagsfiles)
 tags: TAGS
