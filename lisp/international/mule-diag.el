@@ -905,7 +905,7 @@ but still contains full information about each coding system."
 (defun describe-font (fontname)
   "Display information about fonts which partially match FONTNAME."
   (interactive "sFontname (default, current choice for ASCII chars): ")
-  (or (and window-system (boundp 'global-fontset-alist))
+  (or (and window-system (fboundp 'fontset-list))
       (error "No fontsets being used"))
   (when (or (not fontname) (= (length fontname) 0))
     (setq fontname (cdr (assq 'font (frame-parameters))))
@@ -946,7 +946,7 @@ but still contains full information about each coding system."
     (beginning-of-line)
     (insert fontset)
     (indent-to 58)
-    (insert (if (> size 0) (format "%2dx%d" size height) "  -"))
+    (insert (if (and size (> size 0)) (format "%2dx%d" size height) "  -"))
     (indent-to 64)
     (insert style "\n")
     (when print-fonts
@@ -988,7 +988,7 @@ The O column for each font contains one of the following letters:
 The Charset column for each font contains a name of character set
 displayed (for this fontset) using that font."
   (interactive
-   (if (not (and window-system (boundp 'global-fontset-alist)))
+   (if (not (and window-system (fboundp 'fontset-list)))
        (error "No fontsets being used")
      (let ((fontset-list (mapcar '(lambda (x) (list x)) (fontset-list)))
 	   (completion-ignore-case t))
@@ -1014,7 +1014,7 @@ This shows the name, size, and style of each fontset.
 With prefix arg, it also list the fonts contained in each fontset;
 see the function `describe-fontset' for the format of the list."
   (interactive "P")
-  (if (not (and window-system (boundp 'global-fontset-alist)))
+  (if (not (and window-system (fboundp 'fontset-list)))
       (error "No fontsets being used")
     (with-output-to-temp-buffer "*Help*"
       (save-excursion
@@ -1101,7 +1101,7 @@ system which uses fontsets)."
 	      "          Section 3.  Input methods\n"
 	      "          Section 4.  Coding systems\n"
 	      "          Section 5.  Character sets\n")
-      (if (and window-system (boundp 'global-fontset-alist))
+      (if (and window-system (fboundp 'fontset-list))
 	  (insert "          Section 6.  Fontsets\n"))
       (insert "\n")
 
@@ -1150,7 +1150,7 @@ system which uses fontsets)."
       (list-character-sets-2)
       (insert "\n")
 
-      (when (and window-system (boundp 'global-fontset-alist))
+      (when (and window-system (fboundp 'fontset-list))
 	;; This code duplicates most of list-fontsets.
 	(insert-section 6 "Fontsets")
 	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
