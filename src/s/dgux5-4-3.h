@@ -27,7 +27,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "dgux5-4r2.h"
 
 /* DGUX 5.4R3.00 brought the definition of `struct inet_addr' into
-   compliance wiht the majority of Unix systems.  The workaround
+   compliance with the majority of Unix systems.  The workaround
    introduced in 5.4R2 is no longer necessary. */
 
 #ifdef HAVE_BROKEN_INET_ADDR

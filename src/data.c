@@ -862,7 +862,7 @@ swap_in_symval_forwarding (sym, valcontents)
 
 /* Find the value of a symbol, returning Qunbound if it's not bound.
    This is helpful for code which just wants to get a variable's value
-   if it has one, without signalling an error.
+   if it has one, without signaling an error.
    Note that it must not be possible to quit
    within this function.  Great care is required for this.  */
 

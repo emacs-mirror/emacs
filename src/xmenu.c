@@ -673,7 +673,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
     }
 }
 
-/* Push all the panes and items of a menu decsribed by the
+/* Push all the panes and items of a menu described by the
    alist-of-alists MENU.
    This handles old-fashioned calls to x-popup-menu.  */
 
@@ -1766,7 +1766,7 @@ set_frame_menubar (f, first_time, deep_p)
   UNBLOCK_INPUT;
 }
 
-/* Called from Fx_create_frame to create the inital menubar of a frame
+/* Called from Fx_create_frame to create the initial menubar of a frame
    before it is mapped, so that the window is mapped with the menubar already
    there instead of us tacking it on later and thrashing the window after it
    is visible.  */

@@ -73,7 +73,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    Define INTERRUPT_INPUT to make interrupt_input = 1 the default (use SIGIO)
 
    SIGIO can be used only on systems that implement it (4.2 and 4.3).
-   CBREAK mode has two disadvatages
+   CBREAK mode has two disadvantages
      1) At least in 4.2, it is impossible to handle the Meta key properly.
         I hear that in system V this problem does not exist.
      2) Control-G causes output to be discarded.

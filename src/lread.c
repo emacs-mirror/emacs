@@ -264,7 +264,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
     goto retry;
 
   /* switch-frame events are put off until after the next ASCII
-     character.  This is better than signalling an error just because
+     character.  This is better than signaling an error just because
      the last characters were typed to a separate minibuffer frame,
      for example.  Eventually, some code which can deal with
      switch-frame events will read it and process it.  */
@@ -2297,7 +2297,7 @@ init_lread ()
 #ifndef WINDOWSNT
   /* When Emacs is invoked over network shares on NT, PATH_LOADSEARCH is 
      almost never correct, thereby causing a warning to be printed out that 
-     confuses users.  Since PATH_LOADSEARCH is always overriden by the
+     confuses users.  Since PATH_LOADSEARCH is always overridden by the
      EMACSLOADPATH environment variable below, disable the warning on NT.  */
 
   /* Warn if dirs in the *standard* path don't exist.  */

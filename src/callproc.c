@@ -509,7 +509,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       {
 	/* Repeatedly read until we've filled as much as possible
 	   of the buffer size we have.  But don't read
-	   less than 1024--save that for the next bufferfull.  */
+	   less than 1024--save that for the next bufferful.  */
 
 	nread = 0;
 	while (nread < bufsize - 1024)

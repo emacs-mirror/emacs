@@ -2103,8 +2103,8 @@ try_window_id (window)
 		 lines' charstarts in the case where the text of the
 		 screen line at bp.vpos has changed.
 		 (This can happen in a deletion that ends in mid-line.)
-		 To adjust properly, we need to make things constent at
-		 the position ep.
+		 To adjust properly, we need to make things consistent
+		 at the position ep.
 		 So do a second adjust to make that happen.
 		 Note that stop_vpos >= ep.vpos, so it is sufficient
 		 to update the charstarts for lines at ep.vpos and below.  */

@@ -311,7 +311,7 @@ set_frame_size (ew)
   
   if (! XtIsSubclass (wmshell, shellWidgetClass)) abort ();
 
-  /* We don't need this for the momment. The geometry is computed in 
+  /* We don't need this for the moment. The geometry is computed in 
      xfns.c.  */
 #if 0
   /* If the EmacsFrame doesn't have a geometry but the shell does,

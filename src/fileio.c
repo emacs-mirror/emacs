@@ -2936,7 +2936,7 @@ and (2) it puts less data in the undo list.")
 		 && FETCH_CHAR (same_at_start) == buffer[bufpos])
 	    same_at_start++, bufpos++;
 	  /* If we found a discrepancy, stop the scan.
-	     Otherwise loop around and scan the next bufferfull.  */
+	     Otherwise loop around and scan the next bufferful.  */
 	  if (bufpos != nread)
 	    break;
 	}
@@ -2979,7 +2979,7 @@ and (2) it puts less data in the undo list.")
 		       XSTRING (filename)->data, strerror (errno));
 	      total_read += nread;
 	    }
-	  /* Scan this bufferfull from the end, comparing with
+	  /* Scan this bufferful from the end, comparing with
 	     the Emacs buffer.  */
 	  bufpos = total_read;
 	  /* Compare with same_at_start to avoid counting some buffer text
@@ -2988,7 +2988,7 @@ and (2) it puts less data in the undo list.")
 		 && FETCH_CHAR (same_at_end - 1) == buffer[bufpos - 1])
 	    same_at_end--, bufpos--;
 	  /* If we found a discrepancy, stop the scan.
-	     Otherwise loop around and scan the preceding bufferfull.  */
+	     Otherwise loop around and scan the preceding bufferful.  */
 	  if (bufpos != 0)
 	    break;
 	  /* If display current starts at beginning of line,

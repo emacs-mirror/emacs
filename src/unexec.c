@@ -915,8 +915,8 @@ copy_text_and_data (new, a_out)
    * runs, it copies the table to where these parameters live during
    * execution.  This data is in text space, so it cannot be modified here
    * before saving the executable, so the data is written manually.  In
-   * addition, the table does not have a label, and the nearest accessable
-   * label (mcount) is not prefixed with a '_', thus making it inaccessable
+   * addition, the table does not have a label, and the nearest accessible
+   * label (mcount) is not prefixed with a '_', thus making it inaccessible
    * from within C programs.  To overcome this, emacs's executable is passed
    * through the command 'nm %s | fgrep mcount' into a pipe, and the
    * resultant output is then used to find the address of 'mcount'.  As far as

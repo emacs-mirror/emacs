@@ -719,7 +719,7 @@ create_process (process, new_argv)
     
     Event flags returned start at 1 for the keyboard.
     Since Unix expects descriptor 0 for the keyboard,
-    we substract one from the event flag.
+    we subtract one from the event flag.
     */
   inchannel = vs->eventFlag-1;
 

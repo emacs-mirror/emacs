@@ -30,7 +30,7 @@
 #endif
 
 /* According to ngorelic@speclab.cr.usgs.gov,
-   references to the X11R4 directoriess in these variables
+   references to the X11R4 directories in these variables
    (inherited from hpux8.h)
    cause the wrong libraries to be found,
    and the options to specify the X11R5 directories are unnecessary

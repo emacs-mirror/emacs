@@ -138,7 +138,7 @@ _start (void)
 #endif /* HAVE_NTGUI */
 }
 
-/* Dump out .data and .bss sections into a new exectubale.  */
+/* Dump out .data and .bss sections into a new executable.  */
 void
 unexec (char *new_name, char *old_name, void *start_data, void *start_bss,
 	void *entry_address)

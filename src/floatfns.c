@@ -37,7 +37,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    (What systems actually do this?  Please let us know.)
 
    Define FLOAT_CHECK_DOMAIN if the float library doesn't handle errors by
-   either setting errno, or signalling SIGFPE/SIGILL.  Otherwise, domain and
+   either setting errno, or signaling SIGFPE/SIGILL.  Otherwise, domain and
    range checking will happen before calling the float routines.  This has
    no effect if HAVE_MATHERR is defined (since matherr will be called when
    a domain error occurs.)

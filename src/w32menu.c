@@ -586,7 +586,7 @@ single_keymap_panes (lpmm, keymap, pane_name, prefix, notreal)
     return (hmenu);
 }
 
-/* Push all the panes and items of a menu decsribed by the
+/* Push all the panes and items of a menu described by the
    alist-of-alists MENU.
    This handles old-fashioned calls to x-popup-menu.  */
 
@@ -1011,7 +1011,7 @@ get_list_of_items_event (pane, lpnum)
   return (Qnil);
 }
 
-/* Push all the panes and items of a menu decsribed by the
+/* Push all the panes and items of a menu described by the
    alist-of-alists MENU.
    This handles old-fashioned calls to x-popup-menu.  */
 
@@ -1444,7 +1444,7 @@ free_frame_menubar (f)
     
   UNBLOCK_INPUT;
 }
-/* Called from Fwin32_create_frame to create the inital menubar of a frame
+/* Called from Fwin32_create_frame to create the initial menubar of a frame
    before it is mapped, so that the window is mapped with the menubar already
    there instead of us tacking it on later and thrashing the window after it
    is visible.  */

@@ -408,7 +408,7 @@ win32_wait (int *status)
     }
 
   /* Massage the exit code from the process to match the format expected
-     by the WIFSTOPPED et al macros in syswait.h.  Only WIFSIGNALLED and
+     by the WIFSTOPPED et al macros in syswait.h.  Only WIFSIGNALED and
      WIFEXITED are supported; WIFSTOPPED doesn't make sense under NT.  */
 
   if (retval == STATUS_CONTROL_C_EXIT)

@@ -113,7 +113,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* #define C_OPTIMIZE_SWITCH -O2 */
 
 /* emacs's magic number isn't temacs's;
-   temacs is writeable text (the default!).  */
+   temacs is writable text (the default!).  */
 
 #include <asld.h>
 #define EXEC_MAGIC AOUT1MAGIC

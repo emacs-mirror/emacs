@@ -271,7 +271,7 @@ adjust_markers_for_insert (pos, amount)
    a conceptual change in point as a marker.  In particular, point is
    not crossing any interval boundaries, so there's no need to use the
    usual SET_PT macro.  In fact it would be incorrect to do so, because
-   either the old or the new value of point is out of synch with the
+   either the old or the new value of point is out of sync with the
    current set of intervals.  */
 static void
 adjust_point (amount)

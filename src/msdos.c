@@ -1785,7 +1785,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 			result = XM_IA_SELECT;
 		    *pane = state[i].pane - 1;
 		    *selidx = dy;
-		    /* We hit some part of a menu, so drop extra menues that
+		    /* We hit some part of a menu, so drop extra menus that
 		       have been opened.  That does not include an open and
 		       active submenu.  */
 		    if (i != statecount - 2
@@ -2518,7 +2518,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 #endif
 
 /*
- * Define overlayed functions:
+ * Define overlaid functions:
  *
  *	chdir -> sys_chdir
  *	tzset -> init_gettimeofday

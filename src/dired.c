@@ -152,7 +152,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
       CHECK_STRING (match, 3);
 
       /* MATCH might be a flawed regular expression.  Rather than
-	 catching and signalling our own errors, we just call
+	 catching and signaling our own errors, we just call
 	 compile_pattern to do the work for us.  */
 #ifdef VMS
       bufp = compile_pattern (match, 0,
@@ -166,7 +166,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
      which might compile a new regexp until we're done with the loop!  */
 
   /* Do this opendir after anything which might signal an error; if
-     an error is signalled while the directory stream is open, we
+     an error is signaled while the directory stream is open, we
      have to make sure it gets closed, and setting up an
      unwind_protect to do so would be a pain.  */
   d = opendir (XSTRING (dirfilename)->data);

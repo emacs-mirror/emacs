@@ -42,7 +42,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *		#define defined(XX) XX_val
  *		#if defined(foo)
  *
- *	This last contruction only works on single line #if's and takes
+ *	This last construction only works on single line #if's and takes
  *	advantage of a questionable C pre-processor trick. If there are
  *	comments within the #if, that contain "defined", then this will
  *	bomb.

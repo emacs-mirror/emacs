@@ -167,7 +167,7 @@ main (argc, argv)
   if (access (outname, F_OK) == 0 && access (outname, W_OK) != 0)
     pfatal_with_name (outname);
 
-  /* Also check that outname's directory is writeable to the real uid.  */
+  /* Also check that outname's directory is writable to the real uid.  */
   {
     char *buf = (char *) xmalloc (strlen (outname) + 1);
     char *p;

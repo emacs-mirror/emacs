@@ -87,7 +87,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    INTERRUPT_INPUT to decide whether to use it by default.
 
    SIGIO can be used only on systems that implement it (4.2 and 4.3).
-   CBREAK mode has two disadvatages
+   CBREAK mode has two disadvantages
      1) At least in 4.2, it is impossible to handle the Meta key properly.
         I hear that in system V this problem does not exist.
      2) Control-G causes output to be discarded.
@@ -114,7 +114,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Define HAVE_TERMIO if the system provides sysV-style ioctls
  *	for terminal control.
  *
- *	Do not define both.  HAVE_TERMIOS is prefered, if it is
+ *	Do not define both.  HAVE_TERMIOS is preferred, if it is
  *	supported on your system.
  */
 

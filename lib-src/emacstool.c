@@ -150,7 +150,7 @@ button_value (event)
  *  Variables to store the time of the previous mouse event that was
  *  sent to emacs.
  *
- *  The theory is that to time double clicks while ignoreing UP buttons,
+ *  The theory is that to time double clicks while ignoring UP buttons,
  *  we must keep track of the accumulated time.
  *
  *  If someone writes a SUN-SET-INPUT-MASK for emacstool,
@@ -376,7 +376,7 @@ int interpose_on_window(argc,argv)
     char **argv;
 {
 #ifndef TTERM
-    int i, font_width_adjust = 1; /* hackery, and hueristics */
+    int i, font_width_adjust = 1; /* hackery, and heuristics */
     /* if -Wt is not supplied, then font comes out as lucida-14 (width=8)
      * rather than the screen.r.12 (width=7) typically used
      * this hack attempts to workaround it.

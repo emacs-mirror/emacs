@@ -151,7 +151,7 @@ Lisp_Object memory_signal_data;
 /* Define DONT_COPY_FLAG to be some bit which will always be zero in a
    pointer to a Lisp_Object, when that pointer is viewed as an integer.
    (On most machines, pointers are even, so we can use the low bit.
-   Word-addressible architectures may need to override this in the m-file.)
+   Word-addressable architectures may need to override this in the m-file.)
    When linking references to small strings through the size field, we
    use this slot to hold the bit that would otherwise be interpreted as
    the GC mark bit.  */
@@ -2157,7 +2157,7 @@ gc_sweep ()
 
 #ifndef standalone
   /* Put all unmarked markers on free list.
-     Dechain each one first from the buffer it points into,
+     Unchain each one first from the buffer it points into,
      but only if it's a real marker.  */
   {
     register struct marker_block *mblk;

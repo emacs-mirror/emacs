@@ -906,7 +906,7 @@ pop_reset (server)
  * Return value: 0 for success, non-zero otherwise with error in
  * 	pop_error.
  *
- * Side Effects: The popserver passed in is unuseable after this
+ * Side Effects: The popserver passed in is unusable after this
  * 	function is called, even if an error occurs.
  */
 int
@@ -1368,7 +1368,7 @@ fullwrite (fd, buf, nbytes)
  * 
  * Returns: 0 for success, else for failure and puts error in pop_error.
  *
- * Side effects: On failure, may make the connection unuseable.
+ * Side effects: On failure, may make the connection unusable.
  */
 static int
 getok (server)
@@ -1439,7 +1439,7 @@ gettermination (server)
  * 	try to get the server to quit, but ignoring any responses that
  * 	are received.
  *
- * Side effects: The server is unuseable after this function returns.
+ * Side effects: The server is unusable after this function returns.
  * 	Changes made to the maildrop since the session was started (or
  * 	since the last pop_reset) may be lost.
  */

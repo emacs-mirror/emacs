@@ -232,7 +232,7 @@ STARTFILES = START_FILES
    which will be in a file named localcpp.  */
 MYCPPFLAG= -Blocal
 /* LOCALCPP is the local one or nothing.
-   CPP is the local one or the standardone.  */
+   CPP is the local one or the standard one.  */
 LOCALCPP= localcpp
 #endif /* ! defined (LONGNAMEBBBARFOOX) */
 

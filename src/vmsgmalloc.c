@@ -1179,7 +1179,7 @@ VMS_present_buffer()
 #endif /* defined(emacs) && defined(VMS) */
 
 #ifdef VMS
-/* Unfortunatelly, the VAX C sbrk() is buggy. For example, it returns
+/* Unfortunately, the VAX C sbrk() is buggy. For example, it returns
    memory in 512 byte chunks (not a bug, but there's more), AND it
    adds an extra 512 byte chunk if you ask for a multiple of 512
    bytes (you ask for 512 bytes, you get 1024 bytes...). And also,

@@ -73,7 +73,7 @@ static struct re_registers search_regs;
    Qnil if no searching has been done yet.  */
 static Lisp_Object last_thing_searched;
 
-/* error condition signalled when regexp compile_pattern fails */
+/* error condition signaled when regexp compile_pattern fails */
 
 Lisp_Object Qinvalid_regexp;
 

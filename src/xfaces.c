@@ -95,7 +95,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    lisp manipulates to control what gets displayed.  Elements 0 and 1
    of FRAME->output_data.x->param_faces are special - they describe the
    default and mode line faces.  None of the faces in param_faces have
-   GC's.  (See src/dispextern.h for the definiton of struct face.
+   GC's.  (See src/dispextern.h for the definition of struct face.
    lisp/faces.el maintains the isomorphism between face_alist and
    param_faces.)
 

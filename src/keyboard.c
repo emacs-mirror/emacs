@@ -7138,7 +7138,7 @@ init_kboard (kb)
 
 /*
  * Destroy the contents of a kboard object, but not the object itself.
- * We use this just before deleteing it, or if we're going to initialize
+ * We use this just before deleting it, or if we're going to initialize
  * it a second time.
  */
 static void

@@ -1500,7 +1500,7 @@ verify_interval_modification (buf, start, end)
       if (NILP (Vinhibit_read_only) || CONSP (Vinhibit_read_only))
 	{
 	  /* If I and PREV differ we need to check for the read-only
-	     property together with its stickyness. If either I or
+	     property together with its stickiness. If either I or
 	     PREV are 0, this check is all we need.
 	     We have to take special care, since read-only may be
 	     indirectly defined via the category property.  */

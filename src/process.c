@@ -1141,7 +1141,7 @@ Remaining arguments are strings to give program as arguments.")
 }
 
 /* This function is the unwind_protect form for Fstart_process.  If
-   PROC doesn't have its pid set, then we know someone has signalled
+   PROC doesn't have its pid set, then we know someone has signaled
    an error and the process wasn't started successfully, so we should
    remove it from the process list.  */
 static Lisp_Object

@@ -83,7 +83,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    Otherwise Emacs assumes that text space precedes data space,
    numerically.  */
 
-/* Text does preceed data space, but this is never a safe assumption.  */
+/* Text does precede data space, but this is never a safe assumption.  */
 #define VIRT_ADDR_VARIES
 
 /* Define C_ALLOCA if this machine does not support a true alloca

@@ -708,7 +708,7 @@ print_error_message (data, stream)
 
 /*
  * The buffer should be at least as large as the max string size of the
- * largest float, printed in the biggest notation.  This is undoubtably
+ * largest float, printed in the biggest notation.  This is undoubtedly
  * 20d float_output_format, with the negative of the C-constant "HUGE"
  * from <math.h>.
  * 
