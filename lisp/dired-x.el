@@ -101,28 +101,12 @@
 ;;; here in case the user has autoloaded dired-x via the dired-jump key binding
 ;;; (instead of autoloading to dired as is suggested in the info-pages).
 
-;;; WARNING: The copy of dired.el in GNU Emacs versions earlier than 19.20 had
-;;; the `provide' *after* the `run-hooks'.  In such a case, loading dired below
-;;; will cause an infinite loop.  To prevent this we test the value of the GNU
-;;; Emacs major version number before requiring dired.
-
-(if (string< "19.19"
-             ;; Compare with major version number (i.e., 19.22 not 19.22.11).
-             (substring emacs-version 0
-                        (and (string-match "^[0-9]*\\.[0-9]*" emacs-version)
-                             (match-end 0))))
-    (require 'dired))
+(require 'dired)
 
 ;;; We will redefine some functions and also need some macros so we need to
-;;; load dired stuff of GNU Emacs.  Since dired-aux.el (at least up to GNU
-;;; Emacs 19.22) does not `provide' itself, we do it here.  This avoids the
-;;; possibility recursive loading because of the nasty `eval-when-compile' that
-;;; is in dired-aux.el.
+;;; load dired stuff of GNU Emacs.
 
-(and (not (featurep 'dired-aux))
-     (load "dired-aux" nil t)
-     (not (featurep 'dired-aux))
-     (provide 'dired-aux))
+(require 'dired-aux)
 
 ;;;; User-defined variables.
 
