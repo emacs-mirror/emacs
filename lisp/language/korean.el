@@ -57,7 +57,7 @@
      coding-category-iso-8-2
      coding-category-iso-8-1))
 
-  (setq-default buffer-file-coding-system 'korean-iso-8bit)
+  (set-default-coding-systems 'korean-iso-8bit)
 
   (setq default-input-method "korean-hangul")
   (setq-default default-input-method "korean-hangul"))
