@@ -25,7 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 
-#if STDC_HEADERS
+#ifdef STDC_HEADERS
 #include <float.h>
 #endif
 
