@@ -3301,7 +3301,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
 
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
-  /* Don't confused make-docfile by having two doc strings for this function.
+  /* Don't confuse make-docfile by having two doc strings for this function.
      make-docfile does not pay attention to #if, for good reason!  */
   0)
   (name)
