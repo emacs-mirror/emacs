@@ -465,12 +465,13 @@ Return nil if there is nothing appropriate."
 ;;;###autoload
 (defun info-complete-symbol (&optional mode)
   "Perform completion on symbol preceding point."
-  (interactive
-   (list (if (info-lookup->mode-value
-	      'symbol (or info-lookup-mode major-mode))
-	     (or info-lookup-mode major-mode)
-	   (info-lookup-change-mode 'symbol))))
-  (info-complete 'symbol mode))
+  (interactive)
+  (info-complete 'symbol
+		 (or mode
+		     (if (info-lookup->mode-value
+			  'symbol (or info-lookup-mode major-mode))
+			 (or info-lookup-mode major-mode)
+		       (info-lookup-change-mode 'symbol)))))
 
 ;;;###autoload
 (defun info-complete-file (&optional mode)
