@@ -1,9 +1,24 @@
+2003-03-31  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/asm-mode.el (asm-mode): Support skipping C lang style
+	comments.
+
+	* bindings.el (mode-line-major-mode-keymap): New variable.
+	(mode-line-minor-mode-help): New function, bound to
+	mode-line-minor-mode-keymap.
+	(mode-line-modes): Split mode-line-mode definitions to
+	mode-name, mode-line-process and minor-mode-alist.
+	For mode-name, mode-line-major-mode-keymap is used.
+
+	* help.el (describe-minor-mode, describe-minor-mode-from-indicator)
+	(lookup-minor-mode-from-indicator): New functions.
+
 2003-03-31  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* files.el (file-relative-name): Remove superfluous `and'.
 	Clarify docstring.  From Lars Hansen.
 
-2003-03-31  Kenichi Handa  <handa@etlken2>
+2003-03-31  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-16.el (ccl-decode-mule-utf-16-le): Don't
 	assume the signature bytes.
