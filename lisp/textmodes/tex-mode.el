@@ -442,7 +442,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   ;; Miscellany.
 	   (slash "\\\\")
 	   (opt "\\(\\[[^]]*\\]\\)?")
-	   (arg "{\\(\\(?:[^{}]+\\(?:{[^}]*}\\)?\\)+\\)"))
+	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
       (list
        ;; Heading args.
        (list (concat slash headings "\\*?" opt arg)
@@ -473,16 +473,18 @@ An alternative value is \" . \", if you use a font with a narrow period."
    (eval-when-compile
      (let* (;;
 	    ;; Names of commands whose arg should be fontified with fonts.
-	    (bold (regexp-opt '("bf" "textbf" "textsc" "textup"
+	    (bold (regexp-opt '("textbf" "textsc" "textup"
 				"boldsymbol" "pmb") t))
-	    (italic (regexp-opt '("it" "textit" "textsl" "emph") t))
+	    (italic (regexp-opt '("textit" "textsl" "emph") t))
 	    (type (regexp-opt '("texttt" "textmd" "textrm" "textsf") t))
 	    ;;
 	    ;; Names of commands whose arg should be fontified as a citation.
 	    (citations (regexp-opt
 			'("label" "ref" "pageref" "vref" "eqref"
-			  "cite" "nocite" "caption" "index" "glossary"
-			  "footnote" "footnotemark" "footnotetext")
+			  "cite" "nocite" "index" "glossary"
+			  ;; These are text, rather than citations.
+			  ;; "caption" "footnote" "footnotemark" "footnotetext"
+			  )
 			t))
 	    ;;
 	    ;; Names of commands that should be fontified.
@@ -497,7 +499,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	    ;; Miscellany.
 	    (slash "\\\\")
 	    (opt "\\(\\[[^]]*\\]\\)?")
-	    (arg "{\\(\\(?:[^{}]+\\(?:{[^}]*}\\)?\\)+\\)"))
+	    (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
        (list
 	;;
 	;; Citation args.
@@ -511,7 +513,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	;; since we might not be able to display those fonts.
 	(list (concat slash bold arg) 2 '(quote bold) 'append)
 	(list (concat slash italic arg) 2 '(quote italic) 'append)
-	(list (concat slash type arg) 2 '(quote bold-italic) 'append)
+	;; (list (concat slash type arg) 2 '(quote bold-italic) 'append)
 	;;
 	;; Old-style bf/em/it/sl.  Stop at `\\' and un-escaped `&', for tables.
 	(list (concat "\\\\\\(\\(bf\\)\\|em\\|it\\|sl\\)\\>"
@@ -784,6 +786,7 @@ subshell is initiated, `tex-shell-hook' is run."
   (set (make-local-variable 'outline-regexp) latex-outline-regexp)
   (set (make-local-variable 'outline-level) 'latex-outline-level)
   (set (make-local-variable 'forward-sexp-function) 'latex-forward-sexp)
+  (set (make-local-variable 'skeleton-end-hook) 'latex-skeleton-end-hook)
   (run-hooks 'tex-mode-hook))
 
 ;;;###autoload
@@ -970,11 +973,9 @@ on the line for the invalidity you want to see."
 		      (forward-char (- start end))
 		      (setq text-beg (point-marker))
 		      (insert (format "%3d: " linenum))
-		      (put-text-property (marker-position text-beg)
-					 (- (marker-position text-end) 1)
+		      (put-text-property text-beg (- text-end 1)
 					 'mouse-face 'highlight)
-		      (put-text-property (marker-position text-beg)
-					 (- (marker-position text-end) 1)
+		      (put-text-property text-beg (- text-end 1)
 					 'occur tem)))))
 	    (goto-char prev-end))))
       (with-current-buffer standard-output
@@ -1051,6 +1052,11 @@ A prefix arg inhibits the checking."
     inside))
 
 (defvar latex-block-default "enumerate")
+
+(defun latex-skeleton-end-hook ()
+  (unless (or (eolp) (save-excursion (move-to-left-margin)
+				     (not (looking-at paragraph-separate))))
+    (newline-and-indent)))
 
 ;;; Like tex-insert-braces, but for LaTeX.
 (define-skeleton tex-latex-block
@@ -1316,9 +1322,6 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 
 (add-hook 'kill-emacs-hook 'tex-delete-last-temp-files)
 
-(defvar tex-start-tex-marker nil
-  "Marker pointing after last TeX-running command in the TeX shell buffer.")
-
 (defun tex-guess-main-file (&optional all)
   "Find a likely `tex-main-file'.
 Looks for hints in other buffers in the same directory or in
@@ -1394,17 +1397,29 @@ with extension."
     (let (shell-dirtrack-verbose)
       (tex-send-command tex-shell-cd-command dir)))
   (with-current-buffer (process-buffer (tex-send-command cmd))
-    (save-excursion
-      (forward-line -1)
-      (setq tex-start-tex-marker (point-marker)))
     (make-local-variable 'compilation-parse-errors-function)
     (setq compilation-parse-errors-function 'tex-compilation-parse-errors)
     (setq compilation-last-buffer (current-buffer))
     (compilation-forget-errors)
+    ;; Don't parse previous compilations.
     (set-marker compilation-parsing-end (1- (point-max))))
   (tex-display-shell)
   (setq tex-last-buffer-texed (current-buffer)))
 
+(defvar tex-error-parse-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?\( "()" st)
+    (modify-syntax-entry ?\) ")(" st)
+    (modify-syntax-entry ?\\ "\\" st)
+    (modify-syntax-entry ?\{ "_" st)
+    (modify-syntax-entry ?\} "_" st)
+    (modify-syntax-entry ?\[ "_" st)
+    (modify-syntax-entry ?\] "_" st)
+    ;; Single quotations may appear in errors
+    (modify-syntax-entry ?\" "_" st)
+    st)
+  "Syntax-table used while parsing TeX error messages.")
+
 (defun tex-compilation-parse-errors (limit-search find-at-least)
   "Parse the current buffer as TeX error messages.
 See the variable `compilation-parse-errors-function' for the interface it uses.
@@ -1418,20 +1433,9 @@ for the error messages."
   (message "Parsing error messages...")
   (let ((default-directory		; Perhaps dir has changed meanwhile.
 	  (file-name-directory (buffer-file-name tex-last-buffer-texed)))
-	(old-syntax-table (syntax-table))
-	(tex-error-parse-syntax-table (copy-syntax-table (syntax-table)))
 	found-desired (num-errors-found 0)
 	last-filename last-linenum last-position
 	begin-of-error end-of-error)
-    (modify-syntax-entry ?\{ "_" tex-error-parse-syntax-table)
-    (modify-syntax-entry ?\} "_" tex-error-parse-syntax-table)
-    (modify-syntax-entry ?\[ "_" tex-error-parse-syntax-table)
-    (modify-syntax-entry ?\] "_" tex-error-parse-syntax-table)
-    ;; Single quotations may appear in errors
-    (modify-syntax-entry ?\" "_" tex-error-parse-syntax-table)
-    ;; Don't parse previous compilations.
-    (set-marker compilation-parsing-end
-		(max compilation-parsing-end tex-start-tex-marker))
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
     ;; Parse messages.
@@ -1463,16 +1467,14 @@ for the error messages."
 		    (set-buffer tex-last-buffer-texed)
 		  (set-buffer (find-file-noselect filename)))
 		(if new-file
-		    (goto-line linenum)
+		    (progn (goto-line linenum) (setq last-position nil))
 		  (goto-char last-position)
 		  (forward-line (- linenum last-linenum)))
 		;; first try a forward search for the error text,
 		;; then a backward search limited by the last error.
 		(let ((starting-point (point)))
 		  (or (re-search-forward error-text nil t)
-		      (re-search-backward
-		       error-text
-		       (marker-position last-position) t)
+		      (re-search-backward error-text last-position t)
 		      (goto-char starting-point)))
 		(point-marker))))
 	(goto-char this-error)
