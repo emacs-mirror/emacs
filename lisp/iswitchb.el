@@ -461,6 +461,7 @@ in a separate window.
 		 (iswitchb-possible-new-buffer buf)))
 	   ))))
 
+;;;###autoload
 (defun iswitchb-read-buffer (prompt &optional default require-match)
   "Replacement for the built-in `read-buffer'.
 Return the name of a buffer selected.  
