@@ -1,3 +1,11 @@
+2002-02-11  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (CFLAGS): Define _WIN32_WINNT as 0x0400, in order to
+	pick up relevant bits of the Windows API definitions.
+
+	* nmake.defs (CFLAGS): Define _WIN32_WINNT as 0x0400, in order to
+	pick up relevant bits of the Windows API definitions.
+
 2001-11-20  Jason Rumney  <jasonr@gnu.org>
 
 	* INSTALL: Update table of versions of make that are suitable
