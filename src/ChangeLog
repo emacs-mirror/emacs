@@ -1,3 +1,24 @@
+2003-08-20  Dave Love  <fx@gnu.org>
+
+	* atimer.h: Include lisp.h.
+
+	* lisp.h (EMACS_LISP_H): New.
+	(popup_activated_flag): Don't declare.
+
+	* alloca.c: Some merging with gnulib.  Change logic and doc
+	concerning (x)malloc/(x)free -- no longer Emacs-specific.
+	[DO_BLOCK_INPUT]: Don't include lisp.h.
+	(xmalloc, xfree): Declare.
+	(malloc): Don't declare.
+
+	* Makefile.in (LWLIB_OPTIONS): Removed (unused).
+	(alloca.o): Remove obsolete stuff concerning alloca.s.  Depend on
+	atimer.h, blockinput.h.
+
+	* alloc.c (lisp_align_malloc): Change type of `aligned'.
+
+	* alloca.s: Removed.
+
 2003-08-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* s/freebsd.h [__FreeBSD_version >= 400000]: Define TERMINFO,
