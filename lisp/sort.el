@@ -258,26 +258,40 @@ the sort order."
     (modify-syntax-entry ?\. "_" table)	; for floating pt. numbers. -wsr
     (setq sort-fields-syntax-table table)))
 
+(defcustom sort-numeric-base 10
+  "*The default base used by `sort-numeric-fields'."
+  :group 'sort
+  :type 'integer)
+
 ;;;###autoload
 (defun sort-numeric-fields (field beg end)
   "Sort lines in region numerically by the ARGth field of each line.
 Fields are separated by whitespace and numbered from 1 up.
-Specified field must contain a number in each line of the region.
+Specified field must contain a number in each line of the region,
+which may begin with \"0x\" or \"0\" for hexadecimal and octal values.
+Otherwise, the number is interpreted according to sort-numeric-base.
 With a negative arg, sorts by the ARGth field counted from the right.
 Called from a program, there are three arguments:
 FIELD, BEG and END.  BEG and END specify region to sort."
   (interactive "p\nr")
   (sort-fields-1 field beg end
-		 (function (lambda ()
-			     (sort-skip-fields field)
-			     (string-to-number
-			      (buffer-substring
-			        (point)
-				(save-excursion
-				  ;; This is just wrong! Even without floats...
-				  ;; (skip-chars-forward "[0-9]")
-				  (forward-sexp 1)
-				  (point))))))
+		 (lambda ()
+		   (sort-skip-fields field)
+		   (let* ((case-fold-search t)
+			  (base
+			   (if (looking-at "\\(0x\\)[0-9a-f]\\|\\(0\\)[0-7]")
+			       (cond ((match-beginning 1)
+				      (goto-char (match-end 1))
+				      16)
+				     ((match-beginning 2)
+				      (goto-char (match-end 2))
+				      8)
+				     (t nil)))))
+		     (string-to-number (buffer-substring (point)
+							 (save-excursion
+							   (forward-sexp 1)
+							   (point)))
+				       (or base sort-numeric-base))))
 		 nil))
 
 ;;;;;###autoload
