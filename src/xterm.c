@@ -341,13 +341,14 @@ static int fast_find_position ();
 static void note_mouse_highlight ();
 static void clear_mouse_face ();
 static void show_mouse_face ();
+static void do_line_dance ();
 
 void dumpborder ();
 static int XTcursor_to ();
 static int XTclear_end_of_line ();
 
 
-/* Starting and ending updates. 
+/* Starting and ending updates.
 
    These hooks are called by update_frame at the beginning and end
    of a frame update.  We record in `updating_frame' the identity
@@ -361,7 +362,7 @@ extern int mouse_track_top, mouse_track_left, mouse_track_width;
 static
 XTupdate_begin (f)
      struct frame *f;
-{	
+{
   int mask;
 
   if (f == 0)
@@ -410,11 +411,12 @@ XTupdate_begin (f)
 static
 XTupdate_end (f)
      struct frame *f;
-{	
+{
   int mask;
 
   BLOCK_INPUT;
 
+  do_line_dance ();
   x_display_cursor (f, 1);
 
   if (f == mouse_face_mouse_frame)
@@ -774,6 +776,7 @@ XTwrite_glyphs (start, len)
 
   BLOCK_INPUT;
 
+  do_line_dance ();
   f = updating_frame;
   if (f == 0)
     {
@@ -794,7 +797,7 @@ XTwrite_glyphs (start, len)
       && curs_x <= f->phys_cursor_x
       && curs_x + len > f->phys_cursor_x)
     f->phys_cursor_x = -1;
-  
+
   if (updating_frame == 0)
     {
       f->cursor_x += len;
@@ -811,7 +814,7 @@ XTwrite_glyphs (start, len)
    Erase the current text line from the nominal cursor position (inclusive)
    to column FIRST_UNUSED (exclusive).  The idea is that everything
    from FIRST_UNUSED onward is already erased.  */
-  
+
 static int
 XTclear_end_of_line (first_unused)
      register int first_unused;
@@ -862,7 +865,7 @@ XTclear_frame ()
   f->phys_cursor_x = -1;	/* Cursor not visible.  */
   curs_x = 0;			/* Nominal cursor position is top left.  */
   curs_y = 0;
-  
+
   BLOCK_INPUT;
 
   XClear (FRAME_X_WINDOW (f));
@@ -973,7 +976,7 @@ font_char_overlap_left (font, c)
     {
       int rowlen = font->max_char_or_byte2 - font->min_char_or_byte2 + 1;
       int row, within;
-	
+
       /* Decode char into row number (byte 1) and code within row (byte 2).  */
       row = c >> 8;
       within = c & 0177;
@@ -1018,7 +1021,7 @@ font_char_overlap_right (font, c)
     {
       int rowlen = font->max_char_or_byte2 - font->min_char_or_byte2 + 1;
       int row, within;
-	
+
       /* Decode char into row number (byte 1) and code within row (byte 2).  */
       row = c >> 8;
       within = c & 0177;
@@ -1102,7 +1105,7 @@ XTflash (f)
       values.function = GXxor;
       values.foreground = (f->display.x->foreground_pixel
 			   ^ f->display.x->background_pixel);
-      
+
       gc = XCreateGC (x_current_display, FRAME_X_WINDOW (f),
 		      GCFunction | GCForeground, &values);
     }
@@ -1141,7 +1144,7 @@ XTflash (f)
 	    select (0, 0, 0, 0, &timeout);
 	  }
       }
-	
+
       XFillRectangle (x_current_display, FRAME_X_WINDOW (f), gc,
 		      width/4, height/4, width/2, height/2);
       XFreeGC (x_current_display, gc);
@@ -1181,7 +1184,7 @@ XTring_bell ()
    These are not supposed to be used because we are supposed to turn
    off the feature of using them.  */
 
-static 
+static
 XTinsert_glyphs (start, len)
      register char *start;
      register int len;
@@ -1189,7 +1192,7 @@ XTinsert_glyphs (start, len)
   abort ();
 }
 
-static 
+static
 XTdelete_glyphs (n)
      register int n;
 {
@@ -1214,103 +1217,127 @@ XTset_terminal_window (n)
     flexlines = n;
 }
 
-/* Perform an insert-lines operation.
-   Insert N lines at a vertical position curs_y.  */
+/* Array of line numbers from cached insert/delete operations.
+   line_dance[i] is the old position of the line that we want
+   to move to line i, or -1 if we want a blank line there.  */
+static int *line_dance;
 
-static void
-stufflines (n)
-     register int n;
-{
-  register int topregion, bottomregion;
-  register int length, newtop, mask;
-  register struct frame *f = updating_frame;
-  int intborder = f->display.x->internal_border_width;
+/* Allocated length of that array.  */
+static int line_dance_len;
 
-  if (curs_y >= flexlines)
-    return;
-
-  topregion = curs_y;
-  bottomregion = flexlines - (n + 1);
-  newtop = topregion + n;
-  length = (bottomregion - topregion) + 1;
-
-  if ((length > 0) && (newtop <= flexlines))
-    XCopyArea (x_current_display, FRAME_X_WINDOW (f),
-	       FRAME_X_WINDOW (f), f->display.x->normal_gc,
-	       intborder, CHAR_TO_PIXEL_ROW (f, topregion),
-	       f->width * FONT_WIDTH (f->display.x->font),
-	       length * f->display.x->line_height, intborder,
-	       CHAR_TO_PIXEL_ROW (f, newtop));
-
-  newtop = min (newtop, (flexlines - 1));
-  length = newtop - topregion;
-  if (length > 0)
-    XClearArea (x_current_display, FRAME_X_WINDOW (f), intborder, 
-		CHAR_TO_PIXEL_ROW (f, topregion),
-		f->width * FONT_WIDTH (f->display.x->font),
-		n * f->display.x->line_height, False);
-}
-
-/* Perform a delete-lines operation, deleting N lines
-   at a vertical position curs_y.  */
-
-static void
-scraplines (n)
-     register int n;
-{
-  int mask;
-  register struct frame *f = updating_frame;
-  int intborder = f->display.x->internal_border_width;
-
-  if (curs_y >= flexlines)
-    return;
-
-  if ((curs_y + n) >= flexlines)
-    {
-      if (flexlines >= (curs_y + 1))
-	XClearArea (x_current_display, FRAME_X_WINDOW (f), intborder,
-		    CHAR_TO_PIXEL_ROW (f, curs_y),
-		    f->width * FONT_WIDTH (f->display.x->font),
-		    (flexlines - curs_y) * f->display.x->line_height, False);
-    }
-  else
-    {
-      XCopyArea (x_current_display, FRAME_X_WINDOW (f),
-		 FRAME_X_WINDOW (f), f->display.x->normal_gc,
-		 intborder,
-		 CHAR_TO_PIXEL_ROW (f, curs_y + n),
-		 f->width * FONT_WIDTH (f->display.x->font),
-		 (flexlines - (curs_y + n)) * f->display.x->line_height,
-		 intborder, CHAR_TO_PIXEL_ROW (f, curs_y));
-      XClearArea (x_current_display, FRAME_X_WINDOW (f),
-		  intborder,
-		  CHAR_TO_PIXEL_ROW (f, flexlines - n),
-		  f->width * FONT_WIDTH (f->display.x->font),
-		  n * f->display.x->line_height, False);
-    }
-}
+/* Flag indicating whether we've done any work.  */
+static int line_dance_in_progress;
 
 /* Perform an insert-lines or delete-lines operation,
    inserting N lines or deleting -N lines at vertical position VPOS.  */
-
 XTins_del_lines (vpos, n)
      int vpos, n;
 {
-  if (updating_frame == 0)
+  register int fence, i;
+
+  if (vpos >= flexlines)
+    return;
+
+  if (!line_dance_in_progress)
+    {
+      int ht = updating_frame->height;
+      if (ht > line_dance_len)
+	{
+	  line_dance = (int *)xrealloc (line_dance, ht * sizeof (int));
+	  line_dance_len = ht;
+	}
+      for (i = 0; i < ht; ++i) line_dance[i] = i;
+      line_dance_in_progress = 1;
+    }
+  if (n >= 0)
+    {
+      if (n > flexlines - vpos)
+	n = flexlines - vpos;
+      fence = vpos + n;
+      for (i = flexlines; --i >= fence;)
+	line_dance[i] = line_dance[i-n];
+      for (i = fence; --i >= vpos;)
+	line_dance[i] = -1;
+    }
+  else
+    {
+      n = -n;
+      if (n > flexlines - vpos)
+	n = flexlines - vpos;
+      fence = flexlines - n;
+      for (i = vpos; i < fence; ++i)
+	line_dance[i] = line_dance[i + n];
+      for (i = fence; i < flexlines; ++i)
+	line_dance[i] = -1;
+    }
+}
+
+/* Here's where we actually move the pixels around.
+   Must be called with input blocked.  */
+static void
+do_line_dance ()
+{
+  register int i, j, distance;
+  register struct frame *f;
+  int ht;
+  int intborder;
+
+  /* Must check this flag first.  If it's not set, then not only is the
+     array uninitialized, but we might not even have a frame.  */
+  if (!line_dance_in_progress)
+    return;
+
+  f = updating_frame;
+  if (f == 0)
     abort ();
 
-  /* Hide the cursor.  */
+  ht = f->height;
+  intborder = f->display.x->internal_border_width;
+
   x_display_cursor (updating_frame, 0);
 
-  XTcursor_to (vpos, 0);
+  for (i = 0; i < ht; ++i)
+    if (line_dance[i] != -1 && (distance = line_dance[i]-i) > 0)
+      {
+	for (j = i; (j < ht && line_dance[j] != -1
+		     && line_dance[j]-j == distance); ++j);
+	/* Copy [i,j) upward from [i+distance,j+distance) */
+	XCopyArea (x_current_display, FRAME_X_WINDOW (f),
+		   FRAME_X_WINDOW (f), f->display.x->normal_gc,
+		   intborder, CHAR_TO_PIXEL_ROW (f, i+distance),
+		   f->width * FONT_WIDTH (f->display.x->font),
+		   (j-i) * f->display.x->line_height,
+		   intborder, CHAR_TO_PIXEL_ROW (f, i));
+	i = j-1;
+      }
 
-  BLOCK_INPUT;
-  if (n >= 0)
-    stufflines (n);
-  else
-    scraplines (-n);
-  XFlushQueue ();
-  UNBLOCK_INPUT;
+  for (i = ht; --i >=0; )
+    if (line_dance[i] != -1 && (distance = line_dance[i]-i) < 0)
+      {
+	for (j = i; (--j >= 0 && line_dance[j] != -1
+		     && line_dance[j]-j == distance); --j);
+	/* Copy (j,i] downward from (j+distance, i+distance] */
+	XCopyArea (x_current_display, FRAME_X_WINDOW (f),
+		   FRAME_X_WINDOW (f), f->display.x->normal_gc,
+		   intborder, CHAR_TO_PIXEL_ROW (f, j+1+distance),
+		   f->width * FONT_WIDTH (f->display.x->font),
+		   (i-j) * f->display.x->line_height,
+		   intborder, CHAR_TO_PIXEL_ROW (f, j+1));
+	i = j+1;
+      }
+
+  for (i = 0; i < ht; ++i)
+    if (line_dance[i] == -1)
+      {
+	for (j = i; j < ht && line_dance[j] == -1; ++j);
+	/* Clear [i,j) */
+	XClearArea (x_current_display, FRAME_X_WINDOW (f),
+		    intborder, CHAR_TO_PIXEL_ROW (f, i),
+		    f->width * FONT_WIDTH (f->display.x->font),
+		    (j-i) * f->display.x->line_height, False);
+	i = j-1;
+      }
+  line_dance_in_progress = 0;
 }
 
 /* Support routines for exposure events.  */
@@ -1338,7 +1365,7 @@ dumprectangle (f, left, top, cols, rows)
   /* Express rectangle as four edges, instead of position-and-size.  */
   bottom = top + rows;
   right = left + cols;
-  
+
   /* Convert rectangle edges in pixels to edges in chars.
      Round down for left and top, up for right and bottom.  */
   top  = PIXEL_TO_CHAR_ROW (f, top);
@@ -1444,7 +1471,7 @@ x_new_focus_frame (frame)
 
   if (frame != x_focus_frame)
     {
-      /* Set this before calling other routines, so that they see 
+      /* Set this before calling other routines, so that they see
 	 the correct value of x_focus_frame.  */
       x_focus_frame = frame;
 
@@ -1510,11 +1537,11 @@ XTframe_rehighlight ()
    of the top five modifier bits depends on what keys are attached
    to them.  If the Meta_L and Meta_R keysyms are on mod5, then mod5
    is the meta bit.
-   
+
    x_meta_mod_mask is a mask containing the bits used for the meta key.
    It may have more than one bit set, if more than one modifier bit
    has meta keys on it.  Basically, if EVENT is a KeyPress event,
-   the meta key is pressed if (EVENT.state & x_meta_mod_mask) != 0.  
+   the meta key is pressed if (EVENT.state & x_meta_mod_mask) != 0.
 
    x_shift_lock_mask is LockMask if the XK_Shift_Lock keysym is on the
    lock modifier bit, or zero otherwise.  Non-alphabetic keys should
@@ -1541,7 +1568,7 @@ x_find_modifier_meanings ()
   x_alt_mod_mask = 0;
   x_super_mod_mask = 0;
   x_hyper_mod_mask = 0;
-  
+
 #ifdef HAVE_X11R4
   XDisplayKeycodes (x_current_display, &min_code, &max_code);
 #else
@@ -1554,7 +1581,7 @@ x_find_modifier_meanings ()
 			      &syms_per_code);
   mods = XGetModifierMapping (x_current_display);
 
-  /* Scan the modifier table to see which modifier bits the Meta and 
+  /* Scan the modifier table to see which modifier bits the Meta and
      Alt keysyms are on.  */
   {
     int row, col;	/* The row and column in the modifier table. */
@@ -1623,7 +1650,7 @@ x_find_modifier_meanings ()
     {
       x_alt_mod_mask &= ~x_meta_mod_mask;
     }
-  
+
   XFree ((char *) syms);
   XFreeModifiermap (mods);
 }
@@ -1732,7 +1759,7 @@ construct_mouse_click (result, event, f)
   result->timestamp = event->time;
   result->modifiers = (x_x_to_emacs_modifiers (event->state)
 		       | (event->type == ButtonRelease
-			  ? up_modifier 
+			  ? up_modifier
 			  : down_modifier));
 
   {
@@ -1764,7 +1791,7 @@ construct_menu_click (result, event, f)
   result->timestamp = event->time;
   result->modifiers = (x_x_to_emacs_modifiers (event->state)
 		       | (event->type == ButtonRelease
-			  ? up_modifier 
+			  ? up_modifier
 			  : down_modifier));
 
   XSETINT (result->x, event->x);
@@ -1836,7 +1863,7 @@ note_mouse_movement (frame, event)
 	 *still* on the same glyph.  */
       int dummy;
       Window dummy_window;
-      
+
       XQueryPointer (event->display, FRAME_X_WINDOW (frame),
 		     &dummy_window, &dummy_window,
 		     &dummy, &dummy, &dummy, &dummy,
@@ -2220,7 +2247,7 @@ XTmouse_position (f, bar_window, part, x, y, time)
 		     &dummy_window,
 
 		     /* The position on that root window.  */
-		     &root_x, &root_y, 
+		     &root_x, &root_y,
 
 		     /* More trash we can't trust.  */
 		     &dummy, &dummy,
@@ -2292,7 +2319,7 @@ XTmouse_position (f, bar_window, part, x, y, time)
 	    /* Is win one of our frames?  */
 	    f1 = x_any_window_to_frame (win);
 	  }
-      
+
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
 	  {
@@ -2404,9 +2431,9 @@ x_scroll_bar_create (window, top, left, width, height)
 				       frame->display.x->edit_widget, al, ac);
     SET_SCROLL_BAR_X_WINDOW
       (bar, sb_widget->core.window);
-#endif    
+#endif
     SET_SCROLL_BAR_X_WINDOW
-      (bar, 
+      (bar,
        XCreateWindow (x_current_display, FRAME_X_WINDOW (frame),
 
 		      /* Position and size of scroll bar.  */
@@ -2446,7 +2473,7 @@ x_scroll_bar_create (window, top, left, width, height)
    If the handle is already drawn from START to END, don't bother
    redrawing it, unless REBUILD is non-zero; in that case, always
    redraw it.  (REBUILD is handy for drawing the handle after expose
-   events.)  
+   events.)
 
    Normally, we want to constrain the start and end of the handle to
    fit inside its rectangle, but if the user is dragging the scroll bar
@@ -2564,7 +2591,7 @@ x_scroll_bar_move (bar, top, left, width, height)
     if (top != XINT (bar->top))		mask |= CWY;
     if (width != XINT (bar->width))	mask |= CWWidth;
     if (height != XINT (bar->height))	mask |= CWHeight;
-    
+
     if (mask)
       XConfigureWindow (x_current_display, SCROLL_BAR_X_WINDOW (bar),
 			mask, &wc);
@@ -2667,7 +2694,7 @@ XTset_vertical_scroll_bar (window, portion, whole, position)
 /* Arrange for all scroll bars on FRAME to be removed at the next call
    to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
    `*redeem_scroll_bar_hook' is applied to its window before the judgement.  */
-static void 
+static void
 XTcondemn_scroll_bars (frame)
      FRAME_PTR frame;
 {
@@ -2847,7 +2874,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
 
     /* Same deal here as the other #if 0.  */
 #if 0
-    /* Clicks on the handle are always reported as occurring at the top of 
+    /* Clicks on the handle are always reported as occurring at the top of
        the handle.  */
     if (emacs_event->part == scroll_bar_handle)
       emacs_event->x = bar->start;
@@ -2884,7 +2911,7 @@ x_scroll_bar_note_movement (bar, event)
       if (new_start != XINT (bar->start))
 	{
 	  int new_end = new_start + (XINT (bar->end) - XINT (bar->start));
-	
+
 	  x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	}
     }
@@ -2894,7 +2921,7 @@ x_scroll_bar_note_movement (bar, event)
   {
     int dummy;
     Window dummy_window;
-      
+
     XQueryPointer (event->xmotion.display, event->xmotion.window,
 		   &dummy_window, &dummy_window,
 		   &dummy, &dummy, &dummy, &dummy,
@@ -3025,7 +3052,7 @@ process_expose_from_menu (event)
     {
       struct scroll_bar *bar
 	= x_window_to_scroll_bar (event.xexpose.window);
-      
+
       if (bar)
 	x_scroll_bar_expose (bar, &event);
     }
@@ -3055,7 +3082,7 @@ x_queue_event (event)
   struct selection_event_queue *queue_tmp
     = (struct selection_event_queue *) malloc (sizeof (struct selection_event_queue));
 
-  if (queue_tmp != NULL) 
+  if (queue_tmp != NULL)
     {
       queue_tmp->event = *event;
       queue_tmp->next = queue;
@@ -3069,7 +3096,7 @@ x_queue_event (event)
 static void
 x_unqueue_events ()
 {
-  while (queue != NULL) 
+  while (queue != NULL)
     {
       struct selection_event_queue *queue_tmp = queue;
       XPutBackEvent (XDISPLAY &queue_tmp->event);
@@ -3103,7 +3130,7 @@ x_stop_queuing_selection_requests ()
 static Time enter_timestamp;
 
 /* This holds the state XLookupString needs to implement dead keys
-   and other tricks known as "compose processing".  _X Window System_ 
+   and other tricks known as "compose processing".  _X Window System_
    says that a portable program can't use this, but Stephen Gildea assures
    me that letting the compiler initialize it to zeros will work okay.
 
@@ -3271,7 +3298,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      {
 		int new_x, new_y;
 		struct frame *f = x_window_to_frame (event.xclient.window);
-		
+
 		new_x = event.xclient.data.s[0];
 		new_y = event.xclient.data.s[1];
 
@@ -3388,7 +3415,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    {
 	      struct scroll_bar *bar
 		= x_window_to_scroll_bar (event.xexpose.window);
-	      
+
 	      if (bar)
 	        x_scroll_bar_expose (bar, &event);
 #ifdef USE_X_TOOLKIT
@@ -3630,7 +3657,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	case FocusIn:
 	  f = x_any_window_to_frame (event.xfocus.window);
-	  if (event.xfocus.detail != NotifyPointer) 
+	  if (event.xfocus.detail != NotifyPointer)
 	    x_focus_event_frame = f;
 	  if (f)
 	    x_new_focus_frame (f);
@@ -3656,7 +3683,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  else
 		    x_new_focus_frame (f);
 		}
-	      else 
+	      else
 		{
 		  if (f == x_focus_event_frame)
 		    x_focus_event_frame = 0;
@@ -3790,7 +3817,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		     this event after the window manager has changed our
 		     parent, but before we have reached the ReparentNotify.  */
 		  XTranslateCoordinates (x_current_display,
-			       
+
 					 /* From-window, to-window.  */
 					 f->display.x->window_desc,
 					 ROOT_WINDOW,
@@ -3925,20 +3952,20 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
   /* On some systems, an X bug causes Emacs to get no more events
      when the window is destroyed.  Detect that.  (1994.)  */
-  if (! event_found) 
+  if (! event_found)
     {
       /* Emacs and the X Server eats up CPU time if XNoOp is done every time.
 	 One XNOOP in 100 loops will make Emacs terminate.
 	 B. Bretthauer, 1994 */
       x_noop_count++;
-      if (x_noop_count >= 100) 
+      if (x_noop_count >= 100)
 	{
 	  x_noop_count=0;
 	  XNoOp (x_current_display);
 	}
     }
 
-#if 0 /* This fails for serial-line connections to the X server, 
+#if 0 /* This fails for serial-line connections to the X server,
 	 because the characters arrive one by one, and a partial
 	 command makes select return but gives nothing to read.
 	 We'll have to hope that the bug that this tried to fix
@@ -4268,12 +4295,12 @@ x_text_icon (f, icon_name)
   else
     if (! f->display.x->icon_label)
       f->display.x->icon_label = " *emacs* ";
-  
+
 #if 0
   XSetIconName (x_current_display, FRAME_X_WINDOW (f),
 		(char *) f->display.x->icon_label);
 #endif
-  
+
   f->display.x->icon_bitmap_flag = 0;
   x_wm_set_icon_pixmap (f, 0);
 
@@ -4306,7 +4333,7 @@ x_error_quitter (display, error)
 {
   char buf[256];
 
-  /* Note that there is no real way portable across R3/R4 to get the 
+  /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */
 
   XGetErrorText (display, error->error_code, buf, sizeof (buf));
@@ -4506,7 +4533,7 @@ x_new_font (f, fontname)
 	    }
     }
  found_font:
-  
+
   /* If we have, just return it from the table.  */
   if (already_loaded >= 0)
     f->display.x->font = x_font_table[already_loaded].font;
@@ -4518,7 +4545,7 @@ x_new_font (f, fontname)
       XFontStruct *font;
 
       /* Try to find a character-cell font in the list.  */
-#if 0 
+#if 0
       /* A laudable goal, but this isn't how to do it.  */
       for (i = 0; i < n_matching_fonts; i++)
 	if (! font_info[i].per_char)
@@ -4657,7 +4684,7 @@ x_calc_absolute_position (f)
     {
       BLOCK_INPUT;
       XTranslateCoordinates (x_current_display,
-			       
+
 			     /* From-window, to-window.  */
 			     f->display.x->window_desc,
 			     f->display.x->parent_desc,
@@ -4673,7 +4700,7 @@ x_calc_absolute_position (f)
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
-    f->display.x->left_pos = (x_screen_width 
+    f->display.x->left_pos = (x_screen_width
 			      - 2 * f->display.x->border_width - win_x
 			      - PIXEL_WIDTH (f)
 			      + f->display.x->left_pos);
@@ -5141,7 +5168,7 @@ x_iconify_frame (f)
      WM_CHANGE_STATE type.  */
   {
     XEvent message;
-    
+
     message.xclient.window = FRAME_X_WINDOW (f);
     message.xclient.type = ClientMessage;
     message.xclient.message_type = Xatom_wm_change_state;
@@ -5159,7 +5186,7 @@ x_iconify_frame (f)
       }
   }
 
-  /* X11R3: set the initial_state field of the window manager hints to 
+  /* X11R3: set the initial_state field of the window manager hints to
      IconicState.  */
   x_wm_set_window_state (f, IconicState);
 
@@ -5283,7 +5310,7 @@ x_wm_set_size_hint (f, flags, user_position)
        resizing; min_width and min_height aren't useful for this
        purpose, since they might not give the dimensions for a
        zero-row, zero-column frame.
-       
+
        We use the base_width and base_height members if we have
        them; otherwise, we set the min_width and min_height members
        to the size for a zero x zero frame.  */
@@ -5314,7 +5341,7 @@ x_wm_set_size_hint (f, flags, user_position)
 #else
       value = XGetNormalHints (x_current_display, window, &hints);
 #endif
-      
+
       if (value == 0)
 	hints.flags = 0;
       if (hints.flags & PSize)
@@ -5440,7 +5467,7 @@ x_term_init (display_name, xrm_option, resource_name)
   extern int old_fcntl_owner;
 #endif /* ! defined (F_SETOWN) */
 #endif /* F_SETOWN_BUG */
-  
+
   x_noop_count = 0;
 
   x_focus_frame = x_highlight_frame = 0;
@@ -5551,19 +5578,19 @@ Check the DISPLAY environment variable or use \"-d\"\n",
   condemn_scroll_bars_hook = XTcondemn_scroll_bars;
   redeem_scroll_bar_hook = XTredeem_scroll_bar;
   judge_scroll_bars_hook = XTjudge_scroll_bars;
-  
+
   scroll_region_ok = 1;		/* we'll scroll partial frames */
   char_ins_del_ok = 0;		/* just as fast to write the line */
   line_ins_del_ok = 1;		/* we'll just blt 'em */
   fast_clear_end_of_line = 1;	/* X does this well */
-  memory_below_frame = 0;	/* we don't remember what scrolls 
+  memory_below_frame = 0;	/* we don't remember what scrolls
 				   off the bottom */
   baud_rate = 19200;
 
   /* Try to use interrupt input; if we can't, then start polling.  */
   Fset_input_mode (Qt, Qnil, Qt, Qnil);
 
-  /* Note that there is no real way portable across R3/R4 to get the 
+  /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */
   XHandleError (x_error_quitter);
   XHandleIOError (x_io_error_quitter);
