@@ -279,83 +279,133 @@ What you probably want is a loop like this:
 which will run faster and will not set the mark or print anything."
   (interactive (query-replace-read-args "Replace regexp" t))
   (perform-replace regexp to-string start end nil t delimited))
+
 
 (defvar regexp-history nil
   "History list for some commands that read regular expressions.")
 
+
 (defalias 'delete-non-matching-lines 'keep-lines)
-(defun keep-lines (regexp)
+(defalias 'delete-matching-lines 'flush-lines)
+(defalias 'count-matches 'how-many)
+
+
+(defun keep-lines-read-args (prompt)
+  "Read arguments for `keep-lines' and friends.
+Prompt for a regexp with PROMPT.
+
+Value is a list (REGEXP START END).
+
+If in Transient Mark node, and the mark is active, START is the
+start of the region, and end is a marker for the end of the region.
+Otherwise, START is the current point, and END is `point-max-marker'."
+  (let ((regexp (read-from-minibuffer prompt nil nil nil
+				      'regexp-history nil t))
+	start end)
+    (if (and transient-mark-mode mark-active)
+	(setq start (region-beginning)
+	      end (save-excursion (goto-char (region-end)) (point-marker)))
+      (setq start (point)
+	    end (point-max-marker)))
+    (list regexp start end)))
+
+
+(defun keep-lines (regexp &optional rstart rend)
   "Delete all lines except those containing matches for REGEXP.
 A match split across lines preserves all the lines it lies in.
 Applies to all lines after point.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\'),
-the matching is case-sensitive."
-  (interactive (list (read-from-minibuffer
-		      "Keep lines (containing match for regexp): "
-		      nil nil nil 'regexp-history nil t)))
+the matching is case-sensitive.
+
+Second and third arg RSTART and REND specify the region to operate on.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer."
+  (interactive
+   (keep-lines-read-args "Keep lines (containing match for regexp): "))
+  (if rstart
+      (goto-char (min rstart rend))
+    (setq rstart (point) rend (point-max-marker)))
   (save-excursion
     (or (bolp) (forward-line 1))
     (let ((start (point))
 	  (case-fold-search  (and case-fold-search
 				  (isearch-no-upper-case-p regexp t))))
-      (while (not (eobp))
+      (while (< (point) rend)
 	;; Start is first char not preserved by previous match.
-	(if (not (re-search-forward regexp nil 'move))
-	    (delete-region start (point-max))
+	(if (not (re-search-forward regexp rend 'move))
+	    (delete-region start rend)
 	  (let ((end (save-excursion (goto-char (match-beginning 0))
 				     (beginning-of-line)
 				     (point))))
 	    ;; Now end is first char preserved by the new match.
 	    (if (< start end)
 		(delete-region start end))))
-	(setq start (save-excursion (forward-line 1)
-				    (point)))
+	
+	(setq start (save-excursion (forward-line 1) (point)))
 	;; If the match was empty, avoid matching again at same place.
-	(and (not (eobp)) (= (match-beginning 0) (match-end 0))
+	(and (< (point) rend)
+	     (= (match-beginning 0) (match-end 0))
 	     (forward-char 1))))))
 
-(defalias 'delete-matching-lines 'flush-lines)
-(defun flush-lines (regexp)
+
+(defun flush-lines (regexp &optional rstart rend)
   "Delete lines containing matches for REGEXP.
 If a match is split across lines, all the lines it lies in are deleted.
 Applies to lines after point.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\'),
-the matching is case-sensitive."
-  (interactive (list (read-from-minibuffer
-		      "Flush lines (containing match for regexp): "
-		      nil nil nil 'regexp-history nil t)))
+the matching is case-sensitive.
+
+Second and third arg RSTART and REND specify the region to operate on.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer."
+  (interactive
+   (keep-lines-read-args "Flush lines (containing match for regexp): "))
+  (if rstart
+      (goto-char (min rstart rend))
+    (setq rstart (point) rend (point-max-marker)))
   (let ((case-fold-search (and case-fold-search
 			       (isearch-no-upper-case-p regexp t))))
     (save-excursion
-      (while (and (not (eobp))
-		  (re-search-forward regexp nil t))
+      (while (and (< (point) rend)
+		  (re-search-forward regexp rend t))
 	(delete-region (save-excursion (goto-char (match-beginning 0))
 				       (beginning-of-line)
 				       (point))
 		       (progn (forward-line 1) (point)))))))
 
-(defalias 'count-matches 'how-many)
-(defun how-many (regexp)
+
+(defun how-many (regexp &optional rstart rend)
   "Print number of matches for REGEXP following point.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\'),
-the matching is case-sensitive."
-  (interactive (list (read-from-minibuffer
-		      "How many matches for (regexp): "
-		      nil nil nil 'regexp-history nil t)))
-  (let ((count 0) opoint
-	(case-fold-search  (and case-fold-search
-				(isearch-no-upper-case-p regexp t))))
+the matching is case-sensitive.
+
+Second and third arg RSTART and REND specify the region to operate on.
+
+In Transient Mark mode, if the mark is active, operate on the contents
+of the region.  Otherwise, operate from point to the end of the buffer."
+  (interactive
+   (keep-lines-read-args "How many matches for (regexp): "))
+  (if rstart
+      (goto-char (min rstart rend))
+    (setq rstart (point) rend (point-max-marker)))
+  (let ((count 0)
+	opoint
+	(case-fold-search (and case-fold-search
+			       (isearch-no-upper-case-p regexp t))))
     (save-excursion
-     (while (and (not (eobp))
+     (while (and (< (point) rend)
 		 (progn (setq opoint (point))
-			(re-search-forward regexp nil t)))
+			(re-search-forward regexp rend t)))
        (if (= opoint (point))
 	   (forward-char 1)
 	 (setq count (1+ count))))
      (message "%d occurrences" count))))
+
 
 (defvar occur-mode-map ())
 (if occur-mode-map
