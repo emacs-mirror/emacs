@@ -419,8 +419,8 @@ simply inserts a newline."
   "Major mode for interactively evaluating Emacs Lisp expressions.
 Uses the interface provided by `comint-mode' (which see).
 
-* \\<ielm-map>\\[ielm-send-input] evaluates the sexp following the prompt. There must be at most
-  one top-level sexp per prompt.
+* \\<ielm-map>\\[ielm-send-input] evaluates the sexp following the prompt.  There must be at most
+  one top level sexp per prompt.
 
 * \\[ielm-return] inserts a newline and indents, or evaluates a
   complete expression (but see variable `ielm-dynamic-return').
@@ -499,7 +499,9 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (unless (comint-check-proc (current-buffer))
     ;; Was cat, but on non-Unix platforms that might not exist, so
     ;; use hexl instead, which is part of the Emacs distribution.
-    (start-process "ielm" (current-buffer) "hexl")
+    (condition-case nil
+	(start-process "ielm" (current-buffer) "hexl")
+      (file-error (start-process "ielm" (current-buffer) "cat")))
     (process-kill-without-query (ielm-process))
     (goto-char (point-max))
     
@@ -512,7 +514,7 @@ Customised bindings may be defined in `ielm-map', which currently contains:
     (ielm-set-pm (point-max))
     (unless comint-use-prompt-regexp-instead-of-fields
       (add-text-properties
-       1 (point-max)
+       (point-min) (point-max)
        '(rear-nonsticky t field output inhibit-line-move-field-capture t)))
     (comint-output-filter (ielm-process) ielm-prompt)
     (set-marker comint-last-input-start (ielm-pm))
