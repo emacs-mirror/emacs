@@ -1,3 +1,8 @@
+2002-02-03  Andreas Schwab  <schwab@suse.de>
+
+	* s/gnu-linux.h: Check for __mc68000__ instead of __m68k__, the
+	latter never being defined on GNU/Linux.
+
 2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xfaces.c (realize_default_face): Don't set the weight and slant
