@@ -755,7 +755,12 @@ print (obj, printcharfun, escapeflag)
   switch (XGCTYPE (obj))
     {
     case Lisp_Int:
-      sprintf (buf, "%d", XINT (obj));
+      if (sizeof (int) == sizeof (EMACS_INT))
+	sprintf (buf, "%d", XINT (obj));
+      else if (sizeof (long) == sizeof (EMACS_INT))
+	sprintf (buf, "%ld", XINT (obj));
+      else
+	abort ();
       strout (buf, -1, printcharfun);
       break;
 
