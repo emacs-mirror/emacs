@@ -1535,7 +1535,7 @@ and returns whatever that function returns.  */)
 
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
-  if (mouse_position_hook)
+  if (!FRAME_TERMCAP_P (f) && mouse_position_hook)
     (*mouse_position_hook) (&f, -1,
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
