@@ -57,7 +57,7 @@
 (load "map-ynp")
 (load "env")
 (load "cus-start")
-(load "international/mule")
+(load "international/mulel")
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
 (load "format")
 (load "bindings")
@@ -80,7 +80,6 @@
 (load "international/mule-cmds")
 (load "case-table")
 (load "international/characters")
-(load "international/utf-8")
 
 (let ((set-case-syntax-set-multibyte t))
   (load "international/latin-1")
@@ -112,7 +111,6 @@
 (load "language/misc-lang")
 (load "language/utf-8-lang")
 (load "language/georgian")
-(update-coding-systems-internal)
 
 (load "indent")
 (load "window")
@@ -247,7 +245,8 @@
 ;; then clear out load-history.
 (if (or (equal (nth 3 command-line-args) "dump")
 	(equal (nth 4 command-line-args) "dump"))
-    (let ((buffer-undo-list t))
+    (let ((buffer-undo-list t)
+	  (coding-system-for-write 'utf-8))
       (princ "(setq load-history\n" (current-buffer))
       (princ "      (nconc load-history\n" (current-buffer))
       (princ "             '(" (current-buffer))
@@ -279,6 +278,7 @@
 	(equal (nth 4 command-line-args) "bootstrap"))
     (setcdr load-path nil))
 
+(clear-charset-maps)
 (garbage-collect)
 
 ;;; At this point, we're ready to resume undo recording for scratch.
