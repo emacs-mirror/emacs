@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.8 2001/02/01 15:12:35 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.9 2001/02/01 17:42:44 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -293,7 +293,7 @@ EDITABLE non-nil means previous version should be locked."
 
 (defun vc-sccs-print-log (file)
   "Get change log associated with FILE."
-  (vc-do-command t 0 "prs" (vc-name file)))
+  (vc-do-command nil 0 "prs" (vc-name file)))
 
 (defun vc-sccs-logentry-check ()
   "Check that the log entry in the current buffer is acceptable for SCCS."
@@ -305,7 +305,7 @@ EDITABLE non-nil means previous version should be locked."
   "Get a difference report using SCCS between two versions of FILE."
   (setq oldvers (vc-sccs-lookup-triple file oldvers))
   (setq newvers (vc-sccs-lookup-triple file newvers))
-  (apply 'vc-do-command t 1 "vcdiff" (vc-name file) 
+  (apply 'vc-do-command "*vc-diff*" 1 "vcdiff" (vc-name file) 
          (append (list "-q"
                        (and oldvers (concat "-r" oldvers))
                        (and newvers (concat "-r" newvers)))
