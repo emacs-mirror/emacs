@@ -972,10 +972,10 @@ command_loop_1 ()
 		    = window_display_table (XWINDOW (selected_window));
 		  lose = FETCH_CHAR (point);
 		  SET_PT (point + 1);
-		  if (((dp == 0 && lose >= 040 && lose < 0177)
-		       ||
-		       (dp && (XTYPE (dp->contents[lose]) != Lisp_String
-			       || XSTRING (dp->contents[lose])->size == sizeof (GLYPH))))
+		  if ((dp
+		       ? (XTYPE (DISP_CHAR_VECTOR (dp, lose)) != Lisp_Vector
+			  XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
+		       : (lose >= 0x20 && lose < 0x7f))
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_point)
@@ -993,10 +993,10 @@ command_loop_1 ()
 		    = window_display_table (XWINDOW (selected_window));
 		  SET_PT (point - 1);
 		  lose = FETCH_CHAR (point);
-		  if (((dp == 0 && lose >= 040 && lose < 0177)
-		       ||
-		       (dp && (XTYPE (dp->contents[lose]) != Lisp_String
-			       || XSTRING (dp->contents[lose])->size == sizeof (GLYPH))))
+		  if ((dp
+		       ? (XTYPE (DISP_CHAR_VECTOR (dp, lose)) != Lisp_Vector
+			  XVECTOR (DISP_CHAR_VECTOR (dp, lose))->size == 1)
+		       : (lose >= 0x20 && lose < 0x7f))
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_point)
@@ -1043,13 +1043,24 @@ command_loop_1 ()
 		    {
 		      struct Lisp_Vector *dp
 			= window_display_table (XWINDOW (selected_window));
+		      int lose = XINT (c);
 
-		      if (dp == 0 || XTYPE (dp->contents[c]) != Lisp_String)
-			no_redisplay = direct_output_for_insert (XINT (c));
-		      else if (XSTRING (dp->contents[c])->size
-			       == sizeof (GLYPH))
-		        no_redisplay =
-			  direct_output_for_insert (*(GLYPH *)XSTRING (dp->contents[c])->data);
+		      if (dp)
+			{
+			  Lisp_Object obj = DISP_CHAR_VECTOR (dp, lose);
+
+			  if (XTYPE (obj) == Lisp_Vector
+			      && XVECTOR (obj)->size == 1
+			      && (XTYPE (obj = XVECTOR (obj)->contents[0])
+				  == Lisp_Int))
+			    no_redisplay =
+			      direct_output_for_insert (XINT (obj));
+			}
+		      else
+			{
+			  if (lose >= 0x20 && lose <= 0x7e)
+			    no_redisplay = direct_output_for_insert (lose);
+			}
 		    }
 		  goto directly_done;
 		}
