@@ -7271,7 +7271,7 @@ prepare_menu_bars ()
   struct frame *f;
   Lisp_Object tooltip_frame;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   tooltip_frame = tip_frame;
 #else
   tooltip_frame = Qnil;
