@@ -145,7 +145,7 @@ Returns nil if nothing was entered."
 
 (defun solar-degrees-to-quadrant (angle)
   "Determines the quadrant of ANGLE."
-  (1+ (truncate (/ (mod angle 360.0) 90.0))))
+  (1+ (floor (mod angle 360) 90)))
 
 (defun solar-arctan (x quad)
   "Arctangent of X in quadrant QUAD."
@@ -188,7 +188,7 @@ Returns nil if nothing was entered."
 	    (* 1.916 (solar-sin-degrees mean-anomaly))
 	    (* 0.020 (solar-sin-degrees (* 2 mean-anomaly)))
 	    282.634)
-	 360.0)))
+	 360)))
 
 (defun solar-right-ascension (longitude)
   "Right ascension of the sun, given its LONGITUDE."
@@ -231,7 +231,7 @@ of hours.  Returns nil if the sun does not rise at that location on that day."
 	      (mod (- (+ local-sunrise solar-right-ascension-at-sunrise)
 		      (+ (* 0.065710 approx-sunrise)
 			 6.622))
-		   24.0)))
+		   24)))
 	(+ (- local-mean-sunrise (solar-degrees-to-hours calendar-longitude))
 	   (/ calendar-time-zone 60.0))))))
 
@@ -262,7 +262,7 @@ of hours.  Returns nil if the sun does not set at that location on that day."
              (local-mean-sunset
 	      (mod (- (+ local-sunset solar-right-ascension-at-sunset)
 		      (+ (* 0.065710 approx-sunset) 6.622))
-		   24.0)))
+		   24)))
 	(+ (- local-mean-sunset (solar-degrees-to-hours calendar-longitude))
 	   (/ calendar-time-zone 60.0))))))
 
@@ -372,7 +372,7 @@ several minutes."
         app
 	(correction 1000))
     (while (> correction 0.00001)
-      (setq app (mod (solar-apparent-longitude-of-sun date) 360.0))
+      (setq app (mod (solar-apparent-longitude-of-sun date) 360))
       (setq correction (* 58 (solar-sin-degrees (- (* k 90) app))))
       (setq date (list (extract-calendar-month date)
 		       (+ (extract-calendar-day date) correction)
@@ -489,18 +489,24 @@ Requires floating point."
 	   (date (solar-equinoxes/solstices k y))
 	   (day (extract-calendar-day date))
 	   (time (* 24 (- day (truncate day))))
+	   (s-hemi (and calendar-latitude (< calendar-latitude 0)))
            ;; Time zone/DST can't move the date out of range,
            ;; so let solar-time-string do the conversion.
 	   (date (list (extract-calendar-month date)
 		       (truncate day)
 		       (extract-calendar-year date))))
-      (list (list date
-		  (format "%s %s"
-			  (cond ((= k 0)  "Vernal Equinox")
-				((= k 1)  "Summer Solstice")
-				((= k 2)  "Fall Equinox")
-				((= k 3)  "Winter Solstice"))
-			  (solar-time-string time date)))))))
+      (list
+       (list date
+             (format "%s %s"
+		     (cond ((= k 0)
+			    (if s-hemi "Autumnal Equinox" "Vernal Equinox"))
+			   ((= k 1)
+			    (if s-hemi "Winter Solstice" "Summer Solstice"))
+			   ((= k 2)
+			    (if s-hemi "Vernal Equinox" "Autumnal Equinox"))
+			   ((= k 3)
+			    (if s-hemi "Summer Solstice" "Winter Solstice")))
+		     (solar-time-string time date)))))))
 
 (provide 'solar)
 
