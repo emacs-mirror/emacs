@@ -1,3 +1,8 @@
+2003-09-28  Eli Zaretskii  <eliz@elta.co.il>
+
+	* language/chinese.el ("Chinese-GB", "Chinese-BIG5"): Set up for
+	using a Chinese tutorial.
+
 2003-09-28  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Don't insert a space
