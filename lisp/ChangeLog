@@ -1,3 +1,8 @@
+1999-11-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-make-enter-wrapper): Correct
+	invalid translation of old-style backquote syntax to new syntax.
+
 1999-11-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile (DONTCOMPILE): Add term/internal.el.
