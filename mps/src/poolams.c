@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.29) $
+ * $HopeName: MMsrc!poolams.c(trunk.26) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  * 
  * .readership: any MPS developer.
@@ -23,7 +23,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.29) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.26) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -46,7 +46,7 @@ Bool AMSGroupCheck(AMSGroup group)
   CHECKL(group->grains >= group->free);
 
   if(SegWhite(group->seg) != TraceSetEMPTY)
-    /* d.m.p.colour.single */
+    /* design.mps.poolams.colour.single */
     CHECKL(TraceSetIsSingle(SegWhite(group->seg)));
 
   CHECKL(BoolCheck(group->marksChanged));
@@ -81,7 +81,7 @@ Res AMSGroupInit(AMSGroup group, Pool pool)
   size = SegSize(group->seg);
   group->grains = size >> ams->grainShift;
   group->free = group->grains;
-  group->marksChanged = FALSE; /* d.m.p.marked.unused */
+  group->marksChanged = FALSE; /* design.mps.poolams.marked.unused */
   group->ambiguousFixes = FALSE;
 
   res = BTCreate(&group->allocTable, arena, group->grains);
@@ -96,7 +96,7 @@ Res AMSGroupInit(AMSGroup group, Pool pool)
   if(res != ResOK)
     goto failWhite;
 
-  /* start off using firstFree, see d.m.p.no-bit */
+  /* start off using firstFree, see design.mps.poolams.no-bit */
   group->allocTableInUse = FALSE;
   group->firstFree = 0;
   group->colourTablesInUse = FALSE;
@@ -269,7 +269,7 @@ static Res AMSIterate(AMSGroup group,
 /* AMSInit -- the pool class initialization method
  * 
  *  Takes one additional argument: the format of the objects
- *  allocated in the pool.  See d.m.p.init.
+ *  allocated in the pool.  See design.mps.poolams.init.
  */
 
 Res AMSInit(Pool pool, va_list arg)
@@ -379,7 +379,7 @@ static Bool AMSGroupAlloc(Index *baseReturn, Index *limitReturn,
 
 /* AMSBufferInit -- the buffer init method
  *
- * This just sets rankSet.  See d.m.p.buffer-init.
+ * This just sets rankSet.  See design.mps.poolams.buffer-init.
  */
 
 Res AMSBufferInit(Pool pool, Buffer buffer, va_list args)
@@ -398,7 +398,7 @@ Res AMSBufferInit(Pool pool, Buffer buffer, va_list args)
 /* AMSBufferFill -- the pool class buffer fill method
  * 
  * Iterates over the segments looking for space.  See
- * d.m.p.fill.
+ * design.mps.poolams.fill.
  */
 
 Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
@@ -426,12 +426,12 @@ Res AMSBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AVER(BoolCheck(withReservoirPermit));
 
   /* Check that we're not in the grey mutator phase (see */
-  /* d.m.p.fill.colour). */
+  /* design.mps.poolams.fill.colour). */
   AVER(PoolArena(pool)->busyTraces == PoolArena(pool)->flippedTraces);
 
   rankSet = BufferRankSet(buffer);
   ring = (ams->allocRing)(ams, rankSet, size);
-  /* d.m.p.fill.slow */
+  /* design.mps.poolams.fill.slow */
   RING_FOR(node, ring, nextNode) {
     group = RING_ELT(AMSGroup, groupRing, node);
     AVERT_CRITICAL(AMSGroup, group);
@@ -467,7 +467,7 @@ found:
 /* AMSBufferEmpty -- the pool class buffer empty method
  * 
  * Frees the unused part of the buffer.  The colour of the area doesn't
- * need to be changed.  See d.m.p.empty.
+ * need to be changed.  See design.mps.poolams.empty.
  */
 
 void AMSBufferEmpty(Pool pool, Buffer buffer)
@@ -570,13 +570,13 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   AVERT(AMSGroup, group);
   AVER(group->ams == ams);
 
-  /* d.m.p.colour.single */
+  /* design.mps.poolams.colour.single */
   AVER(SegWhite(seg) == TraceSetEMPTY);
   AVER(!group->colourTablesInUse);
 
   group->colourTablesInUse = TRUE;
   buffer = SegBuffer(seg);
-  if(buffer != NULL) { /* d.m.p.condemn.buffer */
+  if(buffer != NULL) { /* design.mps.poolams.condemn.buffer */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = AMS_ADDR_INDEX(group, BufferScanLimit(buffer));
     limitIndex = AMS_ADDR_INDEX(group, BufferLimit(buffer));
@@ -593,10 +593,10 @@ Res AMSWhiten(Pool pool, Trace trace, Seg seg)
   }
 
   trace->condemned += SegSize(seg);
-  group->marksChanged = FALSE; /* d.m.p.marked.condemn */
+  group->marksChanged = FALSE; /* design.mps.poolams.marked.condemn */
   group->ambiguousFixes = FALSE;
 
-  /* d.m.p.condemn.white */
+  /* d.m.p.condemn.white [can't locate this tag] */
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
 
   return ResOK;
@@ -721,7 +721,7 @@ static Res AMSScanObject(AMSGroup group,
 
 /* AMSScan -- the pool class segment scanning method
  *
- * See d.m.p.scan
+ * See design.mps.poolams.scan
  */
 
 Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
@@ -745,7 +745,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVERT(AMSGroup, group);
 
   /* Check that we're not in the grey mutator phase (see */
-  /* d.m.p.not-req.grey). */
+  /* design.mps.poolams.not-req.grey). */
   AVER(TraceSetSub(ss->traces, arena->flippedTraces));
 
   closureStruct.scanAllObjects =
@@ -766,13 +766,13 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
     format = ams->format;
     AVERT(Format, format);
     alignment = PoolAlignment(AMSPool(ams));
-    do { /* d.m.p.scan.iter */
-      group->marksChanged = FALSE; /* d.m.p.marked.scan */
-      /* d.m.p.ambiguous.middle */
+    do { /* design.mps.poolams.scan.iter */
+      group->marksChanged = FALSE; /* design.mps.poolams.marked.scan */
+      /* design.mps.poolams.ambiguous.middle */
       if(group->ambiguousFixes) {
         res = (ams->iterate)(group, AMSScanObject, &closureStruct);
         if(res != ResOK) {
-          /* d.m.p.marked.scan.fail */
+          /* design.mps.poolams.marked.scan.fail */
           group->marksChanged = TRUE;
           *totalReturn = FALSE;
           return res;
@@ -790,7 +790,7 @@ Res AMSScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
           j = AMS_ADDR_INDEX(group, next);
           res = (*format->scan)(ss, p, next);
           if(res != ResOK) {
-            /* d.m.p.marked.scan.fail */
+            /* design.mps.poolams.marked.scan.fail */
             group->marksChanged = TRUE;
             *totalReturn = FALSE;
             return res;
@@ -829,7 +829,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   AVER_CRITICAL(group->colourTablesInUse);
 
   /* @@@@ We should check that we're not in the grey mutator phase */
-  /* (see d.m.p.not-req.grey), but there's no way of */
+  /* (see design.mps.poolams.not-req.grey), but there's no way of */
   /* doing that here (this can be called from RootScan, during flip). */
 
   ref = *refIO;
@@ -859,7 +859,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         *refIO = (Ref)0;
       } else {
         if(SegRankSet(seg) == RankSetEMPTY && ss->rank != RankAMBIG) {
-          /* d.m.p.fix.to-black */
+          /* design.mps.poolams.fix.to-black */
           Addr next;
 
           next = (*group->ams->format->skip)(ref);
@@ -869,7 +869,7 @@ Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
         } else { /* turn it grey */
           AMSWhiteGreyen(group, i);
           SegSetGrey(seg, TraceSetUnion(SegGrey(seg), ss->traces));
-          /* mark it for scanning - d.m.p.marked.fix */
+          /* mark it for scanning - design.mps.poolams.marked.fix */
           group->marksChanged = TRUE;
         }
       }
@@ -963,7 +963,7 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
   if(group->free == group->grains && SegBuffer(seg) == NULL) {
     /* No survivors */
     AMSGroupDestroy(group);
-    /* d.m.p.benefit.guess */
+    /* design.mps.poolams.benefit.guess */
     ams->lastReclaimed = ams->size;
   } else {
     group->colourTablesInUse = FALSE;
@@ -975,7 +975,7 @@ void AMSReclaim(Pool pool, Trace trace, Seg seg)
 /* AMSBenefit -- the pool class benefit computation method
  *
  * This does not compute a real benefit, but something which works
- * well enough to run tests.  See d.m.p.benefit.guess.
+ * well enough to run tests.  See design.mps.poolams.benefit.guess.
  */
 
 int AMSRatioDenominator = 1;
@@ -997,7 +997,7 @@ static double AMSBenefit(Pool pool, Action action)
   if((ams->size > AMSMinimumCollectableSize)
       && (ams->size * AMSRatioNumerator
           > ams->lastReclaimed * AMSRatioDenominator)) {
-    /* d.m.p.benefit.repeat */
+    /* design.mps.poolams.benefit.repeat */
     ams->lastReclaimed = ams->size; 
     benefit = 1.0;
   } else {
@@ -1158,8 +1158,8 @@ static PoolClassStruct PoolClassAMSStruct = {
   AttrFMT | AttrSCAN | AttrBUF | AttrBUF_RESERVE | AttrGC | AttrINCR_RB,
   AMSInit,
   AMSFinish,
-  PoolNoAlloc,               /* d.m.p.no-alloc */
-  PoolNoFree,                /* d.m.p.no-free */
+  PoolNoAlloc,               /* design.mps.poolams.no-alloc */
+  PoolNoFree,                /* design.mps.poolams.no-free */
   AMSBufferInit,
   AMSBufferFill,
   AMSBufferEmpty,
@@ -1167,7 +1167,7 @@ static PoolClassStruct PoolClassAMSStruct = {
   PoolTrivTraceBegin,
   PoolSegAccess,
   AMSWhiten,                 /* condemn (whiten) */
-  PoolTrivGrey,              /* d.m.p.colour.determine */
+  PoolTrivGrey,              /* design.mps.poolams.colour.determine */
   AMSBlacken,
   AMSScan,
   AMSFix,                    /* fix */
