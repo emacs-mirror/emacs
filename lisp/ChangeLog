@@ -1,3 +1,15 @@
+2002-11-14  Kim F. Storm  <storm@cua.dk>
+
+	* textmodes/fill.el (fill-nobreak-invisible): New var.
+	(fill-nobreak-p): Test it; return t if set and point invisible.
+	(fill-newline): Test it; remove invisible prop on newline if set.
+
+	* info.el (Info-fontify-node): New local list paragraph-markers.
+	Record markers for mangled *note references on that list.
+	When done, go back through those markers and fill each mangled
+	paragraph with `fill-nobreak-invisible' let-bound to t.
+	Don't use `display' property; insert "see" directly in buffer.
+	
 2002-11-13  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-registered): Improve comment.
