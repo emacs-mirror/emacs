@@ -1038,7 +1038,7 @@ for a moment, then straighten yourself up.
   (let (which i newques)
     (setq i 0)
     (setq newques nil)
-    (setq which (% (abs (random)) (length dun-endgame-questions)))
+    (setq which (random (length dun-endgame-questions)))
     (dun-mprincl "Your question is:")
     (dun-mprincl (setq dun-endgame-question (car 
 					     (nth which 
@@ -2990,11 +2990,11 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 
 
 (random t)
-(setq tloc (+ 60 (% (abs (random)) 18)))
+(setq tloc (+ 60 (random 18)))
 (dun-replace dun-room-objects tloc 
 	     (append (nth tloc dun-room-objects) (list 18)))
 
-(setq tcomb (+ 100 (% (abs (random)) 899)))
+(setq tcomb (+ 100 (random 899)))
 (setq dun-combination (prin1-to-string tcomb))
 
 ;;;;
