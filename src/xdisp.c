@@ -11267,6 +11267,8 @@ redisplay_window (window, just_this_one_p)
 	}
       else if ((w != XWINDOW (minibuf_window)
 		|| minibuf_level == 0)
+	       /* When buffer is nonempty, redisplay window normally. */
+	       && BUF_Z (XBUFFER (w->buffer)) == BUF_BEG (XBUFFER (w->buffer))
 	       /* Quail displays non-mini buffers in minibuffer window.
 		  In that case, redisplay the window normally.  */
 	       && !NILP (Fmemq (w->buffer, Vminibuffer_list)))
