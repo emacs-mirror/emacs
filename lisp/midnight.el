@@ -40,7 +40,8 @@
 
 (defgroup midnight nil
   "Run something every day at midnight."
-  :group 'calendar)
+  :group 'calendar
+  :version "20.3")
 
 (defcustom midnight-mode t
   "*Non-nil means run `midnight-hook' at midnight.
@@ -49,7 +50,6 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
   :type 'boolean
   :group 'midnight
   :require 'midnight
-  :version "20.3"
   :set (lambda (symb val)
          (set symb val) (require 'midnight)
          (if val (timer-activate midnight-timer)
@@ -83,8 +83,7 @@ Currently displayed and/or modified (unsaved) buffers, as well as buffers
 matching `clean-buffer-list-kill-never-buffer-names' and
 `clean-buffer-list-kill-never-regexps' are excluded."
   :type 'integer
-  :group 'midnight
-  :version "20.3")
+  :group 'midnight)
 
 (defcustom clean-buffer-list-delay-special 3600
   "*The number of seconds before some buffers become eligible for autokilling.
@@ -92,8 +91,7 @@ Buffers matched by `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' are killed if they were last
 displayed more than this many seconds ago."
   :type 'integer
-  :group 'midnight
-  :version "20.3")
+  :group 'midnight)
 
 (defcustom clean-buffer-list-kill-regexps nil
   "*List of regexps saying which buffers will be killed at midnight.
@@ -106,8 +104,7 @@ See also `clean-buffer-list-kill-buffer-names',
 `clean-buffer-list-kill-never-regexps' and
 `clean-buffer-list-kill-never-buffer-names'."
   :type 'list
-  :group 'midnight
-  :version "20.3")
+  :group 'midnight)
 
 (defcustom clean-buffer-list-kill-buffer-names
     '("*Help*" "*Apropos*" "*Man " "*Buffer List*" "*Compile-Log*" "*info*")
@@ -121,8 +118,7 @@ See also `clean-buffer-list-kill-regexps',
 `clean-buffer-list-kill-never-regexps' and
 `clean-buffer-list-kill-never-buffer-names'."
   :type 'list
-  :group 'midnight
-  :version "20.3")
+  :group 'midnight)
 
 (defcustom clean-buffer-list-kill-never-buffer-names
     '("*scratch*" "*Messages*")
@@ -132,8 +128,8 @@ Note that this does override `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' so a buffer matching any of these
 two lists will NOT be killed if it is also present in this list."
   :type 'list
-  :group 'midnight
-  :version "20.3")
+  :group 'midnight)
+
 
 (defcustom clean-buffer-list-kill-never-regexps '("^ \*Minibuf-.*\*$")
   "*List of regexp saying which buffers will never be killed at midnight.
@@ -143,8 +139,7 @@ Note that this does override `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' so a buffer matching any of these
 two lists will NOT be killed if it also matches anything in this list."
   :type 'list
-  :group 'midnight
-  :version "20.3")
+  :group 'midnight)
 
 (defun midnight-find (el ls test &optional key)
   "A stopgap solution to the absence of `find' in ELisp."
@@ -198,8 +193,7 @@ The relevant vartiables are `clean-buffer-list-delay-general',
   "The hook run `midnight-delay' seconds after midnight every day.
 The default value is `clean-buffer-list'."
   :type 'hook
-  :group 'midnight
-  :version "20.3")
+  :group 'midnight)
 
 (defun midnight-next ()
   "Return the number of seconds till the next midnight."
@@ -237,8 +231,7 @@ If you wish, you can use a string instead, it will be passed as the
 first argument to `run-at-time'."
   :type 'sexp
   :set 'midnight-delay-set
-  :group 'midnight
-  :version "20.3")
+  :group 'midnight)
 
 (provide 'midnight)
 

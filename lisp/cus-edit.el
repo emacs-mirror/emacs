@@ -880,9 +880,12 @@ option."
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
       (setq since-version nil))
-  (let ((found nil))
+  (let ((found nil)
+	(versions nil))
     (mapatoms (lambda (symbol)
 		(and (or (boundp symbol)
+			 ;; For variables not yet loaded.
+			 (get symbol 'standard-value)
 			 ;; For groups the previous test fails, this one
 			 ;; could be used to determine if symbol is a
 			 ;; group. Is there a better way for this?
@@ -890,7 +893,11 @@ option."
 		     (let ((version (get symbol 'custom-version)))
 		       (and version
 			    (or (null since-version)
-				(customize-version-lessp since-version version))))
+				(customize-version-lessp since-version version))
+			    (if (member version versions) 
+				t
+			      ;;; Collect all versions that we use.
+			      (push version versions))))
 		     (setq found
 			   ;; We have to set the right thing here,
 			   ;; depending if we have a group or a
@@ -900,7 +907,23 @@ option."
 			     (cons (list symbol 'custom-variable) found))))))
     (if (not found)
 	(error "No user options have changed defaults in recent Emacs versions")
-      (custom-buffer-create (custom-sort-items found t nil)
+      (put 'custom-versions-load-alist 'custom-loads 
+	   ;; Get all the files that correspond to element from the
+	   ;; VERSIONS list. This could use some simplification.
+	   (let ((flist nil))
+	     (while versions
+	       (push (copy-sequence 
+		      (cdr (assoc (car versions)  custom-versions-load-alist)))
+		     flist)
+	       (setq versions (cdr versions)))
+	     (apply 'nconc flist)))
+      ;; Because we set all the files needed to be loaded as a
+      ;; `custom-loads' property to `custom-versions-load-alist' this
+      ;; call will actually load them.
+      (custom-load-symbol 'custom-versions-load-alist)
+      ;; Clean up
+      (put 'custom-versions-load-alist 'custom-loads nil)
+      (custom-buffer-create (custom-sort-items found t 'first)
 			    "*Customize Changed Options*"))))
 
 (defun customize-version-lessp (version1 version2)
@@ -1183,7 +1206,7 @@ Reset all values in this buffer to their standard settings."
 		(length (length options)))
 	    (mapcar (lambda (entry)
 			(prog2
-			    (message "Creating customization items %2d%%..."
+			    (message "Creating customization items ...%2d%%"
 				     (/ (* 100.0 count) length))
 			    (widget-create (nth 1 entry)
 					 :tag (custom-unlispify-tag-name
@@ -1196,7 +1219,7 @@ Reset all values in this buffer to their standard settings."
 		      options))))
   (unless (eq (preceding-char) ?\n)
     (widget-insert "\n"))
-  (message "Creating customization items %2d%%...done" 100)
+  (message "Creating customization items ...%2d%%done" 100)
   (unless (eq custom-buffer-style 'tree)
     (mapcar 'custom-magic-reset custom-options))
   (message "Creating customization setup...")
