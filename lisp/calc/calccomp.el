@@ -27,11 +27,9 @@
 ;;; Code:
 
 ;; This file is autoloaded from calc-ext.el.
+
 (require 'calc-ext)
-
 (require 'calc-macs)
-
-(defun calc-Need-calc-comp () nil)
 
 (defconst math-eqn-special-funcs
   '( calcFunc-log
@@ -1770,6 +1768,8 @@
 	      (math-comp-to-string-raw (car cl) indent)
 	      (math-comp-to-string-raw-step (cdr cl) indent))
     ""))
+
+(provide 'calccomp)
 
 ;;; arch-tag: 7c45d10a-a286-4dab-af49-7ae8989fbf78
 ;;; calccomp.el ends here
