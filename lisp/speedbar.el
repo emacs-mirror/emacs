@@ -869,16 +869,18 @@ This basically creates a sparse keymap, and makes it's parent be
   )
 
 (defvar speedbar-easymenu-definition-base
-  `("Speedbar"
-    ["Update" speedbar-refresh t]
-    ["Auto Update" speedbar-toggle-updates
-     :style toggle :selected speedbar-update-flag]
-    ,(if (and (or (fboundp 'defimage)
-		  (fboundp 'make-image-specifier))
-	      window-system)
-	 ["Use Images" speedbar-toggle-images
-	  :style toggle :selected speedbar-use-images])
-    )
+  (append
+   '("Speedbar"
+     ["Update" speedbar-refresh t]
+     ["Auto Update" speedbar-toggle-updates
+      :style toggle :selected speedbar-update-flag])
+   (if (and (or (fboundp 'defimage)
+		(fboundp 'make-image-specifier))
+	    window-system)
+       (list
+	["Use Images" speedbar-toggle-images
+	 :style toggle :selected speedbar-use-images]))
+   )
   "Base part of the speedbar menu.")
 
 (defvar speedbar-easymenu-definition-special
@@ -2006,14 +2008,19 @@ If PREVLINE, then put this button on the previous line.
 This is a convenience function for special mode that create their own
 specialized speedbar displays."
   (goto-char (point-max))
-  (if (/= (current-column) 0) (insert "\n"))
-  (if prevline (progn (delete-char -1) (insert " "))) ;back up if desired...
+  (let ((start (point)))
+    (if (/= (current-column) 0) (insert "\n"))
+    (put-text-property start (point) 'invisible nil))
+  (if prevline (progn (delete-char -1)
+		      (insert " ") ;back up if desired...
+		      (put-text-property (1- (point)) (point) 'invisible nil)))
   (let ((start (point)))
     (insert text)
     (speedbar-make-button start (point) face mouse function token))
   (let ((start (point)))
     (insert "\n")
     (put-text-property start (point) 'face nil)
+    (put-text-property start (point) 'invisible nil)
     (put-text-property start (point) 'mouse-face nil)))
 
 (defun speedbar-make-button (start end face mouse function &optional token)
@@ -4210,36 +4217,36 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
 
 )))
 
-(defimage-speedbar speedbar-directory-+
-  ((:type xpm :file "sb-dir+.xpm" :ascent center))
+(defimage-speedbar speedbar-directory-plus
+  ((:type xpm :file "sb-dir-plus.xpm" :ascent center))
   "Image used for closed directories with stuff in them.")
 
-(defimage-speedbar speedbar-directory--
-  ((:type xpm :file "sb-dir-.xpm" :ascent center))
+(defimage-speedbar speedbar-directory-minus
+  ((:type xpm :file "sb-dir-minus.xpm" :ascent center))
   "Image used for open directories with stuff in them.")
 
-(defimage-speedbar speedbar-file-+
-  ((:type xpm :file "sb-file+.xpm" :ascent center))
+(defimage-speedbar speedbar-page-plus
+  ((:type xpm :file "sb-pg-plus.xpm" :ascent center))
   "Image used for closed files with stuff in them.")
 
-(defimage-speedbar speedbar-file--
-  ((:type xpm :file "sb-file-.xpm" :ascent center))
+(defimage-speedbar speedbar-page-minus
+  ((:type xpm :file "sb-pg-minus.xpm" :ascent center))
   "Image used for open files with stuff in them.")
 
-(defimage-speedbar speedbar-file-
-  ((:type xpm :file "sb-file.xpm" :ascent center))
+(defimage-speedbar speedbar-page
+  ((:type xpm :file "sb-pg.xpm" :ascent center))
   "Image used for files that can't be opened.")
 
-(defimage-speedbar speedbar-tag-
+(defimage-speedbar speedbar-tag
   ((:type xpm :file "sb-tag.xpm" :ascent center))
   "Image used for tags.")
 
-(defimage-speedbar speedbar-tag-+
-  ((:type xpm :file "sb-tag+.xpm" :ascent center))
+(defimage-speedbar speedbar-tag-plus
+  ((:type xpm :file "sb-tag-plus.xpm" :ascent center))
   "Image used for closed tag groups.")
 
-(defimage-speedbar speedbar-tag--
-  ((:type xpm :file "sb-tag-.xpm" :ascent center))
+(defimage-speedbar speedbar-tag-minus
+  ((:type xpm :file "sb-tag-minus.xpm" :ascent center))
   "Image used for open tag groups.")
 
 (defimage-speedbar speedbar-tag-gt
@@ -4259,18 +4266,18 @@ IMAGESPEC is the image data, and DOCSTRING is documentation for the image."
   "Image used for open tag groups.")
 
 (defvar speedbar-expand-image-button-alist
-  '(("<+>" . speedbar-directory-+)
-    ("<->" . speedbar-directory--)
-    ("[+]" . speedbar-file-+)
-    ("[-]" . speedbar-file--)
-    ("[?]" . speedbar-file-)
-    ("{+}" . speedbar-tag-+)
-    ("{-}" . speedbar-tag--)
+  '(("<+>" . speedbar-directory-plus)
+    ("<->" . speedbar-directory-minus)
+    ("[+]" . speedbar-page-plus)
+    ("[-]" . speedbar-page-minus)
+    ("[?]" . speedbar-page)
+    ("{+}" . speedbar-tag-plus)
+    ("{-}" . speedbar-tag-minus)
     ("<M>" . speedbar-mail)
-    (" =>" . speedbar-tag-)
+    (" =>" . speedbar-tag)
     (" +>" . speedbar-tag-gt)
     (" ->" . speedbar-tag-v)
-    (">" . speedbar-tag-)
+    (">" . speedbar-tag)
     ("@" . speedbar-tag-type)
     ("  @" . speedbar-tag-type)
     )
