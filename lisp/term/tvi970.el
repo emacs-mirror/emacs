@@ -43,13 +43,14 @@
 	  ;; ("\eOR"	[kp-f3])
 	  ;; ("\eOS"	[kp-f4])
 
-	  ;; These are set by terminfo
+	  ;; These might br set by terminfo
 	  ("\e[H"	[home])
 	  ("\e[Z"	[backtab])
 	  ("\e[i"	[print])
 	  ("\e[@"	[insert])
 	  ("\e[L"	[insertline])
 	  ("\e[M"	[deleteline])
+	  ("\e[U"	[next])		;; actually the `page' key
 
 	  ;; These won't be set up by either
 	  ("\eOm"	[kp-subtract])
@@ -58,22 +59,21 @@
 	  ("\eOM"	[kp-enter])
 
 	  ;; These won't be set up by either either
-	  ("\e[K"	[eraseline])	;; Not an X keysym
-	  ("\e[J"	[erasepage])	;; Not an X keysym
-	  ("\e[2J"	[clear])	;; Not an X keysym
-	  ("\e[P"	[delete])	;; Not an X keysym
-	  ("\e[U"	[page])		;; Not an X keysym
+	  ("\e[K"	[key_eol])	;; Not an X keysym
+	  ("\e[J"	[key_eos])	;; Not an X keysym
+	  ("\e[2J"	[key_clear])	;; Not an X keysym
+	  ("\e[P"	[key_dc])	;; Not an X keysym
 	  ("\e[g"	[S-tab])	;; Not an X keysym
 	  ("\e[2N"	[clearentry])	;; Not an X keysym
 	  ("\e[2K"	[S-clearentry])	;; Not an X keysym
 	  ("\e[E"	[?\C-j])	;; Not an X keysym
 	  ("\e[g"	[S-backtab])	;; Not an X keysym
-	  ("\e[?1i"	[S-print])	;; Not an X keysym
-	  ("\e[4h"	[S-insert])	;; Not an X keysym
+	  ("\e[?1i"	[key_sprint])	;; Not an X keysym
+	  ("\e[4h"	[key_sic])	;; Not an X keysym
 	  ("\e[4l"	[S-delete])	;; Not an X keysym
 	  ("\e[Q"	[S-insertline])	;; Not an X keysym
-	  ("\e[1Q"	[S-deleteline])	;; Not an X keysym
-	  ("\e[19l"	[S-eraseline])	;; Not an X keysym
+	  ("\e[1Q"	[key_sdl])	;; Not an X keysym
+	  ("\e[19l"	[key_seol])	;; Not an X keysym
 	  ("\e[19h"	[S-erasepage])	;; Not an X keysym
 	  ("\e[V"	[S-page])	;; Not an X keysym
 	  ("\eS"	[send])		;; Not an X keysym
