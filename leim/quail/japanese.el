@@ -128,16 +128,217 @@
 	  (activate-input-method (car pkg))))))
   (throw 'quail-tag nil))
 
+;; ローマ字入力及び仮名漢字変換による日本語入力メソッド
+;;
+;; この入力メソッドでの日本語の入力は二つのステージ「ローマ字仮名変換」
+;; と「仮名漢字変換」からなる。最初はローマ字仮名変換のステージで、ス
+;; ペースキーを押すことにより、次のステージ「仮名漢字変換」へ進む。
+;;
+;; 「ローマ字仮名変換」
+;;
+;; 平仮名は小文字キー（列）を打つことにより入力。句読点、括弧類は対応
+;; する英字キーを打つことにより入力。その他のシンボルは `z' に続けて何
+;; れかのキーを打つことにより入力。下に全ての可能なキーシーケンスリス
+;; トアップされている。入力された文字は下線で示される。
+;;
+;; さらに以下のキーで特別な処理を行う。
+;;
+;; K	平仮名を片仮名に、あるいは片仮名を平仮名に変換
+;; qq	この入力メソッドと `japanese-ascii' 入力メソッドをトグル切替
+;; qz	`japanese-zenkaku' 入力メソッドにシフト
+;;	qh と打てば元に戻る
+;; RET	現在の入力文字列を確定
+;; SPC	仮名漢字変換に進む
+;;
+;; `japanese-ascii' 入力メソッドは ASCII 文字を入力するのに使う。これ
+;; は入力メソッドをオフにするのとほとんど同じである。異なるのは qq と
+;; 打つことにより、`japanese' 入力メソッドに戻れる点である。
+;;
+;; `japanese-zenkaku' 入力メソッドは全角英数字を入力するのに使う。
+;;
+;; 以下に「ローマ字仮名変換」ステージでのキーシーケンスを挙げる。
+;;
+;; [omitted]
+;;
+;; 「仮名漢字変換」
+;;
+;; このステージでは、前ステージで入力された文字列を仮名漢字変換する。
+;; 変換された文字列は、注目文節（反転表示）と残りの入力（下線表示）に
+;; 分けられる。注目文節に対しては以下のコマンドが使える。
+;;
+;; SPC, C-n	kkc-next
+;;	次の変換候補を表示
+;; C-p		kkc-prev
+;;	前の変換候補を表示
+;; l		kkc-show-conversion-list-or-next-group
+;;	最高１０個までの変換候補をエコーエリアに表示。
+;;	続けて打たれれば、次の１０候補を表示。
+;; L		kkc-show-conversion-list-or-prev-group
+;;	最高１０個までの変換候補をエコーエリアに表示。
+;;	続けて打たれれば、前の１０候補を表示。
+;; 0..9		kkc-select-from-list
+;;	打たれた数字の変換候補を選択
+;; H		kkc-hiragana
+;;	注目文節を平仮名に変換
+;; K		kkc-katakana
+;;	注目文節を片仮名に変換
+;; C-o		kkc-longer
+;;	注目文節を後ろに一文字伸ばす
+;; C-i		kkc-shorter
+;;	注目文節を後ろから一文字縮める
+;; C-f		kkc-next-phrase
+;;	注目文節を確定させる。もし残りの入力がまだあれば、最初の文節を
+;;	選択し、それを注目文節とし、その最初の変換候補を表示する。
+;; DEL, C-c	kkc-cancel
+;;	仮名漢字変換をキャンセルし、ローマ字仮名変換のステージに戻る。
+;; return		kkc-terminate
+;;	全文節を確定させる。
+;; C-SPC, C-@	kkc-first-char-only
+;;	最初の文字を確定させ、残りは削除する。
+;; C-h		kkc-help
+;;	これらのキーバインドのリストを表示する。あ
+
 (quail-define-package
  "japanese" "Japanese" "Aあ"
  nil
- "Romaji -> Hiragana -> Kanji&Kana
----- Special key bindings ----
-qq:	toggle between input methods `japanese' and `japanese-ascii'
-qz:	use `japanese-zenkaku' package, \"qh\" puts you back to `japanese'
-K:	toggle converting region between Katakana and Hiragana
-SPC:	convert to Kanji&Kana
-z:	insert one Japanese symbol according to a key which follows
+ "Japanese input method using Roman transliteration and Kana-Kanji conversion.
+
+When you use this input method, text entry proceeds in two stages:
+Roman-Kana transliteration and Kana-Kanji conversion.  When you start
+to enter text, you are in the first stage, Roman-Kana transliteration.
+Type SPC to proceed to the next stage, Kana-Kanji conversion.
+
+:: Roman-Kana transliteration ::
+
+You can input any Hiragana character as a sequence of lower-case
+letters, Japanese punctuation characters by typing punctuation keys,
+Japanese symbols by typing `z' followed by another key.  See below for
+a list of all available sequences.  The characters you input are
+underlined.
+
+In addition, the following keys provide special effects:
+
+K	Change Hiragana to Katakana or Katakana to Hiragana.
+qq	Toggle between this input method and the `japanese-ascii' input method.
+qz	Shift to the `japanese-zenkaku' input method.
+	Typing \"qh\" will put you back to this input method.
+RET	Accept the current character sequence.
+SPC	Proceed to the next stage, Kana-Kanji conversion.
+
+The `japanese-ascii' input method is used to enter ASCII characters.
+This is almost the same as turning off the input method.  The only
+difference is that typing `qq' will put you back into the Japanese
+input method.
+
+The `japanese-zenkaku' input methods is used to enter full width
+JISX0208 characters corresponding to typed ASCII characters.
+
+Here's a list of key sequences for Roman-Kana transliteration.
+
+a  あ  i い  u う  e え  o お
+ka か ki き ku く ke け ko こ	ga が gi ぎ gu ぐ ge げ go ご
+sa さ si し su す se せ so そ	za ざ zi じ zu ず ze ぜ zo ぞ
+ta た ti ち tu つ te て to と	da だ di ぢ du づ de で do ど
+na な ni に nu ぬ ne ね no の
+ha は hi ひ hu ふ he へ ho ほ	ba ば bi び bu ぶ be べ bo ぼ
+ma ま mi み mu む me め mo も	pa ぱ pi ぴ pu ぷ pe ぺ po ぽ
+ya や       yu ゆ       yo よ
+ra ら ri り ru る re れ ro ろ
+la ら li り lu る le れ lo ろ
+wa わ wi ゐ wu う we ゑ wo を n' ん			     
+
+kya きゃ kyu きゅ kye きぇ kyo きょ
+sha しゃ shu しゅ she しぇ sho しょ sya しゃ syu しゅ sye しぇ syo しょ 
+cha ちゃ chu ちゅ che ちぇ cho ちょ tya ちゃ tyu ちゅ tye ちぇ tyo ちょ
+nya にゃ nyu にゅ nye にぇ nyo にょ
+hya ひゃ hyu ひゅ hye ひぇ hyo ひょ
+mya みゃ myu みゅ mye みぇ myo みょ
+rya りゃ ryu りゅ rye りぇ ryo りょ lya りゃ lyu りゅ lye りぇ lyo りょ
+gya ぎゃ gyu ぎゅ gye ぎぇ gyo ぎょ
+zya じゃ zyu じゅ zye じぇ zyo じょ jya じゃ jyu じゅ jye じぇ jyo じょ
+ja  じゃ ju  じゅ je  じぇ jo  じょ
+bya びゃ byu びゅ bye びぇ byo びょ pya ぴゃ pyu ぴゅ pye ぴぇ pyo ぴょ
+    	     	      	       	   
+kwa くゎ kwi くぃ kwe くぇ kwo くぉ
+tsa つぁ tsi つぃ tse つぇ tso つぉ
+fa  ふぁ fi  ふぃ fe  ふぇ fo  ふぉ
+gwa ぐゎ gwi ぐぃ gwe ぐぇ gwo ぐぉ
+dyi でぃ dyu どぅ dye でぇ dyo どぉ
+
+shi し   tyi てぃ chi ち   tsu つ   ji じ fu  ふ
+xwi うぃ xwe うぇ xwo うぉ ye  いぇ
+
+va ヴぁ vi ヴぃ vu ヴ ve ヴぇ vo ヴぉ
+
+xa  ぁ xi  ぃ xu  ぅ xe  ぇ xo  ぉ xtu っ
+xya ゃ xyu ゅ xyo ょ xwa ゎ xka ヵ xke ヶ
+
+Digists and punctuations:
+
+key:  1 2 3 4 5 6 7 8 9 0 - = \ ` ! @ # $ % ^ & * ( ) _ + | ~
+char: １２３４５６７８９０ー＝￥｀！＠＃＄％＾＆＊（）＿＋｜￣
+
+key:  [ ] { } ; ' : \" , . / < > ?
+char: 「」｛｝；’、。／：”＜＞？
+       	       	 
+Symbols (`z' followed by these keys):
+
+Key:  1 2 3 4 5 6 7 8 9 0 - = \ ` ! @ # $ % ^ & * ( ) _ + | ~
+char: ○▽△□◇☆◎¢♂♀〜≠＼´●▼▲■◆★£×【】∴±‖¨
+
+Key:  [ ] { } ; ' : \" , . / < > ?
+char: 『』〔〕゛‘゜“‥…・≦≧∞
+
+Key:  b c d f g h j k l m n p q r s t v w B C D F G M N P Q R S T V W
+char: °〇ゝ〃‐←↓↑→″′〒《々ヽ〆※》←℃ゞ→―〓↓↑〈仝ヾ§÷〉
+
+Key:  x   X
+str:  :-  :-)
+
+:: Kana-Kanji conversion ::
+
+You can convert the current Japanese characters (underlined) to
+Kana-Kanji mixed text.  In this stage, the converted text is divided
+into two parts, the current phrase (highlighted) and the remaining
+input (underlined).  The following commands can be used on the
+current phrase.
+
+SPC, C-n	kkc-next
+	Show the next candidate for the current phrase.
+C-p		kkc-prev
+	Show the previous candidate for the current phrase.
+l		kkc-show-conversion-list-or-next-group
+	Show at most 10  candidates for the current phrase in echo area.
+	If typed repeatedly, show the next 10 candidates.
+L		kkc-show-conversion-list-or-prev-group
+	Show at most 10 candidates for the current phrase in echo area.
+	If typed repeatedly, show the previous 10 candidates.
+0..9		kkc-select-from-list
+	Select a candidate corresponding to the typed number.
+H		kkc-hiragana
+	Convert the current phrase to Hiragana
+K		kkc-katakana
+	Convert the current phrase to Katakana
+C-o		kkc-longer
+	Extend the current phrase; pull in the first character of
+	the remaining input.
+C-i		kkc-shorter
+	Contract the current phrase; drop its last character
+	back into the remaining input.
+C-f		kkc-next-phrase
+	Accept the current phrase.  If there remains input, select
+	the first phrase as the current one, and show the first
+	candidate for the conversion.
+DEL, C-c	kkc-cancel
+	Cancel the conversion, shift back to the Roman-Kana
+	transliteration.
+return		kkc-terminate
+	Accept the whole conversion.
+C-SPC, C-@	kkc-first-char-only
+	Accept the first character of the current conversion,
+	delete the remaining input.
+C-h		kkc-help
+	List these key bindings.
 "
  nil t t nil nil nil nil nil
  'quail-japanese-update-translation
@@ -247,7 +448,7 @@ z:	insert one Japanese symbol according to a key which follows
 ("z;" "゛") ("z:" "゜")
 ("z\'" "‘") ("z\"" "“")
 
-("zx" ":-") ("zX" ":-)")
+("zx" [":-"]) ("zX" [":-)"])
 ("zc" "〇") ("zC" "℃")
 ("zv" "※") ("zV" "÷")
 ("zb" "°") ("zB" "←")
