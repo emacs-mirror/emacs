@@ -1,6 +1,77 @@
+2000-01-07  Dave Love  <fx@gnu.org>
+
+	* add-log.el (add-log-debugging): Deleted.
+	(add-change-log-entry): Treat a backup FILE-NAME as its parent
+	file.  Remove debugging code.
+	(change-log-get-method-definition, change-log-name): Add doc.
+	(change-log-sortable-date-at): New function.
+	(change-log-merge): New command.
+
+	* time.el (display-time-string-forms): Make the Mail string active.
+	(display-time-update): Provide help-echo for load average.
+
+	* bindings.el (make-mode-line-mouse2-map): New function.
+	(mode-line-modified): Use it and simplify.
+	(mode-line-mule-info): Provide help-echo info.
+	(minor-mode-alist): Activate the strings.
+	(make-mode-line-mouse-sensitive): Simplify for
+	mode-line-buffer-identification.
+
+2000-01-07  Dave Love  <fx@gnu.org>
+
+	* add-log.el (add-log-debugging): Deleted.
+	(add-change-log-entry): Treat a backup FILE-NAME as its parent
+	file.  Remove debugging code.
+	(change-log-get-method-definition, change-log-name): Add doc.
+	(change-log-sortable-date-at): New function.
+	(change-log-merge): New command.
+
+	* time.el (display-time-string-forms): Make the Mail string active.
+	(display-time-update): Provide help-echo for load average.
+
+	* bindings.el (make-mode-line-mouse2-map): New function.
+	(mode-line-modified): Use it and simplify.
+	(mode-line-mule-info): Provide help-echo info.
+	(minor-mode-alist): Activate the strings.
+	(make-mode-line-mouse-sensitive): Simplify for
+	mode-line-buffer-identification.
+
 2000-01-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* play/pong.el: New file.
+
+2000-01-06  Dave Love  <fx@gnu.org>
+
+	* array.el: Assorted cleanups for compiler warnings, doc strings,
+	`array-' prefix for symbols.
+
+2000-01-05  Dave Love  <fx@gnu.org>
+
+	* textmodes/outline.el (outline-mode-menu-bar-map): Add
+	outline-headers-as-kill.
+	(outline-mode): Define imenu-generic-expression.
+	(outline-headers-as-kill): New command.
+
+	* textmodes/otext-mode.el (text-mode): Remove page-delimiter's `^'
+	from paragraph-start.
+	(paragraph-indent-minor-mode): New command.
+
+	* progmodes/fortran.el (fortran-mode-map): Don't bind M-C-a,
+	M-C-e, M-C-h, C-j, C-xnd, TAB.
+	(fortran-mode): Set beginning-of-defun, end-of-defun.
+	(fortran-column-ruler): Simplify.
+	(fortran-mark-subprogram, fortran-narrow-to-subprogram): Deleted.
+	(fortran-with-subprogram-narrowing): Likewise.
+	(fortran-indent-subprogram): Call mark-defun.
+	(fortran-check-for-matching-do): Change narrowing.
+
+	* emacs-lisp/cl-extra.el (cl-make-hash-table): Use make-hash-table.
+	(cl-lucid-hash-tag): Delete.
+	(cl-hash-table-p): Correct test for native table.
+	(cl-hash-table-count): Use hash-table-count.
+
+	* browse-url.el (browse-url): Fix case of
+	browse-url-browser-function being an alist.
 
 2000-01-05  Carsten Dominik  <cd@gnu.org>
 
@@ -15,7 +86,7 @@
 
 2000-01-05  Dave Love  <fx@gnu.org>
 
-	* lisp.el (beginning-of-defun): New variable.
+	* emacs-lisp/lisp.el (beginning-of-defun): New variable.
 	(beginning-of-defun-raw): Use it.
 	(end-of-defun): New variable.
 	(end-of-defun): Use it.
@@ -93,7 +164,7 @@
 
 	* elide-head.el (elide-head) [defgroup]: Add :version.
 
-	* cl-extra.el (cl-emacs-type): Remove defvar.
+	* emacs-lisp/cl-extra.el (cl-emacs-type): Remove defvar.
 	(cl-not-hash-table, cl-clrhash, cl-maphash, cl-hash-table-count): Use
 	`cl-hash-table-p', not `hash-table-p'.
 	(cl-map-keymap, cl-map-keymap-recursively): Remove compatibility code.
@@ -126,34 +197,6 @@
 
 	* simple.el (completion-setup-function): Count completion-size
 	from minibuffer-prompt-end, not from point-min.
-
-2000-01-02  Dave Love  <fx@gnu.org>
-
-	* outline.el (outline-mode-menu-bar-map): Add
-	outline-headers-as-kill.
-	(outline-mode): Define imenu-generic-expression.
-	(outline-headers-as-kill): New command.
-
-	* text-mode.el (text-mode): Remove page-delimiter's `^' from
-	paragraph-start.
-	(paragraph-indent-minor-mode): New command.
-
-	* fortran.el (fortran-mode-map): Don't bind M-C-a, M-C-e, M-C-h,
-	C-j, C-xnd, TAB.
-	(fortran-mode): Set beginning-of-defun, end-of-defun.
-	(fortran-column-ruler): Simplify.
-	(fortran-mark-subprogram, fortran-narrow-to-subprogram): Deleted.
-	(fortran-with-subprogram-narrowing): Likewise.
-	(fortran-indent-subprogram): Call mark-defun.
-	(fortran-check-for-matching-do): Change narrowing.
-
-	* cl-extra.el (cl-make-hash-table): Use make-hash-table.
-	(cl-lucid-hash-tag): Delete.
-	(cl-hash-table-p): Correct test for native table.
-	(cl-hash-table-count): Use hash-table-count.
-
-	* browse-url.el (browse-url): Fix case of
-	browse-url-browser-function being an alist.
 
 2000-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -449,9 +492,9 @@
 	(cl-emacs-type): Remove.
 	(cl-map-extents): Remove compatibility code.
 
-	* float.el: Bind free variables.
+	* emacs-lisp/float.el: Bind free variables.
 
-	* bytecomp.el (byte-compile-constp): Include keywords.
+	* emacs-lisp/bytecomp.el (byte-compile-constp): Include keywords.
 
 1999-12-16  Gerd Moellmann  <gerd@gnu.org>
 
