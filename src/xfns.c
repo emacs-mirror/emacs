@@ -2582,15 +2582,17 @@ fonts), even if they match PATTERN and FACE.")
       tail = &list;
       for (i = 0; i < num_fonts; i++)
         {
+	  XFontStruct *thisinfo;
+
 #ifdef BROKEN_XLISTFONTSWITHINFO
           BLOCK_INPUT;
-          info = XLoadQueryFont (x_current_display, names[i]);
+          thisinfo = XLoadQueryFont (x_current_display, names[i]);
           UNBLOCK_INPUT;
 #else
-	  info = &info[i];
+	  thisinfo = &info[i];
 #endif
-          if (info && (! size_ref
-		       || same_size_fonts (info, size_ref)))
+          if (thisinfo && (! size_ref
+			   || same_size_fonts (thisinfo, size_ref)))
 	    {
 	      *tail = Fcons (build_string (names[i]), Qnil);
 	      tail = &XCONS (*tail)->cdr;
