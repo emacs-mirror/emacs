@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.49) $
+ * $HopeName: MMsrc!mpsi.c(trunk.50) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -52,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.49) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.50) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1297,4 +1297,38 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
   UNUSED(mps_ap);
 
   return MPS_RES_OK;
+}
+
+
+/* Low memory reservoir */
+
+/* Null interface at the moment, i.e. trivial implementation. */
+
+
+void mps_reservoir_set(mps_arena_t arena, size_t size)
+{
+  UNUSED(arena);
+  UNUSED(size);
+}
+
+size_t mps_reservoir_limit(mps_arena_t arena)
+{
+  UNUSED(arena);
+
+  return 0;
+}
+
+size_t mps_reservoir_available(mps_arena_t arena)
+{
+  UNUSED(arena);
+
+  return 0;
+}
+
+mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, 
+                                            mps_ap_t ap, size_t size)
+{
+  /* Implement with mps_reserve */
+  /* Let mps_reserve check input parameters. Make no assumptions here */
+  return mps_reserve(p_o, ap, size);
 }

@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.41) $
+ * $HopeName: MMsrc!mps.h(trunk.42) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -256,6 +256,18 @@ extern mps_res_t mps_ap_alloc_pattern_begin(mps_ap_t, mps_alloc_pattern_t);
 extern mps_res_t mps_ap_alloc_pattern_end(mps_ap_t, mps_alloc_pattern_t);
 extern mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t);
 
+
+/* Low memory reservoir */
+
+extern void mps_reservoir_set(mps_arena_t arena, size_t size);
+extern size_t mps_reservoir_limit(mps_arena_t arena);
+extern size_t mps_reservoir_available(mps_arena_t arena);
+extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o, 
+                                                   mps_ap_t ap, 
+                                                   size_t size);
+
+
+
 /* Reserve Macros */
 /* .reserve: Keep in sync with impl.c.buffer.reserve. */
 
@@ -267,6 +279,7 @@ extern mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t);
       *(_p_o) = (_mps_ap)->init, \
       MPS_RES_OK) : \
      mps_ap_fill(_p_o, _mps_ap, _size))
+
 
 #define MPS_RESERVE_BLOCK(_res_v, _p_v, _mps_ap, _size) \
   MPS_BEGIN \
