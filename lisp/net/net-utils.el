@@ -205,6 +205,18 @@ This variable is only used if the variable
   :group 'net-utils
   :type  'regexp)
 
+(defcustom dns-lookup-program  "host"
+  "Program to interactively query DNS information."
+  :group 'net-utils
+  :type  'string
+  )
+
+(defcustom dns-lookup-program-options  nil
+  "List of options to pass to the dns-lookup program."
+  :group 'net-utils
+  :type  '(repeat string)
+  )
+
 ;; Internal variables
 (defvar network-connection-service nil)
 (defvar network-connection-host    nil)
@@ -429,6 +441,25 @@ If your system's ping continues until interrupted, you can try setting
 (define-key nslookup-mode-map "\t" 'comint-dynamic-complete)
 
 ;;;###autoload
+(defun dns-lookup-host (host)
+  "Lookup the DNS information for HOST (name or IP address)."
+  (interactive
+   (list (read-from-minibuffer "Lookup host: " (net-utils-machine-at-point))))
+  (let ((options
+	 (if dns-lookup-program-options
+	     (append dns-lookup-program-options (list host))
+	   (list host))))
+    (net-utils-run-program
+     (concat "DNS Lookup [" host "]")
+     (concat "** "
+      (mapconcat 'identity
+		(list "DNS Lookup" host dns-lookup-program)
+		" ** "))
+     dns-lookup-program
+     options
+     )))
+
+;;;###autoload
 (defun dig (host)
   "Run dig program."
   (interactive
@@ -622,10 +653,11 @@ queries of the form USER@HOST, and wants a query containing USER only."
 	 (process-name (concat "Finger [" user-and-host "]"))
 	 (regexps finger-X.500-host-regexps)
 	 found)
-    (while (and regexps (not (string-match (car regexps) host)))
-      (setq regexps (cdr regexps)))
-    (when regexps
-      (setq user-and-host user))
+    (and regexps
+	 (while (not (string-match (car regexps) host))
+	   (setq regexps (cdr regexps)))
+	 (when regexps
+	   (setq user-and-host user)))
     (run-network-program
      process-name
      host
