@@ -1,3 +1,11 @@
+2001-10-29  Alex Schroeder  <kensanata@yahoo.com>
+
+	* progmodes/sql.el (sql-mysql): Doc change by RMS.
+
+	* progmodes/sql.el (sql-db2): Doc change.
+	(sql-help): Doc change by Christian Egli <christian.egli@stest.ch>.
+	(sql-mysql): Doc change by Christian Egli <christian.egli@stest.ch>.
+
 2001-10-29  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/supercite.el (sc-emacs-features): Test for "Emacs 19"

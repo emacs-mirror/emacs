@@ -1,3 +1,9 @@
+2001-10-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (XTread_socket) <KeyPress>: Don't use
+	STRING_CHAR_AND_LENGTH if nchars == nbytes.  From Kenichi Handa
+	<handa@etl.go.jp>.
+
 2001-10-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_build_heuristic_mask): Use x_alloc_image_color.
