@@ -818,7 +818,7 @@ See also the function `substitute-in-file-name'.")
 	  if (!IS_DIRECTORY_SEP (*nm))
 	    {
 	      defdir = alloca (MAXPATHLEN + 1);
-	      relpath = getdefdir (tolower (drive) - 'a' + 1), defdir);
+	      relpath = getdefdir (tolower (drive) - 'a' + 1, defdir);
 	    }
 	}       
   }
