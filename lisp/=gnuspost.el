@@ -353,24 +353,43 @@ original message into it."
       (widen)
       (goto-char (point-min))
       (run-hooks 'news-inews-hook)
-      ;; Mail the message too if To: or Cc: exists.
-      (if (save-restriction
-	    (narrow-to-region
-	     (point-min)
-	     (progn
+      (save-restriction
+	(narrow-to-region
+	 (point-min)
+	 (progn
+	   (goto-char (point-min))
+	   (search-forward (concat "\n" mail-header-separator "\n"))
+	   (point)))
+
+	 ;; Correct newsgroups field: change sequence of spaces to comma and 
+	 ;; eliminate spaces around commas.  Eliminate imbedded line breaks.
+	 (goto-char (point-min))
+	 (if (search-forward-regexp "^Newsgroups: +" nil t)
+	     (save-restriction
+	       (narrow-to-region
+		(point)
+		(if (re-search-forward "^[^ \t]" nil 'end)
+		    (match-beginning 0)
+		  (point-max)))
 	       (goto-char (point-min))
-	       (search-forward (concat "\n" mail-header-separator "\n"))
-	       (point)))
-	    (or (mail-fetch-field "to" nil t)
-		(mail-fetch-field "cc" nil t)))
-	  (if gnus-mail-send-method
-	      (progn
-		(message "Sending via mail...")
-		(funcall gnus-mail-send-method)
-		(message "Sending via mail... done"))
-	    (ding)
-	    (message "No mailer defined.  To: and/or Cc: fields ignored.")
-	    (sit-for 1)))
+	       (replace-regexp "\n[ \t]+" " ") ;No line breaks (too confusing)
+	       (goto-char (point-min))
+	       (replace-regexp "[ \t\n]*,[ \t\n]*\\|[ \t]+" ",")
+	     ))
+
+	 ;; Mail the message too if To: or Cc: exists.
+	 (if (or (mail-fetch-field "to" nil t)
+		 (mail-fetch-field "cc" nil t))
+	     (if gnus-mail-send-method
+		 (progn
+		   (message "Sending via mail...")
+		   (widen)
+		   (funcall gnus-mail-send-method)
+		   (message "Sending via mail... done"))
+	       (ding)
+	       (message "No mailer defined.  To: and/or Cc: fields ignored.")
+	       (sit-for 1))))
+
       ;; Send to NNTP server. 
       (message "Posting to USENET...")
       (if (gnus-inews-article)
