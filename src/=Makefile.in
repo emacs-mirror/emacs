@@ -34,7 +34,7 @@ mostlyclean:
 	rm -f temacs prefix-args xmakefile* core \#* *.o libXMenu11.a
 	rm -f ../etc/DOC
 clean: mostlyclean
-	rm emacs-* emacs
+	rm -f emacs-* emacs
 #This is used in making a distribution.
 #Do not use it on development directories!
 distclean: clean
@@ -80,7 +80,7 @@ relock:
 xmakefile: ymakefile config.h ../config.status
 	-rm -f xmakefile xmakefile.new junk.c junk.cpp
 	cp ${srcdir}/ymakefile junk.c
-	${CPP} -I${srcdir} ${C_SWITCH_SYSTEM} ${CFLAGS} junk.c > junk.cpp
+	${CPP} -I. -I${srcdir} ${C_SWITCH_SYSTEM} ${CFLAGS} junk.c > junk.cpp
 	< junk.cpp					\
 	sed	-e 's/^#.*//'				\
 		-e 's/^[ \f\t][ \f\t]*$$//'		\
