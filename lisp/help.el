@@ -129,7 +129,9 @@ Commands:
 
 (defun help-mode-maybe ()
   (if (eq major-mode 'fundamental-mode)
-      (help-mode)))
+      (help-mode))
+  (setq view-return-to-alist
+	(list (cons (selected-window) help-return-method))))
 
 (add-hook 'temp-buffer-show-hook 'help-mode-maybe)
 
@@ -228,6 +230,13 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 			 key-desc
 			 (if (symbolp defn) defn (prin1-to-string defn)))))))))
 
+(defvar help-return-method nil
+  "What to do to \"exit\" the help buffer.
+This is a list
+ (WINDOW . t)              delete the selected window, go to WINDOW.
+ (WINDOW . quit-window)    do quit-window, then select WINDOW.
+ (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
+
 (defun print-help-return-message (&optional function)
   "Display or return message saying how to restore windows after help command.
 Computes a message and applies the optional argument FUNCTION to it.
@@ -235,6 +244,7 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
   (and (not (get-buffer-window standard-output))
        (let ((first-message
 	      (cond ((special-display-p (buffer-name standard-output))
+		     (setq help-return-method (cons (selected-window) t))
 		     ;; If the help output buffer is a special display buffer,
 		     ;; don't say anything about how to get rid of it.
 		     ;; First of all, the user will do that with the window
@@ -243,10 +253,16 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 		     ;; so we don't know whether its frame will be selected.
 		     nil)
 		    ((not (one-window-p t))
+		     (setq help-return-method
+			   (cons (selected-window) 'quit-window))
 		     "Type \\[switch-to-buffer-other-window] RET to restore the other window.")
 		    (pop-up-windows
+		     (setq help-return-method (cons (selected-window) t))
 		     "Type \\[delete-other-windows] to remove help window.")
 		    (t
+		     (setq help-return-method
+			   (list (selected-window) (window-buffer)
+				 (window-start) (window-point)))
 		     "Type \\[switch-to-buffer] RET to remove help window."))))
 	 (funcall (or function 'message)
 		  (concat
