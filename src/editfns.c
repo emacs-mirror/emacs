@@ -621,9 +621,9 @@ FORMAT-STRING may contain %-sequences to substitute parts of the time.\n\
 %S is replaced by the second (00-60).\n\
 %t is a synonym for \"\\t\".\n\
 %T is a synonym for \"%H:%M:%S\".\n\
-%U is replaced by the week of the year (01-52), first day of week is Sunday.\n\
+%U is replaced by the week of the year (00-53), first day of week is Sunday.\n\
 %w is replaced by the day of week (0-6), Sunday is day 0.\n\
-%W is replaced by the week of the year (01-52), first day of week is Monday.\n\
+%W is replaced by the week of the year (00-53), first day of week is Monday.\n\
 %x is a locale-specific synonym, which defaults to \"%D\" in the C locale.\n\
 %X is a locale-specific synonym, which defaults to \"%T\" in the C locale.\n\
 %y is replaced by the year without century (00-99).\n\
