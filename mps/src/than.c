@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.5) $
+ *  $HopeName: MMsrc!than.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -105,11 +105,10 @@ void ThreadDequeResume(Deque threadDeque)
   return;
 }
 
-
-/* thread safe */
+/* Must be thread-safe.  See impl.c.mpsi.thread-safety. */
 Space ThreadSpace(Thread thread)
 {
-  return PARENT(SpaceStruct, threadDeque, &thread->spaceDeque);
+  return PARENT(SpaceStruct, threadDeque, thread->spaceDeque.deque);
 }
 
 Error ThreadScan(ScanState ss, Thread thread, void *stackBot)

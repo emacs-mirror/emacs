@@ -2,7 +2,7 @@
  * 
  *                  WIN32 THREAD MANAGER
  *
- *  $HopeName: MMsrc!thnti3.c(trunk.5) $
+ *  $HopeName: MMsrc!thnti3.c(trunk.6) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -264,8 +264,8 @@ Error ThreadScan(ScanState ss, Thread thread, void *stackBot)
   return ErrSUCCESS;
 }
 
-/* thread safe */
+/* Must be thread-safe.  See impl.c.mpsi.thread-safety. */
 Space ThreadSpace(Thread thread)
 {
-  return PARENT(SpaceStruct, threadDeque, &thread->spaceDeque);
+  return PARENT(SpaceStruct, threadDeque, thread->spaceDeque.deque);
 }
