@@ -725,9 +725,9 @@ in the following format:
 
 TYPE is an integer value indicating the type of the coding system as follows:
   0: Emacs internal format,
-  1: Shift-JIS (or MS-Kanji) used mainly on Japanese PC,
+  1: Shift-JIS (or MS-Kanji) used mainly on Japanese PCs,
   2: ISO-2022 including many variants,
-  3: Big5 used mainly on Chinese PC,
+  3: Big5 used mainly on Chinese PCs,
   4: private, CCL programs provide encoding/decoding algorithm,
   5: Raw-text, which means that text contains random 8-bit codes.
 
@@ -822,7 +822,7 @@ following properties are recognized:
  
   o mime-charset
  
-  The value is a symbol of which name is `MIME-charset' parameter of
+  The value is a symbol whose name is the `MIME-charset' parameter of
   the coding system.
  
   o valid-codes (meaningful only for a coding system based on CCL)
@@ -1489,6 +1489,22 @@ and the contents of `file-coding-system-alist'."
   :type '(repeat (cons (regexp :tag "Regexp")
 		       (symbol :tag "Coding system"))))
 
+;; See the bottom of this file for built-in auto coding functions.
+(defcustom auto-coding-functions '(sgml-xml-auto-coding-function)
+  "A list of functions which attempt to determine a coding system.
+
+Each function in this list should be written to operate on the current
+buffer, but should not modify it in any way.  It should take one
+argument SIZE, past which it should not search.  If a function
+succeeds in determining a coding system, it should return that coding
+system.  Otherwise, it should return nil.
+
+The functions in this list take priority over `coding:' tags in the
+file, just as for `auto-coding-regexp-alist'."
+  :group 'files
+  :group 'mule
+  :type '(repeat function))
+
 (defvar set-auto-coding-for-load nil
   "Non-nil means look for `load-coding' property instead of `coding'.
 This is used for loading and byte-compiling Emacs Lisp files.")
@@ -1504,21 +1520,25 @@ This is used for loading and byte-compiling Emacs Lisp files.")
 	(setq alist (cdr alist))))
     coding-system))
 
-
 (defun auto-coding-from-file-contents (size)
   "Determine a coding system from the contents of the current buffer.
 The current buffer contains SIZE bytes starting at point.
 Value is either a coding system or nil."
   (save-excursion
     (let ((alist auto-coding-regexp-alist)
+	  (funcs auto-coding-functions)
 	  coding-system)
       (while (and alist (not coding-system))
 	(let ((regexp (car (car alist))))
 	  (when (re-search-forward regexp (+ (point) size) t)
 	    (setq coding-system (cdr (car alist)))))
 	(setq alist (cdr alist)))
+      (while (and funcs (not coding-system))
+	(setq coding-system (condition-case e
+				(save-excursion
+				  (funcall (pop funcs) size))
+			      (error nil))))
       coding-system)))
-		
 
 (defun set-auto-coding (filename size)
   "Return coding system for a file FILENAME of which SIZE bytes follow point.
@@ -1528,7 +1548,8 @@ and the last 3k of the file, but the middle may be omitted.
 It checks FILENAME against the variable `auto-coding-alist'.  If
 FILENAME doesn't match any entries in the variable, it checks the
 contents of the current buffer following point against
-`auto-coding-regexp-alist'.  If no match is found, it checks for a
+`auto-coding-regexp-alist', and tries calling each function in
+`auto-coding-functions'.  If no match is found, it checks for a
 `coding:' tag in the first one or two lines following point.  If no
 `coding:' tag is found, it checks for local variables list in the last
 3K bytes out of the SIZE bytes.
@@ -1897,6 +1918,28 @@ the table in `translation-table-vector'."
 (put 'ignore-relative-composition 'char-table-extra-slots 0)
 (setq ignore-relative-composition
       (make-char-table 'ignore-relative-composition))
+
+
+;;; Built-in auto-coding-functions:
+
+(defun sgml-xml-auto-coding-function (size)
+  "Determine whether the buffer is XML, and if so, its encoding.
+This function is intended to be added to `auto-coding-functions'."
+  (when (re-search-forward "\\`[[:space:]\n]*<\\?xml")
+    (let ((end (save-excursion
+		 ;; This is a hack.
+		 (search-forward "\"\\s-*?>" size t))))
+      (when end
+	(if (re-search-forward "encoding=\"\\(.+?\\)\"" end t)
+	    (let ((match (downcase (match-string 1))))
+	      ;; FIXME: what other encodings are valid, and how can we
+	      ;; translate them to the names of coding systems?
+	      (cond ((string= match "utf-8")
+		     'utf-8)
+		    ((string-match "iso-8859-[[:digit:]]+" match)
+		     (intern match))
+		    (t nil)))
+	  'utf-8)))))
 
 ;;;
 (provide 'mule)
