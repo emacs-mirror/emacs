@@ -228,9 +228,6 @@ Modify the GNU @code{dc} program to use the math routines of GNU
 A @code{grap} preprocessor program for @code{troff}.
 
 @item
-Various other libraries.
-
-@item
 Less urgent: make a replacement for the ``writer's workbench'' program
 @code{style}, or something to do the same kind of job.  Compatibility
 with Unix is not especially important for this programs.
