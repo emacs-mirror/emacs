@@ -2057,6 +2057,11 @@ encode_coding_emacs_mule (coding)
   int preferred_charset_id = -1;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
+  if (! EQ (charset_list, Vemacs_mule_charset_list))
+    {
+      CODING_ATTR_CHARSET_LIST (attrs)
+	= charset_list = Vemacs_mule_charset_list;
+    }
 
   while (charbuf < charbuf_end)
     {
