@@ -206,7 +206,10 @@ coding-system for reading and writing respectively."
   (add-hook 'message-send-news-hook
 	    'gnus-mule-message-send-news-function)
   (add-hook 'message-send-mail-hook
-	    'gnus-mule-message-send-mail-function))
+	    'gnus-mule-message-send-mail-function)
+  (let ((stream (get-process "nntpd")))
+    (if (processp stream)
+	(set-process-coding-system stream 'no-conversion 'no-conversion))))
 
 (gnus-mule-add-group "" 'undecided)
 (gnus-mule-add-group "fj" 'iso-2022-7bit)
@@ -220,5 +223,7 @@ coding-system for reading and writing respectively."
 (gnus-mule-add-group "relcom" 'cyrillic-koi8)
 
 (add-hook 'gnus-startup-hook 'gnus-mule-initialize)
+
+(modify-coding-system-alist 'network "nntp" 'no-conversion)
 
 ;; gnus-mule.el ends here
