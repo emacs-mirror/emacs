@@ -231,7 +231,7 @@ void asserts(int expr, const char *format, ...)
 /* my own assertion handler, insalled by easy_tramp
 */
 
-static void my_assert_handler(const char *cond, const char *id,
+void mmqa_assert_handler(const char *cond, const char *id,
                               const char *file, unsigned line)
 {
  if (line == 0) {
@@ -283,7 +283,9 @@ static void *call_f(void *p, size_t s)
 {
  void (**f)(void) = p;
 
+#ifdef MMQA_DEFINED_mps_assert_install
  mps_assert_install(my_assert_handler);
+#endif
 
  (**f)(); 
  return NULL;
