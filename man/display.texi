@@ -242,6 +242,7 @@ indicate what it is.  @xref{Minor Modes}, for more information about
 minor modes and about how to use this command.
 
 @vindex line-number-display-limit
+@cindex line number display, removing the limit
   If the buffer is very large (larger than the value of
 @code{line-number-display-limit}), then the line number doesn't appear.
 Emacs doesn't compute the line number when the buffer is large, because
