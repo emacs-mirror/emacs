@@ -1172,6 +1172,7 @@ this variable.	I think."
 			(checklist :inline t
 				   (const :format "%v " address)
 				   (const :format "%v " prompt-address)
+				   (const :format "%v " physical-address)
 				   (const :format "%v " virtual)
 				   (const respool)))))
 
