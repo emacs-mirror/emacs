@@ -149,9 +149,9 @@ produces cosmetically superior output for this application,
 but it works only in Common Lisp.")
 
 ;;;###autoload
-(defvar inferior-lisp-prompt "^[^> ]*>+:? *"
+(defvar inferior-lisp-prompt "^[^> \n]*>+:? *"
   "Regexp to recognise prompts in the Inferior Lisp mode.
-Defaults to \"^[^> ]*>+:? *\", which works pretty good for Lucid, kcl,
+Defaults to \"^[^> \\n]*>+:? *\", which works pretty good for Lucid, kcl,
 and franz.  This variable is used to initialize `comint-prompt-regexp' in the 
 Inferior Lisp buffer.
 
