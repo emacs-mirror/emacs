@@ -1,3 +1,10 @@
+2001-05-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* w32-fns.el (convert-standard-filename): Start replacing slashes
+	from the beginning of the file name, not from where the last
+	invalid character was.  From "Andrew Maguire (SWW)"
+	<Andrew.Maguire@Smallworld.co.uk>
+
 2001-05-07  MORIOKA Tomohiko  <tomo@m17n.org>
 
 	The following changes are to provide infrastructure for handling
