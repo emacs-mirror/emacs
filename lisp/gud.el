@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992,93,94,95,96,1998,2000,2002 Free Software Foundation, Inc.
+;; Copyright (C) 1992,93,94,95,96,1998,2000,02,2003 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -2831,8 +2831,7 @@ class of the file (using s to separate nested class ids)."
           (if (and fbuffer (equal (symbol-file 'java-mode) "cc-mode"))
               (save-excursion
                 (set-buffer fbuffer)
-                (let ((nclass) (syntax)
-                      (pos (point)))
+                (let ((nclass) (syntax))
                   ;; While the c-syntactic information does not start
                   ;; with the 'topmost-intro symbol, there may be
                   ;; nested classes...
@@ -2873,6 +2872,98 @@ class of the file (using s to separate nested class ids)."
 	  (car class-found)
 	(message "gud-find-class: class for file %s not found in gud-jdb-class-source-alist!" f)
 	nil))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; GDB script mode ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar gdb-script-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?' "\"" st)
+    (modify-syntax-entry ?# "<" st)
+    (modify-syntax-entry ?\n ">" st)
+    st))
+
+(defvar gdb-script-font-lock-keywords
+  '(("^define\\s-+\\(\\w+\\)" (1 font-lock-function-name-face))
+    ("^\\s-*\\([a-z]+\\)" (1 font-lock-keyword-face))))
+
+(defvar gdb-script-font-lock-syntactic-keywords
+  '(("^document\\s-.*\\(\n\\)" (1 "< b"))
+    ;; It would be best to change the \n in front, but it's more difficult.
+    ("^en\\(d\\)\\>" (1 "> b"))))
+
+(defun gdb-script-font-lock-syntactic-face (state)
+  (cond
+   ((nth 3 state) font-lock-string-face)
+   ((nth 7 state) font-lock-doc-face)
+   (t font-lock-comment-face)))
+
+(defvar gdb-script-basic-indent 2)
+
+(defun gdb-script-skip-to-head ()
+  "We're just in front of an `end' and we need to go to its head."
+  (while (and (re-search-backward "^\\s-*\\(\\(end\\)\\|define\\|document\\|if\\|while\\)\\>" nil 'move)
+	      (match-end 2))
+    (gdb-script-skip-to-head)))
+
+(defun gdb-script-calculate-indentation ()
+  (cond
+   ((looking-at "end\\>")
+    (gdb-script-skip-to-head)
+    (current-indentation))
+   ((looking-at "else\\>")
+    (while (and (re-search-backward "^\\s-*\\(if\\|\\(end\\)\\)\\>" nil 'move)
+		(match-end 2))
+      (gdb-script-skip-to-head))
+    (current-indentation))
+   (t
+    (forward-comment (- (point-max)))
+    (forward-line 0)
+    (skip-chars-forward " \t")
+    (+ (current-indentation)
+       (if (looking-at "\\(if\\|while\\|define\\|else\\)\\>")
+	   gdb-script-basic-indent 0)))))
+
+(defun gdb-script-indent-line ()
+  "Indent current line of GDB script."
+  (interactive)
+  (if (and (eq (get-text-property (point) 'face) font-lock-doc-face)
+	   (save-excursion
+	     (forward-line 0)
+	     (skip-chars-forward " \t")
+	     (not (looking-at "end\\>"))))
+      'noindent
+    (let* ((savep (point))
+	   (indent (condition-case nil
+		       (save-excursion
+			 (forward-line 0)
+			 (skip-chars-forward " \t")
+			 (if (>= (point) savep) (setq savep nil))
+			 (max (gdb-script-calculate-indentation) 0))
+		     (error 0))))
+      (if savep
+	  (save-excursion (indent-line-to indent))
+	(indent-line-to indent)))))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("/\\.gdbinit" . gdb-script-mode))
+
+;;;###autoload
+(define-derived-mode gdb-script-mode nil "GDB-Script"
+  "Major mode for editing GDB scripts"
+  (set (make-local-variable 'comment-start) "#")
+  (set (make-local-variable 'comment-start-skip) "#+\\s-*")
+  (set (make-local-variable 'outline-regexp) "[ \t]")
+  (set (make-local-variable 'imenu-generic-expression)
+       '((nil "^define[ \t]+\\(\\w+\\)" 1)))
+  (set (make-local-variable 'indent-line-function) 'gdb-script-indent-line)
+  (set (make-local-variable 'font-lock-defaults)
+       '(gdb-script-font-lock-keywords nil nil ((?_ . "w")) nil
+	 (font-lock-syntactic-keywords
+	  . gdb-script-font-lock-syntactic-keywords)
+	 (font-lock-syntactic-face-function
+	  . gdb-script-font-lock-syntactic-face))))
 
 (provide 'gud)
 
