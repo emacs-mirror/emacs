@@ -26,7 +26,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (require 'ring))
 
 ;;; Function aliases later to be redefined for XEmacs usage.
 
