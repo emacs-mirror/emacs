@@ -172,6 +172,9 @@ documented (@code{Info-goto-emacs-key-command-node}).
 @item C-h S @var{symbol} @key{RET}
 Display the Info documentation on symbol @var{symbol} according to the
 programming language you are editing (@code{info-lookup-symbol}).
+@item C-h .
+Display a help message associated with special text areas, such as
+links (@code{display-local-help}).
 @end table
 
 @node Key Help
@@ -277,13 +280,14 @@ example, it would say that you can invoke @code{find-file} by typing
 normally checks only commands (interactive functions); if you specify a
 prefix argument, it checks noninteractive functions as well.
 
-  Because @kbd{C-h a} looks only for commands whose names contain the
-string you specify, you must use ingenuity in choosing the string.  If
-you are looking for commands for killing backwards and @kbd{C-h a
-kill-backwards @key{RET}} doesn't reveal any, don't give up.  Try just
-@kbd{kill}, or just @kbd{backwards}, or just @kbd{back}.  Be
-persistent.  Also note that you can use a regular expression as the
-argument, for more flexibility (@pxref{Regexps}).
+  Because @kbd{C-h a} looks only for commands matching the string you
+specify, you may not find what you want on the first try.  In that
+case, don't just give up.  You can give Apropos a list of words to
+search for.  When more than one word is specified, at least two of
+those words must be present for an item to match.  If you are looking
+for commands to kill a chunk of text before point, try @kbd{C-h a kill
+back behind before @key{RET}}.  For even greater flexibility, you can
+also supply a regular expression to Apropos (@pxref{Regexps}).
 
   Here is a set of arguments to give to @kbd{C-h a} that covers many
 classes of Emacs commands, since there are strong conventions for naming
@@ -326,6 +330,12 @@ check them.
 @vindex apropos-do-all
   If the variable @code{apropos-do-all} is non-@code{nil}, the commands
 above all behave as if they had been given a prefix argument.
+
+@vindex apropos-sort-by-scores
+  By default, Apropos lists the search results in alphabetical order.
+If the variable @code{apropos-sort-by-scores} is non-@code{nil},
+Apropos tries to guess the relevance of each result, and displays the
+most relevant ones first.
 
   If you want more information about a function definition, variable or
 symbol property listed in the Apropos buffer, you can click on it with
@@ -590,10 +600,20 @@ Emacs (@code{describe-no-warranty}).
 @cindex balloon help
   When a region of text is ``active,'' so that you can select it with
 the mouse or a key like @kbd{RET}, it often has associated help text.
-Areas of the mode line are examples.  This help will normally be
-shown in the echo area when you move point into the active text.  In
-a window system you can display the help text as a ``tooltip''
-(sometimes known as ``balloon help'').  @xref{Tooltips}.
+Areas of the mode line are examples.  On most window systems, the help
+text is displayed as a ``tooltip'' (sometimes known as ``balloon
+help'').  @xref{Tooltips}.  Otherwise, it is shown in the echo area
+when you move point into the active text.
+
+@kindex C-h .
+@findex display-local-help
+@vindex help-at-pt-display-when-idle
+  You can also access text region help info using the keyboard.  The
+command @kbd{C-h .} (@code{display-local-help}) displays any help text
+associated with the text at point, using the echo area.  If you want
+help text to be displayed automatically whenever it is available at
+point, set the variable @code{help-at-pt-display-when-idle} to
+@code{t}.
 
 @ignore
    arch-tag: 6f33ab62-bc75-4367-8057-fd67cc15c3a1
