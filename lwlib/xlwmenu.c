@@ -644,6 +644,9 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
   int horizontal_p = mw->menu.horizontal && (level == 0);
   int highlighted_p;
   int just_compute_this_one_p;
+  /* This is set nonzero if the element containing HIGHLIGHTED_POS
+     is disabled, so that we do not return any subsequent element either.  */
+  int no_return = 0;
 
   if (level >= mw->menu.old_depth)
     abort ();
@@ -688,8 +691,14 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
       if (hit
 	  && !*hit_return
 	  && (horizontal_p ? hit->x < where.x : hit->y < where.y)
-	  && !all_dashes_p (val->name))
-	*hit_return = val;
+	  && !all_dashes_p (val->name)
+	  && !no_return)
+	{
+	  if (val->enabled)
+	    *hit_return = val;
+	  else
+	    no_return = 1;
+	}
 
       if (horizontal_p)
 	where.y = 0;
