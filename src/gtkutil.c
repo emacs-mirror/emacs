@@ -2301,6 +2301,27 @@ xg_get_widget_from_map (idx)
   return 0;
 }
 
+/* Return the scrollbar id for X Window WID.
+   Return -1 if WID not in id_to_widget.  */
+int
+xg_get_scroll_id_for_window (wid)
+     Window wid;
+{
+  int idx;
+  GtkWidget *w;
+
+  w = xg_win_to_widget (wid);
+
+  if (w)
+    {
+      for (idx = 0; idx < id_to_widget.max_size; ++idx)
+        if (id_to_widget.widgets[idx] == w)
+          return idx;
+    }
+
+  return -1;
+}
+
 /* Callback invoked when scroll bar WIDGET is destroyed.
    DATA is the index into id_to_widget for WIDGET.
    We free pointer to last scroll bar value here and remove the index.  */
@@ -2381,7 +2402,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
   g_signal_connect (G_OBJECT (wscroll),
                     "button-press-event",
                     G_CALLBACK (scroll_bar_button_cb),
-                    (gpointer)1);
+                    0);
   g_signal_connect (G_OBJECT (wscroll),
                     "button-release-event",
                     G_CALLBACK (scroll_bar_button_cb),
@@ -2676,13 +2697,31 @@ xg_tool_bar_help_callback (w, event, client_data)
 
    Returns FALSE to tell GTK to keep processing this event.  */
 static gboolean
-xg_tool_bar_expose_callback (w, event, client_data)
+xg_tool_bar_item_expose_callback (w, event, client_data)
      GtkWidget *w;
      GdkEventExpose *event;
      gpointer client_data;
 {
   event->area.x = event->area.y = 0;
   event->area.width = event->area.height = 1000;
+  return FALSE;
+}
+
+/* This callback is called when a tool bar shall be redrawn.
+   We need to update the tool bar from here in case the image cache
+   has deleted the pixmaps used in the tool bar.
+   W is the GtkToolbar to be redrawn.
+   EVENT is the expose event for W.
+   CLIENT_DATA is pointing to the frame for this tool bar.
+
+   Returns FALSE to tell GTK to keep processing this event.  */
+static gboolean
+xg_tool_bar_expose_callback (w, event, client_data)
+     GtkWidget *w;
+     GdkEventExpose *event;
+     gpointer client_data;
+{
+  update_frame_tool_bar((FRAME_PTR)client_data);
   return FALSE;
 }
 
@@ -2722,6 +2761,10 @@ xg_create_tool_bar (f)
                     G_CALLBACK (xg_tool_bar_detach_callback), f);
   g_signal_connect (G_OBJECT (x->handlebox_widget), "child-attached",
                     G_CALLBACK (xg_tool_bar_attach_callback), f);
+  g_signal_connect (G_OBJECT (x->toolbar_widget),
+                    "expose-event",
+                    G_CALLBACK (xg_tool_bar_expose_callback),
+                    f);
 
   gtk_widget_show_all (x->handlebox_widget);
 
@@ -2828,10 +2871,10 @@ update_frame_tool_bar (f)
                              (gpointer)img->pixmap);
 
           /* Catch expose events to overcome an annoying redraw bug, see
-             comment for xg_tool_bar_expose_callback.  */
+             comment for xg_tool_bar_item_expose_callback.  */
           g_signal_connect (G_OBJECT (w),
                             "expose-event",
-                            G_CALLBACK (xg_tool_bar_expose_callback),
+                            G_CALLBACK (xg_tool_bar_item_expose_callback),
                             0);
 
           /* We must set sensitive on the button that is the parent
