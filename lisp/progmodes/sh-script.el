@@ -3353,7 +3353,6 @@ The search may be limited by optional argument LIMIT."
   (let ((found nil)
 	start state where match)
     (setq start (point))
-    (debug)
     (while (and (not found)
 		(re-search-forward word limit t))
       (setq match (match-data))
