@@ -132,7 +132,7 @@ a version of Emacs without installing it.")
 
 (defcustom Info-additional-directory-list nil
   "List of additional directories to search for Info documentation files.
-These directories is searched after those in `Info-directory-list', and
+These directories are searched after those in `Info-directory-list', and
 they are not searched for merging the `dir' file."
   :type '(repeat directory)
   :group 'info)
