@@ -605,8 +605,7 @@ in line with the output of other GNU tools.
 ** fortran-mode has a new variable `fortran-directive-re'.
 
 ** f90-mode has new navigation commands `f90-end-of-block',
-`f90-beginning-of-block', `f90-next-block-end', 
-`f90-previous-block-start'.
+`f90-beginning-of-block', `f90-next-block', `f90-previous-block'.
 
 ** `special-display-buffer-names' and `special-display-regexps' now
 understand two new boolean pseudo-frame-parameters `same-frame' and
