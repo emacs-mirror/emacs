@@ -195,8 +195,9 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-checkin (file rev comment)
   "SVN-specific version of `vc-backend-checkin'."
-  (let ((status (apply 'vc-svn-command nil 1 file
-		       "ci" (list* "-m" comment (vc-switches 'SVN 'checkin)))))
+  (let ((status (apply
+                 'vc-svn-command nil 1 file "ci"
+                 (nconc (list "-m" comment) (vc-switches 'SVN 'checkin)))))
     (set-buffer "*vc*")
     (goto-char (point-min))
     (unless (equal status 0)
