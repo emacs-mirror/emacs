@@ -7251,7 +7251,8 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
   value = Fcommand_execute (function, Qt, Qnil, Qnil);
 
   /* If the command has a key binding, print it now.  */
-  if (!NILP (bindings))
+  if (!NILP (bindings)
+      && ! (ARRAYP (bindings) && EQ (Faref (bindings), Qmouse_movement)))
     {
       /* But first wait, and skip the message if there is input.  */
       if (!NILP (Fsit_for ((NUMBERP (Vsuggest_key_bindings)
@@ -7270,7 +7271,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	    = (char *) alloca (XSYMBOL (function)->name->size
 			       + XSTRING (binding)->size
 			       + 100);
-	  sprintf (newmessage, "You can run the command `%s' by typing %s",
+	  sprintf (newmessage, "You can run the command `%s' with %s",
 		   XSYMBOL (function)->name->data,
 		   XSTRING (binding)->data);
 	  message1_nolog (newmessage);
