@@ -1,3 +1,12 @@
+1999-11-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs.c (gdb_valbits, gdb_gctypebits, gdb_emacs_intbits)
+	(gdb_data_seg_bits): New variables.
+	
+	* lisp.h (enum gdb_lisp_params): Put in #if 0, since it doesn't
+	work on systems not allowing enumerators > INT_MAX, and it
+	won't work if EMACS_INT is long long.
+
 1999-11-22  Paul Eggert  <eggert@twinsun.com>
 
 	Port to SunOS 4.1.x again.  Help out with Alpha port.

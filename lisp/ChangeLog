@@ -1,3 +1,9 @@
+1999-11-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* calendar/calendar.el: Fix autoload for
+	calendar-absolute-from-astro.  Add autoload for
+	calendar-print-astro-day-number.
+
 1999-11-21  Anders Lindgren  <andersl@andersl.com>
 
 	* follow.el: Use modern backquote syntax.  Minor comment update.
