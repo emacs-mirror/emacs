@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.4) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.5) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -15,8 +15,10 @@
 
 #include "mpm.h"
 #include "mpscmvff.h"
+#include "dbgpool.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.4) $");
+SRCID(poolmvff, "$HopeName$");
+
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
 extern PoolClass PoolClassMVFF(void);
@@ -51,6 +53,29 @@ typedef struct MVFFStruct {     /* MVFF pool outer structure */
 #define MVFFOfCBS(cbs)       PARENT(MVFFStruct, cbsStruct, cbs)
 
 static Bool MVFFCheck(MVFF mvff);
+
+
+/* MVFFDebug -- MVFFDebug class */
+
+typedef struct MVFFDebugStruct {
+  MVFFStruct mvffStruct;         /* MVFF structure */
+  PoolDebugMixinStruct debug;    /* debug mixin */
+} MVFFDebugStruct;
+
+typedef MVFFDebugStruct *MVFFDebug;
+
+
+#define MVFFPoolMVFFDebug(mvff) PARENT(MVFFDebugStruct, mvffStruct, mvff)
+#define MVFFDebugPoolMVFF(mvffd) (&((mvffd)->mvffStruct))
+
+
+/* MVFFMinSegSize -- Minimum size of all MVFF segments */
+
+static Size MVFFMinSegSize(MVFF mvff) {
+  /* Used from MVFFCheck */
+
+  return mvff->extendBy;
+}
 
 
 /* MVFFAddToFreeList -- Add given range to free list 
@@ -430,6 +455,20 @@ static void MVFFFinish(Pool pool)
 }
 
 
+/* MVFFDebugMixin - find debug mixin in class MVFFDebug */
+
+static PoolDebugMixin MVFFDebugMixin(Pool pool)
+{
+  MVFF mvff;
+
+  AVERT(Pool, pool);
+  mvff = PoolPoolMVFF(pool);
+  AVERT(MVFF, mvff);
+  /* Can't check MVFFDebug, because this is called during init */
+  return &(MVFFPoolMVFFDebug(mvff)->debug);
+}
+
+
 static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
 {
   Res res;
@@ -490,12 +529,33 @@ PoolClass PoolClassMVFF(void)
 }
 
 
+/* Pool class MVFFDebug */
+
+static PoolClassStruct poolClassMVFFDebugStruct;
+
+static PoolClass poolClassMVFFDebug(void)
+{
+  /* This code has to be idempotent to avoid locking. */
+  EnsureDebugClass(&poolClassMVFFDebugStruct, PoolClassMVFF());
+  poolClassMVFFDebugStruct.name = "MVFFDBG";
+  poolClassMVFFDebugStruct.size = sizeof(MVFFDebugStruct);
+  poolClassMVFFDebugStruct.debugMixin = MVFFDebugMixin;
+  return &poolClassMVFFDebugStruct;
+}
+
+
 /* MPS Interface Extensions. */
 
 mps_class_t mps_class_mvff(void)
 {
   return (mps_class_t)(PoolClassMVFF());
 }
+
+mps_class_t mps_class_mvff_debug(void)
+{
+  return (mps_class_t)(poolClassMVFFDebug());
+}
+
 
 /* Total free bytes. See design.mps.poolmvff.design.arena-enter */
 
@@ -534,7 +594,8 @@ static Bool MVFFCheck(MVFF mvff)
 {
   CHECKS(MVFF, mvff);
   CHECKD(Pool, MVFFPool(mvff));
-  CHECKL(MVFFPool(mvff)->class == &PoolClassMVFFStruct);
+  CHECKL(MVFFPool(mvff)->class == &PoolClassMVFFStruct
+         || MVFFPool(mvff)->class == &poolClassMVFFDebugStruct);
   CHECKD(SegPref, mvff->segPref);
   CHECKL(mvff->extendBy > 0);                   /* see .arg.check */
   CHECKL(mvff->avgSize > 0);                    /* see .arg.check */
