@@ -964,7 +964,10 @@ as in @samp{ls -l}.
 deleted and recreated; @code{nil} otherwise.
 
 @item
-The file's inode number.
+The file's inode number.  If possible, this is an integer.  If the inode
+number is too large to be represented as an integer in Emacs Lisp, then
+the value has the form @code{(@var{high} . @var{low})}, where @var{low}
+holds the low 16 bits.
 
 @item
 The file system number of the file system that the file is in.  This
