@@ -446,7 +446,7 @@
   "2-byte part of CP932"
   :dimension 2
   :map "CP932-2BYTE"
-  :code-space [#x40 #xFC #x81 #xEF]
+  :code-space [#x40 #xFC #x81 #xFC]
   :supplementary-p t)
 
 (define-charset 'cp932
