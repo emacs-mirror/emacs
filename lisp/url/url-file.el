@@ -1,27 +1,30 @@
 ;;; url-file.el --- File retrieval code
+
+;; Copyright (c) 1996 - 1999,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
+
 ;; Keywords: comm, data, processes
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (eval-when-compile (require 'cl))
 (require 'mailcap)
@@ -123,10 +126,13 @@ to them."
     ;; directory-sep-char as its separator?  Would it be safer to just
     ;; use '/' unconditionally and rely on the FTP server to
     ;; straighten it out for us?
+    ;; (if (and (file-directory-p filename)
+    ;;          (not (string-match (format "%c$" directory-sep-char) filename)))
+    ;;     (url-set-filename url (format "%s%c" filename directory-sep-char)))
     (if (and (file-directory-p filename)
-	     (not (string-match (format "%c$" directory-sep-char) filename)))
-	(url-set-filename url
-			  (format "%s%c" filename directory-sep-char)))
+	     (not (string-match "/\\'" filename)))
+	(url-set-filename url (format "%s/" filename)))
+
 
     ;; If it is a directory, look for an index file first.
     (if (and (file-directory-p filename)
@@ -235,4 +241,5 @@ to them."
 
 (provide 'url-file)
 
-;;; arch-tag: 010e914a-7313-494b-8a8c-6495a862157d
+;; arch-tag: 010e914a-7313-494b-8a8c-6495a862157d
+;;; url-file.el ends here
