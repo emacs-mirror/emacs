@@ -771,15 +771,15 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (setq-default blink-cursor t)
     (blink-cursor-mode 1))
 
-  (when (and (not noninteractive)
-	     ;; DOS/Windows systems have a PC-type keyboard which has both
-	     ;; <delete> and <backspace> keys.
-	     (or (memq system-type '(ms-dos windows-nt))
-		 (memq window-system '(x))))
-    (setq-default delete-key-deletes-forward
-		  (or (not (fboundp 'x-backspace-delete-keys-p))
-		      (x-backspace-delete-keys-p)))
-    (delete-key-deletes-forward-mode 1))
+  (unless noninteractive
+    ;; DOS/Windows systems have a PC-type keyboard which has both
+    ;; <delete> and <backspace> keys.
+    (when (or (memq system-type '(ms-dos windows-nt))
+	      (and (memq window-system '(x))
+		   (fboundp 'x-backspace-delete-keys-p)
+		   (x-backspace-delete-keys-p)))
+      (setq-default delete-key-deletes-forward t)
+      (delete-key-deletes-forward-mode 1)))
 
   (when (and (not noninteractive)
 	     (display-graphic-p)
