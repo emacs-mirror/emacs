@@ -37,6 +37,13 @@ NAME-EXP may be a string constant giving the file name to use,
 or more generally it may be any kind of expression that returns
 a file name as a string.")
 
+(defun rmail-output-menu (event)
+  "Output current message to another Rmail file, chosen with a menu."
+  (interactive "e")
+  (rmail-output-to-rmail-file
+   (expand-file-name (rmail-secondary-file-menu event)
+		     rmail-secondary-file-directory)))
+
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
 (defun rmail-output-to-rmail-file (file-name &optional count)
