@@ -232,7 +232,7 @@ Thus ARG can also contain additional grep options."
 	  (let ((buffer-read-only nil))
 	    (save-excursion
 	      (goto-char (point-max))
-	      (insert "\nfind " state)
+	      (insert "\n find " state)
 	      (forward-char -1)		;Back up before \n at end of STATE.
 	      (insert " at " (substring (current-time-string) 0 19))
 	      (forward-char 1)
