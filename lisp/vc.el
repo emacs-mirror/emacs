@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.227 1998/05/16 17:53:32 rms Exp spiegel $
+;; $Id: vc.el,v 1.228 1998/06/03 15:07:04 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -1625,6 +1625,10 @@ There is a special command, `*l', to mark all files currently locked."
                             s "\\(" HH:MM "\\|" s yyyy "\\)"))
            (japanese (concat mm k s dd k s "\\(" s HH:MM "\\|" yyyy k "\\)")))
          (concat s "\\(" western "\\|" japanese "\\)" s)))
+  (and (boundp 'vc-dired-switches)
+       vc-dired-switches
+       (set (make-local-variable 'dired-actual-switches)
+            vc-dired-switches))
   (setq vc-dired-mode t))
 
 (define-key vc-dired-mode-map "\C-xv" vc-prefix-map)
@@ -1745,7 +1749,7 @@ There is a special command, `*l', to mark all files currently locked."
 ;;;###autoload
 (defun vc-directory (dirname read-switches)
   (interactive "DDired under VC (directory): \nP")
-  (let ((switches 
+  (let ((vc-dired-switches
          (if read-switches (read-string "Dired listing switches: "
                                         dired-listing-switches))))
     (require 'dired)
@@ -1755,7 +1759,7 @@ There is a special command, `*l', to mark all files currently locked."
         (setq dirname (concat dirname "/")))
     (switch-to-buffer 
      (dired-internal-noselect (expand-file-name dirname)
-                              (or switches dired-listing-switches)
+                              (or vc-dired-switches dired-listing-switches)
                               'vc-dired-mode))))
 
 ;; Named-configuration support for SCCS
