@@ -161,8 +161,7 @@
 	     (const :tag "*" nil)
 	     (const :tag "Off" off)
 	     (list :tag "Box"
-		   :value (:line-width 2 :color "grey75"
-				       :style released-button)
+		   :value (:line-width 2 :color "grey75" :style released-button)
 		   (const :format "" :value :line-width)
 		   (integer :tag "Width")
 		   (const :format "" :value :color)
@@ -174,11 +173,34 @@
 			   (const :tag "None" nil))))
      ;; filter to make value suitable for customize
      (lambda (real-value)
-       (if (consp real-value)
-	   (list :line-width (or (plist-get real-value :line-width) 1)
-		 :color (plist-get real-value :color)
-		 :style (plist-get real-value :style))
-	 real-value)))
+       (let ((lwidth
+	      (or (and (consp real-value) (plist-get real-value :line-width))
+		  (and (integerp real-value) real-value)
+		  1))
+	     (color
+	      (or (and (consp real-value) (plist-get real-value :color))
+		  (and (stringp real-value) real-value)
+		  nil))
+	     (style
+	      (and (consp real-value) (plist-get real-value :line-width))))
+	 (list :line-width lwidth :color color :style style)))
+     ;; filter to make customized-value suitable for storing
+     (lambda (cus-value)
+       (if (consp cus-value)
+	   (let ((lwidth (plist-get cus-value :line-width))
+		 (color (plist-get cus-value :color))
+		 (style (plist-get cus-value :style)))
+	     (cond ((and (null color) (null style))
+		    lwidth)
+		   ((and (null lwidth) (null style))
+		    ;; actually can't happen, because LWIDTH is always an int
+		    color)
+		   (t
+		    ;; Keep as a plist, but remove null entries
+		    (nconc (and lwidth `(:line-width ,lwidth))
+			   (and color  `(:color ,color))
+			   (and style  `(:style ,style))))))
+	 cus-value)))
     
     (:inverse-video
      (choice :tag "Inverse-video"
