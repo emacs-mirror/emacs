@@ -360,9 +360,9 @@ load_color (f, name)
   BLOCK_INPUT;
   result = XAllocColor (dpy, cmap, &color);
   UNBLOCK_INPUT;
-  if (! result)
-    Fsignal (Qerror, Fcons (build_string ("X server cannot allocate color"),
-			    Fcons (name, Qnil)));
+  /* Ignore the return value of XallocColor, so that
+     we use a color close to the one requested
+     if we can't get the exact request.  */
   return (unsigned long) color.pixel;
 }
 
