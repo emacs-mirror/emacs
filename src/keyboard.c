@@ -1401,23 +1401,37 @@ command_loop_1 ()
     }
 }
 
+/* Subroutine for safe_run_hooks: run the hook HOOK.  */
+
+static Lisp_Object
+safe_run_hooks_1 (hook)
+     Lisp_Object hook;
+{
+  return call1 (Vrun_hooks, Vinhibit_quit);
+}
+
+/* Subroutine for safe_run_hooks: handle an error by clearing out the hook.  */
+
+static Lisp_Object
+safe_run_hooks_error (data)
+     Lisp_Object data;
+{
+  Fset (Vinhibit_quit, Qnil);
+}
+
 /* If we get an error while running the hook, cause the hook variable
    to be nil.  Also inhibit quits, so that C-g won't cause the hook
    to mysteriously evaporate.  */
+
 static void
 safe_run_hooks (hook)
      Lisp_Object hook;
 {
   Lisp_Object value;
   int count = specpdl_ptr - specpdl;
-  specbind (Qinhibit_quit, Qt);
+  specbind (Qinhibit_quit, hook);
 
-  /* We read and set the variable with functions,
-     in case it's buffer-local.  */
-  value = Vcommand_hook_internal = Fsymbol_value (hook);
-  Fset (hook, Qnil);
-  call1 (Vrun_hooks, Qcommand_hook_internal);
-  Fset (hook, value);
+  internal_condition_case (safe_run_hooks_1, Qerror, safe_run_hooks_error);
 
   unbind_to (count, Qnil);
 }
