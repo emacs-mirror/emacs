@@ -378,7 +378,7 @@ uninstall:
 	done
 	(cd ${infodir}; rm -f cl* emacs* forms* info* vip*)
 	(cd ${mandir};  rm -f emacs.1 etags.1 ctags.1)
-	(cd ${bindir};  rm -f emacs-${version} emacs)
+	(cd ${bindir};  rm -f emacs-${version} $(EMACS))
 
 
 ### Some makes seem to remember that they've built something called FRC,
