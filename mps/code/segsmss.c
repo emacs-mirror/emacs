@@ -1,6 +1,6 @@
 /* impl.c.segsmss: Segment splitting and merging stress test
  *
- * $HopeName: MMsrc!segsmss.c(trunk.8) $
+ * $Id$
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amsss.c (because AMS already supports 

@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.24) $
+ * $Id$
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.arena.client.
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpsacl.h"
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.24) $");
+SRCID(arenacl, "$Id$");
 
 
 /* ClientArenaStruct -- Client Arena Structure */

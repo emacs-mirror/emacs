@@ -1,6 +1,6 @@
 /*  impl.h.th: THREAD MANAGER
  *
- *  $HopeName: MMsrc!th.h(trunk.9) $
+ *  $Id$
  *  Copyright (C) 1995 Harlequin Limited.  All rights reserved.
  *
  *  .purpose: Provides thread suspension facilities to the shield.

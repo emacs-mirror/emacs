@@ -1,6 +1,6 @@
 /*  impl.c.protfri3: PROTECTION FOR FREEBSD (INTEL 386)
  *
- *  $HopeName: MMsrc!protlii3.c(trunk.3) $
+ *  $Id$
  *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * SOURCES
@@ -26,7 +26,7 @@
 #include <signal.h>
 #include <machine/trap.h>
 
-SRCID(protfri3, "$HopeName: MMsrc!protlii3.c(trunk.3) $");
+SRCID(protfri3, "$Id$");
 
 
 /* The previously-installed signal action, as returned by */

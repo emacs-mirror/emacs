@@ -1,6 +1,6 @@
 /* impl.c.finalcv: FINALIZATION COVERAGE TEST
  *
- * $HopeName: MMsrc!finalcv.c(trunk.13) $
+ * $Id$
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * DESIGN

@@ -1,6 +1,6 @@
 /* impl.h.mpscmv2: MEMORY POOL SYSTEM CLASS "MVT"
  *
- * $HopeName: MMsrc!mpscmv2.h(trunk.3) $
+ * $Id$
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 

@@ -1,6 +1,6 @@
 # impl.nmk.w3almv: WINDOWS (ALPHA) NMAKE FILE
 #
-# $HopeName: MMsrc!w3almv.nmk(trunk.43) $
+# $Id$
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3almv

@@ -1,6 +1,6 @@
 /* impl.h.chain: GENERATION CHAINS
  *
- * $HopeName: MMsrc!chain.h(trunk.2) $
+ * $Id$
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 

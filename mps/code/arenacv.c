@@ -1,6 +1,6 @@
 /* impl.c.arenacv: ARENA COVERAGE TEST
  *
- * $HopeName: MMsrc!arenacv.c(trunk.15) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .coverage: At the moment, we're only trying to cover the new code

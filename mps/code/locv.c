@@ -1,6 +1,6 @@
 /* impl.c.locv: LEAF OBJECT POOL CLASS COVERAGE TEST
  *
- * $HopeName: MMsrc!locv.c(trunk.16) $
+ * $Id$
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * This is (not much of) a coverage test for the Leaf Object

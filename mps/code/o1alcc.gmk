@@ -1,6 +1,6 @@
 # impl.gmk.o1alcc: BUILD FOR OSF/1, ALPHA, DIGITAL C PLATFORM
 #
-# $HopeName: MMsrc!o1alcc.gmk(trunk.17) $
+# $Id$
 # Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
 #
 # This is the GNU makefile for platform.o1alcc.

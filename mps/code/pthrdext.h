@@ -1,6 +1,6 @@
 /*  impl.h.pthreadext: POSIX THREAD EXTENSIONS
  *
- *  $HopeName: MMsrc!pthrdext.h(trunk.1) $
+ *  $Id$
  *  Copyright (C) 2000 Harlequin Ltd, all rights reserved
  *
  * .readership: MM developers.

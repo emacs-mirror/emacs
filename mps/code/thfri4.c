@@ -1,6 +1,6 @@
 /*  impl.c.thfri3: Threads Manager for Intel x86 systems on FreeBSD
  *
- *  $HopeName: MMsrc!thlii4.c(trunk.2) $
+ *  $Id$
  *  Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a pthreads implementation of the threads manager.
@@ -46,7 +46,7 @@
 #include <pthread.h>
 #include "pthrdext.h"
 
-SRCID(thfri4, "$HopeName: MMsrc!thlii4.c(trunk.2) $");
+SRCID(thfri4, "$Id$");
 
 
 /* ThreadStruct -- thread desriptor */

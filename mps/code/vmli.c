@@ -1,6 +1,6 @@
 /* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
  *
- * $HopeName: MMsrc!vmli.c(trunk.9) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the implementation of the virtual memory mapping 
@@ -55,7 +55,7 @@
 #error "vmli.c is LINUX specific, but MPS_OS_LI is not set"
 #endif
 
-SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.9) $");
+SRCID(vmli, "$Id$");
 
 
 /* VMStruct -- virtual memory structure */

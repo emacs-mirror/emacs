@@ -1,6 +1,6 @@
 /* impl.h.prmcli:  PROTECTION MUTATOR CONTEXT (Linux)
  *
- * $HopeName: MMsrc!prmcli.h(trunk.1) $
+ * $Id$
  * Copyright (C) 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MPS developers.

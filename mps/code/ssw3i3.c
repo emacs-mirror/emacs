@@ -1,6 +1,6 @@
 /* impl.c.ssw3i3: WIN32/INTEL STACK SCANNING
  *
- * $HopeName: MMsrc!ssw3i3.c(trunk.2) $
+ * $Id$
  * Copyright (C) 1999.  Harlequin Group plc.  All rights reserved.
  *
  *  This scans the stack and fixes the registers which may contain 
@@ -19,7 +19,7 @@
 
 #include "mpm.h"
 
-SRCID(ssw3i3, "$HopeName: MMsrc!ssw3i3.c(trunk.2) $");
+SRCID(ssw3i3, "$Id$");
 
 
 Res StackScan(ScanState ss, Addr *stackBot)

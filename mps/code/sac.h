@@ -1,6 +1,6 @@
 /* impl.h.sac: SEGREGATED ALLOCATION CACHES INTERFACE
  *
- * $HopeName: MMsrc!sac.h(trunk.2) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 

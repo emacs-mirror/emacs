@@ -1,6 +1,6 @@
 # impl.gmk.gp: GNUMAKEFILE FRAGMENT FOR GNU CC/GPROF
 #
-# $HopeName: MMsrc!gp.gmk(trunk.1) $
+# $Id$
 # Copyright (C) 1998 Harlequin Group plc, all rights reserved
 #
 # This file is included by platform makefiles that use the GNU CC

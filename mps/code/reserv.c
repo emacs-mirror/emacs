@@ -1,6 +1,6 @@
 /* impl.c.reserv: ARENA RESERVOIR
  *
- * $HopeName: MMsrc!reserv.c(trunk.6) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * IMPROVEMENTS
@@ -11,7 +11,7 @@
 
 #include "mpm.h"
 
-SRCID(reserv, "$HopeName: MMsrc!reserv.c(trunk.6) $");
+SRCID(reserv, "$Id$");
 
 
 /* The reservoir pool is defined here. See design.mps.reservoir */

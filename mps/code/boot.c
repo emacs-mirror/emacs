@@ -1,6 +1,6 @@
 /* impl.c.boot: BOOTSTRAP ALLOCATOR
  *
- * $HopeName: MMsrc!boot.c(trunk.2) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .overview: A structure and protocols for allocating memory from a
@@ -14,7 +14,7 @@
 #include "boot.h"
 #include "mpm.h"
 
-SRCID(boot, "$HopeName: MMsrc!boot.c(trunk.2) $");
+SRCID(boot, "$Id$");
 
 
 #define BootBlockSig ((Sig)0x519B002B) /* SIGnature BOOT Block */

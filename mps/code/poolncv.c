@@ -1,6 +1,6 @@
 /*  impl.c.poolncv: NULL POOL COVERAGE TEST
  *
- *  $HopeName: MMsrc!poolncv.c(trunk.9) $
+ *  $Id$
  *  Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  */
 

@@ -1,7 +1,7 @@
 /* impl.h.eventpro: Interface for event processing routines
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName: MMsrc!eventpro.h(trunk.4) $
+ * $Id$
  */
 
 #ifndef eventpro_h

@@ -2,7 +2,7 @@
  *
  *       WIN32 MEMORY POOL SYSTEM INTERFACE LAYER EXTRAS
  *
- *  $HopeName: MMsrc!mpsiw3.c(trunk.4) $
+ *  $Id$
  *
  *  Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
  */
@@ -12,7 +12,7 @@
 
 #include "mpswin.h"
 
-SRCID(mpsint, "$HopeName: MMsrc!mpsiw3.c(trunk.4) $");
+SRCID(mpsint, "$Id$");
 
 /* This is defined in protnt.c */
 extern LONG ProtSEHfilter(LPEXCEPTION_POINTERS info);

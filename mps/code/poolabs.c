@@ -1,6 +1,6 @@
 /* impl.c.poolabs: ABSTRACT POOL CLASSES
  *
- * $HopeName: MMsrc!poolabs.c(trunk.9) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -26,7 +26,7 @@
 
 #include "mpm.h"
 
-SRCID(poolabs, "$HopeName: MMsrc!poolabs.c(trunk.9) $");
+SRCID(poolabs, "$Id$");
 
 
 typedef PoolClassStruct AbstractPoolClassStruct;

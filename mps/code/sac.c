@@ -1,13 +1,13 @@
 /* impl.c.sac: SEGREGATED ALLOCATION CACHES
  *
- * $HopeName: MMsrc!sac.c(trunk.4) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 #include "sac.h"
 
-SRCID(sac, "$HopeName: MMsrc!sac.c(trunk.4) $");
+SRCID(sac, "$Id$");
 
 
 /* SACCheck -- check function for SACs */

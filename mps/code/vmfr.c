@@ -1,6 +1,6 @@
 /* impl.c.vmfr: VIRTUAL MEMORY MAPPING FOR FreeBSD
  *
- * $HopeName: MMsrc!vmli.c(trunk.7) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is the implementation of the virtual memory mapping
@@ -43,7 +43,7 @@
 #error "vmfr.c is FreeBSD specific, but MPS_OS_FR is not set"
 #endif
 
-SRCID(vmfr, "$HopeName: MMsrc!vmli.c(trunk.7) $");
+SRCID(vmfr, "$Id$");
 
 
 /* VMStruct -- virtual memory structure */

@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
- * $HopeName: MMsrc!arenavm.c(trunk.74) $
+ * $Id$
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  *
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.74) $");
+SRCID(arenavm, "$Id$");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */

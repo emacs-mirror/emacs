@@ -1,6 +1,6 @@
 # impl.gmk.sos8gc: BUILD FOR SOLARIS/SPARC V8/GCC PLATFORM
 #
-# $HopeName: MMsrc!sos8gc.gmk(trunk.29) $
+# $Id$
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = sos8gc

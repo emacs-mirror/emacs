@@ -1,6 +1,6 @@
 # impl.gmk.lii4gc: BUILD FOR LINUX/INTEL/GCC PLATFORM
 #
-# $HopeName: MMsrc!lii4gc.gmk(trunk.6) $
+# $Id$
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = lii4gc

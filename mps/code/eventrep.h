@@ -1,7 +1,7 @@
 /* impl.h.eventrep: Allocation replayer interface
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * $HopeName: MMsrc!eventrep.h(trunk.2) $
+ * $Id$
  */
 
 #ifndef eventrep_h

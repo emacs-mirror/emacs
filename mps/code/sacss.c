@@ -1,6 +1,6 @@
 /* impl.c.sacss: SAC MANUAL ALLOC STRESS TEST
  *
- * $HopeName: MMsrc!sacss.c(trunk.4) $
+ * $Id$
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 

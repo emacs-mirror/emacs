@@ -1,6 +1,6 @@
 /*  impl.c.cbstest: COALESCING BLOCK STRUCTURE TEST
  *
- *  $HopeName: MMsrc!cbstest.c(trunk.11) $
+ *  $Id$
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -18,7 +18,7 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
-SRCID(cbstest, "$HopeName: MMsrc!cbstest.c(trunk.11) $");
+SRCID(cbstest, "$Id$");
 
 
 #define ArraySize ((Size)123456)

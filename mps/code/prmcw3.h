@@ -1,6 +1,6 @@
 /* impl.h.prmcw3:  PROTECTION FOR WIN32
  *
- * $HopeName: MMsrc!prmcw3.h(trunk.1) $
+ * $Id$
  * Copyright (C) 1998, 1999 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MPS developers.

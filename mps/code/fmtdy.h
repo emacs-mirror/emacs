@@ -1,6 +1,6 @@
 /* impl.h.fmtdy: DYLAN OBJECT FORMAT
  *
- * $HopeName: MMsrc!fmtdy.h(trunk.7) $
+ * $Id$
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  */
 

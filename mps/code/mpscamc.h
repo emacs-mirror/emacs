@@ -1,6 +1,6 @@
 /* impl.h.mpscamc: MEMORY POOL SYSTEM CLASS "AMC"
  *
- * $HopeName: MMsrc!mpscamc.h(trunk.5) $
+ * $Id$
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 

@@ -1,6 +1,6 @@
 /* impl.c.btss: BIT TABLE COVERAGE TEST
  *
- * $HopeName: MMsrc!btcv.c(trunk.5) $
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .readership: MPS developers
@@ -19,7 +19,7 @@
 
 #include <stdlib.h>
 
-SRCID(btcv, "$HopeName: MMsrc!btcv.c(trunk.5) $");
+SRCID(btcv, "$Id$");
 
 
 /* bt*Symmetric -- Symmetric operations on bit tables

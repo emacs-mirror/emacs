@@ -1,6 +1,6 @@
 /* impl.c.lockfr: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
- * $HopeName$
+ * $Id$
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .freebsd: This implementation supports FreeBSD (platform
@@ -34,7 +34,7 @@
 #error "lockfr.c is FreeBSD specific but MPS_OS_FR not defined"
 #endif
 
-SRCID(lockfr, "$HopeName$");
+SRCID(lockfr, "$Id$");
 
 
 /* LockStruct -- the MPS lock structure

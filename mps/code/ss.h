@@ -1,7 +1,7 @@
 /*  impl.h.ss
  *              STACK SCANNING
  *
- *  $HopeName: MMsrc!ss.h(trunk.3) $
+ *  $Id$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
