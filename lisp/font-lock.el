@@ -2479,7 +2479,10 @@ See also `c++-font-lock-extra-types'.")
 	     ;; as keywords not types.
 	     "typedef" "template"
 	     "extern" "auto" "register" "const" "volatile" "static"
-	     "inline" "friend" "virtual"))))
+	     "inline" "friend" "virtual"
+	     ;; Standard C++ operator names.
+	     "and" "and_eq" "bitand" "bitor" "compl" "not" "not_eq"
+	     "or" "or_eq" "xor" "xor_eq"))))
        (c++-operators
 	(eval-when-compile
 	  (regexp-opt
