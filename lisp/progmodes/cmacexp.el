@@ -41,8 +41,10 @@ and macros to predefine."
   (interactive "r")
   (let ((outbuf (get-buffer-create "*Macroexpansion*"))
 	(tempfile "%%macroexpand%%")
+	expanded
 	process
 	last-needed)
+    (setq expanded (expand-file-name tempfile))
     (save-excursion
       (set-buffer outbuf)
       (erase-buffer))
@@ -63,19 +65,21 @@ and macros to predefine."
 	      ;; Skip the last line of the macro definition we found.
 	      (forward-line 1)
 	      (setq last-needed (point)))))
-      (write-region (point-min) last-needed tempfile nil 'nomsg)
+      (write-region (point-min) last-needed expanded nil 'nomsg)
       ;; Output comment ender in case last #-directive is inside a comment.
       ;; Also, terminate any string that we are in.
-      (write-region "*//*\"*/\n" nil tempfile t 'nomsg)
-      (write-region beg end (concat tempfile "x") nil 'nomsg)
+      (write-region "*//*\"*/\n" nil expanded t 'nomsg)
+      (write-region beg end (concat expanded "x") nil 'nomsg)
       (process-send-string process (concat "#include \"" tempfile "\"\n"))
       (process-send-string process "\n")
       (process-send-string process (concat "#include \"" tempfile "x\"\n"))
+      (process-send-eof process)
+      ;; HPUX seems to want two eofs.
       (process-send-eof process))
     (while (eq (process-status process) 'run)
       (accept-process-output))
-    (delete-file tempfile)
-    (delete-file (concat tempfile "x"))
+    (delete-file expanded)
+    (delete-file (concat expanded "x"))
     (display-buffer outbuf)
     (save-excursion
       (set-buffer outbuf)
