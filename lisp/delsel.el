@@ -72,6 +72,7 @@ insertion commands first delete the region and then insert.")
 (put 'self-insert-iso 'delete-selection t)
 
 (put 'yank 'delete-selection 'yank)
+(put 'clipboard-yank 'delete-selection 'yank)
 (put 'insert-register 'delete-selection t)
 
 (put 'delete-backward-char 'delete-selection 'supersede)
