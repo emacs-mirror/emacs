@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities.
-   Copyright (C) 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -333,6 +333,7 @@ ScreenVisualBell (void)
 
 /* Set the screen dimensions so that it can show no less than
    ROWS x COLS frame.  */
+
 void
 dos_set_window_size (rows, cols)
      int *rows, *cols;
@@ -355,7 +356,7 @@ dos_set_window_size (rows, cols)
 
   mouse_off ();
 
-  /* If the user specify a special video mode for these dimensions,
+  /* If the user specified a special video mode for these dimensions,
      use that mode.  */
   sprintf (video_name, "screen-dimensions-%dx%d", *rows, *cols);
   video_mode = XSYMBOL (Fintern_soft (build_string (video_name),
@@ -369,6 +370,15 @@ dos_set_window_size (rows, cols)
       regs.h.bl = 0;
       regs.x.ax = 0x1003;
       int86 (0x10, &regs, &regs);
+
+      if (have_mouse)
+	{
+	  /* Must hardware-reset the mouse, or else it won't update
+	     its notion of screen dimensions for some non-standard
+	     video modes.  This is *painfully* slow...  */
+	  regs.x.ax = 0;
+	  int86 (0x33, &regs, &regs);
+	}
     }
 
   /* Find one of the dimensions supported by standard EGA/VGA
@@ -398,9 +408,10 @@ dos_set_window_size (rows, cols)
 	   {
 	     if (std_dimension[i].rows != current_rows
 		 || *cols != current_cols)
-	       _set_screen_lines (*rows);
+	       _set_screen_lines (std_dimension[i].rows);
 	     break;
 	   }
+	 i++;
 	}
     }
 
@@ -442,10 +453,6 @@ dos_set_window_size (rows, cols)
 
   if (have_mouse)
     {
-      /* Must hardware-reset the mouse, or else it won't update
-	 its notion of screen dimensions.  */
-      regs.x.ax = 0;
-      int86 (0x33, &regs, &regs);
       mouse_init ();
       mouse_on ();
     }
@@ -455,10 +462,8 @@ dos_set_window_size (rows, cols)
   *cols = ScreenCols ();
 }
 
-/*
- * If we write a character in the position where the mouse is,
- * the mouse cursor may need to be refreshed.
- */
+/* If we write a character in the position where the mouse is,
+   the mouse cursor may need to be refreshed.  */
 
 static void
 mouse_off_maybe ()
@@ -628,10 +633,11 @@ IT_update_end ()
 }
 
 /* This was more or less copied from xterm.c */
+
 static void
 IT_set_menu_bar_lines (window, n)
-  Lisp_Object window;
-  int n;
+     Lisp_Object window;
+     int n;
 {
   struct window *w = XWINDOW (window);
 
@@ -651,10 +657,8 @@ IT_set_menu_bar_lines (window, n)
     }
 }
 
-/*
- * IT_set_terminal_modes is called when emacs is started,
- * resumed, and whenever the screen is redrawn!
- */
+/* IT_set_terminal_modes is called when emacs is started,
+   resumed, and whenever the screen is redrawn!  */
 
 static
 IT_set_terminal_modes (void)
@@ -690,10 +694,8 @@ IT_set_terminal_modes (void)
              screen_size_X, screen_size_Y);
 }
 
-/*
- * IT_reset_terminal_modes is called when emacs is
- * suspended or killed.
- */
+/* IT_reset_terminal_modes is called when emacs is
+   suspended or killed.  */
 
 static
 IT_reset_terminal_modes (void)
@@ -825,7 +827,8 @@ IT_set_frame_parameters (frame, alist)
 #endif /* !HAVE_X_WINDOWS */
 
 
-/* Do we need the internal terminal? */
+/* Do we need the internal terminal?  */
+
 void
 internal_terminal_init ()
 {
@@ -1343,6 +1346,7 @@ and then the scan code.")
 }
 
 /* Get a char from keyboard.  Function keys are put into the event queue.  */
+
 static int
 dos_rawgetc ()
 {
@@ -1547,14 +1551,37 @@ dos_rawgetc ()
       for (but = 0; but < NUM_MOUSE_BUTTONS; but++)
 	for (press = 0; press < 2; press++)
 	  {
+	    int button_num = but;
+
 	    if (press)
 	      ok = mouse_pressed (but, &x, &y);
 	    else
 	      ok = mouse_released (but, &x, &y);
 	    if (ok)
 	      {
+		/* Allow a simultaneous press/release of Mouse-1 and
+		   Mouse-2 to simulate Mouse-3 on two-button mice.  */
+		if (mouse_button_count == 2 && but < 2)
+		  {
+		    int x2, y2;	/* don't clobber original coordinates */
+
+		    /* If only one button is pressed, wait 100 msec and
+		       check again.  This way, Speedy Gonzales isn't
+		       punished, while the slow get their chance.  */
+		    if (press && mouse_pressed (1-but, &x2, &y2)
+			|| !press && mouse_released (1-but, &x2, &y2))
+		      button_num = 2;
+		    else
+		      {
+			delay (100);
+			if (press && mouse_pressed (1-but, &x2, &y2)
+			    || !press && mouse_released (1-but, &x2, &y2))
+			  button_num = 2;
+		      }
+		  }
+
 		event.kind = mouse_click;
-		event.code = but;
+		event.code = button_num;
 		event.modifiers = dos_get_modifiers (0)
 		  | (press ? down_modifier : up_modifier);
 		event.x = x;
@@ -1572,6 +1599,7 @@ dos_rawgetc ()
 static int prev_get_char = -1;
 
 /* Return 1 if a key is ready to be read without suspending execution.  */
+
 dos_keysns ()
 {
   if (prev_get_char != -1)
@@ -1581,6 +1609,7 @@ dos_keysns ()
 }
 
 /* Read a key.  Return -1 if no key is ready.  */
+
 dos_keyread ()
 {
   if (prev_get_char != -1)
@@ -1705,7 +1734,7 @@ IT_menu_calc_size (XMenu *menu, int *width, int *height)
   *height = maxheight;
 }
 
-/* Display MENU at (X,Y) using FACES. */
+/* Display MENU at (X,Y) using FACES.  */
 
 static void
 IT_menu_display (XMenu *menu, int y, int x, int *faces)
@@ -2234,11 +2263,8 @@ install_ctrl_break_check ()
     }
 }
 
-/*
- * Turn off Dos' Ctrl-C checking and inhibit interpretation of
- * control chars by Dos.
- * Determine the keyboard type.
- */
+/* Turn off Dos' Ctrl-C checking and inhibit interpretation of
+   control chars by DOS.   Determine the keyboard type.  */
 
 int
 dos_ttraw ()
@@ -2315,6 +2341,7 @@ dos_ttraw ()
 }
 
 /*  Restore status of standard input and Ctrl-C checking.  */
+
 int
 dos_ttcooked ()
 {
@@ -2334,6 +2361,7 @@ dos_ttcooked ()
 /* Run command as specified by ARGV in directory DIR.
    The command is run with input from TEMPIN, output to
    file TEMPOUT and stderr to TEMPERR.  */
+
 int
 run_msdos_command (argv, dir, tempin, tempout, temperr)
      unsigned char **argv;
@@ -2450,10 +2478,8 @@ croak (badfunc)
  *	gettimeofday
  */
 
-/*
- * Hostnames for a pc are not really funny,
- * but they are used in change log so we emulate the best we can.
- */
+/* Hostnames for a pc are not really funny,
+   but they are used in change log so we emulate the best we can.  */
 
 gethostname (p, size)
      char *p;
@@ -2533,7 +2559,7 @@ Lisp_Object Vdos_display_time;
 
 static void
 check_timer (t)
-  struct time *t;
+     struct time *t;
 {
   int sec, min, hour, hund;
 
