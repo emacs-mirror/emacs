@@ -96,6 +96,20 @@ enum Lisp_Misc_Type
 #define GCTYPEBITS 3
 #endif
 
+/* Make these values available in GDB, which sees enums but not macros.  */
+
+enum gdb_lisp_params
+{
+  gdb_valbits = VALBITS,
+  gdb_gctypebits = GCTYPEBITS,
+  gdb_emacs_intbits = sizeof (EMACS_INT) * INTBITS / sizeof (int),
+#ifdef DATA_SEG_BITS
+  gdb_data_seg_bits = DATA_SEG_BITS
+#else
+  gdb_data_seg_bits = 0
+#endif
+};
+
 #ifndef NO_UNION_TYPE
 
 #ifndef WORDS_BIG_ENDIAN
