@@ -1304,6 +1304,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
      int lim, lim_byte;
 {
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+  int forward = n > 0;
 
   if (lim > pos && multibyte)
     while (n > 0)
@@ -1322,22 +1323,23 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    while (this_len > 0)
 	      {
 		int charlen, buf_charlen;
-		int pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
-		int buf_ch;
+		int pat_ch, buf_ch;
+
+		pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
+		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
+						 ZV_BYTE - this_pos_byte,
+						 buf_charlen);
+		TRANSLATE (buf_ch, trt, buf_ch);
+
+		if (buf_ch != pat_ch)
+		  break;
 
 		this_len_byte -= charlen;
 		this_len--;
 		p += charlen;
 
-		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
-						 ZV_BYTE - this_pos_byte,
-						 buf_charlen);
 		this_pos_byte += buf_charlen;
 		this_pos++;
-		TRANSLATE (buf_ch, trt, buf_ch);
-
-		if (buf_ch != pat_ch)
-		  break;
 	      }
 
 	    if (this_len == 0)
@@ -1369,12 +1371,13 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	      {
 		int pat_ch = *p++;
 		int buf_ch = FETCH_BYTE (this_pos);
-		this_len--;
-		this_pos++;
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
+
+		this_len--;
+		this_pos++;
 	      }
 
 	    if (this_len == 0)
@@ -1407,22 +1410,22 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    while (this_len > 0)
 	      {
 		int charlen, buf_charlen;
-		int pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
-		int buf_ch;
+		int pat_ch, buf_ch;
 
-		this_len_byte -= charlen;
-		this_len--;
-		p += charlen;
-
+		pat_ch = STRING_CHAR_AND_LENGTH (p, this_len_byte, charlen);
 		buf_ch = STRING_CHAR_AND_LENGTH (BYTE_POS_ADDR (this_pos_byte),
 						 ZV_BYTE - this_pos_byte,
 						 buf_charlen);
-		this_pos_byte += buf_charlen;
-		this_pos++;
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
+
+		this_len_byte -= charlen;
+		this_len--;
+		p += charlen;
+		this_pos_byte += buf_charlen;
+		this_pos++;
 	      }
 
 	    if (this_len == 0)
@@ -1454,12 +1457,12 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	      {
 		int pat_ch = *p++;
 		int buf_ch = FETCH_BYTE (this_pos);
-		this_len--;
-		this_pos++;
 		TRANSLATE (buf_ch, trt, buf_ch);
 
 		if (buf_ch != pat_ch)
 		  break;
+		this_len--;
+		this_pos++;
 	      }
 
 	    if (this_len == 0)
@@ -1477,7 +1480,10 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
  stop:
   if (n == 0)
     {
-      set_search_regs (multibyte ? pos_byte : pos, len_byte);
+      if (forward)
+	set_search_regs ((multibyte ? pos_byte : pos) - len_byte, len_byte);
+      else
+	set_search_regs (multibyte ? pos_byte : pos, len_byte);
 
       return pos;
     }
@@ -1605,9 +1611,9 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      while (! CHAR_HEAD_P (*charstart))
 		charstart--;
 	      untranslated = STRING_CHAR (charstart, ptr - charstart + 1);
-	      TRANSLATE (ch, trt, untranslated);
-	      if (charset_base == (ch & ~0xff))
+	      if (charset_base == (untranslated & ~0xff))
 		{
+		  TRANSLATE (ch, trt, untranslated);
 		  if (! CHAR_HEAD_P (*ptr))
 		    {
 		      translate_prev_byte = ptr[-1];
@@ -1616,7 +1622,10 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 		    }
 		}
 	      else
-		this_translated = 0;
+		{
+		  this_translated = 0;
+		  ch = *ptr;
+		}
 	    }
 	  else if (!multibyte)
 	    TRANSLATE (ch, trt, *ptr);
@@ -1626,23 +1635,38 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      this_translated = 0;
 	    }
 
-	  k = j = (unsigned char) ch;
+	  if (ch > 0400)
+	    j = ((unsigned char) ch) | 0200;
+	  else
+	    j = (unsigned char) ch;
+
 	  if (i == infinity)
 	    stride_for_teases = BM_tab[j];
+
 	  BM_tab[j] = dirlen - i;
 	  /* A translation table is accompanied by its inverse -- see */
 	  /* comment following downcase_table for details */ 
 	  if (this_translated)
-	    while (1)
-	      {
-		TRANSLATE (ch, inverse_trt, ch);
-		/* For all the characters that map into K,
-		   set up simple_translate to map them into K.  */
-		simple_translate[(unsigned char) ch] = k;
-		if ((unsigned char) ch == k)
-		  break;
-		BM_tab[(unsigned char) ch] = dirlen - i;
-	      }
+	    {
+	      int starting_ch = ch;
+	      int starting_j = j;
+	      while (1)
+		{
+		  TRANSLATE (ch, inverse_trt, ch);
+		  if (ch > 0400)
+		    j = ((unsigned char) ch) | 0200;
+		  else
+		    j = (unsigned char) ch;
+
+		  /* For all the characters that map into CH,
+		     set up simple_translate to map the last byte
+		     into STARTING_J.  */
+		  simple_translate[j] = starting_j;
+		  if (ch == starting_ch)
+		    break;
+		  BM_tab[j] = dirlen - i;
+		}
+	    }
 	}
       else
 	{
