@@ -1111,7 +1111,7 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 
   ;; Derive tables that can be used as per-coding-system
   ;; `translation-table-for-encode's.
-  (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
+  (dolist (n (list 15 14 9 8 7 6 5 4 3 2 1))
     (let* ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n))))
 	   (encode-translator (set (intern (format "ucs-8859-%d-encode-table"
 						   n))
