@@ -956,7 +956,7 @@ insert_glyphs (start, len)
 	  g = *start++;
 	  /* We must open sufficient space for a character which
 	     occupies more than one column.  */
-	  while (*start && GLYPH_MASK_PADDING)
+	  while (*start & GLYPH_MASK_PADDING)
 	    {
 	      OUTPUT1_IF (TS_ins_char);
 	      start++, len--;
