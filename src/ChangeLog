@@ -1,3 +1,7 @@
+2002-03-12  Juanma Barranquero  <lektu@terra.es>
+
+	* editfns.c (syms_of_editfns): Fix typo.
+
 2002-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xsmfns.c: Include stdio.h because termhooks.h needs it.
