@@ -2618,6 +2618,7 @@ extern void x_destroy_bitmap P_ ((struct frame *, int));
 #endif
 extern void x_destroy_all_bitmaps P_ ((Display_Info *));
 extern int x_create_bitmap_mask P_ ((struct frame * , int));
+extern Lisp_Object x_find_image_file P_ ((Lisp_Object));
 
 void x_kill_gs_process P_ ((Pixmap, struct frame *));
 struct image_cache *make_image_cache P_ ((void));
