@@ -1,3 +1,8 @@
+2002-05-14  Jason Rumney  <jasonr@gnu.org>
+
+	* emacs-lisp/easymenu.el (easy-menu-name-match): Match both
+	displayed text and internal name as string.
+
 2002-05-14  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--rectangle-operation): 
