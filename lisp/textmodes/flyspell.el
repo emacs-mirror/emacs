@@ -1011,8 +1011,7 @@ Mostly we check word delimiters."
 				 (concat "^" word "\n"))
 	    ;; we mark the ispell process so it can be killed
 	    ;; when emacs is exited without query
-	    (if (fboundp 'process-kill-without-query)
-		(process-kill-without-query ispell-process))
+	    (set-process-query-on-exit-flag ispell-process nil)
 	    ;; wait until ispell has processed word
 	    (while (progn
 		     (accept-process-output ispell-process)
@@ -1065,7 +1064,7 @@ Mostly we check word delimiters."
 				      flyspell-duplicate-distance)
 				   t)))))
 		   (if flyspell-highlight-flag
-		       (flyspell-highlight-duplicate-region start end)
+		       (flyspell-highlight-duplicate-region start end poss)
 		     (message (format "duplicate `%s'" word))))
 		  (t
 		   ;; incorrect highlight the location
@@ -1540,8 +1539,9 @@ for the overlay."
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-highlight-duplicate-region ...                          */
 ;*---------------------------------------------------------------------*/
-(defun flyspell-highlight-duplicate-region (beg end)
-  "Set up an overlay on a duplicated word, in the buffer from BEG to END."
+(defun flyspell-highlight-duplicate-region (beg end poss)
+  "Set up an overlay on a duplicated word, in the buffer from BEG to END.
+??? What does POSS mean?"
   (let ((inhibit-read-only t))
     (unless (run-hook-with-args-until-success
 	     'flyspell-incorrect-hook beg end poss)
@@ -1947,7 +1947,6 @@ The word checked is the word at the mouse position."
 			     mouse-pos
 			   (set-mouse-position (car mouse-pos)
 				 	       (/ (frame-width) 2) 2)
-			   (unfocus-frame)
 			   (mouse-position))))
 	(setq event (list (list (car (cdr mouse-pos))
 				(1+ (cdr (cdr mouse-pos))))
