@@ -1,3 +1,10 @@
+2001-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (fancy-splash-tail): Explain how to recover
+	from a crash, if there was a crash.
+	(command-line-1): Reorganize display of startup screen,
+	to simplify the logic.  Use a temp buffer for it. 
+
 2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.el (set-background-color, set-foreground-color): Call
