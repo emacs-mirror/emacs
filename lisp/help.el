@@ -515,7 +515,7 @@ C-w Display information on absence of warranty for GNU Emacs."
      (setq val (completing-read (if fn
 				    (format "Describe function (default %s): " fn)
 				  "Describe function: ")
-				obarray 'fboundp t))
+				obarray 'fboundp t nil nil (symbol-name fn)))
      (list (if (equal val "")
 	       fn (intern val)))))
   (if function
@@ -614,7 +614,7 @@ Returns the documentation as a string, also."
      (setq val (completing-read (if (symbolp v)
 				    (format "Describe variable (default %s): " v)
 				  "Describe variable: ")
-				obarray 'boundp t))
+				obarray 'boundp t nil nil (symbol-name v)))
      (list (if (equal val "")
 	       v (intern val)))))
   (if (symbolp variable)
