@@ -570,19 +570,15 @@ termcapobj = tparam.o
 
 #ifndef SYSTEM_MALLOC
 
-#ifdef DOUG_LEA_MALLOC
+#ifndef DOUG_LEA_MALLOC
+gmallocobj = gmalloc.o
+#endif
+
 #ifdef REL_ALLOC
-mallocobj = ralloc.o vm-limit.o
-#else /* ! defined (REL_ALLOC) */
-mallocobj = vm-limit.o
-#endif /* ! defined (REL_ALLOC) */
-#else /* ! defined (DOUG_LEA_MALLOC) */
-#ifdef REL_ALLOC
-mallocobj = gmalloc.o ralloc.o vm-limit.o
-#else /* ! defined (REL_ALLOC) */
-mallocobj = gmalloc.o vm-limit.o
-#endif /* ! defined (REL_ALLOC) */
-#endif /* ! defined (DOUG_LEA_MALLOC) */
+rallocobj = ralloc.o
+#endif
+
+mallocobj = $(gmallocobj) $(rallocobj) vm-limit.o
 
 #endif /* SYSTEM_MALLOC */
 
