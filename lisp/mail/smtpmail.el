@@ -211,6 +211,9 @@ This is relative to `smtpmail-queue-dir'.")
 ;;;
 ;;;
 
+(defvar smtpmail-mail-address nil
+  "Value of `user-mail-address' in ambient buffer.")
+
 ;;;###autoload
 (defun smtpmail-send-it ()
   (let ((errbuf (if mail-interactive
@@ -220,7 +223,7 @@ This is relative to `smtpmail-queue-dir'.")
 	(case-fold-search nil)
 	delimline
 	(mailbuf (current-buffer))
-	(mail-address user-mail-address)
+	(smtpmail-mail-address user-mail-address)
 	(smtpmail-code-conv-from
 	 (if enable-multibyte-characters
 	     (let ((sendmail-coding-system smtpmail-code-conv-from))
@@ -261,7 +264,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    ;; they put one in themselves.
 	    (goto-char (point-min))
 	    (if (not (re-search-forward "^From:" delimline t))
-		(let* ((login mail-address)
+		(let* ((login smtpmail-mail-address)
 		       (fullname (user-full-name)))
 		  (cond ((eq mail-from-style 'angles)
 			 (insert "From: " fullname)
@@ -686,7 +689,7 @@ This is relative to `smtpmail-queue-dir'.")
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
 						     (or mail-envelope-from
-							 mail-address)
+							 smtpmail-mail-address)
 						     size-part
 						     body-part))
 
