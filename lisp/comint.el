@@ -591,7 +591,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	  ;; Some programs that use terminfo get very confused
 	  ;; if TERM is not a valid terminal type.
 	  (if (and (boundp 'system-uses-terminfo) system-uses-terminfo)
-	      (list "TERM=dumb"
+	      (list "TERM=dumb" "TERMCAP="
 		    (format "COLUMNS=%d" (frame-width)))
 	    (list "TERM=emacs"
 		  (format "TERMCAP=emacs:co#%d:tc=unknown:" (frame-width))))
@@ -1449,12 +1449,17 @@ Then send it to the process running in the current buffer.
 The string is sent using `comint-input-sender'.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]."
-  (interactive "P") ; Defeat snooping via C-x ESC ESC
+  (interactive "P")			; Defeat snooping via C-x ESC ESC
   (let ((proc (get-buffer-process (current-buffer))))
-    (if (not proc)
-	(error "Current buffer has no process")
-      (funcall comint-input-sender proc
-       (if (stringp str) str (comint-read-noecho "Non-echoed text: " t))))))
+    (cond ((not proc)
+	   (error "Current buffer has no process"))
+	  ((stringp str)
+	   (funcall comint-input-sender proc str))
+	  (t
+	   (let ((str (comint-read-noecho "Non-echoed text: " t)))
+	     (if (stringp str)
+		 (send-invisible str)
+	       (message "Warning: text will be echoed")))))))
 
 (defun comint-watch-for-password-prompt (string) 
   "Prompt in the minibuffer for password and send without echoing.
@@ -1540,11 +1545,13 @@ Useful if you accidentally suspend the top-level process."
 	(kill-region pmark (point)))))
 
 (defun comint-delchar-or-maybe-eof (arg)
-  "Delete ARG characters forward, or (if at eob) send an EOF to subprocess."
+  "Delete ARG characters forward or send an EOF to subprocess.
+Sends an EOF only if point is at the end of the buffer and there is no input."
   (interactive "p")
-  (if (eobp)
-      (process-send-eof)
-    (delete-char arg)))
+  (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
+    (if (and (eobp) (= (point) (marker-position pmark)))
+	(process-send-eof)
+      (delete-char arg))))
 
 (defun comint-send-eof ()
   "Send an EOF to the current buffer's process."
