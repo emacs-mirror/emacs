@@ -42,6 +42,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "puresize.h"
 
 /* The rest of the file is within this conditional.  */
 #ifdef USE_TEXT_PROPERTIES
@@ -58,7 +59,11 @@ INTERVAL
 create_root_interval (parent)
      Lisp_Object parent;
 {
-  INTERVAL new = make_interval ();
+  INTERVAL new;
+
+  CHECK_IMPURE (parent);
+
+  new = make_interval ();
 
   if (XTYPE (parent) == Lisp_Buffer)
     {
