@@ -2226,6 +2226,8 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	 Windows code on the non-toolkit version.  */
       if (f)
 	{
+	  Fx_hide_tip ();
+
 	  XSETFRAME (frame, f);
 	  kbd_buffer_store_help_event (frame, help);
 	}
