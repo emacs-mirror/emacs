@@ -83,6 +83,7 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
 ;; A few advertised variables that control which symbols are used
 ;; to represent the backquote, unquote, and splice operations.
 
+;;;###autoload
 (defvar backquote-backquote-symbol '`
   "*Symbol used to represent a backquote or nested backquote (e.g. `).")
 
@@ -92,6 +93,7 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
 (defvar backquote-splice-symbol ',@
   "*Symbol used to represent a splice (e.g. `,'@) inside a backquote.")
 
+;;;###autoload
 (defmacro backquote (arg)
   "Argument STRUCTURE describes a template to build.
 
@@ -110,6 +112,7 @@ Vectors work just like lists.  Nested backquotes are permitted."
 
 ;; GNU Emacs has no reader macros
 
+;;;###autoload
 (fset backquote-backquote-symbol (symbol-function 'backquote))
 
 ;; backquote-process returns a dotted-pair of a tag (0, 1, or 2) and
