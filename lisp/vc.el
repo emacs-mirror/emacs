@@ -833,7 +833,7 @@ If VERBOSE is non-nil, query the user rather than using default parameters."
 		(error "Aborted")))))
     
     ;; Do the right thing
-    (if (not (vc-backend file))
+    (if (not (vc-registered file))
 	(vc-register verbose comment)
       (vc-recompute-state file)
       (if visited (vc-mode-line file))
@@ -1068,7 +1068,7 @@ first backend that could register the file is used."
                   "Enter initial comment."
 		  (lambda (file rev comment)
 		    (message "Registering %s... " file)
-		    (let ((backend (vc-find-new-backend file)))
+		    (let ((backend (vc-responsible-backend file t)))
 		      (vc-file-clearprops file)
 		      (vc-call-backend backend 'register file rev comment)
 		      (vc-file-setprop file 'vc-backend backend)
@@ -1077,34 +1077,44 @@ first backend that could register the file is used."
 			(setq backup-inhibited t)))
 		    (message "Registering %s... done" file))))
 
-(defun vc-responsible-backend (file &optional backends)
-  "Return the name of the backend system that is responsible for FILE.
-If no backend in variable `vc-handled-backends' declares itself
-responsible, the first backend in that list will be returned.
-FILE can also be a directory name (ending with a slash).
-If BACKENDS is non-nil it overrides any current backend or
-`vc-handled-backends'."
-  (or (and (not backends) (not (file-directory-p file)) (vc-backend file))
-      (progn
-	(unless backends (setq backends vc-handled-backends))
-	(unless backends (error "No reponsible backend"))
-	(catch 'found
-	  (dolist (backend backends)
-	    (if (vc-call-backend backend 'responsible-p file)
-		(throw 'found backend)))
-	  (car backends)))))
 
-(defun vc-find-new-backend (file)
-  "Find a new backend to register FILE."
-  (let (backends)
-    ;; We can't register if it's already registered
-    (dolist (backend vc-handled-backends)
-      (when (and (not (vc-call-backend backend 'registered file))
-		 (vc-call-backend backend 'could-register file))
-	(push backend backends)))
-    (unless backends
-      (error "Cannot register, no appropriate backend in `vc-handled-backends'"))
-    (vc-responsible-backend file (nreverse backends))))
+(defun vc-responsible-backend (file &optional register)
+  "Return the name of a backend system that is responsible for FILE.
+The optional argument REGISTER means that a backend suitable for 
+registration should be found.
+
+If REGISTER is nil, then if FILE is already registered, return the
+backend of FILE.  If FILE is not registered, or a directory, then the
+first backend in `vc-handled-backends' that declares itself
+responsible for FILE is returned.  If no backend declares itself
+responsible, return the first backend.
+
+If REGISTER is non-nil, return the first responsible backend under
+which FILE is not yet registered.  If there is no such backend, return
+the first backend under which FILE is not yet registered, but could
+be registered."
+  (if (not vc-handled-backends)
+      (error "No handled backends"))
+  (or (and (not (file-directory-p file)) (not register) (vc-backend file))
+      (catch 'found
+	;; First try: find a responsible backend.  If this is for registration,
+	;; it must be a backend under which FILE is not yet registered.
+	(dolist (backend vc-handled-backends)
+	  (and (or (not register)
+		   (not (vc-call-backend backend 'registered file)))
+	       (vc-call-backend backend 'responsible-p file)
+	       (throw 'found backend)))
+	;; no responsible backend
+	(if (not register)
+	    ;; if this is not for registration, the first backend must do
+	    (car vc-handled-backends)
+	  ;; for registration, we need to find a new backend that 
+	  ;; could register FILE
+	  (dolist (backend vc-handled-backends)
+	    (and (not (vc-call-backend backend 'registered file))
+		 (vc-call-backend backend 'could-register file)
+		 (throw 'found backend)))
+	  (error "No backend that could register")))))
 
 (defun vc-default-responsible-p (backend file)
   "Indicate whether BACKEND is reponsible for FILE.  
