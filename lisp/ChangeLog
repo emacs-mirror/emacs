@@ -1,3 +1,26 @@
+2001-04-20  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-escape-newlines-and-send): New function.
+	(sql-db2): Set comint-input-sender to
+	sql-escape-newlines-and-send.
+
+2001-04-20  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-db2-program): New option.
+	(sql-db2-options): New option.
+	(sql-db2): New function.
+
+2001-04-20  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-mode-menu): Added highlighting entries.
+	(sql-highlight-oracle-keywords): New function.
+	(sql-highlight-postgres-keywords): New function.
+	(sql-highlight-ansi-keywords): New function.
+
+2001-04-20  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-help): Doc change.
+
 2001-04-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-defsyntax): Unquote `doc'.
