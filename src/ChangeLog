@@ -10667,9 +10667,15 @@ Wed Jun 25 15:22:58 1997  Gerd Moellmann  <gerd@acm.org>
 
 1999-03-17  Jason Rumney <jasonr@altavista.net>
 
-	* w32bdf.h: Merged patches from Meadow.
+	* w32bdf.h: Merged patches from Meadow; introduce bitmap cache to
+	speed display.
 
-	* w32bdf.c: Merged patches from Meadow.
+	* w32bdf.c: Merged patches from Meadow; introduce bitmap cache to
+	speed display.
+	(get_cached_font_char, cache_char_offset, get_bitmap_with_cache)
+	New functions.
+	(w32_free_bdf_font, seek_char, w32_get_bdf_glyph, w32_BDF_TextOut)
+	Use bitmap cache.
 
 	* w32fns.c (enum_font_cb2): Set the font height to be the
 	character height, not the cell height.
