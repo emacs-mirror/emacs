@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-parse.el,v 1.4 2000/12/06 19:52:39 fx Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.5 2000/12/18 03:17:31 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -25,6 +25,12 @@
 
 ;;; Commentary:
 
+;;; Bugs:
+
+;; - when merging a modified file, if the merge says that the file already
+;;   contained in the changes, it marks the file as `up-to-date' although
+;;   it might still contain further changes.
+;;   Example: merging a zero-change commit.
 
 ;;; Code:
 
@@ -352,6 +358,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (cvs-match "refetching unpatchable files$")
        ;; [commit]
        (cvs-match "Rebuilding administrative file database$")
+       ;; ???
+       (cvs-match "--> Using per-directory sticky tag `.*'")
      
        ;; CVS is running a *info program.
        (and
@@ -408,6 +416,8 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
 			   "\\) already contains the differences between .*$")
 		   (path 1) (type '(UP-TO-DATE . MERGED)))
 	t)
+       ;; FIXME: PATH might not be set yet.  Sometimes the only path
+       ;; information is in `RCS file: ...' (yuck!!).
        (cvs-parsed-fileinfo (if dont-change-disc 'NEED-MERGE
 			      (or type '(MODIFIED . MERGED))) path nil
 			    :merge (cons base-rev head-rev))))))
