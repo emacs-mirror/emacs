@@ -39,7 +39,8 @@
   tilde      |    ~    | a~ -> ,Ac(B
   cedilla    |    ,    | c, -> ,Ag(B
   nordic     |    /    | d/ -> ,Ap(B   t/ -> ,A~(B   a/ -> ,Ae(B   e/ -> ,Af(B   o/ -> ,Ax(B
-  others     |   /<>   | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B   << -> ,A+(B   >> -> ,A;(B
+  others     |   /<>   | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B
+             | various | << -> ,A+(B   >> -> ,A;(B   o_ -> ,A:(B   a_ -> ,A*(B
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
@@ -111,6 +112,8 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("!/" ?,A!(B)
  ("<<" ?,A+(B)
  (">>" ?,A;(B)
+ ("o_" ?,A:(B)
+ ("a_" ?,A*(B)
 
  ("A``" ["A`"])
  ("A''" ["A'"])
@@ -178,6 +181,8 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("!//" ["!/"])
  ("<<<" ["<<"])
  (">>>" [">>"])
+ ("o__" ["o_"])
+ ("a__" ["a_"])
  )
 
 (quail-define-package
@@ -1160,11 +1165,13 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  "italian-postfix" "Latin-1" "IT<" t
  "Italian (Italiano) input method with postfix modifiers
 
-A` -> ,A@(B
-E` -> ,AH(B
-I` -> ,AL(B
-O` -> ,AR(B
-U` -> ,AY(B
+a` -> ,A`(B    A` -> ,A@(B    e' -> ,Ai(B    << -> ,A+(B
+e` -> ,Ah(B    E` -> ,AH(B    E' -> ,AI(B    >> -> ,A;(B
+i` -> ,Al(B    I` -> ,AL(B               o_ -> ,A:(B
+o` -> ,Ar(B    O` -> ,AR(B               a_ -> ,A*(B
+u` -> ,Ay(B    U` -> ,AY(B
+
+Typewriter-style italian characters.
 
 Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
 " nil t nil nil nil nil nil nil nil nil t)
@@ -1173,24 +1180,36 @@ Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
  ("A`" ?,A@(B)
  ("a`" ?,A`(B)
  ("E`" ?,AH(B)
+ ("E'" ?,AI(B)
  ("e`" ?,Ah(B)
+ ("e'" ?,Ai(B)
  ("I`" ?,AL(B)
  ("i`" ?,Al(B)
  ("O`" ?,AR(B)
  ("o`" ?,Ar(B)
  ("U`" ?,AY(B)
  ("u`" ?,Ay(B)
+ ("<<" ?,A+(B)
+ (">>" ?,A;(B)
+ ("o_" ?,A:(B)
+ ("a_" ?,A*(B)
 
  ("A``" ["A`"])
  ("a``" ["a`"])
  ("E``" ["E`"])
+ ("E''" ["E'"])
  ("e``" ["e`"])
+ ("e''" ["e'"])
  ("I``" ["I`"])
  ("i``" ["i`"])
  ("O``" ["O`"])
  ("o``" ["o`"])
  ("U``" ["U`"])
  ("u``" ["u`"])
+ ("<<<" ["<<"])
+ (">>>" [">>"])
+ ("o__" ["o_"])
+ ("a__" ["a_"])
  )
 
 (quail-define-package
