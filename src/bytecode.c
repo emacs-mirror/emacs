@@ -637,7 +637,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 		AFTER_POTENTIAL_GC ();
 	      }
 	  }
-	  POP;
+	  (void) POP;
 	  break;
 
 	case Bdup:
