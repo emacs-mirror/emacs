@@ -425,20 +425,11 @@ This returns ARGS with the arguments that have been processed removed."
 
 ;;;; Function keys
 
-;;; Give some common function keys reasonable definitions.
-(define-key global-map [home] 'beginning-of-line)
-(define-key global-map [left] 'backward-char)
-(define-key global-map [up] 'previous-line)
-(define-key global-map [right] 'forward-char)
-(define-key global-map [down] 'next-line)
-(define-key global-map [prior] 'scroll-down)
-(define-key global-map [next] 'scroll-up)
 ;; We use a different symbol to prevent
 ;; doc strings from listing M-next as the preferred way to do this.
 (fset 'advertised-scroll-other-window 'scroll-other-window)
 (define-key global-map [M-next] 'scroll-other-window)
 (define-key global-map [begin] 'beginning-of-buffer)
-(define-key global-map [end] 'end-of-buffer)
 
 (define-key global-map "\C-z" 'iconify-frame)
 
