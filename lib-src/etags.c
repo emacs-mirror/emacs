@@ -32,7 +32,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is $Revision: 2.84 $";
+char pot_etags_version[] = "@(#) pot revision number is 14.15";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1953,6 +1953,7 @@ static enum sym_type C_symtype P_((char *, int, int));
 
 /* Feed stuff between (but not including) %[ and %] lines to:
       gperf -c -k 1,3 -o -p -r -t
+   then put a `static' keyword in front of the in_word_set function.
 %[
 struct C_stab_entry { char *name; int c_ext; enum sym_type type; }
 %%
