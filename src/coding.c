@@ -7128,7 +7128,12 @@ updated by the functions `make-coding-system' and\n\
   Vcoding_system_alist = Qnil;
 
   DEFVAR_LISP ("coding-category-list", &Vcoding_category_list,
-    "List of coding-categories (symbols) ordered by priority.");
+    "List of coding-categories (symbols) ordered by priority.\n\
+\n\
+On detecting a coding system, Emacs tries code detection algorithms\n\
+associated with each coding-category one by one in this order.  When\n\
+one algorithm agrees with a byte sequence of source text, the coding\n\
+system bound to the corresponding coding-category is selected.");
   {
     int i;
 
