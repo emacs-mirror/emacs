@@ -153,14 +153,13 @@ Do the right thing if the file has been compressed or zipped."
 	(setq tail (cdr tail)))
       (setq fullname (concat filename (car (car tail)))
 	    decoder (cdr (car tail)))
-      ;; check for conflict with jka-compr
-      (if (and (featurep 'jka-compr)
-	       (jka-compr-installed-p)
-	       (jka-compr-get-compression-info (concat filename
-						       (car (car tail)))))
-	  (setq decoder nil))
       (or tail
 	  (error "Can't find %s or any compressed version of it!" filename)))
+    ;; check for conflict with jka-compr
+    (if (and (featurep 'jka-compr)
+	     (jka-compr-installed-p)
+	     (jka-compr-get-compression-info fullname))
+	(setq decoder nil))
     (insert-file-contents fullname visit)
     (if decoder
 	(let ((buffer-read-only nil))
@@ -215,10 +214,14 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			  ;; If specified name starts with `./'
 			  ;; then just try current directory.
 			  '("./")
-			(if Info-additional-directory-list
-			    (append Info-directory-list
-				    Info-additional-directory-list)
-			  Info-directory-list))))
+			(if (file-name-absolute-p filename)
+			    ;; No point in searching for an
+			    ;; absolute file name
+			    '(nil)
+			  (if Info-additional-directory-list
+			      (append Info-directory-list
+				      Info-additional-directory-list)
+			    Info-directory-list)))))
 	    ;; Search the directory list for file FILENAME.
 	    (while (and dirs (not found))
 	      (setq temp (expand-file-name filename (car dirs)))
