@@ -196,8 +196,11 @@ properties, just the characters themselves.  @xref{Text Properties}.
 
 @defun buffer-string
 This function returns the contents of the entire accessible portion of
-the current buffer as a string.  This is the portion between
-@code{(point-min)} and @code{(point-max)} (@pxref{Narrowing}).
+the current buffer as a string.  It is equivalent to
+
+@example
+(buffer-substring (point-min) (point-max))
+@end example
 
 @example
 @group
@@ -302,6 +305,13 @@ properties as the characters they were copied from.  By contrast,
 characters specified as separate arguments, not part of a string or
 buffer, inherit their text properties from the neighboring text.
 
+  The insertion functions convert text from unibyte to multibyte in
+order to insert in a multibyte buffer, and vice versa---if the text
+comes from a string or from a buffer.  However, they do not convert
+unibyte character codes 128 through 255 to multibyte characters, not
+even if the current buffer is a multibyte buffer.  @xref{Converting
+Representations}.
+
 @defun insert &rest args
 This function inserts the strings and/or characters @var{args} into the
 current buffer, at point, moving point forward.  In other words, it
@@ -327,6 +337,10 @@ This function inserts @var{count} instances of @var{character} into the
 current buffer before point.  The argument @var{count} should be a
 number (@code{nil} means 1), and @var{character} must be a character.
 The value is @code{nil}.
+
+This function does not convert unibyte character codes 128 through 255
+to multibyte characters, not even if the current buffer is a multibyte
+buffer.  @xref{Converting Representations}.
 
 If @var{inherit} is non-@code{nil}, then the inserted characters inherit
 sticky text properties from the two characters before and after the
@@ -524,8 +538,8 @@ the kill ring.
 The value returned is always @code{nil}.
 @end deffn
 
-@tindex backward-delete-char-untabify-method
 @defopt backward-delete-char-untabify-method
+@tindex backward-delete-char-untabify-method
 This option specifies how @code{backward-delete-char-untabify} should
 deal with whitespace.  Possible values include @code{untabify}, the
 default, meaning convert a tab to many spaces and delete one;
@@ -579,7 +593,7 @@ This function joins the line point is on to the previous line, deleting
 any whitespace at the join and in some cases replacing it with one
 space.  If @var{join-following-p} is non-@code{nil},
 @code{delete-indentation} joins this line to the following line
-instead.  The value is @code{nil}.
+instead.  The function returns @code{nil}.
 
 If there is a fill prefix, and the second of the lines being joined
 starts with the prefix, then @code{delete-indentation} deletes the
@@ -612,7 +626,7 @@ responsible for deciding whether to leave a space at the junction.
 @end deffn
 
 @defun fixup-whitespace
-This function replaces all the white space surrounding point with either
+This function replaces all the whitespace surrounding point with either
 one space or no space, according to the context.  It returns @code{nil}.
 
 At the beginning or end of a line, the appropriate amount of space is
@@ -728,9 +742,9 @@ new entry automatically deletes the last entry.
 
   When kill commands are interwoven with other commands, each kill
 command makes a new entry in the kill ring.  Multiple kill commands in
-succession build up a single entry in the kill ring, which would be
-yanked as a unit; the second and subsequent consecutive kill commands
-add text to the entry made by the first one.
+succession build up a single kill-ring entry, which would be yanked as a
+unit; the second and subsequent consecutive kill commands add text to
+the entry made by the first one.
 
   For yanking, one entry in the kill ring is designated the ``front'' of
 the ring.  Some yank commands ``rotate'' the ring by designating a
@@ -825,7 +839,7 @@ The sequence of kills in the kill ring wraps around, so that after the
 oldest one comes the newest one, and before the newest one goes the
 oldest.
 
-The value is always @code{nil}.
+The return value is always @code{nil}.
 @end deffn
 
 @node Low-Level Kill Ring
@@ -837,8 +851,8 @@ take care of interaction with window system selections
 (@pxref{Window System Selections}).
 
 @defun current-kill n &optional do-not-move
-The function @code{current-kill} rotates the yanking pointer which
-designates the ``front'' of the kill ring by @var{n} places (from newer
+The function @code{current-kill} rotates the yanking pointer, which
+designates the ``front'' of the kill ring, by @var{n} places (from newer
 kills to older ones), and returns the text at that place in the ring.
 
 If the optional second argument @var{do-not-move} is non-@code{nil},
@@ -1049,8 +1063,8 @@ not make boundaries, and then the 20th does, and so on as long as
 self-inserting characters continue.
 
 All buffer modifications add a boundary whenever the previous undoable
-change was made in some other buffer.  This way, a command that modifies
-several buffers makes a boundary in each buffer it changes.
+change was made in some other buffer.  This is to ensure that
+each command makes a boundary in each buffer where it makes changes.
 
 Calling this function explicitly is useful for splitting the effects of
 a command into more than one unit.  For example, @code{query-replace}
@@ -1096,8 +1110,8 @@ In an interactive call, @var{buffer-or-name} is the current buffer.
 You cannot specify any other buffer.
 @end deffn
 
-@defun buffer-disable-undo &optional buffer
-@defunx buffer-flush-undo &optional buffer
+@deffn Command buffer-disable-undo &optional buffer
+@deffnx Command buffer-flush-undo &optional buffer
 @cindex disable undo
 This function discards the undo list of @var{buffer}, and disables
 further recording of undo information.  As a result, it is no longer
@@ -1105,11 +1119,11 @@ possible to undo either previous changes or any subsequent changes.  If
 the undo list of @var{buffer} is already disabled, this function
 has no effect.
 
-This function returns @code{nil}.  It cannot be called interactively.
+This function returns @code{nil}.
 
 The name @code{buffer-flush-undo} is not considered obsolete, but the
 preferred name is @code{buffer-disable-undo}.
-@end defun
+@end deffn
 
   As editing continues, undo lists get longer and longer.  To prevent
 them from using up all available memory space, garbage collection trims
@@ -1214,6 +1228,7 @@ filling when @var{justify} is non-@code{nil}.
 
 In an interactive call, any prefix argument requests justification.
 
+@cindex Adaptive Fill mode
 In Adaptive Fill mode, which is enabled by default, calling the function
 @code{fill-region-as-paragraph} on an indented paragraph when there is
 no fill prefix uses the indentation of the second line of the paragraph
@@ -1279,7 +1294,8 @@ newlines'' act as paragraph separators.
 @section Margins for Filling
 
 @defopt fill-prefix
-This variable specifies a string of text that appears at the beginning
+This buffer-local variable specifies a string of text that appears at
+the beginning
 of normal text lines and should be disregarded when filling them.  Any
 line that fails to start with the fill prefix is considered the start of
 a paragraph; so is any line that starts with the fill prefix followed by
@@ -1290,7 +1306,7 @@ together.  The resulting filled lines also start with the fill prefix.
 The fill prefix follows the left margin whitespace, if any.
 @end defopt
 
-@defopt fill-column
+@defvar fill-column
 This buffer-local variable specifies the maximum width of filled lines.
 Its value should be an integer, which is a number of columns.  All the
 filling, justification, and centering commands are affected by this
@@ -1300,7 +1316,7 @@ As a practical matter, if you are writing text for other people to
 read, you should set @code{fill-column} to no more than 70.  Otherwise
 the line will be too long for people to read comfortably, and this can
 make the text seem clumsy.
-@end defopt
+@end defvar
 
 @defvar default-fill-column
 The value of this variable is the default value for @code{fill-column} in
@@ -1367,8 +1383,8 @@ mode, @kbd{C-j} indents to this column.  This variable automatically
 becomes buffer-local when set in any fashion.
 @end defvar
 
-@tindex fill-nobreak-predicate
 @defvar fill-nobreak-predicate
+@tindex fill-nobreak-predicate
 This variable gives major modes a way to specify not to break a line at
 certain places.  Its value should be a function.  This function is
 called during filling, with no arguments and with point located at the
@@ -1787,8 +1803,8 @@ indent the current line in a way appropriate for the current major mode.
 
 @deffn Command indent-for-tab-command
 This command calls the function in @code{indent-line-function} to indent
-the current line; except that if that function is
-@code{indent-to-left-margin}, it calls @code{insert-tab} instead.  (That
+the current line; however, if that function is
+@code{indent-to-left-margin}, @code{insert-tab} is called instead.  (That
 is a trivial command that inserts a tab character.)
 @end deffn
 
@@ -1842,7 +1858,8 @@ by making it start with the fill prefix.
 
 @defvar indent-region-function
 The value of this variable is a function that can be used by
-@code{indent-region} as a short cut.  You should design the function so
+@code{indent-region} as a short cut.  It should take two arguments, the
+start and end of the region.  You should design the function so
 that it will produce the same results as indenting the lines of the
 region one by one, but presumably faster.
 
@@ -2389,16 +2406,16 @@ position less than or equal to @var{pos}; it equals @var{pos} only if
 @var{limit} equals @var{pos}.
 @end defun
 
-@tindex next-char-property-change
 @defun next-char-property-change position &optional limit
+@tindex next-char-property-change
 This is like @code{next-property-change} except that it considers
 overlay properties as well as text properties.  There is no @var{object}
 operand because this function operates only on the current buffer.  It
 returns the next address at which either kind of property changes.
 @end defun
 
-@tindex previous-char-property-change
 @defun previous-char-property-change position &optional limit
+@tindex previous-char-property-change
 This is like @code{next-char-property-change}, but scans back from
 @var{position} instead of forward.
 @end defun
@@ -3160,17 +3177,14 @@ end of the region just changed, and the length of the text that existed
 before the change.  All three arguments are integers.  The buffer that's
 about to change is always the current buffer.
 
-The length of the old text is measured in bytes; it is the difference
-between the buffer positions before and after that text, before the
-change.  As for the changed text, its length in bytes is simply the
-difference between the first two arguments.  If you want the length
-in @emph{characters} of the text before the change, you should use
-a @code{before-change-functions} function that calls @code{chars-in-region}
-(@pxref{Chars and Bytes}).
+The length of the old text the difference between the buffer positions
+before and after that text as it was before the change.  As for the
+changed text, its length is simply the difference between the first two
+arguments.
 @end defvar
 
-@tindex combine-after-change-calls
 @defmac combine-after-change-calls body...
+@tindex combine-after-change-calls
 The macro executes @var{body} normally, but arranges to call the
 after-change functions just once for a series of several changes---if
 that seems safe.

@@ -90,8 +90,8 @@ either one.
 
   In most cases, you should not call minibuffer input functions in the
 middle of a Lisp function.  Instead, do all minibuffer input as part of
-reading the arguments for a command, in the @code{interactive} spec.
-@xref{Defining Commands}.
+reading the arguments for a command, in the @code{interactive}
+specification.  @xref{Defining Commands}.
 
 @defun read-from-minibuffer prompt-string &optional initial-contents keymap read hist default inherit-input-method
 This function is the most general way to get input through the
@@ -115,7 +115,7 @@ The argument @var{default} specifies a default value to make available
 through the history commands.  It should be a string, or @code{nil}.  If
 @var{read} is non-@code{nil}, then @var{default} is also used as the
 input to @code{read}, if the user enters empty input.  However, in the
-usual case (where @var{read} is @code{nil}, @code{read-from-minibuffer}
+usual case (where @var{read} is @code{nil}), @code{read-from-minibuffer}
 does not return @var{default} when the user enters empty input; it
 returns an empty string, @code{""}.  In this respect, it is different
 from all the other minibuffer input functions in this chapter.
@@ -136,9 +136,10 @@ properties were present in the minibuffer.  Otherwise all the text
 properties are stripped when the value is returned.
 
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
-minibuffer inherits the current input method and the setting of
-@code{enable-multibyte-characters} from whichever buffer was current
-before entering the minibuffer.
+minibuffer inherits the current buffer's input method (@pxref{Input
+Methods}) and the setting of @code{enable-multibyte-characters}
+(@pxref{Text Representations}) from whichever buffer was current before
+entering the minibuffer.
 
 If @var{initial-contents} is a string, @code{read-from-minibuffer}
 inserts it into the minibuffer, leaving point at the end, before the
@@ -425,7 +426,12 @@ arguments to other commands).
 @end defvar
 
 @defvar file-name-history
-A history list for file name arguments.
+A history list for file-name arguments.
+@end defvar
+
+@defvar buffer-name-history
+@tindex buffer-name-history
+A history list for buffer-name arguments.
 @end defvar
 
 @defvar regexp-history
@@ -673,10 +679,10 @@ edit the input, providing several commands to attempt completion.
 In most cases, we recommend using @var{default}, and not @var{initial}.
 
 If the argument @var{inherit-input-method} is non-@code{nil}, then the
-minibuffer inherits the current input method and the setting of
-@code{enable-multibyte-characters} from whichever buffer was current
-before entering the minibuffer.  @xref{Input Methods,,, emacs, The GNU
-Emacs Manual}.
+minibuffer inherits the current buffer's input method (@pxref{Input
+Methods}) and the setting of @code{enable-multibyte-characters}
+(@pxref{Text Representations}) from whichever buffer was current before
+entering the minibuffer.
 
 Completion ignores case when comparing the input against the possible
 matches, if the built-in variable @code{completion-ignore-case} is
@@ -853,8 +859,8 @@ reading certain sorts of names with completion.
 
   In most cases, you should not call these functions in the middle of a
 Lisp function.  When possible, do all minibuffer input as part of
-reading the arguments for a command, in the @code{interactive} spec.
-@xref{Defining Commands}.
+reading the arguments for a command, in the @code{interactive}
+specification.  @xref{Defining Commands}.
 
 @defun read-buffer prompt &optional default existing
 This function reads the name of a buffer and returns it as a string.
@@ -1412,8 +1418,8 @@ The return value of @code{map-y-or-n-p} is the number of objects acted on.
 
   This function is useful for reading passwords.
 
-@tindex read-password
 @defun read-password prompt default
+@tindex read-password
 This function reads a password, echoing @samp{.} in the echo area
 for each character entered, and returns it as a string.  It prompts
 with @var{prompt}, and returns @var{default} if the user enters the

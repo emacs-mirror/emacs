@@ -503,7 +503,7 @@ in expressions ordinarily.
 @node Eval During Expansion
 @subsection Evaluating Macro Arguments in Expansion
 
-  Another problem can happen if you the macro definition itself
+  Another problem can happen if the macro definition itself
 evaluates any of the macro argument expressions, such as by calling
 @code{eval} (@pxref{Eval}).  If the argument is supposed to refer to the
 user's variables, you may have trouble if the user happens to use a
@@ -542,7 +542,7 @@ with @code{eval}) don't occur and its local variable bindings don't
 exist.
 
   To avoid these problems, @strong{don't evaluate an argument expression
-while computing the macro expansion.}  Instead, substitute the
+while computing the macro expansion}.  Instead, substitute the
 expression into the macro expansion, so that its value will be computed
 as part of executing the expansion.  This is how the other examples in
 this chapter work.

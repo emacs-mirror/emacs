@@ -3,7 +3,7 @@
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/debugging
-@node Debugging, Read and Print, Advising, Top
+@node Debugging, Read and Print, Advising Functions, Top
 @chapter Debugging Lisp Programs
 
   There are three ways to investigate a problem in an Emacs Lisp program,
@@ -12,8 +12,9 @@ depending on what you are doing with the program when the problem appears.
 @itemize @bullet
 @item
 If the problem occurs when you run the program, you can use a Lisp
-debugger (either the default debugger or Edebug) to investigate what is
-happening during execution.
+debugger to investigate what is happening during execution.  In addition
+to the ordinary debugger, Emacs comes with a source level debugger,
+Edebug.  This chapter describes both of them.
 
 @item
 If the problem is syntactic, so that Lisp cannot even read the program,
@@ -26,9 +27,9 @@ compiler, you need to know how to examine the compiler's input buffer.
 
 @menu
 * Debugger::            How the Emacs Lisp debugger is implemented.
+* Edebug::		A source-level Emacs Lisp debugger.
 * Syntax Errors::       How to find syntax errors.
 * Compilation Errors::  How to find errors that show up in byte compilation.
-* Edebug::		A source-level Emacs Lisp debugger.
 @end menu
 
   Another useful debugging tool is the dribble file.  When a dribble
@@ -45,13 +46,13 @@ Afterward, you can examine the file to find out what input was used.
 @cindex Lisp debugger
 @cindex break
 
-  The @dfn{Lisp debugger} provides the ability to suspend evaluation of
-a form.  While evaluation is suspended (a state that is commonly known
-as a @dfn{break}), you may examine the run time stack, examine the
-values of local or global variables, or change those values.  Since a
-break is a recursive edit, all the usual editing facilities of Emacs are
-available; you can even run programs that will enter the debugger
-recursively.  @xref{Recursive Editing}.
+  The ordinary @dfn{Lisp debugger} provides the ability to suspend
+evaluation of a form.  While evaluation is suspended (a state that is
+commonly known as a @dfn{break}), you may examine the run time stack,
+examine the values of local or global variables, or change those values.
+Since a break is a recursive edit, all the usual editing facilities of
+Emacs are available; you can even run programs that will enter the
+debugger recursively.  @xref{Recursive Editing}.
 
 @menu
 * Error Debugging::       Entering the debugger when an error happens.
@@ -74,25 +75,28 @@ happens.  This allows you to investigate the immediate causes of the
 error.
 
   However, entry to the debugger is not a normal consequence of an
-error.  Many commands frequently get Lisp errors when invoked in
-inappropriate contexts (such as @kbd{C-f} at the end of the buffer) and
-during ordinary editing it would be very unpleasant to enter the
-debugger each time this happens.  If you want errors to enter the
-debugger, set the variable @code{debug-on-error} to non-@code{nil}.
+error.  Many commands frequently cause Lisp errors when invoked
+inappropriately (such as @kbd{C-f} at the end of the buffer), and during
+ordinary editing it would be very inconvenient to enter the debugger
+each time this happens.  So if you want errors to enter the debugger, set
+the variable @code{debug-on-error} to non-@code{nil}.  (The command
+@code{toggle-debug-on-error} provides an easy way to do this.)
 
 @defopt debug-on-error
 This variable determines whether the debugger is called when an error is
 signaled and not handled.  If @code{debug-on-error} is @code{t}, all
-errors call the debugger.  If it is @code{nil}, none call the debugger.
+kinds of errors call the debugger (except those listed in
+@code{debug-ignored-errors}).  If it is @code{nil}, none call the
+debugger.
 
 The value can also be a list of error conditions that should call the
 debugger.  For example, if you set it to the list
 @code{(void-variable)}, then only errors about a variable that has no
 value invoke the debugger.
 
-When this variable is non-@code{nil}, Emacs does not catch errors that
-happen in process filter functions and sentinels.  Therefore, these
-errors also can invoke the debugger.  @xref{Processes}.
+When this variable is non-@code{nil}, Emacs does not create an error
+handler around process filter functions and sentinels.  Therefore,
+errors in these functions also invoke the debugger.  @xref{Processes}.
 @end defopt
 
 @defopt debug-ignored-errors
@@ -117,10 +121,10 @@ debugger, even if @code{debug-on-error} is non-@code{nil}.  In other
 words, @code{condition-case} gets a chance to handle the error before
 the debugger gets a chance.
 
-If you set @code{debug-on-signal} non-@code{nil}, then the debugger gets
-first chance at every error; an error will invoke the debugger
-regardless of any @code{condition-case}, if the fits the criterion
-specified by the values of @code{debug-on-error} and
+If you set @code{debug-on-signal} to a non-@code{nil} value, then the
+debugger gets the first chance at every error; an error will invoke the
+debugger regardless of any @code{condition-case}, if it fits the
+criterion specified by the values of @code{debug-on-error} and
 @code{debug-ignored-errors}.
 
 @strong{Warning:} This variable is strong medicine!  Various parts of
@@ -134,13 +138,14 @@ enter the debugger.
 @end defopt
 
   To debug an error that happens during loading of the @file{.emacs}
-file, use the option @samp{-debug-init}, which binds
-@code{debug-on-error} to @code{t} while @file{.emacs} is loaded and
-inhibits use of @code{condition-case} to catch init-file errors.
+file, use the option @samp{--debug-init}, which binds
+@code{debug-on-error} to @code{t} while @file{.emacs} is loaded, and
+bypasses the @code{condition-case} which normally catches errors in the
+init-file.
 
   If your @file{.emacs} file sets @code{debug-on-error}, the effect may
 not last past the end of loading @file{.emacs}.  (This is an undesirable
-byproduct of the code that implements the @samp{-debug-init} command
+byproduct of the code that implements the @samp{--debug-init} command
 line option.)  The best way to make @file{.emacs} set
 @code{debug-on-error} permanently is with @code{after-init-hook}, like
 this:
@@ -269,8 +274,9 @@ not currently set up to break on entry.  It always returns
   You can cause the debugger to be called at a certain point in your
 program by writing the expression @code{(debug)} at that point.  To do
 this, visit the source file, insert the text @samp{(debug)} at the
-proper place, and type @kbd{C-M-x}.  Be sure to undo this insertion
-before you save the file!
+proper place, and type @kbd{C-M-x}.  @strong{Warning:} if you do this
+for temporary debugging purposes, be sure to undo this insertion before
+you save the file!
 
   The place where you insert @samp{(debug)} must be a place where an
 additional form can be evaluated and its value ignored.  (If the value
@@ -339,8 +345,8 @@ same function.  (To do this, visit the source for the function and type
 @item c
 Exit the debugger and continue execution.  When continuing is possible,
 it resumes execution of the program as if the debugger had never been
-entered (aside from the effect of any variables or data structures you
-may have changed while inside the debugger).
+entered (aside from any side-effects that you caused by changing
+variable values or data structures while inside the debugger).
 
 Continuing is possible after entry to the debugger due to function entry
 or exit, explicit invocation, or quitting.  You cannot continue if the
@@ -371,10 +377,10 @@ remove the star from the line in the backtrace buffer.
 Read a Lisp expression in the minibuffer, evaluate it, and print the
 value in the echo area.  The debugger alters certain important
 variables, and the current buffer, as part of its operation; @kbd{e}
-temporarily restores their outside-the-debugger values so you can
-examine them.  This makes the debugger more transparent.  By contrast,
-@kbd{M-:} does nothing special in the debugger; it shows you the
-variable values within the debugger.
+temporarily restores their values from outside the debugger, so you can
+examine and change them.  This makes the debugger more transparent.  By
+contrast, @kbd{M-:} does nothing special in the debugger; it shows you
+the variable values within the debugger.
 
 @item R
 Like @kbd{e}, but also save the result of evaluation in the
@@ -404,7 +410,8 @@ You can't use @kbd{r} when the debugger was entered due to an error.
 @node Invoking the Debugger
 @subsection Invoking the Debugger
 
-  Here we describe fully the function used to invoke the debugger.
+  Here we describe in full detail the function @code{debug} that is used
+to invoke the debugger.
 
 @defun debug &rest debugger-args
 This function enters the debugger.  It switches buffers to a buffer
@@ -418,18 +425,15 @@ then @code{debug} switches back to the previous buffer and returns to
 whatever called @code{debug}.  This is the only way the function
 @code{debug} can return to its caller.
 
-If the first of the @var{debugger-args} passed to @code{debug} is
-@code{nil} (or if it is not one of the special values in the table
-below), then @code{debug} displays the rest of its arguments at the
-top of the @samp{*Backtrace*} buffer.  This mechanism is used to display
-a message to the user.
+The use of the @var{debugger-args} is that @code{debug} displays the
+rest of its arguments at the top of the @samp{*Backtrace*} buffer, so
+that the user can see them.  Except as described below, this is the
+@emph{only} way these arguments are used.
 
-However, if the first argument passed to @code{debug} is one of the
-following special values, then it has special significance.  Normally,
-these values are passed to @code{debug} only by the internals of Emacs
-and the debugger, and not by programmers calling @code{debug}.
-
-The special values are:
+However, certain values for first argument to @code{debug} have a
+special significance.  (Normally, these values are used only by the
+internals of Emacs, and not by programmers calling @code{debug}.)  Here
+is a table of these special values:
 
 @table @code
 @item lambda
@@ -640,6 +644,8 @@ If @var{frame-number} is out of range, @code{backtrace-frame} returns
 @code{nil}.
 @end defun
 
+@include edebug.texi
+
 @node Syntax Errors
 @section Debugging Invalid Lisp Syntax
 
@@ -658,7 +664,9 @@ if it goes to the place where that defun appears to end.  If it does
 not, there is a problem in that defun.
 
   However, unmatched parentheses are the most common syntax errors in
-Lisp, and we can give further advice for those cases.
+Lisp, and we can give further advice for those cases.  (In addition,
+just moving point through the code with Show Paren mode enabled might
+find the mismatch.)
 
 @menu
 * Excess Open::     How to find a spurious open paren or missing close.
@@ -753,5 +761,3 @@ the error.
 successfully, then point is located at the end of the form.  In this
 case, this technique can't localize the error precisely, but can still
 show you which function to check.
-
-@include edebug.texi

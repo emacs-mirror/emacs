@@ -28,7 +28,7 @@ keyboard character events.
 * Modifying Strings::         Altering the contents of an existing string.
 * Text Comparison::           Comparing characters or strings.
 * String Conversion::         Converting characters or strings and vice versa.
-* Formatting Strings::        @code{format}: Emacs's analog of @code{printf}.
+* Formatting Strings::        @code{format}: Emacs's analogue of @code{printf}.
 * Case Conversion::           Case conversion functions.
 * Case Tables::		      Customizing case conversion.
 @end menu
@@ -97,12 +97,12 @@ For more information about general sequence and array predicates,
 see @ref{Sequences Arrays Vectors}, and @ref{Arrays}.
 
 @defun stringp object
-  This function returns @code{t} if @var{object} is a string, @code{nil}
+This function returns @code{t} if @var{object} is a string, @code{nil}
 otherwise.
 @end defun
 
 @defun char-or-string-p object
-  This function returns @code{t} if @var{object} is a string or a
+This function returns @code{t} if @var{object} is a string or a
 character (i.e., an integer), @code{nil} otherwise.
 @end defun
 
@@ -113,7 +113,7 @@ character (i.e., an integer), @code{nil} otherwise.
 putting strings together, or by taking them apart.
 
 @defun make-string count character
-  This function returns a string made up of @var{count} repetitions of
+This function returns a string made up of @var{count} repetitions of
 @var{character}.  If @var{count} is negative, an error is signaled.
 
 @example
@@ -128,8 +128,8 @@ putting strings together, or by taking them apart.
 @code{make-list} (@pxref{Building Lists}).
 @end defun
 
-@tindex string
 @defun string &rest characters
+@tindex string
 This returns a string containing the characters @var{characters}.
 
 @example
@@ -232,7 +232,7 @@ returns an empty string.
 @example
 (concat "abc" "-def")
      @result{} "abc-def"
-(concat "abc" (list 120 (+ 256 121)) [122])
+(concat "abc" (list 120 121) [122])
      @result{} "abcxyz"
 ;; @r{@code{nil} is an empty sequence.}
 (concat "abc" nil "-def")
@@ -244,10 +244,6 @@ returns an empty string.
 @end example
 
 @noindent
-The second example above shows how characters stored in strings are
-taken modulo 256.  In other words, each character in the string is
-stored in one byte.
-
 The @code{concat} function always constructs a new string that is
 not @code{eq} to any existing string.
 
@@ -274,8 +270,8 @@ description of @code{mapconcat} in @ref{Mapping Functions},
 Lists}.
 @end defun
 
-@tindex split-string
 @defun split-string string separators
+@tindex split-string
 Split @var{string} into substrings in between matches for the regular
 expression @var{separators}.  Each match for @var{separators} defines a
 splitting point; the substrings between the splitting points are made
@@ -322,8 +318,8 @@ that index, @code{aset} signals an error.
 
   A more powerful function is @code{store-substring}:
 
-@tindex store-substring
 @defun store-substring string idx obj
+@tindex store-substring
 This function alters part of the contents of the string @var{string}, by
 storing @var{obj} starting at index @var{idx}.  The argument @var{obj}
 may be either a character or a (smaller) string.
@@ -434,6 +430,41 @@ no characters is less than any other string.
 @code{string-lessp} is another name for @code{string<}.
 @end defun
 
+@defun compare-strings string1 start1 end1 string2 start2 end2 &optional ignore-case
+@tindex compare-strings
+This function compares a specified part of @var{string1} with a
+specified part of @var{string2}.  The specified part of @var{string1}
+runs from index @var{start1} up to index @var{end1} (default, the end of
+the string).  The specified part of @var{string2} runs from index
+@var{start2} up to index @var{end2} (default, the end of the string).
+
+The strings are both converted to multibyte for the comparison
+(@pxref{Text Representations}) so that a unibyte string can be usefully
+compared with a multibyte string.  If @var{ignore-case} is
+non-@code{nil}, then case is ignored as well.
+
+If the specified portions of the two strings match, the value is
+@code{t}.  Otherwise, the value is an integer which indicates how many
+leading characters agree, and which string is less.  Its absolute value
+is one plus the number of characters that agree at the beginning of the
+two strings.  The sign is negative if @var{string1} (or its specified
+portion) is less.
+@end defun
+
+@defun assoc-ignore-case key alist
+@tindex assoc-ignore-case
+This function works like @code{assoc}, except that @var{key} must be a
+string, and comparison is done using @code{compare-strings}.
+Case differences are ignored in this comparison.
+@end defun
+
+@defun assoc-ignore-representation key alist
+@tindex assoc-ignore-representation
+This function works like @code{assoc}, except that @var{key} must be a
+string, and comparison is done using @code{compare-strings}.
+Case differences are significant.
+@end defun
+
   See also @code{compare-buffer-substrings} in @ref{Comparing Text}, for
 a way to compare text in buffers.  The function @code{string-match},
 which matches a regular expression against a string, can be used
@@ -509,7 +540,7 @@ negative.
 See also the function @code{format} in @ref{Formatting Strings}.
 @end defun
 
-@defun string-to-number string base
+@defun string-to-number string &optional base
 @cindex string to number
 This function returns the numeric value of the characters in
 @var{string}.  If @var{base} is non-@code{nil}, integers are converted
@@ -522,7 +553,7 @@ The parsing skips spaces and tabs at the beginning of @var{string}, then
 reads as much of @var{string} as it can interpret as a number.  (On some
 systems it ignores other whitespace at the beginning, not just spaces
 and tabs.)  If the first character after the ignored whitespace is not a
-digit or a minus sign, this function returns 0.
+digit or a plus or minus sign, this function returns 0.
 
 @example
 (string-to-number "256")
@@ -600,10 +631,9 @@ second such value, and so on.  Any extra format specifications (those
 for which there are no corresponding values) cause unpredictable
 behavior.  Any extra values to be formatted are ignored.
 
-  Certain format specifications require values of particular types.
-However, no error is signaled if the value actually supplied fails to
-have the expected type.  Instead, the output is likely to be
-meaningless.
+  Certain format specifications require values of particular types.  If
+you supply a value that doesn't fit the requirements, an error is
+signaled.
 
   Here is a table of valid format specifications:
 
@@ -652,7 +682,7 @@ point number.
 
 @item %g
 Replace the specification with notation for a floating point number,
-using either exponential notation or decimal-point notation whichever
+using either exponential notation or decimal-point notation, whichever
 is shorter.
 
 @item %%
@@ -741,10 +771,14 @@ not truncated.  In the third case, the padding is on the right.
 @cindex case conversion in Lisp
 
   The character case functions change the case of single characters or
-of the contents of strings.  The functions convert only alphabetic
-characters (the letters @samp{A} through @samp{Z} and @samp{a} through
-@samp{z}); other characters are not altered.  The functions do not
-modify the strings that are passed to them as arguments.
+of the contents of strings.  The functions normally convert only
+alphabetic characters (the letters @samp{A} through @samp{Z} and
+@samp{a} through @samp{z}, as well as non-ASCII letters); other
+characters are not altered.  (You can specify a different case
+conversion mapping by specifying a case table---@pxref{Case Tables}.)
+
+  These functions do not modify the strings that are passed to them as
+arguments.
 
   The examples below use the characters @samp{X} and @samp{x} which have
 @sc{ASCII} codes 88 and 120 respectively.
@@ -823,8 +857,8 @@ has the same result as @code{upcase}.
 @defun upcase-initials string
 This function capitalizes the initials of the words in @var{string}.
 without altering any letters other than the initials.  It returns a new
-string whose contents are a copy of @var{string-or-char}, in which each
-word has been converted to upper case.
+string whose contents are a copy of @var{string}, in which each word has
+been converted to upper case.
 
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
@@ -837,6 +871,9 @@ table (@xref{Syntax Class Table}).
 @end group
 @end example
 @end defun
+
+  @xref{Text Comparison}, for functions that compare strings; some of
+them ignore case differences, or can optionally ignore case differences.
 
 @node Case Tables
 @section The Case Table
@@ -860,10 +897,10 @@ The upcase table maps each character into the corresponding upper
 case character.
 @item canonicalize
 The canonicalize table maps all of a set of case-related characters
-into some one of them.
+into a particular member of that set.
 @item equivalences
-The equivalences table maps each of a set of case-related characters
-into the next one in that set.
+The equivalences table maps each one of a set of case-related characters
+into the next character in that set.
 @end table
 
   In simple cases, all you need to specify is the mapping to lower-case;

@@ -255,7 +255,7 @@ useless-list
 @end example
 
 @noindent
-Note that the open and close parentheses remains in the list.  The Lisp
+Note that the open and close parentheses remain in the list.  The Lisp
 reader encountered the open parenthesis, decided that it ended the
 input, and unread it.  Another attempt to read from the stream at this
 point would read @samp{()} and return @code{nil}.
@@ -353,14 +353,15 @@ Point advances as characters are inserted.
 The output characters are inserted into the buffer that @var{marker}
 points into, at the marker position.  The marker position advances as
 characters are inserted.  The value of point in the buffer has no effect
-on printing when the stream is a marker.
+on printing when the stream is a marker, and this kind of printing
+does not move point.
 
 @item @var{function}
 @cindex function output stream
 The output characters are passed to @var{function}, which is responsible
 for storing them away.  It is called with a single character as
-argument, as many times as there are characters to be output, and is
-free to do anything at all with the characters it receives.
+argument, as many times as there are characters to be output, and
+is responsible for storing the characters wherever you want to put them.
 
 @item @code{t}
 @cindex @code{t} output stream
@@ -368,9 +369,9 @@ The output characters are displayed in the echo area.
 
 @item @code{nil}
 @cindex @code{nil} output stream
-@code{nil} specified as an output stream means to the value of
+@code{nil} specified as an output stream means to use the value of
 @code{standard-output} instead; that value is the @dfn{default output
-stream}, and must be a non-@code{nil} output stream.
+stream}, and must not be @code{nil}.
 
 @item @var{symbol}
 A symbol as output stream is equivalent to the symbol's function
@@ -425,7 +426,7 @@ effect.
 @example
 @group
 ---------- Buffer: foo ----------
-"This is the @point{}output"
+This is the @point{}output
 ---------- Buffer: foo ----------
 @end group
 
@@ -441,9 +442,9 @@ m
 
 @group
 ---------- Buffer: foo ----------
-"This is t
+This is t
 "More output for foo."
-he @point{}output"
+he @point{}output
 ---------- Buffer: foo ----------
 @end group
 
@@ -535,12 +536,13 @@ describe a Lisp object clearly for a Lisp programmer.  However, if the
 purpose of the output is to look nice for humans, then it is usually
 better to print without quoting.
 
-  Printing a self-referent Lisp object in the normal way would require
-an infinite amount of text, and could even result in stack overflow.
-Emacs detects such recursion and prints @samp{#@var{level}} instead of
-recursively printing an object already being printed.  For example, here
-@samp{#0} indicates a recursive reference to the object at level 0 of
-the current print operation:
+  Lisp objects can refer to themselves.  Printing a self-referential
+object in the normal way would require an infinite amount of text, and
+the attempt could cause infinite recursion.  Emacs detects such
+recursion and prints @samp{#@var{level}} instead of recursively printing
+an object already being printed.  For example, here @samp{#0} indicates
+a recursive reference to the object at level 0 of the current print
+operation:
 
 @example
 (setq foo (list nil))
@@ -661,10 +663,10 @@ See @code{format}, in @ref{String Conversion}, for other ways to obtain
 the printed representation of a Lisp object as a string.
 @end defun
 
-@tindex with-output-to-string
 @defmac with-output-to-string body...
-This macro executes the @var{body} forms with standard-output set up so
-that all output feeds into a string.  Then it returns that string.
+@tindex with-output-to-string
+This macro executes the @var{body} forms with @code{standard-output} set
+up to feed output into a string.  Then it returns that string.
 
 For example, if the current buffer name is @samp{foo},
 

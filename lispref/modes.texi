@@ -305,7 +305,7 @@ the conventions listed above:
 (if text-mode-map
     ()              ; @r{Do not change the keymap if it is already set up.}
   (setq text-mode-map (make-sparse-keymap))
-  (define-key text-mode-map "\t" 'tab-to-tab-stop)
+  (define-key text-mode-map "\t" 'indent-relative)
   (define-key text-mode-map "\es" 'center-line)
   (define-key text-mode-map "\eS" 'center-paragraph))
 @end group
@@ -399,7 +399,7 @@ mode functions:
   (cond (lisp-syntax
 	  (set-syntax-table lisp-mode-syntax-table)))
   (setq local-abbrev-table lisp-mode-abbrev-table)
-  @dots{})
+  @dots{}
 @end group
 @end smallexample
 
@@ -915,8 +915,8 @@ characters are reserved for major modes.)
 minor mode; with it, you can specify all about a simple minor mode in
 one self-contained definition.
 
-@tindex easy-mmode-define-minor-mode
 @defmac easy-mmode-define-minor-mode mode doc &optional init-value mode-indicator keymap
+@tindex easy-mmode-define-minor-mode
 This macro defines a new minor mode whose name is @var{mode} (a symbol).
 
 This macro defines a command named @var{mode} which toggles the minor
@@ -1144,12 +1144,11 @@ line.  There is nothing inherently special about these variables; any
 other variables could have the same effects on the mode line if
 @code{mode-line-format} were changed to use them.
 
-@tindex mode-line-mule-info
 @defvar mode-line-mule-info
+@tindex mode-line-mule-info
 This variable holds the value of the mode-line construct that displays
 information about the language environment, buffer coding system, and
-current input method.  @xref{International,,, emacs, The GNU Emacs
-Manual}.
+current input method.  @xref{Non-ASCII Characters}.
 @end defvar
 
 @defvar mode-line-modified
@@ -1165,8 +1164,8 @@ modified.
 Changing this variable does not force an update of the mode line.
 @end defvar
 
-@tindex mode-line-frame-identification
 @defvar mode-line-frame-identification
+@tindex mode-line-frame-identification
 This variable identifies the current frame.  The default value is
 @code{" "} if you are using a window system which can show multiple
 frames, or @code{"-%F "} on an ordinary terminal which shows only one
@@ -1426,6 +1425,7 @@ selected by the user, calls @var{function} with arguments
 
 For Emacs Lisp mode, @var{pattern} could look like this:
 
+@c should probably use imenu-syntax-alist and \\sw rather than [-A-Za-z0-9+]
 @example
 @group
 ((nil "^\\s-*(def\\(un\\|subst\\|macro\\|advice\\)\
@@ -1437,7 +1437,8 @@ For Emacs Lisp mode, @var{pattern} could look like this:
 @end group
 @group
  ("*Types*"
-  "^\\s-*(def\\(type\\|struct\\|class\\|ine-condition\\)\
+  "^\\s-*\
+(def\\(type\\|struct\\|class\\|ine-condition\\)\
 \\s-+\\([-A-Za-z0-9+]+\\)" 2))
 @end group
 @end example
@@ -1446,9 +1447,40 @@ Setting this variable makes it buffer-local in the current buffer.
 @end defvar
 
 @defvar imenu-case-fold-search
-This variable controls whether the regular expression matching for Imenu
-is case-sensitive: @code{t}, the default, means matching should ignore
-case.
+This variable controls whether matching against
+@var{imenu-generic-expression} is case-sensitive: @code{t}, the default,
+means matching should ignore case.
+
+Setting this variable makes it buffer-local in the current buffer.
+@end defvar
+
+@defvar imenu-syntax-alist
+This variable is an alist of syntax table modifiers to use while
+executing @code{imenu--generic-function} to override the syntax table of
+the current buffer.  Each element should have this form:
+
+@example
+(@var{characters} . @var{syntax-description})
+@end example
+
+The @sc{car}, @var{characters}, can be either a character or a string.
+The element says to give that character or characters the syntax
+specified by @var{syntax-description}, which is passed to
+@code{modify-syntax-entry} (@pxref{Syntax Table Functions}).
+
+This feature is typically used to give word syntax to characters which
+normally have symbol syntax, and thus to simplify
+@code{imenu-generic-expression} and speed up matching.
+For example, Fortran mode uses it this way:
+
+@example
+  (setq imenu-syntax-alist '(("_$" . "w")))
+@end example
+
+The @code{imenu-generic-expression} patterns can then use @samp{\\sw+}
+instead of @samp{\\(\\sw\\|\\s_\\)\\}.  Note that this technique may be
+inconvenient to use when the mode needs to limit the initial character
+of a name to a smaller set of characters
 
 Setting this variable makes it buffer-local in the current buffer.
 @end defvar
@@ -1568,7 +1600,7 @@ first symbol specifies how to do level 1 fontification, the second
 symbol how to do level 2, and so on.
 
 The second element, @var{keywords-only}, specifies the value of the
-variable @code{font-lock-keywords-only}.  If this is is non-@code{nil},
+variable @code{font-lock-keywords-only}.  If this is non-@code{nil},
 syntactic fontification (of strings and comments) is not performed.
 
 The third element, @var{case-fold}, specifies the value of
@@ -1731,7 +1763,7 @@ where @var{submatcher} is much like @var{matcher}, with one
 exception---see below.  @var{pre-match-form} and @var{post-match-form}
 are evaluated before the first, and after the last, instance
 @var{anchored}'s @var{submatcher} is used.  Therefore they can be used
-to initialise before, and cleanup after, @var{submatcher} is used.
+to initialize before, and cleanup after, @var{submatcher} is used.
 Typically, @var{pre-match-form} is used to move to some position
 relative to the original @var{submatcher}, before starting with
 @var{anchored}'s @var{submatcher}.  @var{post-match-form} might be used
@@ -1787,7 +1819,7 @@ syntactically; it should only fontify based on
 @end defvar
 
 @ignore
-Other variables include those for buffer-specialised fontification functions,
+Other variables include those for buffer-specialized fontification functions,
 `font-lock-fontify-buffer-function', `font-lock-unfontify-buffer-function',
 `font-lock-fontify-region-function', `font-lock-unfontify-region-function',
 `font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.
@@ -2037,6 +2069,27 @@ For example, here's how @code{emacs-lisp-mode} runs its mode hook:
 @example
 (run-hooks 'emacs-lisp-mode-hook)
 @end example
+@end defun
+
+@defun run-hook-with-args hook &rest args
+This function is the way to run an abnormal hook which passes arguments
+to the hook functions.  It calls each of the hook functions, passing
+each of them the arguments @var{args}.
+@end defun
+
+@defun run-hook-with-args-until-failure hook &rest args
+This function is the way to run an abnormal hook which passes arguments
+to the hook functions, and stops as soon as any hook function fails.  It
+calls each of the hook functions, passing each of them the arguments
+@var{args}, until some hook function returns @code{nil}.  Then it stops.
+@end defun
+
+@defun run-hook-with-args-until-success hook &rest args
+This function is the way to run an abnormal hook which passes arguments
+to the hook functions, and stops as soon as any hook function succeeds.
+It calls each of the hook functions, passing each of them the arguments
+@var{args}, until some hook function returns non-@code{nil}.  Then it
+stops.
 @end defun
 
 @defun add-hook hook function &optional append local

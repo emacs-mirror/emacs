@@ -167,6 +167,9 @@ If it is non-@code{nil}, these lines are truncated; otherwise,
 @code{truncate-lines} says what to do with them.
 @end defopt
 
+  When horizontal scrolling (@pxref{Horizontal Scrolling}) is in use in
+a window, that forces truncation.
+
   You can override the glyphs that indicate continuation or truncation
 using the display table; see @ref{Display Tables}.
 
@@ -236,8 +239,8 @@ Minibuffer depth is 0.
 @end example
 @end defun
 
-@tindex current-message
 @defun current-message
+@tindex current-message
 This function returns the message currently being displayed in the
 echo area, or @code{nil} if there is none.
 @end defun
@@ -252,8 +255,8 @@ The value is normally @code{nil}; Lisp programs bind it to @code{t}
 for brief periods of time.
 @end defvar
 
-@tindex echo-area-clear-hook
 @defvar echo-area-clear-hook
+@tindex echo-area-clear-hook
 This normal hook is run whenever the echo area is cleared---either by
 @code{(message nil)} or for any other reason.
 @end defvar
@@ -278,8 +281,9 @@ This variable determines how much time should elapse before command
 characters echo.  Its value must be an integer, which specifies the
 number of seconds to wait before echoing.  If the user types a prefix
 key (such as @kbd{C-x}) and then delays this many seconds before
-continuing, the prefix key is echoed in the echo area.  Any subsequent
-characters in the same command will be echoed as well.
+continuing, the prefix key is echoed in the echo area.  (Once echoing
+begins in a key sequence, all subsequent characters in the same key
+sequence are echoed immediately.)
 
 If the value is zero, then command input is not echoed.
 @end defvar
@@ -290,7 +294,8 @@ If the value is zero, then command input is not echoed.
 @cindex invisible text
 You can make characters @dfn{invisible}, so that they do not appear on
 the screen, with the @code{invisible} property.  This can be either a
-text property or a property of an overlay.
+text property (@pxref{Text Properties}) or a property of an overlay
+(@pxref{Overlays}).
 
 In the simplest case, any non-@code{nil} @code{invisible} property makes
 a character invisible.  This is the default case---if you don't alter
@@ -342,14 +347,14 @@ by a visible newline, it displays an ellipsis.
   Two functions are specifically provided for adding elements to
 @code{buffer-invisibility-spec} and removing elements from it.
 
-@tindex add-to-invisibility-spec
 @defun add-to-invisibility-spec element
+@tindex add-to-invisibility-spec
 Add the element @var{element} to @code{buffer-invisibility-spec}
 (if it is not already present in that list).
 @end defun
 
-@tindex remove-from-invisibility-spec
 @defun remove-from-invisibility-spec element
+@tindex remove-from-invisibility-spec
 Remove the element @var{element} from @code{buffer-invisibility-spec}.
 @end defun
 
@@ -393,8 +398,8 @@ temporarily modifying their invisible and intangible properties.  If you
 want this to be done differently for a certain overlays, give it a
 @code{isearch-open-invisible-temporary} property which is a function.
 The function is called with two arguments: the first is the overlay, and
-the second is @code{nil} to make the overlay visible or @code{t} to make
-it invisible again.
+the second is @code{t} to make the overlay visible, or @code{nil} to
+make it invisible again.
 
 @node Selective Display
 @section Selective Display
@@ -598,6 +603,17 @@ The value of the last form in @var{forms} is returned.
 If this variable is non-@code{nil}, @code{with-output-to-temp-buffer}
 calls it as a function to do the job of displaying a help buffer.  The
 function gets one argument, which is the buffer it should display.
+
+It is a good idea for this function to run @code{temp-buffer-show-hook}
+just as @code{with-output-to-temp-buffer} normally would, inside of
+@code{save-window-excursion} and with the chosen window and buffer
+selected.
+@end defvar
+
+@defvar temp-buffer-show-hook
+This normal hook is run by @code{with-output-to-temp-buffer} after
+displaying the help buffer.  When the hook runs, the help buffer is
+current, and the window it was displayed in is selected.
 @end defvar
 
 @defun momentary-string-display string position &optional char message
@@ -675,15 +691,16 @@ these affect the display of the text within the overlay.
 @node Overlay Properties
 @subsection Overlay Properties
 
-Overlay properties are like text properties in some respects, but the
-differences are more important than the similarities.  Text properties
-are considered a part of the text; overlays are specifically considered
-not to be part of the text.  Thus, copying text between various buffers
-and strings preserves text properties, but does not try to preserve
-overlays.  Changing a buffer's text properties marks the buffer as
-modified, while moving an overlay or changing its properties does not.
-Unlike text property changes, overlay changes are not recorded in the
-buffer's undo list.
+Overlay properties are like text properties in that the properties that
+alter how a character is displayed can come from either source.  But in
+most respects they are different.  Text properties are considered a part
+of the text; overlays are specifically considered not to be part of the
+text.  Thus, copying text between various buffers and strings preserves
+text properties, but does not try to preserve overlays.  Changing a
+buffer's text properties marks the buffer as modified, while moving an
+overlay or changing its properties does not.  Unlike text property
+changes, overlay changes are not recorded in the buffer's undo list.
+@xref{Text Properties}, for comparison.
 
 @table @code
 @item priority
@@ -773,10 +790,13 @@ The @code{intangible} property on an overlay works just like the
 @code{intangible} text property.  @xref{Special Properties}, for details.
 
 @item isearch-open-invisible
-@itemx isearch-open-invisible-temporary
-These properties control how incremental search should make invisible an
-overlay visible, either permanently or temporarily.  @xref{Invisible
+This property tells incremental search how to make an invisible overlay
+visible, permanently, if the final match overlaps it.  @xref{Invisible
 Text}.
+
+@item isearch-open-invisible-temporary
+This property tells incremental search how to make an invisible overlay
+visible, temporarily, during the search.  @xref{Invisible Text}.
 
 @item before-string
 @kindex before-string @r{(overlay property)}
@@ -861,8 +881,11 @@ This function returns the buffer that @var{overlay} belongs to.
 
 @defun delete-overlay overlay
 This function deletes @var{overlay}.  The overlay continues to exist as
-a Lisp object, but ceases to be part of the buffer it belonged to, and
-ceases to have any effect on display.
+a Lisp object, but ceases to be attached to the buffer it belonged to,
+and ceases to have any effect on display.
+
+A deleted overlay is not permanently useless.  You can give it
+a new buffer position by calling @code{move-overlay}.
 @end defun
 
 @defun move-overlay overlay start end &optional buffer
@@ -886,8 +909,8 @@ An overlay contains position @var{pos} if it begins at or before
 @var{pos}, and ends after @var{pos}.
 @end defun
 
-@tindex overlays-in
 @defun overlays-in beg end
+@tindex overlays-in
 This function returns a list of the overlays that overlap the region
 @var{beg} through @var{end}.  ``Overlap'' means that at least one
 character is contained within the overlay and also contained within the
@@ -912,20 +935,20 @@ Since not all characters have the same width, these functions let you
 check the width of a character.  @xref{Primitive Indent}, and
 @ref{Screen Lines}, for related functions.
 
-@tindex char-width
 @defun char-width char
+@tindex char-width
 This function returns the width in columns of the character @var{char},
 if it were displayed in the current buffer and the selected window.
 @end defun
 
-@tindex string-width
 @defun string-width string
+@tindex string-width
 This function returns the width in columns of the string @var{string},
 if it were displayed in the current buffer and the selected window.
 @end defun
 
-@tindex truncate-string-to-width
 @defun truncate-string-to-width string width &optional start-column padding
+@tindex truncate-string-to-width
 This function returns the part of @var{string} that fits within
 @var{width} columns, as a new string.
 
@@ -1033,22 +1056,22 @@ one.
 @end table
 
 @node Defining Faces
-@section Defining Faces
+@subsection Defining Faces
 
   The way to define a new face is with @code{defface}.  This creates a
 kind of customization item (@pxref{Customization}) which the user can
 customize using the Customization buffer (@pxref{Easy Customization,,,
 emacs, The GNU Emacs Manual}).
 
-@tindex defface
 @defmac defface face spec doc [keyword value]... 
+@tindex defface
 Declare @var{face} as a customizable face that defaults according to
 @var{spec}.  Do not quote the symbol @var{face}.  The argument @var{doc}
 specifies the face documentation.
 
 When @code{defface} executes, it defines the face according to
-@var{spec}, then uses any customizations saved in the @file{.emacs} file
-to override that specification.
+@var{spec}, then uses any customizations that were read from the
+@file{.emacs} file to override that specification.
 
 The purpose of @var{spec} is to specify how the face should appear on
 different kinds of terminals.  It should be an alist whose elements have
@@ -1069,7 +1092,7 @@ This element of @var{spec} matches all frames.  Therefore, any
 subsequent elements of @var{spec} are never used.  Normally
 @code{t} is used in the last (or only) element of @var{spec}.
 
-@item an list
+@item a list
 If @var{display} is alist, each elements should have the form
 @code{(@var{characteristic} @var{value}@dots{})}.  Here
 @var{characteristic} specifies a way of classifying frames, and the
@@ -1222,19 +1245,20 @@ they are used automatically to handle certain shades of gray.
 
 @defun set-face-font face font &optional frame
 This function sets the font of face @var{face}.  The argument @var{font}
-should be a string.  Note that if you set the font explicitly, the bold
-and italic attributes cease to have any effect, because the precise font
-that you specified is always used.
+should be a string, either a valid font name for your system or the name
+of an Emacs fontset (@pxref{Fontsets}).  Note that if you set the font
+explicitly, the bold and italic attributes cease to have any effect,
+because the precise font that you specified is always used.
 @end defun
 
-@tindex set-face-bold-p
 @defun set-face-bold-p face bold-p &optional frame
+@tindex set-face-bold-p
 This function sets the bold attribute of face @var{face}.
 Non-@code{nil} means bold; @code{nil} means non-bold.
 @end defun
 
-@tindex set-face-italic-p
 @defun set-face-italic-p face italic-p &optional frame
+@tindex set-face-italic-p
 This function sets the italic attribute of face @var{face}.
 Non-@code{nil} means italic; @code{nil} means non-italic.
 @end defun
@@ -1269,13 +1293,13 @@ This function returns the name of the background stipple pattern of face
 This function returns the name of the font of face @var{face}.
 @end defun
 
-@tindex face-bold-p
 @defun face-bold-p face &optional frame
+@tindex face-bold-p
 This function returns the bold attribute of face @var{face}.
 @end defun
 
-@tindex face-italic-p
 @defun face-italic-p face &optional frame
+@tindex face-italic-p
 This function returns the italic attribute of face @var{face}.
 @end defun
 
@@ -1287,8 +1311,8 @@ This function returns the underline attribute of face @var{face}.
 This function returns the face number of face @var{face}.
 @end defun
 
-@tindex face-documentation
 @defun face-documentation face
+@tindex face-documentation
 This function returns the documentation string of face @var{face}, or
 @code{nil} if none was specified for it.
 @end defun
@@ -1428,7 +1452,7 @@ just like the codes in the range 128 to 255.
 @item
 Character codes 128 through 255 map to sequences of four glyphs, where
 the first glyph is the @sc{ASCII} code for @samp{\}, and the others are
-digit characters representing the charatcer code in octal.  (A display
+digit characters representing the character code in octal.  (A display
 table can specify a glyph to use instead of @samp{\}.)
 
 @item
@@ -1497,7 +1521,8 @@ force redisplay of the mode line using a new display table, call
 @node Display Table Format
 @subsection Display Table Format
 
-  A display table is actually char-table with subtype @code{display-table}.
+  A display table is actually a char-table (@pxref{Char-Tables}) with
+@code{display-table} as its subtype.
 
 @defun make-display-table
 This creates and returns a display table.  The table initially has
@@ -1550,8 +1575,8 @@ effect of setting @code{ctl-arrow} to a non-@code{nil} value:
   (aset disptab 127 (vector ?^ ??)))
 @end example
 
-@tindex display-table-slot
 @defun display-table-slot display-table slot
+@tindex display-table-slot
 This function returns the value of the extra slot @var{slot} of
 @var{display-table}.  The argument @var{slot} may be a number from 0 to
 5 inclusive, or a slot name (symbol).  Valid symbols are
@@ -1559,8 +1584,8 @@ This function returns the value of the extra slot @var{slot} of
 @code{selective-display}, and @code{vertical-border}.
 @end defun
 
-@tindex set-display-table-slot
 @defun set-display-table-slot display-table slot value
+@tindex set-display-table-slot
 This function stores @var{value} in the extra slot @var{slot} of
 @var{display-table}.  The argument @var{slot} may be a number from 0 to
 5 inclusive, or a slot name (symbol).  Valid symbols are
@@ -1669,14 +1694,14 @@ often you do this; frequent bells can become irritating.  Also be
 careful not to use just beeping when signaling an error is more
 appropriate.  (@xref{Errors}.)
 
-@defun ding &optional dont-terminate
+@defun ding &optional do-not-terminate
 @cindex keyboard macro termination
 This function beeps, or flashes the screen (see @code{visible-bell} below).
 It also terminates any keyboard macro currently executing unless
-@var{dont-terminate} is non-@code{nil}.
+@var{do-not-terminate} is non-@code{nil}.
 @end defun
 
-@defun beep &optional dont-terminate
+@defun beep &optional do-not-terminate
 This is a synonym for @code{ding}.
 @end defun
 
@@ -1688,10 +1713,10 @@ provided the terminal's Termcap entry defines the visible bell
 capability (@samp{vb}).
 @end defvar
 
-@tindex ring-bell-function
 @defvar ring-bell-function
+@tindex ring-bell-function
 If this is non-@code{nil}, it specifies how Emacs should ``ring the
-bell.''  Its value should bea function of no arguments.
+bell.''  Its value should be a function of no arguments.
 @end defvar
 
 @node Window Systems
@@ -1714,7 +1739,7 @@ terminal).
 This variable is a normal hook which Emacs runs after handling the
 initialization files.  Emacs runs this hook after it has completed
 loading your @file{.emacs} file, the default initialization file (if
-any), and the terminal-specific Lisp code, and runring the hook
+any), and the terminal-specific Lisp code, and running the hook
 @code{term-setup-hook}.
 
 This hook is used for internal purposes: setting up communication with

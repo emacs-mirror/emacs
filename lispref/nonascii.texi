@@ -17,15 +17,12 @@ characters and how they are stored in strings and buffers.
 * Selecting a Representation::
 * Character Codes::
 * Character Sets::
-* Scanning Charsets::
 * Chars and Bytes::
+* Splitting Characters::
+* Scanning Charsets::
+* Translation of Characters::
 * Coding Systems::
-* Lisp and Coding System::
-* Default Coding Systems::
-* Specifying Coding Systems::
-* Explicit Encoding::
-* MS-DOS File Types::
-* MS-DOS Subprocesses::
+* Input Methods::
 @end menu
 
 @node Text Representations
@@ -53,19 +50,17 @@ character set by setting the variable @code{nonascii-insert-offset}).
 byte, and as a result, the full range of Emacs character codes can be
 stored.  The first byte of a multibyte character is always in the range
 128 through 159 (octal 0200 through 0237).  These values are called
-@dfn{leading codes}.  The first byte determines which character set the
-character belongs to (@pxref{Character Sets}); in particular, it
-determines how many bytes long the sequence is.  The second and
-subsequent bytes of a multibyte character are always in the range 160
-through 255 (octal 0240 through 0377).
+@dfn{leading codes}.  The second and subsequent bytes of a multibyte
+character are always in the range 160 through 255 (octal 0240 through
+0377).
 
   In a buffer, the buffer-local value of the variable
 @code{enable-multibyte-characters} specifies the representation used.
 The representation for a string is determined based on the string
 contents when the string is constructed.
 
-@tindex enable-multibyte-characters
 @defvar enable-multibyte-characters
+@tindex enable-multibyte-characters
 This variable specifies the current buffer's text representation.
 If it is non-@code{nil}, the buffer contains multibyte text; otherwise,
 it contains unibyte text.
@@ -74,20 +69,21 @@ You cannot set this variable directly; instead, use the function
 @code{set-buffer-multibyte} to change a buffer's representation.
 @end defvar
 
-@tindex default-enable-multibyte-characters
 @defvar default-enable-multibyte-characters
-This variable`s value is entirely equivalent to @code{(default-value
+@tindex default-enable-multibyte-characters
+This variable's value is entirely equivalent to @code{(default-value
 'enable-multibyte-characters)}, and setting this variable changes that
-default value.  Although setting the local binding of
-@code{enable-multibyte-characters} in a specific buffer is dangerous,
-changing the default value is safe, and it is a reasonable thing to do.
+default value.  Setting the local binding of
+@code{enable-multibyte-characters} in a specific buffer is not allowed,
+but changing the default value is supported, and it is a reasonable
+thing to do, because it has no effect on existing buffers.
 
 The @samp{--unibyte} command line option does its job by setting the
 default value to @code{nil} early in startup.
 @end defvar
 
-@tindex multibyte-string-p
 @defun multibyte-string-p string
+@tindex multibyte-string-p
 Return @code{t} if @var{string} contains multibyte characters.
 @end defun
 
@@ -120,11 +116,12 @@ user that cannot be overridden automatically.
 unchanged, and likewise 128 through 159.  It converts the non-@sc{ASCII}
 codes 160 through 255 by adding the value @code{nonascii-insert-offset}
 to each character code.  By setting this variable, you specify which
-character set the unibyte characters correspond to.  For example, if
-@code{nonascii-insert-offset} is 2048, which is @code{(- (make-char
-'latin-iso8859-1 0) 128)}, then the unibyte non-@sc{ASCII} characters
-correspond to Latin 1.  If it is 2688, which is @code{(- (make-char
-'greek-iso8859-7 0) 128)}, then they correspond to Greek letters.
+character set the unibyte characters correspond to (@pxref{Character
+Sets}).  For example, if @code{nonascii-insert-offset} is 2048, which is
+@code{(- (make-char 'latin-iso8859-1) 128)}, then the unibyte
+non-@sc{ASCII} characters correspond to Latin 1.  If it is 2688, which
+is @code{(- (make-char 'greek-iso8859-7) 128)}, then they correspond to
+Greek letters.
 
   Converting multibyte text to unibyte is simpler: it performs
 logical-and of each character code with 255.  If
@@ -133,21 +130,22 @@ the beginning of some character set, this conversion is the inverse of
 the other: converting unibyte text to multibyte and back to unibyte
 reproduces the original unibyte text.
 
-@tindex nonascii-insert-offset
 @defvar nonascii-insert-offset
+@tindex nonascii-insert-offset
 This variable specifies the amount to add to a non-@sc{ASCII} character
 when converting unibyte text to multibyte.  It also applies when
-@code{insert-char} or @code{self-insert-command} inserts a character in
-the unibyte non-@sc{ASCII} range, 128 through 255.
+@code{self-insert-command} inserts a character in the unibyte
+non-@sc{ASCII} range, 128 through 255.  However, the function
+@code{insert-char} does not perform this conversion.
 
 The right value to use to select character set @var{cs} is @code{(-
-(make-char @var{cs} 0) 128)}.  If the value of
+(make-char @var{cs}) 128)}.  If the value of
 @code{nonascii-insert-offset} is zero, then conversion actually uses the
 value for the Latin 1 character set, rather than zero.
 @end defvar
 
-@tindex nonascii-translate-table
-@defvar nonascii-translate-table
+@defvar nonascii-translation-table
+@tindex nonascii-translation-table
 This variable provides a more general alternative to
 @code{nonascii-insert-offset}.  You can use it to specify independently
 how to translate each code in the range of 128 through 255 into a
@@ -155,15 +153,15 @@ multibyte character.  The value should be a vector, or @code{nil}.
 If this is non-@code{nil}, it overrides @code{nonascii-insert-offset}.
 @end defvar
 
-@tindex string-make-unibyte
 @defun string-make-unibyte string
+@tindex string-make-unibyte
 This function converts the text of @var{string} to unibyte
 representation, if it isn't already, and return the result.  If
 @var{string} is a unibyte string, it is returned unchanged.
 @end defun
 
-@tindex string-make-multibyte
 @defun string-make-multibyte string
+@tindex string-make-multibyte
 This function converts the text of @var{string} to multibyte
 representation, if it isn't already, and return the result.  If
 @var{string} is a multibyte string, it is returned unchanged.
@@ -175,8 +173,8 @@ representation, if it isn't already, and return the result.  If
   Sometimes it is useful to examine an existing buffer or string as
 multibyte when it was unibyte, or vice versa.
 
-@tindex set-buffer-multibyte
 @defun set-buffer-multibyte multibyte
+@tindex set-buffer-multibyte
 Set the representation type of the current buffer.  If @var{multibyte}
 is non-@code{nil}, the buffer becomes multibyte.  If @var{multibyte}
 is @code{nil}, the buffer becomes unibyte.
@@ -193,8 +191,8 @@ representation is in use.  It also adjusts various data in the buffer
 same text as they did before.
 @end defun
 
-@tindex string-as-unibyte
 @defun string-as-unibyte string
+@tindex string-as-unibyte
 This function returns a string with the same bytes as @var{string} but
 treating each byte as a character.  This means that the value may have
 more characters than @var{string} has.
@@ -203,8 +201,8 @@ If @var{string} is unibyte already, then the value is @var{string}
 itself.
 @end defun
 
-@tindex string-as-multibyte
 @defun string-as-multibyte string
+@tindex string-as-multibyte
 This function returns a string with the same bytes as @var{string} but
 treating each multibyte sequence as one character.  This means that the
 value may have fewer characters than @var{string} has.
@@ -253,88 +251,93 @@ example, @code{latin-iso8859-1} is one character set,
 @code{greek-iso8859-7} is another, and @code{ascii} is another.  An
 Emacs character set can hold at most 9025 characters; therefore, in some
 cases, characters that would logically be grouped together are split
-into several character sets.  For example, one set of Chinese characters
-is divided into eight Emacs character sets, @code{chinese-cns11643-1}
-through @code{chinese-cns11643-7}.
+into several character sets.  For example, one set of Chinese
+characters, generally known as Big 5, is divided into two Emacs
+character sets, @code{chinese-big5-1} and @code{chinese-big5-2}.
 
-@tindex charsetp
 @defun charsetp object
+@tindex charsetp
 Return @code{t} if @var{object} is a character set name symbol,
 @code{nil} otherwise.
 @end defun
 
-@tindex charset-list
 @defun charset-list
+@tindex charset-list
 This function returns a list of all defined character set names.
 @end defun
 
-@tindex char-charset
 @defun char-charset character
-This function returns the the name of the character
+@tindex char-charset
+This function returns the name of the character
 set that @var{character} belongs to.
-@end defun
-
-@node Scanning Charsets
-@section Scanning for Character Sets
-
-  Sometimes it is useful to find out which character sets appear in a
-part of a buffer or a string.  One use for this is in determining which
-coding systems (@pxref{Coding Systems}) are capable of representing all
-of the text in question.
-
-@tindex find-charset-region
-@defun find-charset-region beg end &optional unification
-This function returns a list of the character sets
-that appear in the current buffer between positions @var{beg}
-and @var{end}.
-@end defun
-
-@tindex find-charset-string
-@defun find-charset-string string &optional unification
-This function returns a list of the character sets
-that appear in the string @var{string}.
 @end defun
 
 @node Chars and Bytes
 @section Characters and Bytes
 @cindex bytes and characters
 
+@cindex introduction sequence
+@cindex dimension (of character set)
   In multibyte representation, each character occupies one or more
-bytes.  The functions in this section convert between characters and the
-byte values used to represent them.  For most purposes, there is no need
-to be concerned with the number of bytes used to represent a character
+bytes.  Each character set has an @dfn{introduction sequence}, which is
+one or two bytes long.  The introduction sequence is the beginning of
+the byte sequence for any character in the character set.  (The
+@sc{ASCII} character set has a zero-length introduction sequence.)  The
+rest of the character's bytes distinguish it from the other characters
+in the same character set.  Depending on the character set, there are
+either one or two distinguishing bytes; the number of such bytes is
+called the @dfn{dimension} of the character set.
+
+@defun charset-dimension charset
+@tindex charset-dimension
+This function returns the dimension of @var{charset};
+At present, the dimension is always 1 or 2.
+@end defun
+
+  This is the simplest way to determine the byte length of a character
+set's introduction sequence:
+
+@example
+(- (char-bytes (make-char @var{charset}))
+   (charset-dimension @var{charset}))
+@end example
+
+@node Splitting Characters
+@section Splitting Characters
+
+  The functions in this section convert between characters and the byte
+values used to represent them.  For most purposes, there is no need to
+be concerned with the sequence of bytes used to represent a character,
 because Emacs translates automatically when necessary.
 
-@tindex char-bytes
 @defun char-bytes character
+@tindex char-bytes
 This function returns the number of bytes used to represent the
-character @var{character}.  In most cases, this is the same as
-@code{(length (split-char @var{character}))}; the only exception is for
-ASCII characters and the codes used in unibyte text, which use just one
-byte.
+character @var{character}.  This depends only on the character set that
+@var{character} belongs to; it equals the dimension of that character
+set (@pxref{Character Sets}), plus the length of its introduction
+sequence.
 
 @example
 (char-bytes 2248)
      @result{} 2
 (char-bytes 65)
      @result{} 1
-@end example
-
-This function's values are correct for both multibyte and unibyte
-representations, because the non-@sc{ASCII} character codes used in
-those two representations do not overlap.
-
-@example
 (char-bytes 192)
      @result{} 1
 @end example
+
+The reason this function can give correct results for both multibyte and
+unibyte representations is that the non-@sc{ASCII} character codes used
+in those two representations do not overlap.
 @end defun
 
-@tindex split-char
 @defun split-char character
+@tindex split-char
 Return a list containing the name of the character set of
-@var{character}, followed by one or two byte-values which identify
-@var{character} within that character set.
+@var{character}, followed by one or two byte values (integers) which
+identify @var{character} within that character set.  The number of byte
+values is the character set's dimension.
 
 @example
 (split-char 2248)
@@ -352,17 +355,118 @@ the @code{ascii} character set:
 @end example
 @end defun
 
-@tindex make-char
 @defun make-char charset &rest byte-values
-Thus function returns the character in character set @var{charset}
-identified by @var{byte-values}.  This is roughly the opposite of
-split-char.
+@tindex make-char
+This function returns the character in character set @var{charset}
+identified by @var{byte-values}.  This is roughly the inverse of
+@code{split-char}.  Normally, you should specify either one or two
+@var{byte-values}, according to the dimension of @var{charset}.  For
+example,
 
 @example
 (make-char 'latin-iso8859-1 72)
      @result{} 2248
 @end example
 @end defun
+
+@cindex generic characters
+  If you call @code{make-char} with no @var{byte-values}, the result is
+a @dfn{generic character} which stands for @var{charset}.  A generic
+character is an integer, but it is @emph{not} valid for insertion in the
+buffer as a character.  It can be used in @code{char-table-range} to
+refer to the whole character set (@pxref{Char-Tables}).
+@code{char-valid-p} returns @code{nil} for generic characters.
+For example:
+
+@example
+(make-char 'latin-iso8859-1)
+     @result{} 2176
+(char-valid-p 2176)
+     @result{} nil
+(split-char 2176)
+     @result{} (latin-iso8859-1 0)
+@end example
+
+@node Scanning Charsets
+@section Scanning for Character Sets
+
+  Sometimes it is useful to find out which character sets appear in a
+part of a buffer or a string.  One use for this is in determining which
+coding systems (@pxref{Coding Systems}) are capable of representing all
+of the text in question.
+
+@defun find-charset-region beg end &optional translation
+@tindex find-charset-region
+This function returns a list of the character sets that appear in the
+current buffer between positions @var{beg} and @var{end}.
+
+The optional argument @var{translation} specifies a translation table to
+be used in scanning the text (@pxref{Translation of Characters}).  If it
+is non-@code{nil}, then each character in the region is translated
+through this table, and the value returned describes the translated
+characters instead of the characters actually in the buffer.
+@end defun
+
+@defun find-charset-string string &optional translation
+@tindex find-charset-string
+This function returns a list of the character sets
+that appear in the string @var{string}.
+
+The optional argument @var{translation} specifies a
+translation table; see @code{find-charset-region}, above.
+@end defun
+
+@node Translation of Characters
+@section Translation of Characters
+@cindex character translation tables
+@cindex translation tables
+
+  A @dfn{translation table} specifies a mapping of characters
+into characters.  These tables are used in encoding and decoding, and
+for other purposes.  Some coding systems specify their own particular
+translation tables; there are also default translation tables which
+apply to all other coding systems.
+
+@defun make-translation-table translations
+This function returns a translation table based on the arguments
+@var{translations}.  Each argument---each element of
+@var{translations}---should be a list of the form @code{(@var{from}
+. @var{to})}; this says to translate the character @var{from} into
+@var{to}.
+
+You can also map one whole character set into another character set with
+the same dimension.  To do this, you specify a generic character (which
+designates a character set) for @var{from} (@pxref{Splitting Characters}).
+In this case, @var{to} should also be a generic character, for another
+character set of the same dimension.  Then the translation table
+translates each character of @var{from}'s character set into the
+corresponding character of @var{to}'s character set.
+@end defun
+
+  In decoding, the translation table's translations are applied to the
+characters that result from ordinary decoding.  If a coding system has
+property @code{character-translation-table-for-decode}, that specifies
+the translation table to use.  Otherwise, if
+@code{standard-character-translation-table-for-decode} is
+non-@code{nil}, decoding uses that table.
+
+  In encoding, the translation table's translations are applied to the
+characters in the buffer, and the result of translation is actually
+encoded.  If a coding system has property
+@code{character-translation-table-for-encode}, that specifies the
+translation table to use.  Otherwise the variable
+@code{standard-character-translation-table-for-encode} specifies the
+translation table.
+
+@defvar standard-character-translation-table-for-decode
+This is the default translation table for decoding, for
+coding systems that don't specify any other translation table.
+@end defvar
+
+@defvar standard-character-translation-table-for-encode
+This is the default translation table for encoding, for
+coding systems that don't specify any other translation table.
+@end defvar
 
 @node Coding Systems
 @section Coding Systems
@@ -372,6 +476,20 @@ split-char.
 subprocess or receives text from a subprocess, it normally performs
 character code conversion and end-of-line conversion as specified
 by a particular @dfn{coding system}.
+
+@menu
+* Coding System Basics::
+* Encoding and I/O::
+* Lisp and Coding Systems::
+* Default Coding Systems::
+* Specifying Coding Systems::
+* Explicit Encoding::
+* Terminal I/O Encoding::
+* MS-DOS File Types::
+@end menu
+
+@node Coding System Basics
+@subsection Basic Concepts of Coding Systems
 
 @cindex character code conversion
   @dfn{Character code conversion} involves conversion between the encoding
@@ -401,65 +519,284 @@ carriage-return.
 conversion unspecified, to be chosen based on the data.  @dfn{Variant
 coding systems} such as @code{latin-1-unix}, @code{latin-1-dos} and
 @code{latin-1-mac} specify the end-of-line conversion explicitly as
-well.  Each base coding system has three corresponding variants whose
+well.  Most base coding systems have three corresponding variants whose
 names are formed by adding @samp{-unix}, @samp{-dos} and @samp{-mac}.
+
+  The coding system @code{raw-text} is special in that it prevents
+character code conversion, and causes the buffer visited with that
+coding system to be a unibyte buffer.  It does not specify the
+end-of-line conversion, allowing that to be determined as usual by the
+data, and has the usual three variants which specify the end-of-line
+conversion.  @code{no-conversion} is equivalent to @code{raw-text-unix}:
+it specifies no conversion of either character codes or end-of-line.
+
+  The coding system @code{emacs-mule} specifies that the data is
+represented in the internal Emacs encoding.  This is like
+@code{raw-text} in that no code conversion happens, but different in
+that the result is multibyte data.
+
+@defun coding-system-get coding-system property
+@tindex coding-system-get
+This function returns the specified property of the coding system
+@var{coding-system}.  Most coding system properties exist for internal
+purposes, but one that you might find useful is @code{mime-charset}.
+That property's value is the name used in MIME for the character coding
+which this coding system can read and write.  Examples:
+
+@example
+(coding-system-get 'iso-latin-1 'mime-charset)
+     @result{} iso-8859-1
+(coding-system-get 'iso-2022-cn 'mime-charset)
+     @result{} iso-2022-cn
+(coding-system-get 'cyrillic-koi8 'mime-charset)
+     @result{} koi8-r
+@end example
+
+The value of the @code{mime-charset} property is also defined
+as an alias for the coding system.
+@end defun
+
+@node Encoding and I/O
+@subsection Encoding and I/O
+
+  The principal purpose coding systems is for use in reading and
+writing files.  The function @code{insert-file-contents} uses
+a coding system for decoding the file data, and @code{write-region}
+uses one to encode the buffer contents.
+
+  You can specify the coding system to use either explicitly
+(@pxref{Specifying Coding Systems}), or implicitly using the defaulting
+mechanism (@pxref{Default Coding Systems}).  But these methods may not
+completely specify what to do.  For example, they may choose a coding
+system such as @code{undefined} which leaves the character code
+conversion to be determined from the data.  In these cases, the I/O
+operation finishes the job of choosing a coding system.  Very often
+you will want to find out afterwards which coding system was chosen.
+
+@defvar buffer-file-coding-system
+@tindex buffer-file-coding-system
+This variable records the coding system that was used for visiting the
+current buffer.  It is used for saving the buffer, and for writing part
+of the buffer with @code{write-region}.  When those operations ask the
+user to specify a different coding system,
+@code{buffer-file-coding-system} is updated to the coding system
+specified.
+@end defvar
+
+@defvar save-buffer-coding-system
+@tindex save-buffer-coding-system
+This variable specifies the coding system for saving the buffer---but it
+is not used for @code{write-region}.  When saving the buffer asks the
+user to specify a different coding system, and
+@code{save-buffer-coding-system} was used, then it is updated to the
+coding system that was specified.
+@end defvar
+
+@defvar last-coding-system-used
+@tindex last-coding-system-used
+I/O operations for files and subprocesses set this variable to the
+coding system name that was used.  The explicit encoding and decoding
+functions (@pxref{Explicit Encoding}) set it too.
+
+@strong{Warning:} Since receiving subprocess output sets this variable,
+it can change whenever Emacs waits; therefore, you should use copy the
+value shortly after the function call which stores the value you are
+interested in.
+@end defvar
 
 @node Lisp and Coding Systems
 @subsection Coding Systems in Lisp
 
   Here are Lisp facilities for working with coding systems;
 
-@tindex coding-system-list
 @defun coding-system-list &optional base-only
+@tindex coding-system-list
 This function returns a list of all coding system names (symbols).  If
 @var{base-only} is non-@code{nil}, the value includes only the
 base coding systems.  Otherwise, it includes variant coding systems as well.
 @end defun
 
-@tindex coding-system-p
 @defun coding-system-p object
+@tindex coding-system-p
 This function returns @code{t} if @var{object} is a coding system
 name.
 @end defun
 
-@tindex check-coding-system
 @defun check-coding-system coding-system
+@tindex check-coding-system
 This function checks the validity of @var{coding-system}.
 If that is valid, it returns @var{coding-system}.
 Otherwise it signals an error with condition @code{coding-system-error}.
 @end defun
 
-@tindex find-safe-coding-system
-@defun find-safe-coding-system from to
-Return a list of proper coding systems to encode a text between
-@var{from} and @var{to}.  All coding systems in the list can safely
-encode any multibyte characters in the text.
-
-If the text contains no multibyte characters, return a list of a single
-element @code{undecided}.
+@defun coding-system-change-eol-conversion coding-system eol-type
+@tindex coding-system-change-eol-conversion
+This function returns a coding system which is like @var{coding-system}
+except for its in eol conversion, which is specified by @code{eol-type}.
+@var{eol-type} should be @code{unix}, @code{dos}, @code{mac}, or
+@code{nil}.  If it is @code{nil}, the returned coding system determines
+the end-of-line conversion from the data.
 @end defun
 
+@defun coding-system-change-text-conversion eol-coding text-coding
+@tindex coding-system-change-text-conversion
+This function returns a coding system which uses the end-of-line
+conversion of @var{eol-coding}, and the text conversion of
+@var{text-coding}.  If @var{text-coding} is @code{nil}, it returns
+@code{undecided}, or one of its variants according to @var{eol-coding}.
+@end defun
+
+@defun find-coding-systems-region from to
+@tindex find-coding-systems-region
+This function returns a list of coding systems that could be used to
+encode a text between @var{from} and @var{to}.  All coding systems in
+the list can safely encode any multibyte characters in that portion of
+the text.
+
+If the text contains no multibyte characters, the function returns the
+list @code{(undecided)}.
+@end defun
+
+@defun find-coding-systems-string string
+@tindex find-coding-systems-string
+This function returns a list of coding systems that could be used to
+encode the text of @var{string}.  All coding systems in the list can
+safely encode any multibyte characters in @var{string}.  If the text
+contains no multibyte characters, this returns the list
+@code{(undecided)}.
+@end defun
+
+@defun find-coding-systems-for-charsets charsets
+@tindex find-coding-systems-for-charsets
+This function returns a list of coding systems that could be used to
+encode all the character sets in the list @var{charsets}.
+@end defun
+
+@defun detect-coding-region start end &optional highest
 @tindex detect-coding-region
-@defun detect-coding-region start end highest
 This function chooses a plausible coding system for decoding the text
 from @var{start} to @var{end}.  This text should be ``raw bytes''
 (@pxref{Explicit Encoding}).
 
-Normally this function returns is a list of coding systems that could
+Normally this function returns a list of coding systems that could
 handle decoding the text that was scanned.  They are listed in order of
-decreasing priority, based on the priority specified by the user with
-@code{prefer-coding-system}.  But if @var{highest} is non-@code{nil},
-then the return value is just one coding system, the one that is highest
-in priority.
+decreasing priority.  But if @var{highest} is non-@code{nil}, then the
+return value is just one coding system, the one that is highest in
+priority.
+
+If the region contains only @sc{ASCII} characters, the value
+is @code{undecided} or @code{(undecided)}.
 @end defun
 
-@tindex detect-coding-string string highest
-@defun detect-coding-string
+@defun detect-coding-string string highest
+@tindex detect-coding-string
 This function is like @code{detect-coding-region} except that it
 operates on the contents of @var{string} instead of bytes in the buffer.
 @end defun
 
+  Here are two functions you can use to let the user specify a coding
+system, with completion.  @xref{Completion}.
+
+@defun read-coding-system prompt &optional default
+@tindex read-coding-system
+This function reads a coding system using the minibuffer, prompting with
+string @var{prompt}, and returns the coding system name as a symbol.  If
+the user enters null input, @var{default} specifies which coding system
+to return.  It should be a symbol or a string.
+@end defun
+
+@defun read-non-nil-coding-system prompt
+@tindex read-non-nil-coding-system
+This function reads a coding system using the minibuffer, prompting with
+string @var{prompt}, and returns the coding system name as a symbol.  If
+the user tries to enter null input, it asks the user to try again.
+@xref{Coding Systems}.
+@end defun
+
+  @xref{Process Information}, for how to examine or set the coding
+systems used for I/O to a subprocess.
+
+@node Default Coding Systems
+@subsection Default Coding Systems
+
+  This section describes variables that specify the default coding
+system for certain files or when running certain subprograms, and the
+function which which I/O operations use to access them.
+
+  The idea of these variables is that you set them once and for all to the
+defaults you want, and then do not change them again.  To specify a
+particular coding system for a particular operation in a Lisp program,
+don't change these variables; instead, override them using
+@code{coding-system-for-read} and @code{coding-system-for-write}
+(@pxref{Specifying Coding Systems}).
+
+@defvar file-coding-system-alist
+@tindex file-coding-system-alist
+This variable is an alist that specifies the coding systems to use for
+reading and writing particular files.  Each element has the form
+@code{(@var{pattern} . @var{coding})}, where @var{pattern} is a regular
+expression that matches certain file names.  The element applies to file
+names that match @var{pattern}.
+
+The @sc{cdr} of the element, @var{val}, should be either a coding
+system, a cons cell containing two coding systems, or a function symbol.
+If @var{val} is a coding system, that coding system is used for both
+reading the file and writing it.  If @var{val} is a cons cell containing
+two coding systems, its @sc{car} specifies the coding system for
+decoding, and its @sc{cdr} specifies the coding system for encoding.
+
+If @var{val} is a function symbol, the function must return a coding
+system or a cons cell containing two coding systems.  This value is used
+as described above.
+@end defvar
+
+@defvar process-coding-system-alist
+@tindex process-coding-system-alist
+This variable is an alist specifying which coding systems to use for a
+subprocess, depending on which program is running in the subprocess.  It
+works like @code{file-coding-system-alist}, except that @var{pattern} is
+matched against the program name used to start the subprocess.  The coding
+system or systems specified in this alist are used to initialize the
+coding systems used for I/O to the subprocess, but you can specify
+other coding systems later using @code{set-process-coding-system}.
+@end defvar
+
+  @strong{Warning:} Coding systems such as @code{undecided} which
+determine the coding system from the data do not work entirely reliably
+with asynchronous subprocess output.  This is because Emacs processes
+asynchronous subprocess output in batches, as it arrives.  If the coding
+system leaves the character code conversion unspecified, or leaves the
+end-of-line conversion unspecified, Emacs must try to detect the proper
+conversion from one batch at a time, and this does not always work.
+
+  Therefore, with an asynchronous subprocess, if at all possible, use a
+coding system which determines both the character code conversion and
+the end of line conversion---that is, one like @code{latin-1-unix},
+rather than @code{undecided} or @code{latin-1}.
+
+@defvar network-coding-system-alist
+@tindex network-coding-system-alist
+This variable is an alist that specifies the coding system to use for
+network streams.  It works much like @code{file-coding-system-alist},
+with the difference that the @var{pattern} in an element may be either a
+port number or a regular expression.  If it is a regular expression, it
+is matched against the network service name used to open the network
+stream.
+@end defvar
+
+@defvar default-process-coding-system
+@tindex default-process-coding-system
+This variable specifies the coding systems to use for subprocess (and
+network stream) input and output, when nothing else specifies what to
+do.
+
+The value should be a cons cell of the form @code{(@var{input-coding}
+. @var{output-coding})}.  Here @var{input-coding} applies to input from
+the subprocess, and @var{output-coding} applies to output to it.
+@end defvar
+
 @defun find-operation-coding-system operation &rest arguments
+@tindex find-operation-coding-system
 This function returns the coding system to use (by default) for
 performing @var{operation} with @var{arguments}.  The value has this
 form:
@@ -492,97 +829,15 @@ This function looks up the target in @code{file-coding-system-alist},
 @xref{Default Coding Systems}.
 @end defun
 
-  Here are two functions you can use to let the user specify a coding
-system, with completion.  @xref{Completion}.
-
-@tindex read-coding-system
-@defun read-coding-system prompt default
-This function reads a coding system using the minibuffer, prompting with
-string @var{prompt}, and returns the coding system name as a symbol.  If
-the user enters null input, @var{default} specifies which coding system
-to return.  It should be a symbol or a string.
-@end defun
-
-@tindex read-non-nil-coding-system
-@defun read-non-nil-coding-system prompt
-This function reads a coding system using the minibuffer, prompting with
-string @var{prompt},and returns the coding system name as a symbol.  If
-the user tries to enter null input, it asks the user to try again.
-@xref{Coding Systems}.
-@end defun
-
-@node Default Coding Systems
-@section Default Coding Systems
-
-  These variable specify which coding system to use by default for
-certain files or when running certain subprograms.  The idea of these
-variables is that you set them once and for all to the defaults you
-want, and then do not change them again.  To specify a particular coding
-system for a particular operation in a Lisp program, don't change these
-variables; instead, override them using @code{coding-system-for-read}
-and @code{coding-system-for-write} (@pxref{Specifying Coding Systems}).
-
-@tindex file-coding-system-alist
-@defvar file-coding-system-alist
-This variable is an alist that specifies the coding systems to use for
-reading and writing particular files.  Each element has the form
-@code{(@var{pattern} . @var{coding})}, where @var{pattern} is a regular
-expression that matches certain file names.  The element applies to file
-names that match @var{pattern}.
-
-The @sc{cdr} of the element, @var{val}, should be either a coding
-system, a cons cell containing two coding systems, or a function symbol.
-If @var{val} is a coding system, that coding system is used for both
-reading the file and writing it.  If @var{val} is a cons cell containing
-two coding systems, its @sc{car} specifies the coding system for
-decoding, and its @sc{cdr} specifies the coding system for encoding.
-
-If @var{val} is a function symbol, the function must return a coding
-system or a cons cell containing two coding systems.  This value is used
-as described above.
-@end defvar
-
-@tindex process-coding-system-alist
-@defvar process-coding-system-alist
-This variable is an alist specifying which coding systems to use for a
-subprocess, depending on which program is running in the subprocess.  It
-works like @code{file-coding-system-alist}, except that @var{pattern} is
-matched against the program name used to start the subprocess.  The coding
-system or systems specified in this alist are used to initialize the
-coding systems used for I/O to the subprocess, but you can specify
-other coding systems later using @code{set-process-coding-system}.
-@end defvar
-
-@tindex network-coding-system-alist
-@defvar network-coding-system-alist
-This variable is an alist that specifies the coding system to use for
-network streams.  It works much like @code{file-coding-system-alist},
-with the difference that the @var{pattern} in an element may be either a
-port number or a regular expression.  If it is a regular expression, it
-is matched against the network service name used to open the network
-stream.
-@end defvar
-
-@tindex default-process-coding-system
-@defvar default-process-coding-system
-This variable specifies the coding systems to use for subprocess (and
-network stream) input and output, when nothing else specifies what to
-do.
-
-The value should be a cons cell of the form @code{(@var{output-coding}
-. @var{input-coding})}.  Here @var{output-coding} applies to output to
-the subprocess, and @var{input-coding} applies to input from it.
-@end defvar
-
 @node Specifying Coding Systems
-@section Specifying a Coding System for One Operation
+@subsection Specifying a Coding System for One Operation
 
   You can specify the coding system for a specific operation by binding
 the variables @code{coding-system-for-read} and/or
 @code{coding-system-for-write}.
 
-@tindex coding-system-for-read
 @defvar coding-system-for-read
+@tindex coding-system-for-read
 If this variable is non-@code{nil}, it specifies the coding system to
 use for reading a file, or for input from a synchronous subprocess.
 
@@ -605,14 +860,14 @@ of the right way to use the variable:
 @end example
 
 When its value is non-@code{nil}, @code{coding-system-for-read} takes
-precedence all other methods of specifying a coding system to use for
+precedence over all other methods of specifying a coding system to use for
 input, including @code{file-coding-system-alist},
 @code{process-coding-system-alist} and
 @code{network-coding-system-alist}.
 @end defvar
 
-@tindex coding-system-for-write
 @defvar coding-system-for-write
+@tindex coding-system-for-write
 This works much like @code{coding-system-for-read}, except that it
 applies to output rather than input.  It affects writing to files,
 subprocesses, and net connections.
@@ -623,53 +878,16 @@ When a single operation does both input and output, as do
 affect it.
 @end defvar
 
-@tindex last-coding-system-used
-@defvar last-coding-system-used
-All I/O operations that use a coding system set this variable
-to the coding system name that was used.
-@end defvar
-
-@tindex inhibit-eol-conversion
 @defvar inhibit-eol-conversion
+@tindex inhibit-eol-conversion
 When this variable is non-@code{nil}, no end-of-line conversion is done,
 no matter which coding system is specified.  This applies to all the
 Emacs I/O and subprocess primitives, and to the explicit encoding and
 decoding functions (@pxref{Explicit Encoding}).
 @end defvar
 
-@tindex keyboard-coding-system
-@defun keyboard-coding-system
-This function returns the coding system that is in use for decoding
-keyboard input---or @code{nil} if no coding system is to be used.
-@end defun
-
-@tindex set-keyboard-coding-system
-@defun set-keyboard-coding-system coding-system
-This function specifies @var{coding-system} as the coding system to
-use for decoding keyboard input.  If @var{coding-system} is @code{nil},
-that means do not decode keyboard input.
-@end defun
-
-@tindex terminal-coding-system
-@defun terminal-coding-system
-This function returns the coding system that is in use for encoding
-terminal output---or @code{nil} for no encoding.
-@end defun
-
-@tindex set-terminal-coding-system
-@defun set-terminal-coding-system coding-system
-This function specifies @var{coding-system} as the coding system to use
-for encoding terminal output.  If @var{coding-system} is @code{nil},
-that means do not encode terminal output.
-@end defun
-
-  See also the functions @code{process-coding-system} and
-@code{set-process-coding-system}.  @xref{Process Information}.
-
-  See also @code{read-coding-system} in @ref{High-Level Completion}.
-
 @node Explicit Encoding
-@section Explicit Encoding and Decoding
+@subsection Explicit Encoding and Decoding
 @cindex encoding text
 @cindex decoding text
 
@@ -699,39 +917,72 @@ write them with @code{write-region} (@pxref{Writing to Files}), and
 suppress encoding for that @code{write-region} call by binding
 @code{coding-system-for-write} to @code{no-conversion}.
 
-@tindex encode-coding-region
 @defun encode-coding-region start end coding-system
+@tindex encode-coding-region
 This function encodes the text from @var{start} to @var{end} according
 to coding system @var{coding-system}.  The encoded text replaces the
 original text in the buffer.  The result of encoding is ``raw bytes,''
 but the buffer remains multibyte if it was multibyte before.
 @end defun
 
-@tindex encode-coding-string
 @defun encode-coding-string string coding-system
+@tindex encode-coding-string
 This function encodes the text in @var{string} according to coding
 system @var{coding-system}.  It returns a new string containing the
 encoded text.  The result of encoding is a unibyte string of ``raw bytes.''
 @end defun
 
-@tindex decode-coding-region
 @defun decode-coding-region start end coding-system
+@tindex decode-coding-region
 This function decodes the text from @var{start} to @var{end} according
 to coding system @var{coding-system}.  The decoded text replaces the
 original text in the buffer.  To make explicit decoding useful, the text
 before decoding ought to be ``raw bytes.''
 @end defun
 
-@tindex decode-coding-string
 @defun decode-coding-string string coding-system
+@tindex decode-coding-string
 This function decodes the text in @var{string} according to coding
 system @var{coding-system}.  It returns a new string containing the
 decoded text.  To make explicit decoding useful, the contents of
 @var{string} ought to be ``raw bytes.''
 @end defun
 
+@node Terminal I/O Encoding
+@subsection Terminal I/O Encoding
+
+  Emacs can decode keyboard input using a coding system, and encode
+terminal output.  This kind of decoding and encoding does not set
+@code{last-coding-system-used}.
+
+@defun keyboard-coding-system
+@tindex keyboard-coding-system
+This function returns the coding system that is in use for decoding
+keyboard input---or @code{nil} if no coding system is to be used.
+@end defun
+
+@defun set-keyboard-coding-system coding-system
+@tindex set-keyboard-coding-system
+This function specifies @var{coding-system} as the coding system to
+use for decoding keyboard input.  If @var{coding-system} is @code{nil},
+that means do not decode keyboard input.
+@end defun
+
+@defun terminal-coding-system
+@tindex terminal-coding-system
+This function returns the coding system that is in use for encoding
+terminal output---or @code{nil} for no encoding.
+@end defun
+
+@defun set-terminal-coding-system coding-system
+@tindex set-terminal-coding-system
+This function specifies @var{coding-system} as the coding system to use
+for encoding terminal output.  If @var{coding-system} is @code{nil},
+that means do not encode terminal output.
+@end defun
+
 @node MS-DOS File Types
-@section MS-DOS File Types
+@subsection MS-DOS File Types
 @cindex DOS file types
 @cindex MS-DOS file types
 @cindex Windows file types
@@ -740,17 +991,24 @@ decoded text.  To make explicit decoding useful, the contents of
 @cindex binary files and text files
 
   Emacs on MS-DOS and on MS-Windows recognizes certain file names as
-text files or binary files.  For a text file, Emacs always uses DOS
-end-of-line conversion.  For a binary file, Emacs does no end-of-line
-conversion and no character code conversion.
+text files or binary files.  By ``binary file'' we mean a file of
+literal byte values that are not necessary meant to be characters.
+Emacs does no end-of-line conversion and no character code conversion
+for a binary file.  Meanwhile, when you create a new file which is
+marked by its name as a ``text file'', Emacs uses DOS end-of-line
+conversion.
 
 @defvar buffer-file-type
 This variable, automatically buffer-local in each buffer, records the
-file type of the buffer's visited file.  The value is @code{nil} for
-text, @code{t} for binary.  When a buffer does not specify a coding
-system with @code{buffer-file-coding-system}, this variable is used by
-the function @code{find-buffer-file-type-coding-system} to determine
-which coding system to use when writing the contents of the buffer.
+file type of the buffer's visited file.  When a buffer does not specify
+a coding system with @code{buffer-file-coding-system}, this variable is
+used to determine which coding system to use when writing the contents
+of the buffer.  It should be @code{nil} for text, @code{t} for binary.
+If it is @code{t}, the coding system is @code{no-conversion}.
+Otherwise, @code{undecided-dos} is used.
+
+Normally this variable is set by visiting a file; it is set to
+@code{nil} if the file was visited without any actual conversion.
 @end defvar
 
 @defopt file-name-buffer-file-type-alist
@@ -775,26 +1033,80 @@ This variable says how to handle files for which
 @code{file-name-buffer-file-type-alist} says nothing about the type.
 
 If this variable is non-@code{nil}, then these files are treated as
-binary.  Otherwise, nothing special is done for them---the coding system
-is deduced solely from the file contents, in the usual Emacs fashion.
+binary: the coding system @code{no-conversion} is used.  Otherwise,
+nothing special is done for them---the coding system is deduced solely
+from the file contents, in the usual Emacs fashion.
 @end defopt
 
-@node MS-DOS Subprocesses
-@section MS-DOS Subprocesses
+@node Input Methods
+@section Input Methods
+@cindex input methods
 
-  On Microsoft operating systems, these variables provide an alternative
-way to specify the kind of end-of-line conversion to use for input and
-output.  The variable @code{binary-process-input} applies to input sent
-to the subprocess, and @code{binary-process-output} applies to output
-received from it.  A non-@code{nil} value means the data is ``binary,''
-and @code{nil} means the data is text.
+  @dfn{Input methods} provide convenient ways of entering non-@sc{ASCII}
+characters from the keyboard.  Unlike coding systems, which translate
+non-@sc{ASCII} characters to and from encodings meant to be read by
+programs, input methods provide human-friendly commands.  (@xref{Input
+Methods,,, emacs, The GNU Emacs Manual}, for information on how users
+use input methods to enter text.)  How to define input methods is not
+yet documented in this manual, but here we describe how to use them.
 
-@defvar binary-process-input
-If this variable is @code{nil}, convert newlines to @sc{crlf} sequences in
-the input to a synchronous subprocess.
+  Each input method has a name, which is currently a string;
+in the future, symbols may also be usable as input method names.
+
+@tindex current-input-method
+@defvar current-input-method
+This variable holds the name of the input method now active in the
+current buffer.  (It automatically becomes local in each buffer when set
+in any fashion.)  It is @code{nil} if no input method is active in the
+buffer now.
 @end defvar
 
-@defvar binary-process-output
-If this variable is @code{nil}, convert @sc{crlf} sequences to newlines in
-the output from a synchronous subprocess.
+@tindex default-input-method
+@defvar default-input-method
+This variable holds the default input method for commands that choose an
+input method.  Unlike @code{current-input-method}, this variable is
+normally global.
 @end defvar
+
+@tindex set-input-method
+@defun set-input-method input-method
+This function activates input method @var{input-method} for the current
+buffer.  It also sets @code{default-input-method} to @var{input-method}.
+If @var{input-method} is @code{nil}, this function deactivates any input
+method for the current buffer.
+@end defun
+
+@tindex read-input-method-name
+@defun read-input-method-name prompt &optional default inhibit-null
+This function reads an input method name with the minibuffer, prompting
+with @var{prompt}.  If @var{default} is non-@code{nil}, that is returned
+by default, if the user enters empty input.  However, if
+@var{inhibit-null} is non-@code{nil}, empty input signals an error.
+
+The returned value is a string.
+@end defun
+
+@tindex input-method-alist
+@defvar input-method-alist
+This variable defines all the supported input methods.
+Each element defines one input method, and should have the form:
+
+@example
+(@var{input-method} @var{language-env} @var{activate-func} @var{title} @var{description} @var{args}...)
+@end example
+
+Here @var{input-method} is the input method name, a string; @var{env} is
+another string, the name of the language environment this input method
+is recommended for.  (That serves only for documentation purposes.)
+
+@var{title} is a string to display in the mode line while this method is
+active.  @var{description} is a string describing this method and what
+it is good for.
+
+@var{activate-func} is a function to call to activate this method.  The
+@var{args}, if any, are passed as arguments to @var{activate-func}.  All
+told, the arguments to @var{activate-func} are @var{input-method} and
+the @var{args}.
+@end defun
+
+

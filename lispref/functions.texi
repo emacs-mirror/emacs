@@ -54,11 +54,11 @@ such as @code{car} or @code{append}.  These functions are also called
 @dfn{built-in} functions or @dfn{subrs}.  (Special forms are also
 considered primitives.)
 
-Usually the reason we implement a function as a primitive is because it
-is fundamental, because it provides a low-level interface to operating
-system services, or because it needs to run fast.  Primitives can be
-modified or added only by changing the C sources and recompiling the
-editor.  See @ref{Writing Emacs Primitives}.
+Usually the reason we implement a function as a primitive is either
+because it is fundamental, because it provides a low-level interface to
+operating system services, or because it needs to run fast.  Primitives
+can be modified or added only by changing the C sources and recompiling
+the editor.  See @ref{Writing Emacs Primitives}.
 
 @item lambda expression
 A @dfn{lambda expression} is a function written in Lisp.
@@ -110,8 +110,8 @@ A @dfn{byte-code function} is a function that has been compiled by the
 byte compiler.  @xref{Byte-Code Type}.
 @end table
 
-@tindex functionp
 @defun functionp object
+@tindex functionp
 This function returns @code{t} if @var{object} is any kind of function,
 or a special form or macro.
 @end defun
@@ -458,11 +458,13 @@ one symbol, this is just a matter of convenience.  It is easy to store
 it in several symbols using @code{fset}; then each of the symbols is
 equally well a name for the same function.
 
-  A symbol used as a function name may also be used as a variable;
-these two uses of a symbol are independent and do not conflict.
-(Some Lisp dialects, such as Scheme, do not distinguish between a
-symbol's value and its function definition; a symbol's value as a variable
-is also its function definition.)
+  A symbol used as a function name may also be used as a variable; these
+two uses of a symbol are independent and do not conflict.  (Some Lisp
+dialects, such as Scheme, do not distinguish between a symbol's value
+and its function definition; a symbol's value as a variable is also its
+function definition.)  If you have not given a symbol a function
+definition, you cannot use it as a function; whether the symbol has a
+value as a variable makes no difference to this.
 
 @node Defining Functions
 @section Defining Functions
@@ -581,7 +583,7 @@ which function to call, and how many arguments to give it, when you
 write the program.  Usually that's just what you want.  Occasionally you
 need to compute at run time which function to call.  To do that, use the
 function @code{funcall}.  When you also need to determine at run time
-how may arguments to pass, use @code{apply}.
+how many arguments to pass, use @code{apply}.
 
 @defun funcall function &rest arguments
 @code{funcall} calls @var{function} with @var{arguments}, and returns
@@ -846,7 +848,8 @@ of simple quotation to quote the anonymous function, like this:
 @example
 @group
 (defun double-property (symbol prop)
-  (change-property symbol prop (function (lambda (x) (* 2 x)))))
+  (change-property symbol prop
+                   (function (lambda (x) (* 2 x)))))
 @end group
 @end example
 
@@ -864,7 +867,7 @@ definition which uses ordinary @code{quote}, the argument passed to
 @noindent
 The Lisp compiler cannot assume this list is a function, even though it
 looks like one, since it does not know what @code{change-property} will
-do with the list.  Perhaps will check whether the @sc{car} of the third
+do with the list.  Perhaps it will check whether the @sc{car} of the third
 element is the symbol @code{*}!  Using @code{function} tells the
 compiler it is safe to go ahead and compile the constant function.
 
@@ -874,6 +877,20 @@ comment:
 
 @example
 (function @var{symbol}) @equiv{} (quote @var{symbol}) @equiv{} '@var{symbol}
+@end example
+
+  The read syntax @code{#'} is a short-hand for using @code{function}.
+For example, 
+
+@example
+#'(lambda (x) (* x x))
+@end example
+
+@noindent
+is equivalent to
+
+@example
+(function (lambda (x) (* x x)))
 @end example
 
 @defspec function function-object
@@ -952,7 +969,7 @@ is a legitimate function.
 @defun fmakunbound symbol
 This function makes @var{symbol}'s function cell void, so that a
 subsequent attempt to access this cell will cause a @code{void-function}
-error.  (See also @code{makunbound}, in @ref{Local Variables}.)
+error.  (See also @code{makunbound}, in @ref{Void Variables}.)
 
 @example
 @group

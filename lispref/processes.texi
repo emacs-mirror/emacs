@@ -34,6 +34,7 @@ This function returns @code{t} if @var{object} is a process,
 
 @menu
 * Subprocess Creation::      Functions that start subprocesses.
+* Shell Arguments::          Quoting an argument to pass it to a shell.
 * Synchronous Processes::    Details of using synchronous subprocesses.
 * Asynchronous Processes::   Starting up an asynchronous subprocess.
 * Deleting Processes::       Eliminating an asynchronous subprocess.
@@ -190,8 +191,6 @@ process terminated.
 coding system, much like text read from a file.  The input sent to a
 subprocess by @code{call-process-region} is encoded using a coding
 system, much like text written into a file.  @xref{Coding Systems}.
-On Microsoft operating systems, additional variables control
-the conversion for end-of-line (@pxref{MS-DOS Subprocesses}).
 
 @defun call-process program &optional infile destination display &rest args
 This function calls @var{program} in a separate process and waits for
@@ -240,9 +239,14 @@ buffer.
 @end table
 
 If @var{display} is non-@code{nil}, then @code{call-process} redisplays
-the buffer as output is inserted.  Otherwise the function does no
-redisplay, and the results become visible on the screen only when Emacs
-redisplays that buffer in the normal course of events.
+the buffer as output is inserted.  (However, if the coding system chosen
+for decoding output is @code{undecided}, meaning deduce the encoding
+from the actual data, then redisplay sometimes cannot continue once
+non-@sc{ASCII} characters are encountered.  There are fundamental
+reasons why it is hard to fix this.)  Otherwise the function
+@code{call-process} does no redisplay, and the results become visible on
+the screen only when Emacs redisplays that buffer in the normal course
+of events.
 
 The remaining arguments, @var{args}, are strings that specify command
 line arguments for the program.
@@ -351,8 +355,8 @@ inputinput@point{}
 @end smallexample
 @end defun
 
-@tindex shell-command-to-string
 @defun shell-command-to-string command
+@tindex shell-command-to-string
 This function executes @var{command} (a string) as a shell command,
 then returns the command's output as a string.
 @end defun
@@ -362,10 +366,15 @@ then returns the command's output as a string.
 @cindex asynchronous subprocess
 
   After an @dfn{asynchronous process} is created, Emacs and the Lisp
-program both continue running immediately.  The process may thereafter
-run in parallel with Emacs, and the two may communicate with each other
-using the functions described in following sections.  Here we describe
-how to create an asynchronous process with @code{start-process}.
+program both continue running immediately.  The process thereafter runs
+in parallel with Emacs, and the two can communicate with each other
+using the functions described in following sections.  However,
+communication is only partially asynchronous: Emacs sends data to the
+process only when certain functions are called, and Emacs accepts data
+from the process only when Emacs is waiting for input or for a time
+delay.
+
+  Here we describe how to create an asynchronous process.
 
 @defun start-process name buffer-or-name program &rest args
 This function creates a new asynchronous subprocess and starts the
@@ -570,8 +579,8 @@ process is started and remains constant as long as the process exists.
 This function returns the name of @var{process}.
 @end defun
 
-@tindex process-contact
 @defun process-contact process
+@tindex process-contact
 This function returns @code{t} for an ordinary child process, and
 @code{(@var{hostname} @var{service})} for a net connection
 (@pxref{Network}).
@@ -639,8 +648,8 @@ instead of a terminal (see @code{process-connection-type} in
 @ref{Asynchronous Processes}).
 @end defun
 
-@tindex process-coding-system
 @defun process-coding-system process
+@tindex process-coding-system
 This function returns a cons cell describing the coding systems in use
 for decoding output from @var{process} and for encoding input to
 @var{process} (@pxref{Coding Systems}).  The value has this form:
@@ -650,8 +659,8 @@ for decoding output from @var{process} and for encoding input to
 @end example
 @end defun
 
-@tindex set-process-coding-system
 @defun set-process-coding-system process decoding-system encoding-system
+@tindex set-process-coding-system
 This function specifies the coding systems to use for subsequent output
 from and input to @var{process}.  It will use @var{decoding-system} to
 decode subprocess output, and @var{encoding-system} to encode subprocess
@@ -673,8 +682,11 @@ the other characters, to force them through.  For most programs,
 these @sc{eof}s do no harm.
 
   Subprocess input is normally encoded using a coding system before the
-subprocess receives it, much like text written into a file.
-@xref{Coding Systems}.
+subprocess receives it, much like text written into a file.  You can use
+@code{set-process-coding-system} to specify which coding system to use
+(@pxref{Process Information}).  Otherwise, the coding system comes from
+@code{coding-system-for-write}, if that is non-@code{nil}; or else from
+the defaulting mechanism (@pxref{Default Coding Systems}).
 
 @defun process-send-string process-name string
 This function sends @var{process-name} the contents of @var{string} as
@@ -838,9 +850,32 @@ called the @dfn{filter function} can be called to act on the output.  If
 the process has no buffer and no filter function, its output is
 discarded.
 
+  Output from a subprocess can arrive only while Emacs is waiting: when
+reading terminal input, in @code{sit-for} and @code{sleep-for}
+(@pxref{Waiting}), and in @code{accept-process-output} (@pxref{Accepting
+Output}).  This minimizes the problem of timing errors that usually
+plague parallel programming.  For example, you can safely create a
+process and only then specify its buffer or filter function; no output
+can arrive before you finish, if the code in between does not call any
+primitive that waits.
+
   Subprocess output is normally decoded using a coding system before the
 buffer or filter function receives it, much like text read from a file.
-@xref{Coding Systems}.
+You can use @code{set-process-coding-system} to specify which coding
+system to use (@pxref{Process Information}).  Otherwise, the coding
+system comes from @code{coding-system-for-read}, if that is
+non-@code{nil}; or else from the defaulting mechanism (@pxref{Default
+Coding Systems}).
+
+  @strong{Warning:} Coding systems such as @code{undecided} which
+determine the coding system from the data do not work entirely reliably
+with asynchronous subprocess output.  This is because Emacs has to
+process asynchronous subprocess output in batches, as it arrives.  Emacs
+must try to detect the proper coding system from one batch at a time,
+and this does not always work.  Therefore, if at all possible, use a
+coding system which determines both the character code conversion and
+the end of line conversion---that is, one like @code{latin-1-unix},
+rather than @code{undecided} or @code{latin-1}.
 
 @menu
 * Process Buffers::       If no filter, output is put in a buffer.
@@ -934,18 +969,15 @@ then @emph{all} output from that process is passed to the filter.  The
 process buffer is used directly for output from the process only when
 there is no filter.
 
+  The filter function can only be called when Emacs is waiting for
+something, because process output arrives only at such times.  Emacs
+waits when reading terminal input, in @code{sit-for} and
+@code{sleep-for} (@pxref{Waiting}), and in @code{accept-process-output}
+(@pxref{Accepting Output}).
+
   A filter function must accept two arguments: the associated process
 and a string, which is output just received from it.  The function is
 then free to do whatever it chooses with the output.
-
-  A filter function runs only while Emacs is waiting (e.g., for terminal
-input, or for time to elapse, or for process output).  This avoids the
-timing errors that could result from running filters at random places in
-the middle of other Lisp programs.  You may explicitly cause Emacs to
-wait, so that filter functions will run, by calling @code{sit-for} or
-@code{sleep-for} (@pxref{Waiting}), or @code{accept-process-output}
-(@pxref{Accepting Output}).  Emacs is also waiting when the command loop
-is reading input.
 
   Quitting is normally inhibited within a filter function---otherwise,
 the effect of typing @kbd{C-g} at command level or to quit a user
@@ -1161,7 +1193,8 @@ errors that could result from running them at random places in the
 middle of other Lisp programs.  A program can wait, so that sentinels
 will run, by calling @code{sit-for} or @code{sleep-for}
 (@pxref{Waiting}), or @code{accept-process-output} (@pxref{Accepting
-Output}).  Emacs is also waiting when the command loop is reading input.
+Output}).  Emacs also allows sentinels to run when the command loop is
+reading input.
 
   Quitting is normally inhibited within a sentinel---otherwise, the
 effect of typing @kbd{C-g} at command level or to quit a user command

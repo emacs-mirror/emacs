@@ -104,7 +104,7 @@ include @code{nil} and @code{t}, as well as any symbol whose name starts
 with @samp{:}.  These symbols cannot be rebound, nor can their values be
 changed.  Any attempt to set or bind @code{nil} or @code{t} signals a
 @code{setting-constant} error.  The same is true for a symbol whose name
-starts with @samp{:}, except that you are allowed to set such symbol to
+starts with @samp{:}, except that you are allowed to set such a symbol to
 itself.
 
 @example
@@ -118,8 +118,8 @@ nil @equiv{} 'nil
 @end group
 @end example
 
-@tindex keyword-symbols-constant-flag
 @defvar keyword-symbols-constant-flag
+@tindex keyword-symbols-constant-flag
 If this variable is @code{nil}, you are allowed to set and bind symbols
 whose names start with @samp{:} as you wish.  This is to make it
 possible to run old Lisp programs which do that.
@@ -247,27 +247,29 @@ Macro calls (@pxref{Macros}).
 @end itemize
 
   Variables can also have buffer-local bindings (@pxref{Buffer-Local
-Variables}); a few variables have terminal-local bindings
-(@pxref{Multiple Displays}).  These kinds of bindings work somewhat like
-ordinary local bindings, but they are localized depending on ``where''
-you are in Emacs, rather than localized in time.
+Variables}) and frame-local bindings (@pxref{Frame-Local Variables}); a
+few variables have terminal-local bindings (@pxref{Multiple Displays}).
+These kinds of bindings work somewhat like ordinary local bindings, but
+they are localized depending on ``where'' you are in Emacs, rather than
+localized in time.
 
 @defvar max-specpdl-size
 @cindex variable limit error
 @cindex evaluation error
 @cindex infinite recursion
-  This variable defines the limit on the total number of local variable
+This variable defines the limit on the total number of local variable
 bindings and @code{unwind-protect} cleanups (@pxref{Nonlocal Exits})
 that are allowed before signaling an error (with data @code{"Variable
 binding depth exceeds max-specpdl-size"}).
 
-  This limit, with the associated error when it is exceeded, is one way
+This limit, with the associated error when it is exceeded, is one way
 that Lisp avoids infinite recursion on an ill-defined function.
-
-  The default value is 600.
-
-  @code{max-lisp-eval-depth} provides another limit on depth of nesting.
+@code{max-lisp-eval-depth} provides another limit on depth of nesting.
 @xref{Eval}.
+
+The default value is 600.  Entry to the Lisp debugger increases the
+value, if there is little room left, to make sure the debugger itself
+has room to execute.
 @end defvar
 
 @node Void Variables
@@ -430,14 +432,15 @@ already has a value (i.e., it is not void), @var{value} is not even
 evaluated, and @var{symbol}'s value remains unchanged.  If @var{value}
 is omitted, the value of @var{symbol} is not changed in any case.
 
+If @var{symbol} has a buffer-local binding in the current buffer,
+@code{defvar} operates on the default value, which is buffer-independent,
+not the current (buffer-local) binding.  It sets the default value if
+the default value is void.  @xref{Buffer-Local Variables}.
+
 When you evaluate a top-level @code{defvar} form with @kbd{C-M-x} in
 Emacs Lisp mode (@code{eval-defun}), a special feature of
-@code{eval-defun} arranges to set the variable unconditionally even if
-the variable already has a value.
-
-If @var{symbol} has a buffer-local binding in the current buffer,
-@code{defvar} sets the default (buffer-independent) value, not the
-buffer-local value.  @xref{Buffer-Local Variables}.
+@code{eval-defun} arranges to set the variable unconditionally, without
+testing whether its value is void.
 
 If the @var{doc-string} argument appears, it specifies the documentation
 for the variable.  (This opportunity to specify documentation is one of
@@ -518,9 +521,10 @@ symbol to be defined must appear explicitly in the @code{defconst}.
 
 @code{defconst} always evaluates @var{value}, and sets the value of
 @var{symbol} to the result if @var{value} is given.  If @var{symbol}
-does has a buffer-local binding in the current buffer, @code{defconst}
-sets the default value, not the buffer-local value.  But you should not
-be making the symbol buffer-local if it is defined with @code{defconst}.
+does have a buffer-local binding in the current buffer, @code{defconst}
+sets the default value, not the buffer-local value.  (But you should not
+be making buffer-local bindings for a symbol that is defined with
+@code{defconst}.)
 
 Here, @code{pi} is a constant that presumably ought not to be changed
 by anyone (attempts by the Indiana State Legislature notwithstanding).
@@ -560,7 +564,7 @@ then the variable is a user option.
 the @code{set-variable} command uses that value to control reading the
 new value for the variable.  The property's value is used as if it were
 to @code{interactive} (@pxref{Using Interactive}).  However, this feature
-is largely obsoleted by the @code{defcustom} (@pxref{Customization}).
+is largely obsoleted by @code{defcustom} (@pxref{Customization}).
 
   @strong{Warning:} If the @code{defconst} and @code{defvar} special
 forms are used while the variable has a local binding, they set the
@@ -1069,7 +1073,7 @@ and/or frames is an important customization method.
 
   This section describes buffer-local bindings; for frame-local
 bindings, see the following section, @ref{Frame-Local Variables}.  (A few
-variables have bindings that are local to a X terminal; see
+variables have bindings that are local to each X terminal; see
 @ref{Multiple Displays}.)
 
 @menu
@@ -1137,8 +1141,8 @@ can scramble the values of the buffer-local and default bindings.
 
   To preserve your sanity, avoid using a variable in that way.  If you
 use @code{save-excursion} around each piece of code that changes to a
-different current buffer, you will not have this problem.  Here is an
-example of what to avoid:
+different current buffer, you will not have this problem
+(@pxref{Excursions}).  Here is an example of what to avoid:
 
 @example
 @group
@@ -1288,7 +1292,7 @@ then the variable appears directly in the resulting list.
 (setq lcl (buffer-local-variables))
     ;; @r{First, built-in variables local in all buffers:}
 @result{} ((mark-active . nil)
-    (buffer-undo-list nil)
+    (buffer-undo-list . nil)
     (mode-name . "Fundamental")
     @dots{}
 @group
@@ -1331,8 +1335,9 @@ result, the buffer will see the default values of most variables.
 
 This function also resets certain other information pertaining to the
 buffer: it sets the local keymap to @code{nil}, the syntax table to the
-value of @code{standard-syntax-table}, and the abbrev table to the value
-of @code{fundamental-mode-abbrev-table}.
+value of @code{(standard-syntax-table)}, the case table to
+@code{(standard-case-table)}, and the abbrev table to the value of
+@code{fundamental-mode-abbrev-table}.
 
 The very first thing this function does is run the normal hook
 @code{change-major-mode-hook} (see below).
@@ -1400,10 +1405,11 @@ default value is nonvoid.  If @code{(default-boundp 'foo)} returns
 @code{symbol-value}.
 @end defun
 
-@defspec setq-default symbol value
-This sets the default value of @var{symbol} to @var{value}.  It does not
-evaluate @var{symbol}, but does evaluate @var{value}.  The value of the
-@code{setq-default} form is @var{value}.
+@defspec setq-default [symbol form]@dots{}
+This special form gives each @var{symbol} a new default value, which is
+the result of evaluating the corresponding @var{form}.  It does not
+evaluate @var{symbol}, but does evaluate @var{form}.  The value of the
+@code{setq-default} form is the value of the last @var{form}.
 
 If a @var{symbol} is not buffer-local for the current buffer, and is not
 marked automatically buffer-local, @code{setq-default} has the same
@@ -1492,17 +1498,18 @@ name as the parameter name.
   To enable frame-local bindings for a certain variable, call the function
 @code{make-variable-frame-local}.
 
-@defun make-variable-frame-local variable
+@deffn Command make-variable-frame-local variable
 Enable the use of frame-local bindings for @var{variable}.  This does
 not in itself create any frame-local bindings for the variable; however,
 if some frame already has a value for @var{variable} as a frame
 parameter, that value automatically becomes a frame-local binding.
 
-If the variable is terminal-local, this function signals an error.  Such
-variables cannot have buffer-local bindings as well.  @xref{Multiple
-Displays}.  A few variables that are implemented specially in Emacs
-can be (and usually are) buffer-local, but can never be frame-local.
-@end defun
+If the variable is terminal-local, this function signals an error,
+because such variables cannot have frame-local bindings as well.
+@xref{Multiple Displays}.  A few variables that are implemented
+specially in Emacs can be (and usually are) buffer-local, but can never
+be frame-local.
+@end deffn
 
   Buffer-local bindings take precedence over frame-local bindings.  Thus,
 consider a variable @code{foo}: if the current buffer has a buffer-local

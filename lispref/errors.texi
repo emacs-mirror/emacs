@@ -104,7 +104,7 @@ This is a @code{file-error}.@*
 @xref{Regular Expressions}.
 
 @item mark-inactive
-@code{Mark inactive"}@*
+@code{"Mark inactive"}@*
 @xref{The Mark}.
 
 @item no-catch

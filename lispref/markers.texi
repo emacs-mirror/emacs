@@ -131,8 +131,8 @@ This function returns @code{t} if @var{object} is an integer or a marker,
 @end defun
 
 @defun number-or-marker-p object
-This function returns @code{t} if @var{object} is a number (either kind)
-or a marker, @code{nil} otherwise.
+This function returns @code{t} if @var{object} is a number (either
+integer or floating point) or a marker, @code{nil} otherwise.
 @end defun
 
 @node Creating Markers
@@ -144,7 +144,7 @@ accessible portion of the buffer, or to the same place as another given
 marker.
 
 @defun make-marker
-This functions returns a newly created marker that does not point
+This function returns a newly created marker that does not point
 anywhere.
 
 @example
@@ -216,8 +216,25 @@ passed an integer argument greater than the length of the buffer,
 @code{copy-marker} returns a new marker that points to the end of the
 buffer.
 
+@example
+@group
+(copy-marker 0)
+     @result{} #<marker at 1 in markers.texi>
+@end group
+
+@group
+(copy-marker 20000)
+     @result{} #<marker at 7572 in markers.texi>
+@end group
+@end example
+
 An error is signaled if @var{marker} is neither a marker nor an
 integer.
+@end defun
+
+  Two distinct markers are considered @code{equal} (even though not
+@code{eq}) to each other if they have the same position and buffer, or
+if they both point nowhere.
 
 @example
 @group
@@ -239,18 +256,7 @@ integer.
 (equal p q)
      @result{} t
 @end group
-
-@group
-(copy-marker 0)
-     @result{} #<marker at 1 in markers.texi>
-@end group
-
-@group
-(copy-marker 20000)
-     @result{} #<marker at 7572 in markers.texi>
-@end group
 @end example
-@end defun
 
 @node Information from Markers
 @section Information from Markers
@@ -296,10 +302,6 @@ This function returns the buffer that @var{marker} points into, or
 @end example
 @end defun
 
-  Two distinct markers are considered @code{equal} (even though not
-@code{eq}) to each other if they have the same position and buffer, or
-if they both point nowhere.
-
 @node Marker Insertion Types
 @section Marker Insertion Types
 
@@ -311,16 +313,16 @@ marker should do by setting its @dfn{insertion type}.  Note that use of
 @code{insert-before-markers} ignores markers' insertion types, always
 relocating a marker to point after the inserted text.
 
-@tindex set-marker-insertion-type
 @defun set-marker-insertion-type marker type
+@tindex set-marker-insertion-type
 This function sets the insertion type of marker @var{marker} to
 @var{type}.  If @var{type} is @code{t}, @var{marker} will advances when
 text is inserted at it.  If @var{type} is @code{nil}, @var{marker} does
 not advance when text is inserted there.
 @end defun
 
-@tindex marker-insertion-type
 @defun marker-insertion-type marker
+@tindex marker-insertion-type
 This function reports the current insertion type of @var{marker}.
 @end defun
 
@@ -377,9 +379,9 @@ This is another name for @code{set-marker}.
 
   One special marker in each buffer is designated @dfn{the mark}.  It
 records a position for the user for the sake of commands such as
-@kbd{C-w} and @kbd{C-x @key{TAB}}.  Lisp programs should set the mark
-only to values that have a potential use to the user, and never for
-their own internal purposes.  For example, the @code{replace-regexp}
+@code{kill-region} and @code{indent-rigidly}.  Lisp programs should set
+the mark only to values that have a potential use to the user, and never
+for their own internal purposes.  For example, the @code{replace-regexp}
 command sets the mark to the value of point before doing any
 replacements, because this enables the user to move back there
 conveniently after the replace is finished.

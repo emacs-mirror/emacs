@@ -7,7 +7,7 @@
 
 For those users who live backwards in time, here is information about
 downgrading to Emacs version 19.34.  We hope you will enjoy the greater
-simplicity that results from the absence of many Emacs 19 features.  In
+simplicity that results from the absence of many Emacs 20 features.  In
 the following section, we carry this information back as far as Emacs
 19.29, for which the previous printed edition of this manual was made.
 
@@ -29,9 +29,10 @@ Within this range, there are no invalid character codes.
 @item
 The Custom facility has been replaced with a much simpler and more
 general method of defining user option variables.  Instead of
-@code{defcustom}, which requires you to specify each user option's
-data type and classify them into groups, all you have to do is write
-a @code{defvar} and start the documentation string with @samp{*}.
+@code{defcustom}, which requires you to specify each user option's data
+type and classify options into groups, all you have to do is write a
+@code{defvar}.  You should still start the documentation string with
+@samp{*}, though.
 @end itemize
 
 Here are changes in the Lisp language itself:
@@ -138,7 +139,7 @@ directory name from the beginning of the file name---just like
 We have got rid of the function @code{access-file}.
 
 @item
-Most of the minibuffer input functions, no longer take a default value as
+Most of the minibuffer input functions no longer take a default value as
 an argument.  Also, they do not discard text properties from the result.
 This means that if you insert text with text properties into the minibuffer,
 the minibuffer value really will contain text properties.

@@ -46,7 +46,7 @@ instead.
 If you write a function that you think ought to be added to Emacs under
 a certain name, such as @code{twiddle-files}, don't call it by that name
 in your program.  Call it @code{mylib-twiddle-files} in your program,
-and send mail to @samp{bug-gnu-emacs@@prep.ai.mit.edu} suggesting we add
+and send mail to @samp{bug-gnu-emacs@@gnu.org} suggesting we add
 it to Emacs.  If and when we do, we can change the name easily enough.
 
 If one prefix is insufficient, your package may use two or three
@@ -104,6 +104,8 @@ If a user option variable records a true-or-false condition, give it a
 name that ends in @samp{-flag}.
 
 @item
+@cindex reserved keys
+@cindex keys, reserved
 Please do not define @kbd{C-c @var{letter}} as a key in your major
 modes.  These sequences are reserved for users; they are the
 @strong{only} sequences reserved for users, so do not block them.
@@ -262,7 +264,7 @@ Try to avoid compiler warnings about undefined free variables, by adding
 If you bind a variable in one function, and use it or set it in another
 function, the compiler warns about the latter function unless the
 variable has a definition.  But often these variables have short names,
-and it is not clean for Lisp packages to define such variables names.
+and it is not clean for Lisp packages to define such variable names.
 Therefore, you should rename the variable to start with the name prefix
 used for the other functions and variables in your package.
 
@@ -317,8 +319,10 @@ Lisp programs.
 @cindex profiling
 @cindex timing programs
 @cindex @file{profile.el}
-Use the @file{profile} library to profile your program.  See the file
-@file{profile.el} for instructions.
+@cindex @file{elp.el}
+Profile your program with the @file{profile} library or the @file{elp}
+library.  See the files @file{profile.el} and @file{elp.el} for
+instructions.
 
 @item
 Use iteration rather than recursion whenever possible.
@@ -340,18 +344,12 @@ property.  If the property is non-@code{nil}, then the function is
 handled specially.
 
 For example, the following input will show you that @code{aref} is
-compiled specially (@pxref{Array Functions}) while @code{elt} is not
-(@pxref{Sequence Functions}):
+compiled specially (@pxref{Array Functions}):
 
 @example
 @group
 (get 'aref 'byte-compile)
      @result{} byte-compile-two-args
-@end group
-
-@group
-(get 'elt 'byte-compile)
-     @result{} nil
 @end group
 @end example
 
@@ -480,13 +478,38 @@ t and nil without single-quotes.  (In this manual, we use a different
 convention, with single-quotes for all symbols.)
 @end ifinfo
 
-For example:
+Help mode automatically creates hyperlinks when documentation strings
+use symbol names inside single quotes, when the symbol has either a
+function or a variable definition.  You do not need to do anything
+special to make use of this feature.  However, when a symbol has both a
+function definition and a variable definition, and you want to refer to
+just one of them, you can specify which one by writing one of the words
+@samp{variable}, @samp{option}, @samp{function}, or @samp{command},
+immediately before the symbol name.  (Case makes no difference in
+recognizing these indicator words.)  For example, if you write
 
 @example
-The value of `swim-speed' specifies how fast to swim.
-Possible values are t for high speed, nil for low speed,
-and `medium' for medium speed.
+This function sets the variable `buffer-file-name'.
 @end example
+
+@noindent
+then the hyperlink will refer only to the variable documentation of
+@code{buffer-file-name}, and not to its function documentation.
+
+If a symbol has a function definition and/or a variable definition, but
+those are irrelevant to the use of the symbol that you are documenting,
+you can write the word @samp{symbol} before the symbol name to prevent
+making any hyperlink.  For example,
+
+@example
+If the argument KIND-OF-RESULT is the symbol `list',
+this function returns a list of all the objects
+that satisfy the criterion.
+@end example
+
+@noindent
+does not make a hyperlink to the documentation, irrelevant here, of the
+function @code{list}.
 
 @item
 Don't write key sequences directly in documentation strings.  Instead,
@@ -692,6 +715,8 @@ example).
 
 @item Keywords
 This line lists keywords for the @code{finder-by-keyword} help command.
+Please use that command to see a list of the meaningful keywords.
+
 This field is important; it's how people will find your package when
 they're looking for things by topic area.  To separate the keywords, you
 can use spaces, commas, or both.
@@ -708,14 +733,21 @@ library file.  Here is a table of them:
 @table @samp
 @item ;;; Commentary:
 This begins introductory comments that explain how the library works.
-It should come right after the copying permissions.
+It should come right after the copying permissions, terminated by a
+@samp{Change Log}, @samp{History} or @samp{Code} comment line.  This
+text is used by the Finder package, so it should make sense in that
+context.
 
-@item ;;; Change log:
+@item ;;; Documentation
+This has been used in some files in place of @samp{;;; Commentary:},
+but @samp{;;; Commentary:} is preferred.
+
+@item ;;; Change Log:
 This begins change log information stored in the library file (if you
 store the change history there).  For most of the Lisp
 files distributed with Emacs, the change history is kept in the file
 @file{ChangeLog} and not in the source file at all; these files do
-not have a @samp{;;; Change log:} line.
+not have a @samp{;;; Change Log:} line.
 
 @item ;;; Code:
 This begins the actual code of the program.

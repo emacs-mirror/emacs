@@ -35,6 +35,8 @@ containing Lisp code.
 
 @menu
 * How Programs Do Loading::     The @code{load} function and others.
+* Library Search::              Finding a library to load.
+* Loading Non-ASCII::           Non-@sc{ASCII} characters in Emacs Lisp files.
 * Autoload::                    Setting up a function to autoload.
 * Repeated Loading::            Precautions about loading a file twice.
 * Named Features::              Loading a library if it isn't already loaded.
@@ -53,7 +55,7 @@ function's real definition (@pxref{Autoload}).  @code{require} loads a
 file if it isn't already loaded (@pxref{Named Features}).  Ultimately,
 all these facilities call the @code{load} function to do the work.
 
-@defun load filename &optional missing-ok nomessage nosuffix
+@defun load filename &optional missing-ok nomessage nosuffix must-suffix
 This function finds and opens a file of Lisp code, evaluates all the
 forms in it, and closes the file.
 
@@ -74,6 +76,12 @@ must specify the precise file name you want.  By specifying the precise
 file name and using @code{t} for @var{nosuffix}, you can prevent
 perverse file names such as @file{foo.el.el} from being tried.
 
+If the optional argument @var{must-suffix} is non-@code{nil}, then
+@code{load} insists that the file name used must end in either
+@samp{.el} or @samp{.elc}, unless it contains an explicit directory
+name.  If @var{filename} does not contain an explicit directory name,
+and does not end in a suffix, then @code{load} insists on adding one.
+
 If @var{filename} is a relative file name, such as @file{foo} or
 @file{baz/foo.bar}, @code{load} searches for the file using the variable
 @code{load-path}.  It appends @var{filename} to each of the directories
@@ -82,7 +90,7 @@ matches.  The current default directory is tried only if it is specified
 in @code{load-path}, where @code{nil} stands for the default directory.
 @code{load} tries all three possible suffixes in the first directory in
 @code{load-path}, then all three suffixes in the second directory, and
-so on.
+so on.  @xref{Library Search}.
 
 If you get a warning that @file{foo.elc} is older than @file{foo.el}, it
 means you should consider recompiling @file{foo.el}.  @xref{Byte
@@ -118,7 +126,7 @@ See below.
 This command loads the file @var{filename}.  If @var{filename} is a
 relative file name, then the current default directory is assumed.
 @code{load-path} is not used, and suffixes are not appended.  Use this
-command if you wish to specify the file to be loaded exactly.
+command if you wish to specify precisely the file name to load.
 @end deffn
 
 @deffn Command load-library library
@@ -126,17 +134,43 @@ This command loads the library named @var{library}.  It is equivalent to
 @code{load}, except in how it reads its argument interactively.
 @end deffn
 
+@defvar load-in-progress
+This variable is non-@code{nil} if Emacs is in the process of loading a
+file, and it is @code{nil} otherwise.
+@end defvar
+
+@defvar load-read-function
+This variable specifies an alternate expression-reading function for
+@code{load} and @code{eval-region} to use instead of @code{read}.
+The function should accept one argument, just as @code{read} does.
+
+Normally, the variable's value is @code{nil}, which means those
+functions should use @code{read}.
+@end defvar
+
+  For how @code{load} is used to build Emacs, see @ref{Building Emacs}.
+
+@node Library Search
+@section Library Search
+
+  When Emacs loads a Lisp library, it searches for the library
+in a list of directories specified by the variable @code{load-path}.
+
 @defopt load-path
 @cindex @code{EMACSLOADPATH} environment variable
 The value of this variable is a list of directories to search when
 loading files with @code{load}.  Each element is a string (which must be
 a directory name) or @code{nil} (which stands for the current working
-directory).  The value of @code{load-path} is initialized from the
-environment variable @code{EMACSLOADPATH}, if that exists; otherwise its
-default value is specified in @file{emacs/src/paths.h} when Emacs is
-built.
+directory).
+@end defopt
 
-The syntax of @code{EMACSLOADPATH} is the same as used for @code{PATH};
+  The value of @code{load-path} is initialized from the environment
+variable @code{EMACSLOADPATH}, if that exists; otherwise its default
+value is specified in @file{emacs/src/paths.h} when Emacs is built.
+Then the list is expanded by adding subdirectories of the directories
+in the list.
+
+  The syntax of @code{EMACSLOADPATH} is the same as used for @code{PATH};
 @samp{:} (or @samp{;}, according to the operating system) separates
 directory names, and @samp{.} is used for the current default directory.
 Here is an example of how to set your @code{EMACSLOADPATH} variable from
@@ -144,17 +178,17 @@ a @code{csh} @file{.login} file:
 
 @c This overfull hbox is OK.  --rjc 16mar92
 @smallexample
-setenv EMACSLOADPATH .:/user/bil/emacs:/usr/lib/emacs/lisp
+setenv EMACSLOADPATH .:/user/bil/emacs:/usr/local/lib/emacs/lisp
 @end smallexample
 
-Here is how to set it using @code{sh}:
+  Here is how to set it using @code{sh}:
 
 @smallexample
 export EMACSLOADPATH
 EMACSLOADPATH=.:/user/bil/emacs:/usr/local/lib/emacs/lisp
 @end smallexample
 
-Here is an example of code you can place in a @file{.emacs} file to add
+  Here is an example of code you can place in a @file{.emacs} file to add
 several directories to the front of your default @code{load-path}:
 
 @smallexample
@@ -174,34 +208,37 @@ followed then by the @file{/user/bil/emacs} directory, the
 @file{/usr/local/lisplib} directory, and the @file{~/emacs} directory,
 which are then followed by the standard directories for Lisp code.
 
-Dumping Emacs uses a special value of @code{load-path}.  If the value of
+  Dumping Emacs uses a special value of @code{load-path}.  If the value of
 @code{load-path} at the end of dumping is unchanged (that is, still the
 same special value), the dumped Emacs switches to the ordinary
 @code{load-path} value when it starts up, as described above.  But if
 @code{load-path} has any other value at the end of dumping, that value
 is used for execution of the dumped Emacs also.
 
-Therefore, if you want to change @code{load-path} temporarily for
+  Therefore, if you want to change @code{load-path} temporarily for
 loading a few libraries in @file{site-init.el} or @file{site-load.el},
 you should bind @code{load-path} locally with @code{let} around the
 calls to @code{load}.
-@end defopt
 
   The default value of @code{load-path}, when running an Emacs which has
-been installed on the system, looks like this:
+been installed on the system, includes two special directories (and
+their subdirectories as well):
 
 @smallexample
-("/usr/local/share/emacs/@var{version}/site-lisp"
- "/usr/local/share/emacs/site-lisp"
- "/usr/local/share/emacs/@var{version}/lisp")
+"/usr/local/share/emacs/@var{version}/site-lisp"
 @end smallexample
 
-  The last of these three directories is where the Lisp files of Emacs
-itself are installed; the first two are for additional Lisp packages
-installed at your site.  The first directory is for locally installed
-packages that belong with a particular Emacs version; the second is for
-locally installed packages that can be used with any installed Emacs
-version.
+@noindent
+and
+
+@smallexample
+"/usr/local/share/emacs/site-lisp"
+@end smallexample
+
+@noindent
+The first one is for locally installed packages for a particular Emacs
+version; the second is for locally installed packages meant for use with
+all installed Emacs versions.
 
   There are several reasons why a Lisp package that works well in one
 Emacs version can cause trouble in another.  Sometimes packages need
@@ -210,27 +247,22 @@ undocumented internal Emacs data that can change without notice;
 sometimes a newer Emacs version incorporates a version of the package,
 and should be used only with that version.
 
+  Emacs finds these directories' subdirectories and adds them to
+@code{load-path} when it starts up.  Both immediate subdirectories and
+subdirectories multiple levels down are added to @code{load-path}.
+
+  Not all subdirectories are included, though.  Subdirectories whose
+names do not start with a letter or digit are excluded.  Subdirectories
+named @file{RCS} are excluded.  Also, a subdirectory which contains a
+file named @file{.nosearch} is excluded.  You can use these methods to
+prevent certain subdirectories of the @file{site-lisp} directories from
+being searched.
+
   If you run Emacs from the directory where it was built---that is, an
 executable that has not been formally installed---then @code{load-path}
 normally contains two additional directories.  These are the @code{lisp}
 and @code{site-lisp} subdirectories of the main build directory.  (Both
 are represented as absolute file names.)
-
-@defvar load-in-progress
-This variable is non-@code{nil} if Emacs is in the process of loading a
-file, and it is @code{nil} otherwise.
-@end defvar
-
-@defvar load-read-function
-This variable specifies an alternate expression-reading function for
-@code{load} and @code{eval-region} to use instead of @code{read}.
-The function should accept one argument, just as @code{read} does.
-
-Normally, the variable's value is @code{nil}, which means those
-functions should use @code{read}.
-@end defvar
-
-  For how @code{load} is used to build Emacs, see @ref{Building Emacs}.
 
 @deffn Command locate-library library &optional nosuffix path interactive-call
 This command finds the precise file name for library @var{library}.  It
@@ -248,6 +280,44 @@ interactively, the argument @var{interactive-call} is @code{t}, and this
 tells @code{locate-library} to display the file name in the echo area.
 @end deffn
 
+@node Loading Non-ASCII
+@section Loading Non-ASCII Characters
+
+  When Emacs Lisp programs contain string constants with non-@sc{ASCII}
+characters, these can be represented within Emacs either as unibyte
+strings or as multibyte strings (@pxref{Text Representations}).  Which
+representation is used depends on how the file is read into Emacs.  If
+it is read with decoding into multibyte representation, the text of the
+Lisp program will be multibyte text, and its string constants will be
+multibyte strings.  If a file containing Latin-1 characters (for
+example) is read without decoding, the text of the program will be
+unibyte text, and its string constants will be unibyte strings.
+@xref{Coding Systems}.
+
+  To make the results more predictable, Emacs always performs decoding
+into the multibyte representation when loading Lisp files, even if it
+was started with the @samp{--unibyte} option.  This means that string
+constants with non-@sc{ASCII} characters translate into multibyte
+strings.  The only exception is when a particular file specifies no
+decoding.
+
+  The reason Emacs is designed this way is so that Lisp programs give
+predictable results, regardless of how Emacs was started.  In addition,
+this enables programs that depend on using multibyte text to work even
+in a unibyte Emacs.  Of course, such programs should be designed to
+notice whether the user prefers unibyte or multibyte text, by checking
+@code{default-enable-multibyte-characters}, and convert representations
+appropriately.
+
+  In most Emacs Lisp programs, the fact that non-@sc{ASCII} strings are
+multibyte strings should not be noticeable, since inserting them in
+unibyte buffers converts them to unibyte automatically.  However, if
+this does make a difference, you can force a particular Lisp file to be
+interpreted as unibyte by writing @samp{-*-coding: raw-text;-*-} in a
+comment on the file's first line.  With that designator, the file will
+be unconditionally be interpreted as unibyte, even in an ordinary
+multibyte Emacs session.
+
 @node Autoload
 @section Autoload
 @cindex autoload
@@ -263,8 +333,8 @@ as if it had been loaded all along.
 source before the real definition.  @code{autoload} is the low-level
 primitive for autoloading; any Lisp program can call @code{autoload} at
 any time.  Magic comments are the most convenient way to make a function
-autoload, for packages installed along with Emacs.  They do nothing on
-their own, but they serve as a guide for the command
+autoload, for packages installed along with Emacs.  These comments do
+nothing on their own, but they serve as a guide for the command
 @code{update-file-autoloads}, which constructs calls to @code{autoload}
 and arranges to execute them when Emacs is built.
 
@@ -286,10 +356,10 @@ documentation without loading the function's real definition.
 
 If @var{interactive} is non-@code{nil}, that says @var{function} can be
 called interactively.  This lets completion in @kbd{M-x} work without
-loading its real definition.  The complete interactive specification is
-not given here; it's not needed unless the user actually calls
-@var{function}, and when that happens, it's time to load the real
-definition.
+loading @var{function}'s real definition.  The complete interactive
+specification is not given here; it's not needed unless the user
+actually calls @var{function}, and when that happens, it's time to load
+the real definition.
 
 You can autoload macros and keymaps as well as ordinary functions.
 Specify @var{type} as @code{macro} if @var{function} is really a macro.
@@ -338,9 +408,9 @@ or provide one or more features.  If the file is not completely loaded
 definitions or @code{provide} calls that occurred during the load are
 undone.  This is to ensure that the next attempt to call any function
 autoloading from this file will try again to load the file.  If not for
-this, then some of the functions in the file might appear defined, but
-they might fail to work properly for the lack of certain subroutines
-defined later in the file and not loaded successfully.
+this, then some of the functions in the file might be defined by the
+aborted load, but fail to work properly for the lack of certain
+subroutines not loaded successfully because they come later in the file.
 
   If the autoloaded file fails to define the desired Lisp function or
 macro, then an error is signaled with data @code{"Autoloading failed to
@@ -348,7 +418,7 @@ define function @var{function-name}"}.
 
 @findex update-file-autoloads
 @findex update-directory-autoloads
-  A magic autoload comment looks like @samp{;;;###autoload}, on a line
+  A magic autoload comment consists of @samp{;;;###autoload}, on a line
 by itself, just before the real definition of the function in its
 autoloadable source file.  The command @kbd{M-x update-file-autoloads}
 writes a corresponding @code{autoload} call into @file{loaddefs.el}.
@@ -398,7 +468,7 @@ documentation string in the @file{etc/DOC} file.  @xref{Building Emacs}.
 @section Repeated Loading
 @cindex repeated loading
 
-  You can load one file more than once in an Emacs session.  For
+  You can load a given file more than once in an Emacs session.  For
 example, after you have rewritten and reinstalled a function definition
 by editing it in a buffer, you may wish to return to the original
 version; you can do this by reloading the file it came from.
@@ -409,7 +479,7 @@ rather than a non-compiled file of similar name.  If you rewrite a file
 that you intend to save and reinstall, you need to byte-compile the new
 version; otherwise Emacs will load the older, byte-compiled file instead
 of your newer, non-compiled file!  If that happens, the message
-displayed when loading the file includes, @samp{(compiled; source is
+displayed when loading the file includes, @samp{(compiled; note, source is
 newer)}, to remind you to recompile it.
 
   When writing the forms in a Lisp library file, keep in mind that the
@@ -435,7 +505,7 @@ To avoid the problem, write this:
           (cons '(leif-mode " Leif") minor-mode-alist)))
 @end example
 
-  To add an element to a list just once, use @code{add-to-list}
+  To add an element to a list just once, you can also use @code{add-to-list}
 (@pxref{Setting Variables}).
 
   Occasionally you will want to test explicitly whether a library has

@@ -47,9 +47,9 @@ not be displayed in any windows.
 
   Buffers in Emacs editing are objects that have distinct names and hold
 text that can be edited.  Buffers appear to Lisp programs as a special
-data type.  You can think of the contents of a buffer as an extendable
-string; insertions and deletions may occur in any part of the buffer.
-@xref{Text}.
+data type.  You can think of the contents of a buffer as a string that
+you can extend; insertions and deletions may occur in any part of the
+buffer.  @xref{Text}.
 
   A Lisp buffer object contains numerous pieces of information.  Some of
 this information is directly accessible to the programmer through
@@ -112,7 +112,7 @@ the subroutine does not change which buffer is current (unless, of
 course, that is the subroutine's purpose).  Therefore, you should
 normally use @code{set-buffer} within a @code{save-current-buffer} or
 @code{save-excursion} (@pxref{Excursions}) form that will restore the
-current buffer when your function is done .  Here is an example, the
+current buffer when your function is done.  Here is an example, the
 code for the command @code{append-to-buffer} (with the documentation
 string abridged):
 
@@ -201,8 +201,8 @@ An error is signaled if @var{buffer-or-name} does not identify an
 existing buffer.
 @end defun
 
+@defspec save-current-buffer body...
 @tindex save-current-buffer
-@defmac save-current-buffer body...
 The @code{save-current-buffer} macro saves the identity of the current
 buffer, evaluates the @var{body} forms, and finally restores that buffer
 as current.  The return value is the value of the last form in
@@ -215,8 +215,8 @@ of course.  Instead, whichever buffer was current just before exit
 remains current.
 @end defmac
 
-@tindex with-current-buffer
 @defmac with-current-buffer buffer body...
+@tindex with-current-buffer
 The @code{with-current-buffer} macro saves the identity of the current
 buffer, makes @var{buffer} current, evaluates the @var{body} forms, and
 finally restores the buffer.  The return value is the value of the last
@@ -224,8 +224,8 @@ form in @var{body}.  The current buffer is restored even in case of an
 abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 @end defmac
 
-@tindex with-temp-buffer
 @defmac with-temp-buffer body...
+@tindex with-temp-buffer
 The @code{with-temp-buffer} macro evaluates the @var{body} forms
 with a temporary buffer as the current buffer.  It saves the identity of
 the current buffer, creates a temporary buffer and makes it current,

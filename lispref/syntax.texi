@@ -10,7 +10,7 @@
 @cindex text parsing
 
   A @dfn{syntax table} specifies the syntactic textual function of each
-character.  This information is used by the parsing commands, the
+character.  This information is used by the @dfn{parsing functions}, the
 complex movement commands, and others to determine where words, symbols,
 and other syntactic constructs begin and end.  The current syntax table
 controls the meaning of the word motion functions (@pxref{Word Motion})
@@ -524,8 +524,8 @@ If the property is @code{nil}, the character's syntax is determined from
 the current syntax table in the usual way.
 @end table
 
-@tindex parse-sexp-lookup-properties
 @defvar parse-sexp-lookup-properties
+@tindex parse-sexp-lookup-properties
 If this is non-@code{nil}, the syntax scanning functions pay attention
 to syntax text properties.  Otherwise they use only the current syntax
 table.
@@ -765,43 +765,50 @@ a character to match was specified.
 to each syntactic type.
 
 @multitable @columnfractions .05 .3 .3 .3
-@item@tab
-@i{Integer} @i{Class}
+@item
 @tab
 @i{Integer} @i{Class}
 @tab
 @i{Integer} @i{Class}
-@item@tab
+@tab
+@i{Integer} @i{Class}
+@item
+@tab
 0 @ @  whitespace
 @tab
 5 @ @  close parenthesis
 @tab
 10 @ @  character quote
-@item@tab
+@item
+@tab
 1 @ @  punctuation
 @tab
 6 @ @  expression prefix
 @tab
 11 @ @  comment-start
-@item@tab
+@item
+@tab
 2 @ @  word
 @tab
 7 @ @  string quote
 @tab
 12 @ @  comment-end
-@item@tab
+@item
+@tab
 3 @ @  symbol
 @tab
 8 @ @  paired delimiter
 @tab
 13 @ @  inherit
-@item@tab
+@item
+@tab
 4 @ @  open parenthesis
 @tab
 9 @ @  escape
 @tab
 14 @ @  comment-fence
-@item@tab
+@item
+@tab
 15 @  string-fence
 @end multitable
 
@@ -813,19 +820,22 @@ least significant bit.  This table gives the power of two which
 corresponds to each syntax flag.
 
 @multitable @columnfractions .05 .3 .3 .3
-@item@tab
-@i{Prefix} @i{Flag}
+@item
 @tab
 @i{Prefix} @i{Flag}
 @tab
 @i{Prefix} @i{Flag}
-@item@tab
+@tab
+@i{Prefix} @i{Flag}
+@item
+@tab
 @samp{1} @ @  @code{(lsh 1 16)}
 @tab
 @samp{3} @ @  @code{(lsh 1 18)}
 @tab
 @samp{p} @ @  @code{(lsh 1 20)}
-@item@tab
+@item
+@tab
 @samp{2} @ @  @code{(lsh 1 17)}
 @tab
 @samp{4} @ @  @code{(lsh 1 19)}

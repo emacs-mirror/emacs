@@ -13,11 +13,11 @@ perhaps a minibuffer window), which you can subdivide vertically or
 horizontally into smaller windows.
 
 @cindex terminal frame
-@cindex X window frame
   When Emacs runs on a text-only terminal, it starts with one
 @dfn{terminal frame}.  If you create additional ones, Emacs displays
 one and only one at any given time---on the terminal screen, of course.
 
+@cindex window frame
   When Emacs communicates directly with a supported window system, such
 as X Windows, it does not have a terminal frame; instead, it starts with
 a single @dfn{window frame}, but you can create more, and Emacs can
@@ -77,14 +77,14 @@ window system Emacs uses to display its frames.  @xref{Window Frame
 Parameters}, for documentation of individual parameters you can specify.
 @end defun
 
-@tindex before-make-frame-hook
 @defvar before-make-frame-hook
+@tindex before-make-frame-hook
 A normal hook run by @code{make-frame} before it actually creates the
 frame.
 @end defvar
 
-@tindex after-make-frame-hook
 @defvar after-make-frame-hook
+@tindex after-make-frame-hook
 An abnormal hook run by @code{make-frame} after it creates the frame.
 Each function in @code{after-make-frame-hook} receives one argument, the
 frame just created.
@@ -265,6 +265,11 @@ window frame; of these, @code{name}, @code{title}, @code{height},
 meaningful information in terminal frames.
 
 @table @code
+@item display
+The display on which to open this frame.  It should be a string of the
+form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
+@code{DISPLAY} environment variable.
+
 @item title
 If a frame has a non-@code{nil} title, it appears in the window system's
 border for the frame, and also in the mode line of windows in that frame
@@ -282,11 +287,6 @@ you don't specify a name, Emacs sets the frame name automatically
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
-
-@item display
-The display on which to open this frame.  It should be a string of the
-form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
-@code{DISPLAY} environment variable.
 
 @item left
 The screen position of the left edge, in pixels, with respect to the
@@ -382,7 +382,8 @@ ordered most-recently-selected first.
 
 @item font
 The name of the font for displaying text in the frame.  This is a
-string.
+string, either a valid font name for your system or the name of an Emacs
+fontset (@pxref{Fontsets}).
 
 @item auto-raise
 Whether selecting the frame raises it (non-@code{nil} means yes).
@@ -457,12 +458,14 @@ The default is 1.  @xref{Menu Bar}.  (In Emacs versions that use the X
 toolkit, there is only one menu bar line; all that matters about the
 number you specify is whether it is greater than zero.)
 
+@ignore
 @item parent-id
 @c ??? Not yet working.
 The X window number of the window that should be the parent of this one.
 Specifying this lets you create an Emacs window inside some other
 application's window.  (It is not certain this will be implemented; try
 it and see if it works.)
+@end ignore
 @end table
 
 @node Size and Position
@@ -820,8 +823,8 @@ The redirection lasts until @code{redirect-frame-focus} is called to
 change it.
 @end defun
 
-@tindex focus-follows-mouse
 @defopt focus-follows-mouse
+@tindex focus-follows-mouse
 This option is how you inform Emacs whether the window manager transfers
 focus when the user moves the mouse.  Non-@code{nil} says that it does.
 When this is so, the command @code{other-frame} moves the mouse to a
@@ -895,12 +898,12 @@ on the screen.
 
   You can raise and lower Emacs frame Windows with these functions:
 
-@deffn Command raise-frame frame
-This function raises frame @var{frame}.
+@deffn Command raise-frame &optional frame
+This function raises frame @var{frame} (default, the selected frame).
 @end deffn
 
-@deffn Command lower-frame frame
-This function lowers frame @var{frame}.
+@deffn Command lower-frame &optional frame
+This function lowers frame @var{frame} (default, the selected frame).
 @end deffn
 
 @defopt minibuffer-auto-raise
@@ -1022,7 +1025,8 @@ the top left corner of the inside of @var{frame}.
 This function @dfn{warps the mouse} to position @var{x}, @var{y} in
 frame @var{frame}.  The arguments @var{x} and @var{y} are integers,
 giving the position in characters relative to the top left corner of the
-inside of @var{frame}.
+inside of @var{frame}.  If @var{frame} is not visible, this function
+does nothing.  The return value is not significant.
 @end defun
 
 @defun mouse-pixel-position
@@ -1034,6 +1038,9 @@ coordinates in units of pixels rather than units of characters.
 This function warps the mouse like @code{set-mouse-position} except that
 @var{x} and @var{y} are in units of pixels rather than units of
 characters.  These coordinates are not required to be within the frame.
+
+If @var{frame} is not visible, this function does nothing.  The return
+value is not significant.
 @end defun
 
 @need 3000
@@ -1266,6 +1273,101 @@ for @var{maximum} can make this function much faster, in cases where
 many fonts match the pattern.
 @end defun
 
+@node Fontsets
+@section Fontsets
+
+  A @dfn{fontset} is a list of fonts, each assigned to a range of
+character codes.  An individual font cannot display the whole range of
+characters that Emacs supports, but a fontset can.  Fontsets have names,
+just as fonts do, and you can use a fontset name in place of a font name
+when you specify the ``font'' for a frame or a face.  Here is
+information about defining a fontset under Lisp program control.
+
+@defun create-fontset-from-fontset-spec fontset-spec &optional style noerror
+This function defines a new fontset according to the specification
+string @var{fontset-spec}.  The string should have this format:
+
+@smallexample
+@var{fontpattern}, @r{[}@var{charsetname}:@var{fontname}@r{]@dots{}}
+@end smallexample
+
+@noindent
+Whitespace characters before and after the commas are ignored.
+
+The first part of the string, @var{fontpattern}, should have the form of
+a standard X font name, except that the last two fields should be
+@samp{fontset-@var{alias}}.
+
+Each fontset has two names, one long and one short.  The long name is
+@var{fontpattern} in its entirety.  The short name is
+@samp{fontset-@var{alias}}.  You can refer to the fontset by either
+name.  If a fontset with the same name already exists, an error is
+signaled, unless @var{noerror} is non-@code{nil}, in which case this
+function does nothing.
+
+The specification string also says which fonts to use in the fontset.
+See below for the details.
+@end defun
+
+  If optional argument @var{style} is specified, it specifies a way to
+modify the fontset.  It should be one of @code{bold}, @code{italic}, and
+@code{bold-italic}, and it says to find the bold, italic or bold-italic
+version of each font if possible.
+
+  The construct @samp{@var{charset}:@var{font}} specifies which font to
+use (in this fontset) for one particular character set.  Here,
+@var{charset} is the name of a character set, and @var{font} is the font
+to use for that character set.  You can use this construct any number of
+times in the specification string.
+
+  For the remaining character sets, those that you don't specify
+explicitly, Emacs chooses a font based on @var{fontpattern}: it replaces
+@samp{fontset-@var{alias}} with a value that names one character set.
+For the @sc{ASCII} character set, @samp{fontset-@var{alias}} is replaced
+with @samp{ISO8859-1}.
+
+  In addition, when several consecutive fields are wildcards, Emacs
+collapses them into a single wildcard.  This is to prevent use of
+auto-scaled fonts.  Fonts made by scaling larger fonts are not usable
+for editing, and scaling a smaller font is not useful because it is
+better to use the smaller font in its own size, which Emacs does.
+
+  Thus if @var{fontpattern} is this,
+
+@example
+-*-fixed-medium-r-normal-*-24-*-*-*-*-*-fontset-24
+@end example
+
+@noindent
+the font specification for ASCII characters would be this:
+
+@example
+-*-fixed-medium-r-normal-*-24-*-ISO8859-1
+@end example
+
+@noindent
+and the font specification for Chinese GB2312 characters would be this:
+
+@example
+-*-fixed-medium-r-normal-*-24-*-gb2312*-*
+@end example
+
+  You may not have any Chinese font matching the above font
+specification.  Most X distributions include only Chinese fonts that
+have @samp{song ti} or @samp{fangsong ti} in @var{family} field.  In
+such a case, @samp{Fontset-@var{n}} can be specified as below:
+
+@smallexample
+Emacs.Fontset-0: -*-fixed-medium-r-normal-*-24-*-*-*-*-*-fontset-24,\
+        chinese-gb2312:-*-*-medium-r-normal-*-24-*-gb2312*-*
+@end smallexample
+
+@noindent
+Then, the font specifications for all but Chinese GB2312 characters have
+@samp{fixed} in the @var{family} field, and the font specification for
+Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
+field.
+
 @node Color Names
 @section Color Names
 
@@ -1422,7 +1524,7 @@ This function returns the number of color cells the screen supports.
 
 @ignore
 @defvar x-no-window-manager
-This variable's value is is @code{t} if no X window manager is in use.
+This variable's value is @code{t} if no X window manager is in use.
 @end defvar
 @end ignore
 

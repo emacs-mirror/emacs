@@ -36,7 +36,7 @@ Display expression results and evaluate expressions as if outside of
 Edebug.
 
 @item 
-Automatically reevaluate a list of expressions and
+Automatically re-evaluate a list of expressions and
 display their results each time Edebug updates the display.
 
 @item
@@ -199,11 +199,11 @@ steps into the call after instrumenting the function.
 @cindex Common Lisp (Edebug)
 @pindex cl.el @r{(Edebug)}
 @pindex cl-specs.el
-  Edebug knows how to instrument all the standard special forms, an
-interactive form with an expression argument, anonymous lambda
+  Edebug knows how to instrument all the standard special forms,
+@code{interactive} forms with an expression argument, anonymous lambda
 expressions, and other defining forms.  Edebug cannot know what a
 user-defined macro will do with the arguments of a macro call, so you
-must tell it; @xref{Instrumenting Macro Calls}, for details.
+must tell it; see @ref{Instrumenting Macro Calls}, for details.
 
   When Edebug is about to instrument code for the first time in a
 session, it runs the hook @code{edebug-setup-hook}, then sets it to
@@ -212,7 +212,7 @@ session, it runs the hook @code{edebug-setup-hook}, then sets it to
 using, but actually load them only if you use Edebug.
 
 @findex eval-expression @r{(Edebug)}
-  To remove instrumentation from a definition, simply reevaluate its
+  To remove instrumentation from a definition, simply re-evaluate its
 definition in a way that does not instrument.  There are two ways of
 evaluating forms that never instrument them: from a file with
 @code{load}, and from the minibuffer with @code{eval-expression}
@@ -335,8 +335,8 @@ Step into the function or macro called by the form after point.
 @end table
 
 The @kbd{h} command proceeds to the stop point near the current location
-if point, using a temporary breakpoint.  See @ref{Breakpoints}, for more
-about breakpoints.
+of point, using a temporary breakpoint.  See @ref{Breakpoints}, for more
+information about breakpoints.
 
 The @kbd{f} command runs the program forward over one expression.  More
 precisely, it sets a temporary breakpoint at the position that
@@ -463,7 +463,7 @@ with @kbd{u}.  First move point to the Edebug stop point of your choice,
 then type @kbd{b} or @kbd{u} to set or unset a breakpoint there.
 Unsetting a breakpoint where none has been set has no effect.
 
-Reevaluating or reinstrumenting a definition forgets all its breakpoints.
+Re-evaluating or reinstrumenting a definition forgets all its breakpoints.
 
 A @dfn{conditional breakpoint} tests a condition each time the program
 gets there.  Any errors that occur as a result of evaluating the
@@ -568,7 +568,7 @@ are bound to the values they had outside of Edebug.
 @subsection Edebug Views
 
   These Edebug commands let you view aspects of the buffer and window
-status that obtained before entry to Edebug.  The outside window
+status as they were before entry to Edebug.  The outside window
 configuration is the collection of windows and contents that were in
 effect outside of Edebug.
 
@@ -745,7 +745,6 @@ After selecting @samp{*edebug*}, you can return to the source code
 buffer with @kbd{C-c C-w}.  The @samp{*edebug*} buffer is killed when
 you continue execution, and recreated next time it is needed.
 
-
 @node Printing in Edebug
 @subsection Printing in Edebug
 
@@ -765,7 +764,6 @@ and @code{edebug-print-level} specify the values to use within Edebug.)
 @defopt edebug-print-length
 If non-@code{nil}, bind @code{print-length} to this while printing
 results in Edebug.  The default value is @code{50}.
-@xref{Printing in Edebug}.
 @end defopt
 
 @defopt edebug-print-level 
@@ -785,13 +783,13 @@ edebug-uninstall-custom-print}.
 
 @example
 (setq a '(x y))
-(setcar a a))
+(setcar a a)
 @end example
 
 @noindent
 Custom printing prints this as @samp{Result: #1=(#1# y)}.  The
 @samp{#1=} notation labels the structure that follows it with the label
-@samp{1}, and the @samp{#1#} notation references the previously labelled
+@samp{1}, and the @samp{#1#} notation references the previously labeled
 structure.  This notation is used for any shared elements of lists or
 vectors.
 
@@ -857,12 +855,19 @@ last lines inserted.
 @cindex frequency counts
 @cindex performance analysis
 Edebug provides rudimentary coverage testing and display of execution
-frequency.  All execution of an instrumented function accumulates
-frequency counts, both before and after evaluation of each instrumented
-expression, even if the execution mode is Go-nonstop.  Coverage testing
-is more expensive, so it is done only if @code{edebug-test-coverage} is
-non-@code{nil}.  The command @kbd{M-x edebug-display-freq-count}
-displays both the frequency data and the coverage data (if recorded).
+frequency.  Coverage testing works by comparing the result of each
+expression with the previous result; coverage is considered OK if two
+different results are found.  Thus, to sufficiently test the coverage of
+your code, try to execute it under conditions that evaluate all
+expressions more than once, and produce different results for each
+expression.  Coverage testing makes execution slower, so it is only done
+if @code{edebug-test-coverage} is non-@code{nil}.  Whether or not
+coverage testing is enabled, frequency counting is performed for all
+execution of an instrumented function, even if the execution mode is
+Go-nonstop.
+
+Use @kbd{M-x edebug-display-freq-count} to display both the
+coverage information and the frequency counts for a definition.
 
 @deffn Command edebug-display-freq-count
 This command displays the frequency count data for each line of the
@@ -871,15 +876,16 @@ current definition.
 The frequency counts appear as comment lines after each line of code,
 and you can undo all insertions with one @code{undo} command.  The
 counts appear under the @samp{(} before an expression or the @samp{)}
-after an expression, or on the last character of a symbol.  Values do
-not appear if they are equal to the previous count on the same line.
+after an expression, or on the last character of a variable.  To
+simplify the display, a count is not shown if it is equal to the
+count of an earlier expression on the same line.
 
 The character @samp{=} following the count for an expression says that
-the expression has returned the same value each time it was evaluated
+the expression has returned the same value each time it was evaluated.
 This is the only coverage information that Edebug records.
 
 To clear the frequency count and coverage data for a definition,
-reinstrument it.
+simply reinstrument it with @code{eval-defun}.
 @end deffn
 
 For example, after evaluating @code{(fac 5)} with a source
@@ -930,8 +936,8 @@ program.
 @itemize @bullet
 @item 
 @code{max-lisp-eval-depth} and @code{max-specpdl-size} are both
-incremented one time to reduce Edebug's impact on the stack.
-You could, however, still run out of stack space when using Edebug.
+incremented once to reduce Edebug's impact on the stack.  You could,
+however, still run out of stack space when using Edebug.
 
 @item 
 The state of keyboard macro execution is saved and restored.  While
@@ -1067,8 +1073,8 @@ name.
 @end deffn
 
 Here is a simple example that defines the specification for the
-@code{for} macro described in the Emacs Lisp Reference Manual, followed
-by an alternative, equivalent specification.
+@code{for} example macro (@code{Argument Evaluation}), followed by an
+alternative, equivalent specification.
 
 @example
 (def-edebug-spec for
@@ -1091,7 +1097,7 @@ None of the arguments is instrumented.
 @item a symbol
 The symbol must have an Edebug specification which is used instead.
 This indirection is repeated until another kind of specification is
-found.  This allows you to inherit the specification for another macro.
+found.  This allows you to inherit the specification from another macro.
 
 @item a list
 The elements of the list describe the types of the arguments of a
@@ -1137,9 +1143,8 @@ their meanings:
 
 @table @code
 @item sexp
-A single Lisp object, not unevaluated.
-@c "unevaluated expression" is not meaningful, because
-@c an expression is a Lisp object intended for evaluation.
+A single unevaluated expression, which is not instrumented.
+@c an "expression" is not necessarily intended for evaluation.
 
 @item form
 A single evaluated expression, which is instrumented.
@@ -1202,7 +1207,7 @@ succeeds.
 @item &define 
 @kindex &define @r{(Edebug)}
 Indicates that the specification is for a defining form.  The defining
-form itself is not instrumented (i.e. Edebug does not stop before and
+form itself is not instrumented (that is, Edebug does not stop before and
 after the defining form), but forms inside it typically will be
 instrumented.  The @code{&define} keyword should be the first element in
 a list specification.
@@ -1260,7 +1265,7 @@ a list whose elements match the specification @var{elements}.
 A sublist specification may be a dotted list and the corresponding list
 argument may then be a dotted list.  Alternatively, the last @sc{cdr} of a
 dotted list specification may be another sublist specification (via a
-grouping or an indirect specification, e.g. @code{(spec .  [(more
+grouping or an indirect specification, e.g., @code{(spec .  [(more
 specs@dots{})])}) whose elements match the non-dotted list arguments.
 This is useful in recursive specifications such as in the backquote
 example below.  Also see the description of a @code{nil} specification
@@ -1293,7 +1298,7 @@ than once.
 
 @item arg
 The argument, a symbol, is the name of an argument of the defining form.
-However, lambda list keywords (symbols starting with @samp{@code{&}})
+However, lambda-list keywords (symbols starting with @samp{&})
 are not allowed.
 
 @item lambda-list
@@ -1326,33 +1331,35 @@ necessarily mean a syntax error will be signaled; instead,
 exhausted.  Eventually every element of the argument list must be
 matched by some element in the specification, and every required element
 in the specification must match some argument.
+  
+When a syntax error is detected, it might not be reported until much
+later after higher-level alternatives have been exhausted, and with the
+point positioned further from the real error.  But if backtracking is
+disabled when an error occurs, it can be reported immediately.  Note
+that backtracking is also reenabled automatically in several situations;
+it is reenabled when a new alternative is established by
+@code{&optional}, @code{&rest}, or @code{&or}, or at the start of
+processing a sublist, group, or indirect specification.  The effect of
+enabling or disabling backtracking is limited to the remainder of the
+level currently being processed and lower levels.
 
-Backtracking is disabled for the remainder of a sublist or group when
-certain conditions occur, described below.  Backtracking is reenabled
-when a new alternative is established by @code{&optional}, @code{&rest},
-or @code{&or}.  It is also reenabled initially when processing a
-sublist or group specification or an indirect specification.
-
-You might want to disable backtracking to commit to some alternative so
-that Edebug can provide a more specific syntax error message.  Normally,
-if no alternative matches, Edebug reports that none matched, but if one
-alternative is committed to, Edebug can report how it failed to match.
-
-First, backtracking is disabled while matching any of the form
-specifications (i.e. @code{form}, @code{body}, @code{def-form}, and
+Backtracking is disabled while matching any of the
+form specifications (that is, @code{form}, @code{body}, @code{def-form}, and
 @code{def-body}).  These specifications will match any form so any error
 must be in the form itself rather than at a higher level.
 
-Second, backtracking is disabled after successfully matching a quoted
+Backtracking is also disabled after successfully matching a quoted
 symbol or string specification, since this usually indicates a
-recognized construct.  If you have a set of alternative constructs that
+recognized construct.  But if you have a set of alternative constructs that
 all begin with the same symbol, you can usually work around this
 constraint by factoring the symbol out of the alternatives, e.g.,
 @code{["foo" &or [first case] [second case] ...]}.
 
-Third, backtracking may be explicitly disabled by using the
-@code{gate} specification.  This is useful when you know that
-no higher alternatives may apply.
+Most needs are satisfied by these two ways that bactracking is
+automatically disabled, but occasionally it is useful to explicitly
+disable backtracking by using the @code{gate} specification.  This is
+useful when you know that no higher alternatives could apply.  See the
+example of the @code{let} specification.
 
 @node Specification Examples
 @subsubsection Specification Examples
@@ -1362,7 +1369,7 @@ the examples provided here.
 
 A @code{let} special form has a sequence of bindings and a body.  Each
 of the bindings is either a symbol or a sublist with a symbol and
-optional value.  In the specification below, notice the @code{gate}
+optional expression.  In the specification below, notice the @code{gate}
 inside of the sublist to prevent backtracking once a sublist is found.
 
 @example
@@ -1491,19 +1498,11 @@ function entry or exit per line, indented by the recursion level.
 
 The default value is @code{nil}.  
 
-Also see @code{edebug-tracing}, in @xref{Trace Buffer}.
+Also see @code{edebug-tracing}, in @ref{Trace Buffer}.
 @end defopt
 
 @defopt edebug-test-coverage 
 If non-@code{nil}, Edebug tests coverage of all expressions debugged.
-This is done by comparing the result of each expression
-with the previous result. Coverage is considered OK if two different
-results are found.  So to sufficiently test the coverage of your code,
-try to execute it under conditions that evaluate all expressions more
-than once, and produce different results for each expression.
-
-Use @kbd{M-x edebug-display-freq-count} to display the frequency count
-and coverage information for a definition.
 @xref{Coverage Testing}.
 @end defopt
 

@@ -302,6 +302,14 @@ The number of floats in use.
 @c Emacs 19 feature
 The number of floats for which space has been obtained from the
 operating system, but that are not currently being used.
+
+@item used-intervals
+The number of intervals in use.  Intervals are an internal
+data structure used for representing text properties.
+
+@item free-intervals
+The number of intervals for which space has been obtained
+from the operating system, but that are not currently being used.
 @end table
 @end deffn
 
@@ -778,7 +786,7 @@ This field is non-@code{nil} if the buffer's mark is active.
 @item local_var_alist
 This field contains the association list describing the buffer-local
 variable bindings of this buffer, not including the built-in
-buffer-local bindings that that have special slots in the buffer object.
+buffer-local bindings that have special slots in the buffer object.
 (Those slots are omitted from this table.)  @xref{Buffer-Local
 Variables}.
 

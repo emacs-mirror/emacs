@@ -55,6 +55,14 @@ it is started up is as follows:
 
 @enumerate
 @item
+It adds subdirectories to @code{load-path}, by running the file
+named @file{subdirs.el} in each directory that is listed.
+
+@item
+It sets the language environment and the terminal coding system,
+if requested by environment variables such as @code{LANG}.
+
+@item
 It loads the initialization library for the window system, if you are
 using a window system.  This library's name is
 @file{term/@var{windowsystem}-win.el}.
@@ -76,10 +84,9 @@ It loads the library @file{site-start}, unless the option
 @cindex @file{site-start.el}
 
 @item 
-It loads the file @file{~/.emacs}, unless @samp{-q} was specified on the
-command line.  (This is not done in @samp{-batch} mode.)  The @samp{-u}
-option can specify another user name whose home directory should be used
-instead of @file{~}.
+It loads the file @file{~/.emacs}, unless @samp{-q} or @samp{-batch} was
+specified on the command line.  The @samp{-u} option can specify another
+user name whose home directory should be used instead of @file{~}.
 
 @item 
 It loads the library @file{default}, unless @code{inhibit-default-init}
@@ -146,10 +153,11 @@ form to your @file{.emacs} file:
       "@var{your-login-name}")
 @end example
 
-Simply setting @code{inhibit-startup-echo-area-message} to your login
-name is not sufficient to inhibit the message; Emacs explicitly checks
-whether @file{.emacs} contains an expression as shown above.  Your login
-name must appear in the expression as a Lisp string constant.
+Emacs explicitly checks for an expression as shown above in your
+@file{.emacs} file; your login name must appear in the expression as a
+Lisp string constant.  Other methods of setting
+@code{inhibit-startup-echo-area-message} to the same value do not
+inhibit the startup message.
 
 This way, you can easily inhibit the message for yourself if you wish,
 but thoughtless copying of your @file{.emacs} file will not inhibit the
@@ -206,9 +214,14 @@ then the default library is not loaded.  The default value is
 @end defopt
 
 @defvar before-init-hook
-@defvarx after-init-hook
-These two normal hooks are run just before, and just after, loading of
-the user's init file, @file{default.el}, and/or @file{site-start.el}.
+This normal hook is run, once, just before loading of all the init files
+(the user's init file, @file{default.el}, and/or @file{site-start.el}).
+@end defvar
+
+@defvar after-init-hook
+This normal hook is run, once, just after loading of all the init files
+(the user's init file, @file{default.el}, and/or @file{site-start.el}),
+before the terminal-specific initialization.
 @end defvar
 
 @node Terminal-Specific
@@ -216,18 +229,12 @@ the user's init file, @file{default.el}, and/or @file{site-start.el}.
 @cindex terminal-specific initialization
 
   Each terminal type can have its own Lisp library that Emacs loads when
-run on that type of terminal.  For a terminal type named @var{termtype},
-the library is called @file{term/@var{termtype}}.  Emacs finds the file
-by searching the @code{load-path} directories as it does for other
-files, and trying the @samp{.elc} and @samp{.el} suffixes.  Normally,
-terminal-specific Lisp library is located in @file{emacs/lisp/term}, a
-subdirectory of the @file{emacs/lisp} directory in which most Emacs Lisp
-libraries are kept.@refill
-
-  The library's name is constructed by concatenating the value of the
-variable @code{term-file-prefix} and the terminal type.  Normally,
-@code{term-file-prefix} has the value @code{"term/"}; changing this
-is not recommended.
+run on that type of terminal.  The library's name is constructed by
+concatenating the value of the variable @code{term-file-prefix} and the
+terminal type.  Normally, @code{term-file-prefix} has the value
+@code{"term/"}; changing this is not recommended.  Emacs finds the file
+in the normal manner, by searching the @code{load-path} directories, and
+trying the @samp{.elc} and @samp{.el} suffixes.
 
   The usual function of a terminal-specific library is to enable special
 keys to send sequences that Emacs can recognize.  It may also need to
@@ -620,7 +627,7 @@ systems.
 This function returns the name of the machine you are running on.
 @example
 (system-name)
-     @result{} "prep.ai.mit.edu"
+     @result{} "www.gnu.org"
 @end example
 @end defun
 
@@ -719,18 +726,23 @@ locations, but can find them in a directory related somehow to the one
 containing the Emacs executable.
 @end defvar
 
-@defun load-average
+@defun load-average &optional use-float
 This function returns the current 1-minute, 5-minute and 15-minute load
-averages in a list.  The values are integers that are 100 times the
-system load averages, which indicate the average number of processes
-trying to run.  It would be more logical to use floating point numbers,
-but this function was introduced before Emacs supported floating point
-numbers, and it is not worth changing it now.
+averages in a list.
+
+By default, the values are integers that are 100 times the system load
+averages, which indicate the average number of processes trying to run.
+If @var{use-float} is non-@code{nil}, then they are returned
+as floating point numbers instead.
 
 @example
 @group
 (load-average)
      @result{} (169 48 36)
+@end group
+@group
+(load-average t)
+     @result{} (1.69 0.48 0.36)
 @end group
 
 @group
@@ -745,8 +757,8 @@ lewis@@rocky[5] % uptime
 This function returns the process @sc{id} of the Emacs process.
 @end defun
 
-@tindex tty-erase-char
 @defvar tty-erase-char
+@tindex tty-erase-char
 This variable holds the erase character that was selected
 in the system's terminal driver, before Emacs was started.
 @end defvar
@@ -859,7 +871,7 @@ This function returns the effective @sc{uid} of the user.
 zone.
 
 @defun current-time-string &optional time-value
-This function returns the current time and date as a humanly-readable
+This function returns the current time and date as a human-readable
 string.  The format of the string is unvarying; the number of characters
 used for each part is always the same, so you can reliably use
 @code{substring} to extract pieces of it.  It is wise to count the
@@ -1027,7 +1039,8 @@ This stands for the time zone abbreviation.
 You can also specify the field width and type of padding for any of
 these @samp{%}-sequences.  This works as in @code{printf}: you write
 the field width as digits in the middle of a @samp{%}-sequences.  If you
-start the field width with 0, it means to pad with zeros.
+start the field width with @samp{0}, it means to pad with zeros.  If you
+start the field width with @samp{_}, it means to pad with spaces.
 
 For example, @samp{%S} specifies the number of seconds since the minute;
 @samp{%03S} means to pad this with zeros to 3 positions, @samp{%_3S} to
@@ -1101,6 +1114,9 @@ feature makes it possible to use the elements of a list returned by
 You can perform simple date arithmetic by using out-of-range values for
 the @var{sec}, @var{minute}, @var{hour}, @var{day}, and @var{month}
 arguments; for example, day 0 means the day preceding the given month.
+
+The operating system puts limits on the range of possible time values;
+if you try to encode a time that is out of range, an error results.
 @end defun
 
 @node Timers
@@ -1124,10 +1140,18 @@ later, and @var{args} are the arguments to give it when it is called.
 The time @var{time} is specified as a string.
 
 Absolute times may be specified in a wide variety of formats, and tries
-to accept all common date formats.  One valid format is
-@samp{@var{hour}:@var{min}:@var{sec} @var{timezone}
-@var{month}/@var{day}/@var{year}}, where all fields are numbers; the
-format that @code{current-time-string} returns is also allowed.
+to accept all common date formats.  Valid formats include these two,
+
+@example
+@var{year}-@var{month}-@var{day} @var{hour}:@var{min}:@var{sec} @var{timezone}
+
+@var{hour}:@var{min}:@var{sec} @var{timezone} @var{month}/@var{day}/@var{year}
+@end example
+
+@noindent
+where in both examples all fields are numbers; the format that
+@code{current-time-string} returns is also allowed, and many others
+as well.
 
 To specify a relative time, use numbers followed by units.
 For example:
@@ -1168,7 +1192,7 @@ the value of the last form in @var{body}.  If, however, the execution of
 executes all the @var{timeout-forms} and returns the value of the last
 of them.
 
-This macro works by set a timer to run after @var{seconds} seconds.  If
+This macro works by setting a timer to run after @var{seconds} seconds.  If
 @var{body} finishes before that time, it cancels the timer.  If the
 timer actually runs, it terminates execution of @var{body}, then
 executes @var{timeout-forms}.
@@ -1290,8 +1314,8 @@ is non-@code{nil} when Emacs is using interrupt-driven input.  If
 @code{nil}, Emacs is using @sc{cbreak} mode.
 @item flow
 is non-@code{nil} if Emacs uses @sc{xon/xoff} (@kbd{C-q}, @kbd{C-s})
-flow control for output to the terminal.  This value has effect when
-unless @var{interrupt} is @code{nil}.
+flow control for output to the terminal.  This value is meaningful only
+when @var{interrupt} is @code{nil}.
 @item meta
 is @code{t} if Emacs treats the eighth bit of input characters as
 the meta bit; @code{nil} means Emacs clears the eighth bit of every
@@ -1365,7 +1389,7 @@ versa.  (@xref{Flow Control} for more information on this subject.)
 @end group
 @group
   (setq keyboard-translate-table
-        (make-char-table 'keyboard-translate-table nil)))
+        (make-char-table 'keyboard-translate-table nil))
 @end group
 @group
   ;; @r{Swap @kbd{C-s} and @kbd{C-\}.}

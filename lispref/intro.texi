@@ -418,12 +418,17 @@ closely integrated with the editing facilities; thus, editing commands
 are functions that can also conveniently be called from Lisp programs,
 and parameters for customization are ordinary Lisp variables.
 
-  This manual describes Emacs Lisp, presuming considerable familiarity
-with the use of Emacs for editing.  (See @cite{The GNU Emacs Manual}
-for this basic information.)  Generally speaking, the earlier chapters
-describe features of Emacs Lisp that have counterparts in many
-programming languages, and later chapters describe features that are
-peculiar to Emacs Lisp or relate specifically to editing.
+  This manual attempts to be a full description of Emacs Lisp.  For a
+beginner's introduction to Emacs Lisp, see @cite{An Introduction to
+Emacs Lisp Programming}, by Bob Chassell, also published by the Free
+Software Foundation.  This manual presumes considerable familiarity with
+the use of Emacs for editing; see @cite{The GNU Emacs Manual} for this
+basic information.
+
+  Generally speaking, the earlier chapters describe features of Emacs
+Lisp that have counterparts in many programming languages, and later
+chapters describe features that are peculiar to Emacs Lisp or relate
+specifically to editing.
 
   This is edition 2.5.
 
@@ -431,6 +436,7 @@ peculiar to Emacs Lisp or relate specifically to editing.
 * Caveats::             Flaws and a request for help.
 * Lisp History::        Emacs Lisp is descended from Maclisp.
 * Conventions::         How the manual is formatted.
+* Version Info::        Which Emacs version is running?
 * Acknowledgements::    The authors, editors, and sponsors of this manual.
 @end menu
 
@@ -474,7 +480,7 @@ which you are criticizing.
 Please mail comments and corrections to
 
 @example
-bug-lisp-manual@@prep.ai.mit.edu
+bug-lisp-manual@@gnu.org
 @end example
 
 @noindent
@@ -483,7 +489,7 @@ apply the corrections.  Months, and sometimes years, go by between
 updates.  So please attach no significance to the lack of a reply---your
 mail @emph{will} be acted on in due time.  If you want to contact the
 Emacs maintainers more quickly, send mail to
-@code{bug-gnu-emacs@@prep.ai.mit.edu}.
+@code{bug-gnu-emacs@@gnu.org}.
 
 @display
  --Bil Lewis, Dan LaLiberte, Richard Stallman
@@ -493,33 +499,38 @@ Emacs maintainers more quickly, send mail to
 @section Lisp History
 @cindex Lisp history
 
-  Lisp (LISt Processing language) was first developed in the late 1950's
+  Lisp (LISt Processing language) was first developed in the late 1950s
 at the Massachusetts Institute of Technology for research in artificial
-intelligence.  The great power of the Lisp language makes it superior
+intelligence.  The great power of the Lisp language makes it ideal
 for other purposes as well, such as writing editing commands.
 
 @cindex Maclisp
 @cindex Common Lisp
   Dozens of Lisp implementations have been built over the years, each
 with its own idiosyncrasies.  Many of them were inspired by Maclisp,
-which was written in the 1960's at MIT's Project MAC.  Eventually the
+which was written in the 1960s at MIT's Project MAC.  Eventually the
 implementors of the descendants of Maclisp came together and developed a
-standard for Lisp systems, called Common Lisp.  In the mean time, Gerry
+standard for Lisp systems, called Common Lisp.  In the meantime, Gerry
 Sussman and Guy Steele at MIT developed a simplified but very powerful
 dialect of Lisp, called Scheme.
 
   GNU Emacs Lisp is largely inspired by Maclisp, and a little by Common
 Lisp.  If you know Common Lisp, you will notice many similarities.
-However, many of the features of Common Lisp have been omitted or
+However, many features of Common Lisp have been omitted or
 simplified in order to reduce the memory requirements of GNU Emacs.
 Sometimes the simplifications are so drastic that a Common Lisp user
 might be very confused.  We will occasionally point out how GNU Emacs
 Lisp differs from Common Lisp.  If you don't know Common Lisp, don't
 worry about it; this manual is self-contained.
 
+@pindex cl
+  A certain amount of Common Lisp emulation is available via the
+@file{cl} library @xref{Top,, Common Lisp Extension, cl, Common Lisp
+Extensions}.
+
   Emacs Lisp is not at all influenced by Scheme; but the GNU project has
-an implementation of Scheme, called Guile.  We use Guile for
-extensibility in all new GNU software that calls for extensibility.
+an implementation of Scheme, called Guile.  We use Guile in all new GNU
+software that calls for extensibility.
 
 @node Conventions
 @section Conventions
@@ -531,23 +542,22 @@ manual.  You may want to skip this section and refer back to it later.
 * Some Terms::               Explanation of terms we use in this manual.
 * nil and t::                How the symbols @code{nil} and @code{t} are used.
 * Evaluation Notation::      The format we use for examples of evaluation.
-* Printing Notation::        The format we use for examples that print output.
+* Printing Notation::        The format we use when examples print text.
 * Error Messages::           The format we use for examples of errors.
 * Buffer Text Notation::     The format we use for buffer contents in examples.
 * Format of Descriptions::   Notation for describing functions, variables, etc.
-* Version Info::             Which Emacs version is running?
 @end menu
 
 @node Some Terms
 @subsection Some Terms
 
   Throughout this manual, the phrases ``the Lisp reader'' and ``the Lisp
-printer'' are used to refer to those routines in Lisp that convert
-textual representations of Lisp objects into actual Lisp objects, and vice
+printer'' refer to those routines in Lisp that convert textual
+representations of Lisp objects into actual Lisp objects, and vice
 versa.  @xref{Printed Representation}, for more details.  You, the
 person reading this manual, are thought of as ``the programmer'' and are
-addressed as ``you''.  ``The user'' is the person who uses Lisp programs,
-including those you write.
+addressed as ``you''.  ``The user'' is the person who uses Lisp
+programs, including those you write.
 
 @cindex fonts
   Examples of Lisp code appear in this font or form: @code{(list 1 2
@@ -590,7 +600,8 @@ in Lisp programs also.
 is considered to be @var{true}.  However, @code{t} is the preferred way
 to represent the truth value @var{true}.  When you need to choose a
 value which represents @var{true}, and there is no other basis for
-choosing, use @code{t}.  The symbol @code{t} always has value @code{t}.
+choosing, use @code{t}.  The symbol @code{t} always has the value
+@code{t}.
 
   In Emacs Lisp, @code{nil} and @code{t} are special symbols that always
 evaluate to themselves.  This is so that you do not need to quote them
@@ -618,7 +629,7 @@ You can read this as ``@code{(car '(1 2))} evaluates to 1''.
 
   When a form is a macro call, it expands into a new form for Lisp to
 evaluate.  We show the result of the expansion with
-@samp{@expansion{}}.  We may or may not show the actual result of the
+@samp{@expansion{}}.  We may or may not show the result of the
 evaluation of the expanded form.
 
 @example
@@ -741,10 +752,11 @@ indicates that the subsequent arguments may be omitted (omitted
 arguments default to @code{nil}).  Do not write @code{&optional} when
 you call the function.
 
-  The keyword @code{&rest} (which will always be followed by a single
-argument name) indicates that any number of arguments can follow.  The value
-of the single following arguments name will be a list of all these arguments.
-Do not write @code{&rest} when you call the function.
+  The keyword @code{&rest} (which must be followed by a single argument
+name) indicates that any number of arguments can follow.  The single
+following argument name will have a value, as a variable, which is a
+list of all these remaining arguments.  Do not write @code{&rest} when
+you call the function.
 
   Here is a description of an imaginary function @code{foo}:
 
@@ -791,7 +803,7 @@ interactively; macros process their arguments differently from functions
   Special form descriptions use a more complex notation to specify
 optional and repeated arguments because they can break the argument
 list down into separate arguments in more complicated ways.
-@samp{@code{@r{[}@var{optional-arg}@r{]}}} means that @var{optional-arg} is
+@samp{@r{[}@var{optional-arg}@r{]}} means that @var{optional-arg} is
 optional and @samp{@var{repeated-args}@dots{}} stands for zero or more
 arguments.  Parentheses are used when several arguments are grouped into
 additional levels of list structure.  Here is an example:
@@ -800,7 +812,7 @@ additional levels of list structure.  Here is an example:
 This imaginary special form implements a loop that executes the
 @var{body} forms and then increments the variable @var{var} on each
 iteration.  On the first iteration, the variable has the value
-@var{from}; on subsequent iterations, it is incremented by 1 (or by
+@var{from}; on subsequent iterations, it is incremented by one (or by
 @var{inc} if that is given).  The loop exits before executing @var{body}
 if @var{var} equals @var{to}.  Here is an example:
 
@@ -811,7 +823,7 @@ if @var{var} equals @var{to}.  Here is an example:
   (terpri))
 @end example
 
-If @var{from} and @var{to} are omitted, then @var{var} is bound to
+If @var{from} and @var{to} are omitted, @var{var} is bound to
 @code{nil} before the loop begins, and the loop exits if @var{var} is
 non-@code{nil} at the beginning of an iteration.  Here is an example:
 
@@ -855,33 +867,34 @@ replaced by `User Option'.
 @node Version Info
 @section Version Information
 
-  These functions and variables provide information about which
-version of Emacs is in use.
+  These facilities provide information about which version of Emacs is
+in use.
 
 @deffn Command emacs-version
 This function returns a string describing the version of Emacs that is
 running.  It is useful to include this string in bug reports.
 
-@example
+@smallexample
 @group
 (emacs-version)
   @result{} "GNU Emacs 20.3.5 (i486-pc-linux-gnulibc1, X toolkit)
  of Sat Feb 14 1998 on psilocin.gnu.org"
 @end group
-@end example
+@end smallexample
 
 Called interactively, the function prints the same information in the
 echo area.
 @end deffn
 
 @defvar emacs-build-time
-The value of this variable is the time at which Emacs was built at the
-local site.
+The value of this variable indicates the time at which Emacs was built
+at the local site.  It is a list of three integers, like the value
+of @code{current-time} (@pxref{Time of Day}).
 
 @example
 @group
 emacs-build-time
-     @result{} "Tue Jun  6 14:55:57 1995"
+     @result{} (13623 62065 344633)
 @end group
 @end example
 @end defvar
@@ -893,7 +906,7 @@ really part of the Emacs release version number; it is incremented each
 time you build Emacs in any given directory.
 @end defvar
 
-  The following two variables have existed since Emacs version 19.23,
+  The following two variables have existed since Emacs version 19.23:
 
 @defvar emacs-major-version
 The major version number of Emacs, as an integer.  For Emacs version

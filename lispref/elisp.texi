@@ -4,6 +4,8 @@
 @settitle GNU Emacs Lisp Reference Manual
 @c %**end of header
 
+@smallbook
+
 @ifinfo
 This version is the edition 2.5 of the GNU Emacs Lisp
 Reference Manual.  It corresponds to Emacs Version 20.3
@@ -269,7 +271,7 @@ Editing Types
 * Process Type::            A process running on the underlying OS.
 * Stream Type::             Receive or send characters.
 * Keymap Type::             What function a keystroke invokes.
-* Syntax Table Type::       What a character means.
+* Overlay Type::        How an overlay is represented.
 
 Numbers
 
@@ -291,7 +293,7 @@ Strings and Characters
 * Text Comparison::         Comparing characters or strings.
 * String Conversion::       Converting characters or strings and vice versa.
 * Formatting Strings::      @code{format}: Emacs's analog of @code{printf}.
-* Character Case::          Case conversion functions.
+* Case Conversion::         Case conversion functions.
 
 Lists
 
@@ -442,6 +444,19 @@ Byte Compilation
 
 * Compilation Functions::   Byte compilation functions.
 * Disassembly::             Disassembling byte-code; how to read byte-code.
+
+Advising Functions
+
+* Simple Advice::           A simple example to explain the basics of advice.
+* Defining Advice::         Detailed description of @code{defadvice}.
+* Computed Advice::         ...is to @code{defadvice} as @code{fset} is to @code{defun}.
+* Activation of Advice::    Advice doesn't do anything until you activate it.
+* Enabling Advice::         You can enable or disable each piece of advice.
+* Preactivation::           Preactivation is a way of speeding up the
+                              loading of compiled advice.
+* Argument Access::         How advice can access the function's arguments.
+* Subr Arguments::          Accessing arguments when advising a primitive.
+* Combined Definition::     How advice is implemented.
 
 Debugging Lisp Programs
 
@@ -684,7 +699,7 @@ Frames
 * Pop-Up Menus::	    Displaying a menu for the user to select from.
 * Dialog Boxes::            Displaying a box to ask yes or no.
 * Pointer Shapes::          Specifying the shape of the mouse pointer.
-* X Selections::	    Transferring text to and from other X clients.
+* Window System Selections::Transferring text to and from other X clients.
 * Color Names::	            Getting the definitions of color names.
 * Resources::		    Getting resource values from the server.
 * Server Data::		    Getting info about the X server.
@@ -951,7 +966,7 @@ Object Internals
 @include index.texi
 
 @node New Symbols, , Index, Top
-@chapter New Symbols Since the Previous Edition
+@unnumbered New Symbols Since the Previous Edition
 
 @printindex tp
 

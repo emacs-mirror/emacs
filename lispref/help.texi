@@ -415,6 +415,15 @@ Emacs buffers are usually displayed).
 @end smallexample
 @end defun
 
+@defun read-kbd-macro string
+This function is used mainly for operating on keyboard macros, but it
+can also be used as a rough inverse for @code{key-description}.  You
+call it with a string containing key descriptions, separated by spaces;
+it returns a string or vector containing the corresponding events.
+(This may or may not be a single valid key sequence, depending on what
+events you use; @pxref{Keymap Terminology}.)
+@end defun
+
 @node Help Functions
 @section Help Functions
 
@@ -431,8 +440,9 @@ named @samp{*Help*}, each with a one-line description taken from the
 beginning of its documentation string.
 
 @c Emacs 19 feature
-If @var{do-all} is non-@code{nil}, then @code{apropos} also shows
-key bindings for the functions that are found.
+If @var{do-all} is non-@code{nil}, then @code{apropos} also shows key
+bindings for the functions that are found; it also shows all symbols,
+even those that are neither functions nor variables.
 
 In the first of the following examples, @code{apropos} finds all the
 symbols with names containing @samp{exec}.  (We don't show here the
@@ -481,10 +491,10 @@ Documentation}.
 
 @defvar help-char
 The value of this variable is the help character---the character that
-Emacs recognizes as meaning Help.  By default, it stands for 8, which is
-@kbd{C-h}.  When Emacs reads this character, if @code{help-form} is
-non-@code{nil} Lisp expression, it evaluates that expression, and
-displays the result in a window if it is a string.
+Emacs recognizes as meaning Help.  By default, its value is 8, which
+stands for @kbd{C-h}.  When Emacs reads this character, if
+@code{help-form} is a non-@code{nil} Lisp expression, it evaluates that
+expression, and displays the result in a window if it is a string.
 
 Usually the value of @code{help-form}'s value is @code{nil}.  Then the
 help character has no special meaning at the level of command input, and
@@ -498,8 +508,8 @@ binding as a subcommand of the prefix key, it runs
 subcommands of the prefix key.
 @end defvar
 
-@tindex help-event-list
 @defvar help-event-list
+@tindex help-event-list
 The value of this variable is a list of event types that serve as
 alternative ``help characters.''  These events are handled just like the
 event specified by @code{help-char}.
@@ -534,11 +544,10 @@ prefix described consists of all but the last event of that key
 sequence.  (The last event is, presumably, the help character.)
 @end defun
 
-  The following two functions are found in the library @file{helper}.
-They are for modes that want to provide help without relinquishing
-control, such as the ``electric'' modes.  You must load that library
-with @code{(require 'helper)} in order to use them.  Their names begin
-with @samp{Helper} to distinguish them from the ordinary help functions.
+  The following two functions are meant for modes that want to provide
+help without relinquishing control, such as the ``electric'' modes.
+Their names begin with @samp{Helper} to distinguish them from the
+ordinary help functions.
 
 @deffn Command Helper-describe-bindings
 This command pops up a window displaying a help buffer containing a

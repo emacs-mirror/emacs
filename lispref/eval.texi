@@ -464,6 +464,9 @@ Emacs Lisp with a reference to where each is described.
 @item quote
 @pxref{Quoting}
 
+@item save-current-buffer
+@pxref{Current Buffer}
+
 @item save-excursion
 @pxref{Excursions}
 
@@ -657,8 +660,10 @@ The depth limit counts internal uses of @code{eval}, @code{apply}, and
 expressions, and recursive evaluation of function call arguments and
 function body forms, as well as explicit calls in Lisp code.
 
-The default value of this variable is 200.  If you set it to a value
+The default value of this variable is 300.  If you set it to a value
 less than 100, Lisp will reset it to 100 if the given value is reached.
+Entry to the Lisp debugger increases the value, if there is little room
+left, to make sure the debugger itself has room to execute.
 
 @code{max-specpdl-size} provides another limit on nesting.
 @xref{Local Variables}.

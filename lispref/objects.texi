@@ -396,8 +396,9 @@ distinction to the computer in any way.
 @cindex alt characters
   The X Window System defines three other modifier bits that can be set
 in a character: @dfn{hyper}, @dfn{super} and @dfn{alt}.  The syntaxes
-for these bits are @samp{\H-}, @samp{\s-} and @samp{\A-}.  Thus,
-@samp{?\H-\M-\A-x} represents @kbd{Alt-Hyper-Meta-x}.
+for these bits are @samp{\H-}, @samp{\s-} and @samp{\A-}.  (Case is
+significant in these prefixes.)  Thus, @samp{?\H-\M-\A-x} represents
+@kbd{Alt-Hyper-Meta-x}.
 @tex
 Numerically, the
 bit values are $2^{22}$ for alt, $2^{23}$ for super and $2^{24}$ for hyper.
@@ -882,9 +883,9 @@ character code, using a hex escape, @samp{\x@var{nnnnnnn}}, with as many
 digits as necessary.  (Multibyte non-@sc{ASCII} character codes are all
 greater than 256.)  Any character which is not a valid hex digit
 terminates this construct.  If the character that would follow is a hex
-digit, write @samp{\ } to terminate the hex escape---for example,
-@samp{\x8c0\ } represents one character, @samp{a} with grave accent.
-@samp{\ } in a string constant is just like backslash-newline; it does
+digit, write @w{@samp{\ }} to terminate the hex escape---for example,
+@w{@samp{\x8c0\ }} represents one character, @samp{a} with grave accent.
+@w{@samp{\ }} in a string constant is just like backslash-newline; it does
 not contribute any character to the string, but it does terminate the
 preceding hex escape.
 
@@ -899,30 +900,35 @@ text representations.
 @node Nonprinting Characters
 @subsubsection Nonprinting Characters in Strings
 
-  Strings cannot hold characters that have the hyper, super, or alt
-modifiers; the only control or meta characters they can hold are the
-@sc{ASCII} control characters.  Strings do not distinguish case in
-@sc{ASCII} control characters.
-
   You can use the same backslash escape-sequences in a string constant
 as in character literals (but do not use the question mark that begins a
 character constant).  For example, you can write a string containing the
-nonprinting characters tab, @kbd{C-a} and @kbd{M-C-a}, with commas and
-spaces between them, like this: @code{"\t, \C-a, \M-\C-a"}.
-@xref{Character Type}, for a description of the read syntax for
-characters.
+nonprinting characters tab and @kbd{C-a}, with commas and spaces between
+them, like this: @code{"\t, \C-a"}.  @xref{Character Type}, for a
+description of the read syntax for characters.
 
-  If you use the @samp{\M-} syntax to indicate a meta character in a
-string constant, this sets the
+  However, not all of the characters you can write with backslash
+escape-sequences are valid in strings.  The only control characters that
+a string can hold are the @sc{ASCII} control characters.  Strings do not
+distinguish case in @sc{ASCII} control characters.
+
+  Properly speaking, strings cannot hold meta characters; but when a
+string is to be used as a key sequence, there is a special convention
+that allows the meta versions of @sc{ASCII} characters to be put in a
+string.  If you use the @samp{\M-} syntax to indicate a meta character
+in a string constant, this sets the
 @tex
 $2^{7}$
 @end tex
 @ifinfo
 2**7
 @end ifinfo
-bit of the character in the string.  This construct works only with
-ASCII characters.  Note that the same meta characters have a different
-representation when not in a string.  @xref{Character Type}.
+bit of the character in the string.  If the string is used in
+@code{define-key} or @code{lookup-key}, this numeric code is translated
+into the equivalent meta character.  @xref{Character Type}.
+
+  Strings cannot hold characters that have the hyper, super, or alt
+modifiers.
 
 @node Text Props and Strings
 @subsubsection Text Properties in Strings
@@ -960,7 +966,9 @@ represents a string whose textual contents are @samp{foo bar}, in which
 the first three characters have a @code{face} property with value
 @code{bold}, and the last three have a @code{face} property with value
 @code{italic}.  (The fourth character has no text properties so its
-property list is @code{nil}.)
+property list is @code{nil}.  It is not actually necessary to mention
+ranges with @code{nil} as the property list, since any characters not
+mentioned in any range will default to having no properties.)
 
 @node Vector Type
 @subsection Vector Type
@@ -1024,17 +1032,18 @@ that it begins with @samp{#&} followed by the length.  The string
 constant that follows actually specifies the contents of the bool-vector
 as a bitmap---each ``character'' in the string contains 8 bits, which
 specify the next 8 elements of the bool-vector (1 stands for @code{t},
-and 0 for @code{nil}).  If the length is not a multiple of 8, the
-printed representation describes extra elements, but these really
-make no difference.
+and 0 for @code{nil}).  The least significant bits of the character are
+the lowest-numbered elements of the bool-vector.  If the length is not a
+multiple of 8, the printed representation shows extra elements, but
+these extras really make no difference.
 
 @example
 (make-bool-vector 3 t)
-     @result{} #&3"\377"
+     @result{} #&3"\007"
 (make-bool-vector 3 nil)
-     @result{} #&3"\0""
+     @result{} #&3"\0"
 ;; @r{These are equal since only the first 3 bits are used.}
-(equal #&3"\377" #&3"\340")
+(equal #&3"\377" #&3"\007")
      @result{} t
 @end example
 
@@ -1151,7 +1160,7 @@ symbol.  @xref{Autoload}, for more details.
 @section Editing Types
 @cindex editing types
 
-  The types in the previous section used for general programming
+  The types in the previous section are used for general programming
 purposes, and most of them are common to most Lisp dialects.  Emacs Lisp
 provides several additional data types for purposes connected with
 editing.
@@ -1288,7 +1297,7 @@ in any given window can change frequently.
 @node Frame Type
 @subsection Frame Type
 
-  A @var{frame} is a rectangle on the screen that contains one or more
+  A @dfn{frame} is a rectangle on the screen that contains one or more
 Emacs windows.  A frame initially contains a single main window (plus
 perhaps a minibuffer window) which you can subdivide vertically or
 horizontally into smaller windows.
@@ -1300,7 +1309,7 @@ uniquely).
 @example
 @group
 (selected-frame)
-     @result{} #<frame emacs@@mole.gnu.ai.mit.edu 0xdac80>
+     @result{} #<frame emacs@@psilocin.gnu.org 0xdac80>
 @end group
 @end example
 
@@ -1668,10 +1677,10 @@ object.
 @end group
 @end example
 
-(The @code{make-symbol} function returns an uninterned symbol that is
-not interned in the standard @code{obarray}.  When uninterned symbols
-are in use, symbol names are no longer unique.  Distinct symbols with
-the same name are not @code{eq}.  @xref{Creating Symbols}.)
+The @code{make-symbol} function returns an uninterned symbol, distinct
+from the symbol that is used if you write the name in a Lisp expression.
+Distinct symbols with the same name are not @code{eq}.  @xref{Creating
+Symbols}.
 
 @example
 @group

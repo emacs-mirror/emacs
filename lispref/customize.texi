@@ -31,6 +31,10 @@ The keyword @code{:tag} is an exception because any given item can only
 display one name.
 
 @table @code
+@item :tag @var{name}
+Use @var{name}, a string, instead of the item's name, to label the item
+in customization menus and buffers.
+
 @item :group @var{group}
 Put this customization item in group @var{group}.  When you use
 @code{:group} in a @code{defgroup}, it makes the new group a subgroup of
@@ -48,10 +52,6 @@ other documentation.
 There are three alternatives you can use for @var{link-data}:
 
 @table @code
-@item :tag @var{name}
-Use @var{name}, a string, instead of the item's name, to label the item
-in customization menus and buffers.
-
 @item (custom-manual @var{info-node})
 Link to an Info node; @var{info-node} is a string which specifies the
 node name, as in @code{"(emacs)Top"}.  The link appears as
@@ -109,23 +109,22 @@ keyword.
 
   The way to declare new customization groups is with @code{defgroup}.
 
-@tindex defgroup
 @defmac defgroup group members doc [keyword value]...
+@tindex defgroup
 Declare @var{group} as a customization group containing @var{members}.
 Do not quote the symbol @var{group}.  The argument @var{doc} specifies
 the documentation string for the group.
 
-The arguments @var{members} can be an alist whose elements specify
-customization items to be members of the group; however, normally
+The argument @var{members} is a list specifying an initial set of
+customization items to be members of the group.  However, most often
 @var{members} is @code{nil}, and you specify the group's members by
 using the @code{:group} keyword when defining those members.
 
-@ignore
-@code{(@var{name} @var{widget})}.  Here @var{name} is a symbol, and
-@var{widget} is a widget for editing that symbol.  Useful widgets are
-@code{custom-variable} for editing variables, @code{custom-face} for
-editing faces, and @code{custom-group} for editing groups.
-@end ignore
+If you want to specify group members through @var{members}, each element
+should have the form @code{(@var{name} @var{widget})}.  Here @var{name}
+is a symbol, and @var{widget} is a widget type for editing that symbol.
+Useful widgets are @code{custom-variable} for a variable,
+@code{custom-face} for a face, and @code{custom-group} for a group.
 
 In addition to the common keywords (@pxref{Common Keywords}), you can
 use this keyword in @code{defgroup}:
@@ -162,18 +161,18 @@ turn this feature back on, if someone would like to do the work.
 
   Use @code{defcustom} to declare user-editable variables.
 
-@tindex defcustom
 @defmac defcustom option default doc [keyword value]...
+@tindex defcustom
 Declare @var{option} as a customizable user option variable.  Do not
 quote @var{option}.  The argument @var{doc} specifies the documentation
 string for the variable.
 
 If @var{option} is void, @code{defcustom} initializes it to
 @var{default}.  @var{default} should be an expression to compute the
-value; be careful in writing it, because it can be be evaluated on more
+value; be careful in writing it, because it can be evaluated on more
 than one occasion.
 
-The following additional keywords are defined:
+The following additional keywords are accepted:
 
 @table @code
 @item :type @var{type}
@@ -191,8 +190,9 @@ elements of the hook value.  The user is not restricted to using only
 these functions, but they are offered as convenient alternatives.
 
 @item :version @var{version}
-This option specifies that the variable's default value was changed in
-Emacs version @var{version}.  For example,
+This option specifies that the variable was first introduced, or its
+default value was changed, in Emacs version @var{version}.  The value
+@var{version} must be a string.  For example,
 
 @example
 (defcustom foo-max 34
@@ -260,7 +260,7 @@ Keywords}.  Here is an example, from the library @file{paren.el}:
 (defcustom show-paren-mode nil
   "Toggle Show Paren mode@enddots{}"
   :set (lambda (symbol value)
-	 (show-paren-mode (or value 0)))
+         (show-paren-mode (or value 0)))
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'paren-showing
@@ -369,6 +369,13 @@ completion with @kbd{M-@key{TAB}}.
 The value must be a directory name, and you can do completion with
 @kbd{M-@key{TAB}}.
 
+@item hook
+The value must be a list of functions (or a single function, but that is
+obsolete usage).  This customization type is used for hook variables.
+You can use the @code{:option} in the @code{defcustom} for a hook
+variable to specify functions recommended for use in the hook;
+see @ref{Variable Definitions}.
+
 @item symbol
 The value must be a symbol.  It appears in the customization buffer as
 the name of the symbol.
@@ -380,6 +387,10 @@ it is a function name, you can do completion with @kbd{M-@key{TAB}}.
 @item variable
 The value must be a variable name, and you can do completion with
 @kbd{M-@key{TAB}}.
+
+@item face
+The value must be a symbol which is a face name, and you can do
+completion with @kbd{M-@key{TAB}}.
 
 @item boolean
 The value is boolean---either @code{nil} or @code{t}.  Note that by
@@ -399,24 +410,26 @@ doing that:
 @table @code
 @item (restricted-sexp :match-alternatives @var{criteria})
 The value may be any Lisp object that satisfies one of @var{criteria}.
-@var{criteria} should be a list, and each elements should be
+@var{criteria} should be a list, and each element should be
 one of these possibilities:
 
 @itemize @bullet
 @item
-A predicate---that is, a function of one argument that returns non-@code{nil}
-if the argument fits a certain type.  This means that objects of that type
-are acceptable.
+A predicate---that is, a function of one argument that has no side
+effects, and returns either @code{nil} or non-@code{nil} according to
+the argument.  Using a predicate in the list says that objects for which
+the predicate returns non-@code{nil} are acceptable.
 
 @item
-A quoted constant---that is, @code{'@var{object}}.  This means that
-@var{object} itself is an acceptable value.
+A quoted constant---that is, @code{'@var{object}}.  This sort of element
+in the list says that @var{object} itself is an acceptable value.
 @end itemize
 
 For example,
 
 @example
-(restricted-sexp :match-alternatives (integerp 't 'nil))
+(restricted-sexp :match-alternatives
+                 (integerp 't 'nil))
 @end example
 
 @noindent
@@ -427,7 +440,7 @@ syntax, and the user edits them textually.
 
 @item (cons @var{car-type} @var{cdr-type})
 The value must be a cons cell, its @sc{car} must fit @var{car-type}, and
-its @sc{cdr} must fit @var{cdr-type}.  For example, @code{(const string
+its @sc{cdr} must fit @var{cdr-type}.  For example, @code{(cons string
 symbol)} is a customization type which matches values such as
 @code{("foo" . foo)}.
 
@@ -444,7 +457,7 @@ For example, @code{(list integer string function)} describes a list of
 three elements; the first element must be an integer, the second a
 string, and the third a function.
 
-In the customization buffer, the each element is displayed and edited
+In the customization buffer, each element is displayed and edited
 separately, according to the type specified for it.
 
 @item (vector @var{element-types}@dots{})
@@ -466,10 +479,10 @@ including the @code{:tag} keyword in the alternatives.  For example, if
 an integer stands for a number of spaces, while a string is text to use
 verbatim, you might write the customization type this way,
 
-@smallexample
+@example
 (choice (integer :tag "Number of spaces")
         (string :tag "Literal text"))
-@end smallexample
+@end example
 
 @noindent
 so that the menu offers @samp{Number of spaces} and @samp{Literal Text}.
@@ -488,11 +501,11 @@ The main use of @code{const} is inside of @code{choice}.  For example,
 @code{:tag} is often used with @code{const}, inside of @code{choice}.
 For example,
 
-@smallexample
+@example
 (choice (const :tag "Yes" t)
         (const :tag "No" nil)
         (const :tag "Ask" foo))
-@end smallexample
+@end example
 
 @item (function-item @var{function})
 Like @code{const}, but used for values which are functions.  This
@@ -733,7 +746,7 @@ in the buffer with a positive tabbing order, or @code{nil}
 @end enumerate
 
 @item :parent
-The parent of a nested widget (e.g. a @code{menu-choice} item or an
+The parent of a nested widget (e.g., a @code{menu-choice} item or an
 element of a @code{editable-list} widget).
 
 @item :sibling-args

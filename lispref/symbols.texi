@@ -121,12 +121,12 @@ The property list cell contains the list @code{(variable-documentation
 documentation string for the variable @code{buffer-file-name} in the
 @file{DOC-@var{version}} file.  (29529 is the offset from the beginning
 of the @file{DOC-@var{version}} file to where that documentation string
-begins---@pxref{Documentation Basics}) The function cell contains the
-function for returning the name of the file.  @code{buffer-file-name}
-names a primitive function, which has no read syntax and prints in hash
-notation (@pxref{Primitive Function Type}).  A symbol naming a function
-written in Lisp would have a lambda expression (or a byte-code object)
-in this cell.
+begins---see @ref{Documentation Basics}.)  The function cell contains
+the function for returning the name of the file.
+@code{buffer-file-name} names a primitive function, which has no read
+syntax and prints in hash notation (@pxref{Primitive Function Type}).  A
+symbol naming a function written in Lisp would have a lambda expression
+(or a byte-code object) in this cell.
 
 @node Definitions, Creating Symbols, Symbol Components, Symbols
 @section Defining Symbols

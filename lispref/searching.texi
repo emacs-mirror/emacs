@@ -231,11 +231,12 @@ this choice, the rest of the regexp matches successfully.@refill
 
 Nested repetition operators can be extremely slow if they specify
 backtracking loops.  For example, it could take hours for the regular
-expression @samp{\(x+y*\)*a} to match the sequence
-@samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz}.  The slowness is because
-Emacs must try each imaginable way of grouping the 35 @samp{x}'s before
-concluding that none of them can work.  To make sure your regular
-expressions run fast, check nested repetitions carefully.
+expression @samp{\(x+y*\)*a} to try to match the sequence
+@samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz}, before it ultimately fails.
+The slowness is because Emacs must try each imaginable way of grouping
+the 35 @samp{x}'s before concluding that none of them can work.  To make
+sure your regular expressions run fast, check nested repetitions
+carefully.
 
 @item @samp{+}
 @cindex @samp{+} in regexp
@@ -281,7 +282,7 @@ representations, because only the @sc{ASCII} characters are excluded.
 The beginning and end of a range must be in the same character set
 (@pxref{Character Sets}).  Thus, @samp{[a-\x8c0]} is invalid because
 @samp{a} is in the @sc{ASCII} character set but the character 0x8c0
-(@samp{a} with grave accent) is in the Latin-1 character set.
+(@samp{A} with grave accent) is in the Emacs character set for Latin-1.
 
 Note that the usual regexp special characters are not special inside a
 character alternative.  A completely different set of characters are
@@ -354,11 +355,11 @@ ordinary since there is no preceding expression on which the @samp{*}
 can act.  It is poor practice to depend on this behavior; quote the
 special character anyway, regardless of where it appears.@refill
 
-For the most part, @samp{\} followed by any character matches only
-that character.  However, there are several exceptions: two-character
-sequences starting with @samp{\} which have special meanings.  The
-second character in the sequence is always an ordinary character on
-their own.  Here is a table of @samp{\} constructs.
+For the most part, @samp{\} followed by any character matches only that
+character.  However, there are several exceptions: two-character
+sequences starting with @samp{\} which have special meanings.  (The
+second character in such a sequence is always ordinary when used on its
+own.)  Here is a table of @samp{\} constructs.
 
 @table @samp
 @item \|
@@ -393,8 +394,8 @@ or @samp{barx}.
 @item
 To enclose a complicated expression for the postfix operators @samp{*},
 @samp{+} and @samp{?} to operate on.  Thus, @samp{ba\(na\)*} matches
-@samp{bananana}, etc., with any (zero or more) number of @samp{na}
-strings.@refill
+@samp{ba}, @samp{bana}, @samp{banana}, @samp{bananana}, etc., with any
+number (zero or more) of @samp{na} strings.
 
 @item
 To record a matched substring for future reference.
@@ -530,8 +531,8 @@ whitespace:
 @end example
 @end defun
 
-@tindex regexp-opt
 @defun regexp-opt strings &optional paren
+@tindex regexp-opt
 This function returns an efficient regular expression that will match
 any of the strings @var{strings}.  This is useful when you need to make
 matching or searching as fast as possible---for example, for Font Lock
@@ -555,8 +556,8 @@ regular expression which is equivalent to the actual value
 @end example
 @end defun
 
-@tindex regexp-opt-depth
 @defun regexp-opt-depth regexp
+@tindex regexp-opt-depth
 This function returns the total number of grouping constructs
 (parenthesized expressions) in @var{regexp}.
 @end defun
@@ -1090,6 +1091,10 @@ expressions grouped with escaped parentheses, @samp{\(@dots{}\)}.  The
 subexpression is numbered 1, the second 2, and so on.  Only regular
 expressions can have subexpressions---after a simple string search, the
 only information available is about the entire match.
+
+  A search which fails may or may not alter the match data.  In the
+past, a failing search did not do this, but we may change it in the
+future.
 
 @defun match-string count &optional in-string
 This function returns, as a string, the text matched in the last search

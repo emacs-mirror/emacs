@@ -172,8 +172,8 @@ never evaluated---it is ignored.  Thus, in the example below,
 @end example
 @end defspec
 
-@tindex when
 @defmac when condition then-forms@dots{}
+@tindex when
 This is a variant of @code{if} where there are no @var{else-forms},
 and possibly several @var{then-forms}.  In particular,
 
@@ -189,8 +189,8 @@ is entirely equivalent to
 @end example
 @end defmac
 
-@tindex condition
 @defmac unless condition forms@dots{}
+@tindex condition
 This is a variant of @code{if} where there is no @var{then-form}:
 
 @example
@@ -550,10 +550,10 @@ have several ways of transferring control nonsequentially: @code{return},
 
 @defspec catch tag body@dots{}
 @cindex tag on run time stack
-@code{catch} establishes a return point for the @code{throw} function.  The
-return point is distinguished from other such return points by @var{tag},
-which may be any Lisp object.  The argument @var{tag} is evaluated normally
-before the return point is established.
+@code{catch} establishes a return point for the @code{throw} function.
+The return point is distinguished from other such return points by
+@var{tag}, which may be any Lisp object except @code{nil}.  The argument
+@var{tag} is evaluated normally before the return point is established.
 
 With the return point in effect, @code{catch} evaluates the forms of the
 @var{body} in textual order.  If the forms execute normally, without

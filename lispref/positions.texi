@@ -180,10 +180,13 @@ whether a given character is part of a word.  @xref{Syntax Tables}.
 
 @deffn Command forward-word count
 This function moves point forward @var{count} words (or backward if
-@var{count} is negative).  Normally it returns @code{t}.  If this motion
-encounters the beginning or end of the buffer, or the limits of the
-accessible portion when narrowing is in effect, point stops there
-and the value is @code{nil}.
+@var{count} is negative).  More precisely, it keeps moving until it
+moves across a word-constituent character and encounters a
+word-separator character, then returns @code{t}.
+
+If this motion encounters the beginning or end of the buffer, or the
+limits of the accessible portion when narrowing is in effect, point
+stops there and the value is @code{nil}.
 
 In an interactive call, @var{count} is set to the numeric prefix
 argument.
@@ -450,7 +453,7 @@ Display}.
   These functions scan text to determine where screen lines break, and
 thus take time proportional to the distance scanned.  If you intend to
 use them heavily, Emacs provides caches which may improve the
-performance of your code.  @xref{Text Lines, cache-long-line-scans}.
+performance of your code.  @xref{Truncation, cache-long-line-scans}.
 
 
 @defun vertical-motion count &optional window
@@ -507,7 +510,7 @@ normally, use @code{(window-width @var{window})}.
 The argument @var{offsets} is either @code{nil} or a cons cell of the
 form @code{(@var{hscroll} . @var{tab-offset})}.  Here @var{hscroll} is
 the number of columns not being displayed at the left margin; most
-callers get this from @code{window-hscroll}.  Meanwhile,
+callers get this by calling @code{window-hscroll}.  Meanwhile,
 @var{tab-offset} is the offset between column numbers on the screen and
 column numbers in the buffer.  This can be nonzero in a continuation
 line, when the previous screen lines' widths do not add up to a multiple
@@ -725,7 +728,7 @@ an abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 
 The @code{save-excursion} special form is the standard way to switch
 buffers or move point within one part of a program and avoid affecting
-the rest of the program.  It is used more than 500 times in the Lisp
+the rest of the program.  It is used more than 4000 times in the Lisp
 sources of Emacs.
 
 @code{save-excursion} does not save the values of point and the mark for
@@ -758,6 +761,11 @@ The value returned by @code{save-excursion} is the result of the last of
 @end group
 @end example
 @end defspec
+
+  @strong{Warning:} Ordinary insertion of text adjacent to the saved
+point value relocates the saved value, just as it relocates all markers.
+Therefore, when the saved point value is restored, it normally comes
+after the inserted text.
 
   Although @code{save-excursion} saves the location of the mark, it does
 not prevent functions which modify the buffer from setting
@@ -857,7 +865,7 @@ of inaccessible text before and after the accessible portion.
 
 This method yields correct results if @var{body} does further narrowing.
 However, @code{save-restriction} can become confused if the body widens
-and then make changes outside the range of the saved narrowing.  When
+and then makes changes outside the range of the saved narrowing.  When
 this is what you want to do, @code{save-restriction} is not the right
 tool for the job.  Here is what you must use instead:
 

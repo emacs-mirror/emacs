@@ -15,7 +15,7 @@ described in @ref{Backups and Auto-Saving}.
 
   Many of the file functions take one or more arguments that are file
 names.  A file name is actually a string.  Most of these functions
-expand file name arguments using @code{expand-file-name}, so that
+expand file name arguments by calling @code{expand-file-name}, so that
 @file{~} is handled correctly, as are relative file names (including
 @samp{../}).  These functions don't recognize environment variable
 substitutions such as @samp{$HOME}.  @xref{File Name Expansion}.
@@ -201,9 +201,9 @@ used, and in many cases only some of the functions are called.
 @comment  node-name,  next,  previous,  up
 @subsection Subroutines of Visiting
 
-  The @code{find-file-noselect} function uses the
-@code{create-file-buffer} and @code{after-find-file} functions as
-subroutines.  Sometimes it is useful to call them directly.
+  The @code{find-file-noselect} function uses two important subroutines
+which are sometimes useful in user Lisp code: @code{create-file-buffer}
+and @code{after-find-file}.  This section explains how to use them.
 
 @defun create-file-buffer filename
 This function creates a suitably named buffer for visiting
@@ -251,7 +251,7 @@ If @var{warn} is non-@code{nil}, then this function issues a warning
 if an auto-save file exists and is more recent than the visited file.
 
 The last thing @code{after-find-file} does is call all the functions
-in @code{find-file-hooks}.
+in the list @code{find-file-hooks}.
 @end defun
 
 @node Saving Buffers
@@ -333,6 +333,12 @@ To do so, execute the following code:
 You might wish to save the file modes value returned by
 @code{backup-buffer} and use that to set the mode bits of the file that
 you write.  This is what @code{save-buffer} normally does.
+
+The hook functions in @code{write-file-hooks} are also responsible for
+encoding the data (if desired): they must choose a suitable coding
+system (@pxref{Lisp and Coding Systems}), perform the encoding
+(@pxref{Explicit Encoding}), and set @code{last-coding-system-used} to
+the coding system that was used (@pxref{Specifying Coding Systems}).
 
 Do not make this variable buffer-local.  To set up buffer-specific hook
 functions, use @code{write-contents-hooks} instead.
@@ -448,12 +454,13 @@ contents of the file.  This is better than simply deleting the buffer
 contents and inserting the whole file, because (1) it preserves some
 marker positions and (2) it puts less data in the undo list.
 
-It works to read a special file with @code{insert-file-contents}
-as long as @var{replace} and @var{visit} are @code{nil}.
+It is possible to read a special file (such as a FIFO or an I/O device)
+with @code{insert-file-contents}, as long as @var{replace} and
+@var{visit} are @code{nil}.
 @end defun
 
-@tindex insert-file-contents-literally
 @defun insert-file-contents-literally filename &optional visit beg end replace
+@tindex insert-file-contents-literally
 This function works like @code{insert-file-contents} except that it does
 not do format decoding (@pxref{Format Conversion}), does not do
 character code conversion (@pxref{Coding Systems}), does not run
@@ -485,7 +492,7 @@ An error is signaled if @var{filename} specifies a nonwritable file,
 or a nonexistent file in a directory where files cannot be created.
 @end deffn
 
-@deffn Command write-region start end filename &optional append visit
+@deffn Command write-region start end filename &optional append visit confirm
 This function writes the region delimited by @var{start} and @var{end}
 in the current buffer into the file specified by @var{filename}.
 
@@ -495,6 +502,9 @@ that string, rather than text from the buffer.
 
 If @var{append} is non-@code{nil}, then the specified text is appended
 to the existing file contents (if any).
+
+If @var{confirm} is non-@code{nil}, then @code{write-region} asks
+for confirmation if @var{filename} names an existing file.
 
 If @var{visit} is @code{t}, then Emacs establishes an association
 between the buffer and the file: the buffer is then visiting that file.
@@ -524,8 +534,8 @@ feature is useful for programs that use files for internal purposes,
 files that the user does not need to know about.
 @end deffn
 
-@tindex with-temp-file
 @defmac with-temp-file file body...
+@tindex with-temp-file
 The @code{with-temp-file} macro evaluates the @var{body} forms with a
 temporary buffer as the current buffer; then, at the end, it writes the
 buffer contents into file @var{file}.  It kills the temporary buffer
@@ -732,8 +742,8 @@ we can deduce that any attempt to read a file in @file{/foo/} will
 give an error.
 @end defun
 
-@tindex access-file
 @defun access-file filename string
+@tindex access-file
 This function opens file @var{filename} for reading, then closes it and
 returns @code{nil}.  However, if the open fails, it signals an error
 using @var{string} as the error message text.
@@ -1103,9 +1113,9 @@ In the first part of the following example, we list two files,
 
 @example
 @group
-% ls -l fo*
--rw-rw-rw-  1 rms       29 Aug 18 20:32 foo
--rw-rw-rw-  1 rms       24 Aug 18 20:31 foo3
+% ls -li fo*
+81908 -rw-rw-rw-  1 rms       29 Aug 18 20:32 foo
+84302 -rw-rw-rw-  1 rms       24 Aug 18 20:31 foo3
 @end group
 @end example
 
@@ -1115,23 +1125,22 @@ the files again.  This shows two names for one file, @file{foo} and
 
 @example
 @group
-(add-name-to-file "~/lewis/foo" "~/lewis/foo2")
+(add-name-to-file "foo" "foo2")
      @result{} nil
 @end group
 
 @group
-% ls -l fo*
--rw-rw-rw-  2 rms       29 Aug 18 20:32 foo
--rw-rw-rw-  2 rms       29 Aug 18 20:32 foo2
--rw-rw-rw-  1 rms       24 Aug 18 20:31 foo3
+% ls -li fo*
+81908 -rw-rw-rw-  2 rms       29 Aug 18 20:32 foo
+81908 -rw-rw-rw-  2 rms       29 Aug 18 20:32 foo2
+84302 -rw-rw-rw-  1 rms       24 Aug 18 20:31 foo3
 @end group
 @end example
 
-@c !!! Check whether this set of examples is consistent.  --rjc 15mar92
-  Finally, we evaluate the following:
+Finally, we evaluate the following:
 
 @example
-(add-name-to-file "~/lewis/foo" "~/lewis/foo3" t)
+(add-name-to-file "foo" "foo3" t)
 @end example
 
 @noindent
@@ -1141,22 +1150,22 @@ contents of @file{foo3} are lost.
 
 @example
 @group
-(add-name-to-file "~/lewis/foo1" "~/lewis/foo3")
+(add-name-to-file "foo1" "foo3")
      @result{} nil
 @end group
 
 @group
-% ls -l fo*
--rw-rw-rw-  3 rms       29 Aug 18 20:32 foo
--rw-rw-rw-  3 rms       29 Aug 18 20:32 foo2
--rw-rw-rw-  3 rms       29 Aug 18 20:32 foo3
+% ls -li fo*
+81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo
+81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo2
+81908 -rw-rw-rw-  3 rms       29 Aug 18 20:32 foo3
 @end group
 @end example
 
-  This function is meaningless on VMS, where multiple names for one file
-are not allowed.
+This function is meaningless on operating systems where multiple names
+for one file are not allowed.
 
-  See also @code{file-nlinks} in @ref{File Attributes}.
+See also @code{file-nlinks} in @ref{File Attributes}.
 @end defun
 
 @deffn Command rename-file filename newname &optional ok-if-already-exists
@@ -1176,7 +1185,7 @@ In an interactive call, this function prompts for @var{filename} and
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} does not exist.
 
-If @var{time} is non-@code{nil}, then this functions gives the new file
+If @var{time} is non-@code{nil}, then this function gives the new file
 the same last-modified time that the old one has.  (This works on only
 some operating systems.)  If setting the time gets an error,
 @code{copy-file} signals a @code{file-date-error} error.
@@ -1579,9 +1588,9 @@ form.
 
 @example
 (file-relative-name "/foo/bar" "/foo/")
-     @result{} "bar")
+     @result{} "bar"
 (file-relative-name "/foo/bar" "/hack/")
-     @result{} "/foo/bar")
+     @result{} "/foo/bar"
 @end example
 @end defun
 
@@ -1653,37 +1662,54 @@ construct a name for such a file:
 @example
 (make-temp-name
  (expand-file-name @var{name-of-application}
-                   (or (getenv "TMPDIR")
-                       "/tmp/")))
+                   temporary-file-directory))
 @end example
 
-@cindex @code{TMPDIR} environment variable.
 @noindent
 The job of @code{make-temp-name} is to prevent two different users or
-two different jobs from trying to use the same name.
-
-This example uses the environment variable @code{TMPDIR} to specify the
-directory, and if that is not specified, we use the directory
-@file{/tmp/}.  This is the standard way to choose the directory, and all
-Emacs Lisp programs should use it.
+two different jobs from trying to use the exact same file name.  This
+example uses the variable @code{temporary-file-directory} to decide
+where to put the temporary file.  All Emacs Lisp programs should
+use @code{temporary-file-directory} for this purpose, to give the user
+a uniform way to specify the directory for all temporary files.
 
 @defun make-temp-name string
-This function generates string that can be used as a unique name.  The
-name starts with @var{string}, and ends with a number that is different
-in each Emacs job.
+This function generates string that can be used as a unique file name.
+The name starts with @var{string}, and contains a number that is
+different in each Emacs job.
 
 @example
 @group
 (make-temp-name "/tmp/foo")
-     @result{} "/tmp/foo021304"
+     @result{} "/tmp/foo232J6v"
 @end group
 @end example
 
 To prevent conflicts among different libraries running in the same
 Emacs, each Lisp program that uses @code{make-temp-name} should have its
-own @var{string}.  The number added to the end of the name distinguishes
-between the same application running in different Emacs jobs.
+own @var{string}.  The number added to the end of @var{string}
+distinguishes between the same application running in different Emacs
+jobs.  Additional added characters permit a large number of distinct
+names even in one Emacs job.
 @end defun
+
+@defvar temporary-file-directory
+@cindex @code{TMPDIR} environment variable.
+@cindex @code{TMP} environment variable.
+This variable specifies the directory name for creating temporary files.
+Its value should be a directory name (@pxref{Directory Names}), but it
+is good for Lisp programs to cope if the value is a file name instead.
+(Using the value as the second argument to @code{expand-file-name} is a
+good way to achieve that.)
+
+The default value is determined in a reasonable way for your operating
+system; on GNU and Unix systems it is based on the @code{TMP} and
+@code{TMPDIR} environment variables.
+
+Even if you do not use @code{make-temp-name} to choose the temporary
+file's name, you should still use this variable to decide which
+directory to put the file in.
+@end defvar
 
 @node File Name Completion
 @subsection File Name Completion
@@ -1813,7 +1839,7 @@ is an example from the @code{completion} package:
 
   On GNU and Unix systems, and on some other systems as well,
 @code{convert-standard-filename} returns its argument unchanged.  On
-some other systems, it alters the name to fit the systems's conventions.
+some other systems, it alters the name to fit the system's conventions.
 
   For example, on MS-DOS the alterations made by this function include
 converting a leading @samp{.}  to @samp{_}, converting a @samp{_} in the
@@ -1883,11 +1909,12 @@ specification including wildcard characters.  If @var{wildcard} is
 non-@code{nil}, that means treat @var{file} as a file specification with
 wildcards.
 
-If @var{full-directory-p} is non-@code{nil}, that the directory listing
-is expected to show a complete directory.  You should specify @code{t}
-when @var{file} is a directory and switches do not contain @samp{-d}.
-(The @samp{-d} option to @code{ls} says to describe a directory itself
-as a file, rather than showing its contents.)
+If @var{full-directory-p} is non-@code{nil}, that means the directory
+listing is expected to show the full contents of a directory.  You
+should specify @code{t} when @var{file} is a directory and switches do
+not contain @samp{-d}.  (The @samp{-d} option to @code{ls} says to
+describe a directory itself as a file, rather than showing its
+contents.)
 
 This function works by running a directory listing program whose name is
 in the variable @code{insert-directory-program}.  If @var{wildcard} is
@@ -2230,7 +2257,7 @@ The argument @var{format} is a list of format names.  If @var{format} is
 @defvar auto-save-file-format
 This variable specifies the format to use for auto-saving.  Its value is
 a list of format names, just like the value of
-@code{buffer-file-format}; but it is used instead of
-@code{buffer-file-format} for writing auto-save files.  This variable
-is always buffer-local in all buffers.
+@code{buffer-file-format}; however, it is used instead of
+@code{buffer-file-format} for writing auto-save files.  This variable is
+always buffer-local in all buffers.
 @end defvar

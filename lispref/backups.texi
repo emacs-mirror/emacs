@@ -289,7 +289,8 @@ This function returns a string that is the name to use for a
 non-numbered backup file for file @var{filename}.  On Unix, this is just
 @var{filename} with a tilde appended.
 
-The standard definition of this function is as follows:
+The standard definition of this function, on most operating systems, is
+as follows:
 
 @smallexample
 @group
@@ -306,7 +307,9 @@ to prepend a @samp{.} in addition to appending a tilde:
 @smallexample
 @group
 (defun make-backup-file-name (filename)
-  (concat "." filename "~"))
+  (expand-file-name
+    (concat "." (file-name-nondirectory filename) "~")
+    (file-name-directory filename)))
 @end group
 
 @group
@@ -314,6 +317,11 @@ to prepend a @samp{.} in addition to appending a tilde:
      @result{} ".backups.texi~"
 @end group
 @end smallexample
+
+Some parts of Emacs, including some Dired commands, assume that backup
+file names end with @samp{~}.  If you do not follow that convention, it
+will not cause serious problems, but these commands may give
+less-than-desirable results.
 @end defun
 
 @defun find-backup-file-name filename

@@ -133,11 +133,11 @@ keymaps}.
 When a keymap contains a vector, it always defines a binding for each
 @sc{ASCII} character, even if the vector contains @code{nil} for that
 character.  Such a binding of @code{nil} overrides any default key
-binding in the keymap.  However, default bindings are still meaningful
-for events that are not @sc{ASCII} characters.  A binding of @code{nil}
-does @emph{not} override lower-precedence keymaps; thus, if the local
-map gives a binding of @code{nil}, Emacs uses the binding from the
-global map.
+binding in the keymap, for @sc{ASCII} characters.  However, default
+bindings are still meaningful for events other than @sc{ASCII}
+characters.  A binding of @code{nil} does @emph{not} override
+lower-precedence keymaps; thus, if the local map gives a binding of
+@code{nil}, Emacs uses the binding from the global map.
 
 @item @var{string}
 @cindex keymap prompt string
@@ -350,7 +350,7 @@ This map is also the function definition of @code{ESC-prefix}.
 
 @item
 @cindex @kbd{C-h}
-@code{help-map} is the global definitions for the @kbd{C-h} prefix key.
+@code{help-map} is the global keymap for the @kbd{C-h} prefix key.
 
 @item
 @cindex @kbd{C-c}
@@ -365,8 +365,8 @@ mode-specific bindings.
 @cindex @kbd{C-x}
 @vindex ctl-x-map
 @findex Control-X-prefix
-@code{ctl-x-map} is the global key map used for the @kbd{C-x} prefix
-key.  This map is found via the function definition of the symbol
+@code{ctl-x-map} is the global keymap used for the @kbd{C-x} prefix key.
+This map is found via the function cell of the symbol
 @code{Control-X-prefix}.
 
 @item
@@ -395,7 +395,7 @@ that have no special names.
 that follows the prefix key.  (It may instead be a symbol whose function
 definition is a keymap.  The effect is the same, but the symbol serves
 as a name for the prefix key.)  Thus, the binding of @kbd{C-x} is the
-symbol @code{Control-X-prefix}, whose function definition is the keymap
+symbol @code{Control-X-prefix}, whose function cell holds the keymap
 for @kbd{C-x} commands.  (The same keymap is also the value of
 @code{ctl-x-map}.)
 
@@ -472,7 +472,7 @@ local keymap is always active except when @code{overriding-local-map}
 overrides it.  Text properties can specify an alternative local map for
 certain parts of the buffer; see @ref{Special Properties}.
 
-  Each minor mode may have a keymap; if it does, the keymap is active
+  Each minor mode can have a keymap; if it does, the keymap is active
 when the minor mode is enabled.
 
   The variable @code{overriding-local-map}, if non-@code{nil}, specifies
@@ -485,11 +485,12 @@ order of decreasing precedence, until it finds a binding in one of the
 maps.  The procedure for searching a single keymap is called @dfn{key
 lookup}; see @ref{Key Lookup}.
 
-Normally, Emacs first searches for the key in the minor mode
-maps (one map at a time); if they do not supply a binding for the key,
-Emacs searches the local map; if that too has no binding, Emacs then
-searches the global map.  However, if @code{overriding-local-map} is
-non-@code{nil}, Emacs searches that map first, before the global map.
+  Normally, Emacs first searches for the key in the minor mode maps, in
+the order specified by @code{minor-mode-map-alist}; if they do not
+supply a binding for the key, Emacs searches the local map; if that too
+has no binding, Emacs then searches the global map.  However, if
+@code{overriding-local-map} is non-@code{nil}, Emacs searches that map
+first, before the global map.
 
 @cindex major mode keymap
   Since every buffer that uses the same major mode normally uses the
@@ -505,6 +506,9 @@ only when the mode is used for the first time in a session.
 
   The minibuffer has local keymaps, too; they contain various completion
 and exit commands.  @xref{Intro to Minibuffers}.
+
+  Emacs has other keymaps that are used in a different way---translating
+events within @code{read-key-sequence}.  @xref{Translating Input}.
 
   @xref{Standard Keymaps}, for a list of standard keymaps.
 
@@ -604,14 +608,17 @@ modes.  See also @code{minor-mode-key-binding} (@pxref{Functions for Key
 Lookup}).
 @end defvar
 
-@tindex minor-mode-overriding-map-alist
 @defvar minor-mode-overriding-map-alist
+@tindex minor-mode-overriding-map-alist
 This variable allows major modes to override the key bindings for
 particular minor modes.  The elements of this alist look like the
 elements of @code{minor-mode-map-alist}: @code{(@var{variable}
-. @var{keymap})}.  If a variable appears an element
-@code{minor-mode-overriding-map-alist}, that element overrides any
-element for the same variable in @code{minor-mode-map-alist}.
+. @var{keymap})}.
+
+If a variable appears an element of
+@code{minor-mode-overriding-map-alist}, the map specified by that
+element totally replaces any map specified for the same variable in
+@code{minor-mode-map-alist}.
 
 @code{minor-mode-overriding-map-alist} is automatically buffer-local in
 all buffers.
@@ -1414,7 +1421,7 @@ an indirect definition itself.
 @end smallexample
 @end defun
 
-@deffn Command describe-bindings prefix
+@deffn Command describe-bindings &optional prefix
 This function creates a listing of all current key bindings, and
 displays it in a buffer named @samp{*Help*}.  The text is grouped by
 modes---minor modes first, then the major mode, then global bindings.
@@ -1475,8 +1482,12 @@ an existing menu, you can specify its position in the menu using
 @code{define-key-after} (@pxref{Modifying Menus}).
 
 @menu
-* Simple Menu Items::
-* Extended Menu Items::
+* Simple Menu Items::       A simple kind of menu key binding,
+                              limited in capabilities.
+* Alias Menu Items::        Using command aliases in menu items.
+* Extended Menu Items::     More powerful menu item definitions
+                              let you specify keywords to enable
+                              various features.
 @end menu
 
 @node Simple Menu Items
@@ -1489,6 +1500,7 @@ looks like this:
 (@var{item-string} . @var{real-binding})
 @end example
 
+@noindent
 The @sc{car}, @var{item-string}, is the string to be displayed in the
 menu.  It should be short---preferably one to three words.  It should
 describe the action of the command it corresponds to.
@@ -1540,35 +1552,9 @@ Don't put these sublists in the menu item yourself; menu display
 calculates them automatically.  Don't mention keyboard equivalents in
 the item strings themselves, since that is redundant.
 
-Sometimes it is useful to make menu items that use the ``same'' command
-but with different enable conditions.  You can do this by defining alias
-commands.  Here's an example that makes two aliases for
-@code{toggle-read-only} and gives them different enable conditions:
-
-@example
-(defalias 'make-read-only 'toggle-read-only)
-(put 'make-read-only 'menu-enable '(not buffer-read-only))
-(defalias 'make-writable 'toggle-read-only)
-(put 'make-writable 'menu-enable 'buffer-read-only)
-@end example
-
-When using aliases in menus, often it is useful to display the
-equivalent key bindings for the ``real'' command name, not the aliases
-(which typically don't have any key bindings except for the menu
-itself).  To request this, give the alias symbol a non-@code{nil}
-@code{menu-alias} property.  Thus,
-
-@example
-(put 'make-read-only 'menu-alias t)
-(put 'make-writable 'menu-alias t)
-@end example
-
-@noindent
-causes menu items for @code{make-read-only} and @code{make-writable} to
-show the keyboard bindings for @code{toggle-read-only}.
-
 @node Extended Menu Items
 @subsubsection Extended Menu Items
+@kindex menu-item
 
   An extended-format menu item is a more flexible and also cleaner
 alternative to the simple format.  It consists of a list that starts
@@ -1610,7 +1596,7 @@ not defined at all.
 
 @item :help @var{help}
 The value of this property, @var{help}, is the extra help string (not
-currently used).
+currently used by Emacs).
 
 @item :button (@var{type} . @var{selected})
 This property provides a way to define radio buttons and toggle buttons.
@@ -1618,12 +1604,92 @@ The @sc{car}, @var{type}, says which: is should be @code{:toggle} or
 @code{:radio}.  The @sc{cdr}, @var{selected}, should be a form; the
 result of evaluating it says whether this button is currently selected.
 
+A @dfn{toggle} is a menu item which is labeled as either ``on'' or ``off''
+according to the value of @var{selected}.  The command itself should
+toggle @var{selected}, setting it to @code{t} if it is @code{nil},
+and to @code{nil} if it is @code{t}.  Here is how the menu item
+to toggle the @code{debug-on-error} flag is defined:
+
+@example
+(menu-item "Debug on Error" toggle-debug-on-error
+           :button (:toggle
+                    . (and (boundp 'debug-on-error)
+                           debug-on-error))
+@end example
+
+@noindent
+This works because @code{toggle-debug-on-error} is defined as a command
+which toggles the variable @code{debug-on-error}.
+
+@dfn{Radio buttons} are a group of menu items, in which at any time one
+and only one is ``selected.''  There should be a variable whose value
+says which one is selected at any time.  The @var{selected} form for
+each radio button in the group should check whether the variable has the
+right value for selecting that button.  Clicking on the button should
+set the variable so that the button you clicked on becomes selected.
+
+@item :key-sequence @var{key-sequence}
+This property specifies which key sequence is likely to be bound to the
+same command invoked by this menu item.  If you specify the right key
+sequence, that makes preparing the menu for display run much faster.
+
+If you specify the wrong key sequence, it has no effect; before Emacs
+displays @var{key-sequence} in the menu, it verifies that
+@var{key-sequence} is really equivalent to this menu item.
+
+@item :key-sequence nil
+This property indicates that there is normally no key binding which is
+equivalent to this menu item.  Using this property saves time in
+preparing the menu for display, because Emacs does not need to search
+the keymaps for a keyboard equivalent for this menu item.
+
+However, if the user has rebound this item's definition to a key
+sequence, Emacs ignores the @code{:keys} property and finds the keyboard
+equivalent anyway.
+
+@item :keys @var{string}
+This property specifies that @var{string} is the string to display
+as the keyboard equivalent for this menu item.  You can use
+the @samp{\\[...]} documentation construct in @var{string}.
+
 @item :filter @var{filter-fn}
 This property provides a way to compute the menu item dynamically.
 The property value @var{filter-fn} should be a function of one argument;
 when it is called, its argument will be @var{real-binding}.  The
 function should return the binding to use instead.
 @end table
+
+@node Alias Menu Items
+@subsubsection Alias Menu Items
+
+  Sometimes it is useful to make menu items that use the ``same''
+command but with different enable conditions.  The best way to do this
+in Emacs now is with extended menu items; before that feature existed,
+it could be done by defining alias commands and using them in menu
+items.  Here's an example that makes two aliases for
+@code{toggle-read-only} and gives them different enable conditions:
+
+@example
+(defalias 'make-read-only 'toggle-read-only)
+(put 'make-read-only 'menu-enable '(not buffer-read-only))
+(defalias 'make-writable 'toggle-read-only)
+(put 'make-writable 'menu-enable 'buffer-read-only)
+@end example
+
+When using aliases in menus, often it is useful to display the
+equivalent key bindings for the ``real'' command name, not the aliases
+(which typically don't have any key bindings except for the menu
+itself).  To request this, give the alias symbol a non-@code{nil}
+@code{menu-alias} property.  Thus,
+
+@example
+(put 'make-read-only 'menu-alias t)
+(put 'make-writable 'menu-alias t)
+@end example
+
+@noindent
+causes menu items for @code{make-read-only} and @code{make-writable} to
+show the keyboard bindings for @code{toggle-read-only}.
 
 @node Mouse Menus
 @subsection Menus and the Mouse
@@ -1708,7 +1774,8 @@ for @key{SPC}.
 
   Here is a complete example of defining a menu keymap.  It is the
 definition of the @samp{Print} submenu in the @samp{Tools} menu in the
-menu bar.  First we create the keymap, and give it a name:
+menu bar, and it uses the simple menu item format (@pxref{Simple Menu
+Items}).  First we create the keymap, and give it a name:
 
 @example
 (defvar menu-bar-print-menu (make-sparse-keymap "Print"))
@@ -1771,7 +1838,29 @@ command.
 can do it this way:
 
 @example
-(define-key global-map [C-S-down-mouse-1] menu-bar-print-menu)
+(define-key global-map [C-S-down-mouse-1]
+   menu-bar-print-menu)
+@end example
+
+  We could equally well use an extended menu item (@pxref{Extended Menu
+Items}) for @code{print-region}, like this:
+
+@example
+(define-key menu-bar-print-menu [print-region]
+  '(menu-item "Print Region" print-region
+              :enable (mark-active)))
+@end example
+
+@noindent
+With the extended menu item, the enable condition is specified
+inside the menu item itself.  If we wanted to make this
+item disappear from the menu entirely when the mark is inactive,
+we could do it this way:
+
+@example
+(define-key menu-bar-print-menu [print-region]
+  '(menu-item "Print Region" print-region
+              :visible (mark-active)))
 @end example
 
 @node Menu Bar

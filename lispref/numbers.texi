@@ -249,6 +249,11 @@ numbers or markers.  However, it is a good idea to use @code{=} if you
 can, even for comparing integers, just in case we change the
 representation of integers in a future Emacs version.
 
+  Sometimes it is useful to compare numbers with @code{equal}; it treats
+two numbers as equal if they have the same data type (both integers, or
+both floating point) and the same value.  By contrast, @code{=} can
+treat an integer and a floating point number as equal.
+
   There is another wrinkle: because floating point arithmetic is not
 exact, it is often a bad idea to check for equality of two floating
 point values.  Usually it is better to test for approximate equality.
@@ -328,7 +333,7 @@ This function returns the smallest of its arguments.
 @end defun
 
 @defun abs number
-This returns the absolute value of @var{number}.
+This function returns the absolute value of @var{number}.
 @end defun
 
 @node Numeric Conversions
@@ -357,9 +362,9 @@ This returns @var{number}, converted to an integer by rounding downward
 (towards negative infinity).
 
 If @var{divisor} is specified, @var{number} is divided by @var{divisor}
-before the floor is taken; this is the division operation that
-corresponds to @code{mod}.  An @code{arith-error} results if
-@var{divisor} is 0.
+before the floor is taken; this uses the kind of division operation that
+corresponds to @code{mod}, rounding downward.  An @code{arith-error}
+results if @var{divisor} is 0.
 @end defun
 
 @defun ceiling number
@@ -600,7 +605,7 @@ Conversions}.
 @section Rounding Operations
 @cindex rounding without conversion
 
-The functions @code{ffloor}, @code{fceiling}, @code{fround} and
+The functions @code{ffloor}, @code{fceiling}, @code{fround}, and
 @code{ftruncate} take a floating point argument and return a floating
 point result whose value is a nearby integer.  @code{ffloor} returns the
 nearest integer below; @code{fceiling}, the nearest integer above;
@@ -965,14 +970,34 @@ and pi/2 (exclusive) whose tangent is @var{arg}.
 @end defun
 
 @defun exp arg
-This is the exponential function; it returns @i{e} to the power
-@var{arg}.  @i{e} is a fundamental mathematical constant also called the
-base of natural logarithms.
+This is the exponential function; it returns
+@tex
+$e$
+@end tex
+@ifinfo
+@i{e}
+@end ifinfo
+to the power @var{arg}.
+@tex
+$e$
+@end tex
+@ifinfo
+@i{e}
+@end ifinfo
+is a fundamental mathematical constant also called the base of natural
+logarithms.
 @end defun
 
 @defun log arg &optional base
 This function returns the logarithm of @var{arg}, with base @var{base}.
-If you don't specify @var{base}, the base @var{e} is used.  If @var{arg}
+If you don't specify @var{base}, the base
+@tex
+$e$
+@end tex
+@ifinfo
+@i{e}
+@end ifinfo
+is used.  If @var{arg}
 is negative, the result is a NaN.
 @end defun
 

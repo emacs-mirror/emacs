@@ -30,7 +30,7 @@ however, we have renamed all of those.)
 
 @c !!! need  xref  to where each hook is documented or else document it
 @c by specifying what is expected, and when it is called relative to
-@c mode initialization.)
+@c mode initialization.
 
 @table @code
 @item activate-mark-hook
