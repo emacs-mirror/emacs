@@ -28,99 +28,6 @@
 
 (require 'quail)
 (require 'ethio-util)
-
-;;
-;; Ethiopic word separator vs. ASCII space
-;;
-
-(defvar ethio-prefer-ascii-space t)
-(make-variable-buffer-local 'ethio-prefer-ascii-space)
-
-(defun ethio-toggle-space nil
-  "Toggle ASCII space and Ethiopic separator for keyboard input."
-  (interactive)
-  (setq ethio-prefer-ascii-space
-	(not ethio-prefer-ascii-space))
-  (force-mode-line-update))
-
-(defun ethio-insert-space (arg)
-  "Insert ASCII spaces or Ethiopic word separators depending on context.
-
-If the current word separator (indicated in mode-line) is the ASCII space,
-insert an ASCII space.  With ARG, insert that many ASCII spaces.
-
-If the current word separator is the colon-like Ethiopic word
-separator and the point is preceded by `an Ethiopic punctuation mark
-followed by zero or more ASCII spaces', then insert also an ASCII
-space.  With ARG, insert that many ASCII spaces.
-
-Otherwise, insert a colon-like Ethiopic word separator.  With ARG, insert that
-many Ethiopic word separators."
-
-  (interactive "*p")
-  (cond
-   (ethio-prefer-ascii-space
-    (insert-char 32 arg))
-   ((save-excursion
-      (skip-chars-backward " ")
-      (memq (preceding-char)
-	    '(?$(3$h(B ?$(3$i(B ?$(3$j(B ?$(3$k(B ?$(3$l(B ?$(3$m(B ?$(3$n(B ?$(3$o(B ?$(3%t(B ?$(3%u(B ?$(3%v(B ?$(3%w(B ?$(3%x(B)))
-    (insert-char 32 arg))
-   (t
-    (insert-char ?$(3$h(B arg))))
-
-(defun ethio-insert-ethio-space (arg)
-  "Insert the Ethiopic word delimiter (the colon-like character).
-With ARG, insert that many delimiters."
-  (interactive "*p")
-  (insert-char ?$(3$h(B arg))
-
-;;
-;; Ethiopic punctuation vs. ASCII punctuation
-;;
-
-(defvar ethio-prefer-ascii-punctuation nil)
-(make-variable-buffer-local 'ethio-prefer-ascii-punctuation)
-
-(defun ethio-toggle-punctuation nil
-  "Toggle Ethiopic punctuations and ASCII punctuations for keyboard input."
-  (interactive)
-  (setq ethio-prefer-ascii-punctuation
-	(not ethio-prefer-ascii-punctuation))
-  (let* ((keys '("." ".." "..." "," ",," ";" ";;" ":" "::" ":::" "*" "**"))
-	 (puncs
-	  (if ethio-prefer-ascii-punctuation
-	      '(?. [".."] ["..."] ?, [",,"] ?\; [";;"] ?: ["::"] [":::"] ?* ["**"])
-	    '(?$(3$i(B ?$(3%u(B ?. ?$(3$j(B ?, ?$(3$k(B ?\; ?$(3$h(B ?$(3$i(B ?: ?* ?$(3$o(B))))
-    (while keys
-      (quail-defrule (car keys) (car puncs) "ethiopic")
-      (setq keys (cdr keys)
-	    puncs (cdr puncs)))
-    (force-mode-line-update)))
-
-;;
-;; Gemination
-;;
-
-(defun ethio-gemination nil
-  "Compose the character before the point with the Ethiopic gemination mark.
-If the characater is already composed, decompose it and remove the gemination
-mark."
-  (interactive "*")
-  (cond
-   ((eq (char-charset (preceding-char)) 'ethiopic)
-    (insert "$(3%s(B")
-    (compose-region
-     (save-excursion (backward-char 2) (point))
-     (point))
-    (forward-char 1))
-   ((eq (char-charset (preceding-char)) 'leading-code-composition)
-    (decompose-region
-     (save-excursion (backward-char 1) (point))
-     (point))
-    (delete-backward-char 1))
-   (t
-    (error ""))))
 		
 ;;
 ;; The package "ethiopic"
@@ -131,7 +38,11 @@ mark."
  '("$(3$O#U!.(B "
    (ethio-prefer-ascii-space "_" "$(3$h(B")
    (ethio-prefer-ascii-punctuation "." "$(3$i(B"))
- t "  KEYS AND FUNCTIONS
+ t "  QUAIL PACKAGE FOR ETHIOPIC (TIGRIGNA AND AMHARIC)
+
+When you activate this package, Ethio minor mode is also turned on.
+
+  KEYS AND FUNCTIONS
 
 F2 or `M-x ethio-toggle-space'
   Toggles space characters for keyboard input.  The current mode is
@@ -153,19 +64,14 @@ C-' or `M-x ethio-gemination'
   If the characater is already composed, decompose it and remove the
   gemination mark."
 
- '(([f2] . ethio-toggle-space)
-   ([f3] . ethio-toggle-punctuation)
-   (" " . ethio-insert-space)
-   ([?\S- ] . ethio-insert-ethio-space)
-   ([?\C-'] . ethio-gemination))
+ ;; The following keys should work as defined in lisp/language/ethio-util,
+ ;; even during the translation.
+ '(([f2]    . quail-execute-non-quail-command)
+   ([f3]    . quail-execute-non-quail-command)
+   (" "     . quail-execute-non-quail-command)
+   ([?\S- ] . quail-execute-non-quail-command)
+   ([?\C-'] . quail-execute-non-quail-command))
  t t)
-
-;; These keys should work even if translation region is not active.
-(define-key quail-mode-map [f2] 'ethio-toggle-space)
-(define-key quail-mode-map [f3] 'ethio-toggle-punctuation)
-(define-key quail-mode-map " "  'ethio-insert-space)
-(define-key quail-mode-map [?\S- ] 'ethio-insert-ethio-space)
-(define-key quail-mode-map [?\C-'] 'ethio-gemination)
 
 (quail-define-rules
  ("he" ?$(3!!(B)
@@ -1120,12 +1026,16 @@ C-' or `M-x ethio-gemination'
  ("`1000000" ["$(3%$%%(B"])
 )
 
-;; The translation of `a' depends on the language (Tigrigna or Amharic). 
 (add-hook 'quail-mode-hook
 	  (lambda nil
-	    (if (string= (quail-name) "ethiopic")
-		(quail-defrule "a"
-			       (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
-			       "ethiopic"))))
+	    (if (not (string= (quail-name) "ethiopic"))
+		nil
+	      ;; Also turn on the Ethio minor mode.
+	      (ethio-mode 1)
+	      ;; The translation of `a' depends on the language
+	      ;; (either Tigrigna or Amharic). 
+	      (quail-defrule "a"
+			     (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
+			     "ethiopic"))))
 
 ;;; quail/ethiopic.el ends here
