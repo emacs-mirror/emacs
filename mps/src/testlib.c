@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $Id: testlib.c,v 1.1 1995/09/07 13:49:58 richard Exp $
+ *  $Id: testlib.c,v 1.2 1996/02/08 14:22:07 richard Exp $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-SRCID("$HopeName");
 
 /* I nabbed it from "ML for the Working Programmer"
  * Originally from:
