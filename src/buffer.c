@@ -5279,6 +5279,9 @@ If this is nil, the buffer is saved without any code conversion
 unless some coding system is specified in `file-coding-system-alist'
 for the buffer file.
 
+If the text to be saved cannot be encoded as specified by this variable,
+an alternative encoding is selected by `select-safe-coding-system', which see.
+
 The variable `coding-system-for-write', if non-nil, overrides this variable.
 
 This variable is never applied to a way of decoding a file while reading it.  */);
