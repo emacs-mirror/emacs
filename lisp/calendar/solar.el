@@ -27,7 +27,8 @@
 ;;; Commentary:
 
 ;; This collection of functions implements the features of calendar.el and
-;; diary.el that deal with sunrise/sunset and equinoxes/solstices.
+;; diary.el that deal with times of day, sunrise/sunset, and
+;; eqinoxes/solstices.
 
 ;; Based on the ``Almanac for Computers 1984,'' prepared by the Nautical
 ;; Almanac Office, United States Naval Observatory, Washington, 1984 and
@@ -56,7 +57,45 @@
     (require 'lisp-float-type)
   (error "Solar calculations impossible since floating point is unavailable."))
 
-(require 'calendar)
+(require 'cal-dst)
+
+;;;###autoload
+(defvar calendar-time-display-form
+  '(12-hours ":" minutes am-pm
+    (if time-zone " (") time-zone (if time-zone ")"))
+  "*The pseudo-pattern that governs the way a time of day is formatted.
+
+A pseudo-pattern is a list of expressions that can involve the keywords
+`12-hours', `24-hours', and `minutes',  all numbers in string form,
+and `am-pm' and `time-zone',  both alphabetic strings.
+
+For example, the form
+
+  '(24-hours \":\" minutes
+    (if time-zone \" (\") time-zone (if time-zone \")\"))
+
+would give military-style times like `21:07 (UTC)'.")
+
+;;;###autoload
+(defvar calendar-latitude nil
+  "*Latitude of `calendar-location-name' in degrees, + north, - south.
+For example, 40.7 for New York City.")
+
+;;;###autoload
+(defvar calendar-longitude nil
+  "*Longitude of `calendar-location-name' in degrees, + east, - west.
+For example, -74.0 for New York City.")
+
+;;;###autoload
+(defvar calendar-location-name
+  '(let ((float-output-format "%.1f"))
+     (format "%s%s, %s%s"
+	     (abs calendar-latitude)
+	     (if (> calendar-latitude 0) "N" "S")
+	     (abs calendar-longitude)
+	     (if (> calendar-longitude 0) "E" "W")))
+  "*Expression evaluating to name of `calendar-longitude', calendar-latitude'.
+Default value is just the latitude, longitude pair.")
 
 (defun solar-setup ()
   "Prompt user for latitude, longitude, and time zone."
@@ -237,19 +276,20 @@ savings time according to `calendar-daylight-savings-starts',
 `calendar-daylight-savings-ends', `calendar-daylight-switchover-time', and
 `calendar-daylight-savings-offset'."
   (let* ((year (extract-calendar-year date))
-         (abs-date-and-time (+ (calendar-absolute-from-gregorian date)
-                               (/ time 24.0)))
-         (rounded-abs-date (+ abs-date-and-time (/ 1.0 60 24 2)));; half min
-         (dst-change-over
-          (/ (eval calendar-daylight-savings-switchover-time) 60.0 24.0))
+	 (time (round (* 60 time)))
+	 (rounded-abs-date (+ (calendar-absolute-from-gregorian date)
+			      (/ time 60.0 24.0)))
          (dst-starts (and calendar-daylight-savings-starts
                           (+ (calendar-absolute-from-gregorian
                               (eval calendar-daylight-savings-starts))
-                             dst-change-over)))
+			     (/ calendar-daylight-savings-switchover-time
+				60.0 24.0))))
          (dst-ends (and calendar-daylight-savings-ends
                         (+ (calendar-absolute-from-gregorian
                             (eval calendar-daylight-savings-ends))
-                           dst-change-over)))
+			   (/ (- calendar-daylight-savings-switchover-time
+				 calendar-daylight-time-offset)
+			      60.0 24.0))))
 	 (dst (and (not (eq style 'standard))
                    (or (eq style 'daylight)
                        (and dst-starts dst-ends
@@ -263,20 +303,13 @@ savings time according to `calendar-daylight-savings-starts',
                             (<= dst-starts rounded-abs-date))
                        (and dst-ends (not dst-starts)
                             (< rounded-abs-date dst-ends)))))
-         (time (if dst
-                   (+ time (/ (eval calendar-daylight-time-offset) 60.0))
-                 time))
 	 (time-zone (if dst
 			calendar-daylight-time-zone-name
 			calendar-standard-time-zone-name))
-	 (24-hours (truncate time))
-	 (minutes (round (* 60 (- time 24-hours))))
-         (24-hours (if (= minutes 60) (1+ 24-hours) 24-hours))
-         (minutes (if (= minutes 60) 0 minutes))
-         (minutes (format "%02d" minutes))
-	 (12-hours (format "%d" (if (> 24-hours 12)
-				    (- 24-hours 12)
-				  (if (= 24-hours 0) 12 24-hours))))
+	 (time (+ time (if dst calendar-daylight-time-offset 0)))
+	 (24-hours (/ time 60))
+	 (minutes (format "%02d" (% time 60)))
+	 (12-hours (format "%d" (1+ (% (+ 24-hours 11) 12))))
 	 (am-pm (if (>= 24-hours 12) "pm" "am"))
 	 (24-hours (format "%02d" 24-hours)))
     (mapconcat 'eval calendar-time-display-form "")))
@@ -335,6 +368,7 @@ Value is only an approximation."
 solstice; K=2, fall equinox; K=3, winter solstice.  Accurate to within
 several minutes."
   (let ((date (list (+ 3 (* k 3)) 21 year))
+        app
 	(correction 1000))
     (while (> correction 0.00001)
       (setq app (solar-mod (solar-apparent-longitude-of-sun date) 360.0))
@@ -382,10 +416,10 @@ This function is suitable for execution in a .emacs file."
                      (if (> calendar-longitude 0) "E" "W")))))
         (calendar-standard-time-zone-name
          (if (< arg 16) calendar-standard-time-zone-name
-           (cond ((= calendar-time-zone 0) "UT")
+           (cond ((= calendar-time-zone 0) "UTC")
                  ((< calendar-time-zone 0)
-                     (format "UT%dmin" calendar-time-zone))
-                 (t  (format "UT+%dmin" calendar-time-zone)))))
+                     (format "UTC%dmin" calendar-time-zone))
+                 (t  (format "UTC+%dmin" calendar-time-zone)))))
         (calendar-daylight-savings-starts
          (if (< arg 16) calendar-daylight-savings-starts))
         (calendar-daylight-savings-ends
@@ -435,16 +469,16 @@ No diary entry if there is no sunset on that date."
         (if light (format "%s Sabbath candle lighting"
                           (solar-time-string light date))))))
 
-(defun calendar-holiday-function-solar-equinoxes-solstices ()
+(defun solar-equinoxes-solstices ()
   "Date and time of equinoxes and solstices, if visible in the calendar window.
 Requires floating point."
-  (let* ((m displayed-month)
-	 (y displayed-year))
+  (let ((m displayed-month)
+        (y displayed-year))
     (increment-calendar-month m y (cond ((= 1 (% m 3)) -1)
 					((= 2 (% m 3))  1)
 					(t              0)))
     (let* ((calendar-standard-time-zone-name
-            (if calendar-time-zone calendar-standard-time-zone-name "UT"))
+            (if calendar-time-zone calendar-standard-time-zone-name "UTC"))
            (calendar-daylight-savings-starts
             (if calendar-time-zone calendar-daylight-savings-starts))
            (calendar-daylight-savings-ends
