@@ -44,7 +44,7 @@
 	  (goto-char (point-min))
 	  (if (search-forward "\^_\nIndirect:\n" nil t)
 	      (message "Cannot tagify split info file")
-	    (let ((regexp "Node:[ \t]*\\([^,\n\t]\\)*[,\t\n]")
+	    (let ((regexp "Node:[ \t]*\\([^,\n\t]*\\)[,\t\n]")
 		  (case-fold-search t)
 		  list)
 	      (while (search-forward "\n\^_" nil t)
