@@ -724,7 +724,7 @@ x_set_frame_parameters (f, alist)
   /* If both of these parameters are present, it's more efficient to
      set them both at once.  So we wait until we've looked at the
      entire list before we set them.  */
-  Lisp_Object width, height;
+  int width, height;
 
   /* Same here.  */
   Lisp_Object left, top;
@@ -759,8 +759,19 @@ x_set_frame_parameters (f, alist)
       i++;
     }
 
-  width = height = top = left = Qunbound;
+  top = left = Qunbound;
   icon_left = icon_top = Qunbound;
+
+  /* Provide default values for HEIGHT and WIDTH.  */
+  if (FRAME_NEW_WIDTH (f))
+    width = FRAME_NEW_WIDTH (f);
+  else
+    width = FRAME_WIDTH (f);
+
+  if (FRAME_NEW_HEIGHT (f))
+    height = FRAME_NEW_HEIGHT (f);
+  else
+    height = FRAME_HEIGHT (f);
 
   /* Now process them in reverse of specified order.  */
   for (i--; i >= 0; i--)
@@ -770,10 +781,10 @@ x_set_frame_parameters (f, alist)
       prop = parms[i];
       val = values[i];
 
-      if (EQ (prop, Qwidth))
-	width = val;
-      else if (EQ (prop, Qheight))
-	height = val;
+      if (EQ (prop, Qwidth) && NUMBERP (val))
+	width = XFASTINT (val);
+      else if (EQ (prop, Qheight) && NUMBERP (val))
+	height = XFASTINT (val);
       else if (EQ (prop, Qtop))
 	top = val;
       else if (EQ (prop, Qleft))
@@ -830,22 +841,6 @@ x_set_frame_parameters (f, alist)
 	XSETINT (icon_top, 0);
     }
 
-  /* Don't die if just one of these was set.  */
-  if (EQ (width, Qunbound))
-    {
-      if (FRAME_NEW_WIDTH (f))
-	XSETINT (width, FRAME_NEW_WIDTH (f));
-      else
-	XSETINT (width, FRAME_WIDTH (f));
-    }
-  if (EQ (height, Qunbound))
-    {
-      if (FRAME_NEW_HEIGHT (f))
-	XSETINT (height, FRAME_NEW_HEIGHT (f));
-      else
-	XSETINT (height, FRAME_HEIGHT (f));
-    }
-
   /* Don't set these parameters unless they've been explicitly
      specified.  The window might be mapped or resized while we're in
      this function, and we don't want to override that unless the lisp
@@ -861,10 +856,10 @@ x_set_frame_parameters (f, alist)
 
     XSETFRAME (frame, f);
 
-    if ((NUMBERP (width) && XINT (width) != FRAME_WIDTH (f))
-	|| (NUMBERP (height) && XINT (height) != FRAME_HEIGHT (f))
+    if (width != FRAME_WIDTH (f)
+	|| height != FRAME_HEIGHT (f)
 	|| FRAME_NEW_HEIGHT (f) || FRAME_NEW_WIDTH (f))
-      Fset_frame_size (frame, width, height);
+      Fset_frame_size (frame, make_number (width), make_number (height));
 
     if ((!NILP (left) || !NILP (top))
 	&& ! (left_no_change && top_no_change)
@@ -1057,6 +1052,10 @@ x_report_frame_params (f, alistptr)
 		   : FRAME_ICONIFIED_P (f) ? Qicon : Qnil));
   store_in_alist (alistptr, Qdisplay,
 		  XCONS (FRAME_X_DISPLAY_INFO (f)->name_list_element)->car);
+
+  store_in_alist (alistptr, Qparent_id,
+		  (f->output_data.x->parent_desc == FRAME_X_DISPLAY_INFO (f)->root_window
+		   ? Qnil : f->output_data.x->parent_desc));
 }
 
 
@@ -2231,6 +2230,25 @@ x_get_arg (alist, param, attribute, class, type)
   return Fcdr (tem);
 }
 
+/* Like x_get_arg, but also record the value in f->param_alist.  */
+
+static Lisp_Object
+x_get_and_record_arg (f, alist, param, attribute, class, type)
+     struct frame *f;
+     Lisp_Object alist, param;
+     char *attribute;
+     char *class;
+     enum resource_types type;
+{
+  Lisp_Object value;
+
+  value = x_get_arg (alist, param, attribute, class, type);
+  if (! NILP (value))
+    store_frame_param (f, param, value);
+
+  return value;
+}
+
 /* Record in frame F the specified or default value according to ALIST
    of the parameter named PARAM (a Lisp symbol).
    If no value is specified for PARAM, look for an X default for XPROP
@@ -2894,8 +2912,8 @@ x_icon (f, parms)
 
   /* Set the position of the icon.  Note that twm groups all
      icons in an icon window.  */
-  icon_x = x_get_arg (parms, Qicon_left, 0, 0, number);
-  icon_y = x_get_arg (parms, Qicon_top, 0, 0, number);
+  icon_x = x_get_and_record_arg (f, parms, Qicon_left, 0, 0, number);
+  icon_y = x_get_and_record_arg (f, parms, Qicon_top, 0, 0, number);
   if (!EQ (icon_x, Qunbound) && !EQ (icon_y, Qunbound))
     {
       CHECK_NUMBER (icon_x, 0);
@@ -3297,6 +3315,7 @@ This function is an internal primitive--use `make-frame' instead.")
 /* FRAME is used only to get a handle on the X display.  We don't pass the
    display info directly because we're called from frame.c, which doesn't
    know about that structure.  */
+
 Lisp_Object
 x_get_focus_frame (frame)
      struct frame *frame;
@@ -3308,21 +3327,6 @@ x_get_focus_frame (frame)
 
   XSETFRAME (xfocus, dpyinfo->x_focus_frame);
   return xfocus;
-}
-
-DEFUN ("focus-frame", Ffocus_frame, Sfocus_frame, 1, 1, 0,
-  "This function is obsolete, and does nothing.")
-  (frame)
-     Lisp_Object frame;
-{
-  return Qnil;
-}
-
-DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
-  "This function is obsolete, and does nothing.")
-  ()
-{
-  return Qnil;
 }
 
 DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 4, 0,
@@ -5204,8 +5208,6 @@ unless you set it to something else.");
 #endif
   defsubr (&Sx_parse_geometry);
   defsubr (&Sx_create_frame);
-  defsubr (&Sfocus_frame);
-  defsubr (&Sunfocus_frame);
 #if 0
   defsubr (&Sx_horizontal_line);
 #endif
