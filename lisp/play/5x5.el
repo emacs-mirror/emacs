@@ -5,7 +5,7 @@
 ;; Author: Dave Pearson <davep@davep.org>
 ;; Maintainer: Dave Pearson <davep@davep.org>
 ;; Created: 1998-10-03
-;; Version: $Revision: 1.20 $
+;; Version: 1.20
 ;; Keywords: games puzzles
 
 ;; This file is part of GNU Emacs.
