@@ -1,4 +1,4 @@
-;;; setenv.el --- functions to manipulate environment variables.
+;;; env.el --- functions to manipulate environment variables.
 
 ;;; Copyright Free Software Foundation 1991
 
@@ -31,24 +31,30 @@
 ;;; Code:
 
 ;;;###autoload
-(defun setenv (variable value)
+(defun putenv (variable &optional value)
   "Set the value of the environment variable named VARIABLE to VALUE.
-VARIABLE and VALUE should both be strings.
+VARIABLE should be a string.  VALUE is optional; if not provided or is
+`nil', the environment variable VARIABLE will be removed.  
 This function works by modifying `process-environment'."
   (interactive "sSet environment variable: \nsSet %s to value: ")
   (if (string-match "=" variable)
-      (error "Environment variable name contains `='")
+      (error "Environment variable name `%s' contains `='" variable)
     (let ((pattern (concat "\\`" (regexp-quote (concat variable "="))))
 	  (scan process-environment))
       (while scan
 	(cond
 	 ((string-match pattern (car scan))
-	  (setcar scan (concat variable "=" value))
+          (if (eq nil value)
+              (setq process-environment (delq (car scan) process-environment))
+            (setcar scan (concat variable "=" value)))
 	  (setq scan nil))
 	 ((null (setq scan (cdr scan)))
 	  (setq process-environment
 		(cons (concat variable "=" value) process-environment))))))))
 
-(provide 'setenv)
+;; Provide backward-contemptibility. 
+(fset 'setenv 'putenv)
 
-;;; setenv.el ends here
+(provide 'env)
+
+;;; env.el ends here
