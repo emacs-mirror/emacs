@@ -89,3 +89,28 @@
 #define NARROWPROTO 1
 
 #define DEFAULT_SOUND_DEVICE "/dev/audio"
+
+/* Greg A. Woods <woods@weird.com> says we must include signal.h
+   before syssignal.h is included, to work around interface conflicts
+   that are handled with CPP __RENAME() macro in signal.h.  */
+
+#ifndef NO_C_SOURCE
+#include <signal.h>
+#endif
+
+/* Don't close pty in process.c to make it as controlling terminal.
+   It is already a controlling terminal of subprocess, because we did
+   ioctl TIOCSCTTY.  */
+
+#define DONT_REOPEN_PTY
+ 
+/* Tell that garbage collector that setjmp is known to save all
+   registers relevant for conservative garbage collection in the
+   jmp_buf.  */
+
+#define GC_SETJMP_WORKS 1
+ 
+/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method.  */
+
+#define GC_MARK_STACK	1
+
