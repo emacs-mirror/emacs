@@ -2860,7 +2860,7 @@ This function is an internal primitive--use `make-frame' instead.")
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-  display = x_get_arg (parms, Qdisplay, 0, 0, 0);
+  display = x_get_arg (parms, Qdisplay, 0, 0, string);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
