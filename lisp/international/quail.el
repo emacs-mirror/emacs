@@ -856,12 +856,10 @@ The returned value is a Quail map specific to KEY."
 	      (progn
 		(setq quail-current-translations translation)
 		(if (quail-forget-last-selection)
-		    (setcar (car quail-current-translations) 0))))
-	  ;; We may have to reform cdr part of MAP.
-	  (if (and (cdr map) (symbolp (cdr map)))
-	      (progn
-		(setcdr map (funcall (cdr map) key len))))
-	  ))
+		    (setcar (car quail-current-translations) 0))))))
+    ;; We may have to reform cdr part of MAP.
+    (if (and (cdr map) (functionp (cdr map)))
+	(setcdr map (funcall (cdr map) key len)))
     map))
 
 (put 'quail-error 'error-conditions '(quail-error error))
