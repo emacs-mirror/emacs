@@ -1,3 +1,9 @@
+2004-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_set_name_internal): New function.  Check if we shall call
+	xfree before ENCODE_UTF_8.
+	(x_set_name, x_set_title): Call x_set_name_internal.
+
 2004-08-31  NAKAMURA Toshikazu  <nr-tkz@nifty.com>  (tiny change)
 
 	* w32fns.c (w32_load_font): If a BDF font is already loaded, do not
