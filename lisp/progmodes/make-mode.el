@@ -18,7 +18,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.9 1993/06/09 11:54:21 jimb Exp $
+;; $Id: makefile.el,v 1.10 1993/12/23 04:57:18 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -418,6 +418,9 @@ makefile-special-targets-list:
   (make-variable-buffer-local 'makefile-has-prereqs)
   (make-variable-buffer-local 'makefile-need-target-pickup)
   (make-variable-buffer-local 'makefile-need-macro-pickup)
+  (make-local-variable 'comment-start)
+  (make-local-variable 'comment-end)
+  (make-local-variable 'comment-start-skip)
   (setq comment-start "#")
   (setq comment-end "")
   (setq comment-start-skip "#[ \t]*")
