@@ -609,14 +609,16 @@ appear on disk when you save the tar-file's buffer."
 	  (setq tar-header-offset old-offset)))))
 
 
-(defun tar-next-line (p)
+(defun tar-next-line (arg)
+  "Move cursor vertically down ARG lines and to the start of the filename."
   (interactive "p")
-  (forward-line p)
+  (forward-line arg)
   (if (eobp) nil (forward-char (if tar-mode-show-date 54 36))))
 
-(defun tar-previous-line (p)
+(defun tar-previous-line (arg)
+  "Move cursor vertically up ARG lines and to the start of the filename."
   (interactive "p")
-  (tar-next-line (- p)))
+  (tar-next-line (- arg)))
 
 (defun tar-current-descriptor (&optional noerror)
   "Return the tar-descriptor of the current line, or signals an error."
