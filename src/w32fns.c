@@ -5144,9 +5144,9 @@ w32_load_system_font (f,fontname,size)
        type FONT_ENCODING_NOT_DECIDED.  */
     encoding = strrchr (fontp->name, '-');
     if (encoding && stricmp (encoding+1, "sjis") == 0)
-        fontp->encoding[1] = 4;
+      fontp->encoding[1] = 4;
     else
-    fontp->encoding[1] = FONT_ENCODING_NOT_DECIDED;
+      fontp->encoding[1] = FONT_ENCODING_NOT_DECIDED;
 
     /* The following three values are set to 0 under W32, which is
        what they get set to if XGetFontProperty fails under X.  */
@@ -5331,7 +5331,8 @@ x_to_w32_charset (lpcs)
   if (stricmp (lpcs,"ansi") == 0)                return ANSI_CHARSET;
   else if (stricmp (lpcs,"iso8859-1") == 0)      return ANSI_CHARSET;
   else if (stricmp (lpcs, "ms-symbol") == 0)     return SYMBOL_CHARSET;
-  else if (stricmp (lpcs, "jis") == 0)           return SHIFTJIS_CHARSET;
+  /* Map all Japanese charsets to the Windows Shift-JIS charset.  */
+  else if (strnicmp (lpcs, "jis", 3) == 0)       return SHIFTJIS_CHARSET;
   else if (stricmp (lpcs, "ksc5601.1987") == 0)  return HANGEUL_CHARSET;
   else if (stricmp (lpcs, "gb2312") == 0)        return GB2312_CHARSET;
   else if (stricmp (lpcs, "big5") == 0)          return CHINESEBIG5_CHARSET;
