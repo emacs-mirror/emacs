@@ -4675,10 +4675,11 @@ display_string (w, vpos, string, length, hpos, truncate,
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   p1 = p1start;
-  start = desired_glyphs->glyphs[vpos] + XFASTINT (w->left);
+  start = desired_glyphs->glyphs[vpos];
 
   if (obey_window_width)
     {
+      start += XFASTINT (w->left);
       end = start + window_width - (truncate != 0);
 
       if (!WINDOW_RIGHTMOST_P (w))
