@@ -3718,6 +3718,8 @@ direct_output_forward_char (n)
   xassert (w->cursor.hpos >= 0
 	   && w->cursor.hpos < w->desired_matrix->matrix_w);
   
+  update_begin (f);
+  
   if (FRAME_WINDOW_P (f))
     rif->cursor_to (w->cursor.vpos, w->cursor.hpos,
 		    w->cursor.y, w->cursor.x);
@@ -3732,6 +3734,7 @@ direct_output_forward_char (n)
       cursor_to (y, x);
     }
   
+  update_end (f);
   fflush (stdout);
   redisplay_performed_directly_p = 1;
   return 1;
