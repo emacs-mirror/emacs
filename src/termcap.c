@@ -219,7 +219,13 @@ tgetst1 (ptr, area)
   while ((c = *p++) && c != ':' && c != '\n')
     {
       if (c == '^')
-	c = *p++ & 037;
+	{
+	  c = *p++;
+	  if (c == '?')
+	    c = 0177;
+	  else
+	    c &= 037;
+	}
       else if (c == '\\')
 	{
 	  c = *p++;
