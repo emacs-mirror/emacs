@@ -1,6 +1,6 @@
 ;;; cl-extra.el --- Common Lisp features, part 2 -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993,2000  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -217,7 +217,7 @@ If so, return the true (non-nil) value returned by PREDICATE."
 	(while (consp (setq cl-p (cdr cl-p)))
 	  (cond ((consp (car cl-p))
 		 (funcall cl-func (car (car cl-p)) (cdr (car cl-p))))
-		((vectorp (car cl-p))
+		((or (vectorp (car cl-p)) (char-table-p (car cl-p)))
 		 (cl-map-keymap cl-func (car cl-p)))
 		((eq (car cl-p) 'keymap)
 		 (setq cl-p nil)))))
