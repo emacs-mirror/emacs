@@ -457,7 +457,7 @@ If they are on the border between WINDOW and its right sibling,\n\
       return Qnil;
 
     case 1:			/* In text part of window. */
-      return Fcons (x, y);
+      return Fcons (make_number (x), make_number (y));
 
     case 2:			/* In mode line of window. */
       return Qmode_line;
@@ -3522,7 +3522,8 @@ save_window_save (window, vector, i)
 	  if (EQ (window, selected_window))
 	    {
 	      p->pointm = Fmake_marker ();
-	      Fset_marker (p->pointm, BUF_PT (XBUFFER (w->buffer)),
+	      Fset_marker (p->pointm,
+			   make_number (BUF_PT (XBUFFER (w->buffer))),
 			   w->buffer);
 	    }
 	  else
