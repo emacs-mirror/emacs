@@ -9,6 +9,11 @@
 
 #define C_SWITCH_SYSTEM	-D_BSD
 #define LIBS_SYSTEM	-lbsd
+
+#ifdef __alpha
+#define LD_SWITCH_SYSTEM
+#else
 #define LD_SWITCH_SYSTEM	-non_shared
+#endif
 
 #define SYSV_SYSTEM_DIR
