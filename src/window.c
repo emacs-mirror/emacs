@@ -30,7 +30,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "keyboard.h"
 
 Lisp_Object Qwindowp, Qwindow_live_p;
-Lisp_Object Qvisible;
 
 Lisp_Object Fnext_window (), Fdelete_window (), Fselect_window ();
 Lisp_Object Fset_window_buffer (), Fsplit_window (), Frecenter ();
@@ -1059,7 +1058,6 @@ argument ALL_FRAMES is non-nil, cycle through all frames.")
 /* Look at all windows, performing an operation specified by TYPE
    with argument OBJ.
    If FRAMES is Qt, look at all frames;
-                Qvisible, look at visible frames (GET_BUFFER_WINDOW only);
                 Qnil, look at just the selected frame;
 	        a frame, just look at windows on that frame.
    If MINI is non-zero, perform the operation on minibuffer windows too.
@@ -1147,10 +1145,9 @@ window_loop (type, obj, mini, frames)
 	switch (type)
 	  {
 	  case GET_BUFFER_WINDOW:
-	    /* Perhaps ignore invisible and iconified frames.  */
-	    if (EQ (frames, Qvisible)
-		&& (! FRAME_VISIBLE_P (w_frame)
-		    || FRAME_ICONIFIED_P (w_frame)))
+	    /* Ignore invisible and iconified frames.  */
+	    if (! FRAME_VISIBLE_P (w_frame)
+		|| FRAME_ICONIFIED_P (w_frame))
 	      break;
 	    if (XBUFFER (XWINDOW (w)->buffer) == XBUFFER (obj))
 	      return w;
@@ -1276,8 +1273,8 @@ frame, search only that frame.\n")
 
 DEFUN ("get-buffer-window", Fget_buffer_window, Sget_buffer_window, 1, 2, 0,
   "Return a window currently displaying BUFFER, or nil if none.\n\
-If optional argument FRAME is t, search all frames.\n\
-If FRAME is `visible', search all visible frames.\n\
+If optional argument FRAME is t, search all visible frames.\n\
+If FRAME is nil, search only the selected frame.\n\
 If FRAME is a frame, search only that frame.\n")
   (buffer, frame)
     Lisp_Object buffer, frame;
@@ -2900,9 +2897,6 @@ syms_of_window ()
 
   Qwindow_live_p = intern ("window-live-p");
   staticpro (&Qwindow_live_p);
-
-  Qvisible = intern ("Qvisible");
-  staticpro (&Qvisible);
 
 #ifndef MULTI_FRAME
   /* Make sure all windows get marked */
