@@ -1,3 +1,9 @@
+2000-05-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (lisp): Add env.elc.
+
+	* callproc.c (Fgetenv_internal): Renamed from Fgetenv.
+
 2000-05-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* search.c (Freplace_match): Handle case of `\N' in the

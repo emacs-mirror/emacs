@@ -381,7 +381,7 @@ Remove any highlighting that was added by `align-highlight-rule'." t nil)
 ;;;***
 
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
-;;;;;;  "net/ange-ftp.el" (14546 48005))
+;;;;;;  "net/ange-ftp.el" (14619 61800))
 ;;; Generated autoloads from net/ange-ftp.el
  (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
 
@@ -469,8 +469,8 @@ They specify the range of dates that the diary is being processed for." nil nil)
 ;;;***
 
 ;;;### (autoloads (apropos-documentation apropos-value apropos apropos-command
-;;;;;;  apropos-variable apropos-mode) "apropos" "apropos.el" (14411
-;;;;;;  43647))
+;;;;;;  apropos-variable apropos-mode) "apropos" "apropos.el" (14617
+;;;;;;  51641))
 ;;; Generated autoloads from apropos.el
 
 (autoload (quote apropos-mode) "apropos" "\
@@ -638,6 +638,41 @@ Obsolete.")
 
 (autoload (quote auto-show-mode) "auto-show" "\
 This command is obsolete." t nil)
+
+;;;***
+
+;;;### (autoloads (autoarg-mode autoarg-mode) "autoarg" "autoarg.el"
+;;;;;;  (14622 51307))
+;;; Generated autoloads from autoarg.el
+
+(defvar autoarg-mode nil "\
+Toggle Autoarg mode.
+
+You must modify via \\[customize] for this variable to have an effect.")
+
+(custom-add-to-group (quote editing) (quote autoarg-mode) (quote custom-variable))
+
+(custom-add-load (quote autoarg-mode) (quote autoarg))
+
+(autoload (quote autoarg-mode) "autoarg" "\
+Toggle Autoarg mode minor mode globally.
+With ARG, turn Autoarg mode on if ARG is positive, off otherwise.
+\\<autoarg-mode-map>
+In Autoarg mode digits are bound to `digit-argument' -- i.e. they
+supply prefix arguments as C-DIGIT and M-DIGIT normally do -- and
+C-DIGIT inserts DIGIT.  \\[autoarg-terminate] terminates the prefix sequence
+and inserts the digits of the autoarg sequence into the buffer.
+Without a numeric prefix arg the normal binding of \\[autoarg-terminate] is
+invoked, i.e. what it would be with Autoarg mode off.
+
+For example:
+`6 9 \\[autoarg-terminate]' inserts `69' into the buffer, as does `C-6 C-9'.
+`6 9 a' inserts 69 `a's into the buffer.
+`6 9 \\[autoarg-terminate] \\[autoarg-terminate]' inserts `69' into the buffer and
+then invokes the normal binding of \\[autoarg-terminate].
+`C-u \\[autoarg-terminate]' invokes the normal binding of \\[autoarg-terminate] four times.
+
+\\{autoarg-mode-map}" t nil)
 
 ;;;***
 
@@ -2491,19 +2526,9 @@ checking of documentation strings.
 ;;;***
 
 ;;;### (autoloads (encode-hz-buffer encode-hz-region decode-hz-buffer
-;;;;;;  decode-hz-region setup-chinese-cns-environment setup-chinese-big5-environment
-;;;;;;  setup-chinese-gb-environment) "china-util" "language/china-util.el"
-;;;;;;  (13774 37678))
+;;;;;;  decode-hz-region) "china-util" "language/china-util.el" (14623
+;;;;;;  45987))
 ;;; Generated autoloads from language/china-util.el
-
-(autoload (quote setup-chinese-gb-environment) "china-util" "\
-Setup multilingual environment (MULE) for Chinese GB2312 users." t nil)
-
-(autoload (quote setup-chinese-big5-environment) "china-util" "\
-Setup multilingual environment (MULE) for Chinese Big5 users." t nil)
-
-(autoload (quote setup-chinese-cns-environment) "china-util" "\
-Setup multilingual environment (MULE) for Chinese CNS11643 family users." t nil)
 
 (autoload (quote decode-hz-region) "china-util" "\
 Decode HZ/ZW encoded text in the current region.
@@ -2555,7 +2580,7 @@ and runs the normal hook `command-history-hook'." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (14533 31536))
+;;;### (autoloads nil "cl" "emacs-lisp/cl.el" (14617 51703))
 ;;; Generated autoloads from emacs-lisp/cl.el
 
 (defvar custom-print-functions nil "\
@@ -2659,7 +2684,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal." t nil)
 
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
-;;;;;;  comint-run make-comint) "comint" "comint.el" (14535 44845))
+;;;;;;  comint-run make-comint) "comint" "comint.el" (14619 5053))
 ;;; Generated autoloads from comint.el
 
 (autoload (quote make-comint) "comint" "\
@@ -3557,7 +3582,7 @@ See `defface' for the format of SPEC." nil nil)
 ;;;***
 
 ;;;### (autoloads (cvs-status-mode) "cvs-status" "cvs-status.el"
-;;;;;;  (14552 48684))
+;;;;;;  (14619 3306))
 ;;; Generated autoloads from cvs-status.el
 
 (autoload (quote cvs-status-mode) "cvs-status" "\
@@ -3592,19 +3617,9 @@ With ARG, turn CWarn mode on globally if and only if arg is positive." t nil)
 ;;;***
 
 ;;;### (autoloads (standard-display-cyrillic-translit cyrillic-encode-alternativnyj-char
-;;;;;;  cyrillic-encode-koi8-r-char setup-cyrillic-alternativnyj-environment
-;;;;;;  setup-cyrillic-koi8-environment setup-cyrillic-iso-environment)
-;;;;;;  "cyril-util" "language/cyril-util.el" (13774 37678))
+;;;;;;  cyrillic-encode-koi8-r-char) "cyril-util" "language/cyril-util.el"
+;;;;;;  (14623 45987))
 ;;; Generated autoloads from language/cyril-util.el
-
-(autoload (quote setup-cyrillic-iso-environment) "cyril-util" "\
-Setup multilingual environment (MULE) for Cyrillic ISO-8859-5 users." t nil)
-
-(autoload (quote setup-cyrillic-koi8-environment) "cyril-util" "\
-Setup multilingual environment (MULE) for Cyrillic KOI8 users." t nil)
-
-(autoload (quote setup-cyrillic-alternativnyj-environment) "cyril-util" "\
-Setup multilingual environment (MULE) for Cyrillic ALTERNATIVNYJ users." t nil)
 
 (autoload (quote cyrillic-encode-koi8-r-char) "cyril-util" "\
 Return KOI8-R external character code of CHAR if appropriate." nil nil)
@@ -3973,12 +3988,9 @@ to provide correct modes for autoloaded files." nil nil)
 ;;;;;;  devanagari-compose-region devanagari-compose-string devanagari-decompose-region
 ;;;;;;  devanagari-decompose-string char-to-glyph-devanagari indian-to-devanagari-string
 ;;;;;;  devanagari-to-indian-region indian-to-devanagari-region devanagari-to-indian
-;;;;;;  indian-to-devanagari setup-devanagari-environment) "devan-util"
-;;;;;;  "language/devan-util.el" (14423 51006))
+;;;;;;  indian-to-devanagari) "devan-util" "language/devan-util.el"
+;;;;;;  (14623 45988))
 ;;; Generated autoloads from language/devan-util.el
-
-(autoload (quote setup-devanagari-environment) "devan-util" "\
-Setup multilingual environment (MULE) for languages using Devanagari." t nil)
 
 (autoload (quote indian-to-devanagari) "devan-util" "\
 Convert IS 13194 character CHAR to Devanagari basic characters.
@@ -4090,7 +4102,7 @@ The backup file is the first file given to `diff'." t nil)
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "diff-mode.el"
-;;;;;;  (14552 48685))
+;;;;;;  (14619 3306))
 ;;; Generated autoloads from diff-mode.el
 
 (autoload (quote diff-mode) "diff-mode" "\
@@ -4910,8 +4922,8 @@ It returns the old style symbol." t nil)
 
 ;;;### (autoloads (ebrowse-save-tree-as ebrowse-tags-query-replace
 ;;;;;;  ebrowse-tags-loop-continue ebrowse-tags-complete-symbol ebrowse-electric-choose-tree
-;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (14597
-;;;;;;  60306))
+;;;;;;  ebrowse-tree-mode) "ebrowse" "progmodes/ebrowse.el" (14613
+;;;;;;  26536))
 ;;; Generated autoloads from progmodes/ebrowse.el
 
 (autoload (quote ebrowse-tree-mode) "ebrowse" "\
@@ -5513,22 +5525,6 @@ Commands:
 
 ;;;***
 
-;;;### (autoloads (setenv) "env" "env.el" (13582 12516))
-;;; Generated autoloads from env.el
-
-(autoload (quote setenv) "env" "\
-Set the value of the environment variable named VARIABLE to VALUE.
-VARIABLE should be a string.  VALUE is optional; if not provided or is
-`nil', the environment variable VARIABLE will be removed.  
-
-Interactively, a prefix argument means to unset the variable.
-Interactively, the current value (if any) of the variable
-appears at the front of the history list when you type in the new value.
-
-This function works by modifying `process-environment'." t nil)
-
-;;;***
-
 ;;;### (autoloads (complete-tag select-tags-table tags-apropos list-tags
 ;;;;;;  tags-query-replace tags-search tags-loop-continue next-file
 ;;;;;;  pop-tag-mark find-tag-regexp find-tag-other-frame find-tag-other-window
@@ -5768,13 +5764,9 @@ for \\[find-tag] (which see)." t nil)
 ;;;;;;  ethio-fidel-to-sera-marker ethio-fidel-to-sera-mail ethio-fidel-to-sera-mail-or-marker
 ;;;;;;  ethio-fidel-to-sera-buffer ethio-fidel-to-sera-region ethio-sera-to-fidel-marker
 ;;;;;;  ethio-sera-to-fidel-mail ethio-sera-to-fidel-mail-or-marker
-;;;;;;  ethio-sera-to-fidel-buffer ethio-sera-to-fidel-region setup-ethiopic-environment-internal
-;;;;;;  setup-ethiopic-environment) "ethio-util" "language/ethio-util.el"
-;;;;;;  (14180 44101))
+;;;;;;  ethio-sera-to-fidel-buffer ethio-sera-to-fidel-region setup-ethiopic-environment-internal)
+;;;;;;  "ethio-util" "language/ethio-util.el" (14623 45988))
 ;;; Generated autoloads from language/ethio-util.el
-
-(autoload (quote setup-ethiopic-environment) "ethio-util" "\
-Setup multilingual environment for Ethiopic." nil nil)
 
 (autoload (quote setup-ethiopic-environment-internal) "ethio-util" nil nil nil)
 
@@ -6066,7 +6058,7 @@ This is used only in conjunction with `expand-add-abbrevs'." t nil)
 
 ;;;***
 
-;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (14546 35423))
+;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (14623 45936))
 ;;; Generated autoloads from progmodes/f90.el
 
 (autoload (quote f90-mode) "f90" "\
@@ -6744,7 +6736,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 ;;;### (autoloads (font-lock-fontify-buffer global-font-lock-mode
 ;;;;;;  global-font-lock-mode font-lock-remove-keywords font-lock-add-keywords
 ;;;;;;  turn-on-font-lock font-lock-mode) "font-lock" "font-lock.el"
-;;;;;;  (14546 54851))
+;;;;;;  (14620 23716))
 ;;; Generated autoloads from font-lock.el
 
 (defvar font-lock-mode-hook nil "\
@@ -7058,7 +7050,7 @@ Some generic modes are defined in `generic-x.el'." t nil)
 ;;;***
 
 ;;;### (autoloads (glasses-mode) "glasses" "progmodes/glasses.el"
-;;;;;;  (14568 44804))
+;;;;;;  (14609 53573))
 ;;; Generated autoloads from progmodes/glasses.el
 
 (autoload (quote glasses-mode) "glasses" "\
@@ -8791,7 +8783,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 ;;;### (autoloads (iswitchb-buffer-other-frame iswitchb-display-buffer
 ;;;;;;  iswitchb-buffer-other-window iswitchb-buffer iswitchb-default-keybindings
-;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14586 61846))
+;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14619 3306))
 ;;; Generated autoloads from iswitchb.el
 
 (autoload (quote iswitchb-read-buffer) "iswitchb" "\
@@ -8834,13 +8826,9 @@ For details of keybindings, do `\\[describe-function] iswitchb'." t nil)
 
 ;;;### (autoloads (read-hiragana-string japanese-zenkaku-region japanese-hankaku-region
 ;;;;;;  japanese-hiragana-region japanese-katakana-region japanese-zenkaku
-;;;;;;  japanese-hankaku japanese-hiragana japanese-katakana setup-japanese-environment-internal
-;;;;;;  setup-japanese-environment) "japan-util" "language/japan-util.el"
-;;;;;;  (14348 33291))
+;;;;;;  japanese-hankaku japanese-hiragana japanese-katakana setup-japanese-environment-internal)
+;;;;;;  "japan-util" "language/japan-util.el" (14623 45991))
 ;;; Generated autoloads from language/japan-util.el
-
-(autoload (quote setup-japanese-environment) "japan-util" "\
-Setup multilingual environment (MULE) for Japanese." t nil)
 
 (autoload (quote setup-japanese-environment-internal) "japan-util" nil nil nil)
 
@@ -8997,16 +8985,13 @@ and the return value is the length of the conversion." t nil)
 
 ;;;***
 
-;;;### (autoloads (setup-korean-environment-internal setup-korean-environment)
-;;;;;;  "korea-util" "language/korea-util.el" (14293 47672))
+;;;### (autoloads (setup-korean-environment-internal) "korea-util"
+;;;;;;  "language/korea-util.el" (14623 45991))
 ;;; Generated autoloads from language/korea-util.el
 
 (defvar default-korean-keyboard (if (string-match "3" (or (getenv "HANGUL_KEYBOARD_TYPE") "")) "3" "") "\
 *The kind of Korean keyboard for Korean input method.
 \"\" for 2, \"3\" for 3.")
-
-(autoload (quote setup-korean-environment) "korea-util" "\
-Setup multilingual environment (MULE) for Korean." t nil)
 
 (autoload (quote setup-korean-environment-internal) "korea-util" nil nil nil)
 
@@ -9041,14 +9026,10 @@ Use \\[describe-mode] for more info." t nil)
 
 ;;;***
 
-;;;### (autoloads (lao-composition-function lao-transcribe-roman-to-lao-string
-;;;;;;  lao-transcribe-single-roman-syllable-to-lao lao-compose-string
-;;;;;;  setup-lao-environment) "lao-util" "language/lao-util.el"
-;;;;;;  (14423 51007))
+;;;### (autoloads (lao-compose-region lao-composition-function lao-transcribe-roman-to-lao-string
+;;;;;;  lao-transcribe-single-roman-syllable-to-lao lao-compose-string)
+;;;;;;  "lao-util" "language/lao-util.el" (14623 45991))
 ;;; Generated autoloads from language/lao-util.el
-
-(autoload (quote setup-lao-environment) "lao-util" "\
-Setup multilingual environment (MULE) for Lao." t nil)
 
 (autoload (quote lao-compose-string) "lao-util" nil nil nil)
 
@@ -9072,6 +9053,8 @@ Optional 4th argument STRING, if non-nil, is a string containing text
 to compose.
 
 The return value is number of composed characters." nil nil)
+
+(autoload (quote lao-compose-region) "lao-util" nil t nil)
 
 ;;;***
 
@@ -9203,7 +9186,7 @@ shown; this is often useful to constrain a big search." t nil)
 
 ;;;***
 
-;;;### (autoloads (log-edit) "log-edit" "log-edit.el" (14559 17354))
+;;;### (autoloads (log-edit) "log-edit" "log-edit.el" (14619 3306))
 ;;; Generated autoloads from log-edit.el
 
 (autoload (quote log-edit) "log-edit" "\
@@ -9217,8 +9200,8 @@ Once you're done editing the message, pressing \\[log-edit-done] will call
 
 ;;;***
 
-;;;### (autoloads (log-view-mode) "log-view" "log-view.el" (14552
-;;;;;;  48685))
+;;;### (autoloads (log-view-mode) "log-view" "log-view.el" (14619
+;;;;;;  3306))
 ;;; Generated autoloads from log-view.el
 
 (autoload (quote log-view-mode) "log-view" "\
@@ -9503,7 +9486,7 @@ If 4th arg LIST is non-nil, return a list of all such fields." nil nil)
 ;;;***
 
 ;;;### (autoloads (define-mail-abbrev build-mail-abbrevs mail-abbrevs-setup)
-;;;;;;  "mailabbrev" "mail/mailabbrev.el" (14495 18025))
+;;;;;;  "mailabbrev" "mail/mailabbrev.el" (14608 9472))
 ;;; Generated autoloads from mail/mailabbrev.el
 
 (autoload (quote mail-abbrevs-setup) "mailabbrev" "\
@@ -9559,7 +9542,7 @@ current header, calls `mail-complete-function' and passes prefix arg if any." t 
 ;;;***
 
 ;;;### (autoloads (makefile-mode) "make-mode" "progmodes/make-mode.el"
-;;;;;;  (14570 19448))
+;;;;;;  (14608 7464))
 ;;; Generated autoloads from progmodes/make-mode.el
 
 (autoload (quote makefile-mode) "make-mode" "\
@@ -10109,8 +10092,9 @@ different buffer menu using the function `msb'." t nil)
 ;;;### (autoloads (dump-codings dump-charsets mule-diag list-input-methods
 ;;;;;;  list-fontsets describe-fontset describe-font list-coding-categories
 ;;;;;;  list-coding-systems describe-current-coding-system describe-current-coding-system-briefly
-;;;;;;  describe-coding-system list-charset-chars read-charset list-character-sets)
-;;;;;;  "mule-diag" "international/mule-diag.el" (14551 28679))
+;;;;;;  describe-coding-system describe-char-after list-charset-chars
+;;;;;;  read-charset list-character-sets) "mule-diag" "international/mule-diag.el"
+;;;;;;  (14621 5038))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload (quote list-character-sets) "mule-diag" "\
@@ -10147,6 +10131,12 @@ detailed meanings of these arguments." nil nil)
 
 (autoload (quote list-charset-chars) "mule-diag" "\
 Display a list of characters in the specified character set." t nil)
+
+(autoload (quote describe-char-after) "mule-diag" "\
+Display information of in current buffer at position POS.
+The information includes character code, charset and code points in it,
+syntax, category, how the character is encoded in a file,
+which font is being used for displaying the character." t nil)
 
 (autoload (quote describe-coding-system) "mule-diag" "\
 Display information about CODING-SYSTEM." t nil)
@@ -10192,22 +10182,7 @@ Display information about fonts which partially match FONTNAME." t nil)
 
 (autoload (quote describe-fontset) "mule-diag" "\
 Display information of FONTSET.
-This shows the name, size, and style of FONTSET, and the list of fonts
-contained in FONTSET.
-
-The column WDxHT contains width and height (pixels) of each fontset
-\(i.e. those of ASCII font in the fontset).  The letter `-' in this
-column means that the corresponding fontset is not yet used in any
-frame.
-
-The O column for each font contains one of the following letters:
- o -- font already opened
- - -- font not yet opened
- x -- font can't be opened
- ? -- no font specified
-
-The Charset column for each font contains a name of character set
-displayed (for this fontset) using that font." t nil)
+This shows which font is used for which character(s)." t nil)
 
 (autoload (quote list-fontsets) "mule-diag" "\
 Display a list of all fontsets.
@@ -10853,7 +10828,7 @@ You must modify via \\[customize] for this variable to have an effect.")
 ;;;***
 
 ;;;### (autoloads (cvs-dired-use-hook cvs-status cvs-update cvs-examine
-;;;;;;  cvs-checkout) "pcvs" "pcvs.el" (14552 48942))
+;;;;;;  cvs-checkout) "pcvs" "pcvs.el" (14619 3307))
 ;;; Generated autoloads from pcvs.el
 
 (autoload (quote cvs-checkout) "pcvs" "\
@@ -11821,7 +11796,7 @@ Here are all local bindings.
 ;;;***
 
 ;;;### (autoloads (regexp-opt-depth regexp-opt) "regexp-opt" "emacs-lisp/regexp-opt.el"
-;;;;;;  (14564 29908))
+;;;;;;  (14619 3367))
 ;;; Generated autoloads from emacs-lisp/regexp-opt.el
 
 (autoload (quote regexp-opt) "regexp-opt" "\
@@ -11974,12 +11949,12 @@ variable." t nil)
 ;;;***
 
 ;;;### (autoloads (rmail-set-pop-password rmail-input rmail-mode
-;;;;;;  rmail rmail-enable-mime rmail-confirm-expunge rmail-secondary-file-regexp
-;;;;;;  rmail-secondary-file-directory rmail-mail-new-frame rmail-primary-inbox-list
-;;;;;;  rmail-delete-after-output rmail-highlight-face rmail-highlighted-headers
-;;;;;;  rmail-retry-ignored-headers rmail-displayed-headers rmail-ignored-headers
-;;;;;;  rmail-dont-reply-to-names) "rmail" "mail/rmail.el" (14599
-;;;;;;  11221))
+;;;;;;  rmail rmail-enable-mime rmail-show-message-hook rmail-confirm-expunge
+;;;;;;  rmail-secondary-file-regexp rmail-secondary-file-directory
+;;;;;;  rmail-mail-new-frame rmail-primary-inbox-list rmail-delete-after-output
+;;;;;;  rmail-highlight-face rmail-highlighted-headers rmail-retry-ignored-headers
+;;;;;;  rmail-displayed-headers rmail-ignored-headers rmail-dont-reply-to-names)
+;;;;;;  "rmail" "mail/rmail.el" (14623 46032))
 ;;; Generated autoloads from mail/rmail.el
 
 (defvar rmail-dont-reply-to-names nil "\
@@ -12496,7 +12471,7 @@ scribe-electric-parenthesis
 ;;;;;;  mail-signature mail-personal-alias-file mail-alias-file mail-default-reply-to
 ;;;;;;  mail-archive-file-name mail-header-separator mail-yank-ignored-headers
 ;;;;;;  mail-interactive mail-self-blind mail-specify-envelope-from
-;;;;;;  mail-from-style) "sendmail" "mail/sendmail.el" (14588 18519))
+;;;;;;  mail-from-style) "sendmail" "mail/sendmail.el" (14603 14745))
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style (quote angles) "\
@@ -13376,7 +13351,7 @@ From a program takes two point or marker arguments, BEG and END." t nil)
 ;;;***
 
 ;;;### (autoloads (speedbar-get-focus speedbar-frame-mode) "speedbar"
-;;;;;;  "speedbar.el" (14598 31838))
+;;;;;;  "speedbar.el" (14623 45339))
 ;;; Generated autoloads from speedbar.el
 
 (defalias (quote speedbar) (quote speedbar-frame-mode))
@@ -14242,13 +14217,9 @@ Info `g*' command is inadequate." t nil)
 ;;;***
 
 ;;;### (autoloads (thai-composition-function thai-post-read-conversion
-;;;;;;  thai-compose-buffer thai-compose-string thai-compose-region
-;;;;;;  setup-thai-environment) "thai-util" "language/thai-util.el"
-;;;;;;  (14477 53255))
+;;;;;;  thai-compose-buffer thai-compose-string thai-compose-region)
+;;;;;;  "thai-util" "language/thai-util.el" (14623 45991))
 ;;; Generated autoloads from language/thai-util.el
-
-(autoload (quote setup-thai-environment) "thai-util" "\
-Setup multilingual environment (MULE) for Thai." t nil)
 
 (autoload (quote thai-compose-region) "thai-util" "\
 Compose Thai characters in the region.
@@ -14315,11 +14286,9 @@ a symbol as a valid THING." nil nil)
 ;;;### (autoloads (tibetan-pre-write-conversion tibetan-post-read-conversion
 ;;;;;;  tibetan-compose-buffer tibetan-decompose-buffer tibetan-composition-function
 ;;;;;;  tibetan-compose-region tibetan-compose-string tibetan-transcription-to-tibetan
-;;;;;;  tibetan-tibetan-to-transcription tibetan-char-p setup-tibetan-environment)
-;;;;;;  "tibet-util" "language/tibet-util.el" (14568 36412))
+;;;;;;  tibetan-tibetan-to-transcription tibetan-char-p) "tibet-util"
+;;;;;;  "language/tibet-util.el" (14623 45991))
 ;;; Generated autoloads from language/tibet-util.el
-
-(autoload (quote setup-tibetan-environment) "tibet-util" nil t nil)
 
 (autoload (quote tibetan-char-p) "tibet-util" "\
 Check if char CH is Tibetan character.
@@ -14379,7 +14348,7 @@ This function performs no refilling of the changed text." t nil)
 ;;;***
 
 ;;;### (autoloads (display-time-mode display-time display-time-day-and-date
-;;;;;;  display-time-mode) "time" "time.el" (14526 14916))
+;;;;;;  display-time-mode) "time" "time.el" (14619 48411))
 ;;; Generated autoloads from time.el
 
 (defvar display-time-mode nil "\
@@ -14547,6 +14516,36 @@ MENU is like the MENU argument to `x-popup-menu': either a
 keymap or an alist of alists.
 DEFAULT-ITEM, if non-nil, specifies an initial default choice.
 Its value should be an event that has a binding in MENU." nil nil)
+
+;;;***
+
+;;;### (autoloads (todo-show todo-cp todo-mode todo-print todo-insert-item)
+;;;;;;  "todo-mode" "calendar/todo-mode.el" (14619 58196))
+;;; Generated autoloads from calendar/todo-mode.el
+
+(autoload (quote todo-insert-item) "todo-mode" "\
+Insert new TODO list entry.
+With a prefix argument solicit the category, otherwise use the current
+category." t nil)
+
+(autoload (quote todo-print) "todo-mode" "\
+Print todo summary using \\[todo-print-function].
+If CATEGORY-PR-PAGE is non-nil, a page separator '^L' is inserted
+between each category.
+
+Number of entries for each category is given by
+'todo-print-priorities'." t nil)
+
+(autoload (quote todo-mode) "todo-mode" "\
+Major mode for editing TODO lists.
+
+\\{todo-mode-map}" t nil)
+
+(autoload (quote todo-cp) "todo-mode" "\
+Make a diary entry appear only in the current date's diary" nil nil)
+
+(autoload (quote todo-show) "todo-mode" "\
+Show TODO list." t nil)
 
 ;;;***
 
@@ -15383,15 +15382,12 @@ Syntax table and abbrevs while in vi mode remain as they were in Emacs." t nil)
 
 ;;;### (autoloads (viqr-pre-write-conversion viqr-post-read-conversion
 ;;;;;;  viet-encode-viqr-buffer viet-encode-viqr-region viet-decode-viqr-buffer
-;;;;;;  viet-decode-viqr-region setup-vietnamese-environment viet-encode-viscii-char)
-;;;;;;  "viet-util" "language/viet-util.el" (13876 11275))
+;;;;;;  viet-decode-viqr-region viet-encode-viscii-char) "viet-util"
+;;;;;;  "language/viet-util.el" (14623 45992))
 ;;; Generated autoloads from language/viet-util.el
 
 (autoload (quote viet-encode-viscii-char) "viet-util" "\
 Return VISCII character code of CHAR if appropriate." nil nil)
-
-(autoload (quote setup-vietnamese-environment) "viet-util" "\
-Setup multilingual environment (MULE) for Vietnamese VISCII users." t nil)
 
 (autoload (quote viet-decode-viqr-region) "viet-util" "\
 Convert `VIQR' mnemonics of the current region to Vietnamese characaters.
@@ -15770,7 +15766,7 @@ With arg, turn widget mode on if and only if arg is positive." t nil)
 ;;;***
 
 ;;;### (autoloads (widget-delete widget-create widget-prompt-value)
-;;;;;;  "wid-edit" "wid-edit.el" (14508 6458))
+;;;;;;  "wid-edit" "wid-edit.el" (14606 42158))
 ;;; Generated autoloads from wid-edit.el
 
 (autoload (quote widget-prompt-value) "wid-edit" "\
@@ -15844,6 +15840,37 @@ use either \\[customize] or the function `winner-mode'.")
 (autoload (quote winner-mode) "winner" "\
 Toggle Winner mode.
 With arg, turn Winner mode on if and only if arg is positive." t nil)
+
+;;;***
+
+;;;### (autoloads (woman-find-file woman-dired-find-file woman) "woman"
+;;;;;;  "woman.el" (14614 53233))
+;;; Generated autoloads from woman.el
+
+(autoload (quote woman) "woman" "\
+Browse a UN*X man page for TOPIC WithOut using a `man' program.
+The major browsing mode used is essentially the standard Man mode.
+Choose the filename for the man page using completion, based on the
+topic selected from the directories specified in `woman-manpath' and
+`woman-path'.  The directory expansions and topics are cached for
+speed, but a non-nil interactive argument forces the caches to be
+updated (e.g. to re-interpret the current directory).
+
+Used non-interactively, arguments are optional: if they are given then
+the argument TOPIC should be a topic string and the RE-CACHE may be
+non-nil to force re-caching." t nil)
+
+(autoload (quote woman-dired-find-file) "woman" "\
+In dired, run the WoMan man-page browser on this file." t nil)
+
+(autoload (quote woman-find-file) "woman" "\
+Find, decode and browse a specific UN*X man-page source file FILE-NAME.
+Use existing buffer if possible; reformat only if prefix arg given.
+When called interactively, optional argument REFORMAT forces reformatting
+of existing WoMan buffers formatted earlier.
+No external programs are used, except that `gunzip' will be used to
+decompress the file if appropriate.  See the documentation for the
+`woman' command for further details." t nil)
 
 ;;;***
 

@@ -16,6 +16,8 @@ images and toolkit scrollbars.  Use the --help option to list them.
 
 * Changes in Emacs 21.1
 
+** The function `getenv' is now callable interactively.
+
 ** The many obsolete language `setup-...-environment' commands have
 been removed -- use `set-language-environment'.
 

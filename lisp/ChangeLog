@@ -1,3 +1,12 @@
+2000-05-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* env.el (getenv): New function, interactively callable.
+	(setenv, getenv): Remove autoload cookies.
+
+	* loadup.el: Load `env'.
+
+	* progmodes/f90.el: Change author's mail address.
+
 2000-05-14  Dave Love  <fx@gnu.org>
 
 	* mail/rmail.el (rmail-show-message-hook): Customize and offer
@@ -22,9 +31,8 @@
 
 2000-05-13  Eric M. Ludlam  <zappo@ultranet.com>
 
-	* speedbar.el: Updated the commentary section.
-	xemacs20p now uses >= when detecting.
-	require `defimage' safely.
+	* speedbar.el: Updated the commentary section.  xemacs20p now uses
+	>= when detecting.  Require `defimage' safely.
 	(speedbar-easymenu-definition-base): Add toggle for images.
 	(speedbar-easymenu-definition-special): Add flush cache & expand.
 	(speedbar-visiting-tag-hook): Set new defaults.  Added options.
@@ -33,47 +41,47 @@
 	(speedbar-use-imenu-flag): Updated custom tag
 	(speedbar-dynamic-tags-function-list): New variable.
 	(speedbar-tag-hierarchy-method): Updated doc & custom.
-	(speedbar-indentation-width, speedbar-indentation-width)
-	new variables.
-	(speedbar-hide-button-brackets-flag): customizable.
+	(speedbar-indentation-width, speedbar-indentation-width) New
+	variables.
+	(speedbar-hide-button-brackets-flag): Customizable.
 	(speedbar-vc-indicator): Doc update.
 	(speedbar-ignored-path-expressions): Updated default value.
 	(speedbar-supported-extension-expressions): Updated default value.
 	(speedbar-syntax-table): Remove {} paren status.
-	(speedbar-file-key-map, speedbar-buffers-key-map):
-	Add "=" to act as "+".
-	Added overlay aliases.
-	(speedbar-mode):
-	Use `speedbar-mode-line-update' instead of `force-mode-line-update'.
-	(speedbar-mode, speedbar-quick-mouse, speedbar-click,
-	 speedbar-double-click):
-	Use `speedbar-mouse-set-point' instead of `mouse-set-point'
+	(speedbar-file-key-map, speedbar-buffers-key-map): Add "=" to act
+	as "+".  Added overlay aliases.
+	(speedbar-mode): Use `speedbar-mode-line-update' instead of
+	`force-mode-line-update'.
+	(speedbar-mode, speedbar-quick-mouse, speedbar-click)
+	(speedbar-double-click): Use `speedbar-mouse-set-point' instead of
+	`mouse-set-point'
 	(speedbar-reconfigure-keymaps): Run configure keymap hooks.
-	(speedbar-item-info-tag-helper): Revamped to handle a wider
-	range of arbitrary text, and new helper functions.
-	(speedbar-item-copy, speedbar-item-rename):
-	Fixed trailing \ in filename finder.
+	(speedbar-item-info-tag-helper): Revamped to handle a wider range
+	of arbitrary text, and new helper functions.
+	(speedbar-item-copy, speedbar-item-rename): Fixed trailing \ in
+	filename finder.
 	(speedbar-make-button): Call `speedbar-insert-image-button-maybe'.
 	(speedbar-directory-buttons): Update path search/expansion.
 	(speedbar-make-tag-line): Pay attention to
-	`speedbar-indentation-width'.  Use more care w/ invisible properties.
+	`speedbar-indentation-width'.  Use more care w/ invisible
+	properties.
 	(speedbar-change-expand-button-char): Call
 	`speedbar-insert-image-button-maybe'.
 	(speedbar-apply-one-tag-hierarchy-method): Deleted (and replaced).
-	(speedbar-sort-tag-hierarchy, 
-	 speedbar-prefix-group-tag-hierarchy,
-	 speedbar-trim-words-tag-hierarchy,
-	 speedbar-simple-group-tag-hierarchy): New functions
+	(speedbar-sort-tag-hierarchy, speedbar-prefix-group-tag-hierarchy)
+	(speedbar-trim-words-tag-hierarchy)
+	(speedbar-simple-group-tag-hierarchy): New functions
 	(speedbar-create-tag-hierarchy): Update doc, use new tag hooks.
-	(speedbar-insert-imenu-list, speedbar-insert-etags-list):
-	New functions.
+	(speedbar-insert-imenu-list, speedbar-insert-etags-list): New
+	functions.
 	(speedbar-mouse-set-point): New function
 	(speedbar-power-click): Updated documentation.
-	(speedbar-line-token, speedbar-goto-this-file): 
-	Handle more types of tag prefix text.
-	(speedbar-expand-line, speedbar-contract-line):
-	Make more robust to strange text.
-	(speedbar-expand-line): Takes universal argument to flush the cache.
+	(speedbar-line-token, speedbar-goto-this-file): Handle more types
+	of tag prefix text.
+	(speedbar-expand-line, speedbar-contract-line): Make more robust
+	to strange text.
+	(speedbar-expand-line): Takes universal argument to flush the
+	cache.
 	(speedbar-flush-expand-line): New function.
 	(speedbar-tag-file): Use new `speedbar-fetch-dynamic-tags' fn.
 	Use new generator insertion method.
@@ -85,14 +93,14 @@
 	"Revert Buffer" menu items.
 	(speedbar-buffer-buttons-engine): Be smarter when creating a
 	filename tag (for expansion purposes.).
-	(speedbar-highlight-one-tag-line, speedbar-unhighlight-one-tag-line,
-	 speedbar-recenter-to-top, speedbar-recenter): New functions.
+	(speedbar-highlight-one-tag-line,
+	(speedbar-unhighlight-one-tag-line, speedbar-recenter-to-top)
+	(speedbar-recenter): New functions.
 	(defimage-speedbar): Image loading abstraction.
-	(speedbar-directory-+, speedbar-directory--,
-	 speedbar-file-+, speedbar-file--, speedbar-file-,
-	 speedbar-tag-, speedbar-tag-+, speedbar-tag--, speedbar-tag-gt,
-	 speedbar-tag-v, speedbar-tag-type, speedbar-tag-mail):
-	New images.
+	(speedbar-directory-+, speedbar-directory--, speedbar-file-+)
+	(speedbar-file--, speedbar-file-, speedbar-tag-, speedbar-tag-+)
+	(speedbar-tag--, speedbar-tag-gt, speedbar-tag-v)
+	(speedbar-tag-type, speedbar-tag-mail): New images.
 	(speedbar-expand-image-button-alist): New variable.
 	(speedbar-insert-image-button-maybe): Insert an image over some
 	buttons.
