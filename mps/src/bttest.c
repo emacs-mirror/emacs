@@ -1,26 +1,30 @@
-/*  impl.c.bttest: BIT TABLE TEST
+/* impl.c.bttest: BIT TABLE TEST
  *
- *  $HopeName: MMsrc!bttest.c(trunk.2) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!bttest.c(trunk.3) $
+ * Copyright (C) 1998, Harlequin Group plc.  All rights reserved.
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <time.h>
 
 #include "mpm.h"
 #include "mps.h"
 #include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
 #include "testlib.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include "mpstd.h"
+#ifdef MPS_OS_IA
+struct itimerspec; /* stop complaints from time.h */
+#endif
+#include <time.h>
+
 #ifdef MPS_OS_SU
 #include "ossu.h"
 #endif /* MPS_OS_SU */
 
 
-SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.2) $");
+SRCID(bttest, "$HopeName: MMsrc!bttest.c(trunk.3) $");
 
 
 static BT bt; /* the BT which we will use */
