@@ -529,14 +529,9 @@ as returned by the `event-start' and `event-end' functions."
 (defalias 'compiled-function-p 'byte-code-function-p)
 (defalias 'define-function 'defalias)
 
-(defun sref (string byte-index)
-  "Obsolete function returning a character in STRING at BYTE-INDEX.
-Please convert your programs to use `aref' with character-base index."
-  (let ((byte 0) (char 0))
-    (while (< byte byte-index)
-      (setq byte (+ byte (char-bytes (aref string char)))
-	    char (1+ char)))
-    (aref string char)))
+(defalias 'sref 'aref)
+(make-obsolete 'sref 'aref)
+(make-obsolete 'char-bytes "Now this function always returns 1")
 
 ;; Some programs still use this as a function.
 (defun baud-rate ()
