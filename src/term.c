@@ -828,8 +828,14 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	      buf = GLYPH_STRING (tbase, g);
 	    }
 	  
-	  produced = encode_coding (&terminal_coding, buf, dst,
-				     len, dst_end - dst, &processed);
+	  if (CODING_MAY_REQUIRE_NO_CONVERSION (&terminal_coding))
+	    /* We had better avoid sending Emacs' internal code to
+               terminal.  */
+	    produced = encode_coding (&safe_terminal_coding, buf, dst,
+				      len, dst_end - dst, &processed);
+	  else
+	    produced = encode_coding (&terminal_coding, buf, dst,
+				      len, dst_end - dst, &processed);
 	  if (processed < len)
 	    /* We get a carryover because the remaining output
 	       buffer is too short.  We must break the loop here
@@ -897,17 +903,21 @@ write_glyphs (string, len)
       string += consumed;
     }
   /* We may have to output some codes to terminate the writing.  */
-  terminal_coding.last_block = 1;
-  produced = encode_coding (&terminal_coding, (char *)0, conversion_buffer,
-			    0, conversion_buffer_size,
-			    &consumed);
-  if (produced > 0)
+  if (!CODING_MAY_REQUIRE_NO_CONVERSION (&terminal_coding))
     {
-      fwrite (conversion_buffer, 1, produced, stdout);
-      if (ferror (stdout))
-	clearerr (stdout);
-      if (termscript)
-	fwrite (conversion_buffer, 1, produced, termscript);
+      terminal_coding.last_block = 1;
+      produced = encode_coding (&terminal_coding, (char *)0, conversion_buffer,
+				0, conversion_buffer_size,
+				&consumed);
+
+      if (produced > 0)
+	{
+	  fwrite (conversion_buffer, 1, produced, stdout);
+	  if (ferror (stdout))
+	    clearerr (stdout);
+	  if (termscript)
+	    fwrite (conversion_buffer, 1, produced, termscript);
+	}
     }
   cmcheckmagic ();
 }
