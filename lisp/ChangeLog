@@ -1,3 +1,8 @@
+2004-02-04  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-minibuffer-setup-hook): Update doc string
+	to show how minibuffer height can be constrained.
+
 2004-02-04  John Paul Wallington  <jpw@gnu.org>
 
 	* files.el (auto-mode-alist): Fix .scm, .stk, .ss, .sch entry.
