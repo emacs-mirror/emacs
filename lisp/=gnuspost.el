@@ -436,7 +436,7 @@ original message into it."
 		(ding) (message "This article is not yours."))
 	    ;; Make control article.
 	    (set-buffer (get-buffer-create " *GNUS-canceling*"))
-	    (buffer-flush-undo (current-buffer))
+	    (buffer-disable-undo (current-buffer))
 	    (erase-buffer)
 	    (insert "Newsgroups: " newsgroups "\n"
 		    "Subject: cancel " message-id "\n"
@@ -467,7 +467,7 @@ original message into it."
 	(tmpbuf (get-buffer-create " *GNUS-posting*")))
     (save-excursion
       (set-buffer tmpbuf)
-      (buffer-flush-undo (current-buffer))
+      (buffer-disable-undo (current-buffer))
       (erase-buffer)
       (insert-buffer-substring artbuf)
       ;; Remove the header separator.
@@ -577,7 +577,7 @@ Signature file is specified by the variable gnus-signature-file."
 	      (if (file-exists-p signature)
 		  (progn
 		    (goto-char (point-max))
-		    (insert "--\n")
+		    (insert "-- \n")
 		    (insert-file-contents signature)))
 	      ))))))
 
