@@ -377,7 +377,7 @@ Displays line found at center of window.  REGEXP is remembered for
 searching with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring."
   (interactive "p\nsSearch forward (regexp): ")
 ;;;(view-last-command 'View-search-last-regexp-forward n)
-  (view-search n (if (equal regexp "") view-last-regexp regexp))))
+  (view-search n (if (equal regexp "") view-last-regexp regexp)))
 
 (defun View-search-regexp-backward (n regexp)
   "Search backward from window start for Nth instance of REGEXP.
