@@ -98,6 +98,10 @@ bottom of the buffer stack."
   (switch-to-buffer
    (if (<= arg 1) (other-buffer (current-buffer))
      (nth (1+ arg) (buffer-list)))))
+
+(fset 'find-face 'internal-find-face)
+(fset 'get-face 'internal-get-face)
+(fset 'try-face-font 'internal-try-face-font)
 
 ;; Support the Lucid names with `screen' instead of `frame'.
 
