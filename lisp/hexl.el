@@ -212,8 +212,8 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
     (add-hook 'after-revert-hook 'hexl-after-revert-hook nil t)
 
     (make-local-hook 'change-major-mode-hook)
-    (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t)
-))
+    (add-hook 'change-major-mode-hook 'hexl-maybe-dehexlify-buffer nil t))
+  (run-hooks 'hexl-mode-hook))
 
 (defun hexl-after-revert-hook ()
   (hexlify-buffer)
