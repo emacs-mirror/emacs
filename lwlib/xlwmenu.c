@@ -326,10 +326,10 @@ size_menu (mw, level)
      XlwMenuWidget mw;
      int level;
 {
-  int		label_width = 0;
+  unsigned int  label_width = 0;
   int		rest_width = 0;
   int		max_rest_width = 0;
-  int		height = 0;
+  unsigned int  height = 0;
   int		horizontal_p = mw->menu.horizontal && (level == 0);
   widget_value*	val;
   window_state*	ws;
@@ -741,8 +741,8 @@ fit_to_screen (mw, ws, previous_ws, horizontal_p)
      window_state* previous_ws;
      Boolean horizontal_p;
 {
-  int screen_width = WidthOfScreen (XtScreen (mw));
-  int screen_height = HeightOfScreen (XtScreen (mw));
+  unsigned int screen_width = WidthOfScreen (XtScreen (mw));
+  unsigned int screen_height = HeightOfScreen (XtScreen (mw));
 
   if (ws->x < 0)
     ws->x = 0;
@@ -855,8 +855,8 @@ motion_event_is_in_menu (mw, ev, level, relative_pos)
      XPoint* relative_pos;
 {
   window_state* ws = &mw->menu.windows [level];
-  int x = level == 0 ? ws->x : ws->x + mw->menu.shadow_thickness;
-  int y = level == 0 ? ws->y : ws->y + mw->menu.shadow_thickness;
+  unsigned int x = level == 0 ? ws->x : ws->x + mw->menu.shadow_thickness;
+  unsigned int y = level == 0 ? ws->y : ws->y + mw->menu.shadow_thickness;
   relative_pos->x = ev->x_root - x;
   relative_pos->y = ev->y_root - y;
   return (x < ev->x_root && ev->x_root < x + ws->width
