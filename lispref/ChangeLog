@@ -1,3 +1,11 @@
+2004-01-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* edebug.texi (Instrumenting Macro Calls): `declare' is not a
+	special form.
+	* macros.texi (Defining Macros): Update description of `declare',
+	which now is a macro.
+	(Wrong Time): Fix typos.
+
 2004-01-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* compile.texi (Compilation Functions): Expand descriptions of

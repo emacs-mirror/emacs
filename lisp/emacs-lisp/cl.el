@@ -579,7 +579,7 @@ Keywords supported:  :test :test-not :key"
   "Non-nil means don't make CL functions autoload.")
 
 ;;; Autoload the other portions of the package.
-;; We want to replace the basic versions of dolist, dotimes below.
+;; We want to replace the basic versions of dolist, dotimes, declare below.
 (fmakunbound 'dolist)
 (fmakunbound 'dotimes)
 (fmakunbound 'declare)

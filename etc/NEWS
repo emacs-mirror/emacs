@@ -1750,6 +1750,10 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
+** `declare' is now a macro.  This change was made mostly for
+documentation purposes and should have no real effect on Lisp code.
+
 ** The new hook `before-save-hook' is invoked by `basic-save-buffer'
 before saving buffers.  This allows packages to perform various final
 tasks, for example; it can be used by the copyright package to make
