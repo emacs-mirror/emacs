@@ -527,7 +527,7 @@ which font is being used for displaying the character."
 			     (format "(encoded by coding system %S)" coding))
 		     (list "not encodable by coding system"
 			   (symbol-name coding)))))
-	      ,(if window-system
+	      ,(if (display-graphic-p (selected-frame))
 		   (list "font" (or (internal-char-font (point))
 				    "-- none --"))
 		 (list "terminal code"
