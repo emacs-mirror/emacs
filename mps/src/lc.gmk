@@ -1,0 +1,19 @@
+# impl.gmk.lc: GNUMAKEFILE FRAGMENT FOR LCC
+#
+# $HopeName$
+# Copyright (C) 1996,1997 Harlequin Group, all rights reserved
+#
+# This file is included by platform makefiles that use the LCC
+# compiler.  It defines the compiler specific variables that the
+# common makefile fragment (impl.gmk.comm) requires.
+#
+# .optimize.noflags: lcc does some minimal amount of optimization all
+# the time and ignores the -O flag.  Hence the empty CFLAGSOPTIMIZE
+# macro.
+
+CC = lcc
+CFLAGSCOMPILER = -I/usr/include
+CFLAGSDEBUG = -g
+CFLAGSOPTIMIZE = ""
+
+include comm.gmk
