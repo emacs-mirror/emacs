@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.10) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.11) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -18,7 +18,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.10) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.11) $");
 
 
 /* Signatures */
@@ -143,7 +143,7 @@ typedef struct MV2Struct
 
 DEFINE_POOL_CLASS(MV2PoolClass, this)
 {
-  INHERIT_CLASS(this, AbstractBufferedSegPoolClass);
+  INHERIT_CLASS(this, AbstractSegBufPoolClass);
   this->name = "MV2";
   this->size = sizeof(MV2Struct);
   this->offset = offsetof(MV2Struct, poolStruct);
