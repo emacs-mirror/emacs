@@ -1,5 +1,8 @@
 2005-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/which-func.el (which-function): Be robust in the face of an
+	imenu--make-index-alist failure.
+
 	* reveal.el (reveal-mode-map): Don't override C-a and C-e.
 
 	* progmodes/python.el (python-preoutput-filter): Fix last change.
