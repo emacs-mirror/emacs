@@ -1,5 +1,8 @@
 2001-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* dired.c (directory_files_internal): Handle EAGAIN more
+	efficiently.
+
 	* keyboard.c (make_lispy_event): Avoid generating drag events
 	if the mouse hasn't actually moved to another buffer position.
 	
