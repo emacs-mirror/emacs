@@ -54,12 +54,12 @@ The MPS Kit is a complete set of sources and documentation to enable
 third parties to use, modify, and adapt the MPS.
 
 For Windows, the kit is distributed as the self-extracting archive
-"mps-kit-1.100.0.exe", and also as the ZIP archive
-"mps-kit-1.100.0.zip", which may be unpacked using WinZip.
+"mps-kit-1.100.1.exe", and also as the ZIP archive
+"mps-kit-1.100.1.zip", which may be unpacked using WinZip.
 
 For Unix and Mac OS X, the integration kit is distributed as the tarball
-"mps-kit-1.100.0.tar.gz".  Unpack it using the command "gunzip -c
-mps-kit-1.100.0.tar.gz | tar xvf -", or by dropping the file onto
+"mps-kit-1.100.1.tar.gz".  Unpack it using the command "gunzip -c
+mps-kit-1.100.1.tar.gz | tar xvf -", or by dropping the file onto
 StuffIt Expander under Mac OS X.
 
 The top-level file "index.html" in the sources indexes many other files,
