@@ -63,6 +63,11 @@ other window, when the minibuffer is not active.  If the frame contains
 just a minibuffer, you can change the minibuffer's size by changing the
 frame's size.
 
+  Use of the minibuffer reads input events, and that alters the values
+of variables such as @code{this-command} and @code{last-command}
+(@pxref{Command Loop Info}).  Your program should bind them around the
+code that uses the minibuffer, if you do not want that to change them.
+
   If a command uses a minibuffer while there is an active minibuffer,
 this is called a @dfn{recursive minibuffer}.  The first minibuffer is
 named @w{@samp{ *Minibuf-0*}}.  Recursive minibuffers are named by
@@ -1659,6 +1664,12 @@ If the value of this variable is non-@code{nil}, it should be a window
 object.  When the function @code{scroll-other-window} is called in the
 minibuffer, it scrolls this window.
 @end defvar
+
+@defun minibuffer-selected-window
+This function returns the window which was selected when the
+minibuffer was entered.  If selected window is not a minibuffer
+window, it returns @code{nil}.
+@end defun
 
 Finally, some functions and variables deal with recursive minibuffers
 (@pxref{Recursive Editing}):
