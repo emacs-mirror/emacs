@@ -199,9 +199,9 @@ a symbol as a valid THING."
   "Characters allowable in filenames.")
 
 (put 'filename 'end-op    
-     '(lambda () (skip-chars-forward thing-at-point-file-name-chars)))
+     (lambda () (skip-chars-forward thing-at-point-file-name-chars)))
 (put 'filename 'beginning-op
-     '(lambda () (skip-chars-backward thing-at-point-file-name-chars)))
+     (lambda () (skip-chars-backward thing-at-point-file-name-chars)))
 
 (defvar thing-at-point-url-path-regexp
   "[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
@@ -336,8 +336,8 @@ point."
 
 ;;  Buffer 
 
-(put 'buffer 'end-op '(lambda () (goto-char (point-max))))
-(put 'buffer 'beginning-op '(lambda () (goto-char (point-min))))
+(put 'buffer 'end-op (lambda () (goto-char (point-max))))
+(put 'buffer 'beginning-op (lambda () (goto-char (point-min))))
 
 ;;  Symbols 
 
