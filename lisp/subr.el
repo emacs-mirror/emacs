@@ -598,21 +598,22 @@ If all the functions return non-nil, we return non-nil.
 
 To make a hook variable buffer-local, use `make-local-hook', not
 `make-local-variable'."
-  (and (boundp hook)
-       (symbol-value hook)
-       (let ((value (symbol-value hook))
-	     (success t))
-	 (while (and value success)
-	   (if (eq (car value) t)
-	       ;; t indicates this hook has a local binding;
-	       ;; it means to run the global binding too.
-	       (let ((functions (default-value hook)))
-		 (while (and functions success)
-		   (setq success (apply (car functions) args))
-		   (setq functions (cdr functions))))
-	     (setq success (apply (car value) args)))
-	   (setq value (cdr value)))
-	 success)))
+  ;; We must return non-nil if there are no hook functions!
+  (or (not (boundp hook))
+      (not (symbol-value hook))
+      (let ((value (symbol-value hook))
+	    (success t))
+	(while (and value success)
+	  (if (eq (car value) t)
+	      ;; t indicates this hook has a local binding;
+	      ;; it means to run the global binding too.
+	      (let ((functions (default-value hook)))
+		(while (and functions success)
+		  (setq success (apply (car functions) args))
+		  (setq functions (cdr functions))))
+	    (setq success (apply (car value) args)))
+	  (setq value (cdr value)))
+	success)))
 
 ;; Tell C code how to call this function.
 (defconst run-hooks 'run-hooks
