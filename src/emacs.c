@@ -547,6 +547,7 @@ main (argc, argv, envp)
 #ifdef HAVE_X_WINDOWS
       syms_of_xterm ();
       syms_of_xfns ();
+      syms_of_xfaces ();
 #ifdef HAVE_X11
       syms_of_xselect ();
 #endif
