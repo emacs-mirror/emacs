@@ -263,6 +263,7 @@ See `PC-complete' for details."
 	 (filename (memq table '(read-file-name-internal
 				 read-directory-name-internal)))
 	 (dirname nil)
+	 dirlength
 	 (str (buffer-substring beg end))
 	 (incname (and filename (string-match "<\\([^\"<>]*\\)>?$" str)))
 	 (ambig nil)
@@ -277,6 +278,13 @@ See `PC-complete' for details."
     (if (and (eq mode 'exit)
 	     (PC-is-complete-p str table pred))
 	'complete
+
+      ;; Record how many characters at the beginning are not included
+      ;; in completion.
+      (setq dirlength
+	    (if filename
+		(length (file-name-directory str))
+	      0))
 
       ;; Do substitutions in directory names
       (and filename
@@ -524,7 +532,13 @@ See `PC-complete' for details."
 		(if (or completion-auto-help
 			(eq mode 'help))
 		    (with-output-to-temp-buffer "*Completions*"
-		      (display-completion-list (sort helpposs 'string-lessp)))
+		      (display-completion-list (sort helpposs 'string-lessp))
+		      (save-excursion
+			(set-buffer standard-output)
+			;; Record which part of the buffer we are completing
+			;; so that choosing a completion from the list
+			;; knows how much old text to replace.
+			(setq completion-base-size dirlength)))
 		  (PC-temp-minibuffer-message " (Next char not unique)"))
 		nil)))))
 
