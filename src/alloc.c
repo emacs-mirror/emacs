@@ -2436,7 +2436,7 @@ The arguments should be the arglist, bytecode-string, constant vector,
 stack size, (optional) doc string, and (optional) interactive spec.
 The first four arguments are required; at most six have any
 significance.
-usage: (make-byte-code &rest ELEMENTS)  */)
+usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
      (nargs, args)
      register int nargs;
      Lisp_Object *args;
@@ -3701,6 +3701,8 @@ check_gcpros ()
   for (p = gcprolist; p; p = p->next)
     for (i = 0; i < p->nvars; ++i)
       if (!survives_gc_p (p->var[i]))
+	/* FIXME: It's not necessarily a bug.  It might just be that the
+	   GCPRO is unnecessary or should release the object sooner.  */
 	abort ();
 }
 
