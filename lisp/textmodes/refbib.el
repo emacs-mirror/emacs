@@ -110,9 +110,8 @@ in `r2b-proceedings-list' (although it wouldn't cause an error).")
 
 (defvar r2b-additional-stop-words
 	 "Some\\|What"
-   "Words other than the `capitalize-title-stop-words'
-which are not to be used to build the citation key")
-
+   "Words not to be used to build the citation key.
+This is in addition to the `r2b-capitalize-title-stop-words'.")
 
 (defvar r2b-delimit-with-quote
   t
@@ -121,17 +120,16 @@ which are not to be used to build the citation key")
 ;**********************************************************
 ; Utility Functions
 
-(defvar capitalize-title-stop-words
+(defvar r2b-capitalize-title-stop-words
    (concat
       "the\\|and\\|of\\|is\\|a\\|an\\|of\\|for\\|in\\|to\\|in\\|on\\|at\\|"
       "by\\|with\\|that\\|its")
-   "Words not to be capitalized in a title (unless they are the first
-word in the title)")
+   "Words not to be capitalized in a title (unless the first word).")
 
-(defvar capitalize-title-stop-regexp
-   (concat "\\(" capitalize-title-stop-words "\\)\\(\\b\\|'\\)"))
+(defvar r2b-capitalize-title-stop-regexp
+   (concat "\\(" r2b-capitalize-title-stop-words "\\)\\(\\b\\|'\\)"))
 
-(defun capitalize-title-region (begin end)
+(defun r2b-capitalize-title-region (begin end)
    "Like `capitalize-region', but don't capitalize stop words, except the first."
    (interactive "r")
    (let ((case-fold-search nil) (orig-syntax-table (syntax-table)))
@@ -147,20 +145,20 @@ word in the title)")
 	       (if (looking-at "[A-Z][a-z]*[A-Z]")
 		  (forward-word 1)
 		  (if (let ((case-fold-search t))
-			 (looking-at capitalize-title-stop-regexp))
+			 (looking-at r2b-capitalize-title-stop-regexp))
 		     (downcase-word 1)
 		     (capitalize-word 1)))
 	       ))
 	 (set-syntax-table orig-syntax-table))))
 
 
-(defun capitalize-title (s)
-   "Like capitalize, but don't capitalize stop words, except the first."
+(defun r2b-capitalize-title (s)
+   "Like `capitalize', but don't capitalize stop words, except the first."
    (save-excursion
       (set-buffer (get-buffer-create "$$$Scratch$$$"))
       (erase-buffer)
       (insert s)
-      (capitalize-title-region (point-min) (point-max))
+      (r2b-capitalize-title-region (point-min) (point-max))
       (buffer-string)))
 
 ;*********************************************************
@@ -170,14 +168,14 @@ word in the title)")
    (makunbound 'r2b-journal-abbrevs)
    (makunbound 'r2b-booktitle-abbrevs)
    (makunbound 'r2b-proceedings-list)
-   (makunbound 'capitalize-title-stop-words)
-   (makunbound 'capitalize-title-stop-regexp)
+   (makunbound 'r2b-capitalize-title-stop-words)
+   (makunbound 'r2b-capitalize-title-stop-regexp)
    (makunbound 'r2b-additional-stop-words)
    (makunbound 'r2b-stop-regexp))
 
 (defvar r2b-stop-regexp
    (concat "\\`\\(\\(" 
-      r2b-additional-stop-words "\\|" capitalize-title-stop-words
+      r2b-additional-stop-words "\\|" r2b-capitalize-title-stop-words
       "\\)\\('\\w*\\)?\\W+\\)*\\([A-Z0-9]+\\)"))
 
 
@@ -278,7 +276,7 @@ title if CAPITALIZE is true.  Returns value of VAR."
 	    )
 	 )
       (if (and val capitalize)
-	 (setq val (capitalize-title val)))
+	 (setq val (r2b-capitalize-title val)))
       (set var val)
       (if (and (null val) required)
 	 (r2b-require var))
