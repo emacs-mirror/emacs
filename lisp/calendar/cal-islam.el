@@ -1,4 +1,4 @@
-;;; cal-islamic.el --- calendar functions for the Islamic calendar.
+;;; cal-islam.el --- calendar functions for the Islamic calendar.
 
 ;; Copyright (C) 1995 Free Software Foundation, Inc.
 
@@ -487,6 +487,6 @@ Prefix arg will make the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
-(provide 'cal-islamic)
+(provide 'cal-islam)
 
-;;; cal-islamic.el ends here
+;;; cal-islam.el ends here
