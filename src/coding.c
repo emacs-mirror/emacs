@@ -4722,6 +4722,28 @@ not fully specified.)")
   return code_convert_string1 (string, coding_system, nocopy, 1);
 }
 
+/* Encode or decode STRING according to CODING_SYSTEM.
+   Do not set Vlast_coding_system_used.  */
+
+Lisp_Object
+code_convert_string_norecord (string, coding_system, encodep)
+     Lisp_Object string, coding_system;
+     int encodep;
+{
+  struct coding_system coding;
+
+  CHECK_STRING (string, 0);
+  CHECK_SYMBOL (coding_system, 1);
+
+  if (NILP (coding_system))
+    return string;
+
+  if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
+    error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
+
+  coding.mode |= CODING_MODE_LAST_BLOCK;
+  return code_convert_string (string, &coding, encodep, Qt);
+}
 
 DEFUN ("decode-sjis-char", Fdecode_sjis_char, Sdecode_sjis_char, 1, 1, 0,
   "Decode a JISX0208 character of shift-jis encoding.\n\
