@@ -108,6 +108,7 @@ srcs = \
 .PHONY: clean
 
 # The info file is named `elisp'.
+info: $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs) index.texi
 	cd $(srcdir); $(MAKEINFO) -I. elisp.texi -o $(infodir)/elisp
