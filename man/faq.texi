@@ -5197,6 +5197,19 @@ If you want to convert an existing file from BABYL format to Unix mail
 format, use the command @kbd{M-x unrmail}: it will prompt you for the
 input and output file names.
 
+@pindex b2m
+Alternatively, you could use the @code{b2m} program supplied with
+Emacs.  @code{b2m} is a filter, and is used like this:
+
+@example
+ b2m < @var{babyl-file} > @var{mbox-file}
+@end example
+
+@noindent
+where @var{babyl-file} is the name of the BABYL file, and
+@var{mbox-file} is the name of the file where the converted mail will
+be written.
+
 @node Replying to the sender of a message, MIME with Emacs mail packages, Recovering mail files when Rmail munges them, Mail and news
 @section How can I force Rmail to reply to the sender of a message, but not the other recipients?
 @cindex Replying only to the sender of a message
