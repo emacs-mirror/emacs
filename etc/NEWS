@@ -1236,6 +1236,13 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** The new function `window-list' has been defined
+
+- Function: window-list &optional WINDOW MINIBUF ALL-FRAMES
+
+Return a list of windows in canonical order.  The parameters WINDOW,
+MINIBUF and ALL-FRAMES are defined like for `next-window'.
+
 ** There's a new function `some-window' defined as follows
 
 - Function: some-window PREDICATE &optional MINIBUF ALL-FRAMES DEFAULT

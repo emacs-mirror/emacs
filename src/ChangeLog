@@ -5,6 +5,28 @@
 
 2000-07-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Vwindow_list): New variable.
+	(make_window, delete_window): Set Vwindow_list to nil.
+	(check_window_containing): New function.
+	(window_from_coordinates): Rewritten.
+	(add_window_to_list, window_list, candidate_window_p)
+	(decode_next_window_args, next_window): New functions.
+	(Fnext_window, Fprevious_window): Rewritten in terms of
+	next_window.
+	(Fwindow_list): New function.
+	(Fother_window): Cleaned up.
+	(foreach_window): Add a longer "variable argument list".  Let
+	callback function return 0 to indicate that cycling over windows
+	should stop.
+	(foreach_window_1): Likewise.
+	(freeze_window_start): Return int.
+	(init_window): New function.
+	(syms_of_window): Staticpro Vwindow_list and defsubr Swindow_list.
+
+	* emacs.c (handle_USR1_signal, handle_USR2_signal) Clear
+	input_event with bzero.
+	(main): Call init_window.
+
 	* keymap.c (get_keyelt): Temporarily inhibit GC while evaluating
 	a menu filter.
 
