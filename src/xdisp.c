@@ -8152,8 +8152,10 @@ update_tool_bar (f, save_match_data)
 	  GCPRO1 (old_tool_bar);
 
 	  /* Build desired tool-bar items from keymaps.  */
+          BLOCK_INPUT;
 	  f->tool_bar_items
 	    = tool_bar_items (f->tool_bar_items, &f->n_tool_bar_items);
+          UNBLOCK_INPUT;
 
 	  /* Redisplay the tool-bar if we changed it.  */
 	  if (! NILP (Fequal (old_tool_bar, f->tool_bar_items)))

@@ -1,3 +1,9 @@
+2003-04-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xdisp.c (update_tool_bar): BLOCK_INPUT before calling
+	tool_bar_items so GTK tool bar expose callback does not access items 
+	being updated.
+
 2003-04-18  Miles Bader  <miles@gnu.org>
 
 	* data.c (Faset): Calculate nbytes earlier, to satisfy the now
