@@ -6397,6 +6397,26 @@ highest priority.  */)
 			       STRING_MULTIBYTE (string));
 }
 
+static int coding_system_accept_latin_extra_p P_ ((Lisp_Object));
+
+static int
+coding_system_accept_latin_extra_p (coding_system)
+     Lisp_Object coding_system;
+{
+  Lisp_Object coding_spec, coding_type, flags;
+
+  coding_spec = Fget (coding_system, Qcoding_system);
+  if (! VECTORP (coding_spec)
+      || ASIZE (coding_spec) != 5)
+    return 0;
+  coding_type = AREF (coding_spec, 0);
+  if (! EQ (coding_type, make_number (2)))
+    return 0;
+  flags = AREF (coding_spec, 4);
+  return (VECTORP (flags)
+	  && ! NILP (AREF (flags, CODING_FLAG_ISO_LATIN_EXTRA)));
+}  
+
 /*  Subroutine for Fsafe_coding_systems_region_internal.
 
     Return a list of coding systems that safely encode the multibyte
@@ -6444,7 +6464,11 @@ find_safe_codings (p, pend, safe_codings, work_table, single_byte_char_found)
       for (prev = tail = safe_codings; CONSP (tail); tail = XCDR (tail))
 	{
 	  val = XCAR (tail);
-	  if (NILP (Faref (XCDR (val), ch)))
+	  if (NILP (Faref (XCDR (val), ch))
+	      && !(SINGLE_BYTE_CHAR_P (c)
+		   && VECTORP (Vlatin_extra_code_table)
+		   && ! NILP (AREF (Vlatin_extra_code_table, c))
+		   && coding_system_accept_latin_extra_p (XCAR (val))))
 	    {
 	      /* Exclued this coding system from SAFE_CODINGS.  */
 	      if (EQ (tail, safe_codings))
