@@ -1,5 +1,13 @@
 2003-07-06  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* m/amdx86-64.h (MARKBIT):
+	* m/ia64.h (MARKBIT): Remove definition since lisp.h does not compare
+	MARKBIT and ARRAY_MARK_FLAG any more.
+
+	* m/hp800.h (XSETMARKBIT):
+	* m/sr2k.h (XSETMARKBIT):
+	* lisp.h (XSETMARKBIT): Remove unused macro.
+
 	* lisp.h (mark_object): Change prototype.
 
 	* alloc.c (mark_object): Change arg *Lisp_Object -> Lisp_Object.
