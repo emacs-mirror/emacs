@@ -1,9 +1,9 @@
 ;; internal.el -- setup support for PC keyboards and screens, internal terminal
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 1,01
+;; Version: 1,02
 
 ;; This file is part of GNU Emacs.
 
@@ -26,7 +26,6 @@
 ;; ---------------------------------------------------------------------------
 ;; keyboard setup -- that's simple!
 (set-input-mode nil nil 0)
-(define-key global-map [mouse-1] 'mouse-set-point)
 (define-key function-key-map [backspace] "\177") ; Normal behaviour for BS
 (define-key function-key-map [delete] "\C-d")    ; ... and Delete
 (define-key function-key-map [tab] [?\t])
@@ -49,8 +48,8 @@
 (put 'return 'ascii-character 13)
 (put 'escape 'ascii-character ?\e)
 ;; ---------------------------------------------------------------------------
-;; We want to do this when Emacs is started because one day it will depend
-;; on the country code.
+;; We want to do this when Emacs is started because it depends on the
+;; country code.
 (let* ((i 128)
       (modify (function
 	       (lambda (ch sy) 
@@ -61,7 +60,17 @@
 		 )))
       (downs (car (standard-case-table)))
       (ups (car (cdr (standard-case-table))))
-      (chars "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y› A¡I¢O£U¤¥"))
+      ;; The following are strings of letters, first lower then upper case.
+      ;; This will look funny on terminals which display other code pages.
+      (chars
+       (cond
+	((= dos-codepage 850)
+	 "‡€š‚ƒ¶„…·†ÆÇ µˆÒ‰ÓŠÔ‹ØŒ×Ş¡Ö‘’“â”™•ã¢à›–ê£é—ë˜Yìí¡I£é¤¥ĞÑçè")
+	((= dos-codepage 865)
+	 "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y› A¡I¢O£U¤¥")
+	;; default is 437
+	(t "‡€š‚ƒA„…A†ˆE‰EŠE‹IŒII‘’“O”™•O–U£U˜Y A¡I¢O£U¤¥"))))
+
   (while (< i 256)
     (funcall modify i "_")
     (setq i (1+ i)))
@@ -80,5 +89,4 @@
     (save-excursion
       (mapcar (lambda (b) (progn (set-buffer b) (set-case-table table)))
 	      (buffer-list)))
-    (set-standard-case-table table))
-  )
+    (set-standard-case-table table)))
