@@ -58,6 +58,21 @@ The Lisp code is executed when the node is selected.")
   :type 'boolean
   :group 'info)
 
+(defface info-node
+  '((t (:bold t :italic t)))
+  "Face for Info node names."
+  :group 'info)
+
+(defface info-menu-5
+  '((t (:underline t)))
+  "Face for the fifth and tenth `*' in an Info menu."
+  :group 'info)
+
+(defface info-xref
+  '((t (:bold t)))
+  "Face for Info cross-references."
+  :group 'info)
+
 (defcustom Info-fontify-maximum-menu-size 30000
   "*Maximum size of menu to fontify if `Info-fontify' is non-nil."
   :type 'integer
@@ -1786,20 +1801,9 @@ Advanced commands:
   (setq Info-tag-table-buffer nil)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
-  (if (memq (framep (selected-frame)) '(x pc w32))
-      (progn
-	(make-face 'info-node)
-	(make-face 'info-menu-5)
-	(make-face 'info-xref)
-	(or (face-differs-from-default-p 'info-node)
-	    (if (face-differs-from-default-p 'bold-italic)
-		(copy-face 'bold-italic 'info-node)
-	      (copy-face 'bold 'info-node)))
-	(or (face-differs-from-default-p 'info-menu-5)
-	    (set-face-underline-p 'info-menu-5 t))
-	(or (face-differs-from-default-p 'info-xref)
-	    (copy-face 'bold 'info-xref)))
-    (setq Info-fontify nil))
+  ;; This is for the sake of the invisible text we use handling titles.
+  (make-local-variable 'line-move-ignore-invisible)
+  (setq line-move-ignore-invisible t)
   (Info-set-mode-line)
   (run-hooks 'Info-mode-hook))
 
@@ -1988,8 +1992,12 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
 	(put-text-property (match-beginning 1) (match-end 1)
 			   'face
 			   (cdr (assq (preceding-char) Info-title-face-alist)))
-	(put-text-property (match-end 1) (match-end 2)
-			   'invisible t))
+	;; This is a serious problem for trying to handle multiple
+	;; frame types at once.  We want this text to be invisible
+	;; on frames that can display the font above.
+	(if (memq (framep (selected-frame)) '(x pc w32))
+	    (put-text-property (match-end 1) (match-end 2)
+			       'invisible t)))
       (goto-char (point-min))
       (while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
 	(if (= (char-after (1- (match-beginning 0))) ?\") ; hack
