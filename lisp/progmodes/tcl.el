@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.26 $
+;; Version: $Revision: 1.27 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/09/01 18:06:24 $|$Revision: 1.26 $|~/modes/tcl.el.Z|
+;; $Date: 1994/10/11 02:01:27 $|$Revision: 1.27 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.27  1994/10/11  02:01:27  tromey
+;; (tcl-mode): imenu-create-index-function made buffer local.
+;;
 ;; Revision 1.26  1994/09/01  18:06:24  tromey
 ;; Added filename completion in inferior tcl mode
 ;;
@@ -206,6 +209,7 @@
 ;; warsaw@nlm.nih.gov (Barry A. Warsaw)
 ;; Carl Witty <cwitty@ai.mit.edu>
 ;; T. V. Raman <raman@crl.dec.com>
+;; Jesper Pedersen <blackie@imada.ou.dk>
 
 ;; KNOWN BUGS:
 ;; * indent-region should skip blank lines.  (It does in v19, so I'm
@@ -279,7 +283,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.26 $")
+(defconst tcl-version "$Revision: 1.27 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -877,6 +881,11 @@ Commands:
   (make-local-variable 'comment-end)
   (setq comment-end "")
 
+  (make-local-variable 'outline-regexp)
+  (setq outline-regexp "[^\n\^M]")
+  (make-local-variable 'outline-level)
+  (setq outline-level 'tcl-outline-level)
+
   (make-local-variable 'font-lock-keywords)
   (setq font-lock-keywords tcl-font-lock-keywords)
 
@@ -1331,6 +1340,11 @@ Returns nil if line starts inside a string, t if in a comment."
 	 (concat tcl-proc-regexp "\\([^ \t\n{]+\\)") nil t)
 	(buffer-substring (match-beginning 2)
 			  (match-end 2)))))
+
+(defun tcl-outline-level ()
+  (save-excursion
+    (skip-chars-forward " \t")
+    (current-column)))
 
 
 
