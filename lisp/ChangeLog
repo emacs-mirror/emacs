@@ -5,6 +5,9 @@
 
 2002-02-13  Richard M. Stallman  <rms@gnu.org>
 
+	* textmodes/text-mode.el (text-mode-hook-identify): Restore
+	previous definition.  Add to text-mode-hook again.
+
 	* mail/mailabbrev.el (define-mail-abbrev): Define as system abbrev.
 	(mail-abbrev-in-expansion-header-p): Copy the code of mail-header-end
 	to avoid needing sendmail.el at run time.
