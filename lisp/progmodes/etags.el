@@ -1378,7 +1378,7 @@ FILE should not contain a directory specification."
 ;;;###autoload
 (defun select-tags-table ()
   "Select a tags table file from a menu of those you have already used.
-The list of tags tables to select from is stored in `tags-table-file-list';
+The list of tags tables to select from is stored in `tags-table-set-list';
 see the doc of that variable if you want to add names to the list."
   (interactive)
   (pop-to-buffer "*Tags Table List*")
