@@ -658,9 +658,11 @@ buffer.
 New command M-x change-log-redate fixes any old-style date entries in
 a log file.
 
++++
 Change Log mode now adds a file's version number to change log entries
 if user-option `change-log-version-info-enabled' is non-nil.
 
++++
 Unless the file is under version control the search for a file's
 version number is performed based on regular expressions from
 `change-log-version-number-regexp-list' which can be cutomized.
