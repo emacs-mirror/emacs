@@ -69,6 +69,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_SOCKETS
 #endif
 
+/* This is safe since we already assumed HAVE_SOCKET
+   if using X windows.  */
+#undef LIBX11_SYSTEM
+#define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc_s -lsocket
+
 #ifdef HAVE_INET_SOCKETS /* This comes from autoconf.  */
 #define HAVE_SOCKETS
 #endif
