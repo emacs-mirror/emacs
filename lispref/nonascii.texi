@@ -615,12 +615,15 @@ you will want to find out afterwards which coding system was chosen.
 @defvar buffer-file-coding-system
 This variable records the coding system that was used for visiting the
 current buffer.  It is used for saving the buffer, and for writing part
-of the buffer with @code{write-region}.  When those operations ask the
-user to specify a different coding system,
-@code{buffer-file-coding-system} is updated to the coding system
-specified.
+of the buffer with @code{write-region}.  If the text to be written
+cannot be safely encoded using the coding system specified by this
+variable, these operations select an alternative encoding by calling
+the function @code{select-safe-coding-system} (@pxref{User-Chosen
+Coding Systems}).  If selecting a different encoding requires to ask
+the user to specify a coding system, @code{buffer-file-coding-system}
+is updated to the newly selected coding system.
 
-However, @code{buffer-file-coding-system} does not affect sending text
+@code{buffer-file-coding-system} does @emph{not} affect sending text
 to a subprocess.
 @end defvar
 
@@ -633,9 +636,10 @@ When a command to save the buffer starts out to use
 @code{buffer-file-coding-system} (or @code{save-buffer-coding-system}),
 and that coding system cannot handle
 the actual text in the buffer, the command asks the user to choose
-another coding system.  After that happens, the command also updates
-@code{buffer-file-coding-system} to represent the coding system that the
-user specified.
+another coding system (by calling @code{select-safe-coding-system}).
+After that happens, the command also updates
+@code{buffer-file-coding-system} to represent the coding system that
+the user specified.
 @end defvar
 
 @defvar last-coding-system-used
@@ -739,6 +743,7 @@ systems used for I/O to a subprocess.
 @node User-Chosen Coding Systems
 @subsection User-Chosen Coding Systems
 
+@cindex select safe coding system
 @defun select-safe-coding-system from to &optional default-coding-system accept-default-p
 This function selects a coding system for encoding specified text,
 asking the user to choose if necessary.  Normally the specified text
