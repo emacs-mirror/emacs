@@ -2258,6 +2258,13 @@ read1 (readcharfun, pch, first_in_list)
 	if (c < 0)
 	  end_of_file_error ();
 
+	/* Accept `single space' syntax like (list ? x) where the
+	   whitespace character is SPC or TAB.
+	   Other literal whitespace like NL, CR, and FF are not accepted,
+	   as there are well-established escape sequences for these.  */
+	if (c == ' ' || c == '\t')
+	  return make_number (c);
+
 	if (c == '\\')
 	  c = read_escape (readcharfun, 0, &discard);
 	else if (BASE_LEADING_CODE_P (c))
