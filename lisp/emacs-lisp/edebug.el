@@ -1,6 +1,6 @@
 ;;; edebug.el --- a source-level debugger for Emacs Lisp
 
-;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999, 2000, 2001
+;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999, 2000, 01, 2003
 ;;       Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -302,7 +302,7 @@ A lambda list keyword is a symbol that starts with `&'."
   "Return a list of windows, in order of `next-window'."
   ;; This doesn't work for epoch.
   (let (window-list)
-    (walk-windows (lambda (w) (setq window-list (cons w window-list))))
+    (walk-windows (lambda (w) (push w window-list)))
     (nreverse window-list)))
 
 ;; Not used.
@@ -322,17 +322,7 @@ A lambda list keyword is a symbol that starts with `&'."
   (setq object (edebug-lookup-function object))
   (if (and (listp object)
 	   (eq 'macro (car object))
-	   (edebug-functionp (cdr object)))
-      object))
-
-(defun edebug-functionp (object)
-  "Returns the function named by OBJECT, or nil if it is not a function."
-  (setq object (edebug-lookup-function object))
-  (if (or (subrp object)
-	  (byte-code-function-p object)
-	  (and (listp object)
-	       (eq (car object) 'lambda)
-	       (listp (car (cdr object)))))
+	   (functionp (cdr object)))
       object))
 
 (defun edebug-sort-alist (alist function)
@@ -397,22 +387,20 @@ Return the result of the last expression in BODY."
   (let (list)
     (walk-windows (lambda (w)
 		    (unless (eq w (selected-window))
-		      (setq list (cons (cons (window-buffer w)
-					     (window-point w))
-				       list)))))
+		      (push (cons (window-buffer w)
+				  (window-point w))
+			    list))))
     list))
 
 
 (defun edebug-set-buffer-points (buffer-points)
   ;; Restore the buffer-points created by edebug-get-displayed-buffer-points.
-  (let ((current-buffer (current-buffer)))
-    (mapcar (function (lambda (buf-point)
-			(if (buffer-name (car buf-point)) ; still exists
-			    (progn
-			      (set-buffer (car buf-point))
-			      (goto-char (cdr buf-point))))))
-	    buffer-points)
-    (set-buffer current-buffer)))
+  (save-current-buffer
+    (mapcar (lambda (buf-point)
+	      (when (buffer-live-p (car buf-point))
+		(set-buffer (car buf-point))
+		(goto-char (cdr buf-point))))
+	    buffer-points)))
 
 (defun edebug-current-windows (which-windows)
   ;; Get either a full window configuration or some window information.
@@ -1484,12 +1472,9 @@ expressions; a `progn' form will be returned enclosing these forms."
     (edebug-set-cursor cursor (edebug-cursor-expressions cursor)
 		       (cdr (edebug-cursor-offsets cursor)))
     (cond
-     ((null head) nil) ; () is legal.
-
      ((symbolp head)
       (cond
-       ((null head)
-	(edebug-syntax-error "nil head"))
+       ((null head) nil) ; () is legal.
        ((eq head 'interactive-p)
 	;; Special case: replace (interactive-p) with variable
 	(setq edebug-def-interactive 'check-it)
@@ -1500,14 +1485,19 @@ expressions; a `progn' form will be returned enclosing these forms."
 		    head (edebug-move-cursor cursor))))))
 
      ((consp head)
-      (if (and (listp head) (eq (car head) ',))
+      (if (eq (car head) ',)
+	  ;; The head of a form should normally be a symbol or a lambda
+	  ;; expression but it can also be an unquote form to be filled
+	  ;; before evaluation.  We evaluate the arguments anyway, on the
+	  ;; assumption that the unquote form will place a proper function
+	  ;; name (rather than a macro name).
 	  (edebug-match cursor '(("," def-form) body))
 	;; Process anonymous function and args.
 	;; This assumes no anonymous macros.
 	(edebug-match-specs cursor '(lambda-expr body) 'edebug-match-specs)))
 
      (t (edebug-syntax-error
-	 "Head of list form must be a symbol or lambda expression.")))
+	 "Head of list form must be a symbol or lambda expression")))
       ))
 
 ;;; Matching of specs.
@@ -2069,7 +2059,14 @@ expressions; a `progn' form will be returned enclosing these forms."
 (def-edebug-spec backquote-form
   (&or
    ([&or "," ",@"] &or ("quote" backquote-form) form)
-   (backquote-form &rest backquote-form)
+   ;; The simple version:
+   ;;   (backquote-form &rest backquote-form)
+   ;; doesn't handle (a . ,b).  The straightforward fix:
+   ;;   (backquote-form . [&or nil backquote-form])
+   ;; uses up too much stack space.
+   ;; Note that `(foo . ,@bar) is not legal, so we don't need to handle it.
+   (backquote-form [&rest [&not ","] backquote-form]
+		   . [&or nil backquote-form])
    ;; If you use dotted forms in backquotes, replace the previous line
    ;; with the following.  This takes quite a bit more stack space, however.
    ;; (backquote-form . [&or nil backquote-form])
@@ -3736,75 +3733,72 @@ print value into current buffer."
 (define-key emacs-lisp-mode-map "\C-x\C-a\C-l" 'edebug-where)
 
 
-(defvar edebug-mode-map nil)
-(if edebug-mode-map
-    nil
-  (progn
-    (setq edebug-mode-map (copy-keymap emacs-lisp-mode-map))
+(defvar edebug-mode-map
+  (let ((map (copy-keymap emacs-lisp-mode-map)))
     ;; control
-    (define-key edebug-mode-map " " 'edebug-step-mode)
-    (define-key edebug-mode-map "n" 'edebug-next-mode)
-    (define-key edebug-mode-map "g" 'edebug-go-mode)
-    (define-key edebug-mode-map "G" 'edebug-Go-nonstop-mode)
-    (define-key edebug-mode-map "t" 'edebug-trace-mode)
-    (define-key edebug-mode-map "T" 'edebug-Trace-fast-mode)
-    (define-key edebug-mode-map "c" 'edebug-continue-mode)
-    (define-key edebug-mode-map "C" 'edebug-Continue-fast-mode)
+    (define-key map " " 'edebug-step-mode)
+    (define-key map "n" 'edebug-next-mode)
+    (define-key map "g" 'edebug-go-mode)
+    (define-key map "G" 'edebug-Go-nonstop-mode)
+    (define-key map "t" 'edebug-trace-mode)
+    (define-key map "T" 'edebug-Trace-fast-mode)
+    (define-key map "c" 'edebug-continue-mode)
+    (define-key map "C" 'edebug-Continue-fast-mode)
 
-    ;;(define-key edebug-mode-map "f" 'edebug-forward) not implemented
-    (define-key edebug-mode-map "f" 'edebug-forward-sexp)
-    (define-key edebug-mode-map "h" 'edebug-goto-here)
+    ;;(define-key map "f" 'edebug-forward) not implemented
+    (define-key map "f" 'edebug-forward-sexp)
+    (define-key map "h" 'edebug-goto-here)
 
-    (define-key edebug-mode-map "I" 'edebug-instrument-callee)
-    (define-key edebug-mode-map "i" 'edebug-step-in)
-    (define-key edebug-mode-map "o" 'edebug-step-out)
+    (define-key map "I" 'edebug-instrument-callee)
+    (define-key map "i" 'edebug-step-in)
+    (define-key map "o" 'edebug-step-out)
 
     ;; quitting and stopping
-    (define-key edebug-mode-map "q" 'top-level)
-    (define-key edebug-mode-map "Q" 'edebug-top-level-nonstop)
-    (define-key edebug-mode-map "a" 'abort-recursive-edit)
-    (define-key edebug-mode-map "S" 'edebug-stop)
+    (define-key map "q" 'top-level)
+    (define-key map "Q" 'edebug-top-level-nonstop)
+    (define-key map "a" 'abort-recursive-edit)
+    (define-key map "S" 'edebug-stop)
 
     ;; breakpoints
-    (define-key edebug-mode-map "b" 'edebug-set-breakpoint)
-    (define-key edebug-mode-map "u" 'edebug-unset-breakpoint)
-    (define-key edebug-mode-map "B" 'edebug-next-breakpoint)
-    (define-key edebug-mode-map "x" 'edebug-set-conditional-breakpoint)
-    (define-key edebug-mode-map "X" 'edebug-set-global-break-condition)
+    (define-key map "b" 'edebug-set-breakpoint)
+    (define-key map "u" 'edebug-unset-breakpoint)
+    (define-key map "B" 'edebug-next-breakpoint)
+    (define-key map "x" 'edebug-set-conditional-breakpoint)
+    (define-key map "X" 'edebug-set-global-break-condition)
 
     ;; evaluation
-    (define-key edebug-mode-map "r" 'edebug-previous-result)
-    (define-key edebug-mode-map "e" 'edebug-eval-expression)
-    (define-key edebug-mode-map "\C-x\C-e" 'edebug-eval-last-sexp)
-    (define-key edebug-mode-map "E" 'edebug-visit-eval-list)
+    (define-key map "r" 'edebug-previous-result)
+    (define-key map "e" 'edebug-eval-expression)
+    (define-key map "\C-x\C-e" 'edebug-eval-last-sexp)
+    (define-key map "E" 'edebug-visit-eval-list)
 
     ;; views
-    (define-key edebug-mode-map "w" 'edebug-where)
-    (define-key edebug-mode-map "v" 'edebug-view-outside)  ;; maybe obsolete??
-    (define-key edebug-mode-map "p" 'edebug-bounce-point)
-    (define-key edebug-mode-map "P" 'edebug-view-outside) ;; same as v
-    (define-key edebug-mode-map "W" 'edebug-toggle-save-windows)
+    (define-key map "w" 'edebug-where)
+    (define-key map "v" 'edebug-view-outside) ;; maybe obsolete??
+    (define-key map "p" 'edebug-bounce-point)
+    (define-key map "P" 'edebug-view-outside) ;; same as v
+    (define-key map "W" 'edebug-toggle-save-windows)
 
     ;; misc
-    (define-key edebug-mode-map "?" 'edebug-help)
-    (define-key edebug-mode-map "d" 'edebug-backtrace)
+    (define-key map "?" 'edebug-help)
+    (define-key map "d" 'edebug-backtrace)
 
-    (define-key edebug-mode-map "-" 'negative-argument)
+    (define-key map "-" 'negative-argument)
 
     ;; statistics
-    (define-key edebug-mode-map "=" 'edebug-temp-display-freq-count)
+    (define-key map "=" 'edebug-temp-display-freq-count)
 
     ;; GUD bindings
-    (define-key edebug-mode-map "\C-c\C-s" 'edebug-step-mode)
-    (define-key edebug-mode-map "\C-c\C-n" 'edebug-next-mode)
-    (define-key edebug-mode-map "\C-c\C-c" 'edebug-go-mode)
+    (define-key map "\C-c\C-s" 'edebug-step-mode)
+    (define-key map "\C-c\C-n" 'edebug-next-mode)
+    (define-key map "\C-c\C-c" 'edebug-go-mode)
 
-    (define-key edebug-mode-map "\C-x " 'edebug-set-breakpoint)
-    (define-key edebug-mode-map "\C-c\C-d" 'edebug-unset-breakpoint)
-    (define-key edebug-mode-map "\C-c\C-t"
-      (function (lambda () (edebug-set-breakpoint t))))
-    (define-key edebug-mode-map "\C-c\C-l" 'edebug-where)
-    ))
+    (define-key map "\C-x " 'edebug-set-breakpoint)
+    (define-key map "\C-c\C-d" 'edebug-unset-breakpoint)
+    (define-key map "\C-c\C-t"
+      (lambda () (interactive) (edebug-set-breakpoint t)))
+    (define-key map "\C-c\C-l" 'edebug-where)
+    map))
 
 ;; Autoloading these global bindings doesn't make sense because
 ;; they cannot be used anyway unless Edebug is already loaded and active.
@@ -3812,42 +3806,40 @@ print value into current buffer."
 (defvar global-edebug-prefix "\^XX"
   "Prefix key for global edebug commands, available from any buffer.")
 
-(defvar global-edebug-map nil
+(defvar global-edebug-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map " " 'edebug-step-mode)
+    (define-key map "g" 'edebug-go-mode)
+    (define-key map "G" 'edebug-Go-nonstop-mode)
+    (define-key map "t" 'edebug-trace-mode)
+    (define-key map "T" 'edebug-Trace-fast-mode)
+    (define-key map "c" 'edebug-continue-mode)
+    (define-key map "C" 'edebug-Continue-fast-mode)
+
+    ;; breakpoints
+    (define-key map "b" 'edebug-set-breakpoint)
+    (define-key map "u" 'edebug-unset-breakpoint)
+    (define-key map "x" 'edebug-set-conditional-breakpoint)
+    (define-key map "X" 'edebug-set-global-break-condition)
+
+    ;; views
+    (define-key map "w" 'edebug-where)
+    (define-key map "W" 'edebug-toggle-save-windows)
+
+    ;; quitting
+    (define-key map "q" 'top-level)
+    (define-key map "Q" 'edebug-top-level-nonstop)
+    (define-key map "a" 'abort-recursive-edit)
+
+    ;; statistics
+    (define-key map "=" 'edebug-display-freq-count)
+    map)
   "Global map of edebug commands, available from any buffer.")
 
-(if global-edebug-map
-    nil
-  (setq global-edebug-map (make-sparse-keymap))
+(global-unset-key global-edebug-prefix)
+(global-set-key global-edebug-prefix global-edebug-map)
 
-  (global-unset-key global-edebug-prefix)
-  (global-set-key global-edebug-prefix global-edebug-map)
-
-  (define-key global-edebug-map " " 'edebug-step-mode)
-  (define-key global-edebug-map "g" 'edebug-go-mode)
-  (define-key global-edebug-map "G" 'edebug-Go-nonstop-mode)
-  (define-key global-edebug-map "t" 'edebug-trace-mode)
-  (define-key global-edebug-map "T" 'edebug-Trace-fast-mode)
-  (define-key global-edebug-map "c" 'edebug-continue-mode)
-  (define-key global-edebug-map "C" 'edebug-Continue-fast-mode)
-
-  ;; breakpoints
-  (define-key global-edebug-map "b" 'edebug-set-breakpoint)
-  (define-key global-edebug-map "u" 'edebug-unset-breakpoint)
-  (define-key global-edebug-map "x" 'edebug-set-conditional-breakpoint)
-  (define-key global-edebug-map "X" 'edebug-set-global-break-condition)
-
-  ;; views
-  (define-key global-edebug-map "w" 'edebug-where)
-  (define-key global-edebug-map "W" 'edebug-toggle-save-windows)
-
-  ;; quitting
-  (define-key global-edebug-map "q" 'top-level)
-  (define-key global-edebug-map "Q" 'edebug-top-level-nonstop)
-  (define-key global-edebug-map "a" 'abort-recursive-edit)
-
-  ;; statistics
-  (define-key global-edebug-map "=" 'edebug-display-freq-count)
-  )
 
 (defun edebug-help ()
   (interactive)
