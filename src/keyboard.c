@@ -6045,7 +6045,7 @@ has the same base event type and all the specified modifiers.  */)
 
   /* Let the symbol A refer to the character A.  */
   if (SYMBOLP (base) && SCHARS (SYMBOL_NAME (base)) == 1)
-    XSETINT (base, SDATA (SYMBOL_NAME (base))[0]);
+    XSETINT (base, SREF (SYMBOL_NAME (base), 0));
 
   if (INTEGERP (base))
     {
