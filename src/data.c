@@ -2318,7 +2318,7 @@ digit_to_number (character, base)
 }
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
-       doc: /* Return a number obtained by parsing STRING as a decimal number.
+       doc: /* Parse STRING as a decimal number and return the number.
 This parses both integers and floating point numbers.
 It ignores leading spaces and tabs.
 
@@ -2561,7 +2561,7 @@ usage: (+ &rest NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN ("-", Fminus, Sminus, 0, MANY, 0,
-       doc: /* Negate number or subtract numbers or markers, returns the result.
+       doc: /* Negate number or subtract numbers or markers and return the result.
 With one arg, negates it.  With more than one arg,
 subtracts all but the first from the first.
 usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
