@@ -107,6 +107,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** Languange environment and various default coding systems are setup
+more correctly according to the current locale name.  If the locale
+name doesn't specify a charset, the default is what glibc defines.
+This change may result in using the different coding systems as
+default in some locale (e.g. vi_VN).
+
 +++
 ** The commands copy-file, rename-file, make-symbolic-link and
 add-name-to-file, when given a directory as the "new name" argument,

@@ -6,7 +6,7 @@
 2005-03-18  Kenichi Handa  <handa@m17n.org>
 
 	* quail/thai.el (quail-thai-update-translation): Delete it.
-	(thai-generate-quail-map): Generate is simple map.
+	(thai-generate-quail-map): Generate a simpler map.
 	("thai-kesmanee"): Don't use quail-thai-update-translation.
 	(thai-generate-quail-map): Likewise.
 
