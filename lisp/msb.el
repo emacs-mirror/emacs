@@ -28,10 +28,14 @@
 ;;   2. Make a better mouse-buffer-menu.
 ;;
 ;; Installation:
-;;   (require 'msb)
-;;   Note! You now use msb instead of mouse-buffer-menu.
-;;
-;;   Now try the menu bar Buffers menu.
+
+;;   1. Byte compile msb first.  It uses things in the cl package that
+;;      are slow if not compiled, but blazingly fast when compiled.  I
+;;      have also had one report that said that msb malfunctioned when
+;;      not compiled.
+;;   2. (require 'msb)
+;;      Note! You now use msb instead of mouse-buffer-menu.
+;;   3. Now try the menu bar Buffers menu.
 ;;
 ;; Customization:
 ;;   Look at the variable `msb-menu-cond' for deciding what menus you
@@ -835,6 +839,10 @@ variable `msb-menu-cond'."
 	;; adjust position
 	(setq posX (- posX (funcall msb-horizontal-shift-function))
 	      position (list (list posX posY) posWind))))
+    ;; This `sit-for' magically makes the menu stay up if the mouse
+    ;; button is released withing 0.1 second.
+    (sit-for 0 100)
+    ;; Popup the menu
     (setq choice (x-popup-menu position msb--last-buffer-menu))
     (cond
      ((eq (car choice) 'toggle)
