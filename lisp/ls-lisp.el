@@ -216,6 +216,9 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
       (if handler
 	  (funcall handler 'insert-directory file switches
 		   wildcard full-directory-p)
+	;; Remove --dired switch
+	(if (string-match "--dired " switches)
+	    (setq switches (replace-match "" nil nil switches)))
 	;; Convert SWITCHES to a list of characters.
 	(setq switches (delete ?- (append switches nil)))
 	(if wildcard
