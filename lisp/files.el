@@ -4104,17 +4104,18 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	      (beginning-of-line)
 	      (delete-region (point) (progn (forward-line 2) (point)))))
 
-	  ;; Try to insert the amount of free space.
-	  (save-excursion
-	    (goto-char beg)
-	    ;; First find the line to put it on.
-	    (when (re-search-forward "^ *\\(total\\)" nil t)
-	      (let ((available (get-free-disk-space ".")))
-		(when available
-		  ;; Replace "total" with "used", to avoid confusion.
-		  (replace-match "total used in directory" nil nil nil 1)
-		  (end-of-line)
-		  (insert " available " available))))))))))
+	  (if full-directory-p
+	      ;; Try to insert the amount of free space.
+	      (save-excursion
+		(goto-char beg)
+		;; First find the line to put it on.
+		(when (re-search-forward "^ *\\(total\\)" nil t)
+		  (let ((available (get-free-disk-space ".")))
+		    (when available
+		      ;; Replace "total" with "used", to avoid confusion.
+		      (replace-match "total used in directory" nil nil nil 1)
+		      (end-of-line)
+		      (insert " available " available)))))))))))
 
 (defun insert-directory-safely (file switches
 				     &optional wildcard full-directory-p)
