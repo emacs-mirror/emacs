@@ -8196,17 +8196,9 @@ x_build_heuristic_mask (f, img, how)
       if (i == 3 && NILP (how))
 	{
 	  char color_name[30];
-	  XColor exact, color;
-	  Colormap cmap;
-
 	  sprintf (color_name, "#%04x%04x%04x", rgb[0], rgb[1], rgb[2]);
-	  
-	  cmap = FRAME_X_COLORMAP (f);
-	  if (XLookupColor (dpy, cmap, color_name, &exact, &color))
-	    {
-	      bg = color.pixel;
-	      use_img_background = 0;
-	    }
+	  bg = x_alloc_image_color (f, img, build_string (color_name), 0);
+	  use_img_background = 0;
 	}
     }
   
