@@ -474,7 +474,6 @@ FLAGS specifies more precise information of each TYPE.
 	  (t				; i.e. (= type 5)
 	   (setq coding-category 'coding-category-raw-text)))
     (put coding-system 'coding-system coding-spec)
-    (put coding-system 'coding-system-parent coding-system)
     (put coding-system 'coding-category coding-category)
     (put coding-category 'coding-systems
 	 (cons coding-system (get coding-category 'coding-systems))))
