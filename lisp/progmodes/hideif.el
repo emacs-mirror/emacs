@@ -154,6 +154,8 @@
   (define-key hide-ifdef-mode-map hide-ifdef-mode-prefix-key
     hide-ifdef-mode-submap))
 
+;; Autoload for the benefit of `make-mode-line-mouse-sensitive'.
+;;;###autoload
 (defvar hide-ifdef-mode nil
   "Non-nil when hide-ifdef-mode is activated.")
 
