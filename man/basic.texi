@@ -91,13 +91,15 @@ mode, to give you a convenient way to insert a digit instead of
 overwriting with it.)
 @end itemize
 
+@cindex 8-bit character codes
 @noindent
 When multibyte characters are enabled, if you specify a code in the
 range 0200 through 0377 octal, @kbd{C-q} assumes that you intend to use
-some ISO Latin-@var{n} character set, and converts the specified code to
+some ISO 8859-@var{n} character set, and converts the specified code to
 the corresponding Emacs character code.  @xref{Enabling Multibyte}.  You
-select @emph{which} ISO Latin character set though your choice of
-language environment (@pxref{Language Environments}).
+select to @emph{which} of the ISO 8859 character sets should Emacs
+convert the 8-bit code through your choice of language environment
+(@pxref{Language Environments}).
 
 @vindex read-quoted-char-radix
 To use decimal or hexadecimal instead of octal, set the variable
