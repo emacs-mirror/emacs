@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2003-02-10 10:40:14 jbarranquero>
+;; Time-stamp: <2003/08/07 23:23:14 vinicius>
 ;; Version: 3.6.1
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
@@ -4266,7 +4266,7 @@ end
 
 
 (defun ebnf-begin-job ()
-  (ps-printing-region nil nil)
+  (ps-printing-region nil nil nil)
   (if ebnf-use-float-format
       (setq ebnf-format-float  "%1.3f"
 	    ebnf-message-float "%3.2f")
