@@ -32,23 +32,20 @@ progname="$0"
 ### Print out each line we read, for debugging's sake.
 ### set -v
 
-clean_up=yes
-make_tar=yes
+clean_up=no
+make_tar=no
 newer=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    ## This option tells make-dist not to delete the staging directory
-    ## after it's done making the tar file.
-    "--no-clean-up" )
-      clean_up=no
+    ## This option tells make-dist to delete the staging directory
+    ## when done.  It is useless to use this unless you make a tar file.
+    "--clean-up" )
+      clean_up=yes
     ;;
-    ## This option tells make-dist not to make a tar file.  Since it's 
-    ## rather pointless to build the whole staging directory and then
-    ## nuke it, using this option also selects '--no-clean-up'.
-    "--no-tar" )
-      make_tar=no
-      clean_up=no
+    ## This option tells make-dist to make a tar file.
+    "--tar" )
+      make_tar=yes
     ;;
     ## This option tells make-dist to make the distribution normally, then
     ## remove all files older than the given timestamp file.  This is useful
