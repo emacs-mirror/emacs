@@ -24,19 +24,54 @@
 
 all:
 
-topdontcompile = cus-load.el forms-d2.el forms-pass.el patcomp.el \
-		 subdirs.el version.el
-maildontcompile = mail\blessmail.el mail\sc.el
-playdontcompile = play\bruce.el
-interdontcompile = international\latin-1.el international\latin-2.el \
-		 international\latin-3.el international\latin-4.el \
-		 international\latin-5.el international\mule-conf.el
+# You can specify a different executable on the make command line,
+# e.g. "make EMACS=../src/emacs ...".
+
+EMACS = ..\src\$(BLD)\emacs
+
+# Command line flags for Emacs.  This must include --multibyte,
+# otherwise some files will not compile.
+
+EMACSOPT = --no-init-file --no-site-file --multibyte -batch
+
+# Files which should not be compiled.  All file names must be relative
+# to the `lisp' directory.
+# - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
+#   no point compiling it, although it doesn't hurt.
+
+DONTCOMPILE = bindings.el mail/blessmail.el play/bruce.el cus-load.el \
+	cus-start.el forms-d2.el forms-pass.el \
+	international/latin-1.el international/latin-2.el \
+	international/latin-3.el international/latin-4.el \
+	international/latin-5.el \
+	loaddefs.el loadup.el international/mule-conf.el patcomp.el \
+	paths.el mail/sc.el subdirs.el version.el \
+	generic-x.el international/latin-8.el international/latin-9.el \
+	emacs-lisp/cl-specs.el finder-inf.el term/internal.el
+
+# The actual Emacs command run in the targets below.
+
+emacs = $(EMACS) $(EMACSOPT)
+
+.el.elc:
+	-$(emacs) -f batch-byte-compile $<
+
+$(DONTCOMPILE:.el=.elc):
+	-$(DEL) $@
+
+# Recompile all Lisp files which are newer than their .elc files.
+# Note that this doesn't create .elc files.  It only recompiles if an
+# .elc is present.
+
+recompile:
+	$(emacs) -f batch-byte-recompile-directory .
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it
 # Windows 95 makes this harder than it should be.
 #
-install:;	- mkdir $(INSTALL_DIR)\lisp
+install:
+		- mkdir $(INSTALL_DIR)\lisp
 		- $(DEL) .\same-dir.tst
 		- $(DEL) $(INSTALL_DIR)\lisp\same-dir.tst
 		echo SameDirTest > $(INSTALL_DIR)\lisp\same-dir.tst
