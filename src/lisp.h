@@ -936,56 +936,63 @@ struct Lisp_Buffer_Objfwd
     int offset;
   };
 
-/* Used in a symbol value cell when the symbol's value is per-buffer.
-   The actual contents resemble a cons cell which starts a list like this:
-   (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE).
+/* struct Lisp_Buffer_Local_Value is used in a symbol value cell when
+   the symbol has buffer-local or frame-local bindings.  (Exception:
+   some buffer-local variables are built-in, with their values stored
+   in the buffer structure itself.  They are handled differently,
+   using struct Lisp_Buffer_Objfwd.)
 
-   The cons-like structure is for historical reasons; it might be better
-   to just put these elements into the struct, now.
-
-   BUFFER is the last buffer for which this symbol's value was
-   made up to date.
-
-   CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
-   local_var_alist, that being the element whose car is this
-   variable.  Or it can be a pointer to the
-   (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE),
-   if BUFFER does not have an element in its alist for this
-   variable (that is, if BUFFER sees the default value of this
-   variable).
-
-   If we want to examine or set the value and BUFFER is current,
-   we just examine or set REALVALUE.  If BUFFER is not current, we
-   store the current REALVALUE value into CURRENT-ALIST-ELEMENT,
-   then find the appropriate alist element for the buffer now
-   current and set up CURRENT-ALIST-ELEMENT.  Then we set
-   REALVALUE out of that element, and store into BUFFER.
-
-   If we are setting the variable and the current buffer does not
-   have an alist entry for this variable, an alist entry is
-   created.
-
-   Note that REALVALUE can be a forwarding pointer.  Each time it
-   is examined or set, forwarding must be done.  Each time we
-   switch buffers, buffer-local variables which forward into C
-   variables are swapped immediately, so the C code can assume
-   that they are always up to date.
+   The `realvalue' slot holds the variable's current value, or a
+   forwarding pointer to where that value is kept.  This value is the
+   one that corresponds to the loaded binding.  To read or set the
+   variable, you must first make sure the right binding is loaded;
+   then you can access the value in (or through) `realvalue'.
+   
+   `buffer' and `frame' are the buffer and frame for which the loaded
+   binding was found.  If those have changed, to make sure the right
+   binding is loaded it is necessary to find which binding goes with
+   the current buffer and selected frame, then load it.  To load it,
+   first unload the previous binding, then copy the value of the new
+   binding into `realvalue' (or through it).  Also update
+   LOADED-BINDING to point to the newly loaded binding.
 
    Lisp_Misc_Buffer_Local_Value and Lisp_Misc_Some_Buffer_Local_Value
-   use the same substructure.  The difference is that with the latter,
-   merely setting the variable while some buffer is current
-   does not cause that buffer to have its own local value of this variable.
-   Only make-local-variable does that.  */
+   both use this kind of structure.  With the former, merely setting
+   the variable creates a local binding for the current buffer.  With
+   the latter, setting the variable does not do that; only
+   make-local-variable does that.  */
+
 struct Lisp_Buffer_Local_Value
   {
     int type : 16;      /* = Lisp_Misc_Buffer_Local_Value
 			   or Lisp_Misc_Some_Buffer_Local_Value */
     int spacer : 13;
+
+    /* 1 means this variable is allowed to have frame-local bindings,
+       so check for them when looking for the proper binding.  */
     unsigned int check_frame : 1;
+    /* 1 means that the binding now loaded was found
+       as a local binding for the buffer in the `buffer' slot.  */
     unsigned int found_for_buffer : 1;
+    /* 1 means that the binding now loaded was found
+       as a local binding for the frame in the `frame' slot.  */
     unsigned int found_for_frame : 1;
     Lisp_Object realvalue;
+    /* The buffer and frame for which the loaded binding was found.  */
     Lisp_Object buffer, frame;
+
+    /* A cons cell, (LOADED-BINDING . DEFAULT-VALUE).
+
+       LOADED-BINDING is the binding now loaded.  It is a cons cell
+       whose cdr is the binding's value.  The cons cell may be an
+       element of a buffer's local-variable alist, or an element of a
+       frame's parameter alist, or it may be this cons cell.
+
+       DEFAULT-VALUE is the variable's default value, seen when the
+       current buffer and selected frame do not have their own
+       bindings for the variable.  When the default binding is loaded,
+       LOADED-BINDING is actually this very cons cell; thus, its car
+       points to itself.  */
     Lisp_Object cdr;
   };
 
@@ -1430,9 +1437,11 @@ extern void defvar_kboard P_ ((char *, int));
 
    Otherwise, the element is a variable binding.
    If the symbol field is a symbol, it is an ordinary variable binding.
-   Otherwise, it should be a cons cell (SYMBOL . BUFFER)
-   which represents having bound BUFFER's local value.
-   or (SYMBOL . nil), which represents having bound the default value.  */
+   Otherwise, it should be a structure (SYMBOL BUFFER . BUFFER),
+   which represents having bound BUFFER's local value,
+   or (SYMBOL nil . BUFFER), which represents having bound the default
+   value when BUFFER was current (buffer not having any local binding
+   for SYMBOL).  */
 
 struct specbinding
   {
