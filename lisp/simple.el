@@ -2983,10 +2983,28 @@ original text has been inserted in this way.)
 
 SEND-ACTIONS is a list of actions to call when the message is sent.
 Each action has the form (FUNCTION . ARGS)."
-  (interactive)
+  (interactive
+   (list nil nil nil current-prefix-arg))
   (let ((function (get mail-user-agent 'composefunc)))
     (funcall function to subject other-headers continue
 	     switch-function yank-action send-actions)))
+
+(defun compose-mail-other-window (&optional to subject other-headers continue
+					    yank-action send-actions)
+  "Like \\[compose-mail], but edit the outgoing message in another window."
+  (interactive
+   (list nil nil nil current-prefix-arg))
+  (compose-mail to subject other-headers continue
+		'switch-to-buffer-other-window yank-action send-actions))
+
+
+(defun compose-mail-other-frame (&optional to subject other-headers continue
+					    yank-action send-actions)
+  "Like \\[compose-mail], but edit the outgoing message in another frame."
+  (interactive
+   (list nil nil nil current-prefix-arg))
+  (compose-mail to subject other-headers continue
+		'switch-to-buffer-other-frame yank-action send-actions))
 
 (defun set-variable (var val)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
