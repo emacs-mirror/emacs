@@ -77,13 +77,13 @@
 
 (defvar hs-unbalance-handler-method 'top-level
   "*Symbol representing how \"unbalanced parentheses\" should be handled.
-This error is usually signaled by hs-show-block.  One of four values:
+This error is usually signaled by `hs-show-block'.  One of four values:
 `top-level', `next-line', `signal' or `ignore'.  Default is `top-level'.
 
 - `top-level' -- Show top-level block containing the currently troublesome
-block.
+                 block.
 - `next-line' -- Use the fact that, for an already hidden block, its end
-will be on the next line.  Attempt to show this block.
+		 will be on the next line.  Attempt to show this block.
 - `signal' -- Pass the error through, stopping execution.
 - `ignore' -- Ignore the error, continuing execution.
 
@@ -109,11 +109,12 @@ For example:
 
 Note that the regexps should not contain leading or trailing whitespace.")
 
-(defvar hs-hide-hooks nil
-  "*Hooks called at the end of hs-hide-all and hs-hide-block.")
+(defvar hs-hide-hook nil
+  "*Hooks called at the end of `hs-hide-all' and `hs-hide-block'.")
 
-(defvar hs-show-hooks nil
-  "*Hooks called at the end of hs-show-all, hs-show-block and hs-show-region.")
+(defvar hs-show-hook nil
+  "*Hooks called at the end of commands to show text.
+These commands include `hs-show-all', `hs-show-block' and `hs-show-region'.")
 
 (defvar hs-minor-mode-prefix "\C-c"
   "*Prefix key to use for hideshow commands in hideshow minor mode.")
@@ -171,8 +172,8 @@ is necessary.")
 ;; snarfed from outline.el, but added buffer-read-only
 (defun hs-flag-region (from to flag)
   "Hides or shows lines from FROM to TO, according to FLAG.
-If FLAG is \\n (newline character) then text is shown, while if FLAG
-is \\^M \(control-M) the text is hidden."
+If FLAG is `?\\n' (the newline character) then show the text;
+if FLAG is `?\\^M' \(control-M) then hide the text."
   (let ((modp (buffer-modified-p))
 	buffer-read-only)		; nothing is immune
     (unwind-protect (progn
@@ -224,7 +225,7 @@ is \\^M \(control-M) the text is hidden."
 	(goto-char (if end (1+ (point)) p)))))
 
 (defun hs-safety-is-job-n ()
-  "Warns if selective-display or selective-display-ellipses is nil."
+  "Warn if `selective-display' or `selective-display-ellipses' is nil."
   (let ((str ""))
     (or selective-display
 	(setq str "selective-display nil "))
@@ -300,8 +301,8 @@ the buffer position of the start and the end of the comment."
 ;;;###autoload
 (defun hs-hide-all ()
   "Hides all top-level blocks, displaying only first and last lines.
-When done, point is repositioned at the beginning of the line, and
-hs-hide-hooks is called.  See documentation for `run-hooks'."
+It moves point to the beginning of the line, and it runs the normal hook
+`hs-hide-hook'.  See documentation for `run-hooks'."
   (interactive)
   (hs-life-goes-on
    (message "hiding all blocks ...")
@@ -319,25 +320,25 @@ hs-hide-hooks is called.  See documentation for `run-hooks'."
      (hs-safety-is-job-n))
    (beginning-of-line)
    (message "hiding all blocks ... done")
-   (run-hooks 'hs-hide-hooks)))
+   (run-hooks 'hs-hide-hook)))
 
 (defun hs-show-all ()
   "Shows all top-level blocks.
-When done, point is unchanged, and hs-show-hooks is called.  See
-documentation for `run-hooks'."
+This does not change point; it runs the normal hook `hs-show-hook'.
+See documentation for `run-hooks'."
   (interactive)
   (hs-life-goes-on
    (message "showing all blocks ...")
    (hs-flag-region (point-min) (point-max) ?\n)
    (message "showing all blocks ... done")
-   (run-hooks 'hs-show-hooks)))
+   (run-hooks 'hs-show-hook)))
 
 ;;;###autoload
 (defun hs-hide-block (&optional end)
   "Selects a block and hides it.  With prefix arg, reposition at end.
 Block is defined as a sexp for lispish modes, mode-specific otherwise.
 Comments are blocks, too.  Upon completion, point is at repositioned and
-hs-hide-hooks is called.  See documentation for `run-hooks'."
+the normal hook `hs-hide-hook' is run.  See documentation for `run-hooks'."
   (interactive "P")
   (hs-life-goes-on
    (let ((c-reg (hs-inside-comment-p)))
@@ -352,18 +353,18 @@ hs-hide-hooks is called.  See documentation for `run-hooks'."
 		(hs-flag-region (car c-reg) (point) ?\C-m)
 		(goto-char (if end (nth 1 c-reg) (car c-reg)))
 		(hs-safety-is-job-n)
-		(run-hooks 'hs-hide-hooks)))
+		(run-hooks 'hs-hide-hook)))
        (if (or (looking-at hs-block-start-regexp)
 	       (hs-find-block-beginning))
 	   (progn
 	     (hs-hide-block-at-point end)
 	     (hs-safety-is-job-n)
-	     (run-hooks 'hs-hide-hooks)))))))
+	     (run-hooks 'hs-hide-hook)))))))
 
 (defun hs-show-block (&optional end)
   "Selects a block and shows it.  With prefix arg, reposition at end.
-Upon completion, point is repositioned hs-show-hooks are called.  See
-documentation for `hs-hide-block' and `run-hooks'."
+Upon completion, point is repositioned and the normal hook
+`hs-show-hook' is run.  See documentation for `hs-hide-block' and `run-hooks'."
   (interactive "P")
   (hs-life-goes-on
    (let ((c-reg (hs-inside-comment-p)))
@@ -378,28 +379,28 @@ documentation for `hs-hide-block' and `run-hooks'."
 	   (progn
 	     (hs-show-block-at-point end)
 	     (hs-safety-is-job-n)
-	     (run-hooks 'hs-show-hooks)))))))
+	     (run-hooks 'hs-show-hook)))))))
 
 (defun hs-show-region (beg end)
   "Shows all lines from BEG to END, without doing any block analysis.
-Note: hs-show-region is intended for use when when hs-show-block signals
+Note:` hs-show-region' is intended for use when when `hs-show-block' signals
 `unbalanced parentheses' and so is an emergency measure only.  You may
 become very confused if you use this command indiscriminately."
   (interactive "r")
   (hs-life-goes-on
    (hs-flag-region beg end ?\n)
    (hs-safety-is-job-n)
-   (run-hooks 'hs-show-hooks)))
+   (run-hooks 'hs-show-hook)))
 
 ;;;###autoload
 (defun hs-minor-mode (&optional arg)
   "Toggle hideshow minor mode.
 With ARG, turn hideshow minor mode on if ARG is positive, off otherwise.
 When hideshow minor mode is on, the menu bar is augmented with hideshow
-commands and the hideshow commands are enabled.  The variables\n
-\tselective-display\n\tselective-display-ellipses\n
-are set to t.  Lastly, the hooks set in hs-minor-mode-hook are called.
-See documentation for `run-hooks'.\n
+commands and the hideshow commands are enabled.  The variables
+`selective-display' and `selective-display-ellipses' are set to t.
+Last, the normal hook `hs-minor-mode-hook' is run; see the doc for `run-hooks'.
+
 Turning hideshow minor mode off reverts the menu bar and the
 variables to default values and disables the hideshow commands."
   (interactive "P")
@@ -434,7 +435,7 @@ variables to default values and disables the hideshow commands."
 
 ;; keymaps and menus
 (if (not hs-minor-mode-map)
-  (setq hs-minor-mode-map (make-sparse-keymap))
+    (setq hs-minor-mode-map (make-sparse-keymap))
   (cond
    ((eq hs-emacs-type 'lucid)
     (setq hs-menu-bar			; build top down for lucid
