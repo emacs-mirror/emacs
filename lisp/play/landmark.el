@@ -237,6 +237,9 @@
 (put 'lm-mode 'front-sticky
      (put 'lm-mode 'rear-nonsticky '(intangible)))
 (put 'lm-mode 'intangible 1)
+;; This one is for when they set view-read-only to t: Landmark cannot
+;; allow View Mode to be activated in its buffer.
+(put 'gomoku-mode 'mode-class 'special)
 
 (defun lm-mode ()
   "Major mode for playing Lm against Emacs.
