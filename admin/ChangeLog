@@ -1,20 +1,6 @@
-2002-10-15   Markus Rost  <rost@math.ohio-state.edu>
+2002-10-16   Markus Rost  <rost@math.ohio-state.edu>
 
-	* cus-test.el (cus-test-libs): Use equal instead of =.
-
-2002-10-14   Markus Rost  <rost@math.ohio-state.edu>
-
-	* cus-test.el (cus-test-opts): Call cus-test-load-libs.
-
-2002-10-13   Markus Rost  <rost@math.ohio-state.edu>
-
-	* cus-test.el: Further changes.  Improve the reports from batch
-	runs.
-	(cus-test-libs): Run load tests in external processes.
-
-2002-10-10  Markus Rost  <rost@math.ohio-state.edu>
-
-	* cus-test.el: Extended and reorganized.  There are now 3 tests
+	* cus-test.el: Extended and reorganized.  There are now 4 tests
 	which can be run in batch mode.  See the Commentary section.
 
 2002-10-08  Markus Rost  <rost@math.ohio-state.edu>
