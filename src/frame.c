@@ -101,7 +101,7 @@ DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
 Value is t for a termcap frame (a character-only terminal),\n\
 `x' for an Emacs frame that is really an X window,\n\
 `pc' for a direct-write MS-DOS frame.\n\
-Also see `live-frame-p'.")
+See also `frame-live-p'.")
   (object)
      Lisp_Object object;
 {
