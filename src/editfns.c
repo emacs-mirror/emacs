@@ -3254,6 +3254,7 @@ usage: (format STRING &rest OBJECTS)  */)
       /* Piggyback on this loop to initialize precision[N]. */
       precision[n] = -1;
     }
+  precision[nargs] = -1;
 
   CHECK_STRING (args[0]);
   /* We may have to change "%S" to "%s". */
@@ -3277,11 +3278,11 @@ usage: (format STRING &rest OBJECTS)  */)
 
   /* Allocate the info and discarded tables.  */
   {
-    int nbytes = nargs * sizeof *info;
+    int nbytes = (nargs+1) * sizeof *info;
     int i;
     info = (struct info *) alloca (nbytes);
     bzero (info, nbytes);
-    for (i = 0; i < nargs; i++)
+    for (i = 0; i <= nargs; i++)
       info[i].start = -1;
     discarded = (char *) alloca (SBYTES (args[0]));
     bzero (discarded, SBYTES (args[0]));
