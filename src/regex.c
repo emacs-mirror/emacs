@@ -6202,7 +6202,7 @@ regexec (preg, string, nmatch, pmatch, eflags)
     const regex_t *__restrict preg;
     const char *__restrict string;
     size_t nmatch;
-    regmatch_t pmatch[];
+    regmatch_t pmatch[__restrict_arr];
     int eflags;
 {
   int ret;
