@@ -391,9 +391,13 @@ struct re_pattern_buffer
   unsigned not_eol : 1;
 
 #ifdef emacs
-  /* If true, multi-byte form in the `buffer' should be recognized as a
-     multibyte character. */
+  /* If true, multi-byte form in the regexp pattern should be
+     recognized as a multibyte character. */
   unsigned multibyte : 1;
+
+  /* If true, multi-byte form in the target of match should be
+     recognized as a multibyte character.  */
+  unsigned target_multibyte : 1;
 #endif
 
 /* [[[end pattern_buffer]]] */
