@@ -1009,9 +1009,9 @@ HOSTNAME is a regular expression to match the FTP server host name(s).
 SETTING is \"on\" to turn passive mode on, \"off\" to turn it off,
 or nil meaning don't change it."
   :group 'ange-ftp
-  :type '(list (cons regex (choice (const :tag "On" "on")
-				   (const :tag "Off" "off")
-				   (const :tag "Don't change" nil))))
+  :type '(repeat (cons regexp (choice (const :tag "On" "on")
+				      (const :tag "Off" "off")
+				      (const :tag "Don't change" nil))))
   :version 21.3)
 
 ;;;; ------------------------------------------------------------
@@ -6111,7 +6111,7 @@ Other orders of $ and _ seem to all work just fine.")
   nil
   "*List of additional pubsets available to all users."
   :group 'ange-ftp
-  :type 'string)
+  :type '(repeat string))
 
 ;; These parsing functions are as general as possible because the syntax
 ;; of ftp listings from BS2000 hosts is a bit erratic. What saves us is that
