@@ -52,6 +52,11 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** The appearance of the fringes can now be customized, using either
+the global command M-x fringe-mode, the frame specific command M-x
+set-fringe-style, the Show/Hide submenu of the top-level Options menu,
+or customizing the `fringe-mode' variable.
+
 ** There is a new user option `mail-default-directory' that allows you
 to specify the value of `default-directory' for mail buffers.  This
 directory is used for auto-save files of mail buffers.  It defaults to
@@ -777,6 +782,8 @@ mode-lines in inverse-video.
 
 
 * Lisp Changes in Emacs 21.4
+
+** The New lisp library fringe.el controls the apperance of fringes.
 
 ** The `defmacro' form may contain declarations specifying how to
 indent the macro in Lisp mode and how to debug it with Edebug.  The
