@@ -1181,11 +1181,12 @@ where FACE is a valid face specification, as it can be used with
 	    (use-local-map map)
 	    (define-key map [t] 'fancy-splash-default-action)
 	    (define-key map [mouse-movement] 'ignore)
+	    (define-key map [mode-line t] 'ignore)
 	    (setq cursor-type nil
 		  display-hourglass nil
 		  buffer-undo-list t
-		  mode-line-format
-		  (propertize "---- %b %-" 'face '(:weight bold))
+		  mode-line-format (propertize "---- %b %-" 
+					       'face '(:weight bold))
 		  fancy-splash-stop-time (+ (float-time)
 					    (max 60 fancy-splash-max-time))
 		  timer (run-with-timer 0 fancy-splash-delay
