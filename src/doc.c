@@ -58,7 +58,9 @@ munge_doc_file_name (name)
      char *name;
 {
 #ifdef VMS
-#ifndef VMS4_4
+#ifndef NO_HYPHENS_IN_FILENAMES
+  strcpy (name, sys_translate_unix (name));
+#else /* NO_HYPHENS_IN_FILENAMES */
   /* For VMS versions with limited file name syntax,
      convert the name to something VMS will allow.  */
   p = name;
@@ -68,10 +70,7 @@ munge_doc_file_name (name)
 	*p = '_';
       p++;
     }
-#endif /* not VMS4_4 */
-#ifdef VMS4_4
-  strcpy (name, sys_translate_unix (name));
-#endif /* VMS4_4 */
+#endif /* NO_HYPHENS_IN_FILENAMES */
 #endif /* VMS */
 }
 
@@ -144,7 +143,7 @@ get_doc_string (filepos, unibyte, definition)
 
   if (!STRINGP (file))
     return Qnil;
-    
+
   /* Put the file name in NAME as a C string.
      If it is relative, combine it with Vdoc_directory.  */
 
@@ -314,12 +313,12 @@ string is passed through `substitute-command-keys'.")
   Lisp_Object tem, doc;
 
   doc = Qnil;
-  
+
   if (SYMBOLP (function)
       && (tem = Fget (function, Qfunction_documentation),
 	  !NILP (tem)))
     return Fdocumentation_property (function, Qfunction_documentation, raw);
-  
+
   fun = Findirect_function (function);
   if (SUBRP (fun))
     {
@@ -412,7 +411,7 @@ aren't strings.")
   else if (!STRINGP (tem))
     /* Feval protects its argument.  */
     tem = Feval (tem);
-  
+
   if (NILP (raw) && STRINGP (tem))
     tem = Fsubstitute_command_keys (tem);
   return tem;
@@ -497,22 +496,7 @@ when doc strings are referred to later in the dumped Emacs.")
   strcpy (name, XSTRING (Vdoc_directory)->data);
 #endif /* CANNOT_DUMP */
   strcat (name, XSTRING (filename)->data); 	/*** Add this line ***/
-#ifdef VMS
-#ifndef VMS4_4
-  /* For VMS versions with limited file name syntax,
-     convert the name to something VMS will allow.  */
-  p = name;
-  while (*p)
-    {
-      if (*p == '-')
-	*p = '_';
-      p++;
-    }
-#endif /* not VMS4_4 */
-#ifdef VMS4_4
-  strcpy (name, sys_translate_unix (name));
-#endif /* VMS4_4 */
-#endif /* VMS */
+  munge_doc_file_name (name);
 
   fd = emacs_open (name, O_RDONLY, 0);
   if (fd < 0)
@@ -814,7 +798,7 @@ syms_of_doc ()
 {
   Qfunction_documentation = intern ("function-documentation");
   staticpro (&Qfunction_documentation);
-  
+
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
     "Name of file containing documentation strings of built-in symbols.");
   Vdoc_file_name = Qnil;

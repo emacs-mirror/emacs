@@ -4,6 +4,8 @@
 	* s/vms4-4.h, s/vms5-5.h: Undefine NO_HYPHENS_IN_FILENAMES.
 	* fileio.c (Fexpand_file_name) [VMS]:
 	Use NO_HYPHENS_IN_FILENAMES, not VMS4_4.
+	* doc.c (munge_doc_file_name) [VMS]: Likewise.
+	(Fsnarf_documentation): Call munge_doc_file_name.
 
 2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
