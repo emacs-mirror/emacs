@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/05/03 22:34:16 $|$Revision: 1.67 $
+;; |$Date: 1994/05/07 01:33:23 $|$Revision: 1.68 $
 
 ;; This file is part of GNU Emacs.
 
@@ -601,7 +601,6 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
     (if (/= (point) isearch-opoint)
 	(progn
 	  (push-mark isearch-opoint t)
-	  (deactivate-mark)
 	  (or executing-macro (> (minibuffer-depth) 0)
 	      (message "Mark saved where search started")))
       ;; (message "") why is this needed?
