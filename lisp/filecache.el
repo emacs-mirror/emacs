@@ -2,35 +2,28 @@
 ;;
 ;; Author:  Peter Breton
 ;; Created: Sun Nov 10 1996
-;; Version: $Id: filecache.el,v 1.13 1997/02/07 22:27:51 pbreton Exp $
 ;; Keywords: 
 ;; Time-stamp: <97/02/07 17:26:54 peter>
 ;;
-;; Copyright (C) Peter Breton Thu Dec 12 1996
-;;
-;; This is free software; you can redistribute it and/or modify
+;; Copyright (C) 1996 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
-;;
-;; filecache.el is distributed in the hope that it will be useful,
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-;;
-;; LCD Archive Entry:
-;; filecache.el|Peter Breton|pbreton@i-kinetics.com|
-;; Find files using a pre-loaded cache|
-;; Thu Dec 12 1996|1.0|~/misc/filecache.el.gz|
-;;
-;; Purpose:
-;; 
-;; Find files using a pre-loaded cache
-;;
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
 ;;; Commentary:
 ;;
 ;; The file-cache package is an attempt to make it easy to locate files
@@ -146,91 +139,7 @@
 ;; This package is a distant relative of Noah Friedman's fff utilities.
 ;; Our goal is pretty similar, but the implementation strategies are
 ;; different.
-;;
-;;; Change log:
-;; $Log: filecache.el,v $
-;; Revision 1.13  1997/02/07 22:27:51  pbreton
-;; Keybindings use autoload cookies instead of variable
-;;
-;; Revision 1.12  1997/02/07 22:02:29  pbreton
-;; Added small changes suggested by RMS:
-;;   Revamped the doc strings
-;;   Added keybindings (using `file-cache-default-minibuffer-key' variable)
-;;
-;; Revision 1.11  1997/02/01 16:44:47  pbreton
-;; Changed `file-cache-directory-name' function. Instead of using a
-;; completing-read, it cycles through the directory list.
-;;
-;; Eliminated bug where file-cache-file-name was called twice per completion.
-;;
-;; Revision 1.10  1997/01/26 05:44:24  pbreton
-;; Added file-cache-delete functions
-;; Added file-cache-completions-buffer variable
-;; Added file-cache-completions-keymap variable
-;; Changed file-cache-completion-setup-function to use
-;;   file-cache-completions-keymap
-;; Added file-cache-choose-completion and file-cache-mouse-choose-completion.
-;;   These rely on a patch to 'simple.el'
-;; Added file-cache-debug-read-from-minibuffer function
-;;
-;; Revision 1.9  1997/01/17 17:54:24  pbreton
-;; File names are no longer case-insensitive; this was tolerable on NT but
-;; not on Unix. Instead, file-cache-minibuffer-complete checks to see if the
-;; last command was itself, and if the same string is in the minibuffer. If so,
-;; this string is used for completion.
-;;
-;; Added some functions to delete from the file-cache
-;;
-;; Completing-read of directories requires temporary binding of
-;; enable-recursive-minibuffers variable.
-;;
-;; Revision 1.8  1997/01/17 14:01:08  pbreton
-;; Changed file-cache-minibuffer-complete so that it operates in the
-;; minibuffer instead of as a recursive minibuffer call.
-;;
-;; File-cache-alist now expects a filename and a list of directories (there
-;; should be at least one). If the list has only one element, that element
-;; is used; if it has multiple directories, the user is prompted to choose
-;; one.
-;;
-;; File names in the cache are now canonicalized to lowercase, to resolve a
-;; problem which occurs when the cache has files like README and readme.
-;;
-;; Removed a lot of the extra completion functions which weren't used.
-;;
-;; Revision 1.7  1996/12/29 15:48:28  pbreton
-;; Added functions:
-;;   `file-cache-minibuffer-complete-using-suffix'
-;;   `file-cache-minibuffer-complete-with-directory-filter'
-;;   `file-cache-minibuffer-complete-with-filename-filter'
-;; Added documentation for these functions
-;;
-;; Revision 1.6  1996/12/24 20:27:56  pbreton
-;; Added predicate functions to `file-cache-minibuffer-complete'
-;;
-;; Revision 1.5  1996/12/14 18:05:11  pbreton
-;; Fixed uniquify bug by using `member' instead of `memq'
-;; Made file-cache-add-* prompts more descriptive
-;; More documentation
-;;
-;; Revision 1.4  1996/12/13 14:42:37  pbreton
-;; Removed `file-cache-top-directory' variable
-;; Changed file-cache-initialize to file-cache-add-from-file-cache-buffer
-;; Regexp to match files in file-cache-buffer is now a variable
-;;
-;; Revision 1.3  1996/12/12 06:01:27  peter
-;; Added `file-cache-add-file' and `file-cache-add-file-list' functions
-;;
-;; Revision 1.2  1996/12/12 05:47:49  peter
-;; Fixed uniquifying bug
-;; Added directory functions
-;; `file-cache-find-file' now uses file-cache-file-name
-;; `file-cache-minibuffer-complete' handles string completion correctly.
-;;   It also prepends `file-cache-minibuffer-prompt' to the normal prompt
-;;
-;; Revision 1.1  1996/11/26 12:12:43  peter
-;; Initial revision
-;;
+
 ;;; Code:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -512,21 +421,46 @@ or the optional REGEXP argument."
 ;; Minibuffer functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; The prefix argument works around a bug in the minibuffer completion.
+;; The completion function doesn't distinguish between the states:
+;; 
+;;   "Multiple completions of name" (eg, Makefile, Makefile.in)
+;;   "Name available in multiple directories" (/tmp/Makefile, ~me/Makefile)
+;;   
+;; The default is to do the former; a prefix arg forces the latter.
+
 ;;;###autoload
-(defun file-cache-minibuffer-complete ()
-  "Complete a filename in the minibuffer using a preloaded cache."
-  (interactive) 
+(defun file-cache-minibuffer-complete (arg)
+  "Complete a filename in the minibuffer using a preloaded cache.
+Filecache does two kinds of substitution: it completes on names in
+the cache, and, once it has found a unique name, it cycles through
+the directories that the name is available in.  With a prefix argument, 
+the name is considered already unique; only the second substitution 
+\(directories) is done."
+  (interactive "P") 
   (let* 
       (
        (completion-ignore-case nil)
        (case-fold-search       nil)
-       (string            (file-name-nondirectory (buffer-string)))
-       (completion-string (try-completion string file-cache-alist))
+       (string                 (file-name-nondirectory (buffer-string)))
+       (completion-string      (try-completion string file-cache-alist))
        (completion-list)
        (len)
        (file-cache-string)
        )
     (cond 
+     ;; If it's the only match, replace the original contents
+     ((or arg (eq completion-string t))
+      (setq file-cache-string (file-cache-file-name string))
+      (if (string= file-cache-string (buffer-string))
+	  (file-cache-temp-minibuffer-message file-cache-sole-match-message)
+	(erase-buffer)
+	(insert-string file-cache-string)
+	(if file-cache-multiple-directory-message
+	    (file-cache-temp-minibuffer-message 
+	     file-cache-multiple-directory-message))
+      ))
+
      ;; If it's the longest match, insert it
      ((stringp completion-string)
       ;; If we've already inserted a unique string, see if the user
@@ -563,26 +497,15 @@ or the optional REGEXP argument."
 	      )
 	  (setq file-cache-string (file-cache-file-name completion-string))
 	  (if (string= file-cache-string (buffer-string))
-	      (file-cache-temp-minibuffer-message file-cache-sole-match-message)
+	      (file-cache-temp-minibuffer-message 
+	       file-cache-sole-match-message)
 	    (erase-buffer)
 	    (insert-string file-cache-string)
 	    (if file-cache-multiple-directory-message
 		(file-cache-temp-minibuffer-message 
 		 file-cache-multiple-directory-message)))
 	  )))
-     
-     ;; If it's the only match, replace the original contents
-     ((eq completion-string t)
-      (setq file-cache-string (file-cache-file-name string))
-      (if (string= file-cache-string (buffer-string))
-	  (file-cache-temp-minibuffer-message file-cache-sole-match-message)
-	(erase-buffer)
-	(insert-string file-cache-string)
-	(if file-cache-multiple-directory-message
-	    (file-cache-temp-minibuffer-message 
-	     file-cache-multiple-directory-message))
-      ))
-     
+          
      ;; No match
      ((eq completion-string nil)
       (file-cache-temp-minibuffer-message file-cache-no-match-message))
@@ -628,7 +551,7 @@ or the optional REGEXP argument."
   (let ((completion-no-auto-exit t))
     (choose-completion)
     (select-window (active-minibuffer-window))
-    (file-cache-minibuffer-complete)
+    (file-cache-minibuffer-complete nil)
     )
   )
 
@@ -638,7 +561,7 @@ or the optional REGEXP argument."
   (let ((completion-no-auto-exit t))
     (mouse-choose-completion event)
     (select-window (active-minibuffer-window))
-    (file-cache-minibuffer-complete)
+    (file-cache-minibuffer-complete nil)
     )
   )
 
