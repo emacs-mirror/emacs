@@ -35,9 +35,11 @@
 #define HAVE_TERMIOS
 #define NO_TERMIO
 
-/* this silences a few compilation warnings */
+/* This silences a few compilation warnings.  */
+#ifdef emacs
 #undef BSD
-#define BSD 199103
+#include <sys/param.h> /* To get BSD defined consistently.  */
+#endif
 
 #define WAITTYPE int
 /* get this since it won't be included if WAITTYPE is defined */
