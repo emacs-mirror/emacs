@@ -1322,10 +1322,12 @@ void r_alloc_free P_ ((POINTER_TYPE **ptr));
 void
 r_alloc_init_fd ()
 {
+#if !MAP_ANON
   /* No anonymous mmap -- we need the file descriptor.  */
   mmap_fd = open ("/dev/zero", O_RDONLY);
   if (mmap_fd < 0)
     fatal ("cannot open /dev/zero");
+#endif
 }
 
 /* Return a region overlapping address range START...END, or null if
