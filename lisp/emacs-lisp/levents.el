@@ -230,9 +230,4 @@ an existing event object."
 GNU Emacs 19 does not currently generate process-output events."
   (eq (car-safe obj) 'process))
 
-(defun timeout-event-p (obj)
-  "True if the argument is a timeout event object.
-GNU Emacs 19 does not currently generate timeout events."
-  (eq (car-safe obj) 'timeout))
-
 ;;; levents.el ends here
