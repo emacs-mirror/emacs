@@ -32,6 +32,8 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+** Emacs can now indicate presence of new e-mails in directory.
+
 +++
 ** The new option `Info-scroll-prefer-subnodes' causes Info to behave
 like the stand-alone Info reader (from the GNU Texinfo package) as far
