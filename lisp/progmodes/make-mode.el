@@ -14,7 +14,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.21 1995/05/30 23:02:13 kwzh Exp kwzh $
+;; $Id: makefile.el,v 1.22 1995/06/15 20:42:24 kwzh Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -207,14 +207,7 @@ not be enclosed in { } or ( ).")
 
 ;; TABs are important in Makefiles.  So highlight them in font-lock.
 ;; Thanks to Job Ganzevoort <Job.Ganzevoort@cwi.nl> for this.
-(defvar makefile-tab-face
-  (if (fboundp 'make-face)
-      (progn
-	(make-face 'makefile-tab-face)
-	(or (face-differs-from-default-p 'makefile-tab-face)
-	    (set-face-background 'makefile-tab-face "hotpink"))
-	'makefile-tab-face)
-    '())
+(defvar makefile-tab-face 'makefile-tab-face
   "Face to use for highlighting leading tabs in font-lock-mode.")
 
 (defconst makefile-font-lock-keywords
@@ -494,6 +487,7 @@ makefile-special-targets-list:
   (make-local-variable 'makefile-need-macro-pickup)
 
   ;; Font lock.
+  (makefile-define-tab-face)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(makefile-font-lock-keywords))
 
@@ -1366,5 +1360,21 @@ Uses `makefile-use-curly-braces-for-macros-p'."
 		     alist))))
     (imenu-progress-message stupid 100)
     (nreverse alist)))
+
+(defun makefile-define-tab-face ()
+  (make-face 'makefile-tab-face)
+  (or (face-differs-from-default-p 'makefile-tab-face)
+      (let* ((light-bg (eq font-lock-background-mode 'light))
+	     (bg-color
+	      (cond ((memq font-lock-display-type '(mono monochrome))
+		     (if light-bg "black" "white"))
+		    ((memq font-lock-display-type '(grayscale greyscale
+						    grayshade greyshade))
+		     (if light-bg "black" "white"))
+		    (light-bg		; Light color background.
+		     "hotpink")
+		    (t			; Dark color background.
+		     "hotpink"))))
+	(set-face-background 'makefile-tab-face bg-color))))
 
 ;;; makefile.el ends here
