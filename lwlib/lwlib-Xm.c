@@ -129,6 +129,7 @@ void xm_set_keyboard_focus P_ ((Widget, Widget));
 void xm_set_main_areas P_ ((Widget, Widget, Widget));
 static void xm_internal_update_other_instances P_ ((Widget, XtPointer,
 						    XtPointer));
+static void xm_arm_callback P_ ((Widget, XtPointer, XtPointer));
 
 #if 0
 void xm_update_one_widget P_ ((widget_instance *, Widget, widget_value *,
@@ -138,8 +139,7 @@ void xm_manage_resizing P_ ((Widget, Boolean));
 #endif
 
 
-static destroyed_instance*
-all_destroyed_instances = NULL;
+static destroyed_instance *all_destroyed_instances = NULL;
 
 static destroyed_instance*
 make_destroyed_instance (name, type, widget, parent, pop_up_p)
@@ -246,6 +246,47 @@ destroy_all_children (widget, first_child_to_destroy)
       XtFree ((char *) children);
     }
 }
+
+
+
+/* Callback XmNarmCallback and XmNdisarmCallback for buttons in a
+   menu.  CLIENT_DATA contains a pointer to the widget_value
+   corresponding to widget W.  CALL_DATA contains a
+   XmPushButtonCallbackStruct containing the reason why the callback
+   is called.  */
+
+static void
+xm_arm_callback (w, client_data, call_data)
+     Widget w;
+     XtPointer client_data, call_data;
+{
+  XmPushButtonCallbackStruct *cbs = (XmPushButtonCallbackStruct *) call_data;
+  widget_value *wv = (widget_value *) client_data;
+  widget_instance *instance;
+
+  /* Get the id of the menu bar or popup menu this widget is in.  */
+  while (1)
+    {
+      if (XmIsRowColumn (w))
+	{
+	  unsigned char type = 0xff;
+
+	  XtVaGetValues (w, XmNrowColumnType, &type, NULL);
+	  if (type == XmMENU_BAR || type == XmMENU_POPUP)
+	    break;
+	}
+
+      w = XtParent (w);
+    }
+
+  instance = lw_get_widget_instance (w);
+  if (instance && instance->info->highlight_cb)
+    {
+      call_data = cbs->reason == XmCR_DISARM ? NULL : wv;
+      instance->info->highlight_cb (w, instance->info->id, call_data);
+    }
+}
+
 
 
 /* Update the label of widget WIDGET.  WIDGET must be a Label widget
@@ -519,10 +560,16 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
 			 ? XmN_OF_MANY : XmONE_OF_MANY));
 	      ++ac;
 	      button = XmCreateToggleButton (widget, cur->name, al, ac);
+	      XtAddCallback (button, XmNarmCallback, xm_arm_callback, cur);
+	      XtAddCallback (button, XmNdisarmCallback, xm_arm_callback, cur);
 	    }
 	  else
-	    button = XmCreatePushButton (widget, cur->name, al, ac);
-
+	    {
+	      button = XmCreatePushButton (widget, cur->name, al, ac);
+	      XtAddCallback (button, XmNarmCallback, xm_arm_callback, cur);
+	      XtAddCallback (button, XmNdisarmCallback, xm_arm_callback, cur);
+	    }
+	  
 	  xm_update_label (instance, button, cur);
 	  
 	  /* Add a callback that is called when the button is
