@@ -245,6 +245,9 @@ Several are for Debian GNU/Linux in particular.
    <URL:news://sunsite.auc.dk/emacs.w3> and a W3 development mail
    list/newsgroup <URL:news://sunsite.auc.dk/emacs.w3.dev>.
 
+ * X-Symbol: <URL:http://www.fmi.uni-passau.de/~wedler/x-symbol/emacs.html>
+   Quasi-WYSIWYG editing of TeX & al.  (It will be improved to take
+   better advantage of Emacs 21 features.)
 
 Local Variables:
 mode: text
