@@ -1311,10 +1311,19 @@ most recent first.")
 (defconst mark-ring-max 16
   "*Maximum size of mark ring.  Start discarding off end if gets this big.")
 
+(defvar global-mark-ring nil
+  "The list of saved global marks, most recent first.")
+
+(defconst global-mark-ring-max 16
+  "*Maximum size of global mark ring.  \
+Start discarding off end if gets this big.")
+
 (defun set-mark-command (arg)
   "Set mark at where point is, or jump to mark.
-With no prefix argument, set mark, and push old mark position on mark ring.
-With argument, jump to mark, and pop a new position for mark off the ring.
+With no prefix argument, set mark, push old mark position on local mark
+ring, and push mark on global mark ring.
+With argument, jump to mark, and pop a new position for mark off the ring
+\(does not affect global mark ring\).
 
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
@@ -1329,6 +1338,7 @@ purposes.  See the documentation of `set-mark' for more information."
 
 (defun push-mark (&optional location nomsg activate)
   "Set mark at LOCATION (point, by default) and push old mark on mark ring.
+Also push LOCATION on the global mark ring.
 Display `Mark set' unless the optional second arg NOMSG is non-nil.
 In Transient Mark mode, activate mark if optional third arg ACTIVATE non-nil.
 
@@ -1344,6 +1354,13 @@ In Transient Mark mode, this does not activate the mark."
 	  (move-marker (car (nthcdr mark-ring-max mark-ring)) nil)
 	  (setcdr (nthcdr (1- mark-ring-max) mark-ring) nil))))
   (set-marker (mark-marker) (or location (point)) (current-buffer))
+  ;; Now push the mark on the global mark ring.
+  (setq global-mark-ring (cons (copy-marker (mark-marker)) global-mark-ring))
+    (if (> (length global-mark-ring) global-mark-ring-max)
+	(progn
+	  (move-marker (car (nthcdr global-mark-ring-max global-mark-ring))
+		       nil)
+	  (setcdr (nthcdr (1- global-mark-ring-max) global-mark-ring) nil)))
   (or nomsg executing-macro (> (minibuffer-depth) 0)
       (message "Mark set"))
   (if (or activate (not transient-mark-mode))
@@ -1389,6 +1406,25 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
 	(if (null arg)
 	    (not transient-mark-mode)
 	  (> (prefix-numeric-value arg) 0))))
+
+(defun pop-global-mark ()
+  "Pop off global mark ring and jump to the top location."
+  (interactive)
+  (or global-mark-ring
+      (error "No global mark set"))
+  (let* ((marker (car global-mark-ring))
+	 (buffer (marker-buffer marker))
+	 (position (marker-position marker)))
+    (setq global-mark-ring (cdr global-mark-ring))
+    (set-buffer buffer)
+    (or (and (>= position (point-min))
+	     (<= position (point-max)))
+	(widen))
+    (goto-char position)
+    (switch-to-buffer buffer)))
+(define-key ctl-x-map "\C-@" 'pop-global-mark)
+(define-key ctl-x-map [C-SPC] 'pop-global-mark)
+
 
 (defvar next-line-add-newlines t
   "*If non-nil, `next-line' inserts newline to avoid `end of buffer' error.")
