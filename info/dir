@@ -15,9 +15,10 @@ The Info Directory
     "mEmacs<Return>" visits the Emacs manual.
   In Emacs Info, you can click mouse button 2 on a menu item
   or cross reference to follow it to its target.
+  Each menu line that starts with a * is a topic you can select with "m".
+  Every third topic has a red * to help pick the right number to type.
 
-* Menu: Each line that starts with a * is a topic you can select with "m".
-  Every third topic has a red *.
+* Menu:
 
 * Info: (info).		How to use the documentation browsing system.
 
@@ -31,6 +32,8 @@ Emacs
 * CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 * Dired-X: (dired-x).   Dired Extra Features.
 * Ediff: (ediff).	A visual interface for comparing and merging programs.
+* Emacs-Xtra: (emacs-xtra).    Specialized Emacs features.
+* Org Mode: (org).	Outline-based notes management and organizer.
 * PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
 * Speedbar: (speedbar).	File/Tag summarizing utility.
 
@@ -38,15 +41,18 @@ Emacs
 * CC mode: (ccmode).	Emacs mode for editing C, C++, Objective-C,
 			  Java, Pike, and IDL code.
 * Ebrowse: (ebrowse).	A C++ class browser for Emacs.
+* Flymake: (flymake).   An on-the-fly syntax checker for Emacs.
 * IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
 
 * Gnus: (gnus).		The news reader Gnus.
 * Message: (message).	Mail and news composition mode that goes with Gnus.
 * MH-E: (mh-e).		Emacs interface to the MH mail system.
 * MIME: (emacs-mime).   Emacs MIME de/composition library.
+* PGG: (pgg).   	Emacs interface to various PGP implementations.
 * SC: (sc).		Supercite lets you cite parts of messages you're
 			  replying to, in flexible ways.
 * SMTP: (smtpmail).     Emacs library for sending mail via SMTP.
+* Sieve: (sieve).       Managing Sieve scripts in Emacs.
 
 * Autotype: (autotype). Convenient features for text that you enter frequently
                           in Emacs.
@@ -60,6 +66,7 @@ Emacs
 * Tramp: (tramp).	Transparent Remote (file) Access, Multiple Protocol.
                           Edit remote files via a remote shell (rsh,
                           ssh, telnet).
+* URL: (url).           URL loading package.
 * Widget: (widget).     The "widget" package used by the Emacs Customization
                           facility.
 * WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
