@@ -97,23 +97,12 @@ int (*set_terminal_window_hook) ();
 
 int (*read_socket_hook) ();
 
-/* Hook for Emacs to call to tell the window-system-specific code to
-   enable/disable low-level tracking.  The value of ENABLE tells the
-   window system event handler whether it should notice or ignore
-   subsequent mouse movement and mouse button releases.
-
-   If this is 0, Emacs should assume that there is no mouse (or at
-   least no mouse tracking) available.
-
-   If called with ENABLE non-zero, the window system event handler
-   should call set_pointer_loc with the new mouse co-ordinates
-   whenever the mouse moves, and enqueue a mouse button event for
-   button releases as well as button presses.
-
-   If called with ENABLE zero, the window system event handler should
-   ignore mouse movement events, and not enqueue events for mouse
-   button releases.  */
-int (*mouse_tracking_enable_hook) ( /* int ENABLE */ );
+/* Return the current position of the mouse.  This should clear
+   mouse_moved until the next motion event arrives.  */
+void (*mouse_position_hook) ( /* SCREEN_PTR *s,
+					Lisp_Object *x,
+					Lisp_Object *y,
+					Lisp_Object *time */ );
 
 /* When reading from a minibuffer in a different screen, Emacs wants
    to shift the highlight from the selected screen to the minibuffer's
