@@ -841,13 +841,15 @@ However, it returns nil rather than `none' to mean \"don't justify\"."
 	nil
       j)))
 
-(defun set-justification (begin end value &optional whole-par)
-  "Set the region's justification style.
-The kind of justification to use is prompted for.
+(defun set-justification (begin end style &optional whole-par)
+  "Set the region's justification style to STYLE.
+This commands prompts for the kind of justification to use.
 If the mark is not active, this command operates on the current paragraph.
-If the mark is active, the region is used.  However, if the beginning and end
-of the region are not at paragraph breaks, they are moved to the beginning and
-end of the paragraphs they are in.
+If the mark is active, it operates on the region.  However, if the
+beginning and end of the region are not at paragraph breaks, they are
+moved to the beginning and end \(respectively) of the paragraphs they
+are in.
+
 If `use-hard-newlines' is true, all hard newlines are taken to be paragraph
 breaks.
 
@@ -881,7 +883,7 @@ extended to include entire paragraphs as in the interactive command."
 
       (narrow-to-region (point-min) end)
       (unjustify-region begin (point-max))
-      (put-text-property begin (point-max) 'justification value)
+      (put-text-property begin (point-max) 'justification style)
       (fill-region begin (point-max) nil t))))
 
 (defun set-justification-none (b e)
@@ -893,6 +895,7 @@ If the mark is not active, this applies to the current paragraph."
 
 (defun set-justification-left (b e)
   "Make paragraphs in the region left-justified.
+This means they are flush at the left margin and ragged on the right.
 This is usually the default, but see the variable `default-justification'.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
@@ -901,7 +904,7 @@ If the mark is not active, this applies to the current paragraph."
 
 (defun set-justification-right (b e)
   "Make paragraphs in the region right-justified.
-Flush at the right margin and ragged on the left.
+This means they are flush at the right margin and ragged on the left.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
 		     (if mark-active (region-end) (point))))
