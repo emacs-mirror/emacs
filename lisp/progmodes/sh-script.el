@@ -1271,7 +1271,7 @@ buffer indents as it currently is indented.
 \\[sh-execute-region]	 Have optional header and region be executed in a subshell.
 
 \\[sh-maybe-here-document]	 Without prefix, following an unquoted < inserts here document.
-{, (, [, ', \", `
+\{, (, [, ', \", `
 	Unless quoted with \\, insert the pairs {}, (), [], or '', \"\", ``.
 
 If you generally program a shell different from your login shell you can
