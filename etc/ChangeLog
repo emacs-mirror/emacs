@@ -1,3 +1,10 @@
+2001-11-22  Colin Walters  <walters@debian.org>
+
+	* PROBLEMS: Remove already applied calc info patches.  Clarify
+	that there is no such thing as Debian GNU/Linux 2.4.3.  ftpd is
+	not handled by alternatives in Debian, the reporter surely meant
+	just "--config ftp".
+
 2001-11-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fr-survival.tex: New file, from ,AI(Bric Jacoboni <jaco@teaser.fr>.
