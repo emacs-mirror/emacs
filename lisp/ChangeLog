@@ -5,6 +5,12 @@
 
 2002-04-27  Richard M. Stallman  <rms@gnu.org>
 
+	* menu-bar.el (menu-bar-update-buffers): Add menu items
+	Next Buffer and Previous Buffer.
+
+	* simple.el (next-buffer, prev-buffer): New commands.
+	Bind C-x left and C-x right to them.
+
 	* info.el (Info-header-line): Mark it as risky-local-variable.
 
 	* subr.el (insert-for-yank): Replace `category' property
