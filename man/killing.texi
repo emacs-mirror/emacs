@@ -72,9 +72,9 @@ mode (@pxref{Transient Mark}).
                           syntactic units such as words and sentences. 
 @end menu
 
+@need 1500
 @node Deletion
 @subsection Deletion
-@c ??? Should be backward-delete-char
 @findex delete-backward-char
 @findex delete-char
 
@@ -87,8 +87,7 @@ binds it to @code{delete-char} as well.
 @item @key{DEL}
 @itemx @key{BS}
 Delete previous character (@code{delete-backward-char}).  Some keyboards
-refer to this key as a ``backspace key'' and label it with a left arrow:
-@key{<-}.
+refer to this key as a ``backspace key'' and label it with a left arrow.
 @item M-\
 Delete spaces and tabs around point (@code{delete-horizontal-space}).
 @item M-@key{SPC}
