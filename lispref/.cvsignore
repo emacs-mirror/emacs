@@ -7,3 +7,6 @@ config.cache
 config.status
 Makefile
 index.texi
+elisp
+elisp-?
+elisp-??
