@@ -2,8 +2,9 @@
 
 ;; Copyright (C) 1988, 90, 92, 93, 94, 95, 96, 97 Free Software Foundation, Inc.
 
-;; Author: Olin Shivers <shivers@cs.cmu.edu>
-;; Maintainer: Simon Marshall <simon@gnu.ai.mit.edu>
+;; Author: Olin Shivers <shivers@cs.cmu.edu> then
+;;	Simon Marshall <simon@gnu.ai.mit.edu>
+;; Maintainer: FSF
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
