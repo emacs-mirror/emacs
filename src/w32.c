@@ -677,11 +677,11 @@ init_environment (char ** argv)
 	 read-only filesystem, like CD-ROM or a write-protected floppy.
 	 The only way to be really sure is to actually create a file and
 	 see if it succeeds.  But I think that's too much to ask.  */
-      if (tmp && access (tmp, D_OK) == 0)
+      if (tmp && _access (tmp, D_OK) == 0)
 	{
 	  char * var = alloca (strlen (tmp) + 8);
 	  sprintf (var, "TMPDIR=%s", tmp);
-	  putenv (var);
+	  _putenv (var);
 	  break;
 	}
     }
@@ -744,7 +744,7 @@ init_environment (char ** argv)
 	    if (*p == '\\') *p = '/';
 		  
 	  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
-	  putenv (strdup (buf));
+	  _putenv (strdup (buf));
 	}
     }
 
@@ -769,14 +769,14 @@ init_environment (char ** argv)
 
 		    ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof(buf1));
 		    _snprintf (buf2, sizeof(buf2)-1, "%s=%s", env_vars[i].name, buf1);
-		    putenv (strdup (buf2));
+		    _putenv (strdup (buf2));
 		  }
 		else if (dwType == REG_SZ)
 		  {
 		    char buf[SET_ENV_BUF_SIZE];
 		  
 		    _snprintf (buf, sizeof(buf)-1, "%s=%s", env_vars[i].name, lpval);
-		    putenv (strdup (buf));
+		    _putenv (strdup (buf));
 		  }
 
 		if (!dont_free)
@@ -845,13 +845,12 @@ init_environment (char ** argv)
    user enter it, so we define EMACS_CONFIGURATION to invoke this runtime
    routine.  */
 
-static char configuration_buffer[32];
-
 char *
 get_emacs_configuration (void)
 {
   char *arch, *oem, *os;
   int build_num;
+  static char configuration_buffer[32];
 
   /* Determine the processor type.  */
   switch (get_processor_type ()) 
@@ -890,8 +889,17 @@ get_emacs_configuration (void)
       break;
     }
 
-  /* Let oem be "*" until we figure out how to decode the OEM field.  */
-  oem = "*";
+  /* Use the OEM field to reflect the compiler/library combination.  */
+#ifdef _MSC_VER
+#define COMPILER_NAME	"msvc"
+#else
+#ifdef __GNUC__
+#define COMPILER_NAME	"mingw"
+#else
+#define COMPILER_NAME	"unknown"
+#endif
+#endif
+  oem = COMPILER_NAME;
 
   switch (osinfo_cache.dwPlatformId) {
   case VER_PLATFORM_WIN32_NT:
@@ -927,13 +935,45 @@ get_emacs_configuration (void)
   return configuration_buffer;
 }
 
+char *
+get_emacs_configuration_options (void)
+{
+  static char options_buffer[256];
+
+/* Work out the effective configure options for this build.  */
+#ifdef _MSC_VER
+#define COMPILER_VERSION	"--with-msvc (%d.%02d)", _MSC_VER / 100, _MSC_VER % 100
+#else
+#ifdef __GNUC__
+#define COMPILER_VERSION	"--with-gcc (%d.%d)", __GNUC__, __GNUC_MINOR__
+#else
+#define COMPILER_VERSION	""
+#endif
+#endif
+
+  sprintf (options_buffer, COMPILER_VERSION);
+#ifdef EMACSDEBUG
+  strcat (options_buffer, " --no-opt");
+#endif
+#ifdef USER_CFLAGS
+  strcat (options_buffer, " --cflags");
+  strcat (options_buffer, USER_CFLAGS);
+#endif
+#ifdef USER_LDFLAGS
+  strcat (options_buffer, " --ldflags");
+  strcat (options_buffer, USER_LDFLAGS);
+#endif
+  return options_buffer;
+}
+
+
 #include <sys/timeb.h>
 
 /* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
 void 
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
-  struct _timeb tb;
+  struct timeb tb;
   _ftime (&tb);
 
   tv->tv_sec = tb.time;
@@ -1024,7 +1064,7 @@ lookup_volume_info (char * root_dir)
 static void
 add_volume_info (char * root_dir, volume_info_data * info)
 {
-  info->root_dir = strdup (root_dir);
+  info->root_dir = xstrdup (root_dir);
   info->next = volume_cache;
   volume_cache = info;
 }
@@ -1107,15 +1147,15 @@ GetCachedVolumeInformation (char * root_dir)
       }
     else
       {
-	free (info->name);
-	free (info->type);
+	xfree (info->name);
+	xfree (info->type);
       }
 
-    info->name = strdup (name);
+    info->name = xstrdup (name);
     info->serialnum = serialnum;
     info->maxcomp = maxcomp;
     info->flags = flags;
-    info->type = strdup (type);
+    info->type = xstrdup (type);
     info->timestamp = GetTickCount ();
   }
 
@@ -1200,7 +1240,7 @@ map_w32_filename (const char * name, const char ** pPath)
       return shortname;
     }
 
-  if (is_fat_volume (name, &path)) /* truncate to 8.3 */
+  if (is_fat_volume (name, (const char **)&path)) /* truncate to 8.3 */
     {
       register int left = 8;	/* maximum number of chars in part */
       register int extn = 0;	/* extension added? */
@@ -1453,9 +1493,9 @@ open_unc_volume (char *path)
 char *
 read_unc_volume (HANDLE henum, char *readbuf, int size)
 {
-  int count;
+  DWORD count;
   int result;
-  int bufsize = 512;
+  DWORD bufsize = 512;
   char *buffer;
   char *ptr;
 
@@ -2539,8 +2579,8 @@ sys_strerror(int error_no)
   int i;
   static char unknown_msg[40];
 
-  if (error_no >= 0 && error_no < _sys_nerr)
-    return _sys_errlist[error_no];
+  if (error_no >= 0 && error_no < sys_nerr)
+    return sys_errlist[error_no];
 
   for (i = 0; _wsa_errlist[i].errnum >= 0; i++)
     if (_wsa_errlist[i].errnum == error_no)
@@ -2752,7 +2792,7 @@ sys_gethostname (char * name, int namelen)
     return pfn_gethostname (name, namelen);
 
   if (namelen > MAX_COMPUTERNAME_LENGTH)
-    return !GetComputerName (name, &namelen);
+    return !GetComputerName (name, (DWORD *)&namelen);
 
   h_errno = EFAULT;
   return SOCKET_ERROR;
@@ -3279,7 +3319,7 @@ check_windows_init_file ()
 	}
       else
 	{
-	  close (fd);
+	  _close (fd);
 	}
     }
 }
@@ -3389,6 +3429,9 @@ init_ntproc ()
 
       (*drive)++;
     }
+
+    /* Reset the volume info cache.  */
+    volume_cache = NULL;
   }
   
   /* Check to see if Emacs has been installed correctly.  */
