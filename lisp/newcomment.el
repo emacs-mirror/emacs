@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.30 2001/02/22 01:47:40 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.31 2001/03/02 20:31:40 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -43,6 +43,7 @@
 
 ;;; Todo:
 
+;; - quantized steps in comment-alignment
 ;; - try to align tail comments
 ;; - check what c-comment-line-break-function has to say
 ;; - spill auto-fill of comments onto the end of the next line
@@ -356,7 +357,19 @@ the same as `comment-search-forward'."
       (when cs
 	(if (save-excursion
 	      (goto-char cs)
-	      (if (comment-forward 1) (> (point) pt) (eobp)))
+	      (and
+	       ;; For modes where comment-start and comment-end are the same,
+	       ;; the search above may have found a `ce' rather than a `cs'.
+	       (or (not (looking-at comment-end-skip))
+		   ;; Maybe font-lock knows that it's a `cs'?
+		   (eq (get-text-property (match-end 0) 'face)
+		       'font-lock-comment-face)
+		   (unless (eq (get-text-property (point) 'face)
+			       'font-lock-comment-face)
+		     ;; Let's assume it's a `cs' if we're on the same line.
+		     (>= (line-end-position) pt)))
+	       ;; Make sure that PT is not past the end of the comment.
+	       (if (comment-forward 1) (> (point) pt) (eobp))))
 	    cs
 	  (goto-char pt)
 	  nil)))))
@@ -414,7 +427,7 @@ Point is assumed to be just at the end of a comment."
 ;;;###autoload
 (defun comment-indent (&optional continue)
   "Indent this line's comment to comment column, or insert an empty comment.
-If CONTINUE is non-nil, use the `comment-continuation' markers if any."
+If CONTINUE is non-nil, use the `comment-continue' markers if any."
   (interactive "*")
   (comment-normalize-vars)
   (let* ((empty (save-excursion (beginning-of-line)
@@ -977,6 +990,7 @@ unless optional argument SOFT is non-nil."
 			 nil t)))))
 		 (comment-start comstart)
 		 ;; Force comment-continue to be recreated from comment-start.
+		 ;; FIXME: wrong if comment-continue was set explicitly!
 		 (comment-continue nil))
 	    (insert-and-inherit ?\n)
 	    (forward-char -1)
