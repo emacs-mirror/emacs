@@ -45,7 +45,7 @@ This License applies to any manual or other work that contains a
 notice placed by the copyright holder saying it can be distributed
 under the terms of this License.  The ``Document'', below, refers to any
 such manual or work.  Any member of the public is a licensee, and is
-addressed as ``you''.
+addressed as ``you.''
 
 A ``Modified Version'' of the Document means any work containing the
 Document or a portion of it, either copied verbatim, or with
@@ -80,7 +80,7 @@ for automatic translation to a variety of formats suitable for input
 to text formatters.  A copy made in an otherwise Transparent file
 format whose markup has been designed to thwart or discourage
 subsequent modification by readers is not Transparent.  A copy that is
-not ``Transparent'' is called ``Opaque''.
+not ``Transparent'' is called ``Opaque.''
 
 Examples of suitable formats for Transparent copies include plain
 ASCII without markup, Texinfo input format, LaTeX input format, SGML
@@ -204,7 +204,7 @@ K. In any section entitled ``Acknowledgements'' or ``Dedications'',
 L. Preserve all the Invariant Sections of the Document,
    unaltered in their text and in their titles.  Section numbers
    or the equivalent are not considered part of the section titles.@*
-M. Delete any section entitled ``Endorsements''.  Such a section
+M. Delete any section entitled ``Endorsements.''  Such a section
    may not be included in the Modified Version.@*
 N. Do not retitle any existing section as ``Endorsements''
    or to conflict in title with any Invariant Section.@*
@@ -258,7 +258,7 @@ Invariant Sections in the license notice of the combined work.
 In the combination, you must combine any sections entitled ``History''
 in the various original documents, forming one section entitled
 ``History''; likewise combine any sections entitled ``Acknowledgements'',
-and any sections entitled ``Dedications''.  You must delete all sections
+and any sections entitled ``Dedications.''  You must delete all sections
 entitled ``Endorsements.''
 @sp 1
 @item
@@ -346,17 +346,17 @@ license notices just after the title page:
 
 @smallexample
 @group
-
-  Copyright (C)  @var{year}  @var{your name}.
-  Permission is granted to copy, distribute and/or modify this document
-  under the terms of the GNU Free Documentation License, Version 1.1
-  or any later version published by the Free Software Foundation;
-  with the Invariant Sections being @var{list their titles}, with the
-  Front-Cover Texts being @var{list}, and with the Back-Cover Texts being @var{list}.
-  A copy of the license is included in the section entitled ``GNU
-  Free Documentation License''.
+Copyright (C)  @var{year}  @var{your name}.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1
+or any later version published by the Free Software Foundation;
+with the Invariant Sections being @var{list their titles}, with the
+Front-Cover Texts being @var{list}, and with the Back-Cover Texts being @var{list}.
+A copy of the license is included in the section entitled "GNU
+Free Documentation License."
 @end group
 @end smallexample
+
 If you have no Invariant Sections, write ``with no Invariant Sections''
 instead of saying which ones are invariant.  If you have no
 Front-Cover Texts, write ``no Front-Cover Texts'' instead of
