@@ -1,3 +1,13 @@
+2002-03-27  Colin Walters  <walters@debian.org>
+
+	* ibuffer.el (ibuffer-help-buffer-modes): New variable.
+	(ibuffer-fontification-alist): Use it.
+	(ibuffer-backward-line): Handle `ibuffer-summary' area.
+	(ibuffer-forward-line): Ditto.
+
+	* ibuf-ext.el (sorter mode-name): Doc fix.
+	(ibuffer-mark-help-buffers): Use `ibuffer-help-buffer-modes'.
+
 2002-03-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* allout.el (outline-layout): Doc fix.
