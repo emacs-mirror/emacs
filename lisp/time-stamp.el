@@ -2,7 +2,7 @@
 
 ;; Copyright 1989, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;; Maintainer's Time-stamp: <1997-06-08 16:45:41 gildea>
+;; Maintainer's Time-stamp: <1997-08-07 14:46:50 gildea>
 ;; Maintainer: Stephen Gildea <gildea@alum.mit.edu>
 ;; Keywords: tools
 
@@ -41,30 +41,6 @@
   "Maintain last change time stamps in files edited by Emacs."
   :group 'data
   :group 'extensions)
-
-(defcustom time-stamp-active t
-  "*Non-nil to enable time-stamping of buffers by \\[time-stamp].
-Can be toggled by \\[time-stamp-toggle-active].
-See also the variable `time-stamp-warn-inactive'."
-  :type 'boolean
-  :group 'time-stamp)
-
-(defcustom time-stamp-warn-inactive t
-  "Non-nil to have \\[time-stamp] warn if a buffer did not get time-stamped.
-A warning is printed if `time-stamp-active' is nil and the buffer contains
-a time stamp template that would otherwise have been updated."
-  :type 'boolean
-  :group 'time-stamp)
-
-(defcustom time-stamp-old-format-warn 'ask
-  "Action to take if `time-stamp-format' is an old-style list.
-If `error', the format is not used.  If `ask', the user is queried about
-using the time-stamp-format.  If `warn', a warning is displayed.
-If nil, no notification is given."
-  :type '(choice (const :tag "No notification" nil)
-                 (const :tag "Don't use the format" error)
-                 (const ask) (const warn))
-  :group 'time-stamp)
 
 (defcustom time-stamp-format "%:y-%02m-%02d %02H:%02M:%02S %u"
   "*Format of the string inserted by \\[time-stamp].
@@ -110,6 +86,35 @@ historical default."
   :type 'string
   :group 'time-stamp)
 
+(defcustom time-stamp-active t
+  "*Non-nil to enable time-stamping of buffers by \\[time-stamp].
+Can be toggled by \\[time-stamp-toggle-active].
+See also the variable `time-stamp-warn-inactive'."
+  :type 'boolean
+  :group 'time-stamp)
+
+(defcustom time-stamp-warn-inactive t
+  "Non-nil to have \\[time-stamp] warn if a buffer did not get time-stamped.
+A warning is printed if `time-stamp-active' is nil and the buffer contains
+a time stamp template that would otherwise have been updated."
+  :type 'boolean
+  :group 'time-stamp)
+
+(defcustom time-stamp-old-format-warn 'ask
+  "Action to take if `time-stamp-format' is an old-style list.
+If `error', the format is not used.  If `ask', the user is queried about
+using the time-stamp-format.  If `warn', a warning is displayed.
+If nil, no notification is given."
+  :type '(choice (const :tag "No notification" nil)
+                 (const :tag "Don't use the format" error)
+                 (const ask) (const warn))
+  :group 'time-stamp)
+
+(defcustom time-stamp-time-zone nil
+  "If non-nil, a string naming the timezone to be used by \\[time-stamp].
+Format is the same as that used by the environment variable TZ on your system."
+  :type 'string
+  :group 'time-stamp)
 
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start, or
@@ -456,13 +461,22 @@ The new forms being recommended now will continue to work then.")
 	     "The following obsolescent time-stamp-format construct(s) were found:\n\n")))
       (insert "\"" old-form "\" -- use " new-form "\n"))
     (display-buffer "*Time-stamp-compatibility*"))))
-  
+
 
 
 (defun time-stamp-string ()
   "Generate the new string to be inserted by \\[time-stamp]."
   (if (stringp time-stamp-format)
-      (format-time-string (time-stamp-string-preprocess time-stamp-format))
+      (if (stringp time-stamp-time-zone)
+	  (let ((real-time-zone (getenv "TZ")))
+	    (unwind-protect
+		(progn
+		  (setenv "TZ" time-stamp-time-zone)
+		  (format-time-string
+		   (time-stamp-string-preprocess time-stamp-format)))
+	      (setenv "TZ" real-time-zone)))
+	(format-time-string
+	 (time-stamp-string-preprocess time-stamp-format)))
     ;; handle version 1 compatibility
     (cond ((or (eq time-stamp-old-format-warn 'error)
 	       (and (eq time-stamp-old-format-warn 'ask)
