@@ -1729,7 +1729,7 @@ before each command.")
     register int new_point = marker_position (w->pointm);
     if (new_point < BEGV)
       SET_PT (BEGV);
-    if (new_point > ZV)
+    else if (new_point > ZV)
       SET_PT (ZV);
     else
       SET_PT (new_point);
