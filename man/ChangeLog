@@ -1,3 +1,9 @@
+1999-11-20  Paul Eggert  <eggert@twinsun.com>
+
+	* mule.texi: Describe the relationship between
+	set-locale-environment and set-language-environment, and why
+	one might want to invoke set-locale-environment.
+
 1999-11-01  Eli Zaretskii <eliz@is.elta.co.il>
 
 	* cc-mode.texi: Fix complaints from makeinfo 4.0.
