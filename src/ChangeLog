@@ -1,5 +1,8 @@
 2001-01-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_set_mouse_face_gc): If the last use mouse face
+	has gone in the meantime, use face MOUSE_FACE_ID.
+	
 	* xterm.c (x_connection_closed) [USE_X_TOOLKIT]: If
 	x_display_info_for_display returns null, don't try to close
 	the display; we didn't open it.
