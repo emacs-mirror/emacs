@@ -2297,8 +2297,8 @@ handle_single_display_prop (it, prop, object, position)
 
   Lisp_Object form;
 
-  /* If PROP is a list of the form `(:when FORM VALUE)', FORM is
-     evaluated.  If the result is nil, VALUE is ignored.  */
+  /* If PROP is a list of the form `(:when FORM . VALUE)', FORM is
+     evaluated.  If the result is nil, VALUE is ignored. */
   form = Qt;
   if (CONSP (prop) && EQ (XCAR (prop), QCwhen))
     {
@@ -2307,9 +2307,6 @@ handle_single_display_prop (it, prop, object, position)
 	return 0;
       form = XCAR (prop);
       prop = XCDR (prop);
-      if (!CONSP (prop))
-	return 0;
-      prop = XCAR (prop);
     }
 
   if (!NILP (form) && !EQ (form, Qt))
