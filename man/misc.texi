@@ -306,8 +306,12 @@ Send an article to a newsgroup.@*
 @cindex shell commands
 
   Emacs has commands for passing single command lines to inferior shell
-processes; it can also run a shell interactively with input and output to
-an Emacs buffer named @samp{*shell*}.
+processes; it can also run a shell interactively with input and output
+to an Emacs buffer named @samp{*shell*} or run s shell inside a terminal
+emulator window.
+
+There is a shell implemented entirely in Emacs, documented in a separate
+manual.  @xref{, ,Eshell , eshell, Eshell: The Emacs Shell}.
 
 @table @kbd
 @item M-! @var{cmd} @key{RET}
@@ -324,6 +328,9 @@ You can then give commands interactively.
 Run a subshell with input and output through an Emacs buffer.
 You can then give commands interactively.
 Full terminal emulation is available.
+@item M-x eshell
+@findex eshell
+Start the Emacs shell.
 @end table
 
 @menu
