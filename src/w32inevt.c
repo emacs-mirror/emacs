@@ -120,62 +120,37 @@ win32_kbd_mods_to_emacs (DWORD mods)
   return retval;
 }
 
-/* Patch up NT keyboard events when info is missing that should be there,
-   assuming that map_virt_key says that the key is a valid ASCII char. */
-static char win32_number_shift_map[] = {
-  ')', '!', '@', '#', '$', '%', '^', '&', '*', '('
-};
-
-#define WIN32_KEY_SHIFTED(mods, no, yes) \
-  ((mods & (SHIFT_PRESSED | CAPSLOCK_ON)) ? yes : no)
-
-static void
+/* The return code indicates key code size. */
+static int
 win32_kbd_patch_key (KEY_EVENT_RECORD *event)
 {
   unsigned int key_code = event->wVirtualKeyCode;
   unsigned int mods = event->dwControlKeyState;
-  int mapped_punct = 0;
+  BYTE keystate[256];
+  static BYTE ansi_code[4];
+  static int isdead;
 
-  /* map_virt_key says its a valid key, but the uChar.AsciiChar field
-     is empty.  patch up the uChar.AsciiChar field using wVirtualKeyCode.  */
-  if (event->uChar.AsciiChar == 0
-      && ((key_code >= '0' && key_code <= '9')
-	  || (key_code >= 'A' && key_code <= 'Z')
-	  || (key_code >= 0xBA && key_code <= 0xC0)
-	  || (key_code >= 0xDB && key_code <= 0xDE)
-	  )) {
-    if (key_code >= '0' && key_code <= '9') {
-      event->uChar.AsciiChar = 
-	WIN32_KEY_SHIFTED (mods, key_code,
-			win32_number_shift_map[key_code - '0']);
-      return;
+  if (isdead == 2)
+    {
+      event->uChar.AsciiChar = ansi_code[2];
+      isdead = 0;
+      return 1;
     }
-    switch (key_code) {
-    case 0xBA: mapped_punct = WIN32_KEY_SHIFTED (mods, ';', ':'); break;
-    case 0xBB: mapped_punct = WIN32_KEY_SHIFTED (mods, '=', '+'); break;
-    case 0xBC: mapped_punct = WIN32_KEY_SHIFTED (mods, ',', '<'); break;
-    case 0xBD: mapped_punct = WIN32_KEY_SHIFTED (mods, '-', '_'); break;
-    case 0xBE: mapped_punct = WIN32_KEY_SHIFTED (mods, '.', '>'); break;
-    case 0xBF: mapped_punct = WIN32_KEY_SHIFTED (mods, '/', '?'); break;
-    case 0xC0: mapped_punct = WIN32_KEY_SHIFTED (mods, '`', '~'); break;
-    case 0xDB: mapped_punct = WIN32_KEY_SHIFTED (mods, '[', '{'); break;
-    case 0xDC: mapped_punct = WIN32_KEY_SHIFTED (mods, '\\', '|'); break;
-    case 0xDD: mapped_punct = WIN32_KEY_SHIFTED (mods, ']', '}'); break;
-    case 0xDE: mapped_punct = WIN32_KEY_SHIFTED (mods, '\'', '"'); break;
-    default:
-      mapped_punct = 0;
-      break;
-    }
-    if (mapped_punct) {
-      event->uChar.AsciiChar = mapped_punct;
-      return;
-    }
-    /* otherwise, it's a letter.  */
-    event->uChar.AsciiChar = WIN32_KEY_SHIFTED (mods, key_code - 'A' + 'a',
-						key_code);
-  }
+  if (event->uChar.AsciiChar != 0) 
+    return 1;
+  memset (keystate, 0, sizeof (keystate));
+  if (mods & SHIFT_PRESSED) 
+    keystate[VK_SHIFT] = 0x80;
+  if (mods & CAPSLOCK_ON) 
+    keystate[VK_CAPITAL] = 1;
+  isdead = ToAscii (event->wVirtualKeyCode, event->wVirtualScanCode,
+		    keystate, (LPWORD) ansi_code, 0);
+  if (isdead == 0) 
+    return 0;
+  event->uChar.AsciiChar = ansi_code[0];
+  return isdead;
 }
-
+  
 /* Map virtual key codes into:
    -1 - Ignore this key
    -2 - ASCII char
@@ -187,7 +162,11 @@ win32_kbd_patch_key (KEY_EVENT_RECORD *event)
 
 static int map_virt_key[256] =
 {
+#ifdef MULE
+  -3,
+#else
   -1,
+#endif
   -1,                 /* VK_LBUTTON */
   -1,                 /* VK_RBUTTON */
   0x69,               /* VK_CANCEL */
@@ -294,10 +273,13 @@ static int map_virt_key[256] =
                           -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 /* 0xff */
 };
 
+/* return code -1 means that event_queue_ptr won't be incremented. 
+   In other word, this event makes two key codes.   (by himi)       */
 static int 
 key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
 {
   int map;
+  int key_flag = 0;
   static BOOL map_virt_key_init_done;
   
   /* Skip key-up events.  */
@@ -337,9 +319,28 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
     {
       /* ASCII */
       emacs_ev->kind = ascii_keystroke;
-      win32_kbd_patch_key (event);
+      key_flag = win32_kbd_patch_key (event); /* 95.7.25 by himi */
+      if (key_flag == 0) 
+	return 0;
       XSETINT (emacs_ev->code, event->uChar.AsciiChar);
     }
+#ifdef MULE
+  /* for IME */
+  else if (map == -3)
+    {
+      if ((event->dwControlKeyState & NLS_IME_CONVERSION)
+	  && !(event->dwControlKeyState & RIGHT_ALT_PRESSED)
+	  && !(event->dwControlKeyState & LEFT_ALT_PRESSED)
+	  && !(event->dwControlKeyState & RIGHT_CTRL_PRESSED)
+	  && !(event->dwControlKeyState & LEFT_CTRL_PRESSED))
+	{
+	  emacs_ev->kind = ascii_keystroke;
+	  XSETINT (emacs_ev->code, event->uChar.AsciiChar);
+	}
+      else
+	return 0;
+    }
+#endif
   else
     {
       /* non-ASCII */
@@ -351,16 +352,24 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev)
       map |= 0xff00;
       XSETINT (emacs_ev->code, map);
     }
+/* for Mule 2.2 (Based on Emacs 19.28) */
+#ifdef MULE
+  XSET (emacs_ev->frame_or_window, Lisp_Frame, get_frame ());
+#else
   XSETFRAME (emacs_ev->frame_or_window, get_frame ());
+#endif
   emacs_ev->modifiers = win32_kbd_mods_to_emacs (event->dwControlKeyState);
   emacs_ev->timestamp = GetTickCount ();
+  if (key_flag == 2) return -1; /* 95.7.25 by himi */
   return 1;
 }
 
 /* Mouse position hook.  */
 void 
 win32_mouse_position (FRAME_PTR *f,
+#ifndef MULE
 		      int insist,
+#endif
 		      Lisp_Object *bar_window,
 		      enum scroll_bar_part *part,
 		      Lisp_Object *x,
@@ -369,7 +378,9 @@ win32_mouse_position (FRAME_PTR *f,
 {
   BLOCK_INPUT;
   
+#ifndef MULE
   insist = insist;
+#endif
 
   *f = get_frame ();
   *bar_window = Qnil;
@@ -459,7 +470,12 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   
   XSETFASTINT (emacs_ev->x, event->dwMousePosition.X);
   XSETFASTINT (emacs_ev->y, event->dwMousePosition.Y);
+/* for Mule 2.2 (Based on Emacs 19.28 */
+#ifdef MULE
+  XSET (emacs_ev->frame_or_window, Lisp_Frame, get_frame ());
+#else
   XSETFRAME (emacs_ev->frame_or_window, get_frame ());
+#endif
   
   return 1;
 }
@@ -507,6 +523,11 @@ win32_read_socket (int sd, struct input_event *bufp, int numchars,
             {
             case KEY_EVENT:
 	      add = key_event (&queue_ptr->Event.KeyEvent, bufp);
+	      if (add == -1) /* 95.7.25 by himi */
+		{ 
+		  queue_ptr--;
+		  add = 1;
+		}
 	      bufp += add;
 	      ret += add;
 	      numchars -= add;
