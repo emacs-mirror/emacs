@@ -549,7 +549,7 @@ if necessary."
   (ediff-barf-if-not-control-buffer)
   (if (and (ediff-buffer-live-p ediff-ancestor-buffer)
 	   (not (y-or-n-p "Recompute differences during merge, really? ")))
-      (error "God forbid!"))
+      (error "Recomputation of differences cancelled"))
       
   (let ((point-A (ediff-eval-in-buffer ediff-buffer-A (point)))
 	;;(point-B (ediff-eval-in-buffer ediff-buffer-B (point)))
