@@ -349,9 +349,9 @@ One annotation each for foreground color, background color, italic, etc."
 (defun enriched-face-ans (face)
   "Return annotations specifying FACE."
   (cond ((and (consp face) (eq (car face) 'foreground-color))
-	 (list "x-color" (cdr face)))
+	 (list (list "x-color" (cdr face))))
 	((and (consp face) (eq (car face) 'background-color))
-	 (list "x-bg-color" (cdr face)))
+	 (list (list "x-bg-color" (cdr face))))
 	((string-match "^fg:" (symbol-name face))
 	 (list (list "x-color" (substring (symbol-name face) 3))))
 	((string-match "^bg:" (symbol-name face))
@@ -361,8 +361,10 @@ One annotation each for foreground color, background color, italic, etc."
 		(props (face-font face t))
 		(ans (cdr (format-annotate-single-property-change
 			   'face nil props enriched-translations))))
-	   (if fg (setq ans (cons (list "x-color" fg) ans)))
-	   (if bg (setq ans (cons (list "x-bg-color" bg) ans)))
+	   (unless (eq fg 'unspecified)
+	     (setq ans (cons (list "x-color" fg) ans)))
+	   (unless (eq bg 'unspecified)
+	     (setq ans (cons (list "x-bg-color" bg) ans)))
 	   ans))))
 
 ;;;
