@@ -209,7 +209,7 @@ extern struct frame *x_window_to_frame ();
 /* The frame (if any) which has the X window that has keyboard focus.
    Zero if none.  This is examined by Ffocus_frame in xfns.c */
 
-struct frame *x_focus_frame;
+extern struct frame *x_focus_frame;
 
 #ifdef HAVE_X11
 /* Variables associated with the X display screen this emacs is using. */
