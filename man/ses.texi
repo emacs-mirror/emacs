@@ -251,8 +251,8 @@ one-argument function (a symbol or a lambda), whose result is a string
 (right-aligned) or list of one string (left-aligned).  While typing in
 a lambda, you can use @kbd{M-TAB} to complete the names of symbols.
 
-Each cell has a printer.  If nil, the column-printer for the cell's
-column is used.  If that is also nil, the default-printer for the
+Each cell has a printer.  If @code{nil}, the column-printer for the cell's
+column is used.  If that is also @code{nil}, the default-printer for the
 spreadsheet is used.
 
 @table @kbd
@@ -273,7 +273,7 @@ spreadsheet, plus the standard printers.
 
 The standard printers are suitable only for cells, not columns or
 default, because they format the value using the column-printer (or
-default-printer if nil) and then center the result:
+default-printer if @code{nil}) and then center the result:
 
 @table @code
 @item ses-center
@@ -296,7 +296,7 @@ Centering with tildes (~) and spill-over.
 @node Clearing cells, Copy/cut/paste, Printer functions, The Basics
 @section Clearing cells
 
-These commands set both formula and printer to nil:
+These commands set both formula and printer to @code{nil}:
 
 @table @kbd
 @item DEL
@@ -331,7 +331,7 @@ Mark a region and copy it to kill ring and secondary clipboard
 @item C-w
 @itemx [cut]
 @itemx [S-delete]
-The cut functions do not actually delete rows or columns - they copy
+The cut functions do not actually delete rows or columns---they copy
 and then clear (@code{ses-kill-override}).
 
 @item C-y
@@ -537,7 +537,7 @@ are some useful functions to call from your formulas:
 
 @table @code
 @item (ses-delete-blanks &rest @var{args})
-Returns a list from which all blank cells (value is either nil or
+Returns a list from which all blank cells (value is either @code{nil} or
 '*skip*) have been deleted.
 
 @item (ses+ &rest @var{args})
@@ -561,10 +561,10 @@ producing a value: the print cell is filled with hash marks (#).
 @end itemize
 
 If the result from the printer function is too wide for the cell and
-the following cell is nil, the result will spill over into the
+the following cell is @code{nil}, the result will spill over into the
 following cell.  Very wide results can spill over several cells.  If
 the result is too wide for the available space (up to the end of the
-row or the next non-nil cell), the result is truncated if the cell's
+row or the next non-@code{nil} cell), the result is truncated if the cell's
 value is a string, or replaced with hash marks otherwise.
 
 SES could get confused by printer results that contain newlines or

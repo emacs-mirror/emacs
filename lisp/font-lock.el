@@ -1257,7 +1257,7 @@ START should be at the beginning of a line."
 					font-lock-syntactic-keywords)))
   ;; Get down to business.
   (let ((case-fold-search font-lock-keywords-case-fold-search)
-	(keywords (cdr font-lock-syntactic-keywords))
+	(keywords (cddr font-lock-syntactic-keywords))
 	keyword matcher highlights)
     (while keywords
       ;; Find an occurrence of `matcher' from `start' to `end'.

@@ -198,10 +198,14 @@ When VERSION is given, perform check for that version."
 
 (defun vc-rcs-checkout-model (file)
   "RCS-specific version of `vc-checkout-model'."
-  (vc-rcs-consult-headers file)
-  (or (vc-file-getprop file 'vc-checkout-model)
-      (progn (vc-rcs-fetch-master-state file)
-	     (vc-file-getprop file 'vc-checkout-model))))
+  (let (result)
+    (when vc-consult-headers
+      (vc-file-setprop file 'vc-checkout-model nil)
+      (vc-rcs-consult-headers file)
+      (setq result (vc-file-getprop file 'vc-checkout-model)))
+    (or result
+        (progn (vc-rcs-fetch-master-state file)
+               (vc-file-getprop file 'vc-checkout-model)))))
 
 (defun vc-rcs-workfile-unchanged-p (file)
   "RCS-specific implementation of vc-workfile-unchanged-p."

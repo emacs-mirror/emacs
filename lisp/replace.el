@@ -38,8 +38,12 @@
 
 (defcustom query-replace-interactive nil
   "Non-nil means `query-replace' uses the last search string.
-That becomes the \"string to replace\"."
-  :type 'boolean
+That becomes the \"string to replace\".
+If value is `initial', the last search string is inserted into
+the minibuffer as an initial value for \"string to replace\"."
+  :type '(choice (const :tag "Off" nil)
+                 (const :tag "Initial content" initial)
+                 (other :tag "Use default value" t))
   :group 'matching)
 
 (defcustom query-replace-from-history-variable 'query-replace-history
@@ -70,16 +74,20 @@ strings or patterns."
   (unless noerror
     (barf-if-buffer-read-only))
   (let (from to)
-    (if query-replace-interactive
-	(setq from (car (if regexp-flag regexp-search-ring search-ring)))
+    (if (and query-replace-interactive
+             (not (eq query-replace-interactive 'initial)))
+        (setq from (car (if regexp-flag regexp-search-ring search-ring)))
       ;; The save-excursion here is in case the user marks and copies
       ;; a region in order to specify the minibuffer input.
       ;; That should not clobber the region for the query-replace itself.
       (save-excursion
-	(setq from (read-from-minibuffer (format "%s: " string)
-					 nil nil nil
-					 query-replace-from-history-variable
-					 nil t)))
+        (setq from (read-from-minibuffer
+                    (format "%s: " string)
+                    (if (eq query-replace-interactive 'initial)
+                        (car (if regexp-flag regexp-search-ring search-ring)))
+                    nil nil
+                    query-replace-from-history-variable
+                    nil t)))
       ;; Warn if user types \n or \t, but don't reject the input.
       (and regexp-flag
 	   (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
@@ -92,9 +100,10 @@ strings or patterns."
 	     (sit-for 2))))
 
     (save-excursion
-      (setq to (read-from-minibuffer (format "%s %s with: " string from)
-				     nil nil nil
-				     query-replace-to-history-variable from t)))
+      (setq to (read-from-minibuffer
+                (format "%s %s with: " string from)
+                nil nil nil
+                query-replace-to-history-variable from t)))
     (when (and regexp-flag
 	       (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to))
       (let (pos list char)
@@ -109,23 +118,18 @@ strings or patterns."
 		    ((eq char ?\,)
 		     (setq pos (read-from-string to))
 		     (push `(replace-quote ,(car pos)) list)
-		     (let ((end
-			    ;; Swallow a space after a symbol
-			    ;; if there is a space.
-			    (if (and (or (symbolp (car pos))
-					 ;; Swallow a space after 'foo
-					 ;; but not after (quote foo).
-					 (and (eq (car-safe (car pos)) 'quote)
-					      (= ?\( (aref to-string 0))))
-				     (equal " " (substring to-string (cdr pos)
-							   (1+ (cdr pos)))))
-				(1+ (cdr pos))
-			      (cdr pos))))
-		       (setq to (substring to end)))))
+		     (setq to (substring
+			       to (+ (cdr pos)
+				     ;; Swallow a space after a symbol
+				     ;; if there is a space.
+				     (if (string-match
+                                          "^[^])\"] "
+                                          (substring to (1- (cdr pos))))
+					 1 0))))))
 	      (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to)))
 	(setq to (nreverse (delete "" (cons to list)))))
       (replace-match-string-symbols to)
-      (setq to (cons 'replace-eval-replacement 
+      (setq to (cons 'replace-eval-replacement
 		     (if (> (length to) 1)
 			 (cons 'concat to)
 		       (car to)))))
@@ -1397,7 +1401,7 @@ make, or the user didn't cancel the call."
 			((eq def 'act-and-exit)
 			 (or replaced
 			     (setq noedit
-				   (replace-match-maybe-edit 
+				   (replace-match-maybe-edit
 				    next-replacement nocasify literal
 				    noedit real-match-data)
 				   replace-count (1+ replace-count)))

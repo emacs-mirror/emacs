@@ -305,6 +305,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("d" "diff" .	cvs-mode-diff)
     ("b" "backup" .	cvs-mode-diff-backup)
     ("h" "head" .	cvs-mode-diff-head)
+    ("r" "repository" .	cvs-mode-diff-repository)
     ("y" "yesterday" .	cvs-mode-diff-yesterday)
     ("v" "vendor" .	cvs-mode-diff-vendor))
   "Keymap for diff-related operations in `cvs-mode'."

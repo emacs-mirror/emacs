@@ -1,4 +1,5 @@
 /* Fontset handler.
+   Copyright (C) 2004  Free Software Foundation, Inc.
    Copyright (C) 1995, 1997, 2000 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
 

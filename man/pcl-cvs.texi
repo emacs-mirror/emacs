@@ -1025,11 +1025,15 @@ This runs @code{cvs-mode-ignore}.
 @kindex =@r{--run @samp{cvs diff}}
 @kindex db@r{--diff against base version}
 @kindex dh@r{--diff against head of repository}
+@kindex dr@r{--diff between base and head of repository}
 @kindex dv@r{--diff against vendor branch}
+@kindex dy@r{--diff against yesterday's head}
 @findex cvs-mode-diff
 @findex cvs-mode-diff-backup
 @findex cvs-mode-diff-head
+@findex cvs-mode-diff-repository
 @findex cvs-mode-diff-vendor
+@findex cvs-mode-diff-yesterday
 @vindex cvs-invert-ignore-marks@r{ (variable)}
 
 @table @kbd
@@ -1052,6 +1056,13 @@ With the @kbd{d b} command you can run a @samp{diff} on the files
 Display a @samp{cvs diff} between the selected files and the head
 revision in the repository (the most recent version on the current
 branch) (@code{cvs-mode-diff-head}).@refill
+
+@item d r
+Display a @samp{cvs diff} between the base revision of the selected
+files and the head revision in the repository.  This displays the
+changes anyone has committed to the repository since you last executed
+"checkout", "update" or "commit".
+(@code{cvs-mode-diff-repository}).@refill
 
 @item d v
 Display a @samp{cvs diff} between the selected files and the head

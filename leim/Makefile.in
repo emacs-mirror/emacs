@@ -174,6 +174,9 @@ TIT-SOURCES= \
 	${srcdir}/CXTERM-DIC/TONEPY.tit \
 	${srcdir}/CXTERM-DIC/ZOZY.tit
 
+${CHINESE-TIT:.elc=.el}: changed.tit
+	@true
+
 changed.tit: ${TIT-SOURCES}
 	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \
 	  -f batch-titdic-convert -dir quail ${srcdir}/CXTERM-DIC; \
@@ -186,6 +189,9 @@ MISC-SOURCES= \
 	${srcdir}/MISC-DIC/cangjie-table.cns \
 	${srcdir}/MISC-DIC/pinyin.map \
 	${srcdir}/MISC-DIC/ziranma.cin
+
+${MISC:.elc=.el}: changed.misc
+	@true
 
 changed.misc: ${MISC-SOURCES}
 	${RUN-EMACS} -l ${buildlisppath}/international/titdic-cnv \

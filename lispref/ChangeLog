@@ -1,3 +1,8 @@
+2004-07-02  David Kastrup  <dak@gnu.org>
+
+	* searching.texi (Entire Match Data): Add explanation about new
+	match-data behavior when @var{integers} is non-nil.
+
 2004-06-24  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Misc Events): Describe usr1-signal, usr2-signal event.
