@@ -2022,6 +2022,9 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** New function quail-find-key returns a list of keys to type in the
+current input method to input a character.
+
 ** New functions posn-at-point and posn-at-x-y returns
 click-event-style position information for a given visible buffer
 position or for a given window pixel coordinate.
