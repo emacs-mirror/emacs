@@ -3305,8 +3305,6 @@ static int next_almost_prime P_ ((int));
 static int get_key_arg P_ ((Lisp_Object, int, Lisp_Object *, char *));
 static Lisp_Object larger_vector P_ ((Lisp_Object, int, Lisp_Object));
 static void maybe_resize_hash_table P_ ((struct Lisp_Hash_Table *));
-static int cmpfn_eq P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
-			 Lisp_Object, unsigned));
 static int cmpfn_eql P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
 			  Lisp_Object, unsigned));
 static int cmpfn_equal P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
@@ -3422,20 +3420,6 @@ larger_vector (vec, new_size, init)
  ***********************************************************************/
 
 /* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
-   HASH2 in hash table H using `eq'.  Value is non-zero if KEY1 and
-   KEY2 are the same.  */
-
-static int
-cmpfn_eq (h, key1, hash1, key2, hash2)
-     struct Lisp_Hash_Table *h;
-     Lisp_Object key1, key2;
-     unsigned hash1, hash2;
-{
-  return EQ (key1, key2);
-}
-
-
-/* Compare KEY1 which has hash code HASH1 and KEY2 with hash code
    HASH2 in hash table H using `eql'.  Value is non-zero if KEY1 and
    KEY2 are the same.  */
 
@@ -3445,10 +3429,9 @@ cmpfn_eql (h, key1, hash1, key2, hash2)
      Lisp_Object key1, key2;
      unsigned hash1, hash2;
 {
-  return (EQ (key1, key2)
-	  || (FLOATP (key1)
-	      && FLOATP (key2)
-	      && XFLOAT (key1)->data == XFLOAT (key2)->data));
+  return (FLOATP (key1)
+	  && FLOATP (key2)
+	  && XFLOAT (key1)->data == XFLOAT (key2)->data);
 }
 
 
@@ -3462,9 +3445,7 @@ cmpfn_equal (h, key1, hash1, key2, hash2)
      Lisp_Object key1, key2;
      unsigned hash1, hash2;
 {
-  return (EQ (key1, key2)
-	  || (hash1 == hash2
-	      && !NILP (Fequal (key1, key2))));
+  return hash1 == hash2 && !NILP (Fequal (key1, key2));
 }
 
   
@@ -3627,7 +3608,7 @@ make_hash_table (test, size, rehash_size, rehash_threshold, weak,
     }
   else if (EQ (test, Qeq))
     {
-      h->cmpfn = cmpfn_eq;
+      h->cmpfn = NULL;
       h->hashfn = hashfn_eq;
     }
   else if (EQ (test, Qequal))
@@ -3758,7 +3739,10 @@ hash_lookup (h, key, hash)
   while (!NILP (idx))
     {
       int i = XFASTINT (idx);
-      if (h->cmpfn (h, key, hash_code, HASH_KEY (h, i), HASH_HASH (h, i)))
+      if (EQ (key, HASH_KEY (h, i))
+	  || (h->cmpfn
+	      && h->cmpfn (h, key, hash_code,
+			   HASH_KEY (h, i), HASH_HASH (h, i))))
 	break;
       idx = HASH_NEXT (h, i);
     }
@@ -3820,7 +3804,10 @@ hash_remove (h, key)
     {
       int i = XFASTINT (idx);
 
-      if (h->cmpfn (h, key, hash_code, HASH_KEY (h, i), HASH_HASH (h, i)))
+      if (EQ (key, HASH_KEY (h, i))
+	  || (h->cmpfn
+	      && h->cmpfn (h, key, hash_code,
+			   HASH_KEY (h, i), HASH_HASH (h, i))))
 	{
 	  /* Take entry out of collision chain.  */
 	  if (NILP (prev))
