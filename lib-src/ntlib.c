@@ -24,6 +24,10 @@ Boston, MA 02111-1307, USA.
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
+#include <direct.h>
+
+#include "ntlib.h"
 
 #define MAXPATHLEN _MAX_PATH
 
@@ -31,7 +35,7 @@ Boston, MA 02111-1307, USA.
    would necessitate including windows.h in the files that used it.
    This is much easier.  */
 void
-nt_sleep(int seconds)
+sleep(int seconds)
 {
   Sleep (seconds * 1000);
 }
@@ -40,7 +44,9 @@ nt_sleep(int seconds)
 int
 getwd (char *dir)
 {
-  return GetCurrentDirectory (MAXPATHLEN, dir);
+  if (GetCurrentDirectory (MAXPATHLEN, dir) > 0)
+    return dir;
+  return NULL;
 }
 
 int
@@ -94,4 +100,117 @@ getppid(void)
       printf ("Checking parent status failed: %d\n", GetLastError());
       exit (1);
     }
+}
+
+char *
+getlogin ()
+{
+  static char user_name[256];
+  DWORD  length = sizeof (user_name);
+
+  if (GetUserName (user_name, &length))
+    return user_name;
+  return NULL;
+}
+
+char *
+cuserid (char * s)
+{
+  char * name = getlogin ();
+  if (s)
+    return strcpy (s, name ? name : "");
+  return name;
+}
+
+int
+getuid ()
+{
+  return 0;
+}
+
+int
+setuid (int uid)
+{
+  return 0;
+}
+
+struct passwd *
+getpwuid (int uid)
+{
+  return NULL;
+}
+
+char *
+getpass (const char * prompt)
+{
+  static char input[256];
+  HANDLE in;
+  HANDLE err;
+  DWORD  count;
+
+  in = GetStdHandle (STD_INPUT_HANDLE);
+  err = GetStdHandle (STD_ERROR_HANDLE);
+
+  if (in == INVALID_HANDLE_VALUE || err == INVALID_HANDLE_VALUE)
+    return NULL;
+
+  if (WriteFile (err, prompt, strlen (prompt), &count, NULL))
+    {
+      int istty = (GetFileType (in) == FILE_TYPE_CHAR);
+      DWORD old_flags;
+      int rc;
+
+      if (istty)
+	{
+	  if (GetConsoleMode (in, &old_flags))
+	    SetConsoleMode (in, ENABLE_LINE_INPUT | ENABLE_PROCESSED_INPUT);
+	  else
+	    istty = 0;
+	}
+      rc = ReadFile (in, input, sizeof (input), &count, NULL);
+      if (count >= 2 && input[count - 2] == '\r')
+	input[count - 2] = '\0';
+      else
+	{
+	  char buf[256];
+	  while (ReadFile (in, buf, sizeof (buf), &count, NULL) > 0)
+	    if (count >= 2 && buf[count - 2] == '\r')
+	      break;
+	}
+      WriteFile (err, "\r\n", 2, &count, NULL);
+      if (istty)
+	SetConsoleMode (in, old_flags);
+      if (rc)
+	return input;
+    }
+
+  return NULL;
+}
+
+int
+fchown (int fd, int uid, int gid)
+{
+  return 0;
+}
+
+/* Place a wrapper around the MSVC version of ctime.  It returns NULL
+   on network directories, so we handle that case here.  
+   (Ulrich Leodolter, 1/11/95).  */
+char *
+sys_ctime (const time_t *t)
+{
+  char *str = (char *) ctime (t);
+  return (str ? str : "Sun Jan 01 00:00:00 1970");
+}
+
+FILE *
+sys_fopen(const char * path, const char * mode)
+{
+  return fopen (path, mode);
+}
+
+int
+sys_chdir (const char * path)
+{
+  return _chdir (path);
 }
