@@ -929,6 +929,7 @@ dnl checks for programs
 AC_LN_S
 AC_PROG_CPP
 AC_PROG_INSTALL
+AC_PROG_YACC
 
 dnl checks for UNIX variants that set `DEFS'
 

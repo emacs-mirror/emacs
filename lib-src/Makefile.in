@@ -19,6 +19,7 @@ CFLAGS=-g
 ALLOCA=
 C_SWITCH_SYSTEM=
 LOADLIBES=
+YACC=yacc
 version=version-not-set
 configname=configuration-name-not-set
 

@@ -43,6 +43,7 @@ LN_S=@LN_S@
 CFLAGS=@CFLAGS@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 LD_SWITCH_X_SITE=@LD_SWITCH_X_SITE@
+YACC=@YACC@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
@@ -256,6 +257,7 @@ lib-src/Makefile: ${srcdir}/lib-src/Makefile.in Makefile
 	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/lib-src|'		\
 	  -e 's|^\(archlibdir *=\).*$$|\1'"${archlibdir}"'|'		\
 	  -e 's|^\(ALLOCA *=\).*$$|\1'"${ALLOCA}"'|'			\
+	  -e 's|^\(YACC *=\).*$$|\1'"${YACC}"'|'			\
 	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
 	  -e 's|^CFLAGS *=.*$$|CFLAGS='"${CFLAGS}"'|' \
 	  -e 's|^C_SWITCH_SYSTEM *=.*$$|C_SWITCH_SYSTEM='"${C_SWITCH_SYSTEM}"'|' \
