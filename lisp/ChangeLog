@@ -1,3 +1,7 @@
+1999-11-10  William M. Perry  <wmperry@aventail.com>
+
+	* mwheel.el: New file to support the new style wheeled mice.
+
 1999-11-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (file-local-copy): Remove optional BUFFER argument
