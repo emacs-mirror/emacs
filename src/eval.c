@@ -286,7 +286,7 @@ DEFUN ("or", For, Sor, 0, UNEVALLED, 0,
        doc: /* Eval args until one of them yields non-nil, then return that value.
 The remaining args are not evalled at all.
 If all args return nil, return nil.
-usage: (or &rest CONDITIONS)  */)
+usage: (or CONDITIONS ...)  */)
      (args)
      Lisp_Object args;
 {
@@ -317,7 +317,7 @@ DEFUN ("and", Fand, Sand, 0, UNEVALLED, 0,
        doc: /* Eval args until one of them yields nil, then return nil.
 The remaining args are not evalled at all.
 If no arg yields nil, return the last arg's value.
-usage: (and &rest CONDITIONS)  */)
+usage: (and CONDITIONS ...)  */)
      (args)
      Lisp_Object args;
 {
@@ -349,7 +349,7 @@ DEFUN ("if", Fif, Sif, 2, UNEVALLED, 0,
 Returns the value of THEN or the value of the last of the ELSE's.
 THEN must be one expression, but ELSE... can be zero or more expressions.
 If COND yields nil, and there are no ELSE's, the value is nil.
-usage: (if COND THEN &rest ELSE)  */)
+usage: (if COND THEN ELSE...)  */)
      (args)
      Lisp_Object args;
 {
@@ -374,7 +374,7 @@ value is the value of the cond-form.
 If no clause succeeds, cond returns nil.
 If a clause has one element, as in (CONDITION),
 CONDITION's value if non-nil is returned from the cond-form.
-usage: (cond &rest CLAUSES)  */)
+usage: (cond CLAUSES...)  */)
      (args)
      Lisp_Object args;
 {
@@ -402,7 +402,7 @@ usage: (cond &rest CLAUSES)  */)
 
 DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
        doc: /* Eval BODY forms sequentially and return value of last one.
-usage: (progn &rest BODY)  */)
+usage: (progn BODY ...)  */)
      (args)
      Lisp_Object args;
 {
@@ -443,7 +443,7 @@ DEFUN ("prog1", Fprog1, Sprog1, 1, UNEVALLED, 0,
        doc: /* Eval FIRST and BODY sequentially; value from FIRST.
 The value of FIRST is saved during the evaluation of the remaining args,
 whose values are discarded.
-usage: (prog1 FIRST &rest BODY)  */)
+usage: (prog1 FIRST BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -477,7 +477,7 @@ DEFUN ("prog2", Fprog2, Sprog2, 2, UNEVALLED, 0,
        doc: /* Eval X, Y and BODY sequentially; value from Y.
 The value of Y is saved during the evaluation of the remaining args,
 whose values are discarded.
-usage: (prog2 X Y &rest BODY)  */)
+usage: (prog2 X Y BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -637,7 +637,7 @@ DEFUN ("defun", Fdefun, Sdefun, 2, UNEVALLED, 0,
        doc: /* Define NAME as a function.
 The definition is (lambda ARGLIST [DOCSTRING] BODY...).
 See also the function `interactive'.
-usage: (defun NAME ARGLIST &optional DOCSTRING &rest BODY)  */)
+usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -660,7 +660,7 @@ When the macro is called, as in (NAME ARGS...),
 the function (lambda ARGLIST BODY...) is applied to
 the list ARGS... as it appears in the expression,
 and the result should be a form to be evaluated instead of the original.
-usage: (defmacro NAME ARGLIST &optional DOCSTRING &rest BODY)  */)
+usage: (defmacro NAME ARGLIST [DOCSTRING] BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -760,7 +760,7 @@ Always sets the value of SYMBOL to the result of evalling INITVALUE.
 If SYMBOL is buffer-local, its default value is what is set;
  buffer-local values are not affected.
 DOCSTRING is optional.
-usage: (defconst SYMBOL INITVALUE &optional DOCSTRING)  */)
+usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
      (args)
      Lisp_Object args;
 {
@@ -826,7 +826,7 @@ The value of the last form in BODY is returned.
 Each element of VARLIST is a symbol (which is bound to nil)
 or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
 Each VALUEFORM can refer to the symbols already bound by this VARLIST.
-usage: (let* VARLIST &rest BODY)  */)
+usage: (let* VARLIST BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -865,7 +865,7 @@ The value of the last form in BODY is returned.
 Each element of VARLIST is a symbol (which is bound to nil)
 or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).
 All the VALUEFORMs are evalled before any symbols are bound.
-usage: (let VARLIST &rest BODY)  */)
+usage: (let VARLIST BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -921,7 +921,7 @@ DEFUN ("while", Fwhile, Swhile, 1, UNEVALLED, 0,
        doc: /* If TEST yields non-nil, eval BODY... and repeat.
 The order of execution is thus TEST, BODY, TEST, BODY and so on
 until TEST returns nil.
-usage: (while TEST &rest BODY)  */)
+usage: (while TEST BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -1030,7 +1030,7 @@ Then the BODY is executed.
 Within BODY, (throw TAG) with same tag exits BODY and exits this `catch'.
 If no throw happens, `catch' returns the value of the last BODY form.
 If a throw happens, it specifies the value to return from `catch'.
-usage: (catch TAG &rest BODY)  */)
+usage: (catch TAG BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -1159,7 +1159,7 @@ DEFUN ("unwind-protect", Funwind_protect, Sunwind_protect, 1, UNEVALLED, 0,
 If BODYFORM completes normally, its value is returned
 after executing the UNWINDFORMS.
 If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway.
-usage: (unwind-protect BODYFORM &rest UNWINDFORMS)  */)
+usage: (unwind-protect BODYFORM UNWINDFORMS...)  */)
      (args)
      Lisp_Object args;
 {
@@ -1199,7 +1199,7 @@ VAR may be nil; then you do not get access to the signal information.
 
 The value of the last BODY form is returned from the condition-case.
 See also the function `signal' for more info.
-usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
+usage: (condition-case VAR BODYFORM HANDLERS...)  */)
      (args)
      Lisp_Object args;
 {
