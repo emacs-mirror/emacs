@@ -600,12 +600,12 @@ Commands for sorting the summary:
 		  (unwind-protect
 		      (progn
 			(select-window window)
-			(rmail-show-message msg-num))
+			(rmail-show-message msg-num t))
 		    (select-window owin))
 		(if (buffer-name rmail-buffer)
 		    (save-excursion
 		      (set-buffer rmail-buffer)
-		      (rmail-show-message msg-num))))))))))
+		      (rmail-show-message msg-num t))))))))))
 
 (defvar rmail-summary-mode-map nil)
 
