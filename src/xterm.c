@@ -6686,11 +6686,6 @@ note_mouse_movement (frame, event)
     }
 }
 
-/* This is used for debugging, to turn off note_mouse_highlight.  */
-
-int disable_mouse_highlight;
-
-
 
 /************************************************************************
 			      Mouse Face
@@ -6908,7 +6903,7 @@ note_mouse_highlight (f, x, y)
     return;
 #endif
 
-  if (disable_mouse_highlight
+  if (NILP (Vmouse_highlight)
       || !f->glyphs_initialized_p)
     return;
 
@@ -7814,6 +7809,8 @@ show_mouse_face (dpyinfo, draw)
   if (/* If window is in the process of being destroyed, don't bother
 	 to do anything.  */
       w->current_matrix != NULL
+      /* Don't update mouse highlight if hidden */
+      && (draw != DRAW_MOUSE_FACE || !dpyinfo->mouse_face_hidden)
       /* Recognize when we are called to operate on rows that don't exist
 	 anymore.  This can happen when a window is split.  */
       && dpyinfo->mouse_face_end_row < w->current_matrix->nrows)
@@ -10454,6 +10451,12 @@ XTread_socket (sd, bufp, numchars, expected)
 	    case KeyPress:
 	      f = x_any_window_to_frame (dpyinfo, event.xkey.window);
 
+	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+		{
+		  dpyinfo->mouse_face_hidden = 1;
+		  clear_mouse_face (dpyinfo);
+		}
+
 #if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
 	      if (f == 0)
 		{
@@ -10865,6 +10868,12 @@ XTread_socket (sd, bufp, numchars, expected)
 		  f = last_mouse_frame;
 		else
 		  f = x_window_to_frame (dpyinfo, event.xmotion.window);
+
+		if (dpyinfo->mouse_face_hidden)
+		  {
+		    dpyinfo->mouse_face_hidden = 0;
+		    clear_mouse_face (dpyinfo);
+		  }
 
 		if (f)
 		  note_mouse_movement (f, &event.xmotion);
@@ -14680,6 +14689,7 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->mouse_face_overlay = Qnil;
   dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
   dpyinfo->mouse_face_defer = 0;
+  dpyinfo->mouse_face_hidden = 0;
   dpyinfo->x_focus_frame = 0;
   dpyinfo->x_focus_event_frame = 0;
   dpyinfo->x_highlight_frame = 0;
