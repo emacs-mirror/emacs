@@ -8305,7 +8305,7 @@ redisplay_internal (preserve_echo_area)
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
 	      if (condemn_scroll_bars_hook)
-		(*condemn_scroll_bars_hook) (f);
+		condemn_scroll_bars_hook (f);
 
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		redisplay_windows (FRAME_ROOT_WINDOW (f));
@@ -8313,7 +8313,7 @@ redisplay_internal (preserve_echo_area)
 	      /* Any scroll bars which redisplay_windows should have
 		 nuked should now go away.  */
 	      if (judge_scroll_bars_hook)
-		(*judge_scroll_bars_hook) (f);
+		judge_scroll_bars_hook (f);
 
 	      /* If fonts changed, display again.  */
 	      if (fonts_changed_p)
@@ -9599,7 +9599,7 @@ redisplay_window (window, just_this_one_p)
 	{
 	  w->force_start = Qt;
 	  clear_glyph_matrix (w->desired_matrix);
-	  goto restore_buffers;
+	  goto finish_scroll_bars;
 	}
 
       if (w->cursor.vpos < 0 && !w->frozen_window_start_p)
@@ -9632,7 +9632,7 @@ redisplay_window (window, just_this_one_p)
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
 	      if (!try_window (window, startp))
-		goto restore_buffers;
+		goto finish_scroll_bars;
 	    }
 	}
 
@@ -9702,7 +9702,7 @@ redisplay_window (window, just_this_one_p)
 #endif
 
       if (fonts_changed_p)
-	goto restore_buffers;
+	goto finish_scroll_bars;
       if (tem > 0)
 	goto done;
 
@@ -9737,7 +9737,7 @@ redisplay_window (window, just_this_one_p)
 	}
 
       if (fonts_changed_p)
-	goto restore_buffers;
+	goto finish_scroll_bars;
       
       if (w->cursor.vpos >= 0)
 	{
@@ -9785,7 +9785,7 @@ redisplay_window (window, just_this_one_p)
       if (rc > 0)
 	goto done;
       else if (rc < 0)
-	goto restore_buffers;
+	goto finish_scroll_bars;
     }
 
   /* Finally, just choose place to start which centers point */
@@ -9846,7 +9846,7 @@ redisplay_window (window, just_this_one_p)
      have to start a new redisplay since we need to re-adjust glyph
      matrices.  */
   if (fonts_changed_p)
-    goto restore_buffers;
+    goto finish_scroll_bars;
 
   /* If cursor did not appear assume that the middle of the window is
      in the first line of the window.  Do it again with the next line.
@@ -9942,7 +9942,7 @@ redisplay_window (window, just_this_one_p)
 	}
 
       if (fonts_changed_p)
-	goto restore_buffers;
+	goto finish_scroll_bars;
     }
 
   if (!line_number_displayed
@@ -10014,14 +10014,12 @@ redisplay_window (window, just_this_one_p)
 	start = end = whole = 0;
 
       /* Indicate what this scroll bar ought to be displaying now.  */
-      (*set_vertical_scroll_bar_hook) (w, end - start, whole, start);
+      set_vertical_scroll_bar_hook (w, end - start, whole, start);
 
       /* Note that we actually used the scroll bar attached to this
 	 window, so it shouldn't be deleted at the end of redisplay.  */
-      (*redeem_scroll_bar_hook) (w);
+      redeem_scroll_bar_hook (w);
     }
-
- restore_buffers:
 
   /* Restore current_buffer and value of point in it.  */
   TEMP_SET_PT_BOTH (CHARPOS (opoint), BYTEPOS (opoint));
@@ -14118,16 +14116,16 @@ If an integer, it specifies a number of lines.");
   Vmax_mini_window_height = make_float (0.25);
 
   DEFVAR_LISP ("resize-mini-windows", &Vresize_mini_windows,
-    "*How to resize the mini-window.\n\
+    "*How to resize mini-windows.\n\
 A value of nil means don't automatically resize mini-windows.\n\
-A value of t means resize it to fit the text displayed in it.\n\
+A value of t means resize them to fit the text displayed in them.\n\
 A value of `grow-only', the default, means let mini-windows grow\n\
-only, until the its display becomes empty, at which point the mini-window\n\
-goes back to its normal size.");
+only, until their display becomes empty, at which point the windows\n\
+go back to their normal size.");
   Vresize_mini_windows = Qgrow_only;
 
   DEFVAR_BOOL ("cursor-in-non-selected-windows",
-	       &cursor_in_non_selected_windows,
+	       cursor_in_non_selected_windows,
     "*Non-nil means display a hollow cursor in non-selected windows.\n\
 Nil means don't display a cursor there.");
   cursor_in_non_selected_windows = 1;
