@@ -1,6 +1,6 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process
 
-;; Copyright (C) 1986, 87, 92, 94, 95, 96, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1986, 87, 92, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
 ;;	 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
@@ -114,17 +114,29 @@ When a buffer is marked as \"done\", it is removed from this list.")
 ;; Changing major modes should not erase this local.
 (put 'server-buffer-clients 'permanent-local t)
 
-(defvar server-window nil
-  "*The window to use for selecting Emacs server buffers.
+(defcustom server-window nil
+  "*Specification of the window to use for selecting Emacs server buffers.
 If nil, use the selected window.
-If it is a frame, use the frame's selected window.
 If it is a function, it should take one argument (a buffer) and
-display and select it.  A common value is `pop-to-buffer'.")
+display and select it.  A common value is `pop-to-buffer'.
+If it is a window, use that.
+If it is a frame, use the frame's selected window.
+
+It is not meaningful to set this to a specific frame or window with Custom.
+Only programs can do so."
+  :group 'server
+  :version "21.4"
+  :type '(choice (const :tag "Use selected window"
+			:match (lambda (widget value)
+				 (not (functionp value)))
+			nil)
+		 (function-item :tag "Use pop-to-buffer" pop-to-buffer)
+		 (function :tag "Other function")))
 
 (defcustom server-temp-file-regexp "^/tmp/Re\\|/draft$"
-  "*Regexp which should match filenames of temporary files
-which are deleted and reused after each edit
-by the programs that invoke the Emacs server."
+  "*Regexp matching names of temporary files.
+These are deleted and reused after each edit by the programs that
+invoke the Emacs server."
   :group 'server
   :type 'regexp)
 
@@ -149,13 +161,15 @@ This means that the server should not kill the buffer when you say you
 are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
+;; Fixme: This doesn't look secure.  If it really is, it deserves a
+;; comment, but I'd expect it to be created in a protected subdir as
+;; normal.  -- fx
 (defvar server-socket-name
   (format "/tmp/esrv%d-%s" (user-uid)
 	  (substring (system-name) 0 (string-match "\\." (system-name)))))
 
-;; If a *server* buffer exists,
-;; write STRING to it for logging purposes.
 (defun server-log (string &optional client)
+  "If a *server* buffer exists, write STRING to it for logging purposes."
   (if (get-buffer "*server*")
       (with-current-buffer "*server*"
 	(goto-char (point-max))
@@ -249,10 +263,24 @@ Prefix arg means just kill any existing server communications subprocess."
 		   ;; to file-name-coding-system.
 		   :coding 'raw-text)))
 	(set-default-file-modes umask)))))
+
+;;;###autoload
+(define-minor-mode server-mode
+  "Toggle Server mode.
+With ARG, turn Server mode on if ARG is positive, off otherwise.
+Server mode runs a process that accepts commands from the
+`emacsclient' program.  See `server-start' and Info node `Emacs server'."
+  :global t
+  :group 'server
+  :version "21.4"
+  ;; Fixme: Should this check for an existing server socket and do
+  ;; nothing if there is one (for multiple Emacs sessions)?
+  (server-start (not server-mode)))
+(custom-add-version 'server-mode "21.4")
 
-;Process a request from the server to edit some files.
-;Format of STRING is "PATH PATH PATH... \n"
 (defun server-process-filter (proc string)
+  "Process a request from the server to edit some files.
+PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
   (server-log string proc)
   (let ((ps (assq proc server-previous-strings)))
     (when (cdr ps)
@@ -587,6 +615,7 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 (global-set-key "\C-x#" 'server-edit)
 
 (defun server-unload-hook ()
+  (server-start t)
   (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
   (remove-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
   (remove-hook 'kill-buffer-hook 'server-kill-buffer))
