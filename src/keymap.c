@@ -73,6 +73,12 @@ Lisp_Object Vminor_mode_map_alist;
    documentation.  */
 Lisp_Object Vfunction_key_map;
 
+/* A list of all commands given new bindings since a certain time
+   when nil was stored here.
+   This is used to speed up recomputation of menu key equivalents
+   when Emacs starts up.   t means don't record anything here.  */
+Lisp_Object Vdefine_key_rebound_commands;
+
 Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii;
 
 /* A char with the CHAR_META bit set in a vector or the 0200 bit set
@@ -593,6 +599,9 @@ the front of KEYMAP.")
   length = XFASTINT (Flength (key));
   if (length == 0)
     return Qnil;
+
+  if (SYMBOLP (def) && !EQ (Vdefine_key_rebound_commands, Qt))
+    Vdefine_key_rebound_commands = Fcons (def, Vdefine_key_rebound_commands);
 
   GCPRO3 (keymap, key, def);
 
@@ -2380,6 +2389,12 @@ syms_of_keymap ()
   control_x_map = Fmake_keymap (Qnil);
   Fset (intern ("ctl-x-map"), control_x_map);
   Ffset (intern ("Control-X-prefix"), control_x_map);
+
+  DEFVAR_LISP ("define-key-rebound-commands", &Vdefine_key_rebound_commands,
+    "List of commands given new key bindings recently.\n\
+This is used for internal purposes during Emacs startup;\n\
+don't alter it yourself.");
+  Vdefine_key_rebound_commands = Qt;
 
   DEFVAR_LISP ("minibuffer-local-map", &Vminibuffer_local_map,
     "Default keymap to use when reading from the minibuffer.");
