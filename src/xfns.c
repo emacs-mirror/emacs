@@ -758,11 +758,18 @@ x_set_cursor_type (f, arg, oldval)
 {
   if (EQ (arg, Qbar))
     FRAME_DESIRED_CURSOR (f) = bar_cursor;
-  else if (EQ (arg, Qbox))
-    FRAME_DESIRED_CURSOR (f) = filled_box_cursor;
+  else
+#if 0
+    if (EQ (arg, Qbox))
+#endif
+      FRAME_DESIRED_CURSOR (f) = filled_box_cursor;
+  /* Error messages commented out because people have trouble fixing
+     .Xdefaults with Emacs, when it has something bad in it.  */
+#if 0
   else
     error
       ("the `cursor-type' frame parameter should be either `bar' or `box'");
+#endif
 
   /* Make sure the cursor gets redrawn.  This is overkill, but how
      often do people change cursor types?  */
