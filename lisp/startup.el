@@ -1074,10 +1074,16 @@ where FACE is a valid face specification, as it can be used with
 
 (defun fancy-splash-head ()
   "Insert the head part of the splash screen into the current buffer."
-  (let* ((img (create-image (or fancy-splash-image
-				(if (and (display-color-p)
-					 (image-type-available-p 'xpm))
-				    "splash.xpm" "splash.pbm"))))
+  (let* ((image-file (cond ((stringp fancy-splash-image)
+			    fancy-splash-image)
+			   ((and (display-color-p)
+				 (image-type-available-p 'xpm))
+			    (if (and (fboundp 'x-display-planes)
+				     (= (funcall 'x-display-planes) 8))
+				"splash8.xpm"
+			      "splash.xpm"))
+			   (t "splash.pbm")))
+	 (img (create-image image-file))
 	 (image-width (and img (car (image-size img))))
 	 (window-width (window-width (selected-window))))
     (when img
@@ -1144,9 +1150,7 @@ where FACE is a valid face specification, as it can be used with
 (defun fancy-splash-default-action ()
   "Default action for events in the splash screen buffer."
   (interactive)
-  (setq hansi last-nonmenu-event)
   (push last-command-event unread-command-events)
-  (setq unread (copy-sequence unread-command-events))
   (throw 'exit nil))
 
 
@@ -1177,9 +1181,7 @@ where FACE is a valid face specification, as it can be used with
 	    (recursive-edit))
 	  (cancel-timer timer)
 	  (setq display-hourglass old-hourglass)
-	  (kill-buffer splash-buffer)
-	  (setq hansi2 last-nonmenu-event)
-	  ))))
+	  (kill-buffer splash-buffer)))))
 
 
 (defun use-fancy-splash-screens-p ()
