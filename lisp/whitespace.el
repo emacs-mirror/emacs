@@ -38,17 +38,7 @@
 
 ;;; Code:
 
-;; add a hook to find-file-hooks and kill-buffer-hook
-(add-hook 'find-file-hooks 'whitespace-buffer)
-(add-hook 'kill-buffer-hook 'whitespace-buffer)
-
 (defvar whitespace-version "2.8" "Version of the whitespace library.")
-;; Find out what type of Emacs we are running in.
-(defvar whitespace-running-emacs (if (string-match "XEmacs\\|Lucid"
-						   emacs-version) nil t)
-  "If this is Emacs, not XEmacs, this is t.")
-
-(if whitespace-running-emacs (require 'timer))
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -83,12 +73,16 @@ defgroup"
 don't define defcustom"
 	`(defvar ,sym ,val ,doc))))
 
+(if (featurep 'xemacs)
 (defgroup whitespace nil
   "Check for and fix five different types of whitespaces in source code."
   ;; Since XEmacs doesn't have a 'convenience group, use the next best group
   ;; which is 'editing?
-  ;; :version "21.1"
-  :group (if whitespace-running-emacs 'convenience 'editing))
+  :group 'editing)
+(defgroup whitespace nil
+  "Check for and fix five different types of whitespaces in source code."
+  :version "21.1"
+  :group 'convenience))
 
 (defcustom whitespace-check-leading-whitespace t
   "Flag to check leading whitespace."
@@ -107,7 +101,7 @@ don't define defcustom"
 
 (defcustom whitespace-spacetab-regexp " \t"
   "Regexp to match a space followed by a TAB."
-  :type 'string
+  :type 'regexp
   :group 'whitespace)
 
 (defcustom whitespace-check-indent-whitespace t
@@ -117,7 +111,7 @@ don't define defcustom"
 
 (defcustom whitespace-indent-regexp (concat "^\\(\t*\\)    " "    ")
   "Regexp to match (any TABS followed by) 8/more whitespaces at start of line."
-  :type 'string
+  :type 'regexp
   :group 'whitespace)
 
 (defcustom whitespace-check-ateol-whitespace t
@@ -127,11 +121,11 @@ don't define defcustom"
 
 (defcustom whitespace-ateol-regexp "[ \t]$"
   "Regexp to match a TAB or a space at the EOL."
-  :type 'string
+  :type 'regexp
   :group 'whitespace)
 
 (defcustom whitespace-errbuf "*Whitespace Errors*"
-  "The buffer where whitespace related messages will be logged."
+  "The name of the buffer where whitespace related messages will be logged."
   :type 'string
   :group 'whitespace)
 
@@ -166,7 +160,7 @@ Errors*' buffer before opening (or closing) another file."
 
   "Major Modes in which we turn on whitespace checking.
 
-These are mostly programming and documentation modes. But you may add other
+These are mostly programming and documentation modes.  But you may add other
 modes that you want whitespaces checked in by adding something like the
 following to your `.emacs':
 
@@ -174,6 +168,7 @@ following to your `.emacs':
 					    whitespace-modes))\)
 
 Or, alternately, you can use the Emacs `customize' command to set this."
+  :type '(repeat symbol)
   :group 'whitespace)
 
 (defcustom whitespace-rescan-timer-time 600
@@ -206,8 +201,8 @@ To disable timer scans, set this to zero."
 
 ;;;###autoload
 (defun whitespace-buffer (&optional quiet)
-  "Find five different types of white spaces in buffer:
-
+  "Find five different types of white spaces in buffer.
+These are:
 1. Leading space \(empty lines at the top of a file\).
 2. Trailing space \(empty lines at the end of a file\).
 3. Indentation space \(8 or more spaces, that should be replaced with TABS\).
@@ -310,7 +305,7 @@ and:
 
 ;;;###autoload
 (defun whitespace-region (s e)
-  "Check a region specified by point and mark for whitespace errors."
+  "Check the region for whitespace errors."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -375,7 +370,7 @@ whitespace problems."
 
 ;;;###autoload
 (defun whitespace-cleanup-region (s e)
-  "Whitespace cleanup on a region specified by point and mark."
+  "Whitespace cleanup on the region."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -500,8 +495,8 @@ whitespace problems."
       nil)))
 
 (defun whitespace-update-modeline (&optional whitespace-err)
-  "Update modeline with whitespace errors and whitespaces whose testing has
-been turned off."
+  "Update modeline with whitespace errors.
+Also with whitespaces whose testing has been turned off."
   (if whitespace-display-in-modeline
       (progn
 	(setq whitespace-mode-line nil)
@@ -522,9 +517,9 @@ been turned off."
 ;; Force mode line updation for different Emacs versions
 (defun whitespace-force-mode-line-update ()
   "Force the mode line update for different flavors of Emacs."
-  (if whitespace-running-emacs
-      (force-mode-line-update)          ; Emacs
-    (redraw-modeline)))                 ; XEmacs
+  (if (fboundp 'redraw-modeline)
+      (redraw-modeline)			; XEmacs
+    (force-mode-line-update)))		; Emacs
 
 (defun whitespace-check-buffer-list (buf-name buf-file)
   "Add a buffer and its file to the whitespace monitor list.
@@ -543,12 +538,9 @@ If timer is not set, then set it to scan the files in
 `whitespace-rescan-timer-time') for whitespace creep."
   (if (and whitespace-rescan-timer-time (not whitespace-rescan-timer))
       (setq whitespace-rescan-timer
-	    (if whitespace-running-emacs
-		(run-at-time nil whitespace-rescan-timer-time
-			     'whitespace-rescan-files-in-buffers)
-	      (add-timeout whitespace-rescan-timer-time
-			   'whitespace-rescan-files-in-buffers nil
-			   whitespace-rescan-timer-time)))))
+	    (add-timeout whitespace-rescan-timer-time
+			 'whitespace-rescan-files-in-buffers nil
+			 whitespace-rescan-timer-time))))
 
 (defun whitespace-rescan-files-in-buffers (&optional arg)
   "Check monitored files for whitespace creep since last scan."
@@ -556,9 +548,7 @@ If timer is not set, then set it to scan the files in
 	buffile bufname thiselt buf)
     (if (not whitespace-all-my-files)
 	(progn
-	  (if whitespace-running-emacs
-	      (cancel-timer whitespace-rescan-timer)
-	    (disable-timeout whitespace-rescan-timer))
+	  (disable-timeout whitespace-rescan-timer)
 	  (setq whitespace-rescan-timer nil))
       (while whitespace-all-my-files
 	(setq thiselt (car whitespace-all-my-files))
@@ -588,16 +578,42 @@ If timer is not set, then set it to scan the files in
 (defun whitespace-refresh-rescan-list (buffile bufname)
   "Refresh the list of files to be rescaned for whitespace creep."
   (if whitespace-all-buffer-files
+      (setq whitespace-all-buffer-files
+	    (delete (list buffile bufname) whitespace-all-buffer-files))
+    (when whitespace-rescan-timer
+      (disable-timeout whitespace-rescan-timer)
+      (setq whitespace-rescan-timer nil))))
+
+;;;###autoload
+(defcustom whitespace-global-mode nil
+  "Toggle global Whitespace mode.
+
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `whitespace-global-mode'
+\(which see)."
+  :set (lambda (sym val)
+	 (whitespace-global-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'whitespace
+  :require 'whitespace)
+
+(defun whitespace-global-mode (&optional arg)
+  "Toggle using Whitespace mode in new buffers.
+With ARG, turn the mode on if and only iff ARG is positive.
+
+When this mode is active, `whitespace-buffer' is added to
+`find-file-hooks' and `kill-buffer-hook'."
+  (interactive "P")
+  (setq arg (if arg
+		(> (prefix-numeric-value arg) 0)
+	      (not whitespace-global-mode)))
+  (if arg
       (progn
-	(setq whitespace-all-buffer-files
-	      (delete (list buffile bufname) whitespace-all-buffer-files)))
-    (progn
-      (if (and whitespace-running-emacs (timerp whitespace-rescan-timer))
-	  (cancel-timer whitespace-rescan-timer))
-      (if (and (not whitespace-running-emacs) whitespace-rescan-timer)
-	  (disable-timeout whitespace-rescan-timer))
-      (if whitespace-rescan-timer
-	  (setq whitespace-rescan-timer nil)))))
+	(add-hook 'find-file-hooks 'whitespace-buffer)
+	(add-hook 'kill-buffer-hook 'whitespace-buffer))
+    (remove-hook 'find-file-hooks 'whitespace-buffer)
+    (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
 
 ;;;###autoload
 (defun whitespace-describe ()
@@ -610,7 +626,7 @@ of whitespace problems that commonly exist in source code.
 2. Trailing space (empty lines at the end of a file).
 3. Indentation space (8 or more spaces at beginning of line, that should be
 		      replaced with TABS).
-4. Spaces followed by a TAB. (Almost always, we never want that).
+4. Spaces followed by a TAB.  (Almost always, we never want that).
 5. Spaces or TABS at the end of a line.
 
 Whitespace errors are reported in a buffer, and on the modeline.
@@ -629,18 +645,18 @@ If any of the whitespace checks is turned off, the modeline will display a
 
     (since (3) is the most controversial one, here is the rationale: Most
     terminal drivers and printer drivers have TAB configured or even
-    hardcoded to be 8 spaces. (Some of them allow configuration, but almost
+    hardcoded to be 8 spaces.  (Some of them allow configuration, but almost
     always they default to 8.)
 
-    Changing tab-width to other than 8 and editing will cause your code to
+    Changing `tab-width' to other than 8 and editing will cause your code to
     look different from within Emacs, and say, if you cat it or more it, or
     even print it.
 
     Almost all the popular programming modes let you define an offset (like
     c-basic-offset or perl-indent-level) to configure the offset, so you
-    should never have to set your tab-width to be other than 8 in all these
-    modes. In fact, with an indent level of say, 4, 2 TABS will cause Emacs
-    to replace your 8 spaces with one \t (try it). If vi users in your
+    should never have to set your `tab-width' to be other than 8 in all these
+    modes.  In fact, with an indent level of say, 4, 2 TABS will cause Emacs
+    to replace your 8 spaces with one \t (try it).  If vi users in your
     office complain, tell them to use vim, which distinguishes between
     tabstop and shiftwidth (vi equivalent of our offsets), and also ask them
     to set smarttab.)
@@ -649,11 +665,15 @@ All the above have caused (and will cause) unwanted codeline integration and
 merge problems.
 
 whitespace.el will complain if it detects whitespaces on opening a file, and
-warn you on closing a file also. (if in case you had inserted any
-whitespaces during the process of your editing.)"
+warn you on closing a file also (in case you had inserted any
+whitespaces during the process of your editing)."
   (interactive)
   (message "Use C-h f whitespace-describe to read about whitespace.el v%s."
 	   whitespace-version))
+
+(defun whitespace-unload-hook ()
+  (remove-hook 'find-file-hooks 'whitespace-buffer)
+  (remove-hook 'kill-buffer-hook 'whitespace-buffer))
 
 (provide 'whitespace)
 
