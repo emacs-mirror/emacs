@@ -348,6 +348,22 @@ If NOW, use that time instead."
 
 ;; AUTHORIZATION STATE
 
+(eval-and-compile
+  (if (fboundp 'md5)
+      (defalias 'pop3-md5 'md5)
+    (defvar pop3-md5-program "md5"
+      "*Program to encode its input in MD5.")
+
+    (defun pop3-md5 (string)
+      (with-temp-buffer
+	(insert string)
+	(call-process-region (point-min) (point-max)
+			     pop3-md5-program
+			     t (current-buffer) nil)
+	;; The meaningful output is the first 32 characters.
+	;; Don't return the newline that follows them!
+	(buffer-substring (point-min) (+ 32 (point-min)))))))
+
 (defun pop3-user (process user)
   "Send USER information to POP3 server."
   (pop3-send-command process (format "USER %s" user))
@@ -377,22 +393,6 @@ If NOW, use that time instead."
     ))
 
 ;; TRANSACTION STATE
-
-(eval-and-compile
-  (if (fboundp 'md5)
-      (defalias 'pop3-md5 'md5)
-    (defvar pop3-md5-program "md5"
-      "*Program to encode its input in MD5.")
-
-    (defun pop3-md5 (string)
-      (with-temp-buffer
-	(insert string)
-	(call-process-region (point-min) (point-max)
-			     pop3-md5-program
-			     t (current-buffer) nil)
-	;; The meaningful output is the first 32 characters.
-	;; Don't return the newline that follows them!
-	(buffer-substring (point-min) (+ 32 (point-min)))))))
 
 (defun pop3-stat (process)
   "Return the number of messages in the maildrop and the maildrop's size."

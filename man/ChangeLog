@@ -102,6 +102,17 @@
 	to Alex Ott, Karl Fogel, Stefan Monnier, and David Kastrup for
 	suggestions.
 
+2004-11-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Various Message Variables): Mention that all mail
+	file variables are derived from `message-directory'.
+
+	* gnus.texi (Splitting Mail): Clarify bogus group.
+
+2004-11-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Filtering Spam Using The Spam ELisp Package): 
+
 2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-mime.texi (Encoding Customization): Fix
