@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; This code implements GNU Emac's on-line help system, the one invoked by
+;; This code implements GNU Emacs' on-line help system, the one invoked by
 ;;`M-x help-for-help'.
 
 ;;; Code:
@@ -198,29 +198,13 @@ Computes a message and applies the optional argument FUNCTION to it.
 If FUNCTION is nil, applies `message' to it, thus printing it."
   (and (not (get-buffer-window standard-output))
        (let ((first-message
-	      (cond ((or (member (buffer-name standard-output)
-				 special-display-buffer-names)
-			 (assoc (buffer-name standard-output)
-				special-display-buffer-names)
-			 (let (found
-			       (tail special-display-regexps)
-			       (name (buffer-name standard-output)))
-			   (while (and tail (not found))
-			     (if (or (and (consp (car tail))
-					  (string-match (car (car tail)) name))
-				     (and (stringp (car tail))
-					  (string-match (car tail) name)))
-				 (setq found t))
-			     (setq tail (cdr tail)))
-			   found))
+	      (cond ((special-display-p (buffer-name standard-output))
 		     ;; If the help output buffer is a special display buffer,
 		     ;; don't say anything about how to get rid of it.
 		     ;; First of all, the user will do that with the window
 		     ;; manager, not with Emacs.
 		     ;; Secondly, the buffer has not been displayed yet,
 		     ;; so we don't know whether its frame will be selected.
-		     ;; Even the message about scrolling the help
-		     ;; might be wrong, but it seems worth showing it anyway.
 		     nil)
 		    ((not (one-window-p t))
 		     "Type \\[switch-to-buffer-other-window] RET to restore the other window.")
@@ -236,25 +220,9 @@ If FUNCTION is nil, applies `message' to it, thus printing it."
 		   (if first-message "  " "")
 		   ;; If the help buffer will go in a separate frame,
 		   ;; it's no use mentioning a command to scroll, so don't.
-		   (if (or (member (buffer-name standard-output)
-				   special-display-buffer-names)
-			   (assoc (buffer-name standard-output)
-				  special-display-buffer-names)
-			   (memq t (mapcar '(lambda (elt)
-					      (if (consp elt)
-						  (setq elt (car elt)))
-					      (string-match elt (buffer-name standard-output)))
-					   special-display-regexps)))
+		   (if (special-display-p (buffer-name standard-output))
 		       nil
-		     (if (or (member (buffer-name standard-output)
-				     same-window-buffer-names)
-			     (assoc (buffer-name standard-output)
-				    same-window-buffer-names)
-			     (memq t (mapcar '(lambda (elt)
-						(if (consp elt)
-						    (setq elt (car elt)))
-						(string-match elt (buffer-name standard-output)))
-					     same-window-regexps)))
+		     (if (same-window-p (buffer-name standard-output))
 			 ;; Say how to scroll this window.
 			 (substitute-command-keys
 			  "\\[scroll-up] to scroll the help.")
@@ -681,30 +649,30 @@ is used instead of `load-path'."
   (let (result)
     (catch 'answer
       (mapcar
-       '(lambda (dir)
-	  (mapcar
-	   '(lambda (suf)
-	      (let ((try (expand-file-name (concat library suf) dir)))
-		(and (file-readable-p try)
-		     (null (file-directory-p try))
-		     (progn
-		       (setq result try)
-		       (throw 'answer try)))))
-	   (if nosuffix
-	       '("")
-	     (let ((basic '(".elc" ".el" ""))
-		   (compressed '(".Z" ".gz" "")))
-	       ;; If autocompression mode is on,
-	       ;; consider all combinations of library suffixes
-	       ;; and compression suffixes.
-	       (if (rassq 'jka-compr-handler file-name-handler-alist)
-		   (apply 'nconc
-			  (mapcar '(lambda (compelt)
-				     (mapcar '(lambda (baselt)
-						(concat baselt compelt))
-					     basic))
-				  compressed))
-		 basic)))))
+       (lambda (dir)
+	 (mapcar
+	  (lambda (suf)
+	    (let ((try (expand-file-name (concat library suf) dir)))
+	      (and (file-readable-p try)
+		   (null (file-directory-p try))
+		   (progn
+		     (setq result try)
+		     (throw 'answer try)))))
+	  (if nosuffix
+	      '("")
+	    (let ((basic '(".elc" ".el" ""))
+		  (compressed '(".Z" ".gz" "")))
+	      ;; If autocompression mode is on,
+	      ;; consider all combinations of library suffixes
+	      ;; and compression suffixes.
+	      (if (rassq 'jka-compr-handler file-name-handler-alist)
+		  (apply 'nconc
+			 (mapcar (lambda (compelt)
+				   (mapcar (lambda (baselt)
+					     (concat baselt compelt))
+					   basic))
+				 compressed))
+		basic)))))
        (or path load-path)))
     (and interactive-call
 	 (if result
