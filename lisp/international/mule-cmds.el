@@ -1853,6 +1853,8 @@ of `buffer-file-coding-system' set by this function."
       (error "No documentation for the specified language"))
   (if (symbolp language-name)
       (setq language-name (symbol-name language-name)))
+  (dolist (feature (get-language-info language-name 'features))
+    (require feature))
   (let ((doc (get-language-info language-name 'documentation))
 	pos)
     (help-setup-xref (list #'describe-language-environment language-name)
