@@ -1513,10 +1513,11 @@ selection_data_to_lisp_data (display, data, size, type, format)
 	return x_atom_to_symbol (dpyinfo, display, *((Atom *) data));
       else
 	{
-	  Lisp_Object v = Fmake_vector (size / sizeof (Atom), 0);
+	  Lisp_Object v = Fmake_vector (make_number (size / sizeof (Atom)),
+					make_number (0));
 	  for (i = 0; i < size / sizeof (Atom); i++)
-	    Faset (v, i, x_atom_to_symbol (dpyinfo, display,
-					   ((Atom *) data) [i]));
+	    Faset (v, make_number (i),
+		   x_atom_to_symbol (dpyinfo, display, ((Atom *) data) [i]));
 	  return v;
 	}
     }
@@ -1536,22 +1537,22 @@ selection_data_to_lisp_data (display, data, size, type, format)
   else if (format == 16)
     {
       int i;
-      Lisp_Object v = Fmake_vector (size / 4, 0);
+      Lisp_Object v = Fmake_vector (make_number (size / 4), make_number (0));
       for (i = 0; i < size / 4; i++)
 	{
 	  int j = (int) ((unsigned short *) data) [i];
-	  Faset (v, i, make_number (j));
+	  Faset (v, make_number (i), make_number (j));
 	}
       return v;
     }
   else
     {
       int i;
-      Lisp_Object v = Fmake_vector (size / 4, 0);
+      Lisp_Object v = Fmake_vector (make_number (size / 4), make_number (0));
       for (i = 0; i < size / 4; i++)
 	{
 	  unsigned long j = ((unsigned long *) data) [i];
-	  Faset (v, i, long_to_cons (j));
+	  Faset (v, make_number (i), long_to_cons (j));
 	}
       return v;
     }
@@ -1796,7 +1797,7 @@ clean_local_selection_data (obj)
       Lisp_Object copy;
       if (size == 1)
 	return clean_local_selection_data (XVECTOR (obj)->contents [0]);
-      copy = Fmake_vector (size, Qnil);
+      copy = Fmake_vector (make_number (size), Qnil);
       for (i = 0; i < size; i++)
 	XVECTOR (copy)->contents [i]
 	  = clean_local_selection_data (XVECTOR (obj)->contents [i]);
