@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree
 ;; Version: $Name:  $
-;; Revision: $Id: cvs-status.el,v 1.5 2000/08/06 09:18:02 gerd Exp $
+;; Revision: $Id: cvs-status.el,v 1.6 2000/08/16 20:46:32 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -66,7 +66,8 @@
   "Hook run at the end of `cvs-status-mode'.")
 
 (defconst cvs-status-tags-leader-re "^   Existing Tags:$")
-(defconst cvs-status-entry-leader-re "^File: \\(\\S-+\\)\\s-+Status: \\(.+\\)$")
+(defconst cvs-status-entry-leader-re
+  "^File:\\s-+\\(?:no file \\)?\\(.*\\S-\\)\\s-+Status: \\(.+\\)$")
 (defconst cvs-status-dir-re "^cvs[.ex]* [a-z]+: Examining \\(.+\\)$")
 (defconst cvs-status-rev-re "[0-9][.0-9]*\\.[.0-9]*[0-9]")
 (defconst cvs-status-tag-re "[ \t]\\([a-zA-Z][^ \t\n.]*\\)")
@@ -505,6 +506,9 @@ Optional prefix ARG chooses between two representations."
 
 ;;; Change Log:
 ;; $Log: cvs-status.el,v $
+;; Revision 1.6  2000/08/16 20:46:32  monnier
+;; *** empty log message ***
+;;
 ;; Revision 1.5  2000/08/06 09:18:02  gerd
 ;; Use `nth' instead of `first', `second', and `third'.
 ;;
