@@ -1,11 +1,19 @@
 2000-07-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (next_element_from_display_vector): Improve comments.
+
+	* lisp.h (GLYPH_MASK_CHAR, GLYPH_MASK_FACE): Use 19 bits
+	for the character code, and the rest for the face id as in 20.x.
+	(FAST_GLYPH_FACE, FAST_MAKE_GLYPH): Changed accordingly.
+
+	* window.c (window_display_table): Cleaned up.
+
 	* syntax.c (Fforward_word): Add last arg nil in call of
 	Fconstrain_to_field.
 
 2000-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* fileio.c (Frename-file) [DOS_NT]: If the file names are
+	* fileio.c (Frename_file) [DOS_NT]: If the file names are
         identical but for the letter-case, don't call
         barf_or_query_if_file_exists.
 
