@@ -2520,7 +2520,7 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
 select the completion near point.\n\n"))
       (forward-line 1)
       (if window-system
-	  (while (re-search-forward "[^ \t\n]+\\( [^\t\n]+\\)*" nil t)
+	  (while (re-search-forward "[^ \t\n]+\\( [^ \t\n]+\\)*" nil t)
 	    (put-text-property (match-beginning 0) (point)
 			       'mouse-face 'highlight))))))
 
