@@ -913,6 +913,7 @@ other kinds of prefix arguments are ignored."
       ;; The current buffer is a compilation buffer.
       (current-buffer)
     (if (and compilation-last-buffer (buffer-name compilation-last-buffer)
+	     (compilation-buffer-p compilation-last-buffer)
 	     (or (not other-buffer) (not (eq compilation-last-buffer
 					     (current-buffer)))))
 	compilation-last-buffer
