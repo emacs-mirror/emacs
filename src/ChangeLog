@@ -1,5 +1,8 @@
 2001-01-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (Fset_buffer_modified_p): Set buffer's
+	prevent_redisplay_optimizations_p flag.
+
 	* dispnew.c, callproc.c, fns.c, keyboard.c, process.c, sunfns.c,
 	* sysdep.c, vmsproc.c, xselect.c: Call
 	redisplay_preserve_echo_area with additional arg.
