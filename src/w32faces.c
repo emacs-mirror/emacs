@@ -1093,7 +1093,8 @@ tty_defined_color (f, color_name, color_def, alloc)
      int alloc;
 {
   Lisp_Object color_desc;
-  int color_idx = FACE_TTY_DEFAULT_COLOR, red = 0, green = 0, blue = 0;
+  unsigned long color_idx = FACE_TTY_DEFAULT_COLOR;
+  unsigned long red = 0, green = 0, blue = 0;
   int status = 1;
 
   if (*color_name && !NILP (Ffboundp (Qtty_color_desc)))
@@ -1129,7 +1130,10 @@ tty_defined_color (f, color_name, color_def, alloc)
 	color_idx = FACE_TTY_DEFAULT_BG_COLOR;
     }
 
-  color_def->pixel = (unsigned long) color_idx;
+  if (color_idx != FACE_TTY_DEFAULT_COLOR)
+    status = 1;
+
+  color_def->pixel = color_idx;
   color_def->red = red;
   color_def->green = green;
   color_def->blue = blue;
