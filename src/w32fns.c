@@ -15681,7 +15681,7 @@ init_external_image_libraries ()
 #if HAVE_JPEG
   /* Try loading jpeg library under probable names.  */
   if ((library = LoadLibrary ("libjpeg.dll"))
-      (library = LoadLibrary ("jpeg-62.dll"))
+      || (library = LoadLibrary ("jpeg-62.dll"))
       || (library = LoadLibrary ("jpeg.dll")))
     {
       if (init_jpeg_functions (library))
