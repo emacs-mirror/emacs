@@ -210,7 +210,7 @@ With prefix arg, prompt for the locate command to run."
 		    (setq input default))
 	       input))))
   (if (equal search-string "")
-      (error "Please specify a filename to search for."))
+      (error "Please specify a filename to search for"))
   (let* ((locate-cmd-list (funcall locate-make-command-line search-string))
 	 (locate-cmd (car locate-cmd-list))
 	 (locate-cmd-args (cdr locate-cmd-list))
