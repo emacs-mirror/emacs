@@ -1,5 +1,5 @@
 /* Definitions file for GNU Emacs running on LynxOS-3.0.1
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,8 +33,6 @@ Boston, MA 02111-1307, USA.  */
 #define KERNEL_FILE "/lynx.os"
 #undef LDAV_SYMBOL
 #define LDAV_SYMBOL "load_average"
-/* LynxOS doesn't have vfork */
-#undef HAVE_VFORK 
 
 /* misc defines */
 #define GETPGRP_NO_ARG
