@@ -501,6 +501,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-to-bottom-on-input)
   (make-local-variable 'comint-scroll-to-bottom-on-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
+  ;; This makes it really work to keep point at the bottom.
+  (make-local-variable 'scroll-conservatively)
+  (setq scroll-conservatively 10000)
   (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom t t)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-process-echoes)
@@ -1753,7 +1756,7 @@ This function should be in the list `comint-output-filter-functions'."
 		     ;; Optionally scroll so that the text
 		     ;; ends at the bottom of the window.
 		     (if (and comint-scroll-show-maximum-output
-			      (>= (point) (process-mark process)))
+			      (= (point) (point-max)))
 			 (save-excursion
 			   (goto-char (point-max))
 			   (recenter -1)))
