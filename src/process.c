@@ -2939,18 +2939,130 @@ See function `interrupt-process' for more details on usage.")
 
 DEFUN ("signal-process", Fsignal_process, Ssignal_process,
   2, 2, "nProcess number: \nnSignal code: ",
-  "Send the process with number PID the signal with code CODE.\n\
-Both PID and CODE are integers.")
-  (pid, sig)
-     Lisp_Object pid, sig;
+  "Send the process with process id PID the signal with code SIGCODE.\n\
+PID must be an integer.  The process need not be a child of this Emacs.\n\
+SIGCODE may be an integer, or a symbol whose name is a signal name.")
+  (pid, sigcode)
+     Lisp_Object pid, sigcode;
 {
   CHECK_NUMBER (pid, 0);
-  CHECK_NUMBER (sig, 1);
+
+#define handle_signal(NAME, VALUE)		\
+  else if (!strcmp (name, NAME))		\
+    XSETINT (sigcode, VALUE)
+
+  if (INTEGERP (sigcode))
+    ;
+  else
+    {
+      unsigned char *name;
+
+      CHECK_SYMBOL (sigcode, 1);
+      name = XSYMBOL (sigcode)->name->data;
+
+      if (0)
+	;
+#ifdef SIGHUP
+      handle_signal ("SIGHUP", SIGHUP);
+#endif
+#ifdef SIGINT
+      handle_signal ("SIGINT", SIGINT);
+#endif
+#ifdef SIGQUIT
+      handle_signal ("SIGQUIT", SIGQUIT);
+#endif
+#ifdef SIGILL
+      handle_signal ("SIGILL", SIGILL);
+#endif
+#ifdef SIGABRT
+      handle_signal ("SIGABRT", SIGABRT);
+#endif
+#ifdef SIGEMT
+      handle_signal ("SIGEMT", SIGEMT);
+#endif
+#ifdef SIGKILL
+      handle_signal ("SIGKILL", SIGKILL);
+#endif
+#ifdef SIGFPE
+      handle_signal ("SIGFPE", SIGFPE);
+#endif
+#ifdef SIGBUS
+      handle_signal ("SIGBUS", SIGBUS);
+#endif
+#ifdef SIGSEGV
+      handle_signal ("SIGSEGV", SIGSEGV);
+#endif
+#ifdef SIGSYS
+      handle_signal ("SIGSYS", SIGSYS);
+#endif
+#ifdef SIGPIPE
+      handle_signal ("SIGPIPE", SIGPIPE);
+#endif
+#ifdef SIGALRM
+      handle_signal ("SIGALRM", SIGALRM);
+#endif
+#ifdef SIGTERM
+      handle_signal ("SIGTERM", SIGTERM);
+#endif
+#ifdef SIGURG
+      handle_signal ("SIGURG", SIGURG);
+#endif
+#ifdef SIGSTOP
+      handle_signal ("SIGSTOP", SIGSTOP);
+#endif
+#ifdef SIGTSTP
+      handle_signal ("SIGTSTP", SIGTSTP);
+#endif
+#ifdef SIGCONT
+      handle_signal ("SIGCONT", SIGCONT);
+#endif
+#ifdef SIGCHLD
+      handle_signal ("SIGCHLD", SIGCHLD);
+#endif
+#ifdef SIGTTIN
+      handle_signal ("SIGTTIN", SIGTTIN);
+#endif
+#ifdef SIGTTOU
+      handle_signal ("SIGTTOU", SIGTTOU);
+#endif
+#ifdef SIGIO
+      handle_signal ("SIGIO", SIGIO);
+#endif
+#ifdef SIGXCPU
+      handle_signal ("SIGXCPU", SIGXCPU);
+#endif
+#ifdef SIGXFSZ
+      handle_signal ("SIGXFSZ", SIGXFSZ);
+#endif
+#ifdef SIGVTALRM
+      handle_signal ("SIGVTALRM", SIGVTALRM);
+#endif
+#ifdef SIGPROF
+      handle_signal ("SIGPROF", SIGPROF);
+#endif
+#ifdef SIGWINCH
+      handle_signal ("SIGWINCH", SIGWINCH);
+#endif
+#ifdef SIGINFO
+      handle_signal ("SIGINFO", SIGINFO);
+#endif
+#ifdef SIGUSR1
+      handle_signal ("SIGUSR1", SIGUSR1);
+#endif
+#ifdef SIGUSR2
+      handle_signal ("SIGUSR2", SIGUSR2);
+#endif
+      else
+	error ("Undefined signal name %s", XSTRING (sigcode)->data);
+    }
+
+#undef handle_signal
+
 #ifdef WINDOWSNT
   /* Only works for kill-type signals */
-  return make_number (win32_kill_process (XINT (pid), XINT (sig)));
+  return make_number (win32_kill_process (XINT (pid), XINT (sigcode)));
 #else
-  return make_number (kill (XINT (pid), XINT (sig)));
+  return make_number (kill (XINT (pid), XINT (sigcode)));
 #endif
 }
 
