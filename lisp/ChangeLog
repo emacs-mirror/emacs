@@ -1,3 +1,9 @@
+2000-11-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (face-set-after-frame-default): If
+	`inhibit-default-face-x-resources' is bound, don't intiialize the
+	default face from X resources.
+
 2000-11-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (custom-deps, finder-data, autoloads, recompile):

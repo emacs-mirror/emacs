@@ -1,5 +1,14 @@
 2000-11-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.c (syms_of_frame_1): Removed; code moved to syms_of_frame.
+	(Qinhibit_default_face_x_resources): New variable.
+	(syms_of_frame): Initialize it.
+	(Fmodify_frame_parameters): Bind inhibit-default-face-x-resources.
+
+	* xdisp.c (pos_visible_p): Improve function comment.
+
+	* lisp.h (BINDING_STACK_SIZE): New macro.
+
 	* dired.c (directory_files_internal) [EAGAIN || EINTR]: Retry
 	reading the directory if readdir returns null and errno is EAGAIN
 	or EINTR.
