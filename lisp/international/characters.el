@@ -1123,6 +1123,32 @@
 (set-char-table-range printable-chars '(0 . 31) nil)
 (set-char-table-range printable-chars  '(127 . 159) nil)
 
+;; CJK double width characters.
+(let ((l '((#x1100 . #x11FF)
+	   (#x2E80 . #x9FAF)
+	   (#xAC00 . #xD7AF)
+	   (#xF900 . #xFAFF)
+	   (#xFE30 . #xFE4F)
+	   (#xFF00 . #xFF5F)
+	   (#xFFE0 . #xFFEF))))
+  (dolist (elt l)
+    (set-char-table-range char-width-table
+			  (cons (decode-char 'ucs (car elt))
+				(decode-char 'ucs (cdr elt)))
+			  2)))
+(map-charset-chars
+ #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'japanese-jisx0208)
+(map-charset-chars
+ #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'japanese-jisx0212)
+(map-charset-chars
+ #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'japanese-jisx0213-1)
+(map-charset-chars
+ #'(lambda (range ignore) (set-char-table-range char-width-table range 2))
+ 'japanese-jisx0213-2)
+ 
 
 ;;; Local Variables:
 ;;; coding: utf-8-emacs
