@@ -1,3 +1,9 @@
+2000-12-15  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-send-string, comint-send-region): Also accept
+	a buffer, buffer-name, or nil for PROCESS, for compatibility with
+	process-send-string/region.
+
 2000-12-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-lazy-highlight-max): New user-option.
