@@ -1379,6 +1379,47 @@ BUFFER defaults to the current buffer.")
     }
   return Qnil;
 }
+
+DEFUN ("local-variable-if-set-p", Flocal_variable_if_set_p, Slocal_variable_if_set_p,
+  1, 2, 0,
+  "Non-nil if VARIABLE will be local in buffer BUFFER if it is set there.\n\
+BUFFER defaults to the current buffer.")
+  (sym, buffer)
+     register Lisp_Object sym, buffer;
+{
+  Lisp_Object valcontents;
+  register struct buffer *buf;
+
+  if (NILP (buffer))
+    buf = current_buffer;
+  else
+    {
+      CHECK_BUFFER (buffer, 0);
+      buf = XBUFFER (buffer);
+    }
+
+  CHECK_SYMBOL (sym, 0);
+
+  valcontents = XSYMBOL (sym)->value;
+
+  /* This means that make-variable-buffer-local was done.  */
+  if (BUFFER_LOCAL_VALUEP (valcontents))
+    return Qt;
+  /* All these slots become local if they are set.  */
+  if (BUFFER_OBJFWDP (valcontents))
+    return Qt;
+  if (SOME_BUFFER_LOCAL_VALUEP (valcontents))
+    {
+      Lisp_Object tail, elt;
+      for (tail = buf->local_var_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+	{
+	  elt = XCONS (tail)->car;
+	  if (EQ (sym, XCONS (elt)->car))
+	    return Qt;
+	}
+    }
+  return Qnil;
+}
 
 /* Find the function at the end of a chain of symbol function indirections.  */
 
@@ -2468,6 +2509,7 @@ syms_of_data ()
   defsubr (&Smake_local_variable);
   defsubr (&Skill_local_variable);
   defsubr (&Slocal_variable_p);
+  defsubr (&Slocal_variable_if_set_p);
   defsubr (&Saref);
   defsubr (&Saset);
   defsubr (&Snumber_to_string);
