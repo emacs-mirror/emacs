@@ -1,5 +1,9 @@
 2001-05-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (cursor_in_mouse_face_p): New function.
+	(x_draw_stretch_glyph_string): Use it to choose a different GC
+	when drawing a cursor within highlighted text.
+
 	* editfns.c (char_property_eq): Put in #if 0.
 
 	* indent.c (string_display_width): Put in #if 0.

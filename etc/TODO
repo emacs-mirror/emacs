@@ -160,3 +160,7 @@
   programs to native code is probably the first thing to try, though.
 
 * Add a feature to Info similar to "info --apropos SUBJECT".
+
+* If you do an insert-file and that file is currently modified in
+  another buffer but not written yet, print a warning.
+
