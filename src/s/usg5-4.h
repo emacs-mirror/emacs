@@ -1,22 +1,21 @@
 /* Definitions file for GNU Emacs running on AT&T's System V Release 4
-   Copyright (C) 1987 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1990 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
-GNU Emacs is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY.  No author or distributor
-accepts responsibility to anyone for the consequences of using it
-or for whether it serves any particular purpose or works at all,
-unless he says so in writing.  Refer to the GNU Emacs General Public
-License for full details.
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 1, or (at your option)
+any later version.
 
-Everyone is granted permission to copy, modify and redistribute
-GNU Emacs, but only under the conditions described in the
-GNU Emacs General Public License.   A copy of this license is
-supposed to have been given to you along with GNU Emacs so you
-can know your rights and responsibilities.  It should be in a
-file named COPYING.  Among other things, the copyright notice
-and this notice must be preserved on all copies.  */
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to
+the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* This file written by James Van Artsdalen of Dell Computer Corporation.
  * james@bigtex.cactus.org.
@@ -24,7 +23,7 @@ and this notice must be preserved on all copies.  */
 
 /* Use the SysVr3 file for at least base configuration. */
 
-#include "usg5-3.h"
+#include "s-usg5-3.h"
 
 #define USG5_4
 
@@ -32,22 +31,13 @@ and this notice must be preserved on all copies.  */
 
 #undef NOMULTIPLEJOBS
 
-/* If compiled by GNU C, we must have gnulib */
-
-#ifdef __GNUC__
-#define GNULIB /usr/local/lib/gcc-gnulib
-#define LIBS_DEBUG
-#else
-#define GNULIB
-#endif
-
 #define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o /usr/ccs/lib/crti.o /usr/ccs/lib/values-Xt.o
 
-#define LIB_STANDARD GNULIB -lsocket -lnsl -lelf -lc /usr/ucblib/libucb.a /usr/ccs/lib/crtn.o
+#define LIB_STANDARD -lsocket -lnsl -lelf -lc /usr/ucblib/libucb.a /usr/ccs/lib/crtn.o
 
-/* Use ptem.h to get structures related to windows.  */
+/* No <sioctl.h> */
 
-#define NEED_PTEM_H
+#define NO_SIOCTL_H
 
 /* Undump with ELF */
 
@@ -65,10 +55,14 @@ and this notice must be preserved on all copies.  */
 #include <termio.h>
 #include <sys/ttold.h>
 #include <signal.h>
+#include <sys/wait.h>
+#include <sys/stream.h>
+#include <sys/stropts.h>
+#include <sys/termios.h>
 #undef SIGIO
 #endif
 
-/* libc has this stuff, but still not utimes. */
+/* libc has this stuff, but not utimes. */
 
 #define HAVE_RENAME
 #define HAVE_SELECT
@@ -95,6 +89,7 @@ and this notice must be preserved on all copies.  */
 
 #define HAVE_PTYS
 #define HAVE_SETSID
+#define HAVE_TCATTR
 
 /* It is possible to receive SIGCHLD when there are no children
    waiting, because a previous waitsys(2) cleaned up the carcass of child
@@ -154,6 +149,17 @@ and this notice must be preserved on all copies.  */
   if (ioctl (xforkin, I_PUSH, "ttcompat") == -1) \
     fatal ("ioctl I_PUSH ttcompat", errno);
 
-/* The definition of this in usg5-3.h is not needed in 5.4.  */
-
+/* The definition of this in s-usg5-3.h is not needed in 5.4.  */
+/* liblnsl_s should never be used.  The _s suffix implies a shared
+   library, as opposed to a DLL.  Share libraries were used in SVR3, and are
+   available only in order to allow SVR3 binaries to run.  They should not be
+   linked in to new binaries. -- caraway!pinkas@caraway.intel.com.  */
+#undef LIBX10_SYSTEM
 #undef LIBX11_SYSTEM
+
+/* Tell x11term.c and keyboard.c we have the system V streams feature.  */
+#define SYSV_STREAMS
+
+/* This definition was suggested for next release.
+   So give it a try.  */
+#define HAVE_SOCKETS

@@ -63,7 +63,8 @@ This command must be bound to a mouse click."
 This must be bound to a mouse click."
   (interactive "K")
   (select-window (event-window click))
-  (goto-char (event-point click)))
+  (if (numberp (event-point click))
+      (goto-char (event-point click))))
 
 (defun mouse-set-mark (click)
   "Set mark at the position clicked on with the mouse.
@@ -82,8 +83,9 @@ This must be bound to a mouse click."
 The text is saved in the kill ring, as with \\[kill-region]."
   (interactive "K")
   (let ((click-posn (event-point click)))
-    (kill-region (min (point) click-posn)
-		 (max (point) click-posn))))
+    (if (numberp click-posn)
+	(kill-region (min (point) click-posn)
+		     (max (point) click-posn)))))
 
 (defun mouse-yank-at-click (click arg)
   "Insert the last stretch of killed text at the position clicked on.

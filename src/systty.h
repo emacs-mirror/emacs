@@ -291,7 +291,7 @@ struct emacs_tty {
 
 };
 
-/* Define these to be a concatenation of all the EMACS_{GET,SET}_TTY
+/* Define these to be a concatenation of all the EMACS_{GET,SET}_TTY_n
    macros.  */
 #define EMACS_GET_TTY(fd, tc)	\
   (EMACS_GET_TTY_1 (fd, tc)	\

@@ -95,7 +95,7 @@ end
 
 define xcons
 print (struct Lisp_Cons *) ($ & 0x00ffffff)
-output *$
+output *(struct Lisp_Cons *) ($ & 0x00ffffff)
 echo \n
 end
 document xcons
