@@ -7214,7 +7214,9 @@ build_desired_tool_bar_string (f)
       plist = Fcopy_sequence (XCDR (image));
 
       /* Compute margin and relief to draw.  */
-      relief = tool_bar_button_relief > 0 ? tool_bar_button_relief : 3;
+      relief = (tool_bar_button_relief > 0
+		? tool_bar_button_relief
+		: DEFAULT_TOOL_BAR_BUTTON_RELIEF);
       hmargin = vmargin = relief;
 
       if (INTEGERP (Vtool_bar_button_margin)
@@ -14189,11 +14191,11 @@ If an integer, use that for both horizontal and vertical margins.\n\
 Otherwise, value should be a pair of integers `(HORZ : VERT)' with\n\
 HORZ specifying the horizontal margin, and VERT specifying the\n\
 vertical margin.");
-  Vtool_bar_button_margin = make_number (1);
+  Vtool_bar_button_margin = make_number (DEFAULT_TOOL_BAR_BUTTON_MARGIN);
 
   DEFVAR_INT ("tool-bar-button-relief", &tool_bar_button_relief,
     "Relief thickness of tool-bar buttons.");
-  tool_bar_button_relief = 3;
+  tool_bar_button_relief = DEFAULT_TOOL_BAR_BUTTON_RELIEF;
 
   DEFVAR_LISP ("fontification-functions", &Vfontification_functions,
     "List of functions to call to fontify regions of text.\n\
