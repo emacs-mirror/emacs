@@ -137,10 +137,7 @@ report_file_error (string, data)
 {
   Lisp_Object errstring;
 
-  if (errno >= 0 && errno < sys_nerr)
-    errstring = build_string (sys_errlist[errno]);
-  else
-    errstring = build_string ("undocumented error code");
+  errstring = build_string (strerror (errno));
 
   /* System error messages are capitalized.  Downcase the initial
      unless it is followed by a slash.  */
