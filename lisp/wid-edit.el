@@ -2636,10 +2636,11 @@ when he invoked the menu."
   (concat "Describe the `" (widget-get widget :value) "' symbol."))
 
 (defun widget-documentation-link-action (widget &optional event)
-  "Run apropos on WIDGET's value.  Ignore optional argument EVENT."
+  "Display documentation for WIDGET's value.  Ignore optional argument EVENT."
   (let* ((string (widget-get widget :value))
 	 (symbol (intern string)))
     (if (and (fboundp symbol) (boundp symbol))
+	;; If there are two doc strings, give the user a way to pick one.
 	(apropos (concat "\\`" (regexp-quote string) "\\'"))
       (if (fboundp symbol)
 	  (describe-function symbol)
