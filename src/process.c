@@ -2078,11 +2078,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	  EMACS_SET_SECS_USECS (timeout, 100000, 0);
 	}
 
-      /* If our caller will not immediately handle keyboard events,
-	 run timer events directly.
-	 (Callers that will immediately read keyboard events
-	 call timer_delay on their own.)  */
-      if (1)
+      /* Normally we run timers here.
+	 But not if wait_for_cell; in those cases,
+	 the wait is supposed to be short,
+	 and those callers cannot handle running arbitrary Lisp code here.  */
+      if (! wait_for_cell)
 	{
 	  EMACS_TIME timer_delay;
 	  int old_timers_run;
@@ -2248,11 +2248,25 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      if ((XINT (read_kbd) != 0 || wait_for_cell)
+      if ((XINT (read_kbd) != 0)
 	  && detect_input_pending_run_timers (do_display))
 	{
 	  swallow_events (do_display);
 	  if (detect_input_pending_run_timers (do_display))
+	    break;
+	}
+
+      /* If wait_for_cell. check for keyboard input
+	 but don't run any timers.
+	 ??? (It seems wrong to me to check for keyboard
+	 input at all when wait_for_cell, but the code
+	 has been this way since July 1994.
+	 Try changing this after version 19.31.)  */
+      if (wait_for_cell
+	  && detect_input_pending ())
+	{
+	  swallow_events (do_display);
+	  if (detect_input_pending ())
 	    break;
 	}
 
@@ -3903,7 +3917,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	 run timer events directly.
 	 (Callers that will immediately read keyboard events
 	 call timer_delay on their own.)  */
-      if (1)
+      if (! wait_for_cell)
 	{
 	  EMACS_TIME timer_delay;
 	  int old_timers_run;
@@ -3995,11 +4009,25 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Check for keyboard input */
 
-      if ((XINT (read_kbd) != 0 || wait_for_cell)
+      if ((XINT (read_kbd) != 0)
 	  && detect_input_pending_run_timers (do_display))
 	{
 	  swallow_events (do_display);
 	  if (detect_input_pending_run_timers (do_display))
+	    break;
+	}
+
+      /* If wait_for_cell. check for keyboard input
+	 but don't run any timers.
+	 ??? (It seems wrong to me to check for keyboard
+	 input at all when wait_for_cell, but the code
+	 has been this way since July 1994.
+	 Try changing this after version 19.31.)  */
+      if (wait_for_cell
+	  && detect_input_pending ())
+	{
+	  swallow_events (do_display);
+	  if (detect_input_pending ())
 	    break;
 	}
 
