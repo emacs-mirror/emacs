@@ -53,11 +53,11 @@ extern int errno;
 /* Variables for blockinput.h: */
 
 /* Non-zero if interrupt input is blocked right now.  */
-extern int interrupt_input_blocked;
+int interrupt_input_blocked;
 
 /* Nonzero means an input interrupt has arrived
    during the current critical section.  */
-extern int interrupt_input_pending;
+int interrupt_input_pending;
 
 
 #ifdef HAVE_X_WINDOWS
