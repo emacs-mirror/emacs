@@ -1237,6 +1237,26 @@ scroll the window of possible completions.")
 
   return Qt;
 }
+
+/* Subroutines of Fminibuffer_complete_and_exit.  */
+
+/* This one is called by internal_condition_case to do the real work.  */
+
+Lisp_Object
+complete_and_exit_1 ()
+{
+  return make_number (do_completion ());
+}
+
+/* This one is called by internal_condition_case if an error happens.
+   Pretend the current value is an exact match.  */
+
+Lisp_Object
+complete_and_exit_2 (ignore)
+     Lisp_Object ignore;
+{
+  return make_number (1);
+}
 
 DEFUN ("minibuffer-complete-and-exit", Fminibuffer_complete_and_exit,
         Sminibuffer_complete_and_exit, 0, 0, "",
@@ -1246,6 +1266,7 @@ a repetition of this command will exit.")
   ()
 {
   register int i;
+  Lisp_Object val;
 
   /* Allow user to specify null string */
   if (BEGV == ZV)
@@ -1254,7 +1275,11 @@ a repetition of this command will exit.")
   if (!NILP (test_completion (Fbuffer_string ())))
     goto exit;
 
-  i = do_completion ();
+  /* Call do_completion, but ignore errors.  */
+  val = internal_condition_case (complete_and_exit_1, Qerror,
+				 complete_and_exit_2);
+
+  i = XFASTINT (val);
   switch (i)
     {
     case 1:
