@@ -50,7 +50,11 @@ an `@' character, followed by the value returned by `system-name'.")
 
 (defun change-log-name ()
   (or change-log-default-name
-      (if (eq system-type 'vax-vms) "$CHANGE_LOG$.TXT" "ChangeLog")))
+      (if (eq system-type 'vax-vms) 
+	  "$CHANGE_LOG$.TXT" 
+	(if (eq system-type 'ms-dos)
+	    "change.log"
+	  "ChangeLog"))))
 
 ;;;###autoload
 (defun prompt-for-change-log-name ()
