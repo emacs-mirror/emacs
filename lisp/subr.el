@@ -181,6 +181,29 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		(setq i (1+ i))))))
       (setq scan (cdr scan)))))
 
+(defun define-key-in-sequence (keymap key definition after)
+  "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
+This is like `define-key' except that the binding for KEY is placed
+just after the binding for the event AFTER, instead of at the beginning
+of the map.
+The order matters when the keymap is used as a menu."
+  (or (keymapp keymap)
+      (signal 'wrong-type-argument (list 'keymapp keymap)))
+  (let ((tail keymap) done
+	(first (aref key 0)))
+    (while (and (not done) tail)
+      ;; Delete any earlier bindings for the same key.
+      (if (eq (car-safe (car (cdr tail))) first)
+	  (setcdr tail (cdr (cdr tail))))
+      ;; When we reach AFTER's binding, insert the new binding after.
+      ;; If we reach an inherited keymap, insert just before that.
+      (if (or (eq (car-safe (car tail)) after)
+	      (eq (car tail) 'keymap))
+	  (progn
+	    (setcdr tail (cons (cons (aref key 0) definition) (cdr tail)))
+	    (setq done t)))
+      (setq tail (cdr tail)))))
+
 (defun keyboard-translate (from to)
   "Translate character FROM to TO at a low level.
 This function creates a `keyboard-translate-table' if necessary
