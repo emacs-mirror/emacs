@@ -1104,9 +1104,9 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
     {
       extern void _mcleanup ();       
       extern char etext;
-      extern void clear_glyph_matrix ();
+      extern Lisp_Object Fredraw_frame ();
       atexit (_mcleanup);
-      monstartup (clear_glyph_matrix, &etext);
+      monstartup (Fredraw_frame, &etext);
     }
   else
     moncontrol (0);
