@@ -1251,9 +1251,9 @@ kills it if the file name matches the regular expression
   You can run multiple Emacs servers on the same machine by giving
 each one a unique ``server name'', using the variable
 @code{server-name}.  For example, @kbd{M-x set-variable RET
-server-name RET foo} sets the server name to @samp{foo}.  The
+server-name RET foo RET} sets the server name to @samp{foo}.  The
 @code{emacsclient} program can visit a server by name using the
-@samp{-s} option.
+@samp{-s} option.  @xref{Invoking emacsclient}.
 
   While @code{mail} or another application is waiting for
 @code{emacsclient} to finish, @code{emacsclient} does not read terminal

@@ -174,7 +174,7 @@ Display the Info documentation on symbol @var{symbol} according to the
 programming language you are editing (@code{info-lookup-symbol}).
 @item C-h .
 Display a help message associated with special text areas, such as
-links (@code{display-local-help}).
+links in @samp{*Help*} buffers (@code{display-local-help}).
 @end table
 
 @node Key Help
@@ -332,6 +332,7 @@ check them.
 above all behave as if they had been given a prefix argument.
 
 @vindex apropos-sort-by-scores
+@cindex apropos search results, order by score
   By default, Apropos lists the search results in alphabetical order.
 If the variable @code{apropos-sort-by-scores} is non-@code{nil},
 Apropos tries to guess the relevance of each result, and displays the
