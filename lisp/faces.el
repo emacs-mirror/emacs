@@ -944,7 +944,7 @@ selected frame."
 		   (cdr (assq 'name default-frame-alist))
 		   (cdr (assq 'name initial-frame-alist))))
 	 (x-resource-name name)
-	 (res-geometry (x-get-resource "geometry" "Geometry"))
+	 (res-geometry (if name (x-get-resource "geometry" "Geometry")))
 	 parsed)
     (if res-geometry
 	(progn
