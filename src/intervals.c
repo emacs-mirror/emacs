@@ -1831,14 +1831,16 @@ verify_interval_modification (buf, start, end)
 		     front-sticky, inhibit insertion.
 		     Check for read-only as well as category.  */
 		  if (! NILP (after)
-		      && NILP (Fmemq (after, Vinhibit_read_only))
-		      && (! NILP (Fmemq (Qread_only,
-					 textget (i->plist, Qfront_sticky)))
+		      && NILP (Fmemq (after, Vinhibit_read_only)))
+		    {
+		      Lisp_Object tem;
+
+		      tem = textget (i->plist, Qfront_sticky);
+		      if (TMEM (Qread_only, tem)
 			  || (NILP (textget_direct (i->plist, Qread_only))
-			      && ! NILP (Fmemq (Qcategory,
-						textget (i->plist,
-							 Qfront_sticky))))))
-		    error ("Attempt to insert within read-only text");
+			      && TMEM (Qcategory, tem)))
+			error ("Attempt to insert within read-only text");
+		    }
 		}
 	      else
 		after = Qnil;
@@ -1850,14 +1852,16 @@ verify_interval_modification (buf, start, end)
 		     rear-nonsticky, inhibit insertion.
 		     Check for read-only as well as category.  */
 		  if (! NILP (before)
-		      && NILP (Fmemq (before, Vinhibit_read_only))
-		      && NILP (Fmemq (Qread_only,
-				      textget (prev->plist, Qrear_nonsticky)))
-		      && (! NILP (textget_direct (prev->plist,Qread_only))
-			  || NILP (Fmemq (Qcategory,
-					  textget (prev->plist,
-						   Qrear_nonsticky)))))
-		    error ("Attempt to insert within read-only text");
+		      && NILP (Fmemq (before, Vinhibit_read_only)))
+		    {
+		      Lisp_Object tem;
+
+		      tem = textget (prev->plist, Qrear_nonsticky);
+		      if (! TMEM (Qread_only, tem)
+			  && (! NILP (textget_direct (prev->plist,Qread_only))
+			      || ! TMEM (Qcategory, tem)))
+			error ("Attempt to insert within read-only text");
+		    }
 		}
 	      else
 		before = Qnil;
