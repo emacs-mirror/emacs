@@ -1,3 +1,18 @@
+2002-04-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* minibuf.c (read_minibuf): Use empty_string.
+	(Ftry_completion): Allow lambda forms and lists of strings for `alist'.
+	Short-circuit the search as soon as it "failed".
+	(Fall_completions): Allow lambda forms and lists of strings for alist.
+	(Fcompleting_read): Set Qminibuffer_completion_confirm to nil
+	when require_match is nil.
+	(Ftest_completion): Rename from `test_completion' and export to elisp.
+	Call the predicate also when alist is a list.
+	Obey Vcompletion_regexp_list.
+	(do_completion, Fminibuffer_complete_and_exit): Use it.
+	(Fassoc_string): Rename from `assoc_for_completion'.
+	Allow list of strings as well and export to elisp.
+
 2002-04-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* puresize.h (BASE_PURESIZE): Increase to 900KB.

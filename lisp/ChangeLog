@@ -1,7 +1,62 @@
+2002-04-09  Emmanuel Briot  <briot@act-europe.fr>
+
+	* progmodes/ada-prj.el: Add support for the new project file fields:
+	gnatfind-opt, debug-pre-cmd and debug-post-cmd.  Fix widget handling
+	for Emacs 21.  ada-mode now only supports a single active project file,
+	instead of one per buffer.  This is far less confusing.
+
+	* progmodes/ada-stmt.el: Menu changed from Statements to Templates.
+	(ada-func-or-proc-name): Get real subprogram name, after change in
+	ada-mode.el.
+
+	* progmodes/ada-xref.el: ada-mode no longer supports a different
+	project file per buffer.  This was too complex.  Instead, there is now
+	a single active project file at any given time, and the user can switch
+	the active one through the Ada menu.  This revision also provides
+	better handling of the Windows command line, and the various available
+	shells on that platform.  ada-mode is now fully integrated with the GNU
+	visual debugger gvd, see http://libre.act-europe.fr.
+	(ada-prj-default-comp-opt): Use the new GNAT switch -gnatQ.  This is only
+	available with GNAT 3.14.
+	(ada-prj-gnatfind-switches, ada-cd-command): New variable.
+	(ada-quote-cmd): New function.
+	(ada-initialize-runtime-library): Get the location of the actual
+	runtime the compiler will be using, including support for
+	cross-platform environments.
+	(ada-treat-cmd-string): Add support for the new variable
+	${full_current} add support for debug-pre-cmd and debug-post-cmd, two
+	commands to run just prior to running the debugger, and just after
+	starting it.  This provide better support for cross-platform and
+	remote debugging.
+	(ada-get-absolute-dir): Remove, replace with expand-file-name.
+	(ada-gdb-application): New parameter executable-name.
+	(ada-get-ali-file-name): Better handling of separate packages.
+	Checkin on behalf of the ada-mode maintainer.
+
+	* progmodes/ada-mode.el (ada-case-exception-file)
+	(ada-indent-handle-comment-special): New variables.
+	(ada-case-exception-substring): New variable.  Casing exceptions can
+	now also be defined for substrings, in addition to full identifier
+	names.  This provides more flexibility.
+	(ada-align-list): New function, provide support for align.el in ada-mode.
+	(ada-procedure-start-regexp): Add support for operators and generic formal
+	subprograms and packages.
+	(ada-imenu-comment-re): New variable.
+	(ada-imenu-generic-expression): Add support for protected types.
+	(ada-mode): Set comment-start only after running ada-mode-hook, so that the
+	user can change ada-comment-start in the hook.
+	Add support for ispell in comments.  Add support for align.el.
+	(ada-save-exception-file, ada-create-case-exception-substring)
+	(ada-adjust-case-substring): New functions.
+	(ada-get-current-indent): Properly handles keywords with uppercases.
+	(ada-goto-matching-end): Rewritten, fixes problems in the handling of
+	nested blocks.
+	(ada-untab-hard): Do not touch the contents of comments and strings.
+
 2002-04-09  Mike Williams  <mdub@bigfoot.com>
 
-	* textmodes/sgml-mode.el (sgml-lexical-context): Use
-	sgml-parse-tag-backward to find start point.
+	* textmodes/sgml-mode.el (sgml-lexical-context):
+	Use sgml-parse-tag-backward to find start point.
 	(sgml-looking-back-at): Doc fix.
 
 2002-04-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
