@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.57) $
+ * $HopeName: MMsrc!poolawl.c(trunk.58) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -45,7 +45,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.57) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.58) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -314,6 +314,10 @@ static Res AWLGroupCreate(AWLGroup *groupReturn,
   AVERT(Pool, pool);
   AVER(size > 0);
   AVER(BoolCheck(withReservoirPermit));
+  /* .assume.samerank */
+  /* AWL only accepts two ranks */
+  AVER(RankSetSingle(RankEXACT) == rankSet || 
+       RankSetSingle(RankWEAK) == rankSet);
 
   awl = PoolPoolAWL(pool);
   AVERT(AWL, awl);
@@ -453,32 +457,6 @@ static void AWLFinish(Pool pool)
     AWLGroupDestroy(group);
   }
   ActionFinish(&awl->actionStruct);
-}
-
-
-/* AWLBufferInit -- the buffer init method
- *
- * This just sets rankSet from the client passed parameter.
- */
-
-static Res AWLBufferInit(Pool pool, Buffer buffer, va_list args)
-{
-  Rank rank;
-
-  AVERT(Pool, pool);
-  AVERT(AWL, PoolPoolAWL(pool));
-
-  /* Assumes pun compatibility between Rank and mps_rank_t */
-  /* Which is checkd by mpsi_check in impl.c.mpsi */
-  rank = va_arg(args, Rank);
-
-  AVER(RankCheck(rank));
-  /* .assume.samerank */
-  /* AWL only accepts two ranks */
-  AVER(rank == RankEXACT || rank == RankWEAK);
-
-  BufferSetRankSet(buffer, RankSetSingle(rank));
-  return ResOK;
 }
 
 
@@ -1177,7 +1155,7 @@ DEFINE_POOL_CLASS(AWLPoolClass, this)
   this->offset = offsetof(AWLStruct, poolStruct);
   this->init = AWLInit;
   this->finish = AWLFinish;
-  this->bufferInit = AWLBufferInit;
+  this->bufferClass = EnsureRankBufClass;
   this->bufferFill = AWLBufferFill;
   this->bufferEmpty = AWLBufferEmpty;
   this->traceBegin = AWLTraceBegin;

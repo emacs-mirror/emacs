@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.52) $
+ * $HopeName: MMsrc!buffer.c(trunk.53) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -22,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.52) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.53) $");
 
 
 /* forward declarations */
@@ -131,8 +131,10 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
   Res res;
 
-  AVERT(Buffer, buffer);
-  AVER(stream != NULL);
+  if(!CHECKT(Buffer, buffer)) 
+    return ResFAIL;
+  if(stream == NULL) 
+    return ResFAIL;
 
   res = WriteF(stream,
                "Buffer $P ($U) {\n",
@@ -221,15 +223,9 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
 
   /* Dispatch to the buffer class method to perform any  */
   /* class-specific initialization of the buffer. */
-  res = (*class->init)(buffer, pool);
+  res = (*class->init)(buffer, pool, args);
   if(res != ResOK)
-    goto failSpecialInit;
-
-  /* Dispatch to the pool class method to perform any extra */
-  /* initialization of the buffer. */
-  res = (*pool->class->bufferInit)(pool, buffer, args);
-  if(res != ResOK)
-    goto failSpecialInit;
+    return res;
 
   /* Attach the initialized buffer to the pool. */
   RingAppend(&pool->bufferRing, &buffer->poolRing);
@@ -237,10 +233,6 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
   EVENT_PPU(BufferInit, buffer, pool, (unsigned)isMutator);
 
   return ResOK;
-
-failSpecialInit:
-  --pool->bufferSerial;  /* reset the serial number */
-  return res;
 }
 
 
@@ -393,9 +385,6 @@ void BufferFinish(Buffer buffer)
   }
 
   BufferDetach(buffer, pool);
-
-  /* Ask the pool to do any pool-specific finishing. */
-  (*pool->class->bufferFinish)(pool, buffer);
 
   /* Dispatch to the buffer class method to perform any  */
   /* class-specific finishing of the buffer. */
@@ -1145,11 +1134,12 @@ void BufferRampReset(Buffer buffer)
 
 /* bufferTrivInit -- basic buffer init method */
 
-static Res bufferTrivInit (Buffer buffer, Pool pool)
+static Res bufferTrivInit (Buffer buffer, Pool pool, va_list args)
 {
   /* initialization happens in BufferInitV so checks are safe */
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
+  UNUSED(args);
   return ResOK;
 }
 
@@ -1161,6 +1151,8 @@ static void bufferTrivFinish (Buffer buffer)
 {
   /* No special finish for simple buffers */
   AVERT(Buffer, buffer);
+  AVER(BufferIsReset(buffer));
+  NOOP;
 }
 
 
@@ -1176,6 +1168,7 @@ static void bufferTrivAttach(Buffer buffer, Addr base, Addr limit,
   UNUSED(limit);
   UNUSED(init);
   UNUSED(size);
+  NOOP;
 }
 
 
@@ -1185,6 +1178,7 @@ static void bufferTrivDetach(Buffer buffer)
 {
   /* No special detach method for simple buffers */
   AVERT(Buffer, buffer);
+  NOOP;
 }
 
 
@@ -1231,9 +1225,11 @@ static void bufferNoSetRankSet (Buffer buffer, RankSet rankset)
 
 static Res bufferTrivDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
+  if(!CHECKT(Buffer, buffer)) 
+    return ResFAIL;
+  if(stream == NULL) 
+    return ResFAIL;
   /* dispatching function does it all */
-  AVERT(Buffer, buffer); 
-  UNUSED(stream);
   return ResOK;
 }
 
@@ -1280,40 +1276,40 @@ DEFINE_CLASS(BufferClass, class)
 
 
 
-/* BufferedSegClass -- support for the BufferedSeg subclass 
+/* SegBufClass -- support for the SegBuf subclass 
  */
 
 
-/* BufferBufferedSeg -- convert generic Buffer to a BufferedSeg */
+/* BufferSegBuf -- convert generic Buffer to a SegBuf */
 
-#define BufferBufferedSeg(buffer) ((BufferedSeg)(buffer))
+#define BufferSegBuf(buffer) ((SegBuf)(buffer))
 
 
-/* BufferedSegCheck -- check consistency of a BufferedSeg */
+/* SegBufCheck -- check consistency of a SegBuf */
 
-Bool BufferedSegCheck(BufferedSeg bufseg)
+Bool SegBufCheck(SegBuf segbuf)
 {
   Buffer buffer;
 
-  CHECKS(BufferedSeg, bufseg);
-  buffer = &bufseg->bufferStruct;
+  CHECKS(SegBuf, segbuf);
+  buffer = &segbuf->bufferStruct;
   CHECKL(BufferCheck(buffer));
-  CHECKL(RankSetCheck(bufseg->rankSet));
+  CHECKL(RankSetCheck(segbuf->rankSet));
 
   if(buffer->mode & BufferModeTRANSITION) {
     /* nothing to check */
   } else if((buffer->mode & BufferModeATTACHED) == 0) {
-    CHECKL(bufseg->seg == NULL);
+    CHECKL(segbuf->seg == NULL);
   } else {
     /* The buffer is attached to a segment. */
-    CHECKL(bufseg->seg != NULL);
-    CHECKL(SegCheck(bufseg->seg));
+    CHECKL(segbuf->seg != NULL);
+    CHECKL(SegCheck(segbuf->seg));
     /* To avoid recursive checking, leave it to SegCheck to make */
     /* sure the buffer and segment fields tally. */
     
     if(buffer->mode & BufferModeFLIPPED) {
       /* Only buffers that allocate pointers get flipped. */
-      CHECKL(bufseg->rankSet != RankSetEMPTY);
+      CHECKL(segbuf->rankSet != RankSetEMPTY);
     }
   }
 
@@ -1321,41 +1317,42 @@ Bool BufferedSegCheck(BufferedSeg bufseg)
 }
 
 
-/* bufferedSegInit -- BufferedSeg init method */
+/* segBufInit -- SegBuf init method */
 
-static Res bufferedSegInit (Buffer buffer, Pool pool)
+static Res segBufInit (Buffer buffer, Pool pool, va_list args)
 {
   BufferClass super;
-  BufferedSeg bufseg;
+  SegBuf segbuf;
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
-  bufseg = BufferBufferedSeg(buffer);
+  segbuf = BufferSegBuf(buffer);
 
   /* Initialize the superclass fields first via next-method call */
   super = EnsureBufferClass();
-  super->init(buffer, pool);
+  super->init(buffer, pool, args);
 
-  bufseg->seg = NULL;
-  bufseg->sig = BufferedSegSig;
-  bufseg->rankSet = RankSetEMPTY;
-  AVERT(BufferedSeg, bufseg);
+  segbuf->seg = NULL;
+  segbuf->sig = SegBufSig;
+  segbuf->rankSet = RankSetEMPTY;
+  AVERT(SegBuf, segbuf);
   return ResOK;
 }
 
 
-/* bufferedSegFinish -- BufferedSeg finish method */
+/* segBufFinish -- SegBuf finish method */
 
-static void bufferedSegFinish (Buffer buffer)
+static void segBufFinish (Buffer buffer)
 {
   BufferClass super;
-  BufferedSeg bufseg;
+  SegBuf segbuf;
 
   AVERT(Buffer, buffer);
-  bufseg = BufferBufferedSeg(buffer);
-  AVERT(BufferedSeg, bufseg);
+  AVER(BufferIsReset(buffer));
+  segbuf = BufferSegBuf(buffer);
+  AVERT(SegBuf, segbuf);
 
-  bufseg->sig = SigInvalid;
+  segbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
   super = EnsureBufferClass();
@@ -1363,12 +1360,12 @@ static void bufferedSegFinish (Buffer buffer)
 }
 
 
-/* bufferedSegAttach -- BufferedSeg attach method */
+/* segBufAttach -- SegBuf attach method */
 
-static void bufferedSegAttach(Buffer buffer, Addr base, Addr limit, 
-                              Addr init, Size size)
+static void segBufAttach(Buffer buffer, Addr base, Addr limit, 
+                         Addr init, Size size)
 {
-  BufferedSeg bufseg;
+  SegBuf segbuf;
   Seg seg;
   Arena arena;
   Bool found;
@@ -1378,92 +1375,96 @@ static void bufferedSegAttach(Buffer buffer, Addr base, Addr limit,
   UNUSED(init);
   UNUSED(size);
 
-  bufseg = BufferBufferedSeg(buffer);
+  segbuf = BufferSegBuf(buffer);
   arena = BufferArena(buffer);
   found = SegOfAddr(&seg, arena, base);
   AVER(found);
-  AVER(bufseg->seg == NULL);
+  AVER(segbuf->seg == NULL);
   AVER(SegBuffer(seg) == NULL);
   AVER(SegBase(seg) <= base);
   AVER(limit <= SegLimit(seg));
 
   /* attach the buffer to the segment */
   SegSetBuffer(seg, buffer);
-  bufseg->seg = seg;
+  segbuf->seg = seg;
 
-  AVERT(BufferedSeg, bufseg);
+  AVERT(SegBuf, segbuf);
 }
 
 
-/* bufferedSegDetach -- BufferedSeg detach method */
+/* segBufDetach -- SegBuf detach method */
 
-static void bufferedSegDetach(Buffer buffer)
+static void segBufDetach(Buffer buffer)
 {
-  BufferedSeg bufseg;
+  SegBuf segbuf;
   Seg seg;
 
   AVERT(Buffer, buffer);
-  bufseg = BufferBufferedSeg(buffer);
-  AVERT(BufferedSeg, bufseg);
+  segbuf = BufferSegBuf(buffer);
+  AVERT(SegBuf, segbuf);
 
-  seg = bufseg->seg;
+  seg = segbuf->seg;
   AVER(seg != NULL);
   SegSetBuffer(seg, NULL);
-  bufseg->seg = NULL;
+  segbuf->seg = NULL;
 }
 
 
-/* bufferedSegSeg -- BufferSeg accessor method for BufferedSeg instances */
+/* segBufSeg -- BufferSeg accessor method for SegBuf instances */
 
-static Seg bufferedSegSeg (Buffer buffer)
+static Seg segBufSeg (Buffer buffer)
 {
-  BufferedSeg bufseg;
+  SegBuf segbuf;
 
   AVERT(Buffer, buffer);
-  bufseg = BufferBufferedSeg(buffer);
-  AVERT(BufferedSeg, bufseg);
-  return bufseg->seg;
+  segbuf = BufferSegBuf(buffer);
+  AVERT(SegBuf, segbuf);
+  return segbuf->seg;
 }
 
 
-/* bufferedSegRankSet -- BufferRankSet accessor for BufferedSeg instances */
+/* segBufRankSet -- BufferRankSet accessor for SegBuf instances */
 
-static RankSet bufferedSegRankSet (Buffer buffer)
+static RankSet segBufRankSet (Buffer buffer)
 {
-  BufferedSeg bufseg;
+  SegBuf segbuf;
 
   AVERT(Buffer, buffer);
-  bufseg = BufferBufferedSeg(buffer);
-  AVERT(BufferedSeg, bufseg);
-  return bufseg->rankSet;
+  segbuf = BufferSegBuf(buffer);
+  AVERT(SegBuf, segbuf);
+  return segbuf->rankSet;
 }
 
 
-/* bufferedSegSetRankSet -- BufferSetRankSet setter method for BufferedSeg */
+/* segBufSetRankSet -- BufferSetRankSet setter method for SegBuf */
 
-static void bufferedSegSetRankSet (Buffer buffer, RankSet rankset)
+static void segBufSetRankSet (Buffer buffer, RankSet rankset)
 {
-  BufferedSeg bufseg;
+  SegBuf segbuf;
 
   AVERT(Buffer, buffer);
   AVERT(RankSet, rankset);
-  bufseg = BufferBufferedSeg(buffer);
-  AVERT(BufferedSeg, bufseg);
-  bufseg->rankSet = rankset;
+  segbuf = BufferSegBuf(buffer);
+  AVERT(SegBuf, segbuf);
+  segbuf->rankSet = rankset;
 }
 
 
-/* bufferedSegDescribe --  describe method for BufferedSeg */
+/* segBufDescribe --  describe method for SegBuf */
 
-static Res bufferedSegDescribe(Buffer buffer, mps_lib_FILE *stream)
+static Res segBufDescribe(Buffer buffer, mps_lib_FILE *stream)
 {
-  BufferedSeg bufseg;
+  SegBuf segbuf;
   BufferClass super;
   Res res;
 
-  AVERT(Buffer, buffer);
-  bufseg = BufferBufferedSeg(buffer);
-  AVERT(BufferedSeg, bufseg);
+  if(!CHECKT(Buffer, buffer)) 
+    return ResFAIL;
+  if(stream == NULL) 
+    return ResFAIL;
+  segbuf = BufferSegBuf(buffer);
+  if(!CHECKT(SegBuf, segbuf)) 
+    return ResFAIL;
 
   /* Describe the superclass fields first via next-method call */
   super = EnsureBufferClass();
@@ -1472,33 +1473,76 @@ static Res bufferedSegDescribe(Buffer buffer, mps_lib_FILE *stream)
     return res;
 
   res = WriteF(stream,
-               "  Seg $P\n",         (WriteFP)bufseg->seg,
-               "  rankSet $U\n",     (WriteFU)bufseg->rankSet,
+               "  Seg $P\n",         (WriteFP)segbuf->seg,
+               "  rankSet $U\n",     (WriteFU)segbuf->rankSet,
                NULL);
 
   return res;
 }
 
 
-/* BufferedSegClass -- BufferedSeg class definition 
+/* SegBufClass -- SegBuf class definition 
  *
  * Supports an association with a single segment when attached.
- * See design.mps.buffer.class.hierarchy.bufferedseg.
+ * See design.mps.buffer.class.hierarchy.segbuf.
  */
  
-typedef BufferClassStruct BufferedSegClassStruct;
+typedef BufferClassStruct SegBufClassStruct;
 
-DEFINE_CLASS(BufferedSegClass, class)
+DEFINE_CLASS(SegBufClass, class)
 {
   INHERIT_CLASS(class, BufferClass);
-  class->name = "BUFSEG";
-  class->size = sizeof(BufferedSegStruct);
-  class->init = bufferedSegInit;
-  class->finish = bufferedSegFinish;
-  class->attach = bufferedSegAttach;
-  class->detach = bufferedSegDetach;
-  class->describe = bufferedSegDescribe;
-  class->seg = bufferedSegSeg;
-  class->rankSet = bufferedSegRankSet;
-  class->setRankSet = bufferedSegSetRankSet;
+  class->name = "SEGBUF";
+  class->size = sizeof(SegBufStruct);
+  class->init = segBufInit;
+  class->finish = segBufFinish;
+  class->attach = segBufAttach;
+  class->detach = segBufDetach;
+  class->describe = segBufDescribe;
+  class->seg = segBufSeg;
+  class->rankSet = segBufRankSet;
+  class->setRankSet = segBufSetRankSet;
+}
+
+
+/* RankBufClass -- support for the RankBufClass subclass 
+ */
+
+
+/* rankBufInit -- RankBufClass init method */
+
+static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
+{
+  /* Assumes pun compatibility between Rank and mps_rank_t */
+  /* Which is checked by mpsi_check in impl.c.mpsi */
+  Rank rank = va_arg(args, Rank);
+  BufferClass super;
+
+  AVERT(Buffer, buffer);
+  AVERT(Pool, pool);
+  AVER(RankCheck(rank));
+
+  /* Initialize the superclass fields first via next-method call */
+  super = EnsureSegBufClass();
+  super->init(buffer, pool, args);
+
+  BufferSetRankSet(buffer, RankSetSingle(rank));
+  return ResOK;
+}
+
+
+/* RankBufClass -- RankBufClass class definition 
+ *
+ * A subclass of SegBufClass, sharing structure for instances.
+ *
+ * Supports initialization to a rank supplied at creation time.
+ */
+ 
+typedef BufferClassStruct RankBufClassStruct;
+
+DEFINE_CLASS(RankBufClass, class)
+{
+  INHERIT_CLASS(class, SegBufClass);
+  class->name = "RANKBUF";
+  class->init = rankBufInit;
 }

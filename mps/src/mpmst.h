@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.83) $
+ * $HopeName: MMsrc!mpmst.h(trunk.84) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -74,10 +74,8 @@ typedef struct PoolClassStruct {
   PoolFinishMethod finish;      /* finish the pool descriptor */
   PoolAllocMethod alloc;        /* allocate memory from pool */
   PoolFreeMethod free;          /* free memory to pool */
-  PoolBufferInitMethod bufferInit;      /* additional buffer init */
   PoolBufferFillMethod bufferFill;      /* out-of-line reserve */
   PoolBufferEmptyMethod bufferEmpty;    /* out-of-line commit */
-  PoolBufferFinishMethod bufferFinish;  /* additional buffer finish */
   PoolTraceBeginMethod traceBegin;      /* no idea what this does @@@@ */
   PoolAccessMethod access;      /* handles read/write accesses */
   PoolWhitenMethod whiten;      /* whiten objects in a segment */
@@ -328,15 +326,15 @@ typedef struct SegStruct {      /* segment structure */
 } SegStruct;
 
 
-/* SegGCStruct -- GCable segment structure
+/* GCSegStruct -- GCable segment structure
  *
- * .seggc: SegGC is a subclass of Seg with support for
+ * .seggc: GCSeg is a subclass of Seg with support for
  * buffered allocation and GC.  See design.mps.seg.
  */
 
-#define SegGCSig      ((Sig)0x5195E99C) /* SIGnature SEG GC  */ 
+#define GCSegSig      ((Sig)0x5199C5E9) /* SIGnature GC SEG  */ 
 
-typedef struct SegGCStruct {    /* GC segment structure */
+typedef struct GCSegStruct {    /* GC segment structure */
   SegStruct segStruct;          /* superclass fields must come first */
   RingStruct poolRing;          /* link in list of segs in pool */
   RingStruct greyRing;          /* link in list of grey segs */
@@ -344,7 +342,7 @@ typedef struct SegGCStruct {    /* GC segment structure */
   Buffer buffer;                /* non-NULL if seg is buffered */
   void *p;                      /* pointer for use of owning pool */
   Sig sig;                      /* design.mps.sig */
-} SegGCStruct;
+} GCSegStruct;
 
 
 
@@ -449,20 +447,20 @@ typedef struct BufferStruct {
 } BufferStruct;
 
 
-/* BufferedSegStruct -- Buffer structure associated with segments
+/* SegBufStruct -- Buffer structure associated with segments
  *
- * .bufseg: BufferedSeg is a subclass of Buffer with support for
+ * .segbuf: SegBuf is a subclass of Buffer with support for
  * attachment to segments.
  */
 
-#define BufferedSegSig ((Sig)0x519B0F59) /* SIGnature BUFfer SeG  */ 
+#define SegBufSig ((Sig)0x51959B0F) /* SIGnature SeG BUFfer  */ 
 
-typedef struct BufferedSegStruct {
+typedef struct SegBufStruct {
   BufferStruct bufferStruct;    /* superclass fields must come first */
   RankSet rankSet;              /* ranks of references being created */
   Seg seg;                      /* segment being buffered */
   Sig sig;                      /* design.mps.sig */
-} BufferedSegStruct;
+} SegBufStruct;
 
 
 /* FormatStruct -- object format structure
