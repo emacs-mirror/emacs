@@ -32,8 +32,15 @@
 # This gork is required for those who use a Unix-style shell, and
 # have SHELL in the environment pointing to it.  Here we force
 # Make to use COMMAND.COM instead.  This Makefile won't work otherwise.
-SHELL=/dos/command
-MAKESHELL=/dos/command
+# (The /xyzzy directory is used to minimize the chance that someone
+# actually has such a directory with an incompatible command.com.  We
+# used to have /dos there, but some Windows installations have an old
+# version of DOS stashed in that directory, and command.com from there
+# won't run on Windows, complaining about "Incorrect DOS version".
+# Make will look up PATH for the shell executable, so the directory name
+# is not important.)
+SHELL=/xyzzy/command
+MAKESHELL=/xyzzy/command
 
 # Generate a full pathname of the top-level installation directory
 top_srcdir := $(subst \,/,$(shell cd))
