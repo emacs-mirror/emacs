@@ -718,6 +718,37 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
   cons_cells_consed++;
   return val;
 }
+
+/* Make a list of 2, 3, 4 or 5 specified objects.  */
+
+Lisp_Object
+list2 (arg1, arg2)
+     Lisp_Object arg1, arg2;
+{
+  return Fcons (arg1, Fcons (arg2, Qnil));
+}
+
+Lisp_Object
+list3 (arg1, arg2, arg3)
+     Lisp_Object arg1, arg2, arg3;
+{
+  return Fcons (arg1, Fcons (arg2, Fcons (arg3, Qnil)));
+}
+
+Lisp_Object
+list4 (arg1, arg2, arg3, arg4)
+     Lisp_Object arg1, arg2, arg3, arg4;
+{
+  return Fcons (arg1, Fcons (arg2, Fcons (arg3, Fcons (arg4, Qnil))));
+}
+
+Lisp_Object
+list5 (arg1, arg2, arg3, arg4, arg5)
+     Lisp_Object arg1, arg2, arg3, arg4, arg5;
+{
+  return Fcons (arg1, Fcons (arg2, Fcons (arg3, Fcons (arg4,
+						       Fcons (arg5, Qnil)))));
+}
 
 DEFUN ("list", Flist, Slist, 0, MANY, 0,
   "Return a newly created list with specified arguments as elements.\n\
