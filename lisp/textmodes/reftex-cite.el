@@ -80,7 +80,7 @@
 	    (concat "@[a-zA-Z]+[ \t\n\r]*[{(][ \t\n\r]*" (regexp-quote key)
 		    "[, \t\r\n}]")))
 	 (buffer-conf (current-buffer))
-         file buf)
+         file buf pos)
 
     (catch 'exit
       (while file-list
@@ -93,6 +93,7 @@
         (goto-char (point-min))
         (when (re-search-forward re nil t)
           (goto-char (match-beginning 0))
+	  (setq pos (point))
 	  (when return
 	    ;; Just return the relevant entry
 	    (if item (goto-char (match-end 0)))
@@ -101,6 +102,7 @@
 	    (set-buffer buffer-conf)
 	    (throw 'exit return))
 	  (switch-to-buffer-other-window buf)
+	  (goto-char pos)
           (recenter 0)
           (if highlight
               (reftex-highlight 0 (match-beginning 0) (match-end 0)))
@@ -275,42 +277,44 @@
           nil)))))
 
 ;; Parse the thebibliography environment
-(defun reftex-extract-bib-entries-from-thebibliography (file)
+(defun reftex-extract-bib-entries-from-thebibliography (files)
   ;; Extract bib-entries from the \begin{thebibliography} environment.
   ;; Parsing is not as good as for the BibTeX database stuff.
   ;; The environment should be located in file FILE.
 
-  (let* (start end buf entries re re-list)
-    (unless file
+  (let* (start end buf entries re re-list file)
+    (unless files
       (error "Need file name to find thebibliography environment"))
-    (setq buf (reftex-get-file-buffer-force 
-	       file (not reftex-keep-temporary-buffers)))
-    (unless buf
-      (error "No such file %s" file))
-    (message "Scanning thebibliography environment in %s" file)
+    (while (setq file (pop files))
+      (setq buf (reftex-get-file-buffer-force 
+		 file (not reftex-keep-temporary-buffers)))
+      (unless buf
+	(error "No such file %s" file))
+      (message "Scanning thebibliography environment in %s" file)
 
-    (save-excursion
-      (set-buffer buf)
-      (save-restriction
-	(widen)
-	(goto-char (point-min))
-	(if (re-search-forward 
-	     "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
-	    (progn
-	      (beginning-of-line 2)
-	      (setq start (point))))
-	(if (re-search-forward 
-	     "\\(\\`\\|[\n\r]\\)[ \t]*\\\\end{thebibliography}" nil t)
-	    (progn
-	      (beginning-of-line 1)
-	      (setq end (point))))
-	(when (and start end)
-	  (setq entries 
-		(mapcar 'reftex-parse-bibitem
-		   (delete ""
-		      (split-string 
-		       (buffer-substring-no-properties start end)
-		       "[ \t\n\r]*\\\\bibitem\\(\\[[^]]*]\\)*")))))))
+      (save-excursion
+	(set-buffer buf)
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (while (re-search-forward 
+		  "\\(\\`\\|[\n\r]\\)[ \t]*\\\\begin{thebibliography}" nil t)
+	    (beginning-of-line 2)
+	    (setq start (point))
+	    (if (re-search-forward 
+		 "\\(\\`\\|[\n\r]\\)[ \t]*\\\\end{thebibliography}" nil t)
+		(progn
+		  (beginning-of-line 1)
+		  (setq end (point))))
+	    (when (and start end)
+	      (setq entries 
+		    (append entries
+                      (mapcar 'reftex-parse-bibitem
+			(delete ""
+				(split-string 
+				 (buffer-substring-no-properties start end)
+				 "[ \t\n\r]*\\\\bibitem\\(\\[[^]]*]\\)*"))))))
+	    (goto-char end)))))
     (unless entries
       (error "No bibitems found"))
 
@@ -666,7 +670,10 @@ While entering the regexp, completion on knows citation keys is possible.
 	       ((assq 'thebib (symbol-value reftex-docstruct-symbol))
 		;; using thebibliography environment.
 		(reftex-extract-bib-entries-from-thebibliography
-		 (cdr (assq 'thebib (symbol-value reftex-docstruct-symbol)))))
+		 (reftex-uniquify
+		  (mapcar 'cdr
+			  (reftex-all-assq 
+			   'thebib (symbol-value reftex-docstruct-symbol))))))
 	       (reftex-default-bibliography
 		(message "Using default bibliography")
 		(reftex-extract-bib-entries (reftex-default-bibliography)))
@@ -900,7 +907,7 @@ While entering the regexp, completion on knows citation keys is possible.
   ;; recommended for follow mode.  It works OK for individual lookups.
   (let ((win (selected-window))
         (key (reftex-get-bib-field "&key" data))
-        bibfile-list item tmp)
+        bibfile-list item)
 
     (catch 'exit
       (save-excursion
@@ -908,8 +915,12 @@ While entering the regexp, completion on knows citation keys is possible.
 	(cond
 	 ((assq 'bib (symbol-value reftex-docstruct-symbol))
 	  (setq bibfile-list (reftex-get-bibfile-list)))
-	 ((setq tmp (assq 'thebib (symbol-value reftex-docstruct-symbol)))
-	  (setq bibfile-list (list (cdr tmp))
+	 ((assq 'thebib (symbol-value reftex-docstruct-symbol))
+	  (setq bibfile-list
+		(reftex-uniquify
+		 (mapcar 'cdr
+			 (reftex-all-assq 
+			  'thebib (symbol-value reftex-docstruct-symbol))))
 		item t))
 	 (reftex-default-bibliography
 	  (setq bibfile-list (reftex-default-bibliography)))
