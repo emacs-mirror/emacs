@@ -1,6 +1,6 @@
 2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* fns.c (Fclear_string): Put call to CHECK_STRING in correct place.
+	* fns.c (Fclear_string): Declare `len' before call to CHECK_STRING.
 
 2004-07-06  John Paul Wallington  <jpw@gnu.org>
 
