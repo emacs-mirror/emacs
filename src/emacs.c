@@ -1235,6 +1235,9 @@ main (argc, argv
 
       init_window_once ();	/* Init the window system.  */
       init_fileio_once ();	/* Must precede any path manipulation.  */
+#ifdef HAVE_WINDOW_SYSTEM
+      init_fringe_once ();	/* Swap bitmaps if necessary. */
+#endif /* HAVE_WINDOW_SYSTEM */
     }
 
   init_alloc ();
@@ -1499,6 +1502,9 @@ main (argc, argv
 #endif /* WINDOWSNT */
       syms_of_window ();
       syms_of_xdisp ();
+#ifdef HAVE_WINDOW_SYSTEM
+      syms_of_fringe ();
+#endif /* HAVE_WINDOW_SYSTEM */
 #ifdef HAVE_X_WINDOWS
       syms_of_xterm ();
       syms_of_xfns ();
@@ -1581,6 +1587,9 @@ main (argc, argv
 #endif /* HAVE_X_WINDOWS */
   init_fns ();
   init_xdisp ();
+#ifdef HAVE_WINDOW_SYSTEM
+  init_fringe ();
+#endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
   init_editfns ();
   init_floatfns ();
