@@ -5,7 +5,7 @@
 ;; Author: Karl Fogel <kfogel@cyclic.com>
 ;; Maintainer: Karl Fogel <kfogel@cyclic.com>
 ;; Created: July, 1993
-;; Version: 2.6.6
+;; Author's Update Number: 2.6.8
 ;; Keywords: bookmarks, placeholders, annotations
 
 ;;; Summary:
@@ -64,11 +64,6 @@
 
 ;; Based on info-bookmark.el, by Karl Fogel and Ken Olstad
 ;; <olstad@msc.edu>.
-
-;; LCD Archive Entry:
-;; bookmark|Karl Fogel|kfogel@cyclic.com|
-;; Setting bookmarks in files or directories, jumping to them later.|
-;; 06-March-1995|Version: 2.6.6|~/misc/bookmark.el.Z|
 
 ;; Enough with the credits already, get on to the good stuff:
 
@@ -225,8 +220,12 @@ bookmark-default-file, which is `~/.emacs.bmk' by default.")
   "*The .emacs.bmk file used to be called this.")
 
 
+;; defvarred to avoid a compilation warning:
+(defvar bookmark-file nil
+  "Old name for `bookmark-default-file'.")
+
 (defvar bookmark-default-file
-  (if (and (boundp 'bookmark-file) bookmark-file)
+  (if bookmark-file
       ;; In case user set `bookmark-file' in her .emacs:
       bookmark-file
     (if (eq system-type 'ms-dos)
@@ -385,6 +384,10 @@ That is, all information but the name."
              (list (cons 'info-node node))))))
   
 
+(defvar bookmark-history nil
+  "The history list for bookmark functions.")
+
+
 (defun bookmark-completing-read (prompt &optional default)
   "Prompting with PROMPT, read a bookmark name in completion.
 PROMPT will get a \": \" stuck on the end no matter what, so you
@@ -401,10 +404,21 @@ the empty string."
           (completing-read prompt
                            bookmark-alist
                            nil
-                           0)))
+                           0
+                           nil
+                           'bookmark-history)))
     (if (string-equal "" str)
         (list default)
       (list str))))
+
+
+(defmacro bookmark-maybe-historicize-string (string)
+  "Put STRING into the bookmark prompt history, if caller non-interactive.
+We need this because sometimes bookmark functions are invoked from
+menus, so `completing-read' never gets a chance to set `bookmark-history'."
+  (` (or
+      (interactive-p)
+      (setq bookmark-history (cons (, string) bookmark-history)))))
 
 
 (defun bookmark-make (str &optional annotation overwrite)
@@ -642,11 +656,10 @@ To yank words from the text of the buffer and use them as part of the
 bookmark name, type C-w while setting a bookmark.  Successive C-w's
 yank successive words.
 
-Typing C-v inserts the name of the current file being visited. Typing
-C-u inserts the name of the last bookmark used in the buffer \(as an
-aid in using a single bookmark name to track your progress through a
-large file\).  If no bookmark was used, then C-u behaves like C-v and
-inserts the name of the file being visited.
+Typing C-u inserts the name of the last bookmark used in the buffer
+\(as an aid in using a single bookmark name to track your progress
+through a large file\).  If no bookmark was used, then C-u inserts the
+name of the file being visited.
 
 Use \\[bookmark-delete] to remove bookmarks \(you give it a name,
 and it removes only the first instance of a bookmark with that name from
@@ -671,8 +684,6 @@ the list of bookmarks.\)"
 	   (let ((now-map (copy-keymap minibuffer-local-map)))
 	     (progn (define-key now-map  "\C-w" 
 		      'bookmark-yank-word)
-		    (define-key now-map  "\C-v" 
-		      'bookmark-insert-buffer-name)
 		    (define-key now-map  "\C-u" 
 		      'bookmark-insert-current-bookmark))
 	     now-map)))
@@ -699,6 +710,14 @@ Does not affect the kill-ring."
     (delete-region (point) eol)
     (if (and newline-too (looking-at "\n"))
         (delete-char 1))))
+
+
+;; Defvars to avoid compilation warnings:
+(defvar bookmark-annotation-paragraph nil)
+(defvar bookmark-annotation-name nil)
+(defvar bookmark-annotation-buffer nil)
+(defvar bookmark-annotation-file nil)
+(defvar bookmark-annotation-point nil)
 
 
 (defun bookmark-send-annotation ()
@@ -956,6 +975,7 @@ will then jump to the new location, as well as recording it in place
 of the old one in the permanent bookmark record."
   (interactive
    (bookmark-completing-read "Jump to bookmark" bookmark-current-bookmark))
+  (bookmark-maybe-historicize-string str)
   (let ((cell (bookmark-jump-noselect str)))
     (and cell
          (switch-to-buffer (car cell))
@@ -1039,6 +1059,7 @@ existing bookmark point to that file, instead of the one it used to
 point at.  Useful when a file has been renamed after a bookmark was
 set in it."
   (interactive (bookmark-completing-read "Bookmark to relocate"))
+  (bookmark-maybe-historicize-string str)
   (bookmark-maybe-load-default-file)
   (let* ((bmrk-filename (bookmark-get-filename str))
          (newloc (expand-file-name
@@ -1049,9 +1070,12 @@ set in it."
 
 
 ;;;###autoload
-(defun bookmark-insert-location (str)
-  "Insert the name of the file associated with BOOKMARK."
+(defun bookmark-insert-location (str &optional no-history)
+  "Insert the name of the file associated with BOOKMARK.
+Optional second arg NO-HISTORY means don't record this in the
+minibuffer history list `bookmark-history'."
   (interactive (bookmark-completing-read "Insert bookmark location"))
+  (or no-history (bookmark-maybe-historicize-string str))
   (insert (bookmark-location str)))
 
 
@@ -1073,11 +1097,9 @@ is done.  You must pass at least OLD-BOOKMARK when calling from Lisp.
 
 While you are entering the new name, consecutive C-w's insert
 consectutive words from the text of the buffer into the new bookmark
-name.
-C-v inserts the name of the file.
-C-o inserts the old name of the bookmark; this is helpful when you
-just want to make minor changes to the old name."
+name."
   (interactive (bookmark-completing-read "Old bookmark name"))
+  (bookmark-maybe-historicize-string old)
   (bookmark-maybe-load-default-file)
   (progn
     (setq bookmark-current-point (point))
@@ -1085,19 +1107,14 @@ just want to make minor changes to the old name."
     (setq bookmark-current-buffer (current-buffer))
     (let ((newname
            (or new   ; use second arg, if non-nil
-               (read-from-minibuffer 
+               (read-from-minibuffer
                 "New name: "
                 nil
                 (let ((now-map (copy-keymap minibuffer-local-map)))
-                  (progn (define-key now-map  "\C-w" 
-                           'bookmark-yank-word)
-                         (define-key now-map  "\C-o" 
-                           (lambda ()
-                             (interactive)
-                             (insert old)))
-                         (define-key now-map  "\C-v" 
-                           'bookmark-insert-buffer-name))
-                  now-map)))))
+                  (define-key now-map  "\C-w" 'bookmark-yank-word)
+                  now-map)
+                nil
+                'bookmark-history))))
       (progn
 	(bookmark-set-name old newname)
 	(setq bookmark-current-bookmark newname)
@@ -1116,6 +1133,7 @@ You may have a problem using this function if the value of variable
 bookmarks.  See help on function `bookmark-load' for more about
 this."
   (interactive (bookmark-completing-read "Insert bookmark contents"))
+  (bookmark-maybe-historicize-string str)
   (bookmark-maybe-load-default-file)
   (let ((orig-point (point))
         (str-to-insert
@@ -1138,6 +1156,7 @@ Optional second arg BATCH means don't update the bookmark list buffer,
 probably because we were called from there."
   (interactive
    (bookmark-completing-read "Delete bookmark" bookmark-current-bookmark))
+  (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
   (let ((will-go (bookmark-get-bookmark bookmark)))
     (setq bookmark-alist (delq will-go bookmark-alist))
@@ -1491,7 +1510,8 @@ Optional argument SHOW means show them unconditionally."
               (move-to-column bookmark-bmenu-file-column t)
               (delete-region (point) (progn (end-of-line) (point)))
               (insert "  ")
-              (bookmark-insert-location bmrk)
+              ;; Pass the NO-HISTORY arg:
+              (bookmark-insert-location bmrk t)
               (forward-line 1))))))))
 
 
@@ -1962,7 +1982,7 @@ is done.  You must pass at least OLD-BOOKMARK when calling from Lisp.
 
 While you are entering the new name, consecutive C-w's insert
 consectutive words from the text of the buffer into the new bookmark
-name, and C-v inserts the name of the file."
+name."
   (interactive "e")
   (bookmark-popup-menu-and-apply-function
    'bookmark-rename "Rename Bookmark" event))
