@@ -1,3 +1,7 @@
+2002-01-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* unexelf.c (unexec) [__sgi]: Support the .got sections.
+
 2002-01-20  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_native_per_char_metric): Don't trust the metrics
