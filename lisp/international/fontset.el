@@ -68,7 +68,7 @@
     (arabic-1-column . "MuleArabic-1")
     (arabic-2-column . "MuleArabic-2")
     (ipa . "MuleIPA")
-    (ethiopic . "Ethio")
+    (ethiopic . "Ethiopic-Unicode")
     (ascii-right-to-left . "ISO8859-1")
     (indian-is13194 . "IS13194-Devanagari")
     (indian-2-column . "MuleIndian-2")
@@ -195,11 +195,24 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 		  (setq l (cdr (cdr l))))))
 	    xlfd-fields)))))
 
-(defsubst x-compose-font-name (xlfd-fields)
+;; Replace consecutive wild-cards (`*') in NAME to one.
+;; Ex. (x-reduce-font-name "-*-*-*-iso8859-1") => "-*-iso8859-1"
+(defsubst x-reduce-font-name (name)
+  (while (string-match "-\\*-\\(\\*-\\)+" name)
+    (setq name (replace-match "-*-" t t name)))
+  name)
+
+(defun x-compose-font-name (xlfd-fields &optional reduce)
   "Compose X's fontname from FIELDS.
 FIELDS is a vector of XLFD fields.
-If a field is nil, wild-card character `*' is embedded."
-  (concat "-" (mapconcat (lambda (x) (or x "*")) xlfd-fields "-")))
+If a field is nil, wild-card letter `*' is embedded.
+Optional argument REDUCE non-nil means consecutive wild-cards are
+reduced to be one."
+  (let ((name
+	 (concat "-" (mapconcat (lambda (x) (or x "*")) xlfd-fields "-"))))
+    (if reduce
+	(x-reduce-font-name name)
+      name)))
 
 (defun x-complement-fontset-spec (xlfd-fields fontlist)
   "Complement FONTLIST for all charsets based on XLFD-FIELDS and return it.
@@ -226,7 +239,7 @@ automatically."
 		      (concat registry "*"))
 		(aset xlfd-fields xlfd-regexp-encoding-subnum "*"))
 	      (setq fontlist
-		    (cons (cons charset (x-compose-font-name xlfd-fields))
+		    (cons (cons charset (x-compose-font-name xlfd-fields t))
 			  fontlist)))))
       (setq charsets (cdr charsets))))
   fontlist)
@@ -255,8 +268,8 @@ automatically."
 	      (swidth (aref xlfd-fields xlfd-regexp-swidth-subnum))
 	      (size   (aref xlfd-fields xlfd-regexp-pixelsize-subnum))
 	      name)
-	  (if (integerp size)
-	      (setq name (format "%d " size))
+	  (if (> (string-to-int size) 0)
+	      (setq name (format "%s " size))
 	    (setq name ""))
 	  (if (string-match "bold\\|demibold" weight)
 	      (setq name (concat name weight " ")))
