@@ -113,7 +113,7 @@ translators to read other languages for them.\n\n"))
 		system-configuration-options "'\n"))
     (insert "Important settings:\n")
     (insert (format "  value of $LC_ALL: %s\n" (getenv "LC_ALL")))
-    (insert (format "  value of $LC_TYPE: %s\n" (getenv "LC_TYPE")))
+    (insert (format "  value of $LC_CTYPE: %s\n" (getenv "LC_CTYPE")))
     (insert (format "  value of $LANG: %s\n" (getenv "LANG")))
     (insert (format "  locale-coding-system: %s\n" locale-coding-system))
     (insert (format "  default-enable-multibyte-characters: %s\n"
