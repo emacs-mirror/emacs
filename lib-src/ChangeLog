@@ -1,6 +1,11 @@
+2004-06-01  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (obj): Add image.c.
+
 2004-05-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* test-distrib.c (main): For failing cases, exit with `EXIT_FAILURE'.
+	* test-distrib.c (main): For failing cases, exit with
+	`EXIT_FAILURE'.
 
 2004-05-08  Jason Rumney  <jasonr@gnu.org>
 
@@ -14,8 +19,8 @@
 	(main): Use `EXIT_SUCCESS' or `EXIT_FAILURE' for return value.
 
 	* ebrowse.c, emacsclient.c, fakemail.c, hexl.c,
-	make-docfile.c, movemail.c, profile.c, sorted-doc.c,
-	test-distrib.c, update-game-score.c, yow.c: Likewise.
+	* make-docfile.c, movemail.c, profile.c, sorted-doc.c,
+	* test-distrib.c, update-game-score.c, yow.c: Likewise.
 
 2004-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
 

@@ -1,3 +1,11 @@
+2004-06-02  Juanma Barranquero  <lektu@terra.es>
+
+	Work around bugs/problems with MinGW builds of graphics libraries
+	called from MSVC builds of Emacs.
+
+	* image.c (lookup_image): Make pointer to img static.
+	(png_read_from_memory): Disable "global" optimization.
+
 2004-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mem-limits.h (EXCEEDS_LISP_PTR) [USE_LSB_TAG]: Never true.
@@ -6,9 +14,10 @@
 
 	* macfns.c: Don't include ccl.h.
 	[MAC_OSX]: Don't include QuickTime/QuickTime.h.
-	[!MAC_OSX]: Don't include alloca.h, Windows.h, Gestalt.h,
-	or TextUtils.h.
-	(Fx_create_frame): Sync with xfns.c.  Initialize cursor descriptors.
+	[!MAC_OSX]: Don't include alloca.h, Windows.h, Gestalt.h, or
+	TextUtils.h.
+	(Fx_create_frame): Sync with xfns.c.  Initialize cursor
+	descriptors.
 	(Fx_display_mm_height, Fx_display_mm_width): Calculate length from
 	display height/width.
 	(compute_tip_xy, Vx_max_tooltip_size): Declare.
@@ -19,7 +28,8 @@
 
 	* macgui.h [!MAC_OSX]: Include Gestalt.h.
 	(Cursor, No_Cursor): New defines.
-	[!TARGET_API_MAC_CARBON] (SetPortWindowPort): New compatibility macro.
+	[!TARGET_API_MAC_CARBON] (SetPortWindowPort): New compatibility
+	macro.
 	[!TARGET_API_MAC_CARBON] (arrow_cursor): Declare.
 
 	* macmenu.c (mac_menu_show, mac_dialog): Use SetPortWindowPort.
@@ -47,9 +57,11 @@
 	(x_scroll_bar_handle_click): Set `(PORTION . WHOLE)' part in a
 	scroll-bar click event.
 	(mac_define_frame_cursor): Change the pointer shape.
-	(x_free_frame_resources): Reset tip_window to NULL when it is disposed.
+	(x_free_frame_resources): Reset tip_window to NULL when it is
+	disposed.
 	[!TARGET_API_MAC_CARBON] (arrow_cursor): New variable.
-	[!TARGET_API_MAC_CARBON] (do_init_managers): Initialize arrow_cursor.
+	[!TARGET_API_MAC_CARBON] (do_init_managers): Initialize
+	arrow_cursor.
 	(do_window_update): Don't do anything if the updated window is the
 	tooltip window.
 	(do_mouse_moved): Handle mouse movement events here (previously in
@@ -57,8 +69,8 @@
 	dpyinfo->mouse_face_hidden is set.
 	(do_os_event, do_events): Remove (now in XTread_socket).
 	(XTread_socket): Immediately return if interrupt_input_blocked.
-	Loop until all the events in the queue are processed.
-	Rearrange codes for mouse grabbing.  Add tooltip support.  Include the
+	Loop until all the events in the queue are processed.  Rearrange
+	codes for mouse grabbing.  Add tooltip support.  Include the
 	contents of do_os_event and do_events.  Remove mouse movement
 	handling (now in do_mouse_moved).  Add the case where
 	Vmouse_highlight has an integer value.
@@ -67,8 +79,8 @@
 	excess initializations.
 	(make_mac_terminal_frame): Previous initializations in
 	make_mac_frame are moved here.
-	(mac_initialize_display_info):
-	Initialize dpyinfo->mouse_face_overlay and dpyinfo->mouse_face_hidden.
+	(mac_initialize_display_info): Initialize
+	dpyinfo->mouse_face_overlay and dpyinfo->mouse_face_hidden.
 
 	* xdisp.c [MAC_OS] (No_Cursor): Remove variable.
 	(define_frame_cursor1): Don't treat HAVE_CARBON as a special case.
