@@ -1222,9 +1222,11 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Sframe_focus);
   defsubr (&Sframe_parameters);
   defsubr (&Smodify_frame_parameters);
+#if 0
   defsubr (&Sframe_pixel_size);
   defsubr (&Sframe_height);
   defsubr (&Sframe_width);
+#endif
   defsubr (&Sset_frame_height);
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);
