@@ -520,8 +520,8 @@ for decoding and encoding files, process I/O, etc."
       coding-category-iso-8-else	'iso-2022-8bit-ss2
       coding-category-ccl		nil
       coding-category-utf-8		'mule-utf-8
-      coding-category-utf-16-be         nil
-      coding-category-utf-16-le         nil
+      coding-category-utf-16-be         'mule-utf-16-be-with-signature
+      coding-category-utf-16-le         'mule-utf-16-le-with-signature
       coding-category-big5		'chinese-big5
       coding-category-raw-text		'raw-text
       coding-category-binary		'no-conversion)
@@ -529,6 +529,9 @@ for decoding and encoding files, process I/O, etc."
 (set-coding-priority
  '(coding-category-iso-8-1
    coding-category-iso-8-2
+   coding-category-utf-8
+   coding-category-utf-16-be
+   coding-category-utf-16-le
    coding-category-iso-7-tight
    coding-category-iso-7
    coding-category-iso-7-else
@@ -539,9 +542,7 @@ for decoding and encoding files, process I/O, etc."
    coding-category-big5
    coding-category-ccl
    coding-category-binary
-   coding-category-utf-8
-   coding-category-utf-16-be
-   coding-category-utf-16-le))
+   ))
 
 
 ;;; Miscellaneous settings.
