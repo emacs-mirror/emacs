@@ -1252,7 +1252,7 @@
 
 (defun ccl-dump-translate-character-const-tbl (rrr RRR Rrr)
   (let ((tbl (ccl-get-next-code)))
-    (insert (format "translation table(%d) r%d r%d\n" tbl RRR rrr))))
+    (insert (format "translation table(%S) r%d r%d\n" tbl RRR rrr))))
 
 (defun ccl-dump-iterate-multiple-map (rrr RRR Rrr)
   (let ((notbl (ccl-get-next-code))
