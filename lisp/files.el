@@ -494,7 +494,9 @@ colon-separated list of directories when resolving a relative directory name."
 (defun load-file (file)
   "Load the Lisp file named FILE."
   (interactive "fLoad file: ")
-  (load (expand-file-name file) nil nil t))
+  (let ((completion-ignored-extensions
+	 (delete ".elc" completion-ignored-extensions)))
+    (load (expand-file-name file) nil nil t)))
 
 (defun load-library (library)
   "Load the library named LIBRARY.
