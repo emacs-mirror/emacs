@@ -353,88 +353,124 @@ previously with @code{add-untranslated-filesystem}.
 @section Printing and MS-DOS
 
   Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
-@code{ps-print-buffer} (@pxref{Postscript}) can work in MS-DOS by
-sending the output to one of the printer ports, if a Unix-style @code{lpr}
-program is unavailable.  A few DOS-specific variables control how this
-works.
+@code{ps-print-buffer} (@pxref{Postscript}) can work in MS-DOS and
+MS-Windows by sending the output to one of the printer ports, if a
+Unix-style @code{lpr} program is unavailable.  This behaviour is
+controlled by the same variables that control printing with @code{lpr}
+on Unix (@pxref{Hardcopy}, @pxref{Postscript Variables}), but the
+defaults for these variables on MS-DOS and MS-Windows are not the same
+as the defaults on Unix.
 
-@vindex dos-printer
+@vindex printer-name
   If you want to use your local printer, printing on it in the usual DOS
-manner, then set the Lisp variable @code{dos-printer} to the name of the
-printer port---for example, @code{"PRN"}, the usual local printer port
-(that's the default), or @code{"LPT2"} or @code{"COM1"} for a serial
-printer.  You can also set @code{dos-printer} to a file name, in which
-case ``printed'' output is actually appended to that file.  If you set
-@code{dos-printer} to @code{"NUL"}, printed output is silently
+manner, then set the Lisp variable @code{lpr-command} to @code{""} (its
+default value) and @code{printer-name} to the name of the printer
+port---for example, @code{"PRN"}, the usual local printer port (that's
+the default), or @code{"LPT2"}, or @code{"COM1"} for a serial printer.
+You can also set @code{printer-name} to a file name, in which case
+``printed'' output is actually appended to that file.  If you set
+@code{printer-name} to @code{"NUL"}, printed output is silently
 discarded (sent to the system null device).
 
-  If you set @code{dos-printer} to a file name, it's best to use an
+  On MS-Windows, when the Windows network software is installed, you can
+also use a printer shared by another machine by setting
+@code{printer-name} to the UNC share name for that printer--for example,
+@code{"//joes_pc/hp4si"}.  (It doesn't matter whether you use forward
+slashes or backslashes here.)  To find out the names of shared printers,
+run the command @samp{net view} at a DOS command prompt to obtain a list
+of servers, and @samp{net view server-name} to see the names of printers
+(and directories) shared by that server.
+
+  If you set @code{printer-name} to a file name, it's best to use an
 absolute file name.  Emacs changes the working directory according to
 the default directory of the current buffer, so if the file name in
-@code{dos-printer} is relative, you will end up with several such files,
-each one in the directory of the buffer from which the printing was
-done.
+@code{printer-name} is relative, you will end up with several such
+files, each one in the directory of the buffer from which the printing
+was done.
 
 @findex print-buffer @r{(MS-DOS)}
 @findex print-region @r{(MS-DOS)}
 @vindex lpr-headers-switches @r{(MS-DOS)}
   The commands @code{print-buffer} and @code{print-region} call the
 @code{pr} program, or use special switches to the @code{lpr} program, to
-produce headers on each printed page.  MS-DOS doesn't normally have
-these programs, so by default, the variable @code{lpr-headers-switches}
-is set so that the requests to print page headers are silently ignored.
-Thus, @code{print-buffer} and @code{print-region} produce the same
-output as @code{lpr-buffer} and @code{lpr-region}, respectively.  If you
-do have a suitable @code{pr} program (for example, from GNU Textutils),
-set @code{lpr-headers-switches} to @code{nil}; Emacs will then call
+produce headers on each printed page.  MS-DOS and MS-Windows don't
+normally have these programs, so by default, the variable
+@code{lpr-headers-switches} is set so that the requests to print page
+headers are silently ignored.  Thus, @code{print-buffer} and
+@code{print-region} produce the same output as @code{lpr-buffer} and
+@code{lpr-region}, respectively.  If you do have a suitable @code{pr}
+program (for example, from GNU Textutils), set
+@code{lpr-headers-switches} to @code{nil}; Emacs will then call
 @code{pr} to produce the page headers, and print the resulting output as
-specified by @code{dos-printer}.
+specified by @code{printer-name}.
 
 @vindex print-region-function @r{(MS-DOS)}
 @cindex lpr usage under MS-DOS
 @vindex lpr-command @r{(MS-DOS)}
 @vindex lpr-switches @r{(MS-DOS)}
-  Finally, if you do have an @code{lpr} work-alike, you can set
-@code{print-region-function} to @code{nil}.  Then Emacs uses @code{lpr}
-for printing, as on other systems.  (If the name of the program isn't
-@code{lpr}, set the @code{lpr-command} variable to specify where to find
-it.)
+  Finally, if you do have an @code{lpr} work-alike, you can set the
+variable @code{lpr-command} to @code{"lpr"}.  Then Emacs will use
+@code{lpr} for printing, as on other systems.  (If the name of the
+program isn't @code{lpr}, set @code{lpr-command} to specify where to
+find it.)  The variable @code{lpr-switches} has its standard meaning
+when @code{lpr-command} is not @code{""}.  If the variable
+@code{printer-name} has a string value, it is used as the value for the
+@code{-P} option to @code{lpr}, as on Unix.
 
 @findex ps-print-buffer @r{(MS-DOS)}
 @findex ps-spool-buffer @r{(MS-DOS)}
-@vindex dos-ps-printer
+@vindex ps-printer-name
 @vindex ps-lpr-command @r{(MS-DOS)}
 @vindex ps-lpr-switches @r{(MS-DOS)}
-  A separate variable, @code{dos-ps-printer}, defines how PostScript
-files should be printed.  If its value is a string, it is used as the
-name of the device (or file) to which PostScript output is sent, just as
-@code{dos-printer} is used for non-PostScript printing.  (These are two
-distinct variables in case you have two printers attached to two
-different ports, and only one of them is a PostScript printer.)  If the
-value of @code{dos-ps-printer} is not a string, then the variables
-@code{ps-lpr-command} and @code{ps-lpr-switches} (@pxref{Postscript})
-control how to print PostScript files.  Thus, if you have a
-non-PostScript printer, you can set these variables to the name and the
-switches appropriate for a PostScript interpreter program (such as
-Ghostscript).
+  A parallel set of variables, @code{ps-lpr-command},
+@code{ps-lpr-switches}, and @code{ps-printer-name} (@pxref{Postscript
+variables}), defines how PostScript files should be printed.  These
+variables are used in the same way as the corresponding variables
+described above for non-PostScript printing.  Thus, the value of
+@code{ps-printer-name} is used as the name of the device (or file) to
+which PostScript output is sent, just as @code{printer-name} is used for
+non-PostScript printing.  (There are two distinct sets of variables in
+case you have two printers attached to two different ports, and only one
+of them is a PostScript printer.)
+
+  The default value of the variable @code{ps-lpr-command} is @code{""},
+which causes PostScript output to be sent to the printer port specified
+by @code{ps-printer-name}, but @code{ps-lpr-command} can also be set to
+the name of a program which will accept PostScript files.  Thus, if you
+have a non-PostScript printer, you can set this variable to the name of
+a PostScript interpreter program (such as Ghostscript).  Any switches
+that need to be passed to the interpreter program are specified using
+@code{ps-lpr-switches}.  (If the value of @code{ps-printer-name} is a
+string, it will be added to the list of switches as the value for the
+@code{-P} option.  This is probably only useful if you are using
+@code{lpr}, so when using an interpreter typically you would set
+@code{ps-printer-name} to something other than a string so it is
+ignored.)
 
   For example, to use Ghostscript for printing on an Epson printer
 connected to @samp{LPT2} port, put this on your @file{.emacs} file:
 
 @example
-(setq dos-ps-printer t)  ; @r{Anything but a string.}
+(setq ps-printer-name t)  ; Ghostscript doesn't understand -P
 (setq ps-lpr-command "c:/gs/gs386")
 (setq ps-lpr-switches '("-q" "-dNOPAUSE"
 			"-sDEVICE=epson"
 			"-r240x72"
 			"-sOutputFile=LPT2"
-			"-Ic:/gs"
-			"-"))
+			"-Ic:/gs"))
 @end example
 
 @noindent
 (This assumes that Ghostscript is installed in the @file{"c:/gs"}
 directory.)
+
+@vindex dos-printer
+@vindex dos-ps-printer
+  For backwards compatibility, the value of @code{dos-printer}
+(@code{dos-ps-printer}), if it has a value, overrides the value of
+@code{printer-name} (@code{ps-printer-name}), on MS-DOS and MS-Windows
+only.
+
 
 @node MS-DOS and MULE
 @section International Support on MS-DOS
