@@ -1,3 +1,8 @@
+2002-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (titdic-convert): Process the
+	header part in multibyte mode.
+
 2002-12-08  Dave Love  <fx@gnu.org>
 
 	* international/code-pages.el (mule-diag): Move where it's
