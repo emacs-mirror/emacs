@@ -6218,7 +6218,7 @@ provides a file dialog box.  */)
     }
 
   count = SPECPDL_INDEX ();
-#ifdef VMS
+#if defined VMS || defined DOS_NT || defined MAC_OSX
   specbind (intern ("completion-ignore-case"), Qt);
 #endif
 
