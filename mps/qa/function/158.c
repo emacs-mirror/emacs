@@ -1,13 +1,13 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!158.c(trunk.1) $
+ id = $HopeName: MMQA_test_function!158.c(trunk.2) $
  summary = MVFF fenceposting check: subfree
  language = c
  link = testlib.o
 OUTPUT_SPEC
  assert = true
  assertfile P= dbgpool.c
- assertcond = tag->size == size
+ assertcond = fencepost check on free
 END_HEADER
 */
 
