@@ -1,3 +1,8 @@
+2002-01-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* lwlib-Xaw.c (xaw_create_dialog): Initialize icon_name to
+	suppress compiler warnings.
+
 2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* lwlib.c (separator_names): Add missing braces around
