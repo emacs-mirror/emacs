@@ -1,3 +1,9 @@
+2000-12-06  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (NEW_CYGWIN): New define.
+	(DQUOTE) [NEW_CYGWIN]: Cygnus changed the quoting rules since b20,
+	so we need to adjust how we escape embedded quotes.
+
 2000-11-25  Jason Rumney  <jasonr@gnu.org>
 
 	* config.nt (GC_MARK_STACK, GC_SETJMP_WORKS): Define.

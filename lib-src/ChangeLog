@@ -1,3 +1,12 @@
+2000-12-06  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (LOCAL_FLAGS): Remove -DVERSION flag, since we
+	don't know the real version, and I can't seem to get the quoting
+	right in all circumstances.
+
+	* ebrowse.c (VERSION): Provide default definition, like etags.c
+	does, because Windows build can't snarf this from version.el.
+
 2000-11-30  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in ($(BLD)/ebrowse.exe): Use tabs not spaces.
