@@ -290,7 +290,7 @@ summary (abstract) of the message."
 While composing the reply, use \\[news-reply-yank-original] to yank the
 original message into it."
   (interactive)
-  (let (from cc subject date to reply-to
+  (let (from cc subject date to reply-to message-id
 	     (buffer (current-buffer)))
     (save-restriction
       (narrow-to-region (point-min) (progn (goto-line (point-min))
@@ -299,7 +299,8 @@ original message into it."
       (setq from (mail-fetch-field "from")
 	    subject (mail-fetch-field "subject")
 	    reply-to (mail-fetch-field "reply-to")
-	    date (mail-fetch-field "date")))
+	    date (mail-fetch-field "date")
+	    message-id (mail-fetch-field "message-id")))
     (setq to from)
     (pop-to-buffer "*mail*")
     (mail nil
@@ -307,7 +308,10 @@ original message into it."
 	  subject
 	  (let ((stop-pos (string-match "  *at \\|  *@ \\| *(\\| *<" from)))
 	    (concat (if stop-pos (substring from 0 stop-pos) from)
-		    "'s message of "
+		    "'s message "
+		    (if message-id
+			(concat message-id " of ")
+		      "of ")
 		    date))
 	  nil
 	 buffer)))
@@ -366,7 +370,10 @@ original message into it."
 		       (setq message-of
 			     (concat
 			      (if stop-pos (substring from 0 stop-pos) from)
-			      "'s message of "
+			      "'s message "
+			      (if message-id
+				  (concat message-id " of ")
+				"of ")
 			      date)))))
 	      (news-setup
 	       nil
