@@ -3829,7 +3829,7 @@ to the file, instead of any buffer contents, and END is ignored.")
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
     else if (NILP (current_buffer->enable_multibyte_characters))
-      val = (NILP (Flocal_variable_p (Qbuffer_file_coding_system))
+      val = (NILP (Flocal_variable_p (Qbuffer_file_coding_system, Qnil))
 	     ? Qnil
 	     : Fsymbol_value (Qbuffer_file_coding_system));
     else
