@@ -1187,12 +1187,12 @@ following the definition, just like macros.
 @cindex function safety
 @cindex safety of functions
 
-Some major modes such as SES (@pxref{Top,,,ses}) call functions that
-are stored in user files.  User files sometimes have poor
-pedigrees---you can get a spreadsheet from someone you've just met, or
-you can get one through email from someone you've never met.  So it is
-risky to call a function whose source code is stored in a user file
-until you have determined that it is safe.
+Some major modes such as SES call functions that are stored in user
+files.  (@inforef{Top, ,ses}, for more information on SES.)  User
+files sometimes have poor pedigrees---you can get a spreadsheet from
+someone you've just met, or you can get one through email from someone
+you've never met.  So it is risky to call a function whose source code
+is stored in a user file until you have determined that it is safe.
 
 @defun unsafep form &optional unsafep-vars
 Returns @code{nil} if @var{form} is a @dfn{safe} Lisp expression, or
