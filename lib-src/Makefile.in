@@ -181,13 +181,15 @@ LOADLIBES=LIBS_SYSTEM LIBS_MACHINE
    Some other files - those shared with other GNU utilities - need
    HAVE_CONFIG_H #defined before they know they can take advantage of
    the information in ../src/config.h.  */
-ALL_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
+ALL_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
-LINK_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
+LINK_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${LDFLAGS} ${CFLAGS}
-CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
+CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
-/* This is all of CPP_CFLAGS except -Demacs.  */
+/* This was all of CPP_CFLAGS except -Demacs.
+   Now that -Demacs has been deleted from CPP_CFLAGS,
+   this is actually the same as CPP_CFLAGS, but let's not delete it yet.  */
 BASE_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
    -I. -I../src -I${srcdir} -I${srcdir}/../src ${CPPFLAGS} ${CFLAGS}
 
@@ -344,7 +346,7 @@ movemail: movemail.o pop.o
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(LOADLIBES) $(MOVE_LIBS) -o movemail
 
 movemail.o: ${srcdir}/movemail.c ../src/config.h
-	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c
+	$(CC) -c ${CPP_CFLAGS} -Demacs ${MOVE_FLAGS} ${srcdir}/movemail.c
 
 pop.o: ${srcdir}/pop.c
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/pop.c
@@ -372,7 +374,7 @@ $(srcdir)/getdate.c: ${srcdir}/getdate.y
 	cd $(srcdir); ${YACC} ${YFLAGS} getdate.y
 	cd $(srcdir); mv y.tab.c getdate.c
 getdate.o: ${srcdir}/getdate.c ../src/config.h
-	$(CC) $(CPP_CFLAGS) -c ${srcdir}/getdate.c
+	$(CC) $(CPP_CFLAGS) -Demacs -c ${srcdir}/getdate.c
 
 timer.o: ${srcdir}/timer.c ../src/config.h
 	$(CC) -c $(CPP_CFLAGS) ${srcdir}/timer.c
