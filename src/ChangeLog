@@ -1,3 +1,9 @@
+2003-01-31  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (SKIP_GLYPHS): New macro.
+	(set_cursor_from_row): Skip all glyphs that comes from overlay
+	string.
+
 2003-01-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (free_frame_tool_bar): Removed debug printf.
