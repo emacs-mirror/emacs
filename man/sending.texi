@@ -150,8 +150,11 @@ which should not appear in the header of the message actually sent.
 Copies sent this way are called @dfn{blind carbon copies}.
 
 @vindex mail-self-blind
+@cindex copy of every outgoing message
 To send a blind carbon copy of every outgoing message to yourself, set
-the variable @code{mail-self-blind} to @code{t}.
+the variable @code{mail-self-blind} to @code{t}.  To send a blind carbon
+copy of every message to some other @var{address}, set the variable
+@code{mail-default-headers} to @samp{"Bcc: @var{address}\n"}.
 
 @item FCC
 This field contains the name of one file and directs Emacs to append a
@@ -235,6 +238,11 @@ Use both email address and full name, as in @samp{Elvis Parsley
 @item system-default
 Allow the system to insert the @samp{From} field.
 @end table
+
+@vindex mail-default-headers
+  You can force Emacs to insert specific headers into the outgoing
+message by customizing the variable @code{mail-default-headers}.  Its
+value as a string is inserted before you edit the message.
 
 @node Mail Aliases
 @section Mail Aliases
