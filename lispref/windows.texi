@@ -1493,7 +1493,7 @@ characters appear at the right.  The usual value is zero.
   The horizontal scroll position is measured in units of the normal
 character width, which is the width of space in the default font.  Thus,
 if the value is 5, that means the window contents are scrolled left by 5
-times the the normal character width.  How many characters actually
+times the normal character width.  How many characters actually
 disappear off to the left depends on their width, and could vary from
 line to line.
 
