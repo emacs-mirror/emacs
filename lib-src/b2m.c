@@ -22,11 +22,7 @@
 #include <fcntl.h>
 #endif
 
-#include "../src/config.h"
-
-#ifdef __STDC__
-#include <stdlib.h>
-#endif
+#include <../src/config.h>
 
 #ifdef USG
 #include <string.h>
