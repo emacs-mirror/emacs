@@ -38,20 +38,19 @@
  '("$(3$Q#U!.(B "
    (ethio-prefer-ascii-space "_" "$(3$h(B")
    (ethio-prefer-ascii-punctuation "." "$(3$i(B"))
- t "  QUAIL PACKAGE FOR ETHIOPIC (TIGRIGNA AND AMHARIC)
+ t "  Quail package for Ethiopic (Tigrigna and Amharic)
 
-When you activate this package, Ethio minor mode is also turned on.
+When you are in Ethiopic language environment, the following special
+keys are available.
 
-  KEYS AND FUNCTIONS
-
-F2 or `M-x ethio-toggle-space'
+C-F9 or `M-x ethio-toggle-space'
   Toggles space characters for keyboard input.  The current mode is
   indicated in mode-line, whether by `_' (ASCII space) or `$(3$h(B'
   (Ethiopic colon-like word separator).  Even in the `$(3$h(B' mode, an
   ASCII space is inserted if the point is preceded by `an Ethiopic
   punctuation followed by zero or more ASCII spaces'.
 
-F3 or `M-x ethio-toggle-punctuation'
+S-F5 or `M-x ethio-toggle-punctuation'
   Toggles ASCII punctuations and Ethiopic punctuations for keyboard input.
   The current mode is indicated by `.' (ASCII) or `$(3$i(B' (Ethiopic).
 
@@ -66,8 +65,8 @@ C-' or `M-x ethio-gemination'
 
  ;; The following keys should work as defined in lisp/language/ethio-util,
  ;; even during the translation.
- '(([f2]    . quail-execute-non-quail-command)
-   ([f3]    . quail-execute-non-quail-command)
+ '(([C-f9]  . quail-execute-non-quail-command)
+   ([S-f5]  . quail-execute-non-quail-command)
    (" "     . quail-execute-non-quail-command)
    ([?\S- ] . quail-execute-non-quail-command)
    ([?\C-'] . quail-execute-non-quail-command))
