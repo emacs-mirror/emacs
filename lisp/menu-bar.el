@@ -118,9 +118,14 @@
 (defun menu-bar-enable-clipboard ()
   "Make the menu bar CUT, PASTE and COPY items use the clipboard."
   (interactive)
-  (define-key menu-bar-edit-menu [paste] '("Paste" . clipboard-yank))
-  (define-key menu-bar-edit-menu [copy] '("Copy" . clipboard-kill-ring-save))
-  (define-key menu-bar-edit-menu [cut] '("Cut" . clipboard-kill-region)))
+  ;; We can't use constant list structure here because it becomes pure,
+  ;; and because it gets modified with cache data.
+  (define-key menu-bar-edit-menu [paste]
+    (cons "Paste" 'clipboard-yank))
+  (define-key menu-bar-edit-menu [copy]
+    (cons "Copy" 'clipboard-kill-ring-save))
+  (define-key menu-bar-edit-menu [cut]
+    (cons "Cut" 'clipboard-kill-region)))
 
 ;; Sun expects these commands on these keys, so why not?
 (define-key global-map [f20] 'clipboard-kill-region)
