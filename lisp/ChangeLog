@@ -1,3 +1,10 @@
+2005-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-imenu-generic-expression): Add entries
+	for perldoc sections.
+	(perl-outline-regexp, perl-outline-level): New var and function.
+	(perl-mode): Use them.
+
 2005-02-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (diary-remind): Discard any mark portion
