@@ -1,5 +1,8 @@
 2002-07-17  Juanma Barranquero  <lektu@terra.es>
 
+	* help-fns.el (describe-function-1): Put empty line before "Not
+	documented" text.
+
 	* timer.el (timer-set-time-with-usecs): Mark obsolete.
 
 2002-07-16  Stefan Monnier  <monnier@cs.yale.edu>
