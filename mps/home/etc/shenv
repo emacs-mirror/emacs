@@ -1,6 +1,7 @@
 # ==== MM PROJECT ROBOT ENVIRONMENT SETUP ====
 #
-# $Id: etc:shenv,v 1.1 1994/06/15 12:43:48 mm Exp $
+# $Id: etc:shenv,v 1.2 1995/03/22 11:05:10 richard Exp $
 #
 
 PATH="$HOME/bin:/usr/local/bin:/usr/ucb:/usr/bin:/bin" export PATH
+umask 002
