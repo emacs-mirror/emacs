@@ -458,7 +458,7 @@ characters which may be a part of the name of a mail alias.")
 		   (expand-abbrev)
 		   ;; Now set it back to what it was before.
 		   (set-syntax-table mail-mode-header-syntax-table)))
-	     (setq abbrev-start-location (point) ; This is the trick.
+	     (setq abbrev-start-location (point-max) ; This is the trick.
 		   abbrev-start-location-buffer (current-buffer)))
 
 	 ;; We're not in a mail header where mail aliases should
