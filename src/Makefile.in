@@ -1006,7 +1006,8 @@ bytecode.o: bytecode.c buffer.h syntax.h $(config_h)
 data.o: data.c buffer.h puresize.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
-fns.o: fns.c commands.h $(config_h) frame.h buffer.h keyboard.h INTERVAL_SRC
+fns.o: fns.c commands.h $(config_h) frame.h buffer.h keyboard.h \
+ frame.h INTERVAL_SRC
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h $(config_h)
 lread.o: lread.c commands.h keyboard.h buffer.h paths.h $(config_h) \
  termhooks.h
