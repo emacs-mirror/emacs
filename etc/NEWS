@@ -889,6 +889,9 @@ font-lock keywords from the current buffer or from a specific major mode.
 *** `font-lock-syntactic-face-function' allows major-modes to choose
 the face used for each string/comment.
 
+*** A new standard face `font-lock-doc-face'.
+Meant for Lisp docstrings, Javadoc comments and other "documentation in code".
+
 ** Comint (subshell) changes
 
 These changes generally affect all modes derived from comint mode, which
@@ -1690,6 +1693,8 @@ parser. It doesn't parse the DTDs however.
 *** The comment operations are now provided by the newcomment.el
 package which allows different styles of comment-region and should
 be more robust while offering the same functionality.
+`comment-region' now doesn't always comment a-line-at-a-time, but only
+comments the region, breaking the line at point if necessary.
 
 +++
 *** The Ebrowse package implements a C++ class browser and tags
@@ -2429,6 +2434,9 @@ what BODY returns.
 +++
 ** Regular expressions now support intervals \{n,m\} as well as
 Perl's shy-groups \(?:...\) and non-greedy *? +? and ?? operators.
+Also backreferences like \2 are now considered as an error if the
+corresponding subgroup does not exist (or is not closed yet).
+Previously it would have been silently turned into `2' (ignoring the `\').
 
 +++
 ** The optional argument BUFFER of function file-local-copy has been
