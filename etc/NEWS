@@ -2222,6 +2222,10 @@ arg is non-nil.
 modification times.  Magic file name handlers can handle this
 operation.
 
+** file-remote-p now returns an identifier for the remote system,
+if the file is indeed remote.  (Before, the return value was t in
+this case.)
+
 ** The display space :width and :align-to text properties are now
 supported on text terminals.
 
