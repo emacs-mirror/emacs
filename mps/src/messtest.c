@@ -5,7 +5,7 @@
  */
 
 #include "mpm.h"
-#include "mpsaan.h"
+#include "mpsavm.h"
 #include "mps.h"
 #include "testlib.h"
 
@@ -46,7 +46,7 @@ static MessageClassStruct DFMessageClassStruct = {
   "DummyFinal",                /* name */
   dfMessageDelete,             /* Delete */
   MessageNoFinalizationRef,    /* FinalizationRef */
-  MessageNoGCLiveSize,         /* GCLiveSize */   
+  MessageNoGCLiveSize,         /* GCLiveSize */
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
   MessageClassSig              /* design.mps.message.class.sig.double */
@@ -60,7 +60,7 @@ static MessageClassStruct DGCMessageClassStruct = {
   "DummyGC",                   /* name */
   dfMessageDelete,             /* Delete */
   MessageNoFinalizationRef,    /* FinalizationRef */
-  MessageNoGCLiveSize,         /* GCLiveSize */   
+  MessageNoGCLiveSize,         /* GCLiveSize */
   MessageNoGCCondemnedSize,    /* GCCondemnedSize */
   MessageNoGCNotCondemnedSize, /* GCNoteCondemnedSize */
   MessageClassSig              /* design.mps.message.class.sig.double */
@@ -267,12 +267,12 @@ static void testGetEmpty(Arena arena)
 extern int main(int argc, char *argv[])
 {
   mps_arena_t mpsArena;
-  Arena arena; /* an ANSI arena for managing the mesasge queue */
+  Arena arena; /* an arena for managing the message queue */
 
   testlib_unused(argc);
   testlib_unused(argv);
 
-  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_an()),
+  die((mps_res_t)mps_arena_create(&mpsArena, mps_arena_class_vm()),
       "Failed to create arena");
   arena = (Arena)mpsArena;
 

@@ -32,7 +32,7 @@ typedef struct PThreadextStruct *PThreadext;
 typedef struct PThreadextStruct {
   Sig sig;                         /* design.mps.sig */
   pthread_t id;                    /* Thread ID */
-  struct sigcontext *suspendedScp; /* sigcontext if suspended */
+  MutatorFaultContext suspendedMFC; /* context if suspended */
   RingStruct threadRing;           /* ring of suspended threads */
   RingStruct idRing;               /* duplicate suspensions for id */
 } PThreadextStruct;
@@ -57,8 +57,7 @@ extern void PThreadextFinish(PThreadext pthreadext);
 /*  PThreadextSuspend -- Suspend a pthreadext and return its context. */
 
 extern Res PThreadextSuspend(PThreadext pthreadext,
-			     struct sigcontext **contextReturn);
-
+ 			     MutatorFaultContext *contextReturn);
 
 /*  PThreadextResume --  Resume a suspended pthreadext */
 

@@ -8,7 +8,7 @@
 #include "cbs.h"
 #include "mpm.h"
 #include "mps.h"
-#include "mpsaan.h"             /* ANSI arena for ABQCreate and ABQDestroy */
+#include "mpsavm.h"
 #include "testlib.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +27,7 @@ static Size abqSize; /* the size of the current ABQ */
 #define TEST_ITER 10000
 
 
-static unsigned long random(unsigned long n)
+static unsigned long abqRnd(unsigned long n)
 {
   return rnd()%n;
 }
@@ -81,7 +81,7 @@ static void DestroyCBSBlock(CBSBlock c)
     testBlocks = b->next;
   else {
     Test prev;
- 
+
     for (prev = testBlocks; prev != 0; prev = prev->next)
       if (prev->next == b) {
         prev->next = b->next;
@@ -98,7 +98,7 @@ static void step(void)
   Res res;
   CBSBlock a;
 
-  switch (random(9)) {
+  switch (abqRnd(9)) {
     case 0: case 1: case 2: case 3:
   push:
       res = ABQPush(&abq, CreateCBSBlock(pushee));
@@ -124,8 +124,8 @@ static void step(void)
     default:
       if (!deleted & (pushee > popee)) {
         Test b;
-     
-        deleted = random (pushee - popee) + popee;
+
+        deleted = abqRnd (pushee - popee) + popee;
         for (b = testBlocks; b != NULL; b = b->next)
           if (b->id == deleted)
             break;
@@ -144,9 +144,9 @@ extern int main(void)
 
   abqSize = 0;
 
-  res = mps_arena_create(&arena, mps_arena_class_an());
+  res = mps_arena_create(&arena, mps_arena_class_vm());
   if (res != MPS_RES_OK) {
-    printf("failed to create ANSI arena.\n");
+    printf("failed to create VM arena.\n");
     return 1;
   }
 

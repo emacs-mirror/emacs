@@ -7,7 +7,7 @@
 
 #include "mpm.h"
 #include "mps.h"
-#include "mpsaan.h" /* ANSI arena for BTCreate and BTDestroy */
+#include "mpsavm.h"
 #include "testlib.h"
 
 #include <stdio.h>
@@ -29,7 +29,7 @@ SRCID(bttest, "$HopeName: !bttest.c(trunk.4) $");
 
 static BT bt; /* the BT which we will use */
 static Size btSize; /* the size of the current BT */
-static Arena arena; /* the ANSI arena which we use to allocate the BT */
+static Arena arena; /* the arena which we use to allocate the BT */
 
 
 #define MAX_ARGS 3
@@ -77,7 +77,7 @@ static Bool checkDefaultRange(Index arg)
     return FALSE;
   }
   return TRUE; /* explicit valid range */
-}   
+}
 
 
 static void quit(void)
@@ -362,7 +362,7 @@ static void showBT(void) {
 /* disable "conversion from int to char" */
 #pragma warning(default: 4244)
 #endif
-     
+
 
 extern int main(int argc, char *argv[])
 {
@@ -373,9 +373,9 @@ extern int main(int argc, char *argv[])
   testlib_unused(argc); testlib_unused(argv);
 
   res = mps_arena_create((mps_arena_t *)&arena,
-                         mps_arena_class_an());
+                         mps_arena_class_vm());
   if (res != MPS_RES_OK) {
-    printf("failed to create ANSI arena.\n");
+    printf("failed to create VM arena.\n");
     return 1;
   }
   while(1) {

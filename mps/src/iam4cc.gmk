@@ -15,5 +15,7 @@ SWPF = than.c vmi5.c protsw.c prmcan.c ssan.c
 LIBS = -lm
 
 LINKFLAGS = -n32
+ARFLAGSPFM = s
 
+AR=/bin/ar
 include i6cc.gmk
