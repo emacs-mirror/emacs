@@ -992,6 +992,9 @@ This operates on the output from the \\[compile] command."
   (interactive)
   (next-error '(4)))
 
+(defvar compilation-skip-to-next-location nil
+  "*If non-nil, skip multiple error messages for the same source location.")
+
 (defun compilation-next-error-locus (&optional move reparse silent)
   "Visit next compilation error and return locus in corresponding source code.
 This operates on the output from the \\[compile] command.
@@ -1131,11 +1134,12 @@ The current buffer should be the desired compilation output buffer."
 	  (setq next-errors compilation-error-list
 		next-error (car next-errors)))))
 
-    ;; Skip over multiple error messages for the same source location,
-    ;; so the next C-x ` won't go to an error in the same place.
-    (while (and compilation-error-list
-		(equal (cdr (car compilation-error-list)) (cdr next-error)))
-      (setq compilation-error-list (cdr compilation-error-list)))
+    (if compilation-skip-to-next-location
+	;; Skip over multiple error messages for the same source location,
+	;; so the next C-x ` won't go to an error in the same place.
+	(while (and compilation-error-list
+		    (equal (cdr (car compilation-error-list)) (cdr next-error)))
+	  (setq compilation-error-list (cdr compilation-error-list))))
 
     ;; We now have a marker for the position of the error source code.
     ;; NEXT-ERROR is a cons (ERROR . SOURCE) of two markers.
@@ -1456,7 +1460,9 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		 (let ((this (cons (point-marker)
 				   (list filename linenum column))))
 		   ;; Don't add the same source line more than once.
-		   (if (equal (cdr this) (cdr (car compilation-error-list)))
+		   (if (and compilation-skip-to-next-location
+			    (equal (cdr this)
+				   (cdr (car compilation-error-list))))
 		       nil
 		     (setq compilation-error-list
 			   (cons this
