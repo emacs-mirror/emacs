@@ -1,4 +1,4 @@
-GNU Emacs NEWS -- history of user-visible changes.  2001-01-16
+GNU Emacs NEWS -- history of user-visible changes.  2001-03-15
 Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 See the end for copying conditions.
 
@@ -47,6 +47,355 @@ description of aspects specific to the Mac.
 
 * Changes in Emacs 21.1
 
+** Emacs has a new redisplay engine.
+
+The new redisplay handles characters of variable width and height.
+Italic text can be used without redisplay problems.  Fonts containing
+oversized characters, i.e. characters larger than the logical height
+of a font can be used.  Images of various formats can be displayed in
+the text.
+
+** Emacs has a new face implementation.
+
+The new faces no longer fundamentally use X font names to specify the
+font.  Instead, each face has several independent attributes--family,
+height, width, weight and slant--that it may or may not specify.
+These attributes can be merged from various faces, and then together
+specify a font.
+
+Faces are supported on terminals that can display color or fonts.
+These terminal capabilities are auto-detected.  Details can be found
+under Lisp changes, below.
+
+** Emacs can display faces on TTY frames.
+
+Emacs automatically detects terminals that are able to display colors.
+Faces with a weight greater than normal are displayed extra-bright, if
+the terminal supports it.  Faces with a weight less than normal and
+italic faces are displayed dimmed, if the terminal supports it.
+Underlined faces are displayed underlined if possible.  Other face
+attributes such as `overline', `strike-through', and `box' are ignored
+on terminals.
+
+The command-line options `-fg COLOR', `-bg COLOR', and `-rv' are now
+supported on character terminals.
+
+** New default font is Courier 12pt under X.
+
++++
+** Emacs now resizes mini-windows if appropriate.
+
+If a message is longer than one line, or minibuffer contents are
+longer than one line, Emacs can resize the minibuffer window unless it
+is on a frame of its own.  You can control resizing and the maximum
+minibuffer window size by setting the following variables:
+
+- User option: max-mini-window-height
+
+Maximum height for resizing mini-windows.  If a float, it specifies a
+fraction of the mini-window frame's height.  If an integer, it
+specifies a number of lines.
+
+Default is 0.25.
+
+- User option: resize-mini-windows
+
+How to resize mini-windows.  If nil, don't resize.  If t, always
+resize to fit the size of the text.  If `grow-only', let mini-windows
+grow only, until they become empty, at which point they are shrunk
+again.
+
+Default is `grow-only'.
+
+** LessTif support.
+
+Emacs now runs with the LessTif toolkit (see
+<http://www.lesstif.org>).  You will need version 0.92 or later.
+
+** LessTif/Motif file selection dialog.
+
+When Emacs is configured to use LessTif or Motif, reading a file name
+from a menu will pop up a file selection dialog if `use-dialog-box' is
+non-nil.
+
+** Toolkit scroll bars.
+
+Emacs now uses toolkit scroll bars if available.  When configured for
+LessTif/Motif, it will use that toolkit's scroll bar.  Otherwise, when
+configured for Lucid and Athena widgets, it will use the Xaw3d scroll
+bar if Xaw3d is available.  You can turn off the use of toolkit scroll
+bars by specifying `--with-toolkit-scroll-bars=no' when configuring
+Emacs.
+
+When you encounter problems with the Xaw3d scroll bar, watch out how
+Xaw3d is compiled on your system.  If the Makefile generated from
+Xaw3d's Imakefile contains a `-DNARROWPROTO' compiler option, and your
+Emacs system configuration file `s/your-system.h' does not contain a
+define for NARROWPROTO, you might consider adding it.  Take
+`s/freebsd.h' as an example.
+
+Alternatively, if you don't have access to the Xaw3d source code, take
+a look at your system's imake configuration file, for example in the
+directory `/usr/X11R6/lib/X11/config' (paths are different on
+different systems).  You will find files `*.cf' there.  If your
+system's cf-file contains a line like `#define NeedWidePrototypes NO',
+add a `#define NARROWPROTO' to your Emacs system configuration file.
+
+The reason for this is that one Xaw3d function uses `double' or
+`float' function parameters depending on the setting of NARROWPROTO.
+This is not a problem when Imakefiles are used because each system's
+image configuration file contains the necessary information.  Since
+Emacs doesn't use imake, this has do be done manually.
+
++++
+** Automatic Hscrolling
+
+Horizontal scrolling now happens automatically if
+`automatic-hscrolling' is set (the default).  This setting can be
+customized.
+
+If a window is scrolled horizontally with set-window-hscroll, or
+scroll-left/scroll-right (C-x <, C-x >), this serves as a lower bound
+for automatic horizontal scrolling.  Automatic scrolling will scroll
+the text more to the left if necessary, but won't scroll the text more
+to the right than the column set with set-window-hscroll etc.
+
++++
+** Tool bar support.
+
+Emacs supports a tool bar at the top of a frame under X.  For details
+of how to define a tool bar, see the page describing Lisp-level
+changes.  Tool-bar global minor mode controls whether or not it is
+displayed and is on by default.  The appearance of the bar is improved
+if Emacs has been built with XPM image support.  Otherwise monochrome
+icons will be used.
+
+To make the tool bar more useful, we need contributions of extra icons
+for specific modes (with copyright assignments).  Contributions would
+also be useful manually to touch up some of the PBM icons.
+
++++
+** Tooltips.
+
+Tooltips are small X windows displaying a help string at the current
+mouse position.  The Lisp package `tooltip' implements them.  You can
+turn them off via the user option `tooltip-mode'.
+
+Tooltips also provides support for GUD debugging.  If activated,
+variable values can be displayed in tooltips by pointing at them with
+the mouse in source buffers.  You can customize various aspects of the
+tooltip display in the group `tooltip'.
+
++++
+** When using a windowing terminal, each Emacs window now has a cursor
+of its own.  By default, when a window is selected, the cursor is
+solid; otherwise, it is hollow.  The user-option
+`show-cursor-in-non-selected-windows' controls how to display the
+cursor in non-selected windows.  If nil, no cursor is shown, if
+non-nil a hollow box cursor is shown.  This option can be customized.
+
+** Fringes to the left and right of windows are used to display
+truncation marks, continuation marks, overlay arrows and alike.  The
+foreground, background, and stipple of these areas can be changed by
+customizing face `fringe'.
+
+** The mode line under X is now drawn with shadows by default.
+You can change its appearance by modifying the face `mode-line'.
+In particular, setting the `:box' attribute to nil turns off the 3D
+appearance of the mode line.  (The 3D appearance makes the mode line
+occupy more space, and thus might cause the first or the last line of
+the window to be partially obscured.)
+
+The variable `mode-line-inverse-video', which was used in older
+versions of emacs to make the mode-line stand out, now defaults to nil,
+and its use is deprecated.
+
++++
+** Mouse-sensitive mode line.
+
+Different parts of the mode line under X have been made
+mouse-sensitive.  Moving the mouse to a mouse-sensitive part in the mode
+line changes the appearance of the mouse pointer to an arrow, and help
+about available mouse actions is displayed either in the echo area, or
+in the tooltip window if you have enabled one.
+
+Currently, the following actions have been defined:
+
+- Mouse-1 on the buffer name in the mode line switches between two
+buffers.
+
+- Mouse-2 on the buffer-name switches to the next buffer, and
+M-mouse-2 switches to the previous buffer in the buffer list.
+
+- Mouse-3 on the buffer-name displays a buffer menu.
+
+- Mouse-2 on the read-only or modified status in the mode line (`%' or
+`*') toggles the status.
+
+- Mouse-3 on the mode name displays a minor-mode menu.
+
++++
+** Hourglass pointer
+
+Emacs can optionally display an hourglass pointer under X.  You can
+turn the display on or off by customizing group `cursor'.
+
++++
+** Blinking cursor
+
+M-x blink-cursor-mode toggles a blinking cursor under X and on
+terminals having terminal capabilities `vi', `vs', and `ve'.  Blinking
+and related parameters like frequency and delay can be customized in
+the group `cursor'.
+
++++
+** New font-lock support mode `jit-lock-mode'.
+
+This support mode is roughly equivalent to `lazy-lock' but is
+generally faster.  It supports stealth and deferred fontification.
+See the documentation of the function `jit-lock-mode' for more
+details.
+
+Font-lock uses jit-lock-mode as default support mode, so you don't
+have to do anything to activate it.
+
++++
+** The default for user-option `next-line-add-newlines' has been
+changed to nil, i.e. C-n will no longer add newlines at the end of a
+buffer by default.
+
+** The <home> and <end> keys now move to the beginning or end of the
+current line, respectively.  C-<home> and C-<end> move to the
+beginning and end of the buffer.
+
+** Emacs now checks for recursive loads of Lisp files.  If the
+recursion depth exceeds `recursive-load-depth-limit', an error is
+signaled.
+
+** When an error is signaled during the loading of the user's init
+file, Emacs now pops up the *Messages* buffer.
+
++++
+** Emacs now refuses to load compiled Lisp files which weren't
+compiled with Emacs.  Set `load-dangerous-libraries' to t to change
+this behavior.
+
+The reason for this change is an incompatible change in XEmacs' byte
+compiler.  Files compiled with XEmacs can contain byte codes that let
+Emacs dump core.
+
+** Toggle buttons and radio buttons in menus.
+
+When compiled with LessTif (or Motif) support, Emacs uses toolkit
+widgets for radio and toggle buttons in menus.  When configured for
+Lucid, Emacs draws radio buttons and toggle buttons similar to Motif.
+
+** The menu bar configuration has changed.  The new configuration is
+more CUA-compliant.  The most significant change is that Options is
+now a separate menu-bar item, with Mule and Customize as its submenus.
+
+** Item Save Options on the Options menu allows saving options set
+using that menu.
+
++++
+** Highlighting of trailing whitespace.
+
+When `show-trailing-whitespace' is non-nil, Emacs displays trailing
+whitespace in the face `trailing-whitespace'.  Trailing whitespace is
+defined as spaces or tabs at the end of a line.  To avoid busy
+highlighting when entering new text, trailing whitespace is not
+displayed if point is at the end of the line containing the
+whitespace.
+
++++
+** C-x 5 1 runs the new command delete-other-frames which deletes
+all frames except the selected one.
+
+** The new user-option `confirm-kill-emacs' can be customized to
+let Emacs ask for confirmation before exiting.
+
++++
+** Highlighting of mouse-sensitive regions is now supported in the
+MS-DOS version of Emacs.
+
+** The header line in an Info buffer is now displayed as an emacs
+header-line (which is like a mode-line, but at the top of the window),
+so that it remains visible even when the buffer has been scrolled.
+This behavior may be disabled by customizing the option
+`Info-use-header-line'.
+
++++
+** The recommended way of using Iswitchb is via the new global minor
+mode `iswitchb-mode'.
+
++++
+** Just loading the msb package doesn't switch on Msb mode anymore.
+If you have `(require 'msb)' in your .emacs, please replace it with
+`(msb-mode 1)'.
+
+** Polish, Czech, German, and French translations of Emacs' reference card
+have been added.  They are named `pl-refcard.tex', `cs-refcard.tex',
+`de-refcard.tex' and `fr-refcard.tex'.  Postscript files are included.
+
+** An `Emacs Survival Guide', etc/survival.tex, is available.
+
+** A reference card for Dired has been added.  Its name is
+`dired-ref.tex'.  A French translation is available in
+`fr-drdref.tex'.
+
++++
+** C-down-mouse-3 is bound differently.  Now if the menu bar is not
+displayed it pops up a menu containing the items which would be on the
+menu bar.  If the menu bar is displayed, it pops up the major mode
+menu or the Edit menu if there is no major mode menu.
+
+** Variable `load-path' is no longer customizable because it contains
+a version-dependent component.
+
+** The new user-option `delete-key-deletes-forward' can be set to
+let the Delete function key delete forward instead of backward.
+
+On window systems, the default value of this option is chosen
+according to the keyboard used.  If the keyboard has both a Backspace
+key and a Delete key, and both are mapped to their usual meanings, the
+option's default value is set to t, so that Backspace can be used to
+delete backward, and Delete can be used to delete forward.
+
+If not running under a window system, setting this option accomplishes
+a similar effect by mapping C-h, which is usually generated by the
+Backspace key, to DEL, and by mapping DEL to C-d via
+`keyboard-translate'.  The former functionality of C-h is available on
+the F1 key.  You should probably not use this setting if you don't
+have both Backspace, Delete and F1 keys.
+
+Programmatically, you can call function
+delete-key-deletes-forward-mode to toggle the behavior of the Delete
+key.
+
++++
+** C-u C-x = provides detailed information about the character at
+point in a pop-up window.
+
++++
+** Emacs can now support 'wheeled' mice (such as the MS IntelliMouse)
+under XFree86.  To enable this, use the `mouse-wheel-mode' command, or
+customize the variable `mouse-wheel-mode'.
+
+The variables `mouse-wheel-follow-mouse' and `mouse-wheel-scroll-amount'
+determine where and by how much buffers are scrolled.
+
++++
+** Emacs' auto-save list files are now by default stored in a
+sub-directory `.emacs.d/auto-save-list/' of the user's home directory.
+(On MS-DOS, this subdirectory's name is `_emacs.d/auto-save.list/'.)
+You can customize `auto-save-list-prefix' to change this location.
+
++++
+** The function `getenv' is now callable interactively.
+
+** The many obsolete language `setup-...-environment' commands have
+been removed -- use `set-language-environment'.
+
 +++
 ** The environment variable `EMACSLOCKDIR' is no longer used on MS-Windows.
 This environment variable was used when creating lock files.  Emacs on
@@ -68,13 +417,6 @@ nil        -- just delete one character.
 Default value is `untabify'.
 
 [This change was made in Emacs 20.3 but not mentioned then.]
-
-** The new user-option `confirm-kill-emacs' can be customized to
-let Emacs ask for confirmation before exiting.
-
-** The <home> and <end> keys now move to the beginning or end of the
-current line, respectively.  C-<home> and C-<end> move to the
-beginning and end of the buffer.
 
 ** In Cperl mode `cperl-invalid-face' should now be a normal face
 symbol, not double-quoted.
@@ -99,11 +441,6 @@ with mice that don't report their number of buttons correctly.  One
 example is the wheeled mice, which report 3 buttons, but clicks on the
 middle button are not passed to the MS-DOS version of Emacs.
 
-+++
-** The default for user-option `next-line-add-newlines' has been
-changed to nil, i.e. C-n will no longer add newlines at the end of a
-buffer by default.
-
 ** The new command M-x delete-trailing-whitespace RET will delete the
 trailing whitespace within the current restriction.  You can also add
 this function to `write-file-hooks' or `local-write-file-hooks'.
@@ -123,18 +460,9 @@ To control it, set `auto-compression-mode' via Custom or use the
 ** The functions `keep-lines', `flush-lines' and `how-many' now
 operate on the active region in Transient Mark mode.
 
-** The header line in an Info buffer is now displayed as an emacs header-line
-(which is like a mode-line, but at the top of the window), so that it
-remains visible even when the buffer has been scrolled.  This behavior
-may be disabled by customizing the option `Info-use-header-line'.
-
 +++
 ** `gnus-user-agent' is a new possibility for `mail-user-agent'.  It
 is like `message-user-agent', but with all the Gnus paraphernalia.
-
-+++
-** The recommended way of using Iswitchb is via the new global minor
-mode `iswitchb-mode'.
 
 +++
 ** Gnus changes.
@@ -211,10 +539,6 @@ file that is already visited under a different name.
 ** The new user-option `electric-help-shrink-window' can be set to
 nil to prevent adjusting the help window size to the buffer size.
 
-** Emacs now checks for recursive loads of Lisp files.  If the
-recursion depth exceeds `recursive-load-depth-limit', an error is
-signaled.
-
 ** The Strokes package has been updated.  If your Emacs has XPM
 support, you can use it for pictographic editing.  In Strokes mode,
 use C-mouse-2 to compose a complex stoke and insert it into the
@@ -226,19 +550,6 @@ new command M-x strokes-list-strokes.
 ** New command M-x describe-character-set reads a character set name
 and displays information about that.
 
-** When an error is signaled during the loading of the user's init
-file, Emacs now pops up the *Messages* buffer.
-
-** Polish, Czech, German, and French translations of Emacs' reference card
-have been added.  They are named `pl-refcard.tex', `cs-refcard.tex',
-`de-refcard.tex' and `fr-refcard.tex'.  Postscript files are included.
-
-** An `Emacs Survival Guide', etc/survival.tex, is available.
-
-** A reference card for Dired has been added.  Its name is
-`dired-ref.tex'.  A French translation is available in
-`fr-drdref.tex'.
-
 ** The new variable `auto-mode-interpreter-regexp' contains a regular
 expression matching interpreters, for file mode determination.
 
@@ -248,38 +559,6 @@ mode from the file's name.  If it matches, the file is assumed to be
 interpreted by the interpreter matched by the second group of the
 regular expression.  The mode is then determined as the mode
 associated with that interpreter in `interpreter-mode-alist'.
-
-+++
-** C-down-mouse-3 is bound differently.  Now if the menu bar is not
-displayed it pops up a menu containing the items which would be on the
-menu bar.  If the menu bar is displayed, it pops up the major mode
-menu or the Edit menu if there is no major mode menu.
-
-** Variable `load-path' is no longer customizable because it contains
-a version-dependent component.
-
-** The new user-option `delete-key-deletes-forward' can be set to
-let the Delete function key delete forward instead of backward.
-
-On window systems, the default value of this option is chosen
-according to the keyboard used.  If the keyboard has both a Backspace
-key and a Delete key, and both are mapped to their usual meanings, the
-option's default value is set to t, so that Backspace can be used to
-delete backward, and Delete can be used to delete forward.
-
-If not running under a window system, setting this option accomplishes
-a similar effect by mapping C-h, which is usually generated by the
-Backspace key, to DEL, and by mapping DEL to C-d via
-`keyboard-translate'.  The former functionality of C-h is available on
-the F1 key.  You should probably not use this setting if you don't
-have both Backspace, Delete and F1 keys.
-
-Programmatically, you can call function
-delete-key-deletes-forward-mode to toggle the behavior of the Delete
-key.
-
-** Item Save Options on the Options menu allows saving options set
-using that menu.
 
 ** New function executable-make-buffer-file-executable-if-script-p is
 suitable as an after-save-hook as an alternative to `executable-chmod'.
@@ -308,10 +587,6 @@ RET C-x C-f filename RET.
 environment variable `HANGUL_KEYBOARD_TYPE'.
 
 +++
-** C-u C-x = provides detailed information about the character at
-point in a pop-up window.
-
-+++
 ** New command M-x list-charset-chars reads a character set name and
 displays all characters in that character set.
 
@@ -325,22 +600,10 @@ defined in newcomment.el.  You can choose different styles of region
 commenting with the variable `comment-style'.
 
 +++
-** The function `getenv' is now callable interactively.
-
-** The many obsolete language `setup-...-environment' commands have
-been removed -- use `set-language-environment'.
-
-+++
 ** New user options `display-time-mail-face' and
 `display-time-use-mail-icon' control the appearance of mode-line mail
 indicator used by the display-time package.  On a suitable display the
 indicator can be an icon and is mouse-sensitive.
-
-+++
-** Emacs' auto-save list files are now by default stored in a
-sub-directory `.emacs.d/auto-save-list/' of the user's home directory.
-(On MS-DOS, this subdirectory's name is `_emacs.d/auto-save.list/'.)
-You can customize `auto-save-list-prefix' to change this location.
 
 +++
 ** On window-systems, additional space can be put between text lines
@@ -373,15 +636,6 @@ typically in a single directory or in an invisible sub-directory.
 
 ** New commands iso-iso2sgml and iso-sgml2iso convert between Latin-1
 characters and the corresponding SGML (HTML) entities.
-
-+++
-** Emacs now refuses to load compiled Lisp files which weren't
-compiled with Emacs.  Set `load-dangerous-libraries' to t to change
-this behavior.
-
-The reason for this change is an incompatible change in XEmacs' byte
-compiler.  Files compiled with XEmacs can contain byte codes that let
-Emacs dump core.
 
 +++
 ** New X resources recognized
@@ -429,22 +683,8 @@ Example:
 
   emacs.privateColormap: true
 
-** The menu bar configuration has changed.  The new configuration is
-more CUA-compliant.  The most significant change is that Options is
-now a separate menu-bar item, with Mule and Customize as its submenus.
-
-+++
-** User-option `show-cursor-in-non-selected-windows' controls how to
-display the cursor in non-selected windows.  If nil, no cursor is
-shown, if non-nil a hollow box cursor is shown.  This option can
-be customized.
-
 +++
 ** The variable `echo-keystrokes' may now have a floating point value.
-
-+++
-** C-x 5 1 runs the new command delete-other-frames which deletes
-all frames except the selected one.
 
 ** If your init file is compiled (.emacs.elc), `user-init-file' is set
 to the source name (.emacs.el), if that exists, after loading it.
@@ -454,21 +694,12 @@ the property `:help HELP' is now displayed under X, on MS-Windows, and
 MS-DOS, either in the echo area or with tooltips.  Many standard menus
 displayed by Emacs now have help strings.
 
-+++
-** Highlighting of mouse-sensitive regions is now supported in the
-MS-DOS version of Emacs.
-
 ** New user option `read-mail-command' specifies a command to use to
 read mail from the menu etc.
 
 +++
 ** Hexl contains a new command `hexl-insert-hex-string' which inserts
 a string of hexadecimal numbers read from the mini-buffer.
-
-+++
-** Just loading the msb package doesn't switch on Msb mode anymore.
-If you have `(require 'msb)' in your .emacs, please replace it with
-`(msb-mode 1)'.
 
 ** Changes in Texinfo mode.
 
@@ -522,14 +753,6 @@ M-x clone-buffer, C-u m <entry> RET or C-u g <entry> RET.
 M-x clone-buffer can also be used on *Help* and several other special
 buffers.
 
-+++
-** Emacs can now support 'wheeled' mice (such as the MS IntelliMouse)
-under XFree86.  To enable this, use the `mouse-wheel-mode' command, or
-customize the variable `mouse-wheel-mode'.
-
-The variables `mouse-wheel-follow-mouse' and `mouse-wheel-scroll-amount'
-determine where and by how much buffers are scrolled.
-
 ** Listing buffers with M-x list-buffers (C-x C-b) now shows
 abbreviated file names.  Abbreviations can be customized by changing
 `directory-abbrev-alist'.
@@ -571,126 +794,6 @@ color displays.  The viewing gamma Emacs uses is 0.4545. (1/2.2).
 The X resource name of this parameter is `screenGamma', class
 `ScreenGamma'.
 
-** Emacs has a new redisplay engine.
-
-The new redisplay handles characters of variable width and height.
-Italic text can be used without redisplay problems.  Fonts containing
-oversized characters, i.e. characters larger than the logical height
-of a font can be used.  Images of various formats can be displayed in
-the text.
-
-** Emacs has a new face implementation.
-
-The new faces no longer fundamentally use X font names to specify the
-font.  Instead, each face has several independent attributes--family,
-height, width, weight and slant--that it may or may not specify.
-These attributes can be merged from various faces, and then together
-specify a font.
-
-Faces are supported on terminals that can display color or fonts.
-These terminal capabilities are auto-detected.  Details can be found
-under Lisp changes, below.
-
-** New default font is Courier 12pt under X.
-
-+++
-** When using a windowing terminal, each Emacs window now has a cursor
-of its own.  When the window is selected, the cursor is solid;
-otherwise, it is hollow.
-
-** Bitmap areas to the left and right of windows are used to display
-truncation marks, continuation marks, overlay arrows and alike.  The
-foreground, background, and stipple of these areas can be changed by
-customizing face `fringe'.
-
-** The mode line under X is now drawn with shadows by default.
-You can change its appearance by modifying the face `mode-line'.
-In particular, setting the `:box' attribute to nil turns off the 3D
-appearance of the mode line.  (The 3D appearance makes the mode line
-occupy more space, and thus might cause the first or the last line of
-the window to be partially obscured.)
-
-The variable `mode-line-inverse-video', which was used in older
-versions of emacs to make the mode-line stand out, now defaults to nil,
-and its use is deprecated.
-
-** LessTif support.
-
-Emacs now runs with the LessTif toolkit (see
-<http://www.lesstif.org>).  You will need version 0.92 or later.
-Please use LessTif's Motif 1.2 emulation; the emulations of Motif 2.0
-and 2.1 are known not to work well with Emacs.
-
-** Toolkit scroll bars.
-
-Emacs now uses toolkit scrollbars if available.  When configured for
-LessTif/Motif, it will use that toolkit's scrollbar.  Otherwise, when
-configured for Lucid and Athena widgets, it will use the Xaw3d scroll
-bar if Xaw3d is available.  You can turn off the use of toolkit scroll
-bars by specifying `--with-toolkit-scroll-bars=no' when configuring
-Emacs.
-
-When you encounter problems with the Xaw3d scroll bar, watch out how
-Xaw3d is compiled on your system.  If the Makefile generated from
-Xaw3d's Imakefile contains a `-DNARROWPROTO' compiler option, and your
-Emacs system configuration file `s/your-system.h' does not contain a
-define for NARROWPROTO, you might consider adding it.  Take
-`s/freebsd.h' as an example.
-
-Alternatively, if you don't have access to the Xaw3d source code, take
-a look at your system's imake configuration file, for example in the
-directory `/usr/X11R6/lib/X11/config' (paths are different on
-different systems).  You will find files `*.cf' there.  If your
-system's cf-file contains a line like `#define NeedWidePrototypes NO',
-add a `#define NARROWPROTO' to your Emacs system configuration file.
-
-The reason for this is that one Xaw3d function uses `double' or
-`float' function parameters depending on the setting of NARROWPROTO.
-This is not a problem when Imakefiles are used because each system's
-image configuration file contains the necessary information.  Since
-Emacs doesn't use imake, this has do be done manually.
-
-** Toggle buttons and radio buttons in menus.
-
-When compiled with LessTif (or Motif) support, Emacs uses toolkit
-widgets for radio and toggle buttons in menus.  When configured for
-Lucid, Emacs draws radio buttons and toggle buttons similar to Motif.
-
-+++
-** Highlighting of trailing whitespace.
-
-When `show-trailing-whitespace' is non-nil, Emacs displays trailing
-whitespace in the face `trailing-whitespace'.  Trailing whitespace is
-defined as spaces or tabs at the end of a line.  To avoid busy
-highlighting when entering new text, trailing whitespace is not
-displayed if point is at the end of the line containing the
-whitespace.
-
-+++
-** Hourglass pointer
-
-Emacs can optionally display an hourglass pointer under X.  You can
-turn the display on or off by customizing group `cursor'.
-
-+++
-** Blinking cursor
-
-M-x blink-cursor-mode toggles a blinking cursor under X and on
-terminals having terminal capabilities `vi', `vs', and `ve'.  Blinking
-and related parameters like frequency and delay can be customized in
-the group `cursor'.
-
-+++
-** New font-lock support mode `jit-lock-mode'.
-
-This support mode is roughly equivalent to `lazy-lock' but is
-generally faster.  It supports stealth and deferred fontification.
-See the documentation of the function `jit-lock-mode' for more
-details.
-
-Font-lock uses jit-lock-mode as default support mode, so you don't
-have to do anything to activate it.
-
 ** Tabs and variable-width text.
 
 Tabs are now displayed with stretch properties; the width of a tab is
@@ -710,76 +813,6 @@ LessTif/Motif one.
 
 *** Arrows that indicate sub-menus are now drawn with shadows, as in
 LessTif and Motif.
-
-+++
-** Hscrolling in C code.
-
-Horizontal scrolling now happens automatically if
-`automatic-hscrolling' is set (the default).  This setting can be
-customized.
-
-If a window is scrolled horizontally with set-window-hscroll, or
-scroll-left/scroll-right (C-x <, C-x >), this serves as a lower bound
-for automatic horizontal scrolling.  Automatic scrolling will scroll
-the text more to the left if necessary, but won't scroll the text more
-to the right than the column set with set-window-hscroll etc.
-
-+++
-** Tool bar support.
-
-Emacs supports a tool bar at the top of a frame under X.  For details
-of how to define a tool bar, see the page describing Lisp-level
-changes.  Tool-bar global minor mode controls whether or not it is
-displayed and is on by default.  The appearance of the bar is improved
-if Emacs has been built with XPM image support.  Otherwise monochrome
-icons will be used.
-
-To make the tool bar more useful, we need contributions of extra icons
-for specific modes (with copyright assignments).  Contributions would
-also be useful manually to touch up some of the PBM icons.
-
-+++
-** Mouse-sensitive mode line.
-
-Different parts of the mode line under X have been made
-mouse-sensitive.  Moving the mouse to a mouse-sensitive part in the mode
-line changes the appearance of the mouse pointer to an arrow, and help
-about available mouse actions is displayed either in the echo area, or
-in the tooltip window if you have enabled one.
-
-Currently, the following actions have been defined:
-
-- Mouse-1 on the buffer name in the mode line switches between two
-buffers.
-
-- Mouse-2 on the buffer-name switches to the next buffer, and
-M-mouse-2 switches to the previous buffer in the buffer list.
-
-- Mouse-3 on the buffer-name displays a buffer menu.
-
-- Mouse-2 on the read-only or modified status in the mode line (`%' or
-`*') toggles the status.
-
-- Mouse-3 on the mode name displays a minor-mode menu.
-
-** LessTif/Motif file selection dialog.
-
-When Emacs is configured to use LessTif or Motif, reading a file name
-from a menu will pop up a file selection dialog if `use-dialog-box' is
-non-nil.
-
-** Emacs can display faces on TTY frames.
-
-Emacs automatically detects terminals that are able to display colors.
-Faces with a weight greater than normal are displayed extra-bright, if
-the terminal supports it.  Faces with a weight less than normal and
-italic faces are displayed dimmed, if the terminal supports it.
-Underlined faces are displayed underlined if possible.  Other face
-attributes such as `overline', `strike-through', and `box' are ignored
-on terminals.
-
-The command-line options `-fg COLOR', `-bg COLOR', and `-rv' are now
-supported on character terminals.
 
 ** Sound support
 
@@ -849,31 +882,6 @@ you edit the replacement string.
 ** The new command mail-abbrev-complete-alias, bound to `M-TAB', lets
 you complete mail aliases in the text, analogous to
 lisp-complete-symbol.
-
-+++
-** Emacs now resizes mini-windows if appropriate.
-
-If a message is longer than one line, or minibuffer contents are
-longer than one line, Emacs can resize the minibuffer window unless it
-is on a frame of its own.  You can control resizing and the maximum
-minibuffer window size by setting the following variables:
-
-- User option: max-mini-window-height
-
-Maximum height for resizing mini-windows.  If a float, it specifies a
-fraction of the mini-window frame's height.  If an integer, it
-specifies a number of lines.
-
-Default is 0.25.
-
-- User option: resize-mini-windows
-
-How to resize mini-windows.  If nil, don't resize.  If t, always
-resize to fit the size of the text.  If `grow-only', let mini-windows
-grow only, until they become empty, at which point they are shrunk
-again.
-
-Default is `grow-only'.
 
 ** The command `Info-search' now uses a search history.
 
@@ -1081,18 +1089,6 @@ defaults to 1.
 file names.
 
 +++
-** Tooltips.
-
-Tooltips are small X windows displaying a help string at the current
-mouse position.  The Lisp package `tooltip' implements them.  You can
-turn them off via the user option `tooltip-mode'.
-
-Tooltips also provides support for GUD debugging.  If activated,
-variable values can be displayed in tooltips by pointing at them with
-the mouse in source buffers.  You can customize various aspects of the
-tooltip display in the group `tooltip'.
-
-+++
 ** Customize changes
 
 *** Customize now supports comments about customized items.  Use the
@@ -1143,7 +1139,7 @@ added.
 *** An "alignment error" bug was fixed when a manual spelling
 correction is made and re-checked.
 
-*** An Italian and a Portuguese dictionary definition has been added.
+*** An Italian, Portuguese, and Slovak dictionary definition has been added.
 
 *** Region skipping performance has been vastly improved in some
 cases.
@@ -1493,9 +1489,13 @@ If you have tagged the files topfile.c subdir/subfile.c
 "dir/sub", "tempfile", "tempfile.c".  If the tag matches the file name,
 point will go to the beginning of the file.
 
-*** compressed files are now transparently supported if
+*** Compressed files are now transparently supported if
 auto-compression-mode is active.  You can tag (with Etags) and search
 (with find-tag) both compressed and uncompressed files.
+
+*** Tags commands like M-x tags-search no longer change point
+in buffers where no match is found.  In buffers where a match is
+found, the original value of point is pushed on the marker ring.
 
 +++
 ** Emacs now attempts to determine the initial language environment
