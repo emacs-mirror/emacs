@@ -1,3 +1,7 @@
+2001-05-30  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* buffer.c (copy_overlays): Make ENABLE_CHECKING happy.
+
 2001-05-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (enum image_value_type): New enumerator
@@ -24,7 +28,7 @@
 
 2001-05-28  Gerd Moellmann  <gerd@gnu.org>
 
-	* xmenu.c (xmenu_show) [!HAVE_MULTILINGUAL_MENU]: Don't overwrite 
+	* xmenu.c (xmenu_show) [!HAVE_MULTILINGUAL_MENU]: Don't overwrite
 	an item's name with its key description in case the description
 	is a multibyte string.
 
@@ -56,7 +60,7 @@
 
 	* xfns.c (x_set_foreground_color): Change frame's cursor_pixel
 	only if it's equal to the former foreground pixel color.
-	(x_set_foreground_color, x_set_background_color) 
+	(x_set_foreground_color, x_set_background_color)
 	(x_set_mouse_color, x_set_cursor_color): Cleaned up.
 
 2001-05-16  Dave Love  <fx@gnu.org>
