@@ -40,6 +40,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <time.h>
 #endif
 
+/* SVr4 doesn't actually declare this in its #include files.  */
+#ifdef USG5_4
+extern long timezone;
+#endif
+
 
 /* EMACS_TIME is the type to use to represent temporal intervals -
    struct timeval on some systems, int on others.  It can be passed as
