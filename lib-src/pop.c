@@ -76,6 +76,7 @@ extern char *getenv (/* char * */);
 extern char *getlogin (/* void */);
 extern char *getpass (/* char * */);
 extern char *strerror (/* int */);
+extern char *index ();
 
 #ifdef KERBEROS
 #ifndef KRB5
@@ -560,7 +561,7 @@ pop_retrieve (server, message, markfrom)
    * allocate more space for them below.
    */
   bufsize = sizes[0] + (markfrom ? 5 : 0);
-  ptr = malloc (bufsize);
+  ptr = (char *)malloc (bufsize);
   free ((char *) IDs);
   free ((char *) sizes);
 
@@ -587,7 +588,7 @@ pop_retrieve (server, message, markfrom)
 	  if (++fromcount == 5)
 	    {
 	      bufsize += 5;
-	      ptr = realloc (ptr, bufsize);
+	      ptr = (char *)realloc (ptr, bufsize);
 	      if (! ptr)
 		{
 		  strcpy (pop_error, "Out of memory in pop_retrieve");
@@ -1234,7 +1235,7 @@ getline (server)
       if (server->data == server->buffer_size - 1)
 	{
 	  server->buffer_size += GETLINE_INCR;
-	  server->buffer = realloc (server->buffer, server->buffer_size);
+	  server->buffer = (char *)realloc (server->buffer, server->buffer_size);
 	  if (! server->buffer)
 	    {
 	      strcpy (pop_error, "Out of memory in getline");
