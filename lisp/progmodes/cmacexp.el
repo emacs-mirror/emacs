@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.17 1994/09/01 11:05:40 pot Exp rms $
+;; Version: $Id: cmacexp.el,v 1.18 1994/09/05 04:33:23 rms Exp pot $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -291,14 +291,14 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 			   (char-to-string startinstring))
 			  (startincomment "*/")
 			  (""))
-		    (format "\n#line %d \"%s\"\n" startlinenum filename)
 		    (setq startmarker
-			  (concat uniquestring
+			  (concat "\n" uniquestring
 				  (cond (startinstring
 					 (char-to-string startinstring))
 					(startincomment "/*")
 					(startinbcomment "//"))
-				  (if startafterquote "\\")))))
+				  (if startafterquote "\\")))
+		    (format "\n#line %d \"%s\"\n" startlinenum filename)))
 
 	  ;; Call the preprocessor.
 	  (if display (message mymsg))
