@@ -107,6 +107,7 @@ typedef struct
   int width;
   int height;
   int pixsz;
+  int nchars;
 } bdffont;
 
 #define BDF_FILE_SIZE_MAX 256*1024*1024 /* 256Mb */
