@@ -164,7 +164,8 @@ Do the right thing if the file has been compressed or zipped."
 	(setq decoder nil))
     (insert-file-contents fullname visit)
     (if decoder
-	(let ((buffer-read-only nil))
+	(let ((buffer-read-only nil)
+	      (default-directory (file-directory fullname)))
 	  (shell-command-on-region (point-min) (point-max) decoder t)))))
 
 ;;;###autoload (add-hook 'same-window-buffer-names "*info*")
@@ -278,7 +279,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      (set-marker Info-tag-table-marker nil)
 	      (goto-char (point-max))
 	      (forward-line -8)
-	      (or (equal nodename "*")
+	      ;; Use string-equal, not equal, to ignore text props.
+	      (or (string-equal nodename "*")
 		  (not (search-forward "\^_\nEnd tag table\n" nil t))
 		  (let (pos)
 		    ;; We have a tag table.  Find its beginning.
@@ -303,7 +305,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 	      (setq Info-current-file
 		    (if (eq filename t) "dir"
 		      (file-name-sans-versions buffer-file-name)))))
-	(if (equal nodename "*")
+	;; Use string-equal, not equal, to ignore text props.
+	(if (string-equal nodename "*")
 	    (progn (setq Info-current-node nodename)
 		   (Info-set-mode-line))
 	  ;; Search file for a suitable node.
@@ -637,7 +640,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   "If this node has been visited, restore the point value when we left."
   (while hl
     (if (and (equal (nth 0 (car hl)) Info-current-file)
-	     (equal (nth 1 (car hl)) Info-current-node))
+	     ;; Use string-equal, not equal, to ignore text props.
+	     (string-equal (nth 1 (car hl)) Info-current-node))
 	(progn
 	  (goto-char (nth 2 (car hl)))
 	  (setq hl nil))		;terminate the while at next iter
@@ -706,7 +710,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
     (widen)
     (goto-char found)
     (Info-select-node)
-    (or (and (equal onode Info-current-node)
+    ;; Use string-equal, not equal, to ignore text props.
+    (or (and (string-equal onode Info-current-node)
 	     (equal ofile Info-current-file))
 	(setq Info-history (cons (list ofile onode opoint)
 				 Info-history)))))
@@ -1032,7 +1037,9 @@ N is the digit argument used to invoke this command."
          (Info-next)
          t)
         ((and (save-excursion (search-backward "up:" nil t))
-	      (not (equal (downcase (Info-extract-pointer "up")) "top")))
+	      ;; Use string-equal, not equal, to ignore text props.
+	      (not (string-equal (downcase (Info-extract-pointer "up"))
+				 "top")))
          (let ((old-node Info-current-node))
            (Info-up)
            (let (Info-history success)
@@ -1050,7 +1057,10 @@ N is the digit argument used to invoke this command."
     (cond ((and upnode (string-match "(" upnode))
 	   (error "First node in file"))
 	  ((and upnode (or (null prevnode)
-			   (equal (downcase prevnode) (downcase upnode))))
+			   ;; Use string-equal, not equal,
+			   ;; to ignore text properties.
+			   (string-equal (downcase prevnode)
+					 (downcase upnode))))
 	   (Info-up))
 	  (prevnode
 	   ;; If we move back at the same level,
