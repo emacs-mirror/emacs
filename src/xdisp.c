@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -34,6 +34,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "disptab.h"
 #include "termhooks.h"
 #include "intervals.h"
+
+#ifdef USE_X_TOOLKIT
+extern void set_frame_menubar ();
+#endif
 
 extern int interrupt_input;
 extern int command_loop_level;
@@ -281,6 +285,20 @@ message2 (m, len)
       update_frame (XFRAME (XWINDOW (minibuf_window)->frame), 1, 1);
       do_pending_window_change ();
     }
+}
+
+/* Truncate what will be displayed in the echo area
+   the next time we display it--but don't redisplay it now.  */
+
+void
+truncate_echo_area (len)
+     int len;
+{
+  /* A null message buffer means that the frame hasn't really been
+     initialized yet.  Error messages get reported properly by
+     cmd_error, so this must be just an informative message; toss it.  */
+  if (!noninteractive && INTERACTIVE && FRAME_MESSAGE_BUF (selected_frame))
+    echo_area_glyphs_length = len;
 }
 
 /* Nonzero if FRAME_MESSAGE_BUF (selected_frame) is being used by print;
@@ -948,6 +966,9 @@ update_menu_bar (window, just_this_one)
 	  current_buffer = XBUFFER (w->buffer);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items ();
 	  current_buffer = prev;
+#ifdef USE_X_TOOLKIT
+	  set_frame_menubar (f);
+#endif /* USE_X_TOOLKIT */
 	}
     }
 }
@@ -1263,7 +1284,11 @@ done:
 
   /* When we reach a frame's selected window, redo the frame's menu bar.  */
   if (!NILP (w->update_mode_line)
+#ifdef USE_X_TOOLKIT
+      && FRAME_EXTERNAL_MENU_BAR (f) 
+#else
       && FRAME_MENU_BAR_LINES (f) > 0
+#endif
       && EQ (FRAME_SELECTED_WINDOW (f), window))
     display_menu_bar (w);
 
@@ -2349,6 +2374,7 @@ display_menu_bar (w)
   int maxendcol = FRAME_WIDTH (f);
   int hpos = 0;
 
+#ifndef USE_X_TOOLKIT
   if (FRAME_MENU_BAR_LINES (f) <= 0)
     return;
 
@@ -2388,6 +2414,7 @@ display_menu_bar (w)
   vpos++;
   while (vpos < FRAME_MENU_BAR_LINES (f))
     get_display_line (f, vpos++, 0);
+#endif /* not USE_X_TOOLKIT */
 }
 
 /* Display the mode line for window w */
@@ -2805,8 +2832,20 @@ decode_mode_spec (w, c, maxwidth)
       obj = Fget_buffer_process (Fcurrent_buffer ());
       if (NILP (obj))
 	return "no process";
+#ifdef subprocesses
       obj = Fsymbol_name (Fprocess_status (obj));
+#endif
       break;
+
+    case 't':			/* indicate TEXT or BINARY */
+#ifdef MSDOS
+      decode_mode_spec_buf[0]
+	= NILP (current_buffer->buffer_file_type) ? "T" : "B";
+      decode_mode_spec_buf[1] = 0;
+      return decode_mode_spec_buf;
+#else /* not MSDOS */
+      return "T";
+#endif /* not MSDOS */
 
     case 'p':
       {
