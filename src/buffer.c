@@ -510,16 +510,17 @@ No argument or nil as argument means use current buffer as BUFFER.")
 }
 
 DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 2,
-       "sRename buffer (to new name): ",
+       "sRename buffer (to new name): \nP",
   "Change current buffer's name to NEWNAME (a string).\n\
-If second arg DISTINGUISH is nil or omitted, it is an error if a\n\
+If second arg UNIQUE is nil or omitted, it is an error if a\n\
 buffer named NEWNAME already exists.\n\
-If DISTINGUISH is non-nil, come up with a new name using\n\
+If UNIQUE is non-nil, come up with a new name using\n\
 `generate-new-buffer-name'.\n\
-Return the name we actually gave the buffer.\n\
+Interactively, you can set UNIQUE with a prefix argument.\n\
+We return the name we actually gave the buffer.\n\
 This does not change the name of the visited file (if any).")
-  (name, distinguish)
-     register Lisp_Object name, distinguish;
+  (name, unique)
+     register Lisp_Object name, unique;
 {
   register Lisp_Object tem, buf;
 
@@ -529,7 +530,7 @@ This does not change the name of the visited file (if any).")
     return current_buffer->name;
   if (!NILP (tem))
     {
-      if (!NILP (distinguish))
+      if (!NILP (unique))
 	name = Fgenerate_new_buffer_name (name);
       else
 	error ("Buffer name \"%s\" is in use", XSTRING (name)->data);
