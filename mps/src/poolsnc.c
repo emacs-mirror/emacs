@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.11) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.12) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -22,15 +22,19 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.11) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.12) $");
 
-
-#define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
 
 #define SNCGen  ((Serial)1) /* "generation" for SNC pools */
 
 
-/* design.mps.poolsnc.poolstruct */
+/* SNCStruct -- structure for an SNC pool
+ *
+ * See design.mps.poolsnc.poolstruct.
+ */
+
+#define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
+
 typedef struct SNCStruct {
   PoolStruct poolStruct;
   Seg freeSegs;
@@ -38,18 +42,14 @@ typedef struct SNCStruct {
   Sig sig;
 } SNCStruct, *SNC;
 
-
-
-/* PoolPoolSNC -- convert generic Pool to SNC */
-
-#define PoolPoolSNC(pool) \
+#define Pool2SNC(pool) \
   PARENT(SNCStruct, poolStruct, (pool))
 
 
 /* Forward declarations */
 
-extern SegClass EnsureSNCSegClass(void);
-extern BufferClass EnsureSNCBufClass(void);
+static SegClass SNCSegClassGet(void);
+static BufferClass SNCBufClassGet(void);
 static Bool SNCCheck(SNC snc);
 static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo);
 
@@ -166,7 +166,7 @@ static void SNCBufFinish(Buffer buffer)
   AVERT(SNCBuf, sncbuf);
   pool = BufferPool(buffer);
 
-  snc = PoolPoolSNC(pool);
+  snc = Pool2SNC(pool);
   /* Put any segments which haven't bee popped onto the free list */
   sncPopPartialSegChain(snc, buffer, NULL);
 
@@ -244,7 +244,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
   /* Initialize the superclass fields first via next-method call */
   super = SEG_SUPERCLASS(SNCSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   sncseg->next = NULL;
@@ -331,13 +331,11 @@ static void sncPopPartialSegChain(SNC snc, Buffer buf, Seg upTo)
  * attempts to find and detach a large enough segment from the 
  * freelist. returns TRUE on success.
  */
-
 static Bool sncFindFreeSeg(Seg *segReturn, SNC snc, Size size)
 {
   Seg free = snc->freeSegs;
   Seg last = NULL;
 
-  AVERT(SNC, snc);
   AVER(size > 0);
 
   /* iterate over the free list returning anything big enough */
@@ -362,15 +360,17 @@ static Bool sncFindFreeSeg(Seg *segReturn, SNC snc, Size size)
 }
 
 
+/* SNCInit -- initialize an SNC pool */
+
 static Res SNCInit(Pool pool, va_list arg)
 {
   SNC snc;
   Format format;
 
-  /* weak check, as half way through initialization */
+  /* weak check, as half-way through initialization */
   AVER(pool != NULL);
 
-  snc = PoolPoolSNC(pool);
+  snc = Pool2SNC(pool);
 
   format = va_arg(arg, Format);
 
@@ -388,13 +388,15 @@ static Res SNCInit(Pool pool, va_list arg)
 }
 
 
+/* SNCFinish -- finish an SNC pool */
+
 static void SNCFinish(Pool pool)
 {
   SNC snc;
   Ring ring, node, nextNode;
 
   AVERT(Pool, pool);
-  snc = PoolPoolSNC(pool);
+  snc = Pool2SNC(pool);
   AVERT(SNC, snc);
 
   ring = &pool->segRing;
@@ -424,7 +426,7 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   AVER(BoolCheck(withReservoirPermit));
   AVER(BufferIsReset(buffer));
 
-  snc = PoolPoolSNC(pool);
+  snc = Pool2SNC(pool);
   AVERT(SNC, snc);
 
   /* Try to find a free segment with enough space already */
@@ -435,19 +437,17 @@ static Res SNCBufferFill(Addr *baseReturn, Addr *limitReturn,
   /* No free seg, so create a new one */
   arena = PoolArena(pool);
   asize = SizeAlignUp(size, ArenaAlign(arena));
-  res = SegAlloc(&seg, EnsureSNCSegClass(), &snc->segPrefStruct, 
+  res = SegAlloc(&seg, SNCSegClassGet(), &snc->segPrefStruct, 
                  asize, pool, withReservoirPermit);
-  if(res != ResOK) {
+  if (res != ResOK)
     return res;
-  }
 
 found:
   /* design.mps.seg.field.rankSet.start */
-  if(BufferRankSet(buffer) == RankSetEMPTY) {
+  if (BufferRankSet(buffer) == RankSetEMPTY)
     SegSetRankAndSummary(seg, BufferRankSet(buffer), RefSetEMPTY);
-  } else {
+  else
     SegSetRankAndSummary(seg, BufferRankSet(buffer), RefSetUNIV);
-  }
 
   AVERT(Seg, seg);
   /* put the segment on the buffer chain */
@@ -473,7 +473,7 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
   seg = BufferSeg(buffer);
   AVER(init <= limit);
   AVER(SegLimit(seg) == limit);
-  snc = PoolPoolSNC(pool);
+  snc = Pool2SNC(pool);
   AVERT(SNC, snc);
   AVER(BufferFrameState(buffer) == BufferFrameVALID);
   /* .lw-frame-state */
@@ -483,7 +483,7 @@ static void SNCBufferEmpty(Pool pool, Buffer buffer,
 
   /* Pad the end unused space at the end of the segment */
   size = AddrOffset(init, limit);
-  if(size > 0) {
+  if (size > 0) {
     ShieldExpose(arena, seg);
     (*pool->format->pad)(init, size);
     ShieldCover(arena, seg);
@@ -502,7 +502,7 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   AVERT(ScanState, ss);
   AVERT(Seg, seg);
   AVERT(Pool, pool);
-  snc = PoolPoolSNC(pool);
+  snc = Pool2SNC(pool);
   AVERT(SNC, snc);
 
   format = pool->format;
@@ -510,15 +510,15 @@ static Res SNCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
     
   /* If the segment is buffered, only walk as far as the end */
   /* of the initialized objects.  */
-  if(SegBuffer(seg) != NULL) {
+  if (SegBuffer(seg) != NULL) {
     limit = BufferScanLimit(SegBuffer(seg));
   } else {
     limit = SegLimit(seg);
   }
   
-  if(base < limit) {
+  if (base < limit) {
     res = (*format->scan)(ss, base, limit);
-    if(res != ResOK) {
+    if (res != ResOK) {
       *totalReturn = FALSE;
       return res;
     }
@@ -579,7 +579,7 @@ static void SNCFramePopPending(Pool pool, Buffer buf, AllocFrame frame)
   AVERT(Pool, pool);
   AVERT(Buffer, buf);
   /* frame is an Addr and can't be directly checked */
-  snc = PoolPoolSNC(pool);
+  snc = Pool2SNC(pool);
   AVERT(SNC, snc);
 
   AVER(BufferFrameState(buf) == BufferFrameVALID);
@@ -625,24 +625,23 @@ static void SNCWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
 
   /* Avoid applying the function to grey objects. */
   /* They may have pointers to old-space. */
-  if(SegGrey(seg) == TraceSetEMPTY) {
+  if (SegGrey(seg) == TraceSetEMPTY) {
     Addr object = SegBase(seg);
     Addr nextObject;
     Addr limit;
     SNC snc;
     Format format;
 
-    snc = PoolPoolSNC(pool);
+    snc = Pool2SNC(pool);
     AVERT(SNC, snc);
     format = pool->format;
 
     /* If the segment is buffered, only walk as far as the end */
-    /* of the initialized objects.  cf. SNCScan */
-    if(SegBuffer(seg) != NULL) {
+    /* of the initialized objects.  Cf. SNCScan. */
+    if (SegBuffer(seg) != NULL)
       limit = BufferScanLimit(SegBuffer(seg));
-    } else {
+    else
       limit = SegLimit(seg);
-    }
 
     while(object < limit) {
       (*f)(object, pool->format, pool, p, s);
@@ -673,25 +672,26 @@ DEFINE_POOL_CLASS(SNCPoolClass, this)
   this->framePop = SNCFramePop;
   this->framePopPending = SNCFramePopPending;
   this->walk = SNCWalk;
-  this->bufferClass = EnsureSNCBufClass;
+  this->bufferClass = SNCBufClassGet;
 }
 
 
 mps_class_t mps_class_snc(void)
 {
-  return (mps_class_t)EnsureSNCPoolClass();
+  return (mps_class_t)SNCPoolClassGet();
 }
 
+
+/* SNCCheck -- Check an SNC pool */
 
 static Bool SNCCheck(SNC snc)
 {
   CHECKS(SNC, snc);
   CHECKD(Pool, &snc->poolStruct);
   CHECKD(SegPref, &snc->segPrefStruct);
-  CHECKL(snc->poolStruct.class == EnsureSNCPoolClass());
+  CHECKL(snc->poolStruct.class == SNCPoolClassGet());
   if (snc->freeSegs != NULL) {
     CHECKL(SegCheck(snc->freeSegs));
   }
   return TRUE;
 }
-
