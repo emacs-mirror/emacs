@@ -1,3 +1,8 @@
+2004-05-18  Masatake YAMATO  <jet@gyve.org>
+
+	* wid-edit.el (widget-radio-button-notify): Don't pass `widget'
+	to widget-apply. :action method assumes 2 arguments, not 3.
+
 2004-05-17  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-end-block-re, f90-start-block-re): New
