@@ -2208,25 +2208,41 @@ specifying headers which should not be copied into the new message."
       ;; Narrow down to just the quoted original message
       (rmail-beginning-of-message)
       (let ((case-fold-search t))
-	(or (re-search-forward mail-unsent-separator nil t)
-	    (error "Cannot parse this as a failure message")))
-      (save-restriction
-	(let ((old-end (point-max)))
-	  ;; One message contained a few random lines before the old
-	  ;; message header.  The first line of the message started with
-	  ;; two hyphens.  A blank line follows these random lines.
-	  (skip-chars-forward "\n")
-	  (if (looking-at "^--")
-	      (progn
-		(search-forward "\n\n")
-		(skip-chars-forward "\n")))
-	  (beginning-of-line)
-	  (narrow-to-region (point) (point-max))
-	  (setq mail-buffer (current-buffer)
-		bounce-start (point)
-		bounce-end (point-max))
-	  (or (search-forward "\n\n" nil t)
-	      (error "Cannot find end of header in failed message")))))
+	(if (search-forward "This is a MIME-encapsulated message\n\n--" nil t)
+	    (let ((codestring
+		   (buffer-substring (progn (beginning-of-line) (point))
+				     (progn (end-of-line) (point)))))
+	      (re-search-forward mail-unsent-separator)
+	      (setq mail-buffer (current-buffer))
+	      (search-forward codestring)
+	      (or (search-forward "\n\n" nil t)
+		  (error "Cannot find end of Mime data in failed message"))
+	      (setq bounce-start (point))
+	      (save-excursion
+		(goto-char (point-max))
+		(search-backward codestring)
+		(setq bounce-end (point)))
+	      (or (search-forward "\n\n" nil t)
+		  (error "Cannot find end of header in failed message")))
+	  (or (re-search-forward mail-unsent-separator nil t)
+	      (error "Cannot parse this as a failure message"))
+	  (save-restriction
+	    (let ((old-end (point-max)))
+	      ;; One message contained a few random lines before the old
+	      ;; message header.  The first line of the message started with
+	      ;; two hyphens.  A blank line follows these random lines.
+	      (skip-chars-forward "\n")
+	      (if (looking-at "^--")
+		  (progn
+		    (search-forward "\n\n")
+		    (skip-chars-forward "\n")))
+	      (beginning-of-line)
+	      (narrow-to-region (point) (point-max))
+	      (setq mail-buffer (current-buffer)
+		    bounce-start (point)
+		    bounce-end (point-max))
+	      (or (search-forward "\n\n" nil t)
+		  (error "Cannot find end of header in failed message")))))))
     ;; Start sending a new message; default header fields from the original.
     ;; Turn off the usual actions for initializing the message body
     ;; because we want to get only the text from the failure message.
@@ -2238,7 +2254,7 @@ specifying headers which should not be copied into the new message."
 	    (insert-buffer-substring mail-buffer bounce-start bounce-end)
 	    (goto-char (point-min))
 	    (rmail-clear-headers rmail-retry-ignored-headers)
-	    (rmail-clear-headers "^sender:")
+	    (rmail-clear-headers "^sender:\\|^from\\|^return-path")
 	    (goto-char (point-min))
 	    (save-restriction
 	      (search-forward "\n\n")
