@@ -1,3 +1,8 @@
+2000-06-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* coding.c (decode_eol_post_ccl): Special handling for undecided
+	and inconsistent EOL types.
+
 2000-06-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* xrdb.c (x_load_resources): Add default resource for scroll bar's
