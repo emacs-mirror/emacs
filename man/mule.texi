@@ -232,7 +232,7 @@ Each language environment also specifies a default input method.
 
 @findex set-language-environment
 @vindex current-language-environment
-  To select a language environment, customize the option
+  To select a language environment, you can customize the variable
 @code{current-language-environment} or use the command @kbd{M-x
 set-language-environment}.  It makes no difference which buffer is
 current when you use this command, because the effects apply globally to
@@ -714,12 +714,12 @@ Czech, you probably want Latin-2 to be preferred.  This is one of the
 reasons to specify a language environment.
 
 @findex prefer-coding-system
-  However, you can alter the priority list in detail with the command
-@kbd{M-x prefer-coding-system}.  This command reads the name of a coding
-system from the minibuffer, and adds it to the front of the priority
-list, so that it is preferred to all others.  If you use this command
-several times, each use adds one element to the front of the priority
-list.
+  However, you can alter the coding system priority list in detail
+with the command @kbd{M-x prefer-coding-system}.  This command reads
+the name of a coding system from the minibuffer, and adds it to the
+front of the priority list, so that it is preferred to all others.  If
+you use this command several times, each use adds one element to the
+front of the priority list.
 
   If you use a coding system that specifies the end-of-line conversion
 type, such as @code{iso-8859-1-dos}, what this means is that Emacs
@@ -1220,9 +1220,9 @@ call this function explicitly to create a fontset.
 @node Undisplayable Characters
 @section Undisplayable Characters
 
-  Your terminal may be unable to display some non-ASCII
-characters.  Most non-windowing terminals can only use a single
-character set (use the variable @code{default-terminal-coding-system}
+  There may be a some non-ASCII characters that your terminal cannot
+display.  Most non-windowing terminals support just a single character
+set (use the variable @code{default-terminal-coding-system}
 (@pxref{Specify Coding}) to tell Emacs which one); characters which
 can't be encoded in that coding system are displayed as @samp{?} by
 default.
