@@ -1417,8 +1417,11 @@ see `dired-view-command-alist'.  Otherwise, display it in another buffer."
 	  (if (string-match (car elt) file)
 	      (setq cmd (cdr elt))))
 	(if cmd
-	    (dired-run-shell-command (concat cmd " "
-					     (shell-quote-argument file)))
+	    (call-process shell-file-name nil 0 nil
+			  "-c"
+			  (concat cmd " "
+				  (shell-quote-argument file)
+				  " &"))
 	  (view-file file))))))
 
 (defun dired-find-file-other-window ()
