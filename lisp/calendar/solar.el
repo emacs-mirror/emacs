@@ -84,7 +84,7 @@ sufficient), + north, - south, such as 40.7 for New York City, or the value
 can be a vector [degrees minutes north/south] such as [40 50 north] for New
 York City.
 
-This variable should be set in site-local.el.")
+This variable should be set in `site-init.el'.")
 
 ;;;###autoload
 (defvar calendar-longitude nil
@@ -95,7 +95,7 @@ sufficient), + east, - west, such as -73.9 for New York City, or the value
 can be a vector [degrees minutes east/west] such as [73 55 west] for New
 York City.
 
-This variable should be set in site-local.el.")
+This variable should be set in `site-init.el'.")
 
 (defsubst calendar-latitude ()
   "Convert calendar-latitude to a signed decimal fraction, if needed."
@@ -139,7 +139,7 @@ This variable should be set in site-local.el.")
 For example, \"New York City\".  Default value is just the latitude, longitude
 pair.
 
-This variable should be set in site-local.el.")
+This variable should be set in `site-init.el'.")
 
 (defvar solar-n-hemi-seasons
   '("Vernal Equinox" "Summer Solstice" "Autumnal Equinox" "Winter Solstice")
