@@ -610,7 +610,7 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 	(setq ibuffer-filter-groups (ibuffer-delete-alist
 				     name ibuffer-filter-groups))
 	(setq ibuffer-hidden-filter-groups
-	      delete name ibuffer-hidden-filter-groups))
+	      (delete name ibuffer-hidden-filter-groups)))
     (error "No filter group with name \"%s\"" name))
   (ibuffer-update nil t))
 
@@ -623,7 +623,8 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
       (progn
 	(when (equal it "Default")
 	  (error "Can't kill default filtering group"))
-	(push (assoc it ibuffer-filter-groups) ibuffer-filter-group-kill-ring)
+	(push (copy-tree (assoc it ibuffer-filter-groups))
+	      ibuffer-filter-group-kill-ring)
 	(ibuffer-kill-filter-group it))
       (funcall (if (interactive-p) #'call-interactively #'funcall)
 	       #'kill-line arg)))
@@ -641,10 +642,10 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 		    (get-text-property (point) 'ibuffer-filter-group)
 		    (last all-groups)))
 	   (pos (or (position cur (mapcar #'car all-groups) :test #'equal)
-		    (1- (length all-groups)))))
+		    (length all-groups))))
       (cond ((= pos 0)
 	     (push last-killed ibuffer-filter-groups))
-	    ((= pos (1- (length all-groups)))
+	    ((= pos (length all-groups))
 	     (setq ibuffer-filter-groups
 		   (nconc ibuffer-filter-groups (list last-killed))))
 	    (t
@@ -677,8 +678,8 @@ They are removed from `ibuffer-saved-filter-groups'."
   (interactive
    (list
     (if (null ibuffer-saved-filter-groups)
-	(error "No saved filters")
-      (completing-read "Delete saved filters: "
+	(error "No saved filter groups")
+      (completing-read "Delete saved filter group: "
 		       ibuffer-saved-filter-groups nil t))))
   (setq ibuffer-saved-filter-groups
 	(ibuffer-delete-alist name ibuffer-saved-filter-groups))
