@@ -335,7 +335,7 @@ install-arch-dep: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
 	    INSTALL_STRIP=${INSTALL_STRIP})
-	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs ${bindir}/${EMACSFULL}
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs ${bindir}/$(EMACSFULL)
 	-chmod 1755  ${bindir}/$(EMACSFULL)
 	rm -f ${bindir}/$(EMACS)
 	-ln ${bindir}/$(EMACSFULL) ${bindir}/$(EMACS)
@@ -514,7 +514,7 @@ uninstall:
 	-rm -rf ${libexecdir}/emacs/${version}
 	(cd ${infodir} && rm -f cl* ada-mode* autotype* ccmode* ebrowse* efaq* elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
 	(cd ${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext} gfdl${manext})
-	(cd ${bindir}  && rm -f emacs-${version} $(EMACS))
+	(cd ${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 
 
 FRC:
