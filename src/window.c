@@ -6016,9 +6016,7 @@ DEFUN ("window-fringes", Fwindow_fringes, Swindow_fringes,
        0, 1, 0,
        doc: /* Get width of fringes of window WINDOW.
 If WINDOW is omitted or nil, use the currently selected window.
-Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).
-If a window specific fringe width is not set, its width will be returned
-as nil.  */)
+Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
      (window)
      Lisp_Object window;
 {
