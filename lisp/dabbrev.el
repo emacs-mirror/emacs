@@ -162,8 +162,10 @@ with the next possible expansion not yet tried."
 	  (setq last-dabbrevs-abbrev-location nil)
 	  (if (not first)
 	      (progn (undo-boundary)
-		     (delete-backward-char (length old))
-		     (insert abbrev)))
+		     (search-backward old)
+		     (if (eq major-mode 'picture-mode)
+			 (picture-replace-match abbrev t 'literal)
+		       (replace-match abbrev t 'literal))))
 	  (error (if first
 		     "No dynamic expansion for \"%s\" found."
 		     "No further dynamic expansions for \"%s\" found.")
@@ -177,7 +179,9 @@ with the next possible expansion not yet tried."
       ;; First put back the original abbreviation with its original
       ;; case pattern.
       (save-excursion
-	(replace-match abbrev t 'literal))
+	(if (eq major-mode 'picture-mode)
+	    (picture-replace-match abbrev t 'literal)
+	  (replace-match abbrev t 'literal)))
       (search-forward abbrev)
       (let ((do-case (and do-case
 			  (string= (substring expansion 1)
@@ -189,9 +193,13 @@ with the next possible expansion not yet tried."
 ;;; This used to be necessary, but no longer, 
 ;;; because now point is preserved correctly above.
 ;;;	(search-forward abbrev)
-	(replace-match (if do-case (downcase expansion) expansion)
-		       (not do-case)
-		       'literal))
+	(if (eq major-mode 'picture-mode)
+	    (picture-replace-match (if do-case (downcase expansion) expansion)
+				   (not do-case)
+				   'literal)
+	  (replace-match (if do-case (downcase expansion) expansion)
+			 (not do-case)
+			 'literal)))
       ;; Save state for re-expand.
       (setq last-dabbrevs-abbreviation abbrev)
       (setq last-dabbrevs-expansion expansion)
