@@ -118,28 +118,8 @@ Lisp_Object x_display_name_list;
    is the frame to apply to.  */
 extern struct frame *updating_frame;
 
-/* The frame (if any) which has the X window that has keyboard focus.
-   Zero if none.  This is examined by Ffocus_frame in frame.c.  Note
-   that a mere EnterNotify event can set this; if you need to know the
-   last frame specified in a FocusIn or FocusOut event, use
-   x_focus_event_frame.  */
-struct frame *x_focus_frame;
-
 /* This is a frame waiting to be autoraised, within XTread_socket.  */
 struct frame *pending_autoraise_frame;
-
-/* The last frame mentioned in a FocusIn or FocusOut event.  This is
-   separate from x_focus_frame, because whether or not LeaveNotify
-   events cause us to lose focus depends on whether or not we have
-   received a FocusIn event for it.  */
-struct frame *x_focus_event_frame;
-
-/* The frame which currently has the visual highlight, and should get
-   keyboard input (other sorts of input have the frame encoded in the
-   event).  It points to the X focus frame's selected window's
-   frame.  It differs from x_focus_frame when we're using a global
-   minibuffer.  */
-static struct frame *x_highlight_frame;
 
 #ifdef USE_X_TOOLKIT
 /* The application context for Xt use.  */
@@ -1420,6 +1400,7 @@ frame_unhighlight (f)
 }
 
 static void XTframe_rehighlight ();
+static void x_frame_rehighlight ();
 
 /* The focus has changed.  Update the frames as necessary to reflect
    the new situation.  Note that we can't change the selected frame
@@ -1428,17 +1409,18 @@ static void XTframe_rehighlight ();
    Lisp code can tell when the switch took place by examining the events.  */
 
 static void
-x_new_focus_frame (frame)
+x_new_focus_frame (dpyinfo, frame)
+     struct x_display_info *dpyinfo;
      struct frame *frame;
 {
-  struct frame *old_focus = x_focus_frame;
+  struct frame *old_focus = dpyinfo->x_focus_frame;
   int events_enqueued = 0;
 
-  if (frame != x_focus_frame)
+  if (frame != dpyinfo->x_focus_frame)
     {
       /* Set this before calling other routines, so that they see
 	 the correct value of x_focus_frame.  */
-      x_focus_frame = frame;
+      dpyinfo->x_focus_frame = frame;
 
       if (old_focus && old_focus->auto_lower)
 	x_lower_frame (old_focus);
@@ -1451,55 +1433,65 @@ x_new_focus_frame (frame)
       choose_minibuf_frame ();
 #endif /* ! 0 */
 
-      if (x_focus_frame && x_focus_frame->auto_raise)
-	pending_autoraise_frame = x_focus_frame;
+      if (dpyinfo->x_focus_frame && dpyinfo->x_focus_frame->auto_raise)
+	pending_autoraise_frame = dpyinfo->x_focus_frame;
       else
 	pending_autoraise_frame = 0;
     }
 
-  XTframe_rehighlight ();
+  x_frame_rehighlight (dpyinfo);
 }
 
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
 void
-x_mouse_leave ()
+x_mouse_leave (dpyinfo)
+     struct x_display_info *dpyinfo;
 {
-  if (! x_focus_event_frame)
-    x_new_focus_frame (NULL);
-  else
-    x_new_focus_frame (x_focus_event_frame);  /* Was f, but that seems wrong.  */
+  x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
 }
 
 /* The focus has changed, or we have redirected a frame's focus to
    another frame (this happens when a frame uses a surrogate
-   minibuffer frame).  Shift the highlight as appropriate.  */
-static void
-XTframe_rehighlight ()
-{
-  struct frame *old_highlight = x_highlight_frame;
+   minibuffer frame).  Shift the highlight as appropriate.
 
-  if (x_focus_frame)
+   The FRAME argument doesn't necessarily have anything to do with which
+   frame is being highlighted or unhighlighted; we only use it to find
+   the appropriate X display info.  */
+static void
+XTframe_rehighlight (frame)
+     struct frame *frame;
+{
+  x_frame_rehighlight (FRAME_X_DISPLAY_INFO (frame));
+}
+
+static void
+x_frame_rehighlight (dpyinfo)
+     struct x_display_info *dpyinfo;
+{
+  struct frame *old_highlight = dpyinfo->x_highlight_frame;
+
+  if (dpyinfo->x_focus_frame)
     {
-      x_highlight_frame
-	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (x_focus_frame)))
-	   ? XFRAME (FRAME_FOCUS_FRAME (x_focus_frame))
-	   : x_focus_frame);
-      if (! FRAME_LIVE_P (x_highlight_frame))
+      dpyinfo->x_highlight_frame
+	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
+	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
+	   : dpyinfo->x_focus_frame);
+      if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
 	{
-	  FRAME_FOCUS_FRAME (x_focus_frame) = Qnil;
-	  x_highlight_frame = x_focus_frame;
+	  FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame) = Qnil;
+	  dpyinfo->x_highlight_frame = dpyinfo->x_focus_frame;
 	}
     }
   else
-    x_highlight_frame = 0;
+    dpyinfo->x_highlight_frame = 0;
 
-  if (x_highlight_frame != old_highlight)
+  if (dpyinfo->x_highlight_frame != old_highlight)
     {
       if (old_highlight)
 	frame_unhighlight (old_highlight);
-      if (x_highlight_frame)
-	frame_highlight (x_highlight_frame);
+      if (dpyinfo->x_highlight_frame)
+	frame_highlight (dpyinfo->x_highlight_frame);
     }
 }
 
@@ -3701,12 +3693,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			    || !(f->auto_lower)
 			    || (event.xcrossing.time - enter_timestamp) > 500))
 		    {
-		      x_new_focus_frame (f);
+		      x_new_focus_frame (dpyinfo, f);
 		      enter_timestamp = event.xcrossing.time;
 		    }
 		}
-	      else if (f == x_focus_frame)
-		x_new_focus_frame (0);
+	      else if (f == dpyinfo->x_focus_frame)
+		x_new_focus_frame (dpyinfo, 0);
 	      /* EnterNotify counts as mouse movement,
 		 so update things that depend on mouse position.  */
 	      if (f)
@@ -3719,9 +3711,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    case FocusIn:
 	      f = x_any_window_to_frame (dpyinfo, event.xfocus.window);
 	      if (event.xfocus.detail != NotifyPointer)
-		x_focus_event_frame = f;
+		dpyinfo->x_focus_event_frame = f;
 	      if (f)
-		x_new_focus_frame (f);
+		x_new_focus_frame (dpyinfo, f);
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
@@ -3738,13 +3730,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    clear_mouse_face (dpyinfo);
 
 		  if (event.xcrossing.focus)
-		    x_mouse_leave ();
+		    x_mouse_leave (dpyinfo);
 		  else
 		    {
-		      if (f == x_focus_event_frame)
-			x_focus_event_frame = 0;
-		      if (f == x_focus_frame)
-			x_new_focus_frame (0);
+		      if (f == dpyinfo->x_focus_event_frame)
+			dpyinfo->x_focus_event_frame = 0;
+		      if (f == dpyinfo->x_focus_frame)
+			x_new_focus_frame (dpyinfo, 0);
 		    }
 		}
 #ifdef USE_X_TOOLKIT
@@ -3755,10 +3747,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    case FocusOut:
 	      f = x_any_window_to_frame (dpyinfo, event.xfocus.window);
 	      if (event.xfocus.detail != NotifyPointer
-		  && f == x_focus_event_frame)
-		x_focus_event_frame = 0;
-	      if (f && f == x_focus_frame)
-		x_new_focus_frame (0);
+		  && f == dpyinfo->x_focus_event_frame)
+		dpyinfo->x_focus_event_frame = 0;
+	      if (f && f == dpyinfo->x_focus_frame)
+		x_new_focus_frame (dpyinfo, 0);
 #ifdef USE_X_TOOLKIT
 	      goto OTHER;
 #endif /* USE_X_TOOLKIT */
@@ -3907,7 +3899,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		if (f)
 		  {
-		    if (!x_focus_frame || (f == x_focus_frame))
+		    if (!dpyinfo->x_focus_frame || f == dpyinfo->x_focus_frame)
 		      construct_mouse_click (&emacs_event, &event, f);
 		  }
 		else
@@ -4173,7 +4165,7 @@ x_display_box_cursor (f, on)
 	  || f->phys_cursor_x != curs_x
 	  || f->phys_cursor_y != curs_y
 	  || (f->display.x->current_cursor != hollow_box_cursor
-	      && (f != x_highlight_frame))))
+	      && (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame))))
     {
       int mouse_face_here = 0;
       struct frame_glyphs *active_glyphs = FRAME_CURRENT_GLYPHS (f);
@@ -4218,14 +4210,14 @@ x_display_box_cursor (f, on)
   if (on
       && (f->phys_cursor_x < 0
 	  || (f->display.x->current_cursor != filled_box_cursor
-	      && f == x_highlight_frame)))
+	      && f == FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)))
     {
       f->phys_cursor_glyph
 	= ((current_glyphs->enable[curs_y]
 	    && curs_x < current_glyphs->used[curs_y])
 	   ? current_glyphs->glyphs[curs_y][curs_x]
 	   : SPACEGLYPH);
-      if (f != x_highlight_frame)
+      if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
 	{
 	  x_draw_box (f);
 	  f->display.x->current_cursor = hollow_box_cursor;
@@ -4962,7 +4954,7 @@ x_unfocus_frame (f)
 {
 #if 0
   /* Look at the remarks in x_focus_on_frame.  */
-  if (x_focus_frame == f)
+  if (FRAME_X_DISPLAY_INFO (f)->x_focus_frame == f)
     XSetInputFocus (FRAME_X_DISPLAY (f), PointerRoot,
 		    RevertToPointerRoot, CurrentTime);
 #endif /* ! 0 */
@@ -5117,8 +5109,8 @@ x_make_frame_invisible (f)
 #endif /* not USE_X_TOOLKIT */
 
   /* Don't keep the highlight on an invisible frame.  */
-  if (x_highlight_frame == f)
-    x_highlight_frame = 0;
+  if (FRAME_X_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_X_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
 #if 0/* This might add unreliability; I don't trust it -- rms.  */
   if (! f->async_visible && ! f->async_iconified)
@@ -5193,8 +5185,8 @@ x_iconify_frame (f)
   Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
-  if (x_highlight_frame == f)
-    x_highlight_frame = 0;
+  if (FRAME_X_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_X_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
   if (f->async_iconified)
     return;
@@ -5301,12 +5293,12 @@ x_destroy_window (f)
 
   xfree (f->display.x);
   f->display.x = 0;
-  if (f == x_focus_frame)
-    x_focus_frame = 0;
-  if (f == x_focus_event_frame)
-    x_focus_event_frame = 0;
-  if (f == x_highlight_frame)
-    x_highlight_frame = 0;
+  if (f == dpyinfo->x_focus_frame)
+    dpyinfo->x_focus_frame = 0;
+  if (f == dpyinfo->x_focus_event_frame)
+    dpyinfo->x_focus_event_frame = 0;
+  if (f == dpyinfo->x_highlight_frame)
+    dpyinfo->x_highlight_frame = 0;
 
   dpyinfo->reference_count--;
 
@@ -5703,6 +5695,9 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->mouse_face_window = Qnil;
   dpyinfo->mouse_face_mouse_x = dpyinfo->mouse_face_mouse_y = 0;
   dpyinfo->mouse_face_defer = 0;
+  dpyinfo->x_focus_frame = 0;
+  dpyinfo->x_focus_event_frame = 0;
+  dpyinfo->x_highlight_frame = 0;
 
   dpyinfo->Xatom_wm_protocols
     = XInternAtom (dpyinfo->display, "WM_PROTOCOLS", False);
@@ -5863,8 +5858,6 @@ x_initialize ()
   baud_rate = 19200;
 
   x_noop_count = 0;
-
-  x_focus_frame = x_highlight_frame = 0;
 
   /* Try to use interrupt input; if we can't, then start polling.  */
   Fset_input_mode (Qt, Qnil, Qt, Qnil);
