@@ -749,10 +749,11 @@ See the documentation for `calendar-holidays' for details.")
 (defvar solar-holidays
   '((if (fboundp 'atan)
 	(solar-equinoxes-solstices))
-    (progn
-      (require 'cal-dst)
+    (if (progn
+	  (require 'cal-dst)
+	  t)
       (funcall
-       'holiday-sexp 
+       'holiday-sexp
         calendar-daylight-savings-starts
         '(format "Daylight Savings Time Begins %s"
                   (if (fboundp 'atan)
