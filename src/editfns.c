@@ -1,5 +1,5 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985,86,87,89,93,94,95,96 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,89,93,94,95,96,97 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1019,7 +1019,10 @@ If TZ is t, use Universal Time.")
   return Qnil;
 }
 
-/* These two values are known to load tz files in buggy implementations.
+#ifdef LOCALTIME_CACHE
+
+/* These two values are known to load tz files in buggy implementations,
+   i.e. Solaris 1 executables running under either Solaris 1 or Solaris 2.
    Their values shouldn't matter in non-buggy implementations.
    We don't use string literals for these strings, 
    since if a string in the environment is in readonly
@@ -1027,8 +1030,10 @@ If TZ is t, use Universal Time.")
    See Sun bugs 1113095 and 1114114, ``Timezone routines
    improperly modify environment''.  */
 
-static char set_time_zone_rule_tz1[] = "TZ=GMT0";
-static char set_time_zone_rule_tz2[] = "TZ=GMT1";
+static char set_time_zone_rule_tz1[] = "TZ=GMT+0";
+static char set_time_zone_rule_tz2[] = "TZ=GMT+1";
+
+#endif
 
 /* Set the local time zone rule to TZSTRING.
    This allocates memory into `environ', which it is the caller's
