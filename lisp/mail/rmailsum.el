@@ -379,11 +379,17 @@ nil for FUNCTION means all messages."
 (defun rmail-summary-next-all (&optional number)
   (interactive "p")
   (forward-line (if number number 1))
+  ;; It doesn't look nice to move forward past the last message line.
+  (and (eobp) (> number 0)
+       (forward-line -1))
   (display-buffer rmail-buffer))
 
 (defun rmail-summary-previous-all (&optional number)
   (interactive "p")
   (forward-line (- (if number number 1)))
+  ;; It doesn't look nice to move forward past the last message line.
+  (and (eobp) (< number 0)
+       (forward-line -1))
   (display-buffer rmail-buffer))
 
 (defun rmail-summary-next-msg (&optional number)
