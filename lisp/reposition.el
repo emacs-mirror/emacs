@@ -71,13 +71,13 @@ first comment line visible (if point is in a comment)."
 		;; the beginning of the preceding comment
 		(save-excursion
 		  (if (not (eobp)) (forward-char 1))
-		  (end-of-defun -1) 
+		  (end-of-defun -1)
 		  ;; Skip whitespace, newlines, and form feeds.
-		  (re-search-forward "[^\\s \n\014]")
-		  (backward-char 1)
+		  (if (re-search-forward "[^ \t\n\f]" nil t)
+		      (backward-char 1))
 		  (point))
 		here)))
-	 (defun-height 
+	 (defun-height
 	   (repos-count-screen-lines-signed
 	    (save-excursion
 	      (end-of-defun 1) ; so comments associate with following defuns
@@ -119,16 +119,16 @@ first comment line visible (if point is in a comment)."
 	   ;; whose first line is offscreen.
 	   ;; Avoid moving definition up even if defun runs offscreen;
 	   ;; we care more about getting the comment onscreen.
-	   
+
 	   (cond ((= line ht)
 		  ;; cursor on last screen line (and so in a comment)
 		  (if arg (progn (end-of-defun) (beginning-of-defun)))
 		  (recenter 0)
 		  ;;(repos-debug-macro "2a")
 		  )
-		 
+
 		 ;; This condition, copied from case 4, may not be quite right
-		 
+
 		 ((and arg (< ht comment-height))
 		  ;; Can't get first comment line onscreen.
 		  ;; Go there and try again.
@@ -169,8 +169,7 @@ first comment line visible (if point is in a comment)."
 	   ;;(repos-debug-macro "4")
 	   ))))
 
-;;;###autoload
-(define-key esc-map "\C-l" 'reposition-window)
+;;;###autoload (define-key esc-map "\C-l" 'reposition-window)
 
 ;;; Auxiliary functions
 
