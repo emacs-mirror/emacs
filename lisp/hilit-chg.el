@@ -263,7 +263,7 @@ This variable must be set to either `active' or `passive'"
   :group 'highlight-changes)
 
 ;; The strings displayed in the mode-line for the minor mode:
-(defcustom highlight-changes-active-string nil
+(defcustom highlight-changes-active-string " +Chg"
   "*The string used when Highlight Changes mode is in the active state.
 This should be set to nil if no indication is desired,  or to
 a string with a leading space."
@@ -271,7 +271,7 @@ a string with a leading space."
 		 (const :tag "None"  nil))
   :group 'highlight-changes)
 
-(defcustom highlight-changes-passive-string " Chg"
+(defcustom highlight-changes-passive-string " -Chg"
   "*The string used when Highlight Changes mode is in the passive state.
 This should be set to nil if no indication is desired,  or to
 a string with a leading space."
@@ -282,14 +282,15 @@ a string with a leading space."
 (defcustom highlight-changes-global-modes t
   "*Determine whether a buffer is suitable for global Highlight Changes mode.
 
-A function means that function is called:  if it returns non-nil, the
-buffer is suitable.
+A function means call that function to decide: if it returns non-nil,
+the buffer is suitable.
 
-A list is a list of modes for which it is suitable,  or a list whose
-first element is `not' followed by modes which are not suitable.
+A list means the elements are major modes suitable for Highlight
+Changes mode, or a list whose first element is `not' followed by major
+modes which are not suitable.
 
-t means the buffer is suitable if its name does not begin with ` ' nor
-`*' and the buffer has a filename.
+t means the buffer is suitable if it is visiting a file and its name
+does not begin with ` ' or `*'.
 
 A value of nil means no buffers are suitable for `global-highlight-changes'
 \(effectively disabling the mode).
