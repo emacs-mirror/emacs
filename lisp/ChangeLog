@@ -1,3 +1,7 @@
+2004-04-12  Joe Buehler  <jbuehler@hekiman.com>
+
+	* loadup.el: Add cygwin to system-type list, for unexec() support.
+
 2004-04-12  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (ibuffer-delete-window-on-quit): Remove.
@@ -6,8 +10,7 @@
 	(ibuffer-prev-window-config): New variable.
 	(ibuffer-quit): Restore previous window configuration instead of
 	deleting window.
-	(ibuffer): Save window configuration before showing Ibuffer
-	buffer.
+	(ibuffer): Save window configuration before showing Ibuffer buffer.
 
 	* help.el (describe-mode): Doc fix.
 
