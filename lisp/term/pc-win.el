@@ -43,22 +43,22 @@
 ;;; color is ``light''; see `frame-set-background-mode' in lisp/faces.el for
 ;;; an example.
 (defvar msdos-color-values
-  '(("white"         15 65535 65535 65535)
-    ("yellow"        14 65535 65535     0) ; Yellow
-    ("lightmagenta"  13 65535     0 65535) ; Magenta
-    ("lightred"      12 65535     0     0) ; Red
-    ("lightcyan"     11     0 65535 65535) ; Cyan
-    ("lightgreen"    10     0 65535     0) ; Green
-    ("lightblue"      9     0     0 65535) ; Blue
-    ("darkgray"       8 26112 26112 26112) ; Gray40
-    ("lightgray"      7 48640 48640 48640) ; Gray
-    ("brown"          6 40960 20992 11520) ; Sienna
-    ("magenta"        5 35584     0 35584) ; DarkMagenta
-    ("red"            4 45568  8704  8704) ; FireBrick
-    ("cyan"           3     0 52736 53504) ; DarkTurquoise
-    ("green"          2  8704 35584  8704) ; ForestGreen
+  '(("black"          0     0     0     0)
     ("blue"           1     0     0 52480) ; MediumBlue
-    ("black"          0     0     0     0))
+    ("green"          2  8704 35584  8704) ; ForestGreen
+    ("cyan"           3     0 52736 53504) ; DarkTurquoise
+    ("red"            4 45568  8704  8704) ; FireBrick
+    ("magenta"        5 35584     0 35584) ; DarkMagenta
+    ("brown"          6 40960 20992 11520) ; Sienna
+    ("lightgray"      7 48640 48640 48640) ; Gray
+    ("darkgray"       8 26112 26112 26112) ; Gray40
+    ("lightblue"      9     0     0 65535) ; Blue
+    ("lightgreen"    10     0 65535     0) ; Green
+    ("lightcyan"     11     0 65535 65535) ; Cyan
+    ("lightred"      12 65535     0     0) ; Red
+    ("lightmagenta"  13 65535     0 65535) ; Magenta
+    ("yellow"        14 65535 65535     0) ; Yellow
+    ("white"         15 65535 65535 65535))
   "A list of MS-DOS console colors, their indices and 16-bit RGB values.")
 
 ;; ---------------------------------------------------------------------------
