@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.15 1994/08/07 17:23:44 rms Exp rms $
+;; Version: $Id: cmacexp.el,v 1.17 1994/09/01 10:35:52 pot Exp pot $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -66,7 +66,7 @@
 
 ;; IMPROVEMENTS OVER emacs 18.xx cmacexp.el ==========================
 
-;; - A lot of user visible changes.  See above.
+;; - A lot of user and programmer visible changes.  See above.
 ;; - #line directives are inserted, so __LINE__ and __FILE__ are
 ;;   correctly expanded.  Works even with START inside a string, a
 ;;   comment or a region #ifdef'd away by cpp. cpp is invoked with -C,
@@ -90,7 +90,7 @@
 (defvar c-macro-shrink-window-flag nil
   "*Non-nil means shrink the *Macroexpansion* window to fit its contents.")
 
-(defvar c-macro-prompt-flag nil
+(defvar c-macro-prompt-flag t
   "*Non-nil makes `c-macro-expand' prompt for preprocessor arguments.")
 
 (defvar c-macro-preprocessor "/lib/cpp -C"
@@ -150,7 +150,7 @@ For use inside Lisp programs, see also `c-macro-expansion'."
 	      (exchange-point-and-mark)))
       (set-buffer displaybuf)
       (setq buffer-read-only nil)
-      (buffer-flush-undo displaybuf)
+      (buffer-disable-undo displaybuf)
       (erase-buffer)
       (insert expansion)
       (set-buffer-modified-p nil)
@@ -240,6 +240,7 @@ Optional arg DISPLAY non-nil means show messages in the echo area."
 	(linenum 0)
 	(startstat ())
 	(startmarker "")
+	(exit-status 0)
 	(tempname (make-temp-name "/tmp/")))
     (unwind-protect
 	(save-excursion
