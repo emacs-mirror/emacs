@@ -257,9 +257,9 @@ redefine this function to suit your own tastes."
   (if (null mouse-avoidance-pointer-shapes)
       (progn
 	(setq mouse-avoidance-pointer-shapes
-	      (mapcar '(lambda (x) (symbol-value (intern x)))
+	      (mapcar (lambda (x) (symbol-value (intern x)))
 		      (all-completions "x-pointer-" obarray
-				       '(lambda (x) 
+				       (lambda (x) 
 					  (and (boundp x)
 					       (integerp (symbol-value x)))))))
 	(setq mouse-avoidance-n-pointer-shapes 
