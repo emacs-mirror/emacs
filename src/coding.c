@@ -2748,17 +2748,19 @@ See document of make-coding-system for coding-system object.")
   return ((NILP (obj) || !NILP (Fcoding_system_vector (obj))) ? Qt : Qnil);
 }
 
-DEFUN ("read-non-nil-coding-system",
-       Fread_non_nil_coding_system, Sread_non_nil_coding_system, 1, 1, 0,
+DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
+       Sread_non_nil_coding_system, 1, 1, 0,
   "Read a coding system from the minibuffer, prompting with string PROMPT.")
   (prompt)
      Lisp_Object prompt;
 {
   Lisp_Object val;
-  do {
-    val = Fcompleting_read (prompt, Vobarray, Qcoding_system_vector,
-			    Qt, Qnil, Qnil);
-  } while (XSTRING (val)->size == 0);
+  do
+    {
+      val = Fcompleting_read (prompt, Vobarray, Qcoding_system_vector,
+			      Qt, Qnil, Qnil, Qnil);
+    }
+  while (XSTRING (val)->size == 0);
   return (Fintern (val, Qnil));
 }
 
@@ -2768,7 +2770,7 @@ DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 1, 0,
      Lisp_Object prompt;
 {
   Lisp_Object val = Fcompleting_read (prompt, Vobarray, Qcoding_system_p,
-				      Qt, Qnil, Qnil);
+				      Qt, Qnil, Qnil, Qnil);
   return (XSTRING (val)->size == 0 ? Qnil : Fintern (val, Qnil));
 }
 
