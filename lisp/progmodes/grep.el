@@ -146,6 +146,14 @@ The following place holders should be present in the string:
   :type 'boolean
   :group 'grep)
 
+(defcustom grep-error-screen-columns nil
+  "*If non-nil, column numbers in grep hits are screen columns.
+See `compilation-error-screen-columns'"
+  :type '(choice (const :tag "Default" nil)
+		 integer)
+  :version "21.4"
+  :group 'grep)
+
 ;;;###autoload
 (defcustom grep-setup-hook nil
   "List of hook functions run by `grep-process-setup' (see `run-hooks')."
@@ -216,7 +224,9 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 `complation-last-buffer' rather than `grep-last-buffer'.")
 
 (defvar grep-regexp-alist
-  '(("^\\(.+?\\)[:( \t]+\\([0-9]+\\)\\([:) \t]\\)\\(?:\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?\\3\\)?" 1 2 (4 . 5))
+  '(("^\\(.+?\\)[:( \t]+\
+\\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
+\\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?[:) \t]" 1 (2 . 5) (4 . 6))
     ("^Binary file \\(.+\\) matches$" 1 nil nil 1))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
