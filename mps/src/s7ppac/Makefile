@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.23) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.24) $
 #
 # Copyright (C) 1999 Harlequin Limited.  All rights reserved.
 
@@ -118,9 +118,12 @@ mmsw_{Variety}.o  Ä  ¶
                 ring{OSffx} ¶
                 mpm{OSffx} ¶
                 bt{OSffx} ¶
+                boot{OSffx} ¶
                 arenacl{OSffx} ¶
                 arenavmx{OSffx} ¶
+                locus{OSffx} ¶
                 arena{OSffx} ¶
+                global{OSffx} ¶
                 tract{OSffx} ¶
                 walk{OSffx} ¶
                 reserv{OSffx} ¶

@@ -1,12 +1,13 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.10) $
+ * $HopeName: MMsrc!dbgpool.c(trunk.11) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .source: design.mps.object-debug
  */
 
 #include "dbgpool.h"
+#include "poolmfs.h"
 #include "splay.h"
 #include "mpslib.h"
 #include "mpm.h"
