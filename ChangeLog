@@ -1,3 +1,8 @@
+2000-07-18  Dave Love  <fx@gnu.org>
+
+	* configure.in: Reorder so that most tests are done after CPPFLAGS
+	is set from the C_SWITCH_... definitions.
+
 2000-07-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in (HAVE_XPM): Undo previous change.  Check for
