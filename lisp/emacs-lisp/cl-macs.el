@@ -1432,6 +1432,7 @@ form.  See `defsetf' for a simpler way to define most setf-methods."
 			  (cl-pop body))))
 	  (list (cl-transform-function-property
 		 func 'setf-method (cons args body)))))
+(defalias 'define-setf-expander 'define-setf-method)
 
 (defmacro defsetf (func arg1 &rest args)
   "(defsetf NAME FUNC): define a `setf' method.
