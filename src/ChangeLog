@@ -1,9 +1,17 @@
+2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* frame.c: Don't include keymap.h any more.
+	(keys_of_frame): Remove.
+
+	* lisp.h (keys_of_frame): Remove declaration.
+
+	* emacs.c (main): Don't call `keys_of_frame' any more.
+
 2001-11-14  Andreas Schwab  <schwab@suse.de>
 
 	* unexelf.c [!defined MAP_ANON]: Define MAP_ANON to MAP_ANONYMOUS
 	if defined, 0 otherwise.
-	(MAP_FAILED): Define if not defined and use it for testing mmap
-	failure.
+	(MAP_FAILED): Define if not defined and use it to test mmap failure.
 	(unexec) [!MAP_ANON]: Use /dev/zero as file to map.
 
 2001-11-19  Richard M. Stallman  <rms@gnu.org>
@@ -20,13 +28,12 @@
 	circumstances.
 	(w32_set_vertical_scroll_bar): Check for width and height > 0.
 	(w32_draw_relief_rect): Correct relief by 1 pixel.
-	(x_set_glyph_string_background_width): Set
-	extends_to_end_of_line_p if the row's fill_line_p is set and
+	(x_set_glyph_string_background_width):
+	Set extends_to_end_of_line_p if the row's fill_line_p is set and
 	drawing the last glyph with DRAW_IMAGE_{RAISED,SUNKEN}.
 	(x_display_and_set_cursor): If cursor_in_echo_area, use NO_CURSOR
 	if cursor_in_non_selected_windows is false.
-	(show_mouse_face): Clean up.  Recognize overwritten cursor
-	differently.
+	(show_mouse_face): Clean up.  Recognize overwritten cursor differently.
 	(x_draw_glyphs): Remove parameters REAL_START and REAL_END.
 	Notice if cursor gets overwritten.
 	(notice_overwritten_cursor): Renamed from
@@ -64,8 +71,8 @@
 	(enum gs_keyword_index): Add GS_BACKGROUND.
 	(pbm_load, png_load, jpeg_load, tiff_load, gif_load):
 	Pre-calculate image background color where necessary.
-	(x_create_x_image_and_pixmap, xbm_load, gs_load): Use
-	display info's n_cbits entry for screen depth.
+	(x_create_x_image_and_pixmap, xbm_load, gs_load):
+	Use display info's n_cbits entry for screen depth.
 	(Fx_show_tip): Remove unused variables `buffer', `top',
 	`left', `max_width' and `max_height'.
 
