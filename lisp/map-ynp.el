@@ -67,28 +67,12 @@ FUNCTION is called.  If it returns non-nil, the object is considered
 \"acted upon\", and the next object from LIST is processed.  If it returns
 nil, the prompt is repeated for the same object.
 
+This function uses `query-replace-map' to define the standard responses,
+but not all of the responses which `query-replace' understands
+are meaningful here.
+
 Returns the number of actions taken."
-  (let* ((old-help-form help-form)
-	 (help-form (let ((object (if help (nth 0 help) "object"))
-			  (objects (if help (nth 1 help) "objects"))
-			  (action (if help (nth 2 help) "act on")))
-		      (concat (format "Type SPC or `y' to %s the current %s;
-DEL or `n' to skip the current %s;
-! to %s all remaining %s;
-ESC or `q' to exit;\n"
-				      action object object action objects)
-			      (mapconcat (function
-					  (lambda (elt)
-					    (format "%c to %s"
-						    (nth 0 elt)
-						    (nth 2 elt))))
-					 action-alist
-					 ";\n")
-			      (if action-alist ";\n")
-			      (format "or . (period) to %s \
-the current %s and exit."
-				      action object))))
-	 (user-keys (if action-alist
+  (let* ((user-keys (if action-alist
 			(concat (mapconcat (function
 					    (lambda (elt)
 					      (key-description
@@ -96,8 +80,15 @@ the current %s and exit."
 					   action-alist ", ")
 				" ")
 		      ""))
+	 ;; Make a map that defines all the user keys as `user'.
+	 (map (cons 'keymap
+		    (append (mapcar (function
+				     (lambda (elt)
+				       (cons (car elt) 'user)))
+				    action-alist)
+			    query-replace-map)))
 	 (actions 0)
-	 prompt char elt tail
+	 prompt char elt tail def
 	 (next (if (or (symbolp list)
 		       (subrp list)
 		       (byte-code-function-p list)
@@ -112,6 +103,7 @@ the current %s and exit."
 					 list (cdr list))
 				   t)
 			       nil))))))
+
     (if (stringp prompter)
 	(setq prompter (` (lambda (object)
 			    (format (, prompter) object)))))
@@ -124,28 +116,23 @@ the current %s and exit."
 	      (message "%s(y, n, !, ., q, %sor %s) "
 		       prompt user-keys
 		       (key-description (char-to-string help-char)))
-	      (setq char (read-char)))
-	    (cond ((or (= ?q char)
-		       (= ?\e char))
+	      (setq char (read-event)))
+	    (setq def (lookup-key map (vector char)))
+	    (cond ((eq def 'exit)
 		   (setq next (function (lambda () nil))))
-		  ((or (= ?y char)
-		       (= ?Y char)
-		       (= ?  char))
+		  ((eq def 'act)
 		   ;; Act on the object.
-		   (let ((help-form old-help-form))
-		     (funcall actor elt))
+		   (funcall actor elt)
 		   (setq actions (1+ actions)))
-		  ((or (= ?n char)
-		       (= ?N char)
-		       (= ?\^? char))
+		  ((eq def 'skip)
 		   ;; Skip the object.
 		   )
-		  ((= ?. char)
+		  ((eq def 'act-and-exit)
 		   ;; Act on the object and then exit.
 		   (funcall actor elt)
 		   (setq actions (1+ actions)
 			 next (function (lambda () nil))))
-		  ((= ?! char)
+		  ((eq def 'automatic)
 		   ;; Act on this and all following objects.
 		   (if (eval (funcall prompter elt))
 		       (progn
@@ -156,20 +143,41 @@ the current %s and exit."
 			 (progn
 			   (funcall actor elt)
 			   (setq actions (1+ actions))))))
-		  ((= ?? char)
-		   (setq unread-command-events (list help-char))
+		  ((eq def 'help)
+		   (with-output-to-temp-buffer "*Help*"
+		     (princ
+		      (let ((object (if help (nth 0 help) "object"))
+			    (objects (if help (nth 1 help) "objects"))
+			    (action (if help (nth 2 help) "act on")))
+			(concat (format "Type SPC or `y' to %s the current %s;
+DEL or `n' to skip the current %s;
+! to %s all remaining %s;
+ESC or `q' to exit;\n"
+					action object object action objects)
+				(mapconcat (function
+					    (lambda (elt)
+					      (format "%c to %s"
+						      (nth 0 elt)
+						      (nth 2 elt))))
+					   action-alist
+					   ";\n")
+				(if action-alist ";\n")
+				(format "or . (period) to %s \
+the current %s and exit."
+					action object)))))
+
 		   (setq next (` (lambda ()
 				   (setq next '(, next))
 				   '(, elt)))))
-		  ((setq tail (assq char action-alist))
+		  ((eq def 'user)
 		   ;; A user-defined key.
 		   (if (funcall (nth 1 tail) elt) ;Call its function.
 		       ;; The function has eaten this object.
 		       (setq actions (1+ actions))
 		     ;; Regurgitated; try again.
 		     (setq next (` (lambda ()
-				   (setq next '(, next))
-				   '(, elt))))))
+				     (setq next '(, next))
+				     '(, elt))))))
 		  (t
 		   ;; Random char.
 		   (message "Type %s for help."
