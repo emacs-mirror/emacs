@@ -3143,39 +3143,17 @@ x_get_focus_frame (frame)
 }
 
 DEFUN ("focus-frame", Ffocus_frame, Sfocus_frame, 1, 1, 0,
-  "Set the focus on FRAME.")
+  "This function is obsolete, and does nothing.")
   (frame)
      Lisp_Object frame;
 {
-  CHECK_LIVE_FRAME (frame, 0);
-
-  if (FRAME_X_P (XFRAME (frame)))
-    {
-      BLOCK_INPUT;
-      x_focus_on_frame (XFRAME (frame));
-      UNBLOCK_INPUT;
-      return frame;
-    }
-
   return Qnil;
 }
 
 DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
-  "If a frame has been focused, release it.")
+  "This function is obsolete, and does nothing.")
   ()
 {
-  if (FRAME_X_P (selected_frame))
-    {
-      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
-
-      if (dpyinfo->x_focus_frame)
-	{
-	  BLOCK_INPUT;
-	  x_unfocus_frame (dpyinfo->x_focus_frame);
-	  UNBLOCK_INPUT;
-	}
-    }
-
   return Qnil;
 }
 
