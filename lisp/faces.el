@@ -867,7 +867,7 @@ of a global face.  Value is the new attribute value."
 		    (not (memq window-system '(x w32 mac)))
 		    (not (memq new-value
 			       '(unspecified unspecified-fg unspecified-bg))))
-	       (setq new-value (car (tty-color-desc new-value))))
+	       (setq new-value (car (tty-color-desc new-value frame))))
 	   (unless (eq new-value 'unspecified)
 	     (setq new-value (cdr (assoc new-value valid)))))
 	  ((eq valid 'integerp)
@@ -1162,7 +1162,7 @@ The value may be different for frames on different display types.
 If FRAME doesn't support colors, the value is nil."
   (if (memq (framep (or frame (selected-frame))) '(x w32))
       (xw-defined-colors frame)
-    (mapcar 'car tty-color-alist)))
+    (mapcar 'car (tty-color-alist frame))))
 (defalias 'x-defined-colors 'defined-colors)
 
 (defun color-defined-p (color &optional frame)
@@ -1174,7 +1174,7 @@ If COLOR is one of the symbols `unspecified', `unspecified-fg', or
       nil
     (if (memq (framep (or frame (selected-frame))) '(x w32))
 	(xw-color-defined-p color frame)
-      (numberp (tty-color-translate color)))))
+      (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
 
 (defun color-values (color &optional frame)
@@ -1202,7 +1202,7 @@ If omitted or nil, that stands for the selected frame's display."
       nil
     (if (memq (framep (or display (selected-frame))) '(x w32))
 	(xw-display-color-p display)
-      (tty-display-color-p))))
+      (tty-display-color-p display))))
 (defalias 'x-display-color-p 'display-color-p)
 
 
@@ -1248,7 +1248,7 @@ examine the brightness for you."
 			 'dark)
 			(t 'light)))
 	 (display-type (cond ((null window-system)
-			      (if (tty-display-color-p) 'color 'mono))
+			      (if (tty-display-color-p frame) 'color 'mono))
 			     ((x-display-color-p frame)
 			      'color)
 			     ((x-display-grayscale-p frame)
