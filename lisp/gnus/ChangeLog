@@ -1,3 +1,15 @@
+2000-11-09  Dave Love  <fx@gnu.org>
+
+	* message.el (tool-bar-map): Defvar when compiling.
+
+	* gnus-setup.el (running-xemacs, gnus-use-installed-tm)
+	(gnus-tm-lisp-directory): Deleted.
+	(gnus-use-installed-mailcrypt, gnus-emacs-lisp-directory): Use
+	(featurep 'xemacs).
+	(gnus-gnus-lisp-directory, gnus-mailcrypt-lisp-directory) 
+	(gnus-mailcrypt-lisp-directory, gnus-bbdb-lisp-directory): Remove
+	version numbers from file names.
+
 2000-11-08  John Wiegley  <johnw@gnu.org>
 
 	* gnus-topic.el (gnus-topic-mode): Use `setq' to clear
