@@ -1,3 +1,13 @@
+2000-07-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (eval-defun-2): Remove parameter
+	EVAL-DEFUN-ARG-INTERNAL; always print to minibuffer.
+	(eval-defun): If called with prefix arg, instrument code for
+	Edebug.
+
+	* emacs-lisp/edebug.el (edebug-eval-defun): Make doc string
+	similar to that of eval-defun.
+
 2000-07-04  Dave Love  <fx@gnu.org>
 
 	* hl-line.el (hl-line-overlay): Make it permanent-local.

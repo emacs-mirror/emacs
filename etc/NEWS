@@ -685,11 +685,14 @@ first in a custom-set-variables statement.
 
 ** New features in evaluation commands
 
-The commands to evaluate Lisp expressions, such as C-M-x in Lisp
+*** The commands to evaluate Lisp expressions, such as C-M-x in Lisp
 modes, C-j in Lisp Interaction mode, and M-:, now bind the variables
 print-level, print-length, and debug-on-error based on the
 customizable variables eval-expression-print-level,
 eval-expression-print-length, and eval-expression-debug-on-error.
+
+*** The function `eval-defun' (M-C-x) now loads Edebug and instruments
+code when called with a prefix argument.
 
 ** Dired changes
 
