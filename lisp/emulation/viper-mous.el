@@ -158,7 +158,7 @@ For convenience, in Lisp modes, `-' is considered alphanumeric.
 If CLICK-COUNT is 3 or more, returns the line clicked on with leading and
 trailing space and tabs removed. In that case, the first argument, COUNT,
 is ignored."
-   (let ((modifiers "")
+   (let ((modifiers "_")
 	 beg skip-flag result
 	 word-beg)
      (if (> click-count 2)
@@ -175,16 +175,18 @@ is ignored."
 		    (save-excursion (viper-forward-char-carefully)
 				    (viper-looking-at-alpha))))
 	   (setq modifiers
-		 (cond ((looking-at "\\\\") "\\\\")
-		       ((looking-at "-") "C-C-")
-		       ((looking-at "[][]") "][")
-		       ((looking-at "[()]") ")(")
-		       ((looking-at "[{}]") "{}")
-		       ((looking-at "[<>]") "<>")
-		       ((looking-at "[`']") "`'")
-		       ((looking-at "\\^") "\\^")
-		       ((viper-looking-at-separator) "")
-		       (t (char-to-string (following-char))))
+		 (concat modifiers
+			 (cond ((looking-at "\\\\") "\\\\")
+			       ((looking-at "-") "C-C-")
+			       ((looking-at "[][]") "][")
+			       ((looking-at "[()]") ")(")
+			       ((looking-at "[{}]") "{}")
+			       ((looking-at "[<>]") "<>")
+			       ((looking-at "[`']") "`'")
+			       ((looking-at "\\^") "\\^")
+			       ((viper-looking-at-separator) "")
+			       (t (char-to-string (following-char))))
+			 )
 		 ))
        
        ;; Add `-' to alphanum, if it wasn't added and if we are in Lisp
