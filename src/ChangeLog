@@ -143,6 +143,7 @@
 	* eval.c (Fcalled_interactively_p): Don't check INTERACTIVE.
 	(interactive_p): Skip Scalled_interactively_p frames
 	like Sinteractive_p frames.
+	(unwind_to_catch): Clear handling_signal.
 
 	* data.c (Fmake_variable_buffer_local): Doc fix.
 	(Fmake_local_variable): Doc fix.
