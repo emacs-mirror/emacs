@@ -848,10 +848,11 @@ skip_chars (forwardp, syntaxp, string, lim)
 	  {
 	    while (pos > XINT (lim))
 	      {
+		int savepos = pos;
 		DEC_POS (pos);
 		if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos))])
 		  {
-		    INC_POS (pos);
+		    pos = savepos;
 		    break;
 		  }
 	      }
@@ -889,6 +890,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 	  {
 	    while (pos > XINT (lim))
 	      {
+		int savepos = pos;
 		DEC_POS (pos);
 		if (fastmap[(c = FETCH_BYTE (pos))])
 		  {
@@ -903,14 +905,23 @@ skip_chars (forwardp, syntaxp, string, lim)
 			  if (ch >= char_ranges[i] && ch <= char_ranges[i + 1])
 			    break;
 			if (!(negate ^ (i < n_char_ranges)))
-			  break;
+			  {
+			    pos = savepos;
+			    break;
+			  }
 		      }
 		    else
 		      if (!negate)
-			break;
+			{
+			  pos = savepos;
+			  break;
+			}
 		  }
 		else
-		  break;
+		  {
+		    pos = savepos;
+		    break;
+		  }
 	      }
 	  }
       }
