@@ -142,7 +142,10 @@ For example, suppose that when you add a filter for buffers whose
 major mode is `emacs-lisp-mode', you only want to see the mark and the
 name of the buffer.  You could accomplish that by adding:
  (mode ((mark \" \" name)))
-to this variable.")
+to this variable."
+  :type '(repeat (list :tag "Association" (symbol :tag "Filter")
+                       (list :tag "Formats" (repeat (sexp :tag "Format")))))
+  :group 'ibuffer)
 
 (defvar ibuffer-cached-filter-formats nil)
 (defvar ibuffer-compiled-filter-formats nil)  
