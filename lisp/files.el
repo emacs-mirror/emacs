@@ -2993,17 +2993,56 @@ After saving the buffer, this function runs `after-save-hook'."
 		 (rename-file (cdr setmodes) buffer-file-name))))))
     setmodes))
 
+(defun diff-buffer-with-file (&optional buffer)
+  "View the differences between BUFFER and its associated file.
+This requires the external program \"diff\" to be in your `exec-path'."
+  (interactive "bBuffer: ")
+  (setq buffer (get-buffer (or buffer (current-buffer))))
+  (let ((buf-filename (buffer-file-name buffer)))
+    (unless buf-filename
+      (error "Buffer %s has no associated file" buffer))
+    (let ((tempfile (make-temp-file "buffer-content-")))
+      (unwind-protect
+	  (progn
+	    (with-current-buffer buffer
+	      (save-restriction
+		(widen)
+		(write-region (point-min) (point-max) tempfile nil 'nomessage)))
+	    (diff buf-filename tempfile))
+	(when (file-exists-p tempfile)
+	  (delete-file tempfile)))
+      nil)))
+
+(defvar save-some-buffers-action-alist
+  '((?\C-r
+     (lambda (buf)
+       (view-buffer buf
+		    (lambda (ignore)
+		      (exit-recursive-edit)))
+       (recursive-edit)
+       ;; Return nil to ask about BUF again.
+       nil)
+     "display the current buffer")
+    (?d diff-buffer-with-file
+	"Show difference to last saved version"))
+  "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
+(put 'save-some-buffers-action-alist 'risky-local-variable t)
+
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
-You can answer `y' to save, `n' not to save, or `C-r' to look at the
-buffer in question with `view-buffer' before deciding.
+You can answer `y' to save, `n' not to save, `C-r' to look at the
+buffer in question with `view-buffer' before deciding or `d' to
+view the differences using `diff-buffer-to-file'.
 
 Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
 If PRED is t, then certain non-file buffers will also be considered.
 If PRED is a zero-argument function, it indicates for each buffer whether
-to consider it or not when called with that buffer current."
+to consider it or not when called with that buffer current.
+
+See `save-some-buffers-action-alist' if you want to
+change the additional actions you can take on files."
   (interactive "P")
   (save-window-excursion
     (let* ((queried nil)
@@ -3035,15 +3074,7 @@ to consider it or not when called with that buffer current."
 		(save-buffer)))
 	     (buffer-list)
 	     '("buffer" "buffers" "save")
-	     (list (list ?\C-r (lambda (buf)
-				 (view-buffer buf
-					      (function
-					       (lambda (ignore)
-						 (exit-recursive-edit))))
-				 (recursive-edit)
-				 ;; Return nil to ask about BUF again.
-				 nil)
-			 "display the current buffer"))))
+	     save-some-buffers-action-alist))
 	   (abbrevs-done
 	    (and save-abbrevs abbrevs-changed
 		 (progn
