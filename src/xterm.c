@@ -8004,17 +8004,20 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
 #else /* not USE_TOOLKIT_SCROLL_BARS */
   
-      /* Clear areas not covered by the scroll bar.  This makes sure a
-	 previous mode line display is cleared after C-x 2 C-x 1, for
-	 example.  Non-toolkit scroll bars are as wide as the area
-	 reserved for scroll bars - trim at both sides.  */
-      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		  height, False);
-      XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  left + width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		  top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-		  height, False);
+      if (VERTICAL_SCROLL_BAR_WIDTH_TRIM)
+	{
+	  /* Clear areas not covered by the scroll bar.  This makes sure a
+	     previous mode line display is cleared after C-x 2 C-x 1, for
+	     example.  Non-toolkit scroll bars are as wide as the area
+	     reserved for scroll bars - trim at both sides.  */
+	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      left, top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+		      height, False);
+	  XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		      left + width - VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+		      top, VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+		      height, False);
+	}
       
       /* Move/size the scroll bar window.  */
       if (mask)
@@ -8736,7 +8739,9 @@ XTread_socket (sd, bufp, numchars, expected)
 			       iconified by a window manager such as GWM.  */
 			    int count = x_catch_errors (d);
 			    XSetInputFocus (d, event.xclient.window,
-					    RevertToPointerRoot,
+					    /* The ICCCM says this is
+					       the only valid choice.  */
+					    RevertToParent,
 					    event.xclient.data.l[1]);
 			    /* This is needed to detect the error
 			       if there is an error.  */
