@@ -186,7 +186,9 @@ with the next possible expansion not yet tried."
 	;; case pattern.
 	(save-excursion
 	  (replace-match abbrev t 'literal))
-	(search-forward abbrev)
+;;; This used to be necessary, but no longer, 
+;;; because now point is preserved correctly above.
+;;;	(search-forward abbrev)
 	(replace-match (if do-case (downcase expansion) expansion)
 		       (not do-case)
 		       'literal))
