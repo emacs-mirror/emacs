@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.28) $
+ * $HopeName: MMsrc!trace.c(trunk.29) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.28) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.29) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -780,8 +780,8 @@ Res TraceFix(ScanState ss, Ref *refIO)
       if (res != ResOK)
 	return res;
     }
-  ss->fixed = RefSetAdd(ss->space, ss->fixed, *refIO);
   }
+  ss->fixed = RefSetAdd(ss->space, ss->fixed, *refIO);
 
   return ResOK;
 }
