@@ -20,7 +20,6 @@ s!/bin/sh!command.com!
 /^@SET_MAKE@$/s/@SET_MAKE@//
 /^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-doc/s!>.*$!!
-/^.\${libsrc}make-docfile/s/\$/go32 $/
 /^[ 	]*$/d
 /^temacs:/s/prefix-args//
 /^	#/d
