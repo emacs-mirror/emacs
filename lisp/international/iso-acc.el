@@ -290,6 +290,16 @@ the language you choose)."
       (iso-accents-compose prompt)
     (vector last-input-char)))
 
+
+;; The iso-accents-compose function is called deep inside Emacs' read
+;; key sequence machinery, so the call to read-event below actually
+;; recurses into that machinery.  Doing that does not cause any
+;; problem on its own, but read-event will have marked the window's
+;; display matrix to be accurate -- which is broken by the subsequent
+;; call to delete-region.  Therefore, we must call force-window-update
+;; after delete-region to explicitly clear the accurate state of the
+;; window's display matrix.
+
 (defun iso-accents-compose (prompt)
   (let* ((first-char last-input-char)
 	 (list (assq first-char iso-accents-list))
@@ -308,7 +318,9 @@ the language you choose)."
 			    (read-event))
 			(insert first-char)
 			(prog1 (read-event)
-			  (delete-region (1- (point)) (point)))))
+			  (delete-region (1- (point)) (point))
+			  ;; Display is no longer up-to-date.
+			  (force-window-update (selected-window)))))
 	 (entry (cdr (assq second-char list))))
     (if entry
 	;; Found it: return the mapped char

@@ -201,6 +201,15 @@ a tab, a carriage return (control-M), a newline, and `]+'."
   :type 'regexp
   :group 'info)
 
+(defcustom Info-isearch-search t
+  "*If non-nil, isearch invoked in Info mode uses `Info-search' function.
+This allows isearch to search through multiple nodes.
+When isearch fails, it wraps and restarts the search from the
+top/final node depending on search direction."
+  :version "22.1"
+  :type 'boolean
+  :group 'info)
+
 (defcustom Info-mode-hook
   ;; Try to obey obsolete Info-fontify settings.
   (unless (and (boundp 'Info-fontify) (null Info-fontify))
@@ -1637,23 +1646,21 @@ If DIRECTION is `backward', search in the reverse direction."
   (Info-search regexp bound noerror count 'backward))
 
 (defun Info-isearch-search ()
-  (cond
-   (isearch-word
-    (if isearch-forward 'word-search-forward 'word-search-backward))
-   (isearch-regexp
-    (lambda (regexp bound noerror)
-      (condition-case nil
-          (progn
-            (Info-search regexp bound noerror nil
-                         (unless isearch-forward 'backward))
-            (point))
-        (error nil))))
-   (t
-    (if isearch-forward 'search-forward 'search-backward))))
+  (if (and Info-isearch-search (not isearch-word))
+      (lambda (string &optional bound noerror count)
+	(condition-case nil
+	    (progn
+	      (Info-search (if isearch-regexp string (regexp-quote string))
+			   bound noerror count
+			   (unless isearch-forward 'backward))
+	      (point))
+	  (error nil)))
+    (let ((isearch-search-fun-function nil))
+      (isearch-search-fun))))
 
 (defun Info-isearch-wrap ()
-  (if isearch-regexp
-      (if isearch-forward (Info-top-node) (Info-final-node))
+  (when (and Info-isearch-search (not isearch-word))
+    (if isearch-forward (Info-top-node) (Info-final-node))
     (goto-char (if isearch-forward (point-min) (point-max)))))
 
 (defun Info-isearch-push-state ()

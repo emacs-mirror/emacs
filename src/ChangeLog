@@ -1,3 +1,7 @@
+2005-02-23  Lute Kamstra  <lute@gnu.org>
+
+	* buffer.c (Foverlay_buffer): Doc fix.
+
 2005-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* minibuf.c (Ftry_completion, Fall_completions): Allow both string

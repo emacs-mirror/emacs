@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985,86,87,88,89,93,94,95,97,98, 1999, 2000, 2001, 02, 03, 2004
-	Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 
+     2000, 01, 02, 03, 04, 2005 Free Software Foundation, Inc. 
 
 This file is part of GNU Emacs.
 
@@ -3846,7 +3846,8 @@ DEFUN ("overlay-end", Foverlay_end, Soverlay_end, 1, 1, 0,
 }
 
 DEFUN ("overlay-buffer", Foverlay_buffer, Soverlay_buffer, 1, 1, 0,
-       doc: /* Return the buffer OVERLAY belongs to.  */)
+       doc: /* Return the buffer OVERLAY belongs to.
+Return nil if OVERLAY has been deleted.  */)
      (overlay)
        Lisp_Object overlay;
 {

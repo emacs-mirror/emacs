@@ -8859,7 +8859,9 @@ forward."
 	(let ((start (window-start))
 	      buffer-read-only)
 	  (message-caesar-buffer-body arg)
-	  (set-window-start (get-buffer-window (current-buffer)) start))))))
+	  (set-window-start (get-buffer-window (current-buffer)) start)))))
+  ;; Create buttons and stuff...
+  (gnus-treat-article nil))
 
 (autoload 'unmorse-region "morse"
   "Convert morse coded text in region to ordinary ASCII text."

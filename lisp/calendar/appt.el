@@ -189,9 +189,11 @@ Only relevant if reminders are being displayed in a window."
 Use `appt-add' and `appt-delete' to add and delete appointments.
 The original list is generated from today's `diary-entries-list', and
 can be regenerated using the function `appt-check'.
-Each element of the generated list has the form (MINUTES) STRING; where
+Each element of the generated list has the form (MINUTES STRING [FLAG]); where
 MINUTES is the time in minutes of the appointment after midnight, and
-STRING is the description of the appointment.")
+STRING is the description of the appointment.
+FLAG, if non-nil, says that the element was made with `appt-add'
+so calling `appt-make-list' again should preserve it.")
 
 (defconst appt-max-time 1439
   "11:59pm in minutes - number of minutes in a day minus 1.")
@@ -493,7 +495,7 @@ The time should be in either 24 hour format or am/pm format."
     (error "Unacceptable time-string"))
   (let* ((appt-time-string (concat new-appt-time " " new-appt-msg))
          (appt-time (list (appt-convert-time new-appt-time)))
-         (time-msg (cons appt-time (list appt-time-string))))
+         (time-msg (list appt-time appt-time-string t)))
     (setq appt-time-msg-list (nconc appt-time-msg-list (list time-msg)))
     (setq appt-time-msg-list (appt-sort-list appt-time-msg-list))))
 
@@ -525,12 +527,15 @@ The time should be in either 24 hour format or am/pm format."
 		   (defvar diary-entries-list))
 ;;;###autoload
 (defun appt-make-list ()
-  "Create the appointments list from today's diary buffer.
+  "Update the appointments list from today's diary buffer.
 The time must be at the beginning of a line for it to be
 put in the appointments list (see examples in documentation of
 the function `appt-check').  We assume that the variables DATE and
 NUMBER hold the arguments that `list-diary-entries' received.
-They specify the range of dates that the diary is being processed for."
+They specify the range of dates that the diary is being processed for.
+
+Any appointments made with `appt-add' are not affected by this
+function."
 
   ;; We have something to do if the range of dates that the diary is
   ;; considering includes the current date.
@@ -544,7 +549,11 @@ They specify the range of dates that the diary is being processed for."
 		      number)))))
       (save-excursion
 	;; Clear the appointments list, then fill it in from the diary.
-	(setq appt-time-msg-list nil)
+	(dolist (elt appt-time-msg-list)
+	  ;; Delete any entries that were not made with appt-add.
+	  (unless (nth 2 elt)
+	    (setq appt-time-msg-list
+		  (delq elt appt-time-msg-list))))
 	(if diary-entries-list
 
 	    ;; Cycle through the entry-list (diary-entries-list)

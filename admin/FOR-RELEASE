@@ -195,7 +195,7 @@ man/display.texi    "Luc Teirlinck"  Chong Yidong
 man/emacs.texi      "Luc Teirlinck"
 man/entering.texi   "Luc Teirlinck"  Chong Yidong
 man/files.texi      "Luc Teirlinck"  Chong Yidong
-man/fixit.texi      "Luc Teirlinck"
+man/fixit.texi      "Luc Teirlinck"  Chong Yidong
 man/frames.texi     "Luc Teirlinck"  Chong Yidong
 man/glossary.texi
 man/help.texi       "Luc Teirlinck"  Chong Yidong
@@ -205,17 +205,17 @@ man/kmacro.texi     "Luc Teirlinck"  Chong Yidong
 man/macos.texi
 man/maintaining.texi
 man/major.texi      "Luc Teirlinck"  Chong Yidong
-man/mark.texi       "Luc Teirlinck"
-man/mini.texi       "Luc Teirlinck"
+man/mark.texi       "Luc Teirlinck"  Chong Yidong
+man/mini.texi       "Luc Teirlinck"  Chong Yidong
 man/misc.texi
 man/msdog.texi      Chong Yidong
 man/mule.texi       "Luc Teirlinck"
-man/m-x.texi        "Luc Teirlinck"
+man/m-x.texi        "Luc Teirlinck"  Chong Yidong
 man/picture.texi    Joakim Verona <joakim@verona.se>
 man/programs.texi   "Stephen Eglen"  Chong Yidong
 man/regs.texi       "Luc Teirlinck"   Chong Yidong
 man/rmail.texi
-man/screen.texi     "Luc Teirlinck"
+man/screen.texi     "Luc Teirlinck"  Chong Yidong
 man/search.texi     "Luc Teirlinck"
 man/sending.texi
 man/text.texi       "Luc Teirlinck"   Chong Yidong
@@ -235,7 +235,7 @@ SECTION                  READERS
 lispref/abbrevs.texi     "Luc Teirlinck"
 lispref/advice.texi	 Joakim Verona <joakim@verona.se>
 lispref/anti.texi
-lispref/backups.texi     "Luc Teirlinck"
+lispref/backups.texi     "Luc Teirlinck"  Chong Yidong
 lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/calendar.texi    Joakim Verona <joakim@verona.se>
 lispref/commands.texi    "Luc Teirlinck"
@@ -268,17 +268,17 @@ lispref/modes.texi	 Chong Yidong
 lispref/nonascii.texi    "Luc Teirlinck"
 lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/os.texi		 "Luc Teirlinck"
+lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/processes.texi
 lispref/searching.texi	 "Luc Teirlinck"
-lispref/sequences.texi	 "Luc Teirlinck"
+lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/strings.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/symbols.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/syntax.texi	 "Luc Teirlinck"
+lispref/syntax.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/text.texi        Chong Yidong
-lispref/tips.texi	 "Luc Teirlinck"
+lispref/tips.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/variables.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
 
