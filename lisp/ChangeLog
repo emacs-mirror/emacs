@@ -1,3 +1,22 @@
+2004-12-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.46.
+
+	* net/tramp.el (tramp-maybe-send-perl-script): Change order of
+	parameters wrt Tramp convention.
+	(tramp-handle-file-attributes-with-perl)
+	(tramp-handle-directory-files-and-attributes): Apply it.
+	(tramp-do-copy-or-rename-file-out-of-band): Check for existence of
+	`copy-program'.  Reported by Zack Weinberg
+	<zack@codesourcery.com>.
+	(top): Set `edebug-form-spec' property directly rather than
+	calling `def-edebug-spec'.
+
+	* net/tramp-smb.el (tramp-smb-advice-PC-do-completion): Make the
+	advice less fragile.  Surround temporary redefinition of
+	`substitute-in-file-name' with `unwind-protect'.  Suggested by
+	Matt Hodges <MPHodges@member.fsf.org>.
+
 2004-12-17  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (occur-accumulate-lines, occur-engine):

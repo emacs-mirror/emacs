@@ -1105,9 +1105,11 @@ Return the difference in the format of a time value."
 	;; Do `PC-do-completion' without substitution
 	(let* (save)
 	  (fset 'save (symbol-function 'substitute-in-file-name))
-	  (fset 'substitute-in-file-name (symbol-function 'identity))
-	  ad-do-it
-	  (fset 'substitute-in-file-name (symbol-function 'save)))
+ 	  (unwind-protect
+ 	      (progn
+ 		(fset 'substitute-in-file-name (symbol-function 'identity))
+ 		ad-do-it)
+ 	    (fset 'substitute-in-file-name (symbol-function 'save))))
 
 	;; Expand "$"
 	(let* ((beg (or (and (functionp 'minibuffer-prompt-end) ; Emacs 21

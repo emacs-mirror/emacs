@@ -34,7 +34,7 @@
 ;;
 ;; Notes:
 ;; -----
-;;
+;; 
 ;; This package only works for Emacs 20 and higher, and for XEmacs 21
 ;; and higher.  (XEmacs 20 is missing the `with-timeout' macro.  Emacs
 ;; 19 is reported to have other problems.  For XEmacs 21, you need the
@@ -205,7 +205,7 @@ file name, the backup directory is prepended with Tramp file name prefix
 
 gives the same backup policy for Tramp files on their hosts like the
 policy for local files."
-      :type '(repeat
+      :type '(repeat 
 	      (list (regexp :tag "File regexp")
 		    (string :tag "Backup Dir")
 		    (set :inline t
@@ -506,7 +506,7 @@ This variable defaults to the value of `tramp-encoding-shell'."
 	      (tramp-copy-args            nil)
 	      (tramp-copy-keep-date-arg   "-p")
 	      (tramp-password-end-of-line "xy")) ;see docstring for "xy"
-     ("fcp"
+     ("fcp"   
 	      (tramp-connection-function  tramp-open-connection-rsh)
               (tramp-login-program        "fsh")
               (tramp-copy-program         "fcp")
@@ -633,7 +633,7 @@ variable `tramp-methods'."
     ("rsh"    tramp-multi-connect-rlogin "rsh %h -l %u%n")
     ("remsh"  tramp-multi-connect-rlogin "remsh %h -l %u%n")
     ("ssh"    tramp-multi-connect-rlogin "ssh %h -l %u%n")
-    ("ssht"   tramp-multi-connect-rlogin "ssh %h -e none -t -t -l %u%n")
+    ("ssht"   tramp-multi-connect-rlogin "ssh %h -e none -t -t -l %u%n")     
     ("su"     tramp-multi-connect-su     "su - %u%n")
     ("sudo"   tramp-multi-connect-su     "sudo -u %u -s -p Password:%n"))
   "*List of connection functions for multi-hop methods.
@@ -777,7 +777,7 @@ the info pages.")
       "sudo" tramp-completion-function-alist-su)
      (tramp-set-completion-function
       "multi" nil)
-     (tramp-set-completion-function
+     (tramp-set-completion-function 
       "scpx" tramp-completion-function-alist-ssh)
      (tramp-set-completion-function
       "sshx" tramp-completion-function-alist-ssh)
@@ -1536,9 +1536,9 @@ cat /tmp/tramp.$$
 rm -f /tmp/tramp.$$
 }"
   "Shell function to implement `uudecode' to standard output.
-Many systems support `uudecode -o /dev/stdout' for this or
-`uudecode -o -' or `uudecode -p', but some systems don't, and for
-them we have this shell function.")
+Many systems support `uudecode -o /dev/stdout' or `uudecode -o -'
+for this or `uudecode -p', but some systems don't, and for them
+we have this shell function.")
 
 ;; Perl script to implement `file-attributes' in a Lisp `read'able
 ;; output.  If you are hacking on this, note that you get *no* output
@@ -1960,10 +1960,9 @@ If VAR is nil, then we bind `v' to the structure and `multi-method',
 (put 'with-parsed-tramp-file-name 'lisp-indent-function 2)
 ;; To be activated for debugging containing this macro
 ;; It works only when VAR is nil.  Otherwise, it can be deactivated by
-;; (def-edebug-spec with-parsed-tramp-file-name 0)
+;; (put 'with-parsed-tramp-file-name 'edebug-form-spec 0)
 ;; I'm too stupid to write a precise SPEC for it.
-(if (functionp 'def-edebug-spec)
-  (def-edebug-spec with-parsed-tramp-file-name t))
+(put 'with-parsed-tramp-file-name 'edebug-form-spec t)
 
 (defmacro tramp-let-maybe (variable value &rest body)
   "Let-bind VARIABLE to VALUE in BODY, but only if VARIABLE is not obsolete.
@@ -2056,7 +2055,7 @@ target of the symlink differ."
 	(setq filename (tramp-file-name-localname
 			(tramp-dissect-file-name
 			 (expand-file-name filename)))))
-
+    
       ;; Right, they are on the same host, regardless of user, method, etc.
       ;; We now make the link on the remote machine. This will occur as the user
       ;; that FILENAME belongs to.
@@ -2065,7 +2064,7 @@ target of the symlink differ."
 	l-multi-method l-method l-user l-host
 	(format "cd %s && %s -sf %s %s"
 		cwd ln
-		filename
+		filename 
 		l-localname)
 	t)))))
 
@@ -2347,9 +2346,9 @@ target of the symlink differ."
 			    "file attributes with perl: %s"
 			    (tramp-make-tramp-file-name
 			     multi-method method user host localname))
-  (tramp-maybe-send-perl-script tramp-perl-file-attributes
-                                "tramp_file_attributes"
-                                multi-method method user host)
+  (tramp-maybe-send-perl-script multi-method method user host
+				tramp-perl-file-attributes
+                                "tramp_file_attributes")
   (tramp-send-command multi-method method user host
                       (format "tramp_file_attributes %s %s"
                               (tramp-shell-quote-argument localname) id-format))
@@ -2394,7 +2393,12 @@ target of the symlink differ."
 ;; This function makes the same assumption as
 ;; `tramp-handle-set-visited-file-modtime'.
 (defun tramp-handle-verify-visited-file-modtime (buf)
-  "Like `verify-visited-file-modtime' for tramp files."
+  "Like `verify-visited-file-modtime' for tramp files.
+At the time `verify-visited-file-modtime' calls this function, we
+already know that the buffer is visiting a file and that
+`visited-file-modtime' does not return 0.  Do not call this
+function directly, unless those two cases are already taken care
+of."
   (with-current-buffer buf
     ;; There is no file visiting the buffer, or the buffer has no
     ;; recorded last modification time.
@@ -2406,7 +2410,7 @@ target of the symlink differ."
 	  (let* ((attr (file-attributes f))
 		 (modtime (nth 5 attr))
 		 (mt (visited-file-modtime)))
-
+	    
  	    (cond
 	     ;; file exists, and has a known modtime.
 	     ((and attr (not (equal modtime '(0 0))))
@@ -2689,9 +2693,9 @@ if the remote host can't provide the modtime."
     (save-excursion
       (setq directory (tramp-handle-expand-file-name directory))
       (with-parsed-tramp-file-name directory nil
-        (tramp-maybe-send-perl-script tramp-perl-directory-files-and-attributes
-                                      "tramp_directory_files_and_attributes"
-                                      multi-method method user host)
+        (tramp-maybe-send-perl-script multi-method method user host
+				      tramp-perl-directory-files-and-attributes
+                                      "tramp_directory_files_and_attributes")
         (tramp-send-command multi-method method user host
                             (format "tramp_directory_files_and_attributes %s %s"
                                     (tramp-shell-quote-argument localname)
@@ -2753,7 +2757,7 @@ if the remote host can't provide the modtime."
 	    (push (buffer-substring (point)
 				    (tramp-line-end-position))
 		  result))
-
+	
 	  (tramp-send-command multi-method method user host "cd")
 	  (tramp-wait-for-output)
 
@@ -3096,6 +3100,12 @@ be a local filename.  The method used must be an out-of-band method."
 
     ;; Use an asynchronous process.  By this, password can be handled.
     (save-excursion
+
+      ;; Check for program.
+      (when (and (fboundp 'executable-find)
+		 (not (executable-find copy-program)))
+	(error "Cannot find copy program: %s" copy-program))
+
       (set-buffer trampbuf)
       (setq tramp-current-multi-method multi-method
 	    tramp-current-method method
@@ -3170,15 +3180,15 @@ This is like `dired-recursive-delete-directory' for tramp files."
 	 'file-error
 	 (list "Removing old file name" "no such directory" filename)))
     ;; Which is better, -r or -R? (-r works for me <daniel@danann.net>)
-    (tramp-send-command multi-method method user host
+    (tramp-send-command multi-method method user host 
 			(format "rm -r %s" (tramp-shell-quote-argument localname)))
     ;; Wait for the remote system to return to us...
     ;; This might take a while, allow it plenty of time.
     (tramp-wait-for-output 120)
     ;; Make sure that it worked...
     (and (file-exists-p filename)
-	 (error "Failed to recusively delete %s" filename))))
-
+	 (error "Failed to recursively delete %s" filename))))
+	 
 (defun tramp-handle-dired-call-process (program discard &rest arguments)
   "Like `dired-call-process' for tramp files."
   (with-parsed-tramp-file-name default-directory nil
@@ -3200,7 +3210,7 @@ This is like `dired-recursive-delete-directory' for tramp files."
 	  (tramp-send-command-and-check multi-method method user host nil)
 	(tramp-send-command multi-method method user host "cd")
 	(tramp-wait-for-output)))))
-
+	 
 (defun tramp-handle-dired-compress-file (file &rest ok-flag)
   "Like `dired-compress-file' for tramp files."
   ;; OK-FLAG is valid for XEmacs only, but not implemented.
@@ -3568,7 +3578,7 @@ This will break if COMMAND prints a newline, followed by the value of
   (when (and (numberp buffer) (zerop buffer))
     (error "Implementation does not handle immediate return"))
   (when (consp buffer) (error "Implementation does not handle error files"))
-  (shell-command
+  (shell-command 
    (mapconcat 'tramp-shell-quote-argument
               (cons program args)
               " ")
@@ -4250,7 +4260,7 @@ necessary anymore."
 ;; `tramp-completion-file-name-regexp-unified' aren't different.
 ;; If nil, `tramp-completion-run-real-handler' is called (i.e. forwarding to
 ;; `tramp-file-name-handler'). Otherwise, it takes `tramp-run-real-handler'.
-;; Using `last-input-event' is a little bit risky, because completing a file
+;; Using `last-input-event' is a little bit risky, because completing a file 
 ;; might require loading other files, like "~/.netrc", and for them it
 ;; shouldn't be decided based on that variable. On the other hand, those files
 ;; shouldn't have partial tramp file name syntax. Maybe another variable should
@@ -4354,7 +4364,7 @@ necessary anymore."
 			       (funcall (nth 0 x) (nth 1 x)))))
 	       (tramp-get-completion-function m))
 
-	      (setq result (append result
+	      (setq result (append result 
 	        (mapcar
 		 (lambda (x)
 		   (tramp-get-completion-user-host
@@ -4395,7 +4405,7 @@ necessary anymore."
 ;; [nil nil "x" nil nil]
 ;; [nil "x" nil nil nil]
 
-;; "/x:"                    "/x:y"                   "/x:y:"
+;; "/x:"                    "/x:y"                   "/x:y:"		      
 ;; [nil nil nil "x" ""]     [nil nil nil "x" "y"]    [nil "x" nil "y" ""]
 ;;       "/[x/"                   "/[x/y"
 ;; [nil "x" nil "" nil]     [nil "x" nil "y" nil]
@@ -4769,7 +4779,7 @@ User may be nil."
 
 ;;; Internal Functions:
 
-(defun tramp-maybe-send-perl-script (script name multi-method method user host)
+(defun tramp-maybe-send-perl-script (multi-method method user host script name)
   "Define in remote shell function NAME implemented as perl SCRIPT.
 Only send the definition if it has not already been done.
 Function may have 0-3 parameters."
@@ -4864,7 +4874,7 @@ TIME is an Emacs internal time value as returned by `current-time'."
 			"touch" nil (current-buffer) nil "-t" touch-time file))
 	      (pop-to-buffer (current-buffer))
 	      (error "tramp-touch: touch failed"))))))
-
+ 
 (defun tramp-buffer-name (multi-method method user host)
   "A name for the connection buffer for USER at HOST using METHOD."
   (if multi-method
@@ -5022,7 +5032,7 @@ file exists and nonzero exit status otherwise."
                   (file-exists-p existing)
                   (not (file-exists-p nonexisting))))
       (error "Couldn't find command to check if file exists."))))
-
+    
 
 ;; CCC test ksh or bash found for tilde expansion?
 (defun tramp-find-shell (multi-method method user host)
@@ -5121,9 +5131,9 @@ Returns nil if none was found, else the command is returned."
    (tramp-check-ls-commands multi-method method user host "gnuls" tramp-remote-path)
    (tramp-check-ls-commands multi-method method user host "gls" tramp-remote-path)))
 
-;; ------------------------------------------------------------
-;; -- Functions for establishing connection --
-;; ------------------------------------------------------------
+;; ------------------------------------------------------------ 
+;; -- Functions for establishing connection -- 
+;; ------------------------------------------------------------ 
 
 ;; The following functions are actions to be taken when seeing certain
 ;; prompts from the remote host.  See the variable
@@ -5364,7 +5374,7 @@ Maybe the different regular expressions need to be tuned.
     (when multi-method
       (error "Cannot multi-connect using telnet connection method"))
     (tramp-pre-connection multi-method method user host)
-    (tramp-message 7 "Opening connection for %s@%s using %s..."
+    (tramp-message 7 "Opening connection for %s@%s using %s..." 
 		   (or user (user-login-name)) host method)
     (let ((process-environment (copy-sequence process-environment)))
       (setenv "TERM" tramp-terminal-type)
@@ -5398,7 +5408,7 @@ Maybe the different regular expressions need to be tuned.
          p multi-method method user host)
         (tramp-post-connection multi-method method user host)))))
 
-
+	    
 (defun tramp-open-connection-rsh (multi-method method user host)
   "Open a connection using an rsh METHOD.
 This starts the command `rsh HOST -l USER'[*], then waits for a remote
@@ -5423,7 +5433,7 @@ arguments, and xx will be used as the host name to connect to.
       (error "Cannot multi-connect using rsh connection method"))
     (tramp-pre-connection multi-method method user host)
     (if (and user (not (string= user "")))
-	(tramp-message 7 "Opening connection for %s@%s using %s..."
+	(tramp-message 7 "Opening connection for %s@%s using %s..." 
 		       user host method)
       (tramp-message 7 "Opening connection at %s using %s..." host method))
     (let ((process-environment (copy-sequence process-environment))
@@ -5452,9 +5462,9 @@ arguments, and xx will be used as the host name to connect to.
                                                   (> emacs-major-version 20))
                                        tramp-dos-coding-system))
              (p (if (and user (not (string= user "")))
-                    (apply #'start-process bufnam buf login-program
+                    (apply #'start-process bufnam buf login-program  
                            real-host "-l" user login-args)
-                  (apply #'start-process bufnam buf login-program
+                  (apply #'start-process bufnam buf login-program 
                          real-host login-args)))
              (found nil))
         (tramp-set-process-query-on-exit-flag p nil)
@@ -5524,10 +5534,10 @@ prompt than you do, so it is not at all unlikely that the variable
 			       tramp-actions-before-shell)
         (tramp-open-connection-setup-interactive-shell
          p multi-method method user host)
-        (tramp-post-connection multi-method method
+        (tramp-post-connection multi-method method 
                                user host)))))
 
-;; HHH: Not Changed.  Multi method.  It is not clear to me how this can
+;; HHH: Not Changed.  Multi method.  It is not clear to me how this can 
 ;;      handle not giving a user name in the "file name".
 ;;
 ;;      This is more difficult than for the single-hop method.  In the
@@ -5597,7 +5607,7 @@ log in as u2 to h2."
         (tramp-post-connection multi-method method user host)))))
 
 ;; HHH: Changed.  Multi method.  Don't know how to handle this in the case
-;;      of no user name provided.  Hack to make it work as it did before:
+;;      of no user name provided.  Hack to make it work as it did before:  
 ;;      changed `user' to `(or user (user-login-name))' in the places where
 ;;      the value is actually used.
 (defun tramp-multi-connect-telnet (p method user host command)
@@ -5619,8 +5629,8 @@ If USER is nil, uses the return value of (user-login-name) instead."
     (tramp-process-multi-actions p method user host
 				 tramp-multi-actions)))
 
-;; HHH: Changed.  Multi method.  Don't know how to handle this in the case
-;;      of no user name provided.  Hack to make it work as it did before:
+;; HHH: Changed.  Multi method.  Don't know how to handle this in the case 
+;;      of no user name provided.  Hack to make it work as it did before:  
 ;;      changed `user' to `(or user (user-login-name))' in the places where
 ;;      the value is actually used.
 (defun tramp-multi-connect-rlogin (p method user host command)
@@ -5645,8 +5655,8 @@ If USER is nil, uses the return value of (user-login-name) instead."
     (tramp-process-multi-actions p method user host
 				 tramp-multi-actions)))
 
-;; HHH: Changed.  Multi method.  Don't know how to handle this in the case
-;;      of no user name provided.  Hack to make it work as it did before:
+;; HHH: Changed.  Multi method.  Don't know how to handle this in the case 
+;;      of no user name provided.  Hack to make it work as it did before:  
 ;;      changed `user' to `(or user (user-login-name))' in the places where
 ;;      the value is actually used.
 (defun tramp-multi-connect-su (p method user host command)
@@ -6276,7 +6286,7 @@ Sends COMMAND, then waits 30 seconds for shell prompt."
   (tramp-barf-if-no-shell-prompt
    nil 30
    "Couldn't `%s', see buffer `%s'" command (buffer-name)))
-
+  
 (defun tramp-wait-for-output (&optional timeout)
   "Wait for output from remote rsh command."
   (let ((proc (get-buffer-process (current-buffer)))
@@ -6609,9 +6619,9 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
    ""))
 
 
-;; ------------------------------------------------------------
-;; -- TRAMP file names --
-;; ------------------------------------------------------------
+;; ------------------------------------------------------------ 
+;; -- TRAMP file names -- 
+;; ------------------------------------------------------------ 
 ;; Conversion functions between external representation and
 ;; internal data structure.  Convenience functions for internal
 ;; data structure.
@@ -6622,7 +6632,7 @@ Not actually used.  Use `(format \"%o\" i)' instead?"
   "Return t iff NAME is a tramp file."
   (save-match-data
     (string-match tramp-file-name-regexp name)))
-
+ 
 ;; HHH: Changed.  Used to assign the return value of (user-login-name)
 ;;      to the `user' part of the structure if a user name was not
 ;;      provided, now it assigns nil.
@@ -6675,7 +6685,7 @@ This is MULTI-METHOD, if non-nil.  Otherwise, it is METHOD, if non-nil.
 If both MULTI-METHOD and METHOD are nil, do a lookup in
 `tramp-default-method-alist'."
   (or multi-method method (tramp-find-default-method user host)))
-
+    
 ;; HHH: Not Changed.  Multi method.  Will probably not handle the case where
 ;;      a user name is not provided in the "file name" very well.
 (defun tramp-dissect-multi-file-name (name)
@@ -6847,7 +6857,7 @@ as default."
     (if entry
 	(second entry)
       (symbol-value param))))
-
+      
 
 ;; Auto saving to a special directory.
 
@@ -7039,9 +7049,9 @@ exiting if process is running."
 	     process flag)))
 
 
-;; ------------------------------------------------------------
-;; -- Kludges section --
-;; ------------------------------------------------------------
+;; ------------------------------------------------------------ 
+;; -- Kludges section -- 
+;; ------------------------------------------------------------ 
 
 ;; Currently (as of Emacs 20.5), the function `shell-quote-argument'
 ;; does not deal well with newline characters.  Newline is replaced by
@@ -7304,7 +7314,7 @@ report.
 ;;   strange when doing zerop, we should kill the process and start
 ;;   again.  (Greg Stark)
 ;; * Add caching for filename completion.  (Greg Stark)
-;;   Of course, this has issues with usability (stale cache bites)
+;;   Of course, this has issues with usability (stale cache bites) 
 ;;      -- <daniel@danann.net>
 ;; * Provide a local cache of old versions of remote files for the rsync
 ;;   transfer method to use.  (Greg Stark)
