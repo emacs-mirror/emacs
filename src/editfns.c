@@ -2681,53 +2681,71 @@ or markers) bounding the text that should remain visible.")
 Lisp_Object
 save_restriction_save ()
 {
-  register Lisp_Object bottom, top;
-  /* Note: I tried using markers here, but it does not win
-     because insertion at the end of the saved region
-     does not advance mh and is considered "outside" the saved region. */
-  XSETFASTINT (bottom, BEGV - BEG);
-  XSETFASTINT (top, Z - ZV);
+  if (BEGV == BEG && ZV == Z)
+    /* The common case that the buffer isn't narrowed.
+       We return just the buffer object, which save_restriction_restore
+       recognizes as meaning `no restriction'.  */
+    return Fcurrent_buffer ();
+  else
+    /* We have to save a restriction, so return a pair of markers, one
+       for the beginning and one for the end.  */
+    {
+      Lisp_Object beg, end;
 
-  return Fcons (Fcurrent_buffer (), Fcons (bottom, top));
+      beg = buildmark (BEGV, BEGV_BYTE);
+      end = buildmark (ZV, ZV_BYTE);
+
+      /* END must move forward if text is inserted at its exact location.  */
+      XMARKER(end)->insertion_type = 1;
+
+      return Fcons (beg, end);
+    }
 }
 
 Lisp_Object
 save_restriction_restore (data)
      Lisp_Object data;
 {
-  register struct buffer *buf;
-  register int newhead, newtail;
-  register Lisp_Object tem;
-  int obegv, ozv;
-
-  buf = XBUFFER (XCAR (data));
-
-  data = XCDR (data);
-
-  tem = XCAR (data);
-  newhead = XINT (tem);
-  tem = XCDR (data);
-  newtail = XINT (tem);
-  if (newhead + newtail > BUF_Z (buf) - BUF_BEG (buf))
+  if (CONSP (data))
+    /* A pair of marks bounding a saved restriction.  */
     {
-      newhead = 0;
-      newtail = 0;
+      struct Lisp_Marker *beg = XMARKER (XCAR (data));
+      struct Lisp_Marker *end = XMARKER (XCDR (data));
+      struct buffer *buf = beg->buffer; /* END should have the same buffer. */
+
+      if (beg->charpos != BUF_BEGV(buf) || end->charpos != BUF_ZV(buf))
+	/* The restriction has changed from the saved one, so restore
+	   the saved restriction.  */
+	{
+	  int pt = BUF_PT (buf);
+
+	  SET_BUF_BEGV_BOTH (buf, beg->charpos, beg->bytepos);
+	  SET_BUF_ZV_BOTH (buf, end->charpos, end->bytepos);
+
+	  if (pt < beg->charpos || pt > end->charpos)
+	    /* The point is outside the new visible range, move it inside. */
+	    SET_BUF_PT_BOTH (buf,
+			     clip_to_bounds (beg->charpos, pt, end->charpos),
+			     clip_to_bounds (beg->bytepos, BUF_PT_BYTE(buf),
+					     end->bytepos));
+	  
+	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
+	}
     }
+  else
+    /* A buffer, which means that there was no old restriction.  */
+    {
+      struct buffer *buf = XBUFFER (data);
 
-  obegv = BUF_BEGV (buf);
-  ozv = BUF_ZV (buf);
+      if (BUF_BEGV(buf) != BUF_BEG(buf) || BUF_ZV(buf) != BUF_Z(buf))
+	/* The buffer has been narrowed, get rid of the narrowing.  */
+	{
+	  SET_BUF_BEGV_BOTH (buf, BUF_BEG(buf), BUF_BEG_BYTE(buf));
+	  SET_BUF_ZV_BOTH (buf, BUF_Z(buf), BUF_Z_BYTE(buf));
 
-  SET_BUF_BEGV (buf, BUF_BEG (buf) + newhead);
-  SET_BUF_ZV (buf, BUF_Z (buf) - newtail);
-
-  if (obegv != BUF_BEGV (buf) || ozv != BUF_ZV (buf))
-    current_buffer->clip_changed = 1;
-
-  /* If point is outside the new visible range, move it inside. */
-  SET_BUF_PT_BOTH (buf,
-		   clip_to_bounds (BUF_BEGV (buf), BUF_PT (buf), BUF_ZV (buf)),
-		   clip_to_bounds (BUF_BEGV_BYTE (buf), BUF_PT_BYTE (buf),
-				   BUF_ZV_BYTE (buf)));
+	  buf->clip_changed = 1; /* Remember that the narrowing changed. */
+	}
+    }
 
   return Qnil;
 }
@@ -2743,10 +2761,6 @@ The old restrictions settings are restored\n\
 even in case of abnormal exit (throw or error).\n\
 \n\
 The value returned is the value of the last form in BODY.\n\
-\n\
-`save-restriction' can get confused if, within the BODY, you widen\n\
-and then make changes outside the area within the saved restrictions.\n\
-See Info node `(elisp)Narrowing' for details and an appropriate technique.\n\
 \n\
 Note: if you are using both `save-excursion' and `save-restriction',\n\
 use `save-excursion' outermost:\n\
