@@ -147,7 +147,7 @@ done
 ### However, it also turns out that many shells cannot expand ${10} at all.
 ### So using an index variable doesn't work either.  It is possible to use
 ### some shell magic to make 'set x "$arguments"; shift' work portably.
-config_options=
+config_options="$*"
 while [ $# != 0 ]; do
   arg="$1"; shift
   case "${arg}" in
@@ -162,7 +162,6 @@ while [ $# != 0 ]; do
 	  valomitted=no
 	;;
         -*)
-	  config_options="${config_options} ${arg}"
           ## If FOO is a boolean argument, --FOO is equivalent to
           ## --FOO=yes.  Otherwise, the value comes from the next
           ## argument - see below.
