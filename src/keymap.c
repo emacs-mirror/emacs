@@ -1417,7 +1417,7 @@ recognize the default bindings, just as `read-key-sequence' does.
 
 Like the normal command loop, `key-binding' will remap the command
 resulting from looking up KEY by looking up the command in the
-currrent keymaps.  However, if the optional third argument NO-REMAP
+current keymaps.  However, if the optional third argument NO-REMAP
 is non-nil, `key-binding' returns the unmapped command.  */)
      (key, accept_default, no_remap)
      Lisp_Object key, accept_default, no_remap;
