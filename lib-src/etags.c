@@ -33,7 +33,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 14.39";
+char pot_etags_version[] = "@(#) pot revision number is 15.2";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -355,7 +355,9 @@ static char *cwd;		/* current working directory */
 static char *tagfiledir;	/* directory of tagfile */
 static FILE *tagf;		/* ioptr for tags file */
 
-static char *curfile;		/* current input file name */
+static char *curfile;		/* current input uncompressed file name */
+static char *curfiledir;	/* absolute dir of curfile */
+static char *curtagfname;	/* current file name to write in tagfile */
 static language *curlang;	/* current language */
 
 static int lineno;		/* line number of current line */
@@ -1394,7 +1396,7 @@ process_file (file)
       uncompressed_name = savenstr (file, ext - file);
     }
 
-  /* If the canonicalised uncompressed name has already be dealt with,
+  /* If the canonicalized uncompressed name has already be dealt with,
      skip it silently, else add it to the list. */
   {
     typedef struct processed_file
@@ -1482,20 +1484,23 @@ process_file (file)
       goto exit;
     }
 
-  if (filename_is_absolute (uncompressed_name))
+  curfile = uncompressed_name;
+  curfiledir = absolute_dirname (curfile, cwd);
+  if (filename_is_absolute (curfile))
     {
-      /* file is an absolute file name.  Canonicalise it. */
-      curfile = absolute_filename (uncompressed_name, cwd);
+      /* file is an absolute file name.  Canonicalize it. */
+      curtagfname = absolute_filename (curfile, NULL);
     }
   else
     {
       /* file is a file name relative to cwd.  Make it relative
 	 to the directory of the tags file. */
-      curfile = relative_filename (uncompressed_name, tagfiledir);
+      curtagfname = relative_filename (curfile, tagfiledir);
     }
   nocharno = FALSE;		/* use char position when making tags */
-  find_entries (uncompressed_name, inf);
+  find_entries (curfile, inf);
 
+  free (curfiledir);
   if (real_name == compressed_name)
     retval = pclose (inf);
   else
@@ -1642,8 +1647,8 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
   /* If ctags mode, change name "main" to M<thisfilename>. */
   if (CTAGS && !cxref_style && streq (name, "main"))
     {
-      register char *fp = etags_strrchr (curfile, '/');
-      np->name = concat ("M", fp == NULL ? curfile : fp + 1, "");
+      register char *fp = etags_strrchr (curtagfname, '/');
+      np->name = concat ("M", fp == NULL ? curtagfname : fp + 1, "");
       fp = etags_strrchr (np->name, '.');
       if (fp != NULL && fp[1] != '\0' && fp[2] == '\0')
 	fp[0] = '\0';
@@ -1651,7 +1656,7 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
   else
     np->name = name;
   np->been_warned = FALSE;
-  np->file = curfile;
+  np->file = curtagfname;
   np->is_func = is_func;
   np->lno = lno;
   if (nocharno)
@@ -1838,7 +1843,6 @@ add_node (np, cur_node_p)
 }
 
 
-#if !CTAGS
 static int total_size_of_entries __P((node *));
 static int number_len __P((long));
 
@@ -1878,7 +1882,6 @@ total_size_of_entries (np)
 
   return total;
 }
-#endif
 
 static void
 put_entries (np)
@@ -1895,7 +1898,7 @@ put_entries (np)
     put_entries (np->left);
 
   /* Output this entry */
-#if !CTAGS
+  if (!CTAGS)
     {
       /* Etags mode */
       if (file != np->file
@@ -1918,7 +1921,7 @@ put_entries (np)
       else
 	fprintf (tagf, "%ld\n", np->cno);
     }
-#else
+  else
     {
       /* Ctags mode */
       if (np->name == NULL)
@@ -1957,7 +1960,7 @@ put_entries (np)
 	  putc ('\n', tagf);
 	}
     }
-#endif
+
 
   /* Output subentries that follow this one */
   put_entries (np->right);
@@ -4056,8 +4059,9 @@ Perl_functions (inf)
 
 /*
  * Python support
- * Look for /^def[ \t\n]+[^ \t\n(:]+/ or /^class[ \t\n]+[^ \t\n(:]+/
+ * Look for /^[\t]*def[ \t\n]+[^ \t\n(:]+/ or /^class[ \t\n]+[^ \t\n(:]+/
  * Idea by Eric S. Raymond <esr@thyrsus.com> (1997)
+ * More ideas by seb bacon <seb@jamkit.com> (2002)
  */
 static void
 Python_functions (inf)
@@ -4066,13 +4070,17 @@ Python_functions (inf)
   register char *cp;
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
-    if (LOOKING_AT (cp, "def") || LOOKING_AT (cp, "class"))
-      {
-	while (!notinname (*cp) && *cp != ':')
-	  cp++;
-	pfnote (NULL, TRUE,
-		lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
-      }
+    {
+      cp = skip_spaces (cp);
+      if (LOOKING_AT (cp, "def") || LOOKING_AT (cp, "class"))
+	{
+	  char *name = cp;
+	  while (!notinname (*cp) && *cp != ':')
+	    cp++;
+	  pfnote (savenstr (name, cp-name), TRUE,
+		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	}
+    }
 }
 
 
@@ -4090,18 +4098,19 @@ static void
 PHP_functions (inf)
      FILE *inf;
 {
-  register char *cp;
+  register char *cp, *name;
   bool search_identifier = FALSE;
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
       cp = skip_spaces (cp);
+      name = cp;
       if (search_identifier
 	  && *cp != '\0')
 	{
 	  while (!notinname (*cp))
 	    cp++;
-	  pfnote (NULL, TRUE,
+	  pfnote (savenstr (name, cp-name), TRUE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	  search_identifier = FALSE;
 	}
@@ -4111,9 +4120,10 @@ PHP_functions (inf)
 	    cp = skip_spaces (cp+1);
 	  if(*cp != '\0')
 	    {
+	      name = cp;
 	      while (!notinname (*cp))
 		cp++;
-	      pfnote (NULL, TRUE,
+	      pfnote (savenstr (name, cp-name), TRUE,
 		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	    }
 	  else
@@ -4123,9 +4133,10 @@ PHP_functions (inf)
 	{
 	  if (*cp != '\0')
 	    {
+	      name = cp;
 	      while (*cp != '\0' && !iswhite (*cp))
 		cp++;
-	      pfnote (NULL, FALSE,
+	      pfnote (savenstr (name, cp-name), FALSE,
 		      lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	    }
 	  else
@@ -4137,18 +4148,20 @@ PHP_functions (inf)
 	       && (*cp == '"' || *cp == '\''))
 	{
 	  char quote = *cp++;
+	  name = cp;
 	  while (*cp != quote && *cp != '\0')
 	    cp++;
-	  pfnote (NULL, FALSE,
+	  pfnote (savenstr (name, cp-name), FALSE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
       else if (members
 	       && LOOKING_AT (cp, "var")
 	       && *cp == '$')
 	{
+	  name = cp;
 	  while (!notinname(*cp))
 	    cp++;
-	  pfnote (NULL, FALSE,
+	  pfnote (savenstr (name, cp-name), FALSE,
 		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
 	}
     }
@@ -4574,13 +4587,16 @@ TeX_commands (inf)
 	  i = TEX_Token (lasthit);
 	  if (i >= 0)
 	    {
-	      /* We seem to include the TeX command in the tag name.
 	      register char *p;
-	      for (p = lasthit + TEX_toktab[i].len;
-		   *p != '\0' && *p != TEX_clgrp;
+	      for (lasthit += TEX_toktab[i].len;
+		   *lasthit == TEX_esc || *lasthit == TEX_opgrp;
+		   lasthit++)
+		continue;
+	      for (p = lasthit;
+		   !iswhite (*p) && *p != TEX_opgrp && *p != TEX_clgrp;
 		   p++)
-		continue; */
-	      pfnote (/*savenstr (lasthit, p-lasthit)*/ (char *)NULL, TRUE,
+		continue;
+	      pfnote (savenstr (lasthit, p-lasthit), TRUE,
 		      lb.buffer, lb.len, lineno, linecharno);
 	      break;		/* We only tag a line once */
 	    }
@@ -5427,6 +5443,7 @@ readline (lbp, stream)
   /* Read new line. */
   long result = readline_internal (lbp, stream);
 
+  /* Honour #line directives. */
   if (!no_line_directive
       && result > 12 && strneq (lbp->buffer, "#line ", 6))
     {
@@ -5441,16 +5458,31 @@ readline (lbp, stream)
 	    endp++;
 	  if (endp != NULL)
 	    {
-	      int len = endp - (lbp->buffer + start);
+	      char *absname, *name = lbp->buffer + start;
+	      *endp = '\0';
 
-	      if (!strneq (curfile, lbp->buffer + start, len))
-		curfile = savenstr (lbp->buffer + start, len);
+	      canonicalize_filename(name); /* for DOS */
+	      absname = absolute_filename (name, curfiledir);
+	      if (filename_is_absolute (name)
+		  || filename_is_absolute (curfile))
+		name = absname;
+	      else
+		{
+		  name = relative_filename (absname, tagfiledir);
+		  free (absname);
+		}
+
+	      if (streq (curtagfname, name))
+		free (name);
+	      else
+		curtagfname = name;
 	      lineno = lno;
 	      nocharno = TRUE;	/* do not use char position for tags */
 	      return readline (lbp, stream);
 	    }
 	}
     }
+
 #ifdef ETAGS_REGEXPS
   {
     int match;
