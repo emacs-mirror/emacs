@@ -1,11 +1,10 @@
-;;; emerge.el --- merge diffs inder Emacs control (version 4)
+;;; emerge.el --- merge diffs under Emacs control
 
-;;; 13 Dec 1991
+;; Author: Dale R. Worley <drw@math.mit.edu>
+;; Version: 4
+;; Keywords: unix, tools
 
-;; LCD Archive Entry:
-;; emerge|Dale R. Worley|drw@math.mit.edu
-;; |File merge documentation
-;; |91-12-13|version 4|~/packages/emerge.doc.Z
+;;; Commentary:
 
 ; - Changes from version 3 to version 4
 ; 
@@ -78,7 +77,7 @@
 ; 
 ; Added x 1 command to shrink the merge window to one line.
 ; 
-; Added emerge-startup-hooks to allow customization.
+; Added emerge-startup-hook to allow customization.
 ; 
 ; Fixed a bug that is activated when a remote merge request is made when
 ; the minibuffer window is selected.
@@ -198,7 +197,7 @@
 ; error message.)
 ; 
 ; After the merge has been set up, Emerge runs the hooks in
-; emerge-startup-hooks.
+; emerge-startup-hook.
 ; 
 ; - Merging
 ; 
@@ -558,11 +557,7 @@
 ; 
 ; ================================================================
 
-;; Declare that we've got the subsystem loaded
-;; LCD Archive Entry:
-;; emerge|Dale R. Worley|drw@math.mit.edu
-;; |File merge
-;; |91-12-13|version 4|~/packages/emerge.el.Z
+;;; Code:
 
 ;;; Macros
 
@@ -876,9 +871,9 @@ the next difference.")
 (emerge-defvar-local emerge-skip-prefers nil
   "*If non-nil, differences for which there is a preference are automatically
 skipped.")
-(emerge-defvar-local emerge-startup-hooks nil
+(emerge-defvar-local emerge-startup-hook nil
   "*Hooks to run in the merge buffer after the merge has been set up.")
-(emerge-defvar-local emerge-quit-hooks nil
+(emerge-defvar-local emerge-quit-hook nil
   "Hooks to run in the merge buffer after the merge has been finished.
 emerge-prefix-argument will be bound to the prefix argument of the emerge-quit
 command.
@@ -938,7 +933,7 @@ emerge-file-names.")
      (emerge-remember-buffer-characteristics))
     (emerge-setup-windows buffer-A buffer-B merge-buffer t)
     (emerge-eval-in-buffer merge-buffer
-			   (run-hooks 'startup-hooks 'emerge-startup-hooks)
+			   (run-hooks 'startup-hooks 'emerge-startup-hook)
 			   (setq buffer-read-only t))))
 
 ;; Generate the Emerge difference list between two files
@@ -1065,12 +1060,12 @@ emerge-file-names.")
 	   (emerge-make-diff3-list file-A file-B file-ancestor))
      (setq emerge-number-of-differences (length emerge-difference-list))
      (setq emerge-current-difference -1)
-     (setq emerge-quit-hooks quit-hooks)
+     (setq emerge-quit-hook quit-hooks)
      (emerge-remember-buffer-characteristics)
      (emerge-select-prefer-Bs))
     (emerge-setup-windows buffer-A buffer-B merge-buffer t)
     (emerge-eval-in-buffer merge-buffer
-			   (run-hooks 'startup-hooks 'emerge-startup-hooks)
+			   (run-hooks 'startup-hooks 'emerge-startup-hook)
 			   (setq buffer-read-only t))))
 
 ;; Generate the Emerge difference list between two files with an ancestor
@@ -1816,7 +1811,7 @@ buffer after this will cause serious problems."
   ;; restore mode line
   (kill-local-variable 'mode-line-buffer-identification)
   (let ((emerge-prefix-argument arg))
-    (run-hooks 'emerge-quit-hooks)))
+    (run-hooks 'emerge-quit-hook)))
 
 (defun emerge-select-A (&optional force)
   "Select the A variant of this difference.  Refuses to function if this
