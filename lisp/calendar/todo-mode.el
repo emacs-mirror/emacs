@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.34 1998/01/12 11:43:22 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.35 1998/09/29 18:20:36 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -117,21 +117,25 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.34 1998/01/12 11:43:22 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.35 1998/09/29 18:20:36 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
 ;;      This package will require the following packages to be
 ;;      available on the load-path:
 ;;
-;;          time-stamp
+;;          cl
+;;          custom
 ;;          easymenu
+;;          time-stamp
 ;;
 ;;  Operation
 ;;
 ;;	You will have the following facilities available:
 ;;
 ;;	    M-x todo-show   will enter the todo list screen, here type
+;;
+;;        spc  will toggle the display of sub-trees
 ;;
 ;;	    +  to go to next category
 ;;          -  to go to previous category
@@ -288,6 +292,9 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.35  1998/09/29 18:20:36  os10000
+;; Alex Schroeder startup description added.
+;;
 ;; Revision 1.34  1998/01/12 11:43:22  os10000
 ;; Added patch from Don Hejna <djhejna@oasis.ambit.com>.
 ;;
@@ -598,7 +605,7 @@ Automatically generated when `todo-save-top-priorities' is non-nil."
 ;; My format string for the appt.el package is "%3b %2d, %y, %02I:%02M%p".
 ;;
 (defcustom todo-time-string-format
-  "%:y-%02m-%02d %02H:%02M"
+  "%04y-%02m-%02d %02H:%02M"
   "*TODO mode time string format for done entries.
 For details see the variable `time-stamp-format'."
   :type 'string
@@ -622,8 +629,9 @@ For details see the variable `time-stamp-format'."
 
 ;; Get some outside help ...
 
-(require 'time-stamp)
+(require 'cl)
 (require 'easymenu)
+(require 'time-stamp)
 
 ;; ---------------------------------------------------------------------------
 
@@ -657,6 +665,8 @@ Use `todo-categories' instead.")
     nil
   (let ((map (make-keymap)))
     (suppress-keymap map t)
+    (define-key map "?" 'todo-help)
+    (define-key map " " 'todo-hide-show-subtree)
     (define-key map "+" 'todo-forward-category)
     (define-key map "-" 'todo-backward-category)
     (define-key map "d" 'todo-file-item) ;done/delete
@@ -682,7 +692,6 @@ Use `todo-categories' instead.")
   "Make TODO mode display the current category correctly."
   (let ((name (nth todo-category-number todo-categories)))
     (setq mode-line-buffer-identification
-;;          (concat "Category: " name))
           (concat "Category: " (format "%18s" name)))
     (widen)
     (goto-char (point-min))
@@ -695,6 +704,18 @@ Use `todo-categories' instead.")
       (narrow-to-region begin (point-at-bol))
       (goto-char (point-min)))))
 (defalias 'todo-cat-slct 'todo-category-select)
+
+(defun todo-help () "Show TODO mode help."
+  (interactive)
+  (describe-function 'todo-mode))
+
+(defun todo-hide-show-subtree () "Hide or Show subtrees in the TODO list."
+  (interactive)
+  (save-excursion
+    (end-of-line)
+    (if (outline-visible)
+	(hide-subtree)
+      (show-subtree))))
 
 (defun todo-forward-category () "Go forward to TODO list of next category."
   (interactive)
@@ -760,7 +781,7 @@ Use `todo-categories' instead.")
   (let ((buffer-name (generate-new-buffer-name todo-edit-buffer)))
     (switch-to-buffer
      (make-indirect-buffer
-      (file-name-nondirectory todo-file-do) buffer-name))
+      (find-buffer-visiting todo-file-do) buffer-name))
     (message "To exit, simply kill this buffer and return to list.")
     (todo-edit-mode)
     (narrow-to-region (todo-item-start) (todo-item-end))))
@@ -770,7 +791,7 @@ Use `todo-categories' instead.")
   "Add new category CAT to the TODO list."
   (interactive "sCategory: ")
   (save-window-excursion
-    (setq todo-categories (cons cat todo-categories))
+    (pushnew cat todo-categories)
     (find-file todo-file-do)
     (widen)
     (goto-char (point-min))
@@ -786,7 +807,8 @@ Use `todo-categories' instead.")
     (insert (format "%s%s%s\n%s\n%s %s\n"
                     todo-prefix todo-category-beg cat
                     todo-category-end
-                    todo-prefix todo-category-sep)))
+                    todo-prefix todo-category-sep))
+    (save-buffer))
   0)
 
 ;;;### autoload
@@ -797,11 +819,9 @@ Use `todo-categories' instead.")
   (save-excursion
     (if (string= "" category)
         (setq category (nth todo-category-number todo-categories)))
-    (let ((cat-exists (member category todo-categories)))
-      (setq todo-category-number
-            (if cat-exists
-                (- (length todo-categories) (length cat-exists))
-              (todo-add-category category))))
+    (setq todo-category-number
+	    (or (position category todo-categories :test 'equal)
+		(todo-add-category category)))
     (todo-show)
     (setq todo-previous-line 0)
     (let ((top 1)
@@ -819,6 +839,11 @@ Use `todo-categories' instead.")
       (forward-line (1- top)))
     (insert new-item "\n")
     (todo-backward-item)
+    (progn ;;; horrible os10000 hack to make items appear when inserting into empty buffer
+     (widen)
+     (show-all)
+     (todo-forward-category)
+     (todo-backward-category))
     (todo-save)
     (message "")))
 
@@ -1054,7 +1079,7 @@ Number of entries for each category is given by
   "Jump to a category.  Default is previous category."
   (interactive)
   (let* ((categories todo-categories)
-         (history (cons 'categories (1+ todo-category-number)))
+	 (history (cons 'categories (1+ todo-category-number)))
 	 (category (completing-read
                     (concat "Category ["
                             (nth todo-category-number todo-categories) "]: ")
@@ -1062,10 +1087,8 @@ Number of entries for each category is given by
     (if (string= "" category)
         (setq category (nth todo-category-number todo-categories)))
     (setq todo-category-number
-          (if (member category todo-categories)
-              (- (length todo-categories)
-                 (length (member category todo-categories)))
-            (todo-add-category category)))
+	  (or (position category todo-categories :test 'equal)
+	      (todo-add-category category)))
     (todo-show)))
 
 (defun todo-line-string () "Return current line in buffer as a string."
@@ -1186,6 +1209,12 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   (setq mode-name "TODO")
   (use-local-map todo-mode-map)
   (easy-menu-add todo-menu)
+  (setq paragraph-separate "\*/\*")
+  (setq fill-prefix "\t\t")
+  (setq outline-regexp "\\*/\\*")
+  (outline-minor-mode 1)
+  (hide-other)
+  (auto-fill-mode 1)
   (run-hooks 'todo-mode-hook))
 
 ;; Read about this function in the setup instructions above!
