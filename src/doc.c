@@ -275,8 +275,15 @@ get_doc_string (filepos, unibyte, definition)
     return make_unibyte_string (get_doc_string_buffer + offset,
 				to - (get_doc_string_buffer + offset));
   else
-    return make_string (get_doc_string_buffer + offset,
-			to - (get_doc_string_buffer + offset));
+    {
+      /* Let the data determine whether the string is multibyte,
+	 even if Emacs is running in --unibyte mode.  */
+      int nchars = multibyte_chars_in_text (get_doc_string_buffer + offset,
+					    to - (get_doc_string_buffer + offset));
+      return make_string_from_bytes (get_doc_string_buffer + offset,
+				     nchars,
+				     to - (get_doc_string_buffer + offset));
+    }
 }
 
 /* Get a string from position FILEPOS and pass it through the Lisp reader.
