@@ -161,16 +161,17 @@ element should come before the second.  The arguments are cons cells;
   :type 'integer
   :group 'imenu)
 
-(defcustom imenu-scanning-message "Scanning buffer for index (%3d%%)"
-  "*Progress message during the index scanning of the buffer.
-If non-nil, user gets a message during the scanning of the buffer.
-
-Relevant only if the mode-specific function that creates the buffer
-index use `imenu-progress-message', and not useful if that is fast, in
-which case you might as well set this to nil."
-  :type '(choice string
-		 (const :tag "None" nil))
-  :group 'imenu)
+;; No longer used.  KFS 2004-10-27
+;; (defcustom imenu-scanning-message "Scanning buffer for index (%3d%%)"
+;;   "*Progress message during the index scanning of the buffer.
+;; If non-nil, user gets a message during the scanning of the buffer.
+;;
+;; Relevant only if the mode-specific function that creates the buffer
+;; index use `imenu-progress-message', and not useful if that is fast, in
+;; which case you might as well set this to nil."
+;;   :type '(choice string
+;;  		 (const :tag "None" nil))
+;;   :group 'imenu)
 
 (defcustom imenu-space-replacement "."
   "*The replacement string for spaces in index names.
@@ -300,16 +301,22 @@ The function in this variable is called when selecting a normal index-item.")
 ;; is calculated.
 ;; PREVPOS is the variable in which we store the last position displayed.
 (defmacro imenu-progress-message (prevpos &optional relpos reverse)
-  `(and
-    imenu-scanning-message
-    (let ((pos ,(if relpos
-		    relpos
-		  `(imenu--relative-position ,reverse))))
-      (if ,(if relpos t
-	     `(> pos (+ 5 ,prevpos)))
-	  (progn
-	    (message imenu-scanning-message pos)
-	    (setq ,prevpos pos))))))
+
+;; Made obsolete/empty, as computers are now faster than the eye, and
+;; it had problems updating the messages correctly, and could shadow
+;; more important messages/prompts in the minibuffer.  KFS 2004-10-27.
+
+;;  `(and
+;;    imenu-scanning-message
+;;    (let ((pos ,(if relpos
+;; 		    relpos
+;; 		  `(imenu--relative-position ,reverse))))
+;;      (if ,(if relpos t
+;; 	     `(> pos (+ 5 ,prevpos)))
+;; 	  (progn
+;; 	    (message imenu-scanning-message pos)
+;; 	    (setq ,prevpos pos)))))
+)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -765,7 +772,7 @@ the alist look like:
  (INDEX-NAME . INDEX-POSITION)
 or like:
  (INDEX-NAME INDEX-POSITION FUNCTION ARGUMENTS...)
-They may also be nested index alists like: 
+They may also be nested index alists like:
  (INDEX-NAME . INDEX-ALIST)
 depending on PATTERNS."
 
