@@ -32,13 +32,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* #define BSD4_1 */
 #define BSD4_2
 #define BSD4_3
+#define BSD4_4
 #define BSD
-/* #define VMS */
+#define SVR4
 
 /* SYSTEM_TYPE should indicate the kind of system you are using.
  It sets the Lisp variable system-type.  */
 
-#define SYSTEM_TYPE "berkeley-unix"
+#define SYSTEM_TYPE "dgc-unix"
 
 /* NOMULTIPLEJOBS should be defined if your system's shell
  does not have "job control" (the ability to stop a program,
@@ -69,7 +70,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
 
-#define FIRST_PTY_LETTER 'r'
+#define FIRST_PTY_LETTER 'p'
 
 /*
  *	Define HAVE_TIMEVAL if the system supports the BSD style clock values.
@@ -85,11 +86,21 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_SELECT
 
 /*
+ *	Define HAVE_SETSID if the system supports POSIX disassociate
+ *      terminal.
+ */
+#define HAVE_SETSID
+/*
  *	Define HAVE_SOCKETS if the system supports sockets.
  */
 
 #define HAVE_SOCKETS
 
+/*
+ *	Define HAVE_UNIX_DOMAIN if the system supports Unix
+ *      domain sockets.
+ */
+#define HAVE_UNIX_DOMAIN
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
  */
@@ -216,24 +227,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define	TERMINFO
 
 /*
- *	Define HAVE_TERMIO if the system provides sysV-style ioctls
+ *	Define HAVE_TERMIOS since this is POSIX,
  *	for terminal control.
- *	DG/UX has both BSD and AT&T style ioctl's.  Bsd ioctl's don't
- *	seem to wait for the output to drain properly, so use System V.
  */
 
-#define HAVE_TERMIO
-#define SIGNALS_VIA_CHARACTERS
-
-/*
- *	DG/UX 4.10 needs the following to turn on berkeley ioctl's.
- */
-
-#ifndef HAVE_TERMIO
-#ifndef _BSD_TTY_FLAVOR		/* Already defined, in dgux 4.30.  */
-#define _BSD_TTY_FLAVOR
-#endif
-#endif
+#define HAVE_TERMIOS
 
 /*
  *	Use a Berkeley style sys/wait.h.
@@ -241,11 +239,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  */
 
 #define _BSD_WAIT_FLAVOR
-
-/* Enable the x-rebind keysym function.  Do not try to map function
-   keys internally. */
-
-#define XREBINDKEYSYM
 
 /*
  *      Use BSD and POSIX-style signals.  This is crucial!
@@ -255,12 +248,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define SYSTEM_MALLOC
 
 /* MAKING_MAKEFILE must be defined in "ymakefile" before including config.h */
-#ifndef MAKING_MAKEFILE
+#ifndef THIS_IS_YMAKEFILE
 
 /* Make sure signal.h is included so macros below don't mess with it. */
 /* DG/UX include files prevent multiple inclusion. */
 
 #include <signal.h>
+
+/* but undefine the sigmask and sigpause macros since they will get
+   #define'd later. */
+#undef sigmask
+#undef sigpause
 
 #define POSIX_SIGNALS
 
@@ -277,12 +275,19 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define INTERRUPTIBLE_IO
 
 /* Can't use sys_signal because then etc/server.c would need sysdep.o.  */
+extern struct sigaction act, oact;
 #define signal(SIG,FUNC) berk_signal(SIG,FUNC)
 
-#else /* MAKING_MAKEFILE */
+#else /* THIS_IS_YMAKEFILE */
 /* force gcc to be used */
 CC=gcc
-#endif /* not MAKING_MAKEFILE */
+#endif /* not THIS_IS_YMAKEFILE */
+
+#define LD_SWITCH_SYSTEM
+/* Cannot depend on /lib/crt0.o because make does not understand an elink(1) */
+#define START_FILES pre-crt0.o
+#define LIBS_SYSTEM -ldgc /lib/crt0.o
+#define LIB_GCC /usr/lib/gcc/libgcc.a
 
 #ifdef _M88KBCS_TARGET
 /* Karl Berry says: the environment
@@ -303,6 +308,7 @@ CC=gcc
 #define MAKE_COMMAND \
   TARGET_BINARY_INTERFACE=m88kdguxcoff make
 
+#define C_DEBUG_SWITCH
 #else /* not COFF */
 
 #define C_COMPILER \
@@ -314,4 +320,7 @@ CC=gcc
 #define MAKE_COMMAND \
   TARGET_BINARY_INTERFACE=m88kdguxelf make
 
+#define C_DEBUG_SWITCH -g -V2 -mversion-03.00 -mstandard
 #endif /* COFF */
+/* Define switches affecting x/ymakefile */
+#define C_OPTIMIZE_SWITCH
