@@ -3939,16 +3939,13 @@ shrink_encoding_region (beg, end, coding, str)
    characters (and bytes) are recorded in members of the structure
    CODING.
 
-   If ADJUST is nonzero, we do various things as if the original text
+   If REPLACE is nonzero, we do various things as if the original text
    is deleted and a new text is inserted.  See the comments in
-   replace_range (insdel.c) to know what we are doing.
-
-   ADJUST nonzero also means that post-read-conversion or
-   pre-write-conversion functions (if any) should be processed.  */
+   replace_range (insdel.c) to know what we are doing.  */
 
 int
-code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
-     int from, from_byte, to, to_byte, encodep, adjust;
+code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
+     int from, from_byte, to, to_byte, encodep, replace;
      struct coding_system *coding;
 {
   int len = to - from, len_byte = to_byte - from_byte;
@@ -3959,9 +3956,8 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
   int first = 1;
   int fake_multibyte = 0;
   unsigned char *src, *dst;
-  int combined_before_bytes = 0, combined_after_bytes = 0;
 
-  if (adjust)
+  if (replace)
     {
       int saved_from = from;
 
@@ -4013,10 +4009,21 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
       coding->produced = len_byte;
       if (multibyte)
 	{
-	  if (GPT < from || GPT > to)
-	    move_gap_both (from, from_byte);
+	  /* We still may have to combine byte at the head and the
+             tail of the text in the region.  */
+	  if (GPT != to)
+	    move_gap_both (to, to_byte);
 	  coding->produced_char
 	    = multibyte_chars_in_text (BYTE_POS_ADDR (from_byte), len_byte);
+	  GAP_SIZE += len_byte;
+	  GPT_BYTE -= len_byte;
+	  ZV_BYTE -= len_byte;
+	  Z_BYTE -= len_byte;
+	  GPT -= len_byte;
+	  ZV -= len_byte;
+	  Z -= len_byte;
+	  adjust_after_replace (from, from_byte, to, to_byte,
+				coding->produced_char, len_byte, replace);
 	}
       else
 	coding->produced_char = len_byte;
@@ -4081,7 +4088,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
     make_gap (require - GAP_SIZE);
   move_gap_both (from, from_byte);
 
-  if (adjust)
+  if (replace)
     adjust_before_replace (from, from_byte, to, to_byte);
 
   if (GPT - BEG < beg_unchanged)
@@ -4204,8 +4211,9 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
 		REQUIRE + LEN_BYTE = LEN_BYTE * (NEW / ORIG)
 		REQUIRE = LEN_BYTE * (NEW - ORIG) / ORIG
 	     Here, we are sure that NEW >= ORIG.  */
-	  require = (len_byte * (coding->produced - coding->consumed)
-		     / coding->consumed);
+	  float ratio = coding->produced - coding->consumed;
+	  ratio /= coding->consumed;
+	  require = len_byte * ratio;
 	  first = 0;
 	}
       if ((src - dst) < (require + 2000))
@@ -4232,7 +4240,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, adjust)
     inserted = multibyte_chars_in_text (GPT_ADDR, inserted_byte);
 
   adjust_after_replace (from, from_byte, to, to_byte,
-			inserted, inserted_byte);
+			inserted, inserted_byte, replace);
   if (from_byte_orig == from_byte)
     from_byte_orig = from_byte = PT_BYTE;
 
