@@ -1,11 +1,11 @@
 ;; todo-mode.el -- Major mode for editing TODO list files
 
-;; Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001 Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
 ;;   [Not clear the above works, July 2000]
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.44 2000/11/22 22:51:33 fx Exp $
+;; Version: $Id: todo-mode.el,v 1.45 2001/07/05 13:44:53 gerd Exp $
 ;; Keywords: calendar, todo
 
 ;; This file is part of GNU Emacs.
@@ -97,7 +97,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.44 2000/11/22 22:51:33 fx Exp $
+;;      $Id: todo-mode.el,v 1.45 2001/07/05 13:44:53 gerd Exp $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -747,10 +747,9 @@ between each category."
         (copy-to-buffer todo-print-buffer-name (point-min) (point-max))
         (set-buffer todo-print-buffer-name)
         (goto-char (point-min))
-        (if (re-search-forward (regexp-quote todo-header) nil t)
-            (progn
-              (beginning-of-line 1)
-              (kill-line)))             ;Remove mode line
+        (when (re-search-forward (regexp-quote todo-header) nil t)
+	  (beginning-of-line 1)
+	  (delete-region (point) (line-end-position)))
         (while (re-search-forward       ;Find category start
                 (regexp-quote (concat todo-prefix todo-category-beg))
                 nil t)
