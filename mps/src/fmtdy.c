@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.2) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.3) $
  *  Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -103,7 +103,10 @@ static int dylan_wrapper_check(mps_word_t *w)
   assert(ff != 3);
 
   /* Zero length fixed part is only legal in format 0. */
-  assert(ff == 0 || fl != 0);
+  /* Current Dylan run-time does not honour this so I remove it for now */
+  /* We probably want this check as then we can scan without having to */
+  /* check for 0 fixed length fields as a special case */
+  /* assert(ff == 0 || fl != 0); */
 
   /* The fourth word contains the variable part format and element */
   /* size.  This assumes that DylanWorks is only going to use byte */
