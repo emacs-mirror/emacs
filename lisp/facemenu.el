@@ -632,7 +632,7 @@ Automatically called when a new face is created."
   nil) ; Return nil for facemenu-iterate
 
 (defun facemenu-complete-face-list (&optional oldlist)
-  "Return list of all faces that are look different.
+  "Return list of all faces that look different.
 Starts with given ALIST of faces, and adds elements only if they display 
 differently from any face already on the list.
 The faces on ALIST will end up at the end of the returned list, in reverse 
