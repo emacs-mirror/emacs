@@ -781,7 +781,7 @@ EmacsFrameResize (widget)
   int rows;
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
-  change_frame_size (f, rows, columns, 1, 0);
+  change_frame_size (f, rows, columns, 0, 1);
   update_wm_hints (ew); 
   update_various_frame_slots (ew);
 }
