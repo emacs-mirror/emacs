@@ -292,7 +292,7 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
     ;; asking command.com to copy the file.
     ;; No action is needed for UNC printer names, which is just as well
     ;; because `expand-file-name' doesn't support UNC names on MS-DOS.
-    (if (not (string-match "^\\\\" printer))
+    (if (and (stringp printer) (not (string-match "^\\\\" printer)))
 	(setq printer (expand-file-name printer safe-dir)))
     ;; Handle known programs specially where necessary.
     (unwind-protect
