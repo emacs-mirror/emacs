@@ -1,3 +1,8 @@
+2004-02-17  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/rmail.el (rmail-get-new-mail): Don't reference
+	rmail-use-spam-filter if rmail-spam-filter is not loaded.
+
 2004-02-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-buffer-p): Only revert dired buffers
