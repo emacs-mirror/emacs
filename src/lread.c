@@ -1180,6 +1180,46 @@ read1 (readcharfun, pch, first_in_list)
 
     case '#':
       c = READCHAR;
+      if (c == '^')
+	{
+	  c = READCHAR;
+	  if (c == '[')
+	    {
+	      Lisp_Object tmp;
+	      tmp = read_vector (readcharfun);
+	      if (XVECTOR (tmp)->size < CHAR_TABLE_STANDARD_SLOTS
+		  || XVECTOR (tmp)->size > CHAR_TABLE_STANDARD_SLOTS + 10)
+		error ("Invalid size char-table");
+	      XSETCHAR_TABLE (tmp, XCHAR_TABLE (tmp));
+	      return tmp;
+	    }
+	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#^", 2), Qnil));
+	}
+      if (c == '&')
+	{
+	  Lisp_Object length;
+	  length = read1 (readcharfun, pch, first_in_list);
+	  c = READCHAR;
+	  if (c == '"')
+	    {
+	      Lisp_Object tmp, val;
+	      int bits_per_char = INTBITS / sizeof (int);
+	      int size_in_chars = ((XFASTINT (length) + bits_per_char)
+				   / bits_per_char);
+
+	      UNREAD (c);
+	      tmp = read1 (readcharfun, pch, first_in_list);
+	      if (size_in_chars != XSTRING (tmp)->size)
+		Fsignal (Qinvalid_read_syntax,
+			 Fcons (make_string ("#&", 2), Qnil));
+		
+	      val = Fmake_bool_vector (length, Qnil);
+	      bcopy (XSTRING (tmp)->data, XBOOL_VECTOR (val)->data,
+		     size_in_chars);
+	      return val;
+	    }
+	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#&", 2), Qnil));
+	}
       if (c == '[')
 	{
 	  /* Accept compiled functions at read-time so that we don't have to
