@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
-
-
 
  <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en' lang='en'>
 
@@ -22,135 +18,62 @@
 
     <p>incomplete</p>
 
-    <address> <a href='mailto:grm@ravenbrook.com'>GRM</a>
-
-, 1998-10-20</address>
+    <address> <a href='mailto:grm@ravenbrook.com'>GRM</a>, 1998-10-20</address>
 
    </div>
 
-   <h2>
+   <h2><a id='section-name' name='section-name'>Name</a></h2>
 
-    <a id='section-name' name='section-name'>Name</a>
+   <p><code class="source">mps_message_gc_not_condemned_size</code></p>
 
-   </h2>
+   <h2><a id='section-summary' name='section-summary'>Summary</a></h2>
 
-   <p>mps_message_gc_not_condemned_size</p>
+   <p><code class="source">mps_message_gc_not_condemned_size</code> returns the "not condemned size" property of the specified message in the specified arena.</p>
 
-   <h2>
-
-    <a id='section-summary' name='section-summary'>Summary</a>
-
-   </h2>
-
-   <p>"mps_message_gc_not_condemned_size" returns the "not condemned size" property of the specified message in the specified arena.</p>
-
-   <h2>
-
-    <a id='section-associated-protocols' name='section-associated-protocols'>Associated Protocols</a>
-
-   </h2>
+   <h2><a id='section-associated-protocols' name='section-associated-protocols'>Associated Protocols</a></h2>
 
    <p>Message, GC.</p>
 
-   <h2>
+   <h2><a id='section-syntax' name='section-syntax'>Syntax</a></h2>
 
-    <a id='section-syntax' name='section-syntax'>Syntax</a>
+   <p><code class="source">size_t mps_message_gc_not_condemned_size(mps_arena_t arena, mps_message_t message)</code></p>
 
-   </h2>
+   <h2><a id='section-arguments' name='section-arguments'>Arguments</a></h2>
 
-   <p>
+   <p><code class="source">arena</code> -- the arena</p>
 
-    size_t mps_message_gc_not_condemned_size(mps_message_t message)
+   <p><code class="source">message</code> -- a message of a message type that supports this method</p>
 
-    <br />
+   <h2><a id='section-returned-values' name='section-returned-values'>Returned Values</a></h2>
 
-   </p>
+   <p>An approximate size for the set of objects that were in
+   collected pools, but were not condemned in the collection that
+   generated the message.</p>
 
-   <h2>
+   <h2><a id='section-resources' name='section-resources'>Resources</a></h2>
 
-    <a id='section-arguments' name='section-arguments'>Arguments</a>
+   <p><code class="filename">mps.h</code></p>
 
-   </h2>
+   <h2><a id='section-description' name='section-description'>Description</a></h2>
 
-   <p>message -- a message of a message type that supports this method</p>
+   <p> Currently, the only type of message that supports this property
+   is <code class="source">mps_message_type_gc</code>; such messages
+   are generated whenever a garbage collection completes.  This method
+   returns an approximation to the size of the set of objects that
+   were in collected pools (so potentially subject to garbage
+   collection), but were not condemned in that collection. </p>
 
-   <p>
+   <h2><a id='section-example' name='section-example'>Example</a></h2>
 
-    <br />
+   <h2><a id='section-error-handling' name='section-error-handling'>Error Handling</a></h2>
 
-    INITIAL/DEFAULT VALUES
+   <h2><a id='section-see-also' name='section-see-also'>See Also</a></h2>
 
-    <br />
+   <p>mps_message_*</p>
 
-    <br />
+   <h2><a id='section-A' name='section-A'>A. References</a></h2>
 
-    Not applicable.
-
-   </p>
-
-   <h2>
-
-    <a id='section-returned-values' name='section-returned-values'>Returned Values</a>
-
-   </h2>
-
-   <p>An approximate size for the set of objects that were in collected pools, but were not condemned in the collection that generated the message.</p>
-
-   <h2>
-
-    <a id='section-resources' name='section-resources'>Resources</a>
-
-   </h2>
-
-   <p>mps.h</p>
-
-   <h2>
-
-    <a id='section-description' name='section-description'>Description</a>
-
-   </h2>
-
-   <p>
-
-    Currently, the only type of message that supports this property is mps_message_type_gc; such messages are generated whenever a garbage collection completes.  This method returns an approximation to the size of the set of objects that were in collected pools (so potentially subject to garbage collection), but were not condemned in that collection.
-
-    <br />
-
-   </p>
-
-   <h2>
-
-    <a id='section-example' name='section-example'>Example</a>
-
-   </h2>
-
-   <h2>
-
-    <a id='section-error-handling' name='section-error-handling'>Error Handling</a>
-
-   </h2>
-
-   <h2>
-
-    <a id='section-see-also' name='section-see-also'>See Also</a>
-
-   </h2>
-
-   <p>
-
-mps_message_*</p>
-
-   <h2>
-
-    <a id='section-A' name='section-A'>A. References</a>
-
-   </h2>
-
-   <h2>
-
-    <a id='section-B' name='section-B'>B. Document History</a>
-
-   </h2>
+   <h2><a id='section-B' name='section-B'>B. Document History</a></h2>
 
    <table>
 
@@ -199,6 +122,16 @@ mps_message_*</p>
      </td>
 
      <td>Converted from xml to html (second pass).</td>
+
+    </tr>
+
+    <tr valign='top'>
+
+     <td>2001-11-07</td>
+
+     <td><a href='mailto:nb@ravenbrook.com'>NB</a></td>
+
+     <td>Added arena argument.</td>
 
     </tr>
 
