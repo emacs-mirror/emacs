@@ -1778,6 +1778,43 @@ Value is what BODY returns."
 	 (save-current-buffer
 	   (set-buffer ,old-buffer)
 	   (set-syntax-table ,old-table))))))
+
+(defmacro dynamic-completion-table (fun)
+  "Use function FUN as a dynamic completion table.
+FUN is called with one argument, the string for which completion is required,
+and it should return an alist containing all the intended possible
+completions. This alist may be a full list of possible completions so that FUN
+can ignore the value of its argument. If completion is performed in the
+minibuffer, FUN will be called in the buffer from which the minibuffer was
+entered. `dynamic-completion-table' then computes the completion, see Info
+node `(elisp)Programmed Completion'."
+  (let ((win (make-symbol "window"))
+        (string (make-symbol "string"))
+        (predicate (make-symbol "predicate"))
+        (mode (make-symbol "mode")))
+    `(lambda (,string ,predicate ,mode)
+       (with-current-buffer (let ((,win (minibuffer-selected-window)))
+                              (if (window-live-p ,win) (window-buffer ,win)
+                                (current-buffer)))
+         (cond
+          ((eq ,mode t) (all-completions ,string (,fun ,string) ,predicate))
+          ((not ,mode) (try-completion ,string (,fun ,string) ,predicate))
+          (t (test-completion ,string (,fun ,string) ,predicate)))))))
+
+(defmacro lazy-completion-table (var fun &rest args)
+  "Initialize variable VAR as a lazy completion table.
+If the completion table VAR is used for the first time (e.g., by passing VAR
+as an argument to `try-completion'), the function FUN is called with arguments
+ARGS. FUN must return the completion table that will be stored in VAR. If
+completion is requested in the minibuffer, FUN will be called in the buffer
+from which the minibuffer was entered. The return value of
+`lazy-completion-table' must be used to initialize the value of VAR."
+  (let ((str (make-symbol "string")))
+    `(dynamic-completion-table
+      (lambda (,str)
+        (unless (listp ,var)
+          (setq ,var (funcall ',fun ,@args)))
+        ,var))))
 
 ;;; Matching and substitution
 
