@@ -3239,7 +3239,7 @@ DEFUN ("base64-decode-region", Fbase64_decode_region, Sbase64_decode_region,
   2, 2, "r",
   "Base64-decode the region between BEG and END.\n\
 Return the length of the decoded text.\n\
-If the region can't be decoded, return nil and don't modify the buffer.")
+If the region can't be decoded, signal an error and don't modify the buffer.")
      (beg, end)
      Lisp_Object beg, end;
 {
@@ -3271,7 +3271,7 @@ If the region can't be decoded, return nil and don't modify the buffer.")
       /* The decoding wasn't possible. */
       if (length > MAX_ALLOCA)
 	xfree (decoded);
-      return Qnil;
+      error ("Base64 decoding failed");
     }
 
   /* Now we have decoded the region, so we insert the new contents
@@ -3286,7 +3286,7 @@ If the region can't be decoded, return nil and don't modify the buffer.")
   inserted_chars = PT - (XFASTINT (beg) + 1);
   if (length > MAX_ALLOCA)
     xfree (decoded);
-  /* At first delete the original text.  This never cause byte
+  /* At first delete the original text.  This never causes byte
      combining.  */
   del_range_both (PT + 1, PT_BYTE + 1, XFASTINT (end) + inserted_chars + 2,
 		  iend + decoded_length + 2, 1);
@@ -3309,8 +3309,8 @@ If the region can't be decoded, return nil and don't modify the buffer.")
 
 DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
        1, 1, 0,
-       "Base64-decode STRING and return the result.")
-     (string)
+  "Base64-decode STRING and return the result.")
+  (string)
      Lisp_Object string;
 {
   char *decoded;
@@ -3329,15 +3329,15 @@ DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
   decoded_length = base64_decode_1 (XSTRING (string)->data, decoded, length);
   if (decoded_length > length)
     abort ();
-
-  if (decoded_length < 0)
-    /* The decoding wasn't possible. */
-    decoded_string = Qnil;
-  else
+  else if (decoded_length >= 0)
     decoded_string = make_string (decoded, decoded_length);
+  else
+    decoded_string = Qnil;
 
   if (length > MAX_ALLOCA)
     xfree (decoded);
+  if (!STRINGP (decoded_string))
+    error ("Base64 decoding failed");
 
   return decoded_string;
 }
