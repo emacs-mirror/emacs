@@ -252,8 +252,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 (defun event-modifiers (event)
   "Returns a list of symbols representing the modifier keys in event EVENT.
 The elements of the list may include `meta', `control',
-`shift', `hyper', `super', `alt'.
-See also the function `event-modifier-bits'."
+`shift', `hyper', `super', `alt', `click', `drag', and `down'."
   (let ((type event))
     (if (listp type)
 	(setq type (car type)))
