@@ -1,3 +1,8 @@
+2004-11-19  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf2ps.el: Insert :version tag into all defgroup and
+	defcustom.
+
 2004-11-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-yank.el (calc-edit-disp-trail): New variable.

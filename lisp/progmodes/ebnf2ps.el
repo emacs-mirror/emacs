@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/04/04 21:40:30 vinicius>
+;; Time-stamp: <2004/11/19 21:51:40 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -1138,12 +1138,14 @@ Elements of ALIST that are not conses are ignored."
 (defgroup postscript nil
   "PostScript Group"
   :tag "PostScript"
+  :version "20"
   :group 'emacs)
 
 
 (defgroup ebnf2ps nil
   "Translate an EBNF to a syntactic chart on PostScript"
   :prefix "ebnf-"
+  :version "20"
   :group 'wp
   :group 'postscript)
 
@@ -1152,6 +1154,7 @@ Elements of ALIST that are not conses are ignored."
   "Special customization"
   :prefix "ebnf-"
   :tag "Special"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1159,6 +1162,7 @@ Elements of ALIST that are not conses are ignored."
   "Except customization"
   :prefix "ebnf-"
   :tag "Except"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1166,6 +1170,7 @@ Elements of ALIST that are not conses are ignored."
   "Repeat customization"
   :prefix "ebnf-"
   :tag "Repeat"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1173,6 +1178,7 @@ Elements of ALIST that are not conses are ignored."
   "Terminal customization"
   :prefix "ebnf-"
   :tag "Terminal"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1180,6 +1186,7 @@ Elements of ALIST that are not conses are ignored."
   "Non-Terminal customization"
   :prefix "ebnf-"
   :tag "Non-Terminal"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1187,6 +1194,7 @@ Elements of ALIST that are not conses are ignored."
   "Production customization"
   :prefix "ebnf-"
   :tag "Production"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1194,6 +1202,7 @@ Elements of ALIST that are not conses are ignored."
   "Shapes customization"
   :prefix "ebnf-"
   :tag "Shape"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1201,6 +1210,7 @@ Elements of ALIST that are not conses are ignored."
   "Displacement customization"
   :prefix "ebnf-"
   :tag "Displacement"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1208,6 +1218,7 @@ Elements of ALIST that are not conses are ignored."
   "Syntactic customization"
   :prefix "ebnf-"
   :tag "Syntactic"
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1215,12 +1226,14 @@ Elements of ALIST that are not conses are ignored."
   "Optimization customization"
   :prefix "ebnf-"
   :tag "Optimization"
+  :version "20"
   :group 'ebnf2ps)
 
 
 (defcustom ebnf-horizontal-orientation nil
   "*Non-nil means productions are drawn horizontally."
   :type 'boolean
+  :version "20"
   :group 'ebnf-displacement)
 
 
@@ -1229,6 +1242,7 @@ Elements of ALIST that are not conses are ignored."
 
 It is only used when `ebnf-horizontal-orientation' is non-nil."
   :type 'boolean
+  :version "20"
   :group 'ebnf-displacement)
 
 
@@ -1237,6 +1251,7 @@ It is only used when `ebnf-horizontal-orientation' is non-nil."
 
 Value less or equal to zero forces ebnf2ps to set a proper default value."
   :type 'number
+  :version "20"
   :group 'ebnf-displacement)
 
 
@@ -1245,6 +1260,7 @@ Value less or equal to zero forces ebnf2ps to set a proper default value."
 
 Value less or equal to zero forces ebnf2ps to set a proper default value."
   :type 'number
+  :version "20"
   :group 'ebnf-displacement)
 
 
@@ -1258,12 +1274,14 @@ Valid values are:
    any other value	centralize"
   :type '(radio :tag "Sequence Justification"
 		(const left) (const right) (other :tag "center" center))
+  :version "20"
   :group 'ebnf-displacement)
 
 
 (defcustom ebnf-special-show-delimiter t
   "*Non-nil means special delimiter (character `?') is shown."
   :type 'boolean
+  :version "20"
   :group 'ebnf-special)
 
 
@@ -1285,6 +1303,7 @@ See documentation for `ebnf-production-font'."
 			       (const underline) (const strikeout)
 			       (const overline)  (const shadow)
 			       (const box)       (const outline))))
+  :version "20"
   :group 'ebnf-special)
 
 
@@ -1294,24 +1313,28 @@ See documentation for `ebnf-production-font'."
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Special Shape"
 		(const miter) (const round) (const bevel))
+  :version "20"
   :group 'ebnf-special)
 
 
 (defcustom ebnf-special-shadow nil
   "*Non-nil means special box will have a shadow."
   :type 'boolean
+  :version "20"
   :group 'ebnf-special)
 
 
 (defcustom ebnf-special-border-width 0.5
   "*Specify border width for special box."
   :type 'number
+  :version "20"
   :group 'ebnf-special)
 
 
 (defcustom ebnf-special-border-color "Black"
   "*Specify border color for special box."
   :type 'string
+  :version "20"
   :group 'ebnf-special)
 
 
@@ -1333,6 +1356,7 @@ See documentation for `ebnf-production-font'."
 			       (const underline) (const strikeout)
 			       (const overline)  (const shadow)
 			       (const box)       (const outline))))
+  :version "20"
   :group 'ebnf-except)
 
 
@@ -1342,24 +1366,28 @@ See documentation for `ebnf-production-font'."
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Except Shape"
 		(const miter) (const round) (const bevel))
+  :version "20"
   :group 'ebnf-except)
 
 
 (defcustom ebnf-except-shadow nil
   "*Non-nil means except box will have a shadow."
   :type 'boolean
+  :version "20"
   :group 'ebnf-except)
 
 
 (defcustom ebnf-except-border-width 0.25
   "*Specify border width for except box."
   :type 'number
+  :version "20"
   :group 'ebnf-except)
 
 
 (defcustom ebnf-except-border-color "Black"
   "*Specify border color for except box."
   :type 'string
+  :version "20"
   :group 'ebnf-except)
 
 
@@ -1381,6 +1409,7 @@ See documentation for `ebnf-production-font'."
 			       (const underline) (const strikeout)
 			       (const overline)  (const shadow)
 			       (const box)       (const outline))))
+  :version "20"
   :group 'ebnf-repeat)
 
 
@@ -1390,24 +1419,28 @@ See documentation for `ebnf-production-font'."
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Repeat Shape"
 		(const miter) (const round) (const bevel))
+  :version "20"
   :group 'ebnf-repeat)
 
 
 (defcustom ebnf-repeat-shadow nil
   "*Non-nil means repeat box will have a shadow."
   :type 'boolean
+  :version "20"
   :group 'ebnf-repeat)
 
 
 (defcustom ebnf-repeat-border-width 0.0
   "*Specify border width for repeat box."
   :type 'number
+  :version "20"
   :group 'ebnf-repeat)
 
 
 (defcustom ebnf-repeat-border-color "Black"
   "*Specify border color for repeat box."
   :type 'string
+  :version "20"
   :group 'ebnf-repeat)
 
 
@@ -1429,6 +1462,7 @@ See documentation for `ebnf-production-font'."
 			       (const underline) (const strikeout)
 			       (const overline)  (const shadow)
 			       (const box)       (const outline))))
+  :version "20"
   :group 'ebnf-terminal)
 
 
@@ -1438,30 +1472,35 @@ See documentation for `ebnf-production-font'."
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Terminal Shape"
 		(const miter) (const round) (const bevel))
+  :version "20"
   :group 'ebnf-terminal)
 
 
 (defcustom ebnf-terminal-shadow nil
   "*Non-nil means terminal box will have a shadow."
   :type 'boolean
+  :version "20"
   :group 'ebnf-terminal)
 
 
 (defcustom ebnf-terminal-border-width 1.0
   "*Specify border width for terminal box."
   :type 'number
+  :version "20"
   :group 'ebnf-terminal)
 
 
 (defcustom ebnf-terminal-border-color "Black"
   "*Specify border color for terminal box."
   :type 'string
+  :version "20"
   :group 'ebnf-terminal)
 
 
 (defcustom ebnf-production-name-p t
   "*Non-nil means production name will be printed."
   :type 'boolean
+  :version "20"
   :group 'ebnf-production)
 
 
@@ -1477,6 +1516,7 @@ Valid values are:
 		(const :tag "Ascending" ascending)
 		(const :tag "Descending" descending)
 		(other :tag "No Sort" nil))
+  :version "20"
   :group 'ebnf-production)
 
 
@@ -1519,6 +1559,7 @@ See `ps-font-info-database' for valid font name."
 			       (const underline) (const strikeout)
 			       (const overline)  (const shadow)
 			       (const box)       (const outline))))
+  :version "20"
   :group 'ebnf-production)
 
 
@@ -1540,6 +1581,7 @@ See documentation for `ebnf-production-font'."
 			       (const underline) (const strikeout)
 			       (const overline)  (const shadow)
 			       (const box)       (const outline))))
+  :version "20"
   :group 'ebnf-non-terminal)
 
 
@@ -1563,24 +1605,28 @@ Valid values are:
 Any other value is treated as `miter'."
   :type '(radio :tag "Non-Terminal Shape"
 		(const miter) (const round) (const bevel))
+  :version "20"
   :group 'ebnf-non-terminal)
 
 
 (defcustom ebnf-non-terminal-shadow nil
   "*Non-nil means non-terminal box will have a shadow."
   :type 'boolean
+  :version "20"
   :group 'ebnf-non-terminal)
 
 
 (defcustom ebnf-non-terminal-border-width 1.0
   "*Specify border width for non-terminal box."
   :type 'number
+  :version "20"
   :group 'ebnf-non-terminal)
 
 
 (defcustom ebnf-non-terminal-border-color "Black"
   "*Specify border color for non-terminal box."
   :type 'string
+  :version "20"
   :group 'ebnf-non-terminal)
 
 
@@ -1637,6 +1683,7 @@ Any other value is treated as `none'."
 		(const full)             (const semi-up-hollow)
 		(const semi-down-hollow) (const semi-up-full)
 		(const semi-down-full)   (const user))
+  :version "20"
   :group 'ebnf-shape)
 
 
@@ -1646,6 +1693,7 @@ Any other value is treated as `none'."
 See documentation for `ebnf-non-terminal-shape'."
   :type '(radio :tag "Chart Flow Shape"
 		(const miter) (const round) (const bevel))
+  :version "20"
   :group 'ebnf-shape)
 
 
@@ -1685,6 +1733,7 @@ The relation between these variables is: hT = 2 * hT2 = 4 * hT4.
 The variable `ebnf-user-arrow' is only used when `ebnf-arrow-shape' is set to
 symbol `user'."
   :type '(sexp :tag "User Arrow Shape")
+  :version "20"
   :group 'ebnf-shape)
 
 
@@ -1728,6 +1777,7 @@ Any other value is treated as `ebnf'."
   :type '(radio :tag "Syntax"
 		(const ebnf) (const abnf)  (const iso-ebnf)
 		(const yacc) (const ebnfx) (const dtd))
+  :version "20"
   :group 'ebnf-syntactic)
 
 
@@ -1736,6 +1786,7 @@ Any other value is treated as `ebnf'."
 
 It's used only when `ebnf-syntax' is `ebnf'."
   :type 'character
+  :version "20"
   :group 'ebnf-syntactic)
 
 
@@ -1744,6 +1795,7 @@ It's used only when `ebnf-syntax' is `ebnf'."
 
 It's used only when `ebnf-syntax' is `ebnf'."
   :type 'character
+  :version "20"
   :group 'ebnf-syntactic)
 
 
@@ -1757,6 +1809,7 @@ terminal name; terminal name may also be enclosed by `\"'.
 It's used only when `ebnf-syntax' is `ebnf'."
   :type '(radio :tag "Terminal Name"
 		(const nil) regexp)
+  :version "20"
   :group 'ebnf-syntactic)
 
 
@@ -1766,6 +1819,7 @@ It's used only when `ebnf-syntax' is `ebnf'."
 It's only used when `ebnf-terminal-regexp' is non-nil and when `ebnf-syntax' is
 `ebnf'."
   :type 'boolean
+  :version "20"
   :group 'ebnf-syntactic)
 
 
@@ -1784,6 +1838,7 @@ This variable affects the following symbol set:
       }    ==>   :)
       ;    ==>   ."
   :type 'boolean
+  :version "20"
   :group 'ebnf-syntactic)
 
 
@@ -1795,6 +1850,7 @@ single space, so \"A  B   C\" is normalized to  \"A B C\".
 
 It's only used when `ebnf-syntax' is `iso-ebnf'."
   :type 'boolean
+  :version "20"
   :group 'ebnf-syntactic)
 
 
@@ -1803,6 +1859,7 @@ It's only used when `ebnf-syntax' is `iso-ebnf'."
 
 See `ebnf-eps-directory' command."
   :type 'regexp
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1811,6 +1868,7 @@ See `ebnf-eps-directory' command."
 
 See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
   :type 'string
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1819,6 +1877,7 @@ See `ebnf-eps-buffer' and `ebnf-eps-region' commands."
 
 It must be a float between 0.0 (top) and 1.0 (bottom)."
   :type 'number
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1826,6 +1885,7 @@ It must be a float between 0.0 (top) and 1.0 (bottom)."
   "*Specify additional border width over default terminal, non-terminal or
 special."
   :type 'number
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1834,18 +1894,21 @@ special."
 			    (fboundp 'color-instance-rgb-components)) ; XEmacs
   "*Non-nil means use color."
   :type 'boolean
+  :version "20"
   :group 'ebnf2ps)
 
 
 (defcustom ebnf-line-width 1.0
   "*Specify flow line width."
   :type 'number
+  :version "20"
   :group 'ebnf2ps)
 
 
 (defcustom ebnf-line-color "Black"
   "*Specify flow line color."
   :type 'string
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1854,6 +1917,7 @@ special."
 
 It is intended to help PostScript programmers in debugging."
   :type 'boolean
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1869,12 +1933,14 @@ If it occurs the error message:
 
 when executing ebnf2ps, set `ebnf-use-float-format' to nil."
   :type 'boolean
+  :version "20"
   :group 'ebnf2ps)
 
 
 (defcustom ebnf-stop-on-error nil
   "*Non-nil means signal error and stop. Nil means signal error and continue."
   :type 'boolean
+  :version "20"
   :group 'ebnf2ps)
 
 
@@ -1883,6 +1949,7 @@ when executing ebnf2ps, set `ebnf-use-float-format' to nil."
 
 It's only used when `ebnf-syntax' is `yacc'."
   :type 'boolean
+  :version "20"
   :group 'ebnf-syntactic)
 
 
@@ -1892,6 +1959,7 @@ It's only used when `ebnf-syntax' is `yacc'."
 It's interesting to set this variable if your Yacc/Bison grammar has a lot of
 middle action rule."
   :type 'boolean
+  :version "20"
   :group 'ebnf-optimization)
 
 
@@ -1918,6 +1986,7 @@ The following optimizations are done:
 
 The above optimizations are specially useful when `ebnf-syntax' is `yacc'."
   :type 'boolean
+  :version "20"
   :group 'ebnf-optimization)
 
 
