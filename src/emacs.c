@@ -110,9 +110,9 @@ int display_arg;
    Tells GC how to save a copy of the stack.  */
 char *stack_bottom;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 extern Lisp_Object Vwindow_system;
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 extern Lisp_Object Vauto_save_list_file_name;
 
@@ -556,7 +556,7 @@ main (argc, argv, envp)
 	    exit (1);
 	  }
 	fprintf (stderr, "Using %s\n", term);
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 	inhibit_window_system = 1; /* -t => -nw */
 #endif
       }
@@ -750,6 +750,11 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
   else init_gettimeofday ();
 #endif
 
+#ifdef WINDOWSNT
+  /* Initialize environment from registry settings.  */
+  init_environment ();
+#endif
+
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  */
@@ -865,6 +870,14 @@ Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       syms_of_xfaces ();
       syms_of_xmenu ();
 #endif
+
+#ifdef HAVE_NTGUI
+      syms_of_win32term ();
+      syms_of_win32fns ();
+      syms_of_win32faces ();
+      syms_of_win32select ();
+      syms_of_win32menu ();
+#endif /* HAVE_NTGUI */
 
 #ifdef SYMS_SYSTEM
       SYMS_SYSTEM;
