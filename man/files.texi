@@ -855,11 +855,10 @@ of the file.  To do this, use @kbd{M-x revert-buffer}, which operates on
 the current buffer.  Since reverting a buffer unintentionally could lose
 a lot of work, you must confirm this command with @kbd{yes}.
 
-  @code{revert-buffer} keeps point at the same distance (measured in
-characters) from the beginning of the file.  If the file was edited only
-slightly, you will be at approximately the same piece of text after
-reverting as before.  If you have made drastic changes, the same value of
-point in the old file may address a totally different piece of text.
+  @code{revert-buffer} tries to position point in such a way that, if
+the file was edited only slightly, you will be at approximately the
+same piece of text after reverting as before.  However, if you have made
+drastic changes, point may wind up in a totally different piece of text.
 
   Reverting marks the buffer as ``not modified'' until another change is
 made.
