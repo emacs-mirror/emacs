@@ -121,6 +121,10 @@ fi
 ### Update getdate.c.
 (cd lib-src; make -f Makefile getdate.c YACC="bison -y")
 
+echo "Updating Info files."
+
+(cd man; make info)
+
 echo "Updating finder-inf.el."
 
 ### update finder-inf.el.
