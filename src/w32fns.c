@@ -7181,9 +7181,10 @@ w32_find_bdf_fonts_in_dir (Lisp_Object directory)
 
 DEFUN ("w32-find-bdf-fonts", Fw32_find_bdf_fonts, Sw32_find_bdf_fonts,
        1, 1, 0,
-       doc: /* Return a list of BDF fonts in DIR, suitable for appending to
-w32-bdf-filename-alist.  Fonts which do not contain an xlfd description
-will not be included in the list. DIR may be a list of directories.  */)
+       doc: /* Return a list of BDF fonts in DIR.
+The list is suitable for appending to w32-bdf-filename-alist.  Fonts
+which do not contain an xlfd description will not be included in the
+list. DIR may be a list of directories.  */)
      (directory)
      Lisp_Object directory;
 {
@@ -14235,8 +14236,8 @@ or when you set the mouse color.  */);
   Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
-	       doc: /* Maximum size for tooltips.  Value is a pair (COLUMNS . ROWS).
-Text larger than this is clipped.  */);
+	       doc: /* Maximum size for tooltips.
+Value is a pair (COLUMNS . ROWS). Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
   
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
@@ -14293,8 +14294,8 @@ only be necessary if the default setting causes problems.  */);
 
   DEFVAR_LISP ("w32-charset-info-alist",
                &Vw32_charset_info_alist,
-               doc: /* Alist linking Emacs character sets to Windows fonts
-and codepages. Each entry should be of the form:
+               doc: /* Alist linking Emacs character sets to Windows fonts and codepages.
+Each entry should be of the form:
 
    (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE))
 
