@@ -1,7 +1,7 @@
 /* impl.c.vman: ANSI VM: MALLOC-BASED PSUEDO MEMORY MAPPING
  *
- * $HopeName: MMsrc!vman.c(trunk.12) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!vman.c(trunk.13) $
+ * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  */
 
 #include "mpm.h"
@@ -13,7 +13,7 @@
 #include <stdlib.h>     /* for malloc and free */
 #include <string.h>     /* for memset */
 
-SRCID(vman, "$HopeName: MMsrc!vman.c(trunk.12) $");
+SRCID(vman, "$HopeName: MMsrc!vman.c(trunk.13) $");
 
 #define SpaceVM(_space) (&(_space)->arenaStruct.vmStruct)
 
@@ -76,6 +76,8 @@ Res VMCreate(Space *spaceReturn, Size size, Addr base)
   vm->sig = VMSig;
 
   AVERT(VM, vm);
+  
+  EVENT4(VMCreate, vm, space, vm->base, vm->limit);
 
   *spaceReturn = space;  
   return ResOK;
@@ -94,6 +96,8 @@ void VMDestroy(Space space)
   
   vm->sig = SigInvalid;
   free(space);
+  
+  EVENT1(VMDestroy, vm);
 }
 
 Addr (VMBase)(Space space)
@@ -141,6 +145,8 @@ Res VMMap(Space space, Addr base, Addr limit)
   
   vm->mapped += size;
 
+  EVENT3(VMMap, vm, base, limit);
+
   return ResOK;
 }
 
@@ -161,4 +167,6 @@ void VMUnmap(Space space, Addr base, Addr limit)
 
   AVER(vm->mapped >= size);
   vm->mapped -= size;
+
+  EVENT3(VMUnmap, vm, base, limit);
 }

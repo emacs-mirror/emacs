@@ -1,7 +1,7 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.22) $
- * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!pool.c(trunk.23) $
+ * Copyright (C) 1994,1995,1996,1997 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
  * functions here dispatch to pool-specific methods.
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.22) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.23) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -106,6 +106,8 @@ Res PoolInitV(Pool pool, Space space,
   if(res != ResOK)
     goto failInit;
 
+  EVENT3(PoolInit, pool, space, class);
+
   return ResOK;
 
 failInit:
@@ -193,6 +195,8 @@ void PoolFinish(Pool pool)
   RingFinish(&pool->segRing);
   RingFinish(&pool->bufferRing);
   RingFinish(&pool->spaceRing);
+  
+  EVENT1(PoolFinish, pool);
 }
 
 /* PoolDestroy -- Finish and free pool. */
@@ -230,6 +234,8 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
   /* Make sure that the allocated address was in the pool's memory. */
   AVER(PoolHasAddr(pool, *pReturn));
 
+  EVENT3(PoolAlloc, (Word)pool, (Word)*pReturn, (Word)size);
+
   return ResOK;
 }
 
@@ -240,6 +246,8 @@ void PoolFree(Pool pool, Addr old, Size size)
   AVER(PoolHasAddr(pool, old));
   AVER(size > 0);
   (*pool->class->free)(pool, old, size);
+  
+  EVENT3(PoolFree, (Word)pool, (Word)old, (Word)size);
 }
 
 Res PoolCondemn(RefSet *condemnedReturn, Pool pool,
