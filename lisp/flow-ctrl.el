@@ -113,13 +113,16 @@ you must type C-\\ to get the effect of a C-s, and type C-^
 to get the effect of a C-q."
   (let ((term (getenv "TERM"))
 	hyphend)
+    ;; Look for TERM in LOSING-TERMINAL-TYPES.
+    ;; If we don't find it literally, try stripping off words
+    ;; from the end, one by one.
+    (while (and term (not (member term losing-terminal-types)))
+      ;; Strip off last hyphen and what follows, then try again.
+      (if (setq hyphend (string-match "[-_][^-_]+$" term))
+	  (setq term (substring term 0 hyphend))
+	(setq term nil)))
     (if term
-	(progn
-	  ;; Strip off hyphen and what follows
-	  (while (setq hyphend (string-match "[-_][^-_]+$" term))
-	    (setq term (substring term 0 hyphend)))
-	  (and (member term losing-terminal-types)
-	       (enable-flow-control))))))
+	(enable-flow-control))))
 
 (provide 'flow-ctrl)
 
