@@ -212,8 +212,6 @@ SPEC should be an alist of the form ((DISPLAY ATTS)...).
 
 ATTS is a list of face attributes and their values.  The possible
 attributes are defined in the variable `custom-face-attributes'.
-Alternatively, ATTS can be a face in which case the attributes of that
-face is used.
 
 The ATTS of the first entry in SPEC where the DISPLAY matches the
 frame should take effect in that frame.  DISPLAY can either be the
