@@ -108,6 +108,33 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
  (aref (internal-get-face face frame) 7))
 
+(defun face-bold-p (face &optional frame)
+  "Return non-nil if the font of FACE is bold.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+  The font default for a face is either nil, or a list
+  of the form (bold), (italic) or (bold italic).
+If FRAME is omitted or nil, use the selected frame."
+  (let ((font (face-font face frame)))
+    (if (stringp font)
+	(not (eq font (x-make-font-unbold font)))
+      (memq 'bold font))))
+
+(defun face-italic-p (face &optional frame)
+  "Return non-nil if the font of FACE is italic.
+If the optional argument FRAME is given, report on face FACE in that frame.
+If FRAME is t, report on the defaults for face FACE (for new frames).
+  The font default for a face is either nil, or a list
+  of the form (bold), (italic) or (bold italic).
+If FRAME is omitted or nil, use the selected frame."
+  (let ((font (face-font face frame)))
+    (if (stringp font)
+	(not (eq font (x-make-font-unitalic font)))
+      (memq 'italic font))))
+
+(defun face-doc-string (face)
+  "Get the documentation string for FACE."
+  (get face 'face-documentation))
 
 ;;; Mutators.
 
@@ -191,6 +218,24 @@ If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "underline-p" "underlined"))
   (internal-set-face-1 face 'underline underline-p 7 frame))
+
+(defun set-face-bold-p (face bold-p &optional frame)
+  "Specify whether face FACE is bold.  (Yes if BOLD-P is non-nil.)
+If the optional FRAME argument is provided, change only
+in that frame; otherwise change each frame."
+  (cond ((eq bold-p nil) (make-face-unbold face frame t))
+	(t (make-face-bold face frame t))))
+
+(defun set-face-italic-p (face italic-p &optional frame)
+  "Specify whether face FACE is italic.  (Yes if ITALIC-P is non-nil.)
+If the optional FRAME argument is provided, change only
+in that frame; otherwise change each frame."
+  (cond ((eq italic-p nil) (make-face-unitalic face frame t))
+	(t (make-face-italic face frame t))))
+
+(defun set-face-doc-string (face string)
+  "Set the documentation string for FACE to STRING."
+  (put face 'face-documentation string))
 
 (defun modify-face-read-string (face default name alist)
   (let ((value
@@ -1075,7 +1120,73 @@ selected frame."
 		    (face-fill-in face (cdr (car rest)) frame)))
 	      (setq rest (cdr rest)))))
       (setq frames (cdr frames)))))
+
+;;; Setting a face based on a SPEC.
 
+(defun face-spec-set (face spec &optional frame)
+  "Set FACE's face attributes according to the first matching entry in SPEC.
+If optional FRAME is non-nil, set it for that frame only.
+If it is nil, then apply SPEC to each frame individually.
+See `defface' for information about SPEC."
+  (let ((tail spec))
+    (while tail 
+      (let* ((entry (car tail))
+	     (display (nth 0 entry))
+	     (attrs (nth 1 entry)))
+	(setq tail (cdr tail))
+	(modify-face face nil nil nil nil nil nil frame)
+	(when (face-spec-set-match-display display frame)
+	  (face-spec-set-1 face frame attrs ':foreground 'set-face-foreground)
+	  (face-spec-set-1 face frame attrs ':background 'set-face-background)
+	  (face-spec-set-1 face frame attrs ':stipple 'set-face-stipple)
+	  (face-spec-set-1 face frame attrs ':bold 'set-face-bold-p)
+	  (face-spec-set-1 face frame attrs ':italic 'set-face-italic-p)
+	  (face-spec-set-1 face frame attrs ':underline 'set-face-underline-p)
+	  (setq tail nil)))))
+  (if (null frame)
+      (let ((frames (frame-list))
+	    frame)
+	(while frames
+	  (setq frame (car frames)
+		frames (cdr frames))
+	  (face-spec-set face (or (get face 'saved-face)
+				  (get face 'face-defface-spec))
+			 frame)
+	  (face-spec-set face spec frame)))))
+
+(defun face-spec-set-1 (face frame plist property function)
+  (while (and plist (not (eq (car plist) property)))
+    (setq plist (cdr (cdr plist))))
+  (if plist
+      (funcall function face (nth 1 plist) frame)))
+
+(defun face-spec-set-match-display (display frame)
+  "Non-nil iff DISPLAY matches FRAME.
+DISPLAY is part of a spec such as can be used in `defface'.
+If FRAME is nil, the current FRAME is used."
+  (let* ((conjuncts display)
+	 conjunct req options
+	 ;; t means we have succeeded against all
+	 ;; the conjunts in DISPLAY that have been tested so far.
+	 (match t))
+    (if (eq conjuncts t)
+	(setq conjuncts nil))
+    (while (and conjuncts match)
+      (setq conjunct (car conjuncts)
+	    conjuncts (cdr conjuncts)
+	    req (car conjunct)
+	    options (cdr conjunct)
+	    match (cond ((eq req 'type)
+			 (memq window-system options))
+			((eq req 'class)
+			 (memq (frame-parameter frame 'display-type) options))
+			((eq req 'background)
+			 (memq (frame-parameter frame 'background-mode)
+			       options))
+			(t
+			 (error "Unknown req `%S' with options `%S'" 
+				req options)))))
+    match))
 
 ;; Like x-create-frame but also set up the faces.
 
@@ -1098,16 +1209,30 @@ selected frame."
 	  (setq parameters (append parameters default-frame-alist parsed)))))
   (let (frame)
     (if (null global-face-data)
-	(setq frame (x-create-frame parameters))
+	(progn
+	  (setq frame (x-create-frame parameters))
+	  (frame-set-background-mode frame))
       (let* ((visibility-spec (assq 'visibility parameters))
-	     (faces (copy-alist global-face-data))
-	     success
-	     (rest faces))
+	     success faces rest)
 	(setq frame (x-create-frame (cons '(visibility . nil) parameters)))
+	(frame-set-background-mode frame)
 	(unwind-protect
 	    (progn
+
+	      ;; Copy the face alist, copying the face vectors
+	      ;; and emptying out their attributes.
+	      (setq faces
+		    (mapcar '(lambda (elt)
+			       (cons (car elt)
+				     (vector 'face
+					     (face-name (cdr elt))
+					     (face-id (cdr elt))
+					     nil nil nil nil nil)))
+			    global-face-data))
 	      (set-frame-face-alist frame faces)
 
+	      ;; Handle the reverse-video frame parameter
+	      ;; and X resource.  x-create-frame does not handle this one.
 	      (if (cdr (or (assq 'reverse parameters)
 			   (assq 'reverse default-frame-alist)
 			   (let ((resource (x-get-resource "reverseVideo"
@@ -1130,50 +1255,74 @@ selected frame."
 		    (if (equal bg (cdr (assq 'cursor-color params)))
 			(modify-frame-parameters frame
 						 (list (cons 'cursor-color fg))))))
-	      ;; Copy the vectors that represent the faces.
-	      ;; Also fill them in from X resources.
+
+	      ;; Set up faces from the defface information
+	      (mapcar (lambda (symbol)
+			(let ((spec (or (get symbol 'saved-face)
+					(get symbol 'face-defface-spec))))
+			  (when spec 
+			    (face-spec-set symbol spec frame))))
+		      (face-list))
+
+	      ;; Set up faces from the global face data.
+	      (setq rest faces)
 	      (while rest
-		(let ((global (cdr (car rest))))
-		  (setcdr (car rest) (vector 'face
-					     (face-name (cdr (car rest)))
-					     (face-id (cdr (car rest)))
-					     nil nil nil nil nil))
-		  (face-fill-in (car (car rest)) global frame))
+		(let* ((face (car (car rest)))
+		       (global (cdr (assq face global-face-data))))
+		  (face-fill-in face global frame))
+		(setq rest (cdr rest)))
+
+	      ;; Set up faces from the X resources.
+	      (setq rest faces)
+	      (while rest
 		(make-face-x-resource-internal (cdr (car rest)) frame t)
 		(setq rest (cdr rest)))
+
+	      ;; Make the frame visible, if desired.
 	      (if (null visibility-spec)
 		  (make-frame-visible frame)
 		(modify-frame-parameters frame (list visibility-spec)))
 	      (setq success t))
 	  (or success
 	      (delete-frame frame)))))
-    ;; Set up the background-mode frame parameter
-    ;; so that programs can decide good ways of highlighting
-    ;; on this frame.
-    (let ((bg-resource (x-get-resource ".backgroundMode"
-				       "BackgroundMode"))
-	  (params (frame-parameters frame))
-	  (bg-mode))
-      (setq bg-mode
-	    (cond (bg-resource (intern (downcase bg-resource)))
-		  ((< (apply '+ (x-color-values
-				 (cdr (assq 'background-color params))
-				 frame))
-		      ;; Just looking at the screen,
-		      ;; colors whose values add up to .6 of the white total
-		      ;; still look dark to me.
-		      (* (apply '+ (x-color-values "white" frame)) .6))
-		   'dark)
-		  (t 'light)))
-      (modify-frame-parameters frame
-			       (list (cons 'background-mode bg-mode)
-				     (cons 'display-type
-					   (cond ((x-display-color-p frame)
-						  'color)
-						 ((x-display-grayscale-p frame)
-						  'grayscale)
-						 (t 'mono))))))
     frame))
+
+(defcustom frame-background-mode nil
+  "*The brightness of the background.
+Set this to the symbol dark if your background color is dark, light if
+your background is light, or nil (default) if you want Emacs to
+examine the brightness for you."
+  :group 'faces
+  :type '(choice (choice-item dark) 
+		 (choice-item light)
+		 (choice-item :tag "default" nil)))
+
+(defun frame-set-background-mode (frame)
+  "Set up the `background-mode' and `display-type' frame parameters for FRAME."
+  (let ((bg-resource (x-get-resource ".backgroundMode"
+				     "BackgroundMode"))
+	(params (frame-parameters frame))
+	(bg-mode))
+    (setq bg-mode
+	  (cond (frame-background-mode)
+		(bg-resource (intern (downcase bg-resource)))
+		((< (apply '+ (x-color-values
+			       (cdr (assq 'background-color params))
+			       frame))
+		    ;; Just looking at the screen,
+		    ;; colors whose values add up to .6 of the white total
+		    ;; still look dark to me.
+		    (* (apply '+ (x-color-values "white" frame)) .6))
+		 'dark)
+		(t 'light)))
+    (modify-frame-parameters frame
+			     (list (cons 'background-mode bg-mode)
+				   (cons 'display-type
+					 (cond ((x-display-color-p frame)
+						'color)
+					       ((x-display-grayscale-p frame)
+						'grayscale)
+					       (t 'mono)))))))
 
 ;; Update a frame's faces when we change its default font.
 (defun frame-update-faces (frame)
