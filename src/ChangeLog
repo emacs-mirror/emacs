@@ -1,3 +1,30 @@
+2004-02-14  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct draw_fringe_bitmap_params): Change member
+	bits from char to short to facilitate wider bitmaps.
+	(struct redisplay_interface): Fix prototype of define_fringe_bitmap
+	member.
+
+	* fringe.c (struct fringe_bitmap): Change member bits from char to
+	short to facilitate 16 bits wide bitmaps.  Modify all standard
+	bitmaps accordingly.
+	(BYTES_PER_BITMAP_ROW, STANDARD_BITMAP_HEIGHT): New macros.
+	(FRBITS): Use STANDARD_BITMAP_HEIGHT instead of just sizeof.
+	(draw_fringe_bitmap): Ditto.
+	(init_fringe_bitmap) [MAC_OS]: Don't bitswap.
+	(init_fringe_bitmap) [HAVE_X_WINDOWS]: Enhance bitswapping to
+	handle up to 16 bits wide bitmaps.
+	(Fdefine_fringe_bitmap): Doc fix.  Handle wider bitmaps.
+
+	* macterm.c (mac_draw_bitmap): Handle 16 bits wide bitmaps directly.
+	(x_draw_fringe_bitmap): Use enhanced mac_draw_bitmap, so we no longer
+	need to call mac_create_bitmap_from_bitmap_data and mac_free_bitmap.
+
+	* w32term.c (w32_define_fringe_bitmap): Bitmaps are now 16 bits wide,
+	so it is no longer necessary to expand them here.
+
+	* xterm.c (x_draw_fringe_bitmap): Handle wider bitmaps (max 16 bits).
+
 2004-02-12  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (Fwindow_fringes): Doc fix.
