@@ -99,6 +99,11 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 * Changes in Emacs 21.4
 
 +++
+** New function `looking-back' whether a regular expression matches
+the text before point.  Specifying the LIMIT argument bounds how far
+back the match can start; this is a way to keep it from taking too long.
+
++++
 ** New functions `make-progress-reporter', `progress-reporter-update',
 `progress-reporter-force-update' and `progress-reporter-done' provide
 a simple and efficient way of printing progress messages to the user.
