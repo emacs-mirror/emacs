@@ -512,8 +512,9 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   ;; Allow using comment commands to add/remove quoting (this only does
   ;; anything if mail-yank-prefix is set to a non-nil value).
   (set (make-local-variable 'comment-start) mail-yank-prefix)
-  (set (make-local-variable 'comment-start-skip)
-       (concat "^" (regexp-quote mail-yank-prefix) "[ \t]*"))
+  (if mail-yank-prefix
+      (set (make-local-variable 'comment-start-skip)
+	   (concat "^" (regexp-quote mail-yank-prefix) "[ \t]*")))
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
 	(concat "[ \t]*[-[:alnum:]]+>+[ \t]*\\|"
