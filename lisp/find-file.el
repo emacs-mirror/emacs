@@ -516,8 +516,8 @@ Arguments: (search-dirs fname-stub &optional suffix-list in-other-window)
      ((not filename)
       nil)
 
-     ((bufferp (get-buffer filename))
-      (ff-switch-to-buffer filename other-window)
+     ((bufferp (get-file-buffer filename))
+      (ff-switch-to-buffer (get-file-buffer filename) other-window)
       filename)
                
      ((file-exists-p filename)
@@ -643,7 +643,7 @@ Arguments: (search-dirs fname-stub &optional suffix-list)
     found))
 
 (defun ff-string-match (regexp string &optional start)
-  "Like string-match (which see), but set `case-fold-search' temporarily.
+  "Like `string-match', but set `case-fold-search' temporarily.
 The value used comes from `ff-case-fold-search'."
   (let ((case-fold-search ff-case-fold-search))
     (if regexp
@@ -667,7 +667,7 @@ The value used comes from `ff-case-fold-search'."
 
 (defun ff-treat-as-special ()
   "Returns the file to look for if the construct was special, else nil.
-The construct is defined in the variable `ff-special-constructs' (which see)."
+The construct is defined in the variable `ff-special-constructs'."
   (let* (fname
          (list ff-special-constructs)
          (elem (car list))
@@ -735,17 +735,17 @@ called before `ff-post-load-hooks'."
       (run-hooks 'ff-post-load-hooks)))
 
 (defun ff-find-file (file &optional in-other-window new-file)
-  "Like `find-file' (which see), but may put the file in another window."
+  "Like `find-file', but may show the file in another window."
   (ff-switch-file 'find-file 
                   'find-file-other-window 
                   file in-other-window new-file))
 
-(defun ff-switch-to-buffer (file &optional in-other-window)
-  "Like `switch-to-buffer' (which see), but may put the buffer in another window."
+(defun ff-switch-to-buffer (buffer-or-name &optional in-other-window)
+  "Like `switch-to-buffer', but may show the buffer in another window."
 
   (ff-switch-file 'switch-to-buffer 
                   'switch-to-buffer-other-window 
-                  file in-other-window nil))
+                  buffer-or-name in-other-window nil))
 
 (cond 
  ((ff-emacs-19)
