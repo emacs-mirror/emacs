@@ -1,3 +1,7 @@
+2004-10-19  Richard M. Stallman  <rms@gnu.org>
+
+	* paths.el (news-path): Fix previous change.
+
 2004-10-18  David Ponce  <david@dponce.com>
 
 	* mouse.el (mouse-drag-move-window-top): New function.
