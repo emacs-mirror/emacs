@@ -120,7 +120,7 @@ struct specbinding *specpdl_ptr;
 
 /* Maximum size allowed for specpdl allocation */
 
-int max_specpdl_size;
+EMACS_INT max_specpdl_size;
 
 /* Depth in Lisp evaluations and function calls.  */
 
@@ -128,7 +128,7 @@ int lisp_eval_depth;
 
 /* Maximum allowed depth in Lisp evaluations and function calls.  */
 
-int max_lisp_eval_depth;
+EMACS_INT max_lisp_eval_depth;
 
 /* Nonzero means enter debugger before next function call */
 
@@ -190,12 +190,9 @@ Lisp_Object Vsignaling_function;
 
 int handling_signal;
 
-void specbind (), record_unwind_protect ();
-
-Lisp_Object run_hook_with_args ();
-
-Lisp_Object funcall_lambda ();
-extern Lisp_Object ml_apply (); /* Apply a mocklisp function to unevaluated argument list */
+static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
+/* Apply a mocklisp function to unevaluated argument list.  */
+extern Lisp_Object ml_apply P_ ((Lisp_Object, Lisp_Object));
 
 void
 init_eval_once ()
@@ -1404,7 +1401,9 @@ internal_condition_case_2 (bfun, nargs, args, handlers, hfun)
 }
 
 
-static Lisp_Object find_handler_clause ();
+static Lisp_Object find_handler_clause P_ ((Lisp_Object, Lisp_Object,
+					    Lisp_Object, Lisp_Object,
+					    Lisp_Object *));
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
@@ -2224,6 +2223,8 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 /* Run hook variables in various ways.  */
 
 enum run_hooks_condition {to_completion, until_success, until_failure};
+static Lisp_Object run_hook_with_args P_ ((int, Lisp_Object *,
+					   enum run_hooks_condition));
 
 DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
        doc: /* Run each hook in HOOKS.  Major mode functions use this.
@@ -2321,7 +2322,7 @@ usage: (run-hook-with-args-until-failure HOOK &rest ARGS)  */)
    The caller (or its caller, etc) must gcpro all of ARGS,
    except that it isn't necessary to gcpro ARGS[0].  */
 
-Lisp_Object
+static Lisp_Object
 run_hook_with_args (nargs, args, cond)
      int nargs;
      Lisp_Object *args;
@@ -2834,7 +2835,7 @@ apply_lambda (fun, args, eval_flag)
    and return the result of evaluation.
    FUN must be either a lambda-expression or a compiled-code object.  */
 
-Lisp_Object
+static Lisp_Object
 funcall_lambda (fun, nargs, arg_vector)
      Lisp_Object fun;
      int nargs;
