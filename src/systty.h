@@ -23,6 +23,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Include the proper files.  */
 #ifdef HAVE_TERMIO
+#ifdef __DGUX
+#include <sys/ioctl.h>
+#endif
 #include <termio.h>
 #include <fcntl.h>
 #else
@@ -215,7 +218,7 @@ static struct sensemode {
 #ifdef HAVE_TERMIOS
 
 #define EMACS_GET_TTY_PGRP(fd, pgid) (*(pgid) = tcgetpgrp ((fd)))
-#define EMACS_SET_TTY_PGRP(fd, pgid) (*(pgid) = tcsetpgrp ((fd)))
+#define EMACS_SET_TTY_PGRP(fd, pgid) (*(pgid) = tcsetpgrp ((fd), *(pgid)))
 
 #else
 #ifdef TIOCSPGRP
