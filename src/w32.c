@@ -880,6 +880,21 @@ init_environment (char ** argv)
   init_user_info ();
 }
 
+char *
+emacs_root_dir (void)
+{
+  static char root_dir[FILENAME_MAX];
+  const char *p;
+
+  p = getenv ("emacs_dir");
+  if (p == NULL)
+    abort ();
+  strcpy (root_dir, p);
+  root_dir[parse_root (root_dir, NULL)] = '\0';
+  dostounix_filename (root_dir);
+  return root_dir;
+}
+
 /* We don't have scripts to automatically determine the system configuration
    for Emacs before it's compiled, and we don't want to have to make the
    user enter it, so we define EMACS_CONFIGURATION to invoke this runtime

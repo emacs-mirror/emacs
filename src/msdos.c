@@ -4142,6 +4142,16 @@ getdefdir (drive, dst)
   return 1;
 }
 
+char *
+emacs_root_dir (void)
+{
+  static char root_dir[4];
+
+  sprintf (root_dir, "%c:/", 'A' + getdisk ());
+  root_dir[0] = tolower (root_dir[0]);
+  return root_dir;
+}
+
 /* Remove all CR's that are followed by a LF.  */
 
 int
