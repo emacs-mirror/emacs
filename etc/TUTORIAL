@@ -651,14 +651,14 @@ search.  BUT WAIT!  Don't do them now.  When you type C-s you'll
 notice that the string "I-search" appears as a prompt in the echo
 area.  This tells you that Emacs is in what is called an incremental
 search waiting for you to type the thing that you want to search for.
-<ESC> terminates a search.
+<RET> terminates a search.
 
 >> Now type C-s to start a search.  SLOWLY, one letter at a time,
    type the word 'cursor', pausing after you type each
    character to notice what happens to the cursor.
 >> Type C-s to find the next occurrence of "cursor".
 >> Now type <Rubout> four times and see how the cursor moves.
->> Type <ESC> to terminate the search.
+>> Type <RET> to terminate the search.
 
 Did you see what happened?  Emacs, in an incremental search, tries to
 go to the occurrence of the string that you've typed out so far.  To go
