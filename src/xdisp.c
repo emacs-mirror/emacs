@@ -5862,6 +5862,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		  result = MOVE_NEWLINE_OR_CR;
 		  break;
 		}
+	      if (it->method == next_element_from_display_vector)
+		it->face_id = it->saved_face_id;
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */
 	  result = MOVE_LINE_TRUNCATED;
@@ -14628,8 +14630,12 @@ display_line (it)
      hscrolled.  This may stop at an x-position < IT->first_visible_x
      if the first glyph is partially visible or if we hit a line end.  */
   if (it->current_x < it->first_visible_x)
-    move_it_in_display_line_to (it, ZV, it->first_visible_x,
-				MOVE_TO_POS | MOVE_TO_X);
+    {
+      move_it_in_display_line_to (it, ZV, it->first_visible_x,
+				  MOVE_TO_POS | MOVE_TO_X);
+      if (it->method == next_element_from_display_vector)
+	it->face_id = it->saved_face_id;
+    }
 
   /* Get the initial row height.  This is either the height of the
      text hscrolled, if there is any, or zero.  */
@@ -14970,6 +14976,8 @@ display_line (it)
 		      row->exact_window_width_line_p = 1;
 		      goto at_end_of_line;
 		    }
+		  if (it->method == next_element_from_display_vector)
+		    it->face_id = it->saved_face_id;
 		}
 	    }
 #endif /* HAVE_WINDOW_SYSTEM */
