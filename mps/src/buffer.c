@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.56) $
+ * $HopeName: MMsrc!buffer.c(trunk.57) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
@@ -22,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.56) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.57) $");
 
 
 /* forward declarations */
@@ -47,12 +47,15 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(buffer->emptySize <= buffer->fillSize);
   CHECKL(buffer->alignment == buffer->pool->alignment);
   CHECKL(AlignCheck(buffer->alignment));
-  CHECKL(BoolCheck(buffer->apStruct.lwPopPending));
   CHECKL(BoolCheck(buffer->apStruct.enabled));
-  CHECKL(buffer->apStruct.lwPopPending == TRUE ||
-         buffer->apStruct.frameptr == NULL);
-  /* lwPopPending implies enabled */
-  CHECKL(!buffer->apStruct.lwPopPending || buffer->apStruct.enabled);
+
+  if (buffer->apStruct.enabled) {
+    /* no useful check for frameptr - mutator may be updating it */
+    CHECKL(BoolCheck(buffer->apStruct.lwPopPending));
+  } else {
+    CHECKL(buffer->apStruct.lwPopPending == FALSE);
+    CHECKL(buffer->apStruct.frameptr == NULL);
+  }
 
   /* If any of the buffer's fields indicate that it is reset, make */
   /* sure it is really reset.  Otherwise, check various properties */
@@ -73,6 +76,8 @@ Bool BufferCheck(Buffer buffer)
     /* Nothing reliable to check for lightweight frame state */
     CHECKL(buffer->poolLimit == (Addr)0);
   } else {
+    Addr aplimit; 
+
     /* The buffer is attached to a region of memory.   */
     /* Check consistency. */
     CHECKL(buffer->mode & BufferModeATTACHED);
@@ -91,6 +96,15 @@ Bool BufferCheck(Buffer buffer)
     CHECKL(AddrIsAligned(buffer->apStruct.limit, buffer->alignment));
     CHECKL(AddrIsAligned(buffer->poolLimit, buffer->alignment));
 
+    /* .lwcheck: If LW frames are enabled, the buffer may become */
+    /* trapped asynchronously. It can't become untrapped */
+    /* asynchronously, though. See design.mps.alloc-frame.lw-frame.pop. */
+    /* Read a snapshot value of the limit field. Use this to determine */
+    /* if we are trapped, and to permit more useful checking when not */
+    /* yet trapped. */
+
+    aplimit = buffer->apStruct.limit; /* .lwcheck */
+
     /* If the buffer isn't trapped then "limit" should be the limit */
     /* set by the owning pool.  Otherwise, "init" is either at the */
     /* same place it was at flip (.commit.before) or has been set */
@@ -99,11 +113,10 @@ Bool BufferCheck(Buffer buffer)
     /* between the base and current init.  Otherwise, initAtFlip */
     /* is kept at zero to avoid misuse (see */
     /* request.dylan.170429.sol.zero). */
-    if(!BufferIsTrapped(buffer)) { /* .check.use-trapped */
-      CHECKL(buffer->apStruct.limit == buffer->poolLimit);
-      CHECKL(buffer->initAtFlip == (Addr)0);
-    } else {
-      CHECKL(buffer->apStruct.limit == (Addr)0);
+
+    if((buffer->apStruct.enabled && aplimit == (Addr)0) ||
+       BufferIsTrapped(buffer)) { /* .lwcheck, .check.use-trapped */
+      CHECKL(aplimit == (Addr)0);
       if(buffer->mode & BufferModeFLIPPED) {
         CHECKL(buffer->apStruct.init == buffer->initAtFlip ||
                buffer->apStruct.init == buffer->apStruct.alloc);
@@ -114,7 +127,9 @@ Bool BufferCheck(Buffer buffer)
         /* Nothing special to check in the logged mode */
 	NOOP;
       }
-      /* Nothing reliable to check for lightweight frame state */
+    } else {
+      CHECKL(aplimit == buffer->poolLimit);
+      CHECKL(buffer->initAtFlip == (Addr)0);
     }
   }
 
