@@ -1,6 +1,6 @@
 ;;; eudc-hotlist.el --- hotlist management for EUDC
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@xemacs.org>
 ;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
@@ -62,7 +62,7 @@ These are the special commands of this mode:
 (defun eudc-edit-hotlist ()
   "Edit the hotlist of directory servers in a specialized buffer."
   (interactive)
-  (let ((proto-col 0)
+  (let ((proto-col 10)
 	gap)
     (switch-to-buffer (get-buffer-create "*EUDC Servers*"))
     (setq buffer-read-only nil)
