@@ -220,6 +220,7 @@ enum event_kind
 				   which the key was typed.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the keystroke.  */
+  timer_event,                  /* A timer fired.  */
   mouse_click,			/* The button number is in .code; it must
 				   be >= 0 and < NUM_MOUSE_BUTTONS, defined
 				   below.
