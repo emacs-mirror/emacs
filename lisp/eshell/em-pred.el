@@ -599,6 +599,4 @@ that 'ls -l' will show in the first column of its display. "
 	 (lambda (str)
 	   (split-string str ,sep))) lst))))
 
-;;; Code:
-
 ;;; em-pred.el ends here
