@@ -1,3 +1,7 @@
+2002-11-11  Tim Van Holder  <tim.vanholder@anubex.com>  (tiny change)
+
+	* Makefile.in (install-arch-indep): Prepend $(srcdir)/ to lisp.
+
 2002-11-08  Dave Love  <fx@gnu.org>
 
 	* configure.in: Use AC_CONFIG_LIBOBJ_DIR and require autoconf
