@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.68) $
+ * $HopeName: MMsrc!arena.c(trunk.69) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .intro: This is the implementation of Arenas.
@@ -29,12 +29,13 @@
  */
 
 #include "mpm.h"
+#include "dongle.h"
 
 /* finalization */
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.68) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.69) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -44,7 +45,14 @@ static Bool arenaRingInit = FALSE;
 static RingStruct arenaRing;       /* design.mps.arena.static.ring */
 static Serial arenaSerial;         /* design.mps.arena.static.serial */
 
+
+/* ArenaControlPool -- get the control pool */
+
+#define ArenaControlPool(arena) MVPool(&(arena)->controlPoolStruct)
+
+
 /* Functions to lock the arena ring. design.mps.arena.static.ring.lock */
+
 static void arenaClaimRingLock(void)
 {
   LockClaimGlobal();  /* claim the global lock to protect arenaRing */
@@ -342,6 +350,8 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   AVER(arenaReturn != NULL);
   AVERT(ArenaClass, class);
 
+  if (!DongleTestFull())
+    return ResFAIL;
   arenaClaimRingLock();
   EventInit();
   if(!arenaRingInit) {
@@ -367,8 +377,7 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
     goto failReservoirInit;
 
   /* design.mps.arena.pool.init */
-  res = PoolInit(&arena->controlPoolStruct.poolStruct, 
-                 arena, PoolClassMV(),
+  res = PoolInit(ArenaControlPool(arena), arena, PoolClassMV(),
                  ARENA_CONTROL_EXTENDBY, ARENA_CONTROL_AVGSIZE,
                  ARENA_CONTROL_MAXSIZE);
   if(res != ResOK) 
@@ -395,7 +404,7 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
   return ResOK;
 
 failEnabledBTAlloc:
-  PoolFinish(&arena->controlPoolStruct.poolStruct);
+  PoolFinish(ArenaControlPool(arena));
 failControlInit:
   ReservoirFinish(&arena->reservoirStruct);
 failReservoirInit:
@@ -494,7 +503,7 @@ void ArenaDestroy(Arena arena)
 
   /* Destroy the control pool & reservoir pool. */
   arena->poolReady = FALSE;
-  PoolFinish(&arena->controlPoolStruct.poolStruct);
+  PoolFinish(ArenaControlPool(arena));
   ReservoirFinish(reservoir);
 
   ArenaLeave(arena);
@@ -637,6 +646,12 @@ void ArenaPoll(Arena arena)
 
   AVERT(Arena, arena);
 
+  if (!DONGLE_TEST_QUICK()) {
+    /* Cripple it by deleting the control pool. */
+    arena->poolReady = FALSE; /* suppress check */
+    PoolFinish(ArenaControlPool(arena));
+    return;
+  }
   if(arena->clamped)
     return;
   size = arena->fillMutatorSize;
@@ -935,6 +950,7 @@ Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream)
   return ResOK;
 }
 
+
 /* ControlAlloc -- allocate a small block directly from the control pool
  *
  * .arena.control-pool: Actually the block will be allocated from the
@@ -950,15 +966,13 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
 {
   Addr base;
   Res res;
-  Pool pool;
 
   AVERT(Arena, arena);
   AVER(baseReturn != NULL);
   AVER(size > 0);
   AVER(BoolCheck(withReservoirPermit));
 
-  pool = MVPool(&arena->controlPoolStruct);
-  res = PoolAlloc(&base, pool, (Size)size,
+  res = PoolAlloc(&base, ArenaControlPool(arena), (Size)size,
                   withReservoirPermit);
   if(res != ResOK) 
     return res;
@@ -972,14 +986,11 @@ Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
 
 void ControlFree(Arena arena, void* base, size_t size)
 {
-  Pool pool;
-
   AVERT(Arena, arena);
   AVER(base != NULL);
   AVER(size > 0);
 
-  pool = MVPool(&arena->controlPoolStruct);
-  PoolFree(pool, (Addr)base, (Size)size);
+  PoolFree(ArenaControlPool(arena), (Addr)base, (Size)size);
 }
 
 
