@@ -1930,6 +1930,8 @@ The argument is used for internal purposes; do not supply one."
   :group 'editing
   :version "21.4")
 
+(defvar yank-window-start nil)
+
 (defun yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
 This command is allowed only immediately after a `yank' or a `yank-pop'.
@@ -1952,6 +1954,9 @@ comes the newest one."
     (delete-region (point) (mark t))
     (set-marker (mark-marker) (point) (current-buffer))
     (insert-for-yank (current-kill arg))
+    ;; Set the window start back where it was in the yank command,
+    ;; if possible.
+    (set-window-start (selected-window) yank-window-start t)
     (if before
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	;; It is cleaner to avoid activation, even though the command
@@ -1969,6 +1974,7 @@ With argument N, reinsert the Nth most recently killed stretch of killed
 text.
 See also the command \\[yank-pop]."
   (interactive "*P")
+  (setq yank-window-start (window-start))
   ;; If we don't get all the way thru, make last-command indicate that
   ;; for the following command.
   (setq this-command t)
