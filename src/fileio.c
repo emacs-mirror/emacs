@@ -2111,7 +2111,7 @@ duplicates what `expand-file-name' does.")
       xnm = p;
 #ifdef DOS_NT
     else if (IS_DRIVE (p[0]) && p[1] == ':'
-	     && p > nm && IS_DIRECTORY_SEP (p[-1]))
+	     && p > xnm && IS_DIRECTORY_SEP (p[-1]))
       xnm = p;
 #endif
 
