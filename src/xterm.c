@@ -3522,6 +3522,7 @@ process_expose_from_menu (event)
 	{
 	  f->async_visible = 1;
 	  f->async_iconified = 0;
+	  f->output_data.x->has_been_visible = 1;
 	  SET_FRAME_GARBAGED (f);
 	}
       else
@@ -3956,6 +3957,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		    {
 		      f->async_visible = 1;
 		      f->async_iconified = 0;
+		      f->output_data.x->has_been_visible = 1;
 		      SET_FRAME_GARBAGED (f);
 		    }
 		  else
@@ -4036,6 +4038,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		{
 		  f->async_visible = 1;
 		  f->async_iconified = 0;
+		  f->output_data.x->has_been_visible = 1;
 
 		  /* wait_reading_process_input will notice this and update
 		     the frame's display structures.  */
@@ -5676,7 +5679,8 @@ x_make_frame_visible (f)
        that is 3 pixels too low.  Perhaps that's really the border width.  */
 
     if (! FRAME_VISIBLE_P (f)
-	&& f->output_data.x->win_gravity == NorthWestGravity)
+	&& f->output_data.x->win_gravity == NorthWestGravity
+	&& f->output_data.x->has_been_visible)
       {
 	BLOCK_INPUT;
 
