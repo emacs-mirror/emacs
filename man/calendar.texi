@@ -37,7 +37,7 @@ information about the calendar and diary.
 * Other Calendars::     Converting dates to other calendar systems.
 * Diary::               Displaying events from your diary.
 * Appointments::	Reminders when it's time to do something.
-* iCalendar::           Converting diary events to/from iCalendar format.
+* Importing Diary::     Converting diary events to/from other formats.
 * Daylight Savings::    How to specify when daylight savings time is active.
 * Time Intervals::      Keeping track of time intervals.
 @end menu
@@ -1396,15 +1396,24 @@ clock.  The command @kbd{M-x appt-add} adds entries to the appointment
 list without affecting your diary file.  You delete entries from the
 appointment list with @kbd{M-x appt-delete}.
 
-@node iCalendar
-@section iCalendar
-@cindex iCalendar support
+@node Importing Diary
+@section Importing and Exporting Diary Entries
 
-  The icalendar package aims at providing an implementation of the
-iCalendar standard, as defined in ``RFC 2445 -- Internet Calendaring and
-Scheduling Core Object Specification (iCalendar)''.  It provides a means
-for importing iCalendar (and the earlier vCalendar format) data into
-Emacs diary files and vice versa.
+  You can transfer diary entries between Emacs diary files and a
+variety of other formats.
+
+@vindex diary-outlook-formats
+  You can import diary entries from Outlook-generated appointment
+messages.  While viewing such a message in Rmail or Gnus, do @kbd{M-x
+diary-from-outlook} to import the entry.  You can make this command
+recognize additional appointment message formats by customizing the
+variable @code{diary-outlook-formats}.
+
+@cindex iCalendar support
+  The icalendar package allows you to transfer data between your Emacs
+diary file and iCalendar files, which are defined in ``RFC
+2445---Internet Calendaring and Scheduling Core Object Specification
+(iCalendar)'' (as well as the earlier vCalendar format).
 
   Importing works for ``ordinary'' (i.e. non-recurring) events, but (at
 present) may not work correctly (if at all) for recurring events.
