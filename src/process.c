@@ -1478,7 +1478,7 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
     report_file_error ("error creating socket", Fcons (name, Qnil));
 
  loop:
-  if (connect (s, &address, sizeof address) == -1)
+  if (connect (s, (struct sockaddr *) &address, sizeof address) == -1)
     {
       int xerrno = errno;
       if (errno == EINTR)
