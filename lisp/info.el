@@ -165,7 +165,8 @@ Do the right thing if the file has been compressed or zipped."
     (insert-file-contents fullname visit)
     (if decoder
 	(let ((buffer-read-only nil)
-	      (default-directory (file-directory fullname)))
+	      (default-directory (or (file-name-directory fullname)
+				     default-directory)))
 	  (shell-command-on-region (point-min) (point-max) decoder t)))))
 
 ;;;###autoload (add-hook 'same-window-buffer-names "*info*")
