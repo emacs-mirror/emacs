@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!154.c(trunk.1) $
  summary = EPVM allocate and epvm_collect, once only
  language = c
  link = testlib.o epvmfmt.o
@@ -21,7 +21,6 @@ static void test(void)
 {
  mps_arena_t arena;
  mps_thr_t thread;
- mps_root_t root;
 
  mps_fmt_t format;
 
