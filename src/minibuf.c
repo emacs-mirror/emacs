@@ -276,7 +276,6 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
 {
   int size, len;
   char *line, *s;
-  struct gcpro gcpro1, gcpro2;
   Lisp_Object val;
 
   fprintf (stdout, "%s", XSTRING (prompt)->data);
@@ -566,7 +565,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Make minibuffer contents into a string.  */
   Fset_buffer (minibuffer);
-  val = Ffield_string (make_number (ZV), allow_props ? Qt : Qnil);
+  if (allow_props)
+    val = Ffield_string (make_number (ZV));
+  else
+    val = Ffield_string_no_properties (make_number (ZV));
 
   /* VAL is the string of minibuffer text.  */
 
