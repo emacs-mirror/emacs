@@ -1,3 +1,8 @@
+2002-03-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* textmodes/tildify.el (tildify-string-alist): Entry for xml-mode
+	added.  From Milan Zamazal <pdm@zamazal.org>.
+
 2002-03-01  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/texnfo-upd.el (texinfo-start-menu-description): Remove
