@@ -212,10 +212,10 @@ Lisp variables instead of Lisp functions.  Its default is the Lisp symbol
 around or before point, but only if that is the name of a known Lisp
 variable.  @xref{Variables}.@refill
 
-Help buffers describing variables or functions defined in Lisp
-normally have hyperlinks to their definitions using the @code{find-func}
-package if you have the Lisp source files installed.  If you can read
-Lisp, this provides the ultimate documentation.
+Help buffers describing variables or functions defined in Lisp normally
+have hyperlinks to their definitions if you have the Lisp source files
+installed.  If you can read Lisp, this provides the ultimate
+documentation.
   
 @node Apropos
 @section Apropos
