@@ -184,7 +184,7 @@
 
 	* newcomment.el (uncomment-region): Allow eob as comment end.
 
-2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>  (tiny change)
+2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>
 
 	* filecache.el: All message and error commands now use prefix
 	"Filecache:" to make it easy to read *Messages* buffer.
