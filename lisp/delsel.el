@@ -93,6 +93,9 @@ insertion commands first delete the region and then insert.")
 When ON, typed text replaces the selection if the selection is active.
 When OFF, typed text is just inserted at point.
 
+Delete Selection mode works only when Transient Mark mode is enabled.
+Use \\[transient-mark-mode] to enable or disable Transient Mark mode.
+
 A positive argument turns the mode on, negative argument turns it off,
 and no argument (or nil) toggles the mode."
   (interactive "P")
