@@ -1987,6 +1987,31 @@ turn_off_face (f, face_id)
 }
   
     
+/* Return non-zero if the terminal on frame F supports all of the
+   capabilities in CAPS simultaneously, with foreground and background
+   colors FG and BG.  */
+
+int tty_capable_p (f, caps, fg, bg)
+     struct frame *f;
+     unsigned caps;
+     unsigned long fg, bg;
+{
+#define TTY_CAPABLE_P_TRY(cap, TS, NC_bit)				\
+  if ((caps & (cap)) && (!(TS) || !MAY_USE_WITH_COLORS_P(NC_bit)))	\
+    return 0;
+
+  TTY_CAPABLE_P_TRY (TTY_CAP_INVERSE,	TS_standout_mode, 	 NC_REVERSE);
+  TTY_CAPABLE_P_TRY (TTY_CAP_UNDERLINE, TS_enter_underline_mode, NC_UNDERLINE);
+  TTY_CAPABLE_P_TRY (TTY_CAP_BOLD, 	TS_enter_bold_mode, 	 NC_BOLD);
+  TTY_CAPABLE_P_TRY (TTY_CAP_DIM, 	TS_enter_dim_mode, 	 NC_DIM);
+  TTY_CAPABLE_P_TRY (TTY_CAP_BLINK, 	TS_enter_blink_mode, 	 NC_BLINK);
+  TTY_CAPABLE_P_TRY (TTY_CAP_ALT_CHARSET, TS_enter_alt_charset_mode, NC_ALT_CHARSET);
+
+  /* We can do it!  */
+  return 1;
+}
+
+
 /* Return non-zero if the terminal is capable to display colors.  */
 
 DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
