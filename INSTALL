@@ -70,6 +70,14 @@ compile Emacs using GCC.  If you don't want to use GCC, specify
 `--with-gcc=no'.  If you omit this option, `configure' will search
 for GCC in your path, and use it if present.
 
+If you want the Emacs mail reader RMAIL to read mail from a POP
+server, you must specify `--with-pop'.  This provides support for the
+POP3 protocol; older versions are not supported.  For
+Kerberos-authenticated POP add `--with-kerberos', for Hesiod support
+add `--with-hesiod'.  These options enable Emacs to use POP; whether
+Emacs uses POP is controlled by individual users--see the Rmail
+chapter of the Emacs manual.
+
 You can build Emacs for several different machine types from a single
 source directory.  To do this, you must use a version of `make' that
 supports the `VPATH' variable, such as GNU `make'.  Make separate
