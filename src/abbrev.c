@@ -89,6 +89,7 @@ DEFUN ("make-abbrev-table", Fmake_abbrev_table, Smake_abbrev_table, 0, 0, 0,
        doc: /* Create a new, empty abbrev table object.  */)
      ()
 {
+  /* The value 59 is arbitrary chosen prime number.  */
   return Fmake_vector (make_number (59), make_number (0));
 }
 
