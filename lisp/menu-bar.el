@@ -898,6 +898,9 @@ key (or menu-item)"))
 (define-key menu-bar-help-menu [report-emacs-bug]
   '(menu-item "Send Bug Report..." report-emacs-bug
 	      :help "Send e-mail to Emacs maintainers"))
+(define-key menu-bar-help-menu [order-emacs-manuals]
+  '(menu-item "Ordering Manuals" view-order-manuals
+	      :help "How to order manuals from the Free Software Foundation"))
 (define-key menu-bar-help-menu [emacs-manual]
   '(menu-item "Read the Emacs Manual"
 	      (lambda () (interactive) (info "emacs"))))
