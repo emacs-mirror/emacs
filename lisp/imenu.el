@@ -689,6 +689,7 @@ a string, all the characters in the string get the specified syntax.
 This is typically used to give word syntax to characters which
 normally have symbol syntax to simplify `imenu-expression'
 and speed-up matching.")
+;;;###autoload
 (make-variable-buffer-local 'imenu-syntax-alist)
 
 (defun imenu-default-create-index-function ()
