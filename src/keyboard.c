@@ -76,7 +76,7 @@ Lisp_Object Qdisabled, Vdisabled_command_hook;
 #define NUM_RECENT_KEYS (100)
 int recent_keys_index;	/* Index for storing next element into recent_keys */
 int total_keys;		/* Total number of elements stored into recent_keys */
-Lisp_Object recent_keys[NUM_RECENT_KEYS]; /* Holds last 100 keystrokes */
+Lisp_Object recent_keys; /* A vector, holding the last 100 keystrokes */
 
 /* Buffer holding the key that invoked the current command.  */
 Lisp_Object *this_command_keys;
@@ -1267,8 +1267,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     }
 
   total_keys++;
-  recent_keys[recent_keys_index] = c;
-  if (++recent_keys_index >= (sizeof (recent_keys)/sizeof(recent_keys[0])))
+  XVECTOR (recent_keys)->contents[recent_keys_index] = c;
+  if (++recent_keys_index >= NUM_RECENT_KEYS)
     recent_keys_index = 0;
 
   /* Write c to the dribble file.  If c is a lispy event, write
@@ -3113,17 +3113,18 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
   "Return vector of last 100 chars read from terminal.")
   ()
 {
+  Lisp_Object *keys = XVECTOR (recent_keys)->contents;
   Lisp_Object val;
 
   if (total_keys < NUM_RECENT_KEYS)
-    return Fvector (total_keys, recent_keys);
+    return Fvector (total_keys, keys);
   else
     {
-      val = Fvector (NUM_RECENT_KEYS, recent_keys);
-      bcopy (recent_keys + recent_keys_index,
+      val = Fvector (NUM_RECENT_KEYS, keys);
+      bcopy (keys + recent_keys_index,
 	     XVECTOR (val)->contents,
 	     (NUM_RECENT_KEYS - recent_keys_index) * sizeof (Lisp_Object));
-      bcopy (recent_keys,
+      bcopy (keys,
 	     XVECTOR (val)->contents + NUM_RECENT_KEYS - recent_keys_index,
 	     recent_keys_index * sizeof (Lisp_Object));
       return val;
@@ -3472,12 +3473,15 @@ init_keyboard ()
   immediate_quit = 0;
   quit_char = Ctl ('g');
   unread_command_char = Qnil;
-  recent_keys_index = 0;
   total_keys = 0;
   kbd_fetch_ptr = kbd_buffer;
   kbd_store_ptr = kbd_buffer;
   do_mouse_tracking = 0;
   input_pending = 0;
+
+  recent_keys = Fmake_vector (make_number (NUM_RECENT_KEYS), Qnil);
+  staticpro (&recent_keys);
+  recent_keys_index = 0;
 
   if (!noninteractive)
     {
