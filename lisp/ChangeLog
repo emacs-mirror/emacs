@@ -1,3 +1,8 @@
+2002-01-18  Juanma Barranquero  <lektu@terra.es>
+
+	* files.el (save-abbrevs, save-some-buffers): Don't ask the user
+	before saving abbrevs if `save-abbrevs' has the value `silently'.
+
 2002-01-16  Richard M. Stallman  <rms@gnu.org>
 
 	* net/net-utils.el (network-connection-service-abbrev-alist):

@@ -322,8 +322,9 @@ editing a remote file."
 
 (defcustom save-abbrevs nil
   "*Non-nil means save word abbrevs too when files are saved.
+If `silently', don't ask the user before saving.
 Loading an abbrev file sets this to t."
-  :type 'boolean
+  :type '(choice (const t) (const nil) (const silently))
   :group 'abbrev)
 
 (defcustom find-file-run-dired t
@@ -2781,6 +2782,7 @@ to consider it or not when called with that buffer current."
 	    (and save-abbrevs abbrevs-changed
 		 (progn
 		   (if (or arg
+			   (eq save-abbrevs 'silently)
 			   (y-or-n-p (format "Save abbrevs in %s? "
 					     abbrev-file-name)))
 		       (write-abbrev-file nil))
