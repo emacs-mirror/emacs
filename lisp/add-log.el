@@ -177,6 +177,7 @@ Interactively, with a prefix argument, the file name is prompted for."
 			 (prompt-for-change-log-name))))
   (add-change-log-entry whoami file-name t))
 
+;;;###autoload
 (defun change-log-mode ()
   "Major mode for editting change logs; like Indented Text Mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
@@ -339,5 +340,8 @@ Has a preference of looking backwards."
 				       t)
 		   (buffer-substring (match-beginning 1)
 				     (match-end 1)))))))))
+
+
+(provide 'add-log)
 
 ;;; add-log.el ends here
