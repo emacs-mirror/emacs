@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.39 $
+;; Version: $Revision: 1.40 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/09 21:58:03 $|$Revision: 1.39 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/11 03:13:15 $|$Revision: 1.40 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.40  1995/07/11  03:13:15  tromey
+;; (tcl-mode): Customize for new dabbrev.
+;;
 ;; Revision 1.39  1995/07/09  21:58:03  tromey
 ;; (tcl-do-fill-paragraph): New function.
 ;; (tcl-mode): Set up for paragraph filling.
@@ -329,7 +332,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.39 $")
+(defconst tcl-version "$Revision: 1.40 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -448,8 +451,7 @@ quoted for Tcl.")
 
 ;; XEmacs menu.
 (defvar tcl-xemacs-menu
-  '("Tcl"
-    ["Beginning of function" tcl-beginning-of-defun t]
+  '(["Beginning of function" tcl-beginning-of-defun t]
     ["End of function" tcl-end-of-defun t]
     ["Mark function" tcl-mark-defun t]
     ["Indent region" indent-region (tcl-mark)]
@@ -475,7 +477,7 @@ quoted for Tcl.")
   (define-key map [menu-bar] (make-sparse-keymap))
   ;; This fails in Emacs 19.22 and earlier.
   (require 'lmenu)
-  (let ((menu (make-lucid-menu-keymap "Tcl" (cdr tcl-xemacs-menu))))
+  (let ((menu (make-lucid-menu-keymap "Tcl" tcl-xemacs-menu)))
     (define-key map [menu-bar tcl] (cons "Tcl" menu))
     ;; The following is intended to compute the key sequence
     ;; information for the menu.  It doesn't work.
@@ -986,7 +988,8 @@ Commands:
 	(add-menu nil "Tcl" tcl-xemacs-menu)))
   ;; Append Tcl menu to popup menu for XEmacs.
   (if (and tcl-using-xemacs-19 (boundp 'mode-popup-menu))
-      (setq mode-popup-menu tcl-xemacs-menu))
+      (setq mode-popup-menu
+	    (cons (concat mode-name " Mode Commands") tcl-xemacs-menu)))
 
   (run-hooks 'tcl-mode-hook))
 
