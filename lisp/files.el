@@ -1364,63 +1364,64 @@ the modes of the new file to agree with the old modes."
 	      targets (cdr backup-info))
 ;;;     (if (file-directory-p buffer-file-name)
 ;;;         (error "Cannot save buffer in directory %s" buffer-file-name))
-        (condition-case ()
-	    (let ((delete-old-versions
-		   ;; If have old versions to maybe delete,
-		   ;; ask the user to confirm now, before doing anything.
-		   ;; But don't actually delete til later.
-		   (and targets
-			(or (eq delete-old-versions t) (eq delete-old-versions nil))
-			(or delete-old-versions
-			    (y-or-n-p (format "Delete excess backup versions of %s? "
-					      real-file-name))))))
-	      ;; Actually write the back up file.
-	      (condition-case ()
-		  (if (or file-precious-flag
-;			  (file-symlink-p buffer-file-name)
-			  backup-by-copying
-			  (and backup-by-copying-when-linked
-			       (> (file-nlinks real-file-name) 1))
-			  (and backup-by-copying-when-mismatch
-			       (let ((attr (file-attributes real-file-name)))
-				 (or (nth 9 attr)
-				     (not (file-ownership-preserved-p real-file-name))))))
-		      (condition-case ()
-			  (copy-file real-file-name backupname t t)
-			(file-error
-			 ;; If copying fails because file BACKUPNAME
-			 ;; is not writable, delete that file and try again.
-			 (if (and (file-exists-p backupname)
-				  (not (file-writable-p backupname)))
-			     (delete-file backupname))
-			 (copy-file real-file-name backupname t t)))
-		    ;; rename-file should delete old backup.
-		    (rename-file real-file-name backupname t)
-		    (setq setmodes (file-modes backupname)))
-		(file-error
-		 ;; If trouble writing the backup, write it in ~.
-		 (setq backupname (expand-file-name "~/%backup%~"))
-		 (message "Cannot write backup file; backing up in ~/%%backup%%~")
-		 (sleep-for 1)
-		 (condition-case ()
-		     (copy-file real-file-name backupname t t)
-		   (file-error
-		    ;; If copying fails because file BACKUPNAME
-		    ;; is not writable, delete that file and try again.
-		    (if (and (file-exists-p backupname)
-			     (not (file-writable-p backupname)))
-			(delete-file backupname))
-		    (copy-file real-file-name backupname t t)))))
-	      (setq buffer-backed-up t)
-	      ;; Now delete the old versions, if desired.
-	      (if delete-old-versions
-		  (while targets
-		    (condition-case ()
-			(delete-file (car targets))
-		      (file-error nil))
-		    (setq targets (cdr targets))))
-	      setmodes)
-	(file-error nil)))))
+	(if backup-info
+	    (condition-case ()
+		(let ((delete-old-versions
+		       ;; If have old versions to maybe delete,
+		       ;; ask the user to confirm now, before doing anything.
+		       ;; But don't actually delete til later.
+		       (and targets
+			    (or (eq delete-old-versions t) (eq delete-old-versions nil))
+			    (or delete-old-versions
+				(y-or-n-p (format "Delete excess backup versions of %s? "
+						  real-file-name))))))
+		  ;; Actually write the back up file.
+		  (condition-case ()
+		      (if (or file-precious-flag
+    ;			  (file-symlink-p buffer-file-name)
+			      backup-by-copying
+			      (and backup-by-copying-when-linked
+				   (> (file-nlinks real-file-name) 1))
+			      (and backup-by-copying-when-mismatch
+				   (let ((attr (file-attributes real-file-name)))
+				     (or (nth 9 attr)
+					 (not (file-ownership-preserved-p real-file-name))))))
+			  (condition-case ()
+			      (copy-file real-file-name backupname t t)
+			    (file-error
+			     ;; If copying fails because file BACKUPNAME
+			     ;; is not writable, delete that file and try again.
+			     (if (and (file-exists-p backupname)
+				      (not (file-writable-p backupname)))
+				 (delete-file backupname))
+			     (copy-file real-file-name backupname t t)))
+			;; rename-file should delete old backup.
+			(rename-file real-file-name backupname t)
+			(setq setmodes (file-modes backupname)))
+		    (file-error
+		     ;; If trouble writing the backup, write it in ~.
+		     (setq backupname (expand-file-name "~/%backup%~"))
+		     (message "Cannot write backup file; backing up in ~/%%backup%%~")
+		     (sleep-for 1)
+		     (condition-case ()
+			 (copy-file real-file-name backupname t t)
+		       (file-error
+			;; If copying fails because file BACKUPNAME
+			;; is not writable, delete that file and try again.
+			(if (and (file-exists-p backupname)
+				 (not (file-writable-p backupname)))
+			    (delete-file backupname))
+			(copy-file real-file-name backupname t t)))))
+		  (setq buffer-backed-up t)
+		  ;; Now delete the old versions, if desired.
+		  (if delete-old-versions
+		      (while targets
+			(condition-case ()
+			    (delete-file (car targets))
+			  (file-error nil))
+			(setq targets (cdr targets))))
+		  setmodes)
+	    (file-error nil))))))
 
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return FILENAME sans backup versions or strings.
@@ -1506,43 +1507,48 @@ the index in the name where the version number begins."
 (defun find-backup-file-name (fn)
   "Find a file name for a backup file, and suggestions for deletions.
 Value is a list whose car is the name for the backup file
- and whose cdr is a list of old versions to consider deleting now."
-  (if (eq version-control 'never)
-      (list (make-backup-file-name fn))
-    (let* ((base-versions (concat (file-name-nondirectory fn) ".~"))
-	   (bv-length (length base-versions))
-	   possibilities
-	   (versions nil)
-	   (high-water-mark 0)
-	   (deserve-versions-p nil)
-	   (number-to-delete 0))
-      (condition-case ()
-	  (setq possibilities (file-name-all-completions
-			       base-versions
-			       (file-name-directory fn))
-		versions (sort (mapcar
-				(function backup-extract-version)
-				possibilities)
-			       '<)
-		high-water-mark (apply 'max 0 versions)
-		deserve-versions-p (or version-control
-				       (> high-water-mark 0))
-		number-to-delete (- (length versions)
-				    kept-old-versions kept-new-versions -1))
-	(file-error
-	 (setq possibilities nil)))
-      (if (not deserve-versions-p)
+ and whose cdr is a list of old versions to consider deleting now.
+If the value is nil, don't make a backup."
+  (let ((handler (find-file-name-handler fn 'find-backup-file-name)))
+    ;; Run a handler for this function so that ange-ftp can refuse to do it.
+    (if handler
+	(funcall handler 'find-backup-file-name fn)
+      (if (eq version-control 'never)
 	  (list (make-backup-file-name fn))
-	(cons (concat fn ".~" (int-to-string (1+ high-water-mark)) "~")
-	      (if (and (> number-to-delete 0)
-                       ;; Delete nothing if there is overflow
-		       ;; in the number of versions to keep.
-		       (>= (+ kept-new-versions kept-old-versions -1) 0))
-		  (mapcar (function (lambda (n)
-				      (concat fn ".~" (int-to-string n) "~")))
-			  (let ((v (nthcdr kept-old-versions versions)))
-			    (rplacd (nthcdr (1- number-to-delete) v) ())
-			    v))))))))
+	(let* ((base-versions (concat (file-name-nondirectory fn) ".~"))
+	       (bv-length (length base-versions))
+	       possibilities
+	       (versions nil)
+	       (high-water-mark 0)
+	       (deserve-versions-p nil)
+	       (number-to-delete 0))
+	  (condition-case ()
+	      (setq possibilities (file-name-all-completions
+				   base-versions
+				   (file-name-directory fn))
+		    versions (sort (mapcar
+				    (function backup-extract-version)
+				    possibilities)
+				   '<)
+		    high-water-mark (apply 'max 0 versions)
+		    deserve-versions-p (or version-control
+					   (> high-water-mark 0))
+		    number-to-delete (- (length versions)
+					kept-old-versions kept-new-versions -1))
+	    (file-error
+	     (setq possibilities nil)))
+	  (if (not deserve-versions-p)
+	      (list (make-backup-file-name fn))
+	    (cons (concat fn ".~" (int-to-string (1+ high-water-mark)) "~")
+		  (if (and (> number-to-delete 0)
+			   ;; Delete nothing if there is overflow
+			   ;; in the number of versions to keep.
+			   (>= (+ kept-new-versions kept-old-versions -1) 0))
+		      (mapcar (function (lambda (n)
+					  (concat fn ".~" (int-to-string n) "~")))
+			      (let ((v (nthcdr kept-old-versions versions)))
+				(rplacd (nthcdr (1- number-to-delete) v) ())
+				v))))))))))
 
 (defun file-nlinks (filename)
   "Return number of names file FILENAME has."
