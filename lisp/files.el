@@ -979,11 +979,11 @@ run `normal-mode' explicitly."
     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\)\\'" . archive-mode)
     ;; Mailer puts message to be edited in
     ;; /tmp/Re.... or Message
-    ("^/tmp/Re" . text-mode)
+    ("\\`/tmp/Re" . text-mode)
     ("/Message[0-9]*\\'" . text-mode)
     ("/drafts/[0-9]+\\'" . mh-letter-mode)
     ;; some news reader is reported to use this
-    ("^/tmp/fol/" . text-mode)
+    ("\\`/tmp/fol/" . text-mode)
     ("\\.y\\'" . c-mode)
     ("\\.lex\\'" . c-mode)
     ("\\.oak\\'" . scheme-mode)
