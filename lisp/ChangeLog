@@ -1,3 +1,10 @@
+2004-01-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (appt-check): Restore usage of
+	appt-issue-message deleted in previous change.
+	(top-level): Activate package when loaded (needed for backwards
+	compatibility).
+
 2004-01-20  Jesper Harder  <harder@ifa.au.dk>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): No need to add two bytes
