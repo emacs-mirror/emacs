@@ -157,8 +157,12 @@ real_install:
 # 
 CLEAN_CMD	= $(MAKE) -f makefile.nt clean
 clean:;		- $(DEL) *~ *.pdb
+		- $(DEL) *.orig
+		- $(DEL) *.rej
+		- $(DEL) *.crlf
 		- $(DEL_TREE) deleted
-		- $(DEL_TREE) $(OBJDIR)
+		- $(DEL_TREE) obj
+		- $(DEL_TREE) obj-spd
 		- $(DEL_TREE) ..\bin
 		- $(DEL) ..\etc\DOC ..\etc\DOC-X
 		- $(DEL) emacs.bat
