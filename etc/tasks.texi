@@ -258,10 +258,6 @@ An imitation of Page Maker or Ventura Publisher.
 An imitation of @code{dbase2} or @code{dbase3} (How dbased!)
 
 @item
-A text-based Web browser, somewhat like Lynx (which, unfortunately,
-is not free software).
-
-@item
 A program to reformat Fortran programs in a way that is pretty.
 
 @item
