@@ -1,5 +1,7 @@
 2001-05-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* mouse.el (mouse-delete-other-windows): Doc fix.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode): Make
 	font-lock-keywords-case-fold-search a buffer-local variable
 	with make-local-variable before setting it.

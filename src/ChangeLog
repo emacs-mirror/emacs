@@ -1,5 +1,8 @@
 2001-05-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (read_key_sequence): Prevent generating a fake
+	prefix key twice.
+
 	* xfaces.c (split_font_name): Handle `[...]' for the right
 	font name fields.
 
