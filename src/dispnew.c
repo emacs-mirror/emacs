@@ -1936,6 +1936,7 @@ DEFUN ("sit-for", Fsit_for, Ssit_for, 1, 3, 0,
   "Perform redisplay, then wait for SECONDS seconds or until input is available.\n\
 Optional second arg MILLISECONDS specifies an additional wait period, in\n\
 milliseconds.\n\
+\(Not all operating systems support milliseconds.)\n\
 Optional third arg non-nil means don't redisplay, just wait for input.\n\
 Redisplay is preempted as always if input arrives, and does not happen\n\
 if input is available before it starts.\n\
