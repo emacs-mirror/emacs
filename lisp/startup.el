@@ -215,18 +215,20 @@ and VALUE is the value which is given to that frame parameter
 \(most options use the argument for this, so VALUE is not present).")
 
 (defvar before-init-hook nil
-  "Functions to call after handling urgent options but before init files.
-The frame system uses this to open frames to display messages while
-Emacs loads the user's initialization file.")
+  "Normal hook run after handling urgent options but before loading init files.")
 
 (defvar after-init-hook nil
-  "Functions to call after loading the init file (`~/.emacs').
-The call is not protected by a condition-case, so you can set `debug-on-error'
-in `.emacs', and put all the actual code on `after-init-hook'.")
+  "Normal hook run after loading the init files, `~/.emacs' and `default.el'.
+There is no `condition-case' around the running of these functions;
+therefore, if you set `debug-on-error' non-nil in `.emacs',
+an error in one of these functions will invoke the debugger.")
+
+(defvar emacs-startup-hook nil
+  "Normal hook run after loading init files and handling the command line.")
 
 (defvar term-setup-hook nil
-  "Functions to be called after loading terminal-specific Lisp code.
-See `run-hooks'.  This variable exists for users to set,
+  "Normal hook run after loading terminal-specific Lisp code.
+It also follows `emacs-startup-hook'.  This hook exists for users to set,
 so as to override the definitions made by the terminal-specific file.
 Emacs never sets this variable itself.")
 
