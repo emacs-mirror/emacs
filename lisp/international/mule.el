@@ -36,14 +36,57 @@ Version number and name of this version of MULE (multilingual environment).")
 (defconst mule-version-date "2003.9.1" "\
 Distribution date of this version of MULE (multilingual environment).")
 
-
-
-;;; CHARACTER
-(defalias 'char-valid-p 'characterp)
-(make-obsolete 'char-valid-p 'characterp "22.1")
-
 
 ;;; CHARSET
+
+;; Backward compatibility code for handling emacs-mule charsets.
+(defvar private-char-area-1-min #xF0000)
+(defvar private-char-area-1-max #xFFFFE)
+(defvar private-char-area-2-min #x100000)
+(defvar private-char-area-2-max #x10FFFE)
+
+;; Table of emacs-mule charsets indexed by their emacs-mule ID.
+(defvar emacs-mule-charset-table (make-vector 256 nil))
+(aset emacs-mule-charset-table 0 'ascii)
+
+;; Convert the argument of old-style calll of define-charset to a
+;; property list used by the new-style.
+;; INFO-VECTOR is a vector of the format:
+;;   [DIMENSION CHARS WIDTH DIRECTION ISO-FINAL-CHAR ISO-GRAPHIC-PLANE
+;;    SHORT-NAME LONG-NAME DESCRIPTION]
+
+(defun convert-define-charset-argument (emacs-mule-id info-vector)
+  (let* ((dim (aref info-vector 0))
+	 (chars (aref info-vector 1))
+	 (total (if (= dim 1) chars (* chars chars)))
+	 (code-space (if (= dim 1) (if (= chars 96) [32 127] [33 126])
+		       (if (= chars 96) [32 127 32 127] [33 126 33 126])))
+	 code-offset)
+    (if (integerp emacs-mule-id)
+	(or (= emacs-mule-id 0)
+	    (and (>= emacs-mule-id 129) (< emacs-mule-id 256))
+	    (error "Invalid CHARSET-ID: %d" emacs-mule-id))
+      (let (from-id to-id)
+	(if (= dim 1) (setq from-id 160 to-id 224)
+	  (setq from-id 224 to-id 255))
+	(while (and (< from-id to-id)
+		    (not (aref emacs-mule-charset-table from-id)))
+	  (setq from-id (1+ from-id)))
+	(if (= from-id to-id)
+	    (error "No more room for the new Emacs-mule charset"))
+	(setq emacs-mule-id from-id)))
+    (if (> (- private-char-area-1-max private-char-area-1-min) total)
+	(setq code-offset private-char-area-1-min
+	      private-char-area-1-min (+ private-char-area-1-min total))
+      (if (> (- private-char-area-2-max private-char-area-2-min) total)
+	  (setq code-offset private-char-area-2-min
+		private-char-area-2-min (+ private-char-area-2-min total))
+	(error "No more space for a new charset.")))
+    (list :dimension dim
+	  :code-space code-space
+	  :iso-final-char (aref info-vector 4)
+	  :code-offset code-offset
+	  :emacs-mule-id emacs-mule-id)))
 
 (defun define-charset (name docstring &rest props)
   "Define NAME (symbol) as a charset with DOCSTRING.
@@ -103,7 +146,7 @@ number of the charset for ISO-2022 encoding.
 
 `:emacs-mule-id'
 
-VALUE must be an integer of 0, 128..255.  If omitted, the charset
+VALUE must be an integer of 0, 129..255.  If omitted, the charset
 can't be encoded by coding-systems of type `emacs-mule'.
 
 `:ascii-compatible-p'
@@ -172,6 +215,14 @@ corresponding Unicode character code.
 If it is a string, it is a name of file that contains the above
 information.  The file format is the same as what described for `:map'
 attribute."
+  (when (vectorp (car props))
+    ;; Old style code:
+    ;;   (define-charset CHARSET-ID CHARSET-SYMBOL INFO-VECTOR)
+    ;; Convert the argument to make it fit with the current style.
+    (let ((vec (car props)))
+      (setq props (convert-define-charset-argument name vec)
+	    name docstring
+	    docstring (aref vec 8))))
   (let ((attrs (mapcar 'list '(:dimension
 			       :code-space
 			       :min-code
@@ -195,6 +246,11 @@ attribute."
 	  (progn
 	    (setq dimension (/ (length (plist-get props :code-space)) 2))
 	    (setq props (plist-put props :dimension dimension)))))
+
+    ;; If :emacs-mule-id is specified, update emacs-mule-charset-table.
+    (let ((emacs-mule-id (plist-get props :emacs-mule-id)))
+      (if (integerp emacs-mule-id)
+	  (aset emacs-mule-charset-table emacs-mule-id name)))
 
     (dolist (slot attrs)
       (setcdr slot (plist-get props (car slot))))
@@ -405,10 +461,21 @@ Now we have the variable `charset-list'."
   charset-list)
 (make-obsolete 'charset-list "Use variable `charset-list'" "22.1")
 
+
+;;; CHARACTER
+(defalias 'char-valid-p 'characterp)
+(make-obsolete 'char-valid-p 'characterp "22.1")
+
 (defun generic-char-p (char)
   "Always return nil.  This is provided for backward compatibility."
   nil)
 (make-obsolete 'generic-char-p "Generic characters no longer exist" "22.1")
+
+(defun make-char-internal (charset-id &optional code1 code2)
+  (let ((charset (aref emacs-mule-charset-table charset-id)))
+    (or charset
+	(error "Invalid Emacs-mule charset ID: %d" charset-id))
+    (make-char charset code1 code2)))
 
 ;; Coding system stuff
 
