@@ -2574,7 +2574,7 @@ specialization of overwrite-mode, entered by setting the
 	    'overwrite-mode-binary))
   (force-mode-line-update))
 
-(defvar line-number-mode nil
+(defvar line-number-mode t
   "*Non-nil means display line number in mode line.")
 
 (defun line-number-mode (arg)
@@ -2588,7 +2588,7 @@ in the mode line."
 	  (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update))
 
-(defvar column-number-mode nil
+(defvar column-number-mode t
   "*Non-nil means display column number in mode line.")
 
 (defun column-number-mode (arg)
