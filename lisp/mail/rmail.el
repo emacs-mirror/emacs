@@ -54,6 +54,12 @@
 (defvar rmail-movemail-program nil
   "If non-nil, name of program for fetching new mail.")
 
+(defvar rmail-pop-password nil
+  "*Password to use when reading mail from a POP server, if required.")
+
+(defvar rmail-pop-password-required nil
+  "*Non-nil if a password is required when reading mail using POP.")
+
 ;;;###autoload
 (defvar rmail-dont-reply-to-names nil "\
 *A regexp specifying names to prune of reply to messages.
@@ -984,6 +990,18 @@ It returns t if it got any new messages."
 		(setq file (expand-file-name (user-login-name)
 					     file)))))
       (cond (popmail
+	     (if (and rmail-pop-password-required (not rmail-pop-password))
+		 (setq rmail-pop-password
+		       (rmail-read-passwd
+			(format "Password for %s: "
+				(substring file (+ popmail 3))))))
+	     (if (eq system-type 'windows-nt)
+		 ;; cannot have "po:" in file name
+		 (setq tofile
+		       (expand-file-name
+			(concat ".newmail-pop-" (substring file (+ popmail 3)))
+			(file-name-directory
+			 (expand-file-name buffer-file-name)))))
 	     (message "Getting mail from post office ..."))
 	    ((and (file-exists-p tofile)
 		  (/= 0 (nth 7 (file-attributes tofile))))
@@ -1018,10 +1036,15 @@ It returns t if it got any new messages."
 		   (save-excursion
 		     (setq errors (generate-new-buffer " *rmail loss*"))
 		     (buffer-disable-undo errors)
-		     (call-process
-		      (or rmail-movemail-program
-			  (expand-file-name "movemail" exec-directory))
-		      nil errors nil file tofile)
+		     (if rmail-pop-password
+			 (call-process
+			  (or rmail-movemail-program
+			      (expand-file-name "movemail" exec-directory))
+			  nil errors nil file tofile rmail-pop-password)
+		       (call-process
+			(or rmail-movemail-program
+			    (expand-file-name "movemail" exec-directory))
+			nil errors nil file tofile))
 		     (if (not (buffer-modified-p errors))
 			 ;; No output => movemail won
 			 nil
@@ -1056,6 +1079,29 @@ It returns t if it got any new messages."
       (message "")
       (setq files (cdr files)))
     delete-files))
+
+(defun rmail-read-passwd (prompt &optional default)
+  "Read a password, echoing `.' for each character typed.
+End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
+Optional DEFAULT is password to start with."
+  (let ((pass (if default default ""))
+	(c 0)
+	(echo-keystrokes 0)
+	(cursor-in-echo-area t))
+    (while (progn (message "%s%s"
+			   prompt
+			   (make-string (length pass) ?.))
+		  (setq c (read-char))
+		  (and (/= c ?\r) (/= c ?\n) (/= c ?\e)))
+      (if (= c ?\C-u)
+	  (setq pass "")
+	(if (and (/= c ?\b) (/= c ?\177))
+	    (setq pass (concat pass (char-to-string c)))
+	  (if (> (length pass) 0)
+	      (setq pass (substring pass 0 -1))))))
+    (message "")
+    (message nil)
+    pass))
 
 ;; the  rmail-break-forwarded-messages  feature is not implemented
 (defun rmail-convert-to-babyl-format ()
