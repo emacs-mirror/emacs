@@ -4049,7 +4049,6 @@ update_window (w, force_p)
   extern Lisp_Object do_mouse_tracking;
 #if GLYPH_DEBUG
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  extern struct frame *updating_frame;
 #endif
 
   /* Check that W's frame doesn't have glyph matrices.  */
@@ -4339,7 +4338,7 @@ update_text_area (w, vpos)
 		 first `p' in the current row.  If we would start
 		 writing glyphs there, we wouldn't erase the lbearing
 		 of the `p'.  The rest of the lbearing problem is then
-		 taken care of by x_draw_glyphs.  */
+		 taken care of by draw_glyphs.  */
 	      if (overlapping_glyphs_p
 		  && i > 0
 		  && i < current_row->used[TEXT_AREA]
@@ -5725,9 +5724,10 @@ buffer_posn_from_coords (w, x, y, object, pos)
    the string returned.  */
 
 Lisp_Object
-mode_line_string (w, x, y, mode_line_p, charpos)
+mode_line_string (w, x, y, part, charpos)
      struct window *w;
-     int x, y, mode_line_p;
+     int x, y;
+     enum window_part part;
      int *charpos;
 {
   struct glyph_row *row;
@@ -5736,7 +5736,7 @@ mode_line_string (w, x, y, mode_line_p, charpos)
   int x0;
   Lisp_Object string = Qnil;
 
-  if (mode_line_p)
+  if (part == ON_MODE_LINE)
     row = MATRIX_MODE_LINE_ROW (w->current_matrix);
   else
     row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
@@ -5772,20 +5772,21 @@ mode_line_string (w, x, y, mode_line_p, charpos)
    the string returned.  */
 
 Lisp_Object
-marginal_area_string (w, x, y, area, charpos)
+marginal_area_string (w, x, y, part, charpos)
      struct window *w;
      int x, y;
-     int area;
+     enum window_part part;
      int *charpos;
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
   int x0, i, wy = y;
+  int area;
   Lisp_Object string = Qnil;
 
-  if (area == 6)
+  if (part == ON_LEFT_MARGIN)
     area = LEFT_MARGIN_AREA;
-  else if (area == 7)
+  else if (part == ON_RIGHT_MARGIN)
     area = RIGHT_MARGIN_AREA;
   else
     abort ();
