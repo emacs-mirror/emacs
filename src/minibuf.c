@@ -2549,26 +2549,12 @@ keys_of_minibuf ()
   initial_define_key (Vminibuffer_local_map, Ctl ('j'),
 		      "exit-minibuffer");
 
-  initial_define_key (Vminibuffer_local_ns_map, Ctl ('g'),
-		      "abort-recursive-edit");
-  initial_define_key (Vminibuffer_local_ns_map, Ctl ('m'),
-		      "exit-minibuffer");
-  initial_define_key (Vminibuffer_local_ns_map, Ctl ('j'),
-		      "exit-minibuffer");
-
   initial_define_key (Vminibuffer_local_ns_map, ' ',
 		      "exit-minibuffer");
   initial_define_key (Vminibuffer_local_ns_map, '\t',
 		      "exit-minibuffer");
   initial_define_key (Vminibuffer_local_ns_map, '?',
 		      "self-insert-and-exit");
-
-  initial_define_key (Vminibuffer_local_completion_map, Ctl ('g'),
-		      "abort-recursive-edit");
-  initial_define_key (Vminibuffer_local_completion_map, Ctl ('m'),
-		      "exit-minibuffer");
-  initial_define_key (Vminibuffer_local_completion_map, Ctl ('j'),
-		      "exit-minibuffer");
 
   initial_define_key (Vminibuffer_local_completion_map, '\t',
 		      "minibuffer-complete");
@@ -2577,16 +2563,8 @@ keys_of_minibuf ()
   initial_define_key (Vminibuffer_local_completion_map, '?',
 		      "minibuffer-completion-help");
 
-  initial_define_key (Vminibuffer_local_must_match_map, Ctl ('g'),
-		      "abort-recursive-edit");
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('m'),
 		      "minibuffer-complete-and-exit");
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('j'),
 		      "minibuffer-complete-and-exit");
-  initial_define_key (Vminibuffer_local_must_match_map, '\t',
-		      "minibuffer-complete");
-  initial_define_key (Vminibuffer_local_must_match_map, ' ',
-		      "minibuffer-complete-word");
-  initial_define_key (Vminibuffer_local_must_match_map, '?',
-		      "minibuffer-completion-help");
 }
