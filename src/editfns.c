@@ -854,6 +854,7 @@ The modifiers are `E' and `O'.  For certain characters X,\n\
 %OX is like %X, but uses the locale's number symbols.\n\
 \n\
 For example, to produce full ISO 8601 format, use \"%Y-%m-%dT%T%z\".")
+  (format_string, time, universal)
 */
 
 DEFUN ("format-time-string", Fformat_time_string, Sformat_time_string, 1, 3, 0,
