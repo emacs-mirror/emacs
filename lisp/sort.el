@@ -493,18 +493,20 @@ Use \\[untabify] to convert tabs to spaces before sorting."
 	  ;; Use the sort utility if we can; it is 4 times as fast.
 	  ;; Do not use it if there are any properties in the region,
 	  ;; since the sort utility would lose the properties.
-	  (call-process-region beg1 end1 "sort" t t nil
-			       (if reverse "-rt\n" "-t\n")
-			       (concat "+0." col-start)
-			       (concat "-0." col-end))
+	  (let ((sort-args (list (if reverse "-rt\n" "-t\n")
+				 (concat "+0." col-start)
+				 (concat "-0." col-end))))
+	    (when sort-fold-case
+	      (push "-f" sort-args))
+	    (apply #'call-process-region beg1 end1 "sort" t t nil sort-args))
 	;; On VMS, use Emacs's own facilities.
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region beg1 end1)
 	    (goto-char beg1)
 	    (sort-subr reverse 'forward-line 'end-of-line
-		       (function (lambda () (move-to-column col-start) nil))
-		       (function (lambda () (move-to-column col-end) nil)))))))))
+		       #'(lambda () (move-to-column col-start) nil)
+		       #'(lambda () (move-to-column col-end) nil))))))))
 
 ;;;###autoload
 (defun reverse-region (beg end)
