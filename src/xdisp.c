@@ -759,6 +759,7 @@ static int face_before_or_after_it_pos P_ ((struct it *, int));
 static int next_overlay_change P_ ((int));
 static int handle_single_display_prop P_ ((struct it *, Lisp_Object,
 					   Lisp_Object, struct text_pos *));
+static int underlying_face_id P_ ((struct it *));
 
 #define face_before_it_pos(IT) face_before_or_after_it_pos ((IT), 1)
 #define face_after_it_pos(IT)  face_before_or_after_it_pos ((IT), 0)
@@ -2138,17 +2139,28 @@ handle_face_prop (it)
     }
   else
     {
-      new_face_id
-	= face_at_string_position (it->w,
-				   it->string,
-				   IT_STRING_CHARPOS (*it),
-				   (it->current.overlay_string_index >= 0
-				    ? IT_CHARPOS (*it)
-				    : 0),
-				   it->region_beg_charpos,
-				   it->region_end_charpos,
-				   &next_stop,
-				   it->base_face_id);
+      int base_face_id, bufpos;
+
+      if (it->current.overlay_string_index >= 0)
+	bufpos = IT_CHARPOS (*it);
+      else
+	bufpos = 0;
+      
+      /* For strings from a buffer, i.e. overlay strings or strings
+	 from a `display' property, use the face at IT's current
+	 buffer position as the base face to merge with, so that
+	 overlay strings appear in the same face as surrounding
+	 text, unless they specify their own faces.  */
+      base_face_id = underlying_face_id (it);
+      
+      new_face_id = face_at_string_position (it->w,
+					     it->string,
+					     IT_STRING_CHARPOS (*it),
+					     bufpos,
+					     it->region_beg_charpos,
+					     it->region_end_charpos,
+					     &next_stop,
+					     base_face_id);
       
 #if 0 /* This shouldn't be neccessary.  Let's check it.  */
       /* If IT is used to display a mode line we would really like to
@@ -2184,6 +2196,27 @@ handle_face_prop (it)
 }
 
 
+/* Return the ID of the face ``underlying'' IT's current position,
+   which is in a string.  If the iterator is associated with a
+   buffer, return the face at IT's current buffer position.
+   Otherwise, use the iterator's base_face_id.  */
+
+static int
+underlying_face_id (it)
+     struct it *it;
+{
+  int face_id = it->base_face_id, i;
+
+  xassert (STRINGP (it->string));
+
+  for (i = it->sp - 1; i >= 0; --i)
+    if (NILP (it->stack[i].string))
+      face_id = it->stack[i].face_id;
+
+  return face_id;
+}
+
+
 /* Compute the face one character before or after the current position
    of IT.  BEFORE_P non-zero means get the face in front of IT's
    position.  Value is the id of the face.  */
@@ -2201,6 +2234,8 @@ face_before_or_after_it_pos (it, before_p)
     
   if (STRINGP (it->string))
     {
+      int bufpos, base_face_id;
+      
       /* No face change past the end of the string (for the case
 	 we are padding with spaces).  No face change before the
 	 string start.  */
@@ -2218,18 +2253,22 @@ face_before_or_after_it_pos (it, before_p)
 	       ? string_pos (IT_STRING_CHARPOS (*it) + it->cmp_len, it->string)
 	       : string_pos (IT_STRING_CHARPOS (*it) + 1, it->string));
 
+      if (it->current.overlay_string_index >= 0)
+	bufpos = IT_CHARPOS (*it);
+      else
+	bufpos = 0;
+
+      base_face_id = underlying_face_id (it);
+
       /* Get the face for ASCII, or unibyte.  */
-      face_id
-	= face_at_string_position (it->w,
-				   it->string,
-				   CHARPOS (pos),
-				   (it->current.overlay_string_index >= 0
-				    ? IT_CHARPOS (*it)
-				    : 0),
-				   it->region_beg_charpos,
-				   it->region_end_charpos,
-				   &next_check_charpos,
-				   it->base_face_id);
+      face_id = face_at_string_position (it->w,
+					 it->string,
+					 CHARPOS (pos),
+					 bufpos,
+					 it->region_beg_charpos,
+					 it->region_end_charpos,
+					 &next_check_charpos,
+					 base_face_id);
 
       /* Correct the face for charsets different from ASCII.  Do it
 	 for the multibyte case only.  The face returned above is
@@ -2265,6 +2304,7 @@ face_before_or_after_it_pos (it, before_p)
 	  else
 	    INC_TEXT_POS (pos, it->multibyte_p);
 	}
+      
       /* Determine face for CHARSET_ASCII, or unibyte.  */
       face_id = face_at_buffer_position (it->w,
 					 CHARPOS (pos),
