@@ -685,21 +685,25 @@ There should be no more than seven characters after the final `/'")
     (apply operation args)))
 
 ;;;###autoload(defun auto-compression-mode (&optional arg)
-;;;###autoload  "Toggle automatic file compression and uncompression.
+;;;###autoload  "\
+;;;###autoloadToggle automatic file compression and uncompression.
 ;;;###autoloadWith prefix argument ARG, turn auto compression on if positive, else off.
 ;;;###autoloadReturns the new status of auto compression (non-nil means on)."
+;;;###autoload  (interactive "P")
 ;;;###autoload  (if (not (fboundp 'jka-compr-installed-p))
 ;;;###autoload      (progn
 ;;;###autoload        (require 'jka-compr)
 ;;;###autoload        ;; That turned the mode on, so make it initially off.
 ;;;###autoload        (toggle-auto-compression)))
-;;;###autoload  (toggle-auto-compression arg))
+;;;###autoload  (toggle-auto-compression arg t))
 
-(defun toggle-auto-compression (&optional arg)
+(defun toggle-auto-compression (&optional arg message)
   "Toggle automatic file compression and uncompression.
 With prefix argument ARG, turn auto compression on if positive, else off.
-Returns the new status of auto compression (non-nil means on)."
-  (interactive "P")
+Returns the new status of auto compression (non-nil means on).
+If the argument MESSAGE is non-nil, it means to print a message
+saying whether the mode is now on or off."
+  (interactive "P\np")
   (let* ((installed (jka-compr-installed-p))
 	 (flag (if (null arg)
 		   (not installed)
@@ -717,7 +721,7 @@ Returns the new status of auto compression (non-nil means on)."
       (jka-compr-uninstall)))
 
 
-    (and (interactive-p)
+    (and message
 	 (if flag
 	     (message "Automatic file (de)compression is now ON.")
 	   (message "Automatic file (de)compression is now OFF.")))
