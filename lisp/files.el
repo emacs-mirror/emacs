@@ -3342,13 +3342,14 @@ See also `auto-save-file-name-p'."
 	  (setq buffer-name (replace-match replacement t t buffer-name))
 	  (setq limit (1+ (match-end 0)))))
       ;; Generate the file name.
-      (expand-file-name
-       (format "#%s#%s#" buffer-name (make-temp-name ""))
-       ;; Try a few alternative directories, to get one we can write it.
-       (cond
-	((file-writable-p default-directory) default-directory)
-	((file-writable-p "/var/tmp/") "/var/tmp/")
-	("~/"))))))
+      (make-temp-file
+       (expand-file-name
+	(format "#%s#" buffer-name)
+	;; Try a few alternative directories, to get one we can write it.
+	(cond
+	 ((file-writable-p default-directory) default-directory)
+	 ((file-writable-p "/var/tmp/") "/var/tmp/")
+	 ("~/")))))))
 
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
