@@ -41,6 +41,8 @@ Boston, MA 02111-1307, USA.  */
 
 #include "lisp.h"
 #include "buffer.h"
+#include "charset.h"
+#include "coding.h"
 
 #include <time.h>
 #include <errno.h>
@@ -370,15 +372,16 @@ void
 lock_file (fn)
      Lisp_Object fn;
 {
-  register Lisp_Object attack, orig_fn;
+  register Lisp_Object attack, orig_fn, encoded_fn;
   register char *lfname, *locker;
   lock_info_type lock_info;
 
   orig_fn = fn;
   fn = Fexpand_file_name (fn, Qnil);
+  encoded_fn = ENCODE_FILE (fn);
 
   /* Create the name of the lock-file for file fn */
-  MAKE_LOCK_NAME (lfname, fn);
+  MAKE_LOCK_NAME (lfname, encoded_fn);
 
   /* See if this file is visited and has changed on disk since it was
      visited.  */
