@@ -151,7 +151,7 @@ If this contains a %s, that will be replaced by the matching rule."
 ;; Author: " (user-full-name)
 '(if (search-backward "&" (save-excursion (beginning-of-line 1) (point)) t)
      (replace-match (capitalize (user-login-name)) t t))
-'(end-of-line 1) " <" (user-login-name) ?@ (system-name) ">
+'(end-of-line 1) " <" (progn user-mail-address) ">
 ;; Keywords: "
  '(require 'finder)
  ;;'(setq v1 (apply 'vector (mapcar 'car finder-known-keywords)))
