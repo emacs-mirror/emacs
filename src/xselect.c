@@ -200,9 +200,9 @@ symbol_to_x_atom (dpyinfo, display, sym)
 #endif
   if (!SYMBOLP (sym)) abort ();
 
-  TRACE1 (" XInternAtom %s", (char *) XSYMBOL (sym)->name->data);
+  TRACE1 (" XInternAtom %s", (char *) XSTRING (SYMBOL_NAME (sym))->data);
   BLOCK_INPUT;
-  val = XInternAtom (display, (char *) XSYMBOL (sym)->name->data, False);
+  val = XInternAtom (display, (char *) XSTRING (SYMBOL_NAME (sym))->data, False);
   UNBLOCK_INPUT;
   return val;
 }
@@ -1272,7 +1272,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   if (NILP (XCAR (reading_selection_reply)))
     error ("Timed out waiting for reply from selection owner");
   if (EQ (XCAR (reading_selection_reply), Qlambda))
-    error ("No `%s' selection", XSYMBOL (selection_symbol)->name->data);
+    error ("No `%s' selection", XSTRING (SYMBOL_NAME (selection_symbol))->data);
 
   /* Otherwise, the selection is waiting for us on the requested property.  */
   return
