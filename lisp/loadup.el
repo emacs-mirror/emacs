@@ -171,6 +171,8 @@
       (garbage-collect)
       (load "disp-table") ; needed to setup ibm-pc char set, see internal.el
       (garbage-collect)
+      (load "international/mule-util") ; needed for coding systems
+      (garbage-collect)
       (load "dos-w32")
       (garbage-collect)
       (load "w32-fns")
@@ -178,6 +180,8 @@
 (if (eq system-type 'ms-dos)
     (progn
       (load "ls-lisp")
+      (garbage-collect)
+      (load "international/mule-util") ; needed for coding systems
       (garbage-collect)
       (load "dos-w32")
       (garbage-collect)
