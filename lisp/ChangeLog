@@ -1,5 +1,12 @@
 2000-11-22  Dave Love  <fx@gnu.org>
 
+	* language/chinese.el, language/cyrillic.el:
+	* language/devanagari.el, language/ethiopic.el, language/greek.el:
+	* language/hebrew.el, language/indian.el, language/japanese.el:
+	* language/korean.el, language/lao.el, language/misc-lang.el:
+	* language/thai.el, language/tibetan.el, language/vietnamese.el:
+	Use provide.
+
 	* cus-edit.el (custom-buffer-create-internal): Save some consing.
 	(custom-variable-set): Improve validation error mesage.
 
