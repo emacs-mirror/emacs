@@ -304,7 +304,7 @@ reset_buffer (b)
   b->directory = (current_buffer) ? current_buffer->directory : Qnil;
   b->modtime = 0;
   b->save_modified = 1;
-  XFASTINT (b->save_length) = 0;
+  XSETFASTINT (b->save_length, 0);
   b->last_window_start = 1;
   b->backed_up = Qnil;
   b->auto_save_modified = 0;
@@ -313,7 +313,7 @@ reset_buffer (b)
   b->read_only = Qnil;
   b->overlays_before = Qnil;
   b->overlays_after = Qnil;
-  XFASTINT (b->overlay_center) = 1;
+  XSETFASTINT (b->overlay_center, 1);
   b->mark_active = Qnil;
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
@@ -1072,7 +1072,7 @@ so the buffer is truly empty after this.")
   /* Prevent warnings, or suspension of auto saving, that would happen
      if future size is less than past size.  Use of erase-buffer
      implies that the future text is not really related to the past text.  */
-  XFASTINT (current_buffer->save_length) = 0;
+  XSETFASTINT (current_buffer->save_length, 0);
   return Qnil;
 }
 
@@ -1088,7 +1088,7 @@ validate_region (b, e)
     {
       i = XFASTINT (*b);	/* This is legit even if *b is < 0 */
       *b = *e;
-      XFASTINT (*e) = i;	/* because this is all we do with i.  */
+      XSETFASTINT (*e, i);	/* because this is all we do with i.  */
     }
 
   if (!(BEGV <= XINT (*b) && XINT (*b) <= XINT (*e)
@@ -1109,10 +1109,10 @@ list_buffers_1 (files)
   desired_point = Qnil;
   other_file_symbol = intern ("list-buffers-directory");
 
-  XFASTINT (col1) = 19;
-  XFASTINT (col2) = 26;
-  XFASTINT (col3) = 40;
-  XFASTINT (minspace) = 1;
+  XSETFASTINT (col1, 19);
+  XSETFASTINT (col2, 26);
+  XSETFASTINT (col3, 40);
+  XSETFASTINT (minspace, 1);
 
   Fset_buffer (Vstandard_output);
   Fbuffer_disable_undo (Vstandard_output);
@@ -1134,14 +1134,14 @@ list_buffers_1 (files)
 	continue;
       /* Identify the current buffer. */
       if (b == old)
-	XFASTINT (desired_point) = point;
+	XSETFASTINT (desired_point, point);
       write_string (b == old ? "." : " ", -1);
       /* Identify modified buffers */
       write_string (BUF_MODIFF (b) > b->save_modified ? "*" : " ", -1);
       write_string (NILP (b->read_only) ? "  " : "% ", -1);
       Fprinc (b->name, Qnil);
       Findent_to (col1, make_number (2));
-      XFASTINT (tem) = BUF_Z (b) - BUF_BEG (b);
+      XSETFASTINT (tem, BUF_Z (b) - BUF_BEG (b));
       Fprin1 (tem, Qnil);
       Findent_to (col2, minspace);
       Fprinc (b->mode_name, Qnil);
@@ -1657,7 +1657,7 @@ recenter_overlay_lists (buf, pos)
 	}
     }
 
-  XFASTINT (buf->overlay_center) = pos;
+  XSETFASTINT (buf->overlay_center, pos);
 }
 
 /* Fix up overlays that were garbled as a result of permuting markers
@@ -2467,17 +2467,17 @@ init_buffer_once ()
   buffer_defaults.mark_active = Qnil;
   buffer_defaults.overlays_before = Qnil;
   buffer_defaults.overlays_after = Qnil;
-  XFASTINT (buffer_defaults.overlay_center) = 1;
+  XSETFASTINT (buffer_defaults.overlay_center, 1);
 
-  XFASTINT (buffer_defaults.tab_width) = 8;
+  XSETFASTINT (buffer_defaults.tab_width, 8);
   buffer_defaults.truncate_lines = Qnil;
   buffer_defaults.ctl_arrow = Qt;
 
 #ifdef MSDOS
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
 #endif
-  XFASTINT (buffer_defaults.fill_column) = 70;
-  XFASTINT (buffer_defaults.left_margin) = 0;
+  XSETFASTINT (buffer_defaults.fill_column, 70);
+  XSETFASTINT (buffer_defaults.left_margin, 0);
 
   /* Assign the local-flags to the slots that have default values.
      The local flag is a bit that is used in the buffer
@@ -2489,36 +2489,36 @@ init_buffer_once ()
 
   /* 0 means not a lisp var, -1 means always local, else mask */
   bzero (&buffer_local_flags, sizeof buffer_local_flags);
-  XFASTINT (buffer_local_flags.filename) = -1;
-  XFASTINT (buffer_local_flags.directory) = -1;
-  XFASTINT (buffer_local_flags.backed_up) = -1;
-  XFASTINT (buffer_local_flags.save_length) = -1;
-  XFASTINT (buffer_local_flags.auto_save_file_name) = -1;
-  XFASTINT (buffer_local_flags.read_only) = -1;
-  XFASTINT (buffer_local_flags.major_mode) = -1;
-  XFASTINT (buffer_local_flags.mode_name) = -1;
-  XFASTINT (buffer_local_flags.undo_list) = -1;
-  XFASTINT (buffer_local_flags.mark_active) = -1;
+  XSETFASTINT (buffer_local_flags.filename, -1);
+  XSETFASTINT (buffer_local_flags.directory, -1);
+  XSETFASTINT (buffer_local_flags.backed_up, -1);
+  XSETFASTINT (buffer_local_flags.save_length, -1);
+  XSETFASTINT (buffer_local_flags.auto_save_file_name, -1);
+  XSETFASTINT (buffer_local_flags.read_only, -1);
+  XSETFASTINT (buffer_local_flags.major_mode, -1);
+  XSETFASTINT (buffer_local_flags.mode_name, -1);
+  XSETFASTINT (buffer_local_flags.undo_list, -1);
+  XSETFASTINT (buffer_local_flags.mark_active, -1);
 
-  XFASTINT (buffer_local_flags.mode_line_format) = 1;
-  XFASTINT (buffer_local_flags.abbrev_mode) = 2;
-  XFASTINT (buffer_local_flags.overwrite_mode) = 4;
-  XFASTINT (buffer_local_flags.case_fold_search) = 8;
-  XFASTINT (buffer_local_flags.auto_fill_function) = 0x10;
-  XFASTINT (buffer_local_flags.selective_display) = 0x20;
+  XSETFASTINT (buffer_local_flags.mode_line_format, 1);
+  XSETFASTINT (buffer_local_flags.abbrev_mode, 2);
+  XSETFASTINT (buffer_local_flags.overwrite_mode, 4);
+  XSETFASTINT (buffer_local_flags.case_fold_search, 8);
+  XSETFASTINT (buffer_local_flags.auto_fill_function, 0x10);
+  XSETFASTINT (buffer_local_flags.selective_display, 0x20);
 #ifndef old
-  XFASTINT (buffer_local_flags.selective_display_ellipses) = 0x40;
+  XSETFASTINT (buffer_local_flags.selective_display_ellipses, 0x40);
 #endif
-  XFASTINT (buffer_local_flags.tab_width) = 0x80;
-  XFASTINT (buffer_local_flags.truncate_lines) = 0x100;
-  XFASTINT (buffer_local_flags.ctl_arrow) = 0x200;
-  XFASTINT (buffer_local_flags.fill_column) = 0x400;
-  XFASTINT (buffer_local_flags.left_margin) = 0x800;
-  XFASTINT (buffer_local_flags.abbrev_table) = 0x1000;
-  XFASTINT (buffer_local_flags.display_table) = 0x2000;
-  XFASTINT (buffer_local_flags.syntax_table) = 0x8000;
+  XSETFASTINT (buffer_local_flags.tab_width, 0x80);
+  XSETFASTINT (buffer_local_flags.truncate_lines, 0x100);
+  XSETFASTINT (buffer_local_flags.ctl_arrow, 0x200);
+  XSETFASTINT (buffer_local_flags.fill_column, 0x400);
+  XSETFASTINT (buffer_local_flags.left_margin, 0x800);
+  XSETFASTINT (buffer_local_flags.abbrev_table, 0x1000);
+  XSETFASTINT (buffer_local_flags.display_table, 0x2000);
+  XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
 #ifdef MSDOS
-  XFASTINT (buffer_local_flags.buffer_file_type) = 0x4000;
+  XSETFASTINT (buffer_local_flags.buffer_file_type, 0x4000);
 #endif
 
   Vbuffer_alist = Qnil;
