@@ -8221,10 +8221,12 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      window = POSN_WINDOW      (EVENT_START (key));
 	      posn   = POSN_BUFFER_POSN (EVENT_START (key));
 
-	      if (CONSP (posn))
+	      if (CONSP (posn)
+		  || (!NILP (fake_prefixed_keys)
+		      && !NILP (Fmemq (key, fake_prefixed_keys))))
 		{
-		  /* We're looking at the second event of a
-		     sequence which we expanded before.  Set
+		  /* We're looking a second time at an event for which
+		     we generated a fake prefix key.  Set
 		     last_real_key_start appropriately.  */
 		  if (t > 0)
 		    last_real_key_start = t - 1;
