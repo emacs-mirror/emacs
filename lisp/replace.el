@@ -221,6 +221,7 @@ Applies to lines after point."
 Move point to one of the occurrences in this buffer,
 then use \\[occur-mode-goto-occurrence] to go to the same occurrence
 in the buffer that the occurrences were found in.
+Or click \\<occur-mode-map>\\[occur-mode-mouse-goto] on an occurrence line.
 \\{occur-mode-map}"
   (kill-all-local-variables)
   (use-local-map occur-mode-map)
