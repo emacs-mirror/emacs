@@ -1,16 +1,16 @@
 /* impl.c.root: ROOT IMPLEMENTATION
  *
- * $HopeName: MMsrc!root.c(trunk.31) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!root.c(trunk.32) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * .scope: This is the implementation of the root datatype.
+ * .purpose: This is the implementation of the root datatype.
  * .design: For design, see design.mps.root and 
  * design.mps.root-interface
  */
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.31) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.32) $");
 
 
 /* RootVarCheck -- check a Root union discriminator
@@ -20,11 +20,8 @@ SRCID(root, "$HopeName: MMsrc!root.c(trunk.31) $");
 
 Bool RootVarCheck(RootVar rootVar)
 {
-  CHECKL(rootVar == RootTABLE ||
-         rootVar == RootTABLE_MASKED ||
-         rootVar == RootFUN ||
-         rootVar == RootFMT ||
-         rootVar == RootREG);
+  CHECKL(rootVar == RootTABLE || rootVar == RootTABLE_MASKED
+         || rootVar == RootFUN || rootVar == RootFMT || rootVar == RootREG);
   UNUSED(rootVar);
   return TRUE;
 }
@@ -34,14 +31,14 @@ Bool RootVarCheck(RootVar rootVar)
 
 Bool RootModeCheck(RootMode mode)
 {
-  CHECKL((mode & (RootModeCONSTANT |
-		  RootModePROTECTABLE |
-		  RootModePROTECTABLE_INNER)) == mode);
+  CHECKL((mode & (RootModeCONSTANT | RootModePROTECTABLE
+                  | RootModePROTECTABLE_INNER))
+         == mode);
   /* RootModePROTECTABLE_INNER implies RootModePROTECTABLE */
-  CHECKL((mode & RootModePROTECTABLE_INNER) == 0 ||
-         (mode & RootModePROTECTABLE));
+  CHECKL((mode & RootModePROTECTABLE_INNER) == 0
+         || (mode & RootModePROTECTABLE));
   UNUSED(mode);
-  
+
   return TRUE;
 }
 
@@ -93,7 +90,7 @@ Bool RootCheck(Root root)
   }
   CHECKL(RootModeCheck(root->mode));
   CHECKL(BoolCheck(root->protectable));
-  if(root->protectable) {
+  if (root->protectable) {
     CHECKL(root->protBase != (Addr)0);
     CHECKL(root->protLimit != (Addr)0);
     CHECKL(root->protBase < root->protLimit);
@@ -130,7 +127,7 @@ static Res rootCreate(Root *rootReturn, Arena arena,
 
   res = ControlAlloc(&p, arena, sizeof(RootStruct), 
                      /* withReservoirPermit */ FALSE);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
   root = (Root)p; /* Avoid pun */
 
@@ -172,15 +169,14 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
   Ring node, next;
 
   res = rootCreate(&root, arena, rank, mode, var, theUnion);
-  if(res != ResOK) {
+  if (res != ResOK)
     return res;
-  }
-  if(mode & RootModePROTECTABLE) {
+  if (mode & RootModePROTECTABLE) {
     root->protectable = TRUE;
-    if(mode & RootModePROTECTABLE_INNER) {
+    if (mode & RootModePROTECTABLE_INNER) {
       root->protBase = AddrAlignUp(base, ArenaAlign(arena));
       root->protLimit = AddrAlignDown(limit, ArenaAlign(arena));
-      if(!(root->protBase < root->protLimit)) {
+      if (!(root->protBase < root->protLimit)) {
         /* root had no inner pages */
         root->protectable = FALSE;
 	root->mode &=~ (RootModePROTECTABLE|RootModePROTECTABLE_INNER);
@@ -194,12 +190,12 @@ static Res rootCreateProtectable(Root *rootReturn, Arena arena,
   /* Check that this root doesn't intersect with any other root */
   RING_FOR(node, &arena->rootRing, next) {
     Root trial = RING_ELT(Root, arenaRing, node);
-    if(trial != root) {
+    if (trial != root) {
       /* (trial->protLimit <= root->protBase || */
       /*  root->protLimit <= trial->protBase) */
       /* is the "okay" state.  The negation of this is: */
-      if(root->protBase < trial->protLimit &&
-         trial->protBase < root->protLimit) {
+      if (root->protBase < trial->protLimit
+          && trial->protBase < root->protLimit) {
 	NOTREACHED;
 	RootDestroy(root);
 	return ResFAIL;
@@ -316,6 +312,9 @@ Res RootCreateFun(Root *rootReturn, Arena arena,
   return rootCreate(rootReturn, arena, rank, (RootMode)0, RootFUN, &theUnion);
 }
 
+
+/* RootDestroy -- destroy a root */
+
 void RootDestroy(Root root)
 {
   Arena arena;
@@ -334,26 +333,33 @@ void RootDestroy(Root root)
   ControlFree(arena, root, sizeof(RootStruct));
 }
 
+
+/* RootRank -- return the rank of a root */
+
 Rank RootRank(Root root)
 {
   AVERT(Root, root);
   return root->rank;
 }
 
+
+/* RootGrey -- mark root grey */
+
 void RootGrey(Root root, Trace trace)
 {
   AVERT(Root, root);
   AVERT(Trace, trace);
   
-  root->grey = TraceSetAdd(root->grey, trace->ti);
+  root->grey = TraceSetAdd(root->grey, trace);
 }
+
 
 static void rootSetSummary(Root root, RefSet summary)
 {
   AVERT(Root, root);
   /* Can't check summary */
-  if(root->protectable) {
-    if(summary == RefSetUNIV) {
+  if (root->protectable) {
+    if (summary == RefSetUNIV) {
       root->summary = summary;
       root->pm &= ~AccessWRITE;
     } else {
@@ -364,6 +370,9 @@ static void rootSetSummary(Root root, RefSet summary)
     AVER(root->summary == RefSetUNIV);
 }
 
+
+/* RootScan -- scan root */
+
 Res RootScan(ScanState ss, Root root)
 {
   Res res;
@@ -372,21 +381,20 @@ Res RootScan(ScanState ss, Root root)
   AVERT(ScanState, ss);
   AVER(root->rank == ss->rank);
 
-  if(TraceSetInter(root->grey, ss->traces) == TraceSetEMPTY)
+  if (TraceSetInter(root->grey, ss->traces) == TraceSetEMPTY)
     return ResOK;
 
   AVER(ScanStateSummary(ss) == RefSetEMPTY);
 
-  if(RootPM(root) != AccessSetEMPTY) {
+  if (RootPM(root) != AccessSetEMPTY) {
     ProtSet(root->protBase, root->protLimit, AccessSetEMPTY);
   }
 
   switch(root->var) {
     case RootTABLE:
     res = TraceScanArea(ss, root->the.table.base, root->the.table.limit);
-    ss->scannedSize += AddrOffset(root->the.table.base,
-                                  root->the.table.limit);
-    if(res != ResOK)
+    ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
+    if (res != ResOK)
       goto failScan;
     break;
 
@@ -395,31 +403,28 @@ Res RootScan(ScanState ss, Root root)
                               root->the.tableMasked.base,
                               root->the.tableMasked.limit,
                               root->the.tableMasked.mask);
-    ss->scannedSize += AddrOffset(root->the.table.base,
-                                  root->the.table.limit);
-    if(res != ResOK)
+    ss->scannedSize += AddrOffset(root->the.table.base, root->the.table.limit);
+    if (res != ResOK)
       goto failScan;
     break;
 
     case RootFUN:
     res = (*root->the.fun.scan)(ss, root->the.fun.p, root->the.fun.s);
-    if(res != ResOK)
+    if (res != ResOK)
       goto failScan;
     break;
 
     case RootREG:
     res = (*root->the.reg.scan)(ss, root->the.reg.thread,
                                 root->the.reg.p, root->the.reg.s);
-    if(res != ResOK)
+    if (res != ResOK)
       goto failScan;
     break;
 
     case RootFMT:
-    res = (*root->the.fmt.scan)(ss, root->the.fmt.base,
-                                root->the.fmt.limit);
-    ss->scannedSize += AddrOffset(root->the.fmt.base,
-                                  root->the.fmt.limit);
-    if(res != ResOK)
+    res = (*root->the.fmt.scan)(ss, root->the.fmt.base, root->the.fmt.limit);
+    ss->scannedSize += AddrOffset(root->the.fmt.base, root->the.fmt.limit);
+    if (res != ResOK)
       goto failScan;
     break;
 
@@ -435,14 +440,19 @@ Res RootScan(ScanState ss, Root root)
   EVENT_PWW(RootScan, root, ss->traces, ScanStateSummary(ss));
 
 failScan:
-  if(RootPM(root) != AccessSetEMPTY) {
+  if (RootPM(root) != AccessSetEMPTY) {
     ProtSet(root->protBase, root->protLimit, RootPM(root));
   }
 
   return res;
 }
 
-/* Must be thread-safe.  See design.mps.interface.c.thread-safety. */
+
+/* RootArena -- return the arena the root belongs to
+ *
+ * Must be thread-safe.  See design.mps.interface.c.thread-safety.
+ */
+
 Arena RootArena(Root root)
 {
   /* Can't AVER root as that would not be thread-safe */
@@ -450,8 +460,13 @@ Arena RootArena(Root root)
   return root->arena;
 }
 
-/* return TRUE if the addr is in a root (and the root is in *rootReturn) */
-/* otherwise returns FALSE */
+
+/* RootOfAddr -- return the root at addr
+ *
+ * Returns TRUE if the addr is in a root (and the root is in *rootReturn)
+ * otherwise returns FALSE.  Cf. SegOfAddr.
+ */
+
 Bool RootOfAddr(Root *rootReturn, Arena arena, Addr addr)
 {
   Ring node, next;
@@ -463,8 +478,7 @@ Bool RootOfAddr(Root *rootReturn, Arena arena, Addr addr)
   RING_FOR(node, &arena->rootRing, next) {
     Root root = RING_ELT(Root, arenaRing, node);
 
-    if(root->protectable &&
-       root->protBase <= addr && addr < root->protLimit) {
+    if (root->protectable && root->protBase <= addr && addr < root->protLimit) {
       *rootReturn = root;
       return TRUE;
     }
@@ -472,6 +486,7 @@ Bool RootOfAddr(Root *rootReturn, Arena arena, Addr addr)
 
   return FALSE;
 }
+
 
 void RootAccess(Root root, AccessSet mode)
 {
@@ -510,7 +525,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
                "  grey $B\n", (WriteFB)root->grey,
                "  summary $B\n", (WriteFB)root->summary,
                NULL);
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
 
   switch(root->var) {
     case RootTABLE:
@@ -519,17 +534,16 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
                  root->the.table.base,
                  root->the.table.limit,
                  NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK) return res;
     break;
 
     case RootTABLE_MASKED:
-    res = WriteF(stream,
-                 "  table base $A limit $A mask $B\n",
+    res = WriteF(stream, "  table base $A limit $A mask $B\n",
                  root->the.tableMasked.base,
                  root->the.tableMasked.limit,
                  root->the.tableMasked.mask,
                  NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK) return res;
     break;
 
     case RootFUN:
@@ -538,7 +552,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
                  "  environment p $P s $W\n",
                  root->the.fun.p, (WriteFW)root->the.fun.s,
                  NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK) return res;
     break;
 
     case RootREG:
@@ -546,7 +560,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
                  "  thread $P\n", (WriteFP)root->the.reg.thread,
                  "  environment p $P", root->the.reg.p,
                  NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK) return res;
     break;
 
     case RootFMT:
@@ -556,7 +570,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
                  root->the.fmt.base,
                  root->the.fmt.limit,
                  NULL);
-    if(res != ResOK) return res;
+    if (res != ResOK) return res;
     break;
            
     default:
@@ -566,7 +580,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
   res = WriteF(stream,
                "} Root $P ($U)\n", (WriteFP)root, (WriteFU)root->serial,
                NULL);
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
 
   return ResOK;
 }
