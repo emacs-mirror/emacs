@@ -73,6 +73,11 @@ If finding the holidays is too slow, set this to nil."
   :type 'boolean
   :group 'calendar-tex)
 
+(defcustom cal-tex-rules nil
+  "*If t, pages will be ruled in some styles."
+  :type 'boolean
+  :group 'calendar-tex)
+
 (defcustom cal-tex-daily-string
   '(let* ((year (extract-calendar-year date))
           (day  (calendar-day-number date))
@@ -1194,7 +1199,8 @@ Holidays are included if `cal-tex-holidays' is t."
   "Day-per-page Filofax style calendar for week indicated by cursor.
 Optional prefix argument specifies number of weeks.  Weeks start on Monday. 
 Diary entries are included if `cal-tex-diary' is t.
-Holidays are included if `cal-tex-holidays' is t."
+Holidays are included if `cal-tex-holidays' is t.
+Pages are ruled if `cal-tex-rules' is t."
   (interactive "P")
   (let* ((n (if arg arg 1))
          (date (calendar-gregorian-from-absolute
@@ -1214,8 +1220,8 @@ Holidays are included if `cal-tex-holidays' is t."
                          (cal-tex-list-diary-entries
                           (calendar-absolute-from-gregorian
                            (list month 1 year))
-                        (+ (* 7 n)
-                           (calendar-absolute-from-gregorian date))))))
+			  (+ (* 7 n)
+			     (calendar-absolute-from-gregorian date))))))
     (cal-tex-preamble "twoside")
     (cal-tex-cmd "\\textwidth 3.25in")
     (cal-tex-cmd "\\textheight 6.5in")
@@ -1229,28 +1235,32 @@ Holidays are included if `cal-tex-holidays' is t."
 \\long\\def\\rightday#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
-     \\vbox to 1.85in{%
+     \\vbox {%
           \\vspace*{2pt}%
           \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
           \\hbox to \\textwidth{\\vbox {\\raggedleft \\em #2}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #1}}}}}
+          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
 \\long\\def\\weekend#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
-     \\vbox to 2in{%
+     \\vbox {%
           \\vspace*{2pt}%
           \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
           \\hbox to \\textwidth{\\vbox {\\noindent \\em #2}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #1}}}}}
+          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
 \\def\\lefthead#1{\\noindent {\\normalsize \\bf #1}\\hfill\\\\[-6pt]}
 \\long\\def\\leftday#1#2#3{%
    \\rule{\\textwidth}{0.3pt}\\\\%
    \\hbox to \\textwidth{%
-     \\vbox to 1.85in{%
+     \\vbox {%
           \\vspace*{2pt}%
           \\hbox to \\textwidth{\\hfill \\small #3 \\hfill}%
           \\hbox to \\textwidth{\\vbox {\\noindent \\em #2}}%
-          \\hbox to \\textwidth{\\vbox to 0pt {\\noindent \\footnotesize #1}}}}}
+          \\hbox to \\textwidth{\\vbox {\\noindent \\footnotesize #1}}}}}
+\\newbox\\LineBox
+\\setbox\\LineBox=\\hbox to\\textwidth{%
+\\vrule height.2in width0pt\\leaders\\hrule\\hfill}
+\\def\\linesfill{\\par\\leaders\\copy\\LineBox\\vfill}
 ")
     (cal-tex-b-document)
     (cal-tex-cmd "\\pagestyle{empty}")
@@ -1261,25 +1271,30 @@ Holidays are included if `cal-tex-holidays' is t."
 	    (cal-tex-arg (calendar-date-string date))
 	    (insert "%\n")
 	    (insert (if odd "\\rightday"  "\\leftday")))
-          (cal-tex-arg (cal-tex-latexify-list diary-list date))
-          (cal-tex-arg (cal-tex-latexify-list holidays date))
-          (cal-tex-arg (eval cal-tex-daily-string))
-          (insert "%\n")
-          (insert "\\vfill\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n")
-          (cal-tex-newpage)
-          (setq date (cal-tex-incr-date date)))
+	  (cal-tex-arg (cal-tex-latexify-list diary-list date))
+	  (cal-tex-arg (cal-tex-latexify-list holidays date "\\\\" t))
+	  (cal-tex-arg (eval cal-tex-daily-string))
+	  (insert "%\n")
+	  (if cal-tex-rules
+	      (insert "\\linesfill\n")
+	    (insert "\\vfill\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n"))
+	  (cal-tex-newpage)
+	  (setq date (cal-tex-incr-date date)))
        (insert "%\n")
        (calendar-for-loop j from 1 to 2 do 
-          (insert "\\lefthead")
+	  (insert "\\lefthead")
           (cal-tex-arg (calendar-date-string date))
           (insert "\\weekend")
           (cal-tex-arg (cal-tex-latexify-list diary-list date))
-          (cal-tex-arg (cal-tex-latexify-list holidays date))
+          (cal-tex-arg (cal-tex-latexify-list holidays date "\\\\" t))
           (cal-tex-arg (eval cal-tex-daily-string))
           (insert "%\n")
-          (insert "\\vfill")
+          (if cal-tex-rules
+              (insert "\\linesfill\n")
+            (insert "\\vfill"))
           (setq date (cal-tex-incr-date date)))
-       (insert "\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n")
+       (if (not cal-tex-rules)
+	   (insert "\\noindent\\rule{\\textwidth}{0.3pt}\\\\%\n"))
        (if (/= i n)
            (progn
              (run-hooks 'cal-tex-week-hook)
@@ -1436,19 +1451,26 @@ If optional N is given, the date of N days after DATE."
   (calendar-gregorian-from-absolute
    (+ (if n n 1) (calendar-absolute-from-gregorian date))))
 
-(defun cal-tex-latexify-list (date-list date &optional separator)
+(defun cal-tex-latexify-list (date-list date &optional separator final-separator)
   "Return string with concatenated, LaTeXified entries in DATE_LIST for DATE.
-Use double backslash as a separator unless optional SEPARATOR is given."
-  (mapconcat '(lambda (x) (cal-tex-LaTeXify-string  x))
-             (let ((result)
-                   (p date-list))
-               (while p
-                 (and (car (car p))
-                      (calendar-date-equal date (car (car p)))
-                      (setq result (cons (car (cdr (car p))) result)))
-                 (setq p (cdr p)))
-               (reverse result))
-             (if separator separator "\\\\")))
+Use double backslash as a separator unless optional SEPARATOR is given.
+If resulting string is not empty, put separator at end if optional
+FINAL-SEPARATOR is t."
+  (let* ((sep (if separator separator "\\\\"))
+         (result
+          (mapconcat '(lambda (x) (cal-tex-LaTeXify-string  x))
+                     (let ((result)
+                           (p date-list))
+                       (while p
+                         (and (car (car p))
+                              (calendar-date-equal date (car (car p)))
+                              (setq result (cons (car (cdr (car p))) result)))
+                         (setq p (cdr p)))
+                       (reverse result))
+                     sep)))
+    (if (and final-separator (not (string-equal result "")))
+          (concat result sep)
+        result)))
 
 (defun cal-tex-previous-month (date)
   "Return the date of the first day in the month previous to DATE."
