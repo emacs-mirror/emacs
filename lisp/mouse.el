@@ -585,8 +585,27 @@ remains active.  Otherwise, it remains until the next input event."
 		  (setq end-of-range (overlay-start mouse-drag-overlay)))
 		 ((>= mouse-row bottom)
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
-				     mouse-drag-overlay start-point)
+a				     mouse-drag-overlay start-point)
 		  (setq end-of-range (overlay-end mouse-drag-overlay))))))))))
+      ;; In case we did not get a mouse-motion event
+      ;; for the final move of the mouse before a drag event
+      ;; pretend that we did get one.
+      (when (and (memq 'drag (event-modifiers (car-safe event)))
+		 (setq end (event-end event)
+		       end-point (posn-point end))
+		 (eq (posn-window end) start-window)
+		 (integer-or-marker-p end-point))
+
+	;; Go to START-POINT first, so that when we move to END-POINT,
+	;; if it's in the middle of intangible text,
+	;; point jumps in the direction away from START-POINT.
+	(goto-char start-point)
+	(goto-char end-point)
+	(if (zerop (% click-count 3))
+	    (setq end-of-range (point)))
+	(let ((range (mouse-start-end start-point (point) click-count)))
+	  (move-overlay mouse-drag-overlay (car range) (nth 1 range))))
+
       (if (consp event)
 	  (let ((fun (key-binding (vector (car event)))))
 	    ;; Run the binding of the terminating up-event, if possible.
