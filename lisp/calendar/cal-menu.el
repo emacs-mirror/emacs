@@ -177,8 +177,9 @@
 (put 'insert-weekly-diary-entry 'menu-enable '(calendar-cursor-to-date))
 
 (defun calendar-event-to-date ()
-  "Date of last event. Nil if last event was not done on a date."
+  "Date of last event.  Value is nil if last event was not done on a date."
   (save-excursion
+    (set-buffer (window-buffer (posn-window (event-start last-input-event))))
     (goto-char (posn-point (event-start last-input-event)))
     (calendar-cursor-to-date)))
 
