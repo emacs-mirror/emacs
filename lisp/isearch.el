@@ -625,6 +625,13 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq disable-point-adjustment t))
 
 (defun isearch-done (&optional nopush edit)
+  (let ((command `(isearch-resume ,isearch-string ,isearch-regexp
+				  ,isearch-word ,isearch-forward
+				  ,isearch-message
+				  ,isearch-case-fold-search)))
+    (unless (equal (car command-history) command)
+      (setq command-history (cons command command-history))))
+
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
@@ -1030,7 +1037,8 @@ Otherwise invoke `mouse-yank-at-click'."
    (save-excursion
      (and (not isearch-forward) isearch-other-end
 	  (goto-char isearch-other-end))
-     (buffer-substring (point) (progn (forward-word 1) (point))))))
+     (buffer-substring-no-properties
+      (point) (progn (forward-word 1) (point))))))
 
 (defun isearch-yank-line ()
   "Pull rest of line from buffer into search string."
@@ -1039,7 +1047,7 @@ Otherwise invoke `mouse-yank-at-click'."
    (save-excursion
      (and (not isearch-forward) isearch-other-end
 	  (goto-char isearch-other-end))
-     (buffer-substring (point) (line-end-position)))))
+     (buffer-substring-no-properties (point) (line-end-position)))))
 
 
 (defun isearch-search-and-update ()
@@ -1938,4 +1946,18 @@ Attempt to do the search exactly the way the pending isearch would."
                   (setq isearch-lazy-highlight-end (point-min))
                 (setq isearch-lazy-highlight-start (point-max))))))))))
 
+(defun isearch-resume (search regexp word forward message case-fold)
+  "Resume an incremental search.
+SEARCH is the string or regexp searched for.
+REGEXP non-nil means the resumed search was a regexp search.
+WORD non-nil means resume a word search.
+FORWARD non-nil means resume a forward search.
+MESSAGE is the echo-area message recorded for the search resumed.
+CASE-FOLD non-nil means the search was case-insensitive."
+  (isearch-mode forward regexp nil nil word)
+  (setq isearch-string search
+	isearch-message message
+	isearch-case-fold-search case-fold)
+  (isearch-search))
+	
 ;;; isearch.el ends here
