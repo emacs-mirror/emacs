@@ -85,7 +85,6 @@
 	* progmodes/gud.el (gud-pdb-command-name): Change default to
 	"pydb".
 
-
 2004-04-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ielm.el (ielm-prompt-read-only, ielm-prompt): Expand docstring.
@@ -295,9 +294,9 @@
 
 2003-04-21  Paul Pogonyshev  <pogonyshev@gmx.net>
 
-	* dabbrev.el (dabbrev--substitute-expansion): Fix a bug which lost
-	the case of letters in case-insensitive expansions on certain
-	abbreviations.
+	* dabbrev.el (dabbrev--substitute-expansion): Don't lose
+	the case of letters in case-insensitive expansions when the
+	abbrev is preceded by characters with letter syntax.
 
 2004-04-21  Richard M. Stallman  <rms@gnu.org>
 
