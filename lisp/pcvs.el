@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.24 2001/01/26 20:46:42 fx Exp $
+;; Revision: $Id: pcvs.el,v 1.25 2001/01/29 20:22:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1175,7 +1175,7 @@ they should always be unmarked."
   (mapcar 'cdr cvs-ignore-marks-alternatives)
   (cvs-qtypedesc-create
    (lambda (str) (cdr (assoc str cvs-ignore-marks-alternatives)))
-   (lambda (obj) (caar (member* obj cvs-ignore-marks-alternatives :key 'cdr)))
+   (lambda (obj) (car (rassoc obj cvs-ignore-marks-alternatives)))
    (lambda () cvs-ignore-marks-alternatives)
    nil t))
 
@@ -1922,8 +1922,8 @@ With prefix argument, prompt for cvs flags."
   (interactive)
   (let* ((fi (cvs-mode-marked nil nil :one t))
 	 (default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
-	 (buffer-file-name (expand-file-name (cvs-fileinfo->file fi)))
-	 (change-log-default-name change-log-default-name))
+	 (buffer-file-name (expand-file-name (cvs-fileinfo->file fi))))
+    (kill-local-variable 'change-log-default-name)
     (add-change-log-entry-other-window)))
 
 ;; interactive commands to set optional flags
