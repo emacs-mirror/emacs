@@ -822,7 +822,10 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 	 of pattern would align in a possible match.  */
       while (n != 0)
 	{
-	  if ((lim - pos - (direction > 0)) * direction < 0)
+	  /* It's been reported that some (broken) compiler thinks that
+	     Boolean expressions in an arithmetic context are unsigned.
+	     Using an explicit ?1:0 prevents this.  */
+	  if ((lim - pos - ((direction > 0) ? 1 : 0)) * direction < 0)
 	    return (n * (0 - direction));
 	  /* First we do the part we can by pointers (maybe nothing) */
 	  QUIT;
