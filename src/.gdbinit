@@ -25,21 +25,21 @@ output (enum Lisp_Type) (($ >> 24) & 0x7f)
 echo \n
 end
 document xtype
-Print the type of $, assuming it is an Elisp value.
+Print the type of $, assuming it is an Emacs Lisp value.
 end
 
 define xint
 print (($ & 0x00ffffff) << 8) >> 8
 end
 document xint
-Print $, assuming it is an Elisp integer.  This gets the sign right.
+Print $, assuming it is an Emacs Lisp integer.  This gets the sign right.
 end
 
 define xptr
 print (void *) (($ & 0x00ffffff) | $data_seg_bits)
 end
 document xptr
-Print the pointer portion of $, assuming it is an Elisp value.
+Print the pointer portion of $, assuming it is an Emacs Lisp value.
 end
 
 define xwindow
@@ -47,7 +47,7 @@ print (struct window *) (($ & 0x00ffffff) | $data_seg_bits)
 printf "%dx%d+%d+%d\n", $->width, $->height, $->left, $->top
 end
 document xwindow
-Print $ as a window pointer, assuming it is an Elisp window value.
+Print $ as a window pointer, assuming it is an Emacs Lisp window value.
 Print the window's position as "WIDTHxHEIGHT+LEFT+TOP".
 end
 
@@ -55,7 +55,7 @@ define xmarker
 print (struct Lisp_Marker *) (($ & 0x00ffffff) | $data_seg_bits)
 end
 document xmarker
-Print $ as a marker pointer, assuming it is an Elisp marker value.
+Print $ as a marker pointer, assuming it is an Emacs Lisp marker value.
 end
 
 define xbuffer
@@ -64,7 +64,7 @@ output &((struct Lisp_String *) ((($->name) & 0x00ffffff) | $data_seg_bits))->da
 echo \n
 end
 document xbuffer
-Set $ as a buffer pointer, assuming it is an Elisp buffer value.
+Set $ as a buffer pointer, assuming it is an Emacs Lisp buffer value.
 Print the name of the buffer.
 end
 
@@ -75,7 +75,7 @@ echo \n
 end
 document xsymbol
 Print the name and address of the symbol $.
-This command assumes that $ is an Elisp symbol value.
+This command assumes that $ is an Emacs Lisp symbol value.
 end
 
 define xstring
@@ -85,7 +85,7 @@ echo \n
 end
 document xstring
 Print the contents and address of the string $.
-This command assumes that $ is an Elisp string value.
+This command assumes that $ is an Emacs Lisp string value.
 end
 
 define xvector
@@ -95,14 +95,14 @@ echo \n
 end
 document xvector
 Print the contents and address of the vector $.
-This command assumes that $ is an Elisp vector value.
+This command assumes that $ is an Emacs Lisp vector value.
 end
 
 define xframe
 print (struct frame *) (($ & 0x00ffffff) | $data_seg_bits)
 end
 document xframe
-Print $ as a frame pointer, assuming it is an Elisp frame value.
+Print $ as a frame pointer, assuming it is an Emacs Lisp frame value.
 end
 
 define xcons
@@ -111,21 +111,21 @@ output *$
 echo \n
 end
 document xcons
-Print the contents of $, assuming it is an Elisp cons.
+Print the contents of $, assuming it is an Emacs Lisp cons.
 end
 
 define xcar
 print ((($ >> 24) & 0x7f) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & 0x00ffffff) | $data_seg_bits))->car : 0)
 end
 document xcar
-Print the car of $, assuming it is an Elisp pair.
+Print the car of $, assuming it is an Emacs Lisp pair.
 end
 
 define xcdr
 print ((($ >> 24) & 0x7f) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & 0x00ffffff) | $data_seg_bits))->cdr : 0)
 end
 document xcdr
-Print the cdr of $, assuming it is an Elisp pair.
+Print the cdr of $, assuming it is an Emacs Lisp pair.
 end
 
 define xsubr
