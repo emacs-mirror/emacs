@@ -2928,10 +2928,10 @@ display_menu_bar (w)
 			       XSTRING (string)->data,
 			       XSTRING (string)->size,
 			       hpos, 0, 0, hpos, maxendcol);
-      /* Put a gap of 3 spaces between items.  */
+      /* Put a space between items.  */
       if (hpos < maxendcol)
 	{
-	  int hpos1 = hpos + 3;
+	  int hpos1 = hpos + 1;
 	  hpos = display_string (w, vpos, "", 0, hpos, 0, 0,
 				 min (hpos1, maxendcol), maxendcol);
 	}
