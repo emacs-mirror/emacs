@@ -276,7 +276,7 @@ Variables controlling indentation style:
     Extra indentation for line that is a label, or case or ``default:'', or
     ``public:'' or ``private:'', or ``protected:''.
  c++-electric-colon
-    If non-nil at invocation of c++-mode (t is the default) colon electricly
+    If non-nil at invocation of c++-mode (t is the default) colon electrically
     indents.
  c++-empty-arglist-indent
     If non-nil, a function declaration or invocation which ends a line with a
