@@ -1,5 +1,7 @@
 2000-11-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* help.el (view-emacs-news): Use ONEWS.* instead of NEWS.* files.
+
 	* mail/mh-e.el, mail/mh-comp.el: Change maintainer.
 
 2000-11-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
