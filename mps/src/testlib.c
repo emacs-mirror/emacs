@@ -1,6 +1,6 @@
 /* impl.c.testlib: Test library
  *
- * $HopeName: MMsrc!testlib.c(trunk.10) $
+ * $HopeName: MMsrc!testlib.c(trunk.11) $
  * Copyright (C) 1995, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -77,7 +77,7 @@ void adjust_collection_freq(double multiplier)
   if(AMCGen0RampmodeFrequency == 0)
     AMCGen0RampmodeFrequency = 1;
   multFREQ(AMCGen1RampmodeFrequency, multiplier);
-  if(AMCGen1RampmodeFrequency == AMCGen0RampmodeFrequency)
+  if(AMCGen1RampmodeFrequency <= AMCGen0RampmodeFrequency)
     AMCGen1RampmodeFrequency = AMCGen0RampmodeFrequency + 1;
   multFREQ(AMCRampGenFrequency, multiplier);
   assert(AMCRampGenFollows == 1);
