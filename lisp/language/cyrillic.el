@@ -186,6 +186,13 @@ This works whether or not the table is Unicode-based or
 (define-coding-system-alias 'koi8 'cyrillic-koi8)
 (define-coding-system-alias 'cp878 'cyrillic-koi8)
 
+(let ((elt `("koi8-r" koi8-r 1
+	     ,(get 'cyrillic-koi8-r-encode-table 'translation-table)))
+      (slot (assoc "koi8-r" ctext-non-standard-encodings-alist)))
+  (if slot
+      (setcdr slot (cdr elt))
+    (push elt ctext-non-standard-encodings-alist)))
+
 ;; Allow displaying some of KOI & al with an 8859-5-encoded font.  We
 ;; won't bother about the exceptions when encoding the font, since
 ;; NBSP will fall through below and work anyhow, and we'll have
@@ -219,6 +226,7 @@ This works whether or not the table is Unicode-based or
 			    'translation-table))
 		   (coding-system cyrillic-koi8)
 		   (coding-priority cyrillic-koi8 cyrillic-iso-8bit)
+		   (ctext-non-standard-encoding "koi8-r")
 		   (input-method . "russian-typewriter")
 		   (features cyril-util)
 		   (unibyte-display . cyrillic-koi8)
