@@ -1,3 +1,8 @@
+2001-02-16  Dave Love  <fx@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-get-word): Return string without
+	properties.
+
 2001-02-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* generic.el (generic-find-file-regexp): Doc fix.
