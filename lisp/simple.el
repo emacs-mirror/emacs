@@ -25,6 +25,40 @@
 
 ;;; Code:
 
+(defun newline (&optional arg)
+  "Insert a newline and move to left margin of the new line.
+The newline is marked with the text-property `hard'.
+With arg, insert that many newlines.
+In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
+  (interactive "*P")
+  ;; Inserting a newline at the end of a line produces better redisplay in
+  ;; try_window_id than inserting at the beginning of a line, and the textual
+  ;; result is the same.  So, if we're at beginning of line, pretend to be at
+  ;; the end of the previous line.
+  (let ((flag (and (not (bobp)) 
+		   (bolp)
+		   (< (or (previous-property-change (point)) -2) 
+		      (- (point) 2)))))
+    (if flag (backward-char 1))
+    ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
+    ;; Set last-command-char to tell self-insert what to insert.
+    (let ((last-command-char ?\n)
+	  ;; Don't auto-fill if we have a numeric argument.
+	  (auto-fill-function (if arg nil auto-fill-function)))
+      (self-insert-command (prefix-numeric-value arg)))
+    ;; Mark the newline(s) `hard'.
+    (if use-hard-newlines
+	(let* ((from (- (point) (if arg (prefix-numeric-value arg) 1)))
+	       (sticky (get-text-property from 'rear-nonsticky)))
+	  (put-text-property from (point) 'hard 't)
+	  ;; If rear-nonsticky is not "t", add 'hard to rear-nonsticky list
+	  (if (and (listp sticky) (not (memq 'hard sticky)))
+	      (put-text-property from (point) 'rear-nonsticky
+				 (cons 'hard sticky)))))
+    (if flag (forward-char 1)))
+  (move-to-left-margin nil t)
+  nil)
+
 (defun open-line (arg)
   "Insert a newline and leave point before it.
 If there is a fill prefix and/or a left-margin, insert them on the new line
