@@ -1,3 +1,8 @@
+2001-02-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* hi-lock.el (hi-lock-unface-buffer): Use nil rather than t for
+	predicate passed to completing-read.
+
 2001-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (command-line): Fix last change.
