@@ -245,23 +245,84 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 (defvar tex-mode-syntax-table nil
   "Syntax table used while in TeX mode.")
 
+(defcustom latex-imenu-indent-string "."
+  "*String to add repeated in front of nested sectional units for Imenu.
+An alternative value is \" . \", if you use a font with a narrow period."
+  :type 'string
+  :group 'tex)
+
 (defun latex-imenu-create-index ()
   "Generates an alist for imenu from a LaTeX buffer."
-  (let (result temp)
-    (goto-char (point-max))
-    (while (re-search-backward "\\\\\\(part\\|chapter\\|\
-\\(sub\\)?\\(\\(sub\\)?section\\|paragraph\\)\\)\\*?[ \t\n]*{\\([^}]*\\)}" nil t)
-      (setq temp
-	    (assoc (buffer-substring-no-properties (match-beginning 1)
-						   (match-end 1)) 
-		   '(("part" . "") ("chapter" . " ")
-		     ("section" . "  ") ("subsection" . "   ")
-		     ("subsubsection" . "    ")
-		     ("paragraph" . "     ") ("subparagraph" . "      "))))
-      (setq result (cons (cons (concat (cdr temp) (match-string 5)) 
-			       (match-beginning 0))
-			 result)))
-    result))
+  (let (i0 menu case-fold-search)
+    (save-excursion
+      ;; Find the top-most level in this file but don't allow it to be
+      ;; any deeper than "section" (which is top-level in an article).
+      (goto-char (point-min))
+      (if (search-forward-regexp "\\\\part\\*?[ \t]*{" nil t)
+	  (setq i0 0)
+	(if (search-forward-regexp "\\\\chapter\\*?[ \t]*{" nil t)
+	    (setq i0 1)
+	  (setq i0 2)))
+
+      ;; Look for chapters and sections.
+      (goto-char (point-min))
+      (while (search-forward-regexp
+	      "\\\\\\(part\\|chapter\\|section\\|subsection\\|\
+subsubsection\\|paragraph\\|subparagraph\\)\\*?[ \t]*{" nil t)
+	(let ((start (match-beginning 0))
+	      (here (point))
+	      (i (cdr (assoc (buffer-substring-no-properties
+			      (match-beginning 1)
+			      (match-end 1))
+			     '(("part" . 0) ("chapter" . 1)
+			       ("section" . 2) ("subsection" . 3)
+			       ("subsubsection" . 4)
+			       ("paragraph" . 5) ("subparagraph" . 6))))))
+	  (backward-char 1)
+	  (condition-case err
+	      (progn
+		;; Using sexps allows some use of matching {...} inside
+		;; titles.
+		(forward-sexp 1)
+		(setq menu
+		      (cons (cons (concat (apply 'concat
+						 (make-list
+						  (max 0 (- i i0))
+						  latex-imenu-indent-string))
+					  (buffer-substring-no-properties
+					   here (1- (point))))
+				  start)
+			    menu))
+		)
+	    (error nil))))
+
+      ;; Look for included material.
+      (goto-char (point-min))
+      (while (search-forward-regexp
+	      "\\\\\\(include\\|input\\|verbatiminput\\|bibliography\\)\
+[ \t]*{\\([^}\n]+\\)}"
+	      nil t)
+	(setq menu
+	      (cons (cons (concat "<<" (buffer-substring-no-properties
+					(match-beginning 2)
+					(match-end 2))
+				  (if (= (char-after (match-beginning 1)) ?b)
+				      ".bbl"
+				    ".tex"))
+			  (match-beginning 0))
+		    menu)))
+
+      ;; Look for \frontmatter, \mainmatter, \backmatter, and \appendix.
+      (goto-char (point-min))
+      (while (search-forward-regexp
+	      "\\\\\\(frontmatter\\|mainmatter\\|backmatter\\|appendix\\)\\b"
+	      nil t)
+	(setq menu
+	      (cons (cons "--" (match-beginning 0))
+		    menu)))
+
+      ;; Sort in increasing buffer position order.
+      (sort menu (function (lambda (a b) (< (cdr a) (cdr b))))))))
 
 (defun tex-define-common-keys (keymap)
   "Define the keys that we want defined both in TeX mode and in the TeX shell."
