@@ -2267,6 +2267,8 @@ Thank you for your help in stamping out bugs.
       (setq gnus-init-inhibit nil)
     (setq gnus-init-inhibit inhibit-next)
     (and gnus-init-file
+	 ;; Don't load .gnus if -q option was used.
+	 init-file-user
 	 (or (and (file-exists-p gnus-init-file)
 		  ;; Don't try to load a directory.
 		  (not (file-directory-p gnus-init-file)))
