@@ -1,5 +1,9 @@
 2001-07-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (adjust_glyph_matrix): In the optimization for
+	windows whose height has changed, use the new window height
+	to compute which rows to invalidate.
+
 	* editfns.c (toplevel) [STDC_HEADERS]: Include float.h.
 	(MAX_10_EXP): New macro.
 	(Fformat): Use it.
