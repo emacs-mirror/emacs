@@ -10,6 +10,9 @@
 
 	* time.el (display-time-mail-icon): Use `:ascent center'.
 
+	* ange-ftp.el (ange-ftp-skip-msgs): Include 500 code.for
+	handling FTP security extensions.
+	
 2000-05-11  Dave Love  <fx@gnu.org>
 
 	* calendar/todo-mode.el: New file.
