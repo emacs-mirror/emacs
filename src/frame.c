@@ -1617,13 +1617,6 @@ The redirection lasts until `redirect-frame-focus' is called to change it.")
 
   XFRAME (frame)->focus_frame = focus_frame;
 
-  /* I think this should be done with a hook.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  if (!NILP (focus_frame) && ! EQ (focus_frame, frame)
-      && (FRAME_WINDOW_P (XFRAME (focus_frame))))
-    Ffocus_frame (focus_frame);
-#endif
-
   if (frame_rehighlight_hook)
     (*frame_rehighlight_hook) (XFRAME (frame));
   
