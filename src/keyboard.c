@@ -8959,7 +8959,8 @@ appears in the echo area and in the value of `this-command-keys.'.")
 
 DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
   Sclear_this_command_keys, 0, 0, 0,
-  "Clear out the vector that `this-command-keys' returns.")
+  "Clear out the vector that `this-command-keys' returns.\n\
+Clear vector containing last 100 events.")
   ()
 {
   int i;
