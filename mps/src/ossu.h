@@ -1,6 +1,6 @@
 /*  ==== SUNOS ANSI COMPATABILITY HEADER ====
  *
- *  $HopeName: MMsrc!ossu.h(trunk.3) $
+ *  $HopeName: MMsrc!ossu.h(trunk.4) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -31,7 +31,7 @@ here. */
 
 /* stddef.h */
 
-#ifndef offsetof        /* true for platform.susplc for example */
+#ifndef offsetof        /* true for platform.sus8lc for example */
 #define offsetof(ty,mem) ((size_t)((char*)&((ty*)0)->mem - (char*)0))
 #endif
 
