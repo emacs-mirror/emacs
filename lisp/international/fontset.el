@@ -72,6 +72,7 @@
 	("sisheng_cwnn" . chinese-sisheng)
 	("viscii" . viscii)
 	("tis620" . tis620-2533)
+	("microsoft-cp1251" . windows-1251)
 	("mulearabic-0" . arabic-digit)
 	("mulearabic-1" . arabic-1-column)
 	("mulearabic-2" . arabic-2-column)
@@ -162,7 +163,9 @@
 
      (greek (nil . "ISO8859-7"))
 
-     (cyrillic (nil . "ISO8859-5"))
+     (cyrillic (nil . "ISO8859-5")
+	       (nil . "microsoft-cp1251")
+	       (nil . "koi8-r"))
 
      (arabic (nil . "MuleArabic-0")
 	     (nil . "MuleArabic-1")
