@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(MMdevel_restr2.8) $
+ * $HopeName: MMsrc!pool.c(MMdevel_lib.4) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -9,7 +9,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(MMdevel_restr2.8) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(MMdevel_lib.4) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -247,27 +247,37 @@ void (PoolAccess)(Pool pool, Seg seg, AccessSet mode)
 }
 
 
-Res PoolDescribe(Pool pool, Lib_FILE *stream)
+Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
 {
-  int e;
   Res res;
+  Ring node;
+
   AVERT(Pool, pool);
   AVER(stream != NULL);
-
-  e = Lib_fprintf(stream,
-                  "Pool %p {\n"
-                  "  Class %s\n"
-                  "  alignment %lu\n",
-                  pool,
-                  pool->class->name,
-                  (unsigned long)pool->alignment);
-  if(e < 0) return ResIO;
+  
+  res = WriteF(stream,
+               "Pool $P ($U) {\n", (void *)pool, (unsigned long)pool->serial,
+               "  class $P (\"$S\")\n", (void *)pool->class, pool->class->name,
+               "  space $P ($U)\n", (void *)pool->space, (unsigned long)pool->space->serial,
+               "  alignment $W\n", (Word)pool->alignment,
+               NULL);
+  if(res != ResOK) return res;
 
   res = (*pool->class->describe)(pool, stream);
   if(res != ResOK) return res;
 
-  e = Lib_fprintf(stream, "} Pool %p\n", pool);
-  if(e < 0) return ResIO;
+  node = RingNext(&pool->bufferRing);
+  while(node != &pool->bufferRing) {
+    Buffer buffer = RING_ELT(Buffer, poolRing, node);
+    res = BufferDescribe(buffer, stream);
+    if(res != ResOK) return res;
+    node = RingNext(node);
+  }
+
+  res = WriteF(stream,
+               "} Pool $P ($U)\n", (void *)pool, (unsigned long)pool->serial,
+               NULL);
+  if(res != ResOK) return res;
 
   return ResOK;
 }
@@ -449,7 +459,7 @@ void PoolNoBufferCover(Pool pool, Buffer buffer)
   NOTREACHED;
 }
 
-Res PoolNoDescribe(Pool pool, Lib_FILE *stream)
+Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream)
 {
   AVERT(Pool, pool);
   AVER(stream != NULL);
@@ -457,15 +467,11 @@ Res PoolNoDescribe(Pool pool, Lib_FILE *stream)
   return ResUNIMPL;
 }
 
-Res PoolTrivDescribe(Pool pool, Lib_FILE *stream)
+Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream)
 {
-  int e;
   AVERT(Pool, pool);
   AVER(stream != NULL);
-  e = Lib_fprintf(stream, "  No class-specific description available.\n");
-  if(e < 0)
-    return ResIO;
-  return ResOK;
+  return WriteF(stream, "  No class-specific description available.\n", NULL);
 }
 
 Res PoolNoCondemn(RefSet *condemnedReturn, Pool pool, Space space, TraceId ti)

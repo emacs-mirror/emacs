@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.13) $
+ * $HopeName: MMsrc!poolmv.c(MMdevel_lib.3) $
  * Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -37,7 +37,7 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.13) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(MMdevel_lib.3) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -52,7 +52,7 @@ static Res MVInit(Pool pool, va_list arg);
 static void MVFinish(Pool pool);
 static Res MVAlloc(Addr *pReturn, Pool pool, Size size);
 static void MVFree(Pool pool, Addr old, Size size);
-static Res MVDescribe(Pool pool, Lib_FILE *stream);
+static Res MVDescribe(Pool pool, mps_lib_FILE *stream);
 #endif /* 0 */
 
 
@@ -496,12 +496,14 @@ static void MVFree(Pool pool, Addr old, Size size)
 }
 
 
-static Res MVDescribe(Pool pool, Lib_FILE *stream)
+static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 {
+  Res res;
   MV mv;
   MVSpan span;
   Align step;
   Size length;
+  char c;
   Ring spans, node = NULL; /* gcc whinge stop */
 
   AVERT(Pool, pool);
@@ -510,33 +512,37 @@ static Res MVDescribe(Pool pool, Lib_FILE *stream)
 
   AVER(stream != NULL);
 
-  Lib_fprintf(stream,
-              "  blockPool = %p  spanPool = %p\n"
-              "  extendBy = %lX\n"
-              "  avgSize  = %lX\n"
-              "  maxSize  = %lX\n"
-              "  space    = %lX\n",
-              BLOCKPOOL(mv), SPANPOOL(mv),
-              (unsigned long)mv->extendBy,
-              (unsigned long)mv->avgSize,
-              (unsigned long)mv->maxSize,
-              mv->space);
+  res = WriteF(stream,
+               "  blockPool $P ($U)\n",
+               (void *)BLOCKPOOL(mv), (unsigned long)BLOCKPOOL(mv)->serial,
+               "  spanPool  $P ($U)\n",
+               (void *)SPANPOOL(mv), (unsigned long)SPANPOOL(mv)->serial,
+               "  extendBy  $W\n",  (Word)mv->extendBy,
+               "  avgSize   $W\n",  (Word)mv->avgSize,
+               "  maxSize   $W\n",  (Word)mv->maxSize,
+               "  space     $P\n",  (void *)mv->space,
+               NULL);
+  if(res != ResOK) return res;               
 
-  Lib_fprintf(stream,
-              "  Spans\n"
-              "      desc      seg    space blockCount\n");
+  res = WriteF(stream, "  Spans\n", NULL);
+  if(res != ResOK) return res;
+
   spans = &mv->spans;
   RING_FOR(node, spans) {
     span = RING_ELT(MVSpan, spans, node);
     AVERT(MVSpan, span);
 
-    Lib_fprintf(stream, "  %8lX %8lX %8lX %d\n",
-                (unsigned long)span,
-                (unsigned long)span->seg,
-                span->space, span->blockCount);
+    res = WriteF(stream,
+                 "    span $P",     (void *)span,
+                 "  seg $P",      (void *)span->seg,
+                 "  space $W",    (unsigned long)span->space,
+                 "  blocks $U\n", (unsigned long)span->blockCount,
+                 NULL);
+    if(res != ResOK) return res;
   }
 
-  Lib_fprintf(stream, "  Span allocation maps\n");
+  res = WriteF(stream, "  Span allocation maps\n", NULL);
+  if(res != ResOK) return res;
 
   step = pool->alignment;
   length = 0x40 * step;
@@ -546,34 +552,42 @@ static Res MVDescribe(Pool pool, Lib_FILE *stream)
     Addr i, j;
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
-    Lib_fprintf(stream, "    MVSpan %8lX\n", (unsigned long)span);
+    res = WriteF(stream, "    MVSpan $P\n", (void *)span, NULL);
+    if(res != ResOK) return res;
 
     block = span->blocks;
     AVER(block == &span->base); /* should be start sentinel */
 
     for(i = span->base.base; i < span->limit.limit; i = AddrAdd(i, length)) {
-      Lib_fprintf(stream, "    %8lX ", (unsigned long)i);
+      res = WriteF(stream, "    $A ", i, NULL);
+      if(res != ResOK) return res;
 
-      for(j = i; j < AddrAdd(i, length) && j < span->limit.limit;
-		 j = AddrAdd(j, step)) {
+      for(j = i;
+          j < AddrAdd(i, length) && j < span->limit.limit;
+          j = AddrAdd(j, step)) {
+
         if(j == block->base) {
           if(AddrAdd(j, step) == block->limit)
-            Lib_fputc('@', stream);
+            c = '@';
           else
-            Lib_fputc('[', stream);
+            c = '[';
         } else if(AddrAdd(j, step) == block->limit)
-          Lib_fputc(']', stream);
+          c = ']';
         else if(j > block->base && j < block->limit)
-          Lib_fputc('=', stream);
+          c = '=';
         else
-          Lib_fputc('.', stream);
+          c = '.';
 
         if(j >= block->limit) {
           block = block->next;
           AVER(block != NULL);  /* shouldn't pass limit sentinel */
         }
+        
+        res = WriteF(stream, "$C", c, NULL);
+        if(res != ResOK) return res;
       }
-      Lib_fputc('\n', stream);
+      res = WriteF(stream, "\n", NULL);
+      if(res != ResOK) return res;
     }
   }
 

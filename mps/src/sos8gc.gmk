@@ -1,7 +1,7 @@
 #
 #     BUILD FOR SOLARIS/SPARC/GCC PLATFORM
 #
-#  $HopeName: MMsrc!sospgc.gmk(trunk.2) $
+#  $HopeName: MMsrc!sospgc.gmk(MMdevel_lib.2) $
 #
 #  Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -11,7 +11,7 @@
 PFM = sospgc
 PFMDEFS = -D_POSIX_SOURCE -D__EXTENSIONS__
 
-MPM = assert.c ring.c liban.c mpm.c \
+MPM = assert.c ring.c mpsliban.c mpm.c \
       arenavm.c vmso.c space.c pool.c poolmfs.c \
       poolmv.c root.c format.c buffer.c lockan.c ref.c \
       trace.c than.c protso.c shield.c mpsi.c ld.c
@@ -19,7 +19,7 @@ MPMPS = sssosp.S
 AMC = amc.c
 LO = lo.c
 DW = fmtdy.c dw.c
-SW = assert.c ring.c liban.c mpm.c \
+SW = assert.c ring.c mpsliban.c mpm.c \
      arenavm.c vmrm.c space.c pool.c poolmfs.c \
      poolmv.c root.c format.c buffer.c lockan.c ref.c \
      trace.c than.c protso.c shield.c mpsi.c ld.c ssan.c

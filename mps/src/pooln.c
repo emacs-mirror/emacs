@@ -2,7 +2,7 @@
  *
  *                         NULL POOL
  *
- *  $HopeName: MMsrc!pooln.c(MMdevel_restr2.5) $
+ *  $HopeName: MMsrc!pooln.c(MMdevel_lib.2) $
  *
  *  Copyright(C) 1995 Harlequin Group, all rights reserved
  *
@@ -13,7 +13,7 @@
 #include "mpm.h"
 #include "pooln.h"
 
-SRCID(pooln, "$HopeName: MMsrc!pooln.c(MMdevel_restr2.5) $");
+SRCID(pooln, "$HopeName: MMsrc!pooln.c(MMdevel_lib.2) $");
 
 
 typedef struct PoolNStruct {
@@ -159,7 +159,7 @@ static void NBufferCover(Pool pool, Buffer buffer)
   NOTREACHED;   /* can't create buffers, so shouldn't cover them */
 }
 
-static Res NDescribe(Pool pool, Lib_FILE *stream)
+static Res NDescribe(Pool pool, mps_lib_FILE *stream)
 {
   PoolN poolN;
 

@@ -1,6 +1,6 @@
 /*  ==== MPM STRESS TEST ====
  *
- *  $HopeName: MMsrc!mpmss.c(MMdevel_restr.2) $
+ *  $HopeName: MMsrc!mpmss.c(MMdevel_lib.2) $
  */
 
 
@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include "std.h"
 #include "mps.h"
-#include "lib.h"
+#include "mpslib.h"
 #include "poolmfs.h"
 #include "poolmv.h"
 
@@ -58,7 +58,7 @@ static mps_res_t stress(mps_class_t class, mps_space_t space, size_t (*size)(int
   {
     mps_free(pool, (mps_addr_t)ps[i], ss[i]);
 /*    if(i == TEST_SET_SIZE/2)
-      PoolDescribe((Pool)pool, Lib_stdout); */
+      PoolDescribe((Pool)pool, mps_lib_stdout); */
   }
 
   mps_pool_destroy(pool);

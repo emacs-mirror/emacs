@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(MMdevel_restr.3) $
+ *  $HopeName: MMsrc!root.c(MMdevel_lib.3) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -11,7 +11,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(MMdevel_restr.3) $");
+SRCID(root, "$HopeName: MMsrc!root.c(MMdevel_lib.3) $");
 
 Bool RootCheck(Root root)
 {
@@ -229,48 +229,49 @@ Space RootSpace(Root root)
   return root->space;
 }
 
-Res RootDescribe(Root root, Lib_FILE *stream)
+Res RootDescribe(Root root, mps_lib_FILE *stream)
 {
-  TraceId id;
+  Res res;
 
   AVERT(Root, root);
   AVER(stream != NULL);
 
-  Lib_fprintf(stream,
-             "Root %lX {\n"
-             "  rank %d\n",
-             (unsigned long)root,
-             root->rank);
-
-  Lib_fprintf(stream, "  Trace status\n");
-  for(id = 0; id < TRACE_MAX; ++id)
-    Lib_fprintf(stream, "    %2lu %s\n",
-               (unsigned long)id,
-               TraceSetIsMember(root->grey, id) ?
-                 "grey" : "not grey");
+  res = WriteF(stream,
+               "Root $P ($U) {\n", (void *)root, (unsigned long)root->serial,
+               "  space $P ($U)\n", (void *)root->space, (unsigned long)root->space->serial,
+               "  rank $U\n", (unsigned long)root->rank,
+               "  grey $B\n", (unsigned long)root->grey,
+               NULL);
+  if(res != ResOK) return res;
 
   switch(root->var)
   {
     case RootTABLE:
-    Lib_fprintf(stream, "  table base 0x%lX limit 0x%lX\n",
-                (unsigned long)root->the.table.base,
-                (unsigned long)root->the.table.limit);
+    res = WriteF(stream,
+                 "  table base $P limit $P\n",
+                 (void *)root->the.table.base,
+                 (void *)root->the.table.limit,
+                 NULL);
+    if(res != ResOK) return res;
     break;
 
     case RootFUN:
-    Lib_fprintf(stream,
-                "  scan function 0x%lX\n"
-                "  environment p 0x%lX s 0x%lX\n",
-                (unsigned long)root->the.fun.scan,
-                (unsigned long)root->the.fun.p,
-                root->the.fun.s);
+    res = WriteF(stream,
+                 "  scan function $P\n", (void *)root->the.fun.scan,
+                 "  environment p $P s $W\n",
+                 root->the.fun.p, (Word)root->the.fun.s,
+                 NULL);
+    if(res != ResOK) return res;
     break;
 
     default:
     NOTREACHED;
   }
 
-  Lib_fprintf(stream, "} Root 0x%lX\n", (unsigned long)root);
+  res = WriteF(stream,
+               "} Root $P ($U)\n", (void*)root, (unsigned long)root->serial,
+               NULL);
+  if(res != ResOK) return res;
 
   return ResOK;
 }

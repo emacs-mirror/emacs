@@ -1,11 +1,11 @@
 /* impl.c.format: OBJECT FORMATS
  *
- *  $HopeName: MMsrc!format.c(MMdevel_restr.2) $
+ *  $HopeName: MMsrc!format.c(MMdevel_lib.2) $
  */
 
 #include "mpm.h"
 
-SRCID(format, "$HopeName: MMsrc!format.c(MMdevel_restr.2) $");
+SRCID(format, "$HopeName: MMsrc!format.c(MMdevel_lib.2) $");
 
 
 Bool FormatCheck(Format format)
@@ -84,4 +84,26 @@ void FormatDestroy(Format format)
 Space FormatSpace(Format format)
 {
   return format->space;
+}
+
+
+Res FormatDescribe(Format format, mps_lib_FILE *stream)
+{
+  Res res;
+  
+  res = WriteF(stream,
+               "Format $P ($U) {\n", (void *)format, (unsigned long)format->serial,
+               "  space $P ($U)\n", (void *)format->space, (unsigned long)format->space->serial,
+               "  alignment $W\n", (Word)format->alignment,
+               "  scan $P\n", (void *)format->scan,
+               "  skip $P\n", (void *)format->skip,
+               "  move $P\n", (void *)format->move,
+               "  isMoved $P\n", (void *)format->isMoved,
+               "  copy $P\n", (void *)format->copy,
+               "  pad $P\n", (void *)format->pad,
+               "} Format $P ($U)\n", (void *)format, (unsigned long)format->serial,
+               NULL);
+  if(res != ResOK) return res;
+
+  return ResOK;
 }
