@@ -2104,5 +2104,79 @@ compare_string_intervals (s1, s2)
     }
   return 1;
 }
+
+static void set_intervals_multibyte_1 (INTERVAL, int, int, int, int, int);
+
+/* Update the intervals of the current buffer
+   to fit the contents as multibyte (if MULTI_FLAG is 1)
+   or to fit them as non-multibyte (if MULTI_FLAG is 0).  */
+
+void
+set_intervals_multibyte (multi_flag)
+     int multi_flag;
+{
+  if (BUF_INTERVALS (current_buffer))
+    set_intervals_multibyte_1 (BUF_INTERVALS (current_buffer), multi_flag,
+			       BEG, BEG_BYTE, Z, Z_BYTE);
+}
+
+/* Recursively adjust interval I in the current buffer
+   for setting enable_multibyte_characters to MULTI_FLAG.
+   The range of interval I is START ... END in characters,
+   START_BYTE ... END_BYTE in bytes.  */
+
+static void
+set_intervals_multibyte_1 (i, multi_flag, start, start_byte, end, end_byte)
+     INTERVAL i;
+     int multi_flag;
+     int start, start_byte, end, end_byte;
+{
+  INTERVAL left, right;
+
+  /* Fix the length of this interval.  */
+  if (multi_flag)
+    i->total_length = end - start;
+  else
+    i->total_length = end_byte - start_byte;
+
+  /* Recursively fix the length of the subintervals.  */
+  if (i->left)
+    {
+      int left_end, left_end_byte;
+
+      if (multi_flag)
+	{
+	  left_end_byte = start_byte + LEFT_TOTAL_LENGTH (i);
+	  left_end = BYTE_TO_CHAR (left_end_byte);
+	}
+      else
+	{
+	  left_end = start + LEFT_TOTAL_LENGTH (i);
+	  left_end_byte = CHAR_TO_BYTE (left_end);
+	}
+
+      set_intervals_multibyte_1 (i->left, multi_flag, start, start_byte,
+				 left_end, left_end_byte);
+    }
+  if (i->right)
+    {
+      int right_start_byte, right_start;
+
+      if (multi_flag)
+	{
+	  right_start_byte = end_byte - RIGHT_TOTAL_LENGTH (i);
+	  right_start = BYTE_TO_CHAR (right_start_byte);
+	}
+      else
+	{
+	  right_start = end - RIGHT_TOTAL_LENGTH (i);
+	  right_start_byte = CHAR_TO_BYTE (right_start);
+	}
+
+      set_intervals_multibyte_1 (i->right, multi_flag,
+				 right_start, right_start_byte,
+				 end, end_byte);
+    }
+}
 
 #endif /* USE_TEXT_PROPERTIES */
