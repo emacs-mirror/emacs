@@ -1,7 +1,7 @@
 2002-05-27  Miles Bader  <miles@gnu.org>
 
 	* quick-install-emacs (VERSION): Calculate using the same method
-	that configure.in does.
+	that configure.in uses.
 
 2002-04-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
