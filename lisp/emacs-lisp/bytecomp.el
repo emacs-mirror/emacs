@@ -177,8 +177,8 @@
 ;;       (defvar baud-rate (baud-rate))	;Define baud-rate if it's undefined
 ;; 
 ;;       (if (byte-compile-single-version)
-;; 	  (defmacro compiled-function-p (x) "Emacs 18 doesn't have these." nil)
-;; 	(defun compiled-function-p (x) "Emacs 18 doesn't have these." nil))
+;; 	  (defmacro byte-code-function-p (x) "Emacs 18 doesn't have these." nil)
+;; 	(defun byte-code-function-p (x) "Emacs 18 doesn't have these." nil))
 ;; 
 ;;       (or (and (fboundp 'member)
 ;; 	       ;; avoid using someone else's possibly bogus definition of this.
@@ -214,6 +214,12 @@ You may want to redefine `byte-compile-dest-file' if you change this.")
 ;; This is the entrypoint to the lapcode optimizer pass2.
 (autoload 'byte-optimize-lapcode "byte-opt")
 (autoload 'byte-compile-unfold-lambda "byte-opt")
+
+;; This is the entry point to the decompiler, which is used by the
+;; disassembler.  The disassembler just requires 'byte-compile, but
+;; that doesn't define this function, so this seems to be a reasonable
+;; thing to do.
+(autoload 'byte-decompile-bytecode "byte-opt")
 
 (defvar byte-compile-verbose
   (and (not noninteractive) (> baud-rate search-slow-speed))
@@ -837,9 +843,9 @@ otherwise pop it")
 		      (or (symbolp (symbol-function fn))
 			  (consp (symbol-function fn))
 			  (and (not macro-p)
-			       (compiled-function-p (symbol-function fn)))))
+			       (byte-code-function-p (symbol-function fn)))))
 	    (setq fn (symbol-function fn)))
-	  (if (and (not macro-p) (compiled-function-p fn))
+	  (if (and (not macro-p) (byte-code-function-p fn))
 	      fn
 	    (and (consp fn)
 		 (if (eq 'macro (car fn))
@@ -1876,7 +1882,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	     (if (memq 'callargs byte-compile-warnings)
 		 (byte-compile-callargs-warn form))
 	     (byte-compile-normal-call form))))
-	((and (or (compiled-function-p (car form))
+	((and (or (byte-code-function-p (car form))
 		  (eq (car-safe (car form)) 'lambda))
 	      ;; if the form comes out the same way it went in, that's
 	      ;; because it was malformed, and we couldn't unfold it.
@@ -2851,12 +2857,12 @@ invoked interactively."
 		 " <subr>")
 		((symbolp f)
 		 (format " ==> %s" f))
-		((compiled-function-p f)
+		((byte-code-function-p f)
 		 "<compiled function>")
 		((not (consp f))
 		 "<malformed function>")
 		((eq 'macro (car f))
-		 (if (or (compiled-function-p (cdr f))
+		 (if (or (byte-code-function-p (cdr f))
 			 (assq 'byte-code (cdr (cdr (cdr f)))))
 		     " <compiled macro>"
 		   " <macro>"))
@@ -2967,6 +2973,7 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 
 (make-obsolete 'buffer-flush-undo 'buffer-disable-undo)
 (make-obsolete 'baud-rate "use the baud-rate variable instead")
+(make-obsolete 'compiled-function-p 'byte-code-function-p)
 (make-obsolete-variable 'auto-fill-hook 'auto-fill-function)
 (make-obsolete-variable 'blink-paren-hook 'blink-paren-function)
 (make-obsolete-variable 'lisp-indent-hook 'lisp-indent-function)
@@ -2975,7 +2982,9 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 (make-obsolete-variable 'inhibit-local-variables
 		"use enable-local-variables (with the reversed sense.)")
 (make-obsolete-variable 'unread-command-char
-  "use unread-command-event; now nil means `no event', instead of -1.")
+  "use unread-command-events instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1.")
+(make-obsolete-variable 'unread-command-event
+  "use unread-command-events; this is now a list of events.")
 
 (provide 'byte-compile)
 
@@ -3012,7 +3021,7 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 ;; itself, compile some of its most used recursive functions (at load time).
 ;;
 (eval-when-compile
- (or (compiled-function-p (symbol-function 'byte-compile-form))
+ (or (byte-code-function-p (symbol-function 'byte-compile-form))
      (assq 'byte-code (symbol-function 'byte-compile-form))
      (let ((byte-optimize nil) ; do it fast
 	   (byte-compile-warnings nil))
