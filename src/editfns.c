@@ -194,15 +194,13 @@ A multibyte character is handled correctly.  */)
      register Lisp_Object string;
 {
   register Lisp_Object val;
-  register struct Lisp_String *p;
   CHECK_STRING (string);
-  p = XSTRING (string);
-  if (p->size)
+  if (SCHARS (string))
     {
       if (STRING_MULTIBYTE (string))
-	XSETFASTINT (val, STRING_CHAR (p->data, STRING_BYTES (p)));
+	XSETFASTINT (val, STRING_CHAR (SDATA (string), SBYTES (string)));
       else
-	XSETFASTINT (val, p->data[0]);
+	XSETFASTINT (val, SREF (string, 0));
     }
   else
     XSETFASTINT (val, 0);
