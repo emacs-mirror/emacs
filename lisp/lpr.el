@@ -157,8 +157,7 @@ The variable `lpr-page-header-program' specifies the program to use."
 	      (setq start (car new-coords) end (cdr new-coords)))
 	    (apply 'call-process-region start end lpr-page-header-program
 				 t t nil
-				 (nconc (and lpr-add-switches
-					     (list "-h" title))
+				 (nconc (list "-h" title)
 					lpr-page-header-switches))
 	    (setq start (point-min) end (point-max))))
       (apply (or print-region-function 'call-process-region)
