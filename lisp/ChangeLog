@@ -1,3 +1,9 @@
+2005-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* language/ethio-util.el (sera-being-called-by-w3): New variable.
+	(ethio-sera-to-fidel-ethio): Check also sera-being-called-by-w3.
+	(ethio-fidel-to-sera-buffer): Likewise.
+
 2005-03-16  Juri Linkov  <juri@jurta.org>
 
 	* emacs-lisp/find-func.el (find-function-regexp):
