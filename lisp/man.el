@@ -309,6 +309,7 @@ This regular expression should start with a `^' character.")
   (define-key Man-mode-map "k"    'Man-kill)
   (define-key Man-mode-map "q"    'Man-quit)
   (define-key Man-mode-map "m"    'man)
+  (define-key Man-mode-map "\r"   'man-follow)
   (define-key Man-mode-map "?"    'describe-mode)
   )
 
@@ -523,6 +524,14 @@ If a buffer already exists for this man page, it will display immediately."
 
   (Man-getpage-in-background man-args))
 
+;;;###autoload
+(defun man-follow (man-args)
+  "Get a Un*x manual page of the item under point and put it in a buffer."
+  (interactive (list (Man-default-man-entry)))
+  (if (or (not man-args)
+	  (string= man-args ""))
+      (error "No item under point")
+    (man man-args)))
 
 (defun Man-getpage-in-background (topic)
   "Uses TOPIC to build and fire off the manpage and cleaning command."
