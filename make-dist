@@ -144,8 +144,8 @@ them, and try again." >&2
 fi
 
 ### Check for .elc files with no corresponding .el file.
-ls -1 lisp/[a-z]*.el lisp/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
-ls -1 lisp/[a-z]*.elc lisp/[a-z]*/[a-z]*.elc > /tmp/elc
+ls -1 {lisp,leim}/[a-z]*.el {lisp,leim}/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
+ls -1 {lisp,leim}/[a-z]*.elc {lisp,leim}/[a-z]*/[a-z]*.elc > /tmp/elc
 bogosities="`comm -13 /tmp/el /tmp/elc`"
 if [ "${bogosities}" != "" ]; then
   echo "The following .elc files have no corresponding .el files:"
@@ -154,8 +154,10 @@ fi
 rm -f /tmp/el /tmp/elc
 
 ### Check for .el files with no corresponding .elc file.
-(cd lisp; ls -1 [a-z]*.el [a-z]*/[a-z]*.el) > /tmp/el
-(cd lisp; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc) | sed 's/\.elc$/.el/' > /tmp/elc
+((cd lisp; ls -1 [a-z]*.el [a-z]*/[a-z]*.el)
+ (cd leim; ls -1 [a-z]*.el [a-z]*/[a-z]*.el)) > /tmp/el
+((cd lisp; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc)
+ (cd leim; ls -1 [a-z]*.elc [a-z]*/[a-z]*.elc)) | sed 's/\.elc$/.el/' > /tmp/elc
 losers="`comm -23 /tmp/el /tmp/elc`"
 bogosities=
 for file in $losers; do
@@ -179,7 +181,8 @@ fi
 rm -f /tmp/el /tmp/elc
 
 ### Check for .el files that would overflow the 14-char limit if compiled.
-long=`find lisp -name '[a-zA-Z0-9]??????????*.el' -print`
+long=`find lisp -name '[a-zA-Z0-9]??????????*.el' -print
+      find leim -name '[a-zA-Z0-9]??????????*.el' -print`
 if [ "$long" != "" ]; then
   echo "The following .el file names are too long:"
   echo "$long"
@@ -198,10 +201,6 @@ then
 
   (cd man; make info)
 
-  echo "Recompiling Lisp files"
-
-  $EMACS -batch -f batch-byte-recompile-directory lisp
-
   echo "Updating finder, custom and autoload data"
 
   (cd lisp; make updates EMACS=$EMACS)
@@ -209,6 +208,10 @@ then
   echo "Updating leim-list.el"
 
   (cd leim; make leim-list.el EMACS=$EMACS)
+
+  echo "Recompiling Lisp files"
+
+  $EMACS -batch -f batch-byte-recompile-directory lisp leim
 fi
 
 echo "Making lisp/MANIFEST"
