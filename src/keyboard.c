@@ -1826,6 +1826,7 @@ bind_polling_period (n)
   if (n > new)
     new = n;
 
+  stop_other_atimers (poll_timer);
   stop_polling ();
   specbind (Qpolling_period, make_number (new));
   /* Start a new alarm with the new period.  */
