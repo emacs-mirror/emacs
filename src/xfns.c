@@ -867,7 +867,7 @@ x_real_positions (f, xptr, yptr)
   Window *tmp_children;
   int tmp_nchildren;
 
-  x_catch_errors (f);
+  x_catch_errors (FRAME_X_DISPLAY (f));
   while (1)
     {
       XQueryTree (FRAME_X_DISPLAY (f), outer, &tmp_root_window,
@@ -906,11 +906,11 @@ x_real_positions (f, xptr, yptr)
 	 That can happen when you restart some window managers.
 	 If so, we get an error in XTranslateCoordinates.
 	 Detect that and try the whole thing over.  */
-      if (! x_had_errors_p (f))
+      if (! x_had_errors_p (FRAME_X_DISPLAY (f)))
 	break;
     }
 
-  x_uncatch_errors (f);
+  x_uncatch_errors (FRAME_X_DISPLAY (f));
 
   *xptr = f->display.x->left_pos - win_x;
   *yptr = f->display.x->top_pos - win_y;
@@ -1091,7 +1091,7 @@ x_set_mouse_color (f, arg, oldval)
   BLOCK_INPUT;
 
   /* It's not okay to crash if the user selects a screwy cursor.  */
-  x_catch_errors (f);
+  x_catch_errors (FRAME_X_DISPLAY (f));
 
   if (!EQ (Qnil, Vx_pointer_shape))
     {
@@ -1100,7 +1100,7 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_xterm);
-  x_check_errors (f, "bad text pointer cursor: %s");
+  x_check_errors (FRAME_X_DISPLAY (f), "bad text pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_nontext_pointer_shape))
     {
@@ -1110,7 +1110,7 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     nontext_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_left_ptr);
-  x_check_errors (f, "bad nontext pointer cursor: %s");
+  x_check_errors (FRAME_X_DISPLAY (f), "bad nontext pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_mode_pointer_shape))
     {
@@ -1120,7 +1120,7 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     mode_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_xterm);
-  x_check_errors (f, "bad modeline pointer cursor: %s");
+  x_check_errors (FRAME_X_DISPLAY (f), "bad modeline pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_sensitive_text_pointer_shape))
     {
@@ -1133,8 +1133,8 @@ x_set_mouse_color (f, arg, oldval)
     cross_cursor = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_crosshair);
 
   /* Check and report errors with the above calls.  */
-  x_check_errors (f, "can't set cursor shape: %s");
-  x_uncatch_errors (f);
+  x_check_errors (FRAME_X_DISPLAY (f), "can't set cursor shape: %s");
+  x_uncatch_errors (FRAME_X_DISPLAY (f));
 
   {
     XColor fore_color, back_color;
@@ -2318,7 +2318,7 @@ x_window (f, window_prompting, minibuffer_only)
   XSetWMHints (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	       &f->display.x->wm_hints);
 
-  hack_wm_protocols (shell_widget);
+  hack_wm_protocols (f, shell_widget);
 
 #ifdef HACK_EDITRES
   XtAddEventHandler (shell_widget, 0, True, _XEditResCheckMessages, 0);
