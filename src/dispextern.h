@@ -668,7 +668,7 @@ struct glyph_row
   unsigned contains_overlapping_glyphs_p : 1;
 
   /* 1 means this row is a wide as the window it is displayed in, including
-     scroll bars, bitmap areas, and internal borders.  This also
+     scroll bars, fringes, and internal borders.  This also
      implies that the row doesn't have marginal areas.  */
   unsigned full_width_p : 1;
 
@@ -968,12 +968,12 @@ extern struct glyph_row scratch_glyph_row;
 /* Width of display region of window W.  For terminal frames, this
    equals the width of W since there are no vertical scroll bars.  For
    window system frames, the value has to be corrected by the pixel
-   width of vertical scroll bars, and bitmap areas.  */
+   width of vertical scroll bars, and fringes.  */
 
 #define WINDOW_DISPLAY_PIXEL_WIDTH(W)					\
      (((XFASTINT ((W)->width)						\
         - FRAME_SCROLL_BAR_WIDTH (XFRAME (WINDOW_FRAME ((W))))		\
-	- FRAME_FLAGS_AREA_COLS (XFRAME (WINDOW_FRAME ((W)))))		\
+	- FRAME_FRINGE_COLS (XFRAME (WINDOW_FRAME ((W)))))		\
        * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W))))))
 
 /* Height of the display region of W, including a mode line, if any.  */
@@ -1017,7 +1017,7 @@ extern struct glyph_row scratch_glyph_row;
      (FRAME_INTERNAL_BORDER_WIDTH_SAFE (XFRAME (WINDOW_FRAME ((W))))	\
       + (WINDOW_LEFT_MARGIN ((W))					\
          * CANON_X_UNIT (XFRAME (WINDOW_FRAME ((W)))))			\
-      + FRAME_LEFT_FLAGS_AREA_WIDTH (XFRAME (WINDOW_FRAME ((W)))))
+      + FRAME_LEFT_FRINGE_WIDTH (XFRAME (WINDOW_FRAME ((W)))))
 
 /* Right edge of window W in pixels, relative to its frame.  */
      
@@ -1352,7 +1352,7 @@ enum face_id
   DEFAULT_FACE_ID,
   MODE_LINE_FACE_ID,
   TOOL_BAR_FACE_ID,
-  BITMAP_AREA_FACE_ID,
+  FRINGE_FACE_ID,
   HEADER_LINE_FACE_ID,
   SCROLL_BAR_FACE_ID,
   BORDER_FACE_ID,
