@@ -4566,7 +4566,7 @@ pint2str (buf, width, d)
    If EOL_FLAG is 1, set also a mnemonic character for end-of-line
    type of CODING_SYSTEM.  Return updated pointer into BUF.  */
 
-static char invalid_eol_type[] = "(*invalid*)";
+static unsigned char invalid_eol_type[] = "(*invalid*)";
 
 static char *
 decode_mode_spec_coding (coding_system, buf, eol_flag)
