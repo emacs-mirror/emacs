@@ -732,14 +732,13 @@ compute_char_face (f, w, pos, endptr)
    FACE_CODE as the face ID, assuming that ordinarily the face would
    be BASIC_FACE.  F is the frame.  */
 int
-compute_glyph_face (f, basic_face, face_code)
+compute_glyph_face (f, face_code)
      struct frame *f;
-     struct face *basic_face;
      int face_code;
 {
   struct face face;
 
-  bcopy (basic_face, &face, sizeof (struct face));
+  bcopy (FRAME_DEFAULT_FACE (f), &face, sizeof (face));
 
   if (face_code >= 0 && face_code < FRAME_N_FACES (f)
       && FRAME_FACES (f) [face_code] != 0)
