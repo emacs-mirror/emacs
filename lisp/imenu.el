@@ -631,26 +631,26 @@ as a way for the user to ask to recalculate the buffer's index alist."
 (defun imenu--create-keymap-2 (alist counter &optional commands)
   (let ((map nil))
     (mapcar
-     (function
-      (lambda (item)
-	(cond
-	 ((imenu--subalist-p item)
-	  (append (list (setq counter (1+ counter))
-			(car item) 'keymap (car item))
-		  (imenu--create-keymap-2 (cdr item) (+ counter 10) commands)))
-	 (t
-	  (let ((end (if commands `(lambda () (interactive)
-				     (imenu--menubar-select ',item))
-		       (cons '(nil) item))))
-	    (cons (car item)
-		  (cons (car item) end)))))))
+     (lambda (item)
+       (cond
+	((imenu--subalist-p item)
+	 (nconc (list (setq counter (1+ counter))
+		      (car item) 'keymap (car item))
+		(imenu--create-keymap-2 (cdr item) (+ counter 10) commands)))
+	(t
+	 (let ((end (if commands `(lambda ()
+				    (interactive)
+				    (imenu--menubar-select ',item))
+		      (cons '(nil) item))))
+	   (cons (car item)
+		 (list 'menu-item (car item) end :key-sequence nil))))))
      alist)))
 
 ;; If COMMANDS is non-nil, make a real keymap
 ;; with a real command used as the definition.
 ;; If it is nil, make something suitable for x-popup-menu.
 (defun imenu--create-keymap-1 (title alist &optional commands)
-  (append (list 'keymap title) (imenu--create-keymap-2 alist 0 commands)))
+  (cons 'keymap (cons title (imenu--create-keymap-2 alist 0 commands))))
 
 (defun imenu--in-alist (str alist)
   "Check whether the string STR is contained in multi-level ALIST."
