@@ -2777,9 +2777,7 @@ Otherwise returns nil.")
 }
 
 DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
-  "Return t if file FILENAME is the name of a directory as a file.\n\
-A directory name spec may be given instead; then the value is t\n\
-if the directory so specified exists and really is a directory.")
+  "Return t if FILENAME names an existing directory.")
   (filename)
      Lisp_Object filename;
 {
