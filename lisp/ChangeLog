@@ -1,3 +1,8 @@
+2001-10-08  Miles Bader  <miles@gnu.org>
+
+	* button.el (next-button, previous-button): Respect `skip' property.
+	(push-button, button-activate): Add USE-MOUSE-ACTION argument.
+
 2001-10-07  Miles Bader  <miles@gnu.org>
 
 	* woman.el (woman-mode-map): Copy button-buffer-map instead of
