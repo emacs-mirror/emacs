@@ -19,9 +19,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA.	 */
 
-/* BUGS:
-   - (x?)*y\1z should match both xxxxyxz and xxxyz.
-   TODO:
+/* TODO:
    - structure the opcode space into opcode+flag.
    - merge with glibc's regex.[ch].
    - replace (succeed_n + jump_n + set_number_at) with something that doesn't
@@ -1520,26 +1518,6 @@ do {									\
     }									\
 } while (0)
 
-/* Discard a saved register off the stack.  */
-#define DISCARD_FAILURE_REG_OR_COUNT()					\
-do {									\
-  int reg = POP_FAILURE_INT ();						\
-  if (reg == -1)							\
-    {									\
-      /* It's a counter.  */						\
-      POP_FAILURE_POINTER ();						\
-      reg = POP_FAILURE_INT ();						\
-      DEBUG_PRINT3 ("     Discard counter %p = %d\n", ptr, reg);	\
-    }									\
-  else									\
-    {									\
-      POP_FAILURE_POINTER ();						\
-      POP_FAILURE_POINTER ();						\
-      DEBUG_PRINT4 ("     Discard reg %d (spanning %p -> %p)\n",	\
-		    reg, regstart[reg], regend[reg]);			\
-    }									\
-} while (0)
-
 /* Check that we are not stuck in an infinite loop.  */
 #define CHECK_INFINITE_LOOP(pat_cur, string_place)			\
 do {									\
@@ -1553,16 +1531,15 @@ do {									\
 	      && FAILURE_PAT (failure) <= bufp->buffer + bufp->used);	\
       if (FAILURE_PAT (failure) == pat_cur)				\
 	{								\
-	  while (fail_stack.frame < fail_stack.avail)			\
-	    DISCARD_FAILURE_REG_OR_COUNT ();				\
-	  goto fail;							\
+	  cycle = 1;							\
+	  break;							\
 	}								\
       DEBUG_PRINT2 ("  Other pattern: %p\n", FAILURE_PAT (failure));	\
       failure = NEXT_FAILURE_HANDLE(failure);				\
     }									\
   DEBUG_PRINT2 ("  Other string: %p\n", FAILURE_STR (failure));		\
 } while (0)
-    
+
 /* Push the information about the state we will need
    if we ever fail back to it.
 
@@ -2645,8 +2622,8 @@ regex_compile (pattern, size, syntax, bufp)
 		    unsigned int startoffset = 0;
 		    re_opcode_t ofj =
 		      /* Check if the loop can match the empty string.  */
-		      (simple || !analyse_first (laststart, b, NULL, 0)) ?
-		      on_failure_jump : on_failure_jump_loop;
+		      (simple || !analyse_first (laststart, b, NULL, 0))
+		      ? on_failure_jump : on_failure_jump_loop;
 		    assert (skip_one_char (laststart) <= b);
 		    
 		    if (!zero_times_ok && simple)
@@ -2694,8 +2671,9 @@ regex_compile (pattern, size, syntax, bufp)
 		  {
 		    boolean emptyp = analyse_first (laststart, b, NULL, 0);
 
-		    /* The non-greedy multiple match looks like a repeat..until:
-		       we only need a conditional jump at the end of the loop */
+		    /* The non-greedy multiple match looks like
+		       a repeat..until: we only need a conditional jump
+		       at the end of the loop.  */
 		    if (emptyp) BUF_PUSH (no_op);
 		    STORE_JUMP (emptyp ? on_failure_jump_nastyloop
 				: on_failure_jump, b, laststart);
@@ -2704,7 +2682,7 @@ regex_compile (pattern, size, syntax, bufp)
 		      {
 			/* The repeat...until naturally matches one or more.
 			   To also match zero times, we need to first jump to
-			   the end of the loop (its conditional jump). */
+			   the end of the loop (its conditional jump).  */
 			INSERT_JUMP (jump, laststart, b);
 			b += 3;
 		      }
@@ -3241,99 +3219,99 @@ regex_compile (pattern, size, syntax, bufp)
 		      goto unfetch_interval;
 		  }
 
-		 if (upper_bound == 0)
-		   /* If the upper bound is zero, just drop the sub pattern
-		      altogether.  */
-		   b = laststart;
-		 else if (lower_bound == 1 && upper_bound == 1)
-		   /* Just match it once: nothing to do here.  */
-		   ;
+		if (upper_bound == 0)
+		  /* If the upper bound is zero, just drop the sub pattern
+		     altogether.  */
+		  b = laststart;
+		else if (lower_bound == 1 && upper_bound == 1)
+		  /* Just match it once: nothing to do here.  */
+		  ;
 
-		 /* Otherwise, we have a nontrivial interval.  When
-		    we're all done, the pattern will look like:
-		      set_number_at <jump count> <upper bound>
-		      set_number_at <succeed_n count> <lower bound>
-		      succeed_n <after jump addr> <succeed_n count>
-		      <body of loop>
-		      jump_n <succeed_n addr> <jump count>
-		    (The upper bound and `jump_n' are omitted if
-		    `upper_bound' is 1, though.)  */
-		 else
-		   { /* If the upper bound is > 1, we need to insert
-			more at the end of the loop.  */
-		     unsigned int nbytes = (upper_bound < 0 ? 3
-					    : upper_bound > 1 ? 5 : 0);
-		     unsigned int startoffset = 0;
+		/* Otherwise, we have a nontrivial interval.  When
+		   we're all done, the pattern will look like:
+		   set_number_at <jump count> <upper bound>
+		   set_number_at <succeed_n count> <lower bound>
+		   succeed_n <after jump addr> <succeed_n count>
+		   <body of loop>
+		   jump_n <succeed_n addr> <jump count>
+		   (The upper bound and `jump_n' are omitted if
+		   `upper_bound' is 1, though.)  */
+		else
+		  { /* If the upper bound is > 1, we need to insert
+		       more at the end of the loop.  */
+		    unsigned int nbytes = (upper_bound < 0 ? 3
+					   : upper_bound > 1 ? 5 : 0);
+		    unsigned int startoffset = 0;
 
-		     GET_BUFFER_SPACE (20); /* We might use less.  */
+		    GET_BUFFER_SPACE (20); /* We might use less.  */
 
-		     if (lower_bound == 0)
-		       {
-			 /* A succeed_n that starts with 0 is really a
-			    a simple on_failure_jump_loop.  */
-			 INSERT_JUMP (on_failure_jump_loop, laststart,
-				      b + 3 + nbytes);
-			 b += 3;
-		       }
-		     else
-		       {
-			 /* Initialize lower bound of the `succeed_n', even
-			    though it will be set during matching by its
-			    attendant `set_number_at' (inserted next),
-			    because `re_compile_fastmap' needs to know.
-			    Jump to the `jump_n' we might insert below.  */
-			 INSERT_JUMP2 (succeed_n, laststart,
-				       b + 5 + nbytes,
-				       lower_bound);
-			 b += 5;
+		    if (lower_bound == 0)
+		      {
+			/* A succeed_n that starts with 0 is really a
+			   a simple on_failure_jump_loop.  */
+			INSERT_JUMP (on_failure_jump_loop, laststart,
+				     b + 3 + nbytes);
+			b += 3;
+		      }
+		    else
+		      {
+			/* Initialize lower bound of the `succeed_n', even
+			   though it will be set during matching by its
+			   attendant `set_number_at' (inserted next),
+			   because `re_compile_fastmap' needs to know.
+			   Jump to the `jump_n' we might insert below.  */
+			INSERT_JUMP2 (succeed_n, laststart,
+				      b + 5 + nbytes,
+				      lower_bound);
+			b += 5;
 
-			 /* Code to initialize the lower bound.  Insert
-			    before the `succeed_n'.	 The `5' is the last two
-			    bytes of this `set_number_at', plus 3 bytes of
-			    the following `succeed_n'.  */
-			 insert_op2 (set_number_at, laststart, 5, lower_bound, b);
-			 b += 5;
-			 startoffset += 5;
-		       }
+			/* Code to initialize the lower bound.  Insert
+			   before the `succeed_n'.	 The `5' is the last two
+			   bytes of this `set_number_at', plus 3 bytes of
+			   the following `succeed_n'.  */
+			insert_op2 (set_number_at, laststart, 5, lower_bound, b);
+			b += 5;
+			startoffset += 5;
+		      }
 
-		     if (upper_bound < 0)
-		       {
-			 /* A negative upper bound stands for infinity,
-			    in which case it degenerates to a plain jump.  */
-			 STORE_JUMP (jump, b, laststart + startoffset);
-			 b += 3;
-		       }
-		     else if (upper_bound > 1)
-		       { /* More than one repetition is allowed, so
-			    append a backward jump to the `succeed_n'
-			    that starts this interval.
+		    if (upper_bound < 0)
+		      {
+			/* A negative upper bound stands for infinity,
+			   in which case it degenerates to a plain jump.  */
+			STORE_JUMP (jump, b, laststart + startoffset);
+			b += 3;
+		      }
+		    else if (upper_bound > 1)
+		      { /* More than one repetition is allowed, so
+			   append a backward jump to the `succeed_n'
+			   that starts this interval.
 
-			    When we've reached this during matching,
-			    we'll have matched the interval once, so
-			    jump back only `upper_bound - 1' times.  */
-			 STORE_JUMP2 (jump_n, b, laststart + startoffset,
-				      upper_bound - 1);
-			 b += 5;
+			   When we've reached this during matching,
+			   we'll have matched the interval once, so
+			   jump back only `upper_bound - 1' times.  */
+			STORE_JUMP2 (jump_n, b, laststart + startoffset,
+				     upper_bound - 1);
+			b += 5;
 
-			 /* The location we want to set is the second
-			    parameter of the `jump_n'; that is `b-2' as
-			    an absolute address.  `laststart' will be
-			    the `set_number_at' we're about to insert;
-			    `laststart+3' the number to set, the source
-			    for the relative address.  But we are
-			    inserting into the middle of the pattern --
-			    so everything is getting moved up by 5.
-			    Conclusion: (b - 2) - (laststart + 3) + 5,
-			    i.e., b - laststart.
+			/* The location we want to set is the second
+			   parameter of the `jump_n'; that is `b-2' as
+			   an absolute address.  `laststart' will be
+			   the `set_number_at' we're about to insert;
+			   `laststart+3' the number to set, the source
+			   for the relative address.  But we are
+			   inserting into the middle of the pattern --
+			   so everything is getting moved up by 5.
+			   Conclusion: (b - 2) - (laststart + 3) + 5,
+			   i.e., b - laststart.
 
-			    We insert this at the beginning of the loop
-			    so that if we fail during matching, we'll
-			    reinitialize the bounds.  */
-			 insert_op2 (set_number_at, laststart, b - laststart,
-				     upper_bound - 1, b);
-			 b += 5;
-		       }
-		   }
+			   We insert this at the beginning of the loop
+			   so that if we fail during matching, we'll
+			   reinitialize the bounds.  */
+			insert_op2 (set_number_at, laststart, b - laststart,
+				    upper_bound - 1, b);
+			b += 5;
+		      }
+		  }
 		pending_exact = 0;
 		beg_interval = NULL;
 	      }
@@ -5518,7 +5496,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	     cycle detection cannot work.  Worse yet, such a detection
 	     can not only fail to detect a cycle, but it can also wrongly
 	     detect a cycle (between different instantiations of the same
-	     loop.
+	     loop).
 	     So the method used for those nasty loops is a little different:
 	     We use a special cycle-detection-stack-frame which is pushed
 	     when the on_failure_jump_nastyloop failure-point is *popped*.
@@ -5532,10 +5510,17 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 			mcnt, p + mcnt);
 
 	  assert ((re_opcode_t)p[-4] == no_op);
-	  CHECK_INFINITE_LOOP (p - 4, d);
-	  PUSH_FAILURE_POINT (p - 3, d);
+	  {
+	    int cycle = 0;
+	    CHECK_INFINITE_LOOP (p - 4, d);
+	    if (!cycle)
+	      /* If there's a cycle, just continue without pushing
+		 this failure point.  The failure point is the "try again"
+		 option, which shouldn't be tried.
+		 We want (x?)*?y\1z to match both xxyz and xxyxz.  */
+	      PUSH_FAILURE_POINT (p - 3, d);
+	  }
 	  break;
-
 
 	  /* Simple loop detecting on_failure_jump:  just check on the
 	     failure stack if the same spot was already hit earlier.  */
@@ -5544,9 +5529,19 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT3 ("EXECUTING on_failure_jump_loop %d (to %p):\n",
 			mcnt, p + mcnt);
-
-	  CHECK_INFINITE_LOOP (p - 3, d);
-	  PUSH_FAILURE_POINT (p - 3, d);
+	  {
+	    int cycle = 0;
+	    CHECK_INFINITE_LOOP (p - 3, d);
+	    if (cycle)
+	      /* If there's a cycle, get out of the loop, as if the matching
+		 had failed.  We used to just `goto fail' here, but that was
+		 aborting the search a bit too early: we want to keep the
+		 empty-loop-match and keep matching after the loop.
+		 We want (x?)*y\1z to match both xxyz and xxyxz.  */
+	      p += mcnt;
+	    else
+	      PUSH_FAILURE_POINT (p - 3, d);
+	  }
 	  break;
 
 
