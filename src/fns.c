@@ -3304,7 +3304,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
     {
       ans = Fdowncase (Fread_from_minibuffer (prompt, Qnil, Qnil, Qnil,
 					      Qyes_or_no_p_history, Qnil,
-					      Qnil));
+					      Qnil, Qnil));
       if (SCHARS (ans) == 3 && !strcmp (SDATA (ans), "yes"))
 	{
 	  UNGCPRO;
