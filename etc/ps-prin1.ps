@@ -173,14 +173,12 @@ StandardEncoding 46 82 getinterval aload pop
   dobackground
 }def
 
+/PSL{bg{eolbg}if  0  currentpoint exch pop LineHeight sub  moveto}def
 /PLN{PrintLineNumber{doLineNumber}if}def
 
-/SL{					% Soft Linefeed
-  bg{eolbg}if
-  0  currentpoint exch pop LineHeight sub  moveto
-}def
+/SL{PSL isLineStep pop}def		% Soft Linefeed
 
-/HL{SL PLN}def				% Hard Linefeed
+/HL{PSL PLN}def				% Hard Linefeed
 
 % Some debug
 /dcp{currentpoint exch 40 string cvs print (, ) print =}def
@@ -300,23 +298,32 @@ StandardEncoding 46 82 getinterval aload pop
 
 /L0 6 /Times-Italic DefFont
 
+% stack:  -- |- boolean
+/isLineStep{
+  SyncLineZebra
+  {PrintLineStep 1 gt
+   {/PrintLineStep PrintLineStep 1 sub def false}	% or inside zebra
+   {/PrintLineStep ZebraHeight def true}ifelse}		% or 1st zebra line
+  {LineNumber 1 sub PrintLineStep mod 0 eq}ifelse	% or line step
+}def
+
 % stack:  --
 /doLineNumber{
   /LineNumber where
-  {
-    pop
-    currentfont
+  {pop
+   isLineStep			% or line step
+   LineNumber Lines ge or	% or last line
+   {currentfont
     gsave
     0.0 0.0 0.0 setrgbcolor
     /L0 findfont setfont
     LineNumber Lines ge
-      {(end      )}
-      {LineNumber 6 string cvs (      ) strcat}
-    ifelse
+    {(end      )}
+    {LineNumber 6 string cvs (      ) strcat}ifelse
     dup stringwidth pop neg 0 rmoveto
     show
     grestore
-    setfont
+    setfont}if
     /LineNumber LineNumber 1 add def
   }if
 }def
@@ -410,7 +417,7 @@ StandardEncoding 46 82 getinterval aload pop
   /docState save def
   % ---- [andrewi] set PageSize based on chosen dimensions
   UseSetpagedevice{
-    << /PageSize [PageWidth LandscapePageHeight] >> setpagedevice
+    BMark /PageSize [PageWidth LandscapePageHeight] EMark setpagedevice
   }{
     LandscapeMode{
       % ---- translate to bottom-right corner of Portrait page
@@ -420,6 +427,7 @@ StandardEncoding 46 82 getinterval aload pop
   }ifelse
   % ---- [jack] Kludge: my ghostscript window is 21x27.7 instead of 21x29.7
   /JackGhostscript where{pop 1 27.7 29.7 div scale}if
+  UpsideDown{PageWidth LandscapePageHeight translate 180 rotate}if
   % ---- N-Up printing
   N-Up 1 gt{
     % ---- landscape
