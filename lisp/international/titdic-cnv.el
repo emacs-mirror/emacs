@@ -465,50 +465,48 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
 Optional argument DIRNAME if specified is the directory name under which
 the generated Quail package is saved."
   (interactive "FTIT dictionary file: ")
-  (with-temp-file  (tit-make-quail-package-file-name filename dirname)
-    (set-buffer-file-coding-system 'iso-2022-7bit)
-    (let ((standard-output (current-buffer)))
-      (with-temp-buffer
-	(let ((coding-system-for-read 'no-conversion))
-	  (insert-file-contents (expand-file-name filename)))
-	(set-buffer-multibyte t)
+  (let ((coding-system-for-write 'iso-2022-7bit))
+    (with-temp-file  (tit-make-quail-package-file-name filename dirname)
+      (set-buffer-file-coding-system 'iso-2022-7bit)
+      (let ((standard-output (current-buffer)))
+	(with-temp-buffer
+	  (let ((coding-system-for-read 'no-conversion))
+	    (insert-file-contents (expand-file-name filename)))
+	  (set-buffer-multibyte t)
 	
 	;; Decode the buffer contents from the encoding specified by a
-	;; value of the key "ENCODE:".
-	(if (not (search-forward "\nBEGIN" nil t))
-	    (error "TIT dictionary doesn't have body part"))
-	(let ((limit (point))
-	      coding-system slot)
+	  ;; value of the key "ENCODE:".
+	  (if (not (search-forward "\nBEGIN" nil t))
+	      (error "TIT dictionary doesn't have body part"))
+	  (let ((limit (point))
+		coding-system slot)
+	    (goto-char (point-min))
+	    (if (re-search-forward "^ENCODE:[ \t]*" limit t)
+		(progn
+		  (goto-char (match-end 0))
+		  (setq tit-encode (tit-read-key-value)))
+	      (setq tit-encode tit-default-encode))
+	    (setq slot (assoc tit-encode tit-encode-list))
+	    (if (not slot)
+		(error "Invalid ENCODE: value in TIT dictionary"))
+	    (setq coding-system (nth 1 slot))
+	    (message "Decoding with coding system %s..." coding-system)
+	    (goto-char (point-min))
+	    (decode-coding-region (point-min) (point-max) coding-system))
+
+	  ;; Set point the starting position of the body part.
 	  (goto-char (point-min))
-	  (if (re-search-forward "^ENCODE:[ \t]*" limit t)
-	      (progn
-		(goto-char (match-end 0))
-		(setq tit-encode (tit-read-key-value)))
-	    (setq tit-encode tit-default-encode))
-	  (setq slot (assoc tit-encode tit-encode-list))
-	  (if (not slot)
-	      (error "Invalid ENCODE: value in TIT dictionary"))
-	  (setq coding-system (nth 1 slot))
-	  (message "Decoding with coding system %s..." coding-system)
-	  (goto-char (point-min))
-	  (decode-coding-region (point-min) (point-max) coding-system))
+	  (if (not (search-forward "\nBEGIN" nil t))
+	      (error "TIT dictionary can't be decoded correctly"))
 
-	;; Set point the starting position of the body part.
-	(goto-char (point-min))
-	(if (not (search-forward "\nBEGIN" nil t))
-	    (error "TIT dictionary can't be decoded correctly"))
+	  ;; Process the header part.
+	  (forward-line 1)
+	  (narrow-to-region (point-min) (point))
+	  (tit-process-header filename)
+	  (widen)
 
-	;; Process the header part.
-	(forward-line 1)
-	(narrow-to-region (point-min) (point))
-	(tit-process-header filename)
-	(widen)
-
-	;; Process the body part.  For speed, we turn off multibyte facility.
-	(with-current-buffer standard-output
-	  (set-buffer-multibyte nil))
-	(set-buffer-multibyte nil)
-	(tit-process-body)))))
+	  ;; Process the body part.
+	  (tit-process-body))))))
 
 ;;;###autoload
 (defun batch-titdic-convert (&optional force)
