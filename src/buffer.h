@@ -493,8 +493,11 @@ struct buffer
      0 means visited file modtime unknown; in no case complain
      about any mismatch on next save attempt.  */
   int modtime;
-  /* the value of text->modiff at the last auto-save.  */
+  /* The value of text->modiff at the last auto-save.  */
   int auto_save_modified;
+  /* The value of text->modiff at the last display error.
+     Redisplay of this buffer is inhibited until it changes again.  */
+  int display_error_modiff;
   /* The time at which we detected a failure to auto-save,
      Or -1 if we didn't have a failure.  */
   int auto_save_failure_time;
