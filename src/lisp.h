@@ -1271,7 +1271,7 @@ extern Lisp_Object Frubber_band_rectangle ();
 
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path ();
-extern Lisp_Object Vinvocation_name;
+extern Lisp_Object Vinvocation_name, Vinvocation_directory;
 void shut_down_emacs ( /* int signal, int no_x, Lisp_Object stuff */ );
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
