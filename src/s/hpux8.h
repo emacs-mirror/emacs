@@ -23,7 +23,11 @@
 /* No need to specify roundabout way of linking temacs.  */
 #define ORDINARY_LINK
 #else
+#if defined(hp9000s700) || defined(__hp9000s700)
+#define LD_SWITCH_SYSTEM -a archive -L/lib/pa1.1
+#else
 #define LD_SWITCH_SYSTEM -a archive
+#endif
 #endif
 
 #if 0 /* This should no longer be necessary now that
