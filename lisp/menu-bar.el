@@ -130,7 +130,7 @@ A large number or nil slows down menu responsiveness."
       (define-key menu-bar-files-menu [make-frame-on-display]
 	'("Open New Display..." . make-frame-on-display))
       (define-key menu-bar-files-menu [make-frame]
-	'("Make New Frame" . make-frame))))
+	'("Make New Frame" . make-frame-command))))
 
 (define-key menu-bar-files-menu [separator-buffers]
   '("--"))
