@@ -84,7 +84,7 @@ xlwMenuResources[] =
   {XtNbuttonForeground, XtCButtonForeground, XtRPixel, sizeof(Pixel),
      offset(menu.button_foreground), XtRString, "XtDefaultForeground"},
   {XtNmargin, XtCMargin, XtRDimension,  sizeof(Dimension),
-     offset(menu.margin), XtRImmediate, (XtPointer)0},
+     offset(menu.margin), XtRImmediate, (XtPointer) 4},
   {XtNhorizontalSpacing, XtCMargin, XtRDimension,  sizeof(Dimension),
      offset(menu.horizontal_spacing), XtRImmediate, (XtPointer)3},
   {XtNverticalSpacing, XtCMargin, XtRDimension,  sizeof(Dimension),
@@ -130,6 +130,7 @@ static void Drag();
 static void Select();
 static void Key();
 static void Nothing();
+static int separator_height ();
 
 static XtActionsRec 
 xlwMenuActionsList [] =
@@ -191,6 +192,20 @@ int submenu_destroyed;
 static int next_release_must_exit;
 
 /* Utilities */
+
+
+/* Like abort, but remove grabs from widget W before.  */
+
+static void
+abort_gracefully (w)
+     Widget w;
+{
+  if (XtIsShell (XtParent (w)))
+    XtRemoveGrab (w);
+  XtUngrabPointer (w, CurrentTime);
+  abort ();
+}
+
 static void
 push_new_stack (mw, val)
      XlwMenuWidget mw;
@@ -246,15 +261,6 @@ make_old_stack_space (mw, n)
 }
 
 /* Size code */
-static Boolean
-all_dashes_p (s)
-     char *s;
-{
-  char* p;
-  for (p = s; *p == '-'; p++);
-  return !*p;
-}
-
 int
 string_width (mw, s)
      XlwMenuWidget mw;
@@ -271,8 +277,28 @@ static int
 arrow_width (mw)
      XlwMenuWidget mw;
 {
-  return mw->menu.font->ascent / 2 | 1;
+  return (mw->menu.font->ascent * 3/4) | 1;
 }
+
+/* Return the width of toggle buttons of widget MW.  */
+
+static int
+toggle_button_width (mw)
+     XlwMenuWidget mw;
+{
+  return ((mw->menu.font->ascent + mw->menu.font->descent) * 2 / 3) | 1;
+}
+
+
+/* Return the width of radio buttons of widget MW.  */
+
+static int
+radio_button_width (mw)
+     XlwMenuWidget mw;
+{
+  return toggle_button_width (mw) * 1.41;
+}
+
 
 static XtResource
 nameResource[] =
@@ -320,19 +346,24 @@ resource_widget_value (mw, val)
 
 /* Returns the sizes of an item */
 static void
-size_menu_item (mw, val, horizontal_p, label_width, rest_width, height)
+size_menu_item (mw, val, horizontal_p, label_width, rest_width, button_width,
+		height)
      XlwMenuWidget mw;
      widget_value* val;
      int horizontal_p;
      int* label_width;
      int* rest_width;
+     int* button_width;
      int* height;
 {
-  if (all_dashes_p (val->name))
+  enum menu_separator separator;
+  
+  if (lw_separator_p (val->name, &separator, 0))
     {
-      *height = 2;
+      *height = separator_height (separator);
       *label_width = 1;
       *rest_width = 0;
+      *button_width = 0;
     }
   else
     {
@@ -348,10 +379,19 @@ size_menu_item (mw, val, horizontal_p, label_width, rest_width, height)
       if (!horizontal_p)
 	{
 	  if (val->contents)
+	    /* Add width of the arrow displayed for submenus.  */
 	    *rest_width += arrow_width (mw) + mw->menu.arrow_spacing;
 	  else if (val->key)
-	    *rest_width +=
-	      string_width (mw, val->key) + mw->menu.arrow_spacing;
+	    /* Add width of key equivalent string.  */
+	    *rest_width += (string_width (mw, val->key)
+			    + mw->menu.arrow_spacing);
+
+	  if (val->button_type == BUTTON_TYPE_TOGGLE)
+	    *button_width = (toggle_button_width (mw)
+			     + mw->menu.horizontal_spacing);
+	  else if (val->button_type == BUTTON_TYPE_RADIO)
+	    *button_width = (radio_button_width (mw)
+			     + mw->menu.horizontal_spacing);
 	}
     }
 }
@@ -363,24 +403,27 @@ size_menu (mw, level)
 {
   unsigned int  label_width = 0;
   int		rest_width = 0;
+  int		button_width = 0;
   int		max_rest_width = 0;
+  int		max_button_width = 0;
   unsigned int  height = 0;
   int		horizontal_p = mw->menu.horizontal && (level == 0);
   widget_value*	val;
   window_state*	ws;
 
   if (level >= mw->menu.old_depth)
-    abort ();
+    abort_gracefully ((Widget) mw);
 
   ws = &mw->menu.windows [level];  
   ws->width = 0;
   ws->height = 0;
   ws->label_width = 0;
+  ws->button_width = 0;
 
   for (val = mw->menu.old_stack [level]->contents; val; val = val->next)
     {
       size_menu_item (mw, val, horizontal_p, &label_width, &rest_width,
-		      &height);
+		      &button_width, &height);
       if (horizontal_p)
 	{
 	  ws->width += label_width + rest_width;
@@ -393,44 +436,99 @@ size_menu (mw, level)
 	    ws->label_width = label_width;
 	  if (rest_width > max_rest_width)
 	    max_rest_width = rest_width;
+	  if (button_width > max_button_width)
+	    max_button_width = button_width;
 	  ws->height += height;
 	}
     }
   
   if (horizontal_p)
-    ws->label_width = 0;
+    ws->label_width = ws->button_width = 0;
   else
-    ws->width = ws->label_width + max_rest_width;
+    {
+      ws->width = ws->label_width + max_rest_width + max_button_width;
+      ws->button_width = max_button_width;
+    }
 
   ws->width += 2 * mw->menu.shadow_thickness;
   ws->height += 2 * mw->menu.shadow_thickness;
+
+  if (horizontal_p)
+    {
+      ws->width += 2 * mw->menu.margin;
+      ws->height += 2 * mw->menu.margin;
+    }
 }
 
 
 /* Display code */
+
 static void
-draw_arrow (mw, window, gc, x, y, width)
+draw_arrow (mw, window, gc, x, y, width, down_p)
      XlwMenuWidget mw;
      Window window;
      GC gc;
      int x;
      int y;
      int width;
+     int down_p;
 {
-  XPoint points [3];
-  points [0].x = x;
-  points [0].y = y + mw->menu.font->ascent;
-  points [1].x = x;
-  points [1].y = y;
-  points [2].x = x + width;
-  points [2].y = y + mw->menu.font->ascent / 2;
+  Display *dpy = XtDisplay (mw);
+  GC top_gc = mw->menu.shadow_top_gc;
+  GC bottom_gc = mw->menu.shadow_bottom_gc;
+  int thickness = mw->menu.shadow_thickness;
+  int height = width;
+  XPoint pt[10];
+  /* alpha = atan (0.5)
+     factor = (1 + sin (alpha)) / cos (alpha) */
+  double factor = 1.62;
+  int thickness2 = thickness * factor;
   
-  XFillPolygon (XtDisplay (mw), window, gc, points, 3, Convex,
-		CoordModeOrigin);
+  y += (mw->menu.font->ascent + mw->menu.font->descent - height) / 2;
+  
+  if (down_p)
+    {
+      GC temp;
+      temp = top_gc;
+      top_gc = bottom_gc;
+      bottom_gc = temp;
+    }
+
+  pt[0].x = x;
+  pt[0].y = y + height;
+  pt[1].x = x + thickness;
+  pt[1].y = y + height - thickness2;
+  pt[2].x = x + thickness2;
+  pt[2].y = y + thickness2;
+  pt[3].x = x;
+  pt[3].y = y;
+  XFillPolygon (dpy, window, top_gc, pt, 4, Convex, CoordModeOrigin);
+  
+  pt[0].x = x;
+  pt[0].y = y;
+  pt[1].x = x + thickness;
+  pt[1].y = y + thickness2;
+  pt[2].x = x + width - thickness2;
+  pt[2].y = y + height / 2;
+  pt[3].x = x + width;
+  pt[3].y = y + height / 2;
+  XFillPolygon (dpy, window, top_gc, pt, 4, Convex, CoordModeOrigin);
+  
+  pt[0].x = x;
+  pt[0].y = y + height;
+  pt[1].x = x + thickness;
+  pt[1].y = y + height - thickness2;
+  pt[2].x = x + width - thickness2;
+  pt[2].y = y + height / 2;
+  pt[3].x = x + width;
+  pt[3].y = y + height / 2;
+  XFillPolygon (dpy, window, bottom_gc, pt, 4, Convex, CoordModeOrigin);
 }
 
+
+
 static void
-draw_shadow_rectangle (mw, window, x, y, width, height, erase_p)
+draw_shadow_rectangle (mw, window, x, y, width, height, erase_p, down_p)
      XlwMenuWidget mw;
      Window window;
      int x;
@@ -438,12 +536,22 @@ draw_shadow_rectangle (mw, window, x, y, width, height, erase_p)
      int width;
      int height;
      int erase_p;
+     int down_p;
 {
   Display *dpy = XtDisplay (mw);
   GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
   GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
   int thickness = mw->menu.shadow_thickness;
   XPoint points [4];
+
+  if (!erase_p && down_p)
+    {
+      GC temp;
+      temp = top_gc;
+      top_gc = bottom_gc;
+      bottom_gc = temp;
+    }
+  
   points [0].x = x;
   points [0].y = y;
   points [1].x = x + width;
@@ -483,11 +591,273 @@ draw_shadow_rectangle (mw, window, x, y, width, height, erase_p)
 }
 
 
-/* Display the menu item and increment where.x and where.y to show how large
-** the menu item was. 
-*/
 static void
-display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute_p)
+draw_shadow_rhombus (mw, window, x, y, width, height, erase_p, down_p)
+     XlwMenuWidget mw;
+     Window window;
+     int x;
+     int y;
+     int width;
+     int height;
+     int erase_p;
+     int down_p;
+{
+  Display *dpy = XtDisplay (mw);
+  GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
+  GC bottom_gc = !erase_p ? mw->menu.shadow_bottom_gc : mw->menu.background_gc;
+  int thickness = mw->menu.shadow_thickness;
+  XPoint points [4];
+  double sqrt2 = 1.4142;
+
+  if (!erase_p && down_p)
+    {
+      GC temp;
+      temp = top_gc;
+      top_gc = bottom_gc;
+      bottom_gc = temp;
+    }
+
+  points [0].x = x;
+  points [0].y = y + height / 2;
+  points [1].x = x + thickness;
+  points [1].y = y + height / 2;
+  points [2].x = x + width / 2;
+  points [2].y = y + thickness;
+  points [3].x = x + width / 2;
+  points [3].y = y;
+  XFillPolygon (dpy, window, top_gc, points, 4, Convex, CoordModeOrigin);
+  points [0].x = x + width / 2;
+  points [0].y = y;
+  points [1].x = x + width / 2;
+  points [1].y = y + thickness;
+  points [2].x = x + width - thickness;
+  points [2].y = y + height / 2;
+  points [3].x = x + width;
+  points [3].y = y + height / 2;
+  XFillPolygon (dpy, window, top_gc, points, 4, Convex, CoordModeOrigin);
+  points [0].x = x;
+  points [0].y = y + height / 2;
+  points [1].x = x + thickness;
+  points [1].y = y + height / 2;
+  points [2].x = x + width / 2;
+  points [2].y = y + height - thickness;
+  points [3].x = x + width / 2;
+  points [3].y = y + height;
+  XFillPolygon (dpy, window, bottom_gc, points, 4, Convex, CoordModeOrigin);
+  points [0].x = x + width / 2;
+  points [0].y = y + height;
+  points [1].x = x + width / 2;
+  points [1].y = y + height - thickness;
+  points [2].x = x + width - thickness;
+  points [2].y = y + height / 2;
+  points [3].x = x + width;
+  points [3].y = y + height / 2;
+  XFillPolygon (dpy, window, bottom_gc, points, 4, Convex, CoordModeOrigin);
+}
+
+
+/* Draw a toggle button on widget MW, X window WINDOW.  X/Y is the
+   top-left corner of the menu item.  SELECTED_P non-zero means the
+   toggle button is selected.  */
+
+static void
+draw_toggle (mw, window, x, y, selected_p)
+     XlwMenuWidget mw;
+     Window window;
+     int x, y, selected_p;
+{
+  int width, height;
+
+  width = toggle_button_width (mw);
+  height = width;
+  x += mw->menu.horizontal_spacing;
+  y += (mw->menu.font->ascent - height) / 2;
+  draw_shadow_rectangle (mw, window, x, y, width, height, False, selected_p);
+}
+
+
+/* Draw a radio button on widget MW, X window WINDOW.  X/Y is the
+   top-left corner of the menu item.  SELECTED_P non-zero means the
+   toggle button is selected.  */
+
+static void
+draw_radio (mw, window, x, y, selected_p)
+     XlwMenuWidget mw;
+     Window window;
+     int x, y, selected_p;
+{
+  int width, height;
+
+  width = radio_button_width (mw);
+  height = width;
+  x += mw->menu.horizontal_spacing;
+  y += (mw->menu.font->ascent - height) / 2;
+  draw_shadow_rhombus (mw, window, x, y, width, height, False, selected_p);
+}
+
+
+/* Draw a menu separator on widget MW, X window WINDOW.  X/Y is the
+   top-left corner of the menu item.  WIDTH is the width of the
+   separator to draw.  TYPE is the separator type.  */
+
+static void
+draw_separator (mw, window, x, y, width, type)
+     XlwMenuWidget mw;
+     Window window;
+     int x, y, width;
+     enum menu_separator type;
+{
+  Display *dpy = XtDisplay (mw);
+  XGCValues xgcv;
+
+  switch (type)
+    {
+    case SEPARATOR_NO_LINE:
+      break;
+      
+    case SEPARATOR_SINGLE_LINE:
+      XDrawLine (dpy, window, mw->menu.foreground_gc,
+		 x, y, x + width, y);
+      break;
+      
+    case SEPARATOR_DOUBLE_LINE:
+      draw_separator (mw, window, x, y, width, SEPARATOR_SINGLE_LINE);
+      draw_separator (mw, window, x, y + 2, width, SEPARATOR_SINGLE_LINE);
+      break;
+      
+    case SEPARATOR_SINGLE_DASHED_LINE:
+      xgcv.line_style = LineOnOffDash;
+      XChangeGC (dpy, mw->menu.foreground_gc, GCLineStyle, &xgcv);
+      XDrawLine (dpy, window, mw->menu.foreground_gc,
+		 x, y, x + width, y);
+      xgcv.line_style = LineSolid;
+      XChangeGC (dpy, mw->menu.foreground_gc, GCLineStyle, &xgcv);
+      break;
+      
+    case SEPARATOR_DOUBLE_DASHED_LINE:
+      draw_separator (mw, window, x, y, width,
+		      SEPARATOR_SINGLE_DASHED_LINE);
+      draw_separator (mw, window, x, y + 2, width,
+		      SEPARATOR_SINGLE_DASHED_LINE);
+      break;
+      
+    case SEPARATOR_SHADOW_ETCHED_IN:
+      XDrawLine (dpy, window, mw->menu.shadow_bottom_gc,
+		 x, y, x + width, y);
+      XDrawLine (dpy, window, mw->menu.shadow_top_gc,
+		 x, y + 1, x + width, y + 1);
+      break;
+
+    case SEPARATOR_SHADOW_ETCHED_OUT:
+      XDrawLine (dpy, window, mw->menu.shadow_top_gc,
+		 x, y, x + width, y);
+      XDrawLine (dpy, window, mw->menu.shadow_bottom_gc,
+		 x, y + 1, x + width, y + 1);
+      break;
+      
+    case SEPARATOR_SHADOW_ETCHED_IN_DASH:
+      xgcv.line_style = LineOnOffDash;
+      XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
+      XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
+      draw_separator (mw, window, x, y, SEPARATOR_SHADOW_ETCHED_IN);
+      xgcv.line_style = LineSolid;
+      XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
+      XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
+      break;
+      
+    case SEPARATOR_SHADOW_ETCHED_OUT_DASH:
+      xgcv.line_style = LineOnOffDash;
+      XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
+      XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
+      draw_separator (mw, window, x, y, SEPARATOR_SHADOW_ETCHED_OUT);
+      xgcv.line_style = LineSolid;
+      XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
+      XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
+      break;
+
+    case SEPARATOR_SHADOW_DOUBLE_ETCHED_IN:
+      draw_separator (mw, window, x, y, width, SEPARATOR_SHADOW_ETCHED_IN);
+      draw_separator (mw, window, x, y + 3, width, SEPARATOR_SHADOW_ETCHED_IN);
+      break;
+      
+    case SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT:
+      draw_separator (mw, window, x, y, width,
+		      SEPARATOR_SHADOW_ETCHED_OUT);
+      draw_separator (mw, window, x, y + 3, width,
+		      SEPARATOR_SHADOW_ETCHED_OUT);
+      break;
+      
+    case SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH:
+      xgcv.line_style = LineOnOffDash;
+      XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
+      XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
+      draw_separator (mw, window, x, y, width,
+		      SEPARATOR_SHADOW_DOUBLE_ETCHED_IN);
+      xgcv.line_style = LineSolid;
+      XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
+      XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
+      break;
+
+    case SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH:
+      xgcv.line_style = LineOnOffDash;
+      XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
+      XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
+      draw_separator (mw, window, x, y, width,
+		      SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT);
+      xgcv.line_style = LineSolid;
+      XChangeGC (dpy, mw->menu.shadow_bottom_gc, GCLineStyle, &xgcv);
+      XChangeGC (dpy, mw->menu.shadow_top_gc, GCLineStyle, &xgcv);
+      break;
+
+    default:
+      abort ();
+    }
+}
+
+
+/* Return the pixel height of menu separator SEPARATOR.  */
+
+static int
+separator_height (separator)
+     enum menu_separator separator;
+{
+  switch (separator)
+    {
+    case SEPARATOR_NO_LINE:
+      return 2;
+      
+    case SEPARATOR_SINGLE_LINE:
+    case SEPARATOR_SINGLE_DASHED_LINE:
+      return 1;
+      
+    case SEPARATOR_DOUBLE_LINE:
+    case SEPARATOR_DOUBLE_DASHED_LINE:
+      return 3;
+      
+    case SEPARATOR_SHADOW_ETCHED_IN:
+    case SEPARATOR_SHADOW_ETCHED_OUT:
+    case SEPARATOR_SHADOW_ETCHED_IN_DASH:
+    case SEPARATOR_SHADOW_ETCHED_OUT_DASH:
+      return 2;
+      
+    case SEPARATOR_SHADOW_DOUBLE_ETCHED_IN:
+    case SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT:
+    case SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH:
+    case SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH:
+      return 5;
+      
+    default:
+      abort ();
+    }
+}
+
+
+/* Display the menu item and increment where.x and where.y to show how large
+   the menu item was.  */
+
+static void
+display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
+		   just_compute_p)
      XlwMenuWidget mw;
      widget_value* val;
      window_state* ws;
@@ -501,17 +871,20 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute
   int font_ascent = mw->menu.font->ascent;
   int font_descent = mw->menu.font->descent;
   int shadow = mw->menu.shadow_thickness;
-  int separator_p = all_dashes_p (val->name);
+  int margin = mw->menu.margin;
   int h_spacing = mw->menu.horizontal_spacing;
   int v_spacing = mw->menu.vertical_spacing;
   int label_width;
   int rest_width;
+  int button_width;
   int height;
   int width;
-  int button_p;
+  enum menu_separator separator;
+  int separator_p = lw_separator_p (val->name, &separator, 0);
 
   /* compute the sizes of the item */
-  size_menu_item (mw, val, horizontal_p, &label_width, &rest_width, &height);
+  size_menu_item (mw, val, horizontal_p, &label_width, &rest_width,
+		  &button_width, &height);
 
   if (horizontal_p)
     width = label_width + rest_width;
@@ -520,12 +893,6 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute
       label_width = ws->label_width;
       width = ws->width - 2 * shadow;
     }
-
-#if 0
-  /* see if it should be a button in the menubar */
-  button_p = horizontal_p && val->call_data;
-#endif
-  button_p = 0;
 
   /* Only highlight an enabled item that has a callback. */
   if (highlighted_p)
@@ -539,26 +906,29 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute
       int x = where->x + shadow;
       int y = where->y + shadow;
 
+      if (horizontal_p)
+	{
+	  x += margin;
+	  y += margin;
+	}
+
       /* pick the foreground and background GC. */
       if (val->enabled)
-	text_gc = button_p ? mw->menu.button_gc : mw->menu.foreground_gc;
+	text_gc = mw->menu.foreground_gc;
       else
-	text_gc =
-	  button_p ? mw->menu.inactive_button_gc : mw->menu.inactive_gc;
+	text_gc = mw->menu.inactive_gc;
       deco_gc = mw->menu.foreground_gc;
 
       if (separator_p)
 	{
-	  XDrawLine (XtDisplay (mw), ws->window, mw->menu.shadow_bottom_gc,
-		     x, y, x + width, y);
-	  XDrawLine (XtDisplay (mw), ws->window, mw->menu.shadow_top_gc,
-		     x, y + 1, x + width, y + 1);
+	  draw_separator (mw, ws->window, x, y, width, separator);
 	}
       else 
 	{
 	  int x_offset = x + h_spacing + shadow;
 	  char* display_string = resource_widget_value (mw, val);
-	  draw_shadow_rectangle (mw, ws->window, x, y, width, height, True);
+	  draw_shadow_rectangle (mw, ws->window, x, y, width, height, True,
+				 False);
 
 	  /* Deal with centering a menu title. */
 	  if (!horizontal_p && !val->contents && !val->call_data)
@@ -568,20 +938,32 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute
 	      if (width > l)
 		x_offset = (width - l) >> 1;
 	    }
+	  else if (!horizontal_p && ws->button_width)
+	    x_offset += ws->button_width;
+	  
+	  
           XDrawString (XtDisplay (mw), ws->window, text_gc, x_offset,
 		       y + v_spacing + shadow + font_ascent,
 		       display_string, strlen (display_string));
 	  
 	  if (!horizontal_p)
 	    {
+	      if (val->button_type == BUTTON_TYPE_TOGGLE)
+		draw_toggle (mw, ws->window, x, y + v_spacing + shadow,
+			     val->selected);
+	      else if (val->button_type == BUTTON_TYPE_RADIO)
+		draw_radio (mw, ws->window, x, y + v_spacing + shadow,
+			    val->selected);
+	      
 	      if (val->contents)
 		{
 		  int a_w = arrow_width (mw);
 		  draw_arrow (mw, ws->window, deco_gc,
-			      x + width - arrow_width (mw)
+			      x + width - a_w
 			      - mw->menu.horizontal_spacing 
 			      - mw->menu.shadow_thickness,
-			      y + v_spacing + shadow, a_w);
+			      y + v_spacing + shadow, a_w,
+			      highlighted_p);
 		}
 	      else if (val->key)
 		{
@@ -591,20 +973,6 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute
 			       val->key, strlen (val->key));
 		}
 	    }
-
-	  else if (button_p)
-	    {
-#if 1
-	      XDrawRectangle (XtDisplay (mw), ws->window, deco_gc,
-			      x + shadow, y + shadow,
-			      label_width + h_spacing - 1,
-			      font_ascent + font_descent + 2 * v_spacing - 1);
-	      draw_shadow_rectangle (mw, ws->window, x, y, width, height,
-				     False);
-#else
-	      highlighted_p = True;
-#endif
-	    }
 	  else
 	    {
 	      XDrawRectangle (XtDisplay (mw), ws->window, 
@@ -613,11 +981,12 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p, just_compute
 			      label_width + h_spacing - 1,
 			      font_ascent + font_descent + 2 * v_spacing - 1);
 	      draw_shadow_rectangle (mw, ws->window, x, y, width, height,
-				     True);
+				     True, False);
 	    }
 
 	  if (highlighted_p)
-	    draw_shadow_rectangle (mw, ws->window, x, y, width, height, False);
+	    draw_shadow_rectangle (mw, ws->window, x, y, width, height, False,
+				   False);
 	}
     }
   
@@ -647,9 +1016,10 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
   /* This is set nonzero if the element containing HIGHLIGHTED_POS
      is disabled, so that we do not return any subsequent element either.  */
   int no_return = 0;
+  enum menu_separator separator;
 
   if (level >= mw->menu.old_depth)
-    abort ();
+    abort_gracefully ((Widget) mw);
 
   if (level < mw->menu.old_depth - 1)
     following_item = mw->menu.old_stack [level + 1];
@@ -691,7 +1061,7 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
       if (hit
 	  && !*hit_return
 	  && (horizontal_p ? hit->x < where.x : hit->y < where.y)
-	  && !all_dashes_p (val->name)
+	  && !lw_separator_p (val->name, &separator, 0)
 	  && !no_return)
 	{
 	  if (val->enabled)
@@ -707,7 +1077,8 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return,
     }
   
   if (!just_compute_p)
-    draw_shadow_rectangle (mw, ws->window, 0, 0, ws->width, ws->height, False);
+    draw_shadow_rectangle (mw, ws->window, 0, 0, ws->width, ws->height,
+			   False, False);
 }
 
 /* Motion code */
@@ -889,12 +1260,20 @@ remap_menubar (mw)
       window_state *previous_ws = &windows[i - 1];
       window_state *ws = &windows[i];
 
-      ws->x
-	= previous_ws->x + selection_position.x + mw->menu.shadow_thickness;
+      ws->x = (previous_ws->x + selection_position.x
+	       + mw->menu.shadow_thickness);
+      if (i == 1)
+	ws->x += mw->menu.margin;
+
+#if 0
       if (!mw->menu.horizontal || i > 1)
 	ws->x += mw->menu.shadow_thickness;
-      ws->y
-	= previous_ws->y + selection_position.y + mw->menu.shadow_thickness;
+#endif
+      
+      ws->y = (previous_ws->y + selection_position.y
+	       + mw->menu.shadow_thickness);
+      if (i == 1)
+	ws->y += mw->menu.margin;
 
       size_menu (mw, i);
 
@@ -1035,7 +1414,8 @@ make_shadow_gcs (mw)
   XGCValues xgcv;
   unsigned long pm = 0;
   Display *dpy = XtDisplay ((Widget) mw);
-  Colormap cmap = DefaultColormapOfScreen (XtScreen ((Widget) mw));
+  Screen *screen = XtScreen ((Widget) mw);
+  Colormap cmap = DefaultColormapOfScreen (screen);
   XColor topc, botc;
   int top_frobbed = 0, bottom_frobbed = 0;
 
@@ -1053,7 +1433,11 @@ make_shadow_gcs (mw)
       topc.red   = MINL (65535, topc.red   * 1.2);
       topc.green = MINL (65535, topc.green * 1.2);
       topc.blue  = MINL (65535, topc.blue  * 1.2);
+#ifdef emacs
+      if (x_alloc_nearest_color (dpy, screen, cmap, &topc))
+#else
       if (XAllocColor (dpy, cmap, &topc))
+#endif
 	{
 	  mw->menu.top_shadow_color = topc.pixel;
 	  top_frobbed = 1;
@@ -1067,7 +1451,11 @@ make_shadow_gcs (mw)
       botc.red   *= 0.6;
       botc.green *= 0.6;
       botc.blue  *= 0.6;
+#ifdef emacs
+      if (x_alloc_nearest_color (dpy, screen, cmap, &botc))
+#else
       if (XAllocColor (dpy, cmap, &botc))
+#endif
 	{
 	  mw->menu.bottom_shadow_color = botc.pixel;
 	  bottom_frobbed = 1;
