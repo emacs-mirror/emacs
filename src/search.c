@@ -78,6 +78,7 @@ static Lisp_Object last_thing_searched;
 Lisp_Object Qinvalid_regexp;
 
 static void set_search_regs ();
+static void save_search_regs ();
 
 static int search_buffer ();
 
