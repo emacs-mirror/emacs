@@ -138,17 +138,25 @@ extern Lisp_Object Qmouse_face;
 void
 choose_minibuf_frame ()
 {
-  if (selected_frame != 0
-      && !EQ (minibuf_window, selected_frame->minibuffer_window))
+  if (FRAMEP (selected_frame)
+      && FRAME_LIVE_P (XFRAME (selected_frame))
+      && !EQ (minibuf_window, XFRAME (selected_frame)->minibuffer_window))
     {
+      struct frame *sf = XFRAME (selected_frame);
+      Lisp_Object buffer;
+      
       /* I don't think that any frames may validly have a null minibuffer
 	 window anymore.  */
-      if (NILP (selected_frame->minibuffer_window))
+      if (NILP (sf->minibuffer_window))
 	abort ();
 
-      Fset_window_buffer (selected_frame->minibuffer_window,
-			  XWINDOW (minibuf_window)->buffer);
-      minibuf_window = selected_frame->minibuffer_window;
+      /* Under X, we come here with minibuf_window being the
+	 minibuffer window of the unused termcap window created in
+	 init_window_once.  That window doesn't have a buffer.  */
+      buffer = XWINDOW (minibuf_window)->buffer;
+      if (BUFFERP (buffer))
+	Fset_window_buffer (sf->minibuffer_window, buffer);
+      minibuf_window = sf->minibuffer_window;
     }
 
   /* Make sure no other frame has a minibuffer as its selected window,
@@ -160,7 +168,7 @@ choose_minibuf_frame ()
 
     FOR_EACH_FRAME (tail, frame)
       if (MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (XFRAME (frame))))
-	  && !(XFRAME (frame) == selected_frame
+	  && !(EQ (frame, selected_frame)
 	       && minibuf_level > 0))
 	Fset_frame_selected_window (frame, Fframe_first_window (frame));
   }
@@ -283,7 +291,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   /* If the minibuffer window is on a different frame, save that
      frame's configuration too.  */
   mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
-  if (XFRAME (mini_frame) != selected_frame)
+  if (!EQ (mini_frame, selected_frame))
     record_unwind_protect (Fset_window_configuration,
 			   Fcurrent_window_configuration (mini_frame));
 
@@ -368,8 +376,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 	}
     }
 
-  if (XFRAME (mini_frame) != selected_frame)
-    Fredirect_frame_focus (Fselected_frame (), mini_frame);
+  if (!EQ (mini_frame, selected_frame))
+    Fredirect_frame_focus (selected_frame, mini_frame);
 
   Vminibuf_scroll_window = selected_window;
   Fset_window_buffer (minibuf_window, Fcurrent_buffer ());
@@ -443,7 +451,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
       XWINDOW (minibuf_window)->cursor.hpos = 0;
       XWINDOW (minibuf_window)->cursor.x = 0;
       XWINDOW (minibuf_window)->must_be_updated_p = 1;
-      update_frame (selected_frame, 1, 1);
+      update_frame (XFRAME (selected_frame), 1, 1);
       if (rif && rif->flush_display)
 	rif->flush_display (XFRAME (XWINDOW (minibuf_window)->frame));
     }
