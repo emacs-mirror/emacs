@@ -121,6 +121,7 @@ and then returns."
 				      config nil))
 			   (erase-buffer)
 			   (insert help-screen)
+			   (help-mode)
 			   (goto-char (point-min))
 			   (while (or (memq char (cons help-char '(?? ?\C-v ?\ ?\177 delete ?\M-v)))
 				      (eq (car-safe char) 'switch-frame)
