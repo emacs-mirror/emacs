@@ -282,3 +282,8 @@ Boston, MA 02111-1307, USA.  */
    and the function definitions in libc.  So turn this off.  */
 /* #define REGEXP_IN_LIBC */
 
+/* Use BSD process groups, but use setpgid() instead of setpgrp() to
+   actually set a process group. */
+
+#define BSD_PGRPS
+#define setpgrp(pid,pgid) setpgid((pid),(pgid))
