@@ -1240,7 +1240,8 @@ and the meta character is unread so that it applies to editing the string."
 			(listp (aref key 1))
 			(not (numberp (posn-point 
 				       (event-start (aref key 1))))))
-	       (setq main-event (pop unread-command-events)))
+	       (pop unread-command-events)
+	       (setq main-event (car unread-command-events)))
 
 	     ;; If we got a mouse click, maybe it was read with the buffer
 	     ;; it was clicked on.  If so, that buffer, not the current one,
