@@ -704,14 +704,18 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   return definition;
 }
 
-DEFUN ("defalias", Fdefalias, Sdefalias, 2, 2, 0,
+extern Lisp_Object Qfunction_documentation;
+
+DEFUN ("defalias", Fdefalias, Sdefalias, 2, 3, 0,
        doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
 Associates the function with the current load file, if any.  */)
-     (symbol, definition)
-     register Lisp_Object symbol, definition;
+     (symbol, definition, docstring)
+     register Lisp_Object symbol, definition, docstring;
 {
   definition = Ffset (symbol, definition);
   LOADHIST_ATTACH (symbol);
+  if (!NILP (docstring))
+    Fput (symbol, Qfunction_documentation, docstring);
   return definition;
 }
 
@@ -1209,7 +1213,7 @@ set_internal (symbol, newval, buf, bindflag)
 		 and load that binding.  */
 	      else
 		{
-		  tem1 = Fcons (symbol, Fcdr (current_alist_element));
+		  tem1 = Fcons (symbol, XCDR (current_alist_element));
 		  buf->local_var_alist
 		    = Fcons (tem1, buf->local_var_alist);
 		}
@@ -1411,9 +1415,9 @@ usage: (setq-default SYMBOL VALUE [SYMBOL VALUE...])  */)
   do
     {
       val = Feval (Fcar (Fcdr (args_left)));
-      symbol = Fcar (args_left);
+      symbol = XCAR (args_left);
       Fset_default (symbol, val);
-      args_left = Fcdr (Fcdr (args_left));
+      args_left = Fcdr (XCDR (args_left));
     }
   while (!NILP (args_left));
 
