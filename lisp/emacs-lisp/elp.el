@@ -2,11 +2,11 @@
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;; Author: 1994 Barry A. Warsaw, Century Computing, Inc. <bwarsaw@cen.com>
-;; Maintainer:    bwarsaw@cen.com
+;; Author: 1994 Barry A. Warsaw <bwarsaw@cnri.reston.va.us>
+;; Maintainer:    tools-help@anthem.nlm.nih.gov
 ;; Created:       26-Feb-1994
-;; Version:       2.15
-;; Last Modified: 1994/07/05 13:46:02
+;; Version:       2.18
+;; Last Modified: 1994/09/14 14:00:09
 ;; Keywords:      Emacs Lisp Profile Timing
 
 ;; This file is part of GNU Emacs.
@@ -32,7 +32,7 @@
 ;; profiler.el. Both were written for Emacs 18 and both were pretty
 ;; good first shots at profiling, but I found that they didn't provide
 ;; the functionality or interface that I wanted.  So I wrote this.
-;; I've tested elp in Lucid Emacs 19.9 and Emacs 19.22. There's no
+;; I've tested elp in Lucid Emacs 19.9 and Emacs 19.22.  There's no
 ;; point in even trying to make this work with Emacs 18.
 
 ;; Unlike previous profilers, elp uses Emacs 19's built-in function
@@ -156,7 +156,7 @@ functions will be displayed.")
 ;; end user configuration variables
 
 
-(defconst elp-version "2.15"
+(defconst elp-version "2.18"
   "ELP version number.")
 
 (defconst elp-help-address "tools-help@anthem.nlm.nih.gov"
@@ -179,6 +179,7 @@ This variable is set by the master function.")
   "Master function symbol.")
 
 
+;;;###autoload
 (defun elp-instrument-function (funsym)
   "Instrument FUNSYM for profiling.
 FUNSYM must be a symbol of a defined function."
@@ -232,6 +233,7 @@ FUNSYM must be a symbol of a defined function."
 	      (cons funsym elp-all-instrumented-list)))
     ))
 
+;;;###autoload
 (defun elp-restore-function (funsym)
   "Restore an instrumented function to its original definition.
 Argument FUNSYM is the symbol of a defined function."
@@ -261,6 +263,7 @@ Argument FUNSYM is the symbol of a defined function."
 	 (assq 'elp-wrapper (symbol-function funsym))
 	 (fset funsym (aref info 2)))))
 
+;;;###autoload
 (defun elp-instrument-list (&optional list)
   "Instrument for profiling, all functions in `elp-function-list'.
 Use optional LIST if provided instead."
@@ -268,6 +271,7 @@ Use optional LIST if provided instead."
   (let ((list (or list elp-function-list)))
     (mapcar 'elp-instrument-function list)))
 
+;;;###autoload
 (defun elp-instrument-package (prefix)
   "Instrument for profiling, all functions which start with PREFIX.
 For example, to instrument all ELP functions, do the following:
@@ -437,6 +441,7 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 	(insert avetime))
       (insert "\n"))))
 
+;;;###autoload
 (defun elp-results ()
   "Display current profiling results.
 If `elp-reset-after-results' is non-nil, then current profiling
@@ -508,6 +513,7 @@ displayed."
 (eval-when-compile
  (require 'reporter))
 
+;;;###autoload
 (defun elp-submit-bug-report ()
   "Submit via mail, a bug report on elp."
   (interactive)
