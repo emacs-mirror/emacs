@@ -37,7 +37,9 @@ This menu allows you to turn various display features on and off (like
 tool bar and the menu bar itself).  You can also move the vertical
 scroll bar to either side here or turn it off completely.
 
-** Emacs can now indicate presence of new e-mails in directory.
+** Emacs can now indicate in the mode-line the presence of new e-mails in
+directory in addition to file.  See the documentation of the user option
+`display-time-mail-directory'.
 
 +++
 ** The new option `Info-scroll-prefer-subnodes' causes Info to behave
