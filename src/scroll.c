@@ -254,7 +254,7 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
 	 current_frame->height * sizeof (int));
 
 #ifdef HAVE_X_WINDOWS
-  if (FRAME_IS_X (frame))
+  if (FRAME_X_P (frame))
     {
       bcopy (current_frame->nruns, temp_frame->nruns,
 	     current_frame->height * sizeof (int));
