@@ -1433,6 +1433,12 @@ specifies the character set for the major languages of Western Europe."
 			   default-buffer-file-coding-system)))
     (reset-language-environment)
 
+    ;; The fetaures might set up coding systems.
+    (let ((required-features (get-language-info language-name 'features)))
+      (while required-features
+	(require (car required-features))
+	(setq required-features (cdr required-features))))
+
     (setq current-language-environment language-name)
     (set-language-environment-coding-systems language-name default-eol-type))
   (let ((input-method (get-language-info language-name 'input-method)))
@@ -1659,10 +1665,6 @@ of buffer-file-coding-system set by this function."
 (defconst locale-language-names
   (purecopy
    '(
-     ;; UTF-8 is not yet implemented.
-     ;; Put this first, so that e.g. "ko.UTF-8" does not match "ko" below.
-     (".*[._]utf" . nil)
-
     ;; Locale names of the form LANGUAGE[_TERRITORY][.CODESET][@MODIFIER]
     ;; as specified in the Single Unix Spec, Version 2.
     ;; LANGUAGE is a language code taken from ISO 639:1988 (E/F)
@@ -1682,8 +1684,8 @@ of buffer-file-coding-system set by this function."
     ; ay Aymara
     ; az Azerbaijani
     ; ba Bashkir
-    ("be" . "Latin-5") ; Byelorussian
-    ("bg" . "Latin-5") ; Bulgarian
+    ("be" . "Belarussian") ; Belarussian [Byelorussian]
+    ("bg" . "Bulgarian") ; Bulgarian
     ; bh Bihari
     ; bi Bislama
     ; bn Bengali, Bangla
@@ -1730,7 +1732,7 @@ of buffer-file-coding-system set by this function."
     ; iu Inuktitut
     ("ja" . "Japanese")
     ; jw Javanese
-    ; ka Georgian
+    ("ka" . "Georgian") ; Georgian
     ; kk Kazakh
     ("kl" . "Latin-1") ; Greenlandic
     ; km Cambodian
@@ -1744,8 +1746,8 @@ of buffer-file-coding-system set by this function."
     ("lb" . "Latin-1") ; Luxemburgish
     ; ln Lingala
     ("lo" . "Lao") ; Laothian
-    ("lt" . "Latin-4") ; Lithuanian
-    ("lv" . "Latin-4") ; Latvian, Lettish
+    ("lt" . "Lithuanian")
+    ("lv" . "Latvian") ; Latvian, Lettish
     ; mg Malagasy
     ("mi" . "Latin-7") ; Maori
     ("mk" . "Latin-5") ; Macedonian
@@ -1794,7 +1796,7 @@ of buffer-file-coding-system set by this function."
     ("sw" . "Latin-1") ; Swahili
     ; ta Tamil  glibc uses utf-8
     ; te Telugu  glibc uses utf-8
-    ; tg Tajik "Cyrillic-KOI8-T"
+    ("tg" . "Cyrillic-KOI8-T") ; Tajik
     ("th" . "Thai")
     ; ti Tigrinya
     ; tk Turkmen
@@ -1806,14 +1808,14 @@ of buffer-file-coding-system set by this function."
     ; tt Tatar
     ; tw Twi
     ; ug Uighur
-    ("uk" . "Latin-5") ; Ukrainian
+    ("uk" . "Ukrainian") ; Ukrainian
     ; ur Urdu  glibc uses utf-8
     ("uz" . "Latin-1") ; Uzbek
     ("vi" . "Vietnamese") ;  glibc uses utf-8
     ; vo Volapuk
     ; wo Wolof
     ; xh Xhosa
-    ; yi Yiddish
+    ("yi" . "Windows-1255") ; Yiddish
     ; yo Yoruba
     ; za Zhuang
 
@@ -1863,7 +1865,7 @@ If the language name is nil, there is no corresponding language environment.")
      (".*8859[-_]?14\\>" . "Latin-8")
      (".*8859[-_]?15\\>" . "Latin-9")
      (".*@euro\\>" . "Latin-9")
-     ))
+     (".*utf\\(-?8\\)\\>" . "UTF-8")))
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name whose charsets corresponds to that locale.
@@ -1876,7 +1878,7 @@ the language name that would otherwise be used for this locale.")
      ("ja.*[._]jis7" . iso-2022-jp)
      ("ja.*[._]pck" . japanese-shift-jis)
      ("ja.*[._]sjis" . japanese-shift-jis)
-     ))
+     (".*[._]utf" . utf-8)))
   "List of pairs of locale regexps and preferred coding systems.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the coding system to prefer when using that locale.")
