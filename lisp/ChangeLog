@@ -1,3 +1,10 @@
+2002-05-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el: (f90-end-of-subprogram): Remove the final
+	`forward-line'.
+	(f90-end-of-block, f90-beginning-of-block, f90-next-block-end)
+	(f90-previous-block-start): New navigation commands.
+
 2002-05-20  Simon Josefsson  <jas@extundo.com>
 
 	* fringe.el: New file.
