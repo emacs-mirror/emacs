@@ -1,6 +1,11 @@
-2002-06-02  Kim F. Storm  <storm@cua.dk>
+2002-06-01  Richard M. Stallman  <rms@gnu.org>
 
-	* simple.el: Reworked 2001-06-01 change.
+	* simple.el (choose-completion-string-functions): Doc fix.
+	(choose-completion-string): Add doc string.
+
+2002-06-01  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el: Reworked previous change.
 	(choose-completion-string1): Merged back into choose-completion-string.
 	(choose-completion-string): Run choose-completion-string-functions
 	after checking for proper minibuffer window.  Added mini-p arg to
