@@ -595,7 +595,7 @@ If START or END is negative, it counts from the end."
 	     (if end
 		 (let ((res nil))
 		   (while (>= (setq end (1- end)) start)
-		     (cl-push (cl-pop seq) res))
+		     (push (pop seq) res))
 		   (nreverse res))
 	       (copy-sequence seq)))
 	    (t
