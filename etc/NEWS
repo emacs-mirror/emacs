@@ -953,6 +953,18 @@ expression from that list, are not checked.
 
 ** New modes and packages
 
+*** The new package called `woman' allows to browse Unix man pages
+without invoking external programs.
+
+The command `M-x woman' formats manual pages entirely in Emacs Lisp
+and then displays them, like `M-x manual-entry' does.  Unlike
+`manual-entry', `woman' does not invoke any external programs, so it
+is useful on systems such as MS-DOS/MS-Windows where the `man' and
+Groff or `troff' are not readily available.
+
+The command `M-x woman-find-file' asks for the file name of a man
+page, then formats and displays it like `M-x woman' does.
+
 *** The new command M-x re-builder offers a convenient interface for
 authoring regular expressions with immediate visual feedback.
 
