@@ -391,11 +391,12 @@ See also the command `toggle-auto-composition'.")
        ,@body
        (unless modified
 	 (restore-buffer-modified-p nil))))
-  (put 'save-buffer-state 'lisp-indent-function 1)
   ;; Fixme: This makes bootstrapping fail with this error.
   ;;   Symbol's function definition is void: eval-defun
   ;;(def-edebug-spec save-buffer-state let)
   )
+
+(put 'save-buffer-state 'lisp-indent-function 1)
 
 (defun auto-compose-chars (pos string)
   "Compose characters after the buffer position POS.
@@ -404,38 +405,35 @@ In that case, compose characters in the string.
 
 This function is the default value of `auto-composition-function' (which see)."
   (save-buffer-state nil
-    (save-excursion
-      (save-restriction
-	(save-match-data
-	  (let ((start pos)
-		(limit (next-single-property-change pos 'auto-composed string))
-		ch func newpos)
-	    (if limit
-		(setq limit (1+ limit))
-	      (setq limit (if string (length string) (point-max))))
-	    (catch 'tag
-	      (if string
-		  (while (< pos limit)
-		    (setq ch (aref string pos)
-			  pos (1+ pos))
-		    (if (= ch ?\n)
-			(throw 'tag nil))
-		    (setq func (aref composition-function-table ch))
-		    (if (and (functionp func)
-			     (setq newpos (funcall func (1- pos) string))
-			     (> newpos pos))
-			(setq pos newpos)))
-		(while (< pos limit)
-		  (setq ch (char-after pos)
-			pos (1+ pos))
-		  (if (= ch ?\n)
-		      (throw 'tag nil))
-		  (setq func (aref composition-function-table ch))
-		  (if (and (functionp func)
-			   (setq newpos (funcall func (1- pos) string))
-			   (> newpos pos))
-		      (setq pos newpos)))))
-	    (put-text-property start pos 'auto-composed t string)))))))
+    (save-match-data
+      (let ((start pos)
+	    (limit (if string (length string) (point-max)))
+	    ch func newpos)
+	(setq limit (or (text-property-any pos limit 'auto-composed t string)
+			limit))
+	(catch 'tag
+	  (if string
+	      (while (< pos limit)
+		(setq ch (aref string pos))
+		(if (= ch ?\n)
+		    (throw 'tag nil))
+		(setq func (aref composition-function-table ch))
+		(if (and (functionp func)
+			 (setq newpos (funcall func pos string))
+			 (> newpos pos))
+		    (setq pos newpos)
+		  (setq pos (1+ pos))))
+	    (while (< pos limit)
+	      (setq ch (char-after pos))
+	      (if (= ch ?\n)
+		  (throw 'tag nil))
+	      (setq func (aref composition-function-table ch))
+	      (if (and (functionp func)
+		       (setq newpos (funcall func pos string))
+		       (> newpos pos))
+		  (setq pos newpos)
+		(setq pos (1+ pos))))))
+	(put-text-property start pos 'auto-composed t string)))))
 
 (setq auto-composition-function 'auto-compose-chars)
 
