@@ -1295,13 +1295,13 @@ This is based on the last time the `strokes-window-configuration was updated."
 		  (erase-buffer)
 		  (emacs-lisp-mode)
 		  (goto-char (point-min))
-		  (insert-string
+		  (insert
 		   ";;   -*- Syntax: Emacs-Lisp; Mode: emacs-lisp -*-\n")
-		  (insert-string (format ";;; saved strokes for %s, as of %s\n\n"
+		  (insert (format ";;; saved strokes for %s, as of %s\n\n"
 					 (user-full-name)
 					 (format-time-string "%B %e, %Y" nil)))
 		  (message "Saving strokes in %s..." strokes-file)
-		  (insert-string (format "(setq strokes-global-map '%s)"
+		  (insert (format "(setq strokes-global-map '%s)"
 					 (pp current)))
 		  (message "Saving strokes in %s..." strokes-file)
 		  (indent-region (point-min) (point-max) nil)
