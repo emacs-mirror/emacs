@@ -870,14 +870,10 @@ This function runs `rmail-get-new-mail-hook' before saving the updated file."
 		(rmail-update-summary)))
 	  (message "%d new message%s read"
 		   new-messages (if (= 1 new-messages) "" "s"))
-	  (and (boundp 'display-time-string)
-	       (stringp display-time-string)
-	       (string-match " Mail" display-time-string)
-	       (setq display-time-string
-		     (concat
-		      (substring display-time-string 0 (match-beginning 0))
-		      (substring display-time-string (match-end 0))))
-	       (force-mode-line-update 'all))))
+	  ;; Update the displayed time, since that will clear out
+	  ;; the flag that says you have mail.
+	  (if (eq (process-status "display-time") 'run)
+	      (display-time-filter display-time-process ""))))
     ;; Don't leave the buffer screwed up if we get a disk-full error.
     (rmail-show-message)))
 
