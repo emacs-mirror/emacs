@@ -109,7 +109,7 @@ the number of seconds to use instead of `clean-buffer-list-delay-special'.
 See also `clean-buffer-list-kill-buffer-names',
 `clean-buffer-list-kill-never-regexps' and
 `clean-buffer-list-kill-never-buffer-names'."
-  :type '(repeat regexp)
+  :type '(repeat (regexp :tag "Regexp matching Buffer Name"))
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-buffer-names
@@ -124,7 +124,7 @@ the number of seconds to use instead of `clean-buffer-list-delay-special'.
 See also `clean-buffer-list-kill-regexps',
 `clean-buffer-list-kill-never-regexps' and
 `clean-buffer-list-kill-never-buffer-names'."
-  :type '(repeat string)
+  :type '(repeat (string :tag "Buffer Name"))
   :group 'midnight)
 
 (defcustom clean-buffer-list-kill-never-buffer-names
@@ -134,7 +134,7 @@ See also `clean-buffer-list-kill-never-regexps'.
 Note that this does override `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' so a buffer matching any of these
 two lists will NOT be killed if it is also present in this list."
-  :type '(repeat string)
+  :type '(repeat (string :tag "Buffer Name"))
   :group 'midnight)
 
 
@@ -145,7 +145,7 @@ Killing is done by `clean-buffer-list'.
 Note that this does override `clean-buffer-list-kill-regexps' and
 `clean-buffer-list-kill-buffer-names' so a buffer matching any of these
 two lists will NOT be killed if it also matches anything in this list."
-  :type '(repeat regexp)
+  :type '(repeat (regexp :tag "Regexp matching Buffer Name"))
   :group 'midnight)
 
 (defun midnight-find (el ls test &optional key)
