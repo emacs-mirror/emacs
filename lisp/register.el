@@ -68,14 +68,18 @@ Argument is a character, naming the register."
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
   (interactive "cWindow configuration to register: \nP")
-  (set-register register (current-window-configuration)))
+  ;; current-window-configuration does not include the value
+  ;; of point in the current buffer, so record that separately.
+  (set-register register (list (current-window-configuration) (point))))
 
 (defun frame-configuration-to-register (register &optional arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
   (interactive "cFrame configuration to register: \nP")
-  (set-register register (current-frame-configuration)))
+  ;; current-frame-configuration does not include the value
+  ;; of point in the current buffer, so record that separately.
+  (set-register register (list (current-frame-configuration) (point))))
 
 (defalias 'register-to-point 'jump-to-register)
 (defun jump-to-register (register &optional delete)
@@ -91,11 +95,12 @@ delete any existing frames that the frame configuration doesn't mention.
   (interactive "cJump to register: \nP")
   (let ((val (get-register register)))
     (cond
-     ((and (fboundp 'frame-configuration-p)
-	   (frame-configuration-p val))
-      (set-frame-configuration val (not delete)))
-     ((window-configuration-p val)
-      (set-window-configuration val))
+     ((and (consp val) (frame-configuration-p (car val)))
+      (set-frame-configuration (car val) (not delete))
+      (goto-char (cadr val)))
+     ((and (consp val) (window-configuration-p (car val)))
+      (set-window-configuration (car val))
+      (goto-char (cadr val)))
      ((markerp val)
       (or (marker-buffer val)
 	  (error "That register's buffer no longer exists"))
