@@ -98,7 +98,7 @@
 (define-key calendar-mode-map [menu-bar goto hebrew]
   '("Hebrew date" . calendar-goto-hebrew-date))
 (define-key calendar-mode-map [menu-bar goto astro]
-  '("Astronomical date" . calendar-goto-astro-date))
+  '("Astronomical date" . calendar-goto-astro-day-number))
 (define-key calendar-mode-map [menu-bar goto iso]
   '("ISO date" . calendar-goto-iso-date))
 (define-key calendar-mode-map [menu-bar goto gregorian]
