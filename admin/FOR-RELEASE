@@ -104,29 +104,6 @@ interrupting I can get a backtrace, here's an example:
 Update: Maybe only reveals itself when compiled with GTK+
 
 
-** Mouse-face overlay bleeds into header line
-
-From: Stephen Berman <Stephen.Berman@gmx.net>
-Date: Thu, 21 Oct 2004 18:11:01 +0200
-
-Mouse-face overlays bleed into the header line when the beginning of
-the overlay is above (point-min).  To reproduce:
-
-1. Start Emacs with -q -no-site-file.
-
-2. In *scratch* eval (setq ov (make-overlay 66 92)), (overlay-put ov
-'mouse-face 'highlight), and (setq header-line-format "test").
-
-3. Drag the mouse over the string "evaluation.\n;; If you want" and
-notice the highlighting of only this string.
-
-4. Now click on the down arrow in the scroll bar until the line
-beginning ";; If you want" is directly below the header line.
-
-5. Drag the mouse over ";; If you want" and notice that not only it
-but also the header line are highlighted.
-
-
 ** scroll-preserve-screen-position doesn't work with a header-line-format
 
 From: jbyler+emacs-lists@anon41.eml.cc
