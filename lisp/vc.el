@@ -1743,12 +1743,15 @@ A prefix argument means do not revert the buffer afterwards."
 
 ;;;###autoload
 (defun vc-update-change-log (&rest args)
-  "Find change log file and add entries from recent RCS logs.
+  "Find change log file and add entries from recent RCS/CVS logs.
 The mark is left at the end of the text prepended to the change log.
 With prefix arg of C-u, only find log entries for the current buffer's file.
 With any numeric prefix arg, find log entries for all files currently visited.
-Otherwise, find log entries for all registered files in the default directory.
-From a program, any arguments are passed to the `rcs2log' script."
+Otherwise, find log entries for all registered files in the default
+directory using `rcs2log', which finds CVS logs preferentially.
+From a program, any arguments are assumed to be filenames and are
+passed to the `rcs2log' script after massaging to be relative to the
+default directory."
   (interactive
    (cond ((consp current-prefix-arg)	;C-u
 	  (list buffer-file-name))
@@ -1763,14 +1766,9 @@ From a program, any arguments are passed to the `rcs2log' script."
 	      (setq buffers (cdr buffers)))
 	    files))
 	 (t
-	  (let ((RCS (concat default-directory "RCS")))
-	    (and (file-directory-p RCS)
-		 (mapcar (function
-			  (lambda (f)
-			    (if (string-match "\\(.*\\),v$" f)
-				(substring f 0 (match-end 1))
-			      f)))
-			 (directory-files RCS nil "...\\|^[^.]\\|^.[^.]")))))))
+	  ;; `rcs2log' will find the relevant RCS or CVS files
+	  ;; relative to the curent directory if none supplied.
+	  nil)))
   (let ((odefault default-directory)
 	(full-name (or add-log-full-name
 		       (user-full-name)))
@@ -1784,21 +1782,20 @@ From a program, any arguments are passed to the `rcs2log' script."
     (push-mark)
     (message "Computing change log entries...")
     (message "Computing change log entries... %s"
-	     (if (or (null args)
-		     (eq 0 (apply 'call-process "rcs2log" nil t nil
-				  "-u"
-				  (concat (user-login-name)
-					  "\t"
-					  full-name
-					  "\t"
-					  mailing-address)
-				  (mapcar (function
-					   (lambda (f)
-					     (file-relative-name
-					      (if (file-name-absolute-p f)
-						  f
-						(concat odefault f)))))
-					  args))))
+	     (if (eq 0 (apply 'call-process "rcs2log" nil '(t nil) nil
+			      "-u"
+			      (concat (user-login-name)
+				      "\t"
+				      full-name
+				      "\t"
+				      mailing-address)
+			      (mapcar (function
+				       (lambda (f)
+					 (file-relative-name
+					  (if (file-name-absolute-p f)
+					      f
+					    (concat odefault f)))))
+				      args)))
 		 "done" "failed"))))
 
 ;; Collect back-end-dependent stuff here
