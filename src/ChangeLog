@@ -1,3 +1,7 @@
+2001-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* bytecode.c (Fbyte_code): Undo previous change.
+
 2001-12-26  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (record_char): Ignore duplicate help-echo events only
