@@ -199,8 +199,8 @@ The defun marked is the one that contains point or follows point."
 (defun insert-parentheses (arg)
   "Put parentheses around next ARG sexps.  Leave point after open-paren.
 No argument is equivalent to zero: just insert `()' and leave point between.
-This command also sometimes inserts a space before and after,
-depending on the surrounding characters."
+If `parens-require-spaces' is non-nil, this command also inserts a space
+before and after, depending on the surrounding characters."
   (interactive "P")
   (if arg (setq arg (prefix-numeric-value arg))
     (setq arg 0))
