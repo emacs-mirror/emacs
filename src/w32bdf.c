@@ -634,6 +634,9 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
   font->bdf = bdf_font;
   font->hfont = 0;
 
+  /* NTEMACS_TODO: Recognize DBCS fonts. */
+  font->double_byte_p = 0;
+
   /* Do we need to create the table?  */
   if (dpyinfo->font_table_size == 0)
     {
