@@ -127,6 +127,8 @@ Boston, MA 02111-1307, USA.  */
 /* SCO Unix has Posix signals, but in 3.2.5 something broken that causes
  * all keyboard-quit signals to be lost after the first one. */
 #undef POSIX_SIGNALS
+
+#define SIGMASKTYPE long
 extern SIGMASKTYPE sigprocmask_set;
 #define sigblock(sig)					\
      (sigprocmask_set = SIGEMPTYMASK | (sig),		\
