@@ -1,3 +1,23 @@
+2001-11-13  Colin Walters  <walters@debian.org>
+
+	* calc/calc.el (calc-unread-command): Use `unread-command-events'.
+
+	* calc/calc-mode.el (calc-settings-file-name): Don't hardcode
+	"~/.emacs"; use `read-file-name'.
+
+	* calc/calc-graph.el, calc/calc-embed.el, calc/calc-graph.el
+        * calc/calc-misc.el, calc/calc-mode.el, calc/calc-prog.el
+ 	* calc/calc-sel.el, calc/calc-store.el, calc/calc-yank.el
+	* calc/calc.el: Use `frame-width' instead of `screen-width',
+	`frame-height' instead of `screen-height', and,
+	`executing-kbd-macro' instead of `executing-macro'.
+
+	* calc/calc-embed.el (calc-do-embedded): Call `y-or-n-p' with
+	correct number of arguments.
+
+	* calc/calc-aent.el (calc-do-alg-entry): Use
+	`blink-paren-function' instead of `blink-paren-hook'.
+
 2001-11-12  Richard M. Stallman  <rms@gnu.org>
 
 	* calendar/todo-mode.el (todo-save): Add save-excursion
