@@ -1,8 +1,9 @@
 ;;; refer.el --- look up references in bibliography files.
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996 Free Software Foundation, Inc.
 
-;; Author: Ashwin Ram <Ram-Ashwin@cs.yale.edu>
+;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
+;; Maintainer: Gernot Heiser <gernot@jungfrau.disy.cse.unsw.EDU.AU>
 ;; Adapted-By: ESR
 ;; Keywords: bib
 
@@ -43,6 +44,13 @@
 ;;      of the keywords, use refer-find-next-entry, or invoke refer-find-entry
 ;;      with a prefix argument.
 ;;
+;;	Once you've found the entry you want to reference, invoke
+;;	refer-yank-key to insert it at point in the current buffer
+;;	(typically as the argument of a \cite{} command).
+;;
+;;	I use (define-key tex-mode-map    "\C-c\C-y"  'refer-yank-key)
+;;	to bind this often-used function to a key in (la)tex-mode.
+;;
 ;;      If the list of bibliography files changes, reinitialize the variable
 ;;      refer-bib-files.
 ;;
@@ -60,22 +68,35 @@
 ;;      entries, try setting the paragraph-start/separate variables, or changing
 ;;      the (forward-paragraph 1) call in refer-find-entry-in-file.
 
-;;; ChangeLog:
-
-;; 01/08/89 Ashwin Ram <Ram-Ashwin@cs.yale.edu>
-;;          Initial release.
-;;
-
 ;;; Code:
 
 (provide 'refer)
+
+(defvar refer-bib-directory nil
+  "Directory, or list of directories, to search for \\.bib files. Can
+be set to 'bibinputs or 'texinputs, in which case the environment
+variable BIBINPUTS or TEXINPUTS, respectively, is used to obtain a
+list of directories.  Useful only if refer-bib-files is set to 'dir or
+a list of file names (without directory). A value of nil indicates the
+current working directory.
+
+If refer-bib-directory is 'bibinputs or 'texinputs, it is setq'd to
+the appropriate list of directories when it is first used.
+
+Note that an empty directory is interpreted by BibTeX as indicating
+the default search path. Since Refer does not know that default path,
+it cannot search it. Include that path explicitly in your BIBINPUTS
+environment if you really want it searched (which is not likely to
+happen anyway).")
 
 (defvar refer-bib-files 'dir
    "*List of \\.bib files to search for references,
 or one of the following special values:
 nil  = prompt for \\.bib file (if visiting a \\.bib file, use it as default)
-auto = read \\.bib file names from appropriate command in buffer (see refer-bib-files-regexp)
-dir  = use all \\.bib files in current directory.
+auto = read \\.bib file names from appropriate command in buffer (see
+       refer-bib-files-regexp) unless the buffer's mode is bibtex-mode,
+       in which case only the buffer is searched
+dir  = use all \\.bib files in directories referenced by refer-bib-directory.
 
 If a specified file doesn't exist and has no extension, a \\.bib extension
 is automatically tried.
@@ -96,7 +117,7 @@ each time it is needed.")
 The current buffer is expected to contain a line such as
 \\bibliography{file1,file2,file3}
 which is read to set up refer-bib-files.  The regexp must specify the command
-\(such as \\bibliography) that is used to specify the list of bib files.  The
+(such as \\bibliography) that is used to specify the list of bib files.  The
 command is expected to specify a file name, or a list of comma-separated file
 names, within curly braces.
 If a specified file doesn't exist and has no extension, a \\.bib extension
@@ -104,6 +125,13 @@ is automatically tried.")
 
 (make-variable-buffer-local 'refer-bib-files)
 (make-variable-buffer-local 'refer-cache-bib-files)
+(make-variable-buffer-local 'refer-bib-directory)
+
+;;; Internal variables
+(defvar refer-saved-state nil)
+(defvar refer-previous-keywords nil)
+(defvar refer-saved-pos nil)
+(defvar refer-same-file nil)
 
 (defun refer-find-entry (keywords &optional continue)
    "Find entry in refer-bib-files containing KEYWORDS.
@@ -113,7 +141,7 @@ entry by continuing search from previous point."
    (interactive (list nil current-prefix-arg))
    (or keywords (setq keywords (if continue
                                    refer-previous-keywords
-                                   (read-string "Keywords: "))))
+                                 (read-string "Keywords: "))))
    (setq refer-previous-keywords keywords)
    (refer-find-entry-internal keywords continue))
 
@@ -122,59 +150,113 @@ entry by continuing search from previous point."
    (interactive)
    (refer-find-entry-internal refer-previous-keywords t))
 
+(defun refer-yank-key ()
+  "Inserts at point in current buffer the \"key\" field of the entry
+found on the last refer-find-entry or refer-find-next-entry."
+  (interactive)
+  (let ((old-point (point)))
+    (insert
+     (save-window-excursion
+       (save-excursion
+         (find-file (car refer-saved-state))
+         (if (looking-at
+              "[ \t\n]*@\\s-*[a-zA-Z][a-zA-Z0-9]*\\s-*{\\s-*\\([^ \t\n,]+\\)\\s-*,")
+             (buffer-substring (match-beginning 1) (match-end 1))
+           (error "Cannot find key for entry in file %s."
+                  (car refer-saved-state))))))
+    (if (not (= (point) old-point))
+      (set-mark old-point))))
+
 (defun refer-find-entry-internal (keywords continue)
    (let ((keywords-list (refer-convert-string-to-list-of-strings keywords))
+         (old-buffer (current-buffer))
+         (old-window (selected-window))
+         (new-window (selected-window))
          (files (if continue
                     refer-saved-state
-                    (refer-get-bib-files))))
-      (catch 'found
-         (while files
-            (let ((file (cond ((file-exists-p (car files)) (car files))
-                              ((file-exists-p (concat (car files) ".bib")) (concat (car files) ".bib")))))
-               (setq refer-saved-state files)
-               (if file
-                   (if (refer-find-entry-in-file keywords-list file continue)
-                       (throw 'found (find-file file))
-                       (setq files (cdr files)))
-                   (progn (message "Scanning %s... No such file" (car files) (ding))
-                          (sit-for 1)
-                          (setq files (cdr files))))))
-         (message "Keywords \"%s\" not found in any \.bib file" keywords (ding)))))
+                  (setq refer-saved-pos nil)
+                  (refer-get-bib-files)))
+         (n 0)
+         (found nil)
+         (file nil))
+     ;; find window in which to display bibliography file.
+     ;; if a bibliography file is already displayed in a window, use
+     ;; that one, otherwise use any window other than the current one
+     (while (not found)
+       (while (and (not (null (setq file (nth n files))))
+                   (setq n (1+ n))
+                   (not (string-equal file
+                                      (buffer-file-name
+                                       (window-buffer new-window))))))
+       (setq found
+             (if (null file)
+                 (eq (setq new-window (next-window new-window 'nomini))
+                     old-window)
+               't)))
+     (if (null file)                     ; didn't find bib file in any window:
+         (progn (if (one-window-p 'nomini)
+                    (setq old-window (split-window)))
+                (setq new-window (next-window old-window 'nomini))))
+     (select-window (if refer-same-file
+                        old-window
+                      new-window))  ; the window in which to show the bib file
+     (catch 'found
+       (while files
+         (let ((file (cond ((file-exists-p (car files)) (car files))
+                           ((file-exists-p (concat (car files) ".bib"))
+                            (concat (car files) ".bib")))))
+           (setq refer-saved-state files)
+           (if file
+               (if (refer-find-entry-in-file keywords-list file refer-saved-pos)
+                   (progn
+                     (setq refer-saved-pos (point))
+                     (recenter 0)
+                     (throw 'found (find-file file)))
+                 (setq refer-saved-pos nil
+                       files (cdr files)))
+             (progn (message "Scanning %s... No such file" (car files) (ding))
+                    (sit-for 1)
+                    (setq files (cdr files))))))
+       (message "Keywords \"%s\" not found in any \.bib file" keywords (ding)))
+     (select-window old-window)))
 
-(defun refer-find-entry-in-file (keywords-list file &optional continue)
-   (message "Scanning %s..." file) ; (expand-file-name file)
+(defun refer-find-entry-in-file (keywords-list file &optional old-pos)
+   (message "Scanning %s..." file)
+   (expand-file-name file)
    (set-buffer (find-file-noselect file))
-   (if continue
-       (forward-paragraph 1)
-       (goto-char (point-min)))
+   (find-file file)
+   (if (not old-pos)
+       (goto-char (point-min))
+     (goto-char old-pos)
+     (forward-paragraph 1))
    (let ((begin (point))
          (end 0)
          (found nil))
-      (while (and (not found)
-                  (not (eobp)))
-         (forward-paragraph 1)
-         (setq end (point))
-         (setq found
-               (refer-every (function (lambda (keyword)
-					(goto-char begin)
-					(re-search-forward keyword end t)))
-			    keywords-list))
-         (if (not found)
-             (progn
-                (setq begin end)
-                (goto-char begin))))
-      (if found
-          (progn (goto-char begin)
-                 (re-search-forward "\\W" nil t)
-                 (message "Scanning %s... found" file))
-          (progn (message "Scanning %s... not found" file)
-                 nil))))
+     (while (and (not found)
+                 (not (eobp)))
+       (forward-paragraph 1)
+       (setq end (point))
+       (setq found
+             (refer-every (function (lambda (keyword)
+                                (goto-char begin)
+                                (re-search-forward keyword end t)))
+                    keywords-list))
+       (if (not found)
+           (progn
+             (setq begin end)
+             (goto-char begin))))
+     (if found
+         (progn (goto-char begin)
+                (re-search-forward "\\W" nil t)
+                (message "Scanning %s... found" file))
+       (progn (message "Scanning %s... not found" file)
+              nil))))
 
 (defun refer-every (pred l)
-   (cond ((null l) nil)
-         ((funcall pred (car l))
-          (or (null (cdr l))
-              (refer-every pred (cdr l))))))
+  (cond ((null l) nil)
+	((funcall pred (car l))
+	 (or (null (cdr l))
+	     (refer-every pred (cdr l))))))
 
 (defun refer-convert-string-to-list-of-strings (s)
    (let ((current (current-buffer))
@@ -192,39 +274,114 @@ entry by continuing search from previous point."
       (prog1 (read temp-buffer)
          (set-buffer current))))
 
+(defun refer-expand-files (file-list dir-list)
+  (let (file files dir dirs)
+    (while (setq file (car file-list))
+      (setq dirs (copy-alist dir-list))
+      (while (setq dir (car dirs))
+        (if (file-exists-p (expand-file-name file dir))
+            (setq files (append files (list (expand-file-name file dir)))
+                  dirs  nil)
+          (if (file-exists-p (expand-file-name (concat file ".bib") dir))
+              (setq files (append files (list (expand-file-name (concat file ".bib")
+                                                                dir)))
+                    dirs  nil)
+            (setq dirs (cdr dirs)))))
+      (setq file-list (cdr file-list)))
+    files))
+
 (defun refer-get-bib-files ()
-   (let ((files
-           (cond ((null refer-bib-files) 
-                  (list (expand-file-name
-                          (if (eq major-mode 'bibtex-mode)
-                              (read-file-name (format ".bib file: (default %s) " (file-name-nondirectory (buffer-file-name)))
-                                              (file-name-directory (buffer-file-name))
-                                              (file-name-nondirectory (buffer-file-name))
-                                              t)
-                              (read-file-name ".bib file: " nil nil t)))))
-                 ((listp refer-bib-files) refer-bib-files)
-                 ((eq refer-bib-files 'auto)
-                  (save-excursion
-                     (if (progn (goto-char (point-min))
-                                (re-search-forward (concat refer-bib-files-regexp "\{") nil t))
-                         (let ((files (list (buffer-substring (point)
-                                                              (progn (re-search-forward "[,\}]" nil t)
-                                                                     (backward-char 1)
-                                                                     (point))))))
-                            (while (not (looking-at "\}"))
-                               (setq files (append files
-                                                   (list (buffer-substring (progn (forward-char 1)
-                                                                                  (point))
-                                                                           (progn (re-search-forward "[,\}]" nil t)
-                                                                                  (backward-char 1)
-                                                                                  (point)))))))
-                            files)
-                         (error "No \\\\bibliography command in this buffer, can't read refer-bib-files"))))
-                 ((eq refer-bib-files 'dir)
-                  (directory-files "." t "\\.bib$"))
-                 (t (error "Illegal value for refer-bib-files: %s" refer-bib-files)))))
-      (if refer-cache-bib-files
-          (setq refer-bib-files files))
-      files))
+  (let* ((dir-list
+          (cond
+           ((null refer-bib-directory)
+            '("."))
+           ((or (eq refer-bib-directory 'texinputs)
+                (eq refer-bib-directory 'bibinputs))
+            (let ((envvar (getenv (if (eq refer-bib-directory 'texinputs)
+                                      "TEXINPUTS"
+                                    "BIBINPUTS")))
+                  (dirs nil))
+              (if (null envvar)
+                  (setq envvar "."))
+              (while (string-match ":" envvar)
+		(let ((dir (substring envvar 0 (match-beginning 0))))
+		  (if (and (not (string-equal "" dir))
+                           (file-directory-p dir))
+		      (setq dirs (append (list (expand-file-name dir nil))
+                                         dirs))))
+                (setq envvar (substring envvar (match-end 0))))
+	      (if (and (not (string-equal "" envvar))
+                       (file-directory-p envvar))
+		  (setq dirs (append (list envvar) dirs)))
+              (setq dirs (nreverse dirs))))
+	   ((listp refer-bib-directory)
+	    refer-bib-directory)
+           (t
+            (list refer-bib-directory))))
+         (files
+           (cond
+            ((null refer-bib-files) 
+             (list (expand-file-name
+                    (if (eq major-mode 'bibtex-mode)
+                        (read-file-name
+                         (format ".bib file: (default %s) "
+                                 (file-name-nondirectory
+                                  (buffer-file-name)))
+                         (file-name-directory (buffer-file-name))
+                         (file-name-nondirectory (buffer-file-name))
+                         t)
+                      (read-file-name ".bib file: " nil nil t)))))
+            ((eq refer-bib-files 'auto)
+             (let ((files
+                    (save-excursion
+                      (if (setq refer-same-file (eq major-mode 'bibtex-mode))
+                          (list buffer-file-name)
+                        (if (progn
+                              (goto-char (point-min))
+                              (re-search-forward (concat refer-bib-files-regexp
+                                                         "\\s-*\{") nil t))
+                            (let ((files (list (buffer-substring
+                                                (point)
+                                                (progn
+                                                  (re-search-forward "[,\}]"
+                                                                     nil t)
+                                                  (backward-char 1)
+                                                  (point))))))
+                              (while (not (looking-at "\}"))
+                                (setq files (append files
+                                                    (list (buffer-substring
+                                                           (progn (forward-char 1)
+                                                                  (point))
+                                                           (progn (re-search-forward
+                                                                   "[,\}]" nil t)
+                                                                  (backward-char 1)
+                                                                  (point)))))))
+                              files)
+                          (error (concat "No \\\\bibliography command in this "
+                                         "buffer, can't read refer-bib-files")))))))
+               (refer-expand-files files dir-list)))
+            ((eq refer-bib-files 'dir)
+             (let ((dirs (nreverse dir-list))
+                   dir files)
+               (while (setq dir (car dirs))
+                 (setq files
+                       (append (directory-files dir t "\\.bib$")
+                               files))
+                 (setq dirs (cdr dirs)))
+               files))
+            ((and (listp refer-bib-files)
+                  (or (eq refer-bib-directory 'texinputs)
+                      (eq refer-bib-directory 'bibinputs)))
+             (refer-expand-files refer-bib-files dir-list))
+            ((listp refer-bib-files) refer-bib-files)
+            (t (error "Illegal value for refer-bib-files: %s"
+                      refer-bib-files)))))
+    (if (or (eq refer-bib-directory 'texinputs)
+            (eq refer-bib-directory 'bibinputs))
+        (setq refer-bib-directory dir-list))
+    (if refer-cache-bib-files
+        (setq refer-bib-files files))
+    files))
 
 ;;; refer.el ends here
+
