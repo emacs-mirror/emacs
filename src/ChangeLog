@@ -1,3 +1,8 @@
+2002-01-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xdisp.c (display_mode_element): When computing charpos, depend
+	on multibytenes of elt, not the text in field.
+
 2002-01-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* buffer.c (Fkill_all_local_variables): Increment
