@@ -312,6 +312,9 @@ init_baud_rate ()
     ospeed = 0;
   else
     {
+#ifdef INIT_BAUD_RATE
+      INIT_BAUD_RATE ();
+#else
 #ifdef DOS_NT
     ospeed = 15;
 #else  /* not DOS_NT */
@@ -355,6 +358,7 @@ init_baud_rate ()
 #endif /* not HAVE_TERMIOS */
 #endif /* not VMS */
 #endif /* not DOS_NT */
+#endif /* not INIT_BAUD_RATE */
     }
    
   baud_rate = (ospeed < sizeof baud_convert / sizeof baud_convert[0]
@@ -2663,11 +2667,6 @@ init_signals ()
 signal_handler_t
 sys_signal (int signal_number, signal_handler_t action)
 {
-#ifdef DGUX
-  /* This gets us restartable system calls for efficiency.
-     The "else" code will works as well. */
-  return (berk_signal (signal_number, action));
-#else
   sigemptyset (&new_action.sa_mask);
   new_action.sa_handler = action;
 #ifdef SA_RESTART
@@ -2680,7 +2679,6 @@ sys_signal (int signal_number, signal_handler_t action)
 #endif
   sigaction (signal_number, &new_action, &old_action);
   return (old_action.sa_handler);
-#endif /* DGUX */
 }
 
 #ifndef __GNUC__
