@@ -1,3 +1,10 @@
+2002-08-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-font-lock-keywords-1): Fix highlighting of
+	`type' forms.
+	(f90-font-lock-keywords-2): Fix `implicit type(foo)' case.
+	(f90-type-def-re): Fix value.
+
 2002-08-03  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.6.
