@@ -1,9 +1,10 @@
 ;;; ada-prj.el --- easy editing of project files for the ada-mode
 
-;; Copyright (C) 1998, 99, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 99, 2000, 2001, 2002
+;;  Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.53 $
+;; Ada Core Technologies's version:   Revision: 1.55.2.2 (GNAT 3.15)
 ;; Keywords: languages, ada, project file
 
 ;; This file is part of GNU Emacs.
@@ -81,12 +82,9 @@
   "Editing the project file associated with the current Ada buffer.
 If there is none, opens a new project file"
   (interactive)
-  (let ((file (ada-prj-find-prj-file)))
-    (if file
-	(progn
-	  (ada-reread-prj-file file)
-	  (ada-customize))
-      (ada-prj-new))))
+  (if ada-prj-default-project-file
+      (ada-customize)
+    (ada-prj-new)))
 
 (defun ada-prj-add-keymap ()
   "Add new keybindings for ada-prj."
@@ -236,8 +234,12 @@ If the current value of FIELD is the default value, returns an empty string."
 (defun ada-prj-load-directory (field &optional file-name)
   "Append the content of FILE-NAME to FIELD in the current project file.
 If FILE-NAME is nil, ask the user for the name."
-  (unless file-name
-    (set 'file-name (read-file-name "Root directory: " nil nil t)))
+
+  ;;  Do not use an external dialog for this, since it wouldn't allow
+  ;;  the user to select a directory
+  (let ((use-dialog-box nil))
+    (unless file-name
+      (set 'file-name (read-file-name "Root directory: " nil nil t))))
 
   (set 'ada-prj-current-values
        (plist-put ada-prj-current-values
@@ -500,27 +502,41 @@ If FILENAME is given, edit that file."
   (let ((ada-buffer (current-buffer))
 	(inhibit-read-only t))
 
-    (ada-require-project-file)
+    ;;  We can only edit interactively the standard ada-mode project files. If
+    ;;  the user is using other formats for the project file (through hooks in
+    ;;  `ada-load-project-hook', we simply edit the file
     
-    (switch-to-buffer "*Customize Ada Mode*")
-    (kill-all-local-variables)
-    
-    (ada-xref-set-default-prj-values 'ada-prj-default-values ada-buffer)
-    (ada-prj-initialize-values  'ada-prj-current-values ada-buffer filename)
+    (if (and (not new-file)
+	     (or ada-prj-default-project-file filename)
+	     (string= (file-name-extension
+		       (or filename ada-prj-default-project-file))
+		      "gpr"))
+	(progn
+	  (find-file ada-prj-default-project-file)
+	  (add-hook 'after-save-hook 'ada-reread-prj-file t t)
+	  )
 
-    (set (make-local-variable 'ada-prj-ada-buffer) ada-buffer)
-
-    (use-local-map (copy-keymap custom-mode-map))
-    (local-set-key "\C-x\C-s" 'ada-prj-save)
-
-    (make-local-variable 'widget-keymap)
-    (define-key widget-keymap "\C-x\C-s" 'ada-prj-save)
-
-    (set (make-local-variable 'ada-old-cross-prefix)
-	 (ada-xref-get-project-field 'cross-prefix))
-
-    (ada-prj-display-page 1)
-  ))
+      ;;  Else start the interactive editor
+      (switch-to-buffer "*Customize Ada Mode*")
+      (kill-all-local-variables)
+      
+      (ada-xref-set-default-prj-values 'ada-prj-default-values ada-buffer)
+      (ada-prj-initialize-values
+       'ada-prj-current-values ada-buffer filename)
+      
+      (set (make-local-variable 'ada-prj-ada-buffer) ada-buffer)
+      
+      (use-local-map (copy-keymap custom-mode-map))
+      (local-set-key "\C-x\C-s" 'ada-prj-save)
+      
+      (make-local-variable 'widget-keymap)
+      (define-key widget-keymap "\C-x\C-s" 'ada-prj-save)
+      
+      (set (make-local-variable 'ada-old-cross-prefix)
+	   (ada-xref-get-project-field 'cross-prefix))
+      
+      (ada-prj-display-page 1)
+      )))
 
 ;; ---------------- Utilities --------------------------------
 
@@ -544,8 +560,6 @@ If ADA-FILE is nil, returns the project file for the current buffer."
     (setq ada-file (buffer-file-name)))
 
   (save-excursion
-    (set-buffer (get-file-buffer ada-file))
-    
     (let ((prj-file (ada-prj-find-prj-file t)))
       (if (or (not prj-file)
 	      (not (file-exists-p prj-file))
