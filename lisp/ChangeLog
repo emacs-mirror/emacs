@@ -1,3 +1,8 @@
+2001-04-24  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-cmd.el (eshell-find-alias-function): Corrected the
+	fix from last night, since it wasn't finding eshell/cd.
+
 2001-04-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* rect.el (string-rectangle): Revert to 20.x behaviour.
