@@ -924,16 +924,18 @@ EmacsFrameSetCharSize (widget, columns, rows)
   f->output_data.x->flags_areas_extra
     = 2 * FRAME_FLAGS_AREA_WIDTH (f);
 
+  char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
+
+#if 0  /* This doesn't seem to be right.  The frame gets too wide. --gerd.  */
   /* Something is really strange here wrt to the border width:
      Apparently, XtNwidth and XtNheight include the border, so we have
      to add it here.  But the XtNborderWidth set for the widgets has
      no similarity to what f->output_data.x->border_width is set to.  */
-  char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
-
   XtVaGetValues (widget, XtNborderWidth, &border_width, NULL);
   pixel_height += 2 * border_width;
   pixel_width += 2 * border_width;
-  
+#endif
+
   /* Manually change the height and width of all our widgets,
      adjusting each widget by the same increments.  */
   if (ew->core.width != pixel_width
