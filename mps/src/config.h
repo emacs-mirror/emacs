@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.7) $
+ * $HopeName: MMsrc!config.h(trunk.8) $
  */
 
 #ifndef config_h
@@ -85,7 +85,7 @@
 #define ARENA_SIZE              ((Size)2<<20)
 #else
 #define ARENA_SIZE              ((Size)64<<20)
-#endif /* MPS_PF_S7M6MW */
+#endif /* MPS_OS_S7 */
 #else
 #error "No target product configured."
 #endif
