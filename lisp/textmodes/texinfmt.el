@@ -1,7 +1,8 @@
 ;;; texinfmt.el --- format Texinfo files into Info files.
 
 ;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 
-;;               1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;;               1994, 1995, 1996, 1997, 1998, 2000, 2001
+;;    Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>
 ;; Keywords: maint, tex, docs
@@ -1068,7 +1069,7 @@ Leave point after argument."
       (setq args (cons (if (> end beg) (buffer-substring beg end))
                        args))
       (goto-char next))
-    (if (eolp) (forward-char 1))
+    ;;(if (eolp) (forward-char 1))
     (setq texinfo-command-end (point))
     (nreverse args)))
 
@@ -2366,7 +2367,18 @@ This command is executed when texinfmt sees @item inside @multitable."
   (insert "\"" (texinfo-parse-arg-discard) "\"")
   (goto-char texinfo-command-start))
 
-(put 'email 'texinfo-format 'texinfo-format-key)
+(put 'email 'texinfo-format 'texinfo-format-email)
+(defun texinfo-format-email ()
+  "Format email address and optional following full name.
+Insert full name, if present, followed by email address
+surrounded by in angle brackets."
+  (let ((args (texinfo-format-parse-args)))
+    (texinfo-discard-command)
+    ;; if full-name
+    (if (nth 1 args)
+        (insert  (nth 1 args) " "))
+    (insert "<" (nth 0 args) ">")))
+
 (put 'key 'texinfo-format 'texinfo-format-key)
 ;; I've decided not want to have angle brackets around these -- rms.
 (defun texinfo-format-key ()
@@ -2391,6 +2403,7 @@ If used within a line, follow `@bullet' with braces."
   (concat
    "^@"
    "\\("
+   "display\\|"
    "example\\|"
    "smallexample\\|"
    "lisp\\|"
@@ -2403,6 +2416,7 @@ If used within a line, follow `@bullet' with braces."
   (concat
    "^@end "
    "\\("
+   "display\\|"
    "example\\|"
    "smallexample\\|"
    "lisp\\|"
@@ -2826,6 +2840,7 @@ Default is to leave paragraph indentation as is."
   (require 'sort)
   (save-restriction
     (narrow-to-region start end)
+    (goto-char (point-min))
     (sort-subr nil 'forward-line 'end-of-line 'texinfo-sort-startkeyfun)))
 
 ;; Subroutine for sorting an index.
@@ -3823,6 +3838,8 @@ The command  `@value{foo}'  expands to the value."
   (let* ((arg (texinfo-parse-arg-discard))
          (flag (car (read-from-string arg)))
          (value (substring arg (cdr (read-from-string arg)))))
+    (if (string-match "^[ \t]+" value)
+	(setq value (substring value (match-end 0))))
     (put flag 'texinfo-whether-setp 'flag-set)
     (put flag 'texinfo-set-value value)))
 
