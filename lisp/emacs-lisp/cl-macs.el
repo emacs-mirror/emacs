@@ -2440,9 +2440,9 @@ compiler macros are expanded repeatedly until no further expansions are
 possible.  Unlike regular macros, BODY can decide to \"punt\" and leave the
 original function call alone by declaring an initial `&whole foo' parameter
 and then returning foo."
-  (let ((p (if (listp args) args (list '&rest args))) (res nil))
+  (let ((p args) (res nil))
     (while (consp p) (cl-push (cl-pop p) res))
-    (setq args (nreverse res)) (setcdr res (and p (list '&rest p))))
+    (setq args (nconc (nreverse res) (and p (list '&rest p)))))
   (list 'eval-when '(compile load eval)
 	(cl-transform-function-property
 	 func 'cl-compiler-macro
