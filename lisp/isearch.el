@@ -619,7 +619,10 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq ;; quit-flag nil  not for isearch-mode
    isearch-adjusted nil
    isearch-yank-flag nil)
-  (isearch-lazy-highlight-new-loop))
+  (isearch-lazy-highlight-new-loop)
+  ;; We must prevent the point moving to the end of composition when a
+  ;; part of the composition has just been searched.
+  (setq disable-point-adjustment t))
 
 (defun isearch-done (&optional nopush edit)
   (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
@@ -1150,8 +1153,22 @@ and the meta character is unread so that it applies to editing the string."
 	       (progn 
 		 (isearch-done)
 		 (apply 'isearch-unread keylist))
-	     (apply 'isearch-unread
-		    (listify-key-sequence (lookup-key function-key-map key)))))
+	     (setq keylist
+		   (listify-key-sequence (lookup-key function-key-map key)))
+	     (while keylist
+	       (setq key (car keylist))
+	       ;; If KEY is a printing char, we handle it here
+	       ;; directly to avoid the input method and keyboard
+	       ;; coding system translating it.
+	       (if (and (integerp key)
+			(>= key ?\ ) (< key 256))
+		   (progn
+		     (isearch-process-search-char key)
+		     (setq keylist (cdr keylist)))
+		 ;; As the remaining keys in KEYLIST can't be handled
+		 ;; here, we must reread them.
+		 (apply 'isearch-unread keylist)
+		 (setq keylist nil)))))
 	  (
 	   ;; Handle an undefined shifted control character
 	   ;; by downshifting it if that makes it defined.
