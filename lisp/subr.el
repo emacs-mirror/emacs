@@ -925,7 +925,7 @@ It can also be nil, if the definition is not associated with any file."
     (let ((files load-history)
 	  file)
       (while files
-	(if (memq function (cdr (car files)))
+	(if (member function (cdr (car files)))
 	    (setq file (car (car files)) files nil))
 	(setq files (cdr files)))
       file)))
@@ -1603,6 +1603,7 @@ See also `with-temp-file' and `with-output-to-string'."
 
 (defmacro with-local-quit (&rest body)
   "Execute BODY with `inhibit-quit' temporarily bound to nil."
+  (declare (debug t) (indent 0))
   `(condition-case nil
        (let ((inhibit-quit nil))
 	 ,@body)
