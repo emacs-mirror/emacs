@@ -4,7 +4,7 @@
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
 ;; Created: 27 Jan 1994
-;; Version: foldout.el 1.9 dated 94/03/15 at 14:10:40
+;; Version: foldout.el 1.10 dated 94/05/19 at 17:09:12
 ;; Keywords: folding, outline
 
 ;; This file is part of GNU Emacs.
@@ -119,6 +119,13 @@
 ;; is a real winner!
 
 ;;; ChangeLog:
+
+;; 1.10   21-Mar-94
+;; foldout.el is now part of the GNU Emacs distribution!!
+;; Put in changes made by RMS to version 1.8 to keep the diffs to a minimum.
+;; bugfix: numeric arg to foldout-exit-fold wasn't working - looks like I don't
+;; know how to use the Common LISP `loop' macro after all, so use `while'
+;; instead.
 
 ;; 1.9    15-Mar-94
 ;; Didn't test that very well, did I?  The change to foldout-zoom-subtree
@@ -313,59 +320,55 @@ exited and text is left visible."
 
     ;; exit the folds
     (widen)
-    (loop
-     always (progn
-	      ;; get the fold at the top of the stack
-	      (setq start-marker (car (car foldout-fold-list))
-		    end-marker (cdr (car foldout-fold-list))
-		    foldout-fold-list (cdr foldout-fold-list)
-		    num-folds (1- num-folds))
+    (while (not (zerop num-folds))
+      ;; get the fold at the top of the stack
+      (setq start-marker (car (car foldout-fold-list))
+	    end-marker (cdr (car foldout-fold-list))
+	    foldout-fold-list (cdr foldout-fold-list)
+	    num-folds (1- num-folds))
 
-	      ;; Make sure there is a newline at the end of this fold,
-	      ;; otherwise the following heading will get joined to the body
-	      ;; text.
-	      (if end-marker
-		  (progn
-		    (goto-char end-marker)
-		    (forward-char -1)
-		    (or (memq (preceding-char) '(?\n ?\^M))
-			(insert ?\n))))
+      ;; Make sure there is a newline at the end of this fold,
+      ;; otherwise the following heading will get joined to the body
+      ;; text.
+      (if end-marker
+	  (progn
+	    (goto-char end-marker)
+	    (forward-char -1)
+	    (or (memq (preceding-char) '(?\n ?\^M))
+		(insert ?\n))))
 
-	      ;; If this is the last fold to exit, hide the text unless we've
-	      ;; been told not to.  Note that at the moment point is at the
-	      ;; beginning of the following heading if there is one.
+      ;; If this is the last fold to exit, hide the text unless we've
+      ;; been told not to.  Note that at the moment point is at the
+      ;; beginning of the following heading if there is one.
 
-	      ;; Also, make sure that the newline before the following heading
-	      ;; is \n otherwise it will be hidden.  If there is a newline
-	      ;; before this one, make it visible too so we do the same as
-	      ;; outline.el and leave a blank line before the heading.
-	      (if (zerop num-folds)
-		  (let ((beginning-of-heading (point))
-			(end-of-subtree (if end-marker
-					    (progn
-					      (forward-char -1)
-					      (if (memq (preceding-char)
-							'(?\n ?\^M))
-						  (forward-char -1))
-					      (point))
-					  (point-max))))
-		    ;; hide the subtree
-		    (if hide-fold
-			(outline-flag-region start-marker end-of-subtree ?\^M))
+      ;; Also, make sure that the newline before the following heading
+      ;; is \n otherwise it will be hidden.  If there is a newline
+      ;; before this one, make it visible too so we do the same as
+      ;; outline.el and leave a blank line before the heading.
+      (if (zerop num-folds)
+	  (let ((beginning-of-heading (point))
+		(end-of-subtree (if end-marker
+				    (progn
+				      (forward-char -1)
+				      (if (memq (preceding-char)
+						'(?\n ?\^M))
+					  (forward-char -1))
+				      (point))
+				  (point-max))))
+	    ;; hide the subtree
+	    (if hide-fold
+		(outline-flag-region start-marker end-of-subtree ?\^M))
 
-		    ;; make sure the next heading is exposed
-		    (if end-marker
-			(outline-flag-region end-of-subtree
-					     beginning-of-heading ?\n))
-		    ))
+	    ;; make sure the next heading is exposed
+	    (if end-marker
+		(outline-flag-region end-of-subtree
+				     beginning-of-heading ?\n))
+	    ))
 
-	      ;; zap the markers so they don't slow down editing
-	      (set-marker start-marker nil)
-	      (if end-marker (set-marker end-marker nil))
-	      )
-
-     ;; have we exited enough folds?
-     until (zerop num-folds))
+      ;; zap the markers so they don't slow down editing
+      (set-marker start-marker nil)
+      (if end-marker (set-marker end-marker nil))
+      )
 
     ;; narrow to the enclosing fold if there is one
     (if foldout-fold-list
