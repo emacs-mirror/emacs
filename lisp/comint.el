@@ -574,6 +574,10 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
     (cons "In/Out" (make-sparse-keymap "In/Out")))
   (define-key comint-mode-map [menu-bar inout delete-output]
     '("Delete Current Output Group" . comint-delete-output))
+  (define-key comint-mode-map [menu-bar inout write-output]
+    '("Write Current Output Group to File" . comint-write-output))
+  (define-key comint-mode-map [menu-bar inout append-output-to-file]
+    '("Append Current Output Group to File" . comint-append-output-to-file))
   (define-key comint-mode-map [menu-bar inout next-prompt]
     '("Forward Output Group" . comint-next-prompt))
   (define-key comint-mode-map [menu-bar inout previous-prompt]
@@ -1870,7 +1874,7 @@ This function could be in the list `comint-output-filter-functions'."
 ;; Random input hackage
 
 (defun comint-delete-output ()
-  "Kill all output from interpreter since last input.
+  "Delete all output from interpreter since last input.
 Does not delete the prompt."
   (interactive)
   (let ((proc (get-buffer-process (current-buffer)))
@@ -1888,6 +1892,33 @@ Does not delete the prompt."
     (comint-output-filter proc replacement)))
 (defalias 'comint-kill-output 'comint-delete-output)
 (make-obsolete 'comint-kill-output 'comint-delete-output "21.1")
+
+(defun comint-write-output (filename &optional mustbenew)
+  "Write output from interpreter since last input to FILENAME.
+Any prompt at the end of the output is not written.
+
+If the optional argument MUSTBENEW (the prefix argument when interactive),
+is non-nil, check for an existing file with the same name.  If MUSTBENEW
+is `excl', that means to get an error if the file already exists; never
+overwrite.  If MUSTBENEW is neither nil nor `excl', that means ask for
+confirmation before overwriting, but do go ahead and overwrite the file
+if the user confirms."
+  (interactive "FWrite output to file: \np")
+  (save-excursion
+    (goto-char (process-mark (get-buffer-process (current-buffer))))
+    (forward-line 0)
+    (write-region comint-last-input-end (point)
+		  filename nil nil nil mustbenew)))
+
+(defun comint-append-output-to-file (filename)
+  "Append output from interpreter since last input to FILENAME.
+Any prompt at the end of the output is not written."
+  (interactive "FAppend output to file: ")
+  (save-excursion
+    (goto-char (process-mark (get-buffer-process (current-buffer))))
+    (forward-line 0)
+    (write-region comint-last-input-end (point) filename t)))
+
 
 (defun comint-show-output ()
   "Display start of this batch of interpreter output at top of window.
