@@ -1937,7 +1937,8 @@ note_mouse_highlight (f, x, y)
 
 	  /* Put all the overlays we want in a vector in overlay_vec.
 	     Store the length in len.  */
-	  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &ignor1);
+	  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len,
+				   NULL, NULL);
 	  noverlays = sort_overlays (overlay_vec, noverlays, w);
 
 	  /* Find the highest priority overlay that has a mouse-face prop.  */
@@ -4558,8 +4559,28 @@ x_new_font (f, fontname)
 	  char *atom
 	    = XGetAtomName (x_current_display, font->properties[i].name);
 	  if (!strcmp (atom, "FONT"))
-	    full_name = XGetAtomName (x_current_display,
-				      (Atom) (font->properties[i].card32));
+	    {
+	      char *name = XGetAtomName (x_current_display,
+					 (Atom) (font->properties[i].card32));
+	      char *p = name;
+	      int dashes = 0;
+
+	      /* Count the number of dashes in the "full name".
+		 If it is too few, this isn't really the font's full name,
+		 so don't use it.
+		 In X11R4, the fonts did not come with their canonical names
+		 stored in them.  */
+	      while (*p)
+		{
+		  if (*p == '-')
+		    dashes++;
+		  p++;
+		}
+
+	      if (dashes >= 13)
+		full_name = name;
+	    }
+
 	  XFree (atom);
 	}
 
