@@ -1,3 +1,13 @@
+2003-03-28  Kenichi Handa  <handa@etlken2>
+
+	* international/mule-conf.el (utf-16-le): Renamed from
+	utf-16-le-nosig.
+	(utf-16-be): Renamed from utf-16-be-nosig.
+	(utf-16-le-with-signature): Renamed from utf-16-le.
+	(utf-16-be-with-signature): Renamed from utf-16-be.
+	(utf-16): Set :bom to (utf-16-le-with-signature .
+	utf-16-be-with-signature).
+
 2003-02-12  Dave Love  <fx@gnu.org>
 
 	* language/georgian.el (georgian-ps, georgian-academy): New coding
