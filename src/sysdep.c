@@ -156,6 +156,20 @@ extern int quit_char;
 
 #include "syssignal.h"
 #include "systime.h"
+#ifdef HAVE_UTIME_H
+#include <utime.h>
+#endif
+
+#ifndef HAVE_UTIMES
+#ifndef HAVE_STRUCT_UTIMBUF
+/* We want to use utime rather than utimes, but we couldn't find the
+   structure declaration.  We'll use the traditional one.  */
+struct utimbuf {
+  long actime;
+  long modtime;
+};
+#endif
+#endif
 
 /* LPASS8 is new in 4.3, and makes cbreak mode provide all 8 bits.  */
 #ifndef LPASS8
@@ -3364,12 +3378,6 @@ set_file_times (filename, atime, mtime)
   tv[1] = mtime;
   return utimes (filename, tv);
 #else /* not HAVE_UTIMES */
-#ifndef HAVE_STRUCT_UTIMBUF
-  struct utimbuf {
-    long actime;
-    long modtime;
-  };
-#endif
   struct utimbuf utb;
   utb.actime = EMACS_SECS (atime);
   utb.modtime = EMACS_SECS (mtime);
