@@ -2064,7 +2064,7 @@ higher."
 
     ;; Kludge: If `c-font-lock-complex-decl-prepare' is on the list we
     ;; move it first since the doc comment font lockers might add
-    ;; `c-type' text properties so they have to be cleared before that.
+    ;; `c-type' text properties, so they have to be cleared before that.
     (when (memq 'c-font-lock-complex-decl-prepare list)
       (setq list (cons 'c-font-lock-complex-decl-prepare
 		       (delq 'c-font-lock-complex-decl-prepare
@@ -2642,30 +2642,30 @@ need for `pike-font-lock-extra-types'.")
 			      (copy-marker (1+ start))))
       t)))
 
-(defun javadoc-font-lock-keywords ()
-  (list
-   (byte-compile
-    `(lambda (limit)
-       (c-font-lock-doc-comments "/\\*\\*" limit
-	 '(("{@[a-z]+[^}\n\r]*}"	; "{@foo ...}" markup.
-	    0 ,c-doc-markup-face-name prepend nil)
-	   ("^\\(/\\*\\)?[ \t*]*\\(@[a-z]+\\)" ; "@foo ..." markup.
-	    2 ,c-doc-markup-face-name prepend nil)
-	   (,(concat "</?\\sw"		; HTML tags.
-		     "\\("
-		     (concat "\\sw\\|\\s \\|[=\n\r*.:]\\|"
-			     "\"[^\"]*\"\\|'[^']*'")
-		     "\\)*>")
-	    0 ,c-doc-markup-face-name prepend nil)
-	   ("&\\(\\sw\\|[.:]\\)+;"	; HTML entities.
-	    0 ,c-doc-markup-face-name prepend nil)
-	   ;; Fontify remaining markup characters as invalid.  Note
-	   ;; that the Javadoc spec is hazy about when "@" is allowed
-	   ;; in non-markup use.
-	   (,(lambda (limit)
-	       (c-find-invalid-doc-markup "[<>&]\\|{@" limit))
-	    0 ,c-invalid-face-name prepend nil)
-	   ))))))
+(defconst javadoc-font-lock-doc-comments
+  `(("{@[a-z]+[^}\n\r]*}"		; "{@foo ...}" markup.
+     0 ,c-doc-markup-face-name prepend nil)
+    ("^\\(/\\*\\)?[ \t*]*\\(@[a-z]+\\)" ; "@foo ..." markup.
+     2 ,c-doc-markup-face-name prepend nil)
+    (,(concat "</?\\sw"			; HTML tags.
+	      "\\("
+	      (concat "\\sw\\|\\s \\|[=\n\r*.:]\\|"
+		      "\"[^\"]*\"\\|'[^']*'")
+	      "\\)*>")
+     0 ,c-doc-markup-face-name prepend nil)
+    ("&\\(\\sw\\|[.:]\\)+;"		; HTML entities.
+     0 ,c-doc-markup-face-name prepend nil)
+    ;; Fontify remaining markup characters as invalid.  Note
+    ;; that the Javadoc spec is hazy about when "@" is
+    ;; allowed in non-markup use.
+    (,(lambda (limit)
+	(c-find-invalid-doc-markup "[<>&]\\|{@" limit))
+     0 ,c-invalid-face-name prepend nil)))
+
+(defconst javadoc-font-lock-keywords
+  `((,(lambda (limit)
+	(c-font-lock-doc-comments "/\\*\\*" limit
+	  javadoc-font-lock-doc-comments)))))
 
 (defconst autodoc-decl-keywords
   ;; Adorned regexp matching the keywords that introduce declarations
@@ -2755,6 +2755,17 @@ need for `pike-font-lock-extra-types'.")
 
   nil)
 
+(defconst autodoc-font-lock-doc-comments
+  `(("@\\(\\w+{\\|\\[\\([^\]@\n\r]\\|@@\\)*\\]\\|[@}]\\|$\\)"
+     ;; In-text markup.
+     0 ,c-doc-markup-face-name prepend nil)
+    (autodoc-font-lock-line-markup)
+    ;; Fontify remaining markup characters as invalid.
+    (,(lambda (limit)
+	(c-find-invalid-doc-markup "@" limit))
+     0 ,c-invalid-face-name prepend nil)
+    ))
+
 (defun autodoc-font-lock-keywords ()
   ;; Note that we depend on that `c-current-comment-prefix' has got
   ;; its proper value here.
@@ -2764,19 +2775,9 @@ need for `pike-font-lock-extra-types'.")
   ;; following declarations.
   (setq c-type-decl-end-used t)
 
-  (list
-   (byte-compile
-    `(lambda (limit)
-       (c-font-lock-doc-comments "/[*/]!" limit
-	 '(("@\\(\\w+{\\|\\[\\([^\]@\n\r]\\|@@\\)*\\]\\|[@}]\\|$\\)"
-	    ;; In-text markup.
-	    0 ,c-doc-markup-face-name prepend nil)
-	   (autodoc-font-lock-line-markup)
-	   ;; Fontify remaining markup characters as invalid.
-	   (,(lambda (limit)
-	       (c-find-invalid-doc-markup "@" limit))
-	    0 ,c-invalid-face-name prepend nil)
-	   ))))))
+  `((,(lambda (limit)
+	(c-font-lock-doc-comments "/[*/]!" limit
+	  autodoc-font-lock-doc-comments)))))
 
 
 ;; AWK.
