@@ -19,7 +19,7 @@
 
 
 (defvar paragraph-ignore-fill-prefix nil
-  "Non-nil means the paragraph commands are not affected by fill-prefix.
+  "Non-nil means the paragraph commands are not affected by `fill-prefix'.
 This is desirable in modes where blank lines are the paragraph delimiters.")
 
 (defun forward-paragraph (&optional arg)
@@ -89,11 +89,13 @@ to which the end of the previous line belongs, or the end of the buffer."
   "Move backward to start of paragraph.
 With arg N, do it N times; negative arg -N means move forward N paragraphs.
 
-A paragraph start is the beginning of a line which is a first-line-of-paragraph
-or which is ordinary text and follows a paragraph-separating line; except:
-if the first real line of a paragraph is preceded by a blank line,
-the paragraph starts at that blank line.
-See forward-paragraph for more information."
+A paragraph start is the beginning of a line which is a
+`first-line-of-paragraph' or which is ordinary text and follows a
+paragraph-separating line; except: if the first real line of a
+paragraph is preceded by a blank line, the paragraph starts at that
+blank line.
+
+See `forward-paragraph' for more information."
   (interactive "p")
   (or arg (setq arg 1))
   (forward-paragraph (- arg)))
@@ -110,14 +112,14 @@ The paragraph marked is the one that contains point or follows point."
   "Kill forward to end of paragraph.
 With arg N, kill forward to Nth end of paragraph;
 negative arg -N means kill backward to Nth start of paragraph."
-  (interactive "*p")
+  (interactive "p")
   (kill-region (point) (progn (forward-paragraph arg) (point))))
 
 (defun backward-kill-paragraph (arg)
   "Kill back to start of paragraph.
 With arg N, kill back to Nth start of paragraph;
 negative arg -N means kill forward to Nth end of paragraph."
-  (interactive "*p")
+  (interactive "p")
   (kill-region (point) (progn (backward-paragraph arg) (point))))
 
 (defun transpose-paragraphs (arg)
@@ -151,12 +153,11 @@ negative arg -N means kill forward to Nth end of paragraph."
 	      (end-of-paragraph-text))))))
 
 (defun forward-sentence (&optional arg)
-  "Move forward to next sentence-end.  With argument, repeat.
-With negative argument, move backward repeatedly to sentence-beginning.
+  "Move forward to next`sentence-end'.  With argument, repeat.
+With negative argument, move backward repeatedly to `sentence-beginning'.
 
-The variable `sentence-end' is a regular expression that matches ends
-of sentences.  Also, every paragraph boundary terminates sentences as
-well."
+The variable `sentence-end' is a regular expression that matches ends of
+sentences.  Also, every paragraph boundary terminates sentences as well."
   (interactive "p")
   (or arg (setq arg 1))
   (while (< arg 0)
@@ -174,7 +175,7 @@ well."
 
 (defun backward-sentence (&optional arg)
   "Move backward to start of sentence.  With arg, do it arg times.
-See forward-sentence for more information."
+See `forward-sentence' for more information."
   (interactive "p")
   (or arg (setq arg 1))
   (forward-sentence (- arg)))
@@ -196,7 +197,7 @@ With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
     (kill-region beg (point))))
 
 (defun mark-end-of-sentence (arg)
-  "Put mark at end of sentence.  Arg works as in forward-sentence."
+  "Put mark at end of sentence.  Arg works as in `forward-sentence'."
   (interactive "p")
   (push-mark
     (save-excursion
