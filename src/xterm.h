@@ -169,6 +169,9 @@ struct x_display_info
   
   /* The Visual being used for this display.  */
   Visual *visual;
+
+  /* THe colormap being used.  */
+  Colormap cmap;
   
   /* Number of panes on this screen.  */
   int n_planes;
@@ -601,6 +604,12 @@ struct x_output
 
 /* This is the `Screen *' which frame F is on.  */
 #define FRAME_X_SCREEN(f) (FRAME_X_DISPLAY_INFO (f)->screen)
+
+/* This is the Visual which frame F is on.  */
+#define FRAME_X_VISUAL(f) FRAME_X_DISPLAY_INFO (f)->visual
+
+/* This is the Colormap which frame F uses.  */
+#define FRAME_X_COLORMAP(f) FRAME_X_DISPLAY_INFO (f)->cmap
 
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_X_FONT_TABLE(f) (FRAME_X_DISPLAY_INFO (f)->font_table)
