@@ -1050,7 +1050,7 @@ The conversion is done based on `nonascii-translation-table' (which see)\n\
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
   "Return 1 regardless of the argument CHAR.\n\
-This is now an obsolte function.  We keep is just for backward compatibility.")
+This is now an obsolete function.  We keep it just for backward compatibility.")
   (ch)
      Lisp_Object ch;
 {
@@ -1081,7 +1081,7 @@ char_bytes (c)
       bytes = CHARSET_DEFINED_P (charset) ? CHARSET_BYTES (charset) : 1;
     }
 
-  return make_number (bytes);
+  return bytes;
 }
 
 /* Return the width of character of which multi-byte form starts with
@@ -1966,8 +1966,8 @@ See also the docstring of `make-translation-table'.");
     "A char-table for characters which invoke auto-filling.\n\
 Such characters has value t in this table.");
   Vauto_fill_chars = Fmake_char_table (Qauto_fill_chars, Qnil);
-  CHAR_TABLE_SET (Vauto_fill_chars, ' ', Qt);
-  CHAR_TABLE_SET (Vauto_fill_chars, '\n', Qt);
+  CHAR_TABLE_SET (Vauto_fill_chars, make_number (' '), Qt);
+  CHAR_TABLE_SET (Vauto_fill_chars, make_number ('\n'), Qt);
 }
 
 #endif /* emacs */
