@@ -36,7 +36,7 @@
 
 #include "ntinevt.h"
 
-/* frrom window.c */
+/* from window.c */
 extern Lisp_Object Frecenter ();
 
 /* from keyboard.c */
@@ -101,7 +101,7 @@ move_cursor (int row, int col)
   cursor_coords.X = col;
   cursor_coords.Y = row;
   
-  if (updating_frame == NULL)
+  if (updating_frame == (FRAME_PTR) NULL)
     {
       SetConsoleCursorPosition (cur_screen, cursor_coords);
     }
@@ -388,14 +388,14 @@ write_glyphs (register GLYPH *string, register int len)
   /* Write the attributes.  */
   if (!WriteConsoleOutputAttribute (cur_screen, attrs, len, cursor_coords, &i))
     {
-      printf ("Failed writing console attributes.\n");
+      printf ("Failed writing console attributes: %d\n", GetLastError ());
       fflush (stdout);
     }
 
   /* Write the characters.  */
   if (!WriteConsoleOutputCharacter (cur_screen, chars, len, cursor_coords, &i))
     {
-      printf ("Failed writing console characters.\n");
+      printf ("Failed writing console characters: %d\n", GetLastError ());
       fflush (stdout);
     }
   
@@ -413,19 +413,43 @@ delete_glyphs (int n)
   scroll_line (n, LEFT);
 }
 
+static unsigned int sound_type = 0xFFFFFFFF;
+
 void
 ring_bell (void)
 {
-  Beep (666, 100);
+  if (sound_type == 0xFFFFFFFF) 
+      Beep (666, 100);
+  else
+      MessageBeep (sound_type);
 }
 
-/* Reset to the original console mode but don't get rid of our console
-   For suspending emacs.  */
-void
-restore_console (void)
+DEFUN ("set-message-beep", Fset_message_beep, Sset_message_beep, 1, 1, 0,
+       "Set the sound generated when the bell is rung.\n\
+SOUND is 'asterisk, 'exclamation, 'hand, 'question, or 'ok\n\
+to use the corresponding system sound for the bell.\n\
+SOUND is nil to use the normal beep.")
+     (sound)
+     Lisp_Object sound;
 {
-  unset_kbd ();
-  SetConsoleActiveScreenBuffer (prev_screen);
+  CHECK_SYMBOL (sound, 0);
+
+  if (NILP (sound)) 
+      sound_type = 0xFFFFFFFF;
+  else if (EQ (sound, intern ("asterisk")))
+      sound_type = MB_ICONASTERISK;
+  else if (EQ (sound, intern ("exclamation"))) 
+      sound_type = MB_ICONEXCLAMATION;
+  else if (EQ (sound, intern ("hand"))) 
+      sound_type = MB_ICONHAND;
+  else if (EQ (sound, intern ("question"))) 
+      sound_type = MB_ICONQUESTION;
+  else if (EQ (sound, intern ("ok"))) 
+      sound_type = MB_OK;
+  else
+      sound_type = 0xFFFFFFFF;
+
+  return sound;
 }
 
 /* Put our console back up, for ending a suspended session.  */
@@ -441,8 +465,6 @@ reset_terminal_modes (void)
 {
   unset_kbd ();
   SetConsoleActiveScreenBuffer (prev_screen);
-  CloseHandle (cur_screen);
-  cur_screen = NULL;
 }
 
 void
@@ -597,9 +619,10 @@ glyph_to_pixel_coords (FRAME_PTR f, int x, int y, int *pix_x, int *pix_y)
   *pix_y = y;
 }
 
-_VOID_
+void
 syms_of_ntterm ()
 {
   defsubr (&Sset_screen_color);
   defsubr (&Sset_cursor_size);
+  defsubr (&Sset_message_beep);
 }
