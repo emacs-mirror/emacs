@@ -131,6 +131,7 @@ notify ()
     if (ep->reply_at <= now)
       {
 	fputs (ep->token, stdout);
+	fflush (stdout);
 	free (ep->token);
 
 	/* We now have a hole in the event array; fill it with the last
