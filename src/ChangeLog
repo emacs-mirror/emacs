@@ -1,3 +1,8 @@
+2002-12-11  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (try_window_id): Don't call set_cursor_from_row if
+	row_containing_pos returned NULL.
+
 2002-12-10  Steven Tamm  <steventamm@mac.com>
 
 	* mac.c (sys_read): Fixed sys_read to not call select if IO is
