@@ -1,3 +1,8 @@
+2001-03-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* mail/sendmail.el (sendmail-send-it): Don't parse Resent-*
+	headers.  Always invoke sendmail with option -t.
+
 2001-03-21  Paul Eggert  <eggert@twinsun.com>
 
 	* international/mule-cmds.el (set-locale-environment): Set
