@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
-;; Version: 1.9942
+;; Version: 1.9944
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -129,6 +129,7 @@ is the string or buffer containing the text."
   :link '(custom-manual "(widget)Top")
   :link '(url-link :tag "Development Page" 
 		   "http://www.dina.kvl.dk/~abraham/custom/")
+  :link '(emacs-library-link :tag "Lisp File" "widget.el")
   :prefix "widget-"
   :group 'extensions
   :group 'hypermedia)
@@ -391,10 +392,13 @@ new value."
   ;; at the end of the overlay.
   (save-excursion
     (goto-char to)
-    (when widget-field-add-space
-      (insert-and-inherit " "))
+    (cond ((null (widget-get widget :size))
+	   (forward-char 1))
+	  (widget-field-add-space
+	   (insert-and-inherit " ")))
     (setq to (point)))
-  (if widget-field-add-space
+  (if (or widget-field-add-space
+	  (null (widget-get widget :size)))
       (add-text-properties (1- to) to
 			   '(front-sticky nil start-open t read-only to))
     (add-text-properties to (1+ to) 
@@ -404,7 +408,9 @@ new value."
   (let ((map (widget-get widget :keymap))
 	(face (or (widget-get widget :value-face) 'widget-field-face))
 	(help-echo (widget-get widget :help-echo))
-	(overlay (make-overlay from to nil nil t)))
+	(overlay (make-overlay from to nil 
+			       nil (or (not widget-field-add-space)
+				       (widget-get widget :size)))))
     (unless (or (stringp help-echo) (null help-echo))
       (setq help-echo 'widget-mouse-help))    
     (widget-put widget :field-overlay overlay)
@@ -1268,7 +1274,8 @@ When not inside a field, move to the previous button or field."
   "Return the end of WIDGET's editing field."
   (let ((overlay (widget-get widget :field-overlay)))
     ;; Don't subtract one if local-map works at the end of the overlay.
-    (and overlay (if widget-field-add-space
+    (and overlay (if (or widget-field-add-space
+			 (null (widget-get widget :size)))
 		     (1- (overlay-end overlay))
 		   (overlay-end overlay)))))
 
@@ -1784,6 +1791,26 @@ If END is omitted, it defaults to the length of LIST."
   "Open the url specified by WIDGET."
   (require 'browse-url)
   (funcall browse-url-browser-function (widget-value widget)))
+
+;;; The `file-link' Widget.
+
+(define-widget 'file-link 'link
+  "A link to a file."
+  :action 'widget-file-link-action)
+
+(defun widget-file-link-action (widget &optional event)
+  "Find the file specified by WIDGET."
+  (find-file (widget-value widget)))
+
+;;; The `emacs-library-link' Widget.
+
+(define-widget 'emacs-library-link 'link
+  "A link to an Emacs Lisp library file."
+  :action 'widget-emacs-library-link-action)
+
+(defun widget-emacs-library-link-action (widget &optional event)
+  "Find the Emacs Library file specified by WIDGET."
+  (find-file (locate-library (widget-value widget))))
 
 ;;; The `editable-field' Widget.
 
