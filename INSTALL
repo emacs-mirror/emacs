@@ -147,6 +147,10 @@ documentation strings to be in the etc/DOC file (see
 src/Makefile.in.in if you wish to figure out how to do that).  For all
 else, use site-init.el.
 
+If you set load-path in site-init.el or site-load.el, Emacs will use
+*precisely* the resulting path when it starts up again.  If you do this,
+you are on your own!
+
 Note that, on some systems, the code you place in site-init.el must
 not use expand-file-name or any other function which may look
 something up in the system's password and user information database.
