@@ -793,11 +793,12 @@ main (argc, argv, envp)
   if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
     {
       printf ("\
-Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
+Usage: %s [--batch]  [-t term] [--terminal term]\n\
+      [-d display] [--display display]  [-nw] [--no-windows]\n\
       [-q] [--no-init-file]  [-u user] [--user user]  [--debug-init]\n\
       [--unibyte] [--multibyte] [--version] [--no-site-file]\n\
-      [-f func] [--funcall func]  [-l file] [--load file]  [--insert file]\n\
-      [+linenum] file-to-visit  [--kill]\n\
+      [-f func] [--funcall func]  [-l file] [--load file]  [--eval expr]\n\
+      [--insert file] [+linenum] file-to-visit  [--kill]\n\
 Report bugs to bug-gnu-emacs@gnu.org.  First, please see\n\
 the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       exit (0);
