@@ -4,8 +4,9 @@
 
 2004-05-03  Kim F. Storm  <storm@cua.dk>
 
-	* emulation/cua-base.el (cua--update-indications): Fix last
-	change.
+	* emulation/cua-base.el (cua--update-indications):
+	Fix last change.
+	(cua-mode): Deactivate mark when cua-mode is enabled.
 
 2004-05-02  Luc Teirlinck  <teirllm@auburn.edu>
 
