@@ -2755,16 +2755,35 @@ specbind (symbol, value)
 
   CHECK_SYMBOL (symbol, 0);
 
+  ovalue = find_symbol_value (symbol);
+
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
-  specpdl_ptr->symbol = symbol;
   specpdl_ptr->func = 0;
-  specpdl_ptr->old_value = ovalue = find_symbol_value (symbol);
+  specpdl_ptr->old_value = ovalue;
+
+  if (BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
+      || SOME_BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
+      || BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
+    {
+      Lisp_Object buffer;
+      /* For a local variable, record both the symbol and which
+	 buffer's value we are saving.  */
+      buffer = Fcurrent_buffer ();
+      /* If the variable is not local in this buffer,
+	 we are saving the global value, so restore that.  */
+      if (NILP (Flocal_variable_p (symbol, buffer)))
+	buffer = Qnil;
+      specpdl_ptr->symbol = Fcons (symbol, buffer);
+    }
+  else
+    specpdl_ptr->symbol = symbol;
+
   specpdl_ptr++;
   if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
     store_symval_forwarding (symbol, ovalue, value);
   else
-    set_internal (symbol, value, 1);
+    set_internal (symbol, value, 0, 1);
 }
 
 void
@@ -2798,11 +2817,25 @@ unbind_to (count, value)
       if (specpdl_ptr->func != 0)
 	(*specpdl_ptr->func) (specpdl_ptr->old_value);
       /* Note that a "binding" of nil is really an unwind protect,
-	so in that case the "old value" is a list of forms to evaluate.  */
+	 so in that case the "old value" is a list of forms to evaluate.  */
       else if (NILP (specpdl_ptr->symbol))
 	Fprogn (specpdl_ptr->old_value);
+      else if (CONSP (specpdl_ptr->symbol))
+	{
+	  Lisp_Object symbol, buffer;
+
+	  symbol = XCAR (specpdl_ptr->symbol);
+	  buffer = XCDR (specpdl_ptr->symbol);
+
+	  /* Handle restoring a default value.  */
+	  if (NILP (buffer))
+	    Fset_default (symbol, specpdl_ptr->old_value);
+	  /* Handle restoring a value saved from a live buffer.  */
+	  else
+	    set_internal (symbol, specpdl_ptr->old_value, XBUFFER (buffer), 1);
+	}
       else
-        set_internal (specpdl_ptr->symbol, specpdl_ptr->old_value, 1);
+        set_internal (specpdl_ptr->symbol, specpdl_ptr->old_value, 0, 1);
     }
   if (NILP (Vquit_flag) && quitf) Vquit_flag = Qt;
 
