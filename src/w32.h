@@ -1,5 +1,5 @@
-#ifndef _NT_H_
-#define _NT_H_
+#ifndef EMACS_W32_H
+#define EMACS_W32_H
 
 /* Support routines for the NT version of Emacs.
    Copyright (C) 1994 Free Software Foundation, Inc.
@@ -120,4 +120,4 @@ extern LPBYTE w32_get_resource (char * key, LPDWORD type);
 extern void init_ntproc ();
 extern void term_ntproc ();
 
-#endif /* _NT_H_ */
+#endif /* EMACS_W32_H */
