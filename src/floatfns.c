@@ -626,7 +626,7 @@ This is the same as the exponent of a float.")
   Lisp_Object val;
   double f = extract_float (num);
 
-  IN_FLOAT (val = logb (f), num);
+  IN_FLOAT (val = logb (f), "logb", num);
   XSET (val, Lisp_Int, val);
   return val;
 #endif
