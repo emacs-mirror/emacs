@@ -1,5 +1,12 @@
 2000-12-14  Kenichi Handa  <handa@etl.go.jp>
 
+	* keyboard.c (echo_prompt): Argument type changed to Lisp_Object.
+	Always store string in multibyte representation in echobuf.
+	(echo_char): Always store string in multibyte representation in
+	echobuf.
+	(echo_now): Call message2_nolog with the arg MULTIBYTE 1.
+	(read_key_sequence): Adjusted for the change of echo_prompt.
+
 	* fns.c (Fmd5): Docstring improved.
 
 	* lisp.h (detect_coding_system): Prototype adjusted.
