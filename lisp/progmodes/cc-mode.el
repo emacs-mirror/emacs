@@ -1,8 +1,9 @@
 ;;; cc-mode.el --- major mode for editing C, C++, Objective-C, and Java code
 
-;; Copyright (C) 1985,1987,1992-1999 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2000 Free Software Foundation, Inc.
 
-;; Authors:    1998-1999 Barry A. Warsaw and Martin Stjernholm
+;; Authors:    2000- Martin Stjernholm
+;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
 ;;             1992-1997 Barry A. Warsaw
 ;;             1987 Dave Detlefs and Stewart Clamen
 ;;             1985 Richard M. Stallman
@@ -10,7 +11,7 @@
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
 ;; Keywords:   c languages oop
 
-(defconst c-version "5.26e"
+(defconst c-version "5.27"
   "CC Mode version number.")
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -63,11 +64,9 @@
 ;; gnu.emacs.bug) as well as bug-cc-mode@gnu.org, which directly
 ;; contacts the CC Mode maintainers.  Questions can sent to
 ;; help-gnu-emacs@gnu.org (mirrored as gnu.emacs.help) and/or
-;; bug-cc-mode@gnu.org.  The old CC Mode contact address,
-;; cc-mode-help@python.org is currently still active, but its use is
-;; discouraged.  Please use bug-cc-mode@gnu.org instead.  Please do
-;; not send bugs or questions to our personal accounts; we reserve the
-;; right to ignore such email!
+;; bug-cc-mode@gnu.org.  Please use bug-cc-mode@gnu.org instead.
+;; Please do not send bugs or questions to our personal accounts; we
+;; reserve the right to ignore such email!
 
 ;; Many, many thanks go out to all the folks on the beta test list.
 ;; Without their patience, testing, insight, code contributions, and
@@ -76,12 +75,12 @@
 ;; You can get the latest version of CC Mode, including PostScript
 ;; documentation and separate individual files from:
 ;;
-;;     http://www.python.org/emacs/cc-mode/
+;;     http://cc-mode.sourceforge.net/
 ;;
 ;; You can join a moderated CC Mode announcement-only mailing list by
 ;; visiting
 ;;
-;;    http://www.python.org/mailman/listinfo/cc-mode-announce
+;;    http://lists.sourceforge.net/mailman/listinfo/cc-mode-announce
 
 ;;; Code:
 
@@ -288,15 +287,12 @@ Key bindings:
   (set-syntax-table java-mode-syntax-table)
   (setq major-mode 'java-mode
  	mode-name "Java"
- 	local-abbrev-table java-mode-abbrev-table)
+ 	local-abbrev-table java-mode-abbrev-table
+	c-append-paragraph-start c-Java-javadoc-paragraph-start)
   (use-local-map java-mode-map)
   (c-common-init)
   (setq comment-start "// "
  	comment-end   ""
-	paragraph-start (concat paragraph-start
-				"\\("
-				c-Java-javadoc-paragraph-start
-				"\\|$\\)")
  	c-conditional-key c-Java-conditional-key
  	c-comment-start-regexp c-Java-comment-start-regexp
   	c-class-key c-Java-class-key
@@ -393,6 +389,7 @@ Key bindings:
  	c-access-key c-Pike-access-key
 	c-lambda-key c-Pike-lambda-key
 	c-inexpr-block-key c-Pike-inexpr-block-key
+	c-inexpr-class-key c-Pike-inexpr-class-key
 	c-special-brace-lists c-Pike-special-brace-lists
 	)
   ;;(cc-imenu-init cc-imenu-pike-generic-expression) ;FIXME
@@ -486,7 +483,7 @@ CC Mode by making sure the proper entries are present on
 		     ;; set to nil can cause all kinds of chaos.
 		     signal-error-on-buffer-boundary
 		     ;; Variables that affect line breaking and comments.
-		     auto-fill-mode
+		     auto-fill-function
 		     filladapt-mode
 		     comment-multi-line
 		     comment-start-skip
@@ -496,30 +493,18 @@ CC Mode by making sure the proper entries are present on
 		     adaptive-fill-regexp)
 		   nil)))
 	(delq 'c-special-indent-hook vars)
-	(unless (boundp 'defun-prompt-regexp)
-	  (delq 'defun-prompt-regexp vars))
-	(unless (boundp 'filladapt-mode)
-	  (delq 'filladapt-mode vars))
+	(mapcar (lambda (var) (unless (boundp var) (delq var vars)))
+		'(signal-error-on-buffer-boundary
+		  filladapt-mode
+		  defun-prompt-regexp))
 	vars)
       (function
        (lambda ()
 	 (insert
 	  "Buffer Style: " style "\n\n"
-	  (if (and hook
-		   (or (/= (length hook) 1)
-		       (not (eq (car hook) 'c-gnu-impose-minimum))
-		       ))
-	      (concat "\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
-		      "c-special-indent-hook is set to '"
-		      (format "%s" hook)
-		      ".\nPerhaps this is your problem?\n"
-		      "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n\n")
-	    "\n")
 	  (format "c-emacs-features: %s\n" c-features)
 	  )))
-      nil
-      "Dear Barry and Martin,"
-      ))))
+      nil))))
 
 
 (provide 'cc-mode)
