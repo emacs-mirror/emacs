@@ -77,8 +77,8 @@
 		       (> number nnmail-large-newsgroup)))
 	   (count 0)
 	   ;; 1997/8/12 by MORIOKA Tomohiko
-	   ;;	for XEmacs/mule.
-	   (pathname-coding-system 'binary)
+	   (file-name-coding-system 'binary) ; for Emacs 20
+	   (pathname-coding-system 'binary)  ; for XEmacs/mule
 	   beg article)
       (nnmh-possibly-change-directory newsgroup server)
       ;; We don't support fetching by Message-ID.
@@ -138,8 +138,8 @@
 		  nil
 		(concat nnmh-current-directory (int-to-string id))))
 	;; 1997/8/12 by MORIOKA Tomohiko
-	;;	for XEmacs/mule.
-	(pathname-coding-system 'binary)
+	(file-name-coding-system 'binary) ; for Emacs 20
+	(pathname-coding-system 'binary)  ; for XEmacs/mule
 	(nntp-server-buffer (or buffer nntp-server-buffer)))
     (and (stringp file)
 	 (file-exists-p file)
@@ -150,8 +150,8 @@
 (deffoo nnmh-request-group (group &optional server dont-check)
   (let ((pathname (nnmail-group-pathname group nnmh-directory))
 	;; 1997/8/12 by MORIOKA Tomohiko
-	;;	for XEmacs/mule.
-	(pathname-coding-system 'binary)
+	(file-name-coding-system 'binary) ; for Emacs 20
+	(pathname-coding-system 'binary)  ; for XEmacs/mule.
 	dir)
     (cond
      ((not (file-directory-p pathname))
@@ -190,7 +190,8 @@
 
 (deffoo nnmh-request-list (&optional server dir)
   (nnheader-insert "")
-  (let ((pathname-coding-system 'binary)
+  (let ((file-name-coding-system 'binary)
+	(pathname-coding-system 'binary)
 	(nnmh-toplev
 	 (file-truename (or dir (file-name-as-directory nnmh-directory)))))
     (nnmh-request-list-1 nnmh-toplev))
@@ -410,8 +411,8 @@
   (when newsgroup
     (let ((pathname (nnmail-group-pathname newsgroup nnmh-directory))
 	  ;; 1997/8/12 by MORIOKA Tomohiko
-	  ;;	for XEmacs/mule.
-	  (pathname-coding-system 'binary))
+	  (file-name-coding-system 'binary) ; for Emacs 20
+	  (pathname-coding-system 'binary)) ; for XEmacs/mule
       (if (file-directory-p pathname)
 	  (setq nnmh-current-directory pathname)
 	(error "No such newsgroup: %s" newsgroup)))))
@@ -461,8 +462,8 @@
   (let ((active (cadr (assoc group nnmh-group-alist)))
 	(dir (nnmail-group-pathname group nnmh-directory))
 	;; 1997/8/14 by MORIOKA Tomohiko
-	;;	for XEmacs/mule.
-	(pathname-coding-system 'binary))
+	(file-name-coding-system 'binary) ; for Emacs 20
+	(pathname-coding-system 'binary)) ; for XEmacs/mule
     (unless active
       ;; The group wasn't known to nnmh, so we just create an active
       ;; entry for it.
