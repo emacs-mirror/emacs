@@ -1,4 +1,11 @@
-2003-04-10  Kenichi Handa  <handa@etlken2>
+2003-04-11  Kenichi Handa  <handa@m17n.org>
+
+	* lisp.h (temp_echo_area_glyphs): Adjust prototype.
+
+	* minibuf.c (temp_echo_area_glyphs): Change the arg to Lisp
+	string.  Callers changed.
+
+2003-04-10  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Vafter_insert_file_adjust_coding_function): New
 	variable.
