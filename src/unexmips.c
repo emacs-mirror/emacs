@@ -141,18 +141,16 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
     }
 
 #define CHECK_SCNHDR(ptr, name, flags)					\
-  if (strcmp (hdr.section[i].s_name, name) == 0)			\
-    {									\
-      if (hdr.section[i].s_flags != flags)				\
-	fprintf (stderr, "unexec: %x flags (%x expected) in %s section.\n", \
-		 hdr.section[i].s_flags, flags, name);			\
-      ptr = hdr.section + i;						\
-      i += 1;								\
-    }									\
-  else									\
-    ptr = NULL;
+  ptr = NULL;								\
+  for (i = 0; i < hdr.fhdr.f_nscns && !ptr; i++)			\
+    if (strcmp (hdr.section[i].s_name, name) == 0)			\
+      {									\
+	if (hdr.section[i].s_flags != flags)				\
+	  fprintf (stderr, "unexec: %x flags (%x expected) in %s section.\n", \
+		   hdr.section[i].s_flags, flags, name);		\
+	ptr = hdr.section + i;						\
+      }									\
 
-  i = 0;
   CHECK_SCNHDR (text_section,  _TEXT,  STYP_TEXT);
   CHECK_SCNHDR (init_section,  _INIT,  STYP_INIT);
   CHECK_SCNHDR (rdata_section, _RDATA, STYP_RDATA);
@@ -182,6 +180,12 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 
   hdr.aout.bss_start = hdr.aout.data_start + hdr.aout.dsize;
   rdata_section->s_size = data_start - DATA_START;
+
+  /* Adjust start and virtual addresses of rdata_section, too.  */
+  rdata_section->s_vaddr = DATA_START;
+  rdata_section->s_paddr = DATA_START;
+  rdata_section->s_scnptr = text_section->s_scnptr + hdr.aout.tsize;
+
   data_section->s_vaddr = data_start;
   data_section->s_paddr = data_start;
   data_section->s_size = brk - data_start;
