@@ -1,5 +1,13 @@
 2002-04-03  Richard M. Stallman  <rms@gnu.org>
 
+	* format.el (format-deannotate-region): Doc fix.
+
+	* enriched.el (enriched-face-ans): Delete special treatment
+	for fg:... and bg:... faces.
+	(enriched-decode-foreground): Return a list that specifies
+	the foreground color, rather than creating a face.
+	(enriched-decode-background): Likewise.
+
 	* shell.el (shell-mode): Don't reinit comint-input-ring
 	if that was already done.
 
