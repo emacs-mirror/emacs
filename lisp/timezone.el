@@ -190,8 +190,10 @@ Understands the following styles:
 	  (setq year
 		(substring date (match-beginning year) (match-end year)))
 	  ;; It is now Dec 1992.  8 years before the end of the World.
-	  (if (< (length year) 4)
-	      (setq year (concat "19" (substring year -2 nil))))
+	  (if (= (length year) 1)
+	      (setq year (concat "190" (substring year -1 nil)))
+	    (if (< (length year) 4)
+		(setq year (concat "19" (substring year -2 nil)))))
           (setq month
 		(if (= (aref date (+ (match-beginning month) 2)) ?-)
 		    ;; Handle numeric months, spanning exactly two digits.
