@@ -602,7 +602,7 @@ x_decode_color (arg, def)
     return WHITE_PIX_DEFAULT;
 
 #ifdef HAVE_X11
-  if (XFASTINT (x_screen_planes) == 1)
+  if (x_screen_planes == 1)
     return def;
 #else
   if (DISPLAY_CELLS == 1)
@@ -886,6 +886,7 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     cursor = XCreateFontCursor (x_current_display, XC_xterm);
+  x_check_errors ("bad text pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_nontext_pointer_shape))
     {
@@ -895,6 +896,7 @@ x_set_mouse_color (f, arg, oldval)
     }
   else
     nontext_cursor = XCreateFontCursor (x_current_display, XC_left_ptr);
+  x_check_errors ("bad nontext pointer cursor: %s");
 
   if (!EQ (Qnil, Vx_mode_pointer_shape))
     {
@@ -1709,6 +1711,7 @@ DEFUN ("x-geometry", Fx_geometry, Sx_geometry, 1, 1, 0,
        "Parse an X-style geometry string STRING.\n\
 Returns an alist of the form ((top . TOP), (left . LEFT) ... ).")
      (string)
+     Lisp_Object string;
 {
   int geometry, x, y;
   unsigned int width, height;
@@ -2069,7 +2072,7 @@ be shared by the new frame.")
 
   /* Set the name; the functions to which we pass f expect the
      name to be set.  */
-  XSET (f->name, Lisp_String, name);
+  f->name = name;
 
   XSET (frame, Lisp_Frame, f);
   f->output_method = output_x_window;
@@ -2977,10 +2980,10 @@ adjust_scrollbars (f)
 	  - 2 * (f->display.x->h_scrollbar_height);
 
       /* Starting position for horizontal slider */
-      if (! w->hscroll)
+      if (! XINT (w->hscroll))
 	pos = 0;
       else
-	pos = (w->hscroll * length) / (w->hscroll + f->width);
+	pos = (XINT (w->hscroll) * length) / (XINT (w->hscroll) + f->width);
       pos = max (0, pos);
       pos = min (pos, length - 2);
 
@@ -3084,7 +3087,7 @@ DEFUN ("x-color-display-p", Fx_color_display_p, Sx_color_display_p, 0, 0, 0,
   "Return t if the X display used currently supports color.")
   ()
 {
-  if (XINT (x_screen_planes) <= 2)
+  if (x_screen_planes <= 2)
     return Qnil;
 
   switch (screen_visual->class)
@@ -4408,14 +4411,14 @@ arg XRM_STRING is a string of resources in xrdb format.")
 
   x_screen = DefaultScreenOfDisplay (x_current_display);
 
-  x_screen_count = make_number (ScreenCount (x_current_display));
+  x_screen_count = ScreenCount (x_current_display);
   Vx_vendor = build_string (ServerVendor (x_current_display));
-  x_release = make_number (VendorRelease (x_current_display));
+  x_release = VendorRelease (x_current_display);
                     
-  x_screen_height = make_number (HeightOfScreen (x_screen));
-  x_screen_height_mm = make_number (HeightMMOfScreen (x_screen));
-  x_screen_width = make_number (WidthOfScreen (x_screen));
-  x_screen_width_mm = make_number (WidthMMOfScreen (x_screen));
+  x_screen_height = HeightOfScreen (x_screen);
+  x_screen_height_mm = HeightMMOfScreen (x_screen);
+  x_screen_width = WidthOfScreen (x_screen);
+  x_screen_width_mm = WidthMMOfScreen (x_screen);
 
   switch (DoesBackingStore (x_screen))
     {
@@ -4437,12 +4440,12 @@ arg XRM_STRING is a string of resources in xrdb format.")
     }
 
   if (DoesSaveUnders (x_screen) == True)
-    x_save_under = Qt;
+    x_save_under = 1;
   else
-    x_save_under = Qnil;
+    x_save_under = 0;
 
   screen_visual = select_visual (x_screen, &n_planes);
-  x_screen_planes = make_number (n_planes);
+  x_screen_planes = n_planes;
   Vx_screen_visual = intern (x_visual_strings [screen_visual->class]);
 
   /* X Atoms used by emacs. */
@@ -4599,15 +4602,15 @@ syms_of_xfns ()
 
   DEFVAR_INT ("mouse-x-position", &x_mouse_x,
 	      "The X coordinate of the mouse position, in characters.");
-  x_mouse_x = Qnil;
+  x_mouse_x = 0;
 
   DEFVAR_INT ("mouse-y-position", &x_mouse_y,
 	      "The Y coordinate of the mouse position, in characters.");
-  x_mouse_y = Qnil;
+  x_mouse_y = 0;
 
   DEFVAR_INT ("mouse-buffer-offset", &mouse_buffer_offset,
 	      "The buffer offset of the character under the pointer.");
-  mouse_buffer_offset = Qnil;
+  mouse_buffer_offset = 0;
 
   DEFVAR_INT ("x-pointer-shape", &Vx_pointer_shape,
 	      "The shape of the pointer when over text.");
