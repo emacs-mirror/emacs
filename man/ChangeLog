@@ -1,3 +1,8 @@
+2002-11-05    <karl@gnu.org>
+
+	* info.texi (Info-fontify): reorder face list to avoid bad line
+	breaks.
+
 2002-10-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* tramp.texi: Move @copying to standard place.  Use
