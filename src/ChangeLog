@@ -1,3 +1,8 @@
+1999-10-28  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* regex.c (POP_FAILURE_POINT): Use failure_id.integer
+	as arg to DEBUG_POP and DEBUG_PRINT.
+
 1999-10-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* fns.c (Fmemq, Fassq, Frassq, assq_no_quit, Fassoc)
