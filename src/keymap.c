@@ -1952,7 +1952,11 @@ Control characters turn into C-whatever, etc.")
 	}
     }
   else if (SYMBOLP (key))	/* Function key or event-symbol */
-    return Fsymbol_name (key);
+    {
+      char *buffer = (char *) alloca (STRING_BYTES (XSYMBOL (key)->name) + 5);
+      sprintf (buffer, "<%s>", XSYMBOL (key)->name->data);
+      return build_string (buffer);
+    }
   else if (STRINGP (key))	/* Buffer names in the menubar.  */
     return Fcopy_sequence (key);
   else
