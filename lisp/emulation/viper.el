@@ -6,7 +6,7 @@
 ;;  Keywords: emulations
 ;;  Author: Michael Kifer <kifer@cs.sunysb.edu>
 
-(defconst viper-version "2.80 of July 7, 1995"
+(defconst viper-version "2.81 of August 7, 1995"
   "The current version of Viper")
 
 ;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
@@ -114,7 +114,7 @@
 ;; default. 
 ;; However, some modes do not appear in the right mode in the beginning,
 ;; usually because they neglect to follow Emacs conventions (e.g., they don't
-;; use (kill-all-local-variables) when they start). Some major modes
+;; use kill-all-local-variables when they start). Some major modes
 ;; may fail to come up in emacs-state if they call hooks, such as
 ;; text-hook, for no good reason. 
 ;; 
@@ -1278,7 +1278,7 @@ This startup message appears whenever you load Viper, unless you type `y' now."
   )
 
 ;; This also takes care of the annoying incomplete lines in files.
-;; Also, this fixed 'undo' to work vi-style for complex commands.
+;; Also, this fixes `undo' to work vi-style for complex commands.
 (defun vip-change-state-to-vi ()
   "Change Viper state to Vi."
   (interactive)
@@ -1298,8 +1298,11 @@ This startup message appears whenever you load Viper, unless you type `y' now."
     (vip-add-newline-at-eob-if-necessary)
     (if vip-undo-needs-adjustment  (vip-adjust-undo))
     (vip-change-state 'vi-state)
-    (if (and vip-automatic-iso-accents (fboundp 'iso-accents-mode))
-	(iso-accents-mode -1)) ; turn off iso accents
+
+    ;; always turn off iso-accents-mode, or else we won't be able to use the
+    ;; keys `,',^ in Vi state, as they will do accents instead of Vi actions.
+    (if (and (boundp 'iso-accents-mode) iso-accents-mode)
+	(iso-accents-mode -1))
     
     ;; Protection against user errors in hooks
     (condition-case conds
@@ -1571,7 +1574,7 @@ behaves as in Emacs, any number of multiple escapes is allowed."
     
     
 (defadvice read-key-sequence (around vip-read-keyseq-ad activate)
-  "Harness to work for Viper. This advice is harmless---don't panic!"
+  "Harness to work for Viper. This advice is harmless---don't worry!"
   (let (inhibit-quit event keyseq)
     (setq keyseq ad-do-it)
     (setq event (if vip-xemacs-p
@@ -1733,6 +1736,7 @@ behaves as in Emacs, any number of multiple escapes is allowed."
 (defun vip-digit-argument (arg)
   "Begin numeric argument for the next command."
   (interactive "P")
+  (vip-leave-region-active)
   (vip-prefix-arg-value last-command-char
 			(if (consp arg) (cdr arg) nil)))
 
@@ -2484,7 +2488,9 @@ Undo previous insertion and inserts new."
 	 '(lambda ()
 	    (if (stringp initial)
 		(progn
-		  (sit-for 840)
+		  ;; don't wait if we have unread events
+		  (or unread-command-events
+		      (sit-for 840))
 		  (erase-buffer)
 		  (insert initial)))
 	    (vip-minibuffer-setup-sentinel)))
@@ -3028,6 +3034,7 @@ These keys are ESC, RET, and LineFeed"
   "Move point right ARG characters (left if ARG negative).
 On reaching end of line, stop and signal error."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3049,6 +3056,7 @@ On reaching end of line, stop and signal error."
   "Move point left ARG characters (right if ARG negative). 
 On reaching beginning of line, stop and signal error."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3142,6 +3150,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-forward-word (arg)
   "Forward word."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3160,6 +3169,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-forward-Word (arg)
   "Forward word delimited by white characters."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3233,6 +3243,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-end-of-word (arg &optional careful)
   "Move point to end of current word."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3245,6 +3256,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-end-of-Word (arg)
   "Forward to end of word delimited by white character."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3282,6 +3294,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-backward-word (arg)
   "Backward word."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com
@@ -3296,6 +3309,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-backward-Word (arg)
   "Backward word delimited by white character."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com
@@ -3317,6 +3331,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-beginning-of-line (arg)
   "Go to beginning of line."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3326,6 +3341,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-bol-and-skip-white (arg)
   "Beginning of line at first non-white character."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3335,6 +3351,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-goto-eol (arg)
   "Go to end of line."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3351,6 +3368,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-goto-col (arg)
   "Go to ARG's column."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getcom arg)))
     (save-excursion
@@ -3365,6 +3383,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-next-line (arg)
   "Go to next line."
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getCom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3377,6 +3396,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-next-line-at-bol (arg)
   "Next line at beginning of line."
   (interactive "P")
+  (vip-leave-region-active)
   (save-excursion
     (end-of-line)
     (if (eobp) (error "Last line in buffer")))
@@ -3390,6 +3410,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-previous-line (arg)	 
   "Go to previous line."    	
   (interactive "P")
+  (vip-leave-region-active)
   (let ((val (vip-p-val arg))
 	(com (vip-getCom arg)))
     (if com (vip-move-marker-locally 'vip-com-point (point)))
@@ -3403,6 +3424,7 @@ On reaching beginning of line, stop and signal error."
 (defun vip-previous-line-at-bol (arg)
   "Previous line at beginning of line."
   (interactive "P")
+  (vip-leave-region-active)
   (save-excursion
     (beginning-of-line)
     (if (bobp) (error "First line in buffer")))
@@ -5318,6 +5340,9 @@ Mail anyway (y or n)? ")
   (defvar emacs-lisp-mode-hook nil)
   (add-hook 'emacs-lisp-mode-hook 'viper-mode)
   
+  (defvar html-mode-hook nil)
+  (add-hook 'html-mode-hook 'viper-mode)
+
   (defvar lisp-mode-hook nil)
   (add-hook 'lisp-mode-hook 'viper-mode)
   
@@ -5382,9 +5407,17 @@ Mail anyway (y or n)? ")
   ;; This is only necessary when the user uses vip-modify-major-mode
   (add-hook 'dired-mode-hook 'vip-change-state-to-emacs)
 
-  (defvar view-mode-hook nil
-    "View hook. Run after view mode.")
-  (add-hook 'view-mode-hook 'vip-change-state-to-emacs)
+  (if vip-emacs-p
+      (progn
+	(defvar view-mode-hook nil
+	  "View hook. Run after view mode.")
+	(add-hook 'view-mode-hook 'vip-change-state-to-emacs))
+    (defadvice view-minor-mode (after vip-view-ad activate)
+      "Switch to Emacs state in View mode."
+      (vip-change-state-to-emacs))
+    (defvar view-hook nil
+      "View hook. Run after view mode.")
+    (add-hook 'view-hook 'vip-change-state-to-emacs))
   
   ;; For VM users.
   ;; Put summary and other VM buffers in Emacs state.
@@ -5408,6 +5441,27 @@ Mail anyway (y or n)? ")
     (vip-change-state-to-emacs))
   ) ; vip-set-hooks
       
+;; Set some useful macros
+;; These must be before we load .vip, so the user can unrecord them.
+
+;; repeat the 2nd previous command without rotating the command history
+(vip-record-kbd-macro
+ (vector vip-repeat-from-history-key '\1) 'vi-state
+ [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
+;; repeat the 3d previous command without rotating the command history
+(vip-record-kbd-macro
+ (vector vip-repeat-from-history-key '\2) 'vi-state
+ [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
+ 
+;; toggle case sensitivity in search
+(vip-record-kbd-macro
+ "//" 'vi-state
+ [1 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
+;; toggle regexp/vanila search
+(vip-record-kbd-macro
+ "///" 'vi-state
+ [2 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
+ 
 
 ;; ~/.vip is loaded if it exists
 (if (and (file-exists-p vip-custom-file-name)
@@ -5437,6 +5491,8 @@ Mail anyway (y or n)? ")
 (vip-set-minibuffer-style)
 (vip-set-minibuffer-faces)
 (vip-set-search-face)
+(if vip-buffer-search-char
+    (vip-buffer-search-enable))
    
 ;;; Familiarize Viper with some minor modes that have their own keymaps
 (vip-harness-minor-mode "compile")
@@ -5447,6 +5503,9 @@ Mail anyway (y or n)? ")
 (vip-harness-minor-mode "vc")
 (vip-harness-minor-mode "ltx-math") ; LaTeX-math-mode in AUC-TeX
 (vip-harness-minor-mode "latex")    ; which is in one of these two files
+(vip-harness-minor-mode "cyrillic")
+(vip-harness-minor-mode "russian")
+(vip-harness-minor-mode "view-less")
 
 
 ;; Intercept maps could go in viper-keym.el
@@ -5484,28 +5543,8 @@ Mail anyway (y or n)? ")
       (setq-default minor-mode-map-alist minor-mode-map-alist)
       ))
     
-;; set some useful macros
 
-;; repeat the 2nd previous command without rotating the command history
-(vip-record-kbd-macro
- (vector vip-repeat-from-history-key '\1) 'vi-state
- [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
-;; repeat the 3d previous command without rotating the command history
-(vip-record-kbd-macro
- (vector vip-repeat-from-history-key '\2) 'vi-state
- [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
- 
-;; toggle case sensitivity in search
-(vip-record-kbd-macro
- "//" 'vi-state
- [1 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
-;; toggle regexp/vanila search
-(vip-record-kbd-macro
- "///" 'vi-state
- [2 (meta x) v i p - t o g g l e - s e a r c h - s t y l e return] 't)
- 
-
-(run-hooks 'vip-load-hooks) ; the last chance to change anything
+(run-hooks 'vip-load-hooks) ; the last chance to change something
 
 (provide 'viper)
 (provide 'vip19)
