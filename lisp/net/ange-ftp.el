@@ -2233,8 +2233,8 @@ and NOWAIT."
 		      'identity)
 		  cmd1)
 	    cmd3 (nth 3 cmd))
-      ;; Need to deal with the HP-UX ftp bug. This should also allow
-      ;; us to resolve symlinks to directories on SysV machines. (Sebastian will
+      ;; Need to deal with the HP-UX ftp bug. This should also allow us to
+      ;; resolve symlinks to directories on SysV machines. (Sebastian will
       ;; be happy.)
       (and (eq host-type 'unix)
 	   (string-match "/$" cmd1)
@@ -3876,6 +3876,13 @@ E.g.,
       (or val ; is a directory name
 	  (not (string-match ange-ftp-completion-ignored-pattern symname))))))
 
+(defun ange-ftp-root-dir-p (dir)
+  ;; Maybe we should use something more like
+  ;; (equal dir (file-name-directory (directory-file-name dir)))  -stef
+  (or (and (eq system-type 'windows-nt)
+	   (string-match "^[a-zA-Z]:[/\\]$" dir))
+      (string-equal "/" dir)))
+
 (defun ange-ftp-file-name-all-completions (file dir)
   (let ((ange-ftp-this-dir (expand-file-name dir)))
     (if (ange-ftp-ftp-name ange-ftp-this-dir)
@@ -3901,9 +3908,7 @@ E.g.,
                     file)))
 	     completions)))
 
-      (if (or (and (eq system-type 'windows-nt)
-		   (string-match "^[a-zA-Z]:[/\\]$" ange-ftp-this-dir))
-	      (string-equal "/" ange-ftp-this-dir))
+      (if (ange-ftp-root-dir-p ange-ftp-this-dir)
 	  (nconc (all-completions file (ange-ftp-generate-root-prefixes))
 		 (ange-ftp-real-file-name-all-completions file
 							  ange-ftp-this-dir))
@@ -3933,9 +3938,7 @@ E.g.,
 		     file tbl ange-ftp-this-dir
 		     (function ange-ftp-file-entry-active-p)))))))
 
-      (if (or (and (eq system-type 'windows-nt)
-		   (string-match "^[a-zA-Z]:[/\\]$" ange-ftp-this-dir))
-	      (string-equal "/" ange-ftp-this-dir))
+      (if (ange-ftp-root-dir-p ange-ftp-this-dir)
 	  (try-completion
 	   file
 	   (nconc (ange-ftp-generate-root-prefixes)
@@ -4201,7 +4204,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;;###autoload
 (defun ange-ftp-hook-function (operation &rest args)
   (let ((fn (get operation 'ange-ftp)))
-    (if fn (apply fn args)
+    (if fn (save-match-data (apply fn args))
       (ange-ftp-run-real-handler operation args))))
 
 
@@ -4392,7 +4395,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	   (if wildcard
 	       (let ((default-directory (file-name-directory file)))
 		 (ange-ftp-ls (file-name-nondirectory file) switches nil nil t))
-	     (ange-ftp-ls file switches full))))q
+	     (ange-ftp-ls file switches full))))
       (ange-ftp-real-insert-directory file switches wildcard full))))
 
 (defun ange-ftp-dired-uncache (dir)
@@ -4424,8 +4427,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       (if (> (length name) 0)		; else it's $HOME
 	  (setq command (concat "cd " name "; " command)))
       ;; Remove port from the hostname
-      (string-match "\\(.*\\)#\\(.*\\)" host)
-      (setq host (match-string 1 host))
+      (when (string-match "\\(.*\\)#" host)
+	(setq host (match-string 1 host)))
       (setq command
 	    (format  "%s %s \"%s\""	; remsh -l USER does not work well
 					; on a hp-ux machine I tried
