@@ -65,7 +65,7 @@ When Delete Selection mode is enabled, Transient Mark mode is also
 enabled and typed text replaces the selection if the selection is
 active.  Otherwise, typed text is just inserted at point regardless of
 any selection."
-  nil nil nil :global t :group 'editing-basics
+  :global t :group 'editing-basics
   (if (not delete-selection-mode)
       (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
     (add-hook 'pre-command-hook 'delete-selection-pre-hook)
