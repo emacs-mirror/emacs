@@ -1,5 +1,8 @@
 2002-05-07  Kenichi Handa  <handa@etl.go.jp>
 
+	* search.c (boyer_moore): Fix handling of mulitbyte character
+	translation.
+
 	* xdisp.c (display_mode_element): When the variable `elt' is
 	changed, update `this' and `lisp_string'.
 
@@ -420,7 +423,7 @@
 
 	* w32proc.c (syms_of_ntproc): Doc fix.
 
-2002-02-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* intervals.h: Include "dispextern.h" unconditionally.
 
@@ -476,7 +479,7 @@
 
 	* w32fns.c (w32_wnd_proc) <WM_TIMER>: Fix last change.
 
-2002-02-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-23  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* w32term.c (enter_timestamp): Remove unused static variable to
 	prevent warning.
@@ -552,7 +555,7 @@
 	(tool_bar_items): Likewise.
 	(current_active_maps): Removed unused (and buggy) function.
 
-2002-02-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xfns.c (gif_load): Use correct width and height for GIF images.
 
@@ -652,7 +655,7 @@
 	(hscroll_window_tree): Use automatic_hscroll_margin and
 	Vautomatic_hscroll_step to compute the amount of window scrolling.
 
-2002-02-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xterm.c (x-autoselect-window): New variable.
 	(note_mouse_movement): Use it.
@@ -772,7 +775,7 @@
 
 	* floatfns.c (Fround): Doc fix.
 
-2002-02-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* sysdep.c (init_system_name): Put unused variable `p' in #if 0.
 
@@ -813,7 +816,7 @@
 	(syms_of_keyboard): DEFVAR_LISP it.
 	(command_loop_1): Set it, and perform command remapping.
 
-2002-02-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (recursive_edit_1): Call cancel_hourglass
 	unconditionally.
@@ -854,7 +857,7 @@
 	of the default face to Qnormal, unless these attributes are
 	unspecified.
 
-2002-02-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (command_loop_1) [HAVE_X_WINDOWS]:
 	Call cancel_hourglass unconditionally.
@@ -876,7 +879,7 @@
 
 	* minibuf.c (Fcompleting_read): Doc fix.
 
-2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* minibuf.c (Fread_from_minibuffer, Fread_command, Fread_function)
 	(Fread_variable, Fread_buffer, minibuffer-completion-confirm):
@@ -889,7 +892,7 @@
 	* xdisp.c (try_scrolling): Exchange uses of scroll_down_aggressively
 	and scroll_up_aggressively.
 
-2002-01-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-26  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (parse_tool_bar_item): Remove duplicated prototypes.
 
@@ -944,7 +947,7 @@
 	* xfns.c (x_set_frame_parameters): Just call x_fullscreen_adjust
 	if fullscreen is being set.
 
-2002-01-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* minibuf.c (Fminibuffer_contents)
 	(Fminibuffer_contents_no_properties, Fread_from_minibuffer)
@@ -984,7 +987,7 @@
 
 	* window.c (MIN_SAFE_WINDOW_HEIGHT): Value now 1.
 
-2002-01-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* doprnt.c (doprnt1): Fix typos in error call.
 
@@ -1010,7 +1013,7 @@
 	(w32_enable_synthesized_fonts): Change to a boolean.
 	(Fw32_send_sys_command): Doc fix.
 
-2002-01-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-19  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* dispnew.c (update_frame): Move the variable `tem' to the block
 	where it is used.
@@ -1030,7 +1033,7 @@
 	* window.c (enlarge_window): When exceeding size of parent,
 	directly delete all the siblings instead of trying to resize it.
 
-2002-01-17  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-17  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* term.c (set_tty_color_mode): Remove unused variable `tem'.
 
@@ -1046,7 +1049,7 @@
 
 	* w32term.c (x_erase_phys_cursor): Ditto.
 
-2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xterm.c (XTread_socket) [!USE_X_TOOLKIT]: Compute the value of
 	`dont_resize' only when used.
@@ -1058,12 +1061,12 @@
 	* xdisp.c (display_mode_element): When computing charpos, depend
 	on multibyteness of elt, not the text in field.
 
-2002-01-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* buffer.c (Fkill_all_local_variables): Increment
 	`update_mode_lines' only once.
 
-2002-01-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* lisp.h (adjust_after_replace_noundo)
 	(Fupdate_coding_systems_internal): Add prototypes.
@@ -1132,7 +1135,7 @@
 	(syms_of_w32fns): DEFVAR_BOOL it.
 	(w32_wnd_proc): Handle new "XBUTTON" messages.
 
-2002-01-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (read_key_sequence): Remove unused variable `extra_maps'.
 
@@ -1236,7 +1239,7 @@
 	* editfns.c (Fformat): Update thissize from field_width
 	based on the actual width, in the string case.
 
-2002-01-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* charset.h (UNIBYTE_STR_AS_MULTIBYTE_P): Parenthesize assignment
 	when used as truth value to prevent gcc warnings.
@@ -1349,7 +1352,7 @@
 	* bytecode.c (Fbyte_code): Use Fstring_make_unibyte
 	instead of Fstring_as_unibyte.
 
-2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	The following changes remove mocklisp support:
 
@@ -1422,7 +1425,7 @@
 	* Makefile.in (lisp, shortlisp): Synchronize with changes to
 	lisp/Makefile.in:DONTCOMPILE.
 
-2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c (window_box_height): Do not return negative values.
 	From Gerd Moellmann <gerd@gnu.org>.
@@ -1519,7 +1522,7 @@
 
 	* s/gnu-linux.h (GNU_LINUX): Defined.
 
-2001-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* macros.c, msdos.c, w16select.c: Change doc-string comments to
 	`new style' [w/`doc:' keyword].
@@ -1529,7 +1532,7 @@
 	* w32menu.c (w32_free_submenu_strings): Clear menu item struct
 	before using.
 
-2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* dosfns.c: Change doc-string comments to `new style' [w/`doc:'
 	keyword].
@@ -1550,7 +1553,7 @@
 	Lisp_Object.
 	(w32_free_submenu_strings): Only free owner-drawn strings.
 
-2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Moved back.
 
@@ -1649,11 +1652,11 @@
 
 	* eval.c: Use standard syntax for usage in docstrings.
 
-2001-12-03  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c (syms_of_xdisp): Make `tool-bar-button-relief` an option.
 
-2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xterm.c (x_draw_image_relief): Use predefined macro instead of
 	constant when the value of `tool_bar_button_relief' is negative.
@@ -1749,7 +1752,7 @@
 	* w32term.c: Merged changes from xterm.c.
 	* w32fns.c: Merged changes from xfns.c.
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
 
@@ -1759,7 +1762,7 @@
 	extra extra slot.
 	(detect_coding_mask): Fix call of detect_coding_iso2022.
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* fileio.c (file-name-coding-system)
 	(default-file-name-coding-system): Doc fix (links to referenced
@@ -1806,7 +1809,7 @@
 	* xterm.c (x_draw_glyphs): Don't call notice_overwritten_cursor if
 	OVERLAPS_P.
 
-2001-11-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c (message_dolog): Remove unused variables `gcpro2',
 	`gcpro3' and `gcpro4'.
@@ -1923,7 +1926,7 @@
 	* msdos.c (IT_clear_screen): If the frame's faces are not yet
 	realized, use the initial screen colors to clear the screen.
 
-2001-11-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-23  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* textprop.c (Fset_text_properties): Remove unused variables
 	`unchanged', `prev_changed', `s' and `len'.
@@ -2051,7 +2054,7 @@
 
 	* puresize.h (BASE_PURESIZE): Increase to 750000.
 
-2001-11-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* frame.c (Fframe_live_p): Doc fix.
 
@@ -2101,7 +2104,7 @@
 	(Fwrite_region): Split the call to build_annotations into two
 	calls to build_annotations and build_annotations_2.
 
-2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* sysdep.c (wait_for_kbd_input) [VMS]: Do not call
 	clear_waiting_for_input with argument.
@@ -2273,7 +2276,7 @@
 
 	* print.c (prin1, print): Doc fix.
 
-2001-11-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* fontset.h: Remove declarations of variables
 	`Vhighlight_wrong_size_font' and `Vclip_large_size_font'.
@@ -2285,7 +2288,7 @@
 
 	* w32fns.c: Doc fix.
 
-2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xfaces.c (Fface_attributes_as_vector): Doc fix.
 
@@ -2347,7 +2350,7 @@
 	* w32fns.c: Don't define max.
 	(Fx_open_connection): Only execute once.
 
-2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* ccl.c: Change macros to use do-while block instead of if-else.
 	Use braces to follow GNU Coding Standards.
@@ -2385,7 +2388,7 @@
 	* unexelf.c (unexec): Use mmap/munmap to allocate buffers
 	instead of malloc/free.
 
-2001-11-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xfaces.c (merge_face_vectors): Use braces to follow GNU
 	Coding Standards.
@@ -2404,7 +2407,7 @@
 	* w32term.c (x_display_and_set_cursor): Do not move system caret
 	if cursor_glyph is NULL.
 
-2001-11-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-07  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* keymap.c (access_keymap): Fix compilation error.
 
@@ -2412,7 +2415,7 @@
 
 	* xfns.c (x_set_frame_parameters): Avoid infinite recursion.
 
-2001-11-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-07  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* intervals.c (graft_intervals_into_buffer):
 	Remove #ifdef'd-out code.
@@ -2433,7 +2436,7 @@
 	* keyboard.c (make_lispy_event): Check integerness and fix
 	Lisp_Object/int mixup.
 
-2001-11-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* fns.c (copy_hash_table): Remove unused variable `v'.
 
@@ -2471,7 +2474,7 @@
 	* unexelf.c (unexec): Don't use `mmap'.  Instead, read and write
 	the program image directly.
 
-2001-11-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* buffer.h (Fbuffer_local_value): Add prototype.
 
@@ -2507,7 +2510,7 @@
 	* xdisp.c (Qcursor_in_non_selected_windows): New variable.
 	(syms_of_xdisp): Initialize it.
 
-2001-11-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xfns.c (Fx_create_frame): Doc fix.
 
@@ -2541,7 +2544,7 @@
 
 	* syssignal.h (sigunblock): Don't define if already defined.
 
-2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* eval.c (debugger_may_continue, Vdebug_ignored_errors)
 	(call_debugger, Fcondition_case, skip_debugger, unbind_to):
@@ -2594,7 +2597,7 @@
 
 	* textprop.c (Fget_char_property): Doc fix.
 
-2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* process.c (Fstart_process): Add usage to doc-string.
 
@@ -2617,7 +2620,7 @@
 	bindings along with or instead of the buffer local map.
 	Make the overriding maps override what they should.
 
-2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* window.c (grow_mini_window): Fix typo in comment.
 
@@ -2634,7 +2637,7 @@
 	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource):
 	Handle :box so that it is possible to specify sexprs.
 
-2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xfaces.c (Finternal_merge_in_global_face): Reindent.
 	(Fface_font): Ditto.
@@ -2647,7 +2650,7 @@
 
 	* s/hpux11.h: New file.
 
-2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* emacs.c (USAGE1): Show command line option --no-window-system
 	instead of --no-windows in usage.
@@ -2673,7 +2676,7 @@
 
 	* dispextern.h (struct face) <colors_copied_bitwise_p>: New member.
 
-2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* marker.c, mocklisp.c: Change doc-string comments to `new style'
 	[w/`doc:' keyword].
@@ -2682,7 +2685,7 @@
 
 	* fns.c (require_unwind): Return Lisp_Object.
 
-2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (lucid-menu-bar-dirty-flag): Doc fix.
 	(last-input-char): Revert doc-string to be the same as the
@@ -2776,7 +2779,7 @@
 
 	* window.c (Fscroll_left, Fscroll_right): Doc fix.
 
-2001-10-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c (Finput_pending_p): Fix typo in doc-string.
 	(echo-area-clear-hook): Properly DEFVAR_LISP and staticpro it.
@@ -2811,7 +2814,7 @@
 	* xfns.c (x_build_heuristic_mask): Fix a bug not incrementing
 	a loop counter.
 
-2001-10-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* emacs.c: Use argv[0] instead of emacs when -t was specified.
 
@@ -2851,7 +2854,7 @@
 
 	* w32term.c (note_mouse_highlight): Clear old help_echo.
 
-2001-10-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xterm.c: Fix typo in a comment.
 
@@ -2938,12 +2941,12 @@
 	* xfaces.c (Fface_attributes_as_vector): New function.
 	(syms_of_xfaces): Defsubr it.
 
-2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* dispnew.c (sync_window_with_frame_matrix_rows): Remove unused
 	variable `area'.
 
-2001-10-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* search.c (scan_newline): Remove unused variable `selective_display'.
 
@@ -2984,7 +2987,7 @@
 	* xterm.c (XTset_vertical_scroll_bar) [!USE_TOOLKIT_SCROLL_BARS]:
 	Fix clearing of area not covered by scroll bar.
 
-2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xterm.c: (x_insert_glyphs): Remove unused variables `real_end'
 	and `real_start'.
@@ -3011,7 +3014,7 @@
 	(try_cursor_movement) [GLYPH_DEBUG]: Don't run if inhibited.
 	(syms_of_xdisp) [GLYPH_DEBUG]:  DEFVAR_BOOL the variables.
 
-2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xmenu.c: Spell the name of Emacs properly (GNU Emacs instead of
 	gnuemacs).
@@ -3064,7 +3067,7 @@
 	(x_draw_phys_cursor_glyph): Save state of w->phys_cursor_on_p
 	around call to x_draw_glyphs.
 
-2001-10-23  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-23  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* syntax.c (modify-syntax-entry): Fix argument names (use CHAR
 	instead of C) and usage.
@@ -3085,7 +3088,7 @@
 	* xdisp.c (display_line): Fix computation of continuation lines
 	width for TABs.
 
-2001-10-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c (build_desired_tool_bar_string): Remove unused variable
 	`Qlaplace'.
@@ -3137,7 +3140,7 @@
 	* mocklisp.c (Finsert_string, Fml_if, Fml_provide_prefix_argument)
 	(Fml_prefix_argument_loop): Likewise.
 
-2001-10-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* fileio.c (Finsert_file_contents): Remove unused variable `gap_size'.
 
@@ -3265,7 +3268,7 @@
 	* callproc.c (Fcall_process_region, Fcall_process): Likewise.
 	* alloc.c (Fmake_byte_code, Fvector, Flist): Likewise.
 
-2001-10-21  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* buffer.c: Reindent DEFUNs and DEFVARs with doc: keywords.
 
@@ -3280,7 +3283,7 @@
 
 	* (Version 21.1 released.)
 
-2001-10-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xfns.c (x_laplace_read_row, x_laplace_write_row): Prototypes removed.
 
@@ -3524,7 +3527,7 @@
 	(x_handle_property_notify, x_get_foreign_selection)
 	(x_handle_selection_notify): Use XSETCAR.
 
-2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* buffer.c: Put doc strings in comments.
 
@@ -3534,7 +3537,7 @@
 
 	* fns.c (Vafter_load_alist): Declare extern (w32 build problem).
 
-2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* process.c (process-inherit-coding-system-flag)
 	(get-buffer-process): Do not confuse make-docfile with doc strings
@@ -3552,7 +3555,7 @@
 	* window.c (select_window_1): Unfreeze window start.  Remove a
 	doubled test for WINDOW being live.
 
-2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* fns.c (Fmapconcat): Fix typo in a doc string.
 
@@ -3563,7 +3566,7 @@
 	* xterm.c (x_draw_glyph_string): Restore clipping after
 	drawing box.
 
-2001-10-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* callint.c (prefix-arg, current-prefix-arg): Fix typo in a doc string.
 
@@ -3593,7 +3596,7 @@
 	(in_ellipses_for_invisible_text_p, handle_invisible_prop):
 	Use new retval of TEXT_PROP_MEANS_INVISIBLE.
 
-2001-10-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* lisp.h (Ftop_level): Add prototype.
 
@@ -3688,7 +3691,7 @@
 	* lread.c (syms_of_lread) <load-suffixes>: Fix last change:
 	multi-line strings without a trailing "\n\".
 
-2001-10-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* floatfns.c: float_error() is defined iff FLOAT_CATCH_SIGILL is
 	defined.
@@ -3845,7 +3848,7 @@
 	* sysdep.c (child_setup_tty) [HAVE_TERMIO || HAVE_TERMIOS]:
 	Clear ICRNL and INLCR.  From Daiki Ueno <ueno@unixuser.org>.
 
-2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* keyboard.c: Don't define min/max.
 
@@ -3862,7 +3865,7 @@
 
 	* puresize.h (BASE_PURESIZE): Increase to 725000.
 
-2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-10-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* xfaces.c (free_frame_menubar): Add prototype.
 
@@ -4138,7 +4141,7 @@
 
 	* frame.c (syms_of_frame) <default-minibuffer-frame>: Doc fix.
 
-2001-09-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-09-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* s/gnu-linux.h: Fix a typo in comment.
 
@@ -4614,7 +4617,7 @@
 
 	* xterm.c (x_dump_glyph_string): Put in #if GLYPH_DEBUG.
 
-2001-08-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-08-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* alloc.c (init_stack): Remove declaration.
 
