@@ -1,6 +1,6 @@
 ;;; cal-x.el --- calendar windows in dedicated frames in x-windows
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -35,25 +35,6 @@
 ;;                                   Urbana, Illinois 61801
 
 ;;; Code:
-
-(require 'calendar)
-(if (not (fboundp 'calendar-basic-setup))
-    (fset 'calendar-basic-setup (symbol-function 'calendar)))
- 
-;;;###autoload
-(defvar calendar-setup 'one-frame
-  "The frame set up of the calendar.
-The choices are `one-frame' (calendar and diary together in one separate,
-dediciated frame) or `two-frames' (calendar and diary in separate, dedicated
-frames); with any other value the current frame is used.")
-
-(defun calendar (&optional arg)
-  "Choose between the one frame, two frame, or basic calendar displays.
-The original function `calendar' has been renamed `calendar-basic-setup'."
-  (interactive "P")
-  (cond ((equal calendar-setup 'one-frame) (calendar-one-frame-setup arg))
-        ((equal calendar-setup 'two-frames) (calendar-two-frame-setup arg))
-        (t (calendar-basic-setup arg))))
 
 (defvar calendar-frame nil "Frame in which to display the calendar.")
 
