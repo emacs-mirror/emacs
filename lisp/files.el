@@ -1933,7 +1933,7 @@ beginning and `after-revert-hook' at the end."
   ;; there's no straightforward way to encourage authors to notice a
   ;; reversal of the argument sense.  So I'm just changing the user
   ;; interface, but leaving the programmatic interface the same.
-  (interactive (list (not prefix-arg)))
+  (interactive (list (not current-prefix-arg)))
   (if revert-buffer-function
       (funcall revert-buffer-function ignore-auto noconfirm)
     (let* ((opoint (point))
