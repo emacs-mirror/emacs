@@ -115,7 +115,7 @@ Used to grey out relevant toolbar icons.")
 					'(gdba gdb dbx xdb jdb pdb bashdb))))
     ([print]	menu-item "Print Expression" gud-print
                      :enable (not gud-running))
-    ([display]	menu-item "Display Expression" gud-display
+    ([watch]	menu-item "Watch Expression" gud-watch
 		     :enable (and (not gud-running)
 				  (eq gud-minor-mode 'gdba)))
     ([finish]	menu-item "Finish Function" gud-finish
@@ -158,7 +158,7 @@ Used to grey out relevant toolbar icons.")
 	(dolist (x '((gud-break . "gud-break")
 		     (gud-remove . "gud-remove")
 		     (gud-print . "gud-print")
-		     (gud-display . "gud-display")
+		     (gud-watch . "gud-watch")
 		     (gud-run . "gud-run")
 		     (gud-until . "gud-until")
 		     (gud-cont . "gud-cont")
@@ -318,52 +318,83 @@ t means that there is no stack, and we are in display-file mode.")
   "Create a speedbar display based on the current state of GUD.
 If the GUD BUFFER is not running a supported debugger, then turn
 off the specialized speedbar mode."
-  (if (and (save-excursion (goto-char (point-min))
-			   (looking-at "Current Stack"))
-	   (equal gud-last-last-frame gud-last-speedbar-stackframe))
-      nil
-    (setq gud-last-speedbar-buffer buffer)
-    (let* ((minor-mode (with-current-buffer buffer gud-minor-mode))
-	   (frames
-	    (cond ((memq minor-mode '(gdba gdb))
-		   (gud-gdb-get-stackframe buffer))
-		  ;; Add more debuggers here!
-		  (t
-		   (speedbar-remove-localized-speedbar-support buffer)
-		   nil))))
-      (erase-buffer)
-      (if (not frames)
-	  (insert "No Stack frames\n")
-	(insert "Current Stack:\n"))
-      (while frames
-	(insert (nth 1 (car frames)) ":\n")
-	(if (= (length (car frames)) 2)
-	    (progn
-;	      (speedbar-insert-button "[?]"
+  (let ((minor-mode (with-current-buffer buffer gud-minor-mode)))
+    (cond 
+     ((eq minor-mode 'gdba)
+      (gdb-var-update)
+      (when (or gdb-var-changed
+		(not (save-excursion 
+		       (goto-char (point-min))
+		       (let ((case-fold-search t))
+			 (looking-at "Watch Expressions:")))))
+ 	(erase-buffer)
+	(insert "Watch Expressions:\n")
+	(let ((var-list gdb-var-list))
+	  (while var-list
+	    (let* ((depth 0) (start 0) (char ?+)
+		   (var (car var-list)) (varnum (nth 1 var)))
+	      (while (string-match "\\." varnum start)
+		(setq depth (1+ depth)
+		      start (1+ (match-beginning 0))))
+	      (if (equal (nth 2 var) "0")
+		  (speedbar-make-tag-line 'bracket ?? nil nil
+					  (concat (car var) "    " (nth 4 var))
+					  'gdb-var-delete
+					  nil 'speedbar-directory-face depth)
+		(if (and (cadr var-list)
+			 (string-match varnum (cadr (cadr var-list))))
+		    (setq char ?-))
+		(speedbar-make-tag-line 'bracket char
+					'gdb-speedbar-expand-node varnum
+					(concat (car var) "    " (nth 3 var))
+					'gdb-var-delete
+					nil 'speedbar-directory-face depth)))
+	    (setq var-list (cdr var-list))))
+	(setq gdb-var-changed nil)))
+     (t (if (and (save-excursion 
+		   (goto-char (point-min))
+		   (looking-at "Current Stack"))
+		 (equal gud-last-last-frame gud-last-speedbar-stackframe))
+	    nil
+	  (setq gud-last-speedbar-buffer buffer)
+	  (let ((gud-frame-list
+		 (cond ((eq minor-mode 'gdb)
+			(gud-gdb-get-stackframe buffer))
+		       ;; Add more debuggers here!
+		       (t (speedbar-remove-localized-speedbar-support buffer)
+			  nil))))
+	    (erase-buffer)
+	    (if (not gud-frame-list)
+		(insert "No Stack frames\n")
+	      (insert "Current Stack:\n"))
+	    (dolist (frame gud-frame-list)
+	      (insert (nth 1 frame) ":\n")
+	      (if (= (length frame) 2)
+		  (progn
+;	            (speedbar-insert-button "[?]"
+;				            'speedbar-button-face
+;				            nil nil nil t)
+		    (speedbar-insert-button (car frame)
+					     'speedbar-directory-face
+					     nil nil nil t))
+;	      (speedbar-insert-button "[+]"
 ;				      'speedbar-button-face
-;				      nil nil nil t)
-	      (speedbar-insert-button (car (car frames))
-				      'speedbar-directory-face
-				      nil nil nil t))
-;	  (speedbar-insert-button "[+]"
-;				  'speedbar-button-face
-;				  'speedbar-highlight-face
-;				  'gud-gdb-get-scope-data
-;				  (car frames) t)
-	  (speedbar-insert-button (car (car frames))
-				  'speedbar-file-face
-				  'speedbar-highlight-face
-				  (cond ((memq minor-mode '(gdba gdb))
-					 'gud-gdb-goto-stackframe)
-					(t (error "Should never be here")))
-				  (car frames) t))
-	(setq frames (cdr frames)))
-;      (let ((selected-frame
-;	     (cond ((eq ff 'gud-gdb-find-file)
-;		    (gud-gdb-selected-frame-info buffer))
-;		   (t (error "Should never be here"))))))
-      )
-    (setq gud-last-speedbar-stackframe gud-last-last-frame)))
+;				      'speedbar-highlight-face
+;				      'gud-gdb-get-scope-data
+;				      frame t)
+	      (speedbar-insert-button (car frame)
+				      'speedbar-file-face
+				      'speedbar-highlight-face
+				      (cond ((memq minor-mode '(gdba gdb))
+					     'gud-gdb-goto-stackframe)
+					    (t (error "Should never be here")))
+					frame t)))
+;            (let ((selected-frame
+;	           (cond ((eq ff 'gud-gdb-find-file)
+;		          (gud-gdb-selected-frame-info buffer))
+;		         (t (error "Should never be here"))))))
+	    )
+	  (setq gud-last-speedbar-stackframe gud-last-last-frame))))))
 
 
 ;; ======================================================================
