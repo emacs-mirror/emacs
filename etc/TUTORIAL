@@ -12,7 +12,7 @@ we'll use the following abbreviations:
  M-<chr>  means hold the META or EDIT key down while typing <chr>.
 	  If there is no META or EDIT key, type <ESC>, release it,
 	  then type the character <chr>.  "<ESC>" stands for the
-	  key labelled "ALT" or "ESC".
+	  key labelled "ESC".
 
 Important note: to end the Emacs session, type C-x C-c.  (Two characters.)
 The characters ">>" at the left margin indicate directions for you to
@@ -249,13 +249,15 @@ see, such as A, 7, *, etc. are taken by Emacs as text and inserted
 immediately.  Type <Return> (the carriage-return key) to insert a
 Newline character.
 
-You can delete the last character you typed by typing <Rubout>.
-<Rubout> is a key on the keyboard, which might be labelled "Delete"
-instead of "Rubout" on some terminals.  More generally, <Rubout>
-deletes the character immediately before the current cursor position.
+You can delete the last character you typed by typing <Delete>.
+<Delete> is a key on the keyboard, which may be labeled "Del".  In
+some cases, the "Backspace" key serves as <Delete>, but not always!
+
+More generally, <Delete> deletes the character immediately before the
+current cursor position.
 
 >> Do this now, type a few characters and then delete them
-   by typing <Rubout> a few times.  Don't worry about this file
+   by typing <Delete> a few times.  Don't worry about this file
    being changed; you won't affect the master tutorial.  This is just
    a copy of it.
 
@@ -264,10 +266,10 @@ deletes the character immediately before the current cursor position.
    screen, the line of text is "continued" onto a second screen line.
    The backslash at the right margin indicates a line which has
    been continued.
->> Use <Rubout>s to delete the text until the line fits on one screen
+>> Use <Delete>s to delete the text until the line fits on one screen
    line again.  The continuation line goes away.
 
->> Move the cursor to the beginning of a line and type <Rubout>.  This
+>> Move the cursor to the beginning of a line and type <Delete>.  This
    deletes the newline before the line and merges the line onto
    the previous line.  The resulting line may be too long to fit, in
    which case it has a continuation line.
@@ -282,17 +284,17 @@ You've now learned the most basic way of typing something in
 Emacs and correcting errors.  You can delete by words or lines
 as well.  Here is a summary of the delete operations:
 
-	<Rubout>     delete the character just before the cursor
+	<Delete>     delete the character just before the cursor
 	C-d   	     delete the next character after the cursor
 
-	M-<Rubout>   kill the word immediately before the cursor
+	M-<Delete>   kill the word immediately before the cursor
 	M-d	     kill the next word after the cursor
 
 	C-k	     kill from the cursor position to end of line
 	M-k	     kill to the end of the current sentence
 
-Notice that <Rubout> and C-d vs M-<Rubout> and M-d extend the parallel
-started by C-f and M-f (well, <Rubout> isn't really a control
+Notice that <Delete> and C-d vs M-<Delete> and M-d extend the parallel
+started by C-f and M-f (well, <Delete> isn't really a control
 character, but let's not worry about that).  C-k and M-k are like C-e
 and M-e, sort of, in that lines are opposite sentences.
 
@@ -684,7 +686,7 @@ search waiting for you to type the thing that you want to search for.
    type the word 'cursor', pausing after you type each
    character to notice what happens to the cursor.
 >> Type C-s to find the next occurrence of "cursor".
->> Now type <Rubout> four times and see how the cursor moves.
+>> Now type <Delete> four times and see how the cursor moves.
 >> Type <RET> to terminate the search.
 
 Did you see what happened?  Emacs, in an incremental search, tries to
@@ -700,11 +702,11 @@ letting it get through to Emacs.  To unfreeze the screen, type C-q.
 Then see the section "Spontaneous Entry to Incremental Search" in the
 Emacs manual for advice on dealing with this "feature".
 
-If you are in the middle of an incremental search and type <Rubout>,
+If you are in the middle of an incremental search and type <Delete>,
 you'll notice that the last character in the search string is erased
 and the search backs up to the last place of the search.  For
 instance, suppose you currently have typed 'cu' and you see that your
-cursor is at the first occurrence of 'cu'.  If you now type <Rubout>,
+cursor is at the first occurrence of 'cu'.  If you now type <Delete>,
 the 'u' on the search line is erased and you'll be repositioned in the
 text to the occurrence of 'c' where the search took you before you
 typed the 'u'.  This provides a useful means for backing up while you
