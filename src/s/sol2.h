@@ -1,5 +1,8 @@
 #include "usg5-4.h"
 
+/* This triggers a conditional in xfaces.c.  */
+#define XOS_NEEDS_TIME_H
+
 #define POSIX
 
 /* Here is how to find X Windows.  The -R option says where
