@@ -8119,34 +8119,15 @@ usage: (define-coding-system-internal ...)  */)
 	 If Nth element is a list of charset IDs, N is the first byte
 	 of one of them.  The list is sorted by dimensions of the
 	 charsets.  A charset of smaller dimension comes firtst. */
-      Lisp_Object list;
-      int maybe_ascii_compatible = 1;
-
-      for (list = Qnil, tail = charset_list; CONSP (tail); tail = XCDR (tail))
-	{
-	  struct charset *charset = CHARSET_FROM_ID (XFASTINT (XCAR (tail)));
-
-	  if (charset->method == CHARSET_METHOD_SUPERSET)
-	    {
-	      val = CHARSET_SUPERSET (charset);
-	      for (; CONSP (val); val = XCDR (val))
-		list = Fcons (XCAR (XCAR (val)), list);
-	      maybe_ascii_compatible = 0;
-	    }
-	  else
-	    list = Fcons (XCAR (tail), list);
-	}
-
       val = Fmake_vector (make_number (256), Qnil);
 
-      for (tail = Fnreverse (list); CONSP (tail); tail = XCDR (tail))
+      for (tail = charset_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  struct charset *charset = CHARSET_FROM_ID (XFASTINT (XCAR (tail)));
 	  int dim = CHARSET_DIMENSION (charset);
 	  int idx = (dim - 1) * 4;
 
-	  if (CHARSET_ASCII_COMPATIBLE_P (charset)
-	      && maybe_ascii_compatible)
+	  if (CHARSET_ASCII_COMPATIBLE_P (charset))
 	    CODING_ATTR_ASCII_COMPAT (attrs) = Qt;
 
 	  for (i = charset->code_space[idx];
