@@ -5352,8 +5352,7 @@ message_log_check_duplicate (prev_bol, prev_bol_byte, this_bol, this_bol_byte)
 
   for (i = 0; i < len; i++)
     {
-      if (i >= 3 && p1[i-3] == '.' && p1[i-2] == '.' && p1[i-1] == '.'
-	  && p1[i] != '\n')
+      if (i >= 3 && p1[i-3] == '.' && p1[i-2] == '.' && p1[i-1] == '.')
 	seen_dots = 1;
       if (p1[i] != p2[i])
 	return seen_dots;
