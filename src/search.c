@@ -221,6 +221,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
       if (NILP (cp->regexp))
 	goto compile_it;
       if (XSTRING (cp->regexp)->size == XSTRING (pattern)->size
+	  && STRING_MULTIBYTE (cp->regexp) == STRING_MULTIBYTE (pattern)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
