@@ -59,7 +59,7 @@ Boston, MA 02111-1307, USA.  */
    from the current KBOARD.  If events come from other KBOARDs, they
    are put aside for later in the KBOARDs' kbd_queue lists.
    The flag kbd_queue_has_data in a KBOARD is 1 if this has happened.
-   When Emacs goes back to the any-kboard state, it looks at all the KBOARDS
+   When Emacs goes back to the any-kboard state, it looks at all the KBOARDs
    to find those; and it tries processing their input right away.  */
 
 typedef struct kboard KBOARD;
@@ -222,7 +222,7 @@ extern Lisp_Object item_properties;
 #define ITEM_PROPERTY_ITEM 0
 /* The item string.  */
 #define ITEM_PROPERTY_NAME 1
-/* Start of initilize to nil */
+/* Start of initialize to nil */
 /* The binding: nil, a command or a keymap.  */
 #define ITEM_PROPERTY_DEF 2
 /* The keymap if the binding is a keymap, otherwise nil.  */
@@ -235,7 +235,7 @@ extern Lisp_Object item_properties;
 #define ITEM_PROPERTY_SELECTED 6
 /* Place for a help string. Not yet used.  */
 #define ITEM_PROPERTY_HELP 7
-/* Start of initilize to t */
+/* Start of initialize to t */
 /* Last property. */
 /* Not nil if item is enabled.  */
 #define ITEM_PROPERTY_ENABLE 8
