@@ -524,7 +524,7 @@ getloadavg (loadavg, nelem)
   int count;
   FILE *fp;
 
-  fp = fopen (LINUX_LDAV_FILE, "r");
+  fp = fopen (NETBSD_LDAV_FILE, "r");
   if (fp == NULL)
     return -1;
   count = fscanf (fp, "%lu %lu %lu %lu\n",
