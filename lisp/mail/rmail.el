@@ -198,8 +198,10 @@ Moves messages into file named by `rmail-file-name' (a babyl format file)
  and edits that file in RMAIL Mode.
 Type \\[describe-mode] once editing that file, for a list of RMAIL commands.
 
-May be called with filename as argument; then performs rmail editing on
-that file, but does not copy any new mail into the file."
+May be called with file name as argument; then performs rmail editing on
+that file, but does not copy any new mail into the file.
+Interactively, if you supply a prefix argument, then you
+have a chance to specify a file name with the minibuffer."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Run rmail on RMAIL file: "
 					 nil nil t))))
@@ -1856,7 +1858,7 @@ see the documentation of `rmail-resend'."
 
 (defun rmail-resend (address &optional from comment mail-alias-file)
   "Resend current message to ADDRESSES.
-ADDRESSES should be a single address, a a string consisting of several
+ADDRESSES should be a single address, a string consisting of several
 addresses separated by commas, or a list of addresses.
 
 Optional FROM is the address to resend the message from, and
@@ -1880,14 +1882,20 @@ typically for purposes of moderating a list."
 	  (insert-buffer-substring mailbuf)
 	  (goto-char (point-min))
 	  ;; Delete any Sender field, since that's not specifyable.
-	  (if (re-search-forward "^Sender:" nil t)
-	      (let (beg)
-		(beginning-of-line)
-		(setq beg (point))
-		(forward-line 1)
-		(while (looking-at "[ \t]")
-		  (forward-line 1))
-		(delete-region beg (point))))
+	  ; Only delete Sender fields in the actual header.
+	  (re-search-forward "^$" nil 'move)
+	  ; Using "while" here rather than "if" because some buggy mail
+	  ; software may have inserted multiple Sender fields.
+	  (while (re-search-backward "^Sender:" nil t)
+	    (let (beg)
+	      (setq beg (point))
+	      (forward-line 1)
+	      (while (looking-at "[ \t]")
+		(forward-line 1))
+	      (delete-region beg (point))))
+	  ; Go back to the beginning of the buffer so the Resent- fields
+	  ; are inserted there.
+	  (goto-char (point-min))
 	  ;;>> Insert resent-from:
 	  (insert "Resent-From: " from "\n")
 	  (insert "Resent-Date: " (mail-rfc822-date) "\n")
@@ -1929,7 +1937,7 @@ typically for purposes of moderating a list."
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
-the body of the original message; otherwise copy the current message."
+the body of the original message."
   (interactive)
   (require 'mail-utils)
   (let (to subj irp2 cc orig-message)
