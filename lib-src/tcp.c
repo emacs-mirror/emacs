@@ -122,7 +122,7 @@ main (argc, argv)
   bzero (&sockin, sizeof (sockin));
   sockin.sin_family = host->h_addrtype;
   bcopy (host->h_addr, &sockin.sin_addr, host->h_length);
-  sockin.sin_port = port;
+  sockin.sin_port = htons (port);
   if ((server = socket (AF_INET, SOCK_STREAM, 0)) < 0)
     {
       perror ("socket");
