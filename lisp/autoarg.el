@@ -42,7 +42,7 @@
   "Toggle Autoarg mode.
 
 You must modify via \\[customize] for this variable to have an effect."
-  :set (lambda (symbol vaautoarg-mode (or value 0)))
+  :set (lambda (symbol value) (autoarg-mode (or value 0)))
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'editing
