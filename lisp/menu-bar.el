@@ -829,7 +829,15 @@ Do the same for the keys of the same name."
        minibuffer-local-map
        minibuffer-local-completion-map))
 
-(defvar menu-bar-mode nil)
+(defcustom menu-bar-mode nil
+  "Toggle display of a menu bar on each frame.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `menu-bar-mode'."
+  :set (lambda (symbol value)
+	 (menu-bar-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'frames)
 
 (defun menu-bar-mode (flag)
   "Toggle display of a menu bar on each frame.
