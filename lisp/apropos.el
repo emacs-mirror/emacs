@@ -120,9 +120,10 @@ Returns list of symbols and documentation found."
 
 (defun super-apropos-check-doc-file (regexp)
   (let* ((doc-file (concat doc-directory internal-doc-file-name))
-	 (doc-buffer (find-file-noselect doc-file t))
-	;;	(doc-buffer (or (get-file-buffer doc-file)
-	;;			(find-file-noselect doc-file)))
+	 (doc-buffer
+	  ;; Force fundamental mode for the DOC file.
+	  (let (auto-mode-alist)
+	    (find-file-noselect doc-file t)))
 	type symbol doc sym-list)
     (save-excursion
       (set-buffer doc-buffer)
