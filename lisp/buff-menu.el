@@ -566,7 +566,7 @@ The R column contains a % for buffers that are read-only."
 	      (indent-to 40 1)
 	      (or file (setq file this-buffer-directory))
 	      (if file
-		  (princ file))
+		  (princ (abbreviate-file-name file)))
 	      (princ "\n"))))
 	  (setq bl (cdr bl))))
       (Buffer-menu-mode)
