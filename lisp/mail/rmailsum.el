@@ -700,7 +700,7 @@ Commands for sorting the summary:
 (define-key rmail-summary-mode-map [menu-bar mail]
   (cons "Mail" (make-sparse-keymap "Mail")))
 
-(define-key rmail-summary-mode-map [menu-bar mail continue]
+(define-key rmail-summary-mode-map [menu-bar mail rmail-summary-get-new-mail]
   '("Get New Mail" . rmail-summary-get-new-mail))
 
 (define-key rmail-summary--mode-map [menu-bar mail lambda]
