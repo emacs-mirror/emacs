@@ -57,33 +57,33 @@ shift
 goto again
 rem   ----------------------------------------------------------------------
 :msdos
-Echo Checking whether `sed' is available...
-Sed -e "w junk.$$$" <Nul
+Echo Checking whether 'sed' is available...
+sed -e "w junk.$$$" <Nul
 If Exist junk.$$$ Goto sedOk
-Echo To configure `Emacs' you need to have `sed'!
+Echo To configure 'Emacs' you need to have 'sed'!
 Goto End
 :sedOk
-Echo Checking whether `rm' is available...
+Echo Checking whether 'rm' is available...
 rm -f junk.$$$
 If Not Exist junk.$$$ Goto rmOk
-Echo To configure `Emacs' you need to have `rm'!
+Echo To configure 'Emacs' you need to have 'rm'!
 Goto End
 :rmOk
-Echo Checking whether `mv' is available...
+Echo Checking whether 'mv' is available...
 rm -f junk.1 junk.2
 echo foo >junk.1
 mv junk.1 junk.2
 If Exist junk.2 Goto mvOk
-Echo To configure `Emacs' you need to have `mv'!
+Echo To configure 'Emacs' you need to have 'mv'!
 rm -f junk.1
 Goto End
 :mvOk
 rm -f junk.2
-Echo Checking whether `gcc' is available...
+Echo Checking whether 'gcc' is available...
 echo main(){} >junk.c
 gcc -c junk.c
 if exist junk.o goto gccOk
-Echo To configure `Emacs' you need to have `gcc'!
+Echo To configure 'Emacs' you need to have 'gcc'!
 rm -f junk.c
 Goto End
 :gccOk
@@ -91,41 +91,17 @@ rm -f junk.c junk.o
 Rem   ----------------------------------------------------------------------
 Echo Configuring the source directory...
 cd src
-set PATHSH=paths-h.in
-if exist %PATHSH% goto src1
-set PATHSH=paths.h-in
-if exist %PATHSH% goto src1
-echo config: *** The file originally called "src/paths.h.in" cannot be found.
-cd ..
-goto end
-:src1
-set CONFIGH=config-h.in
-if exist %CONFIGH% goto src2
-set CONFIGH=config.h-in
-if exist %CONFIGH% goto src2
-echo config: *** The file originally called "src/config.h.in" cannot be found.
-cd ..
-goto end
-:src2
-set MAKEFILEIN=makefile.in-in
-if exist %MAKEFILEIN% goto src3
-set MAKEFILEIN=makefile-in.in
-if exist %MAKEFILEIN% goto src3
-echo makefile: *** The file originally called "src/makefile.in.in" cannot be found.
-cd ..
-goto end
-:src3
 
 rem   Create "paths.h"
-sed -f ../msdos/sed4.inp <%PATHSH% >paths.tmp
+sed -f ../msdos/sed4.inp <paths.in >paths.tmp
 update paths.tmp paths.h >nul
 rm -f paths.tmp
 
 rem   Create "config.h"
 rm -f config.h2 config.tmp
-cp %CONFIGH% config.tmp
+cp config.in config.tmp
 if "%X11%" == "" goto src4
-sed -f ../msdos/sed2x.inp <%CONFIGH% >config.tmp
+sed -f ../msdos/sed2x.inp <config.in >config.tmp
 :src4
 sed -f ../msdos/sed2.inp <config.tmp >config.h2
 update config.h2 config.h >nul
@@ -134,11 +110,12 @@ rm -f config.tmp config.h2
 rem   On my system dir.h gets in the way.  It's a VMS file so who cares.
 if exist dir.h ren dir.h vmsdir.h
 
-rem   Create "makefile" from "makefile.in.in".
+rem   Create "makefile" from "makefile.in".
 rm -f makefile junk.c
-sed -e "1,/cpp stuff/s@^# .*$@@" <%MAKEFILEIN% >junk.c
+sed -e "1,/cpp stuff/s@^# .*$@@" <makefile.in >junk.c
 gcc -E junk.c | sed -f ../msdos/sed1.inp >makefile
 rm -f junk.c
+
 if "%X11%" == "" goto src5
 mv makefile makefile.tmp
 sed -f ../msdos/sed1x.inp <makefile.tmp >makefile
@@ -153,17 +130,9 @@ cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
-set MAKEFILEIN=makefile.in-in
-if exist %MAKEFILEIN% goto libsrc1
-set MAKEFILEIN=makefile-in.in
-if exist %MAKEFILEIN% goto libsrc1
-echo makefile: *** The file originally called "lib-src/Makefile.in.in" cannot be found.
-cd ..
-goto end
-:libsrc1
 rem   Create "makefile" from "makefile.in".
-sed -e "1,/cpp stuff/s@^# .*$@@" <%MAKEFILEIN% >junk.c
-gcc -E -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >Makefile.new
+sed -e "1,/cpp stuff/s@^# .*$@@" <makefile.in >junk.c
+gcc -E -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >makefile.new
 sed -f ../msdos/sed3.inp <makefile.new >makefile
 rm -f makefile.new junk.c
 if "%nodebug%" == "" goto libsrc2
@@ -189,6 +158,3 @@ rem   ----------------------------------------------------------------------
 :end
 set X11=
 set nodebug=
-set MAKEFILEIN=
-set PATHSH=
-set CONFIGH=
