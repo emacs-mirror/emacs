@@ -1,3 +1,9 @@
+2002-01-01  Andreas Schwab  <schwab@suse.de>
+
+	* eval.c (max_specpdl_size, max_lisp_eval_depth): Define as int,
+	not EMACS_INT, to make them compatible with DEFVAR_INT.
+	* lisp.h (max_specpdl_size): Adjust declaration.
+
 2002-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* print.c (print_object): Test print_escape_nonascii only for
