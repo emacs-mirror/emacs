@@ -1,3 +1,8 @@
+2002-07-29  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (non-standard-designations-alist) 
+	(ctext-pre-write-conversion): Don't mung Latin-9 &c.
+
 2002-07-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* scroll-all.el (scroll-all-mode): Make argument optional.  Doc fix.
