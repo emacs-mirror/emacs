@@ -129,7 +129,15 @@ int insert_default_directory;
    Zero means use var format.  */
 int vms_stmlf_recfm;
 
+/* These variables describe handlers that have "already" had a chance
+   to handle the current operation.
+
+   Vinhibit_file_name_handlers is a list of file name handlers.
+   Vinhibit_file_name_operation is the operation being handled.
+   If we try to handle that operation, we ignore those handlers.  */
+
 static Lisp_Object Vinhibit_file_name_handlers;
+static Lisp_Object Vinhibit_file_name_operation;
 
 Lisp_Object Qfile_error, Qfile_already_exists;
 
@@ -203,29 +211,22 @@ DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handle
 Otherwise, return nil.\n\
 A file name is handled if one of the regular expressions in\n\
 `file-name-handler-alist' matches it.\n\n\
-If FILENAME is a member of `inhibit-file-name-handlers',\n\
-then its handler is not run.  This lets handlers\n\
+If OPERATION equals `inhibit-file-name-operation', then we ignore\n\
+any handlers that are members of `inhibit-file-name-handlers',\n\
+but we still do run any other handlers.  This lets handlers\n\
 use the standard functions without calling themselves recursively.")
   (filename, operation)
     Lisp_Object filename, operation;
 {
   /* This function must not munge the match data.  */
-  Lisp_Object chain;
+  Lisp_Object chain, inhibited_handlers;
 
   CHECK_STRING (filename, 0);
 
-  if (! NILP (Vinhibit_file_name_handlers))
-    {
-      Lisp_Object tail;
-      for (tail = Vinhibit_file_name_handlers; CONSP (tail);
-	   tail = XCONS (tail)->cdr)
-	{
-	  Lisp_Object tem;
-	  tem = Fstring_equal (tail, filename);
-	  if (!NILP (tem))
-	    return Qnil;
-	}
-    }
+  if (EQ (operation, Vinhibit_file_name_operation))
+    inhibited_handlers = Vinhibit_file_name_handlers;
+  else
+    inhibited_handlers = Qnil;
 
   for (chain = Vfile_name_handler_alist; XTYPE (chain) == Lisp_Cons;
        chain = XCONS (chain)->cdr)
@@ -238,7 +239,14 @@ use the standard functions without calling themselves recursively.")
 	  string = XCONS (elt)->car;
 	  if (XTYPE (string) == Lisp_String
 	      && fast_string_match (string, filename) >= 0)
-	    return XCONS (elt)->cdr;
+	    {
+	      Lisp_Object handler, tem;
+
+	      handler = XCONS (elt)->cdr;
+	      tem = Fmemq (handler, inhibited_handlers);
+	      if (NILP (tem))
+		return handler;
+	    }
 	}
 
       QUIT;
@@ -3992,8 +4000,13 @@ lists are merged destructively.");
   Vwrite_region_annotate_functions = Qnil;
 
   DEFVAR_LISP ("inhibit-file-name-handlers", &Vinhibit_file_name_handlers,
-    "A list of file names for which handlers should not be used.");
+    "A list of file names for which handlers should not be used.\n\
+This applies only to the operation `inhibit-file-name-handlers'.");
   Vinhibit_file_name_handlers = Qnil;
+
+  DEFVAR_LISP ("inhibit-file-name-operation", &Vinhibit_file_name_operation,
+    "The operation for which `inhibit-file-name-handlers' is applicable.");
+  Vinhibit_file_name_operation = Qnil;
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);
