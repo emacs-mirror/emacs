@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.14 1997/10/09 09:24:50 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.15 1997/10/14 22:22:35 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -225,6 +225,11 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.15  1997/10/14  22:22:35  os10000
+;; Added string-split (which I stole from ediff-util), changed
+;; pop-to-buffer to switch-to-buffer and added message on how
+;; to exit the multi-line-edit mode.
+;;
 ;; Revision 1.14  1997/10/09  09:24:50  os10000
 ;; Harald Meland <harald.meland@usit.uio.no> asked for
 ;; the latest version, got 1.13, and returned this.
@@ -546,9 +551,6 @@ For details see the variable `time-stamp-format'.")
   (if (> (count-lines (point-min) (point-max)) 0)
       (let ((comment (read-from-minibuffer "Comment: "))
 	    (time-stamp-format todo-time-string-format))
-	(goto-char (todo-item-start))
-	(delete-region (point) (search-forward todo-prefix))
-	(insert (time-stamp-string))
 	(goto-char (todo-item-end))
 	(insert (if (save-excursion (beginning-of-line)
 				    (looking-at (regexp-quote todo-prefix)))
@@ -556,8 +558,14 @@ For details see the variable `time-stamp-format'.")
 		  "\n\t")
 		"(" (nth todo-category-number todo-categories) ": "
 		comment ")")
-	(append-to-file (todo-item-start) (todo-item-end) todo-file-done)
-	(todo-remove-item)
+	(widen)
+	(goto-char (todo-item-start))
+	(delete-region (point) (search-forward todo-prefix))
+	(let ((temp-point (point)))
+	  (insert (time-stamp-string))
+	  (append-to-file temp-point (todo-item-end) todo-file-done)
+	  (delete-region temp-point (1+ (todo-item-end)))
+	  )
 	(todo-backward-item)
 	(message ""))
     (error "No TODO list entry to file away")))
@@ -628,20 +636,26 @@ For details see the variable `time-stamp-format'.")
 
 ;; splits at a white space, returns a list
 (if (not (fboundp 'split-string))
-    (defun split-string (string regex)
-      (let ((start 0)
-	    (result '())
-	    substr)
-	(while (string-match regex string start)
-	  (let ((match (string-match regex string start)))
-	    (setq substr (substring string start match))
-	    (if (> (length substr) 0)
-		(setq result (cons substr result)))
-	    (setq start (match-end 0))))
-	(setq substr (substring string start nil))
-	(if (> (length substr) 0)
-	    (setq result (cons substr result)))
-	(nreverse result))))
+    (defun split-string (string &optional separators)
+      "Splits STRING into substrings where there are matches for SEPARATORS.
+Each match for SEPARATORS is a splitting point.
+The substrings between the splitting points are made into a list
+which is returned.
+If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
+      (let ((rexp (or separators "[ \f\t\n\r\v]+"))
+	    (start 0)
+	    (list nil))
+	(while (string-match rexp string start)
+	  (or (eq (match-beginning 0) 0)
+	      (setq list
+		    (cons (substring string start (match-beginning 0))
+			  list)))
+	  (setq start (match-end 0)))
+	(or (eq start (length string))
+	    (setq list
+		  (cons (substring string start)
+			list)))
+	(nreverse list))))
 
 ;; ---------------------------------------------------------------------------
 
