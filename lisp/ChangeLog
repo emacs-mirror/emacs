@@ -1,3 +1,9 @@
+2001-11-25  Sam Steingold  <sds@gnu.org>
+
+	* menu-bar.el (menu-bar-apropos-menu): New variable.
+	Moved all `apropos' bindings to this menu.
+	(menu-bar-help-menu): Added `menu-bar-apropos-menu'.
+
 2001-11-24  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
 
 	The following changes are for new indian languages support based
@@ -11,10 +17,10 @@
 
 	* international/fontset.el: Delete the setting for indian-1-column
 	and add the setting for indian-glyph in the default fontset.
-	
+
 	* language/indian.el: Completely re-written.
 
-	* language/devanagari.el: Completely re-written. 
+	* language/devanagari.el: Completely re-written.
 
 	* language/devan-util.el: Completely re-written.
 
@@ -49,7 +55,7 @@
 2001-11-23  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (finder_setwins, setwins): Include Calc again.
-	
+
 	* calc/calc-rules.el: Add header comment.
 
 2001-11-23  Andre Spiegel  <spiegel@gnu.org>
@@ -65,7 +71,7 @@
 
 2001-11-22  Colin Walters  <walters@debian.org>
 
-	* calc/calc-misc.el (report-calc-bug): 
+	* calc/calc-misc.el (report-calc-bug):
 	Use `reporter-prompt-for-summary-p'.
 
 	* calc/INSTALL, calc/Makefile: Remove.

@@ -809,6 +809,10 @@ Do the same for the keys of the same name."
   '(menu-item "Show All of Mule Status" mule-diag
 	      :visible default-enable-multibyte-characters
 	      :help "Display multilingual environment settings"))
+(define-key menu-bar-describe-menu [describe-coding-system-briefly]
+  '(menu-item "Describe Coding System (Briefly)..."
+              describe-current-coding-system-briefly
+              :visible default-enable-multibyte-characters))
 (define-key menu-bar-describe-menu [describe-coding-system]
   '(menu-item "Describe Coding System..." describe-coding-system
 	      :visible default-enable-multibyte-characters))
@@ -827,9 +831,12 @@ Do the same for the keys of the same name."
 (define-key menu-bar-describe-menu [list-keybindings]
   '(menu-item "List Key Bindings" describe-bindings
 	      :help "Display a list of all current keybindings"))
-(define-key menu-bar-describe-menu [list-keybindings]
-  '(menu-item "List Key Bindings" describe-bindings
-	      :help "Display a list of all current keybindings"))
+(define-key menu-bar-describe-menu [describe-current-display-table]
+  '(menu-item "Describe Display Table" describe-current-display-table
+	      :help "Describe the current display table"))
+(define-key menu-bar-describe-menu [describe-face]
+  '(menu-item "Describe Face..." describe-face
+              :help "Display the properties of a face"))
 (define-key menu-bar-describe-menu [describe-variable]
   '(menu-item "Describe Variable..." describe-variable
 	      :help "Display documentation of variable/option"))
@@ -841,15 +848,27 @@ Do the same for the keys of the same name."
 	      ;; Users typically don't identify keys and menu items...
 	      :help "Display documentation of command bound to a \
 key (or menu-item)"))
-(define-key menu-bar-describe-menu [apropos-variables]
-  '(menu-item "Apropos Variables..." apropos-variable
-	      :help "List variables whose names match a regexp"))
-(define-key menu-bar-describe-menu [apropos-commands]
-  '(menu-item "Apropos Commands..." apropos-command
-	      :help "List commands whose names match a regexp"))
 (define-key menu-bar-describe-menu [describe-mode]
   '(menu-item "Describe Buffer Modes" describe-mode
 	      :help "Describe this buffer's major and minor mode"))
+
+(defvar menu-bar-apropos-menu (make-sparse-keymap "Apropos"))
+
+(define-key menu-bar-apropos-menu [apropos-documentation]
+  '(menu-item "Apropos Documentation..." apropos-documentation
+              :help "List variables whose doc strings match a regexp"))
+(define-key menu-bar-apropos-menu [apropos]
+  '(menu-item "Apropos Symbol..."  apropos
+              :help "List symbols whose names match a regexp"))
+(define-key menu-bar-apropos-menu [apropos-value]
+  '(menu-item "Apropos Value..." apropos-value
+              :help "List variables whose values match a regexp"))
+(define-key menu-bar-apropos-menu [apropos-variables]
+  '(menu-item "Apropos Variables..." apropos-variable
+	      :help "List variables whose names match a regexp"))
+(define-key menu-bar-apropos-menu [apropos-commands]
+  '(menu-item "Apropos Commands..." apropos-command
+	      :help "List commands whose names match a regexp"))
 
 (defvar menu-bar-manuals-menu (make-sparse-keymap "Manuals"))
 
@@ -898,6 +917,9 @@ key (or menu-item)"))
 (define-key menu-bar-help-menu [finder-by-keyword]
   '(menu-item "Find Emacs Packages..." finder-by-keyword
 	      :help "Find packages and features by keyword"))
+(define-key menu-bar-help-menu [apropos]
+  (list 'menu-item "Apropos" menu-bar-apropos-menu
+	:help "Find commands, variables, keys"))
 (define-key menu-bar-help-menu [describe]
   (list 'menu-item "Describe" menu-bar-describe-menu
 	:help "Describe commands, variables, keys"))
