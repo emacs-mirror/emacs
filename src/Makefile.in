@@ -548,7 +548,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
    These go in the DOC file on all machines
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
-  xterm.o xfns.o xmenu.o xselect.o xrdb.o
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o fontset.o
 
 
 #ifdef TERMINFO

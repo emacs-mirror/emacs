@@ -1,3 +1,7 @@
+2002-08-01  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Add fontset.o.
+
 2002-07-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (Fexpand_file_name) [DOS_NT]: Use the root directory
