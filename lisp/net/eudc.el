@@ -1,9 +1,9 @@
 ;;; eudc.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
-;; Author: Oscar Figueiredo <oscar@xemacs.org>
-;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
+;; Author: Oscar Figueiredo <oscar@cpe.fr>
+;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: comm
 
 ;; This file is part of GNU Emacs.
@@ -74,9 +74,6 @@
 
 (defvar eudc-form-widget-list nil)
 (defvar eudc-mode-map nil)
-;; Used by the selection insertion mechanism
-(defvar eudc-pre-select-window-configuration nil)
-(defvar eudc-insertion-marker nil)
 
 ;; List of known servers
 ;; Alist of (SERVER . PROTOCOL)
@@ -375,26 +372,15 @@ The translation is done according to
 		list))
     list))
 
-(defun eudc-select (choices)
-  "Choose one from CHOICES using a completion buffer."
-  (setq eudc-pre-select-window-configuration (current-window-configuration))
-  (setq eudc-insertion-marker (point-marker))
-  (with-output-to-temp-buffer "*EUDC Completions*"
-    (apply 'display-completion-list
-	   choices
-	   (if eudc-xemacs-p
-	       '(:activate-callback eudc-insert-selected)))))
-
-(defun eudc-insert-selected (event extent user)
-  "Insert a completion at the appropriate point."
-  (when eudc-insertion-marker
-    (set-buffer (marker-buffer eudc-insertion-marker))
-    (goto-char eudc-insertion-marker)
-    (insert (extent-string extent)))
-  (if eudc-pre-select-window-configuration
-      (set-window-configuration eudc-pre-select-window-configuration))
-  (setq eudc-pre-select-window-configuration nil
-	eudc-insertion-marker nil))
+(defun eudc-select (choices beg end)
+  "Choose one from CHOICES using a completion.
+BEG and END delimit the text which is to be replaced."
+  (let ((replacement))
+   (setq replacement
+	 (completing-read "Multiple matches found; choose one:"
+			  (mapcar 'list choices)))
+   (delete-region beg end)
+   (insert replacement)))
 
 (defun eudc-query (query &optional return-attributes no-translation)
    "Query the current directory server with QUERY.
@@ -824,8 +810,8 @@ The variable `eudc-inline-query-format' controls how to associate the
 individual inline query words with directory attribute names.
 After querying the server for the given string, the expansion specified by
 `eudc-inline-expansion-format' is inserted in the buffer at point.
-If REPLACE is non nil, then this expansion replaces the name in the buffer.
-`eudc-expansion-overwrites-query' being non nil inverts the meaning of REPLACE.
+If REPLACE is non-nil, then this expansion replaces the name in the buffer.
+`eudc-expansion-overwrites-query' being non-nil inverts the meaning of REPLACE.
 Multiple servers can be tried with the same query until one finds a match,
 see `eudc-inline-expansion-servers'"
   (interactive)
@@ -923,19 +909,19 @@ see `eudc-inline-expansion-servers'"
 	    (if (or
 		 (and replace (not eudc-expansion-overwrites-query))
 		 (and (not replace) eudc-expansion-overwrites-query))
-		(delete-region beg end))
+		(kill-ring-save beg end))
 	    (cond
 	     ((or (= (length response-strings) 1)
 		  (null eudc-multiple-match-handling-method)
 		  (eq eudc-multiple-match-handling-method 'first))
+	      (delete-region beg end)
 	      (insert (car response-strings)))
 	     ((eq eudc-multiple-match-handling-method 'select)
-	      (eudc-select response-strings))
+	      (eudc-select response-strings beg end))
 	     ((eq eudc-multiple-match-handling-method 'all)
 	      (insert (mapconcat 'identity response-strings ", ")))
 	     ((eq eudc-multiple-match-handling-method 'abort)
-	      (error "There is more than one match for the query"))
-	     ))
+	      (error "There is more than one match for the query"))))
 	  (or (and (equal eudc-server eudc-former-server)
 		   (equal eudc-protocol eudc-former-protocol))
 	      (eudc-set-server eudc-former-server eudc-former-protocol t)))
@@ -1114,7 +1100,6 @@ queries the server for the existing fields and displays a corresponding form."
       (if (> pt (point-min))
 	  (goto-char pt)
 	(error "No more records before point")))))
-
 
 ;;}}}
 
