@@ -1,12 +1,12 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Copyright (C) 1993 1994 1995 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1993,1994,1995,1996,1997,1998 Free Software Foundation, Inc.
 
-;; Author:          1993-1996 Barry A. Warsaw
-;; Maintainer:	    FSF
+;; Author:          1993-1998 Barry A. Warsaw
+;; Maintainer:      tools-help@python.org
 ;; Created:         19-Apr-1993
-;; Version:         3.3
-;; Last Modified:   1996/07/02 00:39:09
+;; Version:         3.34
+;; Last Modified:   1998/03/19 17:21:16
 ;; Keywords: maint mail tools
 
 ;; This file is part of GNU Emacs.
@@ -32,18 +32,19 @@
 ;; ==================
 ;; The variable `mail-user-agent' contains a symbol indicating which
 ;; Emacs mail package end users would like to use to compose outgoing
-;; mail.  See that variable for details.
+;; mail.  See that variable for details (it is no longer defined in
+;; this file).
 
 ;; Lisp Package Authors
 ;; ====================
-;; Reporter was written primarily for Emacs Lisp package authors so
-;; that their users can easily report bugs.  When invoked,
-;; reporter-submit-bug-report will set up an outgoing mail buffer with
-;; the appropriate bug report address, including a lisp expression the
-;; maintainer of the package can eval to completely reproduce the
-;; environment in which the bug was observed (e.g. by using
-;; eval-last-sexp).  This package proved especially useful during my
-;; development of cc-mode, which is highly dependent on its
+;; reporter.el was written primarily for Emacs Lisp package authors so
+;; that their users can more easily report bugs.  When invoked,
+;; `reporter-submit-bug-report' will set up an outgoing mail buffer
+;; with the appropriate bug report address, including a lisp
+;; expression the maintainer of the package can evaluate to completely
+;; reproduce the environment in which the bug was observed (e.g. by
+;; using `eval-last-sexp').  This package proved especially useful
+;; during my development of CC Mode, which is highly dependent on its
 ;; configuration variables.
 ;;
 ;; Do a "C-h f reporter-submit-bug-report" for more information.
@@ -54,6 +55,7 @@
 ;;(defun mypkg-submit-bug-report ()
 ;;  "Submit via mail a bug report on mypkg"
 ;;  (interactive)
+;;  (require 'reporter)
 ;;  (reporter-submit-bug-report
 ;;   mypkg-maintainer-address
 ;;   (concat "mypkg.el " mypkg-version)
@@ -62,25 +64,18 @@
 ;;         ;; ...
 ;;         'mypkg-variable-last)))
 
-;; Mailing List
-;; ============
-;; I've set up a Majordomo mailing list to report bugs or suggest
-;; enhancements, etc.  This list's intended audience is elisp package
-;; authors who are using reporter and want to stay current with
-;; releases. Here are the relevant addresses:
-;;
-;; Administrivia: reporter-request@python.org
-;; Submissions:   reporter@python.org
-
-;; Packages that currently use reporter are: cc-mode, supercite, elp,
+;; Reporter Users
+;; ==============
+;; Packages that currently use reporter are: CC Mode, supercite, elp,
 ;; tcl, ediff, crypt++ (crypt), dired-x, rmailgen, mode-line, vm,
 ;; mh-e, edebug, archie, viper, w3-mode, framepop, hl319, hilit19,
-;; pgp, eos, hm--html, efs.
+;; pgp, eos, hm--html, efs, webster19.
 ;;
 ;; If you know of others, please email me!
-
+
 ;;; Code:
 
+
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; Package author interface variables
 
@@ -119,7 +114,7 @@ This is necessary to properly support the printing of buffer-local
 variables.  Current buffer will always be the mail buffer being
 composed.")
 
-(defconst reporter-version "3.3"
+(defconst reporter-version "3.34"
   "Reporter version number.")
 
 (defvar reporter-initial-text nil
@@ -145,14 +140,21 @@ composed.")
 (defun reporter-beautify-list (maxwidth compact-p)
   ;; pretty print a list
   (reporter-update-status)
-  (let (linebreak indent-enclosing-p indent-p here)
+  (let ((move t)
+	linebreak indent-enclosing-p indent-p here)
     (condition-case nil			;loop exit
 	(progn
 	  (down-list 1)
 	  (setq indent-enclosing-p t)
-	  (while t
+	  (while move
 	    (setq here (point))
-	    (forward-sexp 1)
+	    ;; The following line is how we break out of the while
+	    ;; loop, in one of two ways.  Either we've hit the end of
+	    ;; the buffer, in which case scan-sexps returns nil, or
+	    ;; we've crossed unbalanced parens and it will raise an
+	    ;; error we're expecting to catch.
+	    (setq move (scan-sexps (point) 1))
+	    (goto-char move)
 	    (if (<= maxwidth (current-column))
 		(if linebreak
 		    (progn
@@ -303,6 +305,12 @@ composed.")
     (buffer-substring (match-beginning 0) (match-end 0))))
 
 
+;; Serves as an interface to `mail' (sendmail.el), but when the user
+;; answers "no" to discarding an unsent message, it gives an error.
+(defun reporter-mail (&rest args)
+  (or (apply 'mail args)
+      (error "Bug report aborted")))
+
 (defun reporter-compose-outgoing ()
   ;; compose the outgoing mail buffer, and return the selected
   ;; paradigm, with the current-buffer tacked onto the beginning of
@@ -311,11 +319,11 @@ composed.")
 	 (compose (get mail-user-agent 'composefunc)))
     ;; Sanity check.  If this fails then we'll try to use the SENDMAIL
     ;; protocol, otherwise we must signal an error.
-    (if (not (and compose (functionp compose)))
+    (if (not (and compose (fboundp compose)))
 	(progn
 	  (setq agent 'sendmail-user-agent
 		compose (get agent 'composefunc))
-	  (if (not (and compose (functionp compose)))
+	  (if (not (and compose (fboundp compose)))
 	      (error "Could not find a valid `mail-user-agent'")
 	    (ding)
 	    (message "`%s' is an invalid `mail-user-agent'; using `sendmail-user-agent'"
@@ -360,7 +368,7 @@ composed.")
       (pop-to-buffer mailbuf)
       ;; Just in case the original buffer is not visible now, bring it
       ;; back somewhere
-      (display-buffer reporter-eval-buffer))
+      (and pop-up-windows (display-buffer reporter-eval-buffer)))
     (goto-char (point-min))
     ;; different mailers use different separators, some may not even
     ;; use mail-header-separator, but sendmail.el stuff must have this
@@ -430,7 +438,7 @@ composed.")
 		  (length reporter-initial-text))
 	       (string= (buffer-substring after-sep-pos (point))
 			reporter-initial-text))
-	  (error "Bug report was empty--not sent"))
+	  (error "Empty bug report cannot be sent"))
       )))
 
 
