@@ -63,9 +63,14 @@
 
 ;;; Code:
 
+(defgroup cperl nil
+  "Major mode for editing Perl code."
+  :prefix "cperl-"
+  :group 'languages)
+
 (defconst cperl-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
 
-(defvar cperl-extra-newline-before-brace nil
+(defcustom cperl-extra-newline-before-brace nil
   "*Non-nil means that if, elsif, while, until, else, for, foreach
 and do constructs look like:
 
@@ -77,152 +82,235 @@ instead of:
 
 	if () {
 	}
-")
+"
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-indent-level 2
-  "*Indentation of CPerl statements with respect to containing block.")
-(defvar cperl-lineup-step nil
+(defcustom cperl-indent-level 2
+  "*Indentation of CPerl statements with respect to containing block."
+  :type 'integer
+  :group 'cperl)
+
+(defcustom cperl-lineup-step nil
   "*`cperl-lineup' will always lineup at multiple of this number.
-If `nil', the value of `cperl-indent-level' will be used.")
-(defvar cperl-brace-imaginary-offset 0
+If `nil', the value of `cperl-indent-level' will be used."
+  :type '(choice (const nil) integer)
+  :group 'cperl)
+(defcustom cperl-brace-imaginary-offset 0
   "*Imagined indentation of a Perl open brace that actually follows a statement.
 An open brace following other text is treated as if it were this far
-to the right of the start of its line.")
-(defvar cperl-brace-offset 0
-  "*Extra indentation for braces, compared with other text in same context.")
-(defvar cperl-label-offset -2
-  "*Offset of CPerl label lines relative to usual indentation.")
-(defvar cperl-min-label-indent 1
-  "*Minimal offset of CPerl label lines.")
-(defvar cperl-continued-statement-offset 2
-  "*Extra indent for lines not starting new statements.")
-(defvar cperl-continued-brace-offset 0
-  "*Extra indent for substatements that start with open-braces.
-This is in addition to cperl-continued-statement-offset.")
-(defvar cperl-close-paren-offset -1
-  "*Extra indent for substatements that start with close-parenthesis.")
+to the right of the start of its line."
+  :type 'integer
+  :group 'cperl)
 
-(defvar cperl-auto-newline nil
+(defcustom cperl-brace-offset 0
+  "*Extra indentation for braces, compared with other text in same context."
+  :type 'integer
+  :group 'cperl)
+(defcustom cperl-label-offset -2
+  "*Offset of CPerl label lines relative to usual indentation."
+  :type 'integer
+  :group 'cperl)
+(defcustom cperl-min-label-indent 1
+  "*Minimal offset of CPerl label lines."
+  :type 'integer
+  :group 'cperl)
+(defcustom cperl-continued-statement-offset 2
+  "*Extra indent for lines not starting new statements."
+  :type 'integer
+  :group 'cperl)
+(defcustom cperl-continued-brace-offset 0
+  "*Extra indent for substatements that start with open-braces.
+This is in addition to cperl-continued-statement-offset."
+  :type 'integer
+  :group 'cperl)
+(defcustom cperl-close-paren-offset -1
+  "*Extra indent for substatements that start with close-parenthesis."
+  :type 'integer
+  :group 'cperl)
+
+(defcustom cperl-auto-newline nil
   "*Non-nil means automatically newline before and after braces,
 and after colons and semicolons, inserted in CPerl code.  The following
 \\[cperl-electric-backspace] will remove the inserted whitespace.
 Insertion after colons requires both this variable and 
-`cperl-auto-newline-after-colon' set.")
+`cperl-auto-newline-after-colon' set."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-auto-newline-after-colon nil
+(defcustom cperl-auto-newline-after-colon nil
   "*Non-nil means automatically newline even after colons.
-Subject to `cperl-auto-newline' setting.")
+Subject to `cperl-auto-newline' setting."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-tab-always-indent t
+(defcustom cperl-tab-always-indent t
   "*Non-nil means TAB in CPerl mode should always reindent the current line,
-regardless of where in the line point is when the TAB command is used.")
+regardless of where in the line point is when the TAB command is used."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-font-lock nil
+(defcustom cperl-font-lock nil
   "*Non-nil (and non-null) means CPerl buffers will use font-lock-mode.
-Can be overwritten by `cperl-hairy' if nil.")
+Can be overwritten by `cperl-hairy' if nil."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-electric-lbrace-space nil
+(defcustom cperl-electric-lbrace-space nil
   "*Non-nil (and non-null) means { after $ in CPerl buffers should be preceded by ` '.
-Can be overwritten by `cperl-hairy' if nil.")
+Can be overwritten by `cperl-hairy' if nil."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-electric-parens-string "({[]})<"
+(defcustom cperl-electric-parens-string "({[]})<"
   "*String of parentheses that should be electric in CPerl.
-Closing ones are electric only if the region is highlighted.")
+Closing ones are electric only if the region is highlighted."
+  :type 'string
+  :group 'cperl)
 
-(defvar cperl-electric-parens nil
+(defcustom cperl-electric-parens nil
   "*Non-nil (and non-null) means parentheses should be electric in CPerl.
-Can be overwritten by `cperl-hairy' if nil.")
-(defvar cperl-electric-parens-mark  
+Can be overwritten by `cperl-hairy' if nil."
+  :type 'boolean
+  :group 'cperl)
+(defcustom cperl-electric-parens-mark  
   (and window-system
        (or (and (boundp 'transient-mark-mode) ; For Emacs
 		transient-mark-mode)
 	   (and (boundp 'zmacs-regions) ; For XEmacs
 		zmacs-regions)))
   "*Not-nil means that electric parens look for active mark.
-Default is yes if there is visual feedback on mark.")
+Default is yes if there is visual feedback on mark."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-electric-linefeed nil
+(defcustom cperl-electric-linefeed nil
   "*If true, LFD should be hairy in CPerl, otherwise C-c LFD is hairy.
 In any case these two mean plain and hairy linefeeds together.
-Can be overwritten by `cperl-hairy' if nil.")
+Can be overwritten by `cperl-hairy' if nil."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-electric-keywords nil
+(defcustom cperl-electric-keywords nil
   "*Not-nil (and non-null) means keywords are electric in CPerl.
-Can be overwritten by `cperl-hairy' if nil.")
+Can be overwritten by `cperl-hairy' if nil."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-hairy nil
-  "*Not-nil means all the bells and whistles are enabled in CPerl.")
+(defcustom cperl-hairy nil
+  "*Not-nil means all the bells and whistles are enabled in CPerl."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-comment-column 32
-  "*Column to put comments in CPerl (use \\[cperl-indent]' to lineup with code).")
+(defcustom cperl-comment-column 32
+  "*Column to put comments in CPerl (use \\[cperl-indent] to lineup with code)."
+  :type 'integer
+  :group 'cperl)
 
-(defvar cperl-vc-header-alist '((SCCS "$sccs = '%W\%' ;")
-				(RCS "$rcs = ' $Id\$ ' ;"))
-  "*What to use as `vc-header-alist' in CPerl.")
+(defcustom cperl-vc-header-alist '((SCCS "$sccs = '%W\%' ;")
+				   (RCS "$rcs = ' $Id\$ ' ;"))
+  "*What to use as `vc-header-alist' in CPerl."
+  :type '(repeat (list symbol string))
+  :group 'cperl)
 
-(defvar cperl-info-on-command-no-prompt nil
+(defcustom cperl-info-on-command-no-prompt nil
   "*Not-nil (and non-null) means not to prompt on C-h f.
 The opposite behaviour is always available if prefixed with C-c.
-Can be overwritten by `cperl-hairy' if nil.")
+Can be overwritten by `cperl-hairy' if nil."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-lazy-help-time nil
-  "*Not-nil (and non-null) means to show lazy help after given idle time.")
+(defcustom cperl-lazy-help-time nil
+  "*Not-nil (and non-null) means to show lazy help after given idle time."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-pod-face 'font-lock-comment-face
-  "*The result of evaluation of this expression is used for pod highlighting.")
+(defcustom cperl-pod-face 'font-lock-comment-face
+  "*The result of evaluation of this expression is used for pod highlighting."
+  :type 'face
+  :group 'cperl)
 
-(defvar cperl-pod-head-face 'font-lock-variable-name-face
+(defcustom cperl-pod-head-face 'font-lock-variable-name-face
   "*The result of evaluation of this expression is used for pod highlighting.
-Font for POD headers.")
+Font for POD headers."
+  :type 'face
+  :group 'cperl)
 
-(defvar cperl-here-face 'font-lock-string-face
-  "*The result of evaluation of this expression is used for here-docs highlighting.")
+(defcustom cperl-here-face 'font-lock-string-face
+  "*The result of evaluation of this expression is used for here-docs highlighting."
+  :type 'face
+  :group 'cperl)
 
-(defvar cperl-pod-here-fontify '(featurep 'font-lock)
-  "*Not-nil after evaluation means to highlight pod and here-docs sections.")
+(defcustom cperl-pod-here-fontify '(featurep 'font-lock)
+  "*Not-nil after evaluation means to highlight pod and here-docs sections."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-pod-here-scan t
+(defcustom cperl-pod-here-scan t
   "*Not-nil means look for pod and here-docs sections during startup.
-You can always make lookup from menu or using \\[cperl-find-pods-heres].")
+You can always make lookup from menu or using \\[cperl-find-pods-heres]."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-imenu-addback nil
+(defcustom cperl-imenu-addback nil
   "*Not-nil means add backreferences to generated `imenu's.
-May require patched `imenu' and `imenu-go'.")
+May require patched `imenu' and `imenu-go'."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-max-help-size 66
-  "*Non-nil means shrink-wrapping of info-buffer allowed up to these percents.")
+(defcustom cperl-max-help-size 66
+  "*Non-nil means shrink-wrapping of info-buffer allowed up to these percents."
+  :type '(choice integer (const nil))
+  :group 'cperl)
 
-(defvar cperl-shrink-wrap-info-frame t
-  "*Non-nil means shrink-wrapping of info-buffer-frame allowed.")
+(defcustom cperl-shrink-wrap-info-frame t
+  "*Non-nil means shrink-wrapping of info-buffer-frame allowed."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-info-page "perl"
+(defcustom cperl-info-page "perl"
   "*Name of the info page containing perl docs.
-Older version of this page was called `perl5', newer `perl'.")
+Older version of this page was called `perl5', newer `perl'."
+  :type 'string
+  :group 'cperl)
 
-(defvar cperl-use-syntax-table-text-property 
+(defcustom cperl-use-syntax-table-text-property 
   (boundp 'parse-sexp-lookup-properties)
-  "*Non-nil means CPerl sets up and uses `syntax-table' text property.")
+  "*Non-nil means CPerl sets up and uses `syntax-table' text property."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-use-syntax-table-text-property-for-tags 
+(defcustom cperl-use-syntax-table-text-property-for-tags 
   cperl-use-syntax-table-text-property
-  "*Non-nil means: set up and use `syntax-table' text property generating TAGS.")
+  "*Non-nil means: set up and use `syntax-table' text property generating TAGS."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-scan-files-regexp "\\.\\([pP][Llm]\\|xs\\)$"
-  "*Regexp to match files to scan when generating TAGS.")
+(defcustom cperl-scan-files-regexp "\\.\\([pP][Llm]\\|xs\\)$"
+  "*Regexp to match files to scan when generating TAGS."
+  :type 'regexp
+  :group 'cperl)
 
-(defvar cperl-noscan-files-regexp "/\\(\\.\\.?\\|SCCS\\|RCS\\|blib\\)$"
-  "*Regexp to match files/dirs to skip when generating TAGS.")
+(defcustom cperl-noscan-files-regexp "/\\(\\.\\.?\\|SCCS\\|RCS\\|blib\\)$"
+  "*Regexp to match files/dirs to skip when generating TAGS."
+  :type 'regexp
+  :group 'cperl)
 
-(defvar cperl-regexp-indent-step nil
-  "*indentation used when beautifying regexps.
-If `nil', the value of `cperl-indent-level' will be used.")
+(defcustom cperl-regexp-indent-step nil
+  "*Indentation used when beautifying regexps.
+If `nil', the value of `cperl-indent-level' will be used."
+  :type '(choice integer (const nil))
+  :group 'cperl)
 
-(defvar cperl-indent-left-aligned-comments t
-  "*Non-nil means that the comment starting in leftmost column should indent.")
+(defcustom cperl-indent-left-aligned-comments t
+  "*Non-nil means that the comment starting in leftmost column should indent."
+  :type 'boolean
+  :group 'cperl)
 
-(defvar cperl-under-as-char t
-  "*Non-nil means that the _ (underline) should be treated as word char.")
-
+(defcustom cperl-under-as-char t
+  "*Non-nil means that the _ (underline) should be treated as word char."
+  :type 'boolean
+  :group 'cperl)
 
 
 
@@ -458,8 +546,10 @@ progress indicator for indentation (with `imenu' loaded).
   (put-text-property (max (point-min) (1- from))
 		     to cperl-do-not-fontify t))
 
-(defvar cperl-mode-hook nil
-  "Hook run by `cperl-mode'.")
+(defcustom cperl-mode-hook nil
+  "Hook run by `cperl-mode'."
+  :type 'hook
+  :group 'cperl)
 
 
 ;;; Probably it is too late to set these guys already, but it can help later:
@@ -468,7 +558,7 @@ progress indicator for indentation (with `imenu' loaded).
 ;;;      (append '(("\\.\\([pP][Llm]\\|al\\)$" . perl-mode))  auto-mode-alist ))
 ;;;(and (boundp 'interpreter-mode-alist)
 ;;;     (setq interpreter-mode-alist (append interpreter-mode-alist
-					  '(("miniperl" . perl-mode)))))
+;;;					  '(("miniperl" . perl-mode)))))
 (if (fboundp 'eval-when-compile)
     (eval-when-compile
       (condition-case nil
@@ -4442,7 +4532,6 @@ Currently it is tuned to C and Perl syntax."
 	      found-bad found)))
     (not not-found)))
 
-=06
 ;;; Getting help
 (defvar cperl-have-help-regexp 
   ;;(concat "\\("
