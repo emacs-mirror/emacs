@@ -157,20 +157,7 @@ The QUALIFIER should be the same as QUALIFIER in
   :type 'boolean
   :group 'ibuffer)
 
-(defcustom ibuffer-saved-filter-groups
-  '(("gnus"
-     ((or (mode . message-mode)
-	  (mode . mail-mode)
-	  (mode . gnus-group-mode)
-	  (mode . gnus-summary-mode) 
-	  (mode . gnus-article-mode))))
-    ("programming"
-     ((or (mode . emacs-lisp-mode)
-	  (mode . cperl-mode)
-	  (mode . c-mode)
-	  (mode . java-mode) 
-	  (mode . idl-mode)
-	  (mode . lisp-mode)))))
+(defcustom ibuffer-saved-filter-groups nil
 				  
   "An alist of filtering groups to switch between.
 
@@ -648,7 +635,8 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
       (cond ((= pos 0)
 	     (push last-killed ibuffer-filter-groups))
 	    ((= pos (1- (length all-groups)))
-	     (nconc ibuffer-filter-groups (list last-killed)))
+	     (setq ibuffer-filter-groups
+		   (nconc ibuffer-filter-groups (list last-killed))))
 	    (t
 	     (let ((cell (nthcdr pos ibuffer-filter-groups)))
 	       (setf (cdr cell) (cons (car cell) (cdr cell)))
@@ -668,7 +656,7 @@ prompt for NAME, and use the current filters."
       ibuffer-filter-groups)))
   (ibuffer-aif (assoc name ibuffer-saved-filter-groups)
       (setcdr it groups)
-    (push (list name groups) ibuffer-saved-filter-groups))
+    (push (cons name groups) ibuffer-saved-filter-groups))
   (ibuffer-maybe-save-stuff)
   (ibuffer-update-mode-name))
 
@@ -699,7 +687,7 @@ of replacing the current filters."
 	(error "No saved filters")
       (completing-read "Switch to saved filter group: "
 		       ibuffer-saved-filter-groups nil t))))
-  (setq ibuffer-filter-groups (assoc name ibuffer-saved-filter-groups))
+  (setq ibuffer-filter-groups (cdr (assoc name ibuffer-saved-filter-groups)))
   (ibuffer-update nil t))
 
 ;;;###autoload
