@@ -748,6 +748,9 @@ This command invokes the external program `file' do its work, and so
 will only work on systems with that program, and will be only as
 accurate or inaccurate as it is.
 
+*** Dired now properly handles undo changes of adding/removing `-R'
+from ls switches.
+
 ** The variable mail-specify-envelope-from controls whether to
 use the -f option when sending mail.
 

@@ -1,3 +1,16 @@
+2000-07-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (with_echo_area_buffer): Take additional EMACS_INT
+	parameters instead of using int parameters.  Expect FN to accept
+	EMACS_INT parameters.
+	(display_echo_area, resize_echo_area_axactly, current_message)
+	(truncate_echo_area, set_message_1): Call with_echo_area_buffer
+	with new argument list.
+	(resize_mini_window_1): New callback function.
+	(current_message_1, truncate_message_1, set_message_1): Change
+	parameter lists to the new format expected by
+	with_echo_area_buffer.
+
 2000-07-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* fontset.c (fontset_ref): Remove INLINE declaration.

@@ -1,6 +1,12 @@
+2000-07-24  Francis Wright  <fjw@maths.qmw.ac.uk>
+
+	* dired.el (dired-sort-R-check): Added to allow recursive listing
+	to be undone.
+	(dired-sort-other): Use it.
+
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* Release 5.27
+	* Release of cc-mode 5.27
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -55,11 +61,11 @@
 	leading comma nicely. Extended to handle member initializers
 	too.
 
-	* cc-engine.el (c-beginning-of-inheritance-list,
+	* cc-engine.el: (c-beginning-of-inheritance-list,
 	c-guess-basic-syntax): Fixed recognition of inheritance lists
 	when the lines begins with a comma.
 
-	* cc-mode.texi Updated doc for c-lineup-multi-inher. 
+	* cc-mode.texi: Updated doc for c-lineup-multi-inher. 
 
 	* cc-vars.el (c-offsets-alist): Changed default for
 	member-init-cont to c-lineup-multi-inher since it now handles
@@ -204,7 +210,7 @@
 	* cc-mode.el (c-initialize-cc-mode): Handling of obsolete
 	variables moved here.
 
-	* cc-mode.texi Documented the special behavior of
+	* cc-mode.texi: Documented the special behavior of
 	c-special-indent-hook as a style variable.  Don't talk about
 	doing (c-make-styles-buffer-local t) in a mode hook, since
 	that's already too late to work right.
