@@ -351,7 +351,14 @@ configuration, and other parameters set as specified in CONFIGURATION."
 	       (let ((parameters (assq frame config-alist)))
 		 (if parameters
 		     (progn
-		       (modify-frame-parameters frame (nth 1 parameters))
+		       (modify-frame-parameters
+			frame
+			;; Since we can't set a frame's minibuffer status, 
+			;; we might as well omit the parameter altogether.
+			(let* ((parms (nth 1 parameters))
+			       (mini (assq 'minibuffer parms)))
+			  (if mini (setq parms (delq mini parms)))
+			  parms))
 		       (set-window-configuration (nth 2 parameters)))
 		   (setq frames-to-delete (cons frame frames-to-delete))))))
 	    (frame-list))
