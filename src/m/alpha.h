@@ -1,5 +1,5 @@
 /* machine description file For the alpha chip.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -319,3 +319,9 @@ extern void r_alloc_free ();
 #if (defined (__NetBSD__) || defined (__OpenBSD__)) && defined (__ELF__)
 #define HAVE_TEXT_START
 #endif
+
+/* Many Alpha implementations (e.g. gas 2.8) can't handle DBL_MIN:
+   they generate code that uses a signaling NaN instead of DBL_MIN.
+   Define DBL_MIN_REPLACEMENT to be the next value larger than DBL_MIN:
+   this avoids the assembler bug.  */
+#define DBL_MIN_REPLACEMENT 2.2250738585072019e-308
