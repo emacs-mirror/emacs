@@ -713,6 +713,8 @@ prepare_to_modify_buffer (start, end)
 
 #ifdef CLASH_DETECTION
   if (!NILP (current_buffer->file_truename)
+      /* Make binding buffer-file-name to nil effective.  */
+      && !NILP (current_buffer->filename)
       && SAVE_MODIFF >= MODIFF)
     lock_file (current_buffer->file_truename);
 #else
