@@ -1,0 +1,199 @@
+1999-09-17  Richard Stallman  <rms@gnu.org>
+
+	* Makefile.in (srcs): Add hash.texi.
+	(VERSION): Update to 20.6.
+
+1999-09-13  Richard Stallman  <rms@gnu.org>
+
+	* Makefile.in (index.texi): If cannot make a symlink, make a hard link.
+
+1998-08-29  Karl Heuer  <kwzh@gnu.org>
+
+	* configure.in: New file.
+	* Makefile.in: Renamed from Makefile.
+	(prefix, infodir): Use value obtained from configure.
+	(emacslibdir): Obsolete variable deleted.
+	(dist): Distribute configure.in, configure, Makefile.in.
+
+1998-06-12  Richard Stallman  <rms@psilocin.ai.mit.edu>
+
+	* Makefile (INSTALL_INFO): New variable.
+	(install): Run install-info.
+
+1998-05-09  Richard Stallman  <rms@psilocin.ai.mit.edu>
+
+	* Makefile (elisp.dvi): Add missing backslash.
+
+1998-05-02  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* Makefile (elisp.dvi): Don't depend on texindex or on elisp.tps.
+	Run texindex without `./'.  Always run texindex on elisp.tp.
+	(elisp.tps): Target deleted.
+
+1998-04-05  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* Makefile (srcs): Add nonascii.texi and customize.texi.
+	(dist): Start by deleting `temp'.
+
+1998-02-17  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* Makefile (makeinfo, texindex): Targets deleted.
+	(makeinfo.o, texindex.o): Targets deleted.
+	(clean, dist): Don't do anything with them or with getopt*.
+
+1998-01-30  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* Makefile (SHELL): Defined.
+
+1998-01-27  Richard Stallman  <rms@psilocin.gnu.org>
+
+	* Makefile (elisp.tps): New target.
+	(elisp.dvi): Depend on elisp.tps.
+
+Wed Apr  3 15:24:25 1996  Karl Heuer  <kwzh@gnu.ai.mit.edu>
+
+	* README: Update phone number.
+
+	* Makefile (elisp): Make this be the default target.
+	Depend on makeinfo.c instead of makeinfo.
+	(install): Don't depend on elisp.dvi, since we don't install that.
+	Use mkinstalldirs.
+	(dist): Add mkinstalldirs.
+
+Mon Jun 19 14:35:26 1995  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
+
+	* Makefile (VERSION): Update version number.
+	(maintainer-clean): Renamed from realclean.
+
+Wed Jun  7 17:04:59 1995  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
+
+	* Makefile (realclean): New target.
+	(elisp): Remove any old elisp-* files first.
+
+Tue Nov 23 19:59:40 1993  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
+
+        * Makefile (VERSION): New variable.
+        (dist): Make packaged directory name `elisp-manual-19-$(VERSION)'.
+        Compressed file suffix should be `.gz', not `.z'. 
+
+Mon Nov 22 15:06:19 1993  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (elisp): Depend on makeinfo.
+
+Fri Nov 19 02:29:33 1993  Noah Friedman  (friedman@gnu.ai.mit.edu)
+
+        * Makefile (srcs): Add anti.texi.
+
+Fri May 28 18:04:53 1993  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (infodir, prefix): New vars.
+	(install): Use infodir.
+	(emacsinfodir): Deleted.
+
+Thu May 27 02:11:25 1993  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
+
+	* Makefile (srcs): Add calendar.texi.
+
+	* Makefile (dist): Copy texindex.c and makeinfo.c.
+	Limit elisp-* files to those with one or two digits.
+
+Sun May 16 17:58:21 1993  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Makefile (dist): Changed to use Gzip instead of compress.
+
+Fri Apr 23 01:05:23 1993  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* loading.texi (Unloading): define-function changed back to
+	defalias.  It may not stay this way, but at least it's
+	consistent with the known-good version of the code patch.
+
+Fri Mar 26 21:14:54 1993  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
+
+	* modes.texi (Hooks): Document new optional arg of add-hook.
+
+Wed Mar 17 08:48:24 1993  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
+
+	* variables.texi: document nil initial value of buffer-local variables.
+
+	* tips.texi: Add new section on standard library headers.
+
+Sat Feb 27 18:00:25 1993  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Makefile (srcs): Add frame.texi to the list of sources.
+
+Tue Feb 23 10:50:25 1993  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+	* Makefile (dist): Don't bother excluding autosave files; they'll
+	never make it into the temp directory anyway, and the hash marks
+	in the name are problematic for make and the Bourne shell.
+	(srcs): 
+
+Fri Feb 12 16:54:38 1993  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
+
+        * Makefile (dist): Don't include backup files or autosave files in
+	the distribution tar file.
+
+Tue Nov 26 21:10:34 1991  Richard Stallman  (rms at mole.gnu.ai.mit.edu)
+
+	* Makefile (srcs): Added index.perm.
+	(elisp.dvi): Remove erroneous shell comment.
+	Expect output of permute-index in permuted.fns.
+	Save old elisp.aux in elisp.oaux.
+	(clean): Added index.texi to be deleted.
+
+Sat Aug 11 17:39:10 1990  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* Makefile (elisp.dvi, index.texi): Use shell if instead of ifdef.
+
+Tue Jun 26 09:57:26 1990  David Lawrence  (tale at geech)
+
+	* files.texi:  Noted that completion-ignored-extensions is ignored
+	when making *Completions*.
+
+Fri Jun  8 16:44:44 EDT 1990 Jay Fenlason (hack@ai.mit.edu)
+
+	* Makefile  make dist now depends on elisp.dvi, since it tries
+	to include it in the dist file.
+
+Wed Mar 28 22:57:35 1990  Jim Kingdon  (kingdon at mole.ai.mit.edu)
+
+	* functions.texinfo (Mapping Functions): Add missing quote
+
+Mon Jun 19 18:09:24 1989  Richard Stallman  (rms at sugar-bombs.ai.mit.edu)
+
+	* texinfo.tex (frenchspacing): Use decimal codes for char to be set.
+	(defunargs): Turn off \hyphenchar of \sl font temporarily.
+
+Wed May 10 18:01:17 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+
+	* @result{}, @expansion{}, @print{}, @quiv{}, @point{},
+	and @error{} are the terms now being used.  The files in the
+	directory have been changed to reflect this.
+
+        * All instances of @indentedresultt{} have been changed to 
+	`     @result{}', using 5 spaces at the begining of the line.
+
+Mon Apr 24 21:02:55 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+
+	* @result{}, @expandsto{}, @prints{}, @quiv{}, @error{}, and the
+	experimental @indentedresult{}, @indentedexpandsto{} are part of
+	the texinfo.tex in this directory.  These TeX macros are not
+	stable yet.
+
+Mon Apr 17 18:56:50 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+
+	* texinfo.tex:  temporarily added
+         	\let\result=\dblarrow  
+		\def\error{{\it ERROR} \longdblarrow}
+	We need to do this better soon.
+
+Tue Apr 11 12:23:28 1989  Robert J. Chassell  (bob at rice-chex.ai.mit.edu)
+
+	* Applied Karl Berry's patches to *.texinfo files, but not to
+	texinfo.tex; those diffs are in `berry-texinfo-tex-diffs'. (Karl's
+	new title page format is also not applied, since it requires
+	texinfo.tex changes.)
+
+	* Cleaned up `Makefile' and defined the `emacslibdir' directory
+	for the Project GNU development environment.
+

@@ -1,0 +1,38 @@
+@setfilename ../info/index
+
+@c Indexing guidelines
+
+@c I assume that all indexes will be combinded.
+@c Therefore, if a generated findex and permutations
+@c cover the ways an index user would look up the entry,
+@c then no cindex is added.
+@c Concept index (cindex) entries will also be permuted.  Therefore, they
+@c have no commas and few irrelevant connectives in them.
+
+@c I tried to include words in a cindex that give the context of the entry,
+@c particularly if there is more than one entry for the same concept.
+@c For example, "nil in keymap"
+@c Similarly for explicit findex and vindex entries, e.g., "print example".
+
+@c Error codes are given cindex entries, e.g., "end-of-file error".
+
+@c pindex is used for .el files and Unix programs
+
+@node Index, New Symbols, Standard Hooks, Top
+@unnumbered Index
+
+
+All variables, functions, keys, programs, files, and concepts are
+in this one index.  
+
+All names and concepts are permuted, so they appear several times, one
+for each permutation of the parts of the name.  For example,
+@code{function-name} would appear as @b{function-name} and @b{name,
+function-}.
+
+
+@c Print the indices
+
+@printindex fn
+
+
