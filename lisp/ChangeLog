@@ -1,3 +1,9 @@
+2001-01-11  Miles Bader  <miles@gnu.org>
+
+	* textmodes/ispell.el (ispell-adjusted-window-height): New function.
+	(ispell-overlay-window, ispell-help, ispell-show-choices)
+	(ispell-command-loop): Use it instead of `window-height'.
+
 2001-01-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (confirm-kill-emacs): New user-option.
