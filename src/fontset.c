@@ -447,11 +447,11 @@ fontset_pattern_regexp (pattern)
 }
 
 DEFUN ("query-fontset", Fquery_fontset, Squery_fontset, 1, 2, 0,
-  "Return a fontset name which matches PATTERN, nil if no matching fontset.\n\
-PATTERN can contain `*' or `?' as a wild card\n\
-just like X's font name matching algorithm allows.\n\
-If REGEXPP is non-nil, pattern is regexp;\n\
-so PATTERN is considered as regular expression.")
+  "Return the name of an existing fontset which matches PATTERN.\n\
+The value is nil if there is no matching fontset.\n\
+PATTERN can contain `*' or `?' as a wildcard\n\
+just as X font name matching algorithm allows.\n\
+If REGEXPP is non-nil, PATTERN is a regular expression.")
   (pattern, regexpp)
      Lisp_Object pattern, regexpp;
 {
@@ -463,10 +463,6 @@ so PATTERN is considered as regular expression.")
 
   if (XSTRING (pattern)->size == 0)
     return Qnil;
-
-  tem = Frassoc (pattern, Vfontset_alias_alist);
-  if (!NILP (tem))
-    return Fcar (tem);
 
   if (NILP (regexpp))
     regexp = fontset_pattern_regexp (pattern);
@@ -561,16 +557,17 @@ FONTLIST is an alist of charsets vs corresponding font names.")
      Lisp_Object name, fontlist;
 {
   Lisp_Object fullname, fontset_info;
-  Lisp_Object tail;
+  Lisp_Object tail, tem;
 
   (*check_window_system_func) ();
 
   CHECK_STRING (name, 0);
   CHECK_LIST (fontlist, 1);
 
+  tem = Frassoc (name, Vfontset_alias_alist);
   fullname = Fquery_fontset (name, Qnil);
-  if (!NILP (fullname))
-    error ("Fontset \"%s\" matches the existing fontset \"%s\"",
+  if (!NILP (tem) || !NILP (fullname))
+    error ("Fontset `%s' matches the existing fontset `%s'",
 	   XSTRING (name)->data, XSTRING (fullname)->data);
 
   /* Check the validity of FONTLIST.  */
@@ -611,6 +608,7 @@ If FRAME is omitted or nil, all frames are affected.")
 {
   int charset;
   Lisp_Object fullname, fontlist;
+  Lisp_Object tem;
 
   (*check_window_system_func) ();
 
@@ -623,9 +621,10 @@ If FRAME is omitted or nil, all frames are affected.")
   if ((charset = get_charset_id (charset_symbol)) < 0)
     error ("Invalid charset: %s", XSYMBOL (charset_symbol)->name->data);
 
+  tem = Frassoc (name, Vfontset_alias_alist);
   fullname = Fquery_fontset (name, Qnil);
-  if (NILP (fullname))
-    error ("Fontset \"%s\" does not exist", XSTRING (name)->data);
+  if (!NILP (tem) || !NILP (fullname))
+    error ("Fontset `%s' does not exist", XSTRING (name)->data);
 
   /* If FRAME is not specified, we must, at first, update contents of
      `global-fontset-alist' for a frame created in the future.  */
@@ -770,7 +769,7 @@ loading failed.")
 
   fontset = fs_query_fontset (f, XSTRING (name)->data);
   if (fontset < 0)
-    error ("Fontset \"%s\" does not exist", XSTRING (name)->data);
+    error ("Fontset `%s' does not exist", XSTRING (name)->data);
 
   info = Fmake_vector (make_number (3), Qnil);
 
