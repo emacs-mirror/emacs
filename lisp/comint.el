@@ -2688,7 +2688,6 @@ If NO-DISPLAY is non-nil, do not show the output buffer."
   "Send COMMAND to current process. 
 Return a list of expressions in the output which match REGEXP.
 REGEXP-GROUP is the regular expression group in REGEXP to use."
-  (interactive)
   (comint-redirect-results-list-from-process 
    (get-buffer-process (current-buffer))
    command regexp regexp-group))
@@ -2698,7 +2697,6 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
   "Send COMMAND to PROCESS. 
 Return a list of expressions in the output which match REGEXP.
 REGEXP-GROUP is the regular expression group in REGEXP to use."
-  (interactive)
   (let ((output-buffer " *Comint Redirect Work Buffer*")
 	results)
     (save-excursion
