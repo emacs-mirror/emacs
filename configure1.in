@@ -519,16 +519,16 @@ case "${configuration}" in
 
   ## HP 9000 series 700 and 800, running HP/UX
   hppa1.0-hp-hpux* )
-    machine=hp9000s800 opsys=hpux.h
+    machine=hp9000s800 opsys=hpux
   ;;
   hppa1.1-hp-hpux* )
-    machine=hp9000s800 opsys=hpux8.h
+    machine=hp9000s800 opsys=hpux8
   ;;
   hppa*-hp-hpux* )
     ## Cross-compilation?  Nah!
     case "`uname -m`" in
-      9000/8?? ) machine=hp9000s800 opsys=hpux.h ;;
-      9000/7?? ) machine=hp9000s800 opsys=hpux8.h ;;
+      9000/8?? ) machine=hp9000s800 opsys=hpux ;;
+      9000/7?? ) machine=hp9000s800 opsys=hpux8 ;;
     esac
   ;;
 
@@ -1101,6 +1101,6 @@ Configured for \`${configuration}'.
 
 ### Restore the arguments to this script, so autoconf can record them
 ### in the config.status file.
-set - ${arguments}
+set -- ${arguments}
 ]
 AC_OUTPUT(Makefile)
