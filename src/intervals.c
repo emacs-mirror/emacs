@@ -431,9 +431,9 @@ balance_intervals_internal (tree)
 {
   /* Balance within each side.  */
   if (tree->left)
-    balance_intervals (tree->left);
+    balance_intervals_internal (tree->left);
   if (tree->right)
-    balance_intervals (tree->right);
+    balance_intervals_internal (tree->right);
   return balance_an_interval (tree);
 }
 
