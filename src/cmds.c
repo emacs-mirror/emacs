@@ -254,7 +254,13 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
 
   flag = point > BEGV && FETCH_CHAR (point - 1) == '\n';
   if (flag)
-    SET_PT (point - 1);
+    /* We cannot use this optimization if properties change
+       in the vicinity.
+       ??? We need to check for change hook properties, etc.  */
+#ifdef USE_TEXT_PROPERTIES
+    if (point - 1 > BEGV && ! property_change_between_p (point - 2, point))
+#endif
+      SET_PT (point - 1);
 
   while (XINT (arg) > 0)
     {
