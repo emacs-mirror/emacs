@@ -1012,15 +1012,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 		      ".lit4")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".lit8")
-#if __sgi
-	  /* According to David Kaelbling <drk@bobo.hudson.sgi.com>,
-	     the SGI-specific section below is required to avoid core
-	     dumps during startup (due to SIGBUS) in an X-toolkit
-	     version of Emacs .  That was on Irix 6.5.14f with
-	     development tools versions 7.3.1.3m and 7.2.1.3m.  */
-	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
-		      ".got")
-#endif
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".sdata1")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
@@ -1204,10 +1195,6 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 			  ".lit4")
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			  ".lit8")
-#if __sgi
-	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
-			  ".got")
-#endif
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			  ".sdata1")
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
