@@ -399,6 +399,8 @@ Otherwise, this list will be constructed when needed from
 
 ;; These shouldn't be changed!
 
+;; Autoload for the benefit of `make-mode-line-mouse-sensitive'.
+;;;###autoload
 (defvar highlight-changes-mode nil)
 (defvar hilit-chg-list nil)
 (defvar hilit-chg-string " ??")
