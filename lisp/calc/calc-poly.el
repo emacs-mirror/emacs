@@ -516,48 +516,72 @@
 
 ;;; Given an expression find all variables that are polynomial bases.
 ;;; Return list in the form '( (var1 degree1) (var2 degree2) ... ).
-;;; Note dynamic scope of mpb-total-base.
+
+;; The variable math-poly-base-total-base is local to 
+;; math-total-polynomial-base, but is used by math-polynomial-p1,
+;; which is called by math-total-polynomial-base.
+(defvar math-poly-base-total-base)
+
 (defun math-total-polynomial-base (expr)
-  (let ((mpb-total-base nil))
+  (let ((math-poly-base-total-base nil))
     (math-polynomial-base expr 'math-polynomial-p1)
-    (math-sort-poly-base-list mpb-total-base)))
+    (math-sort-poly-base-list math-poly-base-total-base)))
+
+;; The variable math-poly-base-top-expr is local to math-polynomial-base
+;; in calc-alg.el, but is used by math-polynomial-p1 which is called
+;; by math-polynomial-base.
+(defvar math-poly-base-top-expr)
 
 (defun math-polynomial-p1 (subexpr)
-  (or (assoc subexpr mpb-total-base)
+  (or (assoc subexpr math-poly-base-total-base)
       (memq (car subexpr) '(+ - * / neg))
       (and (eq (car subexpr) '^) (natnump (nth 2 subexpr)))
       (let* ((math-poly-base-variable subexpr)
-	     (exponent (math-polynomial-p mpb-top-expr subexpr)))
+	     (exponent (math-polynomial-p math-poly-base-top-expr subexpr)))
 	(if exponent
-	    (setq mpb-total-base (cons (list subexpr exponent)
-				       mpb-total-base)))))
+	    (setq math-poly-base-total-base (cons (list subexpr exponent)
+				       math-poly-base-total-base)))))
   nil)
 
+;; The variable math-factored-vars is local to calcFunc-factors and
+;; calcFunc-factor, but is used by math-factor-expr and 
+;; math-factor-expr-part, which are called (directly and indirectly) by
+;; calcFunc-factor and calcFunc-factors.
+(defvar math-factored-vars)
 
+;; The variable math-fact-expr is local to calcFunc-factors,
+;; calcFunc-factor and math-factor-expr, but is used by math-factor-expr-try 
+;; and math-factor-expr-part, which are called (directly and indirectly) by
+;; calcFunc-factor, calcFunc-factors and math-factor-expr.
+(defvar math-fact-expr)
 
+;; The variable math-to-list is local to calcFunc-factors and 
+;; calcFunc-factor, but is used by math-accum-factors, which is 
+;; called (indirectly) by calcFunc-factors and calcFunc-factor.
+(defvar math-to-list)
 
-(defun calcFunc-factors (expr &optional var)
+(defun calcFunc-factors (math-fact-expr &optional var)
   (let ((math-factored-vars (if var t nil))
 	(math-to-list t)
 	(calc-prefer-frac t))
     (or var
-	(setq var (math-polynomial-base expr)))
+	(setq var (math-polynomial-base math-fact-expr)))
     (let ((res (math-factor-finish
 		(or (catch 'factor (math-factor-expr-try var))
-		    expr))))
+		    math-fact-expr))))
       (math-simplify (if (math-vectorp res)
 			 res
 		       (list 'vec (list 'vec res 1)))))))
 
-(defun calcFunc-factor (expr &optional var)
+(defun calcFunc-factor (math-fact-expr &optional var)
   (let ((math-factored-vars nil)
 	(math-to-list nil)
 	(calc-prefer-frac t))
     (math-simplify (math-factor-finish
 		    (if var
 			(let ((math-factored-vars t))
-			  (or (catch 'factor (math-factor-expr-try var)) expr))
-		      (math-factor-expr expr))))))
+			  (or (catch 'factor (math-factor-expr-try var)) math-fact-expr))
+		      (math-factor-expr math-fact-expr))))))
 
 (defun math-factor-finish (x)
   (if (Math-primp x)
@@ -571,18 +595,18 @@
       (list 'calcFunc-Fac-Prot x)
     x))
 
-(defun math-factor-expr (expr)
-  (cond ((eq math-factored-vars t) expr)
-	((or (memq (car-safe expr) '(* / ^ neg))
-	     (assq (car-safe expr) calc-tweak-eqn-table))
-	 (cons (car expr) (mapcar 'math-factor-expr (cdr expr))))
-	((memq (car-safe expr) '(+ -))
+(defun math-factor-expr (math-fact-expr)
+  (cond ((eq math-factored-vars t) math-fact-expr)
+	((or (memq (car-safe math-fact-expr) '(* / ^ neg))
+	     (assq (car-safe math-fact-expr) calc-tweak-eqn-table))
+	 (cons (car math-fact-expr) (mapcar 'math-factor-expr (cdr math-fact-expr))))
+	((memq (car-safe math-fact-expr) '(+ -))
 	 (let* ((math-factored-vars math-factored-vars)
-		(y (catch 'factor (math-factor-expr-part expr))))
+		(y (catch 'factor (math-factor-expr-part math-fact-expr))))
 	   (if y
 	       (math-factor-expr y)
-	     expr)))
-	(t expr)))
+	     math-fact-expr)))
+	(t math-fact-expr)))
 
 (defun math-factor-expr-part (x)    ; uses "expr"
   (if (memq (car-safe x) '(+ - * / ^ neg))
@@ -590,21 +614,25 @@
 	(math-factor-expr-part (car x)))
     (and (not (Math-objvecp x))
 	 (not (assoc x math-factored-vars))
-	 (> (math-factor-contains expr x) 1)
+	 (> (math-factor-contains math-fact-expr x) 1)
 	 (setq math-factored-vars (cons (list x) math-factored-vars))
 	 (math-factor-expr-try x))))
 
-(defun math-factor-expr-try (x)
-  (if (eq (car-safe expr) '*)
-      (let ((res1 (catch 'factor (let ((expr (nth 1 expr)))
-				   (math-factor-expr-try x))))
-	    (res2 (catch 'factor (let ((expr (nth 2 expr)))
-				   (math-factor-expr-try x)))))
+;; The variable math-fet-x is local to math-factor-expr-try, but is
+;; used by math-factor-poly-coefs, which is called by math-factor-expr-try.
+(defvar math-fet-x)
+
+(defun math-factor-expr-try (math-fet-x)
+  (if (eq (car-safe math-fact-expr) '*)
+      (let ((res1 (catch 'factor (let ((math-fact-expr (nth 1 math-fact-expr)))
+				   (math-factor-expr-try math-fet-x))))
+	    (res2 (catch 'factor (let ((math-fact-expr (nth 2 math-fact-expr)))
+				   (math-factor-expr-try math-fet-x)))))
 	(and (or res1 res2)
-	     (throw 'factor (math-accum-factors (or res1 (nth 1 expr)) 1
-						(or res2 (nth 2 expr))))))
-    (let* ((p (math-is-polynomial expr x 30 'gen))
-	   (math-poly-modulus (math-poly-modulus expr))
+	     (throw 'factor (math-accum-factors (or res1 (nth 1 math-fact-expr)) 1
+						(or res2 (nth 2 math-fact-expr))))))
+    (let* ((p (math-is-polynomial math-fact-expr math-fet-x 30 'gen))
+	   (math-poly-modulus (math-poly-modulus math-fact-expr))
 	   res)
       (and (cdr p)
 	   (setq res (math-factor-poly-coefs p))
@@ -642,11 +670,11 @@
     (math-mul (math-pow fac pow) facs)))
 
 (defun math-factor-poly-coefs (p &optional square-free)    ; uses "x"
-  (let (t1 t2)
+  (let (t1 t2 temp)
     (cond ((not (cdr p))
 	   (or (car p) 0))
 
-	  ;; Strip off multiples of x.
+	  ;; Strip off multiples of math-fet-x.
 	  ((Math-zerop (car p))
 	   (let ((z 0))
 	     (while (and p (Math-zerop (car p)))
@@ -654,7 +682,7 @@
 	     (if (cdr p)
 		 (setq p (math-factor-poly-coefs p square-free))
 	       (setq p (math-sort-terms (math-factor-expr (car p)))))
-	     (math-accum-factors x z (math-factor-protect p))))
+	     (math-accum-factors math-fet-x z (math-factor-protect p))))
 
 	  ;; Factor out content.
 	  ((and (not square-free)
@@ -665,12 +693,12 @@
 	   (math-accum-factors t1 1 (math-factor-poly-coefs
 				     (math-poly-div-list p t1) 'cont)))
 
-	  ;; Check if linear in x.
+	  ;; Check if linear in math-fet-x.
 	  ((not (cdr (cdr p)))
 	   (math-add (math-factor-protect
 		      (math-sort-terms
 		       (math-factor-expr (car p))))
-		     (math-mul x (math-factor-protect
+		     (math-mul math-fet-x (math-factor-protect
 				  (math-sort-terms
 				   (math-factor-expr (nth 1 p)))))))
 
@@ -683,7 +711,7 @@
 	       (setq pp (cdr pp)))
 	     pp)
 	   (let ((res (math-rewrite
-		       (list 'calcFunc-thecoefs x (cons 'vec p))
+		       (list 'calcFunc-thecoefs math-fet-x (cons 'vec p))
 		       '(var FactorRules var-FactorRules))))
 	     (or (and (eq (car-safe res) 'calcFunc-thefactors)
 		      (= (length res) 3)
@@ -693,7 +721,7 @@
 			(while (setq vec (cdr vec))
 			  (setq facs (math-accum-factors (car vec) 1 facs)))
 			facs))
-		 (math-build-polynomial-expr p x))))
+		 (math-build-polynomial-expr p math-fet-x))))
 
 	  ;; Check if rational coefficients (i.e., not modulo a prime).
 	  ((eq math-poly-modulus 1)
@@ -724,12 +752,13 @@
 					   (setq scale (math-div scale den))
 					   (math-add
 					    (math-add
-					     (math-mul den (math-pow x 2))
-					     (math-mul (math-mul coef1 den) x))
+					     (math-mul den (math-pow math-fet-x 2))
+					     (math-mul (math-mul coef1 den) 
+                                                       math-fet-x))
 					    (math-mul coef0 den)))
 				       (let ((den (math-lcm-denoms coef0)))
 					 (setq scale (math-div scale den))
-					 (math-add (math-mul den x)
+					 (math-add (math-mul den math-fet-x)
 						   (math-mul coef0 den))))
 				     1 expr)
 			       roots (cdr roots))))
@@ -738,8 +767,8 @@
 				 (math-mul csign
 					   (math-build-polynomial-expr
 					    (math-mul-list (nth 1 t1) scale)
-					    x)))))
-		 (math-build-polynomial-expr p x))   ; can't factor it.
+					    math-fet-x)))))
+		 (math-build-polynomial-expr p math-fet-x))   ; can't factor it.
 
 	     ;; Separate out the squared terms (Knuth exercise 4.6.2-34).
 	     ;; This step also divides out the content of the polynomial.
