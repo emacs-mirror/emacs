@@ -46,8 +46,11 @@ Lisp_Object minibuf_save_list;
 /* Depth in minibuffer invocations.  */
 int minibuf_level;
 
-/* Nonzero means display completion help for invalid input */
+/* Nonzero means display completion help for invalid input.  */
 int auto_help;
+
+/* The maximum length of a minibuffer history.  */
+Lisp_Object Qhistory_length, Vhistory_length;
 
 /* Fread_minibuffer leaves the input here as a string. */
 Lisp_Object last_minibuf_string;
@@ -356,8 +359,27 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
       if (NILP (histval)
 	  || (CONSP (histval)
 	      && NILP (Fequal (last_minibuf_string, Fcar (histval)))))
-	Fset (Vminibuffer_history_variable,
-	      Fcons (last_minibuf_string, histval));
+	{
+	  Lisp_Object length;
+
+	  histval = Fcons (last_minibuf_string, histval);
+	  Fset (Vminibuffer_history_variable, histval);
+
+	  /* Truncate if requested.  */
+	  length = Fget (Vminibuffer_history_variable, Qhistory_length);
+	  if (NILP (length)) length = Vhistory_length;
+	  if (INTEGERP (length)) {
+	    if (XINT (length) <= 0)
+	      Fset (Vminibuffer_history_variable, Qnil);
+	    else
+	      {
+		Lisp_Object temp;
+
+		temp = Fnthcdr (Fsub1 (length), histval);
+		if (CONSP (temp)) Fsetcdr (temp, Qnil);
+	      }
+	  }
+	}
     }
 
   /* If Lisp form desired instead of string, parse it. */
@@ -1794,6 +1816,9 @@ syms_of_minibuf ()
   Qminibuffer_exit_hook = intern ("minibuffer-exit-hook");
   staticpro (&Qminibuffer_exit_hook);
 
+  Qhistory_length = intern ("history-length");
+  staticpro (&Qhistory_length);
+
   DEFVAR_LISP ("minibuffer-setup-hook", &Vminibuffer_setup_hook, 
     "Normal hook run just after entry to minibuffer.");
   Vminibuffer_setup_hook = Qnil;
@@ -1801,6 +1826,13 @@ syms_of_minibuf ()
   DEFVAR_LISP ("minibuffer-exit-hook", &Vminibuffer_exit_hook,
     "Normal hook run just after exit from minibuffer.");
   Vminibuffer_exit_hook = Qnil;
+
+  DEFVAR_LISP ("history-length", &Vhistory_length,
+    "*Maximum length for history lists before truncation takes place.\n\
+A number means that length; t means infinite.  Truncation takes place\n\
+just after a new element is inserted.  Setting the history-length\n\
+property of a history variable overrides this default.");
+  XSETFASTINT (Vhistory_length, 30);
 
   DEFVAR_BOOL ("completion-auto-help", &auto_help,
     "*Non-nil means automatically provide help for invalid completion input.");
