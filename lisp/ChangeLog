@@ -1,3 +1,11 @@
+2004-03-07  Dave Love  <fx@gnu.org>
+
+	* net/browse-url.el (rfc2368-parse-mailto-url): Autoload.
+	(browse-url-mail): Use it.
+
+	* mail/rfc2368.el (rfc2368-unhexify-char): Deleted.
+	(rfc2368-unhexify-string): Use replace-regexp-in-string.
+
 2004-03-07  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
 
 	* woman.el (woman-man.conf-path): Doc fix.
