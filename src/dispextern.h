@@ -1927,9 +1927,6 @@ struct it
      descent/ascent (line-height property).  Reset after this glyph.  */
   unsigned constrain_row_ascent_descent_p : 1;
 
-  /* If 1, show current glyph in default face.  Reset after this glyph.  */
-  unsigned use_default_face : 1;
-
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
      MODE_LINE_FACE_ID, etc, depending on what we are displaying.  */
   int base_face_id;
@@ -1995,6 +1992,10 @@ struct it
   /* Additional space in pixels between lines (for window systems
      only.)  */
   int extra_line_spacing;
+
+  /* Override font height information for this glyph.
+     Used if override_ascent >= 0.  Cleared after this glyph.  */
+  int override_ascent, override_descent, override_boff;
 
   /* If non-null, glyphs are produced in glyph_row with each call to
      produce_glyphs.  */
