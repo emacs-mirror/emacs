@@ -945,7 +945,7 @@ It should come right after the copying permissions, terminated by a
 text is used by the Finder package, so it should make sense in that
 context.
 
-@item ;;; Documentation
+@item ;;; Documentation:
 This has been used in some files in place of @samp{;;; Commentary:},
 but @samp{;;; Commentary:} is preferred.
 
