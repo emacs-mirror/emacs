@@ -201,6 +201,7 @@ If NAME is already a face, it is simply returned."
   "Define a new FACE on all frames.  
 You can modify the font, color, etc of this face with the set-face- functions.
 If the face already exists, it is unmodified."
+  (interactive "sMake face: ")
   (or (internal-find-face name)
       (let ((face (make-vector 8 nil)))
 	(aset face 0 'face)
@@ -300,8 +301,8 @@ Otherwise it applies to each frame separately."
       (set-face-font new-face (face-font old-face frame) frame)
       (set-face-foreground new-face (face-foreground old-face frame) frame)
       (set-face-background new-face (face-background old-face frame) frame)
-      (set-face-background-pixmap
-       new-face (face-background-pixmap old-face frame) frame)
+;;;      (set-face-background-pixmap
+;;;       new-face (face-background-pixmap old-face frame) frame)
       (set-face-underline-p new-face (face-underline-p old-face frame)
 			    frame))
     new-face))
@@ -332,9 +333,9 @@ is displayed on top of."
 		  (null (face-background face frame)))
 	      (or (equal (face-font default frame) (face-font face frame))
 		  (null (face-font face frame)))
-	      (or (equal (face-background-pixmap default frame)
-			 (face-background-pixmap face frame))
-		  (null (face-background-pixmap face frame)))
+;;;	      (or (equal (face-background-pixmap default frame)
+;;;			 (face-background-pixmap face frame))
+;;;		  (null (face-background-pixmap face frame)))
 	      (equal (face-underline-p default frame)
 		     (face-underline-p face frame))
 	      ))))
@@ -343,8 +344,7 @@ is displayed on top of."
 (defun invert-face (face &optional frame)
   "Swap the foreground and background colors of face FACE.
 If the face doesn't specify both foreground and background, then
-its foreground and background are set to the background and
-foreground of the default face."
+set its foreground and background to the default background and foreground."
   (interactive (list (read-face-name "Invert face: ")))
   (setq face (internal-get-face face frame))
   (let ((fg (face-foreground face frame))
@@ -353,8 +353,12 @@ foreground of the default face."
 	(progn
 	  (set-face-foreground face bg frame)
 	  (set-face-background face fg frame))
-      (set-face-foreground face (face-background 'default frame) frame)
-      (set-face-background face (face-foreground 'default frame) frame)))
+      (set-face-foreground face (or (face-background 'default frame)
+				    (cdr (assq 'background-color (frame-parameters frame))))
+			   frame)
+      (set-face-background face (or (face-foreground 'default frame)
+				    (cdr (assq 'foreground-color (frame-parameters frame))))
+			   frame)))
   face)
 
 
@@ -363,15 +367,6 @@ foreground of the default face."
   (condition-case ()
       (set-face-font face font frame)
     (error nil)))
-
-
-(defun set-default-font (font)
-  "Sets the font used for normal text and the modeline to FONT in all frames.
-For finer-grained control, use set-face-font."
-  (interactive (list (read-string "Set default font: "
-				  (face-font 'default (selected-frame)))))
-  (set-face-font 'default font)
-  (set-face-font 'modeline font))
 
 ;; Manipulating font names.
 
@@ -606,7 +601,7 @@ If NOERROR is non-nil, return nil on failure."
 
 (defun face-initialize ()
   (make-face 'default)
-  (make-face 'modeline)
+;;;  (make-face 'modeline)
   (make-face 'highlight)
   ;;
   ;; These aren't really special in any way, but they're nice to have around.
@@ -617,6 +612,8 @@ If NOERROR is non-nil, return nil on failure."
   (make-face 'bold-italic)
   (make-face 'primary-selection)
   (make-face 'secondary-selection)
+
+  (setq region-face (face-id 'primary-selection))
 
   ;; Set up the faces of all existing X Window frames.
   (let ((frames (frame-list)))
@@ -679,44 +676,40 @@ If NOERROR is non-nil, return nil on failure."
 
   (or (face-differs-from-default-p 'highlight frame)
       (condition-case ()
-	  (if (x-display-color-p)
-              (condition-case ()
-		  (set-face-background 'highlight "darkseagreen2" frame)
-                (error (set-face-background 'highlight "green" frame)))
-	    (set-face-background-pixmap 'highlight "gray1" frame)
-	    )
+	  (condition-case ()
+	      (set-face-background 'highlight "darkseagreen2" frame)
+	    (error (set-face-background 'highlight "green" frame)))
+;;;	    (set-face-background-pixmap 'highlight "gray1" frame)
 	(error (invert-face 'highlight frame))))
 
   (or (face-differs-from-default-p 'primary-selection frame)
       (condition-case ()
-	  (if (x-display-color-p)
-	      (set-face-background 'primary-selection "gray" frame)
-	    (set-face-background-pixmap 'primary-selection "gray3" frame)
-	    )
+	  (set-face-background 'primary-selection "gray" frame)
 	(error (invert-face 'primary-selection frame))))
 
   (or (face-differs-from-default-p 'secondary-selection frame)
       (condition-case ()
-	  (if (x-display-color-p)
-              (condition-case ()
-		  ;; some older X servers don't have this one.
-		  (set-face-background 'secondary-selection "paleturquoise"
-				       frame)
-		(error
-		 (set-face-background 'secondary-selection "green" frame)))
-	    (set-face-background-pixmap 'secondary-selection "gray1" frame)
-	    )
+	  (condition-case ()
+	      ;; some older X servers don't have this one.
+	      (set-face-background 'secondary-selection "paleturquoise"
+				   frame)
+	    (error
+	     (set-face-background 'secondary-selection "green" frame)))
+;;;	    (set-face-background-pixmap 'secondary-selection "gray1" frame)
 	(error (invert-face 'secondary-selection frame))))
   )
 
 (defun internal-x-complain-about-font (face frame)
-  (message "No %s version of %S"
-	   face
-	   (or (face-font face frame)
-	       (face-font face t)
-	       (face-font 'default frame)
-	       (cdr (assq 'font (frame-parameters frame)))))
-  (sit-for 1))
+;;; It's annoying to bother the user about this,
+;;; since it happens under normal circumstances.
+;;;  (message "No %s version of %S"
+;;;	   face
+;;;	   (or (face-font face frame)
+;;;	       (face-font face t)
+;;;	       (face-font 'default frame)
+;;;	       (cdr (assq 'font (frame-parameters frame)))))
+;;;  (sit-for 1)
+  )
 
 ;; Like x-create-frame but also set up the faces.
 
