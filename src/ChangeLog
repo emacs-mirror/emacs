@@ -1,3 +1,10 @@
+2000-12-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_load_font): Don't use the font's max_bounds for
+	computing the height of the font.  If max_bounds' ascent or
+	descent are greater than the font's ascent or descent, this means
+	glyphs overlap, which should be handled now by redisplay.
+
 2000-12-06  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): If FRAME is `t',
