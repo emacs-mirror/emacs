@@ -11,7 +11,7 @@
 ;;;_  - Author: Ken Manheimer <klm@nist.gov>
 ;;;_  - Maintainer: Ken Manheimer <klm@nist.gov>
 ;;;_  - Created: Dec 1991 - first release to usenet
-;;;_  - Version: $Id: allout.el,v 1.2 1993/06/07 18:48:08 rms Exp jimb $||
+;;;_  - Version: $Id: allout.el,v 1.3 1993/06/09 11:51:08 jimb Exp $||
 ;;;_  - Keywords: outline mode
 
 ;;;_  - LCD Archive Entry
@@ -19,7 +19,7 @@
 ;; LCD Archive Entry:
 ;; allout|Ken Manheimer|klm@nist.gov
 ;; |A more thorough outline-mode
-;; |27-May-1993|$Id: allout.el,v 1.2 1993/06/07 18:48:08 rms Exp jimb $||
+;; |27-May-1993|$Id: allout.el,v 1.3 1993/06/09 11:51:08 jimb Exp $||
 
 ;;;_  - Description
 ;; A full-fledged outline mode, based on the original rudimentary
@@ -2465,7 +2465,9 @@ parameterized communication between the two, if suitable.")
     (pop-to-buffer workbuf)
     (erase-buffer)
     (insert-buffer buf)
-    (replace-regexp "\^M[^\^M\^J]*" "")
+    ;; (replace-regexp "\^M[^\^M\^J]*" "")
+    (while (re-search-forward "\^M[^\^M\^J]*" nil t)
+      (replace-match "" nil nil))
     (goto-char (point-min))
     )
   )
