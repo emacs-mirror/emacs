@@ -1,5 +1,7 @@
 2002-01-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* net/eudc.el (top-level): Revert previous change.
+
 	* net/net-utils.el (nslookup-font-lock-keywords): Defvar font-lock
 	variables to prevent warning from byte-compiler.
 
@@ -5776,7 +5778,7 @@
 	* textmodes/reftex-ref.el, textmodes/reftex-sel.el,
 	* textmodes/reftex-toc.el, textmodes/reftex-vars.el,
 	* textmodes/reftex.el: Some fixes to follow coding
-	conventions in Eshell files with known maintainers.
+	conventions in Elisp files with known maintainers.
 
 	* emulation/viper.el: A fix to follow coding conventions.
 
@@ -5790,7 +5792,7 @@
 	* eshell/esh-mode.el, eshell/esh-module.el, eshell/esh-opt.el,
 	* eshell/esh-proc.el, eshell/esh-test.el, eshell/esh-util.el,
 	* eshell/esh-var.el, eshell/eshell.el: Some fixes to follow coding
-	conventions in Eshell files.
+	conventions in Elisp files.
 
 	* composite.el, diff.el, emacs-lisp/levents.el,
 	* emacs-lisp/lmenu.el, emacs-lisp/lselect.el, emacs-lisp/lucid.el,
