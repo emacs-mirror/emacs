@@ -1,3 +1,7 @@
+2005-03-18  Lute Kamstra  <lute@gnu.org>
+
+	* edebug.texi (Instrumenting Macro Calls): Fix another typo.
+
 2005-03-17  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Undo): Document extensible undo entries.

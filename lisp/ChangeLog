@@ -1,3 +1,21 @@
+2005-03-21  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el: Fix commentary section.  Don't require cl for
+	compilation.
+	(generic-mode-list): Add autoload cookie.
+	(generic-use-find-file-hook, generic-lines-to-scan)
+	(generic-find-file-regexp, generic-ignore-files-regexp)
+	(generic-mode, generic-mode-find-file-hook)
+	(generic-mode-ini-file-find-file-hook): Fix docstrings.
+	(define-generic-mode): Make it a defmacro.  Fix docstring.
+	(generic-mode-internal): Code cleanup.  Add autoload cookie.
+	(generic-mode-set-comments): Code cleanup.
+	* generic-x.el: Don't prevent compilation.  Don't require generic.
+	Follow coding conventions.  Minor code cleanup.
+	(etc-fstab-generic-mode): Add some keywords.
+	* font-lock.el (lisp-font-lock-keywords-1): Font lock a call to
+	define-generic-mode like a function declaration.
+
 2005-03-21  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-do-embedded): Put data on stack before
