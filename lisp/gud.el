@@ -454,7 +454,7 @@ available with older versions of GDB."
     ;; Otherwise clear gud-marker-acc. to avoid an
     ;; unnecessary concat when this function runs next.
     (setq gud-marker-acc 
-	  (if (= start (length gud-marker-acc))
+	  (if (and (numberp start) (= start (length gud-marker-acc)))
 	      (substring gud-marker-acc start)
 	    nil)))
   string)
