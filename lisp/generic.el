@@ -341,7 +341,7 @@ If DESCRIPTION is provided, it is used as the docstring."
      generic-keywords-list	   (nth 2 generic-mode-list)
      generic-font-lock-expressions (nth 3 generic-mode-list)
      generic-mode-function-list	   (nth 5 generic-mode-list)
-     major-mode			   'generic-mode
+     major-mode			   type
      mode-name			   (symbol-name type)
      )
 
