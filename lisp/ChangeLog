@@ -1,3 +1,45 @@
+2004-07-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* calendar/cal-dst.el (calendar-time-from-absolute): Return a list
+	of two integers, instead of a cons.
+
+	* net/tramp.el (tramp-handle-verify-visited-file-modtime):
+	`visited-file-modtime' now returns a list of two integers, instead
+	of a cons.
+
+	* dired.el (dired-directory-changed-p): Ditto.
+
+	* progmodes/grep.el (grep): Doc fix.
+
+2004-07-14  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* autorevert.el (auto-revert-tail-mode)
+	(auto-revert-tail-mode-text, auto-revert-tail-pos): New vars.
+	(auto-revert-mode): Turn off auto-revert-tail-mode, so we're not
+	in both at the same time.
+	(auto-revert-tail-mode): New command.
+	(turn-on-auto-revert-tail-mode, auto-revert-tail-handler): New funs.
+	(auto-revert-handler): Revert only either tail or whole file.
+
+	* bindings.el (mode-line-mode-menu): Fix alphabetical ordering and
+	add auto-revert-tail-mode.
+
+2004-07-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Change name of some funs.
+	(pr-dosify-file-name): New fun.  Replace ps-dosify-path.
+	(pr-unixify-file-name): New fun.  Replace ps-unixify-path.
+	(pr-standard-file-name): New fun.  Replace pr-standard-path.
+	(pr-call-process): Code fix.
+
+2004-07-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (with-selected-window): Doc fix.
+
+2004-07-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (get-buffer-window-list): Doc fix.
+
 2004-07-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (switch-to-buffer-other-window): Doc fix.
@@ -1458,6 +1500,14 @@
 	Use it to set triggered-p element of timer.
 	(timer-event-handler): Set triggered-p element non-nil while running
 	the timer function.
+
+2004-05-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* descr-text.el (describe-char-unicode-data)
+	(describe-char-unicodedata-file): Re-enable the unicode code now that
+	the licensing issues have been cleared in the unicode-4 license.
+	(describe-text-properties-1): Remove unused `overlay' var.
+	(describe-char): Remove unused var `buffer'.
 
 2004-05-14  David Ponce  <david@dponce.com>
 

@@ -649,7 +649,7 @@ You can now put the init files .emacs and .emacs_SHELL under
 
 ** MH-E changes.
 
-Upgraded to MH-E version 7.3. There have been major changes since
+Upgraded to MH-E version 7.4.4. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 +++
@@ -2178,7 +2178,11 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
-** If a command sets transient-mark-mode to `only', that 
++++
+** `visited-file-modtime' and `calendar-time-from-absolute' now return
+a list of two integers, instead of a cons.
+
+** If a command sets transient-mark-mode to `only', that
 enables Transient Mark mode for the following command only.
 During that following command, the value of transient-mark-mode
 is `identity'.  If it is still `identity' at the end of the command,

@@ -2974,6 +2974,9 @@ syms_of_search ()
   last_thing_searched = Qnil;
   staticpro (&last_thing_searched);
 
+  saved_last_thing_searched = Qnil;
+  staticpro (&saved_last_thing_searched);
+
   defsubr (&Slooking_at);
   defsubr (&Sposix_looking_at);
   defsubr (&Sstring_match);

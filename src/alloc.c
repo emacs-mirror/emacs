@@ -5034,6 +5034,7 @@ mark_object (arg)
 	  break;
 
 	case Lisp_Misc_Save_Value:
+#if GC_MARK_STACK
 	  {
 	    register struct Lisp_Save_Value *ptr = XSAVE_VALUE (obj);
 	    /* If DOGC is set, POINTER is the address of a memory
@@ -5046,6 +5047,7 @@ mark_object (arg)
 		  mark_maybe_object (*p);
 	      }
 	  }
+#endif
 	  break;
 
 	case Lisp_Misc_Overlay:

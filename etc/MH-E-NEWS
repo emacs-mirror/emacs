@@ -1,9 +1,242 @@
-Copyright (C) 2003 Free Software Foundation, Inc.
+* COPYRIGHT
+
+Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 	
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.4.4
+
+Version 7.4.4 addresses programmatic issues from the FSF and prepares
+MH-E for inclusion into an impending GNU Emacs release (21.4). There
+are no user-visible changes (unless you are using XEmacs on DOS or
+don't have the cl package installed). Filenames are now unique in
+their first 8 characters (DOS 8.3 requirement). The runtime dependency
+on the cl package has been removed. Desktop saving and restoration
+code moved here from desktop.el.
+
+* Changes in MH-E 7.4.3
+
+Version 7.4.3 fixes the problem where mh-identity-list was not getting
+set from .emacs.
+
+* Changes in MH-E 7.4.2
+
+Version 7.4.2 fixes the accidental dependence on nmh (closes SF
+#791021).
+
+* Changes in MH-E 7.4.1
+
+Version 7.4.1 fixes the Makefile so it no longer tries to compile
+mh-unit.el.
+
+* Changes in MH-E 7.4
+
+Version 7.4 contains many new useful features including arbitrary MH
+range handling, new draft features such as draft form editing, as well
+as sequence propagation and manipulation. We've also fixed bugs and
+added a handful of new variables.
+
+** New Features in MH-E 7.4
+
+*** Add Arbitrary Ranges to MH-E UI
+
+MH-E now handles any legal MH range (such as last:5 or 4 8 10-12)
+wherever you're prompted for a message number or sequence (closes SF
+#728638).
+
+*** Remove Prompting in mh-send
+
+Brian Reid's original mhe didn't do prompting anywhere but used forms
+instead. While we won't go that far, we eliminated prompting where a
+form is already involved, such as in composing a message.
+
+The new customization variable `mh-compose-prompt-flag' can be set to
+t to get the original behavior (closes SF #745622).
+
+*** Use TAB to Switch Fields in Header
+
+When composing a message, TAB and SHIFT-TAB can be used to move
+quickly between header fields. The new customization variable,
+`mh-compose-skipped-header-fields', contains a list of header fields
+that are skipped and truncated if they are too long (closes SF
+#745627).
+
+*** Alias Completion in Composition Buffer
+
+Aliases can be completed in the draft with "M-TAB
+(mh-letter-complete)". Or, if the customization variable
+`mh-compose-space-does-completion-flag' is set to t, then a "SPC
+(mh-letter-complete-or-space)" with do the same thing. If
+`mh-alias-flash-on-comma' is non-nil, ", (mh-letter-confirm-address)"
+will show the alias expansion in the minibuffer (closes SF #745634).
+
+*** Auto Fields Should be Inserted During Send
+
+Fields that were inserted by the multiple personality code when the
+draft was sent now insert the header fields when the draft is composed
+to give you a chance to edit them (closes SF #747890).
+
+*** mh-index-tick-messages
+
+The command "F ' (mh-index-ticked-messages)" creates a buffer with all
+messages ticked with "' (mh-toggle-tick)" in the folders listed in the
+new customization variable `mh-index-ticked-messages-folders'. Chances
+are that if you set `mh-index-new-messages-folders', you'll want to
+set `mh-index-ticked-messages-folders' accordingly.
+
+In addition, a general function, "F q (mh-index-sequenced-messages)"
+has been provided that displays messages in the `mh-unseen-seq' in the
+folders listed `mh-index-new-messages-folders', unless a prefix
+argument is given, in which case you can provide both a list of
+folders and a sequence (closes SF #718833).
+
+*** Narrow to Region
+
+If there is a region, "/ r (mh-narrow-to-range)" will only consider
+those messages in the region. In addition, there is now a stack of
+folder limits which can be popped with "/ w (mh-widen)". With a prefix
+arg, all the restrictions are popped off of the stack (closes SF
+#732823).
+
+*** Narrow to Ticked Sequence
+
+The buffer can now be narrowed to ticked messages with "S '
+(mh-narrow-to-tick)" (closes SF #732825).
+
+*** Display Multiple Buttons for multipart/alternative
+
+A new customizable variable,
+`mh-display-buttons-for-alternatives-flag', was added to display
+buttons for the alternatives. The default value is nil to retain the
+current behavior (closes SF #741288).
+
+*** Identity Menu Changes
+
+A menu item has been added that inserts custom fields if the To or Cc
+header fields match `mh-auto-fields-list'.
+
+** New Variables in MH-E 7.4
+
+*** mh-alias-local-users-prefix
+
+This string is prepended to the real names of users from the passwd
+file. If nil, use the username string unmodified instead of the real
+name from the gecos field of the passwd file.
+
+*** mh-alias-passwd-gecos-comma-separator-flag
+
+Non-nil means the gecos field in the passwd file uses comma as a
+separator. Used to construct aliases for users in the passwd file."
+
+*** mh-interpret-number-as-range-flag
+
+Non-nil means interpret a number as a range. If the variable is
+non-nil, and you use an integer, N, when asked for a range to scan,
+then MH-E uses the range "last:N".
+
+*** mh-kill-folder-suppress-prompt-hook
+
+This new hook is invoked at the beginning of the `F k
+(mh-kill-folder)' command. It is a list of functions to be called,
+with no arguments, which should return a value of non-nil if you
+should not be asked if you're sure that you want to remove the folder.
+This is useful for folders that are easily regenerated.
+
+The default value of `mh-index-p' suppresses the prompt on folders
+generated by an index search.
+
+WARNING: Use this hook with care. If there is a bug in your hook which
+returns t on +inbox and you hit `F k' by accident in the +inbox
+buffer, you will not be happy.
+
+*** mh-refile-preserves-sequences-flag
+
+Non-nil means that sequences are preserved when messages are refiled.
+If this variable is non-nil and a message belonging to a sequence
+other than cur or Previous-Sequence (see mh-profile 5) is refiled then
+it is put in the same sequence in the destination folder. Additional
+sequences that should not to be preserved can be specified by setting
+`mh-unpropagated-sequences' appropriately.
+
+*** mh-visible-header-fields
+
+Customize this instead of `mh-visible-headers', which is now a defvar.
+This was done to mimic the relationship between
+`mh-invisible-header-fields' and `mh-invisible-fields'.
+
+** Variables Deleted in MH-E 7.4
+
+*** mh-visible-headers
+
+See the paragraph for `mh-visible-header-fields' above.
+
+** Bug Fixes in MH-E 7.4
+
+*** Aliases Constantly Reloaded
+
+The system aliases are not loaded as often as they were, so the
+completion speed has been dramatically improved if your passwd file is
+large (closes SF #693859).
+
+*** Folders in MH-Index View Not Saved
+
+When you perform a search to produce an MH-Index buffer, the folders
+that contain the messages are shown. If the MH-Index buffer was
+deleted, or Emacs was restarted and the corresponding folder
+rescanned, the folder information would be lost. This has been fixed
+by saving the information in a file called ".mhe_index" (closes SF
+#701762).
+
+*** Ticking Messages in +mhe-index/new
+
+If a new message in a buffer created by "F n" was ticked (with "'"),
+the message would not be added to the tick sequence in the source
+folder. This has been fixed so that any sequence changes in any index
+folder (from within MH-E of course) are now reflected back to the
+corresponding source folder (closes SF #709664).
+
+*** Custom Vars Set by a Function
+
+The default setting of customization variable `mh-summary-height' is
+now `nil' which means MH-E will change the size dynamically according
+to the size of the frame (closes SF #723267).
+
+*** Folder Completion Slow
+
+The first folder completion was very slow. This has been fixed (closes
+SF #730426).
+
+*** Tick Sequence Persistent When Refiled
+
+Sequences are now preserved when messages are refiled (closes SF
+#737128).
+
+*** Auto-inserted Header Fields Inconsistent
+
+For consistency, all automatically inserted header fields (such as
+X-Mailer and X-Face) are added when the draft is first presented to
+you. This also gives you a chance to edit or delete them if necessary
+(closes SF #745624). Note that we would be distressed if you deleted
+the X-Mailer field.
+
+*** Toolbar Spec Error
+
+The following message appeared when displaying a message in XEmacs:
+
+  Signaling: (error "Toolbar spec must be list or nil" )
+
+This has been fixed (closes SF #745655).
+
+*** mh-index-search Doesn't Find Short Acronyms
+
+Swish typically ignores words with fewer than four letters, but will
+still look for acronyms. Unfortunately, MH-E was downcasing the input
+words which defeated this feature. This has been fixed (closes SF
+#755718).
+
+
 
 * Changes in MH-E 7.3
 

@@ -273,8 +273,14 @@ to the FSF.
   the definition of `file-attributes' and `directory-files-and-attributes'
   and from the calls.
 
-** Re-design language environment handling so that Emacs can fit
-  better to a users locale (e.g. ja_JP.UTF-8).
+** Make language-info-alist customizable.  Currently a user can customize
+  only the variable `current-language-environment'.
+
+** Improve language environment handling so that Emacs can fit
+  better to a users locale.  Currently Emacs uses utf-8 language
+  environment for all utf-8 locales, thus a user in ja_JP.UTF-8 locale
+  are also put in utf-8 lang. env.  In such a case, it is
+  better to use Japanese lang. env. but prefer utf-8 coding system.
 
 ** Eliminate the current restriction on header printing by ps-print.
   Currently, a header can contain only single 1-byte charset in
@@ -291,9 +297,10 @@ to the FSF.
 ** Enhance word boundary detection for such a script that doesn't use
   space at word boundary (e.g. Thai).
 
-** Include a better Japanese input method in the distribution.
-  Currently, most Japanese users are using external packages
-  (e.g. tamago, anthy) or an input method via XIM.
+** Implement interface programs with major Japanese conversion server
+  in lib-src so that they can be used from the input method
+  "japanese".  Currently, most Japanese users are using external
+  packages (e.g. tamago, anthy) or an input method via XIM.
 
 * Internal changes
 

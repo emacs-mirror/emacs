@@ -1,6 +1,6 @@
 ;;; mh-speed.el --- Speedbar interface for MH-E.
 
-;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -34,7 +34,8 @@
 ;;; Code:
 
 ;; Requires
-(require 'cl)
+(require 'mh-utils)
+(mh-require-cl)
 (require 'mh-e)
 (require 'speedbar)
 
@@ -340,7 +341,9 @@ Optional ARGS are ignored."
   (interactive)
   (declare (ignore args))
   (let* ((folder (get-text-property (line-beginning-position) 'mh-folder))
-         (range (and (stringp folder) (mh-read-msg-range folder))))
+         (range (and (stringp folder)
+                     (mh-read-range "Scan" folder t nil nil
+                                    mh-interpret-number-as-range-flag))))
     (when (stringp folder)
       (speedbar-with-attached-buffer
        (mh-visit-folder folder range)
@@ -350,9 +353,11 @@ Optional ARGS are ignored."
 (defvar mh-speed-flists-folder nil)
 
 ;;;###mh-autoload
-(defun mh-speed-flists (force &optional folder)
+(defun mh-speed-flists (force &rest folders)
   "Execute flists -recurse and update message counts.
-If FORCE is non-nil the timer is reset. If FOLDER is non-nil then flists is run
+If FORCE is non-nil the timer is reset.
+
+Any number of optional FOLDERS can be specified. If specified, flists is run
 only for that one folder."
   (interactive (list t))
   (when force
@@ -365,7 +370,7 @@ only for that one folder."
       (kill-process mh-speed-flists-process)
       (setq mh-speed-partial-line "")
       (setq mh-speed-flists-process nil)))
-  (setq mh-speed-flists-folder folder)
+  (setq mh-speed-flists-folder folders)
   (unless mh-speed-flists-timer
     (setq mh-speed-flists-timer
           (run-at-time
@@ -376,17 +381,19 @@ only for that one folder."
                                    'exit)))
                (setq mh-speed-current-folder
                      (concat
-                      (with-temp-buffer
-                        (call-process (expand-file-name "folder" mh-progs)
-                                      nil '(t nil) nil "-fast")
-                        (buffer-substring (point-min) (1- (point-max))))
+                      (if mh-speed-flists-folder
+                          (substring (car (reverse mh-speed-flists-folder)) 1)
+                        (with-temp-buffer
+                          (call-process (expand-file-name "folder" mh-progs)
+                                        nil '(t nil) nil "-fast")
+                          (buffer-substring (point-min) (1- (point-max)))))
                       "+"))
                (setq mh-speed-flists-process
-                     (start-process "*flists*" nil
-                                    (expand-file-name "flists" mh-progs)
-                                    (or mh-speed-flists-folder "-recurse")
-                                    (if mh-speed-flists-folder "-noall" "-all")
-                                    "-sequence" (symbol-name mh-unseen-seq)))
+                     (apply #'start-process "*flists*" nil
+                            (expand-file-name "flists" mh-progs)
+                            (if mh-speed-flists-folder "-noall" "-all")
+                            "-sequence" (symbol-name mh-unseen-seq)
+                            (or mh-speed-flists-folder '("-recurse"))))
                ;; Run flists on all folders the next time around...
                (setq mh-speed-flists-folder nil)
                (set-process-filter mh-speed-flists-process

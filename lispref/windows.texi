@@ -158,7 +158,6 @@ This function splits @var{window} into two windows.  The original
 window @var{window} remains the selected window, but occupies only
 part of its former screen area.  The rest is occupied by a newly created
 window which is returned as the value of this function.
-This function returns the newly created window.
 
 If @var{horizontal} is non-@code{nil}, then @var{window} splits into
 two side by side windows.  The original window @var{window} keeps the
@@ -272,12 +271,34 @@ This function splits the selected window into two windows, one above the
 other, leaving the upper of the two windows selected, with @var{size}
 lines.  (If @var{size} is negative, then the lower of the two windows
 gets @minus{} @var{size} lines and the upper window gets the rest, but
-the upper window is still the one selected.)
+the upper window is still the one selected.)  However, if
+@code{split-window-keep-point} (see below) is @code{nil}, then either
+window can be selected.
+
+In other respects, this function is similar to @code{split-window}.
+In particular, the upper window is the original one and the return
+value is the new, lower window.
 @end deffn
+
+@defopt split-window-keep-point
+If this variable is non-@code{nil} (the default), then
+@code{split-window-vertically} behaves as described above.
+
+If it is @code{nil}, then @code{split-window-vertically} adjusts point
+in each of the two windows to avoid scrolling.  (This is useful on
+slow terminals.)  It selects whichever window contains the screen line
+that point was previously on.
+
+This variable only affects the behavior of @code{split-window-vertically}.
+It has no effect on the other functions described here.
+@end defopt
 
 @deffn Command split-window-horizontally &optional size
 This function splits the selected window into two windows
-side-by-side, leaving the selected window with @var{size} columns.
+side-by-side, leaving the selected window on the left with @var{size}
+columns.  If @var{size} is negative, the rightmost window gets
+@minus{} @var{size} columns, but the leftmost window still remains
+selected.
 
 This function is basically an interface to @code{split-window}.
 You could define a simplified version of the function like this:
@@ -364,17 +385,19 @@ deleting the other windows in that frame.  If @var{window} is omitted or
 The return value is @code{nil}.
 @end deffn
 
-@deffn Command delete-windows-on buffer &optional frame
-This function deletes all windows showing @var{buffer}.  If there are
-no windows showing @var{buffer}, it does nothing.
+@deffn Command delete-windows-on buffer-or-name &optional frame
+This function deletes all windows showing @var{buffer-or-name}.  If
+there are no windows showing @var{buffer-or-name}, it does nothing.
+@var{buffer-or-name} must be a buffer or the name of an existing
+buffer.
 
 @code{delete-windows-on} operates frame by frame.  If a frame has
 several windows showing different buffers, then those showing
-@var{buffer} are removed, and the others expand to fill the space.  If
-all windows in some frame are showing @var{buffer} (including the case
-where there is only one window), then the frame reverts to having a
-single window showing another buffer chosen with @code{other-buffer}.
-@xref{The Buffer List}.
+@var{buffer-or-name} are removed, and the others expand to fill the
+space.  If all windows in some frame are showing @var{buffer-or-name}
+(including the case where there is only one window), then the frame
+winds up with a single window showing another buffer chosen with
+@code{other-buffer}.  @xref{The Buffer List}.
 
 The argument @var{frame} controls which frames to operate on.  This
 function does not use it in quite the same way as the other functions
@@ -412,8 +435,9 @@ which the cursor appears and to which many commands apply.
 
 @defun select-window window &optional norecord
 This function makes @var{window} the selected window.  The cursor then
-appears in @var{window} (on redisplay).  The buffer being displayed in
-@var{window} is immediately designated the current buffer.
+appears in @var{window} (on redisplay).  Unless @var{window} was
+already selected, @code{select-window} makes @var{window}'s buffer the
+current buffer.
 
 Normally @var{window}'s selected buffer is moved to the front of the
 buffer list, but if @var{norecord} is non-@code{nil}, the buffer list
@@ -431,14 +455,18 @@ The return value is @var{window}.
 @end defun
 
 @defmac save-selected-window forms@dots{}
-This macro records the selected window of each frame, executes
-@var{forms} in sequence, then restores the earlier selected windows.
+This macro records the selected window, as well as the selected window
+of each frame, executes @var{forms} in sequence, then restores the
+earlier selected windows.  It returns the value of the last form in
+@var{forms}.
 
 This macro does not save or restore anything about the sizes,
 arrangement or contents of windows; therefore, if the @var{forms}
 change them, the change persists.  If the previously selected window
-of some frame is no longer live at the time of exit from this form,
-that frame's selected window is left alone.
+of some frame is no longer live at the time of exit from @var{forms},
+that frame's selected window is left alone.  If the previously
+selected window is no longer live, then whatever window is selected at
+the end of @var{forms} remains selected.
 @end defmac
 
 @defmac with-selected-window window forms@dots{}
@@ -446,7 +474,7 @@ This macro selects @var{window} (without changing the buffer list),
 executes @var{forms} in sequence, then restores the previously
 selected window (unless that window is no longer alive).  It is similar
 to @code{save-selected-window} except that it explicitly selects
-@var{window} and that it does not alter the buffer list sequence.
+@var{window}, without altering the buffer list sequence.
 @end defmac
 
 @cindex finding windows
@@ -556,7 +584,9 @@ are the possible values and their meanings:
 @table @asis
 @item @code{nil}
 Consider all the windows in @var{window}'s frame, plus the minibuffer
-used by that frame even if it lies in some other frame.
+used by that frame even if it lies in some other frame.  If the
+minibuffer counts (as determined by @var{minibuf}), then all windows on
+all frames that share that minibuffer count too.
 
 @item @code{t}
 Consider all windows in all existing frames.
@@ -658,9 +688,10 @@ when you need complete control.
 
 @defun set-window-buffer window buffer-or-name &optional keep-margins
 This function makes @var{window} display @var{buffer-or-name} as its
-contents.  It returns @code{nil}.  This is the fundamental primitive
-for changing which buffer is displayed in a window, and all ways
-of doing that call this function.
+contents.  It returns @code{nil}.  @var{buffer-or-name} must be a
+buffer, or the name of an existing buffer.  This is the fundamental
+primitive for changing which buffer is displayed in a window, and all
+ways of doing that call this function.
 
 @example
 @group
@@ -770,7 +801,8 @@ the current buffer but does not display it in the selected window.
 If @var{buffer-or-name} does not identify an existing buffer, then a new
 buffer by that name is created.  The major mode for the new buffer is
 set according to the variable @code{default-major-mode}.  @xref{Auto
-Major Mode}.
+Major Mode}.  If @var{buffer-or-name} is @code{nil},
+@code{switch-to-buffer} chooses a buffer using @code{other-buffer}.
 
 Normally the specified buffer is put at the front of the buffer list
 (both the selected frame's buffer list and the frame-independent buffer
@@ -782,6 +814,9 @@ The @code{switch-to-buffer} function is often used interactively, as
 the binding of @kbd{C-x b}.  It is also used frequently in programs.  It
 returns the buffer that it switched to.
 @end deffn
+
+The next two functions are similar to @code{switch-to-buffer}, except
+for the described features.
 
 @deffn Command switch-to-buffer-other-window buffer-or-name &optional norecord
 This function makes @var{buffer-or-name} the current buffer and
@@ -842,12 +877,12 @@ This function updates the buffer list just like @code{switch-to-buffer}
 unless @var{norecord} is non-@code{nil}.
 @end defun
 
-@deffn Command replace-buffer-in-windows buffer
-This function replaces @var{buffer} with some other buffer in all
-windows displaying it.  The other buffer used is chosen with
+@deffn Command replace-buffer-in-windows buffer-or-name
+This function replaces @var{buffer-or-name} with some other buffer in all
+windows displaying it.  It chooses the other buffer with
 @code{other-buffer}.  In the usual applications of this function, you
 don't care which other buffer is used; you just want to make sure that
-@var{buffer} is no longer displayed.
+@var{buffer-or-name} is no longer displayed.
 
 This function returns @code{nil}.
 @end deffn
@@ -864,7 +899,8 @@ functions and commands use this subroutine.  Here we describe how to use
 This command makes @var{buffer-or-name} appear in some window, like
 @code{pop-to-buffer}, but it does not select that window and does not
 make the buffer current.  The identity of the selected window is
-unaltered by this function.
+unaltered by this function.  @var{buffer-or-name} must be a buffer, or
+the name of an existing buffer.
 
 If @var{not-this-window} is non-@code{nil}, it means to display the
 specified buffer in a window other than the selected one, even if it is
@@ -885,6 +921,7 @@ values of @var{frame}:
 @itemize @bullet
 @item
 If it is @code{nil}, consider windows on the selected frame.
+(Actually, the last non-minibuffer frame.)
 @item
 If it is @code{t}, consider windows on all frames.
 @item
@@ -1017,7 +1054,7 @@ create the frame.  See above, under @code{special-display-buffer-names}.
 This function returns non-@code{nil} if displaying a buffer
 named @var{buffer-name} with @code{display-buffer} would
 create a special frame.  The value is @code{t} if it would
-use the default frame paramaters, or else the specified list
+use the default frame parameters, or else the specified list
 of frame parameters.
 @end defun
 
@@ -1030,11 +1067,12 @@ The default value of this variable is
 @code{special-display-popup-frame}.
 @end defvar
 
-@defun special-display-popup-frame buffer &rest args
+@defun special-display-popup-frame buffer &optional args
 This function makes @var{buffer} visible in a frame of its own.  If
 @var{buffer} is already displayed in a window in some frame, it makes
 the frame visible and raises it, to use that window.  Otherwise, it
-creates a frame that will be dedicated to @var{buffer}.
+creates a frame that will be dedicated to @var{buffer}.  This
+function returns the window it used.
 
 If @var{args} is an alist, it specifies frame parameters for the new
 frame.
@@ -1080,9 +1118,9 @@ put it in the selected window.
 This variable is the most flexible way to customize the behavior of
 @code{display-buffer}.  If it is non-@code{nil}, it should be a function
 that @code{display-buffer} calls to do the work.  The function should
-accept two arguments, the same two arguments that @code{display-buffer}
+accept two arguments, the first two arguments that @code{display-buffer}
 received.  It should choose or create a window, display the specified
-buffer, and then return the window.
+buffer in it, and then return the window.
 
 This hook takes precedence over all the other options and hooks
 described above.

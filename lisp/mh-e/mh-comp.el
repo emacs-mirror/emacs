@@ -1,7 +1,7 @@
 ;;; mh-comp.el --- MH-E functions for composing messages
 
 ;; Copyright (C) 1993, 95, 1997,
-;;  2000, 01, 02, 2003 Free Software Foundation, Inc.
+;;  2000, 01, 02, 03, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -36,7 +36,8 @@
 (require 'mh-e)
 (require 'gnus-util)
 (require 'easymenu)
-(require 'cl)
+(require 'mh-utils)
+(mh-require-cl)
 (eval-when (compile load eval)
   (ignore-errors (require 'mailabbrev)))
 
@@ -199,6 +200,10 @@ Used by the \\<mh-folder-mode-map>`\\[mh-edit-again]' and `\\[mh-extract-rejecte
 (defvar mh-annotate-field nil
   "Field name for message annotation.")
 
+(defvar mh-insert-auto-fields-done-local nil
+  "Buffer-local variable set when `mh-insert-auto-fields' successfully called.")
+(make-variable-buffer-local 'mh-insert-auto-fields-done-local)
+
 ;;;###autoload
 (defun mh-smail ()
   "Compose and send mail with the MH mail system.
@@ -279,7 +284,8 @@ See also documentation for `\\[mh-send]' function."
     (save-buffer)
     (mh-compose-and-send-mail draft "" from-folder nil nil nil nil nil nil
                               config)
-    (mh-letter-mode-message)))
+    (mh-letter-mode-message)
+    (mh-letter-adjust-point)))
 
 ;;;###mh-autoload
 (defun mh-extract-rejected-mail (msg)
@@ -309,22 +315,20 @@ See also documentation for `\\[mh-send]' function."
     (mh-letter-mode-message)))
 
 ;;;###mh-autoload
-(defun mh-forward (to cc &optional msg-or-seq)
+(defun mh-forward (to cc &optional range)
   "Forward messages to the recipients TO and CC.
-Use optional MSG-OR-SEQ argument to specify a message or sequence to forward.
+Use optional RANGE argument to specify a message or sequence to forward.
 Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is forwarded.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
 
 See also documentation for `\\[mh-send]' function."
-  (interactive (list (mh-read-address "To: ")
-                     (mh-read-address "Cc: ")
-                     (mh-interactive-msg-or-seq "Forward")))
+  (interactive (list (mh-interactive-read-address "To: ")
+                     (mh-interactive-read-address "Cc: ")
+                     (mh-interactive-range "Forward")))
   (let* ((folder mh-current-folder)
-         (msgs (mh-msg-or-seq-to-msg-list msg-or-seq))
+         (msgs (mh-range-to-msg-list range))
          (config (current-window-configuration))
          (fwd-msg-file (mh-msg-filename (car msgs) folder))
          ;; forw always leaves file in "draft" since it doesn't have -draft
@@ -355,8 +359,7 @@ See also documentation for `\\[mh-send]' function."
         ;; If using MML, translate mhn
         (if (equal mh-compose-insertion 'gnus)
             (save-excursion
-              (re-search-forward (format "^\\(%s\\)?$"
-                                         mh-mail-header-separator))
+              (goto-char (mh-mail-header-end))
               (while
                   (re-search-forward
                    "^#forw \\[\\([^]]+\\)\\] \\(+\\S-+\\) \\(.*\\)$"
@@ -376,7 +379,7 @@ See also documentation for `\\[mh-send]' function."
         ;; Postition just before forwarded message
         (if (re-search-forward "^------- Forwarded Message" nil t)
             (forward-line -1)
-          (re-search-forward (format "^\\(%s\\)?$" mh-mail-header-separator))
+          (goto-char (mh-mail-header-end))
           (forward-line 1))
         (delete-other-windows)
         (mh-add-msgs-to-seq msgs 'forwarded t)
@@ -384,7 +387,8 @@ See also documentation for `\\[mh-send]' function."
                                   to forw-subject cc
                                   mh-note-forw "Forwarded:"
                                   config)
-        (mh-letter-mode-message)))))
+        (mh-letter-mode-message)
+        (mh-letter-adjust-point)))))
 
 (defun mh-forwarded-letter-subject (from subject)
   "Return a Subject suitable for a forwarded message.
@@ -567,9 +571,9 @@ details.
 If `mh-compose-letter-function' is defined, it is called on the draft and
 passed three arguments: TO, CC, and SUBJECT."
   (interactive (list
-                (mh-read-address "To: ")
-                (mh-read-address "Cc: ")
-                (read-string "Subject: ")))
+                (mh-interactive-read-address "To: ")
+                (mh-interactive-read-address "Cc: ")
+                (mh-interactive-read-string "Subject: ")))
   (let ((config (current-window-configuration)))
     (delete-other-windows)
     (mh-send-sub to cc subject config)))
@@ -587,9 +591,9 @@ details.
 If `mh-compose-letter-function' is defined, it is called on the draft and
 passed three arguments: TO, CC, and SUBJECT."
   (interactive (list
-                (mh-read-address "To: ")
-                (mh-read-address "Cc: ")
-                (read-string "Subject: ")))
+                (mh-interactive-read-address "To: ")
+                (mh-interactive-read-address "Cc: ")
+                (mh-interactive-read-string "Subject: ")))
   (let ((pop-up-windows t))
     (mh-send-sub to cc subject (current-window-configuration))))
 
@@ -630,7 +634,8 @@ CONFIG is the window configuration before sending mail."
       (mh-compose-and-send-mail draft "" folder msg-num
                                 to subject cc
                                 nil nil config)
-      (mh-letter-mode-message))))
+      (mh-letter-mode-message)
+      (mh-letter-adjust-point))))
 
 (defun mh-read-draft (use initial-contents delete-contents-file)
   "Read draft file into a draft buffer and make that buffer the current one.
@@ -695,7 +700,7 @@ MSG can be a message number, a list of message numbers, or a sequence."
   (save-excursion
     (cond ((get-buffer buffer)          ; Buffer may be deleted
            (set-buffer buffer)
-           (mh-iterate-on-msg-or-seq nil msg
+           (mh-iterate-on-range nil msg
              (mh-notate nil note (1+ mh-cmd-note)))))))
 
 (defun mh-insert-fields (&rest name-values)
@@ -867,7 +872,6 @@ When a message is composed, the hooks `text-mode-hook' and
 `mh-letter-mode-hook' are run.
 
 \\{mh-letter-mode-map}"
-
   (or mh-user-path (mh-find-path))
   (make-local-variable 'mh-send-args)
   (make-local-variable 'mh-annotate-char)
@@ -879,6 +883,14 @@ When a message is composed, the hooks `text-mode-hook' and
   (setq mail-header-separator mh-mail-header-separator) ;override sendmail.el
   (make-local-variable 'mh-help-messages)
   (setq mh-help-messages mh-letter-mode-help-messages)
+  (setq buffer-invisibility-spec '((vanish . t) t))
+  (set (make-local-variable 'line-move-ignore-invisible) t)
+
+  ;; Set mh-mail-header-end-marker to remember end of message header.
+  (set (make-local-variable 'mh-letter-mail-header-end-marker)
+       (set-marker (make-marker) (save-excursion
+                                   (goto-char (mh-mail-header-end))
+                                   (line-beginning-position 2))))
 
   ;; From sendmail.el for proper paragraph fill
   ;; sendmail.el also sets a normal-auto-fill-function (not done here)
@@ -908,8 +920,7 @@ When a message is composed, the hooks `text-mode-hook' and
 
   ;; Enable undo since a show-mode buffer might have been reused.
   (buffer-enable-undo)
-  (if (and (boundp 'tool-bar-mode) tool-bar-mode)
-      (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map))
+  (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map)
   (mh-funcall-if-exists mh-toolbar-init :letter)
   (make-local-variable 'font-lock-defaults)
   (cond
@@ -919,7 +930,7 @@ When a message is composed, the hooks `text-mode-hook' and
     ;; is that gnus uses static text properties which are not appropriate
     ;; for a buffer that will be edited.  So the choice here is either fontify
     ;; the citations and header...
-    (setq font-lock-defaults '(mh-show-font-lock-keywords-with-cite t)))
+    (setq font-lock-defaults '(mh-letter-font-lock-keywords t)))
    (t
     ;; ...or the header only
     (setq font-lock-defaults '(mh-show-font-lock-keywords t))))
@@ -929,6 +940,36 @@ When a message is composed, the hooks `text-mode-hook' and
   (when auto-fill-function
     (make-local-variable 'auto-fill-function)
     (setq auto-fill-function 'mh-auto-fill-for-letter)))
+
+(defun mh-font-lock-field-data (limit)
+  "Find header field region between point and LIMIT."
+  (and (< (point) (mh-letter-header-end))
+       (< (point) limit)
+       (let ((end (min limit (mh-letter-header-end)))
+             (point (point))
+             data-end data-begin field)
+         (end-of-line)
+         (setq data-end (if (re-search-forward "^[^ \t]" end t)
+                            (match-beginning 0)
+                          end))
+         (goto-char (1- data-end))
+         (if (not (re-search-backward "\\(^[^ \t][^:]*\\):[ \t]*" nil t))
+             (setq data-begin (point-min))
+           (setq data-begin (match-end 0))
+           (setq field (match-string 1)))
+         (setq data-begin (max point data-begin))
+         (if (and field (mh-letter-skipped-header-field-p field))
+             (set-match-data nil)
+           (set-match-data (list data-begin data-end data-begin data-end)))
+         (goto-char (if (equal point data-end) (1+ data-end) data-end))
+         t)))
+
+(defun mh-letter-header-end ()
+  "Find the end of header from `mh-letter-mail-header-end-marker'."
+  (save-excursion
+    (goto-char (marker-position mh-letter-mail-header-end-marker))
+    (forward-line -1)
+    (point)))
 
 (defun mh-auto-fill-for-letter ()
   "Perform auto-fill for message.
@@ -1061,7 +1102,7 @@ MH the first time a message is composed.")
 The versions of MH-E, Emacs, and MH are shown."
 
   ;; Lazily initialize mh-x-mailer-string.
-  (when (null mh-x-mailer-string)
+  (when (and mh-insert-x-mailer-flag (null mh-x-mailer-string))
     (save-window-excursion
       ;; User would be confused if version info buffer disappeared magically,
       ;; so don't delete buffer if it already existed.
@@ -1088,7 +1129,8 @@ The versions of MH-E, Emacs, and MH are shown."
             (kill-buffer mh-info-buffer)))))
   ;; Insert X-Mailer, but only if it doesn't already exist.
   (save-excursion
-    (when (null (mh-goto-header-field "X-Mailer"))
+    (when (and mh-insert-x-mailer-flag
+               (null (mh-goto-header-field "X-Mailer")))
       (mh-insert-fields "X-Mailer:" mh-x-mailer-string))))
 
 (defun mh-regexp-in-field-p (regexp &rest fields)
@@ -1106,39 +1148,60 @@ The versions of MH-E, Emacs, and MH are shown."
           (setq fields (cdr fields))))
       search-result)))
 
-(defun mh-insert-auto-fields ()
-  "Insert custom fields if To or Cc match `mh-auto-fields-list'."
-  (save-excursion
-    (when (and (or (mh-goto-header-field "To:")(mh-goto-header-field "cc:")))
-      (let ((list mh-auto-fields-list))
-        (while list
-          (let ((regexp (nth 0 (car list)))
-                (entries (nth 1 (car list))))
-            (when (mh-regexp-in-field-p regexp "To:" "cc:")
-              (let ((entry-list entries))
-                (while entry-list
-                  (let ((field (caar entry-list))
-                        (value (cdar entry-list)))
-                    (cond
-                     ((equal "identity" field)
-                      (when (assoc value mh-identity-list)
-                        (mh-insert-identity value)))
-                     (t
-                      (mh-modify-header-field field value
-                                              (equal field "From")))))
-                  (setq entry-list (cdr entry-list))))))
-          (setq list (cdr list)))))))
+;;;###mh-autoload
+(defun mh-insert-auto-fields (&optional non-interactive)
+  "Insert custom fields if To or Cc match `mh-auto-fields-list'.
+Sets buffer-local `mh-insert-auto-fields-done-local' when done and inserted
+something.  If NON-INTERACTIVE is non-nil, do not be verbose and only
+attempt matches if `mh-insert-auto-fields-done-local' is nil.
+
+An `identity' entry is skipped if one was already entered manually."
+  (interactive)
+  (when (or (not non-interactive) (not mh-insert-auto-fields-done-local))
+    (save-excursion
+      (when (and (or (mh-goto-header-field "To:")(mh-goto-header-field "cc:")))
+        (let ((list mh-auto-fields-list))
+          (while list
+            (let ((regexp (nth 0 (car list)))
+                  (entries (nth 1 (car list))))
+              (when (mh-regexp-in-field-p regexp "To:" "cc:")
+                (setq mh-insert-auto-fields-done-local t)
+                (if (not non-interactive)
+                    (message "Matched for regexp %s" regexp))
+                (let ((entry-list entries))
+                  (while entry-list
+                    (let ((field (caar entry-list))
+                          (value (cdar entry-list)))
+                      (cond
+                       ((equal "identity" field)
+                        (when (and (not mh-identity-local)
+                                   (assoc value mh-identity-list))
+                          (mh-insert-identity value)))
+                       (t
+                        (mh-modify-header-field field value
+                                                (equal field "From")))))
+                    (setq entry-list (cdr entry-list))))))
+            (setq list (cdr list))))))))
 
 (defun mh-modify-header-field (field value &optional overwrite-flag)
   "To header FIELD add VALUE.
 If OVERWRITE-FLAG is non-nil then the old value, if present, is discarded."
-  (cond ((mh-goto-header-field (concat field ":"))
-         (insert value)
-         (if overwrite-flag
-             (delete-region (point) (line-end-position))
-           (insert ", ")))
-        (t (mh-goto-header-end 0)
-           (insert field ": " value "\n"))))
+  (cond ((and overwrite-flag
+              (mh-goto-header-field (concat field ":")))
+         (insert " " value)
+         (delete-region (point) (line-end-position)))
+        ((and (not overwrite-flag)
+              (mh-regexp-in-field-p (concat "\\b" value "\\b") field))
+         ;; Already there, do nothing.
+         )
+        ((and (not overwrite-flag)
+              (mh-goto-header-field (concat field ":")))
+         (insert " " value ","))
+        (t
+         (mh-goto-header-end 0)
+         (insert field ": " value "\n"))))
+
+(defvar mh-letter-mail-header-end-marker nil)
 
 (defun mh-compose-and-send-mail (draft send-args
                                        sent-from-folder sent-from-msg
@@ -1157,8 +1220,8 @@ message.  In that case, the ANNOTATE-FIELD is used to build a string
 for `mh-annotate-msg'.
 CONFIG is the window configuration to restore after sending the letter."
   (pop-to-buffer draft)
-  (mh-insert-auto-fields)
   (mh-letter-mode)
+  (mh-insert-auto-fields t)
 
   ;; mh-identity support
   (if (and (boundp 'mh-identity-default)
@@ -1169,6 +1232,12 @@ CONFIG is the window configuration to restore after sending the letter."
              mh-identity-list)
     (mh-identity-make-menu)
     (easy-menu-add mh-identity-menu))
+
+  ;; Extra fields
+  (mh-insert-x-mailer)
+  (mh-insert-x-face)
+  ;; Hide skipped fields
+  (mh-letter-hide-all-skipped-fields)
 
   (setq mh-sent-from-folder sent-from-folder)
   (setq mh-sent-from-msg sent-from-msg)
@@ -1209,12 +1278,11 @@ Insert X-Mailer field if variable `mh-insert-x-mailer-flag' is set.
 Insert X-Face field if the file specified by `mh-x-face-file' exists."
   (interactive "P")
   (run-hooks 'mh-before-send-letter-hook)
+  (mh-insert-auto-fields t)
   (cond ((mh-mhn-directive-present-p)
          (mh-edit-mhn))
         ((mh-mml-directive-present-p)
          (mh-mml-to-mime)))
-  (if mh-insert-x-mailer-flag (mh-insert-x-mailer))
-  (mh-insert-x-face)
   (save-buffer)
   (message "Sending...")
   (let ((draft-buffer (current-buffer))
@@ -1481,52 +1549,285 @@ This is useful in breaking up paragraphs in replies."
 
 (mh-do-in-xemacs (defvar mail-abbrevs))
 
+;;;###mh-autoload
+(defun mh-complete-word (word choices begin end)
+  "Complete WORD at from CHOICES.
+Any match found replaces the text from BEGIN to END."
+  (let ((completion (try-completion word choices)))
+    (cond ((eq completion t)
+           (message "Completed: %s" word))
+          ((null completion)
+           (message "No completion for `%s'" word))
+          ((stringp completion)
+           (if (equal word completion)
+               (with-output-to-temp-buffer "*Completions*"
+                 (display-completion-list (all-completions word choices)))
+             (delete-region begin end)
+             (insert completion))))))
+
+;;;###mh-autoload
+(defun mh-beginning-of-word (&optional n)
+  "Return position of the N th word backwards."
+  (unless n (setq n 1))
+  (let ((syntax-table (syntax-table)))
+    (unwind-protect
+        (save-excursion
+          (mh-funcall-if-exists mail-abbrev-make-syntax-table)
+          (set-syntax-table mail-abbrev-syntax-table)
+          (backward-word n)
+          (point))
+      (set-syntax-table syntax-table))))
+
 (defun mh-folder-expand-at-point ()
   "Do folder name completion in Fcc header field."
   (let* ((end (point))
-         (syntax-table (syntax-table))
-         (beg (unwind-protect
-                  (save-excursion
-                    (mh-funcall-if-exists mail-abbrev-make-syntax-table)
-                    (set-syntax-table mail-abbrev-syntax-table)
-                    (backward-word 1)
-                    (point))
-                (set-syntax-table syntax-table)))
+         (beg (mh-beginning-of-word))
          (folder (buffer-substring beg end))
          (leading-plus (and (> (length folder) 0) (equal (aref folder 0) ?+)))
          (last-slash (mh-search-from-end ?/ folder))
          (prefix (and last-slash (substring folder 0 last-slash)))
-         (mail-abbrevs
-          (mapcar #'(lambda (x)
-                      (list (cond (prefix (format "%s/%s" prefix x))
-                                  (leading-plus (format "+%s" x))
-                                  (t x))))
-                  (mh-folder-completion-function folder nil t))))
-    (if (fboundp 'mail-abbrev-complete-alias)
-        (mh-funcall-if-exists mail-abbrev-complete-alias)
-      (error "Fcc completion not supported in your version of Emacs"))))
+         (choices (mapcar #'(lambda (x)
+                              (list (cond (prefix (format "%s/%s" prefix x))
+                                          (leading-plus (format "+%s" x))
+                                          (t x))))
+                          (mh-folder-completion-function folder nil t))))
+    (mh-complete-word folder choices beg end)))
 
-;;;###mh-autoload
+;; XXX: This should probably be customizable
+(defvar mh-letter-complete-function-alist
+  '((cc . mh-alias-letter-expand-alias)
+    (bcc . mh-alias-letter-expand-alias)
+    (dcc . mh-alias-letter-expand-alias)
+    (fcc . mh-folder-expand-at-point)
+    (from . mh-alias-letter-expand-alias)
+    (mail-followup-to . mh-alias-letter-expand-alias)
+    (reply-to . mh-alias-letter-expand-alias)
+    (to . mh-alias-letter-expand-alias))
+  "Alist of header fields and completion functions to use.")
+
 (defun mh-letter-complete (arg)
   "Perform completion on header field or word preceding point.
-Alias completion is done within the mail header on selected fields and
-by the function designated by `mh-letter-complete-function' elsewhere,
-passing the prefix ARG if any."
+Alias completion is done within the mail header on selected fields based on
+the matches in `mh-letter-complete-function-alist'. Elsewhere the function
+designated by `mh-letter-complete-function' is used and given the prefix ARG,
+if present."
   (interactive "P")
-  (let ((case-fold-search t))
-    (cond
-     ((and (mh-in-header-p)
-           (save-excursion
-             (mh-header-field-beginning)
-             (looking-at "^fcc:")))
-      (mh-folder-expand-at-point))
-     ((and (mh-in-header-p)
-           (save-excursion
-             (mh-header-field-beginning)
-             (looking-at "^.*\\(to\\|cc\\|from\\):")))
-      (mh-alias-letter-expand-alias))
-     (t
-      (funcall mh-letter-complete-function arg)))))
+  (let ((func nil))
+    (cond ((not (mh-in-header-p))
+           (funcall mh-letter-complete-function arg))
+          ((setq func (cdr (assoc (mh-letter-header-field-at-point)
+                                  mh-letter-complete-function-alist)))
+           (funcall func))
+          (t (funcall mh-letter-complete-function arg)))))
+
+(defun mh-letter-complete-or-space (arg)
+  "Perform completion or insert space.
+If `mh-compose-space-does-completion-flag' is nil (the default) a space is
+inserted.
+
+Otherwise, if point is in the message header and the preceding character is
+not whitespace then do completion. Otherwise insert a space character.
+
+ARG is the number of spaces inserted."
+  (interactive "p")
+  (let ((func nil)
+        (end-of-prev (save-excursion
+                       (goto-char (mh-beginning-of-word))
+                       (mh-beginning-of-word -1))))
+    (cond ((not mh-compose-space-does-completion-flag)
+           (self-insert-command arg))
+          ((not (mh-in-header-p)) (self-insert-command arg))
+          ((> (point) end-of-prev) (self-insert-command arg))
+          ((setq func (cdr (assoc (mh-letter-header-field-at-point)
+                                  mh-letter-complete-function-alist)))
+           (funcall func))
+          (t (self-insert-command arg)))))
+
+(defun mh-letter-confirm-address ()
+  "Flash alias expansion if `mh-alias-flash-on-comma' is non-nil."
+  (interactive)
+  (cond ((not (mh-in-header-p)) (self-insert-command 1))
+        ((eq (cdr (assoc (mh-letter-header-field-at-point)
+                         mh-letter-complete-function-alist))
+             'mh-alias-letter-expand-alias)
+         (mh-alias-reload-maybe)
+         (mh-alias-minibuffer-confirm-address))
+        (t (self-insert-command 1))))
+
+(defvar mh-letter-header-field-regexp "^\\([A-Za-z][A-Za-z0-9-]*\\):")
+
+(defun mh-letter-header-field-at-point ()
+  "Return the header field name at point.
+A symbol is returned whose name is the string obtained by downcasing the field
+name."
+  (save-excursion
+    (end-of-line)
+    (and (re-search-backward mh-letter-header-field-regexp nil t)
+         (intern (downcase (match-string 1))))))
+
+;;;###mh-autoload
+(defun mh-letter-next-header-field-or-indent (arg)
+  "Move to next field or indent depending on point.
+In the message header, go to the next field. Elsewhere call
+`indent-relative' as usual with optional prefix ARG."
+  (interactive "P")
+  (let ((header-end (save-excursion
+                      (goto-char (mh-mail-header-end))
+                      (forward-line)
+                      (point))))
+    (if (> (point) header-end)
+        (indent-relative arg)
+      (mh-letter-next-header-field))))
+
+(defun mh-letter-next-header-field ()
+  "Cycle to the next header field.
+If we are at the last header field go to the start of the message body."
+  (let ((header-end (mh-mail-header-end)))
+    (cond ((>= (point) header-end) (goto-char (point-min)))
+          ((< (point) (progn
+                        (beginning-of-line)
+                        (re-search-forward mh-letter-header-field-regexp
+                                           (line-end-position) t)
+                        (point)))
+           (beginning-of-line))
+          (t (end-of-line)))
+    (cond ((re-search-forward mh-letter-header-field-regexp header-end t)
+           (if (mh-letter-skipped-header-field-p (match-string 1))
+               (mh-letter-next-header-field)
+             (mh-letter-skip-leading-whitespace-in-header-field)))
+          (t (goto-char header-end)
+             (forward-line)))))
+
+;;;###mh-autoload
+(defun mh-letter-previous-header-field ()
+  "Cycle to the previous header field.
+If we are at the first header field go to the start of the message body."
+  (interactive)
+  (let ((header-end (mh-mail-header-end)))
+    (if (>= (point) header-end)
+        (goto-char header-end)
+      (mh-header-field-beginning))
+    (cond ((re-search-backward mh-letter-header-field-regexp nil t)
+           (if (mh-letter-skipped-header-field-p (match-string 1))
+               (mh-letter-previous-header-field)
+           (goto-char (match-end 0))
+           (mh-letter-skip-leading-whitespace-in-header-field)))
+          (t (goto-char header-end)
+             (forward-line)))))
+
+(defun mh-letter-skipped-header-field-p (field)
+  "Check if FIELD is to be skipped."
+  (let ((field (downcase field)))
+    (loop for x in mh-compose-skipped-header-fields
+          when (equal (downcase x) field) return t
+          finally return nil)))
+
+(defun mh-letter-skip-leading-whitespace-in-header-field ()
+  "Skip leading whitespace in a header field.
+If the header field doesn't have at least one space after the colon then a
+space character is added."
+  (let ((need-space t))
+    (while (memq (char-after) '(?\t ?\ ))
+      (forward-char)
+      (setq need-space nil))
+    (when need-space (insert " "))))
+
+(defvar mh-hidden-header-keymap
+  (let ((map (make-sparse-keymap)))
+    (mh-do-in-gnu-emacs
+      (define-key map [mouse-2] 'mh-letter-toggle-header-field-display-button))
+    (mh-do-in-xemacs
+      (define-key map '(button2)
+        'mh-letter-toggle-header-field-display-button))
+    map))
+
+(defun mh-letter-toggle-header-field-display-button (event)
+  "Toggle header field display at location of EVENT.
+This function does the same thing as `mh-letter-toggle-header-field-display'
+except that it is callable from a mouse button."
+  (interactive "e")
+  (mh-do-at-event-location event
+    (mh-letter-toggle-header-field-display nil)))
+
+(defun mh-letter-toggle-header-field-display (arg)
+  "Toggle display of header field at point.
+If the header is long or spread over multiple lines then hiding it will show
+the first few characters and replace the rest with an ellipsis.
+
+If ARG is negative then header is hidden, if positive it is displayed. If ARG
+is the symbol `long' then keep at most the first 4 lines."
+  (interactive (list nil))
+  (when (and (mh-in-header-p)
+             (progn
+               (end-of-line)
+               (re-search-backward mh-letter-header-field-regexp nil t)))
+    (let ((buffer-read-only nil)
+          (modified-flag (buffer-modified-p))
+          (begin (point))
+          end)
+      (end-of-line)
+      (setq end (1- (if (re-search-forward "^[^ \t]" nil t)
+                        (match-beginning 0)
+                      (point-max))))
+      (goto-char begin)
+      ;; Make it clickable...
+      (add-text-properties begin end `(keymap ,mh-hidden-header-keymap
+                                       mouse-face highlight))
+      (unwind-protect
+          (cond ((or (and (not arg)
+                          (text-property-any begin end 'invisible 'vanish))
+                     (and (numberp arg) (>= arg 0))
+                     (and (eq arg 'long) (> (line-beginning-position 5) end)))
+                 (remove-text-properties begin end '(invisible nil))
+                 (search-forward ":" (line-end-position) t)
+                 (mh-letter-skip-leading-whitespace-in-header-field))
+                ((eq arg 'long)
+                 (end-of-line 4)
+                 (mh-letter-truncate-header-field end)
+                 (beginning-of-line))
+                (t (end-of-line)
+                   (mh-letter-truncate-header-field end)
+                   (beginning-of-line)))
+        (set-buffer-modified-p modified-flag)))))
+
+(defun mh-letter-truncate-header-field (end)
+  "Replace text from current line till END with an ellipsis.
+If the current line is too long truncate a part of it as well."
+  (let ((max-len (min (window-width) 62)))
+    (when (> (+ (current-column) 4) max-len)
+      (backward-char (- (+ (current-column) 5) max-len)))
+    (when (> end (point))
+      (add-text-properties (point) end '(invisible vanish)))))
+
+(defun mh-letter-hide-all-skipped-fields ()
+  "Hide all skipped fields."
+  (save-excursion
+    (goto-char (point-min))
+    (save-restriction
+      (narrow-to-region (point) (mh-mail-header-end))
+      (while (re-search-forward mh-letter-header-field-regexp nil t)
+        (if (mh-letter-skipped-header-field-p (match-string 1))
+            (mh-letter-toggle-header-field-display -1)
+          (mh-letter-toggle-header-field-display 'long))
+        (beginning-of-line 2)))))
+
+(defun mh-interactive-read-address (prompt)
+  "Read an address.
+If `mh-compose-prompt-flag' is non-nil, then read an address with PROMPT.
+Otherwise return the empty string."
+  (if mh-compose-prompt-flag (mh-read-address prompt) ""))
+
+(defun mh-interactive-read-string (prompt)
+  "Read a string.
+If `mh-compose-prompt-flag' is non-nil, then read a string with PROMPT.
+Otherwise return the empty string."
+  (if mh-compose-prompt-flag (read-string prompt) ""))
+
+(defun mh-letter-adjust-point ()
+  "Move cursor to first header field if are using the no prompt mode."
+  (unless mh-compose-prompt-flag
+    (goto-char (point-max))
+    (mh-letter-next-header-field)))
 
 ;;; Build the letter-mode keymap:
 ;;; If this changes, modify mh-letter-mode-help-messages accordingly, above.
@@ -1534,6 +1835,7 @@ passing the prefix ARG if any."
   "\C-c?"               mh-help
   "\C-c\C-c"            mh-send-letter
   "\C-c\C-d"            mh-insert-identity
+  "\C-c\M-d"            mh-insert-auto-fields
   "\C-c\C-e"            mh-edit-mhn
   "\C-c\C-f\C-b"        mh-to-field
   "\C-c\C-f\C-c"        mh-to-field
@@ -1569,7 +1871,12 @@ passing the prefix ARG if any."
   "\C-c\C-^"            mh-insert-signature ;if no C-s
   "\C-c\C-w"            mh-check-whom
   "\C-c\C-y"            mh-yank-cur-msg
-  "\M-\t"               mh-letter-complete)
+  "\C-c\C-t"            mh-letter-toggle-header-field-display
+  " "                   mh-letter-complete-or-space
+  "\M-\t"               mh-letter-complete
+  "\t"                  mh-letter-next-header-field-or-indent
+  [backtab]             mh-letter-previous-header-field
+  ","                   mh-letter-confirm-address)
 
 ;; "C-c /" prefix is used in mh-letter-mode by pgp.el and mailcrypt.el.
 

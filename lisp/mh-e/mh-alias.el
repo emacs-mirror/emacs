@@ -1,7 +1,7 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 ;;
 ;; Copyright (C) 1994, 95, 96, 1997,
-;;  2001, 02, 2003 Free Software Foundation, Inc.
+;;  2001, 02, 03, 2004 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -128,6 +128,14 @@
 
 ;;; Alias Loading
 
+(defmacro mh-assoc-ignore-case (key alist)
+  "Search for string KEY in ALIST.
+This is a wrapper around `assoc-string' or `assoc-ignore-case'. Avoid
+`assoc-ignore-case' which is now an obsolete function."
+  (cond ((fboundp 'assoc-string) `(assoc-string ,key ,alist t))
+        ((fboundp 'assoc-ignore-case) `(assoc-ignore-case ,key ,alist))
+        (t (error "The macro mh-assoc-ignore-case not implemented properly"))))
+
 (defun mh-alias-tstamp (arg)
   "Check whether alias files have been modified.
 Return t if any file listed in the MH profile component Aliasfile has been
@@ -169,6 +177,29 @@ If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
             (append userlist mh-alias-system-aliases))
         userlist))))
 
+(defun mh-alias-gecos-name (gecos-name username comma-separator)
+  "Return a usable address string from a GECOS-NAME and USERNAME.
+Use only part of the GECOS-NAME up to the first comma if COMMA-SEPARATOR is
+non-nil."
+  (let ((res gecos-name))
+    ;; Keep only string until first comma if COMMA-SEPARATOR is t.
+    (if (and comma-separator
+             (string-match "^\\([^,]+\\)," res))
+        (setq res (match-string 1 res)))
+    ;; Replace "&" with capitalized username
+    (if (string-match "&" res)
+        (setq res (mh-replace-in-string "&" (capitalize username) res)))
+    ;; Remove " character
+    (if (string-match "\"" res)
+        (setq res (mh-replace-in-string "\"" "" res)))
+    ;; If empty string, use username instead
+    (if (string-equal "" res)
+        (setq res username))
+    ;; Surround by quotes if doesn't consist of simple characters
+    (if (not (string-match "^[ a-zA-Z0-9-]+$" res))
+        (setq res (concat "\"" res "\"")))
+    res))
+
 (defun mh-alias-local-users ()
   "Return an alist of local users from /etc/passwd."
   (let (passwd-alist)
@@ -185,23 +216,23 @@ If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
         (goto-char (point-min))))
       (while  (< (point) (point-max))
         (cond
-         ((looking-at "\\([^:]*\\):[^:]*:\\([^:]*\\):[^:]*:\\([^:,]*\\)[:,]")
+         ((looking-at "\\([^:]*\\):[^:]*:\\([^:]*\\):[^:]*:\\([^:]*\\):")
           (when (> (string-to-int (match-string 2)) 200)
             (let* ((username (match-string 1))
                    (gecos-name (match-string 3))
-                   (realname
-                    (if (string-match "&" gecos-name)
-                        (concat
-                         (substring gecos-name 0 (match-beginning 0))
-                         (capitalize username)
-                         (substring gecos-name (match-end 0)))
-                      gecos-name)))
+                   (realname (mh-alias-gecos-name
+                              gecos-name username
+                              mh-alias-passwd-gecos-comma-separator-flag)))
               (setq passwd-alist
-                    (cons (list username
-                                (if (string-equal "" realname)
-                                    (concat "<" username ">")
-                                  (concat realname " <" username ">")))
-                          passwd-alist))))))
+                    (cons
+                     (list (if mh-alias-local-users-prefix
+                               (concat mh-alias-local-users-prefix
+                                       (mh-alias-suggest-alias realname t))
+                             username)
+                           (if (string-equal username realname)
+                               (concat "<" username ">")
+                             (concat realname " <" username ">")))
+                     passwd-alist))))))
         (forward-line 1)))
     passwd-alist))
 
@@ -219,12 +250,12 @@ If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
       (cond
        ((looking-at "^[ \t]"))          ;Continuation line
        ((looking-at "\\(.+\\): .+: .*$") ; A new -blind- MH alias
-        (when (not (assoc-ignore-case (match-string 1) mh-alias-blind-alist))
+        (when (not (mh-assoc-ignore-case (match-string 1) mh-alias-blind-alist))
           (setq mh-alias-blind-alist
                 (cons (list (match-string 1)) mh-alias-blind-alist))
           (setq mh-alias-alist (cons (list (match-string 1)) mh-alias-alist))))
        ((looking-at "\\(.+\\): .*$")    ; A new MH alias
-        (when (not (assoc-ignore-case (match-string 1) mh-alias-alist))
+        (when (not (mh-assoc-ignore-case (match-string 1) mh-alias-alist))
           (setq mh-alias-alist
                 (cons (list (match-string 1)) mh-alias-alist)))))
       (forward-line 1)))
@@ -235,11 +266,12 @@ If ARG is non-nil, filenames listed in `mh-alias-system-aliases' are appended."
           user)
       (while local-users
         (setq user (car local-users))
-        (if (not (assoc-ignore-case (car user) mh-alias-alist))
+        (if (not (mh-assoc-ignore-case (car user) mh-alias-alist))
             (setq mh-alias-alist (append mh-alias-alist (list user))))
         (setq local-users (cdr local-users)))))
   (message "Loading MH aliases...done"))
 
+;;;###mh-autoload
 (defun mh-alias-reload-maybe ()
   "Load new MH aliases."
   (if (or (eq mh-alias-alist 'not-read) ; Doesn't exist, so create it.
@@ -269,10 +301,10 @@ ali returns the string unchanged if not defined.  The same is done here."
   "Return expansion for ALIAS.
 Blind aliases or users from /etc/passwd are not expanded."
   (cond
-   ((assoc-ignore-case alias mh-alias-blind-alist)
+   ((mh-assoc-ignore-case alias mh-alias-blind-alist)
     alias)                              ; Don't expand a blind alias
-   ((assoc-ignore-case alias mh-alias-passwd-alist)
-    (cadr (assoc-ignore-case alias mh-alias-passwd-alist)))
+   ((mh-assoc-ignore-case alias mh-alias-passwd-alist)
+    (cadr (mh-assoc-ignore-case alias mh-alias-passwd-alist)))
    (t
     (mh-alias-ali alias))))
 
@@ -302,26 +334,12 @@ Blind aliases or users from /etc/passwd are not expanded."
 (defun mh-alias-minibuffer-confirm-address ()
   "Display the alias expansion if `mh-alias-flash-on-comma' is non-nil."
   (interactive)
-  (if (not mh-alias-flash-on-comma)
-      ()
+  (when mh-alias-flash-on-comma
     (save-excursion
       (let* ((case-fold-search t)
-             (the-name (buffer-substring
-                        (progn (skip-chars-backward " \t")(point))
-                        ;; This moves over to previous comma, if any
-                        (progn (or (and (not (= 0 (skip-chars-backward "^,")))
-                                        ;; the skips over leading whitespace
-                                        (skip-chars-forward " "))
-                                   ;; no comma, then to beginning of word
-                                   (skip-chars-backward "^ \t"))
-                               ;; In Emacs21, the beginning of the prompt
-                               ;; line is accessible, which wasn't the case
-                               ;; in emacs20.  Skip over it.
-                               (if (looking-at "^[^ \t]+:")
-                                   (skip-chars-forward "^ \t"))
-                               (skip-chars-forward " ")
-                               (point)))))
-        (if (assoc-ignore-case the-name mh-alias-alist)
+             (beg (mh-beginning-of-word))
+             (the-name (buffer-substring-no-properties beg (point))))
+        (if (mh-assoc-ignore-case the-name mh-alias-alist)
             (message "%s -> %s" the-name (mh-alias-expand the-name))
           ;; Check if if was a single word likely to be an alias
           (if (and (equal mh-alias-flash-on-comma 1)
@@ -335,30 +353,26 @@ Blind aliases or users from /etc/passwd are not expanded."
 (defun mh-alias-letter-expand-alias ()
   "Expand mail alias before point."
   (mh-alias-reload-maybe)
-  (let ((mail-abbrevs mh-alias-alist))
-    (mh-funcall-if-exists mail-abbrev-complete-alias))
-  (when mh-alias-expand-aliases-flag
-    (let* ((end (point))
-           (syntax-table (syntax-table))
-           (beg (unwind-protect
-                    (save-excursion
-                      (set-syntax-table mail-abbrev-syntax-table)
-                      (backward-word 1)
-                      (point))
-                  (set-syntax-table syntax-table)))
-           (alias (buffer-substring beg end))
-           (expansion (mh-alias-expand alias)))
-      (delete-region beg end)
-      (insert expansion))))
+  (let* ((end (point))
+         (begin (mh-beginning-of-word))
+         (input (buffer-substring-no-properties begin end)))
+    (mh-complete-word input mh-alias-alist begin end)
+    (when mh-alias-expand-aliases-flag
+      (let* ((end (point))
+             (expansion (mh-alias-expand (buffer-substring begin end))))
+        (delete-region begin end)
+        (insert expansion)))))
 
 ;;; Adding addresses to alias file.
 
-(defun mh-alias-suggest-alias (string)
-  "Suggest an alias for STRING."
+(defun mh-alias-suggest-alias (string &optional no-comma-swap)
+  "Suggest an alias for STRING.
+Don't reverse the order of strings separated by a comma if NO-COMMA-SWAP is
+non-nil."
   (cond
    ((string-match "^<\\(.*\\)>$" string)
     ;; <somename@foo.bar>  -> recurse, stripping brackets.
-    (mh-alias-suggest-alias (match-string 1 string)))
+    (mh-alias-suggest-alias (match-string 1 string) no-comma-swap))
    ((string-match "^\\sw+$" string)
     ;; One word -> downcase it.
     (downcase string))
@@ -372,47 +386,59 @@ Blind aliases or users from /etc/passwd are not expanded."
     (downcase (match-string 1 string)))
    ((string-match "^\"\\(.*\\)\".*" string)
     ;; "Some name" <somename@foo.bar>  -> recurse -> "Some name"
-    (mh-alias-suggest-alias (match-string 1 string)))
+    (mh-alias-suggest-alias (match-string 1 string) no-comma-swap))
    ((string-match "^\\(.*\\) +<.*>$" string)
     ;; Some name <somename@foo.bar>  -> recurse -> Some name
-    (mh-alias-suggest-alias (match-string 1 string)))
+    (mh-alias-suggest-alias (match-string 1 string) no-comma-swap))
    ((string-match (concat mh-address-mail-regexp " +(\\(.*\\))$") string)
     ;; somename@foo.bar (Some name)  -> recurse -> Some name
-    (mh-alias-suggest-alias (match-string 1 string)))
+    (mh-alias-suggest-alias (match-string 1 string) no-comma-swap))
    ((string-match "^\\(Dr\\|Prof\\)\\.? +\\(.*\\)" string)
     ;; Strip out title
-    (mh-alias-suggest-alias (match-string 2 string)))
+    (mh-alias-suggest-alias (match-string 2 string) no-comma-swap))
    ((string-match "^\\(.*\\), +\\(Jr\\.?\\|II+\\)$" string)
     ;; Strip out tails with comma
-    (mh-alias-suggest-alias (match-string 1 string)))
+    (mh-alias-suggest-alias (match-string 1 string) no-comma-swap))
    ((string-match "^\\(.*\\) +\\(Jr\\.?\\|II+\\)$" string)
     ;; Strip out tails
-    (mh-alias-suggest-alias (match-string 1 string)))
+    (mh-alias-suggest-alias (match-string 1 string) no-comma-swap))
    ((string-match "^\\(\\sw+\\) +[A-Z]\\.? +\\(.*\\)$" string)
     ;; Strip out initials
     (mh-alias-suggest-alias
-     (format "%s %s" (match-string 1 string) (match-string 2 string))))
-   ((string-match "^\\([^,]+\\), +\\(.*\\)$" string)
-    ;; Reverse order of comma-separated fields
+     (format "%s %s" (match-string 1 string) (match-string 2 string))
+     no-comma-swap))
+   ((and (not no-comma-swap)
+         (string-match "^\\([^,]+\\), +\\(.*\\)$" string))
+    ;; Reverse order of comma-separated fields to handle:
+    ;;  From: "Galbraith, Peter" <psg@debian.org>
+    ;; but don't this for a name string extracted from the passwd file
+    ;; with mh-alias-passwd-gecos-comma-separator-flag set to nil.
     (mh-alias-suggest-alias
-     (format "%s %s" (match-string 2 string) (match-string 1 string))))
+     (format "%s %s" (match-string 2 string) (match-string 1 string))
+     no-comma-swap))
    (t
     ;; Output string, with spaces replaced by dots.
     (mh-alias-canonicalize-suggestion string))))
 
 (defun mh-alias-canonicalize-suggestion (string)
-  "Process STRING to replace spacess by periods.
-First all spaces are replaced by periods. Then every run of consecutive periods
-are replaced with a single period. Finally the string is converted to lower
-case."
+  "Process STRING to replace spaces by periods.
+First all spaces and commas are replaced by periods. Then every run of
+consecutive periods are replaced with a single period. Finally the string
+is converted to lower case."
   (with-temp-buffer
     (insert string)
     ;; Replace spaces with periods
     (goto-char (point-min))
-    (replace-regexp " +" ".")
+    (while (re-search-forward " +" nil t)
+      (replace-match "." nil nil))
+    ;; Replace commas with periods
+    (goto-char (point-min))
+    (while (re-search-forward ",+" nil t)
+      (replace-match "." nil nil))
     ;; Replace consecutive periods with a single period
     (goto-char (point-min))
-    (replace-regexp "\\.\\.+" ".")
+    (while (re-search-forward "\\.\\.+" nil t)
+      (replace-match "." nil nil))
     ;; Convert to lower case
     (downcase-region (point-min) (point-max))
     ;; Whew! all done...
@@ -616,6 +642,63 @@ already has an alias."
     (if address
         (mh-alias-add-alias nil address)
       (message "No email address found under point."))))
+
+;;;###mh-autoload
+(defun mh-alias-apropos (regexp)
+  "Show all aliases that match REGEXP either in name or content."
+  (interactive "sAlias regexp: ")
+  (if mh-alias-local-users
+      (mh-alias-reload-maybe))
+  (let ((matches "")(group-matches "")(passwd-matches))
+    (save-excursion
+      (message "Reading MH aliases...")
+      (mh-exec-cmd-quiet t "ali" "-nolist" "-nouser")
+      (message "Reading MH aliases...done.  Parsing...")
+      (while (re-search-forward regexp nil t)
+        (beginning-of-line)
+        (cond
+         ((looking-at "^[ \t]")         ;Continuation line
+          (setq group-matches
+                (concat group-matches
+                        (buffer-substring
+                         (save-excursion
+                           (or (re-search-backward "^[^ \t]" nil t)
+                               (point)))
+                         (progn
+                           (if (re-search-forward  "^[^ \t]" nil t)
+                               (forward-char -1))
+                           (point))))))
+         (t
+          (setq matches
+                (concat matches
+                        (buffer-substring (point)(progn (end-of-line)(point)))
+                        "\n")))))
+      (message "Reading MH aliases...done.  Parsing...done.")
+      (when mh-alias-local-users
+        (message
+         "Reading MH aliases...done.  Parsing...done.  Passwd aliases...")
+        (setq passwd-matches
+              (mapconcat
+               '(lambda (elem)
+                  (if (or (string-match regexp (car elem))
+                          (string-match regexp (cadr elem)))
+                      (format "%s: %s\n" (car elem) (cadr elem))))
+               mh-alias-passwd-alist ""))
+        (message
+         "Reading MH aliases...done.  Parsing...done.  Passwd aliases...done.")))
+    (if (and (string-equal "" matches)
+             (string-equal "" group-matches)
+             (string-equal "" passwd-matches))
+        (message "No matches")
+      (with-output-to-temp-buffer "*Help*"
+        (if (not (string-equal "" matches))
+            (princ matches))
+        (when (not (string-equal group-matches ""))
+          (princ "\nGroup Aliases:\n\n")
+          (princ group-matches))
+        (when (not (string-equal passwd-matches ""))
+          (princ "\nLocal User Aliases:\n\n")
+          (princ passwd-matches))))))
 
 (provide 'mh-alias)
 

@@ -1,6 +1,6 @@
 ;;; mh-mime.el --- MH-E support for composing MIME messages
 
-;; Copyright (C) 1993, 1995, 2001, 02, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 02, 03, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -34,14 +34,11 @@
 
 ;;; Code:
 
-(require 'cl)
-(require 'mh-comp)
 (require 'mh-utils)
-(load "mm-decode" t t)                  ; Non-fatal dependency
-(load "mm-uu" t t)                      ; Non-fatal dependency
-(load "mailcap" t t)                    ; Non-fatal dependency
-(load "smiley" t t)                     ; Non-fatal dependency
+(mh-require-cl)
+(require 'mh-comp)
 (require 'gnus-util)
+(require 'mh-gnus)
 
 (autoload 'gnus-article-goto-header "gnus-art")
 (autoload 'article-emphasize "gnus-art")
@@ -450,6 +447,7 @@ Optional non-nil argument NOCONFIRM means don't ask for confirmation."
 This step is performed automatically when sending the message, but this
 function may be called manually before sending the draft as well."
   (interactive)
+  (require 'message)
   (when mh-gnus-pgp-support-flag ;; This is only needed for PGP
     (message-options-set-recipient))
   (mml-to-mime))
@@ -529,99 +527,6 @@ If called with a prefix argument DONTSIGN, only encrypt (do NOT sign)."
 
 
 
-;;; MIME decoding
-
-(defmacro mh-defun-compat (function arg-list &rest body)
-  "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently. If FUNCTION
-is not defined then it is defined to have argument list, ARG-LIST and body,
-BODY."
-  (let ((defined-p (fboundp function)))
-    (unless defined-p
-      `(defun ,function ,arg-list ,@body))))
-(put 'mh-defun-compat 'lisp-indent-function 'defun)
-
-;; Copy of original function from gnus-util.el
-(mh-defun-compat gnus-local-map-property (map)
-  "Return a list suitable for a text property list specifying keymap MAP."
-  (cond (mh-xemacs-flag (list 'keymap map))
-        ((>= emacs-major-version 21) (list 'keymap map))
-        (t (list 'local-map map))))
-
-;; Copy of original function from mm-decode.el
-(mh-defun-compat mm-merge-handles (handles1 handles2)
-  (append (if (listp (car handles1)) handles1 (list handles1))
-          (if (listp (car handles2)) handles2 (list handles2))))
-
-;; Copy of function from mm-decode.el
-(mh-defun-compat mm-set-handle-multipart-parameter (handle parameter value)
-  ;; HANDLE could be a CTL.
-  (if handle
-      (put-text-property 0 (length (car handle)) parameter value
-                         (car handle))))
-
-;; Copy of original macro is in mm-decode.el
-(mh-defun-compat mm-handle-multipart-ctl-parameter (handle parameter)
-  (get-text-property 0 parameter (car handle)))
-
-(mh-do-in-xemacs (defvar default-enable-multibyte-characters))
-
-;; Copy of original function in mm-decode.el
-(mh-defun-compat mm-readable-p (handle)
-  "Say whether the content of HANDLE is readable."
-  (and (< (with-current-buffer (mm-handle-buffer handle)
-            (buffer-size)) 10000)
-       (mm-with-unibyte-buffer
-         (mm-insert-part handle)
-         (and (eq (mm-body-7-or-8) '7bit)
-              (not (mm-long-lines-p 76))))))
-
-;; Copy of original function in mm-bodies.el
-(mh-defun-compat mm-long-lines-p (length)
-  "Say whether any of the lines in the buffer is longer than LINES."
-  (save-excursion
-    (goto-char (point-min))
-    (end-of-line)
-    (while (and (not (eobp))
-                (not (> (current-column) length)))
-      (forward-line 1)
-      (end-of-line))
-    (and (> (current-column) length)
-         (current-column))))
-
-(mh-defun-compat mm-keep-viewer-alive-p (handle)
-  ;; Released Gnus doesn't keep handles associated with externally displayed
-  ;; MIME parts. So this will always return nil.
-  nil)
-
-(mh-defun-compat mm-destroy-parts (list)
-  "Older emacs don't have this function."
-  nil)
-
-;;; This is mm-save-part from gnus 5.10 since that function in emacs21.2 is
-;;; buggy (the args to read-file-name are incorrect). When all supported
-;;; versions of Emacs come with at least Gnus 5.10, we can delete this
-;;; function and rename calls to mh-mm-save-part to mm-save-part.
-(defun mh-mm-save-part (handle)
-  "Write HANDLE to a file."
-  (let ((name (mail-content-type-get (mm-handle-type handle) 'name))
-        (filename (mail-content-type-get
-                   (mm-handle-disposition handle) 'filename))
-        file)
-    (when filename
-      (setq filename (file-name-nondirectory filename)))
-    (setq file (read-file-name "Save MIME part to: "
-                               (or mm-default-directory
-                                   default-directory)
-                               nil nil (or filename name "")))
-    (setq mm-default-directory (file-name-directory file))
-    (and (or (not (file-exists-p file))
-             (yes-or-no-p (format "File %s already exists; overwrite? "
-                                  file)))
-         (mm-save-part-to-file handle file))))
-
-
-
 ;;; MIME cleanup
 
 ;;;###mh-autoload
@@ -668,28 +573,36 @@ undisplayer FUNCTION."
 I have seen this only in spam, so maybe we shouldn't fix this ;-)"
   (save-excursion
     (goto-char (point-min))
-    (when (and (message-fetch-field "content-type")
-               (not (message-fetch-field "mime-version")))
-      (when (search-forward "\n\n" nil t)
-        (forward-line -1)
+    (re-search-forward "\n\n" nil t)
+    (save-restriction
+      (narrow-to-region (point-min) (point))
+      (when (and (message-fetch-field "content-type")
+                 (not (message-fetch-field "mime-version")))
+        (goto-char (point-min))
         (insert "MIME-Version: 1.0\n")))))
+
+(defun mh-small-show-buffer-p ()
+  "Check if show buffer is small.
+This is used to decide if smileys and graphical emphasis will be displayed."
+  (let ((max nil))
+    (when (and (boundp 'font-lock-maximum-size) font-lock-maximum-size)
+      (cond ((numberp font-lock-maximum-size)
+             (setq max font-lock-maximum-size))
+            ((listp font-lock-maximum-size)
+             (setq max (cdr (or (assoc 'mh-show-mode font-lock-maximum-size)
+                                (assoc t font-lock-maximum-size)))))))
+    (or (not (numberp max)) (>= (/ max 8) (buffer-size)))))
 
 ;;;###mh-autoload
 (defun mh-display-smileys ()
   "Function to display smileys."
-  (when (and mh-graphical-smileys-flag
-             (fboundp 'smiley-region)
-             (boundp 'font-lock-maximum-size)
-             font-lock-maximum-size
-             (>= (/ font-lock-maximum-size 8) (buffer-size)))
-    (smiley-region (point-min) (point-max))))
+  (when (and mh-graphical-smileys-flag (mh-small-show-buffer-p))
+    (mh-funcall-if-exists smiley-region (point-min) (point-max))))
 
 ;;;###mh-autoload
 (defun mh-display-emphasis ()
   "Function to display graphical emphasis."
-  (when (and mh-graphical-emphasis-flag
-             (if font-lock-maximum-size
-                 (>= (/ font-lock-maximum-size 8) (buffer-size))))
+  (when (and mh-graphical-emphasis-flag (mh-small-show-buffer-p))
     (flet ((article-goto-body ()))      ; shadow this function to do nothing
       (save-excursion
         (goto-char (point-min))
@@ -799,10 +712,15 @@ actual storing."
 (defun mh-decode-message-body ()
   "Decode message based on charset.
 If message has been encoded for transfer take that into account."
-  (let* ((ct (ignore-errors (mail-header-parse-content-type
-                             (message-fetch-field "Content-Type" t))))
-         (charset (mail-content-type-get ct 'charset))
-         (cte (message-fetch-field "Content-Transfer-Encoding")))
+  (let (ct charset cte)
+    (goto-char (point-min))
+    (re-search-forward "\n\n" nil t)
+    (save-restriction
+      (narrow-to-region (point-min) (point))
+      (setq ct (ignore-errors (mail-header-parse-content-type
+                               (message-fetch-field "Content-Type" t)))
+            charset (mail-content-type-get ct 'charset)
+            cte (message-fetch-field "Content-Transfer-Encoding")))
     (when (stringp cte) (setq cte (mail-header-strip cte)))
     (when (or (not ct) (equal (car ct) "text/plain"))
       (save-restriction
@@ -881,15 +799,30 @@ displayed."
 (defun mh-mime-display-alternative (handles)
   "Choose among the alternatives, HANDLES the part that will be displayed.
 If no part is preferred then all the parts are displayed."
-  (let ((preferred (mm-preferred-alternative handles)))
+  (let* ((preferred (mm-preferred-alternative handles))
+         (others (loop for x in handles unless (eq x preferred) collect x)))
     (cond ((and preferred (stringp (car preferred)))
-           (mh-mime-display-part preferred))
+           (mh-mime-display-part preferred)
+           (mh-mime-maybe-display-alternatives others))
           (preferred
            (save-restriction
              (narrow-to-region (point) (if (eobp) (point) (1+ (point))))
              (mh-mime-display-single preferred)
+             (mh-mime-maybe-display-alternatives others)
              (goto-char (point-max))))
           (t (mh-mime-display-mixed handles)))))
+
+(defun mh-mime-maybe-display-alternatives (alternatives)
+  "Show buttons for ALTERNATIVES.
+If `mh-mime-display-alternatives-flag' is non-nil then display buttons for
+alternative parts that are usually suppressed."
+  (when (and mh-display-buttons-for-alternatives-flag alternatives)
+    (insert "\n----------------------------------------------------\n")
+    (insert "Alternatives:\n")
+    (dolist (x alternatives)
+      (insert "\n")
+      (mh-insert-mime-button x (mh-mime-part-index x) nil))
+    (insert "\n----------------------------------------------------\n")))
 
 (defun mh-mime-display-mixed (handles)
   "Display the list of MIME parts, HANDLES recursively."
@@ -904,12 +837,6 @@ opened)."
       (setf (gethash handle (mh-mime-part-index-hash (mh-buffer-data)))
             (incf (mh-mime-parts-count (mh-buffer-data))))))
 
-;;; Avoid compiler warnings for XEmacs functions...
-(eval-when (compile)
-  (loop for function in '(glyph-width window-pixel-width
-                                      glyph-height window-pixel-height)
-        do (or (fboundp function) (defalias function 'ignore))))
-
 (defun mh-small-image-p (handle)
   "Decide whether HANDLE is a \"small\" image that can be displayed inline.
 This is only useful if a Content-Disposition header is not present."
@@ -922,27 +849,20 @@ This is only useful if a Content-Disposition header is not present."
                                         ; this only tells us if the image is
                                         ; something that emacs can display
          (let* ((image (mm-get-image handle)))
-           (cond ((fboundp 'glyph-width)
-                  ;; XEmacs -- totally untested, copied from gnus
-                  (and (mh-funcall-if-exists glyphp image)
-                       (< (glyph-width image)
-                          (or mh-max-inline-image-width
-                              (window-pixel-width)))
-                       (< (glyph-height image)
-                          (or mh-max-inline-image-height
-                              (window-pixel-height)))))
-                 ((fboundp 'image-size)
-                  ;; Emacs21 -- copied from gnus
-                  (let ((size (mh-funcall-if-exists image-size image)))
-                    (and size
-                         (< (cdr size)
-                            (or mh-max-inline-image-height
-                                (1- (window-height))))
-                         (< (car size)
-                            (or mh-max-inline-image-width (window-width))))))
-                 (t
-                  ;; Can't show image inline
-                  nil))))))
+           (or (mh-do-in-xemacs
+                 (and (mh-funcall-if-exists glyphp image)
+                      (< (glyph-width image)
+                         (or mh-max-inline-image-width (window-pixel-width)))
+                      (< (glyph-height image)
+                         (or mh-max-inline-image-height
+                             (window-pixel-height)))))
+               (mh-do-in-gnu-emacs
+                 (let ((size (mh-funcall-if-exists image-size image)))
+                   (and size
+                        (< (cdr size) (or mh-max-inline-image-height
+                                          (1- (window-height))))
+                        (< (car size) (or mh-max-inline-image-width
+                                          (window-width)))))))))))
 
 (defun mh-inline-vcard-p (handle)
   "Decide if HANDLE is a vcard that must be displayed inline."
@@ -1062,7 +982,7 @@ like \"K v\" which operate on individual MIME parts."
                 (progn
                   ;; Delete the button and displayed part (if any)
                   (let ((region (get-text-property point 'mh-region)))
-                    (when (and region (fboundp 'remove-images))
+                    (when region
                       (mh-funcall-if-exists
                        remove-images (car region) (cdr region)))
                     (mm-display-part handle)
@@ -1130,33 +1050,14 @@ If the MIME part is visible then it is removed. Otherwise the part is
 displayed. This function is called when the mouse is used to click the MIME
 button."
   (interactive "e")
-  (save-excursion
-    (let* ((event-window
-            (or (mh-funcall-if-exists posn-window (event-start event));GNU Emacs
-                (mh-funcall-if-exists event-window event)))            ;XEmacs
-           (event-position
-            (or (mh-funcall-if-exists posn-point (event-start event)) ;GNU Emacs
-                (mh-funcall-if-exists event-closest-point event)))    ;XEmacs
-           (original-window (selected-window))
-           (original-position (progn
-                                (set-buffer (window-buffer event-window))
-                                (set-marker (make-marker) (point))))
-           (folder mh-show-folder-buffer)
-           (mm-inline-media-tests mh-mm-inline-media-tests)
-           (data (get-text-property event-position 'mh-data))
-           (function (get-text-property event-position 'mh-callback))
-           (buffer-read-only nil))
-      (unwind-protect
-          (progn
-            (select-window event-window)
-            (flet ((mm-handle-set-external-undisplayer (handle func)
-                     (mh-handle-set-external-undisplayer folder handle func)))
-              (goto-char event-position)
-              (and function (funcall function data))))
-        (set-buffer-modified-p nil)
-        (goto-char original-position)
-        (set-marker original-position nil)
-        (select-window original-window)))))
+  (mh-do-at-event-location event
+    (let ((folder mh-show-folder-buffer)
+          (mm-inline-media-tests mh-mm-inline-media-tests)
+          (data (get-text-property (point) 'mh-data))
+          (function (get-text-property (point) 'mh-callback)))
+      (flet ((mm-handle-set-external-undisplayer (handle func)
+               (mh-handle-set-external-undisplayer folder handle func)))
+        (and function (funcall function data))))))
 
 ;;;###mh-autoload
 (defun mh-mime-save-part ()
@@ -1164,7 +1065,9 @@ button."
   (interactive)
   (let ((data (get-text-property (point) 'mh-data)))
     (when data
-      (let ((mm-default-directory mh-mime-save-parts-directory))
+      (let ((mm-default-directory
+             (file-name-as-directory (or mh-mime-save-parts-directory
+                                         default-directory))))
         (mh-mm-save-part data)
         (setq mh-mime-save-parts-directory mm-default-directory)))))
 

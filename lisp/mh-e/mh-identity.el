@@ -1,6 +1,6 @@
 ;;; mh-identity.el --- Multiple identify support for MH-E.
 
-;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -40,7 +40,8 @@
 ;;; Code:
 
 
-(require 'cl)
+(require 'mh-utils)
+(mh-require-cl)
 
 (eval-when (compile load eval)
   (defvar mh-comp-loaded nil)
@@ -63,6 +64,8 @@
        ;;  ["home" (mh-insert-identity "home")
        ;;   :style radio :active (not (equal mh-identity-local "home"))
        ;;   :selected (equal mh-identity-local "home")]
+       '(["Insert Auto Fields" (mh-insert-auto-fields) mh-auto-fields-list]
+         "--")
        (mapcar (function
                 (lambda (arg)
                   `[,arg  (mh-insert-identity ,arg) :style radio
