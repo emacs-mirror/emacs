@@ -1,3 +1,12 @@
+2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>
+
+	Autorevert: Add support to detect changed dired buffers.
+	* autorevert.el (auto-revert-active-p, auto-revert-list-diff)
+	(auto-revert-dired-file-list, auto-revert-dired-changed-p)
+	(auto-revert-handler, auto-revert-active-p): New functions.
+	(auto-revert-buffers): Moved revert logic to `auto-revert-handler'
+	and `auto-revert-active-p'.
+
 2004-02-16  Alfred M. Szmidt  <ams@kemisten.nu>  (tiny change)
 
 	* progmodes/compile.el (compilation-directory): New defvar.
