@@ -25,8 +25,6 @@
 !include ..\nt\makefile.def
 
 LOCAL_FLAGS	= -DWINDOWSNT -DDOS_NT -DSTDC_HEADERS=1 -DNO_LDAV=1 -DNO_ARCHIVES=1 -I..\nt\inc -I..\src
-OBJDIR	      	= obj
-BLD	      	= $(OBJDIR)\$(ARCH)
 
 LINK_FLAGS	= $(ARCH_LDFLAGS) -debug:PARTIAL -machine:$(ARCH) -subsystem:console -entry:mainCRTStartup setargv.obj
 
