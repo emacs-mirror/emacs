@@ -1150,7 +1150,7 @@ Olaf Sylvester wrote @file{bs.el}, a package for manipulating Emacs
 buffers.
 
 @item
-Tibor @v{S}imko and Milan Zamzal wrote @file{slovak.el}, support for
+Tibor @v{S}imko and Milan Zamazal wrote @file{slovak.el}, support for
 editing text in Slovak language.
 
 @item 
@@ -1342,7 +1342,7 @@ mode for editing Perl code.  Ilya Zakharevich also wrote @file{tmm.el},
 a mode for accessing the Emacs menu bar on a text-mode terminal.
 
 @item
-Milan Zamzal wrote @file{czech.el}, support for editing Czech text,
+Milan Zamazal wrote @file{czech.el}, support for editing Czech text,
 @file{glasses.el}, a package for easier reading of source code which
 uses illegible identifier names such as @code{cantReadThisVariable}, and
 @file{tildify.el}, commands for adding hard spaces to text, @TeX{}, and
@@ -1402,7 +1402,6 @@ VI text editor.
 Detlev Zundel wrote @file{re-builder.el}, a package for building regexps
 with visual feedback.
 
-@c utf-8.el author?
 @end itemize
 
 Others too numerous to mention have reported and fixed bugs, and added
