@@ -341,8 +341,7 @@ PARENT should be nil or another keymap.")
 
       if (CHAR_TABLE_P (XCONS (list)->car))
 	{
-	  Lisp_Object *indices
-	    = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+	  Lisp_Object indices[3];
 
 	  map_char_table (fix_submap_inheritance, Qnil, XCONS (list)->car,
 			  keymap, 0, indices);
@@ -707,8 +706,7 @@ is not copied.")
       elt = XCONS (tail)->car;
       if (CHAR_TABLE_P (elt))
 	{
-	  Lisp_Object *indices
-	    = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+	  Lisp_Object indices[3];
 
 	  elt = Fcopy_sequence (elt);
 	  XCONS (tail)->car = elt;
@@ -1434,8 +1432,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 
 	  if (CHAR_TABLE_P (elt))
 	    {
-	      Lisp_Object *indices
-		= (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+	      Lisp_Object indices[3];
 
 	      map_char_table (accessible_keymaps_char_table, Qnil,
 			      elt, Fcons (maps, Fcons (tail, thisseq)),
@@ -1985,9 +1982,9 @@ indirect definition itself.")
 	    }
 	  else if (CHAR_TABLE_P (elt))
 	    {
-	      Lisp_Object *indices
-		= (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
+	      Lisp_Object indices[3];
 	      Lisp_Object args;
+
 	      args = Fcons (Fcons (Fcons (definition, noindirect),
 				   Fcons (keymap, Qnil)),
 			    Fcons (Fcons (this, last),
