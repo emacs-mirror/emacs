@@ -4836,10 +4836,18 @@ update_frame_line (frame, vpos)
   /* If display line has unknown contents, write the whole line.  */
   if (must_write_whole_line_p)
     {
-      cursor_to (vpos, 0);
-      write_glyphs (nbody, nlen);
+      if (!must_write_spaces)
+	while (nlen > 0 && CHAR_GLYPH_SPACE_P (nbody[nlen - 1]))
+	  --nlen;
+
+      if (nlen)
+	{
+	  cursor_to (vpos, 0);
+	  write_glyphs (nbody, nlen);
+	}
+      
       cursor_to (vpos, nlen);
-      clear_end_of_line (-1);
+      clear_end_of_line (olen);
       make_current (desired_matrix, current_matrix, vpos);
       return;
     }
