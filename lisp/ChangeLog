@@ -1,3 +1,9 @@
+2004-10-12  Simon Josefsson  <jas@extundo.com>
+
+	* net/tls.el (tls-certtool-program): New variable.
+	(tls-certificate-information): New function, based on
+	ssl-certificate-information.
+
 2004-10-12  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (coding-system-equal): Moved from
