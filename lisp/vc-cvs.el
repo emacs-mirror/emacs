@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.3 2000/09/07 20:01:53 fx Exp $
+;; $Id: vc-cvs.el,v 1.4 2000/09/09 00:48:39 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -550,6 +550,10 @@ Inappropriate for CVS"
   "Return non-nil if FILE could be registered in CVS.
 This is only possible if CVS is responsible for FILE's directory."
   (vc-cvs-responsible-p file))
+
+(defun vc-cvs-make-version-backups (file)
+  "Return non-nil if version backups should be made for FILE."
+  (vc-cvs-stay-local-p file))
 
 (defun vc-cvs-register (file &optional rev comment)
   "Register FILE into the CVS version-control system.
