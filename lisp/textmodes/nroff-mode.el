@@ -40,29 +40,33 @@
   :group 'wp
   :prefix "nroff-")
 
-(defvar nroff-mode-abbrev-table nil
-  "Abbrev table used while in nroff mode.")
-(define-abbrev-table 'nroff-mode-abbrev-table ())
-
 (defcustom nroff-electric-mode nil
   "*Non-nil means automatically closing requests when you insert an open."
   :group 'nroff
   :type 'boolean)
 
-(defvar nroff-mode-map nil
-     "Major mode keymap for nroff mode.")
-(if (not nroff-mode-map)
-    (progn
-      (setq nroff-mode-map (make-sparse-keymap))
-      (define-key nroff-mode-map "\t"  'tab-to-tab-stop)
-      (define-key nroff-mode-map "\es" 'center-line)
-      (define-key nroff-mode-map "\e?" 'count-text-lines)
-      (define-key nroff-mode-map "\n"  'electric-nroff-newline)
-      (define-key nroff-mode-map "\en" 'forward-text-line)
-      (define-key nroff-mode-map "\ep" 'backward-text-line)))
+(defvar nroff-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\t"  'tab-to-tab-stop)
+    (define-key map "\es" 'center-line)
+    (define-key map "\e?" 'count-text-lines)
+    (define-key map "\n"  'electric-nroff-newline)
+    (define-key map "\en" 'forward-text-line)
+    (define-key map "\ep" 'backward-text-line)
+    map)
+  "Major mode keymap for `nroff-mode'.")
 
-(defvar nroff-mode-syntax-table nil
-  "Syntax table used while in nroff mode.")
+(defvar nroff-mode-syntax-table
+  (let ((st (copy-syntax-table text-mode-syntax-table)))
+    ;; " isn't given string quote syntax in text-mode but it
+    ;; (arguably) should be for use round nroff arguments (with ` and
+    ;; ' used otherwise).
+    (modify-syntax-entry ?\" "\"  2" st)
+    ;; Comments are delimited by \" and newline.
+    (modify-syntax-entry ?\\ "\\  1" st)
+    (modify-syntax-entry ?\n ">  1" st)
+    st)
+  "Syntax table used while in `nroff-mode'.")
 
 (defcustom nroff-font-lock-keywords
   (list
@@ -85,63 +89,36 @@
                       ) "\\|")
          "\\)")
    )
-  "Font-lock highlighting control in nroff-mode."
+  "Font-lock highlighting control in `nroff-mode'."
   :group 'nroff
   :type '(repeat regexp))
 
 ;;;###autoload
-(defun nroff-mode ()
+(define-derived-mode nroff-mode text-mode "Nroff"
   "Major mode for editing text intended for nroff to format.
 \\{nroff-mode-map}
 Turning on Nroff mode runs `text-mode-hook', then `nroff-mode-hook'.
 Also, try `nroff-electric-mode', for automatically inserting
 closing requests for requests that are used in matched pairs."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map nroff-mode-map)
-  (setq mode-name "Nroff")
-  (setq major-mode 'nroff-mode)
-  (if nroff-mode-syntax-table
-      ()
-    (setq nroff-mode-syntax-table (copy-syntax-table text-mode-syntax-table))
-    ;; " isn't given string quote syntax in text-mode but it
-    ;; (arguably) should be for use round nroff arguments (with ` and
-    ;; ' used otherwise).
-    (modify-syntax-entry ?\" "\"  2" nroff-mode-syntax-table)
-    ;; Comments are delimited by \" and newline.
-    (modify-syntax-entry ?\\ "\\  1" nroff-mode-syntax-table)
-    (modify-syntax-entry ?\n ">  1" nroff-mode-syntax-table))
-  (set-syntax-table nroff-mode-syntax-table)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-	;; SYNTAX-BEGIN is set to backward-paragraph to avoid slow-down
-	;; near the end of large buffers due to searching to buffer's
-	;; beginning.
-	'(nroff-font-lock-keywords nil t nil backward-paragraph))
-  (setq local-abbrev-table nroff-mode-abbrev-table)
-  (make-local-variable 'nroff-electric-mode)
-  (setq nroff-electric-mode nil)
-  (make-local-variable 'outline-regexp)
-  (setq outline-regexp "\\.H[ ]+[1-7]+ ")
-  (make-local-variable 'outline-level)
-  (setq outline-level 'nroff-outline-level)
+  (set (make-local-variable 'font-lock-defaults)
+       ;; SYNTAX-BEGIN is set to backward-paragraph to avoid slow-down
+       ;; near the end of large buffers due to searching to buffer's
+       ;; beginning.
+       '(nroff-font-lock-keywords nil t nil backward-paragraph))
+  (set (make-local-variable 'nroff-electric-mode) nil)
+  (set (make-local-variable 'outline-regexp) "\\.H[ ]+[1-7]+ ")
+  (set (make-local-variable 'outline-level) 'nroff-outline-level)
   ;; now define a bunch of variables for use by commands in this mode
-  (make-local-variable 'page-delimiter)
-  (setq page-delimiter "^\\.\\(bp\\|SK\\|OP\\)")
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "[.']\\|" paragraph-start))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate (concat "[.']\\|" paragraph-separate))
+  (set (make-local-variable 'page-delimiter) "^\\.\\(bp\\|SK\\|OP\\)")
+  (set (make-local-variable 'paragraph-start)
+       (concat "[.']\\|" paragraph-start))
+  (set (make-local-variable 'paragraph-separate)
+       (concat "[.']\\|" paragraph-separate))
   ;; comment syntax added by mit-erl!gildea 18 Apr 86
-  (make-local-variable 'comment-start)
-  (setq comment-start "\\\" ")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "\\\\\"[ \t]*")
-  (make-local-variable 'comment-column)
-  (setq comment-column 24)
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'nroff-comment-indent)
-  (run-hooks 'text-mode-hook 'nroff-mode-hook))
+  (set (make-local-variable 'comment-start) "\\\" ")
+  (set (make-local-variable 'comment-start-skip) "\\\\\"[ \t]*")
+  (set (make-local-variable 'comment-column) 24)
+  (set (make-local-variable 'comment-indent-function) 'nroff-comment-indent))
 
 (defun nroff-outline-level ()
   (save-excursion
