@@ -136,6 +136,14 @@ struct frame_glyphs
     /* Largest font ascent on this line.  */
     short *max_ascent;
 #endif	/* HAVE_X_WINDOWS */
+
+    /* A vector indexed by vertical position.
+       Each element is a vector indexed by horizontal position
+       giving, for each glyph, the buffer position it corresponds to.  */
+    int **charstarts;
+
+    /* This holds all the space in the subvectors of the charstarts field.  */
+    int *total_charstarts;
   };
 
 extern void get_display_line ();
