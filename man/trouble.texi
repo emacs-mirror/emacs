@@ -160,7 +160,7 @@ back to top level.  @xref{Recursive Edit}.
 @subsection Garbage on the Screen
 
   If the data on the screen looks wrong, the first thing to do is see
-whether the text is really wrong.  Type @kbd{C-l}, to redisplay the
+whether the text is really wrong.  Type @kbd{C-l} to redisplay the
 entire screen.  If the screen appears correct after this, the problem
 was entirely in the previous screen update.  (Otherwise, see @ref{Text
 Garbled}.)
