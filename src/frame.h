@@ -163,6 +163,8 @@ struct frame
   /* This is handy for undrawing the cursor, because current_glyphs is
      not always accurate when in do_scrolling.  */
   GLYPH phys_cursor_glyph;
+  /* Nonzero means the cursor is displayed.  */
+  int phys_cursor_on;
 
   /* Size of this frame, in units of characters.  */
   EMACS_INT height;
