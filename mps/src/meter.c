@@ -1,6 +1,6 @@
 /* impl.c.meter: METERS
  *
- * $HopeName: MMsrc!meter.c(trunk.6) $
+ * $HopeName: MMsrc!meter.c(trunk.7) $
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * TRANSGRESSIONS
@@ -57,37 +57,32 @@ void MeterAccumulate(Meter meter, Size amount)
 }
 
 
-/* MeterWrite -- describe method for meters
- *
- * When meters aren't being used, this doesn't output anything, but it
- * still has to be called so that it can return ResOK, and the callers
- * don't have to know about STATISTIC.
- */
+/* MeterWrite -- describe method for meters */
 
 Res MeterWrite(Meter meter, mps_lib_FILE *stream)
 {
   Res res = ResOK;
 
-  STATISTIC(res = WriteF(stream,
-                         "meter $S {", meter->name,
-                         "count: $U", meter->count,
-                         NULL));
+  res = WriteF(stream,
+               "meter $S {", meter->name,
+               "count: $U", meter->count,
+               NULL);
   if (res != ResOK)
     return res;
   if (meter->count > 0) {
     double mean = meter->total / (double)meter->count;
     
-    STATISTIC(res = WriteF(stream,
-                           ", total: $D", meter->total,
-                           ", max: $U", meter->max,
-                           ", min: $U", meter->min,
-                           ", mean: $D", mean,
-                           ", mean^2: $D", meter->meanSquared,
-                           NULL));
+    res = WriteF(stream,
+                 ", total: $D", meter->total,
+                 ", max: $U", meter->max,
+                 ", min: $U", meter->min,
+                 ", mean: $D", mean,
+                 ", mean^2: $D", meter->meanSquared,
+                 NULL);
     if (res != ResOK)
       return res;
   }
-  STATISTIC(res = WriteF(stream, "}\n", NULL));
+  res = WriteF(stream, "}\n", NULL);
 
   return res;
 }
