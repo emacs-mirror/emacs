@@ -224,6 +224,8 @@ value of texinfo-mode-hook."
   (set-syntax-table texinfo-mode-syntax-table)
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
+  (make-local-variable 'page-delimiter)
+  (setq page-delimiter texinfo-chapter-level-regexp)
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate (concat "^\b\\|^@[a-zA-Z]*[ \n]\\|" paragraph-separate))
   (make-local-variable 'paragraph-start)
