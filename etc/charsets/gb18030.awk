@@ -69,8 +69,10 @@ function printline(from, to) {
 
 END {
   lastgb = 0;
-  surrogate_min = decode_hex("D800")
-  surrogate_max = decode_hex("DFFF")
+  surrogate_min = decode_hex("D800");
+  surrogate_max = decode_hex("DFFF");
+  lastgb = unitable[128];
+  gbtable[lastgb] = 128;
   for (i = 129; i < 65536; i++)
     {
       if (unitable[i] == 0 && (i < surrogate_min || i > surrogate_max))
@@ -86,7 +88,6 @@ END {
 	}
     }
 
-  print "You blew it again!" > "/dev/stderr"
   fromgb = lastgb = unitable[128];
   for (i = 129; i < 65536; i++)
     {
