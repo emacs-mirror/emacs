@@ -29,6 +29,9 @@ Boston, MA 02111-1307, USA.
 #include "w32heap.h"
 #include "lisp.h"  /* for VALMASK */
 
+#undef RVA_TO_PTR
+#define RVA_TO_PTR(rva) ((DWORD)(rva) + (DWORD)GetModuleHandle (NULL))
+
 /* This gives us the page size and the size of the allocation unit on NT.  */
 SYSTEM_INFO sysinfo_cache;
 unsigned long syspage_mask = 0;
@@ -81,23 +84,14 @@ getpagesize (void)
   return sysinfo_cache.dwPageSize;
 }
 
-/* Round ADDRESS up to be aligned with ALIGN.  */
-unsigned char *
-round_to_next (unsigned char *address, unsigned long align)
-{
-  unsigned long tmp;
-
-  tmp = (unsigned long) address;
-  tmp = (tmp + align - 1) / align;
-
-  return (unsigned char *) (tmp * align);
-}
+/* Info for managing our preload heap, which is essentially a fixed size
+   data area in the executable.  */
+PIMAGE_SECTION_HEADER preload_heap_section;
 
 /* Info for keeping track of our heap.  */
 unsigned char *data_region_base = NULL;
 unsigned char *data_region_end = NULL;
 unsigned char *real_data_region_end = NULL;
-unsigned long  data_region_size = 0;
 unsigned long  reserved_heap_size = 0;
 
 /* The start of the data segment.  */
@@ -117,49 +111,17 @@ get_data_end (void)
 static char *
 allocate_heap (void)
 {
-  /* The base address for our GNU malloc heap is chosen in conjuction
-     with the link settings for temacs.exe which control the stack size,
-     the initial default process heap size and the executable image base
-     address.  The link settings and the malloc heap base below must all
-     correspond; the relationship between these values depends on how NT
-     and Windows 95 arrange the virtual address space for a process (and on
-     the size of the code and data segments in temacs.exe).
-
-     The most important thing is to make base address for the executable
-     image high enough to leave enough room between it and the 4MB floor
-     of the process address space on Windows 95 for the primary thread stack,
-     the process default heap, and other assorted odds and ends
-     (eg. environment strings, private system dll memory etc) that are
-     allocated before temacs has a chance to grab its malloc arena.  The
-     malloc heap base can then be set several MB higher than the
-     executable image base, leaving enough room for the code and data
-     segments.
-
-     Because some parts of Emacs can use rather a lot of stack space
-     (for instance, the regular expression routines can potentially
-     allocate several MB of stack space) we allow 8MB for the stack.
-
-     Allowing 1MB for the default process heap, and 1MB for odds and
-     ends, we can base the executable at 16MB and still have a generous
-     safety margin.  At the moment, the executable has about 810KB of
-     code (for x86) and about 550KB of data - on RISC platforms the code
-     size could be roughly double, so if we allow 4MB for the executable
-     we will have plenty of room for expansion.
-
-     Thus we would like to set the malloc heap base to 20MB.  However,
-     Windows 95 refuses to allocate the heap starting at this address, so we
-     set the base to 27MB to make it happy.  Since Emacs now leaves
-     28 bits available for pointers, this lets us use the remainder of
-     the region below the 256MB line for our malloc arena - 229MB is
-     still a pretty decent arena to play in!  */
-
-  unsigned long base = 0x01B00000;   /*  27MB */
+  /* Try to get as much as possible of the address range from the end of
+     the preload heap section up to the usable address limit.  Since GNU
+     malloc can handle gaps in the memory it gets from sbrk, we can
+     simply set the sbrk pointer to the base of the new heap region.  */
+  unsigned long base =
+    ROUND_UP ((RVA_TO_PTR (preload_heap_section->VirtualAddress)
+	       + preload_heap_section->Misc.VirtualSize),
+	      get_allocation_unit ());
   unsigned long end  = 1 << VALBITS; /* 256MB */
   void *ptr = NULL;
 
-#define NTHEAP_PROBE_BASE 1
-#if NTHEAP_PROBE_BASE
-  /* Try various addresses looking for one the kernel will let us have.  */
   while (!ptr && (base < end))
     {
       reserved_heap_size = end - base;
@@ -169,13 +131,6 @@ allocate_heap (void)
 			  PAGE_NOACCESS);
       base += 0x00100000;  /* 1MB increment */
     }
-#else
-  reserved_heap_size = end - base;
-  ptr = VirtualAlloc ((void *) base,
-		      get_reserved_heap_size (),
-		      MEM_RESERVE,
-		      PAGE_NOACCESS);
-#endif
 
   return ptr;
 }
@@ -187,26 +142,6 @@ sbrk (unsigned long increment)
 {
   void *result;
   long size = (long) increment;
-  
-  /* Allocate our heap if we haven't done so already.  */
-  if (!data_region_base) 
-    {
-      data_region_base = allocate_heap ();
-      if (!data_region_base)
-	return NULL;
-
-      /* Ensure that the addresses don't use the upper tag bits since
-	 the Lisp type goes there.  */
-      if (((unsigned long) data_region_base & ~VALMASK) != 0) 
-	{
-	  printf ("Error: The heap was allocated in upper memory.\n");
-	  exit (1);
-	}
-
-      data_region_end = data_region_base;
-      real_data_region_end = data_region_end;
-      data_region_size = get_reserved_heap_size ();
-    }
   
   result = data_region_end;
   
@@ -229,10 +164,11 @@ sbrk (unsigned long increment)
 	((long) (new_data_region_end + syspage_mask) & ~syspage_mask);
       new_size = real_data_region_end - new_data_region_end;
       real_data_region_end = new_data_region_end;
-      if (new_size > 0) 
+      if (new_size > 0)
 	{
 	  /* Decommit size bytes from the end of the heap.  */
-	  if (!VirtualFree (real_data_region_end, new_size, MEM_DECOMMIT))
+	  if (using_dynamic_heap
+	      && !VirtualFree (real_data_region_end, new_size, MEM_DECOMMIT))
 	    return NULL;
  	}
 
@@ -247,8 +183,9 @@ sbrk (unsigned long increment)
 	return NULL;
 
       /* Commit more of our heap. */
-      if (VirtualAlloc (data_region_end, size, MEM_COMMIT,
-			PAGE_READWRITE) == NULL)
+      if (using_dynamic_heap
+	  && VirtualAlloc (data_region_end, size, MEM_COMMIT,
+			   PAGE_READWRITE) == NULL)
 	return NULL;
       data_region_end += size;
 
@@ -261,28 +198,56 @@ sbrk (unsigned long increment)
   return result;
 }
 
-/* Recreate the heap from the data that was dumped to the executable.
-   EXECUTABLE_PATH tells us where to find the executable.  */
+/* Initialize the internal heap variables used by sbrk.  When running in
+   preload phase (ie. in the undumped executable), we rely entirely on a
+   fixed size heap section included in the .exe itself; this is
+   preserved during dumping, and truncated to the size actually used.
+
+   When running in the dumped executable, we reserve as much as possible
+   of the address range that is addressable by Lisp object pointers, to
+   supplement what is left of the preload heap.  Although we cannot rely
+   on the dynamically allocated arena being contiguous with the static
+   heap area, it is not a problem because sbrk can pretend that the gap
+   was allocated by something else; GNU malloc detects when there is a
+   jump in the sbrk values, and starts a new heap block.  */
 void
-recreate_heap (char *executable_path)
+init_heap ()
 {
-  unsigned char *tmp;
+  PIMAGE_DOS_HEADER dos_header;
+  PIMAGE_NT_HEADERS nt_header;
 
-  /* First reserve the upper part of our heap.  (We reserve first
-     because there have been problems in the past where doing the
-     mapping first has loaded DLLs into the VA space of our heap.)  */
-  tmp = VirtualAlloc ((void *) get_heap_end (),
-		      get_reserved_heap_size () - get_committed_heap_size (),
-		      MEM_RESERVE,
-		      PAGE_NOACCESS);
-  if (!tmp)
-    w32_fatal_reload_error ("Reserving upper heap address space.");
+  dos_header = (PIMAGE_DOS_HEADER) RVA_TO_PTR (0);
+  nt_header = (PIMAGE_NT_HEADERS) (((unsigned long) dos_header) + 
+				   dos_header->e_lfanew);
+  preload_heap_section = find_section ("EMHEAP", nt_header);
 
-  /* We read in the data for the .bss section from the executable
-     first and map in the heap from the executable second to prevent
-     any funny interactions between file I/O and file mapping.  */
-  read_in_bss (executable_path);
-  map_in_heap (executable_path);
+  if (using_dynamic_heap)
+    {
+      data_region_base = allocate_heap ();
+      if (!data_region_base)
+	{
+	  printf ("Error: Could not reserve dynamic heap area.\n");
+	  exit (1);
+	}
+
+      /* Ensure that the addresses don't use the upper tag bits since
+	 the Lisp type goes there.  */
+      if (((unsigned long) data_region_base & ~VALMASK) != 0) 
+	{
+	  printf ("Error: The heap was allocated in upper memory.\n");
+	  exit (1);
+	}
+
+      data_region_end = data_region_base;
+      real_data_region_end = data_region_end;
+    }
+  else
+    {
+      data_region_base = RVA_TO_PTR (preload_heap_section->VirtualAddress);
+      data_region_end = data_region_base;
+      real_data_region_end = data_region_end;
+      reserved_heap_size = preload_heap_section->Misc.VirtualSize;
+    }
 
   /* Update system version information to match current system.  */
   cache_system_info ();
@@ -295,7 +260,7 @@ round_heap (unsigned long align)
   unsigned long needs_to_be;
   unsigned long need_to_alloc;
   
-  needs_to_be = (unsigned long) round_to_next (get_heap_end (), align);
+  needs_to_be = (unsigned long) ROUND_UP (get_heap_end (), align);
   need_to_alloc = needs_to_be - (unsigned long) get_heap_end ();
   
   if (need_to_alloc) 
