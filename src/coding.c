@@ -811,6 +811,10 @@ decode_composition_emacs_mule (coding, src, src_end,
 	return 0;
       for (ncomponent = 0; src < src_base + data_len; ncomponent++)
 	{
+	  /* If it is longer than this, it can't be valid.  */
+	  if (ncomponent >= COMPOSITION_DATA_MAX_BUNCH_LENGTH)
+	    return 0;
+
 	  if (ncomponent % 2 && with_rule)
 	    {
 	      ONE_MORE_BYTE (gref);

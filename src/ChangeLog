@@ -1,3 +1,8 @@
+2002-02-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* coding.c (decode_composition_emacs_mule): Give up if NCOMPONENT
+	gets too large to index `component'.
+
 2002-01-28  Richard M. Stallman  <rms@gnu.org>
 
 	* buffer.c (syms_of_buffer): Doc fixes for scroll-...-aggressively.
