@@ -762,7 +762,7 @@ Various
 * Compilation::                How to speed Gnus up.
 * Mode Lines::                 Displaying information in the mode lines.
 * Highlighting and Menus::     Making buffers look all nice and cozy.
-* Buttons::                    Get tendonitis in ten easy steps!
+* Buttons::                    Get tendinitis in ten easy steps!
 * Daemons::                    Gnus can do things behind your back.
 * NoCeM::                      How to avoid spam and other fatty foods.
 * Undo::                       Some actions can be undone.
@@ -1057,7 +1057,7 @@ conjunction with each other, you have to send $1 per usage instance to
 me.  Usage of the patent (@dfn{Master/Slave Relationships In Computer
 Applications}) will be much more expensive, of course.)
 
-Anyways, you start one Gnus up the normal way with @kbd{M-x gnus} (or
+Anyway, you start one Gnus up the normal way with @kbd{M-x gnus} (or
 however you do it).  Each subsequent slave Gnusae should be started with
 @kbd{M-x gnus-slave}.  These slaves won't save normal @file{.newsrc}
 files, but instead save @dfn{slave files} that contain information only
@@ -4560,9 +4560,9 @@ Forward the current article to some other person
 (@code{gnus-summary-mail-forward}).  If no prefix is given, the message
 is forwarded according to the value of (@code{message-forward-as-mime})
 and (@code{message-forward-show-mml}); if the prefix is 1, decode the
-message and forward directly inline; if the prefix is 2, foward message
+message and forward directly inline; if the prefix is 2, forward message
 as an rfc822 MIME section; if the prefix is 3, decode message and
-forward as an rfc822 MIME section; if the prefix is 4, foward message
+forward as an rfc822 MIME section; if the prefix is 4, forward message
 directly inline; otherwise, the message is forwarded as no prefix given
 but use the flipped value of (@code{message-forward-as-mime}).  By
 default, the message is decoded and forwarded as an rfc822 MIME section.
@@ -4694,9 +4694,9 @@ Forward the current article to a newsgroup
  If no prefix is given, the message is forwarded according to the value
 of (@code{message-forward-as-mime}) and
 (@code{message-forward-show-mml}); if the prefix is 1, decode the
-message and forward directly inline; if the prefix is 2, foward message
+message and forward directly inline; if the prefix is 2, forward message
 as an rfc822 MIME section; if the prefix is 3, decode message and
-forward as an rfc822 MIME section; if the prefix is 4, foward message
+forward as an rfc822 MIME section; if the prefix is 4, forward message
 directly inline; otherwise, the message is forwarded as no prefix given
 but use the flipped value of (@code{message-forward-as-mime}).  By
 default, the message is decoded and forwarded as an rfc822 MIME section.
@@ -5147,7 +5147,7 @@ even though I haven't heard of anybody wanting it to go to the
 previous (unread) article, I'm sure there are people that want that as
 well.
 
-Multiply these five behaviours with five different marking commands, and
+Multiply these five behaviours by five different marking commands, and
 you get a potentially complex set of variable to control what each
 command should do.
 
@@ -5432,7 +5432,7 @@ hierarchical fashion.
 Threading is done by looking at the @code{References} headers of the
 articles.  In a perfect world, this would be enough to build pretty
 trees, but unfortunately, the @code{References} header is often broken
-or simply missing.  Weird news propagation excarcerbates the problem,
+or simply missing.  Weird news propagation exacerbates the problem,
 so one has to employ other heuristics to get pleasing results.  A
 plethora of approaches exists, as detailed in horrible detail in
 @pxref{Customizing Threading}.
@@ -6132,7 +6132,7 @@ Used carefully, though, it could be just an easier way to save articles.
 To turn caching on, set @code{gnus-use-cache} to @code{t}.  By default,
 all articles ticked or marked as dormant will then be copied
 over to your local cache (@code{gnus-cache-directory}).  Whether this
-cache is flat or hierarchal is controlled by the
+cache is flat or hierarchical is controlled by the
 @code{gnus-use-long-file-name} variable, as usual.
 
 When re-selecting a ticked or dormant article, it will be fetched from the
@@ -7209,8 +7209,8 @@ Hide @sc{pem} (privacy enhanced messages) cruft
 @findex gnus-article-strip-banner
 @cindex banner
 @cindex OneList
-@cindex stripping advertisments
-@cindex advertisments
+@cindex stripping advertisements
+@cindex advertisements
 Strip the banner specified by the @code{banner} group parameter
 (@code{gnus-article-strip-banner}).  This is mainly used to hide those
 annoying banners and/or signatures that some mailing lists and moderated
@@ -7933,7 +7933,7 @@ variable, which is an alist of regexps (to match group names) and
 default charsets to be used when reading these groups.
 
 In addition, some people do use soi-disant @sc{mime}-aware agents that
-aren't.  These blitely mark messages as being in @code{iso-8859-1} even
+aren't.  These blithely mark messages as being in @code{iso-8859-1} even
 if they really are in @code{koi-8}.  To help here, the
 @code{gnus-newsgroup-ignored-charsets} variable can be used.  The
 charsets that are listed here will be ignored.  The variable can be set
@@ -9686,7 +9686,7 @@ use to store sent messages.  The default is:
 @end lisp
 
 You can, however, use any mail select method (@code{nnml},
-@code{nnmbox}, etc.).  @code{nnfolder} is a quite likeable select method
+@code{nnmbox}, etc.).  @code{nnfolder} is a quite likable select method
 for doing this sort of thing, though.  If you don't like the default
 directory chosen, you could say something like:
 
@@ -10054,7 +10054,7 @@ These select method specifications can sometimes become quite
 complicated---say, for instance, that you want to read from the
 @sc{nntp} server @samp{news.funet.fi} on port number 13, which
 hangs if queried for @sc{nov} headers and has a buggy select.  Ahem.
-Anyways, if you had to specify that for each group that used this
+Anyway, if you had to specify that for each group that used this
 server, that would be too much work, so Gnus offers a way of naming
 select methods, which is what you do in the server buffer.
 
@@ -10173,7 +10173,7 @@ servers.
 @findex gnus-server-regenerate-server
 Request that the server regenerate all its data structures
 (@code{gnus-server-regenerate-server}).  This can be useful if you have
-a mail backend that has gotten out of synch.
+a mail backend that has gotten out of sync.
 
 @end table
 
@@ -10666,7 +10666,7 @@ This works for Solaris @code{telnet}, for instance.
 Opens a connection to a server over a @dfn{secure} channel.  To use this
 you must have SSLay installed
 (@uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL}, and you also need
-@file{ssl.el} (from the W3 distributeion, for instance).  You then
+@file{ssl.el} (from the W3 distribution, for instance).  You then
 define a server as follows:
 
 @lisp
@@ -10745,7 +10745,7 @@ server closes connection.
 @item nntp-record-commands
 @vindex nntp-record-commands
 If non-@code{nil}, @code{nntp} will log all commands it sends to the
-@sc{nntp} server (along with a timestep) in the @samp{*nntp-log*}
+@sc{nntp} server (along with a timestamp) in the @samp{*nntp-log*}
 buffer.  This is useful if you are debugging a Gnus/@sc{nntp} connection
 that doesn't seem to work.
 
@@ -10762,7 +10762,7 @@ and might be useful, for instance, to speed up reading groups that
 contain very big articles---@samp{alt.binaries.pictures.furniture}, for
 instance.
 
-Anyways, you just specify @code{nnspool} as the method and @code{""} (or
+Anyway, you just specify @code{nnspool} as the method and @code{""} (or
 anything else) as the address.
 
 If you have access to a local spool, you should probably use that as the
@@ -13840,7 +13840,7 @@ doesn't exist actually does exist.  More specifically, @sc{imap} has
 this concept of marking articles @code{Deleted} which doesn't actually
 delete them, and this (marking them @code{Deleted}, that is) is what
 nnimap does when you delete a article in Gnus (with @kbd{G DEL} or
-similair).
+similar).
 
 Since the articles aren't really removed when we mark them with the
 @code{Deleted} flag we'll need a way to actually delete them.  Feel like
@@ -13855,7 +13855,7 @@ The possible options are:
 @table @code
 
 @item always
-The default behaviour, delete all articles marked as "Deleted" when
+The default behavior, delete all articles marked as "Deleted" when
 closing a mailbox.
 @item never
 Never actually delete articles.  Currently there is no way of showing
@@ -13980,8 +13980,8 @@ end.  The first rule to make a match will "win", unless you have
 crossposting enabled.  In that case, all matching rules will "win".
 
 This variable can also have a function as its value, the function will
-be called with the headers narrowed and should return a group where it
-thinks the article should be splitted to.  See @code{nnimap-split-fancy}.
+be called with the headers narrowed and should return a group to where
+it thinks the article should be split.  See @code{nnimap-split-fancy}.
 
 The splitting code tries to create mailboxes if it need too.
 
@@ -14012,7 +14012,7 @@ Nnmail equivalent: @code{nnmail-split-methods}.
 @vindex nnimap-split-predicate
 
 Mail matching this predicate in @code{nnimap-split-inbox} will be
-splitted, it is a string and the default is @samp{UNSEEN UNDELETED}.
+split; it is a string and the default is @samp{UNSEEN UNDELETED}.
 
 This might be useful if you use another @sc{imap} client to read mail in
 your inbox but would like Gnus to split all articles in the inbox
@@ -14522,7 +14522,7 @@ and simply specify your predicate as:
 If/when using something like the above, be aware that there are many
 misconfigured systems/mailers out there and so an article's date is not
 always a reliable indication of when it was posted.  Hell, some people
-just don't give a damm.
+just don't give a damn.
 
 The above predicates apply to *all* the groups which belong to the
 category.  However, if you wish to have a specific predicate for an
@@ -14633,7 +14633,7 @@ about parenthesis?
 @item
 Use @code{normal} score files
 
-If you dont want to maintain two sets of scoring rules for a group, and
+If you don't want to maintain two sets of scoring rules for a group, and
 your desired @code{downloading} criteria for a group are the same as your
 @code{reading} criteria then you can tell the agent to refer to your
 @code{normal} score files when deciding what to download.
@@ -14921,7 +14921,7 @@ disconnected, and synchronize these flags when you plug back in.
 
 Gnus keep track of flag changes when reading nnimap groups under the
 Agent by default.  When you plug back in, by default Gnus will check if
-you have any changed any flags and ask if you wish to synchronize theese
+you have any changed any flags and ask if you wish to synchronize these
 with the server.  This behaviour is customizable with
 @code{gnus-agent-synchronize-flags}.
 
@@ -17694,7 +17694,7 @@ machine, and every user was running Simula compilers.  Bah!
 Right.
 
 @vindex gnus-carpal
-Well, you can make Gnus display bufferfuls of buttons you can click to
+Well, you can make Gnus display buffers full of buttons you can click to
 do anything by setting @code{gnus-carpal} to @code{t}.  Pretty simple,
 really.  Tell the chiropractor I sent you.
 
@@ -18324,7 +18324,7 @@ Whether to move point to first empty line when displaying picons.  This
 has only an effect if `gnus-picons-display-where' has value `article'.
 
 If @code{nil}, display the picons in the @code{From} and
-@code{Newsgroups} lines.  This is the defailt.
+@code{Newsgroups} lines.  This is the default.
 
 @item gnus-picons-clear-cache-on-shutdown
 @vindex gnus-picons-clear-cache-on-shutdown
@@ -18536,7 +18536,7 @@ First, pick one (1) valid mail address that you can be reached at, and
 put it in your @code{From} header of all your news articles.  (I've
 chosen @samp{larsi@@trym.ifi.uio.no}, but for many addresses on the form
 @samp{larsi+usenet@@ifi.uio.no} will be a better choice.  Ask your
-sysadm whether your sendmail installation accepts keywords in the local
+sysadmin whether your sendmail installation accepts keywords in the local
 part of the mail address.)
 
 @lisp
@@ -19043,7 +19043,7 @@ importantly, talking about new experimental features that have been
 introduced may confuse casual users.  New features are frequently
 introduced, fiddled with, and judged to be found wanting, and then
 either discarded or totally rewritten.  People reading the mailing list
-usually keep up with these rapid changes, whille people on the newsgroup
+usually keep up with these rapid changes, while people on the newsgroup
 can't be assumed to do so.
 
 
