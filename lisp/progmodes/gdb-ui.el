@@ -33,24 +33,28 @@
 ;; Emacs 21 such as the fringe/display margin for breakpoints, and the toolbar
 ;; (see the GDB Graphical Interface section in the Emacs info manual).
 
-;; Start the debugger with M-x gdba.
+;; By default, M-x gdb will start the debugger. However, if you have customised
+;; gud-gdb-command-name, then start it with M-x gdba.
 
-;; This file has evolved from gdba.el from GDB 5.0 written by Tom Lord and Jim
-;; Kingdon and uses GDB's annotation interface.  You don't need to know about
-;; annotations to use this mode as a debugger, but if you are interested
-;; developing the mode itself, then see the Annotations section in the GDB
-;; info manual.
+;; This file has evolved from gdba.el that was included with GDB 5.0 and
+;; written by Tom Lord and Jim Kingdon.  It uses GDB's annotation interface.
+;; You don't need to know about annotations to use this mode as a debugger,
+;; but if you are interested developing the mode itself, then see the
+;; Annotations section in the GDB info manual.
 ;;
 ;; GDB developers plan to make the annotation interface obsolete.  A new
 ;; interface called GDB/MI (machine interface) has been designed to replace
 ;; it.  Some GDB/MI commands are used in this file through the CLI command
-;; 'interpreter mi <mi-command>'.  A file called gdb-mi.el is included in the
-;; GDB repository for future releases (6.2 onwards) that uses GDB/MI as the
-;; primary interface to GDB.  It is still under development and is part of a
-;; process to migrate Emacs from annotations to GDB/MI.
+;; 'interpreter mi <mi-command>'.  A file called gdb-mi.el is included with
+;; GDB (6.2 onwards) that uses GDB/MI as the primary interface to GDB.  It is
+;; still under development and is part of a process to migrate Emacs from
+;; annotations to GDB/MI.
 ;;
 ;; Known Bugs:
 ;;
+;; TODO:
+;; Use tree-widget.el instead of the speedbar for watch-expressions?
+;; Mark breakpoint locations on scroll-bar of source buffer?
 
 ;;; Code:
 
@@ -169,13 +173,13 @@ detailed description of this mode.
 (defvar gdb-debug-log nil)
 
 (defcustom gdb-enable-debug-log nil
- "Non-nil means record the process input and output in `gdb-debug-log'."
+  "Non-nil means record the process input and output in `gdb-debug-log'."
   :type 'boolean
   :group 'gud
   :version "21.4")
 
 (defcustom gdb-use-inferior-io-buffer nil
- "Non-nil means display output from the inferior in a separate buffer."
+  "Non-nil means display output from the inferior in a separate buffer."
   :type 'boolean
   :group 'gud
   :version "21.4")
@@ -210,9 +214,13 @@ detailed description of this mode.
 	   "\C-u" "Continue to current line or address.")
 
   (define-key gud-minor-mode-map [left-margin mouse-1]
-    'gdb-mouse-toggle-breakpoint)
+    'gdb-mouse-set-clear-breakpoint)
   (define-key gud-minor-mode-map [left-fringe mouse-1]
+    'gdb-mouse-set-clear-breakpoint)
+  (define-key gud-minor-mode-map [left-margin mouse-3]
     'gdb-mouse-toggle-breakpoint)
+;  (define-key gud-minor-mode-map [left-fringe mouse-3]
+;    'gdb-mouse-toggle-breakpoint)
 
   (setq comint-input-sender 'gdb-send)
   ;;
@@ -281,7 +289,7 @@ detailed description of this mode.
   (Info-goto-node "(emacs)GDB Graphical Interface"))
 
 (defconst gdb-var-create-regexp
-"name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
+  "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
 
 (defun gdb-var-create-handler (expr)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
@@ -328,7 +336,7 @@ detailed description of this mode.
 	     `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
-"name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\"")
+  "name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\"")
 
 (defun gdb-var-list-children-handler (varnum)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
@@ -1038,7 +1046,8 @@ happens to be appropriate."
 
 (defvar gdb-cdir nil "Compilation directory.")
 
-(defconst breakpoint-xpm-data "/* XPM */
+(defconst breakpoint-xpm-data
+  "/* XPM */
 static char *magick[] = {
 /* columns rows colors chars-per-pixel */
 \"10 10 2 1\",
@@ -1059,7 +1068,7 @@ static char *magick[] = {
   "XPM data used for breakpoint icon.")
 
 (defconst breakpoint-enabled-pbm-data
-"P1
+  "P1
 10 10\",
 0 0 0 0 1 1 1 1 0 0 0 0
 0 0 0 1 1 1 1 1 1 0 0 0
@@ -1074,7 +1083,7 @@ static char *magick[] = {
   "PBM data used for enabled breakpoint icon.")
 
 (defconst breakpoint-disabled-pbm-data
-"P1
+  "P1
 10 10\",
 0 0 1 0 1 0 1 0 0 0
 0 1 0 1 0 1 0 1 0 0
@@ -1116,8 +1125,7 @@ static char *magick[] = {
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
-  (let ((flag))
-    ;;
+  (let ((flag) (bptno))
     ;; remove all breakpoint-icons in source buffers but not assembler buffer
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
@@ -1131,12 +1139,13 @@ static char *magick[] = {
 	  (forward-line 1)
 	  (if (looking-at "[^\t].*breakpoint")
 	      (progn
-		(looking-at "[0-9]*\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)")
-		(setq flag (char-after (match-beginning 1)))
+		(looking-at "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)")
+		(setq bptno (match-string 1))
+		(setq flag (char-after (match-beginning 2)))
 		(beginning-of-line)
 		(if (re-search-forward "in\\s-+\\S-+\\s-+at\\s-+" nil t)
 		    (progn
-		      (looking-at "\\(\\S-*\\):\\([0-9]+\\)")
+		      (looking-at "\\(\\S-+\\):\\([0-9]+\\)")
 		      (let ((line (match-string 2)) (buffer-read-only nil)
 			    (file (match-string 1)))
 			(add-text-properties (point-at-bol) (point-at-eol)
@@ -1153,12 +1162,12 @@ static char *magick[] = {
 			  ;; only want one breakpoint icon at each location
 			  (save-excursion
 			    (goto-line (string-to-number line))
-			    (gdb-put-breakpoint-icon (eq flag ?y)))))))))
+			    (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
 	  (end-of-line)))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
-(defun gdb-mouse-toggle-breakpoint (event)
-  "Toggle breakpoint in left fringe/margin with mouse click."
+(defun gdb-mouse-set-clear-breakpoint (event)
+  "Set/clear breakpoint in left fringe/margin with mouse click."
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
@@ -1171,6 +1180,31 @@ static char *magick[] = {
 			'breakpoint))
 		(gud-remove nil)
 	      (gud-break nil)))))))
+
+(defun gdb-mouse-toggle-breakpoint (event)
+  "Enable/disable breakpoint in left fringe/margin with mouse click."
+  (interactive "e")
+  (mouse-minibuffer-check event)
+  (let ((posn (event-end event)))
+    (if (numberp (posn-point posn))
+	(with-selected-window (posn-window posn)
+	  (save-excursion
+	    (goto-char (posn-point posn))
+	    (if 
+;		(or
+		 (posn-object posn)
+;		 (eq (car (fringe-bitmaps-at-pos (posn-point posn)))
+;		     'breakpoint))
+		(gdb-enqueue-input
+		 (list
+		  (let ((bptno (get-text-property
+				0 'gdb-bptno (car (posn-string posn)))))
+		    (concat
+			    (if (get-text-property
+				 0 'gdb-enabled (car (posn-string posn)))
+				"disable "
+			      "enable ")
+			    bptno "\n")) 'ignore))))))))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -1227,7 +1261,7 @@ static char *magick[] = {
     'gdbmi-invalidate-breakpoints))
 
 (defun gdb-toggle-breakpoint ()
-  "Enable/disable the breakpoint at current line."
+  "Enable/disable breakpoint at current line."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1707,7 +1741,7 @@ of the inferior.  Non-nil means display the layout shown for
   :version "21.4")
 
 (defun gdb-many-windows (arg)
-"Toggle the number of windows in the basic arrangement."
+  "Toggle the number of windows in the basic arrangement."
   (interactive "P")
   (setq gdb-many-windows
 	(if (null arg)
@@ -1777,14 +1811,15 @@ buffers."
 PUTSTRING is displayed by putting an overlay into the current buffer with a
 `before-string' STRING that has a `display' property whose value is
 PUTSTRING."
-  (let ((gdb-string "x")
+  (let ((string (make-string 1 ?x))
 	(buffer (current-buffer)))
+    (setq putstring (copy-sequence putstring))
     (let ((overlay (make-overlay pos pos buffer))
 	  (prop (or dprop
 		    (list (list 'margin 'left-margin) putstring))))
-      (put-text-property 0 (length gdb-string) 'display prop gdb-string)
+      (put-text-property 0 (length string) 'display prop string)
       (overlay-put overlay 'put-break t)
-      (overlay-put overlay 'before-string gdb-string))))
+      (overlay-put overlay 'before-string string))))
 
 ;;from remove-images
 (defun gdb-remove-strings (start end &optional buffer)
@@ -1793,25 +1828,27 @@ Remove only strings that were put in BUFFER with calls to `gdb-put-string'.
 BUFFER nil or omitted means use the current buffer."
   (unless buffer
     (setq buffer (current-buffer)))
-  (let ((overlays (overlays-in start end)))
-    (while overlays
-      (let ((overlay (car overlays)))
+  (dolist (overlay (overlays-in start end))
 	(when (overlay-get overlay 'put-break)
-	  (delete-overlay overlay)))
-      (setq overlays (cdr overlays)))))
+	  (delete-overlay overlay))))
 
-(defun gdb-put-breakpoint-icon (enabled)
+(defun gdb-put-breakpoint-icon (enabled bptno)
   (let ((start (progn (beginning-of-line) (- (point) 1)))
-	(end (progn (end-of-line) (+ (point) 1))))
+	(end (progn (end-of-line) (+ (point) 1)))
+	(putstring (if enabled "B" "b")))
+    (if enabled (add-text-properties
+		 0 1 `(gdb-bptno ,bptno gdb-enabled t) putstring)
+      (add-text-properties
+       0 1 `(gdb-bptno ,bptno gdb-enabled nil) putstring))
     (gdb-remove-breakpoint-icons start end)
     (if (display-images-p)
 	(if (>= (car (window-fringes)) 8)
 	    (gdb-put-string
 	     nil (1+ start)
 	     `(left-fringe breakpoint
-	       ,(if enabled
-		    'breakpoint-enabled-bitmap-face
-		  'breakpoint-disabled-bitmap-face)))
+			   ,(if enabled
+				'breakpoint-enabled-bitmap-face
+			      'breakpoint-disabled-bitmap-face)))
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
@@ -1838,7 +1875,9 @@ BUFFER nil or omitted means use the current buffer."
 				     (:type pbm :data
 					    ,breakpoint-disabled-pbm-data
 					    :ascent 100))))))
-	   (+ start 1) nil 'left-margin))
+	   (+ start 1)
+	   putstring
+	   'left-margin))
       (when (< left-margin-width 2)
 	(save-current-buffer
 	  (setq left-margin-width 2)
@@ -1846,7 +1885,7 @@ BUFFER nil or omitted means use the current buffer."
 	      (set-window-margins
 	       (get-buffer-window (current-buffer) 0)
 	       left-margin-width right-margin-width))))
-      (gdb-put-string (if enabled "B" "b") (1+ start)))))
+      (gdb-put-string putstring (1+ start)))))
 
 (defun gdb-remove-breakpoint-icons (start end &optional remove-margin)
   (gdb-remove-strings start end)
