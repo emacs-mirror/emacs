@@ -1828,7 +1828,7 @@ print_object (obj, printcharfun, escapeflag)
 	  strout ("#<marker ", -1, -1, printcharfun, 0);
 	  /* Do you think this is necessary?  */
 	  if (XMARKER (obj)->insertion_type != 0)
-	    strout ("(before-insertion) ", -1, -1, printcharfun, 0);
+	    strout ("(moves after insertion) ", -1, -1, printcharfun, 0);
 	  if (!(XMARKER (obj)->buffer))
 	    strout ("in no buffer", -1, -1, printcharfun, 0);
 	  else
