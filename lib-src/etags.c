@@ -346,7 +346,7 @@ int main __P((int, char **));
 static compressor *get_compressor_from_suffix __P((char *, char **));
 static language *get_language_from_langname __P((const char *));
 static language *get_language_from_interpreter __P((char *));
-static language *get_language_from_filename __P((char *));
+static language *get_language_from_filename __P((char *, bool));
 static long readline __P((linebuffer *, FILE *));
 static long readline_internal __P((linebuffer *, FILE *));
 static bool nocase_tail __P((char *));
@@ -380,6 +380,7 @@ static char *savenstr __P((char *, int));
 static char *savestr __P((char *));
 static char *etags_strchr __P((const char *, int));
 static char *etags_strrchr __P((const char *, int));
+static bool strcaseeq __P((const char *, const char *));
 static char *etags_getcwd __P((void));
 static char *relative_filename __P((char *, char *));
 static char *absolute_filename __P((char *, char *));
@@ -1351,8 +1352,9 @@ get_language_from_interpreter (interpreter)
  * Return a language given the file name.
  */
 static language *
-get_language_from_filename (file)
+get_language_from_filename (file, case_sensitive)
      char *file;
+     bool case_sensitive;
 {
   language *lang;
   char **name, **ext, *suffix;
@@ -1361,7 +1363,9 @@ get_language_from_filename (file)
   for (lang = lang_names; lang->name != NULL; lang++)
     if (lang->filenames != NULL)
       for (name = lang->filenames; *name != NULL; name++)
-	if (streq (*name, file))
+	if ((case_sensitive)
+	    ? streq (*name, file)
+	    : strcaseeq (*name, file))
 	  return lang;
 
   /* If not found, try suffix after last dot. */
@@ -1372,7 +1376,9 @@ get_language_from_filename (file)
   for (lang = lang_names; lang->name != NULL; lang++)
     if (lang->suffixes != NULL)
       for (ext = lang->suffixes; *ext != NULL; ext++)
-	if (streq (*ext, suffix))
+	if ((case_sensitive)
+	    ? streq (*ext, suffix)
+	    : strcaseeq (*ext, suffix))
 	  return lang;
   return NULL;
 }
@@ -1421,12 +1427,6 @@ process_file (file, lang)
       if (streq (uncompressed_name, fdp->infname))
 	goto cleanup;
     }
-
-  /* Create a new input file description entry. */
-  fdp = fdhead;
-  fdhead = xnew (1, fdesc);
-  *fdhead = emptyfdesc;
-  fdhead->next = fdp;
 
   if (stat (real_name, &stat_buf) != 0)
     {
@@ -1496,24 +1496,29 @@ process_file (file, lang)
       goto cleanup;
     }
 
-  fdhead->infname = savestr (uncompressed_name);
-  fdhead->lang = lang;
-  fdhead->infabsname = absolute_filename (uncompressed_name, cwd);
-  fdhead->infabsdir = absolute_dirname (uncompressed_name, cwd);
+  /* Create a new input file description entry. */
+  fdp = xnew (1, fdesc);
+  *fdp = emptyfdesc;
+  fdp->next = fdhead;
+  fdp->infname = savestr (uncompressed_name);
+  fdp->lang = lang;
+  fdp->infabsname = absolute_filename (uncompressed_name, cwd);
+  fdp->infabsdir = absolute_dirname (uncompressed_name, cwd);
   if (filename_is_absolute (uncompressed_name))
     {
       /* file is an absolute file name.  Canonicalize it. */
-      fdhead->taggedfname = absolute_filename (uncompressed_name, NULL);
+      fdp->taggedfname = absolute_filename (uncompressed_name, NULL);
     }
   else
     {
       /* file is a file name relative to cwd.  Make it relative
 	 to the directory of the tags file. */
-      fdhead->taggedfname = relative_filename (uncompressed_name, tagfiledir);
+      fdp->taggedfname = relative_filename (uncompressed_name, tagfiledir);
     }
-  fdhead->usecharno = TRUE;	/* use char position when making tags */
-  fdhead->prop = NULL;
+  fdp->usecharno = TRUE;	/* use char position when making tags */
+  fdp->prop = NULL;
 
+  fdhead = fdp;
   curfdp = fdhead;		/* the current file description */
 
   find_entries (inf);
@@ -1526,7 +1531,9 @@ process_file (file, lang)
     pfatal (file);
 
  cleanup:
-  /* XXX if no more useful, delete head of file description list */
+  /* Memory leak here: if this is not metasource and if it contained no #line
+     directives, curfdp could be freed, and so could all nodes pointing to it
+     if not CTAGS. */
   if (compressed_name) free (compressed_name);
   if (uncompressed_name) free (uncompressed_name);
   return;
@@ -1583,7 +1590,7 @@ find_entries (inf)
   /* Else try to guess the language given the file name. */
   if (parser == NULL)
     {
-      lang = get_language_from_filename (curfdp->infname);
+      lang = get_language_from_filename (curfdp->infname, TRUE);
       if (lang != NULL && lang->function != NULL)
 	{
 	  curfdp->lang = lang;
@@ -1622,11 +1629,28 @@ find_entries (inf)
 	}
     }
 
+  /* We rewind here, even if inf may be a pipe.  We fail if the
+     length of the first line is longer than the pipe block size,
+     which is unlikely. */
+  if (parser == NULL)
+    rewind (inf);
+#if 0
+  /* Else try to guess the language given the case insensitive file name. */
+  if (parser == NULL)
+    {
+      lang = get_language_from_filename (curfdp->infname, FALSE);
+      if (lang != NULL && lang->function != NULL)
+	{
+	  curfdp->lang = lang;
+	  parser = lang->function;
+	}
+    }
+#endif
   if (!no_line_directive
       && curfdp->lang != NULL && curfdp->lang->metasource)
-    /* It may be that this is an xxx.y file, and we already parsed an xxx.c
+    /* It may be that this is a bingo.y file, and we already parsed a bingo.c
        file, or anyway we parsed a file that is automatically generated from
-       this one.  If this is the case, the xxx.c file contained #line
+       this one.  If this is the case, the bingo.c file contained #line
        directives that generated tags pointing to this file.  Let's delete
        them all before parsing this file, which is the real source. */
     {
@@ -1642,8 +1666,11 @@ find_entries (inf)
 	    *fdpp = badfdp->next; /* remove the bad description from the list */
 	    fdpp = &badfdp->next; /* advance the list pointer */
 
-	    fprintf (stderr, "Removing references to \"%s\" obtained from \"%s\"\n",
-		     badfdp->taggedfname, badfdp->infname);
+	    if (DEBUG)
+	      fprintf (stderr,
+		       "Removing references to \"%s\" obtained from \"%s\"\n",
+		       badfdp->taggedfname, badfdp->infname);
+
 	    /* Delete the tags referring to badfdp. */
 	    invalidate_nodes (badfdp, nodehead);
 
@@ -1664,11 +1691,6 @@ find_entries (inf)
       parser (inf);
       return;
     }
-
-  /* We rewind here, even if inf may be a pipe.  We fail if the
-     length of the first line is longer than the pipe block size,
-     which is unlikely. */
-  rewind (inf);
 
   /* Else try Fortran. */
   old_last_node = last_node;
@@ -1916,6 +1938,9 @@ invalidate_nodes (badfdp, np)
 {
   if (np->left != NULL)
     invalidate_nodes (badfdp, np->left);
+  /* Memory leak here: if not CTAGS, in which case it would be quite
+     difficult, the node could be freed.  If CTAGS the node is part of a
+     binary tree, if not it is part of a list of lists. */
   if (np->fdp == badfdp)
     np-> valid = FALSE;
   if (np->right != NULL)
@@ -5741,7 +5766,6 @@ etags_strrchr (sp, c)
   return (char *)r;
 }
 
-
 /*
  * Return the ptr in sp at which the character c first
  * appears; NULL if not found
@@ -5759,6 +5783,26 @@ etags_strchr (sp, c)
 	return (char *)sp;
     } while (*sp++);
   return NULL;
+}
+
+/*
+ * Return TRUE if the two strings are equal, ignoring case for alphabetic
+ * characters.
+ *
+ * Analogous to BSD's strcasecmp, included for portability.
+ */
+static bool
+strcaseeq (s1, s2)
+     register const char *s1;
+     register const char *s2;
+{
+  while (*s1 != '\0'
+	 && (ISALPHA (*s1) && ISALPHA (*s2)
+	     ? lowcase (*s1) == lowcase (*s2)
+	     : *s1 == *s2))
+    s1++, s2++;
+
+  return (*s1 == *s2);
 }
 
 /* Skip spaces, return new pointer. */
