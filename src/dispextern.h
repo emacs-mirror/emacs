@@ -2274,7 +2274,6 @@ extern Lisp_Object Vimage_types;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
-extern int cursor_in_non_selected_windows;
 
 /* Defined in sysdep.c */
 
