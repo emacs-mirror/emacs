@@ -1,5 +1,7 @@
 2001-03-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* buffer.c (syms_of_buffer) <header-line-format>: Doc fix.
+
 	* process.c (Fset_process_filter): Don't crash if the input
 	file descriptor of PROCESS is closed.
 	(Fset_process_window_size): Likewise.
