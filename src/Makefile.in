@@ -843,7 +843,8 @@ xfaces.o : xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h $(config_h) 
 xfns.o : xfns.c buffer.h frame.h window.h keyboard.h xterm.h \
    blockinput.h $(config_h)
-xmenu.o : xmenu.c xterm.h window.h frame.h keyboard.h blockinput.h $(config_h)
+xmenu.o : xmenu.c xterm.h window.h dispextern.h frame.h keyboard.h \
+   blockinput.h $(config_h)
 xterm.o : xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   dispextern.h frame.h disptab.h blockinput.h systime.h syssignal.h \
   gnu.h sink.h sinkmask.h $(config_h)
