@@ -365,15 +365,21 @@ Otherwise, one argument `-i' is passed to the shell.
 		       "/bin/sh"))		     
 	     (name (file-name-nondirectory prog))
 	     (startfile (concat "~/.emacs_" name))
-	     (xargs-name (intern-soft (concat "explicit-" name "-args"))))
-	(set-buffer (apply 'make-comint "shell" prog
-			   (if (file-exists-p startfile) startfile)
-			   (if (and xargs-name (boundp xargs-name))
-			       (symbol-value xargs-name)
-			     '("-i"))))
-	(shell-mode)
-	(switch-to-buffer (current-buffer)))
-    (switch-to-buffer "*shell*")))
+	     (xargs-name (intern-soft (concat "explicit-" name "-args")))
+	     shell-buffer)
+	(save-excursion
+	  (set-buffer (apply 'make-comint "shell" prog
+			     (if (file-exists-p startfile) startfile)
+			     (if (and xargs-name (boundp xargs-name))
+				 (symbol-value xargs-name)
+			       '("-i"))))
+	  (setq shell-buffer (current-buffer))
+	  (shell-mode))
+	(pop-to-buffer shell-buffer))
+    (pop-to-buffer "*shell*")))
+
+;;; Don't do this when shell.el is loaded, only while dumping.
+;;;###autoload (add-hook 'same-window-buffer-names "*shell*")
 
 ;;; Directory tracking
 ;;; ===========================================================================
