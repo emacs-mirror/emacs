@@ -21,8 +21,7 @@
 	if the value for `ruler-mode-ruler-function'is given.
 
 	* hexl.el (hexl-mode-hook): Make the hook customizable.
-	(hexl-address-area, hexl-ascii-area, hexl-ascii-cursor): New 
-	customize variables.
+	(hexl-address-area, hexl-ascii-area): New customize variables.
 	(hexlify-buffer): Put font-lock-faces on the address area and 
 	the ascii area.
 	(hexl-activate-ruler): New function.
