@@ -1113,6 +1113,10 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 (make-obsolete 'set-screen-width 'set-frame-width) ;before 19.15
 (make-obsolete 'set-screen-height 'set-frame-height) ;before 19.15
 
+;; miscellaneous obsolescence declarations
+(defvaralias 'delete-frame-hook 'delete-frame-functions)
+(make-obsolete-variable 'delete-frame-hook 'delete-frame-functions "21.4")
+
 
 ;; Highlighting trailing whitespace.
 

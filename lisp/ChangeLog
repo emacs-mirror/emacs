@@ -1,3 +1,8 @@
+2002-10-03  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* frame.el (delete-frame-hook): Variable alias for
+	`delete-frame-functions'.  Mark obsolete.
+
 2002-10-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/outline.el (outline-1, outline-2, outline-3, outline-4)
