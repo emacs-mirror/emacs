@@ -454,31 +454,44 @@ overall glyph is updated as follows:
 ;;;###autoload
 (defun compose-chars (first-component &rest args)
   "Return one char string composed from the arguments.
-Each argument is a character (including a composite character)
-or a composition rule.
+For relative composition, each argument should be a non-composition character
+or a relative-composition character.
+For rule-based composition, Nth (where N is odd) argument should be
+a non-composition character or a rule-based-composition character,
+and Mth (where M is even) argument should be a composition rule.
 A composition rule has the form \(GLOBAL-REF-POINT . NEW-REF-POINT).
 See the documentation of `reference-point-alist' for more detail."
   (if (= (length args) 0)
       (char-to-string first-component)
     (let* ((with-rule (consp (car args)))
-	   (str (if with-rule (concat (vector leading-code-composition ?\xFF))
-		  (char-to-string leading-code-composition))))
-      (if (and with-rule
-	       (cmpcharp first-component))
-	  (error "Can't compose an already composed character"))
-      (setq str (concat str (compose-chars-component first-component)))
+	   (str (if (cmpcharp first-component)
+		    (string-as-unibyte (char-to-string first-component))
+		  (if with-rule
+		      (concat (vector leading-code-composition ?\xFF)
+			      (compose-chars-component first-component))
+		    (concat (char-to-string leading-code-composition)
+			    (compose-chars-component first-component))))))
+      (if (and (cmpcharp first-component)
+	       (eq with-rule (/= (aref str 1) ?\xFF)))
+	  (error "%s-compostion-character is not allowed in %s composition: %c"
+		 (if with-rule "relative" "rule-based")
+		 (if with-rule "rule-based" "relative")
+		 first-component))
       (while args
 	(if with-rule
-	    (progn
-	      (if (not (consp (car args)))
-		  (error "Invalid composition rule: %s" (car args)))
-	      (if (cmpcharp (car (cdr args)))
-		  (error "Can't compose an already composed character"))
-	      (setq str (concat str (compose-chars-rule (car args))
-				(compose-chars-component (car (cdr args))))
-		    args (cdr (cdr args))))
-	  (setq str (concat str (compose-chars-component (car args)))
-		args (cdr args))))
+	    (setq str (concat str (compose-chars-rule (car args)))
+		  args (cdr args)))
+	(if (cmpcharp (car args))
+	    (let ((cmp-str (string-as-unibyte (char-to-string (car args)))))
+	      (if (eq with-rule (/= (aref cmp-str 1) ?\xFF))
+		  (error "%s-compostion-character is not allowed in %s composition: %c"
+			 (if with-rule "relative" "rule-based")
+			 (if with-rule "rule-based" "relative")
+			 (car args)))
+	      (setq str (concat str (substring cmp-str
+					       (if with-rule 2 1)))))
+	  (setq str (concat str (compose-chars-component (car args)))))
+	(setq args (cdr args)))
       (string-as-multibyte str))))
 
 ;;;###autoload
