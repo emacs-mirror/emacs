@@ -1802,7 +1802,7 @@ call_mod_hooks (list, start, end)
 
 /* Check for read-only intervals and signal an error if we find one.
    Then check for any modification hooks in the range START up to
-   (but not including) TO.  Create a list of all these hooks in
+   (but not including) END.  Create a list of all these hooks in
    lexicographic order, eliminating consecutive extra copies of the
    same hook.  Then call those hooks in order, with START and END - 1
    as arguments.  */
