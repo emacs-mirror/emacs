@@ -1,3 +1,15 @@
+2003-01-20  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (completion-setup-function): Set default-directory
+	in the minibuffer, so it'll be copied into the completion list buffer.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-group): Compute HALF2 properly.
+
+	* loadup.el (load-path): Rename `path' local var.
+
+	* progmodes/octave-mod.el (octave-mode-map): Change C-c i bindings
+	to C-c C-i.  Duplicate its bindings with last char a ctl char.
+
 2003-01-20  Markus Rost  <rost@math.ohio-state.edu>
 
 	* ls-lisp.el (ls-lisp-use-insert-directory-program): Make default
