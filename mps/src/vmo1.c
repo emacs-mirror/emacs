@@ -1,6 +1,6 @@
 /* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
- * $HopeName: MMsrc!vmo1.c(trunk.4) $
+ * $HopeName: MMsrc!vmo1.c(trunk.5) $
  * Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
  *
  * Readership: Any MPS developer
@@ -62,7 +62,7 @@
 /* for getpagesize(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.4) $");
+SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.5) $");
 
 
 /* Fix unprototyped system calls
@@ -126,7 +126,8 @@ Res VMCreate(VM *vmReturn, Size size)
   align = (Align)getpagesize();
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
-  AVER(size != 0);
+  if((size == 0) || (size > (Size)(size_t)-1))
+    return ResRESOURCE;
 
   none_fd = open("/etc/passwd", O_RDONLY);
   if(none_fd == -1) {
