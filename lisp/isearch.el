@@ -616,7 +616,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 
 (defun isearch-update ()
   ;; Called after each command to update the display.  
-  (if (null unread-command-events)
+  (if (and (null unread-command-events)
+	   (null executing-kbd-macro))
       (progn
         (if (not (input-pending-p))
             (isearch-message))
@@ -2002,6 +2003,7 @@ is nil.  This function is called when exiting an incremental search if
 This happens when `isearch-update' is invoked (which can cause the
 search string to change or the window to scroll)."
   (when (and isearch-lazy-highlight
+	     (null executing-kbd-macro)
              (sit-for 0)         ;make sure (window-start) is credible
              (or (not (equal isearch-string
                              isearch-lazy-highlight-last-string))
