@@ -1,3 +1,7 @@
+2003-03-28  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (erlang_attribute): Account for error returned by erlang_atom.
+
 2003-03-18  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* Version 21.3 released.
