@@ -1,7 +1,7 @@
 2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* eval.c (debugger_may_continue, Vdebug_ignored_errors,
-	call_debugger, Fcondition_case, skip_debugger, unbind_to):
+	* eval.c (debugger_may_continue, Vdebug_ignored_errors)
+	(call_debugger, Fcondition_case, skip_debugger, unbind_to):
 	Fix typos in comments.
 
 	* mocklisp.c (Fml_defun, Fml_while, Fml_substr): Remove commented
@@ -17,14 +17,14 @@
 	* frame.h (CHECK_FRAME, CHECK_LIVE_FRAME): Remove unused argument
 	`i' in macros.
 
-	* lisp.h (CHECK_STRING_OR_BUFFER, CHECK_HASH_TABLE, CHECK_LIST,
-	CHECK_STRING, CHECK_CONS, CHECK_SYMBOL, CHECK_CHAR_TABLE,
-	CHECK_VECTOR, CHECK_VECTOR_OR_CHAR_TABLE, CHECK_BUFFER,
-	CHECK_WINDOW, CHECK_LIVE_WINDOW, CHECK_PROCESS, CHECK_NUMBER,
-	CHECK_NATNUM, CHECK_MARKER, CHECK_NUMBER_COERCE_MARKER,
-	CHECK_FLOAT, CHECK_NUMBER_OR_FLOAT,
-	CHECK_NUMBER_OR_FLOAT_COERCE_MARKER, CHECK_OVERLAY,
-	CHECK_NUMBER_CAR, CHECK_NUMBER_CDR): Remove unused argument `i'
+	* lisp.h (CHECK_STRING_OR_BUFFER, CHECK_HASH_TABLE, CHECK_LIST)
+	(CHECK_STRING, CHECK_CONS, CHECK_SYMBOL, CHECK_CHAR_TABLE)
+	(CHECK_VECTOR, CHECK_VECTOR_OR_CHAR_TABLE, CHECK_BUFFER)
+	(CHECK_WINDOW, CHECK_LIVE_WINDOW, CHECK_PROCESS, CHECK_NUMBER)
+	(CHECK_NATNUM, CHECK_MARKER, CHECK_NUMBER_COERCE_MARKER)
+	(CHECK_FLOAT, CHECK_NUMBER_OR_FLOAT)
+	(CHECK_NUMBER_OR_FLOAT_COERCE_MARKER, CHECK_OVERLAY)
+	(CHECK_NUMBER_CAR, CHECK_NUMBER_CDR): Remove unused argument `i'
 	in macros.
 
 	* abbrev.c, alloc.c, buffer.c, bytecode.c, callint.c, callproc.c,
