@@ -921,11 +921,6 @@ case ${with_gcc} in
     ] AC_PROG_CC [
 esac
 
-CFLAGS='-g'
-if test -n "${GCC}"; then
-  CFLAGS='-g -O'
-fi
-
 #### Some other nice autoconf tests.  If you add a test here which
 #### should make an entry in src/config.h, don't forget to add an
 #### #undef clause to src/config.h.in for autoconf to modify.
@@ -941,6 +936,9 @@ dnl checks for header files
 AC_HAVE_HEADERS(sys/timeb.h sys/time.h)
 AC_STDC_HEADERS
 AC_TIME_WITH_SYS_TIME
+
+dnl checks for library files
+AC_HAVE_LIBRARY(-ldnet)
 
 dnl checks for typedefs
 AC_RETSIGTYPE
@@ -1084,6 +1082,20 @@ echo '
 @configure@ system_malloc=yes
 #else
 @configure@ system_malloc=no
+#endif
+
+#ifndef C_DEBUG_SWITCH
+#define C_DEBUG_SWITCH -g
+#endif
+
+#ifndef C_OPTIMIZE_SWITCH
+#define C_OPTIMIZE_SWITCH -O
+#endif
+
+#ifdef __GNUC__
+@configure@ CFLAGS=C_DEBUG_SWITCH C_OPTIMIZE_SWITCH
+#else
+@configure@ CFLAGS=C_DEBUG_SWITCH
 #endif
 ' > ${tempcname}
 # The value of CPP is a quoted variable reference, so we need to do this
