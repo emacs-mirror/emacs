@@ -9890,7 +9890,8 @@ XTread_socket (sd, bufp, numchars, expected)
 		      int n;
 
 		      XSETFRAME (frame, f);
-		      n = gen_help_event (bufp, Qnil, frame, Qnil, Qnil, 0);
+		      n = gen_help_event (bufp, numchars,
+					  Qnil, frame, Qnil, Qnil, 0);
 		      bufp += n, count += n, numchars -= n;
 		    }
 
@@ -9978,7 +9979,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		      frame = Qnil;
 
 		    any_help_event_p = 1;
-		    n = gen_help_event (bufp, help_echo, frame,
+		    n = gen_help_event (bufp, numchars, help_echo, frame,
 					help_echo_window, help_echo_object,
 					help_echo_pos);
 		    bufp += n, count += n, numchars -= n;
