@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(trunk.10) $
+ *  $HopeName: MMsrc!root.c(trunk.11) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -20,7 +20,7 @@
 #include "trace.h"
 #include "space.h"
 
-SRCID("$HopeName: MMsrc!root.c(trunk.10) $");
+SRCID("$HopeName: MMsrc!root.c(trunk.11) $");
 
 Bool RootIsValid(Root root, ValidationType validParam)
 {
@@ -175,26 +175,21 @@ RefRank RootRank(Root root)
   return root->rank;
 }
 
-void RootMark(Root root, Trace trace)
+void RootGrey(Root root, Space space, TraceId ti)
 {
   AVER(ISVALID(Root, root));
-  AVER(ISVALID(Trace, trace));
-  
-  root->marked = TraceSetAdd(root->marked, TraceTraceId(trace));
-  TraceNoteMarked(trace, root->rank, (Addr)1);
+  root->marked = TraceSetAdd(root->marked, ti);
 }
 
-Error RootScan(Root root, Trace trace)
+Error RootScan(ScanState ss, Root root)
 {
   Error e;
 
   AVER(ISVALID(Root, root));
-  AVER(ISVALID(Trace, trace));
-  
-  if(TraceRank(trace) != root->rank)
-    return ErrSUCCESS;
+  AVER(ISVALID(ScanState, ss));
+  AVER(root->rank == ss->rank);
 
-  if(!TraceSetIsMember(root->marked, TraceTraceId(trace)))
+  if(!TraceSetIsMember(root->marked, ss->traceId))
     return ErrSUCCESS;
 
   switch(root->type) {
@@ -203,34 +198,30 @@ Error RootScan(Root root, Trace trace)
       base = (Addr *)root->the.table.base;
       what = base;
       limit = (Addr *)root->the.table.limit;
-      /* doesn't accumulate summary or do zone test */
+      /* @@@@ doesn't accumulate summary or do zone test */
       while(what < limit) {
-        e = TraceFix(TraceScanState(trace), what);
+        e = TraceFix(ss, what);
         if(e != ErrSUCCESS)
           return e;
         ++what;
       }
-    }
-    break;
+    } break;
 
     case RootFUN:
-    e = (*root->the.fun.scan)(TraceScanState(trace),
-        root->the.fun.p, root->the.fun.s);
+    e = (*root->the.fun.scan)(ss, root->the.fun.p, root->the.fun.s);
     if(e != ErrSUCCESS)
       return e;
     break;
 
     case RootREG:
-    e = (*root->the.reg.scan)(TraceScanState(trace),
-                              root->the.reg.thread,
+    e = (*root->the.reg.scan)(ss, root->the.reg.thread,
                               root->the.reg.p);
     if(e != ErrSUCCESS)
       return e;
     break;
 
     case RootFMT:
-    e = (*root->the.fmt.scan)(TraceScanState(trace),
-                              root->the.fmt.base,
+    e = (*root->the.fmt.scan)(ss, root->the.fmt.base,
                               root->the.fmt.limit);
     if(e != ErrSUCCESS)
       return e;
@@ -240,8 +231,7 @@ Error RootScan(Root root, Trace trace)
     NOTREACHED;
   }
 
-  TraceNoteScanned(trace, (Addr)1);
-  root->marked = TraceSetDelete(root->marked, TraceTraceId(trace));
+  root->marked = TraceSetDelete(root->marked, ss->traceId);
   
   return ErrSUCCESS;
 }

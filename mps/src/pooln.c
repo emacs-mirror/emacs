@@ -2,7 +2,7 @@
  *
  *                         NULL POOL
  *
- *  $HopeName: MMsrc!pooln.c(trunk.5) $
+ *  $HopeName: MMsrc!pooln.c(trunk.6) $
  *
  *  Copyright(C) 1995 Harlequin Group, all rights reserved
  *
@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName: MMsrc!pooln.c(trunk.5) $");
+SRCID("$HopeName: MMsrc!pooln.c(trunk.6) $");
 
 
 /*  Class's methods  */
@@ -36,14 +36,18 @@ static void destroy(Pool pool);
 static Error alloc(Addr *pReturn, Pool pool, Size size);
 static void free_(Pool pool, Addr old, Size size);
 static Error bufferCreate(Buffer *bufReturn, Pool pool);
-static void bufferDestroy(Buffer buf);
+static void bufferDestroy(Pool pool, Buffer buf);
+static Error bufferFill(Addr *pReturn, Pool pool, Buffer buffer, Size size);
+static Bool bufferTrip(Pool pool, Buffer buffer, Addr p, Size size);
+static void bufferExpose(Pool pool, Buffer buffer);
+static void bufferCover(Pool pool, Buffer buffer);
 static Error describe(Pool pool, LibStream stream);
-static Error condemn(Pool pool, Trace trace);
-static void mark(Pool pool, Trace trace);
-static Error scan(Pool pool, Trace trace);
-static Error fix(Pool pool, Trace trace,
-                 Arena arena, Ref *refIO);
-static void reclaim(Pool pool, Trace trace);
+static Error condemn(RefSet *condemnedReturn, Pool pool,
+                     Space space, TraceId ti);
+static void mark(Pool pool, Space space, TraceId ti);
+static Error scan(ScanState ss, Pool pool, Bool *finishedReturn);
+static Error fix(Pool pool, ScanState ss, Arena arena, Ref *refIO);
+static void reclaim(Pool pool, Space space, TraceId ti);
 static void access(Pool pool, Addr seg, ProtMode mode);
 
 
@@ -59,9 +63,11 @@ PoolClass PoolClassN(void)
                 create, destroy,
                 alloc, free_,
                 bufferCreate, bufferDestroy,
+                bufferFill, bufferTrip,
+                bufferExpose, bufferCover,
                 condemn, mark, scan,
                 fix, reclaim,
-                access, NULL,
+                access,
                 describe);
   return &PoolClassNStruct;
 }
@@ -193,11 +199,52 @@ static Error bufferCreate(Buffer *bufReturn, Pool pool)
   return ErrLIMIT;  /* limit of nil buffers exceeded */
 }
 
-static void bufferDestroy(Buffer buf)
+static void bufferDestroy(Pool pool, Buffer buf)
 {
+  AVER(ISVALID(Pool, pool));
   AVER(ISVALID(Buffer, buf));
 
   NOTREACHED;  /* can't create, so shouldn't destroy */
+}
+
+static Error bufferFill(Addr *pReturn, Pool pool, Buffer buffer, Size size)
+{
+  AVER(ISVALID(Pool, pool));
+  AVER(ISVALID(Buffer, buffer));
+  AVER(size > 0);
+  AVER(pReturn != NULL);
+
+  NOTREACHED;	/* can't create buffers, so shouldn't fill them */
+  return ErrUNIMPL;
+}
+
+static Bool bufferTrip(Pool pool, Buffer buffer, Addr p, Size size)
+{
+  AVER(ISVALID(Pool, pool));
+  AVER(ISVALID(Buffer, buffer));
+  AVER(p != 0);
+  AVER(size > 0);
+
+  NOTREACHED;	/* can't create buffers, so they shouldn't trip */
+  return FALSE;
+}
+
+
+static void bufferExpose(Pool pool, Buffer buffer)
+{
+  AVER(ISVALID(Pool, pool));
+  AVER(ISVALID(Buffer, buffer));
+
+  NOTREACHED;	/* can't create buffers, so shouldn't expose them */
+}
+
+
+static void bufferCover(Pool pool, Buffer buffer)
+{
+  AVER(ISVALID(Pool, pool));
+  AVER(ISVALID(Buffer, buffer));
+
+  NOTREACHED;	/* can't create buffers, so shouldn't cover them */
 }
 
 
@@ -217,55 +264,57 @@ static Error describe(Pool pool, LibStream stream)
 }
 
 
-static Error condemn(Pool pool, Trace trace)
+static Error condemn(RefSet *condemnedReturn, Pool pool,
+                     Space space, TraceId ti)
 {
+  AVER(condemnedReturn != NULL);
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
-  AVER(ISVALID(Trace, trace));
+  AVER(ISVALID(Space, space));
 #ifndef DEBUG
   UNUSED(pool);
-  UNUSED(trace);
+  UNUSED(space);
 #endif /* DEBUG */
 
   return ErrSUCCESS;
 }
 
-static void mark(Pool pool, Trace trace)
+static void mark(Pool pool, Space space, TraceId ti)
 {
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
-  AVER(ISVALID(Trace, trace));
+  AVER(ISVALID(Space, space));
 }
 
-static Error scan(Pool pool, Trace trace)
+static Error scan(ScanState ss, Pool pool, Bool *finishedReturn)
 {
+  AVER(finishedReturn != NULL);
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
-  AVER(ISVALID(Trace, trace));
+  AVER(ISVALID(ScanState, ss));
 
   return ErrSUCCESS;
 }
 
-static Error fix(Pool pool, Trace trace,
-                 Arena arena, Ref *refIO)
+static Error fix(Pool pool, ScanState ss, Arena arena, Ref *refIO)
 {
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
-  AVER(ISVALID(Trace, trace));
+  AVER(ISVALID(ScanState, ss));
   AVER(ISVALID(Arena, arena));
   NOTREACHED;  /* since we don't allocate any objects, should never
                 * be called upon to fix a reference */
   return ErrFAILURE;
 }
 
-static void reclaim(Pool pool, Trace trace)
+static void reclaim(Pool pool, Space space, TraceId ti)
 {
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassNStruct);
-  AVER(ISVALID(Trace, trace));
+  AVER(ISVALID(Space, space));
 #ifndef DEBUG
   UNUSED(pool);
-  UNUSED(trace);
+  UNUSED(space);
 #endif
   /* all unmarked and condemned objects reclaimed */
 }
