@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.47 2003/02/04 11:57:37 lektu Exp $
+;; Revision: $Id: pcvs.el,v 1.48 2003/02/10 21:48:38 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -243,17 +243,14 @@
 
 ;;;;
 
-(defun cvs-mode! (&optional -cvs-mode!-fun -cvs-mode!-noerror)
+(defun cvs-mode! (&optional -cvs-mode!-fun)
   "Switch to the *cvs* buffer.
 If -CVS-MODE!-FUN is provided, it is executed *cvs* being the current buffer
   and with its window selected.  Else, the *cvs* buffer is simply selected.
-If -CVS-MODE!-NOERROR is non-nil, then failure to find a *cvs* buffer does
-  not generate an error and the current buffer is kept selected.
 -CVS-MODE!-FUN is called interactively if applicable and else with no argument."
   (let* ((-cvs-mode!-buf (current-buffer))
 	 (cvsbuf (cond ((cvs-buffer-p) (current-buffer))
 		       ((and cvs-buffer (cvs-buffer-p cvs-buffer)) cvs-buffer)
-		       (-cvs-mode!-noerror (current-buffer))
 		       (t (error "can't find the *cvs* buffer"))))
 	 (-cvs-mode!-wrapper cvs-minor-wrap-function)
 	 (-cvs-mode!-cont (lambda ()
@@ -1638,7 +1635,10 @@ Signal an error if there is no backup file."
     (or (find-buffer-visiting buffile)
 	(with-current-buffer (create-file-buffer buffile)
 	  (message "Retrieving revision %s..." rev)
-	  (let ((res (call-process cvs-program nil t nil
+	  ;; Discard stderr output to work around the CVS+SSH+libc
+	  ;; problem when stdout and stderr are the same.
+	  ;; FIXME: this doesn't seem to make any difference :-(
+	  (let ((res (call-process cvs-program nil '(t . nil) nil
 				   "-q" "update" "-p" "-r" rev file)))
 	    (when (and res (not (and (equal 0 res))))
 	      (error "Something went wrong retrieving revision %s: %s" rev res))
