@@ -330,6 +330,7 @@ buffer.  The hook comint-exec-hook is run after each exec."
       (if proc (delete-process proc)))
     ;; Crank up a new process
     (let ((proc (comint-exec-1 name buffer command switches)))
+      (set-process-filter proc 'comint-filter)
       (make-local-variable 'comint-ptyp)
       (setq comint-ptyp process-connection-type) ; T if pty, NIL if pipe.
       ;; Jump to the end, and set the process mark.
@@ -594,7 +595,7 @@ point as input to the process.  Before the process output mark, calls value
 of variable `comint-get-old-input' to retrieve old input, copies it to the
 process mark, and sends it.  If variable `comint-process-echoes' is `nil',
 a terminal newline is also inserted into the buffer and sent to the process
-(if it is non-`nil', all text from the process mark to point is deleted,
+\(if it is non-`nil', all text from the process mark to point is deleted,
 since it is assumed the remote process will re-echo it).  The value of
 variable `comint-input-sentinel' is called on the input before sending it.
 The input is entered into the input history ring, if the value of variable
@@ -644,6 +645,43 @@ Similarly for Soar, Scheme, etc."
 	  (set-marker comint-last-input-start pmark)
 	  (set-marker comint-last-input-end (point))
 	  (set-marker (process-mark proc) (point))))))
+
+;; The sole purpose of using this filter for comint processes
+;; is to keep comint-last-input-end from moving forward
+;; when output is inserted.
+(defun comint-filter (process string)
+  (let ((obuf (current-buffer))
+	ordonly
+	opoint obeg oend)
+    (set-buffer (process-buffer process))
+    (setq opoint (point))
+    (setq obeg (point-min))
+    (setq oend (point-max))
+    (setq ordonly buffer-read-only)
+    (let ((buffer-read-only nil)
+	  (nchars (length string)))
+      (widen)
+      (goto-char (process-mark process))
+      (setq opoint (+ opoint nchars))
+      ;; Insert after old_begv, but before old_zv.
+      (if (< (point) obeg)
+	  (setq obeg (+ obeg nchars)))
+      (if (<= (point) oend)
+	  (setq oend (+ oend nchars)))
+
+      (insert-before-markers string)
+      (and comint-last-input-end
+	   (marker-buffer comint-last-input-end)
+	   (= (point) comint-last-input-end)
+	   (set-marker comint-last-input-end
+		       (- comint-last-input-end nchars)))
+      (set-marker (process-mark process) (point) nil)
+      (force-mode-line-update)
+
+      (narrow-to-region obeg oend)
+      (setq buffer-read-only ordonly)
+      (goto-char opoint)
+      (set-buffer obuf))))
 
 (defun comint-get-old-input-default ()
   "Default for comint-get-old-input.
