@@ -3,6 +3,7 @@
 ;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
+;; Maintainer: John Paul Wallington <jpw@shootybangbang.com>
 ;; Created: 8 Sep 2000
 ;; Keywords: buffer, convenience
 
