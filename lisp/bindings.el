@@ -324,7 +324,7 @@ Return a string to display in the mode line for the current mode name."
 	      :button (:toggle . highlight-changes-mode)))
 (define-key mode-line-mode-menu [glasses-mode]
   `(menu-item ,(purecopy "Glasses") glasses-mode
-	      :button (:toggle . glasses-mode)))
+	      :button (:toggle . (bound-and-true-p glasses-mode))))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
   `(menu-item ,(purecopy "Hide ifdef") hide-ifdef-mode
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
@@ -414,8 +414,6 @@ buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
 	 ".x86f" ".sparcf"
 	 ;; Libtool
 	 ".lo" ".la"
-	 ;; Java
-	 ".class"
 	 ;; Texinfo-related
 	 ".toc" ".log" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
