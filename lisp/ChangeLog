@@ -3,6 +3,15 @@
 	* info-look.el (info-lookup-make-completions): Allow colons in index
 	entries by looking for ": " to terminate, as per latest info.el.
 
+2003-05-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc-mcvs.el (vc-mcvs-command): Filter output of `status'.
+	(vc-mcvs-state, vc-mcvs-dir-state, vc-mcvs-print-log, vc-mcvs-diff):
+	Change dir so that the filtered output of `mcvs makes sense.
+	(vc-mcvs-mode-line-string): Handle the case where CVS is desync'd.
+	(vc-mcvs-diff-tree): Don't bother with the local-diff code.
+	(vc-mcvs-create-snapshot): Use `branch' and `switch'.
+
 2003-05-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-indent): Try to align to adjacent comments.
