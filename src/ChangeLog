@@ -1,3 +1,13 @@
+2005-02-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Use MAC_OS_X_VERSION_MAX_ALLOWED to conditionalize by
+	the compiling OS version.
+
+	* macfns.c (x_create_tip_frame): Likewise.
+
+	* macterm.c (mac_draw_string_common, x_make_frame_visible):
+	Likewise.
+
 2005-02-03  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (x_error_quitter): On GCC 3 and up, specify noinline.
