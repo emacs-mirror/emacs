@@ -1,3 +1,8 @@
+2002-09-21  Markus Rost  <rost@math.ohio-state.edu>
+
+	* mail/mailabbrev.el (mail-abbrev-make-syntax-table):  Give %!._-
+	word constituent syntax.
+
 2002-09-21  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-dep.el (custom-make-dependencies): Bind to t
