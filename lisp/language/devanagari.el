@@ -26,18 +26,18 @@
 ;;; Commentary:
 
 ;; History:
-;; 1996.9.18 written by KAWABATA, Taichi <kawabata@is.s.u-tokyo.ac.jp>
-
+;; 1996.10.18 written by KAWABATA, Taichi <kawabata@is.s.u-tokyo.ac.jp>
+;; 1997.1.20 fixed some bugs.
 ;;; Code:
 
 (make-coding-system
- 'coding-system-is13194-devanagari 2 ?D
+ 'in-is13194-devanagari 2 ?D
  "Coding-system used for ASCII(MSB=0) & IS13194-Devanagari(MSB=1)."
  '((ascii t) (indian-is13194 t) nil nil
    nil ascii-eol))
-(put 'coding-system-is13194-devanagari
+(put 'in-is13194-devanagari
      'post-read-conversion 'devanagari-compose-from-is13194-region)
-(put 'coding-system-is13194-devanagari
+(put 'in-is13194-devanagari
      'pre-write-conversion 'devanagari-decompose-to-is13194-region)
 
 (register-input-method
@@ -53,13 +53,13 @@
 		"quail/devanagari"))
 
 (defun setup-devanagari-environment ()
-  (setq coding-category-iso-8-1 'coding-system-is13194-devanagari)
+  (setq coding-category-iso-8-1 'in-is13194-devanagari)
 
   (set-coding-priority
    '(coding-category-iso-7
      coding-category-iso-8-1))
 
-  (setq-default buffer-file-coding-system 'coding-system-is13194-devanagari)
+  (setq-default buffer-file-coding-system 'in-is13194-devanagari)
 
   (setq default-input-method '("Devanagari" . "quail-devanagari-itrans"))
   )
@@ -67,7 +67,7 @@
 (set-language-info-alist
  "Devanagari" '((setup-function . setup-devanagari-environment)
 		(charset . (indian-is13194 indian-2-column indian-1-column))
-		(coding-system . (coding-system-is13194-devanagari))
+		(coding-system . (in-is13194-devanagari))
 		(documentation . t)))
 
 (let ((deflist	'(;; chars	syntax	category
@@ -102,6 +102,7 @@
 ;;
 ;; Devanagari Glyph List
 ;;
+;;      0 1 2 3 4 5 6 7 8 9 a b c d e f
 ;;2120   $(5!!!"!#!$!%!&!'!(!)!*!+!,!-!.!/(B
 ;;2130 $(5!0!1!2!3!4!5!6!7!8!9!:!;!<!=!>!?(B
 ;;2140 $(5!@!A!B!C!D!E!F!G!H!I!J!K!L!M!N!O(B
@@ -109,27 +110,31 @@
 ;;2160 $(5!`!a!b!c!d!e!f!g!h!i!j!k!l!m!n!o(B
 ;;2170 $(5!p!q!r!s!t!u!v!w!x!y!z!{!|!}!~(B
 ;;
-;;2220 $(5"!"""#"$"%"&"'"(")"*"+","-"."/(B
+;;      0 1 2 3 4 5 6 7 8 9 a b c d e f
+;;2220   $(5"!"""#"$"%"&"'"(")"*"+","-"."/(B
 ;;2230 $(5"0"1"2"3"4"5"6"7"8"9":";"<"=">"?(B
 ;;2240 $(5"@"A"B"C"D"E"F"G"H"I"J"K"L"M"N"O(B
 ;;2250 $(5"P"Q"R"S"T"U"V"W"X"Y"Z"["\"]"^"_(B
 ;;2260 $(5"`"a"b"c"d"e"f"g"h"i"j"k"l"m"n"o(B
 ;;2270 $(5"p"q"r"s"t"u"v"w"x"y"z"{"|"}"~(B
 ;;
-;;2320 $(5#!#"###$#%#&#'#(#)#*#+#,#-#.#/(B
+;;      0 1 2 3 4 5 6 7 8 9 a b c d e f
+;;2320   $(5#!#"###$#%#&#'#(#)#*#+#,#-#.#/(B
 ;;2330 $(5#0#1#2#3#4#5#6#7#8#9#:#;#<#=#>#?(B
 ;;2340 $(5#@#A#B#C#D#E#F#G#H#I#J#K#L#M#N#O(B
 ;;2350 $(5#P#Q#R#S#T#U#V#W#X#Y#Z#[#\#]#^#_(B
 ;;2360 $(5#`#a#b#c#d#e#f#g#h#i#j#k#l#m#n#o(B
 ;;2370 $(5#p#q#r#s#t#u#v#w#x#y#z#{#|#}#~(B
 ;;
-;;2420 $(5$!$"$#$$$%$&$'$($)$*$+$,$-$.$/(B
+;;      0 1 2 3 4 5 6 7 8 9 a b c d e f
+;;2420   $(5$!$"$#$$$%$&$'$($)$*$+$,$-$.$/(B
 ;;2430 $(5$0$1$2$3$4$5$6$7$8$9$:$;$<$=$>$?(B
 ;;2440 $(5$@$A$B$C$D$E$F$G$H$I$J$K$L$M$N$O(B
 ;;2450 $(5$P$Q$R$S$T$U$V$W$X$Y$Z$[$\$]$^$_(B
 ;;2460 $(5$`$a$b$c$d$e$f$g$h$i$j$k$l$m$n$o(B
 ;;2470 $(5$p$q$r$s$t$u$v$w$x$y$z${$|$}$~(B
 ;;
+;;     0123456789abcdef
 ;;2120  $(6!!!"!#!$!%!&!'!(!)!*!+!,!-!.!/(B
 ;;2130 $(6!0!1!2!3!4!5!6!7!8!9!:!;!<!=!>!?(B
 ;;2140 $(6!@!A!B!C!D!E!F!G!H!I!J!K!L!M!N!O(B
@@ -137,6 +142,7 @@
 ;;2160 $(6!`!a!b!c!d!e!f!g!h!i!j!k!l!m!n!o(B
 ;;2170 $(6!p!q!r!s!t!u!v!w!x!y!z!{!|!}!~(B
 ;;
+;;     0123456789abcdef
 ;;2220  $(6"!"""#"$"%"&"'"(")"*"+","-"."/(B
 ;;2230 $(6"0"1"2"3"4"5"6"7"8"9":";"<"=">"?(B
 ;;2240 $(6"@"A"B"C"D"E"F"G"H"I"J"K"L"M"N"O(B
@@ -150,6 +156,7 @@
 ;;2360 $(6#`#a#b#c#d#e#f#g#h#i#j#k#l#m#n#o(B
 ;;2370 $(6#p#q#r#s#t#u#v#w#x#y#z#{#|#}#~(B
 ;;
+;;     0123456789abcdef
 ;;2320  $(6$!$"$#$$$%$&$'$($)$*$+$,$-$.$/(B
 ;;2430 $(6$0$1$2$3$4$5$6$7$8$9$:$;$<$=$>$?(B
 ;;2440 $(6$@$A$B$C$D$E$F$G$H$I$J$K$L$M$N$O(B
@@ -258,7 +265,7 @@
     (?$(5"!(B . nil)
     (?$(5""(B . nil)
     (?$(5"#(B . nil)
-    (?$(5"$(B . nil)
+    (?$(5"$(B . ?$(6"$(B)
     (?$(5"%(B . ?$(6"%(B)
     (?$(5"&(B . ?$(6"&(B)
     (?$(5"'(B . nil)
@@ -315,7 +322,7 @@
     (?$(5"Z(B . nil)
     (?$(5"[(B . nil)
     (?$(5"\(B . nil)
-    (?$(5"](B . nil)
+    (?$(5"](B . ?$(6"](B)
     (?$(5"^(B . nil)
     (?$(5"_(B . nil)
     (?$(5"`(B . ?$(6"`(B)
@@ -329,7 +336,7 @@
     (?$(5"h(B . ?$(6"h(B)
     (?$(5"i(B . ?$(6"i(B)
     (?$(5"j(B . ?$(6"j(B)
-    (?$(5"k(B . nil)
+    (?$(5"k(B . ?$(6"k(B)
     (?$(5"l(B . ?$(6"l(B)
     (?$(5"m(B . ?$(6"m(B)
     (?$(5"n(B . nil)
@@ -354,11 +361,11 @@
     (?$(5##(B . nil)
     (?$(5#$(B . nil)
     (?$(5#%(B . nil)
-    (?$(5#&(B . ?$(6#&(B)
-    (?$(5#'(B . ?$(6#'(B)
+    (?$(5#&(B . nil)
+    (?$(5#'(B . nil)
     (?$(5#((B . nil)
     (?$(5#)(B . nil)
-    (?$(5#*(B . ?$(6#*(B)
+    (?$(5#*(B . nil)
     (?$(5#+(B . nil)
     (?$(5#,(B . nil)
     (?$(5#-(B . nil)
@@ -391,9 +398,9 @@
     (?$(5#H(B . nil)
     (?$(5#I(B . nil)
     (?$(5#J(B . ?$(6#J(B)
-    (?$(5#K(B . nil)
-    (?$(5#L(B . nil)
-    (?$(5#M(B . nil)
+    (?$(5#K(B . ?$(6#K(B)
+    (?$(5#L(B . ?$(6#L(B)
+    (?$(5#M(B . ?$(6#M(B)
     (?$(5#N(B . nil)
     (?$(5#O(B . nil)
     (?$(5#P(B . nil)
