@@ -405,6 +405,9 @@ extern char *getenv ();
 #define BITS_PER_LONG 32
 #endif
 
+/* Don't include <string.h> during configure.  */
+#ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
 #include "string.h"
+#endif
 #endif
