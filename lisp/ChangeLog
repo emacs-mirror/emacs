@@ -1,3 +1,20 @@
+2000-05-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (encode-coding-char): An ASCII
+	character is always encodable.
+
+	* international/mule-conf.el: Add more information in descriptions
+	of character sets.
+
+	* international/mule-diag.el (syntax-description-table): New
+	variable.
+	(describe-char-after): New function.
+	(describe-font-internal): Adjusted for the change of font-info.
+	(describe-font): Likewise.
+	(print-fontset): Rewritten for the new fontset implementation.
+	(describe-fontset): Include fontset alias names in completion.
+	(list-fontsets): Adjusted for the change of print-fontset.
+
 2000-05-12  Dave Love  <fx@gnu.org>
 
 	* calendar/todo-mode.el: Remove some compatibility stuff and CL
