@@ -726,7 +726,7 @@ cached information about equivalent key sequences.")
       if (EQ (position, Qt))
 	{
 	  /* Use the mouse's current position.  */
-	  FRAME_PTR new_f = 0;
+	  FRAME_PTR new_f = selected_frame;
 	  Lisp_Object bar_window;
 	  int part;
 	  unsigned long time;
@@ -916,7 +916,7 @@ on the left of the dialog box and all following items on the right.\n\
     {
 #if 0 /* Using the frame the mouse is on may not be right.  */
       /* Use the mouse's current position.  */
-      FRAME_PTR new_f = 0;
+      FRAME_PTR new_f = selected_frame;
       Lisp_Object bar_window;
       int part;
       unsigned long time;
