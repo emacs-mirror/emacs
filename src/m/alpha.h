@@ -46,11 +46,6 @@ NOTE-END
 
 #define NO_ARG_ARRAY
 
-/* Define WORD_MACHINE if addresses and such have
- * to be corrected before they can be used as byte counts.  */
-
-/* #define WORD_MACHINE */
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
    Ones defined so far include vax, m68000, ns16000, pyramid,
@@ -85,21 +80,6 @@ NOTE-END
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-/* Define CANNOT_DUMP on machines where unexec does not work.
-   Then the function dump-emacs will not be defined
-   and temacs will do (load "loadup") automatically unless told otherwise.  */
-
-/* #define CANNOT_DUMP */
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-
-/* #define VIRT_ADDR_VARIES */
-
 /* Define C_ALLOCA if this machine does not support a true alloca
    and the one written in C should be used instead.
    Define HAVE_ALLOCA to say that the system provides a properly
@@ -121,28 +101,6 @@ NOTE-END
    right now.  Feel free to play if you want.  */
 
 /* #define SYSTEM_MALLOC */
-
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-
-#define NO_REMAP
-
-/* Some really obscure 4.2-based systems (like Sequent DYNIX)
- * do not support asynchronous I/O (using SIGIO) on sockets,
- * even though it works fine on tty's.  If you have one of
- * these systems, define the following, and then use it in
- * config.h (or elsewhere) to decide when (not) to use SIGIO.
- *
- * You'd think this would go in an operating-system description file,
- * but since it only occurs on some, but not all, BSD systems, the
- * reasonable place to select for it is in the machine description
- * file.
- */
-
-/* #define NO_SOCK_SIGIO */
-
 
 #ifdef __ELF__
 /* With ELF, make sure that all common symbols get allocated to in the
