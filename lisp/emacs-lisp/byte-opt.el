@@ -278,8 +278,10 @@
 	      (cons (list 'lambda (aref fn 0)
 			  (list 'byte-code string (aref fn 2) (aref fn 3)))
 		    (cdr form)))
-	  (if (not (eq (car fn) 'lambda)) (error "%s is not a lambda" name))
-	  (cons fn (cdr form)))))))
+	  (if (eq (car-safe fn) 'lambda)
+	      (cons fn (cdr form))
+	    ;; Give up on inlining.
+	    form))))))
 
 ;;; ((lambda ...) ...)
 ;;; 
