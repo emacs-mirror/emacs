@@ -1339,6 +1339,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (ucsize  (archive-l-e (+ p 24) 4))
              (fnlen   (archive-l-e (+ p 28) 2))
              (exlen   (archive-l-e (+ p 30) 2))
+             (fclen   (archive-l-e (+ p 32) 2))
              (lheader (archive-l-e (+ p 42) 4))
              (efnname (buffer-substring (+ p 46) (+ p 46 fnlen)))
 	     (isdir   (and (= ucsize 0)
@@ -1373,7 +1374,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			    (vector efnname ifnname fiddle mode
 				    (list (1- p) lheader)))
                           files)
-              p (+ p 46 fnlen exlen))))
+              p (+ p 46 fnlen exlen fclen))))
     (goto-char (point-min))
     (let ((dash (concat "- ----------  --------  -----------  --------  "
 			(make-string maxlen ?-)
