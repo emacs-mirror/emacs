@@ -5858,7 +5858,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (15935 39015))
+;;;;;;  "dired" "dired.el" (16011 61148))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -5941,6 +5941,12 @@ The target is used in the prompt for file copy, rename etc.")
 \(This works on only some systems.)")
 
 (custom-autoload (quote dired-copy-preserve-time) "dired")
+
+(defvar dired-directory nil "\
+The directory name or wildcard spec that this Dired directory lists.
+Local to each dired buffer.  May be a list, in which case the car is the
+directory name and the cdr is the list of files to mention.
+The directory name must be absolute, but need not be fully expanded.")
  (define-key ctl-x-map "d" 'dired)
 
 (autoload (quote dired) "dired" "\
