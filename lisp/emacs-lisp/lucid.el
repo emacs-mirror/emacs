@@ -117,7 +117,14 @@ bottom of the buffer stack."
       (bury-buffer (current-buffer)))
   (switch-to-buffer
    (if (<= arg 1) (other-buffer (current-buffer))
-     (nth (1+ arg) (buffer-list)))))
+     (nth (1+ arg)
+	  (apply 'nconc
+		 (mapcar
+		  (lambda (buf)
+		    (if (= (string-to-char (buffer-name (car (cdr tail))))
+			   ?\ )
+			nil
+		      (list buf)))))))))
 
 (defalias 'find-face 'internal-find-face)
 (defalias 'get-face 'internal-get-face)
@@ -165,12 +172,14 @@ bottom of the buffer stack."
 ;; (defalias 'set-screen-height 'set-frame-height)
 (defalias 'set-screen-position 'set-frame-position)
 (defalias 'set-screen-size 'set-frame-size)
-ll (defalias 'set-screen-width 'set-frame-width)
+;; (defalias 'set-screen-width 'set-frame-width)
 (defalias 'switch-to-buffer-new-screen 'switch-to-buffer-other-frame)
 ;; (defalias 'unfocus-screen 'unfocus-frame)
 (defalias 'visible-screen-list 'visible-frame-list)
 (defalias 'window-screen 'window-frame)
 (defalias 'x-create-screen 'x-create-frame)
 (defalias 'x-new-screen 'new-frame)
+
+(provide 'lucid)
 
 ;;; end of lucid.el
