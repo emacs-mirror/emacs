@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-util.el,v 1.5 2000/11/06 06:54:16 monnier Exp $
+;; Revision: $Id: pcvs-util.el,v 1.6 2000/12/06 19:53:00 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -94,14 +94,14 @@ the other elements.  The ordering among elements is maintained."
 	   (if (> n 0) (setcdr (nthcdr (- (1- m) n) x) nil))
 	   x))))
 
-;;;; 
-;;;; frame, window, buffer handling
-;;;; 
+;;;
+;;; frame, window, buffer handling
+;;;
 
 (defun cvs-pop-to-buffer-same-frame (buf)
   "Pop to BUF like `pop-to-buffer' but staying on the same frame.
 If `pop-to-buffer' would have opened a new frame, this function would
-try to split the a new window instead."
+try to split a new window instead."
   (let ((pop-up-windows (or pop-up-windows pop-up-frames))
 	(pop-up-frames nil))
     (or (let ((buf (get-buffer-window buf))) (and buf (select-window buf)))
