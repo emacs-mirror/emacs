@@ -34,6 +34,8 @@
 #	provided at <http://www.iana.org/assignments/charset-reg/>
 #   o stdenc.txt and symbol.txt
 #	provided at <http://www.unicode.org/Public/MAPPINGS/>
+#   o cp932.txt
+#	provided at <http://www.unicode.org/Public/MAPPINGS/VENDERS>
 #   o Uni2JIS
 #	provided at <http://kanji.zinbun.kyoto-u.ac.jp/~yasuoka/CJK.html>
 #   o 720.htm and 858.htm
@@ -76,7 +78,7 @@ CJK =   GB2312.map GBK.map GB180302.map GB180304.map \
 	CNS-1.map CNS-2.map CNS-3.map CNS-4.map CNS-5.map CNS-6.map CNS-7.map \
 	CNS-F.map \
 	JISX0201.map JISX0208.map JISX0212.map JISX2131.map JISX2132.map \
-	JISC6226.map \
+	JISC6226.map CP932-2BYTE.map\
 	KSC5601.map KSC5636.map JOHAB.map
 
 MISC =  KOI-8.map KOI8-R.map KOI8-U.map KOI8-T.map ALTERNATIVNYJ.map \
@@ -189,6 +191,10 @@ JISX2131.map: ${GLIBC_CHARMAPS}/EUC-JISX0213 mapconv
 JISX2132.map: ${GLIBC_CHARMAPS}/EUC-JISX0213 mapconv
 	# Generating $@...
 	@mapconv $< '/^<.*[ 	]\/x8f/ s,/x8f,,' GLIBC-2-7 > $@
+
+CP932-2BYTE.map: ${MISC_CHARMAPS}/cp932.txt mapconv
+	# Generating $@...
+	@mapconv $< '/^0x[89a-f][0-9A-F][0-9A-F]/' UNICODE2 > $@
 
 JISC6226.map : ${MISC_CHARMAPS}/Uni2JIS mapconv kuten.awk
 	# Generating $@...
