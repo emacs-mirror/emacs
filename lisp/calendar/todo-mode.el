@@ -6,9 +6,13 @@
 ;;       please contact   (address) O Seidel, Lessingstr 8, Eschborn, FRG
 ;;                        (e-mail ) Oliver.Seidel@cl.cam.ac.uk (2 Aug 1997)
 
-;; $Id: todomode.el,v 1.4 1997/08/04 16:18:45 os10000 Exp os10000 $
+;; $Id: todomode.el,v 1.5 1997/08/05 14:43:39 os10000 Exp os10000 $
 ;;
 ;; $Log: todomode.el,v $
+;; Revision 1.5  1997/08/05  14:43:39  os10000
+;; Added improvements from Ron Gut <rgut@aware.com>.
+;; Added category management.
+;;
 ;; Revision 1.4  1997/08/04  16:18:45  os10000
 ;; Added Raise/Lower item.
 ;;
@@ -29,7 +33,15 @@
 ;; To get this to work, make emacs execute the line "(require 'todomode)"
 ;; and maybe initialise the variables below on startup.
 ;;
-;; Then you have the following facilities available:
+;; Just for the case that you are wondering about the ugly name of this
+;; package: I am one of those unfortunate people who have DOS, LINUX and
+;; OS/2 on one of their computers, so part of my home-filespace is shared
+;; and stored on a DOS partition, which is accessible to all systems.  If
+;; you wish, you can of course rename the name of the file (and the last
+;; command) to something more aisthetically (please don't argue about
+;; this spelling ...) pleasing, like i.e. todo-mode.
+;;
+;; You will have the following facilities available:
 ;;
 ;; M-x todo-mode              will enter the todo list screen, here type
 ;; +                          to go to next category
@@ -46,6 +58,14 @@
 ;; r                          raise current entryk's priority
 ;; s                          to save the list
 ;;
+;; When you add a new entry, you are asked for the text and then for the
+;; category.  I for example have categories for things that I want to do
+;; in the office (like mail my mum), that I want to do in town (like buy
+;; cornflakes) and things I want to do at home (move my suitcases).  The
+;; categories can be selected with the cursor keys and if you type in the
+;; name of a category which didn't exist before, an empty category of the
+;; desired name will be added.
+;;
 ;; I would recommend to add the following bindings to your global keymap:
 ;;
 ;; (global-set-key "\C-ct" 'todo-show)
@@ -58,6 +78,16 @@
 ;; I would also recommend that use the prefix "*/*" (by leaving the
 ;; variable 'todo-prefix' untouched) so that the diary displays
 ;; each entry every day.
+;;
+;; For this, please read the documentation that goes with the calendar
+;; since that will tell you how you can set up the fancy diary display
+;; and use the #include command to include your todo list file as part
+;; of your diary.
+;;
+;; Enjoy this package and express your gratitude by sending valuables
+;; to my parents' address as listed above!!!
+;;
+;; Oliver Seidel
 
 ;; ---------------------------------------------------------------------------
 
@@ -194,7 +224,7 @@
   (beginning-of-line nil)
   (let* ((todo-entry (concat todo-prefix " " (read-from-minibuffer "New TODO entry: ")))
 	 (temp-catgs todo-cats)
-	 (todo-hstry (cons 'temp-cats (+ todo-category-number 1))))
+	 (todo-hstry (cons 'temp-catgs (+ todo-category-number 1))))
     (save-window-excursion
       (setq todo-category
 	    (read-from-minibuffer "Category: " (nth todo-category-number todo-cats) nil nil todo-hstry))
@@ -291,9 +321,10 @@
       (progn
 	(let ((time-stamp-format "%3b %2d, %y, %02I:%02M%p"))
 	  (beginning-of-line nil)
+	  (delete-region (point-at-bol) (search-forward todo-prefix))
 	  (insert (time-stamp-string))
 	  (end-of-line nil)
-	  (insert (concat " (" (read-fromminibuffer "Comment: ") ")"))
+	  (insert (concat " (" (read-from-minibuffer "Comment: ") ")"))
 	  (append-to-file (point-at-bol) (+ 1 (point-at-eol)) todo-file-done)
 	  (delete-region (point-at-bol) (+ 1 (point-at-eol)))
 	  (forward-line -1)
@@ -323,6 +354,29 @@
 
 ;; ---------------------------------------------------------------------------
 
+(defvar todo-mode-popup-menu
+  (purecopy '("Todo Mode Menu"
+              ["Forward item"         todo-cmd-forw t]
+              ["Backward item"        todo-cmd-back t]
+              "---"
+              ["Edit item"            todo-cmd-edit t]
+              ["File item"            todo-cmd-file t]
+              ["Insert new item"      todo-cmd-inst t]
+              ["Kill item"            todo-cmd-kill t]
+              "---"
+              ["Lower item priority"  todo-cmd-lowr t]
+              ["Raise item priority"  todo-cmd-rais t]
+              "---"
+              ["Next item"            todo-cmd-next t]
+              ["Previous item"        todo-cmd-prev t]
+              "---"
+              ["Save"                 todo-cmd-save t]
+              "---"
+              ["Quit"                 todo-cmd-done t]
+              )
+	    )
+  )
+
 (defvar todo-cats nil "TODO categories.")
 (defvar todo-category-number 0 "TODO category number.")
 
@@ -331,6 +385,7 @@
   (setq major-mode 'todo-mode)
   (setq mode-name "TODO")
   (use-local-map todo-mode-map)
+  (setq mode-popup-menu todo-mode-popup-menu)
   (run-hooks 'todo-mode-hook)
   )
 
