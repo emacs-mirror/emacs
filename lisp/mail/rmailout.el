@@ -48,8 +48,8 @@ a file name as a string."
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
 buffer visiting that file.
-If the file exists and is not an Rmail file, 
-the message is appended in inbox format.
+If the file exists and is not an Rmail file, the message is
+appended in inbox format, the same way `rmail-output' does it.
 
 The default file name comes from `rmail-default-rmail-file',
 which is updated to the name you use in this command.
