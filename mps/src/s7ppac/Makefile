@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.21) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.22) $
 #
 # Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
 #
@@ -147,6 +147,7 @@ mmsw_{Variety}.o  Ä  ¶
 		protocol{OSffx} ¶
                 action{OSffx} ¶
                 seg{OSffx} ¶
+                sac{OSffx} ¶
                 event{OSffx} ¶
                 mpsioan{OSffx} ¶
                 dbgpool{OSffx} ¶

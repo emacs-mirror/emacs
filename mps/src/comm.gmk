@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.58) $
+# $HopeName: MMsrc!comm.gmk(trunk.59) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -191,14 +191,14 @@ EVENTPROC = eventcnv.c eventpro.c table.c
 MPMCOMMON = assert.c mpsi.c mpm.c arenavm.c arenacl.c arena.c \
             tract.c walk.c reserv.c protocol.c pool.c poolabs.c \
             trace.c root.c seg.c format.c buffer.c ref.c bt.c ring.c \
-            shield.c ld.c event.c action.c message.c \
+            shield.c ld.c event.c action.c sac.c message.c \
             poolmrg.c poolmfs.c poolmv.c dbgpool.c \
             abq.c meter.c poolmv2.c splay.c cbs.c version.c
 MPM = $(MPMCOMMON) $(MPMPF)
 SWCOMMON = assert.c mpsi.c mpm.c arenavm.c arenacl.c arena.c \
            tract.c walk.c reserv.c protocol.c pool.c poolabs.c \
            trace.c root.c seg.c format.c buffer.c ref.c bt.c ring.c \
-           shield.c ld.c event.c action.c mpsioan.c message.c poolmrg.c \
+           shield.c ld.c event.c action.c sac.c mpsioan.c message.c poolmrg.c \
            poolmfs.c poolmv.c poolepdl.c poolepvm.c poolams.c dbgpool.c \
            abq.c meter.c poolmv2.c splay.c cbs.c version.c poolmvff.c
 SW = $(SWCOMMON) $(SWPF)
@@ -261,7 +261,7 @@ endif
 # Not all targets need be specified in the "all" target.  It is
 # just a convenient set of targets to build.
 
-all: mpmss apss amcss amsss segsmss awlut mpsicv lockcov poolncv mps.a \
+all: mpmss apss sacss amcss amsss segsmss awlut mpsicv lockcov poolncv mps.a \
      locv qs finalcv arenacv bttest teletest abqtest cbstest \
      btcv mv2eptst mv2test messtest
 
@@ -269,7 +269,7 @@ all: mpmss apss amcss amsss segsmss awlut mpsicv lockcov poolncv mps.a \
 # These tests are run overnight (see design.buildsys.overnight).
 #   bttest & teletest cannot be run unattended
 #   mv2test cannot be run because MV2 is broken
-testrun: mpmss apss amcss amsss segsmss awlut mpsicv lockcov poolncv \
+testrun: mpmss apss sacss amcss amsss segsmss awlut mpsicv lockcov poolncv \
          locv qs finalcv arenacv abqtest cbstest btcv messtest
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
@@ -284,8 +284,8 @@ testrunep: epvmss
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss apss amcss amcssth amsss segsmss awlut awlutth mpsicv lockcov poolncv \
-  locv qs finalcv arenacv bttest teletest epvmss \
+mpmss apss sacss amcss amcssth amsss segsmss awlut awlutth mpsicv lockcov \
+  poolncv locv qs finalcv arenacv bttest teletest epvmss \
   abqtest cbstest btcv mv2eptst mv2test messtest eventcnv replay replaysw \
   mps.a lo.a awl.a mmsw.a mpsplan.a mmdw.a: phony
 ifdef VARIETY
@@ -346,6 +346,9 @@ $(PFM)/$(VARIETY)/mpmss: $(PFM)/$(VARIETY)/mpmss.o \
 	$(MPMOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/apss: $(PFM)/$(VARIETY)/apss.o \
+	$(MPMOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
+
+$(PFM)/$(VARIETY)/sacss: $(PFM)/$(VARIETY)/sacss.o \
 	$(MPMOBJ) $(MVFFOBJ) $(TESTLIBOBJ)
 
 $(PFM)/$(VARIETY)/bttest: $(PFM)/$(VARIETY)/bttest.o \
