@@ -287,7 +287,7 @@ check_composition (pos, pos_byte, point, len, len_byte, width)
      int *len, *len_byte, *width;
 {
   Lisp_Object prop;
-  int start, end;
+  EMACS_INT start, end;
   int id;
 
   if (! find_composition (pos, -1, &start, &end, &prop, Qnil)
