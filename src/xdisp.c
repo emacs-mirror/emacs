@@ -11553,16 +11553,20 @@ display_line (it)
   /* Remember the position at which this line ends.  */
   row->end = it->current;
 
-  /* Maybe set the cursor.  We want to set the cursor on the first
-     glyph having position PT.  This means it doesn't matter if the
-     row is continued and ends in the middle of the character at PT.
-     If some glyphs of that character are in this row, this is the
-     right row to put the cursor on.  */
+  /* Maybe set the cursor.  */
   if (it->w->cursor.vpos < 0
       && PT >= MATRIX_ROW_START_CHARPOS (row)
-      && PT <= MATRIX_ROW_END_CHARPOS (row)
-      && !(PT == ZV && !row->ends_at_zv_p))
-    set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
+      && PT <= MATRIX_ROW_END_CHARPOS (row))
+    {
+      /* Also see redisplay_window, case cursor movement in unchanged
+	 window.  */
+      if (MATRIX_ROW_END_CHARPOS (row) == PT
+	  && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
+	  && !row->ends_at_zv_p)
+	;
+      else
+	set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
+    }
 
   /* Highlight trailing whitespace.  */
   if (!NILP (Vshow_trailing_whitespace))
