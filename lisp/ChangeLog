@@ -1,5 +1,12 @@
 2001-01-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* subr.el (eval-after-load): Call load-symbol-file-load-history to
+	ensure that eval-after-load works for files dumped with Emacs.
+
+	* help.el (load-symbol-file-load-history): New function extracted
+	from function symbol-file.
+	(symbol-file): Use it.
+
 	* toolbar/save.xpm, toolbar/undo.xpm: Use the same colors as
 	exit.xpm.
 
