@@ -695,7 +695,7 @@ in the list @code{kill-buffer-query-functions}, in order of appearance,
 with no arguments.  The buffer being killed is the current buffer when
 they are called.  The idea is that these functions ask for confirmation
 from the user for various nonstandard reasons.  If any of them returns
-non-@code{nil}, @code{kill-buffer} spares the buffer's life.
+@code{nil}, @code{kill-buffer} spares the buffer's life.
 @end defvar
 
 @defvar kill-buffer-hook
