@@ -1,4 +1,4 @@
-;;; buff-menu.el --- buffer menu main function and support functions
+;;; buff-menu.el --- buffer menu main function and support functions -*- coding:utf-8 -*-
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2000, 2001, 2002, 2003,
 ;;   2004  Free Software Foundation, Inc.
@@ -645,7 +645,7 @@ For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
 	 (standard-output standard-output)
 	 (mode-end (make-string (- Buffer-menu-mode-width 2) ? ))
-	 (header (concat (propertize "CRM " 'face 'fixed-pitch)
+	 (header (concat "CRM "
 			 (Buffer-menu-buffer+size
 			  (Buffer-menu-make-sort-button "Buffer" 2)
 			  (Buffer-menu-make-sort-button "Size" 3))
@@ -660,17 +660,28 @@ For more information, see the function `buffer-menu'."
 	(while (string-match "[ \t]+" header pos)
 	  (setq pos (match-end 0))
 	  (put-text-property (match-beginning 0) pos 'display
-			     ;; Assume fixed-size chars
+			     ;; Assume fixed-size chars in the buffer.
 			     (list 'space :align-to pos)
-			     header))))
+			     header)))
+      ;; Try to better align the one-char headers.
+      (put-text-property 0 3 'face 'fixed-pitch header)
+      ;; Add a "dummy" leading space to align the beginning of the header
+      ;; line with the beginning of the text (rather than with the left
+      ;; scrollbar or the left fringe).  –-Stef
+      (setq header (concat (propertize " " 'display '(space :align-to 0))
+			   header))
+      )
     (with-current-buffer (get-buffer-create "*Buffer List*")
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq standard-output (current-buffer))
       (unless Buffer-menu-use-header-line
-	(insert header (propertize "---" 'face 'fixed-pitch) " ")
-	(insert (Buffer-menu-buffer+size "------" "----"))
-	(insert "  ----" mode-end "----\n"))
+	(let ((underline (if (char-displayable-p ?—) ?— ?-)))
+	  (insert header
+		  (apply 'string
+			 (mapcar (lambda (c)
+				   (if (memq c '(?\n ?\ )) c underline))
+				 header)))))
       (if buffer-list
 	  (setq list buffer-list)
 	;; Collect info for every buffer we're interested in.
