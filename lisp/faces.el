@@ -1201,12 +1201,19 @@ If COLOR is the symbol `unspecified' or one of the strings
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display."
-  (if (and (stringp display) (not (fboundp 'x-display-list)))
-      nil
-    (if (memq (framep (or display (selected-frame))) '(x w32))
-	(xw-display-color-p display)
-      (tty-display-color-p display))))
+  (if (memq (framep-on-display display) '(x w32))
+      (xw-display-color-p display)
+    (tty-display-color-p display)))
 (defalias 'x-display-color-p 'display-color-p)
+
+(defun display-grayscale-p (&optional display)
+  "Return non-nil if frames on DISPLAY can display shades of gray."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32 mac))
+      (x-display-grayscale-p display))
+     (t
+      (> (tty-color-gray-shades display) 2)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
