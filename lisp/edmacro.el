@@ -73,6 +73,8 @@
 (eval-when-compile
  (require 'cl))
 
+(require 'kmacro)
+
 ;;; The user-level commands for editing macros.
 
 ;;;###autoload
@@ -101,7 +103,8 @@ With a prefix argument, format the macro in a more concise way."
   (interactive "kKeyboard macro to edit (C-x e, M-x, C-h l, or keys): \nP")
   (when keys
     (let ((cmd (if (arrayp keys) (key-binding keys) keys))
-	  (mac nil))
+	  (mac nil) (mac-counter nil) (mac-format nil)
+	  kmacro)
       (cond (store-hook
 	     (setq mac keys)
 	     (setq cmd nil))
@@ -112,14 +115,17 @@ With a prefix argument, format the macro in a more concise way."
 		 (y-or-n-p "No keyboard macro defined.  Create one? ")
 		 (keyboard-quit))
 	     (setq mac (or last-kbd-macro ""))
+	     (setq keys nil)
 	     (setq cmd 'last-kbd-macro))
 	    ((eq cmd 'execute-extended-command)
 	     (setq cmd (read-command "Name of keyboard macro to edit: "))
 	     (if (string-equal cmd "")
 		 (error "No command name given"))
+	     (setq keys nil)
 	     (setq mac (symbol-function cmd)))
 	    ((memq cmd '(view-lossage electric-view-lossage))
 	     (setq mac (recent-keys))
+	     (setq keys nil)
 	     (setq cmd 'last-kbd-macro))
 	    ((null cmd)
 	     (error "Key sequence %s is not defined" (key-description keys)))
@@ -128,6 +134,10 @@ With a prefix argument, format the macro in a more concise way."
 	    (t
 	     (setq mac cmd)
 	     (setq cmd nil)))
+      (when (setq kmacro (kmacro-extract-lambda mac))
+	(setq mac (car kmacro)
+	      mac-counter (nth 1 kmacro)
+	      mac-format (nth 2 kmacro)))
       (unless (arrayp mac)
 	(error "Key sequence %s is not a keyboard macro"
 	       (key-description keys)))
@@ -153,11 +163,15 @@ With a prefix argument, format the macro in a more concise way."
 	(insert ";; Original keys: " fmt "\n")
 	(unless store-hook
 	  (insert "\nCommand: " (if cmd (symbol-name cmd) "none") "\n")
-	  (let ((keys (where-is-internal (or cmd mac) '(keymap))))
-	    (if keys
-		(while keys
-		  (insert "Key: " (edmacro-format-keys (pop keys) 1) "\n"))
-	      (insert "Key: none\n"))))
+	  (let ((gkeys (where-is-internal (or cmd mac) '(keymap))))
+	    (if (and keys (not (member keys gkeys)))
+		(setq gkeys (cons keys gkeys)))
+	    (if gkeys
+		(while gkeys
+		  (insert "Key: " (edmacro-format-keys (pop gkeys) 1) "\n"))
+	      (insert "Key: none\n")))
+	  (when (and mac-counter mac-format)
+	    (insert (format "Counter: %d\nFormat: \"%s\"\n" mac-counter mac-format))))
 	(insert "\nMacro:\n\n")
 	(save-excursion
 	  (insert fmtv "\n"))
@@ -217,6 +231,7 @@ or nil, use a compact 80-column format."
      "This command is valid only in buffers created by `edit-kbd-macro'"))
   (run-hooks 'edmacro-finish-hook)
   (let ((cmd nil) (keys nil) (no-keys nil)
+	(mac-counter nil) (mac-format nil) (kmacro nil)
 	(top (point-min)))
     (goto-char top)
     (let ((case-fold-search nil))
@@ -231,6 +246,7 @@ or nil, use a compact 80-column format."
 			(setq cmd (and (not (equal str "none"))
 				       (intern str)))
 			(and (fboundp cmd) (not (arrayp (symbol-function cmd)))
+			     (not (setq kmacro (get cmd 'kmacro)))
 			     (not (y-or-n-p
 				   (format "Command %s is already defined; %s"
 					   cmd "proceed? ")))
@@ -248,6 +264,7 @@ or nil, use a compact 80-column format."
 			  (push key keys)
 			  (let ((b (key-binding key)))
 			    (and b (commandp b) (not (arrayp b))
+				 (not (kmacro-extract-lambda b))
 				 (or (not (fboundp b))
 				     (not (arrayp (symbol-function b))))
 				 (not (y-or-n-p
@@ -255,6 +272,22 @@ or nil, use a compact 80-column format."
 					       (edmacro-format-keys key 1)
 					       "proceed? ")))
 				 (keyboard-quit))))))
+		    t)
+		   ((looking-at "Counter:[ \t]*\\([^ \t\n]*\\)[ \t]*$")
+		    (when edmacro-store-hook
+		      (error "\"Counter\" line not allowed in this context"))
+		    (let ((str (buffer-substring (match-beginning 1)
+						 (match-end 1))))
+		      (unless (equal str "")
+			(setq mac-counter (string-to-int str))))
+		    t)
+		   ((looking-at "Format:[ \t]*\"\\([^\n]*\\)\"[ \t]*$")
+		    (when edmacro-store-hook
+		      (error "\"Format\" line not allowed in this context"))
+		    (let ((str (buffer-substring (match-beginning 1)
+						 (match-end 1))))
+		      (unless (equal str "")
+			(setq mac-format str)))
 		    t)
 		   ((looking-at "Macro:[ \t\n]*")
 		    (goto-char (match-end 0))
@@ -285,7 +318,10 @@ or nil, use a compact 80-column format."
 	    (when cmd
 	      (if (= (length mac) 0)
 		  (fmakunbound cmd)
-		(fset cmd mac)))
+		(fset cmd
+		      (if (and mac-counter mac-format)
+			  (kmacro-lambda-form mac mac-counter mac-format)
+			mac))))
 	    (if no-keys
 		(when cmd
 		  (loop for key in (where-is-internal cmd '(keymap)) do
@@ -294,7 +330,11 @@ or nil, use a compact 80-column format."
 		(if (= (length mac) 0)
 		    (loop for key in keys do (global-unset-key key))
 		  (loop for key in keys do
-			(global-set-key key (or cmd mac)))))))))
+			(global-set-key key
+					(or cmd
+					    (if (and mac-counter mac-format)
+						(kmacro-lambda-form mac mac-counter mac-format)
+					      mac))))))))))
       (kill-buffer buf)
       (when (buffer-name obuf)
 	(switch-to-buffer obuf))

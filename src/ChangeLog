@@ -1,3 +1,21 @@
+2004-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (auto_save_1) Call Ffile_modes for remote files.
+
+2004-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* process.c (send_process): Free composition data.
+
+	* fileio.c (Finsert_file_contents): Free composition data.
+
+	* coding.c (code_convert_region): Don't skip ASCIIs if there are
+	compositions to encode.
+	(encode_coding_string): Likewise.  Free composition data.
+
+2004-09-30  Florian Weimer <fw@deneb.enyo.de>	(tiny change)
+
+	* coding.c (code_convert_region): Free composition data.
+
 2004-09-29  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c: Remove limit on number of bitmaps.

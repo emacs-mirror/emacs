@@ -1,7 +1,7 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985,86,89,92,94,95,96,97,98,1999,2002,03,2004
-;;       Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1989, 1992, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tex
@@ -196,7 +196,11 @@ use."
   :group 'tex-view)
 
 ;;;###autoload
-(defcustom tex-dvi-view-command '(if (eq window-system 'x) "xdvi" "dvi2tty * | cat -s")
+(defcustom tex-dvi-view-command
+  '(cond
+    ((eq window-system 'x) "xdvi")
+    ((eq window-system 'w32) "yap") 
+    (t "dvi2tty * | cat -s"))
   "*Command used by \\[tex-view] to display a `.dvi' file.
 If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
@@ -453,7 +457,8 @@ An alternative value is \" . \", if you use a font with a narrow period."
 		      '("input" "include" "includeonly" "bibliography"
 			"epsfig" "psfig" "epsf" "nofiles" "usepackage"
 			"documentstyle" "documentclass" "verbatiminput"
-			"includegraphics" "includegraphics*")
+			"includegraphics" "includegraphics*"
+			"url" "nolinkurl")
 		      t))
 	   ;; Miscellany.
 	   (slash "\\\\")
@@ -771,8 +776,10 @@ Inherits `shell-mode-map' with a few additions.")
 				    "part" "chapter" "newcommand"
 				    "renewcommand") 'words)
 		      "\\|NeedsTeXFormat{LaTeX")))
-		  (if (looking-at
-		       "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
+		  (if (and (looking-at
+			    "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
+			   ;; SliTeX is almost never used any more nowadays.
+			   (tex-executable-exists-p slitex-run-command))
 		      'slitex-mode
 		    'latex-mode)
 		'plain-tex-mode))))
@@ -1219,8 +1226,13 @@ A prefix arg inhibits the checking."
 (defvar latex-block-default "enumerate")
 
 (defvar latex-block-args-alist
-  '(("array" nil ?\{ (skeleton-read "[options]: ") ?\})
-    ("tabular" nil ?\{ (skeleton-read "[options]: ") ?\}))
+  '(("array" nil ?\{ (skeleton-read "Format: ") ?\})
+    ("tabular" nil ?\{ (skeleton-read "Format: ") ?\})
+    ("minipage" nil ?\{ (skeleton-read "Size: ") ?\})
+    ("picture" nil ?\( (skeleton-read "SizeX,SizeY: ") ?\))
+    ;; FIXME: This is right for Prosper, but not for seminar.
+    ;; ("slide" nil ?\{ (skeleton-read "Title: ") ?\})
+    )
   "Skeleton element to use for arguments to particular environments.
 Every element of the list has the form (NAME . SKEL-ELEM) where NAME is
 the name of the environment and SKEL-ELEM is an element to use in
@@ -1229,8 +1241,11 @@ a skeleton (see `skeleton-insert').")
 (defvar latex-block-body-alist
   '(("enumerate" nil '(latex-insert-item) > _)
     ("itemize" nil '(latex-insert-item) > _)
-    ("table" nil "\\caption{" > - "}" > \n _)
-    ("figure" nil  > _ \n "\\caption{" > _ "}" >))
+    ("table" nil "\\caption{" > (skeleton-read "Caption: ") "}" > \n
+     '(if (and (boundp 'reftex-mode) reftex-mode) (reftex-label "table"))
+     \n _)
+    ("figure" nil  > _ \n "\\caption{" > (skeleton-read "Caption: ") "}" > \n
+     '(if (and (boundp 'reftex-mode) reftex-mode) (reftex-label "table"))))
   "Skeleton element to use for the body of particular environments.
 Every element of the list has the form (NAME . SKEL-ELEM) where NAME is
 the name of the environment and SKEL-ELEM is an element to use in
@@ -1254,7 +1269,8 @@ Puts point on a blank line between them."
     choice)
   \n "\\begin{" str "}"
   (cdr (assoc str latex-block-args-alist))
-  > \n (or (cdr (assoc str latex-block-body-alist)) '(nil > _)) \n
+  > \n (or (cdr (assoc str latex-block-body-alist)) '(nil > _))
+  (unless (bolp) '\n)
   "\\end{" str "}" > \n)
 
 (define-skeleton latex-insert-item
@@ -1598,7 +1614,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
     ("texindex %r.??")
     ("dvipdfm %r" "%r.dvi" "%r.pdf")
     ("dvipdf %r" "%r.dvi" "%r.pdf")
-    ("dvips %r" "%r.dvi" "%r.ps")
+    ("dvips -o %r.ps %r" "%r.dvi" "%r.ps")
     ("ps2pdf %r.ps" "%r.ps" "%r.pdf")
     ("gv %r.ps &" "%r.ps")
     ("gv %r.pdf &" "%r.pdf")
@@ -1767,7 +1783,7 @@ FILE is typically the output DVI or PDF file."
 	(not (tex-uptodate-p (format-spec out fspec)))))))
 
 (defun tex-compile-default (fspec)
-  "Guess a default command given the format-spec FSPEC."
+  "Guess a default command given the `format-spec' FSPEC."
   ;; TODO: Learn to do latex+dvips!
   (let ((cmds nil)
 	(unchanged-in nil))
@@ -1777,6 +1793,9 @@ FILE is typically the output DVI or PDF file."
 	(if (tex-command-active-p cmd fspec)
 	    (push cmd cmds)
 	  (push (nth 1 cmd) unchanged-in))))
+    ;; If no command seems to be applicable, arbitrarily pick the first one.
+    (unless cmds
+      (setq cmds (list (car tex-compile-commands))))
     ;; Remove those commands whose input was considered stable for
     ;; some other command (typically if (t . "%.pdf") is inactive
     ;; then we're using pdflatex and the fact that the dvi file
@@ -2261,6 +2280,7 @@ Runs the shell command defined by `tex-show-queue-command'."
 (defvar tex-indent-basic 2)
 (defvar tex-indent-item tex-indent-basic)
 (defvar tex-indent-item-re "\\\\\\(bib\\)?item\\>")
+(defvar latex-noindent-environments '("document"))
 
 (defvar tex-latex-indent-syntax-table
   (let ((st (make-syntax-table tex-mode-syntax-table)))
@@ -2311,7 +2331,6 @@ There might be text before point."
 	      (latex-find-indent 'virtual))))
      ;; Default (maybe an argument)
      (let ((pos (point))
-	   (char (char-after))
 	   ;; Outdent \item if necessary.
 	   (indent (if (looking-at tex-indent-item-re) (- tex-indent-item) 0))
 	   up-list-pos)
@@ -2329,6 +2348,17 @@ There might be text before point."
 	 ;; Have to indent relative to the open-paren.
 	 (goto-char up-list-pos)
 	 (if (and (not tex-indent-allhanging)
+		  (save-excursion
+		    ;; Make sure we're an argument to a macro and
+		    ;; that the macro is at the beginning of a line.
+		    (condition-case nil
+			(progn
+			  (while (eq (char-syntax (char-after)) ?\()
+			    (forward-sexp -1))
+			  (and (eq (char-syntax (char-after)) ?/)
+			       (progn (skip-chars-backward " \t&")
+				      (bolp))))
+		      (scan-error nil)))
 		  (> pos (progn (latex-down-list)
 				(forward-comment (point-max))
 				(point))))
@@ -2336,18 +2366,24 @@ There might be text before point."
 	     (current-column)
 	   ;; We're the first element after a hanging brace.
 	   (goto-char up-list-pos)
-	   (+ indent tex-indent-basic (latex-find-indent 'virtual))))
+	   (+ (if (and (looking-at "\\\\begin *{\\([^\n}]+\\)")
+		       (member (match-string 1)
+			       latex-noindent-environments))
+		  0 tex-indent-basic)
+	      indent (latex-find-indent 'virtual))))
 	;; We're now at the "beginning" of a line.
 	((not (and (not virtual) (eq (char-after) ?\\)))
 	 ;; Nothing particular here: just keep the same indentation.
 	 (+ indent (current-column)))
 	;; We're now looking at a macro call.
-	  ((looking-at tex-indent-item-re)
-	   ;; Indenting relative to an item, have to re-add the outdenting.
+	((looking-at tex-indent-item-re)
+	 ;; Indenting relative to an item, have to re-add the outdenting.
 	 (+ indent (current-column) tex-indent-item))
 	(t
 	 (let ((col (current-column)))
-	   (if (or (null char) (not (eq (char-syntax char) ?\()))
+	   (if (or (not (eq (char-syntax (or (char-after pos) ?\ )) ?\())
+		   ;; Can't be an arg if there's an empty line inbetween.
+		   (save-excursion (re-search-forward "^[ \t]*$" pos t)))
 	       ;; If the first char was not an open-paren, there's
 	       ;; a risk that this is really not an argument to the
 	       ;; macro at all.
@@ -2422,5 +2458,5 @@ There might be text before point."
 
 (provide 'tex-mode)
 
-;;; arch-tag: c0a680b1-63aa-4547-84b9-4193c29c0080
+;; arch-tag: c0a680b1-63aa-4547-84b9-4193c29c0080
 ;;; tex-mode.el ends here
