@@ -62,6 +62,7 @@ typed text replaces the selection if the selection is active.
 You must modify via \\[customize] for this variable to have an effect."
   :set (lambda (symbol value)
 	 (delete-selection-mode (or value 0)))
+  :initialize 'custom-initialize-default
   :type 'boolean
   :group 'editing-basics
   :require 'delsel)
@@ -129,5 +130,11 @@ then it takes a second C-g to abort the minibuffer."
 (define-key minibuffer-local-isearch-map "\C-g" 'minibuffer-keyboard-quit) 
 
 (provide 'delsel)
+
+;; This is the standard way mechanism to put the mode into effect
+;; if delete-selection-mode has already been set to t
+;; when this file is loaded.
+(when delete-selection-mode
+  (delete-selection-mode t))
 
 ;;; delsel.el ends here
