@@ -1,3 +1,9 @@
+2002-04-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* lisp.h (Fpropertize): Add prototype.
+
+	* fns.c (Fy_or_n_p): Use `minibuffer-prompt' face for prompt.
+
 2002-04-10  Colin Walters  <walters@verbum.org>
 
 	* config.in: Add HAVE_SHARED_GAME_DIR.
