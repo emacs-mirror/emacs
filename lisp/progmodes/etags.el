@@ -1628,7 +1628,7 @@ See documentation of variable `tags-file-name'."
     (tags-loop-continue (or file-list-form t))))
 
 ;;;###autoload
-(defun tags-query-replace (from to &optional delimited start end file-list-form)
+(defun tags-query-replace (from to &optional delimited file-list-form start end)
   "Query-replace-regexp FROM with TO through all files listed in tags table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit] or ESC), you can resume the query-replace
