@@ -1,3 +1,7 @@
+1999-12-07  Dave Love  <fx@gnu.org>
+
+	* lread.c (Fintern_soft): Fix newlines in doc string.
+
 1999-12-07  Alexandre Oliva  <oliva@dcc.unicamp.br>
 
 	* unexelf.c: Include <syms.h>, not <sym.h> on IRIX.  Removed
