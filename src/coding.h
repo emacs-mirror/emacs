@@ -135,7 +135,7 @@ enum iso_code_class_type
    on output.  */
 #define CODING_FLAG_ISO_DESIGNATE_AT_BOL 0x0400
 
-/* If set, do not encode unexpected charactes on output.  */
+/* If set, do not encode unsafe charactes on output.  */
 #define CODING_FLAG_ISO_SAFE		0x0800
 
 /* If set, extra latin codes (128..159) are accepted as a valid code
@@ -161,11 +161,10 @@ struct iso2022_spec
   /* A graphic register to which each charset should be designated.  */
   unsigned char requested_designation[MAX_CHARSET + 1];
 
-  /* Table of expected character sets for this coding system.  If the
-     Nth element is 0, the charset of ID N is not an expected
-     character set.  Such a character set is not encoded when
-     CODING_ISO_FLAG_SAFE is set.  */
-  unsigned char expected_charsets[MAX_CHARSET + 1];
+  /* A revision number to be specified for each charset on encoding.
+     The value 255 means no revision number for the corresponding
+     charset.  */
+  unsigned char charset_revision_number[MAX_CHARSET + 1];
 
   /* Set to 1 temporarily only when graphic register 2 or 3 is invoked
      by single-shift while encoding.  */
@@ -184,8 +183,8 @@ struct iso2022_spec
   coding->spec.iso2022.initial_designation[reg]
 #define CODING_SPEC_ISO_REQUESTED_DESIGNATION(coding, charset) \
   coding->spec.iso2022.requested_designation[charset]
-#define CODING_SPEC_ISO_EXPECTED_CHARSETS(coding) \
-  coding->spec.iso2022.expected_charsets
+#define CODING_SPEC_ISO_REVISION_NUMBER(coding, charset) \
+  coding->spec.iso2022.charset_revision_number[charset]
 #define CODING_SPEC_ISO_SINGLE_SHIFTING(coding) \
   coding->spec.iso2022.single_shifting
 #define CODING_SPEC_ISO_BOL(coding) \
@@ -285,6 +284,12 @@ struct coding_system
 
   /* Type of end-of-line format (LF, CRLF, or CR) of the coding system.  */
   int eol_type;
+
+  /* Table of safe character sets for this coding system.  If the Nth
+     element is 0, the charset of ID N is not an safe character set.
+     Such a character set is not encoded when CODING_ISO_FLAG_SAFE is
+     set.  */
+  unsigned char safe_charsets[MAX_CHARSET + 1];
 
   /* Non-zero means that the current source text is the last block of the
      whole text to be converted.  */
