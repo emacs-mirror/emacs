@@ -1,3 +1,8 @@
+2004-09-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi: Correct typos.
+	(Image Descriptors): Correct xref's.
+
 2004-09-25  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Special Properties): Cleanups in `cursor'.
