@@ -6,6 +6,16 @@
 
 2001-10-10  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* newcomment.el (comment-indent): Be a little more robust in case
+	comment-indent-function does funny things.
+	(comment-normalize-vars): Autoload.
+	(comment-region-internal): Fiddle with the visibility spec.
+	(comment-valid-prefix): New function.
+	(comment-indent-new-line): Use it.  Ignore adaptive-fill-prefixes
+	that would turn comment-text into non-comment-text.
+
+	* emacs-lisp/syntax.el: New file.
+
 	* progmodes/tcl.el: Change maintainer to FSF and remove loads of
 	compatibility cruft.
 	(tcl-using-emacs-19, tcl-using-emacs-19-23, tcl-using-xemacs-19)
@@ -421,7 +431,7 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-	
+
 2001-10-03  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* pcvs-util.el (cvs-prefix-define): Typo cons->concat.
