@@ -108,6 +108,9 @@ print_help_and_exit ()
 	   "Usage: %s [-n] [--no-wait] [+LINENUMBER] FILENAME\n",
 	   progname);
   fprintf (stderr,
+	   "Or %s --version\n",
+	   progname);
+  fprintf (stderr,
 	   "Report bugs to bug-gnu-emacs@gnu.org.\n");
   exit (1);
 }
