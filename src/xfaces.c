@@ -2711,8 +2711,8 @@ check_lface_attrs (attrs)
 	   || SYMBOLP (attrs[LFACE_STIPPLE_INDEX])
 	   || !NILP (Fbitmap_spec_p (attrs[LFACE_STIPPLE_INDEX])));
   xassert (UNSPECIFIEDP (attrs[LFACE_FONT_INDEX])
-	   || NILP (attr[LFACE_FONT_INDEX]));
-	   || STRINGP (attr[LFACE_FONT_INDEX]));
+	   || NILP (attrs[LFACE_FONT_INDEX])
+	   || STRINGP (attrs[LFACE_FONT_INDEX]));
 #endif
 }
 
@@ -2838,7 +2838,7 @@ lface_fully_specified_p (attrs)
   int i;
 
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-    if (UNSPECIFIEDP (attrs[i]))
+    if (UNSPECIFIEDP (attrs[i]) && i != LFACE_FONT_INDEX)
       break;
 
   return i == LFACE_VECTOR_SIZE;
@@ -5935,7 +5935,6 @@ realize_x_face (cache, attrs, c, base_face)
   if (!NILP (stipple))
     face->stipple = load_pixmap (f, stipple, &face->pixmap_w, &face->pixmap_h);
 
-  xassert (face->fontset < 0);
   xassert (FACE_SUITABLE_FOR_CHAR_P (face, c));
   return face;
 #endif /* HAVE_WINDOW_SYSTEM */
