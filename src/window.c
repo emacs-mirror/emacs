@@ -2219,13 +2219,20 @@ buffer names are handled.")
 	      && window_height (window) >= window_min_height << 1)
 	    window = Fsplit_window (window, Qnil, Qnil);
 	  /* If Fget_lru_window returned nil, try other approaches.  */
+
 	  /* Try visible frames first.  */
+	  if (NILP (window))
+	    window = Fget_buffer_window (buffer, Qvisible);
 	  if (NILP (window))
 	    window = Fget_largest_window (Qvisible);
 	  /* If that didn't work, try iconified frames.  */
 	  if (NILP (window))
+	    window = Fget_buffer_window (buffer, make_number (0));
+	  if (NILP (window))
 	    window = Fget_largest_window (make_number (0));
 	  /* Try invisible frames.  */
+	  if (NILP (window))
+	    window = Fget_buffer_window (buffer, Qt);
 	  if (NILP (window))
 	    window = Fget_largest_window (Qt);
 	  /* As a last resort, make a new frame.  */
