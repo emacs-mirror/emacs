@@ -45,8 +45,6 @@ and this notice must be preserved on all copies.  */
 
 #define LIB_STANDARD GNULIB -lsocket -lnsl -lelf -lc /usr/ucblib/libucb.a /usr/ccs/lib/crtn.o
 
-#define DATA_SEG_BITS 0x08000000
-
 /* Use ptem.h to get structures related to windows.  */
 
 #define NEED_PTEM_H

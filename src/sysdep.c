@@ -3257,19 +3257,38 @@ sys_write (fildes, buf, nbytes)
 {
   register char *p;
   register char *e;
-  int retval, sum;
+  int sum = 0;
+  struct stat st;
+
+  fstat (fildes, &st);
   p = buf;
-  sum = 0;
   while (nbytes > 0)
     {
-      e =  p + min (MAXIOSIZE, nbytes) - 1;
-      while (*e != '\n' && e > p) e--;
-      if (p == e)		/* Ok.. so here we add a newline... sigh. */
-	e = p + min (MAXIOSIZE, nbytes) - 1;
-      retval = write (fildes, p, e - p + 1);
-      if (retval != e - p + 1) return -1;
-      p = e + 1;
-      sum = sum + retval;
+      int len, retval;
+
+      /* Handle fixed-length files with carriage control.  */
+      if (st.st_fab_rfm == FAB$C_FIX
+	  && ((st.st_fab_rat & (FAB$M_FTN | FAB$M_CR)) != 0))
+	{
+	  len = st.st_fab_mrs;
+	  retval = write (fildes, p, min (len, nbytes));
+	  if (retval != len)
+	    return -1;
+	  retval++;	/* This skips the implied carriage control */
+	}
+      else
+	{
+	  e =  p + min (MAXIOSIZE, nbytes) - 1;
+	  while (*e != '\n' && e > p) e--;
+	  if (p == e)		/* Ok.. so here we add a newline... sigh. */
+	    e = p + min (MAXIOSIZE, nbytes) - 1;
+	  len = e + 1 - p;
+	  retval = write (fildes, p, len);
+	  if (retval != len)
+	    return -1;
+	}
+      p += retval;
+      sum += retval;
       nbytes -= retval;
     }
   return sum;

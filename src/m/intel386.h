@@ -1,4 +1,4 @@
-/* machine description file for intel 386.
+/* Machine description file for intel 386.
    Copyright (C) 1987 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -100,7 +100,7 @@ NOTE-END */
 #define LOAD_AVE_TYPE short
 
 /* Convert that into an integer that is 100 for a load average of 1.0  */
-#define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
+#define LOAD_AVE_CVT(x) (((double) (x)) * 100.0 / FSCALE)
   
 #define FSCALE 256.0         /* determined by experimentation...  */
 #endif
@@ -113,9 +113,9 @@ NOTE-END */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 /* This is totally uncalibrated. */
 
-#define LOAD_AVE_CVT(x) ((int) ((double) (x)) * 100.0 / FSCALE)
+#define LOAD_AVE_CVT(x) ((int) (((double) (x)) * 100.0 / FSCALE))
 #define FSCALE 256.0
-*endif
+#endif
 
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
@@ -160,7 +160,9 @@ NOTE-END */
 #else /* not XENIX */
 
 #ifdef USG
+#ifndef LIB_STANDARD
 #define LIB_STANDARD -lPW -lc
+#endif
 #define HAVE_ALLOCA
 #define NO_REMAP 
 #define TEXT_START 0
@@ -170,7 +172,6 @@ NOTE-END */
 #ifdef BSD
 #define HAVE_ALLOCA
 #endif /* BSD */
- BSD */
 
 /* If compiling with GCC, let GCC implement alloca.  */
 #if defined(__GNUC__) && !defined(alloca)
@@ -178,5 +179,15 @@ NOTE-END */
 #define HAVE_ALLOCA
 #endif
 
-/* Search these directories just in case; I'm told they might be needed.  */
-#define C_SWITCH_MACHINE  -I/usr/X/include -I/usr/netinclude
+#ifdef USG
+#ifdef __STDC__
+#ifndef DONT_DEFINE_SIGNAL
+/* Cast the function argument to avoid warnings.  */
+#define signal(sig, func) (signal (sig, (void (*) (int)) (func)))
+#endif
+#endif
+#endif
+
+#ifdef USG5_4
+#define DATA_SEG_BITS 0x08000000
+#endif
