@@ -428,7 +428,9 @@ Typical values are `mark-defun' for programming modes or `mark-paragraph' for
 textual modes (i.e., the mode-dependent function is known to put point and mark
 around a text block relevant to that mode).
 
-Other variables include those for buffer-specialised fontification functions,
+Other variables include that for syntactic keyword fontification,
+`font-lock-syntactic-keywords'
+and those for buffer-specialised fontification functions,
 `font-lock-fontify-buffer-function', `font-lock-unfontify-buffer-function',
 `font-lock-fontify-region-function', `font-lock-unfontify-region-function',
 `font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.")
@@ -442,48 +444,36 @@ Other variables include those for buffer-specialised fontification functions,
 	 '((c-font-lock-keywords c-font-lock-keywords-1
 	    c-font-lock-keywords-2 c-font-lock-keywords-3)
 	   nil nil ((?_ . "w")) beginning-of-defun
-	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
-	   ;(font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(c++-mode-defaults
 	 '((c++-font-lock-keywords c++-font-lock-keywords-1 
 	    c++-font-lock-keywords-2 c++-font-lock-keywords-3)
 	   nil nil ((?_ . "w")) beginning-of-defun
-	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
-	   ;(font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(objc-mode-defaults
 	 '((objc-font-lock-keywords objc-font-lock-keywords-1
 	    objc-font-lock-keywords-2 objc-font-lock-keywords-3)
 	   nil nil ((?_ . "w") (?$ . "w")) nil
-	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
-	   ;(font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(java-mode-defaults
 	 '((java-font-lock-keywords java-font-lock-keywords-1
 	    java-font-lock-keywords-2 java-font-lock-keywords-3)
 	   nil nil ((?_ . "w") (?$ . "w") (?. . "w")) nil
-	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
-	   ;(font-lock-comment-start-regexp . "/[*/]")
 	   (font-lock-mark-block-function . mark-defun)))
 	(lisp-mode-defaults
 	 '((lisp-font-lock-keywords
 	    lisp-font-lock-keywords-1 lisp-font-lock-keywords-2)
 	   nil nil (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
-	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
-	   ;(font-lock-comment-start-regexp . ";")
 	   (font-lock-mark-block-function . mark-defun)))
 	;; For TeX modes we could use `backward-paragraph' for the same reason.
 	;; But we don't, because paragraph breaks are arguably likely enough to
 	;; occur within a genuine syntactic block to make it too risky.
 	;; However, we do specify a MARK-BLOCK function as that cannot result
-	;; in a mis-fontification even if it might not fontify enough.  --sm.
+	;; in a mis-fontification even if it might not fontify enough.  sm.
 	(tex-mode-defaults
 	 '((tex-font-lock-keywords
 	    tex-font-lock-keywords-1 tex-font-lock-keywords-2)
 	   nil nil ((?$ . "\"")) nil
-	   ;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
-	   ;(font-lock-comment-start-regexp . "%")
 	   (font-lock-mark-block-function . mark-paragraph)))
 	)
     (list
@@ -572,14 +562,6 @@ This is normally set via `font-lock-defaults'.")
 When called with no args it should leave point at the beginning of any
 enclosing textual block and mark at the end.
 This is normally set via `font-lock-defaults'.")
-
-;; Obsoleted by Emacs 20 parse-partial-sexp's COMMENTSTOP.
-;(defvar font-lock-comment-start-regexp nil
-;  "*Regexp to match the start of a comment.
-;This need not discriminate between genuine comments and quoted comment
-;characters or comment characters within strings.
-;If nil, `comment-start-skip' is used instead; see that variable for more info.
-;This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-fontify-buffer-function 'font-lock-default-fontify-buffer
   "Function to use for fontifying the buffer.
@@ -1049,27 +1031,27 @@ The value of this variable is used when Font Lock mode is turned on."
   (let ((verbose (if (numberp font-lock-verbose)
 		     (> (buffer-size) font-lock-verbose)
 		   font-lock-verbose)))
-    (when verbose
-      (message "Fontifying %s..." (buffer-name)))
-    ;; Make sure we have the right `font-lock-keywords' etc.
-    (unless font-lock-mode
-      (font-lock-set-defaults))
-    ;; Make sure we fontify etc. in the whole buffer.
-    (save-restriction
-      (widen)
-      (condition-case nil
-	  (save-excursion
-	    (save-match-data
-	      (font-lock-fontify-region (point-min) (point-max) verbose)
-	      (font-lock-after-fontify-buffer)
-	      (setq font-lock-fontified t)))
-	;; We don't restore the old fontification, so it's best to unfontify.
-	(quit (font-lock-unfontify-buffer))))
-    ;; Make sure we undo `font-lock-keywords' etc.
-    (unless font-lock-mode
-      (font-lock-unset-defaults))
-    (if verbose (message "Fontifying %s...%s" (buffer-name)
-			 (if font-lock-fontified "done" "quit")))))
+    (with-temp-message
+	(if verbose
+	    (format "Fontifying %s..." (buffer-name))
+	  (current-message))
+      ;; Make sure we have the right `font-lock-keywords' etc.
+      (unless font-lock-mode
+	(font-lock-set-defaults))
+      ;; Make sure we fontify etc. in the whole buffer.
+      (save-restriction
+	(widen)
+	(condition-case nil
+	    (save-excursion
+	      (save-match-data
+		(font-lock-fontify-region (point-min) (point-max) verbose)
+		(font-lock-after-fontify-buffer)
+		(setq font-lock-fontified t)))
+	  ;; We don't restore the old fontification, so it's best to unfontify.
+	  (quit (font-lock-unfontify-buffer))))
+      ;; Make sure we undo `font-lock-keywords' etc.
+      (unless font-lock-mode
+	(font-lock-unset-defaults)))))
 
 (defun font-lock-default-unfontify-buffer ()
   ;; Make sure we unfontify etc. in the whole buffer.
@@ -1949,7 +1931,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		    "eval-when"
 		    "with-current-buffer" "with-electric-help"
 		    "with-output-to-string" "with-output-to-temp-buffer"
-		    "with-temp-buffer" "with-temp-file"
+		    "with-temp-buffer" "with-temp-file" "with-temp-message"
 		    "with-timeout") t)
 	     "\\>")
 	    1)
