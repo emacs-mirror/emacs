@@ -1029,13 +1029,19 @@ combine_bytes (pos, pos_byte, nbytes)
     offset_intervals (current_buffer, pos, - nbytes);
 }
 
+void
+byte_combining_error ()
+{
+  error ("Byte combining across region boundary inhibitted");
+}
+
 /* If we are going to combine bytes at POS which is at a narrowed
    region boundary, signal an error.  */
 #define CHECK_BYTE_COMBINING_FOR_INSERT(pos)				\
   do {									\
     if (combined_before_bytes && pos == BEGV				\
 	|| combined_after_bytes && pos == ZV)				\
-      error ("Byte combining across region boundary inhibitted");	\
+      byte_combining_error ();	\
   } while (0)
 
 
@@ -1259,6 +1265,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
     = count_combining_after (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE);
   {
     unsigned char save = *(GPT_ADDR);
+    *(GPT_ADDR) = 0;
     CHECK_BYTE_COMBINING_FOR_INSERT (PT);
     *(GPT_ADDR) = save;
   }
@@ -1444,6 +1451,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
     = count_combining_after (GPT_ADDR, outgoing_nbytes, PT, PT_BYTE);
   {
     unsigned char save = *(GPT_ADDR);
+    *(GPT_ADDR) = 0;
     CHECK_BYTE_COMBINING_FOR_INSERT (PT);
     *(GPT_ADDR) = save;
   }
@@ -1580,6 +1588,11 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
     = count_combining_before (GPT_ADDR, len_byte, from, from_byte);
   int combined_after_bytes
     = count_combining_after (GPT_ADDR, len_byte, from, from_byte);
+  /* This flag tells if we combine some bytes with a character before
+     FROM.  This happens even if combined_before_bytes is zero.  */
+  int combine_before = (combined_before_bytes
+			|| (len == 0 && combined_after_bytes));
+
   int nchars_del = 0, nbytes_del = 0;
 
   if (STRINGP (prev_text))
@@ -1588,7 +1601,7 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
       nbytes_del = STRING_BYTES (XSTRING (prev_text));
     }
 
-  if (combined_before_bytes && from == BEGV
+  if (combine_before && from == BEGV
       || combined_after_bytes && from == ZV)
     {
       /* We can't combine bytes nor signal an error here.  So, let's
@@ -1649,12 +1662,6 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
 			      combined_before_bytes, combined_after_bytes);
   if (! EQ (current_buffer->undo_list, Qt))
     {
-      /* This flag tells if we combine some bytes with a character
-	 before FROM.  This happens even if combined_before_bytes is
-	 zero.  */
-      int combine_before = (combined_before_bytes
-			    || (len == 0 && combined_after_bytes));
-
       if (nchars_del > 0)
 	record_delete (from - combine_before, prev_text);
       if (combine_before)
@@ -1803,10 +1810,10 @@ replace_range (from, to, new, prepare, inherit, markers)
   if (to < GPT)
     gap_left (to, to_byte, 0);
 
-  deletion = Qnil;
-
-  if (! EQ (current_buffer->undo_list, Qt))
-    deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
+  /* Even if we don't record for undo, we must keep the original text
+     because we may have to recover it because of inappropriate byte
+     combining.  */
+  deletion = make_buffer_string_both (from, from_byte, to, to_byte, 1);
 
   if (markers)
     /* Relocate all markers pointing into the new, larger gap
@@ -1851,11 +1858,26 @@ replace_range (from, to, new, prepare, inherit, markers)
     = count_combining_before (GPT_ADDR, outgoing_insbytes, from, from_byte);
   combined_after_bytes
     = count_combining_after (GPT_ADDR, outgoing_insbytes, from, from_byte);
-  {
-    unsigned char save = *(GPT_ADDR);
-    CHECK_BYTE_COMBINING_FOR_INSERT (from);
-    *(GPT_ADDR) = save;
-  }
+
+  if (combined_before_bytes && from == BEGV
+      || combined_after_bytes && from == ZV)
+    {
+      /* Bytes are being combined across the region boundary.  We
+         should avoid it.  We recover the original contents before
+         signaling an error.  */
+      bcopy (XSTRING (deletion)->data, GPT_ADDR, nbytes_del);
+      GAP_SIZE -= nbytes_del;
+      ZV += nchars_del;
+      Z += nchars_del;
+      ZV_BYTE += nbytes_del;
+      Z_BYTE += nbytes_del;
+      GPT = from + nchars_del;
+      GPT_BYTE = from_byte + nbytes_del;
+      *(GPT_ADDR) = 0;		/* Put an anchor.  */
+      if (markers)
+	adjust_markers_for_insert (from, from_byte, to, to_byte, 0, 0, 0);
+      byte_combining_error ();
+    }
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -2116,8 +2138,8 @@ del_range_2 (from, from_byte, to, to_byte)
 			      Z_BYTE - to_byte, from, from_byte);
   if (combined_after_bytes)
     {
-      if (to == ZV_BYTE)
-	error ("Byte combining across region boundary inhibitted");
+      if (from == BEGV || to == ZV)
+	byte_combining_error ();
       from_byte_1 = from_byte;
       DEC_POS (from_byte_1);
     }
