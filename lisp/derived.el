@@ -203,17 +203,6 @@ been generated automatically, with a reference to the keymap."
 					; Run the hooks, if any.
 	 (run-mode-hooks ',hook)))))
 
-;; PUBLIC: find if the current mode derives from another.
-
-;;;###autoload
-(defun derived-mode-p (&rest modes)
-  "Non-nil if the current major mode is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards."
-  (let ((parent major-mode))
-    (while (and (not (memq parent modes))
-		(setq parent (get parent 'derived-mode-parent))))
-    parent))
-
 ;; PUBLIC: find the ultimate class of a derived mode.
 
 (defun derived-mode-class (mode)
