@@ -6,13 +6,13 @@
    we don't plan to think about it, or about whether other Emacs
    maintenance might break it.
 
-   Copyright (C) 1988 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -66,8 +66,7 @@ static void fatal_unexec ();
 	  fatal_unexec(_error_message, _error_arg);
 
 extern int errno;
-extern int sys_nerr;
-extern char *sys_errlist[];
+extern char *strerror ();
 #define EEOF -1
 
 #ifndef L_SET
@@ -251,10 +250,8 @@ fatal_unexec (s, va_alist)
   va_list ap;
   if (errno == EEOF)
     fputs ("unexec: unexpected end of file, ", stderr);
-  else if (errno < sys_nerr)
-    fprintf (stderr, "unexec: %s, ", sys_errlist[errno]);
   else
-    fprintf (stderr, "unexec: error code %d, ", errno);
+    fprintf (stderr, "unexec: %s, ", strerror (errno));
   va_start (ap);
   _doprnt (s, ap, stderr);
   fputs (".\n", stderr);
