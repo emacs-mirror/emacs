@@ -18,6 +18,9 @@ main (argc, argv)
 
   while (1)
     {
+      /* Make sure wakeup stops when Emacs goes away.  */
+      if (getppid () == 1)
+	exit (0);
       printf ("Wake up!\n");
       fflush (stdout);
       /* If using a period of 60, produce the output when the minute
