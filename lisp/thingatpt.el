@@ -259,7 +259,7 @@ starts with \"ftp\" and not \"ftp:/\", or \"http://\" by default."
 						    (match-end 0)))
 	  (and strip (setq url (substring url 5 -1))) ; Drop "<URL:" & ">"
 	  ;; strip whitespace
-	  (while (string-match "\\s +\\|\n+" url)
+	  (while (string-match "[ \t\n\r]+" url)
 	    (setq url (replace-match "" t t url)))
 	  (and short (setq url (concat (cond ((string-match "@" url)
                                               "mailto:")
