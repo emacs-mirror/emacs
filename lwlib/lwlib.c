@@ -1314,9 +1314,9 @@ lw_refigure_widget (w, doit)
 #endif
 #if defined (USE_MOTIF)
   if (doit)
-    XtUnmanageChild (w);
-  else
     XtManageChild (w);
+  else
+    XtUnmanageChild (w);
 #endif
 }
 
