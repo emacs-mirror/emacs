@@ -793,7 +793,13 @@ otherwise it is made canonical."
 	    end				; point at end of line's text
 	    indent			; column of `beg'
 	    endcol			; column of `end'
-	    ncols)			; new indent point or offset
+	    ncols			; new indent point or offset
+	    (nspaces 0)			; number of spaces between words
+					; in line (not space characters)
+	    fracspace			; fractional amount of space to be
+					; added between each words
+	    (curr-fracspace 0)		; current fractional space amount
+	    count)
 	(end-of-line)
 	;; Check if this is the last line of the paragraph.
 	(if (and use-hard-newlines (null eop) 
@@ -874,23 +880,24 @@ otherwise it is made canonical."
 		   (or nosqueeze
 		       (canonically-space-region beg end))
 		   (goto-char (point-max))
+		   ;; count word spaces in line
+		   (while (search-backward " " nil t)
+		     (setq nspaces (1+ nspaces))
+		     (skip-chars-backward " "))
 		   (setq ncols (- fc endcol))
-		   ;; Ncols is number of additional spaces needed
-		   (if (> ncols 0)
-		       (if (and (not eop)
-				(search-backward " " nil t))
-			   (while (> ncols 0)
-			     (let ((nmove (+ 3 (random 3))))
-			       (while (> nmove 0)
-				 (or (search-backward " " nil t)
-				     (progn
-				       (goto-char (point-max))
-				       (search-backward " ")))
-				 (skip-chars-backward " ")
-				 (setq nmove (1- nmove))))
-			     (insert-and-inherit " ")
-			     (skip-chars-backward " ")
-			     (setq ncols (1- ncols)))))))
+		   ;; Ncols is number of additional space chars needed
+		   (if (and (> ncols 0) (> nspaces 0) (not eop))
+		       (progn
+			 (setq curr-fracspace (+ ncols (/ (1+ nspaces) 2))
+			       count nspaces)
+			 (while (> count 0)
+			   (skip-chars-forward " ")
+			   (insert-and-inherit
+			    (make-string (/ curr-fracspace nspaces) ?\ ))
+			   (search-forward " " nil t)
+			   (setq count (1- count)
+				 curr-fracspace
+				   (+ (% curr-fracspace nspaces) ncols)))))))
 		(t (error "Unknown justification value"))))
 	(goto-char pos)
 	(move-marker pos nil)))
