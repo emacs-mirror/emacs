@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(trunk.37) $
+ * $HopeName: MMsrc!poolmv.c(trunk.38) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -30,7 +30,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.37) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.38) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -236,7 +236,7 @@ static Res MVInit(Pool pool, va_list arg)
 
   mv->sig = MVSig;
   AVERT(MV, mv);
-
+  EVENT_PPWWW(PoolInitMV, pool, arena, extendBy, avgSize, maxSize);
   return ResOK;
 }
 

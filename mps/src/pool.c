@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.69) $
+ * $HopeName: MMsrc!pool.c(trunk.70) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.69) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.70) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -170,8 +170,6 @@ Res PoolInitV(Pool pool, Arena arena,
 
   /* Add initialized pool to list of pools in arena. */
   RingAppend(ArenaPoolRing(arena), &pool->arenaRing);
-
-  EVENT_PPP(PoolInit, pool, arena, class);
 
   return ResOK;
 
@@ -681,6 +679,7 @@ void PoolTrivFree(Pool pool, Addr old, Size size)
   NOOP;                         /* trivial free has no effect */
 }
 
+
 Res PoolNoBufferFill(Addr *baseReturn, Addr *limitReturn,
                      Pool pool, Buffer buffer, Size size,
                      Bool withReservoirPermit)
@@ -716,6 +715,7 @@ Res PoolTrivBufferFill(Addr *baseReturn, Addr *limitReturn,
   *limitReturn = AddrAdd(p, size);
   return ResOK;
 }
+
 
 void PoolNoBufferEmpty(Pool pool, Buffer buffer, 
                        Addr init, Addr limit)

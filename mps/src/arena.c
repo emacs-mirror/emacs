@@ -1,9 +1,7 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.67) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- *
- * .readership: Any MPS developer
+ * $HopeName: MMsrc!arena.c(trunk.68) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .intro: This is the implementation of Arenas.
  *
@@ -36,7 +34,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.67) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.68) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -1112,6 +1110,7 @@ void ArenaSetSpareCommitLimit(Arena arena, Size limit)
     arena->class->spareCommitExceeded(arena);
   }
 
+  EVENT_PW(SpareCommitLimitSet, arena, limit);
   return;
 }
 
@@ -1132,6 +1131,7 @@ Size ArenaCommitLimit(Arena arena)
 Res ArenaSetCommitLimit(Arena arena, Size limit)
 {
   Size committed;
+  Res res;
 
   AVERT(Arena, arena);
   AVER(ArenaCommitted(arena) <= arena->commitLimit);
@@ -1143,13 +1143,19 @@ Res ArenaSetCommitLimit(Arena arena, Size limit)
       /* could set the limit by flushing any spare committed memory */
       arena->class->spareCommitExceeded(arena);
       AVER(limit >= ArenaCommitted(arena));
+      arena->commitLimit = limit;
+      res = ResOK;
     } else {
-      return ResFAIL;
+      res = ResFAIL;
     }
+  } else {
+    arena->commitLimit = limit;
+    res = ResOK;
   }
-  arena->commitLimit = limit;
-  return ResOK;
+  EVENT_PWU(CommitLimitSet, arena, limit, (res == ResOK));
+  return res;
 }
+
 
 double ArenaMutatorAllocSize(Arena arena)
 {

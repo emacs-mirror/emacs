@@ -1,7 +1,7 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.57) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!buffer.c(trunk.58) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is (part of) the implementation of allocation buffers.
  * Several macros which also form part of the implementation are in
@@ -22,7 +22,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.57) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.58) $");
 
 
 /* forward declarations */
@@ -245,8 +245,6 @@ static Res BufferInitV(Buffer buffer, BufferClass class,
 
   /* Attach the initialized buffer to the pool. */
   RingAppend(&pool->bufferRing, &buffer->poolRing);
-
-  EVENT_PPU(BufferInit, buffer, pool, (unsigned)isMutator);
 
   return ResOK;
 
@@ -887,10 +885,6 @@ Bool BufferTrip(Buffer buffer, Addr p, Size size)
     b = PoolFormat(&format, buffer->pool);
     if(b) {
       clientClass = format->class(p);
-    } else if(sizeof(Addr) <= size) {
-      /* hack to get the class of an object for unformatted pools. */
-      /* .trip.assume.align: Assume p is Addr * aligned. */
-      clientClass = *(Addr *)p;
     } else {
       clientClass = (Addr)0;
     }
@@ -1178,12 +1172,12 @@ static Res bufferTrivInit (Buffer buffer, Pool pool, va_list args)
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
   UNUSED(args);
+  EVENT_PPU(BufferInit, buffer, pool, buffer->isMutator);
   return ResOK;
 }
 
 
 /* bufferTrivFinish -- basic buffer finish method */
-
 
 static void bufferTrivFinish (Buffer buffer)
 {
@@ -1393,7 +1387,9 @@ static Res segBufInit (Buffer buffer, Pool pool, va_list args)
   segbuf->seg = NULL;
   segbuf->sig = SegBufSig;
   segbuf->rankSet = RankSetEMPTY;
+
   AVERT(SegBuf, segbuf);
+  EVENT_PPU(BufferInitSeg, buffer, pool, buffer->isMutator);
   return ResOK;
 }
 
@@ -1613,6 +1609,9 @@ static Res rankBufInit (Buffer buffer, Pool pool, va_list args)
     return res;
 
   BufferSetRankSet(buffer, RankSetSingle(rank));
+
+  /* There's nothing to check that the superclass doesn't, so no AVERT. */
+  EVENT_PPUU(BufferInitRank, buffer, pool, buffer->isMutator, rank);
   return ResOK;
 }
 

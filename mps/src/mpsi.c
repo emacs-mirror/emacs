@@ -1,7 +1,7 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.70) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpsi.c(trunk.71) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
  * impl.h.mps, and the internal MPM interfaces, as defined by
@@ -9,7 +9,6 @@
  * usage of the MPS Interface.  .purpose.thread: It excludes multiple
  * threads from the MPM by locking the Arena (see .thread-safety).
  *
- * .readership: MPS developers
  * .design: design.mps.interface.c
  *
  *
@@ -53,7 +52,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.70) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.71) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -96,6 +95,10 @@ static Bool mpsi_check(void)
   /* had better match.  See design.mps.interface.c.cons. */
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
   CHECKL(CHECKTYPE(mps_word_t, Word));
+
+  /* The external idea of an address and the internal one */
+  /* had better match. */
+  CHECKL(CHECKTYPE(mps_addr_t, Addr));
   
   /* The external idea of size and the internal one had */
   /* better match.  See design.mps.interface.c.cons.size */
@@ -719,10 +722,10 @@ mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   mps_res_t res;
 
   AVER(p_o != NULL);
-  AVER(size > 0);
   AVER(mps_ap != NULL);
   AVER(CHECKT(Buffer, BufferOfAP((AP)mps_ap)));
   AVER(mps_ap->init == mps_ap->alloc);
+  AVER(size > 0);
 
   MPS_RESERVE_BLOCK(res, *p_o, mps_ap, size);
 
@@ -862,7 +865,6 @@ mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 }
 
 
-
 /* mps_ap_fill -- called by mps_reserve when an AP hasn't enough arena
  *
  * .ap.fill.internal: Note that mps_ap_fill should never be "called"
@@ -931,7 +933,7 @@ mps_res_t mps_ap_fill_with_reservoir_permit(mps_addr_t *p_o,
 }
 
 
-/* mps_trip -- called by mps_commit when an AP is tripped
+/* mps_ap_trip -- called by mps_commit when an AP is tripped
  *
  * .ap.trip.internal: Note that mps_ap_trip should never be "called"
  * directly by the client code.  It is invoked by the mps_commit macro.
@@ -960,6 +962,8 @@ mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
   return b;
 }
 
+
+/* Roots */
 
 mps_res_t mps_root_create(mps_root_t *mps_root_o,
                           mps_arena_t mps_arena,

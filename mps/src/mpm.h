@@ -1,7 +1,7 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.130) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpm.h(trunk.131) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
 #ifndef mpm_h
@@ -123,6 +123,12 @@ extern int (AddrComp)(Addr a, Addr b, Size size);
   mps_lib_memcmp(a, b, size)
 
 #define AlignIsAligned(a1, a2)  WordIsAligned(AlignWord(a1), (a2))
+
+
+/* ADDR_PTR -- turns an Addr into a pointer to the given type */
+
+#define ADDR_PTR(type, addr) ((type *)(addr))
+
 
 /* Result codes */
 

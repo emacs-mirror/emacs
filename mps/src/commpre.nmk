@@ -1,7 +1,7 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.15) $
-# Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
+# $HopeName$
+# Copyright (C) 1998 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
 #
@@ -112,6 +112,15 @@ CRTFLAGSC = /MDd
 LINKFLAGSWHITE = msvcrt.lib
 LINKFLAGSHOT = msvcrtd.lib
 LINKFLAGSCOOL = msvcrtd.lib
+!elseif "$(TARGET)" == "replaysw.exe"
+CFLAGSTARGETPRE = /DCONFIG_PROD_EPCORE
+CFLAGSTARGETPOST = 
+CRTFLAGSW = /MD
+CRTFLAGSH = /MDd
+CRTFLAGSC = /MDd
+LINKFLAGSWHITE = msvcrt.lib
+LINKFLAGSHOT = msvcrtd.lib
+LINKFLAGSCOOL = msvcrtd.lib
 !elseif "$(TARGET)" == "mmdw.lib"
 # /Oy- is actually 86-specific, but Dylan is only built for that platform
 CFLAGSTARGETPRE = /DCONFIG_PROD_DYLAN 
@@ -160,7 +169,7 @@ CFTI = /DCONFIG_VAR_TI $(CRTFLAGSC)  $(CFLAGSCOOL) $(CFLAGSINTERNAL)
 # LINKER FLAGS
 # %%VARIETY: define a macro containing the flags for the new variety
 LINKER = link
-LINKFLAGSCOMMON = /nologo /PDB:NONE /DEBUGTYPE:cv
+LINKFLAGSCOMMON = /nologo /PDB:NONE
 LINKFLAGSINTERNAL = /DEBUG:full
 LINKFLAGSEXTERNAL = /RELEASE
 

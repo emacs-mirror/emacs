@@ -1,7 +1,7 @@
 /* impl.c.mpmss: MPM STRESS TEST
  *
  * $HopeName$
- * Copyright (C) 1998 Harlequin Group plc. All rights reserved.
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
 

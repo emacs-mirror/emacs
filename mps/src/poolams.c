@@ -1,9 +1,7 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.44) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- * 
- * .readership: any MPS developer.
+ * $HopeName: MMsrc!poolams.c(trunk.45) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  * 
  * .design: See design.mps.poolams.
  *
@@ -20,7 +18,7 @@
 #include "mpm.h"
 #include <stdarg.h>
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.44) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.45) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -655,15 +653,34 @@ static Res AMSIterate(Seg seg, AMSObjectFunction f, void *closure);
  *  allocated in the pool.  See design.mps.poolams.init.
  */
 
-Res AMSInit(Pool pool, va_list arg)
+static Res AMSInit(Pool pool, va_list args)
 {
-  AMS ams;
+  Res res;
+  Format format;
 
   AVERT(Pool, pool);
 
-  ams = PoolPoolAMS(pool);
-  pool->format = va_arg(arg, Format);
-  AVERT(Format, pool->format);
+  format = va_arg(args, Format);
+  res = AMSInitInternal(PoolPoolAMS(pool), format);
+  if (res == ResOK) {
+    EVENT_PPP(PoolInitAMS, pool, PoolArena(pool), format);
+  }
+  return res;
+}
+
+
+/* AMSInitInternal -- initialize an AMS pool, given the format */
+
+Res AMSInitInternal(AMS ams, Format format)
+{
+  Pool pool;
+
+  /* Can't check ams, it's not initialized. */
+  AVERT(Format, format);
+
+  pool = AMSPool(ams);
+  AVERT(Pool, pool);
+  pool->format = format;
 
   pool->alignment = pool->format->alignment;
   ams->grainShift = SizeLog2(PoolAlignment(pool));
@@ -682,7 +699,6 @@ Res AMSInit(Pool pool, va_list arg)
 
   ams->sig = AMSSig;
   AVERT(AMS, ams);
-
   return ResOK;
 }
 
@@ -1422,7 +1438,7 @@ static Res AMSDescribe(Pool pool, mps_lib_FILE *stream)
 
 /* AMSPoolClass -- the class definition */
 
-/* impl.h.poolams contains the type definition. Hence the use */
+/* impl.h.poolams contains the type definition.  Hence the use */
 /* of DEFINE_CLASS rather than DEFINE_POOL_CLASS */
 
 DEFINE_CLASS(AMSPoolClass, this)

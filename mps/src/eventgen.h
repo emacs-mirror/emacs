@@ -209,6 +209,24 @@ typedef struct {
   Word clock;
   void * p0;
   void * p1;
+  void * p2;
+  unsigned u3;
+  unsigned u4;
+} EventPPPUUStruct;
+
+#define EVENT_PPPUU_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->pppuu.p0) \
+   : ((i) == 1) ? (void *)&((event)->pppuu.p1) \
+   : ((i) == 2) ? (void *)&((event)->pppuu.p2) \
+   : ((i) == 3) ? (void *)&((event)->pppuu.u3) \
+   : ((i) == 4) ? (void *)&((event)->pppuu.u4) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  void * p1;
   unsigned u2;
 } EventPPUStruct;
 
@@ -223,17 +241,105 @@ typedef struct {
   Word clock;
   void * p0;
   void * p1;
-  Word w2;
-  Addr a3;
-  Word w4;
-} EventPPWAWStruct;
+  unsigned u2;
+  unsigned u3;
+} EventPPUUStruct;
 
-#define EVENT_PPWAW_FIELD_PTR(event, i) \
-  (((i) == 0) ? (void *)&((event)->ppwaw.p0) \
-   : ((i) == 1) ? (void *)&((event)->ppwaw.p1) \
-   : ((i) == 2) ? (void *)&((event)->ppwaw.w2) \
-   : ((i) == 3) ? (void *)&((event)->ppwaw.a3) \
-   : ((i) == 4) ? (void *)&((event)->ppwaw.w4) \
+#define EVENT_PPUU_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->ppuu.p0) \
+   : ((i) == 1) ? (void *)&((event)->ppuu.p1) \
+   : ((i) == 2) ? (void *)&((event)->ppuu.u2) \
+   : ((i) == 3) ? (void *)&((event)->ppuu.u3) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  void * p1;
+  unsigned u2;
+  Word w3;
+  Word w4;
+  Word w5;
+} EventPPUWWWStruct;
+
+#define EVENT_PPUWWW_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->ppuwww.p0) \
+   : ((i) == 1) ? (void *)&((event)->ppuwww.p1) \
+   : ((i) == 2) ? (void *)&((event)->ppuwww.u2) \
+   : ((i) == 3) ? (void *)&((event)->ppuwww.w3) \
+   : ((i) == 4) ? (void *)&((event)->ppuwww.w4) \
+   : ((i) == 5) ? (void *)&((event)->ppuwww.w5) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  void * p1;
+  Word w2;
+  Word w3;
+} EventPPWWStruct;
+
+#define EVENT_PPWW_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->ppww.p0) \
+   : ((i) == 1) ? (void *)&((event)->ppww.p1) \
+   : ((i) == 2) ? (void *)&((event)->ppww.w2) \
+   : ((i) == 3) ? (void *)&((event)->ppww.w3) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  void * p1;
+  Word w2;
+  Word w3;
+  Word w4;
+} EventPPWWWStruct;
+
+#define EVENT_PPWWW_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->ppwww.p0) \
+   : ((i) == 1) ? (void *)&((event)->ppwww.p1) \
+   : ((i) == 2) ? (void *)&((event)->ppwww.w2) \
+   : ((i) == 3) ? (void *)&((event)->ppwww.w3) \
+   : ((i) == 4) ? (void *)&((event)->ppwww.w4) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  void * p1;
+  Word w2;
+  Word w3;
+  Word w4;
+  unsigned u5;
+  unsigned u6;
+  unsigned u7;
+} EventPPWWWUUUStruct;
+
+#define EVENT_PPWWWUUU_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->ppwwwuuu.p0) \
+   : ((i) == 1) ? (void *)&((event)->ppwwwuuu.p1) \
+   : ((i) == 2) ? (void *)&((event)->ppwwwuuu.w2) \
+   : ((i) == 3) ? (void *)&((event)->ppwwwuuu.w3) \
+   : ((i) == 4) ? (void *)&((event)->ppwwwuuu.w4) \
+   : ((i) == 5) ? (void *)&((event)->ppwwwuuu.u5) \
+   : ((i) == 6) ? (void *)&((event)->ppwwwuuu.u6) \
+   : ((i) == 7) ? (void *)&((event)->ppwwwuuu.u7) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  unsigned u1;
+} EventPUStruct;
+
+#define EVENT_PU_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->pu.p0) \
+   : ((i) == 1) ? (void *)&((event)->pu.u1) \
    : NULL)
 
 typedef struct {
@@ -246,6 +352,20 @@ typedef struct {
 #define EVENT_PW_FIELD_PTR(event, i) \
   (((i) == 0) ? (void *)&((event)->pw.p0) \
    : ((i) == 1) ? (void *)&((event)->pw.w1) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  Word w1;
+  Addr a2;
+} EventPWAStruct;
+
+#define EVENT_PWA_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->pwa.p0) \
+   : ((i) == 1) ? (void *)&((event)->pwa.w1) \
+   : ((i) == 2) ? (void *)&((event)->pwa.a2) \
    : NULL)
 
 typedef struct {
@@ -283,6 +403,20 @@ typedef struct {
   Word clock;
   void * p0;
   Word w1;
+  unsigned u2;
+} EventPWUStruct;
+
+#define EVENT_PWU_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->pwu.p0) \
+   : ((i) == 1) ? (void *)&((event)->pwu.w1) \
+   : ((i) == 2) ? (void *)&((event)->pwu.u2) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  Word w1;
   Word w2;
 } EventPWWStruct;
 
@@ -312,6 +446,26 @@ typedef struct {
    : ((i) == 4) ? (void *)&((event)->pwwwwdd.w4) \
    : ((i) == 5) ? (void *)&((event)->pwwwwdd.d5) \
    : ((i) == 6) ? (void *)&((event)->pwwwwdd.d6) \
+   : NULL)
+
+typedef struct {
+  Word code;
+  Word clock;
+  void * p0;
+  Word w1;
+  Word w2;
+  Word w3;
+  Word w4;
+  Word w5;
+} EventPWWWWWStruct;
+
+#define EVENT_PWWWWW_FIELD_PTR(event, i) \
+  (((i) == 0) ? (void *)&((event)->pwwwww.p0) \
+   : ((i) == 1) ? (void *)&((event)->pwwwww.w1) \
+   : ((i) == 2) ? (void *)&((event)->pwwwww.w2) \
+   : ((i) == 3) ? (void *)&((event)->pwwwww.w3) \
+   : ((i) == 4) ? (void *)&((event)->pwwwww.w4) \
+   : ((i) == 5) ? (void *)&((event)->pwwwww.w5) \
    : NULL)
 
 typedef struct {
@@ -454,13 +608,22 @@ typedef union {
   EventPPPStruct ppp;
   EventPPPAStruct pppa;
   EventPPPUStruct pppu;
+  EventPPPUUStruct pppuu;
   EventPPUStruct ppu;
-  EventPPWAWStruct ppwaw;
+  EventPPUUStruct ppuu;
+  EventPPUWWWStruct ppuwww;
+  EventPPWWStruct ppww;
+  EventPPWWWStruct ppwww;
+  EventPPWWWUUUStruct ppwwwuuu;
+  EventPUStruct pu;
   EventPWStruct pw;
+  EventPWAStruct pwa;
   EventPWAWStruct pwaw;
   EventPWPStruct pwp;
+  EventPWUStruct pwu;
   EventPWWStruct pww;
   EventPWWWWDDStruct pwwwwdd;
+  EventPWWWWWStruct pwwwww;
   EventPWWWWWWWWWStruct pwwwwwwwww;
   EventPWWWWWWWWWWWWStruct pwwwwwwwwwwww;
   EventUUPAStruct uupa;
@@ -568,6 +731,15 @@ typedef union {
     EventMould.pppu.u3 = (_u3); \
   EVENT_END(type, PPPU, sizeof(EventPPPUStruct))
 
+#define EVENT_PPPUU(type, _p0, _p1, _p2, _u3, _u4) \
+  EVENT_BEGIN(type) \
+    EventMould.pppuu.p0 = (_p0); \
+    EventMould.pppuu.p1 = (_p1); \
+    EventMould.pppuu.p2 = (_p2); \
+    EventMould.pppuu.u3 = (_u3); \
+    EventMould.pppuu.u4 = (_u4); \
+  EVENT_END(type, PPPUU, sizeof(EventPPPUUStruct))
+
 #define EVENT_PPU(type, _p0, _p1, _u2) \
   EVENT_BEGIN(type) \
     EventMould.ppu.p0 = (_p0); \
@@ -575,20 +747,71 @@ typedef union {
     EventMould.ppu.u2 = (_u2); \
   EVENT_END(type, PPU, sizeof(EventPPUStruct))
 
-#define EVENT_PPWAW(type, _p0, _p1, _w2, _a3, _w4) \
+#define EVENT_PPUU(type, _p0, _p1, _u2, _u3) \
   EVENT_BEGIN(type) \
-    EventMould.ppwaw.p0 = (_p0); \
-    EventMould.ppwaw.p1 = (_p1); \
-    EventMould.ppwaw.w2 = (_w2); \
-    EventMould.ppwaw.a3 = (_a3); \
-    EventMould.ppwaw.w4 = (_w4); \
-  EVENT_END(type, PPWAW, sizeof(EventPPWAWStruct))
+    EventMould.ppuu.p0 = (_p0); \
+    EventMould.ppuu.p1 = (_p1); \
+    EventMould.ppuu.u2 = (_u2); \
+    EventMould.ppuu.u3 = (_u3); \
+  EVENT_END(type, PPUU, sizeof(EventPPUUStruct))
+
+#define EVENT_PPUWWW(type, _p0, _p1, _u2, _w3, _w4, _w5) \
+  EVENT_BEGIN(type) \
+    EventMould.ppuwww.p0 = (_p0); \
+    EventMould.ppuwww.p1 = (_p1); \
+    EventMould.ppuwww.u2 = (_u2); \
+    EventMould.ppuwww.w3 = (_w3); \
+    EventMould.ppuwww.w4 = (_w4); \
+    EventMould.ppuwww.w5 = (_w5); \
+  EVENT_END(type, PPUWWW, sizeof(EventPPUWWWStruct))
+
+#define EVENT_PPWW(type, _p0, _p1, _w2, _w3) \
+  EVENT_BEGIN(type) \
+    EventMould.ppww.p0 = (_p0); \
+    EventMould.ppww.p1 = (_p1); \
+    EventMould.ppww.w2 = (_w2); \
+    EventMould.ppww.w3 = (_w3); \
+  EVENT_END(type, PPWW, sizeof(EventPPWWStruct))
+
+#define EVENT_PPWWW(type, _p0, _p1, _w2, _w3, _w4) \
+  EVENT_BEGIN(type) \
+    EventMould.ppwww.p0 = (_p0); \
+    EventMould.ppwww.p1 = (_p1); \
+    EventMould.ppwww.w2 = (_w2); \
+    EventMould.ppwww.w3 = (_w3); \
+    EventMould.ppwww.w4 = (_w4); \
+  EVENT_END(type, PPWWW, sizeof(EventPPWWWStruct))
+
+#define EVENT_PPWWWUUU(type, _p0, _p1, _w2, _w3, _w4, _u5, _u6, _u7) \
+  EVENT_BEGIN(type) \
+    EventMould.ppwwwuuu.p0 = (_p0); \
+    EventMould.ppwwwuuu.p1 = (_p1); \
+    EventMould.ppwwwuuu.w2 = (_w2); \
+    EventMould.ppwwwuuu.w3 = (_w3); \
+    EventMould.ppwwwuuu.w4 = (_w4); \
+    EventMould.ppwwwuuu.u5 = (_u5); \
+    EventMould.ppwwwuuu.u6 = (_u6); \
+    EventMould.ppwwwuuu.u7 = (_u7); \
+  EVENT_END(type, PPWWWUUU, sizeof(EventPPWWWUUUStruct))
+
+#define EVENT_PU(type, _p0, _u1) \
+  EVENT_BEGIN(type) \
+    EventMould.pu.p0 = (_p0); \
+    EventMould.pu.u1 = (_u1); \
+  EVENT_END(type, PU, sizeof(EventPUStruct))
 
 #define EVENT_PW(type, _p0, _w1) \
   EVENT_BEGIN(type) \
     EventMould.pw.p0 = (_p0); \
     EventMould.pw.w1 = (_w1); \
   EVENT_END(type, PW, sizeof(EventPWStruct))
+
+#define EVENT_PWA(type, _p0, _w1, _a2) \
+  EVENT_BEGIN(type) \
+    EventMould.pwa.p0 = (_p0); \
+    EventMould.pwa.w1 = (_w1); \
+    EventMould.pwa.a2 = (_a2); \
+  EVENT_END(type, PWA, sizeof(EventPWAStruct))
 
 #define EVENT_PWAW(type, _p0, _w1, _a2, _w3) \
   EVENT_BEGIN(type) \
@@ -604,6 +827,13 @@ typedef union {
     EventMould.pwp.w1 = (_w1); \
     EventMould.pwp.p2 = (_p2); \
   EVENT_END(type, PWP, sizeof(EventPWPStruct))
+
+#define EVENT_PWU(type, _p0, _w1, _u2) \
+  EVENT_BEGIN(type) \
+    EventMould.pwu.p0 = (_p0); \
+    EventMould.pwu.w1 = (_w1); \
+    EventMould.pwu.u2 = (_u2); \
+  EVENT_END(type, PWU, sizeof(EventPWUStruct))
 
 #define EVENT_PWW(type, _p0, _w1, _w2) \
   EVENT_BEGIN(type) \
@@ -622,6 +852,16 @@ typedef union {
     EventMould.pwwwwdd.d5 = (_d5); \
     EventMould.pwwwwdd.d6 = (_d6); \
   EVENT_END(type, PWWWWDD, sizeof(EventPWWWWDDStruct))
+
+#define EVENT_PWWWWW(type, _p0, _w1, _w2, _w3, _w4, _w5) \
+  EVENT_BEGIN(type) \
+    EventMould.pwwwww.p0 = (_p0); \
+    EventMould.pwwwww.w1 = (_w1); \
+    EventMould.pwwwww.w2 = (_w2); \
+    EventMould.pwwwww.w3 = (_w3); \
+    EventMould.pwwwww.w4 = (_w4); \
+    EventMould.pwwwww.w5 = (_w5); \
+  EVENT_END(type, PWWWWW, sizeof(EventPWWWWWStruct))
 
 #define EVENT_PWWWWWWWWW(type, _p0, _w1, _w2, _w3, _w4, _w5, _w6, _w7, _w8, _w9) \
   EVENT_BEGIN(type) \
@@ -703,19 +943,28 @@ typedef union {
 #define EventFormatPPP 11
 #define EventFormatPPPA 12
 #define EventFormatPPPU 13
-#define EventFormatPPU 14
-#define EventFormatPPWAW 15
-#define EventFormatPW 16
-#define EventFormatPWAW 17
-#define EventFormatPWP 18
-#define EventFormatPWW 19
-#define EventFormatPWWWWDD 20
-#define EventFormatPWWWWWWWWW 21
-#define EventFormatPWWWWWWWWWWWW 22
-#define EventFormatUUPA 23
-#define EventFormatUUPP 24
-#define EventFormatUUPPP 25
-#define EventFormatWS 26
+#define EventFormatPPPUU 14
+#define EventFormatPPU 15
+#define EventFormatPPUU 16
+#define EventFormatPPUWWW 17
+#define EventFormatPPWW 18
+#define EventFormatPPWWW 19
+#define EventFormatPPWWWUUU 20
+#define EventFormatPU 21
+#define EventFormatPW 22
+#define EventFormatPWA 23
+#define EventFormatPWAW 24
+#define EventFormatPWP 25
+#define EventFormatPWU 26
+#define EventFormatPWW 27
+#define EventFormatPWWWWDD 28
+#define EventFormatPWWWWW 29
+#define EventFormatPWWWWWWWWW 30
+#define EventFormatPWWWWWWWWWWWW 31
+#define EventFormatUUPA 32
+#define EventFormatUUPP 33
+#define EventFormatUUPPP 34
+#define EventFormatWS 35
 
 #else /* EVENT not */
 
@@ -733,13 +982,22 @@ typedef union {
 #define EVENT_PPP(type, p0, p1, p2) NOOP
 #define EVENT_PPPA(type, p0, p1, p2, p3) NOOP
 #define EVENT_PPPU(type, p0, p1, p2, p3) NOOP
+#define EVENT_PPPUU(type, p0, p1, p2, p3, p4) NOOP
 #define EVENT_PPU(type, p0, p1, p2) NOOP
-#define EVENT_PPWAW(type, p0, p1, p2, p3, p4) NOOP
+#define EVENT_PPUU(type, p0, p1, p2, p3) NOOP
+#define EVENT_PPUWWW(type, p0, p1, p2, p3, p4, p5) NOOP
+#define EVENT_PPWW(type, p0, p1, p2, p3) NOOP
+#define EVENT_PPWWW(type, p0, p1, p2, p3, p4) NOOP
+#define EVENT_PPWWWUUU(type, p0, p1, p2, p3, p4, p5, p6, p7) NOOP
+#define EVENT_PU(type, p0, p1) NOOP
 #define EVENT_PW(type, p0, p1) NOOP
+#define EVENT_PWA(type, p0, p1, p2) NOOP
 #define EVENT_PWAW(type, p0, p1, p2, p3) NOOP
 #define EVENT_PWP(type, p0, p1, p2) NOOP
+#define EVENT_PWU(type, p0, p1, p2) NOOP
 #define EVENT_PWW(type, p0, p1, p2) NOOP
 #define EVENT_PWWWWDD(type, p0, p1, p2, p3, p4, p5, p6) NOOP
+#define EVENT_PWWWWW(type, p0, p1, p2, p3, p4, p5) NOOP
 #define EVENT_PWWWWWWWWW(type, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9) NOOP
 #define EVENT_PWWWWWWWWWWWW(type, p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12) NOOP
 #define EVENT_UUPA(type, p0, p1, p2, p3) NOOP

@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.18) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.19) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -24,7 +24,7 @@
 #include "cbs.h"
 #include "mpm.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.18) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.19) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -479,6 +479,8 @@ static Res MVFFInit(Pool pool, va_list arg)
 
   mvff->sig = MVFFSig;
   AVERT(MVFF, mvff);
+  EVENT_PPWWWUUU(PoolInitMVFF, pool, arena, extendBy, avgSize, align,
+                 slotHigh, arenaHigh, firstFit);
   return ResOK;
 }
 
@@ -512,7 +514,6 @@ static void MVFFFinish(Pool pool)
 
   mvff->sig = SigInvalid;
 }
-
 
 
 /* MVFFDebugMixin - find debug mixin in class MVFFDebug */
