@@ -862,10 +862,10 @@ easily repeat a find command."
 				  (or regexp "") command t t))
   command)
 
-;;;###autoload
 (defvar grep-tree-last-regexp "")
 (defvar grep-tree-last-files (car (car grep-tree-files-aliases)))
 
+;;;###autoload
 (defun grep-tree (regexp files dir &optional subdirs)
   "Grep for REGEXP in FILES in directory tree rooted at DIR.
 Collect output in a buffer.
@@ -904,7 +904,7 @@ those sub directories of DIR."
     (setq files grep-tree-last-files))
   (when files
     (setq grep-tree-last-files files)
-    (let ((mf (assoc files match-files-aliases)))
+    (let ((mf (assoc files grep-tree-files-aliases)))
       (if mf
 	  (setq files (cdr mf)))))
   (let ((command-args (grep-expand-command-macros
