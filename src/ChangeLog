@@ -1,5 +1,8 @@
 2001-02-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs.c (malloc_initialize_hook): Handle case thet `environ'
+	is null.
+
 	* ralloc.c (__morecore) [!SYSTEM_MALLOC]: Move declaration
 	to the start of the file.
 
