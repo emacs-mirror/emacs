@@ -1,3 +1,8 @@
+2000-11-22  Dave Love  <fx@gnu.org>
+
+	* md5.el (md5): Provide.
+	(md5): Fix error call.
+
 2000-11-22  Miles Bader  <miles@gnu.org>
 
 	* textmodes/refill.el (refill-adjust-ignorable-overlay) 
