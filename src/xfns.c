@@ -249,6 +249,14 @@ check_x ()
     error ("X windows are not in use or not initialized");
 }
 
+/* Nonzero if using X for display.  */
+
+int
+using_x_p ()
+{
+  return x_current_display != 0;
+}
+
 /* Return the Emacs frame-object corresponding to an X window.
    It could be the frame's main window or an icon window.  */
 
