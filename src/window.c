@@ -3285,7 +3285,7 @@ See also `special-display-buffer-names'.");
 It is called with two arguments, the buffer and optional buffer specific\n\
 data, and should return a window displaying that buffer.\n\
 The default value makes a separate frame for the buffer,\n\
-using `special-display-alist' to specify the frame parameters.\n\
+using `special-display-frame-alist' to specify the frame parameters.\n\
 \n\
 A buffer is special if its is listed in `special-display-buffer-names'\n\
 or matches a regexp in `special-display-regexps'.");
