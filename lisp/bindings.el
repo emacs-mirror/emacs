@@ -282,13 +282,20 @@ Return a string to display in the mode line for the current mode name."
   (define-key map [header-line mouse-2] 'bury-buffer)
   (define-key map [mode-line down-mouse-3] 'mouse-buffer-menu)
   (define-key map [header-line down-mouse-3] 'mouse-buffer-menu)
-  (setq mode-line-buffer-identification-keymap map)
-  (setq-default mode-line-buffer-identification
-		(list (propertize "%12b"
-				  'face '(:weight bold)
-				  'help-echo (purecopy "mouse-1: other \
+  (setq mode-line-buffer-identification-keymap map))
+
+(defun propertized-buffer-identification (fmt)
+  "Return a list suitable for `mode-line-buffer-identification'.
+FMT is a format specifier such as \"%12b\".  This function adds
+text properties for face, help-echo, and local-map to it."
+  (list (propertize fmt
+		    'face '(:weight bold)
+		    'help-echo (purecopy "mouse-1: other \
 buffer, mouse-2: prev, M-mouse-2: next, mouse-3: buffer menu")
-				  'local-map map))))
+		    'local-map mode-line-buffer-identification-keymap)))
+  
+(setq-default mode-line-buffer-identification
+	      (propertized-buffer-identification "%12b"))
 
 ;; Menu of minor modes.
 (let ((map (make-sparse-keymap)))
