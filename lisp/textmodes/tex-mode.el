@@ -897,7 +897,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (set (make-local-variable 'comment-start) "%")
   (set (make-local-variable 'comment-add) 1)
   (set (make-local-variable 'comment-start-skip)
-       "\\(\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
+       "\\(\\(^\\|[^\\\n]\\)\\(\\\\\\\\\\)*\\)\\(%+ *\\)")
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'compare-windows-whitespace)
        'tex-categorize-whitespace)
