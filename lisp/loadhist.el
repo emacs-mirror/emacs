@@ -150,7 +150,7 @@ is nil, raise an error."
          (if (or (and (boundp x)        ; Random hooks.
                       (consp (symbol-value x))
                       (string-match "-hooks?\\'" (symbol-name x)))
-                 (and (fboundp x)       ; Known abnormal hooks etc.
+                 (and (boundp x)       ; Known abnormal hooks etc.
                       (memq x loadhist-hook-functions)))
 	     (dolist (y (cdr flist))
 	       (remove-hook x y))))))
