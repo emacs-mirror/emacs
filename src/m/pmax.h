@@ -58,3 +58,24 @@ NOTE-END  */
 /* mcc@timessqr.gc.cuny.edu says it is /vmunix on Ultrix 4.2a.  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/vmunix"
+
+/* Jim Wilson writes:
+   [...] The X11 include files that Dec distributes with Ultrix
+   are bogus.
+
+   When __STDC__ is defined (which is true with gcc), the X11 include files
+   try to define prototypes.  The prototypes however use types which haven't
+   been defined yet, and thus we get syntax/parse errors.
+
+   You can not fix this by changing the include files, because the prototypes
+   create circular dependencies, in particular Xutil.h depends on types defined
+   in Xlib.h, and Xlib.h depends on types defined in Xutil.h.  So, no matter
+   which order you try to include them in, it will still fail.
+
+   Compiling with -DNeedFunctionPrototypes=0 will solve the problem by
+   directly inhibiting the bad prototypes.  This could perhaps just be put in
+   an a Ultrix configuration file.
+
+   Using the MIT X11 distribution instead of the one provided by Dec will
+   also solve the problem, but I doubt you can convince everyone to do this. */
+#define C_SWITCH_X_MACHINE -DNeedFunctionPrototypes=0
