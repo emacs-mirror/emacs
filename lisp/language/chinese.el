@@ -101,12 +101,12 @@
 
 (defun pre-write-encode-hz (from to)
   (let ((buf (current-buffer)))
-    (with-temp-buffer
-      (if (stringp from)
-	  (insert from)
-	(insert-buffer-substring buf from to))
-      (let (last-coding-system-used)
-	(encode-hz-region 1 (point-max))))
+    (set-buffer (generate-new-buffer " *temp*"))
+    (if (stringp from)
+	(insert from)
+      (insert-buffer-substring buf from to))
+    (let (last-coding-system-used)
+      (encode-hz-region 1 (point-max)))
     nil))
 
 (set-language-info-alist
