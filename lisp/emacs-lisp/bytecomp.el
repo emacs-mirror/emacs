@@ -268,6 +268,11 @@ are actually needed.
 When this option is true, if you load the compiled file and then move it,
 you won't be able to find the documentation of anything in that file.
 
+To disable this option for a certain file, make it a file-local variable
+in the source file.  For example, add this to the first line:
+  -*-byte-compile-dynamic-docstrings:nil;-*-
+You can also set the variable globally.
+
 This option is enabled by default because it reduces Emacs memory usage.")
 
 (defvar byte-optimize-log nil
