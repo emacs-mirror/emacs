@@ -1,8 +1,9 @@
-;;; mode-clone.el (alpha version) -- allow inheritance of major modes.
+;;; mode-clone.el -- allow inheritance of major modes.
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 
@@ -60,8 +61,9 @@
 ;; - replace the current syntax table with
 ;;   'hypertext-mode-syntax-table', which will borrow its defaults
 ;;   from the current text-mode-syntax-table.
-;; - if 'hypertext-mode-abbrev-table' exists, it will become the
-;;   current abbrev table.
+;; - replace the current abbrev table with
+;;   'hypertext-mode-abbrev-table', which will borrow its defaults
+;;   from the current text-mode-abbrev table
 ;; - change the mode line to read "Hypertext"
 ;; - assign the value 'hypertext-mode' to the 'major-mode' variable
 ;; - run the body of commands provided in the macro -- in this case,
@@ -203,23 +205,31 @@ Use the `clone-parent' property of the symbol to trace backwards."
 ;; Utility functions for defining a clone mode.
 
 (defun clone-init-mode-variables (mode)
-  "Initialise variables for a new mode.
-Right now, just set up a blank keymap and an empty syntax table."
+  "Initialise variables for a new mode. 
+Right now, if they don't already exist, set up a blank keymap, an
+empty syntax table, and an empty abbrev table -- these will be merged
+the first time the mode is used."
 
-  (eval (` (defvar (, (clone-map-name mode)) 
-	     (make-sparse-keymap)
-	     (, (format "Keymap for %s." mode)))))
-  (put (clone-map-name mode) 'clone-merged nil)
+  (if (boundp (clone-map-name mode))
+      t
+    (eval (` (defvar (, (clone-map-name mode)) 
+	       (make-sparse-keymap)
+	       (, (format "Keymap for %s." mode)))))
+    (put (clone-map-name mode) 'clone-unmerged t))
 
-  (eval (` (defvar (, (clone-syntax-table-name mode))
-	     (make-vector 256 nil)
-	     (, (format "Syntax table for %s." mode)))))
-  (put (clone-syntax-table-name mode) 'clone-merged nil)
+  (if (boundp (clone-syntax-table-name mode))
+      t
+    (eval (` (defvar (, (clone-syntax-table-name mode))
+	       (make-vector 256 nil)
+	       (, (format "Syntax table for %s." mode)))))
+    (put (clone-syntax-table-name mode) 'clone-unmerged t))
 
-  (eval (` (defvar (, (clone-abbrev-table-name mode))
-	     nil
-	     (, (format "Abbrev table for %s." mode)))))
-  (define-abbrev-table (clone-abbrev-table-name mode) ()))
+  (if (boundp (clone-abbrev-table-name mode))
+      t
+    (eval (` (defvar (, (clone-abbrev-table-name mode))
+	       (progn (define-abbrev-table (clone-abbrev-table-name mode) nil)
+		      (make-abbrev-table))
+	       (, (format "Abbrev table for %s." mode)))))))
 
 (defun clone-make-docstring (parent child)
   "Construct a docstring for a new mode if none is provided."
@@ -244,28 +254,29 @@ which more-or-less shadow
   (let* ((map-name (clone-map-name mode))
 	 (new-map (eval map-name))
 	 (old-map (current-local-map)))
-    (if (get map-name 'clone-merged)
-	(use-local-map new-map)
-      (put map-name 'clone-merged t)
-      (use-local-map (set map-name (clone-merge-keymaps old-map new-map))))))
+    (if (get map-name 'clone-unmerged)
+	(clone-merge-keymaps old-map new-map))
+    (put map-name 'clone-unmerged nil)
+    (use-local-map new-map)))
 
 (defun clone-set-syntax-table (mode) 
   "Set the syntax table of the new mode, maybe merging with the parent."
   (let* ((table-name (clone-syntax-table-name mode))
 	 (old-table (syntax-table))
 	 (new-table (eval table-name)))
-    (if (get table-name 'clone-merged)
-	t
-      (clone-merge-syntax-tables old-table new-table))
-    (set-syntax-table new-table)
-    (put table-name 'clone-merged t)))
+    (if (get table-name 'clone-unmerged)
+	(clone-merge-syntax-tables old-table new-table))
+    (put table-name 'clone-unmerged nil)
+    (set-syntax-table new-table)))
 
 (defun clone-set-abbrev-table (mode)
-  "Set the abbrev table if it exists."
+  "Set the abbrev table if it exists.  
+Always merge its parent into it, since the merge is non-destructive."
   (let* ((table-name (clone-abbrev-table-name mode))
-	 (table (and (boundp table-name) (eval table-name))))
-    (if table
-	(setq local-abbrev-table table))))
+	 (old-table local-abbrev-table)
+	 (new-table (eval table-name)))
+    (clone-merge-abbrev-tables old-table new-table)
+    (setq local-abbrev-table new-table)))
 
 ;;;(defun clone-run-setup-function (mode)
 ;;;  "Run the setup function if it exists."
@@ -284,13 +295,13 @@ which more-or-less shadow
 ;; Functions to merge maps and tables.
 
 (defun clone-merge-keymaps (old new)
-  "Merge a new keymap into an old one.
+  "Merge an old keymap into a new one.
 The old keymap is set to be the cdr of the new one, so that there will
 be automatic inheritance."
-  (append new old))
+  (setcdr (nthcdr (1- (length new)) new) old))
 
 (defun clone-merge-syntax-tables (old new)
-  "Merge a new syntax table into an old one.
+  "Merge an old syntax table into a new one.
 Where the new table already has an entry, nothing is copied from the old one."
   (let ((idx 0)
 	(end (min (length new) (length old))))
@@ -298,7 +309,23 @@ Where the new table already has an entry, nothing is copied from the old one."
       (if (not (aref new idx))
 	  (aset new idx (aref old idx)))
       (setq idx (1+ idx)))))
+
+(defun clone-merge-abbrev-tables (old new)
+  "Merge an old abbrev table into a new one.
+This function requires internal knowledge of how abbrev tables work,
+presuming that they are obarrays with the abbrev as the symbol, the expansion
+as the value of the symbol, and the hook as the function definition.
+This could well break with some future version of Gnu Emacs."
+  (mapatoms 
+   (function 
+    (lambda (symbol)
+      (or (intern-soft (symbol-name symbol) new)
+	  (define-abbrev new (symbol-name symbol)
+	    (symbol-value symbol) (symbol-function symbol)))))
+   old))
     
 (provide 'mode-clone)
 
 ;;; mode-clone.el ends here
+
+
