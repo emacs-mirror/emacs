@@ -101,6 +101,10 @@ Boston, MA 02111-1307, USA.  */
 
 Lisp_Object Vx_toolkit_scroll_bars;
 
+/* If Non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */
+Lisp_Object Vmac_use_core_graphics;
+
+
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
 
@@ -725,6 +729,13 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      int nchars, mode, bytes_per_char;
 {
   SetPortWindowPort (w);
+#ifdef MAC_OSX
+  UInt32 textFlags, savedFlags;
+  if (!NILP(Vmac_use_core_graphics)) {
+    textFlags = kQDUseCGTextRendering;
+    savedFlags = SwapQDTextFlags(textFlags);
+  }
+#endif
 
   mac_set_colors (gc);
 
@@ -735,6 +746,10 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
+#ifdef MAC_OSX
+  if (!NILP(Vmac_use_core_graphics))
+    SwapQDTextFlags(savedFlags);
+#endif
 }
 
 
@@ -9901,7 +9916,16 @@ Toolbox for processing before Emacs sees it.  */);
    doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
 Toolbox for processing before Emacs sees it.  */);
   Vmac_pass_control_to_system = Qt;
+
+  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
+   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
+Toolbox for processing before Emacs sees it.  */);
+  Vmac_pass_control_to_system = Qt;
 #endif
+
+  DEFVAR_LISP ("mac-use-core-graphics", &Vmac_use_core_graphics,
+   doc: /* If non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */);
+  Vmac_use_core_graphics = Qnil;
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
     doc: /* One of the Text Encoding Base constant values defined in the

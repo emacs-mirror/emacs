@@ -1,5 +1,10 @@
 2005-01-15  Steven Tamm  <steventamm@mac.com>
 
+	* macterm.c (Vmac_use_core_graphics): defined
+	(syms_of_macterm): Added mac-use-core-graphics
+	(mac_draw_string_common): Use core graphics text rendering if
+	mac-use-core-graphics is enabled.
+
 	* macfns.c (Fx_file_dialog): Save As dialog includes only the
 	file name in the text box.
 
