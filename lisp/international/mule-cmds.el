@@ -211,12 +211,10 @@ The returned coding system converts text by CODING
 but end-of-line as the same way as CODING-SYSTEM.
 If CODING is nil, the returned coding system detects
 how text is formatted automatically while decoding."
-  (if (not coding)
-      (coding-system-base coding-system)
-    (let ((eol-type (coding-system-eol-type coding-system)))
-      (coding-system-change-eol-conversion
-       coding
-       (if (numberp eol-type) (aref [unix dos mac] eol-type))))))
+  (let ((eol-type (coding-system-eol-type coding-system)))
+    (coding-system-change-eol-conversion
+     (if coding coding 'undecided)
+     (if (numberp eol-type) (aref [unix dos mac] eol-type)))))
 
 (defun toggle-enable-multibyte-characters (&optional arg)
   "Change whether this buffer uses multibyte characters.
@@ -311,7 +309,19 @@ This also sets the following values:
   (unless (and (eq window-system 'pc) coding-system)
     (setq default-terminal-coding-system coding-system))
   (setq default-keyboard-coding-system coding-system)
-  (setq default-process-coding-system (cons coding-system coding-system)))
+  ;; Preserve eol-type from existing default-process-coding-systems.
+  ;; On non-unix-like systems in particular, these may have been set
+  ;; carefully by the user, or by the startup code, to deal with the
+  ;; users shell appropriately, so should not be altered by changing
+  ;; language environment.
+  (let ((output-coding
+	 (coding-system-change-text-conversion
+	  (car default-process-coding-system) coding-system))
+	(input-coding
+	 (coding-system-change-text-conversion
+	  (cdr default-process-coding-system) coding-system)))
+    (setq default-process-coding-system
+	  (cons output-coding input-coding))))
 
 (defalias 'update-iso-coding-systems 'update-coding-systems-internal)
 (make-obsolete 'update-iso-coding-systems 'update-coding-systems-internal "20.3")
@@ -1399,7 +1409,19 @@ The default status is as follows:
 
   (set-default-coding-systems nil)
   (setq default-sendmail-coding-system 'iso-latin-1)
-  (setq default-process-coding-system '(undecided . iso-latin-1))
+  ;; Preserve eol-type from existing default-process-coding-systems.
+  ;; On non-unix-like systems in particular, these may have been set
+  ;; carefully by the user, or by the startup code, to deal with the
+  ;; users shell appropriately, so should not be altered by changing
+  ;; language environment.
+  (let ((output-coding
+	 (coding-system-change-text-conversion
+	  (car default-process-coding-system) 'undecided))
+	(input-coding
+	 (coding-system-change-text-conversion
+	  (cdr default-process-coding-system) 'iso-latin-1)))
+    (setq default-process-coding-system
+	  (cons output-coding input-coding)))
 
   ;; Don't alter the terminal and keyboard coding systems here.
   ;; The terminal still supports the same coding system
