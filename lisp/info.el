@@ -1553,6 +1553,92 @@ If no reference to follow, moves to the next node, or up if none."
   (define-key Info-mode-map "\177" 'Info-scroll-down)
   (define-key Info-mode-map [mouse-2] 'Info-mouse-follow-nearest-node)
   )
+
+(defun Info-check-pointer (item)
+  ;; Non-nil if ITEM is present in this node.
+  (condition-case nil
+      (Info-extract-pointer item)
+    (error nil)))
+
+(easy-menu-define Info-mode-menu Info-mode-map
+  "Menu for info files."
+  '("Info"
+    ["Up" Info-up (Info-check-pointer "up")]
+    ["Next" Info-next (Info-check-pointer "next")]
+    ["Previous" Info-prev (Info-check-pointer "prev[ious]*")]
+    ("Menu item" ["You should never see this" report-emacs-bug t])
+    ("Reference" ["You should never see this" report-emacs-bug t])
+    ["Search..." Info-search t]
+    ["Goto node..." Info-goto-node t]
+    ["Last" Info-last Info-history]
+    ["Exit" Info-exit t]))
+
+(defvar Info-menu-last-node nil)
+;; Last node the menu was created for.
+
+(defun Info-menu-update ()
+  ;; Update the Info menu for the current node.
+  (condition-case nil
+      (if (or (not (eq major-mode 'Info-mode))
+	      (eq Info-current-node Info-menu-last-node))
+	  ()
+	;; Update menu menu.
+	(let* ((Info-complete-menu-buffer (current-buffer))
+	       (items (nreverse (condition-case nil
+				    (Info-complete-menu-item
+				     "" (lambda (e) t) t)
+				  (error nil))))
+	       entries current 
+	       (number 0))
+	  (while (and items (< number 9))
+	    (setq current (car items)
+		  items (cdr items)
+		  number (1+ number))
+	    (setq entries (cons `[,current 
+				  (Info-menu ,current)
+				  :keys ,(format "%d" number)]
+				entries)))
+	  (if items
+	      (setq entries (cons ["Other..." Info-menu t] entries)))
+	  (or entries
+	      (setq entries (list ["No menu" nil nil])))
+	  (easy-menu-change '("Info") "Menu item" (nreverse entries)))
+	;; Update reference menu.  Code stolen from `Info-follow-reference'.
+	(let ((items nil)
+	      str i entries current 
+	      (number 0))
+	  (save-excursion
+	    (goto-char (point-min))
+	    (while (re-search-forward "\\*note[ \n\t]*\\([^:]*\\):" nil t)
+	      (setq str (buffer-substring
+			 (match-beginning 1)
+			 (1- (point))))
+	      (setq i 0)
+	      (while (setq i (string-match "[ \n\t]+" str i))
+		(setq str (concat (substring str 0 i) " "
+				  (substring str (match-end 0))))
+		(setq i (1+ i)))
+	      (setq items
+		    (cons str items))))
+	  (while (and items (< number 9))
+	    (setq current (car items)
+		  items (cdr items)
+		  number (1+ number))
+	    (setq entries (cons `[,current 
+				  (Info-follow-reference ,current)
+				  t]
+				entries)))
+	  (if items
+	      (setq entries (cons ["Other..." Info-follow-reference t]
+				  entries)))
+	  (or entries
+	      (setq entries (list ["No references" nil nil])))
+	  (easy-menu-change '("Info") "Reference" (nreverse entries)))
+	;; Update last seen node.
+	(setq Info-menu-last-node (current-buffer)))
+    ;; Try to avoid entering infinite beep mode in case of errors.
+    (error (ding))))
+
 
 ;; Info mode is suitable only for specially formatted data.
 (put 'info-mode 'mode-class 'special)
@@ -1605,6 +1691,8 @@ Advanced commands:
   (setq major-mode 'Info-mode)
   (setq mode-name "Info")
   (use-local-map Info-mode-map)
+  (make-local-hook 'activate-menubar-hook)
+  (add-hook 'activate-menubar-hook 'Info-menu-update nil t)
   (set-syntax-table text-mode-syntax-table)
   (setq local-abbrev-table text-mode-abbrev-table)
   (setq case-fold-search t)
