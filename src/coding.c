@@ -3710,6 +3710,7 @@ setup_coding_system (coding_system, coding)
       }
       coding->common_flags |= CODING_REQUIRE_FLUSHING_MASK;
       coding->spec.ccl.cr_carryover = 0;
+      coding->spec.ccl.eight_bit_carryover[0] = 0;
       break;
 
     case 5:
@@ -4422,6 +4423,7 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
   struct ccl_program *ccl
     = encodep ? &coding->spec.ccl.encoder : &coding->spec.ccl.decoder;
   int result;
+  unsigned char *dst = destination;
 
   ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
   if (encodep)
@@ -4434,8 +4436,21 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
       ccl->cr_consumed = coding->spec.ccl.cr_carryover;
     }
   ccl->multibyte = coding->src_multibyte;
-  coding->produced = ccl_driver (ccl, source, destination,
-				 src_bytes, dst_bytes, &(coding->consumed));
+  if (coding->spec.ccl.eight_bit_carryover[0] != 0)
+    {
+      /* Move carryover bytes to DESTINATION.  */
+      unsigned char *p = coding->spec.ccl.eight_bit_carryover;
+      while (*p)
+	*dst++ = *p++;
+      coding->spec.ccl.eight_bit_carryover[0] = 0;
+      if (dst_bytes)
+	dst_bytes -= dst - destination;
+    }
+
+  coding->produced = (ccl_driver (ccl, source, dst, src_bytes, dst_bytes,
+				  &(coding->consumed))
+		      + dst - destination);
+
   if (encodep)
     {
       coding->produced_char = coding->produced;
@@ -4443,8 +4458,47 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
     }
   else
     {
+      /* On decoding, the destination should always multibyte.  But,
+	 CCL program might have been generated an invalid multibyte
+	 sequence.  Here we make such a sequence valid as
+	 multibyte.  */
       int bytes
 	= dst_bytes ? dst_bytes : source + coding->consumed - destination;
+
+      if ((coding->consumed < src_bytes
+	   || !ccl->last_block)
+	  && coding->produced >= 1
+	  && destination[coding->produced - 1] >= 0x80)
+	{
+	  /* We should not convert the tailing 8-bit codes to
+	     multibyte form even if they doesn't form a valid
+	     multibyte sequence.  They may form a valid sequence in
+	     the next call.  */
+	  int carryover = 0;
+
+	  if (destination[coding->produced - 1] < 0xA0)
+	    carryover = 1;
+	  else if (coding->produced >= 2)
+	    {
+	      if (destination[coding->produced - 2] >= 0x80)
+		{
+		  if (destination[coding->produced - 2] < 0xA0)
+		    carryover = 2;
+		  else if (coding->produced >= 3
+			   && destination[coding->produced - 3] >= 0x80
+			   && destination[coding->produced - 3] < 0xA0)
+		    carryover = 3;
+		}
+	    }
+	  if (carryover > 0)
+	    {
+	      BCOPY_SHORT (destination + coding->produced - carryover,
+			   coding->spec.ccl.eight_bit_carryover,
+			   carryover);
+	      coding->spec.ccl.eight_bit_carryover[carryover] = 0;
+	      coding->produced -= carryover;
+	    }
+	}
       coding->produced = str_as_multibyte (destination, bytes,
 					   coding->produced,
 					   &(coding->produced_char));
