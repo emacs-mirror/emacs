@@ -126,6 +126,10 @@ int pop_up_windows;
 
 int pop_up_frames;
 
+/* Nonzero means reuse existing frames for displaying buffers.  */
+
+int display_buffer_reuse_frames;
+
 /* Non-nil means use this function instead of default */
 
 Lisp_Object Vpop_up_frame_function;
@@ -2724,6 +2728,8 @@ unless the window is the selected window and the optional second\n\
 argument NOT-THIS-WINDOW is non-nil (interactively, with prefix arg).\n\
 If `pop-up-frames' is non-nil, make a new frame if no window shows BUFFER.\n\
 Returns the window displaying BUFFER.\n\
+If `display-reuse-frames' is non-nil, and another frame is currently\n\
+displaying BUFFER, then simply raise that frame.\n\
 \n\
 The variables `special-display-buffer-names', `special-display-regexps',\n\
 `same-window-buffer-names', and `same-window-regexps' customize how certain\n\
@@ -2735,7 +2741,7 @@ If FRAME is t, search all frames.\n\
 If FRAME is a frame, search only that frame.\n\
 If FRAME is nil, search only the selected frame\n\
  (actually the last nonminibuffer frame),\n\
- unless `pop-up-frames' is non-nil,\n\
+ unless `pop-up-frames' or `display-reuse-frames' is non-nil,\n\
  which means search visible and iconified frames.")
   (buffer, not_this_window, frame)
      register Lisp_Object buffer, not_this_window, frame;
@@ -2766,21 +2772,22 @@ If FRAME is nil, search only the selected frame\n\
 	}
     }
 
-  /* If pop_up_frames,
+  /* If the user wants pop-up-frames or display-reuse-frames, then
      look for a window showing BUFFER on any visible or iconified frame.
      Otherwise search only the current frame.  */
   if (! NILP (frame))
     tem = frame;
-  else if (pop_up_frames || last_nonminibuf_frame == 0)
+  else if (pop_up_frames
+	   || display_buffer_reuse_frames
+	   || last_nonminibuf_frame == 0)
     XSETFASTINT (tem, 0);
   else
     XSETFRAME (tem, last_nonminibuf_frame);
+  
   window = Fget_buffer_window (buffer, tem);
   if (!NILP (window)
       && (NILP (not_this_window) || !EQ (window, selected_window)))
-    {
-      return display_buffer_1 (window);
-    }
+    return display_buffer_1 (window);
 
   /* Certain buffer names get special handling.  */
   if (!NILP (Vspecial_display_function) && NILP (swp))
@@ -5363,6 +5370,11 @@ work using this function.");
   DEFVAR_BOOL ("pop-up-frames", &pop_up_frames,
     "*Non-nil means `display-buffer' should make a separate frame.");
   pop_up_frames = 0;
+
+  DEFVAR_BOOL ("display-buffer-reuse-frames", &display_buffer_reuse_frames,
+    "*Non-nil means `display-buffer' should reuse frames.
+If the buffer in question is already displayed in a frame, raise that frame.");
+  display_buffer_reuse_frames = 0;
 
   DEFVAR_LISP ("pop-up-frame-function", &Vpop_up_frame_function,
     "Function to call to handle automatic new frame creation.\n\
