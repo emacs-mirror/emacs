@@ -1,3 +1,7 @@
+2001-03-30  Dave Love  <fx@gnu.org>
+
+	* progmodes/fortran.el (fortran-comment-region): Fix typo.
+
 2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (transient-mark-mode): Mention C-g in the doc string.
