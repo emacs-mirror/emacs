@@ -2357,10 +2357,15 @@ run time used by Emacs since start-up.
 
 +++
 ** The new function `called-interactively-p' does what many people
-have mistakenly believed `interactively-p' did: it returns t if the
-calling function was called through `call-interactively'.
-This should only be used when you cannot add a new "interactively"
-argument to the command.
+have mistakenly believed `interactive-p' did: it returns t if the
+calling function was called through `call-interactively'.  This should
+only be used when you cannot add a new "interactive" argument to the
+command.
+
++++
+** The new function `assoc-string' replaces `assoc-ignore-case' and
+`assoc-ignore-representation', which are still available, but have
+been declared obsolete.
 
 +++
 ** An interactive specification may now use the code letter 'U' to get
