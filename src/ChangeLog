@@ -1,3 +1,9 @@
+2000-03-12  Dave Love  <fx@gnu.org>
+
+	* unexelf.c: Restore changes of 1999-10-19.
+	(unexec): Don't adjust bss for sbss type SHT_PROGBITS; otherwise
+	fix its type and alignment; copy it from current process.
+
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* atimer.c (cancel_atimer): Break out of the loop as soon as timer
