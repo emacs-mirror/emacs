@@ -888,6 +888,7 @@ Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
 above.  ALL-FRAMES = `visible' means include windows on all visible frames.\n\
 ALL-FRAMES = 0 means include windows on all visible and iconified frames.\n\
+If ALL-FRAMES is a frame, restrict search to windows on that frame.\n\
 Anything else means restrict to WINDOW's frame.\n\
 \n\
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
@@ -929,6 +930,10 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
     ;
   else if (XFASTINT (all_frames) == 0)
     ;
+  else if (FRAMEP (all_frames) && ! EQ (all_frames, Fwindow_frame (window)))
+    /* If all_frames is a frame and window arg isn't on that frame, just
+       return the first window on the frame.  */
+    return Fframe_first_window (all_frames);
   else if (! EQ (all_frames, Qt))
     all_frames = Qnil;
   /* Now all_frames is t meaning search all frames,
@@ -1021,6 +1026,7 @@ Optional third arg ALL-FRAMES t means include windows on all frames.\n\
 ALL-FRAMES nil or omitted means cycle within the frames as specified\n\
 above.  ALL-FRAMES = `visible' means include windows on all visible frames.\n\
 ALL-FRAMES = 0 means include windows on all visible and iconified frames.\n\
+If ALL-FRAMES is a frame, restrict search to windows on that frame.\n\
 Anything else means restrict to WINDOW's frame.\n\
 \n\
 If you use consistent values for MINIBUF and ALL-FRAMES, you can use\n\
@@ -1064,6 +1070,10 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
     ;
   else if (XFASTINT (all_frames) == 0)
     ;
+  else if (FRAMEP (all_frames) && ! EQ (all_frames, Fwindow_frame (window)))
+    /* If all_frames is a frame and window arg isn't on that frame, just
+       return the first window on the frame.  */
+    return Fframe_first_window (all_frames);
   else if (! EQ (all_frames, Qt))
     all_frames = Qnil;
   /* Now all_frames is t meaning search all frames,
