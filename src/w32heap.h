@@ -46,6 +46,7 @@ extern unsigned char *get_data_start();
 extern unsigned char *get_data_end();
 extern unsigned long  reserved_heap_size;
 extern SYSTEM_INFO    sysinfo_cache;
+extern OSVERSIONINFO  osinfo_cache;
 extern BOOL   	      using_dynamic_heap;
 extern int    	      w32_major_version;
 extern int    	      w32_minor_version;
