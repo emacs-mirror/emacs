@@ -449,12 +449,13 @@ main (argc, argv, envp)
 #endif
 
 #ifdef NeXT
-  extern int malloc_cookie;
-
-  /* This helps out unexnext.c.  */
-  if (initialized)
-    if (malloc_jumpstart (malloc_cookie) != 0)
-      printf ("malloc jumpstart failed!\n");
+  {
+    extern int malloc_cookie;
+    /* This helps out unexnext.c.  */
+    if (initialized)
+      if (malloc_jumpstart (malloc_cookie) != 0)
+	printf ("malloc jumpstart failed!\n");
+  }
 #endif /* NeXT */
 
 #ifdef VMS
