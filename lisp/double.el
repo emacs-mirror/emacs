@@ -174,8 +174,8 @@ first loaded.")
   "Toggle Double mode.
 With prefix arg, turn Double mode on iff arg is positive.
 
-When Double mode is on, some keys will insert will insert different
-strings when pressed twice.  See variable `double-map' for details."
+When Double mode is on, some keys will insert different strings
+when pressed twice.  See variable `double-map' for details."
   (interactive "P")
   (if (or (and (null arg) double-mode)
 	  (<= (prefix-numeric-value arg) 0))
@@ -185,13 +185,13 @@ strings when pressed twice.  See variable `double-map' for details."
 	    (let ((double-map))
 	      (double-setup))
 	    (setq double-mode nil)
-	    (set-buffer-modified-p (buffer-modified-p))))
+	    (force-mode-line-update)))
     ;;Turn it on
     (if double-mode
 	()
       (double-setup)
       (setq double-mode t)
-      (set-buffer-modified-p (buffer-modified-p)))))
+      (force-mode-line-update))))
 
 (provide 'double)
 
