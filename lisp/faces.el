@@ -49,9 +49,15 @@
 (defsubst internal-facep (x)
   (and (vectorp x) (= (length x) 8) (eq (aref x 0) 'face)))
 
+(defun facep (x)
+  "Return t if X is a face name or an internal face vector."
+  (and (or (internal-facep x)
+	   (and (symbolp x) (assq x global-face-data)))
+       t))
+      
 (defmacro internal-check-face (face)
-  (` (while (not (internal-facep (, face)))
-       (setq (, face) (signal 'wrong-type-argument (list 'internal-facep (, face)))))))
+  (` (or (internal-facep (, face))
+	 (signal 'wrong-type-argument (list 'internal-facep (, face))))))
 
 ;;; Accessors.
 (defun face-name (face)
@@ -547,10 +553,15 @@ also the same size as FACE on FRAME, or fail."
       (let ((fonts (x-list-fonts pattern face frame)))
 	(or fonts
 	    (if face
-		(error "No fonts matching pattern are the same size as `%s'"
-		       (if (null (face-font face))
-			   (cdr (assq 'font (frame-parameters frame)))
-			 face))
+		(if (string-match "\\*" pattern)
+		    (if (null (face-font face))
+			(error "No matching fonts are the same height as the frame default font")
+		      (error "No matching fonts are the same height as face `%s'" face))
+		  (if (null (face-font face))
+		      (error "Height of font `%s' doesn't match the frame default font"
+			     pattern)
+		    (error "Height of font `%s' doesn't match face `%s'"
+			   pattern face)))
 	      (error "No fonts match `%s'" pattern)))
 	(car fonts))
     (cdr (assq 'font (frame-parameters (selected-frame))))))
