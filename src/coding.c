@@ -2739,7 +2739,7 @@ detect_eol_type (src, src_bytes)
 	}
     }
 
-  return (total ? eol_type : CODING_EOL_UNDECIDED);
+  return eol_type;
 }
 
 /* Detect how end-of-line of a text of length SRC_BYTES pointed by SRC
