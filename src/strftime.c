@@ -377,14 +377,6 @@ static char const month_name[][10] =
 
 #ifdef emacs
 # define my_strftime emacs_strftime
- /* Emacs 20.2 uses `-Dstrftime=emacs_strftime' when compiling,
-    because that's how strftime used to be configured.
-    Undo this, since it gets in the way of accessing the underlying strftime,
-    which is needed for things like %Ec in Solaris.
-    The following two lines can be removed once Emacs stops compiling with
-    `-Dstrftime=emacs_strftime'.  */
-# undef strftime
-size_t strftime __P ((char *, size_t, const char *, const struct tm *));
 #else
 # define my_strftime strftime
 #endif
@@ -1175,14 +1167,14 @@ my_strftime (s, maxsize, format, tp)
 		   valid time_t value.  Check whether an error really
 		   occurred.  */
 		struct tm tm;
-		localtime_r (&lt, &tm);
 
-		if ((ltm.tm_sec ^ tm.tm_sec)
-		    | (ltm.tm_min ^ tm.tm_min)
-		    | (ltm.tm_hour ^ tm.tm_hour)
-		    | (ltm.tm_mday ^ tm.tm_mday)
-		    | (ltm.tm_mon ^ tm.tm_mon)
-		    | (ltm.tm_year ^ tm.tm_year))
+		if (! localtime_r (&lt, &tm)
+		    || ((ltm.tm_sec ^ tm.tm_sec)
+			| (ltm.tm_min ^ tm.tm_min)
+			| (ltm.tm_hour ^ tm.tm_hour)
+			| (ltm.tm_mday ^ tm.tm_mday)
+			| (ltm.tm_mon ^ tm.tm_mon)
+			| (ltm.tm_year ^ tm.tm_year)))
 		  break;
 	      }
 
