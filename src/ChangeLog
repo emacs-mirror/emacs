@@ -3,7 +3,7 @@
 	* print.c (print_preprocess): In case print-circle is nil,
 	add OBJ to Vprint_number_table only when OBJ is a symbol.
 
-1999-10-08  Kenichi Handa  <handa@etl.go.jp>
+1999-10-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (code_convert_string): Add record_unwind_protect to
 	assure setting inhibit_pre_post_conversion back to zero.  Take
