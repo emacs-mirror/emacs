@@ -289,6 +289,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* force gcc to be used */
 CC=gcc
 #endif /* not MAKING_MAKEFILE */
+
+#ifdef __GNUC__
+/* Karl Berry says: the environment
+   recommended by gcc (88/open, a.k.a. m88kbcs) doesn't support some system
+   functions, and gcc doesn't make it easy to switch environments.  */
+#define NO_GET_LOAD_AVG
+#endif
 
 /* definitions for xmakefile production */
 #ifdef COFF
