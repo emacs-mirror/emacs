@@ -44,7 +44,7 @@
 
 (defvar vc-menu-map (make-sparse-keymap "Version Control"))
 
-(define-key menu-bar-tools-menu [calendar] '("Calendar" . calendar))
+(define-key menu-bar-tools-menu [calendar] '("Display Calendar" . calendar))
 (define-key menu-bar-tools-menu [rmail] '("Read Mail" . rmail))
 (define-key menu-bar-tools-menu [gnus] '("Read Net News" . gnus))
 
@@ -212,7 +212,7 @@
 
 (define-key menu-bar-edit-menu [clear] '("Clear" . delete-region))
 
-(define-key menu-bar-edit-menu [paste] '("Paste most recent" . yank))
+(define-key menu-bar-edit-menu [paste] '("Paste Most Recent" . yank))
 
 (defvar yank-menu (cons "Select Yank" nil))
 (fset 'yank-menu (cons 'keymap yank-menu))
@@ -307,7 +307,7 @@ Do the same for the keys of the same name."
   '("Command Apropos..." . command-apropos))
 (define-key menu-bar-help-menu [describe-mode]
   '("Describe Mode" . describe-mode))
-(define-key menu-bar-help-menu [info] '("Info" . info))
+(define-key menu-bar-help-menu [info] '("Browse Manuals" . info))
 (define-key menu-bar-help-menu [emacs-faq] '("Emacs FAQ" . view-emacs-FAQ))
 (define-key menu-bar-help-menu [emacs-news] '("Emacs News" . view-emacs-news))
 
