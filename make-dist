@@ -205,7 +205,7 @@ echo "Making links to \`src/s'."
 
 echo "Making links to \`lib-src'."
 (cd lib-src
- ln [a-zA-Z]*.[chy] [a-zA-Z]*.lex [a-zA-Z]*.com ../${tempdir}/lib-src
+ ln [a-zA-Z]*.[chy] [a-zA-Z]*.lex ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff rcs2log ../${tempdir}/lib-src
  ln emacs.csh rcs-checkin ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
@@ -242,8 +242,8 @@ echo "Making links to \`info'."
 
 echo "Making links to \`man'."
 (cd man
- ln *.tex *.texinfo *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
- ln *.c ../${tempdir}/man
+ ln *.texinfo *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
+ cp texinfo.tex texindex.c ../${tempdir}/man
  test -f README && ln README ../${tempdir}/man
  test -f Makefile && ln Makefile ../${tempdir}/man
  ln ChangeLog split-man ../${tempdir}/man
