@@ -1,3 +1,8 @@
+2003-10-06  Lute Kamstra  <lute@gnu.org>
+
+	* tips.texi (Coding Conventions): Mention naming conventions for
+	hooks.
+
 2003-10-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* loading.texi (Library Search): Correct default value of
@@ -11,7 +16,7 @@
 	(Unloading): In unload-feature, use new var name
 	unload-feature-special-hooks.
 
-2003-10-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-10-03  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Major Mode Conventions): Mention third way to set up
 	Imenu.
@@ -28,14 +33,14 @@
 
 	* display.texi (Overlay Properties): Clarify `evaporate' property.
 
-2003-09-29  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-29  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Mode Line Data): Explain when symbols in mode-line
 	constructs should be marked as risky.  
 	Change cons cell into proper list.
 	(Mode Line Variables): Change cons cell into proper list.
 
-2003-09-26  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-26  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Mode Line Data): Document the :propertize construct.
 	(Mode Line Variables): Reorder the descriptions of the variables
@@ -104,7 +109,7 @@
 	* display.texi (Fontsets): Add char-displayable-p.
 	(Scroll Bars): New node.
 
-2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+2003-09-08  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (%-Constructs): Document new `%i' and `%I'
 	constructs.
