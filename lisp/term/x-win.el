@@ -1187,6 +1187,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (define-key function-key-map [M-return] [?\M-\C-m])
 (define-key function-key-map [M-escape] [?\M-\e])
 (define-key function-key-map [iso-lefttab] [backtab])
+(define-key function-key-map [S-iso-lefttab] [backtab])
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
