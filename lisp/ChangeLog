@@ -1,4 +1,9 @@
-2001-06-12  John Wiegley  <johnw@gnu.org>
+2001-06-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* woman.el (WoMan-highlight-references): Add help-echo to
+	mouse-highlighted text.
+
+2001-06-18  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-mode.el: Disabled a test that often yields false
 	failures.
