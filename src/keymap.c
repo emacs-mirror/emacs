@@ -412,7 +412,8 @@ PARENT should be nil or another keymap.  */)
 	{
 	  Lisp_Object indices[3];
 
-	  map_char_table (fix_submap_inheritance, Qnil, XCAR (list),
+	  map_char_table (fix_submap_inheritance, Qnil,
+			  XCAR (list), XCAR (list),
 			  keymap, 0, indices);
 	}
     }
@@ -705,7 +706,7 @@ map_keymap (map, fun, args, data, autoload)
       else if (CHAR_TABLE_P (binding))
 	{
 	  Lisp_Object indices[3];
-	  map_char_table (map_keymap_char_table_item, Qnil, binding,
+	  map_char_table (map_keymap_char_table_item, Qnil, binding, binding,
 			  Fcons (make_save_value (fun, 0),
 				 Fcons (make_save_value (data, 0),
 					args)),
@@ -1040,7 +1041,7 @@ is not copied.  */)
 	{
 	  Lisp_Object indices[3];
 	  elt = Fcopy_sequence (elt);
-	  map_char_table (copy_keymap_1, Qnil, elt, elt, 0, indices);
+	  map_char_table (copy_keymap_1, Qnil, elt, elt, elt, 0, indices);
 	}
       else if (VECTORP (elt))
 	{
@@ -1914,7 +1915,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	    {
 	      Lisp_Object indices[3];
 
-	      map_char_table (accessible_keymaps_char_table, Qnil,
+	      map_char_table (accessible_keymaps_char_table, Qnil, elt,
 			      elt, Fcons (Fcons (maps, make_number (is_metized)),
 					  Fcons (tail, thisseq)),
 			      0, indices);
@@ -2431,7 +2432,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 			    Fcons (Fcons (this, last),
 				   Fcons (make_number (nomenus),
 					  make_number (last_is_meta))));
-	      map_char_table (where_is_internal_2, Qnil, elt, args,
+	      map_char_table (where_is_internal_2, Qnil, elt, elt, args,
 			      0, indices);
 	      sequences = XCDR (XCAR (args));
 	    }
