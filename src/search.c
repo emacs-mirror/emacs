@@ -115,7 +115,6 @@ DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 1, 0,
 This function modifies the match data that `match-beginning',\n\
 `match-end' and `match-data' access; save and restore the match\n\
 data if you want to preserve them.")
-  "Return t if text after point matches regular expression PAT.")
   (string)
      Lisp_Object string;
 {
