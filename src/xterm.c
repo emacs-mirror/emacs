@@ -253,6 +253,10 @@ static Lisp_Object previous_help_echo;
 
 static int any_help_event_p;
 
+/* Non-zero means autoselect window with the mouse cursor.  */
+
+int x_autoselect_window_p;
+
 /* Non-zero means draw block and hollow cursor as wide as the glyph
    under it.  For example, if a block cursor is over a tab, it will be
    drawn as wide as that tab on the display.  */
@@ -6643,6 +6647,26 @@ note_mouse_movement (frame, event)
   last_mouse_motion_event = *event;
   XSETFRAME (last_mouse_motion_frame, frame);
 
+  if (x_autoselect_window_p)
+    {
+      int area;
+      Lisp_Object window;
+      static Lisp_Object last_window;
+
+      window = window_from_coordinates (frame, XINT (event->x), XINT (event->y), &area, 0);
+
+      /* Window will be selected only when it is not selected now and
+	 last mouse movement event was not in it.  Minubuffer window
+	 will be selected iff it is active.  */
+      if (!EQ (window, last_window)
+	  && !EQ (window, selected_window)
+	  && (!MINI_WINDOW_P (XWINDOW (window))
+	      || (EQ (window, minibuf_window) && minibuf_level > 0)))
+	Fselect_window (window);
+
+      last_window=window;
+    }
+
   if (event->window != FRAME_X_WINDOW (frame))
     {
       frame->mouse_moved = 1;
@@ -6664,7 +6688,7 @@ note_mouse_movement (frame, event)
 
 /* This is used for debugging, to turn off note_mouse_highlight.  */
 
- int disable_mouse_highlight;
+int disable_mouse_highlight;
 
 
 
@@ -15040,6 +15064,10 @@ syms_of_xterm ()
   previous_help_echo = Qnil;
   staticpro (&previous_help_echo);
   help_echo_pos = -1;
+
+  DEFVAR_BOOL ("x-autoselect-window", &x_autoselect_window_p,
+    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
+  x_autoselect_window_p = 0;
 
   DEFVAR_BOOL ("x-stretch-cursor", &x_stretch_cursor_p,
     doc: /* *Non-nil means draw block cursor as wide as the glyph under it.
