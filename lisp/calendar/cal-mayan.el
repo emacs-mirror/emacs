@@ -139,11 +139,11 @@ haab date DATE2."
 
 (defun calendar-mayan-haab-on-or-before (haab-date date)
   "Absolute date of latest HAAB-DATE on or before absolute DATE."
-    (- date
-       (mod (- date
-               (calendar-mayan-haab-difference
-                (calendar-mayan-haab-from-absolute 0) haab-date))
-            365)))
+  (- date
+     (% (- date
+	   (calendar-mayan-haab-difference
+	    (calendar-mayan-haab-from-absolute 0) haab-date))
+	365)))
 
 (defun calendar-next-haab-date (haab-date &optional noecho)
   "Move cursor to next instance of Mayan HAAB-DATE. 
@@ -202,11 +202,11 @@ Mayan tzolkin date DATE2."
 
 (defun calendar-mayan-tzolkin-on-or-before (tzolkin-date date)
   "Absolute date of latest TZOLKIN-DATE on or before absolute DATE."
-    (- date
-       (mod (- date (calendar-mayan-tzolkin-difference
-                     (calendar-mayan-tzolkin-from-absolute 0)
-                     tzolkin-date))
-            260)))
+  (- date
+     (% (- date (calendar-mayan-tzolkin-difference
+		 (calendar-mayan-tzolkin-from-absolute 0)
+		 tzolkin-date))
+	260)))
 
 (defun calendar-next-tzolkin-date (tzolkin-date &optional noecho)
   "Move cursor to next instance of Mayan TZOLKIN-DATE. 
@@ -290,20 +290,6 @@ and HAAB-DATE; returns nil if such a tzolkin-haab combination is impossible."
                          (calendar-make-alist
                           tzolkin-name-list 1 'capitalize)))))
     (cons tzolkin-count tzolkin-name)))
-
-(defun calendar-next-tzolkin-date (tzolkin-date &optional noecho)
-  "Move cursor to next instance of Mayan TZOLKIN-DATE.
-Echo Mayan date if NOECHO is t."
-  (interactive (list (calendar-read-mayan-tzolkin-date)))
-  (let* ((date (calendar-absolute-from-gregorian (calendar-cursor-to-date)))
-         (tomorrow-tzolkin-date
-          (calendar-mayan-tzolkin-from-absolute (1+ date))))
-    (calendar-goto-date
-     (calendar-gregorian-from-absolute
-      (+ date 1
-         (calendar-mayan-tzolkin-difference
-          tomorrow-tzolkin-date tzolkin-date)))))
-  (or noecho (calendar-print-mayan-date)))
 
 (defun calendar-next-calendar-round-date
   (tzolkin-date haab-date &optional noecho)
