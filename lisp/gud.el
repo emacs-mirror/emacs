@@ -170,6 +170,10 @@ we're in the GUD buffer)."
 (defun gud-gdb-massage-args (file args)
   (cons "-fullname" args))
 
+(defvar gud-gdb-marker-regexp
+  (concat "\032\032\\([^" path-separator "\n]*\\)" path-separator
+	  "\\([0-9]*\\)" path-separator ".*\n"))
+
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
 ;; might even receive a big chunk with several markers in it.  If we
@@ -184,8 +188,7 @@ we're in the GUD buffer)."
   (let ((output ""))
 
     ;; Process all the complete markers in this chunk.
-    (while (string-match "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
-			 gud-marker-acc)
+    (while (string-match gud-gdb-marker-regexp gud-marker-acc)
       (setq
 
        ;; Extract the frame position from the marker.
