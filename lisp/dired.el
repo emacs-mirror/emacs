@@ -598,17 +598,9 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (let ((opoint (point))
 	(process-environment (copy-sequence process-environment))
 	end)
-    ;; This makes sure that month names come out in English
-    ;; so we can find the start of the file name.
-    ;; But if the user has customized the way of finding the file name,
-    ;; this is not necessary.
-    (if (and (equal dired-move-to-filename-regexp
-		    dired-standard-move-to-filename-regexp)
-	     ;; It also isn't necessary if we'd use the C locale anyway.
-	     (not (equal (or (getenv "LC_ALL") (getenv "LC_TIME")
-			     (getenv "LANGUAGE") (getenv "LANG") "C")
-			 "C")))
-	(setq process-environment (cons "LC_ALL=C" process-environment)))
+    ;; We used to specify the C locale here, to force English month names;
+    ;; but this should not be necessary any more,
+    ;; with the new value of dired-move-to-filename-regexp.
     (if (consp dir-or-list)
 	;; In this case, use the file names in the cdr
 	;; exactly as originally given to dired-noselect.
@@ -1308,10 +1300,6 @@ Optional arg GLOBAL means to replace all matches."
   " [A-Za-z\xa0-\xff][A-Za-z\xa0-\xff][A-Za-z\xa0-\xff] [0-3 ][0-9]\
  [ 0-9][0-9][:0-9][0-9][ 0-9] "
   "Regular expression to match a month abbreviation followed date/time.")
-
-(defconst dired-standard-move-to-filename-regexp
-  "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)[ ]+[0-9]+ [ 0-9][0-9][:0-9][0-9][ 0-9] "
-  "Regular expression to match a month abbreviation followed by a number.")
 
 ;; Move to first char of filename on this line.
 ;; Returns position (point) or nil if no filename on this line."
