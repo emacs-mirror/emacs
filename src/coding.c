@@ -616,9 +616,8 @@ decode_coding_emacs_mule (coding, source, destination, src_bytes, dst_bytes)
 
       if (*src == '\r')
 	{
-	  int c;
+	  int c = *src++;
 
-	  src++;
 	  if (coding->eol_type == CODING_EOL_CR)
 	    c = '\n';
 	  else if (coding->eol_type == CODING_EOL_CRLF)
