@@ -1,6 +1,6 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs
 
-;; Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <espensk@stud.cs.uit.no>
 ;; Keywords: languages
@@ -44,10 +44,10 @@
 ;;       pascal-auto-lineup        '(all)
 ;;       pascal-toggle-completions nil
 ;;       pascal-type-keywords      '("array" "file" "packed" "char" 
-;; 				      "integer" "real" "string" "record")
+;; 				     "integer" "real" "string" "record")
 ;;       pascal-start-keywords     '("begin" "end" "function" "procedure"
-;; 				      "repeat" "until" "while" "read" "readln"
-;; 				      "reset" "rewrite" "write" "writeln")
+;; 				     "repeat" "until" "while" "read" "readln"
+;; 				     "reset" "rewrite" "write" "writeln")
 ;;       pascal-separator-keywords '("downto" "else" "mod" "div" "then"))
 
 ;; KNOWN BUGS / BUGREPORTS
@@ -150,20 +150,22 @@
   (modify-syntax-entry ?> "."    pascal-mode-syntax-table)
   (modify-syntax-entry ?& "."    pascal-mode-syntax-table)
   (modify-syntax-entry ?| "."    pascal-mode-syntax-table)
-  (modify-syntax-entry ?_ "w"    pascal-mode-syntax-table)
+  (modify-syntax-entry ?_ "_"    pascal-mode-syntax-table)
   (modify-syntax-entry ?\' "\""  pascal-mode-syntax-table))
 
-(defvar pascal-font-lock-keywords
+(defconst pascal-font-lock-keywords (purecopy
   (list
-   '("^[ \t]*\\(function\\|pro\\(cedure\\|gram\\)\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
+   '("^[ \t]*\\(function\\|pro\\(cedure\\|gram\\)\\)\\>[ \t]*\\([a-z]\\)"
+     1 font-lock-keyword-face)
+   '("^[ \t]*\\(function\\|pro\\(cedure\\|gram\\)\\)\\>[ \t]*\\([a-z][a-z0-9_]*\\)"
+     3 font-lock-function-name-face t)
 ;   ("type" "const" "real" "integer" "char" "boolean" "var"
 ;    "record" "array" "file")
    (cons (concat "\\<\\(array\\|boolean\\|c\\(har\\|onst\\)\\|file\\|"
 		 "integer\\|re\\(al\\|cord\\)\\|type\\|var\\)\\>")
 	 'font-lock-type-face)
    '("\\<\\(label\\|external\\|forward\\)\\>" . font-lock-reference-face)
-   '("\\<\\([0-9]+\\)[ \t]*:" 1 font-lock-reference-face)
+   '("\\<\\([0-9]+\\)[ \t]*:" 1 font-lock-function-name-face)
 ;   ("of" "to" "for" "if" "then" "else" "case" "while"
 ;    "do" "until" "and" "or" "not" "in" "with" "repeat" "begin" "end")
    (concat "\\<\\("
@@ -171,8 +173,11 @@
 	   "not\\|o[fr]\\|repeat\\|t\\(hen\\|o\\)\\|until\\|w\\(hile\\|ith\\)"
 	   "\\)\\>")
    '("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
-     (1 font-lock-keyword-face) (2 font-lock-reference-face nil t)))
+     1 font-lock-keyword-face)
+   '("\\<\\(goto\\)\\>[ \t]*\\([0-9]+\\)?"
+     2 font-lock-keyword-face t)))
   "Additional expressions to highlight in Pascal mode.")
+(put 'pascal-mode 'font-lock-defaults '(pascal-font-lock-keywords nil t))
 
 (defcustom pascal-indent-level 3
   "*Indentation of Pascal statements with respect to containing block."
@@ -350,8 +355,6 @@ no args, if that value is non-nil."
   (setq indent-line-function 'pascal-indent-line)
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'pascal-indent-comment)
-  (make-local-variable 'comment-start)
-  (setq comment-start "{")
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments nil)
   (make-local-variable 'case-fold-search)
@@ -922,12 +925,12 @@ Do not count labels, case-statements or records."
   "Indent current line as comment.
 If optional arg is non-nil, just return the
 column number the line should be indented to."
-    (let* ((stcol (save-excursion
-		    (re-search-backward "(\\*\\|{" nil t)
-		    (1+ (current-column)))))
-      (if arg stcol
-	(delete-horizontal-space)
-	(indent-to stcol))))
+  (let* ((stcol (save-excursion
+		  (re-search-backward "(\\*\\|{" nil t)
+		  (1+ (current-column)))))
+    (if arg stcol
+      (delete-horizontal-space)
+      (indent-to stcol))))
 
 (defun pascal-indent-case ()
   "Indent within case statements."
@@ -939,12 +942,12 @@ column number the line should be indented to."
 	(beg (point)) oldpos
 	(ind 0))
     ;; Get right indent
-    (while (< (point) (marker-position end))
+    (while (< (point) end)
       (if (re-search-forward 
 	   "^[ \t]*[^ \t,:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
 	   (marker-position end) 'move)
 	  (forward-char -1))
-      (if (< (point) (marker-position end))
+      (if (< (point) end)
 	  (progn
 	    (delete-horizontal-space)
 	    (if (> (current-column) ind)
@@ -953,7 +956,7 @@ column number the line should be indented to."
     (goto-char beg)
     (setq oldpos (marker-position end))
     ;; Indent all case statements
-    (while (< (point) (marker-position end))
+    (while (< (point) end)
       (if (re-search-forward
 	   "^[ \t]*[^][ \t,\\.:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
 	   (marker-position end) 'move)
@@ -1012,7 +1015,7 @@ indent of the current line in parameterlist."
 	(goto-char stpos)
 	;; Indent lines in record block
 	(if arg
-	    (while (<= (point) (marker-position edpos))
+	    (while (<= (point) edpos)
 	      (beginning-of-line)
 	      (delete-horizontal-space)
 	      (if (looking-at "end\\>")
@@ -1023,8 +1026,7 @@ indent of the current line in parameterlist."
 	;; Do lineup
 	(setq ind (pascal-get-lineup-indent stpos edpos lineup))
 	(goto-char stpos)
-	(while (and (<= (point) (marker-position edpos))
-		    (not (eobp)))
+	(while (and (<= (point) edpos) (not (eobp)))
 	  (if (search-forward lineup (pascal-get-end-of-line) 'move)
 	      (forward-char -1))
 	  (delete-horizontal-space)
@@ -1041,19 +1043,17 @@ indent of the current line in parameterlist."
 
     ;; If arg - move point
     (if arg (forward-line -1)
-      (goto-char (marker-position pos)))))
+      (goto-char pos))))
 
 ;  "Return the indent level that will line up several lines within the region
 ;from b to e nicely. The lineup string is str."
 (defun pascal-get-lineup-indent (b e str)
   (save-excursion
     (let ((ind 0)
-	  (reg (concat str "\\|\\(\\<record\\>\\)"))
-	  nest)
+	  (reg (concat str "\\|\\(\\<record\\>\\)")))
       (goto-char b)
       ;; Get rightmost position
       (while (< (point) e)
-	(setq nest 1)
 	(if (re-search-forward reg (min e (pascal-get-end-of-line 2)) 'move)
 	    (progn
 	      ;; Skip record blocks
@@ -1064,7 +1064,9 @@ indent of the current line in parameterlist."
 		  (skip-chars-backward " \t")
 		  (if (> (current-column) ind)
 		      (setq ind (current-column)))
-		  (goto-char (match-end 0)))))))
+		  (goto-char (match-end 0))
+		  (end-of-line)
+		  )))))
       ;; In case no lineup was found
       (if (> ind 0)
 	  (1+ ind)
@@ -1128,7 +1130,7 @@ indent of the current line in parameterlist."
 
 (defun pascal-get-completion-decl ()
   ;; Macro for searching through current declaration (var, type or const)
-  ;; for matches of `str' and adding the occurrence tp `all'
+  ;; for matches of `str' and adding the occurrence to `all'
   (let ((end (save-excursion (pascal-declaration-end)
 			     (point)))
 	match)
@@ -1262,7 +1264,7 @@ indent of the current line in parameterlist."
 	   (let* ((elm (cdr pascal-all))
 		  (match (car pascal-all))
 		  (min (length match))
-		  exact tmp)
+		  tmp)
 	     (if (string= match pascal-str)
 		 ;; Return t if first match was an exact match
 		 (setq match t)
