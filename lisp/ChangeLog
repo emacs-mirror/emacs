@@ -1,3 +1,8 @@
+2000-10-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* font-lock.el (font-lock-comment-face): Define a separate default
+	for dark-background tty's.
+
 2000-10-17  Miles Bader  <miles@gnu.org>
 
 	* help.el (resize-temp-buffer-window): Add hack to avoid last line
