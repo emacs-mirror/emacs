@@ -1,3 +1,7 @@
+2002-06-08  Richard M. Stallman  <rms@gnu.org>
+
+	* bookmark.el (bookmark-file-or-variation-thereof): Doc fix.
+
 2002-06-07  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-file-or-variation-thereof): Just use
