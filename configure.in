@@ -23,7 +23,7 @@ dnl  along with GNU Emacs; see the file COPYING.  If not, write to the
 dnl  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 dnl  Boston, MA 02111-1307, USA.
 
-AC_PREREQ(2.53)dnl
+AC_PREREQ(2.54)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
@@ -1382,6 +1382,9 @@ else
   CPPFLAGS="$c_switch_system $c_switch_machine $CPPFLAGS"
 fi
 
+dnl For AC_FUNC_GETLOADAVG, at least:
+AC_CONFIG_LIBOBJ_DIR(src)
+
 dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
@@ -1394,6 +1397,8 @@ if test "${with_sound}" != "no"; then
 fi
 
 dnl checks for header files
+dnl NB. On Solaris 8 there's a warning from the check for term.h because
+dnl it needs something else (curses.h?) to define `bool'.
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   termcap.h stdio_ext.h fcntl.h term.h strings.h coff.h pty.h sys/mman.h \
@@ -2606,6 +2611,9 @@ extern char *getenv ();
 #endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifndef HAVE_SIZE_T
+typedef size_t unsigned
 #endif
 #endif
 
