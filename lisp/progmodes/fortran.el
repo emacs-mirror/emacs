@@ -4,7 +4,7 @@
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: bug-fortran-mode@erl.mit.edu
-;; Version 1.30.5 (May 20, 1994)
+;; Version 1.30.5.1 (Sept 16, 1994)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -46,7 +46,7 @@
 
 ;;; Bugs to bug-fortran-mode@erl.mit.edu
 
-(defconst fortran-mode-version "version 1.30.5")
+(defconst fortran-mode-version "version 1.30.5.1")
 
 ;;; Code:
 
@@ -111,8 +111,8 @@ Normally a space.")
   "*Non-nil causes all numbered lines to be treated as possible DO loop ends.")
 
 (defvar fortran-blink-matching-if nil
-  "*From a Fortran ENDIF statement, blink the matching IF statement.
-Also, from an ENDDO statement, blink on matching DO [WHILE] statement.")
+  "*Non-nil causes \\[fortran-indent-line] on ENDIF statement to blink on matching IF.
+Also, from an ENDDO statement blink on matching DO [WHILE] statement.")
 
 (defvar fortran-continuation-string "$"
   "*Single-character string used for Fortran continuation lines.
@@ -391,9 +391,9 @@ Variables controlling indentation style and extra features:
     Non-nil causes all numbered lines to be treated as possible \"continue\"
     statements.  (default nil)
  fortran-blink-matching-if 
-    From a Fortran ENDIF statement, blink the matching IF statement.
-    Also, from an ENDDO statement, blink on matching DO [WHILE] statement.
-    (default nil)
+    Non-nil causes \\[fortran-indent-line] on an ENDIF statement to blink on
+    matching IF.  Also, from an ENDDO statement, blink on matching DO [WHILE]
+    statement.  (default nil)
  fortran-continuation-string
     Single-character string to be inserted in column 5 of a continuation
     line.  (default \"$\")
@@ -747,49 +747,23 @@ non-comment Fortran statement in the file, and nil otherwise."
  	'last-statement)))
 
 (defun fortran-blink-matching-if ()
-  "From a Fortran ENDIF statement, blink the matching IF statement."
-  (let ((count 1) (top-of-window (window-start)) matching-if
+  ;; From a Fortran ENDIF statement, blink the matching IF statement.
+  (let ((top-of-window (window-start)) matching-if
 	(endif-point (point)) message)
     (if (save-excursion (beginning-of-line)
 			(skip-chars-forward " \t0-9")
 			(looking-at "end[ \t]*if\\b"))
 	(progn
-	  (save-excursion
-	    (while (and (not (= count 0))
-			(not (eq (fortran-previous-statement)
-				 'first-statement))
-			(not (looking-at
-			      "^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]")))
-					; Keep local to subprogram
-	      (skip-chars-forward " \t0-9")
-	      (cond ((looking-at "if[ \t]*(")
-		     (save-excursion
-		       (if (or
-			    (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
-			    (let (then-test);multi-line if-then
-			      (while
-				  (and (= (forward-line 1) 0)
-					;search forward for then
-				       (or (looking-at "     [^ 0\n]")
-					   (looking-at "\t[1-9]"))
-				       (not
-					(setq
-					 then-test
-					 (looking-at
-					  ".*then\\b[ \t]*[^ \t(=a-z0-9]")))))
-			      then-test))
-			   (setq count (- count 1)))))
-		    ((looking-at "end[ \t]*if\\b")
-		     (setq count (+ count 1)))))
-	    (if (not (= count 0))
-		(setq message "No matching if.")
-	      (if (< (point) top-of-window)
-		  (setq message (concat "Matches " (buffer-substring
-						    (progn (beginning-of-line)
-							   (point))
-						    (progn (end-of-line)
-							   (point)))))
-		(setq matching-if (point)))))
+          (if (not (setq matching-if (fortran-beginning-if)))
+              (setq message "No matching if.")
+            (if (< matching-if top-of-window)
+                (save-excursion
+                  (goto-char matching-if)
+                  (beginning-of-line)
+                  (setq message
+                        (concat "Matches "
+                                (buffer-substring
+                                 (point) (progn (end-of-line) (point))))))))
 	  (if message
 	      (message "%s" message)
 	    (goto-char matching-if)
@@ -799,38 +773,205 @@ non-comment Fortran statement in the file, and nil otherwise."
 (defun fortran-blink-matching-do ()
   ;; From a Fortran ENDDO statement, blink on the matching DO or DO WHILE
   ;; statement.  This is basically copied from fortran-blink-matching-if.
-  (let ((count 1) (top-of-window (window-start)) matching-do
+  (let ((top-of-window (window-start)) matching-do
 	(enddo-point (point)) message)
     (if (save-excursion (beginning-of-line)
 			(skip-chars-forward " \t0-9")
 			(looking-at "end[ \t]*do\\b"))
 	(progn
-	  (save-excursion
-	    (while (and (not (= count 0))
-			(not (eq (fortran-previous-statement)
-				 'first-statement))
-			(not (looking-at
-			      "^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]")))
-					; Keep local to subprogram
-	      (skip-chars-forward " \t0-9")
-	      (cond ((looking-at "do[ \t]+[^0-9]")
-                     (setq count (- count 1)))
-		    ((looking-at "end[ \t]*do\\b")
-		     (setq count (+ count 1)))))
-	    (if (not (= count 0))
-		(setq message "No matching do")
-	      (if (< (point) top-of-window)
-		  (setq message (concat "Matches " (buffer-substring
-						    (progn (beginning-of-line)
-							   (point))
-						    (progn (end-of-line)
-							   (point)))))
-		(setq matching-do (point)))))
+          (if (not (setq matching-do (fortran-beginning-do)))
+              (setq message "No matching do.")
+            (if (< matching-do top-of-window)
+                (save-excursion
+                  (goto-char matching-do)
+                  (beginning-of-line)
+                  (setq message
+                        (concat "Matches "
+                                (buffer-substring
+                                 (point) (progn (end-of-line) (point))))))))
 	  (if message
 	      (message "%s" message)
 	    (goto-char matching-do)
 	    (sit-for 1)
 	    (goto-char enddo-point))))))
+
+(defun fortran-mark-do ()
+  "Put mark at end of Fortran DO [WHILE]-ENDDO construct, point at beginning. 
+The marks are pushed."
+  (interactive)
+  (let (enddo-point do-point)
+    (if (setq enddo-point (fortran-end-do))
+        (if (not (setq do-point (fortran-beginning-do)))
+            (message "No matching do.")
+          ;; Set mark, move point.
+          (goto-char enddo-point)
+          (push-mark)
+          (goto-char do-point)))))
+
+(defun fortran-end-do ()
+  ;; Search forward for first unmatched ENDDO.  Return point or nil.
+  (if (save-excursion (beginning-of-line)
+                      (skip-chars-forward " \t0-9")
+                      (looking-at "end[ \t]*do\\b"))
+      ;; Sitting on one.
+      (match-beginning 0)
+    ;; Search for one.
+    (save-excursion
+      (let ((count 1))
+        (while (and (not (= count 0))
+                    (not (eq (fortran-next-statement) 'last-statement))
+                    ;; Keep local to subprogram
+                    (not (looking-at "^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]")))
+
+          (skip-chars-forward " \t0-9")
+          (cond ((looking-at "end[ \t]*do\\b")
+                 (setq count (- count 1)))
+                ((looking-at "do[ \t]+[^0-9]")
+                 (setq count (+ count 1)))))
+        (and (= count 0)
+             ;; All pairs accounted for.
+             (point))))))
+
+(defun fortran-beginning-do ()
+  ;; Search backwards for first unmatched DO [WHILE].  Return point or nil.
+  (if (save-excursion (beginning-of-line)
+                      (skip-chars-forward " \t0-9")
+                      (looking-at "do[ \t]+"))
+      ;; Sitting on one.
+      (match-beginning 0)
+    ;; Search for one.
+    (save-excursion
+      (let ((count 1))
+        (while (and (not (= count 0))
+                    (not (eq (fortran-previous-statement) 'first-statement))
+                    ;; Keep local to subprogram
+                    (not (looking-at "^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]")))
+
+          (skip-chars-forward " \t0-9")
+          (cond ((looking-at "do[ \t]+[^0-9]")
+                 (setq count (- count 1)))
+                ((looking-at "end[ \t]*do\\b")
+                 (setq count (+ count 1)))))
+
+        (and (= count 0)
+             ;; All pairs accounted for.
+             (point))))))
+
+(defun fortran-mark-if ()
+  "Put mark at end of Fortran IF-ENDIF construct, point at beginning.
+The marks are pushed."
+  (interactive)
+  (let (endif-point if-point)
+    (if (setq endif-point (fortran-end-if))
+        (if (not (setq if-point (fortran-beginning-if)))
+            (message "No matching if.")
+          ;; Set mark, move point.
+          (goto-char endif-point)
+          (push-mark)
+          (goto-char if-point)))))
+
+(defun fortran-end-if ()
+  ;; Search forwards for first unmatched ENDIF.  Return point or nil.
+  (if (save-excursion (beginning-of-line)
+                      (skip-chars-forward " \t0-9")
+                      (looking-at "end[ \t]*if\\b"))
+      ;; Sitting on one.
+      (match-beginning 0)
+    ;; Search for one.  The point has been already been moved to first
+    ;; letter on line but this should not cause troubles.
+    (save-excursion
+      (let ((count 1))
+        (while (and (not (= count 0))
+                    (not (eq (fortran-next-statement) 'last-statement))
+                    ;; Keep local to subprogram.
+                    (not (looking-at
+                          "^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]")))
+
+          (skip-chars-forward " \t0-9")
+          (cond ((looking-at "end[ \t]*if\\b")
+                 (setq count (- count 1)))
+
+                ((looking-at "if[ \t]*(")
+                 (save-excursion
+                   (if (or
+                        (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
+                        (let (then-test) ; Multi-line if-then.
+                          (while
+                              (and (= (forward-line 1) 0)
+                                   ;; Search forward for then.
+                                   (or (looking-at "     [^ 0\n]")
+                                       (looking-at "\t[1-9]"))
+                                   (not
+                                    (setq then-test
+                                          (looking-at
+                                           ".*then\\b[ \t]*[^ \t(=a-z0-9]")))))
+                          then-test))
+                       (setq count (+ count 1)))))))
+
+        (and (= count 0)
+             ;; All pairs accounted for.
+             (point))))))
+
+(defun fortran-beginning-if ()
+  ;; Search backwards for first unmatched IF-THEN.  Return point or nil.
+  (if (save-excursion
+        ;; May be sitting on multi-line if-then statement, first move to
+        ;; beginning of current statement.  Note: `fortran-previous-statement'
+        ;; moves to previous statement *unless* current statement is first
+        ;; one.  Only move forward if not first-statement.
+        (if (not (eq (fortran-previous-statement) 'first-statement))
+            (fortran-next-statement))
+        (skip-chars-forward " \t0-9")
+        (and
+         (looking-at "if[ \t]*(")
+         (save-match-data
+           (or (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
+               ;; Multi-line if-then.
+               (let (then-test)
+                 (while
+                     (and (= (forward-line 1) 0)
+                          ;; Search forward for then.
+                          (or (looking-at "     [^ 0\n]")
+                              (looking-at "\t[1-9]"))
+                          (not
+                           (setq then-test
+                                 (looking-at
+                                  ".*then\\b[ \t]*[^ \t(=a-z0-9]")))))
+                 then-test)))))
+      ;; Sitting on one.
+      (match-beginning 0)
+    ;; Search for one.
+    (save-excursion
+      (let ((count 1))
+        (while (and (not (= count 0))
+                    (not (eq (fortran-previous-statement) 'first-statement))
+                    ;; Keep local to subprogram.
+                    (not (looking-at
+                          "^[ \t0-9]*end\\b[ \t]*[^ \t=(a-z]")))
+
+          (skip-chars-forward " \t0-9")
+          (cond ((looking-at "if[ \t]*(")
+                 (save-excursion
+                   (if (or
+                        (looking-at ".*)[ \t]*then\\b[ \t]*[^ \t(=a-z0-9]")
+                        (let (then-test) ; Multi-line if-then.
+                          (while
+                              (and (= (forward-line 1) 0)
+                                   ;; Search forward for then.
+                                   (or (looking-at "     [^ 0\n]")
+                                       (looking-at "\t[1-9]"))
+                                   (not
+                                    (setq then-test
+                                          (looking-at
+                                           ".*then\\b[ \t]*[^ \t(=a-z0-9]")))))
+                          then-test))
+                       (setq count (- count 1)))))
+                ((looking-at "end[ \t]*if\\b")
+                 (setq count (+ count 1)))))
+
+        (and (= count 0)
+             ;; All pairs accounted for.
+             (point))))))
 
 (defun fortran-indent-line ()
   "Indents current Fortran line based on its contents and on previous lines."
