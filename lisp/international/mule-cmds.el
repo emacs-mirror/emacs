@@ -254,9 +254,8 @@ wrong, use this command again to toggle back to the right mode."
   "Execute an I/O command using the specified coding system."
   (interactive)
   (let* ((default (and buffer-file-coding-system
-		       ;; Fixme: what is t here?
 		       (not (eq (coding-system-type buffer-file-coding-system)
-				t))
+				'undecided))
 		       buffer-file-coding-system))
 	 (coding-system (read-coding-system
 			 (if default
@@ -396,18 +395,21 @@ non-nil, it is used to sort CODINGS in the different way than above."
 			 (if (memq base lang-preferred) 8 0)
 			 (if (string-match "-with-esc$" (symbol-name base))
 			     0 4)
-;; Fixme: sort out coding-system-spec
-;; 			 (if (eq (coding-system-type base) 'iso-2022)
-;; 			     ;; For ISO based coding systems, prefer
-;; 			     ;; one that doesn't use escape sequences.
-;; 			     (let* ((extra-spec (coding-system-spec base))
-;; 				    (flags (aref extra-spec 3)))
-;; 			       (if (/= (logand flags #x40) 0)
-;; 				   (if (/= (logand flags #x30) 0)
-;; 				       0
-;; 				     1)
-;; 				 2))
-;; 			   1)
+ 			 (if (eq (coding-system-type base) 'iso-2022)
+			     (let ((category (coding-system-category base)))
+			       ;; For ISO based coding systems, prefer
+			       ;; one that doesn't use designation nor
+			       ;; locking/single shifting.
+			       (cond
+				((or (eq category 'coding-category-iso-8-1)
+				     (eq category 'coding-category-iso-8-2))
+				 2)
+				((or (eq category 'coding-category-iso-7-tight)
+				     (eq category 'coding-category-iso-7))
+				 1)
+				(t
+				 0)))
+			   1)
 			 ))))))
       (sort codings (function (lambda (x y)
 				(> (funcall func x) (funcall func y))))))))
@@ -473,7 +475,6 @@ Emacs, but is unlikely to be what you really want now."
 		   (push cs codings))))
 	   (nreverse codings)))))
 
-;; Fixme: is this doing the right thing now, at least with eight-bit?
 (defun find-multibyte-characters (from to &optional maxcount excludes)
   "Find multibyte characters in the region specified by FROM and TO.
 If FROM is a string, find multibyte characters in the string.
@@ -488,36 +489,36 @@ Optional 4th arg EXCLUDE is a list of character sets to be ignored."
   (let ((chars nil)
 	charset char)
     (if (stringp from)
-	(let ((idx 0))
-	  (while (setq idx (string-match "[^\000-\177]" from idx))
-	    (setq char (aref from idx)
-		  charset (char-charset char))
-	    (if (or (memq charset '(eight-bit-control eight-bit-graphic))
-		    (not (or (eq excludes t) (memq charset excludes))))
+	(if (multibyte-string-p from)
+	    (let ((idx 0))
+	      (while (setq idx (string-match "[^\000-\177]" from idx))
+		(setq char (aref from idx)
+		      charset (char-charset char))
+		(unless (memq charset excludes)
+		  (let ((slot (assq charset chars)))
+		    (if slot
+			(if (not (memq char (nthcdr 2 slot)))
+			    (let ((count (nth 1 slot)))
+			      (setcar (cdr slot) (1+ count))
+			      (if (or (not maxcount) (< count maxcount))
+				  (nconc slot (list char)))))
+		      (setq chars (cons (list charset 1 char) chars)))))
+		(setq idx (1+ idx)))))
+      (if enable-multibyte-characters
+	  (save-excursion
+	    (goto-char from)
+	    (while (re-search-forward "[^\000-\177]" to t)
+	      (setq char (preceding-char)
+		    charset (char-charset char))
+	      (unless (memq charset excludes)
 		(let ((slot (assq charset chars)))
 		  (if slot
-		      (if (not (memq char (nthcdr 2 slot)))
+		      (if (not (member char (nthcdr 2 slot)))
 			  (let ((count (nth 1 slot)))
 			    (setcar (cdr slot) (1+ count))
 			    (if (or (not maxcount) (< count maxcount))
 				(nconc slot (list char)))))
-		    (setq chars (cons (list charset 1 char) chars)))))
-	    (setq idx (1+ idx))))
-      (save-excursion
-	(goto-char from)
-	(while (re-search-forward "[^\000-\177]" to t)
-	  (setq char (preceding-char)
-		charset (char-charset char))
-	  (if (or (memq charset '(eight-bit-control eight-bit-graphic))
-		  (not (or (eq excludes t) (memq charset excludes))))
-	      (let ((slot (assq charset chars)))
-		(if slot
-		    (if (not (member char (nthcdr 2 slot)))
-			(let ((count (nth 1 slot)))
-			  (setcar (cdr slot) (1+ count))
-			  (if (or (not maxcount) (< count maxcount))
-			      (nconc slot (list char)))))
-		  (setq chars (cons (list charset 1 char) chars))))))))
+		    (setq chars (cons (list charset 1 char) chars)))))))))
     (nreverse chars)))
 
 (defvar last-coding-system-specified nil
@@ -1438,11 +1439,13 @@ specifies the character set for the major languages of Western Europe."
 		(cons input-method
 		      (delete input-method input-method-history))))))
 
-  ;; Fixme: default from the environment coding system where that's
-  ;; charset-based.
-  (if (get-language-info language-name 'charset)
-      (apply 'set-charset-priority  (get-language-info language-name
-						       'charset)))
+  ;; Put higher priorities to such charsets that are supported by the
+  ;; coding systems of higher priorities in this environment.
+  (let ((charsets nil))
+    (dolist (coding (get-language-info language-name 'coding-priority))
+      (setq charsets (append charsets (coding-system-charset-list coding))))
+    (if charsets
+	(apply 'set-charset-priority charsets)))
 
   ;; Note: For DOS, we assumed that the charset cpXXX is already
   ;; defined.
