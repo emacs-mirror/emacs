@@ -592,12 +592,14 @@ If MINIFRAME is non-nil and not a window, include all frames.")
 }
 
 
-DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 1, "",
+DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
   "Delete FRAME, permanently eliminating it from use.\n\
 If omitted, FRAME defaults to the selected frame.\n\
-A frame may not be deleted if its minibuffer is used by other frames.")
-  (frame)
-     Lisp_Object frame;
+A frame may not be deleted if its minibuffer is used by other frames.\n\
+Normally, you may not delete a frame if all other frames are invisible,\n\
+but if the second optional argument FORCE is non-nil, you may do so.")
+  (frame, force)
+     Lisp_Object frame, force;
 {
   struct frame *f;
 
@@ -617,7 +619,7 @@ A frame may not be deleted if its minibuffer is used by other frames.")
 
   /* If all other frames are invisible, refuse to delete.
      (Exception: allow deleting the terminal frame when using X.)  */
-  if (f == selected_frame)
+  if (f == selected_frame && NILP (force))
     {
       Lisp_Object frames;
       int count = 0;
@@ -1372,9 +1374,9 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
 DEFUN ("set-frame-position", Fset_frame_position, 
        Sset_frame_position, 3, 3, 0,
   "Sets position of FRAME in pixels to XOFFSET by YOFFSET.\n\
-If XOFFSET or YOFFSET are negative, they are interpreted relative to\n\
-the leftmost or bottommost position FRAME could occupy without going\n\
-off the screen.")
+This is actually the position of the upper left corner of the frame.\n\
+Negative values for XOFFSET or YOFFSET are interpreted relative to\n\
+the leftmost or bottommost possible position (that stays within the screen).")
   (frame, xoffset, yoffset)
      Lisp_Object frame, xoffset, yoffset;
 {
