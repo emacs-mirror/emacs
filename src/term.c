@@ -966,8 +966,11 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 
 	      if (GLYPH_SIMPLE_P (tbase, tlen, g))
 		{
-		  /* We set the multi-byte form of C at WORKBUF.  */
-		  len = CHAR_STRING (src->u.ch, workbuf);
+		  /* We set the multi-byte form of a character in G
+		     (that should be an ASCII character) at
+		     WORKBUF.  */
+		  workbuf[0] = FAST_GLYPH_CHAR (g);
+		  len = 1;
 		  buf = workbuf;
 		}
 	      else
