@@ -1,5 +1,9 @@
 2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* jka-compr.el (jka-compr-partial-uncompress): Use null-device
+	instead of a literal /dev/null.  Reported by Jens Schmidt
+	<schmidt@mathematik.uni-kl.de>.
+
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Use
 	with-temp-buffer instead of find-file-noselect, and bind
 	coding-system-for-read to no-conversion when reading the queued
