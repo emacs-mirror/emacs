@@ -154,6 +154,8 @@ is nil, raise an error."
                       (memq x loadhist-hook-functions)))
 	     (dolist (y (cdr flist))
 	       (remove-hook x y))))))
+    (if (fboundp 'elp-restore-list)
+	(elp-restore-list (cdr flist)))
     (mapc
      (lambda (x)
        (cond ((stringp x) nil)
@@ -165,6 +167,8 @@ is nil, raise an error."
 	      (when (boundp x)
 		(makunbound x))
 	      (when (fboundp x)
+		(if (fboundp 'ad-unadvise)
+		    (ad-unadvise x))
 		(fmakunbound x)
 		(let ((aload (get x 'autoload)))
 		  (if aload (fset x (cons 'autoload aload))))))))
