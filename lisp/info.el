@@ -1,6 +1,7 @@
 ;;; info.el --- info package for Emacs
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001,
+;; 2002, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1935,7 +1936,7 @@ Give a blank topic name to go to the Index node itself."
       (error "The Info directory node has no index; use m to select a manual"))
   (let ((orignode Info-current-node)
 	(rnode nil)
-	(pattern (format "\n\\* +\\([^\n:]*%s[^\n:]*\\):[ \t]*\\([^.\n]*\\)\\.[ \t]*\\([0-9]*\\)"
+	(pattern (format "\n\\* +\\([^\n]*%s[^\n]*\\):[ \t]+\\([^.\n]*\\)\\.[ \t]*\\([0-9]*\\)"
 			 (regexp-quote topic)))
 	node
 	(case-fold-search t))
