@@ -222,7 +222,7 @@ no args if that value is non-nil."
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-start-skip) "/\\*+ *\\|// *")
   (set (make-local-variable 'comment-indent-function) 'c++-comment-indent)
-  (set (make-local-variable 'paragraph-start) (concat "^$\\|" page-delimiter))
+  (set (make-local-variable 'paragraph-start) (concat "$\\|" page-delimiter))
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
   (set (make-local-variable 'require-final-newline) t)
