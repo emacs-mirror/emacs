@@ -7,15 +7,15 @@
 @cindex C editing
 @cindex program editing
 
-  Emacs has many commands designed to understand the syntax of programming
-languages such as Lisp and C.  These commands can:
+  Emacs provides many features to facilitate editing programs.  These
+features can:
 
 @itemize @bullet
 @item
-Move over or kill balanced expressions or @dfn{sexps} (@pxref{Lists}).
+Move over or kill balanced expressions (@pxref{Lists}).
 @item
-Move over or mark top-level expressions---@dfn{defuns}, in Lisp;
-functions, in C (@pxref{Defuns}).
+Move over or mark top-level expressions, such as @dfn{defuns} in
+Lisp, or function definitions in C (@pxref{Defuns}).
 @item
 Show how parentheses balance (@pxref{Matching}).
 @item
@@ -23,30 +23,14 @@ Insert, kill or align comments (@pxref{Comments}).
 @item
 Follow the usual indentation conventions of the language
 (@pxref{Program Indent}).
+@item
+Highlight program syntax (@pxref{Font Lock}).
+@item
+Compile and debug programs (@pxref{Building}).
 @end itemize
 
-  Emacs commands that operate on words, sentences and paragraphs are
-very useful in editing code even though their canonical application is
-for editing human language text.  Most symbols contain words
-(@pxref{Words}); sentences can be found in strings and comments
-(@pxref{Sentences}).  Paragraphs per se don't exist in code, but the
-paragraph commands are useful anyway, because programming language major
-modes define paragraphs to begin and end at blank lines
-(@pxref{Paragraphs}).  Judicious use of blank lines to make the program
-clearer will also provide useful chunks of text for the paragraph
-commands to work on.
-
-  The selective display feature is useful for looking at the overall
-structure of a function (@pxref{Selective Display}).  This feature
-hides the lines that are indented more than a specified amount.
-Programming modes often support Outline minor mode (@pxref{Outline
-Mode}).  The Foldout package provides folding-editor features
-(@pxref{Foldout}).
-
-  The ``automatic typing'' features may be useful for writing programs.
-@xref{Top,,Autotyping, autotype, Autotyping}.
-
 @menu
+* Misc for Programs::   Other Emacs features useful for editing programs.
 * Program Modes::       Major modes for editing programs.
 * Lists::	        Expressions with balanced parentheses.
 * List Commands::       The commands for working with list and sexps.
@@ -73,10 +57,51 @@ Mode}).  The Foldout package provides folding-editor features
 * Asm Mode::            Asm mode and its special features.
 @end menu
 
+@node Misc for Programs
+@section Other Features Useful for Editing Programs
+
+  A number of Emacs commands that aren't designed specifically for
+editing programs are useful for it nonetheless.
+
+  The Emacs commands that operate on words, sentences and paragraphs
+are useful for editing code.  Most symbols names contain words
+(@pxref{Words}); sentences can be found in strings and comments
+(@pxref{Sentences}).  Paragraphs in the strict sense may be found in
+program code (in long comments), but the paragraph commands are useful
+in other places too, because programming language major modes define
+paragraphs to begin and end at blank lines (@pxref{Paragraphs}).
+Judicious use of blank lines to make the program clearer will also
+provide useful chunks of text for the paragraph commands to work on.
+
+  The selective display feature is useful for looking at the overall
+structure of a function (@pxref{Selective Display}).  This feature
+hides the lines that are indented more than a specified amount.
+Programming modes often support Outline minor mode (@pxref{Outline
+Mode}).  The Foldout package provides folding-editor features
+(@pxref{Foldout}).
+
+  The ``automatic typing'' features may be useful for writing programs.
+@xref{Top,,Autotyping, autotype, Autotyping}.
+
 @node Program Modes
 @section Major Modes for Programming Languages
-
 @cindex modes for programming languages
+
+  Emacs has specialized major modes for various programming languages.
+@xref{Major Modes}.  A programming language major mode typically
+specifies the syntax of expressions, the customary rules for
+indentation, how to do syntax highlighting for the language, and how
+to find the beginning of a function definition.  They often provide
+facilities for compiling and debugging programs as well.
+
+  Ideally, Emacs should provide a major mode for each programming
+language that you might want to edit; if it doesn't have a mode for
+your favorite language, you can contribute one.  But often the mode
+for one language can serve for other syntactically similar languages.
+The major mode for language @var{l} is called @code{@var{l}-mode},
+and you can enable it by typing @kbd{M-x @var{l}-mode @key{RET}}.
+@xref{Choosing Modes}.
+
 @cindex Perl mode
 @cindex Icon mode
 @cindex Awk mode
@@ -94,62 +119,36 @@ Mode}).  The Foldout package provides folding-editor features
 @cindex Shell-script mode
 @cindex Delphi mode
 @cindex PostScript mode
-  Emacs also has major modes for the programming languages Lisp, Scheme
-(a variant of Lisp) and the Scheme-based DSSSL expression language, Ada,
-Awk, C, C++, Delphi (Object Pascal), Fortran (free and fixed format),
-Icon, IDLWAVE,
-Java, Metafont (@TeX{}'s companion for font creation), Modula2,
-Objective-C, Octave, Pascal, Perl, Pike, PostScript, Prolog, Simula,
-VHDL, CORBA IDL, and Tcl.
-There is also a major mode for makefiles, called Makefile
-mode.  An alternative mode for Perl is called CPerl mode.  Modes
-are available for scripts for the common Unix shells, VMS DCL and
-MS-DOS/MS-Windows @samp{BAT} files.  In a similar fashion to programming
-languages, modes are provided for editing various sorts of configuration
-files.
-
-Separate manuals are available for the modes for Ada (@pxref{Top, , Ada
-Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL
-(@pxref{Top, , CC Mode, ccmode, CC Mode}) and the IDLWAVE modes
-(@pxref{Top, , IDLWAVE, idlwave, IDLWAVE User Manual}).
-
-  Ideally, a major mode should be implemented for each programming
-language that you might want to edit with Emacs; but often the mode for
-one language can serve for other syntactically similar languages.  The
-language modes that exist are those that someone decided to take the
-trouble to write.
-
-  There are several forms of Lisp mode, which differ in the way they
-interface to Lisp execution.  @xref{Executing Lisp}.
-
-  Major modes for programming languages usually provide conveniency
-features such as syntax-sensitive indentation, syntax highlighting
-(@pxref{Font Lock}), movement by blocks and functions, etc.
-
-  Each of the programming language major modes defines the @key{TAB} key
-to run an indentation function that knows the indentation conventions of
-that language and updates the current line's indentation accordingly.
-For example, in C mode @key{TAB} is bound to @code{c-indent-command}.
-@kbd{C-j} is normally defined to do @key{RET} followed by @key{TAB};
-thus, it too indents in a mode-specific fashion.
+  The existing programming language major modes include Lisp, Scheme (a
+variant of Lisp) and the Scheme-based DSSSL expression language, Ada,
+Awk, C, C++, Delphi (Object Pascal), Fortran (free format and fixed
+format), Icon, IDL (CORBA), IDLWAVE, Java, Metafont (@TeX{}'s
+companion for font creation), Modula2, Objective-C, Octave, Pascal,
+Perl, Pike, PostScript, Prolog, Simula, and Tcl, and VHDL.  There is
+also a major mode for makefiles, called Makefile mode.  An alternative
+mode for Perl is called CPerl mode.  Modes are available for the
+scripting languages of the common Unix shells, VMS DCL, and
+MS-DOS/MS-Windows @samp{BAT} files.  There are also major modes for
+editing various sorts of configuration files.
 
 @kindex DEL @r{(programming modes)}
 @findex c-electric-backspace
   In most programming languages, indentation is likely to vary from
 line to line.  So the major modes for those languages rebind @key{DEL}
-to treat a tab as if it were the equivalent number of spaces (using
-the command @code{c-electric-backspace}).  This makes it possible to
-rub out indentation one column at a time without worrying whether it
-is made up of spaces or tabs.  Use @kbd{C-b C-d} to delete a tab
-character before point, in these modes.
+to treat a tab as if it were the equivalent number of spaces.  This
+makes it possible to reduce indentation one column at a time without
+worrying whether it is made up of spaces or tabs.  Use @kbd{C-b C-d}
+to delete a tab character before point, in these modes.
 
   Programming language modes define paragraphs to be separated only by
 blank lines, so that the paragraph commands remain useful.  Auto Fill mode,
 if enabled in a programming language major mode, indents the new lines
 which it creates.
 
-  @xref{Choosing Modes}, for the description of how major modes are
-activated.
+  Separate manuals are available for the modes for Ada (@pxref{Top, , Ada
+Mode, ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL
+(@pxref{Top, , CC Mode, ccmode, CC Mode}) and the IDLWAVE modes
+(@pxref{Top, , IDLWAVE, idlwave, IDLWAVE User Manual}).
 
 @cindex mode hook
 @vindex c-mode-hook
@@ -169,13 +168,14 @@ adding @samp{-hook}.  For example, turning on C mode runs the hook
 
 @cindex Control-Meta
   By convention, Emacs keys for dealing with balanced expressions are
-usually Control-Meta characters.  They tend to be analogous in function
-to their Control and Meta equivalents.  (For example, @kbd{C-M-b} moves
-back over one balanced expression, which is analogous to @kbd{C-b} that
-moves one character back and to @kbd{M-b} which moves one word back.)
-These commands are usually thought of as pertaining to expressions in
-programming languages, but can be useful with any language in which some
-sort of parentheses exist (including human languages).
+Control-Meta characters.  They act like the corresponding Control and
+Meta equivalents, except that they operate on balanced expressions
+instead of on characters or words.  For instance, the command
+@kbd{C-M-b} moves backward over a balanced expression, just as
+@kbd{C-b} moves back over a character and @kbd{M-b} moves back over a
+word.  These commands are intended for expressions in programming
+languages, but can be useful for editing any text that has
+parentheses.
 
 @cindex list
 @cindex sexp
@@ -407,6 +407,11 @@ This program reformats a Lisp object with indentation chosen to look nice.
 @node Basic Indent
 @subsection Basic Program Indentation Commands
 
+   Programming language major modes define the @key{TAB} key to indent
+according to the usual conventions of the language you are editing.
+@kbd{C-j} is normally defined to do @key{RET} followed by @key{TAB};
+thus, it too indents in a mode-specific fashion.
+
 @c WideCommands
 @table @kbd
 @item @key{TAB}
@@ -420,23 +425,25 @@ Equivalent to @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
 @findex indent-line-function
   The basic indentation command is @key{TAB}, which gives the current line
 the correct indentation as determined from the previous lines.  The
-function that @key{TAB} runs depends on the major mode; it is @code{indent-for-tab-command}
+function that @key{TAB} runs depends on the major mode; it is
+@code{indent-for-tab-command}
 in Lisp mode, @code{c-indent-command} in C mode, etc.  These functions
-understand different syntaxes for different languages, but they all do
-about the same thing.  @key{TAB} in any programming-language major mode
+understand the syntax and conventions of different languages, but they all do
+conceptually the same job: @key{TAB} in any programming-language major mode
 inserts or deletes whitespace at the beginning of the current line,
-independent of where point is in the line.  If point is inside the
-whitespace at the beginning of the line, @key{TAB} leaves it at the end of
-that whitespace; otherwise, @key{TAB} leaves point fixed with respect to
+independent of where point is in the line.  If point was inside the
+whitespace at the beginning of the line, @key{TAB} puts it at the end of
+that whitespace; otherwise, @key{TAB} keeps point fixed with respect to
 the characters around it.
 
   Use @kbd{C-q @key{TAB}} to insert a tab at point.
 
 @kindex C-j
 @findex newline-and-indent
-  When entering lines of new code, use @kbd{C-j} (@code{newline-and-indent}),
-which is equivalent to a @key{RET} followed by a @key{TAB}.  @kbd{C-j} creates
-a blank line and then gives it the appropriate indentation.
+  When entering lines of new code, use @kbd{C-j}
+(@code{newline-and-indent}), which is equivalent to a @key{RET}
+followed by a @key{TAB}.  @kbd{C-j} at the end of a line creates a
+blank line and then gives it the appropriate indentation.
 
   @key{TAB} indents the second and following lines of the body of a
 parenthetical grouping each under the preceding one; therefore, if you
