@@ -292,7 +292,7 @@ get_user_db (display)
   XrmDatabase db;
   char *xdefs;
 
-#ifdef HAVE_X11R4
+#ifdef PBaseSize		/* Cheap way to test for X11R4 or later.  */
   xdefs = XResourceManagerString (display);
 #else
   xdefs = display->xdefaults;
