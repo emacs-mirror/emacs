@@ -43,7 +43,7 @@ Packages posted to the gnu.emacs.sources newsgroup (see
 etc/MAILINGLISTS) might be archived specifically (try a web search
 engine) or retrievable from general Usenet archive services.
 
-* Maintenace versions of some packages distributed with Emacs
+* Maintenance versions of some packages distributed with Emacs
 
 You might find bug-fixes or enhancements in these places.
 
@@ -59,9 +59,6 @@ You might find bug-fixes or enhancements in these places.
    Also home of Python Mode and possibly other good hacks.
 
  * CPerl: <URL:ftp://ftp.math.ohio-state.edu/pub/users/ilya>
-
- * Crisp mode, Scroll Lock mode:
-   <URL:http://members.home.net/foz/elisp/>
 
  * Ediff and Viper: <URL:ftp://ftp.ca.sunysb.edu/pub/techreports/kifer/>
 
@@ -95,9 +92,21 @@ You might find bug-fixes or enhancements in these places.
 
  * Speedbar, Checkdoc etc: <URL:ftp://www.ultranet.com/pub/zappo/>
 
+ * SQL: <URL:http://www.geocities.com/TimesSquare/6120/emacs.html>
+
  * Sregex: <URL:http://www.zanshin.com/%7Ebobg/sregex.html>
 
  * Webjump: <URL:http://nwv.www.media.mit.edu/people/nwv/projects/webjump>
+
+*Auxilliary files
+
+ * (Tex)info files for use with Info-look that don't come from GNU
+   packages:
+   * Scheme: <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm/r5rs.info.tar.gz>
+   * LaTeX: <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/
+       latex2e.texi> (or CTAN mirrors)
+   * Perl: <URL:ftp://ftp.funet.fi/pub/languages/perl/CPAN/doc/manual/
+       texinfo/perl5/> (or CPAN mirrors)
 
 * Packages and add-ons not bundled with Emacs
 
