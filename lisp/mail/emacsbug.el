@@ -240,8 +240,8 @@ and send the mail again using \\[mail-send-and-exit].")))
     ;; Unclutter
     (mail-text)
     (let ((p (point)))
-      (re-search-forward (concat "^In " (emacs-version)))
-      (delete-region p (match-beginning 0)))
+      (if (re-search-forward (concat "^In " (emacs-version)) nil t)
+	  (delete-region p (match-beginning 0))))
     (re-search-forward "Please describe.+\n.+precise symptoms.+bug:\n*"
                        (point-max) t)
     (replace-match "Symptoms:\n")))
