@@ -192,8 +192,7 @@ Type SPC to scroll through this section and its subsections.")))
 			    (not (eobp)))
 		(let ((ch (following-char)))
 		  (delete-char 1)
-		  (insert (format "=%02x" ch))))
-	    (error "Please convert non-ASCII characters to something else"))))
+		  (insert (format "=%02x" ch)))))))
 
     ;; The last warning for novice users.
     (if (or report-emacs-bug-no-confirmation
