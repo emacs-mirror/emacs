@@ -1,3 +1,8 @@
+2001-10-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (redisplay_internal): Don't clear echo area if the
+	mini-window is selected.
+
 2001-10-19  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (text_property_stickiness): Non-rear-non-stickiness
