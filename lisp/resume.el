@@ -89,10 +89,9 @@
   "Buffer that is used by resume-process-args.")
 
 (defun resume-process-args ()
-  "This should be called from inside of suspend-resume-hook.  This
-grabs the contents of the file whose name is stored in
-emacs-args-file, and processes these arguments like command line
-options."
+  "This should be called from inside of `suspend-resume-hook'.
+This grabs the contents of the file whose name is stored in `emacs-args-file',
+and processes these arguments like command line options."
   (let ((start-buffer (current-buffer))
 	(args-buffer (get-buffer-create emacs-args-buffer))
 	length args)
@@ -141,7 +140,7 @@ options."
 
 (defun empty-args-file ()
   "This empties the contents of the file whose name is specified by
-emacs-args-file."
+`emacs-args-file'."
   (save-excursion
     (set-buffer (get-buffer-create emacs-args-buffer))
     (erase-buffer)
