@@ -170,6 +170,17 @@ Otherwise, that behavior is invoked via a prefix argument."
 (defun locate-default-make-command-line (search-string)
   (list locate-command search-string))
 
+(defun locate-word-at-point ()
+  (let ((pt (point)))
+    (buffer-substring-no-properties
+     (save-excursion
+       (skip-chars-backward "-a-zA-Z0-9.")
+       (point))
+     (save-excursion
+       (skip-chars-forward "-a-zA-Z0-9.")
+       (skip-chars-backward "." pt)
+       (point)))))
+
 ;;;###autoload
 (defun locate (arg search-string &optional filter)
   "Run the program `locate', putting results in `*Locate*' buffer.
@@ -181,7 +192,7 @@ With prefix arg, prompt for the locate command to run."
 	       (and (not current-prefix-arg) locate-prompt-for-command))
 	   (read-from-minibuffer "Run locate command: "
 				 nil nil nil 'locate-history-list)
-	 (read-from-minibuffer "Locate: " nil nil
+	 (read-from-minibuffer "Locate: " (locate-word-at-point) nil
 			       nil 'locate-history-list)
 	 )))
   (let* ((locate-cmd-list (funcall locate-make-command-line search-string))
@@ -212,6 +223,7 @@ With prefix arg, prompt for the locate command to run."
     (and (not (string-equal (buffer-name) locate-buffer-name))
 	(switch-to-buffer-other-window locate-buffer-name))
 
+    (run-hooks 'dired-mode-hook)
     (run-hooks 'locate-post-command-hook)
     )
   )
