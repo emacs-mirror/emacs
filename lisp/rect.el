@@ -104,9 +104,8 @@ Point is at the end of the segment of this line within the rectangle."
     
 (defun delete-rectangle (start end)
   "Delete (don't save) text in rectangle with point and mark as corners.
-The same range of columns is deleted in each line
-starting with the line where the region begins
-and ending with the line where the region ends."
+The same range of columns is deleted in each line starting with the line
+where the region begins and ending with the line where the region ends."
   (interactive "r")
   (operate-on-rectangle 'delete-rectangle-line start end t))
 
@@ -132,7 +131,7 @@ Value is list of strings, one for each line of the rectangle."
 (defun kill-rectangle (start end)
   "Delete rectangle with corners at point and mark; save as last killed one.
 Calling from program, supply two args START and END, buffer positions.
-But in programs you might prefer to use delete-extract-rectangle."
+But in programs you might prefer to use `delete-extract-rectangle'."
   (interactive "r")
   (setq killed-rectangle (delete-extract-rectangle start end)))
 
@@ -143,8 +142,8 @@ But in programs you might prefer to use delete-extract-rectangle."
 
 (defun insert-rectangle (rectangle)
   "Insert text of RECTANGLE with upper left corner at point.
-RECTANGLE's first line is inserted at point,
-its second line is inserted at a point vertically under point, etc.
+RECTANGLE's first line is inserted at point, its second
+line is inserted at a point vertically under point, etc.
 RECTANGLE should be a list of strings."
   (let ((lines rectangle)
 	(insertcolumn (current-column))

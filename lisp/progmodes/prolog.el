@@ -33,7 +33,7 @@
 
 (defvar prolog-eof-string "end_of_file.\n"
   "*String that represents end of file for prolog.
-nil means send actual operaing system end of file.")
+nil means send actual operating system end of file.")
 
 (defvar prolog-indent-width 4)
 
@@ -89,7 +89,7 @@ nil means send actual operaing system end of file.")
 Blank lines and `%%...' separate paragraphs.  `%'s start comments.
 Commands:
 \\{prolog-mode-map}
-Entry to this mode calls the value of prolog-mode-hook
+Entry to this mode calls the value of `prolog-mode-hook'
 if that value is non-nil."
   (interactive)
   (kill-all-local-variables)
@@ -196,17 +196,18 @@ rigidly along with this one (not yet)."
 The following commands are available:
 \\{inferior-prolog-mode-map}
 
-Entry to this mode calls the value of prolog-mode-hook with no arguments,
-if that value is non-nil.  Likewise with the value of comint-mode-hook.
-prolog-mode-hook is called after comint-mode-hook.
+Entry to this mode calls the value of `prolog-mode-hook' with no arguments,
+if that value is non-nil.  Likewise with the value of `comint-mode-hook'.
+`prolog-mode-hook' is called after `comint-mode-hook'.
 
 You can send text to the inferior Prolog from other buffers
-using the commands send-region, send-string and \\[prolog-consult-region].
+using the commands `send-region', `send-string' and \\[prolog-consult-region].
 
 Commands:
 Tab indents for Prolog; with argument, shifts rest
  of expression rigidly with the current line.
-Paragraphs are separated only by blank lines and '%%'. '%'s start comments.
+Paragraphs are separated only by blank lines and '%%'.
+'%'s start comments.
 
 Return at end of buffer sends line as input.
 Return not at end copies rest of line to end and sends it.
@@ -234,9 +235,8 @@ Return not at end copies rest of line to end and sends it.
   (inferior-prolog-mode))
 
 (defun prolog-consult-region (compile beg end)
-  "Send the region to the Prolog process made by M-x run-prolog.
- If COMPILE (prefix arg) is not nil,
- use compile mode rather than consult mode."
+  "Send the region to the Prolog process made by \"M-x run-prolog\".
+If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (interactive "P\nr")
   (save-excursion
     (if compile
@@ -250,8 +250,7 @@ Return not at end copies rest of line to end and sends it.
 
 (defun prolog-consult-region-and-go (compile beg end)
   "Send the region to the inferior Prolog, and switch to *prolog* buffer.
- If COMPILE (prefix arg) is not nil,
- use compile mode rather than consult mode."
+If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (interactive "P\nr")
   (prolog-consult-region compile beg end)
   (switch-to-buffer "*prolog*"))
