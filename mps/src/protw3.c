@@ -1,6 +1,6 @@
 /*  impl.c.protw3: PROTECTION FOR WIN32
  *
- *  $HopeName: MMsrc!protw3.c(MMdevel_config_thread.3) $
+ *  $HopeName: MMsrc!protw3.c(trunk.11) $
  *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  */
 
@@ -13,9 +13,9 @@
 #error "protw3.c implements protection, but PROTECTION is not set"
 #endif
 
-#include <windows.h>
+#include "mpswin.h"
 
-SRCID(protw3, "$HopeName: MMsrc!protw3.c(MMdevel_config_thread.3) $");
+SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.11) $");
 
 
 void ProtSetup(void)
@@ -102,6 +102,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
 void ProtSync(Arena arena)
 {
+  UNUSED(arena);
   NOOP;
 }
 
@@ -109,7 +110,7 @@ void ProtSync(Arena arena)
 void ProtTramp(void **resultReturn, void *(*f)(void *, size_t),
                void *p, size_t s)
 {
-  void *result;
+  void *result = NULL; /* stop warnings about uninitialized result */
 
   AVER(resultReturn != NULL);
   AVER(FUNCHECK(f));
