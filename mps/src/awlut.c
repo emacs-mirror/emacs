@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.10) $
+ * $HopeName: MMsrc!awlut.c(trunk.11) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -67,7 +67,7 @@ static mps_word_t table_wrapper[] = {
   1                             /* VL */
 };
 
-void initialise_wrapper(mps_word_t *wrapper)
+static void initialise_wrapper(mps_word_t *wrapper)
 {
   wrapper[0] = (mps_word_t)&wrapper_wrapper;
   wrapper[1] = (mps_word_t)&bogus_class;
