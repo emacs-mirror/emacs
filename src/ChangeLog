@@ -1,3 +1,7 @@
+2004-04-26  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+
+	* lread.c (init_lread): Fixing typo HAVE_CARBON test logic
+
 2004-04-26  Miles Bader  <miles@gnu.org>
 
 	* lisp.h (CYCLE_CHECK): Macro moved from xfaces.c.
