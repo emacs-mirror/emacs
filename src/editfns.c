@@ -843,10 +843,7 @@ If BYTEPOS is out of range, the value is nil.")
 
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
   "Return the character following point, as a number.\n\
-At the end of the buffer or accessible region, return 0.\n\
-If `enable-multibyte-characters' is nil or point is not\n\
- at character boundary,  multibyte form is ignored,\n\
- and only one byte following point is returned as a character.")
+At the end of the buffer or accessible region, return 0.")
   ()
 {
   Lisp_Object temp;
@@ -859,10 +856,7 @@ If `enable-multibyte-characters' is nil or point is not\n\
 
 DEFUN ("preceding-char", Fprevious_char, Sprevious_char, 0, 0, 0,
   "Return the character preceding point, as a number.\n\
-At the beginning of the buffer or accessible region, return 0.\n\
-If `enable-multibyte-characters' is nil or point is not\n\
- at character boundary, multi-byte form is ignored,\n\
- and only one byte preceding point is returned as a character.")
+At the beginning of the buffer or accessible region, return 0.")
   ()
 {
   Lisp_Object temp;
