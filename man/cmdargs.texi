@@ -187,11 +187,10 @@ Enable the Emacs Lisp debugger for errors in the init file.
 @cindex unibyte operation, command-line argument
 Set up to do almost everything with single-byte buffers and strings.
 All buffers and strings are unibyte unless you (or a Lisp program)
-explicitly ask for a multibyte buffer or string.  (Note that when Emacs
-loads Lisp files for runnning, it normally does that in multibyte mode,
-even if @samp{--unibyte} is specified; see @ref{Enabling Multibyte}.)
-Setting the environment variable @env{EMACS_UNIBYTE} has the same
-effect.
+explicitly ask for a multibyte buffer or string.  (Note that Emacs
+always loads Lisp files in multibyte mode, even if @samp{--unibyte} is
+specified; see @ref{Enabling Multibyte}.)  Setting the environment
+variable @env{EMACS_UNIBYTE} has the same effect.
 
 @item --multibyte
 Inhibit the effect of @env{EMACS_UNIBYTE}, so that Emacs
@@ -260,17 +259,27 @@ file and delete it.
 @appendixsec Environment Variables
 @cindex environment variables
 
-This appendix describes how Emacs uses environment variables.  An
-environment variable is a string passed from the operating system to
-Emacs, and the collection of environment variables is known as the
-environment.  Environment variable names are case sensitive and it is
-conventional to use upper case letters only.
+  The @dfn{environment} is a feature of the operating system; it
+consists of a collection of variables with names and values.  Each
+variable is called an @dfn{environment variable}; environment variable
+names are case-sensitive, and it is conventional to use upper case
+letters only.  The values are all text strings.
 
-Because environment variables come from the operating system there is no
-general way to set them; it depends on the operating system and
-especially the shell that you are using.  For example, here's how to set
-the environment variable @env{ORGANIZATION} to @samp{not very much}
-using bash:
+  What makes the environment useful is that subprocesses inherit the
+environment automatically from their parent process.  This means you
+can set up an environment variable in your login shell, and all the
+programs you run (including Emacs) will automatically see it.
+Subprocesses of Emacs (such as shells, compilers, and version-control
+software) inherit the environment from Emacs, too.
+
+@findex setenv
+@findex getenv
+  Inside Emacs, the command @kbd{M-x getenv} gets the value of an
+environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
+environment.  The way to set environment variables outside of Emacs
+depends on the operating system, and especially the shell that you are
+using.  For example, here's how to set the environment variable
+@env{ORGANIZATION} to @samp{not very much} using Bash:
 
 @example
 export ORGANIZATION="not very much"
@@ -283,15 +292,9 @@ and here's how to do it in csh or tcsh:
 setenv ORGANIZATION "not very much"
 @end example
 
-When Emacs is set-up to use the X windowing system, it inherits the
-use of a large number of environment variables from the X library.  See
+  When Emacs is set-up to use the X Window System, it inherits the use
+of a large number of environment variables from the X libraries.  See
 the X documentation for more information.
-
-@findex setenv
-@findex getenv
-The command @kbd{M-x setenv} sets a variable in the environment of the
-Emacs process and its subprocesses and @kbd{M-x getenv} gets the value
-of a variable.
 
 @menu
 * General Variables::   Environment variables that all versions of Emacs use.
@@ -300,6 +303,12 @@ of a variable.
 
 @node General Variables
 @appendixsubsec General Variables
+
+  Here is an alphabetical list of specific environment variables that
+have special meanings in Emacs, giving the name of each variable and
+its meaning.  Most of these variables are also used by some other
+programs.  Emacs does not require any of these environment variables
+to be set, but it uses their values if they are set.
 
 @table @env
 @item AUTHORCOPY
@@ -313,30 +322,23 @@ The name of the Internet domain that the machine running Emacs is
 located in.  Used by the @sc{gnus} package.
 @item EMACS_UNIBYTE
 @cindex unibyte operation, environment variable
-Defining this environment variable directs Emacs to do almost everything
-with single-byte buffers and strings.  It is equivalent to using the
-@samp{--unibyte} command-line option on each invocation.  @xref{Initial
-Options}.
+Defining this environment variable with a nonempty value directs Emacs
+to do almost everything with single-byte buffers and strings.  It is
+equivalent to using the @samp{--unibyte} command-line option on each
+invocation.  @xref{Initial Options}.
 @item EMACSDATA
-Used to initialize the variable @code{data-directory} used to locate the
-architecture-independent files that come with Emacs.  Setting this
-variable overrides the setting in @file{paths.h} when Emacs was built.
+Directory for the architecture-independent files that come with Emacs.
+This is used to initialize the Lisp variable @code{data-directory}.
 @item EMACSDOC
-Used to initialize the variable @code{doc-directory} where Emacs looks
-for its documentation string file @file{DOC-@var{version}}
-(@var{version} is the Emacs version).  Setting this variable overrides
-the setting in @file{paths.h} when Emacs was built.
+Directory for the documentation string file,
+@file{DOC-@var{emacsversion}}.  This is used to initialize the Lisp
+variable @code{data-directory}.
 @item EMACSLOADPATH
-A colon-separated list of directories from which to load Emacs Lisp
-files.  Setting this variable overrides the setting in @file{paths.h}
-when Emacs was built.
-@item EMACSLOCKDIR
-The directory that Emacs places lock files---files used to protect
-users from editing the same files simultaneously.  Setting this variable
-overrides the setting in @file{paths.h} when Emacs was built.
+A colon-separated list of directories to search for Emacs Lisp
+files---used to initialize @code{load-path}.
 @item EMACSPATH
-The location of Emacs-specific binaries.  Setting this variable
-overrides the setting in @file{paths.h} when Emacs was built.
+A colon-separated list of directories to search for executable
+files---used to initialize @code{exec-path}.
 @item ESHELL
 Used for shell-mode to override the @env{SHELL} environment variable.
 @item HISTFILE
@@ -355,31 +357,31 @@ The name of the machine that Emacs is running on.
 A colon-separated list of directories.  Used by the @code{complete} package
 to search for files.
 @item INFOPATH
-A colon-separated list of directories holding info files.  Setting this
-variable overrides the setting in @file{paths.el} when Emacs was built.
+A colon-separated list of directories to search for Info files in.
 @item LC_ALL
 @itemx LC_CTYPE
 @itemx LANG
-@findex set-locale-environment
-@vindex locale-language-names
-@vindex locale-charset-language-names
-@vindex locale-preferred-coding-systems
-The user's locale, matched by @code{set-locale-environment} against
-entries in @code{locale-language-names},
+The user's preferred locale.  (The first of these environment
+variables with a nonempty value specifies the locale.)  A locale name
+which contains @samp{8859-@var{n}}, @samp{8859_@var{n}} or
+@samp{8859@var{n}}, where @var{n} is between 1 and 4, automatically
+specifies the @samp{Latin-@var{n}} language environment when Emacs
+starts up.  If @var{n} is 9, that specifies @samp{Latin-5}.
+
+The locale value you specify with one of these three variables is
+matched against entries in @code{locale-language-names},
 @code{locale-charset-language-names}, and
-@code{locale-preferred-coding-systems} to select a default language
-environment and coding system.  The first of these environment variables
-with a nonempty value specifies the locale.
+@code{locale-preferred-coding-systems}, to select a default language
+environment and coding system.  @xref{Language Environments}.
 @item LOGNAME
 The user's login name.  See also @env{USER}.
 @item MAIL
 The name of the user's system mail inbox.
 @item MAILRC
-Name of file containing mail aliases.  This defaults to
-@file{~/.mailrc}.
+Name of file containing mail aliases.  (The default is
+@file{~/.mailrc}.)
 @item MH
-Name of setup file for the mh system.  This defaults to
-@file{~/.mh_profile}.
+Name of setup file for the mh system.  (The default is @file{~/.mh_profile}.)
 @item NAME
 The real-world name of the user.
 @item NNTPSERVER
@@ -388,10 +390,9 @@ The name of the news server.  Used by the mh and @sc{gnus} packages.
 The name of the organization to which you belong.  Used for setting the
 `Organization:' header in your posts from the @sc{gnus} package.
 @item PATH
-A colon-separated list of directories in which executables reside.  (On
-MS-DOS, it is semicolon-separated instead.)  This variable is used to
-set the Emacs Lisp variable @code{exec-path} which you should consider
-to use instead.
+A colon-separated list of directories in which executables reside.
+(On MS-DOS, it is semicolon-separated instead.)  This is used to
+initialize the Emacs Lisp variable @code{exec-path}.
 @item PWD
 If set, this should be the default directory when Emacs was started.
 @item REPLYTO
@@ -649,7 +650,7 @@ displays the entire font @samp{6x13}.
   On a color display, you can specify which color to use for various
 parts of the Emacs display.  To find out what colors are available on
 your system, type @kbd{M-x list-colors-display}, or press
-@kbd{C-mouse-2} and select @samp{Display Colors} from the pop-up menu.
+@kbd{C-Mouse-2} and select @samp{Display Colors} from the pop-up menu.
 If you do not specify colors, on windowed displays the default for the
 background is white and the default for all other colors is black.  On a
 monochrome display, the foreground is black, the background is white,
@@ -689,8 +690,8 @@ emacs -ms coral -cr 'slate blue' &
   You can reverse the foreground and background colors through the
 @samp{-r} option or with the X resource @samp{reverseVideo}.
 
-  When Emacs display is on a character terminal, it supports the
-@samp{-fg}, @code{-bg}, and @code{-rv} options.
+  The @samp{-fg}, @code{-bg}, and @code{-rv} options function on
+character terminals as well as on window systems.
 
 @node Window Size X
 @appendixsec Options for Window Geometry
@@ -982,10 +983,10 @@ Additional space (@dfn{leading}) between lines in pixels.
 Give frames menu bars if @samp{on}; don't have menu bars if @samp{off}.
 
 @item @code{toolBar} (class @code{ToolBar})
-Controls how may lines to reserve for the tool bar.  A zero value
-suppresses the tool bar.  If the value is non-zero and
-@code{auto-resize-tool-bars} is non-nil the tool bar's size will be
-changed automatically so that all tool bar items are visible.
+Number of lines to reserve for the tool bar.  A zero value suppresses
+the tool bar.  If the value is non-zero and
+@code{auto-resize-tool-bars} is non-@code{nil}, the tool bar's size
+will be changed automatically so that all tool bar items are visible.
 
 @item @code{minibuffer} (class @code{Minibuffer})
 If @samp{none}, don't make a minibuffer in this frame.
@@ -997,10 +998,11 @@ Font name for menu pane titles, in non-toolkit versions of Emacs.
 @item @code{pointerColor} (class @code{Foreground})
 Color of the mouse cursor.
 
+@ignore
 @item @code{privateColormap} (class @code{PrivateColormap})
-Specify that Emacs should use a private colormap if it is using the
-default visual, and that visual is of class PseudoColor.  Recognized
-resource values are @samp{true} and @samp{on}.
+If @samp{on}, use a private colormap, in the case where the ``default
+visual'' of class PseudoColor and Emacs is using it.
+@end ignore
 
 @item @code{reverseVideo} (class @code{ReverseVideo})
 Switch foreground and background default colors if @samp{on}, use colors as
@@ -1008,8 +1010,8 @@ specified if @samp{off}.
 
 @item @code{screenGamma} (class @code{ScreenGamma})
 @cindex gamma correction
-Specify the gamma correction for colors, equivalent to the frame
-parameter @code{screen-gamma}.
+Gamma correction for colors, equivalent to the frame parameter
+@code{screen-gamma}.
 
 @item @code{selectionFont} (class @code{Font})
 Font name for pop-up menu items, in non-toolkit versions of Emacs.  (For
@@ -1017,8 +1019,8 @@ toolkit versions, see @ref{Lucid Resources}, also see @ref{Motif
 Resources}.)
 
 @item @code{synchronous} (class @code{Synchronous})
-Specify whether Emacs should run in synchronous mode if @samp{true}.
-Synchronous mode is useful for debugging X problems.
+Run Emacs in synchronous mode if @samp{on}.  Synchronous mode is
+useful for debugging X problems.
 
 @item @code{title} (class @code{Title})
 Name to display in the title bar of the initial Emacs frame.
@@ -1026,24 +1028,6 @@ Name to display in the title bar of the initial Emacs frame.
 @item @code{verticalScrollBars} (class @code{ScrollBars})
 Give frames scroll bars if @samp{on}; don't have scroll bars if
 @samp{off}.
-
-@item @code{visualClass} (class @code{VisualClass})
-Specify the visual Emacs should use.  The resource's value should be a
-string of the form @samp{@var{CLASS}-@var{DEPTH}}, where @var{class} is
-the name of the visual class, and @var{depth} is the requested color
-depth as a decimal number.  Valid visual class names are
-@samp{TrueColor}, @samp{PseudoColor}, @samp{DirectColor},
-@samp{StaticColor}, @samp{GrayScale} and @samp{StaticGray}.
-
-Visual class names specified as X resource are case-insensitive, i.e.@:
-@samp{pseudocolor}, @samp{Pseudocolor} and @samp{PseudoColor} all have
-the same meaning.
-
-@pindex xdpyinfo
-The program @command{xdpyinfo} can be used to list the visual classes
-supported on your display, and which depths they have.  If
-@code{visualClass} is not specified, Emacs uses the display's default
-visual.
 @end table
 
   Here are resources for controlling the appearance of particular faces
@@ -1126,8 +1110,8 @@ the associated text.  Default is 10.
 @item shadowThickness
 Thickness of shadow line around the widget.
 @item margin
-The margin of the menu bar in character widths.  The default of 4 makes
-the menu bar appear like the LessTif/Motif one.
+The margin of the menu bar, in characters.  The default of 4 makes the
+menu bar appear like the LessTif/Motif one.
 @end table
 
 @node Motif Resources
