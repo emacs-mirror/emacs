@@ -1,5 +1,8 @@
 2000-04-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (realize_basic_faces): Block input while realizing
+	the faces.
+
 	* keyboard.c (lispy_mouse_names): Add additional mouse names.
 
 	* termhooks.h (NUM_MOUSE_BUTTONS): Increase to 15.
@@ -7,7 +10,7 @@
 2000-03-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_produce_glyphs): When displaying unibyte text
-	or ASCII, handle case that per-char metric is NULL.
+	or ASCII, handle case that per-char metric is null.
 
 2000-03-30  Ken Raeburn  <raeburn@gnu.org>
 

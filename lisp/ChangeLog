@@ -1,3 +1,8 @@
+2000-03-31  Andrew Innes  <andrewi@gnu.org>
+
+	* vc.el (vc-backend-diff): Return the correct status if we had to
+	retry the rcsdiff command without the --brief option.
+	
 2000-03-31  Dave Love  <fx@gnu.org>
 
 	* help.el (help-manyarg-func-alist): Correct several omissions.
