@@ -1,3 +1,12 @@
+2001-01-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (insert_left_trunc_glyphs): Overwrite padding glyphs by
+	truncation glyphs.
+	(display_line): Optimize for wide characters.
+	(display_string): Don't try to display a multi-column charaters
+	partially.  On ttys, produce more than one truncation glyph for
+	multi-column characters that don't fit on the line.
+
 2001-01-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* md5.c (WORDS_BIG_ENDIAN) [__BYTE_ORDER == __BIG_ENDIAN]: Define
