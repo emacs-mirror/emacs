@@ -31,7 +31,8 @@ Use the `-I' option here to specify directories for header files.")
   "Display the result of expanding all C macros occurring in the region.
 The expansion is entirely correct because it uses the C preprocessor.
 You can use the variables `c-macro-preprocessor' and `c-macro-options'
-to customize how preprocessing is done, or specify header file directories."
+to customize how preprocessing is done, or specify header file directories
+and macros to predefine."
   (interactive "r")
   (let ((outbuf (get-buffer-create "*Macroexpansion*"))
 	(tempfile "%%macroexpand%%")
