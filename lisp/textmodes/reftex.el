@@ -731,6 +731,7 @@ The function will be called with two arguments, the LABEL and the DEFAULT
 FORMAT, which usually is `\label{%s}'.  The function should return the
 string to insert into the buffer."
   :group 'reftex-making-and-inserting-labels
+  :version "20.3"
   :type 'function)
 
 ;; Label referencing
@@ -813,6 +814,7 @@ The function will be called with two arguments, the LABEL and the DEFAULT
 FORMAT, which normally is `~\ref{%s}'.  The function should return the
 string to insert into the buffer."
   :group 'reftex-referencing-labels
+  :version "20.3"
   :type 'function)
 
 ;; BibteX citation configuration ----------------------------------------
@@ -834,6 +836,7 @@ macro - i.e. without the `.bib' extension.
 Intended for files which contain only `@string' macro definitions and the
 like, which are ignored by RefTeX anyway."
   :group 'reftex-citation-support
+  :version "20.3"
   :set 'reftex-set-dirty
   :type '(repeat (string :tag "File name")))
 
@@ -844,6 +847,7 @@ When `reftex-citation' is called from a document which has neither a
 RefTeX will scan these files instead.  Intended for using
 `reftex-citation' in non-LaTeX files."
   :group 'reftex-citation-support
+  :version "20.3"
   :type '(repeat (file)))
 
 (defcustom reftex-sort-bibtex-matches 'reverse-year
@@ -947,6 +951,7 @@ The function will be called with two arguments, the CITATION KEY and the
 DEFAULT FORMAT, which is taken from `reftex-cite-format'.  The function
 should return the string to insert into the buffer."
   :group 'reftex-citation-support
+  :version "20.3"
   :type 'function)
 
 ;; Table of contents configuration --------------------------------------
@@ -988,6 +993,7 @@ slow but will happen only once).
 If a buffer is to be thrown away, the initialization of the buffer depends
 upon the variable `reftex-initialize-temporary-buffers'."
   :group 'reftex-miscellaneous-configurations
+  :version "20.3"
   :type '(choice
           (const :tag "Throw away everything" nil)
           (const :tag "Keep everything" t)
@@ -1001,6 +1007,7 @@ When t, the full default initializations are done (find-file-hook etc.).
 Instead of t or nil, this variable may also be a list of hook functions to
 do a minimal initialization."
   :group 'reftex-miscellaneous-configurations
+  :version "20.3"
   :type '(choice
           (const :tag "Read files literally" nil)
           (const :tag "Fully initialize buffers" t)
@@ -1012,6 +1019,7 @@ do a minimal initialization."
 If the name of a file included via \\include or \\input is matched by any
 of the regular expressions in this list, that file is not parsed by RefTeX."
   :group 'reftex-optimizations-for-large-documents
+  :version "20.3"
   :type '(repeat (regexp)))
 
 (defcustom reftex-enable-partial-scans nil
@@ -1023,6 +1031,7 @@ or section heading near point in a menu.  Requesting re-parsing of an entire
 multifile document then requires a `C-u C-u' prefix or the capital `R' key
 in menus."
   :group 'reftex-optimizations-for-large-documents
+  :version "20.3"
   :type 'boolean)
 
 (defcustom reftex-allow-automatic-rescan t
@@ -1031,6 +1040,7 @@ Currently this applies only to rescanning after label insertion, when
 the new label cannot be inserted correctly into the internal label
 list."
   :group 'reftex-optimizations-for-large-documents
+  :version "20.3"
   :type 'boolean)
 
 (defcustom reftex-save-parse-info nil
@@ -1042,6 +1052,7 @@ information.  When this variable is t,
 - each time (part of) the document is rescanned, a new version of the file
   is written."
   :group 'reftex-optimizations-for-large-documents
+  :version "20.3"
   :type 'boolean)
 
 (defcustom reftex-use-multiple-selection-buffers nil
@@ -1052,6 +1063,7 @@ selection buffers will be erased (and therefore updated) automatically
 when new labels in its category are added.  See the variable
 `reftex-auto-update-selection-buffers'."
   :group 'reftex-optimizations-for-large-documents
+  :version "20.3"
   :type 'boolean)
 
 (defcustom reftex-auto-update-selection-buffers t
@@ -1063,6 +1075,7 @@ updated by hand, with the `g' key from the label selection process.
 The value of this variable will only have any effect when
 `reftex-use-multiple-selection-buffers' is non-nil."
   :group 'reftex-optimizations-for-large-documents
+  :version "20.3"
   :type 'boolean)
 
 ;; Fontification and Faces ----------------------------------------------
@@ -1088,6 +1101,7 @@ t    Always refontify.
 1    Refontify when absolutely necessary, e.g. when with the x-symbol package.
 The option is ignored when `reftex-use-fonts' is nil."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type '(choice
           (const :tag "Never" nil)
           (const :tag "Always" t)
@@ -1106,6 +1120,7 @@ instead or as well. The variable may have one of these values:
    mouse    Highlighting is mouse driven.
    both     Both cursor and mouse trigger highlighting."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type '(choice
 	  (const :tag "Never" nil)
 	  (const :tag "Cursor driven" cursor)
@@ -1116,43 +1131,53 @@ instead or as well. The variable may have one of these values:
   "Face name to highlight cursor selected item in toc and selection buffers.
 See also the variable `reftex-highlight-selection'."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-mouse-selected-face 'secondary-selection
   "Face name to highlight mouse selected item in toc and selection buffers.
 See also the variable `reftex-highlight-selection'."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-file-boundary-face 'font-lock-comment-face
   "Face name for file boundaries in selection buffer."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-label-face 'font-lock-constant-face
   "Face name for labels in selection buffer."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-section-heading-face 'font-lock-function-name-face
   "Face name for section headings in toc and selection buffers."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-toc-header-face 'font-lock-comment-face
   "Face name for the header of a toc buffer."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-bib-author-face 'font-lock-keyword-face
   "Face name for author names in bib selection buffer."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-bib-year-face 'font-lock-comment-face
   "Face name for year in bib selection buffer."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-bib-title-face 'font-lock-function-name-face
   "Face name for article title in bib selection buffer."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 (defcustom reftex-bib-extra-face 'font-lock-comment-face
   "Face name for bibliographic information in bib selection buffer."
   :group 'reftex-fontification-configurations
+  :version "20.3"
   :type 'symbol)
 
 ;; Miscellaneous configurations -----------------------------------------
@@ -1215,6 +1240,7 @@ context to a temporary buffer (value 'copy)."
   "*Non-nil means, follow-mode will revisit files if necessary.
 When nil, follow-mode will be suspended for stuff in unvisited files."
   :group 'reftex-miscellaneous-configurations
+  :version "20.3"
   :type '(boolean))
 
 (defcustom reftex-load-hook nil
