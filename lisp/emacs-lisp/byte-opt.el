@@ -328,6 +328,7 @@
 		(byte-compile-warn
 		 "attempt to open-code %s with too many arguments" name))
 	    form)
+	(setq body (mapcar 'byte-optimize-form body))
 	(let ((newform 
 	       (if bindings
 		   (cons 'let (cons (nreverse bindings) body))
