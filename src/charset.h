@@ -270,7 +270,7 @@ extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
 
    CHARSET-ID (integer) is the identification number of the charset.
 
-   BYTE (integer) is the length of multi-byte form of a character in
+   BYTES (integer) is the length of multi-byte form of a character in
    the charset: one of 1, 2, 3, and 4.
 
    DIMENSION (integer) is the number of bytes to represent a character: 1 or 2.
