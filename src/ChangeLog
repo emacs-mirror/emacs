@@ -1,5 +1,7 @@
 2001-01-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_initialize): Set char_ins_del_ok to 1.
+
 	* xdisp.c (forward_to_next_line_start): Stop at end of buffer
 	when searching for a newline.
 
