@@ -262,6 +262,11 @@ struct glyph
   unsigned left_box_line_p : 1;
   unsigned right_box_line_p : 1;
 
+  /* Non-zero means this glyph's physical ascent or descent is greater
+     than its logical ascent/descent, i.e. it may potentially overlap
+     glyphs above or below it.  */
+  unsigned overlaps_vertically_p : 1;
+
   /* A union of sub-structures for different glyph types.  */
   union
   {
@@ -563,9 +568,14 @@ struct glyph_row
      end of the row into account.  */
   int pixel_width;
 
-  /* Height information.  The value of ascent is zero and height is 1
-     on terminal frames.  */
+  /* Logical ascent/height of this line.  The value of ascent is zero
+     and height is 1 on terminal frames.  */
   int ascent, height;
+
+  /* Physical ascent/height of this line.  If max_ascent > ascent,
+     this line overlaps the line above it on the display.  Otherwise,
+     if max_height > height, this line overlaps the line beneath it.  */
+  int phys_ascent, phys_height;
 
   /* Portion of row that is visible.  Partially visible rows may be
      found at the top and bottom of a window.  This is 1 for tty
@@ -638,6 +648,12 @@ struct glyph_row
 
   /* Non-zero means row is a mode or top-line.  */
   unsigned mode_line_p : 1;
+
+  /* 1 in a current row means this row is overlapped by another row.  */
+  unsigned overlapped_p : 1;
+
+  /* 1 in a current row means this row overlaps others.  */
+  unsigned overlapping_p : 1;
 
   /* Continuation lines width at the start of the row.  */
   int continuation_lines_width;
@@ -778,7 +794,17 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
       || ((ROW)->start.overlay_string_index >= 0	\
 	  && (ROW)->start.string_pos.charpos > 0))
 
-     
+/* Non-zero means ROW overlaps its predecessor.  */
+
+#define MATRIX_ROW_OVERLAPS_PRED_P(ROW) \
+     ((ROW)->phys_ascent > (ROW)->ascent)
+
+/* Non-zero means ROW overlaps its successor.  */
+
+#define MATRIX_ROW_OVERLAPS_SUCC_P(ROW)		\
+      ((ROW)->phys_height - (ROW)->phys_ascent	\
+       > (ROW)->height - (ROW)->ascent)
+
 /* Non-zero means that fonts have been loaded since the last glyph
    matrix adjustments.  The function redisplay_internal adjusts glyph
    matrices when this flag is non-zero.  */
@@ -1638,9 +1664,10 @@ struct it
      produce_glyphs.  */
   int pixel_width;
 
-  /* Current and maximum line height information.  Result of
-     produce_glyphs.  */
+  /* Current, maximum logical, and maximum physical line height
+     information.  Result of produce_glyphs.  */
   int ascent, descent, max_ascent, max_descent;
+  int phys_ascent, phys_descent, max_phys_ascent, max_phys_descent;
 
   /* Current x pixel position within the display line.  This value
      does not include the width of continuation lines in front of the
@@ -1781,6 +1808,12 @@ struct redisplay_interface
      frame F.  */
   void (*get_glyph_overhangs) P_ ((struct glyph *glyph, struct frame *f,
 				   int *left, int *right));
+
+  /* Fix the display of AREA of ROW in window W for overlapping rows.
+     This function is called from redraw_overlapping_rows after
+     desired rows have been made current.  */
+  void (*fix_overlapping_area) P_ ((struct window *w, struct glyph_row *row,
+				    enum glyph_row_area area));
 };
 
 /* The current interface for window-based redisplay.  */
