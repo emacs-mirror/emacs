@@ -519,7 +519,22 @@ T means abort and give an error message.")
     ("⁽" "(")  ; (
     ("⁾" ")")  ; )
     ("ⁿ" "n")  ; n
-    ("ⁱ" "i")) ; i
+    ("ⁱ" "i")  ; i
+    ;; subscripts
+    ("₀"  "0")  ; 0
+    ("₁"  "1")  ; 1
+    ("₂"  "2")  ; 2
+    ("₃"  "3")  ; 3
+    ("₄"  "4")  ; 4
+    ("₅"  "5")  ; 5
+    ("₆"  "6")  ; 6
+    ("₇"  "7")  ; 7
+    ("₈"  "8")  ; 8
+    ("₉"  "9")  ; 9
+    ("₊"  "+")  ; +
+    ("₋"  "-")  ; -
+    ("₍"  "(")  ; (
+    ("₎"  ")"))  ; )
   "A list whose elements (old new) indicate replacements to make
 in Calc algebraic input.")
 
@@ -527,11 +542,18 @@ in Calc algebraic input.")
   "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁽⁾ⁿⁱ" ; 0123456789+-()ni
   "A string consisting of the superscripts allowed by Calc.")
 
+(defvar math-read-subscripts
+  "₀₁₂₃₄₅₆₇₈₉₊₋₍₎" ; 0123456789+-()
+  "A string consisting of the subscripts allowed by Calc.")
+
 (defun math-read-preprocess-string (str)
   "Replace some substrings of STR by Calc equivalents."
   (setq str
         (replace-regexp-in-string (concat "[" math-read-superscripts "]+")
                                   "^(\\&)" str))
+  (setq str
+        (replace-regexp-in-string (concat "[" math-read-subscripts "]+")
+                                  "_(\\&)" str))
   (let ((rep-list math-read-replacement-list))
     (while rep-list
       (setq str
