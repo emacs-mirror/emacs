@@ -27,12 +27,6 @@
 
 #include <../src/config.h>
 
-#ifdef USG
-#include <string.h>
-#else
-#include <strings.h>
-#endif
-
 /* BSD's strings.h does not declare the type of strtok.  */
 extern char *strtok ();
 
