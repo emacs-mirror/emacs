@@ -1644,7 +1644,7 @@ AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
 
-AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "\"${configuration}\"")
+AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "\"${canonical}\"")
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS,  "\"${config_options}\"")
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
