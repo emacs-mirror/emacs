@@ -17,8 +17,6 @@
 
 	* mail/rfc822.el (rfc822-nuke-whitespace): Likewise.
 
-	* progmodes/cc-vars.el (defcustom-c-stylevar): Likewise.
-
 	* progmodes/cperl-mode.el (cperl-electric-keyword)
 	(cperl-electric-pod, cperl-do-auto-fill): Likewise.
 
