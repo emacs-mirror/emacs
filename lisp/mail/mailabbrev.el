@@ -556,4 +556,4 @@ Don't use this command in Lisp programs!
 ;;(define-key mail-mode-map "\C-n" 'mail-abbrev-next-line)
 ;;(define-key mail-mode-map "\M->" 'mail-abbrev-end-of-buffer)
 
-(provide 'mail-abbrevs)
+(provide 'mailabbrev)
