@@ -113,8 +113,8 @@ face.")
 			     (if (boundp 'gnus-mouse-face)
 				 gnus-mouse-face
 			       'highlight)
-			   'default))
-		   (error 'default))
+			   'default)
+		       (error 'default)))
 	(type . face))
        ((tag . "Article Display")
 	(doc . "Controls how the article buffer will look.
