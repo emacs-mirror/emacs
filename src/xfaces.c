@@ -590,9 +590,16 @@ same_size_fonts (font1, font2)
   XCharStruct *bounds1 = &font1->min_bounds;
   XCharStruct *bounds2 = &font2->min_bounds;
 
-  return (bounds1->width == bounds2->width
+  return (bounds1->width == bounds2->width);
+/* Checking the following caused bad results in some cases
+   when fonts that should be the same size
+   actually have very slightly different size.
+   It is possible that this reintroduces the bug whereby line positions
+   were not right.  However, the right way to fix that is to change xterm.c
+   so that the vertical positions of lines
+   depend only on the height of the frame's font.
 	  && bounds1->ascent == bounds2->ascent
-	  && bounds1->descent == bounds2->descent);
+	  && bounds1->descent == bounds2->descent);  */
 }
 
 /* Modify face TO by copying from FROM all properties which have
