@@ -2417,7 +2417,7 @@ A prefix arg makes KEEP-TIME non-nil.  */)
 		 SDATA (encoded_newname), 
 		 FALSE))
     report_file_error ("Copying file", Fcons (file, Fcons (newname, Qnil)));
-  else if (NILP (keep_time))
+  else if (!NILP (keep_time))
     {
       EMACS_TIME now;
       DWORD attributes;
