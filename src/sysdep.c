@@ -1035,15 +1035,14 @@ emacs_get_tty (fd, settings)
 
 
 /* Set the parameters of the tty on FD according to the contents of
-   *SETTINGS.  If WAITP is non-zero, we wait for all queued output to
-   be written before making the change; otherwise, we forget any
-   queued input and make the change immediately.
+   *SETTINGS.  If FLUSHP is non-zero, we discard input.
    Return 0 if all went well, and -1 if anything failed.  */
+
 int
-emacs_set_tty (fd, settings, waitp)
+emacs_set_tty (fd, settings, flushp)
      int fd;
      struct emacs_tty *settings;
-     int waitp;
+     int flushp;
 {
   /* Set the primary parameters - baud rate, character size, etcetera.  */
 #ifdef HAVE_TCATTR
@@ -1057,7 +1056,7 @@ emacs_set_tty (fd, settings, waitp)
      AIX requires this to keep tty from hanging occasionally."  */
   /* This make sure that we don't loop indefinitely in here.  */
   for (i = 0 ; i < 10 ; i++)
-    if (tcsetattr (fd, waitp ? TCSAFLUSH : TCSADRAIN, &settings->main) < 0)
+    if (tcsetattr (fd, flushp ? TCSAFLUSH : TCSADRAIN, &settings->main) < 0)
       {
 	if (errno == EINTR)
 	  continue;
@@ -1087,7 +1086,7 @@ emacs_set_tty (fd, settings, waitp)
 #else
 #ifdef HAVE_TERMIO
   /* The SYSV-style interface?  */
-  if (ioctl (fd, waitp ? TCSETAW : TCSETAF, &settings->main) < 0)
+  if (ioctl (fd, flushp ? TCSETAF : TCSETAW, &settings->main) < 0)
     return -1;
 
 #else
@@ -1101,7 +1100,7 @@ emacs_set_tty (fd, settings, waitp)
 #else
 #ifndef DOS_NT
   /* I give up - I hope you have the BSD ioctls.  */
-  if (ioctl (fd, (waitp) ? TIOCSETP : TIOCSETN, &settings->main) < 0)
+  if (ioctl (fd, (flushp) ? TIOCSETP : TIOCSETN, &settings->main) < 0)
     return -1;
 #endif /* not DOS_NT */
 
