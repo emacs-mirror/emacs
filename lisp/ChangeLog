@@ -1,3 +1,29 @@
+2001-03-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-edit.el (log-edit-common-indent): New var.
+	(log-edit-set-common-indentation): Renamed from
+	log-edit-delete-common-indentation.  Use the new var.
+	(log-edit-insert-changelog, log-edit-done-hook): Use the new name.
+
+	* pcvs.el (cvs-ignore-marks-modif): Use `rassoc' rather than `member*'.
+	(cvs-mode-add-change-log-entry-other-window):
+	Don't presume change-log-default-name is defined.
+
+	* pcvs-util.el (cvs-bury-buffer): In doubt, don't delete window.
+
+	* pcvs-defs.el (cvs-buffer-name-alist): Use *cvs-info* for
+	the "tree" operation as well.
+
+	* pcvs-parse.el (cvs-parse-table): Add another ignored message.
+
+	* textmodes/fill.el (fill-context-prefix): Allow first-line-prefix
+	to match paragraph-start.
+
+	* textmodes/sgml-mode.el (sgml-mode-common): Correct value of
+	comment-start-skip and set comment-end-skip as well.
+	(sgml-comment-indent): Fix for new value of comment-start-skip.
+	(html-autoview-mode): Don't bother using make-local-hook.
+
 2001-03-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* cus-edit.el (custom-save-delete): Move in front of local
