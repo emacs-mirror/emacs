@@ -110,7 +110,7 @@ such as `edebug-defun' to work with such inputs."
 (defvar ielm-match-data nil
   "Match data saved at the end of last command.")
 
-(defvar ielm-*1 nil
+(defvar *1 nil
   "During IELM evaluation, most recent value evaluated in IELM.
 Normally identical to `*'.  However, if the working buffer is an IELM
 buffer, distinct from the process buffer, then `*' gives the value in
