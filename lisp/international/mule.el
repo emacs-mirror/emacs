@@ -1694,7 +1694,7 @@ function by default."
 
 (setq set-auto-coding-function 'set-auto-coding)
 
-(defun after-insert-file-set-buffer-file-coding-system (inserted)
+(defun after-insert-file-set-coding (inserted)
   "Set `buffer-file-coding-system' of current buffer after text is inserted."
   (if last-coding-system-used
       (let ((coding-system
@@ -1716,9 +1716,6 @@ function by default."
 		(setq inserted (- pos-byte (position-bytes (point))))))
 	  (set-buffer-modified-p modified-p))))
   inserted)
-
-(setq after-insert-file-adjust-coding-function
-      'after-insert-file-set-buffer-file-coding-system)
 
 ;; The coding-spec and eol-type of coding-system returned is decided
 ;; independently in the following order.
