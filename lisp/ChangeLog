@@ -1,3 +1,9 @@
+2004-11-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-from-outlook)
+	(diary-from-outlook-gnus, diary-from-outlook-rmail): Do not use
+	interactive-p; but rather new optional argument DONOTASK.
+
 2004-11-09  Stefan  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el (easy-menu-intern): Revert to no-downcasing.
