@@ -1220,12 +1220,12 @@ Creates a buffer if necessary."
 
 ;; Force `f' rather than `e' in the mode doc:
 (defalias 'dired-advertised-find-file 'dired-find-file)
-(defun dired-find-file (&optional coding-system)
+(defun dired-find-file ()
   "In dired, visit the file or directory named on this line."
-  (interactive "ZCoding-system: ")
+  (interactive)
   (let ((file-name (file-name-sans-versions (dired-get-filename) t)))
     (if (file-exists-p file-name)
-	(find-file file-name coding-system)
+	(find-file file-name)
       (error "File no longer exists; type `g' to update Dired buffer"))))
 
 (defun dired-mouse-find-file-other-window (event)
