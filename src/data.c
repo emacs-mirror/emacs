@@ -83,7 +83,7 @@ Lisp_Object Qtext_read_only;
 Lisp_Object Qintegerp, Qnatnump, Qwholenump, Qsymbolp, Qlistp, Qconsp;
 Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 Lisp_Object Qchar_or_string_p, Qmarkerp, Qinteger_or_marker_p, Qvectorp;
-Lisp_Object Qbuffer_or_string_p;
+Lisp_Object Qbuffer_or_string_p, Qkeywordp;
 Lisp_Object Qboundp, Qfboundp;
 Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 
@@ -307,6 +307,22 @@ DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0,
      Lisp_Object object;
 {
   if (SYMBOLP (object))
+    return Qt;
+  return Qnil;
+}
+
+/* Define this in C to avoid unnecessarily consing up the symbol
+   name.  */
+DEFUN ("keywordp", Fkeywordp, Skeywordp, 1, 1, 0,
+       "Return t if OBJECT is a keyword.\n\
+This means that it is a symbol with a print name beginning with `:'\n\
+interned in the initial obarray.")
+  (object)
+     Lisp_Object object;
+{
+  if (SYMBOLP (object)
+      && XSYMBOL (object)->name->data[0] == ':'
+      && EQ (XSYMBOL (object)->obarray, initial_obarray))
     return Qt;
   return Qnil;
 }
@@ -2593,6 +2609,7 @@ syms_of_data ()
   Qlistp = intern ("listp");
   Qconsp = intern ("consp");
   Qsymbolp = intern ("symbolp");
+  Qkeywordp = intern ("keywordp");
   Qintegerp = intern ("integerp");
   Qnatnump = intern ("natnump");
   Qwholenump = intern ("wholenump");
@@ -2790,6 +2807,7 @@ syms_of_data ()
   staticpro (&Qlistp);
   staticpro (&Qconsp);
   staticpro (&Qsymbolp);
+  staticpro (&Qkeywordp);
   staticpro (&Qintegerp);
   staticpro (&Qnatnump);
   staticpro (&Qwholenump);
@@ -2876,6 +2894,7 @@ A keyword symbol is a symbol whose name starts with a colon (`:').");
 #endif /* LISP_FLOAT_TYPE */
   defsubr (&Snatnump);
   defsubr (&Ssymbolp);
+  defsubr (&Skeywordp);
   defsubr (&Sstringp);
   defsubr (&Smultibyte_string_p);
   defsubr (&Svectorp);
