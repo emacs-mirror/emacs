@@ -818,6 +818,8 @@ window_box_height (w)
 {
   struct frame *f = XFRAME (w->frame);
   int height = XFASTINT (w->height) * CANON_Y_UNIT (f);
+
+  xassert (height >= 0);
   
   if (WINDOW_WANTS_MODELINE_P (w))
     height -= CURRENT_MODE_LINE_HEIGHT (w);
