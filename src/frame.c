@@ -105,6 +105,7 @@ Lisp_Object Qbuffer_predicate;
 Lisp_Object Qbuffer_list;
 Lisp_Object Qtitle;
 Lisp_Object Qdisplay_type;
+Lisp_Object Qbackground_mode;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
@@ -156,6 +157,8 @@ syms_of_frame_1 ()
   staticpro (&Qtitle);
   Qdisplay_type = intern ("display-type");
   staticpro (&Qdisplay_type);
+  Qbackground_mode = intern ("background-mode");
+  staticpro (&Qbackground_mode);
 
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
     "Alist of default values for frame creation.\n\
@@ -2106,13 +2109,18 @@ If FRAME is nil, describe the currently selected frame.")
     {
       if (EQ (parameter, Qname))
 	value = f->name;
+#ifdef HAVE_X_WINDOWS
+      else if (EQ (parameter, Qdisplay) && FRAME_X_P (f))
+	value = XCAR (FRAME_X_DISPLAY_INFO (f)->name_list_element);
+#endif /* HAVE_X_WINDOWS */
       else
 	{
 	  value = Fassq (parameter, f->param_alist);
 	  if (CONSP (value))
 	    value = XCDR (value);
-	  else if (EQ (parameter, Qdisplay_type))
-	    /* Avoid consing in a frequent case.  */
+	  else if (EQ (parameter, Qdisplay_type)
+		   || EQ (parameter, Qbackground_mode))
+	    /* Avoid consing in frequent cases.  */
 	    value = Qnil;
 	  else
 	    value = Fcdr (Fassq (parameter, Fframe_parameters (frame)));
