@@ -875,10 +875,11 @@ getenv_internal (var, varlen, value, valuelen)
 	  && XSTRING (entry)->data[varlen] == '='
 #ifdef WINDOWSNT
 	  /* NT environment variables are case insensitive.  */
-	  && ! strnicmp (XSTRING (entry)->data, var, varlen))
+	  && ! strnicmp (XSTRING (entry)->data, var, varlen)
 #else  /* not WINDOWSNT */
-	  && ! bcmp (XSTRING (entry)->data, var, varlen))
+	  && ! bcmp (XSTRING (entry)->data, var, varlen)
 #endif /* not WINDOWSNT */
+	  )
 	{
 	  *value    = (char *) XSTRING (entry)->data + (varlen + 1);
 	  *valuelen = XSTRING (entry)->size - (varlen + 1);
