@@ -227,6 +227,11 @@ See the command `outline-mode' for more information on this mode."
   "Function of no args to compute a header's nesting level in an outline.
 It can assume point is at the beginning of a header line.")
 
+;; This used to count columns rather than characters, but that made ^L
+;; appear to be at level 2 instead of 1.  Columns would be better for
+;; tab handling, but the default regexp doesn't use tabs, and anyone
+;; who changes the regexp can also redefine the outline-level variable
+;; as appropriate.
 (defun outline-level ()
   "Return the depth to which a statement is nested in the outline.
 Point must be at the beginning of a header line.  This is actually
