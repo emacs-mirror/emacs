@@ -5624,6 +5624,9 @@ x_term_init (display_name, xrm_option, resource_name)
       {
 	dpyinfo->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
 	init_kboard (dpyinfo->kboard);
+	/* Change this after lisp/term/x-win.el is prepared to initialize
+	   this var in a server-dependent manner.  */
+	dpyinfo->kboard->Vsystem_key_alist = initial_kboard->Vsystem_key_alist;
 	dpyinfo->kboard->next_kboard = all_kboards;
 	all_kboards = dpyinfo->kboard;
 	/* Don't let the initial kboard remain current longer than necessary.
