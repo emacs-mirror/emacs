@@ -1,3 +1,8 @@
+2001-03-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* lread.c (read_multibyte): Check the validity of multibyte
+	sequence.  If invalid, return the first byte.
+
 2001-03-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (command_loop_1): Set Vdeactivate_mark to nil
