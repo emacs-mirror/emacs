@@ -1,5 +1,30 @@
 2000-07-11  Dave Love  <fx@gnu.org>
 
+	* progmodes/fortran.el: Don't require easymenu.  Use repeat counts
+	in various regexps.
+	(fortran-mode-syntax-table): Defvar directly.
+	(fortran-font-lock-keywords-1, fortran-font-lock-keywords-2)
+	(fortran-font-lock-keywords-3,
+	fortran-font-lock-syntactic-keywords): Use defvar, not defconst.
+	(fortran-mode-map): Change locals in `let'.  Use
+	`fortran-auto-fill'.
+	(fortran-mode): Set fortran-comment-line-start-skip,
+	fortran-comment-line-start-skip, dabbrev-case-fold-search.
+	(fortran-comment-indent): Use defsubst.
+	(fortran-indent-comment, fortran-indent-to-column,
+	fortran-break-line): Use fortran-comment-indent, not
+	fortran-comment-indent-function.
+	(fortran-comment-region, fortran-electric-line-number): Simplify.
+	(fortran-auto-fill): New function.
+	(fortran-do-auto-fill): Deleted.
+	(fortran-find-comment-start-skip): Check for non-null
+	comment-start-skip.
+	(fortran-auto-fill-mode, fortran-fill-statement): Use
+	fortran-auto-fill.
+	(fortran-fill): Use fortran-auto-fill.  Check for null
+	comment-start-skip.  Simplify final clause and use end-of-line
+	finally.
+
 	* widget.el (widget-plist-member): New alias.
 
 2000-07-11  Eli Zaretskii  <eliz@is.elta.co.il>
