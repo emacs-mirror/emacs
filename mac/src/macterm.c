@@ -10287,6 +10287,15 @@ mac_to_x_fontname (char *name, int size, Style style, short scriptcode)
       case smJapanese:
         strcpy(cs, "jisx0208.1983-sjis");
         break;
+      case -smJapanese:
+	/* Each Apple Japanese font is entered into the font table
+	   twice: once as a jisx0208.1983-sjis font and once as a
+	   jisx0201.1976-0 font.  The latter can be used to display
+	   the ascii charset and katakana-jisx0201 charset.  A
+	   negative script code signals that the name of this latter
+	   font is being built.  */
+	strcpy(cs, "jisx0201.1976-0");
+	break;
       case smKorean:
         strcpy(cs, "ksc5601.1989-0");
         break;        
@@ -10330,6 +10339,7 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
 
   if (strcmp (cs, "big5-0") == 0 || strcmp (cs, "gb2312.1980-0") == 0
       || strcmp (cs, "jisx0208.1983-sjis") == 0
+      || strcmp (cs, "jisx0201.1976-0") == 0
       || strcmp (cs, "ksc5601.1989-0") == 0 || strcmp (cs, "mac-roman") == 0)
     strcpy(mf, family);
   else
@@ -10409,16 +10419,15 @@ init_font_name_table ()
 					 assc_entry->fontSize,
 					 assc_entry->fontStyle,
 					 scriptcode);
-		  /* Both jisx0208.1983-sjis and jisx0201.1976-sjis
-		     parts are contained in Apple Japanese (SJIS)
-		     font.  */
+		  /* Both jisx0208.1983-sjis and jisx0201.1976-0 parts
+		     are contained in Apple Japanese (SJIS) font.  */
 		  if (smJapanese == scriptcode)
 		    {
 		      font_name_table[font_name_count++]
 		        = mac_to_x_fontname (name,
 					     assc_entry->fontSize,
 					     assc_entry->fontStyle,
-					     smRoman);
+					     -smJapanese);
 		    }
                 }
             }
@@ -10676,16 +10685,16 @@ XLoadQueryFont (Display *dpy, char *fontname)
   font->mac_scriptcode = FontToScript (fontnum);
 
   /* Apple Japanese (SJIS) font is listed as both
-     "*-jisx0208.1983-sjis" (Japanese script) and "*-mac-roman" (Roman
-     script) in init_font_name_table().  The latter should be treated
-     as a one-byte font.  */
+     "*-jisx0208.1983-sjis" (Japanese script) and "*-jisx0201.1976-0"
+     (Roman script) in init_font_name_table().  The latter should be
+     treated as a one-byte font.  */
   {
     char cs[32];
 
     if (sscanf (name, 
 		"-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
 		cs) == 1
-	&& 0 == strcmp (cs, "mac-roman"))  
+	&& 0 == strcmp (cs, "jisx0201.1976-0"))  
       font->mac_scriptcode = smRoman;
   }
   

@@ -4,7 +4,15 @@
 
 	* src/macterm.c (XTread_socket): Read all pending events in the
 	event queue instead of one.
-
+	(mac_to_x_fontname): Return name with jisx0201.1976-0 encoding if
+	a script code of -smJapanese is specified.
+	(x_font_name_to_mac_font_name): Also recognize the jisx0201.1976-0
+	encoding.
+	(init_font_name_table): Use a script code of -smJapanese instead
+	of smRoman for the second entry of a Japanese font.
+	(XLoadQueryFont): Recognize a font as having the smRoman script
+	code if its encoding is jisx0201.1976-0.
+	
 	* makefile.MPW: Generate etc/DOC file from .elc files instead of
 	.el files.
 
