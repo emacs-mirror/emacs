@@ -524,13 +524,13 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   close (out);
   close (err);
 
-#if !defined (IRIX)
-#if defined (USG)
+#ifdef USG
+#ifndef SETPGRP_RELEASES_CTTY
   setpgrp ();			/* No arguments but equivalent in this case */
+#endif
 #else
   setpgrp (pid, pid);
 #endif /* USG */
-#endif /* IRIX */
   setpgrp_of_tty (pid);
 
 #ifdef vipc
@@ -686,8 +686,8 @@ init_callproc ()
 				       Vinvocation_directory);
 	      tem2 = Fexpand_file_name (Vdoc_file_name, tem);
 	      tem3 = Ffile_exists_p (tem2);
-	      if (!NILP (tem2))
-		Vdata_directory = tem;
+	      if (!NILP (tem3))
+		Vdata_directory = Ffile_name_as_directory (tem);
 	    }
 	}
     }
