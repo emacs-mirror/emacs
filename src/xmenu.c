@@ -1924,11 +1924,7 @@ free_frame_menubar (f)
    next_menubar_widget_id.  */
 LWLIB_ID widget_id_tick;
 
-#ifdef __STDC__
 static Lisp_Object *volatile menu_item_selection;
-#else
-static Lisp_Object *menu_item_selection;
-#endif
 
 static void
 popup_selection_callback (widget, id, client_data)
