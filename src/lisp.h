@@ -1138,6 +1138,7 @@ extern Lisp_Object Fsave_window_excursion ();
 extern Lisp_Object Fset_window_configuration (), Fcurrent_window_configuration ();
 extern Lisp_Object Fcoordinates_in_window_p ();
 extern Lisp_Object Fwindow_at ();
+extern int window_internal_height (), window_internal_width ();
 
 /* defined in frame.c */
 extern Lisp_Object Fframep ();
@@ -1174,6 +1175,7 @@ extern Lisp_Object Frubber_band_rectangle ();
 
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path ();
+void shut_down_emacs ( /* int signal */ );
 /* Nonzero means don't do interactive redisplay and don't change tty modes */
 extern int noninteractive;
 /* Nonzero means don't do use window-system-specific display code */
