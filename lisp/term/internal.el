@@ -220,7 +220,7 @@ If TABLE is nil or omitted, `standard-display-table' is used."
     ;; Undo the effects of previous call (where they may have used
     ;; a different codepage) by reverting the display table for the
     ;; built-in charset to its pristine shape.
-    (while (< c (+ offset 128))
+    (while (< c 256)
       (aset disp-tab (make-char built-in-set c) nil)
       (setq c (1+ c)))
     (while surrogates

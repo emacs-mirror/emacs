@@ -1,3 +1,8 @@
+1999-11-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/internal.el (IT-display-table-setup): Don't overstep
+	character code 255.
+
 1999-11-20  Kenichi Handa  <handa@mule.m17n.org>
 
 	* ps-mule.el (ps-mule-font-info-database-bdf): Default BDF font
