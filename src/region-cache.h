@@ -62,17 +62,17 @@ Boston, MA 02111-1307, USA.  */
 
 
 /* Allocate, initialize and return a new, empty region cache.  */
-struct region_cache *new_region_cache ( /* void */ );
+struct region_cache *new_region_cache P_ ((void));
 
 /* Free a region cache.  */
-void free_region_cache ( /* struct region_cache * */ );
+void free_region_cache P_ ((struct region_cache *));
 
 /* Assert that the region of BUF between START and END (absolute
    buffer positions) is "known," for the purposes of CACHE (e.g. "has
    no newlines", in the case of the line cache).  */
-extern void know_region_cache ( /* struct buffer *BUF,
+extern void know_region_cache P_ ((struct buffer *BUF,
                                    struct region_cache *CACHE,
-                                   int START, END */ );
+                                   int START, int END));
 
 /* Indicate that a section of BUF has changed, to invalidate CACHE.
    HEAD is the number of chars unchanged at the beginning of the buffer.
@@ -82,9 +82,9 @@ extern void know_region_cache ( /* struct buffer *BUF,
    (This way of specifying regions makes more sense than absolute
    buffer positions in the presence of insertions and deletions; the
    args to pass are the same before and after such an operation.)  */
-extern void invalidate_region_cache ( /* struct buffer *BUF,
-                                       struct region_cache *CACHE,
-                                       int HEAD, TAIL */ );
+extern void invalidate_region_cache P_ ((struct buffer *BUF,
+					 struct region_cache *CACHE,
+					 int HEAD, int TAIL));
 
 /* The scanning functions. 
 
@@ -98,15 +98,15 @@ extern void invalidate_region_cache ( /* struct buffer *BUF,
 /* Return true if the text immediately after POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest 
    position after POS where the knownness changes.  */
-extern int region_cache_forward ( /* struct buffer *BUF,
+extern int region_cache_forward P_ ((struct buffer *BUF,
                                      struct region_cache *CACHE,
                                      int POS,
-                                     int *NEXT */ );
+                                     int *NEXT));
 
 /* Return true if the text immediately before POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position before POS where the knownness changes.  */
-extern int region_cache_backward ( /* struct buffer *BUF,
+extern int region_cache_backward P_ ((struct buffer *BUF,
                                       struct region_cache *CACHE,
                                       int POS,
-                                      int *NEXT */ );
+                                      int *NEXT));

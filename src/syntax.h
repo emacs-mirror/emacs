@@ -20,8 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 extern Lisp_Object Qsyntax_table_p;
-extern Lisp_Object Fsyntax_table_p (), Fsyntax_table (), Fset_syntax_table ();
-extern void update_syntax_table ();
+extern void update_syntax_table P_ ((int, int, int, Lisp_Object));
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -81,7 +80,7 @@ enum syntaxcode
      temp; })
 #else
 extern Lisp_Object syntax_temp;
-extern Lisp_Object syntax_parent_lookup ();
+extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 
 #define SYNTAX_ENTRY_FOLLOW_PARENT(table, c)	    	\
   (syntax_temp = XCHAR_TABLE (table)->contents[(c)],	\
@@ -294,4 +293,6 @@ struct gl_state_s
 
 extern struct gl_state_s gl_state;
 extern int parse_sexp_lookup_properties;
-extern INTERVAL interval_of ();
+extern INTERVAL interval_of P_ ((int, Lisp_Object));
+
+extern int scan_words P_ ((int, int));

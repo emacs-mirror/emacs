@@ -392,6 +392,10 @@ struct emacs_tty {
    expression, so we moved them out to their own functions in sysdep.c.  */
 #define EMACS_GET_TTY(fd, p)        (emacs_get_tty ((fd), (p)))
 #define EMACS_SET_TTY(fd, p, waitp) (emacs_set_tty ((fd), (p), (waitp)))
+#ifdef P_  /* Unfortunately this file is sometimes included before lisp.h */
+extern int emacs_get_tty P_ ((int, struct emacs_tty *));
+extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
+#endif
 
 
 /* Define EMACS_TTY_TABS_OK.  */
