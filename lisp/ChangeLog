@@ -1,5 +1,21 @@
 2000-08-26  Miles Bader  <miles@gnu.org>
 
+	* faces.el (set-face-attribute): Update doc string.
+	(face-attribute-name-alist): Add :inherit.
+	(face-valid-attribute-values): Handle :inherit.
+	(face-read-string): Rephrase prompt to be less confusing.
+	Assume that DEFAULT is a string, since we must return a string.
+	(face-read-integer): Use `format' to turn DEFAULT into an
+	acceptable default for face-read-string.  Match NEW-VALUE against
+	the string "unspecified", not the symbol `unspecified', since
+	that's what face-read-string returns.
+	(read-face-attribute): Lookup a name for old-value in valid, and
+	use it as a default if we find one.  Treat all values from
+	face-read-string as strings.  If the default is used, don't do any
+	more processing on the value, just use the old value directly.
+	(read-face-and-attribute, modify-face): Tweak prompt.
+	(read-face-name): Don't assume prompt ends with a space.
+
 	* faces.el (describe-face): Add support for :inherit attribute.
 
 2000-08-25  Kenichi Handa  <handa@etl.go.jp>
