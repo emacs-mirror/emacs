@@ -241,7 +241,8 @@ The functions are called without explicit parameters but can use the
 variables `desktop-buffer-major-mode', `desktop-buffer-file-name',
 `desktop-buffer-name'.
 If one function returns non-nil, no further functions are called.
-If the function returns t then the buffer is considered created."
+If the function returns a buffer, then the saved mode settings
+and variable values for that buffer are copied into it."
   :type '(repeat function)
   :group 'desktop)
 
@@ -669,7 +670,8 @@ to provide correct modes for autoloaded files."
 	  (let ((buf (find-file-noselect desktop-buffer-file-name)))
 	    (condition-case nil
 		(switch-to-buffer buf)
-	      (error (pop-to-buffer buf))))
+	      (error (pop-to-buffer buf)))
+	    buf)
 	'ignored)))
 ;; ----------------------------------------------------------------------------
 ;; Create a buffer, load its file, set is mode, ...;  called from Desktop file
