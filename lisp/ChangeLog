@@ -1,3 +1,8 @@
+2002-11-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/sgml-mode.el (sgml-skip-tag-backward)
+	(sgml-skip-tag-forward): Deal with xml-style <foo/> empty tags.
+
 2002-11-01  Kim F. Storm  <storm@cua.dk>
 
 	* info.el (Info-hide-note-references): New defcustom.
@@ -9,8 +14,8 @@
 	--noediting option; added run-time check to exclude it.
 
 	* info.el (Info-follow-reference, Info-next-reference)
-	(Info-prev-reference, Info-try-follow-nearest-node): Bind
-	inhibit-point-motion-hooks to t while parsing reference.
+	(Info-prev-reference, Info-try-follow-nearest-node):
+	Bind inhibit-point-motion-hooks to t while parsing reference.
 	(Info-fontify-node): When font-lock-mode is enabled, display
 	"*note" and "* menu" references in a more user friendly format.
 
