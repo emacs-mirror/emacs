@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.38 $")
+(defconst byte-compile-version "$Revision: 2.39 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1073,7 +1073,7 @@ otherwise pop it")
   (if (memq 'unresolved byte-compile-warnings)
    (let ((byte-compile-current-form "the end of the data"))
     (if (cdr byte-compile-unresolved-functions)
-	(let* ((str "The following functions are not known to be defined: ")
+	(let* ((str "The following functions are not known to be defined:")
 	       (L (length str))
 	       (rest (reverse byte-compile-unresolved-functions))
 	       s)
