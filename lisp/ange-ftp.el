@@ -856,7 +856,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.31 $")
+(defconst ange-ftp-version "$Revision: 1.32 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -3081,6 +3081,12 @@ system TYPE.")
       (file-exists-p file)
     (ange-ftp-real-file-readable-p file)))
 
+(defun ange-ftp-file-executable-p (file)
+  (setq file (expand-file-name file))
+  (if (ange-ftp-ftp-name file)
+      (file-exists-p file)
+    (ange-ftp-real-file-executable-p file)))
+
 (defun ange-ftp-delete-file (file)
   (interactive "fDelete file: ")
   (setq file (expand-file-name file))
@@ -3788,6 +3794,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (put 'file-directory-p 'ange-ftp 'ange-ftp-file-directory-p)
 (put 'file-writable-p 'ange-ftp 'ange-ftp-file-writable-p)
 (put 'file-readable-p 'ange-ftp 'ange-ftp-file-readable-p)
+(put 'file-executable-p 'ange-ftp 'ange-ftp-file-executable-p)
 (put 'file-symlink-p 'ange-ftp 'ange-ftp-file-symlink-p)
 (put 'delete-file 'ange-ftp 'ange-ftp-delete-file)
 (put 'read-file-name-internal 'ange-ftp 'ange-ftp-read-file-name-internal)
@@ -3857,6 +3864,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-real-file-readable-p (&rest args)
   (let (file-name-handler-alist)
     (apply 'file-readable-p args)))
+(defun ange-ftp-real-file-executable-p (&rest args)
+  (let (file-name-handler-alist)
+    (apply 'file-executable-p args)))
 (defun ange-ftp-real-file-symlink-p (&rest args)
   (let (file-name-handler-alist)
     (apply 'file-symlink-p args)))
