@@ -12321,9 +12321,9 @@ x_new_font (f, fontname)
 Lisp_Object
 x_new_fontset (f, fontsetname)
      struct frame *f;
-     char *fontsetname;
+     Lisp_Object fontsetname;
 {
-  int fontset = fs_query_fontset (build_string (fontsetname), 0);
+  int fontset = fs_query_fontset (fontsetname, 0);
   Lisp_Object result;
 
   if (fontset > 0 && f->output_data.x->fontset == fontset)
@@ -12337,24 +12337,15 @@ x_new_fontset (f, fontsetname)
   if (fontset >= 0)
     result = x_new_font (f, (XSTRING (fontset_ascii (fontset))->data));
   else
-    result = x_new_font (f, fontsetname);
+    result = x_new_font (f, XSTRING (fontsetname)->data);
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
     return Qnil;
 
+  fontset = fs_query_fontset (result, 0);
   if (fontset < 0)
-    {
-      Lisp_Object func;
-
-      func = intern ("create-fontset-from-ascii-font");
-      if (! NILP (Ffboundp (func)))
-	result = call2 (func, result, result);
-      else
-	Fnew_fontset (result,
-		      Fcons (Fcons (Qascii, Fcons (result, Qnil)), Qnil));
-      fontset = fs_query_fontset (result, 0);
-    }
+    fontset = new_fontset_from_font_name (result);
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   f->output_data.x->fontset = fontset;
