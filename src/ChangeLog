@@ -1,3 +1,24 @@
+2002-01-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	Support for the --color command-line argument and tty-color-mode
+	frame parameter:
+
+	* term.c (tty_default_color_capabilities, tty_setup_colors)
+	(set_tty_color_mode): New functions.
+	(term_init): Call tty_default_color_capabilities.
+	(Qtty_color_mode_alist): New variable.
+	(syms_of_term): Intern and staticpro it.
+
+	* frame.c (store_frame_param): Call set_tty_color_mode for termcap
+	frames.
+	(do_switch_frame): For termcap frames, switch the tty
+	color mode as specified by the frame's parameters.
+	(Qtty_color_mode): New variable.
+	(syms_of_frame): Intern and staticpro it.
+
+	* emacs.c (USAGE2): Add the --color option.
+	(standard_args): Ditto.
+
 2002-01-13  Jan Djarv  <Jan.Djarv@mbox200.swipnet.se>
 
 	* xterm.h (struct x_output): New members want_fullscreen,

@@ -1,3 +1,12 @@
+2002-01-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* startup.el (command-line): Register the default tty colors even
+	if the terminal doesn't seem to support colors.
+	<tty-long-option-alist>: New option --color.
+	(tty-handle-args): Parse the --color arg.
+
+	* term/tty-colors.el (tty-color-mode-alist): New variable.
+
 2002-01-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* net/ange-ftp.el (ange-ftp-root-dir-p): New function.
