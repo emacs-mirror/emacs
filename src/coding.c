@@ -2616,20 +2616,21 @@ detect_coding_iso_2022 (coding, detect_info)
 	  found |= CATEGORY_MASK_ISO_8_ELSE;
 	  goto check_extra_latin;
 
-
 	case ISO_CODE_SS2:
 	case ISO_CODE_SS3:
 	  /* Single shift.   */
 	  if (inhibit_iso_escape_detection)
 	    break;
-	  single_shifting = 1;
+	  single_shifting = 0;
 	  rejected |= CATEGORY_MASK_ISO_7BIT;
 	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
 	      & CODING_ISO_FLAG_SINGLE_SHIFT)
-	    found |= CATEGORY_MASK_ISO_8_1;
+	    found |= CATEGORY_MASK_ISO_8_1, single_shifting = 1;
 	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_2])
 	      & CODING_ISO_FLAG_SINGLE_SHIFT)
-	    found |= CATEGORY_MASK_ISO_8_2;
+	    found |= CATEGORY_MASK_ISO_8_2, single_shifting = 1;
+	  if (single_shifting)
+	    break;
 	  goto check_extra_latin;
 
 	default:
@@ -2680,11 +2681,7 @@ detect_coding_iso_2022 (coding, detect_info)
 	    found |= CATEGORY_MASK_ISO_8_1;
 	  else
 	    rejected |= CATEGORY_MASK_ISO_8_1;
-	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_2])
-	      & CODING_ISO_FLAG_LATIN_EXTRA)
-	    found |= CATEGORY_MASK_ISO_8_2;
-	  else
-	    rejected |= CATEGORY_MASK_ISO_8_2;
+	  rejected |= CATEGORY_MASK_ISO_8_2;
 	}
     }
   detect_info->rejected |= CATEGORY_MASK_ISO;
@@ -5349,8 +5346,7 @@ detect_coding (coding)
       for (i = 0, src = coding->source; src < src_end; i++, src++)
 	{
 	  c = *src;
-	  if (c & 0x80 || (c < 0x20 && (c == 0
-					|| c == ISO_CODE_ESC
+	  if (c & 0x80 || (c < 0x20 && (c == ISO_CODE_ESC
 					|| c == ISO_CODE_SI
 					|| c == ISO_CODE_SO)))
 	    break;
@@ -6878,8 +6874,7 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
       for (i = 0; src < src_end; i++, src++)
 	{
 	  c = *src;
-	  if (c & 0x80 || (c < 0x20 && (c == 0
-					|| c == ISO_CODE_ESC
+	  if (c & 0x80 || (c < 0x20 && (c == ISO_CODE_ESC
 					|| c == ISO_CODE_SI
 					|| c == ISO_CODE_SO)))
 	    break;
