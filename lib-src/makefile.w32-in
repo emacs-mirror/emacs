@@ -241,7 +241,6 @@ install:	$(INSTALL_FILES)
 		$(CP) $(BLD)/ctags.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/hexl.exe $(INSTALL_DIR)/bin
 		$(CP) $(BLD)/movemail.exe $(INSTALL_DIR)/bin
-		$(CP) $(BLD)/fakemail.exe $(INSTALL_DIR)/bin
 		- mkdir "$(INSTALL_DIR)/etc"
 		$(CP) $(DOC) $(INSTALL_DIR)/etc
 
