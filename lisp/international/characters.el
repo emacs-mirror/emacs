@@ -148,7 +148,9 @@
 
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?c)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?|)
-(map-charset-chars #'modify-category-entry 'chinese-gb2312 ?A #x2321 #x237E)
+(map-charset-chars #'modify-category-entry 'chinese-gb2312 ?A #x2330 #x2339)
+(map-charset-chars #'modify-category-entry 'chinese-gb2312 ?A #x2341 #x235A)
+(map-charset-chars #'modify-category-entry 'chinese-gb2312 ?A #x2361 #x237A)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?H #x2421 #x247E)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?K #x2521 #x257E)
 (map-charset-chars #'modify-category-entry 'chinese-gb2312 ?G #x2621 #x267E)
@@ -158,7 +160,9 @@
 ;; Chinese character set (BIG5)
 
 (map-charset-chars #'modify-category-entry 'big5 ?c)
-(map-charset-chars #'modify-category-entry 'big5 ?C)
+(map-charset-chars #'modify-category-entry 'big5 ?C #xA259 #xA25F)
+(map-charset-chars #'modify-category-entry 'big5 ?C #xA440 #xC67E)
+(map-charset-chars #'modify-category-entry 'big5 ?C #xC940 #xF9DF)
 (map-charset-chars #'modify-category-entry 'big5 ?|)
 
 
@@ -168,7 +172,9 @@
 	     chinese-cns11643-4 chinese-cns11643-5 chinese-cns11643-6
 	     chinese-cns11643-7))
   (map-charset-chars #'modify-category-entry c ?c)
-  (map-charset-chars #'modify-category-entry c ?C)
+  (if (eq c 'chinese-cns11643-1)
+      (map-charset-chars #'modify-category-entry c ?C #x4421 #x7E7E)
+    (map-charset-chars #'modify-category-entry c ?C))
   (map-charset-chars #'modify-category-entry c ?|))
 
 ;; Cyrillic character set (ISO-8859-5)
@@ -368,7 +374,9 @@
 
 (map-charset-chars #'modify-syntax-entry 'korean-ksc5601 "_" #x2121 #x227E)
 (map-charset-chars #'modify-syntax-entry 'korean-ksc5601 "_" #x2621 #x297E)
-(map-charset-chars #'modify-category-entry 'korean-ksc5601 ?A #x2321 #x237E)
+(map-charset-chars #'modify-category-entry 'korean-ksc5601 ?A #x2330 #x2339)
+(map-charset-chars #'modify-category-entry 'korean-ksc5601 ?A #x2341 #x235A)
+(map-charset-chars #'modify-category-entry 'korean-ksc5601 ?A #x2361 #x237A)
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?G #x2521 #x257E)
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?H #x2A21 #x2A7E)
 (map-charset-chars #'modify-category-entry 'korean-ksc5601 ?K #x2B21 #x2B7E)
