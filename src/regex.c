@@ -2706,8 +2706,8 @@ compile_range (p_ptr, pend, translate, syntax, b)
 
      We also want to fetch the endpoints without translating them; the 
      appropriate translation is done in the bit-setting loop below.  */
-  range_start = ((unsigned char *) p)[-2];
-  range_end   = ((unsigned char *) p)[0];
+  range_start = ((unsigned const char *) p)[-2];
+  range_end   = ((unsigned const char *) p)[0];
 
   /* Have to increment the pointer into the pattern string, so the
      caller isn't still at the ending character.  */
