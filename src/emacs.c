@@ -540,7 +540,7 @@ main (argc, argv, envp)
 #ifdef HAVE_X11
       syms_of_xselect ();
 #endif
-#ifdef HAVE_X_WINDOW
+#ifdef HAVE_X_WINDOWS
 #ifndef NO_X_MENU
       syms_of_xmenu ();
 #endif /* not NO_X_MENU */
