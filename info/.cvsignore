@@ -33,6 +33,8 @@ emacs-31
 emacs-32
 emacs-33
 emacs-34
+emacs-35
+emacs-mime
 ccmode
 ccmode-1
 ccmode-2
@@ -50,6 +52,7 @@ ediff
 ediff-1
 ediff-2
 ediff-3
+eshell
 forms
 gnus
 gnus-1
@@ -110,3 +113,4 @@ idlwave-2
 ebrowse
 pcl-cvs
 woman
+speedbar
