@@ -407,7 +407,7 @@ VALUE is a character to display on mode line for the coding system.
 `:coding-type' (required)
 
 VALUE must be one of `charset', `utf-8', `utf-16', `iso-2022',
-`emacs-mule', `sjis', `big5', `ccl', `raw-text', `undecided'.
+`emacs-mule', `shift-jis', `big5', `ccl', `raw-text', `undecided'.
 
 `:eol-type' (optional)
 
