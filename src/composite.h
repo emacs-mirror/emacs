@@ -199,6 +199,9 @@ extern int n_compositions;
 
 extern Lisp_Object Qcomposition;
 extern Lisp_Object composition_hash_table;
+extern Lisp_Object Qauto_composed;
+extern Lisp_Object Vauto_composition_function;
+extern Lisp_Object Qauto_composition_function;
 
 extern int get_composition_id P_ ((int, int, int, Lisp_Object, Lisp_Object));
 extern int find_composition P_ ((int, int, int *, int *, Lisp_Object *,
