@@ -84,6 +84,7 @@ If fonts of registry REGISTRY can't be loaded, try ALTERNATIVE1, then
 ALTERNATIVE2 etc."
   :tag "Alternative font registries to try."
   :type '(repeat (repeat string))
+  :version "21.1"
   :group 'font-selection
   :set #'(lambda (symbol value)
 	   (set-default symbol value)
