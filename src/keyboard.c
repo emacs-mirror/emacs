@@ -1988,6 +1988,11 @@ static Lisp_Object
 safe_run_hooks_error (data)
      Lisp_Object data;
 {
+  Lisp_Object args[3];
+  args[0] = build_string ("Error in %s: %s");
+  args[1] = Vinhibit_quit;
+  args[2] = data;
+  Fmessage (3, args);
   return Fset (Vinhibit_quit, Qnil);
 }
 
