@@ -1,11 +1,16 @@
+2003-02-05  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-define-mode-map):
+	Undo last change (duplicates part of 2003-02-04 change).
+	Remap `viper' delete commands only in file or dir mode.
+
 2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
-	* ido.el (ido-define-mode-map): Interact with Viper.  From Kim F
-	Storm.
+	* ido.el (ido-define-mode-map): Interact with Viper.
 
 2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
-	Version 2.0.29 released.
+	* net/tramp.el: Version 2.0.29 released.
 
 	* net/tramp.el (tramp-send-region): Protect against
 	tramp-chunksize being nil.
@@ -4324,7 +4329,7 @@
 
 2002-09-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	Version 2.0.19 released.
+	* net/tramp.el: Version 2.0.19 released.
 
 	* net/tramp-uu.el: New file, implements uuencode in Lisp.
 
@@ -4338,7 +4343,7 @@
 
 2002-09-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
-	Version 2.0.18 released.
+	* net/tramp.el: Version 2.0.18 released.
 
 	* net/tramp.el (tramp-perl-decode): Perl changes to accomodate
 	older versions of Perl.  Now tested with 5.004.  Suggestion from
