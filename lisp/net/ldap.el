@@ -584,9 +584,9 @@ an alist of attribute/value pairs."
 					       (end-of-line)
 					       (point))))
 	  (forward-line 1)
-	  (while (looking-at "^\\(\\w*\\)[=:\t ]+\\(.*\\)$")
+	  (while (looking-at "^\\(\\w*\\)[=:\t ]+\\(<[\t ]*file://\\)?\\(.*\\)$")
 	    (setq name (match-string 1)
-		  value (match-string 2))
+		  value (match-string 3))
 	    (save-excursion
 	      (set-buffer bufval)
 	      (erase-buffer)
