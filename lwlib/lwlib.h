@@ -54,7 +54,7 @@ enum menu_separator
   SEPARATOR_SHADOW_ETCHED_IN_DASH,
   SEPARATOR_SHADOW_ETCHED_OUT_DASH,
 
-  /* The following are supported by XEmacs' Lucid menus.  */
+  /* The following are supported by Lucid menus.  */
   SEPARATOR_SHADOW_DOUBLE_ETCHED_IN,
   SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT,
   SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH,
@@ -69,8 +69,10 @@ typedef struct _widget_value
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */ 
   char*		key;
-  /* Help string or null if none.  */
-  char		*help;
+  /* Help string or nil if none.
+     GC finds this string through the frame's menu_bar_vector
+     or through menu_items.  */
+  Lisp_Object	help;
   /* true if enabled */
   Boolean	enabled;
   /* true if selected */
