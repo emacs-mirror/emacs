@@ -998,11 +998,10 @@ yanking point; just return the Nth kill forward."
 	    (kill-new interprogram-paste))
 	  interprogram-paste)
       (or kill-ring (error "Kill ring is empty"))
-      (let* ((length (length kill-ring))
-	     (ARGth-kill-element
-	      (nthcdr (% (+ n (- length (length kill-ring-yank-pointer)))
-			 length)
-		      kill-ring)))
+      (let ((ARGth-kill-element
+	     (nthcdr (mod (- n (length kill-ring-yank-pointer))
+			  (length kill-ring))
+		     kill-ring)))
 	(or do-not-move
 	    (setq kill-ring-yank-pointer ARGth-kill-element))
 	(car ARGth-kill-element)))))
