@@ -928,6 +928,20 @@ just inactivated.")
 (defvar input-method-after-insert-chunk-hook nil
   "Normal hook run just after an input method insert some chunk of text.")
 
+(defvar input-method-exit-on-first-char nil
+  "This flag controls a timing when an input method returns.
+Usually, the input method does not return while there's a possibility
+that it may find a different translation if a user types another key.
+But, it this flag is non-nil, the input method returns
+as soon as the current key sequence reach any of valid translation.")
+
+(defvar input-method-use-echo-area nil
+  "This flag controls how an input method shows an intermediate key sequence.
+Usually, the input method insert the intermediate key sequence
+or a candidate of translations corresponding to the sequence
+at the point of the current buffer.
+But, if this flag is non-nil, they are shown in echo area.")
+
 (defvar input-method-exit-on-invalid-key nil
   "This flag controls the behaviour of an input method on invalid key input.
 Usually, when a user types a key which doesn't start any character
