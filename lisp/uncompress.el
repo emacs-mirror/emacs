@@ -74,6 +74,7 @@ It then selects a major mode from the uncompressed file name and contents."
   (message "Uncompressing...")
   (let ((buffer-read-only nil))
     (shell-command-on-region (point-min) (point-max) uncompress-program t))
+  (goto-char (point-min))
   (message "Uncompressing...done")
   (set-buffer-modified-p nil)
   (make-local-variable 'write-file-hooks)
