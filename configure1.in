@@ -50,24 +50,25 @@ This message needs to be updated.
 Set compilation and installation parameters for GNU Emacs, and report.
 MACHINENAME is the machine to build for.  See \`etc/MACHINES'.
 Options are:
-  -opsystem=SYSTEM - operating system to build for; see \`etc/MACHINES'.
-  -prefix=DIR - where to install Emacs's library files
+  --opsystem=SYSTEM - operating system to build for; see \`etc/MACHINES'.
+  --prefix=DIR - where to install Emacs's library files
 These options have reasonable defaults (in []s), and may not be needed:
-  -g, -O - Passed to the compiler.  If omitted, use -O only.
-  -cc=COMPILER - Which compiler to use.  Defaults to gcc if available.
-  -libdir=DIR - where to look for arch-dependent library files
-  -datadir=DIR - where to look for architecture-independent library files
-  -bindir=DIR - where to install the Emacs executable, and some friends
-  -lisppath=PATH - colon-separated list of Elisp directories
-  -lockdir=DIR - where Emacs should do its file-locking stuff
-  -window_system=none or [x11, if it is installed] - what window system to use
-  -have_x_menu=yes or [no] - include menu support under X11
-  -gnu_malloc=[yes] or no - use the GNU memory allocator
-  -rel_alloc=[yes] or no - use compacting allocator for buffers
-  -highpri=N - run at N points higher-than-normal priority
-  -lisp_float_type=[yes] or no - Support native floating point in Elisp
+  -g, -O - Passed to the compiler.  Default is -g, plus -O if using gcc.
+  --cc=COMPILER - Which compiler to use.  Defaults to gcc if available.
+  --libdir=DIR - where to look for arch-dependent library files
+  --datadir=DIR - where to look for architecture-independent library files
+  --bindir=DIR - where to install the Emacs executable, and some friends
+  --lisppath=PATH - colon-separated list of Emacs Lisp directories
+  --lockdir=DIR - where Emacs should do its file-locking stuff
+  --with-x or --with-x10 - what window system to use;
+         default is to use X11 if present
 If successful, ${progname} leaves its status in config.status.  If
 unsuccessful after disturbing the status quo, config.status is removed."
+# These are omitted since users should not mess with them.
+#  --gnu-malloc=[yes] or no - use the GNU memory allocator
+#  --rel-alloc=[yes] or no - use compacting allocator for buffers
+#  --lisp-float-type=[yes] or no - Support floating point in Emacs Lisp.
+# --window-system is omitted because --with... follow the conventions.
 
 if [ ! -r ./src/lisp.h ]; then
   echo "${progname}: Can't find Emacs sources in \`./src'.
@@ -75,24 +76,26 @@ Run this config script in the top directory of the Emacs source tree." >&2
   exit 1
 fi
 
+# The option names defined here are actually the shell variable names.
+# They should have `_' in place of `-'.
 options=":\
 usage:help:\
 machine:opsystem:\
 g:O:cc:\
 prefix:bindir:emacsdir:datadir:lispdir:locallisppath:\
 lisppath:buildlisppath:statedir:lockdir:libdir:mandir:infodir:\
-gnu_malloc:rel_alloc:highpri:lisp_float_type:\
-window_system:have_x_menu:\
+gnu_malloc:rel_alloc:lisp_float_type:\
+window_system:\
 "
 
 boolean_opts=":\
 g:O:\
-gnu_malloc:rel_alloc:lisp_float_type:have_x_menu:\
+gnu_malloc:rel_alloc:lisp_float_type:have_x_menu:with_x:with_x11:with_x10:\
 "
 
 config_h_opts=":\
-highpri:gnu_malloc:rel_alloc:lisp_float_type:\
-have_x_windows:have_x11:have_x_menu:\
+gnu_malloc:rel_alloc:lisp_float_type:\
+have_x_windows:have_x11:\
 c_switch_site:sigtype:\
 "
 
@@ -108,7 +111,6 @@ datadir=""
 libdir=""
 lockdir=""
 window_system=""
-have_x_menu=""
 
 # Record all the arguments, so we can save them in config.status.
 arguments="$*"
@@ -119,17 +121,18 @@ while [ $# != 0 ]; do
   case "${arg}" in
     -*)
       # Separate the switch name from the value it's being given.
+      # Also change `-' in the option name to `_'.
       case "${arg}" in
-        -*=* )
-	  opt=`echo ${arg} | sed 's:^-\([^=]*\)=.*$:\1:'`
-	  val=`echo ${arg} | sed 's:^-[^=]*=\(.*\)$:\1:'`
+        -*=*)
+	  opt=`echo ${arg} | sed 's:^-*\([^=]*\)=.*$:\1:' | tr - _`
+	  val=`echo ${arg} | sed 's:^-*[^=]*=\(.*\)$:\1:'`
 	  valomitted=no
 	;;
-        -* )
+        -*)
           # If FOO is a boolean argument, -FOO is equivalent to
           # -FOO=yes.  Otherwise, the value comes from the next
           # argument - see below.
-	  opt=`echo ${arg} | sed 's:^-\(.*\)$:\1:'`
+	  opt=`echo ${arg} | sed 's:^-*\(.*\)$:\1:' | tr - _`
           val="yes"
           valomitted=yes
         ;;
@@ -319,6 +322,22 @@ if [ ! "${infodir}" ]; then
 fi
 
 echo "Checking window system."
+case "${with_x11}" in
+  yes )
+    window_system=${window_system}x11
+    ;;
+esac
+case "${with_x}" in
+  yes )
+    window_system=${window_system}x11
+    ;;
+esac
+case "${with_x10}" in
+  yes )
+    window_system=${window_system}x10
+    ;;
+esac
+
 # Note that SYSV `tr' doesn't handle character ranges.
 window_system="`echo ${window_system} \
                 | tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz`"
@@ -333,7 +352,7 @@ case "${window_system}" in
     fi
   ;;
   * )
-    echo "The \`-window_system' option must be set to \`none' or \`X11'." >&2
+    echo "Don\'t specify the window system more than once." >&2
     exit 1
   ;;
 esac
@@ -352,10 +371,6 @@ case "${window_system}" in
     have_x11=no
   ;;
 esac
-
-if [ "${have_x_menu}" = "" ]; then
-  have_x_menu=no
-fi
 
 echo "Checking for GCC."
 case "${cc}" in
@@ -460,9 +475,6 @@ set -e
 
 # Make the proper settings in the config file.
 echo "Making src/config.h from src/config.h.in"
-if [ "${highpri}" != "" ]; then
-  highpri="(-${highpri})"
-fi
 case "${g}" in
   "yes" ) c_switch_site="${c_switch_site} -g" ;;
 esac
@@ -569,11 +581,6 @@ chmod -w lib-src/Makefile
 
 
 # Create a verbal description of what we have done.
-if [ "${highpri}" ]; then
-  desc_highpri="${highpri}"
-else
-  desc_highpri="none"
-fi
 message="Configured for machine \`${machine}' running \`${opsystem}'.
 The following values have been set in ./Makefile and ./build-install:
   \`make install' or \`build-install' will placed executables in
@@ -588,12 +595,10 @@ The following values have been set in ./Makefile and ./build-install:
   Emacs will keep track of file-locking in
         ${lockdir}.
 The following values have been set in src/config.h:
-  At how much higher than normal priority should Emacs run? ${desc_highpri}
   Should Emacs use the GNU version of malloc?             ${gnu_malloc}${gnu_malloc_reason}
   Should Emacs use the relocating allocator for buffers?  ${rel_alloc}
-  Should Emacs support a floating point Elisp type?       ${lisp_float_type}
+  Should Emacs support a floating point data type?        ${lisp_float_type}
   What window system should Emacs use?                    ${window_system}
-  Should Emacs support mouse menus, which require X11?    ${have_x_menu}
   What compiler should emacs be built with?               ${cc}
   Should the compilation use \`-g' and/or \`-O'?           ${c_switch_site- neither}"
 

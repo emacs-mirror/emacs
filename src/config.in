@@ -54,13 +54,6 @@ and this notice must be preserved on all copies.  */
 
 /* #define AMPERSAND_FULL_NAME */
 
-/* Define HIGHPRI as a negative number
-   if you want Emacs to run at a higher than normal priority.
-   For this to take effect, you must install Emacs with setuid root.
-   Emacs will change back to the users's own uid after setting
-   its priority.  */
-/* #define HIGHPRI */
-
 /* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
    numbers. */
 /* #define LISP_FLOAT_TYPE */
