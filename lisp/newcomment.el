@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.22 2000/10/08 19:07:41 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.23 2000/11/14 10:03:56 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -444,14 +444,15 @@ If CONTINUE is non-nil, use the `comment-continuation' markers if any."
 	      ;; If that's different from current, change it.
 	      (skip-chars-backward " \t")
 	      (delete-region (point) begpos)
-	      (indent-to (if (bolp) indent (max indent (1+ (current-column))))))
-	    ;; An existing comment?
-	    (if cpos
-		(progn (goto-char cpos) (set-marker cpos nil))
-	      ;; No, insert one.
-	      (insert starter)
-	      (save-excursion
-		(insert ender)))))))))
+	      (indent-to (if (bolp) indent
+			   (max indent (1+ (current-column)))))))
+	  ;; An existing comment?
+	  (if cpos
+	      (progn (goto-char cpos) (set-marker cpos nil))
+	    ;; No, insert one.
+	    (insert starter)
+	    (save-excursion
+	      (insert ender))))))))
 
 ;;;###autoload
 (defun comment-set-column (arg)
