@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
-;; Copyright (C) 1985,86,89,92,94,95,96,97,98,1999,2002,2003
+;; Copyright (C) 1985,86,89,92,94,95,96,97,98,1999,2002,03,2004
 ;;       Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -1446,6 +1446,8 @@ Mark is left at original location."
 ;; The utility functions:
 
 (define-derived-mode tex-shell shell-mode "TeX-Shell"
+  (set (make-local-variable 'compilation-parse-errors-function)
+       'tex-compilation-parse-errors)
   (compilation-shell-minor-mode t))
 
 ;;;###autoload
@@ -1879,8 +1881,6 @@ FILE is typically the output DVI or PDF file."
     (let (shell-dirtrack-verbose)
       (tex-send-command tex-shell-cd-command dir)))
   (with-current-buffer (process-buffer (tex-send-command cmd))
-    (make-local-variable 'compilation-parse-errors-function)
-    (setq compilation-parse-errors-function 'tex-compilation-parse-errors)
     (setq compilation-last-buffer (current-buffer))
     (compilation-forget-errors)
     ;; Don't parse previous compilations.
@@ -1927,7 +1927,7 @@ for the error messages."
 			end-of-error (match-end 0)))
 		(re-search-forward
 		 "^l\\.\\([0-9]+\\) \\(\\.\\.\\.\\)?\\(.*\\)$" nil 'move))
-      (let* ((this-error (set-marker (make-marker) begin-of-error))
+      (let* ((this-error (copy-marker begin-of-error))
 	     (linenum (string-to-int (match-string 1)))
 	     (error-text (regexp-quote (match-string 3)))
 	     (filename
