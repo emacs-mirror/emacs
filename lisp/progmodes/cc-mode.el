@@ -198,23 +198,19 @@
   ;; fill-paragraph-or-region.
   (substitute-key-definition 'fill-paragraph-or-region 'c-fill-paragraph
 			     c-mode-base-map global-map)
-  ;; Caution!  Enter here at your own risk.  We are trying to support
-  ;; several behaviors and it gets disgusting. :-(
-  ;;
-  (if (boundp 'delete-key-deletes-forward)
-      (progn
-	;; In XEmacs 20 it is possible to sanely define both backward
-	;; and forward deletion behavior under X separately (TTYs are
-	;; forever beyond hope, but who cares?  XEmacs 20 does the
-	;; right thing with these too).
-	(define-key c-mode-base-map [delete]    'c-electric-delete)
-	(define-key c-mode-base-map [backspace] 'c-electric-backspace))
-    ;; In XEmacs 19, Emacs 19, and Emacs 20, we use this to bind
-    ;; backwards deletion behavior to DEL, which both Delete and
-    ;; Backspace get translated to.  There's no way to separate this
-    ;; behavior in a clean way, so deal with it!  Besides, it's been
-    ;; this way since the dawn of BOCM.
-    (define-key c-mode-base-map "\177" 'c-electric-backspace))
+  ;; Bind the electric deletion functions to C-d and DEL.  Emacs 21
+  ;; automatically maps the [delete] and [backspace] keys to these two
+  ;; depending on window system and user preferences.  (In earlier
+  ;; versions it's possible to do the same by using `function-key-map'.)
+  (define-key c-mode-base-map "\C-d" 'c-electric-delete-forward)
+  (define-key c-mode-base-map "\177" 'c-electric-backspace)
+  (when (boundp 'delete-key-deletes-forward)
+    ;; In XEmacs 20 and later we fix the forward and backward deletion
+    ;; behavior by binding the keysyms for the [delete] and
+    ;; [backspace] keys directly, and use `delete-forward-p' or
+    ;; `delete-key-deletes-forward' to decide what [delete] should do.
+    (define-key c-mode-base-map [delete]    'c-electric-delete)
+    (define-key c-mode-base-map [backspace] 'c-electric-backspace))
   ;; these are new keybindings, with no counterpart to BOCM
   (define-key c-mode-base-map ","         'c-electric-semi&comma)
   (define-key c-mode-base-map "*"         'c-electric-star)
