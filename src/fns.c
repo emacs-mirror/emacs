@@ -586,7 +586,11 @@ concat (nargs, args, target_type, last_special)
 			&& XINT (elt) < 0400)
 		      {
 			c = XINT (elt);
-			if (nonascii_insert_offset > 0)
+
+			if (! NILP (Vnonascii_translate_table))
+			  c = XINT (Faref (Vnonascii_translate_table,
+					   make_number (c)));
+			else if (nonascii_insert_offset > 0)
 			  c += nonascii_insert_offset;
 			else
 			  c += DEFAULT_NONASCII_INSERT_OFFSET;
