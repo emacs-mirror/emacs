@@ -1,5 +1,19 @@
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (coordinates_in_window): If on a mode or header line,
+	but sufficiently close to its start, return ``on vertical
+	border''.  This gives us a way to drag windows horizontally when
+	using toolkit scroll bars.
+
+	* xterm.c (note_mouse_highlight): Change the cursor shape
+	on the vertical border between windows.
+
+	* xterm.h (struct x_output): Add member horizontal_drag_cursor.
+
+	* xfns.c (Vx_window_horizontal_drag_shape): New variable.
+	(syms_of_xfns): DEFVAR_LISP it.
+	(x_set_mouse_color): Create frame's horizontal_drag_cursor.
+
 	* textprop.c (text_read_only): New function.
 	(verify_interval_modification): Use it instead of signaling
 	`text-read-only'.  This makes it easier to catch this error
