@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.47) $
+ * $HopeName: MMsrc!arena.c(trunk.48) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.47) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.48) $");
 
 
 /* Forward declarations */
@@ -1189,8 +1189,8 @@ Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool,
              Bool withReservoirPermit)
 {
   Res res;
-  Seg seg;
   Arena arena;
+  Seg seg;
 
   AVER(segReturn != NULL);
   AVERT(SegPref, pref);
@@ -1210,15 +1210,20 @@ Res SegAlloc(Seg *segReturn, SegPref pref, Size size, Pool pool,
   }
 
   res = (*arena->class->segAlloc)(&seg, pref, size, pool);
-  if (res == ResOK) {
-    *segReturn = seg;
-    return ResOK;
-  } else if (withReservoirPermit) {
+  if(res == ResOK) {
+    goto goodAlloc;
+  } else if(withReservoirPermit) {
     AVER(ResIsAllocFailure(res));
-    return ArenaAllocSegFromReservoir(segReturn, arena, size, pool);
-  } else {
-    return res;
+    res = ArenaAllocSegFromReservoir(&seg, arena, size, pool);
+    if(res == ResOK)
+      goto goodAlloc;
   }
+  return res;
+
+goodAlloc:
+  EVENT_PPAWP(SegAlloc, arena, seg, SegBase(seg), size, pool);
+  *segReturn = seg;
+  return ResOK;
 }
 
 
@@ -1241,6 +1246,7 @@ void SegFree(Seg seg)
     ArenaReturnSegToReservoir(arena, seg);
   }
 
+  EVENT_PP(SegFree, arena, seg);
   return;
 }
 
