@@ -1801,7 +1801,7 @@ rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes setrlimit setpgid getcwd shutdown strftime getaddrinfo \
-__fpending ftello getloadavg mblen mbrlen strsignal)
+__fpending ftello getloadavg mblen mbrlen strsignal setitimer ualarm)
 
 # Check this now, so that we will NOT find the above functions in ncurses.
 # That is because we have not set up to link ncurses in lib-src.
