@@ -170,6 +170,7 @@ lisp= \
 	$(lispsource)international/mule-conf.el \
 	$(lispsource)international/mule-cmds.elc \
 	$(lispsource)international/characters.elc \
+	$(lispsource)international/ucs-tables.elc \
 	$(lispsource)international/utf-8.elc \
 	$(lispsource)international/latin-1.el \
 	$(lispsource)international/latin-2.el \
@@ -207,6 +208,7 @@ lisp= \
 	$(lispsource)startup.elc \
 	$(lispsource)subr.elc \
 	$(lispsource)term/tty-colors.elc \
+	$(lispsource)font-core.elc \
 	$(lispsource)textmodes/fill.elc \
 	$(lispsource)textmodes/page.elc \
 	$(lispsource)textmodes/paragraphs.elc \
