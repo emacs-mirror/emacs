@@ -3621,21 +3621,21 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
   
   /* Top.  */
   XFillRectangle (s->display, s->window, s->gc,
-		  left_x, top_y, right_x - left_x, width);
+		  left_x, top_y, right_x - left_x + 1, width);
 
   /* Left.  */
   if (left_p)
     XFillRectangle (s->display, s->window, s->gc,
-		    left_x, top_y, width, bottom_y - top_y);
+		    left_x, top_y, width, bottom_y - top_y + 1);
 
   /* Bottom.  */
   XFillRectangle (s->display, s->window, s->gc,
-		  left_x, bottom_y - width, right_x - left_x, width);
+		  left_x, bottom_y - width + 1, right_x - left_x + 1, width);
   
   /* Right.  */
   if (right_p)
     XFillRectangle (s->display, s->window, s->gc,
-		    right_x - width, top_y, width, bottom_y - top_y);
+		    right_x - width + 1, top_y, width, bottom_y - top_y + 1);
 
   XSetForeground (s->display, s->gc, xgcv.foreground);
   XSetClipMask (s->display, s->gc, None);
