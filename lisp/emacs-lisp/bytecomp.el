@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.28 $")
+(defconst byte-compile-version "$Revision: 2.29 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1203,7 +1203,8 @@ recompile every `.el' file that already has a `.elc' file."
 (defun byte-compile-file (filename &optional load)
   "Compile a file of Lisp code named FILENAME into a file of byte code.
 The output file's name is made by appending `c' to the end of FILENAME.
-With prefix arg (noninteractively: 2nd arg), load the file after compiling."
+With prefix arg (noninteractively: 2nd arg), load the file after compiling.
+The value is t if there were no errors, nil if errors."
 ;;  (interactive "fByte compile file: \nP")
   (interactive
    (let ((file buffer-file-name)
@@ -3317,7 +3318,7 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 
 (defun batch-byte-compile-file (file)
   (condition-case err
-      (progn (byte-compile-file file) t)
+      (byte-compile-file file)
     (error
      (message (if (cdr err)
 		  ">>Error occurred processing %s: %s (%s)"
