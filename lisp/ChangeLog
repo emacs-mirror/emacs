@@ -1,3 +1,14 @@
+2005-01-01  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-prog.el (calc-finish-macro-edit): Remove.
+	(calc-edit-macro-repeats, calc-edit-macro-adjust-buffer)
+	(calc-edit-macro-command, calc-edit-macro-command-type)
+	(calc-edit-macro-combine-alg-ent, calc-edit-macro-combine-ext-command)
+	(calc-edit-macro-combine-var-name, calc-edit-macro-combine-digits)
+	(calc-edit-format-macro-buffer, calc-edit-macro-pre-finish-edit)
+	(calc-edit-macro-finish-edit): New functions.
+	(calc-user-define-edit): Use new functions to edit named calc macros.
+
 2005-01-01  Stefan  <monnier@iro.umontreal.ca>
 
 	* files.el (hack-local-variables): Cleanup prefix/suffix matching.
