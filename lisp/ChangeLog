@@ -39,7 +39,6 @@
 	(grep-tree-ignore-CVS-directories): Move to grep custom group.
 	(grep-setup-hook): New hook variable.
 	(grep-mode-map): New keymap for grep commands.  Add Grep menu.
-	(grep-use-compilation-buffer): New defcustom.
 	(grep-last-buffer): New defvar, override compilation-last-buffer.
 	(grep): Add optional arg HIGHLIGHT-REGEXP.  Doc fix.
 	Call compile-internal with args highlight-regexp and grep-mode-map.
