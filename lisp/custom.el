@@ -458,8 +458,8 @@ COMMENT is a comment string about SYMBOL."
 	    (put symbol 'saved-value (list value))
 	    (put symbol 'saved-variable-comment comment)
 	    ;; Allow for errors in the case where the setter has
-	    ;; changed between versions, say.
-	    (condition-case nil
+	    ;; changed between versions, say, but let the user know.
+	    (condition-case data
 		(cond (now
 		       ;; Rogue variable, set it now.
 		       (put symbol 'force-value t)
@@ -467,7 +467,8 @@ COMMENT is a comment string about SYMBOL."
 		      ((default-boundp symbol)
 		       ;; Something already set this, overwrite it.
 		       (funcall set symbol (eval value))))
-	      (error nil))
+	      (error 
+	       (message "Error setting %s: %s" symbol data)))
 	    (setq args (cdr args))
 	    (and (or now (default-boundp symbol))
 		 (put symbol 'variable-comment comment)))
