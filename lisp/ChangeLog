@@ -1,5 +1,7 @@
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (fancy-splash-text): Don't quote faces.
+
 	* dired.el (dired-font-lock-keywords): Undo last change.
 	(dired-readin): Bind indent-tabs-mode to nil.
 
