@@ -295,6 +295,19 @@ Lisp_Object Qscrollbar_click;
 Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
 
+/* An event header symbol HEAD may have a property named
+   Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
+   BASE is the base, unmodified version of HEAD, and MODIFIERS is the
+   mask of modifiers applied to it.  If present, this is used to help
+   speed up parse_modifiers.  */
+Lisp_Object Qevent_symbol_element_mask;
+
+/* An unmodified event header BASE may have a property named
+   Qmodifier_cache, which is an alist mapping modifier masks onto
+   modified versions of BASE.  If present, this helps speed up
+   apply_modifiers.  */
+Lisp_Object Qmodifier_cache;
+
 /* Symbols to use for non-text mouse positions.  */
 Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
@@ -369,8 +382,9 @@ echo_prompt (str)
   int len = strlen (str);
   if (len > sizeof echobuf - 4)
     len = sizeof echobuf - 4;
-  bcopy (str, echobuf, len + 1);
+  bcopy (str, echobuf, len);
   echoptr = echobuf + len;
+  *echoptr = '\0';
 
   echo ();
 }
@@ -487,7 +501,7 @@ echo_truncate (len)
      int len;
 {
   echobuf[len] = '\0';
-  echoptr = echobuf + strlen (echobuf);
+  echoptr = echobuf + len;
 }
 
 
@@ -1703,7 +1717,7 @@ make_lispy_event (event)
     {
       /* A simple keystroke.  */
     case ascii_keystroke:
-      return event->code;
+      return XFASTINT (event->code);
       break;
 
       /* A function key.  The symbol may need to have modifier prefixes
@@ -1720,12 +1734,13 @@ make_lispy_event (event)
          a press, click or drag, and build the appropriate structure.  */
     case mouse_click:
       {
+	int button = XFASTINT (event->code);
 	int part;
 	Lisp_Object window;
 	Lisp_Object posn;
 	struct mouse_position *loc;
 
-	if (event->code < 0 || event->code >=  NUM_MOUSE_BUTTONS)
+	if (button < 0 || button >=  NUM_MOUSE_BUTTONS)
 	  abort ();
 
 	/* Where did this mouse click occur?  */
@@ -1753,7 +1768,7 @@ make_lispy_event (event)
 
 	/* If this is a button press, squirrel away the location, so we
 	   can decide later whether it was a click or a drag.  */
-	loc = button_down_location + event->code;
+	loc = button_down_location + button;
 	if (event->modifiers & down_modifier)
 	  {
 	    loc->window = window;
@@ -1783,7 +1798,7 @@ make_lispy_event (event)
 	  Lisp_Object head, start, end;
 
 	  /* Build the components of the event.  */
-	  head = modify_event_symbol (XFASTINT (event->code) - 1,
+	  head = modify_event_symbol (button - 1,
 				      event->modifiers,
 				      Qmouse_click,
 				      lispy_mouse_names, &mouse_syms,
@@ -1883,34 +1898,266 @@ make_lispy_movement (frame, x, y, time)
 }
 
 
+
+/* Manipulating modifiers.  */
 
-/* Place the written representation of MODIFIERS in BUF, '\0'-terminated,
-   and return its length.  */
+/* Parse the name of SYMBOL, and return the set of modifiers it contains.
 
+   If MODIFIER_END is non-zero, set *MODIFIER_END to the position in
+   SYMBOL's name of the end of the modifiers; the string from this
+   position is the unmodified symbol name.
+
+   This doesn't use any caches.  */
 static int
-format_modifiers (modifiers, buf)
-     int modifiers;
-     char *buf;
+parse_modifiers_uncached (symbol, modifier_end)
+     Lisp_Object symbol;
+     int *modifier_end;
 {
-  char *p = buf;
+  struct Lisp_String *name;
+  int i;
+  int modifiers;
 
-  /* Only the event queue may use the `up' modifier; it should always
-     be turned into a click or drag event before presented to lisp code.  */
-  if (modifiers & up_modifier)
-    abort ();
+  CHECK_SYMBOL (symbol, 1);
+  
+  modifiers = 0;
+  name = XSYMBOL (symbol)->name;
 
-  if (modifiers & alt_modifier)   { *p++ = 'A'; *p++ = '-'; }
-  if (modifiers & ctrl_modifier)  { *p++ = 'C'; *p++ = '-'; }
-  if (modifiers & hyper_modifier) { *p++ = 'H'; *p++ = '-'; }
-  if (modifiers & meta_modifier)  { *p++ = 'M'; *p++ = '-'; }
-  if (modifiers & shift_modifier) { *p++ = 'S'; *p++ = '-'; }
-  if (modifiers & super_modifier) { strcpy (p, "super-"); p += 6; }
-  if (modifiers & down_modifier)  { strcpy (p, "down-");  p += 5; }
-  if (modifiers & drag_modifier)  { strcpy (p, "drag-");  p += 5; }
-  /* The click modifier is denoted by the absence of other modifiers.  */
-  *p = '\0';
 
-  return p - buf;
+  for (i = 0; i+2 <= name->size; )
+    switch (name->data[i])
+      {
+#define SINGLE_LETTER_MOD(bit)					\
+        if (name->data[i+1] != '-')				\
+	  goto no_more_modifiers;				\
+	modifiers |= bit;					\
+	i += 2;
+
+      case 'A':
+	SINGLE_LETTER_MOD (alt_modifier);
+	break;
+
+      case 'C':
+	SINGLE_LETTER_MOD (ctrl_modifier);
+	break;
+
+      case 'H':
+	SINGLE_LETTER_MOD (hyper_modifier);
+	break;
+
+      case 'M':
+	SINGLE_LETTER_MOD (meta_modifier);
+	break;
+
+      case 'S':
+	SINGLE_LETTER_MOD (shift_modifier);
+	break;
+
+      case 's':
+	if (i + 6 > name->size
+	    || strncmp (name->data + i, "super-", 6))
+	  goto no_more_modifiers;
+	modifiers |= super_modifier;
+	i += 6;
+	break;
+
+      case 'd':
+	if (i + 5 > name->size)
+	  goto no_more_modifiers;
+	if (! strncmp (name->data + i, "drag-", 5))
+	  {
+	    modifiers |= drag_modifier;
+	    i += 5;
+	  }
+	else if (! strncmp (name->data + i, "down-", 5))
+	  {
+	    modifiers |= down_modifier;
+	    i += 5;
+	  }
+	else
+	  goto no_more_modifiers;
+	break;
+
+      default:
+	goto no_more_modifiers;
+
+#undef SINGLE_LETTER_MOD
+      }
+ no_more_modifiers:
+
+  /* Should we include the `click' modifier?  */
+  if (! (modifiers & (down_modifier | drag_modifier))
+      && i + 7 == name->size
+      && strncmp (name->data + i, "mouse-", 6)
+      && '0' <= name->data[i + 6]
+      && name->data[i + 6] <= '9')
+    modifiers |= click_modifier;
+
+  if (modifier_end)
+    *modifier_end = i;
+
+  return modifiers;
+}
+
+
+/* Return a symbol whose name is the modifier prefixes for MODIFIERS
+   prepended to the string BASE[0..BASE_LEN-1].
+   This doesn't use any caches.  */
+static Lisp_Object
+apply_modifiers_uncached (modifiers, base, base_len)
+     int modifiers;
+     char *base;
+     int base_len;
+{
+  /* Since BASE could contain nulls, we can't use intern here; we have
+     to use Fintern, which expects a genuine Lisp_String, and keeps a
+     reference to it.  */
+  char *new_mods =
+    (char *) alloca (sizeof ("A-C-H-M-S-super-down-drag-"));
+  int mod_len;
+
+  {
+    char *p = new_mods;
+
+    /* Only the event queue may use the `up' modifier; it should always
+       be turned into a click or drag event before presented to lisp code.  */
+    if (modifiers & up_modifier)
+      abort ();
+
+    if (modifiers & alt_modifier)   { *p++ = 'A'; *p++ = '-'; }
+    if (modifiers & ctrl_modifier)  { *p++ = 'C'; *p++ = '-'; }
+    if (modifiers & hyper_modifier) { *p++ = 'H'; *p++ = '-'; }
+    if (modifiers & meta_modifier)  { *p++ = 'M'; *p++ = '-'; }
+    if (modifiers & shift_modifier) { *p++ = 'S'; *p++ = '-'; }
+    if (modifiers & super_modifier) { strcpy (p, "super-"); p += 6; }
+    if (modifiers & down_modifier)  { strcpy (p, "down-");  p += 5; }
+    if (modifiers & drag_modifier)  { strcpy (p, "drag-");  p += 5; }
+    /* The click modifier is denoted by the absence of other modifiers.  */
+
+    *p = '\0';
+
+    mod_len = p - new_mods;
+  }
+
+  {
+    Lisp_Object new_name = make_uninit_string (mod_len + base_len);
+    
+    bcopy (new_mods, XSTRING (new_name)->data,	       mod_len);
+    bcopy (base,     XSTRING (new_name)->data + mod_len, base_len);
+
+    return Fintern (new_name, Qnil);
+  }
+}
+
+
+static char *modifier_names[] =
+{
+  "up", "alt", "control", "hyper", "meta", "shift", "super", "down", "drag",
+  "click"
+};
+
+static Lisp_Object modifier_symbols;
+
+/* Return the list of modifier symbols corresponding to the mask MODIFIERS.  */
+static Lisp_Object
+lispy_modifier_list (modifiers)
+     int modifiers;
+{
+  Lisp_Object modifier_list;
+  int i;
+
+  modifier_list = Qnil;
+  for (i = 0; (1<<i) <= modifiers; i++)
+    if (modifiers & (1<<i))
+      modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
+			     modifier_list);
+
+  return modifier_list;
+}
+
+
+/* Parse the modifiers on SYMBOL, and return a list like (UNMODIFIED MASK),
+   where UNMODIFIED is the unmodified form of SYMBOL,
+   MASK is the set of modifiers present in SYMBOL's name.
+   This is similar to parse_modifiers_uncached, but uses the cache in
+   SYMBOL's Qevent_symbol_element_mask property, and maintains the
+   Qevent_symbol_elements property.  */
+static Lisp_Object
+parse_modifiers (symbol)
+     Lisp_Object symbol;
+{
+  Lisp_Object elements = Fget (symbol, Qevent_symbol_element_mask);
+
+  if (CONSP (elements))
+    return elements;
+  else
+    {
+      int end;
+      int modifiers = parse_modifiers_uncached (symbol, &end);
+      Lisp_Object unmodified
+	= Fintern (make_string (XSYMBOL (symbol)->name->data + end,
+				XSYMBOL (symbol)->name->size - end),
+		   Qnil);
+      Lisp_Object mask;
+
+      XFASTINT (mask) = modifiers;
+      elements = Fcons (unmodified, Fcons (mask, Qnil));
+
+      /* Cache the parsing results on SYMBOL.  */
+      Fput (symbol, Qevent_symbol_element_mask,
+	    elements);
+      Fput (symbol, Qevent_symbol_elements,
+	    Fcons (unmodified, lispy_modifier_list (modifiers)));
+
+      /* Since we know that SYMBOL is modifiers applied to unmodified,
+	 it would be nice to put that in unmodified's cache.
+	 But we can't, since we're not sure that parse_modifiers is
+	 canonical.  */
+
+      return elements;
+    }
+}
+
+/* Apply the modifiers MODIFIERS to the symbol BASE.
+   BASE must be unmodified.
+
+   This is like apply_modifiers_uncached, but uses BASE's
+   Qmodifier_cache property, if present.  It also builds
+   Qevent_symbol_elements properties, since it has that info anyway.  */
+static Lisp_Object
+apply_modifiers (modifiers, base)
+     int modifiers;
+     Lisp_Object base;
+{
+  Lisp_Object cache, index, entry;
+
+  /* The click modifier never figures into cache indices.  */
+  XFASTINT (index) = (modifiers & ~click_modifier);
+  cache = Fget (base, Qmodifier_cache);
+  entry = Fassq (index, cache);
+
+  if (CONSP (entry))
+    return XCONS (entry)->cdr;
+
+  /* We have to create the symbol ourselves.  */  
+  {
+    Lisp_Object new_symbol
+      = apply_modifiers_uncached (modifiers,
+				  XSYMBOL (base)->name->data,
+				  XSYMBOL (base)->name->size);
+
+    /* Add the new symbol to the base's cache.  */
+    Fput (base, Qmodifier_cache,
+	  Fcons (Fcons (index, new_symbol), cache));
+
+    /* We have the parsing info now for free, so add it to the caches.  */
+    XFASTINT (index) = modifiers;
+    Fput (new_symbol, Qevent_symbol_element_mask,
+	  Fcons (base, Fcons (index, Qnil)));
+    Fput (new_symbol, Qevent_symbol_elements,
+	  Fcons (base, lispy_modifier_list (modifiers)));
+
+    return new_symbol;
+  }
 }
 
 
@@ -1926,109 +2173,12 @@ Lisp_Object
 reorder_modifiers (symbol)
      Lisp_Object symbol;
 {
-  struct Lisp_String *name;
-  int i;
-  int modifiers;
-  int not_canonical;
+  /* It's hopefully okay to write the code this way, since everything
+     will soon be in caches, and no consing will be done at all.  */
+  Lisp_Object parsed = parse_modifiers (symbol);
 
-  CHECK_SYMBOL (symbol, 1);
-  
-  modifiers = 0;
-  name = XSYMBOL (symbol)->name;
-
-  /* Special case for things with only one modifier, which is
-     (hopefully) the vast majority of cases.  */
-  if (! (name->size >= 4 && name->data[1] == '-' && name->data[3] == '-'))
-    return symbol;
-
-  for (i = 0; i+1 < name->data[i]; )
-    switch (name->data[i])
-      {
-      case 'A':
-	if (name->data[i] != '-') goto no_more_modifiers;
-	not_canonical |= (modifiers & ~(alt_modifier - 1));
-	modifiers |= alt_modifier;
-	i += 2;
-	break;
-
-      case 'C':
-	if (name->data[i] != '-') goto no_more_modifiers;
-	not_canonical |= (modifiers & ~(ctrl_modifier - 1));
-	modifiers |= ctrl_modifier;
-	i += 2;
-	break;
-
-      case 'H':
-	if (name->data[i] != '-') goto no_more_modifiers;
-	not_canonical |= (modifiers & ~(hyper_modifier - 1));
-	modifiers |= hyper_modifier;
-	i += 2;
-	break;
-
-      case 'M':
-	if (name->data[i] != '-') goto no_more_modifiers;
-	not_canonical |= (modifiers & ~(meta_modifier - 1));
-	modifiers |= meta_modifier;
-	i += 2;
-	break;
-
-      case 'S':
-	if (name->data[i] != '-') goto no_more_modifiers;
-	not_canonical |= (modifiers & ~(shift_modifier - 1));
-	modifiers |= shift_modifier;
-	i += 2;
-	break;
-
-      case 's':
-	if (i + 6 > name->size
-	    || strncmp (name->data + i, "super-", 6))
-	  goto no_more_modifiers;
-	not_canonical |= (modifiers & ~(super_modifier - 1));
-	modifiers |= super_modifier;
-	i += 6;
-	break;
-
-      case 'd':
-	if (i + 5 > name->size)
-	  goto no_more_modifiers;
-	if (! strncmp (name->data + i, "drag-", 5))
-	  {
-	    not_canonical |= (modifiers & ~(drag_modifier - 1));
-	    modifiers |= drag_modifier;
-	    i += 5;
-	  }
-	else if (! strncmp (name->data + i, "down-", 5))
-	  {
-	    not_canonical |= (modifiers & ~(down_modifier - 1));
-	    modifiers |= down_modifier;
-	    i += 5;
-	  }
-	else
-	  goto no_more_modifiers;
-	break;
-
-      default:
-	goto no_more_modifiers;
-      }
- no_more_modifiers:
-
-  if (!not_canonical)
-    return symbol;
-
-  /* The modifiers were out of order, so find a new symbol with the
-     mods in order.  Since the symbol name could contain nulls, we can't
-     use intern here; we have to use Fintern, which expects a genuine
-     Lisp_String, and keeps a reference to it.  */
-  {
-    char *new_mods = (char *) alloca (sizeof ("A-C-H-M-S-super-U-down-drag-"));
-    int len = format_modifiers (modifiers, new_mods);
-    Lisp_Object new_name = make_uninit_string (len + name->size - i);
-
-    bcopy (new_mods, XSTRING (new_name)->data, len);
-    bcopy (name->data + i, XSTRING (new_name)->data + len, name->size - i);
-
-    return Fintern (new_name, Qnil);
-  }
+  return apply_modifiers (XCONS (XCONS (parsed)->cdr)->car,
+			  XCONS (parsed)->car);
 }
 
 
@@ -2058,14 +2208,6 @@ reorder_modifiers (symbol)
    `event-symbol-elements' propery, which lists the modifiers present
    in the symbol's name.  */
 
-static char *modifier_names[] =
-{
-  "up", "alt", "ctrl", "hyper", "meta", "shift", "super", "down", "drag",
-  "click"
-};
-
-static Lisp_Object modifier_symbols;
-
 static Lisp_Object
 modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
                      symbol_table, table_size)
@@ -2077,89 +2219,42 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_table,
      int table_size;
 {
   Lisp_Object *slot;
-  Lisp_Object unmodified;
-  Lisp_Object temp;
 
   /* Is this a request for a valid symbol?  */
   if (symbol_num < 0 || symbol_num >= table_size)
     abort ();
 
-  /* If *symbol_table doesn't seem to be initialized property, fix that.
-
+  /* If *symbol_table doesn't seem to be initialized properly, fix that.
      *symbol_table should be a lisp vector TABLE_SIZE elements long,
-     where the Nth element is an alist for modified versions of
-     name_table[N]; the alist maps modifier masks onto the modified
-     symbols.  The click modifier is always omitted from the mask; it
-     is indicated implicitly on a mouse event by the absence of the
-     down_ and drag_ modifiers.  */
+     where the Nth element is the symbol for NAME_TABLE[N].  */
   if (XTYPE (*symbol_table) != Lisp_Vector
       || XVECTOR (*symbol_table)->size != table_size)
     {
-      XFASTINT (temp) = table_size;
-      *symbol_table = Fmake_vector (temp, Qnil);
+      Lisp_Object size;
+
+      XFASTINT (size) = table_size;
+      *symbol_table = Fmake_vector (size, Qnil);
     }
 
   slot = & XVECTOR (*symbol_table)->contents[symbol_num];
 
-  /* Have we already modified this symbol?  */
-  XFASTINT (temp) = modifiers & ~(click_modifier);
-  temp = Fassq (temp, *slot);
-  if (CONSP (temp))
-    return (XCONS (temp)->cdr);
-
-  /* We don't have an entry for the symbol; we have to build it.   */
-
-  /* Create a modified version of the symbol, and add it to the alist.  */
-  {
-    Lisp_Object modified;
-    char *modified_name
-      = (char *) alloca (sizeof ("A-C-H-M-S-super-U-down-drag")
-			 + strlen (name_table [symbol_num]));
-
-    strcpy (modified_name + format_modifiers (modifiers, modified_name),
-	    name_table [symbol_num]);
-
-    modified = intern (modified_name);
-    XFASTINT (temp) = modifiers & ~click_modifier;
-    *slot = Fcons (Fcons (temp, modified), *slot);
-    Fput (modified, Qevent_kind, symbol_kind);
-
+  /* Have we already used this symbol before?  */
+  if (NILP (*slot))
     {
-      Lisp_Object modifier_list;
-      int i;
+      /* No; let's create it.  */
+      *slot = intern (name_table[symbol_num]);
 
-      modifier_list = Qnil;
-      for (i = 0; (1<<i) <= modifiers; i++)
-	if (modifiers & (1<<i))
-	  modifier_list = Fcons (XVECTOR (modifier_symbols)->contents[i],
-				 modifier_list);
-
-      /* Put an unmodified version of the symbol at the head of the 
-	 list of symbol elements.  */
-      {
-	/* We recurse to get the unmodified symbol; this allows us to
-	   write out the code to build event headers only once.
-
-	   Note that we put ourselves in the symbol_table before we
-	   recurse, so when an unmodified symbol calls this code
-	   to put itself on its Qevent_symbol_elements property, we do
-	   terminate.  */
-	Lisp_Object unmodified =
-	  modify_event_symbol (symbol_num,
-			       ((modifiers & (down_modifier | drag_modifier))
-				? click_modifier
-				: 0),
-			       symbol_kind,
-			       name_table, symbol_table, table_size);
-	
-	Fput (modified, Qevent_symbol_elements,
-	      Fcons (unmodified, modifier_list));
-      }
+      /* Fill in the cache entries for this symbol; this also 	
+	 builds the Qevent_symbol_elements property, which the user
+	 cares about.  */
+      apply_modifiers (0, *slot);
+      Fput (*slot, Qevent_kind, symbol_kind);
     }
 
-    return modified;
-  }
+  /* Apply modifiers to that symbol.  */
+  return apply_modifiers (modifiers, *slot);
 }
+
 
 DEFUN ("mouse-click-p", Fmouse_click_p, Smouse_click_p, 1, 1, 0,
   "Return non-nil iff OBJECT is a representation of a mouse event.\n\
@@ -2667,8 +2762,9 @@ follow_key (key, nmaps, current, defs, next)
     }
   
   /* Given the set of bindings we've found, produce the next set of maps.  */
-  for (i = 0; i < nmaps; i++)
-    next[i] = NILP (defs[i]) ? Qnil : get_keymap_1 (defs[i], 0);
+  if (first_binding < nmaps)
+    for (i = 0; i < nmaps; i++)
+      next[i] = NILP (defs[i]) ? Qnil : get_keymap_1 (defs[i], 0);
 
   return first_binding;
 }
@@ -2768,6 +2864,11 @@ read_key_sequence (keybuf, bufsize, prompt)
   t = 0;
   this_command_key_count = keys_start;
 
+  /* This is a no-op the first time through, but if we restart, it
+     reverts the echo area to its original state.  */
+  if (INTERACTIVE)
+    echo_truncate (echo_start);
+
   { 
     Lisp_Object *maps;
 
@@ -2794,8 +2895,25 @@ read_key_sequence (keybuf, bufsize, prompt)
       Lisp_Object key;
       int used_mouse_menu = 0;
 
+      /* These variables are analogous to echo_start and keys_start;
+	 while those allow us to restart the entire key sequence,
+	 echo_local_start and keys_local_start allow us to throw away
+	 just one key.  */
+      int echo_local_start = echo_length ();
+      int keys_local_start = this_command_key_count;
+      int local_first_binding = first_binding;
+      
       if (t >= bufsize)
 	error ("key sequence too long");
+
+    retry_key:
+      /* These are no-ops, unless we throw away a keystroke below and
+	 jumped back up to retry_key; in that case, these restore these
+	 variables to their original state, allowing us to restart the
+	 loop.  */
+      echo_truncate (echo_local_start);
+      this_command_key_count = keys_local_start;
+      first_binding = local_first_binding;
 
       /* Are we re-reading a key sequence, as indicated by mock_input?  */
       if (t < mock_input)
@@ -2820,6 +2938,26 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    return 0;
 	  
 	  Vquit_flag = Qnil;
+
+	  /* Clicks in non-text areas get prefixed by the symbol 
+	     in their CHAR-ADDRESS field.  For example, a click on
+	     the mode line is prefixed by the symbol `mode-line'.  */
+	  if (EVENT_HAS_PARAMETERS (key)
+	      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (key)), Qmouse_click))
+	    {
+	      Lisp_Object posn = POSN_BUFFER_POSN (EVENT_START (key));
+
+	      if (XTYPE (posn) == Lisp_Symbol)
+		{
+		  if (t + 1 >= bufsize)
+		    error ("key sequence too long");
+		  keybuf[t] = posn;
+		  keybuf[t+1] = key;
+		  mock_input = t + 2;
+
+		  goto retry_key;
+		}
+	    }
 
 #ifdef MULTI_FRAME
 	  /* What buffer was this event typed/moused at?  */
@@ -2859,21 +2997,72 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      keybuf[0] = key;
 	      mock_input = 1;
 
-	      /* Truncate the key sequence in the echo area.  */
-	      if (INTERACTIVE)
-		echo_truncate (echo_start);
-
 	      goto restart;
 	    }
 #endif
 	}
-
+	  
       first_binding = (follow_key (key,
 				   nmaps   - first_binding,
 				   submaps + first_binding,
 				   defs    + first_binding,
 				   submaps + first_binding)
 		       + first_binding);
+
+      /* If this key wasn't bound, we'll try some fallbacks.  */
+      if (first_binding >= nmaps)
+	{
+	  Lisp_Object head = EVENT_HEAD (key);
+
+	  if (XTYPE (head) == Lisp_Symbol)
+	    {
+	      Lisp_Object breakdown = parse_modifiers (head);
+	      Lisp_Object modifiers =
+		XINT (XCONS (XCONS (breakdown)->cdr)->car);
+
+	      /* We drop unbound `down-' events altogether.  */
+	      if (modifiers & down_modifier)
+		{
+		  /* Adding prefixes for non-textual mouse clicks creates
+		     two characters of mock input, and this can't be the
+		     first, so it's okay to clear mock_input in that case.
+		     Only function key expansion could create more than
+		     two keys, but that should never generate mouse events,
+		     so it's okay to nuke mock_input in that case too.
+		     Isn't this just the most wonderful code ever?  */
+		  mock_input = 0;
+		  goto retry_key;
+		}
+
+	      /* We turn unbound `drag-' events into `click-'
+		 events, if the click would be bound.  */
+	      else if (modifiers & drag_modifier)
+		{
+		  Lisp_Object new_head =
+		    apply_modifiers (modifiers & ~drag_modifier,
+				     XCONS (breakdown)->car);
+		  Lisp_Object new_click =
+		    Fcons (new_head, Fcons (EVENT_START (key), Qnil));
+
+		  /* Look for a binding for this new key.  follow_key
+		     promises that it didn't munge submaps the
+		     last time we called it, since key was unbound.  */
+		  first_binding =
+		    (follow_key (new_click,
+				 nmaps   - local_first_binding,
+				 submaps + local_first_binding,
+				 defs    + local_first_binding,
+				 submaps + local_first_binding)
+		     + local_first_binding);
+
+		  /* If that click is bound, go for it.  */
+		  if (first_binding < nmaps)
+		    key = new_click;
+		  /* Otherwise, we'll leave key set to the drag event.  */
+		}
+	    }
+	}
+
       keybuf[t++] = key;
       /* Normally, last_nonmenu_event gets the previous key we read.
 	 But when a mouse popup menu is being used,
@@ -2925,10 +3114,6 @@ read_key_sequence (keybuf, bufsize, prompt)
 		  
 		  mock_input = t;
 		  fkey_start = fkey_end = t;
-
-		  /* Truncate the key sequence in the echo area.  */
-		  if (INTERACTIVE)
-		    echo_truncate (echo_start);
 
 		  goto restart;
 		}
@@ -3125,7 +3310,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
   UNGCPRO;
 
-  function = Fintern (function, Vobarray);
+  function = Fintern (function, Qnil);
   Vprefix_arg = prefixarg;
   this_command = function;
 
@@ -3621,6 +3806,10 @@ syms_of_keyboard ()
   staticpro (&Qevent_kind);
   Qevent_symbol_elements = intern ("event-symbol-elements");
   staticpro (&Qevent_symbol_elements);
+  Qevent_symbol_element_mask = intern ("event-symbol-element-mask");
+  staticpro (&Qevent_symbol_element_mask);
+  Qmodifier_cache = intern ("modifier-cache");
+  staticpro (&Qmodifier_cache);
 
   {
     struct event_head *p;
