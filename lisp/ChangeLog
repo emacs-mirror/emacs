@@ -1,5 +1,8 @@
 2002-11-23  Nick Roberts  <nick@nick.uklinux.net>
 
+	* tooltip.el (tooltip-gud-print-command): Add server prefix to the
+	print command for gdb to keep it out of the command history.
+
 	* gdb-ui.el: Major re-organisation. Simplify legacy gdba
 	code to allow only one gdb process.
 
