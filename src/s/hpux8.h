@@ -20,21 +20,28 @@
 #ifdef __GNUC__
 /* No need to specify roundabout way of linking temacs.  */
 #define ORDINARY_LINK
+
+#ifdef HPUX_USE_SHLIBS
+#define LD_SWITCH_SYSTEM -L/usr/lib/X11R5 -L/usr/lib/X11R4
+#else
+#define LD_SWITCH_SYSTEM -Xlinker -a -Xlinker archive -L/usr/lib/X11R5 -L/usr/lib/X11R4
 #endif
 
-#if ! defined (__GNUC__) && (defined(hp9000s700) || defined(__hp9000s700))
+#else /* not __GNUC__ */
+#if (defined(hp9000s700) || defined(__hp9000s700))
 #ifdef HPUX_USE_SHLIBS
 #define LD_SWITCH_SYSTEM -L/lib/pa1.1 -L/usr/lib/X11R5 -L/usr/lib/X11R4
 #else
 #define LD_SWITCH_SYSTEM -a archive -L/lib/pa1.1 -L/usr/lib/X11R5 -L/usr/lib/X11R4
 #endif
-#else /* __GNUC__ or not (defined(hp9000s700) || defined(__hp9000s700)) */
+#else /* not (defined(hp9000s700) || defined(__hp9000s700)) */
 #ifdef HPUX_USE_SHLIBS
 #define LD_SWITCH_SYSTEM -L/usr/lib/X11R5 -L/usr/lib/X11R4
 #else
 #define LD_SWITCH_SYSTEM -a archive -L/usr/lib/X11R5 -L/usr/lib/X11R4
 #endif
-#endif /* __GNUC__ or not (defined(hp9000s700) || defined(__hp9000s700)) */
+#endif /* not (defined(hp9000s700) || defined(__hp9000s700)) */
+#endif /* not __GNUC__ */
 
 /* Some hpux 8 machines seem to have TIOCGWINSZ,
    and none have sioctl.h, so might as well define this.  */
