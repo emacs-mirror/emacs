@@ -267,7 +267,7 @@ main (argc, argv)
     }
 
 #ifndef SERVER_HOME_DIR
-  sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
+  sprintf (server.sun_path, "/tmp/esrv%d-%s", (int) geteuid (), system_name);
 
   if (unlink (server.sun_path) == -1 && errno != ENOENT)
     {
