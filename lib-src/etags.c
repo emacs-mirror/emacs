@@ -34,7 +34,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potortì <pot@gnu.org> has maintained it since 1993.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 15.26";
+char pot_etags_version[] = "@(#) pot revision number is 16.4";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -289,7 +289,8 @@ typedef struct
     at_language,		/* a language specification */
     at_regexp,			/* a regular expression */
     at_icregexp,		/* same, but with case ignored */
-    at_filename			/* a file name */
+    at_filename,		/* a file name */
+    at_stdin			/* read from stdin here */
   } arg_type;			/* argument type */
   language *lang;		/* language associated with the argument */
   char *what;			/* the argument itself */
@@ -366,7 +367,8 @@ static void add_node __P((node *, node **));
 
 static void init __P((void));
 static void initbuffer __P((linebuffer *));
-static void process_file __P((char *, language *));
+static void process_file_name __P((char *, language *));
+static void process_file __P((FILE *, char *, language *));
 static void find_entries __P((FILE *));
 static void free_tree __P((node *));
 static void free_fdesc __P((fdesc *));
@@ -451,6 +453,9 @@ static bool cplusplus;		/* .[hc] means C++, not C */
 static bool noindentypedefs;	/* -I: ignore indentation in C */
 static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 
+#define STDIN 0x1001		/* returned by getopt_long on --parse-stdin */
+static bool parsing_stdin;	/* --parse-stdin used */
+
 #ifdef ETAGS_REGEXPS
 /* List of all regexps. */
 static pattern *p_head;
@@ -480,6 +485,7 @@ static struct option longopts[] =
   { "no-regex",		  no_argument,	     NULL,	     	 'R'   },
   { "ignore-case-regex",  required_argument, NULL,	     	 'c'   },
 #endif /* ETAGS_REGEXPS */
+  { "parse-stdin",        required_argument, NULL,               STDIN },
   { "version",		  no_argument,	     NULL,     	     	 'V'   },
 
 #if CTAGS /* Etags options */
@@ -704,6 +710,9 @@ linked with GNU getopt.");
   puts ("  A - as file name means read names from stdin (one per line).\n\
 Absolute names are stored in the output file as they are.\n\
 Relative ones are stored relative to the output file's directory.\n");
+
+  puts ("--parse-stdin=NAME\n\
+        Read from standard input and record tags as belonging to file NAME.");
 
   if (!CTAGS)
     puts ("-a, --append\n\
@@ -970,6 +979,9 @@ main (argc, argv)
 #ifdef VMS
   bool got_err;
 #endif
+ char *optstring;
+ int opt;
+
 
 #ifdef DOS_NT
   _fmode = O_BINARY;   /* all of files are treated as binary files */
@@ -1004,109 +1016,108 @@ main (argc, argv)
       globals = TRUE;
     }
 
-  while (1)
-    {
-      int opt;
-      char *optstring = "-";
-
+  optstring = "-";
 #ifdef ETAGS_REGEXPS
-      optstring = "-r:Rc:";
+  optstring = "-r:Rc:";
 #endif /* ETAGS_REGEXPS */
-
 #ifndef LONG_OPTIONS
-      optstring = optstring + 1;
+  optstring = optstring + 1;
 #endif /* LONG_OPTIONS */
+  optstring = concat (optstring,
+		      "Cf:Il:o:SVhH",
+		      (CTAGS) ? "BxdtTuvw" : "aDi:");
 
-      optstring = concat (optstring,
-			  "Cf:Il:o:SVhH",
-			  (CTAGS) ? "BxdtTuvw" : "aDi:");
-
-      opt = getopt_long (argc, argv, optstring, longopts, 0);
-      if (opt == EOF)
+  while ((opt = getopt_long (argc, argv, optstring, longopts, 0)) != EOF)
+    switch (opt)
+      {
+      case 0:
+	/* If getopt returns 0, then it has already processed a
+	   long-named option.  We should do nothing.  */
 	break;
 
-      switch (opt)
-	{
-	case 0:
-	  /* If getopt returns 0, then it has already processed a
-	     long-named option.  We should do nothing.  */
-	  break;
+      case 1:
+	/* This means that a file name has been seen.  Record it. */
+	argbuffer[current_arg].arg_type = at_filename;
+	argbuffer[current_arg].what     = optarg;
+	++current_arg;
+	++file_count;
+	break;
 
-	case 1:
-	  /* This means that a file name has been seen.  Record it. */
-	  argbuffer[current_arg].arg_type = at_filename;
-	  argbuffer[current_arg].what = optarg;
-	  ++current_arg;
-	  ++file_count;
-	  break;
+      case STDIN:
+	/* Parse standard input.  Idea by Vivek <vivek@etla.org>. */
+	argbuffer[current_arg].arg_type = at_stdin;
+	argbuffer[current_arg].what     = optarg;
+	++current_arg;
+	++file_count;
+	parsing_stdin = TRUE;
+	break;
 
-	  /* Common options. */
-	case 'C': cplusplus = TRUE;		break;
-	case 'f':		/* for compatibility with old makefiles */
-	case 'o':
-	  if (tagfile)
-	    {
-	      error ("-o option may only be given once.", (char *)NULL);
-	      suggest_asking_for_help ();
-	    }
-	  tagfile = optarg;
-	  break;
-	case 'I':
-	case 'S':		/* for backward compatibility */
-	  noindentypedefs = TRUE;
-	  break;
-	case 'l':
+	/* Common options. */
+      case 'C': cplusplus = TRUE;		break;
+      case 'f':		/* for compatibility with old makefiles */
+      case 'o':
+	if (tagfile)
 	  {
-	    language *lang = get_language_from_langname (optarg);
-	    if (lang != NULL)
-	      {
-		argbuffer[current_arg].lang = lang;
-		argbuffer[current_arg].arg_type = at_language;
-		++current_arg;
-	      }
+	    error ("-o option may only be given once.", (char *)NULL);
+	    suggest_asking_for_help ();
 	  }
-	  break;
-	case 'r':
-	  argbuffer[current_arg].arg_type = at_regexp;
-	  argbuffer[current_arg].what = optarg;
-	  ++current_arg;
-	  break;
-	case 'R':
-	  argbuffer[current_arg].arg_type = at_regexp;
-	  argbuffer[current_arg].what = NULL;
-	  ++current_arg;
-	  break;
-        case 'c':
-	  argbuffer[current_arg].arg_type = at_icregexp;
-	  argbuffer[current_arg].what = optarg;
-	  ++current_arg;
-	  break;
-	case 'V':
-	  print_version ();
-	  break;
-	case 'h':
-	case 'H':
-	  print_help ();
-	  break;
-
-	  /* Etags options */
-	case 'a': append_to_tagfile = TRUE;			break;
-	case 'D': constantypedefs = FALSE;			break;
-	case 'i': included_files[nincluded_files++] = optarg;	break;
-
-	  /* Ctags options. */
-	case 'B': searchar = '?';				break;
-	case 'd': constantypedefs = TRUE;			break;
-	case 't': typedefs = TRUE;				break;
-	case 'T': typedefs = typedefs_or_cplusplus = TRUE;	break;
-	case 'u': update = TRUE;				break;
-	case 'v': vgrind_style = TRUE;			  /*FALLTHRU*/
-	case 'x': cxref_style = TRUE;				break;
-	case 'w': no_warnings = TRUE;				break;
-	default:
-	  suggest_asking_for_help ();
+	tagfile = optarg;
+	break;
+      case 'I':
+      case 'S':		/* for backward compatibility */
+	noindentypedefs = TRUE;
+	break;
+      case 'l':
+	{
+	  language *lang = get_language_from_langname (optarg);
+	  if (lang != NULL)
+	    {
+	      argbuffer[current_arg].lang = lang;
+	      argbuffer[current_arg].arg_type = at_language;
+	      ++current_arg;
+	    }
 	}
-    }
+	break;
+      case 'r':
+	argbuffer[current_arg].arg_type = at_regexp;
+	argbuffer[current_arg].what = optarg;
+	++current_arg;
+	break;
+      case 'R':
+	argbuffer[current_arg].arg_type = at_regexp;
+	argbuffer[current_arg].what = NULL;
+	++current_arg;
+	break;
+      case 'c':
+	argbuffer[current_arg].arg_type = at_icregexp;
+	argbuffer[current_arg].what = optarg;
+	++current_arg;
+	break;
+      case 'V':
+	print_version ();
+	break;
+      case 'h':
+      case 'H':
+	print_help ();
+	break;
+
+	/* Etags options */
+      case 'a': append_to_tagfile = TRUE;			break;
+      case 'D': constantypedefs = FALSE;			break;
+      case 'i': included_files[nincluded_files++] = optarg;	break;
+
+	/* Ctags options. */
+      case 'B': searchar = '?';					break;
+      case 'd': constantypedefs = TRUE;				break;
+      case 't': typedefs = TRUE;				break;
+      case 'T': typedefs = typedefs_or_cplusplus = TRUE;	break;
+      case 'u': update = TRUE;					break;
+      case 'v': vgrind_style = TRUE;			  /*FALLTHRU*/
+      case 'x': cxref_style = TRUE;				break;
+      case 'w': no_warnings = TRUE;				break;
+      default:
+	suggest_asking_for_help ();
+      }
 
   for (; optind < argc; ++optind)
     {
@@ -1199,14 +1210,23 @@ main (argc, argv)
 	      /* Input file named "-" means read file names from stdin
 		 (one per line) and use them. */
 	      if (streq (this_file, "-"))
-		while (readline_internal (&filename_lb, stdin) > 0)
-		  process_file (filename_lb.buffer, lang);
+		{
+		  if (parsing_stdin)
+		    fatal ("cannot parse standard input AND read file names from it",
+			   (char *)NULL);
+		  while (readline_internal (&filename_lb, stdin) > 0)
+		    process_file_name (filename_lb.buffer, lang);
+		}
 	      else
-		process_file (this_file, lang);
+		process_file_name (this_file, lang);
 #ifdef VMS
 	    }
 #endif
 	  break;
+        case at_stdin:
+          this_file = argbuffer[i].what;
+          process_file (stdin, this_file, lang);
+          break;
 	}
     }
 
@@ -1233,8 +1253,14 @@ main (argc, argv)
       char cmd[BUFSIZ];
       for (i = 0; i < current_arg; ++i)
 	{
-	  if (argbuffer[i].arg_type != at_filename)
-	    continue;
+	  switch (argbuffer[i].arg_type)
+	    {
+	    case at_filename:
+	    case at_stdin:
+	      break;
+	    default:
+	      continue;		/* the for loop */
+	    }
 	  sprintf (cmd,
 		   "mv %s OTAGS;fgrep -v '\t%s\t' OTAGS >%s;rm OTAGS",
 		   tagfile, argbuffer[i].what, tagfile);
@@ -1391,19 +1417,17 @@ get_language_from_filename (file, case_sensitive)
  * This routine is called on each file argument.
  */
 static void
-process_file (file, lang)
+process_file_name (file, lang)
      char *file;
      language *lang;
 {
   struct stat stat_buf;
   FILE *inf;
-  static const fdesc emptyfdesc;
   fdesc *fdp;
   compressor *compr;
   char *compressed_name, *uncompressed_name;
   char *ext, *real_name;
   int retval;
-
 
   canonicalize_filename (file);
   if (streq (file, tagfile) && !streq (tagfile, "-"))
@@ -1499,32 +1523,7 @@ process_file (file, lang)
       goto cleanup;
     }
 
-  /* Create a new input file description entry. */
-  fdp = xnew (1, fdesc);
-  *fdp = emptyfdesc;
-  fdp->next = fdhead;
-  fdp->infname = savestr (uncompressed_name);
-  fdp->lang = lang;
-  fdp->infabsname = absolute_filename (uncompressed_name, cwd);
-  fdp->infabsdir = absolute_dirname (uncompressed_name, cwd);
-  if (filename_is_absolute (uncompressed_name))
-    {
-      /* file is an absolute file name.  Canonicalize it. */
-      fdp->taggedfname = absolute_filename (uncompressed_name, NULL);
-    }
-  else
-    {
-      /* file is a file name relative to cwd.  Make it relative
-	 to the directory of the tags file. */
-      fdp->taggedfname = relative_filename (uncompressed_name, tagfiledir);
-    }
-  fdp->usecharno = TRUE;	/* use char position when making tags */
-  fdp->prop = NULL;
-
-  fdhead = fdp;
-  curfdp = fdhead;		/* the current file description */
-
-  find_entries (inf);
+  process_file (inf, uncompressed_name, lang);
 
   if (real_name == compressed_name)
     retval = pclose (inf);
@@ -1532,6 +1531,50 @@ process_file (file, lang)
     retval = fclose (inf);
   if (retval < 0)
     pfatal (file);
+
+ cleanup:
+  if (compressed_name) free (compressed_name);
+  if (uncompressed_name) free (uncompressed_name);
+  last_node = NULL;
+  curfdp = NULL;
+  return;
+}
+
+static void
+process_file (fh, fn, lang)
+     FILE *fh;
+     char *fn;
+     language *lang;
+{
+  static const fdesc emptyfdesc;
+  fdesc *fdp;
+
+  /* Create a new input file description entry. */
+  fdp = xnew (1, fdesc);
+  *fdp = emptyfdesc;
+  fdp->next = fdhead;
+  fdp->infname = savestr (fn);
+  fdp->lang = lang;
+  fdp->infabsname = absolute_filename (fn, cwd);
+  fdp->infabsdir = absolute_dirname (fn, cwd);
+  if (filename_is_absolute (fn))
+    {
+      /* An absolute file name.  Canonicalize it. */
+      fdp->taggedfname = absolute_filename (fn, NULL);
+    }
+  else
+    {
+      /* A file name relative to cwd.  Make it relative
+	 to the directory of the tags file. */
+      fdp->taggedfname = relative_filename (fn, tagfiledir);
+    }
+  fdp->usecharno = TRUE;	/* use char position when making tags */
+  fdp->prop = NULL;
+
+  fdhead = fdp;
+  curfdp = fdhead;		/* the current file description */
+
+  find_entries (fh);
 
   /* If not Ctags, and if this is not metasource and if it contained no #line
      directives, we can write the tags and free all nodes pointing to
@@ -1566,13 +1609,6 @@ process_file (file, lang)
 	    prev->left = NULL;	/* delete the pointer to the sublist */
 	}
     }
-
- cleanup:
-  if (compressed_name) free (compressed_name);
-  if (uncompressed_name) free (uncompressed_name);
-  last_node = NULL;
-  curfdp = NULL;
-  return;
 }
 
 /*
@@ -5029,7 +5065,7 @@ prolog_atom (s, pos)
     {
       pos++;
 
-      while (1)
+      for (;;)
 	{
 	  if (s[pos] == '\'')
 	    {
@@ -5208,7 +5244,7 @@ erlang_atom (s, pos)
     {
       pos++;
 
-      while (1)
+      for (;;)
 	{
 	  if (s[pos] == '\'')
 	    {
@@ -5542,7 +5578,7 @@ readline_internal (lbp, stream)
 
   pend = p + lbp->size;		/* Separate to avoid 386/IX compiler bug.  */
 
-  while (1)
+  for (;;)
     {
       register int c = getc (stream);
       if (p == pend)
