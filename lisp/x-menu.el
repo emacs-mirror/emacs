@@ -20,12 +20,6 @@
 
 ;;; Code:
 
-(defmacro caar (conscell)
-  (list 'car (list 'car conscell)))
-
-(defmacro cdar (conscell)
-  (list 'cdr (list 'car conscell)))
-
 (defun x-menu-mode ()
   "Major mode for creating permanent menus for use with X.
 These menus are implemented entirely in Lisp; popup menus, implemented
@@ -50,7 +44,8 @@ with x-popup-menu, are implemented using XMenu primitives."
   "*Minimum horizontal spacing between objects in a permanent X menu.")
 
 (defun x-menu-create-menu (name)
-  "Create a permanent X menu.  Returns an item which should be used as a
+  "Create a permanent X menu.
+Returns an item which should be used as a
 menu object whenever referring to the menu."
   (let ((old (current-buffer))
 	(buf (get-buffer-create name)))
@@ -61,15 +56,15 @@ menu object whenever referring to the menu."
     buf))
 
 (defun x-menu-change-associated-buffer (menu buffer)
-  "Change associated buffer of MENU to BUFFER.  BUFFER should be a buffer
-object."
+  "Change associated buffer of MENU to BUFFER.
+BUFFER should be a buffer object."
   (let ((old (current-buffer)))
     (set-buffer menu)
     (setq x-menu-assoc-buffer buffer)
     (set-buffer old)))
 
 (defun x-menu-add-item (menu item binding)
-  "Adds to MENU an item with name ITEM, associated with BINDING.
+  "Add to MENU an item with name ITEM, associated with BINDING.
 Following a sequence of calls to x-menu-add-item, a call to x-menu-compute
 should be performed before the menu will be made available to the user.
 
@@ -86,8 +81,8 @@ button/key code as defined in x-menu.el."
     item))
 
 (defun x-menu-delete-item (menu item)
-  "Deletes from MENU the item named ITEM.  x-menu-compute should be called
-before the menu is made available to the user."
+  "Delete from MENU the item named ITEM.
+Call `x-menu-compute' before making the menu available to the user."
   (let ((old (current-buffer))
 	elt)
     (set-buffer menu)
@@ -97,10 +92,9 @@ before the menu is made available to the user."
     item))
 
 (defun x-menu-activate (menu)
-  "Computes all necessary parameters for MENU.  This must be called whenever
-a menu is modified before it is made available to the user.
-
-This also creates the menu itself."
+  "Compute all necessary parameters for MENU.
+This must be called whenever a menu is modified before it is made
+available to the user.  This also creates the menu itself."
   (let ((buf (current-buffer)))
     (pop-to-buffer menu)
     (let (buffer-read-only)
@@ -109,11 +103,11 @@ This also creates the menu itself."
       (let (items-head
 	    (items-tail x-menu-items-alist))
 	(while items-tail
-	  (if (caar items-tail)
+	  (if (car (car items-tail))
 	      (progn (setq items-head (cons (car items-tail) items-head))
 		     (setq x-menu-item-width
 			   (max x-menu-item-width
-				(length (caar items-tail))))))
+				(length (car (car items-tail)))))))
 	  (setq items-tail (cdr items-tail)))
 	(setq x-menu-items-alist (reverse items-head)))
       (setq x-menu-item-width (+ x-menu-item-spacing x-menu-item-width))
@@ -127,7 +121,7 @@ This also creates the menu itself."
 			(<= (setq items (1+ items)) x-menu-items-per-line))
 	      (insert (format (concat "%"
 				      (int-to-string x-menu-item-width) "s")
-			      (caar items-head)))
+			      (car (car items-head))))
 	      (setq items-head (cdr items-head))))
 	  (insert ?\n)))
       (shrink-window (max 0
