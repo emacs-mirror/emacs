@@ -121,6 +121,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    This is done from time to time so that we don't hold on to
    lots of GCs that are no longer needed.
 
+   If a computed face has 0 as its font,
+   it is unused, and can be reused by new_computed_face.
+
    Constraints:
 
    Symbols naming faces must have associations on all frames; for any
@@ -327,10 +330,28 @@ unload_font (f, font)
      struct frame *f;
      XFontStruct *font;
 {
+  int len = FRAME_N_COMPUTED_FACES (f);
+  int i;
+
   if (!font || font == ((XFontStruct *) FACE_DEFAULT))
     return;
 
   BLOCK_INPUT;
+  /* Invalidate any computed faces which use this font,
+     and free their GC's if they have any.  */
+  for (i = 0; i < len; i++)
+    {
+      struct face *face = FRAME_COMPUTED_FACES (f)[i];
+      if (face->font == font)
+	{
+	  Display *dpy = FRAME_X_DISPLAY (f);
+	  if (face->gc)
+	    XFreeGC (dpy, face->gc);
+	  face->gc = 0;
+	  face->font = 0;
+	}
+    }
+
   XFreeFont (FRAME_X_DISPLAY (f), font);
   UNBLOCK_INPUT;
 }
@@ -375,7 +396,26 @@ unload_color (f, pixel)
      necessary and some servers don't allow it.  So don't do it.  */
   if (! (class == StaticColor || class == StaticGray || class == TrueColor))
     {
+      int len = FRAME_N_COMPUTED_FACES (f);
+      int i;
+
       BLOCK_INPUT;
+      /* Invalidate any computed faces which use this color,
+	 and free their GC's if they have any.  */
+      for (i = 0; i < len; i++)
+	{
+	  struct face *face = FRAME_COMPUTED_FACES (f)[i];
+	  if (face->foreground == pixel
+	      || face->background == pixel)
+	    {
+	      Display *dpy = FRAME_X_DISPLAY (f);
+	      if (face->gc)
+		XFreeGC (dpy, face->gc);
+	      face->gc = 0;
+	      face->font = 0;
+	    }
+	}
+
       XFreeColors (dpy, cmap, &pixel, 1, (unsigned long)0);
       UNBLOCK_INPUT;
     }
@@ -604,7 +644,19 @@ new_computed_face (f, new_face)
      struct frame *f;
      struct face *new_face;
 {
-  int i = FRAME_N_COMPUTED_FACES (f);
+  int len = FRAME_N_COMPUTED_FACES (f);
+  int i;
+
+  /* Search for an unused computed face in the middle of the table.  */
+  for (i = 0; i < len; i++)
+    {
+      struct face *face = FRAME_COMPUTED_FACES (f)[i];
+      if (face->font == 0)
+	{
+	  FRAME_COMPUTED_FACES (f)[i] = copy_face (new_face);
+	  return i;
+	}
+    }
 
   if (i >= FRAME_SIZE_COMPUTED_FACES (f))
     {
