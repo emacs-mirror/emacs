@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'cl))
+
+
 (defgroup killing nil
   "Killing and yanking commands"
   :group 'editing)
@@ -4131,5 +4135,22 @@ after it has been set up properly in other respects."
       (run-hooks 'clone-buffer-hook))
     (if display-flag (pop-to-buffer new))
     new))
+
+
+(defmacro with-syntax-table (table &rest body)
+  "Evaluate BODY with syntax table of current buffer set to a copy of TABLE.
+Point, mark, current buffer, and syntax table are saved, BODY is
+evaluated, and the saved values are restored, even in case of an
+abnormal exit.  Value is what BODY returns."
+  (let ((old-table (gensym)))
+    '(let ((,old-table (syntax-table)))
+       (unwind-protect
+	   (save-excursion
+	     (set-syntax-table (copy-syntax-table ,table))
+	     ,@body)
+	   (set-syntax-table ,old-table)))))
+
+(put 'with-syntax-table 'lisp-indent-function 1)
+(put 'with-syntax-table 'edebug-form-spec '(form body))
 
 ;;; simple.el ends here
