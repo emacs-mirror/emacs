@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.6 2000/08/05 20:08:49 gerd Exp $
+;; Revision: $Id: pcvs.el,v 1.7 2000/08/06 09:18:00 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -50,13 +50,13 @@
 ;; seamlessly (I also use VC).
 
 ;; To use PCL-CVS just use `M-x cvs-examine RET <dir> RET'.
-;; There used to be a TeXinfo manual, but it's now so out of date that
-;; it's not even worth looking at it.
+;; There is a TeXinfo manual, which can be helpful to get started.
 
 ;;; Todo:
 
 ;; ******** FIX THE DOCUMENTATION *********
-;;
+;; 
+;; - hide fileinfos without getting rid of them (will require ewok work).
 ;; - proper `g' that passes safe args and uses either cvs-status or cvs-examine
 ;; - add toolbar entries
 ;; - marking
@@ -188,8 +188,10 @@
 (defun cvs-menu (e)
   "Popup the CVS menu."
   (interactive "e")
-  (mouse-set-point e)
-  (x-popup-menu e cvs-menu-map))
+  (let ((cvs-minor-current-files
+	 (list (ewoc-data (ewoc-locate
+			   cvs-cookies (posn-point (event-end e)))))))
+    (popup-menu cvs-menu-map e)))
 
 (defvar cvs-mode-line-process nil
   "Mode-line control for displaying info on cvs process status.")
@@ -1216,17 +1218,19 @@ an empty list if it doesn't point to a file at all.
 Args: &optional IGNORE-MARKS IGNORE-CONTENTS."
 
   (let ((fis nil))
-    (dolist (fi (if (boundp 'cvs-minor-current-files)
+    (dolist (fi (if (and (boundp 'cvs-minor-current-files)
+			 (consp cvs-minor-current-files))
 		    (mapcar
 		     (lambda (f)
-		       (let ((f (file-relative-name f)))
-			 (if (file-directory-p f)
-			     (cvs-create-fileinfo
-			      'DIRCHANGE (file-name-as-directory f) "." "")
-			   (let ((dir (file-name-directory f))
-				 (file (file-name-nondirectory f)))
-			     (cvs-create-fileinfo
-			      'UNKNOWN (or dir "") file "")))))
+		       (if (cvs-fileinfo-p f) f
+			 (let ((f (file-relative-name f)))
+			   (if (file-directory-p f)
+			       (cvs-create-fileinfo
+				'DIRCHANGE (file-name-as-directory f) "." "")
+			     (let ((dir (file-name-directory f))
+				   (file (file-name-nondirectory f)))
+			       (cvs-create-fileinfo
+				'UNKNOWN (or dir "") file ""))))))
 		     cvs-minor-current-files)
 		  (or (and (not ignore-marks)
 			   (ewoc-collect cvs-cookies
@@ -1329,9 +1333,12 @@ The POSTPROC specified there (typically `cvs-edit') is then called,
   "Insert an entry for a specific file."
   (interactive
    (list (read-file-name "File to insert: " nil nil nil
-			 (ignore-errors
-			   (cvs-fileinfo->dir
-			    (car (cvs-mode-marked nil nil :read-only t)))))))
+			 ;; Can't use ignore-errors here because interactive
+			 ;; specs aren't byte-compiled.
+			 (condition-case nil
+			     (cvs-fileinfo->dir
+			      (car (cvs-mode-marked nil nil :read-only t)))
+			   (error nil)))))
   (let ((file (file-relative-name (directory-file-name file))) last)
     (dolist (fi (cvs-fileinfo-from-entries file))
       (setq last (cvs-addto-collection cvs-cookies fi last)))))
