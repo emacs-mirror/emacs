@@ -840,7 +840,17 @@ getloadavg (loadavg, nelem)
 #ifndef SUNOS_5
       channel = open ("/dev/kmem", 0);
       if (channel >= 0)
-	getloadavg_initialized = 1;
+	{
+	  /* Set the channel to close on exec, so it does not
+	     litter any child's descriptor table.  */
+#ifdef FD_SETFD
+#ifndef FD_CLOEXEC
+#define FD_CLOEXEC 1
+#endif
+	  (void) fcntl (channel, F_SETFD, FD_CLOEXEC);
+#endif
+	  getloadavg_initialized = 1;
+	}
 #else /* SUNOS_5 */
       /* We pass 0 for the kernel, corefile, and swapfile names
 	 to use the currently running kernel.  */
