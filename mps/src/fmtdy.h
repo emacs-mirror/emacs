@@ -1,7 +1,7 @@
 /* impl.h.fmtdy: DYLAN OBJECT FORMAT
  *
- * $HopeName: MMsrc!fmtdy.h(trunk.1) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!fmtdy.h(trunk.2) $
+ * Copyright (C) 1997 Harlequin Group, all rights reserved
  */
 
 #ifndef fmtdy_h
@@ -9,7 +9,12 @@
 
 #include "mps.h"
 
+/* Format */
 extern mps_fmt_A_s *dylan_fmt_A(void);
+extern mps_fmt_A_s *dylan_fmt_A_weak(void);
+
+
+/* Used only for debugging / testing */
 extern mps_res_t dylan_init(mps_addr_t addr, size_t size,
                             mps_addr_t *refs, size_t nr_refs);
 extern void dylan_write(mps_addr_t addr,
