@@ -1288,7 +1288,7 @@ Add this to `sgml-mode-hook' for convenience."
     (if (re-search-forward "^\\([ \t]+\\)<" 500 'noerror)
         (progn
           (set (make-local-variable 'sgml-basic-offset)
-               (length (match-string 1)))
+               (1- (current-column)))
           (message "Guessed sgml-basic-offset = %d"
                    sgml-basic-offset)
           ))))
