@@ -1,5 +1,12 @@
 2005-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xfns.c (hourglass_started): New function.
+
+	* dispextern.h: Declare hourglass_started.
+
+	* keyboard.c (Fexecute_extended_command): Restart hourglass
+	after call to Fcompleting_read if already started.
+
 	* gtkutil.c (xg_update_scrollbar_pos): Call x_sync so that the
 	GTK main loop is entered in xterm.c, thus doing the redraw.
 
