@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.10) $
+# $HopeName: MMQA_harness!script:logging(trunk.11) $
 #
 # provides subroutines to help in creating test logs and
 # reports
@@ -53,6 +53,8 @@ sub verbose_test_report {
  &vdispopts;
  print "\n--- ".$log_test_ident."\n";
  &vdispvals(*identify, *eh);
+ print "\n--- ".$log_test_mps."\n";
+ &vdispvals(*mpslibvers, *eh);
  print "\n--- ".$log_test_params."\n";
  &vdispvals(*parmdefs, *eh);
  print "\n--- ".$log_test_res."\n";
@@ -241,6 +243,7 @@ $barl = "*********|10s******|30s******|1min*****|2min*****|5min*****|10min      
 $log_test_head   = "TEST HEADER\n";
 $log_test_spec   = "SPECIFIED RESULTS\n";
 $log_test_opts   = "MMQA OPTIONS\n";
+$log_test_mps    = "MPS LIBRARY VERSION\n";
 $log_test_ident  = "SETUP USED\n";
 $log_test_params = "PARAMETER SETTINGS\n";
 $log_test_res    = "RESULTS\n";
