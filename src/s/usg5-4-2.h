@@ -6,8 +6,8 @@
    #define HAVE_VFORK */
 /* fnf@cygnus.com says these exist.  */
 #define HAVE_TCATTR
-#define HAVE_GETHOSTNAME
 #if 0 /* autoconf should take care of this.  */
+#define HAVE_GETHOSTNAME
 #define HAVE_RANDOM
 #endif
 /* #define HAVE_GETWD  (appears to be buggy on SVR4.2) */
