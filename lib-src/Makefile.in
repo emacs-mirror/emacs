@@ -116,7 +116,7 @@ ${archlibdir}: all
 	@echo
 	@echo "Installing utilities run internally by Emacs."
 	./make-path ${archlibdir}
-	if [ `(cd ${archlibdir};/bin/pwd)` != `/bin/pwd` ]; then \
+	if [ `(cd ${archlibdir} && /bin/pwd)` != `/bin/pwd` ]; then \
 	  for file in ${UTILITIES} ${INSTALLABLES}; do \
 	    cp $${file} ${archlibdir} ; \
 	    chmod 755 ${archlibdir}/$${file} ; \
