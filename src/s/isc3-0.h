@@ -34,8 +34,9 @@
 /* We need either _XOPEN_SOURCE or _POSIX_SOURCE to import the posix
    signal symbols; might as well use _XOPEN_SOURCE.  Defining _SYSV3
    ensures that we don't lose the traditional symbols as a side effect
-   from this or __STDC__ being defined.  */
-#define C_SWITCH_SYSTEM -D_XOPEN_SOURCE -D_SYSV3
+   from this or __STDC__ being defined.  Define _XOPEN_SOURCE=500 for
+   compatibility with the autoconf test.  */
+#define C_SWITCH_SYSTEM -D_XOPEN_SOURCE=500 -D_SYSV3
 
 #ifdef __GNUC__  /* Currently we use -lcposix only with gcc */
 /* This works around a bug in ISC 4.0 and 3.0; it fails
