@@ -97,6 +97,7 @@
 	* keyboard.c (show_help_echo): New function, extracted from read_char.
 	Feval its `msg' argument if it's a cons cell.
 	(read_char): Use it.
+	(follow_key): Pass `autoload' to get_keyelt.
 
 	* xterm.c (note_mode_line_highlight, note_mouse_highlight) 
 	(note_tool_bar_highlight, XTread_socket):
