@@ -811,7 +811,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
 #ifdef BSD_SYSTEM
   if (fsync (mbfi) < 0)
     {
-      error ("Error in fsync: %s", strerror (errno));
+      error ("Error in fsync: %s", strerror (errno), 0);
       return (1);
     }
 #endif
