@@ -304,7 +304,7 @@ alloca.o: ${srcdir}/alloca.c
 REGEXPOBJ = regex.o
 REGEXPDEPS = $(REGEXPOBJ) ../src/regex.h
 regex.o: ../src/regex.c ../src/regex.h
-	${CC} -c ${CPP_CFLAGS} -Uemacs -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ../src/regex.c
+	${CC} -c ${CPP_CFLAGS} -Uemacs -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
 
 etags: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
 	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" -DETAGS_REGEXPS ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o etags
