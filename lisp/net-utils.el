@@ -597,7 +597,7 @@ This list in not complete.")
     ("whois.ripe.net"))
   "A list of whois servers that can be queried."
   :group 'net-utils
-  :type '(repeat (list)))
+  :type '(repeat (list string)))
 
 (defcustom whois-server-tld
   '(("rs.internic.net" . "com")
