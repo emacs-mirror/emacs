@@ -889,7 +889,9 @@ print (obj, printcharfun, escapeflag)
 
 #ifdef MULTI_SCREEN
     case Lisp_Screen:
-      strout ("#<screen ", -1, printcharfun);
+      strout (((XSCREEN (obj)->display.nothing == 0)
+	       ? "#<dead screen " : "#<screen "),
+	      -1, printcharfun);
       print_string (XSCREEN (obj)->name, printcharfun);
       sprintf (buf, " 0x%x", XFASTINT (XSCREEN (obj)));
       strout (buf, -1, printcharfun);
