@@ -24,11 +24,11 @@
 
 ;;; Code:
 
-(defvar blink-paren-overlay nil)
+(defvar show-paren-overlay nil)
 
-;; Find the place to blink, if there is one,
-;; and blink it until input arrives.
-(defun blink-paren-command-hook ()
+;; Find the place to show, if there is one,
+;; and show it until input arrives.
+(defun show-paren-command-hook ()
   (let (pos dir mismatch (oldpos (point))
 	    (face (if (face-equal 'highlight 'region)
 		      'underline 'highlight)))
@@ -59,27 +59,28 @@
 						(char-after beg))
 					  -8)
 				     255))))))
-	;; If they don't properly match, don't blink.
+	;; If they don't properly match, don't show.
 	(if mismatch
 	    (setq pos nil))))
     (cond (pos
-	   (if blink-paren-overlay
-	       (move-overlay blink-paren-overlay (- pos dir) pos)
-	     (setq blink-paren-overlay
+	   (if show-paren-overlay
+	       (move-overlay show-paren-overlay (- pos dir) pos)
+	     (setq show-paren-overlay
 		   (make-overlay (- pos dir) pos)))
-	   (overlay-put blink-paren-overlay 'face face)
+	   (overlay-put show-paren-overlay 'face face)
 ;;; This is code to blink the highlighting.
 ;;; It is desirable to avoid this because
 ;;; it would interfere with auto-save and gc when idle.
 ;;;	   (while (sit-for 1)
-;;;	     (overlay-put blink-paren-overlay
+;;;	     (overlay-put show-paren-overlay
 ;;;			  'face
-;;;			  (if (overlay-get blink-paren-overlay
+;;;			  (if (overlay-get show-paren-overlay
 ;;;					   'face)
 ;;;			      nil face)))
 	   )
 	  (t
-	   (delete-overlay blink-paren-overlay)))))
+	   (and show-paren-overlay (overlay-buffer show-paren-overlay)
+		(delete-overlay show-paren-overlay))))))
 
-(add-hook 'post-command-hook 'blink-paren-command-hook)
+(add-hook 'post-command-hook 'show-paren-command-hook)
 
