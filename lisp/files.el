@@ -355,7 +355,11 @@ Do not specify them in other calls."
   ;; to chase before getting an error.
   ;; PREV-DIRS can be a cons cell whose car is an alist
   ;; of truenames we've just recently computed.
-  (if (or (string= filename "~")
+
+  ;; I don't understand the reason for these tests.  To avoid string-match?
+  ;; Something like (string-match "\\`\\'\\|~" filename) would do the same.
+  ;; The last test looks dubious, maybe `+' is meant here?  --simon.
+  (if (or (string= filename "") (string= filename "~")
 	  (and (string= (substring filename 0 1) "~")
 	       (string-match "~[^/]*" filename)))
       (progn
