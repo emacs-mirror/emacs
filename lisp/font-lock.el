@@ -1032,9 +1032,8 @@ The value of this variable is used when Font Lock mode is turned on."
 		     (> (buffer-size) font-lock-verbose)
 		   font-lock-verbose)))
     (with-temp-message
-	(if verbose
-	    (format "Fontifying %s..." (buffer-name))
-	  (current-message))
+	(when verbose
+	  (format "Fontifying %s..." (buffer-name)))
       ;; Make sure we have the right `font-lock-keywords' etc.
       (unless font-lock-mode
 	(font-lock-set-defaults))
