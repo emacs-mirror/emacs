@@ -208,13 +208,14 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
 {
   Lisp_Object final;
   Lisp_Object tem;
-  int count = specpdl_ptr - specpdl;
+  int pdlcount = specpdl_ptr - specpdl;
   int repeat = 1;
   struct gcpro gcpro1;
 
-  if (!NILP (count))
-    count = Fprefix_numeric_value (count),
+  if (!NILP (count)) {
+    count = Fprefix_numeric_value (count);
     repeat = XINT (count);
+  }
 
   final = indirect_function (macro);
   if (!STRINGP (final) && !VECTORP (final))
@@ -239,7 +240,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
 	 && (STRINGP (Vexecuting_macro) || VECTORP (Vexecuting_macro)));
 
   UNGCPRO;
-  return unbind_to (count, Qnil);
+  return unbind_to (pdlcount, Qnil);
 }
 
 init_macros ()
