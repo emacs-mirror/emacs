@@ -1,3 +1,9 @@
+2000-10-12  Dave Love  <fx@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-tips-faces): Doc fix.
+	(cperl-invalid-face): Revert last change.
+	(cperl-init-faces): Quote cperl-invalid-face.
+
 2000-10-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* startup.el (fancy-splash-text): Remove superfluous quote.
