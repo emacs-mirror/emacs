@@ -1379,3 +1379,16 @@ lw_allow_resizing (w, flag)
   xm_manage_resizing (w, flag);
 #endif
 }
+
+/* Check to see if event should be ignored by Emacs */
+Boolean
+lw_toolkit_related_event_p (event)
+     XEvent *event;
+{
+#if defined (USE_MOTIF)
+  return lw_motif_menu_related_event_p (event);
+#else
+  return False;
+#endif
+}
+
