@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
-;; Author: Peter Breton <pbreton@i-kinetics.com>
+;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
 ;; Keywords: processes
-;; Time-stamp: <97/02/01 20:35:06 peter>
+;; Time-stamp: <1998-03-14 09:24:38 pbreton>
 
 ;; This file is part of GNU Emacs.
 
@@ -49,7 +49,7 @@
 ;; you will see error messages from the dirtrack filter as it attempts to cd
 ;; to non-existent directories.
 ;;
-;; 2) Set the variable 'dirtrack-list' to an appropriate value. This
+;; 2) Set the variable `dirtrack-list' to an appropriate value. This
 ;; should be a list of two elements: the first is a regular expression
 ;; which matches your prompt up to and including the pathname part.
 ;; The second is a number which tells which regular expression group to 
@@ -58,8 +58,8 @@
 ;; 'comint.el' assume a single-line prompt (eg, comint-bol).
 ;; 
 ;; Determining this information may take some experimentation. Setting
-;; the variable 'dirtrack-debug' may help; it causes the directory-tracking
-;; filter to log messages to the buffer 'dirtrack-debug-buffer'.
+;; the variable `dirtrack-debug' may help; it causes the directory-tracking
+;; filter to log messages to the buffer `dirtrack-debug-buffer'.
 ;; 
 ;; 3) Add a hook to shell-mode to enable the directory tracking:
 ;;
@@ -70,7 +70,7 @@
 ;; 			    comint-output-filter-functions)))))
 ;;
 ;; You may wish to turn ordinary shell tracking off by calling
-;; 'shell-dirtrack-toggle' or setting 'shell-dirtrackp'.
+;; `shell-dirtrack-toggle' or setting `shell-dirtrackp'.
 ;;
 ;; Examples:
 ;;
@@ -82,6 +82,23 @@
 ;;    'dirtrack-list' is set to (list "^\\([/~].*\\)\nemacs@[^%]+% *" 1 t)
 ;;
 ;; I'd appreciate other examples from people who use this package.
+;; 
+;; Here's one from Stephen Eglen:
+;;
+;;   Running under tcsh:
+;;   (setq-default dirtrack-list '("^%E \\([^ ]+\\)" 1))
+;;   
+;;   It might be worth mentioning in your file that emacs sources start up
+;;   files of the form: ~/.emacs_<SHELL> where <SHELL> is the name of the
+;;   shell.  So for example, I have the following in ~/.emacs_tcsh:
+;;   
+;;   set prompt = "%%E %~ %h% "
+;;   
+;;   This produces a prompt of the form:
+;;   %E /var/spool 10% 
+;;   
+;;   This saves me from having to use the %E prefix in other non-emacs
+;;   shells.
 
 ;;; Code:
 
@@ -89,36 +106,70 @@
   (require 'comint)
   (require 'shell))
 
-(defvar dirtrack-list (list "^emacs \\([a-zA-Z]:.*\\)>" 1)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Customization Variables
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defgroup dirtrack nil
+  "Directory tracking by watching the prompt."
+  :prefix "dirtrack-"
+  :group 'shell)
+
+(defcustom dirtrack-list (list "^emacs \\([a-zA-Z]:.*\\)>" 1)
   "*List for directory tracking.
 First item is a regexp that describes where to find the path in a prompt.
 Second is a number, the regexp group to match. Optional third item is 
 whether the prompt is multi-line. If nil or omitted, prompt is assumed to 
-be on a single line.")
+be on a single line."
+  :group 'dirtrack
+  :type  '(sexp (regexp  :tag "Prompt Expression") 
+		(integer :tag "Regexp Group")
+		(boolean :tag "Multiline Prompt")
+		)
+  )
 
 (make-variable-buffer-local 'dirtrack-list)
 
-(defvar dirtrack-debug nil
-  "*If non-nil, the function 'dirtrack' will report debugging info.")
+(defcustom dirtrack-debug nil
+  "*If non-nil, the function `dirtrack' will report debugging info."
+  :group 'dirtrack
+  :type  'boolean
+  )
 
-(defvar dirtrack-debug-buffer "*Directory Tracking Log*"
-  "Buffer to write directory tracking debug information.")
+(defcustom dirtrack-debug-buffer "*Directory Tracking Log*"
+  "Buffer to write directory tracking debug information."
+  :group 'dirtrack
+  :type  'string
+  )
 
-(defvar dirtrackp t
-  "*If non-nil, directory tracking via 'dirtrack' is enabled.")
+(defcustom dirtrackp t
+  "*If non-nil, directory tracking via `dirtrack' is enabled."
+  :group 'dirtrack
+  :type  'boolean
+  )
 
 (make-variable-buffer-local 'dirtrackp)
 
-(defvar dirtrack-directory-function 
+(defcustom dirtrack-directory-function 
   (if (memq system-type (list 'ms-dos 'windows-nt))
       'dirtrack-windows-directory-function
     'dirtrack-default-directory-function)
-  "*Function to apply to the prompt directory for comparison purposes.")
+  "*Function to apply to the prompt directory for comparison purposes."
+  :group 'dirtrack
+  :type  'function
+  )
 
-(defvar dirtrack-canonicalize-function  
+(defcustom dirtrack-canonicalize-function  
   (if (memq system-type (list 'ms-dos 'windows-nt))
       'downcase 'identity)
-  "*Function to apply to the default directory for comparison purposes.")
+  "*Function to apply to the default directory for comparison purposes."
+  :group 'dirtrack
+  :type  'function
+  )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Functions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun dirtrack-default-directory-function (dir)
   "Return a canonical directory for comparison purposes.
@@ -133,20 +184,24 @@ Such a directory ends with a forward slash."
 Such a directory is all lowercase, has forward-slashes as delimiters, 
 and ends with a forward slash."
   (let ((directory dir))
-    (setq directory (downcase (replace-slash directory t)))
+    (setq directory (downcase (dirtrack-replace-slash directory t)))
     (if (not (char-equal ?/ (string-to-char (substring directory -1))))
 	(concat directory "/")
       directory)))
 
-(defconst forward-slash  (regexp-quote "/"))
-(defconst backward-slash (regexp-quote "\\"))
+(defconst dirtrack-forward-slash  (regexp-quote "/"))
+(defconst dirtrack-backward-slash (regexp-quote "\\"))
 
-(defun replace-slash (string &optional opposite)
+(defun dirtrack-replace-slash (string &optional opposite)
   "Replace forward slashes with backwards ones.
 If additional argument is non-nil, replace backwards slashes with 
 forward ones."
-  (let ((orig     (if opposite backward-slash forward-slash))
-	(replace  (if opposite forward-slash backward-slash))
+  (let ((orig     (if opposite 
+		      dirtrack-backward-slash 
+		    dirtrack-forward-slash))
+	(replace  (if opposite 
+		      dirtrack-forward-slash 
+		    dirtrack-backward-slash))
 	(newstring string)
 	)
     (while (string-match orig newstring)
