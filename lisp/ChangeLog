@@ -1,5 +1,9 @@
 2001-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* font-lock.el (font-lock-comment-face): For tty's with dark
+	background, use "red1", since "lightred" is not one of the colors
+	recognized by tty-colors.el.
+
 	* tar-mode.el (tar-extract): Call generate-new-buffer-name to
 	create a buffer for extracted file, in case there's more than one
 	file by that name in an archive, possibly in different
