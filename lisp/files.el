@@ -798,16 +798,17 @@ If `enable-local-variables' is nil, this function does not check for a
 			     (setq mode (buffer-substring beg (point))))))
 		   (setq mode (buffer-substring beg end)))))
 	  (setq mode (intern (concat (downcase mode) "-mode")))
-	(let ((alist auto-mode-alist)
-	      (name buffer-file-name))
-	  (let ((case-fold-search (eq system-type 'vax-vms)))
-	    ;; Remove backup-suffixes from file name.
-	    (setq name (file-name-sans-versions name))
-	    ;; Find first matching alist entry.
-	    (while (and (not mode) alist)
-	      (if (string-match (car (car alist)) name)
-		  (setq mode (cdr (car alist))))
-	      (setq alist (cdr alist)))))))
+	(if buffer-file-name
+	    (let ((alist auto-mode-alist)
+		  (name buffer-file-name))
+	      (let ((case-fold-search (eq system-type 'vax-vms)))
+		;; Remove backup-suffixes from file name.
+		(setq name (file-name-sans-versions name))
+		;; Find first matching alist entry.
+		(while (and (not mode) alist)
+		  (if (string-match (car (car alist)) name)
+		      (setq mode (cdr (car alist))))
+		  (setq alist (cdr alist))))))))
     (if mode (funcall mode))))
 
 (defun hack-local-variables-prop-line ()
