@@ -245,7 +245,7 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this command indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
-  (delete-region (point) (progn (skip-chars-backward " \t") (point)))
+  (delete-horizontal-space t)
   (newline)
   (indent-according-to-mode))
 
@@ -258,7 +258,7 @@ In some text modes, where TAB inserts a tab, this indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
   (save-excursion
-    (delete-region (point) (progn (skip-chars-backward " \t") (point)))
+    (delete-horizontal-space t)
     (indent-according-to-mode))
   (newline)
   (indent-according-to-mode))
@@ -331,21 +331,32 @@ Leave one space or none, according to the context."
 	nil
       (insert ?\ ))))
 
-(defun delete-horizontal-space ()
-  "Delete all spaces and tabs around point."
+(defun delete-horizontal-space (&optional backward-only)
+  "Delete all spaces and tabs around point.
+If BACKWARD-ONLY is non-nil, only delete spaces before point."
   (interactive "*")
-  (skip-chars-backward " \t" (field-beginning))
-  (delete-region (point) (progn (skip-chars-forward " \t") (point))))
+  (delete-region
+   (if backward-only
+       (point)
+     (progn
+       (skip-chars-forward " \t" (field-end))
+       (point)))
+   (progn
+     (skip-chars-backward " \t" (field-beginning nil t))
+     (point))))
 
 (defun just-one-space ()
   "Delete all spaces and tabs around point, leaving one space."
   (interactive "*")
-  (skip-chars-backward " \t")
+  (skip-chars-backward " \t" (field-beginning))
   (if (= (following-char) ? )
       (forward-char 1)
     (insert ? ))
-  (delete-region (point) (progn (skip-chars-forward " \t") (point))))
-
+  (delete-region
+   (point)
+   (progn
+     (skip-chars-forward " \t" (field-end nil t))
+     (point))))
 
 (defun beginning-of-buffer (&optional arg)
   "Move point to the beginning of the buffer; leave mark at previous position.
