@@ -1,3 +1,7 @@
+2001-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacsclient.1: Place in the public domain.
+
 2001-04-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* emacstool.1: Place under GFDL.
