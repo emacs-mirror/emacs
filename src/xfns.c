@@ -195,6 +195,14 @@ extern Lisp_Object Vglobal_mouse_map;
 /* Points to table of defined typefaces.  */
 struct face *x_face_table[MAX_FACES_AND_GLYPHS];
 
+/* Error if we are not connected to X.  */
+static void
+check_x ()
+{
+  if (x_current_display == 0)
+    error ("X windows are not in use or not initialized");
+}
+
 /* Return the Emacs frame-object corresponding to an X window.
    It could be the frame's main window or an icon window.  */
 
@@ -880,13 +888,13 @@ x_set_menu_bar_lines_1 (window, n)
     {
       struct window *w = XWINDOW (window);
 
-      w->top += n;
+      XFASTINT (w->top) += n;
 
       if (!NILP (w->vchild))
-	x_set_menu_bar_lines_1 (w->vchild);
+	x_set_menu_bar_lines_1 (w->vchild, n);
 
       if (!NILP (w->hchild))
-	x_set_menu_bar_lines_1 (w->hchild);
+	x_set_menu_bar_lines_1 (w->hchild, n);
     }
 }
 
@@ -1296,6 +1304,8 @@ and the class is `Emacs.CLASS.SUBCLASS'.")
   char *name_key;
   char *class_key;
 
+  check_x ();
+
   CHECK_STRING (attribute, 0);
   CHECK_STRING (class, 0);
 
@@ -1503,6 +1513,7 @@ Returns an alist of the form ((top . TOP), (left . LEFT) ... ).")
   unsigned int width, height;
   Lisp_Object values[4];
 
+  check_x ();
   CHECK_STRING (string, 0);
 
   geometry = XParseGeometry ((char *) XSTRING (string)->data,
@@ -1833,8 +1844,7 @@ be shared by the new frame.")
   long window_prompting = 0;
   int width, height;
 
-  if (x_current_display == 0)
-    error ("X windows are not in use or not initialized");
+  check_x ();
 
   name = x_get_arg (parms, Qname, "title", "Title", string);
   if (XTYPE (name) != Lisp_String
@@ -2321,6 +2331,7 @@ DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 1, 0,
 {
   Color foo;
   
+  check_x ();
   CHECK_STRING (color, 0);
 
   if (defined_color (XSTRING (color)->data, &foo))
@@ -2333,6 +2344,8 @@ DEFUN ("x-display-color-p", Fx_display_color_p, Sx_display_color_p, 0, 0, 0,
   "Return t if the X screen currently in use supports color.")
   ()
 {
+  check_x ();
+
   if (x_screen_planes <= 2)
     return Qnil;
 
@@ -2356,6 +2369,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
      Lisp_Object frame;
 {
   Display *dpy = x_current_display;
+  check_x ();
   return make_number (DisplayWidth (dpy, DefaultScreen (dpy)));
 }
 
@@ -2366,6 +2380,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
      Lisp_Object frame;
 {
   Display *dpy = x_current_display;
+  check_x ();
   return make_number (DisplayHeight (dpy, DefaultScreen (dpy)));
 }
 
@@ -2376,6 +2391,7 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
      Lisp_Object frame;
 {
   Display *dpy = x_current_display;
+  check_x ();
   return make_number (DisplayPlanes (dpy, DefaultScreen (dpy)));
 }
 
@@ -2386,6 +2402,7 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
      Lisp_Object frame;
 {
   Display *dpy = x_current_display;
+  check_x ();
   return make_number (DisplayCells (dpy, DefaultScreen (dpy)));
 }
 
@@ -2396,6 +2413,7 @@ DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
 {
   Display *dpy = x_current_display;
   char *vendor;
+  check_x ();
   vendor = ServerVendor (dpy);
   if (! vendor) vendor = "";
   return build_string (vendor);
@@ -2410,6 +2428,8 @@ number.  See also the variable `x-server-vendor'.")
      Lisp_Object frame;
 {
   Display *dpy = x_current_display;
+
+  check_x ();
   return Fcons (make_number (ProtocolVersion (dpy)),
 		Fcons (make_number (ProtocolRevision (dpy)),
 		       Fcons (make_number (VendorRelease (dpy)), Qnil)));
@@ -2420,6 +2440,7 @@ DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
   (frame)
      Lisp_Object frame;
 {
+  check_x ();
   return make_number (ScreenCount (x_current_display));
 }
 
@@ -2428,6 +2449,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
   (frame)
      Lisp_Object frame;
 {
+  check_x ();
   return make_number (HeightMMOfScreen (x_screen));
 }
 
@@ -2436,6 +2458,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
   (frame)
      Lisp_Object frame;
 {
+  check_x ();
   return make_number (WidthMMOfScreen (x_screen));
 }
 
@@ -2446,6 +2469,8 @@ The value may be `always', `when-mapped', or `not-useful'.")
   (frame)
      Lisp_Object frame;
 {
+  check_x ();
+
   switch (DoesBackingStore (x_screen))
     {
     case Always:
@@ -2470,6 +2495,8 @@ The value is one of the symbols `static-gray', `gray-scale',\n\
 	(screen)
      Lisp_Object screen;
 {
+  check_x ();
+
   switch (screen_visual->class)
     {
     case StaticGray:  return (intern ("static-gray"));
@@ -2489,6 +2516,8 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
   (frame)
      Lisp_Object frame;
 {
+  check_x ();
+
   if (DoesSaveUnders (x_screen) == True)
     return Qt;
   else
@@ -3374,6 +3403,7 @@ also be depressed for NEWSTRING to appear.")
   register KeySym keysym;
   KeySym modifier_list[16];
 
+  check_x ();
   CHECK_STRING (x_keysym, 1);
   CHECK_STRING (newstring, 3);
 
@@ -3425,6 +3455,7 @@ See the documentation of `x-rebind-key' for more information.")
   int strsize;
   register unsigned i;
 
+  check_x ();
   CHECK_NUMBER (keycode, 1);
   CHECK_CONS (strings, 2);
   rawkey = (KeySym) ((unsigned) (XINT (keycode))) & 255;
@@ -3665,6 +3696,8 @@ easier.")
   (on)
     Lisp_Object on;
 {
+  check_x ();
+
   XSynchronize (x_current_display, !EQ (on, Qnil));
 
   return Qnil;
