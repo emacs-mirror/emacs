@@ -291,11 +291,6 @@ always returns nil."
   "T if INTEGER is even."
   (eq (logand x 1) 0))
 
-(defun cl-abs (x)
-  "Return the absolute value of ARG."
-  (if (>= x 0) x (- x)))
-(or (fboundp 'abs) (defalias 'abs 'cl-abs))   ; This is built-in to Emacs 19
-
 (defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
 
 ;;; We use `eval' in case VALBITS differs from compile-time to load-time.
@@ -609,7 +604,7 @@ Keywords supported:  :test :test-not :key"
 	  ("cl-macs" t
 	   defun* defmacro* function* destructuring-bind eval-when
 	   load-time-value case ecase typecase etypecase
-	   block return return-from loop do do* dolist dotimes do-symbols
+	   block return return-from loop do do* do-symbols
 	   do-all-symbols psetq progv flet labels macrolet symbol-macrolet
 	   lexical-let lexical-let* multiple-value-bind multiple-value-setq
 	   locally the declare define-setf-method defsetf define-modify-macro
@@ -638,7 +633,6 @@ Keywords supported:  :test :test-not :key"
 	  ((do do*) 2 ((&rest &or symbolp (symbolp &optional form form))
 		       (form &rest form)
 		       &rest form))
-	  ((dolist dotimes) 1 ((symbolp form &rest form) &rest form))
 	  ((do-symbols) 1 ((symbolp form &optional form form) &rest form))
 	  ((do-all-symbols) 1 ((symbolp form &optional form) &rest form))
 	  ((psetq setf psetf) nil edebug-setq-form)
@@ -649,7 +643,7 @@ Keywords supported:  :test :test-not :key"
 	   ((&rest &or symbolp (symbolp form)) &rest form))
 	  ((multiple-value-bind) 2 ((&rest symbolp) &rest form))
 	  ((multiple-value-setq) 1 ((&rest symbolp) &rest form))
-	  ((incf decf remf pop push pushnew shiftf rotatef) nil (&rest form))
+	  ((incf decf remf pushnew shiftf rotatef) nil (&rest form))
 	  ((letf letf*) 1 ((&rest (&rest form)) &rest form))
 	  ((callf destructuring-bind) 2 (sexp form &rest form))
 	  ((callf2) 3 (sexp form form &rest form))
