@@ -1,3 +1,8 @@
+2000-12-15  Miles Bader  <miles@gnu.org>
+
+	* DEBUG: Add note aboute using `inverse-video' to detect excessive
+	screen redraw.
+
 2000-12-07  Dave Love  <fx@gnu.org>
 
 	* CODINGS, CHARSETS: Removed.  (Mule 2.3 relics.)
