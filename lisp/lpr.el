@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; Commands to send the region or a buffer to your printer.  Entry points
-;; are `lpr-buffer', `print-buffer', lpr-region', or `print-region'; option
+;; are `lpr-buffer', `print-buffer', `lpr-region', or `print-region'; option
 ;; variables include `printer-name', `lpr-switches' and `lpr-command'.
 
 ;;; Code:
