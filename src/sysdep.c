@@ -3112,7 +3112,7 @@ mkdir (dpath, dmode)
      char *dpath;
      int dmode;
 {
-  int cpid, status;
+  int cpid, status, fd;
   struct stat statbuf;
 
   if (stat (dpath, &statbuf) == 0)
@@ -3125,10 +3125,11 @@ mkdir (dpath, dmode)
   if (errno != ENOENT)
     return -1;
 
+  synch_process_alive = 1;
   switch (cpid = fork ())
     {
 
-    case -1:			/* Error in fork() */
+    case -1:			/* Error in fork */
       return (-1);		/* Errno is set already */
 
     case 0:			/* Child process */
@@ -3140,14 +3141,21 @@ mkdir (dpath, dmode)
 		 */
       status = umask (0);	/* Get current umask */
       status = umask (status | (0777 & ~dmode));	/* Set for mkdir */
+      fd = sys_open("/dev/null", 2);
+      if (fd >= 0)
+        {
+	  dup2 (fd, 0);
+	  dup2 (fd, 1);
+	  dup2 (fd, 2);
+        }
       execl ("/bin/mkdir", "mkdir", dpath, (char *) 0);
       _exit (-1);		/* Can't exec /bin/mkdir */
 
     default:			/* Parent process */
-      while (cpid != wait (&status));	/* Wait for kid to finish */
+      wait_for_termination (cpid);
     }
 
-  if (WIFSIGNALED (status) || WEXITSTATUS (status) != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0)
     {
       errno = EIO;		/* We don't know why, but */
       return -1;		/* /bin/mkdir failed */
@@ -3162,7 +3170,7 @@ int
 rmdir (dpath)
      char *dpath;
 {
-  int cpid, status;
+  int cpid, status, fd;
   struct stat statbuf;
 
   if (stat (dpath, &statbuf) != 0)
@@ -3171,24 +3179,32 @@ rmdir (dpath)
       return -1;
     }
 
+  synch_process_alive = 1;
   switch (cpid = fork ())
     {
 
-    case -1:			/* Error in fork() */
+    case -1:			/* Error in fork */
       return (-1);		/* Errno is set already */
 
     case 0:			/* Child process */
+      fd = sys_open("/dev/null", 2);
+      if (fd >= 0)
+        {
+	  dup2 (fd, 0);
+	  dup2 (fd, 1);
+	  dup2 (fd, 2);
+        }
       execl ("/bin/rmdir", "rmdir", dpath, (char *) 0);
       _exit (-1);		/* Can't exec /bin/mkdir */
 
     default:			/* Parent process */
-      while (cpid != wait (&status));	/* Wait for kid to finish */
+      wait_for_termination (cpid);
     }
 
-  if (WIFSIGNALED (status) || WEXITSTATUS (status) != 0)
+  if (synch_process_death != 0 || synch_process_retcode != 0)
     {
       errno = EIO;		/* We don't know why, but */
-      return -1;		/* /bin/mkdir failed */
+      return -1;		/* /bin/rmdir failed */
     }
 
   return 0;
