@@ -2093,7 +2093,14 @@ getdefdir (drive, dst)
 
   *dst++ = '/';
   regs.h.dl = drive;
+#if __DJGPP__ > 1
+  /* regs.x.si can be 16 or 32 bits, depending on whether _NAIVE_DOS_REGS
+     or _BORLAND_DOS_REGS have or haven't been defined.  We should work
+     with either, so use regs.d.esi which is always 32 bit-wide.  */
+  regs.d.esi = (int) dst;
+#else
   regs.x.si = (int) dst;
+#endif
   regs.h.ah = 0x47;
   intdos (&regs, &regs);
   return !regs.x.cflag;
