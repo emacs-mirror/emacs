@@ -109,25 +109,14 @@ Element 0 is ignored.")
 
 ;; ;;;;;;;;;;;;; display options ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar tetris-border-options
-  '(((glyph colorize)
-     (t ?\+))
-    ((color-x color-x)
-     (mono-x grid-x)
-     (t nil))
-    (((glyph color-x) [0.5 0.5 0.5])
-     (t nil))))
-
 (defvar tetris-blank-options
   '(((glyph colorize)
      (t ?\040))
     ((color-x color-x)
      (mono-x grid-x)
-     (color-tty color-tty)
-     (t nil))
+     (color-tty color-tty))
     (((glyph color-x) [0 0 0])
-     (color-tty "black")
-     (t nil))))
+     (color-tty "black"))))
 
 (defvar tetris-cell-options
   '(((glyph colorize)
@@ -136,10 +125,18 @@ Element 0 is ignored.")
     ((color-x color-x)
      (mono-x mono-x)
      (color-tty color-tty)
-     (mono-tty mono-tty)
-     (t nil))
+     (mono-tty mono-tty))
     ;; color information is taken from tetris-x-colors and tetris-tty-colors
     ))
+
+(defvar tetris-border-options
+  '(((glyph colorize)
+     (t ?\+))
+    ((color-x color-x)
+     (mono-x grid-x)
+     (color-tty color-tty))
+    (((glyph color-x) [0.5 0.5 0.5])
+     (color-tty "white"))))
 
 (defvar tetris-space-options
   '(((t ?\040))
@@ -184,10 +181,10 @@ Element 0 is ignored.")
     [[0 0 0 0] [7 0 0 0] [0 0 0 0] [7 0 0 0]]
     [[0 0 0 0] [7 0 0 0] [0 0 0 0] [7 0 0 0]]]])
 
-;;the scoring rules were taken from "xtetris".  Blocks score differently 
+;;the scoring rules were taken from "xtetris".  Blocks score differently
 ;;depending on their rotation
 
-(defconst tetris-shape-scores 
+(defconst tetris-shape-scores
   [ [6 6 6 6] [6 7 6 7] [6 7 6 7] [6 7 6 7] [6 7 6 7] [5 5 6 5] [5 8 5 8]] )
 
 (defconst tetris-shape-dimensions
@@ -440,7 +437,7 @@ Element 0 is ignored.")
   (tetris-shift-down)
   (setq tetris-n-shapes (1+ tetris-n-shapes))
   (setq tetris-score
-	(+ tetris-score 
+	(+ tetris-score
 	   (aref (aref tetris-shape-scores tetris-shape) tetris-rot)))
   (tetris-update-score)
   (tetris-new-shape))
