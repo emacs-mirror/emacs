@@ -1,6 +1,6 @@
 /*  impl.c.protlii3: PROTECTION FOR LINUX (Intel 386)
  *
- *  $HopeName: MMsrc!protlii3.c(trunk.1) $
+ *  $HopeName: MMsrc!protlii3.c(trunk.2) $
  *  Copyright (C) 1995,1999 Harlequin Group, all rights reserved
  *
  * SOURCES
@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <signal.h>
 
-SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.1) $");
+SRCID(protlii3, "$HopeName: MMsrc!protlii3.c(trunk.2) $");
 
 /* Useful stuff that doesn't appear to be in any header files. */
 
@@ -69,7 +69,7 @@ typedef void (*__real_lii3_sighandler_t) (int, struct sigcontext);
  *
  *  .sigh.context: We only know how to handle interrupt 14, where
  *  context.err gives the page fault error code and context.cr2 gives
- *  the fault address.  See .source.i486 (14.9.14) and
+ *  the fault address.  See .source.i486 (9.9.14) and
  *  .source.linux.kernel (linux/arch/i386/mm/fault.c).
  *
  *  .sigh.addr: We assume that the OS decodes the address to something
