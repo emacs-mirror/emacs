@@ -1,8 +1,34 @@
 2002-07-17  Dave Love  <fx@gnu.org>
 
-	* international/utf-8.el (utf-8-subst-table)
-	(utf-8-subst-rev-table, utf-8-translation-table-for-decode)
-	(utf-8-fragment-on-decoding, ccl-untranslated-to-ucs)
+	* international/mule-cmds.el (locale-language-names): Fix be, add
+	sr_YU@cyrillic, modify tg.
+	(locale-charset-language-names): Put @euro last.
+
+	* language/cyrillic.el (cyrillic-koi8-r-decode-table)
+	(cyrillic-alternativnyj-decode-table): Fill out with mule-unicode.
+	(cyrillic-koi8-r-decode-table): Make unbound after use.
+	(ccl-decode-koi8, ccl-decode-alternativnyj): Change expansion
+	factor.  Use utf-8-translation-table-for-decode.
+	(ccl-encode-koi8, ccl-encode-koi8): Don't check r0.
+	(cyrillic-unify-encoding): New function.
+	(cyrillic-koi8): Modify safe-chars, valid-codes.  Remove
+	charset-origin-alist.
+	(Cp878, cp866): New alias.
+	(ccl-encode-8859-5-font): New.
+	(font-ccl-encoder-alist): Add ccl-encode-8859-5-font.
+	(ccl-encode-koi8-font, ccl-encode-alternativnyj-font): Remove
+	redundant parens.
+	("Cyrillic-KOI8"): Add cyrillic-iso-8bit to coding-priority.
+	(cyrillic-koi8-u-decode-table, ccl-decode-koi8-u)
+	(ccl-encode-koi8-u, koi8-u, ccl-encode-koi8-u-font, "Ukrainian"):
+	New.
+	(cyrillic-alternativnyj): Modify safe-chars, add mime-charset.
+	("Cyrillic-ALT"): Change input method.
+	("Windows-1251", "Tajik", "Bulgarian", "Belarusian"): New.
+
+	* international/utf-8.el (utf-8-subst-table) 
+	(utf-8-subst-rev-table, utf-8-translation-table-for-decode) 
+	(utf-8-fragment-on-decoding, ccl-untranslated-to-ucs) 
 	(utf-8-ccl-regs, utf-8-translate-cjk): New.
 	(ccl-encode-mule-utf-8): Use utf-8-subst-rev-table.
 	(ccl-decode-mule-utf-8, ccl-untranslated-to-ucs)

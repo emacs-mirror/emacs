@@ -1,3 +1,14 @@
+2002-07-12  Dave Love  <fx@gnu.org>
+
+	* quail/cyrillic.el: Doc fixes.
+	("cyrillic-beylorussian"): Commented-out.
+	("cyrillic-translit-bulgarian"): Deleted.
+	("cyrillic-ukrainian"): Fix `q', `Q', `W', `w' bindings.
+	("ukrainian-computer", "belarusian", "bulgarian-bds")
+	("russian-computer"): New.
+	("bulgarian-phonetic"): Renamed from bulgarian-pho.  Add ,A'(B, ,Lp(B, ,LN(B.
+	("russian-typewriter"): Renamed from cyrillic-jcuken.
+
 2002-06-20  Dave Love  <fx@gnu.org>
 
 	* quail/latin-pre.el ("latin-3-prefix"): Remove bogus Latin-3
