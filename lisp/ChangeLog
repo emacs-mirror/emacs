@@ -1,3 +1,9 @@
+2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Use create-fontset-from-mac-roman-font to
+	create the startup fontset if a font specification ends with
+	`mac-roman'.
+
 2005-04-06  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-update-year): Replace the

@@ -1,3 +1,11 @@
+2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (cfdate_to_lisp): Add `const' for variable `epoch_gdate'.
+	(Fmac_get_preference): Doc fix.
+
+	* macfns.c (Fx_create_frame, x_create_tip_frame): Add
+	"fontset-mac" to fallback font/fontsets.
+
 2005-04-04  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (Fgarbage_collect): Call CHECK_CONS_LIST before and after gc.
