@@ -76,6 +76,23 @@
 	* info.el (Info-unescape-quotes, Info-split-parameter-string)
 	(Info-goto-emacs-command-node): Doc fixes.
 
+2003-12-12  Jesper Harder <harder@ifa.au.dk>
+
+	* cus-edit.el (custom-add-parent-links): Define "many".
+
+2003-12-08  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-child-value-get, widget-child-value-inline)
+	(widget-child-validate, widget-type-value-create)
+	(widget-type-default-get, widget-type-match): New functions.
+	(lazy): New widget.
+	(menu-choice, checklist, radio-button-choice, editable-list)
+	(group, documentation-string): Removed redundant (per 2003-10-25
+	change) calls to `widget-children-value-delete'.
+	(widget-choice-value-get, widget-choice-value-inline): Removed
+	functions. 
+	(menu-choice): Updated widget.
+
 2003-12-03  Kenichi Handa  <handa@m17n.org>
 
 	* language/cyrillic.el: Register "microsoft-cp1251" in

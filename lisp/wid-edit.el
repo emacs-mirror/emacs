@@ -1267,6 +1267,42 @@ Optional EVENT is the event that triggered the action."
 	    found (widget-apply child :validate)))
     found))
 
+(defun widget-child-value-get (widget)
+  "Get the value of the first member of :children in WIDGET."
+  (widget-value (car (widget-get widget :children))))
+
+(defun widget-child-value-inline (widget)
+  "Get the inline value of the first member of :children in WIDGET."
+  (widget-apply (car (widget-get widget :children)) :value-inline))
+
+(defun widget-child-validate (widget)
+  "The result of validating the first member of :children in WIDGET."
+  (widget-apply (car (widget-get widget :children)) :validate))
+
+(defun widget-type-value-create (widget)
+  "Convert and instantiate the value of the :type attribute of WIDGET.
+Store the newly created widget in the :children attribute.
+
+The value of the :type attribute should be an unconverted widget type."
+  (let ((value (widget-get widget :value))
+	(type (widget-get widget :type)))
+    (widget-put widget :children 
+                (list (widget-create-child-value widget 
+                                                 (widget-convert type)
+                                                 value)))))
+
+(defun widget-type-default-get (widget)
+  "Get default value from the :type attribute of WIDGET.
+
+The value of the :type attribute should be an unconverted widget type."
+  (widget-default-get (widget-convert (widget-get widget :type))))
+
+(defun widget-type-match (widget value)
+  "Non-nil if the :type value of WIDGET matches VALUE.
+
+The value of the :type attribute should be an unconverted widget type."
+  (widget-apply (widget-convert (widget-get widget :type)) :match value))
+
 (defun widget-types-copy (widget)
   "Copy :args as widget types in WIDGET."
   (widget-put widget :args (mapcar 'widget-copy (widget-get widget :args)))
@@ -1862,9 +1898,8 @@ the earlier input."
   :tag "choice"
   :void '(item :format "invalid (%t)\n")
   :value-create 'widget-choice-value-create
-  :value-delete 'widget-children-value-delete
-  :value-get 'widget-choice-value-get
-  :value-inline 'widget-choice-value-inline
+  :value-get 'widget-child-value-get
+  :value-inline 'widget-child-value-inline
   :default-get 'widget-choice-default-get
   :mouse-down-action 'widget-choice-mouse-down-action
   :action 'widget-choice-action
@@ -1900,14 +1935,6 @@ the earlier input."
 	  (widget-put widget :children (list (widget-create-child-and-convert
 					      widget void :value value)))
 	  (widget-put widget :choice void))))))
-
-(defun widget-choice-value-get (widget)
-  ;; Get value of the child widget.
-  (widget-value (car (widget-get widget :children))))
-
-(defun widget-choice-value-inline (widget)
-  ;; Get value of the child widget.
-  (widget-apply (car (widget-get widget :children)) :value-inline))
 
 (defun widget-choice-default-get (widget)
   ;; Get default for the first choice.
@@ -2099,7 +2126,6 @@ when he invoked the menu."
   :entry-format "%b %v"
   :greedy nil
   :value-create 'widget-checklist-value-create
-  :value-delete 'widget-children-value-delete
   :value-get 'widget-checklist-value-get
   :validate 'widget-checklist-validate
   :match 'widget-checklist-match
@@ -2276,7 +2302,6 @@ Return an alist of (TYPE MATCH)."
   :format "%v"
   :entry-format "%b %v"
   :value-create 'widget-radio-value-create
-  :value-delete 'widget-children-value-delete
   :value-get 'widget-radio-value-get
   :value-inline 'widget-radio-value-inline
   :value-set 'widget-radio-value-set
@@ -2466,7 +2491,6 @@ Return an alist of (TYPE MATCH)."
   :format-handler 'widget-editable-list-format-handler
   :entry-format "%i %d %v"
   :value-create 'widget-editable-list-value-create
-  :value-delete 'widget-children-value-delete
   :value-get 'widget-editable-list-value-get
   :validate 'widget-children-validate
   :match 'widget-editable-list-match
@@ -2637,7 +2661,6 @@ Return an alist of (TYPE MATCH)."
   :copy 'widget-types-copy
   :format "%v"
   :value-create 'widget-group-value-create
-  :value-delete 'widget-children-value-delete
   :value-get 'widget-editable-list-value-get
   :default-get 'widget-group-default-get
   :validate 'widget-children-validate
@@ -2803,7 +2826,6 @@ link for that string."
   "A documentation string."
   :format "%v"
   :action 'widget-documentation-string-action
-  :value-delete 'widget-children-value-delete
   :value-create 'widget-documentation-string-value-create)
 
 (defun widget-documentation-string-value-create (widget)
@@ -3249,6 +3271,62 @@ To use this type, you must define :match or :match-alternatives."
   (and (consp value)
        (widget-group-match widget
 			   (widget-apply widget :value-to-internal value))))
+
+;;; The `lazy' Widget.
+;;
+;; Recursive datatypes.
+
+(define-widget 'lazy 'default
+  "Base widget for recursive datastructures.
+
+The `lazy' widget will, when instantiated, contain a single inferior
+widget, of the widget type specified by the :type parameter.  The
+value of the `lazy' widget is the same as the value of the inferior
+widget.  When deriving a new widget from the 'lazy' widget, the :type
+parameter is allowed to refer to the widget currently being defined,
+thus allowing recursive datastructures to be described.
+
+The :type parameter takes the same arguments as the defcustom
+parameter with the same name.
+
+Most composite widgets, i.e. widgets containing other widgets, does
+not allow recursion.  That is, when you define a new widget type, none
+of the inferior widgets may be of the same type you are currently
+defining.
+
+In Lisp, however, it is custom to define datastructures in terms of
+themselves.  A list, for example, is defined as either nil, or a cons
+cell whose cdr itself is a list.  The obvious way to translate this
+into a widget type would be
+
+  (define-widget 'my-list 'choice
+    \"A list of sexps.\"
+    :tag \"Sexp list\"
+    :args '((const nil) (cons :value (nil) sexp my-list)))
+
+Here we attempt to define my-list as a choice of either the constant
+nil, or a cons-cell containing a sexp and my-lisp.  This will not work
+because the `choice' widget does not allow recursion.
+
+Using the `lazy' widget you can overcome this problem, as in this 
+example: 
+
+  (define-widget 'sexp-list 'lazy
+    \"A list of sexps.\"
+    :tag \"Sexp list\"
+    :type '(choice (const nil) (cons :value (nil) sexp sexp-list)))"
+  :format "%{%t%}: %v"
+  ;; We don't convert :type because we want to allow recursive
+  ;; datastructures.  This is slow, so we should not create speed
+  ;; critical widgets by deriving from this. 
+  :convert-widget 'widget-value-convert-widget
+  :value-create 'widget-type-value-create
+  :value-get 'widget-child-value-get
+  :value-inline 'widget-child-value-inline
+  :default-get 'widget-type-default-get
+  :match 'widget-type-match
+  :validate 'widget-child-validate)
+
 
 ;;; The `plist' Widget.
 ;;
