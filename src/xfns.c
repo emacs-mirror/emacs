@@ -5460,7 +5460,7 @@ Lisp_Object Qlaplace;
 /* Time in seconds after which images should be removed from the cache
    if not displayed.  */
 
-Lisp_Object Vimage_eviction_seconds;
+Lisp_Object Vimage_cache_eviction_delay;
 
 /* Function prototypes.  */
 
@@ -5989,14 +5989,14 @@ clear_image_cache (f, force_p)
 {
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
 
-  if (c && INTEGERP (Vimage_eviction_seconds))
+  if (c && INTEGERP (Vimage_cache_eviction_delay))
     {
       EMACS_TIME t;
       unsigned long old;
       int i, any_freed_p = 0;
 
       EMACS_GET_TIME (t);
-      old = EMACS_SECS (t) - XFASTINT (Vimage_eviction_seconds);
+      old = EMACS_SECS (t) - XFASTINT (Vimage_cache_eviction_delay);
       
       for (i = 0; i < c->used; ++i)
 	{
@@ -7516,10 +7516,10 @@ x_laplace (f, img)
 
 /* Build a mask for image IMG which is used on frame F.  FILE is the
    name of an image file, for error messages.  HOW determines how to
-   determine the background color of IMG.  If it is an integer, take
-   that as the pixel value of the background.  Otherwise, determine
-   the background color of IMG heuristically.  Value is non-zero
-   if successful.  */
+   determine the background color of IMG.  If it is a list '(R G B)',
+   with R, G, and B being integers >= 0, take that as the color of the
+   background.  Otherwise, determine the background color of IMG
+   heuristically.  Value is non-zero if successful. */
 
 static int
 x_build_heuristic_mask (f, file, img, how)
@@ -7531,7 +7531,7 @@ x_build_heuristic_mask (f, file, img, how)
   Display *dpy = FRAME_X_DISPLAY (f);
   Window win = FRAME_X_WINDOW (f);
   XImage *ximg, *mask_img;
-  int x, y, rc;
+  int x, y, rc, look_at_corners_p;
   unsigned long bg;
 
   BLOCK_INPUT;
@@ -7549,12 +7549,41 @@ x_build_heuristic_mask (f, file, img, how)
   ximg = XGetImage (dpy, img->pixmap, 0, 0, img->width, img->height,
 		    ~0, ZPixmap);
 
-  /* Determine the background color of ximg.  If HOW is an integer,
-     take that as a pixel color.  Otherwise, try to determine the
-     color heuristically.  */
-  if (NATNUMP (how))
-    bg = XFASTINT (how);
-  else
+  /* Determine the background color of ximg.  If HOW is `(R G B)'
+     take that as color.  Otherwise, try to determine the color
+     heuristically. */
+  look_at_corners_p = 1;
+  
+  if (CONSP (how))
+    {
+      int rgb[3], i = 0;
+
+      while (i < 3
+	     && CONSP (how)
+	     && NATNUMP (XCAR (how)))
+	{
+	  rgb[i] = XFASTINT (XCAR (how)) & 0xffff;
+	  how = XCDR (how);
+	}
+
+      if (i == 3 && NILP (how))
+	{
+	  char color_name[30];
+	  XColor exact, color;
+	  Colormap cmap;
+
+	  sprintf (color_name, "#%04x%04x%04x", rgb[0], rgb[1], rgb[2]);
+	  
+	  cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+	  if (XLookupColor (dpy, cmap, color_name, &exact, &color))
+	    {
+	      bg = color.pixel;
+	      look_at_corners_p = 0;
+	    }
+	}
+    }
+  
+  if (look_at_corners_p)
     {
       unsigned long corners[4];
       int i, best_count;
@@ -8990,9 +9019,9 @@ static int gs_image_p P_ ((Lisp_Object object));
 static int gs_load P_ ((struct frame *f, struct image *img));
 static void gs_clear_image P_ ((struct frame *f, struct image *img));
 
-/* The symbol `ghostscript' identifying images of this type.  */
+/* The symbol `postscript' identifying images of this type.  */
 
-Lisp_Object Qghostscript;
+Lisp_Object Qpostscript;
 
 /* Keyword symbols.  */
 
@@ -9038,7 +9067,7 @@ static struct image_keyword gs_format[GS_LAST] =
 
 static struct image_type gs_type =
 {
-  &Qghostscript,
+  &Qpostscript,
   gs_image_p,
   gs_load,
   gs_clear_image,
@@ -9072,7 +9101,7 @@ gs_image_p (object)
   
   bcopy (gs_format, fmt, sizeof fmt);
   
-  if (!parse_image_spec (object, fmt, GS_LAST, Qghostscript, 1)
+  if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript, 1)
       || (fmt[GS_ASCENT].count 
 	  && XFASTINT (fmt[GS_ASCENT].value) > 100))
     return 0;
@@ -10289,12 +10318,12 @@ such a font.  This is especially effective for such large fonts as\n\
 Chinese, Japanese, and Korean.");
   Vx_pixel_size_width_font_regexp = Qnil;
 
-  DEFVAR_LISP ("image-eviction-seconds", &Vimage_eviction_seconds,
+  DEFVAR_LISP ("image-cache-eviction-delay", &Vimage_cache_eviction_delay,
      "Time after which cached images are removed from the cache.\n\
 When an image has not been displayed this many seconds, remove it\n\
 from the image cache.  Value must be an integer or nil with nil\n\
 meaning don't clear the cache.");
-  Vimage_eviction_seconds = make_number (30 * 60);
+  Vimage_cache_eviction_delay = make_number (30 * 60);
 
   DEFVAR_LISP ("image-types", &Vimage_types,
      "List of supported image types.\n\
@@ -10390,8 +10419,8 @@ Each element of the list is a symbol for a supported image type.");
   staticpro (&QCmargin);
   QCrelief = intern (":relief");
   staticpro (&QCrelief);
-  Qghostscript = intern ("ghostscript");
-  staticpro (&Qghostscript);
+  Qpostscript = intern ("postscript");
+  staticpro (&Qpostscript);
   QCloader = intern (":loader");
   staticpro (&QCloader);
   QCbounding_box = intern (":bounding-box");
