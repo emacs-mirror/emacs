@@ -1,6 +1,6 @@
 /* impl.c.seg: SEGMENTS
  *
- * $HopeName: MMsrc!seg.c(trunk.24) $
+ * $HopeName: MMsrc!seg.c(trunk.25) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: The design for this module is design.mps.seg.
@@ -29,7 +29,7 @@
 #include "tract.h"
 #include "mpm.h"
 
-SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.24) $");
+SRCID(seg, "$HopeName: MMsrc!seg.c(trunk.25) $");
 
 
 /* SegGCSeg -- convert generic Seg to GCSeg */
@@ -81,8 +81,7 @@ Res SegAlloc(Seg *segReturn, SegClass class, SegPref pref,
     goto failArena;
 
   /* allocate the segment object from the control pool */
-  res = ControlAlloc((void **)&seg, arena, class->size,
-                     withReservoirPermit);
+  res = ControlAlloc((void **)&seg, arena, class->size, withReservoirPermit);
   if (res != ResOK)
     goto failControl;
 
@@ -860,10 +859,6 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   /* See design.mps.seg.split-merge.shield & impl.c.shield.def.depth */
   AVER(seg->depth == 0);
 
-  /* Update main fields of seg. Finish segHi. */
-  RingRemove(SegPoolRing(segHi));
-  RingFinish(SegPoolRing(segHi));
-  segHi->sig = SigInvalid;
   /* no need to update fields which match. See .similar */
 
   seg->limit = limit;
@@ -875,6 +870,12 @@ static Res segTrivMerge(Seg seg, Seg segHi,
     TRACT_SET_SEG(tract, seg);
   }
   AVER(addr == seg->limit);
+
+  /* Finish segHi. */
+  RingRemove(SegPoolRing(segHi));
+  RingFinish(SegPoolRing(segHi));
+  segHi->sig = SigInvalid;
+
   AVERT(Seg, seg);
   return ResOK;
 }
@@ -944,6 +945,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   segHi->firstTract = NULL;
   segHi->class = seg->class;
   segHi->sig = SegSig;
+  RingInit(SegPoolRing(segHi));
 
   TRACT_FOR(tract, addr, arena, mid, limit) {
     AVER(TractCheck(tract));  /* design.mps.check.type.no-sig */
@@ -959,7 +961,6 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   }
   AVER(addr == segHi->limit);
 
-  RingInit(SegPoolRing(segHi));
   RingAppend(&pool->segRing, SegPoolRing(segHi));
   AVERT(Seg, seg);
   AVERT(Seg, segHi);
@@ -1372,8 +1373,8 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
   AVERT_CRITICAL(Seg, seg);                    /* .seg.method.check */
   AVER_CRITICAL(RankSetCheck(rankSet));        /* .seg.method.check */
-  AVER_CRITICAL(rankSet == RankSetEMPTY || 
-                RankSetIsSingle(rankSet));     /* .seg.method.check */
+  AVER_CRITICAL(rankSet == RankSetEMPTY
+                || RankSetIsSingle(rankSet));  /* .seg.method.check */
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
@@ -1383,17 +1384,8 @@ static void gcSegSetRankSummary(Seg seg, RankSet rankSet, RefSet summary)
 
   arena = PoolArena(SegPool(seg));
 
-  if (seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV) {
-    wasShielded = TRUE;
-  } else {
-    wasShielded = FALSE;
-  }
-
-  if (rankSet != RankSetEMPTY && summary != RefSetUNIV) {
-    willbeShielded = TRUE;
-  } else {
-    willbeShielded = FALSE;
-  }
+  wasShielded = (seg->rankSet != RankSetEMPTY && gcseg->summary != RefSetUNIV);
+  willbeShielded = (rankSet != RankSetEMPTY && summary != RefSetUNIV);
 
   seg->rankSet = rankSet;
   gcseg->summary = summary;
@@ -1428,9 +1420,8 @@ static void gcSegSetBuffer(Seg seg, Buffer buffer)
   GCSeg gcseg;
 
   AVERT_CRITICAL(Seg, seg);              /* .seg.method.check */
-  if (buffer != NULL) {
+  if (buffer != NULL)
     AVERT_CRITICAL(Buffer, buffer);
-  }
   gcseg = SegGCSeg(seg);
   AVERT_CRITICAL(GCSeg, gcseg);
   AVER_CRITICAL(&gcseg->segStruct == seg);
