@@ -147,7 +147,7 @@ Usenet paths ending in an element that matches are removed also."
 	(case-fold-search t)
 	pos epos)
     (while (setq pos (string-match match userids))
-      (if (> pos 0) (setq pos (1+ pos)))
+      (if (> pos 0) (setq pos (match-beginning 2)))
       (setq epos
 	    (if (string-match "[ \t\n,]+" userids (match-end 0))
 		(match-end 0)
