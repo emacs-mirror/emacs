@@ -1,3 +1,13 @@
+2004-01-18  Jesper Harder  <harder@ifa.au.dk>
+
+	* mail/smtpmail.el (smtpmail-send-data): Don't append spurious
+        newline.
+
+2004-01-18   David Ponce  <david@dponce.com>  (tiny change)
+
+	* progmodes/which-func.el (which-function-mode): Don't cancel
+        which-func-update-timer if not set.
+
 2004-01-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* calendar/diary-lib.el (diary-entry-time): Fix typo/bug:
