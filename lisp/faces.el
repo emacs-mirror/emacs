@@ -131,8 +131,6 @@ in that frame; otherwise change each frame."
 This is an alist associating face names with the default values for
 their parameters.  Newly created frames get their data from here.")
 
-do not use this")
-
 (defun face-list ()
   "Returns a list of all defined face names."
   (mapcar 'car global-face-data))
