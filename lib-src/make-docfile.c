@@ -1,5 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -32,6 +32,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  */
 
 #include <stdio.h>
+#ifdef MSDOS
+#include <fcntl.h>
+#endif /* MSDOS */
+
+#ifdef MSDOS
+#define READ_TEXT "rt"
+#define READ_BINARY "rb"
+#else /* not MSDOS */
+#define READ_TEXT "r"
+#define READ_BINARY "r"
+#endif /* not MSDOS */
 
 FILE *outfile;
 
@@ -42,6 +53,11 @@ main (argc, argv)
   int i;
   int err_count = 0;
 
+#ifdef MSDOS
+  _fmode = O_BINARY;	/* all of files are treated as binary files */
+  (stdout)->_flag &= ~_IOTEXT;
+  _setmode (fileno (stdout), O_BINARY);
+#endif /* MSDOS */
   outfile = stdout;
 
   /* If first two args are -o FILE, output to FILE.  */
@@ -77,11 +93,11 @@ scan_file (filename)
 {
   int len = strlen (filename);
   if (!strcmp (filename + len - 4, ".elc"))
-    return scan_lisp_file (filename);
+    return scan_lisp_file (filename, READ_BINARY);
   else if (!strcmp (filename + len - 3, ".el"))
-    return scan_lisp_file (filename);
+    return scan_lisp_file (filename, READ_TEXT);
   else
-    return scan_c_file (filename);
+    return scan_c_file (filename, READ_TEXT);
 }
 
 char buf[128];
@@ -211,8 +227,8 @@ write_c_args (out, buf, minargs, maxargs)
    Looks for DEFUN constructs such as are defined in ../src/lisp.h.
    Accepts any word starting DEF... so it finds DEFSIMPLE and DEFPRED.  */
 
-scan_c_file (filename)
-     char *filename;
+scan_c_file (filename, mode)
+     char *filename, *mode;
 {
   FILE *infile;
   register int c;
@@ -225,7 +241,7 @@ scan_c_file (filename)
   if (filename[strlen (filename) - 1] == 'o')
     filename[strlen (filename) - 1] = 'c';
 
-  infile = fopen (filename, "r");
+  infile = fopen (filename, mode);
 
   /* No error if non-ex input file */
   if (infile == NULL)
@@ -458,13 +474,13 @@ read_lisp_symbol (infile, buffer)
 }
 
 
-scan_lisp_file (filename)
-     char *filename;
+scan_lisp_file (filename, mode)
+     char *filename, *mode;
 {
   FILE *infile;
   register int c;
 
-  infile = fopen (filename, "r");
+  infile = fopen (filename, mode);
   if (infile == NULL)
     {
       perror (filename);
