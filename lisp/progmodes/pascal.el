@@ -140,7 +140,7 @@
   (modify-syntax-entry ?\\ "."   pascal-mode-syntax-table)
   (modify-syntax-entry ?( "()1"  pascal-mode-syntax-table)  
   (modify-syntax-entry ?) ")(4"  pascal-mode-syntax-table)
-  (modify-syntax-entry ?* ". 23" pascal-mode-syntax-table)
+  (modify-syntax-entry ?* ". 23b" pascal-mode-syntax-table)
   (modify-syntax-entry ?{ "<"    pascal-mode-syntax-table)
   (modify-syntax-entry ?} ">"    pascal-mode-syntax-table)
   (modify-syntax-entry ?+ "."    pascal-mode-syntax-table)
