@@ -695,8 +695,6 @@ Keywords supported:  :test :test-not :key"
 	(and cl-alist (car cl-alist)))
     (rassq cl-item cl-alist)))
 
-(defun rassoc (item alist) (rassoc* item alist ':test 'equal))
-
 (defun rassoc-if (cl-pred cl-list &rest cl-keys)
   "Find the first item whose cdr satisfies PREDICATE in LIST.
 Keywords supported:  :key"
