@@ -133,7 +133,7 @@ The function is called with one parameter, which is the generated part.")
 	(when (and (not raw) (memq nil charsets))
 	  (if (or (memq 'unknown-encoding mml-confirmation-set)
 		  (prog1 (y-or-n-p
-		   "\
+			  "\
 Message contains characters with unknown encoding.  Really send?")
 		    (set (make-local-variable 'mml-confirmation-set)
 			 (push 'unknown-encoding mml-confirmation-set))))
@@ -252,7 +252,7 @@ A message part needs to be split into %d charset parts.  Really send? "
   "Return the buffer up till the next part, multipart or closing part or multipart.
 If MML is non-nil, return the buffer up till the correspondent mml tag."
   (let ((beg (point)) (count 1))
-    ;; If the tag ended at the end of the line, we go to the next line.
+   ;; If the tag ended at the end of the line, we go to the next line.
     (when (looking-at "[ \t]*\n")
       (forward-line 1))
     (if mml
@@ -306,46 +306,46 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	(if (and (not raw)
 		 (member (car (split-string type "/")) '("text" "message")))
 	    (progn
-	    (with-temp-buffer
-	      (cond
-	       ((cdr (assq 'buffer cont))
-		(insert-buffer-substring (cdr (assq 'buffer cont))))
-	       ((and (setq filename (cdr (assq 'filename cont)))
-		     (not (equal (cdr (assq 'nofile cont)) "yes")))
-		(mm-insert-file-contents filename))
-	       ((eq 'mml (car cont))
-		(insert (cdr (assq 'contents cont))))
-	       (t
-		(save-restriction
-		  (narrow-to-region (point) (point))
-		  (insert (cdr (assq 'contents cont)))
-		  ;; Remove quotes from quoted tags.
-		  (goto-char (point-min))
-		  (while (re-search-forward
-			  "<#!+/?\\(part\\|multipart\\|external\\|mml\\)" nil t)
-		    (delete-region (+ (match-beginning 0) 2)
-				   (+ (match-beginning 0) 3))))))
-	      (cond 
-	       ((eq (car cont) 'mml)
-		(let ((mml-boundary (funcall mml-boundary-function
-					     (incf mml-multipart-number)))
-		      (mml-generate-default-type "text/plain"))
-		  (mml-to-mime))
-		(let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
-		  ;; ignore 0x1b, it is part of iso-2022-jp
-		  (setq encoding (mm-body-7-or-8))))
-	       ((string= (car (split-string type "/")) "message")
-		(let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
-		  ;; ignore 0x1b, it is part of iso-2022-jp
-		  (setq encoding (mm-body-7-or-8))))
-	       (t 
-		(setq charset (mm-encode-body))
-		(setq encoding (mm-body-encoding
-				charset (cdr (assq 'encoding cont))))))
-	      (setq coded (buffer-string)))
-	    (mml-insert-mime-headers cont type charset encoding)
-	    (insert "\n")
-	    (insert coded))
+	      (with-temp-buffer
+		(cond
+		 ((cdr (assq 'buffer cont))
+		  (insert-buffer-substring (cdr (assq 'buffer cont))))
+		 ((and (setq filename (cdr (assq 'filename cont)))
+		       (not (equal (cdr (assq 'nofile cont)) "yes")))
+		  (mm-insert-file-contents filename))
+		 ((eq 'mml (car cont))
+		  (insert (cdr (assq 'contents cont))))
+		 (t
+		  (save-restriction
+		    (narrow-to-region (point) (point))
+		    (insert (cdr (assq 'contents cont)))
+		    ;; Remove quotes from quoted tags.
+		    (goto-char (point-min))
+		    (while (re-search-forward
+			    "<#!+/?\\(part\\|multipart\\|external\\|mml\\)" nil t)
+		      (delete-region (+ (match-beginning 0) 2)
+				     (+ (match-beginning 0) 3))))))
+		(cond 
+		 ((eq (car cont) 'mml)
+		  (let ((mml-boundary (funcall mml-boundary-function
+					       (incf mml-multipart-number)))
+			(mml-generate-default-type "text/plain"))
+		    (mml-to-mime))
+		  (let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
+		    ;; ignore 0x1b, it is part of iso-2022-jp
+		    (setq encoding (mm-body-7-or-8))))
+		 ((string= (car (split-string type "/")) "message")
+		  (let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
+		    ;; ignore 0x1b, it is part of iso-2022-jp
+		    (setq encoding (mm-body-7-or-8))))
+		 (t 
+		  (setq charset (mm-encode-body))
+		  (setq encoding (mm-body-encoding
+				  charset (cdr (assq 'encoding cont))))))
+		(setq coded (buffer-string)))
+	      (mml-insert-mime-headers cont type charset encoding)
+	      (insert "\n")
+	      (insert coded))
 	  (mm-with-unibyte-buffer
 	    (cond
 	     ((cdr (assq 'buffer cont))
@@ -383,7 +383,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	     (concat "access-type="
 		     (if (member (nth 0 name) '("ftp@" "anonymous@"))
 			 "anon-ftp"
-		       "ftp")))))      
+		       "ftp")))))
 	(when parameters
 	  (mml-insert-parameter-string
 	   cont '(expiration size permission))))
@@ -656,19 +656,19 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
     main))
 
 (easy-menu-define
- mml-menu mml-mode-map ""
- '("MML"
-   ("Attach"
-    ["File" mml-attach-file t]
-    ["Buffer" mml-attach-buffer t]
-    ["External" mml-attach-external t])
-   ("Insert"
-    ["Multipart" mml-insert-multipart t]
-    ["Part" mml-insert-part t])
-   ;;["Narrow" mml-narrow-to-part t]
-   ["Quote" mml-quote-region t]
-   ["Validate" mml-validate t]
-   ["Preview" mml-preview t]))
+  mml-menu mml-mode-map ""
+  '("MML"
+    ("Attach"
+     ["File" mml-attach-file t]
+     ["Buffer" mml-attach-buffer t]
+     ["External" mml-attach-external t])
+    ("Insert"
+     ["Multipart" mml-insert-multipart t]
+     ["Part" mml-insert-part t])
+    ;;["Narrow" mml-narrow-to-part t]
+    ["Quote" mml-quote-region t]
+    ["Validate" mml-validate t]
+    ["Preview" mml-preview t]))
 
 (defvar mml-mode nil
   "Minor mode for editing MML.")
@@ -697,7 +697,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 
 (defun mml-minibuffer-read-file (prompt)
   (let ((file (read-file-name prompt nil nil t)))
-    ;; Prevent some common errors.  This is inspired by similar code in
+   ;; Prevent some common errors.  This is inspired by similar code in
     ;; VM.
     (when (file-directory-p file)
       (error "%s is a directory, cannot attach" file))
