@@ -91,9 +91,9 @@ is read in, display STARTMSG at beginning of load, ENDMSG at end."
 
 ;;;###autoload
 (defun cookie-snarf (phrase-file startmsg endmsg)
-  "Reads in the PHRASE-FILE, returns it as a vector of strings.  Emit
-STARTMSG and ENDMSG before and after.  Caches the result; second and
-subsequent calls on the same file won't go to disk."
+  "Reads in the PHRASE-FILE, returns it as a vector of strings.
+Emit STARTMSG and ENDMSG before and after.  Caches the result; second
+and subsequent calls on the same file won't go to disk."
   (let ((sym (intern-soft phrase-file cookie-cache)))
     (and sym (not (equal (symbol-function sym)
 			 (nth 5 (file-attributes phrase-file))))
@@ -119,6 +119,26 @@ subsequent calls on the same file won't go to disk."
 	  (kill-buffer buf)
 	  (message endmsg)
 	  (set sym (apply 'vector result)))))))
+
+(defun read-cookie (prompt phrase-file startmsg endmsg &optional require-match)
+  "Prompt with PROMPT and read with completion among cookies in PHRASE-FILE.
+STARTMSG and ENDMSG are passed along to `cookie-snarf'.
+Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
+  ;; Make sure the cookies are in the cache.
+  (or (intern-soft phrase-file cookie-cache)
+      (cookie-snarf phrase-file startmsg endmsg))
+  (completing-read prompt
+		   (let ((sym (intern phrase-file cookie-cache)))
+		     ;; We cache the alist form of the cookie in a property.
+		     (or (get sym 'completion-alist)
+			 (let* ((alist nil)
+				(vec (cookie-snarf phrase-file
+						   startmsg endmsg))
+				(i (length vec)))
+			   (while (> (setq i (1- i)) 0)
+			     (setq alist (cons (list (aref vec i)) alist)))
+			   (put sym 'completion-alist alist))))
+		   nil require-match nil nil))
 
 ; Thanks to Ian G Batten <BattenIG@CS.BHAM.AC.UK>
 ; [of the University of Birmingham Computer Science Department]
