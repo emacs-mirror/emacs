@@ -2547,7 +2547,7 @@ static void
 describe_map (map, keys, elt_describer, partial, shadow, seen, nomenu)
      register Lisp_Object map;
      Lisp_Object keys;
-     int (*elt_describer) ();
+     void (*elt_describer) P_ ((Lisp_Object));
      int partial;
      Lisp_Object shadow;
      Lisp_Object *seen;
