@@ -131,7 +131,7 @@ SUBJECT is a string of regexps separated by commas."
 (defun rmail-message-subject-p (msg subject &optional whole-message)
   (save-restriction
     (goto-char (rmail-msgbeg msg))
-    (search-forward "\n*** EOOH ***\n")
+    (search-forward "\n*** EOOH ***\n" (rmail-msgend msg) 'move)
     (narrow-to-region
      (point)
      (progn (search-forward (if whole-message "\^_" "\n\n")) (point)))
