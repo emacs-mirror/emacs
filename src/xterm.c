@@ -569,7 +569,25 @@ dumpglyphs (f, left, top, gp, n, hl)
 		unsigned long mask;
 
 		xgcv.background = f->display.x->cursor_pixel;
-		xgcv.foreground = f->display.x->cursor_foreground_pixel;
+		if (face == FRAME_DEFAULT_FACE (f))
+		  xgcv.foreground = f->display.x->cursor_foreground_pixel;
+		else
+		  xgcv.foreground = face->foreground;
+		/* If the glyph would be invisible,
+		   try a different foreground.  */
+		if (xgcv.foreground == xgcv.background)
+		  xgcv.foreground = face->background;
+		if (xgcv.foreground == xgcv.background)
+		  xgcv.foreground = f->display.x->cursor_foreground_pixel;
+		if (xgcv.foreground == xgcv.background)
+		  xgcv.foreground = face->foreground;
+		/* Make sure the cursor is distinct from text in this face.  */
+		if (xgcv.background == face->background
+		    && xgcv.foreground == face->foreground)
+		  {
+		    xgcv.background = face->foreground;
+		    xgcv.foreground = face->background;
+		  }
 		xgcv.font = face->font->fid;
 		xgcv.graphics_exposures = 0;
 		mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
