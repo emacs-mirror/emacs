@@ -1912,7 +1912,7 @@ Garbage collection happens automatically if you cons more than\n\
   for (tail = gcprolist; tail; tail = tail->next)
     for (i = 0; i < tail->nvars; i++)
       XUNMARK (tail->var[i]);
-  relocate_byte_pcs ();
+  unmark_byte_stack ();
   for (backlist = backtrace_list; backlist; backlist = backlist->next)
     {
       XUNMARK (*backlist->function);
