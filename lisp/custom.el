@@ -322,7 +322,6 @@ information."
 If there already is an entry for OPTION and WIDGET, nothing is done."
   (let ((members (get group 'custom-group))
 	(entry (list option widget)))
-    (message "adding %s" entry)
     (unless (member entry members)
       (put group 'custom-group (nconc members (list entry))))))
 
