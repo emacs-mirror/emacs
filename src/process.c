@@ -159,12 +159,14 @@ static Lisp_Object stream_process;
 #endif /* BSD or UNIPLUS or STRIDE */
 #endif /* no WAITTYPE */
 #else /* VMS */
-
-/* For the CMU PTY driver + */
-#define DCL_PROMPT "$ "
-/* This is a hack.  I have no idea what needs to go here, but this */
-/* will get it to compile.  We can fix it later.  rbr */
 #define WAITTYPE int
+#define WIFSTOPPED(w) 0
+#define WIFSIGNALED(w) 0
+#define WIFEXITED(w) ((w) != -1)
+#define WRETCODE(w) (w)
+#define WSTOPSIG(w) (w)
+#define WCOREDUMP(w) 0
+#define WTERMSIG(w) (w)
 #include <ssdef.h>
 #include <iodef.h>
 #include <clidef.h>
@@ -1527,7 +1529,7 @@ deactivate_process (proc)
       {
 	VMS_PROC_STUFF *get_vms_process_pointer (), *vs;
 	sys$dassgn (outchannel);
-	vs = get_vms_process_pointer (p->pid)
+	vs = get_vms_process_pointer (p->pid);
 	if (vs)
 	  give_back_vms_process_stuff (vs);
       }
