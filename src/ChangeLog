@@ -1,3 +1,7 @@
+2000-07-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (Fsignal): Handle case that backtrace_list is null.
+
 2000-07-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* ccl.c (Fccl_execute): Typo fixed.
