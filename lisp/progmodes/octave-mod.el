@@ -41,6 +41,143 @@
 
 ;;; Code:
 
+(defconst octave-maintainer-address
+  "Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>, bug-gnu-emacs@prep.ai.mit.edu" 
+  "Current maintainer of the Emacs Octave package.")
+
+(defvar octave-abbrev-table nil
+  "Abbrev table for Octave's reserved words.
+Used in octave-mode and inferior-octave-mode buffers.
+All Octave abbrevs start with a grave accent (`).")
+(if octave-abbrev-table
+    ()
+  (let ((ac abbrevs-changed))
+    (define-abbrev-table 'octave-abbrev-table ())
+    (define-abbrev octave-abbrev-table "`a" "all_va_args" nil)
+    (define-abbrev octave-abbrev-table "`b" "break" nil)
+    (define-abbrev octave-abbrev-table "`ca" "catch" nil)
+    (define-abbrev octave-abbrev-table "`c" "continue" nil)
+    (define-abbrev octave-abbrev-table "`el" "else" nil)
+    (define-abbrev octave-abbrev-table "`eli" "elseif" nil)
+    (define-abbrev octave-abbrev-table "`et" "end_try_catch" nil)
+    (define-abbrev octave-abbrev-table "`eu" "end_unwind_protect" nil)
+    (define-abbrev octave-abbrev-table "`ef" "endfor" nil)
+    (define-abbrev octave-abbrev-table "`efu" "endfunction" nil)
+    (define-abbrev octave-abbrev-table "`ei" "endif" nil)
+    (define-abbrev octave-abbrev-table "`ew" "endwhile" nil)
+    (define-abbrev octave-abbrev-table "`f" "for" nil)
+    (define-abbrev octave-abbrev-table "`fu" "function" nil)
+    (define-abbrev octave-abbrev-table "`gl" "global" nil)
+    (define-abbrev octave-abbrev-table "`gp" "gplot" nil)
+    (define-abbrev octave-abbrev-table "`gs" "gsplot" nil)
+    (define-abbrev octave-abbrev-table "`if" "if ()" nil)
+    (define-abbrev octave-abbrev-table "`rp" "replot" nil)
+    (define-abbrev octave-abbrev-table "`r" "return" nil)
+    (define-abbrev octave-abbrev-table "`t" "try" nil)
+    (define-abbrev octave-abbrev-table "`up" "unwind_protect" nil)
+    (define-abbrev octave-abbrev-table "`upc" "unwind_protect_cleanup" nil)
+    (define-abbrev octave-abbrev-table "`w" "while ()" nil)
+    (setq abbrevs-changed ac)))
+
+(defvar octave-comment-char ?#
+  "Character to start an Octave comment.")
+(defvar octave-comment-start
+  (concat (make-string 1 octave-comment-char) " ")
+  "String to insert to start a new Octave in-line comment.")
+(defvar octave-comment-start-skip "\\s<+\\s-*"
+  "Regexp to match the start of an Octave comment up to its body.")
+
+(defvar octave-begin-keywords
+  '("for" "function" "if" "try" "unwind_protect" "while"))
+(defvar octave-else-keywords
+  '("catch" "else" "elseif" "unwind_protect_cleanup"))
+(defvar octave-end-keywords
+  '("end" "endfor" "endfunction" "endif" "end_try_catch"
+    "end_unwind_protect" "endwhile"))
+
+(defvar octave-reserved-words
+  (append octave-begin-keywords octave-else-keywords octave-end-keywords
+	  '("all_va_args" "break" "continue" "global" "gplot" "gsplot"
+	    "replot" "return"))
+  "Reserved words in Octave.")
+
+(defvar octave-text-functions
+  '("casesen" "cd" "chdir" "clear" "diary" "dir" "document" "echo"
+    "edit_history" "format" "gset" "gshow" "help" "history" "hold"
+    "load" "ls" "more" "run_history" "save" "set" "show" "type"
+    "which" "who" "whos")
+  "Text functions in Octave (these names are also reserved).")
+
+(defvar octave-variables
+  '("EDITOR" "EXEC_PATH" "F_DUPFD" "F_GETFD" "F_GETFL" "F_SETFD"
+    "F_SETFL" "I" "IMAGEPATH" "INFO_FILE" "INFO_PROGRAM" "Inf" "J"
+    "LOADPATH" "NaN" "OCTAVE_VERSION" "O_APPEND" "O_CREAT" "O_EXCL"
+    "O_NONBLOCK" "O_RDONLY" "O_RDWR" "O_TRUNC" "O_WRONLY" "PAGER" "PS1"
+    "PS2" "PS4" "PWD" "SEEK_CUR" "SEEK_END" "SEEK_SET" "__F_DUPFD__"
+    "__F_GETFD__" "__F_GETFL__" "__F_SETFD__" "__F_SETFL__" "__I__"
+    "__Inf__" "__J__" "__NaN__" "__OCTAVE_VERSION__" "__O_APPEND__"
+    "__O_CREAT__" "__O_EXCL__" "__O_NONBLOCK__" "__O_RDONLY__"
+    "__O_RDWR__" "__O_TRUNC__" "__O_WRONLY__" "__PWD__" "__SEEK_CUR__"
+    "__SEEK_END__" "__SEEK_SET__" "__argv__" "__e__" "__eps__"
+    "__error_text__" "__i__" "__inf__" "__j__" "__nan__" "__pi__"
+    "__program_invocation_name__" "__program_name__" "__realmax__"
+    "__realmin__" "__stderr__" "__stdin__" "__stdout__" "ans" "argv"
+    "automatic_replot" "beep_on_error" "completion_append_char"
+    "default_return_value" "default_save_format"
+    "define_all_return_values" "do_fortran_indexing" "e"
+    "echo_executing_commands" "empty_list_elements_ok" "eps"
+    "error_text" "gnuplot_binary" "gnuplot_has_multiplot" "history_file"
+    "history_size" "ignore_function_time_stamp" "implicit_str_to_num_ok"
+    "inf" "nan" "nargin" "ok_to_lose_imaginary_part"
+    "output_max_field_width" "output_precision"
+    "page_output_immediately" "page_screen_output" "pi"
+    "prefer_column_vectors" "prefer_zero_one_indexing"
+    "print_answer_id_name" "print_empty_dimensions"
+    "program_invocation_name" "program_name" "propagate_empty_matrices"
+    "realmax" "realmin" "resize_on_range_error"
+    "return_last_computed_value" "save_precision" "saving_history"
+    "silent_functions" "split_long_rows" "stderr" "stdin" "stdout"
+    "string_fill_char" "struct_levels_to_print"
+    "suppress_verbose_help_message" "treat_neg_dim_as_zero"
+    "warn_assign_as_truth_value" "warn_comma_in_global_decl"
+    "warn_divide_by_zero" "warn_function_name_clash"
+    "warn_missing_semicolon" "whitespace_in_literal_matrix")
+  "Builtin variables in Octave.")
+
+(defvar octave-function-header-regexp
+  (concat "^\\s-*\\<\\(function\\)\\>"
+	  "\\([^=;\n]*=[ \t]*\\|[ \t]*\\)\\(\\w+\\)\\>")
+  "Regexp to match an Octave function header.
+The string `function' and its name are given by the first and third
+parenthetical grouping.")
+
+(defvar octave-font-lock-keywords
+  (list
+   ;; Fontify all builtin keywords.
+   (cons (concat "\\<\\("
+		 (mapconcat 'identity octave-reserved-words "\\|")
+		 (mapconcat 'identity octave-text-functions "\\|")
+		 "\\)\\>")
+	 'font-lock-keyword-face)
+   ;; Fontify all builtin operators.
+   (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
+	 'font-lock-reference-face)
+   ;; Fontify all builtin variables.
+   (cons (concat "\\<\\("
+		 (mapconcat 'identity octave-variables "\\|")
+		 "\\)\\>")
+	 'font-lock-variable-name-face)
+   ;; Fontify all function declarations.
+   (list octave-function-header-regexp
+	 '(1 font-lock-keyword-face)
+	 '(3 font-lock-function-name-face nil t)))
+  "Additional Octave expressions to highlight.")
+
+(defvar inferior-octave-buffer "*Inferior Octave*"
+  "*Name of buffer for running an inferior Octave process.")
+
+(defvar inferior-octave-process nil)
+
 (defvar octave-mode-map nil
   "Keymap used in Octave mode.")
 (if octave-mode-map
@@ -1228,151 +1365,6 @@ code line."
        (mapconcat 'identity inferior-octave-output-list "\n")))
     (terpri)))
 
-(defconst octave-maintainer-address
-  "Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>, bug-gnu-emacs@prep.ai.mit.edu" 
-  "Current maintainer of the Emacs Octave package.")
-
-(defvar octave-abbrev-table nil
-  "Abbrev table for Octave's reserved words.
-Used in octave-mode and inferior-octave-mode buffers.
-All Octave abbrevs start with a grave accent (`).")
-(if octave-abbrev-table
-    ()
-  (let ((ac abbrevs-changed))
-    (define-abbrev-table 'octave-abbrev-table ())
-    (define-abbrev octave-abbrev-table "`a" "all_va_args" nil)
-    (define-abbrev octave-abbrev-table "`b" "break" nil)
-    (define-abbrev octave-abbrev-table "`ca" "catch" nil)
-    (define-abbrev octave-abbrev-table "`c" "continue" nil)
-    (define-abbrev octave-abbrev-table "`el" "else" nil)
-    (define-abbrev octave-abbrev-table "`eli" "elseif" nil)
-    (define-abbrev octave-abbrev-table "`et" "end_try_catch" nil)
-    (define-abbrev octave-abbrev-table "`eu" "end_unwind_protect" nil)
-    (define-abbrev octave-abbrev-table "`ef" "endfor" nil)
-    (define-abbrev octave-abbrev-table "`efu" "endfunction" nil)
-    (define-abbrev octave-abbrev-table "`ei" "endif" nil)
-    (define-abbrev octave-abbrev-table "`ew" "endwhile" nil)
-    (define-abbrev octave-abbrev-table "`f" "for" nil)
-    (define-abbrev octave-abbrev-table "`fu" "function" nil)
-    (define-abbrev octave-abbrev-table "`gl" "global" nil)
-    (define-abbrev octave-abbrev-table "`gp" "gplot" nil)
-    (define-abbrev octave-abbrev-table "`gs" "gsplot" nil)
-    (define-abbrev octave-abbrev-table "`if" "if ()" nil)
-    (define-abbrev octave-abbrev-table "`rp" "replot" nil)
-    (define-abbrev octave-abbrev-table "`r" "return" nil)
-    (define-abbrev octave-abbrev-table "`t" "try" nil)
-    (define-abbrev octave-abbrev-table "`up" "unwind_protect" nil)
-    (define-abbrev octave-abbrev-table "`upc" "unwind_protect_cleanup" nil)
-    (define-abbrev octave-abbrev-table "`w" "while ()" nil)
-    (setq abbrevs-changed ac)))
-
-(defvar octave-comment-char ?#
-  "Character to start an Octave comment.")
-(defvar octave-comment-start
-  (concat (make-string 1 octave-comment-char) " ")
-  "String to insert to start a new Octave in-line comment.")
-(defvar octave-comment-start-skip "\\s<+\\s-*"
-  "Regexp to match the start of an Octave comment up to its body.")
-
-(defvar octave-begin-keywords
-  '("for" "function" "if" "try" "unwind_protect" "while"))
-(defvar octave-else-keywords
-  '("catch" "else" "elseif" "unwind_protect_cleanup"))
-(defvar octave-end-keywords
-  '("end" "endfor" "endfunction" "endif" "end_try_catch"
-    "end_unwind_protect" "endwhile"))
-
-(defvar octave-reserved-words
-  (append octave-begin-keywords octave-else-keywords octave-end-keywords
-	  '("all_va_args" "break" "continue" "global" "gplot" "gsplot"
-	    "replot" "return"))
-  "Reserved words in Octave.")
-
-(defvar octave-text-functions
-  '("casesen" "cd" "chdir" "clear" "diary" "dir" "document" "echo"
-    "edit_history" "format" "gset" "gshow" "help" "history" "hold"
-    "load" "ls" "more" "run_history" "save" "set" "show" "type"
-    "which" "who" "whos")
-  "Text functions in Octave (these names are also reserved).")
-
-(defvar octave-variables
-  '("EDITOR" "EXEC_PATH" "F_DUPFD" "F_GETFD" "F_GETFL" "F_SETFD"
-    "F_SETFL" "I" "IMAGEPATH" "INFO_FILE" "INFO_PROGRAM" "Inf" "J"
-    "LOADPATH" "NaN" "OCTAVE_VERSION" "O_APPEND" "O_CREAT" "O_EXCL"
-    "O_NONBLOCK" "O_RDONLY" "O_RDWR" "O_TRUNC" "O_WRONLY" "PAGER" "PS1"
-    "PS2" "PS4" "PWD" "SEEK_CUR" "SEEK_END" "SEEK_SET" "__F_DUPFD__"
-    "__F_GETFD__" "__F_GETFL__" "__F_SETFD__" "__F_SETFL__" "__I__"
-    "__Inf__" "__J__" "__NaN__" "__OCTAVE_VERSION__" "__O_APPEND__"
-    "__O_CREAT__" "__O_EXCL__" "__O_NONBLOCK__" "__O_RDONLY__"
-    "__O_RDWR__" "__O_TRUNC__" "__O_WRONLY__" "__PWD__" "__SEEK_CUR__"
-    "__SEEK_END__" "__SEEK_SET__" "__argv__" "__e__" "__eps__"
-    "__error_text__" "__i__" "__inf__" "__j__" "__nan__" "__pi__"
-    "__program_invocation_name__" "__program_name__" "__realmax__"
-    "__realmin__" "__stderr__" "__stdin__" "__stdout__" "ans" "argv"
-    "automatic_replot" "beep_on_error" "completion_append_char"
-    "default_return_value" "default_save_format"
-    "define_all_return_values" "do_fortran_indexing" "e"
-    "echo_executing_commands" "empty_list_elements_ok" "eps"
-    "error_text" "gnuplot_binary" "gnuplot_has_multiplot" "history_file"
-    "history_size" "ignore_function_time_stamp" "implicit_str_to_num_ok"
-    "inf" "nan" "nargin" "ok_to_lose_imaginary_part"
-    "output_max_field_width" "output_precision"
-    "page_output_immediately" "page_screen_output" "pi"
-    "prefer_column_vectors" "prefer_zero_one_indexing"
-    "print_answer_id_name" "print_empty_dimensions"
-    "program_invocation_name" "program_name" "propagate_empty_matrices"
-    "realmax" "realmin" "resize_on_range_error"
-    "return_last_computed_value" "save_precision" "saving_history"
-    "silent_functions" "split_long_rows" "stderr" "stdin" "stdout"
-    "string_fill_char" "struct_levels_to_print"
-    "suppress_verbose_help_message" "treat_neg_dim_as_zero"
-    "warn_assign_as_truth_value" "warn_comma_in_global_decl"
-    "warn_divide_by_zero" "warn_function_name_clash"
-    "warn_missing_semicolon" "whitespace_in_literal_matrix")
-  "Builtin variables in Octave.")
-
-(defvar octave-function-header-regexp
-  (concat "^\\s-*\\<\\(function\\)\\>"
-	  "\\([^=;\n]*=[ \t]*\\|[ \t]*\\)\\(\\w+\\)\\>")
-  "Regexp to match an Octave function header.
-The string `function' and its name are given by the first and third
-parenthetical grouping.")
-
-(defvar octave-font-lock-keywords
-  (list
-   ;; Fontify all builtin keywords.
-   (cons (concat "\\<\\("
-		 (mapconcat 'identity octave-reserved-words "\\|")
-		 (mapconcat 'identity octave-text-functions "\\|")
-		 "\\)\\>")
-	 'font-lock-keyword-face)
-   ;; Fontify all builtin operators.
-   (cons "\\(&\\||\\|<=\\|>=\\|==\\|<\\|>\\|!=\\|!\\)"
-	 'font-lock-reference-face)
-   ;; Fontify all builtin variables.
-   (cons (concat "\\<\\("
-		 (mapconcat 'identity octave-variables "\\|")
-		 "\\)\\>")
-	 'font-lock-variable-name-face)
-   ;; Fontify all function declarations.
-   (list octave-function-header-regexp
-	 '(1 font-lock-keyword-face)
-	 '(3 font-lock-function-name-face nil t)))
-  "Additional Octave expressions to highlight.")
-
-(defvar inferior-octave-buffer "*Inferior Octave*"
-  "*Name of buffer for running an inferior Octave process.")
-
-(defvar inferior-octave-process nil)
-
-
-;;; Autoloads
-(autoload 'octave-mode "octave-mod" nil t)
-(autoload 'octave-help "octave-hlp" nil t)
-(autoload 'inferior-octave "octave-inf" nil t)
-(autoload 'run-octave "octave-inf" nil t)
-
-
 ;;; Bug reporting
 (defun octave-submit-bug-report ()
   "Submit a bug report on the Emacs Octave package via mail."
@@ -1398,6 +1390,6 @@ parenthetical grouping.")
 
 ;;; provide ourself
 
-(provide 'octave)
+(provide 'octave-mod)
 
 ;;; octave-mod.el ends here
