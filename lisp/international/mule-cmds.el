@@ -1124,8 +1124,21 @@ This hook is mainly used for canceling the effect of
       (error "Bogus calling sequence"))))
 
 (defcustom current-language-environment "English"
-  "The last language environment specified with `set-language-environment'."
+  "The last language environment specified with `set-language-environment'.
+This variable should only be set with Customize, which is equivalent
+to using `set-language-environment'."
+  :link '(custom-manual "(emacs)Language Environments")
   :set (lambda (symbol value) (set-language-environment value))
+  :get (lambda (x)
+	 (or (car-safe (assoc-ignore-case
+			(if (symbolp current-language-environment)
+			    (symbol-name current-language-environment)
+			  current-language-environment)
+			language-info-alist))
+	     "English"))
+  :type (cons 'choice (mapcar (lambda (lang)
+				(list 'const (car lang)))
+			      language-info-alist))
   :initialize 'custom-initialize-default
   :group 'mule
   :type 'string)
