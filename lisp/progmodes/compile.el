@@ -116,7 +116,7 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; paren, because otherwise this matches just about anything
     ;; containing a number with spaces around it.
     ("\n\\(Error\\|Warning\\)?[ \t]*\\([^:( \t\n]+\\)\
-[:(]?[ \t]*\\([0-9]+\\)[:) \t]" 2 3)
+\[:(]?[ \t]*\\([0-9]+\\)[:) \t]" 2 3)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
@@ -149,7 +149,9 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;;  File "foobar.ml", lines 5-8, characters 20-155: blah blah
     ;; Microtec mcc68k:
     ;;  "foo.c", line 32 pos 1; (E) syntax error; unexpected symbol: "lossage"
-    ("\"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[:., -]" 1 2)
+    ;; GNAT (as of July 94): 
+    ;;  "foo.adb", line 2(11): warning: file name does not match ...
+    ("\"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[:., (-]" 1 2)
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
