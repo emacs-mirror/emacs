@@ -527,7 +527,14 @@ second argument NOESCAPE is non-nil.")
   int old_point = -1;
   int start_point;
   Lisp_Object original, printcharfun;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
+  Lisp_Object tem;
+
+  /* Save and restore this--we are altering a buffer
+     but we don't want to deactivate the mark just for that.
+     No need for specbind, since errors deactivate the mark.  */
+  tem = Vdeactivate_mark;
+  GCPRO2 (object, tem);
 
   printcharfun = Vprin1_to_string_buffer;
   PRINTPREPARE;
@@ -538,9 +545,10 @@ second argument NOESCAPE is non-nil.")
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   object = Fbuffer_string ();
 
-  GCPRO1 (object);
   Ferase_buffer ();
   set_buffer_internal (old);
+
+  Vdeactivate_mark = tem;
   UNGCPRO;
 
   return object;
