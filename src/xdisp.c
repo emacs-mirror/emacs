@@ -228,6 +228,8 @@ static int line_number_display_limit;
    t means infinite.  nil means don't log at all.  */
 Lisp_Object Vmessage_log_max;
 
+/* Output a newline in the *Messages* buffer if "needs" one.  */
+
 void
 message_log_maybe_newline ()
 {
@@ -323,7 +325,6 @@ message_dolog (m, len, nlflag)
     }
 }
 
-
 /* We are at the end of the buffer after just having inserted a newline.
    (Note: We depend on the fact we won't be crossing the gap.)
    Check to see if the most recent message looks a lot like the previous one.
@@ -361,11 +362,16 @@ message_log_check_duplicate (prev_bol, this_bol)
     }
   return 0;
 }
-
+
 /* Display an echo area message M with a specified length of LEN chars.
-   The string may include null characters.  If m is 0, clear out any
+   The string may include null characters.  If M is 0, clear out any
    existing message, and let the minibuffer text show through.
-   Do not pass text that is stored in a Lisp string.  */
+
+   The buffer M must continue to exist until after the echo area
+   gets cleared or some other message gets displayed there.
+
+   Do not pass text that is stored in a Lisp string.
+   Do not pass text in a buffer that was alloca'd.  */
 
 void
 message2 (m, len)
@@ -380,7 +386,7 @@ message2 (m, len)
 }
 
 
-/* The non-logging part of that function.  */
+/* The non-logging counterpart of message2.  */
 
 void
 message2_nolog (m, len)
@@ -433,6 +439,15 @@ message2_nolog (m, len)
 	(*frame_up_to_date_hook) (f);
     }
 }
+
+/* Display a null-terminated echo area message M.  If M is 0, clear out any
+   existing message, and let the minibuffer text show through.
+
+   The buffer M must continue to exist until after the echo area
+   gets cleared or some other message gets displayed there.
+
+   Do not pass text that is stored in a Lisp string.
+   Do not pass text in a buffer that was alloca'd.  */
 
 void
 message1 (m)
@@ -466,8 +481,9 @@ truncate_echo_area (len)
    zero if being used by message.  */
 int message_buf_print;
 
-/* Dump an informative message to the minibuf.  If m is 0, clear out
+/* Dump an informative message to the minibuf.  If M is 0, clear out
    any existing message, and let the minibuffer text show through.  */
+
 /* VARARGS 1 */
 void
 message (m, a1, a2, a3)
@@ -533,7 +549,7 @@ message (m, a1, a2, a3)
     }
 }
 
-/* The non-logging version of that function.  */
+/* The non-logging version of message.  */
 void
 message_nolog (m, a1, a2, a3)
      char *m;
@@ -551,7 +567,7 @@ update_echo_area ()
 {
   message2 (echo_area_glyphs, echo_area_glyphs_length);
 }
-
+
 static void
 echo_area_display ()
 {
@@ -614,6 +630,8 @@ echo_area_display ()
 
   previous_echo_glyphs = echo_area_glyphs;
 }
+
+/* Update frame titles.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 static char frame_title_buf[512];
