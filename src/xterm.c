@@ -4377,23 +4377,16 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		  /* What we have now is the position of Emacs's own window.
 		     Convert that to the position of the window manager window.  */
-		  {
-		    int x, y;
-		    x_real_positions (f, &x, &y);
-		    f->output_data.x->left_pos = x;
-		    f->output_data.x->top_pos = y;
-#if 0
-		    if (y != event.xconfigure.y)
-		      {
-#endif
-			/* Since the WM decorations come below top_pos now,
-			   we must put them below top_pos in the future.  */
-			f->output_data.x->win_gravity = NorthWestGravity;
-			x_wm_set_size_hint (f, (long) 0, 0);
-#if 0
-		      }
-#endif
-		  }
+		  x_real_positions (f, &f->output_data.x->left_pos,
+				    &f->output_data.x->top_pos);
+
+		  if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
+		    {
+		      /* Since the WM decorations come below top_pos now,
+			 we must put them below top_pos in the future.  */
+		      f->output_data.x->win_gravity = NorthWestGravity;
+		      x_wm_set_size_hint (f, (long) 0, 0);
+		    }
 		}
 	      goto OTHER;
 
@@ -5677,9 +5670,13 @@ x_make_frame_visible (f)
 
     /* Arriving X events are processed here.  */
 
-    /* Now move the window back to where it was "supposed to be".  */
+    /* Now move the window back to where it was "supposed to be".
+       But don't do it if the gravity is negative.
+       When the gravity is negative, this uses a position
+       that is 3 pixels too low.  Perhaps that's really the border width.  */
 
-    if (! (starting_flags & (XNegative | YNegative)))
+    if (! FRAME_VISIBLE_P (f)
+	&& f->output_data.x->win_gravity == NorthWestGravity)
       {
 	BLOCK_INPUT;
 
