@@ -37,8 +37,6 @@
 
 	* simple.el (choose-completion-string-functions): Likewise.
 
-	* speedbar.el (speedbar-mode): Likewise.
-
 	* textmodes/reftex.el (reftex-TeX-master-file): Likewise.
 
 	* textmodes/fill.el (fill-nonuniform-paragraphs)
@@ -47,6 +45,10 @@
 	* vcursor.el (vcursor-toggle-vcursor-map): Likewise.
 
 	* warnings.el (warning-level-aliases): Likewise.
+
+	* speedbar.el (speedbar-mode): Fix spacing and typos.
+
+	* textmodes/reftex-vars.el (reftex-label-menu-flags): Fix typo.
 
 2002-09-05  Markus Rost  <rost@math.ohio-state.edu>
 
