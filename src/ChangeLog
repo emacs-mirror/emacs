@@ -1,3 +1,8 @@
+2002-06-07  Sam Steingold  <sds@gnu.org>
+
+	* xselect.c (lisp_data_to_selection_data): Fix last change:
+	*data_ret is not a Lisp string, while unibyte_string is.
+
 2002-06-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xselect.c (lisp_data_to_selection_data): Fix last change: set

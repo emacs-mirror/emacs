@@ -116,7 +116,7 @@ static Lisp_Object Vnext_selection_coding_system;
 /* If this is a smaller number than the max-request-size of the display,
    emacs will use INCR selection transfer when the selection is larger
    than this.  The max-request-size is usually around 64k, so if you want
-   emacs to use incremental selection transfers when the selection is 
+   emacs to use incremental selection transfers when the selection is
    smaller than that, set this.  I added this mostly for debugging the
    incremental transfer stuff, but it might improve server performance.  */
 #define MAX_SELECTION_QUANTUM 0xFFFFFF
@@ -147,7 +147,7 @@ static Lisp_Object Vselection_alist;
 
 /* This is an alist whose CARs are selection-types (whose names are the same
    as the names of X Atoms) and whose CDRs are the names of Lisp functions to
-   call to convert the given Emacs selection value to a string representing 
+   call to convert the given Emacs selection value to a string representing
    the given selection type.  This is for Lisp-level extension of the emacs
    selection handling.  */
 static Lisp_Object Vselection_converter_alist;
@@ -162,7 +162,7 @@ static void lisp_data_to_selection_data ();
 static Lisp_Object selection_data_to_lisp_data ();
 static Lisp_Object x_get_window_property_as_lisp_data ();
 
-/* This converts a Lisp symbol to a server Atom, avoiding a server 
+/* This converts a Lisp symbol to a server Atom, avoiding a server
    roundtrip whenever possible.  */
 
 static Atom
@@ -219,10 +219,10 @@ x_atom_to_symbol (dpy, atom)
   struct x_display_info *dpyinfo;
   char *str;
   Lisp_Object val;
-  
+
   if (! atom)
     return Qnil;
-  
+
   switch (atom)
     {
     case XA_PRIMARY:
@@ -291,7 +291,7 @@ x_atom_to_symbol (dpy, atom)
 }
 
 /* Do protocol to assert ourself as a selection owner.
-   Update the Vselection_alist so that we can reply to later requests for 
+   Update the Vselection_alist so that we can reply to later requests for
    our selection.  */
 
 static void
@@ -436,7 +436,7 @@ x_get_local_selection (selection_symbol, target_type)
       && SYMBOLP (XCAR (value)))
     type = XCAR (value),
     check = XCDR (value);
-  
+
   if (STRINGP (check)
       || VECTORP (check)
       || SYMBOLP (check)
@@ -470,7 +470,7 @@ x_decline_selection_request (event)
 {
   XSelectionEvent reply;
   int count;
-  
+
   reply.type = SelectionNotify;
   reply.display = SELECTION_EVENT_DISPLAY (event);
   reply.requestor = SELECTION_EVENT_REQUESTOR (event);
@@ -644,7 +644,7 @@ x_reply_selection_request (event, format, data, size, type)
 
       if (x_window_to_frame (dpyinfo, window)) /* #### debug */
 	error ("Attempt to transfer an INCR to ourself!");
-      
+
       TRACE2 ("Start sending %d bytes incrementally (%s)",
 	      bytes_remaining,  XGetAtomName (display, reply.property));
       wait_object = expect_property_change (display, window, reply.property,
@@ -656,7 +656,7 @@ x_reply_selection_request (event, format, data, size, type)
 		       32, PropModeReplace,
 		       (unsigned char *) &bytes_remaining, 1);
       XSelectInput (display, window, PropertyChangeMask);
-      
+
       /* Tell 'em the INCR data is there...  */
       TRACE0 ("Send SelectionNotify event");
       XSendEvent (display, window, False, 0L, (XEvent *) &reply);
@@ -690,7 +690,7 @@ x_reply_selection_request (event, format, data, size, type)
 	  TRACE1 ("Sending increment of %d bytes", i);
 	  TRACE1 ("Set %s to increment data",
 		  XGetAtomName (display, reply.property));
-	  
+
 	  /* Append the next chunk of data to the property.  */
 	  XChangeProperty (display, window, reply.property, type, format,
 			   PropModeAppend, data, i / format_bytes);
@@ -709,7 +709,7 @@ x_reply_selection_request (event, format, data, size, type)
 		  XGetAtomName (display, reply.property));
 	  wait_for_property_change (wait_object);
 	}
-      
+
       /* Now write a zero-length chunk to the property to tell the
 	 requester that we're done.  */
       BLOCK_INPUT;
@@ -797,12 +797,12 @@ x_handle_selection_request (event)
   if (EQ (target_symbol, QMULTIPLE))
     target_symbol = fetch_multiple_target (event);
 #endif
-  
+
   /* Convert lisp objects back into binary data */
-  
+
   converted_selection
     = x_get_local_selection (selection_symbol, target_symbol);
-  
+
   if (! NILP (converted_selection))
     {
       unsigned char *data;
@@ -814,7 +814,7 @@ x_handle_selection_request (event)
       lisp_data_to_selection_data (SELECTION_EVENT_DISPLAY (event),
 				   converted_selection,
 				   &data, &type, &size, &format, &nofree);
-      
+
       x_reply_selection_request (event, format, data, size, type);
       successful_p = Qt;
 
@@ -853,7 +853,7 @@ x_handle_selection_clear (event)
   Display *display = SELECTION_EVENT_DISPLAY (event);
   Atom selection = SELECTION_EVENT_SELECTION (event);
   Time changed_owner_time = SELECTION_EVENT_TIME (event);
-  
+
   Lisp_Object selection_symbol, local_selection_data;
   Time local_selection_time;
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
@@ -1139,7 +1139,7 @@ x_handle_property_notify (event)
 	  xfree (rest);
 	  return;
 	}
-      
+
       prev = rest;
       rest = rest->next;
     }
@@ -1174,7 +1174,7 @@ copy_multiple_data (obj)
   int size;
   if (CONSP (obj))
     return Fcons (XCAR (obj), copy_multiple_data (XCDR (obj)));
-    
+
   CHECK_VECTOR (obj);
   vec = Fmake_vector (size = XVECTOR (obj)->size, Qnil);
   for (i = 0; i < size; i++)
@@ -1227,9 +1227,9 @@ x_get_foreign_selection (selection_symbol, target_type)
     type_atom = symbol_to_x_atom (dpyinfo, display, target_type);
 
   BLOCK_INPUT;
-  
+
   count = x_catch_errors (display);
-  
+
   TRACE2 ("Get selection %s, type %s",
 	  XGetAtomName (display, type_atom),
 	  XGetAtomName (display, target_property));
@@ -1305,12 +1305,12 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
   unsigned char *tmp_data = 0;
   int result;
   int buffer_size = SELECTION_QUANTUM (display);
-  
+
   if (buffer_size > MAX_SELECTION_QUANTUM)
     buffer_size = MAX_SELECTION_QUANTUM;
-  
+
   BLOCK_INPUT;
-  
+
   /* First probe the thing to find out how big it is.  */
   result = XGetWindowProperty (display, window, property,
 			       0L, 0L, False, AnyPropertyType,
@@ -1324,10 +1324,10 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
       *bytes_ret = 0;
       return;
     }
-  
+
   /* This was allocated by Xlib, so use XFree.  */
   XFree ((char *) tmp_data);
-  
+
   if (*actual_type_ret == None || *actual_format_ret == 0)
     {
       UNBLOCK_INPUT;
@@ -1336,7 +1336,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
 
   total_size = bytes_remaining + 1;
   *data_ret = (unsigned char *) xmalloc (total_size);
-  
+
   /* Now read, until we've gotten it all.  */
   while (bytes_remaining)
     {
@@ -1363,7 +1363,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
       *actual_size_ret *= *actual_format_ret / 8;
       bcopy (tmp_data, (*data_ret) + offset, *actual_size_ret);
       offset += *actual_size_ret;
-      
+
       /* This was allocated by Xlib, so use XFree.  */
       XFree ((char *) tmp_data);
     }
@@ -1424,7 +1424,7 @@ receive_incremental_selection (display, window, property, target_type,
 
       TRACE0 ("  Wait for property change");
       wait_for_property_change (wait_object);
-      
+
       /* expect it again immediately, because x_get_window_property may
 	 .. no it won't, I don't get it.
 	 .. Ok, I get it now, the Xt code that implements INCR is broken. */
@@ -1462,10 +1462,10 @@ receive_incremental_selection (display, window, property, target_type,
 	  *size_bytes_ret = offset + tmp_size_bytes;
 	  *data_ret = (unsigned char *) xrealloc (*data_ret, *size_bytes_ret);
 	}
-      
+
       bcopy (tmp_data, (*data_ret) + offset, tmp_size_bytes);
       offset += tmp_size_bytes;
-      
+
       /* Use xfree, not XFree, because x_get_window_property
 	 calls xmalloc itself.  */
       xfree (tmp_data);
@@ -1519,7 +1519,7 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
 						 selection_atom),
 			       Qnil)));
     }
-  
+
   if (actual_type == dpyinfo->Xatom_INCR)
     {
       /* That wasn't really the data, just the beginning.  */
@@ -1546,7 +1546,7 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
      manner.  */
   val = selection_data_to_lisp_data (display, data, bytes,
 				     actual_type, actual_format);
-  
+
   /* Use xfree, not XFree, because x_get_window_property
      calls xmalloc itself.  */
   xfree ((char *) data);
@@ -1776,7 +1776,7 @@ lisp_data_to_selection_data (display, obj,
 	  unibyte_string = string_make_unibyte (obj);
 	  *data_ret = XSTRING (unibyte_string)->data;
 	  *nofree_ret = 1;
-	  *size_ret = STRING_BYTES (*data_ret);
+	  *size_ret = SBYTES (unibyte_string);
 	}
       else
 	{
@@ -1864,10 +1864,10 @@ lisp_data_to_selection_data (display, obj,
 		Lisp_Object pair = XVECTOR (obj)->contents [i];
 		if (XVECTOR (pair)->size != 2)
 		  Fsignal (Qerror,
-			   Fcons (build_string 
+			   Fcons (build_string
        ("elements of the vector must be vectors of exactly two elements"),
 				  Fcons (pair, Qnil)));
-		
+
 		(*(Atom **) data_ret) [i * 2]
 		  = symbol_to_x_atom (dpyinfo, display,
 				      XVECTOR (pair)->contents [0]);
@@ -1880,7 +1880,7 @@ lisp_data_to_selection_data (display, obj,
 		       Fcons (build_string
 		   ("all elements of the vector must be of the same type"),
 			      Fcons (obj, Qnil)));
-	  
+
 	}
 #endif
       else
@@ -2124,7 +2124,7 @@ and t is the same as `SECONDARY'.  */)
   CHECK_SYMBOL (selection);
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
-  
+
   if (NILP (Fassq (selection, Vselection_alist)))
     return Qnil;
   return Qt;
@@ -2231,7 +2231,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 			 &type, &format, &size, 0);
   if (!data || !format)
     return Qnil;
-  
+
   if (format != 8 || type != XA_STRING)
     Fsignal (Qerror,
 	     Fcons (build_string ("cut buffer doesn't contain 8-bit data"),
