@@ -28,7 +28,7 @@ to operate on the files listed.
 * Hiding Subdirectories::     Making subdirectories visible or invisible.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
 * Find: Dired and Find.	      Using `find' to choose the files for Dired.
-* Extra Features for Dired::  Dired-X provides more features.
+* Extra: Dired Extra Features. Dired-X provides more features.
 @end menu
 
 @node Dired Enter
@@ -975,10 +975,10 @@ variable @code{find-ls-option}, whose default value specifies using
 options @samp{-ld} for @code{ls}.  If your listings are corrupted, you
 may need to change the value of this variable.
 
-@node Extra Features for Dired
-@section Extra Features for Dired---The Dired-X Package
+@node Dired Extra Features
+@section Extra Features for Dired
 
 The Dired-X package provides various extra features for Dired mode.  You
 can load it with @code{M-x load-library} or customize
-@code{dired-load-hook} to add @samp{(require@w{ }'dired-x)}.
-@xref{Top, Introduction, Dired Extra Version 2 User's Manual, dired-x}.
+@code{dired-load-hook} to add @code{dired-require-dired-x}.
+@xref{,Dired-X,,dired-x, Dired Extra Version 2 User's Manual}.
