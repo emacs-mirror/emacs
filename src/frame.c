@@ -1376,7 +1376,7 @@ DEFUN ("set-frame-position", Fset_frame_position,
   "Sets position of FRAME in pixels to XOFFSET by YOFFSET.\n\
 This is actually the position of the upper left corner of the frame.\n\
 Negative values for XOFFSET or YOFFSET are interpreted relative to\n\
-the leftmost or bottommost possible position (that stays within the screen).")
+the rightmost or bottommost possible position (that stays within the screen).")
   (frame, xoffset, yoffset)
      Lisp_Object frame, xoffset, yoffset;
 {
