@@ -1320,7 +1320,7 @@ struct face_cache
    face doesn't exist.  */
 
 #define FACE_FROM_ID(F, ID)				\
-     (((ID) >= 0 && (ID) < FRAME_FACE_CACHE (F)->used)	\
+     (((unsigned) (ID) < FRAME_FACE_CACHE (F)->used)	\
       ? FRAME_FACE_CACHE (F)->faces_by_id[ID]		\
       : NULL)
 
