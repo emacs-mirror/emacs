@@ -4,6 +4,10 @@
 	assq-delete-all if it's not defined.
 	(ebnf-generate-region): Code fix.
 
+	* printing.el: Doc fix.
+	(pr-version): New version number (6.7.2).
+	(pr-command): Return empty string if command is an empty string.
+
 2004-02-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ebnf-abn.el: New file, implements an ABNF parser.
