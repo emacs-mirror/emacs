@@ -1,5 +1,11 @@
 2004-02-21  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* text.texi: Various small changes in addition to the following:
+	(User-Level Deletion): Mention optional BACKWARD-ONLY argument
+	to delete-horizontal-space.
+	(Kill Functions, Yanking, Low-Level Kill Ring): clarify and correct
+	description of yank-handler text property at various places.
+
 	* frames.texi (Window System Selections): Add anchor.
 
 	* syntax.texi (Syntax Table Functions): Clarify and correct
