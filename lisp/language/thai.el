@@ -31,13 +31,11 @@
 (make-coding-system
  'thai-tis620 2 ?T
  "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)"
- '((ascii t) (thai-tis620 t) nil nil
+ '(ascii thai-tis620 nil nil
    nil ascii-eol)
- '(ascii thai-tis620))
-(coding-system-put 'thai-tis620 'post-read-conversion
-		   'thai-post-read-conversion)
-(coding-system-put 'thai-tis620 'pre-write-conversion
-		   'thai-pre-write-conversion)
+ '((safe-charsets ascii thai-tis620)
+   (post-read-conversion . thai-post-read-conversion)
+   (pre-write-conversion . thai-pre-write-conversion)))
 
 (define-coding-system-alias 'th-tis620 'thai-tis620)
 (define-coding-system-alias 'tis620 'thai-tis620)
@@ -45,9 +43,10 @@
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (setup-function . setup-thai-environment)
-	  (charset . (thai-tis620))
-	  (coding-system . (thai-tis620))
-	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")
+	  (charset thai-tis620)
+	  (coding-system thai-tis620)
+	  (coding-priority thai-tis620)
+	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ(B0,TGQ(B1,TJ(B0,T4U(B1,T$(B0,TCQ(B1,T:(B, ,TJ(B0,TGQ(B1,TJ(B0,T4U(B10,T$h(B1,TP(B")
 	  (documentation . t)))
 
 ;;; thai.el ends here

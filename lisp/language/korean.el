@@ -31,31 +31,35 @@
 (make-coding-system
  'korean-iso-8bit 2 ?K
  "ISO 2022 based EUC encoding for Korean KSC5601 (MIME:EUC-KR)"
- '((ascii t) korean-ksc5601 nil nil
+ '(ascii korean-ksc5601 nil nil
    nil ascii-eol ascii-cntl)
- '(ascii korean-ksc5601))
+ '((safe-charsets ascii korean-ksc5601)
+   (mime-charset . euc-kr)))
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
 
 (make-coding-system
- 'korean-iso-7bit-lock 2 ?k
+ 'iso-2022-kr 2 ?k
  "ISO 2022 based 7-bit encoding for Korean KSC5601 (MIME:ISO-2022-KR)."
  '(ascii (nil korean-ksc5601) nil nil
 	 nil ascii-eol ascii-cntl seven locking-shift nil nil nil nil nil
 	 designation-bol)
- '(ascii korean-ksc5601))
+ '((safe-charsets ascii korean-ksc5601)
+   (mime-charset . iso-2022-kr)))
 
-(define-coding-system-alias 'iso-2022-kr 'korean-iso-7bit-lock)
+(define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
 
 (set-language-info-alist
  "Korean" '((setup-function . setup-korean-environment)
 	    (exit-function . exit-korean-environment)
 	    (tutorial . "TUTORIAL.kr")
-	    (charset . (korean-ksc5601))
-	    (coding-system . (korean-iso-7bit-lock korean-iso-8bit))
+	    (charset korean-ksc5601)
+	    (coding-system iso-2022-kr korean-iso-8bit)
+	    (coding-priority korean-iso-8bit iso-2022-kr)
 	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")
-	    (documentation . "The following key bindings are avairable:
+	    (documentation . "\
+The following key bindings are avairable while using Korean input methods:
   Shift-SPC:	toggle-korean-input-mthod
   Control-F9:	quail-hangul-switch-symbol-ksc
   F9:		quail-hangul-switch-hanja")

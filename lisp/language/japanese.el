@@ -33,9 +33,11 @@
  'iso-2022-jp 2 ?J
  "ISO 2022 based 7bit encoding for Japanese (MIME:ISO-2022-JP)"
  '((ascii japanese-jisx0208-1978 japanese-jisx0208
-	  latin-jisx0201 japanese-jisx0212 katakana-jisx0201 t) nil nil nil
+	  latin-jisx0201 japanese-jisx0212 katakana-jisx0201) nil nil nil
    short ascii-eol ascii-cntl seven)
- '(ascii japanese-jisx0208-1978 japanese-jisx0208 latin-jisx0201))
+ '((safe-charsets ascii japanese-jisx0208-1978 japanese-jisx0208
+		  latin-jisx0201 japanese-jisx0212 katakana-jisx0201)
+   (mime-charset . 'iso-2022-jp)))
 
 (define-coding-system-alias 'junet 'iso-2022-jp)
 
@@ -43,8 +45,9 @@
  'japanese-shift-jis 1 ?S
  "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)"
  nil
- '(ascii japanese-jisx0208 japanese-jisx0208-1978
-	 latin-jisx0201 katakana-jisx0201))
+ '((safe-charsets ascii japanese-jisx0208 japanese-jisx0208-1978
+		  latin-jisx0201 katakana-jisx0201)
+   (mime-charset . shift_jis)))
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
@@ -63,11 +66,11 @@
 (make-coding-system
  'japanese-iso-8bit 2 ?E
  "ISO 2022 based EUC encoding for Japanese (MIME:EUC-JP)"
- '((ascii latin-jisx0201) (japanese-jisx0208 japanese-jisx0208-1978)
-   katakana-jisx0201 japanese-jisx0212
+ '(ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212
    short ascii-eol ascii-cntl nil nil single-shift)
- '(ascii latin-jisx0201 japanese-jisx0208 japanese-jisx0208-1978
-   katakana-jisx0201 japanese-jisx0212))
+ '((safe-charsets ascii latin-jisx0201 japanese-jisx0208 japanese-jisx0208-1978
+		 katakana-jisx0201 japanese-jisx0212)
+   (mime-charset . euc-jp)))
 
 (define-coding-system-alias 'euc-japan-1990 'japanese-iso-8bit)
 (define-coding-system-alias 'euc-japan 'japanese-iso-8bit)
@@ -76,12 +79,13 @@
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment)
 	      (tutorial . "TUTORIAL.jp")
-	      (charset . (japanese-jisx0208 japanese-jisx0208-1978
-			  japanese-jisx0212 latin-jisx0201
-			  katakana-jisx0201))
-	      (coding-system . (iso-2022-jp japanese-iso-8bit
-				japanese-shift-jis japanese-iso-7bit-1978-irv))
-	      (sample-text . "Japanese (日本語)		こんにちは, ｺﾝﾆﾁﾊ")
+	      (charset japanese-jisx0208 japanese-jisx0208-1978
+		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201)
+	      (coding-system iso-2022-jp japanese-iso-8bit
+			     japanese-shift-jis japanese-iso-7bit-1978-irv)
+	      (coding-priority iso-2022-jp japanese-iso-8bit
+			       japanese-shift-jis)
+	      (sample-text . "Japanese (日本語)	こんにちは, ｺﾝﾆﾁﾊ")
 	      (documentation . t)))
 
 ;;; japanese.el ends here

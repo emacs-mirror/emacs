@@ -204,7 +204,8 @@ Both tables are indexed by the position code of Vietnamese characters.")
  'vietnamese-viscii 4 ?V
  "8-bit encoding for Vietnamese VISCII 1.1 (MIME:VISCII)"
  (cons ccl-decode-viscii ccl-encode-viscii)
- '(ascii vietnamese-viscii-lower vietnamese-viscii-upper))
+ '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+   (mime-charset . viscii)))
 
 (define-coding-system-alias 'viscii 'vietnamese-viscii)
 
@@ -212,7 +213,7 @@ Both tables are indexed by the position code of Vietnamese characters.")
  'vietnamese-vscii 4 ?v
  "8-bit encoding for Vietnamese VSCII-1"
  (cons ccl-decode-vscii ccl-encode-vscii)
- '(ascii vietnamese-viscii-lower vietnamese-viscii-upper))
+ '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)))
 
 (define-coding-system-alias 'vscii 'vietnamese-vscii)
 
@@ -220,11 +221,9 @@ Both tables are indexed by the position code of Vietnamese characters.")
  'vietnamese-viqr 0 ?q
  "Vietnamese latin transcription (VIQR)"
  nil
- '(ascii vietnamese-viscii-lower vietnamese-viscii-upper))
-(coding-system-put 'vietnamese-viqr 'post-read-conversion
-		   'viqr-post-read-conversion)
-(coding-system-put 'vietnamese-viqr 'pre-write-conversion
-		   'viqr-pre-write-conversion)
+ '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+   (post-read-conversion . viqr-post-read-conversion)
+   (pre-write-conversion . viqr-pre-write-conversion)))
 
 (define-coding-system-alias 'viqr 'vietnamese-viqr)
 
@@ -236,14 +235,16 @@ Both tables are indexed by the position code of Vietnamese characters.")
 
 (set-language-info-alist
  "Vietnamese" '((setup-function . setup-vietnamese-environment)
-		(charset . (vietnamese-viscii-lower
-			    vietnamese-viscii-upper))
-		(coding-system . (vietnamese-viscii vietnamese-vscii
-				  vietnamese-viqr))
+		(charset vietnamese-viscii-lower vietnamese-viscii-upper)
+		(coding-system vietnamese-viscii vietnamese-vscii
+			       vietnamese-viqr)
+		(coding-priority vietnamese-viscii)
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
 		(documentation . "\
 For Vietnamese, Emacs uses special charasets internally.
-They can be decoded from and encoded to VISCC, VSCII, and VIQR.")
+They can be decoded from and encoded to VISCC, VSCII, and VIQR.
+Current setting put higher priority to the coding system VISCII than VSCII.
+If you prefer VSCII, please do: (prefer-coding-system 'vietnamese-vscii)")
 		))
 
 ;;; vietnamese.el ends here
