@@ -71,8 +71,6 @@
 
 ;; Variables
 
-(defvar handwrite-version "2.0"
-  "The version of handwrite.el")
 (defvar handwrite-psindex 0
   "The index of the PostScript buffer")
 (defvar menu-bar-handwrite-map (make-sparse-keymap "Handwrite functions."))
@@ -133,7 +131,7 @@ Variables: handwrite-linespace     (default 12)
     (switch-to-buffer ps-buf-name)
     (handwrite-insert-header buf-name)
     (insert "\n(\\nCreated by Gnu Emacs' handwrite version "
-	    handwrite-version  "\\n\\n)=print flush\n")
+	    emacs-version  "\\n\\n)=print flush\n")
     (handwrite-insert-preamble)
     (handwrite-insert-info)
     (handwrite-insert-font)
