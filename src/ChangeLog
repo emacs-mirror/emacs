@@ -1,3 +1,46 @@
+2004-10-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c: Put empty line between comment and function body.
+	(xg_destroy_widgets): Renamed from remove_from_container.  Just
+	destroy all widgets in list.  Argument wcont removed.
+	(xg_update_menubar, xg_update_submenu): Call xg_destroy_widgets
+	instead of remove_from_container.
+	(xg_display_close, xg_create_tool_bar, update_frame_tool_bar)
+	(free_frame_tool_bar): Add comment.
+
+	* xfns.c (xic_create_xfontset): Check that FRAME_XIC_BASE_FONTNAME
+	is not NULL before strcmp.
+
+2004-10-26  Kim F. Storm  <storm@cua.dk>
+
+	* callint.c (Fcall_interactively): Add 'U' code to get the
+	up-event discarded by a previous 'k' or 'K' argument.
+
+2004-10-26  David Kastrup  <dak@gnu.org>
+
+	* buffer.c (syms_of_buffer): Fix a few typos.
+
+2004-10-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c: Put empty line between comment and function body.
+	Use two spaces before comment end.
+
+2004-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_pattern_regexp): Optimize for the case that
+	PATTERN is full XLFD.
+
+2004-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* regex.h (enum reg_errcode_t): New value REG_ERANGEX.
+
+	* regex.c (re_error_msgid): Add an entry for REG_ERANGEX.
+	(regex_compile): Return REG_ERANGEX if appropriate.
+
+2004-10-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (xic_create_xfontset): Initialize missing_list to NULL.
+
 2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
         * xterm.h (x_output): New member `xic_base_fontname'.

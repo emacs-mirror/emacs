@@ -62,6 +62,8 @@
 
 ;;; Code:
 
+(require 'newcomment)
+
 (eval-when-compile (require 'cl))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -796,32 +798,37 @@ depending on PATTERNS."
 		  (regexp (nth 1 pat))
 		  (index (nth 2 pat))
 		  (function (nth 3 pat))
-		  (rest (nthcdr 4 pat)))
+		  (rest (nthcdr 4 pat))
+		  cs)
 	      ;; Go backwards for convenience of adding items in order.
 	      (goto-char (point-max))
 	      (while (re-search-backward regexp nil t)
-		(imenu-progress-message prev-pos nil t)
+		(goto-char (match-end index))
 		(setq beg (match-beginning index))
-		;; Add this sort of submenu only when we've found an
-		;; item for it, avoiding empty, duff menus.
-		(unless (assoc menu-title index-alist)
-		  (push (list menu-title) index-alist))
-		(if imenu-use-markers
-		    (setq beg (copy-marker beg)))
-		(let ((item
-		       (if function
-			   (nconc (list (match-string-no-properties index)
-					beg function)
-				  rest)
-			 (cons (match-string-no-properties index)
-			       beg)))
-		      ;; This is the desired submenu,
-		      ;; starting with its title (or nil).
-		      (menu (assoc menu-title index-alist)))
-		  ;; Insert the item unless it is already present.
-		  (unless (member item (cdr menu))
-		    (setcdr menu
-			    (cons item (cdr menu))))))))
+		(if (setq cs (save-match-data (comment-beginning)))
+		    (goto-char cs)	; skip this one, it's in a comment
+		  (goto-char beg)
+		  (imenu-progress-message prev-pos nil t)
+		  ;; Add this sort of submenu only when we've found an
+		  ;; item for it, avoiding empty, duff menus.
+		  (unless (assoc menu-title index-alist)
+		    (push (list menu-title) index-alist))
+		  (if imenu-use-markers
+		      (setq beg (copy-marker beg)))
+		  (let ((item
+			 (if function
+			     (nconc (list (match-string-no-properties index)
+					  beg function)
+				    rest)
+			   (cons (match-string-no-properties index)
+				 beg)))
+			;; This is the desired submenu,
+			;; starting with its title (or nil).
+			(menu (assoc menu-title index-alist)))
+		    ;; Insert the item unless it is already present.
+		    (unless (member item (cdr menu))
+		      (setcdr menu
+			      (cons item (cdr menu)))))))))
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.

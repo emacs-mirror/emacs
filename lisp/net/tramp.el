@@ -1770,6 +1770,7 @@ on the FILENAME argument, even if VISIT was a string.")
     (delete-file . tramp-handle-delete-file)
     (directory-file-name . tramp-handle-directory-file-name)
     (shell-command . tramp-handle-shell-command)
+    (process-file . tramp-handle-process-file)
     (insert-directory . tramp-handle-insert-directory)
     (expand-file-name . tramp-handle-expand-file-name)
     (file-local-copy . tramp-handle-file-local-copy)
@@ -3469,6 +3470,18 @@ This will break if COMMAND prints a newline, followed by the value of
     (tramp-run-real-handler 'shell-command
 			    (list command output-buffer error-buffer))))
 
+(defun tramp-handle-process-file (program &optional infile buffer display &rest args)
+  "Like `process-file' for Tramp files."
+  (when infile (error "Implementation does not handle input from file"))
+  (when (and (numberp buffer) (zerop buffer))
+    (error "Implementation does not handle immediate return"))
+  (when (consp buffer) (error "Implementation does not handle error files"))
+  (shell-command 
+   (mapconcat 'tramp-shell-quote-argument
+              (cons program args)
+              " ")
+   buffer))
+
 ;; File Editing.
 
 (defsubst tramp-make-temp-file ()
@@ -3960,6 +3973,8 @@ ARGS are the arguments OPERATION has been called with."
    ; COMMAND
    ((member operation
 	    (list 'dired-call-process 'shell-command
+                  ; Post Emacs 21.3 only
+                  'process-file
 	          ; XEmacs only
 		  'dired-print-file 'dired-shell-call-process))
     default-directory)

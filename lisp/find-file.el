@@ -57,7 +57,7 @@
 ;; format above can be changed to include a function to be called when the
 ;; current file matches the regexp:
 ;;
-;;   '(("\\.cc$"  cc-function)
+;;   '(("\\.cc$"  cc--function)
 ;;     ("\\.hh$"  hh-function))
 ;;
 ;; These functions must return a list consisting of the possible names of the
@@ -239,22 +239,26 @@ the preceding slash.  The star represents all the subdirectories except
   :group 'ff)
 
 (defcustom cc-other-file-alist
-  '(
-    ("\\.cc$"  (".hh" ".h"))
-    ("\\.hh$"  (".cc" ".C"))
+  '(("\\.cc\\'"  (".hh" ".h"))
+    ("\\.hh\\'"  (".cc" ".C"))
 
-    ("\\.c$"   (".h"))
-    ("\\.h$"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp"))
+    ("\\.c\\'"   (".h"))
+    ("\\.h\\'"   (".c" ".cc" ".C" ".CC" ".cxx" ".cpp"))
 
-    ("\\.C$"   (".H"  ".hh" ".h"))
-    ("\\.H$"   (".C"  ".CC"))
+    ("\\.C\\'"   (".H"  ".hh" ".h"))
+    ("\\.H\\'"   (".C"  ".CC"))
 
-    ("\\.CC$"  (".HH" ".H"  ".hh" ".h"))
-    ("\\.HH$"  (".CC"))
+    ("\\.CC\\'"  (".HH" ".H"  ".hh" ".h"))
+    ("\\.HH\\'"  (".CC"))
 
-    ("\\.cxx$" (".hh" ".h"))
-    ("\\.cpp$" (".hh" ".h"))
-    )
+    ("\\.c\\+\\+\\'" (".h++" ".hh" ".h"))
+    ("\\.h\\+\\+\\'" (".c++"))
+
+    ("\\.cpp\\'" (".hpp" ".hh" ".h"))
+    ("\\.hpp\\'" (".cpp"))
+
+    ("\\.cxx\\'" (".hxx" ".hh" ".h"))
+    ("\\.hxx\\'" (".cxx")))
   "*Alist of extensions to find given the current file's extension.
 
 This list should contain the most used extensions before the others,

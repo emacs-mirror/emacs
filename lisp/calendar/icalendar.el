@@ -39,6 +39,8 @@
 ;;        Added icalendar-export-region.
 ;;        The import and export commands do not clear their target file,
 ;;        but append their results to the target file.
+;;        I18n-problems fixed -- use calendar-(month|day)-name-array.
+;;        Fixed problems with export of multi-line diary entries.
 
 ;;  0.06: Bugfixes regarding icalendar-import-format-*.
 ;;        Fix in icalendar-convert-diary-to-ical -- thanks to Philipp
@@ -167,31 +169,7 @@ longer than they are."
 ;; NO USER SERVICABLE PARTS BELOW THIS LINE
 ;; ======================================================================
 
-(defconst icalendar-weekdayabbrev-table
-  '(("mon\\(day\\)?"    . "MO")
-    ("tue\\(sday\\)?"   . "TU")
-    ("wed\\(nesday\\)?" . "WE")
-    ("thu\\(rsday\\)?"  . "TH")
-    ("fri\\(day\\)?"    . "FR")
-    ("sat\\(urday\\)?"  . "SA")
-    ("sun\\(day\\)?"    . "SU"))
-  "Translation table for weekdays.")
-
-(defconst icalendar-monthnumber-table
-  '(("^jan\\(uar\\)?y?$"       . 1)
-    ("^feb\\(ruar\\)?y?$"      . 2)
-    ("^mar\\(ch\\)?\\|märz$"   . 3)
-    ("^apr\\(il\\)?$"          . 4)
-    ("^ma[iy]$"                . 5)
-    ("^jun[ie]?$"              . 6)
-    ("^jul[iy]?$"              . 7)
-    ("^aug\\(ust\\)?$"         . 8)
-    ("^sep\\(tember\\)?$"      . 9)
-    ("^o[ck]t\\(ober\\)?$"     . 10)
-    ("^nov\\(ember\\)?$"       . 11)
-    ("^de[cz]\\(ember\\)?$"    . 12))
-  "Regular expressions for month names.
-Currently this matches only German and English.")
+(defconst icalendar--weekday-array ["SU" "MO" "TU" "WE" "TH" "FR" "SA"])
 
 (defvar icalendar-debug nil ".")
 
@@ -511,18 +489,47 @@ Note that this silently ignores seconds."
 
 (defun icalendar--get-month-number (monthname)
   "Return the month number for the given MONTHNAME."
-  (save-match-data
-    (let ((case-fold-search t))
-      (assoc-default monthname icalendar-monthnumber-table
-                     'string-match))))
+  (catch 'found
+    (let ((num 1)
+          (m (downcase monthname)))
+      (mapc (lambda (month)
+              (let ((mm (downcase month)))
+                (if (or (string-equal mm m)
+                        (string-equal (substring mm 0 3) m))
+                    (throw 'found num))
+                (setq num (1+ num))))
+            calendar-month-name-array))
+    ;; Error:
+    -1))
+
+(defun icalendar--get-weekday-number (abbrevweekday)
+  "Return the number for the ABBREVWEEKDAY."
+  (catch 'found
+    (let ((num 0)
+          (aw (downcase abbrevweekday)))
+      (mapc (lambda (day)
+              (let ((d (downcase day)))
+                (if (string-equal d aw)
+                    (throw 'found num))
+                (setq num (1+ num))))
+            icalendar--weekday-array))
+    ;; Error:
+    -1))
 
 (defun icalendar--get-weekday-abbrev (weekday)
   "Return the abbreviated WEEKDAY."
-  ;;FIXME: ISO-like(?).
-  (save-match-data
-    (let ((case-fold-search t))
-      (assoc-default weekday icalendar-weekdayabbrev-table
-                     'string-match))))
+  (catch 'found
+    (let ((num 0)
+          (w (downcase weekday)))
+      (mapc (lambda (day)
+              (let ((d (downcase day)))
+                (if (or (string-equal d w)
+                        (string-equal (substring d 0 3) w))
+                    (throw 'found (aref icalendar--weekday-array num)))
+                (setq num (1+ num))))
+            calendar-day-name-array))
+    ;; Error:
+    "??"))
 
 (defun icalendar--datestring-to-isodate (datestring &optional day-shift)
   "Convert diary-style DATESTRING to iso-style date.
@@ -648,7 +655,7 @@ FExport diary data into iCalendar file: ")
     (save-excursion
       (goto-char min)
       (while (re-search-forward
-              "^\\([^ \t\n].*\\)\\(\n[ \t].*\\)*" max t)
+              "^\\([^ \t\n].*\\)\\(\\(\n[ \t].*\\)*\\)" max t)
         (setq entry-main (match-string 1))
         (if (match-beginning 2)
             (setq entry-rest (match-string 2))
@@ -1171,13 +1178,13 @@ written into the buffer ` *icalendar-errors*'."
                          ;; weekly and not all-day
                          (let* ((byday (cadr (assoc 'BYDAY rrule-props)))
                                 (weekday
-                                 (cdr (rassoc
-                                       byday
-                                       icalendar-weekdayabbrev-table))))
+                                 (icalendar--get-weekday-number byday)))
                            (icalendar--dmsg "weekly not-all-day")
-                           (if weekday
+                           (if (> weekday -1)
                                (setq diary-string
-                                     (format "%s %s%s%s" weekday
+                                     (format "%s %s%s%s"
+                                             (aref calendar-day-name-array
+ 						   weekday)
                                              start-t (if end-t "-" "")
                                              (or end-t "")))
                              ;; FIXME!!!!

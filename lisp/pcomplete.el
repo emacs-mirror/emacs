@@ -347,12 +347,12 @@ modified to be an empty string, or the desired separation string."
 ;;; User Functions:
 
 ;;;###autoload
-(defun pcomplete ()
+(defun pcomplete (&optional interactively)
   "Support extensible programmable completion.
 To use this function, just bind the TAB key to it, or add it to your
 completion functions list (it should occur fairly early in the list)."
-  (interactive)
-  (if (and (interactive-p)
+  (interactive "p")
+  (if (and interactively
 	   pcomplete-cycle-completions
 	   pcomplete-current-completions
 	   (memq last-command '(pcomplete

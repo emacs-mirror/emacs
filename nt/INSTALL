@@ -54,7 +54,9 @@
 
   In addition, using 4NT as your shell is known to fail the build process,
   at least for 4NT version 3.01.  Use cmd.exe, the default NT shell,
-  instead.
+  instead. MSYS sh.exe also appears to cause various problems. If you have
+  MSYS installed, try "make SHELL=cmd.exe" to force the use of cmd.exe
+  instead of sh.exe.
 
                                          sh exists     no sh
 

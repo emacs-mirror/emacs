@@ -205,7 +205,6 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin.
 Interactively, WIDTH is the prefix argument, if specified.
 Without prefix argument, the command prompts for WIDTH."
   (interactive "r\nNSet left margin to column: ")
-  (if (interactive-p) (setq width (prefix-numeric-value width)))
   (save-excursion
     ;; If inside indentation, start from BOL.
     (goto-char from)
@@ -229,7 +228,6 @@ If `auto-fill-mode' is active, re-fill the region to fit the new margin.
 Interactively, WIDTH is the prefix argument, if specified.
 Without prefix argument, the command prompts for WIDTH."
   (interactive "r\nNSet right margin to width: ")
-  (if (interactive-p) (setq width (prefix-numeric-value width)))
   (save-excursion
     (goto-char from)
     (skip-chars-backward " \t")
@@ -289,12 +287,10 @@ to change the margin by, in characters.  A negative argument decreases
 the right margin width.
 If `auto-fill-mode' is active, re-fill the region to fit the new margin."
   (interactive "r\nP")
-  (if (interactive-p)
-      (setq inc (if inc (prefix-numeric-value current-prefix-arg)
-		  standard-indent)))
+  (setq inc (if inc (prefix-numeric-value inc) standard-indent))
   (save-excursion
     (alter-text-property from to 'right-margin
-       (lambda (v) (+ inc (or v 0))))
+			 (lambda (v) (+ inc (or v 0))))
     (if auto-fill-function
 	(fill-region from to nil t t))))
 

@@ -110,6 +110,7 @@ P -- Prefix arg in raw form.  Does not do I/O.
 r -- Region: point and mark as 2 numeric args, smallest first.  Does no I/O.
 s -- Any string.  Does not inherit the current input method.
 S -- Any symbol.
+U -- Mouse up event discarded by a previous k or K argument.
 v -- Variable name: symbol that is user-variable-p.
 x -- Lisp expression read but not evaluated.
 X -- Lisp expression read and evaluated.
@@ -268,6 +269,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
   Lisp_Object specs;
   Lisp_Object filter_specs;
   Lisp_Object teml;
+  Lisp_Object up_event;
   Lisp_Object enable;
   int speccount = SPECPDL_INDEX ();
 
@@ -289,7 +291,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
   char prompt1[100];
   char *tem1;
   int arg_from_tty = 0;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   int key_count;
   int record_then_fail = 0;
 
@@ -327,6 +329,9 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
      specify how to represent the arguments in command history.
      The feature is not fully implemented.  */
   filter_specs = Qnil;
+
+  /* If k or K discard an up-event, save it here so it can be retrieved with U */
+  up_event = Qnil;
 
   /* Decode the kind of function.  Either handle it and return,
      or go to `lose' if not interactive, or go to `retry'
@@ -499,7 +504,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
       varies[i] = 0;
     }
 
-  GCPRO4 (prefix_arg, function, *args, *visargs);
+  GCPRO5 (prefix_arg, function, *args, *visargs, up_event);
   gcpro3.nvars = (count + 1);
   gcpro4.nvars = (count + 1);
 
@@ -628,7 +633,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 		/* Ignore first element, which is the base key.  */
 		tem2 = Fmemq (intern ("down"), Fcdr (teml));
 		if (! NILP (tem2))
-		  Fread_event (Qnil, Qnil);
+		  up_event = Fread_event (Qnil, Qnil);
 	      }
 	  }
 	  break;
@@ -656,9 +661,19 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
 		/* Ignore first element, which is the base key.  */
 		tem2 = Fmemq (intern ("down"), Fcdr (teml));
 		if (! NILP (tem2))
-		  Fread_event (Qnil, Qnil);
+		  up_event = Fread_event (Qnil, Qnil);
 	      }
 	  }
+	  break;
+
+	case 'U':		/* Up event from last k or K */
+	  if (!NILP (up_event))
+	    {
+	      args[i] = Fmake_vector (make_number (1), up_event);
+	      up_event = Qnil;
+	      teml = args[i];
+	      visargs[i] = Fkey_description (teml, Qnil);
+	    }
 	  break;
 
 	case 'e':		/* The invoking event.  */

@@ -1132,7 +1132,7 @@ Used non-interactively, arguments are optional: if given then TOPIC
 should be a topic string and non-nil RE-CACHE forces re-caching."
   (interactive (list nil current-prefix-arg))
   ;; The following test is for non-interactive calls via gnudoit etc.
-  (if (or (interactive-p) (not (stringp topic)) (string-match "\\S " topic))
+  (if (or (not (stringp topic)) (string-match "\\S " topic))
       (let ((file-name (woman-file-name topic re-cache)))
 	(if file-name
 	    (woman-find-file file-name)

@@ -1,12 +1,165 @@
+2004-10-26  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (auto-mode-alist): Add pod, js, xbm and xpm and group
+	trivial variants to shorten the list.
+	(xml-based-modes): New var.
+	(set-auto-mode): Give interpreter-mode-alist or <?xml or <!DOCTYPE
+	declaration higher priority than auto-mode-alist.
+
+	* find-file.el (cc-other-file-alist): Bring it in line with
+	cc-mode's auto-mode-alist entries and use \' instead of $.
+
+	* textmodes/sgml-mode.el (sgml-mode): Fix imenu-generic-expression
+	and add "Id" and "Name" submenus to it.
+
+	* imenu.el (imenu--generic-function): Skip matches in comments.
+
+2004-10-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc,full-calc, calc-quit, calc-keypad)
+	(full-calc-keypad, calc-trail-display):  Use an extra argument
+	instead of `interactive-p'.
+
+	* calc/calc-misc.el (calc-other-window): Use an extra argument
+	instead of `interactive-p'.
+
+	* calc/calc-rewr.el (calc-match): Use an extra argument instead of
+	`interactive-p'.
+
+2004-10-26  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (describe-key): Describe both down-event and up-event
+	for a mouse click.
+
+2004-10-26  Richard M. Stallman  <rms@gnu.org>
+
+	* woman.el (woman): Don't call interactive-p.
+
+	* pcomplete.el (pcomplete): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
+	* menu-bar.el (menu-bar-make-toggle): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
+	* man.el (Man-cleanup-manpage): Instead of interactive-p,
+	use an arg set non-nil by the interactive spec.
+
+2004-10-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
+
+	* progmodes/flymake.el (flymake-split-string): Use
+	`flymake-split-string-remove-empty-edges' in any case.
+
+2004-10-26  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/flymake.el (flymake-err-line-patterns):
+	Use `compilation-error-regexp-alist-alist' instead of
+	`compilation-error-regexp-alist'.
+
+2004-10-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-incom.el (calc-digit-dots):  Inhibit read-only before
+	erasing minibuffer.
+
+2004-10-25  Simon Josefsson  <jas@extundo.com>
+
+	* subr.el (read-passwd): Move to net/password.el.
+
+	* net/password.el (read-passwd): Add.  Autoload it.
+
+2004-10-25  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* mouse-sel.el (mouse-sel-mode): Specify custom group.
+
+	* simple.el (process-file): Fix logic.
+
+2004-10-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* indent.el (set-left-margin, set-right-margin): Delete redundant code.
+	(increase-right-margin): Remove erroneous call to `interactive-p'.
+
+2004-10-24  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (describe-mode): Fix 2004-10-13 change.
+	Copy pure "Auto Fill" string so it can be propertized later
+	without causing a read-only error.
+
+2004-10-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* info.el (Info-find-emacs-command-nodes): Adapt to Texinfo-4.7
+	style indexes.
+
+2004-10-24  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* simple.el (process-file): Accept nil for INFILE.  Reported by
+	Luc Teirlinck.
+
+2004-10-24  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/gdb-ui.el (gdb-assembler-font-lock-keywords):
+	Handle periods and underscores in a function name.
+	Remove the address fontification.
+
+2004-10-24 Masatake YAMATO <jet@gyve.org>
+
+	* progmodes/asm-mode.el (asm-font-lock-keywords):
+	Use font-lock-variable-name-face for registers.
+
+2004-10-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-get-create-buffer): Allow modes to run
+	kill-all-local-variables.
+	(gdb-breakpoints-mode, gdb-frames-mode, gdb-threads-mode)
+	(gdb-registers-mode, gdb-locals-mode, gdb-assembler-mode):
+	Use kill-all-local-variables and provide mode-hooks.
+	(gdb-assembler-font-lock-keywords): New font lock keywords definition.
+	(gdb-assembler-mode): Use 'gdb-assembler-font-lock-keywords'.
+	Suggested by Masatake YAMATO <jet@gyve.org>.
+
+2004-10-23  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* simple.el (process-file): New function, similar to call-process
+	but supports file handlers.
+	* vc.el (vc-do-command): Use it, instead of call-process.
+	* net/tramp-vc.el (vc-do-command): Do not advise it if
+	process-file is fboundp.
+	* net/tramp.el (tramp-file-name-handler-alist): Add entry for
+	process-file.
+	(tramp-handle-process-file): New function.
+	(tramp-file-name-for-operation): Support process-file.
+
+2004-10-23  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar--weekday-array): New constant.
+	(icalendar-weekdayabbrev-table)
+	(icalendar-monthnumber-table): Delete.
+	(icalendar--get-month-number): Use calendar-month-name-array.
+	(icalendar--get-weekday-number): New function.
+	(icalendar--get-weekday-abbrev) Use calendar-day-name-array.
+	(icalendar-export-region): Handle multi-line entries.
+	(icalendar--convert-ical-to-diary): Use calendar-day-name-array.
+
+2004-10-23  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer-find-file): Remove `interactive-p' call;
+	`wildcards' set to t in interactive spec.
+
+	* ibuf-ext.el (ibuffer-jump-to-buffer): Read buffer name in
+	interactive spec rather than use `interactive-p'.
+	(ibuffer-kill-line): Set arg `interactive-p' in interactive spec
+	rather than use function `interactive-p'.
+
 2004-10-21  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (calc-alg-ent-map, calc-alg-ent-esc-map):
-	Declared these variables with defvar.
+	Declare these variables with defvar.
 
 	* calc/calc-aent.el (calc-do-alg-entry): Since `calc-alg-ent-map'
 	is bound, only check to see if it is bound.
 
 2004-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-compilation-parse-errors):
+	Don't output messages.
 
 	* calc/calc-help.el (calc-describe-bindings): Fix last change.
 
@@ -245,6 +398,13 @@
 
 	* net/password.el: Add.
 
+2004-10-14  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/gud.el (gdb-script-beginning-of-defun): New function.
+	(gdb-script-end-of-defun): New function.
+	(gdb-script-mode): Use `gdb-script-beginning-of-defun' and
+	`gdb-script-end-of-defun' as *-of-defun-function.
+
 2004-10-13  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* button.el (button-activate): Allow a marker to display as an action.
@@ -253,13 +413,6 @@
 
 	* help.el (describe-mode): Use it to make minor mode list into
 	hyperlinks.
-
-2004-10-14  Masatake YAMATO  <jet@gyve.org>
-
-	* progmodes/gud.el (gdb-script-beginning-of-defun): New function.
-	(gdb-script-end-of-defun): New function.
-	(gdb-script-mode): Use `gdb-script-beginning-of-defun' and
-	`gdb-script-end-of-defun' as *-of-defun-function.
 
 2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -564,15 +717,6 @@
 	* diff-mode.el (diff-file-header-re): Tighten up regexp a tiny bit.
 	(diff-fixup-modifs): Catch unified-diff file-headers.
 
-2004-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* dired.el (dired-view-command-alist): Use more efficient regexps.
-	Remove dubious arguments.
-	(dired-align-file): New function.
-	(dired-insert-directory): Use it.
-	(dired-move-to-end-of-filename): Make the " -> " search more specific.
-	(dired-buffers-for-dir): Remove unused var `pattern'.
-
 2004-09-29  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/gdb-ui.el (breakpoint): Define as fringe bitmap.
@@ -581,6 +725,15 @@
 
 	* fringe.el (fringe-bitmap-p): New macro.
 	(fringe-bitmaps): Add standard fringe bitmaps on load.
+
+2004-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-view-command-alist): Use more efficient regexps.
+	Remove dubious arguments.
+	(dired-align-file): New function.
+	(dired-insert-directory): Use it.
+	(dired-move-to-end-of-filename): Make the " -> " search more specific.
+	(dired-buffers-for-dir): Remove unused var `pattern'.
 
 2004-09-28  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
 
@@ -720,7 +873,7 @@
 
 	* calc/calc-graph.el (calc-graph-add-curve): Moved the call to
 	`calc-graph-set-styles' so the gnuplot buffer will appear in a
-	separate window. 
+	separate window.
 
 2004-09-21  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -737,7 +890,7 @@
 	fixed.
 
 2004-09-21  Jay Belanger  <belanger@truman.edu>
-	
+
 	* calc/calc.el (calc-mode-var-list): Removed unnecessary quotes.
 
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
@@ -828,8 +981,8 @@
 2004-09-17  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-mode-var-list): Fixed the value of
-	`calc-matrix-brackets'. 
-	
+	`calc-matrix-brackets'.
+
 2004-09-17  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (define-ibuffer-filter filename):

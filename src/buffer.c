@@ -5828,21 +5828,21 @@ If the value of the variable is t, undo information is not recorded.  */);
 		     doc: /* Non-nil means that Emacs should use caches to handle long lines more quickly.
 
 Normally, the line-motion functions work by scanning the buffer for
-newlines.  Columnar operations (like move-to-column and
-compute-motion) also work by scanning the buffer, summing character
+newlines.  Columnar operations (like `move-to-column' and
+`compute-motion') also work by scanning the buffer, summing character
 widths as they go.  This works well for ordinary text, but if the
 buffer's lines are very long (say, more than 500 characters), these
 motion functions will take longer to execute.  Emacs may also take
 longer to update the display.
 
-If cache-long-line-scans is non-nil, these motion functions cache the
+If `cache-long-line-scans' is non-nil, these motion functions cache the
 results of their scans, and consult the cache to avoid rescanning
 regions of the buffer until the text is modified.  The caches are most
 beneficial when they prevent the most searching---that is, when the
 buffer contains long lines and large regions of characters with the
 same, fixed screen width.
 
-When cache-long-line-scans is non-nil, processing short lines will
+When `cache-long-line-scans' is non-nil, processing short lines will
 become slightly slower (because of the overhead of consulting the
 cache), and the caches will use memory roughly proportional to the
 number of newlines and characters whose screen width varies.
@@ -5922,8 +5922,8 @@ Values are interpreted as follows:
   hollow	 display a hollow box cursor
   bar		 display a vertical bar cursor with default width
   (bar . WIDTH)	 display a vertical bar cursor with width WIDTH
-  hbar		 display a horisontal bar cursor with default width
-  (hbar . WIDTH) display a horisontal bar cursor with width WIDTH
+  hbar		 display a horizontal bar cursor with default width
+  (hbar . WIDTH) display a horizontal bar cursor with width WIDTH
   ANYTHING ELSE	 display a hollow box cursor.
 
 When the buffer is displayed in a nonselected window,

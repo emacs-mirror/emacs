@@ -174,6 +174,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 * Changes in Emacs 21.4
 
 +++
+** `set-auto-mode' now gives the interpreter magic line (if present)
+precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
+will give the buffer XML or SGML mode, unless the file name leads to a mode in
+`xml-based-modes'.
+
++++
 ** New function `looking-back' checks whether a regular expression matches
 the text before point.  Specifying the LIMIT argument bounds how far
 back the match can start; this is a way to keep it from taking too long.
@@ -2127,6 +2133,8 @@ anyone has committed to the repository since you last executed
 
 * New modes and packages in Emacs 21.4
 
+** The new package password.el provide a password cache and expiring mechanism.
+
 ** The new package dns-mode.el add syntax highlight of DNS master files.
 The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
 to increment the SOA serial.
@@ -2361,6 +2369,14 @@ timing measurements of code (including the garbage collection component).
 configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** An interactive specification may now use the code letter 'U' to get
+the up-event that was discarded in case the last key sequence read for a
+previous 'k' or 'K' argument was a down-event; otherwise nil is used.
+
+** Function `translate-region' accepts also a char-table as TABLE
+argument.
 
 +++
 ** Major mode functions now run the new normal hook
@@ -3577,6 +3593,11 @@ status, and other information about a specific network interface.
 
 +++
 ** New function `call-process-shell-command'.
+
+** New function `process-file'.
+
+This is similar to `call-process', but obeys file handlers.  The file
+handler is chosen based on default-directory.
 
 ---
 ** The dummy function keys made by easymenu

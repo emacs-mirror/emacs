@@ -893,12 +893,15 @@ header file(#include <foo.h>) and files in FILES"
 	 'Man-target-string (match-string target-pos)
 	 )))))
 
-(defun Man-cleanup-manpage ()
-  "Remove overstriking and underlining from the current buffer."
-  (interactive)
+(defun Man-cleanup-manpage (&optional interactive)
+  "Remove overstriking and underlining from the current buffer.
+Normally skip any jobs that should have been done by the sed script,
+but when called interactively, do those jobs even if the sed
+script would have done them."
+  (interactive "p")
   (message "Please wait: cleaning up the %s man page..."
 	   Man-arguments)
-  (if (or (interactive-p) (not Man-sed-script))
+  (if (or interactive (not Man-sed-script))
       (progn
 	(goto-char (point-min))
 	(while (search-forward "_\b" nil t) (backward-delete-char 2))

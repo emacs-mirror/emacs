@@ -953,7 +953,7 @@ that is inserted into the command line before the filename."
 	      (vc-exec-after
 	       `(unless (active-minibuffer-window)
                   (message "Running %s in the background... done" ',command))))
-	  (setq status (apply 'call-process command nil t nil squeezed))
+	  (setq status (apply 'process-file command nil t nil squeezed))
 	  (when (or (not (integerp status)) (and okstatus (< okstatus status)))
 	    (pop-to-buffer (current-buffer))
 	    (goto-char (point-min))

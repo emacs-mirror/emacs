@@ -1,3 +1,30 @@
+2004-10-26  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Interactive Codes): Add U code letter.
+
+2004-10-25  Simon Josefsson  <jas@extundo.com>
+
+	* minibuf.texi (Reading a Password): Add.
+
+2004-10-24  Jason Rumney  <jasonr@gnu.org>
+
+	* commands.texi (Misc Events): Remove mouse-wheel. Add wheel-up
+	and wheel-down.
+
+2004-10-24  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* processes.texi (Synchronous Processes): Document process-file.
+
+2004-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* text.texi (translate-region): Document that it accepts also a
+	char-table.
+
+2004-10-22  David Ponce  <david@dponce.com>
+
+	* windows.texi (Resizing Windows): Document the `preserve-before'
+	argument of the functions `enlarge-window' and `shrink-window'.
+
 2004-10-19  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (elisp): Change order of arguments to makeinfo.

@@ -1308,6 +1308,7 @@ static const char *re_error_msgid[] =
     gettext_noop ("Premature end of regular expression"), /* REG_EEND */
     gettext_noop ("Regular expression too big"), /* REG_ESIZE */
     gettext_noop ("Unmatched ) or \\)"), /* REG_ERPAREN */
+    gettext_noop ("Range striding over charsets") /* REG_ERANGEX  */
   };
 
 /* Avoiding alloca during matching, to placate r_alloc.  */
@@ -2925,7 +2926,7 @@ regex_compile (pattern, size, syntax, bufp)
 		    if (c > c1)
 		      {
 			if (syntax & RE_NO_EMPTY_RANGES)
-			  FREE_STACK_RETURN (REG_ERANGE);
+			  FREE_STACK_RETURN (REG_ERANGEX);
 			/* Else, repeat the loop.  */
 		      }
 		  }
