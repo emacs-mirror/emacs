@@ -1,3 +1,12 @@
+2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Saving Customizations): Emacs only loads the custom
+	file automatically after the init file in version 21.4 or later.
+	Adapt text and examples to this fact.
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, $(infodir)/org)
+	(org.dvi, $(infodir)/url, url.dvi, clean): Add org and url manuals.
+
 2004-12-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Starting Calc): Remove comment about installation.
