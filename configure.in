@@ -190,8 +190,8 @@ case "${canonical}" in
   alpha-dec-osf* )
     machine=alpha opsys=osf1
     # This is needed to find X11R6.1 libraries for certain tests.
-    NON_GCC_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
-    GCC_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
+    NON_GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
+    GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
   ;;
 
   alpha-*-linux-gnu* )
@@ -973,6 +973,16 @@ fi
 if test x$GCC = x && test "x$NON_GCC_TEST_OPTIONS" != x
 then
   CC="$CC $NON_GCC_TEST_OPTIONS"
+fi
+
+if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
+then
+  ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
+fi
+
+if test x$GCC = x && test "x$NON_GCC_LINK_TEST_OPTIONS" != x
+then
+  ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
 #### Some other nice autoconf tests.  If you add a test here which
