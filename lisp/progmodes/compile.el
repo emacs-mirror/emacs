@@ -632,7 +632,11 @@ See variables `compilation-parse-errors-function' and
 \`compilation-error-regexp-alist' for customization ideas."
   (interactive "P")
   (setq compilation-last-buffer (compilation-find-buffer))
-  (compile-reinitialize-errors argp nil (1- (prefix-numeric-value argp)))
+  (compile-reinitialize-errors argp nil
+			       ;; We want to pass a number here only if
+			       ;; we got a numeric prefix arg, not just C-u.
+			       (and (not (consp argp))
+				    (1- (prefix-numeric-value argp))))
   ;; Make ARGP nil if the prefix arg was just C-u,
   ;; since that means to reparse the errors, which the
   ;; compile-reinitialize-errors call just did.
@@ -688,12 +692,15 @@ See variables `compilation-parse-errors-function' and
 			    ;; Look for the next error.
 			    t)
 			;; We found the file.  Get a marker for this error.
-			(set-buffer buffer)
-			(save-excursion
-			  (save-restriction
-			    (widen)
-			    (let ((errors compilation-old-error-list)
-				  (last-line (cdr (cdr next-error))))
+			;; compilation-old-error-list is a buffer-local
+			;; variable, so we must be careful to extract its value
+			;; before switching to the source file buffer.
+			(let ((errors compilation-old-error-list)
+			      (last-line (cdr (cdr next-error))))
+			  (set-buffer buffer)
+			  (save-excursion
+			    (save-restriction
+			      (widen)
 			      (goto-line last-line)
 			      (beginning-of-line)
 			      (setcdr next-error (point-marker))
@@ -793,9 +800,8 @@ See variables `compilation-parse-errors-function' and
       (if (markerp (cdr next-error))
 	  (set-marker (cdr next-error) nil)))
     (setq compilation-old-error-list (cdr compilation-old-error-list)))
-  (setq compilation-error-list nil)
-  (while (cdr compilation-directory-stack)
-    (setq compilation-directory-stack (cdr compilation-directory-stack))))
+  (setq compilation-error-list nil
+	compilation-directory-stack nil))
 
 
 (defun count-regexp-groupings (regexp)
