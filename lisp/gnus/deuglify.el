@@ -1,6 +1,6 @@
 ;;; deuglify.el --- deuglify broken Outlook (Express) articles
 
-;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 ;; Copyright (C) 2001, 2002 Raymond Scholz
 
 ;; Author: Raymond Scholz <rscholz@zonix.de>
@@ -257,7 +257,7 @@
   "Characters that inhibit unwrapping if they are the last one on the cited line above the possible wrapped line."
   :version "21.4"
   :type '(radio (const :format "None  " nil)
-		(string :size 0 :value ".?!"))
+		(string :value ".?!"))
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-no-wrap-chars "`"

@@ -258,7 +258,7 @@ not match this regexp will be removed before saving the list."
 			       (and value (not (stringp value))))
 		      :value t)
 		(const nil)
-		(regexp :format "%t: %v\n" :size 0)))
+		regexp))
 
 (defcustom gnus-ignored-newsgroups
   (mapconcat 'identity

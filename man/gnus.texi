@@ -13244,14 +13244,16 @@ called narrowed to the headers with the first element of the rule as the
 argument.  It should return a non-@code{nil} value if it thinks that the
 mail belongs in that group.
 
+@cindex @samp{bogus} group
 The last of these groups should always be a general one, and the regular
-expression should @emph{always} be @samp{*} so that it matches any mails
+expression should @emph{always} be @samp{""} so that it matches any mails
 that haven't been matched by any of the other regexps.  (These rules are
-processed from the beginning of the alist toward the end.  The first
-rule to make a match will ``win'', unless you have crossposting enabled.
-In that case, all matching rules will ``win''.)  When new groups are
-created by splitting mail, you may want to run
-@code{gnus-group-find-new-groups} to see the new groups.
+processed from the beginning of the alist toward the end.  The first rule
+to make a match will ``win'', unless you have crossposting enabled.  In
+that case, all matching rules will ``win''.)  If no rule matched, the mail
+will end up in the @samp{bogus} group.  When new groups are created by
+splitting mail, you may want to run @code{gnus-group-find-new-groups} to
+see the new groups.  This also applies to the @samp{bogus} group.
 
 If you like to tinker with this yourself, you can set this variable to a
 function of your choice.  This function will be called without any
@@ -13268,7 +13270,7 @@ some add @code{X-Gnus-Group} headers; most rename the Unix mbox
 The mail back ends all support cross-posting.  If several regexps match,
 the mail will be ``cross-posted'' to all those groups.
 @code{nnmail-crosspost} says whether to use this mechanism or not.  Note
-that no articles are crossposted to the general (@samp{*}) group.
+that no articles are crossposted to the general (@samp{""}) group.
 
 @vindex nnmail-crosspost-link-function
 @cindex crosspost

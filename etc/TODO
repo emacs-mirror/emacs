@@ -318,8 +318,6 @@ to the FSF.
 
 * Internal changes
 
-** Replace Emacs's regex.c with the new DFA-based glibc regex code.
-
 ** Replace gmalloc.c with the modified Doug Lea code from the current
   GNU libc so that the special mmapping of buffers can be removed --
   that apparently loses under Solaris, at least.  [fx has mostly done

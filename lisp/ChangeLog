@@ -1,8 +1,34 @@
-2004-12-06  Stefan  <monnier@iro.umontreal.ca>
+2004-12-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el: Add math-read-preprocess-string to autoloads.
+
+	* calc/calc-ext.el (math-read-replacement-list)
+	(math-read-superscripts, math-read-preprocess-string): Move to
+	calc-aent.el.
+
+	* calc/calc-aent.el (math-read-replacement-list)
+	(math-read-superscripts, math-read-preprocess-string): Move from
+	calc-ext.el.
+
+2004-12-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el (isearch-quote-char): Fix up typo in last change.
+
+2004-12-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* mouse.el (mouse-set-font): Handle the case where the command was
+	not invoked using the mouse.
+
+	* edmacro.el: `edit-kbd-macro' is now bound to `C-x C-k e'.
+	(edmacro-finish-edit): Further update for keyboard macros that are
+	lambda forms.
+	(edmacro-sanitize-for-string): Correctly remove Meta modifier
+	(as suggested by Kim Storm).
+
+2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-unfontify-region): Save buffer state.
-	(font-lock-default-unfontify-region): Don't save buffer state any
-	more.
+	(font-lock-default-unfontify-region): Don't save buffer state any more.
 
 2004-12-07  Jay Belanger  <belanger@truman.edu>
 

@@ -240,7 +240,7 @@ This variable allows the same syntax as `gnus-home-score-file'."
   :version "21.4"
   :group 'gnus-score-adapt
   :type '(radio (const :format "Unlimited " nil)
-		(integer :format "Maximum length: %v\n" :size 0)))
+		(integer :format "Maximum length: %v")))
 
 (defcustom gnus-ignored-adaptive-words nil
   "List of words to be ignored when doing adaptive word scoring."

@@ -1,7 +1,8 @@
 /* src/config.in.  Generated from configure.in by autoheader.  */
 
 /* GNU Emacs site configuration template file.
-   Copyright (C) 1988, 93, 94, 99, 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2000, 2002, 2004
+             Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -775,9 +776,9 @@ Boston, MA 02111-1307, USA.  */
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -932,7 +933,7 @@ Boston, MA 02111-1307, USA.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
-#ifdef __GNUC__
+#if defined (__GNUC__) && defined (OPTIMIZE)
 #define INLINE __inline__
 #else
 #define INLINE
@@ -980,7 +981,13 @@ Boston, MA 02111-1307, USA.  */
 /* Tell regex.c to use a type compatible with Emacs.  */
 #define RE_TRANSLATE_TYPE Lisp_Object
 #define RE_TRANSLATE(TBL, C) CHAR_TABLE_TRANSLATE (TBL, C)
-#define RE_TRANSLATE_P(TBL) (XFASTINT (TBL) != 0)
+#ifdef make_number
+/* If make_number is a macro, use it.  */
+#define RE_TRANSLATE_P(TBL) (!EQ (TBL, make_number (0)))
+#else
+/* If make_number is a function, avoid it.  */
+#define RE_TRANSLATE_P(TBL) (!(INTEGERP (TBL) && XINT (TBL) == 0))
+#endif
 #endif
 
 /* Avoid link-time collision with system mktime if we will use our own.  */

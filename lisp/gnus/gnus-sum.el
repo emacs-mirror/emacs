@@ -264,7 +264,7 @@ to expose hidden threads."
 			       (not (or (consp value) (functionp value))))
 		      :value t)
 		(const nil)
-		(sexp :tag "Predicate specifier" :size 0)))
+		(sexp :tag "Predicate specifier")))
 
 (defcustom gnus-thread-hide-killed t
   "*If non-nil, hide killed threads automatically."
@@ -4639,19 +4639,19 @@ Unscored articles will be counted as having a score of zero."
   "With %B spec, used for the root of a thread.
 If nil, use subject instead."
   :version "21.4"
-  :type '(radio (const :format "%v  " nil) (string :size 0))
+  :type '(radio (const :format "%v  " nil) string)
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-false-root "> "
   "With %B spec, used for a false root of a thread.
 If nil, use subject instead."
   :version "21.4"
-  :type '(radio (const :format "%v  " nil) (string :size 0))
+  :type '(radio (const :format "%v  " nil) string)
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-single-indent ""
   "With %B spec, used for a thread with just one message.
 If nil, use subject instead."
   :version "21.4"
-  :type '(radio (const :format "%v  " nil) (string :size 0))
+  :type '(radio (const :format "%v  " nil) string)
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-vertical "| "
   "With %B spec, used for drawing a vertical line."

@@ -554,7 +554,7 @@ parameter.  It should return nil, `warn' or `delete'."
   :group 'nnmail
   :type '(repeat symbol))
 
-(defcustom nnmail-split-header-length-limit 512
+(defcustom nnmail-split-header-length-limit 2048
   "Header lines longer than this limit are excluded from the split function."
   :version "21.1"
   :group 'nnmail

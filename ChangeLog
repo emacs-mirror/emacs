@@ -1,6 +1,11 @@
+2004-12-07  Stefan  <monnier@iro.umontreal.ca>
+
+	* configure.in (INLINE, RE_TRANSLATE_P): Move patches mistakenly
+	committed to src/config.in.
+
 2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* configure.in: If $HAVE_GTK_FILE_CHOOSER = yes, check for 
+	* configure.in: If $HAVE_GTK_FILE_CHOOSER = yes, check for
 	pthreads and define HAVE_GTK_AND_PTHREAD.
 	* configure: Regenerate.
 

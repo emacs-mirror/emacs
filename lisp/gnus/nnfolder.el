@@ -1,5 +1,5 @@
 ;;; nnfolder.el --- mail folder access for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org> (adding MARKS)
@@ -370,10 +370,11 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 (deffoo nnfolder-request-create-group (group &optional server args)
   (nnfolder-possibly-change-group nil server)
   (nnmail-activate 'nnfolder)
-  (when group
-    (unless (assoc group nnfolder-group-alist)
-      (push (list group (cons 1 0)) nnfolder-group-alist)
-      (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
+  (when (and group
+	     (not (assoc group nnfolder-group-alist)))
+    (push (list group (cons 1 0)) nnfolder-group-alist)
+    (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
+    (save-current-buffer
       (nnfolder-read-folder group)))
   t)
 

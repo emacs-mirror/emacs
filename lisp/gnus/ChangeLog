@@ -1,3 +1,89 @@
+2004-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-forward-make-body-mml): Remove headers
+	according to message-forward-ignored-headers if a message is
+	decoded.
+
+2004-12-02  Romain Francoise  <romain@orebokech.com>
+
+	* message.el (message-forward-make-body-plain): Always remove
+	headers according to message-forward-ignored-headers.
+
+2004-11-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* lpath.el: Remove bbdb-create-internal, bbdb-records,
+	spam-BBDB-register-routine and spam-enter-ham-BBDB.
+
+	* nnrss.el (nnrss-string-as-multibyte): Redefine it as a macro in
+	order to silence the byte compiler.
+
+	* pop3.el (pop3-md5): Define it before being used.
+
+	* spam.el: Fix the way to silence the byte compiler, which
+	complained about bbdb-buffer, bbdb-create-internal,
+	bbdb-search-simple, mail-check-payment, spam-BBDB-register-routine,
+	spam-enter-ham-BBDB, spam-stat-buffer-change-to-non-spam,
+	spam-stat-buffer-change-to-spam, spam-stat-buffer-is-non-spam,
+	spam-stat-buffer-is-spam, spam-stat-load,
+	spam-stat-register-ham-routine, spam-stat-register-spam-routine,
+	spam-stat-save and spam-stat-split-fancy.
+
+2004-11-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* canlock.el (canlock-password): Remove `:size 0' or `:size 1'
+	which may confuse users.
+	(canlock-password-for-verify): Ditto.
+
+	* deuglify.el (gnus-outlook-deuglify-unwrap-stop-chars): Ditto.
+
+	* gnus-art.el (gnus-emphasis-alist): Ditto.
+
+	* gnus-registry.el (gnus-registry-max-entries): Ditto.
+
+	* gnus-score.el (gnus-adaptive-word-length-limit): Ditto.
+
+	* gnus-start.el (gnus-save-killed-list): Ditto.
+
+	* gnus-sum.el (gnus-thread-hide-subtree): Ditto.
+	(gnus-sum-thread-tree-root): Ditto.
+	(gnus-sum-thread-tree-false-root): Ditto.
+	(gnus-sum-thread-tree-single-indent): Ditto.
+
+	* message.el (message-courtesy-message): Ditto.
+	(message-archive-note): Ditto.
+	(message-subscribed-address-file): Ditto.
+	(message-user-fqdn): Ditto.
+
+	* spam-report.el (spam-report-gmane-regex): Ditto.
+
+	* spam.el (spam-blackhole-good-server-regex): Ditto.
+
+2004-11-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-forbidden-properties): Fixed typo in doc
+	string.
+
+2004-11-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-strip-forbidden-properties): Bind
+	buffer-read-only (etc) to nil.
+
+2004-11-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-replace-in-string): Added doc string.
+
+	* nnmail.el (nnmail-split-header-length-limit): Increase to 2048
+	to avoid problems when splitting mails with many recipients.
+
+2004-11-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-header-encoding-alist): Add In-Reply-To to
+	address-mime.  Suggested by ARISAWA Akihiro <ari@mbf.ocn.ne.jp>.
+
+2004-11-22  Marek Martin  <marek.martin@mum.pri.ee>  (tiny change)
+
+	* nnfolder.el (nnfolder-request-create-group): Save current buffer.
+
 2004-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-sum.el (gnus-summary-exit): Remove redundant and harmful

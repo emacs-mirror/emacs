@@ -1,3 +1,14 @@
+2004-12-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Scroll Bars): The option `scroll-bar-mode' has to
+	be set through Custom.  Otherwise, it has no effect.
+
+2004-12-07  Stefan  <monnier@iro.umontreal.ca>
+
+	* url.texi: New file.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS, ../info/url, url.dvi): Add it.
+
 2004-12-06  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Using Calc): Remove paragraph about installation.
@@ -95,6 +106,17 @@
 	version systems, mentioning the new ones that we support.  Thanks
 	to Alex Ott, Karl Fogel, Stefan Monnier, and David Kastrup for
 	suggestions.
+
+2004-11-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Various Message Variables): Mention that all mail
+	file variables are derived from `message-directory'.
+
+	* gnus.texi (Splitting Mail): Clarify bogus group.
+
+2004-11-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Filtering Spam Using The Spam ELisp Package): 
 
 2004-11-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 

@@ -1,5 +1,21 @@
 2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* emacs.c (Fdump_emacs): Add ! defined (SYSTEM_MALLOC) around
+	reset_malloc_hooks.
+
+	* keyboard.c (handle_async_input, input_available_signal): Add
+	! defined (SYSTEM_MALLOC) around thread code.
+
+	* alloc.c: Add comment about the reason for (UN)BLOCK_INPUT_ALLOC.
+
+2004-12-07  Stefan  <monnier@iro.umontreal.ca>
+
+	* eval.c (init_eval_once): Increase max_specpdl_size to 1000.
+
+	* config.in: Regenerate.
+
+2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
 	* xmenu.c (Fx_popup_menu): Correct documentation about position.
 	(xmenu_show): Do not call XTranslateCoordinates.  Adjust position
 	if not given by a mouse click to correspond with x-popup-menu
@@ -100,13 +116,10 @@
 
 2004-11-30  Kenichi Handa  <handa@m17n.org>
 
-	* term.c (encode_terminal_buf, encode_terminal_bufsize): New
-	variables.
+	* term.c (encode_terminal_buf, encode_terminal_bufsize): New variables.
 	(encode_terminal_code): Argument changed.  Encode all
-	characters at once, and return a pointer to the result of
-	encoding.
-	(write_glyphs): Decide coding here.  Adjusted for the above
-	change.
+	characters at once, and return a pointer to the result of encoding.
+	(write_glyphs): Decide coding here.  Adjusted for the above change.
 	(insert_glyphs): Likewise.
 	(term_init): Initialize encode_terminal_bufsize to 0.
 

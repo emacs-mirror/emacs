@@ -6849,7 +6849,7 @@ handle_async_input ()
 #ifdef BSD4_1
   extern int select_alarmed;
 #endif
-#ifdef HAVE_GTK_AND_PTHREAD
+#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
   extern pthread_t main_thread;
   if (pthread_self () != main_thread)
     {
@@ -6895,7 +6895,7 @@ input_available_signal (signo)
 {
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
-#ifdef HAVE_GTK_AND_PTHREAD
+#if ! defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD)
   extern pthread_t main_thread;
   if (pthread_self () != main_thread)
     {

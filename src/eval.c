@@ -204,7 +204,7 @@ init_eval_once ()
   specpdl_size = 50;
   specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
   specpdl_ptr = specpdl;
-  max_specpdl_size = 650;
+  max_specpdl_size = 1000;
   max_lisp_eval_depth = 300;
 
   Vrun_hooks = Qnil;
