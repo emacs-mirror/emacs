@@ -30,40 +30,12 @@
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
-Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies"
+Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (let ((enable-local-eval nil)
-	all-subdirs pending
+	(all-subdirs command-line-args-left)
 	(start-directory default-directory))
     (get-buffer-create " cus-dep temp")
     (set-buffer " cus-dep temp")
-    (setq pending '("."))
-    (while pending
-      (let ((this (car pending))
-	    this-subdirs
-	    default-directory)
-	(setq all-subdirs (cons this all-subdirs))
-	(setq pending (cdr pending))
-	(setq default-directory
-	      (expand-file-name this start-directory))
-	(message "Finding subdirs of %s" this)
-	(erase-buffer)
-	(condition-case nil
-	    (progn
-	      (insert-file-contents "subdirs.el")
-	      (goto-char (point-min))
-	      (search-forward "'(")
-	      (forward-char -1)
-	      (setq this-subdirs (read (current-buffer)))
-	      (setq pending (nconc pending
-				   (mapcar 
-				    (function (lambda (dir)
-						(file-relative-name
-						 (file-name-as-directory
-						  (expand-file-name dir this))
-						 start-directory)))
-				    this-subdirs))))
-	  (error nil))))
-
     (while all-subdirs
       (message "Directory %s" (car all-subdirs))
       (let ((files (directory-files (car all-subdirs) nil "\\`[^=].*\\.el\\'"))
@@ -73,20 +45,21 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies"
 	(while files
 	  (setq file (car files)
 		files (cdr files))
-	  (message "Checking %s..." file)
-	  (erase-buffer)
-	  (insert-file-contents file)
-	  (goto-char (point-min))
-	  (string-match "\\`\\(.*\\)\\.el\\'" file)
-	  (let ((name (file-name-nondirectory (match-string 1 file))))
-	    (condition-case nil
-		(while (re-search-forward "^(defcustom\\|^(defface\\|^(defgroup"
-					  nil t)
-		  (beginning-of-line)
-		  (let ((expr (read (current-buffer))))
-		    (eval expr)
-		    (put (nth 1 expr) 'custom-where name)))
-	      (error nil))))
+	  (when (file-exists-p file)
+	    (message "Checking %s..." file)
+	    (erase-buffer)
+	    (insert-file-contents file)
+	    (goto-char (point-min))
+	    (string-match "\\`\\(.*\\)\\.el\\'" file)
+	    (let ((name (file-name-nondirectory (match-string 1 file))))
+	      (condition-case nil
+		  (while (re-search-forward "^(defcustom\\|^(defface\\|^(defgroup"
+					    nil t)
+		    (beginning-of-line)
+		    (let ((expr (read (current-buffer))))
+		      (eval expr)
+		      (put (nth 1 expr) 'custom-where name)))
+		(error nil)))))
 	(setq all-subdirs (cdr all-subdirs)))))
   (message "Generating cus-load.el...")
   (find-file "cus-load.el")
@@ -122,6 +95,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies"
 ;;; cus-load.el ends here\n")
   (let ((kept-new-versions 10000000))
     (save-buffer))
-  (message "Generating cus-load.el...done"))
+  (message "Generating cus-load.el...done")
+  (kill-emacs))
 
 ;;; cus-dep.el ends here
