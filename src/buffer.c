@@ -1472,7 +1472,7 @@ set_buffer_internal_1 (b)
       valcontents = XSYMBOL (XCONS (XCONS (tail)->car)->car)->value;
       if ((BUFFER_LOCAL_VALUEP (valcontents)
 	   || SOME_BUFFER_LOCAL_VALUEP (valcontents))
-	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->car,
+	  && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 	      (BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	/* Just reference the variable
 	     to cause it to become set for this buffer.  */
@@ -1487,7 +1487,7 @@ set_buffer_internal_1 (b)
 	valcontents = XSYMBOL (XCONS (XCONS (tail)->car)->car)->value;
 	if ((BUFFER_LOCAL_VALUEP (valcontents)
 	     || SOME_BUFFER_LOCAL_VALUEP (valcontents))
-	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->car,
+	    && (tem = XBUFFER_LOCAL_VALUE (valcontents)->realvalue,
 		(BOOLFWDP (tem) || INTFWDP (tem) || OBJFWDP (tem))))
 	  /* Just reference the variable
                to cause it to become set for this buffer.  */
@@ -1894,26 +1894,26 @@ swap_out_buffer_local_variables (b)
       sym = XCONS (XCONS (alist)->car)->car;
 
       /* Need not do anything if some other buffer's binding is now encached.  */
-      tem = XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->car;
+      tem = XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->buffer;
       if (XBUFFER (tem) == current_buffer)
 	{
 	  /* Symbol is set up for this buffer's old local value.
 	     Set it up for the current buffer with the default value.  */
 
-	  tem = XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->cdr;
+	  tem = XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr;
 	  /* Store the symbol's current value into the alist entry
 	     it is currently set up for.  This is so that, if the
 	     local is marked permanent, and we make it local again
 	     later in Fkill_all_local_variables, we don't lose the value.  */
 	  XCONS (XCONS (tem)->car)->cdr
-	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car);
+	    = do_symval_forwarding (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->realvalue);
 	  /* Switch to the symbol's default-value alist entry.  */
 	  XCONS (tem)->car = tem;
 	  /* Mark it as current for buffer B.  */
-	  XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->car
-	    = buffer;
+	  XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->buffer = buffer;
 	  /* Store the current value into any forwarding in the symbol.  */
-	  store_symval_forwarding (sym, XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->car,
+	  store_symval_forwarding (sym,
+				   XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->realvalue,
 				   XCONS (tem)->cdr);
 	}
     }
@@ -3917,6 +3917,8 @@ init_buffer ()
   int rc;
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
+  if (NILP (buffer_defaults.enable_multibyte_characters))
+    Fset_buffer_multibyte (Qnil);
 
   /* If PWD is accurate, use it instead of calling getwd.  This is faster
      when PWD is right, and may avoid a fatal error.  */
