@@ -52,7 +52,7 @@
     (set-default var button)
     (when active (mouse-wheel-mode 1))))
 
-(defcustom mouse-wheel-down-button 4
+(defvar mouse-wheel-down-button 4
   "Obsolete.  Use `mouse-wheel-down-event'.")
 (defcustom mouse-wheel-down-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
@@ -63,7 +63,7 @@
   :type 'symbol
   :set 'mouse-wheel-change-button)
 
-(defcustom mouse-wheel-up-button 5
+(defvar mouse-wheel-up-button 5
   "Obsolete.  Use `mouse-wheel-up-event'.")
 (defcustom mouse-wheel-up-event
   ;; In the latest versions of XEmacs, we could just use mouse-%s as well.
