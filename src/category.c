@@ -53,7 +53,9 @@ Lisp_Object _temp_category_set;
 
 DEFUN ("make-category-set", Fmake_category_set, Smake_category_set, 1, 1, 0,
   "Return a newly created category-set which contains CATEGORIES.\n\
-CATEGORIES is a string of category mnemonics.")
+CATEGORIES is a string of category mnemonics.\n\
+The value is a bool-vector which has t at the indices corresponding to\n\
+those categories.")
   (categories)
      Lisp_Object categories;
 {
@@ -85,7 +87,7 @@ Lisp_Object check_category_table ();
 
 DEFUN ("define-category", Fdefine_category, Sdefine_category, 2, 3, 0,
   "Define CHAR as a category which is described by DOCSTRING.\n\
-CHAR should be a visible letter of ` ' thru `~'.\n\
+CHAR should be an ASCII printing character in the range ` ' to `~'.\n\
 DOCSTRING is a documentation string of the category.\n\
 The category is defined only in category table TABLE, which defaults to\n\
  the current buffer's category table.")
@@ -104,9 +106,7 @@ The category is defined only in category table TABLE, which defaults to\n\
 }
 
 DEFUN ("category-docstring", Fcategory_docstring, Scategory_docstring, 1, 2, 0,
-  "Return a documentation string of CATEGORY.\n\
-Optional second arg specifies CATEGORY-TABLE,\n\
- which defaults to the current buffer's category table.")
+  "Return the documentation string of CATEGORY, as defined in CATEGORY-TABLE.")
   (category, table)
      Lisp_Object category, table;
 {
@@ -120,10 +120,10 @@ Optional second arg specifies CATEGORY-TABLE,\n\
 
 DEFUN ("get-unused-category", Fget_unused_category, Sget_unused_category,
        0, 1, 0,
-  "Return a category which is not yet defined.\n\
-If total number of categories has reached the limit (95), return nil.\n\
-Optional argument specifies CATEGORY-TABLE,\n\
- which defaults to the current buffer's category table.")
+  "Return a category which is not yet defined in CATEGORY-TABLE.\n\
+If no category remains available, return nil.\n\
+The optional argument CATEGORY-TABLE specifies which category table\n\
+to modify; it defaults to the current buffer's category table.")
   (table)
      Lisp_Object table;
 {
@@ -254,8 +254,7 @@ It is a copy of the TABLE, which defaults to the standard category table.")
 }
 
 DEFUN ("set-category-table", Fset_category_table, Sset_category_table, 1, 1, 0,
-  "Select a new category table for the current buffer.\n\
-One argument, a category table.")
+  "Specify TABLE as the category table for the current buffer.")
   (table)
      Lisp_Object table;
 {
@@ -269,7 +268,7 @@ One argument, a category table.")
 
 
 DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
-  "Return a category set of CHAR.")
+  "Return the category set of CHAR.")
   (ch)
      Lisp_Object ch;
 {
@@ -283,7 +282,10 @@ DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
 
 DEFUN ("category-set-mnemonics", Fcategory_set_mnemonics,
        Scategory_set_mnemonics, 1, 1, 0,
-  "Return a string of mnemonics of all categories in CATEGORY-SET.")
+  "Return a string containing mnemonics of the categories in CATEGORY-SET.\n\
+CATEGORY-SET is a bool-vector, and the categories \"in\" it are those\n\
+that are indexes where t occurs the bool-vector.\n\
+The return value is a string containing those same categories.")
   (category_set)
      Lisp_Object category_set;
 {
@@ -347,20 +349,20 @@ set_category_set (category_set, category, val)
 
 DEFUN ("modify-category-entry", Fmodify_category_entry,
        Smodify_category_entry, 2, 4, 0,
-  "Modify the category set of CHAR by adding CATEGORY to it.\n\
+  "Modify the category set of CHARACTER by adding CATEGORY to it.\n\
 The category is changed only for table TABLE, which defaults to\n\
  the current buffer's category table.\n\
-If optional forth argument RESET is non NIL,\n\
- CATEGORY is deleted from the category set instead of being added.")
-  (ch, category, table, reset)
-     Lisp_Object ch, category, table, reset;
+If optional fourth argument RESET is non-nil,\n\
+ then delete CATEGORY from the category set instead of adding it.")
+  (character, category, table, reset)
+     Lisp_Object character, category, table, reset;
 {
   int c, charset, c1, c2;
   Lisp_Object set_value;	/* Actual value to be set in category sets.  */
   Lisp_Object val, category_set;
 
-  CHECK_NUMBER (ch, 0);
-  c = XINT (ch);
+  CHECK_NUMBER (character, 0);
+  c = XINT (character);
   CHECK_CATEGORY (category, 1);
   table = check_category_table (table);
 
@@ -542,8 +544,8 @@ describe_category_1 (vector)
   return Qnil;
 }
 
-DEFUN ("describe-category", Fdescribe_category, Sdescribe_category, 0, 0, "",
-  "Describe the category specifications in the category table.\n\
+DEFUN ("describe-categories", Fdescribe_categories, Sdescribe_categories, 0, 0, "",
+  "Describe the category specifications in the current category table.\n\
 The descriptions are inserted in a buffer, which is then displayed.")
   ()
 {
@@ -685,7 +687,7 @@ See the documentation of the variable `word-combining-categories'.");
   defsubr (&Schar_category_set);
   defsubr (&Scategory_set_mnemonics);
   defsubr (&Smodify_category_entry);
-  defsubr (&Sdescribe_category);
+  defsubr (&Sdescribe_categories);
 
   category_table_version = 0;
 }
