@@ -381,7 +381,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
   if (inherit_input_method)
-    current_buffer->enable_multibyte_characters = enable_multibyte_characters;
+    current_buffer->enable_multibyte_characters = enable_multibyte;
 
   /* Run our hook, but not if it is empty.
      (run-hooks would do nothing if it is empty,
