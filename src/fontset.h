@@ -204,5 +204,6 @@ extern Lisp_Object Vglobal_fontset_alist;
 
 extern Lisp_Object Qfontset;
 extern Lisp_Object Vuse_default_ascent; 
+extern Lisp_Object Valternative_fontname_alist;
 
 #endif /* _FONTSET_H */
