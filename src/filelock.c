@@ -32,32 +32,31 @@ Boston, MA 02111-1307, USA.  */
 #endif /* not VMS */
 
 #include <sys/file.h>
-#ifdef USG
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_STRING_H
 #include <string.h>
-#endif /* USG */
+#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
 #ifdef __FreeBSD__
-#include <sys/time.h>
-#include <sys/types.h>
 #include <sys/sysctl.h>
 #endif /* __FreeBSD__ */
+
+#include <errno.h>
+#ifndef errno
+extern int errno;
+#endif
 
 #include "lisp.h"
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
 #include "systime.h"
-
-#include <time.h>
-#include <errno.h>
-#ifndef errno
-extern int errno;
-#endif
 
 /* The directory for writing temporary files.  */
 
