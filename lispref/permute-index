@@ -1,0 +1,121 @@
+#!/bin/csh -f
+# Generate a permuted index of all names.
+# The result is a file called index.fns.
+
+# Copyright (C) 2001 Free Software Foundation, Inc.
+#
+# This file is part of GNU Emacs.
+#
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+# You will need to modify this for your needs.
+
+
+set TEXINDEX=texindex  # path to texindex command
+#set EMACS=gnuemacs     # your emacs command
+#set TEX=tex             # your tex command
+
+set MANUAL=elisp  # the base name of the manual
+
+# goto 3
+
+1:
+echo "Extract raw index from texinfo fn index."
+# Let texindex combine duplicate entries, later.
+# But it wants to protect non-alphanumerics thus confusing ptx.
+# Also change `\ ' to just a ` ', since texindex will fail. This is produced 
+# by `@findex two words' in an example environment (no doubt among others).
+# delete wrapper parens
+# change dots {} to dots{}
+# change {-} to char form, so ptx wont ignore it.
+# delete leading \entry {
+# change '\ ' to ' '
+# change lines with = < > since they mess up field extraction.
+# separate into fields delimited by "
+cat ${MANUAL}.fn | \
+	sed \
+	-e 's/(\([^)]*\))/\1/' \
+	-e 's/\\dots {}/(\\dots{})/' \
+	-e "s/{-}/{{\\tt\\char'055}}/" \
+	-e 's,^[^ ]* {,,' \
+	-e 's, },},' \
+	-e 's,\\ , ,g' \
+	-e 's/{\\tt\\char61}/=/' \
+	-e 's/{\\tt\\gtr}/>/' \
+	-e 's/{\\tt\\less}/</' \
+	-e 's/}{/"/g' \
+	| awk -F\" '{print $2, $1}' >! permuted.raw
+
+2:
+# Build break file for ptx.
+cat <<EOF > permuted.break
+-
+:
+EOF
+# Build the ignore file for ptx.
+# We would like to ignore "and", "or", and "for", 
+# but ptx ignores ignore words even if they stand alone.
+cat <<EOF > permuted.ignore
+the
+in
+to
+as
+a
+an
+of
+on
+them
+how
+from
+by
+EOF
+
+echo "Make troff permuted index."
+ptx -i permuted.ignore -b permuted.break -f -r -w 144 \
+	 < permuted.raw >! permuted.t
+
+3:
+echo "Extract the desired fields."
+awk -F\" '{printf "%s\"%s\"%s\n", $4,$6,$9}' permuted.t >! permuted.fields 
+
+4:
+echo "Format for texindex."
+# delete lines that start with "and ", "for "
+sed 	< permuted.fields \
+	-e 's/=/{\\tt\\char61}/' \
+	-e 's/>/{\\tt\\gtr}/' \
+	-e 's/</{\\tt\\less}/' \
+	-e '/"and /d' \
+	-e '/"for /d' \
+  | awk -F\" 'NF>0 {if ($1=="") {\
+	  print "\entry {" $2 "}{" 0+$3 "}{" $2 "}" }\
+	else {\
+	  print "\entry {" $2 ", " $1 "}{" 0+$3 "}{" $2 ", " $1 "}"} }'\
+	      > permuted.fn
+
+5:
+echo "Sort with texindex."
+${TEXINDEX} permuted.fn
+#mv permuted.fns ${MANUAL}.fns
+
+# The resulting permuted.fns will be read when we run TeX 
+# on the manual the second time.  Or you can use permuted.texinfo here.
+#${TEX} permuted.texinfo
+
+6:
+echo "Clean up."
+rm -f permuted.fields permuted.t permuted.raw
+rm -f permuted.break permuted.ignore permuted.fn
