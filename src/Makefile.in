@@ -1,5 +1,5 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001, 2003
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 01, 03, 2004
 # Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -564,6 +564,10 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o
 #endif
 #endif
 
+#ifdef CYGWIN
+CYGWIN_OBJ = sheap.o
+#endif
+
 #ifdef HAVE_CARBON
 mac = $(dot)$(dot)/mac/
 MAC_OBJ = mac.o macterm.o macfns.o macmenu.o fontset.o fringe.o image.o
@@ -586,7 +590,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MAC_OBJ)
+	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -643,7 +647,12 @@ widgetobj=
 
 /* define otherobj as list of object files that make-docfile
    should not be told about.  */
+#ifdef CYGWIN
+/* Cygwin differs because of its unexec(). */
+otherobj= $(termcapobj) $(gmallocobj) $(rallocobj) lastfile.o vm-limit.o $(allocaobj) $(widgetobj) $(LIBOBJS)
+#else
 otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBOBJS)
+#endif
 
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \

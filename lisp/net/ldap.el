@@ -1,6 +1,6 @@
 ;;; ldap.el --- client interface to LDAP for Emacs
 
-;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 02, 2004  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
@@ -36,6 +36,7 @@
 ;;; Code:
 
 (require 'custom)
+(eval-when-compile (require 'cl))
 
 (defgroup ldap nil
   "Lightweight Directory Access Protocol."
@@ -464,17 +465,16 @@ Additional search parameters can be specified through
       (error "No LDAP host specified"))
   (let ((host-plist (cdr (assoc host ldap-host-parameters-alist)))
 	result)
-    (setq result (ldap-search-internal (append host-plist
-					       (list 'host host
-						     'filter filter
-						     'attributes attributes
-						     'attrsonly attrsonly
-						     'withdn withdn))))
+    (setq result (ldap-search-internal (list* 'host host
+					      'filter filter
+					      'attributes attributes
+					      'attrsonly attrsonly
+					      'withdn withdn
+					      host-plist)))
     (if ldap-ignore-attribute-codings
 	result
-      (mapcar (function
-	       (lambda (record)
-		 (mapcar 'ldap-decode-attribute record)))
+      (mapcar (lambda (record)
+		(mapcar 'ldap-decode-attribute record))
 	      result))))
 
 

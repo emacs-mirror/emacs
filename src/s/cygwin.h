@@ -115,10 +115,8 @@ Boston, MA 02111-1307, USA.  */
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 #define GETPGRP_NO_ARG 1
 #define SYSV_SYSTEM_DIR 1
-/* -lutil comes from inetutils and has pty functions in it */
-#define LIBS_SYSTEM -lutil
-/* undumping is not implemented yet */
-#define CANNOT_DUMP 1
+#define LIB_STANDARD_LIBSRC
+#define UNEXEC unexcw.o
 #define POSIX_SIGNALS 1
 /* force the emacs image to start high in memory, so dll relocation
    can put things in low memory without causing all sorts of grief for
@@ -137,7 +135,7 @@ Boston, MA 02111-1307, USA.  */
 /*#define HAVE_VFORK*/
 /* Xaw3d causes problems -- might have been fixed by NARROWPROTO
    above, but I haven't tried it */
-#undef HAVE_XAW3D
+/*#undef HAVE_XAW3D*/
 
 /* vfork() interacts badly with setsid(), causing ptys to fail to
    change their controlling terminal */

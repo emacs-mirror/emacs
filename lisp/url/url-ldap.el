@@ -1,30 +1,33 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
+;; Copyright (c) 1998 - 1999, 2004 Free Software Foundation, Inc.
+
 ;; Keywords: comm, data, processes
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1998 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'url-vars)
 (require 'url-parse)
 (require 'url-util)
+(require 'ldap)
 
 ;; This has been implemented from RFC2255 'The LDAP URL Format' (Dec 1997)
 ;;
@@ -35,7 +38,7 @@
 ;; ldap://ldap.itd.umich.edu/o=University%20of%20Michigan,c=US
 ;;
 ;; For simple queries, I have verified compatibility with Netscape
-;; Communicator v4.5 under linux.
+;; Communicator v4.5 under GNU/Linux.
 ;;
 ;; For anything _useful_ though, like specifying the attributes,
 ;; scope, filter, or extensions, netscape claims the URL format is
@@ -92,8 +95,8 @@
   (condition-case ()
       (require 'ssl)
     (error nil))
-  (let ((vals (and (fboundp 'ssl-certificate-information)
-		   (ssl-certificate-information data))))
+  (let ((vals (if (fboundp 'ssl-certificate-information)
+		  (ssl-certificate-information data))))
     (if (not vals)
 	"<b>Unable to parse certificate</b>"
       (concat "<table border=0>\n"
@@ -104,9 +107,11 @@
 	      "</table>\n"))))
 
 (defun url-ldap-image-formatter (data)
-  (format "<img alt='JPEG Photo' src='data:image/jpeg;base64,%s'>" 
+  (format "<img alt='JPEG Photo' src='data:image/jpeg;base64,%s'>"
 	  (url-hexify-string (base64-encode-string data))))
 
+;; FIXME: This needs sorting out for the Emacs LDAP functions, specifically
+;; calls of ldap-open, ldap-close, ldap-search-internal
 ;;;###autoload
 (defun url-ldap (url)
   (save-excursion
@@ -210,7 +215,7 @@
 				    "</td></tr>\n")
 			  ;; Multiple matches, slightly uglier
 			  (insert "   <tr>\n"
-				  (format "    <td valign=top>" (length (cdr attr)))
+				  (format "    <td valign=top>")
 				  (url-ldap-attribute-pretty-name (car attr)) "</td><td>"
 				  (mapconcat (lambda (x)
 					       (url-ldap-attribute-pretty-desc (car attr) x))
@@ -229,4 +234,5 @@
 
 (provide 'url-ldap)
 
-;;; arch-tag: 6230e21c-41ae-4174-bd83-82c835676fc8
+;; arch-tag: 6230e21c-41ae-4174-bd83-82c835676fc8
+;;; url-ldap.el ends here

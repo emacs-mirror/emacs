@@ -191,17 +191,22 @@ Only the value `maybe' can be trusted :-(."
 	 (while (not (or root
 			 (equal file (setq file (file-name-directory file)))
 			 (null file)))
-	   (if (file-directory-p (expand-file-name "{arch}" file))
+	   ;; Check the =tagging-method, in case someone naively manually
+	   ;; creates a {arch} directory somewhere.
+	   (if (file-exists-p (expand-file-name "{arch}/=tagging-method" file))
 	       (setq root file)
 	     (setq file (directory-file-name file))))
 	 root))))
 
 (defun vc-arch-register (file &optional rev comment)
-  (if rev (error "Explicit initial revision not supported for Arch."))
+  (if rev (error "Explicit initial revision not supported for Arch"))
   (let ((tagmet (vc-arch-tagging-method file)))
     (if (and (memq tagmet '(tagline implicit)) comment-start)
 	(with-current-buffer (find-file-noselect file)
-	  (vc-arch-add-tagline))
+	  (if (buffer-modified-p)
+	      (error "Save %s first" (buffer-name)))
+	  (vc-arch-add-tagline)
+	  (save-buffer))
       (vc-arch-command nil 0 file "add"))))
 
 (defun vc-arch-registered (file)
@@ -272,7 +277,7 @@ Return non-nil if FILE is unchanged."
 				(match-string 1)))
 		    'up-to-date
 		  'edited)))))))))
-	    
+
 (defun vc-arch-workfile-version (file)
   (let* ((root (expand-file-name "{arch}" (vc-arch-root file)))
 	 (defbranch (vc-arch-default-version file)))
@@ -328,14 +333,13 @@ Return non-nil if FILE is unchanged."
 	   (looking-at "Conflicts occured, diff3 conflict markers left in file\\.")))))
 
 (defun vc-arch-delete-rej-if-obsolete ()
-  "For use in `write-file-functions'."
-  (let ((rej (concat buffer-file-name ".rej")))
-    (when (and buffer-file-name (vc-arch-diff3-rej-p rej))
-      (if (not (re-search-forward "^>>>>>>> " nil t))
-	  ;; The .rej file is obsolete.
-	  (condition-case nil (delete-file rej) (error nil)))))
-  ;; This did not save the buffer.
-  nil)
+  "For use in `after-save-hook'."
+  (save-excursion
+    (let ((rej (concat buffer-file-name ".rej")))
+      (when (and buffer-file-name (vc-arch-diff3-rej-p rej))
+	(if (not (re-search-forward "^<<<<<<< " nil t))
+	    ;; The .rej file is obsolete.
+	    (condition-case nil (delete-file rej) (error nil)))))))
 
 (defun vc-arch-find-file-hook ()
   (let ((rej (concat buffer-file-name ".rej")))
@@ -343,11 +347,11 @@ Return non-nil if FILE is unchanged."
       (if (vc-arch-diff3-rej-p rej)
 	  (save-excursion
 	    (goto-char (point-min))
-	    (if (not (re-search-forward "^>>>>>>> " nil t))
+	    (if (not (re-search-forward "^<<<<<<< " nil t))
 		;; The .rej file is obsolete.
 		(condition-case nil (delete-file rej) (error nil))
 	      (smerge-mode 1)
-	      (add-hook 'write-file-functions
+	      (add-hook 'after-save-hook
 			'vc-arch-delete-rej-if-obsolete nil t)
 	      (message "There are unresolved conflicts in this file")))
 	(message "There are unresolved conflicts in %s"
@@ -403,9 +407,13 @@ Return non-nil if FILE is unchanged."
 (defun vc-arch-rename-file (old new)
   (vc-arch-command nil 0 new "mv" (file-relative-name old)))
 
+(defalias 'vc-arch-responsible-p 'vc-arch-root)
+
 (defun vc-arch-command (buffer okstatus file &rest flags)
   "A wrapper around `vc-do-command' for use in vc-arch.el."
   (apply 'vc-do-command buffer okstatus vc-arch-command file flags))
+
+(defun vc-arch-init-version () nil)
 
 (provide 'vc-arch)
 

@@ -564,11 +564,13 @@ the last key hit are used."
 
 (defun describe-mode (&optional buffer)
   "Display documentation of current major mode and minor modes.
-The major mode description comes first, followed by the minor modes,
-each on a separate page.
-For this to work correctly for a minor mode, the mode's indicator variable
-\(listed in `minor-mode-alist') must also be a function whose documentation
-describes the minor mode."
+A brief summary of the minor modes comes first, followed by the
+major mode description.  This is followed by detailed
+descriptions of the minor modes, each on a separate page.
+
+For this to work correctly for a minor mode, the mode's indicator
+variable \(listed in `minor-mode-alist') must also be a function
+whose documentation describes the minor mode."
   (interactive)
   (help-setup-xref (list #'describe-mode (or buffer (current-buffer)))
 		   (interactive-p))

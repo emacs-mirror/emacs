@@ -521,7 +521,7 @@ DEFUN ("make-indirect-buffer", Fmake_indirect_buffer, Smake_indirect_buffer,
        2, 3,
        "bMake indirect buffer (to buffer): \nBName of indirect buffer: ",
        doc: /* Create and return an indirect buffer for buffer BASE-BUFFER, named NAME.
-BASE-BUFFER should be an existing buffer (or buffer name).
+BASE-BUFFER should be a live buffer, or the name of an existing buffer.
 NAME should be a string which is not the name of an existing buffer.
 Optional argument CLONE non-nil means preserve BASE-BUFFER's state,
 such as major and minor modes, in the indirect buffer.
@@ -529,16 +529,20 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
      (base_buffer, name, clone)
      Lisp_Object base_buffer, name, clone;
 {
-  Lisp_Object buf;
+  Lisp_Object buf, tem;
   struct buffer *b;
 
+  CHECK_STRING (name);
   buf = Fget_buffer (name);
   if (!NILP (buf))
     error ("Buffer name `%s' is in use", SDATA (name));
 
+  tem = base_buffer;
   base_buffer = Fget_buffer (base_buffer);
   if (NILP (base_buffer))
-    error ("No such buffer: `%s'", SDATA (name));
+    error ("No such buffer: `%s'", SDATA (tem));
+  if (NILP (XBUFFER (base_buffer)->name))
+    error ("Base buffer has been killed");
 
   if (SCHARS (name) == 0)
     error ("Empty string for buffer name is not allowed");
@@ -652,7 +656,7 @@ delete_all_overlays (b)
 }
 
 /* Reinitialize everything about a buffer except its name and contents
-   and local variables. 
+   and local variables.
    If called on an already-initialized buffer, the list of overlays
    should be deleted before calling this function, otherwise we end up
    with overlays that claim to belong to the buffer but the buffer
@@ -766,7 +770,7 @@ DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buff
        doc: /* Return a string that is the name of no existing buffer based on NAME.
 If there is no live buffer named NAME, then return NAME.
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
-until an unused name is found, and then return that name.
+\(starting at 2) until an unused name is found, and then return that name.
 Optional second argument IGNORE specifies a name that is okay to use
 \(if it is in the sequence to be tried)
 even if a buffer with that name exists.  */)
@@ -779,6 +783,9 @@ even if a buffer with that name exists.  */)
 
   CHECK_STRING (name);
 
+  tem = Fstring_equal (name, ignore);
+  if (!NILP (tem))
+    return name;
   tem = Fget_buffer (name);
   if (NILP (tem))
     return name;

@@ -1647,7 +1647,7 @@ The client process' plist is initialized from the server's plist.
 
 @defun open-network-stream-server name buffer-or-name service &optional sentinel filter
 Create a network server process for a TCP service.
-It returns nil if server processes are not supported; otherwise,
+It returns @code{nil} if server processes are not supported; otherwise,
 it returns a subprocess-object to represent the server.
 
 When a client connects to the specified service, Emacs creates a new
@@ -1843,8 +1843,8 @@ child connection as they are created.
 @item :bindtodevice @var{device-name}
 If @var{device-name} is a non-empty string identifying a network
 interface name (see @code{network-interface-list}), only handle
-packets received on that interface.  If @var{device-name} is nil (the
-default), handle packets received on any interface.
+packets received on that interface.  If @var{device-name} is @code{nil}
+(the default), handle packets received on any interface.
 
 Using this option may require special privileges on some systems.
 

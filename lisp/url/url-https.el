@@ -33,14 +33,14 @@
 (defalias 'url-https-expand-file-name 'url-http-expand-file-name)
 
 (defmacro url-https-create-secure-wrapper (method args)
-  (` (defun (, (intern (format (if method "url-https-%s" "url-https") method))) (, args)
-       (, (format "HTTPS wrapper around `%s' call." (or method "url-http")))
-       (condition-case ()
-	   (require 'ssl)
-	 (error
-	  (error "HTTPS support could not find `ssl' library.")))
-       (let ((url-gateway-method 'ssl))
-	 ((, (intern (format (if method "url-http-%s" "url-http") method))) (,@ (remove '&rest (remove '&optional args))))))))
+  `(defun ,(intern (format (if method "url-https-%s" "url-https") method)) ,args
+    ,(format "HTTPS wrapper around `%s' call." (or method "url-http"))
+    (condition-case ()
+	(require 'ssl)
+      (error
+       (error "HTTPS support could not find `ssl' library")))
+    (let ((url-gateway-method 'ssl))
+      ( ,(intern (format (if method "url-http-%s" "url-http") method)) ,@(remove '&rest (remove '&optional args))))))
 
 (url-https-create-secure-wrapper nil (url callback cbargs))
 (url-https-create-secure-wrapper file-exists-p (url))

@@ -73,7 +73,7 @@
 		"   </p>\n"
 		"   <p>\n"
 		"    If you If you feel this is an error, <a href=\""
-		"mailto:" url-bug-address "\">send me mail</a>\n"
+		"mailto:" url-bug-address "\">send mail</a>\n"
 		"   </p>\n"
 		"  </div>\n"
 		" </body>\n"
@@ -89,7 +89,7 @@
   (if (string-match "/+$" newsgroup)
       (setq newsgroup (substring newsgroup 0 (match-beginning 0))))
 
-  ;; This saves us from checking new news if GNUS is already running
+  ;; This saves us from checking new news if Gnus is already running
   ;; FIXME - is it relatively safe to use gnus-alive-p here? FIXME
   (if (or (not (get-buffer gnus-group-buffer))
 	  (save-excursion

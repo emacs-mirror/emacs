@@ -507,7 +507,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = allout-version
 (defvar allout-version
-  (let ((rcs-rev "$Revision: 1.48 $"))
+  (let ((rcs-rev "$Revision$"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)

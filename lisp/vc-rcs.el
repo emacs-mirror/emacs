@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.39 2004/03/21 15:46:23 spiegel Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 

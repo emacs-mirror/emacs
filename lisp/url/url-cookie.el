@@ -1,27 +1,30 @@
 ;;; url-cookie.el --- Netscape Cookie support
+
+;; Copyright (c) 1996 - 1999,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
+
 ;; Keywords: comm, data, processes, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'timezone)
 (require 'url-util)
@@ -151,7 +154,7 @@ telling Microsoft that.")
       (kill-buffer (current-buffer))))))
 
 (defun url-cookie-store (name value &optional expires domain path secure)
-  "Stores a netscape-style cookie"
+  "Store a netscape-style cookie."
   (let* ((storage (if secure url-cookie-secure-storage url-cookie-storage))
 	 (tmp storage)
 	 (cur nil)
@@ -232,7 +235,7 @@ telling Microsoft that.")
 
 ;;;###autoload
 (defun url-cookie-retrieve (host path &optional secure)
-  "Retrieves all the netscape-style cookies for a specified HOST and PATH"
+  "Retrieve all the netscape-style cookies for a specified HOST and PATH."
   (let ((storage (if secure
 		     (append url-cookie-secure-storage url-cookie-storage)
 		   url-cookie-storage))
@@ -290,7 +293,7 @@ telling Microsoft that.")
    (mapconcat 'identity (list "com" "edu" "net" "org" "gov" "mil" "int")
 	      "\\|")
    "\\)$")
-  "A regular expression of top-level domains that only require two matching
+  "A regexp of top level domains that only require two matching
 '.'s in the domain name in order to set a cookie.")
 
 (defcustom url-cookie-trusted-urls nil
@@ -329,14 +332,14 @@ telling Microsoft that.")
   (setq url-cookies-changed-since-last-save t)
   (let* ((args (url-parse-args str t))
 	 (case-fold-search t)
-	 (secure (and (assoc-ignore-case "secure" args) t))
-	 (domain (or (cdr-safe (assoc-ignore-case "domain" args))
+	 (secure (and (assoc-string "secure" args t) t))
+	 (domain (or (cdr-safe (assoc-string "domain" args t))
 		     (url-host url-current-object)))
 	 (current-url (url-view-url t))
 	 (trusted url-cookie-trusted-urls)
 	 (untrusted url-cookie-untrusted-urls)
-	 (expires (cdr-safe (assoc-ignore-case "expires" args)))
-	 (path (or (cdr-safe (assoc-ignore-case "path" args))
+	 (expires (cdr-safe (assoc-string "expires" args t)))
+	 (path (or (cdr-safe (assoc-string "path" args t))
 		   (file-name-directory
 		    (url-filename url-current-object))))
 	 (rest nil))
@@ -374,7 +377,7 @@ telling Microsoft that.")
 			      (match-string 3 expires) " "	; year
 			      (match-string 4 expires) ".00 " ; hour:minutes:seconds
 			      (match-string 6 expires)))) ":" ; timezone
-    
+
     (while (consp trusted)
       (if (string-match (car trusted) current-url)
 	  (setq trusted (- (match-end 0) (match-beginning 0)))
@@ -442,25 +445,23 @@ to run the `url-cookie-setup-save-timer' function manually."
 (defun url-cookie-setup-save-timer ()
   "Reset the cookie saver timer."
   (interactive)
-  (cond
-   ((featurep 'itimer)
-    (ignore-errors (delete-itimer url-cookie-timer))
-    (setq url-cookie-timer nil)
-    (if url-cookie-save-interval
-	(setq url-cookie-timer
-	      (start-itimer "url-cookie-saver" 'url-cookie-write-file
-			    url-cookie-save-interval
-			    url-cookie-save-interval))))
-   ((fboundp 'run-at-time)
-    (ignore-errors (cancel-timer url-cookie-timer))
-    (setq url-cookie-timer nil)
-    (if url-cookie-save-interval
-	(setq url-cookie-timer
+  (ignore-errors
+    (cond ((fboundp 'cancel-timer) (cancel-timer url-cookie-timer))
+	  ((fboundp 'delete-itimer) (delete-itimer url-cookie-timer))))
+  (setq url-cookie-timer nil)
+  (if url-cookie-save-interval
+      (setq url-cookie-timer
+	    (cond
+	     ((fboundp 'run-at-time)
 	      (run-at-time url-cookie-save-interval
 			   url-cookie-save-interval
-			   'url-cookie-write-file))))
-   (t nil)))
+			   'url-cookie-write-file))
+	     ((fboundp 'start-itimer)
+	      (start-itimer "url-cookie-saver" 'url-cookie-write-file
+			    url-cookie-save-interval
+			    url-cookie-save-interval))))))
 
 (provide 'url-cookie)
 
-;;; arch-tag: 2568751b-6452-4398-aa2d-303edadb54d7
+;; arch-tag: 2568751b-6452-4398-aa2d-303edadb54d7
+;;; url-cookie.el ends here

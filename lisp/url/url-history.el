@@ -1,27 +1,30 @@
 ;;; url-history.el --- Global history tracking for URL package
+
+;; Copyright (c) 1996 - 1999,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
+
 ;; Keywords: comm, data, processes, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 ;; This can get a recursive require.
 ;;(require 'url)
@@ -77,28 +80,26 @@ to run the `url-history-setup-save-timer' function manually."
   "Hash table for global history completion.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;;###autoload
 (defun url-history-setup-save-timer ()
   "Reset the history list timer."
   (interactive)
-  (cond
-   ((featurep 'itimer)
-    (ignore-errors (delete-itimer url-history-timer))
-    (setq url-history-timer nil)
-    (if url-history-save-interval
-	(setq url-history-timer
-	      (start-itimer "url-history-saver" 'url-history-save-history
-			    url-history-save-interval
-			    url-history-save-interval))))
-   ((fboundp 'run-at-time)
-    (ignore-errors (cancel-timer url-history-timer))
-    (setq url-history-timer nil)
-    (if url-history-save-interval
-	(setq url-history-timer
+  (ignore-errors 
+    (cond ((fboundp 'cancel-timer) (cancel-timer url-history-timer))
+	  ((fboundp 'delete-itimer) (delete-itimer url-history-timer))))
+  (setq url-history-timer nil)
+  (if url-history-save-interval
+      (setq url-history-timer
+	    (cond
+	     ((fboundp 'run-at-time)
 	      (run-at-time url-history-save-interval
 			   url-history-save-interval
-			   'url-history-save-history))))
-   (t nil)))
+			   'url-history-save-history))
+	     ((fboundp 'start-itimer)
+	      (start-itimer "url-history-saver" 'url-history-save-history
+			    url-history-save-interval
+			    url-history-save-interval))))))
 
 ;;;###autoload
 (defun url-history-parse-history (&optional fname)
@@ -195,4 +196,5 @@ user for what type to save as."
 
 (provide 'url-history)
 
-;;; arch-tag: fbbbaf63-db36-4e88-bc9f-2939aa93afb2
+;; arch-tag: fbbbaf63-db36-4e88-bc9f-2939aa93afb2
+;;; url-history.el ends here

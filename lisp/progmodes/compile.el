@@ -679,7 +679,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 	  (if (consp line) (setq end-line (cdr line) line (car line)))
 	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
 	  
-	  (if (symbolp line)
+	  (if (functionp line)
 	      ;; The old compile.el had here an undocumented hook that
 	      ;; allowed `line' to be a function that computed the actual
 	      ;; error location.  Let's do our best.
@@ -1370,12 +1370,14 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
   (interactive (list last-input-event))
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
-  (let ((pos (if event (posn-point (event-end event)) (point))))
-    (if (get-text-property (point) 'directory)
-	(dired-other-window (car (get-text-property pos 'directory)))
-      (push-mark)
-      (setq compilation-current-error pos)
-      (next-error 0))))
+  (let* ((loc (event-end event))
+	 (pos (posn-point loc)))
+    (with-selected-window (posn-window loc)
+      (if (get-text-property pos 'directory)
+	  (dired-other-window (car (get-text-property pos 'directory)))
+	(push-mark)
+	(setq compilation-current-error pos)
+	(next-error 0)))))
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.

@@ -1,5 +1,4 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: mh-e.texi,v 1.15 2003/09/01 15:45:46 miles Exp $
 @c %**start of header
 @setfilename ../info/mh-e
 @settitle mh-e
@@ -16,7 +15,7 @@ This is Edition @value{EDITION}, last updated @value{UPDATED}, of
 @cite{mh-e, The Emacs Interface to MH}, for mh-e, Version
 @value{VERSION}.
 
-Copyright 1995, 2001, 2002 Free Software Foundation, Inc.
+Copyright 1995, 2001, 2002, 2004 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

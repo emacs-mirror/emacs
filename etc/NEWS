@@ -150,6 +150,9 @@ can be saved and will again be loaded with the new `grep-mode'.
 
 ** M-x diff uses diff-mode instead of compilation-mode.
 
+** M-x compare-windows now can automatically skip non-matching text to
+resync points in both windows.
+
 ** New command `strokes-global-set-stroke-string'.
 This is like `strokes-global-set-stroke', but it allows you to bind
 the stroke directly to a string to insert.  This is convenient for
@@ -329,6 +332,31 @@ restores the previous value of `buffer-invisibility-spec'.
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
+** Dired mode:
+
+*** New faces dired-header, dired-mark, dired-marked, dired-flagged,
+dired-ignored, dired-directory, dired-symlink, dired-warning
+introduced for Dired mode instead of font-lock faces.
+
+*** New Dired command `dired-compare-directories' to mark files with
+different file attributes in two dired buffers.
+
++++
+*** In Dired's ! command (dired-do-shell-command), `*' and `?' now
+control substitution of the file names only when they are surrounded
+by whitespace.  This means you can now use them as shell wildcards
+too.  If you want to use just plain `*' as a wildcard, type `*""'; the
+doublequotes make no difference in the shell, but they prevent
+special treatment in `dired-do-shell-command'.
+
++++
+*** Dired's v command now runs external viewers to view certain
+types of files.  The variable `dired-view-command-alist' controls
+what external viewers to use and when.
+
+*** In Dired, the w command now copies the current line's file name
+into the kill ring.
+
 ** Info mode:
 +++
 *** Info now hides node names in menus and cross references by default.
@@ -338,6 +366,12 @@ If you prefer the old behavior, you can set the new user option
 *** The new command `info-apropos' searches the indices of the known
 Info files on your system for a string, and builds a menu of the
 possible matches.
+
++++
+*** The default value for `Info-scroll-prefer-subnodes' is now nil.
+
+---
+*** Info-index offers completion.
 
 ** Support for the SQLite interpreter has been added to sql.el by calling
 'sql-sqlite'.
@@ -755,9 +789,6 @@ mode-line.
 in a directory or in a file.  See the documentation of the user option
 `display-time-mail-directory'.
 
-+++
-** The default value for `Info-scroll-prefer-subnodes' is now nil.
-
 ---
 ** LDAP support now defaults to ldapsearch from OpenLDAP version 2.
 
@@ -813,9 +844,6 @@ When Emacs is invoked on a window system, the new command-line options
 `--fullwidth', `--fullheight', and `--fullscreen' produce a frame
 whose width, height, or both width and height take up the entire
 screen size.  (For now, this does not work with some window managers.)
-
----
-** Info-index offers completion.
 
 ---
 ** Emacs now tries to set up buffer coding systems for HTML/XML files
@@ -953,19 +981,6 @@ to hide its text.  This should be mostly transparent but slightly
 changes the behavior of motion commands like C-e and C-p.
 
 +++
-** In Dired's ! command (dired-do-shell-command), `*' and `?' now
-control substitution of the file names only when they are surrounded
-by whitespace.  This means you can now use them as shell wildcards
-too.  If you want to use just plain `*' as a wildcard, type `*""'; the
-doublequotes make no difference in the shell, but they prevent
-special treatment in `dired-do-shell-command'.
-
-+++
-** Dired's v command now runs external viewers to view certain
-types of files.  The variable `dired-view-command-alist' controls
-what external viewers to use and when.
-
-+++
 ** Unquoted `$' in file names do not signal an error any more when
 the corresponding environment variable does not exist.
 Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
@@ -1032,9 +1047,6 @@ affects the initial frame.
 With positive arg, M-h marks the current and the following paragraphs;
 if the arg is negative, it marks the current and the preceding
 paragraphs.
-
-** In Dired, the w command now copies the current line's file name
-into the kill ring.
 
 +++
 ** The variables dired-free-space-program and dired-free-space-args
@@ -1586,6 +1598,14 @@ candidate is a directory.
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
 
+** Visual feedback of *Completions* buffer is enhanced.
+Faces are put on the common prefix substrings and the first uncommon
+charachters of each completion candidate in the *Completions* buffer.
+`completion-de-emphasis' is put on the common prefix substrings as the
+face; and `completion-emphasis' is put on the first uncommon
+charachters. By default `completion-de-emphasis' is inherited from
+`default' face. `completion-emphasis' is inherited from `bold' face.
+
 +++
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
@@ -1691,6 +1711,8 @@ to view diffs or log entries directly from vc-annotate-mode:
     W:  annotates the workfile (most up to date) version
 
 * New modes and packages in Emacs 21.4
+
+** The new python.el package is used to edit Python and Jython programs.
 
 ** The URL package (which had been part of W3) is now part of Emacs.
 
@@ -2040,6 +2062,11 @@ that end a sentence without following spaces.
 ** The flags, width, and precision options for %-specifications in function
 `format' are now documented.  Some flags that were accepted but not
 implemented (such as "*") are no longer accepted.
+
+** New function `macroexpand-all' expands all macros in a form.
+It is similar to the Common-Lisp function of the same name.
+One difference is that it guarantees to return the original argument
+if no expansion is done, which may be tested using `eq'.
 
 +++
 ** New function `delete-dups' destructively removes `equal' duplicates

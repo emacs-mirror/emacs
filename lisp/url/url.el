@@ -1,30 +1,33 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
+
+;; Copyright (c) 1996,97,98,99,2001,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
+
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes, hypermedia
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 97, 98, 99, 2001 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
 
 ;; Registered URI schemes: http://www.iana.org/assignments/uri-schemes
+
+;;; Code:
 
 (eval-when-compile (require 'cl))
 ;; Don't require CL at runtime if we can avoid it (Emacs 21).
@@ -168,8 +171,7 @@ already completed."
 	(setq buffer (funcall loader url callback cbargs))
       (setq buffer (funcall loader url))
       (if buffer
-	  (save-excursion
-	    (set-buffer buffer)
+	  (with-current-buffer buffer
 	    (apply callback cbargs))))
     (url-history-update-url url (current-time))
     buffer))
@@ -196,7 +198,7 @@ no further processing).  URL is either a string or a parsed URL."
       (while (not retrieval-done)
 	(url-debug 'retrieval "Spinning in url-retrieve-synchronously: %S (%S)"
 		   retrieval-done asynch-buffer)
-	;; Quoth monnier:
+	;; Quoth Stef:
 	;; It turns out that the problem seems to be that the (sit-for
 	;; 0.1) below doesn't actually process the data: instead it
 	;; returns immediately because there is keyboard input
@@ -256,8 +258,7 @@ no further processing).  URL is either a string or a parsed URL."
     (warn "(%s/%s) %s" class (or level 'warning) message)))
  (t
   (defun url-warn (class message &optional level)
-    (save-excursion
-      (set-buffer (get-buffer-create "*URL-WARNINGS*"))
+    (with-current-buffer (get-buffer-create "*URL-WARNINGS*")
       (goto-char (point-max))
       (save-excursion
 	(insert (format "(%s/%s) %s\n" class (or level 'warning) message)))
@@ -265,5 +266,5 @@ no further processing).  URL is either a string or a parsed URL."
 
 (provide 'url)
 
-;;; arch-tag: bc182f1f-d187-4f10-b961-47af2066579a
+;; arch-tag: bc182f1f-d187-4f10-b961-47af2066579a
 ;;; url.el ends here

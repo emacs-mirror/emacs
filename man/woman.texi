@@ -1,5 +1,4 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.16 2003/11/02 07:01:19 eliz Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
@@ -18,7 +17,7 @@
 This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
-Copyright @copyright{} 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2002, 2004 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

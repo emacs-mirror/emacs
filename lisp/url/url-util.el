@@ -27,6 +27,7 @@
 (require 'url-parse)
 (autoload 'timezone-parse-date "timezone")
 (autoload 'timezone-make-date-arpa-standard "timezone")
+(autoload 'mail-header-extract "mailheader")
 
 (defvar url-parse-args-syntax-table
   (copy-syntax-table emacs-lisp-mode-syntax-table)
@@ -292,9 +293,28 @@ Will not do anything if url-show-status is nil."
 	(+ 10 (- x ?A)))
     (- x ?0)))
 
+;; Fixme: Is this definition better, and does it ever matter?
+
+;; (defun url-unhex-string (str &optional allow-newlines)
+;;   "Remove %XX, embedded spaces, etc in a url.
+;; If optional second argument ALLOW-NEWLINES is non-nil, then allow the
+;; decoding of carriage returns and line feeds in the string, which is normally
+;; forbidden in URL encoding."
+;;   (setq str (or str ""))
+;;   (setq str (replace-regexp-in-string "%[[:xdigit:]]\\{2\\}"
+;; 				      (lambda (match)
+;; 					(string (string-to-number
+;; 						 (substring match 1) 16)))
+;; 				      str t t))
+;;   (if allow-newlines
+;;       (replace-regexp-in-string "[\n\r]" (lambda (match)
+;; 					   (format "%%%.2X" (aref match 0)))
+;; 				str t t)
+;;     str))
+
 ;;;###autoload
 (defun url-unhex-string (str &optional allow-newlines)
-  "Remove %XXX embedded spaces, etc in a url.
+  "Remove %XX embedded spaces, etc in a url.
 If optional second argument ALLOW-NEWLINES is non-nil, then allow the
 decoding of carriage returns and line feeds in the string, which is normally
 forbidden in URL encoding."
@@ -334,11 +354,9 @@ This is taken from RFC 2396.")
    (lambda (char)
      ;; Fixme: use a char table instead.
      (if (not (memq char url-unreserved-chars))
-	 (if (< char 16)
-	     (format "%%0%X" char)
-	   (if (> char 255)
-	       (error "Hexifying multibyte character %s" str))
-	   (format "%%%X" char))
+	 (if (> char 255)
+	       (error "Hexifying multibyte character %s" str)
+	   (format "%%%02X" char))
        (char-to-string char)))
    str ""))
 
