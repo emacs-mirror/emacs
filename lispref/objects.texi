@@ -530,9 +530,14 @@ char-to-string      ; @r{A symbol named @samp{char-to-string}.}
 @end group
 @end example
 
+@ifinfo
 @c This uses ``colon'' instead of a literal `:' because Info cannot
 @c cope with a `:' in a menu
 @cindex @samp{#@var{colon}} read syntax
+@end ifinfo
+@ifnotinfo
+@cindex @samp{#:} read syntax
+@end ifnotinfo
   Normally the Lisp reader interns all symbols (@pxref{Creating
 Symbols}).  To prevent interning, you can write @samp{#:} before the
 name of the symbol.
