@@ -242,6 +242,9 @@ If you quit, the process is killed with SIGKILL.")
   if (XTYPE (buffer) == Lisp_Int)
     {
 #ifndef subprocesses
+      /* If Emacs has been built with asynchronous subprocess support,
+	 we don't need to do this, I think because it will then have
+	 the facilities for handling SIGCHLD.  */
       wait_without_blocking ();
 #endif /* subprocesses */
       return Qnil;
