@@ -2315,7 +2315,8 @@ int direct_output_forward_char P_ ((int));
 int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));
-int buffer_posn_from_coords P_ ((struct window *, int *, int *));
+void buffer_posn_from_coords P_ ((struct window *, int *, int *,
+				  Lisp_Object *, struct display_pos *));
 void do_pending_window_change P_ ((int));
 void change_frame_size P_ ((struct frame *, int, int, int, int, int));
 void bitch_at_user P_ ((void));
