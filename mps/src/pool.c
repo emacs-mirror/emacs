@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.43) $
+ * $HopeName: MMsrc!pool.c(trunk.44) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.43) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.44) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -373,7 +373,7 @@ Res PoolAct(Pool pool, Action action)
 }
 
 void PoolWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
-              void *p, unsigned long s)
+              void *p, Size s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -824,7 +824,7 @@ failCreate:
 
 void PoolNoWalk(Pool pool, Seg seg,
                 FormattedObjectsStepMethod f,
-		void *p, unsigned long s)
+		void *p, Size s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
