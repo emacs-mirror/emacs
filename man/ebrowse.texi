@@ -8,6 +8,7 @@
 @comment %**end of header
 
 @ifinfo
+@dircategory Emacs
 @direntry 
 * Ebrowse::   A C++ class browser for Emacs.
 @end direntry
