@@ -24,7 +24,7 @@
 /^archlibdir *=/s!=.*$!=/emacs/bin!
 /^bindir *=/s!=.*$!=/emacs/bin!
 /^libdir *=/s!=.*$!=/emacs/bin!
-/^srcdir *=/s!=.*$!=.!
+/^srcdir=/s!srcdir=@srcdir@!srcdir := $(subst \\,/,$(shell command.com /c cd))!
 /^VPATH *=/s!=.*$!=.!
 /^CFLAGS *=/s!=.*$!=-O2 -g!
 /^C_SWITCH_SYSTEM *=/s!=.*$!=-DMSDOS!
