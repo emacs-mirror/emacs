@@ -3359,17 +3359,25 @@ usage: (format STRING &rest OBJECTS)  */)
 		error ("Invalid format operation %%%c", *format);
 
 	    thissize = 30;
-	    if (*format == 'c'
-		&& (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
-		    || XINT (args[n]) == 0))
+	    if (*format == 'c')
 	      {
-		if (! multibyte)
+		if (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
+		    || XINT (args[n]) == 0)
 		  {
-		    multibyte = 1;
-		    goto retry;
+		    if (! multibyte)
+		      {
+			multibyte = 1;
+			goto retry;
+		      }
+		    args[n] = Fchar_to_string (args[n]);
+		    thissize = SBYTES (args[n]);
 		  }
-		args[n] = Fchar_to_string (args[n]);
-		thissize = SBYTES (args[n]);
+		else if (! ASCII_BYTE_P (XINT (args[n])) && multibyte)
+		  {
+		    args[n]
+		      = Fchar_to_string (Funibyte_char_to_multibyte (args[n]));
+		    thissize = SBYTES (args[n]);
+		  }
 	      }
 	  }
 	else if (FLOATP (args[n]) && *format != 's')
