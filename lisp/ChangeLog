@@ -2,6 +2,8 @@
 
 	* faces.el (face-id): Fix typo.
 
+	* hexl.el (hexl-mode): Likewise.
+
 2002-07-09  Miles Bader  <miles@gnu.org>
 
 	* hexl.el (hexl-find-file): Bind `completion-ignored-extensions'

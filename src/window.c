@@ -958,7 +958,7 @@ if it isn't already recorded.  */)
       struct buffer *old_buffer = NULL, *b = XBUFFER (buf);
 
       /* In case W->start is out of the range, use something
-         reasonable.  This situation occured when loading a file with
+         reasonable.  This situation occurred when loading a file with
          `-l' containing a call to `rmail' with subsequent other
          commands.  At the end, W->start happened to be BEG, while
          rmail had already narrowed the buffer.  */
