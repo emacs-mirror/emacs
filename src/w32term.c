@@ -1509,7 +1509,7 @@ fast_find_position (window, pos, columnp, rowp)
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   int i;
   int row = 0;
-  int left = w->left;
+  int left = WINDOW_LEFT_MARGIN (w);
   int top = w->top;
   int height = XFASTINT (w->height) - ! MINI_WINDOW_P (w);
   int width = window_internal_width (w);
@@ -1594,10 +1594,10 @@ show_mouse_face (dpyinfo, hl)
     {
       int column = (i == FRAME_WIN32_DISPLAY_INFO (f)->mouse_face_beg_row
 		    ? FRAME_WIN32_DISPLAY_INFO (f)->mouse_face_beg_col
-		    : w->left);
+		    : WINDOW_LEFT_MARGIN (w));
       int endcolumn = (i == FRAME_WIN32_DISPLAY_INFO (f)->mouse_face_end_row
 		       ? FRAME_WIN32_DISPLAY_INFO (f)->mouse_face_end_col
-		       : w->left + width);
+		       : WINDOW_LEFT_MARGIN (w) + width);
       endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i]);
 
       /* If the cursor's in the text we are about to rewrite,
