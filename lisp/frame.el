@@ -1046,7 +1046,8 @@ window blinks."
 		(run-with-idle-timer blink-cursor-delay
 				     blink-cursor-delay
 				     'blink-cursor-start))
-	  (setq blink-cursor-mode t)))))
+	  (setq blink-cursor-mode t))
+      (internal-show-cursor nil t))))
 
 (defcustom blink-cursor (not (eq system-type 'ms-dos))
   "*Non-nil means blinking cursor mode is active."
