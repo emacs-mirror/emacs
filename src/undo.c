@@ -151,7 +151,10 @@ truncate_undo_list (list, minsize, maxsize)
   last_boundary = Qnil;
 
   /* Always preserve at least the most recent undo record.
-     If the first element is an undo boundary, skip past it.  */
+     If the first element is an undo boundary, skip past it.
+
+     Skip, skip, skip the undo, skip, skip, skip the undo,
+     Skip, skip, skip the undo, skip to the undo bound'ry.  */
   if (XTYPE (next) == Lisp_Cons
       && XCONS (next)->car == Qnil)
     {
