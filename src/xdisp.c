@@ -13511,7 +13511,7 @@ display_mode_element (it, depth, field_width, precision, elt)
 		  n += store_frame_title (XSTRING (tem)->data, -1, prec);
 		else
 		  n += display_string (NULL, tem, Qnil, 0, 0, it,
-				       0, prec, 0, -1);
+				       0, prec, 0, STRING_MULTIBYTE (tem));
 	      }
 	    else if (!EQ (tem, elt))
 	      {
