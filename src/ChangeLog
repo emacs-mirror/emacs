@@ -1,5 +1,23 @@
 2005-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xfns.c (Fx_change_window_property): Use long array when format is 32.
+	(Fx_window_property): If format is 32 and long is bigger than 32 bits,
+	convert long array returned from XGetWindowProperty to an int array.
+
+	* xselect.c (x_reply_selection_request): Pass long array to
+	XChangeProperty so that 64 bit longs are handeled correctly.
+	(x_get_window_property): If format is 32 and long is bigger than 32
+	bits convert data from XGetWindowProperty from long array to int array.
+	(lisp_data_to_selection_data): When the input is a vector and the
+	format is 32, allocate a long array even if long is bigger than 32 bits.
+	(x_fill_property_data): Use char, short and long as the man page
+	for XChangeProperty specifies.  This way the data returned is OK for
+	both 32 and 64 bit machines.
+	(x_handle_dnd_message): Calculate size correctly even for 64 bit
+	machines.
+	(Fx_send_client_event): Undo change from 2005-02-05,
+	x_fill_property_data now handles that case.
+
 	* xfns.c (Fx_backspace_delete_keys_p): Added comment about the
 	reason for the approach in the code.
 
