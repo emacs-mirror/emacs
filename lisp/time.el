@@ -138,7 +138,7 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'.")
                                     (if (= hour 0)
                                         12
                                       hour))))
-         (am-pm (if (> hour 12) "pm" "am"))
+         (am-pm (if (>= hour 12) "pm" "am"))
          (minutes (substring time 14 16))
          (seconds (substring time 17 19))
          (time-zone (car (cdr (current-time-zone))))
