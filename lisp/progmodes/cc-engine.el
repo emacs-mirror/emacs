@@ -1100,8 +1100,26 @@ brace."
 			   (cdr (car brace-state))
 			 (car brace-state))
 		   braceassignp 'dontknow)
-	     (while (and (eq braceassignp 'dontknow)
-			 (zerop (c-backward-token-1 1 t lim)))
+	     (c-backward-token-1 1 t lim)
+	     ;; Checks to do only on the first sexp before the brace.
+	     (when (and (c-major-mode-is 'java-mode)
+			(eq (char-after) ?\[))
+	       ;; In Java, an initialization brace list may follow
+	       ;; directly after "new Foo[]", so check for a "new"
+	       ;; earlier.
+	       (while (eq braceassignp 'dontknow)
+		 (setq braceassignp
+		       (cond ((/= (c-backward-token-1 1 t lim) 0) nil)
+			     ((looking-at "new\\>") t)
+			     ((looking-at "\\sw\\|\\s_\\|[.[]")
+			      ;; Carry on looking if this is an
+			      ;; identifier (may contain "." in Java)
+			      ;; or another "[]" sexp.
+			      'dontknow)
+			     (t nil)))))
+	     ;; Checks to do on all sexps before the brace, up to the
+	     ;; beginning of the statement.
+	     (while (eq braceassignp 'dontknow)
 	       (cond ((eq (char-after) ?\;)
 		      (setq braceassignp nil))
 		     ((and class-key
@@ -1130,22 +1148,15 @@ brace."
 				    (and (c-major-mode-is 'c++-mode)
 					 (eq (char-before) ?<)
 					 (not (c-crosses-statement-barrier-p
-					       here pos<))
+					       pos< here))
 					 (not (c-in-literal))
 					 )))
 				nil)
-			       (t t)))))
-		     ((eq (char-after) ?\[)
-		      ;; In Java, an initialization brace list may
-		      ;; follow "new Foo[]", so check for [].  Got to
-		      ;; watch out for the C++ "operator[]" defun,
-		      ;; though.
-		      (setq braceassignp
-			    (save-excursion
-			      (c-backward-token-1)
-			      (not (looking-at "operator\\>")))))
-		     ))
-	     (if (memq braceassignp '(nil dontknow))
+			       (t t))))))
+	       (if (and (eq braceassignp 'dontknow)
+			(/= (c-backward-token-1 1 t lim) 0))
+		   (setq braceassignp nil)))
+	     (if (not braceassignp)
 		 (if (eq (char-after) ?\;)
 		     ;; Brace lists can't contain a semicolon, so we're done.
 		     (setq containing-sexp nil)
