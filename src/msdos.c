@@ -356,9 +356,6 @@ static unsigned long screen_old_address = 0;
 static unsigned short screen_virtual_segment = 0;
 static unsigned short screen_virtual_offset = 0;
 
-/* A flag to control how to display unibyte 8-bit character.  */
-int unibyte_display_via_language_environment;
-
 #if __DJGPP__ > 1
 /* Update the screen from a part of relocated DOS/V screen buffer which
    begins at OFFSET and includes COUNT characters.  */
@@ -691,15 +688,15 @@ IT_write_glyphs (GLYPH *str, int str_len)
   register int tlen = GLYPH_TABLE_LENGTH;
   register Lisp_Object *tbase = GLYPH_TABLE_BASE;
 
-  struct coding_system *coding = CODING_REQUIRE_ENCODING (&terminal_coding)
-    ? &terminal_coding
-    : &safe_terminal_coding;
+  struct coding_system *coding = (CODING_REQUIRE_ENCODING (&terminal_coding)
+				  ? &terminal_coding
+				  : &safe_terminal_coding);
 
   /* Do we need to consider conversion of unibyte characters to
      multibyte?  */
   int convert_unibyte_characters
-    = NILP (current_buffer->enable_multibyte_characters)
-    && unibyte_display_via_language_environment;
+    = (NILP (current_buffer->enable_multibyte_characters)
+       && unibyte_display_via_language_environment);
 
   if (str_len == 0) return;
   
@@ -4006,15 +4003,6 @@ syms_of_msdos ()
   staticpro (&Qbackground_color);
   Qforeground_color = intern ("foreground-color");
   staticpro (&Qforeground_color);
-
-  DEFVAR_BOOL ("unibyte-display-via-language-environment",
-	       &unibyte_display_via_language_environment,
-   "*Non-nil means display unibyte text according to language environment.\n\
-Specifically this means that unibyte non-ASCII characters\n\
-are displayed by converting them to the equivalent multibyte characters\n\
-according to the current language environment.  As a result, they are\n\
-displayed according to the current codepage and display table.");
-  unibyte_display_via_language_environment = 0;
 
   DEFVAR_LISP ("dos-unsupported-char-glyph", &Vdos_unsupported_char_glyph,
    "*Glyph to display instead of chars not supported by current codepage.\n\
