@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(defcustom only-global-abbrevs nil 
+(defcustom only-global-abbrevs nil
   "*t means user plans to use global abbrevs only.
 This makes the commands that normally define mode-specific abbrevs
 define global abbrevs instead."
@@ -103,7 +103,7 @@ Otherwise display all abbrevs."
 	(setq found (car tables)))
       (setq tables (cdr tables)))
     found))
-    
+
 (defun prepare-abbrev-list-buffer (&optional local)
   (save-excursion
     (let ((table local-abbrev-table))
@@ -254,7 +254,7 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
 	    (y-or-n-p (format "%s expands to \"%s\"; redefine? "
 			      name (abbrev-expansion name table))))
 	(define-abbrev table (downcase name) exp))))
-	
+
 (defun inverse-add-mode-abbrev (arg)
   "Define last word before point as a mode-specific abbrev.
 With prefix argument N, defines the Nth word before point.
@@ -263,7 +263,7 @@ Expands the abbreviation after defining it."
   (interactive "p")
   (inverse-add-abbrev
    (if only-global-abbrevs
-       global-abbrev-table 
+       global-abbrev-table
      (or local-abbrev-table
 	 (error "No per-mode abbrev table")))
    "Mode" arg))

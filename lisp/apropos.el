@@ -161,7 +161,7 @@ for the regexp; the part that matches gets displayed in this font."
   'action (lambda (button)
 	    (describe-function (button-get button 'apropos-symbol)))
   'help-echo "mouse-2, RET: Display more help on this command")
-  
+
 ;; We used to use `customize-variable-other-window' instead for a
 ;; customizable variable, but that is slow.  It is better to show an
 ;; ordinary help buffer and let the user click on the customization
