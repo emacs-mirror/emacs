@@ -21,9 +21,21 @@ archlibdir='${libexecdir}/emacs/${version}/${configuration}'
 docdir='${datadir}/emacs/${version}/etc'
 
 AC_ARG_WITH(gcc,
-[  --with-gcc              Use GCC to compile Emacs])
+[  --with-gcc              use GCC to compile Emacs])
+AC_ARG_WITH(pop,
+[  --with-pop              support POP for mail retrieval],
+[AC_DEFINE(MAIL_USE_POP)])
+AC_ARG_WITH(kerberos,
+[  --with-kerberos         support Kerberos-authenticated POP],
+[AC_DEFINE(KERBEROS)])
+AC_ARG_WITH(hesiod,
+[  --with-hesiod           support Hesiod to get the POP server host],
+[AC_DEFINE(HESIOD)])
+dnl This should be the last --with option, because --with-x is
+dnl added later on when we find the path of X, and it's best to
+dnl keep them together visually.
 AC_ARG_WITH(x-toolkit,
-[  --with-x-toolkit=KIT    Use an X toolkit (KIT = yes/lucid/athena/motif)],
+[  --with-x-toolkit=KIT    use an X toolkit (KIT = yes/lucid/athena/motif)],
 [	  case "${withval}" in
 	    y | ye | yes )	val=athena ;;
 	    n | no )		val=no  ;;
@@ -43,15 +55,6 @@ Currently, \`yes', \`athena' and \`lucid' are synonyms.])
 	  esac
 	  with_x_toolkit=$val
 ])
-AC_ARG_WITH(pop,
-[  --with-pop              Support POP for mail retrieval],
-[AC_DEFINE(MAIL_USE_POP)])
-AC_ARG_WITH(kerberos,
-[  --with-kerberos         Support Kerberos-authenticated POP],
-[AC_DEFINE(KERBEROS)])
-AC_ARG_WITH(hesiod,
-[  --with-hesiod           Support Hesiod to get POP server host],
-[AC_DEFINE(HESIOD)])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessary, since pwd can
