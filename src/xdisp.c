@@ -3759,6 +3759,9 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 	   don't forget that too fast.  */
 	if (EQ (w->base_line_pos, w->buffer))
 	  goto no_value;
+	/* But do forget it, if the window shows a different buffer now.  */
+	else if (BUFFERP (w->base_line_pos))
+	  w->base_line_pos = Qnil;
 
 	/* If the buffer is very big, don't waste time.  */
 	if (BUF_ZV (b) - BUF_BEGV (b) > line_number_display_limit)
