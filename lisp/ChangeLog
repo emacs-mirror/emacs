@@ -1,5 +1,8 @@
 2005-02-27  Andreas Schwab  <schwab@suse.de>
 
+	* vc.el (vc-do-command): Don't run command asynchronously when
+	operating in a remote directory.
+
 	* net/tramp.el (tramp-file-name-for-operation): Fix misapplied
 	change from sync with Tramp 2.0.47.
 
