@@ -189,7 +189,7 @@ repeatedly until you are satisfied with the kind of comment."
 
    ;; Nonblank line with no comment chars in it?
    ;; Then start a comment at the current comment column
-   ((asm-line-matches (format "^[^%c]+$" asm-comment-char))
+   ((asm-line-matches (format "^[^%c\n]+$" asm-comment-char))
     (indent-for-comment))
 
    ;; Flush-left comment present?  Just insert character.
