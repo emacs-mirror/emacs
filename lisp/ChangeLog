@@ -1,5 +1,11 @@
 2000-06-14  Kenichi Handa  <handa@etl.go.jp>
 
+	* tar-mode.el (tar-extract): For goto-char, use (point-min), not
+	0.  Give correct argument to set-auto-coding-function.
+	(tar-expunge): For goto-char, use (point-min), not 0.
+	(tar-clear-modification-flags): For goto-char, use (point-min), not 1.
+	(tar-subfile-save-buffer): Likewize.
+
 	* international/mule.el
 	(after-insert-file-set-buffer-file-coding-system): Call
 	set-buffer-file-coding-system with the arg FORCE t.
