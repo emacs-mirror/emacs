@@ -3339,7 +3339,7 @@ read_avail_input (expected)
 
       /* Now read; for one reason or another, this will not block.
 	 NREAD is set to the number of chars read.  */
-      while (1)
+      do
 	{
 #ifdef MSDOS
 	  cbuf[0] = dos_keyread();
@@ -3356,17 +3356,15 @@ read_avail_input (expected)
 	    kill (0, SIGHUP);
 #endif
 	  /* Retry the read if it was interrupted.  */
-	  if (nread >= 0
-	      || ! (errno == EAGAIN 
+	}
+      while (nread < 0 && (errno == EAGAIN 
 #ifdef EFAULT
-		    || errno == EFAULT
+			   || errno == EFAULT
 #endif
 #ifdef EBADSLT
-		    || errno == EBADSLT
+			   || errno == EBADSLT
 #endif
-		    ))
-	    break;
-	}
+			   ));
 
 #ifndef FIONREAD
 #if defined (USG) || defined (DGUX)
