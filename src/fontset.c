@@ -718,7 +718,7 @@ If the named font is not yet loaded, return nil.")
   if (!fontp)
     return Qnil;
 
-  info = Fmake_vector (make_number (7), Qnil);
+  info = Fmake_vector (make_number (8), Qnil);
 
   XVECTOR (info)->contents[0] = build_string (fontp->name);
   XVECTOR (info)->contents[1] = build_string (fontp->full_name);
