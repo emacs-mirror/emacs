@@ -183,7 +183,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
     report_file_error ("Opening directory", Fcons (directory, Qnil));
 
   list = Qnil;
-  dirnamelen = XSTRING (encoded_directory)->size;
+  dirnamelen = STRING_BYTES (XSTRING (encoded_directory));
   re_match_object = Qt;
 
   /* Decide whether we need to add a directory separator.  */
@@ -191,7 +191,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   if (dirnamelen == 0
       || !IS_ANY_SEP (XSTRING (encoded_directory)->data[dirnamelen - 1]))
     needsep = 1;
-#endif /* VMS */
+#endif /* not VMS */
 
   GCPRO2 (encoded_directory, list);
 
@@ -214,7 +214,8 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 		  int total = len + dirnamelen;
 		  int nchars;
 
-		  name = make_uninit_string (total + needsep);
+		  name = make_uninit_multibyte_string (total + needsep,
+						       total + needsep);
 		  bcopy (XSTRING (encoded_directory)->data, XSTRING (name)->data,
 			 dirnamelen);
 		  if (needsep)
