@@ -1,5 +1,10 @@
 2000-01-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* sort.el (sort-numeric-base): New option.
+	(sort-numeric-fields): If number starts with `0' or `0[xX[',
+	interpret it as octal or hexadecimal.  Use sort-numeric-base
+	as default base.
+
 	* progmodes/glasses.el: New file.
 
 2000-01-27  Gerd Moellmann  <gerd@gnu.org>

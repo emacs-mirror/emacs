@@ -1,0 +1,232 @@
+;;; glasses.el --- make cantReadThis readable
+
+;; Copyright (C) 1999 Free Software Foundation, Inc.
+
+;; Author: Milan Zamazal <pdm@freesoft.cz>
+;; Maintainer: Milan Zamazal <pdm@freesoft.cz>
+;; Keywords: tools
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;; This file defines a minor mode for making unreadableIdentifiersLikeThis
+;; readable.  In some environments, for instance Java, it is common to use such
+;; unreadable identifiers.  It is not good to use underscores in identifiers of
+;; your own project in such an environment to make your sources more readable,
+;; since it introduces undesirable confusion, which is worse than the
+;; unreadability.  Fortunately, you use Emacs for the subproject, so the
+;; problem can be solved some way.
+;;
+;; This file defines the `glasses-mode' minor mode, which displays underscores
+;; between all the pairs of lower and upper English letters.  (This only
+;; displays underscores, the text is not changed actually.)  Alternatively, you
+;; can say you want the capitals in some given face (e.g. bold).
+;;
+;; The mode does something usable, though not perfect.  Improvement suggestions
+;; from Emacs experts are welcome.
+;;
+;; If you like in-identifier separators different from underscores, change the
+;; value of the variable `glasses-separator' appropriately.  See also the
+;; variables `glasses-face' and `glasses-convert-on-write-p'.  You can also use
+;; the command `M-x customize-group RET glasses RET'.
+;;
+;; If you set any of the variables `glasses-separator' or `glasses-face' after
+;; glasses.el is loaded and in a different way than through customize, you
+;; should call the function `glasses-set-overlay-properties' afterwards.
+
+;;; Code:
+
+
+(eval-when-compile
+  (require 'cl))
+
+
+;;; User variables
+
+
+(defgroup glasses nil
+  "Make unreadable identifiers likeThis readable."
+  :group 'tools)
+
+
+(defcustom glasses-separator "_"
+  "*String to be displayed as a visual separator in unreadable identifiers."
+  :group 'glasses
+  :type 'string
+  :set 'glasses-custom-set
+  :initialize 'custom-initialize-default)
+
+
+(defcustom glasses-face nil
+  "*Face to be put on capitals of an identifier looked through glasses.
+If it is nil, no face is placed at the capitalized letter.
+
+For example, you can set `glasses-separator' to an empty string and
+`glasses-face' to `bold'.  Then unreadable identifiers will have no separators,
+but will have their capitals in bold."
+  :group 'glasses
+  :type 'symbol
+  :set 'glasses-custom-set
+  :initialize 'custom-initialize-default)
+
+
+(defcustom glasses-convert-on-write-p nil
+  "*If non-nil, remove separators when writing glasses buffer to a file.
+If you are confused by glasses so much, that you write the separators into code
+during coding, set this variable to t.  The separators will be removed on each
+file write then.
+
+Note the removal action does not try to be much clever, so it can remove real
+separators too."
+  :group 'glasses
+  :type 'boolean)
+
+
+(defun glasses-custom-set (symbol value)
+  "Set value of the variable SYMBOL to VALUE and update overlay categories.
+Used in :set parameter of some customized glasses variables."
+  (set symbol value)
+  (glasses-set-overlay-properties))
+
+
+;;; Utility functions
+
+
+(defun glasses-set-overlay-properties ()
+  "Set properties of glasses overlays.
+Consider current setting of user variables."
+  ;; In-identifier overlay
+  (put 'glasses 'evaporate t)
+  (put 'glasses 'before-string glasses-separator)
+  (put 'glasses 'face glasses-face)
+  ;; Beg-identifier overlay
+  (put 'glasses-init 'evaporate t)
+  (put 'glasses-init 'face glasses-face))
+
+(glasses-set-overlay-properties)
+
+
+(defun glasses-overlay-p (overlay)
+  "Return whether OVERLAY is an overlay of glasses mode."
+  (memq (overlay-get overlay 'category) '(glasses glasses-init)))
+
+
+(defun glasses-make-overlay (beg end &optional init)
+  "Create readability overlay over the region from BEG to END.
+If INIT is non-nil, put `glasses-init' overlay there."
+  (let ((overlay (make-overlay beg end)))
+    (overlay-put overlay 'category (if init 'glasses-init 'glasses))))
+
+
+(defun glasses-make-readable (beg end)
+  "Make identifiers in the region from BEG to END readable."
+  (let ((case-fold-search nil))
+    (save-excursion
+      (save-match-data
+	;; Face only
+	(goto-char beg)
+	(while (re-search-forward
+		"\\<\\([A-Z]\\)[a-zA-Z]*\\([a-z][A-Z]\\|[A-Z][a-z]\\)"
+		end t)
+	  (glasses-make-overlay (match-beginning 1) (match-end 1) t))
+	(goto-char beg)
+	;; Face + separator
+	(while (re-search-forward "[a-z]\\([A-Z]\\)\\|[A-Z]\\([A-Z]\\)[a-z]"
+				  end t)
+	  (let ((n (if (match-string 1) 1 2)))
+	    (glasses-make-overlay (match-beginning n) (match-end n))
+	    (goto-char (match-beginning n))))))))
+
+
+(defun glasses-make-unreadable (beg end)
+  "Return identifiers in the region from BEG to END to their unreadable state."
+  (dolist (o (overlays-in beg end))
+    (when (glasses-overlay-p o)
+      (delete-overlay o))))
+
+
+(defun glasses-convert-to-unreadable ()
+  "Convert current buffer to unreadable identifiers and return nil.
+This function modifies buffer contents, it removes all the separators,
+recognized according to the current value of the variable `glasses-separator'."
+  (when (and glasses-convert-on-write-p
+	     (not (string= glasses-separator "")))
+    (let ((case-fold-search nil))
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward
+		"[a-z]\\(_\\)[A-Z]\\|[A-Z]\\(_\\)[A-Z][a-z]" nil t)
+	  (let ((n (if (match-string 1) 1 2)))
+	    (replace-match "" t nil nil n)
+	    (goto-char (match-end n)))))))
+  ;; nil must be returned to allow use in write file hooks
+  nil)
+
+
+(defun glasses-change (beg end old-len)
+  "After-change function updating glass overlays."
+  (let ((beg-line (save-excursion (goto-char beg) (line-beginning-position)))
+	(end-line (save-excursion (goto-char end) (line-end-position))))
+    (glasses-make-unreadable beg-line end-line)
+    (glasses-make-readable beg-line end-line)))
+
+
+;;; Minor mode definition
+
+
+(defvar glasses-mode nil
+  "Mode variable for `glasses-mode'.")
+(make-variable-buffer-local 'glasses-mode)
+
+(add-to-list 'minor-mode-alist '(glasses-mode " o^o"))
+
+
+;;;###autoload
+(defun glasses-mode (arg)
+  "Minor mode for making identifiers likeThis readable.
+When this mode is active, it tries to add virtual separators (like underscores)
+at places they belong to."
+  (interactive "P")
+  (let ((new-flag (if (null arg)
+		       (not glasses-mode)
+		    (> (prefix-numeric-value arg) 0))))
+    (unless (eq new-flag glasses-mode)
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (if new-flag
+	      (progn
+		(glasses-make-readable (point-min) (point-max))
+		(make-local-hook 'after-change-functions)
+		(add-hook 'after-change-functions 'glasses-change nil t)
+		(add-hook 'local-write-file-hooks
+			  'glasses-convert-to-unreadable nil t))
+	    (glasses-make-unreadable (point-min) (point-max))
+	    (remove-hook 'after-change-functions 'glasses-change t)
+	    (remove-hook 'local-write-file-hooks
+			 'glasses-convert-to-unreadable t))))
+      (setq glasses-mode new-flag))))
+
+
+;;; Announce
+
+(provide 'glasses)
+
+
+;;; glasses.el ends here

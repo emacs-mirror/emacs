@@ -1414,6 +1414,7 @@ record as the sort key.
 @findex sort-pages
 @findex sort-fields
 @findex sort-numeric-fields
+@vindex sort-numeric-base
 @table @kbd
 @item M-x sort-lines
 Divide the region into lines, and sort by comparing the entire
@@ -1446,7 +1447,9 @@ keep same relative order that they had in the original buffer.
 Like @kbd{M-x sort-fields} except the specified field is converted
 to an integer for each line, and the numbers are compared.  @samp{10}
 comes before @samp{2} when considered as text, but after it when
-considered as a number.
+considered as a number.  By default, numbers are interpreted according
+to @code{sort-numeric-base}, but numbers beginning with @samp{0x} or
+@samp{0} are interpreted as hexadecimal and octal, respectively.
 
 @item M-x sort-columns
 Like @kbd{M-x sort-fields} except that the text within each line
