@@ -1899,6 +1899,33 @@ or a function symbol which, when called, returns such a cons cell."
 		   (cons (cons regexp coding-system)
 			 network-coding-system-alist)))))))
 
+(defun decode-coding-region-as-inserted-from-file (from to filename
+							&optional
+							visit beg end replace)
+  "Decode the region between FROM and TO as if it is read from file FILENAME.
+Optional arguments VISIT, BEG, END, and REPLACE are the same as those
+of the function `insert-file-contents'."
+  (save-excursion
+    (save-restriction
+      (narrow-to-region from to)
+      (goto-char (point-min))
+      (let ((coding coding-system-for-read))
+	(or coding
+	    (setq coding (funcall set-auto-coding-function
+				  filename (- (point-max) (point-min)))))
+	(or coding
+	    (setq coding (find-operation-coding-system
+			  'insert-file-contents
+			  filename visit beg end replace)))
+	(if (coding-system-p coding)
+	    (or enable-multibyte-characters
+		(setq coding
+		      (coding-system-change-text-conversion coding 'raw-text)))
+	  (setq coding nil))
+	(if coding
+	    (decode-coding-region (point-min) (point-max) coding))
+	(setq last-coding-system-used coding)))))
+
 (defun make-translation-table (&rest args)
   "Make a translation table from arguments.
 A translation table is a char table intended for character
