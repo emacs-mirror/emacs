@@ -5317,7 +5317,7 @@ Timezone package is used."
 			(progn (search-forward "\n\n" nil 'move) (point)))
       (mail-fetch-field field))))
 
-(fset 'gnus-expunge 'gnus-summary-delete-marked-with)
+(defalias 'gnus-expunge 'gnus-summary-delete-marked-with)
 
 (defun gnus-kill (field regexp &optional command all)
   "If FIELD of an article matches REGEXP, execute COMMAND.
