@@ -40,20 +40,6 @@
 ;; This is the overlay used to highlight the closeparen right before point.
 (defvar show-paren-overlay-1 nil)
 
-;;;###autoload
-(defcustom show-paren-mode nil
-  "*Toggle Show Paren mode.
-When Show Paren mode is enabled, any matching parenthesis is highlighted
-after `show-paren-delay' seconds of Emacs idle time.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `show-paren-mode'."
-  :set (lambda (symbol value)
-	 (show-paren-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'paren-showing
-  :require 'paren)
-
 (defcustom show-paren-style 'parenthesis
   "*Style used when showing a matching paren.
 Valid styles are `parenthesis' (meaning show the matching paren),
@@ -98,24 +84,20 @@ otherwise)."
 (defvar show-paren-idle-timer nil)
 
 ;;;###autoload
-(defun show-paren-mode (&optional arg)
+(define-minor-mode show-paren-mode
   "Toggle Show Paren mode.
 With prefix ARG, turn Show Paren mode on if and only if ARG is positive.
 Returns the new status of Show Paren mode (non-nil means on).
 
 When Show Paren mode is enabled, any matching parenthesis is highlighted
 in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
-  (interactive "P")
-  (let ((on-p (if arg
-		  (> (prefix-numeric-value arg) 0)
-		(not show-paren-mode))))
-    (setq show-paren-mode on-p)
+  nil nil nil :global t :group 'paren-showing
     ;; Turn off the usual paren-matching method
     ;; when this one is turned on.
     (if (local-variable-p 'show-paren-mode)
 	(make-local-variable 'blink-matching-paren-on-screen)
       (kill-local-variable 'blink-matching-paren-on-screen))
-    (setq blink-matching-paren-on-screen (not on-p))
+    (setq blink-matching-paren-on-screen (not show-paren-mode))
 
     ;; Now enable or disable the mechanism.
     ;; First get rid of the old idle timer.
@@ -131,13 +113,13 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
       (setq show-paren-idle-timer (run-with-idle-timer
 				   show-paren-delay t
 				   'show-paren-function)))
-    (unless on-p
+    (unless show-paren-mode
       (and show-paren-overlay
 	   (eq (overlay-buffer show-paren-overlay) (current-buffer))
 	   (delete-overlay show-paren-overlay))
       (and show-paren-overlay-1
 	   (eq (overlay-buffer show-paren-overlay-1) (current-buffer))
-	   (delete-overlay show-paren-overlay-1)))))
+	   (delete-overlay show-paren-overlay-1))))
 
 ;; Find the place to show, if there is one,
 ;; and show it until input arrives.
@@ -243,8 +225,5 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	 (delete-overlay show-paren-overlay-1))))
 
 (provide 'paren)
-
-(if show-paren-mode
-    (show-paren-mode t))
 
 ;;; paren.el ends here
