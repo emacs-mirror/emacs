@@ -34,7 +34,7 @@
 
 
 extern int errno;
-extern char *strerror (), *malloc ();
+extern char *strerror ();
 extern time_t time ();
 
 /*
