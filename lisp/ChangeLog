@@ -47,8 +47,8 @@
 	* eshell/em-script.el (eshell-script-initialize): Add names to
 	`eshell-complex-commands, since `source' and `.' are complex.
 
-	* eshell/esh-cmd.el (eshell-rewrite-for-command,
-	eshell-rewrite-while-command): Use `eshell-protect' instead of
+	* eshell/esh-cmd.el (eshell-rewrite-for-command)
+	(eshell-rewrite-while-command): Use `eshell-protect' instead of
 	`eshell-copy-handles'.
 	(eshell-rewrite-if-command): Use `eshell-protect' to wrap the call
 	bodies.
@@ -71,8 +71,8 @@
 	(eshell/mv, eshell/cp): Enable `:preserve-args'.
 	(eshell/ln): Enable `:preserve-args', and use
 	`eshell-mvcpln-template' to implement the body of the function.
-	(eshell/cat, eshell/make, eshell-poor-mans-grep, eshell-grep,
-	eshell/du, eshell/diff, eshell/locate): Stringify the argument
+	(eshell/cat, eshell/make, eshell-poor-mans-grep, eshell-grep)
+	(eshell/du, eshell/diff, eshell/locate): Stringify the argument
 	list after flattening it.  This makes it possible to cat files
 	with numerical names.
 	(eshell-unix-initialize): Added several names to
@@ -130,39 +130,39 @@
 
 2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
 	
-	* viper-cmd.el (viper-preserve-cursor-color): new test that avoids
+	* viper-cmd.el (viper-preserve-cursor-color): New test that avoids
 	rewrawing the screen when changing cursor color.
-	(viper-insert-state-pre-command-sentinel,
-	viper-replace-state-pre-command-sentinel,
-	viper-replace-state-post-command-sentinel): use
+	(viper-insert-state-pre-command-sentinel)
+	(viper-replace-state-pre-command-sentinel)
+	(viper-replace-state-post-command-sentinel): Use
 	viper-preserve-cursor-color.
 	Many functions changed to use viper= instead of = when comparing
 	characters.
-	* viper-util.el (viper-memq-char,viper=): new functions for
+	* viper-util.el (viper-memq-char,viper=): New functions for
 	working with characters.
-	(viper-change-cursor-color): fixed buglet.
+	(viper-change-cursor-color): Fixed buglet.
 	Many functions changed to use viper= instead of = when comparing
 	characters.
-	* viper.el (viper-insert-state-mode-list): added eshell.
+	* viper.el (viper-insert-state-mode-list): Added eshell.
 	
-	* ediff-init.el (ediff-before-setup-hook): new hook.
+	* ediff-init.el (ediff-before-setup-hook): New hook.
 	Several typos fixed in various docstrings.
-	* ediff-merg.el (ediff-show-clashes-only): docstring typo fixed.
-	* ediff-nult.el (ediff-before-session-group-setup-hooks): new
+	* ediff-merg.el (ediff-show-clashes-only): Docstring typo fixed.
+	* ediff-nult.el (ediff-before-session-group-setup-hooks): New
 	hook.
-	(ediff-show-meta-buffer): run ediff-before-session-group-setup-hooks.
-	* ediff-util.el (ediff-setup): run ediff-before-setup-hook.
-	(ediff-other-buffer): use selected buffers if in Buffer-menu buffer.
-	(ediff-get-selected-buffers): new function.
-	* ediff-vers.el (ediff-vc-internal,ediff-rcs-internal,
-	ediff-vc-merge-internal,ediff-rcs-merge-internal): use
+	(ediff-show-meta-buffer): Run ediff-before-session-group-setup-hooks.
+	* ediff-util.el (ediff-setup): Run ediff-before-setup-hook.
+	(ediff-other-buffer): Use selected buffers if in Buffer-menu buffer.
+	(ediff-get-selected-buffers): New function.
+	* ediff-vers.el (ediff-vc-internal,ediff-rcs-internal)
+	(ediff-vc-merge-internal,ediff-rcs-merge-internal): Use
 	save-window-excursion.
-	* ediff-wind.el (ediff-skip-unsuitable-frames): more robust
+	* ediff-wind.el (ediff-skip-unsuitable-frames): More robust
 	termination check in while loop.
-	* ediff.el (ediff-get-default-file-name): better defaults when in
+	* ediff.el (ediff-get-default-file-name): Better defaults when in
 	dired buffer.
-	(ediff-files,ediff-merge-files,ediff-files3,
-	ediff-merge-files-with-ancestor): use ediff-get-default-file-name.
+	(ediff-files,ediff-merge-files,ediff-files3)
+	(ediff-merge-files-with-ancestor): Use ediff-get-default-file-name.
 	
 2000-10-28  Dave Love  <fx@gnu.org>
 
