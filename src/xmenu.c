@@ -83,11 +83,6 @@ extern Display *x_current_display;
 #define	ButtonReleaseMask ButtonReleased
 #endif /* not HAVE_X11 */
 
-/* We need a unique id for each widget handled by the Lucid Widget
-   library.  This includes the frame main windows, popup menu and
-   dialog box.  */
-LWLIB_ID widget_id_tick;
-
 extern Lisp_Object Qmenu_enable;
 extern Lisp_Object Qmenu_bar;
 
@@ -1485,78 +1480,7 @@ free_frame_menubar (f)
       UNBLOCK_INPUT;
     }
 }
-
-/* Horizontal bounds of the current menu bar item.  */
 
-static int this_menu_bar_item_beg;
-static int this_menu_bar_item_end;
-
-/* Horizontal position of the end of the last menu bar item.  */
-
-static int last_menu_bar_item_end;
-
-/* Nonzero if position X, Y is in the menu bar and in some menu bar item
-   but not in the current menu bar item.  */
-
-static int
-other_menu_bar_item_p (f, x, y)
-     FRAME_PTR f;
-     int x, y;
-{
-  return (y >= 0
-	  && f->display.x->menubar_widget != 0
-	  && y < f->display.x->menubar_widget->core.height
-	  && x >= 0
-	  && x < last_menu_bar_item_end
-	  && (x >= this_menu_bar_item_end
-	      || x < this_menu_bar_item_beg));
-}
-
-/* Unread a button-press event in the menu bar of frame F
-   at x position XPOS relative to the inside of the frame.  */
-
-static void
-unread_menu_bar_button (f, xpos)
-     FRAME_PTR f;
-     int xpos;
-{
-  XEvent event;
-
-  event.type = ButtonPress;
-  event.xbutton.display = x_current_display;
-  event.xbutton.serial = 0;
-  event.xbutton.send_event = 0;
-  event.xbutton.time = CurrentTime;
-  event.xbutton.button = Button1;
-  event.xbutton.window = XtWindow (f->display.x->menubar_widget);
-  event.xbutton.x = xpos;
-  XPutBackEvent (XDISPLAY &event);
-}
-
-/* If the mouse has moved to another menu bar item,
-   return 1 and unread a button press event for that item.
-   Otherwise return 0.  */
-
-static int
-check_mouse_other_menu_bar (f)
-     FRAME_PTR f;
-{
-  FRAME_PTR new_f;
-  Lisp_Object bar_window;
-  int part;
-  Lisp_Object x, y;
-  unsigned long time;
-
-  (*mouse_position_hook) (&new_f, &bar_window, &part, &x, &y, &time);
-
-  if (f == new_f && other_menu_bar_item_p (f, x, y))
-    {
-      unread_menu_bar_button (f, x);
-      return 1;
-    }
-
-  return 0;
-}
 #endif /* USE_X_TOOLKIT */
 
 /* xmenu_show actually displays a menu using the panes and items in menu_items
@@ -1577,11 +1501,12 @@ check_mouse_other_menu_bar (f)
 
 #ifdef USE_X_TOOLKIT
 
-extern unsigned last_event_timestamp;
-extern Lisp_Object Vdouble_click_time;
-
 extern unsigned int x_mouse_grabbed;
-extern Lisp_Object Vmouse_depressed;
+
+/* We need a unique id for each widget handled by the Lucid Widget
+   library.  This includes the frame main windows, popup menu and
+   dialog box.  */
+LWLIB_ID widget_id_tick;
 
 #ifdef __STDC__
 static Lisp_Object *volatile menu_item_selection;
@@ -1785,20 +1710,6 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   /* Display the menu.  */
   lw_popup_menu (menu);
   popup_activated_flag = 1;
-
-  /* No need to check a second time since this is done in the XEvent loop.
-     This slows done the execution.  */
-#ifdef XMENU_FOO
-  /* Check again whether the mouse has moved to another menu bar item.  */
-  if (check_mouse_other_menu_bar (f))
-    {
-      /* The mouse moved into a different menu bar item. 
-	 We should bring up that item's menu instead.
-	 First pop down this menu.  */
-      lw_destroy_all_widgets (menu_id); 
-      goto pop_down;
-    }
-#endif
 
   /* Process events that apply to the menu.  */
   popup_get_selection ((XEvent *) 0);
@@ -2397,7 +2308,10 @@ syms_of_xmenu ()
   staticpro (&menu_items);
   menu_items = Qnil;
 
+#ifdef USE_X_TOOLKIT
   widget_id_tick = (1<<16);	
+#endif
+
   defsubr (&Sx_popup_menu);
   defsubr (&Sx_popup_dialog);
 }
