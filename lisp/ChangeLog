@@ -1,3 +1,7 @@
+2000-05-16  Sam Steingold  <sds@gnu.org>
+
+	* info.el (debug-ignored-errors): more errors to ignore.
+
 2000-05-16  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el: Don't require cl or easymenu.
@@ -62,7 +66,7 @@
 	(help-xref-go-back): Use position information from stack element.
 	(help-follow): Make position in stack element a pair.  Use
 	help-xref-following.
-	
+
 	* autoarg.el: New file.
 
 	* faces.el: Declare more functions obsolete.
@@ -188,7 +192,7 @@
 
 	* ange-ftp.el (ange-ftp-skip-msgs): Include 500 code.for
 	handling FTP security extensions.
-	
+
 2000-05-11  Dave Love  <fx@gnu.org>
 
 	* calendar/todo-mode.el: New file.
@@ -198,7 +202,7 @@
 	* comint.el (comint-read-input-ring): Move reference to
 	comint-input-ring-size outside of the save-excursion.  It was
 	causing the default value to be the only one ever seen.
-	
+
 	* font-lock.el: Update copyright.  Remove Simon Marshall's email
 	address on request from him.
 
@@ -336,7 +340,7 @@
 	(makefile-mode): Set local abbrev table to
 	makefile-mode-abbrev-table.
 	(makefile-font-lock-keywords): Fontify includes and conditionals.
-	
+
 	* subr.el (add-minor-mode): Handle AFTER for keymaps. Don't
 	set TOGGLE's value.
 
@@ -344,7 +348,7 @@
 	mail-interactive-insert-alias.
 	(mail-abbrev-complete-alias): New command.
 	(mail-mode-map): Bind it to `M-TAB'.
-	
+
 2000-05-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/lao-util.el (lao-compose-region): New function.
@@ -354,8 +358,8 @@
 	* files.el (recover-session): Make directories as necessary
 	if they don't exist yet.
 
-	* calendar/cal-french.el 
-	(french-calendar-multibyte-special-days-array) 
+	* calendar/cal-french.el
+	(french-calendar-multibyte-special-days-array)
 	(french-calendar-special-days-array): Change French text.
 	(calendar-french-date-string): Change output.
 	(calendar-goto-french-date): Likewise.
@@ -387,7 +391,7 @@
 	the code loading subdirs.el.
 
 2000-04-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
-	
+
 	* ps-print.el: Upside-down and face background color printing,
 	line number step, doc fix.
 	(ps-print-version): New version number (5.2).
@@ -407,7 +411,7 @@
 	before generating auto save file name.
 	(auto-save-file-name-transforms): New variable.
 
-	* files.el (backup-enable-predicate): 
+	* files.el (backup-enable-predicate):
 	Correctly test for a file under a temporary directory.
 
 2000-04-28  Gerd Moellmann  <gerd@gnu.org>
@@ -433,14 +437,14 @@
 
 	* textmodes/texinfmt.el (texinfo-format-xref): Don't try to insert
 	nil.
-	
+
 	* subr.el (add-minor-mode): Use `set' instead of `setq'.
 
 	* gud.el (gud-gdb-find-file): Call find-file-noselect with NOWARN
 	argument.
 
 2000-04-27  Sen Nagata <sen@eccosys.com>
-	
+
 	* emacs-lisp/crm.el (crm-completion-table): New variable.
 	(crm-collection-fn, crm-test-completion)
 	(completing-read-multiple): Use it.

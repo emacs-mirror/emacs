@@ -291,7 +291,7 @@ Do the right thing if the file has been compressed or zipped."
 		   (list (read-file-name "Info file name: " nil nil t))))
   (let (same-window-buffer-names)
     (info file)))
-  
+
 ;;;###autoload (add-hook 'same-window-buffer-names "*info*")
 
 ;;;###autoload
@@ -306,7 +306,7 @@ In interactive use, a prefix argument directs this command
 to read a file name from the minibuffer.
 
 The search path for Info files is in the variable `Info-directory-list'.
-The top-level Info directory is made by combining all the files named `dir' 
+The top-level Info directory is made by combining all the files named `dir'
 in all the directories in that path."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
@@ -642,10 +642,10 @@ else defaults to `Top'."
 	   ;; since we used it.
 	   (eval (cons 'and
 		       (mapcar '(lambda (elt)
-				  (let ((curr (file-attributes 
+				  (let ((curr (file-attributes
 					       ;; Handle symlinks
 					       (file-truename (car elt)))))
-				    
+
 				    ;; Don't compare the access time.
 				    (if curr (setcar (nthcdr 4 curr) 0))
 				    (setcar (nthcdr 4 (cdr elt)) 0)
@@ -703,7 +703,7 @@ else defaults to `Top'."
 	  (or (cdr dirs) (setq Info-dir-contents-directory
 			       (file-name-as-directory (car dirs))))
 	  (setq dirs (cdr dirs))))
-      
+
       (or buffers
 	  (error "Can't find the Info directory node"))
       ;; Distinguish the dir file that comes with Emacs from all the
@@ -979,7 +979,7 @@ If FORK is a string, it is the name to use for the new buffer."
 		(let ((beg (point)))
 		  (forward-line 1)
 		  (if (re-search-backward node-regexp beg t)
-		      (setq compl 
+		      (setq compl
 			    (cons (list (match-string-no-properties 1))
 				  compl))))))))
 	(setq compl (cons '("*") compl))
@@ -1070,7 +1070,7 @@ If FORK is a string, it is the name to use for the new buffer."
 				 Info-history))))))
 
 ;; Extract the value of the node-pointer named NAME.
-;; If there is none, use ERRORNAME in the error message; 
+;; If there is none, use ERRORNAME in the error message;
 ;; if ERRORNAME is nil, just return nil.
 (defun Info-extract-pointer (name &optional errorname)
   ;; Bind this in case the user sets it to nil.
@@ -1339,7 +1339,7 @@ Completion is allowed, and the menu item point is on is the default."
   ;; there is a problem here in that if several menu items have the same
   ;; name you can only go to the node of the first with this command.
   (Info-goto-node (Info-extract-menu-item menu-item) (if fork menu-item)))
-  
+
 (defun Info-extract-menu-item (menu-item)
   (setq menu-item (regexp-quote menu-item))
   (let ((case-fold-search t))
@@ -1389,7 +1389,7 @@ N is the digit argument used to invoke this command."
     ;; Go to the last node in the menu of Top.
     (Info-goto-node (Info-extract-menu-counting nil))
     ;; If the last node in the menu is not last in pointer structure,
-    ;; move forward until we can't go any farther. 
+    ;; move forward until we can't go any farther.
     (while (Info-forward-node t t) nil)
     ;; Then keep moving down to last subnode, unless we reach an index.
     (while (and (not (string-match "\\<index\\>" Info-current-node))
@@ -1940,13 +1940,13 @@ If no reference to follow, moves to the next node, or up if none."
 				    (Info-complete-menu-item
 				     "" (lambda (e) t) t)
 				  (error nil))))
-	       entries current 
+	       entries current
 	       (number 0))
 	  (while (and items (< number 9))
 	    (setq current (car items)
 		  items (cdr items)
 		  number (1+ number))
-	    (setq entries (cons `[,current 
+	    (setq entries (cons `[,current
 				  (Info-menu ,current)
 				  :keys ,(format "%d" number)]
 				entries)))
@@ -1957,7 +1957,7 @@ If no reference to follow, moves to the next node, or up if none."
 	  (easy-menu-change '("Info") "Menu item" (nreverse entries)))
 	;; Update reference menu.  Code stolen from `Info-follow-reference'.
 	(let ((items nil)
-	      str i entries current 
+	      str i entries current
 	      (number 0)
 	      (case-fold-search t))
 	  (save-excursion
@@ -1977,7 +1977,7 @@ If no reference to follow, moves to the next node, or up if none."
 	    (setq current (car items)
 		  items (cdr items)
 		  number (1+ number))
-	    (setq entries (cons `[,current 
+	    (setq entries (cons `[,current
 				  (Info-follow-reference ,current)
 				  t]
 				entries)))
@@ -2035,7 +2035,7 @@ When after all menu items (or if their is no menu), move up to
 the parent node.
 \\[Info-scroll-down]	Normally, scroll backward.  If the beginning of the buffer is
 already visible, try to go to the previous menu entry, or up if there is none.
-\\[beginning-of-buffer]	Go to beginning of node.  
+\\[beginning-of-buffer]	Go to beginning of node.
 
 Advanced commands:
 \\[Info-exit]	Quit Info: reselect previously selected buffer.
@@ -2291,7 +2291,7 @@ The alist key is the character the title is underlined with (?*, ?= or ?-)."
 	      face)
 	  (cond ((= c ?*) (setq face 'Info-title-1-face))
 		((= c ?=) (setq face 'Info-title-2-face))
-		(t        (setq face 'Info-title-3-face))) 
+		(t        (setq face 'Info-title-3-face)))
 	  (put-text-property (match-beginning 1) (match-end 1)
 			     'face face))
 	;; This is a serious problem for trying to handle multiple
@@ -2425,7 +2425,7 @@ specific node to expand."
 	     (setq completions (cdr completions)))
 	   t)
 	nil))))
-  
+
 (defun Info-speedbar-goto-node (text node indent)
   "When user clicks on TEXT, goto an info NODE.
 The INDENT level is ignored."
@@ -2520,6 +2520,8 @@ BUFFER is the buffer speedbar is requesting buttons for."
 (dolist (mess '("^Node has no Previous$"
 		"^No menu in this node$"
 		"^Node has no Next$"
+                "^No cross-references in this node^"
+                search-failed
 		"^No \".*\" in index$"))
   (add-to-list 'debug-ignored-errors mess))
 
