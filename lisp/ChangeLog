@@ -1,7 +1,7 @@
 2003-03-20  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Fix a bug of
-	invalid 5 to 6 bytes sequence.
+	* international/utf-8.el (ccl-decode-mule-utf-8): Fix a bug in
+	handling invalid 5 to 6 bytes sequence.
 
 2003-03-19  Simon Marshall  <simon@gnu.org>
 
