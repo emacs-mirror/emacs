@@ -1,3 +1,9 @@
+2001-04-11  John Wiegley  <johnw@gnu.org>
+
+	* eshell/em-ls.el (eshell-ls-insert-directory): Set
+	font-lock-defaults to nil, to prevent fontification in dired
+	buffers, if Eshell's ls is being used.
+
 2001-04-10  John Wiegley  <johnw@gnu.org>
 
 	* calendar/timeclock.el (timeclock-completing-read): new function.
