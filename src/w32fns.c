@@ -155,11 +155,15 @@ int display_hourglass_p;
    over text or in the modeline.  */
 
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape;
+Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape, Vx_hand_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
 Lisp_Object Vx_sensitive_text_pointer_shape;
+
+#ifndef IDC_HAND
+#define IDC_HAND MAKEINTRESOURCE(32649)
+#endif
 
 /* Color of chars displayed in cursor box.  */
 
@@ -2196,6 +2200,7 @@ x_set_mouse_color (f, arg, oldval)
   else
     horizontal_drag_cursor
       = XCreateFontCursor (FRAME_X_DISPLAY (f), XC_sb_h_double_arrow);
+  /* TODO: hand_cursor */
 
   /* Check and report errors with the above calls.  */
   x_check_errors (FRAME_W32_DISPLAY (f), "can't set cursor shape: %s");
@@ -2224,6 +2229,7 @@ x_set_mouse_color (f, arg, oldval)
                     &fore_color, &back_color);
     XRecolorCursor (FRAME_W32_DISPLAY (f), hourglass_cursor,
                     &fore_color, &back_color);
+    /* TODO: hand_cursor */
   }
 
   if (FRAME_W32_WINDOW (f) != 0)
@@ -2252,6 +2258,7 @@ x_set_mouse_color (f, arg, oldval)
       && f->output_data.w32->cross_cursor != 0)
     XFreeCursor (FRAME_W32_DISPLAY (f), f->output_data.w32->cross_cursor);
   f->output_data.w32->cross_cursor = cross_cursor;
+    /* TODO: hand_cursor */
 
   XFlush (FRAME_W32_DISPLAY (f));
   UNBLOCK_INPUT;
@@ -3420,6 +3427,21 @@ x_figure_window_size (f, parms)
 }
 
 
+Cursor
+w32_load_cursor (LPCTSTR name)
+{
+  /* Try first to load cursor from application resource.  */
+  Cursor cursor = LoadImage ((HINSTANCE) GetModuleHandle(NULL),
+			     name, IMAGE_CURSOR, 0, 0,
+			     LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED);
+  if (!cursor)
+    {
+      /* Then try to load a shared predefined cursor.  */
+      cursor = LoadImage (NULL, name, IMAGE_CURSOR, 0, 0,
+			  LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED);
+    }
+  return cursor;
+}
 
 extern LRESULT CALLBACK w32_wnd_proc ();
 
@@ -3435,7 +3457,7 @@ w32_init_class (hinst)
   wc.cbWndExtra = WND_EXTRA_BYTES;
   wc.hInstance = hinst;
   wc.hIcon = LoadIcon (hinst, EMACS_CLASS);
-  wc.hCursor = LoadCursor (NULL, IDC_ARROW);
+  wc.hCursor = w32_load_cursor (IDC_ARROW);
   wc.hbrBackground = NULL; /* GetStockObject (WHITE_BRUSH);  */
   wc.lpszMenuName = NULL;
   wc.lpszClassName = EMACS_CLASS;
@@ -5063,6 +5085,20 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       ((LPMINMAXINFO) lParam)->ptMaxTrackSize.y = 32767;
       return 0;
 
+    case WM_SETCURSOR:
+      if (LOWORD (lParam) == HTCLIENT)
+	return 0;
+
+      goto dflt;
+      
+    case WM_EMACS_SETCURSOR:
+      {
+	Cursor cursor = (Cursor) wParam;
+	if (cursor)
+	  SetCursor (cursor);
+	return 0;
+      }
+      
     case WM_EMACS_CREATESCROLLBAR:
       return (LRESULT) w32_createscrollbar ((struct frame *) wParam,
 					    (struct scroll_bar *) lParam);
@@ -5652,6 +5688,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   f->output_data.w32->dwStyle = WS_OVERLAPPEDWINDOW;
   f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+
+  f->output_data.w32->text_cursor = w32_load_cursor (IDC_IBEAM);
+  f->output_data.w32->nontext_cursor = w32_load_cursor (IDC_ARROW);
+  f->output_data.w32->modeline_cursor = w32_load_cursor (IDC_ARROW);
+  f->output_data.w32->cross_cursor = w32_load_cursor (IDC_CROSS);
+  f->output_data.w32->hourglass_cursor = w32_load_cursor (IDC_WAIT);
+  f->output_data.w32->horizontal_drag_cursor = w32_load_cursor (IDC_SIZEWE);
+  f->output_data.w32->hand_cursor = w32_load_cursor (IDC_HAND);
 
   /* Add the tool-bar height to the initial frame height so that the
      user gets a text display area of the size he specified with -g or
@@ -9420,6 +9464,7 @@ x_put_x_image (f, ximg, pixmap, width, height)
      struct frame *f;
      XImage *ximg;
      Pixmap pixmap;
+     int width, height;
 {
 #if 0  /* I don't think this is necessary looking at where it is used.  */
   HDC hdc = get_frame_dc (f);
