@@ -65,4 +65,6 @@ The variable `tab-width' controls the spacing of tab stops."
 	  (delete-region (match-beginning 0) (point))
 	  (indent-to column))))))
 
+(provide 'tabify)
+
 ;;; tabify.el ends here
