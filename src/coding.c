@@ -4459,6 +4459,13 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
       coding->produced_char = coding->produced;
       coding->spec.ccl.cr_carryover = ccl->cr_consumed;
     }
+  else if (!ccl->eight_bit_control)
+    {
+      /* The produced bytes forms a valid multibyte sequence. */
+      coding->produced_char
+	= multibyte_chars_in_text (destination, coding->produced);
+      coding->spec.ccl.eight_bit_carryover[0] = 0;
+    }
   else
     {
       /* On decoding, the destination should always multibyte.  But,
