@@ -296,21 +296,31 @@ Normally auto-save files are written under other names."
   `(("\\`/[^/]*:\\(.+/\\)*\\(.*\\)"
      ;; Don't put "\\2" inside expand-file-name, since it will be
      ;; transformed to "/2" on DOS/Windows.
-     ,(concat temporary-file-directory "\\2")))
+     ,(concat temporary-file-directory "\\2") t))
   "*Transforms to apply to buffer file name before making auto-save file name.
-Each transform is a list (REGEXP REPLACEMENT):
+Each transform is a list (REGEXP REPLACEMENT UNIQUIFY):
 REGEXP is a regular expression to match against the file name.
 If it matches, `replace-match' is used to replace the
 matching part with REPLACEMENT.
+If the optional element UNIQUIFY is non-nil, the auto-save file name is
+constructed by taking the directory part of the replaced file-name, 
+concatenated with the buffer file name with all directory separators
+changed to `!' to prevent clashes.  This will not work
+correctly if your filesystem truncates the resulting name.
+
 All the transforms in the list are tried, in the order they are listed.
 When one transform applies, its result is final;
 no further transforms are tried.
 
 The default value is set up to put the auto-save file into the
 temporary directory (see the variable `temporary-file-directory') for
-editing a remote file."
+editing a remote file.
+
+On MS-DOS filesystems without long names this variable is always
+ignored."
   :group 'auto-save
-  :type '(repeat (list (string :tag "Regexp") (string :tag "Replacement")))
+  :type '(repeat (list (string :tag "Regexp") (string :tag "Replacement")
+					   (boolean :tag "Uniquify")))
   :version "21.1")
 
 (defcustom save-abbrevs t
@@ -3354,16 +3364,24 @@ See also `auto-save-file-name-p'."
   (if buffer-file-name
       (let ((list auto-save-file-name-transforms)
 	    (filename buffer-file-name)
-	    result)
+	    result uniq)
 	;; Apply user-specified translations
 	;; to the file name.
 	(while (and list (not result))
 	  (if (string-match (car (car list)) filename)
 	      (setq result (replace-match (cadr (car list)) t nil
-					  filename)))
+					  filename)
+				uniq (caddr (car list))))
 	  (setq list (cdr list)))
-	(if result (setq filename result))
-
+	(if result
+		(if uniq
+			(setq filename (concat
+							(file-name-directory result)
+							(subst-char-in-string
+							 directory-sep-char ?!
+							 (replace-regexp-in-string "!" "!!"
+														 filename))))
+		  (setq filename result)))
 	(setq result
 	      (if (and (eq system-type 'ms-dos)
 		       (not (msdos-long-file-names)))
