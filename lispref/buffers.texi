@@ -330,11 +330,16 @@ See also the function @code{get-buffer-create} in @ref{Creating Buffers}.
 @end defun
 
 @c Emacs 19 feature
-@defun generate-new-buffer-name starting-name
+@defun generate-new-buffer-name starting-name &rest ignore
 This function returns a name that would be unique for a new buffer---but
 does not create the buffer.  It starts with @var{starting-name}, and
 produces a name not currently in use for any buffer by appending a
 number inside of @samp{<@dots{}>}.
+
+If the optional second argument @var{ignore} is non-@code{nil}, it
+should be buffer name in the sequence to be tried.  That name will be
+considered acceptable, if it is tried, even if a buffer with that name
+exists.
 
 See the related function @code{generate-new-buffer} in @ref{Creating
 Buffers}.
@@ -427,7 +432,7 @@ such buffer in the buffer list.
 
 @deffn Command set-visited-file-name filename &optional no-query along-with-file
 If @var{filename} is a non-empty string, this function changes the
-name of the file visited in current buffer to @var{filename}.  (If the
+name of the file visited in the current buffer to @var{filename}.  (If the
 buffer had no visited file, this gives it one.)  The @emph{next time}
 the buffer is saved it will go in the newly-specified file.  This
 command marks the buffer as modified, since it does not (as far as Emacs
