@@ -20347,7 +20347,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	pointer = Fget_text_property (pos, Qpointer, string);
 
      /* Change the mouse pointer according to what is under X/Y.  */
-      if (NILP (pointer) && area == ON_MODE_LINE)
+      if (NILP (pointer) && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE)))
 	{
 	  Lisp_Object map;
 	  map = Fget_text_property (pos, Qlocal_map, string);

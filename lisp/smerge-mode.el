@@ -321,13 +321,15 @@ according to `smerge-match-conflict'.")
 	     (popup-menu smerge-mode-menu)
 	   ;; Install overlay.
 	   (setq o (make-overlay (match-beginning i) (match-end i)))  
-	   (overlay-put o 'face 'highlight)
-	   (sit-for 0)
-	   (popup-menu (if (smerge-check 2) 
-			   smerge-mode-menu
-			   smerge-context-menu))
-	   ;; Delete overlay.
-	   (delete-overlay o))))
+	   (unwind-protect
+	       (progn
+		 (overlay-put o 'face 'highlight)
+		 (sit-for 0)
+		 (popup-menu (if (smerge-check 2) 
+				 smerge-mode-menu
+			       smerge-context-menu)))
+	     ;; Delete overlay.
+	     (delete-overlay o)))))
     ;; There's no conflict at point, the text-props are just obsolete.
     (save-excursion
       (let ((beg (re-search-backward smerge-end-re nil t))

@@ -1,3 +1,13 @@
+2004-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fread_file_name): Set completion-ignore-case for
+	case-insensitive systems.
+
+2004-03-14  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Accept HEADER_LINE
+	when keymap and cursor are setup.
+
 2004-03-14  Steven Tamm <steventamm@mac.com>
 
 	* Makefile.in (XMENU_OBJ): Do not include xmenu.o if
@@ -13,11 +23,9 @@
 
 2004-03-13  Eli Zaretskii  <eliz@elta.co.il>
 
-	* Makefile.in (XMENU_OBJ): Include xmenu.o if HAVE_MENUS is
-	defined.
+	* Makefile.in (XMENU_OBJ): Include xmenu.o if HAVE_MENUS is defined.
 
-	* emacs.c (main): Call syms_of_xmenu only if HAVE_MENUS is
-	defined.
+	* emacs.c (main): Call syms_of_xmenu only if HAVE_MENUS is defined.
 
 2004-03-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -29,12 +37,11 @@
 2004-03-12  Kim F. Storm  <storm@cua.dk>
 
 	Fix image support on MAC.  From YAMAMOTO Mitsuharu.
-	
+
 	* dispextern.h (XImagePtr, XImagePtr_or_DC): Add typedefs.
 	(image_background, image_background_transparent): Fix prototypes.
 
-	* image.c (XImagePtr, XImagePtr_or_DC): Move typedefs to
-	dispextern.h.
+	* image.c (XImagePtr, XImagePtr_or_DC): Move typedefs to dispextern.h.
 
 	* macfns.c (x_list_fonts, x_get_font_info, x_load_font)
 	(x_query_font, x_find_ccl_program, x_set_window_size)
@@ -57,9 +64,9 @@
 	* dispextern.h: Move image related prototypes from xfns.c section
 	to image.c.  Condition them by HAVE_WINDOW_SYSTEM rather than
 	HAVE_X_WINDOWS.
-	
+
 	* Makefile.in (XOBJ): Consolidate into one list.  Add image.o.
-	Move gtkutil.o to new GTK_OBJ list.  
+	Move gtkutil.o to new GTK_OBJ list.
 	(XMENU_OBJ) [HAVE_MENUS]: Move declaration to proper place.
 	(GTK_OBJ) [USE_GTK]: New declaration.
 	(obj): Add $(GTK_OBJ) to list.
@@ -82,7 +89,7 @@
 
 	* Makefile.in (XOBJ, MAC_OBJ): Add image.o.
 	(image.o): Add dependencies.
-	
+
 	* image.c: New file with consolidated image support code.
 	(COLOR_TABLE_SUPPORT): New define to control whether
 	color table support is available (X only).
@@ -96,8 +103,8 @@
 	(PNG_BG_COLOR_SHIFT): Bits to shift PNG background colors.
 	(RGB_PIXEL_COLOR): Common type for an integer "pixel color" value.
 	(PIX_MASK_RETAIN, PIX_MASK_DRAW): Portability macros (from macfns.c).
-	(FRAME_X_VISUAL, x_defined_color, DefaultDepthOfScreen): Define
-	with suitable equivalents on W32 and MAC for code sharing.
+	(FRAME_X_VISUAL, x_defined_color, DefaultDepthOfScreen):
+	Define with suitable equivalents on W32 and MAC for code sharing.
 	(XDrawLine): Define on MAC for code sharing.
 	(Destroy_Image, Free_Pixmap): Wrappers for code sharing.
 	(IF_LIB_AVAILABLE): Macro to simplify code sharing.
@@ -132,12 +139,12 @@
 	code from xfns.c, w32fns.c, and macfns.c.
 	(syms_of_image): Consolidate image related symbol setup here.
 	(init_image): Consolidate image related initializations here.
-	
+
 	* emacs.c (main) [HAVE_WINDOW_SYSTEM]: Add calls to syms_of_image
 	and init_image.  Remove call to init_xfns.
 
-	* macterm.h (struct mac_bitmap_record): Add file member.  Not
-	currently used, but simplifies code sharing.
+	* macterm.h (struct mac_bitmap_record): Add file member.
+	Not currently used, but simplifies code sharing.
 
 	* macfns.c (Vx_bitmap_file_path, Vimage_cache_eviction_delay)
 	(x_bitmap_height, x_bitmap_width, x_bitmap_pixmap)
