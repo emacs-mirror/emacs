@@ -279,7 +279,7 @@ struct window
 
 /* 1 if W is a minibuffer window.  */
 
-#define MINI_WINDOW_P(W)	(!EQ ((W)->mini_p, Qnil))
+#define MINI_WINDOW_P(W)	(!NILP ((W)->mini_p))
 
 /* Return the window column at which the text in window W starts.
    This is different from the `left' field because it does not include
