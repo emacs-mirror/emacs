@@ -452,7 +452,7 @@ echo_char (c)
 	  if (ptr - echobuf > sizeof echobuf - 6)
 	    return;
 
-	  ptr = push_key_description (c, ptr);
+	  ptr = push_key_description (XINT (c), ptr);
 	}
       else if (XTYPE (c) == Lisp_Symbol)
 	{
@@ -581,8 +581,7 @@ recursive_edit_1 ()
   if (EQ (val, Qt))
     Fsignal (Qquit, Qnil);
 
-  unbind_to (count);
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 /* When an auto-save happens, record the "time", and don't do again soon.  */
@@ -863,7 +862,7 @@ command_loop_1 ()
 	  int count = specpdl_ptr - specpdl;
 	  specbind (Qinhibit_quit, Qt);
 	  Fsit_for (make_number (2), Qnil, Qnil);
-	  unbind_to (count);
+	  unbind_to (count, Qnil);
 
 	  echo_area_glyphs = 0;
 	  no_direct = 1;
@@ -1003,7 +1002,7 @@ command_loop_1 ()
 		    || !EQ (current_buffer->selective_display, Qnil)
 		    || detect_input_pending ()
 		    || !NILP (Vexecuting_macro);
-		  if (internal_self_insert (c, 0))
+		  if (internal_self_insert (XINT (c), 0))
 		    {
 		      lose = 1;
 		      nonundocount = 0;
@@ -1015,7 +1014,7 @@ command_loop_1 ()
 			= window_display_table (XWINDOW (selected_window));
 
 		      if (dp == 0 || XTYPE (dp->contents[c]) != Lisp_String)
-			no_redisplay = direct_output_for_insert (c);
+			no_redisplay = direct_output_for_insert (XINT (c));
 		      else if (XSTRING (dp->contents[c])->size
 			       == sizeof (GLYPH))
 		        no_redisplay =
@@ -2029,14 +2028,14 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
   /* Is it a scrollbar movement?  */
   if (frame && ! NILP (bar_window))
     {
-      Lisp_Object part = *scrollbar_parts[(int) part];
+      Lisp_Object part_sym = *scrollbar_parts[(int) part];
 
       return Fcons (Qscrollbar_movement,
 		    (Fcons (Fcons (bar_window,
 				   Fcons (Qvertical_scrollbar,
 					  Fcons (Fcons (x, y),
 						 Fcons (make_number (time),
-							Fcons (part,
+							Fcons (part_sym,
 							       Qnil))))),
 			    Qnil)));
     }
@@ -3466,30 +3465,29 @@ First arg PROMPT is a prompt string.  If nil, do not prompt specially.\n\
 Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos\n\
 as a continuation of the previous key.\n\
 \n\
-
-A C-g typed while in this function is treated like any other character,
-and `quit-flag' is not set.
-
-If the key sequence starts with a mouse click, then the sequence is read
-using the keymaps of the buffer of the window clicked in, not the buffer
-of the selected window as normal.
-
-`read-key-sequence' drops unbound button-down events, since you normally
-only care about the click or drag events which follow them.  If a drag
-event is unbound, but the corresponding click event would be bound,
-`read-key-sequence' turns the drag event into a click event at the
-drag's starting position.  This means that you don't have to distinguish
-between click and drag events unless you want to.
-
-`read-key-sequence' prefixes mouse events on mode lines, the vertical
-lines separating windows, and scrollbars with imaginary keys
-`mode-line', `vertical-line', and `vertical-scrollbar'.
-
-If the user switches frames in the middle of a key sequence, the
-frame-switch event is put off until after the current key sequence.
-
-`read-key-sequence' checks `function-key-map' for function key
-sequences, where they wouldn't conflict with ordinary bindings.  See
+A C-g typed while in this function is treated like any other character,\n\
+and `quit-flag' is not set.\n\
+\n\
+If the key sequence starts with a mouse click, then the sequence is read\n\
+using the keymaps of the buffer of the window clicked in, not the buffer\n\
+of the selected window as normal.\n\
+\n\
+`read-key-sequence' drops unbound button-down events, since you normally\n\
+only care about the click or drag events which follow them.  If a drag\n\
+event is unbound, but the corresponding click event would be bound,\n\
+`read-key-sequence' turns the drag event into a click event at the\n\
+drag's starting position.  This means that you don't have to distinguish\n\
+between click and drag events unless you want to.\n\
+\n\
+`read-key-sequence' prefixes mouse events on mode lines, the vertical\n\
+lines separating windows, and scrollbars with imaginary keys\n\
+`mode-line', `vertical-line', and `vertical-scrollbar'.\n\
+\n\
+If the user switches frames in the middle of a key sequence, the\n\
+frame-switch event is put off until after the current key sequence.\n\
+\n\
+`read-key-sequence' checks `function-key-map' for function key\n\
+sequences, where they wouldn't conflict with ordinary bindings.  See\n\
 `function-key-map' for more details.")
   (prompt, continue_echo)
      Lisp_Object prompt, continue_echo;
@@ -4085,7 +4083,7 @@ init_keyboard ()
   if (!noninteractive)
     {
       signal (SIGINT, interrupt_signal);
-#ifdef HAVE_TERMIO
+#if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
       /* For systems with SysV TERMIO, C-g is set up for both SIGINT and
 	 SIGQUIT and we can't tell which one it will give us.  */
       signal (SIGQUIT, interrupt_signal);
