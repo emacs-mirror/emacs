@@ -1682,7 +1682,8 @@ If ALL is nil, only match comments that start in column > 0."
     ;; don't prevent a break.
     (when (and (save-excursion
 		 (beginning-of-line)
-		 (when (fortran-find-comment-start-skip)
+		 (if (not (fortran-find-comment-start-skip))
+                     t
 		   (goto-char (match-beginning 0))
 		   (>= (point) fill-point)))
 	       (save-excursion
