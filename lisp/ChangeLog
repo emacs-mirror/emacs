@@ -1,7 +1,7 @@
 2002-09-23  Dave Love  <fx@gnu.org>
 
 	* international/characters.el: Don't set char width of CJK
-	charsets generally.
+	charsets generally.  Add some non-word syntax cases.
 	(korean-ksc5601): Fix ranges with symbol syntax.
 
 2002-09-14  Dave Love  <fx@gnu.org>
