@@ -169,8 +169,8 @@ mnemonics of the following coding systems:
   coding system for keyboard input (if Emacs is running on terminal)
   coding system for terminal output (if Emacs is running on terminal)"
 ;; Currently not:
-;;;  coding system for decoding output of buffer process (if any)
-;;;  coding system for encoding text to send to buffer process (if any)."
+;;  coding system for decoding output of buffer process (if any)
+;;  coding system for encoding text to send to buffer process (if any)."
 )
 
 (make-variable-buffer-local 'mode-line-mule-info)
@@ -230,11 +230,11 @@ Normally nil in most modes, since there is no process to display.")
 (let* ((help-echo
 	;; The multi-line message doesn't work terribly well on the
 	;; bottom mode line...  Better ideas?
-;;; 	  "\
-;;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
-;;; drag-mouse-1: resize, C-mouse-2: split horizontally"
-	  "mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete")
-	 (dashes (propertize "--" 'help-echo help-echo)))
+	;; 	  "\
+	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
+	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
+	"mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete")
+       (dashes (propertize "--" 'help-echo help-echo)))
   (setq-default mode-line-format
     (list
      (propertize "-" 'help-echo help-echo)
@@ -309,21 +309,26 @@ Menu of mode operations in the mode line.")
 
 (defun mode-line-mode-name () "\
 Return a string to display in the mode line for the current mode name."
-  (let (length (result mode-name))
-    (let ((local-map (get-text-property 0 'local-map result))
-	  (help-echo (get-text-property 0 'help-echo result)))
-      (setq result (copy-sequence result))
+  (when (stringp mode-name)
+    (let ((local-map (get-text-property 0 'local-map mode-name))
+	  (help-echo (get-text-property 0 'help-echo mode-name)))
+      ;; For correctness, we shouldn't modify mode-name.  But adding some
+      ;; text-properties to those mode-name strings can't hurt, really, and
+      ;; furthermore, by doing it in-place, we make sure that we don't need to
+      ;; do the work over and over and over and ....  -stef
+      (unless (and local-map help-echo)
+	(setq mode-name (copy-sequence mode-name)))
       ;; Add `local-map' property if there isn't already one.
-      (when (and (null local-map)
-		 (null (next-single-property-change 0 'local-map result)))
-	(put-text-property 0 (length result)
-			   'local-map mode-line-minor-mode-keymap result))
-      ;; Add `help-echo' property if there isn't already one.
-      (when (and (null help-echo)
-		 (null (next-single-property-change 0 'help-echo result)))
-	(put-text-property 0 (length result)
-			   'help-echo "mouse-3: minor mode menu" result)))
-    result))
+      (unless (or local-map
+		  (next-single-property-change 0 'local-map mode-name))
+	(put-text-property 0 (length mode-name)
+			   'local-map mode-line-minor-mode-keymap mode-name)
+	;; Add `help-echo' property if there isn't already one.
+	(unless (or help-echo
+		    (next-single-property-change 0 'help-echo mode-name))
+	  (put-text-property 0 (length mode-name) 'help-echo
+			     "mouse-3: minor mode menu" mode-name)))))
+  mode-name)
 
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
@@ -543,9 +548,10 @@ is okay.  See `mode-line-format'.")
 (make-variable-buffer-local 'indent-tabs-mode)
 
 ;; We have base64 and md5 functions built in now.
-(add-to-list 'features 'base64)
-(add-to-list 'features 'md5)
-(add-to-list 'features 'overlay)
+(provide 'base64)
+(provide 'md5)
+(provide 'overlay '(display syntax-table field))
+(provide 'text-properties '(display syntax-table field point-entered))
 
 (define-key esc-map "\t" 'complete-symbol)
 
@@ -582,6 +588,17 @@ language you are using."
 
 (make-variable-buffer-local 'minor-mode-overriding-map-alist)
 
+;; From macros.c
+(define-key ctl-x-map "(" 'start-kbd-macro)
+(define-key ctl-x-map ")" 'end-kbd-macro)
+(define-key ctl-x-map "e" 'call-last-kbd-macro)
+;; From frame.c
+(global-set-key [switch-frame] 'handle-switch-frame)
+(global-set-key [delete-frame] 'handle-delete-frame)
+(global-set-key [iconify-frame] 'ignore-event)
+(global-set-key [make-frame-visible] 'ignore-event)
+
+
 ;These commands are defined in editfns.c
 ;but they are not assigned to keys there.
 (put 'narrow-to-region 'disabled t)
@@ -589,9 +606,6 @@ language you are using."
 (define-key ctl-x-map "nw" 'widen)
 ;; (define-key ctl-x-map "n" 'narrow-to-region)
 ;; (define-key ctl-x-map "w" 'widen)
-(define-key ctl-x-map "(" 'start-kbd-macro)
-(define-key ctl-x-map ")" 'end-kbd-macro)
-(define-key ctl-x-map "e" 'call-last-kbd-macro)
 
 (define-key global-map "\C-j" 'newline-and-indent)
 (define-key global-map "\C-m" 'newline)
@@ -961,9 +975,9 @@ language you are using."
 
 (define-key ctl-x-map "z" 'repeat)
 
-;;; Don't look for autoload cookies in this file.
-;;; Local Variables:
-;;; no-update-autoloads: t
-;;; End:
+;; Don't look for autoload cookies in this file.
+;; Local Variables:
+;; no-update-autoloads: t
+;; End:
 
 ;;; bindings.el ends here
