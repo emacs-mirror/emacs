@@ -111,6 +111,7 @@ Returns the number of actions taken."
       (setq prompt (funcall prompter elt))
       (if (stringp prompt)
 	  (progn
+	    (setq quit-flag nil)
 	    ;; Prompt the user about this object.
 	    (let ((cursor-in-echo-area t))
 	      (message "%s(y, n, !, ., q, %sor %s) "
@@ -132,6 +133,11 @@ Returns the number of actions taken."
 		   (funcall actor elt)
 		   (setq actions (1+ actions)
 			 next (function (lambda () nil))))
+		  ((eq def 'quit)
+		   (setq quit-flag t)
+		   (setq next (` (lambda ()
+				   (setq next '(, next))
+				   '(, elt)))))
 		  ((eq def 'automatic)
 		   ;; Act on this and all following objects.
 		   (if (eval (funcall prompter elt))
