@@ -65,10 +65,16 @@ int print_escape_newlines;
 
 Lisp_Object Qprint_escape_newlines;
 
-/* Nonzero means print newline before next minibuffer message.
+/* Nonzero means print newline to stdout before next minibuffer message.
    Defined in xdisp.c */
 
 extern int noninteractive_need_newline;
+
+/* Nonzero means print newline to message log before next message.
+   Defined in xdisp.c */
+
+extern int message_log_need_newline;
+
 #ifdef MAX_PRINT_CHARS
 static int print_chars;
 static int max_print;
@@ -206,12 +212,17 @@ printchar (ch, fun)
       if (echo_area_glyphs != FRAME_MESSAGE_BUF (mini_frame)
 	  || !message_buf_print)
 	{
+	  if (message_log_need_newline)
+	    message_dolog ("", 0, 1);
+	  message_log_need_newline = 0;
 	  echo_area_glyphs = FRAME_MESSAGE_BUF (mini_frame);
 	  printbufidx = 0;
 	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
 	}
 
+      message_dolog (&ch, 1, 0);
+      message_log_need_newline = 1;
       if (printbufidx < FRAME_WIDTH (mini_frame) - 1)
 	FRAME_MESSAGE_BUF (mini_frame)[printbufidx++] = ch;
       FRAME_MESSAGE_BUF (mini_frame)[printbufidx] = 0;
@@ -263,12 +274,17 @@ strout (ptr, size, printcharfun)
       if (echo_area_glyphs != FRAME_MESSAGE_BUF (mini_frame)
 	  || !message_buf_print)
 	{
+	  if (message_log_need_newline)
+	    message_dolog ("", 0, 1);
+	  message_log_need_newline = 0;
 	  echo_area_glyphs = FRAME_MESSAGE_BUF (mini_frame);
 	  printbufidx = 0;
 	  echo_area_glyphs_length = 0;
 	  message_buf_print = 1;
 	}
 
+      message_dolog (ptr, i, 0);
+      message_log_need_newline = 1;
       if (i > FRAME_WIDTH (mini_frame) - printbufidx - 1)
 	i = FRAME_WIDTH (mini_frame) - printbufidx - 1;
       bcopy (ptr, &FRAME_MESSAGE_BUF (mini_frame) [printbufidx], i);
