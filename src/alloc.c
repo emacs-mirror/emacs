@@ -870,13 +870,13 @@ init_symbol ()
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
   "Return a newly allocated uninterned symbol whose name is NAME.\n\
 Its value and function definition are void, and its property list is nil.")
-  (str)
-     Lisp_Object str;
+  (name)
+     Lisp_Object name;
 {
   register Lisp_Object val;
   register struct Lisp_Symbol *p;
 
-  CHECK_STRING (str, 0);
+  CHECK_STRING (name, 0);
 
   if (symbol_free_list)
     {
