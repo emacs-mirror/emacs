@@ -2511,6 +2511,32 @@ init_lread ()
 		  if (NILP (Fmember (tem, Vload_path)))
 		    Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
 		}
+
+	      /* If Emacs was not built in the source directory,
+		 and it is run from where it was built,
+		 add to load-path
+		 the lisp and site-lisp dirs under the source directory.  */
+
+	      if (NILP (Fequal (Vinstallation_directory, Vsource_directory)))
+		{
+		  tem = Fexpand_file_name (build_string ("src/Makefile"),
+					   Vinstallation_directory);
+		  tem1 = Ffile_exists_p (tem);
+		  if (!NILP (tem1))
+		    {
+		      tem = Fexpand_file_name (build_string ("lisp"),
+					       Vsource_directory);
+
+		      if (NILP (Fmember (tem, Vload_path)))
+			Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+
+		      tem = Fexpand_file_name (build_string ("site-lisp"),
+					       Vsource_directory);
+
+		      if (NILP (Fmember (tem, Vload_path)))
+			Vload_path = nconc2 (Vload_path, Fcons (tem, Qnil));
+		    }
+		}
 	    }
 	}
     }
