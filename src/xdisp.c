@@ -2260,7 +2260,10 @@ recenter:
       /* If we scrolled to an actual line boundary,
 	 that's different; don't ignore line boundaries.  */
       && FETCH_BYTE (pos.bufpos - 1) != '\n')
-    pos.bufpos = PT - minibuffer_scroll_overlap;
+    {
+      pos.bufpos = PT - minibuffer_scroll_overlap;
+      pos.bytepos = CHAR_TO_BYTE (pos.bufpos);
+    }
     
   /* Set startp here explicitly in case that helps avoid an infinite loop
      in case the window-scroll-functions functions get errors.  */
@@ -2270,6 +2273,7 @@ recenter:
       run_hook_with_args_2 (Qwindow_scroll_functions, window,
 			    make_number (pos.bufpos));
       pos.bufpos = marker_position (w->start);
+      pos.bytepos = marker_byte_position (w->start);
     }
   try_window (window, pos.bufpos);
 
