@@ -1,3 +1,10 @@
+2000-05-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed6.inp: Changes to allow "make foo.dvi" on DJGPP platforms:
+	(ENVADD): Redefine as empty, to avoid requiring a Unixy shell.
+	(TEXINPUTS): Use semi-colon; export explicitly.
+	(MAKEINFO): Export explicitly.
+
 2000-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mainmake.v2 (install): Install ebrowse.exe.
