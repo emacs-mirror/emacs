@@ -314,38 +314,26 @@ write-date, checksum, link-type, and link-name."
   (if (not (= desired-checksum (tar-header-block-checksum hblock)))
       (progn (beep) (message "Invalid checksum for file %s!" file-name))))
 
-(defun tar-header-block-recompute-checksum (hblock)
-  "Modifies the given string to have a valid checksum field."
-  (let* ((chk (tar-header-block-checksum hblock))
-	 (chk-string (format "%6o" chk))
-	 (l (length chk-string)))
-    (aset hblock 154 0)
-    (aset hblock 155 32)
-    (dotimes (i l) (aset hblock (- 153 i) (aref chk-string (- l i 1)))))
-  hblock)
-
 (defun tar-clip-time-string (time)
   (let ((str (current-time-string time)))
-    (concat (substring str 4 16) (substring str 19 24))))
+    (concat " " (substring str 4 16) (substring str 19 24))))
 
-(defun tar-grind-file-mode (mode string start)
-  "Store `-rw--r--r--' indicating MODE into STRING beginning at START.
+(defun tar-grind-file-mode (mode)
+  "Construct a `-rw--r--r--' string indicating MODE.
 MODE should be an integer which is a file mode value."
-  (aset string start       (if (zerop (logand 256 mode)) ?- ?r))
-  (aset string (+ start 1) (if (zerop (logand 128 mode)) ?- ?w))
-  (aset string (+ start 2) (if (zerop (logand  64 mode)) ?- ?x)) 
-  (aset string (+ start 3) (if (zerop (logand  32 mode)) ?- ?r))
-  (aset string (+ start 4) (if (zerop (logand  16 mode)) ?- ?w))
-  (aset string (+ start 5) (if (zerop (logand   8 mode)) ?- ?x))
-  (aset string (+ start 6) (if (zerop (logand   4 mode)) ?- ?r))
-  (aset string (+ start 7) (if (zerop (logand   2 mode)) ?- ?w))
-  (aset string (+ start 8) (if (zerop (logand   1 mode)) ?- ?x))
-  (if (zerop (logand 1024 mode)) nil (aset string (+ start 2) ?s))
-  (if (zerop (logand 2048 mode)) nil (aset string (+ start 5) ?s))
-  string)
+  (string
+   (if (zerop (logand 256 mode)) ?- ?r)
+   (if (zerop (logand 128 mode)) ?- ?w)
+   (if (zerop (logand 1024 mode)) (if (zerop (logand  64 mode)) ?- ?x) ?s)
+   (if (zerop (logand  32 mode)) ?- ?r)
+   (if (zerop (logand  16 mode)) ?- ?w)
+   (if (zerop (logand 2048 mode)) (if (zerop (logand   8 mode)) ?- ?x) ?s)
+   (if (zerop (logand   4 mode)) ?- ?r)
+   (if (zerop (logand   2 mode)) ?- ?w)
+   (if (zerop (logand   1 mode)) ?- ?x)))
 
 (defun tar-header-block-summarize (tar-hblock &optional mod-p)
-  "Returns a line similar to the output of `tar -vtf'."
+  "Return a line similar to the output of `tar -vtf'."
   (let ((name (tar-header-name tar-hblock))
 	(mode (tar-header-mode tar-hblock))
 	(uid (tar-header-uid tar-hblock))
@@ -355,68 +343,32 @@ MODE should be an integer which is a file mode value."
 	(size (tar-header-size tar-hblock))
 	(time (tar-header-date tar-hblock))
 	(ck (tar-header-checksum tar-hblock))
-	(link-p (tar-header-link-type tar-hblock))
-	(link-name (tar-header-link-name tar-hblock))
-	)
-    (let* ((left 11)
-	   (namew 8)
-	   (groupw 8)
-	   (sizew 8)
-	   (datew (if tar-mode-show-date 18 0))
-	   (slash (1- (+ left namew)))
-	   (lastdigit (+ slash groupw sizew))
-	   (datestart (+ lastdigit 2))
-	   (namestart (+ datestart datew))
-	   (multibyte (or (multibyte-string-p name)
-			  (multibyte-string-p link-name)))
-	   ;; If multibyte, we can't use optimized method of aset,
-	   ;; instead we must use concat.
-	   (string (make-string (if multibyte
-				    namestart
-				  (+ namestart
-				     (length name)
-				     (if link-p (+ 5 (length link-name)) 0)))
-				32))
-	   (type (tar-header-link-type tar-hblock)))
-      (aset string 0 (if mod-p ?* ? ))
-      (aset string 1
+	(type (tar-header-link-type tar-hblock))
+	(link-name (tar-header-link-name tar-hblock)))
+    (format "%c%c%s%8s/%-8s%7s%s %s%s"
+	    (if mod-p ?* ? )
 	    (cond ((or (eq type nil) (eq type 0)) ?-)
-		  ((eq type 1) ?l)  ; link
-		  ((eq type 2) ?s)  ; symlink
-		  ((eq type 3) ?c)  ; char special
-		  ((eq type 4) ?b)  ; block special
-		  ((eq type 5) ?d)  ; directory
-		  ((eq type 6) ?p)  ; FIFO/pipe
-		  ((eq type 20) ?*) ; directory listing
-		  ((eq type 29) ?M) ; multivolume continuation
-		  ((eq type 35) ?S) ; sparse
-		  ((eq type 38) ?V) ; volume header
-		  ))
-      (tar-grind-file-mode mode string 2)
-      (setq uid (if (= 0 (length uname)) (int-to-string uid) uname))
-      (setq gid (if (= 0 (length gname)) (int-to-string gid) gname))
-      (setq size (int-to-string size))
-      (setq time (tar-clip-time-string time))
-      (dotimes (i (min (1- namew) (length uid))) (aset string (- slash i) (aref uid (- (length uid) i 1))))
-      (aset string (1+ slash) ?/)
-      (dotimes (i (min (1- groupw) (length gid))) (aset string (+ (+ slash 2) i) (aref gid i)))
-      (dotimes (i (min sizew (length size))) (aset string (- lastdigit i) (aref size (- (length size) i 1))))
-      (if tar-mode-show-date
-	  (dotimes (i (length time)) (aset string (+ datestart i) (aref time i))))
-      (if multibyte
-	  (setq string (concat string name))
-	(dotimes (i (length name)) (aset string (+ namestart i) (aref name i))))
-      (if (or (eq link-p 1) (eq link-p 2))
-	  (if multibyte
-	      (setq string (concat string
-				   (if (= link-p 1) " ==> " " --> ")
-				   link-name))
-	    (dotimes (i 3) (aset string (+ namestart 1 (length name) i) (aref (if (= link-p 1) "==>" "-->") i)))
-	    (dotimes (i (length link-name)) (aset string (+ namestart 5 (length name) i) (aref link-name i)))))
-      (put-text-property namestart (length string)
-			 'mouse-face 'highlight string)
-      string)))
-
+		  ((eq type 1) ?l)	; link
+		  ((eq type 2) ?s)	; symlink
+		  ((eq type 3) ?c)	; char special
+		  ((eq type 4) ?b)	; block special
+		  ((eq type 5) ?d)	; directory
+		  ((eq type 6) ?p)	; FIFO/pipe
+		  ((eq type 20) ?*)	; directory listing
+		  ((eq type 29) ?M)	; multivolume continuation
+		  ((eq type 35) ?S)	; sparse
+		  ((eq type 38) ?V)	; volume header
+		  (t ?\ )
+		  )
+	    (tar-grind-file-mode mode)
+	    (if (= 0 (length uname)) uid uname)
+	    (if (= 0 (length gname)) gid gname)
+	    size
+	    (if tar-mode-show-date (tar-clip-time-string time) "")
+	    (propertize name 'mouse-face 'highlight)
+	    (if (or (eq type 1) (eq type 2))
+		(concat (if (= type 1) " ==> " " --> ") link-name)
+	      ""))))
 
 (defun tar-summarize-buffer ()
   "Parse the contents of the tar file in the current buffer.
