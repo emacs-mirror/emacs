@@ -28,7 +28,7 @@ SW  = <assert> <ring> <mpm> <bt> <protocol> <boot> \
       <poolepdl> <poolepvm> <poolams> <dbgpool> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
 CONFIGURA = <assert> <ring> <mpm> <bt> <protocol> <boot> \
-      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> <dongle> \
+      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
       <root> <format> <buffer> <walk> \
       <ref> <trace> <protw3> <proti3> <prmci3w3> <shield> <vmw3> \

@@ -100,6 +100,15 @@
 /* "unreachable code" (ASSERT, if cond is constantly true). */
 #pragma warning(disable: 4702)
 
+/* "expression evaluates to a function which is missing an argument list" */
+#pragma warning(disable: 4550)
+
+/* "local variable is initialized but not referenced" */
+#pragma warning(disable: 4189)
+
+/* "not all control paths return a value" */
+#pragma warning(disable: 4715)
+
 /* MSVC 2.0 generates a warning when using NOCHECK or UNUSED */
 #ifdef _MSC_VER
 #if _MSC_VER < 1000
@@ -275,9 +284,7 @@
 #define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
 #define THREAD_SINGLE
 #define PROTECTION
-#define DONGLE
-/* global dongles have customerID 0 */
-#define DONGLE_CUSTOMER_ID ((int)1)
+#define DONGLE_NONE
 
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_STRING         "mps"
