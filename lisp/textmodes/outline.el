@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: outlines
@@ -30,25 +30,32 @@
 
 ;;; Code:
 
-;; Jan '86, Some new features added by Peter Desnoyers and rewritten by RMS.
-  
-(defvar outline-regexp nil
+(defgroup outlines nil
+  "Support for hierarchical outlining"
+  :prefix "outline-"
+  :group 'editing)
+
+(defcustom outline-regexp nil
   "*Regular expression to match the beginning of a heading.
 Any line whose beginning matches this regexp is considered to start a heading.
 The recommended way to set this is with a Local Variables: list
-in the file it applies to.  See also outline-heading-end-regexp.")
+in the file it applies to.  See also outline-heading-end-regexp."
+  :type '(choice regexp (const nil))
+  :group 'outlines)
 
 ;; Can't initialize this in the defvar above -- some major modes have
 ;; already assigned a local value to it.
 (or (default-value 'outline-regexp)
     (setq-default outline-regexp "[*\^L]+"))
   
-(defvar outline-heading-end-regexp "\n"
+(defcustom outline-heading-end-regexp "\n"
   "*Regular expression to match the end of a heading line.
 You can assume that point is at the beginning of a heading when this
 regexp is searched for.  The heading ends at the end of the match.
 The recommended way to set this is with a `Local Variables:' list
-in the file it applies to.")
+in the file it applies to."
+  :type 'regexp
+  :group 'outlines)
 
 (defvar outline-mode-prefix-map nil)
 
@@ -130,8 +137,10 @@ in the file it applies to.")
   (define-key outline-mode-map "\C-c" outline-mode-prefix-map)
   (define-key outline-mode-map [menu-bar] outline-mode-menu-bar-map))
 
-(defvar outline-minor-mode nil
-  "Non-nil if using Outline mode as a minor mode of some other mode.")
+(defcustom outline-minor-mode nil
+  "Non-nil if using Outline mode as a minor mode of some other mode."
+  :type 'boolean
+  :group 'outlines)
 (make-variable-buffer-local 'outline-minor-mode)
 (or (assq 'outline-minor-mode minor-mode-alist)
     (setq minor-mode-alist (append minor-mode-alist
@@ -221,10 +230,12 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (add-hook 'change-major-mode-hook 'show-all)
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
-(defvar outline-minor-mode-prefix "\C-c@"
+(defcustom outline-minor-mode-prefix "\C-c@"
   "*Prefix key to use for Outline commands in Outline minor mode.
 The value of this variable is checked as part of loading Outline mode.
-After that, changing the prefix key requires manipulating keymaps.")
+After that, changing the prefix key requires manipulating keymaps."
+  :type 'string
+  :group 'outlines)
 
 (defvar outline-minor-mode-map nil)
 (if outline-minor-mode-map
@@ -269,9 +280,11 @@ See the command `outline-mode' for more information on this mode."
       (show-all))
   (force-mode-line-update))
 
-(defvar outline-level 'outline-level
-  "Function of no args to compute a header's nesting level in an outline.
-It can assume point is at the beginning of a header line.")
+(defcustom outline-level 'outline-level
+  "*Function of no args to compute a header's nesting level in an outline.
+It can assume point is at the beginning of a header line."
+  :type 'function
+  :group outlines)
 
 ;; This used to count columns rather than characters, but that made ^L
 ;; appear to be at level 2 instead of 1.  Columns would be better for
