@@ -3,7 +3,7 @@
 ;;; The author has placed this file in the public domain.
 
 ;; Author: Dale R. Worley <drw@math.mit.edu>
-;; Version: 4
+;; Version: 4.1
 ;; Keywords: unix, tools
 
 ;;; Commentary:
@@ -1103,8 +1103,11 @@ This is  not  a user option, since Emerge uses it for its own processing.")
 	 (if (not (string-equal agreement "1"))
 	     (setq list
 		   (cons 
-		    (let ((group-2 (emerge-get-diff3-group "2"))
-			  (group-3 (emerge-get-diff3-group "3")))
+		    (let (group-2 group-3 pos)
+		      (setq pos (point))
+		      (setq group-2 (emerge-get-diff3-group "2"))
+		      (goto-char pos)
+		      (setq group-3 (emerge-get-diff3-group "3"))
 		      (vector (car group-2) (car (cdr group-2))
 			      (car group-3) (car (cdr group-3))
 			      (cond ((string-equal agreement "2") 'prefer-A)
