@@ -430,7 +430,7 @@ Lisp that have counterparts in many programming languages, and later
 chapters describe features that are peculiar to Emacs Lisp or relate
 specifically to editing.
 
-  This is edition 2.5.
+  This is edition 2.6.
 
 @menu
 * Caveats::             Flaws and a request for help.
