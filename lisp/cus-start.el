@@ -284,6 +284,8 @@
 		       (eq system-type 'ms-dos))
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
+		      ((string-match "\\`x-" (symbol-name symbol))
+		       (fboundp 'x-create-frame))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
