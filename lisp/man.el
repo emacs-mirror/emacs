@@ -481,8 +481,13 @@ start a background process even if a buffer already exists and
 See the variable `Man-notify' for the different notification behaviors."
   (cond
    ((eq Man-notify 'newframe)
-    (set-buffer man-buffer)
-    (new-frame Man-frame-parameters))
+    ;; Since we run asynchronously, perhaps while Emacs is waiting for input,
+    ;; we must not leave a different buffer current.
+    ;; We can't rely on the editor command loop to reselect
+    ;; the selected window's buffer.
+    (save-excursion
+      (set-buffer man-buffer)
+      (new-frame Man-frame-parameters)))
    ((eq Man-notify 'bully)
     (and (frame-live-p Man-original-frame)
 	 (select-frame Man-original-frame))
