@@ -1,3 +1,7 @@
+2002-03-04  Juanma Barranquero  <lektu@terra.es>
+
+	* w32term.c (x_display_and_set_cursor): Fix typo.
+
 2002-03-03  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Fmake_temp_name): Doc fix.
