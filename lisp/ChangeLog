@@ -8,7 +8,7 @@
 	customization options.
 	(vc-BACKEND-diff): Use new options via vc-diff-switches-list.
 
-	* vc-sccs.el (vc-workfile-unchanged-p): Return correct status.
+	* vc-sccs.el (vc-sccs-workfile-unchanged-p): Return correct status.
 
 2001-02-01  Gerd Moellmann  <gerd@gnu.org>
 
