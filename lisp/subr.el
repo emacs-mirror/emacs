@@ -757,6 +757,12 @@ POSITION should be a list of the form returned by the `event-start'
 and `event-end' functions." 
   (nth 4 position))
 
+(defsubst posn-object-x-y (position)
+  "Return the x and y coordinates relative to the object of POSITION.
+POSITION should be a list of the form returned by the `event-start'
+and `event-end' functions." 
+  (nth 7 position))
+
 
 ;;;; Obsolescent names for functions.
 
