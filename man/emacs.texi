@@ -224,6 +224,7 @@ Advanced Features
 * Dissociated Press::   Dissociating text for fun.
 * Amusements::	        Various games and hacks.
 * Customization::       Modifying the behavior of Emacs.
+* X Resources::         X resources for customizing Emacs.
 
 Recovery from Problems
 * Quitting::	        Quitting and aborting.
@@ -807,6 +808,8 @@ Command Line Options and Arguments
 * Command Example::     Examples of using command line arguments.
 * Resume Arguments::	Specifying arguments when you resume a running Emacs.
 * Environment::         Environment variables that Emacs uses.
+
+X Resources
 
 * Display X::           Changing the default display and using remote login.
 * Font X::	        Choosing a font for text, under X.
