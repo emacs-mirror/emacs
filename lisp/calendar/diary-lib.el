@@ -205,9 +205,11 @@ for NUMBER days starting with date DATE.  The other entries are hidden
 using selective display.
 
 Returns a list of all relevant diary entries found, if any, in order by date.
-The list entries have the form ((month day year) string).  If the variable
-`diary-list-include-blanks' is t, this list includes a dummy diary entry
-\(consisting of the empty string) for a date with no diary entries.
+The list entries have the form ((month day year) string specifier) where
+\(month day year) is the date of the entry, string is the entry text, and
+specifier is the applicability.  If the variable `diary-list-include-blanks'
+is t, this list includes a dummy diary entry consisting of the empty string)
+for a date with no diary entries.
 
 After the list is prepared, the hooks `nongregorian-diary-listing-hook',
 `list-diary-entries-hook', `diary-display-hook', and `diary-hook' are run.
@@ -318,15 +320,17 @@ These hooks have the following distinct roles:
                              (subst-char-in-region date-start
                                 (point) ?\^M ?\n t)
                              (add-to-diary-list
-                               date
-                               (buffer-substring-no-properties
-                                entry-start (point)))))))
+                              date
+                              (buffer-substring-no-properties
+                               entry-start (point))
+                              (buffer-substring-no-properties
+                               (1+ date-start) (1- entry-start)))))))
                      (setq d (cdr d)))
                    (or entry-found
                        (not diary-list-include-blanks)
                        (setq diary-entries-list 
                              (append diary-entries-list
-                                     (list (list date "")))))
+                                     (list (list date "" "")))))
                    (setq date
                          (calendar-gregorian-from-absolute
                            (1+ (calendar-absolute-from-gregorian date))))
@@ -877,11 +881,21 @@ A value of 0 in any position of the pattern is a wildcard."
            (< (diary-entry-time (car (cdr e1)))
               (diary-entry-time (car (cdr e2)))))))
 
+(defcustom diary-unknown-time
+  -9999
+  "*Value returned by diary-entry-time when no time is found.
+The default value -9999 causes entries with no recognizable time to be placed
+before those with times; 9999 would place entries with no recognizable time
+after those with times."
+  :type 'integer
+  :group 'diary)
+ 
 (defun diary-entry-time (s)
-  "Time at the beginning of the string S in a military-style integer.
-For example, returns 1325 for 1:25pm.  Returns -9999 if no time is recognized.
-The recognized forms are XXXX or X:XX or XX:XX (military time), XXam or XXpm,
-and XX:XXam or XX:XXpm."
+  "Time at the beginning of the string S in a military-style integer.  For
+example, returns 1325 for 1:25pm.  Returns `diary-unknown-time' (default value
+-9999) if no time is recognized.  The recognized forms are XXXX, X:XX, or
+XX:XX (military time), and XXam, XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm,
+or XX:XXPM."
   (let ((case-fold-search nil))
     (cond ((string-match;; Military time  
 	    "^[ \t]*\\([0-9]?[0-9]\\):?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)" s)
@@ -903,7 +917,7 @@ and XX:XXam or XX:XXpm."
 	      (string-to-int (substring s (match-beginning 2) (match-end 2)))
 	      (if (equal ?a (downcase (aref s (match-beginning 3))))
 		  0 1200)))
-	  (t -9999))));; Unrecognizable
+	  (t diary-unknown-time))));; Unrecognizable
 
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.
@@ -1068,6 +1082,7 @@ best if they are nonmarking."
       (let ((sexp-start (point))
             (sexp)
             (entry)
+            (specifier)
             (entry-start)
             (line-start))
         (forward-sexp)
@@ -1075,6 +1090,8 @@ best if they are nonmarking."
         (save-excursion
           (re-search-backward "\^M\\|\n\\|\\`")
           (setq line-start (point)))
+        (setq specifier
+              (buffer-substring-no-properties (1+ line-start) (point)))
         (forward-char 1)
         (if (and (or (char-equal (preceding-char) ?\^M)
                      (char-equal (preceding-char) ?\n))
@@ -1093,7 +1110,7 @@ best if they are nonmarking."
         (let ((diary-entry (diary-sexp-entry sexp entry date)))
           (if diary-entry
               (subst-char-in-region line-start (point) ?\^M ?\n t))
-          (add-to-diary-list date diary-entry)
+          (add-to-diary-list date diary-entry specifier)
           (setq entry-found (or entry-found diary-entry)))))
     entry-found))
 
@@ -1324,12 +1341,12 @@ a marking or nonmarking one."
         (and (or (not marking-diary-entries) marking-diary-entry)
              (eval sexp)))))
 
-(defun add-to-diary-list (date string)
-  "Add the entry (DATE STRING) to `diary-entries-list'.
+(defun add-to-diary-list (date string specifier)
+  "Add the entry (DATE STRING SPECIFIER) to `diary-entries-list'.
 Do nothing if DATE or STRING is nil."
   (and date string
        (setq diary-entries-list 
-             (append diary-entries-list (list (list date string))))))
+             (append diary-entries-list (list (list date string specifier))))))
 
 (defun make-diary-entry (string &optional nonmarking file)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
