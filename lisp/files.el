@@ -2327,12 +2327,8 @@ doesn't exist, it is created."
 		  (setq file (expand-file-name file))) ; make defaults explicit
 	      ;; Replace any invalid file-name characters (for the
 	      ;; case of backing up remote files).
-	      (setq file (convert-standard-filename file))
+	      (setq file (expand-file-name (convert-standard-filename file)))
 	      (setq dir-sep-string (char-to-string directory-sep-char))
-	      (or (eq directory-sep-char ?/)
-		  (subst-char-in-string ?/ ?\\ file))
-	      (or (eq directory-sep-char ?\\)
-		  (subst-char-in-string ?\\ ?/ file))
 	      (if (eq (aref file 1) ?:)
 		  (setq file (concat dir-sep-string
 				     "drive_"
