@@ -1645,7 +1645,7 @@ spaces are put between sequence elements, etc.")
 	    c = XSTRING (keys)->data[i++];
 
 	  if (c & 0x80)
-	    XSETFASTINT (XVECTOR (vector)->contents[i],
+	    XSETFASTINT (XVECTOR (vector)->contents[i_before],
 			 meta_modifier | (c & ~0x80));
 	  else
 	    XSETFASTINT (XVECTOR (vector)->contents[i_before], c);
