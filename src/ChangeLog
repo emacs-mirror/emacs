@@ -1,3 +1,8 @@
+2000-12-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (try_window_id) <all changes above window start>:
+	Set the cursor.
+
 2000-12-11  Paul Eggert  <eggert@twinsun.com>
 
 	* config.in (HAVE_FTELLO): Remove.
