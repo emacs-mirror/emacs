@@ -6,10 +6,10 @@ MANEXT=1
 
 all:
 
-mostlyclean clean:
+mostlyclean:
 	-rm -f core
 
-distclean realclean:
+clean distclean realclean:
 	-rm -f DOC* core
 
 SOURCES = [0-9A-QS-Z]* README *.[ch16] emacs.* etags.* ledit.l ms-* \
