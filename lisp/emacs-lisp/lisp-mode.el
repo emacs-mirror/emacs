@@ -326,7 +326,9 @@ which see."
     (when value
       (let ((beg (previous-single-property-change (point) 'printed-value))
 	    (end (next-single-char-property-change (point) 'printed-value))
-	    (standard-output (current-buffer)))
+	    (standard-output (current-buffer))
+	    (print-length nil)
+	    (print-level nil))
 	(delete-region beg end)
 	(prin1 value)))))
 
@@ -388,7 +390,9 @@ With argument, print output into current buffer."
 							'args)))))
 			   expr))
 		     (set-syntax-table stab))))))
-      (let ((print-length eval-expression-print-length)
+      (let ((unabbreviated (let ((print-length nil) (print-level nil))
+			     (prin1-to-string value)))
+	    (print-length eval-expression-print-length)
 	    (print-level eval-expression-print-level)
 	    (beg (point))
 	    end)
@@ -397,9 +401,7 @@ With argument, print output into current buffer."
 	(when (and (bufferp standard-output)
 		   (or (not (null print-length))
 		       (not (null print-level)))
-		   (save-excursion
-		     (goto-char beg)
-		     (search-forward "..." end t)))
+		   (not (string= unabbreviated (buffer-substring beg end))))
 	  (let ((map (make-sparse-keymap)))
 	    (define-key map "\C-m" 'last-sexp-print)
 	    (define-key map [down-mouse-2] 'mouse-set-point)
