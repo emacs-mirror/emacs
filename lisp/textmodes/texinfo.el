@@ -399,14 +399,10 @@ value of texinfo-mode-hook."
 (defconst texinfo-environment-regexp
   "^@\\(f?table\\|enumerate\\|itemize\\|ifinfo\\|iftex\\|ifset\\|ifclear\
 \\|example\\|quotation\\|lisp\\|smallexample\\|smalllisp\\|display\\|format\
-\\|flushleft\\|flushright\\|ignore\\|group\\|tex\\|cartouche\\|end\
-\\|def[a-z]*\\)"
+\\|flushleft\\|flushright\\|ignore\\|group\\|tex\\|cartouche\\|menu\
+\\|titlepage\\|end\\|def[a-z]*[a-wyz]\\>\\)"
   "Regexp for environment-like Texinfo list commands.
 Subexpression 1 is what goes into the corresponding `@end' statement.")
-
-;; The following texinfo-insert-@end command not only inserts a SPC
-;; after the @end, but tries to find out what belongs there.  It is
-;; not very smart: it does not understand nested lists.
 
 (defun texinfo-insert-@end ()
   "Insert the matching `@end' for the last Texinfo command that needs one."
@@ -419,9 +415,10 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 	    (setq depth (1+ depth))
 	  (setq depth (1- depth)))))
       (looking-at texinfo-environment-regexp)
-      (setq string
-	    (buffer-substring (match-beginning 1)
-			      (match-end 1))))
+      (if (zerop depth)
+	  (setq string
+		(buffer-substring (match-beginning 1)
+				  (match-end 1)))))
     (insert "@end ")
     (if string (insert string "\n"))))
 
