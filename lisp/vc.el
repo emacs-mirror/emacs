@@ -1,10 +1,10 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: ttn@netcom.com
-;; Version: 5.6
+;; Version: 5.5 + CVS hacks by ceder@lysator.liu.se made in Jan-Feb 1994.
 
 ;; This file is part of GNU Emacs.
 
@@ -29,15 +29,10 @@
 ;; This was designed and implemented by Eric Raymond <esr@snark.thyrsus.com>.
 ;; Paul Eggert <eggert@twinsun.com>, Sebastian Kremer <sk@thp.uni-koeln.de>,
 ;; and Richard Stallman contributed valuable criticism, support, and testing.
-;; CVS support was added by Per Cederqvist <ceder@lysator.liu.se>
-;; in Jan-Feb 1994.
 ;;
-;; Supported version-control systems presently include SCCS, RCS, and CVS.
-;; The RCS lock-stealing code doesn't work right unless you use RCS 5.6.2
+;; Supported version-control systems presently include SCCS and RCS;
+;; the RCS lock-stealing code doesn't work right unless you use RCS 5.6.2
 ;; or newer.  Currently (January 1994) that is only a beta test release.
-;; Even initial checkins will fail if your RCS version is so old that ci
-;; doesn't understand -t-; this has been known to happen to people running
-;; NExTSTEP 3.0. 
 ;;
 ;; The RCS code assumes strict locking.  You can support the RCS -x option
 ;; by adding pairs to the vc-master-templates list.
@@ -98,8 +93,6 @@ value of this flag.")
   (if (file-exists-p "/usr/sccs")
       '("/usr/sccs") nil)
   "*List of extra directories to search for version control commands.")
-(defvar vc-directory-exclusion-list '("SCCS" "RCS")
-  "*Directory names ignored by functions that recursively walk file trees.")
 
 (defconst vc-maximum-comment-ring-size 32
   "Maximum number of saved comments in the comment ring.")
@@ -166,20 +159,6 @@ and that its contents match what the master file says.")
 (defvar vc-comment-ring-index nil)
 (defvar vc-last-comment-match nil)
 
-;; Back-portability to Emacs 18
-
-(defun file-executable-p-18 (f)
-  (let ((modes (file-modes f)))
-    (and modes (not (zerop (logand 292))))))
-
-; Conditionally rebind some things for Emacs 18 compatibility
-(if (not (boundp 'minor-mode-map-alist))
-    (progn
-      (setq compilation-old-error-list nil)
-      (fset 'file-executable-p 'file-executable-p-18)
-      (fset 'shrink-window-if-larger-than-buffer 'beginning-of-buffer)
-      ))
-  
 ;; File property caching
 
 (defun vc-file-clearprops (file)
@@ -224,13 +203,9 @@ and that its contents match what the master file says.")
   "Execute a version-control command, notifying user and checking for errors.
 The command is successful if its exit status does not exceed OKSTATUS.
 Output from COMMAND goes to buffer *vc*.  The last argument of the command is
-the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
-'WORKFILE; this is appended to an optional list of FLAGS."
+the master name of FILE if LAST is 'MASTER, or the basename of FILE if LAST is
+'BASE; this is appended to an optional list of FLAGS."
   (setq file (expand-file-name file))
-  (let* ((pwd (expand-file-name default-directory))
-	 (preflen (length pwd)))
-    (if (string= (substring file 0 preflen) pwd)
-	(setq file (substring file preflen))))
   (if vc-command-messages
       (message "Running %s on %s..." command file))
   (let ((obuf (current-buffer)) (camefrom (current-buffer))
@@ -244,14 +219,19 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
     
     (erase-buffer)
 
+    ;; This is so that command arguments typed in the *vc* buffer will
+    ;; have reasonable defaults.
+    (setq default-directory (file-name-directory file))
+
     (mapcar
      (function (lambda (s) (and s (setq squeezed (append squeezed (list s))))))
      flags)
     (if (and vc-file (eq last 'MASTER))
 	(setq squeezed (append squeezed (list vc-file))))
-    (if (eq last 'WORKFILE)
-	(setq squeezed (append squeezed (list file))))
-    (let ((exec-path (if vc-path (append exec-path vc-path) exec-path))
+    (if (eq last 'BASE)
+	(setq squeezed (append squeezed (list (file-name-nondirectory file)))))
+    (let ((default-directory (file-name-directory (or file "./")))
+	  (exec-path (if vc-path (append exec-path vc-path) exec-path))
 	  ;; Add vc-path to PATH for the execution of this command.
 	  (process-environment
 	   (cons (concat "PATH=" (getenv "PATH")
@@ -259,7 +239,6 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
 		 process-environment)))
       (setq status (apply 'call-process command nil t nil squeezed)))
     (goto-char (point-max))
-    (set-buffer-modified-p nil)
     (forward-line -1)
     (if (or (not (integerp status)) (< okstatus status))
 	(progn
@@ -345,16 +324,8 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
 				      (if buffer-error-marked-p buffer))))
 				  (buffer-list)))))))
 
-    (let ((in-font-lock-mode (and (boundp 'font-lock-fontified)
-                                font-lock-fontified)))
-      (if in-font-lock-mode
-	  (font-lock-mode 0))
-
-      ;; the actual revisit
-      (revert-buffer arg no-confirm)
-
-      (if in-font-lock-mode
-	  (font-lock-mode 1)))
+    ;; the actual revisit
+    (revert-buffer arg no-confirm)
 
     ;; Reparse affected compilation buffers.
     (while reparse
@@ -922,7 +893,7 @@ and two version designators specifying which versions to compare."
 	;; visited.  This plays hell with numerous assumptions in
 	;; the diff.el and compile.el machinery.
 	(pop-to-buffer "*vc*")
-	(setq default-directory (file-name-directory file))
+	(pop-to-buffer "*vc*")
 	(if (= 0 (buffer-size))
 	    (progn
 	      (setq unchanged t)
@@ -1132,6 +1103,10 @@ scan the entire tree of subdirectories of the current directory."
 	       (if verbose "registered" "locked") default-directory))
     ))
 
+; Emacs 18 also lacks these.
+(or (boundp 'compilation-old-error-list)
+    (setq compilation-old-error-list nil))
+
 ;; Named-configuration support for SCCS
 
 (defun vc-add-triple (name file rev)
@@ -1223,10 +1198,9 @@ levels in the snapshot."
   (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (if (and buffer-file-name (vc-name buffer-file-name))
-      (let ((file buffer-file-name))
-	(vc-backend-print-log file)
+      (progn
+	(vc-backend-print-log buffer-file-name)
 	(pop-to-buffer (get-buffer-create "*vc*"))
-	(setq default-directory (file-name-directory file))
 	(while (looking-at "=*\n")
 	  (delete-char (- (match-end 0) (match-beginning 0)))
 	  (forward-line -1))
@@ -1450,7 +1424,7 @@ From a program, any arguments are passed to the `rcs2log' script."
 	  (setq buf (create-file-buffer file))
 	  (set-buffer buf))
 	(erase-buffer)
-	(insert-file-contents file)
+	(insert-file-contents file nil)
 	(set-buffer-modified-p nil)
 	(auto-save-mode nil)
 	(prog1
@@ -1628,7 +1602,7 @@ with RCS)."
    ;; should always be nil anyhow.  Don't fetch vc-your-latest-version, since
    ;; that is done in vc-find-cvs-master.
    (vc-log-info
-    "cvs" file 'WORKFILE '("status")
+    "cvs" file 'BASE '("status")
     ;; CVS 1.3 says "RCS Version:", other releases "RCS Revision:",
     ;; and CVS 1.4a1 says "Repository revision:".  The regexp below
     ;; matches much more, but because of the way vc-log-info is
@@ -1680,7 +1654,7 @@ with RCS)."
 			  (and comment (concat "-t-" comment))
 			  file))
 	  ((eq backend 'CVS)
-	   (vc-do-command 0 "cvs" file 'WORKFILE ;; CVS
+	   (vc-do-command 0 "cvs" file 'BASE ;; CVS
 			  "add"
 			  (and comment (not (string= comment ""))
 			       (concat "-m" comment)))
@@ -1763,7 +1737,7 @@ with RCS)."
 	      (unwind-protect
 		  (progn
 		    (apply 'vc-do-command
-			   0 "/bin/sh" file 'WORKFILE "-c"
+			   0 "/bin/sh" file 'BASE "-c"
 			   "exec >\"$1\" || exit; shift; exec cvs update \"$@\""
 			   ""		; dummy argument for shell's $0
 			   workfile
@@ -1772,7 +1746,7 @@ with RCS)."
 			   vc-checkout-switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
-	  (apply 'vc-do-command 0 "cvs" file 'WORKFILE
+	  (apply 'vc-do-command 0 "cvs" file 'BASE
 		 (and rev (concat "-r" rev))
 		 file
 		 vc-checkout-switches))
@@ -1817,7 +1791,7 @@ with RCS)."
 	     (concat "-m" comment)
 	     vc-checkin-switches)
       (progn
-	(apply 'vc-do-command 0 "cvs" file 'WORKFILE 
+	(apply 'vc-do-command 0 "cvs" file 'BASE 
 	       "ci" "-m" comment
 	       vc-checkin-switches)
 	(vc-file-setprop file 'vc-checkout-time 
@@ -1839,7 +1813,7 @@ with RCS)."
 		  "-f" "-u")
    (progn				  ;; CVS
      (delete-file file)
-     (vc-do-command 0 "cvs" file 'WORKFILE "update"))
+     (vc-do-command 0 "cvs" file 'BASE "update"))
    )
   (vc-file-setprop file 'vc-locking-user nil)
   (message "Reverting %s...done" file)
@@ -1879,14 +1853,14 @@ with RCS)."
    file
    (vc-do-command 0 "prs" file 'MASTER)
    (vc-do-command 0 "rlog" file 'MASTER)
-   (vc-do-command 0 "cvs" file 'WORKFILE "rlog")))
+   (vc-do-command 0 "cvs" file 'BASE "rlog")))
 
 (defun vc-backend-assign-name (file name)
   ;; Assign to a FILE's latest version a given NAME.
   (vc-backend-dispatch file
    (vc-add-triple name file (vc-latest-version file))   	;; SCCS
    (vc-do-command 0 "rcs" file 'MASTER (concat "-n" name ":"))	;; RCS
-   (vc-do-command 0 "cvs" file 'WORKFILE "tag" name)	        ;; CVS
+   (vc-do-command 0 "cvs" file 'BASE "tag" name)	        ;; CVS
    )
   )
 
@@ -1904,7 +1878,6 @@ with RCS)."
       (let* ((command (if (eq backend 'SCCS)
 			  "vcdiff"
 			"rcsdiff"))
-	     (mode (if (eq backend 'RCS) 'WORKFILE 'MASTER))
 	     (options (append (list (and cmp "--brief")
 				    "-q"
 				    (and oldvers (concat "-r" oldvers))
@@ -1913,10 +1886,10 @@ with RCS)."
 				   (if (listp diff-switches)
 				       diff-switches
 				     (list diff-switches)))))
-	     (status (apply 'vc-do-command 2 command file mode options)))
+	     (status (apply 'vc-do-command 2 command file options)))
 	;; Some RCS versions don't understand "--brief"; work around this.
 	(if (eq status 2)
-	    (apply 'vc-do-command 1 command file 'WORKFILE
+	    (apply 'vc-do-command 1 command file 'MASTER
 		   (if cmp (cdr options) options))
 	  status)))
      ;; CVS is different.  
@@ -1928,12 +1901,12 @@ with RCS)."
 	  (if (or oldvers newvers)
 	      (error "No revisions of %s exists" file)
 	    (apply 'vc-do-command
-		   1 "diff" file 'WORKFILE "/dev/null"
+		   1 "diff" file 'BASE "/dev/null"
 		   (if (listp diff-switches)
 		       diff-switches
 		     (list diff-switches))))
 	(apply 'vc-do-command
-	       1 "cvs" file 'WORKFILE "diff"
+	       1 "cvs" file 'BASE "diff"
 	       (and oldvers (concat "-r" oldvers))
 	       (and newvers (concat "-r" newvers))
 	       (if (listp diff-switches)
@@ -1948,7 +1921,7 @@ with RCS)."
    file
    (error "vc-backend-merge-news not meaningful for SCCS files") ;SCCS
    (error "vc-backend-merge-news not meaningful for RCS files")	;RCS
-   (vc-do-command 1 "cvs" file 'WORKFILE "update") ;CVS
+   (vc-do-command 1 "cvs" file 'BASE "update") ;CVS
    ))
 
 (defun vc-check-headers ()
@@ -2068,7 +2041,6 @@ Invoke FUNC f ARGS on each non-directory file f underneath it."
 	(lambda (f) (or
 		     (string-equal f ".")
 		     (string-equal f "..")
-		     (member f vc-directory-exclusion-list)
 		     (let ((dirf (concat dir f)))
 			(or
 			 (file-symlink-p dirf) ;; Avoid possible loops
