@@ -81,3 +81,8 @@ The portable alloca needs to use GC_malloc to have the same effect as
 conservative stack scanning.
 
 Don't know if this can work without NO_UNION_TYPE.
+
+Might be worth allowing XGC_MALLOC to allocate using mmap (in an
+already-dumped Emacs), since the address doesn't have to fit into
+EMACS_INT and that might save significant allocation in precious Lisp
+address space.  Should be able to do similarly with string data.

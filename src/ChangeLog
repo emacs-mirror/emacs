@@ -1,3 +1,9 @@
+2003-06-16  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (GCINCLUDE) [BOEHM_GC]: New.  (Don't use CPPFLAGS.)
+	(ALL_CFLAGS): Use it.
+	(gclib): Don't use top_srcdir.
+
 2003-06-11  Dave Love  <fx@gnu.org>
 
 	* xterm.c [BOEHM_GC]: Include gc.h. 
