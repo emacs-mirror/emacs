@@ -1,3 +1,8 @@
+2002-12-02  Stephen Eglen  <stephen@gnu.org>
+
+	* emacsclient.c (main): Tell user how to start server within Emacs
+	if socket could not be found.
+
 2002-12-02  Richard M. Stallman  <rms@gnu.org>
 
 	* emacsclient.c (main): Test HAVE_GETCWD rather than BSD_SYSTEM.
