@@ -190,13 +190,21 @@ extern struct backtrace *backtrace_list;
 
 Lisp_Object Vshow_help_function;
 
+/* If a string, the message displayed before displaying a help-echo
+   in the echo area.  */
+
+Lisp_Object Vpre_help_message;
+
 /* Nonzero means do menu prompting.  */
+
 static int menu_prompting;
 
 /* Character to see next line of menu prompt.  */
+
 static Lisp_Object menu_prompt_more_char;
 
 /* For longjmp to where kbd input is being done.  */
+
 static jmp_buf getcjmp;
 
 /* True while doing kbd input.  */
@@ -2030,14 +2038,25 @@ show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
 	{
 	  if (STRINGP (help))
 	    {
-	      int count = specpdl_ptr - specpdl;
+	      int count = BINDING_STACK_SIZE ();
+
+	      if (!help_echo_showing_p)
+		Vpre_help_message = current_message ();
+	      
 	      specbind (Qmessage_truncate_lines, Qt);
 	      message3_nolog (help, STRING_BYTES (XSTRING (help)),
 			      STRING_MULTIBYTE (help));
 	      unbind_to (count, Qnil);
 	    }
+	  else if (STRINGP (Vpre_help_message))
+	    {
+	      message3_nolog (Vpre_help_message,
+			      STRING_BYTES (XSTRING (Vpre_help_message)),
+			      STRING_MULTIBYTE (Vpre_help_message));
+	      Vpre_help_message = Qnil;
+	    }
 	  else
-	      message (0);
+	    message (0);
 	}
       
       help_echo_showing_p = STRINGP (help);
@@ -10165,9 +10184,12 @@ struct event_head head_table[] = {
 void
 syms_of_keyboard ()
 {
+  Vpre_help_message = Qnil;
+  staticpro (&Vpre_help_message);
+  
   Vlispy_mouse_stem = build_string ("mouse");
   staticpro (&Vlispy_mouse_stem);
-  
+
   /* Tool-bars.  */
   QCimage = intern (":image");
   staticpro (&QCimage);
