@@ -470,18 +470,16 @@ The top-level Info directory is made by combining all the files named `dir'
 in all the directories in that path."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
+  (pop-to-buffer "*info*")
   (if file
-      (progn
-	(pop-to-buffer "*info*")
-	;; If argument already contains parentheses, don't add another set
-	;; since the argument will then be parsed improperly.  This also
-	;; has the added benefit of allowing node names to be included
-	;; following the parenthesized filename.
-	(if (and (stringp file) (string-match "(.*)" file))
-	    (Info-goto-node file)
-	  (Info-goto-node (concat "(" file ")"))))
-    (if (get-buffer "*info*")
-	(pop-to-buffer "*info*")
+      ;; If argument already contains parentheses, don't add another set
+      ;; since the argument will then be parsed improperly.  This also
+      ;; has the added benefit of allowing node names to be included
+      ;; following the parenthesized filename.
+      (if (and (stringp file) (string-match "(.*)" file))
+	  (Info-goto-node file)
+	(Info-goto-node (concat "(" file ")")))
+    (if (zerop (buffer-size))
       (Info-directory))))
 
 ;;;###autoload
