@@ -1235,7 +1235,7 @@ and can edit it until it as been confirmed.")
 			   Qnil));
       GCPRO1 (pane);
       menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
-      obj = Fx_popup_dialog(Qt, menu);
+      obj = Fx_popup_dialog (Qt, menu);
       if (!NILP (obj))
 	{
 	  prompt = build_string ("Confirm");
