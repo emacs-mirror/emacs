@@ -1,3 +1,9 @@
+2000-11-09  Simon Josefsson  <simon@josefsson.org>
+
+	* rfc2104.el: Add SHA-1 example.
+	(rfc2104-hexstring-to-bitstring): New function.
+	(rfc2104-hash): Use it.
+
 2000-11-08  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-score.el (gnus-score-body): Don't score body when
