@@ -1,3 +1,8 @@
+2004-03-27  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
+
+	* woman.el (woman-change-fonts): Rename local variable
+	woman-font-alist to font-alist to avoid a compiler warning.
+
 2004-03-27  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/rx.el (rx): Doc fix.
