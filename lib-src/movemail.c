@@ -328,7 +328,7 @@ main (argc, argv)
 	  if (desc < 0)
 	    {
 	      char *message = (char *) xmalloc (strlen (tempname) + 50);
-	      sprintf (message, "can't create %s to become the lock file",
+	      sprintf (message, "creating %s, which would become the lock file",
 		       tempname);
 	      pfatal_with_name (message);
 	    }
