@@ -34,8 +34,7 @@
  '(ascii thai-tis620 nil nil
    nil ascii-eol)
  '((safe-charsets ascii thai-tis620)
-   (post-read-conversion . thai-post-read-conversion)
-   (pre-write-conversion . thai-pre-write-conversion)))
+   (post-read-conversion . thai-post-read-conversion)))
 
 (define-coding-system-alias 'th-tis620 'thai-tis620)
 (define-coding-system-alias 'tis620 'thai-tis620)
@@ -50,7 +49,12 @@
 	  (input-method . "thai-kesmanee")
 	  (unibyte-display . thai-tis620)
 	  (features thai-util)
-	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ(B0,TGQ(B1,TJ(B0,T4U(B1,T$(B0,TCQ(B1,T:(B, ,TJ(B0,TGQ(B1,TJ(B0,T4U(B10,T$h(B1,TP(B")
+	  (sample-text . "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")
 	  (documentation . t)))
+
+
+;; Register a function to compose Thai characters.
+(aset composition-function-table (make-char 'thai-tis620)
+      '(("\\c0\\c4\\|\\c0\\(\\c2\\|\\c3\\)\\c4?" . thai-composition-function)))
 
 ;;; thai.el ends here
