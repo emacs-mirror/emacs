@@ -227,6 +227,7 @@ Boston, MA 02111-1307, USA.  */
 #undef  HAVE_SYS_SYSTEMINFO_H
 #undef  HAVE_TERMIOS_H
 #define HAVE_LIMITS_H 1
+#define HAVE_STRING_H
 #define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME
 
@@ -269,8 +270,8 @@ Boston, MA 02111-1307, USA.  */
 #undef  HAVE_SETRLIMIT
 #undef  HAVE_SETPGID
 #undef  HAVE_GETCWD
-/* Some systems do not have this.  */
 #define HAVE_SHUTDOWN
+#define HAVE_STRFTIME 1
 
 #undef  LOCALTIME_CACHE
 #undef  HAVE_INET_SOCKETS
@@ -427,7 +428,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 /* We need a little extra space, see ../../lisp/loadup.el */
-#define SYSTEM_PURESIZE_EXTRA 25000
+#define SYSTEM_PURESIZE_EXTRA 75000
 
 /* For unexec to work on Alpha systems, we need to put Emacs'
    initialized data into a separate section from the CRT initialized
