@@ -207,8 +207,8 @@ Any terminating `>' or `/' is not matched.")
 
 ;; internal
 (defconst sgml-font-lock-keywords-1
-  '(("<\\([!?][a-z0-9]+\\)" 1 font-lock-keyword-face)
-    ("<\\(/?[a-z0-9]+\\)" 1 font-lock-function-name-face)
+  '(("<\\([!?][a-zA-Z0-9]+\\)" 1 font-lock-keyword-face)
+    ("<\\(/?[a-zA-Z0-9]+\\)" 1 font-lock-function-name-face)
     ("[&%][-.A-Za-z0-9]+;?" . font-lock-variable-name-face)
     ("<!--[^<>]*-->" . font-lock-comment-face)))
 
