@@ -578,11 +578,11 @@ that DVAL has been added on SQUARE."
 ;;; SESSION CONTROL.
 ;;;
 
-(defvar gomoku-number-of-wins 0
-  "Number of games already won in this session.")
+(defvar gomoku-number-of-emacs-wins 0
+  "Number of games Emacs won in this session.")
 
-(defvar gomoku-number-of-losses 0
-  "Number of games already lost in this session.")
+(defvar gomoku-number-of-human-wins 0
+  "Number of games you won in this session.")
 
 (defvar gomoku-number-of-draws 0
   "Number of games already drawn in this session.")
@@ -593,7 +593,7 @@ that DVAL has been added on SQUARE."
   (let (message)
     (cond
      ((eq result 'emacs-won)
-      (setq gomoku-number-of-wins (1+ gomoku-number-of-wins))
+      (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
       (setq message
 	    (cond ((< gomoku-number-of-moves 20)
 		   "This was a REALLY QUICK win.")
@@ -603,14 +603,14 @@ that DVAL has been added on SQUARE."
 		   "I won... Taking moves back will not help you !")
 		  ((not gomoku-emacs-played-first)
 		   "I won... Playing first did not help you much !")
-		  ((and (zerop gomoku-number-of-losses)
+		  ((and (zerop gomoku-number-of-human-wins)
 			(zerop gomoku-number-of-draws)
-			(> gomoku-number-of-wins 1))
+			(> gomoku-number-of-emacs-wins 1))
 		   "I'm becoming tired of winning...")
 		  (t
 		   "I won."))))
      ((eq result 'human-won)
-      (setq gomoku-number-of-losses (1+ gomoku-number-of-losses))
+      (setq gomoku-number-of-human-wins (1+ gomoku-number-of-human-wins))
       (setq message
 	    (cond
 	     (gomoku-human-took-back
@@ -620,7 +620,7 @@ that DVAL has been added on SQUARE."
 	     (t
 	      "OK, you won this one.  Now, let me play first just once."))))
      ((eq result 'human-resigned)
-      (setq gomoku-number-of-wins (1+ gomoku-number-of-wins))
+      (setq gomoku-number-of-emacs-wins (1+ gomoku-number-of-emacs-wins))
       (setq message "So you resign.  That's just one more win for me."))
      ((eq result 'nobody-won)
       (setq gomoku-number-of-draws (1+ gomoku-number-of-draws))
@@ -954,20 +954,13 @@ If the game is finished, this command requests for another game."
 	(cond
 	 ((not (zerop gomoku-number-of-draws))
 	  (format ": Won %d, lost %d, drew %d"
-		  gomoku-number-of-wins
-		  gomoku-number-of-losses
+		  gomoku-number-of-human-wins
+		  gomoku-number-of-emacs-wins
 		  gomoku-number-of-draws))
-	 ((not (zerop gomoku-number-of-losses))
-	  (format ": Won %d, lost %d"
-		  gomoku-number-of-wins
-		  gomoku-number-of-losses))
-	 ((zerop gomoku-number-of-wins)
-	  "")
-	 ((= 1 gomoku-number-of-wins)
-	  ": Already won one")
 	 (t
-	  (format ": Won %d in a row"
-		  gomoku-number-of-wins))))
+	  (format ": Won %d, lost %d"
+		  gomoku-number-of-human-wins
+		  gomoku-number-of-emacs-wins))))
   ;; Then a (standard) kludgy line will force update of mode line.
   (set-buffer-modified-p (buffer-modified-p)))
 
