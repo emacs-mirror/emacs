@@ -1,7 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1987,93,94,95,1997,2001,03 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node X Resources, Antinews, Command Line, Top
+@node X Resources, Antinews, Emacs Invocation, Top
 @appendix X Options and Resources
 
   You can customize some X-related aspects of Emacs behavior using X

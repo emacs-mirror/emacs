@@ -1,5 +1,5 @@
 @c -*-texinfo-*-
-@node GNU Free Documentation License, Command Line, Copying, Top
+@node GNU Free Documentation License, Emacs Invocation, Copying, Top
 @appendix GNU Free Documentation License
 @center Version 1.1, March 2000
 

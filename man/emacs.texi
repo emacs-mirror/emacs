@@ -148,7 +148,7 @@ Important General Concepts
 			  and strings).
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::	        Stopping or killing Emacs.
-* Command Line::        Hairy startup options.
+* Emacs Invocation::    Hairy startup options.
 
 Fundamental Editing Commands
 * Basic::	        The most basic editing commands.
