@@ -1,3 +1,26 @@
+2003-09-17  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fset_process_sentinel): Add sentinel to childp plist
+	for network process.
+	(socket_options): Add `:' prefix to option names.  Add optbit field.
+	(set_socket_option): Remove no_error arg and special handling of s < 0.
+	Return 1<<optbit for known option, 0 for unknown.
+	Do not interpret 0 as false for boolean option (only nil).
+	Pass failed option and value to report_file_error.
+	(Fset_network_process_options): Replaced by Fset_network_process_option. 
+	(Fset_network_process_option): New function to set just one option.
+	(Fmake_network_process): Allow :coding arg to be a cons.
+	Allow :server arg to be an integer specifying backlog size.
+	Remove :options arg, and allow options to be specified directly
+	as :KEY, VALUE pairs.  Parse these options before binding socket.
+	As before, :reuseaddr t is default for a server process, but this
+	can now be disabled by specifying :reuseaddr nil.
+	(Fnetwork_interface_info): Rename from Fget_network_interface_info.
+	(init_process): Availability of network options is now checked with
+	simpler syntax (featurep 'make-network-process :OPTION); use loop to
+	setup features.
+	(syms_of_process): Fix defsubr's for the replaced functions.
+
 2003-09-16  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Depend on coding.h.
