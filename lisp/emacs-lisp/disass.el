@@ -79,6 +79,10 @@ redefine OBJECT if it is a symbol."
 	    obj (symbol-function obj)))
     (if (subrp obj)
 	(error "Can't disassemble #<subr %s>" name))
+    (if (and (listp obj) (eq (car obj) 'autoload))
+	(progn
+	  (load (nth 1 obj))
+	  (setq obj (symbol-function name))))
     (if (eq (car-safe obj) 'macro)	;handle macros
 	(setq macro t
 	      obj (cdr obj)))
