@@ -1,3 +1,7 @@
+2001-02-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (kill-line): Doc fix.
+
 2001-02-05  Dave Love  <fx@gnu.org>
 
 	* loadup.el: Revert last two changes -- bootstrapping works with
