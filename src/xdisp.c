@@ -10759,6 +10759,7 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
   int string_before_pos;
   int x = row->x;
   int cursor_x = x;
+  int cursor_from_overlay_pos = 0;
   int pt_old = PT - delta;
 
   /* Skip over glyphs not having an object at the start of the row.
@@ -10784,6 +10785,12 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  string_start = NULL;
 	  x += glyph->pixel_width;
 	  ++glyph;
+	  if (cursor_from_overlay_pos
+	      && last_pos > cursor_from_overlay_pos)
+	    {
+	      cursor_from_overlay_pos = 0;
+	      cursor = 0;
+	    }
 	}
       else
 	{
@@ -10793,10 +10800,21 @@ set_cursor_from_row (w, row, matrix, delta, delta_bytes, dy, dvpos)
 	  /* Skip all glyphs from string.  */
 	  do
 	    {
+	      int pos;
 	      if ((cursor == NULL || glyph > cursor)
 		  && !NILP (Fget_char_property (make_number ((glyph)->charpos),
-						Qcursor, (glyph)->object)))
+						Qcursor, (glyph)->object))
+		  && (pos = string_buffer_position (w, glyph->object,
+						    string_before_pos),
+		      (pos == 0	  /* From overlay */
+		       || pos == pt_old)))
 		{
+		  /* Estimate overlay buffer position from the buffer
+		     positions of the glyphs before and after the overlay.
+		     Add 1 to last_pos so that if point corresponds to the
+		     glyph right after the overlay, we still use a 'cursor'
+		     property found in that overlay.  */
+		  cursor_from_overlay_pos = pos == 0 ? last_pos+1 : 0;
 		  cursor = glyph;
 		  cursor_x = x;
 		}
@@ -15876,15 +15894,16 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 
 
 DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
-       0, 3, 0,
+       0, 4, 0,
        doc: /* Return the mode-line of selected window as a string.
 First optional arg FORMAT specifies a different format string (see
 `mode-line-format' for details) to use.  If FORMAT is t, return
 the buffer's header-line.  Second optional arg WINDOW specifies a
 different window to use as the context for the formatting.
-If third optional arg NO-PROPS is non-nil, string is not propertized.  */)
-     (format, window, no_props)
-     Lisp_Object format, window, no_props;
+If third optional arg NO-PROPS is non-nil, string is not propertized.
+Fourth optional arg BUFFER specifies which buffer to use.  */)
+  (format, window, no_props, buffer)
+     Lisp_Object format, window, no_props, buffer;
 {
   struct it it;
   int len;
@@ -15896,12 +15915,16 @@ If third optional arg NO-PROPS is non-nil, string is not propertized.  */)
     window = selected_window;
   CHECK_WINDOW (window);
   w = XWINDOW (window);
-  CHECK_BUFFER (w->buffer);
 
-  if (XBUFFER (w->buffer) != current_buffer)
+  if (NILP (buffer))
+    buffer = w->buffer;
+
+  CHECK_BUFFER (buffer);
+
+  if (XBUFFER (buffer) != current_buffer)
     {
       old_buffer = current_buffer;
-      set_buffer_internal_1 (XBUFFER (w->buffer));
+      set_buffer_internal_1 (XBUFFER (buffer));
     }
 
   if (NILP (format) || EQ (format, Qt))

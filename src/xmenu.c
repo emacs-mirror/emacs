@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1986, 88, 93, 94, 96, 99, 2000, 2001, 2003
+   Copyright (C) 1986, 1988, 1993, 1994, 1996, 1999, 2000, 2001, 2003, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1801,7 +1801,7 @@ update_submenu_strings (first_wv)
 
   for (wv = first_wv; wv; wv = wv->next)
     {
-      if (wv->lname && ! NILP (wv->lname))
+      if (STRINGP (wv->lname))
         {
           wv->name = SDATA (wv->lname);
 
@@ -1815,7 +1815,7 @@ update_submenu_strings (first_wv)
             }
         }
 
-      if (wv->lkey && ! NILP (wv->lkey))
+      if (STRINGP (wv->lkey))
         wv->key = SDATA (wv->lkey);
 
       if (wv->contents)
@@ -1888,7 +1888,7 @@ set_frame_menubar (f, first_time, deep_p)
 #endif
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  int i, last_i;
+  int i, last_i = 0;
   int *submenu_start, *submenu_end;
   int *submenu_top_level_items, *submenu_n_panes;
 

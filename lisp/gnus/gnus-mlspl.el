@@ -1,5 +1,6 @@
 ;;; gnus-mlspl.el --- a group params-based mail splitting mechanism
-;; Copyright (C) 1998, 1999, 2000
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Alexandre Oliva <oliva@lsd.ic.unicamp.br>
@@ -8,18 +9,18 @@
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
+;; it under the terms of the GNU General Public License as published
+;; by the Free Software Foundation; either version 2, or (at your
+;; option) any later version.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; GNU Emacs is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
@@ -62,7 +63,7 @@ unless overridden by any group marked as a catch-all group.  Typical
 uses are as simple as the name of a default mail group, but more
 elaborate fancy splits may also be useful to split mail that doesn't
 match any of the group-specified splitting rules.  See
-gnus-group-split-fancy for details."
+`gnus-group-split-fancy' for details."
   (interactive "P")
   (setq nnmail-split-methods 'nnmail-split-fancy)
   (when catch-all
@@ -73,8 +74,9 @@ gnus-group-split-fancy for details."
 
 ;;;###autoload
 (defun gnus-group-split-update (&optional catch-all)
-  "Computes nnmail-split-fancy from group params and CATCH-ALL, by
-calling (gnus-group-split-fancy nil nil CATCH-ALL).
+  "Computes nnmail-split-fancy from group params and CATCH-ALL.
+It does this by calling by calling (gnus-group-split-fancy nil
+nil CATCH-ALL).
 
 If CATCH-ALL is nil, gnus-group-split-default-catch-all-group is used
 instead.  This variable is set by gnus-group-split-setup."
@@ -88,7 +90,7 @@ instead.  This variable is set by gnus-group-split-setup."
 ;;;###autoload
 (defun gnus-group-split ()
   "Uses information from group parameters in order to split mail.
-See gnus-group-split-fancy for more information.
+See `gnus-group-split-fancy' for more information.
 
 gnus-group-split is a valid value for nnmail-split-methods."
   (let (nnmail-split-fancy)
@@ -140,12 +142,12 @@ nnml:mail.foo:
 nnml:mail.others:
 \((split-spec . catch-all))
 
-Calling (gnus-group-split-fancy nil nil \"mail.misc\") returns:
+Calling (gnus-group-split-fancy nil nil \"mail.others\") returns:
 
 \(| (& (any \"\\\\(bar@femail\\\\.com\\\\|.*@femail\\\\.com\\\\)\"
 	   \"mail.bar\")
       (any \"\\\\(foo@nowhere\\\\.gov\\\\|foo@localhost\\\\|foo-redist@home\\\\)\"
-           - \"bugs-foo\" - \"rambling-foo\" \"mail.foo\"))
+	   - \"bugs-foo\" - \"rambling-foo\" \"mail.foo\"))
    \"mail.others\")"
   (let* ((newsrc (cdr gnus-newsrc-alist))
 	 split)
@@ -202,12 +204,9 @@ Calling (gnus-group-split-fancy nil nil \"mail.misc\") returns:
 			 (list 'any split-regexp)
 			 ;; Generate RESTRICTs for SPLIT-EXCLUDEs.
 			 (if (listp split-exclude)
-			     (let ((seq split-exclude)
-				   res)
-			       (while seq
-				 (push (cons '- (pop seq))
-				       res))
-			       (apply #'nconc (nreverse res)))
+			     (apply #'append
+				    (mapcar (lambda (arg) (list '- arg))
+					    split-exclude))
 			   (list '- split-exclude))
 			 (list group-clean))
 			split)

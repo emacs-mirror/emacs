@@ -1,10 +1,10 @@
 ;;; nnmh.el --- mhspool access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
@@ -41,16 +41,16 @@
 (nnoo-declare nnmh)
 
 (defvoo nnmh-directory message-directory
-  "*Mail spool directory.")
+  "Mail spool directory.")
 
 (defvoo nnmh-get-new-mail t
-  "*If non-nil, nnmh will check the incoming mail file and split the mail.")
+  "If non-nil, nnmh will check the incoming mail file and split the mail.")
 
 (defvoo nnmh-prepare-save-mail-hook nil
-  "*Hook run narrowed to an article before saving.")
+  "Hook run narrowed to an article before saving.")
 
 (defvoo nnmh-be-safe nil
-  "*If non-nil, nnmh will check all articles to make sure whether they are new or not.
+  "If non-nil, nnmh will check all articles to make sure whether they are new or not.
 Go through the .nnmh-articles file and compare with the actual
 articles in this folder.  The articles that are \"new\" will be marked
 as unread by Gnus.")
@@ -239,10 +239,12 @@ as unread by Gnus.")
 		(file-truename (file-name-as-directory
 				(expand-file-name nnmh-toplev))))
 	       dir)
-	      (nnheader-replace-chars-in-string
-	       (mm-decode-coding-string (substring dir (match-end 0))
-					nnmail-pathname-coding-system)
-	       ?/ ?.))
+	      (mm-string-as-multibyte
+	       (mm-encode-coding-string
+		(nnheader-replace-chars-in-string
+		 (substring dir (match-end 0))
+		 ?/ ?.)
+		nnmail-pathname-coding-system)))
 	    (apply 'max files)
 	    (apply 'min files)))))))
   t)
@@ -288,8 +290,8 @@ as unread by Gnus.")
 (deffoo nnmh-close-group (group &optional server)
   t)
 
-(deffoo nnmh-request-move-article
-    (article group server accept-form &optional last)
+(deffoo nnmh-request-move-article (article group server
+					   accept-form &optional last)
   (let ((buf (get-buffer-create " *nnmh move*"))
 	result)
     (and
@@ -314,7 +316,10 @@ as unread by Gnus.")
   (nnmh-possibly-change-directory group server)
   (nnmail-check-syntax)
   (when nnmail-cache-accepted-message-ids
-    (nnmail-cache-insert (nnmail-fetch-field "message-id")))
+    (nnmail-cache-insert (nnmail-fetch-field "message-id") 
+			 group
+			 (nnmail-fetch-field "subject")
+			 (nnmail-fetch-field "from")))
   (nnheader-init-server-buffer)
   (prog1
       (if (stringp group)
@@ -422,7 +427,7 @@ as unread by Gnus.")
 	  (file-name-coding-system nnmail-pathname-coding-system))
       (if (file-directory-p pathname)
 	  (setq nnmh-current-directory pathname)
-	(error "No such newsgroup: %s" newsgroup)))))
+	(nnheader-report 'nnmh "Not a directory: %s" nnmh-directory)))))
 
 (defun nnmh-possibly-create-directory (group)
   (let (dir dirs)

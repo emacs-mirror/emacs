@@ -1,11 +1,11 @@
 ;;; nnspool.el --- spool access for GNU Emacs
 
 ;; Copyright (C) 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
-;;               2000, 2002
+;;               2000, 2002, 2003
 ;;               Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; 	Lars Magne Ingebrigtsen <larsi@gnus.org>
+;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -50,7 +50,10 @@ If you are using Cnews, you probably should set this variable to nil.")
 (defvoo nnspool-nov-directory (concat nnspool-spool-directory "over.view/")
   "Local news nov directory.")
 
-(defvoo nnspool-lib-dir "/usr/lib/news/"
+(defvoo nnspool-lib-dir
+    (if (file-exists-p "/usr/lib/news/active")
+	"/usr/lib/news/"
+      "/var/lib/news/")
   "Where the local news library files are stored.")
 
 (defvoo nnspool-active-file (concat nnspool-lib-dir "active")
@@ -69,8 +72,8 @@ If you are using Cnews, you probably should set this variable to nil.")
   "Local news active date file.")
 
 (defvoo nnspool-large-newsgroup 50
-  "The number of the articles which indicates a large newsgroup.
-If the number of the articles is greater than the value, verbose
+  "The number of articles which indicates a large newsgroup.
+If the number of articles is greater than the value, verbose
 messages will be shown to indicate the current status.")
 
 (defvoo nnspool-nov-is-evil nil
@@ -361,7 +364,7 @@ there.")
     (let ((nov (nnheader-group-pathname
 		nnspool-current-group nnspool-nov-directory ".overview"))
 	  (arts articles)
-      	  (nnheader-file-coding-system nnspool-file-coding-system)
+	  (nnheader-file-coding-system nnspool-file-coding-system)
 	  last)
       (if (not (file-exists-p nov))
 	  ()

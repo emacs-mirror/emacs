@@ -1,11 +1,12 @@
 ;;; vc-sccs.el --- support for SCCS version-control
 
-;; Copyright (C) 1992,93,94,95,96,97,98,99,2000,2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.24 2003/09/01 15:45:17 miles Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -150,7 +151,7 @@ For a description of possible values, see `vc-check-master-templates'."
   'locking)
 
 (defun vc-sccs-workfile-unchanged-p (file)
-  "SCCS-specific implementation of vc-workfile-unchanged-p."
+  "SCCS-specific implementation of `vc-workfile-unchanged-p'."
   (zerop (apply 'vc-do-command nil 1 "vcdiff" (vc-name file)
                 (list "--brief" "-q"
                       (concat "-r" (vc-workfile-version file))))))
@@ -397,5 +398,5 @@ If NAME is nil or a version number string it's just passed through."
 
 (provide 'vc-sccs)
 
-;;; arch-tag: d751dee3-d7b3-47e1-95e3-7ae98c052041
+;; arch-tag: d751dee3-d7b3-47e1-95e3-7ae98c052041
 ;;; vc-sccs.el ends here

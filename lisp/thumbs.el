@@ -769,14 +769,15 @@ ACTION and ARG should be legal convert command."
     (define-key map "r" 'thumbs-resize-interactive)
     (define-key map "s" 'thumbs-save-current-image)
     (define-key map "q" 'thumbs-kill-buffer)
-    (define-key map "w" 'thunbs-set-root)
+    (define-key map "w" 'thumbs-set-root)
     map)
   "Keymap for `thumbs-view-image-mode'.")
 
 ;; thumbs-view-image-mode
 (put 'thumbs-view-image-mode 'mode-class 'special)
 (define-derived-mode thumbs-view-image-mode
-  fundamental-mode "image-view-mode")
+  fundamental-mode "image-view-mode"
+  (setq buffer-read-only t))
 
 ;;;###autoload
 (defun thumbs-dired-setroot ()

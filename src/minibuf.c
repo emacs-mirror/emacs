@@ -61,6 +61,10 @@ Lisp_Object Vcompletion_auto_help;
 
 Lisp_Object Qhistory_length, Vhistory_length;
 
+/* No duplicates in history.  */
+
+int history_delete_duplicates;
+
 /* Fread_minibuffer leaves the input here as a string. */
 
 Lisp_Object last_minibuf_string;
@@ -749,6 +753,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 	{
 	  Lisp_Object length;
 
+	  if (history_delete_duplicates) Fdelete (histstring, histval);
 	  histval = Fcons (histstring, histval);
 	  Fset (Vminibuffer_history_variable, histval);
 
@@ -2657,6 +2662,12 @@ A number means that length; t means infinite.  Truncation takes place
 just after a new element is inserted.  Setting the history-length
 property of a history variable overrides this default.  */);
   XSETFASTINT (Vhistory_length, 30);
+
+  DEFVAR_BOOL ("history-delete-duplicates", &history_delete_duplicates,
+	       doc: /* *Non-nil means to delete duplicates in history.
+If set to t when adding a new history element, all previous identical
+elements are deleted.  */);
+  history_delete_duplicates = 0;
 
   DEFVAR_LISP ("completion-auto-help", &Vcompletion_auto_help,
 	       doc: /* *Non-nil means automatically provide help for invalid completion input.  */);

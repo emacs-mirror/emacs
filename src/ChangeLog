@@ -1,6 +1,53 @@
+2004-09-08  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fset_window_buffer): Doc fix.
+
+	* xdisp.c (Fformat_mode_line): New arg BUFFER says which buffer to use.
+
+2004-09-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* minibuf.c (history_delete_duplicates): New variable.
+	(read_minibuf): Use it.
+	(syms_of_minibuf): Create the corresponding lisp variable.
+
+2004-09-08  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): Also look at 'cursor' property in
+	overlay just before point.
+
+2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffer.h (struct buffer): Add auto_save_file_format field.
+	* buffer.c (reset_buffer, init_buffer_once): Handle
+	auto_save_file_format field.
+	(syms_of_buffer): Add DEFVAR_PER_BUFFER for
+	`buffer-auto-save-file-format'.
+	* fileio.c: Delete declaration for removed Vauto_save_file_format.
+	(build_annotations): Adapt to replacement of
+	`auto-save-file-format' with the new buffer-local variable
+	`buffer-auto-save-file-format'.
+	(syms_of_fileio): Delete DEFVAR_LISP for auto-save-file-format.
+
+2004-09-07  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.h (AppendMenuW_Proc): Move declaration from w32menu.c.
+
+	* w32fns.c (w32_wnd_proc) [WM_MEASUREITEM, WM_DRAWITEM]: Handle
+	Unicode menu titles.
+
+2004-09-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_cursor_from_row): Fix last change.  Only use 'cursor'
+	property from text property or overlay strings at point.
+
+2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+
+	* xmenu.c (update_submenu_strings): YAILOM.
+	(set_frame_menubar): Make sure last_i is initialized.
+
 2004-09-03  Jason Rumney  <jasonr@gnu.org>
 
-	* w32menu.c (_widget_value): Added lname and lkey.
+	* w32menu.c (_widget_value): Add lname and lkey.
 	(digest_single_submenu): Set lname and lkey in widget_value
 	instead of name and key.
 	(update_submenu_strings): New function.
@@ -12,7 +59,7 @@
 	UTF-8 if Unicode API is available.
 	(utf8to16): New function.
 	(add_menu_item): Use it when calling Unicode API.
-	
+
 2004-09-03  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (set_cursor_from_row): Look for non-nil `cursor' property
@@ -22,14 +69,14 @@
 2004-09-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (x_real_positions): Save the current window port and
-	set a new one before obtaining the global coordinate.  Use
-	FRAME_MAC_WINDOW.
-	(x_set_name, x_set_title): Encode title to UTF8.  Use
-	SetWindowTitleWithCFString.
+	set a new one before obtaining the global coordinate.
+	Use FRAME_MAC_WINDOW.
+	(x_set_name, x_set_title): Encode title to UTF8.
+	Use SetWindowTitleWithCFString.
 	(Fx_server_version): Get correct OS version.
 
-	* macmenu.c (add_menu_item): Remove unused variable `i'.  Don't
-	let separator items destroy refence constants of other menu items.
+	* macmenu.c (add_menu_item): Remove unused variable `i'.
+	Don't let separator items destroy refence constants of other menu items.
 
 	* macterm.c (x_update_end): Move SetPortWindowPort to inside
 	BLOCK_INPUT.
@@ -40,8 +87,8 @@
 
 	* s/darwin.h (LIBS_CARBON): New define to specify libraries for
 	Carbon support.
-	(LD_SWITCH_SYSTEM_TEMACS): Don't link with unused libstdc++.  Use
-	LIBS_CARBON.
+	(LD_SWITCH_SYSTEM_TEMACS): Don't link with unused libstdc++.
+	Use LIBS_CARBON.
 
 2004-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -56,7 +103,7 @@
 
 2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* macmenu.c (_widget_value): Added lname and lkey.
+	* macmenu.c (_widget_value): Add lname and lkey.
 	(single_submenu): Set lname and lkey in widget_value
 	instead of name and key.
 	(update_submenu_strings): New function.

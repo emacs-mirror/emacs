@@ -670,6 +670,9 @@ struct buffer
   /* List of symbols naming the file format used for visited file.  */
   Lisp_Object file_format;
 
+  /* List of symbols naming the file format used for auto-save file.  */
+  Lisp_Object auto_save_file_format;
+
   /* True if the newline position cache and width run cache are
      enabled.  See search.c and indent.c.  */
   Lisp_Object cache_long_line_scans;

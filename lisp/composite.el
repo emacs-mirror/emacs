@@ -80,12 +80,16 @@ to shift NEW-REF-POINT from GLOBAL-REF-POINT.  In this case, XOFF
 and YOFF are integers in the range -100..100 representing the
 shifting percentage against the font size.")
 
-;; Encode composition rule RULE into an integer value.  RULE is a cons
-;; of global and new reference point symbols.
-;; This must be compatible with C macro COMPOSITION_ENCODE_RULE
-;; defined in composite.h.
 
+;;;###autoload
 (defun encode-composition-rule (rule)
+  "Encode composition rule RULE into an integer value.
+RULE is a cons of global and new reference point symbols
+\(see reference-point-alist)."
+
+  ;; This must be compatible with C macro COMPOSITION_ENCODE_RULE
+  ;; defined in composite.h.
+
   (if (and (integerp rule) (< rule 144))
       ;; Already encoded.
       rule

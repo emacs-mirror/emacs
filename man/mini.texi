@@ -511,6 +511,12 @@ is deleted each time an element is added.  If the value of
 @code{history-length} is @code{t}, though, there is no maximum length
 and elements are never deleted.
 
+@vindex history-delete-duplicates
+  The variable @code{history-delete-duplicates} specifies whether to
+delete duplicates in history.  If the value of @code{history-delete-duplicates}
+is @code{t}, that means when adding a new history element, all
+previous identical elements are deleted.
+
 @node Repetition
 @section Repeating Minibuffer Commands
 @cindex command history

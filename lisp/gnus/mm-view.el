@@ -1,5 +1,6 @@
 ;;; mm-view.el --- functions for viewing MIME objects
-;; Copyright (C) 1998, 1999, 2000, 01, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -34,34 +35,67 @@
   (autoload 'vcard-parse-string "vcard")
   (autoload 'vcard-format-string "vcard")
   (autoload 'fill-flowed "flow-fill")
+  (autoload 'html2text "html2text")
   (unless (fboundp 'diff-mode)
     (autoload 'diff-mode "diff-mode" "" t nil)))
+
+(defvar mm-text-html-renderer-alist
+  '((w3  . mm-inline-text-html-render-with-w3)
+    (w3m . mm-inline-text-html-render-with-w3m)
+    (w3m-standalone mm-inline-render-with-stdin nil
+		    "w3m" "-dump" "-T" "text/html")
+    (links mm-inline-render-with-file
+	   mm-links-remove-leading-blank
+	   "links" "-dump" file)
+    (lynx  mm-inline-render-with-stdin nil
+	   "lynx" "-dump" "-force_html" "-stdin" "-nolist")
+    (html2text  mm-inline-render-with-function html2text))
+  "The attributes of renderer types for text/html.")
+
+(defvar mm-text-html-washer-alist
+  '((w3  . gnus-article-wash-html-with-w3)
+    (w3m . gnus-article-wash-html-with-w3m)
+    (w3m-standalone mm-inline-wash-with-stdin nil
+		    "w3m" "-dump" "-T" "text/html")
+    (links mm-inline-wash-with-file
+	   mm-links-remove-leading-blank
+	   "links" "-dump" file)
+    (lynx  mm-inline-wash-with-stdin nil
+	   "lynx" "-dump" "-force_html" "-stdin" "-nolist")
+    (html2text  html2text))
+  "The attributes of washer types for text/html.")
+
+;;; Internal variables.
 
 ;;;
 ;;; Functions for displaying various formats inline
 ;;;
+
 (defun mm-inline-image-emacs (handle)
   (let ((b (point-marker))
 	buffer-read-only)
-    (insert "\n")
     (put-image (mm-get-image handle) b)
+    (insert "\n\n")
     (mm-handle-set-undisplayer
      handle
-     `(lambda () (remove-images ,b (1+ ,b))))))
+     `(lambda ()
+	(let ((b ,b)
+	      buffer-read-only)
+	  (remove-images b b)
+	  (delete-region b (+ b 2)))))))
 
 (defun mm-inline-image-xemacs (handle)
-  (insert "\n")
-  (forward-char -1)
-  (let ((b (point))
-	(annot (make-annotation (mm-get-image handle) nil 'text))
+  (insert "\n\n")
+  (forward-char -2)
+  (let ((annot (make-annotation (mm-get-image handle) nil 'text))
 	buffer-read-only)
     (mm-handle-set-undisplayer
      handle
      `(lambda ()
-	(let (buffer-read-only)
+	(let ((b ,(point-marker))
+	      buffer-read-only)
 	  (delete-annotation ,annot)
-	  (delete-region ,(set-marker (make-marker) b)
-			 ,(set-marker (make-marker) (point))))))
+	  (delete-region (- b 2) b))))
     (set-extent-property annot 'mm t)
     (set-extent-property annot 'duplicable t)))
 
@@ -80,125 +114,264 @@
     (require 'url-vars)
     (setq mm-w3-setup t)))
 
-(defun mm-inline-text (handle)
-  (let ((type (mm-handle-media-subtype handle))
-	text buffer-read-only)
-    (cond
-     ((equal type "html")
-      (mm-setup-w3)
-      (setq text (mm-get-part handle))
-      (let ((b (point))
-	    (url-standalone-mode t)
-	    (url-gateway-unplugged t)
-	    (url-current-object
-	     (url-generic-parse-url (format "cid:%s" (mm-handle-id handle))))
-	    (width (window-width))
-	    (charset (mail-content-type-get
-		      (mm-handle-type handle) 'charset)))
-	(save-excursion
-	  (insert text)
+(defun mm-inline-text-html-render-with-w3 (handle)
+  (mm-setup-w3)
+  (let ((text (mm-get-part handle))
+	(b (point))
+	(url-standalone-mode t)
+	(url-gateway-unplugged t)
+	(w3-honor-stylesheets nil)
+	(url-current-object
+	 (url-generic-parse-url (format "cid:%s" (mm-handle-id handle))))
+	(width (window-width))
+	(charset (mail-content-type-get
+		  (mm-handle-type handle) 'charset)))
+    (save-excursion
+      (insert text)
+      (save-restriction
+	(narrow-to-region b (point))
+	(goto-char (point-min))
+	(if (or (and (boundp 'w3-meta-content-type-charset-regexp)
+		     (re-search-forward
+		      w3-meta-content-type-charset-regexp nil t))
+		(and (boundp 'w3-meta-charset-content-type-regexp)
+		     (re-search-forward
+		      w3-meta-charset-content-type-regexp nil t)))
+	    (setq charset
+		  (or (let ((bsubstr (buffer-substring-no-properties
+				      (match-beginning 2)
+				      (match-end 2))))
+			(if (fboundp 'w3-coding-system-for-mime-charset)
+			    (w3-coding-system-for-mime-charset bsubstr)
+			  (mm-charset-to-coding-system bsubstr)))
+		      charset)))
+	(delete-region (point-min) (point-max))
+	(insert (mm-decode-string text charset))
+	(save-window-excursion
 	  (save-restriction
-	    (narrow-to-region b (point))
-	    (goto-char (point-min))
-	    (if (or (and (boundp 'w3-meta-content-type-charset-regexp)
-			 (re-search-forward
-			  w3-meta-content-type-charset-regexp nil t))
-		    (and (boundp 'w3-meta-charset-content-type-regexp)
-			 (re-search-forward
-			  w3-meta-charset-content-type-regexp nil t)))
-		(setq charset
-		      (or (let ((bsubstr (buffer-substring-no-properties
-					  (match-beginning 2)
-					  (match-end 2))))
-			    (if (fboundp 'w3-coding-system-for-mime-charset)
-				(w3-coding-system-for-mime-charset bsubstr)
-			      (mm-charset-to-coding-system bsubstr)))
-			  charset)))
+	    (let ((w3-strict-width width)
+		  ;; Don't let w3 set the global version of
+		  ;; this variable.
+		  (fill-column fill-column))
+	      (if (or debug-on-error debug-on-quit)
+		  (w3-region (point-min) (point-max))
+		(condition-case ()
+		    (w3-region (point-min) (point-max))
+		  (error
+		   (delete-region (point-min) (point-max))
+		   (let ((b (point))
+			 (charset (mail-content-type-get
+				   (mm-handle-type handle) 'charset)))
+		     (if (or (eq charset 'gnus-decoded)
+			     (eq mail-parse-charset 'gnus-decoded))
+		       (save-restriction
+			 (narrow-to-region (point) (point))
+			 (mm-insert-part handle)
+			 (goto-char (point-max)))
+		       (insert (mm-decode-string (mm-get-part handle)
+						 charset))))
+		   (message
+		    "Error while rendering html; showing as text/plain")))))))
+	(mm-handle-set-undisplayer
+	 handle
+	 `(lambda ()
+	    (let (buffer-read-only)
+	      (if (functionp 'remove-specifier)
+		  (mapcar (lambda (prop)
+			    (remove-specifier
+			     (face-property 'default prop)
+			     (current-buffer)))
+			  '(background background-pixmap foreground)))
+	      (delete-region ,(point-min-marker)
+			     ,(point-max-marker)))))))))
+
+(defvar mm-w3m-setup nil
+  "Whether gnus-article-mode has been setup to use emacs-w3m.")
+
+(defun mm-setup-w3m ()
+  "Setup gnus-article-mode to use emacs-w3m."
+  (unless mm-w3m-setup
+    (require 'w3m)
+    (unless (assq 'gnus-article-mode w3m-cid-retrieve-function-alist)
+      (push (cons 'gnus-article-mode 'mm-w3m-cid-retrieve)
+	    w3m-cid-retrieve-function-alist))
+    (setq mm-w3m-setup t))
+  (setq w3m-display-inline-images mm-inline-text-html-with-images))
+
+(defun mm-w3m-cid-retrieve-1 (url handle)
+  (if (mm-multiple-handles handle)
+      (dolist (elem handle)
+	(mm-w3m-cid-retrieve-1 url elem))
+    (when (and (listp handle)
+	       (equal url (mm-handle-id handle)))
+      (mm-insert-part handle)
+      (throw 'found-handle (mm-handle-media-type handle)))))
+
+(defun mm-w3m-cid-retrieve (url &rest args)
+  "Insert a content pointed by URL if it has the cid: scheme."
+  (when (string-match "\\`cid:" url)
+    (catch 'found-handle
+      (mm-w3m-cid-retrieve-1 (concat "<" (substring url (match-end 0)) ">")
+			     (with-current-buffer w3m-current-buffer
+			       gnus-article-mime-handles)))))
+
+(defun mm-inline-text-html-render-with-w3m (handle)
+  "Render a text/html part using emacs-w3m."
+  (mm-setup-w3m)
+  (let ((text (mm-get-part handle))
+	(b (point))
+	(charset (mail-content-type-get (mm-handle-type handle) 'charset)))
+    (save-excursion
+      (insert (if charset (mm-decode-string text charset) text))
+      (save-restriction
+	(narrow-to-region b (point))
+	(unless charset
+	  (goto-char (point-min))
+	  (when (setq charset (w3m-detect-meta-charset))
 	    (delete-region (point-min) (point-max))
-	    (insert (mm-decode-string text charset))
-	    (save-window-excursion
-	      (save-restriction
-		(let ((w3-strict-width width)
-		      ;; Don't let w3 set the global version of
-		      ;; this variable.
-		      (fill-column fill-column))
-		  (condition-case var
-		      (w3-region (point-min) (point-max))
-		    (error
-		     (delete-region (point-min) (point-max))
-		     (let ((b (point))
-			   (charset (mail-content-type-get
-				     (mm-handle-type handle) 'charset)))
-		       (if (or (eq charset 'gnus-decoded)
-			       (eq mail-parse-charset 'gnus-decoded))
-			   (save-restriction
-			     (narrow-to-region (point) (point))
-			     (mm-insert-part handle)
-			     (goto-char (point-max)))
-			 (insert (mm-decode-string (mm-get-part handle)
-						   charset))))
-		     (message
-		      "Error while rendering html; showing as text/plain"))))))
-	    (mm-handle-set-undisplayer
-	     handle
-	     `(lambda ()
-		(let (buffer-read-only)
-		  (if (functionp 'remove-specifier)
-		      (mapcar (lambda (prop)
-				(remove-specifier
-				 (face-property 'default prop)
-				 (current-buffer)))
-			      '(background background-pixmap foreground)))
-		  (delete-region ,(point-min-marker)
-				 ,(point-max-marker)))))))))
-     ((equal type "x-vcard")
-      (mm-insert-inline
+	    (insert (mm-decode-string text charset))))
+	(let ((w3m-safe-url-regexp mm-w3m-safe-url-regexp)
+	      w3m-force-redisplay)
+	  (w3m-region (point-min) (point-max) nil charset))
+	(when (and mm-inline-text-html-with-w3m-keymap
+		   (boundp 'w3m-minor-mode-map)
+		   w3m-minor-mode-map)
+	  (add-text-properties
+	   (point-min) (point-max)
+	   (list 'keymap w3m-minor-mode-map
+		 ;; Put the mark meaning this part was rendered by emacs-w3m.
+		 'mm-inline-text-html-with-w3m t))))
+      (mm-handle-set-undisplayer
        handle
-       (concat "\n-- \n"
-	       (ignore-errors
-		 (if (fboundp 'vcard-pretty-print)
-		     (vcard-pretty-print (mm-get-part handle))
-		   (vcard-format-string
-		    (vcard-parse-string (mm-get-part handle)
-					'vcard-standard-filter)))))))
+       `(lambda ()
+	  (let (buffer-read-only)
+	    (if (functionp 'remove-specifier)
+		(mapcar (lambda (prop)
+			  (remove-specifier
+			   (face-property 'default prop)
+			   (current-buffer)))
+			'(background background-pixmap foreground)))
+	    (delete-region ,(point-min-marker)
+			   ,(point-max-marker))))))))
+
+(defun mm-links-remove-leading-blank ()
+  ;; Delete the annoying three spaces preceding each line of links
+  ;; output.
+  (goto-char (point-min))
+  (while (re-search-forward "^   " nil t)
+    (delete-region (match-beginning 0) (match-end 0))))
+
+(defun mm-inline-wash-with-file (post-func cmd &rest args)
+  (let ((file (mm-make-temp-file
+	       (expand-file-name "mm" mm-tmp-directory))))
+    (let ((coding-system-for-write 'binary))
+      (write-region (point-min) (point-max) file nil 'silent))
+    (delete-region (point-min) (point-max))
+    (unwind-protect
+	(apply 'call-process cmd nil t nil (mapcar 'eval args))
+      (delete-file file))
+    (and post-func (funcall post-func))))
+
+(defun mm-inline-wash-with-stdin (post-func cmd &rest args)
+  (let ((coding-system-for-write 'binary))
+    (apply 'call-process-region (point-min) (point-max)
+	   cmd t t nil args))
+  (and post-func (funcall post-func)))
+
+(defun mm-inline-render-with-file (handle post-func cmd &rest args)
+  (let ((source (mm-get-part handle)))
+    (mm-insert-inline
+     handle
+     (mm-with-unibyte-buffer
+       (insert source)
+       (apply 'mm-inline-wash-with-file post-func cmd args)
+       (buffer-string)))))
+
+(defun mm-inline-render-with-stdin (handle post-func cmd &rest args)
+  (let ((source (mm-get-part handle)))
+    (mm-insert-inline
+     handle
+     (mm-with-unibyte-buffer
+       (insert source)
+       (apply 'mm-inline-wash-with-stdin post-func cmd args)
+       (buffer-string)))))
+
+(defun mm-inline-render-with-function (handle func &rest args)
+  (let ((source (mm-get-part handle))
+	(charset (mail-content-type-get (mm-handle-type handle) 'charset)))
+    (mm-insert-inline
+     handle
+     (mm-with-multibyte-buffer
+       (insert (if charset
+		   (mm-decode-string source charset)
+		 source))
+       (apply func args)
+       (buffer-string)))))
+
+(defun mm-inline-text-html (handle)
+  (let* ((func (or mm-inline-text-html-renderer mm-text-html-renderer))
+	 (entry (assq func mm-text-html-renderer-alist))
+	 buffer-read-only)
+    (if entry
+	(setq func (cdr entry)))
+    (cond
+     ((functionp func)
+      (funcall func handle))
      (t
-      (let ((b (point))
-	    (charset (mail-content-type-get
-		      (mm-handle-type handle) 'charset)))
-	(if (or (eq charset 'gnus-decoded)
-		;; This is probably not entirely correct, but
-		;; makes rfc822 parts with embedded multiparts work.
-		(eq mail-parse-charset 'gnus-decoded))
-	    (save-restriction
-	      (narrow-to-region (point) (point))
-	      (mm-insert-part handle)
-	      (goto-char (point-max)))
-	  (insert (mm-decode-string (mm-get-part handle) charset)))
-	(when (and (equal type "plain")
-		   (equal (cdr (assoc 'format (mm-handle-type handle)))
-			  "flowed"))
-	  (save-restriction
-	    (narrow-to-region b (point))
-	    (goto-char b)
-	    (fill-flowed)
-	    (goto-char (point-max))))
+      (apply (car func) handle (cdr func))))))
+
+(defun mm-inline-text-vcard (handle)
+  (let (buffer-read-only)
+    (mm-insert-inline
+     handle
+     (concat "\n-- \n"
+	     (ignore-errors
+	       (if (fboundp 'vcard-pretty-print)
+		   (vcard-pretty-print (mm-get-part handle))
+		 (vcard-format-string
+		  (vcard-parse-string (mm-get-part handle)
+				      'vcard-standard-filter))))))))
+
+(defun mm-inline-text (handle)
+  (let ((b (point))
+	(type (mm-handle-media-subtype handle))
+	(charset (mail-content-type-get
+		  (mm-handle-type handle) 'charset))
+	buffer-read-only)
+    (if (or (eq charset 'gnus-decoded)
+	    ;; This is probably not entirely correct, but
+	    ;; makes rfc822 parts with embedded multiparts work.
+	    (eq mail-parse-charset 'gnus-decoded))
 	(save-restriction
-	  (narrow-to-region b (point))
-	  (set-text-properties (point-min) (point-max) nil)
-	  (when (or (equal type "enriched")
-		    (equal type "richtext"))
-	    (enriched-decode (point-min) (point-max)))
-	  (mm-handle-set-undisplayer
-	   handle
-	   `(lambda ()
-	      (let (buffer-read-only)
-		(delete-region ,(point-min-marker)
-			       ,(point-max-marker)))))))))))
+	  (narrow-to-region (point) (point))
+	  (mm-insert-part handle)
+	  (goto-char (point-max)))
+      (insert (mm-decode-string (mm-get-part handle) charset)))
+    (when (and (equal type "plain")
+	       (equal (cdr (assoc 'format (mm-handle-type handle)))
+		      "flowed"))
+      (save-restriction
+	(narrow-to-region b (point))
+	(goto-char b)
+	(fill-flowed)
+	(goto-char (point-max))))
+    (save-restriction
+      (narrow-to-region b (point))
+      (set-text-properties (point-min) (point-max) nil)
+      (when (or (equal type "enriched")
+		(equal type "richtext"))
+	(ignore-errors
+	  (enriched-decode (point-min) (point-max))))
+      (mm-handle-set-undisplayer
+       handle
+       `(lambda ()
+	  (let (buffer-read-only)
+	    (delete-region ,(point-min-marker)
+			   ,(point-max-marker))))))))
 
 (defun mm-insert-inline (handle text)
   "Insert TEXT inline from HANDLE."
-  (let ((b (point))
-	(inhibit-read-only t))
+  (let ((b (point)))
     (insert text)
     (mm-handle-set-undisplayer
      handle
@@ -216,7 +389,8 @@
 (defun mm-w3-prepare-buffer ()
   (require 'w3)
   (let ((url-standalone-mode t)
-	(url-gateway-unplugged t))
+	(url-gateway-unplugged t)
+	(w3-honor-stylesheets nil))
     (w3-prepare-buffer)))
 
 (defun mm-view-message ()
@@ -229,9 +403,7 @@
       (setq handles gnus-article-mime-handles))
     (when handles
       (setq gnus-article-mime-handles
-	    (nconc gnus-article-mime-handles
-		   (if (listp (car handles))
-		       handles (list handles))))))
+	    (mm-merge-handles gnus-article-mime-handles handles))))
   (fundamental-mode)
   (goto-char (point-min)))
 
@@ -255,7 +427,8 @@
 	      gnus-article-prepare-hook
 	      (gnus-newsgroup-charset
 	       (or charset gnus-newsgroup-charset)))
-	  (run-hooks 'gnus-article-decode-hook)
+	  (let ((gnus-original-article-buffer (mm-handle-buffer handle)))
+	    (run-hooks 'gnus-article-decode-hook))
 	  (gnus-article-prepare-display)
 	  (setq handles gnus-article-mime-handles))
 	(goto-char (point-min))
@@ -267,9 +440,7 @@
 	(insert "----------\n\n")
 	(when handles
 	  (setq gnus-article-mime-handles
-		(nconc gnus-article-mime-handles
-		       (if (listp (car handles))
-			   handles (list handles)))))
+		(mm-merge-handles gnus-article-mime-handles handles)))
 	(mm-handle-set-undisplayer
 	 handle
 	 `(lambda ()
@@ -284,23 +455,119 @@
 
 (defun mm-display-inline-fontify (handle mode)
   (let (text)
-    (with-temp-buffer
-      (mm-insert-part handle)
-      (funcall mode)
-      (font-lock-fontify-buffer)
-      (when (fboundp 'extent-list)
-	(map-extents (lambda (ext ignored)
-		       (set-extent-property ext 'duplicable t)
-		       nil)
-		     nil nil nil nil nil 'text-prop))
-      (setq text (buffer-string)))
+    ;; XEmacs @#$@ version of font-lock refuses to fully turn itself
+    ;; on for buffers whose name begins with " ".  That's why we use
+    ;; save-current-buffer/get-buffer-create rather than
+    ;; with-temp-buffer.
+    (save-current-buffer
+      (set-buffer (generate-new-buffer "*fontification*"))
+      (unwind-protect
+	  (progn
+	    (buffer-disable-undo)
+	    (mm-insert-part handle)
+	    (funcall mode)
+	    (require 'font-lock)
+	    (let ((font-lock-verbose nil))
+	      ;; I find font-lock a bit too verbose.
+	      (font-lock-fontify-buffer))
+	    ;; By default, XEmacs font-lock uses non-duplicable text
+	    ;; properties.  This code forces all the text properties
+	    ;; to be copied along with the text.
+	    (when (fboundp 'extent-list)
+	      (map-extents (lambda (ext ignored)
+			     (set-extent-property ext 'duplicable t)
+			     nil)
+			   nil nil nil nil nil 'text-prop))
+	    (setq text (buffer-string)))
+	(kill-buffer (current-buffer))))
     (mm-insert-inline handle text)))
+
+;; Shouldn't these functions check whether the user even wants to use
+;; font-lock?  At least under XEmacs, this fontification is pretty
+;; much unconditional.  Also, it would be nice to change for the size
+;; of the fontified region.
 
 (defun mm-display-patch-inline (handle)
   (mm-display-inline-fontify handle 'diff-mode))
 
 (defun mm-display-elisp-inline (handle)
   (mm-display-inline-fontify handle 'emacs-lisp-mode))
+
+;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
+;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 2 }
+(defvar mm-pkcs7-signed-magic
+  (mm-string-as-unibyte
+   (apply 'concat
+	  (mapcar 'char-to-string
+		  (list ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
+			?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
+			?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
+			?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x02)))))
+
+;;      id-envelopedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
+;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 3 }
+(defvar mm-pkcs7-enveloped-magic
+  (mm-string-as-unibyte
+   (apply 'concat
+	  (mapcar 'char-to-string
+		  (list ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
+			?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
+			?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
+			?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x03)))))
+
+(defun mm-view-pkcs7-get-type (handle)
+  (mm-with-unibyte-buffer
+    (mm-insert-part handle)
+    (cond ((looking-at mm-pkcs7-enveloped-magic)
+	   'enveloped)
+	  ((looking-at mm-pkcs7-signed-magic)
+	   'signed)
+	  (t
+	   (error "Could not identify PKCS#7 type")))))
+
+(defun mm-view-pkcs7 (handle)
+  (case (mm-view-pkcs7-get-type handle)
+    (enveloped (mm-view-pkcs7-decrypt handle))
+    (signed (mm-view-pkcs7-verify handle))
+    (otherwise (error "Unknown or unimplemented PKCS#7 type"))))
+
+(defun mm-view-pkcs7-verify (handle)
+  ;; A bogus implementation of PKCS#7. FIXME::
+  (mm-insert-part handle)
+  (goto-char (point-min))
+  (if (search-forward "Content-Type: " nil t)
+      (delete-region (point-min) (match-beginning 0)))
+  (goto-char (point-max))
+  (if (re-search-backward "--\r?\n?" nil t)
+      (delete-region (match-end 0) (point-max)))
+  (goto-char (point-min))
+  (while (search-forward "\r\n" nil t)
+    (replace-match "\n"))
+  (message "Verify signed PKCS#7 message is unimplemented.")
+  (sit-for 1)
+  t)
+
+(autoload 'gnus-completing-read-maybe-default "gnus-util" nil nil 'macro)
+
+(defun mm-view-pkcs7-decrypt (handle)
+  (insert-buffer-substring (mm-handle-buffer handle))
+  (goto-char (point-min))
+  (insert "MIME-Version: 1.0\n")
+  (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
+  (smime-decrypt-region
+   (point-min) (point-max)
+   (if (= (length smime-keys) 1)
+       (cadar smime-keys)
+     (smime-get-key-by-email
+      (gnus-completing-read-maybe-default
+       (concat "Decipher using which key? "
+	       (if smime-keys (concat "(default " (caar smime-keys) ") ")
+		 ""))
+       smime-keys nil nil nil nil (car-safe (car-safe smime-keys))))))
+  (goto-char (point-min))
+  (while (search-forward "\r\n" nil t)
+    (replace-match "\n"))
+  (goto-char (point-min)))
 
 (provide 'mm-view)
 

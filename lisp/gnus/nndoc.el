@@ -1,5 +1,5 @@
 ;;; nndoc.el --- single file access for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -58,9 +58,16 @@ from the document.")
   `((mmdf
      (article-begin .  "^\^A\^A\^A\^A\n")
      (body-end .  "^\^A\^A\^A\^A\n"))
-    (exim-bounce
-     (article-begin . "^------ This is a copy of the message, including all the headers. ------\n\n")
-     (body-end-function . nndoc-exim-bounce-body-end-function))
+    (mime-digest
+     (article-begin . "")
+     (head-begin . "^ ?\n")
+     (head-end . "^ ?$")
+     (body-end . "")
+     (file-end . "")
+     (subtype digest guess))
+    (mime-parts
+     (generate-head-function . nndoc-generate-mime-parts-head)
+     (article-transform-function . nndoc-transform-mime-parts))
     (nsmail
      (article-begin .  "^From - "))
     (news
@@ -76,6 +83,9 @@ from the document.")
      (body-end . "\^_")
      (body-begin-function . nndoc-babyl-body-begin)
      (head-begin-function . nndoc-babyl-head-begin))
+    (exim-bounce
+     (article-begin . "^------ This is a copy of the message, including all the headers. ------\n\n")
+     (body-end-function . nndoc-exim-bounce-body-end-function))
     (rfc934
      (article-begin . "^--.*\n+")
      (body-end . "^--.*$")
@@ -91,16 +101,7 @@ from the document.")
      (head-end . "^\t")
      (generate-head-function . nndoc-generate-clari-briefs-head)
      (article-transform-function . nndoc-transform-clari-briefs))
-    (mime-digest
-     (article-begin . "")
-     (head-begin . "^ ?\n")
-     (head-end . "^ ?$")
-     (body-end . "")
-     (file-end . "")
-     (subtype digest guess))
-    (mime-parts
-     (generate-head-function . nndoc-generate-mime-parts-head)
-     (article-transform-function . nndoc-transform-mime-parts))
+    
     (standard-digest
      (first-article . ,(concat "^" (make-string 70 ?-) "\n *\n+"))
      (article-begin . ,(concat "^\n" (make-string 30 ?-) "\n *\n+"))
@@ -129,8 +130,10 @@ from the document.")
      (article-transform-function . nndoc-transform-lanl-gov-announce)
      (subtype preprints guess))
     (rfc822-forward
-     (article-begin . "^\n")
-     (body-end-function . nndoc-rfc822-forward-body-end-function))
+     (article-begin . "^\n+")
+     (body-end-function . nndoc-rfc822-forward-body-end-function)
+     (generate-head-function . nndoc-rfc822-forward-generate-head)
+     (generate-article-function . nndoc-rfc822-forward-generate-article))
     (outlook
      (article-begin-function . nndoc-outlook-article-begin)
      (body-end .  "\0"))
@@ -393,7 +396,7 @@ from the document.")
       (error "Document is not of any recognized type"))
     (if result
 	(car entry)
-      (cadar (sort results 'car-less-than-car)))))
+      (cadar (last (sort results 'car-less-than-car))))))
 
 ;;;
 ;;; Built-in type predicates and functions
@@ -468,7 +471,7 @@ from the document.")
 (defun nndoc-forward-type-p ()
   (when (and (re-search-forward "^-+ \\(Start of \\)?forwarded message.*\n+"
 				nil t)
-	     (looking-at "[\r\n]*[a-zA-Z][a-zA-Z0-9-]*:"))
+	     (looking-at "[\r\n]*[a-zA-Z][a-zA-Z0-9-]*:\\|^>?From "))
     t))
 
 (defun nndoc-rfc934-type-p ()
@@ -490,6 +493,29 @@ from the document.")
 
 (defun nndoc-rfc822-forward-body-end-function ()
   (goto-char (point-max)))
+
+(defun nndoc-rfc822-forward-generate-article (article &optional head)
+  (let ((entry (cdr (assq article nndoc-dissection-alist)))
+	(begin (point))
+	encoding)
+    (with-current-buffer nndoc-current-buffer
+      (save-restriction
+	(message-narrow-to-head)
+	(setq encoding (message-fetch-field "content-transfer-encoding"))))
+    (insert-buffer-substring nndoc-current-buffer (car entry) (nth 3 entry))
+    (when encoding
+      (save-restriction
+	(narrow-to-region begin (point-max))
+	(mm-decode-content-transfer-encoding
+	 (intern (downcase (mail-header-strip encoding))))))
+    (when head
+      (goto-char begin)
+      (when (search-forward "\n\n" nil t)
+	(delete-region (1- (point)) (point-max)))))
+  t)
+
+(defun nndoc-rfc822-forward-generate-head (article)
+  (nndoc-rfc822-forward-generate-article article 'head))
 
 (defun nndoc-mime-parts-type-p ()
   (let ((case-fold-search t)
@@ -771,7 +797,7 @@ from the document.")
   "Go through the document and partition it into heads/bodies/articles."
   (let ((i 0)
 	(first t)
-	head-begin head-end body-begin body-end)
+	art-begin head-begin head-end body-begin body-end)
     (setq nndoc-dissection-alist nil)
     (save-excursion
       (set-buffer nndoc-current-buffer)
@@ -787,8 +813,11 @@ from the document.")
 	;; Go through the file.
 	(while (if (and first nndoc-first-article)
 		   (nndoc-search nndoc-first-article)
-		 (nndoc-article-begin))
-	  (setq first nil)
+		 (if art-begin
+		     (goto-char art-begin)
+		   (nndoc-article-begin)))
+	  (setq first nil
+		art-begin nil)
 	  (cond (nndoc-head-begin-function
 		 (funcall nndoc-head-begin-function))
 		(nndoc-head-begin
@@ -808,7 +837,8 @@ from the document.")
 		     (funcall nndoc-body-end-function))
 		(and nndoc-body-end
 		     (nndoc-search nndoc-body-end))
-		(nndoc-article-begin)
+		(and (nndoc-article-begin)
+		     (setq art-begin (point)))
 		(progn
 		  (goto-char (point-max))
 		  (when nndoc-file-end
@@ -890,7 +920,7 @@ PARENT is the message-ID of the parent summary line, or nil for none."
 	    subtype "plain"))
     ;; Prepare the article and summary inserts.
     (unless article-insert
-      (setq article-insert (buffer-substring (point-min) (point-max))
+      (setq article-insert (buffer-string)
 	    head-end head-begin))
     ;; Fix MIME-Version
     (unless (string-match "MIME-Version:" article-insert)

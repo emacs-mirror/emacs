@@ -35,7 +35,7 @@
  *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.56";
+char pot_etags_version[] = "@(#) pot revision number is 16.58";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -74,6 +74,13 @@ char pot_etags_version[] = "@(#) pot revision number is 16.56";
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1		/* enables some compiler checks on GNU */
+#endif
+
+#ifdef LONG_OPTIONS
+#  undef LONG_OPTIONS
+#  define LONG_OPTIONS TRUE
+#else
+#  define LONG_OPTIONS  FALSE
 #endif
 
 /* WIN32_NATIVE is for Xemacs.
@@ -147,7 +154,7 @@ char pot_etags_version[] = "@(#) pot revision number is 16.56";
 # define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
 #endif
 
-#ifdef LONG_OPTIONS
+#if LONG_OPTIONS
 # include <getopt.h>
 #else
 # define getopt_long(argc,argv,optstr,lopts,lind) getopt (argc, argv, optstr)
@@ -465,7 +472,7 @@ static bool need_filebuf;	/* some regexes are multi-line */
 # define need_filebuf FALSE
 #endif /* ETAGS_REGEXPS */
 
-#ifdef LONG_OPTIONS
+#if LONG_OPTIONS
 static struct option longopts[] =
 {
   { "packages-only",      no_argument,	     &packages_only, 	 TRUE  },
@@ -845,12 +852,11 @@ print_help (argbuffer)
   printf ("Usage: %s [options] [[regex-option ...] file-name] ...\n\
 \n\
 These are the options accepted by %s.\n", progname, progname);
-#ifdef LONG_OPTIONS
-  puts ("You may use unambiguous abbreviations for the long option names.");
-#else
-  puts ("Long option names do not work with this executable, as it is not\n\
+  if (LONG_OPTIONS)
+    puts ("You may use unambiguous abbreviations for the long option names.");
+  else
+    puts ("Long option names do not work with this executable, as it is not\n\
 linked with GNU getopt.");
-#endif /* LONG_OPTIONS */
   puts ("  A - as file name means read names from stdin (one per line).\n\
 Absolute names are stored in the output file as they are.\n\
 Relative ones are stored relative to the output file's directory.\n");
@@ -1158,9 +1164,8 @@ main (argc, argv)
 #ifdef ETAGS_REGEXPS
   optstring = "-r:Rc:";
 #endif /* ETAGS_REGEXPS */
-#ifndef LONG_OPTIONS
-  optstring = optstring + 1;
-#endif /* LONG_OPTIONS */
+  if (LONG_OPTIONS)
+    optstring += 1;
   optstring = concat (optstring,
 		      "Cf:Il:o:SVhH",
 		      (CTAGS) ? "BxdtTuvw" : "aDi:");
@@ -6475,14 +6480,8 @@ pfatal (s1)
 static void
 suggest_asking_for_help ()
 {
-
-#ifdef LONG_OPTIONS
-fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
-	 progname, "--help");
-#else
-fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
-	 progname, "-h");
-#endif
+  fprintf (stderr, "\tTry `%s %s' for a complete list of options.\n",
+	   progname, LONG_OPTIONS ? "--help" : "-h");
   exit (EXIT_FAILURE);
 }
 

@@ -1,5 +1,5 @@
 This file describes various problems that have been encountered
-in compiling, installing and running GNU Emacs.  Try doing Ctl t
+in compiling, installing and running GNU Emacs.  Try doing Ctl-C Ctl-t
 and browsing through the outline headers.
 
 * Mule-UCS doesn't work in Emacs 22.
@@ -159,30 +159,6 @@ to raise the stack size limit before you run Emacs.
 
 Patches to raise the stack size limit automatically in `main'
 (src/emacs.c) on various systems would be greatly appreciated.
-
-** Emacs crashes with SIGBUS or SIGSEGV on HPUX 9 after you delete a frame.
-
-We think this is due to a bug in the X libraries provided by HP.  With
-the alternative X libraries in /usr/contrib/mitX11R5/lib, the problem
-does not happen.
-
-** Emacs crashes with SIGBUS or SIGSEGV on Solaris after you delete a frame.
-
-We suspect that this is a similar bug in the X libraries provided by
-Sun.  There is a report that one of these patches fixes the bug and
-makes the problem stop:
-
-105216-01 105393-01 105518-01 105621-01 105665-01 105615-02 105216-02
-105667-01 105401-08 105615-03 105621-02 105686-02 105736-01 105755-03
-106033-01 105379-01 105786-01 105181-04 105379-03 105786-04 105845-01
-105284-05 105669-02 105837-01 105837-02 105558-01 106125-02 105407-01
-
-Another person using a newer system (kernel patch level Generic_105181-06)
-suspects that the bug was fixed by one of these more recent patches:
-
-106040-07  SunOS 5.6: X Input & Output Method patch
-106222-01  OpenWindows 3.6: filemgr (ff.core) fixes
-105284-12  Motif 1.2.7: sparc Runtime library patch
 
 ** Error message `Symbol's value as variable is void: x', followed by
 a segmentation fault and core dump.
@@ -1276,15 +1252,6 @@ To check thoroughly for such resource specifications, use `xrdb
 -query' to see what resources the X server records, and also look at
 the user's ~/.Xdefaults and ~/.Xdefaults-* files.
 
-*** --with-x-toolkit version crashes when used with shared libraries.
-
-On some systems, including Sunos 4 and DGUX 5.4.2 and perhaps others,
-unexec doesn't work properly with the shared library for the X
-toolkit.  You might be able to work around this by using a nonshared
-libXt.a library.  The real fix is to upgrade the various versions of
-unexec and/or ralloc.  We think this has been fixed on Sunos 4
-and Solaris in version 19.29.
-
 *** Emacs running under X Windows does not handle mouse clicks.
 *** `emacs -geometry 80x20' finds a file named `80x20'.
 
@@ -1798,15 +1765,6 @@ value is just ten seconds.
 
 If this happens to you, extend the timeout period.
 
-*** HP/UX: Emacs is slow using X11R5.
-
-This happens if you use the MIT versions of the X libraries--it
-doesn't run as fast as HP's version.  People sometimes use the version
-because they see the HP version doesn't have the libraries libXaw.a,
-libXmu.a, libXext.a and others.  HP/UX normally doesn't come with
-those libraries installed.  To get good performance, you need to
-install them and rebuild Emacs.
-
 *** HP/UX: The right Alt key works wrong on German HP keyboards (and perhaps
 other non-English HP keyboards too).
 
@@ -1853,10 +1811,6 @@ add mod2 = Mode_switch
 EOF
 --------------------------------
 
-*** HP/UX: Large file support is disabled.
-
-See the comments in src/s/hpux10.h.
-
 *** HP/UX 11.0: Emacs makes HP/UX 11.0 crash.
 
 This is a bug in HPUX; HPUX patch PHKL_16260 is said to fix it.
@@ -1876,37 +1830,6 @@ The solution is to include in your .Xdefaults the lines:
    aixterm*ttyModes: erase ^?
 
 This makes your Backspace key send DEL (ASCII 127).
-
-*** AIX: You get this message when running Emacs:
-
-    Could not load program emacs
-    Symbol smtcheckinit in csh is undefined
-    Error was: Exec format error
-
-or this one:
-
-    Could not load program .emacs
-    Symbol _system_con in csh is undefined
-    Symbol _fp_trapsta in csh is undefined
-    Error was: Exec format error
-
-These can happen when you try to run on AIX 3.2.5 a program that was
-compiled with 3.2.4.  The fix is to recompile.
-
-*** AIX 3.2.4: Releasing Ctrl/Act key has no effect, if Shift is down.
-
-Due to a feature of AIX, pressing or releasing the Ctrl/Act key is
-ignored when the Shift, Alt or AltGr keys are held down.  This can
-lead to the keyboard being "control-locked"--ordinary letters are
-treated as control characters.
-
-You can get out of this "control-locked" state by pressing and
-releasing Ctrl/Act while not pressing or holding any other keys.
-
-*** AIX 4.2: Emacs gets a segmentation fault at startup.
-
-If you are using IBM's xlc compiler, compile emacs.c
-without optimization; that should avoid the problem.
 
 *** AIX: If linking fails because libXbsd isn't found, check if you
 are compiling with the system's `cc' and CFLAGS containing `-O5'.  If
@@ -1944,10 +1867,35 @@ may not work if you have used the unshared system libraries.  This
 is because the unshared libraries fail to use YP for host name lookup.
 As a result, the host name you specify may not be recognized.
 
-*** Emacs reports a BadAtom error (from X) running on Solaris 7 or 8.
+*** Solaris 2,6: Emacs crashes with SIGBUS or SIGSEGV on Solaris after you delete a frame.
+
+We suspect that this is a bug in the X libraries provided by
+Sun.  There is a report that one of these patches fixes the bug and
+makes the problem stop:
+
+105216-01 105393-01 105518-01 105621-01 105665-01 105615-02 105216-02
+105667-01 105401-08 105615-03 105621-02 105686-02 105736-01 105755-03
+106033-01 105379-01 105786-01 105181-04 105379-03 105786-04 105845-01
+105284-05 105669-02 105837-01 105837-02 105558-01 106125-02 105407-01
+
+Another person using a newer system (kernel patch level Generic_105181-06)
+suspects that the bug was fixed by one of these more recent patches:
+
+106040-07  SunOS 5.6: X Input & Output Method patch
+106222-01  OpenWindows 3.6: filemgr (ff.core) fixes
+105284-12  Motif 1.2.7: sparc Runtime library patch
+
+*** Solaris 7 or 8: Emacs reports a BadAtom error (from X)
 
 This happens when Emacs was built on some other version of Solaris.
 Rebuild it on Solaris 8.
+
+*** When using M-x dbx with the SparcWorks debugger, the `up' and `down'
+commands do not move the arrow in Emacs.
+
+You can fix this by adding the following line to `~/.dbxinit':
+
+ dbxenv output_short_file_name off
 
 *** On Solaris, CTRL-t is ignored by Emacs when you use
 the fr.ISO-8859-15 locale (and maybe other related locales).
@@ -1966,146 +1914,17 @@ that should read:
 
 Note the lower case <t>.  Changing this line should make C-t work.
 
-*** When using M-x dbx with the SparcWorks debugger, the `up' and `down'
-commands do not move the arrow in Emacs.
-
-You can fix this by adding the following line to `~/.dbxinit':
-
- dbxenv output_short_file_name off
-
 ** Irix
-
-*** Irix 5.2: unexelfsgi.c can't find cmplrs/stsupport.h.
-
-The file cmplrs/stsupport.h was included in the wrong file set in the
-Irix 5.2 distribution.  You can find it in the optional fileset
-compiler_dev, or copy it from some other Irix 5.2 system.  A kludgy
-workaround is to change unexelfsgi.c to include sym.h instead of
-syms.h.
-
-*** Irix 5.3: "out of virtual swap space".
-
-This message occurs when the system runs out of swap space due to too
-many large programs running.  The solution is either to provide more
-swap space or to reduce the number of large programs being run.  You
-can check the current status of the swap space by executing the
-command `swap -l'.
-
-You can increase swap space by changing the file /etc/fstab.  Adding a
-line like this:
-
-/usr/swap/swap.more     swap    swap    pri=3 0 0
-
-where /usr/swap/swap.more is a file previously created (for instance
-by using /etc/mkfile), will increase the swap space by the size of
-that file.  Execute `swap -m' or reboot the machine to activate the
-new swap area.  See the manpages for `swap' and `fstab' for further
-information.
-
-The objectserver daemon can use up lots of memory because it can be
-swamped with NIS information.  It collects information about all users
-on the network that can log on to the host.
-
-If you want to disable the objectserver completely, you can execute
-the command `chkconfig objectserver off' and reboot.  That may disable
-some of the window system functionality, such as responding CDROM
-icons.
-
-You can also remove NIS support from the objectserver.  The SGI `admin'
-FAQ has a detailed description on how to do that; see question 35
-("Why isn't the objectserver working?").  The admin FAQ can be found at
-ftp://viz.tamu.edu/pub/sgi/faq/.
-
-*** Irix 5.3: Emacs crashes in utmpname.
-
-This problem is fixed in Patch 3175 for Irix 5.3.
-It is also fixed in Irix versions 6.2 and up.
-
-*** Irix 6.0: Make tries (and fails) to build a program named unexelfsgi.
-
-A compiler bug inserts spaces into the string "unexelfsgi . o"
-in src/Makefile.  Edit src/Makefile, after configure is run,
-find that string, and take out the spaces.
-
-Compiler fixes in Irix 6.0.1 should eliminate this problem.
 
 *** Irix 6.5: Emacs crashes on the SGI R10K, when compiled with GCC.
 
 This seems to be fixed in GCC 2.95.
 
-*** Trouble using ptys on IRIX, or running out of ptys.
+*** Irix: Trouble using ptys, or running out of ptys.
 
 The program mkpts (which may be in `/usr/adm' or `/usr/sbin') needs to
 be set-UID to root, or non-root programs like Emacs will not be able
 to allocate ptys reliably.
-
-** SCO Unix and UnixWare
-
-*** SCO 3.2v4: Unusable default font.
-
-The Open Desktop environment comes with default X resource settings
-that tell Emacs to use a variable-width font.  Emacs cannot use such
-fonts, so it does not work.
-
-This is caused by the file /usr/lib/X11/app-defaults/ScoTerm, which is
-the application-specific resource file for the `scoterm' terminal
-emulator program.  It contains several extremely general X resources
-that affect other programs besides `scoterm'.  In particular, these
-resources affect Emacs also:
-
-	*Font: -*-helvetica-medium-r-*--12-*-p-*
-	*Background:			scoBackground
-	*Foreground:			scoForeground
-
-The best solution is to create an application-specific resource file for
-Emacs, /usr/lib/X11/sco/startup/Emacs, with the following contents:
-
-	Emacs*Font:	-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1
-	Emacs*Background:	white
-	Emacs*Foreground:	black
-
-(These settings mimic the Emacs defaults, but you can change them to
-suit your needs.)  This resource file is only read when the X server
-starts up, so you should restart it by logging out of the Open Desktop
-environment or by running `scologin stop; scologin start` from the shell
-as root.  Alternatively, you can put these settings in the
-/usr/lib/X11/app-defaults/Emacs resource file and simply restart Emacs,
-but then they will not affect remote invocations of Emacs that use the
-Open Desktop display.
-
-These resource files are not normally shared across a network of SCO
-machines; you must create the file on each machine individually.
-
-*** Regular expressions matching bugs on SCO systems.
-
-On SCO, there are problems in regexp matching when Emacs is compiled
-with the system compiler.  The compiler version is "Microsoft C
-version 6", SCO 4.2.0h Dev Sys Maintenance Supplement 01/06/93; Quick
-C Compiler Version 1.00.46 (Beta).  The solution is to compile with
-GCC.
-
-*** UnixWare 2.1: Error 12 (virtual memory exceeded) when dumping Emacs.
-
-Paul Abrahams (abrahams@acm.org) reports that with the installed
-virtual memory settings for UnixWare 2.1.2, an Error 12 occurs during
-the "make" that builds Emacs, when running temacs to dump emacs.  That
-error indicates that the per-process virtual memory limit has been
-exceeded.  The default limit is probably 32MB.  Raising the virtual
-memory limit to 40MB should make it possible to finish building Emacs.
-
-You can do this with the command `ulimit' (sh) or `limit' (csh).
-But you have to be root to do it.
-
-According to Martin Sohnius, you can also retune this in the kernel:
-
-    # /etc/conf/bin/idtune SDATLIM 33554432         ## soft data size limit
-    # /etc/conf/bin/idtune HDATLIM 33554432         ## hard "
-    # /etc/conf/bin/idtune SVMMSIZE unlimited       ## soft process size limit
-    # /etc/conf/bin/idtune HVMMSIZE unlimited       ## hard "
-    # /etc/conf/bin/idbuild -B
-
-(He recommends you not change the stack limit, though.)
-These changes take effect when you reboot.
 
 * Runtime problems specific to MS-Windows
 
@@ -2156,74 +1975,6 @@ The %b specifier for format-time-string does not produce abbreviated
 month names with consistent widths for some locales on some versions
 of Windows. This is caused by a deficiency in the underlying system
 library function.
-
-** Problems running Perl under Emacs on MS-Windows NT/95.
-
-`perl -de 0' just hangs when executed in an Emacs subshell.
-The fault lies with Perl (indirectly with Windows NT/95).
-
-The problem is that the Perl debugger explicitly opens a connection to
-"CON", which is the DOS/NT equivalent of "/dev/tty", for interacting
-with the user.
-
-On Unix, this is okay, because Emacs (or the shell?) creates a
-pseudo-tty so that /dev/tty is really the pipe Emacs is using to
-communicate with the subprocess.
-
-On NT, this fails because CON always refers to the handle for the
-relevant console (approximately equivalent to a tty), and cannot be
-redirected to refer to the pipe Emacs assigned to the subprocess as
-stdin.
-
-A workaround is to modify perldb.pl to use STDIN/STDOUT instead of CON.
-
-For Perl 4:
-
-    *** PERL/LIB/PERLDB.PL.orig	Wed May 26 08:24:18 1993
-    --- PERL/LIB/PERLDB.PL	Mon Jul 01 15:28:16 1996
-    ***************
-    *** 68,74 ****
-	  $rcfile=".perldb";
-      }
-      else {
-    !     $console = "con";
-	  $rcfile="perldb.ini";
-      }
-
-    --- 68,74 ----
-	  $rcfile=".perldb";
-      }
-      else {
-    !     $console = "";
-	  $rcfile="perldb.ini";
-      }
-
-
-    For Perl 5:
-    *** perl/5.001/lib/perl5db.pl.orig	Sun Jun 04 21:13:40 1995
-    --- perl/5.001/lib/perl5db.pl	Mon Jul 01 17:00:08 1996
-    ***************
-    *** 22,28 ****
-	  $rcfile=".perldb";
-      }
-      elsif (-e "con") {
-    !     $console = "con";
-	  $rcfile="perldb.ini";
-      }
-      else {
-    --- 22,28 ----
-	  $rcfile=".perldb";
-      }
-      elsif (-e "con") {
-    !     $console = "";
-	  $rcfile="perldb.ini";
-      }
-      else {
-
-** On MS-Windows 95, Alt-f6 does not get through to Emacs.
-
-This character seems to be trapped by the kernel in Windows 95.
-You can enter M-f6 by typing ESC f6.
 
 ** Typing Alt-Shift has strange effects on MS-Windows.
 
@@ -2290,21 +2041,6 @@ work when an antivirus package is installed.
 The solution is to switch the antivirus software to a less aggressive
 mode (e.g., disable the ``auto-protect'' feature), or even uninstall
 or disable it entirely.
-
-** On MS-Windows 95/98/ME, subprocesses do not terminate properly.
-
-This is a limitation of the Operating System, and can cause problems
-when shutting down Windows. Ensure that all subprocesses are exited
-cleanly before exiting Emacs. For more details, see the FAQ at
-http://www.gnu.org/software/emacs/windows/.
-
-** MS-Windows 95/98/ME crashes when Emacs invokes non-existent programs.
-
-When a program you are trying to run is not found on the PATH,
-Windows might respond by crashing or locking up your system.  In
-particular, this has been reported when trying to compile a Java
-program in JDEE when javac.exe is installed, but not on the system
-PATH.
 
 ** Pressing the mouse button on MS-Windows does not give a mouse-2 event.
 
@@ -2377,15 +2113,6 @@ shared version of libjpeg, which you need to install.  Finally, rerun
 the Emacs configure script, which should now find the jpeg library.
 Alternatively, modify the generated src/Makefile to link the .a file
 explicitly, and edit src/config.h to define HAVE_JPEG.
-
-*** AIX: You get this compiler error message:
-
-    Processing include file ./XMenuInt.h
-        1501-106: (S) Include file X11/Xlib.h not found.
-
-This means your system was installed with only the X11 runtime i.d
-libraries.  You have to find your sipo (bootable tape) and install
-X11Dev... with smit.
 
 ** Compilation
 
@@ -2743,10 +2470,6 @@ Remove the "#if 0" and "#endif" directives which surround this, save
 the file, and then reconfigure and rebuild Emacs.  The dumping process
 should now succeed.
 
-*** HPUX 10.20: Emacs crashes during dumping on the HPPA machine.
-
-This seems to be due to a GCC bug; it is fixed in GCC 2.8.1.
-
 ** Installation
 
 *** Installing Emacs gets an error running `install-info'.
@@ -2802,6 +2525,50 @@ it is unlikely you will see any of these.
 
 ** Ancient operating systems
 
+AIX 4.2 was end-of-lifed on Dec 31st, 1999.
+
+*** AIX: You get this compiler error message:
+
+    Processing include file ./XMenuInt.h
+        1501-106: (S) Include file X11/Xlib.h not found.
+
+This means your system was installed with only the X11 runtime i.d
+libraries.  You have to find your sipo (bootable tape) and install
+X11Dev... with smit.
+
+(This report must be ancient.  Bootable tapes are long dead.)
+
+*** AIX 3.2.4: Releasing Ctrl/Act key has no effect, if Shift is down.
+
+Due to a feature of AIX, pressing or releasing the Ctrl/Act key is
+ignored when the Shift, Alt or AltGr keys are held down.  This can
+lead to the keyboard being "control-locked"--ordinary letters are
+treated as control characters.
+
+You can get out of this "control-locked" state by pressing and
+releasing Ctrl/Act while not pressing or holding any other keys.
+
+*** AIX 3.2.5: You get this message when running Emacs:
+
+    Could not load program emacs
+    Symbol smtcheckinit in csh is undefined
+    Error was: Exec format error
+
+or this one:
+
+    Could not load program .emacs
+    Symbol _system_con in csh is undefined
+    Symbol _fp_trapsta in csh is undefined
+    Error was: Exec format error
+
+These can happen when you try to run on AIX 3.2.5 a program that was
+compiled with 3.2.4.  The fix is to recompile.
+
+*** AIX 4.2: Emacs gets a segmentation fault at startup.
+
+If you are using IBM's xlc compiler, compile emacs.c
+without optimization; that should avoid the problem.
+
 *** ISC Unix
 
 **** ISC: display-time causes kernel problems on ISC systems.
@@ -2818,6 +2585,13 @@ the same problem.  Display-time seems to be far the worst.
 The only known fix: Don't run display-time.
 
 *** SunOS
+
+SunOS 4.1.4 stopped shipping on Sep 30 1998.
+
+**** SunOS: You get linker errors
+   ld: Undefined symbol
+      _get_wmShellWidgetClass
+      _get_applicationShellWidgetClass
 
 **** Sun 4.0.x: M-x shell persistently reports "Process shell exited abnormally with code 1".
 
@@ -2851,13 +2625,6 @@ of this writing, these official versions are available:
  IDA sendmail on vixen.cso.uiuc.edu in /pub:
    sendmail-5.67b+IDA-1.5.tar.gz
 
-**** Sunos 5.3: Subprocesses remain, hanging but not zombies.
-
-A bug in Sunos 5.3 causes Emacs subprocesses to remain after Emacs
-exits.  Sun patch # 101415-02 is part of the fix for this, but it only
-applies to ptys, and doesn't fix the problem with subprocesses
-communicating through pipes.
-
 **** Sunos 4: You get the error ld: Undefined symbol __lib_version.
 
 This is the result of using cc or gcc with the shared library meant
@@ -2890,13 +2657,15 @@ which ones, please inform bug-gnu-emacs@gnu.org.
 
 Someone reported that recompiling with GCC 2.7.0 fixed this problem.
 
-**** SunOS: You get linker errors
-   ld: Undefined symbol
-      _get_wmShellWidgetClass
-      _get_applicationShellWidgetClass
-
 The fix to this is to install patch 100573 for OpenWindows 3.0
 or link libXmu statically.
+
+**** Sunos 5.3: Subprocesses remain, hanging but not zombies.
+
+A bug in Sunos 5.3 causes Emacs subprocesses to remain after Emacs
+exits.  Sun patch # 101415-02 is part of the fix for this, but it only
+applies to ptys, and doesn't fix the problem with subprocesses
+communicating through pipes.
 
 *** Apollo Domain
 
@@ -3078,7 +2847,7 @@ On Solaris 2.6, Emacs is said to work with Motif when Solaris patch
 105284-12 is installed, but fail when 105284-15 is installed.
 105284-18 might fix it again.
 
-*** Solaris 2.6 and 7: the Compose key does not work.
+**** Solaris 2.6 and 7: the Compose key does not work.
 
 This is a bug in Motif in Solaris.  Supposedly it has been fixed for
 the next major release of Solaris.  However, if someone with Sun
@@ -3094,6 +2863,30 @@ should do.
 pen@lysator.liu.se says (Feb 1998) that the Compose key does work
 if you link with the MIT X11 libraries instead of the Solaris X11
 libraries.
+
+*** HP/UX versions before 11.0
+
+HP/UX 9 was end-of-lifed in December 1998.  
+HP/UX 10 was end-of-lifed in May 1999.
+
+**** HP/UX 9: Emacs crashes with SIGBUS or SIGSEGV after you delete a frame.
+
+We think this is due to a bug in the X libraries provided by HP.  With
+the alternative X libraries in /usr/contrib/mitX11R5/lib, the problem
+does not happen.
+
+*** HP/UX 10: Large file support is disabled.
+
+See the comments in src/s/hpux10.h.
+
+*** HP/UX: Emacs is slow using X11R5.
+
+This happens if you use the MIT versions of the X libraries--it
+doesn't run as fast as HP's version.  People sometimes use the version
+because they see the HP version doesn't have the libraries libXaw.a,
+libXmu.a, libXext.a and others.  HP/UX normally doesn't come with
+those libraries installed.  To get good performance, you need to
+install them and rebuild Emacs.
 
 *** Ultrix and Digital Unix
 
@@ -3149,6 +2942,133 @@ configure script) that reads:
 This makes Emacs use memory less efficiently, but seems to work around
 the kernel bug.
 
+*** Irix 5 and earlier
+
+Exactly when Irix-5 end-of-lifed is obscure.  But since Irix 6.0 
+shipped in 1994, it has been some years.
+
+**** Irix 5.2: unexelfsgi.c can't find cmplrs/stsupport.h.
+
+The file cmplrs/stsupport.h was included in the wrong file set in the
+Irix 5.2 distribution.  You can find it in the optional fileset
+compiler_dev, or copy it from some other Irix 5.2 system.  A kludgy
+workaround is to change unexelfsgi.c to include sym.h instead of
+syms.h.
+
+**** Irix 5.3: "out of virtual swap space".
+
+This message occurs when the system runs out of swap space due to too
+many large programs running.  The solution is either to provide more
+swap space or to reduce the number of large programs being run.  You
+can check the current status of the swap space by executing the
+command `swap -l'.
+
+You can increase swap space by changing the file /etc/fstab.  Adding a
+line like this:
+
+/usr/swap/swap.more     swap    swap    pri=3 0 0
+
+where /usr/swap/swap.more is a file previously created (for instance
+by using /etc/mkfile), will increase the swap space by the size of
+that file.  Execute `swap -m' or reboot the machine to activate the
+new swap area.  See the manpages for `swap' and `fstab' for further
+information.
+
+The objectserver daemon can use up lots of memory because it can be
+swamped with NIS information.  It collects information about all users
+on the network that can log on to the host.
+
+If you want to disable the objectserver completely, you can execute
+the command `chkconfig objectserver off' and reboot.  That may disable
+some of the window system functionality, such as responding CDROM
+icons.
+
+You can also remove NIS support from the objectserver.  The SGI `admin'
+FAQ has a detailed description on how to do that; see question 35
+("Why isn't the objectserver working?").  The admin FAQ can be found at
+ftp://viz.tamu.edu/pub/sgi/faq/.
+
+**** Irix 5.3: Emacs crashes in utmpname.
+
+This problem is fixed in Patch 3175 for Irix 5.3.
+It is also fixed in Irix versions 6.2 and up.
+
+**** Irix 6.0: Make tries (and fails) to build a program named unexelfsgi.
+
+A compiler bug inserts spaces into the string "unexelfsgi . o"
+in src/Makefile.  Edit src/Makefile, after configure is run,
+find that string, and take out the spaces.
+
+Compiler fixes in Irix 6.0.1 should eliminate this problem.
+
+*** SCO Unix and UnixWare
+
+**** SCO 3.2v4: Unusable default font.
+
+The Open Desktop environment comes with default X resource settings
+that tell Emacs to use a variable-width font.  Emacs cannot use such
+fonts, so it does not work.
+
+This is caused by the file /usr/lib/X11/app-defaults/ScoTerm, which is
+the application-specific resource file for the `scoterm' terminal
+emulator program.  It contains several extremely general X resources
+that affect other programs besides `scoterm'.  In particular, these
+resources affect Emacs also:
+
+	*Font: -*-helvetica-medium-r-*--12-*-p-*
+	*Background:			scoBackground
+	*Foreground:			scoForeground
+
+The best solution is to create an application-specific resource file for
+Emacs, /usr/lib/X11/sco/startup/Emacs, with the following contents:
+
+	Emacs*Font:	-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1
+	Emacs*Background:	white
+	Emacs*Foreground:	black
+
+(These settings mimic the Emacs defaults, but you can change them to
+suit your needs.)  This resource file is only read when the X server
+starts up, so you should restart it by logging out of the Open Desktop
+environment or by running `scologin stop; scologin start` from the shell
+as root.  Alternatively, you can put these settings in the
+/usr/lib/X11/app-defaults/Emacs resource file and simply restart Emacs,
+but then they will not affect remote invocations of Emacs that use the
+Open Desktop display.
+
+These resource files are not normally shared across a network of SCO
+machines; you must create the file on each machine individually.
+
+**** SCO 4.2.0: Regular expressions matching bugs on SCO systems.
+
+On SCO, there are problems in regexp matching when Emacs is compiled
+with the system compiler.  The compiler version is "Microsoft C
+version 6", SCO 4.2.0h Dev Sys Maintenance Supplement 01/06/93; Quick
+C Compiler Version 1.00.46 (Beta).  The solution is to compile with
+GCC.
+
+**** UnixWare 2.1: Error 12 (virtual memory exceeded) when dumping Emacs.
+
+Paul Abrahams (abrahams@acm.org) reports that with the installed
+virtual memory settings for UnixWare 2.1.2, an Error 12 occurs during
+the "make" that builds Emacs, when running temacs to dump emacs.  That
+error indicates that the per-process virtual memory limit has been
+exceeded.  The default limit is probably 32MB.  Raising the virtual
+memory limit to 40MB should make it possible to finish building Emacs.
+
+You can do this with the command `ulimit' (sh) or `limit' (csh).
+But you have to be root to do it.
+
+According to Martin Sohnius, you can also retune this in the kernel:
+
+    # /etc/conf/bin/idtune SDATLIM 33554432         ## soft data size limit
+    # /etc/conf/bin/idtune HDATLIM 33554432         ## hard "
+    # /etc/conf/bin/idtune SVMMSIZE unlimited       ## soft process size limit
+    # /etc/conf/bin/idtune HVMMSIZE unlimited       ## hard "
+    # /etc/conf/bin/idbuild -B
+
+(He recommends you not change the stack limit, though.)
+These changes take effect when you reboot.
+
 *** Linux 1.x
 
 **** Linux 1.0-1.04: Typing C-c C-c in Shell mode kills your X server.
@@ -3162,6 +3082,91 @@ truncated on GNU/Linux systems.
 
 This is due to a kernel bug which seems to be fixed in Linux version
 1.3.75.
+
+** Windows 3.1, 95, 98, and ME
+
+*** MS-Windows NT/95: Problems running Perl under Emacs
+
+`perl -de 0' just hangs when executed in an Emacs subshell.
+The fault lies with Perl (indirectly with Windows NT/95).
+
+The problem is that the Perl debugger explicitly opens a connection to
+"CON", which is the DOS/NT equivalent of "/dev/tty", for interacting
+with the user.
+
+On Unix, this is okay, because Emacs (or the shell?) creates a
+pseudo-tty so that /dev/tty is really the pipe Emacs is using to
+communicate with the subprocess.
+
+On NT, this fails because CON always refers to the handle for the
+relevant console (approximately equivalent to a tty), and cannot be
+redirected to refer to the pipe Emacs assigned to the subprocess as
+stdin.
+
+A workaround is to modify perldb.pl to use STDIN/STDOUT instead of CON.
+
+For Perl 4:
+
+    *** PERL/LIB/PERLDB.PL.orig	Wed May 26 08:24:18 1993
+    --- PERL/LIB/PERLDB.PL	Mon Jul 01 15:28:16 1996
+    ***************
+    *** 68,74 ****
+	  $rcfile=".perldb";
+      }
+      else {
+    !     $console = "con";
+	  $rcfile="perldb.ini";
+      }
+
+    --- 68,74 ----
+	  $rcfile=".perldb";
+      }
+      else {
+    !     $console = "";
+	  $rcfile="perldb.ini";
+      }
+
+
+    For Perl 5:
+    *** perl/5.001/lib/perl5db.pl.orig	Sun Jun 04 21:13:40 1995
+    --- perl/5.001/lib/perl5db.pl	Mon Jul 01 17:00:08 1996
+    ***************
+    *** 22,28 ****
+	  $rcfile=".perldb";
+      }
+      elsif (-e "con") {
+    !     $console = "con";
+	  $rcfile="perldb.ini";
+      }
+      else {
+    --- 22,28 ----
+	  $rcfile=".perldb";
+      }
+      elsif (-e "con") {
+    !     $console = "";
+	  $rcfile="perldb.ini";
+      }
+      else {
+
+*** MS-Windows 95: Alt-f6 does not get through to Emacs.
+
+This character seems to be trapped by the kernel in Windows 95.
+You can enter M-f6 by typing ESC f6.
+
+*** MS-Windows 95/98/ME: subprocesses do not terminate properly.
+
+This is a limitation of the Operating System, and can cause problems
+when shutting down Windows. Ensure that all subprocesses are exited
+cleanly before exiting Emacs. For more details, see the FAQ at
+http://www.gnu.org/software/emacs/windows/.
+
+*** MS-Windows 95/98/ME: crashes when Emacs invokes non-existent programs.
+
+When a program you are trying to run is not found on the PATH,
+Windows might respond by crashing or locking up your system.  In
+particular, this has been reported when trying to compile a Java
+program in JDEE when javac.exe is installed, but not on the system
+PATH.
 
 ** MS-DOS
 
@@ -3377,6 +3382,19 @@ toolkit.)
 If you get the additional error that the linker could not find
 lib_version.o, try extracting it from X11/usr/lib/X11/libvim.a in
 X11R4, then use it in the link.
+
+** SunOS4, DGUX 5.4.2: --with-x-toolkit version crashes when used with shared libraries.
+
+On some systems, including Sunos 4 and DGUX 5.4.2 and perhaps others,
+unexec doesn't work properly with the shared library for the X
+toolkit.  You might be able to work around this by using a nonshared
+libXt.a library.  The real fix is to upgrade the various versions of
+unexec and/or ralloc.  We think this has been fixed on Sunos 4
+and Solaris in version 19.29.
+
+** HPUX 10.20: Emacs crashes during dumping on the HPPA machine.
+
+This seems to be due to a GCC bug; it is fixed in GCC 2.8.1.
 
 ** VMS: Compilation errors on VMS.
 

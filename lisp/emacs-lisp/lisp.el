@@ -149,6 +149,20 @@ With ARG, kill that many sexps before the cursor.
 Negative arg -N means kill N sexps after the cursor."
   (interactive "p")
   (kill-sexp (- (or arg 1))))
+
+;; After Zmacs:
+(defun kill-backward-up-list (&optional arg)
+  "Kill the form containing the current sexp, leaving the sexp itself.
+A prefix argument ARG causes the relevant number of surrounding
+forms to be removed."
+  (interactive "*p")
+  (let ((current-sexp (thing-at-point 'sexp)))
+    (if current-sexp
+        (save-excursion
+          (backward-up-list arg)
+          (kill-sexp)
+          (insert current-sexp))
+      (error "Not at a sexp"))))
 
 (defvar beginning-of-defun-function nil
   "If non-nil, function for `beginning-of-defun-raw' to call.

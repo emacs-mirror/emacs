@@ -1,16 +1,20 @@
+2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+
+	* mh-inc.el (mh-inc-spool-list): Correctly declare the external var.
+
 2004-08-21  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 7.82.
-     
+
 	* MH-E-NEWS, README: Updated for release 7.82.
-     
-	* mh-e.el (Version, mh-version): Updated for release 7.82.
+
+	* mh-e.el (Version, mh-version): Update for release 7.82.
 
 2004-08-24  Bill Wohler  <wohler@newt.com>
 
-	* mh-init.el (mh-variant-set): Changed MH to mh as that's what is
+	* mh-init.el (mh-variant-set): Change MH to mh as that's what is
 	emitted by `mh-variant-mh-info' (closes SF #1014781).
-	(mh-variant-p): Added mu-mh to docstring.
+	(mh-variant-p): Add mu-mh to docstring.
 
 2004-08-23  Satyaki Das  <satyaki@theforce.stanford.edu>
 
@@ -31,21 +35,21 @@
 
 2004-08-21  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el (Version, mh-version): Added +cvs to release number.
+	* mh-e.el (Version, mh-version): Add +cvs to release number.
 
 2004-08-21  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 7.81.
-     
+
 	* MH-E-NEWS, README: Updated for release 7.81.
-     
-	* mh-e.el (Version, mh-version): Updated for release 7.81.
+
+	* mh-e.el (Version, mh-version): Update for release 7.81.
 
 2004-08-21  Bill Wohler  <wohler@newt.com>
 
 	* release-utils (variable_changes): Check for checked-out
-	directory before proceeding. Remove temporary files. Renamed
-	--variable-update flag to --variable-changes.
+	directory before proceeding.  Remove temporary files.
+	Rename --variable-update flag to --variable-changes.
 
 2004-08-16  Mark D. Baushke  <mdb@gnu.org>
 

@@ -695,6 +695,7 @@ reset_buffer (b)
   b->mark_active = Qnil;
   b->point_before_scroll = Qnil;
   b->file_format = Qnil;
+  b->auto_save_file_format = Qt;
   b->last_selected_window = Qnil;
   XSETINT (b->display_count, 0);
   b->display_time = Qnil;
@@ -4978,6 +4979,7 @@ init_buffer_once ()
   buffer_defaults.undo_list = Qnil;
   buffer_defaults.mark_active = Qnil;
   buffer_defaults.file_format = Qnil;
+  buffer_defaults.auto_save_file_format = Qt;
   buffer_defaults.overlays_before = NULL;
   buffer_defaults.overlays_after = NULL;
   buffer_defaults.overlay_center = BEG;
@@ -5036,6 +5038,7 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.file_truename, -1);
   XSETINT (buffer_local_flags.invisibility_spec, -1);
   XSETINT (buffer_local_flags.file_format, -1);
+  XSETINT (buffer_local_flags.auto_save_file_format, -1);
   XSETINT (buffer_local_flags.display_count, -1);
   XSETINT (buffer_local_flags.display_time, -1);
   XSETINT (buffer_local_flags.enable_multibyte_characters, -1);
@@ -5845,6 +5848,13 @@ functions; it should only affect their performance.  */);
 		     doc: /* List of formats to use when saving this buffer.
 Formats are defined by `format-alist'.  This variable is
 set when a file is visited.  */);
+
+  DEFVAR_PER_BUFFER ("buffer-auto-save-file-format",
+		     &current_buffer->auto_save_file_format, Qnil,
+		     doc: /* *Format in which to write auto-save files.
+Should be a list of symbols naming formats that are defined in `format-alist'.
+If it is t, which is the default, auto-save files are written in the
+same format as a regular save would use.  */);
 
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &current_buffer->invisibility_spec, Qnil,

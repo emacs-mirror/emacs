@@ -1482,12 +1482,19 @@ normal otherwise."
           (file-count 0)
           first-file-buffer
           tem
-          ;; The directories listed in --directory/-L options will *appear*
-          ;; at the front of `load-path' in the order they appear on the
-          ;; command-line.  We cannot do this by *placing* them at the front
-          ;; in the order they appear, so we need this variable to hold them,
-          ;; temporarily.
-          extra-load-path
+          ;; This approach loses for "-batch -L DIR --eval "(require foo)",
+          ;; if foo is intended to be found in DIR.
+          ;;
+          ;; ;; The directories listed in --directory/-L options will *appear*
+          ;; ;; at the front of `load-path' in the order they appear on the
+          ;; ;; command-line.  We cannot do this by *placing* them at the front
+          ;; ;; in the order they appear, so we need this variable to hold them,
+          ;; ;; temporarily.
+          ;; extra-load-path
+          ;;
+          ;; To DTRT we keep track of the splice point and modify `load-path'
+          ;; straight away upon any --directory/-L option.
+          splice
           just-files ;; t if this follows the magic -- option.
           ;; This includes our standard options' long versions
           ;; and long versions of what's on command-switch-alist.
@@ -1556,15 +1563,15 @@ normal otherwise."
 
                 ((member argi '("-eval" "-execute"))
                  (eval (read (or argval (pop command-line-args-left)))))
-                ;; Set the default directory as specified in -L.
 
                 ((member argi '("-L" "-directory"))
-                 (setq tem (or argval (pop command-line-args-left)))
-                 ;; We will reverse `extra-load-path' and prepend it to
-                 ;; `load-path' after all the arguments have been processed.
-                 (push
-                  (expand-file-name (command-line-normalize-file-name tem))
-                  extra-load-path))
+                 (setq tem (expand-file-name
+                            (command-line-normalize-file-name
+                             (or argval (pop command-line-args-left)))))
+                 (cond (splice (setcdr splice (cons tem (cdr splice)))
+                               (setq splice (cdr splice)))
+                       (t (setq load-path (cons tem load-path)
+                                splice load-path))))
 
                 ((member argi '("-l" "-load"))
                  (let* ((file (command-line-normalize-file-name
@@ -1644,10 +1651,6 @@ normal otherwise."
                          (unless (< column 1)
                            (move-to-column (1- column)))
                          (setq column 0))))))))
-
-      ;; See --directory/-L option above.
-      (when extra-load-path
-        (setq load-path (append (nreverse extra-load-path) load-path)))
 
       ;; If 3 or more files visited, and not all visible,
       ;; show user what they all are.  But leave the last one current.

@@ -171,6 +171,7 @@
 	     (history-length minibuffer
 			     (choice (const :tag "Infinite" t)
 				     integer))
+	     (history-delete-duplicates minibuffer boolean)
 	     (minibuffer-prompt-properties
 	      minibuffer
 	      (list

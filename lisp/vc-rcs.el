@@ -1,6 +1,7 @@
 ;;; vc-rcs.el --- support for RCS version-control
 
-;; Copyright (C) 1992,93,94,95,96,97,98,99,2000,2001  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2004  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -208,7 +209,7 @@ When VERSION is given, perform check for that version."
                (vc-file-getprop file 'vc-checkout-model)))))
 
 (defun vc-rcs-workfile-unchanged-p (file)
-  "RCS-specific implementation of vc-workfile-unchanged-p."
+  "RCS-specific implementation of `vc-workfile-unchanged-p'."
   ;; Try to use rcsdiff --brief.  If rcsdiff does not understand that,
   ;; do a double take and remember the fact for the future
   (let* ((version (concat "-r" (vc-workfile-version file)))
@@ -786,5 +787,5 @@ variable `vc-rcs-release' is set to the returned value."
 
 (provide 'vc-rcs)
 
-;;; arch-tag: 759b4916-5b0d-431d-b647-b185b8c652cf
+;; arch-tag: 759b4916-5b0d-431d-b647-b185b8c652cf
 ;;; vc-rcs.el ends here

@@ -1,6 +1,6 @@
-;;; smiley-ems.el --- displaying smiley faces
+;;; smiley.el --- displaying smiley faces
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: news mail multimedia
@@ -35,7 +35,9 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'nnheader)
+(require 'gnus-art)
 
 (defgroup smiley nil
   "Turn :-)'s into real images."
@@ -43,22 +45,24 @@
 
 ;; Maybe this should go.
 (defcustom smiley-data-directory (nnheader-find-etc-directory "smilies")
-  "*If non-nil, a directory to search for the smiley image files.
-This is in addition to the normal image search path."
-  :type '(choice directory
-		 (const nil))
+  "*Location of the smiley faces files."
+  :type 'directory
   :group 'smiley)
 
 ;; The XEmacs version has a baroque, if not rococo, set of these.
 (defcustom smiley-regexp-alist
-  ;; Perhaps :-) should be distinct -- it does appear in the Jargon File.
-  '(("\\([:;]-?)\\)\\(\\W\\|\\'\\)" 1 "smile.pbm")
-    ("\\(:-[/\\]\\)\\(\\W\\|\\'\\)" 1 "wry.pbm")
-    ("\\(:-[({]\\)\\(\\W\\|\\'\\)" 1 "frown.pbm"))
+  '(("\\(:-?)\\)\\W" 1 "smile")
+    ("\\(;-?)\\)\\W" 1 "blink")
+    ("\\(:-]\\)\\W" 1 "forced")
+    ("\\(8-)\\)\\W" 1 "braindamaged")
+    ("\\(:-|\\)\\W" 1 "indifferent")
+    ("\\(:-[/\\]\\)\\W" 1 "wry")
+    ("\\(:-(\\)\\W" 1 "sad")
+    ("\\(:-{\\)\\W" 1 "frown"))
   "*A list of regexps to map smilies to images.
 The elements are (REGEXP MATCH FILE), where MATCH is the submatch in
-rgexp to replace with IMAGE.  IMAGE is the name of a PBM file in
-`smiley-data-directory' or the normal image search path."
+regexp to replace with IMAGE.  IMAGE is the name of a PBM file in
+`smiley-data-directory'."
   :type '(repeat (list regexp
 		       (integer :tag "Regexp match number")
 		       (string :tag "Image name")))
@@ -68,21 +72,35 @@ rgexp to replace with IMAGE.  IMAGE is the name of a PBM file in
   :initialize 'custom-initialize-default
   :group 'smiley)
 
+(defcustom gnus-smiley-file-types
+  (let ((types (list "pbm")))
+    (when (gnus-image-type-available-p 'xpm)
+      (push "xpm" types))
+    types)
+  "*List of suffixes on picon file names to try."
+  :type '(repeat string)
+  :group 'smiley)
+
 (defvar smiley-cached-regexp-alist nil)
 
 (defun smiley-update-cache ()
-  (dolist (elt smiley-regexp-alist)
-    (let* ((data-directory smiley-data-directory)
-	   (image (find-image (list (list :type 'pbm
-					  :file (nth 2 elt)
-					  :ascent 'center)))))
-      (if image
-	  (push (list (car elt) (cadr elt) image)
-		smiley-cached-regexp-alist)))))
-
-(defvar smiley-active nil
-  "Non-nil means smilies in the buffer will be displayed.")
-(make-variable-buffer-local 'smiley-active)
+  (dolist (elt (if (symbolp smiley-regexp-alist)
+		   (symbol-value smiley-regexp-alist)
+		 smiley-regexp-alist))
+    (let ((types gnus-smiley-file-types)
+	  file type)
+      (while (and (not file)
+		  (setq type (pop types)))
+	(unless (file-exists-p
+		 (setq file (expand-file-name (concat (nth 2 elt) "." type)
+					      smiley-data-directory)))
+	  (setq file nil)))
+      (when type
+	(let ((image (gnus-create-image file (intern type) nil
+					:ascent 'center)))
+	  (when image
+	    (push (list (car elt) (cadr elt) image)
+		  smiley-cached-regexp-alist)))))))
 
 (defvar smiley-mouse-map
   (let ((map (make-sparse-keymap)))
@@ -93,48 +111,50 @@ rgexp to replace with IMAGE.  IMAGE is the name of a PBM file in
 
 ;;;###autoload
 (defun smiley-region (start end)
-  "Display textual smileys as images.
-START and END specify the region; interactively, use the values
-of point and mark.  The value of `smiley-regexp-alist' determines
-which smileys to operate on and which images to use for them."
+  "Replace in the region `smiley-regexp-alist' matches with corresponding images.
+A list of images is returned."
   (interactive "r")
-  (when (and (fboundp 'display-graphic-p)
-	     (display-graphic-p))
-    (mapc (lambda (o)
-	    (if (eq 'smiley (overlay-get o 'smiley))
-		(delete-overlay o)))
-	  (overlays-in start end))
+  (when (gnus-graphic-display-p)
     (unless smiley-cached-regexp-alist
       (smiley-update-cache))
     (save-excursion
       (let ((beg (or start (point-min)))
-	    (inhibit-point-motion-hooks t)
-	    group overlay image)
+	    group image images string)
 	(dolist (entry smiley-cached-regexp-alist)
 	  (setq group (nth 1 entry)
 		image (nth 2 entry))
 	  (goto-char beg)
 	  (while (re-search-forward (car entry) end t)
+	    (setq string (match-string group))
+	    (goto-char (match-end group))
+	    (delete-region (match-beginning group) (match-end group))
 	    (when image
-	      (setq overlay (make-overlay (match-beginning group)
-					  (match-end group)))
-	      (overlay-put overlay
-			   'display `(when smiley-active ,@image))
-	      (overlay-put overlay 'mouse-face 'highlight)
-	      (overlay-put overlay 'smiley t)
-	      (overlay-put overlay
-			   'help-echo "mouse-2: toggle smilies in buffer")
-	      (overlay-put overlay 'keymap smiley-mouse-map)
-	      (goto-char (match-end group)))))))
-        (setq smiley-active t)))
+	      (push image images)
+	      (gnus-add-wash-type 'smiley)
+	      (gnus-add-image 'smiley image)
+	      (gnus-put-image image string 'smiley))))
+	images))))
+
+;;;###autoload
+(defun smiley-buffer (&optional buffer)
+  "Run `smiley-region' at the buffer, specified in the argument or
+interactively. If there's no argument, do it at the current buffer"
+  (interactive "bBuffer to run smiley-region: ")
+  (save-excursion
+    (if buffer
+	(set-buffer (get-buffer buffer)))
+    (smiley-region (point-min) (point-max))))
 
 (defun smiley-toggle-buffer (&optional arg)
-  "Toggle displaying smiley faces.
+  "Toggle displaying smiley faces in article buffer.
 With arg, turn displaying on if and only if arg is positive."
   (interactive "P")
-  (if (numberp arg)
-      (setq smiley-active (> arg 0))
-    (setq smiley-active (not smiley-active))))
+  (gnus-with-article-buffer
+    (if (if (numberp arg)
+	    (> arg 0)
+	  (not (memq 'smiley gnus-article-wash-types)))
+	(smiley-region (point-min) (point-max))
+      (gnus-delete-images 'smiley))))
 
 (defun smiley-mouse-toggle-buffer (event)
   "Toggle displaying smiley faces.
@@ -145,22 +165,7 @@ With arg, turn displaying on if and only if arg is positive."
       (mouse-set-point event)
       (smiley-toggle-buffer))))
 
-(eval-when-compile (defvar gnus-article-buffer))
-
-(defun gnus-smiley-display (&optional arg)
-  "Display textual emoticons (\"smilies\") as small graphical icons.
-With arg, turn displaying on if and only if arg is positive."
-  (interactive "P")
-  (save-excursion
-    (set-buffer gnus-article-buffer)
-    (save-restriction
-      (widen)
-      (article-goto-body)
-      (smiley-region (point-min) (point-max))
-      (if (and (numberp arg) (<= arg 0))
-	  (smiley-toggle-buffer arg)))))
-
 (provide 'smiley)
 
-;;; arch-tag: e726728a-14fb-4e6a-9aef-889941bdf7ad
-;;; smiley-ems.el ends here
+;;; arch-tag: 5beb161b-4321-40af-8ac9-876afb8ee818
+;;; smiley.el ends here
