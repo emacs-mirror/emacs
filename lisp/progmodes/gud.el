@@ -2524,26 +2524,24 @@ Obeying it means displaying in another window the specified file and line."
     (if buffer
 	(progn
 	  (with-current-buffer buffer
-	    (if (not (or (verify-visited-file-modtime buffer) gud-keep-buffer))
-		(progn
-		  (if
-		      (yes-or-no-p
+	    (unless (or (verify-visited-file-modtime buffer) gud-keep-buffer)
+		  (if (yes-or-no-p
 		       (format "File %s changed on disk.  Reread from disk? "
 			       (buffer-name)))
 		      (revert-buffer t t)
-		    (setq gud-keep-buffer t))))
+		    (setq gud-keep-buffer t)))
 	    (save-restriction
 	      (widen)
 	      (goto-line line)
 	      (setq pos (point))
 	      (setq overlay-arrow-string "=>")
 	      (or overlay-arrow-position
-	      (setq overlay-arrow-position (make-marker)))
+		  (setq overlay-arrow-position (make-marker)))
 	      (set-marker overlay-arrow-position (point) (current-buffer)))
 	    (cond ((or (< pos (point-min)) (> pos (point-max)))
-	    (widen)
-	    (goto-char pos))))
-	  (set-window-point window overlay-arrow-position)))))
+		   (widen)
+		   (goto-char pos))))
+	  (if window (set-window-point window overlay-arrow-position))))))
 
 ;; The gud-call function must do the right thing whether its invoking
 ;; keystroke is from the GUD buffer itself (via major-mode binding)
