@@ -1,10 +1,10 @@
 ;;; idlw-toolbar.el --- A debugging toolbar for IDLWAVE
 ;; Copyright (c) 1999 Carsten Dominik
-;; Copyright (c) 1999 Free Software Foundation
+;; Copyright (c) 1999, 2000 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Version: 3.15
-;; Date: $Date: 2000/02/03 15:40:31 $
+;; Version: 4.2
+;; Date: $Date: 2000/06/06 10:40:52 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -801,6 +801,7 @@ static char * file[] = {
       (remove-specifier default-toolbar (current-buffer))))
 
 (defvar idlwave-shell-mode-map)
+(defvar idlwave-mode-map)
 (defvar idlwave-toolbar-visible nil)
 (defun idlwave-toolbar-add-everywhere ()
   "Add the toolbar in all appropriate buffers."
@@ -862,7 +863,12 @@ static char * file[] = {
   (interactive)
   (if idlwave-toolbar-visible
       (or force-on (idlwave-toolbar-remove-everywhere))
-    (idlwave-toolbar-add-everywhere)))
+    (idlwave-toolbar-add-everywhere))
+  ;; Now make sure this
+  (if (featurep 'xemacs)
+      nil ; no action necessary, toolbar gets updated automatically
+    ;; On Emacs, redraw the frame to make sure the Toolbar is updated.
+    (redraw-frame (selected-frame))))
 
 (provide 'idlw-toolbar)
 (provide 'idlwave-toolbar)
