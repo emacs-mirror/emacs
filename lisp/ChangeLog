@@ -1,5 +1,8 @@
 2000-11-06  Dave Love  <fx@gnu.org>
 
+	* autoinsert.el (auto-insert-alist) <latex-mode>: Use
+	\documentclass.
+
 	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Match
 	defun*.
 

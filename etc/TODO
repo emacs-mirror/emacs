@@ -66,7 +66,8 @@
   [?], mlconvert [?], iso-cvt, iso-swed, swedish, feedmail [?], uce,
   bruce, gametree, meese, page-ext, refbib, refer, scribe, sgml-mode,
   spell, texinfo, underline, cmacexp, hideif, mantemp [obsolete?],
-  pcomplete, assoc, xml; other progmodes, probably in separate manual.
+  pcomplete, assoc, xml, cvs-status; other progmodes, probably in
+  separate manual.
 
 * Get some major packages installed: W3/url (development version needs
   significant work), PSGML, Mule-UCS, Tramp (?).  Check the
@@ -104,3 +105,6 @@
 
 * Support dynamically-loadable primitive support using libtool and
   support similarly to Guile.  [Some work has been done.]
+
+* Allow auto-compression-mode to use zlib calls if zlib is available.
+  [It's required for PNG, so may be linked anyhow.]
