@@ -1,3 +1,24 @@
+2000-11-01 ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* rfc2231.el: Require cl when compiling.
+
+2000-11-01  Dave Love  <fx@gnu.org>
+
+	* mm-uu.el (mm-uu-decode-function, mm-uu-binhex-decode-function):
+	Fix custom type.
+	(mm-uu-configure-list): Move and fix custom type.
+
+	* utf7.el: Require cl when compiling.
+
+	* binhex.el: Use (featurep 'xemacs).
+	(binhex-char-int): New alias, replacing char-int.  Change callers.
+	(binhex-decode-region): Simplify work buffer code.
+	(binhex-decode-region-external): Use expand-file-name, not concat.
+
+2000-10-30  Dave Love  <fx@gnu.org>
+
+	* gnus-art.el: Fix 2000-10-27 change properly.
+
 2000-10-28  Miles Bader  <miles@gnu.org>
 
 	* gnus-art.el (gnus-read-save-file-name): Remove extraneous paren.
