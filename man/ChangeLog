@@ -1,3 +1,7 @@
+2005-03-25  Werner Lemberg  <wl@gnu.org>
+
+	* calc.texi, reftex.texi: Replace `illegal' with `invalid'.
+
 2005-03-24  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (General Mode Commands)

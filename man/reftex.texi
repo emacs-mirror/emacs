@@ -9,7 +9,7 @@
 @c Version and Contact Info
 @set VERSION 4.24
 @set EDITION 4.24
-@set DATE August 2004
+@set DATE March 2005
 @set AUCTEXSITE @uref{http://www.nongnu.org/auctex/,AUCTeX distribution site}
 @set MAINTAINERSITE @uref{http://www.astro.uva.nl/~dominik/Tools/,maintainers webpage}
 @set MAINTAINER Carsten Dominik
@@ -25,7 +25,8 @@ citations and indices for LaTeX documents with Emacs.
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}
 
-Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2005
+Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -734,7 +735,7 @@ indicating the type of the label and a unique mark.  @b{Ref@TeX{}} has
 A label can be derived from context.  This means, @b{Ref@TeX{}} takes
 the context of the label definition and constructs a label from
 that@footnote{Note that the context may contain constructs which are
-illegal in labels.  @b{Ref@TeX{}} will therefore strip the accent from
+invalid in labels.  @b{Ref@TeX{}} will therefore strip the accent from
 accented Latin-1 characters and remove everything else which is not
 legal in labels.  This mechanism is safe, but may not be satisfactory
 for non-western languages.  Check the following variables if you need to
@@ -4187,9 +4188,9 @@ list of the following items:
 Number of words to use.
 @item @var{maxchar}
 Maximum number of characters in a label string.
-@item @var{illegal}
-@code{nil}: Throw away any words containing characters illegal in labels.@*
-@code{t}:   Throw away only the illegal characters, not the whole word.
+@item @var{invalid}
+@code{nil}: Throw away any words containing characters invalid in labels.@*
+@code{t}:   Throw away only the invalid characters, not the whole word.
 @item @var{abbrev}
 @code{nil}: Never abbreviate words.@*
 @code{t}:   Always abbreviate words (see @code{reftex-abbrev-parameters}).@*
@@ -4204,7 +4205,7 @@ List of words which should not be part of labels.
 @end defopt
 
 @defopt reftex-label-illegal-re
-Regexp matching characters not legal in labels.
+Regexp matching characters not valid in labels.
 @end defopt
 
 @defopt reftex-abbrev-parameters
