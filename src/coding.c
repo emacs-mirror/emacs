@@ -3011,6 +3011,12 @@ setup_coding_system (coding_system, coding)
 	}
       else
 	coding->type = coding_type_no_conversion;
+      /* Initialize this member.  Any thing other than
+	 CODING_CATEGORY_IDX_UTF_16_BE and
+	 CODING_CATEGORY_IDX_UTF_16_LE are ok because they have
+	 special treatment in detect_eol.  */
+      coding->category_idx = CODING_CATEGORY_IDX_EMACS_MULE;
+
       return 0;
     }
 
