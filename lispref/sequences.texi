@@ -70,7 +70,7 @@ sequence.
 
 @defun sequencep object
 Returns @code{t} if @var{object} is a list, vector,
-string, or char-table, @code{nil} otherwise.
+string, bool-vector, or char-table, @code{nil} otherwise.
 @end defun
 
 @defun length sequence
