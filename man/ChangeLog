@@ -1,4 +1,4 @@
-2004-02-08  Juri Linkov  <juri@jurta.org>
+2004-02-21  Juri Linkov  <juri@jurta.org>
 
 	* cmdargs.texi (Action Arguments): Add alias --find-file.  Add
 	--directory, --help, --version.  Move text about command-line-args
