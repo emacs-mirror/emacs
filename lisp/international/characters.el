@@ -1099,8 +1099,9 @@
 
   ;; Ohm, Kelvin, Angstrom
   (set-case-syntax-pair ?$,1uf(B ?$,1'I(B tbl)
-  (set-case-syntax-pair ?$,1uj(B ?k tbl)
-  (set-case-syntax-pair ?$,1uk(B ?,Ae(B tbl)
+;;;  These mess up the case conversion of k and ,Ae(B.
+;;;  (set-case-syntax-pair ?$,1uj(B ?k tbl)
+;;;  (set-case-syntax-pair ?$,1uk(B ?,Ae(B tbl)
 
   ;; Combining diacritics
   (setq c #x300)
