@@ -113,7 +113,6 @@ safe_free_str (s)
 
 static widget_value *widget_value_free_list = 0;
 static int malloc_cpt = 0;
-static int malloc_cpt_id = 0;
 
 widget_value *
 malloc_widget_value ()
@@ -144,17 +143,12 @@ free_widget_value (wv)
   if (wv->free_list)
     abort ();
 
-  if (malloc_cpt > 20)
+  if (malloc_cpt > 25)
     {
       /* When the number of already allocated cells is too big,
 	 We free it.  */
-      malloc_cpt_id++;
       free (wv);
-      if (malloc_cpt_id > 20)
-	{
-	  malloc_cpt_id = 0;
-	  malloc_cpt = 0;
-	}
+      malloc_cpt--;
     }
   else
     {
