@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-defs.el,v 1.3 2000/03/22 02:56:51 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.4 2000/06/11 22:35:19 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -68,6 +68,7 @@ versions, such as the one in SunOS-4.")
 
 (defgroup pcl-cvs nil
   "Special support for the CVS versioning system."
+  :version "21.1"
   :group 'tools
   :prefix "cvs-")
 
