@@ -227,23 +227,23 @@ Lisp_Object Qfontified;
 Lisp_Object Vfontification_functions;
 Lisp_Object Qfontification_functions;
 
-/* Non-zero means draw toolbar buttons raised when the mouse moves
+/* Non-zero means draw tool bar buttons raised when the mouse moves
    over them.  */
 
-int auto_raise_toolbar_buttons_p;
+int auto_raise_tool_bar_buttons_p;
 
-/* Margin around toolbar buttons in pixels.  */
+/* Margin around tool bar buttons in pixels.  */
 
-int toolbar_button_margin;
+int tool_bar_button_margin;
 
-/* Thickness of shadow to draw around toolbar buttons.  */
+/* Thickness of shadow to draw around tool bar buttons.  */
 
-int toolbar_button_relief;
+int tool_bar_button_relief;
 
-/* Non-zero means automatically resize toolbars so that all toolbar
+/* Non-zero means automatically resize tool-bars so that all tool-bar
    items are visible, and no blank lines remain.  */
 
-int auto_resize_toolbars_p;
+int auto_resize_tool_bars_p;
 
 /* Non-nil means don't actually do any redisplay.  */
 
@@ -584,6 +584,9 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static struct glyph_row *row_containing_pos P_ ((struct window *, int,
+						 struct glyph_row *,
+						 struct glyph_row *));
 static Lisp_Object unwind_with_echo_area_buffer P_ ((Lisp_Object));
 static Lisp_Object with_echo_area_buffer_unwind_data P_ ((struct window *));
 static void clear_garbaged_frames P_ ((void));
@@ -678,10 +681,10 @@ static int handle_single_display_prop P_ ((struct it *, Lisp_Object,
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-static void update_toolbar P_ ((struct frame *, int));
-static void build_desired_toolbar_string P_ ((struct frame *f));
-static int redisplay_toolbar P_ ((struct frame *));
-static void display_toolbar_line P_ ((struct it *));
+static void update_tool_bar P_ ((struct frame *, int));
+static void build_desired_tool_bar_string P_ ((struct frame *f));
+static int redisplay_tool_bar P_ ((struct frame *));
+static void display_tool_bar_line P_ ((struct it *));
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -1156,8 +1159,8 @@ check_window_end (w)
 
    BASE_FACE_ID is the id of a base face to use.  It must be one of
    DEFAULT_FACE_ID for normal text, MODE_LINE_FACE_ID or
-   TOP_LINE_FACE_ID for displaying mode lines, or TOOLBAR_FACE_ID for
-   displaying the toolbar.
+   TOP_LINE_FACE_ID for displaying mode lines, or TOOL_BAR_FACE_ID for
+   displaying the tool-bar.
    
    If ROW is null and BASE_FACE_ID is equal to MODE_LINE_FACE_ID or
    TOP_LINE_FACE_ID, the iterator will be initialized to use the
@@ -6070,7 +6073,7 @@ prepare_menu_bars ()
 	  GCPRO1 (tail);
 	  update_menu_bar (f, 0);
 #ifdef HAVE_WINDOW_SYSTEM
-	  update_toolbar (f, 0);
+	  update_tool_bar (f, 0);
 #endif
 	  UNGCPRO;
 	}
@@ -6081,7 +6084,7 @@ prepare_menu_bars ()
     {
       update_menu_bar (selected_frame, 1);
 #ifdef HAVE_WINDOW_SYSTEM
-      update_toolbar (selected_frame, 1);
+      update_tool_bar (selected_frame, 1);
 #endif
     }
 
@@ -6184,23 +6187,23 @@ update_menu_bar (f, save_match_data)
 
 
 /***********************************************************************
-			       Toolbars
+			       Tool-bars
  ***********************************************************************/
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-/* Update the toolbar item list for frame F.  This has to be done
+/* Update the tool-bar item list for frame F.  This has to be done
    before we start to fill in any display lines.  Called from
    prepare_menu_bars.  If SAVE_MATCH_DATA is non-zero, we must save
    and restore it here.  */
 
 static void
-update_toolbar (f, save_match_data)
+update_tool_bar (f, save_match_data)
      struct frame *f;
      int save_match_data;
 {
-  if (WINDOWP (f->toolbar_window)
-      && XFASTINT (XWINDOW (f->toolbar_window)->height) > 0)
+  if (WINDOWP (f->tool_bar_window)
+      && XFASTINT (XWINDOW (f->tool_bar_window)->height) > 0)
     {
       Lisp_Object window;
       struct window *w;
@@ -6243,12 +6246,12 @@ update_toolbar (f, save_match_data)
 	      specbind (Qoverriding_local_map, Qnil);
 	    }
 
-	  /* Build desired toolbar items from keymaps.  */
-	  f->desired_toolbar_items
-	    = toolbar_items (f->desired_toolbar_items,
-			     &f->n_desired_toolbar_items);
+	  /* Build desired tool-bar items from keymaps.  */
+	  f->desired_tool_bar_items
+	    = tool_bar_items (f->desired_tool_bar_items,
+			      &f->n_desired_tool_bar_items);
 	  
-	  /* Redisplay the toolbar in case we changed it.  */
+	  /* Redisplay the tool-bar in case we changed it.  */
 	  w->update_mode_line = Qt;
 
 	  unbind_to (count, Qnil);
@@ -6258,12 +6261,12 @@ update_toolbar (f, save_match_data)
 }
 
 
-/* Set F->desired_toolbar_string to a Lisp string representing frame
-   F's desired toolbar contents.  F->desired_toolbar_items must have
+/* Set F->desired_tool_bar_string to a Lisp string representing frame
+   F's desired tool-bar contents.  F->desired_tool_bar_items must have
    been set up previously by calling prepare_menu_bars.  */
 
 static void
-build_desired_toolbar_string (f)
+build_desired_tool_bar_string (f)
      struct frame *f;
 {
   int i, size, size_needed, string_idx;
@@ -6273,60 +6276,60 @@ build_desired_toolbar_string (f)
   image = plist = props = Qnil;
   GCPRO3 (image, plist, props);
 
-  /* Prepare F->desired_toolbar_string.  If we can reuse it, do so.
+  /* Prepare F->desired_tool_bar_string.  If we can reuse it, do so.
      Otherwise, make a new string.  */
   
   /* The size of the string we might be able to reuse.  */
-  size = (STRINGP (f->desired_toolbar_string)
-	  ? XSTRING (f->desired_toolbar_string)->size
+  size = (STRINGP (f->desired_tool_bar_string)
+	  ? XSTRING (f->desired_tool_bar_string)->size
 	  : 0);
 
   /* Each image in the string we build is preceded by a space,
      and there is a space at the end.  */
-  size_needed = f->n_desired_toolbar_items + 1;
+  size_needed = f->n_desired_tool_bar_items + 1;
 
-  /* Reuse f->desired_toolbar_string, if possible.  */
+  /* Reuse f->desired_tool_bar_string, if possible.  */
   if (size < size_needed)
-    f->desired_toolbar_string = Fmake_string (make_number (size_needed), ' ');
+    f->desired_tool_bar_string = Fmake_string (make_number (size_needed), ' ');
   else
     {
       props = list4 (Qdisplay, Qnil, Qmenu_item, Qnil);
       Fremove_text_properties (make_number (0), make_number (size),
-			       props, f->desired_toolbar_string);
+			       props, f->desired_tool_bar_string);
     }
 
   /* Put a `display' property on the string for the images to display,
-     put a `menu_item' property on toolbar items with a value that
-     is the index of the item in F's toolbar item vector.  */
+     put a `menu_item' property on tool-bar items with a value that
+     is the index of the item in F's tool-bar item vector.  */
   for (i = 0, string_idx = 0;
-       i < f->n_desired_toolbar_items;
+       i < f->n_desired_tool_bar_items;
        ++i, string_idx += 1)
     {
 #define PROP(IDX)					\
-      (XVECTOR (f->desired_toolbar_items)		\
-       ->contents[i * TOOLBAR_ITEM_NSLOTS + (IDX)])
+      (XVECTOR (f->desired_tool_bar_items)		\
+       ->contents[i * TOOL_BAR_ITEM_NSLOTS + (IDX)])
 
-      int enabled_p = !NILP (PROP (TOOLBAR_ITEM_ENABLED_P));
-      int selected_p = !NILP (PROP (TOOLBAR_ITEM_SELECTED_P));
+      int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
+      int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int margin, relief;
       extern Lisp_Object QCrelief, QCmargin, QCalgorithm, Qimage;
       extern Lisp_Object Qlaplace;
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
-      image = PROP (TOOLBAR_ITEM_IMAGES);
+      image = PROP (TOOL_BAR_ITEM_IMAGES);
       if (VECTORP (image))
 	{
-	  enum toolbar_item_image idx;
+	  enum tool_bar_item_image idx;
 	  
 	  if (enabled_p)
 	    idx = (selected_p
-		   ? TOOLBAR_IMAGE_ENABLED_SELECTED
-		   : TOOLBAR_IMAGE_ENABLED_DESELECTED);
+		   ? TOOL_BAR_IMAGE_ENABLED_SELECTED
+		   : TOOL_BAR_IMAGE_ENABLED_DESELECTED);
 	  else
 	    idx = (selected_p
-		   ? TOOLBAR_IMAGE_DISABLED_SELECTED
-		   : TOOLBAR_IMAGE_DISABLED_DESELECTED);
+		   ? TOOL_BAR_IMAGE_DISABLED_SELECTED
+		   : TOOL_BAR_IMAGE_DISABLED_DESELECTED);
 	  
 	  xassert (XVECTOR (image)->size >= idx);
 	  image = XVECTOR (image)->contents[idx];
@@ -6336,14 +6339,14 @@ build_desired_toolbar_string (f)
       if (!valid_image_p (image))
 	continue;
 
-      /* Display the toolbar button pressed, or depressed.  */
+      /* Display the tool-bar button pressed, or depressed.  */
       plist = Fcopy_sequence (XCDR (image));
 
       /* Compute margin and relief to draw.  */
-      relief = toolbar_button_relief > 0 ? toolbar_button_relief : 3;
-      margin = relief + max (0, toolbar_button_margin);
+      relief = tool_bar_button_relief > 0 ? tool_bar_button_relief : 3;
+      margin = relief + max (0, tool_bar_button_margin);
       
-      if (auto_raise_toolbar_buttons_p)
+      if (auto_raise_tool_bar_buttons_p)
 	{
 	  /* Add a `:relief' property to the image spec if the item is
 	     selected.  */
@@ -6376,14 +6379,14 @@ build_desired_toolbar_string (f)
       
       /* Put a `display' text property on the string for the image to
 	 display.  Put a `menu-item' property on the string that gives
-	 the start of this item's properties in the toolbar items
+	 the start of this item's properties in the tool-bar items
 	 vector.  */
       image = Fcons (Qimage, plist);
       props = list4 (Qdisplay, image,
-		     Qmenu_item, make_number (i * TOOLBAR_ITEM_NSLOTS)),
+		     Qmenu_item, make_number (i * TOOL_BAR_ITEM_NSLOTS)),
       Fadd_text_properties (make_number (string_idx),
 			    make_number (string_idx + 1),
-			    props, f->desired_toolbar_string);
+			    props, f->desired_tool_bar_string);
 #undef PROP
     }
 
@@ -6391,10 +6394,10 @@ build_desired_toolbar_string (f)
 }
 
 
-/* Display one line of the toolbar of frame IT->f.  */
+/* Display one line of the tool-bar of frame IT->f.  */
 
 static void
-display_toolbar_line (it)
+display_tool_bar_line (it)
      struct it *it;
 {
   struct glyph_row *row = it->glyph_row;
@@ -6452,7 +6455,7 @@ display_toolbar_line (it)
   last->right_box_line_p = 1;
   compute_line_metrics (it);
   
-  /* If line is empty, make it occupy the rest of the toolbar.  */
+  /* If line is empty, make it occupy the rest of the tool-bar.  */
   if (!row->displays_text_p)
     {
       row->height = row->phys_height = it->last_visible_y - row->y;
@@ -6471,39 +6474,39 @@ display_toolbar_line (it)
 }
 
 
-/* Value is the number of screen lines needed to make all toolbar
+/* Value is the number of screen lines needed to make all tool-bar
    items of frame F visible.  */
 
 static int
-toolbar_lines_needed (f)
+tool_bar_lines_needed (f)
      struct frame *f;
 {
-  struct window *w = XWINDOW (f->toolbar_window);
+  struct window *w = XWINDOW (f->tool_bar_window);
   struct it it;
   
-  /* Initialize an iterator for iteration over F->desired_toolbar_string
-     in the toolbar window of frame F.  */
-  init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOLBAR_FACE_ID);
+  /* Initialize an iterator for iteration over
+     F->desired_tool_bar_string in the tool-bar window of frame F.  */
+  init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_WINDOW_WIDTH (f) * CANON_X_UNIT (f);
-  reseat_to_string (&it, NULL, f->desired_toolbar_string, 0, 0, 0, -1);
+  reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
   while (!ITERATOR_AT_END_P (&it))
     {
       it.glyph_row = w->desired_matrix->rows;
       clear_glyph_row (it.glyph_row);
-      display_toolbar_line (&it);
+      display_tool_bar_line (&it);
     }
 
   return (it.current_y + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
 }
 
 
-/* Display the toolbar of frame F.  Value is non-zero if toolbar's
+/* Display the tool-bar of frame F.  Value is non-zero if tool-bar's
    height should be changed.  */
 
 static int
-redisplay_toolbar (f)
+redisplay_tool_bar (f)
      struct frame *f;
 {
   struct window *w;
@@ -6511,65 +6514,65 @@ redisplay_toolbar (f)
   struct glyph_row *row;
   int change_height_p = 0;
   
-  /* If frame hasn't a toolbar window or if it is zero-height, don't
-     do anything.  This means you must start with toolbar-lines
+  /* If frame hasn't a tool-bar window or if it is zero-height, don't
+     do anything.  This means you must start with tool-bar-lines
      non-zero to get the auto-sizing effect.  Or in other words, you
-     can turn off toolbars by specifying toolbar-lines zero.  */
-  if (!WINDOWP (f->toolbar_window)
-      || (w = XWINDOW (f->toolbar_window),
+     can turn off tool-bars by specifying tool-bar-lines zero.  */
+  if (!WINDOWP (f->tool_bar_window)
+      || (w = XWINDOW (f->tool_bar_window),
 	  XFASTINT (w->height) == 0))
     return 0;
 
-  /* Set up an iterator for the toolbar window.  */
-  init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOLBAR_FACE_ID);
+  /* Set up an iterator for the tool-bar window.  */
+  init_iterator (&it, w, -1, -1, w->desired_matrix->rows, TOOL_BAR_FACE_ID);
   it.first_visible_x = 0;
   it.last_visible_x = FRAME_WINDOW_WIDTH (f) * CANON_X_UNIT (f);
   row = it.glyph_row;
 
-  /* Build a string that represents the contents of the toolbar.  */
-  build_desired_toolbar_string (f);
-  reseat_to_string (&it, NULL, f->desired_toolbar_string, 0, 0, 0, -1);
+  /* Build a string that represents the contents of the tool-bar.  */
+  build_desired_tool_bar_string (f);
+  reseat_to_string (&it, NULL, f->desired_tool_bar_string, 0, 0, 0, -1);
 
-  /* Display as many lines as needed to display all toolbar items.  */
+  /* Display as many lines as needed to display all tool-bar items.  */
   while (it.current_y < it.last_visible_y)
-    display_toolbar_line (&it);
+    display_tool_bar_line (&it);
 
-  /* It doesn't make much sense to try scrolling in the toolbar
+  /* It doesn't make much sense to try scrolling in the tool-bar
      window, so don't do it.  */
   w->desired_matrix->no_scrolling_p = 1;
   w->must_be_updated_p = 1;
 
-  if (auto_resize_toolbars_p)
+  if (auto_resize_tool_bars_p)
     {
       int nlines;
       
       /* If there are blank lines at the end, except for a partially
 	 visible blank line at the end that is smaller than
-	 CANON_Y_UNIT, change the toolbar's height.  */
+	 CANON_Y_UNIT, change the tool-bar's height.  */
       row = it.glyph_row - 1;
       if (!row->displays_text_p
 	  && row->height >= CANON_Y_UNIT (f))
 	change_height_p = 1;
 
-      /* If row displays toolbar items, but is partially visible,
-	 change the toolbar's height.  */
+      /* If row displays tool-bar items, but is partially visible,
+	 change the tool-bar's height.  */
       if (row->displays_text_p
 	  && MATRIX_ROW_BOTTOM_Y (row) > it.last_visible_y)
 	change_height_p = 1;
 
-      /* Resize windows as needed by changing the `toolbar-lines'
+      /* Resize windows as needed by changing the `tool-bar-lines'
 	 frame parameter.  */
       if (change_height_p
-	  && (nlines = toolbar_lines_needed (f),
+	  && (nlines = tool_bar_lines_needed (f),
 	      nlines != XFASTINT (w->height)))
 	{
-	  extern Lisp_Object Qtoolbar_lines;
+	  extern Lisp_Object Qtool_bar_lines;
 	  Lisp_Object frame;
 	  
 	  XSETFRAME (frame, f);
 	  clear_glyph_matrix (w->desired_matrix);
 	  Fmodify_frame_parameters (frame,
-				    Fcons (Fcons (Qtoolbar_lines,
+				    Fcons (Fcons (Qtool_bar_lines,
 						  make_number (nlines)),
 					   Qnil));
 	  fonts_changed_p = 1;
@@ -6580,13 +6583,13 @@ redisplay_toolbar (f)
 }
 
 
-/* Get information about the toolbar item which is displayed in GLYPH
-   on frame F.  Return in *PROP_IDX the index where toolbar item
-   properties start in F->current_toolbar_items.  Value is zero if
-   GLYPH doesn't display a toolbar item.  */
+/* Get information about the tool-bar item which is displayed in GLYPH
+   on frame F.  Return in *PROP_IDX the index where tool-bar item
+   properties start in F->current_tool_bar_items.  Value is zero if
+   GLYPH doesn't display a tool-bar item.  */
 
 int
-toolbar_item_info (f, glyph, prop_idx)
+tool_bar_item_info (f, glyph, prop_idx)
      struct frame *f;
      struct glyph *glyph;
      int *prop_idx;
@@ -6596,9 +6599,9 @@ toolbar_item_info (f, glyph, prop_idx)
   
   /* Get the text property `menu-item' at pos. The value of that
      property is the start index of this item's properties in
-     F->current_toolbar_items.  */
+     F->current_tool_bar_items.  */
   prop = Fget_text_property (make_number (glyph->charpos),
-			     Qmenu_item, f->current_toolbar_string);
+			     Qmenu_item, f->current_tool_bar_string);
   if (INTEGERP (prop))
     {
       *prop_idx = XINT (prop);
@@ -6990,7 +6993,7 @@ redisplay_internal (preserve_echo_area)
   if (frame_garbaged)
     clear_garbaged_frames ();
 
-  /* Build menubar and toolbar items.  */
+  /* Build menubar and tool-bar items.  */
   prepare_menu_bars ();
 
   if (windows_or_buffers_changed)
@@ -8206,7 +8209,7 @@ redisplay_window (window, just_this_one_p)
 	{
 	  if (update_mode_line)
 	    /* We may have to update a tty frame's menu bar or a
-	       toolbar.  Example `M-x C-h C-h C-g'.  */
+	       tool-bar.  Example `M-x C-h C-h C-g'.  */
 	    goto finish_menu_bars;
 	  else
 	    /* We've already displayed the echo area glyphs in this window.  */
@@ -8923,10 +8926,10 @@ redisplay_window (window, just_this_one_p)
         display_menu_bar (w);
 
 #ifdef HAVE_WINDOW_SYSTEM
-      if (WINDOWP (f->toolbar_window)
-	  && (FRAME_TOOLBAR_LINES (f) > 0
-	      || auto_resize_toolbars_p))
-	redisplay_toolbar (f);
+      if (WINDOWP (f->tool_bar_window)
+	  && (FRAME_TOOL_BAR_LINES (f) > 0
+	      || auto_resize_tool_bars_p))
+	redisplay_tool_bar (f);
 #endif
     }
 
@@ -9613,6 +9616,51 @@ sync_frame_with_window_matrix_rows (w)
 }
 
 
+/* Find the glyph row in window W containing CHARPOS.  Consider all
+   rows between START and END (not inclusive).  END null means search
+   all rows to the end of the display area of W.  Value is the row
+   containing CHARPOS or null.  */
+
+static struct glyph_row *
+row_containing_pos (w, charpos, start, end)
+     struct window *w;
+     int charpos;
+     struct glyph_row *start, *end;
+{
+  struct glyph_row *row = start;
+  int last_y;
+
+  /* If we happen to start on a header-line, skip that.  */
+  if (row->mode_line_p)
+    ++row;
+  
+  if ((end && row >= end) || !row->enabled_p)
+    return NULL;
+  
+  last_y = window_text_bottom_y (w);
+      
+  while ((end == NULL || row < end)
+	 && (MATRIX_ROW_END_CHARPOS (row) < charpos
+	     /* The end position of a row equals the start
+		position of the next row.  If CHARPOS is there, we
+		would rather display it in the next line, except
+		when this line ends in ZV.  */
+	     || (MATRIX_ROW_END_CHARPOS (row) == charpos
+		 && (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
+		     || !row->ends_at_zv_p)))
+	 && MATRIX_ROW_BOTTOM_Y (row) < last_y)
+    ++row;
+      
+  /* Give up if CHARPOS not found.  */
+  if ((end && row >= end)
+      || charpos < MATRIX_ROW_START_CHARPOS (row)
+      || charpos > MATRIX_ROW_END_CHARPOS (row))
+    row = NULL;
+
+  return row;
+}
+
+
 /* Try to redisplay window W by reusing its existing display.  W's
    current matrix must be up to date when this function is called,
    i.e. window_end_valid must not be nil.
@@ -9885,38 +9933,19 @@ try_window_id (w)
       if (PT < CHARPOS (start_pos)
 	  && last_unchanged_at_beg_row)
 	{
-	  row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-	  while (row <= last_unchanged_at_beg_row
-		 && MATRIX_ROW_END_CHARPOS (row) <= PT)
-	    ++row;
-	  xassert (row <= last_unchanged_at_beg_row);
+	  row = row_containing_pos (w, PT,
+				    MATRIX_FIRST_TEXT_ROW (w->current_matrix),
+				    last_unchanged_at_beg_row + 1);
+	  xassert (row && row <= last_unchanged_at_beg_row);
 	  set_cursor_from_row (w, row, w->current_matrix, 0, 0, 0, 0);
 	}
 
       /* Start from first_unchanged_at_end_row looking for PT.  */
       else if (first_unchanged_at_end_row)
 	{
-	  row = first_unchanged_at_end_row;
-	  
-	  while (MATRIX_ROW_DISPLAYS_TEXT_P (row))
-	    {
-	      if (PT - delta >= MATRIX_ROW_START_CHARPOS (row)
-		  && PT - delta < MATRIX_ROW_END_CHARPOS (row))
-		{
-		  set_cursor_from_row (w, row, w->current_matrix, delta,
-				       delta_bytes, dy, dvpos);
-		  break;
-		}
-	      else if (MATRIX_ROW_BOTTOM_Y (row) >= last_y)
-		break;
-	      ++row;
-	    }
-
-	  /* If PT is at ZV, this is not in a line displaying text.
-	     Check that case.  */
-	  if (w->cursor.vpos < 0
-	      && PT - delta == MATRIX_ROW_START_CHARPOS (row)
-	      && row->ends_at_zv_p)
+	  row = row_containing_pos (w, PT - delta,
+				    first_unchanged_at_end_row, NULL);
+	  if (row)
 	    set_cursor_from_row (w, row, w->current_matrix, delta,
 				 delta_bytes, dy, dvpos);
 	}
@@ -10348,11 +10377,11 @@ DEFUN ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 1, "",
 }
 
 
-DEFUN ("dump-toolbar-row", Fdump_toolbar_row, Sdump_toolbar_row,
+DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row,
        0, 0, "", "")
   ()
 {
-  struct glyph_matrix *m = (XWINDOW (selected_frame->toolbar_window)
+  struct glyph_matrix *m = (XWINDOW (selected_frame->tool_bar_window)
 			    ->current_matrix);
   dump_glyph_row (m, 0, 1);
   return Qnil;
@@ -12477,7 +12506,7 @@ syms_of_xdisp ()
 #if GLYPH_DEBUG
   defsubr (&Sdump_glyph_matrix);
   defsubr (&Sdump_glyph_row);
-  defsubr (&Sdump_toolbar_row);
+  defsubr (&Sdump_tool_bar_row);
   defsubr (&Strace_redisplay_toggle);
 #endif
 
@@ -12669,24 +12698,24 @@ and its new display-start position.  Note that the value of `window-end'\n\
 is not valid when these functions are called.");
   Vwindow_scroll_functions = Qnil;
   
-  DEFVAR_BOOL ("auto-resize-toolbars", &auto_resize_toolbars_p,
-    "*Non-nil means automatically resize toolbars.\n\
-This increases a toolbar's height if not all toolbar items are visible.\n\
-It decreases a toolbar's height when it would display blank lines\n\
+  DEFVAR_BOOL ("auto-resize-tool-bars", &auto_resize_tool_bars_p,
+    "*Non-nil means automatically resize tool-bars.\n\
+This increases a tool-bar's height if not all tool-bar items are visible.\n\
+It decreases a tool-bar's height when it would display blank lines\n\
 otherwise.");
-  auto_resize_toolbars_p = 1;
+  auto_resize_tool_bars_p = 1;
   
-  DEFVAR_BOOL ("auto-raise-toolbar-buttons", &auto_raise_toolbar_buttons_p,
-    "*Non-nil means raise toolbar buttons when the mouse moves over them.");
-  auto_raise_toolbar_buttons_p = 1;
+  DEFVAR_BOOL ("auto-raise-tool-bar-buttons", &auto_raise_tool_bar_buttons_p,
+    "*Non-nil means raise tool-bar buttons when the mouse moves over them.");
+  auto_raise_tool_bar_buttons_p = 1;
 
-  DEFVAR_INT ("toolbar-button-margin", &toolbar_button_margin,
-    "*Margin around toolbar buttons in pixels.");
-  toolbar_button_margin = 1;
+  DEFVAR_INT ("tool-bar-button-margin", &tool_bar_button_margin,
+    "*Margin around tool-bar buttons in pixels.");
+  tool_bar_button_margin = 1;
 
-  DEFVAR_INT ("toolbar-button-relief", &toolbar_button_relief,
-    "Relief thickness of toolbar buttons.");
-  toolbar_button_relief = 3;
+  DEFVAR_INT ("tool-bar-button-relief", &tool_bar_button_relief,
+    "Relief thickness of tool-bar buttons.");
+  tool_bar_button_relief = 3;
 
   DEFVAR_LISP ("fontification-functions", &Vfontification_functions,
     "List of functions to call to fontify regions of text.\n\
