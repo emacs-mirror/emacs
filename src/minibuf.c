@@ -415,7 +415,7 @@ minibuffer_completion_contents ()
    match the front of that history list exactly.  The value is pushed onto
    the list as the string that was read.
 
-   DEFALT specifies te default value for the sake of history commands.
+   DEFALT specifies the default value for the sake of history commands.
 
    If ALLOW_PROPS is nonzero, we do not throw away text properties.
 
@@ -441,6 +441,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Lisp_Object mini_frame, ambient_dir, minibuffer, input_method;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   Lisp_Object enable_multibyte;
+
+  /* String to add to the history.  */
+  Lisp_Object histstring;
+
   extern Lisp_Object Qfront_sticky;
   extern Lisp_Object Qrear_nonsticky;
 
@@ -675,9 +679,17 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   last_minibuf_string = val;
 
-  /* Add the value to the appropriate history list unless it is empty.  */
-  if (SCHARS (val) != 0
-      && SYMBOLP (Vminibuffer_history_variable))
+  /* Choose the string to add to the history.  */
+  if (SCHARS (val) != 0)
+    histstring = val;
+  else if (STRINGP (defalt))
+    histstring = defalt;
+  else
+    histstring = Qnil;
+
+  /* Add the value to the appropriate history list, if any.  */
+  if (SYMBOLP (Vminibuffer_history_variable)
+      && !NILP (histstring))
     {
       /* If the caller wanted to save the value read on a history list,
 	 then do so if the value is not already the front of the list.  */
@@ -691,13 +703,15 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
       /* The value of the history variable must be a cons or nil.  Other
 	 values are unacceptable.  We silently ignore these values.  */
+
       if (NILP (histval)
 	  || (CONSP (histval)
-	      && NILP (Fequal (last_minibuf_string, Fcar (histval)))))
+	      /* Don't duplicate the most recent entry in the history.  */
+	      && NILP (Fequal (histstring, Fcar (histval)))))
 	{
 	  Lisp_Object length;
 
-	  histval = Fcons (last_minibuf_string, histval);
+	  histval = Fcons (histstring, histval);
 	  Fset (Vminibuffer_history_variable, histval);
 
 	  /* Truncate if requested.  */
@@ -2058,7 +2072,7 @@ Return nil if there is no valid completion, else t.  */)
 	    i++;
 	    buffer_nchars--;
 	  }
-	del_range (1, i + 1);
+	del_range (start_pos, start_pos + buffer_nchars);
       }
     UNGCPRO;
   }
