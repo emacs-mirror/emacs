@@ -1,5 +1,5 @@
 /* Minibuffer input and completion.
-   Copyright (C) 1985,86,93,94,95,96,97,98,99,2000,01,03
+   Copyright (C) 1985,86,93,94,95,96,97,98,99,2000,01,03,04
              Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -209,6 +209,7 @@ without invoking the usual minibuffer commands.  */)
 /* Actual minibuffer invocation. */
 
 static Lisp_Object read_minibuf_unwind P_ ((Lisp_Object));
+static Lisp_Object run_exit_minibuf_hook P_ ((Lisp_Object));
 static Lisp_Object read_minibuf P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object, Lisp_Object,
 				     int, Lisp_Object,
@@ -563,6 +564,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   record_unwind_protect (read_minibuf_unwind, Qnil);
   minibuf_level++;
+  /* We are exiting the minibuffer one way or the other, so run the hook.
+     It should be run before unwinding the minibuf settings.  Do it
+     separately from read_minibuf_unwind because we need to make sure that
+     read_minibuf_unwind is fully executed even if exit-minibuffer-hook
+     signals an error.  --Stef  */
+  record_unwind_protect (run_exit_minibuf_hook, Qnil);
 
   /* Now that we can restore all those variables, start changing them.  */
 
@@ -822,6 +829,17 @@ get_minibuffer (depth)
   return buf;
 }
 
+static Lisp_Object
+run_exit_minibuf_hook (data)
+     Lisp_Object data;
+{
+  if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
+      && !NILP (Vrun_hooks))
+    safe_run_hooks (Qminibuffer_exit_hook);
+
+  return Qnil;
+}
+
 /* This function is called on exiting minibuffer, whether normally or
    not, and it restores the current window, buffer, etc. */
 
@@ -831,12 +849,6 @@ read_minibuf_unwind (data)
 {
   Lisp_Object old_deactivate_mark;
   Lisp_Object window;
-
-  /* We are exiting the minibuffer one way or the other,
-     so run the hook.  */
-  if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
-      && !NILP (Vrun_hooks))
-    safe_run_hooks (Qminibuffer_exit_hook);
 
   /* If this was a recursive minibuffer,
      tie the minibuffer window back to the outer level minibuffer buffer.  */
