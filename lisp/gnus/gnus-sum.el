@@ -3,7 +3,6 @@
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; Maintainer: bugs@gnus.org
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -635,6 +634,7 @@ This variable is local to the summary buffers."
 (defcustom gnus-summary-mode-hook nil
   "*A hook for Gnus summary mode.
 This hook is run before any variables are set in the summary buffer."
+  :options '(turn-on-gnus-mailing-list-mode)
   :group 'gnus-summary-various
   :type 'hook)
 
@@ -1133,7 +1133,7 @@ the type of the variable (string, integer, character, etc).")
   "Variables that are buffer-local to the summary buffers.")
 
 ;; Byte-compiler warning.
-(defvar gnus-article-mode-map)
+(eval-when-compile (defvar gnus-article-mode-map))
 
 ;; MIME stuff.
 
@@ -1735,7 +1735,8 @@ increase the score of each group you read."
               ["Show X-Face" gnus-article-display-x-face t]
               ["Quoted-Printable" gnus-article-de-quoted-unreadable t]
               ["Base64" gnus-article-de-base64-unreadable t]
-              ["Rot 13" gnus-summary-caesar-message t]
+              ["Rot 13" gnus-summary-caesar-message
+	       :help "\"Caesar rotate\" article by 13"]
               ["Unix pipe" gnus-summary-pipe-message t]
               ["Add buttons" gnus-article-add-buttons t]
               ["Add buttons to head" gnus-article-add-buttons-to-head t]
@@ -1745,8 +1746,10 @@ increase the score of each group you read."
 	      ["Html" gnus-article-wash-html t]
 	      ["HZ" gnus-article-decode-HZ t])
              ("Output"
-              ["Save in default format" gnus-summary-save-article t]
-              ["Save in file" gnus-summary-save-article-file t]
+              ["Save in default format" gnus-summary-save-article
+	       :help "Save article using default method"]
+              ["Save in file" gnus-summary-save-article-file
+	       :help "Save article in file"]
               ["Save in Unix mail format" gnus-summary-save-article-mail t]
               ["Save in MH folder" gnus-summary-save-article-folder t]
               ["Save in VM folder" gnus-summary-save-article-vm t]
@@ -1777,7 +1780,8 @@ increase the score of each group you read."
                (gnus-check-backend-function
                 'request-expire-articles gnus-newsgroup-name)])
              ("Extract"
-              ["Uudecode" gnus-uu-decode-uu t]
+              ["Uudecode" gnus-uu-decode-uu
+	       :help "Decode uuencoded article(s)"]
               ["Uudecode and save" gnus-uu-decode-uu-and-save t]
               ["Unshar" gnus-uu-decode-unshar t]
               ["Unshar and save" gnus-uu-decode-unshar-and-save t]
@@ -1827,15 +1831,20 @@ increase the score of each group you read."
     (easy-menu-define
      gnus-summary-post-menu gnus-summary-mode-map ""
      '("Post"
-       ["Post an article" gnus-summary-post-news t]
-       ["Followup" gnus-summary-followup t]
-       ["Followup and yank" gnus-summary-followup-with-original t]
+       ["Post an article" gnus-summary-post-news
+	:help "Post an article"]
+       ["Followup" gnus-summary-followup
+	:help "Post followup to this article"]
+       ["Followup and yank" gnus-summary-followup-with-original
+	:help "Post followup to this article, quoting its contents"]
        ["Supersede article" gnus-summary-supersede-article t]
-       ["Cancel article" gnus-summary-cancel-article t]
+       ["Cancel article" gnus-summary-cancel-article
+	:help "Cancel an article you posted"]
        ["Reply" gnus-summary-reply t]
        ["Reply and yank" gnus-summary-reply-with-original t]
        ["Wide reply" gnus-summary-wide-reply t]
-       ["Wide reply and yank" gnus-summary-wide-reply-with-original t]
+       ["Wide reply and yank" gnus-summary-wide-reply-with-original
+	:help "Mail a reply, quoting this article"]
        ["Mail forward" gnus-summary-mail-forward t]
        ["Post forward" gnus-summary-post-forward t]
        ["Digest and mail" gnus-uu-digest-mail-forward t]
@@ -1843,7 +1852,8 @@ increase the score of each group you read."
        ["Resend message" gnus-summary-resend-message t]
        ["Send bounced mail" gnus-summary-resend-bounced-mail t]
        ["Send a mail" gnus-summary-mail-other-window t]
-       ["Uuencode and post" gnus-uu-post-news t]
+       ["Uuencode and post" gnus-uu-post-news
+	:help "Post a uuencoded article"]
        ["Followup via news" gnus-summary-followup-to-mail t]
        ["Followup via news and yank"
 	gnus-summary-followup-to-mail-with-original t]
@@ -1860,7 +1870,8 @@ increase the score of each group you read."
 	["Mark same subject and select"
 	 gnus-summary-kill-same-subject-and-select t]
 	["Mark same subject" gnus-summary-kill-same-subject t]
-	["Catchup" gnus-summary-catchup t]
+	["Catchup" gnus-summary-catchup
+	 :help "Mark unread articles in this group as read"]
 	["Catchup all" gnus-summary-catchup-all t]
 	["Catchup to here" gnus-summary-catchup-to-here t]
 	["Catchup region" gnus-summary-mark-region-as-read t]
@@ -1910,8 +1921,10 @@ increase the score of each group you read."
 	  gnus-newsgroup-process-stack]
 	 ["Save" gnus-summary-save-process-mark t]))
        ("Scroll article"
-	["Page forward" gnus-summary-next-page t]
-	["Page backward" gnus-summary-prev-page t]
+	["Page forward" gnus-summary-next-page
+	 :help "Show next page of article"]
+	["Page backward" gnus-summary-prev-page
+	 :help "Show previous page of article"]
 	["Line forward" gnus-summary-scroll-up t])
        ("Move"
 	["Next unread article" gnus-summary-next-unread-article t]
@@ -1962,10 +1975,12 @@ increase the score of each group you read."
        ["Customize group parameters" gnus-summary-customize-parameters t]
        ["Send a bug report" gnus-bug t]
        ("Exit"
-	["Catchup and exit" gnus-summary-catchup-and-exit t]
+	["Catchup and exit" gnus-summary-catchup-and-exit
+	 :help "Mark unread articles in this group as read, then exit"]
 	["Catchup all and exit" gnus-summary-catchup-all-and-exit t]
 	["Catchup and goto next" gnus-summary-catchup-and-goto-next-group t]
-	["Exit group" gnus-summary-exit t]
+	["Exit group" gnus-summary-exit
+	 :help "Exit current group, return to group selection mode"]
 	["Exit group without updating" gnus-summary-exit-no-update t]
 	["Exit and goto next group" gnus-summary-next-group t]
 	["Exit and goto prev group" gnus-summary-prev-group t]
@@ -1974,6 +1989,48 @@ increase the score of each group you read."
 	["Update dribble" gnus-summary-save-newsrc t])))
 
     (gnus-run-hooks 'gnus-summary-menu-hook)))
+
+(defvar gnus-summary-tool-bar-map nil)
+
+(defun gnus-summary-make-tool-bar ()
+  (if (and (fboundp 'tool-bar-add-item-from-menu)
+	   (default-value 'tool-bar-mode)
+	   (not gnus-summary-tool-bar-map))
+      (setq gnus-summary-tool-bar-map
+	    (let ((tool-bar-map (make-sparse-keymap)))
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-prev-unread "prev-ur" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-next-unread "next-ur" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-post-news "post" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-followup-with-original "fuwo" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-followup "followup" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-reply-with-original "reply-wo" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-reply "reply" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-caesar-message "rot13" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-uu-decode-uu "uu-decode" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-save-article-file "save-aif" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-save-article "save-art" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-uu-post-news "uu-post" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-catchup "catchup" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-catchup-and-exit "cu-exit" gnus-summary-mode-map)
+	      (tool-bar-add-item-from-menu
+	       'gnus-summary-exit "exit-summ" gnus-summary-mode-map)
+	      tool-bar-map)))
+  (if gnus-summary-tool-bar-map
+      (set (make-local-variable 'tool-bar-map) gnus-summary-tool-bar-map)))
 
 (defun gnus-score-set-default (var value)
   "A version of set that updates the GNU Emacs menu-bar."
@@ -2083,9 +2140,10 @@ The following commands are available:
 
 \\{gnus-summary-mode-map}"
   (interactive)
-  (when (gnus-visual-p 'summary-menu 'menu)
-    (gnus-summary-make-menu-bar))
   (kill-all-local-variables)
+  (when (gnus-visual-p 'summary-menu 'menu)
+    (gnus-summary-make-menu-bar)
+    (gnus-summary-make-tool-bar))
   (gnus-summary-make-local-variables)
   (gnus-make-thread-indent-array)
   (gnus-simplify-mode-line)
@@ -3817,7 +3875,7 @@ Unscored articles will be counted as having a score of zero."
 (defvar gnus-tmp-root-expunged nil)
 (defvar gnus-tmp-dummy-line nil)
 
-(defvar gnus-tmp-header)
+(eval-when-compile (defvar gnus-tmp-header))
 (defun gnus-extra-header (type &optional header)
   "Return the extra header of TYPE."
   (or (cdr (assq type (mail-header-extra (or header gnus-tmp-header))))
