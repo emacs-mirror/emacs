@@ -1,3 +1,12 @@
+2003-01-14  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el: Improve commentary.
+	(gdb-window-height, gdb-window-width, gdb-display-number-end):
+	Customize the dimensions of frames for displayed expressions.
+	(gdb-error-begin): Comment out because it is not used because of
+	bug/quirk in annotations.
+	(gdb-reset): Use with-current-buffer.
+
 2003-01-14  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-read-internal, ido-file-internal) 
