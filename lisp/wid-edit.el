@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -62,9 +62,6 @@
 (defun widget-event-point (event)
   "Character position of the end of event if that exists, or nil."
   (posn-point (event-end event)))
-
-(autoload 'pp-to-string "pp")
-(autoload 'Info-goto-node "info")
 
 (defun widget-button-release-event-p (event)
   "Non-nil if EVENT is a mouse-button-release event object."
@@ -236,8 +233,7 @@ minibuffer."
 	   ;; Define SPC as a prefix char to get to this menu.
 	   (define-key overriding-terminal-local-map " "
 	     (setq map (make-sparse-keymap title)))
-	   (save-excursion
-	     (set-buffer (get-buffer-create " widget-choose"))
+	   (with-current-buffer (get-buffer-create " widget-choose")
 	     (erase-buffer)
 	     (insert "Available choices:\n\n")
 	     (while items
@@ -304,7 +300,8 @@ minibuffer."
 ;;
 ;; These functions are for specifying text properties.
 
-(defvar widget-field-add-space t
+;; We can set it to nil now that get_local_map uses get_pos_property.
+(defconst widget-field-add-space nil
   "Non-nil means add extra space at the end of editable text fields.
 If you don't add the space, it will become impossible to edit a zero
 size field.")
@@ -570,7 +567,7 @@ respectively."
 	(widget nil)
 	(parent nil)
 	(overlays (if buffer
-		      (save-excursion (set-buffer buffer) (overlay-lists))
+		      (with-current-buffer buffer (overlay-lists))
 		    (overlay-lists))))
     (setq overlays (append (car overlays) (cdr overlays)))
     (while (setq cur (pop overlays))
@@ -1104,12 +1101,12 @@ When not inside a field, move to the previous button or field."
 
 ;;; Setting up the buffer.
 
-(defvar widget-field-new nil)
-;; List of all newly created editable fields in the buffer.
+(defvar widget-field-new nil
+  "List of all newly created editable fields in the buffer.")
 (make-variable-buffer-local 'widget-field-new)
 
-(defvar widget-field-list nil)
-;; List of all editable fields in the buffer.
+(defvar widget-field-list nil
+  "List of all editable fields in the buffer.")
 (make-variable-buffer-local 'widget-field-list)
 
 (defun widget-at (&optional pos)
@@ -1675,7 +1672,7 @@ If END is omitted, it defaults to the length of LIST."
 
 (defun widget-info-link-action (widget &optional event)
   "Open the info node specified by WIDGET."
-  (Info-goto-node (widget-value widget)))
+  (info (widget-value widget)))
 
 ;;; The `url-link' Widget.
 
