@@ -38,6 +38,9 @@ RUN-EMACS = ${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
 /else make quail/c\
 	if not exist quail\\nul make quail
 
+/if \[ -f $@ \]\; then true/d
+/fi$/s/; fi$//
+
 /^leim-list.el:/,/^$/ {
 	/^	if/d
 	/^	else/,/^	fi/d
