@@ -1771,7 +1771,7 @@ The alist key is the character the title is underlined with (?*, ?= or ?-).")
 				 nil t)
 	(put-text-property (match-beginning 1) (match-end 1)
 			   'face
-			   (assq (preceding-char) Info-title-face-alist))
+			   (cdr (assq (preceding-char) Info-title-face-alist)))
 	(put-text-property (match-end 1) (match-end 2)
 			   'invisible t))
       (goto-char (point-min))
