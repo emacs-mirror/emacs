@@ -1,3 +1,8 @@
+2001-12-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* idlwave.texi: Update maintainer.
+	(Acknowledgement): Update contributors.
+
 2001-12-01  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* mark.texi (Marking Objects): `M-h' accepts prefix arg.
