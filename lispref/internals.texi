@@ -345,6 +345,12 @@ operating system, but that are not currently being used.
 @end table
 @end deffn
 
+@defopt garbage-collection-messages
+If this variable is non-@code{nil}, Emacs displays a message at the
+beginning and end of garbage collection.  The default value is
+@code{nil}, meaning there are no such messages.
+@end defopt
+
 @defopt gc-cons-threshold
 The value of this variable is the number of bytes of storage that must
 be allocated for Lisp objects after one garbage collection in order to
