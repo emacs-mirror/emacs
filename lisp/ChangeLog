@@ -1,5 +1,8 @@
 2002-05-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* textmodes/flyspell.el (make-flyspell-overlay): Add help text
+	to flyspell overlays.
+
 	* info.el (Info-mode-map): Bind `c' to Info-copy-current-node-name.
 
 2002-05-08  Richard M. Stallman  <rms@gnu.org>
