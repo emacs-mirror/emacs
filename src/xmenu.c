@@ -2710,10 +2710,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
   /* All set and ready to fly.  */
   XMenuRecompute (FRAME_X_DISPLAY (f), menu);
-  dispwidth = DisplayWidth (FRAME_X_DISPLAY (f),
-			    XScreenNumberOfScreen (FRAME_X_SCREEN (f)));
-  dispheight = DisplayHeight (FRAME_X_DISPLAY (f),
-			      XScreenNumberOfScreen (FRAME_X_SCREEN (f)));
+  dispwidth = DisplayWidth (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
+  dispheight = DisplayHeight (FRAME_X_DISPLAY (f), FRAME_X_SCREEN_NUMBER (f));
   x = min (x, dispwidth);
   y = min (y, dispheight);
   x = max (x, 1);
