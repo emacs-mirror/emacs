@@ -2154,7 +2154,7 @@ is specified, returning t if it is specified."
 (put 'format-alist 'risky-local-variable t)
 (put 'vc-mode 'risky-local-variable t)
 (put 'imenu-generic-expression 'risky-local-variable t)
-(put 'imenu-index-alist 'risky-local-variable t)
+(put 'imenu--index-alist 'risky-local-variable t)
 (put 'standard-input 'risky-local-variable t)
 (put 'standard-output 'risky-local-variable t)
 (put 'unread-command-events 'risky-local-variable t)
