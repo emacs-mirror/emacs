@@ -1,5 +1,9 @@
 2000-12-04  Kenichi Handa  <handa@etl.go.jp>
 
+	* xterm.c (x_produce_glyphs): If a font for a component of
+	a composition is not found, use 1 pixel dot ascent and 0 dot
+	descent value to avoid displaying terribly tall empty boxes.
+
 	* ccl.c (stack_idx_of_map_multiple): Don't use C initializier.
 
 2000-12-03  Ken Raeburn  <raeburn@gnu.org>
