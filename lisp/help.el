@@ -1134,7 +1134,7 @@ that."
 			     (sym (intern-soft data)))
 			(cond
 			 ((match-string 3) ; coding system
-			  (and (coding-system-p sym)
+			  (and sym (coding-system-p sym)
 			       (help-xref-button
 				5 #'describe-coding-system sym
 				"mouse-2, RET: describe this coding system")))
@@ -1143,7 +1143,7 @@ that."
 			       (help-xref-button
 				5 #'describe-input-method data
 				"mouse-2, RET: describe this input method")))
-			 ((coding-system-p sym)
+			 ((and sym (coding-system-p sym))
 			  (help-xref-button
 			   5 #'describe-coding-system sym
 			   "mouse-2, RET: describe this coding system"))
