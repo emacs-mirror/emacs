@@ -1089,6 +1089,35 @@ in BODY."
 	 . ,body)
      (combine-after-change-execute)))
 
+
+(defvar combine-run-hooks t
+  "List of hooks delayed. Or t if we're not delaying hooks.")
+
+(defmacro combine-run-hooks (&rest body)
+  "Execute BODY, but delay any `run-hooks' until the end."
+  (let ((saved-combine-run-hooks (make-symbol "saved-combine-run-hooks"))
+	(saved-run-hooks (make-symbol "saved-run-hooks")))
+    `(let ((,saved-combine-run-hooks combine-run-hooks)
+	   (,saved-run-hooks (symbol-function 'run-hooks)))
+       (unwind-protect
+	   (progn
+	     ;; If we're not delaying hooks yet, setup the delaying mode
+	     (unless (listp combine-run-hooks)
+	       (setq combine-run-hooks nil)
+	       (fset 'run-hooks
+		     ,(lambda (&rest hooks)
+			(setq combine-run-hooks
+			      (append combine-run-hooks hooks)))))
+	     ,@body)
+	 ;; If we were not already delaying, then it's now time to set things
+	 ;; back to normal and to execute the delayed hooks.
+	 (unless (listp ,saved-combine-run-hooks)
+	   (setq ,saved-combine-run-hooks combine-run-hooks)
+	   (fset 'run-hooks ,saved-run-hooks)
+	   (setq combine-run-hooks t)
+	   (apply 'run-hooks ,saved-combine-run-hooks))))))
+
+
 (defmacro with-syntax-table (table &rest body)
   "Evaluate BODY with syntax table of current buffer set to a copy of TABLE.
 The syntax table of the current buffer is saved, BODY is evaluated, and the
