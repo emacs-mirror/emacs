@@ -64,9 +64,11 @@ and this notice must be preserved on all copies.  */
 /* Define if netdb.h declares h_errno.  */
 #undef HAVE_H_ERRNO
 
+/* Nowadays we have frame objects even if we support only ASCII terminals.  */
+#define MULTI_FRAME
+
 /* If we're using any sort of window system, define some consequences.  */
 #ifdef HAVE_X_WINDOWS
-#define MULTI_FRAME
 #define HAVE_FACES
 #define HAVE_MOUSE
 #endif
