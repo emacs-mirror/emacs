@@ -1,5 +1,8 @@
 2001-06-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* international/quail.el (quail-start-conversion): Reset
+	quail-translating to nil.
+
 	* antlr-mode.el (antlr-mode): Check that `c-Java-access-key' is
 	bound.  Suggested by David B. Malkovsky <David.Malkovsky@sas.com>.
 
