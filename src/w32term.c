@@ -28,6 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #include "blockinput.h"
 
 #include "w32term.h"
+#include <shellapi.h>
 
 #include "systty.h"
 #include "systime.h"
@@ -1406,6 +1407,52 @@ construct_mouse_wheel (result, msg, f)
   XSETINT (result->x, p.x);
   XSETINT (result->y, p.y);
   XSETFRAME (result->frame_or_window, f);
+}
+
+static void
+construct_drag_n_drop (result, msg, f)
+     struct input_event *result;
+     W32Msg *msg;
+     struct frame *f;
+{
+  Lisp_Object files;
+  Lisp_Object frame;
+  HDROP hdrop;
+  POINT p;
+  WORD num_files;
+  char *name;
+  int i, len;
+
+  result->kind = drag_n_drop;
+  result->code = 0;
+  result->timestamp = msg->msg.time;
+  result->modifiers = msg->dwModifiers;
+
+  p.x = LOWORD (msg->msg.lParam);
+  p.y = HIWORD (msg->msg.lParam);
+  ScreenToClient (msg->msg.hwnd, &p);
+  XSETINT (result->x, p.x);
+  XSETINT (result->y, p.y);
+
+  hdrop = (HDROP) msg->msg.wParam;
+  DragQueryPoint (hdrop, &p);
+  num_files = DragQueryFile (hdrop, 0xFFFFFFFF, NULL, 0);
+  files = Qnil;
+
+  for (i = 0; i < num_files; i++)
+    {
+      len = DragQueryFile (hdrop, i, NULL, 0);
+      if (len <= 0)
+	continue;
+      name = alloca (len + 1);
+      DragQueryFile (hdrop, i, name, len + 1);
+      files = Fcons (build_string (name), files);
+    }
+
+  DragFinish (hdrop);
+
+  XSETFRAME (frame, f);
+  result->frame_or_window = Fcons (frame, files);
 }
 
 
@@ -2989,6 +3036,18 @@ w32_read_socket (sd, bufp, numchars, expected)
                   numchars--;
                 }
             }
+	  break;
+
+	case WM_DROPFILES:
+	  f = x_window_to_frame (dpyinfo, msg.msg.hwnd);
+
+	  if (f)
+	    {
+	      construct_drag_n_drop (bufp, &msg, f);
+	      bufp++;
+	      count++;
+	      numchars--;
+	    }
 	  break;
 
 	case WM_VSCROLL:
