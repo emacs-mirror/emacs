@@ -1,3 +1,10 @@
+2004-11-30  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-recompute-state): Moved here from vc.el.
+
+	* vc-cvs.el (vc-cvs-state): Handle the case where vc-state is
+	still nil.
+
 2004-11-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emulation/tpu-edt.el (tpu-help-keypad-map, tpu-help-text)
