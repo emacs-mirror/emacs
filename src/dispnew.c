@@ -100,6 +100,9 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif /* not __GNU_LIBRARY__ */
 
+#if defined (LINUX) && defined (HAVE_LIBNCURSES)
+#include <term.h>		/* for tgetent */
+#endif
 
 /* Structure to pass dimensions around.  Used for character bounding
    boxes, glyph matrix dimensions and alike.  */
