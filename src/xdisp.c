@@ -170,6 +170,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <stdio.h>
 #include "lisp.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "termchar.h"
@@ -182,7 +183,6 @@ Boston, MA 02111-1307, USA.  */
 #include "disptab.h"
 #include "termhooks.h"
 #include "intervals.h"
-#include "keyboard.h"
 #include "coding.h"
 #include "process.h"
 #include "region-cache.h"
@@ -523,22 +523,17 @@ static int last_max_ascent, last_height;
 
 int trace_redisplay_p;
 
-/* Non-zero means trace with TRACE_MOVE to stderr.  */
-
-int trace_move;
+#endif /* GLYPH_DEBUG */
 
 #ifdef DEBUG_TRACE_MOVE
+/* Non-zero means trace with TRACE_MOVE to stderr.  */
+int trace_move;
+
 #define TRACE_MOVE(x)	if (trace_move) fprintf x; else (void) 0
 #else
 #define TRACE_MOVE(x)	(void) 0
 #endif
-
-#else /* not GLYPH_DEBUG */
-
-#define TRACE_MOVE(x)	(void) 0
-
-#endif /* not GLYPH_DEBUG */
-
+ 
 /* Non-zero means automatically scroll windows horizontally to make
    point visible.  */
 
