@@ -1454,7 +1454,7 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
 				     emerge-merging-values)))))
 
 (defun emerge-restore-buffer-characteristics ()
-  "Restores characteristics saved by `emerge-remember-buffer-characteristics'."
+  "Restore characteristics saved by `emerge-remember-buffer-characteristics'."
   (let ((A-values emerge-A-buffer-values)
 	(B-values emerge-B-buffer-values))
     (emerge-eval-in-buffer emerge-A-buffer
@@ -3112,7 +3112,7 @@ SPC, it is ignored; if it is anything else, it is processed as a command."
 		  (setq unread-command-events (list c)))))
 	(erase-buffer)))))
 
-;; Improved auto-save gfile names.
+;; Improved auto-save file names.
 ;; This function fixes many problems with the standard auto-save file names:
 ;; Auto-save files for non-file buffers get put in the default directory
 ;; for the buffer, whether that makes sense or not.
