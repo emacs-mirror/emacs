@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Minibuffer, M-x, Basic, Top
 @chapter The Minibuffer
@@ -365,15 +366,27 @@ automatically displays a list of all possible completions.  If the variable
 and you must type @kbd{?} to display the possible completions.
 
 @pindex complete
+@cindex Partial Completion mode
+@vindex partial-completion-mode
+@findex partial-completion-mode
+@vindex PC-include-file-path
+@vindex PC-disable-includes
   The @code{complete} library implements a more powerful kind of
 completion that can complete multiple words at a time.  For example, it
 can complete the command name abbreviation @code{p-b} into
 @code{print-buffer}, because no other command starts with two words
-whose initials are @samp{p} and @samp{b}.  To use this library, put
-@code{(load "complete")} in your @file{~/.emacs} file (@pxref{Init
-File}).
+whose initials are @samp{p} and @samp{b}.  To enable this, use the
+command @kbd{M-x partial-completion-mode} or customize the option
+@code{partial-completion-mode}.  Unless the option
+@code{PC-disable-includes} is @code{t}, Partial Completion mode also
+extends @kbd{M-x find-file} so that the @samp{<@dots{}>} sequence is
+interpreted as a file on the path @code{PC-include-file-path}.  When
+this mode is active, the Meta versions of the @kbd{TAB}, @kbd{SPC},
+@kbd{RET} and @kbd{?} keys act as those keys do by default for
+completion.
 
 @cindex Icomplete mode
+@findex icomplete-mode
   Icomplete mode presents a constantly-updated display that tells you
 what completions are available for the text you've entered so far.  The
 command to enable or disable this minor mode is @kbd{M-x
