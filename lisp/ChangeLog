@@ -7,6 +7,8 @@
 	isn't followed by an entity.
 	(xml-parse-tag): Concatnate any string following the a
 	<![CDATA[]]> section to the parsed CDATA.
+	(xml-parse-dtd): Skip parameter entity declarations and use of
+	parameter entities.
 
 2004-12-01  Luc Teirlinck  <teirllm@auburn.edu>
 
