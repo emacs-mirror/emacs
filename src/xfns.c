@@ -2264,6 +2264,7 @@ be shared by the new frame.")
   long window_prompting = 0;
   int width, height;
   int count = specpdl_ptr - specpdl;
+  struct gcpro gcpro1;
 
   check_x ();
 
@@ -2305,6 +2306,8 @@ be shared by the new frame.")
     }
 
   XSET (frame, Lisp_Frame, f);
+  GCPRO1 (frame);
+
   f->output_method = output_x_window;
   f->display.x = (struct x_display *) xmalloc (sizeof (struct x_display));
   bzero (f->display.x, sizeof (struct x_display));
@@ -2435,6 +2438,8 @@ be shared by the new frame.")
 
   tem = x_get_arg (parms, Qunsplittable, 0, 0, boolean);
   f->no_split = minibuffer_only || EQ (tem, Qt);
+
+  UNGCPRO;
 
   /* It is now ok to make the frame official
      even if we get an error below.
