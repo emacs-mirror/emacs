@@ -41,7 +41,7 @@
 	* xterm.h (FONT_DESCENT, FRAME_X_OUTPUT, FRAME_BASELINE_OFFSET)
 	(FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE)
 	(STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2):
-	New macro for consolidated code.
+	New macros for consolidated code.
  
 	* xterm.c: Remove consolidated defines and code.
 	(x_per_char_metric, x_encode_char)
@@ -56,7 +56,7 @@
 	(FONT_TYPE_FOR_UNIBYTE, FONT_TYPE_FOR_MULTIBYTE): 
 	New macros for consolidation.
 
-	* w32term.c Remove consolidated defines and code.
+	* w32term.c: Remove consolidated defines and code.
 	(BUILD_WCHAR_T, BYTE1, BYTE2): Macros removed; callers changed
 	to use STORE_XCHAR2B, XCHAR2B_BYTE1, XCHAR2B_BYTE2 instead.
 	(w32_per_char_metric): Change font_type arg to int for RIF.
