@@ -314,7 +314,7 @@ Emacs loads this file at startup time.")
 				 leim-list-file-name)
   "Header to be inserted in LEIM list file.")
 
-(defvar leim-list-entry-regexp "(register-input-method"
+(defvar leim-list-entry-regexp "^(register-input-method"
   "Regexp matching head of each entry in LEIM list file.
 See also the variable `leim-list-header'")
 
