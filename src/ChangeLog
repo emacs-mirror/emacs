@@ -1,6 +1,7 @@
 2000-03-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (tags): Include ../lwlib/TAGS in TAGS.
+	(bootstrap-temacs): Set LC_ALL to C like for temacs.
 
 	* xfns.c (QCdata): Moved to xdisp.c.
 
