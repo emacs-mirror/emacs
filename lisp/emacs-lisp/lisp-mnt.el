@@ -47,6 +47,14 @@
 ;; 
 ;;    Format is three semicolons, followed by the filename, followed by
 ;; three dashes, followed by the summary.  All fields space-separated.
+;;
+;;    * A blank line
+;;
+;;    * Copyright line, which looks more or less like this:
+;;
+;;       ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;;
+;;    * A blank line
 ;; 
 ;;    * Author line --- contains the name and net address of at least
 ;; the principal author.
@@ -417,15 +425,17 @@ tags `Code', `Change Log' or `History'."
   (move-to-column col t)
   (apply 'insert strings))
 
-(defun lm-verify (&optional file showok verb)
+(defun lm-verify (&optional file showok verbose non-fsf-ok)
   "Check that the current buffer (or FILE if given) is in proper format.
 If FILE is a directory, recurse on its files and generate a report in a
-temporary buffer.
-Optional argument SHOWOK indicates that \"OK\" be displayed in the temp buffer.
-Optional argument VERB specifies verbosity."
-  (interactive)
-  (let* ((verb (or verb (interactive-p)))
-	 (ret (and verb "Ok."))
+temporary buffer.  In that case, the optional argument SHOWOK
+says display \"OK\" in temp buffer for files that have no problems.
+
+Optional argument VERBOSE specifies verbosity level.
+Optional argument NON-FSF-OK if non-nil means a non-FSF
+copyright notice is allowed."
+  (interactive (list nil nil t))
+  (let* ((ret (and verbose "Ok"))
 	 name)
     (if (and file (file-directory-p file))
 	(setq ret
@@ -447,21 +457,21 @@ Optional argument VERB specifies verbosity."
 	(setq ret
 	      (cond
 	       ((null name)
-		"Can't find a package NAME")
+		(format "Package %s does not exist"))
 	       ((not (lm-authors))
-		"Author: tag missing.")
+		"`Author:' tag missing")
 	       ((not (lm-maintainer))
-		"Maintainer: tag missing.")
+		"`Maintainer:' tag missing")
 	       ((not (lm-summary))
-		"Can't find a one-line 'Summary' description")
+		"Can't find the one-line summary description")
 	       ((not (lm-keywords))
-		"Keywords: tag missing.")
+		"`Keywords:' tag missing")
 	       ((not (lm-keywords-finder-p))
-		"Keywords: no valid finder keywords.")
+		"`Keywords:' has no valid finder keywords (see `finder-known-keywords')")
 	       ((not (lm-commentary-mark))
-		"Can't find a 'Commentary' section marker.")
+		"Can't find a 'Commentary' section marker")
 	       ((not (lm-history-mark))
-		"Can't find a 'History' section marker.")
+		"Can't find a 'History' section marker")
 	       ((not (lm-code-mark))
 		"Can't find a 'Code' section marker")
 	       ((progn
@@ -471,15 +481,16 @@ Optional argument VERB specifies verbosity."
 		    (concat "^;;;[ \t]+" name "[ \t]+ends here[ \t]*$"
 			    "\\|^;;;[ \t]+ End of file[ \t]+" name)
 		    nil t)))
-		(format "Can't find a footer line for [%s]" name))
+		(format "Can't find a footer line"))
 	       ((not (and (lm-copyright-mark) (lm-crack-copyright)))
-		"Can't find a valid Copyright")
-	       ((not (string-match "Free Software Foundation"
-				   (car (lm-crack-copyright))))
-		"Copyright Holder is not the Free Software Foundation.")
+		"Can't find a valid copyright notice")
+	       ((not (or non-fsf-ok
+			 (string-match "Free Software Foundation"
+				       (car (lm-crack-copyright)))))
+		"Copyright holder is not the Free Software Foundation")
 	       (t
 		ret)))))
-    (if verb
+    (if verbose
 	(message ret))
     ret))
 
