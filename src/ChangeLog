@@ -1,3 +1,7 @@
+2002-10-30  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* xdisp.c (message_with_string): Error if STRING is not a string.
+
 2002-10-25  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (x_set_name): Encode by Qcompound_text unconditionally.
