@@ -20,8 +20,8 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
+#define _GNU_SOURCE		/* to get strsignal declared with glibc 2 */
 #include <config.h>
-
 #include <signal.h>
 
 /* This file is split into two parts by the following preprocessor
@@ -43,9 +43,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
 
 #ifdef WINDOWSNT
 #include <stdlib.h>
@@ -62,7 +59,7 @@ Boston, MA 02111-1307, USA.  */
 #endif /* NEED_NET_ERRNO_H */
 #endif /* HAVE_SOCKETS */
 
-/* TERM is a poor-man's SLIP, used on Linux.  */
+/* TERM is a poor-man's SLIP, used on GNU/Linux.  */
 #ifdef TERM
 #include <client.h>
 #endif
