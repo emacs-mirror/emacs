@@ -553,7 +553,9 @@ xm_update_menu (instance, widget, val, deep_p)
     {
       if (children)
 	{
-	  for (i = 0, cur = val->contents; i < num_children;
+	  for (i = 0, cur = val->contents; 
+               (i < num_children
+		&& cur); /* how else to ditch unwanted children ?? - mgd */
 	       i++, cur = cur->next)
 	    {
 	      if (cur->this_one_change == STRUCTURAL_CHANGE)
