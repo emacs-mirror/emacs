@@ -106,6 +106,7 @@ and this notice must be preserved on all copies.  */
 #ifndef _ALL_SOURCE  /* suppress warning if this is pre-defined */
 #undef _ALL_SOURCE
 #endif
+#undef HAVE_SYS_SELECT_H
 #undef HAVE_SYS_TIMEB_H
 #undef HAVE_SYS_TIME_H
 #undef HAVE_UNISTD_H
