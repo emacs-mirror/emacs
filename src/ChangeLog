@@ -1,3 +1,12 @@
+2003-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* alloc.c (make_string_from_bytes): Add `const' for the arg
+	CONTENTS.
+	(make_specified_string): Likewise.
+
+	* lisp.h (make_string_from_bytes, make_specified_string):
+	Prototypes adjusted.
+
 2003-03-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xdisp.c (get_glyph_string_clip_rect): Removed ; at end of #endif
@@ -209,7 +218,7 @@
 
 	* gtkutil.h: Removed xg_ignore_next_thumb.
 
-2003-03-18  Kenichi Handa  <handa@etlken2>
+2003-03-18  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Vchar_coding_system_table): Remove this variable.
 	(Vcoding_system_safe_chars): New variable.
