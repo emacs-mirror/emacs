@@ -1,6 +1,8 @@
-/*  ==== ROOTS ====
+/*  impl.c.root
  *
- *  $HopeName$
+ *                   ROOT IMPLEMENTATION
+ *
+ *  $HopeName: MMsrc/!root.c(trunk.1)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -13,7 +15,9 @@
 #include "root.h"
 #include "rootst.h"
 #include "pool.h"
-#include "fix.h"
+#include "mpmconf.h"
+#include "ref.h"
+#include "trace.h"
 
 
 #ifdef DEBUG_SIGN
@@ -25,9 +29,9 @@ static SigStruct RootSigStruct;
 
 static Bool modeIsValid(RootMode mode)
 {
-  AVER((mode &~(RootEXACT | RootFIXABLE | RootMUTABLE | RootATOMIC)) == 0);
+  AVER((mode &~(RootFIXABLE | RootMUTABLE | RootATOMIC)) == 0);
   /* Need to check for legal combinations of modes. */
-  return(TRUE);
+  return TRUE;
 }
 
 #endif
@@ -42,6 +46,8 @@ Bool RootIsValid(Root root, ValidationType validParam)
 #endif
   AVER(ISVALIDNESTED(DequeNode, &root->spaceDeque));
   AVER(modeIsValid(root->mode));
+  AVER(ISVALIDNESTED(RefRank, root->rank));
+  AVER(ISVALIDNESTED(TraceSet, &root->marked));
   AVER(root->type == RootTABLE || root->type == RootFUN);
   switch(root->type)
   {
@@ -57,11 +63,12 @@ Bool RootIsValid(Root root, ValidationType validParam)
     default:
     NOTREACHED;
   }
-  return(TRUE);
+  return TRUE;
 }
 
 
-static Error create(Root *rootReturn, Pool pool, RootMode mode,
+static Error create(Root *rootReturn, Pool pool,
+                    RefRank rank, RootMode mode,
 		    RootType type, RootUnion theUnion)
 {
   Root root;
@@ -70,14 +77,17 @@ static Error create(Root *rootReturn, Pool pool, RootMode mode,
   AVER(rootReturn != NULL);
   AVER(ISVALID(Pool, pool));
   AVER(modeIsValid(mode));
+  AVER(ISVALID(RefRank, rank));
 
   e = PoolAllocP((void **)&root, pool, sizeof(RootStruct));
-  if(e != ErrSUCCESS) return(e);
+  if(e != ErrSUCCESS) return e;
 
   root->pool = pool;
+  root->rank = rank;
   root->mode = mode;
   root->type = type;
   root->the  = theUnion;
+  TraceSetInit(&root->marked);
 
   DequeNodeInit(&root->spaceDeque);
 
@@ -89,11 +99,12 @@ static Error create(Root *rootReturn, Pool pool, RootMode mode,
   AVER(ISVALID(Root, root));
 
   *rootReturn = root;
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }
 
 
-Error RootCreateTable(Root *rootReturn, Pool pool, RootMode mode,
+Error RootCreateTable(Root *rootReturn, Pool pool,
+                      RefRank rank, RootMode mode,
                       Addr *base, Addr *limit)
 {
   RootUnion theUnion;
@@ -104,12 +115,13 @@ Error RootCreateTable(Root *rootReturn, Pool pool, RootMode mode,
   theUnion.table.base = base;
   theUnion.table.limit = limit;
   
-  return(create(rootReturn, pool, mode, RootTABLE, theUnion));
+  return create(rootReturn, pool, rank, mode, RootTABLE, theUnion);
 }
 
 
-Error RootCreateFun(Root *rootReturn, Pool pool, RootMode mode,
-                    void (*scan)(void *p, int i, Fixes fixes),
+Error RootCreateFun(Root *rootReturn, Pool pool,
+                    RefRank rank, RootMode mode,
+                    void (*scan)(void *p, int i, Trace trace),
                     void *p, int i)
 {
   RootUnion theUnion;
@@ -120,14 +132,15 @@ Error RootCreateFun(Root *rootReturn, Pool pool, RootMode mode,
   theUnion.fun.p = p;
   theUnion.fun.i = i;
 
-  return(create(rootReturn, pool, mode, RootFUN, theUnion));
+  return create(rootReturn, pool, rank, mode, RootFUN, theUnion);
 }
 
 
 void RootDestroy(Root root)
 {
   AVER(ISVALID(Root, root));
-
+  
+  TraceSetFinish(&root->marked);
   DequeNodeFinish(&root->spaceDeque);
 
 #ifdef DEBUG_SIGN
@@ -138,60 +151,80 @@ void RootDestroy(Root root)
 }
 
 
-Bool RootIsExact(Root root)
+void RootMark(Root root, Trace trace)
 {
   AVER(ISVALID(Root, root));
-
-  if(root->mode & RootEXACT)
-    return(TRUE);
-  else
-    return(FALSE);
+  AVER(ISVALID(Trace, trace));
+  
+  TraceSetAdd(&root->marked, TraceTraceId(trace));
+  TraceNoteMarked(trace, root->rank, (Addr)1);
 }
 
 
-void RootScan(Root root, Fixes fixes)
+Error RootScan(Root root, Trace trace, RefRank rank)
 {
-  AVER(ISVALID(Root, root));
-  AVER(ISVALID(Fixes, fixes));
+  Error e;
 
-  switch(root->type)
-  {
-    case RootTABLE:
-    {
-      Addr *what, *limit;
-      what = (Addr *)root->the.table.base;
+  AVER(ISVALID(Root, root));
+  AVER(ISVALID(Trace, trace));
+  
+  if(rank != root->rank)
+    return ErrSUCCESS;
+
+  if(!TraceSetIsMember(&root->marked, TraceTraceId(trace)))
+    return ErrSUCCESS;
+
+  switch(root->type) {
+    case RootTABLE: {
+      Addr *base, *what, *limit;
+      base = (Addr *)root->the.table.base;
+      what = base;
       limit = (Addr *)root->the.table.limit;
-      while(what < limit)
-      {
-	(void)FixesApply(fixes, what, *what);
+      while(what < limit) {
+	e = TraceFix(trace, rank, what);
+	if(e != ErrSUCCESS) return e;
 	++what;
       }
     }
     break;
 
     case RootFUN:
-    (*root->the.fun.scan)(root->the.fun.p, root->the.fun.i, fixes);
+    (*root->the.fun.scan)(root->the.fun.p, root->the.fun.i, trace);
     break;
 
     default:
     NOTREACHED;
   }
+
+  TraceNoteScanned(trace, rank, (Addr)1);
+  TraceSetDelete(&root->marked, TraceTraceId(trace));
+  
+  return ErrSUCCESS;
 }
 
 
 Error RootDescribe(Root root, LibStream stream)
 {
+  TraceId id;
+
   AVER(ISVALID(Root, root));
   AVER(stream != NULL);
   
   LibFormat(stream,
-          "Root %lX {\n"
-          "  mode%s%s%s%s\n",
-          (unsigned long)root,
-          root->mode & RootEXACT   ? " EXACT"   : "",
-          root->mode & RootATOMIC  ? " ATOMIC"  : "",
-          root->mode & RootFIXABLE ? " FIXABLE" : "",
-          root->mode & RootMUTABLE ? " MUTABLE" : "");
+            "Root %lX {\n"
+            "  rank %d\n"
+            "  mode%s%s%s\n",
+            (unsigned long)root,
+            root->rank,
+            root->mode & RootATOMIC  ? " ATOMIC"  : "",
+            root->mode & RootFIXABLE ? " FIXABLE" : "",
+            root->mode & RootMUTABLE ? " MUTABLE" : "");
+
+  LibFormat(stream, "  Trace status\n");
+  for(id = 0; id < TRACE_MAX; ++id)
+    LibFormat(stream, "    %2lu %s\n",
+              (unsigned long)id,
+              TraceSetIsMember(&root->marked, id) ? "marked" : "not marked");
   
   switch(root->type)
   {
@@ -216,5 +249,5 @@ Error RootDescribe(Root root, LibStream stream)
   
   LibFormat(stream, "} Root 0x%lX\n", (unsigned long)root);
   
-  return(ErrSUCCESS);
+  return ErrSUCCESS;
 }

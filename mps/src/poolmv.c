@@ -65,7 +65,9 @@ PoolClass PoolClassMV(void)
                 sizeof(PoolMVStruct), offsetof(PoolMVStruct, poolStruct),
                 create, destroy,
                 allocP, freeP,
-                NULL, NULL,
+                NULL, NULL,		/* bufferCreate, bufferDestroy */
+                NULL, NULL, NULL,	/* condemn, mark, scan */
+                NULL, NULL,		/* fix, relcaim */
                 describe);
   return(&PoolClassMVStruct);
 }
@@ -291,22 +293,18 @@ Error PoolMVInit(PoolMV poolMV, Space space, size_t extendBy,
 
 void PoolMVFinish(PoolMV poolMV)
 {
+  Pool pool;
   Span span;
-  Pool arpool;
 
   AVER(ISVALID(PoolMV, poolMV));
 
-  arpool = PoolArenaPool(SpaceArena(PoolSpace(PoolMVPool(poolMV))));
-
   /* Destroy all the segments attached to the pool. */
-  /* ***** Isn't this the wrong thing to do? */
 
+  pool = PoolMVPool(poolMV);
   span = poolMV->spans;
   while(span != NULL) {
-
     AVER(ISVALID(Span, span));
-    PoolFreeP(arpool, (void *)span->seg,
-              (size_t)(span->limit.limit - span->base.base));
+    PoolSegFree(pool, span->seg, span->limit.limit - span->base.base);
     span = span->next;
   }
 
@@ -524,7 +522,8 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
  */
 
   e = PoolAllocP((void **)&span, SPANPOOL(poolMV), sizeof(SpanStruct));
-  if(e != ErrSUCCESS) return(e);
+  if(e != ErrSUCCESS)
+    return(e);
 
   if(size <= poolMV->extendBy)
     segSize = poolMV->extendBy;
@@ -534,13 +533,13 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
   arena = SpaceArena(PoolSpace(pool));
   segSize = AlignUp(ArenaGrain(arena), segSize);
 
-  e = PoolSegCreate(&span->seg, pool, segSize);
+  e = PoolSegAlloc(&span->seg, pool, segSize);
   if(e != ErrSUCCESS)
   {
     PoolFreeP(SPANPOOL(poolMV), span, sizeof(SpanStruct));
     return(e);
   }
-  ArenaPut(arena, span->seg, 1, (void *)span);
+  ArenaPut(arena, span->seg, ARENA_CLASS, (void *)span);
 
 
   span->next = poolMV->spans;
@@ -572,9 +571,7 @@ static void freeP(Pool pool, void *old, size_t size)
   Arena arena;
   Span span;
   PoolMV poolMV;
-  Bool b;
   Error e;
-  Addr seg;
 
   AVER(ISVALID(Pool, pool));
   AVER(pool->class == &PoolClassMVStruct);
@@ -591,10 +588,7 @@ static void freeP(Pool pool, void *old, size_t size)
   /* Map the pointer onto the segment which contains it, and thence */
   /* onto the span. */
 
-  b = ArenaSegBase(&seg, SpaceArena(PoolSpace(pool)), base);
-  AVER(b == TRUE);
-  AVER(PoolOfSeg(arena, seg) == pool);
-  span = ArenaGet(arena, seg, 1);
+  span = ArenaGet(arena, base, ARENA_CLASS);
   AVER(ISVALID(Span, span));
   
   /* the to be freed area should be within the span just found */
@@ -662,7 +656,6 @@ static Error describe(Pool pool, LibStream stream)
   {
     Addr i, j;
     Block block;
-
     LibFormat(stream, "    Span %8lX\n", (unsigned long)span);
 
     block = span->blocks;
