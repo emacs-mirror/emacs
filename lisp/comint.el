@@ -1182,7 +1182,8 @@ Quotes are single and double."
   "Return from STRING the NTH to MTH arguments.
 NTH and/or MTH can be nil, which means the last argument.
 Returned arguments are separated by single spaces.
-We assume whitespace separates arguments, except within quotes.
+We assume whitespace separates arguments, except within quotes
+and except for a space or tab that immediately follows a backslash.
 Also, a run of one or more of a single character
 in `comint-delimiter-argument-list' is a separate argument.
 Argument 0 is the command name."
@@ -1195,7 +1196,7 @@ Argument 0 is the command name."
   (let* ((first (if (and (eq system-type 'windows-nt) 
 			 (w32-shell-dos-semantics))
 		    "[^ \n\t\"'`]+\\|"
-		  "[^ \n\t\"'`\\]+\\|\\\\[\"'`\\]+\\|"))
+		  "[^ \n\t\"'`\\]+\\|\\\\[\"'`\\ \t]+\\|"))
 	 (argpart (concat first
 			  "\\(\"\\([^\"\\]\\|\\\\.\\)*\"\\|\
 '[^']*'\\|\
