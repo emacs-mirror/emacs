@@ -2489,7 +2489,7 @@ physical keyboard layout as specified with that variable.
 	  (when (> num 0)
 	    (insert "
 KEY SEQUENCE
------------
+------------
 ")
 	    (if (quail-show-layout)
 		(insert "You can also input more characters")
