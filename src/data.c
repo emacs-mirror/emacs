@@ -83,6 +83,7 @@ Lisp_Object Qnumberp, Qnumber_or_marker_p;
 static Lisp_Object Qinteger, Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 static Lisp_Object Qfloat, Qwindow_configuration, Qprocess, Qwindow;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
+static Lisp_Object Qchar_table, Qbool_vector;
 
 static Lisp_Object swap_in_symval_forwarding ();
 
@@ -228,6 +229,10 @@ for example, (type-of 1) returns `integer'.")
 	return Qcompiled_function;
       if (GC_BUFFERP (object))
 	return Qbuffer;
+      if (GC_CHAR_TABLE_P (object))
+	return Qchar_table;
+      if (GC_BOOL_VECTOR_P (object))
+	return Qbool_vector;
 
 #ifdef MULTI_FRAME
       if (GC_FRAMEP (object))
@@ -2600,6 +2605,8 @@ syms_of_data ()
   Qbuffer = intern ("buffer");
   Qframe = intern ("frame");
   Qvector = intern ("vector");
+  Qchar_table = intern ("char-table");
+  Qbool_vector = intern ("bool-vector");
 
   staticpro (&Qinteger);
   staticpro (&Qsymbol);
@@ -2616,6 +2623,8 @@ syms_of_data ()
   staticpro (&Qbuffer);
   staticpro (&Qframe);
   staticpro (&Qvector);
+  staticpro (&Qchar_table);
+  staticpro (&Qbool_vector);
 
   defsubr (&Seq);
   defsubr (&Snull);
