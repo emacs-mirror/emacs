@@ -1744,9 +1744,9 @@ internal_equal (o1, o2, depth)
 	return 0;
       if (OVERLAYP (o1))
 	{
-	  if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o1),
+	  if (!internal_equal (OVERLAY_START (o1), OVERLAY_START (o2),
 			       depth + 1)
-	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o1),
+	      || !internal_equal (OVERLAY_END (o1), OVERLAY_END (o2),
 				  depth + 1))
 	    return 0;
 	  o1 = XOVERLAY (o1)->plist;
