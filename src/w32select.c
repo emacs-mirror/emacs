@@ -37,8 +37,17 @@ Lisp_Object QCLIPBOARD;
    clipboard.  */
 static Lisp_Object Vselection_coding_system;
 
-/* Coding system for the next communicating with other X clients.  */
+/* Coding system for the next communicating with other Windows programs.  */
 static Lisp_Object Vnext_selection_coding_system;
+
+/* The last text we put into the clipboard.  This is used to prevent
+   passing back our own text from the clipboard, instead of using the
+   kill ring.  The former is undesirable because the clipboard data
+   could be MULEtilated by inappropriately chosen
+   (next-)selection-coding-system.  For this reason, we must store the
+   text *after* it was encoded/Unix-to-DOS-converted.  */
+static unsigned char *last_clipboard_text = NULL;
+static size_t clipboard_storage_size = 0;
 
 #if 0
 DEFUN ("w32-open-clipboard", Fw32_open_clipboard, Sw32_open_clipboard, 0, 1, 0,
@@ -174,10 +183,8 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
       }
     else
       {
-	/* We must encode contents of OBJ to compound text format.
-	   The format is compatible with what the target `STRING'
-	   expects if OBJ contains only ASCII and Latin-1
-	   characters.  */
+	/* We must encode contents of OBJ to the selection coding
+           system. */
 	int bufsize;
 	struct coding_system coding;
 	HANDLE htext2;
@@ -197,16 +204,31 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
 	  goto error;
 	encode_coding (&coding, src, dst, nbytes, bufsize);
 	Vlast_coding_system_used = coding.symbol;
+
+        /* Stash away the data we are about to put into the clipboard, so we
+           could later check inside Fw32_get_clipboard_data whether
+           the clipboard still holds our data.  */
+        if (clipboard_storage_size < coding.produced)
+          {
+            clipboard_storage_size = coding.produced + 100;
+            last_clipboard_text = (char *) xrealloc (last_clipboard_text,
+                                                     clipboard_storage_size);
+          }
+        if (last_clipboard_text)
+          memcpy (last_clipboard_text, dst, coding.produced);
+
 	GlobalUnlock (htext);
+
 	/* Shrink data block to actual size.  */
-	htext2 = GlobalReAlloc (htext, coding.produced, GMEM_MOVEABLE | GMEM_DDESHARE);
+	htext2 = GlobalReAlloc (htext, coding.produced,
+                                GMEM_MOVEABLE | GMEM_DDESHARE);
 	if (htext2 != NULL) htext = htext2;
       }
   }
   
   if (!OpenClipboard ((!NILP (frame) && FRAME_W32_P (XFRAME (frame))) ? FRAME_W32_WINDOW (XFRAME (frame)) : NULL))
     goto error;
-  
+
   ok = EmptyClipboard () && SetClipboardData (CF_TEXT, htext);
   
   CloseClipboard ();
@@ -217,7 +239,9 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data, Sw32_set_clipboard_dat
   
   ok = FALSE;
   if (htext) GlobalFree (htext);
-  
+  if (last_clipboard_text)
+    *last_clipboard_text = '\0';
+
  done:
   UNBLOCK_INPUT;
   
@@ -254,6 +278,16 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
       goto closeclip;
     
     nbytes = strlen (src);
+
+    /* If the text in clipboard is identical to what we put there
+       last time w32_set_clipboard_data was called, pretend there's no
+       data in the clipboard.  This is so we don't pass our own text
+       from the clipboard (which might be troublesome if the killed
+       text includes null characters).  */
+    if (last_clipboard_text
+        && clipboard_storage_size >= nbytes
+        && memcmp(last_clipboard_text, src, nbytes) == 0)
+      goto closeclip;
 
     if (
 #if 1
@@ -295,8 +329,8 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data, Sw32_get_clipboard_dat
 	buf = (unsigned char *) xmalloc (bufsize);
 	decode_coding (&coding, src, buf, nbytes, bufsize);
 	Vlast_coding_system_used = coding.symbol;
-	ret = make_string_from_bytes ((char *) buf,
-				      coding.produced_char, coding.produced);
+        ret = make_string_from_bytes ((char *) buf,
+                                      coding.produced_char, coding.produced);
 	xfree (buf);
       }
     else
