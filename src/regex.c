@@ -4366,6 +4366,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	      }
 	  }
       }
+      break;
       
     case charset_not:
       switch (SWITCH_ENUM_CAST (*p1))
