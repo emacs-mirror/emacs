@@ -1,5 +1,9 @@
 2001-10-18  Andrew Innes  <andrewi@gnu.org>
 
+	* fontset.c (fs_load_font) [WINDOWSNT && _MSC_VER]: Disable
+	optimization.  The fontp->encoding array was not being initialized
+	correctly when compiled with optimizations by MSVC.
+
 	* fontset.h (struct font_info) [WINDOWSNT]: Add codepage field.
 
 	* w32fns.c (w32_load_system_font): Cache codepage in font_info.

@@ -569,6 +569,10 @@ fontset_font_pattern (f, id, c)
 }
 
 
+#if defined(WINDOWSNT) && defined (_MSC_VER)
+#pragma optimize("", off)
+#endif
+
 /* Load a font named FONTNAME to display character C on frame F.
    Return a pointer to the struct font_info of the loaded font.  If
    loading fails, return NULL.  If FACE is non-zero and a fontset is
@@ -693,6 +697,10 @@ fs_load_font (f, c, fontname, id, face)
     FONTSET_SET (fontset, c, make_number (face->id));
   return fontp;
 }
+
+#if defined(WINDOWSNT) && defined (_MSC_VER)
+#pragma optimize("", on)
+#endif
 
 
 /* Cache data used by fontset_pattern_regexp.  The car part is a
