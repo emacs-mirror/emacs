@@ -389,7 +389,7 @@ nil for FUNCTION means all messages."
 			 ((<= lines   999) " [%3d]")
 			 (t		    "[%d]"))
 			lines))))
-	  " "
+	  " #"				;The # is part of the format.
 	  (if (re-search-forward "^Subject:" nil t)
 	      (progn (skip-chars-forward " \t")
 		     (buffer-substring (point)
