@@ -1,5 +1,9 @@
 2001-05-09  John Wiegley  <johnw@gnu.org>
 
+	* eshell/esh-util.el (eshell-convert-numeric-arguments): Annotated
+	the documentation string to tell users about
+	`eshell-no-numeric-conversions'.
+
 	* eshell/esh-cmd.el (eshell-lisp-command): Don't perform numeric
 	conversions if a Lisp function has the property
 	`eshell-no-numeric-conversions' set to a non-nil value.
