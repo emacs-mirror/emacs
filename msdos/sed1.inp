@@ -1,0 +1,17 @@
+# ----------------------------------------------------------------------
+# Configuration script for makefile.in-in
+# ----------------------------------------------------------------------
+s/^#.*//
+s/^[ \f\t][ \f\t]*$//
+s/^ /	/
+/^obj=/s!$! dosfns.o msdos.o!
+/window.elc/s!window.elc!window.elc ${lispdir}dos-fns.elc!
+s/\.h\.in/.h-in/
+s!^.-if.*inc-vers.*$!#!
+s!^	\./temacs!	go32 temacs!
+s!/bin/sh!command.com!
+/DEBUG_MOLE *=/s/=.*$/=/
+/^.\${libsrc}make-doc/s!>.*$!!
+/^.\${libsrc}make-docfile/s!make-docfile!make-docfile -o ../etc/DOC!
+/^.\${libsrc}make-docfile/s/\$/go32 $/
+/^[ 	]*$/d
