@@ -2415,7 +2415,7 @@ See also `locale-charset-language-names', `locale-language-names',
 
     ;; On Windows, override locale-coding-system, keyboard-coding-system,
     ;; selection-coding-system with system codepage.
-    (when (boundp w32-ansi-code-page)
+    (when (boundp 'w32-ansi-code-page)
       (let ((code-page-coding (intern (format "cp%d" w32-ansi-code-page))))
 	(when (coding-system-p code-page-coding)
 	  (setq locale-coding-system code-page-coding)
