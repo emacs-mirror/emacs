@@ -1,3 +1,11 @@
+2003-01-22    <karl@gnu.org>
+
+	* info.el (Info-index): change pattern so that index entries with
+	colons can be read properly; also, require at least one space
+	after the colons, which makeinfo puts in.  From: Aubrey Jaffer
+	<agj@alum.mit.edu>, 7 Nov 2002 21:16:12 -0500, sent to
+	bug-texinfo.
+
 2003-01-22  Andreas Schwab  <schwab@suse.de>
 
 	* jka-compr.el (jka-compr-insert-file-contents): Fix typo in last
