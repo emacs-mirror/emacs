@@ -1,7 +1,7 @@
 /* impl.h.eventpro: Interface for event processing routines
  * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
  *
- * $HopeName$
+ * $HopeName: MMsrc!eventpro.h(trunk.1) $
  */
 
 #ifndef eventpro_h
@@ -29,7 +29,7 @@ extern EventCode EventGetCode(Event event);
 extern char *EventCode2Format(EventCode code);
 
 extern Word AddrLabel(Addr addr);
-extern char *LabelText(Word label);
+extern EventString LabelText(Word label);
 
 extern Res EventRead(Event *eventOut, FILE *input);
 extern void EventDestroy(Event event);
