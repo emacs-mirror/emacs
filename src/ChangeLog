@@ -1,5 +1,8 @@
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_set_internal_border_width): Set frame garbaged
+	when X window doesn't exist yet.
+
 	* xterm.c (x_after_update_window_line): Clear internal border
 	in different circumstances.
 	
