@@ -120,8 +120,9 @@
   ignoring X resources (Doze equivalents?) and most of the
   environment.  What should not be ignored needs consideration.
 
-* Investigate using the language environment to set up more things,
-  such as the default Ispell dictionary.
+* Investigate using the language environment (or locale?) to set up
+  more things, such as the default Ispell dictionary, calendar
+  holidays...
 
 * Improve the GC (generational, incremental).  (We may be able to use
   the Boehm collector.)
