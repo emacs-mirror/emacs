@@ -1,3 +1,14 @@
+2001-11-09  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el: Add John David Smith to credits.
+		
+	Suggested by Kalle Olavi Niemitalo <kon@iki.fi>:
+	
+	* vc-hooks.el (vc-error-occured): Backquotified.
+	(vc-file-prop-obarray): Use prime length for better efficiency.
+
+	* vc.el (vc-clear-context): Fill obarray with 0, not nil.
+
 2001-11-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-file-list-for-emacs): Add entries for Calc.
