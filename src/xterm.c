@@ -5244,7 +5244,17 @@ x_set_window_size (f, change_gravity, cols, rows)
 
 #ifdef USE_X_TOOLKIT
   BLOCK_INPUT;
-  EmacsFrameSetCharSize (f->display.x->edit_widget, cols, rows);
+  {
+    /* The x and y position of the widget is clobbered by the
+       call to XtSetValues within EmacsFrameSetCharSize.
+       This is a real kludge, but I don't understand Xt so I can't
+       figure out a correct fix.  Can anyone else tell me? -- rms.  */
+    int xpos = f->display.x->widget->core.x;
+    int ypos = f->display.x->widget->core.y;
+    EmacsFrameSetCharSize (f->display.x->edit_widget, cols, rows);
+    f->display.x->widget->core.x = xpos;
+    f->display.x->widget->core.y = ypos;
+  }
   UNBLOCK_INPUT;
 
 #else /* not USE_X_TOOLKIT */
