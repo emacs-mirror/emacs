@@ -1,3 +1,94 @@
+2003-12-28  Kim F. Storm  <storm@cua.dk>
+
+	* Makefile.in (eval.o): Depend on dispextern.h.
+
+	* dispnew.c (buffer_posn_from_coords): Fix calculation of dy for
+	image glyph using image's ascent.
+	(mode_line_string): Return image glyph as object clicked on.
+	Adjust y0 for image glyph using image's ascent.
+
+	* dispextern.h (FACE_ID_BITS, MAX_FACE_ID): New defines.
+	(struct glyph): New members, ascent and descent.  Used to save
+	this glyph's ascent and descent, instead of having.
+	(struct glyph): Declare member face_id using FACE_ID_BITS.
+	(find_hot_spot): Add prototype.
+
+	* keyboard.c (Qimage): Remove extern (now in lisp.h).
+	(QCmap): Declare extern.
+	(make_lispy_position): When position is inside image hot-spot,
+	use hot-spot element's id as posn element.
+
+	* lisp.h (IMAGEP): New macro to test for image object type.
+	(Qimage): Declare extern.
+
+	* macfns.c (Qimage): Remove extern (now in lisp.h).
+	(valid_image_p, parse_image_spec): Use IMAGEP macro.
+
+	* macterm.c (Qface, Qmouse_face): Remove unused externs.
+
+	* w32fns.c (Qimage): Remove extern (now in lisp.h).
+	(valid_image_p, parse_image_spec): Use IMAGEP macro.
+
+	* w32menu.c (Qmouse_click, Qevent_kind): Remove unused externs.
+
+	* w32term.c (Qface, Qmouse_face): Remove unused externs.
+
+	* xdisp.c (Qarrow, Qhand, Qtext, Qpointer): New variables for
+	pointer types.
+	(Qrelative_width, Qalign_to): Remove unused variables.
+	(Vvoid_text_area_pointer): Replace Vshow_text_cursor_in_void.
+	(QCmap, QCpointer, Qrect, Qcircle, Qpoly): New variables for
+	image maps.
+	(x_y_to_hpos_vpos): Return glyph relative coordinates through 
+	new dx and dy args.
+	Remove buffer_only_p arg (always 0).  Simplify code accordingly.
+	(get_glyph_string_clip_rect): Draw cursor using glyph's rather
+	than row's ascent and height, to get sensible height on tall rows.
+	(build_desired_tool_bar_string): Remove Qimage extern.
+	(get_tool_bar_item): Fix call to x_y_to_hpos_vpos.
+	(produce_image_glyph): Adjust it.ascent to minimum row ascent if
+	image glyph is alone on the last line.
+	(append_glyph, append_composite_glyph, produce_image_glyph)
+	(append_stretch_glyph): Set glyph's ascent and descent. 
+	(on_hot_spot_p): New function to check if position is inside an
+	rectangular, circular, or polygon-shaped image hot-spot, 
+	(find_hot_spot): New function to search for image hot-spot.
+	(Flookup_image_map): New defun to search for image hot-spot.
+	(define_frame_cursor1): New aux function to determine frame pointer.
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Handle `pointer' text property and :pointer image property to
+	control frame pointer shape.  Detect image hot-spots for pointer
+	and help_echo properties.  Use define_frame_cursor1.
+	(note_mouse_highlight):	Use Vvoid_text_area_pointer.
+	(syms_of_xdisp): Defsubr new defun. Intern and staticpro new variables.
+	DEFVAR_LISP Vvoid_text_area_pointer instead of Vshow_text_cursor_in_void.
+
+	* xfaces.c (cache_face): Abort if c->size exceeds MAX_FACE_ID.
+
+	* xfns.c (x_set_mouse_color): Remove bogus x_check_errors call.
+	(Qimage): Remove extern (now in lisp.h).
+	(valid_image_p, parse_image_spec): Use IMAGEP macro.
+
+	* xmenu.c (show_help_event): Remove unused code.
+
+	* xterm.c (Qface, Qmouse_face): Remove unused externs.
+	(x_draw_hollow_cursor): Draw cursor using glyph's rather than
+	row's ascent and descent, to get a sensible height on tall rows.
+
+2003-12-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.c (Fcompleting_read): Undo previous change.
+
+2003-12-25  Lars Hansen <larsh@math.ku.dk>
+
+	* dired.c (Fdirectory_files, Fdirectory_files_and_attributes):
+	Arguments GCPRO'ed in call to file name handler.
+
+2003-12-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* termcap.c (tgetst1): Scan for "%pN"; if all
+	N are continuous in [1,9], remove all "%pN".
+
 2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_frame_set_char_size): Call x_wm_set_size_hint.

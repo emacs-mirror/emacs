@@ -29,9 +29,9 @@ Options:
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.51 2003/09/01 15:45:03 miles Exp $'
+Id='$Id: rcs2log,v 1.52 2003/12/27 08:18:08 uid65632 Exp $'
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003
 #  Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
@@ -49,7 +49,7 @@ Id='$Id: rcs2log,v 1.51 2003/09/01 15:45:03 miles Exp $'
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-Copyright='Copyright (C) 2002 Free Software Foundation, Inc.
+Copyright='Copyright (C) 2003 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.
@@ -195,8 +195,9 @@ case $rlogfile in
 
 	# If no rlog options are given,
 	# log the revisions checked in since the first ChangeLog entry.
-	# Since ChangeLog is only by date, some of these revisions may be duplicates of
-	# what's already in ChangeLog; it's the user's responsibility to remove them.
+	# Since ChangeLog is only by date, some of these revisions may be
+	# duplicates of what's already in ChangeLog; it's the user's
+	# responsibility to remove them.
 	case $rlog_options in
 	'')
 		if test -s "$changelog"
@@ -281,6 +282,21 @@ case $rlogfile in
 			esac
 		done
 
+		# If no rlog options are given, and if we are in a tagged CVS branch,
+		# log only the changes in that branch.
+		case $rlog_options in
+		'')
+			if test -f CVS/Tag
+			then
+				CVSTAG=`cat <CVS/Tag` || exit
+				case $CVSTAG in
+				T?*)
+					rlog_options=-r`expr "$CVSTAG" : 'T\(.*\)'`;;
+				*)
+					echo >&2 "$0: invalid CVS/Tag"; exit 1;;
+				esac
+			fi;;
+		esac
 	fi
 
 	# Use $rlog's -zLT option, if $rlog supports it.

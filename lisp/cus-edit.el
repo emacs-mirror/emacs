@@ -1970,7 +1970,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 		    (setq parents (cons symbol parents))))))
     (and (null (get symbol 'custom-links)) ;No links of its own.
          (= (length parents) 1)         ;A single parent.
-         (let ((links (get (car parents) 'custom-links)))
+         (let* ((links (get (car parents) 'custom-links))
+                (many (> (length links) 2)))
            (when links
              (insert "\nParent documentation: ")
              (while links

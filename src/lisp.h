@@ -1381,6 +1381,10 @@ typedef unsigned char UCHAR;
 #define GC_FRAMEP(x) GC_PSEUDOVECTORP (x, PVEC_FRAME)
 
 #define SUB_CHAR_TABLE_P(x) (CHAR_TABLE_P (x) && NILP (XCHAR_TABLE (x)->top))
+
+/* Test for image (image . spec)  */
+#define IMAGEP(x) (CONSP (x) && EQ (XCAR (x), Qimage))
+
 
 #define GC_EQ(x, y) EQ (x, y)
 
@@ -2283,6 +2287,7 @@ extern Lisp_Object Qinhibit_point_motion_hooks;
 extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qinhibit_eval_during_redisplay;
 extern Lisp_Object Qmessage_truncate_lines;
+extern Lisp_Object Qimage;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];

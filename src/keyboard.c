@@ -579,7 +579,7 @@ Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
 extern Lisp_Object Qleft_margin, Qright_margin;
 extern Lisp_Object Qleft_fringe, Qright_fringe;
-extern Lisp_Object Qimage;
+extern Lisp_Object QCmap;
 
 Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
@@ -5016,6 +5016,19 @@ make_lispy_position (f, x, y, time)
 	  string = marginal_area_string (w, &rx, &ry, &dx, &dy, part, &charpos);
 	  if (STRINGP (string))
 	    object = Fcons (string, make_number (charpos));
+#ifdef HAVE_WINDOW_SYSTEM
+	  else if (IMAGEP (string))
+	    {
+	      Lisp_Object image_map, hotspot;
+	      object = string;
+	      if ((image_map = Fplist_get (XCDR (object), QCmap),
+		   !NILP (image_map))
+		  && (hotspot = find_hot_spot (image_map, dx, dy),
+		      CONSP (hotspot))
+		  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
+		posn = XCAR (hotspot);
+	    }
+#endif
 	}
       else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
 	{
@@ -5051,8 +5064,19 @@ make_lispy_position (f, x, y, time)
 	      if (STRINGP (string))
 		object = Fcons (string,
 				make_number (CHARPOS (p.string_pos)));
-	      else if (CONSP (string) && EQ (XCAR (string), Qimage))
-		object = string;
+#ifdef HAVE_WINDOW_SYSTEM
+	      else if (IMAGEP (string))
+		{
+		  Lisp_Object image_map, hotspot;
+		  object = string;
+		  if ((image_map = Fplist_get (XCDR (object), QCmap),
+		       !NILP (image_map))
+		      && (hotspot = find_hot_spot (image_map, dx, dy),
+			  CONSP (hotspot))
+		      && (hotspot = XCDR (hotspot), CONSP (hotspot)))
+		    posn = XCAR (hotspot);
+		}
+#endif
 	    }
 	}
 

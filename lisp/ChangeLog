@@ -1,3 +1,34 @@
+2003-12-27  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: Handle non-readable directories.
+	(ido-decorations): Add 9th element for non-readable directory.
+	(ido-directory-nonreadable): New dynamic var.
+	(ido-set-current-directory): Set it.
+	(ido-read-buffer, ido-file-internal):
+	(ido-read-file-name, ido-read-directory-name): Let-bind it.
+	(ido-file-name-all-completions1): Return empty list for
+	non-readable directory.
+	(ido-exhibit): Print [Not readable] if directory is not readable.
+	(ido-expand-directory): New defun (based on tiny fix from Karl Chen).
+	(ido-read-file-name, ido-file-internal, ido-read-directory-name):
+	Use it.
+
+2003-12-27  Lars Hansen  <larsh@math.ku.dk>
+
+	* ls-lisp.el (ls-lisp-insert-directory): Add parameter 'string in
+	calls to directory-files-and-attributes and file-attributes.
+	(ls-lisp-format): Remove system dependent handling of user and
+	group id's.
+
+2003-12-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ffap.el (ffap-read-file-or-url): Revert previous change.
+
+2003-12-25  Andreas Schwab  <schwab@suse.de>
+
+	* jka-compr.el (jka-compr-insert-file-contents): Avoid error when
+	file not found.
+
 2003-12-08  Miles Bader  <miles@gnu.org>
 
 	* dired.el (dired-between-files): Always use dired-move-to-filename,
@@ -66,6 +97,23 @@
 
 	* info.el (Info-unescape-quotes, Info-split-parameter-string)
 	(Info-goto-emacs-command-node): Doc fixes.
+
+2003-12-12  Jesper Harder <harder@ifa.au.dk>
+
+	* cus-edit.el (custom-add-parent-links): Define "many".
+
+2003-12-08  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-child-value-get, widget-child-value-inline)
+	(widget-child-validate, widget-type-value-create)
+	(widget-type-default-get, widget-type-match): New functions.
+	(lazy): New widget.
+	(menu-choice, checklist, radio-button-choice, editable-list)
+	(group, documentation-string): Removed redundant (per 2003-10-25
+	change) calls to `widget-children-value-delete'.
+	(widget-choice-value-get, widget-choice-value-inline): Removed
+	functions. 
+	(menu-choice): Updated widget.
 
 2003-12-03  Kenichi Handa  <handa@m17n.org>
 

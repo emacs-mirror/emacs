@@ -5579,12 +5579,19 @@ cache_face (c, face, hash)
   face->id = i;
 
   /* Maybe enlarge C->faces_by_id.  */
-  if (i == c->used && c->used == c->size)
+  if (i == c->used)
     {
-      int new_size = 2 * c->size;
-      int sz = new_size * sizeof *c->faces_by_id;
-      c->faces_by_id = (struct face **) xrealloc (c->faces_by_id, sz);
-      c->size = new_size;
+      if (c->used == c->size)
+	{
+	  int new_size, sz;
+	  new_size = min (2 * c->size, MAX_FACE_ID);
+	  if (new_size == c->size)
+	    abort ();  /* Alternatives?  ++kfs */
+	  sz = new_size * sizeof *c->faces_by_id;
+	  c->faces_by_id = (struct face **) xrealloc (c->faces_by_id, sz);
+	  c->size = new_size;
+	}
+      c->used++;
     }
 
 #if GLYPH_DEBUG
@@ -5603,8 +5610,6 @@ cache_face (c, face, hash)
 #endif /* GLYPH_DEBUG */
 
   c->faces_by_id[i] = face;
-  if (i == c->used)
-    ++c->used;
 }
 
 

@@ -267,7 +267,7 @@ not contain `d', so that a full listing is expected."
       (let* ((dir (file-name-as-directory file))
 	     (default-directory dir)	; so that file-attributes works
 	     (file-alist
-	      (directory-files-and-attributes dir nil wildcard-regexp t))
+	      (directory-files-and-attributes dir nil wildcard-regexp t 'string))
 	     (now (current-time))
 	     (sum 0)
 	     ;; do all bindings here for speed
@@ -329,7 +329,7 @@ not contain `d', so that a full listing is expected."
     ;; so must make it a relative filename as ls does:
     (if (eq (aref file (1- (length file))) ?/)
 	(setq file (substring file 0 -1)))
-    (let ((fattr (file-attributes file)))
+    (let ((fattr (file-attributes file 'string)))
       (if fattr
 	  (insert (ls-lisp-format file fattr (nth 7 fattr)
 				  switches time-index (current-time)))
@@ -522,23 +522,14 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	    ;; They tend to be bogus on non-UNIX platforms anyway so
 	    ;; optionally hide them.
 	    (if (memq 'uid ls-lisp-verbosity)
-		;; (user-login-name uid) works on Windows NT but not
-		;; on 9x and maybe not on some other platforms, so...
+		;; uid can be a sting or an integer
 		(let ((uid (nth 2 file-attr)))
-		  (if (= uid (user-uid))
-		      (format " %-8s" (user-login-name))
-		    (format " %-8d" uid))))
+                  (format (if (stringp uid) " %-8s" " %-8d") uid)))
 	    (if (not (memq ?G switches)) ; GNU ls -- shows group by default
 		(if (or (memq ?g switches) ; UNIX ls -- no group by default
 			(memq 'gid ls-lisp-verbosity))
-		    (if (memq system-type '(macos windows-nt ms-dos))
-			;; No useful concept of group...
-			" root"
-		      (let* ((gid (nth 3 file-attr))
-			     (group (user-login-name gid)))
-			(if group
-			    (format " %-8s" group)
-			  (format " %-8d" gid))))))
+                    (let ((gid (nth 3 file-attr)))
+                      (format (if (stringp gid) " %-8s" " %-8d") gid))))
 	    (ls-lisp-format-file-size file-size (memq ?h switches))
 	    " "
 	    (ls-lisp-format-time file-attr time-index now)

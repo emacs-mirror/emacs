@@ -1740,6 +1740,40 @@ return value of `get-char-property' called with those arguments and
 whose cdr is the overlay in which the property was found, or nil if
 it was found as a text property or not found at all.
 
+** The mouse pointer shape in void text areas (i.e. after the end of a
+line or below the last line in the buffer) of the text window is now
+controlled by the new variable `void-text-area-pointer'.  The default
+is to use the `arrow' (non-text) pointer.  Other choices are `text'
+(or nil), `hand', `vdrag', `hdrag', `modeline', and `hourglass'.
+
+** The mouse pointer shape over an image can now be controlled by the
+:pointer image property.
+
+** The mouse pointer shape over ordinary text or images may now be
+controlled/overriden via the `pointer' text property.
+
+** Images may now have an associated image map via the :map property.
+
+An image map is an alist where each element has the format (AREA ID PLIST).
+An AREA is specified as either a rectangle, a circle, or a polygon:
+A rectangle is a cons (rect . ((x0 . y0) . (x1 . y1))) specifying the
+pixel coordinates of the upper left and bottom right corners.
+A circle is a cons (circle . ((x0 . y0) . r)) specifying the center
+and the radius of the circle; r may be a float or integer.
+A polygon is a cons (poly . [x0 y0 x1 y1 ...]) where each pair in the
+vector describes one corner in the polygon.
+
+When the mouse pointer is above a hot-spot area of an image, the
+PLIST of that hot-spot is consulted; if it contains a `help-echo'
+property it defines a tool-tip for the hot-spot, and if it contains
+a `pointer' property, it defines the shape of the mouse cursor when
+it is over the hot-spot.  See the variable 'void-area-text-pointer'
+for possible pointer shapes.
+
+When you click the mouse when the mouse pointer is over a hot-spot,
+an event is composed by combining the ID of the hot-spot with the
+mouse event, e.g. [area4 mouse-1] if the hot-spot's ID is `area4'.
+
 ** Mouse event enhancements:
 
 *** Mouse clicks on fringes now generates left-fringe or right-fringes

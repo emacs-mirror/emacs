@@ -221,8 +221,6 @@ static int input_signal_count;
 
 extern Lisp_Object Vcommand_line_args, Vsystem_name;
 
-extern Lisp_Object Qface, Qmouse_face;
-
 #ifndef USE_CRT_DLL
 extern int errno;
 #endif

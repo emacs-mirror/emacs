@@ -842,9 +842,12 @@ syms_of_composite ()
 
     args[0] = QCtest;
     args[1] = Qequal;
+    /* We used to make the hash table weak so that unreferenced
+       compostions can be garbage-collected.  But, usually once
+       created compositions are repeatedly used in an Emacs session,
+       and thus it's not worth to save memory in such a way.  So, we
+       make the table not weak.  */
     args[2] = QCweakness;
-    /* Fixme: It seems that a weak hash table leads to segfault in GC,
-       but I have not yet found why.  -- handa@m17n.org */
     args[3] = Qnil;
     args[4] = QCsize;
     args[5] = make_number (311);
