@@ -154,6 +154,15 @@ close_file_unwind (fd)
 {
   close (XFASTINT (fd));
 }
+
+/* Restore point, having saved it as a marker.  */
+
+restore_point_unwind (location)
+     Lisp_Object location; 
+{
+  SET_PT (marker_position (location));
+  Fset_marker (location, Qnil, Qnil);
+}
 
 Lisp_Object Qexpand_file_name;
 Lisp_Object Qdirectory_file_name;
@@ -2551,6 +2560,10 @@ and (2) it puts less data in the undo list.")
       goto notfound;
     }
 
+  /* Replacement should preserve point as it preserves markers.  */
+  if (!NILP (replace))
+    record_unwind_protect (restore_point_unwind, Fpoint_marker ());
+
   record_unwind_protect (close_file_unwind, make_number (fd));
 
 #ifdef S_IFSOCK
@@ -2623,7 +2636,7 @@ and (2) it puts less data in the undo list.")
       if (same_at_start == ZV)
 	{
 	  close (fd);
-	  specpdl_ptr = specpdl + count;
+	  specpdl_ptr--;
 	  goto handled;
 	}
       immediate_quit = 1;
@@ -2670,6 +2683,8 @@ and (2) it puts less data in the undo list.")
       XFASTINT (end) = st.st_size - (ZV - same_at_end);
       /* Delete the nonmatching middle part of the buffer.  */
       Fdelete_region (make_number (same_at_start), make_number (same_at_end));
+      /* Insert from the file at the proper position.  */
+      SET_PT (same_at_start);
     }
 
   total = XINT (end) - XINT (beg);
@@ -2690,13 +2705,14 @@ and (2) it puts less data in the undo list.")
   if (GAP_SIZE < total)
     make_gap (total - GAP_SIZE);
 
-  if (XINT (beg) != 0)
+  if (XINT (beg) != 0 || !NILP (replace))
     {
       if (lseek (fd, XINT (beg), 0) < 0)
 	report_file_error ("Setting file position", Fcons (filename, Qnil));
     }
 
-  while (1)
+  how_much = 0;
+  while (inserted < total)
     {
       int try = min (total - inserted, 64 << 10);
       int this;
@@ -2734,8 +2750,8 @@ and (2) it puts less data in the undo list.")
       XFASTINT (current_buffer->buffer_file_type) = XFASTINT (code);
     if (XFASTINT (current_buffer->buffer_file_type) == 0)
       {
-	int reduced_size = 
-	  inserted - crlf_to_lf (inserted, &FETCH_CHAR (point - 1) + 1);
+	int reduced_size
+	  = inserted - crlf_to_lf (inserted, &FETCH_CHAR (point - 1) + 1);
 	ZV -= reduced_size;
 	Z -= reduced_size;
 	GPT -= reduced_size;
@@ -2756,8 +2772,8 @@ and (2) it puts less data in the undo list.")
 
   close (fd);
 
-  /* Discard the unwind protect */
-  specpdl_ptr = specpdl + count;
+  /* Discard the unwind protect for closing the file.  */
+  specpdl_ptr--;
 
   if (how_much < 0)
     error ("IO error reading %s: %s",
@@ -2814,11 +2830,12 @@ and (2) it puts less data in the undo list.")
 	}
     }
 
-  if (!NILP (val))
-    RETURN_UNGCPRO (val);
-  RETURN_UNGCPRO (Fcons (filename,
-			 Fcons (make_number (inserted),
-				Qnil)));
+  if (NILP (val))
+    val = Fcons (filename,
+		 Fcons (make_number (inserted),
+			Qnil));
+
+  RETURN_UNGCPRO (unbind_to (count, val));
 }
 
 static Lisp_Object build_annotations ();
