@@ -99,6 +99,7 @@ This takes effect when first loading the `sgml-mode' library.")
     (define-key map "\C-c\C-d" 'sgml-delete-tag)
     (define-key map "\C-c\^?" 'sgml-delete-tag)
     (define-key map "\C-c?" 'sgml-tag-help)
+    (define-key map "\C-c/" 'sgml-close-tag)
     (define-key map "\C-c8" 'sgml-name-8bit-mode)
     (define-key map "\C-c\C-v" 'sgml-validate)
     (when sgml-quick-keys
@@ -461,7 +462,7 @@ Behaves electrically if `sgml-quick-keys' is non-nil."
     (indent-according-to-mode))
    ((eq sgml-quick-keys 'close)
     (delete-backward-char 1)
-    (sgml-insert-end-tag))
+    (sgml-close-tag))
    (t
     (sgml-slash-matching arg))))
 
@@ -993,8 +994,8 @@ Leave point at the beginning of the tag."
          (forward-char 1)
          (setq tag-type 'close
                name (sgml-parse-tag-name)))
-        ((?% ?#)                        ; JSP tags etc
-         (setq tag-type 'unknown))
+        (?%                             ; JSP tags
+         (setq tag-type 'jsp))
         (t                              ; open or empty tag
          (setq tag-type 'open
                name (sgml-parse-tag-name))
@@ -1003,13 +1004,6 @@ Leave point at the beginning of the tag."
              (setq tag-type 'empty))))))
     (goto-char tag-start)
     (sgml-make-tag tag-type tag-start tag-end name)))
-
-(defsubst sgml-inside-tag-p (tag-info &optional point)
-  "Return true if TAG-INFO contains the POINT."
-  (let ((end (sgml-tag-end tag-info))
-        (point (or point (point))))
-    (or (null end)
-        (> end point))))
 
 (defun sgml-get-context (&optional full)
   "Determine the context of the current position.
@@ -1046,10 +1040,6 @@ immediately enclosing the current position."
         (setq context (cdr context)))
            
       (cond
-
-       ;; inside a tag ...
-       ((sgml-inside-tag-p tag-info here)
-	(push tag-info context))
 
        ;; start-tag
        ((eq (sgml-tag-type tag-info) 'open)
@@ -1095,35 +1085,23 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 
 ;; Editing shortcuts
 
-(defun sgml-insert-end-tag ()
-  "Insert an end-tag for the current element."
+(defun sgml-close-tag ()
+  "Insert an close-tag for the current element."
   (interactive)
-  (let* ((context (save-excursion (sgml-get-context)))
-         (tag-info (car (last context)))
-         (type (and tag-info (sgml-tag-type tag-info))))
-
-    (cond
-
-     ((null context)
-      (error "Nothing to close"))
-
-     ;; inside a tag
-     ((sgml-inside-tag-p tag-info)
-      (insert (cond
-	       ((eq type 'empty) 	" />")
-	       ((eq type 'comment)	" -->")
-	       ((eq type 'cdata)	"]]>")
-	       ((eq type 'jsp) 		"%>")
-	       ((eq type 'pi) 		"?>")
-	       (t 			">"))))
-
-     ;; inside an element
-     ((eq type 'open)
-      (insert "</" (sgml-tag-name tag-info) ">")
-      (indent-according-to-mode))
-
-     (t
-      (error "Nothing to close")))))
+  (case (car (sgml-lexical-context))
+    (comment 	(insert " -->"))
+    (cdata 	(insert "]]>"))
+    (pi 	(insert " ?>"))
+    (jsp 	(insert " %>"))
+    (tag 	(insert " />"))
+    (text
+     (let ((context (save-excursion (sgml-get-context))))
+       (if context
+           (progn 
+             (insert "</" (sgml-tag-name (car (last context))) ">")
+             (indent-according-to-mode)))))
+    (otherwise
+     (error "Nothing to close"))))
 
 (defun sgml-empty-tag-p (tag-name)
   "Return non-nil if TAG-NAME is an implicitly empty tag."
