@@ -3,9 +3,6 @@
 	* net/tramp.el (tramp-ftp-method): New user option.
 	(tramp-invoke-ange-ftp): New function to forward calls to
 	Ange-FTP.
-	(tramp-open-connection-rsh): Support a kludgy feature for the
-	"-p" option to ssh.  If host name is given as "host#42", uses the
-	"-p 42" option.
 
 	(with-parsed-tramp-file-name): New macro for the usual big `let'
 	statement to dissect a file-name.
@@ -28,6 +25,10 @@
 
 	(tramp-sh-extra-args): New variable.
 	(tramp-find-shell): Use it.
+
+	(tramp-open-connection-rsh): Support a kludgy feature for the
+	"-p" option to ssh.  If host name is given as "host#42", uses the
+	"-p 42" option.
 
 2002-06-25  Andreas Schwab  <schwab@suse.de>
 
