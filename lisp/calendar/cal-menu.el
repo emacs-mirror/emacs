@@ -302,7 +302,7 @@ ERROR is t, otherwise just returns nil."
   (let* ((date (calendar-event-to-date))
          (l (mapcar '(lambda (x) (list (car (cdr x))))
                     (let ((diary-list-include-blanks nil)
-                          (diary-display-hook nil))
+                          (diary-display-hook 'ignore))
                       (list-diary-entries date 1))))
          (selection
           (x-popup-menu
@@ -320,7 +320,7 @@ ERROR is t, otherwise just returns nil."
   (let* ((date (calendar-event-to-date))
          (l (mapcar '(lambda (x) (list (car (cdr x))))
                     (let ((diary-list-include-blanks nil)
-                          (diary-display-hook nil)
+                          (diary-display-hook 'ignore)
                           (diary-file (read-file-name
                                        "Enter diary file name: "
                                        default-directory nil t)))
