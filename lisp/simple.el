@@ -2412,19 +2412,24 @@ in the mode line."
 			   (not (eolp)))
 			 (buffer-substring blinkpos
 					   (progn (end-of-line) (point)))
-		       ;; Otherwise show the previous nonblank line.
-		       (concat
-			(buffer-substring (progn
-					   (backward-char 1)
-					   (skip-chars-backward "\n \t")
-					   (beginning-of-line)
-					   (point))
-					  (progn (end-of-line)
-						 (skip-chars-backward " \t")
-						 (point)))
-			;; Replace the newline and other whitespace with `...'.
-			"..."
-			(buffer-substring blinkpos (1+ blinkpos))))))))
+		       ;; Otherwise show the previous nonblank line,
+		       ;; if there is one.
+		       (if (save-excursion
+			     (skip-chars-backward "\n \t")
+			     (not (bobp)))
+			   (concat
+			    (buffer-substring (progn
+					       (skip-chars-backward "\n \t")
+					       (beginning-of-line)
+					       (point))
+					      (progn (end-of-line)
+						     (skip-chars-backward " \t")
+						     (point)))
+			    ;; Replace the newline and other whitespace with `...'.
+			    "..."
+			    (buffer-substring blinkpos (1+ blinkpos)))
+			 ;; There is nothing to show except the char itself.
+			 (buffer-substring blinkpos (1+ blinkpos))))))))
 	     (cond (mismatch
 		    (message "Mismatched parentheses"))
 		   ((not blink-matching-paren-distance)
