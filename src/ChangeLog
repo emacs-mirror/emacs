@@ -1,5 +1,9 @@
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* ralloc.c (mmap_find): Fix overlap computation.
+	(mmap_enlarge): Compute nbytes before trying to find an
+	overlapping region.
+
 	* xfaces.c (smaller_face): Compare font heights with `<' and `>'
 	instead of `!='.
 
