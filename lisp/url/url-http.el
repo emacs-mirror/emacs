@@ -342,7 +342,8 @@ This allows us to use `mail-fetch-field', etc."
 The buffer must already be narrowed to the headers, so mail-fetch-field will
 work correctly."
   (let ((cookies (mail-fetch-field "Set-Cookie" nil nil t))
-	(cookies2 (mail-fetch-field "Set-Cookie2" nil nil t)))
+	(cookies2 (mail-fetch-field "Set-Cookie2" nil nil t))
+	(url-current-object url-http-cookies-sources))
     (and cookies (url-http-debug "Found %d Set-Cookie headers" (length cookies)))
     (and cookies2 (url-http-debug "Found %d Set-Cookie2 headers" (length cookies2)))
     (while cookies
@@ -1043,7 +1044,8 @@ CBARGS as the arguments."
 		       url-http-process
 		       url-http-method
 		       url-http-extra-headers
-		       url-http-data))
+		       url-http-data
+		       url-http-cookies-sources))
 	  (set (make-local-variable var) nil))
 
 	(setq url-http-method (or url-request-method "GET")
@@ -1055,7 +1057,10 @@ CBARGS as the arguments."
 	      url-http-chunked-counter 0
 	      url-callback-function callback
 	      url-callback-arguments cbargs
-	      url-http-after-change-function 'url-http-wait-for-headers-change-function)
+	      url-http-after-change-function 'url-http-wait-for-headers-change-function
+	      url-http-cookies-sources (if (boundp 'proxy-object)
+					   proxy-object
+					 url-current-object))
 
 	(set-process-buffer connection buffer)
 	(set-process-sentinel connection 'url-http-end-of-document-sentinel)
