@@ -305,10 +305,6 @@ A lambda list keyword is a symbol that starts with `&'."
     (walk-windows (lambda (w) (setq window-list (cons w window-list))))
     (nreverse window-list)))
 
-(defun edebug-window-live-p (window)
-  "Return non-nil if WINDOW is visible."
-  (get-window-with-predicate (lambda (w) (eq w window))))
-
 ;; Not used.
 '(defun edebug-two-window-p ()
   "Return t if there are two windows."
@@ -2493,7 +2489,6 @@ MSG is printed after `::::} '."
 (defvar edebug-previous-result nil) ;; Last result returned.
 
 ;; Emacs 19 adds an arg to mark and mark-marker.
-(defalias 'edebug-mark 'mark)
 (defalias 'edebug-mark-marker 'mark-marker)
 
 
@@ -3217,32 +3212,6 @@ With prefix argument, make it a temporary breakpoint."
   (edebug-modify-breakpoint nil))
 
 
-;; For emacs 18, no read-expression-history
-(defun edebug-set-conditional-breakpoint (arg condition)
-  "Set a conditional breakpoint at nearest sexp.
-The condition is evaluated in the outside context.
-With prefix argument, make it a temporary breakpoint."
-  ;; (interactive "P\nxCondition: ")
-  (interactive 
-   (list
-    current-prefix-arg
-    ;; Edit previous condition as follows, but it is cumbersome:
-    (let ((edebug-stop-point (edebug-find-stop-point)))
-      (if edebug-stop-point
-          (let* ((edebug-def-name (car edebug-stop-point))
-                 (index (cdr edebug-stop-point))
-                 (edebug-data (get edebug-def-name 'edebug))
-                 (edebug-breakpoints (car (cdr edebug-data)))
-                 (edebug-break-data (assq index edebug-breakpoints))
-                 (edebug-break-condition (car (cdr edebug-break-data))))
-            (read-minibuffer 
-             (format "Condition in %s: " edebug-def-name)
-             (if edebug-break-condition
-                 (format "%s" edebug-break-condition)
-               (format ""))))))))
-  (edebug-modify-breakpoint t condition arg))
-
-
 (defun edebug-set-global-break-condition (expression)
   (interactive (list (read-minibuffer 
 		      "Global Condition: " 
@@ -3715,7 +3684,9 @@ Return the result of the last expression."
   "Evaluate an expression in the outside environment.  
 If interactive, prompt for the expression.
 Print result in minibuffer."
-  (interactive "xEval: ")
+  (interactive (list (read-from-minibuffer 
+		      "Eval: " nil read-expression-map t
+		      'read-expression-history)))
   (princ
    (edebug-outside-excursion
     (setq values (cons (edebug-eval edebug-expr) values))
@@ -4316,70 +4287,49 @@ It is removed when you hit any char."
 
 ;;; Emacs version specific code
 
-;;; The default for all above is Emacs 18, because it is easier to compile
-;;; Emacs 18 code in Emacs 19 than vice versa.  This default will
-;;; change once most people are using Emacs 19 or derivatives.
+(defalias 'edebug-window-live-p 'window-live-p)
 
-;; Epoch specific code is in a separate file: edebug-epoch.el.
+;; Mark takes an argument in Emacs 19.
+(defun edebug-mark ()
+  (mark t))	;; Does this work for lemacs too?
+
+(defun edebug-set-conditional-breakpoint (arg condition)
+  "Set a conditional breakpoint at nearest sexp.
+The condition is evaluated in the outside context.
+With prefix argument, make it a temporary breakpoint."
+  ;; (interactive "P\nxCondition: ")
+  (interactive 
+   (list
+    current-prefix-arg
+;; Read condition as follows; getting previous condition is cumbersome:
+    (let ((edebug-stop-point (edebug-find-stop-point)))
+      (if edebug-stop-point
+	  (let* ((edebug-def-name (car edebug-stop-point))
+		 (index (cdr edebug-stop-point))
+		 (edebug-data (get edebug-def-name 'edebug))
+		 (edebug-breakpoints (car (cdr edebug-data)))
+		 (edebug-break-data (assq index edebug-breakpoints))
+		 (edebug-break-condition (car (cdr edebug-break-data)))
+		 (edebug-expression-history
+		  ;; Prepend the current condition, if any.
+		  (if edebug-break-condition
+		      (cons edebug-break-condition read-expression-history)
+		    read-expression-history)))
+	    (prog1
+		(read-from-minibuffer 
+		 "Condition: " nil read-expression-map t
+		 'edebug-expression-history)
+	      (setq read-expression-history edebug-expression-history)
+	      ))))))
+  (edebug-modify-breakpoint t condition arg))
+
+;;; The default for all above is Emacs.
+
+;; Epoch specific code was in a separate file: edebug-epoch.el.
 
 ;; The byte-compiler will complain about changes in number of arguments
 ;; to functions like mark and read-from-minibuffer.  These warnings
 ;; may be ignored because the right call should always be made.
-
-(defun edebug-emacs-19-specific ()
-
-  (defalias 'edebug-window-live-p 'window-live-p)
-
-  ;; Mark takes an argument in Emacs 19.
-  (defun edebug-mark ()
-    (mark t));; Does this work for lemacs too?
-
-  (defun edebug-set-conditional-breakpoint (arg condition)
-    "Set a conditional breakpoint at nearest sexp.
-The condition is evaluated in the outside context.
-With prefix argument, make it a temporary breakpoint."
-    ;; (interactive "P\nxCondition: ")
-    (interactive 
-     (list
-      current-prefix-arg
-      ;; Read condition as follows; getting previous condition is cumbersome:
-      (let ((edebug-stop-point (edebug-find-stop-point)))
-	(if edebug-stop-point
-	    (let* ((edebug-def-name (car edebug-stop-point))
-		   (index (cdr edebug-stop-point))
-		   (edebug-data (get edebug-def-name 'edebug))
-		   (edebug-breakpoints (car (cdr edebug-data)))
-		   (edebug-break-data (assq index edebug-breakpoints))
-		   (edebug-break-condition (car (cdr edebug-break-data)))
-		   (edebug-expression-history
-		    ;; Prepend the current condition, if any.
-		    (if edebug-break-condition
-			(cons edebug-break-condition read-expression-history)
-		      read-expression-history)))
-	      (prog1
-		  (read-from-minibuffer 
-		   "Condition: " nil read-expression-map t
-		   'edebug-expression-history)
-		(setq read-expression-history edebug-expression-history)
-		))))))
-    (edebug-modify-breakpoint t condition arg))
-
-  (defun edebug-eval-expression (edebug-expr)
-    "Evaluate an expression in the outside environment.  
-If interactive, prompt for the expression.
-Print result in minibuffer."
-    (interactive (list (read-from-minibuffer 
-			"Eval: " nil read-expression-map t
-			'read-expression-history)))
-    (princ
-     (edebug-outside-excursion
-      (setq values (cons (edebug-eval edebug-expr) values))
-      (edebug-safe-prin1-to-string (car values)))))
-
-  (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
-  (if (display-popup-menus-p)
-      (x-popup-menu nil (lookup-key edebug-mode-map [menu-bar Edebug])))
-  )
 
 
 (defun edebug-lemacs-specific ()
@@ -4395,10 +4345,48 @@ Print result in minibuffer."
     (let ((zmacs-regions nil))
       (mark)))
 
+  (defun edebug-window-live-p (window)
+    "Return non-nil if WINDOW is visible."
+    (get-window-with-predicate (lambda (w) (eq w window))))
+
   (defun edebug-mark-marker ()
     (let ((zmacs-regions nil));; for lemacs
       (mark-marker)))
 
+  ;; no read-expression-history
+  (defun edebug-set-conditional-breakpoint (arg condition)
+    "Set a conditional breakpoint at nearest sexp.
+The condition is evaluated in the outside context.
+With prefix argument, make it a temporary breakpoint."
+    ;; (interactive "P\nxCondition: ")
+    (interactive 
+     (list
+      current-prefix-arg
+      ;; Edit previous condition as follows, but it is cumbersome:
+      (let ((edebug-stop-point (edebug-find-stop-point)))
+	(if edebug-stop-point
+	    (let* ((edebug-def-name (car edebug-stop-point))
+		   (index (cdr edebug-stop-point))
+		   (edebug-data (get edebug-def-name 'edebug))
+		   (edebug-breakpoints (car (cdr edebug-data)))
+		   (edebug-break-data (assq index edebug-breakpoints))
+		   (edebug-break-condition (car (cdr edebug-break-data))))
+	      (read-minibuffer 
+	       (format "Condition in %s: " edebug-def-name)
+	       (if edebug-break-condition
+		   (format "%s" edebug-break-condition)
+		 (format ""))))))))
+    (edebug-modify-breakpoint t condition arg))
+
+  (defun edebug-eval-expression (edebug-expr)
+    "Evaluate an expression in the outside environment.  
+If interactive, prompt for the expression.
+Print result in minibuffer."
+    (interactive "xEval: ")
+    (princ
+     (edebug-outside-excursion
+      (setq values (cons (edebug-eval edebug-expr) values))
+      (edebug-safe-prin1-to-string (car values)))))
 
   (defun edebug-mode-menu (event)
     (interactive "@event")
@@ -4407,16 +4395,15 @@ Print result in minibuffer."
   (define-key edebug-mode-map 'button3 'edebug-mode-menu)
   )
 
-(defun edebug-emacs-version-specific ()
-  (cond 
-   ((string-match "Lucid" emacs-version);; Lucid Emacs
-    (edebug-lemacs-specific))
+(cond 
+ ((string-match "Lucid" emacs-version) ;; Lucid Emacs
+  (edebug-lemacs-specific))
+ (t
 
-   ((not (string-match "^18" emacs-version))
-    (edebug-emacs-19-specific))))
+  (easy-menu-define edebug-menu edebug-mode-map "Edebug menus" edebug-mode-menus)
 
-(edebug-emacs-version-specific)
-
+  (if (display-popup-menus-p)
+      (x-popup-menu nil (lookup-key edebug-mode-map [menu-bar Edebug])))))
 
 ;;; Byte-compiler
 
