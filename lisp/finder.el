@@ -159,7 +159,15 @@ no arguments compiles from `load-path'."
 		    )))
 	    (directory-files (or d ".")))))
        (or dirs load-path))
-      (insert "))\n\n(provide 'finder-inf)\n\n;;; finder-inf.el ends here\n")
+      (insert "))\n
+\(provide 'finder-inf)
+
+;;; Local Variables:
+;;; version-control: never
+;;; no-byte-compile: t
+;;; no-update-autoloads: t
+;;; End:
+;;; finder-inf.el ends here\n")
       (kill-buffer "*finder-scratch*")
       (eval-current-buffer) ;; So we get the new keyword list immediately
       (basic-save-buffer))))
@@ -333,6 +341,7 @@ finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
   (and (get-buffer "*Finder Category*")
        (kill-buffer "*Finder Category*")))
 
+
 (provide 'finder)
 
 ;;; finder.el ends here

@@ -162,10 +162,16 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 
 \(provide 'cus-load)
 
+;;; Local Variables:
+;;; version-control: never
+;;; no-byte-compile: t
+;;; no-update-autoloads: t
+;;; End:
 ;;; cus-load.el ends here\n")
   (let ((kept-new-versions 10000000))
     (save-buffer))
   (message "Generating cus-load.el...done")
   (kill-emacs))
 
+
 ;;; cus-dep.el ends here
