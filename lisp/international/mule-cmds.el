@@ -1824,7 +1824,7 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
   "Return a pretty description of STR that is encoded by CODING-SYSTEM."
   (setq str (string-as-unibyte str))
   (mapconcat
-   (if (eq (coding-system-type coding-system) 2)
+   (if (and coding-system (eq (coding-system-type coding-system) 2))
        ;; Try to get a pretty description for ISO 2022 escape sequences.
        (function (lambda (x) (or (cdr (assq x iso-2022-control-alist))
 				 (format "%02X" x))))
@@ -1838,9 +1838,11 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 	(str2 (make-string 2 char))
 	(safe-charsets (and coding-system
 			    (coding-system-get coding-system 'safe-charsets)))
+	(charset (char-charset char))
 	enc1 enc2 i1 i2)
     (when (or (eq safe-charsets t)
-	      (memq (char-charset char) safe-charsets))
+	      (eq charset 'ascii)
+	      (memq charset safe-charsets))
       ;; We must find the encoded string of CHAR.  But, just encoding
       ;; CHAR will put extra control sequences (usually to designate
       ;; ASCII charaset) at the tail if type of CODING is ISO 2022.
