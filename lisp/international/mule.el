@@ -1099,6 +1099,8 @@ a value of `safe-charsets' in PLIST."
 
   coding-system)
 
+(put 'safe-chars 'char-table-extra-slots 0)
+
 (defun define-coding-system-alias (alias coding-system)
   "Define ALIAS as an alias for coding system CODING-SYSTEM."
   (put alias 'coding-system (coding-system-spec coding-system))
