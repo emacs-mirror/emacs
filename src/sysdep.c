@@ -2699,38 +2699,79 @@ bcmp (b1, b2, length)	/* This could be a macro! */
 #endif /* not BSTRING */
 
 #ifndef HAVE_RANDOM
-#ifndef random 
-
-long
-random ()
-{
-#ifdef HAVE_LRAND48
-  return lrand48 ();
-#else
-/* The BSD rand returns numbers in the range of 0 to 2e31 - 1,
-   with unusable least significant bits.  The USG rand returns
-   numbers in the range of 0 to 2e15 - 1, all usable.  Let us
-   build a usable 30 bit number from either.  */
-#ifdef USG
-  return (rand () << 15) + rand ();
-#else
-  return (rand () & 0x3fff8000) + (rand () >> 16);
+#ifdef random
+#define HAVE_RANDOM
 #endif
 #endif
-}
 
-srandom (arg)
-     int arg;
+/* Figure out how many bits the system's random number generator uses.
+   `random' and `lrand48' are assumed to return 31 usable bits.
+   BSD `rand' returns a 31 bit value but the low order bits are unusable;
+   so we'll shift it and treat it like the 15-bit USG `rand'.  */
+
+#ifndef RAND_BITS
+# ifdef HAVE_RANDOM
+#  define RAND_BITS 31
+# else /* !HAVE_RANDOM */
+#  ifdef HAVE_LRAND48
+#   define RAND_BITS 31
+#   define random lrand48
+#  else /* !HAVE_LRAND48 */
+#   define RAND_BITS 15
+#   if RAND_MAX == 32767
+#    define random rand
+#   else /* RAND_MAX != 32767 */
+#    if RAND_MAX == 2147483647
+#     define random() (rand () >> 16)
+#    else /* RAND_MAX != 2147483647 */
+#     ifdef USG
+#      define random rand
+#     else
+#      define random() (rand () >> 16)
+#     endif /* !BSD */
+#    endif /* RAND_MAX != 2147483647 */
+#   endif /* RAND_MAX != 32767 */
+#  endif /* !HAVE_LRAND48 */
+# endif /* !HAVE_RANDOM */
+#endif /* !RAND_BITS */
+
+void
+seed_random (arg)
+     long arg;
 {
-#ifdef HAVE_LRAND48
+#ifdef HAVE_RANDOM
+  srandom ((unsigned int)arg);
+#else
+# ifdef HAVE_LRAND48
   srand48 (arg);
-#else
-  srand (arg);
+# else
+  srand ((unsigned int)arg);
+# endif
 #endif
 }
 
-#endif /* no random */
-#endif /* not HAVE_RANDOM */
+/*
+ * Build a full Emacs-sized word out of whatever we've got.
+ * This suffices even for a 64-bit architecture with a 15-bit rand.
+ */
+long
+get_random ()
+{
+  long val = random ();
+#if VALBITS > RAND_BITS
+  val = (val << RAND_BITS) ^ random ();
+#if VALBITS > 2*RAND_BITS
+  val = (val << RAND_BITS) ^ random ();
+#if VALBITS > 3*RAND_BITS
+  val = (val << RAND_BITS) ^ random ();
+#if VALBITS > 4*RAND_BITS
+  val = (val << RAND_BITS) ^ random ();
+#endif /* need at least 5 */
+#endif /* need at least 4 */
+#endif /* need at least 3 */
+#endif /* need at least 2 */
+  return val & ((1L << VALBITS) - 1);
+}
 
 #ifdef WRONG_NAME_INSQUE
 
@@ -4977,4 +5018,3 @@ dlclose ()
 }
 
 #endif /* USE_DL_STUBS */
-
