@@ -196,7 +196,7 @@ static void Right();
 static void Select();
 static void Key();
 static void Nothing();
-static int separator_height ();
+static int separator_height __P ((enum menu_separator));
 
 static XtActionsRec
 xlwMenuActionsList [] =
