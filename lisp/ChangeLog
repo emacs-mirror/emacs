@@ -1,3 +1,8 @@
+2001-08-30  Gerd Moellmann  <gerd@gnu.org>
+
+	* obsolete/rsz-mini.el, obsolete/sun-curs.el, obsolete/sun-fns.el
+	* obsolete/x-apollo.el, obsolete/x-menu.el: Moved here from lisp/.
+
 2001-08-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* toolbar/tool-bar.el (tool-bar-mode): Make it a no-op if images
