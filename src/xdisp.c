@@ -290,7 +290,9 @@ message_dolog (m, len, nlflag, multibyte)
       int old_windows_or_buffers_changed = windows_or_buffers_changed;
       int point_at_end = 0;
       int zv_at_end = 0;
+      Lisp_Object old_deactivate_mark;
 
+      old_deactivate_mark = Vdeactivate_mark;
       oldbuf = current_buffer;
       Fset_buffer (Fget_buffer_create (build_string ("*Messages*")));
       current_buffer->undo_list = Qt;
@@ -414,6 +416,7 @@ message_dolog (m, len, nlflag, multibyte)
       set_buffer_internal (oldbuf);
       windows_or_buffers_changed = old_windows_or_buffers_changed;
       message_log_need_newline = !nlflag;
+      Vdeactivate_mark = old_deactivate_mark;
     }
 }
 
@@ -926,7 +929,7 @@ prepare_menu_bars ()
       Lisp_Object tail, frame;
       int count = specpdl_ptr - specpdl;
 
-      record_unwind_protect (Fstore_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -1629,7 +1632,7 @@ update_menu_bar (f, save_match_data)
 
 	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  if (save_match_data)
-	    record_unwind_protect (Fstore_match_data, Fmatch_data (Qnil, Qnil));
+	    record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
 	  if (NILP (Voverriding_local_map_menu_flag))
 	    {
 	      specbind (Qoverriding_terminal_local_map, Qnil);
