@@ -1,3 +1,18 @@
+2001-11-12  Colin Walters  <walters@debian.org>
+
+	* calc/calc-keypd.el (toplevel): Bind mouse buttons.
+	(calc-do-keypad): Don't attempt to use nonexistent global
+	mouse-map, use calc-keypad-map.
+	(calc-keypad-x-left-click): Renamed to calc-keypad-left-click.
+	(calc-keypad-left-click): Don't use mouse-map; update to new event
+	interface.
+	(calc-keypad-x-middle-click, calc-keypad-x-right-click): Ditto.
+	(calc-keypad-press): Use `unread-command-events' instead of
+	`unread-command-char'.
+
+	* calc/calc-ext.el (calc-init-extensions): Update autoload names
+	to match files renamed on initial calc import.
+
 2001-11-12  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-default-dictionary): Fix
