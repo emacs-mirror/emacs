@@ -1047,8 +1047,11 @@ sort_args (argc, argv)
 	      if (equals != 0)
 		thislen = equals - argv[from];
 
-	      for (i = 0; i < sizeof (standard_args) / sizeof (standard_args[0]); i++)
-		if (!strncmp (argv[from], standard_args[i].longname, thislen))
+	      for (i = 0;
+		   i < sizeof (standard_args) / sizeof (standard_args[0]); i++)
+		if (standard_args[i].longname
+		    && !strncmp (argv[from], standard_args[i].longname,
+				 thislen))
 		  {
 		    if (match == -1)
 		      match = i;
