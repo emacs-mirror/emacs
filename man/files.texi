@@ -933,9 +933,10 @@ front and rear of the visited file name.  Thus, a buffer visiting file
 @file{foo.c} is auto-saved in a file @file{#foo.c#}.  Most buffers that
 are not visiting files are auto-saved only if you request it explicitly;
 when they are auto-saved, the auto-save file name is made by appending
-@samp{#%} to the front and @samp{#} to the rear of buffer name.  For
+@samp{#} to the front and rear of buffer name, then
+adding digits and letters at the end for uniqueness.  For
 example, the @samp{*mail*} buffer in which you compose messages to be
-sent is auto-saved in a file named @file{#%*mail*#}.  Auto-save file
+sent might auto-saved in a file named @file{#*mail*#704juu}.  Auto-save file
 names are made this way unless you reprogram parts of Emacs to do
 something different (the functions @code{make-auto-save-file-name} and
 @code{auto-save-file-name-p}).  The file name to be used for auto-saving
