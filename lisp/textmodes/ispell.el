@@ -204,6 +204,12 @@
 (defconst version20p (string-match "20\\.[0-9]+\\.[0-9]+" emacs-version)
   "Non nil if using emacs version 20.")
 
+(defconst ispell-graphic-p
+  (if (fboundp 'display-graphic-p)
+      (display-graphic-p)
+    xemacsp)
+  "True if running on a `graphics capable' display.")
+
 (and (not version18p)
      (not (boundp 'epoch::version))
      (defalias 'ispell-check-version 'check-ispell-version))
@@ -270,7 +276,7 @@ This minimizes redisplay thrashing."
   :type 'boolean
   :group 'ispell)
 
-(defcustom ispell-choices-win-default-height (if xemacsp 3 2)
+(defcustom ispell-choices-win-default-height (if ispell-graphic-p 3 2)
   "*The default size of the `*Choices*' window, including mode line.
 Must be greater than 1.
 XEmacs modeline is thicker than a line of text, so it partially covers the
@@ -1830,7 +1836,7 @@ SPC:   Accept word this time.
       (save-window-excursion
 	(if ispell-help-in-bufferp
 	    (progn
-	      (ispell-overlay-window (if xemacsp 5 4))
+	      (ispell-overlay-window (if ispell-graphic-p 5 4))
 	      (switch-to-buffer (get-buffer-create "*Ispell Help*"))
 	      (insert (concat help-1 "\n" help-2 "\n" help-3))
 	      (sit-for 5)
