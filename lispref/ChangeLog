@@ -1,3 +1,7 @@
+2002-01-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (VERSION): Set to 2.8.
+
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (srcs): Add gpl.texi and doclicense.texi.
