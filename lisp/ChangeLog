@@ -1,3 +1,10 @@
+2003-04-09  Kenichi Handa  <handa@etlken2>
+
+	* international/mule-diag.el (print-coding-system-briefly): If
+	DOC-STRING is `tightly', print the doc-string tightly.
+	(list-coding-systems-1): Sort coding systems.  Call
+	print-coding-system-briefly with the arg DOC-STRING `tightly'.
+
 2003-04-08  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el: Version 2.0.33 released.
