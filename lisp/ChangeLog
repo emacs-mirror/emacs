@@ -1,7 +1,23 @@
+2002-10-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/outline.el (outline-1, outline-2, outline-3, outline-4)
+	(outline-5, outline-6, outline-7, outline-8): New faces.
+	(outline-font-lock-faces, outline-font-lock-levels): New vars.
+	(outline-font-lock-face): New fun.
+	(outline-font-lock-keywords): Use it.
+	(outline-font-lock-level): Remove.
+	(outline-mode, outline-next-preface, outline-next-heading)
+	(outline-previous-heading, outline-next-visible-heading):
+	Use shy group.
+	(outline-level) <var>: Update calling convention.
+	(outline-level) <fun>: Take advantage of it.
+	(outline-demote): Don't assume the match-data is still uptodate.
+	(outline-up-heading): Simplify and make sure the match data is
+	properly set at the end.
+
 2002-10-02  Markus Rost  <rost@math.ohio-state.edu>
 
-	* progmodes/sh-script.el (sh-alias-alist): Use append instead of
-	nconc.
+	* progmodes/sh-script.el (sh-alias-alist): Use append instead of nconc.
 
 	* startup.el (normal-top-level): Reset standard-value property of
 	`user-full-name' here.
@@ -15,17 +31,24 @@
 	toolbar/page-down.pbm, toolbar/page-down.xpm, toolbar/refile.pbm,
 	toolbar/refile.xpm, toolbar/repack.pbm, toolbar/repack.xpm,
 	toolbar/rescan.pbm, toolbar/rescan.xpm, toolbar/show.pbm,
-	toolbar/show.xpm, toolbar/widen.pbm, toolbar/widen.xpm: Upgraded
-	to mh-e version 6.1.1. Full ChangeLog available in
+	toolbar/show.xpm, toolbar/widen.pbm, toolbar/widen.xpm:
+	Upgraded to mh-e version 6.1.1.  Full ChangeLog available in
 	http://prdownloads.sourceforge.net/mh-e/mh-e-6.1.tgz?download .
 	There were no user-visible changes in 6.1.1 from 6.1--only the
-	section of the Makefile that installs the files into Emacs was
-	changed.
+	section of the Makefile that installs the files into Emacs was changed.
+
+2002-10-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs.el (cvs-mode-find-file): Look up font-lock-face so it also
+	works when font-lock is turned off.
+
+	* jit-lock.el (jit-lock-fontify-now): Don't widen.
+	Let the jit-lock-functions do it if they want to.
 
 2002-10-01  Juanma Barranquero  <lektu@terra.es>
 
-	* eshell/esh-module.el (eshell-load-defgroups): Add "no-byte-compile: t"
-	to subdirs.el.
+	* eshell/esh-module.el (eshell-load-defgroups):
+	Add "no-byte-compile: t" to subdirs.el.
 
 	* makefile.w32-in (update-subdirs-CMD): Likewise.
 
