@@ -1,3 +1,9 @@
+2004-07-02  Juri Linkov  <juri@jurta.org>
+
+	* pcvs.el (cvs-mode-diff-repository): New command.
+
+	* pcvs-defs.el (cvs-mode-diff-map): Bind r to cvs-mode-diff-repository.
+
 2004-07-01  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-mode-map): Bind C-M-w to isearch-del-char,

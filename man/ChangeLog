@@ -1,3 +1,7 @@
+2004-07-02  Juri Linkov  <juri@jurta.org>
+
+	* pcl-cvs.texi (Viewing differences): Add `d r'.
+
 2004-07-01  Juri Linkov  <juri@jurta.org>
 
 	* search.texi (Incremental Search): Add C-M-w, C-M-y, M-%, C-M-%, M-e.

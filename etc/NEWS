@@ -1939,6 +1939,12 @@ to view diffs or log entries directly from vc-annotate-mode:
 between the local version of the file and yesterday's head revision
 in the repository.
 
++++
+** In pcl-cvs mode, there is a new `d r' command to view the changes
+anyone has committed to the repository since you last executed
+"checkout", "update" or "commit".  That means using cvs diff options
+-rBASE -rHEAD.
+
 
 * New modes and packages in Emacs 21.4
 
