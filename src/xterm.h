@@ -356,6 +356,11 @@ struct x_display_info
   int ncolor_cells;
 };
 
+#ifdef HAVE_X_I18N
+/* Whether or not to use XIM if we have it.  */
+extern int use_xim;
+#endif
+
 /* This checks to make sure we have a display.  */
 extern void check_x P_ ((void));
 
