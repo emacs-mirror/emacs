@@ -279,6 +279,7 @@ Default value, nil, means edit the string instead."
       (define-key map "\C-j" 'isearch-printing-char)
       (define-key map "\t" 'isearch-printing-char)
       (define-key map " " 'isearch-whitespace-chars)
+      (define-key map [?\S-\ ] 'isearch-whitespace-chars)
     
       (define-key map "\C-w" 'isearch-yank-word)
       (define-key map "\C-y" 'isearch-yank-line)
@@ -1180,6 +1181,8 @@ Obsolete."
   "Add this ordinary printing character to the search string and search."
   (interactive)
   (let ((char (isearch-last-command-char)))
+    (if (= char ?\S-\ )
+	(setq char ?\ ))
     (if (and enable-multibyte-characters
 	     (>= char ?\200)
 	     (<= char ?\377))
