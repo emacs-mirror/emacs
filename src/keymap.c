@@ -1860,11 +1860,12 @@ Control characters turn into C-whatever, etc.")
   if (INTEGERP (key))		/* Normal character */
     {
       unsigned int charset, c1, c2;
+      int without_bits = XINT (key) & ~((-1) << CHARACTERBITS);
 
-      if (SINGLE_BYTE_CHAR_P (XINT (key)))
+      if (SINGLE_BYTE_CHAR_P (without_bits))
 	charset = 0;
       else
-	SPLIT_NON_ASCII_CHAR (XINT (key), charset, c1, c2);
+	SPLIT_NON_ASCII_CHAR (without_bits, charset, c1, c2);
 
       if (charset
 	  && ((c1 >= 0 && c1 < 32)
