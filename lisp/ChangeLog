@@ -1,3 +1,11 @@
+2004-07-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Change name of some funs.
+	(pr-dosify-file-name): New fun.  Replace ps-dosify-path.
+	(pr-unixify-file-name): New fun.  Replace ps-unixify-path.
+	(pr-standard-file-name): New fun.  Replace pr-standard-path.
+	(pr-call-process): Code fix.
+
 2004-07-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (with-selected-window): Doc fix.

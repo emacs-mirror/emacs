@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/07/10 18:48:24 vinicius>
+;; Time-stamp: <2004/07/12 21:10:35 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 (defconst pr-version "6.8"
-  "printing.el, v 6.8 <2004/07/10 vinicius>
+  "printing.el, v 6.8 <2004/07/12 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -48,12 +48,12 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Indeed, there are two user interfaces:
 ;;
-;;    * one is via menubar:
+;;    * Menu interface:
 ;;      When `printing' is loaded, the menubar is modified to use `printing'
 ;;      menu instead of the print options in menubar.
 ;;      This is the default user interface.
 ;;
-;;    * other is via buffer interface:
+;;    * Buffer interface:
 ;;      It is an option of `printing' menu, but it can be binded into another
 ;;      key, so user can activate the buffer interface directly without using
 ;;      a menu.  See `pr-interface' command.
@@ -78,10 +78,49 @@ Please send all bug fixes and enhancements to
 ;; To obtain ghostscript, ghostview and GSview see the URL
 ;; `http://www.gnu.org/software/ghostscript/ghostscript.html'.
 ;;
-;; `printing' also depends on ps-print and lpr GNU Emacs packages.
+;; `printing' depends on ps-print package to generate PostScript files, to
+;; spool and to despool PostScript buffer.  So, `printing' provides an
+;; interface to ps-print package and it also provides some extra stuff.
+;;
 ;; To download the latest ps-print package see
 ;; `http://www.cpqd.com.br/~vinicius/emacs/ps-print.tar.gz'.
 ;; Please, see README file for ps-print installation instructions.
+;;
+;;
+;; Log Messages
+;; ------------
+;;
+;; The buffer *Printing Command Output* is where the `printing' log messages
+;; are inserted.  All program called by `printing' has a log entry in the
+;; buffer *Printing Command Output*.  A log entry has the following form:
+;;
+;;    PROGRAM (ARG...)
+;;    MESSAGE
+;;    Exit status: CODE
+;;
+;; Where
+;; PROGRAM is the program activated by `printing',
+;; ARG is an argument passed to PROGRAM (it can have more than one argument),
+;; MESSAGE is an error message returned by PROGRAM (it can have no message, if
+;; PROGRAM is successful),
+;; and CODE is a numeric exit status or a signal description string.
+;;
+;; For example, after previewing a PostScript file, *Printing Command Output*
+;; will have the following entry:
+;;
+;;    /usr/X11R6/bin/gv ("/home/user/example/file.ps")
+;;    Exit status: 0
+;;
+;; In the example above, the previewing was successful.  If during previewing,
+;; you quit gv execution (by typing C-g during Emacs session), the log entry
+;; would be:
+;;
+;;    /usr/X11R6/bin/gv ("/home/user/example/file.ps")
+;;    Exit status: Quit
+;;
+;; So, if something goes wrong, a good place to take a look is the buffer
+;; *Printing Command Output*.  Don't forget to see also the buffer *Messages*,
+;; it can help.
 ;;
 ;;
 ;; Novices (First Users)
@@ -205,7 +244,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;;       print /D:\\host\printer somefile.txt
 ;;
-;;    Where, `host' is the machine where your printer is directly connected,
+;;    Where, `host' is the machine where the printer is directly connected,
 ;;    `printer' is the printer name and `somefile.txt' is a text file.
 ;;
 ;;    If the printer `\\host\printer' doesn't print the content of
@@ -892,8 +931,11 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgments
 ;; ---------------
 ;;
-;; Thanks to Drew Adams <drew.adams@oracle.com> for directory processing and
-;; `pr-path-alist' suggestions.
+;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
+;;    - directory processing.
+;;    - `pr-path-alist' variable.
+;;    - doc fix.
+;;    - a lot of tests on Windows.
 ;;
 ;; Thanks to Fred Labrosse <f.labrosse@maths.bath.ac.uk> for XEmacs tests.
 ;;
@@ -1068,7 +1110,7 @@ Valid values are:
 ;; Internal Functions (I)
 
 
-(defun pr-dosify-path (path)
+(defun pr-dosify-file-name (path)
   "Replace unix-style directory separator character with dos/windows one."
   (interactive "sPath: ")
   (if (eq pr-path-style 'windows)
@@ -1076,7 +1118,7 @@ Valid values are:
     path))
 
 
-(defun pr-unixify-path (path)
+(defun pr-unixify-file-name (path)
   "Replace dos/windows-style directory separator character with unix one."
   (interactive "sPath: ")
   (if (eq pr-path-style 'windows)
@@ -1084,7 +1126,7 @@ Valid values are:
     path))
 
 
-(defun pr-standard-path (path)
+(defun pr-standard-file-name (path)
   "Ensure the proper directory separator depending on the OS.
 That is, if Emacs is running on DOS/Windows, ensure dos/windows-style directory
 separator; otherwise, ensure unix-style directory separator."
@@ -1510,7 +1552,7 @@ Examples:
 
 
 (defcustom pr-temp-dir
-  (pr-dosify-path
+  (pr-dosify-file-name
    (if (boundp 'temporary-file-directory)
        (symbol-value 'temporary-file-directory)
      ;; hacked from `temporary-file-directory' variable in files.el
@@ -3831,7 +3873,7 @@ image in a file with that name."
   (interactive (list (pr-ps-infile-preprint "Print preview ")))
   (and (stringp filename) (file-exists-p filename)
        (let* ((file (pr-expand-file-name filename))
-	      (tempfile (pr-dosify-path (make-temp-name file))))
+	      (tempfile (pr-dosify-file-name (make-temp-name file))))
 	 ;; gs use
 	 (pr-call-process pr-gs-command
 			  (format "-sDEVICE=%s" pr-gs-device)
@@ -5004,7 +5046,7 @@ non-nil."
 	 "Invalid PostScript printer name `%s' for variable `pr-ps-name'."
 	 value))
     (setq pr-ps-name           value
-	  pr-ps-command        (pr-dosify-path (nth 0 ps))
+	  pr-ps-command        (pr-dosify-file-name (nth 0 ps))
 	  pr-ps-switches       (nth 1 ps)
 	  pr-ps-printer-switch (nth 2 ps)
 	  pr-ps-printer        (nth 3 ps))
@@ -5030,7 +5072,7 @@ non-nil."
 	(error "Invalid text printer name `%s' for variable `pr-txt-name'."
 	       value))
     (setq pr-txt-name     value
-	  pr-txt-command  (pr-dosify-path (nth 0 txt))
+	  pr-txt-command  (pr-dosify-file-name (nth 0 txt))
 	  pr-txt-switches (nth 1 txt)
 	  pr-txt-printer  (nth 2 txt)))
   (or (stringp pr-txt-command)
@@ -5169,7 +5211,7 @@ non-nil."
 
 
 (defun pr-expand-file-name (filename)
-  (pr-dosify-path (expand-file-name filename)))
+  (pr-dosify-file-name (expand-file-name filename)))
 
 
 (defun pr-ps-outfile-preprint (&optional mess)
@@ -5230,14 +5272,14 @@ non-nil."
   ;; input file
   (or (symbol-value infile-sym)
       (error "%s: input PostScript file name is missing" prompt))
-  (set infile-sym (pr-dosify-path (symbol-value infile-sym)))
+  (set infile-sym (pr-dosify-file-name (symbol-value infile-sym)))
   ;; output file
   (and (eq (symbol-value outfile-sym) t)
        (set outfile-sym (and (not (interactive-p))
 			     current-prefix-arg
 			     (pr-ps-outfile-preprint prompt))))
   (and (symbol-value outfile-sym)
-       (set outfile-sym (pr-dosify-path (symbol-value outfile-sym))))
+       (set outfile-sym (pr-dosify-file-name (symbol-value outfile-sym))))
   (pr-ps-file (symbol-value outfile-sym)))
 
 
@@ -5284,7 +5326,11 @@ non-nil."
       (set-buffer buffer)
       (goto-char (point-max))
       (insert (format "%s %S\n" cmd args)))
-    (setq status (apply 'call-process cmd nil buffer nil args))
+    (setq status
+	  (condition-case data
+	      (apply 'call-process cmd nil buffer nil args)
+	    ((quit error)
+	     (error-message-string data))))
     (save-excursion
       (set-buffer buffer)
       (goto-char (point-max))
@@ -5292,7 +5338,7 @@ non-nil."
 
 
 (defun pr-txt-print (from to)
-  (let ((lpr-command  (pr-standard-path (pr-command pr-txt-command)))
+  (let ((lpr-command  (pr-standard-file-name (pr-command pr-txt-command)))
 	(lpr-switches (pr-switches pr-txt-switches "pr-txt-switches"))
 	(printer-name pr-txt-printer))
     (lpr-region from to)))
@@ -5335,9 +5381,9 @@ non-nil."
 
 
 (defun pr-ps-file (&optional filename)
-  (pr-dosify-path (or filename
-		      (convert-standard-filename
-		       (expand-file-name pr-ps-temp-file pr-temp-dir)))))
+  (pr-dosify-file-name (or filename
+			   (convert-standard-filename
+			    (expand-file-name pr-ps-temp-file pr-temp-dir)))))
 
 
 (defun pr-interactive-n-up (mess)
@@ -5430,7 +5476,7 @@ non-nil."
 			      current-prefix-arg
 			      (ps-print-preprint current-prefix-arg))))
   (and (symbol-value filename-sym)
-       (set filename-sym (pr-dosify-path (symbol-value filename-sym)))))
+       (set filename-sym (pr-dosify-file-name (symbol-value filename-sym)))))
 
 
 (defun pr-set-n-up-and-filename (n-up-sym filename-sym mess)
@@ -5574,7 +5620,7 @@ If Emacs is running on Windows 95/98/NT/2000, tries to find COMMAND,
 COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   (if (string= command "")
       command
-    (pr-dosify-path
+    (pr-dosify-file-name
      (or (pr-find-command command)
 	 (pr-path-command (cond (pr-cygwin-system  'cygwin)
 				(ps-windows-system 'windows)
