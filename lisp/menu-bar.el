@@ -557,7 +557,7 @@ FNAME is the minor mode's name (variable and function).
 DOC is the text to use the menu entry.
 HELP is the text to use for the tooltip.
 PROPS are additional properties."
-  `'(menu-item ,doc ',fname
+  `'(menu-item ,doc ,fname
      ,@(if props props)
      :help ,help
      :button (:toggle . (and (default-boundp ',fname)
