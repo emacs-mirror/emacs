@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.6) $
+ * $HopeName: MMsrc!config.h(trunk.7) $
  */
 
 #ifndef config_h
@@ -55,6 +55,10 @@
  * .prod.arena-size: ARENA_SIZE is currently set larger for the
  * MM/Dylan product as an interim solution.
  * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
+ *
+ * .mac.arena-size: ARENA_SIZE is set to 2Mb when compiling on
+ * os.s7 (Mac OS) with the VM Arena, in order to allow development in
+ * an environment where real memory is used to simulate memory mapping.
  * 
  * ARENA_CLIENT_PAGE_SIZE is the size in bytes of a "page" (i.e. segment
  * granule) in the client arena. The number 8192 is an initial value with no
@@ -77,7 +81,11 @@
 #define ARENA_SIZE              ((Size)1<<30)
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_MPS
+#ifdef MPS_OS_S7
+#define ARENA_SIZE              ((Size)2<<20)
+#else
 #define ARENA_SIZE              ((Size)64<<20)
+#endif /* MPS_PF_S7M6MW */
 #else
 #error "No target product configured."
 #endif
