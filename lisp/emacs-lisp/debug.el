@@ -280,6 +280,8 @@ Enter another debugger on next entry to eval, apply or funcall."
 (defun debugger-continue ()
   "Continue, evaluating this expression without stopping."
   (interactive)
+  (unless debugger-may-continue
+    (error "Cannot continue"))
   (message "Continuing.")
   (exit-recursive-edit))
 
