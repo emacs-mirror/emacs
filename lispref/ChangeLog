@@ -1,3 +1,7 @@
+2003-09-23  Luc Teirlinck  <teirllm@mail.auburn.edu>
+
+	* processes.texi (Low-Level Network): Fix typo.
+
 2003-09-23  Kim F. Storm  <storm@cua.dk>
 
 	* processes.texi (Network, Network Servers): Fix typos.
