@@ -824,7 +824,7 @@ significance.")
 
   XSETFASTINT (len, nargs);
   if (!NILP (Vpurify_flag))
-    val = make_pure_vector (len);
+    val = make_pure_vector (XFASTINT (len));
   else
     val = Fmake_vector (len, Qnil);
   p = XVECTOR (val);
@@ -1367,7 +1367,7 @@ Does not copy symbols.")
       size = XVECTOR (obj)->size;
       if (size & PSEUDOVECTOR_FLAG)
 	size &= PSEUDOVECTOR_SIZE_MASK;
-      vec = XVECTOR (make_pure_vector (size));
+      vec = XVECTOR (make_pure_vector ((EMACS_INT) size));
       for (i = 0; i < size; i++)
 	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
       if (COMPILEDP (obj))
