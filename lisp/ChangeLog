@@ -1,3 +1,7 @@
+2004-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-file-hook): Call vc-backend with absolute name.
+
 2004-10-16  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-start): Move let-binding of
@@ -67,11 +71,9 @@
 
 2004-10-13  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* button.el (button-activate): Allow a marker to display as an
-	action.
+	* button.el (button-activate): Allow a marker to display as an action.
 
-	* help-fns.el (describe-variable): Use it to make "below" a
-	hyperlink.
+	* help-fns.el (describe-variable): Use it to make "below" a hyperlink.
 
 	* help.el (describe-mode): Use it to make minor mode list into
 	hyperlinks.
