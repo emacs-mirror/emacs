@@ -612,6 +612,7 @@ between them, return t; otherwise return nil.")
 		  if (from == stop)
 		    {
 		      immediate_quit = 0;
+		      SET_PT (from);
 		      return Qnil;
 		    }
 		  c = FETCH_CHAR (from);
@@ -636,6 +637,7 @@ between them, return t; otherwise return nil.")
 	  else if (code != Swhitespace)
 	    {
 	      immediate_quit = 0;
+	      SET_PT (from);
 	      return Qnil;
 	    }
 	}
@@ -685,6 +687,7 @@ between them, return t; otherwise return nil.")
 		      if (from == stop)
 			{
 			  immediate_quit = 0;
+			  SET_PT (from);
 			  return Qnil;
 			}
 		      from--;
@@ -808,6 +811,7 @@ between them, return t; otherwise return nil.")
 	  else if (code != Swhitespace || quoted)
 	    {
 	      immediate_quit = 0;
+	      SET_PT (from);
 	      return Qnil;
 	    }
 	}
