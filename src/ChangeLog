@@ -1,3 +1,8 @@
+2001-12-17  Richard M. Stallman  <rms@gnu.org>
+
+	* coding.c (DECODE_COMPOSITION_END): Check for ! COMPOSING (coding)
+	instead of only for COMPOSITION_DISABLED.
+
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
 
 	* alloc.c (pure_alloc): After overflow, allocate just a small block.
