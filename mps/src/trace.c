@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.20) $
+ * $HopeName: MMsrc!trace.c(MMdevel_bufferscan.2) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.20) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(MMdevel_bufferscan.2) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -313,6 +313,40 @@ void TraceSegGreyen(Space space, Seg seg, TraceSet ts)
 }
 
 
+/* TraceFlipBuffers -- flip all buffers in the space */
+
+static void TraceFlipBuffers(Space space)
+{
+  Ring poolRing, poolNode, bufferRing, bufferNode;
+  
+  AVERT(Space, space);
+  
+  poolRing = SpacePoolRing(space);
+  poolNode = RingNext(poolRing);
+  while(poolNode != poolRing) {
+    Ring poolNext = RingNext(poolNode);
+    Pool pool = RING_ELT(Pool, spaceRing, poolNode);
+    
+    AVERT(Pool, pool);
+    
+    bufferRing = &pool->bufferRing;
+    bufferNode = RingNext(bufferRing);
+    while(bufferNode != bufferRing) {
+      Ring bufferNext = RingNext(bufferNode);
+      Buffer buffer = RING_ELT(Buffer, poolRing, bufferNode);
+      
+      AVERT(Buffer, buffer);
+      
+      BufferFlip(buffer);
+      
+      bufferNode = bufferNext;
+    }
+    
+    poolNode = poolNext;
+  }
+}
+
+
 static Res TraceFlip(Trace trace)
 {
   Ring ring;
@@ -328,9 +362,8 @@ static Res TraceFlip(Trace trace)
 
   AVER(trace->state == TraceUNFLIPPED);
 
-  /* @@@@ MUST TRIP ALL BUFFERS to make sure they don't */
-  /* contain unscanned objects. */
-
+  TraceFlipBuffers(space);
+ 
   /* Update location dependency structures.  white is */
   /* a conservative approximation of the refset of refs which */
   /* may move during this collection. */
