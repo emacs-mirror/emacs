@@ -1,4 +1,4 @@
-;;; mule-diag.el --- Show diagnosis of multilingual environment (MULE)
+;;; mule-diag.el --- Show diagnosis of multilingual environment (Mule)
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -737,7 +737,7 @@ Emacs again, you should be able to use various input methods."))
 
 ;;;###autoload
 (defun mule-diag ()
-  "Display diagnosis of the multilingual environment (MULE).
+  "Display diagnosis of the multilingual environment (Mule).
 
 This shows various information related to the current multilingual
 environment, including lists of input methods, coding systems,
