@@ -1,6 +1,6 @@
 ;;; paragraphs.el --- paragraph and sentence parsing.
 
-;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96, 1997
+;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96, 1997, 1999
 ;;    Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -163,7 +163,8 @@ A paragraph end is the beginning of a line which is not part of the paragraph
 to which the end of the previous line belongs, or the end of the buffer."
   (interactive "p")
   (or arg (setq arg 1))
-  (let* ((fill-prefix-regexp
+  (let* ((opoint (point))
+	 (fill-prefix-regexp
 	  (and fill-prefix (not (equal fill-prefix ""))
 	       (not paragraph-ignore-fill-prefix)
 	       (regexp-quote fill-prefix)))
@@ -185,11 +186,6 @@ to which the end of the previous line belongs, or the end of the buffer."
 	      (concat paragraph-separate "\\|"
 		      fill-prefix-regexp "[ \t]*$")
 	    paragraph-separate))
-	 ;; The end of the prompt is treated as a paragraph boundary.
-	 (prompt-end (if (window-minibuffer-p)
-			 (minibuffer-prompt-end)
-		       1))
-	 (orig-point (point))
 	 ;; This is used for searching.
 	 (sp-paragraph-start (concat "^[ \t]*\\(" paragraph-start "\\)"))
 	 start found-start)
@@ -291,12 +287,7 @@ to which the end of the previous line belongs, or the end of the buffer."
 	(if (< (point) (point-max))
 	    (goto-char start)))
       (setq arg (1- arg)))
-    (when (and (< orig-point prompt-end)
-	       (< prompt-end (point)))
-      (goto-char prompt-end))
-    (when (and (> orig-point prompt-end)
-	       (> prompt-end (point)))
-      (goto-char prompt-end))))
+    (constrain-to-field nil opoint t)))
 
 (defun backward-paragraph (&optional arg)
   "Move backward to start of paragraph.
@@ -334,9 +325,7 @@ negative arg -N means kill backward to Nth start of paragraph."
 With arg N, kill back to Nth start of paragraph;
 negative arg -N means kill forward to Nth end of paragraph."
   (interactive "*p")
-  (let ((start (point))
-	(end (progn (backward-paragraph arg) (point))))
-    (kill-region start end)))
+  (kill-region (point) (progn (backward-paragraph arg) (point))))
 
 (defun transpose-paragraphs (arg)
   "Interchange this (or next) paragraph with previous one."
@@ -376,30 +365,20 @@ The variable `sentence-end' is a regular expression that matches ends of
 sentences.  Also, every paragraph boundary terminates sentences as well."
   (interactive "p")
   (or arg (setq arg 1))
-  (while (< arg 0)
-    (let ((par-beg (save-excursion (start-of-paragraph-text) (point)))
-	  (prompt-end (if (window-minibuffer-p)
-			  (minibuffer-prompt-end)
-			1)))
-      (if (and (< prompt-end (point))
-	       (> prompt-end par-beg))
-	  (setq par-beg prompt-end))
-      (if (re-search-backward (concat sentence-end "[^ \t\n]") par-beg t)
-	  (goto-char (1- (match-end 0)))
-	(goto-char par-beg)))
-    (setq arg (1+ arg)))
-  (while (> arg 0)
-    (let ((par-end (save-excursion (end-of-paragraph-text) (point)))
-	  (prompt-end (if (window-minibuffer-p)
-			  (minibuffer-prompt-end)
-			1)))
-      (if (and (> prompt-end (point))
-	       (< prompt-end par-end))
-	  (setq par-end prompt-end))
-      (if (re-search-forward sentence-end par-end t)
-	  (skip-chars-backward " \t\n")
-	(goto-char par-end)))
-    (setq arg (1- arg))))
+  (let ((opoint (point)))
+    (while (< arg 0)
+      (let ((par-beg (save-excursion (start-of-paragraph-text) (point))))
+       (if (re-search-backward (concat sentence-end "[^ \t\n]") par-beg t)
+	   (goto-char (1- (match-end 0)))
+	 (goto-char par-beg)))
+      (setq arg (1+ arg)))
+    (while (> arg 0)
+      (let ((par-end (save-excursion (end-of-paragraph-text) (point))))
+       (if (re-search-forward sentence-end par-end t)
+	   (skip-chars-backward " \t\n")
+	 (goto-char par-end)))
+      (setq arg (1- arg)))
+    (constrain-to-field nil opoint t)))
 
 (defun backward-sentence (&optional arg)
   "Move backward to start of sentence.  With arg, do it arg times.
@@ -418,9 +397,7 @@ With arg, repeat; negative arg -N means kill back to Nth start of sentence."
   "Kill back from point to start of sentence.
 With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
   (interactive "*p")
-  (let ((start (point))
-	(end (progn (backward-sentence arg) (point))))
-    (kill-region start end)))
+  (kill-region (point) (progn (backward-sentence arg) (point))))
 
 (defun mark-end-of-sentence (arg)
   "Put mark at end of sentence.  Arg works as in `forward-sentence'."
