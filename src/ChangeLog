@@ -1,5 +1,10 @@
 2001-06-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* widget.c (EmacsFrameSetCharSize): Turn off atimers and block
+	SIGIO around the code where Xt might wait for a
+	ConfigureNotifyEvent.
+	(toplevel): Include <signal.h> and syssignal.h.
+
 	* sound.c (vox_configure, vox_close): Turn off atimers
 	around ioctls.
 
