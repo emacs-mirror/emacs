@@ -29,6 +29,10 @@ Boston, MA 02111-1307, USA.  */
 #ifdef WINDOWSNT
 #include "w32term.h"
 #endif
+#include "buffer.h"
+/* These help us bind and responding to switch-frame events.  */
+#include "commands.h"
+#include "keyboard.h"
 #include "frame.h"
 #ifdef HAVE_WINDOW_SYSTEM
 #include "fontset.h"
@@ -222,12 +226,6 @@ set_menu_bar_lines (f, value, oldval)
     }
 }
 
-#include "buffer.h"
-
-/* These help us bind and responding to switch-frame events.  */
-#include "commands.h"
-#include "keyboard.h"
-
 Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
 

@@ -26,7 +26,9 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/param.h>
 #include <errno.h>
 
+#ifndef USE_CRT_DLL
 extern int errno;
+#endif
 
 #ifndef MAXPATHLEN
 /* in 4.1, param.h fails to define this. */
@@ -45,6 +47,7 @@ extern int errno;
 #include "region-cache.h"
 #include "indent.h"
 #include "blockinput.h"
+#include "keyboard.h"
 #include "frame.h"
 
 struct buffer *current_buffer;		/* the current buffer */

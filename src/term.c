@@ -31,10 +31,10 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "charset.h"
 #include "coding.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "disptab.h"
 #include "termhooks.h"
-#include "keyboard.h"
 #include "dispextern.h"
 #include "window.h"
 

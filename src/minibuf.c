@@ -27,10 +27,10 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "dispextern.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "syntax.h"
-#include "keyboard.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 

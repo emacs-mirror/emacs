@@ -25,12 +25,12 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "buffer.h"
 #include "charset.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "process.h"
 #include "dispextern.h"
 #include "termchar.h"
-#include "keyboard.h"
 #include "intervals.h"
 
 Lisp_Object Vstandard_output, Qstandard_output;
