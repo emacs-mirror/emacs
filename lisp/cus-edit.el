@@ -1059,7 +1059,7 @@ suggest to customized that face, if it's customizable."
 				  (custom-unlispify-tag-name face)))))
 
 ;;;###autoload
-(defun customize-face-other-window (&optional symbol)
+(defun customize-face-other-window (&optional face)
   "Show customization buffer for face SYMBOL in other window.
 
 Interactively, when point is on text which has a face specified,
