@@ -1,3 +1,8 @@
+2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-tag-text-p): New fun.
+	(sgml-parse-tag-backward): Use it to skip spurious < or >.
+
 2004-11-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* ebuff-menu.el: Doc fixes throughout.
@@ -14,6 +19,10 @@
 	* textmodes/conf-mode.el: New file.
 
 	* files.el (auto-mode-alist, magic-mode-alist): Use it.
+
+2004-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/iso-cvt.el (iso-cvt-define-menu): Clean up namespace.
 
 2004-11-09  Jay Belanger  <belanger@truman.edu>
 
@@ -37,8 +46,8 @@
 	* calc/calc-poly.el (math-expand-form):  Use declared variable
 	math-mt-many.
 
-	* calc/calc-rewr.el (math-rewrite, math-rewrite-phase):  Use
-	declared variable math-mt-many.
+	* calc/calc-rewr.el (math-rewrite, math-rewrite-phase):
+	Use declared variable math-mt-many.
 	(math-rewrite):  Use declared variable math-mt-func.
 
 	* calc/calc-vec.el (math-read-brackets, math-read-vector)
@@ -103,8 +112,6 @@
 	(gdb-show-changed-values): Add :version keyword.
 
 2004-11-08  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* international/mule.el: Fix some warnings.
 
 	* international/mule-cmds.el: Change coding-system to utf-8.
 	(select-safe-coding-system-interactively):
