@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996, 1997, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2000, 2001  Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@anc.ed.ac.uk>
 ;; Maintainer: Stephen Eglen <stephen@anc.ed.ac.uk>
@@ -741,21 +741,22 @@ in this list.  If DEFAULT is non-nil, and corresponds to an existing buffer,
 it is put to the start of the list."
   (setq iswitchb-buflist
 	(let* ((iswitchb-current-buffers (iswitchb-get-buffers-in-frames))
-	      (iswitchb-temp-buflist
-	       (delq nil
-		     (mapcar
-		      (lambda (x)
-			(let ((b-name (buffer-name x)))
-			  (if (not
-			       (or
-				(iswitchb-ignore-buffername-p b-name)
-				(memq b-name iswitchb-current-buffers)))
-			      b-name)))
-		      (buffer-list (and iswitchb-use-frame-buffer-list
-					(selected-frame)))))))
-	  (nconc iswitchb-temp-buflist iswitchb-current-buffers)
+	       (iswitchb-temp-buflist
+		(delq nil
+		      (mapcar
+		       (lambda (x)
+			 (let ((b-name (buffer-name x)))
+			   (if (not
+				(or
+				 (iswitchb-ignore-buffername-p b-name)
+				 (memq b-name iswitchb-current-buffers)))
+			       b-name)))
+		       (buffer-list (and iswitchb-use-frame-buffer-list
+					 (selected-frame)))))))
+	  (setq iswitchb-temp-buflist
+		(nconc iswitchb-temp-buflist iswitchb-current-buffers))
 	  (run-hooks 'iswitchb-make-buflist-hook)
-	  ;; Should this be after the hooks, or should the hooks be the
+	 ;; Should this be after the hooks, or should the hooks be the
 	  ;; final thing to be run?
 	  (if default
 	      (progn
@@ -771,7 +772,7 @@ it is put to the start of the list."
    (lambda (elem)
      (setq iswitchb-temp-buflist (delq elem iswitchb-temp-buflist)))
    lst)
-  (nconc iswitchb-temp-buflist lst))
+  (setq iswitchb-temp-buflist (nconc iswitchb-temp-buflist lst)))
 
 (defun iswitchb-get-buffers-in-frames (&optional current)
   "Return the list of buffers that are visible in the current frame.
