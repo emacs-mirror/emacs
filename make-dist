@@ -228,7 +228,16 @@ fi
 
 echo "Making lisp/MANIFEST"
 
-(cd lisp; head -1 [!=]*.el | grep '^;' | sed -e 's/;;; //' > MANIFEST)
+(cd lisp;
+ files=`echo [!=]*.el | sed -e 's/ subdirs.el / /' -e 's/ default.el / /'`
+ for dir in [!=]*; do
+  if [ -d $dir ] && [ $dir != term ] && [ $dir != RCS ]; then
+    echo $dir
+    thisdir=`echo $dir/[!=]*.el | sed -e 's/ subdirs.el / /'`
+    files="$files $thisdir"
+  fi
+ done
+ head -1 $files | grep '^;' | sed -e 's/;;; //' | sort > MANIFEST)
 
 echo "Creating staging directory: \`${tempparent}'"
 
