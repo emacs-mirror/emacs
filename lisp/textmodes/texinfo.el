@@ -198,8 +198,8 @@ chapter."
 
 (defvar texinfo-font-lock-keywords
   (list
+   '("^\\(@c\\|@comment\\)[ \t].*" . font-lock-comment-face)	;comments
    "@\\(@\\|[^}\t \n{]+\\)"					;commands
-   '("^\\(@c\\|@comment\\)[ \t].*$" . font-lock-comment-face)	;comments
    '("^\\(*.*\\)[\t ]*$" 1 font-lock-function-name-face t)	;menu items
    '("@\\(emph\\|strong\\|b\\|i\\){\\([^}]+\\)" 2 font-lock-comment-face t)
    '("@\\(file\\|kbd\\|key\\){\\([^}]+\\)" 2 font-lock-string-face t)
