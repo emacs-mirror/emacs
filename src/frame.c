@@ -617,7 +617,6 @@ If MINIFRAME is non-nil and not a window, include all frames.")
 
   return prev_frame (frame, miniframe);
 }
-
 
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
   "Delete FRAME, permanently eliminating it from use.\n\
@@ -656,6 +655,14 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	   frames = XCONS (frames)->cdr)
 	{
 	  Lisp_Object this = XCONS (frames)->car;
+
+#ifdef HAVE_X_WINDOWS
+	  if (FRAME_X_P (XFRAME (this)))
+	    {
+	      x_sync (this);
+	      FRAME_SAMPLE_VISIBILITY (XFRAME (this));
+	    }
+#endif
 
 	  if (FRAME_VISIBLE_P (XFRAME (this))
 	      || FRAME_ICONIFIED_P (XFRAME (this))
