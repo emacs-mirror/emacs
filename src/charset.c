@@ -286,24 +286,24 @@ unify_char (table, c, charset, c1, c2)
   return MAKE_CHAR (alt_charset, c1, c2);
 }
 
-#define DEFAULT_NONASCII_INSERT_OFFSET 0x800
+/* Convert the unibyte character C to multibyte based on
+   Vnonascii_translate_table or nonascii_insert_offset.  If they can't
+   convert C to a valid multibyte character, convert it based on
+   DEFAULT_NONASCII_INSERT_OFFSET which makes C a Latin-1 character.  */
 
-/* Convert the unibyte character C to multibyte
-   based on Vnonascii_translate_table or nonascii_insert_offset.
-   Note that copy_text in insdel.c has similar code.  */
-
-int
 unibyte_char_to_multibyte (c)
      int c;
 {
-  if (c >= 0200 && c < 0400)
+  if (c >= 0240 && c < 0400)
     {
+      int c_save = c;
+
       if (! NILP (Vnonascii_translate_table))
 	c = XINT (Faref (Vnonascii_translate_table, make_number (c)));
       else if (nonascii_insert_offset > 0)
 	c += nonascii_insert_offset;
-      else
-	c += DEFAULT_NONASCII_INSERT_OFFSET;
+      if (c >= 0240 && (c < 0400 || ! VALID_MULTIBYTE_CHAR_P (c)))
+	c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
     }
   return c;
 }
@@ -862,6 +862,26 @@ a valid generic character.")
   if (! NATNUMP (object))
     return Qnil;
   return (CHAR_VALID_P (XFASTINT (object), !NILP (genericp)) ? Qt : Qnil);
+}
+
+DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
+       Sunibyte_char_to_multibyte, 1, 1, 0,
+  "Convert the unibyte character CH to multibyte character.\n\
+The conversion is done based on nonascii-translate-table (which see)\n\
+ or nonascii-insert-offset (which see).")
+  (ch)
+     Lisp_Object ch;
+{
+  int c;
+
+  CHECK_NUMBER (ch, 0);
+  c = XINT (ch);
+  if (c < 0 || c >= 0400)
+    error ("Invalid unibyte character: %d", c);
+  c = unibyte_char_to_multibyte (c);
+  if (c < 0)
+    error ("Can't convert to multibyte character: %d", XINT (ch));
+  return make_number (c);
 }
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
@@ -1663,6 +1683,7 @@ syms_of_charset ()
   defsubr (&Schar_charset);
   defsubr (&Siso_charset);
   defsubr (&Schar_valid_p);
+  defsubr (&Sunibyte_char_to_multibyte);
   defsubr (&Schar_bytes);
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
@@ -1708,7 +1729,7 @@ An ID of a unification table is an index of this vector.");
   leading_code_private_22 = LEADING_CODE_PRIVATE_22;
 
   DEFVAR_INT ("nonascii-insert-offset", &nonascii_insert_offset,
-    "Offset for converting non-ASCII unibyte codes 0200...0377 to multibyte.\n\
+    "Offset for converting non-ASCII unibyte codes 0240...0377 to multibyte.\n\
 This is used for converting unibyte text to multibyte,\n\
 and for inserting character codes specified by number.\n\n\
 Conversion is performed only when multibyte characters are enabled,\n\
