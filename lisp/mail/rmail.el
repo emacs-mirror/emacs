@@ -317,6 +317,7 @@ Note:    it means the file has no messages in it.\n\^_")))
 ;; Rmail mode is suitable only for specially formatted data.
 (put 'rmail-mode 'mode-class 'special)
 
+;;;###autoload
 (defun rmail-mode ()
   "Rmail Mode is used by \\<rmail-mode-map>\\[rmail] for editing Rmail files.
 All normal editing commands are turned off.
