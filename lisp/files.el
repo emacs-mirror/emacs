@@ -1195,7 +1195,8 @@ unless NOMODES is non-nil."
 		   "File exists, but cannot be read")
 		  ((not buffer-read-only)
 		   (if (and warn
-			    (file-newer-than-file-p (make-auto-save-file-name)
+			    (file-newer-than-file-p (or auto-save-visited-file-name
+							(make-auto-save-file-name))
 						    buffer-file-name))
 		       (format "%s has auto save data; consider M-x recover-file"
 			       (file-name-nondirectory buffer-file-name))
