@@ -6538,10 +6538,14 @@ quit_throw_to_read_char ()
   Vunread_command_events = Qnil;
   unread_command_char = -1;
 
+#if 0 /* Currently, sit_for is called from read_char without turning
+	 off polling.  And that can call set_waiting_for_input.
+	 It seems to be harmless.  */
 #ifdef POLL_FOR_INPUT
   /* May be > 1 if in recursive minibuffer.  */
   if (poll_suppress_count == 0)
     abort ();
+#endif
 #endif
 #ifdef MULTI_FRAME
   if (FRAMEP (internal_last_event_frame)
