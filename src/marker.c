@@ -428,9 +428,9 @@ buf_bytepos_to_charpos (b, bytepos)
 /* Operations on markers. */
 
 DEFUN ("marker-buffer", Fmarker_buffer, Smarker_buffer, 1, 1, 0,
-  "Return the buffer that MARKER points into, or nil if none.\n\
-Returns nil if MARKER points into a dead buffer.")
-  (marker)
+       doc: /* Return the buffer that MARKER points into, or nil if none.
+Returns nil if MARKER points into a dead buffer.  */)
+     (marker)
      register Lisp_Object marker;
 {
   register Lisp_Object buf;
@@ -446,8 +446,8 @@ Returns nil if MARKER points into a dead buffer.")
 }
 
 DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
-  "Return the position MARKER points at, as a character number.")
-  (marker)
+       doc: /* Return the position MARKER points at, as a character number.  */)
+     (marker)
      Lisp_Object marker;
 {
   CHECK_MARKER (marker, 0);
@@ -458,12 +458,12 @@ DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
 }
 
 DEFUN ("set-marker", Fset_marker, Sset_marker, 2, 3, 0,
-  "Position MARKER before character number POSITION in BUFFER.\n\
-BUFFER defaults to the current buffer.\n\
-If POSITION is nil, makes marker point nowhere.\n\
-Then it no longer slows down editing in any buffer.\n\
-Returns MARKER.")
-  (marker, position, buffer)
+       doc: /* Position MARKER before character number POSITION in BUFFER.
+BUFFER defaults to the current buffer.
+If POSITION is nil, makes marker point nowhere.
+Then it no longer slows down editing in any buffer.
+Returns MARKER.  */)
+     (marker, position, buffer)
      Lisp_Object marker, position, buffer;
 {
   register int charno, bytepos;
@@ -816,12 +816,12 @@ marker_byte_position (marker)
 }
 
 DEFUN ("copy-marker", Fcopy_marker, Scopy_marker, 1, 2, 0,
-  "Return a new marker pointing at the same place as MARKER.\n\
-If argument is a number, makes a new marker pointing\n\
-at that position in the current buffer.\n\
-The optional argument TYPE specifies the insertion type of the new marker;\n\
-see `marker-insertion-type'.")
-  (marker, type)
+       doc: /* Return a new marker pointing at the same place as MARKER.
+If argument is a number, makes a new marker pointing
+at that position in the current buffer.
+The optional argument TYPE specifies the insertion type of the new marker;
+see `marker-insertion-type'.  */)
+     (marker, type)
      register Lisp_Object marker, type;
 {
   register Lisp_Object new;
@@ -838,9 +838,9 @@ see `marker-insertion-type'.")
 
 DEFUN ("marker-insertion-type", Fmarker_insertion_type,
        Smarker_insertion_type, 1, 1, 0,
-  "Return insertion type of MARKER: t if it stays after inserted text.\n\
-nil means the marker stays before text inserted there.")
-  (marker)
+       doc: /* Return insertion type of MARKER: t if it stays after inserted text.
+nil means the marker stays before text inserted there.  */)
+     (marker)
      register Lisp_Object marker;
 {
   CHECK_MARKER (marker, 0);
@@ -849,10 +849,10 @@ nil means the marker stays before text inserted there.")
 
 DEFUN ("set-marker-insertion-type", Fset_marker_insertion_type,
        Sset_marker_insertion_type, 2, 2, 0,
-  "Set the insertion-type of MARKER to TYPE.\n\
-If TYPE is t, it means the marker advances when you insert text at it.\n\
-If TYPE is nil, it means the marker stays behind when you insert text at it.")
-  (marker, type)
+       doc: /* Set the insertion-type of MARKER to TYPE.
+If TYPE is t, it means the marker advances when you insert text at it.
+If TYPE is nil, it means the marker stays behind when you insert text at it.  */)
+     (marker, type)
      Lisp_Object marker, type;
 {
   CHECK_MARKER (marker, 0);
@@ -862,10 +862,10 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.")
 }
 
 DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
-  1, 1, 0,
-  "Return t if there are markers pointing at POSITION in the current buffer.")
-  (position)
-      Lisp_Object position;
+       1, 1, 0,
+       doc: /* Return t if there are markers pointing at POSITION in the current buffer.  */)
+     (position)
+     Lisp_Object position;
 {
   register Lisp_Object tail;
   register int charno;
@@ -898,7 +898,6 @@ syms_of_marker ()
   defsubr (&Sbuffer_has_markers_at);
 
   DEFVAR_BOOL ("byte-debug-flag", &byte_debug_flag,
-   "Non-nil enables debugging checks in byte/char position conversions.");
+	       doc: /* Non-nil enables debugging checks in byte/char position conversions.  */);
   byte_debug_flag = 0;
-
 }
