@@ -329,42 +329,39 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 ;;; List functions.
 
 (defalias 'first 'car)
+(defalias 'second 'cadr)
 (defalias 'rest 'cdr)
 (defalias 'endp 'null)
 
-(defmacro second (x)
-  "Return the second element of the list LIST."
-  `(car (cdr ,x)))
-
-(defmacro third (x)
+(defun third (x)
   "Return the third element of the list LIST."
   `(car (cdr (cdr ,x))))
 
-(defmacro fourth (x)
+(defun fourth (x)
   "Return the fourth element of the list LIST."
   `(nth 3 ,x))
 
-(defmacro fifth (x)
+(defun fifth (x)
   "Return the fifth element of the list LIST."
   `(nth 4 ,x))
 
-(defmacro sixth (x)
+(defun sixth (x)
   "Return the sixth element of the list LIST."
   `(nth 5 ,x))
 
-(defmacro seventh (x)
+(defun seventh (x)
   "Return the seventh element of the list LIST."
   `(nth 6 ,x))
 
-(defmacro eighth (x)
+(defun eighth (x)
   "Return the eighth element of the list LIST."
   `(nth 7 ,x))
 
-(defmacro ninth (x)
+(defun ninth (x)
   "Return the ninth element of the list LIST."
   `(nth 8 ,x))
 
-(defmacro tenth (x)
+(defun tenth (x)
   "Return the tenth element of the list LIST."
   `(nth 9 ,x))
 
