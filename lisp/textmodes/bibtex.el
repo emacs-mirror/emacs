@@ -1956,7 +1956,7 @@ The generation algorithm works as follows:
     the name field, determine the last name.  If there are at most
     `bibtex-autokey-names' + `bibtex-autokey-names-stretch'
     names, all names are used.
- 5. From every last name, take at least `bibtex-autokey-name-length'
+ 5. From each last name, take at least `bibtex-autokey-name-length'
     characters (abort only after a consonant or at a word end).
  6. Unless `bibtex-autokey-preserve-case' is non-nil, convert all
     last names to lowercase letters.
