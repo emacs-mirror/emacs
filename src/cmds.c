@@ -389,6 +389,10 @@ keys_of_cmds ()
   initial_define_key (global_map, Ctl('I'), "self-insert-command");
   for (n = 040; n < 0177; n++)
     initial_define_key (global_map, n, "self-insert-command");
+#ifdef MSDOS
+  for (n = 0200; n < 0240; n++)
+    initial_define_key (global_map, n, "self-insert-command");
+#endif
   for (n = 0240; n < 0400; n++)
     initial_define_key (global_map, n, "self-insert-command");
 
