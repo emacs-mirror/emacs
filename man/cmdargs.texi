@@ -1293,8 +1293,12 @@ Emacs.pane.menubar.popup_*.popup_*.@var{menu}.@var{resource}: @var{value}
 For example,
 
 @smallexample
-Emacs.pane.menubar.popup_*.popup_*.Spell Checking.Spell-Check Message: @var{value}
+Emacs.pane.menubar.popup_*.popup_*.Spell Checking.Spell-Check Message:
+  @var{value}
 @end smallexample
+
+@noindent
+(This should be one long line.)
   
   It's impossible to specify a resource for all the menu-bar items
 without also specifying it for the submenus as well.  So if you want the
