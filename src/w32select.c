@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "w32term.h"	/* for all of the w32 includes */
 #include "dispextern.h"	/* frame.h seems to want this */
+#include "keyboard.h"
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
 #include "buffer.h"

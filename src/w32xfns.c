@@ -22,6 +22,7 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include <stdio.h>
 #include "lisp.h"
+#include "keyboard.h"
 #include "frame.h"
 #include "charset.h"
 #include "fontset.h"
