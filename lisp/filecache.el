@@ -1,9 +1,8 @@
-;;; filecache.el --- Find files using a pre-loaded cache
+;;; filecache.el --- find files using a pre-loaded cache
 ;;
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
 ;; Keywords: convenience
-;; Time-stamp: <2001-11-26 12:03:18 pavel>
 ;;
 ;; Copyright (C) 1996, 2000 Free Software Foundation, Inc.
 
