@@ -580,7 +580,7 @@ BUFFER is the GUD buffer in which to run the command."
     (set-buffer buffer)
     (if (save-excursion
 	  (goto-char (point-max))
-	  (beginning-of-line)
+	  (forward-line 0)
 	  (not (looking-at comint-prompt-regexp)))
 	nil
       ;; Much of this copied from GDB complete, but I'm grabbing the stack
@@ -1201,7 +1201,7 @@ directories if your program contains sources from more than one directory."
 	(setq seen-e t))
       (funcall shift))
 
-    (when (not seen-e)
+    (unless seen-e
       (if (or (not args)
 	      (string-match "^-" (car args)))
 	  (error "Can't use stdin as the script to debug."))
@@ -1212,9 +1212,9 @@ directories if your program contains sources from more than one directory."
     ;; as -e macs.
     (if (and args (equal "--" (car args)))
 	(funcall shift)
-      (and seen-e (setq new-args (cons "--" new-args))))
+      (and seen-e (push "--" new-args)))
 
-    (setq new-args (cons "-emacs" new-args))
+    (push "-emacs" new-args)
     (while args
       (funcall shift))
 
@@ -2021,12 +2021,17 @@ comint mode, which see."
 ;; in the selected window.
 ;;;###autoload (add-hook 'same-window-regexps "\\*gud-.*\\*\\(\\|<[0-9]+>\\)")
 
+(defcustom gud-chdir-before-run t
+  "Non-nil if GUD should `cd' to the debugged executable."
+  :group 'gud
+  :type 'boolean)
+
 ;; Perform initializations common to all debuggers.
 ;; The first arg is the specified command line,
 ;; which starts with the program to debug.
 ;; The other three args specify the values to use
 ;; for local variables in the debugger buffer.
-(defun gud-common-init (command-line massage-args marker-filter find-file)
+(defun gud-common-init (command-line massage-args marker-filter &optional find-file)
   (let* ((words (split-string command-line))
 	 (program (car words))
 	 ;; Extract the file name from WORDS
@@ -2054,6 +2059,7 @@ comint mode, which see."
     (pop-to-buffer (concat "*gud" filepart "*"))
     ;; Set default-directory to the file's directory.
     (and file-word
+	 gud-chdir-before-run
 	 ;; Don't set default-directory if no directory was specified.
 	 ;; In that case, either the file is found in the current directory,
 	 ;; in which case this setq is a no-op,
@@ -2075,8 +2081,7 @@ comint mode, which see."
   (gud-mode)
   (make-local-variable 'gud-marker-filter)
   (setq gud-marker-filter marker-filter)
-  (make-local-variable 'gud-find-file)
-  (setq gud-find-file find-file)
+  (if find-file (set (make-local-variable 'gud-find-file) find-file))
 
   (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
   (set-process-sentinel (get-buffer-process (current-buffer)) 'gud-sentinel)
