@@ -536,7 +536,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 	  for (c = 0; c < len; c++)
 	    {
 	      Lisp_Object character;
-	      XFASTINT (character) = c;
+	      XSETFASTINT (character, c);
 	      item1 = XVECTOR (item)->contents[c];
 	      if (CONSP (item1))
 		{
@@ -731,8 +731,8 @@ cached information about equivalent key sequences.")
 	  else
 	    {
 	      window = selected_window;
-	      XFASTINT (x) = 0;
-	      XFASTINT (y) = 0;
+	      XSETFASTINT (x, 0);
+	      XSETFASTINT (y, 0);
 	    }
 	}
       else
