@@ -122,7 +122,8 @@ rather than deleted, after it is retrieved."
 ;;;###autoload
 (defcustom rmail-dont-reply-to-names nil "\
 *A regexp specifying names to prune of reply to messages.
-A value of nil means exclude your own name only."
+A value of nil means exclude your own login name as an address
+plus whatever is specified by `rmail-default-dont-reply-to-names'."
   :type '(choice regexp (const :tag "Your Name" nil))
   :group 'rmail-reply)
 
