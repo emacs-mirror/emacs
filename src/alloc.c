@@ -107,10 +107,15 @@ Lisp_Object memory_signal_data;
 #define MAX_SAVE_STACK 16000
 #endif
 
-/* Define DONT_COPY_FLAG to be the bit in a small string that was placed
-   in the low bit of the size field when marking small strings.  */
+/* Define DONT_COPY_FLAG to be some bit which will always be zero in a
+   pointer to a Lisp_Object, when that pointer is viewed as an integer.
+   (On most machines, pointers are even, so we can use the low bit.
+   Word-addressible architectures may need to override this in the m-file.)
+   When linking references to small strings through the size field, we
+   use this slot to hold the bit that would otherwise be interpreted as
+   the GC mark bit.  */
 #ifndef DONT_COPY_FLAG
-#define DONT_COPY_FLAG PSEUDOVECTOR_FLAG
+#define DONT_COPY_FLAG 1
 #endif /* no DONT_COPY_FLAG  */
 
 /* Buffer in which we save a copy of the C stack at each GC.  */
@@ -1509,8 +1514,7 @@ mark_object (objptr)
 	  {
 	    /* A small string.  Put this reference
 	       into the chain of references to it.
-	       The address OBJPTR is even, so if the address
-	       includes MARKBIT, put it in the low bit
+	       If the address includes MARKBIT, put that bit elsewhere
 	       when we store OBJPTR into the size field.  */
 
 	    if (XMARKBIT (*objptr))
@@ -1523,9 +1527,9 @@ mark_object (objptr)
 
 	    if ((EMACS_INT) objptr & DONT_COPY_FLAG)
 	      abort ();
-	    ptr->size = (EMACS_INT) objptr & ~MARKBIT;
-	    if ((EMACS_INT) objptr & MARKBIT)
-	      ptr->size |= DONT_COPY_FLAG;
+	    ptr->size = (EMACS_INT) objptr;
+	    if (ptr->size & MARKBIT)
+	      ptr->size ^= MARKBIT | DONT_COPY_FLAG;
 	  }
       }
       break;
@@ -2043,7 +2047,7 @@ gc_sweep ()
 	if (s->size & ARRAY_MARK_FLAG)
 	  {
 	    ((struct Lisp_String *)(&sb->chars[0]))->size
-	      &= ~ARRAY_MARK_FLAG & ~MARKBIT & ~DONT_COPY_FLAG;
+	      &= ~ARRAY_MARK_FLAG & ~MARKBIT;
 	    UNMARK_BALANCE_INTERVALS (s->intervals);
 	    total_string_size += ((struct Lisp_String *)(&sb->chars[0]))->size;
 	    prev = sb, sb = sb->next;
