@@ -130,7 +130,11 @@ negative arg -N means kill forward to Nth end of paragraph."
     (forward-paragraph -1)
     (setq npoint (point))
     (skip-chars-forward " \t\n")
-    (if (>= (point) opoint)
+    ;; If the range of blank lines found spans the original start point,
+    ;; try again from the beginning of it.
+    ;; Must be careful to avoid infinite loop
+    ;; when following a single return at start of buffer.
+    (if (and (>= (point) opoint) (< npoint opoint))
 	(progn
 	  (goto-char npoint)
 	  (if (> npoint (point-min))
