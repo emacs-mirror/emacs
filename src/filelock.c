@@ -166,6 +166,9 @@ lock_file_owner_name (lfname)
 
   if (lstat (lfname, &s) == 0)
     the_pw = getpwuid (s.st_uid);
+  else
+    the_pw = 0;
+
   return (the_pw == 0 ? Qnil : build_string (the_pw->pw_name));
 }
 
