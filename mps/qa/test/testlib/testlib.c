@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.10) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.11) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -25,6 +25,7 @@ const char *err_text(mps_res_t err)
   case MPS_RES_LIMIT: return "LIMIT";
   case MPS_RES_UNIMPL: return "UNIMPL";
   case MPS_RES_IO: return "IO";
+  case MPS_RES_COMMIT_LIMIT: return "COMMIT_LIMIT";
  }
  asserts(0, "Unknown result code");
  return "*** Unknown result code ***";
@@ -53,6 +54,11 @@ void fail(void)
 /* report
    write a var=value line on stdout
 */
+
+void report_res(const char *str, mps_res_t res)
+{
+ report(str, err_text(res));
+}
 
 void report(const char *str, const char *format, ...)
 {
