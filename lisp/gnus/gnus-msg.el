@@ -233,6 +233,7 @@ Thank you for your help in stamping out bugs.
 	     (let ((mbl1 mml-buffer-list))
 	       (setq mml-buffer-list mbl)  ;; Global value
 	       (set (make-local-variable 'mml-buffer-list) mbl1);; Local value
+	       (add-hook 'change-major-mode-hook 'mml-destroy-buffers nil t)
 	       (add-hook 'kill-buffer-hook 'mml-destroy-buffers t t))
 	   (mml-destroy-buffers)
 	   (setq mml-buffer-list mbl)))
