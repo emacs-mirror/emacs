@@ -1,5 +1,11 @@
 2001-10-29  Richard M. Stallman  <rms@gnu.org>
 
+	* fns.c (Frequire): Detect recursive try to require the same
+	feature 3 or more levels deep, and get error.
+	(require_unwind): New subroutine.
+	(require_nesting_list): New variable.
+	(syms_of_fns): Init and staticpro it.
+
 	* print.c (print_object): Clarify indication of insertion type.
 
 2001-10-29  Eli Zaretskii  <eliz@is.elta.co.il>
