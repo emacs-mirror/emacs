@@ -472,23 +472,20 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 	  (gdb-instance-target-string)
 	  "*"))
 
-(defvar gdb-inferior-io-mode-map (copy-keymap comint-mode-map))
 (define-key comint-mode-map "\C-c\C-c" 'gdb-inferior-io-interrupt)
 (define-key comint-mode-map "\C-c\C-z" 'gdb-inferior-io-stop)
 (define-key comint-mode-map "\C-c\C-\\" 'gdb-inferior-io-quit)
 (define-key comint-mode-map "\C-c\C-d" 'gdb-inferior-io-eof)
 
-(defun gdb-inferior-io-mode ()
-  "Major mode for gdb inferior-io.
-
-\\{comint-mode-map}"
+(define-derived-mode gdb-inferior-io-mode comint-mode "Debuggee I/O"
+  "Major mode for gdb inferior-io."
+  :syntax-table nil :abbrev-table nil
   ;; We want to use comint because it has various nifty and familiar
   ;; features.  We don't need a process, but comint wants one, so create
   ;; a dummy one.
-  (make-comint (substring (buffer-name) 1 (- (length (buffer-name)) 1))
-	       "/bin/cat")
-  (setq major-mode 'gdb-inferior-io-mode)
-  (setq mode-name "Debuggee I/O")
+  (make-comint-in-buffer
+   (substring (buffer-name) 1 (- (length (buffer-name)) 1))
+   (current-buffer) "/bin/cat")
   (set (make-local-variable 'gud-minor-mode) 'gdba)
   (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq comint-input-sender 'gdb-inferior-io-sender))
@@ -502,25 +499,25 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 
 (defun gdb-inferior-io-interrupt ()
   "Interrupt the program being debugged."
-  (interactive (list gdb-proc))
+  (interactive)
   (interrupt-process
    (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
 
 (defun gdb-inferior-io-quit ()
   "Send quit signal to the program being debugged."
-  (interactive (list gdb-proc))
+  (interactive)
   (quit-process
    (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
 
 (defun gdb-inferior-io-stop ()
   "Stop the program being debugged."
-  (interactive (list gdb-proc))
+  (interactive)
   (stop-process
    (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
 
 (defun gdb-inferior-io-eof ()
   "Send end-of-file to the program being debugged."
-  (interactive (list gdb-proc))
+  (interactive)
   (process-send-eof
    (get-buffer-process (gdb-get-instance-buffer 'gdba))))
 
@@ -1149,10 +1146,10 @@ output from the current command if that happens to be appropriate."
 	       (concat indices-string "\t" gdb-display-value "\n"))))
 	(setq indices-string "")
 	(setq flag t)
-	; 0<= index < depth, start at right : (- depth 1)
+	;; 0<= index < depth, start at right : (- depth 1)
 	(setq index (- (- depth 1)
 		       (- (match-end 2) (match-beginning 2))))
-					;don't set for very last brackets
+	;;don't set for very last brackets
 	(if (>= index 0)
 	    (progn
 	      (aset indices index (+ 1 (aref indices index)))
@@ -1409,7 +1406,7 @@ buffer."
 (defun gdb-info-breakpoints-custom ()
   (let ((flag)(address))
 
-; remove all breakpoint-icons in source buffers but not assembler buffer
+    ;; remove all breakpoint-icons in source buffers but not assembler buffer
     (let ((buffers (buffer-list)))
       (save-excursion
 	(while buffers
@@ -1480,12 +1477,12 @@ buffer."
     (concat "*breakpoints of " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-breakpoints-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdb-breakpoints-buffer)))
 
 (defun gdb-frame-breakpoints-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdb-breakpoints-buffer)))
 
@@ -1604,12 +1601,12 @@ buffer."
 	    (gdb-instance-target-string) "*")))
 
 (defun gdb-display-stack-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdb-stack-buffer)))
 
 (defun gdb-frame-stack-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdb-stack-buffer)))
 
@@ -1693,12 +1690,12 @@ buffer."
     (concat "*registers of " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-registers-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdb-registers-buffer)))
 
 (defun gdb-frame-registers-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdb-registers-buffer)))
 
@@ -1766,12 +1763,12 @@ buffer."
     (concat "*locals of " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-locals-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdb-locals-buffer)))
 
 (defun gdb-frame-locals-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdb-locals-buffer)))
 ;;
@@ -1826,12 +1823,12 @@ buffer."
     (concat "*Displayed expressions of " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-display-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdb-display-buffer)))
 
 (defun gdb-frame-display-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdb-display-buffer)))
 
@@ -1970,7 +1967,7 @@ buffer."
 ;;; Shared keymap initialization:
 
 (defun gdb-display-gdb-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdba)))
 
@@ -2002,7 +1999,7 @@ buffer."
 (gdb-make-windows-menu gud-minor-mode-map)
 
 (defun gdb-frame-gdb-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdba)))
 
@@ -2144,28 +2141,28 @@ Just the partial-output buffer is left."
   "Find the source file where the program starts and displays it with related
 buffers."
   (goto-char (point-min))
-  (search-forward "directory is ")
-  (looking-at "\\S-*")
-  (setq gdb-cdir (match-string 0))
-  (search-forward "Located in ")
-  (looking-at "\\S-*")
-  (setq gdb-main-file (match-string 0))
-  ;; Make sure we are not in the minibuffer window when we try to delete
-  ;; all other windows.
-  (if (window-minibuffer-p (selected-window))
-      (other-window 1))
-  (delete-other-windows)
-  (if gdb-many-windows
-      (gdb-setup-windows)
-    (gdb-display-breakpoints-buffer)
-    (gdb-display-display-buffer)
-    (gdb-display-stack-buffer)
+  (when (search-forward "directory is " nil t)
+    (looking-at "\\S-*")
+    (setq gdb-cdir (match-string 0))
+    (search-forward "Located in ")
+    (looking-at "\\S-*")
+    (setq gdb-main-file (match-string 0))
+    ;; Make sure we are not in the minibuffer window when we try to delete
+    ;; all other windows.
+    (if (window-minibuffer-p (selected-window))
+	(other-window 1))
     (delete-other-windows)
-    (split-window)
-    (other-window 1)
-    (switch-to-buffer (gud-find-file gdb-main-file))
-    (other-window 1)
-    (setq gdb-source-window (get-buffer-window (current-buffer)))))
+    (if gdb-many-windows
+	(gdb-setup-windows)
+      (gdb-display-breakpoints-buffer)
+      (gdb-display-display-buffer)
+      (gdb-display-stack-buffer)
+      (delete-other-windows)
+      (split-window)
+      (other-window 1)
+      (switch-to-buffer (gud-find-file gdb-main-file))
+      (other-window 1)
+      (setq gdb-source-window (get-buffer-window (current-buffer))))))
 
 ;from put-image
 (defun put-string (putstring pos &optional string area)
@@ -2365,12 +2362,12 @@ BUFFER nil or omitted means use the current buffer."
     (concat "*Machine Code " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-assembler-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdb-assembler-buffer)))
 
 (defun gdb-frame-assembler-buffer ()
-  (interactive (list gdb-proc))
+  (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdb-assembler-buffer)))
 
