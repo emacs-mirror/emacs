@@ -1,5 +1,14 @@
 2002-10-28  Dave Love  <fx@gnu.org>
 
+	* international/mule-diag.el (non-iso-charset-alist): Move to
+	avoid compilation warning.
+	(mule-diag): Provide.
+
+	* international/code-pages.el (cp-make-coding-system): Use
+	utf-translation-table-for-decode, not
+	utf-8-translation-table-for-decode.
+	(mule-diag): Require.
+
 	* language/thai-util.el (thai-composition-function): Don't use prog1.
 
 	* language/lao-util.el (lao-composition-function): Don't use prog1.
@@ -9,7 +18,8 @@
 
 	* international/quail.el (quail-keyboard-layout-alist): Fix
 	pc105-uk.
-	(quail-keyboard-layout): Customize.
+	(quail-keyboard-layout): Customize.  Move after
+	quail-keyboard-layout-alist.
 
 2002-10-28  Miles Bader  <miles@gnu.org>
 
