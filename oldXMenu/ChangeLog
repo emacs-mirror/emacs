@@ -1,4 +1,4 @@
-2002-04-22  Jan D.  <jan.h.d@swipnet.se>
+2002-04-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* Activate.c: Add calls to GrabKeyboard to remove strange
 	interactions with window managers that steal keypresses.

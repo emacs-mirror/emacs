@@ -1,4 +1,4 @@
-2003-01-26  Jan D.  <jan.h.d@swipnet.se>
+2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
 	(destroy_all_children): Call it self to destroy sub menu children.
@@ -54,7 +54,7 @@
 	* xlwmenu.c <XtNmargin, XtNverticalSpacing, XmNshadowThickness>:
 	Change default values.
 
-2002-04-28  Jan D.  <jan.h.d@swipnet.se>
+2002-04-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c: Do not grab keyboard if installation-directory is
 	non-nil (not installed Emacs).  To simplify debugging.
@@ -75,7 +75,7 @@
 	* lwlib-Xol.c, lwlib-Xol.h, lwlib-Xolmb.c, lwlib-Xolmb.h
 	* lwlib-XolmbP.h: Remove file.
 
-2002-04-22  Jan D.  <jan.h.d@swipnet.se>
+2002-04-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c: Removed compiler warning.
 
