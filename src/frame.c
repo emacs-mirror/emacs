@@ -78,6 +78,7 @@ Lisp_Object Qmenu_bar_lines;
 Lisp_Object Qwidth;
 Lisp_Object Qx;
 Lisp_Object Qwin32;
+Lisp_Object Qpc;
 Lisp_Object Qvisible;
 Lisp_Object Qbuffer_predicate;
 Lisp_Object Qtitle;
@@ -117,6 +118,8 @@ syms_of_frame_1 ()
   staticpro (&Qx);
   Qwin32 = intern ("win32");
   staticpro (&Qwin32);
+  Qpc = intern ("pc");
+  staticpro (&Qpc);
   Qvisible = intern ("visible");
   staticpro (&Qvisible);
   Qbuffer_predicate = intern ("buffer-predicate");
@@ -229,7 +232,8 @@ See also `frame-live-p'.")
       return Qx;
     case output_win32:
       return Qwin32;
-      /* The `pc' case is in the Fframep below.  */
+    case output_msdos_raw:
+      return Qpc;
     default:
       abort ();
     }
@@ -498,7 +502,13 @@ make_terminal_frame ()
 
   f->visible = 1;		/* FRAME_SET_VISIBLE wd set frame_garbaged. */
   f->async_visible = 1;		/* Don't let visible be cleared later. */
+#ifdef MSDOS
+  f->output_data.x = &the_only_x_display;
+  f->output_method = output_msdos_raw;
+  init_frame_faces (f);
+#else /* not MSDOS */
   f->output_data.nothing = 1;	/* Nonzero means frame isn't deleted.  */
+#endif
   return f;
 }
 
@@ -515,8 +525,13 @@ Note that changing the size of one terminal frame automatically affects all.")
   struct frame *f;
   Lisp_Object frame;
 
+#ifdef __MSDOS__
+  if (selected_frame->output_method != output_msdos_raw)
+    abort ();
+#else
   if (selected_frame->output_method != output_termcap)
     error ("Not using an ASCII terminal now; cannot make a new ASCII frame");
+#endif
 
   f = make_terminal_frame ();
   change_frame_size (f, FRAME_HEIGHT (selected_frame),
@@ -1326,6 +1341,14 @@ before calling this function on it, like this.\n\
   if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_position (XFRAME (frame), x, y);
+#else
+#if defined(MSDOS) && defined(HAVE_MOUSE)
+  if (FRAME_MSDOS_P (XFRAME (frame)))
+    {
+      Fselect_frame (frame, Qnil);
+      mouse_moveto (XINT (x), XINT (y));
+    }
+#endif
 #endif
 
   return Qnil;
@@ -1350,6 +1373,14 @@ before calling this function on it, like this.\n\
   if (FRAME_WINDOW_P (XFRAME (frame)))
     /* Warping the mouse will cause  enternotify and focus events. */
     x_set_mouse_pixel_position (XFRAME (frame), x, y);
+#else
+#if defined(MSDOS) && defined(HAVE_MOUSE)
+  if (FRAME_MSDOS_P (XFRAME (frame)))
+    {
+      Fselect_frame (frame, Qnil);
+      mouse_moveto (XINT (x), XINT (y));
+    }
+#endif
 #endif
 
   return Qnil;
@@ -1713,6 +1744,22 @@ If FRAME is omitted, return information on the currently selected frame.")
     return Qnil;
 
   alist = Fcopy_alist (f->param_alist);
+#ifdef MSDOS
+  if (FRAME_MSDOS_P (f))
+    {
+      static char *colornames[16] = 
+	{
+	  "black", "blue", "green", "cyan", "red", "magenta", "brown",
+	  "lightgray", "darkgray", "lightblue", "lightgreen", "lightcyan",
+	  "lightred", "lightmagenta", "yellow", "white"
+	};
+      store_in_alist (&alist, intern ("foreground-color"),
+		      build_string (colornames[FRAME_FOREGROUND_PIXEL (f)]));
+      store_in_alist (&alist, intern ("background-color"),
+		      build_string (colornames[FRAME_BACKGROUND_PIXEL (f)]));
+    }
+  store_in_alist (&alist, intern ("font"), build_string ("default"));
+#endif
   store_in_alist (&alist, Qname, f->name);
   height = (FRAME_NEW_HEIGHT (f) ? FRAME_NEW_HEIGHT (f) : FRAME_HEIGHT (f));
   store_in_alist (&alist, Qheight, make_number (height));
@@ -1764,6 +1811,11 @@ The meaningful PARMs depend on the kind of frame; undefined PARMs are ignored.")
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     x_set_frame_parameters (f, alist);
+  else
+#endif
+#ifdef MSDOS
+  if (FRAME_MSDOS_P (f))
+    IT_set_frame_parameters (f, alist);
   else
 #endif
     for (tail = alist; !EQ (tail, Qnil); tail = Fcdr (tail))
