@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author:     Jim Thompson (was <thompson@wg2.waii.com>)
-;; Maintainer: Jacques Duthen <duthen@cegelec-red.fr>
+;; Maintainer: Jacques Duthen <duthen@club-internet.fr>
 ;; Keywords:   print, PostScript
 ;; Time-stamp: <97/01/09 13:52:08 duthen>
 ;; Version:    3.04
