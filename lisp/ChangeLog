@@ -1,5 +1,8 @@
 2001-09-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* makefile.nt (install): Don't copy sc.el.  Reported by Richard
+	Kim <ryk@dspwiz.com>
+
 	* cus-edit.el (custom-buffer-create-internal): Remove "100%" from
 	the message "Creating customization items...done".
 
