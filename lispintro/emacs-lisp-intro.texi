@@ -219,16 +219,11 @@ plus 1pt
 
 @c ----------------------------------------------------
 
-@ignore
-@ifinfo
-@format
-START-INFO-DIR-ENTRY
-* Emacs Lisp Intro: (emacs-lisp-intro).
+@dircategory Emacs
+@direntry
+* Emacs Lisp Intro: (eintr).
   			A simple introduction to Emacs Lisp programming.
-END-INFO-DIR-ENTRY
-@end format
-@end ifinfo
-@end ignore
+@end direntry
 
 @ifinfo
 This is an introduction to @cite{Programming in Emacs Lisp}, for
@@ -21405,9 +21400,9 @@ as a draft) by the Free Software Foundation.
 @comment  node-name,  next,  previous,  up
 @unnumbered Index
 
-@ifnottex
+@ignore
 MENU ENTRY: NODE NAME.
-@end ifnottex
+@end ignore
 
 @printindex cp
 
