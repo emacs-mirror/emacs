@@ -1,6 +1,6 @@
 /* impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- * $HopeName: MMsrc!vmw3.c(trunk.33) $
+ * $HopeName: MMsrc!vmw3.c(trunk.34) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .design: See design.mps.vm.
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.33) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.34) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -91,80 +91,6 @@ Bool VMCheck(VM vm)
   CHECKL(AddrIsAligned(vm->base, vm->align));
   CHECKL(AddrIsAligned(vm->limit, vm->align));
   return TRUE;
-}
-
-
-
-
-/* VMRAMSize -- determine the RAM size for the platform
- *
- * This is not a protocol function - but it could be in future.
- */
-
-static Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
-{
-  MEMORYSTATUS memstat;
-
-  AVERT(VM, vm);
- 
-  memstat.dwLength = sizeof(MEMORYSTATUS);
-  GlobalMemoryStatus(&memstat);
-  *vmRAMSizeReturn = (Size)memstat.dwTotalPhys;
-  return ResOK;
-}
-
-
-/* VMSetCollectionStrategy -- initialize strategy for platform
- *
- * This is not a protocol function - but it could be in future.
- */
-
-static Bool collectionStrategyInited = FALSE;
-
-static Res VMSetCollectionStrategy(VM vm)
-{
-  Res res;
-  Size vmRAMSize;
-
-  AVERT(VM, vm);
-
-  /* Avoid resetting the strategy afterwards.  Should really have locking */
-  /* but frequencies are not critical, and this will soon be rewritten. @@@@ */
-  if (collectionStrategyInited)
-    return ResOK;
-  collectionStrategyInited = TRUE;
-
-  res = VMRAMSize(vm, &vmRAMSize);
-
-  /* Adjust the collection frequencies according to the RAM size. */
-  /* Note that the RAM size returned is actually slightly less */
-  /* than the total RAM size (for some reason) - so there needs to */
-  /* be a comparison against a lower value than the optimal size. */
-  if (res == ResOK) {
-    if (vmRAMSize >= 110*1024*1024) {
-      TraceGen0Size = 6000uL;
-      TraceGen1Size = 8000uL;
-      TraceGen2Size = 16000uL;
-      TraceGen0RampmodeSize = 12000uL;
-      TraceGen1RampmodeSize = 16000uL;
-      TraceRampGenSize = 32000uL;
-    } else if (vmRAMSize >= 60*1024*1024) {
-      TraceGen0Size = 6000uL;
-      TraceGen1Size = 8000uL;
-      TraceGen2Size = 13000uL;
-      TraceGen0RampmodeSize = 6000uL;
-      TraceGen1RampmodeSize = 9000uL;
-      TraceRampGenSize = 18000uL;
-    } else {
-      TraceGen0Size = 4000uL;
-      TraceGen1Size = 3300uL;
-      TraceGen2Size = 8000uL;
-      TraceGen0RampmodeSize = 4000uL;
-      TraceGen1RampmodeSize = 4300uL;
-      TraceRampGenSize = 13300uL;
-    }
-  }
-  return res;
 }
 
 
@@ -217,9 +143,6 @@ Res VMCreate(VM *vmReturn, Size size)
 
   vm->sig = VMSig;
   AVERT(VM, vm);
-
-  res = VMSetCollectionStrategy(vm);
-  AVER(res == ResOK);
 
   EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
   *vmReturn = vm;
@@ -341,11 +264,9 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(base < limit);
   AVER(limit <= vm->limit);
 
-  /* .improve.query-unmap: Could check that the pages we are about
-   * to unmap are mapped, using VirtualQuery.
-   */
-  b = VirtualFree((LPVOID)base, (DWORD)AddrOffset(base, limit),
-                  MEM_DECOMMIT);
+  /* .improve.query-unmap: Could check that the pages we are about */
+  /* to unmap are mapped, using VirtualQuery. */
+  b = VirtualFree((LPVOID)base, (DWORD)AddrOffset(base, limit), MEM_DECOMMIT);
   AVER(b != 0);  /* .assume.free.success */
   vm->mapped -= AddrOffset(base, limit);
 
