@@ -6,31 +6,38 @@
 
 &options();
 
-print $platform_phylum."\n";
-
 require "headread";
 
-open(IF, ">tmp_index");
+opendir(DIR, ".");
 
-while ($testfile = <*.c>) {
- &readheader($testfile, 0);
- $testnum=$testfile;
- $testnum=~s/\.c//;
- $testname = $test_header{"summary"};
- unless ($testname) {
-  print "unknown test: ".$testnum."\n";
- } else {
-  print IF $testnum.": ".$testname."\n";
+@names = readdir(DIR);
+@filtered = ();
+
+while (@names) {
+ $file = pop(@names);
+ if ($file =~ /\.c$/) {
+  $file =~ s/\.c$//;
+  push(@filtered, $file)
  }
 }
 
-close(IF);
-if ($platform_phylum eq "unix") {
- $sort_options = "-n";
-} elsif ($platform_phylum eq "pc") {
- $sort_options = "<"; # there's no numeric sort option, unfortunately
+foreach $testnum (sort by_number_first @filtered) {
+ &readheader($testnum.".c", 0);
+ $testname = $test_header{"summary"};
+ unless ($testname) {
+  print $testnum.": ** bad test header **\n";
+ } else {
+  print $testnum.": ".$testname."\n";
+ }
+}
+ 
+closedir(DIR);
+
+sub by_number_first {
+ $aa = $a;
+ $bb = $b;
+ $aa =~ s/\D*//g;
+ $bb =~ s/\D*//g;
+ ("0".$aa <=> "0".$bb) || ($a cmp $b);
 }
 
-system("sort $sort_options tmp_index");
-system("rm tmp_index");
- 
