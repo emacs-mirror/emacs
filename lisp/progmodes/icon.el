@@ -295,8 +295,6 @@ Return the amount the indentation changed by."
     (setq beg (point))
     (cond ((eq indent nil)
 	   (setq indent (current-indentation)))
-	  ((eq indent t)
-	   (setq indent (calculate-icon-indent-within-comment)))
 	  ((looking-at "[ \t]*#")
 	   (setq indent 0))
 	  (t
@@ -618,7 +616,7 @@ Returns nil if line starts inside a string, t if in a comment."
   (eval-when-compile
     (list
      ;; Fontify procedure name definitions.
-     '("^[ \t]*\\(procedure\\)[ \t]*\\(\\sw+\\)[ \t]*("
+       '("^[ \t]*\\(procedure\\)\\>[ \t]*\\(\\sw+\\)?"
        (1 font-lock-builtin-face) (2 font-lock-function-name-face nil t))))
   "Subdued level highlighting for Icon mode.")
 
@@ -674,7 +672,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		 font-lock-function-name-face
 	       font-lock-variable-name-face)))))
 
-      (cons      ;; $define $elif $ifdef $ifdef $ifndef
+      (cons      ;; $define $elif $ifdef $ifndef $undef
        (concat "^" 
 	       (regexp-opt'("$define" "$elif" "$ifdef" "$ifndef" "$undef") t)
 	       "\\>[ \t]*\\([^ \t\n]+\\)?")
