@@ -97,6 +97,11 @@
     (progn
       (garbage-collect)
       (load "vms-patch")))
+(if (eq system-type 'windows-nt)
+    (progn
+      (garbage-collect)
+      (load "ls-lisp")
+      (load "winnt")))
 (if (eq system-type 'ms-dos)
     (progn
       (load "ls-lisp")
@@ -160,7 +165,7 @@
 	(setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			   "-"
 			   (substring name (match-end 0)))))
-      (if (eq system-type 'ms-dos)
+      (if (memq system-type '(ms-dos windows-nt))
 	  (setq name (expand-file-name
 		      (if (fboundp 'make-frame) "DOC-X" "DOC") "../etc"))
 	(setq name (concat (expand-file-name "../etc/DOC-") name))
