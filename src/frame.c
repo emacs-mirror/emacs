@@ -1989,6 +1989,8 @@ For a terminal screen, the value is always 1.")
 DEFUN ("frame-pixel-height", Fframe_pixel_height, 
        Sframe_pixel_height, 0, 1, 0,
   "Return a FRAME's height in pixels.\n\
+This counts only the height available for text lines,\n\
+not menu bars on window-system Emacs frames.\n\
 For a terminal frame, the result really gives the height in characters.\n\
 If FRAME is omitted, the selected frame is used.")
   (frame)
