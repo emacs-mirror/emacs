@@ -82,7 +82,7 @@ A value of nil means skip the middle step, so that
 (defmacro make-help-screen (fname help-line help-text helped-map)
   "Construct help-menu function name FNAME.
 When invoked, FNAME shows HELP-LINE and reads a command using HELPED-MAP.
-If the command is the help character is requested, FNAME displays HELP-TEXT
+If the command is the help character, FNAME displays HELP-TEXT
 and continues trying to read a command using HELPED-MAP.
 When FNAME finally does get a command, it executes that command
 and then returns."
