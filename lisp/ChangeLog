@@ -1,5 +1,12 @@
 2000-05-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* startup.el (auto-save-list-file-prefix): For ms-dos, set the
+	default prefix to `~/_emacs.d/auto-save.list/_s'.
+	(normal-top-level): Create the directory for auto-save files, if
+	it doesn't already exist (in the ms-dos case only).
+
+2000-05-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
 	* international/mule-cmds.el (set-language-environment): Don't
 	concat an integer (dos-codepage), use format instead.
 
