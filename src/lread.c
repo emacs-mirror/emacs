@@ -3160,10 +3160,10 @@ defvar_per_buffer (namestring, address, type, doc)
   XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
   XBUFFER_OBJFWD (val)->offset = offset;
   XSYMBOL (sym)->value = val;
-  BUFFER_LOCAL_SYMBOL (offset) = sym;
-  BUFFER_LOCAL_TYPE (offset) = type;
+  PER_BUFFER_SYMBOL (offset) = sym;
+  PER_BUFFER_TYPE (offset) = type;
   
-  if (BUFFER_LOCAL_IDX (offset) == 0)
+  if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
        slot of buffer_local_flags */
     abort ();
