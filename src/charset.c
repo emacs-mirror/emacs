@@ -96,7 +96,8 @@ int _fetch_multibyte_char_len;
    is not a composite character, the multi-byte form is set in WORKBUF
    and STR points WORKBUF.  The caller should allocate at least 4-byte
    area at WORKBUF in advance.  Returns the length of the multi-byte
-   form.
+   form.  If C is an invalid character to have a multi-byte form,
+   signal an error.
 
    Use macro `CHAR_STRING (C, WORKBUF, STR)' instead of calling this
    function directly if C can be an ASCII character.  */
@@ -119,12 +120,16 @@ non_ascii_char_to_string (c, workbuf, str)
 	}
       else
 	{
-	  *str = workbuf;
-	  return 0;
+	  error ("Invalid characer: %d", c);
 	}
     }
 
   SPLIT_NON_ASCII_CHAR (c, charset, c1, c2);
+  if (!charset
+      || ! CHARSET_DEFINED_P (charset)
+      || c1 >= 0 && c1 < 32
+      || c2 >= 0 && c2 < 32)
+    error ("Invalid characer: %d", c);
 
   *str = workbuf;
   *workbuf++ = CHARSET_LEADING_CODE_BASE (charset);
@@ -926,7 +931,7 @@ DEFUN ("concat-chars", Fconcat_chars, Sconcat_chars, 1, MANY, 0,
 {
   int i;
   unsigned char *buf
-    = (unsigned char *) malloc (MAX_LENGTH_OF_MULTI_BYTE_FORM * n);
+    = (unsigned char *) alloca (MAX_LENGTH_OF_MULTI_BYTE_FORM * n);
   unsigned char *p = buf;
   Lisp_Object val;
 
@@ -949,7 +954,6 @@ DEFUN ("concat-chars", Fconcat_chars, Sconcat_chars, 1, MANY, 0,
     }
 
   val = make_string (buf, p - buf);
-  free (buf);
   return val;
 }
 
