@@ -1,3 +1,27 @@
+2001-12-18  Werner Lemberg  <wl@gnu.org>
+
+	* language/chinese.el, language/cyrillic.el,
+	language/czech.el, language/european.el, language/greek.el,
+	language/hebrew.el, language/indian.el, language/japanese.el,
+	language/korean.el, language/lao.el, language/slovak.el,
+	language/thai.el, language/tibetan.el, language/vietnamese.el:
+	Improve documentation strings of coding systems and language infos.
+
+2001-12-18  Werner LEMBERG  <wl@gnu.org>
+
+	Add support for EUC-TW decoding/encoding.
+
+	* language/china-util.el (big5-to-flat-code, flat-code-to-big5,
+	euc-to-flat-code, flat-code-to-euc, expand-euc-big5-alist):
+	New auxiliary functions to build `big5-to-cns'.
+	(big5-to-cns): New translation alist.
+
+	* language/chinese.el: Added new coding system `euc-tw' and its
+	alias `euc-taiwan'.
+	Updated language `Chinese-CNS' to include euc-tw encoding also.
+	(ccl-decode-euc-tw, ccl-encode-euc-tw): New functions for handling
+	euc-tw.
+
 2001-12-18  Dave Love  <fx@gnu.org>
 
 	* loadup.el: Add language/utf-8-lang, language/georgian.
