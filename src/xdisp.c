@@ -45,6 +45,11 @@ extern int command_loop_level;
 
 extern Lisp_Object Qface;
 
+extern Lisp_Object Voverriding_local_map;
+extern Lisp_Object Voverriding_local_map_menu_flag;
+
+Lisp_Object Qoverriding_local_map;
+
 /* Nonzero means print newline to stdout before next minibuffer message.  */
 
 int noninteractive_need_newline;
@@ -1259,8 +1264,11 @@ update_menu_bar (f, save_match_data)
 	  struct buffer *prev = current_buffer;
 	  int count = specpdl_ptr - specpdl;
 
+	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  if (save_match_data)
 	    record_unwind_protect (Fstore_match_data, Fmatch_data ());
+	  if (NILP (Voverriding_local_map_menu_flag))
+	    specbind (Qoverriding_local_map, Qnil);
 
 	  /* Run the Lucid hook.  */
 	  call1 (Vrun_hooks, Qactivate_menubar_hook);
@@ -1269,14 +1277,13 @@ update_menu_bar (f, save_match_data)
 	  if (! NILP (Vlucid_menu_bar_dirty_flag))
 	    call0 (Qrecompute_lucid_menubar);
 	  call1 (Vrun_hooks, Qmenu_bar_update_hook);
-	  current_buffer = XBUFFER (w->buffer);
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 #ifdef USE_X_TOOLKIT
 	  set_frame_menubar (f, 0);
 #endif /* USE_X_TOOLKIT */
 
-	  current_buffer = prev;
 	  unbind_to (count, Qnil);
+	  set_buffer_internal_1 (prev);
 	}
     }
 }
@@ -4049,6 +4056,9 @@ syms_of_xdisp ()
 {
   staticpro (&Qmenu_bar_update_hook);
   Qmenu_bar_update_hook = intern ("menu-bar-update-hook");
+
+  staticpro (&Qoverriding_local_map);
+  Qoverriding_local_map = intern ("overriding-local-map");
 
   staticpro (&last_arrow_position);
   staticpro (&last_arrow_string);
