@@ -1778,6 +1778,19 @@ Both must be integers or markers.")
   return val;
 }
 
+#ifndef HAVE_FMOD
+double
+fmod (f1, f2)
+     double f1, f2;
+{
+#ifdef HAVE_DREM  /* Some systems use this non-standard name.  */
+  return (drem (f1, f2));
+#else  /* Other systems don't seem to have it at all.  */
+  return (f1 - f2 * floor (f1/f2));
+#endif
+}
+#endif /* ! HAVE_FMOD */
+
 DEFUN ("mod", Fmod, Smod, 2, 2, 0,
   "Returns X modulo Y.\n\
 The result falls between zero (inclusive) and Y (exclusive).\n\
@@ -1801,11 +1814,7 @@ Both X and Y must be numbers or markers.")
       if (f2 == 0)
 	Fsignal (Qarith_error, Qnil);
 
-#ifdef HAVE_FMOD
       f1 = fmod (f1, f2);
-#else
-      f1 = drem (f1, f2);
-#endif
       /* If the "remainder" comes out with the wrong sign, fix it.  */
       if ((f1 < 0) != (f2 < 0))
 	f1 += f2;
