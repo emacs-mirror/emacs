@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.50) $
+ * $HopeName: MMsrc!mpm.h(trunk.51) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -686,16 +686,19 @@ extern void LDMerge(LD ld, Arena arena, LD from);
 /* Root Interface -- see impl.c.root */
 
 extern Res RootCreateTable(Root *rootReturn, Arena arena,
-                           Rank rank, Addr *base, Addr *limit);
+                           Rank rank, RootMode mode,
+			   Addr *base, Addr *limit);
 extern Res RootCreateTableMasked(Root *rootReturn, Arena arena,
-                                 Rank rank, Addr *base, Addr *limit,
+                                 Rank rank, RootMode mode,
+				 Addr *base, Addr *limit,
                                  Word mask);
 extern Res RootCreateReg(Root *rootReturn, Arena arena,
                            Rank rank, Thread thread,
                            RootScanRegMethod scan,
                            void *p, size_t s);
 extern Res RootCreateFmt(Root *rootReturn, Arena arena,
-                           Rank rank, FormatScanMethod scan,
+                           Rank rank, RootMode mode, 
+			   FormatScanMethod scan,
                            Addr base, Addr limit);
 extern Res RootCreateFun(Root *rootReturn, Arena arena,
                         Rank rank, RootScanMethod scan,
@@ -703,11 +706,13 @@ extern Res RootCreateFun(Root *rootReturn, Arena arena,
 extern void RootDestroy(Root root);
 extern Bool RootCheck(Root root);
 extern Res RootDescribe(Root root, mps_lib_FILE *stream);
-extern Bool RootIsAtomic(Root root);
 extern Rank RootRank(Root root);
 extern void RootGrey(Root root, Trace trace);
 extern Res RootScan(ScanState ss, Root root);
 extern Arena RootArena(Root root);
+extern Bool RootOfAddr(Root *root, Arena arena, Addr addr);
+extern void RootAccess(Root root, AccessSet mode);
+extern AccessSet RootPM(Root root);
 
 
 /* VM Interface -- see impl.c.vm* */
