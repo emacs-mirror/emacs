@@ -1,3 +1,8 @@
+2004-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (string_char_to_byte): Optimize for ASCII only string.
+	(string_byte_to_char): Likewise.
+
 2004-01-28  Peter Runestig  <peter@runestig.com>
 
 	* makefile.w32-in, w32fns.c: Add `default-printer-name' function.
