@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.14) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.15) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -14,10 +14,8 @@ some useful functions for testing the MPS */
    rely on the representation, which might change
 */
 
-const char *err_text(mps_res_t err)
-{
- switch (err)
- {
+const char *err_text(mps_res_t err) {
+ switch (err) {
   case MPS_RES_OK: return "OK";
   case MPS_RES_FAIL: return "FAIL";
   case MPS_RES_RESOURCE: return "RESOURCE";
@@ -31,23 +29,25 @@ const char *err_text(mps_res_t err)
  return "*** Unknown result code ***";
 }
 
-/* pass 
-   report result=pass and exit(0)
+/* finish, pass 
+   report completed=yes and exit(0)
 */
 
-void pass(void)
-{
- report("result", "pass");
+void finish(void) {
+ report("completed", "yes");
  exit(0);
 }
 
+void pass(void) {
+ finish();
+}
+
 /* fail
-   report result=fail and exit(1)
+   report completed=no and exit(1)
 */   
 
-void fail(void)
-{
- report("result", "fail");
+void fail(void) {
+ report("completed", "no");
  exit(1);
 }
 
@@ -55,13 +55,11 @@ void fail(void)
    write a var=value line on stdout
 */
 
-void report_res(const char *str, mps_res_t res)
-{
+void report_res(const char *str, mps_res_t res) {
  report(str, err_text(res));
 }
 
-void report(const char *str, const char *format, ...)
-{
+void report(const char *str, const char *format, ...) {
  va_list args;
 
  va_start(args, format);
@@ -69,8 +67,7 @@ void report(const char *str, const char *format, ...)
  va_end(args);
 }
 
-void vreport(const char *str, const char *format, va_list args)
-{
+void vreport(const char *str, const char *format, va_list args) {
  fprintf(stdout, "!%s=", str);
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
@@ -81,10 +78,8 @@ void vreport(const char *str, const char *format, va_list args)
    report mps result code, and exit if it's not ok
 */
 
-void cdie(mps_res_t err, const char *str)
-{
- if (err != MPS_RES_OK)
- {
+void cdie(mps_res_t err, const char *str) {
+ if (err != MPS_RES_OK) {
   error("%s: %s\n", str, err_text(err));
  }
  else comment("%s: OK", str);
@@ -94,10 +89,8 @@ void cdie(mps_res_t err, const char *str)
    check mps result code it ok; it not, report and exit 
 */
 
-void die(mps_res_t err, const char *str)
-{
- if (err != MPS_RES_OK)
- {
+void die(mps_res_t err, const char *str) {
+ if (err != MPS_RES_OK) {
   error("%s: %s\n", str, err_text(err));
  }
 }
@@ -106,8 +99,7 @@ void die(mps_res_t err, const char *str)
    report mps result code as error, whatever it is
 */
 
-void adie(mps_res_t err, const char *str)
-{
+void adie(mps_res_t err, const char *str) {
  error("%s: %s\n", str, err_text(err));
 }
 
@@ -115,8 +107,7 @@ void adie(mps_res_t err, const char *str)
    print comment on stdout
 */
 
-void comment(const char *format, ...)
-{
+void comment(const char *format, ...) {
  va_list args;
 
  va_start(args, format);
@@ -124,8 +115,7 @@ void comment(const char *format, ...)
  va_end(args);
 }
 
-void vcomment(const char *format, va_list args)
-{
+void vcomment(const char *format, va_list args) {
  fprintf(stdout, "%% ");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
@@ -135,12 +125,10 @@ void vcomment(const char *format, va_list args)
 /* commentif(boolean, "comment")
 */
 
-void commentif(int cond, const char *format, ...)
-{
+void commentif(int cond, const char *format, ...) {
  va_list args;
 
- if (cond)
- {
+ if (cond) {
   va_start(args, format);
   vcomment(format, args);
   va_end(args);
@@ -151,8 +139,7 @@ void commentif(int cond, const char *format, ...)
    print error on stdout and exit
 */
 
-void error(const char *format, ...)
-{
+void error(const char *format, ...) {
  va_list args;
 
  va_start(args, format);
@@ -164,8 +151,7 @@ void myabort(void) {
  exit(EXIT_FAILURE);
 }
 
-void verror(const char *format, va_list args)
-{
+void verror(const char *format, va_list args) {
  fprintf(stdout, "%% ERROR \n!error=true\n");
  fprintf(stdout, "!errtext=");
  vfprintf(stdout, format, args);
@@ -178,12 +164,10 @@ void verror(const char *format, va_list args)
    assert, with textual message instead of expr printed
 */
 
-void asserts(int expr, const char *format, ...)
-{
+void asserts(int expr, const char *format, ...) {
  va_list args;
 
- if (!expr)
- {
+ if (!expr) {
   va_start(args, format);
   fprintf(stdout, "%% ASSERTION FAILED \n!assert=true\n");
   fprintf(stdout, "!asserttext=");
@@ -246,8 +230,7 @@ static void my_assert_handler(const char *cond, const char *id,
    a function with no arguments returning nothing
 */
 
-static void *call_f(void *p, size_t s)
-{
+static void *call_f(void *p, size_t s) {
  void (**f)(void) = p;
 
  mps_assert_install(my_assert_handler);
@@ -309,8 +292,7 @@ void pause(unsigned long sec) {
  * good ones are to find.  Communications of the ACM, 31:1192-1201
  */
 
-static unsigned long rnd(void)
-{
+static unsigned long rnd(void) {
   static unsigned long seed = 1;
   double s;
   s = seed;
@@ -320,8 +302,7 @@ static unsigned long rnd(void)
   return seed;
 }
 
-unsigned long ranint(unsigned long x)
-{
+unsigned long ranint(unsigned long x) {
  unsigned long y;
  unsigned long max;
 
@@ -337,8 +318,7 @@ unsigned long ranint(unsigned long x)
  return y%x;
 }
 
-unsigned long ranrange(unsigned long min, unsigned long max)
-{
+unsigned long ranrange(unsigned long min, unsigned long max) {
  return min+ranint(max-min);
 }
 
