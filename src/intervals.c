@@ -1434,7 +1434,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
       Lisp_Object buf;
       if (!inherit && ! NULL_INTERVAL_P (tree))
 	{
-	  XSET (buf, Lisp_Buffer, buffer);
+	  XSETBUFFER (buf, buffer);
 	  Fset_text_properties (make_number (position),
 				make_number (position + length),
 				Qnil, buf);
@@ -1451,7 +1451,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
       if ((BUF_Z (buffer) - BUF_BEG (buffer)) == TOTAL_LENGTH (source))
 	{
 	  Lisp_Object buf;
-	  XSET (buf, Lisp_Buffer, buffer);
+	  XSETBUFFER (buf, buffer);
 	  buffer->intervals = reproduce_tree (source, buf);
 	  /* Explicitly free the old tree here.  */
 
@@ -1462,7 +1462,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	 of the intervals of the inserted string.  */
       {
 	Lisp_Object buf;
-	XSET (buf, Lisp_Buffer, buffer);
+	XSETBUFFER (buf, buffer);
 	tree = create_root_interval (buf);
       }
     }
