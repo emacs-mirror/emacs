@@ -1,5 +1,14 @@
 2000-06-20  Dave Love  <fx@gnu.org>
 
+	* s/ux4800.h: Don't declare GETTIMEOFDAY_ONE_ARGUMENT.
+
+	* s/usg5-4-2.h: Don't declare HAVE_GETWD, VFORK_RETURN_TYPE.
+
+	* s/umips.h: Don't declare HAVE_GETWD, HAVE_GETTIMEOFDAY.
+
+	* s/cxux.h, s/gnu-linux.h, s/iris3-6.h, s/irix3-3.h: Don't declare
+	HAVE_GETWD.
+
 	* keyboard.h (poll_for_input_1): Declare.
 
 	* getloadavg.c: Don't define NLIST_STRUCT (handled by configure).
