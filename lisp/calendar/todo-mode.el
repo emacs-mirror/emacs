@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.15 1997/10/14 22:22:35 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.16 1997/10/15 14:00:12 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -225,6 +225,9 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.16  1997/10/15  14:00:12  os10000
+;; Fixed 'file-item' and added 20.02 split-string function.
+;;
 ;; Revision 1.15  1997/10/14  22:22:35  os10000
 ;; Added string-split (which I stole from ediff-util), changed
 ;; pop-to-buffer to switch-to-buffer and added message on how
@@ -307,12 +310,12 @@
 
 ;; User-configurable variables:
 
-(defvar todo-prefix	"*/*"		"TODO mode prefix for entries.")
-(defvar todo-file-do	"~/.todo-do"	"TODO mode list file.")
-(defvar todo-file-done	"~/.todo-done"	"TODO mode archive file.")
-(defvar todo-mode-hook	nil		"TODO mode hooks.")
-(defvar todo-edit-mode-hook nil		"TODO Edit mode hooks.")
-(defvar todo-insert-treshold 0		"TODO mode insertion accuracy.")
+(defvar todo-prefix	"*/*"		"*TODO mode prefix for entries.")
+(defvar todo-file-do	"~/.todo-do"	"*TODO mode list file.")
+(defvar todo-file-done	"~/.todo-done"	"*TODO mode archive file.")
+(defvar todo-mode-hook	nil		"*TODO mode hooks.")
+(defvar todo-edit-mode-hook nil		"*TODO Edit mode hooks.")
+(defvar todo-insert-treshold 0		"*TODO mode insertion accuracy.")
 (defvar todo-edit-buffer " *TODO Edit*"	"TODO Edit buffer name.")
 
 ;; Thanks for the ISO time stamp format go to Karl Eichwalder <ke@suse.de>
@@ -334,8 +337,10 @@ For details see the variable `time-stamp-format'.")
 ;; Set up some helpful context ...
 
 (defvar todo-categories		nil	"TODO categories.")
-(defvar todo-previous-line	0	"previous line that I asked about.")
-(defvar todo-previous-answer	0	"previous answer that I got.")
+(defvar todo-cats		nil
+  "Old variable for holding the TODO categories.  Use `todo-categories' instead.")
+(defvar todo-previous-line	0	"Previous line that I asked about.")
+(defvar todo-previous-answer	0	"Previous answer that I got.")
 (defvar todo-mode-map		nil	"TODO mode keymap.")
 (defvar todo-category-number	0	"TODO category number.")
 
@@ -557,12 +562,13 @@ For details see the variable `time-stamp-format'.")
 		    " "
 		  "\n\t")
 		"(" (nth todo-category-number todo-categories) ": "
-		comment ")")
-	(widen)
+		comment ")\n")
 	(goto-char (todo-item-start))
-	(delete-region (point) (search-forward todo-prefix))
 	(let ((temp-point (point)))
-	  (insert (time-stamp-string))
+	(if (looking-at (regexp-quote todo-prefix))
+	    (replace-match (time-stamp-string))	; Standard prefix -> timestamp
+	  ;; Else prefix non-standard item start with timestamp
+	  (insert (time-stamp-string)))
 	  (append-to-file temp-point (todo-item-end) todo-file-done)
 	  (delete-region temp-point (1+ (todo-item-end)))
 	  )
@@ -615,10 +621,8 @@ For details see the variable `time-stamp-format'.")
 
 (defun todo-category-alist ()
   "Generate an alist fro use in `completing-read' from `todo-categories'"
-  (let (alist)
-    (mapcar (lambda (cat) (setq alist (cons (cons cat nil) alist)))
-	    todo-categories)
-    alist))
+  (mapcar (lambda (cat) (cons cat nil))
+	  todo-categories))
 
 ;; utility functions:  These are available in XEmacs, but not in Emacs 19.34
 
@@ -704,6 +708,9 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
       (if (null todo-cats)
 	  (error "Error in %s: No categories in list `todo-categories'"
 		 todo-file-do)
+	(goto-char (point-min))
+	(and (search-forward "todo-cats:" nil t)
+	     (replace-match "todo-categories:"))
 	(make-local-variable todo-categories)
 	(setq todo-categories todo-cats)))
   (beginning-of-line)
