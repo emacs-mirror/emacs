@@ -1157,10 +1157,8 @@ AC_TRY_LINK([#include <netdb.h>],
 AC_FUNC_ALLOCA
 
 # fmod, logb, and frexp are found in -lm on most systems.
-# On HPUX 9.01, -lm does not contain logb, so check for fmod.
-# If some other system has -lm with logb and/or frexp but not fmod,
-# we will have to try yet again...
-AC_CHECK_LIB(m, fmod)
+# On HPUX 9.01, -lm does not contain logb, so check for sqrt.
+AC_CHECK_LIB(m, sqrt)
 AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
 random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid \
 strerror fpathconf select mktime eaccess getpagesize)
