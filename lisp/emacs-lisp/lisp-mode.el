@@ -123,10 +123,35 @@ All commands in shared-lisp-mode-map are inherited by this map.")
 
 (if emacs-lisp-mode-map
     ()
-  (setq emacs-lisp-mode-map
-	(nconc (make-sparse-keymap) shared-lisp-mode-map))
-  (define-key emacs-lisp-mode-map "\e\t" 'lisp-complete-symbol)
-  (define-key emacs-lisp-mode-map "\e\C-x" 'eval-defun))
+  (let ((map (make-sparse-keymap "Emacs-Lisp")))
+    (setq emacs-lisp-mode-map
+	  (nconc (make-sparse-keymap) shared-lisp-mode-map))
+    (define-key emacs-lisp-mode-map "\e\t" 'lisp-complete-symbol)
+    (define-key emacs-lisp-mode-map "\e\C-x" 'eval-defun)
+    (define-key emacs-lisp-mode-map [menu-bar] (make-sparse-keymap))
+    (define-key emacs-lisp-mode-map [menu-bar emacs-lisp]
+      (cons "Emacs-Lisp" map))
+    (define-key map [edebug-defun]
+      '("Instrument Function for Debugging" . edebug-defun))
+    (define-key map [byte-recompile]
+      '("Byte-recompile Directory..." . byte-recompile-directory))
+    (define-key map [byte-compile]
+      '("Byte-compile This File" . emacs-lisp-byte-compile))
+    (define-key map [separator-eval] '("--"))
+    (define-key map [eval-buffer] '("Evaluate Buffer" . eval-current-buffer))
+    (define-key map [eval-region] '("Evaluate Region" . eval-region))
+    (define-key map [eval-sexp] '("Evaluate Last S-expression" . eval-last-sexp))
+    (define-key map [separator-format] '("--"))
+    (define-key map [comment-region] '("Comment Out Region" . comment-region))
+    (define-key map [indent-region] '("Indent Region" . indent-region))
+    (define-key map [indent-line] '("Indent Line" . lisp-indent-line))))
+
+(defun emacs-lisp-byte-compile ()
+  "Byte compile the file containing the current buffer."
+  (interactive)
+  (if buffer-file-name
+      (byte-compile-file buffer-file-name)
+    (error "The buffer must be saved in a file first.")))
 
 (defun emacs-lisp-mode ()
   "Major mode for editing Lisp code to run in Emacs.
