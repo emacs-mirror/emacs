@@ -1,3 +1,8 @@
+2002-04-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* emacs-pretesters: New file with information for Emacs
+	pretesters.
+
 2002-03-22  Paul Eggert  <eggert@twinsun.com>
 
 	* quick-install-emacs (PRUNED): Avoid "head -1" and "tail +2", as
