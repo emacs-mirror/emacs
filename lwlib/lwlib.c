@@ -74,7 +74,7 @@ char *lwlib_toolkit_type = "lucid";
 #endif
 /* Forward declarations */
 static void
-instanciate_widget_instance (/* widget_instance* instance */);
+instantiate_widget_instance (/* widget_instance* instance */);
 
 lwlib_memset (address, value, length)
      char *address;
@@ -161,7 +161,7 @@ malloc_widget_value ()
   return wv;
 }
 
-/* this is analagous to free().  It frees only what was allocated
+/* this is analogous to free().  It frees only what was allocated
    by malloc_widget_value(), and no substructures. 
  */
 void
@@ -310,7 +310,7 @@ allocate_widget_instance (info, parent, pop_up_p)
   instance->next = info->instances;
   info->instances = instance;
 
-  instanciate_widget_instance (instance);
+  instantiate_widget_instance (instance);
 
   XtAddCallback (instance->widget, XtNdestroyCallback,
 		 mark_widget_destroyed, (XtPointer)instance);
@@ -510,9 +510,14 @@ merge_widget_value (val1, val2, level)
       
       if (val1->contents && !merged_contents)
 	{
-	  EXPLAIN (val1->name, change, INVISIBLE_CHANGE, "(contents gone)",
+	  /* This used to say INVISIBLE_CHANGE,
+	     but it is visible and vitally important when
+	     the contents of the menu bar itself are entirely deleted.
+
+	     But maybe it doesn't matter.  This fails to fix the bug.  */
+	  EXPLAIN (val1->name, change, STRUCTURAL_CHANGE, "(contents gone)",
 		   0, 0);
-	  change = max (change, INVISIBLE_CHANGE);
+	  change = max (change, STRUCTURAL_CHANGE);
 	}
       else if (merged_contents && merged_contents->change != NO_CHANGE)
 	{
@@ -759,7 +764,7 @@ dialog_spec_p (name)
 }
 
 static void
-instanciate_widget_instance (instance)
+instantiate_widget_instance (instance)
      widget_instance* instance;
 {
   widget_creation_function function = NULL;
