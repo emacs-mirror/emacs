@@ -1,4 +1,4 @@
-;;; handwrite.el --- turns your emacs buffer into a handwritten document.
+;;; handwrite.el --- turns your emacs buffer into a handwritten document -*- coding: iso-latin-1; -*-
 
 ;; (C) Copyright 1996 Free Software Foundation, Inc.
 
@@ -330,8 +330,17 @@ Variables: handwrite-linespace     (default 12)
       (replace-match "" nil t) )
     (untabify textp (point-max))	; this may result in strange tabs
     (if (y-or-n-p "Send this to the printer? ")
-	(call-process-region (point-min)
-			     (point-max) lpr-command nil nil nil))
+	(progn
+	  (require 'ps-print)
+	  (let* ((coding-system-for-write 'raw-text-unix)
+		 (ps-printer-name (or ps-printer-name
+				      (and (boundp 'printer-name)
+					   printer-name)))
+		 (ps-lpr-switches
+		  (if (stringp ps-printer-name)
+		      (list (concat "-P" ps-printer-name)))))
+	    (apply (or ps-print-region-function 'call-process-region)
+		   (point-min) (point-max) ps-lpr-command nil nil nil))))
     (message "")
     (bury-buffer ())
     (switch-to-buffer cur-buf)
