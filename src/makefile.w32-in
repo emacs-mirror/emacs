@@ -23,6 +23,9 @@ ALL = emacs
 
 .PHONY: $(ALL)
 
+# Set EMACSLOADPATH correctly (in case already defined in environment).
+EMACSLOADPATH=$(CURDIR)/../lisp
+
 #
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
 # the emacs source tree.
@@ -150,6 +153,7 @@ all:            $(ALL)
 emacs:          $(BLD) $(EMACS)
 $(EMACS):       $(DOC) $(TEMACS)
 	"$(THISDIR)/$(BLD)/temacs.exe" -batch -l loadup dump
+	-"$(THISDIR)/$(BLD)/emacs.exe" -q -batch -f list-load-path-shadows
 
 #
 # The undumped executable
