@@ -1,5 +1,8 @@
 1999-11-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fwindow_end): Don't call temp_set_pt_both with
+	out of range position.
+
 	* xterm.c (XTread_socket) <ClientMessage, Xatom_Scrollbar>: 
 	Switch off busy-cursor by setting inhibit_busy_cursor to 2.
 
