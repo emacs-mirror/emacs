@@ -282,6 +282,14 @@ struct glyph
   /* Face of the glyph.  */
   unsigned face_id : 22;
 
+#ifdef WINDOWSNT
+  /* Type of font used to display the character glyph. Used to
+     determine which set of functions to use to obtain font metrics
+     for the glyph. Value should be an enumerator of the type
+     w32_char_font_type. */
+  unsigned w32_font_type : 2;
+#endif
+
   /* A union of sub-structures for different glyph types.  */
   union
   {
