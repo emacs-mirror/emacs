@@ -1,3 +1,8 @@
+2000-05-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (free_realized_faces): Block/unblock input.
+	(free_realized_multibyte_face): Ditto.
+
 2000-05-29  Dave Love  <fx@gnu.org>
 
 	* textprop.c (Qkeymap): New variable.
@@ -20,7 +25,7 @@
 	(get_local_map): Extra arg using it.
 	(Qkeymap): Declare.
 
-	* lisp.h: (get_local_map: Don't declare here.
+	* lisp.h (get_local_map): Don't declare here.
 
 2000-05-29  Kenichi Handa  <handa@etl.go.jp>
 
