@@ -1,3 +1,11 @@
+2002-06-27  Juanma Barranquero  <lektu@terra.es>
+
+	* faces.el (describe-face): Capitalize "not documented" message.
+
+	* help-fns.el (describe-variable): Likewise.
+	(describe-function-1): Likewise. Also, document the obsolescence
+	of the function, if applicable.
+
 2002-06-26  Juanma Barranquero  <lektu@terra.es>
 
 	* info.el (info-menu-5): Fix documentation.
