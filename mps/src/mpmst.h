@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.17) $
+ * $HopeName: MMsrc!mpmst.h(trunk.18) $
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -271,7 +271,7 @@ typedef struct VMStruct {
  * and the ANSI fake protection (impl.c.protan).
  *
  * .seg.pool: This field must be first.  See
- * design.mps.seg.assume.pointer-conversion for why.
+ * design.mps.arena.vm.assume.pointer-conversion for why.
  */
 
 typedef struct SegStruct {      /* segment structure */
