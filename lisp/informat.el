@@ -48,9 +48,11 @@
 		  (case-fold-search t)
 		  list)
 	      (while (search-forward "\n\^_" nil t)
-		(forward-line 1)
-		(let ((beg (point)))
-		  (forward-line 1)
+		;; We want the 0-origin character position of the ^_.
+		;; That is the same as the Emacs (1-origin) position
+		;; of the newline before it.
+		(let ((beg (match-beginning 0)))
+		  (forward-line 2)
 		  (if (re-search-backward regexp beg t)
 		      (setq list
 			    (cons (list (buffer-substring
