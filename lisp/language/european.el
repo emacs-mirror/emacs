@@ -64,8 +64,10 @@ character set which supports the following European languages:
 We also have specific language environments for the following languages:
   For Dutch, \"Dutch\".
   For German, \"German\".
-  For Spanish, \"Spanish\".
   For French, \"French\".
+  For Italian, \"Italian\".
+  For Slovenian, \"Slovenian\".
+  For Spanish, \"Spanish\".
 
 Latin-1 also covers several written languages outside Europe, including
 Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
@@ -251,6 +253,21 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
  '("European"))
 
 (set-language-info-alist
+ "Dutch" '((tutorial . "TUTORIAL.nl")
+	   (charset ascii latin-iso8859-1)
+	   (coding-system iso-latin-1 iso-latin-9)
+	   (coding-priority iso-latin-1)
+	   (nonascii-translation . latin-iso8859-1)
+	   (unibyte-syntax . "latin-1")
+	   (unibyte-display . iso-latin-1)
+	   (input-method . "dutch")
+	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
+	   (documentation . "\
+This language environment is almost the same as Latin-1,
+but it selects the Dutch tutorial and input method."))
+ '("European"))
+
+(set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
 	    (charset ascii latin-iso8859-1)
 	    (coding-system iso-latin-1 iso-latin-9)
@@ -326,21 +343,6 @@ Additionally, it selects the Italian tutorial."))
 This language environment is almost the same as Latin-1,
 but it sets the default input method to \"spanish-postfix\",
 and it selects the Spanish tutorial."))
- '("European"))
-
-(set-language-info-alist
- "Dutch" '((tutorial . "TUTORIAL.nl")
-	   (charset ascii latin-iso8859-1)
-	   (coding-system iso-latin-1 iso-latin-9)
-	   (coding-priority iso-latin-1)
-	   (nonascii-translation . latin-iso8859-1)
-	   (unibyte-syntax . "latin-1")
-	   (unibyte-display . iso-latin-1)
-	   (input-method . "dutch")
-	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
-	   (documentation . "\
-This language environment is almost the same as Latin-1,
-but it selects the Dutch tutorial and input method."))
  '("European"))
 
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
