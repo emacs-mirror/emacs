@@ -1,3 +1,7 @@
+2000-10-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-file-list-for-emacs): Add an entry for Eshell.
+
 2000-10-23  Dave Love  <fx@gnu.org>
 
 	* textmodes/refill.el: Remove bits redundant with define-minor-mode.
