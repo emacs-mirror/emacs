@@ -1750,7 +1750,7 @@ be shared by the new frame.")
   /* We need to do this after creating the X window, so that the
      icon-creation functions can say whose icon they're describing.  */
   x_default_parameter (f, parms, Qicon_type, Qnil,
-		       "iconType", "IconType", symbol);
+		       "bitmapIcon", "BitmapIcon", symbol);
 
   x_default_parameter (f, parms, Qauto_raise, Qnil,
 		       "autoRaise", "AutoRaiseLower", boolean);
@@ -2184,11 +2184,15 @@ fonts), even if they match PATTERN and FACE.")
       FRAME_PTR f = NILP (frame) ? selected_frame : XFRAME (frame);
       int face_id = face_name_id_number (f, face);
 
-      if (face_id < 0 || face_id > FRAME_N_FACES (f))
-	face_id = 0;
-      size_ref = FRAME_FACES (f) [face_id]->font;
-      if (size_ref == (XFontStruct *) (~0) || size_ref == NULL)
+      if (face_id < 0 || face_id >= FRAME_N_FACES (f)
+	  || FRAME_FACES (f) [face_id] == 0)
 	size_ref = f->display.x->font;
+      else
+	{
+	  size_ref = FRAME_FACES (f) [face_id]->font;
+	  if (size_ref == (XFontStruct *) (~0))
+	    size_ref = f->display.x->font;
+	}
     }
 
   BLOCK_INPUT;
