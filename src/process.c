@@ -4965,9 +4965,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 }
 
 
+/* Don't confuse make-docfile by having two doc strings for this function.
+   make-docfile does not pay attention to #if, for good reason!  */
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
-  /* Don't confuse make-docfile by having two doc strings for this function.
-     make-docfile does not pay attention to #if, for good reason!  */
   0)
   (name)
      register Lisp_Object name;
@@ -4975,11 +4975,11 @@ DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
   return Qnil;
 }
 
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
 DEFUN ("process-inherit-coding-system-flag",
   Fprocess_inherit_coding_system_flag, Sprocess_inherit_coding_system_flag,
   1, 1, 0,
-  /* Don't confuse make-docfile by having two doc strings for this function.
-     make-docfile does not pay attention to #if, for good reason!  */
   0)
   (process)
      register Lisp_Object process;
