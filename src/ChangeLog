@@ -1,3 +1,7 @@
+2002-06-12  Juanma Barranquero  <lektu@terra.es>
+
+	* xdisp.c (Fformat_mode_line): Fix typo.
+
 2002-06-12  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (Fformat_mode_line): New function.
