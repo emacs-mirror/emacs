@@ -4,6 +4,24 @@
 #
 # global options for qa commands
 #
+# this file also has the job of detecting what platform
+# we're on
+#
+
+# first to see where we are:
+
+if ($] =~ /perl for NT/) {
+ # it's NT, so find out what the processor is
+ #  from a system variable
+ $platform_class = "nt_".$ENV{"PROCESSOR_ARCHITECTURE"};
+ if ($platform_class = "nt_") {
+  $platform_class = "nt_dunno";
+ }
+} else {
+ # it's unix by default
+ $platform_class = `class`;
+ chop($platform_class);
+}
 
 %qa_options = (
  "v", "INTERFACE_VERSION",
@@ -14,9 +32,6 @@
 
 %qa_flags = (
 );
-
-$platform_class = `class`;
-chop($platform_class);
 
 %qa_defaults = (
  "INTERFACE_VERSION", "MO",
