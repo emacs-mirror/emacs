@@ -367,31 +367,6 @@ DON'T CHANGE WITHOUT RECOMPILING !  This is used by macros.")
   (mapcar 'eval body)
   (cons 'progn body))
 
-(eval-when-compile
-  (defvar completion-gensym-counter 0)
-  (defun completion-gensym (&optional arg)
-    "Generate a new uninterned symbol.
-The name is made by appending a number to PREFIX, default \"G\"."
-    (let ((prefix (if (stringp arg) arg "G"))
-	  (num (if (integerp arg) arg
-		 (prog1 completion-gensym-counter
-		   (setq completion-gensym-counter (1+ completion-gensym-counter))))))
-      (make-symbol (format "%s%d" prefix num)))))
-
-(defmacro completion-dolist (spec &rest body)
-  "(completion-dolist (VAR LIST [RESULT]) BODY...): loop over a list.
-Evaluate BODY with VAR bound to each `car' from LIST, in turn.
-Then evaluate RESULT to get return value, default nil."
-  (let ((temp (completion-gensym "--dolist-temp--")))
-    (append (list 'let (list (list temp (nth 1 spec)) (car spec))
-		  (append (list 'while temp
-				(list 'setq (car spec) (list 'car temp)))
-			  body (list (list 'setq temp
-					   (list 'cdr temp)))))
-	    (if (cdr (cdr spec))
-		(cons (list 'setq (car spec) nil) (cdr (cdr spec)))
-	      '(nil)))))
-
 (defun completion-eval-when ()
   (eval-when-compile-load-eval
    ;; These vars. are defined at both compile and load time.
@@ -573,9 +548,9 @@ Used to decide whether to save completions.")
     (let ((symbol-chars '(?@ ?/ ?\\ ?* ?+ ?~ ?$ ?< ?> ?%))
 	  (symbol-chars-ignore '(?_ ?- ?: ?.))
 	  )
-      (completion-dolist (char symbol-chars)
+      (dolist (char symbol-chars)
 	(modify-syntax-entry char "_" table))
-      (completion-dolist (char symbol-chars-ignore)
+      (dolist (char symbol-chars-ignore)
 	(modify-syntax-entry char "w" table)
 	)
       )
@@ -587,7 +562,7 @@ Used to decide whether to save completions.")
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
 	(symbol-chars '(?! ?& ?? ?= ?^))
 	)
-    (completion-dolist (char symbol-chars)
+    (dolist (char symbol-chars)
       (modify-syntax-entry char "_" table))
     table))
 	   
@@ -595,7 +570,7 @@ Used to decide whether to save completions.")
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
 	(separator-chars '(?+ ?* ?/ ?: ?%))
 	)
-    (completion-dolist (char separator-chars)
+    (dolist (char separator-chars)
       (modify-syntax-entry char " " table))
     table))
 
@@ -603,7 +578,7 @@ Used to decide whether to save completions.")
   (let ((table (copy-syntax-table cmpl-standard-syntax-table))
 	(separator-chars '(?+ ?- ?* ?/ ?:))
 	)
-    (completion-dolist (char separator-chars)
+    (dolist (char separator-chars)
       (modify-syntax-entry char " " table))
     table))
 
@@ -2033,9 +2008,9 @@ Prefix args ::
     (while (< i 256)
       (modify-syntax-entry i "w" table)
       (setq i (1+ i)))
-    (completion-dolist (char whitespace-chars)
+    (dolist (char whitespace-chars)
       (modify-syntax-entry char "_" table))
-    (completion-dolist (char separator-chars)
+    (dolist (char separator-chars)
       (modify-syntax-entry char " " table))
     (modify-syntax-entry ?\[ "(]" table)
     (modify-syntax-entry ?\{ "(}" table)
@@ -2251,7 +2226,7 @@ If file name is not specified, use `save-completions-file-name'."
 	    (erase-buffer)
 	    ;; (/ 1 0)
 	    (insert (format saved-cmpl-file-header completion-version))
-	    (completion-dolist (completion (list-all-completions))
+	    (dolist (completion (list-all-completions))
 	      (setq total-in-db (1+ total-in-db))
 	      (setq last-use-time (completion-last-use-time completion))
 	      ;; Update num uses and maybe write completion to a file
