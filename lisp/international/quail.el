@@ -1457,7 +1457,8 @@ or in a newly created frame (if the selected frame has no other windows)."
   (if (or input-method-verbose-flag
 	  (not (eq (selected-window) (minibuffer-window))))
       (let ((guidance (quail-guidance)))
-	(cond ((eq guidance t)
+	(cond ((or (eq guidance t)
+		   (listp guidance))
 	       ;; Show the current possible translations.
 	       (quail-show-translations))
 	      ((null guidance)
@@ -1466,21 +1467,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 		 (save-excursion
 		   (set-buffer quail-guidance-buf)
 		   (erase-buffer)
-		   (insert key))))
-	      ((listp guidance)
-	       ;; Show alternative characters specified in this alist.
-	       (let* ((key quail-current-key)
-		      (len (length key))
-		      (i 0)
-		      ch alternative)
-		 (save-excursion
-		   (set-buffer quail-guidance-buf)
-		   (erase-buffer)
-		   (while (< i len)
-		     (setq ch (aref key i))
-		     (setq alternative (cdr (assoc ch guidance)))
-		     (insert (or alternative ch))
-		     (setq i (1+ i)))))))))
+		   (insert key)))))))
 
   ;; Update completion buffer if displayed now.  We highlight the
   ;; selected candidate string in *Completion* buffer if any.
@@ -1525,7 +1512,18 @@ or in a newly created frame (if the selected frame has no other windows)."
       (erase-buffer)
 
       ;; Show the current key.
-      (insert key)
+      (let ((guidance (quail-guidance)))
+	(if (listp guidance)
+	    ;; We must show the specified PROMPTKEY instead of the
+	    ;; actual typed keys.
+	    (let ((i 0)
+		  (len (length key))
+		  prompt-key)
+	      (while (< i len)
+		(setq prompt-key (cdr (assoc (aref key i) guidance)))
+		(insert (or prompt-key (aref key i)))
+		(setq i (1+ i))))
+	  (insert key)))
 
       ;; Show followable keys.
       (if (cdr map)
