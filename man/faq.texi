@@ -4575,11 +4575,13 @@ change the default swap keys (@code{flow-control-c-s-replacement} and
 
 If you are fixing this for yourself, simply put the form in your
 @file{.emacs} file.  If you are fixing this for your entire site, the
-best place to put it is in the @file{lisp/site-start.el} file.  Putting
-this form in @file{lisp/default.el} has the problem that if the user's
-@file{.emacs} file has an error, this will prevent
-@file{lisp/default.el} from being loaded and Emacs may be unusable for
-the user, even for correcting their @file{.emacs} file (unless they're
+best place to put it is in the @file{site-lisp/site-start.el} file.
+(Here @file{site-lisp} is actually a subdirectory of your Emacs
+installation directory, typically @file{/usr/local/share/emacs}.)
+Putting this form in @file{site-lisp/default.el} has the problem that
+if the user's @file{.emacs} file has an error, this will prevent
+@file{default.el} from being loaded and Emacs may be unusable for the
+user, even for correcting their @file{.emacs} file (unless they're
 smart enough to move it to another name).
 
 @code{enable-flow-control} can be invoked interactively as well:
@@ -4599,11 +4601,11 @@ To bind @kbd{C-s} and @kbd{C-q}, use either @code{enable-flow-control}
 or @code{enable-flow-control-on}.  @xref{Handling C-s and C-q with flow
 control}, for usage and implementation details.
 
-To bind other keys, use @code{keyboard-translate}.  @xref{Swapping keys},
-for usage details.  To do this for an entire site, you should swap the
-keys in @file{lisp/site-start.el}.  @xref{Handling C-s and C-q with flow
-control}, for an explanation of why @file{lisp/default.el} should not be
-used.
+To bind other keys, use @code{keyboard-translate}.  @xref{Swapping
+keys}, for usage details.  To do this for an entire site, you should
+swap the keys in @file{site-lisp/site-start.el}.  @xref{Handling C-s
+and C-q with flow control}, for an explanation of why
+@file{site-lisp/default.el} should not be used.
 
 @itemize @bullet
 
