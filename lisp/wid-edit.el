@@ -1466,11 +1466,25 @@ If that does not exists, call the value of `widget-complete-field'."
 
 (defun widget-default-value-set (widget value)
   ;; Recreate widget with new value.
-  (save-excursion
-    (goto-char (widget-get widget :from))
-    (widget-apply widget :delete)
-    (widget-put widget :value value)
-    (widget-apply widget :create)))
+  (let* ((old-pos (point))
+	 (from (copy-marker (widget-get widget :from)))
+	 (to (copy-marker (widget-get widget :to)))
+	 (offset (if (and (<= from old-pos) (<= old-pos to))
+		     (if (>= old-pos (1- to))
+			 (- old-pos to 1)
+		       (- old-pos from)))))
+    ;;??? Bug: this ought to insert the new value before deleting the old one,
+    ;; so that markers on either side of the value automatically 
+    ;; stay on the same side.  -- rms.
+    (save-excursion
+      (goto-char (widget-get widget :from))
+      (widget-apply widget :delete)
+      (widget-put widget :value value)
+      (widget-apply widget :create))
+    (if offset
+	(if (< offset 0)
+	    (goto-char (+ (widget-get widget :to) offset 1))
+	  (goto-char (min (+ from offset) (1- (widget-get widget :to))))))))
 
 (defun widget-default-value-inline (widget)
   ;; Wrap value in a list unless it is inline.
@@ -1705,7 +1719,7 @@ If END is omitted, it defaults to the length of LIST."
 (defun widget-field-action (widget &optional event)
   ;; Move to next field.
   (widget-forward 1)
-  (message "To set this variable or face, invoke [State] and choose Set"))
+  (message "To set the value, invoke [State] and choose the Set operation"))
 
 (defun widget-field-validate (widget)
   ;; Valid if the content matches `:valid-regexp'.
@@ -1895,20 +1909,13 @@ when he invoked the menu."
 				     current)
 			       choices)))
 		 (widget-choose tag (reverse choices) event))))
-    ;; Try to preserve point even if it is within the widget.
-    (let* ((old-pos (point))
-	   (from (copy-marker (widget-get widget :from)))
-	   (to (copy-marker (widget-get widget :to)))
-	   (offset (if (and (<= from old-pos) (<= old-pos to))
-		       (- old-pos from))))
-      (when current
-	(widget-value-set widget 
-			  (widget-apply current :value-to-external
-					(widget-get current :value)))
-	(widget-setup)
-	(widget-apply widget :notify widget event))
-      (if offset
-	  (goto-char (min (+ from offset) to))))))
+    (when current
+      (widget-value-set widget 
+			(widget-apply current :value-to-external
+				      (widget-get current :value)))
+      (widget-setup)
+      (widget-apply widget :notify widget event)))
+  (message "To set the value, invoke [State] and choose the Set operation"))
 
 (defun widget-choice-validate (widget)
   ;; Valid if we have made a valid choice.
@@ -1962,16 +1969,9 @@ when he invoked the menu."
 
 (defun widget-toggle-action (widget &optional event)
   ;; Toggle value.
-  ;; Try to preserve point even if it is within the widget.
-  (let* ((old-pos (point))
-	 (from (copy-marker (widget-get widget :from)))
-	 (to (copy-marker (widget-get widget :to)))
-	 (offset (if (and (<= from old-pos) (<= old-pos to))
-		     (- old-pos from))))
-    (widget-value-set widget (not (widget-value widget)))
-    (widget-apply widget :notify widget event)
-    (if offset
-	(goto-char (min (+ from offset) to)))))
+  (widget-value-set widget (not (widget-value widget)))
+  (widget-apply widget :notify widget event)
+  (message "To set the value, invoke [State] and choose the Set operation"))
 
 ;;; The `checkbox' Widget.
 
