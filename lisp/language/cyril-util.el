@@ -37,7 +37,7 @@
 
 (defvar cyrillic-language-alist
       (list '("Belorussian") '("Bulgarian") '("Macedonian") 
-	    '("Russian") '("Serbocroatian") '("Ukrainian"))
+	    '("Russian") '("Serbo-Croatian") '("Ukrainian"))
       "*List of known cyrillic languages")
 
 ;;;###autoload
