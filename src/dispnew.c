@@ -317,9 +317,20 @@ remake_frame_glyphs (frame)
     free_frame_glyphs (frame, FRAME_TEMP_GLYPHS (frame));
 
   if (FRAME_MESSAGE_BUF (frame))
-    FRAME_MESSAGE_BUF (frame)
-      = (char *) xrealloc (FRAME_MESSAGE_BUF (frame),
-			   FRAME_WIDTH (frame) + 1);
+    {
+      /* Reallocate the frame's message buffer; remember that
+	 echo_area_glyphs may be pointing here.  */
+      char *old_message_buf = FRAME_MESSAGE_BUF (frame);
+
+      FRAME_MESSAGE_BUF (frame)
+	= (char *) xrealloc (FRAME_MESSAGE_BUF (frame),
+			     FRAME_WIDTH (frame) + 1);
+
+      if (echo_area_glyphs == old_message_buf)
+	echo_area_glyphs = FRAME_MESSAGE_BUF (frame);
+      if (previous_echo_glyphs == old_message_buf)
+	previous_echo_glyphs = FRAME_MESSAGE_BUF (frame);
+    }
   else
     FRAME_MESSAGE_BUF (frame)
       = (char *) xmalloc (FRAME_WIDTH (frame) + 1);

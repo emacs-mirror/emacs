@@ -225,6 +225,12 @@ extern int minibuf_prompt_width;
    minibuf_prompt as well as the buffer.  */
 extern char *echo_area_glyphs;
 
+/* Value of echo_area_glyphs when it was last acted on.
+  If this is nonzero, there is a message on the frame
+  in the minibuffer and it should be erased as soon
+  as it is no longer requested to appear. */
+extern char *previous_echo_glyphs;
+
 /* Depth in recursive edits.  */
 extern int command_loop_level;
 
