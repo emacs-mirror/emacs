@@ -1260,7 +1260,8 @@ Modified from `icomplete-completions'."
 
 	      ;; put in common completion item -- what you get by
 	      ;; pressing tab
-	      (if (> (length iswitchb-common-match-string) (length name))
+	      (if (and (stringp iswitchb-common-match-string)
+		       (> (length iswitchb-common-match-string) (length name)))
 		  (concat open-bracket-determined
 			  (substring iswitchb-common-match-string
 				     (length name))
