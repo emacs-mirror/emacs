@@ -1,3 +1,21 @@
+2000-08-17  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-magic-go): Use comint-bol.
+	(sql-copy-column): Use comint-line-beginning-position.
+	(comint-line-beginning-position): Define a replacement for
+	comint-line-beginning-position if it is not fboundp.
+
+2000-08-17  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-mode-map): TAB is no longer defined in sql-mode-map;
+	it didn't have any effect anyway.
+
+2000-08-17  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-postgres): Jason Beegan's patch uses the parameters
+	--pset and pager=off instead of sending \\o|cat at the beginning
+	of the session.
+
 2000-08-17  Miles Bader  <miles@gnu.org>
 
 	* progmodes/octave-inf.el: Add compatibility definition of
