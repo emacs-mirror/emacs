@@ -1,5 +1,5 @@
 /* MS-DOS specific C utilities, interface.
-   Copyright (C) 1993 Free Software Foundation, Inc.
+   Copyright (C) 1993, 2001 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -91,8 +91,8 @@ struct x_output
   PIX_TYPE background_pixel;	/* used in xfaces.c and lots of other places */
   PIX_TYPE foreground_pixel;	/* ditto */
   XFontStruct *font;		/* used in x-popup-menu (xmenu.c) */
-  Window busy_window;		/* currently unused (but maybe some day) */
-  unsigned busy_p : 1;		/* ditto */
+  Window hourglass_window;	/* currently unused (but maybe some day) */
+  unsigned hourglass_p : 1;	/* ditto */
   struct display_info display_info; /* used for drawing mouse highlight */
 };
 
