@@ -137,7 +137,9 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
 
     ;; Ultrix 3.0 f77:
     ;;  fort: Severe: addstf.f, line 82: Missing operator or delimiter symbol
-    ("\nfort: [^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 1 2)
+    ;; Some SGI cc version:
+    ;;  cfe: Warning 835: foo.c, line 2: something
+    ("\n\\(cfe\\|fort\\): [^:\n]*: \\([^ \n]*\\), line \\([0-9]+\\):" 2 3)
     ;;  Error on line 3 of t.f: Execution error unclassifiable statement    
     ;; Unknown who does this:
     ;;  Line 45 of "foo.c": bloofel undefined
