@@ -181,7 +181,8 @@
 ;; 
 ;; 	* Added in changes by Rod Whitby and Jamie Zawinski.  This
 ;;        includes the flag mail-extr-guess-middle-initial and the fix for
-;;        handling multiple addresses correctly.
+;;        handling multiple addresses correctly.  (Whitby just changed
+;;	  a > to a <.)
 ;; 
 ;; Mon Apr  6 23:59:09 1992  Joe Wells  (jbw at bigbird.bu.edu)
 ;; 
