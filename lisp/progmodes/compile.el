@@ -243,7 +243,8 @@ Returns the compilation buffer created."
 	(if comp-proc
 	    (if (or (not (eq (process-status comp-proc) 'run))
 		    (yes-or-no-p
-		     "A compilation process is running; kill it? "))
+		     (format "A %s process is running; kill it? "
+			     name-of-mode)))
 		(condition-case ()
 		    (progn
 		      (interrupt-process comp-proc)
