@@ -199,8 +199,6 @@ extern Lisp_Object Vuse_default_ascent;
 extern Lisp_Object Vignore_relative_composition;
 extern Lisp_Object Valternate_fontname_alist;
 extern Lisp_Object Vfontset_alias_alist;
-extern Lisp_Object Vhighlight_wrong_size_font;
-extern Lisp_Object Vclip_large_size_font;
 extern Lisp_Object Vvertical_centering_font_regexp;
 
 /* Load a font named FONTNAME for displaying character C.  All fonts
