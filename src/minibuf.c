@@ -2686,8 +2686,8 @@ elements are deleted.  */);
   DEFVAR_BOOL ("completion-ignore-case", &completion_ignore_case,
 	       doc: /* Non-nil means don't consider case significant in completion.
 
-See also `read-file-name-completion-ignore-case' concerning case significance
-in completion when reading a file name.  */);
+For file-name completion, the variable `read-file-name-completion-ignore-case'
+controls the behavior, rather than this variable.  */);
   completion_ignore_case = 0;
 
   DEFVAR_BOOL ("enable-recursive-minibuffers", &enable_recursive_minibuffers,
