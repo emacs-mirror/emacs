@@ -851,7 +851,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.53 $")
+(defconst ange-ftp-version "$Revision: 1.54 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -2784,12 +2784,12 @@ logged in as user USER and cd'd to directory DIR."
 		     (error "Unable to obtain CWD")))))
 	  
 	  ;; If name starts with //, preserve that, for apollo system.
-	  (if (not (string-match "^//" path))
+	  (if (not (string-match "^//" name))
 	      (progn
-		(setq path (ange-ftp-real-expand-file-name path))
+		(setq name (ange-ftp-real-expand-file-name name))
 
-		(if (string-match "^//" path)
-		    (setq path (substring path 1)))))
+		(if (string-match "^//" name)
+		    (setq name (substring name 1)))))
 	  
 	  ;; Now substitute the expanded name back into the overall filename.
 	  (ange-ftp-replace-name-component n name))
