@@ -108,7 +108,8 @@ or `-k' to enable Kerberos authentication."
   :group 'rmail-retrieve
   :version "20.3")
 
-(defvar rmail-pop-password-error "invalid usercode or password"
+(defvar rmail-pop-password-error "invalid usercode or password\\|
+unknown user name or bad password"
   "Regular expression matching incorrect-password POP server error messages.
 If you get an incorrect-password error that this expression does not match,
 please report it with \\[report-emacs-bug].")
