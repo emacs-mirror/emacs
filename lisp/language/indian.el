@@ -35,8 +35,8 @@
   :mnemonic ?D
   :designation [ascii indian-is13194 nil nil]
   :charset-list '(ascii indian-is13194)
-  :post-read-conversion 'in-is13194-devanagari-post-read-conversion
-  :pre-write-conversion 'in-is13194-devanagari-pre-write-conversion)
+  :post-read-conversion 'in-is13194-post-read-conversion
+  :pre-write-conversion 'in-is13194-pre-write-conversion)
 
 (define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
