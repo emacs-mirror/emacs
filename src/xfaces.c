@@ -6698,8 +6698,8 @@ syms_of_xfaces ()
   defsubr (&Sinternal_set_lisp_face_attribute);
 #ifdef HAVE_X_WINDOWS
   defsubr (&Sinternal_set_lisp_face_attribute_from_resource);
-  defsubr (&Sface_color_gray_p);
-  defsubr (&Sface_color_supported_p);
+  defsubr (&Scolor_gray_p);
+  defsubr (&Scolor_supported_p);
 #endif
   defsubr (&Sinternal_get_lisp_face_attribute);
   defsubr (&Sinternal_lisp_face_attribute_values);
