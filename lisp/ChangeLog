@@ -1,3 +1,8 @@
+2003-03-12  Kenichi Handa  <handa@etlken2>
+
+	* international/utf-8.el (ccl-decode-mule-utf-8): Don't loose
+	bytes on handling an invalid byte sequence.
+
 2003-03-11  Jason Rumney  <jasonr@gnu.org>
 
 	* files.el (auto-mode-alist): Add .xsl for sgml-mode.
