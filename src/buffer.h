@@ -27,7 +27,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Position of beginning of buffer.  */
 #define BEG (1)
-#define BEG_BYTE (1)
+#define BEG_BYTE (BEG)
 
 /* Position of beginning of accessible range of buffer.  */
 #define BEGV (current_buffer->begv)
@@ -397,11 +397,11 @@ struct buffer_text
        into a buffer's text to functions that malloc.  */
     unsigned char *beg;
 
-    int gpt;			/* Char pos of gap in buffer.  */
-    int z;			/* Char pos of end of buffer.  */
-    int gpt_byte;		/* Byte pos of gap in buffer.  */
-    int z_byte;			/* Byte pos of end of buffer.  */
-    int gap_size;		/* Size of buffer's gap.  */
+    EMACS_INT gpt;		/* Char pos of gap in buffer.  */
+    EMACS_INT z;		/* Char pos of end of buffer.  */
+    EMACS_INT gpt_byte;		/* Byte pos of gap in buffer.  */
+    EMACS_INT z_byte;		/* Byte pos of end of buffer.  */
+    EMACS_INT gap_size;		/* Size of buffer's gap.  */
     int modiff;			/* This counts buffer-modification events
 				   for this buffer.  It is incremented for
 				   each such event, and never otherwise
@@ -412,10 +412,10 @@ struct buffer_text
     int overlay_modiff;		/* Counts modifications to overlays.  */
 
     /* Minimum value of GPT - BEG since last redisplay that finished.  */
-    int beg_unchanged;
+    EMACS_INT beg_unchanged;
 
     /* Minimum value of Z - GPT since last redisplay that finished.  */
-    int end_unchanged;
+    EMACS_INT end_unchanged;
 
     /* MODIFF as of last redisplay that finished; if it matches MODIFF,
        beg_unchanged and end_unchanged contain no useful information.  */
@@ -464,17 +464,17 @@ struct buffer
   struct buffer_text *text;
 
   /* Char position of point in buffer.  */
-  int pt;
+  EMACS_INT pt;
   /* Byte position of point in buffer.  */
-  int pt_byte;
+  EMACS_INT pt_byte;
   /* Char position of beginning of accessible range.  */
-  int begv;
+  EMACS_INT begv;
   /* Byte position of beginning of accessible range.  */
-  int begv_byte;
+  EMACS_INT begv_byte;
   /* Char position of end of accessible range.  */
-  int zv;
+  EMACS_INT zv;
   /* Byte position of end of accessible range.  */
-  int zv_byte;
+  EMACS_INT zv_byte;
 
   /* In an indirect buffer, this points to the base buffer.
      In an ordinary buffer, it is 0.  */
@@ -503,7 +503,7 @@ struct buffer
   int auto_save_failure_time;
   /* Position in buffer at which display started
      the last time this buffer was displayed.  */
-  int last_window_start;
+  EMACS_INT last_window_start;
 
   /* Set nonzero whenever the narrowing is changed in this buffer.  */
   int clip_changed;
