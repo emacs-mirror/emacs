@@ -810,6 +810,7 @@ Command Line Options and Arguments
 * Borders X::	        Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.
 * Icons X::             Choosing what sort of icon to use, under X.
+* Misc X::              Other display options.
 
 X Resources
 
