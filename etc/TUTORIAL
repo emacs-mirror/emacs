@@ -180,6 +180,18 @@ much more useful.
 Did it scroll the screen up by 8 lines?  If you would like to
 scroll it down you can give an argument to M-v.
 
+If you are using X Windows, there is probably a rectangular area
+called a scroll bar at the right hand side of the Emacs window.  You
+can scroll the text by clicking the mouse in the scroll bar.
+
+>> Try pressing the middle button at the top of the highlighted area
+within the scroll bar, then moving the mouse while holding that button
+down.
+
+>> Move the mouse to a point in the scroll bar about three lines from
+the top, and click the left button a couple of times.  Then try the
+right button a couple of times.
+
 
 * WHEN EMACS IS HUNG
 --------------------
