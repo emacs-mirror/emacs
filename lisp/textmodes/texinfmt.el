@@ -2080,7 +2080,7 @@ This command is executed when texinfmt sees @item inside @multitable."
       (goto-char (point-max))
       (skip-chars-backward " ")
       (delete-region (point) (save-excursion (end-of-line) (point)))
-      ;; Temorarily set texinfo-stack to nil so texinfo-format-scan
+      ;; Temporarily set texinfo-stack to nil so texinfo-format-scan
       ;; does not see an unterminated @multitable.
       (let (texinfo-stack)                      ; nil
         (texinfo-format-scan))
@@ -2424,7 +2424,7 @@ If used within a line, follow `@bullet' with braces."
 
 ;; Inside of @example ... @end example and similar environments, 
 ;; @kbd does nothing; but outside of such environments, it places
-;; single quotation markes around its argument.
+;; single quotation marks around its argument.
 
 (defvar texinfo-format-kbd-regexp
   (concat
