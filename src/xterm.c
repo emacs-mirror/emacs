@@ -1716,6 +1716,16 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
   *y = pix_y;
 }
 
+void
+glyph_to_pixel_coords (f, x, y, pix_x, pix_y)
+     FRAME_PTR f;
+     register int x, y;
+     register int *pix_x, *pix_y;
+{
+  *pix_x = CHAR_TO_PIXEL_COL (f, x);
+  *pix_y = CHAR_TO_PIXEL_ROW (f, y);
+}
+
 /* Prepare a mouse-event in *RESULT for placement in the input queue.
 
    If the event is a button press, then note that we have grabbed
@@ -1755,9 +1765,13 @@ construct_mouse_click (result, event, f)
   {
     int row, column;
 
+#if 0
     pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL, 0);
     XFASTINT (result->x) = column;
     XFASTINT (result->y) = row;
+#endif
+    XFASTINT (result->x) = event->x;
+    XFASTINT (result->y) = event->y;
     XSET (result->frame_or_window, Lisp_Frame, f);
   }
 }
@@ -1953,7 +1967,7 @@ XTmouse_position (f, bar_window, part, x, y, time)
 	       never use them in that case.)  */
 
 	    /* Is win one of our frames?  */
-	    f1 = x_window_to_frame (win);
+	    f1 = x_any_window_to_frame (win);
 	  }
       
 	/* If not, is it one of our scroll bars?  */
@@ -1971,10 +1985,11 @@ XTmouse_position (f, bar_window, part, x, y, time)
 
 	if (f1)
 	  {
-	    /* Ok, we found a frame.  Convert from pixels to characters
-	       and store all the values.  */
+	    int ignore1, ignore2;
 
-	    pixel_to_glyph_coords (f1, win_x, win_y, &win_x, &win_y,
+	    /* Ok, we found a frame.  Store all the values.  */
+
+	    pixel_to_glyph_coords (f1, win_x, win_y, &ignore1, &ignore2,
 				   &last_mouse_glyph, x_mouse_grabbed);
 
 	    *bar_window = Qnil;
