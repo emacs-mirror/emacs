@@ -67,18 +67,12 @@ You must modify via \\[customize] for this variable to have an effect."
   :type 'boolean
   :group 'editing-basics
   :require 'delsel)
+;; Force loading of this file in order to customize delete-selection-mode.
+(put 'delete-selection-mode 'custom-loads '(delsel))
 
-;; Since the above autoloaded option contains a `:set' form, this file would
-;; get loaded from loaddefs.el.  We can use the above `:initialize' keyword,
-;; and the below `when' form, to the prevent automatic loading of this file, or
-;; an `:initialize' keyword of the form:
-;;
-;;  :initialize (lambda (symbol value)
-;;		  (if value
-;;		      (delete-selection-mode t)
-;;		    (custom-initialize-default symbol nil))
-;;
-;; We choose the former as it is the general mechanism for such toggle options.
+;; This is the standard way mechanism to put the mode into effect
+;; if delete-selection-mode has already been set to t
+;; when this file is loaded.
 (when delete-selection-mode
   (delete-selection-mode t))
 
