@@ -1,3 +1,8 @@
+2001-03-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* help.el (string-key-binding): Don't call event-start on 
+	a non-list.
+
 2001-03-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* startup.el (fancy-splash-tail, command-line-1): Fix the

@@ -1,8 +1,11 @@
 2001-03-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (XTread_socket) <LeaveNotify, EnterNotify>: Remove
+	workaround code for LessTif; it doesn't work anymore.
+	
 	* xterm.c [USE_TOOLKIT_SCROLL_BARS && USE_MOTIF]: Don't include
 	SscrollBarP.h.
-	
+
 	* xterm.c (x_set_toolkit_scroll_bar_thumb) [USE_MOTIF]: Don't
 	access private scroll bar data; it's no longer necessary with
 	contemporary LessTif.
