@@ -511,8 +511,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   /* Erase the buffer.  */
   {
-    int count1 = specpdl_ptr - specpdl;
+    int count1 = BINDING_STACK_SIZE ();
     specbind (Qinhibit_read_only, Qt);
+    specbind (Qinhibit_modification_hooks, Qt);
     Ferase_buffer ();
     unbind_to (count1, Qnil);
   }
