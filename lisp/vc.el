@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.338 2002/10/05 03:00:47 rost Exp $
+;; $Id: vc.el,v 1.339 2002/10/05 16:35:28 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2036,98 +2036,11 @@ See Info node `Merging'."
   (if (zerop status) (message "Merge successful")
     (smerge-mode 1)
     (if (y-or-n-p "Conflicts detected.  Resolve them now? ")
-	(smerge-ediff name-A name-B)
+	(vc-resolve-conflicts name-A name-B)
       (message "File contains conflict markers"))))
 
-(defvar vc-ediff-windows)
-(defvar vc-ediff-result)
-(eval-when-compile
-  (defvar ediff-buffer-A)
-  (defvar ediff-buffer-B)
-  (defvar ediff-buffer-C)
-  (require 'ediff-util))
 ;;;###autoload
-(defun vc-resolve-conflicts (&optional name-A name-B)
-  "Invoke ediff to resolve conflicts in the current buffer.
-The conflicts must be marked with rcsmerge conflict markers."
-  (interactive)
-  (vc-ensure-vc-buffer)
-  (let* ((found nil)
-         (file-name (file-name-nondirectory buffer-file-name))
-	 (your-buffer   (generate-new-buffer
-                         (concat "*" file-name
-				 " " (or name-A "WORKFILE") "*")))
-	 (other-buffer  (generate-new-buffer
-                         (concat "*" file-name
-				 " " (or name-B "CHECKED-IN") "*")))
-         (result-buffer (current-buffer)))
-    (save-excursion
-      (set-buffer your-buffer)
-      (erase-buffer)
-      (insert-buffer result-buffer)
-      (goto-char (point-min))
-      (while (re-search-forward (concat "^<<<<<<< "
-					(regexp-quote file-name) "\n") nil t)
-        (setq found t)
-	(replace-match "")
-	(if (not (re-search-forward "^=======\n" nil t))
-	    (error "Malformed conflict marker"))
-	(replace-match "")
-	(let ((start (point)))
-	  (if (not (re-search-forward "^>>>>>>> [0-9.]+\n" nil t))
-	      (error "Malformed conflict marker"))
-	  (delete-region start (point))))
-      (if (not found)
-          (progn
-            (kill-buffer your-buffer)
-            (kill-buffer other-buffer)
-            (error "No conflict markers found")))
-      (set-buffer other-buffer)
-      (erase-buffer)
-      (insert-buffer result-buffer)
-      (goto-char (point-min))
-      (while (re-search-forward (concat "^<<<<<<< "
-					(regexp-quote file-name) "\n") nil t)
-	(let ((start (match-beginning 0)))
-	(if (not (re-search-forward "^=======\n" nil t))
-	    (error "Malformed conflict marker"))
-	(delete-region start (point))
-	(if (not (re-search-forward "^>>>>>>> [0-9.]+\n" nil t))
-	    (error "Malformed conflict marker"))
-	(replace-match "")))
-      (let ((config (current-window-configuration))
-            (ediff-default-variant 'default-B))
-
-        ;; Fire up ediff.
-
-        (set-buffer (ediff-merge-buffers your-buffer other-buffer))
-
-        ;; Ediff is now set up, and we are in the control buffer.
-        ;; Do a few further adjustments and take precautions for exit.
-
-        (make-local-variable 'vc-ediff-windows)
-        (setq vc-ediff-windows config)
-        (make-local-variable 'vc-ediff-result)
-        (setq vc-ediff-result result-buffer)
-        (make-local-variable 'ediff-quit-hook)
-        (setq ediff-quit-hook
-              (lambda ()
-		(let ((buffer-A ediff-buffer-A)
-		      (buffer-B ediff-buffer-B)
-		      (buffer-C ediff-buffer-C)
-		      (result vc-ediff-result)
-		      (windows vc-ediff-windows))
-		  (ediff-cleanup-mess)
-		  (set-buffer result)
-		  (erase-buffer)
-		  (insert-buffer buffer-C)
-		  (kill-buffer buffer-A)
-		  (kill-buffer buffer-B)
-		  (kill-buffer buffer-C)
-		  (set-window-configuration windows)
-		  (message "Conflict resolution finished; you may save the buffer"))))
-        (message "Please resolve conflicts now; exit ediff when done")
-        nil))))
+(defalias 'vc-resolve-conflicts smerge-ediff)
 
 ;; The VC directory major mode.  Coopt Dired for this.
 ;; All VC commands get mapped into logical equivalents.
