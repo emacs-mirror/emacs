@@ -21,6 +21,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package provides a major mode for editing Prolog.  It knows
+;; about Prolog syntax and comments, and can send regions to an inferior
+;; Prolog interpreter process.
+
 ;;; Code:
 
 (defvar prolog-mode-syntax-table nil)

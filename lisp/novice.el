@@ -21,6 +21,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This mode provides a hook which is, by default, attached to various
+;; putatively dangerous commands in a (probably futile) attempt to
+;; prevent lusers from shooting themselves in the feet.
+
 ;;; Code:
 
 ;; This function is called (by autoloading)

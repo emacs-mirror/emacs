@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keywords: extensions
+;; Keywords: emulations
 
 ;; This file is part of GNU Emacs.
 
@@ -20,6 +20,12 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
+;; This package conversts Mocklisp code written under a Gosling or UniPress
+;; Emacs for use with GNU Emacs.  The translated code will require runtime
+;; support from the mlsupport.el equivalent.
 
 ;;; Code:
 

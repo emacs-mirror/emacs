@@ -21,6 +21,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; Use the Remote File Access (RFA) facility of HP-UX from Emacs.
+
 ;;; Code:
 
 (defconst rfa-node-directory "/net/"

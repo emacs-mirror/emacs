@@ -21,6 +21,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This code provides the picture-mode commands documented in the Emacs 
+;; manual.  The screen is treated as a semi-infinite quarter-plane with
+;; support for rectangle operations and `etch-a-sketch' character
+;; insertion in any of eight directions.
+
 ;;; Code:
 
 (defun move-to-column-force (column)

@@ -20,6 +20,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This code provides the page-oriented movement and selection commands
+;; documented in the Emacs manual.
+
 ;;; Code:
 
 (defun forward-page (&optional count)

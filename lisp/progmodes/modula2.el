@@ -11,6 +11,12 @@
 ;; Author Mick Jordan
 ;; amended Peter Robinson
 
+;;; Commentary:
+
+;; A major mode for editing Modula-2 code.  It provides convenient abbrevs
+;; for Modula-2 keywords, knows about the standard layout rules, and supports
+;; a native compile command.
+
 ;;; Code:
 
 ;;; Added by Tom Perrine (TEP)

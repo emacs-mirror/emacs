@@ -20,6 +20,12 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package is a major mode for editing outline-format documents.
+;; An outline can be `abstracted' to show headers at any given level,
+;; with all stuff below hidden.  See the Emacs manual for details.
+
 ;;; Code:
 
 ;; Jan '86, Some new features added by Peter Desnoyers and rewritten by RMS.

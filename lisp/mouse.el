@@ -21,6 +21,14 @@
 ;;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package provides various useful commands (including help
+;; system access) through the mouse.  All this code assumes that mouse
+;; interpretation has been abstracted into Emacs input events.
+;;
+;; The code is rather X-dependent.
+
 ;;; Code:
 
 ;;; Utility functions.

@@ -21,6 +21,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package is a major mode for editing nroff source code.  It knows
+;; about various nroff constructs, ms, mm, and me macros, and will fill
+;; and indent paragraphs properly in their presence.  It also includes
+;; a command to count text lines (excluding nroff constructs), a command
+;; to center a line, and movement commands that know how to skip macros.
+
 ;;; Code:
 
 (defvar nroff-mode-abbrev-table nil

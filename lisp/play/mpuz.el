@@ -22,6 +22,13 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
+;; When this package is loaded, `M-x mpuz' generates a random multiplication
+;; puzzle.  This is a multiplication example in which each digit has been
+;; consistently replaced with some letter.  Your job is to reconstruct
+;; the original digits.  Type `?' while the mode is active for detailed help.
+
 ;;; Code:
 
 (random t)				; randomize

@@ -21,6 +21,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package provides an equivalent of the UNIX man(1) command within
+;; Emacs.  The single entry point is `manual-entry'.
+
 ;;; Code:
 
 ;;;###autoload

@@ -20,6 +20,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This code provides functions to list and edit the values of all global
+;; option variables known to loaded Emacs Lisp code.  There are two entry
+;; points, `list-options' and `edit' options'.  The latter enters a major
+;; mode specifically for editing option values.  Do `M-x describe-mode' in
+;; that context for more details.
+
 ;;; Code:
 
 ;;;###autoload

@@ -21,6 +21,14 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
+;; This package provides equivalents of certain primitives from Gosling
+;; Emacs (including the commercial UniPress versions).  These have an
+;; ml- prefix to distinguish them from native GNU Emacs functions with
+;; similar names.  The oackage mlconvert.el translates Mocklisp code
+;; to use these names.
+
 ;;; Code:
 
 (defmacro ml-defun (&rest defs)
