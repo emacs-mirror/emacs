@@ -42,7 +42,7 @@
 	    (sample-text . "Prajeme V,Ba(Bm pr,Bm(Bjemn,B}(B de,Br(B!")
 	    (documentation . "\
 This language environment is almost the same as Latin-2,
-but sets the default input to \"slovak\",
+but sets the default input method to \"slovak\",
 and selects the Slovak tutorial."))
  '("European"))
 
