@@ -2700,6 +2700,7 @@ See `term-prompt-regexp'."
   (let* ((previous-buffer (current-buffer))
 	 (i 0) char funny count save-point save-marker old-point temp win
 	 (selected (selected-window))
+	 last-win
 	 (str-length (length str)))
     (unwind-protect
 	(progn
@@ -2957,6 +2958,11 @@ See `term-prompt-regexp'."
 	  ;; Scroll each window displaying the buffer but (by default)
 	  ;; only if the point matches the process-mark we started with.
 	  (setq win selected)
+	  ;; Avoid infinite loop in strange case where minibuffer window
+	  ;; is selected but not active.
+	  (while (window-minibuffer-p win)
+	    (setq win (next-window win nil t)))
+	  (setq last-win win)
 	  (while (progn
 		   (setq win (next-window win nil t))
 		   (if (eq (window-buffer win) (process-buffer proc))
@@ -2982,7 +2988,7 @@ See `term-prompt-regexp'."
 			     (save-excursion
 			       (goto-char (point-max))
 			       (recenter -1)))))
-		   (not (eq win selected))))
+		   (not (eq win last-win))))
 
 ;;; Stolen from comint.el and adapted -mm
 	  (if (> term-buffer-maximum-size 0)
