@@ -2,6 +2,10 @@
 
 	* xselect.c (selection_data_to_lisp_data): Fix last change.
 
+2002-02-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 710000.
+
 2002-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	Support for ICCCM  Extended Segments in X selections:
