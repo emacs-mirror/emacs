@@ -62,6 +62,7 @@ Do not use an rmail file here!  Instead, use its inbox file.")
 (defvar mail-default-reply-to nil
   "*Address to insert as default Reply-to field of outgoing messages.")
 
+;;;###autoload
 (defvar mail-alias-file nil
   "*If non-nil, the name of a file to use instead of `/usr/lib/aliases'.
 This file defines aliases to be expanded by the mailer; this is a different
