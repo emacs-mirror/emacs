@@ -1350,7 +1350,7 @@ redisplay_window (window, just_this_one)
   /* Otherwise set up data on this window; select its buffer and point value */
 
   if (update_mode_line)
-    set_buffer_internal (XBUFFER (w->buffer));
+    set_buffer_internal_1 (XBUFFER (w->buffer));
   else
     set_buffer_temp (XBUFFER (w->buffer));
 
@@ -1427,7 +1427,7 @@ redisplay_window (window, just_this_one)
       if (!update_mode_line)
 	{
 	  set_buffer_temp (old);
-	  set_buffer_internal (XBUFFER (w->buffer));
+	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  update_mode_line = 1;
 	  w->update_mode_line = Qt;
 	}
@@ -1579,7 +1579,7 @@ redisplay_window (window, just_this_one)
   if (!update_mode_line)
     {
       set_buffer_temp (old);
-      set_buffer_internal (XBUFFER (w->buffer));
+      set_buffer_internal_1 (XBUFFER (w->buffer));
       update_mode_line = 1;
       w->update_mode_line = Qt;
     }
@@ -1690,7 +1690,7 @@ done:
 
   BUF_PT (current_buffer) = opoint;
   if (update_mode_line)
-    set_buffer_internal (old);
+    set_buffer_internal_1 (old);
   else
     set_buffer_temp (old);
   BUF_PT (current_buffer) = lpoint;
