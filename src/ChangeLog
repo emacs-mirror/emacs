@@ -1,3 +1,9 @@
+2000-10-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* gmalloc.c [GC_MCHECK]: Add code from mcheck.c of glibc-1.09.1.
+	(freehook, reallochook): Handle null pointer arguments.
+	(__malloc_initialize) [GC_MCHECK]: Call mcheck.
+
 2000-10-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (POP_FAILURE_REG_OR_COUNT, re_match_2_internal)
