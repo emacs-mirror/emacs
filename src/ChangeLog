@@ -1,3 +1,10 @@
+2004-10-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (overlay_arrow_at_row): Return overlay string rather
+	than bitmap if there is not left fringe.
+	(get_overlay_arrow_glyph_row): Also used on windows system.
+	(display_line): Display overlay string if no left fringe.
+
 2004-10-16  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_font_match): Encode font name being matched.
