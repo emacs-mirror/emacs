@@ -177,6 +177,22 @@ case "${canonical}" in
     machine=acorn opsys=riscix12
   ;;
 
+  ## BSDI ports
+  *-*-bsdi* )
+    opsys=bsdi
+    case "${canonical}" in
+      i[345]86-*-bsdi*) machine=intel386 ;;
+      sparc-*-bsdi*)  machine=sparc ;;
+      powerpc-*-bsdi*)  machine=powerpc ;;
+    esac
+    case "${canonical}" in
+      *-*-bsd386* | *-*-bsdi1* )	opsys=bsd386 ;;
+      *-*-bsdi2.0* )		opsys=bsdos2 ;;
+      *-*-bsdi2* )		opsys=bsdos2-1 ;;
+      *-*-bsdi3* )		opsys=bsdos3 ;;
+    esac
+  ;;
+
   ## Alliant machines
   ## Strictly speaking, we need the version of the alliant operating
   ## system to choose the right machine file, but currently the
@@ -895,9 +911,6 @@ case "${canonical}" in
 				# /lib/cpp does not accept it.
 				OVERRIDE_CPPFLAGS=" "
 				;;
-      *-bsd386* | *-bsdi1* )	opsys=bsd386 ;;
-      *-bsdi2.0* )		opsys=bsdos2 ;;
-      *-bsdi2* )		opsys=bsdos2-1 ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-freebsd* )	        opsys=freebsd ;;
       *-nextstep* )             opsys=nextstep ;;
