@@ -133,7 +133,7 @@ in order to build a valid keymap.
 \(defmacro easy-mmode-define-minor-mode
   (MODE DOC &optional INIT-VALUE LIGHTER KEYMAP)...\)" 
   (let* ((mode-name (symbol-name mode))
-	 (mode-doc (format "Non-nil if %s mode is enabled."))
+	 (mode-doc (format "Non-nil if %s mode is enabled." mode-name))
 	 (keymap-name (concat mode-name "-map"))
 	 (keymap-doc (format "Keymap for %s mode." mode-name)))
     `(progn
