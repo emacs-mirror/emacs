@@ -468,6 +468,21 @@ The argument @var{frame} controls which set of windows to
 consider.  See @code{get-lru-window}, above.
 @end defun
 
+@cindex window that satisfies a predicate
+@cindex conditional selection of windows
+@defun get-window-with-predicate predicate &optional minibuf all-frames default
+This function returns a window satisfying @var{predicate}.  It cycles
+through all visible windows using @code{walk-windows} (@pxref{Cyclic
+Window Ordering}), calling @var{predicate} on each one one of them
+with that window as its argument.  The function returns the first
+window for which @var{predicate} returns a non-@code{nil} value; if
+that never happens, it returns @var{default}.
+
+The optional arguments @var{minibuf} and @var{all-frames} specify the
+set of windows to include in the scan.  See the description of
+@code{next-window} in @ref{Cyclic Window Ordering}, for details.
+@end defun
+
 @node Cyclic Window Ordering
 @comment  node-name,  next,  previous,  up
 @section Cyclic Ordering of Windows
