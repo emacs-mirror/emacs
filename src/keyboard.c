@@ -1234,6 +1234,10 @@ command_loop ()
     while (1)
       {
 	internal_catch (Qtop_level, top_level_1, Qnil);
+        /* Reset single_kboard in case top-level set it while
+           evaluating an -f option, or we are stuck there for some
+           other reason. */
+        any_kboard_state ();
 	internal_catch (Qtop_level, command_loop_2, Qnil);
 	executing_macro = Qnil;
 
