@@ -39,8 +39,8 @@ last updated on @value{lastupdate}.
 @chapter About the GNU Task List
 
 If you did not obtain this file directly from the GNU project and
-recently, please check for a newer version.  You can ftp the task
-list from any GNU FTP host in directory @file{/pub/gnu/tasks/}.  The task
+recently, please check for a newer version.  You can ftp the task list
+from any GNU FTP host in directory @file{/pub/gnu/tasks/}.  The task
 list is available there in several different formats: @file{tasks.text},
 @file{tasks.texi}, @file{tasks.info}, and @file{tasks.dvi}.  The GNU
 HURD task list is also there in file @file{tasks.hurd}.
