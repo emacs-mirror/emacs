@@ -1,3 +1,7 @@
+2000-01-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* bytecode.c (Fbyte_code) [BYTE_CODE_SAFE]: Fix typo.
+
 2000-01-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* charset.c (Fstring): If there is a multibyte char among
