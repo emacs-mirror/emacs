@@ -1402,6 +1402,8 @@ Keybindings:
        (or switches dired-listing-switches))
   (set (make-local-variable 'font-lock-defaults)
        '(dired-font-lock-keywords t nil nil beginning-of-line))
+  (set (make-local-variable 'desktop-buffer-misc-data-function)
+       'dired-desktop-buffer-misc-data)
   (dired-sort-other dired-actual-switches t)
   (run-mode-hooks 'dired-mode-hook)
   (when (featurep 'x-dnd)
@@ -3340,7 +3342,49 @@ Ask means pop up a menu for the user to select one of copy, move or link."
   (let ((local-file (x-dnd-get-local-file-uri uri)))
     (if local-file (dired-dnd-handle-local-file local-file action)
       nil)))
+
 
+;;;;  Desktop support
+
+(eval-when-compile (require 'desktop))
+
+(defun dired-desktop-buffer-misc-data (desktop-dirname)
+  "Auxiliary information to be saved in desktop file."
+  (cons
+   ;; Value of `dired-directory'.
+   (if (consp dired-directory)
+       ;; Directory name followed by list of files.
+       (cons (desktop-file-name (car dired-directory) desktop-dirname)
+             (cdr dired-directory))
+     ;; Directory name, optionally with with shell wildcard.
+     (desktop-file-name dired-directory desktop-dirname))
+   ;; Subdirectories in `dired-subdir-alist'.
+   (cdr
+     (nreverse
+       (mapcar
+         (function (lambda (f) (desktop-file-name (car f) desktop-dirname)))
+         dired-subdir-alist)))))
+
+;;;###autoload
+(defun dired-restore-desktop-buffer (desktop-buffer-file-name
+                                     desktop-buffer-name
+                                     desktop-buffer-misc)
+  "Restore a dired buffer specified in a desktop file."
+  ;; First element of `desktop-buffer-misc' is the value of `dired-directory'.
+  ;; This value is a directory name, optionally with with shell wildcard or
+  ;; a directory name followed by list of files.
+  (let* ((dired-dir (car desktop-buffer-misc))
+         (dir (if (consp dired-dir) (car dired-dir) dired-dir)))
+    (if (file-directory-p (file-name-directory dir))
+        (progn
+          (dired dired-dir)
+          ;; The following elements of `desktop-buffer-misc' are the keys
+          ;; from `dired-subdir-alist'.
+          (mapcar 'dired-maybe-insert-subdir (cdr desktop-buffer-misc))
+          (current-buffer))
+      (message "Desktop: Directory %s no longer exists." dir)
+      (when desktop-missing-file-warning (sit-for 1))
+      nil)))
 
 
 (if (eq system-type 'vax-vms)
