@@ -7,7 +7,7 @@
 ;; Maintainer: friedman@prep.ai.mit.edu
 ;; Keywords: minibuffer, window, frame, display
 ;; Status: Known to work in FSF GNU Emacs 19.26 and later.
-;; $Id: rsz-mini.el,v 1.11 1996/01/14 07:34:30 erik Exp kwzh $
+;; $Id: rsz-mini.el,v 1.12 1996/11/14 18:49:50 kwzh Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
@@ -232,11 +232,12 @@ respectively."
          (setq lines (min lines resize-minibuffer-frame-max-height)))
     (cond
      ((> lines height)
-      (set-frame-size (selected-frame) (frame-width) lines))
+      (set-frame-size (window-frame (minibuffer-window)) (frame-width) lines))
      ((and resize-minibuffer-frame-exactly
            (> height resize-minibuffer-frame-original-height)
            (< lines height))
-      (set-frame-size (selected-frame) (frame-width) lines)))))
+      (set-frame-size (window-frame (minibuffer-window))
+		      (frame-width) lines)))))
 
 ;; Restore the original height of the frame.
 ;; resize-minibuffer-frame-original-height is set in
