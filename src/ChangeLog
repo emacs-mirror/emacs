@@ -1,3 +1,15 @@
+2001-10-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xmenu.c (keymap_panes, Fx_popup_menu): Use Fkeymap_prompt.
+
+	* w32menu.c (keymap_panes, Fx_popup_menu): Use Fkeymap_prompt.
+
+	* keyboard.c (map_prompt): Remove.
+	(read_char_x_menu_prompt, read_char_minibuf_menu_prompt):
+	Use Fkeymap_prompt.
+
+	* keymap.h: New file.  Extracted from lisp.h.
+
 2001-10-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* atimer.c (alarm_signal_handler) [USG && !POSIX_SIGNALS]: 
