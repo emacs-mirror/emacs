@@ -2801,7 +2801,7 @@ of each directory."
 		(error
 		 ;; Ignore the remaining contents of this file.
 		 (goto-char (point-max))
-		 (message "Some part of \"%s\" is broken" dirname)))))
+		 (message "Some part of \"%s\" is broken" (car pkg-list))))))
 	  (setq pkg-list (cdr pkg-list)))
 	(setq quail-dirs (cdr quail-dirs) dirnames (cdr dirnames))))
 
