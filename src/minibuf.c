@@ -128,12 +128,15 @@ choose_minibuf_frame ()
 
   /* Make sure no other frame has a minibuffer as its selected window,
      because the text would not be displayed in it, and that would be
-     confusing.  */
+     confusing.  Only allow the selected frame to do this,
+     and that only if the minibuffer is active.  */
   {
     Lisp_Object tail, frame;
 
     FOR_EACH_FRAME (tail, frame)
-      if (MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (XFRAME (frame)))))
+      if (MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (XFRAME (frame))))
+	  && !(XFRAME (frame) == selected_frame
+	       && minibuf_level > 0))
 	Fset_frame_selected_window (frame, Fframe_first_window (frame));
   }
 }
