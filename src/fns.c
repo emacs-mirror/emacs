@@ -2003,7 +2003,7 @@ See also the documentation of make-char.")
      not yet defined, we check only if the character set is in the
      valid range or not, instead of it is already defined or not.  */
   if (! CHARSET_VALID_P (charset))
-       invalid_character (c);
+    invalid_character (c);
 
   if (charset == CHARSET_ASCII)
     return (XCHAR_TABLE (char_table)->defalt = value);
