@@ -1,3 +1,8 @@
+2001-03-29  Paul Eggert  <eggert@twinsun.com>
+
+	* mail/emacsbug.el (report-emacs-bug): Report LC_COLLATE,
+	LC_MESSAGES, LC_MONETARY, LC_NUMERIC, and LC_TIME as well.
+
 2001-03-29  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* generic.el (generic-mode-set-comments): Use "" rather than nil
