@@ -1683,10 +1683,10 @@ If there is no completion possible, say so and continue searching."
 
 (defun isearch-intersects-p (start0 end0 start1 end1)
   "Return t if regions START0..END0 and START1..END1 intersect."
-  (or (and (>= start0 start1) (< start0 end1))
-      (and (>= end0 start1)   (< end0 end1))
-      (and (>= start1 start0) (< start1 end0))
-      (and (>= end1 start0)   (< end1 end0))))
+  (or (and (>= start0 start1) (<  start0 end1))
+      (and (>  end0 start1)   (<= end0 end1))
+      (and (>= start1 start0) (<  start1 end0))
+      (and (>  end1 start0)   (<= end1 end0))))
 
 
 ;;; Verify if the current match is outside of each element of
