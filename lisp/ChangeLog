@@ -1,3 +1,14 @@
+2003-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-16-be): Make it an alias of
+	utf-16be-with-signature.
+	(utf-16-le): Make it an alias of utf-16le-with-signature.
+	(utf-16-be-with-signature, utf-16-le-with-signature): Remove these
+	coding system aliases.
+
+	* international/utf-7.el (utf-7-decode, utf-7-encode): Use
+	utf-16be, not utf-16-be.
+
 2003-06-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (coding-system-category): New function.
