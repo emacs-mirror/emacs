@@ -100,7 +100,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 {
   DIR *d;
   int length;
-  Lisp_Object list, name;
+  Lisp_Object list, name, dirfilename;
   Lisp_Object handler;
 
   /* If the file name has special constructs in it,
@@ -119,6 +119,18 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
       return Ffuncall (6, args);
     }
 
+  {
+    struct gcpro gcpro1, gcpro2;
+
+    /* Because of file name handlers, these functions might call
+     Ffuncall, and cause a GC.  */
+    GCPRO1 (match);
+    dirname = Fexpand_file_name (dirname, Qnil);
+    GCPRO2 (match, dirname);
+    dirfilename = Fdirectory_file_name (dirname);
+    UNGCPRO;
+  }
+
   if (!NILP (match))
     {
       CHECK_STRING (match, 3);
@@ -134,8 +146,15 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 #endif
     }
 
-  dirname = Fexpand_file_name (dirname, Qnil);
-  if (!(d = opendir (XSTRING (Fdirectory_file_name (dirname))->data)))
+  /* Now searchbuf is the compiled form of MATCH; don't call anything
+     which might compile a new regexp until we're done with the loop!  */
+
+  /* Do this opendir after anything which might signal an error; if
+     an error is signalled while the directory stream is open, we
+     have to make sure it gets closed, and setting up an
+     unwind_protect to do so would be a pain.  */
+  d = opendir (XSTRING (dirfilename)->data);
+  if (! d)
     report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
   list = Qnil;
