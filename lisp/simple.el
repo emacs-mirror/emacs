@@ -865,7 +865,8 @@ In either case, the output is inserted after point (leaving mark after it)."
 		       current-prefix-arg)))
   (if (or replace
 	  (and output-buffer
-	       (not (or (bufferp output-buffer) (stringp output-buffer)))))
+	       (not (or (bufferp output-buffer) (stringp output-buffer))))
+	  (equal (buffer-name (current-buffer)) "*Shell Command Output*"))
       ;; Replace specified region with output from command.
       (let ((swap (and replace (< start end))))
 	;; Don't muck with mark unless REPLACE says we should.
@@ -2610,6 +2611,11 @@ in the mode line."
 (defvar blink-matching-paren t
   "*Non-nil means show matching open-paren when close-paren is inserted.")
 
+(defvar blink-matching-paren-on-screen t
+  "*Non-nil means show matching open-paren when it is on screen.
+nil means don't show it (but the open-paren can still be shown
+when it is off screen.")
+
 (defconst blink-matching-paren-distance 12000
   "*If non-nil, is maximum distance to search for matching open-paren.")
 
@@ -2657,7 +2663,8 @@ in the mode line."
 	       (progn
 		(goto-char blinkpos)
 		(if (pos-visible-in-window-p)
-		    (sit-for blink-matching-delay)
+		    (and blink-matching-paren-on-screen
+			 (sit-for blink-matching-delay))
 		  (goto-char blinkpos)
 		  (message
 		   "Matches %s"
