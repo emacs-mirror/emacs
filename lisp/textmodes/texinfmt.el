@@ -202,7 +202,7 @@ converted to Info is stored in a temporary buffer."
       (setq texinfo-command-end (point))
       (let ((filename (concat input-directory
                               (texinfo-parse-line-arg))))
-        (beginning-of-line)
+        (re-search-backward "^@include")
         (delete-region (point) (save-excursion (forward-line 1) (point)))
         (message "Reading included file: %s" filename)
         (save-excursion
@@ -327,7 +327,7 @@ converted to Info is stored in a temporary buffer."
       (setq texinfo-command-end (point))
       (let ((filename (concat input-directory
                               (texinfo-parse-line-arg))))
-        (beginning-of-line)
+        (re-search-backward "^@include")
         (delete-region (point) (save-excursion (forward-line 1) (point)))
         (message "Reading included file: %s" filename)
         (save-excursion
