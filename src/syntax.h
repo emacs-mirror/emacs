@@ -82,8 +82,7 @@ enum syntaxcode
 #  define CURRENT_SYNTAX_TABLE current_buffer->syntax_table
 #endif
 
-#define SYNTAX_ENTRY_INT(c)	\
-  CHAR_TABLE_REF (CURRENT_SYNTAX_TABLE, make_number (c))
+#define SYNTAX_ENTRY_INT(c) CHAR_TABLE_REF (CURRENT_SYNTAX_TABLE, (c))
 
 /* Extract the information from the entry for character C
    in the current syntax table.  */
