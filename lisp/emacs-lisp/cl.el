@@ -499,16 +499,16 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
   "Return the `cdr' of the `cdr' of the `cdr' of the `cdr' of X."
   (cdr (cdr (cdr (cdr x)))))
 
-(defun last* (x &optional n)
-  "Returns the last link in the list LIST.
-With optional argument N, returns Nth-to-last link (default 1)."
-  (if n
-      (let ((m 0) (p x))
-	(while (consp p) (incf m) (pop p))
-	(if (<= n 0) p
-	  (if (< n m) (nthcdr (- m n) x) x)))
-    (while (consp (cdr x)) (pop x))
-    x))
+;;(defun last* (x &optional n)
+;;  "Returns the last link in the list LIST.
+;;With optional argument N, returns Nth-to-last link (default 1)."
+;;  (if n
+;;      (let ((m 0) (p x))
+;;	(while (consp p) (incf m) (pop p))
+;;	(if (<= n 0) p
+;;	  (if (< n m) (nthcdr (- m n) x) x)))
+;;    (while (consp (cdr x)) (pop x))
+;;    x))
 
 (defun butlast (x &optional n)
   "Returns a copy of LIST with the last N elements removed."
