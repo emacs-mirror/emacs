@@ -1102,10 +1102,11 @@ Similarly for Soar, Scheme, etc."
 	  (set-marker (process-mark proc) (point))
 	  ;; A kludge to prevent the delay between insert and process output
 	  ;; affecting the display.  A case for a comint-send-input-hook?
-	  (let ((functions comint-output-filter-functions))
-	    (while functions
-	      (funcall (car functions) (concat input "\n"))
-	      (setq functions (cdr functions))))))))
+	  (if (eq (process-filter proc) 'comint-output-filter)
+	      (let ((functions comint-output-filter-functions))
+		(while functions
+		  (funcall (car functions) (concat input "\n"))
+		  (setq functions (cdr functions)))))))))
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
