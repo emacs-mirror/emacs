@@ -309,7 +309,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO EGREP LIBSOUND SET_MAKE ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO EGREP LIBSOUND SET_MAKE ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile carbon_appdir LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -853,6 +853,8 @@ if test -n "$ac_init_help"; then
 Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-carbon-app[=DIR]  [DIR=/Application]
+                          specify install directory for Emacs.app on Mac OS X
   --disable-largefile     omit support for large files
 
 Optional Packages:
@@ -1460,6 +1462,11 @@ fi;
 if test "${with_carbon+set}" = set; then
   withval="$with_carbon"
 
+fi;
+# Check whether --enable-carbon-app or --disable-carbon-app was given.
+if test "${enable_carbon_app+set}" = set; then
+  enableval="$enable_carbon_app"
+   carbon_appdir_x=${enableval}
 fi;
 
 #### Make srcdir absolute, if it isn't already.  It's important to
@@ -3498,9 +3505,7 @@ then
   CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
-#### Some other nice autoconf tests.  If you add a test here which
-#### should make an entry in src/config.h, don't forget to add an
-#### #undef clause to src/config.h.in for autoconf to modify.
+#### Some other nice autoconf tests.
 
 echo "$as_me:$LINENO: checking whether ln -s works" >&5
 echo $ECHO_N "checking whether ln -s works... $ECHO_C" >&6
@@ -9909,6 +9914,15 @@ cat >>confdefs.h <<\_ACEOF
 #define HAVE_CARBON 1
 _ACEOF
 
+  window_system=mac
+  ## Specify the install directory
+  carbon_appdir=
+  if test "${carbon_appdir_x}" != ""; then
+    case ${carbon_appdir_x} in
+      y | ye | yes)  carbon_appdir=/Applications ;;
+      * ) carbon_appdir=${carbon_appdir_x} ;;
+    esac
+  fi
 fi
 
 ### Use session management (-lSM -lICE) if available
@@ -17298,6 +17312,59 @@ _ACEOF
 fi
 
 
+echo "$as_me:$LINENO: checking for nl_langinfo and CODESET" >&5
+echo $ECHO_N "checking for nl_langinfo and CODESET... $ECHO_C" >&6
+if test "${emacs_cv_langinfo_codeset+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  cat >conftest.$ac_ext <<_ACEOF
+#line $LINENO "configure"
+/* confdefs.h.  */
+_ACEOF
+cat confdefs.h >>conftest.$ac_ext
+cat >>conftest.$ac_ext <<_ACEOF
+/* end confdefs.h.  */
+#include <langinfo.h>
+int
+main ()
+{
+char* cs = nl_langinfo(CODESET);
+  ;
+  return 0;
+}
+_ACEOF
+rm -f conftest.$ac_objext conftest$ac_exeext
+if { (eval echo "$as_me:$LINENO: \"$ac_link\"") >&5
+  (eval $ac_link) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); } &&
+         { ac_try='test -s conftest$ac_exeext'
+  { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
+  (exit $ac_status); }; }; then
+  emacs_cv_langinfo_codeset=yes
+else
+  echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+emacs_cv_langinfo_codeset=no
+fi
+rm -f conftest.$ac_objext conftest$ac_exeext conftest.$ac_ext
+
+fi
+echo "$as_me:$LINENO: result: $emacs_cv_langinfo_codeset" >&5
+echo "${ECHO_T}$emacs_cv_langinfo_codeset" >&6
+if test $emacs_cv_langinfo_codeset = yes; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_LANGINFO_CODESET 1
+_ACEOF
+
+fi
+
 echo "$as_me:$LINENO: checking for size_t" >&5
 echo $ECHO_N "checking for size_t... $ECHO_C" >&6
 if test "${ac_cv_type_size_t+set}" = set; then
@@ -17663,6 +17730,7 @@ fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
+
 
 
 
@@ -18541,6 +18609,7 @@ s,@C_SWITCH_X_SITE@,$C_SWITCH_X_SITE,;t t
 s,@X_TOOLKIT_TYPE@,$X_TOOLKIT_TYPE,;t t
 s,@machfile@,$machfile,;t t
 s,@opsysfile@,$opsysfile,;t t
+s,@carbon_appdir@,$carbon_appdir,;t t
 s,@LTLIBOBJS@,$LTLIBOBJS,;t t
 CEOF
 
