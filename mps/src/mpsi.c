@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.7) $
+ * $HopeName: MMsrc!mpsi.c(trunk.8) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -21,11 +21,12 @@
 #include "root.h"
 #include "prot.h"
 #include "th.h"
+#include "ld.h"
 #include "mps.h"
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName: MMsrc!mpsi.c(trunk.7) $");
+SRCID("$HopeName: MMsrc!mpsi.c(trunk.8) $");
 
 
 /* Check consistency of interface mappings. */
@@ -83,6 +84,12 @@ static Bool mpsi_check(void)
   AVER(CHECKFIELD(mps_ss_s, w0, ScanStateStruct, zoneShift));
   AVER(CHECKFIELD(mps_ss_s, w1, ScanStateStruct, condemned));
   AVER(CHECKFIELD(mps_ss_s, w2, ScanStateStruct, summary));
+
+  /* Check ld_s/LDStruct compatibility by hand */
+  /* .check.ld: See also impl.h.ld.struct */
+  AVER(sizeof(mps_ld_s) == sizeof(LDStruct));
+  AVER(CHECKFIELD(mps_ld_s, w0, LDStruct, epoch));
+  AVER(CHECKFIELD(mps_ld_s, w1, LDStruct, rs));
 
   return TRUE;
 }
@@ -574,33 +581,53 @@ void mps_thread_dereg(mps_thr_t mps_thr)
   SpaceLockRelease(space);
 }
 
-/* @@@@ not done from here on */
-void mps_ld_init(mps_ld_t mps_ld, mps_space_t space)
+void mps_ld_reset(mps_ld_t mps_ld, mps_space_t mps_space)
 {
-  NOTREACHED;
+  Space space = (Space)mps_space;
+  LD ld = (LD)mps_ld;
+  SpaceLockClaim(space);
+  LDReset(ld, space);
+  SpaceLockRelease(space);
 }
 
-void mps_ld_finish(mps_ld_t mps_ld)
-{
-  NOTREACHED;
-}
-
+/* @@@@ We should be able to avoid locking the space for ld code */
 void mps_ld_add(mps_ld_t mps_ld, mps_space_t mps_space, mps_addr_t addr)
 {
-  NOTREACHED;
+  Space space = (Space)mps_space;
+  LD ld = (LD)mps_ld;
+  SpaceLockClaim(space);
+  LDAdd(ld, space, (Addr)addr);
+  SpaceLockRelease(space);
 }
 
-mps_bool_t mps_ld_isinvalid(mps_ld_t mps_ld,
-                            mps_space_t mps_space,
-                            mps_addr_t addr)
+mps_bool_t mps_ld_isstale(mps_ld_t mps_ld,
+                          mps_space_t mps_space,
+                          mps_addr_t addr)
 {
-  NOTREACHED;
-  return TRUE;
+  Space space = (Space)mps_space;
+  LD ld = (LD)mps_ld;
+  Bool b;
+  SpaceLockClaim(space);
+  b = LDIsStale(ld, space, (Addr)addr);
+  SpaceLockRelease(space);
+  return (mps_bool_t)b;
 }
 
+mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
+{
+  mps_res_t res;
+
+  MPS_SCAN_BEGIN(mps_ss) {
+    res = MPS_FIX(mps_ss, ref_io);
+  } MPS_SCAN_END(mps_ss);
+
+  return res;
+}
+
+/* @@@@ not done from here on */
 mps_bool_t mps_msg_next(mps_space_t mps_space,
-                    mps_mc_t *mps_mc_o,
-                    void **msg_data_o)
+                        mps_mc_t *mps_mc_o,
+                        void **msg_data_o)
 {
   NOTREACHED;
   return FALSE;
@@ -619,15 +646,4 @@ mps_msg_handler_t mps_msg_handler(mps_space_t mps_space,
 {
   NOTREACHED;
   return NULL;
-}
-
-mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
-{
-  mps_res_t res;
-
-  MPS_SCAN_BEGIN(mps_ss) {
-    res = MPS_FIX(mps_ss, ref_io);
-  } MPS_SCAN_END(mps_ss);
-
-  return res;
 }
