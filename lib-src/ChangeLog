@@ -1,3 +1,7 @@
+2000-01-29  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* movemail.c (main): Improve error message if can't create lock file.
+
 2000-01-28  Eric Hanchrow <offby1@blarg.net>
 
 	* emacsclient.c (socket_status): New function.
