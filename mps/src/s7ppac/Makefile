@@ -1,6 +1,6 @@
 # impl.makefile.s7ppac: S7PPAC MPW MAKE FILE
 #
-# $HopeName: MMsrc!s7ppac:Makefile(trunk.11) $
+# $HopeName: MMsrc!s7ppac:Makefile(trunk.12) $
 #
 # Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
 #
@@ -82,7 +82,11 @@ OSffx     = .c.{Variety}.o
                 {SYS_CINCLUDES} ¶
                 {DepDir}{Default}.c
 
+# version.o has a special rule so that it is always built
+version{OSffx} Ä $OutOfDate
+
 mmsw_{Variety}.o  Ä  ¶
+		version{OSffx} ¶
 		assert{OSffx} ¶
 		ring{OSffx} ¶
 		mpm{OSffx} ¶
