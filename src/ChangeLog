@@ -1,5 +1,8 @@
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (init_iterator): If noninteractive, and the frame's
+	face cache is null, make one.
+
 	* xfns.c (show_busy_cursor): Check for live frames more
 	thoroughly.
 
