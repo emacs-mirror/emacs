@@ -133,22 +133,22 @@ mark."
    (ethio-prefer-ascii-punctuation "." "$(3$i(B"))
  t "  KEYS AND FUNCTIONS
 
-[F2] or `M-x ethio-toggle-space'
+F2 or `M-x ethio-toggle-space'
   Toggles space characters for keyboard input.  The current mode is
   indicated in mode-line, whether by `_' (ASCII space) or `$(3$h(B'
   (Ethiopic colon-like word separator).  Even in the `$(3$h(B' mode, an
   ASCII space is inserted if the point is preceded by `an Ethiopic
   punctuation followed by zero or more ASCII spaces'.
 
-[F3] or `M-x ethio-toggle-punctuation'
+F3 or `M-x ethio-toggle-punctuation'
   Toggles ASCII punctuations and Ethiopic punctuations for keyboard input.
   The current mode is indicated by `.' (ASCII) or `$(3$i(B' (Ethiopic).
 
-C-^ or `M-x ethio-insert-ethio-space
+S-SPC or `M-x ethio-insert-ethio-space'
   Always insert an Ethiopic word separator `$(3$h(B'.  With a prefix number,
   insert that many word separators.
 
-C-' or ethio-gemination
+C-' or `M-x ethio-gemination'
   Compose the character before the point with the Ethiopic gemination mark.
   If the characater is already composed, decompose it and remove the
   gemination mark."
@@ -156,7 +156,7 @@ C-' or ethio-gemination
  '(([f2] . ethio-toggle-space)
    ([f3] . ethio-toggle-punctuation)
    (" " . ethio-insert-space)
-   ([?\C-^] . ethio-insert-ethio-space)
+   ([?\S- ] . ethio-insert-ethio-space)
    ([?\C-'] . ethio-gemination))
  t t)
 
@@ -164,9 +164,8 @@ C-' or ethio-gemination
 (define-key quail-mode-map [f2] 'ethio-toggle-space)
 (define-key quail-mode-map [f3] 'ethio-toggle-punctuation)
 (define-key quail-mode-map " "  'ethio-insert-space)
-(define-key quail-mode-map [?\C-^] 'ethio-insert-ethio-space)
-(define-key quail-mode-map [?\C-'] 'ethio-gemination)
 (define-key quail-mode-map [?\S- ] 'ethio-insert-ethio-space)
+(define-key quail-mode-map [?\C-'] 'ethio-gemination)
 
 (quail-define-rules
  ("he" ?$(3!!(B)
@@ -1124,8 +1123,9 @@ C-' or ethio-gemination
 ;; The translation of `a' depends on the language (Tigrigna or Amharic). 
 (add-hook 'quail-mode-hook
 	  (lambda nil
-	    (quail-defrule "a"
-			   (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
-			   "ethiopic")))
+	    (if (string= (quail-name) "ethiopic")
+		(quail-defrule "a"
+			       (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
+			       "ethiopic"))))
 
 ;;; quail/ethiopic.el ends here
