@@ -1,3 +1,17 @@
+2001-08-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_create_im): Remove prototype.
+
+	* xdisp.c (mark_window_display_accurate_1): Remove an assertion.
+
+	* dispnew.c (adjust_glyph_matrix): Undo last change.
+	
+2001-08-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): In the optimization for
+	windows whose height has changed, disable partially visible
+	lines.
+
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Frecenter): If ARG < 0, and on a window system

@@ -1,3 +1,10 @@
+2001-08-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* image.el (image-type-regexps): Allow whitespace at the start
+	of the image data for XPM, XBM and Postscript, which are
+	text files.
+	(image-jpeg-p): Correct calculation of next field offset.
+
 2001-08-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* battery.el: Fix typo.
