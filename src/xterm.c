@@ -1919,22 +1919,6 @@ x_emacs_to_x_modifiers (state)
 	  | ((state & ctrl_modifier)		? ControlMask      : 0)
 	  | ((state & meta_modifier)		? x_meta_mod_mask  : 0));
 }
-
-/* Return true iff KEYSYM is a vendor-specific keysym that we should
-   return as a function key.  If you add a keysym to this, you should
-   make sure that the tables make_lispy_event uses contain a suitable
-   name for it.  */
-static int
-x_is_vendor_fkey (sym)
-     KeySym sym;
-{
-  return 0
-#ifdef DXK_Remove
-    || (sym == DXK_Remove)
-#endif
-      ;
-}
-
 
 /* Mouse clicks and mouse movement.  Rah.  */
 #ifdef HAVE_X11
@@ -3755,11 +3739,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		XLookupString (&event.xkey, copy_buffer, 80, &keysym,
 			       &compose_status);
 
-	      /* Strip off the vendor-specific keysym bit, and take a shot
-		 at recognizing the codes.  HP servers have extra keysyms
-		 that fit into the MiscFunctionKey category.  */
 	      orig_keysym = keysym;
-	      keysym &= ~(1<<28);
 
 	      if (numchars > 1)
 		{
@@ -3816,7 +3796,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 #endif
 		       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 		       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
-		       || x_is_vendor_fkey (orig_keysym))
+		       /* Any "vendor-specific" key is ok.  */
+		       || (orig_keysym & (1 << 28)))
 		      && ! (IsModifierKey (orig_keysym)
 #ifndef HAVE_X11R5
 #ifdef XK_Mode_switch
