@@ -137,9 +137,9 @@ so you can edit or delete these lines.")
 		   (insert-file-contents "/etc/sendmail.cf")
 		   (goto-char (point-min))
 		   (let ((case-fold-search nil))
-		     (re-search-forward "^OR\>" nil t)))
+		     (re-search-forward "^OR\\>" nil t)))
 	       (kill-buffer buffer))))
-      '(looking-at " \t"))
+      '(looking-at " \t\\|[-a-zA-Z]+:"))
   "Set this non-nil if the system's mailer runs the header and body together.
 \(This problem exists on Sunos 4 when sendmail is run in remote mode.)
 The value should be an expression to test whether the problem will
