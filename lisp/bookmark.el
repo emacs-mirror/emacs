@@ -230,19 +230,13 @@ following in your `.emacs' file:
 
 
 ;;; Keymap stuff:
-;; some people have C-x r set to rmail or whatever.  We don't want to
-;; assume that C-x r is a prefix map just because it's distributed
-;; that way...
-;; These are the distribution keybindings suggested by RMS, everything
-;; else will be done with M-x or the menubar:
-;;;###autoload
-(if (symbolp (key-binding "\C-xr"))
-    nil
-  (progn (define-key ctl-x-map "rb" 'bookmark-jump)
-         (define-key ctl-x-map "rm" 'bookmark-set)
-         (define-key ctl-x-map "rl" 'bookmark-bmenu-list)))
 
-;; define the map, so it can be bound by those who desire to do so:
+;; Set up these bindings dumping time *only*;
+;; if the user alters them, don't override the user when loading bookmark.el.
+
+;;;###autoload (define-key ctl-x-map "rb" 'bookmark-jump)
+;;;###autoload (define-key ctl-x-map "rm" 'bookmark-set)
+;;;###autoload (define-key ctl-x-map "rl" 'bookmark-bmenu-list)
 
 ;;;###autoload
 (defvar bookmark-map nil
