@@ -1,5 +1,8 @@
 2005-03-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
+	* calendar/appt.el (appt-buffer-name): Make it a constant.
+	(appt-add): Doc fix.
+
 	* filesets.el (filesets-menu-path, filesets-menu-before)
 	(filesets-menu-in-menu): Doc fix.  Now valid in GNU Emacs.
 	(filesets-menu-cache-file): Use directory ~/.emacs.d.
