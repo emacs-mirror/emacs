@@ -678,7 +678,7 @@ Used by `pages-directory' function."
 	(insert-buffer-substring target-buffer start end)
 	(put-text-property inserted-at (point) 
 			   'mouse-face 'highlight)
-	(put-text-property inserted-at (point) 'rear-nonsticky 'highlight)))
+	(put-text-property inserted-at (point) 'rear-nonsticky 'highlight))
       
       (if count-lines-p
           (save-excursion
