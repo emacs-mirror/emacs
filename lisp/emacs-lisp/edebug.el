@@ -327,6 +327,7 @@ Assumes Emacs Lisp syntax is active."
   (while (and (symbolp object) (fboundp object))
     (setq object (symbol-function object)))
   (if (or (subrp object)
+	  (byte-code-function-p object)
 	  (and (listp object)
 	       (eq (car object) 'lambda)
 	       (listp (car (cdr object)))))
