@@ -276,13 +276,13 @@ src/Makefile: ${srcdir}/src/Makefile.in Makefile
 	  echo "# Emacs build tree instead, or editing" ;		\
 	  echo "# \`${srcdir}/src/Makefile.in' itself." ;		\
 	  sed < ${srcdir}/src/Makefile.in				\
-	  -e 's|^\(srcdir *=\).*$$|\1'"${srcdir}"'/src|'		\
-	  -e 's|^\(VPATH *=\).*$$|\1'"${srcdir}"'/src|'			\
-	  -e 's|^CC *=.*$$|CC='"${CC}"'|'				\
-	  -e 's|^CPP *=.*$$|CPP='"${CPP}"'|'				\
-	  -e 's|^LN_S *=.*$$|LN_S='"${LN_S}"'|'				\
-	  -e 's|^CFLAGS *=.*$$|CFLAGS='"${CFLAGS}"'|' 			\
-	  -e 's|^\(LD_SWITCH_X_SITE *=\).*$$|\1'"${LD_SWITCH_X_SITE}"'|'	\
+	  -e 's|^\(srcdir *=\).*$$|\1${srcdir}/src|'			\
+	  -e 's|^\(VPATH *=\).*$$|\1${srcdir}/src|'			\
+	  -e 's|^CC *=.*$$|CC=${CC}|'					\
+	  -e 's|^CPP *=.*$$|CPP=${CPP}|'				\
+	  -e 's|^LN_S *=.*$$|LN_S=${LN_S}|'				\
+	  -e 's|^CFLAGS *=.*$$|CFLAGS=${CFLAGS}|' 			\
+	  -e 's|^\(LD_SWITCH_X_SITE *=\).*$$|\1${LD_SWITCH_X_SITE}|'	\
 	  -e '/^# DIST: /d') > src/Makefile.tmp
 	@${srcdir}/move-if-change src/Makefile.tmp src/Makefile
 	chmod -w src/Makefile
