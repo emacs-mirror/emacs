@@ -2098,6 +2098,14 @@ read1 (readcharfun, pch, first_in_list)
 
 	  goto retry;
 	}
+      if (c == '!')
+	{
+	  /* #! appears at the beginning of an executable file.
+	     Skip the first line.  */
+	  while (c != '\n')
+	    c = READCHAR;
+	  goto retry;
+	}
       if (c == '$')
 	return Vload_file_name;
       if (c == '\'')
