@@ -1869,8 +1869,8 @@ Standard ispell choices are then available."
 	       "^begin [0-9][0-9][0-9] .*\nM.*\nM.*\nM"
 	       ;; Matches shell files (esp. auto-decoding)
 	       "^#! /bin/sh"
-	       ;; Matches difference listing
-	       "diff -c .*\n\\*\\*\\* .*\n--- "
+	       ;; Matches context difference listing
+	       "\\(diff -c .*\\)?\n\\*\\*\\* .*\n--- .*\n\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*\\*"
 	       ;; Matches "----------------- cut here"
 	       "^[-=_]+\\s ?cut here")
 	     "\\|")
