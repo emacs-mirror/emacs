@@ -8,6 +8,33 @@ For older news, see the file ONEWS.
 
 * Installation Changes in Emacs 21.1
 
+** There are two new resources for colormap handling under X.
+
+*** The X resource `visualClass, class `VisualClass', specifies the
+visual Emacs should use.  The resource's value should be a string of
+the form CLASS-DEPTH, where CLASS is the name of the visual class, and
+depth is its color depth.  Valid visual class names are
+
+  TrueColor
+  PseudoColor
+  DirectColor
+  StaticColor
+  GrayScale
+  StaticGray
+
+Visual class names specified as X resource are case-insensitive, i.e.
+`pseudocolor', `Pseudocolor' and `PseudoColor' all have the same
+meaning.
+
+The program `xdpyinfo' can used to list the visual classes supported
+on your display, and which depths they have.  If `visualClass' is not
+specified, Emacs uses the display's default visual.
+
+*** The X resource `privateColormap', class `PrivateColormap',
+specifies that Emacs should use a private colormap if it is using the
+default visual, and that visual is of class PseudoColor.  Recognized
+resource values are `true' or `on'.
+
 ** `movemail' defaults to supporting POP.  You can turn this off using
 the --without-pop configure option, should that be necessary.
 
