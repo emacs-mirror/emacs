@@ -38,7 +38,7 @@
 ;; distraction.
 ;; 
 ;; When active, changes are displayed in `highlight-changes-face'.  When
-;; text is deleted,  the following character is displayed in
+;; text is deleted, the following character is displayed in
 ;; `highlight-changes-delete-face' face.
 ;;
 ;;
@@ -123,16 +123,16 @@
 ;; it on in new "suitable" buffers to be created.
 ;; 
 ;; A buffer's "suitability" is determined by variable
-;; `highlight-changes-global-modes',  as follows.  If the variable is
+;; `highlight-changes-global-modes', as follows.  If the variable is
 ;; * nil  -- then no buffers are suitable;
 ;; * a function -- this function is called and the result is used.  As
-;;   an example,  if the value is `buffer-file-name' then all buffers
+;;   an example, if the value is `buffer-file-name' then all buffers
 ;;   who are visiting files are suitable, but others (like dired
 ;;   buffers) are not;
 ;; * a list -- then the buffer is suitable iff its mode is in the
-;;   list,  except if the first element is `not', in which case the test
+;;   list, except if the first element is `not', in which case the test
 ;;   is reversed (i.e. it is a list of unsuitable modes).
-;; * Otherwise,  the buffer is suitable if its name does not begin with
+;; * Otherwise, the buffer is suitable if its name does not begin with
 ;;   ` ' or `*' and if `buffer-file-name' returns true.
 ;;
 
@@ -157,11 +157,11 @@
 ;;; Bugs:
 
 ;; - the next-change and previous-change functions are too literal;
-;;   they should find the next "real" change,  in other words treat
+;;   they should find the next "real" change, in other words treat
 ;;   consecutive changes as one.
 
 
-;;; To do (maybe),  notes, ...
+;;; To do (maybe), notes, ...
 
 ;; - having different faces for deletion and non-deletion: is it
 ;;   really worth the hassle?
@@ -232,18 +232,18 @@
       ;; defaults for dark background:
     '("yellow" "magenta" "blue" "maroon" "firebrick" "green4" "DarkOrchid"))
   "*Colours used by `highlight-changes-rotate-faces'.
-The newest rotated change will be displayed in the first element of this list, 
+The newest rotated change will be displayed in the first element of this list,
 the next older will be in the second element etc.
 
-This list is used if `highlight-changes-face-list' is nil,  otherwise that
-variable overrides this list.   If you only care about foreground
-colours then use this,  if you want fancier faces then set
+This list is used if `highlight-changes-face-list' is nil, otherwise that
+variable overrides this list.  If you only care about foreground
+colours then use this, if you want fancier faces then set
 `highlight-changes-face-list'."
   :type '(repeat color)
   :group 'highlight-changes)
  
 
-;; If you invoke highlight-changes-mode with no argument,  should it start in
+;; If you invoke highlight-changes-mode with no argument, should it start in
 ;; active or passive mode?
 ;;
 (defcustom highlight-changes-initial-state 'active
@@ -265,7 +265,7 @@ This variable must be set to either `active' or `passive'"
 ;; The strings displayed in the mode-line for the minor mode:
 (defcustom highlight-changes-active-string " +Chg"
   "*The string used when Highlight Changes mode is in the active state.
-This should be set to nil if no indication is desired,  or to
+This should be set to nil if no indication is desired, or to
 a string with a leading space."
   :type '(choice string
 		 (const :tag "None"  nil))
@@ -273,7 +273,7 @@ a string with a leading space."
 
 (defcustom highlight-changes-passive-string " -Chg"
   "*The string used when Highlight Changes mode is in the passive state.
-This should be set to nil if no indication is desired,  or to
+This should be set to nil if no indication is desired, or to
 a string with a leading space."
   :type '(choice string
 		 (const :tag "None"  nil))
@@ -325,8 +325,8 @@ remove it from existing buffers."
 
 (defun hilit-chg-cust-fix-changes-face-list (w wc &optional event)
   ;; When customization function `highlight-changes-face-list' inserts a new
-  ;; face it uses the default face.   We don't want the user to modify this
-  ;; face,  so we rename the faces in the list on an insert.  The rename is
+  ;; face it uses the default face.  We don't want the user to modify this
+  ;; face, so we rename the faces in the list on an insert.  The rename is
   ;; actually done by copying the faces so user-defined faces still remain
   ;; in the same order.
   ;; The notifying the parent is needed because without it changes to the
@@ -345,7 +345,7 @@ remove it from existing buffers."
 	    (if (eq old-name new-name)
 		nil
 	      ;; A new face has been inserted: we don't want to modify the
-	      ;; default face so copy it.   Better, though, (I think) is to
+	      ;; default face so copy it.  Better, though, (I think) is to
 	      ;; make a new face have the same attributes as
 	      ;; highlight-changes-face .
 	      (if (eq old-name 'default)
@@ -454,7 +454,7 @@ This is the opposite of `hilit-chg-hide-changes'."
       (setq face (nth 1 (member prop hilit-chg-list))))
     (if face
 	(progn
-	  ;; We must mark the face,  that is the purpose of the overlay
+	  ;; We must mark the face, that is the purpose of the overlay
 	  (overlay-put ov 'face face)
 	  ;; I don't think we need to set evaporate since we should
 	  ;; be controlling them!
@@ -468,7 +468,7 @@ This is the opposite of `hilit-chg-hide-changes'."
 (defun hilit-chg-hide-changes (&optional beg end)
   "Remove face information for Highlight Changes mode.
 
-The overlay containing the face is removed,  but the text property
+The overlay containing the face is removed, but the text property
 containing the change information is retained.
 
 This is the opposite of `hilit-chg-display-changes'."
@@ -532,7 +532,7 @@ This allows you to manually remove highlighting from uninteresting changes."
   ;;
   ;; We do NOT want to simply do this if this is an undo command, because
   ;; otherwise an undone change shows up as changed.  While the properties
-  ;; are automatically restored by undo,  we must fix up the overlay.
+  ;; are automatically restored by undo, we must fix up the overlay.
   (save-match-data
     (let ((beg-decr 1) (end-incr 1)
 	  (type 'hilit-chg)
@@ -545,8 +545,8 @@ This allows you to manually remove highlighting from uninteresting changes."
 	    (progn
 	      ;; The eolp and bolp tests are a kludge!  But they prevent
 	      ;; rather nasty looking displays when deleting text at the end 
-	      ;; of line,  such as normal corrections as one is typing and
-	      ;; immediately makes a correction,  and when deleting first
+	      ;; of line, such as normal corrections as one is typing and
+	      ;; immediately makes a correction, and when deleting first
 	      ;; character of a line.
 ;;;	      (if (= leng-before 1)
 ;;;		  (if (eolp)
@@ -557,10 +557,10 @@ This allows you to manually remove highlighting from uninteresting changes."
 	      (setq end (min (+ end end-incr) (point-max)))
 	      (setq type 'hilit-chg-delete))
 	  ;; Not a deletion.
-	  ;; Most of the time the following is not necessary,  but
+	  ;; Most of the time the following is not necessary, but
 	  ;; if the current text was marked as a deletion then
 	  ;; the old overlay is still in effect, so if we add some
-	  ;; text then remove the deletion marking,  but set it to
+	  ;; text then remove the deletion marking, but set it to
 	  ;; changed otherwise its highlighting disappears.
 	  (if (eq (get-text-property end 'hilit-chg) 'hilit-chg-delete)
 	      (progn
@@ -608,7 +608,7 @@ This removes all saved change information."
     (setq highlight-changes-mode nil)
     (force-mode-line-update)
     ;; If we type:  C-u -1 M-x highlight-changes-mode
-    ;; we want to turn it off,  but hilit-chg-post-command-hook
+    ;; we want to turn it off, but hilit-chg-post-command-hook
     ;; runs and that turns it back on!
     (remove-hook 'post-command-hook 'hilit-chg-post-command-hook)))
 
@@ -726,7 +726,7 @@ Hook variables:
 
 (defun hilit-chg-make-list (&optional force)
   "Construct `hilit-chg-list' and `highlight-changes-face-list'."
-  ;; Constructs highlight-changes-face-list if necessary,  
+  ;; Constructs highlight-changes-face-list if necessary,
   ;; and hilit-chg-list always:
   ;; Maybe this should always be called when rotating a face
   ;; so we pick up any changes?
@@ -780,7 +780,7 @@ face described by the second element, and so on.  Very old changes remain
 shown in the last face in the list.
 
 You can automatically rotate colours when the buffer is saved
-by adding the following to `local-write-file-hooks',  by evaling it in the
+by adding the following to `local-write-file-hooks', by evaling it in the
 buffer to be saved):
 
   \(add-hook 'local-write-file-hooks 'highlight-changes-rotate-faces)"
@@ -803,7 +803,7 @@ buffer to be saved):
   nil)
 
 ;; ========================================================================
-;; Comparing with an existing file.   
+;; Comparing with an existing file.
 ;; This uses ediff to find the differences.
 
 ;;;###autoload
@@ -914,7 +914,7 @@ changes are made, so \\[highlight-changes-next-change] and
       ;; va is a vector if there are fine differences
       (if va
 	  (setq a (append va nil))
-	;; if not,  get the unrefined difference
+	;; if not, get the unrefined difference
 	(setq va (ediff-get-difference n 'A))
 	(setq a (list (elt va 0))))
       ;; a list a list
@@ -929,7 +929,7 @@ changes are made, so \\[highlight-changes-next-change] and
       ;; vb is a vector
       (if vb
 	  (setq b (append vb nil))
-	;; if not,  get the unrefined difference
+	;; if not, get the unrefined difference
 	(setq vb (ediff-get-difference n 'B))
 	(setq b (list (elt vb 0))))
       ;; b list a list
@@ -949,15 +949,15 @@ changes are made, so \\[highlight-changes-next-change] and
 ;; Global Highlight Changes mode is modeled after Global Font-lock mode.
 ;; Three hooks are used to gain control.  When Global Changes Mode is
 ;; enabled, `find-file-hooks' and `change-major-mode-hook' are set.
-;; `find-file-hooks' is called when visiting a file,  the new mode is
+;; `find-file-hooks' is called when visiting a file, the new mode is
 ;; known at this time.
 ;; `change-major-mode-hook' is called when a buffer is changing mode.
 ;; This could be because of finding a file in which case
 ;; `find-file-hooks' has already been called and has done its work.
 ;; However, it also catches the case where a new mode is being set by
 ;; the user.  However, it is called from `kill-all-variables' and at
-;; this time the mode is the old mode,  which is not what we want.
-;; So,  our function temporarily sets `post-command-hook' which will
+;; this time the mode is the old mode, which is not what we want.
+;; So, our function temporarily sets `post-command-hook' which will
 ;; be called after the buffer has been completely set up (with the new
 ;; mode).  It then removes the `post-command-hook'.
 ;; One other wrinkle - every M-x command runs the `change-major-mode-hook'
@@ -969,14 +969,14 @@ changes are made, so \\[highlight-changes-next-change] and
 
 (defun hilit-chg-post-command-hook ()
   ;; This is called after changing a major mode, but also after each
-  ;; M-x command,  in which case the current buffer is a minibuffer.
-  ;; In that case, do not act on it here,  but don't turn it off
-  ;; either,  we will get called here again soon-after. 
-  ;; Also,  don't enable it for other special buffers.
+  ;; M-x command, in which case the current buffer is a minibuffer.
+  ;; In that case, do not act on it here, but don't turn it off
+  ;; either, we will get called here again soon-after. 
+  ;; Also, don't enable it for other special buffers.
   (if (string-match "^[ *]"  (buffer-name))
       nil ;; (message "ignoring this post-command-hook")
     (remove-hook 'post-command-hook 'hilit-chg-post-command-hook)
-    ;; The following check isn't necessary,  since 
+    ;; The following check isn't necessary, since 
     ;; hilit-chg-turn-on-maybe makes this check too.
     (or highlight-changes-mode	;; don't turn it on if it already is
 	(hilit-chg-turn-on-maybe highlight-changes-global-initial-state))))
@@ -998,7 +998,7 @@ When called interactively:
 
 When called from a program:
 - if ARG is nil or omitted, turn it off
-- if ARG is `active',  turn it on in active mode
+- if ARG is `active', turn it on in active mode
 - if ARG is `passive', turn it on in passive mode
 - otherwise just turn it on 
 
