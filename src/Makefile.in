@@ -874,8 +874,7 @@ ${libsrc}make-docfile:
 #endif
 
 temacs: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_SYSTEM OBJECTS_MACHINE prefix-args
-	all_ldflags="${ALL_LDFLAGS}" && \
-	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} $${all_ldflags}) \
+	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${ALL_LDFLAGS}) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_SYSTEM OBJECTS_MACHINE ${LIBES}
 

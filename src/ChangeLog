@@ -1,3 +1,7 @@
+2000-04-10  Ken Raeburn  <raeburn@gnu.org>
+
+	* Makefile.in (temacs): Revert 2000-03-12 change.
+
 2000-04-10  Jason Rumney  <jasonr@gnu.org>
 
 	* xfaces.c (realize_face): Change FRAME_X_P to FRAME_WINDOW_P.
