@@ -2,11 +2,11 @@
 
 	* iswitchb.el (iswitchb-use-virtual-buffers): Added support for
 	"virtual buffers" (off by default), which makes it possible to
-	switch to the buffers of recently files.  When a buffer name
-	search fails, and this option is on, iswitchb will look at the
-	list of recently visited files, and permit matching against those
-	names.  When the user hits RET on a match, it will revisit that
-	file.
+	switch to the "virtual" buffers of recently visited files.  When a
+	buffer name search fails, and this option is on, iswitchb will
+	look at the list of recently visited files, and permit matching
+	against those names.  When the user hits RET on a match, it will
+	revisit that file.
 	(iswitchb-read-buffer): Added two optional arguments, which makes
 	isearchb.el possible.
 	(iswitchb-completions, iswitchb-set-matches, iswitchb-prev-match,
