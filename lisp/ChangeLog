@@ -1,3 +1,13 @@
+2004-09-18  Ralph Schleicher  <rs@nunatak.allgaeu.org>
+
+	* battery.el: Delete superfluous empty lines.
+	(battery-linux-proc-acpi): Attempt to gather information from all
+	battery subdirectories regardless of their file name.
+	(battery-linux-proc-apm): Replace all occurrences of
+	battery-hex-to-int-2 with string-to-int (base 16).
+	(battery-hex-to-int-2, battery-hex-to-int): Delete functions.
+	(battery-hex-map): Delete variable.
+
 2004-09-18  John Paul Wallington  <jpw@gnu.org>
 
 	* calc/calc-units.el (calc-quick-units): Fix overzealous
