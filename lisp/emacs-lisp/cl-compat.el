@@ -54,9 +54,6 @@
 (defmacro defkeyword (x &optional doc)
   (list* 'defconst x (list 'quote x) (and doc (list doc))))
 
-(defun keywordp (sym)
-  (and (symbolp sym) (eq (aref (symbol-name sym) 0) ?\:) (set sym sym)))
-
 (defun keyword-of (sym)
   (or (keywordp sym) (keywordp (intern (format ":%s" sym)))))
 
