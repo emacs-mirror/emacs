@@ -75,6 +75,11 @@ extern int h_errno;
 #include <sys/stat.h>
 #include <errno.h>
 
+/* Get _POSIX_VDISABLE, if it is available.  */
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
 #include <dos.h>
 #include "dosfns.h"
