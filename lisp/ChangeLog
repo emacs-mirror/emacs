@@ -1,5 +1,7 @@
 2002-10-27  Dave Love  <fx@gnu.org>
 
+	* international/mule-conf.el (utf-8-emacs): Delete :mime-charset.
+
 	* term/x-win.el: Remove some ancient compatibility code.  Populate
 	x-keysym-table.
 

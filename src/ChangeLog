@@ -1,3 +1,12 @@
+2002-10-27  Dave Love  <fx@gnu.org>
+
+	* xterm.c (Vx_keysym_table): New.
+	(syms_of_xterm): Initialize it.
+	(XTread_socket): Use it.
+	From head: Eliminate incorrect optimization that tried to avoid
+	decoding the output of X*LookupString.
+	(x_get_font_repertory): Delete charset declaration.
+
 2002-10-16  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix previous change.
