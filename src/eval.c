@@ -127,6 +127,10 @@ Lisp_Object Vstack_trace_on_error;
    if an error is handled by the command loop's error handler.  */
 Lisp_Object Vdebug_on_error;
 
+/* List of conditions and regexps specifying error messages which
+   do not enter the debugger even if Vdebug_on_errors says they should.  */
+Lisp_Object Vdebug_ignored_errors;
+
 /* Nonzero means enter debugger if a quit signal
    is handled by the command loop's error handler. */
 int debug_on_quit;
@@ -1259,6 +1263,45 @@ wants_debugger (list, conditions)
   return 0;
 }
 
+/* Return 1 if an error with condition-symbols CONDITIONS,
+   and described by SIGNAL-DATA, should skip the debugger
+   according to debugger-ignore-errors.  */
+
+static int
+skip_debugger (conditions, data)
+     Lisp_Object conditions, data;
+{
+  Lisp_Object tail;
+  int first_string = 1;
+  Lisp_Object error_message;
+
+  for (tail = Vdebug_ignored_errors; CONSP (tail);
+       tail = XCONS (tail)->cdr)
+    {
+      if (STRINGP (XCONS (tail)->car))
+	{
+	  if (first_string)
+	    {
+	      error_message = Ferror_message_string (data);
+	      first_string = 0;
+	    }
+	  if (fast_string_match (XCONS (tail)->car, error_message) >= 0)
+	    return 1;
+	}
+      else
+	{
+	  Lisp_Object contail;
+
+	  for (contail = conditions; CONSP (contail);
+	       contail = XCONS (contail)->cdr)
+	    if (EQ (XCONS (tail)->car, XCONS (contail)->car))
+	      return 1;
+	}
+    }
+
+  return 0;
+}
+
 /* Value of Qlambda means we have called debugger and user has continued.
    Store value returned from debugger into *DEBUGGER_VALUE_PTR.  */
 
@@ -1279,14 +1322,15 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
       if ((EQ (sig, Qquit)
 	   ? debug_on_quit
 	   : wants_debugger (Vdebug_on_error, conditions))
+	  && ! skip_debugger (conditions, Fcons (sig, data))
 	  && when_entered_debugger < num_nonmacro_input_chars)
 	{
 	  int count = specpdl_ptr - specpdl;
 	  specbind (Qdebug_on_error, Qnil);
-	  *debugger_value_ptr =
-	    call_debugger (Fcons (Qerror,
-				  Fcons (Fcons (sig, data),
-					 Qnil)));
+	  *debugger_value_ptr
+	    = call_debugger (Fcons (Qerror,
+				    Fcons (Fcons (sig, data),
+					   Qnil)));
 	  return unbind_to (count, Qlambda);
 	}
       return Qt;
@@ -2820,6 +2864,15 @@ If the value is a list, an error only means to enter the debugger\n\
 if one of its condition symbols appears in the list.\n\
 See also variable `debug-on-quit'.");
   Vdebug_on_error = Qnil;
+
+  DEFVAR_LISP ("debug-ignored-errors", &Vdebug_ignored_errors,
+    "*List of errors for which the debugger should not be called.\n\
+Each element may be a condition-name or a regexp that matches error messages.\n\
+If any element applies to a given error, that error skips the debugger\n\
+and just returns to top level.\n\
+This overrides the variable `debug-on-error'.\n\
+It does not apply to errors handled by `condition-case'.");
+  Vdebug_ignored_errors = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
     "*Non-nil means enter debugger if quit is signaled (C-g, for example).\n\
