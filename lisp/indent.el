@@ -419,7 +419,8 @@ You can add or remove colons and then do \\<edit-tab-stops-map>\\[edit-tab-stops
 The variable `tab-stop-list' is a list of columns at which there are tab stops.
 Use \\[edit-tab-stops] to edit them interactively."
   (interactive)
-  (if abbrev-mode (expand-abbrev))
+  (and abbrev-mode (= (char-syntax (preceding-char)) ?w)
+       (expand-abbrev))
   (let ((tabs tab-stop-list))
     (while (and tabs (>= (current-column) (car tabs)))
       (setq tabs (cdr tabs)))
