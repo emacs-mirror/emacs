@@ -1402,7 +1402,8 @@ More generally, you can use multiple variables and values, as in
   (setq-default SYMBOL VALUE SYMBOL VALUE...)
 This sets each SYMBOL's default value to the corresponding VALUE.
 The VALUE for the Nth SYMBOL can refer to the new default values
-of previous SYMs.  */)
+of previous SYMs.
+usage: (setq-default SYMBOL VALUE [SYMBOL VALUE...])  */)
      (args)
      Lisp_Object args;
 {
