@@ -1174,7 +1174,11 @@ Remaining arguments are strings to give program as arguments.")
       Lisp_Object val, *args2;
       struct gcpro gcpro1;
 
-      if (NILP (val = Vcoding_system_for_read))
+      if (!NILP (Vcoding_system_for_read))
+	val = Vcoding_system_for_read;
+      else if (NILP (current_buffer->enable_multibyte_characters))
+	val = Qemacs_mule;
+      else
 	{
 	  args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	  args2[0] = Qstart_process;
@@ -1186,10 +1190,16 @@ Remaining arguments are strings to give program as arguments.")
 	    val = XCONS (coding_systems)->car;
 	  else if (CONSP (Vdefault_process_coding_system))
 	    val = XCONS (Vdefault_process_coding_system)->car;
+	  else
+	    val = Qnil;
 	}
       XPROCESS (proc)->decode_coding_system = val;
 
-      if (NILP (val = Vcoding_system_for_write))
+      if (!NILP (Vcoding_system_for_write))
+	val = Vcoding_system_for_write;
+      else if (NILP (current_buffer->enable_multibyte_characters))
+	val = Qnil;
+      else
 	{
 	  if (EQ (coding_systems, Qt))
 	    {
@@ -1205,6 +1215,8 @@ Remaining arguments are strings to give program as arguments.")
 	    val = XCONS (coding_systems)->cdr;
 	  else if (CONSP (Vdefault_process_coding_system))
 	    val = XCONS (Vdefault_process_coding_system)->cdr;
+	  else
+	    val = Qnil;
 	}
       XPROCESS (proc)->encode_coding_system = val;
     }
@@ -1907,7 +1919,15 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
       Lisp_Object coding_systems = Qt;
       Lisp_Object args[5], val;
 
-      if (NILP (val = Vcoding_system_for_read))
+      if (!NILP (Vcoding_system_for_read))
+	val = Vcoding_system_for_read;
+      else if (NILP (current_buffer->enable_multibyte_characters))
+	/* We dare not decode end-of-line format by setting VAL to
+           Qemacs_mule, because the existing Emacs Lisp libraries
+           assume that they receive bare code including a sequene of
+           CR LF.  */
+	val = Qnil;
+      else
 	{
 	  args[0] = Qopen_network_stream, args[1] = name,
 	    args[2] = buffer, args[3] = host, args[4] = service;
@@ -1918,10 +1938,16 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	    val = XCONS (coding_systems)->car;
 	  else if (CONSP (Vdefault_process_coding_system))
 	    val = XCONS (Vdefault_process_coding_system)->car;
+	  else
+	    val = Qnil;
 	}
       XPROCESS (proc)->decode_coding_system = val;
 
-      if (NILP (val = Vcoding_system_for_write))
+      if (!NILP (Vcoding_system_for_write))
+	val = Vcoding_system_for_write;
+      else if (NILP (current_buffer->enable_multibyte_characters))
+	val = Qnil;
+      else
 	{
 	  if (EQ (coding_systems, Qt))
 	    {
@@ -1935,6 +1961,8 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	    val = XCONS (coding_systems)->cdr;
 	  else if (CONSP (Vdefault_process_coding_system))
 	    val = XCONS (Vdefault_process_coding_system)->cdr;
+	  else
+	    val = Qnil;
 	}
       XPROCESS (proc)->encode_coding_system = val;
     }
