@@ -525,28 +525,26 @@ the differences are listed below.  MATCH-HIGHLIGHT should be of the form:
 
  (MATCH SYNTAX OVERRIDE LAXMATCH)
 
-where SYNTAX can be of the form (SYNTAX-CODE . MATCHING-CHAR) (see
-also `string-to-syntax'), the name of a syntax table, or an expression
-whose value is such a form or a syntax table.  OVERRIDE cannot be
-`prepend' or `append'.
+where SYNTAX can be a string (as taken by `modify-syntax-entry'), a syntax
+table, a cons cell (as returned by `string-to-syntax') or an expression whose
+value is such a form.  OVERRIDE cannot be `prepend' or `append'.
 
 For example, an element of the form highlights syntactically:
 
- (\"\\\\$\\\\(#\\\\)\" 1 (1 . nil))
+ (\"\\\\$\\\\(#\\\\)\" 1 \".\")
 
- a hash character when following a dollar character, with a SYNTAX-CODE of
- 1 (meaning punctuation syntax).  Assuming that the buffer syntax table does
+ a hash character when following a dollar character, with a SYNTAX of
+ \".\" (meaning punctuation syntax).  Assuming that the buffer syntax table does
  specify hash characters to have comment start syntax, the element will only
  highlight hash characters that do not follow dollar characters as comments
  syntactically.
 
  (\"\\\\('\\\\).\\\\('\\\\)\"
-  (1 (7 . ?'))
-  (2 (7 . ?')))
+  (1 \"\\\"\")
+  (2 \"\\\"\"))
 
- both single quotes which surround a single character, with a SYNTAX-CODE of
- 7 (meaning string quote syntax) and a MATCHING-CHAR of a single quote (meaning
- a single quote matches a single quote).  Assuming that the buffer syntax table
+ both single quotes which surround a single character, with a SYNTAX of
+ \"\\\"\" (meaning string quote syntax).  Assuming that the buffer syntax table
  does not specify single quotes to have quote syntax, the element will only
  highlight single quotes of the form 'c' as strings syntactically.
  Other forms, such as foo'bar or 'fubar', will not be highlighted as strings.
