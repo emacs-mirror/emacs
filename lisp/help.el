@@ -177,7 +177,8 @@ With arg, you are asked to choose which language."
 		  (read-language-name 'tutorial "Language: " "English")
 		(if (get-language-info current-language-environment 'tutorial)
 		    current-language-environment
-		  "English"))))
+		  "English")))
+	file filename)
     (setq filename (get-language-info lang 'tutorial))
     (setq file (expand-file-name (concat "~/" filename)))
     (delete-other-windows)
