@@ -1,3 +1,11 @@
+2003-11-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Take
+	additional optional arg NARROWFUN.  For the generated functions: Add
+	local var `was-narrowed-p'.  Also, if NARROWFUN is specified, include
+	frags that arrange to check for and save narrowing state before the
+	move and then conditionally call NARROWFUN after the move.
+
 2003-11-14  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/esh-var.el (eshell-parse-variable-ref): Added a backslash
@@ -31,7 +39,7 @@
 2003-11-08  Kailash C. Chowksey <klchxbec@m-net.arbornet.org>
 
 	These changes are to support Kannada language/script.
-	
+
 	* Makefile.in (DONTCOMPILE): Add kannada.el.
 
 	* makefile.w32-in (DONTCOMPILE): Add kannada.el.
