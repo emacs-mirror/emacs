@@ -39,7 +39,7 @@
   "*File name of mail inbox file, for indicating existence of new mail.
 Non-nil and not a string means don't check for mail.  nil means use
 default, which is system-dependent, and is the same as used by Rmail."
-  :type '(choice (const :tag "(None)" none)
+  :type '(choice (const :tag "None" none)
 		 (const :tag "Default" nil)
 		 (file :format "%v"))
   :group 'display-time)
@@ -67,10 +67,12 @@ Almost every system can provide values of load for past 1 minute, past 5 or
 past 15 minutes.  The default is to display 1 minute load average."
   :type '(choice (const :tag "1 minute load" 0)
 		 (const :tag "5 minutes load" 1)
-		 (const :tag "15 minutes load" 2))
+		 (const :tag "15 minutes load" 2)
+		 (const :tag "None" nil))
   :group 'display-time)
 
-(defvar display-time-load-average display-time-default-load-average)
+(defvar display-time-load-average nil
+  "Load average currently being shown in mode line")
 
 (defcustom display-time-load-average-threshold 0.1
   "*Load-average values below this value won't be shown in the mode line."
@@ -245,26 +247,28 @@ would give mode line times like `94/12/30 21:07:48 (UTC)'."
 (defun display-time-update ()
   (let* ((now (current-time))
 	 (time (current-time-string now))
-         (load (condition-case ()
-		   ;; Do not show values less than
-		   ;; `display-time-load-average-threshold'.
-                   (if (> (* display-time-load-average-threshold 100)
-			   (nth display-time-load-average (load-average)))
-		       ""
-		     ;; The load average number is mysterious, so
-		     ;; provide some help.
-                     (let ((str (format " %03d" (nth display-time-load-average (load-average)))))
-		       (propertize
-			(concat (substring str 0 -2) "." (substring str -2))
-			'local-map (make-mode-line-mouse-map 'mouse-2
-							     'display-time-next-load-average)
-			'help-echo (concat "System load average for past "
-					   (if (= 0 display-time-load-average)
-					       "1 minute"
-					     (if (= 1 display-time-load-average)
-						 "5 minutes"
-					       "15 minutes")) "; mouse-2: next" ))))
-                 (error "")))
+         (load (if (null display-time-load-average)
+		   ""
+		 (condition-case ()
+		     ;; Do not show values less than
+		     ;; `display-time-load-average-threshold'.
+		     (if (> (* display-time-load-average-threshold 100)
+			    (nth display-time-load-average (load-average)))
+			 ""
+		       ;; The load average number is mysterious, so
+		       ;; provide some help.
+		       (let ((str (format " %03d" (nth display-time-load-average (load-average)))))
+			 (propertize
+			  (concat (substring str 0 -2) "." (substring str -2))
+			  'local-map (make-mode-line-mouse-map 'mouse-2
+							       'display-time-next-load-average)
+			  'help-echo (concat "System load average for past "
+					     (if (= 0 display-time-load-average)
+						 "1 minute"
+					       (if (= 1 display-time-load-average)
+						   "5 minutes"
+						 "15 minutes")) "; mouse-2: next" ))))
+		   (error ""))))
          (mail-spool-file (or display-time-mail-file
                               (getenv "MAIL")
                               (concat rmail-spool-directory
@@ -330,26 +334,27 @@ If `display-time-day-and-date' is non-nil, the current day and date
 are displayed as well.
 This runs the normal hook `display-time-hook' after each update."
   :global t :group 'display-time
-    (and display-time-timer (cancel-timer display-time-timer))
-    (setq display-time-timer nil)
-    (setq display-time-string "")
-    (or global-mode-string (setq global-mode-string '("")))
-    (if display-time-mode
-	(progn
-	  (or (memq 'display-time-string global-mode-string)
-	      (setq global-mode-string
-		    (append global-mode-string '(display-time-string))))
-	  ;; Set up the time timer.
-	  (setq display-time-timer
-		(run-at-time t display-time-interval
-			     'display-time-event-handler))
-	  ;; Make the time appear right away.
-	  (display-time-update)
-	  ;; When you get new mail, clear "Mail" from the mode line.
-	  (add-hook 'rmail-after-get-new-mail-hook
-		    'display-time-event-handler))
-      (remove-hook 'rmail-after-get-new-mail-hook
-		   'display-time-event-handler)))
+  (and display-time-timer (cancel-timer display-time-timer))
+  (setq display-time-timer nil)
+  (setq display-time-string "")
+  (or global-mode-string (setq global-mode-string '("")))
+  (setq display-time-load-average display-time-default-load-average)
+  (if display-time-mode
+      (progn
+	(or (memq 'display-time-string global-mode-string)
+	    (setq global-mode-string
+		  (append global-mode-string '(display-time-string))))
+	;; Set up the time timer.
+	(setq display-time-timer
+	      (run-at-time t display-time-interval
+			   'display-time-event-handler))
+	;; Make the time appear right away.
+	(display-time-update)
+	;; When you get new mail, clear "Mail" from the mode line.
+	(add-hook 'rmail-after-get-new-mail-hook
+		  'display-time-event-handler))
+    (remove-hook 'rmail-after-get-new-mail-hook
+		 'display-time-event-handler)))
 
 (provide 'time)
 
