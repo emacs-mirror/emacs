@@ -663,16 +663,6 @@
   (define-key calc-alg-map "\e\C-m" 'calc-last-args-stub)
   (define-key calc-alg-map "\e\177" 'calc-pop-above)
 
-  ;; The following is a relic for backward compatability only.
-  ;; The calc-define property list is now the recommended method.
-  (if (and (boundp 'calc-ext-defs)
-	   calc-ext-defs)
-      (progn
-	(calc-need-macros)
-	(message "Evaluating calc-ext-defs...")
-	(eval (cons 'progn calc-ext-defs))
-	(setq calc-ext-defs nil)))
-
 ;;;; (Autoloads here)
   (mapcar (function (lambda (x)
     (mapcar (function (lambda (func)
@@ -1770,10 +1760,13 @@ calc-kill calc-kill-region calc-yank))))
 	(cdr res)
       res)))
 
+(defvar calc-z-prefix-buf nil)
+(defvar calc-z-prefix-msgs nil)
+
 (defun calc-z-prefix-help ()
   (interactive)
-  (let* ((msgs nil)
-	 (buf "")
+  (let* ((calc-z-prefix-msgs nil)
+	 (calc-z-prefix-buf "")
 	 (kmap (sort (copy-sequence (calc-user-key-map))
 		     (function (lambda (x y) (< (car x) (car y))))))
 	 (flags (apply 'logior
@@ -1784,12 +1777,12 @@ calc-kill calc-kill-region calc-yank))))
     (if (= (logand flags 8) 0)
 	(calc-user-function-list kmap 7)
       (calc-user-function-list kmap 1)
-      (setq msgs (cons buf msgs)
-	    buf "")
+      (setq calc-z-prefix-msgs (cons calc-z-prefix-buf calc-z-prefix-msgs)
+	    calc-z-prefix-buf "")
       (calc-user-function-list kmap 6))
     (if (/= flags 0)
-	(setq msgs (cons buf msgs)))
-    (calc-do-prefix-help (nreverse msgs) "user" ?z)))
+	(setq calc-z-prefix-msgs (cons calc-z-prefix-buf calc-z-prefix-msgs)))
+    (calc-do-prefix-help (nreverse calc-z-prefix-msgs) "user" ?z)))
 
 (defun calc-user-function-classify (key)
   (cond ((/= key (downcase key))    ; upper-case
@@ -1823,14 +1816,15 @@ calc-kill calc-kill-region calc-yank))))
 				   (upcase key)
 				   (downcase name))))
 		     (char-to-string (upcase key)))))
-	     (if (= (length buf) 0)
-		 (setq buf (concat (if (= flags 1) "SHIFT + " "")
+	     (if (= (length calc-z-prefix-buf) 0)
+		 (setq calc-z-prefix-buf (concat (if (= flags 1) "SHIFT + " "")
 				   desc))
-	       (if (> (+ (length buf) (length desc)) 58)
-		   (setq msgs (cons buf msgs)
-			 buf (concat (if (= flags 1) "SHIFT + " "")
+	       (if (> (+ (length calc-z-prefix-buf) (length desc)) 58)
+		   (setq calc-z-prefix-msgs 
+                         (cons calc-z-prefix-buf calc-z-prefix-msgs)
+			 calc-z-prefix-buf (concat (if (= flags 1) "SHIFT + " "")
 				     desc))
-		 (setq buf (concat buf ", " desc))))))
+		 (setq calc-z-prefix-buf (concat calc-z-prefix-buf ", " desc))))))
 	 (calc-user-function-list (cdr map) flags))))
 
 
@@ -2224,25 +2218,25 @@ calc-kill calc-kill-region calc-yank))))
 	     (math-normalize (car a))
 	   (error "Can't use multi-valued function in an expression")))))
 
-(defun math-normalize-nonstandard ()   ; uses "a"
+(defun math-normalize-nonstandard ()
   (if (consp calc-simplify-mode)
       (progn
 	(setq calc-simplify-mode 'none
-	      math-simplify-only (car-safe (cdr-safe a)))
+	      math-simplify-only (car-safe (cdr-safe math-normalize-a)))
 	nil)
-    (and (symbolp (car a))
+    (and (symbolp (car math-normalize-a))
 	 (or (eq calc-simplify-mode 'none)
 	     (and (eq calc-simplify-mode 'num)
-		  (let ((aptr (setq a (cons
-				       (car a)
-				       (mapcar 'math-normalize (cdr a))))))
+		  (let ((aptr (setq math-normalize-a 
+                                    (cons
+                                     (car math-normalize-a)
+                                     (mapcar 'math-normalize 
+                                             (cdr math-normalize-a))))))
 		    (while (and aptr (math-constp (car aptr)))
 		      (setq aptr (cdr aptr)))
 		    aptr)))
-	 (cons (car a) (mapcar 'math-normalize (cdr a))))))
-
-
-
+	 (cons (car math-normalize-a) 
+               (mapcar 'math-normalize (cdr math-normalize-a))))))
 
 
 ;;; Normalize a bignum digit list by trimming high-end zeros.  [L l]
@@ -2620,22 +2614,27 @@ calc-kill calc-kill-region calc-yank))))
 
 (defvar var-FactorRules 'calc-FactorRules)
 
-(defun math-map-tree (mmt-func mmt-expr &optional mmt-many)
-  (or mmt-many (setq mmt-many 1000000))
+(defvar math-mt-many nil)
+(defvar math-mt-func nil)
+
+(defun math-map-tree (math-mt-func mmt-expr &optional math-mt-many)
+  (or math-mt-many (setq math-mt-many 1000000))
   (math-map-tree-rec mmt-expr))
 
 (defun math-map-tree-rec (mmt-expr)
-  (or (= mmt-many 0)
+  (or (= math-mt-many 0)
       (let ((mmt-done nil)
 	    mmt-nextval)
 	(while (not mmt-done)
-	  (while (and (/= mmt-many 0)
-		      (setq mmt-nextval (funcall mmt-func mmt-expr))
+	  (while (and (/= math-mt-many 0)
+		      (setq mmt-nextval (funcall math-mt-func mmt-expr))
 		      (not (equal mmt-expr mmt-nextval)))
 	    (setq mmt-expr mmt-nextval
-		  mmt-many (if (> mmt-many 0) (1- mmt-many) (1+ mmt-many))))
+		  math-mt-many (if (> math-mt-many 0) 
+                                   (1- math-mt-many) 
+                                 (1+ math-mt-many))))
 	  (if (or (Math-primp mmt-expr)
-		  (<= mmt-many 0))
+		  (<= math-mt-many 0))
 	      (setq mmt-done t)
 	    (setq mmt-nextval (cons (car mmt-expr)
 				    (mapcar 'math-map-tree-rec
@@ -2886,11 +2885,13 @@ calc-kill calc-kill-region calc-yank))))
 
 ;;; Expression parsing.
 
+(defvar math-expr-data)
+
 (defun math-read-expr (exp-str)
   (let ((exp-pos 0)
 	(exp-old-pos 0)
 	(exp-keep-spaces nil)
-	exp-token exp-data)
+	exp-token math-expr-data)
     (while (setq exp-token (string-match "\\.\\.\\([^.]\\|.[^.]\\)" exp-str))
       (setq exp-str (concat (substring exp-str 0 exp-token) "\\dots"
 			    (substring exp-str (+ exp-token 2)))))
@@ -2914,8 +2915,8 @@ calc-kill calc-kill-region calc-yank))))
 
 
 (defun math-read-string ()
-  (let ((str (read-from-string (concat exp-data "\""))))
-    (or (and (= (cdr str) (1+ (length exp-data)))
+  (let ((str (read-from-string (concat math-expr-data "\""))))
+    (or (and (= (cdr str) (1+ (length math-expr-data)))
 	     (stringp (car str)))
 	(throw 'syntax "Error in string constant"))
     (math-read-token)
