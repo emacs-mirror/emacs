@@ -24,6 +24,10 @@
 
 ;;; Commentary:
 
+;; The home page of the Meta-CVS version control system is at
+;; 
+;;      http://users.footprints.net/~kaz/mcvs.html
+;; 
 ;; This is derived from vc-cvs.el as follows:
 ;; - cp vc-cvs.el vc-mcvs.el
 ;; - Replace CVS/ with MCVS/CVS/
