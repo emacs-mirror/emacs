@@ -1880,7 +1880,9 @@ key		binding
 (defun quail-show-kbd-layout ()
   "Show keyboard layout with key tops of multilingual characters."
   (insert "--- Keyboard layout ---\n")
-  (let* ((i 0) ch)
+  (let ((blink-matching-paren nil)
+	(i 0)
+	ch)
     (while (< i quail-keyboard-layout-len)
       (if (= (% i 30) 0)
 	  (progn
