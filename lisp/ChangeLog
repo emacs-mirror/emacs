@@ -1,3 +1,9 @@
+2004-12-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (view-other-diary-entries): Add autoload.
+	* calendar/diary-lib.el (view-other-diary-entries): Use
+	current-prefix-arg in interactive spec.
+
 2004-12-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (calcAlg-blank-matching-open):
