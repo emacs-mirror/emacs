@@ -6,7 +6,7 @@ Contents of subdirectories are as follows.
 CXTERM-DIC:
 
 This directory contains source dictionaries (TIT format) for Chinese
-input method distribued with cxterm (Chinese version xterm).  These
+input method distributed with cxterm (Chinese version xterm).  These
 dictionaries are automatically converted to Quail packages (Emacs Lisp
 source file) by `make'.
 
@@ -25,6 +25,6 @@ dictionary (See below).
 skk:
 
 This directory contains Emacs Lisp source file skkdic.el which is
-generated from a source dictionary in SKK-DIC directory.  In addtion,
+generated from a source dictionary in SKK-DIC directory.  In addition,
 it contains a byte compiled file skkdic.elc for users convenience
 because it takes rather long time to byte-compile skkdic.el.
