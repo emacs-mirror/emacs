@@ -104,17 +104,17 @@ This mirrors the optional behavior of bash."
   :type 'boolean
   :group 'eshell-hist)
 
-(defcustom eshell-ask-to-save-history t
+(defcustom eshell-save-history-on-exit 'ask
   "*Determine if history should be automatically saved.
 History is always preserved after sanely exiting an Eshell buffer.
 However, when Emacs is being shut down, this variable determines
 whether to prompt the user.
-If set to nil, it means never ask whether history should be saved.
-If set to t, always ask if any Eshell buffers are open at exit time.
-If set to `always', history will always be saved, silently."
+If set to nil, it means never save history on termination of Emacs.
+If set to `ask', ask if any Eshell buffers are open at exit time.
+If set to t, history will always be saved, silently."
   :type '(choice (const :tag "Never" nil)
-		 (const :tag "Ask" t)
-		 (const :tag "Always save" always))
+		 (const :tag "Ask" ask)
+		 (const :tag "Always save" t))
   :group 'eshell-hist)
 
 (defcustom eshell-input-filter
@@ -269,7 +269,7 @@ element, regardless of any text on the command line.  In that case,
   (make-local-variable 'eshell-save-history-index)
 
   (if (minibuffer-window-active-p (selected-window))
-      (set (make-local-variable 'eshell-ask-to-save-history) nil)
+      (set (make-local-variable 'eshell-save-history-on-exit) nil)
     (set (make-local-variable 'eshell-history-ring) nil)
     (if eshell-history-file-name
 	(eshell-read-history nil t))
@@ -296,8 +296,8 @@ element, regardless of any text on the command line.  In that case,
 	(with-current-buffer buf
 	  (if (and eshell-mode
 		   eshell-history-file-name
-		   eshell-ask-to-save-history
-		   (or (eq eshell-ask-to-save-history 'always)
+		   eshell-save-history-on-exit
+		   (or (eq eshell-save-history-on-exit t)
 		       (y-or-n-p
 			(format "Save input history for Eshell buffer `%s'? "
 				(buffer-name buf)))))
