@@ -77,8 +77,7 @@ Boston, MA 02111-1307, USA.  */
 #define HAVE_X11R4
 #endif
 
-#ifdef HAVE_X11R5
-#define HAVE_X_I18N
+#ifdef HAVE_X_I18N
 #include <X11/Xlocale.h>
 #endif
 
