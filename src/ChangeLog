@@ -1,6 +1,6 @@
 2004-06-16  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* buffer.c (syms_of_buffer): Fix `fill-column' docstring.
+	* buffer.c (syms_of_buffer): Clarify `fill-column' docstring.
 
 2004-06-16  Kim F. Storm  <storm@cua.dk>
 
