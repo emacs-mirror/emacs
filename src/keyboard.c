@@ -4212,7 +4212,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      if ((VECTORP (fkey_next) || STRINGP (fkey_next))
 		  && fkey_end == t)
 		{
-		  int len = Flength (fkey_next);
+		  int len = XFASTINT (Flength (fkey_next));
 
 		  t = fkey_start + len;
 		  if (t >= bufsize)
@@ -4284,7 +4284,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 	    if ((VECTORP (keytran_next) || STRINGP (keytran_next))
 		&& keytran_end == t)
 	      {
-		int len = Flength (keytran_next);
+		int len = XFASTINT (Flength (keytran_next));
 
 		t = keytran_start + len;
 		if (t >= bufsize)
