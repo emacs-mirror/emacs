@@ -211,9 +211,7 @@ $(DOC):;	cd ..\lib-src
 #
 emacs:          $(EMACS)
 $(EMACS):       $(DOC) $(TEMACS)
-		cd $(BLD)
 		$(MAKEDIR)\$(BLD)\temacs.exe -batch -l loadup dump
-		cd ..\..
 
 #
 # The undumped executable
