@@ -1955,7 +1955,7 @@ but the contents viewed as characters do change.")
   Lisp_Object tail, markers;
   struct buffer *other;
   int undo_enabled_p = !EQ (current_buffer->undo_list, Qt);
-  int begv = BEGV, zv = ZV;
+  int begv, zv;
   int narrowed = (BEG != begv || Z != zv);
   int modified_p = !NILP (Fbuffer_modified_p (Qnil));
 
@@ -1973,6 +1973,11 @@ but the contents viewed as characters do change.")
 
   /* If the cached position is for this buffer, clear it out.  */
   clear_charpos_cache (current_buffer);
+
+  if (NILP (flag))
+    begv = BEGV_BYTE, zv = ZV_BYTE;
+  else
+    begv = BEGV, zv = ZV;
 
   if (narrowed)
     Fwiden ();
