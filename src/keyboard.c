@@ -130,8 +130,8 @@ Lisp_Object Vhelp_form;
 /* Command to run when the help character follows a prefix key.  */
 Lisp_Object Vprefix_help_command;
 
-/* Keymap for items that appear at end of menu bar.  */
-Lisp_Object Vhelp_menu_bar_map;
+/* List of items that should move to the end of the menu bar.  */
+Lisp_Object Vmenu_bar_final_items;
 
 /* Character that causes a quit.  Normally C-g.
 
@@ -3161,7 +3161,7 @@ menu_bar_items ()
      in the current keymaps, or nil where it is not a prefix.  */
   Lisp_Object *maps;
 
-  Lisp_Object def, tem;
+  Lisp_Object def, tem, tail;
 
   Lisp_Object result;
 
@@ -3212,7 +3212,14 @@ menu_bar_items ()
 	result = menu_bar_one_keymap (def, result);
     }
 
-  result = menu_bar_one_keymap (Vhelp_menu_bar_map, result);
+  for (tail = Vmenu_bar_final_items; CONSP (tail); tail = XCONS (tail)->cdr)
+    {
+      Lisp_Object elt;
+
+      elt = Fassq (XCONS (tail)->car, result);
+      if (!NILP (elt))
+	result = Fcons (elt, Fdelq (elt, result));
+    }
 
   result = Fnreverse (result);
   Vinhibit_quit = oquit;
@@ -5223,9 +5230,10 @@ Buffer modification stores t in this variable.");
     "t means menu bar, specified Lucid style, needs to be recomputed.");
   Vlucid_menu_bar_dirty_flag = Qnil;
 
-  DEFVAR_LISP ("help-menu-bar-map", &Vhelp_menu_bar_map,
-    "Keymap defining global menu items to appear at end of menu bar.");
-  Vhelp_menu_bar_map = Qnil;
+  DEFVAR_LISP ("menu-bar-final-items", &Vmenu_bar_final_items,
+    "List of menu bar items to move to the end of the menu bar.\n\
+The elements of the listare event types that may have menu bar bindings.");
+  Vmenu_bar_final_items = Qnil;
 }
 
 keys_of_keyboard ()
