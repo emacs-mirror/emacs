@@ -21,15 +21,6 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* #define FULL_DEBUG */
-#define EMACSDEBUG
-
-#ifdef EMACSDEBUG
-#define DebPrint(stuff) _DebPrint stuff
-#else
-#define DebPrint(stuff)
-#endif
-
 /* File descriptor set emulation.  */
 
 /* MSVC runtime library has limit of 64 descriptors by default */
@@ -74,10 +65,10 @@ typedef struct _child_process
 {
   int                   fd;
   int                   pid;
-  int                   is_dos_process;
   HANDLE                char_avail;
   HANDLE                char_consumed;
   HANDLE                thrd;
+  HWND                  hwnd;
   PROCESS_INFORMATION   procinfo;
   volatile int          status;
   char                  chr;
@@ -101,6 +92,7 @@ extern filedesc fd_info [ MAXDESC ];
 #define FILE_READ    0x0001
 #define FILE_WRITE   0x0002
 #define FILE_BINARY  0x0010
+#define FILE_LAST_CR 0x0020
 #define FILE_PIPE    0x0100
 #define FILE_SOCKET  0x0200
 
@@ -109,6 +101,8 @@ extern void delete_child (child_process *cp);
 
 /* ------------------------------------------------------------------------- */
 
+/* Get long (aka "true") form of file name, if it exists.  */
+extern BOOL w32_get_long_filename (char * name, char * buf, int size);
 
 /* Prepare our standard handles for proper inheritance by child processes.  */
 extern void prepare_standard_handles (int in, int out, 
