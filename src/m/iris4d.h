@@ -134,7 +134,11 @@ Boston, MA 02111-1307, USA.  */
 #if defined(__GNUC__) && defined(_ABIN32)
 #define LIBS_MACHINE
 #else
+#ifndef IRIX6_5
 #define LIBS_MACHINE -lmld
+#else
+#define LIBS_MACHINE
+#endif
 #endif
 #define LIBS_DEBUG
 
@@ -187,7 +191,11 @@ Boston, MA 02111-1307, USA.  */
    that we can't fix without breaking other machines.  */
 #ifdef IRIX_FORCE_32_BITS
 #ifdef THIS_IS_MAKEFILE
+#ifndef IRIX6_5
 #define C_SWITCH_MACHINE -32
+#else
+#define C_SWITCH_MACHINE -n32 -G0
+#endif
 #endif
 #endif
 
