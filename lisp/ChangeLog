@@ -1,3 +1,15 @@
+2002-05-25  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--self-insert-char-p): New function.
+
+	* emulation/cua-gmrk.el (cua--init-global-mark):  Install default
+	binding in cua--global-mark-keymap using cua--self-insert-char-p
+	to handle all global self inserting characters in gmark mode.
+
+	* emulation/cua-rect.el (cua--init-rectangles): Install default
+	binding in cua--rectangle-keymap using cua--self-insert-char-p
+	to handle all global self inserting characters in rectangle mode.
+
 2002-05-24  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* net/ange-ftp.el (read-file-name-internal): Remove the
