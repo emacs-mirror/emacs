@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <fcntl.h>
 #endif
 
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -3202,7 +3203,8 @@ This does code conversion according to the value of\n\
 
 	  if (coding.type == coding_type_undecided)
 	    detect_coding (&coding, buffer, nread);
-	  if (CODING_REQUIRE_TEXT_CONVERSION (&coding))
+	  if (coding.type != coding_type_undecided
+	      && CODING_REQUIRE_TEXT_CONVERSION (&coding))
 	    /* We found that the file should be decoded somehow.
                Let's give up here.  */
 	    {
@@ -3212,7 +3214,8 @@ This does code conversion according to the value of\n\
 
 	  if (coding.eol_type == CODING_EOL_UNDECIDED)
 	    detect_eol (&coding, buffer, nread);
-	  if (CODING_REQUIRE_EOL_CONVERSION (&coding))
+	  if (coding.eol_type != CODING_EOL_UNDECIDED
+	      && CODING_REQUIRE_EOL_CONVERSION (&coding))
 	    /* We found that the format of eol should be decoded.
                Let's give up here.  */
 	    {
@@ -4452,12 +4455,13 @@ auto_save_1 ()
 }
 
 static Lisp_Object
-do_auto_save_unwind (desc)  /* used as unwind-protect function */
-     Lisp_Object desc;
+do_auto_save_unwind (stream)  /* used as unwind-protect function */
+     Lisp_Object stream;
 {
   auto_saving = 0;
-  if (XINT (desc) >= 0)
-    close (XINT (desc));
+  if (!NILP (stream))
+    fclose ((FILE *) (XFASTINT (XCONS (stream)->car) << 16
+		      | XFASTINT (XCONS (stream)->cdr)));
   return Qnil;
 }
 
@@ -4481,7 +4485,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
   int omessage_length = echo_area_glyphs_length;
   int do_handled_files;
   Lisp_Object oquit;
-  int listdesc;
+  FILE *stream;
+  Lisp_Object lispstream;
   int count = specpdl_ptr - specpdl;
   int *ptr;
 
@@ -4503,20 +4508,21 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
     {
       Lisp_Object listfile;
       listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
-#ifdef DOS_NT
-      listdesc = open (XSTRING (listfile)->data,
-		       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
-		       S_IREAD | S_IWRITE);
-#else  /* not DOS_NT */
-      listdesc = creat (XSTRING (listfile)->data, 0666);
-#endif /* not DOS_NT */
+      stream = fopen (XSTRING (listfile)->data, "w");
+
+      /* Arrange to close that file whether or not we get an error.
+	 Also reset auto_saving to 0.  */
+      lispstream = Fcons (Qnil, Qnil);
+      XSETFASTINT (XCONS (lispstream)->car, (EMACS_UINT)stream >> 16);
+      XSETFASTINT (XCONS (lispstream)->cdr, (EMACS_UINT)stream & 0xffff);
     }
   else
-    listdesc = -1;
+    {
+      stream = NULL;
+      lispstream = Qnil;
+    }
 
-  /* Arrange to close that file whether or not we get an error.
-     Also reset auto_saving to 0.  */
-  record_unwind_protect (do_auto_save_unwind, make_number (listdesc));
+  record_unwind_protect (do_auto_save_unwind, lispstream);
 
   auto_saving = 1;
 
@@ -4535,17 +4541,17 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 	   in the special file that lists them.  For each of these buffers,
 	   Record visited name (if any) and auto save name.  */
 	if (STRINGP (b->auto_save_file_name)
-	    && listdesc >= 0 && do_handled_files == 0)
+	    && stream != NULL && do_handled_files == 0)
 	  {
 	    if (!NILP (b->filename))
 	      {
-		write (listdesc, XSTRING (b->filename)->data,
-		       XSTRING (b->filename)->size);
+		fwrite (XSTRING (b->filename)->data, 1,
+			XSTRING (b->filename)->size, stream);
 	      }
-	    write (listdesc, "\n", 1);
-	    write (listdesc, XSTRING (b->auto_save_file_name)->data,
-		   XSTRING (b->auto_save_file_name)->size);
-	    write (listdesc, "\n", 1);
+	    putc ('\n', stream);
+	    fwrite (XSTRING (b->auto_save_file_name)->data, 1,
+		    XSTRING (b->auto_save_file_name)->size, stream);
+	    putc ('\n', stream);
 	  }
 
 	if (!NILP (current_only)
