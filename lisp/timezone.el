@@ -200,11 +200,14 @@ Understands the following styles:
 		    (substring date
 			       (match-beginning month)
 			       (+ (match-beginning month) 2))
- 	          (let ((string (substring date
-				 (match-beginning month)
-				 (+ (match-beginning month) 3))))
-		    (int-to-string
-		     (cdr (assoc (upcase string) timezone-months-assoc))))))
+ 	          (let* ((string (substring date
+					    (match-beginning month)
+					    (+ (match-beginning month) 3)))
+			 (monthnum
+			  (cdr (assoc (upcase string) timezone-months-assoc))))
+		    (if monthnum
+			(int-to-string monthnum)
+		      nil))))
 	  (setq day
 		(substring date (match-beginning day) (match-end day)))
 	  (setq time
@@ -213,7 +216,7 @@ Understands the following styles:
 	(setq zone
 	      (substring date (match-beginning zone) (match-end zone))))
     ;; Return a vector.
-    (if year
+    (if (and year month)
 	(vector year month day time zone)
       (vector "0" "0" "0" "0" nil))
     ))
