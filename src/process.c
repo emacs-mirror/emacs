@@ -3023,6 +3023,8 @@ usage: (make-network-process &rest ARGS)  */)
     {
       int optn, optbits;
 
+    retry_connect:
+
       s = socket (lres->ai_family, lres->ai_socktype, lres->ai_protocol);
       if (s < 0)
 	{
@@ -3101,8 +3103,6 @@ usage: (make-network-process &rest ARGS)  */)
 	  break;
 	}
 
-    retry_connect:
-
       immediate_quit = 1;
       QUIT;
 
@@ -3144,22 +3144,13 @@ usage: (make-network-process &rest ARGS)  */)
 
       immediate_quit = 0;
 
-      if (xerrno == EINTR)
-	goto retry_connect;
-      if (xerrno == EADDRINUSE && retry < 20)
-	{
-	  /* A delay here is needed on some FreeBSD systems,
-	     and it is harmless, since this retrying takes time anyway
-	     and should be infrequent.  */
-	  Fsleep_for (make_number (1), Qnil);
-	  retry++;
-	  goto retry_connect;
-	}
-
       /* Discard the unwind protect closing S.  */
       specpdl_ptr = specpdl + count1;
       emacs_close (s);
       s = -1;
+
+      if (xerrno == EINTR)
+	goto retry_connect;
     }
 
   if (s >= 0)
