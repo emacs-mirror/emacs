@@ -33,26 +33,23 @@
 (make-coding-system
  'in-is13194-devanagari 2 ?D
  "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)"
- '((ascii t) (indian-is13194 t) nil nil
+ '(ascii indian-is13194 nil nil
    nil ascii-eol)
- '(ascii indian-is13194))
+ '((safe-charsets ascii indian-is13194)
+   (post-read-conversion . in-is13194-devanagari-post-read-conversion)
+   (pre-write-conversion . in-is13194-devanagari-pre-write-conversion)))
 
 (define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
-(coding-system-put 'devanagari 'post-read-conversion
-		   'in-is13194-devanagari-post-read-conversion)
-(coding-system-put 'devanagari 'pre-write-conversion
-		   'in-is13194-devanagari-pre-write-conversion)
-
 (set-language-info-alist
- "Devanagari" '((setup-function . (setup-devanagari-environment
-				   . setup-indian-environment-map))
-		(charset . (indian-is13194 indian-2-column indian-1-column))
-		(coding-system . (devanagari))
-		(documentation . ("\
+ "Devanagari" '((setup-function . setup-devanagari-environment)
+		(charset indian-is13194 indian-2-column indian-1-column)
+		(coding-system in-is13194-devanagari)
+		(coding-priority in-is13194-devanagari)
+		(documentation . "\
 Such languages using Devanagari script as Hindi and Marathi
-are supported in this language environment."
-				  . describe-indian-environment-map))))
+are supported in this language environment."))
+ '("Indian"))
 
 ;;
 ;; Devanagari Glyph List
