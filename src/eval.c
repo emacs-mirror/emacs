@@ -1816,7 +1816,39 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
   RETURN_UNGCPRO (Ffuncall (gcpro1.nvars, funcall_args));
 }
 
-DEFUN ("run-hook-with-args", Frun_hook_with_args, Srun_hook_with_args, 1, MANY, 0,
+/* Run hook variables in various ways.  */
+
+enum run_hooks_condition {to_completion, until_success, until_failure};
+
+DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 1, MANY, 0,
+  "Run each hook in HOOKS.  Major mode functions use this.\n\
+Each argument should be a symbol, a hook variable.\n\
+These symbols are processed in the order specified.\n\
+If a hook symbol has a non-nil value, that value may be a function\n\
+or a list of functions to be called to run the hook.\n\
+If the value is a function, it is called with no arguments.\n\
+If it is a list, the elements are called, in order, with no arguments.\n\
+\n\
+To make a hook variable buffer-local, use `make-local-hook',\n\
+not `make-local-variable'.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object hook[1];
+  register int i;
+
+  for (i = 0; i < nargs; i++)
+    {
+      hook[0] = args[i];
+      run_hook_with_args (1, hook, to_completion);
+    }
+
+  return Qnil;
+}
+      
+DEFUN ("run-hook-with-args",
+  Frun_hook_with_args, Srun_hook_with_args, 1, MANY, 0,
   "Run HOOK with the specified arguments ARGS.\n\
 HOOK should be a symbol, a hook variable.  If HOOK has a non-nil\n\
 value, that value may be a function or a list of functions to be\n\
@@ -1827,18 +1859,67 @@ with the given arguments ARGS.\n\
 It is best not to depend on the value return by `run-hook-with-args',\n\
 as that may change.\n\
 \n\
-To make a hook variable buffer-local, use `make-local-hook', not\n\
-`make-local-variable'.")
+To make a hook variable buffer-local, use `make-local-hook',\n\
+not `make-local-variable'.")
   (nargs, args)
      int nargs;
      Lisp_Object *args;
 {
-  Lisp_Object sym, val;
+  return run_hook_with_args (nargs, args, to_completion);
+}
+
+DEFUN ("run-hook-with-args-until-success",
+  Frun_hook_with_args_until_success, Srun_hook_with_args_until_success,
+  1, MANY, 0,
+  "Run HOOK with the specified arguments ARGS.\n\
+HOOK should be a symbol, a hook variable.  Its value should\n\
+be a list of functions.  We call those functions, one by one,\n\
+passing arguments ARGS to each of them, until one of them\n\
+returns a non-nil value.  Then we return that value.\n\
+If all the functions return nil, we return nil.\n\
+\n\
+To make a hook variable buffer-local, use `make-local-hook',\n\
+not `make-local-variable'.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  return run_hook_with_args (nargs, args, until_success);
+}
+
+DEFUN ("run-hook-with-args-until-failure",
+  Frun_hook_with_args_until_failure, Srun_hook_with_args_until_failure,
+  1, MANY, 0,
+  "Run HOOK with the specified arguments ARGS.\n\
+HOOK should be a symbol, a hook variable.  Its value should\n\
+be a list of functions.  We call those functions, one by one,\n\
+passing arguments ARGS to each of them, until one of them\n\
+returns nil.  Then we return nil.\n\
+If all the functions return non-nil, we return non-nil.\n\
+\n\
+To make a hook variable buffer-local, use `make-local-hook',\n\
+not `make-local-variable'.")
+  (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  return run_hook_with_args (nargs, args, until_failure);
+}
+
+Lisp_Object
+run_hook_with_args (nargs, args, cond)
+     int nargs;
+     Lisp_Object *args;
+     enum run_hooks_condition cond;
+{
+  Lisp_Object sym, val, ret;
 
   sym = args[0];
   val = find_symbol_value (sym);
+  ret = (cond == until_failure ? Qt : Qnil);
+
   if (EQ (val, Qunbound) || NILP (val))
-    return Qnil;
+    return ret;
   else if (!CONSP (val) || EQ (XCONS (val)->car, Qlambda))
     {
       args[0] = val;
@@ -1846,7 +1927,11 @@ To make a hook variable buffer-local, use `make-local-hook', not\n\
     }
   else
     {
-      for (; CONSP (val); val = XCONS (val)->cdr)
+      for (;
+	   CONSP (val) && ((cond == to_completion)
+			   || (cond == until_success ? NILP (ret)
+			       : !NILP (ret)));
+	   val = XCONS (val)->cdr)
 	{
 	  if (EQ (XCONS (val)->car, Qt))
 	    {
@@ -1854,23 +1939,26 @@ To make a hook variable buffer-local, use `make-local-hook', not\n\
 		 it means to run the global binding too.  */
 	      Lisp_Object globals;
 
-	      for (globals = Fdefault_value (sym); CONSP (globals);
+	      for (globals = Fdefault_value (sym);
+		   CONSP (globals) && ((cond == to_completion)
+				       || (cond == until_success ? NILP (ret)
+					   : !NILP (ret)));
 		   globals = XCONS (globals)->cdr)
 		{
 		  args[0] = XCONS (globals)->car;
-		  Ffuncall (nargs, args);
+		  ret = Ffuncall (nargs, args);
 		}
 	    }
 	  else
 	    {
 	      args[0] = XCONS (val)->car;
-	      Ffuncall (nargs, args);
+	      ret = Ffuncall (nargs, args);
 	    }
 	}
-      return Qnil;
+      return ret;
     }
 }
-
+
 /* Apply fn to arg */
 Lisp_Object
 apply1 (fn, arg)
@@ -2711,8 +2799,11 @@ Otherwise, nil (in a bare Emacs without preloaded Lisp code).");
   defsubr (&Sautoload);
   defsubr (&Seval);
   defsubr (&Sapply);
-  defsubr (&Srun_hook_with_args);
   defsubr (&Sfuncall);
+  defsubr (&Srun_hooks);
+  defsubr (&Srun_hook_with_args);
+  defsubr (&Srun_hook_with_args_until_success);
+  defsubr (&Srun_hook_with_args_until_failure);
   defsubr (&Sfetch_bytecode);
   defsubr (&Sbacktrace_debug);
   defsubr (&Sbacktrace);
