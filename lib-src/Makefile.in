@@ -385,8 +385,10 @@ yow: ${srcdir}/yow.c ../src/paths.h
 emacsserver: ${srcdir}/emacsserver.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsserver.c $(LOADLIBES) -o emacsserver
 
-emacsclient: ${srcdir}/emacsclient.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(LOADLIBES) -o emacsclient
+emacsclient: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
+	$(CC) ${ALL_CFLAGS} ${srcdir}/emacsclient.c $(GETOPTOBJS)  \
+	   -DVERSION=`sed -n -e '/(defconst emacs-version/ s/^[^"]*\("[^"]*"\).*/\1/p' ${srcdir}/../lisp/version.el` \
+	   $(LOADLIBES) -o emacsclient
 
 hexl: ${srcdir}/hexl.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
