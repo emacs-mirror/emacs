@@ -1,3 +1,16 @@
+2005-01-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.c (w32_load_bdf_font): Set fontp->average_width and
+	fontp->space_width to FONT_WIDTH so they are valid.
+
+	* w32fns.c (w32_load_system_font): Set FONT_WIDTH to maximum, not
+	average width. Set fontp->average_width and fontp->space_width to
+	their appropriate values.
+
+	* w32term.c (x_new_font): Set FRAME_COLUMN_WIDTH to
+	fontp->average_width, not FONT_WIDTH.  Set FRAME_SPACE_WIDTH to
+	fontp->space_width.
+
 2005-01-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_new_font): Set FRAME_SPACE_WIDTH.
@@ -59,7 +72,7 @@
 
 	* xterm.c (x_new_font): Set FRAME_COLUMN_WIDTH to
 	fontp->average_width, not FONT_WIDTH.  Set FRAME_SPACE_WIDTH to
-	fontp-?space_width..
+	fontp->space_width.
 	(x_load_font): Calculate fontp->space_width and
 	fontp->average_width.
 	(x_term_init): Initialize dpyinfo->Xatom_AVERAGE_WIDTH.
