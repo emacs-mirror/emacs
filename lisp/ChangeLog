@@ -1,5 +1,10 @@
 2005-03-12  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* progmodes/dcl-mode.el (dcl-mode-syntax-table):
+	Add entry for backslash.
+
+2005-03-12  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* progmodes/dcl-mode.el (dcl-font-lock-keywords): New var.
 	(dcl-font-lock-defaults): New var.
 	(dcl-mode): Make and init local var `font-lock-defaults'.
