@@ -1,7 +1,7 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 92, 93,
-;;		 94, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001
+;;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -2506,7 +2506,8 @@ See the subroutine `basic-save-buffer' for more information."
 	(make-backup-files (or (and make-backup-files (not (eq args 0)))
 			       (memq args '(16 64)))))
     (and modp (memq args '(16 64)) (setq buffer-backed-up nil))
-    (if (and modp large) (message "Saving file %s..." (buffer-file-name)))
+    (if (and modp large (buffer-file-name))
+	(message "Saving file %s..." (buffer-file-name)))
     (basic-save-buffer)
     (and modp (memq args '(4 64)) (setq buffer-backed-up nil))))
 
