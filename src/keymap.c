@@ -1903,10 +1903,7 @@ push_key_description (c, p)
 	}
       else
 	{
-	  unsigned char work[4], *str;
-	  int i = CHAR_STRING (c, work, str);
-	  bcopy (str, p, i);
-	  p += i;
+	  p += CHAR_STRING (c, p);
 	}
     }
 
@@ -1997,21 +1994,23 @@ Control characters turn into \"^char\", etc.")
   (character)
      Lisp_Object character;
 {
-  char tem[6];
+  /* Currently MAX_MULTIBYTE_LENGTH is 4 (< 6).  */
+  unsigned char str[6];
+  int c;
 
   CHECK_NUMBER (character, 0);
 
-  if (!SINGLE_BYTE_CHAR_P (XFASTINT (character)))
+  c = XINT (character);
+  if (!SINGLE_BYTE_CHAR_P (c))
     {
-      unsigned char *str;
-      int len = non_ascii_char_to_string (XFASTINT (character), tem, &str);
+      int len = CHAR_STRING (c, str);
 
       return make_multibyte_string (str, 1, len);
     }
 
-  *push_text_char_description (XINT (character) & 0377, tem) = 0;
+  *push_text_char_description (c & 0377, str) = 0;
 
-  return build_string (tem);
+  return build_string (str);
 }
 
 /* Return non-zero if SEQ contains only ASCII characters, perhaps with
