@@ -182,7 +182,7 @@ STRING should be given if the last search was by `string-match' on STRING."
 		(setq props (nthcdr 2 props)))
 	    (remove-text-properties start end ())))))
 
-(or (fboundp 'event-closest-point)
+(or (fboundp 'event-point)
     ;; Missing in Emacs 19.29.
     (defun event-point (event)
       "Return the character position of the given mouse-motion, button-press,
