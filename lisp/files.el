@@ -40,7 +40,10 @@
 
 
 (defcustom delete-auto-save-files t
-  "*Non-nil means delete auto-save file when a buffer is saved or killed."
+  "*Non-nil means delete auto-save file when a buffer is saved or killed.
+
+Note that auto-save file will not be deleted if the buffer is killed
+when it has unsaved changes."
   :type 'boolean
   :group 'auto-save)
 
