@@ -3451,7 +3451,7 @@ merge_face_vector_with_property (f, to, prop)
 	    add_to_log ("Invalid face color", color_name, Qnil);
 	}
       else if (SYMBOLP (first)
-	       && *XSYMBOL (first)->name->data == ':')
+	       && *XSTRING (SYMBOL_NAME (first))->data == ':')
 	{
 	  /* Assume this is the property list form.  */
 	  while (CONSP (prop) && CONSP (XCDR (prop)))
