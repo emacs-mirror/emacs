@@ -92,6 +92,9 @@ static Lisp_Object last_arrow_position, last_arrow_string;
 /* Nonzero if overlay arrow has been displayed once in this window.  */
 static int overlay_arrow_seen;
 
+/* Nonzero means highlight the region even in nonselected windows.  */
+static int highlight_nonselected_windows;
+
 /* If cursor motion alone moves point off frame,
    Try scrolling this many lines up or down if that will bring it back.  */
 int scroll_step;
@@ -1724,8 +1727,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
 
   /* Show where to highlight the region.  */
   if (highlight_region && XMARKER (current_buffer->mark)->buffer != 0
-      /* Highlight only in selected window.  */
-      && w == XWINDOW (FRAME_SELECTED_WINDOW (f)))
+      /* Maybe highlight only in selected window.  */
+      && (highlight_nonselected_windows
+	  || w == XWINDOW (FRAME_SELECTED_WINDOW (f))))
     {
       region_beg = marker_position (current_buffer->mark);
       if (PT < region_beg)
@@ -2836,6 +2840,10 @@ If this is zero, point is always centered after it moves off frame.");
   DEFVAR_INT ("line-number-display-limit", &line_number_display_limit,
     "*Maximum buffer size for which line number should be displayed.");
   line_number_display_limit = 1000000;
+
+  DEFVAR_BOOL ("highlight-nonselected-windows", &highlight_nonselected_windows,
+    "*Non-nil means highlight region even in nonselected windows.");
+  highlight_nonselected_windows = 1;
 }
 
 /* initialize the window system */
