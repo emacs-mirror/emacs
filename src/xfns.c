@@ -234,7 +234,7 @@ extern Lisp_Object Vwindow_system_version;
 
 
 /* Error if we are not connected to X.  */
-static void
+void
 check_x ()
 {
   if (x_current_display == 0)
@@ -1487,6 +1487,7 @@ Returns an alist of the form ((top . TOP), (left . LEFT) ... ).")
   unsigned int width, height;
   Lisp_Object values[4];
 
+  check_x ();
   CHECK_STRING (string, 0);
 
   geometry = XParseGeometry ((char *) XSTRING (string)->data,
@@ -2525,6 +2526,7 @@ fonts), even if they match PATTERN and FACE.")
   XFontStruct *size_ref;
   Lisp_Object list;
 
+  check_x ();
   CHECK_STRING (pattern, 0);
   if (!NILP (face))
     CHECK_SYMBOL (face, 1);
