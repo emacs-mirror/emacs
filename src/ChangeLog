@@ -1,6 +1,12 @@
+2002-07-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* xdisp.c (face_before_or_after_it_pos): Call
+	FETCH_MULTIBYTE_CHAR with byte postion, not char position.
+
 2002-07-22  Juanma Barranquero  <lektu@terra.es>
 
-	* fileio.c (file_name_as_directory): Use literal '/' instead of DIRECTORY_SEP.
+	* fileio.c (file_name_as_directory): Use literal '/' instead of
+	DIRECTORY_SEP.
 
 2002-07-19  Juanma Barranquero  <lektu@terra.es>
 
