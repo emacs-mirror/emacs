@@ -1914,14 +1914,12 @@ static char *get_system_name_cache;
 static int get_system_name_predump_p;
 
 #ifndef BSD4_1
-#ifndef USG
 #ifndef VMS
 #ifdef HAVE_SOCKETS
 #include <sys/socket.h>
 #include <netdb.h>
 #endif /* HAVE_SOCKETS */
 #endif /* not VMS */
-#endif /* not USG */
 #endif /* not BSD4_1 */
 
 char *
