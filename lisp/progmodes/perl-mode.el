@@ -184,7 +184,9 @@ This is in addition to `perl-continued-statement-offset'.")
 Otherwise it inserts a tab character if you type it past the first
 nonwhite character on the line.")
 
-(defvar perl-tab-to-comment t
+;; I changed the default to nil for consistency with general Emacs
+;; conventions -- rms.
+(defvar perl-tab-to-comment nil
   "*Non-nil means TAB moves to eol or makes a comment in some cases.
 For lines which don't need indenting, TAB either indents an
 existing comment, moves to end-of-line, or if at end-of-line already,
