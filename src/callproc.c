@@ -1272,7 +1272,7 @@ getenv_internal (var, varlen, value, valuelen)
   return 0;
 }
 
-DEFUN ("getenv", Fgetenv, Sgetenv, 1, 1, 0,
+DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 1, 0,
   "Return the value of environment variable VAR, as a string.\n\
 VAR should be a string.  Value is nil if VAR is undefined in the environment.\n\
 This function consults the variable ``process-environment'' for its value.")
@@ -1486,7 +1486,7 @@ when Emacs starts.");
 
 #ifndef VMS
   defsubr (&Scall_process);
-  defsubr (&Sgetenv);
+  defsubr (&Sgetenv_internal);
 #endif
   defsubr (&Scall_process_region);
 }
