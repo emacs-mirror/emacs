@@ -4798,6 +4798,8 @@ x_set_offset (f, xoff, yoff, change_gravity)
      register int xoff, yoff;
      int change_gravity;
 {
+  int modified_top, modified_left;
+
   if (change_gravity)
     {
       f->display.x->top_pos = yoff;
@@ -4814,12 +4816,22 @@ x_set_offset (f, xoff, yoff, change_gravity)
   BLOCK_INPUT;
   x_wm_set_size_hint (f, 0, 0);
 
+  /* It is a mystery why we need to add the border_width here
+     when the frame is already visible, but experiment says we do.  */
+  modified_left = f->display.x->left_pos;
+  modified_top = f->display.x->top_pos;
+  if (change_gravity)
+    {
+      modified_left += f->display.x->border_width;
+      modified_top += f->display.x->border_width;
+    }
+
 #ifdef USE_X_TOOLKIT
   XMoveWindow (FRAME_X_DISPLAY (f), XtWindow (f->display.x->widget),
-	       f->display.x->left_pos, f->display.x->top_pos);
+	       modified_left, modified_top);
 #else /* not USE_X_TOOLKIT */
   XMoveWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-	       f->display.x->left_pos, f->display.x->top_pos);
+	       modified_left, modified_top);
 #endif /* not USE_X_TOOLKIT */
   UNBLOCK_INPUT;
 }
