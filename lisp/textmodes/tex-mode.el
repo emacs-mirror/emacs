@@ -975,6 +975,7 @@ Mark is left at original location."
       (setq tex-shell-map (nconc (make-sparse-keymap) shell-mode-map))
       (tex-define-common-keys tex-shell-map)
       (use-local-map tex-shell-map)
+      (compilation-minor-mode)
       (run-hooks 'tex-shell-hook)
       (while (zerop (buffer-size))
 	(sleep-for 1)))))
