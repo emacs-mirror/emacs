@@ -1383,8 +1383,6 @@ xg_keep_popup (menu, submenu)
                     G_CALLBACK (tearoff_remove), menu);
 }
 
-int xg_debug = 0;
-
 /* Create a menu item widget, and connect the callbacks.
    ITEM decribes the menu item.
    F is the frame the created menu belongs to.
@@ -2949,8 +2947,19 @@ xg_tool_bar_item_expose_callback (w, event, client_data)
      GdkEventExpose *event;
      gpointer client_data;
 {
-  event->area.x = event->area.y = 0;
-  event->area.width = event->area.height = 1000;
+  gint width, height;
+
+  gdk_drawable_get_size (event->window, &width, &height);
+
+  event->area.x -= width > event->area.width ? width-event->area.width : 0;
+  event->area.y -= height > event->area.height ? height-event->area.height : 0;
+
+  event->area.x = max(0, event->area.x);
+  event->area.y = max(0, event->area.y);
+  
+  event->area.width = max (width, event->area.width);
+  event->area.height = max (height, event->area.height);
+  
   return FALSE;
 }
 

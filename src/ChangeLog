@@ -1,3 +1,8 @@
+2003-03-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_item_expose_callback): Reduce size
+	of area to be redrawn for better performance.
+
 2003-03-28  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (take_vertical_position_into_account): Remove.
