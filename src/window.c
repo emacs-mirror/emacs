@@ -2486,10 +2486,17 @@ by `current-window-configuration' (which see).")
     }
 
   FRAME_ROOT_WINDOW (f) = data->root_window;
+  /* We also need to restore the frame's selected window; that's taken
+     care of below, either by calling Fselect_window, or by explicit
+     assignment.  */
 
+#if 0  /* I don't understand why this is needed, and it causes
+	  problems when the frame's old selected window has been
+	  deleted.  */
 #ifdef MULTI_FRAME
   if (f != selected_frame && ! FRAME_TERMCAP_P (f))
     Fselect_frame (WINDOW_FRAME (XWINDOW (data->root_window)), Qnil);
+#endif
 #endif
 
   /* Set the screen height to the value it had before this function.  */
@@ -2504,6 +2511,8 @@ by `current-window-configuration' (which see).")
       else
 	Fset_buffer (XWINDOW (selected_window)->buffer);
     }
+  else
+    FRAME_SELECTED_WINDOW (f) = data->current_window;
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
   return (Qnil);
