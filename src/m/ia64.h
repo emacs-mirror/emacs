@@ -1,12 +1,12 @@
 /* machine description file for the IA-64 architecture.
-   Copyright (C) 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2002, 2003  Free Software Foundation, Inc.
      Contributed by David Mosberger <davidm@hpl.hp.com>
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -122,11 +122,6 @@ Boston, MA 02111-1307, USA.  */
 /* On the 64 bit architecture, we can use 60 bits for addresses */
 
 #define VALBITS         60
-
-/* This definition of MARKBIT is necessary because of the comparison of
-   ARRAY_MARK_FLAG and MARKBIT in an #if in lisp.h, which cpp doesn't like. */
-
-#define MARKBIT         0x8000000000000000L
 
 /* Define XINT and XUINT so that they can take arguments of type int */
 
