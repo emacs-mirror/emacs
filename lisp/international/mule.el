@@ -1162,7 +1162,8 @@ just set the variable `buffer-file-coding-system' directly."
   ;; `set-buffer-major-mode-hook' take care of setting the table.
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input))
-  (set-buffer-modified-p t)
+  (unless nomodify
+    (set-buffer-modified-p t))
   (force-mode-line-update))
 
 (defun revert-buffer-with-coding-system (coding-system &optional force)
