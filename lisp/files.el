@@ -789,6 +789,8 @@ run `normal-mode' explicitly."
 ;;;				  ("[Mm]akefile" . makefile-mode)
 ;;; Less common extensions come here
 ;;; so more common ones above are found faster.
+				  ("\\.texinfo\\'" . texinfo-mode)
+				  ("\\.texi\\'" . texinfo-mode)
 				  ("\\.s\\'" . asm-mode)
 				  ("ChangeLog\\'" . change-log-mode)
 				  ("change.log\\'" . change-log-mode)
@@ -804,8 +806,7 @@ run `normal-mode' explicitly."
 				  ("\\.bib\\'" . bibtex-mode)
 				  ("\\.article\\'" . text-mode)
 				  ("\\.letter\\'" . text-mode)
-				  ("\\.texinfo\\'" . texinfo-mode)
-				  ("\\.texi\\'" . texinfo-mode)
+				  ("\\.tcl\\'" . tcl-mode)
 				  ("\\.lsp\\'" . lisp-mode)
 				  ("\\.awk\\'" . awk-mode)
 				  ("\\.prolog\\'" . prolog-mode)
