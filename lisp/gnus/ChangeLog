@@ -1,3 +1,7 @@
+2003-05-10  Juanma Barranquero  <lektu@terra.es>
+
+	* message.el (message-buffer-naming-style): Fix typo.
+
 2003-05-07  Dave Love  <fx@gnu.org>
 
 	[Partial sync with Gnus.]
