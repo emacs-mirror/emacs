@@ -2136,10 +2136,11 @@ and selects that window."
 (defun mouse-set-font (&rest fonts)
   "Select an emacs font from a list of known good fonts and fontsets."
   (interactive
-   (x-popup-menu
-    last-nonmenu-event
-    ;; Append list of fontsets currently defined.
-    (append x-fixed-font-alist (list (generate-fontset-menu)))))
+   (and (display-multi-font-p)
+	(x-popup-menu
+	 last-nonmenu-event
+	 ;; Append list of fontsets currently defined.
+	 (append x-fixed-font-alist (list (generate-fontset-menu))))))
   (if fonts
       (let (font)
 	(while fonts
@@ -2151,7 +2152,8 @@ and selects that window."
 	    (error
 	     (setq fonts (cdr fonts)))))
 	(if (null font)
-	    (error "Font not found")))))
+	    (error "Font not found")))
+    (message "Cannot change fonts on this display")))
 
 ;;; Bindings for mouse commands.
 
