@@ -1,3 +1,7 @@
+Mon Dec  6 18:54:04 1999  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* insdel.c (adjust_markers_for_delete): Fix last change.
+
 1999-12-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	Changes for automatic remapping of X colors on terminal frames:

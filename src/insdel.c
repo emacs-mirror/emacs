@@ -41,7 +41,7 @@ static void gap_left P_ ((int, int, int));
 static void gap_right P_ ((int, int));
 static void adjust_markers_gap_motion P_ ((int, int, int));
 static void adjust_markers_for_insert P_ ((int, int, int, int, int, int, int));
-adjust_markers_for_delete P_ ((int, int, int, int));
+void        adjust_markers_for_delete P_ ((int, int, int, int));
 static void adjust_markers_for_record_delete P_ ((int, int, int, int));
 static void adjust_point P_ ((int, int));
 
@@ -341,6 +341,7 @@ adjust_markers_gap_motion (from, to, amount)
    This function assumes that the gap is adjacent to
    or inside of the range being deleted.  */
 
+void
 adjust_markers_for_delete (from, from_byte, to, to_byte)
      register int from, from_byte, to, to_byte;
 {
