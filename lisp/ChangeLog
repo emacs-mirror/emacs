@@ -1,5 +1,11 @@
 2004-09-03  Kim F. Storm  <storm@cua.dk>
 
+	* emulation/cua-rect.el (cua--overlay-keymap): New keymap for
+	highlight overlays; allow using RET when cursor is over a button.
+	(cua--highlight-rectangle): Use it.
+	(cua--rectangle-set-corners): Don't move backwards at eol.
+	(cua--forward-line): Don't move into void after eob.
+
 	* emulation/cua-rect.el (cua--rectangle-set-corners): Ensure that
 	point is set (and displayed) inside rectangle.
 	(cua--rectangle-operation): Fix for highlight of empty lines.
