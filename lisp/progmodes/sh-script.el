@@ -236,8 +236,8 @@ By default we have the following three hierarchies:
 
 csh		C Shell
   jcsh		C Shell with Job Control
-  tcsh		Toronto C Shell
-    itcsh	? Toronto C Shell
+  tcsh		Turbo C Shell
+    itcsh	? Turbo C Shell
 rc		Plan 9 Shell
   es		Extensible Shell
 sh		Bourne Shell
@@ -354,39 +354,39 @@ the car and cdr are the same symbol.")
 (defvar sh-shell (sh-canonicalize-shell (file-name-nondirectory sh-shell-file))
   "The shell being programmed.  This is set by \\[sh-set-shell].")
 
-;;; I turned off this feature because it doesn't permit typing commands
-;;; in the usual way without help.
-;;;(defvar sh-abbrevs
-;;;  '((csh eval sh-abbrevs shell
-;;;	 "switch" 'sh-case
-;;;	 "getopts" 'sh-while-getopts)
+;; I turned off this feature because it doesn't permit typing commands
+;; in the usual way without help.
+;;(defvar sh-abbrevs
+;;  '((csh eval sh-abbrevs shell
+;;	 "switch" 'sh-case
+;;	 "getopts" 'sh-while-getopts)
 
-;;;    (es eval sh-abbrevs shell
-;;;	"function" 'sh-function)
+;;    (es eval sh-abbrevs shell
+;;	"function" 'sh-function)
 
-;;;    (ksh88 eval sh-abbrevs sh
-;;;	   "select" 'sh-select)
+;;    (ksh88 eval sh-abbrevs sh
+;;	   "select" 'sh-select)
 
-;;;    (rc eval sh-abbrevs shell
-;;;	"case" 'sh-case
-;;;	"function" 'sh-function)
+;;    (rc eval sh-abbrevs shell
+;;	"case" 'sh-case
+;;	"function" 'sh-function)
 
-;;;    (sh eval sh-abbrevs shell
-;;;	"case" 'sh-case
-;;;	"function" 'sh-function
-;;;	"until" 'sh-until
-;;;	"getopts" 'sh-while-getopts)
+;;    (sh eval sh-abbrevs shell
+;;	"case" 'sh-case
+;;	"function" 'sh-function
+;;	"until" 'sh-until
+;;	"getopts" 'sh-while-getopts)
 
-;;;    ;; The next entry is only used for defining the others
-;;;    (shell "for" sh-for
-;;;	   "loop" sh-indexed-loop
-;;;	   "if" sh-if
-;;;	   "tmpfile" sh-tmp-file
-;;;	   "while" sh-while)
+;;    ;; The next entry is only used for defining the others
+;;    (shell "for" sh-for
+;;	   "loop" sh-indexed-loop
+;;	   "if" sh-if
+;;	   "tmpfile" sh-tmp-file
+;;	   "while" sh-while)
 
-;;;    (zsh eval sh-abbrevs ksh88
-;;;	 "repeat" 'sh-repeat))
-;;;  "Abbrev-table used in Shell-Script mode.  See `sh-feature'.
+;;    (zsh eval sh-abbrevs ksh88
+;;	 "repeat" 'sh-repeat))
+;;  "Abbrev-table used in Shell-Script mode.  See `sh-feature'.
 ;;;Due to the internal workings of abbrev tables, the shell name symbol is
 ;;;actually defined as the table for the like of \\[edit-abbrevs].")
 
@@ -758,7 +758,7 @@ See `sh-feature'."
 See `sh-feature'.")
 
 
-;;; Font-Lock support
+;; Font-Lock support
 
 (defface sh-heredoc-face
   '((((class color)
@@ -818,35 +818,75 @@ See `sh-feature'.")
 (defconst sh-st-symbol (string-to-syntax "_"))
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
-(defun sh-font-lock-heredoc (start string quoted)
-  "Determine the syntax of the \\n after a <<HEREDOC."
-  (unless (sh-in-comment-or-string start)
+(defconst sh-here-doc-open-re "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|\\s_\\)+\\).*\\(\n\\)")
+
+(defvar sh-here-doc-markers nil)
+(make-variable-buffer-local 'sh-here-doc-markers)
+(defvar sh-here-doc-re sh-here-doc-open-re)
+(make-variable-buffer-local 'sh-here-doc-re)
+
+(defun sh-font-lock-close-heredoc (bol eof indented)
+  "Determine the syntax of the \\n after an EOF.
+If non-nil INDENTED indicates that the EOF was indented."
+  (let* (;; A rough regexp that should find the opening <<EOF back.
+	 (sre (concat "<<\\(-?\\)\\s-*['\"\\]?"
+		      ;; Use \s| to cheaply check it's an open-heredoc.
+		      (regexp-quote eof) "['\"]?\\([ \t|;&)<>].*\\)?\\s|"))
+	 ;; A regexp that will find other EOFs.
+	 (ere (concat "^" (if indented "[ \t]*") (regexp-quote eof) "\n"))
+	 (start (save-excursion
+		  (goto-char bol)
+		  (re-search-backward (concat sre "\\|" ere) nil t))))
+    ;; If subgroup 1 matched, we found an open-heredoc, otherwise we first
+    ;; found a close-heredoc which makes the current close-heredoc inoperant.
+    (cond
+     ((when (and start (match-end 1)
+		 (not (and indented (= (match-beginning 1) (match-end 1))))
+		 (not (sh-in-comment-or-string (match-beginning 0))))
+	;; Make sure our `<<' is not the EOF1 of a `cat <<EOF1 <<EOF2'.
+	(save-excursion
+	  (goto-char start)
+	  (setq start (line-beginning-position 2))
+	  (while
+	      (progn
+		(re-search-forward "<<") ; Skip ourselves.
+		(and (re-search-forward sh-here-doc-open-re start 'move)
+		     (goto-char (match-beginning 0))
+		     (sh-in-comment-or-string (point)))))
+	  ;; No <<EOF2 found after our <<.
+	  (= (point) start)))
+      sh-here-doc-syntax)
+     ((not (or start (save-excursion (re-search-forward sre nil t))))
+      ;; There's no <<EOF either before or after us,
+      ;; so we should remove ourselves from font-lock's keywords.
+      (setq sh-here-doc-markers (delete eof sh-here-doc-markers))
+      (setq sh-here-doc-re
+	    (concat sh-here-doc-open-re "\\|^\\([ \t]*\\)"
+		    (regexp-opt sh-here-doc-markers t) "\\(\n\\)"))
+      nil))))
+
+(defun sh-font-lock-open-heredoc (start string)
+  "Determine the syntax of the \\n after a <<EOF.
+START is the position of <<.
+STRING is the actual word used as delimiter (f.ex. \"EOF\").
+INDENTED is non-nil if the here document's content (and the EOF mark) can
+be indented (i.e. a <<- was used rather than just <<)."
+  (unless (or (memq (char-before start) '(?< ?>))
+	      (sh-in-comment-or-string start))
     ;; We're looking at <<STRING, so we add "^STRING$" to the syntactic
     ;; font-lock keywords to detect the end of this here document.
-    (let ((ere (concat
-		"^" (if quoted "[ \t]*")
-		(regexp-quote (replace-regexp-in-string "['\"]" "" string))
-		"\\(\n\\)")))
-      (unless (assoc ere font-lock-syntactic-keywords)
-	(let* (	;; A rough regexp that should find us back.
-	       (sre (concat "<<\\(-\\)?\\s-*\\\\?['\"]?"
-			    (regexp-quote string) "['\"]?[ \t\n]"))
-	       (code `(cond
-		       ((save-excursion (re-search-backward ,sre nil t))
-			;; This ^STRING$ is indeed following a <<STRING
-			sh-here-doc-syntax)
-		       ((not (save-excursion (re-search-forward ,sre nil t)))
-			;; There's no <<STRING either before or after us,
-			;; so we should remove this now obsolete entry.
-			(setq font-lock-syntactic-keywords
-			      (delq (assoc ,ere font-lock-syntactic-keywords)
-				    font-lock-syntactic-keywords))
-			nil))))
-	  ;; Use destructive update so the new keyword gets used right away.
-	  (setq font-lock-syntactic-keywords
-		(nconc font-lock-syntactic-keywords
-		       (list (font-lock-compile-keyword `(,ere 1 ,code))))))))
+    (let ((str (replace-regexp-in-string "['\"]" "" string)))
+      (unless (member str sh-here-doc-markers)
+	(push str sh-here-doc-markers)
+	(setq sh-here-doc-re
+	      (concat sh-here-doc-open-re "\\|^\\([ \t]*\\)"
+		      (regexp-opt sh-here-doc-markers t) "\\(\n\\)"))))
     sh-here-doc-syntax))
+
+(defun sh-font-lock-here-doc (limit)
+  "Search for a heredoc marker."
+  ;; This looks silly, but it's because `sh-here-doc-re' keeps changing.
+  (re-search-forward sh-here-doc-re limit t))
 
 (defun sh-font-lock-paren (start)
   (save-excursion
@@ -875,9 +915,12 @@ See `sh-feature'.")
   ;; of the shell command language (under `quoting') but with `$' removed.
   `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
     ;; Find HEREDOC starters and add a corresponding rule for the ender.
-    ("[^<>]<<\\(-\\)?\\s-*\\\\?\\(\\(['\"][^'\"]+['\"]\\|\\sw\\|\\s_\\)+\\).*\\(\n\\)"
-     4 (sh-font-lock-heredoc
-	(match-beginning 0) (match-string 2) (match-end 1)))
+    (sh-font-lock-here-doc
+     (2 (sh-font-lock-open-heredoc
+	 (match-beginning 0) (match-string 1)) nil t)
+     (5 (sh-font-lock-close-heredoc
+	 (match-beginning 0) (match-string 4)
+	 (/= (match-beginning 3) (match-end 3))) nil t))
     ;; Distinguish the special close-paren in `case'.
     (")" 0 (sh-font-lock-paren (match-beginning 0)))))
 
@@ -1268,9 +1311,7 @@ with your script for an edit-interpret-debug cycle."
 	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
 	  nil nil
 	  ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-	  (font-lock-syntactic-keywords
-	   ;; Copy so we can use destructive update in `sh-font-lock-heredoc'.
-	   . ,(copy-sequence sh-font-lock-syntactic-keywords))
+	  (font-lock-syntactic-keywords . sh-font-lock-syntactic-keywords)
 	  (font-lock-syntactic-face-function
 	   . sh-font-lock-syntactic-face-function))
 	skeleton-pair-alist '((?` _ ?`))
@@ -1310,21 +1351,17 @@ This adds rules for comments and assignments."
 
 (defun sh-font-lock-keywords-1 (&optional builtins)
   "Function to get better fontification including keywords."
-  (let ((keywords (concat "\\([;(){}`|&]\\|^\\)[ \t]*\\(\\(\\("
-			  (mapconcat 'identity
-				     (sh-feature sh-leading-keywords)
-				     "\\|")
-			  "\\)[ \t]+\\)?\\("
-			  (mapconcat 'identity
-				     (append (sh-feature sh-leading-keywords)
-					     (sh-feature sh-other-keywords))
-				     "\\|")
-			  "\\)")))
+  (let ((keywords (concat "\\([;(){}`|&]\\|^\\)[ \t]*\\(\\("
+			  (regexp-opt (sh-feature sh-leading-keywords) t)
+			  "[ \t]+\\)?"
+			  (regexp-opt (append (sh-feature sh-leading-keywords)
+					      (sh-feature sh-other-keywords))
+				      t))))
     (sh-font-lock-keywords
      `(,@(if builtins
-	     `((,(concat keywords "[ \t]+\\)?\\("
-			 (mapconcat 'identity (sh-feature sh-builtins) "\\|")
-			 "\\)\\>")
+	     `((,(concat keywords "[ \t]+\\)?"
+			 (regexp-opt (sh-feature sh-builtins) t)
+			 "\\>")
 		(2 font-lock-keyword-face nil t)
 		(6 font-lock-builtin-face))
 	       ,@(sh-feature sh-font-lock-keywords-2)))
@@ -1500,37 +1537,37 @@ in ALIST."
 
 
 
-;;; I commented this out because nobody calls it -- rms.
-;;;(defun sh-abbrevs (ancestor &rest list)
-;;;  "Iff it isn't, define the current shell as abbrev table and fill that.
-;;;Abbrev table will inherit all abbrevs from ANCESTOR, which is either an abbrev
-;;;table or a list of (NAME1 EXPANSION1 ...).  In addition it will define abbrevs
-;;;according to the remaining arguments NAMEi EXPANSIONi ...
-;;;EXPANSION may be either a string or a skeleton command."
-;;;  (or (if (boundp sh-shell)
-;;;	  (symbol-value sh-shell))
-;;;      (progn
-;;;	(if (listp ancestor)
-;;;	    (nconc list ancestor))
-;;;	(define-abbrev-table sh-shell ())
-;;;	(if (vectorp ancestor)
-;;;	    (mapatoms (lambda (atom)
-;;;			(or (eq atom 0)
-;;;			    (define-abbrev (symbol-value sh-shell)
-;;;			      (symbol-name atom)
-;;;			      (symbol-value atom)
-;;;			      (symbol-function atom))))
-;;;		      ancestor))
-;;;	(while list
-;;;	  (define-abbrev (symbol-value sh-shell)
-;;;	    (car list)
-;;;	    (if (stringp (car (cdr list)))
-;;;		(car (cdr list))
-;;;	      "")
-;;;	    (if (symbolp (car (cdr list)))
-;;;		(car (cdr list))))
-;;;	  (setq list (cdr (cdr list)))))
-;;;      (symbol-value sh-shell)))
+;; I commented this out because nobody calls it -- rms.
+;;(defun sh-abbrevs (ancestor &rest list)
+;;  "Iff it isn't, define the current shell as abbrev table and fill that.
+;;Abbrev table will inherit all abbrevs from ANCESTOR, which is either an abbrev
+;;table or a list of (NAME1 EXPANSION1 ...).  In addition it will define abbrevs
+;;according to the remaining arguments NAMEi EXPANSIONi ...
+;;EXPANSION may be either a string or a skeleton command."
+;;  (or (if (boundp sh-shell)
+;;	  (symbol-value sh-shell))
+;;      (progn
+;;	(if (listp ancestor)
+;;	    (nconc list ancestor))
+;;	(define-abbrev-table sh-shell ())
+;;	(if (vectorp ancestor)
+;;	    (mapatoms (lambda (atom)
+;;			(or (eq atom 0)
+;;			    (define-abbrev (symbol-value sh-shell)
+;;			      (symbol-name atom)
+;;			      (symbol-value atom)
+;;			      (symbol-function atom))))
+;;		      ancestor))
+;;	(while list
+;;	  (define-abbrev (symbol-value sh-shell)
+;;	    (car list)
+;;	    (if (stringp (car (cdr list)))
+;;		(car (cdr list))
+;;	      "")
+;;	    (if (symbolp (car (cdr list)))
+;;		(car (cdr list))))
+;;	  (setq list (cdr (cdr list)))))
+;;      (symbol-value sh-shell)))
 
 
 (defun sh-append (ancestor &rest list)
@@ -1675,9 +1712,9 @@ which in this buffer is currently %s.
 
 \t%s."
 		    sh-basic-offset
-		    (mapconcat  (lambda (x)
-				  (nth (1- (length x)) x))
-				sh-symbol-list  "\n\t"))))
+		    (mapconcat (lambda (x)
+				 (nth (1- (length x)) x))
+			       sh-symbol-list  "\n\t"))))
     (concat
      ;; The following shows the global not the local value!
      ;; (format "Current value of %s is %s\n\n" var (symbol-value var))
@@ -1701,10 +1738,8 @@ which in this buffer is currently %s.
 (defun sh-in-comment-or-string (start)
   "Return non-nil if START is in a comment or string."
   (save-excursion
-    (let (state)
-      (beginning-of-line)
-      (setq state (parse-partial-sexp (point) start nil nil nil t))
-      (or (nth 3 state)(nth 4 state)))))
+    (let ((state (syntax-ppss start)))
+      (or (nth 3 state) (nth 4 state)))))
 
 (defun sh-goto-matching-if ()
   "Go to the matching if for a fi.
@@ -2438,7 +2473,7 @@ If INFO is supplied it is used, else it is calculated from current line."
 	nil)))))
 
 
-(defun sh-indent-line (&optional prefix-arg)
+(defun sh-indent-line ()
   "Indent the current line."
   (interactive)
   (sh-must-be-shell-mode)
@@ -2663,7 +2698,7 @@ so that `occur-next' and `occur-prev' will work."
 ;; Is this really worth having?
 (defvar sh-learned-buffer-hook nil
   "*An abnormal hook, called with an alist of learned variables.")
-;;; Example of how to use sh-learned-buffer-hook
+;; Example of how to use sh-learned-buffer-hook
 ;; 
 ;; (defun what-i-learned (list)
 ;;   (let ((p list))
@@ -3054,7 +3089,7 @@ This is always added to the end of the buffer."
        < "default:" \n
        > _ \n
        resume:
-       < < "endsw")
+       < < "endsw" \n)
   (es)
   (rc "expression: "
       > "switch( " str " ) {" \n
@@ -3066,7 +3101,7 @@ This is always added to the end of the buffer."
       "case *" > \n
       > _ \n
       resume:
-      ?} > )
+      ?} > \n)
   (sh "expression: "
       > "case " str " in" \n
       > (read-string "pattern: ")
@@ -3081,7 +3116,7 @@ This is always added to the end of the buffer."
       > "*" (propertize ")" 'syntax-table sh-st-punc) \n
       > _ \n
       resume:
-      "esac" > ))
+      "esac" > \n))
 
 (define-skeleton sh-for
   "Insert a for loop.  See `sh-feature'."
@@ -3101,7 +3136,7 @@ This is always added to the end of the buffer."
   (sh "Index variable: "
       > "for " str " in " _ "; do" \n
       > _ | ?$ & (sh-remember-variable str) \n
-      "done" > ))
+      "done" > \n))
 
 
 
@@ -3113,7 +3148,7 @@ This is always added to the end of the buffer."
        "while( $" str " <= " (read-string "upper limit: ") " )" \n
        > _ ?$ str \n
        "@ " str "++" \n
-       < "end")
+       < "end" \n)
   (es eval sh-modify rc
       4 " =")
   (ksh88 "Index variable: "
@@ -3122,7 +3157,7 @@ This is always added to the end of the buffer."
 	 (read-string "upper limit: ")
 	 " )); do" \n
 	 > _ ?$ (sh-remember-variable str) > \n
-	 "done" > )
+	 "done" > \n)
   (posix "Index variable: "
 	 > str "=1" \n
 	 "while [ $" str " -le "
@@ -3130,19 +3165,19 @@ This is always added to the end of the buffer."
 	 " ]; do" \n
 	 > _ ?$ str \n
 	 str ?= (sh-add (sh-remember-variable str) 1) \n
-	 "done" > )
+	 "done" > \n)
   (rc "Index variable: "
       > "for( " str " in" " `{awk 'BEGIN { for( i=1; i<="
       (read-string "upper limit: ")
       "; i++ ) print i }'`}) {" \n
       > _ ?$ (sh-remember-variable str) \n
-      ?} >)
+      ?} > \n)
   (sh "Index variable: "
       > "for " str " in `awk 'BEGIN { for( i=1; i<="
       (read-string "upper limit: ")
       "; i++ ) print i }'`; do" \n
       > _ ?$ (sh-remember-variable str) \n
-      "done" > ))
+      "done" > \n))
 
 
 (defun sh-shell-initialize-variables ()
@@ -3219,13 +3254,13 @@ t means to return a list of all possible completions of STRING.
   (ksh88 "name: "
 	 "function " str " {" \n
 	 > _ \n
-	 < "}")
+	 < "}" \n)
   (rc eval sh-modify ksh88
       1 "fn ")
   (sh ()
       "() {" \n
       > _ \n
-      < "}"))
+      < "}" \n))
 
 
 
@@ -3240,7 +3275,7 @@ t means to return a list of all possible completions of STRING.
        < "else" \n
        > _ \n
        resume:
-       < "endif")
+       < "endif" \n)
   (es "condition: "
       > "if { " str " } {" \n
       > _ \n
@@ -3250,7 +3285,7 @@ t means to return a list of all possible completions of STRING.
       "} {" > \n
       > _ \n
       resume:
-      ?} > )
+      ?} > \n)
   (rc "condition: "
       > "if( " str " ) {" \n
       > _ \n
@@ -3260,8 +3295,7 @@ t means to return a list of all possible completions of STRING.
       "} else {" > \n
       > _ \n
       resume:
-      ?} >
-      )
+      ?} > \n)
   (sh "condition: "
       '(setq input (sh-feature sh-test))
       > "if " str "; then" \n
@@ -3272,7 +3306,7 @@ t means to return a list of all possible completions of STRING.
       "else" > \n
       > \n
       resume:
-      "fi" > ))
+      "fi" > \n))
 
 
 
@@ -3281,11 +3315,11 @@ t means to return a list of all possible completions of STRING.
   (es nil
       > "forever {" \n
       > _ \n
-      ?} > )
+      ?} > \n)
   (zsh "factor: "
        > "repeat " str "; do" > \n
        >  \n
-       "done" > ))
+       "done" > \n))
 
 ;;;(put 'sh-repeat 'menu-enable '(sh-feature sh-repeat))
 
@@ -3296,7 +3330,7 @@ t means to return a list of all possible completions of STRING.
   (ksh88 "Index variable: "
 	 > "select " str " in " _ "; do" \n
 	 > ?$ str \n
-	 "done" > )
+	 "done" > \n)
   (bash eval sh-append ksh88))
 ;;;(put 'sh-select 'menu-enable '(sh-feature sh-select))
 
@@ -3312,7 +3346,7 @@ t means to return a list of all possible completions of STRING.
 	    (not (bolp))
 	    ?\n)
        "exit:\n"
-       "rm $tmp* >&/dev/null" >)
+       "rm $tmp* >&/dev/null" > \n)
   (es (file-name-nondirectory (buffer-file-name))
       > "local( signals = $signals sighup sigint; tmp = /tmp/" str
       ".$pid ) {" \n
@@ -3322,15 +3356,15 @@ t means to return a list of all possible completions of STRING.
       "} {" > \n
       _ \n
       ?} > \n
-      ?} > )
+      ?} > \n)
   (ksh88 eval sh-modify sh
 	 7 "EXIT")
   (rc (file-name-nondirectory (buffer-file-name))
       > "tmp = /tmp/" str ".$pid" \n
-      "fn sigexit { rm $tmp^* >[2]/dev/null }")
+      "fn sigexit { rm $tmp^* >[2]/dev/null }" \n)
   (sh (file-name-nondirectory (buffer-file-name))
       > "TMP=${TMPDIR:-/tmp}/" str ".$$" \n
-      "trap \"rm $TMP* 2>/dev/null\" " ?0))
+      "trap \"rm $TMP* 2>/dev/null\" " ?0 \n))
 
 
 
@@ -3340,7 +3374,7 @@ t means to return a list of all possible completions of STRING.
       '(setq input (sh-feature sh-test))
       > "until " str "; do" \n
       > _ \n
-      "done" > ))
+      "done" > \n))
 ;;;(put 'sh-until 'menu-enable '(sh-feature sh-until))
 
 
@@ -3365,7 +3399,7 @@ t means to return a list of all possible completions of STRING.
       '(setq input (sh-feature sh-test))
       > "while " str "; do" \n
       > _ \n
-      "done" > ))
+      "done" > \n))
 
 
 
@@ -3397,7 +3431,7 @@ option followed by a colon `:' if the option accepts an argument."
        resume:
        < < "endsw" \n
        "shift" \n
-       < "end")
+       < "end" \n)
   (ksh88 eval sh-modify sh
 	 16 "print"
 	 18 "${0##*/}"
@@ -3430,7 +3464,7 @@ option followed by a colon `:' if the option accepts an argument."
       "esac" >
       \n "done"
       > \n
-      "shift " (sh-add "OPTIND" -1)))
+      "shift " (sh-add "OPTIND" -1) \n))
 
 
 
