@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.27) $
+ * $HopeName: MMsrc!config.h(trunk.28) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -118,19 +118,20 @@
 #error "No target variety configured."
 #endif
 
-
-/* Product Configuration
- *
- * Convert CONFIG_PROD_* defined on compiler command line into
- * internal configuration parameters.  See design.mps.config.prod.
- */
-
 /* .ams-size: POOLAMS_MINIMUM_BENEFIT_SIZE is the size at which an AMS
  * pool will first be recommended for condemnation. See
  * design.mps.poolams.benefit.guess. This benefit computation is bogus
  * and will go away in time. */
 
 #define POOLAMS_MINIMUM_BENEFIT_SIZE (1024ul * 1024)
+
+/* .epvm.subsequent-segment: POOLEPVM_DEFAULT_SUBSEQUENT_SEG_SIZE is
+ * a default for the alignment of subsequent segments (non-initial
+ * at each save level) in EPVM.  See
+ * design.mps.poolepvm:arch.segment.size.
+ */
+
+#define POOLEPVM_DEFAULT_SUBSEQUENT_SEG_SIZE (64ul * 1024)
  
 /* .prod.arena-size: ARENA_SIZE is currently set larger for the
  * MM/Dylan product as an interim solution.
@@ -150,6 +151,13 @@
  * request.epcore.170193).  ARENA_DEFAULT_REFSET has the same role for
  * refset-based placement; again, for EPcore, we reserve half the arena
  * for non-DL.
+ */
+
+
+/* Product Configuration
+ *
+ * Convert CONFIG_PROD_* defined on compiler command line into
+ * internal configuration parameters.  See design.mps.config.prod.
  */
 
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
