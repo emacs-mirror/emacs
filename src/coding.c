@@ -3045,12 +3045,18 @@ setup_coding_system (coding_system, coding)
 	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
       {
 	Lisp_Object val = XVECTOR (coding_spec)->contents[4];
+	Lisp_Object decoder, encoder;
+
 	if (CONSP  (val)
-	    && VECTORP (XCONS (val)->car)
-	    && VECTORP (XCONS (val)->cdr))
+	    && SYMBOLP (XCONS (val)->car)
+	    && !NILP (decoder = Fget (XCONS (val)->car, Qccl_program_idx))
+	    && (decoder = Fcdr (Faref (Vccl_program_table, decoder)))
+	    && SYMBOLP (XCONS (val)->cdr)
+	    && !NILP (encoder = Fget (XCONS (val)->cdr, Qccl_program_idx))
+	    && (encoder = Fcdr (Faref (Vccl_program_table, encoder))))
 	  {
-	    setup_ccl_program (&(coding->spec.ccl.decoder), XCONS (val)->car);
-	    setup_ccl_program (&(coding->spec.ccl.encoder), XCONS (val)->cdr);
+	    setup_ccl_program (&(coding->spec.ccl.decoder), decoder);
+	    setup_ccl_program (&(coding->spec.ccl.encoder), encoder);
 	  }
 	else
 	  goto label_invalid_coding_system;
