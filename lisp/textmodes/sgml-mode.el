@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes
 
-;; Copyright (C) 1992,95,96,98,2001,2002  Free Software Foundation, Inc.
+;; Copyright (C) 1992,95,96,98,2001,2002, 2003  Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -263,7 +263,7 @@ Any terminating `>' or `/' is not matched.")
 		      (regexp-opt (mapcar 'car sgml-tag-face-alist) t)
 		      "\\([ \t][^>]*\\)?>\\([^<]+\\)</\\1>")
 	      '(3 (cdr (assoc (downcase (match-string 1))
-			      sgml-tag-face-alist))))))))
+			      sgml-tag-face-alist)) prepend))))))
 
 ;; for font-lock, but must be defvar'ed after
 ;; sgml-font-lock-keywords-1 and sgml-font-lock-keywords-2 above
