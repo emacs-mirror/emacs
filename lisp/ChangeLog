@@ -1,3 +1,8 @@
+2001-11-18  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-cannot-complete-hook): New variable to
+	control behaviour when no further completion is possible.
+
 2001-11-19  Colin Walters  <walters@verbum.org>
 
 	* calc/calc-macs.el (calc-wrapper, calc-slow-wrapper)
