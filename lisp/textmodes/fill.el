@@ -101,7 +101,8 @@ number equals or exceeds the local fill-column - right-margin difference."
 
 (defun canonically-space-region (beg end)
   "Remove extra spaces between words in region.
-Puts one space between words in region; two between sentences.
+Leave one space between words, two at end of sentences or after colons
+(depending on values of `sentence-end-double-space' and `colon-double-space').
 Remove indentation from each line."
   (interactive "r")
   (save-excursion
@@ -130,7 +131,10 @@ Remove indentation from each line."
     (goto-char beg)
     (while (and (< (point) end)
 		(re-search-forward "[.?!][])}\"']*$" end t))
-      (insert-and-inherit ? ))))
+      ;; We insert before markers in case a caller such as
+      ;; do-auto-fill has done a save-excursion with point at the end
+      ;; of the line and wants it to stay at the end of the line.
+      (insert-before-markers-and-inherit ? ))))
 
 (defun fill-context-prefix (from to &optional first-line-regexp)
   "Compute a fill prefix from the text between FROM and TO.
@@ -163,7 +167,8 @@ first line, insist it must match FIRST-LINE-REGEXP."
 		 (string-match first-line-regexp result))
 	     result)))))
 
-(defun fill-region-as-paragraph (from to &optional justify nosqueeze)
+(defun fill-region-as-paragraph (from to &optional justify
+				      nosqueeze squeeze-after)
   "Fill the region as one paragraph.
 It removes any paragraph breaks in the region and extra newlines at the end,
 indents and fills lines between the margins given by the
@@ -174,8 +179,9 @@ Normally performs justification according to the `current-justification'
 function, but with a prefix arg, does full justification instead.
 
 From a program, optional third arg JUSTIFY can specify any type of
-justification, and fourth arg NOSQUEEZE non-nil means not to make spaces
-between words canonical before filling.
+justification.  Fourth arg NOSQUEEZE non-nil means not to make spaces
+between words canonical before filling.  Firth arg SQUEEZE-AFTER, if non-nil,
+means don't canonicalize spaces before that position.
 
 If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
@@ -266,7 +272,8 @@ space does not end a sentence, so don't break a line there."
 			 (delete-region (point) (match-end 0)))
 		     (forward-line 1))
 		   (goto-char from)
-		   (and (looking-at fpre) (goto-char (match-end 0)))
+		   (if (looking-at fpre)
+		       (goto-char (match-end 0)))
 		   (setq from (point)))))
 	  ;; Remove indentation from lines other than the first.
 	  (beginning-of-line 2)
@@ -286,7 +293,7 @@ space does not end a sentence, so don't break a line there."
 	  (subst-char-in-region from (point-max) ?\n ?\ )
 	  (if (and nosqueeze (not (eq justify 'full)))
 	      nil
-	    (canonically-space-region (point) (point-max))
+	    (canonically-space-region (or squeeze-after (point)) (point-max))
 	    (goto-char (point-max))
 	    (delete-horizontal-space)
 	    (insert-and-inherit " "))
