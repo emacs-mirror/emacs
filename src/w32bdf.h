@@ -28,9 +28,29 @@ Boston, MA 02111-1307, USA.  */
 #define BDF_SECOND_OFFSET_TABLE 0x80
 #define BDF_SECOND_OFFSET(x) ((x) & 0x7f)
 #define BDF_FIRST_OFFSET(x) (((x) >> 8) | (((x) & 0x80) << 1))
+#define BDF_CODEPOINT_MAX (BDF_FIRST_OFFSET_TABLE * BDF_SECOND_OFFSET_TABLE)
+#define BDF_CODEPOINT_RANGE_COVER_P(x) (((x) >= 0) && ((x) <= BDF_CODEPOINT_MAX))
 
-#define BDF_FONT_CACHE_SIZE 5000
-#define BDF_FONT_CLEAR_SIZE 1000
+#define BDF_FONT_CACHE_SIZE 3000
+#define BDF_FONT_CLEAR_SIZE 600
+
+/* 
+   GLYPH METRIC (# ... character's reference point)
+   ^
+ y |              (urx, ury)
+   |  ^ +----------------+
+ a | b| |character       | <- font bounding Box
+ x | b| |                |
+ i | h| | #(bbox, bboy)  |
+ s |  v +----------------+
+   |   (llx, lly)
+   |    <---------------->
+   |           bbw
+   +----------------------->
+   origin     x axis
+ */
+
+
 
 /* Structure of glyph information of one character.  */
 typedef struct
@@ -42,7 +62,8 @@ typedef struct
 typedef struct
 {
   glyph_metric metric;
-  int bitmap_size;		/* byte lengh of the following slots */
+  int row_byte_size;            /* size in bytes occupied by one row of the bitmap */
+  int bitmap_size;		/* size in bytes of the following slots */
   unsigned char *bitmap;	/*  */
 } glyph_struct;
 
@@ -52,7 +73,9 @@ typedef struct
 {
   glyph_metric metric;
   pfont_char psrc;
-  HBITMAP hbmp;
+  int row_byte_size;
+  int bitmap_size;
+  unsigned char *pbmp;
 } cache_bitmap;
 
 typedef struct fchar
@@ -69,7 +92,6 @@ typedef struct
   unsigned char *font;
   unsigned char *seeked;
   DWORD size;
-
   font_char *chtbl[BDF_FIRST_OFFSET_TABLE];
   int llx, lly, urx, ury;	/* Font bounding box */
 
@@ -86,7 +108,6 @@ typedef struct
   int height;
   int pixsz;
 } bdffont;
-
 
 #define BDF_FILE_SIZE_MAX 256*1024*1024 /* 256Mb */
 #define BDF_FONT_FILE(font) (((bdffont*)(font))->filename)
