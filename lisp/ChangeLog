@@ -1,3 +1,7 @@
+2004-12-19  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-1-click-follows-link): Doc fix.
+
 2004-12-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (encoding-vector, mac-font-encoder-list)
