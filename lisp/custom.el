@@ -319,12 +319,12 @@ information."
 
 (defun custom-add-to-group (group option widget)
   "To existing GROUP add a new OPTION of type WIDGET.
-If there already is an entry for that option, overwrite it."
-  (let* ((members (get group 'custom-group))
-	 (old (assq option members)))
-    (if old
-	(setcar (cdr old) widget)
-      (put group 'custom-group (nconc members (list (list option widget)))))))
+If there already is an entry for OPTION and WIDGET, nothing is done."
+  (let ((members (get group 'custom-group))
+	(entry (list option widget)))
+    (message "adding %s" entry)
+    (unless (member entry members)
+      (put group 'custom-group (nconc members (list entry))))))
 
 ;;; Properties.
 
