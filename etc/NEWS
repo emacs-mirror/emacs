@@ -53,6 +53,11 @@ only happen after 0.25s of idle time.
 will now be extended each time, so you can mark the next two sexps with
 M-C-SPC M-C-SPC, for example.
 
++++
+** M-h (mark-pagaraph) now accepts a prefix arg.  If positive, mark
+current and following pargraphs; if negative, mark current and
+preceding paragraphs.
+
 ** mouse-wheels can now scroll a specific fraction of the window
 (rather than a fixed number of lines) and the scrolling is `progressive'.
 
