@@ -1,4 +1,6 @@
-1999-11-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* emacs-lisp/advice.el: Many doc fixes.
 
 	* comint.el (comint-preoutput-filter-functions): Doc fix.
 

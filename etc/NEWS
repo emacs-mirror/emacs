@@ -579,7 +579,6 @@ functionality with aliases for the mldrag functions.
 
 ** Not new, but not mentioned before:
 M-w when Transient Mark mode is enabled disables the mark.
-
 
 * Lisp changes in Emacs 21.1 (see following page for display-related features)
 
