@@ -22,6 +22,8 @@
 	(info-apropos): Remove middle `.' from index entry regexp.
 	Add optional line number regexp at the end.  Add matched value
 	for line number to the result list and insert it to the buffer.
+	Replace match-string by match-string-no-properties.
+	Reorder result list.
 	(Info-fontify-node): Hide index line numbers.
 	(Info-goto-node): Replace "\\s *\\'" by "\\s +\\'" to not trim
 	empty matches.
