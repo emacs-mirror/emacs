@@ -7,6 +7,8 @@
 
 	* startup.el (command-line-1): Stop startup-echo-area-message
 	being hidden by "Loading image..." message.
+	(use-fancy-splash-screens-p, display-splash-screen): Move
+	display-graphic-p test from latter to former.
 
 	* progmodes/sh-script.el (sh-font-lock-keywords): Highlight
 	escaped EOLs differently from other backslash constructs.
