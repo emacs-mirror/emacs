@@ -370,7 +370,8 @@ supplied, it defaults to the current buffer.
 @defvar buffer-file-name
 This buffer-local variable contains the name of the file being visited
 in the current buffer, or @code{nil} if it is not visiting a file.  It
-is a permanent local variable, unaffected by @code{kill-local-variables}.
+is a permanent local variable, unaffected by
+@code{kill-all-local-variables}.
 
 @example
 @group
@@ -389,14 +390,14 @@ Emacs.
 @defvar buffer-file-truename
 This buffer-local variable holds the truename of the file visited in the
 current buffer, or @code{nil} if no file is visited.  It is a permanent
-local, unaffected by @code{kill-local-variables}.  @xref{Truenames}.
+local, unaffected by @code{kill-all-local-variables}.  @xref{Truenames}.
 @end defvar
 
 @defvar buffer-file-number
 This buffer-local variable holds the file number and directory device
 number of the file visited in the current buffer, or @code{nil} if no
 file or a nonexistent file is visited.  It is a permanent local,
-unaffected by @code{kill-local-variables}.
+unaffected by @code{kill-all-local-variables}.
 
 The value is normally a list of the form @code{(@var{filenum}
 @var{devnum})}.  This pair of numbers uniquely identifies the file among

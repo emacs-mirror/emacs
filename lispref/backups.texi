@@ -61,7 +61,7 @@ saving the buffer the first time.
 been backed up on account of this buffer.  If it is non-@code{nil}, then
 the backup file has been written.  Otherwise, the file should be backed
 up when it is next saved (if backups are enabled).  This is a
-permanent local; @code{kill-local-variables} does not alter it.
+permanent local; @code{kill-all-local-variables} does not alter it.
 @end defvar
 
 @defopt make-backup-files
@@ -241,9 +241,10 @@ versions to delete, but does not delete them itself.
 
 @tindex delete-old-versions
 @defopt delete-old-versions
-If this variable is non-@code{nil}, then saving a file deletes excess
-backup versions silently.  Otherwise, it asks the user whether to delete
-them.
+If this variable is @code{t}, then saving a file deletes excess
+backup versions silently.  If it is @code{nil}, that means
+to ask for confirmation before deleting excess backups.
+Otherwise, they are not deleted at all.
 @end defopt
 
 @defopt dired-kept-versions
@@ -283,7 +284,7 @@ The standard definition of this function is as follows:
 (defun backup-file-name-p (file)
   "Return non-nil if FILE is a backup file \
 name (numeric or not)..."
-  (string-match "~$" file))
+  (string-match "~\\'" file))
 @end group
 @end smallexample
 
@@ -308,7 +309,7 @@ as follows:
 @smallexample
 @group
 (defun make-backup-file-name (file)
-  "Create the non-numeric backup file name for FILE@enddots{}"
+  "Create the non-numeric backup file name for FILE..."
   (concat file "~"))
 @end group
 @end smallexample
@@ -391,7 +392,7 @@ should not be auto-saved.
 @example
 @group
 buffer-auto-save-file-name
-=> "/xcssun/users/rms/lewis/#files.texi#"
+     @result{} "/xcssun/users/rms/lewis/#backups.texi#"
 @end group
 @end example
 @end defvar
@@ -399,7 +400,7 @@ buffer-auto-save-file-name
 @deffn Command auto-save-mode arg
 When used interactively without an argument, this command is a toggle
 switch: it turns on auto-saving of the current buffer if it is off, and
-vice-versa.  With an argument @var{arg}, the command turns auto-saving
+vice versa.  With an argument @var{arg}, the command turns auto-saving
 on if the value of @var{arg} is @code{t}, a nonempty list, or a positive
 integer.  Otherwise, it turns auto-saving off.
 @end deffn
@@ -414,14 +415,14 @@ name.  The argument @var{filename} should not contain a directory part.
 @example
 @group
 (make-auto-save-file-name)
-     @result{} "/xcssun/users/rms/lewis/#files.texi#"
+     @result{} "/xcssun/users/rms/lewis/#backups.texi#"
 @end group
 @group
-(auto-save-file-name-p "#files.texi#")
+(auto-save-file-name-p "#backups.texi#")
      @result{} 0
 @end group
 @group
-(auto-save-file-name-p "files.texi")
+(auto-save-file-name-p "backups.texi")
      @result{} nil
 @end group
 @end example
@@ -452,7 +453,7 @@ function should check that variable first.
 @example
 @group
 (make-auto-save-file-name)
-     @result{} "/xcssun/users/rms/lewis/#backup.texi#"
+     @result{} "/xcssun/users/rms/lewis/#backups.texi#"
 @end group
 @end example
 
@@ -462,7 +463,7 @@ The standard definition of this function is as follows:
 @group
 (defun make-auto-save-file-name ()
   "Return file name to use for auto-saves \
-of current buffer@enddots{}"
+of current buffer.."
   (if buffer-file-name
 @end group
 @group
@@ -516,9 +517,14 @@ enabled.
 @defopt auto-save-timeout
 The value of this variable is the number of seconds of idle time that
 should cause auto-saving.  Each time the user pauses for this long,
-Emacs does auto-saving for all buffers in which that is enabled.
-(Actually, the specified timeout is multiplied by a factor depending on
-the size of the current buffer.)
+Emacs does auto-saving for all buffers in which that is enabled.  (If
+the current buffer is large, the specified timeout is multiplied by a
+factor that depends increases as the size increases; for a million-byte
+buffer, the factor is almost 4.)
+
+If the value is zero or nil, then auto-saving is not done as a result
+of idleness, only after a certain number of input events
+as specified by @code{auto-save-interval}.
 @end defopt
 
 @defvar auto-save-hook
@@ -595,6 +601,15 @@ with @samp{.saves-}.  It also contains the Emacs process @sc{id} and the
 host name.
 @end defvar
 
+@defvar auto-save-list-file-prefix
+@tindex auto-save-list-file-prefix
+After Emacs reads your init file, it initializes
+@code{auto-save-list-file-name} (if you have not already set it
+non-@code{nil}) based on this prefix, adding the host name and process
+ID.  If you set this to @code{nil} in your init file, then Emacs does
+not initialize @code{auto-save-list-file-name}.
+@end defvar
+
 @node Reverting
 @section Reverting
 
@@ -629,7 +644,7 @@ the buffer.  Preserving any additional markers would be problematical.
 @end deffn
 
 You can customize how @code{revert-buffer} does its work by setting
-these variables---typically, as buffer-local variables.
+the variables described in the rest of this section.
 
 @defvar revert-without-query
 This variable holds a list of files that should be reverted without
@@ -639,6 +654,9 @@ on disk but the buffer is not modified, then @code{revert-buffer}
 reverts the file without asking the user for confirmation.
 @end defvar
 
+  Some major modes customize @code{revert-buffer} by making
+buffer-local bindings for these variables:
+
 @defvar revert-buffer-function
 The value of this variable is the function to use to revert this buffer.
 If non-@code{nil}, it is called as a function with no arguments to do
@@ -647,7 +665,7 @@ usual way.
 
 Modes such as Dired mode, in which the text being edited does not
 consist of a file's contents but can be regenerated in some other
-fashion, give this variable a buffer-local value that is a function to
+fashion, can give this variable a buffer-local value that is a function to
 regenerate the contents.
 @end defvar
 
@@ -656,6 +674,12 @@ The value of this variable, if non-@code{nil}, specifies the function to use to
 insert the updated contents when reverting this buffer.  The function
 receives two arguments: first the file name to use; second, @code{t} if
 the user has asked to read the auto-save file.
+
+The reason for a mode to set this variable instead of
+@code{revert-buffer-function} is to avoid duplicating or replacing the
+rest of what @code{revert-buffer} does: asking for confirmation,
+clearing the undo list, deciding the proper major mode, and running the
+hooks listed below.
 @end defvar
 
 @defvar before-revert-hook

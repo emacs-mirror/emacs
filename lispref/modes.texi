@@ -322,7 +322,7 @@ inherit all the commands defined in this map.")
 @smallexample
 @group
 (defun text-mode ()
-  "Major mode for editing text intended for humans to read@enddots{}
+  "Major mode for editing text intended for humans to read...
  Special commands: \\@{text-mode-map@}
 @end group
 @group
@@ -459,7 +459,7 @@ And here is the code to set up the keymap for Lisp mode:
 @smallexample
 @group
 (defvar lisp-mode-map ()
-  "Keymap for ordinary Lisp mode@enddots{}")
+  "Keymap for ordinary Lisp mode...")
 
 (if lisp-mode-map
     ()
