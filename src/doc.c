@@ -1,11 +1,11 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 1986, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -279,7 +279,7 @@ string is passed through `substitute-command-keys'.")
     }
   else if (COMPILEDP (fun))
     {
-      if (XVECTOR (fun)->size <= COMPILED_DOC_STRING)
+      if (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK <= COMPILED_DOC_STRING)
 	return Qnil;
       tem = XVECTOR (fun)->contents[COMPILED_DOC_STRING];
       if (STRINGP (tem))
@@ -394,7 +394,7 @@ store_function_docstring (fun, offset)
     {
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
-      if (XVECTOR (fun)->size > COMPILED_DOC_STRING)
+      if (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK > COMPILED_DOC_STRING)
 	XSETFASTINT (XVECTOR (fun)->contents[COMPILED_DOC_STRING], offset);
     }
 }
