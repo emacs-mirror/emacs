@@ -2918,7 +2918,9 @@ usage: (message STRING &rest ARGS)  */)
      int nargs;
      Lisp_Object *args;
 {
-  if (NILP (args[0]))
+  if (NILP (args[0])
+      || (STRINGP (args[0])
+	  && SBYTES (args[0]) == 0))
     {
       message (0);
       return Qnil;
