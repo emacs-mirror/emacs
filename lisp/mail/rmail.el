@@ -1798,7 +1798,7 @@ change the invisible header text."
     (setq rmail-msgref-vector
 	  (vconcat rmail-msgref-vector (make-vector total-messages nil)))
     ;; Fill in the new elements of rmail-msgref-vector.
-    (let ((i (- rmail-total-messages old-total-messages)))
+    (let ((i (1+ (- rmail-total-messages total-messages))))
       (while (<= i rmail-total-messages)
 	(aset rmail-msgref-vector i (list i))
 	(setq i (1+ i))))
