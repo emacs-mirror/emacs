@@ -6,8 +6,8 @@
    because "cc -O" crashes. Under AIX 3.2.5, "cc -O" is required because
    "cc -g" crashes. Go figure.  --floppy@merlin.mit.edu */
 #ifndef __GNUC__
-#undef C_SWITCH_DEBUG
-#undef C_SWITCH_OPTIMIZE
-#define C_SWITCH_DEBUG
-#define C_SWITCH_OPTIMIZE -O
+#undef C_DEBUG_SWITCH
+#undef C_OPTIMIZE_SWITCH
+#define C_DEBUG_SWITCH -O
+#define C_OPTIMIZE_SWITCH -O
 #endif
