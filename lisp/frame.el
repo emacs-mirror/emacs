@@ -408,7 +408,7 @@ With arg, turn auto-lower mode on if and only if arg is positive."
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'auto-lower (> arg 0)))))
 
-(defun toggle-vertical-scroll-bar (arg)
+(defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
 With arg, turn vertical scroll bars on if and only if arg is positive."
   (interactive "P")
