@@ -11,8 +11,10 @@ Use -opsystem=usg5-2-2 normally, or -opsystem=bsd4-3 with the BSD
 world.
 NOTE-END  */
 
+#if 0
 /* Define MIPS2 if you have an R6000 or R4000.  */
 #define MIPS2
+#endif
 
 #ifdef __GNUC__
 #define C_DEBUG_SWITCH -g -O
@@ -29,7 +31,9 @@ NOTE-END  */
 #endif
 
 #define START_FILES pre-crt0.o /lib/crt1.o
-#define LIB_STANDARD -lisode -lmld -lc /lib/crtn.o
+/* Used to have -lisode, but jlp@math.byu.edu says remove it
+   (for RISCOS 4.52).  */
+#define LIB_STANDARD -lmld -lc /lib/crtn.o
 
 
 #define COFF
