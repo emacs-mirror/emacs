@@ -1,3 +1,7 @@
+2004-12-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* reftex.texi (Imprint): Remove erroneous @value's.
+
 2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Saving Customizations): Emacs only loads the custom
