@@ -841,7 +841,7 @@ using `make-temp-name', and the generated name is returned."
 	   (or coding-system-for-read
 	       (and set-auto-coding-function
 		    (funcall set-auto-coding-function
-			     (- (point-max) (point-min))))
+			     filename (- (point-max) (point-min))))
 	       ;; dos-w32.el defines find-operation-coding-system for
 	       ;; DOS/Windows systems which preserves the coding-system
 	       ;; of existing files.  We want it to act here as if the
@@ -914,7 +914,9 @@ using `make-temp-name', and the generated name is returned."
 	       (null
 		(let (;; We may have to encode file name arguement for
 		      ;; external programs.
-		      (coding-system-for-write file-name-coding-system)
+		      (coding-system-for-write
+		       (and enable-multibyte-characters
+			    file-name-coding-system))
 		      ;; We read an archive member by no-conversion at
 		      ;; first, then decode appropriately by calling
 		      ;; archive-set-buffer-as-visiting-file later.
@@ -1098,7 +1100,9 @@ using `make-temp-name', and the generated name is returned."
 	  (if (aref descr 3)
 	      ;; Set the file modes, but make sure we can read it.
 	      (set-file-modes tmpfile (logior ?\400 (aref descr 3))))
-	  (setq ename (encode-coding-string ename file-name-coding-system))
+	  (if enable-multibyte-characters
+	      (setq ename
+		    (encode-coding-string ename file-name-coding-system)))
           (let ((exitcode (apply 'call-process
                                  (car command)
                                  nil
@@ -1277,7 +1281,9 @@ as a relative change like \"g+rw\" as for chmod(2)"
     (if (fboundp func)
         (progn
 	  (funcall func (buffer-file-name)
-		   (encode-coding-string newname file-name-coding-system)
+		   (if enable-multibyte-characters
+		       (encode-coding-string newname file-name-coding-system)
+		     newname)
 		   descr)
 	  (archive-resummarize))
       (error "Renaming is not supported for this archive type"))))
