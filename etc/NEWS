@@ -71,6 +71,7 @@ using that menu.
 ** New function executable-make-buffer-file-executable-if-script-p is
 suitable as an after-save-hook as an alternative to `executable-chmod'.
 
++++
 ** The most preferred coding-system is now used to save a buffer if
 buffer-file-coding-system is `undecided' and it is safe for the buffer
 contents.  (The most preferred is set by set-language-environment or
