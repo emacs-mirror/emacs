@@ -5,7 +5,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
-;; Revision: $Id: newcomment.el,v 1.35 2001/09/27 21:13:44 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.35.4.1 2001/11/13 20:16:06 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -462,11 +462,12 @@ If CONTINUE is non-nil, use the `comment-continue' markers if any."
 	  ;; comment-indent-function refuses delegates to indent.
 	  (indent-according-to-mode)
 	;; Avoid moving comments past the fill-column.
-	(setq indent
-	      (min indent
-		   (+ (current-column)
-		      (- fill-column
-			 (save-excursion (end-of-line) (current-column))))))
+	(unless (save-excursion (skip-chars-backward " \t") (bolp))
+	  (setq indent
+		(min indent
+		     (+ (current-column)
+			(- fill-column
+			   (save-excursion (end-of-line) (current-column)))))))
 	(if (= (current-column) indent)
 	    (goto-char begpos)
 	  ;; If that's different from current, change it.
