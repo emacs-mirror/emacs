@@ -70,7 +70,7 @@ The Lisp code is executed when the node is selected.")
 (defface info-menu-5
   '((((class color)) (:foreground "red1"))
     (t (:underline t)))
-  "Face for the fifth and tenth `*' in an Info menu."
+  "Face for the fifth and nineth `*' in an Info menu."
   :group 'info)
 
 (defface info-xref
