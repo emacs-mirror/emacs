@@ -1,3 +1,8 @@
+2004-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.c (Vsignal_USR1_hook, Vsignal_USR2_hook): Definitions deleted.
+	(syms_of_emacs): Lisp variables deleted.
+
 2004-06-23  David Kastrup  <dak@gnu.org>
 
 	* search.c (Freplace_match): Adjust the match-data more

@@ -10,7 +10,9 @@ Tasks needed before the next release.
 
 ** Update the Emacs manual.
 
-** Check the Emacs manual.
+** Check the Emacs Manual.
+
+** Add missing years in copyright notices of all files.
 
 ** Update man/info.texi.
 
@@ -19,3 +21,4 @@ Tasks needed before the next release.
 ** Make GTK scrollbars behave like others w.r.t. overscrolling.
 
 ** Make GTK toolbar look OK on monochrome displays.
+
