@@ -1536,7 +1536,7 @@ The seventh argument ACTIONS is a list of actions to take
     initialized))
 
 (defun mail-recover-1 ()
-  "Pop up a list of auto-saved draft messages and allow to recover them."
+  "Pop up a list of auto-saved draft messages so you can recover one of them."
   (interactive)
   (let ((file-name (make-auto-save-file-name))
 	(ls-lisp-support-shell-wildcards t)
@@ -1607,7 +1607,12 @@ The seventh argument ACTIONS is a list of actions to take
 		    default-buffer-file-coding-system))))))))
 
 (defun mail-recover ()
-  "Recover interrupted mail composition from auto-save files."
+  "Recover interrupted mail composition from auto-save files.
+
+If the mail buffer has a current valid auto-save file,
+the command recovers that file.  Otherwise, it displays a
+buffer showing the existing auto-saved draft messages;
+you can move to one of them and type C-c C-c to recover that one."
   (interactive)
   ;; In case they invoke us from some random buffer...
   (switch-to-buffer "*mail*")
