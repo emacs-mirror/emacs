@@ -1821,7 +1821,7 @@ produce_glyphs (it)
     it->pixel_width = it->nglyphs = 0;
   else if (it->c == '\t')
     {
-      int absolute_x = (it->current_x - it->prompt_width
+      int absolute_x = (it->current_x
 			+ it->continuation_lines_width);
       int next_tab_x 
 	= (((1 + absolute_x + it->tab_width - 1) 
@@ -2192,7 +2192,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   TS_clr_to_bottom = tgetstr ("cd", address);
   TS_clr_line = tgetstr ("ce", address);
   TS_clr_frame = tgetstr ("cl", address);
-  ColPosition = tgetstr ("ch", address);
+  ColPosition = NULL; /* tgetstr ("ch", address); */
   AbsPosition = tgetstr ("cm", address);
   CR = tgetstr ("cr", address);
   TS_set_scroll_region = tgetstr ("cs", address);
