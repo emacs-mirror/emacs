@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+/* Note that this declares bzero on OSF/1.  How dumb.  */
 #include <signal.h>
 
 #include <config.h>
@@ -419,7 +420,7 @@ init_intervals ()
     = (struct interval_block *) malloc (sizeof (struct interval_block));
   allocating_for_lisp = 0;
   interval_block->next = 0;
-  bzero (interval_block->intervals, sizeof interval_block->intervals);
+  bzero ((char *) interval_block->intervals, sizeof interval_block->intervals);
   interval_block_index = 0;
   interval_free_list = 0;
 }
@@ -551,7 +552,7 @@ init_float ()
   float_block = (struct float_block *) malloc (sizeof (struct float_block));
   allocating_for_lisp = 0;
   float_block->next = 0;
-  bzero (float_block->floats, sizeof float_block->floats);
+  bzero ((char *) float_block->floats, sizeof float_block->floats);
   float_block_index = 0;
   float_free_list = 0;
 }
@@ -631,7 +632,7 @@ init_cons ()
   cons_block = (struct cons_block *) malloc (sizeof (struct cons_block));
   allocating_for_lisp = 0;
   cons_block->next = 0;
-  bzero (cons_block->conses, sizeof cons_block->conses);
+  bzero ((char *) cons_block->conses, sizeof cons_block->conses);
   cons_block_index = 0;
   cons_free_list = 0;
 }
@@ -857,7 +858,7 @@ init_symbol ()
   symbol_block = (struct symbol_block *) malloc (sizeof (struct symbol_block));
   allocating_for_lisp = 0;
   symbol_block->next = 0;
-  bzero (symbol_block->symbols, sizeof symbol_block->symbols);
+  bzero ((char *) symbol_block->symbols, sizeof symbol_block->symbols);
   symbol_block_index = 0;
   symbol_free_list = 0;
 }
@@ -928,7 +929,7 @@ init_marker ()
   marker_block = (struct marker_block *) malloc (sizeof (struct marker_block));
   allocating_for_lisp = 0;
   marker_block->next = 0;
-  bzero (marker_block->markers, sizeof marker_block->markers);
+  bzero ((char *) marker_block->markers, sizeof marker_block->markers);
   marker_block_index = 0;
   marker_free_list = 0;
 }
@@ -2494,19 +2495,19 @@ Frames, windows, buffers, and subprocesses count as vectors\n\
   Lisp_Object lisp_intervals_consed;
 
   XSETINT (lisp_cons_cells_consed,
-	   cons_cells_consed & ~(1 << (VALBITS - 1)));
+	   cons_cells_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
   XSETINT (lisp_floats_consed,
-	   floats_consed & ~(1 << (VALBITS - 1)));
+	   floats_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
   XSETINT (lisp_vector_cells_consed,
-	   vector_cells_consed & ~(1 << (VALBITS - 1)));
+	   vector_cells_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
   XSETINT (lisp_symbols_consed,
-	   symbols_consed & ~(1 << (VALBITS - 1)));
+	   symbols_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
   XSETINT (lisp_string_chars_consed,
-	   string_chars_consed & ~(1 << (VALBITS - 1)));
+	   string_chars_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
   XSETINT (lisp_misc_objects_consed,
-	   misc_objects_consed & ~(1 << (VALBITS - 1)));
+	   misc_objects_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
   XSETINT (lisp_intervals_consed,
-	   intervals_consed & ~(1 << (VALBITS - 1)));
+	   intervals_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
 
   return Fcons (lisp_cons_cells_consed,
 		Fcons (lisp_floats_consed,
