@@ -216,18 +216,17 @@ With prefix arg, prompt for diff switches."
 		(compile-internal command
 				  "No more differences" "Diff"
 				  'diff-parse-differences))
-	  (save-excursion
-	    (set-buffer buf)
-	    (set (make-local-variable 'diff-old-file) old)
-	    (set (make-local-variable 'diff-new-file) new)
-	    (set (make-local-variable 'diff-old-temp-file) old-alt)
-	    (set (make-local-variable 'diff-new-temp-file) new-alt)
-	    (set (make-local-variable 'compilation-finish-function)
-		 (function (lambda (buff msg)
-			     (if diff-old-temp-file
-				 (delete-file diff-old-temp-file))
-			     (if diff-new-temp-file
-				 (delete-file diff-new-temp-file))))))
+	  (pop-to-buffer buf)
+	  (set (make-local-variable 'diff-old-file) old)
+	  (set (make-local-variable 'diff-new-file) new)
+	  (set (make-local-variable 'diff-old-temp-file) old-alt)
+	  (set (make-local-variable 'diff-new-temp-file) new-alt)
+	  (set (make-local-variable 'compilation-finish-function)
+	       (function (lambda (buff msg)
+			   (if diff-old-temp-file
+			       (delete-file diff-old-temp-file))
+			   (if diff-new-temp-file
+			       (delete-file diff-new-temp-file)))))
 	  buf))))
 
 ;;;###autoload
