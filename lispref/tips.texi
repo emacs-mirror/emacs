@@ -304,8 +304,10 @@ Every command, function, or variable intended for users to know about
 should have a documentation string.
 
 @item
-An internal subroutine of a Lisp program need not have a documentation
-string, and you can save space by using a comment instead.
+An internal variable or subroutine of a Lisp program might as well have
+a documentation string.  In earlier Emacs versions, you could save space
+by using a comment instead of a documentation string, but that is no
+longer the case.
 
 @item
 The first line of the documentation string should consist of one or two
