@@ -1,9 +1,9 @@
 ;;; romanian.el --- support for Romanian -*- coding: iso-latin-2; -*-
 
-;; Copyright (C) 1998 Free Software Foundation.
+;; Copyright (C) 1998, 2002 Free Software Foundation.
 
 ;; Author:    Dan Nicolaescu <done@ece.arizona.edu>
-;; Keywords: multilingual, Romanian
+;; Keywords: multilingual, Romanian, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Romanian ISO 8859-2 environment.
+;; Romanian ISO 8859-2 environment plus 8859-16 coding system.
 
 ;;; Code:
 
@@ -40,6 +40,18 @@
 	      (sample-text . "Bunã ziua, bine aþi venit!")
 	      (documentation . t))
  '("European"))
+
+(define-coding-system 'iso-latin-10
+  "ISO 2022 based 8-bit encoding for Latin-10."
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(iso-885916)
+  ;; not in current IANA list
+  ;; :mime-charset 'iso-885916
+  )
+
+(define-coding-system-alias 'iso-885916 'iso-latin-10)
+(define-coding-system-alias 'latin-10 'iso-latin-10)
 
 (provide 'romanian)
 
