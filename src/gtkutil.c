@@ -345,7 +345,7 @@ xg_frame_set_char_size (f, cols, rows)
        : (FRAME_SCROLL_BAR_COLS (f)
           * FONT_WIDTH (f->output_data.x->font)));
 
-  x_compute_fringe_widths (f, 0);
+  compute_fringe_widths (f, 0);
 
   /* Must resize our top level widget.  Font size may have changed,
      but not rows/cols.  */

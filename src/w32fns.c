@@ -60,7 +60,6 @@ void globals_of_w32fns ();
 static void init_external_image_libraries ();
 
 extern void free_frame_menubar ();
-extern void x_compute_fringe_widths P_ ((struct frame *, int));
 extern double atof ();
 extern int w32_console_toggle_lock_key P_ ((int, Lisp_Object));
 extern void w32_menu_display_help P_ ((HWND, HMENU, UINT, UINT));
@@ -2521,7 +2520,7 @@ x_set_fringe_width (f, new_value, old_value)
      struct frame *f;
      Lisp_Object new_value, old_value;
 {
-  x_compute_fringe_widths (f, 1);
+  compute_fringe_widths (f, 1);
 }
 
 void
@@ -3336,7 +3335,7 @@ x_figure_window_size (f, parms)
        ? FRAME_SCROLL_BAR_PIXEL_WIDTH (f)
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.w32->font)));
 
-  x_compute_fringe_widths (f, 0);
+  compute_fringe_widths (f, 0);
 
   f->output_data.w32->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->output_data.w32->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);

@@ -434,7 +434,7 @@ set_frame_size (ew)
 	 : (FRAME_SCROLL_BAR_COLS (frame)
 	    * FONT_WIDTH (frame->output_data.x->font)));
 
-    x_compute_fringe_widths (frame, 0);
+    compute_fringe_widths (frame, 0);
 
 #if 0 /* This can run Lisp code, and it is dangerous to give
 	 out the frame to Lisp code before it officially exists.
@@ -915,7 +915,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
        ? 0
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
 
-  x_compute_fringe_widths (f, 0);
+  compute_fringe_widths (f, 0);
 
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
 

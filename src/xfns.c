@@ -2057,7 +2057,7 @@ x_set_fringe_width (f, new_value, old_value)
      struct frame *f;
      Lisp_Object new_value, old_value;
 {
-  x_compute_fringe_widths (f, 1);
+  compute_fringe_widths (f, 1);
 }
 
 void
@@ -3329,7 +3329,7 @@ x_figure_window_size (f, parms)
        ? 0
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
 
-  x_compute_fringe_widths (f, 0);
+  compute_fringe_widths (f, 0);
 
   f->output_data.x->pixel_width = CHAR_TO_PIXEL_WIDTH (f, f->width);
   f->output_data.x->pixel_height = CHAR_TO_PIXEL_HEIGHT (f, f->height);
