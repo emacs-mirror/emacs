@@ -180,7 +180,8 @@ NAME may also be a buffer; if so, the value is that buffer.")
 DEFUN ("get-file-buffer", Fget_file_buffer, Sget_file_buffer, 1, 1, 0,
   "Return the buffer visiting file FILENAME (a string).\n\
 The buffer's `buffer-file-name' must match exactly the expansion of FILENAME.\n\
-If there is no such live buffer, return nil.")
+If there is no such live buffer, return nil.\n\
+See also `find-buffer-visiting'.")
   (filename)
      register Lisp_Object filename;
 {
