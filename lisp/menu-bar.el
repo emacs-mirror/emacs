@@ -551,6 +551,18 @@ Do the same for the keys of the same name."
 
 ;(defvar menu-bar-preferences-menu (make-sparse-keymap "Preferences"))
 
+(defmacro menu-bar-make-mm-toggle (fname doc help &optional props)
+  "Make a menu-item for a global minor mode toggle.
+FNAME is the minor mode's name (variable and function).
+DOC is the text to use the menu entry.
+HELP is the text to use for the tooltip.
+PROPS are additional properties."
+  `'(menu-item ,doc ',fname
+     ,@(if props props)
+     :help ,help
+     :button (:toggle . (and (default-boundp ',fname)
+			     (default-value ',fname)))))
+
 (defmacro menu-bar-make-toggle (name variable doc message help &optional props &rest body)
   `(progn
      (defun ,name ()
@@ -775,30 +787,13 @@ Do the same for the keys of the same name."
 	:visible `(display-graphic-p)
 	:help "Select scroll-bar mode"))
 
-(defun showhide-menu-bar ()
-  "Toggle whether to turn menu-bar on/off."
-  (interactive)
-  (menu-bar-mode)
-  (if menu-bar-mode
-      (message "Menu-bar mode enabled.")
-    (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
-  (customize-mark-as-set 'menu-bar-mode))
-
-(define-key menu-bar-showhide-menu [showhide-menu-bar]
-  '(menu-item "Menu-bar" showhide-menu-bar
+(define-key menu-bar-showhide-menu [menu-bar-mode]
+  '(menu-item "Menu-bar" menu-bar-mode
 	      :help "Toggle menu-bar on/off"
 	      :button (:toggle . menu-bar-mode)))
 
-(defun showhide-toolbar ()
-  "Toggle whether to turn tool-bar on/off."
-  (interactive)
-  (if (tool-bar-mode)
-      (message "Tool-bar mode enabled.")
-    (message "Tool-bar mode disabled."))
-  (customize-mark-as-set 'tool-bar-mode))
-
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
-  (list 'menu-item "Tool-bar" 'showhide-toolbar
+  (list 'menu-item "Tool-bar" 'tool-bar-mode
 	:help "Turn tool-bar on/off"
 	:visible `(display-graphic-p)
 	:button `(:toggle . tool-bar-mode)))
@@ -839,18 +834,10 @@ Do the same for the keys of the same name."
   '("--"))
 (define-key menu-bar-options-menu [toggle-auto-compression]
   '(menu-item "Automatic File De/compression"
-	      menu-bar-toggle-auto-compression-mode 
+	      auto-compression-mode
 	      :help "Transparently decompress compressed files"
 	      :button (:toggle . (rassq 'jka-compr-handler
 					file-name-handler-alist))))
-
-(defun menu-bar-toggle-auto-compression ()
-  "Toggle automatic file compression and uncompression.
-With prefix argument ARG, turn auto compression on if positive, else off.
-Returns the new status of auto compression (non-nil means on)."
-  (interactive)
-  (auto-compression-mode)
-  (customize-mark-as-set 'auto-compression-mode))
 
 (define-key menu-bar-options-menu [save-place]
   (menu-bar-make-toggle toggle-save-place-globally save-place
@@ -919,9 +906,8 @@ paste (in addition to the normal Emacs bindings)."
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))
 (define-key menu-bar-options-menu [highlight-paren-mode]
-  (menu-bar-make-toggle toggle-highlight-paren-mode show-paren-mode
-			"Paren Match Highlighting"
-			"Show Paren mode %s"
+  (menu-bar-make-mm-toggle show-paren-mode
+			   "Paren Match Highlighting"
 			"Highlight matching/mismatched parentheses at cursor (Show Paren mode)"))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
@@ -930,10 +916,9 @@ paste (in addition to the normal Emacs bindings)."
 			"Make text in active region stand out in color (Transient Mark mode)"
 			(:enable (not cua-mode))))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
-  (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
-			"Syntax Highlighting"
-			"Global Font Lock mode %s"
-			"Colorize text based on language syntax (Global Font Lock mode)"))
+  (menu-bar-make-mm-toggle global-font-lock-mode
+			   "Syntax Highlighting"
+			   "Colorize text based on language syntax (Global Font Lock mode)"))
 
 
 ;; The "Tools" menu items
@@ -1615,7 +1600,7 @@ This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is positive,
 turn on menu bars; otherwise, turn off menu bars."
- (interactive "P")
+  (interactive "P")
 
   ;; Make menu-bar-mode and default-frame-alist consistent.
   (let ((default (assq 'menu-bar-lines default-frame-alist)))
@@ -1626,27 +1611,35 @@ turn on menu bars; otherwise, turn off menu bars."
 		  default-frame-alist))))
 
   ;; Toggle or set the mode, according to FLAG.
- (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
-		       (> (prefix-numeric-value flag) 0)))
+  (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
+			(> (prefix-numeric-value flag) 0)))
 
- ;; Apply it to default-frame-alist.
- (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
-   (if (consp parameter)
-       (setcdr parameter (if menu-bar-mode 1 0))
-     (setq default-frame-alist
-	   (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		 default-frame-alist))))
+  ;; Apply it to default-frame-alist.
+  (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
+    (if (consp parameter)
+	(setcdr parameter (if menu-bar-mode 1 0))
+      (setq default-frame-alist
+	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
+		  default-frame-alist))))
 
- ;; Apply it to existing frames.
- (let ((frames (frame-list)))
-   (while frames
-     (let ((height (cdr (assq 'height (frame-parameters (car frames))))))
-       (modify-frame-parameters (car frames)
-				(list (cons 'menu-bar-lines
-					  (if menu-bar-mode 1 0))))
-       (modify-frame-parameters (car frames)
-				(list (cons 'height height))))
-     (setq frames (cdr frames)))))
+  ;; Apply it to existing frames.
+  (let ((frames (frame-list)))
+    (while frames
+      (let ((height (cdr (assq 'height (frame-parameters (car frames))))))
+	(modify-frame-parameters (car frames)
+				 (list (cons 'menu-bar-lines
+					     (if menu-bar-mode 1 0))))
+	(modify-frame-parameters (car frames)
+				 (list (cons 'height height))))
+      (setq frames (cdr frames))))
+
+  (when (interactive-p)
+    (if menu-bar-mode
+	(message "Menu-bar mode enabled.")
+      (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
+    (customize-mark-as-set 'menu-bar-mode))
+
+  menu-bar-mode)
 
 (provide 'menu-bar)
 
