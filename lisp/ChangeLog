@@ -1,3 +1,9 @@
+2004-05-20  Michael Mauger  <mmaug@yahoo.com>
+
+	* facemenu.el (facemenu-color-name-equal): New function.
+	(list-colors-display): Use it to compare colors instead of
+	facemenu-color-equal.
+
 2004-05-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* compare-w.el (compare-windows-face): Use min-colors instead of
