@@ -26,10 +26,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <pop.h>
 #ifdef sun
 #include <malloc.h>
-#else
-extern char *malloc (/* unsigned */);
-extern char *realloc (/* char *, unsigned */);
-extern void free (/* char * */);
 #endif
 #endif
 #ifdef HESIOD
@@ -43,15 +39,13 @@ extern void free (/* char * */);
 extern struct servent *hes_getservbyname (/* char *, char * */);
 #endif
 #include <pwd.h>
-#include <string.h>
-#include <strings.h>
 #include <netdb.h>
 #include <errno.h>
 #include <stdio.h>
 #ifdef KERBEROS
 #ifndef KRB5
-#include <krb.h>
 #include <des.h>
+#include <krb.h>
 #else /* KRB5 */
 #include <krb5/krb5.h>
 #include <krb5/ext-proto.h>
@@ -84,6 +78,8 @@ static int getok (/* popserver */);
 static int gettermination (/* popserver */);
 #endif
 static void pop_trash (/* popserver */);
+
+static char *my_strstr ();
 
 #define ERROR_MAX 80		/* a pretty arbitrary size */
 #define POP_PORT 110
@@ -1171,7 +1167,7 @@ getline (server)
      
   if (server->data)
     {
-      char *cp = strstr (server->buffer + server->buffer_index, "\r\n");
+      char *cp = my_strstr (server->buffer + server->buffer_index, "\r\n");
       if (cp)
 	{
 	  int found;
@@ -1214,7 +1210,7 @@ getline (server)
 	    }
 	}
       ret = read (server->file, server->buffer + server->data,
-		  server->buffer_size - server->data);
+		  server->buffer_size - server->data - 1);
       if (ret < 0)
 	{
 	  strcpy (pop_error, GETLINE_ERROR);
@@ -1231,9 +1227,11 @@ getline (server)
 	}
       else
 	{
-	  char *cp = strstr (server->buffer, "\r\n");
+	  char *cp;
 	  server->data += ret;
+	  server->buffer[server->data] = '\0';
 	       
+	  cp = my_strstr (server->buffer, "\r\n");
 	  if (cp)
 	    {
 	      int data_used = (cp + 2) - server->buffer;
