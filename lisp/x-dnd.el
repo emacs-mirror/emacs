@@ -289,8 +289,7 @@ Return nil if URI is not a local file."
   (let ((f (cond ((string-match "^file:///" uri)	; XDND format.
 		  (substring uri (1- (match-end 0))))
 		 ((string-match "^file:" uri)		; Old KDE, Motif, Sun
-		  (substring uri (match-end 0)))
-		 nil)))
+		  (substring uri (match-end 0))))))
     (when (and f must-exist)
       (let* ((decoded-f (decode-coding-string 
 			 f
