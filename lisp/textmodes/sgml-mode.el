@@ -1,12 +1,11 @@
 ;;; sgml-mode.el --- SGML-editing mode
 
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
 ;; Author: James Clark
 ;; Maintainer: FSF
-;; Last-Modified: 14 Jul 1992
 ;; Adapted-By: ESR
 ;; Keywords: wp
-
-;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

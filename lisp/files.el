@@ -107,8 +107,8 @@ never means do not make them.")
   "*When cleaning directory, number of versions to keep.")
 
 (defvar trim-versions-without-asking nil
-  "*If true, deletes excess backup versions silently.
-Otherwise asks confirmation.")
+  "*If t, deletes excess backup versions silently.
+If nil, asks confirmation.  Any other value prevents any trimming.")
 
 (defvar kept-old-versions 2
   "*Number of oldest versions to keep when a new numbered backup is made.")
@@ -767,6 +767,7 @@ the modes of the new file to agree with the old modes."
 		   ;; ask the user to confirm now, before doing anything.
 		   ;; But don't actually delete til later.
 		   (and targets
+			(or (eq trim-versions-without-asking t) (eq trim-versions-without-asking nil))
 			(or trim-versions-without-asking
 			    (y-or-n-p (format "Delete excess backup versions of %s? "
 					      real-file-name))))))

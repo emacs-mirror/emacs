@@ -1,10 +1,9 @@
 ;;; shell.el --- general command interpreter in a window stuff
 
-;; Author: Olin Shivers <shivers@cs.cmu.edu>
-;; Last-Modified: 16 Mar 1992
-;; Keywords: processes
-
 ;;; Copyright Olin Shivers (1988).
+
+;; Author: Olin Shivers <shivers@cs.cmu.edu>
+;; Keywords: processes
 
 ;;; This file is part of GNU Emacs.
 

@@ -1,12 +1,11 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process.
 
+;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
+
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
-;; Last-Modified: 05 Dec 1991
 ;; Keywords: processes
 
 ;; Changes by peck@sun.com and by rms.
-
-;; Copyright (C) 1986, 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
