@@ -39,7 +39,7 @@ and be replaced by its expansion."
   (setq abbrev-mode
 	(if (null arg) (not abbrev-mode)
 	  (> (prefix-numeric-value arg) 0)))
-  (set-buffer-modified-p (buffer-modified-p))) ;No-op, but updates mode line.
+  (force-mode-line-update))
 
 (defvar edit-abbrevs-map nil
   "Keymap used in edit-abbrevs.")
