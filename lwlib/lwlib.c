@@ -331,7 +331,8 @@ get_widget_info (id, remove_p)
 /* Internal function used by the library dependent implementation to get the
    widget_value for a given widget in an instance */
 widget_info *
-lw_get_widget_info (LWLIB_ID id)
+lw_get_widget_info (id)
+     LWLIB_ID id;
 {
   return get_widget_info (id, 0);
 }

@@ -39,15 +39,18 @@ static void xaw_generic_callback (Widget, XtPointer, XtPointer);
 
 
 Boolean
-lw_xaw_widget_p (Widget widget)
+lw_xaw_widget_p (widget)
+     Widget widget;
 {
   return (XtIsSubclass (widget, scrollbarWidgetClass) ||
 	  XtIsSubclass (widget, dialogWidgetClass));
 }
 
 static void
-xaw_update_scrollbar (widget_instance *instance, Widget widget,
-		      widget_value *val)
+xaw_update_scrollbar (instance, widget, val)
+     widget_instance *instance;
+     Widget widget;
+     widget_value *val;
 {
 #if 0
   if (val->scrollbar_data)
@@ -109,8 +112,11 @@ xaw_update_scrollbar (widget_instance *instance, Widget widget,
 }
 
 void
-xaw_update_one_widget (widget_instance *instance, Widget widget,
-		       widget_value *val, Boolean deep_p)
+xaw_update_one_widget (instance, widget, val, deep_p)
+     widget_instance *instance;
+     Widget widget;
+     widget_value *val;
+     Boolean deep_p;
 {
   if (XtIsSubclass (widget, scrollbarWidgetClass))
     {
@@ -146,8 +152,10 @@ xaw_update_one_widget (widget_instance *instance, Widget widget,
 }
 
 void
-xaw_update_one_value (widget_instance *instance, Widget widget,
-		      widget_value *val)
+xaw_update_one_value (instance, widget, val)
+     widget_instance *instance;
+     Widget widget;
+     widget_value *val;
 {
   /* This function is not used by the scrollbars and those are the only
      Athena widget implemented at the moment so do nothing. */
@@ -155,7 +163,8 @@ xaw_update_one_value (widget_instance *instance, Widget widget,
 }
 
 void
-xaw_destroy_instance (widget_instance *instance)
+xaw_destroy_instance (instance)
+     widget_instance *instance;
 {
   if (XtIsSubclass (instance->widget, dialogWidgetClass))
     /* Need to destroy the Shell too. */
@@ -165,14 +174,17 @@ xaw_destroy_instance (widget_instance *instance)
 }
 
 void
-xaw_popup_menu (Widget widget)
+xaw_popup_menu (widget)
+     Widget widget;
 {
   /* An Athena menubar has not been implemented. */
   return;
 }
 
 void
-xaw_pop_instance (widget_instance *instance, Boolean up)
+xaw_pop_instance (instance, up)
+     widget_instance *instance;
+     Boolean up;
 {
   Widget widget = instance->widget;
 
@@ -240,10 +252,17 @@ static XtActionsRec xaw_actions [] = {
 static Boolean actions_initted = False;
 
 static Widget
-make_dialog (char* name, Widget parent, Boolean pop_up_p,
-	     char* shell_title, char* icon_name, Boolean text_input_slot,
-	     Boolean radio_box, Boolean list,
-	     int left_buttons, int right_buttons)
+make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, radio_box, list, left_buttons, right_buttons)
+     char* name;
+     Widget parent;
+     Boolean pop_up_p;
+     char* shell_title;
+     char* icon_name;
+     Boolean text_input_slot;
+     Boolean radio_box;
+     Boolean list;
+     int left_buttons;
+     int right_buttons;
 {
   Arg av [20];
   int ac = 0;
@@ -341,7 +360,8 @@ make_dialog (char* name, Widget parent, Boolean pop_up_p,
 }
 
 Widget
-xaw_create_dialog (widget_instance* instance)
+xaw_create_dialog (instance)
+     widget_instance* instance;
 {
   char *name = instance->info->type;
   Widget parent = instance->parent;
@@ -406,7 +426,10 @@ xaw_create_dialog (widget_instance* instance)
 
 
 static void
-xaw_generic_callback (Widget widget, XtPointer closure, XtPointer call_data)
+xaw_generic_callback (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
   widget_instance *instance = (widget_instance *) closure;
   Widget instance_widget;
@@ -452,7 +475,10 @@ xaw_generic_callback (Widget widget, XtPointer closure, XtPointer call_data)
 }
 
 static void
-wm_delete_window (Widget shell, XtPointer closure, XtPointer call_data)
+wm_delete_window (shell, closure, call_data)
+     Widget shell;
+     XtPointer closure;
+     XtPointer call_data;
 {
   LWLIB_ID id;
   Widget *kids = 0;
@@ -482,7 +508,10 @@ wm_delete_window (Widget shell, XtPointer closure, XtPointer call_data)
 /* Scrollbars */
 
 static void
-xaw_scrollbar_scroll (Widget widget, XtPointer closure, XtPointer call_data)
+xaw_scrollbar_scroll (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
 #if 0
   widget_instance *instance = (widget_instance *) closure;
@@ -507,7 +536,10 @@ xaw_scrollbar_scroll (Widget widget, XtPointer closure, XtPointer call_data)
 }
 
 static void
-xaw_scrollbar_jump (Widget widget, XtPointer closure, XtPointer call_data)
+xaw_scrollbar_jump (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
 #if 0
   widget_instance *instance = (widget_instance *) closure;
@@ -535,7 +567,8 @@ xaw_scrollbar_jump (Widget widget, XtPointer closure, XtPointer call_data)
 }
 
 static Widget
-xaw_create_scrollbar (widget_instance *instance)
+xaw_create_scrollbar (instance)
+     widget_instance *instance;
 {
 #if 0
   Arg av[20];
