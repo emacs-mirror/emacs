@@ -1,5 +1,11 @@
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xterm.c: USE_LUCID can be defined iff USE_X_TOOLKIT is defined.
+	(xm_scroll_callback) [USE_MOTIF]: Remove unused variable
+	`percent'.
+	(x_set_toolkit_scroll_bar_thumb) [USE_MOTIF]: Remove unused
+	variable `sb'.
+
 	* xfns.c (Fx_hide_tip): Fix typo in a doc string.
 	(Fx_file_dialog) [USE_MOTIF]: Remove unused variables
 	`popup_activated_flag' and `title'.
