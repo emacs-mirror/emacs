@@ -2554,7 +2554,7 @@ The generation algorithm works as follows:
 To submit a problem report, enter \\[bibtex-submit-bug-report] from a
 BibTeX mode buffer.  This automatically sets up a mail buffer with
 version information already added.  You just need to add a description
-of the problem, including a reproducable test case and send the
+of the problem, including a reproducible test case and send the
 message.
 
 
