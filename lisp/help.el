@@ -511,11 +511,9 @@ C-p Display information about the GNU project.
 C-w Display information on absence of warranty for GNU Emacs."
   help-map)
 
-;; Return a function whose name is around point.
-;; If that gives no function, return a function which is called by the
-;; list containing point.
-;; If that doesn't give a function, return nil.
 (defun function-called-at-point ()
+  "Return a function around point or else called by the list containing point.
+If that doesn't give a function, return nil."
   (let ((stab (syntax-table)))
     (set-syntax-table emacs-lisp-mode-syntax-table)
     (unwind-protect
@@ -552,7 +550,7 @@ That file records the part of `load-history' for preloaded files,
 which is cleared out before dumping to make Emacs smaller.")
 
 (defun symbol-file (function)
-  "Return the input source from which SYM was loaded.
+  "Return the input source from which FUNCTION was loaded.
 The value is normally a string that was passed to `load':
 either an absolute file name, or a library name
 \(with no directory name and no `.el' or `.elc' at the end).
@@ -635,6 +633,11 @@ It can also be nil, if the definition is not associated with any file."
       (setq need-close t)
       (princ "("))
     (princ string)
+    (with-current-buffer "*Help*"
+      (save-excursion
+	(save-match-data
+	  (if (re-search-backward "alias for `\\([^`']+\\)'" nil t)
+	      (help-xref-button 1 #'describe-function def)))))
     (or file-name
 	(setq file-name (symbol-file function)))
     (if file-name
@@ -683,8 +686,9 @@ It can also be nil, if the definition is not associated with any file."
 		 (help-setup-xref (list #'describe-function function) (interactive-p)))
 	(princ "not documented")))))
 
-;; We return 0 if we can't find a variable to return.
 (defun variable-at-point ()
+  "Return the bound variable symbol found around point.
+Return 0 if there is no such symbol."
   (condition-case ()
       (let ((stab (syntax-table)))
 	(unwind-protect
@@ -814,7 +818,7 @@ to display (default, the current buffer)."
 		     (interactive-p))))
 
 (defun where-is (definition &optional insert)
-  "Print message listing key sequences that invoke specified command.
+  "Print message listing key sequences that invoke the command DEFINITION.
 Argument is a command definition, usually a symbol with a function definition.
 If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
   (interactive
@@ -848,7 +852,11 @@ Optional second arg NOSUFFIX non-nil means don't add suffixes `.elc' or `.el'
 to the specified name LIBRARY.
 
 If the optional third arg PATH is specified, that list of directories
-is used instead of `load-path'."
+is used instead of `load-path'.
+
+When called from a program, the file name is normaly returned as a
+string.  When run interactively, the argument INTERACTIVE-CALL is t,
+and the file name is displayed in the echo area."
   (interactive (list (read-string "Locate library: ")
 		     nil nil
 		     t))
@@ -999,8 +1007,10 @@ that."
                   (help-xref-button 1 #'info (match-string 1))))
               ;; An obvious case of a key substitution:
               (save-excursion              
-                (while (re-search-forward 
-                        "\\<M-x\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)" nil t)
+                (while (re-search-forward
+			;; Assume command name is only word characters
+			;; and dashes to get things like `use M-x foo.'.
+                        "\\<M-x\\s-+\\(\\sw\\(\\sw\\|-\\)+\\)" nil t)
                   (let ((sym (intern-soft (match-string 1))))
                     (if (fboundp sym)
                         (help-xref-button 1 #'describe-function sym)))))
@@ -1016,17 +1026,19 @@ that."
                     (while
                         ;; Ignore single blank lines in table, but not
                         ;; double ones, which should terminate it.
-                        (and (looking-at "^\n?[^\n]")
+                        (and (looking-at "^\n?[^\n\t ]")
                              (progn
                                (if (and (> (move-to-column col) 0)
-                                        (looking-at "\\(\\sw\\|\\s_\\)+$"))
+                                        (looking-at "\\(\\sw\\|-\\)+$"))
                                    ;; 
                                    (let ((sym (intern-soft (match-string 0))))
                                      (if (fboundp sym)
                                          (help-xref-button 
                                           0 #'describe-function sym))))
                                t)
-                             (zerop (forward-line))
+                             (progn
+			       (end-of-line)
+			       (zerop (forward-line)))
                              (move-to-column 0)))))))
           (set-syntax-table stab))
         ;; Make a back-reference in this buffer if appropriate.
@@ -1102,8 +1114,7 @@ help buffer."
       (help-follow pos))))
 
 (defun help-xref-go-back (buffer)
-  "Go back to the previous help buffer text using info on `help-xref-stack'."
-  (interactive)
+  "From BUFFER, go back to previous help buffer text using `help-xref-stack'."
   (let (item position method args)
     (with-current-buffer buffer
       (when help-xref-stack
@@ -1117,6 +1128,7 @@ help buffer."
     (goto-char position)))
 
 (defun help-go-back ()
+  "Invoke the [back] button (if any) in the Help mode buffer."
   (interactive)
   (help-follow (1- (point-max))))
 
@@ -1224,7 +1236,7 @@ more information."
 (defun resize-temp-buffer-window ()
   "Resize the current window to fit its contents.
 Will not make it higher than `temp-buffer-max-height' nor smaller than
-`window-min-height'. Do nothing if it is the only window on its frame, if it
+`window-min-height'.  Do nothing if it is the only window on its frame, if it
 is not as wide as the frame or if some of the window's contents are scrolled
 out of view."
   (unless (or (one-window-p 'nomini)
