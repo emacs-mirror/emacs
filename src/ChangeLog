@@ -1,3 +1,13 @@
+2005-03-22  David Kastrup  <dak@gnu.org>
+
+	* textprop.c (Fnext_char_property_change)
+	(Fprevious_char_property_change): allow marker as limit.
+	(Fnext_single_char_property_change)
+	(Fprevious_single_char_property_change): Check that limit is a
+	number in strings.
+	(Fnext_single_char_property_change): Coerce position to integer.
+	(Fprevious_single_char_property_change): Same here.
+
 2005-03-21  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* s/openbsd.h (LD_SWITCH_SYSTEM_tmp): Define if undefined.
