@@ -634,7 +634,8 @@ x_consider_frame_title (frame)
       {
 	FRAME_PTR tf = XFRAME (XCONS (tail)->car);
 
-	if (tf != f && tf->kboard == f->kboard && !FRAME_MINIBUF_ONLY_P (tf)
+	if (tf != f && FRAME_KBOARD (tf) == FRAME_KBOARD (f)
+	    && !FRAME_MINIBUF_ONLY_P (tf)
 	    && (FRAME_VISIBLE_P (tf) || FRAME_ICONIFIED_P (tf)))
 	  break;
       }
