@@ -26,7 +26,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.12 1997/09/19 04:27:56 rms Exp $
+;; $Id: mh-comp.el,v 1.13 1998/06/24 09:16:26 schwab Exp kwzh $
 
 ;;; Code:
 
@@ -147,6 +147,13 @@ Default is \"replcomps\".  If not an absolute file name, the file
 is searched for first in the user's MH directory, then in the
 system MH lib directory.")
 
+(defvar mh-repl-group-formfile "replgroupcomps"
+  "Name of file to be used as a skeleton for replying to the sender
+and all recipients of a messages.  Only used if mh-nmh-p is non-nil.
+Default is \"replgroupcomps\".  If not an absolute file name, the file
+is searched for first in the user's MH directory, then in the system
+MH lib directory.")
+
 ;;; Hooks:
 
 (defcustom mh-letter-mode-hook nil
@@ -217,7 +224,7 @@ See documentation of `\\[mh-send]' for more details on composing mail."
 
 
 ;;;###autoload
-(defun mh-smail-batch (&rest ignored)
+(defun mh-smail-batch (&optional to subject other-headers &rest ignored)
   "Set up a mail composition draft with the MH mail system.
 This function is an entry point to mh-e, the Emacs front end
 to the MH mail system.  This function does not prompt the user
@@ -226,7 +233,7 @@ that want to create a mail buffer.
 Users should use `\\[mh-smail]' to compose mail."
   (mh-find-path)
   (let ((mh-error-if-no-draft t))
-    (mh-send "" "" "")))
+    (mh-send to "" subject)))
 
 
 (defun mh-edit-again (msg)
@@ -407,25 +414,32 @@ for the reply.  See also documentation for `\\[mh-send]' function."
   (interactive (list (mh-get-msg-num t) current-prefix-arg))
   (let ((minibuffer-help-form
 	 "from => Sender only\nto => Sender and primary recipients\ncc or all => Sender and all recipients"))
-    (let ((reply-to (or mh-reply-default-reply-to
+    (let* ((reply-to (or mh-reply-default-reply-to
 			(completing-read "Reply to whom: "
 					 '(("from") ("to") ("cc") ("all"))
 					 nil
 					 t)))
-	  (folder mh-current-folder)
-	  (show-buffer mh-show-buffer)
-	  (config (current-window-configuration)))
+	   (folder mh-current-folder)
+	   (show-buffer mh-show-buffer)
+	   (config (current-window-configuration))
+	   (group-reply (or (equal reply-to "cc") (equal reply-to "all")))
+	   (form-file (cond ((and mh-nmh-p group-reply
+				  (stringp mh-repl-group-formfile))
+			     mh-repl-group-formfile)
+			    ((stringp mh-repl-formfile) mh-repl-formfile)
+			    (t nil))))
       (message "Composing a reply...")
       (mh-exec-cmd "repl" "-build" "-noquery" "-nodraftfolder"
-	     (if (stringp mh-repl-formfile) ;must be string, but we're paranoid
-		 (list "-form" mh-repl-formfile))
+	     (if form-file
+		 (list "-form" form-file))
 	     mh-current-folder message
 	     (cond ((or (equal reply-to "from") (equal reply-to ""))
 		    '("-nocc" "all"))
 		   ((equal reply-to "to")
 		    '("-cc" "to"))
-		   ((or (equal reply-to "cc") (equal reply-to "all"))
-		    '("-cc" "all" "-nocc" "me")))
+		   (group-reply (if mh-nmh-p
+				    '("-group" "-nocc" "me")
+				  '("-cc" "all" "-nocc" "me"))))
 	     (if includep
 		 '("-filter" "mhl.reply")))
       (let ((draft (mh-read-draft "reply"
