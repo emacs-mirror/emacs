@@ -53,11 +53,8 @@ One of `mbox', `babyl', `digest', `news', `rnews', `mmdf', `forward',
      (article-begin . "^#! *rnews +\\([0-9]+\\) *\n")
      (body-end-function . nndoc-rnews-body-end))
     (mbox 
-     (article-begin . 
-		    ,(let ((delim (concat "^" message-unix-mail-delimiter)))
-		       (if (string-match "\n\\'" delim)
-			   (substring delim 0 (match-beginning 0))
-			 delim)))
+     (article-begin . "^From \\([^ \n]*\\(\\|\".*\"[^ \n]*\\)\\)  ?\\([^ \n]*\\) *\\([^ ]*\\) *\\([0-9]*\\) *\\([0-9:]*\\) *\\([A-Z]?[A-Z]?[A-Z][A-Z]\\( DST\\)?\\|[-+]?[0-9][0-9][0-9][0-9]\\|\\) * [0-9][0-9]\\([0-9]*\\) *\\([A-Z]?[A-Z]?[A-Z][A-Z]\\( DST\\)?\\|[-+]?[0-9][0-9][0-9][0-9]\\|\\) *\\(remote from .*\\)?\n")
+     (article-begin-function . nndoc-mbox-article-begin)
      (body-end-function . nndoc-mbox-body-end))
     (babyl 
      (article-begin . "\^_\^L *\n")
@@ -107,6 +104,7 @@ One of `mbox', `babyl', `digest', `news', `rnews', `mmdf', `forward',
 (defvoo nndoc-first-article nil)
 (defvoo nndoc-article-end nil)
 (defvoo nndoc-article-begin nil)
+(defvoo nndoc-article-begin-function nil)
 (defvoo nndoc-head-begin nil)
 (defvoo nndoc-head-end nil)
 (defvoo nndoc-file-end nil)
@@ -338,7 +336,7 @@ One of `mbox', `babyl', `digest', `news', `rnews', `mmdf', `forward',
 		nndoc-body-begin nndoc-body-end-function nndoc-body-end
 		nndoc-prepare-body nndoc-article-transform
 		nndoc-generate-head nndoc-body-begin-function
-		nndoc-head-begin-function)))
+		nndoc-head-begin-function nndoc-article-begin-function)))
     (while vars
       (set (pop vars) nil)))
   (let* (defs guess)
@@ -371,7 +369,9 @@ One of `mbox', `babyl', `digest', `news', `rnews', `mmdf', `forward',
       ;; Go through the file.
       (while (if (and first nndoc-first-article)
 		 (nndoc-search nndoc-first-article)
-	       (nndoc-search nndoc-article-begin))
+	       (if nndoc-article-begin-function
+		   (funcall nndoc-article-begin-function)
+		 (nndoc-search nndoc-article-begin)))
 	(setq first nil)
 	(cond (nndoc-head-begin-function
 	       (funcall nndoc-head-begin-function))
@@ -391,7 +391,9 @@ One of `mbox', `babyl', `digest', `news', `rnews', `mmdf', `forward',
 		   (funcall nndoc-body-end-function))
 	      (and nndoc-body-end
 		   (nndoc-search nndoc-body-end))
-	      (nndoc-search nndoc-article-begin)
+	      (if nndoc-article-begin-function
+		  (funcall nndoc-article-begin-function)
+		(nndoc-search nndoc-article-begin))
 	      (progn
 		(goto-char (point-max))
 		(when nndoc-file-end
@@ -410,6 +412,10 @@ One of `mbox', `babyl', `digest', `news', `rnews', `mmdf', `forward',
 (defun nndoc-digest-body-end ()
   (and (re-search-forward nndoc-article-begin nil t)
        (goto-char (match-beginning 0))))
+
+(defun nndoc-mbox-article-begin ()
+  (when (re-search-forward nndoc-article-begin nil t)
+    (goto-char (match-beginning 0))))
 
 (defun nndoc-mbox-body-end ()
   (let ((beg (point))
