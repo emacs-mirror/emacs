@@ -1700,7 +1700,7 @@ extern void message_nolog P_ ((/* char *, ... */));
 extern void message1 P_ ((char *));
 extern void message1_nolog P_ ((char *));
 extern void message2 P_ ((char *, int));
-extern void message2_nolog P_ ((char *, int));
+extern void message2_nolog P_ ((char *, int, int));
 extern void message_dolog P_ ((char *, int, int));
 extern void message_log_maybe_newline P_ ((void));
 extern void update_echo_area P_ ((void));
