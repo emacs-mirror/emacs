@@ -1474,16 +1474,6 @@ x_set_icon_type (f, arg, oldval)
       error ("No icon window available");
     }
 
-  /* If the window was unmapped (and its icon was mapped),
-     the new icon is not mapped, so map the window in its stead.  */
-  if (FRAME_VISIBLE_P (f))
-    {
-#ifdef USE_X_TOOLKIT
-      XtPopup (f->display.x->widget, XtGrabNone);
-#endif
-      XMapWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-    }
-
   XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
 }
@@ -1535,16 +1525,6 @@ x_set_icon_name (f, arg, oldval)
     {
       UNBLOCK_INPUT;
       error ("No icon window available");
-    }
-
-  /* If the window was unmapped (and its icon was mapped),
-     the new icon is not mapped, so map the window in its stead.  */
-  if (FRAME_VISIBLE_P (f))
-    {
-#ifdef USE_X_TOOLKIT
-      XtPopup (f->display.x->widget, XtGrabNone);
-#endif
-      XMapWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
     }
 
   XFlush (FRAME_X_DISPLAY (f));
