@@ -3396,9 +3396,9 @@ which is a list of all the arguments given to `find-coding-system'.")
 	       && STRINGP (XCONS (elt)->car)
 	       && fast_string_match (XCONS (elt)->car, target) >= 0)
 	      || (INTEGERP (target) && EQ (target, XCONS (elt)->car))))
-	return (CONSP (val = XCONS (elt)->cdr)
+	return (val = XCONS (elt)->cdr, CONSP (val)
 		? val
-		: ((SYMBOLP (val) && Fboundp (val)
+		: ((SYMBOLP (val) && !NILP (Fboundp (val))
 		    ? call2 (val, Flist (nargs, args))
 		    : Qnil)));
     }
