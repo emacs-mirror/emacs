@@ -1347,21 +1347,22 @@ for a file, defaulting to the file defined by variable
       (set-buffer (let ((enable-local-variables nil))
                     (find-file-noselect file)))
       (goto-char (point-min))
-      (delete-region (point-min) (point-max))
-      (bookmark-insert-file-format-version-stamp)
-      (pp bookmark-alist (current-buffer))
-      (let ((version-control
-             (cond
-              ((null bookmark-version-control) nil)
-              ((eq 'never bookmark-version-control) 'never)
-              ((eq 'nospecial bookmark-version-control) version-control)
-              (t
-               t))))
-        (write-file file)
-        (kill-buffer (current-buffer))
-        (if (>= baud-rate 9600)
-            (message "Saving bookmarks to file %s...done" file))
-        ))))
+      (let ((print-length nil) 
+	    (print-level nil))
+	(delete-region (point-min) (point-max))
+	(bookmark-insert-file-format-version-stamp)
+	(pp bookmark-alist (current-buffer))
+	(let ((version-control
+	       (cond
+		((null bookmark-version-control) nil)
+		((eq 'never bookmark-version-control) 'never)
+		((eq 'nospecial bookmark-version-control) version-control)
+		(t
+		 t))))
+	  (write-file file)
+	  (kill-buffer (current-buffer))
+	  (if (>= baud-rate 9600)
+	      (message "Saving bookmarks to file %s...done" file)))))))
 
 
 (defun bookmark-import-new-list (new-list)
