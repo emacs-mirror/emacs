@@ -1,3 +1,8 @@
+2000-11-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* sysdep.c: Move the code for declaring h_errno after #include
+	<netdb.h>.
+
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (Fx_hide_tip) [USE_LUCID]: Add a hack to redisplay
