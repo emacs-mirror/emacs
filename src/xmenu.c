@@ -298,6 +298,7 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
   Lisp_Object savedkey, descrip;
   Lisp_Object def1;
   int changed = 0;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
   /* If a help string follows the item string, skip it.  */
   if (CONSP (XCONS (item1)->cdr)
@@ -317,6 +318,8 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
       savedkey = XCONS (cachelist)->car;
       descrip = XCONS (cachelist)->cdr;
     }
+
+  GCPRO4 (def, def1, savedkey, descrip);
 
   /* Is it still valid?  */
   def1 = Qnil;
@@ -363,6 +366,7 @@ menu_item_equiv_key (item_string, item1, descrip_ptr)
       XCONS (cachelist)->cdr = descrip;
     }
 
+  UNGCPRO;
   *descrip_ptr = descrip;
   return def;
 }
@@ -469,14 +473,16 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 		  Lisp_Object descrip;
 		  Lisp_Object tem, enabled;
 
-		  def = menu_item_equiv_key (item_string, item1, &descrip);
-
-		  /* GCPRO because we will call eval.
+		  /* GCPRO because ...enabled_p will call eval
+		     and ..._equiv_key may autoload something.
 		     Protecting KEYMAP preserves everything we use;
 		     aside from that, must protect whatever might be
 		     a string.  Since there's no GCPRO5, we refetch
 		     item_string instead of protecting it.  */
+		  descrip = def = Qnil;
 		  GCPRO4 (keymap, pending_maps, def, descrip);
+
+		  def = menu_item_equiv_key (item_string, item1, &descrip);
 		  enabled = menu_item_enabled_p (def, notreal);
 
 		  UNGCPRO;
@@ -537,15 +543,18 @@ single_keymap_panes (keymap, pane_name, prefix, notreal)
 		      Lisp_Object descrip;
 		      Lisp_Object tem, enabled;
 
-		      def = menu_item_equiv_key (item_string, item1, &descrip);
-
-		      /* GCPRO because we will call eval.
+		      /* GCPRO because ...enabled_p will call eval
+			 and ..._equiv_key may autoload something.
 			 Protecting KEYMAP preserves everything we use;
 			 aside from that, must protect whatever might be
 			 a string.  Since there's no GCPRO5, we refetch
 			 item_string instead of protecting it.  */
 		      GCPRO4 (keymap, pending_maps, def, descrip);
+		      descrip = def = Qnil;
+
+		      def = menu_item_equiv_key (item_string, item1, &descrip);
 		      enabled = menu_item_enabled_p (def, notreal);
+
 		      UNGCPRO;
 
 		      item_string = XCONS (item1)->car;
