@@ -818,9 +818,10 @@ and horizontal scrolling has no effect.\n\
 \n\
 If specified column is within a character, point goes after that character.\n\
 If it's past end of line, point goes to end of line.\n\n\
-A non-nil second (optional) argument FORCE means, if the line\n\
-is too short to reach column COLUMN then add spaces/tabs to get there,\n\
-and if COLUMN is in the middle of a tab character, change it to spaces.\n\
+A non-nil second (optional) argument FORCE means,\n\
+if COLUMN is in the middle of a tab character, change it to spaces.\n\
+In addition, if FORCE is t, and the line is too short\n\
+to reach column COLUMN, add spaces/tabs to get there.\n\
 \n\
 The return value is the current column.")
   (column, force)
@@ -946,7 +947,7 @@ The return value is the current column.")
     }
 
   /* If line ends prematurely, add space to the end.  */
-  if (col < goal && !NILP (force))
+  if (col < goal && EQ (force, Qt))
     Findent_to (make_number (col = goal), Qnil);
 
   last_known_column = col;
