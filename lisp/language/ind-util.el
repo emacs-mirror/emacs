@@ -452,7 +452,7 @@ Returns new end position."
 	      (intern (concat "is13194-to-ucs-"
 			      (symbol-name current-repertory) "-regexp")))
 	     (re (eval current-regexp))
-	     (hahsh (eval current-hashtable)))
+	     (hash (eval current-hashtable)))
 	(while (re-search-forward re nil t)
 	  (replace-match (gethash (match-string 0) hash ""))))
       (point-max))))
