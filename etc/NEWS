@@ -596,6 +596,15 @@ mode.
 
 ** Comint (subshell) changes
 
+By default, comint no longer uses the variable `comint-prompt-regexp' to
+distiguish prompts from user-input.  Instead, it notices which parts of
+the text were output by the process, and which entered by the user, and
+attaches `field' properties to allow emacs commands to use this information.
+Common movement commands, notably beginning-of-line, respect field
+boundaries in a fairly natural manner.
+To disable this feature, and use the old behavior, set the variable
+`comint-use-prompt-regexp-instead-of-fields' to a non-nil value.
+
 Comint now includes new features to send commands to running processes
 and redirect the output to a designated buffer or buffers.
 
