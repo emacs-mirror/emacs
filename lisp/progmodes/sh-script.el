@@ -759,6 +759,8 @@ with your script for an edit-interpret-debug cycle."
 						(current-column)))))
 	skeleton-filter 'sh-feature
 	skeleton-newline-indent-rigidly t)
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (setq parse-sexp-ignore-comments t)
   ;; Parse or insert magic number for exec, and set all variables depending
   ;; on the shell thus determined.
   (let ((interpreter
