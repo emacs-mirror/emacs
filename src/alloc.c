@@ -1261,7 +1261,7 @@ Garbage collection happens automatically if you cons more than\n\
 #endif /* MAX_SAVE_STACK > 0 */
 
   if (!noninteractive)
-    message1 ("Garbage collecting...");
+    message1_nolog ("Garbage collecting...");
 
   /* Don't keep command history around forever */
   tem = Fnthcdr (make_number (30), Vcommand_history);
@@ -1376,9 +1376,9 @@ Garbage collection happens automatically if you cons more than\n\
     gc_cons_threshold = 10000;
 
   if (omessage || minibuf_level > 0)
-    message2 (omessage, omessage_length);
+    message2_nolog (omessage, omessage_length);
   else if (!noninteractive)
-    message1 ("Garbage collecting...done");
+    message1_nolog ("Garbage collecting...done");
 
   return Fcons (Fcons (make_number (total_conses),
 		       make_number (total_free_conses)),
