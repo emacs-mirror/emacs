@@ -319,7 +319,7 @@ after your init file is read, in case it sets `mail-host-address'."
 (defcustom auto-save-list-file-prefix
   (cond ((eq system-type 'ms-dos)
 	 ;; MS-DOS cannot have initial dot, and allows only 8.3 names
-	 "~/_s")
+	 "~/_emacs.d/auto-save.list/_s")
 	(t
 	 "~/.emacs.d/auto-save-list/.saves-"))
   "Prefix for generating `auto-save-list-file-name'.
@@ -444,16 +444,23 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		 (setq auto-save-list-file-name
 		       ;; Under MS-DOS our PID is almost always reused between
 		       ;; Emacs invocations.  We need something more unique.
-		       (if (eq system-type 'ms-dos)
-			   (concat 
-			    (make-temp-name
-			     (expand-file-name auto-save-list-file-prefix))
-			    "~")
-
-			 (expand-file-name (format "%s%d-%s~"
-						   auto-save-list-file-prefix
-						   (emacs-pid)
-						   (system-name)))))))
+		       (cond ((eq system-type 'ms-dos)
+			      ;; We are going to access the auto-save
+			      ;; directory, so make sure it exists.
+			      (make-directory
+			       (file-name-directory auto-save-list-file-prefix)
+			       t)
+			      (concat 
+			       (make-temp-name
+				(expand-file-name
+				 auto-save-list-file-prefix))
+			       "~"))
+			     (t
+			      (expand-file-name
+			       (format "%s%d-%s~"
+				       auto-save-list-file-prefix
+				       (emacs-pid)
+				       (system-name))))))))
 	(run-hooks 'emacs-startup-hook)
 	(and term-setup-hook
 	     (run-hooks 'term-setup-hook))
