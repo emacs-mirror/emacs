@@ -1,3 +1,8 @@
+2000-09-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/devan-util.el (devanagari-to-indian-region): In the
+	loop, change the following char, not preceding char.
+
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* menu-bar.el (menu-bar-update-buffers): Call frame-parameter
