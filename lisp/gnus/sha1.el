@@ -82,6 +82,7 @@ It must be a string \(program name\) or list of strings \(name and its args\)."
 			       (error))
   "*Use external SHA1 program.
 If this variable is set to nil, use internal function only."
+  :version "21.4"
   :type 'boolean
   :group 'sha1)
 

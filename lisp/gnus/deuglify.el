@@ -235,46 +235,54 @@
 ;;;###autoload
 (defcustom gnus-outlook-deuglify-unwrap-min 45
   "Minimum length of the cited line above the (possibly) wrapped line."
+  :version "21.4"
   :type 'integer
   :group 'gnus-outlook-deuglify)
 
 ;;;###autoload
 (defcustom gnus-outlook-deuglify-unwrap-max 95
   "Maximum length of the cited line after unwrapping."
+  :version "21.4"
   :type 'integer
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-cite-marks ">|#%"
   "Characters that indicate cited lines."
+  :version "21.4"
   :type 'string
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-unwrap-stop-chars nil ;; ".?!" or nil
   "Characters that inhibit unwrapping if they are the last one on the cited line above the possible wrapped line."
+  :version "21.4"
   :type '(radio (const :format "None  " nil)
 		(string :size 0 :value ".?!"))
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-no-wrap-chars "`"
   "Characters that inhibit unwrapping if they are the first one in the possibly wrapped line."
+  :version "21.4"
   :type 'string
   :group 'gnus-outlook-deuglify)
 
 (defcustom  gnus-outlook-deuglify-attrib-cut-regexp
   "\\(On \\|Am \\)?\\(Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\|Sun\\),[^,]+, "
   "Regular expression matching the beginning of an attribution line that should be cut off."
+  :version "21.4"
   :type 'string
   :group 'gnus-outlook-deuglify)
 
 (defcustom gnus-outlook-deuglify-attrib-verb-regexp
   "wrote\\|writes\\|says\\|schrieb\\|schreibt\\|meinte\\|skrev\\|a écrit\\|schreef\\|escribió"
   "Regular expression matching the verb used in an attribution line."
+  :version "21.4"
   :type 'string
   :group 'gnus-outlook-deuglify)
 
 (defcustom  gnus-outlook-deuglify-attrib-end-regexp
   ": *\\|\\.\\.\\."
   "Regular expression matching the end of an attribution line."
+  :version "21.4"
   :type 'string
   :group 'gnus-outlook-deuglify)
 
@@ -282,6 +290,7 @@
 (defcustom gnus-outlook-display-hook nil
   "A hook called after an deuglified article has been prepared.
 It is run after `gnus-article-prepare-hook'."
+  :version "21.4"
   :type 'hook
   :group 'gnus-outlook-deuglify)
 

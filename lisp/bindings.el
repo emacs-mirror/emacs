@@ -517,7 +517,7 @@ is okay.  See `mode-line-format'.")
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
          ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
-         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl"
+         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl" ".dfsl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext
@@ -726,6 +726,7 @@ language you are using."
 (define-key global-map [C-up]		'backward-paragraph)
 (define-key global-map [C-down]		'forward-paragraph)
 (define-key global-map [C-prior]	'scroll-right)
+(put 'scroll-left 'disabled t)
 (define-key global-map [C-next]		'scroll-left)
 (define-key global-map [M-next]		'scroll-other-window)
 (define-key global-map [M-prior]	'scroll-other-window-down)

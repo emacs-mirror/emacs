@@ -317,6 +317,7 @@ More than one suitable coding system may be found for some text.
 By default, the coding system with the highest priority is used
 to encode outgoing messages (see `sort-coding-systems').  If this
 variable is set, it overrides the default priority."
+  :version "21.2"
   :type '(repeat (symbol :tag "Coding system"))
   :group 'mime)
 

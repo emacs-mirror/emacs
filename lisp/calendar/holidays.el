@@ -1,8 +1,10 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;; Copyright (C) 1989, 90, 92, 93, 94, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1992, 1993, 1994, 1997, 2004 Free
+;;   Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: holidays, calendar
 
 ;; This file is part of GNU Emacs.
@@ -398,86 +400,46 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
              (string (if date (eval string))))
         (list (list date string)))))))
 
-(defun holiday-advent ()
-  "Date of Advent, if visible in calendar window."
+(defun holiday-advent (n string)
+  "Date of Nth day after advent (named STRING), if visible in calendar window."
   (let ((year displayed-year)
         (month displayed-month))
     (increment-calendar-month month year -1)
     (let ((advent (calendar-gregorian-from-absolute
-                   (calendar-dayname-on-or-before 0
-                    (calendar-absolute-from-gregorian
-                     (list 12 3 year))))))
+                   (+ n
+                      (calendar-dayname-on-or-before
+                       0
+                       (calendar-absolute-from-gregorian
+                        (list 12 3 year)))))))
       (if (calendar-date-is-visible-p advent)
-          (list (list advent "Advent"))))))
+          (list (list advent string))))))
 
-(defun holiday-easter-etc ()
-  "List of dates related to Easter, as visible in calendar window."
- (if (and (> displayed-month 5) (not all-christian-calendar-holidays))
-     nil;; Ash Wednesday, Good Friday, and Easter are not visible.
-   (let* ((century (1+ (/ displayed-year 100)))
-          (shifted-epact        ;; Age of moon for April 5...
-           (% (+ 14 (* 11 (% displayed-year 19));;     ...by Nicaean rule
-                 (-           ;; ...corrected for the Gregorian century rule
-                  (/ (* 3 century) 4))
-                 (/    ;; ...corrected for Metonic cycle inaccuracy.
-                  (+ 5 (* 8 century)) 25)
-                 (* 30 century));;              Keeps value positive.
-              30))
-          (adjusted-epact       ;;  Adjust for 29.5 day month.
-           (if (or (= shifted-epact 0)
-                   (and (= shifted-epact 1) (< 10 (% displayed-year 19))))
-               (1+ shifted-epact)
-             shifted-epact))
-          (paschal-moon       ;; Day after the full moon on or after March 21.
-           (- (calendar-absolute-from-gregorian (list 4 19 displayed-year))
-              adjusted-epact))
-          (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))
-          (mandatory
+(defun holiday-easter-etc (n string)
+  "Date of Nth day after Easter (named STRING), if visible in calendar window."
+  (let* ((century (1+ (/ displayed-year 100)))
+         (shifted-epact        ;; Age of moon for April 5...
+          (% (+ 14 (* 11 (% displayed-year 19));;     ...by Nicaean rule
+                (-           ;; ...corrected for the Gregorian century rule
+                 (/ (* 3 century) 4))
+                (/    ;; ...corrected for Metonic cycle inaccuracy.
+                 (+ 5 (* 8 century)) 25)
+                (* 30 century));;              Keeps value positive.
+             30))
+         (adjusted-epact       ;;  Adjust for 29.5 day month.
+          (if (or (= shifted-epact 0)
+                  (and (= shifted-epact 1) (< 10 (% displayed-year 19))))
+              (1+ shifted-epact)
+            shifted-epact))
+         (paschal-moon       ;; Day after the full moon on or after March 21.
+          (- (calendar-absolute-from-gregorian (list 4 19 displayed-year))
+             adjusted-epact))
+         (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))
+         (mandatory
            (list
-            (list (calendar-gregorian-from-absolute abs-easter)
-                  "Easter Sunday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 2))
-                  "Good Friday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 46))
-                  "Ash Wednesday")))
-          (optional
-           (list
-            (list (calendar-gregorian-from-absolute (- abs-easter 63))
-                  "Septuagesima Sunday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 56))
-                  "Sexagesima Sunday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 49))
-                  "Shrove Sunday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 48))
-                  "Shrove Monday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 47))
-                  "Shrove Tuesday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 14))
-                  "Passion Sunday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 7))
-                  "Palm Sunday")
-            (list (calendar-gregorian-from-absolute (- abs-easter 3))
-                  "Maundy Thursday")
-            (list (calendar-gregorian-from-absolute (+ abs-easter 35))
-                  "Rogation Sunday")
-            (list (calendar-gregorian-from-absolute (+ abs-easter 39))
-                  "Ascension Day")
-            (list (calendar-gregorian-from-absolute (+ abs-easter 49))
-                  "Pentecost (Whitsunday)")
-            (list (calendar-gregorian-from-absolute (+ abs-easter 50))
-                  "Whitmonday")
-            (list (calendar-gregorian-from-absolute (+ abs-easter 56))
-                  "Trinity Sunday")
-            (list (calendar-gregorian-from-absolute (+ abs-easter 60))
-                  "Corpus Christi")))
-          (output-list
-           (filter-visible-calendar-holidays mandatory)))
-     (if all-christian-calendar-holidays
-         (setq output-list
-               (append
-                (filter-visible-calendar-holidays optional)
-                output-list)))
-     output-list)))
+            (list (calendar-gregorian-from-absolute (+ abs-easter n))
+                  string)))
+         (output-list (filter-visible-calendar-holidays mandatory)))
+    output-list))
 
 (defun holiday-greek-orthodox-easter ()
   "Date of Easter according to the rule of the Council of Nicaea."

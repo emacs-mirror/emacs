@@ -1,6 +1,156 @@
+2004-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-decode.el (mm-copy-to-buffer): Preserve the data's unibyteness.
+
+2004-09-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* uudecode.el (uudecode-use-external): Add :version.
+
+	* smime.el (smime-CA-file, smime-encrypt-cipher)
+	(smime-dns-server): Add :version.
+
+	* smiley.el (gnus-smiley-file-types): Add :version.
+
+	* sha1.el (sha1-use-external): Add :version.
+
+	* pgg-def.el (pgg-query-keyserver): Add :version.
+
+	* nnmail.el (nnmail-fancy-expiry-targets)
+	(nnmail-mail-splitting-charset, nnmail-mail-splitting-decodes):
+
+	* nnimap.el (nnimap-split-download-body, nnimap-dont-close)
+	(nnimap-retrieve-groups-asynchronous): Add :version.
+	(nnimap-close-asynchronous): Add :version.  Fixed typo in doc string.
+
+	* mml.el (mml-content-disposition-parameters)
+	(mml-insert-mime-headers-always): Add :version.
+
+	* mm-util.el (mm-coding-system-priorities):
+
+	* mm-decode.el (mm-inline-text-html-with-images)
+	(mm-keep-viewer-alive-types, mm-external-terminal-program)
+	(mm-verify-option): Add :version.
+	(mm-text-html-renderer): Change :version.
+
+	* message.el (message-fcc-externalize-attachments)
+	(message-required-headers, message-draft-headers)
+	(message-subject-trailing-was-query)
+	(message-subject-trailing-was-ask-regexp)
+	(message-subject-trailing-was-regexp, message-mark-insert-begin)
+	(message-mark-insert-end, message-archive-header)
+	(message-archive-note, message-cross-post-default)
+	(message-cross-post-note, message-followup-to-note)
+	(message-cross-post-note-function, message-use-mail-followup-to)
+	(message-subscribed-address-functions)
+	(message-subscribed-address-file, message-subscribed-addresses)
+	(message-subscribed-regexps, message-allow-no-recipients)
+	(message-yank-cited-prefix, message-signature-insert-empty-line)
+	(message-hidden-headers, message-hierarchical-addresses)
+	(message-mail-user-agent, message-use-idna)
+	(message-valid-fqdn-regexp)
+	(message-strip-special-text-properties, message-header-synonyms)
+	(message-beginning-of-line, message-tab-body-function): Add :version.
+	(message-insert-canlock, message-wide-reply-confirm-recipients):
+	Change :version.
+
+	* mail-source.el (mail-source-ignore-errors): Add :group, :type
+	and :version.
+	(mail-source-delete-old-incoming-confirm)
+	(mail-source-movemail-program): Add :version.
+
+	* gnus.el (gnus-parameters, gnus-user-agent): Add :version.
+	(gnus-agent-cache, gnus-agent): Change :version.
+
+	* gnus-util.el (gnus-use-byte-compile): Change :version.
+
+	* gnus-sum.el (gnus-summary-make-false-root-always)
+	(gnus-summary-default-high-score)
+	(gnus-summary-default-low-score, gnus-auto-goto-ignores)
+	(gnus-forwarded-mark, gnus-unseen-mark, gnus-no-mark)
+	(gnus-read-all-available-headers, gnus-article-emulate-mime)
+	(gnus-sum-thread-tree-root, gnus-sum-thread-tree-false-root)
+	(gnus-sum-thread-tree-single-indent)
+	(gnus-sum-thread-tree-vertical, gnus-sum-thread-tree-indent)
+	(gnus-sum-thread-tree-leaf-with-other)
+	(gnus-sum-thread-tree-single-leaf): Add :version.
+	(gnus-summary-display-arrow, gnus-summary-muttprint-program)
+	(gnus-article-loose-mime): Change :version.
+
+	* gnus-start.el (gnus-backup-startup-file)
+	(gnus-save-startup-file-via-temp-buffer): Add :version.
+
+	* gnus-srvr.el (gnus-server-browse-in-group-buffer)
+	(gnus-server-offline-face): Add :version.
+
+	* gnus-score.el (gnus-adaptive-word-length-limit):
+
+	* gnus-msg.el (gnus-gcc-externalize-attachments)
+	(gnus-debug-files, gnus-debug-exclude-variables)
+	(gnus-discouraged-post-methods): Change :version.
+	(gnus-confirm-mail-reply-to-news)
+	(gnus-confirm-treat-mail-like-news): Add :version.
+
+	* gnus-int.el (gnus-server-unopen-status): Add :version.
+
+	* gnus-group.el (gnus-group-jump-to-group-prompt)
+	(gnus-large-ephemeral-newsgroup)
+	(gnus-fetch-old-ephemeral-headers): Add :version.
+
+	* gnus-fun.el (gnus-x-face-directory)
+	(gnus-convert-pbm-to-x-face-command)
+	(gnus-convert-image-to-x-face-command)
+	(gnus-convert-image-to-face-command): Add :version.
+
+	* gnus-delay.el (gnus-delay-default-hour): Add :version.
+
+	* gnus-cite.el (gnus-cite-blank-line-after-header)
+	(gnus-article-boring-faces): 
+
+	* gnus-art.el (gnus-buttonized-mime-types)
+	(gnus-inhibit-mime-unbuttonizing)
+	(gnus-treat-display-face)
+	(gnus-treat-body-boundary): Change :version.
+	(gnus-body-boundary-delimiter, gnus-picon-databases)
+	(gnus-treat-strip-cr, gnus-treat-leading-whitespace)
+	(gnus-treat-date-english, gnus-treat-fold-headers)
+	(gnus-article-skip-boring, gnus-treat-fold-newsgroups)
+	(gnus-treat-mail-picon, gnus-treat-wash-html)
+	(gnus-article-encrypt-protocol)
+	(gnus-use-idna, gnus-article-over-scroll)
+	(gnus-mime-display-multipart-alternative-as-mixed)
+	(gnus-mime-display-multipart-related-as-mixed)
+	(gnus-button-valid-fqdn-regexp, gnus-button-man-handler)
+	(gnus-ctan-url, gnus-button-ctan-handler)
+	(gnus-button-handle-ctan-bogus-regexp)
+	(gnus-button-ctan-directory-regexp)
+	(gnus-button-mid-or-mail-regexp, gnus-button-prefer-mid-or-mail)
+	(gnus-button-mid-or-mail-heuristic-alist, gnus-button-tex-level)
+	(gnus-button-man-level, gnus-button-emacs-level)
+	(gnus-button-message-level, gnus-button-browse-level): Add :version.
+
+	* gnus-agent.el (gnus-agent-fetched-hook): Add :version.
+	(gnus-agent-go-online): Change :version.
+	(gnus-agent-expire-unagentized-dirs)
+	(gnus-agent-auto-agentize-methods): Add :version.
+
+	* flow-fill.el (fill-flowed-display-column)
+	(fill-flowed-encode-column): Add :version.
+
+	* deuglify.el (gnus-outlook-deuglify-unwrap-min)
+	(gnus-outlook-deuglify-unwrap-max)
+	(gnus-outlook-deuglify-cite-marks)
+	(gnus-outlook-deuglify-unwrap-stop-chars)
+	(gnus-outlook-deuglify-no-wrap-chars)
+	(gnus-outlook-deuglify-attrib-cut-regexp)
+	(gnus-outlook-deuglify-attrib-verb-regexp)
+	(gnus-outlook-deuglify-attrib-end-regexp)
+	(gnus-outlook-display-hook): Add :version.
+
+	* binhex.el (binhex-use-external): Add :version.
+
 2004-09-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-sum.el (gnus-fetch-old-headers): Added custom choices `t'
+	* gnus-sum.el (gnus-fetch-old-headers): Add custom choices `t'
 	and `invisible'.
 
 2004-09-13  Simon Josefsson  <jas@extundo.com>
@@ -9,7 +159,7 @@
 
 2004-09-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-sum.el (gnus-summary-copy-article): Fixed doc string.
+	* gnus-sum.el (gnus-summary-copy-article): Fix doc string.
 
 2004-09-10  Miles Bader  <miles@gnu.ai.mit.edu>
 
@@ -17,10 +167,10 @@
 
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* nnimap.el (nnimap-open-connection): allow 'imaps' as a synonym
+	* nnimap.el (nnimap-open-connection): Allow 'imaps' as a synonym
 	for the 'imap' port in netrc files
 
-	* gnus-registry.el (gnus-registry-trim): watch out for negatives
+	* gnus-registry.el (gnus-registry-trim): Watch out for negatives
 	in gnus-registry-trim
 
 2004-09-10  Simon Josefsson  <jas@extundo.com>
@@ -30,10 +180,9 @@
 2004-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nntp.el (nntp): New customization group.
-	(nntp-authinfo-file): Added customization group.
+	(nntp-authinfo-file): Add customization group.
 
-	* mml2015.el (mml2015-unabbrev-trust-alist): Added customization
-	group.
+	* mml2015.el (mml2015-unabbrev-trust-alist): Add customization group.
 
 	* mml-sec.el (mml-signencrypt-style-alist): Ditto.
 

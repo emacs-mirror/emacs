@@ -60,6 +60,7 @@
 
 (defcustom gnus-delay-default-hour 8
   "*If deadline is given as date, then assume this time of day."
+  :version "21.4"
   :type 'integer
   :group 'gnus-delay)
 

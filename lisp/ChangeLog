@@ -1,3 +1,101 @@
+2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>
+
+	* calendar/holidays.el (holiday-advent): Report on a specified day
+	offset from advent, not just advent.
+	(holiday-easter-etc): Report on one specified day offset from
+	easter, not all easter holidays. Various Easter holidays moved to
+	`christian-holidays' variable in calendar.el.
+	* calendar/calendar.el (christian-holidays): Adapt for new
+	behaviour of `holiday-advent' and `holiday-easter-etc' functions.
+
+2004-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-sliced-image): Add doc string.
+
+	* ido.el (ido-choice-list): New dynamic var for `list' context.
+	(ido-context-switch-command): New dynamic var.
+	(ido-define-mode-map): Generalize switch between file/buffer contexts.
+	(ido-read-internal): Handle new `list' context.
+	Handle insert-buffer and insert-file ido-exit values.
+	(ido-buffer-internal): New arg switch-cmd.  Use it to setup
+	ido-context-switch-command. Handle insert-file ido-exit value.
+	(ido-read-buffer): Set ido-context-switch-command to 'ignore
+	unless it is already bound by caller.
+	(ido-file-internal): New arg switch-cmd.  Use it to setup
+	ido-context-switch-command.  Handle insert-buffer ido-exit value.
+	(ido-enter-insert-buffer, ido-enter-insert-file): New commands
+	used for context switching.
+	(ido-all-completions): Handle new `list' context.
+	(ido-make-choice-list): Return choices for `list' context.
+	(ido-find-file-in-dir, ido-display-file, ido-write-file)
+	(ido-display-buffer, ido-kill-buffer): Disable context switching.
+	(ido-insert-buffer, ido-insert-file): Setup context switching.
+	(ido-exhibit): Handle `list' context.
+	(ido-read-file-name): Disable context switching.  Handle fallback.
+	(ido-read-directory-name): Disable context switching.
+	(ido-completing-read): New defun like completing-read.  Setup and
+	use new `list' context.
+
+2004-09-20  Jesper Harder  <harder@ifa.au.dk>
+
+	* progmodes/tcl.el (inferior-tcl): Use pop-to-buffer.
+
+2004-09-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (after-change-major-mode-hook): Doc fix.
+
+2004-09-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  Add a new tip about the use of gsprint instead
+	of ghostscript for monochrome PostScript file in Windows.
+
+2004-09-21  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Checking of quail activation
+	fixed.
+
+2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (run-mode-hooks): Run `after-change-major-mode-hook'
+	after the mode hooks instead of before.  Doc fix.
+
+2004-09-20  Jason Rumney  <jasonr@gnu.org>
+
+	* startup.el (command-line) [windows-nt]: Try .emacs first, then
+	_emacs, but revert to .emacs if neither exists in home directory.
+
+2004-09-20  John Paul Wallington  <jpw@gnu.org>
+
+	* bindings.el (completion-ignored-extensions): Add .dfsl.
+
+2004-09-20  Richard M. Stallman  <rms@gnu.org>
+
+	* bindings.el (scroll-left): Make it disabled.
+
+	* files.el (enable-local-eval): Doc fix.
+
+	* indent.el (move-to-left-margin): Special case for minibuffer.
+
+	* term.el (term-emulate-terminal): Turn off undo for output.
+	Use with-current-buffer and save-selected-window.
+
+	* eshell/esh-ext.el (eshell-explicit-command-char): Doc fix.
+
+	* progmodes/make-mode.el (makefile-fill-paragraph):
+	Don't insist on spaces when looking for comments.  # is enough.
+
+	* files.el (hack-local-variables): Copy the variables list
+	to another buffer, strip prefixes and suffixes there, then read.
+	(enable-local-eval): Doc fix.
+	(ignored-local-variables): Initialize to nil.
+	(risky-local-variable-p): Don't check ignored-local-variables here.
+	(hack-one-local-variable): Ignore var if in ignored-local-variables.
+
+2004-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/sh-script.el (sh-mode-default-syntax-table): Set syntax
+	of = to "." (punctuation).
+
 2004-09-19  Stefan  <monnier@iro.umontreal.ca>
 
 	* subr.el (event-basic-type): Fix mask (extend to 22bits).
@@ -226,6 +324,11 @@
 
 	* desktop.el (desktop-clear-preserve-buffers):
 	Remove make-obsolete-variable.
+
+2004-09-08  Richard M. Stallman  <rms@gnu.org>
+
+	* buff-menu.el (list-buffers-noselect): Call format-mode-line
+	with the buffer as argument.
 
 2004-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 

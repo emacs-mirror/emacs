@@ -544,6 +544,9 @@ held down are shown as @kbd{C-x}.  Keys pressed with Meta held down
 are shown as @kbd{M-x}.  Other notations are @key{RET} for the
 Return key, @key{SPC} for the space bar, @key{TAB} for the Tab key,
 @key{DEL} for the Delete key, and @key{LFD} for the Line-Feed key.
+The @key{DEL} key is called Backspace on some keyboards, it is
+whatever key you would use to correct a simple typing error when
+regularly using Emacs.
 
 (If you don't have the @key{LFD} or @key{TAB} keys on your keyboard,
 the @kbd{C-j} and @kbd{C-i} keys are equivalent to them, respectively.
@@ -4105,7 +4108,13 @@ graphics window.  For other kinds of displays, the default is to
 display the graph in Emacs itself using rough character graphics.
 Press @kbd{q} when you are done viewing the character graphics.
 
-Next, let's add the line we got from our least-squares fit:
+Next, let's add the line we got from our least-squares fit.
+@ifinfo
+(If you are reading this tutorial on-line while running Calc, typing
+@kbd{g a} may cause the tutorial to disappear from its window and be
+replaced by a buffer named @samp{*Gnuplot Commands*}.  The tutorial
+will reappear when you terminate GNUPLOT by typing @kbd{g q}.) 
+@end ifinfo
 
 @smallexample
 @group

@@ -210,13 +210,13 @@
 	      "title \"" (symbol-name (nth 1 ydata)) "\" "
 	      "with dots")
       (setq pstyle (and (eq (car-safe pstyle) 'vec) (nth (1+ num) pstyle)))
-      (setq lstyle (and (eq (car-safe lstyle) 'vec) (nth (1+ num) lstyle)))
-      (calc-graph-set-styles
-       (or (and (Math-num-integerp lstyle) (math-trunc lstyle))
-	   0)
-       (or (and (Math-num-integerp pstyle) (math-trunc pstyle))
-	   (if (eq (car-safe (calc-var-value (nth 2 ydata))) 'vec)
-	       0 -1))))))
+      (setq lstyle (and (eq (car-safe lstyle) 'vec) (nth (1+ num) lstyle))))
+    (calc-graph-set-styles
+     (or (and (Math-num-integerp lstyle) (math-trunc lstyle))
+         0)
+     (or (and (Math-num-integerp pstyle) (math-trunc pstyle))
+         (if (eq (car-safe (calc-var-value (nth 2 ydata))) 'vec)
+             0 -1)))))
 
 (defun calc-graph-lookup (thing)
   (if (and (eq (car-safe thing) 'var)
