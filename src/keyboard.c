@@ -1173,7 +1173,7 @@ command_loop_1 ()
 	{
 	  /* nil means key is undefined.  */
 	  bitch_at_user ();
-	  defining_kbd_macro = 0;
+	  current_perdisplay->defining_kbd_macro = Qnil;
 	  update_mode_lines = 1;
 	  clear_prefix_arg ();
 	}
@@ -1392,7 +1392,7 @@ command_loop_1 ()
     finalize:
       /* Install chars successfully executed in kbd macro.  */
 
-      if (defining_kbd_macro && NILP (Vprefix_arg))
+      if (!NILP (current_perdisplay->defining_kbd_macro) && NILP (Vprefix_arg))
 	finalize_kbd_macro_chars ();
 
 #ifdef MULTI_PERDISPLAY
@@ -4581,7 +4581,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
       int i = nlength;
       Lisp_Object obj;
       int ch;
-      int orig_defn_macro ;
+      Lisp_Object orig_defn_macro;
 
       /* Loop over elements of map.  */
       while (i < width)
@@ -4676,12 +4676,12 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	 is pressed.  Help characters are not recorded because menu prompting
 	 is not used on replay.
 	 */
-      orig_defn_macro = defining_kbd_macro ;
-      defining_kbd_macro = 0 ;
+      orig_defn_macro = current_perdisplay->defining_kbd_macro;
+      current_perdisplay->defining_kbd_macro = Qnil;
       do
 	obj = read_char (commandflag, 0, 0, Qnil, 0);
       while (BUFFERP (obj));
-      defining_kbd_macro = orig_defn_macro ;
+      current_perdisplay->defining_kbd_macro = orig_defn_macro;
 
       if (!INTEGERP (obj))
 	return obj;
@@ -4692,8 +4692,8 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
 	  && (!INTEGERP (menu_prompt_more_char)
 	      || ! EQ (obj, make_number (Ctl (XINT (menu_prompt_more_char))))))
 	{
-	  if ( defining_kbd_macro )
-	    store_kbd_macro_char(obj) ;
+	  if (!NILP (current_perdisplay->defining_kbd_macro))
+	    store_kbd_macro_char (obj);
 	  return obj;
 	}
       /* Help char - go round again */
@@ -6038,7 +6038,7 @@ DEFUN ("discard-input", Fdiscard_input, Sdiscard_input, 0, 0, 0,
 Also cancel any kbd macro being defined.")
   ()
 {
-  defining_kbd_macro = 0;
+  current_perdisplay->defining_kbd_macro = Qnil;
   update_mode_lines++;
 
   Vunread_command_events = Qnil;
@@ -6422,6 +6422,9 @@ init_perdisplay (perd)
   perd->immediate_echo = 0;
   perd->echoptr = perd->echobuf;
   perd->echo_after_prompt = -1;
+  perd->kbd_macro_buffer = 0;
+  perd->kbd_macro_bufsize = 0;
+  perd->defining_kbd_macro = Qnil;
 }
 
 /*
@@ -6433,8 +6436,8 @@ void
 wipe_perdisplay (perd)
      PERDISPLAY *perd;
 {
-  /* Free anything that was malloc'd in init_perdisplay.  */
-  /* Placeholder -- currently no action required.  */
+  if (perd->kbd_macro_buffer)
+    xfree (perd->kbd_macro_buffer);
 }
 
 init_keyboard ()
