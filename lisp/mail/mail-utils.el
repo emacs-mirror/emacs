@@ -23,8 +23,8 @@
 ;; should be in loaddefs
 (defvar mail-use-rfc822 nil
   "*If non-nil, use a full, hairy RFC822 parser on mail addresses.
-Otherwise, (the default) use a smaller, somewhat faster and
-often-correct parser.")
+Otherwise, (the default) use a smaller, somewhat faster, and
+often correct parser.")
 
 (defun mail-string-delete (string start end)
   "Returns a string containing all of STRING except the part
@@ -103,7 +103,7 @@ Return a modified address list."
 ; rmail-dont-reply-to-names is defined in loaddefs
 (defun rmail-dont-reply-to (userids)
   "Returns string of mail addresses USERIDS sans any recipients
-that start with matches for  rmail-dont-reply-to-names.
+that start with matches for `rmail-dont-reply-to-names'.
 Usenet paths ending in an element that matches are removed also."
   (if (null rmail-dont-reply-to-names)
       (setq rmail-dont-reply-to-names
@@ -135,10 +135,10 @@ Usenet paths ending in an element that matches are removed also."
       userids)))
 
 (defun mail-fetch-field (field-name &optional last all)
-  "Return the value of the header field FIELD.
+  "Return the value of the header field FIELD-NAME.
 The buffer is expected to be narrowed to just the headers of the message.
-If 2nd arg LAST is non-nil, use the last such field if there are several.
-If 3rd arg ALL is non-nil, concatenate all such fields, with commas between."
+If second arg LAST is non-nil, use the last such field if there are several.
+If third arg ALL is non-nil, concatenate all such fields with commas between."
   (save-excursion
     (goto-char (point-min))
     (let ((case-fold-search t)
