@@ -38,10 +38,10 @@ struct face
     int cached_index;
   
     /* Pixel value for foreground color.  */
-    int foreground;
+    EMACS_UINT foreground;
   
     /* Pixel value for background color.  */
-    int background;
+    EMACS_UINT background;
   
     /* Font used for this face.  */
     XFontStruct *font;
