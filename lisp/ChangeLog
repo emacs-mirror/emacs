@@ -1,3 +1,7 @@
+2002-07-08  Juanma Barranquero  <lektu@terra.es>
+
+	* info.el (Info-directory-list): Fix docstring.
+
 2002-07-08  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-dynamic-list-completions): Sort COMPLETIONS
@@ -9,7 +13,7 @@
 	of files just created (and not yet saved on disk).
 
 	* ido.el (ido-completion-help): Changed xemacs specific code to
-	avoid byte compiler warning in GNU emacs.                                                                            
+	avoid byte compiler warning in GNU emacs.
 	(ido-set-matches1): Use regexp-quote instead of identity.
 	(ido-complete-space): New function.
 	(ido-define-mode-map): Bind it to SPACE.
@@ -304,7 +308,7 @@
 	(uniquify-delayed-rationalize-file-buffer-names):
 	Rename from delayed-uniquify-rationalize-file-buffer-names.
 
-2002-06-27  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-27  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-file-name-structure)
 	(tramp-multi-file-name-hop-structure): Split for easier readability.
@@ -353,7 +357,7 @@
 
 	* dired.el (dired-find-alternate-file): Mark as disabled.
 
-2002-06-25  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-25  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-ftp-method): New user option.
 	(tramp-invoke-ange-ftp): New function to forward calls to Ange-FTP.
@@ -441,7 +445,7 @@
 	* progmodes/f90.el (f90-do-auto-fill): Respect the value of
 	comment-auto-fill-only-comments.
 
-2002-06-21  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/ange-ftp.el (backup-buffer): Delete `ange-ftp' property.
 	This is not a handled operation.
