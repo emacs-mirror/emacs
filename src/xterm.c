@@ -12289,10 +12289,14 @@ x_new_fontset (f, fontsetname)
 
   if (fontset < 0)
     {
-      Lisp_Object fontlist;
+      Lisp_Object func;
 
-      fontlist = Fcons (Fcons (Qascii, Fcons (result, Qnil)), Qnil);
-      Fnew_fontset (result, fontlist);
+      func = intern ("create-fontset-from-ascii-font");
+      if (! NILP (Ffboundp (func)))
+	result = call2 (func, result, result);
+      else
+	Fnew_fontset (result,
+		      Fcons (Fcons (Qascii, Fcons (result, Qnil)), Qnil));
       fontset = fs_query_fontset (result, 0);
     }
 
