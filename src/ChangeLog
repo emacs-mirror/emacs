@@ -1,3 +1,7 @@
+2001-11-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 750000.
+
 2001-11-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* frame.c (Fframe_live_p): Doc fix.
