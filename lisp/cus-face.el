@@ -195,11 +195,11 @@
 
     (:foreground
      (color :tag "Foreground"
-	    :help-echo "Set foreground color."))
+	    :help-echo "Set foreground color (name or #RRGGBB hex spec)."))
 
     (:background
      (color :tag "Background"
-	    :help-echo "Set background color."))
+	    :help-echo "Set background color (name or #RRGGBB hex spec)."))
 
     (:stipple
      (choice :tag "Stipple"
