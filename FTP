@@ -9,14 +9,14 @@ We distribute software in the hope that it will be useful, but without
 any warranty.  No author or distributor of this software accepts
 responsibility to anyone for the consequences of using it or for
 whether it serves any particular purpose or works at all, unless he
-says so in writing. This is exactly the same warranty that the commercial
-software companies offer: None. If the distribution is incomplete or the
+says so in writing. This is exactly the same warranty that the proprietary
+software companies offer: None.  If the distribution is incomplete or the
 media fails, you can always download a replacement from any of the GNU
 mirrors, free of charge.
 
 * Updates
 
-A possibly more up-to-date list of GNU FTP sites is at
+You can always find the most recent version of this list of GNU FTP sites at
         http://www.gnu.org/order/ftp.html
 
 * How to FTP
@@ -37,16 +37,15 @@ diff files to convert between versions exist for some of these
 programs.  Some programs have misc support files as well.  Have a look
 on ftp.gnu.org to see which ones.  In most cases, the tar or diff
 files are compressed with the `gzip' program; this is indicated with
-the .gz suffix.
+the .gz suffix.  Binaries for gzip can be downloaded from
+http://www.gzip.org.
 
 Descriptions of GNU software are available at
 	http://www.gnu.org/software/software.html
+ and in the Free Software Directory at 
+        http://www.gnu.org/directory/index.html
 
 * Alternative Internet FTP Sources
-
-Please do NOT use a site outside your country, until you have checked
-all sites inside your country, and then your continent.  Trans-ocean
-TCP/IP links are very expensive and usually very low speed.
 
 The canonical GNU ftp site is located at ftp.gnu.org/gnu.
 You should probably use one of the many mirrors of that site - the
@@ -57,123 +56,128 @@ mirrors will be less busy, and you can find one closer to your site.
 United States:
 
 
-California - labrea.stanford.edu/pub/gnu, gatekeeper.dec.com/pub/GNU, ftp.keystealth.org/pub/gnu
-Hawaii - ftp.hawaii.edu/mirrors/gnu
-Illinois - uiarchive.cso.uiuc.edu/pub/gnu (Internet address 128.174.5.14)
-Kentucky -  ftp.ms.uky.edu/pub/gnu
-Maryland - ftp.digex.net/pub/gnu (Internet address 164.109.10.23)
-Massachusetts - aeneas.mit.edu/pub/gnu
-Michigan - gnu.egr.msu.edu/pub/gnu
-Missouri - wuarchive.wustl.edu/systems/gnu
-New Mexico - ftp.cs.unm.edu/mirrors/gnu
-New York - ftp.cs.columbia.edu/archives/gnu/prep
-New York - ftp.stealth.net/pub/mirrors/ftp.gnu.org (Internet address 206.252.192.18)
-North Carolina - http://metalab.unc.edu/pub/gnu
-Ohio - ftp.cis.ohio-state.edu/mirror/gnu
-Pennsylvania - boron.club.cc.cmu.edu/gnu
-Tennessee - sunsite.utk.edu/pub/gnu/ftp
-Virginia - ftp.uu.net/archive/systems/gnu
-Washington - ftp.nodomainname.net/pub/mirrors/gnu
-Wisconsin - ftp.twtelecom.net/pub/GNU
+California - mirrors.kernel.org/gnu, http://mirrors.kernel.org/gnu
+California - gatekeeper.dec.com/pub/GNU/ 
+California - ftp.keystealth.org/pub/gnu/
+Illinois - uiarchive.cso.uiuc.edu/pub/ftp/ftp.gnu.org/gnu/
+Indiana - ftp.in-span.net/pub/mirrors/ftp.gnu.org/
+Kentucky - gnu.ms.uky.edu/pub/mirrors/gnu/
+Maryland - ftp.digex.net/pub/gnu/
+Massachusetts - aeneas.mit.edu/pub/gnu/
+Michigan - ftp.egr.msu.edu/pub/gnu/, http://ftp.egr.msu.edu/pub/gnu/
+Michigan - ftp.wayne.edu/gnu_mirror/
+Missouri - wuarchive.wustl.edu/systems/gnu/
+New Jersey - gnu.teleglobe.net/ftp.gnu.org/
+New York - ftp.cs.columbia.edu/archives/gnu/prep/
+New York - ftp.ece.cornell.edu/pub/mirrors/gnu/
+North Carolina - http://www.ibiblio.org/pub/gnu/
+Ohio - ftp.cis.ohio-state.edu/mirror/gnu/
+Pennsylvania - boron.club.cc.cmu.edu/gnu/
+Tennessee - sunsite.utk.edu/pub/gnu/ftp/, thales.memphis.edu/pub/gnu/
+Washington - ftp.nodomainname.net/pub/mirrors/gnu/, gnu.wwc.edu/
+Wisconsin - ftp.twtelecom.net/pub/GNU/
 
 Africa:
 
-South Africa - ftp.sun.ac.za/gnu
+South Africa - ftp.sun.ac.za/mirrorsites/ftp.gnu.org/pub/gnu
 
 The Americas:
 
-Brazil - ftp.unicamp.br/pub/gnu
-Brazil - master.softaplic.com.br/pub/gnu
-Brazil - ftp.matrix.com.br/pub/gnu
-Canada - ftp.cs.ubc.ca/mirror2/gnu
-Chile - ftp.inf.utfsm.cl/pub/gnu (Internet address 146.83.198.3)
-Costa Rica - sunsite.ulatina.ac.cr/Mirrors/GNU
-Mexico - ftp.uaem.mx/pub/gnu
+Brazil - ftp.unicamp.br/pub/gnu/
+Brazil - master.softaplic.com.br/pub/gnu/
+Brazil - ftp.matrix.com.br/pub/gnu/
+Canada - ftp.cs.ubc.ca/mirror2/gnu/
+Chile - ftp.inf.utfsm.cl/pub/gnu/
+Costa Rica - sunsite.ulatina.ac.cr/Mirrors/GNU/
+Mexico - www.gnu.unam.mx/pub/gnu/software/
+Mexico - gnu.cem.itesm.mx/pub/mirrors/gnu.org/
+Mexico - ftp.azc.uam.mx/mirrors/gnu/
 
 Australia:
 
-Australia - ftp.progsoc.uts.edu.au/pub/gnu
-Australia - mirror.aarnet.edu.au/pub/gnu
+Australia - mirror.aarnet.edu.au/pub/gnu/
+Australia - gnu.mirror.pacific.net.au/gnu/
 
 Asia:
 
-China - ftp.sea9.com/pub/gnu
-China - ftp.cs.cuhk.edu.hk/pub/gnu/
+China - ftp.sea9.com/pub/gnu/
+China - ftp.cs.cuhk.edu.hk/pub/gnu/gnu/
 China - sunsite.ust.hk/pub/gnu/
-Japan - tron.um.u-tokyo.ac.jp/pub/GNU/prep
-Japan - ftp.cs.titech.ac.jp/pub/gnu
-Japan - mirror.nucba.ac.jp/mirror/GNU/
-Japan - core.ring.gr.jp/pub/GNU
-Japan - ftp.ring.gr.jp/pub/GNU
-Korea - cair-archive.kaist.ac.kr/pub/gnu (Internet address 143.248.186.3)
-Korea - ftpmirror.hanyang.ac.kr/GNU 
-Saudi Arabia - ftp.isu.net.sa/pub/mirrors/prep.ai.mit.edu/pub/gnu
-Taiwan - coda.nctu.edu.tw/UNIX/gnu
+China - ftp.shellhung.org/pub/gnu/
+India - ftp.kernel.org.in/gnu.org/
+India - http://kernel.org.in/mirrors/gnu.org/
+India - www.imtech.res.in/mirror/gnuftp/
+Indonesia - sapi.vlsm.org/gnu
+Indonesia - http://sapi.vlsm.org/gnu/
+Israel - ftp.cs.huji.ac.il/mirror/GNU
+Japan - tron.um.u-tokyo.ac.jp/pub/GNU/prep/
+Japan - core.ring.gr.jp/pub/GNU/
+Japan - ftp.ring.gr.jp/pub/GNU/
+Japan - mirrors.hbi.co.jp/gnu/
+Japan - ftp.ayamura.org/pub/gnu/
+Korea - cair-archive.kaist.ac.kr/pub/gnu/ (Internet address 143.248.186.3)
+Korea - ftpmirror.hanyang.ac.kr/GNU/ 
+Korea - ftp.linux.sarang.net/mirror/gnu/gnu/ (also mirrors alpha.gnu.org/gnu/ at ../alpha/)
+Korea - ftp.xgate.co.kr/pub/mirror/gnu/
+Saudi Arabia - ftp.isu.net.sa/pub/gnu/
+Taiwan - ftp.nctu.edu.tw/UNIX/gnu/, coda.nctu.edu.tw/UNIX/gnu/
 Taiwan - ftp1.sinica.edu.tw/pub3/GNU/gnu/
-Thailand - ftp.nectec.or.th/pub/mirrors/gnu (Internet address - 192.150.251.32)
+Thailand - ftp.nectec.or.th/pub/mirrors/gnu/
 
 Europe:
 
-Austria - ftp.gnu.vbs.at/gnu
-Austria - ftp.univie.ac.at/packages/gnu
-Austria - gd.tuwien.ac.at/gnu/gnusrc
-Belgium - ftp.be.gnu.org
+Austria - ftp.gnu.vbs.at/
+Austria - ftp.univie.ac.at/packages/gnu/
+Austria - gd.tuwien.ac.at/gnu/gnusrc/
 Austria - http://gd.tuwien.ac.at/gnu/gnusrc/
 Czech Republic - ftp.fi.muni.cz/pub/gnu/
 Denmark - ftp.denet.dk/mirror/ftp.gnu.org/pub/gnu
 Denmark - ftp.dkuug.dk/pub/gnu/
-Finland - ftp.funet.fi/pub/gnu
-France - ftp.univ-lyon1.fr/pub/gnu
-France - ftp.irisa.fr/pub/gnu
-France - ftp.medasys-digital-systems.fr/pub/gnu
-France - ftp.fuitad.net/mirrors/ftp.gnu.org
+Denmark - sunsite.dk/mirrors/gnu, http://mirrors.sunsite.dk/gnu
+Finland - ftp.funet.fi/pub/gnu/prep/
+France - ftp.irisa.fr/pub/gnu/
+France - ftp.medasys-digital-systems.fr/pub/gnu/
+France - ftp.cs.univ-paris8.fr/mirrors/ftp.gnu.org/
+Germany - ftp.cs.tu-berlin.de/pub/gnu/
+Germany - ftp.fh-worms.de/pub/mirror/ftp.gnu.org/
 Germany - ftp.leo.org/pub/comp/os/unix/gnu/
-Germany - ftp.informatik.rwth-aachen.de/pub/gnu
-Germany - ftp.de.uu.net/pub/gnu
+Germany - ftp.informatik.rwth-aachen.de/pub/gnu/
+Germany - ftp.de.uu.net/pub/gnu/
 Germany - ftp.freenet.de/pub/ftp.gnu.org/gnu/
-Germany - ftp.gigabell.net/pub/gnu
 Germany - ftp.cs.uni-bonn.de/pub/gnu/
-Germany - ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.gnu.org
-Germany - http://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.gnu.org
-Greece - ftp.forthnet.gr/pub/gnu
-Greece - ftp.ntua.gr/pub/gnu
-Greece - ftp.duth.gr/pub/gnu
-Greece - ftp.aua.gr/pub/mirrors/GNU (Internet address 143.233.187.61)
-Hungary - ftp.kfki.hu/pub/gnu
-Ireland - ftp.esat.net/pub/gnu (Internet address 193.120.14.241)
-Israel - iglu.org.il/pub/GNU
-Italy - ftp.oasi.gpa.it/pub/gnu
-Netherlands - ftp.eu.net/gnu (Internet address 192.16.202.1)
-Netherlands - ftp.nluug.nl/pub/gnu
-Netherlands - ftp.win.tue.nl/pub/gnu (Internet address 131.155.70.19)
-Netherlands - ftp.mirror.nl/pub/mirror/gnu
-Netherlands - ftp.nl.uu.net/pub/gnu
-Norway - ftp.ntnu.no/pub/gnu (Internet address 129.241.11.142)
-Norway - sunsite.uio.no/pub/gnu
-Poland - ftp.task.gda.pl/pub/gnu
-Poland - sunsite.icm.edu.pl/pub/gnu
-Portugal - ftp.ci.uminho.pt/pub/mirrors/gnu 
-Portugal - http://ciumix.ci.uminho.pt/mirrors/gnu/
-Portugal - ftp.ist.utl.pt/pub/gnu
-Portugal - mirrors.netvisao.pt/gnu
-Romania - archive.logicnet.ro/mirrors/ftp.gnu.org/gnu/
-Russia - ftp.chg.ru/pub/gnu
-Slovenia - ftp.arnes.si/gnu
-Spain - ftp.etsimo.uniovi.es/pub/gnu
-Spain - ftp.rediris.es/pub/gnu
-Sweden - ftp.isy.liu.se/pub/gnu
-Sweden - ftp.stacken.kth.se
-Sweden - ftp.luth.se/pub/unix/gnu
-Sweden - ftp.sunet.se/pub/gnu (Internet address 130.238.127.3)
-         Also mirrors the Mailing List Archives.
+Germany - ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.gnu.org/
+Germany - http://ftp-stud.fht-esslingen.de/pub/Mirrors/ftp.gnu.org/
+Germany - ftp.stw-bonn.de/pub/mirror/ftp.gnu.org/
+Greece - ftp.forthnet.gr/pub/gnu/
+Greece - ftp.ntua.gr/pub/gnu/
+Greece - ftp.duth.gr/pub/gnu/
+Greece - ftp.physics.auth.gr/pub/gnu/
+Ireland - ftp.esat.net/pub/gnu/ (Internet address 193.120.14.241)
+Italy - ftp.oasi.gpa.it/pub/gnu/
+Italy - ftp.lugroma2.org/pub/gnu/
+Netherlands - ftp.nluug.nl/pub/gnu/
+Netherlands - ftp.mirror.nl/pub/mirror/gnu/
+Netherlands - ftp.nl.uu.net/pub/gnu/
+Netherlands - mirror.widexs.nl/pub/gnu/
+Norway - ftp.gnu.no/
+Poland - sunsite.icm.edu.pl/pub/gnu/
+Portugal - ftp.ist.utl.pt/pub/GNU/gnu/
+Romania - ftp.timisoara.roedu.net/mirrors/ftp.gnu.org/pub/gnu
+Russia - ftp.chg.ru/pub/gnu/
+Slovenia - ftp.arnes.si/software/gnu/
+Spain - ftp.etsimo.uniovi.es/pub/gnu/
+Spain - ftp.rediris.es/pub/gnu/
+Sweden - ftp.isy.liu.se/pub/gnu/
+Sweden - ftp.stacken.kth.se/pub/gnu/
+Sweden - ftp.sunet.se/pub/gnu/; also mirrors /non-gnu
 Sweden - ftp.chl.chalmers.se/pub/gnu/
-Switzerland - ftp.eunet.ch/mirrors4/gnu
-Switzerland - sunsite.cnlab-switch.ch/mirror/gnu (Internet address 193.5.24.1)
-Turkey - ftp.baskent.edu.tr/gnu/ftp
-United Kingdom - ftp.mcc.ac.uk/pub/gnu (Internet address 130.88.203.12)
+Switzerland - sunsite.cnlab-switch.ch/mirror/gnu/
+Ukraine - mirddin.farlep.net/pub/GNU/
+United Kingdom - ftp.mcc.ac.uk/pub/gnu/ 
 United Kingdom - ftp.mirror.ac.uk/sites/ftp.gnu.org/pub/gnu/
-United Kingdom - ftp.warwick.ac.uk/pub/gnu (Internet address 137.205.192.13)
-United Kingdom - SunSITE.doc.ic.ac.uk/gnu (Internet address 193.63.255.4)
+United Kingdom - ftp.warwick.ac.uk/pub/gnu/ (Internet address 137.205.192.13)
+United Kingdom - ftp.hands.com/ftp.gnu.org/
+United Kingdom - gnu.teleglobe.net/ftp.gnu.org/
 
 * How to FTP GNU Emacs
 
@@ -208,56 +212,23 @@ changes relatively frequently.  Sorry.)
 is included on the GNU source CD-ROM.  See the file ORDERS in this
 directory for more information.
 
-* VMS FTP sites with GNU Software
-You can anonymously ftp a VMS version of GNU emacs from:
-	- ftp.vms.stacken.kth.se:[.GNU-VMS] - GNU Emacs and some other VMS
-ports (and some VMS binaries) of GNU software
-	- mango.rsmas.miami.edu has a VMS version of the GCC/G++ compiler.
-Contact angel@flipper.miami.edu (angel li) for details.
-	- RIGEL.EFD.LTH.SE [130.235.48.3] - GNU Emacs
+* GNU Software for VMS
 
-* Getting GNU software in Great Britain
-
-jpo@cs.nott.ac.uk is willing to distribute those GNU sources he has
-available.  The smaller items are available from the info-server (send
-to info-server@cs.nott.ac.uk); the larger items by negotiation.  Due to
-communication costs this service is only available within the UK.
-
-BattenIG@computer-science.birmingham.ac.uk (aka
-I.G.Batten@fulcrum.bt.co.uk) is also willing to distribute those GNU
-sources he has.
-
-wizards@doc.ic.ac.uk is willing to distribute those GNU sources they have
-along with most other freely distributable software.  The SunSITE archive
-on SunSITE.doc.ic.ac.uk (193.63.255.4) is available via ftp, http, fsp,
-gopher, NFS and Lanmanger over IP (SMB), and telnet.
-
-UK sites with just anonymous FTP access are in the above list.
-
-* Getting GNU software via UUCP
-
-OSU is distributing via UUCP: most GNU software, MIT C Scheme,
-Compress, News, RN, NNTP, Patch, some Appletalk stuff, some of the
-Internet Requests For Comment (RFC) et al..  See their periodic
-postings on the Usenet newsgroup comp.sources.d for informational
-updates.  Current details from <staff@cis.ohio-state.edu> or
-<...!osu-cis!staff>.
-
-Information on how to uucp some GNU programs is available via
-electronic mail from: uunet!hutch!barber, hqda-ai!merlin, acornrc!bob,
-hao!scicom!qetzal!upba!ugn!nepa!denny, ncar!noao!asuvax!hrc!dan,
-bigtex!james (aka james@bigtex.cactus.org), oli-stl!root,
-src@contrib.de (Germany), toku@dit.co.jp (Japan) and info@ftp.uu.net.
+        - ftp.vms.stacken.kth.se/MIRRORS/GNU-VMS/- lots of GNU ports to VMS,
+including Emacs 19, GCC, Bison, Make, RCS.
 
 * If You Like The Software
 
 If you like the software developed and distributed by the Free
 Software Foundation, please express your satisfaction with a donation.
 Your donations will help to support the Foundation and make our future
-efforts successful, including a complete development and operating
-system, called GNU (Gnu's Not Unix), which will run Unix user
-programs.  For more information on GNU and the Foundation, contact us
-at the above address, or see our web site at http://www.gnu.org.
+efforts successful.  The Foundation continues to improve GNU programs
+and encourage the writing of new free software to enhance GNU/Linux
+and GNU/Hurd systems.  For more information on GNU and the Foundation,
+see our web site at http://www.gnu.org.
 
 Ordering a GNU Source Code CD-ROM or Source Code CD-ROM Subscription
-is a good way for your organization to help support our work.
+is a good way for your organization to help support our work.  You can
+also purchase printed manuals, reference cards, t-shirts, and other
+items.  See our online ordering form at http://order.fsf.org for
+details.
