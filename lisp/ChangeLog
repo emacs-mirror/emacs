@@ -1,3 +1,12 @@
+2002-05-02  Colin Walters  <walters@verbum.org>
+
+	* replace.el (occur-mode-map): Bind "q" to `delete-window'.
+	(occur-1): If one of the buffers we're searching is the *Occur*
+	buffer itself, handle it by creating a temporary buffer.  If any
+	of the buffers being searched are killed, note that in the search
+	result message.  Also, set local variables before we possibly kill
+	the buffer.
+
 2002-05-02  Kim F. Storm  <storm@cua.dk>
 
 	* menu-bar.el (menu-bar-make-toggle): Added optional PROPS arg.
