@@ -1294,7 +1294,12 @@ combination, whenever it sees Right-Alt and Left-Ctrl it assumes that
 AltGr has been pressed.  The variable `w32-recognize-altgr' can be set
 to nil to tell Emacs that AltGr is really Ctrl and Alt.
 
-* Under some Windows X-servers, Emacs' display is incorrect 
+* Emacs crashes when using the Exceed 6.0 X server
+
+If you are using Exceed 6.1, upgrade to a later version.  This was
+reported to prevent the crashes.
+
+* Under some Windows X-servers, Emacs' display is incorrect
 
 The symptoms are that Emacs does not completely erase blank areas of the
 screen during scrolling or some other screen operations (e.g., selective
