@@ -2,6 +2,10 @@
 
 	* coding.c (setup_coding_system): Clear all members of the struct
 	coding_system at first.
+	(detect_coding): Call detect_coding_mask with a correct MULTIBYTEP
+	argument.
+	(code_convert_region): Don't override coding->src_multibyte and
+	coding->dst_multibyte.
 
 	* fns.c (Fmd5): Docstring improved.
 
