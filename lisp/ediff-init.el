@@ -534,7 +534,7 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
   :group 'ediff)
 
   
-(ediff-defvar-local ediff-use-faces nil "") 
+(ediff-defvar-local ediff-use-faces t "") 
 (defcustom ediff-use-faces t 
   "If t, differences are highlighted using faces, if device supports faces.
 If nil, differences are highlighted using ASCII flags, ediff-before-flag
@@ -578,7 +578,7 @@ meaning of this variable."
   :type 'boolean
   :group 'ediff)
 
-(ediff-defvar-local ediff-highlight-all-diffs nil "")
+(ediff-defvar-local ediff-highlight-all-diffs t "")
 (defcustom ediff-highlight-all-diffs t
   "If nil, only the selected differences are highlighted.
 Otherwise, all difference regions are highlighted, but the selected region is
