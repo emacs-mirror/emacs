@@ -140,7 +140,7 @@ fatal_error_signal (sig)
      Remember that since we're in a signal handler, the signal we're
      going to send is probably blocked, so we have to unblock it if we
      want to really receive it.  */
-  sigblock(SIGEMPTYMASK);
+  sigunblock (sigmask (fatal_error_code));
   kill (getpid (), fatal_error_code);
 #endif /* not VMS */
 }
@@ -173,6 +173,7 @@ extern noshare char **environ;
 #endif /* LINK_CRTL_SHARE */
 #endif /* VMS */
 
+#ifndef ORDINARY_LINK
 /* We don't include crtbegin.o and crtend.o in the link,
    so these functions and variables might be missed.
    Provide dummy definitions to avoid error.
@@ -189,6 +190,7 @@ char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
 __main ()
 {}
 #endif /* __GNUC__ */
+#endif /* ORDINARY_LINK */
 
 /* ARGSUSED */
 main (argc, argv, envp)
@@ -375,7 +377,10 @@ main (argc, argv, envp)
       signal (SIGQUIT, fatal_error_signal);
       signal (SIGILL, fatal_error_signal);
       signal (SIGTRAP, fatal_error_signal);
+#ifdef SIGIOT
+      /* This is missing on some systems - OS/2, for example.  */
       signal (SIGIOT, fatal_error_signal);
+#endif
 #ifdef SIGEMT
       signal (SIGEMT, fatal_error_signal);
 #endif
