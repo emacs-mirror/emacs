@@ -43,6 +43,7 @@ extern sigset_t empty_mask, full_mask, temp_mask;
     _mask;					\
   })
 #else /* ! defined (__GNUC__) */
+extern sigset_t sys_sigmask ();
 #define sigmask(SIG) (sys_sigmask (SIG))
 #endif /* ! defined (__GNUC__) */
 #endif
