@@ -525,7 +525,7 @@ Note that changing the size of one terminal frame automatically affects all.")
   struct frame *f;
   Lisp_Object frame;
 
-#ifdef __MSDOS__
+#ifdef MSDOS
   if (selected_frame->output_method != output_msdos_raw)
     abort ();
 #else
