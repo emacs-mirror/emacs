@@ -600,7 +600,12 @@ To unpack Emacs with djtar, type this command:
     djtar -x emacs.tgz
 
 (This assumes that the Emacs distribution is called `emacs.tgz' on
-your system.)
+your system.)  There are a few files in the archive whose names
+collide with other files under the 8.3 DOS naming.  On native MSDOS,
+or if you have set LFN=n on Windows 95, djtar will ask you to supply
+alternate names for these files; you can just press `Enter' when this
+happens (which makes djtar skip these files) because they aren't
+required for MS-DOS.
 
 When unpacking is done, a directory called `emacs-XX.YY' will be
 created, where XX.YY is the Emacs version.  To build and install
@@ -623,9 +628,8 @@ if you run Emacs under MS Windows.
 Emacs on MSDOS finds the lisp, etc and info directories by looking in
 ../lisp, ../etc and ../info, starting from the directory where the
 Emacs executable was run from.  You can override this by setting the
-environment variables EMACSDATA (for the location of `etc' directory),
-EMACSLOADPATH (for the location of `lisp' directory) and INFOPATH (for
-the location of the `info' directory).
+environment variable HOME; if you do that, the directories lisp, etc
+and info are accessed as subdirectories of the HOME directory.
 
 MSDOG is a not a multitasking operating system, so Emacs features such
 as asynchronous subprocesses that depend on multitasking will not
