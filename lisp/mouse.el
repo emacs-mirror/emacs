@@ -431,7 +431,7 @@ This should be bound to a mouse drag event."
     ;; Don't set this-command to kill-region, so that a following
     ;; C-w will not double the text in the kill ring.
     ;; Ignore last-command so we don't append to a preceding kill.
-    (let (this-command last-command)
+    (let (this-command last-command deactivate-mark)
       (copy-region-as-kill (mark) (point)))
     (mouse-set-region-1)))
 
@@ -608,7 +608,9 @@ remains active.  Otherwise, it remains until the next input event."
 		       last-command this-command)
 		  (push-mark region-commencement t t)
 		  (goto-char region-termination)
-		  (copy-region-as-kill (point) (mark t))
+		  ;; Don't let copy-region-as-kill set deactivate-mark.
+		  (let (deactivate-mark)
+		    (copy-region-as-kill (point) (mark t)))
 		  (let ((buffer (current-buffer)))
 		    (mouse-show-mark)
 		    ;; mouse-show-mark can call read-event,
@@ -1279,8 +1281,9 @@ again.  If you do this twice in the same position, it kills the selection."
 		    (kill-new (buffer-substring
 			       (overlay-start mouse-secondary-overlay)
 			       (overlay-end mouse-secondary-overlay)) t)
-		  (copy-region-as-kill (overlay-start mouse-secondary-overlay)
-				       (overlay-end mouse-secondary-overlay))))
+		  (let (deactivate-mark)
+		    (copy-region-as-kill (overlay-start mouse-secondary-overlay)
+					 (overlay-end mouse-secondary-overlay)))))
 	    (if mouse-secondary-start
 		;; All we have is one end of a selection,
 		;; so put the other end here.
