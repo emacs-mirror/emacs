@@ -1383,6 +1383,16 @@ messages, and errors."
 
 (defun eshell-lisp-command (object &optional args)
   "Insert Lisp OBJECT, using ARGS if a function."
+  ;; if any of the arguments are flagged as numbers waiting for
+  ;; conversion, convert them now
+  (let ((a args) arg)
+    (while a
+      (setq arg (car a))
+      (if (and (stringp arg)
+	       (> (length arg) 0)
+	       (get-text-property 0 'number arg))
+	  (setcar a (string-to-number arg)))
+      (setq a (cdr a))))
   (setq eshell-last-arguments args
 	eshell-last-command-name "#<Lisp>")
   (catch 'eshell-external               ; deferred to an external command
