@@ -552,7 +552,7 @@ emacs: temacs ${etc}DOC ${lisp}
 ${etc}DOC: ${libsrc}make-docfile ${obj} ${lisp}
 	rm -f ${etc}DOC
 	${libsrc}make-docfile -d ${srcdir} ${obj} ${SOME_MACHINE_OBJECTS} \
-	  ${lispdir}version.el > ${etc}DOC
+	  ${lisp} ${lispdir}version.el > ${etc}DOC
 
 ${libsrc}make-docfile:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile ../arch-lib
