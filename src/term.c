@@ -1463,7 +1463,7 @@ term_init (terminal_type)
   baud_rate = 19200;
 
   FRAME_CAN_HAVE_SCROLL_BARS (selected_frame) = 0;
-  FRAME_HAS_VERTICAL_SCROLL_BARS (selected_frame) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (selected_frame) = vertical_scroll_bar_none;
 
   return;
 #endif /* WINDOWSNT */
@@ -1593,10 +1593,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
   }
 
   if (FRAME_WIDTH (selected_frame) <= 0)
-    FRAME_WIDTH (selected_frame) = tgetnum ("co");
+    SET_FRAME_WIDTH (selected_frame, tgetnum ("co"));
+  else
+    /* Keep width and external_width consistent */
+    SET_FRAME_WIDTH (selected_frame, FRAME_WIDTH (selected_frame));
   if (FRAME_HEIGHT (selected_frame) <= 0)
     FRAME_HEIGHT (selected_frame) = tgetnum ("li");
-
+  
   if (FRAME_HEIGHT (selected_frame) < 3
       || FRAME_WIDTH (selected_frame) < 3)
     fatal ("Screen size %dx%d is too small.\n",
@@ -1758,7 +1761,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
 
   /* Remove width of standout marker from usable width of line */
   if (TN_standout_width > 0)
-    FRAME_WIDTH (selected_frame) -= TN_standout_width;
+    SET_FRAME_WIDTH (selected_frame,
+		     FRAME_WIDTH (selected_frame) - TN_standout_width);
 
   UseTabs = tabs_safe_p () && TabWidth == 8;
 
@@ -1782,7 +1786,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
     baud_rate = 9600;
 
   FRAME_CAN_HAVE_SCROLL_BARS (selected_frame) = 0;
-  FRAME_HAS_VERTICAL_SCROLL_BARS (selected_frame) = 0;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (selected_frame) = vertical_scroll_bar_none;
 }
 
 /* VARARGS 1 */
