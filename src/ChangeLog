@@ -1,5 +1,7 @@
 2001-01-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_set_mouse_color): Fix color allocation.
+
 	* keyboard.c: Call get_local_map with new argument list.
 
 	* intervals.c (get_local_map): Change TYPE to Lisp_Object.

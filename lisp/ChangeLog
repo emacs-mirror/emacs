@@ -1,3 +1,7 @@
+2001-01-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* calendar/calendar.el (calendar-basic-setup): Doc fix.
+
 2001-01-12  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (prefer-coding-system): Fix
