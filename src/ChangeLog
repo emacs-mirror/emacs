@@ -1,3 +1,8 @@
+2004-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* eval.c (Fdefvar): Declare pdl from last change as `volatile' to
+	prevent compiler warnings.
+
 2004-11-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (command_loop_1): Print a message describing the key

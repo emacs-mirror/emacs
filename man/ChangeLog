@@ -2,6 +2,9 @@
 
 	* idlwave.texi: Fix the setfilename directive to put the produced
 	file in ../info.
+	(Continued Statement Indentation): Resurrect Jan D.'s change from
+	2004-11-03 that was lost when a newer version of idlwave.texi was
+	imported.
 
 2004-11-20  Richard M. Stallman  <rms@gnu.org>
 
