@@ -1283,11 +1283,11 @@ Only the frame WINDOW is on is affected.")
   w = XWINDOW (window);
   top = XFASTINT (w->top);
 
-  window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_FRAME(w));
+  window_loop (DELETE_OTHER_WINDOWS, window, 0, WINDOW_FRAME (w));
 
   Fset_buffer (w->buffer);
   SET_PT (marker_position (w->start));
-  Frecenter (make_number (top));
+  Frecenter (make_number (top - FRAME_MENU_BAR_LINES (XFRAME (WINDOW_FRAME (w)))));
 
   set_buffer_internal (obuf);
   SET_PT (opoint);
