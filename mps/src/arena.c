@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.5) $
+ * $HopeName: MMsrc!arena.c(trunk.6) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: Any MPS developer
@@ -40,7 +40,7 @@
 /* finalization */
 #include "poolmrg.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.5) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.6) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -547,6 +547,98 @@ void ArenaPoll(Arena arena)
 }
 #endif
 
+
+void ArenaClamp(Arena arena)
+{
+  AVERT(Arena, arena);
+  arena->clamped = TRUE;
+}
+ 
+void ArenaRelease(Arena arena)
+{
+  AVERT(Arena, arena);
+  arena->clamped = FALSE;
+}
+ 
+void ArenaPark(Arena arena)
+{
+  TraceId ti;
+  Res res;
+ 
+  AVERT(Arena, arena);
+ 
+  arena->clamped = TRUE;
+ 
+  while(arena->busyTraces != TraceSetEMPTY) {
+    /* Poll active traces to make progress. */
+    for(ti = 0; ti < TRACE_MAX; ++ti)
+      if(TraceSetIsMember(arena->busyTraces, ti)) {
+        Trace trace = ArenaTrace(arena, ti);
+ 
+        res = TracePoll(trace);
+        AVER(res == ResOK); /* @@@@ */
+ 
+        /* @@@@ Pick up results and use for prediction. */
+        if(trace->state == TraceFINISHED)
+          TraceDestroy(trace);
+      }
+  }
+}
+ 
+Res ArenaCollect(Arena arena)
+{
+  Trace trace;
+  Res res;
+  Ring poolNode, nextPoolNode;
+ 
+  AVERT(Arena, arena);
+  ArenaPark(arena);
+ 
+  res = TraceCreate(&trace, arena);
+  /* should be a trace available -- we're parked */
+  AVER(res != ResLIMIT);
+  if(res != ResOK)
+    goto failCreate;
+ 
+  /* Identify the condemned set and turn it white. */
+  RING_FOR(poolNode, ArenaPoolRing(arena), nextPoolNode) {
+    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
+    Ring segNode, nextSegNode;
+ 
+    if((pool->class->attr & AttrGC) != 0) {
+      res = PoolTraceBegin(pool, trace);
+      if(res != ResOK)
+        goto failBegin;
+ 
+      RING_FOR(segNode, PoolSegRing(pool), nextSegNode) {
+        Seg seg = SegOfPoolRing(segNode);
+ 
+        /* avoid buffered segments and non-auto pools? */
+        res = TraceAddWhite(trace, seg);
+        if(res != ResOK)
+          goto failAddWhite;
+      }
+    }
+  }
+ 
+  TraceStart(trace);
+  if(res != ResOK)
+    goto failStart;
+ 
+  ArenaPark(arena);
+ 
+  return ResOK;
+ 
+failStart:
+  NOTREACHED;
+failAddWhite:
+  NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
+failBegin:
+  TraceDestroy(trace);
+failCreate:
+  return res;
+}
+ 
 
 /* ArenaDescribe -- describe the arena
  *

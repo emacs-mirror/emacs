@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.46) $
+ * $HopeName: MMsrc!mpm.h(trunk.47) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -268,8 +268,8 @@ extern Res PoolCreateV(Pool *poolReturn, Arena arena,
 extern void PoolDestroy(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolFree(Pool pool, Addr old, Size size);
-extern Res PoolTraceBegin(Pool pool, Trace trace, Action action);
-extern Res PoolCondemn(Pool pool, Trace trace, Seg seg, Action action);
+extern Res PoolTraceBegin(Pool pool, Trace trace);
+extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolScan(ScanState ss, Pool pool, Seg seg);
@@ -277,8 +277,8 @@ extern Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO);
 #define PoolFix(pool, ss, seg, refIO) \
   ((*(pool)->class->fix)(pool, ss, seg, refIO))
 extern void PoolReclaim(Pool pool, Trace trace, Seg seg);
-extern void PoolTraceEnd(Pool pool, Trace trace, Action action);
 extern double PoolBenefit(Pool pool, Action action);
+extern Res PoolAct(Pool pool, Action action);
 
 extern void PoolTrivFinish(Pool pool);
 extern Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size);
@@ -297,9 +297,10 @@ extern void PoolNoBufferEmpty(Pool pool, Buffer buffer);
 extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer);
 extern Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
-extern Res PoolNoTraceBegin(Pool pool, Trace trace, Action action);
-extern Res PoolTrivTraceBegin(Pool pool, Trace trace, Action action);
-extern Res PoolNoCondemn(Pool pool, Trace trace, Seg seg, Action action);
+extern Res PoolNoTraceBegin(Pool pool, Trace trace);
+extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
+extern Res PoolNoWhiten(Pool pool, Trace trace, Seg seg);
+extern Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolTrivGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolNoBlacken(Pool pool, TraceSet traceSet, Seg seg);
@@ -307,8 +308,6 @@ extern void PoolTrivBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern Res PoolNoScan(ScanState ss, Pool pool, Seg seg);
 extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
-extern void PoolNoTraceEnd(Pool pool, Trace trace, Action action);
-extern void PoolTrivTraceEnd(Pool pool, Trace trace, Action action);
 extern double PoolNoBenefit(Pool pool, Action action);
 
 
@@ -337,6 +336,9 @@ extern void MessageFinalizationRef(Ref *refReturn,
 extern void MessageNoFinalizationRef(Ref *refReturn,
 				     Arena arena, Message message);
 
+extern Res PoolNoAct(Pool pool, Action action);
+extern Res PoolCollectAct(Pool pool, Action action);
+
 
 /* Trace Interface -- see impl.c.trace */
 
@@ -361,12 +363,16 @@ extern Bool TraceIdCheck(TraceId id);
 extern Bool TraceSetCheck(TraceSet ts);
 extern Bool TraceCheck(Trace trace);
 
-extern Res TraceCreate(Trace *traceReturn, Arena arena, Action action);
+extern Res TraceCreate(Trace *traceReturn, Space space);
+extern Res TraceAddWhite(Trace trace, Seg seg);
+extern Res TraceStart(Trace trace);
+extern Res TraceFlip(Trace trace);
 extern void TraceDestroy(Trace trace);
 extern Res TracePoll(Trace trace);
 extern void TraceAccess(Arena arena, Seg seg, AccessSet mode);
 
 extern Res TraceFix(ScanState ss, Ref *refIO);
+extern void TraceSegGreyen(Arena arena, Seg seg, TraceSet ts);
 extern Size TraceGreyEstimate(Arena arena, RefSet refSet);
 
 /* Equivalent to impl.h.mps MPS_SCAN_BEGIN */
@@ -447,6 +453,11 @@ extern void (ArenaPoll)(Arena arena);
 /* doesn't need to poll when allocating. */
 /* @@@@ Doesn't this break a rule that macro and function forms */
 /* must have identical behaviour?  GavinM 1997-09-12 */
+
+extern void ArenaClamp(Arena arena);
+extern void ArenaRelease(Arena arena);
+extern void ArenaPark(Arena arena);
+extern Res ArenaCollect(Arena arena);
 
 extern Res ArenaAlloc(void **baseReturn, Arena arena, Size size);
 extern void ArenaFree(Arena arena, void *base, Size size);

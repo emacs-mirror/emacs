@@ -1,6 +1,6 @@
 /* impl.c.poolams: AUTOMATIC MARK & SWEEP POOL CLASS
  *
- * $HopeName: MMsrc!poolams.c(trunk.9) $
+ * $HopeName: MMsrc!poolams.c(trunk.10) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  * 
  * NOTES
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mpscams.h"
 
-SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.9) $");
+SRCID(poolams, "$HopeName: MMsrc!poolams.c(trunk.10) $");
 
 
 #define AMSSig          ((Sig)0x519A3599) /* SIGnature AMS */
@@ -536,12 +536,12 @@ static void AMSBufferEmpty(Pool pool, Buffer buffer)
 }
 
 
-/* AMSRangeCondemn -- condemns a part of a group
+/* AMSRangeWhiten -- whitens a part of a group
  * 
- * Split out of AMSCondemn because it's used in more than one place.
+ * Split out of AMSWhiten because it's used in more than one place.
  */
 
-static void AMSRangeCondemn(AMSGroup group, Index base, Index limit)
+static void AMSRangeWhiten(AMSGroup group, Index base, Index limit)
 {
   if (base != limit) {
     AVER(base < limit);
@@ -559,12 +559,12 @@ static void AMSRangeCondemn(AMSGroup group, Index base, Index limit)
 }
 
 
-/* AMSCondemn -- the pool class segment condemning method
+/* AMSWhiten -- the pool class segment whitening method
  * 
- * See design.mps.poolams.condemn
+ * See design.mps.poolams.whiten
  */
 
-static Res AMSCondemn(Pool pool, Trace trace, Seg seg, Action action)
+static Res AMSWhiten(Pool pool, Trace trace, Seg seg)
 {
   AMS ams;
   AMSGroup group;
@@ -576,8 +576,6 @@ static Res AMSCondemn(Pool pool, Trace trace, Seg seg, Action action)
 
   AVERT(Trace, trace);
   AVER(SegCheck(seg));
-  AVERT(Action, action);
-  AVER(ams == ActionAMS(action));
 
   group = AMSSegGroup(seg);
   AVERT(AMSGroup, group);
@@ -588,20 +586,20 @@ static Res AMSCondemn(Pool pool, Trace trace, Seg seg, Action action)
   AVER(SegWhite(seg) == TraceSetEMPTY);
 
   buffer = SegBuffer(seg);
-  if (buffer != NULL) { /* design.mps.poolams.condemn.buffer */
+  if (buffer != NULL) { /* design.mps.poolams.whiten.buffer */
     Index scanLimitIndex, limitIndex;
     scanLimitIndex = AMSAddrIndex(group, BufferScanLimit(buffer));
     limitIndex = AMSAddrIndex(group, BufferLimit(buffer));
     
-    AMSRangeCondemn(group, 0, scanLimitIndex);
-    AMSRangeCondemn(group, limitIndex, group->grains);
-  } else { /* condemn whole seg */
-    AMSRangeCondemn(group, 0, group->grains);
+    AMSRangeWhiten(group, 0, scanLimitIndex);
+    AMSRangeWhiten(group, limitIndex, group->grains);
+  } else { /* whiten whole seg */
+    AMSRangeWhiten(group, 0, group->grains);
   }
 
   group->marked = FALSE; /* design.mps.poolams.marked.condemn */
 
-  /* design.mps.poolams.condemn.white */
+  /* design.mps.poolams.whiten.seg */
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
 
   return ResOK;
@@ -1206,14 +1204,14 @@ static PoolClassStruct PoolClassAMSStruct = {
   AMSBufferEmpty,            /* bufferEmpty */
   PoolTrivBufferFinish,      /* design.mps.poolams.triv-buffer-finish */
   PoolTrivTraceBegin,        /* design.mps.poolams.triv-trace-begin */
-  AMSCondemn,                /* condemn */
+  AMSWhiten,                 /* whiten */
   PoolTrivGrey,              /* design.mps.poolams.triv-grey */
   AMSBlacken,                /* blacken */
   AMSScan,                   /* scan */
   AMSFix,                    /* fix */
   AMSReclaim,                /* reclaim */
-  PoolTrivTraceEnd,          /* design.mps.poolams.triv-trace-end */
   AMSBenefit,                /* benefit */
+  PoolCollectAct,            /* act */
   AMSDescribe,               /* describe */
   PoolClassSig               /* impl.h.mpm.class.end-sig */
 };

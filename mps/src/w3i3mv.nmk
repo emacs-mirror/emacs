@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.41) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.42) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -163,7 +163,6 @@ MPMOBJ0 = $(MPM:<=w3i3mv\wi\)
 MPMOBJ = $(MPMOBJ0:>=.obj)
 PLINTHOBJ0 = $(PLINTH:<=w3i3mv\wi\)
 PLINTHOBJ = $(PLINTHOBJ0:>=.obj)
-<<<<<<< /u/ldisk2/gavinm/mmtrunk/src/w3i3mv.nmk
 SWOBJ0 = $(SW:<=w3i3mv\wi\)
 SWOBJ = $(SWOBJ0:>=.obj)
 AMSOBJ0 = $(AMS:<=w3i3mv\wi\)
