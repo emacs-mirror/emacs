@@ -459,7 +459,9 @@ If FRAME is omitted, describe the currently selected frame."
 When called interactively, prompt for the name of the font to use."
   (interactive "sFont name: ")
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'font font-name))))
+			   (list (cons 'font font-name)))
+  ;; Update faces that want a bold or italic version of the default font.
+  (frame-update-faces (selected-frame)))
 
 (defun set-background-color (color-name)
   "Set the background color of the selected frame to COLOR.
