@@ -16125,7 +16125,7 @@ are the selected window and the window's buffer).  */)
     {
       if (EQ (face, Qt))
 	face = (EQ (window, selected_window) ? Qmode_line : Qmode_line_inactive);
-      face_id = lookup_named_face (XFRAME (WINDOW_FRAME (w)), face, 0, 0);
+      face_id = lookup_named_face (XFRAME (WINDOW_FRAME (w)), face, 0);
     }
 
   if (face_id < 0)
