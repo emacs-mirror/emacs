@@ -1412,7 +1412,7 @@ reversed.")
 
 ;; Ex print working directory
 (defun ex-pwd ()
-  (message default-directory))
+  (message "%s" default-directory))
 
 ;; Ex quit command
 (defun ex-quit ()
@@ -1560,7 +1560,7 @@ reversed.")
 		 val "nil")))
     (if (eq val 0) ; value must be set by the user
 	(let ((cursor-in-echo-area t))
-	  (message (format ":set %s = <Value>" var))
+	  (message ":set %s = <Value>" var)
 	  ;; if there are unread events, don't wait
 	  (or (vip-set-unread-command-events "") (sit-for 2))
 	  (setq val (read-string (format ":set %s = " var)))
@@ -1632,9 +1632,9 @@ reversed.")
 		))
 	  ))
     
-    (message (format "%s %s %s" set-cmd var (if (string-match "^[ \t]*$" val)
-						(format "%S" val)
-					      val)))
+    (message "%s %s %s" set-cmd var (if (string-match "^[ \t]*$" val)
+					(format "%S" val)
+				      val))
     (eval (car (read-from-string actual-lisp-cmd)))
 	(if (string= var "fill-column")
 		(if (> val2 0)
@@ -1962,7 +1962,7 @@ Please contact your system administrator. "
 		       (if (buffer-modified-p) "[Modified]" "[Unchanged]")))
     (if (< (+ 1 (length info) (length file))
 	   (window-width (minibuffer-window)))
-	(message (concat file " " info))
+	(message "%s %s" file info)
       (save-window-excursion
 	(with-output-to-temp-buffer " *vip-info*"
 	  (princ (concat "\n"
