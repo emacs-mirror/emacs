@@ -133,10 +133,20 @@ lock_file_1 (lfname, force)
      int force;
 {
   register int err;
-  char *user_name = (char *) XSTRING (Fuser_login_name (Qnil))->data;
-  char *host_name = (char *) XSTRING (Fsystem_name ())->data;
-  char *lock_info_str = alloca (strlen (user_name) + strlen (host_name)
-                                + LOCK_PID_MAX + 5);
+  char *user_name;
+  char *host_name;
+  char *lock_info_str;
+
+  if (STRINGP (Fuser_login_name (Qnil)))
+    user_name = XSTRING (Fuser_login_name (Qnil))->data;
+  else
+    user_name = "";
+  if (STRINGP (Fsystem_name ()))
+    host_name = XSTRING (Fsystem_name ())->data;
+  else
+    host_name = "";
+  lock_info_str = alloca (strlen (user_name) + strlen (host_name)
+			  + LOCK_PID_MAX + 5);
 
   sprintf (lock_info_str, "%s@%s.%lu", user_name, host_name,
            (unsigned long) getpid ());
@@ -225,7 +235,8 @@ current_lock_owner (owner, lfname)
   xfree (lfinfo);
   
   /* On current host?  */
-  if (strcmp (owner->host, XSTRING (Fsystem_name ())->data) == 0)
+  if (STRINGP (Fsystem_name ())
+      && strcmp (owner->host, XSTRING (Fsystem_name ())->data) == 0)
     {
       if (owner->pid == getpid ())
         ret = 2; /* We own it.  */
