@@ -690,7 +690,6 @@ FUNC is not added if it already appears on the list stored in HOOK."
 	  ((function*) nil
 	   (&or symbolp ([&optional 'macro] 'lambda (&rest sexp) &rest form)))
 	  ((eval-when) 1 (sexp &rest form))
-	  ((when unless) 1 (&rest form))
 	  ((declare) nil (&rest sexp))
 	  ((the) 1 (sexp &rest form))
 	  ((case ecase typecase etypecase) 1 (form &rest (sexp &rest form)))
