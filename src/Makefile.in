@@ -730,6 +730,7 @@ lisp= \
 	${lispsource}international/mule-conf.el \
 	${lispsource}international/mule-cmds.elc \
 	${lispsource}international/characters.elc \
+	${lispsource}international/charprop.el \
 	${lispsource}case-table.elc \
 	${lispsource}language/chinese.el \
 	${lispsource}language/cyrillic.el \
