@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1992/10/27 04:11:46 $|$Revision: 1.13 $|~/modes/isearch-mode.el
+;; |$Date: 1992/11/01 22:10:59 $|$Revision: 1.14 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.13 1992/10/27 04:11:46 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.14 1992/11/01 22:10:59 rms Exp $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.14  1992/11/01  22:10:59  rms
+; (isearch-search): Handle all sorts of errors from regexp search.
+;
 ; Revision 1.13  1992/10/27  04:11:46  rms
 ; (isearch-edit-string):
 ; Bind cursor-in-echo-area only around read-char/allocate-event.
@@ -148,7 +151,7 @@
 ;; Each of the tests below must work on any version of emacs.
 ;; (Perhaps provide and featurep could be used for this purpose.)
 
-(defconst isearch-frames-exist (fboundp 'select-frame)) ;; emacs 19
+(defconst isearch-gnu-emacs-events (fboundp 'set-frame-height)) ;; emacs 19
 (defconst isearch-pre-command-hook-exists (boundp 'pre-command-hook)) ;; lemacs
 (defconst isearch-event-data-type nil)  ;; lemacs
 
@@ -300,10 +303,11 @@ Default value, nil, means edit the string instead.")
 
       (define-key map "\M-n" 'isearch-ring-advance)
       (define-key map "\M-p" 'isearch-ring-retreat)
+
       (define-key map "\M-\t" 'isearch-complete)
 
       ;; For emacs 19, switching frames should terminate isearch-mode
-      (if isearch-frames-exist
+      (if isearch-gnu-emacs-events
 	  (define-key map [switch-frame] 'isearch-switch-frame-handler))
       
       (setq isearch-mode-map map)
@@ -539,7 +543,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   ;; Called after each command to update the display.  
   (if (if isearch-event-data-type
 	  (null unread-command-event)
-	(if isearch-frames-exist
+	(if isearch-gnu-emacs-events
 	    (null unread-command-char)
 	  (< unread-command-char 0)))
       (progn
