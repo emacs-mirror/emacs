@@ -1878,7 +1878,12 @@ regex_compile (pattern, size, syntax, bufp)
   compile_stack_type compile_stack;
 
   /* Points to the current (ending) position in the pattern.  */
+#ifdef AIX
+  /* `const' makes AIX compiler fail.  */
+  char *p = pattern;
+#else
   const char *p = pattern;
+#endif
   const char *pend = pattern + size;
 
   /* How to translate the characters in the pattern.  */
