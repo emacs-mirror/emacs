@@ -324,7 +324,9 @@ When done with skeleton, but before going back to `_'-point call
 
 (defun skeleton-read (prompt &optional initial-input recursive)
   "Function for reading a string from the minibuffer within skeletons.
-PROMPT may contain a `%s' which will be replaced by `skeleton-subprompt'.
+
+PROMPT must be a string or a form that evaluates to a string.
+It may contain a `%s' which will be replaced by `skeleton-subprompt'.
 If non-`nil' second arg INITIAL-INPUT or variable `input' is a string or
 cons with index to insert before reading.  If third arg RECURSIVE is non-`nil'
 i.e. we are handling the iterator of a subskeleton, returns empty string if
