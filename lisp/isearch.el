@@ -291,7 +291,7 @@ Default value, nil, means edit the string instead."
     (define-key map " " 'isearch-whitespace-chars)
     (define-key map [?\S-\ ] 'isearch-whitespace-chars)
     
-    (define-key map "\C-w" 'isearch-yank-word)
+    (define-key map "\C-w" 'isearch-yank-word-or-char)
     (define-key map "\C-y" 'isearch-yank-line)
 
     ;; Define keys for regexp chars * ? |.
@@ -1095,6 +1095,15 @@ might return the position of the end of the line."
   "Pull next letter from buffer into search string."
   (interactive)
   (isearch-yank-internal (lambda () (forward-char 1) (point))))
+
+(defun isearch-yank-word-or-char ()
+  "Pull next character or word from buffer into search string."
+  (interactive)
+  (isearch-yank-internal (lambda () 
+			   (if (or (= (char-syntax (or (char-after) 0)) ?w)
+				   (= (char-syntax (or (char-after (1+ (point))) 0)) ?w))
+			       (forward-word 1)
+			     (forward-char 1)) (point))))
 
 (defun isearch-yank-word ()
   "Pull next word from buffer into search string."
