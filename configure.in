@@ -1962,7 +1962,7 @@ AC_CHECK_FUNCS(getpt)
 AC_CHECK_LIB(ncurses, tparm)
 
 # Do we need the Hesiod library to provide the support routines?
-if test "$with_hesiod" == yes ; then
+if test "$with_hesiod" = yes ; then
   # Don't set $LIBS here -- see comments above.
   resolv=no
   AC_CHECK_FUNC(res_send, , [AC_CHECK_FUNC(__res_send, ,
