@@ -2,7 +2,7 @@
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.29 1993/11/16 10:47:27 rms Exp rms $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.30 1993/11/17 13:41:50 rms Exp $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -4910,9 +4910,10 @@ If optional argument NEXT is non-nil, it is inserted before NEXT."
 (defun gnus-capitalize-newsgroup (newsgroup)
   "Capitalize NEWSGROUP name with treating '.' and '-' as part of words."
   ;; Suggested by "Jonathan I. Kamens" <jik@pit-manager.MIT.EDU>.
-  (let ((current-syntax-table (copy-syntax-table (syntax-table))))
+  (let ((current-syntax-table (syntax-table)))
     (unwind-protect
 	(progn
+	  (set-syntax-table (copy-syntax-table current-syntax-table))
 	  (modify-syntax-entry ?- "w")
 	  (modify-syntax-entry ?. "w")
 	  (capitalize newsgroup))
