@@ -44,11 +44,11 @@
 #define C_SWITCH_X_SYSTEM -I/usr/include/Motif1.2
 #define LD_SWITCH_X_DEFAULT -L/usr/lib/Motif1.2
 
-#if 0
-/* HP-UX doesn't supply Xmu, and someone said we don't need it.  But
-   we do seem to need it, with both Athena widgets and Motif.  Too bad.  */
+/* HP-UX doesn't supply Xmu.  */
 #define LIBXMU
-#endif
+
+/* Unfortunately without libXmu we cannot support EditRes.  */
+#define NO_EDITRES
 
 /* zoo@armadillo.com says we don't need -lXext in HPUX 9.  */
 #undef LIBX11_SYSTEM
