@@ -1,3 +1,7 @@
+2001-09-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frame.el (select-frame-by-name, other-frame): Doc fix.
+
 2001-09-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* play/snake.el (snake-score-file): Use temporary-file-directory

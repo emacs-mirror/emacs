@@ -1,3 +1,8 @@
+2001-09-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frames.texi (Finding All Frames): Document that next-frame and
+	previous-frame are local to current terminal.
+
 2001-09-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* keymaps.texi (Creating Keymaps): Fix the description of the

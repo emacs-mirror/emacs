@@ -1,3 +1,7 @@
+2001-09-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frame.c (syms_of_frame) <default-minibuffer-frame>: Doc fix.
+
 2001-09-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* s/gnu-linux.h: Fix a typo in comment.
