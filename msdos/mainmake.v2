@@ -45,12 +45,12 @@ lib-src: FRC
 src: FRC
 	cd src
 	$(MAKE) top_srcdir=${top_srcdir}
-	redir -o gdb.sed echo '/-geometry/s,^.*,set environment HOME $(topdir),'
+	redir -o gdb.sed echo '/-geometry/s,^.*,set environment HOME $(top_srcdir),'
 	redir -oa gdb.sed echo '/environment *TERM/s/^.*/set environment TERM internal/'
 	redir -oa gdb.sed echo '/x_error_quitter/s/^.*/set environment NAME root/'
 	redir -o gdb.tmp sed -f gdb.sed _gdbinit
 	redir -oa gdb.tmp echo 'set environment USER root'
-	redir -oa gdb.tmp echo 'set environment EMACSPATH $(topdir)/bin'
+	redir -oa gdb.tmp echo 'set environment EMACSPATH $(top_srcdir)/bin'
 	redir -oa gdb.tmp echo 'set environment SHELL $(subst \,/,$(COMSPEC))'
 	redir -oa gdb.tmp echo 'set environment PATH $(subst \,/,$(PATH))'
 	update gdb.tmp gdb.ini
