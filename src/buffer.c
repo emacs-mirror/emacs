@@ -2504,7 +2504,7 @@ init_buffer_once ()
   buffer_defaults.truncate_lines = Qnil;
   buffer_defaults.ctl_arrow = Qt;
 
-#ifdef MSDOS
+#ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
 #endif
   XSETFASTINT (buffer_defaults.fill_column, 70);
@@ -2550,7 +2550,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.display_table, 0x2000);
   XSETFASTINT (buffer_local_flags.syntax_table, 0x8000);
   XSETFASTINT (buffer_local_flags.cache_long_line_scans, 0x10000);
-#ifdef MSDOS
+#ifdef DOS_NT
   XSETFASTINT (buffer_local_flags.buffer_file_type, 0x4000);
 #endif
 
@@ -2584,12 +2584,13 @@ init_buffer ()
   char *pwd;
   struct stat dotstat, pwdstat;
   Lisp_Object temp;
+  int rc;
 
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
 
   /* If PWD is accurate, use it instead of calling getwd.  This is faster
      when PWD is right, and may avoid a fatal error.  */
-  if ((pwd = getenv ("PWD")) != 0 && *pwd == '/'
+  if ((pwd = getenv ("PWD")) != 0 && IS_DIRECTORY_SEP (*pwd)
       && stat (pwd, &pwdstat) == 0
       && stat (".", &dotstat) == 0
       && dotstat.st_ino == pwdstat.st_ino
@@ -2602,8 +2603,12 @@ init_buffer ()
 #ifndef VMS
   /* Maybe this should really use some standard subroutine
      whose definition is filename syntax dependent.  */
-  if (buf[strlen (buf) - 1] != '/')
-    strcat (buf, "/");
+  rc = strlen (buf);
+  if (!(IS_DIRECTORY_SEP (buf[rc - 1])))
+    {
+      buf[rc] = DIRECTORY_SEP;
+      buf[rc + 1] = '\0';
+    }
 #endif /* not VMS */
   current_buffer->directory = build_string (buf);
 
@@ -2691,7 +2696,7 @@ This is the same as (default-value 'tab-width).");
     "Default value of `case-fold-search' for buffers that don't override it.\n\
 This is the same as (default-value 'case-fold-search).");
 
-#ifdef MSDOS
+#ifdef DOS_NT
   DEFVAR_LISP_NOPRO ("default-buffer-file-type", 
 		     &buffer_defaults.buffer_file_type,
     "Default file type for buffers that do not override it.\n\
@@ -2791,7 +2796,7 @@ Note that this is overridden by the variable\n\
 `truncate-partial-width-windows' if that variable is non-nil\n\
 and this buffer is not full-frame width.");
 
-#ifdef MSDOS
+#ifdef DOS_NT
   DEFVAR_PER_BUFFER ("buffer-file-type", &current_buffer->buffer_file_type,
 		     Qnil,
     "*If visited file is text, nil; otherwise, t.");
