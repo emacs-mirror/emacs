@@ -1,3 +1,9 @@
+2000-07-10  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* dired-aux.el (dired-show-file-type): New function.
+	* dired.el (dired-mode-map): Bind `w' to dired-show-file-type.
+	(dired-show-file-type): Add autoload.
+
 2000-07-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (describe-font): Adjusted for the
