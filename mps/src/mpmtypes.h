@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(MMdevel_drj_arena_hysteresis.2) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.71) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -86,51 +86,6 @@ typedef struct AllocPatternStruct *AllocPattern;
 typedef struct AllocFrameStruct *AllocFrame; /* design.mps.alloc-frame */
 
 
-/* Splay* -- See design.mps.splay */
-
-typedef struct SplayTreeStruct *SplayTree;
-typedef struct SplayNodeStruct *SplayNode;
-typedef unsigned Compare;
-typedef Compare (*SplayCompareMethod)(void *key, SplayNode node);
-typedef Bool (*SplayTestNodeMethod)(SplayTree tree, SplayNode node,
-                                    void *closureP, unsigned long closureS);
-typedef Bool (*SplayTestTreeMethod)(SplayTree tree, SplayNode node,
-                                    void *closureP, unsigned long closureS);
-typedef void (*SplayUpdateNodeMethod)(SplayTree tree, SplayNode node,
-                                      SplayNode leftChild, 
-                                      SplayNode rightChild);
-typedef Res (*SplayNodeDescribeMethod)(SplayNode node, mps_lib_FILE *stream);
-enum {
-  CompareLESS,
-  CompareEQUAL,
-  CompareGREATER
-};
-
-
-/* CBS* -- See design.mps.cbs */
-
-typedef struct CBSStruct *CBS;
-typedef struct CBSBlockStruct *CBSBlock;
-typedef void (*CBSChangeSizeMethod)(CBS cbs, CBSBlock block,
-              Size oldSize, Size newSize);
-typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block,
-                                 void *closureP, unsigned long closureS);
-typedef unsigned CBSFindDelete;
-enum {
-  CBSFindDeleteNONE,    /* don't delete after finding */
-  CBSFindDeleteLOW,     /* delete precise size from low end */
-  CBSFindDeleteHIGH,    /* delete precise size from high end */
-  CBSFindDeleteENTIRE   /* delete entire range */
-};
-
-/* See design.mps.cbs.impl.low-mem.inline.block */
-typedef void **CBSEmergencyBlock; /* next, limit */
-
-/* See design.mps.cbs.impl.low-mem.inline.block */
-typedef void **CBSEmergencyGrain; /* next */
-
-
-
 /* Arena*Method -- see @@@@ */
 
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
@@ -156,7 +111,8 @@ typedef Res (*ArenaDescribeMethod)(Arena arena, mps_lib_FILE *stream);
 
 /* Messages
  *
- * See design.mps.message */
+ * See design.mps.message
+ */
 typedef unsigned MessageType;
 typedef struct MessageStruct *Message;
 typedef struct MessageClassStruct *MessageClass;

@@ -1,6 +1,6 @@
 /* impl.c.splay: SPLAY TREE IMPLEMENTATION
  *
- * $HopeName: MMsrc!splay.c(trunk.5) $
+ * $HopeName: MMsrc!splay.c(trunk.6) $
  * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
  *
  * .readership: Any MPS developer.
@@ -10,18 +10,19 @@
  * .purpose: Splay trees are used to manage potentially unbounded 
  * collections of ordered things.
  *
- * .sources: design.mps.splay,
+ * .source: design.mps.splay
  *
  * .note.stack: It's important that the MPS have a bounded stack 
- * size, and this is a problem for tree algoriths.  Basically,
+ * size, and this is a problem for tree algorithms.  Basically,
  * we have to avoid recursion.
  */
 
 
+#include "splay.h"
 #include "mpm.h"
 
 
-SRCID(splay, "$HopeName: MMsrc!splay.c(trunk.5) $");
+SRCID(splay, "$HopeName: MMsrc!splay.c(trunk.6) $");
 
 /* Basic getter and setter methods */
 #define SplayTreeRoot(t) RVALUE((t)->root)
@@ -948,7 +949,26 @@ Bool SplayFindLast(SplayNode *nodeReturn, SplayTree tree,
 }
 
 
-/* SplayNodeRefresh -- Updates the client proprty that has changed at a node
+/* SplayRoot -- return the root node of the tree */
+
+Bool SplayRoot(SplayNode *nodeReturn, SplayTree tree)
+{
+  SplayNode node;
+
+  AVER(nodeReturn != NULL);
+  AVERT(SplayTree, tree);
+
+  node = SplayTreeRoot(tree);
+  if(node == NULL)
+    return FALSE;
+  else {
+    *nodeReturn = node;
+    return TRUE;
+  }
+}
+
+
+/* SplayNodeRefresh -- Updates the client property that has changed at a node
  *
  * This function undertakes to call the client updateNode callback for each
  * node affected by the change in properties at the given node (which has 

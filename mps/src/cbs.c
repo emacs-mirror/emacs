@@ -1,7 +1,7 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
- * $HopeName: MMsrc!cbs.c(trunk.16) $
- * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
+ * $HopeName$
+ * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .intro: This is a portable implementation of coalescing block
  * structures.
@@ -13,11 +13,12 @@
  */
 
 #include "cbs.h"
+#include "splay.h"
 #include "meter.h"
 #include "mpm.h"
 
 
-SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.16) $");
+SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.17) $");
 
 
 /* See design.mps.cbs.align */
@@ -98,6 +99,8 @@ static void CBSLeave(CBS cbs) {
   return;
 }
 
+
+/* CBSCheck -- Check CBS */
 
 Bool CBSCheck(CBS cbs) {
   /* See .enter-leave.simple. */
@@ -194,6 +197,7 @@ static Compare CBSSplayCompare(void *key, SplayNode node) {
     return CompareEQUAL;
 }
 
+
 static Bool CBSTestNode(SplayTree tree, SplayNode node, 
                         void *closureP, unsigned long closureS)
 {
@@ -229,6 +233,7 @@ static Bool CBSTestTree(SplayTree tree, SplayNode node,
 
   return block->maxSize >= size;
 }
+
 
 static void CBSUpdateNode(SplayTree tree, SplayNode node,
                           SplayNode leftChild, SplayNode rightChild)
@@ -1332,7 +1337,7 @@ static Bool CBSFindDeleteCheck(CBSFindDelete findDelete)
   return TRUE;
 }
 
-typedef (*CBSDeleteMethod)(CBS cbs, Addr base, Addr limit);
+typedef Res (*CBSDeleteMethod)(CBS cbs, Addr base, Addr limit);
 
 static void CBSFindDeleteRange(Addr *baseReturn, Addr *limitReturn, 
                                CBS cbs, Addr base, Addr limit, Size size, 
@@ -1383,6 +1388,8 @@ static void CBSFindDeleteRange(Addr *baseReturn, Addr *limitReturn,
   *limitReturn = limit;
 }
 
+
+/* CBSFindFirst -- find the first block of at least the given size */
 
 Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
                   CBS cbs, Size size, CBSFindDelete findDelete) 
@@ -1436,7 +1443,7 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
         base = CBSEmergencyBlockBase(block);
         limit = CBSEmergencyBlockLimit(block);
         deleteMethod = &CBSDeleteFromEmergencyBlockList;
-        /* @@@ Could remove in place more efficiently */
+        /* @@@@ Could remove in place more efficiently. */
         break;
       }      
     }
@@ -1465,6 +1472,8 @@ Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
   return found;
 }
 
+
+/* CBSFindLast -- find the last block of at least the given size */
 
 Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
                  CBS cbs, Size size, CBSFindDelete findDelete) 
@@ -1517,7 +1526,7 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
         base = CBSEmergencyBlockBase(block);
         limit = CBSEmergencyBlockLimit(block);
         deleteMethod = &CBSDeleteFromEmergencyBlockList;
-        /* @@@ Could remove in place more efficiently */
+        /* @@@@ Could remove in place more efficiently. */
       }      
     }
   }
@@ -1544,6 +1553,92 @@ Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
 
   if(found) {
     AVER(AddrOffset(base, limit) >= size);
+    CBSFindDeleteRange(baseReturn, limitReturn, cbs, base, limit, size,
+                       deleteMethod, findDelete);
+  }
+
+  CBSLeave(cbs);
+  return found;
+}
+
+
+/* CBSFindLargest -- find the largest block in the CBS */
+
+Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
+                    CBS cbs, CBSFindDelete findDelete)
+{
+  Bool found = FALSE;
+  Addr base = (Addr)0, limit = (Addr)0; /* only defined when found is TRUE */
+  CBSDeleteMethod deleteMethod = NULL;
+  Size size = 0; /* suppress bogus warning from MSVC */
+
+  AVERT(CBS, cbs);
+  CBSEnter(cbs);
+
+  AVER(baseReturn != NULL);
+  AVER(limitReturn != NULL);
+  AVER(sizeof(unsigned long) >= sizeof(Size));
+  AVER(cbs->fastFind);
+  AVERT(CBSFindDelete, findDelete);
+
+  /* might do some good. */
+  CBSFlushEmergencyLists(cbs);
+
+  {
+    SplayNode root;
+    Bool notEmpty;
+
+    notEmpty = SplayRoot(&root, SplayTreeOfCBS(cbs));
+    if(notEmpty) {
+      CBSBlock block;
+      SplayNode node;
+
+      size = CBSBlockOfSplayNode(root)->maxSize;
+      METER_ACC(cbs->splaySearch, cbs->splayTreeSize);
+      found = SplayFindFirst(&node, SplayTreeOfCBS(cbs), &CBSTestNode,
+                             &CBSTestTree, NULL, (unsigned long)size);
+      AVER(found); /* maxSize is exact, so we will find it. */
+      block = CBSBlockOfSplayNode(node);
+      AVER(CBSBlockSize(block) >= size);
+      base = CBSBlockBase(block);
+      limit = CBSBlockLimit(block);
+      deleteMethod = &CBSDeleteFromTree;
+    }
+  }
+
+  if(cbs->emergencyBlockList != NULL) {
+    CBSEmergencyBlock block;
+
+    /* Scan the whole list -- could maintain a maxSize to avoid it. */
+    METER_ACC(cbs->eblSearch, cbs->eblSize);
+    for(block = cbs->emergencyBlockList;
+        block != NULL;
+        block = CBSEmergencyBlockNext(block)) {
+      if(CBSEmergencyBlockSize(block) >= size) {
+        /* .pref: >= so that it prefers the emerg. list to the tree */
+        found = TRUE;
+        size = CBSEmergencyBlockSize(block);
+        base = CBSEmergencyBlockBase(block);
+        limit = CBSEmergencyBlockLimit(block);
+        deleteMethod = &CBSDeleteFromEmergencyBlockList;
+        /* @@@@ Could remove in place more efficiently. */
+      }      
+    }
+  }
+
+  /* If something was found, it will be larger than an emerg. grain. */
+  if(!found && cbs->emergencyGrainList != NULL) {
+    /* Take first grain */
+    CBSEmergencyGrain grain = cbs->emergencyGrainList;
+
+    found = TRUE;
+    size = CBSEmergencyGrainSize(cbs);
+    base = CBSEmergencyGrainBase(grain);
+    limit = CBSEmergencyGrainLimit(cbs, grain);
+    deleteMethod = &CBSDeleteFromEmergencyGrainList;
+  }
+
+  if(found) {
     CBSFindDeleteRange(baseReturn, limitReturn, cbs, base, limit, size,
                        deleteMethod, findDelete);
   }

@@ -1,6 +1,6 @@
 /* impl.c.poolmv2: MANUAL VARIABLE POOL, II
  *
- * $HopeName: MMsrc!poolmv2.c(trunk.7) $
+ * $HopeName: MMsrc!poolmv2.c(trunk.8) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: any MPS developer
@@ -18,7 +18,7 @@
 #include "cbs.h"
 #include "meter.h"
 
-SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.7) $");
+SRCID(poolmv2, "$HopeName: MMsrc!poolmv2.c(trunk.8) $");
 
 
 /* Signatures */
@@ -373,7 +373,6 @@ static Bool MV2Check(MV2 mv2)
   CHECKL(mv2->size == mv2->allocated + mv2->available +
          mv2->unavailable);
   /* --- could check that sum of segment sizes == mv2->size */
-  
   /* --- check meters? */
 
   return TRUE;
@@ -394,8 +393,6 @@ static void MV2Finish(Pool pool)
   AVERT(MV2, mv2);
   arena = PoolArena(pool);
   AVERT(Arena, arena);
-
-  EVENT_P(MV2Finish, mv2);
 
   /* Free the segments in the pool */
   ring = PoolSegRing(pool);
@@ -568,8 +565,6 @@ done:
   METER_ACC(mv2->poolAllocated, mv2->allocated);
   METER_ACC(mv2->poolSize, mv2->size);
   METER_ACC(mv2->bufferFills, AddrOffset(base, limit));
-  EVENT_PPWAW(MV2BufferFill, mv2, buffer, minSize, base,
-              AddrOffset(base, limit));
   AVER(AddrOffset(base, limit) >= minSize);
   return ResOK;
 }
@@ -599,7 +594,6 @@ static void MV2BufferEmpty(Pool pool, Buffer buffer)
   limit = BufferLimit(buffer);
   size = AddrOffset(base, limit);
   
-  EVENT_PPW(MV2BufferEmpty, mv2, buffer, size);
   if (size == 0)
     return;
 

@@ -1,14 +1,32 @@
 /* impl.h.cbs: CBS -- Coalescing Block Structure
  *
  * $HopeName$
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.cbs.
  */
 
-#include "mpmtypes.h"
+#ifndef cbs_h
+#define cbs_h
+
 #include "meter.h"
-#include "mpmst.h" /* just for SplayTreeStruct */
+#include "splay.h"
+#include "mpmtypes.h"
+
+
+typedef struct CBSStruct *CBS;
+typedef struct CBSBlockStruct *CBSBlock;
+typedef void (*CBSChangeSizeMethod)(CBS cbs, CBSBlock block,
+              Size oldSize, Size newSize);
+typedef Bool (*CBSIterateMethod)(CBS cbs, CBSBlock block,
+                                 void *closureP, unsigned long closureS);
+
+
+/* See design.mps.cbs.impl.low-mem.inline.block */
+typedef void **CBSEmergencyBlock; /* next, limit */
+
+/* See design.mps.cbs.impl.low-mem.inline.block */
+typedef void **CBSEmergencyGrain; /* next */
 
 
 #define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
@@ -76,13 +94,23 @@ extern Res CBSBlockDescribe(CBSBlock block, mps_lib_FILE *stream);
 extern Addr (CBSBlockBase)(CBSBlock block);
 #define CBSBlockLimit(block) ((block)->limit)
 extern Addr (CBSBlockLimit)(CBSBlock block);
-/* ANSI C doesn't define subtraction of zero pointers. */
-#define CBSBlockSize(block) \
-  (CBSBlockBase((block)) == (Addr)0 ? (Size)0 : \
-    (AddrOffset(CBSBlockBase((block)), CBSBlockLimit((block)))))
+#define CBSBlockSize(block) AddrOffset((block)->base, (block)->limit)
 extern Size (CBSBlockSize)(CBSBlock block);
 
+typedef unsigned CBSFindDelete;
+enum {
+  CBSFindDeleteNONE,    /* don't delete after finding */
+  CBSFindDeleteLOW,     /* delete precise size from low end */
+  CBSFindDeleteHIGH,    /* delete precise size from high end */
+  CBSFindDeleteENTIRE   /* delete entire range */
+};
 extern Bool CBSFindFirst(Addr *baseReturn, Addr *limitReturn,
                          CBS cbs, Size size, CBSFindDelete findDelete);
 extern Bool CBSFindLast(Addr *baseReturn, Addr *limitReturn,
                         CBS cbs, Size size, CBSFindDelete findDelete);
+
+extern Bool CBSFindLargest(Addr *baseReturn, Addr *limitReturn,
+                           CBS cbs, CBSFindDelete findDelete);
+
+
+#endif /* cbs_h */
