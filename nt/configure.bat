@@ -29,7 +29,7 @@ rem
 rem For reference, here is a list of which builds of gmake are known to
 rem work or not, and whether they work in the presence and/or absence of
 rem sh.exe.
-rem  
+rem
 rem                                       sh exists     no sh
 rem  cygwin b20.1 make (3.75):            okay[1]       fails[2]
 rem  MSVC compiled gmake 3.77:            okay          okay
@@ -99,8 +99,8 @@ echo.   --no-opt                disable optimization
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
-echo.   --without-png          	do not use libpng even if it is installed 
-echo.   --without-jpeg         	do not use jpeglib even if it is installed 
+echo.   --without-png           do not use libpng even if it is installed
+echo.   --without-jpeg          do not use jpeglib even if it is installed
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
