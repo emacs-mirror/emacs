@@ -1875,10 +1875,10 @@ the source code display in sync with the debugging session.")
 
 ;;;###autoload
 (defun jdb (command-line)
-  "Run jdb with command line COMMAND-LINE in a buffer.  The buffer is named
-\"*gud*\" if no initial class is given or \"*gud-<initial-class-basename>*\"
-if there is.  If the \"-classpath\" switch is given, omit all whitespace
-between it and it's value."
+  "Run jdb with command line COMMAND-LINE in a buffer.
+The buffer is named \"*gud*\" if no initial class is given or
+\"*gud-<initial-class-basename>*\" if there is.  If the \"-classpath\"
+switch is given, omit all whitespace between it and it's value."
   (interactive
    (list (gud-query-cmdline 'jdb)))
 
