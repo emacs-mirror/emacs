@@ -1,3 +1,7 @@
+2004-11-06  Steven Tamm  <steventamm@mac.com>
+
+	* editfns.c: Need to include sys/time.h before resource.h on darwin.
+
 2004-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* callint.c (Fcall_interactively): Avoid reusing EVENT for other data.

@@ -40,6 +40,9 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #if defined HAVE_SYS_RESOURCE_H
+#ifdef MAC_OSX
+#include <sys/time.h>
+#endif
 #include <sys/resource.h>
 #endif
 
