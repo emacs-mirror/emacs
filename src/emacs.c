@@ -694,6 +694,9 @@ main (argc, argv, envp)
      char **argv;
      char **envp;
 {
+#ifdef GC_MARK_STACK
+  Lisp_Object dummy;
+#endif
   char stack_bottom_variable;
   int do_initial_setlocale;
   int skip_args = 0;
@@ -703,6 +706,11 @@ main (argc, argv, envp)
   struct rlimit rlim;
 #endif
   int no_loadup = 0;
+
+#ifdef GC_MARK_STACK
+  extern Lisp_Object *stack_base;
+  stack_base = &dummy;
+#endif
 
 #ifdef LINUX_SBRK_BUG
   __sbrk (1);
