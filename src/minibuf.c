@@ -125,6 +125,17 @@ choose_minibuf_frame ()
 			  XWINDOW (minibuf_window)->buffer);
       minibuf_window = selected_frame->minibuffer_window;
     }
+
+  /* Make sure no other frame has a minibuffer as its selected window,
+     because the text would not be displayed in it, and that would be
+     confusing.  */
+  {
+    Lisp_Object tail, frame;
+
+    FOR_EACH_FRAME (tail, frame)
+      if (MINI_WINDOW_P (XWINDOW (FRAME_SELECTED_WINDOW (XFRAME (frame)))))
+	Fset_frame_selected_window (frame, Fframe_first_window (frame));
+  }
 }
 
 DEFUN ("set-minibuffer-window", Fset_minibuffer_window,
@@ -489,7 +500,11 @@ read_minibuf_unwind (data)
   minibuf_save_list = Fcdr (minibuf_save_list);
   Voverriding_local_map = Fcar (minibuf_save_list);
   minibuf_save_list = Fcdr (minibuf_save_list);
-  minibuf_window = Fcar (minibuf_save_list);
+#if 0
+  temp = Fcar (minibuf_save_list);
+  if (FRAME_LIVE_P (XFRAME (WINDOW_FRAME (XWINDOW (temp)))))
+    minibuf_window = temp;
+#endif
   minibuf_save_list = Fcdr (minibuf_save_list);
 
   /* Erase the minibuffer we were using at this level.  */
@@ -502,6 +517,10 @@ read_minibuf_unwind (data)
     Vdeactivate_mark = old_deactivate_mark;
     unbind_to (count, Qnil);
   }
+
+  /* Make the minibuffer follow the selected frame
+     (in case we are exiting a recursive minibuffer).  */
+  choose_minibuf_frame ();
 
   /* Make sure minibuffer window is erased, not ignored.  */
   windows_or_buffers_changed++;
