@@ -276,7 +276,8 @@ static Time last_mouse_movement_time;
    in its mouse-face, together with the window they apply to.
    As long as the mouse stays within this range, we need not
    redraw anything on its account.  */
-static int mouse_face_beg, mouse_face_end;
+static int mouse_face_beg_row, mouse_face_beg_col;
+static int mouse_face_end_row, mouse_face_end_col;
 static Lisp_Object mouse_face_window;
 static int mouse_face_face_id;
 
@@ -2174,7 +2175,10 @@ note_mouse_highlight (f, x, y)
       if (pos <= 0)
 	clear_mouse_face ();
       else if (! (EQ (window, mouse_face_window)
-		  && pos >= mouse_face_beg && pos < mouse_face_end))
+		  && row >= mouse_face_beg_row
+		  && row <= mouse_face_end_row
+		  && (row > mouse_face_beg_row || column >= mouse_face_beg_col)
+		  && (row < mouse_face_end_row || column < mouse_face_end_col)))
 	{
 	  Lisp_Object mouse_face, overlay, position;
 	  Lisp_Object *overlay_vec;
@@ -2236,8 +2240,10 @@ note_mouse_highlight (f, x, y)
 	      before = Foverlay_start (overlay);
 	      after = Foverlay_end (overlay);
 	      /* Record this as the current active region.  */
-	      mouse_face_beg = XFASTINT (before);
-	      mouse_face_end = XFASTINT (after);
+	      fast_find_position (window, before,
+				  &mouse_face_beg_col, &mouse_face_beg_row);
+	      fast_find_position (window, after,
+				  &mouse_face_end_col, &mouse_face_end_row);
 	      mouse_face_window = window;
 	      mouse_face_face_id = compute_char_face (f, w, pos, 0, 0,
 						      &ignore, pos + 1, 1);
@@ -2265,8 +2271,10 @@ note_mouse_highlight (f, x, y)
 		= Fnext_single_property_change (position, Qmouse_face,
 						w->buffer, end);
 	      /* Record this as the current active region.  */
-	      mouse_face_beg = XFASTINT (before);
-	      mouse_face_end = XFASTINT (after);
+	      fast_find_position (window, before,
+				  &mouse_face_beg_col, &mouse_face_beg_row);
+	      fast_find_position (window, after,
+				  &mouse_face_end_col, &mouse_face_end_row);
 	      mouse_face_window = window;
 	      mouse_face_face_id
 		= compute_char_face (f, w, pos, 0, 0,
@@ -2343,7 +2351,6 @@ static void
 show_mouse_face (hl)
      int hl;
 {
-  int begcol, begrow, endcol, endrow;
   struct window *w = XWINDOW (mouse_face_window);
   int width = window_internal_width (w);
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
@@ -2352,21 +2359,16 @@ show_mouse_face (hl)
   int curs_y = f->phys_cursor_y;
   int cursor_off = 0;
 
-  fast_find_position (mouse_face_window, mouse_face_beg,
-		      &begcol, &begrow);
-  fast_find_position (mouse_face_window, mouse_face_end,
-		      &endcol, &endrow);
-
-  for (i = begrow; i <= endrow; i++)
+  for (i = mouse_face_beg_row; i <= mouse_face_end_row; i++)
     {
-      int column = (i == begrow ? begcol : w->left);
-      int endcolumn = (i == endrow ? endcol : w->left + width);
+      int column = (i == mouse_face_beg_row ? mouse_face_beg_col : w->left);
+      int endcolumn = (i == mouse_face_end_row ? mouse_face_end_col : w->left + width);
       endcolumn = min (endcolumn, FRAME_CURRENT_GLYPHS (f)->used[i] - w->left);
 
       /* If the cursor's in the text we are about to rewrite,
 	 turn the cursor off.  */
       if (i == curs_y
-	  && (curs_x >= begcol - 1 && curs_x <= endcol))
+	  && curs_x >= mouse_face_beg_col - 1 && curs_x <= mouse_face_end_col)
 	{
 	  x_display_cursor (f, 0);
 	  cursor_off = 1;
@@ -2401,8 +2403,8 @@ clear_mouse_face ()
   if (! NILP (mouse_face_window))
     show_mouse_face (0);
 
-  mouse_face_beg = -1;
-  mouse_face_end = -1;
+  mouse_face_beg_row = mouse_face_beg_col = -1;
+  mouse_face_end_row = mouse_face_end_col = -1;
   mouse_face_window = Qnil;
 }
 
@@ -5638,8 +5640,8 @@ x_destroy_window (f)
 
   if (f == mouse_face_mouse_frame)
     {
-      mouse_face_beg = -1;
-      mouse_face_end = -1;
+      mouse_face_beg_row = mouse_face_beg_col = -1;
+      mouse_face_end_row = mouse_face_end_col = -1;
       mouse_face_window = Qnil;
     }
 
