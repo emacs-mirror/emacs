@@ -14,9 +14,10 @@ VPATH=@srcdir@
 MAKEINFO = makeinfo
 INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl ../info/dired-x \
 	       ../info/ediff ../info/forms ../info/gnus ../info/info \
-	       ../info/mh-e ../info/sc ../info/vip ../info/viper
+	       ../info/mh-e ../info/sc ../info/vip ../info/viper \
+	       ../info/message
 DVI_TARGETS = emacs.dvi cc-mode.dvi cl.dvi dired-x.dvi ediff.dvi forms.dvi \
-		 gnus.dvi mh-e.dvi sc.dvi vip.dvi viper.dvi
+		 gnus.dvi mh-e.dvi sc.dvi vip.dvi viper.dvi message.dvi
 INFOSOURCES = info.texi info-stnd.texi
 
 # The following rule does not work with all versions of `make'.
@@ -130,6 +131,11 @@ vip.dvi: vip.texi
 	cd $(srcdir); $(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
 	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/gnus.texi
+
+../info/message: message.texi
+	cd $(srcdir); $(MAKEINFO) message.texi
+message.dvi: message.texi
+	TEXINPUTS="$(srcdir) $(TEXINPUTS)"; $(TEXI2DVI) ${srcdir}/message.texi
 
 ../etc/GNU: gnu1.texi gnu.texi
 	makeinfo --no-headers -o ../etc/GNU gnu1.texi
