@@ -74,9 +74,9 @@ Lisp_Object Vcharset_symbol_table;
 /* A list of charset symbols ever defined.  */
 Lisp_Object Vcharset_list;
 
-/* Vector of character translation table ever defined.
-   ID of a character translation table is used to index this vector.  */
-Lisp_Object Vcharacter_translation_table_vector;
+/* Vector of translation table ever defined.
+   ID of a translation table is used to index this vector.  */
+Lisp_Object Vtranslation_table_vector;
 
 /* Tables used by macros BYTES_BY_CHAR_HEAD and WIDTH_BY_CHAR_HEAD.  */
 int bytes_by_char_head[256];
@@ -168,15 +168,18 @@ non_ascii_char_to_string (c, workbuf, str)
 
 /* Return a non-ASCII character of which multi-byte form is at STR of
    length LEN.  If ACTUAL_LEN is not NULL, the actual length of the
-   character is set to the address ACTUAL_LEN.
+   multibyte form is set to the address ACTUAL_LEN.
+
+   If exclude_tail_garbage is nonzero, ACTUAL_LEN excludes gabage
+   bytes following the non-ASCII character.
 
    Use macro `STRING_CHAR (STR, LEN)' instead of calling this function
    directly if STR can hold an ASCII character.  */
 
 int
-string_to_non_ascii_char (str, len, actual_len)
+string_to_non_ascii_char (str, len, actual_len, exclude_tail_garbage)
      const unsigned char *str;
-     int len, *actual_len;
+     int len, *actual_len, exclude_tail_garbage;
 {
   int charset;
   unsigned char c1, c2;
@@ -195,20 +198,25 @@ string_to_non_ascii_char (str, len, actual_len)
 
 	  if (cmpchar_id >= 0)
 	    c = MAKE_COMPOSITE_CHAR (cmpchar_id);
+	  if (exclude_tail_garbage)
+	    bytes = cmpchar_table[cmpchar_id]->len;
 	}
       else
 	{
 	  int charset = c, c1, c2 = 0;
+	  int char_bytes = BYTES_BY_CHAR_HEAD (c);
 
 	  str++;
 	  if (c >= LEADING_CODE_PRIVATE_11)
 	    charset = *str++;
-	  if (BYTES_BY_CHAR_HEAD (c) <= bytes && CHARSET_DEFINED_P (charset))
+	  if (char_bytes <= bytes && CHARSET_DEFINED_P (charset))
 	    {
 	      c1 = *str++ & 0x7f;
 	      if (CHARSET_DIMENSION (charset) == 2)
 		c2 = *str & 0x7F;
 	      c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
+	      if (exclude_tail_garbage)
+		bytes = char_bytes;
 	    }
 	}
     }
@@ -273,7 +281,7 @@ split_non_ascii_string (str, len, charset, c1, c2)
   return 0;
 }
 
-/* Translate character C by character translation table TABLE.  If C
+/* Translate character C by translation table TABLE.  If C
    is negative, translate a character specified by CHARSET, C1, and C2
    (C1 and C2 are code points of the character).  If no translation is
    found in TABLE, return C.  */
@@ -923,7 +931,7 @@ a valid generic character.")
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
        Sunibyte_char_to_multibyte, 1, 1, 0,
   "Convert the unibyte character CH to multibyte character.\n\
-The conversion is done based on `nonascii-translate-table' (which see)\n\
+The conversion is done based on `nonascii-translation-table' (which see)\n\
  or `nonascii-insert-offset' (which see).")
   (ch)
      Lisp_Object ch;
@@ -1401,7 +1409,7 @@ str_cmpchar_id (str, len)
 	    /* Make `bufp' point normal multi-byte form temporally.  */
 	    *bufp -= 0x20;
 	    cmpcharp->glyph[i]
-	      = FAST_MAKE_GLYPH (string_to_non_ascii_char (bufp, 4, 0), 0);
+	      = FAST_MAKE_GLYPH (string_to_non_ascii_char (bufp, 4, 0, 0), 0);
 	    width = WIDTH_BY_CHAR_HEAD (*bufp);
 	    *bufp += 0x20;
 	    bufp += BYTES_BY_CHAR_HEAD (*bufp - 0x20);
@@ -1761,11 +1769,10 @@ syms_of_charset ()
     "List of charsets ever defined.");
   Vcharset_list = Fcons (Qascii, Qnil);
 
-  DEFVAR_LISP ("character-translation-table-vector",
-	       &Vcharacter_translation_table_vector,
+  DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
     "Vector of cons cell of a symbol and translation table ever defined.\n\
 An ID of a translation table is an index of this vector.");
-  Vcharacter_translation_table_vector = Fmake_vector (make_number (16), Qnil);
+  Vtranslation_table_vector = Fmake_vector (make_number (16), Qnil);
 
   DEFVAR_INT ("leading-code-composition", &leading_code_composition,
     "Leading-code of composite characters.");
@@ -1795,11 +1802,11 @@ This serves to convert a Latin-1 or similar 8-bit character code\n\
 to the corresponding Emacs multibyte character code.\n\
 Typically the value should be (- (make-char CHARSET 0) 128),\n\
 for your choice of character set.\n\
-If `nonascii-translate-table' is non-nil, it overrides this variable.");
+If `nonascii-translation-table' is non-nil, it overrides this variable.");
   nonascii_insert_offset = 0;
 
   DEFVAR_LISP ("nonascii-translation-table", &Vnonascii_translation_table,
-    "Character translation table to convert non-ASCII unibyte codes to multibyte.\n\
+    "Translation table to convert non-ASCII unibyte codes to multibyte.\n\
 This is used for converting unibyte text to multibyte,\n\
 and for inserting character codes specified by number.\n\n\
 Conversion is performed only when multibyte characters are enabled,\n\
