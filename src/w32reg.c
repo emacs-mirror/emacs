@@ -28,7 +28,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include <string.h>
 
-#define REG_ROOT "SOFTWARE\\GNU\\Emacs\\"
+#define REG_ROOT "Software\\GNU\\Emacs"
 
 LPBYTE 
 win32_get_string_resource (name, class, dwexptype)
