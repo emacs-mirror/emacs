@@ -258,7 +258,7 @@ sh		Bourne Shell
 
 
 (defcustom sh-alias-alist
-  (nconc (if (eq system-type 'gnu/linux)
+  (append (if (eq system-type 'gnu/linux)
 	     '((csh . tcsh)
 	       (ksh . pdksh)))
 	 ;; for the time being
