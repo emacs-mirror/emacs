@@ -2461,14 +2461,22 @@ it were the arg to `interactive' (which see) to interactively read the value."
 
 (defun choose-completion-string (choice &optional buffer)
   (let ((buffer (or buffer completion-reference-buffer)))
-    (set-buffer buffer)
-    (choose-completion-delete-max-match choice)
-    (insert choice)
-    ;; Update point in the window that BUFFER is showing in.
-    (let ((window (get-buffer-window buffer t)))
-      (set-window-point window (point)))
-    (and (equal buffer (window-buffer (minibuffer-window)))
-	 (minibuffer-complete-and-exit))))
+    ;; If BUFFER is a minibuffer, barf unless it's the currently
+    ;; active minibuffer.
+    (if (and (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))
+	     (or (not (minibuffer-window-active-p (minibuffer-window)))
+		 (not (equal buffer (window-buffer (minibuffer-window))))))
+	(error "Minibuffer is not active for completion")
+      ;; Insert the completion into the buffer where completion was requested.
+      (set-buffer buffer)
+      (choose-completion-delete-max-match choice)
+      (insert choice)
+      ;; Update point in the window that BUFFER is showing in.
+      (let ((window (get-buffer-window buffer t)))
+	(set-window-point window (point)))
+      ;; If completing for the minibuffer, exit it with this choice.
+      (and (equal buffer (window-buffer (minibuffer-window)))
+	   (minibuffer-complete-and-exit)))))
 
 (defun completion-list-mode ()
   "Major mode for buffers showing lists of possible completions.
