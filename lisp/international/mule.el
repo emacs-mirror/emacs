@@ -1083,8 +1083,10 @@ function by default."
 	  (if (and enable-multibyte-characters
 		   (or (eq coding-system 'no-conversion)
 		       (eq (coding-system-type coding-system) 5))
-		   ;; If buffer was unmodified, we must be visiting it.
-		   (not modified-p))
+		   ;; If buffer was unmodified and the size is the
+		   ;; same as INSERTED, we must be visiting it.
+		   (not modified-p)
+		   (= (buffer-size) inserted))
 	      ;; For coding systems no-conversion and raw-text...,
 	      ;; edit the buffer as unibyte.
 	      (let ((pos-byte (position-bytes (+ (point) inserted))))
