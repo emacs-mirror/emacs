@@ -1582,7 +1582,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
     {
       c = read_char_minibuf_menu_prompt (commandflag, nmaps, maps);
       if (! NILP (c))
-	return c;
+	goto non_reread;
     }
 
   /* If in middle of key sequence and minibuffer not active,
