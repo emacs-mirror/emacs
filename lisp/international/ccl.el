@@ -512,6 +512,7 @@
 
 ;; Compile WRITE statement with string argument.
 (defun ccl-compile-write-string (str)
+  (setq str (string-as-unibyte str))
   (let ((len (length str)))
     (ccl-embed-code 'write-const-string 1 len)
     (ccl-embed-string len str))
@@ -723,6 +724,7 @@
 	   (ccl-embed-code 'write-const-jump 0 ccl-loop-head)
 	   (ccl-embed-data arg))
 	  ((stringp arg)
+	   (setq arg (string-as-unibyte arg))
 	   (let ((len (length arg))
 		 (i 0))
 	     (ccl-embed-code 'write-string-jump 0 ccl-loop-head)
