@@ -559,7 +559,7 @@
 ;;       Think nil as in "not a remote host". This value is used by
 ;;       ange-ftp-dired-host-type for local buffers.
 ;;
-;; t = a remote host of unknown type. Think t is in true, it's remote.
+;; t = a remote host of unknown type. Think t as in true, it's remote.
 ;;     Currently, 'unix is used as the default remote host type.
 ;;     Maybe we should use t.
 ;;

@@ -34,7 +34,7 @@
 ;; by the calling ange-ftp-ftp-name on the current directory. In this case the
 ;; next-error command will also ange-ftp the files over. This is achieved
 ;; automatically because the compilation-parse-errors function uses
-;; default-directory to build it's file names. If however the file visited was
+;; default-directory to build its file names. If however the file visited was
 ;; loaded locally, remote-compile prompts for a host and user and assumes the
 ;; files mounted locally (otherwise, how was the visited file loaded).
 

@@ -170,7 +170,7 @@ ignored."
 	 (setq skeleton-abbrev-cleanup (point))
 	 (add-hook 'post-command-hook 'skeleton-abbrev-cleanup nil t))))
 
-;; This command isn't meant to be called, only it's aliases with meaningful
+;; This command isn't meant to be called, only its aliases with meaningful
 ;; names are.
 ;;;###autoload
 (defun skeleton-proxy (&optional str arg)

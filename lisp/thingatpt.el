@@ -22,7 +22,7 @@
 
 ;; This file provides routines for getting the `thing' at the location of
 ;; point, whatever that `thing' happens to be.  The `thing' is defined by
-;; it's beginning and end positions in the buffer.
+;; its beginning and end positions in the buffer.
 ;;
 ;; The function bounds-of-thing-at-point finds the beginning and end
 ;; positions by moving first forward to the end of the `thing', and then

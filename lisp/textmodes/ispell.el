@@ -212,7 +212,7 @@
 ;; lookup-words rehacked to use call-process (Jamie).
 ;; ispell-complete-word rehacked to be compatible with the rest of the
 ;; system for word searching and to include multiple wildcards,
-;; and it's own dictionary.
+;; and its own dictionary.
 ;; query-replace capability added.  New options 'X', 'R', and 'A'.
 ;; buffer-local modes for dictionary, word-spelling, and formatter-parsing.
 ;; Many random bugs, like commented comments being skipped, fix to

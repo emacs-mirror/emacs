@@ -353,11 +353,11 @@ no args if that value is non-nil."
     (save-excursion
       (skip-chars-backward " \t")
       (max
-       ;; leave at least one space on non-empty lines.
+       ;; Leave at least one space on non-empty lines.
        (if (zerop (current-column)) 0 (1+ (current-column)))
        (let ((cur-pt (point)))
 	 (beginning-of-line 0)
-	 ;; If previous line had a comment, use it's indent
+	 ;; If previous line had a comment, use its indentation.
 	 (if (re-search-forward comment-start-skip cur-pt t)
 	     (progn
 	       (goto-char (match-beginning 0))

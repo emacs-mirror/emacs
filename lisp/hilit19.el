@@ -149,7 +149,7 @@
 ;;
 ;; * Moved hilit-wysiwyg-replace here from my version of man.el, this is not
 ;;   a bug.  The bug is that I don't have a reverse operation yet...just a
-;;   stub Wysiwyg-anything really belongs in a package of it's own.
+;;   stub Wysiwyg-anything really belongs in a package of its own.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -204,7 +204,7 @@
 ;; changed references to default-bold-italic to just bold-italic because the
 ;;   font for that face is maintained by emacs.
 ;;
-;; the pattern matcher now starts it's searches from the end of the most
+;; the pattern matcher now starts its searches from the end of the most
 ;;   recently highlighted region (which is not necessarily the end of the most
 ;;   recently matched regex).
 ;;
@@ -265,7 +265,7 @@
 ;; documented another "known problem" to "head off gripe mail at the pass."
 ;;
 ;; Revision 2.3  1993/07/27  02:15:49  stig
-;; (hilit-lookup-face-create) incorporated patch which improves it's behavior
+;; (hilit-lookup-face-create) incorporated patch which improves its behavior
 ;; with more than one frame...  Still can't have bold on the same face in two
 ;; different fonts sizes at the same time...
 ;;
@@ -287,7 +287,7 @@
 ;; added hilit-parser-alist which can be used to apply different patterns to
 ;;   different parts of a buffer.  This could be integrated in a far more
 ;;   elegant manner, but it presently serves the purpose of not applying
-;;   message header patterns to message bodies in mail-mode and it's kin.
+;;   message header patterns to message bodies in mail-mode and its kin.
 ;; hilit-set-mode-patterns now takes a list of modes and an optional parse-fn
 ;;
 
@@ -921,7 +921,7 @@ the entire buffer is forced."
 ;;   (message "*sigh* hilit-wysiwyg-write-repair not implemented yet")
 ;;
 ;; For efficiency, this hook should copy the current buffer to a scratch
-;; buffer and do it's overstriking there.  Overlays are not copied, so it'll
+;; buffer and do its overstriking there.  Overlays are not copied, so it'll
 ;; be necessary to hop back and forth.  This is OK since you're not fiddling
 ;; with--making or deleting--any overlays.  THEN write the new buffer,
 ;; delete it, and RETURN T. << important
