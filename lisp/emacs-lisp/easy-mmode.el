@@ -72,7 +72,9 @@ If provided LIGHTER will be used to help choose capitalization."
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
 This function defines the associated control variable MODE, keymap MODE-map,
-toggle command MODE, and hook MODE-hook.
+toggle command MODE, and hook MODE-hook.  If MODE is buffer-local, then
+turn-on-MODE and turn-off-MODE commands are also generated for use in hooks,
+and an optional global-MODE mode may also be generated.
 
 DOC is the documentation for the mode toggle command.
 Optional INIT-VALUE is the initial value of the mode's variable.
