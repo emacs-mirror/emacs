@@ -102,9 +102,8 @@ own selected frame and its own minibuffer windows.  A few Lisp variables
 have values local to the current terminal (that is, the terminal
 corresponding to the currently selected frame): these are
 @code{default-minibuffer-frame}, @code{defining-kbd-macro},
-@code{last-kbd-macro}, @code{multiple-frames} and
-@code{system-key-alist}.  These variables are always terminal-local and
-can never be buffer-local.
+@code{last-kbd-macro}, and @code{system-key-alist}.  These variables are
+always terminal-local and can never be buffer-local.
 
   A single X server can handle more than one screen.  A display name
 @samp{@var{host}.@var{server}.@var{screen}} has three parts; the last
@@ -562,9 +561,6 @@ there are two or more frames (not counting minibuffer-only frames or
 invisible frames).  The default value of @code{frame-title-format} uses
 @code{multiple-frames} so as to put the buffer name in the frame title
 only when there is more than one frame.
-
-The variable is always local to the current terminal and cannot be
-buffer-local.  @xref{Multiple Displays}.
 @end defvar
 
 @node Deleting Frames
@@ -1184,9 +1180,11 @@ like the way successive kills in Emacs move down the kill ring.
 @node Color Names
 @section Color Names
 
-@defun x-color-defined-p color
+@defun x-color-defined-p color &optional frame
 This function reports whether a color name is meaningful.  It returns
-@code{t} if so; otherwise, @code{nil}.
+@code{t} if so; otherwise, @code{nil}.  The argument @var{frame} says
+which frame's display to ask about; if @var{frame} is omitted or
+@code{nil}, the selected frame is used.
 
 Note that this does not tell you whether the display you are using
 really supports that color.  You can ask for any defined color on any
@@ -1195,16 +1193,16 @@ works.  Here's an approximate way to test whether your display supports
 the color @var{color}:
 
 @example
-(defun x-color-supported-p (color)
-  (and (x-color-defined-p color)
-       (or (x-display-color-p)
+(defun x-color-supported-p (color &optional frame)
+  (and (x-color-defined-p color frame)
+       (or (x-display-color-p frame)
            (member color '("black" "white"))
-           (and (> (x-display-planes) 1)
+           (and (> (x-display-planes frame) 1)
                 (equal color "gray")))))
 @end example
 @end defun
 
-@defun x-color-values color
+@defun x-color-values color &optional frame
 This function returns a value that describes what @var{color} should
 ideally look like.  If @var{color} is defined, the value is a list of
 three integers, which give the amount of red, the amount of green, and
@@ -1224,6 +1222,10 @@ defined, the value is @code{nil}.
 (x-color-values "hungry")
      @result{} nil
 @end example
+
+The color values are returned for @var{frame}'s display.  If @var{frame}
+is omitted or @code{nil}, the information is return for the selected
+frame's display.
 @end defun
 
 @node Resources
