@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.22 1995/04/30 15:34:52 eggert Exp $
+# $Id: rcs2log,v 1.24 1995/06/28 01:47:55 eggert Exp $
 
 # Copyright 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
@@ -178,15 +178,23 @@ then
 else
 	rlog='cvs log'
 	repository=`sed 1q <CVS/Repository` || exit
-	case $repository in
-	/*) ;;
-	*) repository=${CVSROOT?}/$repository
+	test ! -f CVS/Root || CVSROOT=`cat <CVS/Root` || exit
+	case ${CVSROOT?} in
+	*:/*)
+		# remote repository
+		;;
+	*)
+		# local repository
+		case $repository in
+		/*) ;;
+		*) repository=$CVSROOT/$repository
+		esac
+		if test ! -d "$repository"
+		then
+			echo >&2 "$0: $repository: bad repository (see CVS/Repository)"
+			exit 1
+		fi
 	esac
-	if test ! -d "$repository"
-	then
-		echo >&2 "$0: $repository: bad repository (see CVS/Repository)"
-		exit 1
-	fi
 fi
 
 # With no arguments, examine all files under the RCS directory.
