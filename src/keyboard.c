@@ -75,9 +75,6 @@ Boston, MA 02111-1307, USA.  */
 #include "macterm.h"
 #endif
 
-/* Include systime.h after xterm.h to avoid double inclusion of time.h. */
-#include "systime.h"
-
 #ifndef USE_CRT_DLL
 extern int errno;
 #endif
