@@ -2910,7 +2910,7 @@ Gregorian date Sunday, December 31, 1 BC."
      ;; year (Adar or Adar II).
      ((= death-month 13)
       (calendar-absolute-from-hebrew
-       (list (last-month-of-hebrew-year year) death-day year)))
+       (list (hebrew-calendar-last-month-of-year year) death-day year)))
      ;; If it's the 30th in Adar I and $year$ is not a leap year
      ;; (so Adar has only 29 days), use the last day in Shevat.
      ((and (= death-day 30)
