@@ -605,6 +605,8 @@ extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 
 #ifdef USE_X_TOOLKIT
 static void x_update_menu_appearance P_ ((struct frame *));
+
+extern void free_frame_menubar P_ ((struct frame *));
 #endif /* USE_X_TOOLKIT */
 
 #endif /* HAVE_WINDOW_SYSTEM */

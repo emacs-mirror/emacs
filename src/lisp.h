@@ -2773,6 +2773,7 @@ EXFUN (Fset_window_start, 3);
 extern void temp_output_buffer_show P_ ((Lisp_Object));
 extern void replace_buffer_in_all_windows P_ ((Lisp_Object));
 extern void init_window_once P_ ((void));
+extern void init_window P_ ((void));
 extern void syms_of_window P_ ((void));
 extern void keys_of_window P_ ((void));
 

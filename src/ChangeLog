@@ -1,5 +1,7 @@
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xfaces.c (free_frame_menubar): Add prototype.
+
 	* lisp.h (init_window): Add prototype.
 
 	* editfns.c: Include ctype.h.

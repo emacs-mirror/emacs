@@ -396,7 +396,7 @@ DEFUN ("documentation-property", Fdocumentation_property,
 Third argument RAW omitted or nil means pass the result through\n\
 `substitute-command-keys' if it is a string.\n\
 \n\
-This is differs from `get' in that it can refer to strings stored in the\n\
+This differs from `get' in that it can refer to strings stored in the\n\
 `etc/DOC' file; and that it evaluates documentation properties that\n\
 aren't strings.")
   (symbol, prop, raw)

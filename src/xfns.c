@@ -11149,7 +11149,7 @@ Text larger than the specified size is clipped.")
 
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
   "Hide the current tooltip window, if there is any.\n\
-Value is t is tooltip was open, nil otherwise.")
+Value is t if tooltip was open, nil otherwise.")
   ()
 {
   int count;
@@ -11185,7 +11185,7 @@ Value is t is tooltip was open, nil otherwise.")
 	struct frame *f = SELECTED_FRAME ();
 	Widget w = f->output_data.x->menubar_widget;
 	extern void xlwmenu_redisplay P_ ((Widget));
-	
+
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
 	    && w != NULL)
 	  {
@@ -11253,9 +11253,7 @@ selection dialog's entry field, if MUSTMATCH is non-nil.")
   Arg al[10];
   int ac = 0;
   extern XtAppContext Xt_app_con;
-  char *title;
   XmString dir_xmstring, pattern_xmstring;
-  int popup_activated_flag;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
