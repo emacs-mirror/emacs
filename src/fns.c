@@ -2325,6 +2325,20 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
     }
   return array;
 }
+
+DEFUN ("clear-string", Fclear_string, Sclear_string,
+       1, 1, 0,
+       doc: /* Clear the contents of STRING.
+This makes STRING unibyte and may change its length.  */)
+     (string)
+     Lisp_Object string;
+{
+  int len = SBYTES (string);
+  bzero (SDATA (string), len);
+  STRING_SET_CHARS (string, len);
+  STRING_SET_UNIBYTE (string);
+  return Qnil;
+}
 
 DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
        1, 1, 0,
@@ -5659,6 +5673,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Slax_plist_put);
   defsubr (&Sequal);
   defsubr (&Sfillarray);
+  defsubr (&Sclear_string);
   defsubr (&Schar_table_subtype);
   defsubr (&Schar_table_parent);
   defsubr (&Sset_char_table_parent);
