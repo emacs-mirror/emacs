@@ -1,3 +1,7 @@
+2001-09-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* fns.c (Fmd5): Doc fix.
+
 2001-08-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* composite.c (update_compositions): Do nothing if
