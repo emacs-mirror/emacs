@@ -239,7 +239,10 @@ Has a preference of looking backwards."
 	    ((and (or (eq major-mode 'c-mode)
 		      (eq major-mode 'c++-mode))
 		  (save-excursion (beginning-of-line)
-				  (while (= (char-after (- (point) 2)) ?\\)
+				  ;; Use eq instead of = here to avoid
+				  ;; error when at bob and char-after
+				  ;; returns nil.
+				  (while (eq (char-after (- (point) 2)) ?\\)
 				    (forward-line -1))
 				  (looking-at "[ \t]*#[ \t]*define[ \t]")))
 	     ;; Handle a C macro definition.
