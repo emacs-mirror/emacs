@@ -180,7 +180,7 @@ echo "Making links to \`lisp/term'."
 (cd lisp/term
  ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
  ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
- ln README ChangeLog ../../${tempdir}/lisp/term
+ ln README ../../${tempdir}/lisp/term
  rm -f =* TAGS)
 
 echo "Making links to \`lisp/forms-mode'."
