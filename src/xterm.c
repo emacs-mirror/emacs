@@ -1715,7 +1715,7 @@ x_window_to_scrollbar (window_id)
   for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       Lisp_Object frame = XCONS (tail)->car;
-      Lisp_Object bar;
+      Lisp_Object bar, condemned;
 
       /* All elements of Vframe_list should be frames.  */
       if (XTYPE (frame) != Lisp_Frame)
@@ -1723,8 +1723,11 @@ x_window_to_scrollbar (window_id)
 
       /* Scan this frame's scrollbar list for a scrollbar with the
          right window ID.  */
+      condemned = FRAME_CONDEMNED_SCROLLBARS (XFRAME (frame));
       for (bar = FRAME_SCROLLBARS (XFRAME (frame));
-	   ! NILP (bar);
+	   /* This trick allows us to search both the ordinary and
+              condemned scrollbar lists with one loop.  */
+	   ! NILP (bar) || (bar = condemned, condemned = Qnil, ! NILP (bar));
 	   bar = XSCROLLBAR(bar)->next)
 	if (SCROLLBAR_X_WINDOW (XSCROLLBAR (bar)) == window_id)
 	  return XSCROLLBAR (bar);
@@ -2087,9 +2090,13 @@ XTjudge_scrollbars (f)
 {
   Lisp_Object bar, next;
 
-  for (bar = FRAME_CONDEMNED_SCROLLBARS (f);
-       ! NILP (bar);
-       bar = next)
+  bar = FRAME_CONDEMNED_SCROLLBARS (f);
+
+  /* Clear out the condemned list now so we won't try to process any
+     more events on the hapless scrollbars.  */
+  FRAME_CONDEMNED_SCROLLBARS (f) = Qnil;
+
+  for (; ! NILP (bar); bar = next)
     {
       struct scrollbar *b = XSCROLLBAR (bar);
 
@@ -2098,8 +2105,6 @@ XTjudge_scrollbars (f)
       next = b->next;
       b->next = b->prev = Qnil;
     }
-
-  FRAME_CONDEMNED_SCROLLBARS (f) = Qnil;
 
   /* Now there should be no references to the condemned scrollbars,
      and they should get garbage-collected.  */
@@ -2249,6 +2254,8 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
   struct scrollbar *bar = XSCROLLBAR (last_mouse_scrollbar);
   int win_x, win_y;
 
+  BLOCK_INPUT;
+
   /* Get the mouse's position relative to the scrollbar window, and
      report that.  */
   {
@@ -2270,7 +2277,7 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
 			 &dummy_mask))
       {
 	*f = 0;
-	return;
+	goto done;
       }
   }
 
@@ -2307,6 +2314,9 @@ x_scrollbar_report_motion (f, bar_window, part, x, y, time)
 
   mouse_moved = 0;
   last_mouse_scrollbar = Qnil;
+
+ done:
+  UNBLOCK_INPUT;
 }
 
 
