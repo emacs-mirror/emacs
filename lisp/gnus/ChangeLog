@@ -1,3 +1,8 @@
+2003-06-11  Sam Steingold  <sds@gnu.org>
+
+	* pop3.el (pop3-leave-mail-on-server): New user variable.
+	(pop3-movemail): Delete mail only when it is nil.
+
 2003-05-10  Juanma Barranquero  <lektu@terra.es>
 
 	* message.el (message-buffer-naming-style): Fix typo.
