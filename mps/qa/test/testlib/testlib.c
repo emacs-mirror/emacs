@@ -150,13 +150,17 @@ void error(const char *format, ...)
  va_end(args);
 }
 
+static void myabort(void) {
+ abort();
+}
+
 void verror(const char *format, va_list args)
 {
  fprintf(stdout, "%% ERROR \n!error=true\n");
  fprintf(stdout, "!errtext=");
  vfprintf(stdout, format, args);
  fprintf(stdout, "\n");
- abort();
+ myabort();
 }
 
 /* asserts(1=0, "Axiom violation.");
@@ -175,7 +179,7 @@ void asserts(int expr, const char *format, ...)
   vfprintf(stdout, format, args);
   fprintf(stdout, "\n");
   va_end(args);
-  abort();
+  myabort();
  }
 }
 
