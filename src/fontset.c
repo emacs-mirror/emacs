@@ -973,9 +973,10 @@ check_fontset_name (name)
   return FONTSET_FROM_ID (id);
 }
 
-DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 4, 0,
+DEFUN ("set-fontset-font", Fset_fontset_font Sset_fontset_font, 3, 4, 0,
        doc: /* Modify fontset NAME to use FONTNAME for CHARACTER.
 
+If NAME is nil, modify the default fontset.
 CHARACTER may be a cons; (FROM . TO), where FROM and TO are
 non-generic characters.  In that case, use FONTNAME
 for all characters in the range FROM and TO (inclusive).
@@ -1251,6 +1252,7 @@ accumulate_font_info (arg, character, elt)
 
 DEFUN ("fontset-info", Ffontset_info, Sfontset_info, 1, 2, 0,
        doc: /* Return information about a fontset named NAME on frame FRAME.
+If NAME is nil, return information about the default fontset.
 The value is a vector:
   [ SIZE HEIGHT ((CHARSET-OR-RANGE FONT-SPEC OPENED ...) ...) ],
 where,
@@ -1369,7 +1371,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
 
 DEFUN ("fontset-font", Ffontset_font, Sfontset_font, 2, 2, 0,
        doc: /* Return a font name pattern for character CH in fontset NAME.
-If NAME is t, find a font name pattern in the default fontset.  */)
+If NAME is nil, find a font name pattern in the default fontset.  */)
      (name, ch)
      Lisp_Object name, ch;
 {
