@@ -149,6 +149,7 @@ extern int errno;
 
 #if defined (__osf__) && (defined (__alpha) || defined (__alpha__))
 #define OSF_ALPHA
+#include <sys/table.h>
 #endif
 
 #if defined (__osf__) && (defined (mips) || defined (__mips__))
@@ -701,6 +702,18 @@ getloadavg (loadavg, nelem)
        ? load_ave.tl_avenrun.d[0]
        : (load_ave.tl_avenrun.l[0] / (double) load_ave.tl_lscale));
 #endif	/* OSF_MIPS */
+
+#if !defined (LDAV_DONE) && defined (OSF_ALPHA)
+#define LDAV_DONE
+
+  struct tbl_loadavg load_ave;
+  table (TBL_LOADAVG, 0, &load_ave, 1, sizeof (load_ave));
+  for (elem = 0; elem < nelem; elem++)
+    loadavg[elem]
+      = (load_ave.tl_lscale == 0
+       ? load_ave.tl_avenrun.d[elem]
+       : (load_ave.tl_avenrun.l[elem] / (double) load_ave.tl_lscale));
+#endif /* OSF_ALPHA */
 
 #if !defined (LDAV_DONE) && defined (VMS)
   /* VMS specific code -- read from the Load Ave driver.  */
