@@ -32,6 +32,7 @@
 ;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-revisions-with-ancestor]
   '("Revisions with Ancestor ..." . emerge-revisions-with-ancestor))
+;;;###autoload
 (define-key menu-bar-emerge-menu [emerge-revisions]
   '("Revisions ..." . emerge-revisions))
 ;;;###autoload
@@ -1013,6 +1014,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 
 ;;; Functions to start Emerge on RCS versions
 
+;;;###autoload
 (defun emerge-revisions (arg file revision-A revision-B
 			 &optional startup-hooks quit-hooks)
   "Emerge two RCS revisions of a file."
@@ -1032,6 +1034,7 @@ This is *not* a user option, since Emerge uses it for its own processing.")
 	     quit-hooks)
      quit-hooks)))
 
+;;;###autoload
 (defun emerge-revisions-with-ancestor (arg file revision-A
 					   revision-B ancestor
 					   &optional
@@ -1247,6 +1250,7 @@ Otherwise, the A or B file present is copied to the output file."
 (defvar emerge-merge-directories-filename-regexp "[^.]"
   "Regexp describing files to be processed by `emerge-merge-directories'.")
 
+;;;###autoload
 (defun emerge-merge-directories (a-dir b-dir ancestor-dir output-dir)
   (interactive 
    (list
