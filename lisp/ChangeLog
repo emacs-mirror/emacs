@@ -1,3 +1,14 @@
+2000-06-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-edit.el (log-edit-done): Thinko in the "same comment" detection.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-derive-name): New function.
+	(easy-mmode-define-toggle, define-minor-mode): Use it.
+	(easy-mmode-define-keymap): Docstring fix.
+	(define-derived-mode): Default PARENT to fundamental-mode.
+	Add the derived-mode-parent symbol-property.
+	(easy-mmode-derived-mode-p): New function.
+
 2000-06-02  Dave Love  <fx@gnu.org>
 
 	* files.el (convert-standard-filename): Doc fix.
@@ -11,8 +22,8 @@
 	(todo-cmd-raise): Fix typo.
 	(todo-top-priorities): Change temp buffer name.
 	(todo-category-alist): Avoid redundant lambda.
-	(todo-mode): Set paragraph-separate, outline-regexp from
-	todo-prefix.  Use outline-next-heading.
+	(todo-mode): Set paragraph-separate, outline-regexp from todo-prefix.
+	Use outline-next-heading.
 
 	* autoarg.el: Rewritten to use define-minor-mode.
 	(autoarg-kp-digits, autoarg-kp-mode-map): New variable.
@@ -23,6 +34,10 @@
 	* isearch.el (isearch-other-meta-char): Fix previous change.
 
 2000-06-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-edit.el (log-edit-mode): Make vc-comment-ring-index local.
+	(log-edit-done): Only add the comment to the ring if it's different
+	from the last comment entered.
 
 	* isearch.el (isearch-highlight): Turn internal-find-face into facep.
 
