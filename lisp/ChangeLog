@@ -1,7 +1,36 @@
+2002-04-08  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* international/iso-acc.el (iso-accents-accent-key): Use `vector'
+	rather than char-to-string since last-input-char can be any event.
+
+	* international/titdic-cnv.el (tit-dictionary):
+	Use defvar for non-constants.
+
+	* progmodes/cwarn.el (global-cwarn-mode): Use define-minor-mode.
+	(global-cwarn-mode): Use easy-mmode-define-global-mode.
+	(cwarn-font-lock-keywords): New function.
+	Replaces cwarn-font-lock-remove-keywords cwarn-font-lock-add-keywords.
+	(cwarn-font-lock-match): New macro.
+	(cwarn-font-lock-match-assignment-in-expression)
+	(cwarn-font-lock-match-dangerous-semicolon)
+	(cwarn-font-lock-match-reference): Use it.
+
+	* progmodes/cperl-mode.el (cperl-make-face, cperl-force-face):
+	Use defvar rather than defconst since it's meant to be settable.
+	(cperl-syntax-done-to): Don't hardcode 1 as (point-min).
+	(cperl-fix-line-spacing): Add missing \ in [ t].
+
+	* loadup.el: Call ucs-unify-8859 directly rather than
+	unify-8859-on-encoding-mode.
+	(fns-*.el): Don't use it anymore.  Keep the load-history in purespace.
+
+	* textmodes/sgml-mode.el (sgml-comment-indent-new-line): New fun.
+	(sgml-mode): Use it for comment-line-break-function.
+
 2002-04-08  Jason Rumney  <jasonr@gnu.org>
 
-	* international/mule-cmds.el (reset-language-environment): Handle
-	coding-systems not being defined yet.
+	* international/mule-cmds.el (reset-language-environment):
+	Handle coding-systems not being defined yet.
 
 2002-04-07  Sam Steingold  <sds@gnu.org>
 
@@ -16,8 +45,7 @@
 	* international/mule-cmds.el (set-default-coding-systems)
 	(reset-language-environment): Preserve eols on
 	default-process-coding-system.
-	(coding-system-change-text-conversion): Fix case where CODING is
-	nil.
+	(coding-system-change-text-conversion): Fix case where CODING is nil.
 
 2002-04-07  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
