@@ -39,26 +39,6 @@
 
 ;;; Code:
 
-(defvar running-xemacs (string-match "XEmacs\\|Lucid" emacs-version))
-
-;;;###autoload
-(defcustom scroll-all-mode nil
-  "Control/track scroll locking.
-
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `scroll-all-mode'."
-  :set (lambda (symbol value) (scroll-all-mode (if value 1 0)))
-  :initialize 'custom-initialize-default
-  :require 'scroll-all
-  :type 'boolean
-  :group 'windows)
-
-(if running-xemacs
-    (add-minor-mode 'scroll-all-mode " *SL*")
-  (or (assq 'scroll-all-mode minor-mode-alist)
-      (setq minor-mode-alist
-	    (cons '(scroll-all-mode " *SL*") minor-mode-alist))))
-
 (defun scroll-all-function-all (func arg)
   "Apply function FUNC with argument ARG to all visible windows."
   (let ((num-windows (count-windows))
@@ -122,15 +102,12 @@ use either \\[customize] or the function `scroll-all-mode'."
  
 
 ;;;###autoload
-(defun scroll-all-mode (&optional arg)
+(define-minor-mode scroll-all-mode " *SL*"
   "Toggle Scroll-All minor mode.
 With ARG, turn Scroll-All minor mode on if ARG is positive, off otherwise.
 When Scroll-All mode is on, scrolling commands entered in one window
 apply to all visible windows in the same frame."
-  (interactive "P")
-  (setq scroll-all-mode
-        (if (null arg) (not scroll-all-mode)
-          (> (prefix-numeric-value arg) 0)))
+ :global t
   (if scroll-all-mode
       (add-hook 'post-command-hook 'scroll-all-check-to-scroll)
     (remove-hook 'post-command-hook 'scroll-all-check-to-scroll)))
