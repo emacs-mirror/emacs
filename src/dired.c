@@ -139,7 +139,6 @@ directory_files_internal (directory, full, match, nosort, attrs)
   DIR *d;
   int directory_nbytes;
   Lisp_Object list, dirfilename, encoded_directory;
-  Lisp_Object handler;
   struct re_pattern_buffer *bufp = NULL;
   int needsep = 0;
   int count = specpdl_ptr - specpdl;
@@ -171,7 +170,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 #endif
     }
 
-  /* Note: ENOCDE_FILE and DECODE_FILE can GC because they can run
+  /* Note: ENCODE_FILE and DECODE_FILE can GC because they can run
      run_pre_post_conversion_on_str which calls Lisp directly and
      indirectly.  */
   dirfilename = ENCODE_FILE (dirfilename);
@@ -446,7 +445,6 @@ file_name_completion (file, dirname, all_flag, ver_flag)
      int all_flag, ver_flag;
 {
   DIR *d;
-  DIRENTRY *dp;
   int bestmatchsize = 0, skip;
   register int compare, matchsize;
   unsigned char *p1, *p2;
@@ -820,10 +818,12 @@ If file does not exist, returns nil.")
      Lisp_Object filename;
 {
   Lisp_Object values[12];
-  Lisp_Object dirname;
   Lisp_Object encoded;
   struct stat s;
+#ifdef BSD4_2
+  Lisp_Object dirname;
   struct stat sdir;
+#endif
   char modes[10];
   Lisp_Object handler;
 
