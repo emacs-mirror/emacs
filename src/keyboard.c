@@ -6589,14 +6589,6 @@ read_avail_input (expected)
   int err;
   struct display *d;
 
-  if (interrupt_input_blocked)
-    {
-      interrupt_input_pending = 1;
-      return -1;
-    }
-
-  BLOCK_INPUT;
-
   /* Loop through the available displays, and call their input hooks. */
   d = display_list;
   while (d)
@@ -6668,8 +6660,6 @@ read_avail_input (expected)
 
   if (err && !nread)
     nread = -1;
-
-  UNBLOCK_INPUT;
 
   return nread;
 }

@@ -7209,6 +7209,12 @@ XTread_socket (display, bufp, numchars, expected)
 	{
           int finish;
 
+          if (numchars <= 1)
+            {
+              /* The input buffer is full; read the rest next time. */
+              break;
+            }
+
 	  XNextEvent (dpyinfo->display, &event);
 
 #ifdef HAVE_X_I18N
