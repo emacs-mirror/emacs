@@ -15,6 +15,9 @@
  *   Mon Nov 7 15:54:06 PDT 1988
  */
 
+/* Serious bug: This program uses `gets', which is intrinsically
+   unreliable--long lines will cause crashes.
+   Someone should fix this program not to use `gets'.  */
 #include <stdio.h>
 #include <time.h>
 #include <sys/types.h>
@@ -49,68 +52,77 @@ main (argc, argv)
      char **argv;
 {
 #ifdef MSDOS
-  _fmode = O_BINARY;	/* all of files are treated as binary files */
+  _fmode = O_BINARY;		/* all of files are treated as binary files */
   (stdout)->_flag &= ~_IOTEXT;
   (stdin)->_flag &= ~_IOTEXT;
 #endif
-  if (strcmp(argv[1], "--help") == 0)
+  if (strcmp (argv[1], "--help") == 0)
     {
-      fprintf(stderr, "Usage: %s <babylmailbox >unixmailbox\n", argv[0]);
+      fprintf (stderr, "Usage: %s <babylmailbox >unixmailbox\n", argv[0]);
       exit (0);
     }
-  ltoday = time(0);
-  today = ctime(&ltoday);
+  ltoday = time (0);
+  today = ctime (&ltoday);
 
-  if (gets(data))
-    if (strncmp(data, "BABYL OPTIONS:", 14))
-      {
-	fprintf(stderr, "%s: not a Babyl mailfile!\n", argv[0]);
-	exit (-1);
-      } else
+  /* BUG!  Must not use gets in a reliable program!  */
+  if (gets (data))
+    {
+      if (strncmp (data, "BABYL OPTIONS:", 14))
+	{
+	  fprintf (stderr, "%s: not a Babyl mailfile!\n", argv[0]);
+	  exit (-1);
+	}
+      else
 	printing = FALSE;
+    }
   else
-    exit(-1);
+    exit (-1);
   if (printing)
-    puts(data);
+    puts (data);
 
-  while (gets(data)) {
+  while (gets (data))
+    {
 
 #if 0
-    /* What was this for?  Does somebody have something against blank
-       lines?  */
-    if (!strcmp(data, ""))
-      exit(0);
+      /* What was this for?  Does somebody have something against blank
+	 lines?  */
+      if (!strcmp (data, ""))
+	exit (0);
 #endif
 
-    if (!strcmp(data, "*** EOOH ***") && !printing) {
-      printing = header = TRUE;
-      printf("From %s %s", argv[0], today);
-      continue;
-    }
+      if (!strcmp (data, "*** EOOH ***") && !printing)
+	{
+	  printing = header = TRUE;
+	  printf ("From %s %s", argv[0], today);
+	  continue;
+	}
 
-    if (!strcmp(data, "\037\f")) {
-      /* save labels */
-      gets(data);
-      p = strtok(data, " ,\r\n\t");
-      strcpy(labels, "X-Babyl-Labels: ");
+      if (!strcmp (data, "\037\f"))
+	{
+	  /* save labels */
+	  gets (data);
+	  p = strtok (data, " ,\r\n\t");
+	  strcpy (labels, "X-Babyl-Labels: ");
 
-      while (p = strtok(NULL, " ,\r\n\t")) {
-	strcat(labels, p);
-	strcat(labels, ", ");
-      }
+	  while (p = strtok (NULL, " ,\r\n\t"))
+	    {
+	      strcat (labels, p);
+	      strcat (labels, ", ");
+	    }
 
-      labels[strlen(labels) - 2] = '\0';
-      printing = header = FALSE;
-      continue;
-    }
+	  labels[strlen (labels) - 2] = '\0';
+	  printing = header = FALSE;
+	  continue;
+	}
 
-    if (!strlen(data) && header) {
-      header = FALSE;
-      if (strcmp(labels, "X-Babyl-Labels"))
-	puts(labels);
-    }
+      if (!strlen (data) && header)
+	{
+	  header = FALSE;
+	  if (strcmp (labels, "X-Babyl-Labels"))
+	    puts (labels);
+	}
     
-    if (printing)
-      puts(data);
-  }
+      if (printing)
+	puts (data);
+    }
 }
