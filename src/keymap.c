@@ -98,6 +98,7 @@ static Lisp_Object define_as_prefix ();
 static Lisp_Object describe_buffer_bindings ();
 static void describe_command (), describe_translation ();
 static void describe_map ();
+Lisp_Object Fcopy_keymap ();
 
 /* Keymap object support - constructors and predicates.			*/
 
