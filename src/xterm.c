@@ -83,8 +83,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "intervals.h"
 
 #ifdef USE_X_TOOLKIT
-extern XtAppContext Xt_app_con;
-extern Widget Xt_app_shell;
 extern void free_frame_menubar ();
 extern void _XEditResCheckMessages ();
 #endif /* USE_X_TOOLKIT */
@@ -100,39 +98,9 @@ extern void _XEditResCheckMessages ();
 #endif
 #endif
 
-#define XMapWindow XMapRaised		/* Raise them when mapping. */
-
-#ifdef FD_SET
-/* We could get this from param.h, but better not to depend on finding that.
-   And better not to risk that it might define other symbols used in this
-   file.  */
-#ifdef FD_SETSIZE
-#define MAXDESC FD_SETSIZE
-#else
-#define MAXDESC 64
-#endif
-#define SELECT_TYPE fd_set
-#else /* no FD_SET */
-#define MAXDESC 32
-#define SELECT_TYPE int
-
-/* Define the macros to access a single-int bitmap of descriptors.  */
-#define FD_SET(n, p) (*(p) |= (1 << (n)))
-#define FD_CLR(n, p) (*(p) &= ~(1 << (n)))
-#define FD_ISSET(n, p) (*(p) & (1 << (n)))
-#define FD_ZERO(p) (*(p) = 0)
-#endif /* no FD_SET */
-
-/* For sending Meta-characters.  Do we need this? */
-#define METABIT 0200
-
 #define min(a,b) ((a)<(b) ? (a) : (b))
 #define max(a,b) ((a)>(b) ? (a) : (b))
 
-/* Stuff for dealing with the main icon title. */
-
-char *x_id_name;
-
 /* This is a chain of structures for all the X displays currently in use.  */
 struct x_display_info *x_display_list;
 
@@ -171,6 +139,11 @@ struct frame *x_focus_event_frame;
    frame.  It differs from x_focus_frame when we're using a global
    minibuffer.  */
 static struct frame *x_highlight_frame;
+
+#ifdef USE_X_TOOLKIT
+/* The application context for Xt use.  */
+XtAppContext Xt_app_con;
+#endif
 
 /* During an update, maximum vpos for ins/del line operations to affect.  */
 
@@ -2440,7 +2413,7 @@ x_scroll_bar_create (window, top, left, width, height)
   if (! NILP (bar->next))
     XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 
-  XMapWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
+  XMapRaised (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
 
   UNBLOCK_INPUT;
 
@@ -3972,33 +3945,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	}
     }
 
-#if 0 /* This fails for serial-line connections to the X server,
-	 because the characters arrive one by one, and a partial
-	 command makes select return but gives nothing to read.
-	 We'll have to hope that the bug that this tried to fix
-	 in 1988 has been fixed in Xlib or the X server.  */
-#ifdef HAVE_SELECT
-  if (expected && ! event_found)
-    {
-      /* AOJ 880406: if select returns true but XPending doesn't, it means that
-	 there is an EOF condition; in other words, that X has died.
-	 Act as if there had been a hangup. */
-      int fd = ConnectionNumber (dpyinfo->display);
-      SELECT_TYPE mask, junk1, junk2;
-      EMACS_TIME timeout;
-
-      FD_ZERO (&mask);
-      FD_SET (fd, &mask);
-      EMACS_SET_SECS_USECS (timeout, 0, 0);
-      FD_ZERO (&junk1);
-      FD_ZERO (&junk2);
-      if (0 != select (fd + 1, &mask, &junk1, &junk2, &timeout)
-	  && !XPending (dpyinfo->display))
-	kill (getpid (), SIGHUP);
-    }
-#endif /* HAVE_SELECT */
-#endif /* 0 */
-
   /* If the focus was just given to an autoraising frame,
      raise it now.  */
   /* ??? This ought to be able to handle more than one such frame.  */
@@ -5020,7 +4966,7 @@ x_make_frame_visible (f)
       /* This was XtPopup, but that did nothing for an iconified frame.  */
       XtMapWidget (f->display.x->widget);
 #else /* not USE_X_TOOLKIT */
-      XMapWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+      XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* not USE_X_TOOLKIT */
 #if 0 /* This seems to bring back scroll bars in the wrong places
 	 if the window configuration has changed.  They seem
@@ -5246,11 +5192,7 @@ x_iconify_frame (f)
   if (!FRAME_VISIBLE_P (f))
     {
       /* If the frame was withdrawn, before, we must map it.  */
-      XMapWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-#if 0 /* We don't have subwindows in the icon.  */
-      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
-	XMapSubwindows (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
-#endif
+      XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
     }
 
   f->async_iconified = 1;
@@ -5265,6 +5207,8 @@ x_iconify_frame (f)
 x_destroy_window (f)
      struct frame *f;
 {
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
   BLOCK_INPUT;
 
   if (f->display.x->icon_desc != 0)
@@ -5278,12 +5222,6 @@ x_destroy_window (f)
   free_frame_faces (f);
   XFlush (FRAME_X_DISPLAY (f));
 
-  FRAME_X_DISPLAY_INFO (f)->reference_count--;
-#if 0
-  if (FRAME_X_DISPLAY_INFO (f)->reference_count == 0)
-    free (FRAME_X_DISPLAY_INFO (f));
-#endif
-
   xfree (f->display.x);
   f->display.x = 0;
   if (f == x_focus_frame)
@@ -5291,13 +5229,15 @@ x_destroy_window (f)
   if (f == x_highlight_frame)
     x_highlight_frame = 0;
 
-  if (f == FRAME_X_DISPLAY_INFO (f)->mouse_face_mouse_frame)
+  dpyinfo->reference_count--;
+
+  if (f == dpyinfo->mouse_face_mouse_frame)
     {
-      FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_row
-	= FRAME_X_DISPLAY_INFO (f)->mouse_face_beg_col = -1;
-      FRAME_X_DISPLAY_INFO (f)->mouse_face_end_row
-	= FRAME_X_DISPLAY_INFO (f)->mouse_face_end_col = -1;
-      FRAME_X_DISPLAY_INFO (f)->mouse_face_window = Qnil;
+      dpyinfo->mouse_face_beg_row
+	= dpyinfo->mouse_face_beg_col = -1;
+      dpyinfo->mouse_face_end_row
+	= dpyinfo->mouse_face_end_col = -1;
+      dpyinfo->mouse_face_window = Qnil;
     }
 
   UNBLOCK_INPUT;
@@ -5523,8 +5463,6 @@ x_term_init (display_name, xrm_option, resource_name)
 {
   Lisp_Object frame;
   char *defaultvalue;
-  int argc = 0;
-  char** argv = 0;
   int connection;
   Display *dpy;
   struct x_display_info *dpyinfo;
@@ -5541,25 +5479,22 @@ x_term_init (display_name, xrm_option, resource_name)
   XtSetLanguageProc (NULL, NULL, NULL);
 #endif
 
-  argv = (char **) XtMalloc (7 * sizeof (char *));
-  argv[0] = "";
-  argv[1] = "-display";
-  argv[2] = XSTRING (display_name)->data;
-  argv[3] = "-name";
-  /* Usually `emacs', but not always.  */
-  argv[4] = resource_name;
-  argc = 5;
-  if (xrm_option)
-    {
-      argv[argc++] = "-xrm";
-      argv[argc++] = xrm_option;
-    }
-  Xt_app_shell = XtAppInitialize (&Xt_app_con, "Emacs",
-				  emacs_options, XtNumber (emacs_options),
-				  &argc, argv,
-				  NULL, NULL, 0);
-  XtFree ((char *)argv);
-  dpy = XtDisplay (Xt_app_shell);
+  {
+    int argc = 0;
+    char *argv[3];
+
+    argv[0] = "";
+    argc = 1;
+    if (xrm_option)
+      {
+	argv[argc++] = "-xrm";
+	argv[argc++] = xrm_option;
+      }
+    dpy = XtOpenDisplay (Xt_app_con, XSTRING (display_name)->data,
+			 resource_name, EMACS_CLASS,
+			 emacs_options, XtNumber (emacs_options),
+			 &argc, argv);
+  }
 
 #else /* not USE_X_TOOLKIT */
 #ifdef HAVE_X11R5
@@ -5738,15 +5673,19 @@ x_delete_display (dpyinfo)
 
   if (x_display_list == dpyinfo)
     x_display_list = dpyinfo->next;
-  {
-    struct x_display_info *tail;
+  else
+    {
+      struct x_display_info *tail;
 
-    for (tail = x_display_list; tail; tail = tail->next)
-      if (tail->next == dpyinfo)
-	tail->next = tail->next->next;
-  }
+      for (tail = x_display_list; tail; tail = tail->next)
+	if (tail->next == dpyinfo)
+	  tail->next = tail->next->next;
+    }
 
-  /* ??? Should free the xrdb slot somehow?  */
+#ifndef USE_X_TOOLKIT
+  /* I'm told Xt does this itself.  */
+  XrmDestroyDatabase (dpyinfo->xrdb);
+#endif
   free (dpyinfo->font_table);
   free (dpyinfo->x_id_name);
   free (dpyinfo);
@@ -5795,6 +5734,11 @@ x_initialize ()
 
   /* Try to use interrupt input; if we can't, then start polling.  */
   Fset_input_mode (Qt, Qnil, Qt, Qnil);
+
+#ifdef USE_X_TOOLKIT
+  XtToolkitInitialize ();
+  Xt_app_con = XtCreateApplicationContext ();
+#endif
 
   /* Note that there is no real way portable across R3/R4 to get the
      original error handler.  */
