@@ -44,6 +44,8 @@
 ;; Local variable in finder buffer.
 (defvar finder-headmark)
 
+;; These are supposed to correspond to top-level customization groups,
+;; says rms.
 (defvar finder-known-keywords
   '(
     (abbrev	. "abbreviation handling, typing shortcuts, macros")
