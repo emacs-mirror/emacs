@@ -2806,7 +2806,7 @@ static int base64_decode_1 P_ ((const char *, char *, int));
 
 DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
        2, 3, "r",
-       "base64 encode the region between BEG and END.\n\
+       "Base64-encode the region between BEG and END.\n\
 Return the length of the encoded text.\n\
 Optional third argument NO-LINE-BREAK means do not break long lines\n\
 into shorter lines.")
@@ -2857,7 +2857,7 @@ into shorter lines.")
 
 DEFUN ("base64-encode-string", Fbase64_encode_string, Sbase64_encode_string,
        1, 1, 0,
-       "base64 encode STRING and return the result.")
+       "Base64-encode STRING and return the result.")
      (string)
      Lisp_Object string;
 {
@@ -2956,7 +2956,7 @@ base64_encode_1 (from, to, length, line_break)
 
 DEFUN ("base64-decode-region", Fbase64_decode_region, Sbase64_decode_region,
   2, 2, "r",
-  "base64 decode the region between BEG and END.\n\
+  "Base64-decode the region between BEG and END.\n\
 Return the length of the decoded text.\n\
 If the region can't be decoded, return nil and don't modify the buffer.")
      (beg, end)
@@ -3014,7 +3014,7 @@ If the region can't be decoded, return nil and don't modify the buffer.")
 
 DEFUN ("base64-decode-string", Fbase64_decode_string, Sbase64_decode_string,
        1, 1, 0,
-       "base64 decode STRING and return the result.")
+       "Base64-decode STRING and return the result.")
      (string)
      Lisp_Object string;
 {
