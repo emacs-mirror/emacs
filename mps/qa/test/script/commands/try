@@ -10,22 +10,18 @@
  "PLATFORM"
 );
 
-require "dirs";
-require "headread";
-require "compile";
+require "require";
 
 foreach $testfile (@qa_args) {
-
- print "Test file: $testfile.\n";
 
  &readheader($testfile, 0);
  unless ($test_header{"language"} eq "c") {
   die "Don't know how to run test in this language.\n";
  }
 
- $linkfiles = " ".$test_header{"link"};
- $linkfiles =~ s/ +/ $obj_dir\//g;
+ $linkfiles = $test_header{"link"};
  $objfile = "$obj_dir/tmp_test";
+
  unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
   die "Compilation failed on test ".$testfile.".\n";
  }

@@ -10,11 +10,9 @@
  "PLATFORM"
 );
 
-require "dirs";
+require "require";
 
 print "Compiling test libraries from $testlib_dir.\n";
-
-require "compile";
 
 open(MANIFEST, "$testlib_dir/manifest");
 
