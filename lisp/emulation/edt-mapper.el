@@ -91,7 +91,7 @@
 ;;  can try to figure out why the key is being ignored.
 
 ;;; History:
-;; 
+;;
 
 ;;  Version 4.0    2000    Added 2 New Features
 
@@ -146,7 +146,7 @@
 (defvar edt-return-seq nil)
 (defvar edt-term nil)
 
-;;;  
+;;;
 ;;;  Determine Terminal Type (if appropriate).
 ;;;
 
@@ -157,7 +157,7 @@
 ;;;
 ;;;  Make sure the window is big enough to display the instructions,
 ;;;  except where window cannot be re-sized.
-;;;  
+;;;
 
 (if (and edt-window-system (not (eq edt-window-system 'tty)))
     (set-frame-size (selected-frame) 80 36))
@@ -217,7 +217,7 @@
     series terminal keyboard.  (The LK-201 keyboard is the standard
     keyboard attached to VT-200 series terminals, and above.)
 
-    If you are using an real LK-201 keyboard, you should map the keys
+    If you are using a real LK-201 keyboard, you should map the keys
     exactly as they are on the keyboard.
 
     Start by pressing the RETURN key, and continue by pressing the keys
@@ -234,7 +234,7 @@
 ;;;
 ;;;  For GNU Emacs, running in a Window System, first hide bindings in
 ;;;  function-key-map.
-;;;  
+;;;
 (cond
  (edt-x-emacs-p
   (setq edt-return-seq (read-key-sequence "Hit carriage-return <CR> to continue "))
@@ -252,7 +252,7 @@
 ;;;
 (global-unset-key [f1])
 (global-unset-key [f2])
-  
+
 ;;;
 ;;;   Display Keypad Diagram and Begin Prompting for Keys
 ;;;
@@ -459,7 +459,7 @@
     Your keyboard may have additional function keys which do not correspond
     to any LK-201 keys.  The EDT Emulation can be configured to recognize
     those keys, since you may wish to add your own key bindings to those keys.
-    
+
     For example, suppose your keyboard has a keycap marked \"Line Del\" and
     you wish to add it to the list of keys which can be customized by the EDT
     Emulation.  First, assign a unique single-word name to the key for use by
@@ -484,7 +484,7 @@
 ")
 ;;;
 ;;;  Restore function-key-map.
-;;;  
+;;;
 (if (and edt-window-system (not edt-x-emacs-p))
     (setq function-key-map edt-save-function-key-map))
 (setq EDT-key-name "")
