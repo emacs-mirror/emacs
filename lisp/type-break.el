@@ -5,9 +5,9 @@
 ;; Author: Noah Friedman <friedman@prep.ai.mit.edu>
 ;; Maintainer: friedman@prep.ai.mit.edu
 ;; Keywords: extensions, timers
-;; Status: known to work in GNU Emacs 19.25 or later.
+;; Status: Works in GNU Emacs 19.25 or later
 ;; Created: 1994-07-13
-;; $Id$
+;; $Id: type-break.el,v 1.10 1994/10/06 19:12:46 friedman Exp friedman $
 
 ;; This file is part of GNU Emacs.
 
@@ -22,24 +22,37 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
-;;; The docstring for the function `type-break-mode' summarizes most of the
-;;; details of the interface.
+;; The docstring for the function `type-break-mode' summarizes most of the
+;; details of the interface.
 
-;;; This package relies on the assumption that you live entirely in emacs,
-;;; as the author does.  If that's not the case for you (e.g. you often
-;;; suspend emacs or work in other windows) then this won't help very much;
-;;; it will depend on just how often you switch back to emacs.  At the very
-;;; least, you will want to turn off the keystroke thresholds and rest
-;;; interval tracking.
+;; This package relies on the assumption that you live entirely in emacs,
+;; as the author does.  If that's not the case for you (e.g. you often
+;; suspend emacs or work in other windows) then this won't help very much;
+;; it will depend on just how often you switch back to emacs.  At the very
+;; least, you will want to turn off the keystroke thresholds and rest
+;; interval tracking.
 
-;;; This package was inspired by Roland McGrath's hanoi-break.el.
-;;; Thanks to both Roland McGrath <roland@gnu.ai.mit.edu> and Mark Ashton
-;;; <mpashton@gnu.ai.mit.edu> for feedback and ideas.
+;; This program has no hope of working in Emacs 18, and it doesn't
+;; presently work in Lucid Emacs/XEmacs because the timer.el package is
+;; entirely different.
+
+;; This program can truly cons up a storm because of all the calls to
+;; `current-time' (which always returns 3 fresh conses).  I'm dismayed by
+;; this, but I think the health of my hands is far more important than a
+;; few pages of virtual memory.
+
+;; This package was inspired by Roland McGrath's hanoi-break.el.
+;; Several people contributed feedback and ideas, including
+;;      Roland McGrath <roland@gnu.ai.mit.edu>
+;;      Kleanthes Koniaris <kgk@martigny.ai.mit.edu>
+;;      Mark Ashton <mpashton@gnu.ai.mit.edu>
+;;      Matt Wilding <wilding@cli.com>
 
 ;;; Code:
 
@@ -52,6 +65,11 @@
 (defvar type-break-mode nil
   "*Non-`nil' means typing break mode is enabled.
 See the docstring for the `type-break-mode' command for more information.")
+
+(defvar type-break-warning-message-mode t
+  "*Non-`nil' means warn about imminent typing breaks in echo area.
+See the docstring for the `type-break-warning-message-mode' command for
+more information.")
 
 ;;;###autoload
 (defvar type-break-interval (* 60 60)
@@ -99,7 +117,35 @@ scheduled break.  If this second value is nil, then no pre-emptive breaks
 will occur; only scheduled ones will.
 
 Keys with bucky bits (shift, control, meta, etc) are counted as only one
-keystroke even though they really require multiple keys to generate them.")
+keystroke even though they really require multiple keys to generate them.
+
+The command `type-break-guesstimate-keystroke-threshold' can be used to
+guess a reasonably good pair of values for this variable.")
+
+(defvar type-break-query-function 'yes-or-no-p
+  "Function to use for making query for a typing break.
+It should take a string as an argument, the prompt.
+Usually this should be set to `yes-or-no-p' or `y-or-n-p'.
+
+Some people prefer a less intrusive way of being reminded to take a typing
+break.  One possibility is simply to beep a couple of times.  To accomplish
+this, one could do:
+
+    (defun my-type-break-query (&optional ignored-args)
+      (beep t)
+      (message \"You should take a typing break now.  Do `M-x type-break'.\")
+      (sit-for 1)
+      (beep t)
+      ;; return nil so query caller knows to reset reminder, as if user
+      ;; said \"no\" in response to yes-or-no-p.
+      nil)
+
+    (setq type-break-query-function 'my-type-break-query)")
+
+(defvar type-break-query-interval 60
+  "*Number of seconds between queries to take a break, if put off.
+The user will continue to be prompted at this interval until he or she
+finally submits to taking a typing break.")
 
 (defvar type-break-time-warning-intervals '(300 120 60 30)
   "*List of time intervals for warnings about upcoming typing break.
@@ -113,20 +159,40 @@ keystroke threshold, print a warning in the echo area.
 If either this variable or the upper threshold is set, then no warnings
 Will occur.")
 
-(defvar type-break-query-interval 60
-  "*Number of seconds between queries to take a break, if put off.
-The user will continue to be prompted at this interval until he or she
-finally submits to taking a typing break.")
-
 (defvar type-break-warning-repeat 40
   "*Number of keystrokes for which warnings should be repeated.
 That is, for each of this many keystrokes the warning is redisplayed
 in the echo area to make sure it's really seen.")
 
-(defvar type-break-query-function 'yes-or-no-p
-  "Function to use for making query for a typing break.
-It should take a string as an argument, the prompt.
-Usually this should be set to `yes-or-no-p' or `y-or-n-p'.")
+(defvar type-break-warning-countdown-string nil
+  "If non-nil, this is a countdown for the next typing break.
+
+This variable, in conjunction with `type-break-warning-countdown-string-type'
+(which indicates whether this value is a number of keystrokes or seconds)
+can be installed by the user somewhere in mode-line-format to notify of
+imminent typing breaks there.
+
+For example, you could do
+
+    (defvar type-break-mode-line-string
+      '(type-break-warning-countdown-string
+        (\" ***Break in \"
+         type-break-warning-countdown-string
+         \" \"
+         type-break-warning-countdown-string-type
+         \"***\")))
+
+    (setq global-mode-string
+          (append global-mode-string '(type-break-mode-line-string)))
+
+If you do this, you may also wish to disable the warning messages in the
+minibuffer.  To do this, either set the variable
+`type-break-warning-message-mode' to `nil' or call the function of the same
+name with a negative argument.")
+
+(defvar type-break-warning-countdown-string-type nil
+  "Indicates the unit type of `type-break-warning-countdown-string'.
+It will be either \"seconds\" or \"keystrokes\".")
 
 (defvar type-break-demo-functions
   '(type-break-demo-boring type-break-demo-life type-break-demo-hanoi)
@@ -138,7 +204,13 @@ Any function in this list should start a demo which ceases as soon as a
 key is pressed.")
 
 (defvar type-break-post-command-hook nil
-  "Hook run indirectly by post-command-hook for typing break functions.")
+  "Hook run indirectly by post-command-hook for typing break functions.
+This is not really intended to be set by the user, but it's probably
+harmless to do so.  Mainly it is used by various parts of the typing break
+program to delay actions until after the user has completed some command.
+It exists because `post-command-hook' itself is inaccessible while its
+functions are being run, and some type-break--related functions want to
+remove themselves after running.")
 
 ;; These are internal variables.  Do not set them yourself.
 
@@ -151,7 +223,45 @@ key is pressed.")
 (defvar type-break-current-keystroke-warning-interval nil)
 (defvar type-break-time-warning-count 0)
 (defvar type-break-keystroke-warning-count 0)
+
+;; This should return t if warnings were enabled, nil otherwise.
+(defsubst type-break-check-keystroke-warning ()
+  ;; This is safe because the caller should have checked that the cdr was
+  ;; non-nil already.
+  (let ((left (- (cdr type-break-keystroke-threshold)
+                 type-break-keystroke-count)))
+    (cond
+     ((null (car type-break-current-keystroke-warning-interval))
+      nil)
+     ((> left (car type-break-current-keystroke-warning-interval))
+      nil)
+     (t
+      (while (and (car type-break-current-keystroke-warning-interval)
+                  (< left (car type-break-current-keystroke-warning-interval)))
+        (setq type-break-current-keystroke-warning-interval
+              (cdr type-break-current-keystroke-warning-interval)))
+      (setq type-break-keystroke-warning-count type-break-warning-repeat)
+      (add-hook 'type-break-post-command-hook 'type-break-keystroke-warning)
+      (setq type-break-warning-countdown-string (number-to-string left))
+      (setq type-break-warning-countdown-string-type "keystrokes")
+      t))))
 
+;; Compute the difference, in seconds, between a and b, two structures
+;; similar to those returned by `current-time'.
+;; Use addition rather than logand since that is more robust; the low 16
+;; bits of the seconds might have been incremented, making it more than 16
+;; bits wide.
+(defsubst type-break-time-difference (a b)
+  (+ (lsh (- (car b) (car a)) 16)
+     (- (car (cdr b)) (car (cdr a)))))
+
+(defsubst type-break-format-time (secs)
+  (let ((mins (/ secs 60)))
+    (cond
+     ((= mins 1) (format "%d minute" mins))
+     ((> mins 0) (format "%d minutes" mins))
+     ((= secs 1) (format "%d second" secs))
+     (t (format "%d seconds" secs)))))
 
 ;;;###autoload
 (defun type-break-mode (&optional prefix)
@@ -192,8 +302,24 @@ or not to continue.
 
 The variable `type-break-keystroke-threshold' is used to determine the
 thresholds at which typing breaks should be considered.  You can use
-the command `type-break-guestimate-keystroke-threshold' to try to
+the command `type-break-guesstimate-keystroke-threshold' to try to
 approximate good values for this.
+
+There are several variables that affect how or when warning messages about
+imminent typing breaks are displayed.  They include:
+
+        type-break-warning-message-mode
+        type-break-time-warning-intervals
+        type-break-keystroke-warning-intervals
+        type-break-warning-repeat
+        type-break-warning-countdown-string
+        type-break-warning-countdown-string-type
+
+There are several variables that affect how and when queries to begin a
+typing break occur.  They include:
+
+        type-break-query-function
+        type-break-query-interval
 
 Finally, the command `type-break-statistics' prints interesting things."
   (interactive "P")
@@ -216,6 +342,24 @@ Finally, the command `type-break-statistics' prints interesting things."
      ((interactive-p)
       (message "type-break-mode is disabled"))))
   type-break-mode)
+
+(defun type-break-warning-message-mode (&optional prefix)
+  "Enable or disable warnings in the echo area about imminent typing breaks.
+
+A negative prefix argument disables this mode.
+No argument or any non-negative argument enables it.
+
+The user may also enable or disable this mode simply by setting the
+variable of the same name."
+  (interactive "P")
+  (setq type-break-warning-message-mode (>= (prefix-numeric-value prefix) 0))
+  (cond
+   ((not (interactive-p)))
+   (type-break-warning-message-mode
+    (message "type-break-warning-message-mode is enabled"))
+   (t
+    (message "type-break-warning-message-mode is disabled")))
+  type-break-warning-message-mode)
 
 ;;;###autoload
 (defun type-break ()
@@ -255,10 +399,11 @@ as per the function `type-break-schedule'."
           (cond
            ((>= break-secs type-break-good-rest-interval)
             (setq continue nil))
-           ;; Don't be pedantic; if user's rest was only a minute short,
-           ;; why bother?
-           ((> 60 (abs (- break-secs type-break-good-rest-interval)))
-            (setq continue nil))
+           ;; 60 seconds may be too much leeway if the break is only 3
+           ;; minutes to begin with.  You can just say "no" to the query
+           ;; below if you're in that much of a hurry.
+           ;((> 60 (abs (- break-secs type-break-good-rest-interval)))
+           ; (setq continue nil))
            ((funcall
              type-break-query-function
              (format "You really ought to rest %s more.  Continue break? "
@@ -278,9 +423,11 @@ If time is not specified, default to `type-break-interval'."
   (interactive (list (and current-prefix-arg
                           (prefix-numeric-value current-prefix-arg))))
   (or time (setq time type-break-interval))
+  (let ((type-break-mode t))
+    (type-break-mode 1))
   (type-break-cancel-schedule)
   (type-break-time-warning-schedule time 'reset)
-  (run-at-time time nil 'type-break-alarm)
+  (run-at-time (max 1 time) nil 'type-break-alarm)
   (setq type-break-time-next-break
         (type-break-time-sum (current-time) time)))
 
@@ -292,7 +439,7 @@ If time is not specified, default to `type-break-interval'."
   (setq type-break-time-next-break nil))
 
 (defun type-break-time-warning-schedule (&optional time resetp)
-  (let (type-break-current-time-warning-interval)
+  (let ((type-break-current-time-warning-interval nil))
     (type-break-cancel-time-warning-schedule))
   (cond
    (type-break-time-warning-intervals
@@ -315,21 +462,33 @@ If time is not specified, default to `type-break-interval'."
       (setq type-break-current-time-warning-interval
             (cdr type-break-current-time-warning-interval))
 
-      (let (type-break-current-time-warning-interval)
-        (type-break-cancel-time-warning-schedule))
-      (run-at-time time nil 'type-break-time-warning-alarm))))))
+      ;(let (type-break-current-time-warning-interval)
+      ;  (type-break-cancel-time-warning-schedule))
+      (run-at-time (max 1 time) nil 'type-break-time-warning-alarm)
+
+      (cond
+       (resetp
+        (setq type-break-warning-countdown-string nil))
+       (t
+        (setq type-break-warning-countdown-string (number-to-string time))
+        (setq type-break-warning-countdown-string-type "seconds"))))))))
 
 (defun type-break-cancel-time-warning-schedule ()
   (let ((timer-dont-exit t))
     (cancel-function-timers 'type-break-time-warning-alarm))
   (remove-hook 'type-break-post-command-hook 'type-break-time-warning)
   (setq type-break-current-time-warning-interval
-        type-break-time-warning-intervals))
+        type-break-time-warning-intervals)
+  (setq type-break-warning-countdown-string nil))
 
 (defun type-break-alarm ()
+  (let ((type-break-mode t))
+    (type-break-mode 1))
   (setq type-break-alarm-p t))
 
 (defun type-break-time-warning-alarm ()
+  (let ((type-break-mode t))
+    (type-break-mode 1))
   (type-break-time-warning-schedule)
   (setq type-break-time-warning-count type-break-warning-repeat)
   (add-hook 'type-break-post-command-hook 'type-break-time-warning 'append))
@@ -358,12 +517,16 @@ keystroke threshold has been exceeded."
            (setq type-break-time-last-command (current-time))))
 
     (and type-break-keystroke-threshold
-         (setq type-break-keystroke-count
-               (+ type-break-keystroke-count (length (this-command-keys)))))
+         (let ((keys (this-command-keys)))
+           (cond
+            ;; Ignore mouse motion
+            ((and (vectorp keys)
+                  (consp (aref keys 0))
+                  (memq (car (aref keys 0)) '(mouse-movement))))
+            (t
+             (setq type-break-keystroke-count
+                   (+ type-break-keystroke-count (length keys)))))))
 
-    ;; This has been optimized for speed; calls to input-pending-p and
-    ;; checking for the minibuffer window are only done if it would
-    ;; matter for the sake of querying user.
     (cond
      (type-break-alarm-p
       (cond
@@ -374,7 +537,7 @@ keystroke threshold has been exceeded."
         (type-break-schedule))
        (t
         ;; If keystroke count is within min-threshold of
-        ;; max-threshold, lower it to reduce the liklihood of an
+        ;; max-threshold, lower it to reduce the likelihood of an
         ;; immediate subsequent query.
         (and max-threshold
              min-threshold
@@ -397,6 +560,8 @@ keystroke threshold has been exceeded."
 
 ;; This should return t if warnings were enabled, nil otherwise.
 (defsubst type-break-check-keystroke-warning ()
+  ;; This is safe because the caller should have checked that the cdr was
+  ;; non-nil already.
   (let ((left (- (cdr type-break-keystroke-threshold)
                  type-break-keystroke-count)))
     (cond
@@ -411,44 +576,69 @@ keystroke threshold has been exceeded."
               (cdr type-break-current-keystroke-warning-interval)))
       (setq type-break-keystroke-warning-count type-break-warning-repeat)
       (add-hook 'type-break-post-command-hook 'type-break-keystroke-warning)
+      (setq type-break-warning-countdown-string (number-to-string left))
+      (setq type-break-warning-countdown-string-type "keystrokes")
       t))))
 
+;; Arrange for a break query to be made, when the user stops typing furiously.
 (defun type-break-query ()
-  (condition-case ()
-      (cond
-       ((let ((type-break-mode nil))
-          (funcall type-break-query-function "Take a break from typing now? "))
-        (type-break))
-       (t
-        (type-break-schedule type-break-query-interval)))
-    (quit
-     (type-break-schedule type-break-query-interval))))
+  (add-hook 'type-break-post-command-hook 'type-break-do-query))
+
+;; Ask to take a break, but only after the user stops typing continuously
+;; for at least a second.  Renaming the minibuffer because you did M-x
+;; rename-buffer just as type-break popped the question is... annoying.
+(defun type-break-do-query ()
+  (cond
+   ((sit-for 1)
+    (condition-case ()
+        (cond
+         ((let ((type-break-mode nil)
+                ;; yes-or-no-p sets this-command to exit-minibuffer,
+                ;; which hoses undo or yank-pop (if you happened to be
+                ;; yanking just when the query occurred).
+                (this-command this-command))
+            (funcall type-break-query-function
+                     "Take a break from typing now? "))
+          (type-break))
+         (t
+          (type-break-schedule type-break-query-interval)))
+      (quit
+       (type-break-schedule type-break-query-interval)))
+    (remove-hook 'type-break-post-command-hook 'type-break-do-query))))
 
 (defun type-break-time-warning ()
   (cond
    ((and (car type-break-keystroke-threshold)
          (< type-break-keystroke-count (car type-break-keystroke-threshold))))
    ((> type-break-time-warning-count 0)
-    (cond
-     ((eq (selected-window) (minibuffer-window)))
-     (t
-      ;; Pause for a moment so previous messages can be seen.
-      (sit-for 2)
-      (message "Warning: typing break due in %s."
-               (type-break-format-time
-                (type-break-time-difference (current-time)
-                                            type-break-time-next-break)))
-      (setq type-break-time-warning-count
-            (1- type-break-time-warning-count)))))
+    (let ((timeleft (type-break-time-difference (current-time)
+                                                type-break-time-next-break)))
+      (setq type-break-warning-countdown-string (number-to-string timeleft))
+      (cond
+       ((eq (selected-window) (minibuffer-window)))
+       ;; Do nothing if the command was just a prefix arg, since that will
+       ;; immediately be followed by some other interactive command.
+       ((memq this-command '(digit-argument universal-argument)))
+       (type-break-warning-message-mode
+        ;; Pause for a moment so any previous message can be seen.
+        (sit-for 2)
+        (message "Warning: typing break due in %s."
+                 (type-break-format-time timeleft))
+        (setq type-break-time-warning-count
+              (1- type-break-time-warning-count))))))
    (t
-    (remove-hook 'type-break-post-command-hook 'type-break-time-warning))))
+    (remove-hook 'type-break-post-command-hook 'type-break-time-warning)
+    (setq type-break-warning-countdown-string nil))))
 
 (defun type-break-keystroke-warning ()
   (cond
    ((> type-break-keystroke-warning-count 0)
+    (setq type-break-warning-countdown-string
+          (number-to-string (- (cdr type-break-keystroke-threshold)
+                               type-break-keystroke-count)))
     (cond
      ((eq (selected-window) (minibuffer-window)))
-     (t
+     (type-break-warning-message-mode
       (sit-for 2)
       (message "Warning: typing break due in %s keystrokes."
                (- (cdr type-break-keystroke-threshold)
@@ -457,7 +647,8 @@ keystroke threshold has been exceeded."
             (1- type-break-keystroke-warning-count)))))
    (t
     (remove-hook 'type-break-post-command-hook
-                 'type-break-keystroke-warning))))
+                 'type-break-keystroke-warning)
+    (setq type-break-warning-countdown-string nil))))
 
 
 ;;;###autoload
@@ -468,11 +659,16 @@ scheduled, the keystroke thresholds and the current keystroke count, etc."
   (interactive)
   (with-output-to-temp-buffer "*Typing Break Statistics*"
     (princ (format "Typing break statistics\n-----------------------\n
-Last typing break           : %s
+Typing break mode is currently %s.
+Warnings of imminent typing breaks in echo area is %s.
+
+Last typing break ended     : %s
 Next scheduled typing break : %s\n
 Minimum keystroke threshold : %s
 Maximum keystroke threshold : %s
 Current keystroke count     : %s"
+                   (if type-break-mode "enabled" "disabled")
+                   (if type-break-warning-message-mode "enabled" "disabled")
                    (if type-break-time-last-break
                        (current-time-string type-break-time-last-break)
                      "never")
@@ -489,21 +685,28 @@ Current keystroke count     : %s"
                    type-break-keystroke-count))))
 
 ;;;###autoload
-(defun type-break-guestimate-keystroke-threshold (wpm &optional wordlen frac)
+(defun type-break-guesstimate-keystroke-threshold (wpm &optional wordlen frac)
   "Guess values for the minimum/maximum keystroke threshold for typing breaks.
+
 If called interactively, the user is prompted for their guess as to how
-many words per minute they usually type.  From that, the command sets the
-values in `type-break-keystroke-threshold' based on a fairly simple
-algorithm involving assumptions about the average length of words (5).
-For the minimum threshold, it uses about a quarter of the computed maximum
-threshold.
+many words per minute they usually type.  This value should not be your
+maximum WPM, but your average.  Of course, this is harder to gauge since it
+can vary considerably depending on what you are doing.  For example, one
+tends actually to type less when debugging a program, as opposed to writing
+documentation.  (Perhaps a separate program should be written to estimate
+average typing speed.)
+
+From that, this command sets the values in `type-break-keystroke-threshold'
+based on a fairly simple algorithm involving assumptions about the average
+length of words (5).  For the minimum threshold, it uses about a fifth of
+the computed maximum threshold.
 
 When called from lisp programs, the optional args WORDLEN and FRAC can be
 used to override the default assumption about average word length and the
 fraction of the maximum threshold to which to set the minimum threshold.
 FRAC should be the inverse of the fractional value; for example, a value of
 2 would mean to use one half, a value of 4 would mean to use one quarter, etc."
-  (interactive "NHow many words per minute do you type? ")
+  (interactive "NOn average, how many words per minute do you type? ")
   (let* ((upper (* wpm (or wordlen 5) (/ type-break-interval 60)))
          (lower (/ upper (or frac 5))))
     (or type-break-keystroke-threshold
@@ -617,7 +820,7 @@ FRAC should be the inverse of the fractional value; for example, a value of
             (read-char)
             (kill-buffer "*Life*"))
         (life-extinct
-         (message (get 'life-extinct 'error-message))
+         (message "%s" (get 'life-extinct 'error-message))
          (sit-for 3)
          ;; restart demo
          (setq continue t))
