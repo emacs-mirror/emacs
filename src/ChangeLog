@@ -1,3 +1,8 @@
+2002-02-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (enum_font_cb2): Don't let charsets unknown to Windows
+	match each other.
+
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* floatfns.c (Fround): Doc fix.

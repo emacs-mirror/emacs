@@ -6838,11 +6838,13 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
       {
         charset = xlfd_charset_of_font (XSTRING(*(lpef->pattern))->data);
 
-        /* Ensure that charset is valid for this font.
-	   Continue if invalid in case charset contains a wildcard.  */
-        if (charset
-            && (x_to_w32_charset (charset) != lplf->elfLogFont.lfCharSet))
-          charset = NULL;
+	/* We already checked charsets above, but DEFAULT_CHARSET
+           slipped through.  So only allow exact matches for DEFAULT_CHARSET.  */
+	if (charset
+	    && strncmp (charset, "*-*", 3) != 0
+	    && lpef->logfont.lfCharSet == DEFAULT_CHARSET
+	    && strcmp (charset, w32_to_x_charset (DEFAULT_CHARSET)) != 0)
+	  return 1;
       }
 
     if (charset)
