@@ -767,16 +767,28 @@ StandardEncoding 46 82 getinterval aload pop
   /is_right exch def
   HFStart moveto
   { % ---- process the lines
-   aload pop
-   exch F
+   dup 0 get F
    gsave
-    dup xcheck{exec}if
     is_right{
-     dup stringwidth pop
-     PrintHeaderWidth exch sub HFPad HFPad add sub 0 rmoveto
+     PrintHeaderWidth HFPad HFPad add sub 0 rmoveto
+     dup{
+      dup type /nametype eq{
+	pop
+      }{
+        dup xcheck{exec}if
+	stringwidth pop neg 0 rmoveto
+      }ifelse
+     } forall
     }if
     HFColor SetColor
-    show
+    {
+     dup type /nametype eq {
+       pop
+     }{
+       dup xcheck{exec}if
+       show
+     } ifelse
+    } forall
    grestore
    0 HFLineHeight neg rmoveto
   }forall
