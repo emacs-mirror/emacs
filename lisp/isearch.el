@@ -1023,7 +1023,7 @@ Use `isearch-exit' to quit without signaling."
   (isearch-update))
 
 (defun isearch-delete-char ()
-  "Discard last input item and move point back.  
+  "Discard last input item and move point back.
 If no previous match was done, just beep."
   (interactive)
   (if (null (cdr isearch-cmds))
