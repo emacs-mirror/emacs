@@ -1078,7 +1078,7 @@ window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    $(config_h)
 xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h) \
-   msdos.h composite.h
+   msdos.h composite.h fontset.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h msdos.h dosfns.h composite.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h\
