@@ -1708,13 +1708,13 @@ extern void defvar_kboard P_ ((char *, int));
 
 struct specbinding
   {
-    Lisp_Object symbol, old_value;
-    Lisp_Object (*func) P_ ((Lisp_Object));
+    volatile Lisp_Object symbol, old_value;
+    volatile Lisp_Object (*func) P_ ((Lisp_Object));
     Lisp_Object unused;		/* Dividing by 16 is faster than by 12 */
   };
 
 extern struct specbinding *specpdl;
-extern struct specbinding *specpdl_ptr;
+extern volatile struct specbinding *specpdl_ptr;
 extern int specpdl_size;
 
 extern EMACS_INT max_specpdl_size;
