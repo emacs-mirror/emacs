@@ -2666,11 +2666,14 @@ remapped command in the returned list.  */)
 
 /* This is the function that Fwhere_is_internal calls using map_char_table.
    ARGS has the form
-   (((DEFINITION . NOINDIRECT) . (KEYMAP . RESULT))
+   (((DEFINITION . NOINDIRECT) . RESULT)
     .
     ((THIS . LAST) . (NOMENUS . LAST_IS_META)))
    Since map_char_table doesn't really use the return value from this function,
    we the result append to RESULT, the slot in ARGS.
+
+   KEY may be a cons (FROM . TO) where both FROM and TO are integers
+   (i.e. character events).
 
    This function can GC because it calls where_is_internal_1 which can
    GC.  */
@@ -2685,7 +2688,6 @@ where_is_internal_2 (args, key, binding)
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   GCPRO3 (args, key, binding);
-  result = XCDR (XCAR (args));
   definition = XCAR (XCAR (XCAR (args)));
   noindirect = XCDR (XCAR (XCAR (args)));
   this = XCAR (XCAR (XCDR (args)));
@@ -2693,11 +2695,40 @@ where_is_internal_2 (args, key, binding)
   nomenus = XFASTINT (XCAR (XCDR (XCDR (args))));
   last_is_meta = XFASTINT (XCDR (XCDR (XCDR (args))));
 
-  sequence = where_is_internal_1 (binding, key, definition, noindirect,
-				  this, last, nomenus, last_is_meta);
+  result = Qnil;
+  if (CONSP (key) && INTEGERP (XCAR (key)) && INTEGERP (XCDR (key)))
+    {
+      /* Try all ASCII characters.  Try also non-ASCII characters but
+	 only the first and last one because trying all of them is
+	 extremely memory and time consuming.
 
-  if (!NILP (sequence))
-    XSETCDR (XCAR (args), Fcons (sequence, result));
+	 Fixme: Perhaps it should be allowed to store a cons directly
+	 in RESULT.  -- handa@m17n.org   */
+      int from = XINT (XCAR (key)), to = XINT (XCDR (key));
+      Lisp_Object k;
+
+      for (; from <= to; from++)
+	{
+	  k = make_number (from);
+	  sequence = where_is_internal_1 (binding, k, definition, noindirect,
+					  this, last, nomenus, last_is_meta);
+	  if (!NILP (sequence))
+	    result = Fcons (sequence, result);
+	  if (from >= 128 && from < to)
+	    from = to - 1;
+	}
+      result = Fnreverse (result);
+    }
+  else
+    {
+      sequence = where_is_internal_1 (binding, key, definition, noindirect,
+				      this, last, nomenus, last_is_meta);
+      if (!NILP (sequence))
+	result = Fcons (sequence, Qnil);
+    }
+
+  if (! NILP (result))
+    nconc2 (XCAR (args), result);
 
   UNGCPRO;
 }
