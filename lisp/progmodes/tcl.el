@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.56 $
+;; Version: $Revision: 1.57 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1999/07/18 18:40:27 $|$Revision: 1.56 $|~/modes/tcl.el.Z|
+;; $Date: 1999/07/19 00:35:36 $|$Revision: 1.57 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.57  1999/07/19 00:35:36  tromey
+;; (tcl-keyword-list): Added method, body, configbody, class
+;;
 ;; Revision 1.56  1999/07/18 18:40:27  tromey
 ;; (tcl-mode): Set font-lock-defaults, not font-lock-keywords.
 ;;
@@ -391,7 +394,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.56 $")
+(defconst tcl-version "$Revision: 1.57 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -685,7 +688,7 @@ after changing this list.")
 
 (defvar tcl-typeword-list
   '("global" "upvar" "inherit" "public" "protected" "private"
-    "common" "itk_option")
+    "common" "itk_option" "variable")
   "List of Tcl keywords denoting \"type\".  Used only for highlighting.
 Call `tcl-set-font-lock-keywords' after changing this list.")
 
