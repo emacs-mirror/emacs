@@ -235,29 +235,34 @@
 
 (make-coding-system
  'emacs-mule 0 ?=
- "Emacs internal format used in buffer and string")
+ "Emacs internal format used in buffer and string"
+ nil t)
 
 (make-coding-system
  'raw-text 5 ?t
- "Raw text, which means text contains random 8-bit codes.")
+ "Raw text, which means text contains random 8-bit codes."
+ nil '(ascii))
 
 (make-coding-system
  'iso-2022-7bit 2 ?J
  "ISO 2022 based 7-bit encoding using only G0"
  '((ascii t) nil nil nil
-   short ascii-eol ascii-cntl seven))
+   short ascii-eol ascii-cntl seven)
+ t)
 
 (make-coding-system
  'iso-2022-7bit-ss2 2 ?$
  "ISO 2022 based 7-bit encoding using SS2 for 96-charset"
  '((ascii t) nil t nil
-   short ascii-eol ascii-cntl seven nil single-shift))
+   short ascii-eol ascii-cntl seven nil single-shift)
+ t)
 
 (make-coding-system
  'iso-2022-7bit-lock 2 ?&
  "ISO-2022 coding system using Locking-Shift for 96-charset"
  '((ascii t) t nil nil
-   nil ascii-eol ascii-cntl seven locking-shift))
+   nil ascii-eol ascii-cntl seven locking-shift)
+ t)
 
 (define-coding-system-alias 'iso-2022-int-1 'iso-2022-7bit-lock)
 
@@ -270,7 +275,12 @@
    (nil chinese-cns11643-3 chinese-cns11643-4 chinese-cns11643-5
 	chinese-cns11643-6 chinese-cns11643-7)
    short ascii-eol ascii-cntl seven locking-shift single-shift nil nil nil
-   init-bol))
+   init-bol)
+ '(ascii
+   japanesejisx0208 japanese-jisx0208-1978 latin-jisx0201
+   korean-ksc5601 chinese-gb2312 chinese-cns11643-1
+   chinese-cns11643-2 chinese-cns11643-3 chinese-cns11643-4
+   chinese-cns11643-5 chinese-cns11643-6 chinese-cns11643-7))
 
 (define-coding-system-alias 'iso-2022-cjk 'iso-2022-7bit-lock-ss2)
 
@@ -278,13 +288,15 @@
  'iso-2022-8bit-ss2 2 ?@
  "ISO 2022 based 8-bit encoding using SS2 for 96-charset"
  '((ascii t) nil t nil
-   nil ascii-eol ascii-cntl nil nil single-shift))
+   nil ascii-eol ascii-cntl nil nil single-shift)
+ t)
 
 (make-coding-system
  'iso-safe 2 ?-
  "Convert all characters but ASCII to `?'."
  '(ascii nil nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil t))
+   nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil t)
+ '(ascii))
 
 ;; Use iso-safe for terminal output if some other coding system is
 ;; specified explicitely.
