@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.15) $
+ * $HopeName: MMsrc!config.h(trunk.16) $
  *
  * .readership: MPS developers.
  */
@@ -145,6 +145,14 @@
 #define ARENA_POLL_MAX          ((Size)65536)
 #define ARENA_LD_LENGTH         ((Size)4)
 #define ARENA_ZONESHIFT         ((Shift)20)
+
+/* Stack configuration */
+
+#ifdef MPS_ARCH_I3
+#define STACK_PROBE_DEPTH       ((Word)500)
+#else
+#define STACK_PROBE_DEPTH       ((Word)0)
+#endif /* MPS_ARCH_I3 */
 
 
 /* ANSI Arena Configuration -- see impl.c.arenaan */
