@@ -1183,7 +1183,7 @@ otherwise."
 			 (beginning-of-line)
 			 (looking-at "^\\s-*\\s<+\\s-*$"))))
 	     ;; This is a nonempty comment line which does not extend
-	     ;; past the fill column.  If it is followed by an nonempty
+	     ;; past the fill column.  If it is followed by a nonempty
 	     ;; comment line with the same comment prefix, try to
 	     ;; combine them, and repeat this until either we reach the
 	     ;; fill-column or there is nothing more to combine.

@@ -366,7 +366,7 @@ COMMA-DELIM is non-nil then ',' is treated likewise."
 			c-maybe-labelp nil))))
 
 	      ;; Step to next sexp, but not if we crossed a boundary, since
-	      ;; that doesn't consume an sexp.
+	      ;; that doesn't consume a sexp.
 	      (if (eq sym 'boundary)
 		  (setq ret 'previous)
 		(while
