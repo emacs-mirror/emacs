@@ -1,5 +1,9 @@
 2000-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* arc-mode.el (archive-mode-map): Use the new menu-item format for
+	menu-bar menus.  Add help strings.  Don't remove the Edit menu
+	from the menu bar, as the menu bar has enough space now.
+
 	* Makefile.in (SHELL): Make sure /bin/sh is used.
 
 	* woman.el (woman-man-buffer): Fix bold and underlined CJK

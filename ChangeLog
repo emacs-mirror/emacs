@@ -1,3 +1,7 @@
+2000-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* config.bat: Generate lisp/Makefile from lisp/Makefile.in.
+
 2000-06-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist: Add --help and --snapshot options.
