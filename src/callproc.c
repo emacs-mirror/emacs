@@ -1077,10 +1077,10 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 #ifdef WINDOWSNT
   /* Spawn the child.  (See ntproc.c:Spawnve).  */
   cpid = spawnve (_P_NOWAIT, new_argv[0], new_argv, env);
+  reset_standard_handles (in, out, err, handles);
   if (cpid == -1)
     /* An error occurred while trying to spawn the process.  */
     report_file_error ("Spawning child process", Qnil);
-  reset_standard_handles (in, out, err, handles);
   return cpid;
 #else /* not WINDOWSNT */
   /* execvp does not accept an environment arg so the only way
