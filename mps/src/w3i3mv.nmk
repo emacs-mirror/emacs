@@ -1,6 +1,6 @@
 # impl.nmk.w3i3mv: WINDOWS (INTEL) NMAKE FILE
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.69) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.70) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = w3i3mv
@@ -10,27 +10,27 @@ DONGLELIB = $(RAINBOWPATH)\spromeps.lib
 
 PFMDEFS = /DWIN32 /D_WINDOWS /I$(RAINBOWPATH)
 
-MPM = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+MPM = <assert> <ring> <mpm> <bt> <protocol> <boot> \
+      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> <lockw3> \
+      <root> <format> <buffer> <walk> <lockw3> \
       <ref> <trace> <protw3> <proti3> <prmci3w3> <shield> <vmw3> \
       <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> <spi3> \
       <event> <action> <seg> <sac> <poolmrg> <message> <dbgpool> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version>
-SW  = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> \
+SW  = <assert> <ring> <mpm> <bt> <protocol> <boot> \
+      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> \
       <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> \
+      <root> <format> <buffer> <walk> \
       <ref> <trace> <protsw> <prmcan> <shield> <vmw3> \
       <thw3i3> <ssan> <mpsi> <ld> \
       <event> <action> <seg> <sac> <poolmrg> <message> <mpsioan> \
       <poolepdl> <poolepvm> <poolams> <dbgpool> \
       <abq> <meter> <cbs> <poolmv2> <splay> <version> <poolmvff>
-CONFIGURA = <assert> <ring> <mpm> <bt> <protocol> \
-      <arenavm> <arenacl> <arena> <tract> <walk> <reserv> <dongle> \
+CONFIGURA = <assert> <ring> <mpm> <bt> <protocol> <boot> \
+      <arenavm> <arenacl> <locus> <arena> <global> <tract> <reserv> <dongle> \
       <pool> <poolabs> <poolmfs> <poolmv> \
-      <root> <format> <buffer> \
+      <root> <format> <buffer> <walk> \
       <ref> <trace> <protw3> <proti3> <prmci3w3> <shield> <vmw3> \
       <thw3i3> <ssw3i3> <mpsi> <mpsiw3> <ld> <spi3> \
       <event> <action> <seg> <sac> <poolmrg> <message> <dbgpool> \

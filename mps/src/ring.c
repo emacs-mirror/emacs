@@ -1,9 +1,7 @@
 /* impl.c.ring: RING IMPLEMENTATION
  *
- * $HopeName: MMsrc!ring.c(trunk.6) $
- * Copyright (C) 1995,1996, 1997, 1998 Harlequin Group, all rights reserved.
- *
- * .readership: Any MPS developer.
+ * $HopeName$
+ * Copyright (C) 1995 Harlequin Limited.  All rights reserved.
  *
  * .intro: This is a portable implementation of Rings.
  *
@@ -12,17 +10,14 @@
  *
  * .sources: design.mps.ring,
  *   item 6 of mail.richard_brooksby.1996-03-25.16-02
- *
- * .where.type: The Ring type is defined in impl.h.mpmtypes.
- * .where.struct: The RingStruct structure is defined in
- * impl.h.mpmst.ring.
  */
 
+#include "ring.h"
+#include "check.h"
+#include "misc.h"
 
-#include "mpm.h"
 
-
-SRCID(ring, "$HopeName: MMsrc!ring.c(trunk.6) $");
+SRCID(ring, "$HopeName: MMsrc!ring.c(trunk.7) $");
 
 
 /* RingCheck, RingCheckSingle -- check the validity of a ring node

@@ -1,9 +1,7 @@
 /*  impl.h.th: THREAD MANAGER
  *
- *  $HopeName: MMsrc!th.h(trunk.7) $
- *  Copyright (C) 1995 Harlequin Group, all rights reserved
- *
- * .readership: MM developers.
+ *  $HopeName$
+ *  Copyright (C) 1995 Harlequin Limited.  All rights reserved.
  *
  *  .purpose: Provides thread suspension facilities to the shield.
  *  See design.mps.thread-manager.  Each thread has to be
@@ -13,7 +11,9 @@
 #ifndef th_h
 #define th_h
 
-#include "mpm.h"
+#include "mpmtypes.h"
+#include "ring.h"
+
 
 #define ThreadSig       ((Sig)0x519286ED) /* SIGnature THREaD */
 
