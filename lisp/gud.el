@@ -351,6 +351,70 @@ and source-file directory for your debugger."
 	      (substring string (match-beginning 1) (match-end 1))))))
   string)
 
+;; Functions for dbx on Mips/Ultrix.
+;; This is very similar to the code for gdb. The trick is to start dbx
+;; with the (undocumented) option `-emacs'.
+
+;; Are we running on a Mips system under Ultrix?
+(defvar gud-dbx-mips-p (file-exists-p "/usr/include/mips"))
+
+(defun gud-mipsdbx-massage-args (file args)
+  (cons "-emacs" (cons file args)))
+
+;; There's no guarantee that Emacs will hand the filter the entire
+;; marker at once; it could be broken up across several strings.  We
+;; might even receive a big chunk with several markers in it.  If we
+;; receive a chunk of text which looks like it might contain the
+;; beginning of a marker, we save it here between calls to the
+;; filter.
+(defvar gud-mipsdbx-marker-acc "")
+
+(defun gud-mipsdbx-marker-filter (string)
+  (save-match-data
+    (setq gud-mipsdbx-marker-acc (concat gud-mipsdbx-marker-acc string))
+    (let ((output ""))
+
+      ;; Process all the complete markers in this chunk.
+      (while (string-match
+	      "^[] [0-9]*\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+	      gud-mipsdbx-marker-acc)
+	(setq
+
+	 ;; Extract the frame position from the marker.
+	 gud-last-frame (cons
+			 (substring gud-mipsdbx-marker-acc
+				    (match-beginning 1) (match-end 1))
+			 (string-to-int
+			  (substring gud-mipsdbx-marker-acc
+				     (match-beginning 2) (match-end 2))))
+
+	 ;; Append any text before the marker to the output we're going
+	 ;; to return - we don't include the marker in this text.
+	 output (concat output (substring gud-mipsdbx-marker-acc
+					  0 (match-beginning 0)))
+
+	 ;; Set the accumulator to the remaining text.
+	 gud-mipsdbx-marker-acc (substring gud-mipsdbx-marker-acc
+					   (match-end 0))))
+
+      ;; Does the remaining text look like it might end with the
+      ;; beginning of another marker?  If it does, then keep it in
+      ;; gud-mipsdbx-marker-acc until we receive the rest of it.
+      ;; Since we know the full marker regexp above failed, it's pretty
+      ;; simple to test for marker starts.
+      (if (string-match "^[] [0-9]*\032.*\\'" gud-mipsdbx-marker-acc)
+	  (setq
+	   ;; Everything before the potential marker start can be output.
+	   output (concat output (substring gud-mipsdbx-marker-acc
+					    0 (match-beginning 0)))
+	   ;; Everything after, we save, to combine with later input.
+	   gud-mipsdbx-marker-acc (substring gud-mipsdbx-marker-acc
+					     (match-beginning 0)))
+	(setq output (concat output gud-mipsdbx-marker-acc)
+	      gud-mipsdbx-marker-acc ""))
+
+      output)))
+
 (defun gud-dbx-find-file (f)
   (find-file-noselect f))
 
@@ -366,17 +430,29 @@ and source-file directory for your debugger."
 				 "dbx ")
 			       nil nil
 			       '(gud-dbx-history . 1))))
-  (gud-overload-functions '((gud-massage-args . gud-dbx-massage-args)
-			    (gud-marker-filter . gud-dbx-marker-filter)
-			    (gud-find-file . gud-dbx-find-file)
-			    ))
+
+  (gud-overload-functions
+   (cond
+    (gud-dbx-mips-p
+     '((gud-massage-args . gud-mipsdbx-massage-args)
+       (gud-marker-filter . gud-mipsdbx-marker-filter)
+       (gud-find-file . gud-dbx-find-file)))
+    (t
+     '((gud-massage-args . gud-dbx-massage-args)
+       (gud-marker-filter . gud-dbx-marker-filter)
+       (gud-find-file . gud-dbx-find-file)))))
 
   (gud-common-init command-line)
 
-  (gud-def gud-break  "file \"%d%f\"\nstop at %l"
-	   			  "\C-b" "Set breakpoint at current line.")
-;;  (gud-def gud-break  "stop at \"%f\":%l"
-;;	   			  "\C-b" "Set breakpoint at current line.")
+  (cond
+   (gud-dbx-mips-p
+    (gud-def gud-break "stop at \"%f\":%l"
+				  "\C-b" "Set breakpoint at current line.")
+    (gud-def gud-finish "return"  "\C-f" "Finish executing current function."))
+   (t
+    (gud-def gud-break "file \"%d%f\"\nstop at %l"
+				  "\C-b" "Set breakpoint at current line.")))
+
   (gud-def gud-remove "clear %l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step %p"	  "\C-s" "Step one line with display.")
   (gud-def gud-stepi  "stepi %p"  "\C-i" "Step one instruction with display.")
@@ -386,7 +462,7 @@ and source-file directory for your debugger."
   (gud-def gud-down   "down %p"	  ">" "Down (numeric arg) stack frames.")
   (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
 
-  (setq comint-prompt-regexp  "^[^)]*dbx) *")
+  (setq comint-prompt-regexp  "^[^)\n]*dbx) *")
   (run-hooks 'dbx-mode-hook)
   )
 
@@ -733,7 +809,7 @@ comint mode, which see."
 			(setq w (cdr w)))
 		      (car w)))
 	 (args (delq file-word (cdr words)))
-	 (file (expand-file-name file-word))
+	 (file (expand-file-name (substitute-in-file-name file-word)))
 	 (filepart (file-name-nondirectory file)))
       (switch-to-buffer (concat "*gud-" filepart "*"))
       (setq default-directory (file-name-directory file))
@@ -863,49 +939,40 @@ Obeying it means displaying in another window the specified file and line."
 ;;; gud-last-frame.  Here's how we do it:
 
 (defun gud-format-command (str arg)
-  (let ((insource (not (eq (current-buffer) gud-comint-buffer))))
-    (if (string-match "\\(.*\\)%f\\(.*\\)" str)
-	(setq str (concat
-		   (substring str (match-beginning 1) (match-end 1))
-		   (file-name-nondirectory (if insource
+  (let ((insource (not (eq (current-buffer) gud-comint-buffer)))
+	(frame (or gud-last-frame gud-last-last-frame))
+	result)
+    (while (and str (string-match "\\([^%]*\\)%\\([adeflp]\\)" str))
+      (let ((key (string-to-char (substring str (match-beginning 2))))
+	    subst)
+	(cond
+	 ((eq key ?f)
+	  (setq subst (file-name-nondirectory (if insource
+						  (buffer-file-name)
+						(car frame)))))
+	 ((eq key ?d)
+	  (setq subst (file-name-directory (if insource
 					       (buffer-file-name)
-					     (car gud-last-frame)))
-		   (substring str (match-beginning 2) (match-end 2)))))
-    (if (string-match "\\(.*\\)%d\\(.*\\)" str)
-	(setq str (concat
-		   (substring str (match-beginning 1) (match-end 1))
-		   (file-name-directory (if insource
-					    (buffer-file-name)
-					  (car gud-last-frame)))
-		   (substring str (match-beginning 2) (match-end 2)))))
-    (if (string-match "\\(.*\\)%l\\(.*\\)" str)
-	(setq str (concat
-		   (substring str (match-beginning 1) (match-end 1))
-		   (if insource
-		       (save-excursion
-			 (beginning-of-line)
-			 (save-restriction (widen) 
-					   (1+ (count-lines 1 (point)))))
-		     (cdr gud-last-frame))
-		   (substring str (match-beginning 2) (match-end 2)))))
-    (if (string-match "\\(.*\\)%e\\(.*\\)" str)
-	(setq str (concat
-		   (substring str (match-beginning 1) (match-end 1))
-		   (find-c-expr)
-		   (substring str (match-beginning 2) (match-end 2)))))
-    (if (string-match "\\(.*\\)%a\\(.*\\)" str)
-	(setq str (concat
-		   (substring str (match-beginning 1) (match-end 1))
-		   (gud-read-address)
-		   (substring str (match-beginning 2) (match-end 2)))))
-    (if (string-match "\\(.*\\)%p\\(.*\\)" str)
-	(setq str (concat
-		   (substring str (match-beginning 1) (match-end 1))
-		   (if arg (int-to-string arg) "")
-		   (substring str (match-beginning 2) (match-end 2)))))
-    )
-  str
-  )
+					     (car frame)))))
+	 ((eq key ?l)
+	  (setq subst (if insource
+			  (save-excursion
+			    (beginning-of-line)
+			    (save-restriction (widen) 
+					      (1+ (count-lines 1 (point)))))
+			(cdr frame))))
+	 ((eq key ?e)
+	  (setq subst (find-c-expr)))
+	 ((eq key ?a)
+	  (setq subst (gud-read-address)))
+	 ((eq key ?p)
+	  (setq subst (if arg (int-to-string arg) ""))))
+	(setq result (concat result
+			     (substring str (match-beginning 1) (match-end 1))
+			     subst)))
+      (setq str (substring str (match-end 2))))
+    ;; There might be text left in STR when the loop ends.
+    (concat result str)))
 
 (defun gud-read-address ()
   "Return a string containing the core-address found in the buffer at point."
