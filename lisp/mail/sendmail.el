@@ -150,7 +150,8 @@ so you can edit or delete these lines.")
     (if mail-archive-file-name
 	(insert "FCC: " mail-archive-file-name "\n"))
     (insert mail-header-separator "\n")
-    ;; Insert the signature.
+    ;; Insert the signature.  But remember the beginning of the message.
+    (if to (setq to (point)))
     (cond ((eq mail-signature t)
 	   (if (file-exists-p "~/.signature")
 	       (insert-file-contents "~/.signature")))
@@ -158,7 +159,7 @@ so you can edit or delete these lines.")
 	   (insert mail-signature)))
     (goto-char (point-max))
     (or (bolp) (newline)))
-  (if to (goto-char (point-max)))
+  (if to (goto-char to))
   (or to subject in-reply-to
       (set-buffer-modified-p nil))
   (run-hooks 'mail-setup-hook))
