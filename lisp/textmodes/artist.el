@@ -1,12 +1,12 @@
 ;;; artist.el --- draw ascii graphics with your mouse
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author:       Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Maintainer:   Tomas Abrahamsson <tab@lysator.liu.se>
 ;; Keywords:     mouse
-;; Version:	 1.2.2
-;; Release-date: 22-Oct-2000
+;; Version:	 1.2.4
+;; Release-date: 25-Oct-2001
 ;; Location:     http://www.lysator.liu.se/~tab/artist/
 
 ;; This file is part of GNU Emacs.
@@ -136,6 +136,15 @@
 
 ;;; ChangeLog:
 
+;; 1.2.4	25-Oct-2001
+;; Bugfix:	Some operations (the edit menu) got hidden
+;; Bugfix:      The first arrow for poly-lines was always pointing
+;;              to the right
+;; Changed:	Updated with changes made for Emacs 21.1
+;;
+;; 1.2.3	20-Nov-2000
+;; Bugfix:	Autoload cookie corrected
+;;
 ;; 1.2.2	19-Nov-2000
 ;; Changed:	More documentation fixes.
 ;; Bugfix:	The arrow characters (`artist-arrows'), which 
@@ -178,7 +187,7 @@
 
 ;; Variables
 
-(defconst artist-version "1.2.2")
+(defconst artist-version "1.2.4")
 (defconst artist-maintainer-address "tab@lysator.liu.se")
 
 
@@ -701,7 +710,7 @@ The fill char is used instead, if it is set.")
 		 2
 		 artist-draw-square
 		 (artist-undraw-square
-		  artist-t artist-cut-square)))))
+		  artist-t artist-cut-square))))))
 
        (graphics-operation
 	("Copy" (("copy rectangle" copy-r "copy-r"
@@ -717,7 +726,7 @@ The fill char is used instead, if it is set.")
 		  2
 		  artist-draw-square
 		  (artist-undraw-square
-		   artist-t artist-copy-square)))))
+		   artist-t artist-copy-square))))))
 
        (graphics-operation
 	("Paste" (("paste" paste "paste"
@@ -745,7 +754,7 @@ The fill char is used instead, if it is set.")
 			nil nil nil
 			1
 			artist-flood-fill
-			nil)))))))))
+			nil)))))))
 
     (menu
      ("Settings"
@@ -1674,6 +1683,20 @@ info-variant-part."
 (defmacro artist-funcall (fn &rest args)
   "Call function FN with ARGS iff FN is not nil."
   (list 'if fn (cons 'funcall (cons fn args))))
+
+(defvar artist-butlast-fn 'artist-butlast
+  "The butlast function")
+
+(if (fboundp 'butlast)
+    (setq artist-butlast-fn 'butlast)
+  (setq artist-butlast-fn 'artist-butlast))
+
+(defun artist-butlast (l)
+  "Return the list L with all elements but the last."
+  (cond ((null l) nil)
+	((null (cdr l)) nil)
+	(t (cons (car l) (artist-butlast (cdr l))))))
+
 
 (defun artist-last (seq &optional n)
   "Return the last link in the list SEQ.
@@ -3341,7 +3364,7 @@ The POINT-LIST is expected to cover the first quadrant."
 				       (t c)))))
 	   ;; The cdr and butlast below is so we don't draw the middle top
 	   ;; and middle bottom char twice.
-	   (butlast (cdr (reverse right-half)))))
+	   (funcall artist-butlast-fn (cdr (reverse right-half)))))
     (append right-half left-half)))
 
 
@@ -4952,7 +4975,7 @@ The event, EV, is the mouse event."
 	 (y2           y1-last)
 	 (is-down      t)
 	 (shape        nil)
-	 (point-list   (list (artist-make-endpoint x1-last y1-last)))
+	 (point-list   nil)
 	 (done         nil))
     (select-window (posn-window ev-start))
     (artist-funcall init-fn x1-last y1-last)
@@ -5125,7 +5148,7 @@ The event, EV, is the mouse event."
 	(artist-funcall fill-fn point-list))
 
     ;; Maybe set arrow points
-    (if (artist-funcall arrow-pred)
+    (if (and point-list (artist-funcall arrow-pred))
 	(artist-funcall arrow-set-fn point-list)
       (artist-clear-arrow-points))
 
