@@ -4536,12 +4536,16 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
       Lisp_Object listfile;
       listfile = Fexpand_file_name (Vauto_save_list_file_name, Qnil);
       stream = fopen (XSTRING (listfile)->data, "w");
-
-      /* Arrange to close that file whether or not we get an error.
-	 Also reset auto_saving to 0.  */
-      lispstream = Fcons (Qnil, Qnil);
-      XSETFASTINT (XCONS (lispstream)->car, (EMACS_UINT)stream >> 16);
-      XSETFASTINT (XCONS (lispstream)->cdr, (EMACS_UINT)stream & 0xffff);
+      if (stream != NULL)
+	{
+	  /* Arrange to close that file whether or not we get an error.
+	     Also reset auto_saving to 0.  */
+	  lispstream = Fcons (Qnil, Qnil);
+	  XSETFASTINT (XCONS (lispstream)->car, (EMACS_UINT)stream >> 16);
+	  XSETFASTINT (XCONS (lispstream)->cdr, (EMACS_UINT)stream & 0xffff);
+	}
+      else
+	lispstream = Qnil;
     }
   else
     {
