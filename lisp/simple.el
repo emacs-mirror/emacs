@@ -2857,19 +2857,12 @@ PREFIX is the string that represents this modifier in an event type symbol."
 	    event-type
 	  (cons event-type (cdr event)))))))
 
-(define-key function-key-map [?\C-x escape ?h] 'event-apply-hyper-modifier)
-(define-key function-key-map [?\C-x escape ?s] 'event-apply-super-modifier)
-(define-key function-key-map [?\C-x escape ?m] 'event-apply-meta-modifier)
-(define-key function-key-map [?\C-x escape ?a] 'event-apply-alt-modifier)
-(define-key function-key-map [?\C-x escape ?S] 'event-apply-shift-modifier)
-(define-key function-key-map [?\C-x escape ?c] 'event-apply-control-modifier)
-
-(define-key function-key-map [?\C-x ?\e ?h] 'event-apply-hyper-modifier)
-(define-key function-key-map [?\C-x ?\e ?s] 'event-apply-super-modifier)
-(define-key function-key-map [?\C-x ?\e ?m] 'event-apply-meta-modifier)
-(define-key function-key-map [?\C-x ?\e ?a] 'event-apply-alt-modifier)
-(define-key function-key-map [?\C-x ?\e ?S] 'event-apply-shift-modifier)
-(define-key function-key-map [?\C-x ?\e ?c] 'event-apply-control-modifier)
+(define-key function-key-map [?\C-x ?@ ?h] 'event-apply-hyper-modifier)
+(define-key function-key-map [?\C-x ?@ ?s] 'event-apply-super-modifier)
+(define-key function-key-map [?\C-x ?@ ?m] 'event-apply-meta-modifier)
+(define-key function-key-map [?\C-x ?@ ?a] 'event-apply-alt-modifier)
+(define-key function-key-map [?\C-x ?@ ?S] 'event-apply-shift-modifier)
+(define-key function-key-map [?\C-x ?@ ?c] 'event-apply-control-modifier)
 
 ;;;; Keypad support.
 
