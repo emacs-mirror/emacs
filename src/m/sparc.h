@@ -44,11 +44,6 @@ NOTE-END  */
 
 #define NO_ARG_ARRAY
 
-/* Define how to take a char and sign-extend into an int.
-   On machines where char is signed, this is a no-op.  */
-
-#define SIGN_EXTEND_CHAR(c) (c)
-
 /* Say this machine is a sparc */
 
 #ifndef sparc
