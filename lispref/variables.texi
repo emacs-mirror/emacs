@@ -41,6 +41,7 @@ variable.
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
 * Frame-Local Variables::   Variable values in effect only in one frame.
 * Future Local Variables::  New kinds of local values we might add some day.
+* Variable Aliases::      Variables that are aliases for other variables.
 * File Local Variables::  Handling local variable lists in files.
 @end menu
 
@@ -1653,6 +1654,48 @@ bindings offer a way to handle these situations more robustly.
 
   If sufficient application is found for either of these two kinds of
 local bindings, we will provide it in a subsequent Emacs version.
+
+@node Variable Aliases
+@section Variable Aliases
+
+  It is sometimes useful to make two variables synonyms, so that both
+variables always have the same value, and changing either one also
+changes the other.  Whenever you change the name of a
+variable---either because you realize its old name was not well
+chosen, or because its meaning has partly changed---it can be useful
+to keep the old name as an @emph{alias} of the new one for
+compatibility.  You can do this with @code{defvaralias}.
+
+@defmacro defvaralias alias-var base-var
+This function defines the symbol @var{alias-var} as a variable alias
+for symbol @var{base-var}.  This means that retrieving the value of
+@var{alias-var} returns the value of @var{base-var}, and changing the
+value of @var{alias-var} changes the value of @var{base-var}.
+@end defmacro
+
+@defun indirect-variable variable
+This function returns the variable at the end of the chain of aliases
+of @var{variable}.  If @var{variable} is not a symbol, or if @var{variable} is
+not defined as an alias, the function returns @var{variable}.
+@end defun
+
+@example
+(defvaralias 'foo 'bar)
+(indirect-variable 'foo)
+     @result{} bar
+(indirect-variable 'bar)
+     @result{} bar
+(setq bar 2)
+bar
+     @result{} 2
+foo
+     @result{} 2
+(setq foo 0)
+bar
+     @result{} 0
+foo
+     @result{} 0
+@end example
 
 @node File Local Variables
 @section File Local Variables
