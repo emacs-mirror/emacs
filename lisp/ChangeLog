@@ -1,5 +1,8 @@
 2003-03-18  Kenichi Handa  <handa@m17n.org>
 
+	* language/european.el ("Latin-6"): Fix input-method.
+	("Latin-7"): Fix input-method.
+
 	* international/utf-8.el (utf-fragment-on-decoding): Don't call
 	register-char-codings.
 	(utf-fragment-on-decoding): Don't update char-coding-system-table.
