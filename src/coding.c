@@ -4380,7 +4380,10 @@ coding_save_composition (coding, from, to, obj)
   Lisp_Object prop;
   int start, end;
 
-  coding->composing = COMPOSITION_DISABLED;
+  if (coding->composing == COMPOSITION_DISABLED)
+    return;
+  if (!coding->cmp_data)
+    coding_allocate_composition_data (coding, from);
   if (!find_composition (from, to, &start, &end, &prop, obj)
       || end > to)
     return;
@@ -4389,7 +4392,6 @@ coding_save_composition (coding, from, to, obj)
 	  || end > to))
     return;
   coding->composing = COMPOSITION_NO;
-  coding_allocate_composition_data (coding, from);
   do
     {
       if (COMPOSITION_VALID_P (start, end, prop))
