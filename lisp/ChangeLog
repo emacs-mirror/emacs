@@ -1,3 +1,8 @@
+2004-05-03  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--update-indications): Fix last
+	change.
+
 2004-05-02  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* select.el (xselect-convert-to-string): Bind `inhibit-read-only'
