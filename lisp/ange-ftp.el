@@ -4283,9 +4283,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   "Alist of mapping host type into function to remove file version numbers.")
 
 (defun ange-ftp-file-name-sans-versions (file keep-backup-version)
-  (setq file (ange-ftp-abbreviate-filename file))
-  (let ((parsed (ange-ftp-ftp-name file))
-	host-type func)
+  (let* ((short (ange-ftp-abbreviate-filename file))
+	 (parsed (ange-ftp-ftp-name short))
+	 host-type func)
     (if parsed
 	(setq host-type (ange-ftp-host-type (car parsed))
 	      func (cdr (assq (ange-ftp-host-type (car parsed))
