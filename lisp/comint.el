@@ -478,14 +478,9 @@ to continue it.
 
 Entry to this mode runs the hooks on `comint-mode-hook'."
   (setq mode-line-process '(":%s"))
-  (make-local-variable 'comint-last-input-start)
-  (setq comint-last-input-start (make-marker))
-  (set-marker comint-last-input-start (point-min))
-  (make-local-variable 'comint-last-input-end)
-  (setq comint-last-input-end (make-marker))
-  (set-marker comint-last-input-end (point-min))
-  (make-local-variable 'comint-last-output-start)
-  (setq comint-last-output-start (make-marker))
+  (set (make-local-variable 'comint-last-input-start) (point-min-marker))
+  (set (make-local-variable 'comint-last-input-end) (point-min-marker))
+  (set (make-local-variable 'comint-last-output-start) (make-marker))
   (make-local-variable 'comint-last-output-overlay)
   (make-local-variable 'comint-last-prompt-overlay)
   (make-local-variable 'comint-prompt-regexp)        ; Don't set; default
@@ -504,10 +499,8 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-input-autoexpand)
   (make-local-variable 'comint-input-ignoredups)
   (make-local-variable 'comint-delimiter-argument-list)
-  (make-local-hook 'comint-dynamic-complete-functions)
   (make-local-variable 'comint-completion-fignore)
   (make-local-variable 'comint-get-old-input)
-  (make-local-hook 'comint-input-filter-functions)
   (make-local-variable 'comint-input-filter)
   (make-local-variable 'comint-input-sender)
   (make-local-variable 'comint-eol-on-send)
@@ -515,15 +508,11 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-to-bottom-on-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
   (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom t t)
-  (make-local-hook 'comint-output-filter-functions)
-  (make-local-hook 'comint-exec-hook)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-process-echoes)
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
-  (make-local-variable 'comint-accum-marker)
-  (setq comint-accum-marker (make-marker))
-  (set-marker comint-accum-marker nil)
+  (set (make-local-variable 'comint-accum-marker) (make-marker))
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
 
@@ -660,7 +649,8 @@ If PROGRAM is a string, any more args are arguments to PROGRAM."
   ;; comint mode.  Otherwise, leave buffer and existing process alone.
   (unless (comint-check-proc buffer)
     (with-current-buffer buffer
-      (comint-mode)) ; Install local vars, mode, keymap, ...
+      (unless (derived-mode-p 'comint-mode)
+	(comint-mode))) ; Install local vars, mode, keymap, ...
     (comint-exec buffer name program startfile switches))
   buffer)
 
