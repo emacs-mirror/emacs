@@ -3016,19 +3016,23 @@ See calc-keypad for details."
     (setcar (cdr entry) (calc-count-lines s))
     s))
 
-(defun math-stack-value-offset (c)
+;; The variables math-svo-c, math-svo-wid and math-svo-off are local
+;; to math-stack-value-offset, but are used by math-stack-value-offset-fancy
+;; in calccomp.el.
+
+(defun math-stack-value-offset (math-svo-c)
   (let* ((num (if calc-line-numbering 4 0))
-	 (wid (calc-window-width))
-	 off)
+	 (math-svo-wid (calc-window-width))
+	 math-svo-off)
     (if calc-display-just
 	(progn
 	  (calc-extensions)
 	  (math-stack-value-offset-fancy))
-      (setq off (or calc-display-origin 0))
+      (setq math-svo-off (or calc-display-origin 0))
       (when (integerp calc-line-breaking)
-	(setq wid calc-line-breaking)))
-    (cons (max (- off (length calc-left-label)) 0)
-	  (+ wid num))))
+	(setq math-svo-wid calc-line-breaking)))
+    (cons (max (- math-svo-off (length calc-left-label)) 0)
+	  (+ math-svo-wid num))))
 
 (defun calc-count-lines (s)
   (let ((pos 0)
