@@ -29,7 +29,7 @@ Boston, MA 02111-1307, USA.  */
  *
  * In order to get rmail to read the messages, the resulting file must
  * be mv'ed to ~/mbox, and then have rmail invoked on them.
- * 
+ *
  * Author: Larry Kolodney, 1985
  */
 
@@ -115,8 +115,8 @@ main (argc, argv)
 	}
     }
   fclose (mddf);
-  fclose (mfilef);    
-  return 0;
+  fclose (mfilef);
+  return EXIT_SUCCESS;
 }
 
 void
@@ -145,7 +145,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 void
@@ -154,7 +154,7 @@ sysfail (s)
 {
   fprintf (stderr, "cvtmail: ");
   perror (s);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 char *
@@ -177,3 +177,5 @@ xrealloc (ptr, size)
     fatal ("virtual memory exhausted", 0);
   return result;
 }
+
+/* cvmtmail.c ends here */

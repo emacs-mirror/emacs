@@ -85,7 +85,7 @@ struct header_record
   struct header_record *previous;
 };
 typedef struct header_record *header;
-			
+
 struct stream_record
 {
   FILE *handle;
@@ -169,7 +169,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -206,7 +206,7 @@ init_linebuffer (linebuffer)
 }
 
 /* Read a line of text from `stream' into `linebuffer'.
- * Return the length of the line.  
+ * Return the length of the line.
  */
 
 long
@@ -411,7 +411,7 @@ close_the_streams ()
     no_problems = (no_problems &&
 		   ((*rem->action) (rem->handle) == 0));
   the_streams = ((stream_list) NULL);
-  return (no_problems ? 0 : 1);
+  return (no_problems ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 void
@@ -622,13 +622,13 @@ parse_header (the_header, where)
   *where = '\0';
   return;
 }
-    
+
 /* Read lines from the input until we get a blank line.
    Create a list of `header' objects, one for each header field,
    each of which points to a list of `line_list' objects,
    one for each line in that field.
    Continuation lines are grouped in the headers they continue.  */
-   
+
 header
 read_header ()
 {
@@ -668,7 +668,7 @@ read_header ()
       if (next_line == ((line_list *) NULL))
 	{
 	  /* Not a valid header */
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	}
       *next_line = new_list ();
       (*next_line)->string = alloc_string (length);
@@ -728,7 +728,7 @@ main (argc, argv)
   command_line = alloc_string (name_length + args_size (the_header));
   strcpy (command_line, mail_program_name);
   parse_header (the_header, &command_line[name_length]);
-  
+
   the_pipe = popen (command_line, "w");
   if (the_pipe == ((FILE *) NULL))
     fatal ("cannot open pipe to real mailer");
@@ -751,3 +751,5 @@ main (argc, argv)
 
 #endif /* not MSDOS */
 #endif /* not BSD 4.2 (or newer) */
+
+/* fakemail.c ends here */

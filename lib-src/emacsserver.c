@@ -38,7 +38,7 @@ main ()
 {
   fprintf (stderr, "Sorry, the Emacs server is supported only on systems\n");
   fprintf (stderr, "with Berkeley sockets or System V IPC.\n");
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 #else /* HAVE_SOCKETS or HAVE_SYSVIPC */
@@ -191,7 +191,7 @@ fatal (s1, s2)
      char *s1, *s2;
 {
   error (s1, s2);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
@@ -240,14 +240,14 @@ main (argc, argv)
   if (openfiles == 0)
     abort ();
 
-  /* 
+  /*
    * Open up an AF_UNIX socket in this person's home directory
    */
 
   if ((s = socket (AF_UNIX, SOCK_STREAM, 0)) < 0)
     {
       perror_1 ("socket");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   server.sun_family = AF_UNIX;
 
@@ -272,9 +272,9 @@ main (argc, argv)
   if (unlink (server.sun_path) == -1 && errno != ENOENT)
     {
       perror_1 ("unlink");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
-#else  
+#else
   if ((homedir = getenv ("HOME")) == NULL)
     fatal_error ("No home directory\n");
 
@@ -294,13 +294,13 @@ main (argc, argv)
   if (bind (s, (struct sockaddr *) &server, strlen (server.sun_path) + 2) < 0)
     {
       perror_1 ("bind");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   /* Only this user can send commands to this Emacs.  */
   if (stat (server.sun_path, &statbuf) < 0)
     {
       perror_1 ("bind");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   chmod (server.sun_path, statbuf.st_mode & 0600);
@@ -310,7 +310,7 @@ main (argc, argv)
   if (listen (s, 5) < 0)
     {
       perror_1 ("listen");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   /* Disable sigpipes in case luser kills client... */
@@ -398,14 +398,14 @@ main (argc, argv)
 	  fflush (infile);
 
 	  /* If command is close, close connection to client.  */
-	  if (strncmp (code, "Close:", 6) == 0) 
-	    if (infd > 2) 
+	  if (strncmp (code, "Close:", 6) == 0)
+	    if (infd > 2)
 	      {
 		fclose (infile);
 		close (infd);
 	      }
 	  continue;
-	} 
+	}
     }
 }
 
@@ -472,7 +472,7 @@ main ()
   if (s == -1)
     {
       perror_1 ("msgget");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   /* Fork so we can close connection even if parent dies */
@@ -482,7 +482,7 @@ main ()
       msgctl (s, IPC_RMID, 0);
       if (p > 0)
 	kill (p, SIGKILL);
-      exit (0);
+      exit (EXIT_SUCCESS);
     }
   signal (SIGTERM, msgcatch);
   signal (SIGINT, msgcatch);
@@ -499,7 +499,7 @@ main ()
 	  if (kill (p, 0) < 0)
 	    {
 	      msgctl (s, IPC_RMID, 0);
-	      exit (0);
+	      exit (EXIT_SUCCESS);
 	    }
 	  sleep (10);
 	}
@@ -519,7 +519,7 @@ main ()
 	  msgp->mtype = 1;
 	  msgsnd (s, msgp, strlen (msgp->mtext) + 1, 0);
 	}
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   /* In the process c1,
@@ -533,7 +533,7 @@ main ()
 	    continue;
 #endif
 	  perror_1 ("msgrcv");
-	  exit (1);
+	  exit (EXIT_FAILURE);
         }
       else
         {
@@ -590,6 +590,8 @@ fatal_error (string)
 {
   fprintf (stderr, "%s", "Error: ");
   fprintf (stderr, string);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 #endif /* HAVE_SOCKETS or HAVE_SYSVIPC */
+
+/* emacsserver.c ends here */

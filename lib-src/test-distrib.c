@@ -45,7 +45,7 @@ This file is read by the `test-distribution' program.\n\
 If you change it, you will make that program fail.\n";
 
 char buf[300];
-  
+
 /* Like `read' but keeps trying until it gets SIZE bytes or reaches eof.  */
 int
 cool_read (fd, buf, size)
@@ -95,8 +95,7 @@ have been corrupted in the files of Emacs, and it will not work.\n",
       exit (2);
     }
   close (fd);
-#ifdef VMS
-  exit (1);			/* On VMS, success is 1.  */
-#endif
-  return (0);
+  return EXIT_SUCCESS;
 }
+
+/* test-distrib.c ends here */

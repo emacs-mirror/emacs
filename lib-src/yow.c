@@ -1,12 +1,12 @@
 /*
  * yow.c
- * 
+ *
  * Print a quotation from Zippy the Pinhead.
  * Qux <Kaufman-David@Yale> March 6, 1986
  *
  * This file is in the public domain because the author published it
  * with no copyright notice before the US signed the Bern Convention.
- * 
+ *
  * With dynamic memory allocation.
  */
 
@@ -58,7 +58,7 @@ main (argc, argv)
   if ((fp = fopen(file, "r")) == NULL) {
     fprintf(stderr, "yow: ");
     perror(file);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   /* initialize random seed */
@@ -67,7 +67,7 @@ main (argc, argv)
   setup_yow(fp);
   yow(fp);
   fclose(fp);
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 static long len = -1;
@@ -95,10 +95,10 @@ setup_yow(fp)
   header_len = ftell(fp);
   if (header_len > AVG_LEN)
     header_len -= AVG_LEN;	/* allow the first quotation to appear */
-	
+
   if (fseek(fp, 0L, 2) == -1) {
     perror("yow");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   len = ftell(fp) - header_len;
 }
@@ -117,7 +117,7 @@ yow (fp)
   offset = rand() % len + header_len;
   if (fseek(fp, offset, 0) == -1) {
     perror("yow");
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 
   /* Read until SEP, read next line, print it.
@@ -148,7 +148,7 @@ yow (fp)
   buf[i++] = c;
   while ((c = getc(fp)) != SEP && c != EOF) {
     buf[i++] = c;
-	
+
     if (i == bufsize-1) {
       /* Yow! Is this quotation too long yet? */
       bufsize *= 2;
@@ -163,3 +163,4 @@ yow (fp)
   printf("%s\n", buf);
 }
 
+/* yow.c ends here */

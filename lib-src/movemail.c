@@ -39,11 +39,11 @@ Boston, MA 02111-1307, USA.  */
  * "po:username".  This will cause movemail to open a connection to
  * a pop server running on $MAILHOST (environment variable).  Movemail
  * must be setuid to root in order to work with POP.
- * 
+ *
  * New module: popmail.c
  * Modified routines:
  *	main - added code within #ifdef MAIL_USE_POP; added setuid (getuid ())
- *		after POP code. 
+ *		after POP code.
  * New routines in movemail.c:
  *	get_errmsg - return pointer to system error message
  *
@@ -215,7 +215,7 @@ main (argc, argv)
 	preserve_mail++;
 	break;
       default:
-	exit(1);
+	exit (EXIT_FAILURE);
       }
     }
 
@@ -234,7 +234,7 @@ main (argc, argv)
 	       ""
 #endif
 	       );
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   inname = argv[optind];
@@ -458,7 +458,7 @@ main (argc, argv)
 
 	  pfatal_with_name (inname);
 	}
-  
+
       {
 	char buf[1024];
 
@@ -536,12 +536,12 @@ main (argc, argv)
       if (spool_name)
 	mailunlock ();
 #endif
-      exit (0);
+      exit (EXIT_SUCCESS);
     }
 
   wait (&status);
   if (!WIFEXITED (status))
-    exit (1);
+    exit (EXIT_FAILURE);
   else if (WRETCODE (status) != 0)
     exit (WRETCODE (status));
 
@@ -554,7 +554,7 @@ main (argc, argv)
 
 #endif /* ! DISABLE_DIRECT_ACCESS */
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 #ifdef MAIL_USE_MAILLOCK
@@ -607,7 +607,7 @@ fatal (s1, s2)
   if (delete_lockname)
     unlink (delete_lockname);
   error (s1, s2, 0);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* Print error message.  `s1' is printf control string, `s2' and `s3'
@@ -736,19 +736,19 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
   if (! server)
     {
       error ("Error connecting to POP server: %s", pop_error, 0);
-      return (1);
+      return EXIT_FAILURE;
     }
 
   if (pop_stat (server, &nmsgs, &nbytes))
     {
       error ("Error getting message count from POP server: %s", pop_error, 0);
-      return (1);
+      return EXIT_FAILURE;
     }
 
   if (!nmsgs)
     {
       pop_close (server);
-      return (0);
+      return EXIT_SUCCESS;
     }
 
   mbfi = open (outfile, O_WRONLY | O_CREAT | O_EXCL, 0666);
@@ -756,7 +756,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
     {
       pop_close (server);
       error ("Error in open: %s, %s", strerror (errno), outfile);
-      return (1);
+      return EXIT_FAILURE;
     }
   fchown (mbfi, getuid (), -1);
 
@@ -766,7 +766,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
       error ("Error in fdopen: %s", strerror (errno), 0);
       close (mbfi);
       unlink (outfile);
-      return (1);
+      return EXIT_FAILURE;
     }
 
   if (reverse_order)
@@ -789,7 +789,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
 	{
 	  error (Errmsg, 0, 0);
 	  close (mbfi);
-	  return (1);
+	  return EXIT_FAILURE;
 	}
       mbx_delimit_end (mbf);
       fflush (mbf);
@@ -798,7 +798,7 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
 	  error ("Error in fflush: %s", strerror (errno), 0);
 	  pop_close (server);
 	  close (mbfi);
-	  return (1);
+	  return EXIT_FAILURE;
 	}
     }
 
@@ -812,14 +812,14 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
   if (fsync (mbfi) < 0)
     {
       error ("Error in fsync: %s", strerror (errno), 0);
-      return (1);
+      return EXIT_FAILURE;
     }
 #endif
 
   if (close (mbfi) == -1)
     {
       error ("Error in close: %s", strerror (errno), 0);
-      return (1);
+      return EXIT_FAILURE;
     }
 
   if (! preserve)
@@ -829,17 +829,17 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
 	  {
 	    error ("Error from POP server: %s", pop_error, 0);
 	    pop_close (server);
-	    return (1);
+	    return EXIT_FAILURE;
 	  }
       }
 
   if (pop_quit (server))
     {
       error ("Error from POP server: %s", pop_error, 0);
-      return (1);
+      return EXIT_FAILURE;
     }
-    
-  return (0);
+
+  return EXIT_SUCCESS;
 }
 
 int
@@ -912,7 +912,7 @@ mbx_write (line, len, mbf)
       line++;
       len--;
     }
-  if (fwrite (line, 1, len, mbf) != len) 
+  if (fwrite (line, 1, len, mbf) != len)
     return (NOTOK);
   if (fputc (0x0a, mbf) == EOF)
     return (NOTOK);
@@ -953,3 +953,5 @@ strerror (errnum)
 }
 
 #endif /* ! HAVE_STRERROR */
+
+/* movemail.c ends here */

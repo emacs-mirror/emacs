@@ -6,7 +6,7 @@
 
    Author: Gerd Moellmann <gerd@gnu.org>
    Maintainer: FSF
-   
+
    This file is part of GNU Emacs.
 
    GNU Emacs is free software; you can redistribute it and/or modify
@@ -400,7 +400,7 @@ int inbuffer_size;
 
 #define BUFFER_POS() (in - inbuffer)
 
-/* If current lookahead is CSTRING, the following points to the 
+/* If current lookahead is CSTRING, the following points to the
    first character in the string constant.  Used for recognizing
    extern "C".  */
 
@@ -560,7 +560,7 @@ xmalloc (nbytes)
   if (p == NULL)
     {
       yyerror ("out of memory", NULL);
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   return p;
 }
@@ -577,7 +577,7 @@ xrealloc (p, sz)
   if (p == NULL)
     {
       yyerror ("out of memory", NULL);
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   return p;
 }
@@ -686,7 +686,7 @@ add_link (super, sub)
     {
       lnk = (struct link *) xmalloc (sizeof *lnk);
       lnk2 = (struct link *) xmalloc (sizeof *lnk2);
-  
+
       lnk->sym = sub;
       lnk->next = p;
 
@@ -728,15 +728,15 @@ find_member (cls, name, var, sc, hash)
     case SC_FRIEND:
       list = &cls->friends;
       break;
-      
+
     case SC_TYPE:
       list = &cls->types;
       break;
-      
+
     case SC_STATIC:
       list = var ? &cls->static_vars : &cls->static_fns;
       break;
-      
+
     default:
       list = var ? &cls->vars : &cls->fns;
       break;
@@ -928,7 +928,7 @@ add_global_defn (name, regexp, pos, hash, var, sc, flags)
    a bit set giving additional information about the member (see the
    F_* defines).  */
 
-void 
+void
 add_global_decl (name, regexp, pos, hash, var, sc, flags)
      char *name, *regexp;
      int pos;
@@ -1008,15 +1008,15 @@ add_member (cls, name, var, sc, hash)
     case SC_FRIEND:
       list = &cls->friends;
       break;
-      
+
     case SC_TYPE:
       list = &cls->types;
       break;
-      
+
     case SC_STATIC:
       list = var ? &cls->static_vars : &cls->static_fns;
       break;
-      
+
     default:
       list = var ? &cls->vars : &cls->fns;
       break;
@@ -1112,7 +1112,7 @@ check_namespace (name, context)
      struct sym *context;
 {
   struct sym *p = NULL;
-  
+
   for (p = all_namespaces; p; p = p->next)
     {
       if (streq (p->name, name) && (p->namesp == context))
@@ -1137,7 +1137,7 @@ find_namespace (name, context)
 
   return p;
 }
-  
+
 
 /* Find namespace alias with name NAME. If not found return NULL. */
 
@@ -1210,7 +1210,7 @@ enter_namespace (name)
 				    size * sizeof *namespace_stack);
       namespace_stack_size = size;
     }
-  
+
   namespace_stack[namespace_sp++] = current_namespace;
   current_namespace = p;
 }
@@ -1282,7 +1282,7 @@ sym_scope_1 (p)
      struct sym *p;
 {
   int len;
-  
+
   if (p->namesp)
     sym_scope_1 (p->namesp);
 
@@ -1297,14 +1297,14 @@ sym_scope_1 (p)
   ensure_scope_buffer_room (len + 1);
   strcat (scope_buffer, p->name);
   scope_buffer_len += len;
-  
+
   if (HAS_FLAG (p->flags, F_TEMPLATE))
     {
       ensure_scope_buffer_room (3);
       strcat (scope_buffer, "<>");
       scope_buffer_len += 2;
     }
-  
+
   return scope_buffer;
 }
 
@@ -1321,10 +1321,10 @@ sym_scope (p)
       scope_buffer_size = 1024;
       scope_buffer = (char *) xmalloc (scope_buffer_size);
     }
-  
+
   *scope_buffer = '\0';
   scope_buffer_len = 0;
-  
+
   if (p->namesp)
     sym_scope_1 (p->namesp);
 
@@ -1377,13 +1377,13 @@ dump_sym (fp, root)
 {
   fputs (CLASS_STRUCT, fp);
   PUTSTR (root->name, fp);
-  
+
   /* Print scope, if any.  */
   if (root->namesp)
     PUTSTR (sym_scope (root), fp);
   else
     PUTSTR (NULL, fp);
-  
+
   /* Print flags.  */
   fprintf (fp, "%u", root->flags);
   PUTSTR (root->filename, fp);
@@ -1563,7 +1563,7 @@ process_pp_line ()
 	  add_define (yytext, regexp, pos);
 	}
     }
-  
+
   while (c && (c != '\n' || in_comment || in_string))
     {
       if (c == '\\')
@@ -1580,7 +1580,7 @@ process_pp_line ()
 	}
       else if (c == '"')
 	in_string = !in_string;
-      
+
       if (c == '\n')
 	INCREMENT_LINENO;
 
@@ -2184,7 +2184,7 @@ re_init_scanner ()
 {
   in = inbuffer;
   yyline = 1;
-  
+
   if (yytext == NULL)
     {
       int size = 256;
@@ -2386,19 +2386,19 @@ skip_matching ()
     case '{':
       close = '}';
       break;
-      
+
     case '(':
       close = ')';
       break;
-      
+
     case '<':
       close = '>';
       break;
-      
+
     case '[':
       close = ']';
       break;
-      
+
     default:
       abort ();
     }
@@ -2483,7 +2483,7 @@ parm_list (flags)
     {
       switch (LA1)
         {
-	  /* Skip over grouping parens or parameter lists in parameter 
+	  /* Skip over grouping parens or parameter lists in parameter
 	     declarations.  */
         case '(':
           skip_matching ();
@@ -2505,7 +2505,7 @@ parm_list (flags)
             {
 	      char *last_id;
 	      unsigned ident_type_hash = 0;
-	      
+
 	      parse_qualified_param_ident_or_type (&last_id);
 	      if (last_id)
 		{
@@ -2533,7 +2533,7 @@ parm_list (flags)
         case DOUBLE:    case ENUM:      case FLOAT:     case INT:
         case LONG:      case SHORT:     case SIGNED:    case STRUCT:
         case UNION:     case UNSIGNED:  case VOLATILE:  case WCHAR:
-        case ELLIPSIS:  
+        case ELLIPSIS:
           type_seen = 1;
           hash = (hash << 1) ^ LA1;
           MATCH ();
@@ -2553,7 +2553,7 @@ parm_list (flags)
   if (LOOKING_AT (')'))
     {
       MATCH ();
-      
+
       if (LOOKING_AT (CONST))
         {
           /* We can overload the same function on `const' */
@@ -2638,7 +2638,7 @@ member (cls, vis)
         case EXPLICIT:
           SET_FLAG (flags, F_EXPLICIT);
           goto typeseen;
-          
+
         case MUTABLE:
           SET_FLAG (flags, F_MUTABLE);
           goto typeseen;
@@ -2773,7 +2773,7 @@ member (cls, vis)
         {
           regexp = matching_regexp ();
           pos = BUFFER_POS ();
-          
+
           if (cls != NULL)
             {
               if (type_seen || !paren_seen)
@@ -2782,7 +2782,7 @@ member (cls, vis)
 		add_member_decl (cls, id, regexp, pos, hash, 0, sc, vis, 0);
             }
         }
-      
+
       MATCH ();
       print_info ();
     }
@@ -2879,7 +2879,7 @@ struct sym *
 parse_classname ()
 {
   struct sym *last_class = NULL;
-  
+
   while (LOOKING_AT (IDENT))
     {
       last_class = add_sym (yytext, last_class);
@@ -2890,10 +2890,10 @@ parse_classname ()
           skip_matching ();
           SET_FLAG (last_class->flags, F_TEMPLATE);
         }
-      
+
       if (!LOOKING_AT (DCOLON))
         break;
-      
+
       MATCH ();
     }
 
@@ -2913,7 +2913,7 @@ operator_name (sc)
   static char *id = NULL;
   char *s;
   int len;
-  
+
   MATCH ();
 
   if (LOOKING_AT2 (NEW, DELETE))
@@ -2924,7 +2924,7 @@ operator_name (sc)
 
       s = token_string (LA1);
       MATCH ();
-      
+
       len = strlen (s) + 10;
       if (len > id_size)
 	{
@@ -2939,7 +2939,7 @@ operator_name (sc)
 	{
 	  strcat (id, "[");
 	  MATCH ();
-	  
+
 	  if (LOOKING_AT (']'))
 	    {
 	      strcat (id, "]");
@@ -3004,7 +3004,7 @@ parse_qualified_ident_or_type (last_id)
   char *id = NULL;
   size_t id_size = 0;
   int enter = 0;
-  
+
   while (LOOKING_AT (IDENT))
     {
       int len = strlen (yytext) + 1;
@@ -3120,7 +3120,7 @@ class_definition (containing, tag, flags, nested)
      settings.  */
   if ((tag != CLASS && !f_structs) || (nested && !f_nested_classes))
     current = NULL;
-  else 
+  else
     {
       current = add_sym (yytext, containing);
       current->pos = BUFFER_POS ();
@@ -3139,7 +3139,7 @@ class_definition (containing, tag, flags, nested)
         {
           switch (LA1)
             {
-            case VIRTUAL: case PUBLIC: case PROTECTED: case PRIVATE: 
+            case VIRTUAL: case PUBLIC: case PROTECTED: case PRIVATE:
               MATCH ();
               break;
 
@@ -3233,7 +3233,7 @@ declaration (flags)
           sc = SC_TYPE;
           MATCH ();
           break;
-          
+
         case STATIC:
           sc = SC_STATIC;
           MATCH ();
@@ -3361,7 +3361,7 @@ declaration (flags)
           else
             add_global_defn (id, regexp, pos, 0, 1, sc, flags);
         }
-        
+
       MATCH ();
       print_info ();
     }
@@ -3399,7 +3399,7 @@ globals (start_flags)
   for (;;)
     {
       char *prev_in = in;
-      
+
       switch (LA1)
         {
         case NAMESPACE:
@@ -3410,13 +3410,13 @@ globals (start_flags)
               {
                 char *namespace_name = xstrdup (yytext);
                 MATCH ();
-                
+
                 if (LOOKING_AT ('='))
                   {
 		    struct link *qna = match_qualified_namespace_alias ();
 		    if (qna)
                       register_namespace_alias (namespace_name, qna);
-		      
+
                     if (skip_to (';') == ';')
                       MATCH ();
                   }
@@ -3441,7 +3441,7 @@ globals (start_flags)
             {
               /* This is `extern "C"'.  */
               MATCH ();
-              
+
               if (LOOKING_AT ('{'))
                 {
                   MATCH ();
@@ -3452,7 +3452,7 @@ globals (start_flags)
                 SET_FLAG (flags, F_EXTERNC);
             }
           break;
-          
+
         case TEMPLATE:
           MATCH ();
           SKIP_MATCHING_IF ('<');
@@ -3492,7 +3492,7 @@ globals (start_flags)
 
         case '}':
           return 0;
-          
+
         default:
           declaration (flags);
           flags = start_flags;
@@ -3531,10 +3531,10 @@ add_search_path (path_list)
     {
       char *start = path_list;
       struct search_path *p;
-      
+
       while (*path_list && *path_list != PATH_LIST_SEPARATOR)
         ++path_list;
-      
+
       p = (struct search_path *) xmalloc (sizeof *p);
       p->path = (char *) xmalloc (path_list - start + 1);
       memcpy (p->path, start, path_list - start);
@@ -3568,7 +3568,7 @@ open_file (file)
   static int buffer_size;
   struct search_path *path;
   int flen = strlen (file) + 1;	/* +1 for the slash */
-  
+
   filename = xstrdup (file);
 
   for (path = search_path; path && fp == NULL; path = path->next)
@@ -3580,20 +3580,20 @@ open_file (file)
 	  buffer_size = max (len + 1, 2 * buffer_size);
 	  buffer = (char *) xrealloc (buffer, buffer_size);
 	}
-	
+
       strcpy (buffer, path->path);
       strcat (buffer, "/");
       strcat (buffer, file);
       fp = fopen (buffer, "r");
     }
-  
+
   /* Try the original file name.  */
   if (fp == NULL)
      fp = fopen (file, "r");
 
   if (fp == NULL)
     yyerror ("cannot open", NULL);
-  
+
   return fp;
 }
 
@@ -3624,7 +3624,7 @@ usage (error)
      int error;
 {
   puts (USAGE);
-  exit (error ? 1 : 0);
+  exit (error ? EXIT_FAILURE : EXIT_SUCCESS);
 }
 
 
@@ -3641,7 +3641,7 @@ version ()
   printf ("ebrowse %s\n", VERSION);
   puts ("Copyright (C) 1992-1999, 2000, 2001 Free Software Foundation, Inc.");
   puts ("This program is distributed under the same terms as Emacs.");
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 
@@ -3653,10 +3653,10 @@ process_file (file)
      char *file;
 {
   FILE *fp;
-  
+
   fp = open_file (file);
   if (fp)
-    {      
+    {
       int nread, nbytes;
 
       /* Give a progress indication if needed.  */
@@ -3679,7 +3679,7 @@ process_file (file)
 	      inbuffer_size = nread + READ_CHUNK_SIZE + 1;
 	      inbuffer = (char *) xrealloc (inbuffer, inbuffer_size);
 	    }
-	  
+
 	  nbytes = fread (inbuffer + nread, 1, READ_CHUNK_SIZE, fp);
 	  if (nbytes <= 0)
 	    break;
@@ -3722,10 +3722,10 @@ read_line (fp)
 
       buffer[i++] = c;
     }
-  
+
   if (c == EOF && i == 0)
     return NULL;
-  
+
   if (i == buffer_size)
     {
       buffer_size = max (100, buffer_size * 2);
@@ -3765,7 +3765,7 @@ main (argc, argv)
 	case 'p':
 	  info_position = atoi (optarg);
 	  break;
-	  
+
         case 'n':
           f_nested_classes = 0;
           break;
@@ -3773,7 +3773,7 @@ main (argc, argv)
         case 'x':
           f_regexps = 0;
           break;
-        
+
           /* Add the name of a file containing more input files.  */
         case 'f':
 	  if (n_input_files == input_filenames_size)
@@ -3870,15 +3870,15 @@ main (argc, argv)
 	    yyerror ("error getting size of file `%s'", out_filename);
 	  else if (rc == 0)
 	    yyerror ("file `%s' is empty", out_filename);
-	  
+
 	  fclose (fp);
 	}
-      
+
       yyout = fopen (out_filename, f_append ? "a" : "w");
       if (yyout == NULL)
 	{
 	  yyerror ("cannot open output file `%s'", out_filename);
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	}
     }
 
@@ -3903,7 +3903,7 @@ main (argc, argv)
       for (i = 0; i < n_input_files; ++i)
         {
           FILE *fp = fopen (input_filenames[i], "r");
-          
+
           if (fp == NULL)
             yyerror ("cannot open input file `%s'", input_filenames[i]);
           else
@@ -3923,8 +3923,7 @@ main (argc, argv)
   if (yyout != stdout)
     fclose (yyout);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
-
 
 /* ebrowse.c ends here.  */

@@ -1,3 +1,13 @@
+2004-05-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* cvtmail.c: Throughout, replace 0 destined for `exit' arg
+	with `EXIT_SUCCESS'.  Likewise, replace 1 with `EXIT_FAILURE'.
+	(main): Use `EXIT_SUCCESS' or `EXIT_FAILURE' for return value.
+
+	* ebrowse.c, emacsclient.c, emacsserver.c, fakemail.c,
+	hexl.c, make-docfile.c, movemail.c, profile.c, sorted-doc.c,
+	test-distrib.c, yow.c: Likewise.
+
 2004-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* etags.c: [VMS] Include lib$routines.h.

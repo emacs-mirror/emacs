@@ -55,7 +55,7 @@ char *
 get_time ()
 {
   if (watch_not_started)
-    exit (1);  /* call reset_watch first ! */
+    exit (EXIT_FAILURE);  /* call reset_watch first ! */
   EMACS_GET_TIME (TV2);
   EMACS_SUB_TIME (TV2, TV2, TV1);
   sprintf (time_string, "%lu.%06lu", (unsigned long)EMACS_SECS (TV2), (unsigned long)EMACS_USECS (TV2));
@@ -94,13 +94,13 @@ main ()
 	  puts (get_time ());
 	  break;
 	case 'q':
-	  exit (0);
+	  exit (EXIT_SUCCESS);
 	}
       /* Anything remaining on the line is ignored.  */
       while (c != '\n' && c != EOF)
 	c = getchar ();
     }
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 /* profile.c ends here */
