@@ -88,7 +88,7 @@ These supercede the values given in default-screen-alist.")
 
 	;; If there was none, then we need to create the opening screen.
 	(or screens
-	    (setq global-minibuffer-screen
+	    (setq default-minibuffer-screen
 		  (setq screen-initial-screen
 			(new-screen initial-screen-alist))))
     
@@ -119,8 +119,10 @@ These supercede the values given in default-screen-alist.")
 			 '(minibuffer . t)))
 		     'only)
 	    (progn
-	      (setq global-minibuffer-screen
-		    (new-screen initial-screen-alist))
+	      (setq default-minibuffer-screen
+		    (new-screen
+		     (append initial-screen-alist
+			     (screen-parameters screen-initial-screen))))
 	      (delete-screen screen-initial-screen))
 	  (modify-screen-parameters screen-initial-screen
 				    initial-screen-alist))))
