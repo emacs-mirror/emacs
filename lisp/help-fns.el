@@ -63,16 +63,34 @@ With arg, you are asked to choose which language."
       (goto-char (point-min))
       (search-forward "\n<<")
       (beginning-of-line)
-      (delete-region (point) (progn (end-of-line) (point)))
+      ;; Convert the <<...>> line to the proper [...] line,
+      ;; or just delete the <<...>> line if a [...] line follows.
+      (cond ((save-excursion
+	       (forward-line 1)
+	       (looking-at "\\["))
+	     (delete-region (point) (progn (forward-line 1) (point))))
+	    ((looking-at "<<Blank lines inserted.*>>")
+	     (replace-match "[Middle of page left blank for didactic purposes.   Text continues below]"))
+	    (t
+	     (looking-at "<<")
+	     (replace-match "[")
+	     (search-forward ">>")
+	     (replace-match "]")))
+      (beginning-of-line)
       (let ((n (- (window-height (selected-window))
 		  (count-lines (point-min) (point))
 		  6)))
-	(if (< n 12)
-	    (newline n)
+	(if (< n 8)
+	    (progn
+	      ;; For a short gap, we don't need the [...] line,
+	      ;; so delete it.
+	      (delete-region (point) (progn (end-of-line) (point)))
+	      (newline n))
 	  ;; Some people get confused by the large gap.
 	  (newline (/ n 2))
-	  (insert "[Middle of page left blank for didactic purposes.  "
-		  "Text continues below]")
+	  
+	  ;; Skip the [...] line (don't delete it).
+	  (forward-line 1)
 	  (newline (- n (/ n 2)))))
       (goto-char (point-min))
       (set-buffer-modified-p nil))))
