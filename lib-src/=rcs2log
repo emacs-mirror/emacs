@@ -28,7 +28,7 @@ Options:
 
 Report bugs to <bug-gnu-emacs@prep.ai.mit.edu>.'
 
-Id='$Id: rcs2log,v 1.39 1997/05/11 18:43:55 eggert Exp eggert $'
+Id='$Id: rcs2log,v 1.40 1997/05/11 20:02:32 eggert Exp eggert $'
 
 # Copyright 1992, 1993, 1994, 1995, 1996, 1997 Free Software Foundation, Inc.
 
@@ -281,7 +281,9 @@ case $# in
 				case $file in
 				RCS/. | RCS/.. | RCS/,*, | RCS/*_) continue;;
 				RCS/.rcsfreeze.log | RCS/.rcsfreeze.ver) continue;;
-				RCS/.\* | RCS/\* | .\*,v | \*,v) test -f "$file" || continue
+				RCS/.\* | RCS/\* | .\*,v | \*,v) test -f "$file" || continue;;
+				RCS/*,v | RCS/.*,v) ;;
+				RCS/* | RCS/.*) test -f "$file" || continue
 				esac
 				case $files in
 				'') files=$file;;
