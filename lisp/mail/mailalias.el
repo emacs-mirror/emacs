@@ -146,10 +146,9 @@ By default, this is the file specified by `mail-personal-alias-file'."
 		   (beginning-of-line))
 		  (t (setq file nil))))
 	  (goto-char (point-min))
-	  (while (or (re-search-forward "^a\\(lias\\|\\)[ \t]+" nil t)
-		     (re-search-forward "^g\\(roup\\|\\)[ \t]+" nil t))
-	    (re-search-forward "[^ \t]+")
-	    (let* ((name (buffer-substring (match-beginning 0) (match-end 0)))
+	  (while (re-search-forward
+		  "^\\(a\\|alias\\|g\\|group\\)[ \t]+\\([^ \t]+\\)" nil t)
+	    (let* ((name (match-string 2))
 		   (start (progn (skip-chars-forward " \t") (point))))
 	      (end-of-line)
 	      (define-mail-alias
