@@ -1,3 +1,11 @@
+2001-03-16  Pavel Jan,Bm(Bk ml.  <Pavel@Janik.cz>
+
+	* quail/slovak.el ("slovak"): Delete translations of "q", "Q",
+	"=q", "+q", "=Q", and "+Q".
+	("slovak-prog-1"): Give t to the arg SHOW-LAYOUT.
+	("slovak-prog-2"): Likewise.
+	("slovak-prog-3"): Likewise.
+
 2001-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/latin-post.el ("finnish-keyboard"): Fix a typo.
