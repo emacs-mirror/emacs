@@ -2760,7 +2760,6 @@ specbind (symbol, value)
      Lisp_Object symbol, value;
 {
   Lisp_Object ovalue;
-  extern int keyword_symbols_constant_flag;
 
   CHECK_SYMBOL (symbol, 0);
   if (specpdl_ptr == specpdl + specpdl_size)
@@ -2773,7 +2772,6 @@ specbind (symbol, value)
       && !EQ (symbol, Qt)
       && !(XSYMBOL (symbol)->name->data[0] == ':'
 	   && EQ (XSYMBOL (symbol)->obarray, initial_obarray)
-	   && keyword_symbols_constant_flag
 	   && !EQ (value, symbol)))
     {
       specpdl_ptr->symbol = symbol;
