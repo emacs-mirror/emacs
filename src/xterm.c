@@ -2942,19 +2942,66 @@ x_draw_glyph_string_foreground (s)
 }
 
 
+#ifdef USE_X_TOOLKIT
+
+/* Allocate the color COLOR->pixel on the screen and display of
+   widget WIDGET in colormap CMAP.  If an exact match cannot be
+   allocated, try the nearest color available.  Value is non-zero
+   if successful.  This is called from lwlib.  */
+
+int
+x_alloc_nearest_color_for_widget (widget, cmap, color)
+     Widget widget;
+     Colormap cmap;
+     XColor *color;
+{
+  struct frame *f;
+  struct x_display_info *dpyinfo;
+  Lisp_Object tail, frame;
+  Widget parent;
+
+  dpyinfo = x_display_info_for_display (XtDisplay (widget));
+  
+  /* Find the top-level shell of the widget.  Note that this function
+     can be called when the widget is not yet realized, so XtWindow
+     (widget) == 0.  That's the reason we can't simply use
+     x_any_window_to_frame.  */
+  while (!XtIsTopLevelShell (widget))
+    widget = XtParent (widget);
+
+  /* Look for a frame with that top-level widget.  Allocate the color
+     on that frame to get the right gamma correction value.  */
+  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+    if (GC_FRAMEP (XCAR (tail))
+	&& (f = XFRAME (XCAR (tail)),
+	    (f->output_data.nothing != 1
+	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
+	&& f->output_data.x->widget == widget)
+      return x_alloc_nearest_color (f, cmap, color);
+
+  abort ();
+}
+
+#endif /* USE_X_TOOLKIT */
+
+
 /* Allocate the color COLOR->pixel on SCREEN of DISPLAY, colormap
    CMAP.  If an exact match can't be allocated, try the nearest color
    available.  Value is non-zero if successful.  Set *COLOR to the
    color allocated.  */
 
 int
-x_alloc_nearest_color (display, screen, cmap, color)
-     Display *display;
-     Screen *screen;
+x_alloc_nearest_color (f, cmap, color)
+     struct frame *f;
      Colormap cmap;
      XColor *color;
 {
-  int rc = XAllocColor (display, cmap, color);
+  Display *display = FRAME_X_DISPLAY (f);
+  Screen *screen = FRAME_X_SCREEN (f);
+  int rc;
+
+  gamma_correct (f, color);
+  rc = XAllocColor (display, cmap, color);
   if (rc == 0)
     {
       /* If we got to this point, the colormap is full, so we're going
@@ -3024,7 +3071,7 @@ x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
   new.blue = min (0xffff, factor * color.blue);
 
   /* Try to allocate the color.  */
-  success_p = x_alloc_nearest_color (display, FRAME_X_SCREEN (f), cmap, &new);
+  success_p = x_alloc_nearest_color (f, cmap, &new);
   if (success_p)
     {
       if (new.pixel == *pixel)
@@ -3044,8 +3091,7 @@ x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
 	  new.red = min (0xffff, delta + color.red);
 	  new.green = min (0xffff, delta + color.green);
 	  new.blue = min (0xffff, delta + color.blue);
-	  success_p = x_alloc_nearest_color (display, FRAME_X_SCREEN (f),
-					     cmap, &new);
+	  success_p = x_alloc_nearest_color (f, cmap, &new);
 	}
       else
 	success_p = 1;
@@ -5274,6 +5320,13 @@ expose_window (w, r)
   int y;
   int yb = window_text_bottom_y (w);
   int cursor_cleared_p;
+
+  /* If window is not yet fully initialized, do nothing.  This can
+     happen when toolkit scroll bars are used and a window is split.
+     Reconfiguring the scroll bar will generate an expose for a newly
+     created window.  */
+  if (w->current_matrix == NULL)
+    return;
 
   TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
 	  r->x, r->y, r->width, r->height));
@@ -7910,8 +7963,10 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
     {
+      BLOCK_INPUT;
       XClearArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		  left, top, width, height, False);
+      UNBLOCK_INPUT;
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height);
     }
   else
