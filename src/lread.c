@@ -1569,6 +1569,16 @@ read_list (flag, readcharfun)
 Lisp_Object Vobarray;
 Lisp_Object initial_obarray;
 
+/* oblookup stores the bucket number here, for the sake of Funintern.  */
+
+int oblookup_last_bucket_number;
+
+static int hash_string ();
+Lisp_Object oblookup ();
+
+/* Get an error if OBARRAY is not an obarray.
+   If it is one, return it.  */
+
 Lisp_Object
 check_obarray (obarray)
      Lisp_Object obarray;
@@ -1583,8 +1593,8 @@ check_obarray (obarray)
   return obarray;
 }
 
-static int hash_string ();
-Lisp_Object oblookup ();
+/* Intern the C string STR: return a symbol with that name,
+   interned in the current obarray.  */
 
 Lisp_Object
 intern (str)
@@ -1605,7 +1615,7 @@ intern (str)
 		   : make_string (str, len)),
 		  obarray);
 }
-
+
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
   "Return the canonical symbol whose name is STRING.\n\
 If there is none, one is created by this function and returned.\n\
@@ -1657,12 +1667,73 @@ it defaults to the value of `obarray'.")
     return tem;
   return Qnil;
 }
+
+DEFUN ("unintern", Funintern, Sunintern, 1, 2, 0,
+  "Delete the symbol named NAME, if any, from OBARRAY.\n\
+The value is t if a symbol was found and deleted, nil otherwise.\n\
+NAME may be a string or a symbol.  If it is a symbol, that symbol\n\
+is deleted, if it belongs to OBARRAY--no other symbol is deleted.\n\
+OBARRAY defaults to the value of the variable `obarray'.")
+  (name, obarray)
+     Lisp_Object name, obarray;
+{
+  register Lisp_Object string, tem;
+  int hash;
+
+  if (NILP (obarray)) obarray = Vobarray;
+  obarray = check_obarray (obarray);
+
+  if (SYMBOLP (name))
+    XSETSTRING (string, XSYMBOL (name)->name);
+  else
+    {
+      CHECK_STRING (name, 0);
+      string = name;
+    }
+
+  tem = oblookup (obarray, XSTRING (string)->data, XSTRING (string)->size);
+  if (INTEGERP (tem))
+    return Qnil;
+  /* If arg was a symbol, don't delete anything but that symbol itself.  */
+  if (SYMBOLP (name) && !EQ (name, tem))
+    return Qnil;
+
+  hash = oblookup_last_bucket_number;
+
+  if (EQ (XVECTOR (obarray)->contents[hash], tem))
+    XSETSYMBOL (XVECTOR (obarray)->contents[hash], XSYMBOL (tem)->next);
+  else
+    {
+      Lisp_Object tail, following;
+
+      for (tail = XVECTOR (obarray)->contents[hash];
+	   XSYMBOL (tail)->next;
+	   tail = following)
+	{
+	  XSETSYMBOL (following, XSYMBOL (tail)->next);
+	  if (EQ (following, tem))
+	    {
+	      XSYMBOL (tail)->next = XSYMBOL (following)->next;
+	      break;
+	    }
+	}
+    }
+
+  return Qt;
+}
+
+/* Return the symbol in OBARRAY whose names matches the string
+   of SIZE characters at PTR.  If there is no such symbol in OBARRAY,
+   return nil.
+
+   Also store the bucket number in oblookup_last_bucket_number.  */
 
 Lisp_Object
-oblookup (obarray, ptr, size)
+oblookup (obarray, ptr, size, hashp)
      Lisp_Object obarray;
      register char *ptr;
      register int size;
+     int *hashp;
 {
   int hash;
   int obsize;
@@ -1679,14 +1750,16 @@ oblookup (obarray, ptr, size)
   hash = hash_string (ptr, size);
   hash %= obsize;
   bucket = XVECTOR (obarray)->contents[hash];
+  oblookup_last_bucket_number = hash;
   if (XFASTINT (bucket) == 0)
     ;
   else if (!SYMBOLP (bucket))
     error ("Bad data in guts of obarray"); /* Like CADR error message */
-  else for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->next))
+  else
+    for (tail = bucket; ; XSETSYMBOL (tail, XSYMBOL (tail)->next))
       {
-	if (XSYMBOL (tail)->name->size == size &&
-	    !bcmp (XSYMBOL (tail)->name->data, ptr, size))
+	if (XSYMBOL (tail)->name->size == size
+	    && !bcmp (XSYMBOL (tail)->name->data, ptr, size))
 	  return tail;
 	else if (XSYMBOL (tail)->next == 0)
 	  break;
@@ -1713,7 +1786,7 @@ hash_string (ptr, len)
     }
   return hash & 07777777777;
 }
-
+
 void
 map_obarray (obarray, fn, arg)
      Lisp_Object obarray;
@@ -2028,6 +2101,7 @@ syms_of_lread ()
   defsubr (&Sread_from_string);
   defsubr (&Sintern);
   defsubr (&Sintern_soft);
+  defsubr (&Sunintern);
   defsubr (&Sload);
   defsubr (&Seval_buffer);
   defsubr (&Seval_region);
