@@ -1958,18 +1958,35 @@ wordify (string)
   o = XSTRING (val)->data;
   *o++ = '\\';
   *o++ = 'b';
+  prev_c = 0;
 
-  for (i = 0; i < STRING_BYTES (XSTRING (val)); i++)
-    if (SYNTAX (p[i]) == Sword)
-      *o++ = p[i];
-    else if (i > 0 && SYNTAX (p[i-1]) == Sword && --word_count)
-      {
-	*o++ = '\\';
-	*o++ = 'W';
-	*o++ = '\\';
-	*o++ = 'W';
-	*o++ = '*';
-      }
+  for (i = 0, i_byte = 0; i < len; )
+    {
+      int c;
+      int i_byte_orig = i_byte;
+      
+      if (STRING_MULTIBYTE (string))
+	FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+      else
+	c = XSTRING (string)->data[i++];
+
+      if (SYNTAX (c) == Sword)
+	{
+	  bcopy (&XSTRING (string)->data[i_byte_orig], o,
+		 i_byte - i_byte_orig);
+	  o += i_byte - i_byte_orig;
+	}
+      else if (i > 0 && SYNTAX (prev_c) == Sword && --word_count)
+	{
+	  *o++ = '\\';
+	  *o++ = 'W';
+	  *o++ = '\\';
+	  *o++ = 'W';
+	  *o++ = '*';
+	}
+
+      prev_c = c;
+    }
 
   *o++ = '\\';
   *o++ = 'b';
