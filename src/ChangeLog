@@ -1,6 +1,40 @@
+2003-05-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* window.c (Fselect_window): Add optional `norecord' arg.
+	(select_window_1): Fold into Fselect_window.
+	(select_window_norecord): New function.
+	(temp_output_buffer_show): Use it.  Preserve current buffer.
+
+	* window.h (Fselect_window): Update declaration.
+
+	* window.c (delete_window, Fother_window, Fset_window_configuration):
+	* minibuf.c (read_minibuf):
+	* macterm.c (x_new_focus_frame):
+	* frame.c (do_switch_frame, Fset_frame_selected_window, Fdelete_frame):
+	* callint.c (Fcall_interactively):
+	* xterm.c (x_new_focus_frame): Pass nil as new arg to Fselect_window.
+
+	* buffer.c (Fpop_to_buffer): Pass norecord to Fselect_window.
+
 2003-05-17  David Kastrup  <dak@gnu.org>
 
 	* process.c (read_process_output): Back out change from 2003-03-09.
+
+2003-05-17  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* editfns.c (get_pos_property): Don't assume that `object' = nil.
+
+	* textprop.c (text_property_stickiness): New arg `buffer'.
+
+	* intervals.h (text_property_stickiness): New arg `buffer'.
+	(get_pos_property): Declare.
+
+	* intervals.c (get_local_map): Use get_pos_property, to obey
+	stickiness and empty overlays.
+	(create_root_interval, graft_intervals_into_buffer): Use BEG.
+	(merge_properties, intervals_equal, merge_properties_sticky):
+	Use XCAR, XCDR.
+	(adjust_for_invis_intang): Pass new arg to text_property_stickiness.
 
 2003-05-17  Richard M. Stallman  <rms@gnu.org>
 
@@ -36,11 +70,10 @@
 
 	* alloc.c (Fgarbage_collect): Cast pointers into specpdl
 	to avoid GCC warning.
-	
+
 2003-05-16  Ralph Schleicher  <rs@nunatak.allgaeu.org>  (tiny change)
 
-	* fileio.c (Fdelete_file): Handle symlinks pointing to
-	directories.
+	* fileio.c (Fdelete_file): Handle symlinks pointing to directories.
 
 2003-05-15  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -66,7 +99,7 @@
 	* bytecode.c: Include window.h.
 	* emacs.c: Include window.h.
 
-	* keyboard.c (make_lispy_event): Apply modifiers to multibyte-char keys.
+	* keyboard.c (make_lispy_event): Apply modifiers to multibyte-char key.
 	(keyremap): Add `parent' field.
 	(keyremap_step): Use it.  Remove `parent' argument.
 	(read_key_sequence): Setup and use the new `parent' field.
