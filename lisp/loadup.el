@@ -148,18 +148,22 @@
 	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			     "-"
 			     (substring name (match-end 0)))))
-	(message "Dumping under names xemacs and %s" name))
+	(message "Dumping under names emacs and %s" name))
       (condition-case ()
-	  (delete-file "xemacs")
+	  (delete-file "emacs")
 	(file-error nil))
-      (dump-emacs "xemacs" "temacs")
+      ;; We used to dump under the name xemacs, but that occasionally
+      ;; confused people installing Emacs (they'd install the file
+      ;; under the name `xemacs'), and it's inconsistent with every
+      ;; other GNU product's build process.
+      (dump-emacs "emacs" "temacs")
       ;; Recompute NAME now, so that it isn't set when we dump.
       (let ((name (concat "emacs-" emacs-version)))
 	(while (string-match "[^-+_.a-zA-Z0-9]+" name)
 	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			     "-"
 			     (substring name (match-end 0)))))
-	(add-name-to-file "xemacs" name t))
+	(add-name-to-file "emacs" name t))
       (kill-emacs)))
 
 ;; Avoid error if user loads some more libraries now.
