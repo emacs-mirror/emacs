@@ -148,11 +148,8 @@ are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
 (defvar server-socket-name
-  (if (or (not (file-writable-p "~/"))
-	  (and (file-writable-p "/tmp/")
-	       (not (zerop (logand (file-modes "/tmp/") 512)))))
-      (format "/tmp/esrv%d-%s" (user-uid) (system-name))
-    (format "~/.emacs-server-%s" (system-name))))
+  (format "/tmp/esrv%d-%s" (user-uid)
+	  (substring (system-name) 0 (string-match "\\." (system-name)))))
 
 ;; If a *server* buffer exists,
 ;; write STRING to it for logging purposes.
