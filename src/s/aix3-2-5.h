@@ -26,3 +26,7 @@
 
 /* The character-composition stuff is broken in X11R5.  */
 #define X11R5_INHIBIT_I18N
+
+/* Bill Woodward <wpwood@austin.ibm.com> says:
+   libIM *must* precede libXm, to avoid getting aixLoadIM error messages.  */
+#define LIB_MOTIF -lIM -lXm
