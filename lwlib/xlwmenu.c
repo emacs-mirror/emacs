@@ -1327,28 +1327,21 @@ Start (w, ev, params, num_params)
   if (!mw->menu.popped_up)
     {
       menu_post_event = *ev;
-      next_release_must_exit = 0;
+      pop_up_menu (mw, ev);
     }
   else
-    /* If we push a button while the menu is posted semipermanently,
-       releasing the button should always pop the menu down.  */
-    next_release_must_exit = 1;
+    {
+      /* If we push a button while the menu is posted semipermanently,
+	 releasing the button should always pop the menu down.  */
+      next_release_must_exit = 1;
 
-  XtCallCallbackList ((Widget)mw, mw->menu.open, NULL);
-  
-  /* notes the absolute position of the menubar window */
-  mw->menu.windows [0].x = ev->xmotion.x_root - ev->xmotion.x;
-  mw->menu.windows [0].y = ev->xmotion.y_root - ev->xmotion.y;
+      /* notes the absolute position of the menubar window */
+      mw->menu.windows [0].x = ev->xmotion.x_root - ev->xmotion.x;
+      mw->menu.windows [0].y = ev->xmotion.y_root - ev->xmotion.y;
 
-  /* handles the down like a move, slots are compatible */
-  handle_motion_event (mw, &ev->xmotion);
-  XtGrabPointer ((Widget)mw, False,
-		 (PointerMotionMask | PointerMotionHintMask
-		  | ButtonReleaseMask | ButtonPressMask),
-		 GrabModeAsync, GrabModeAsync, None,
-		 mw->menu.cursor_shape,
-		 ((XButtonPressedEvent *)ev)->time);
-  pointer_grabbed = 1;
+      /* handles the down like a move, slots are compatible */
+      handle_motion_event (mw, &ev->xmotion);
+    }
 }
 
 static void 
@@ -1390,12 +1383,17 @@ Select (w, ev, params, num_params)
     {
       mw->menu.popped_up = False;
       XtUngrabPointer ((Widget)mw, ev->xmotion.time);
-      XtPopdown (XtParent (mw));
+      if (XtIsShell (XtParent (mw)))
+	XtPopdown (XtParent (mw));
+      else
+	{
+	  XtRemoveGrab ((Widget) mw);
+	  display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
+	}
     }
 
   /* callback */
   XtCallCallbackList ((Widget)mw, mw->menu.select, (XtPointer)selected_item);
-  
 }
 
 
@@ -1416,7 +1414,8 @@ pop_up_menu (mw, event)
 
   XtCallCallbackList ((Widget)mw, mw->menu.open, NULL);
 
-  size_menu (mw, 0);
+  if (XtIsShell (XtParent (mw)))
+    size_menu (mw, 0);
 
   w = mw->menu.windows [0].width;
   h = mw->menu.windows [0].height;
@@ -1433,10 +1432,26 @@ pop_up_menu (mw, event)
     y = HeightOfScreen (screen) - h - 2 * borderwidth;
 
   mw->menu.popped_up = True;
-  XtConfigureWidget (XtParent (mw), x, y, w, h,
-		     XtParent (mw)->core.border_width);
-  XtPopup (XtParent (mw), XtGrabExclusive);
-  display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
+  if (XtIsShell (XtParent (mw)))
+    {
+      XtConfigureWidget (XtParent (mw), x, y, w, h,
+			 XtParent (mw)->core.border_width);
+      XtPopup (XtParent (mw), XtGrabExclusive);
+      display_menu (mw, 0, False, NULL, NULL, NULL, NULL, NULL);
+      mw->menu.windows [0].x = x + borderwidth;
+      mw->menu.windows [0].y = y + borderwidth;
+    }
+  else
+    {
+      XEvent *ev = (XEvent *) event;
+
+      XtAddGrab ((Widget) mw, True, True);
+
+      /* notes the absolute position of the menubar window */
+      mw->menu.windows [0].x = ev->xmotion.x_root - ev->xmotion.x;
+      mw->menu.windows [0].y = ev->xmotion.y_root - ev->xmotion.y;
+    }
+
 #ifdef emacs
   x_catch_errors ();
 #endif
@@ -1454,9 +1469,6 @@ pop_up_menu (mw, event)
     }
   x_uncatch_errors ();
 #endif
-
-  mw->menu.windows [0].x = x + borderwidth;
-  mw->menu.windows [0].y = y + borderwidth;
 
   handle_motion_event (mw, (XMotionEvent*)event);
 }
