@@ -29,7 +29,7 @@
 ;;; Code:
 
 (defcustom only-global-abbrevs nil
-  "*t means user plans to use global abbrevs only.
+  "Non-nil means user plans to use global abbrevs only.
 This makes the commands that normally define mode-specific abbrevs
 define global abbrevs instead."
   :type 'boolean
@@ -59,13 +59,12 @@ to enable or disable Abbrev mode in the current buffer."
   :group 'abbrev-mode)
 
 
-(defvar edit-abbrevs-map nil
+(defvar edit-abbrevs-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-x\C-s" 'edit-abbrevs-redefine)
+    (define-key map "\C-c\C-c" 'edit-abbrevs-redefine)
+    map)
   "Keymap used in `edit-abbrevs'.")
-(if edit-abbrevs-map
-    nil
-  (setq edit-abbrevs-map (make-sparse-keymap))
-  (define-key edit-abbrevs-map "\C-x\C-s" 'edit-abbrevs-redefine)
-  (define-key edit-abbrevs-map "\C-c\C-c" 'edit-abbrevs-redefine))
 
 (defun kill-all-abbrevs ()
   "Undefine all defined abbrevs."
@@ -195,7 +194,7 @@ Optional second argument QUIETLY non-nil means don't display a message."
   (setq abbrevs-changed nil))
 
 (defun quietly-read-abbrev-file (&optional file)
-  "Read abbrev definitions from file written with write-abbrev-file.
+  "Read abbrev definitions from file written with `write-abbrev-file'.
 Optional argument FILE is the name of the file to read;
 it defaults to the value of `abbrev-file-name'.
 Does not display any message."
