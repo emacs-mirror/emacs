@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.101) $
+ * $HopeName: MMsrc!mpm.h(trunk.102) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -221,11 +221,11 @@ extern void (RingRemove)(Ring old);
 extern Ring (RingNext)(Ring ring);
 #define RingNext(ring)  ((ring)->next)
 
-/* .ring.elt: */
+/* .ring.elt: See design.mps.ring:elt */
 #define RING_ELT(type, field, node) \
    ((type)((char *)(node) - (size_t)(&((type)0)->field)))
 
-/* .ring.for: Robust to permit deletion  */
+/* .ring.for: See design.mps.ring:for */
 #define RING_FOR(node, ring, next)                              \
   for(node = RingNext(ring), next = RingNext(node);             \
       node != (ring) ;                                          \
@@ -459,12 +459,13 @@ extern Bool TraceCheck(Trace trace);
 extern Res TraceCreate(Trace *traceReturn, Space space);
 extern Res TraceAddWhite(Trace trace, Seg seg);
 extern Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet);
-extern Res TraceStart(Trace trace, double mortality, double finishingTime);
-extern Res TraceFlip(Trace trace);
+extern void TraceStart(Trace trace, double mortality, double finishingTime);
 extern void TraceDestroy(Trace trace);
 extern Res TraceStep(Trace trace);
 extern void TracePoll(Trace trace);
 extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
+extern void TraceScan(TraceScanMethod method, TraceSet ts, Rank rank,
+                      Arena arena, void *p, unsigned long l);
 
 extern Res TraceFix(ScanState ss, Ref *refIO);
 extern Res TraceFixEmergency(ScanState ss, Ref *refIO);
@@ -532,8 +533,12 @@ extern Res TraceScanAreaTagged(ScanState ss,
                                Addr *base, Addr *limit);
 extern Res TraceScanAreaMasked(ScanState ss,
                                Addr *base, Addr *limit, Word mask);
-extern Res TraceScanSingleRef(TraceSet ts, Arena arena, 
-                              Seg seg, Rank rank, Ref *refIO);
+extern Res TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
+                              void *p, unsigned long l);
+extern void
+  TraceScanSingleRefClosureInit(TraceScanSingleRefClosureStruct *closure,
+                                Seg seg, Ref *refLocation);
+extern void TraceScanSingleRefClosureFinish(TraceScanSingleRefClosure closure);
 
 
 /* Action Interface -- see design.mps.action */

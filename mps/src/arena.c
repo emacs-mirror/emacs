@@ -1,6 +1,6 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.53) $
+ * $HopeName: MMsrc!arena.c(trunk.54) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.53) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.54) $");
 
 
 /* Forward declarations */
@@ -998,15 +998,12 @@ Res ArenaCollect(Arena arena)
     }
   }
  
-  res = TraceStart(trace, 0.0, 0.0);
-  if(res != ResOK)
-    goto failStart;
+  TraceStart(trace, 0.0, 0.0);
  
   ArenaPark(arena);
  
   return ResOK;
  
-failStart:
 failAddWhite:
   NOTREACHED; /* @@@@ Would leave white sets inconsistent. */
 failBegin:
@@ -1692,7 +1689,7 @@ Ref ArenaRead(Arena arena, Addr addr)
 {
   Bool b;
   Seg seg;
-  Res res;
+  TraceScanSingleRefClosureStruct closure;
 
   AVERT(Arena, arena);
   
@@ -1707,13 +1704,13 @@ Ref ArenaRead(Arena arena, Addr addr)
   /* it somewhere after having read it) references that are white. */
   AVER(TraceSetSub(SegWhite(seg), arena->flippedTraces));
 
+  TraceScanSingleRefClosureInit(&closure, seg, (Ref *)addr);
   /* .read.conservative: @@@@ Should scan at rank phase-of-trace, */
   /* not RankEXACT which is conservative.  See also */
   /* impl.c.trace.scan.conservative for a similar nasty. */
-  res = TraceScanSingleRef(arena->flippedTraces,
-                           arena, seg,
-                           RankEXACT, (Ref *)addr);
-  AVER(res == ResOK);    /* @@@@ We shouldn't assume that this succeeds */
+  TraceScan(TraceScanSingleRef, arena->flippedTraces, RankEXACT,
+                                arena, &closure, 0);
+  TraceScanSingleRefClosureFinish(&closure);
   /* get the possibly fixed reference */
   return ArenaPeekSeg(arena, seg, addr);
 }

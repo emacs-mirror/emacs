@@ -1,16 +1,15 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.76) $
+ * $HopeName: MMsrc!trace.c(trunk.77) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
  */
 
 #include "mpm.h"
-#include <limits.h>
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.76) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.77) $");
 
 
 /* Types
@@ -54,7 +53,7 @@ Bool ScanStateCheck(ScanState ss)
 /* ScanStateInit -- Initialize a ScanState object */
 
 void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
-                          Rank rank, RefSet white)
+                   Rank rank, RefSet white)
 {
   TraceId ti;
 
@@ -177,11 +176,13 @@ static void TraceUpdateCounts(Trace trace, ScanState ss,
   case TraceAccountingPhaseRootScan:
     trace->rootScanSize += ss->scannedSize;
     trace->rootCopiedSize += ss->copiedSize;
+    ++trace->rootScanCount;
     break;
 
   case TraceAccountingPhaseSegScan:
     trace->segScanSize += ss->scannedSize;
     trace->segCopiedSize += ss->copiedSize;
+    ++trace->segScanCount;
     break;
 
   case TraceAccountingPhaseSingleScan:
@@ -198,6 +199,25 @@ static void TraceUpdateCounts(Trace trace, ScanState ss,
   trace->nailCount += ss->nailCount;
   trace->snapCount += ss->snapCount;
   trace->forwardCount += ss->forwardCount;
+
+  return;
+}
+
+static void TraceSetUpdateCounts(TraceSet ts, Arena arena,
+                                 ScanState ss,
+                                 TraceAccountingPhase phase)
+{
+  TraceId ti;
+
+  for(ti = 0; ti < TRACE_MAX; ++ti) {
+    if(TraceSetIsMember(ts, ti)) {
+      Trace trace = ArenaTrace(arena, ti);
+
+      TraceUpdateCounts(trace, ss, phase);
+    }
+  }
+
+  return;
 }
 
 
@@ -220,6 +240,39 @@ Serial AMCGenFinal = 0; /* default: no final generation */
 
 double TraceGen0IncrementalityMultiple = 0.5;
 double TraceMortalityEstimate = 0.5;
+
+
+/* Calls a scanner.
+ *
+ * If the call fails then the traces are put into emergency mode
+ * and the call is tried again */
+void TraceScan(TraceScanMethod scanner, TraceSet ts, Rank rank,
+               Arena arena, void *p, unsigned long l)
+{
+  Res res;
+
+  AVER(FUNCHECK(scanner));
+  AVER(TraceSetCheck(ts));
+  AVERT(Arena, arena);
+  AVER(RankCheck(rank));
+  /* p and l are arbitrary closures */
+
+  res = scanner(ts, rank, arena, p, l);
+  if(res != ResOK) {
+    TraceId ti;
+    for(ti = 0; ti < TRACE_MAX; ++ti) {
+      if(TraceSetIsMember(ts, ti)) {
+	ArenaTrace(arena, ti)->emergency = TRUE;
+      }
+    }
+    res = scanner(ts, rank, arena, p, l);
+    /* should be OK now */
+  }
+  AVER(ResOK == res);
+
+  return;
+}
+    
 
 
 /* TraceAddWhite -- add a segment to the white set of a trace */
@@ -316,6 +369,213 @@ Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet)
 }
 
 
+/* TraceFlipBuffers -- flip all buffers in the arena */
+
+static void TraceFlipBuffers(Arena arena)
+{
+  Ring poolRing, poolNode, bufferRing, bufferNode;
+
+  AVERT(Arena, arena);
+
+  poolRing = ArenaPoolRing(arena);
+  poolNode = RingNext(poolRing);
+  while(poolNode != poolRing) {
+    Ring poolNext = RingNext(poolNode);
+    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
+
+    AVERT(Pool, pool);
+
+    bufferRing = &pool->bufferRing;
+    bufferNode = RingNext(bufferRing);
+    while(bufferNode != bufferRing) {
+      Ring bufferNext = RingNext(bufferNode);
+      Buffer buffer = RING_ELT(Buffer, poolRing, bufferNode);
+
+      AVERT(Buffer, buffer);
+
+      BufferFlip(buffer);
+
+      bufferNode = bufferNext;
+    }
+
+    poolNode = poolNext;
+  }
+}
+
+
+/* TraceSetWhiteUnion
+ *
+ * Returns a RefSet describing the union of the white sets
+ * of all the specified traces. */
+static RefSet TraceSetWhiteUnion(TraceSet ts, Arena arena)
+{
+  TraceId ti;
+  RefSet white = RefSetEMPTY;
+
+  /* static function used internally, no checking */
+
+  for(ti = 0; ti < TRACE_MAX; ++ti) {
+    if(TraceSetIsMember(ts, ti)) {
+      white = RefSetUnion(white, ArenaTrace(arena, ti)->white);
+    }
+  }
+
+  return white;
+}
+
+static Bool TraceScanRootClosureCheck(TraceScanRootClosure closure)
+{
+  CHECKS(TraceScanRootClosure, closure);
+  CHECKD(Root, closure->root);
+
+  return TRUE;
+}
+
+static void TraceScanRootClosureInit(TraceScanRootClosureStruct *closure,
+                                     Root root)
+{
+  AVER(closure != NULL);
+  AVERT(Root, root);
+
+  closure->root = root;
+  closure->sig = TraceScanRootClosureSig;
+
+  return;
+}
+
+static void TraceScanRootClosureFinish(TraceScanRootClosure closure)
+{
+  AVERT(TraceScanRootClosure, closure);
+
+  closure->sig = SigInvalid;
+
+  return;
+}
+
+static Res TraceScanRoot(TraceSet ts, Rank rank, Arena arena,
+                         void *p, unsigned long l)
+{
+  RefSet white;
+  Res res;
+  Root root;
+  ScanStateStruct ss;
+  TraceScanRootClosure closure;
+
+  AVER(TraceSetCheck(ts));
+  AVER(RankCheck(rank));
+  AVERT(Arena, arena);
+  AVER(p != NULL);
+  AVER(0 == l);
+
+  closure = p;
+  AVERT(TraceScanRootClosure, closure);
+  root = closure->root;
+
+  white = TraceSetWhiteUnion(ts, arena);
+
+  ScanStateInit(&ss, ts, arena, rank, white);
+
+  res = RootScan(&ss, root);
+
+  TraceSetUpdateCounts(ts, arena, &ss, TraceAccountingPhaseRootScan);
+
+  ScanStateFinish(&ss);
+
+  return res;
+}
+
+
+/* TraceFlip -- blacken the mutator */
+
+void TraceFlip(Trace trace)
+{
+  Ring node, nextNode;
+  Arena arena;
+  Rank rank;
+  TraceSet traceSingleton;
+
+  AVERT(Trace, trace);
+  traceSingleton = TraceSetSingle(trace->ti);
+
+  arena = trace->arena;
+  ShieldSuspend(arena);
+
+  AVER(trace->state == TraceUNFLIPPED);
+  AVER(!TraceSetIsMember(arena->flippedTraces, trace->ti));
+
+  EVENT_PP(TraceFlipBegin, trace, arena);
+
+  TraceFlipBuffers(arena);
+
+  /* Update location dependency structures. */
+  /* mayMove is a conservative approximation of the refset of refs */
+  /* which may move during this collection. */
+  if(trace->mayMove != RefSetEMPTY) {
+    LDAge(arena, trace->mayMove);
+  }
+
+  /* At the moment we must scan all roots, because we don't have */
+  /* a mechanism for shielding them.  There can't be any weak or */
+  /* final roots either, since we must protect these in order to */
+  /* avoid scanning them too early, before the pool contents. */
+
+  /* @@@@ This isn't correct if there are higher ranking roots than */
+  /* data in pools. */
+
+  for(rank = RankAMBIG; rank <= RankEXACT; ++rank) {
+    RING_FOR(node, ArenaRootRing(arena), nextNode) {
+      Root root = RING_ELT(Root, arenaRing, node);
+
+      AVER(RootRank(root) <= RankEXACT); /* see above */
+
+      if(RootRank(root) == rank) {
+        TraceScanRootClosureStruct closure;
+
+        TraceScanRootClosureInit(&closure, root);
+        TraceScan(TraceScanRoot, traceSingleton, rank, arena,
+	          &closure, 0);
+        TraceScanRootClosureFinish(&closure);
+      }
+    }
+  }
+
+  /* .flip.alloc: Allocation needs to become black now. While we flip */
+  /* at the start, we can get away with always allocating black. This */
+  /* needs to change when we flip later (i.e. have a read-barrier     */
+  /* collector), so that we allocate grey or white before the flip    */
+  /* and black afterwards. For instance, see                          */
+  /* design.mps.poolams.invariant.alloc.                              */
+
+  /* Now that the mutator is black we must prevent it from reading */
+  /* grey objects so that it can't obtain white pointers.  This is */
+  /* achieved by read protecting all segments containing objects */
+  /* which are grey for any of the flipped traces. */
+  for(rank = 0; rank < RankMAX; ++rank)
+    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
+      Seg seg = SegOfGreyRing(node);
+      if(TraceSetInter(SegGrey(seg),
+                       arena->flippedTraces) == TraceSetEMPTY &&
+         TraceSetIsMember(SegGrey(seg), trace->ti))
+        ShieldRaise(arena, seg, AccessREAD);
+    }
+
+  /* @@@@ When write barrier collection is implemented, this is where */
+  /* write protection should be removed for all segments which are */
+  /* no longer blacker than the mutator.  Possibly this can be done */
+  /* lazily as they are touched. */
+
+  /* Mark the trace as flipped. */
+  trace->state = TraceFLIPPED;
+  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
+
+  EVENT_PP(TraceFlipEnd, trace, arena);
+
+  ShieldResume(arena);
+
+  return;
+}
+
+
 /* TraceStart -- condemn a set of objects and start collection
  *
  * TraceStart should be passed a trace with state TraceINIT, i.e.,
@@ -330,12 +590,11 @@ Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet)
  * it easy to destroy traces half-way through.
  */
 
-Res TraceStart(Trace trace, double mortality, double finishingTime)
+void TraceStart(Trace trace, double mortality, double finishingTime)
 {
   Ring ring, node;
   Arena arena;
   Seg seg;
-  Res res;
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
@@ -408,11 +667,9 @@ Res TraceStart(Trace trace, double mortality, double finishingTime)
   trace->state = TraceUNFLIPPED;
 
   /* All traces must flip at beginning at the moment. */
-  res = TraceFlip(trace);
-  if(res != ResOK)
-    return res;
+  TraceFlip(trace);
 
-  return ResOK;
+  return;
 }
 
 
@@ -522,146 +779,6 @@ void TraceDestroy(Trace trace)
 }
 
 
-/* TraceFlipBuffers -- flip all buffers in the arena */
-
-static void TraceFlipBuffers(Arena arena)
-{
-  Ring poolRing, poolNode, bufferRing, bufferNode;
-
-  AVERT(Arena, arena);
-
-  poolRing = ArenaPoolRing(arena);
-  poolNode = RingNext(poolRing);
-  while(poolNode != poolRing) {
-    Ring poolNext = RingNext(poolNode);
-    Pool pool = RING_ELT(Pool, arenaRing, poolNode);
-
-    AVERT(Pool, pool);
-
-    bufferRing = &pool->bufferRing;
-    bufferNode = RingNext(bufferRing);
-    while(bufferNode != bufferRing) {
-      Ring bufferNext = RingNext(bufferNode);
-      Buffer buffer = RING_ELT(Buffer, poolRing, bufferNode);
-
-      AVERT(Buffer, buffer);
-
-      BufferFlip(buffer);
-
-      bufferNode = bufferNext;
-    }
-
-    poolNode = poolNext;
-  }
-}
-
-
-/* TraceFlip -- blacken the mutator */
-
-Res TraceFlip(Trace trace)
-{
-  Ring ring;
-  Ring node, nextNode;
-  Arena arena;
-  ScanStateStruct ss;
-  Rank rank;
-  Res res;
-
-  AVERT(Trace, trace);
-
-  arena = trace->arena;
-  ShieldSuspend(arena);
-
-  AVER(trace->state == TraceUNFLIPPED);
-  AVER(!TraceSetIsMember(arena->flippedTraces, trace->ti));
-
-  EVENT_PP(TraceFlipBegin, trace, arena);
-
-  TraceFlipBuffers(arena);
-
-  /* Update location dependency structures. */
-  /* mayMove is a conservative approximation of the refset of refs */
-  /* which may move during this collection. */
-  if(trace->mayMove != RefSetEMPTY) {
-    LDAge(arena, trace->mayMove);
-  }
-
-  /* At the moment we must scan all roots, because we don't have */
-  /* a mechanism for shielding them.  There can't be any weak or */
-  /* final roots either, since we must protect these in order to */
-  /* avoid scanning them too early, before the pool contents. */
-
-  /* @@@@ This isn't correct if there are higher ranking roots than */
-  /* data in pools. */
-
-  ScanStateInit(&ss, TraceSetSingle(trace->ti),
-                arena, RankAMBIG, trace->white);
-
-  for(ss.rank = RankAMBIG; ss.rank <= RankEXACT; ++ss.rank) {
-    ring = ArenaRootRing(arena);
-    node = RingNext(ring);
-
-    AVERT(ScanState, &ss);
-
-    while(node != ring) {
-      Ring next = RingNext(node);
-      Root root = RING_ELT(Root, arenaRing, node);
-
-      AVER(RootRank(root) <= RankEXACT); /* see above */
-
-      if(RootRank(root) == ss.rank) {
-        ScanStateSetSummary(&ss, RefSetEMPTY);
-        res = RootScan(&ss, root);
-        ++trace->rootScanCount;
-        if(res != ResOK) {
-          return res;
-        }
-      }
-
-      node = next;
-    }
-  }
-  TraceUpdateCounts(trace, &ss, TraceAccountingPhaseRootScan);
-
-  ScanStateFinish(&ss);
-
-  /* .flip.alloc: Allocation needs to become black now. While we flip */
-  /* at the start, we can get away with always allocating black. This */
-  /* needs to change when we flip later (i.e. have a read-barrier     */
-  /* collector), so that we allocate grey or white before the flip    */
-  /* and black afterwards. For instance, see                          */
-  /* design.mps.poolams.invariant.alloc.                              */
-
-  /* Now that the mutator is black we must prevent it from reading */
-  /* grey objects so that it can't obtain white pointers.  This is */
-  /* achieved by read protecting all segments containing objects */
-  /* which are grey for any of the flipped traces. */
-  for(rank = 0; rank < RankMAX; ++rank)
-    RING_FOR(node, ArenaGreyRing(arena, rank), nextNode) {
-      Seg seg = SegOfGreyRing(node);
-      if(TraceSetInter(SegGrey(seg),
-                       arena->flippedTraces) == TraceSetEMPTY &&
-         TraceSetIsMember(SegGrey(seg), trace->ti))
-        ShieldRaise(arena, seg, AccessREAD);
-    }
-
-  /* @@@@ When write barrier collection is implemented, this is where */
-  /* write protection should be removed for all segments which are */
-  /* no longer blacker than the mutator.  Possibly this can be done */
-  /* lazily as they are touched. */
-
-  /* Mark the trace as flipped. */
-  trace->state = TraceFLIPPED;
-  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
-
-  EVENT_PP(TraceFlipEnd, trace, arena);
-
-  ShieldResume(arena);
-
-  return ResOK;
-}
-
-
 static void TraceReclaim(Trace trace)
 {
   Arena arena;
@@ -702,6 +819,8 @@ static void TraceReclaim(Trace trace)
   }
 
   trace->state = TraceFINISHED;
+
+  return;
 }
 
 
@@ -783,8 +902,35 @@ RefSet ScanStateSummary(ScanState ss)
                        TraceSetDiff(ss->unfixedSummary, ss->white));
 }
 
+static Bool TraceScanSegClosureCheck(TraceScanSegClosure closure)
+{
+  CHECKS(TraceScanSegClosure, closure);
+  CHECKL(SegCheck(closure->seg));
 
-/* TraceScan -- scan a segment to remove greyness
+  return TRUE;
+}
+
+static void TraceScanSegClosureInit(TraceScanSegClosureStruct *closure,
+                                    Seg seg)
+{
+  AVER(closure != NULL);
+  AVERT(Seg, seg);
+
+  closure->seg = seg;
+  closure->sig = TraceScanSegClosureSig;
+
+  return;
+}
+
+static void TraceScanSegClosureFinish(TraceScanSegClosure closure)
+{
+  AVERT(TraceScanSegClosure, closure);
+  closure->sig = SigInvalid;
+  return;
+}
+
+
+/* TraceScanSeg -- scan a segment to remove greyness
  *
  * @@@@ During scanning, the segment should be write-shielded to
  * prevent any other threads from updating it while fix is being
@@ -792,27 +938,28 @@ RefSet ScanStateSummary(ScanState ss)
  * don't bother, because we know that all threads are suspended.
  */
 
-static Res TraceScan(TraceSet ts, Rank rank,
-                     Arena arena, Seg seg)
+static Res TraceScanSeg(TraceSet ts, Rank rank,
+                        Arena arena, void *p, unsigned long l)
 {
   Bool wasTotal;
   RefSet white;
   Res res;
-  ScanStateStruct ss;
-  TraceId ti;
+  Seg seg;
+  TraceScanSegClosure closure;
 
   AVER(TraceSetCheck(ts));
   AVER(RankCheck(rank));
-  AVERT(Seg, seg);
+  AVERT(Arena, arena);
+  closure = p;
+  AVERT(TraceScanSegClosure, closure);
+  seg = closure->seg;
+  AVER(0 == l);
 
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, SegGrey(seg)) != TraceSetEMPTY);
   EVENT_UUPPP(TraceScan, ts, rank, arena, seg, &ss);
 
-  white = RefSetEMPTY;
-  for(ti = 0; ti < TRACE_MAX; ++ti)
-    if(TraceSetIsMember(ts, ti))
-      white = RefSetUnion(white, ArenaTrace(arena, ti)->white);
+  white = TraceSetWhiteUnion(ts, arena);
 
   /* only scan a segment if it refers to the white set */
   if(RefSetInter(white, SegSummary(seg)) == RefSetEMPTY) { /* blacken it */
@@ -820,6 +967,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
     /* setup result code to return later */
     res = ResOK;
   } else {  /* scan it */
+    ScanStateStruct ss;
     ScanStateInit(&ss, ts, arena, rank, white);
 
     /* Expose the segment to make sure we can scan it. */
@@ -844,13 +992,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
       SegSetSummary(seg, ScanStateSummary(&ss));
     }
 
-    for(ti = 0; ti < TRACE_MAX; ++ti)
-      if(TraceSetIsMember(ts, ti)) {
-        Trace trace = ArenaTrace(arena, ti);
-
-        ++trace->segScanCount;
-	TraceUpdateCounts(trace, &ss, TraceAccountingPhaseSegScan);
-      }
+    TraceSetUpdateCounts(ts, arena, &ss, TraceAccountingPhaseSegScan);
     ScanStateFinish(&ss);
   }
 
@@ -866,7 +1008,6 @@ static Res TraceScan(TraceSet ts, Rank rank,
 
 void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 {
-  Res res;
   TraceId ti;
 
   AVERT(Arena, arena);
@@ -890,29 +1031,23 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
   if((mode & SegSM(seg) & AccessREAD) != 0) {     /* read barrier? */
     /* Pick set of traces to scan for: */
     TraceSet traces = arena->flippedTraces;
+    TraceScanSegClosureStruct closure;
+
+    TraceScanSegClosureInit(&closure, seg);
 
     /* .scan.conservative: At the moment we scan at RankEXACT.  Really */
     /* we should be scanning at the "phase" of the trace, which is the */
-    /* minimum rank of all grey segments. */
-    res = TraceScan(traces, RankEXACT, arena, seg);
-    if(res != ResOK) {
-      /* enter emergency tracing mode */
-      for(ti = 0; ti < TRACE_MAX; ++ti) {
-        if(TraceSetIsMember(traces, ti)) {
-	  ArenaTrace(arena, ti)->emergency = TRUE;
-	}
-      }
-      res = TraceScan(traces, RankEXACT, arena, seg);
-      AVER(res == ResOK);
-    }
+    /* minimum rank of all grey segments. (see request.mps.170160) */
+    TraceScan(TraceScanSeg, traces, RankEXACT, arena, &closure, 0);
+    TraceScanSegClosureFinish(&closure);
 
     /* The pool should've done the job of removing the greyness that */
     /* was causing the segment to be protected, so that the mutator */
     /* can go ahead and access it. */
-    AVER(TraceSetInter(SegGrey(seg), arena->flippedTraces) == TraceSetEMPTY);
+    AVER(TraceSetInter(SegGrey(seg), traces) == TraceSetEMPTY);
 
     for(ti = 0; ti < TRACE_MAX; ++ti)
-      if(TraceSetIsMember(arena->busyTraces, ti))
+      if(TraceSetIsMember(traces, ti))
         ++ArenaTrace(arena, ti)->faultCount;
   }
 
@@ -940,8 +1075,12 @@ static Res TraceRun(Trace trace)
   arena = trace->arena;
 
   if(traceFindGrey(&seg, &rank, arena, trace->ti)) {
+    TraceScanSegClosureStruct closure;
+    TraceScanSegClosureInit(&closure, seg);
     AVER((SegPool(seg)->class->attr & AttrSCAN) != 0);
-    res = TraceScan(TraceSetSingle(trace->ti), rank, arena, seg);
+    res = TraceScanSeg(TraceSetSingle(trace->ti), rank, arena,
+                       &closure, 0);
+    TraceScanSegClosureFinish(&closure);
     if(res != ResOK)
       return res;
   } else
@@ -1142,27 +1281,59 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
 }
 
 
-Res TraceScanSingleRef(TraceSet ts, Arena arena, 
-                       Seg seg, Rank rank, Ref *refIO)
+Bool TraceScanSingleRefClosureCheck(TraceScanSingleRefClosure closure)
 {
+  CHECKS(TraceScanSingleRefClosure, closure);
+  CHECKL(SegCheck(closure->seg));
+  CHECKL(closure->refLocation != NULL);
+  return TRUE;
+}
+
+void TraceScanSingleRefClosureInit(TraceScanSingleRefClosureStruct *closure,
+                                   Seg seg, Ref *refLocation)
+{
+  AVER(closure != NULL);
+  AVERT(Seg, seg);
+  AVER(refLocation != NULL);
+
+  closure->seg = seg;
+  closure->refLocation = refLocation;
+  closure->sig = TraceScanSingleRefClosureSig;
+
+  return;
+}
+
+void TraceScanSingleRefClosureFinish(TraceScanSingleRefClosure closure)
+{
+  AVERT(TraceScanSingleRefClosure, closure);
+
+  closure->sig = SigInvalid;
+  
+  return;
+}
+
+Res TraceScanSingleRef(TraceSet ts, Rank rank, Arena arena, 
+                       void *p, unsigned long l)
+{
+  Ref *refIO;
   RefSet summary;
   RefSet white;
-  ScanStateStruct ss;
-  TraceId ti;
   Res res;
+  ScanStateStruct ss;
+  Seg seg;
+  TraceScanSingleRefClosure closure;
 
   AVER(TraceSetCheck(ts));
-  AVERT(Arena, arena);
-  AVER(SegCheck(seg));
   AVER(RankCheck(rank));
-  AVER(refIO != NULL);
+  AVERT(Arena, arena);
+  AVER(p != NULL);
+  AVER(0 == l);
+  closure = p;
+  AVERT(TraceScanSingleRefClosure, closure);
+  seg = closure->seg;
+  refIO = closure->refLocation;
 
-  white = RefSetEMPTY;
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
-    if(TraceSetIsMember(ts, ti)) {
-      white = RefSetUnion(white, ArenaTrace(arena, ti)->white);
-    }
-  }
+  white = TraceSetWhiteUnion(ts, arena);
 
   if(RefSetInter(SegSummary(seg), white) == RefSetEMPTY) {
     return ResOK;
@@ -1181,12 +1352,9 @@ Res TraceScanSingleRef(TraceSet ts, Arena arena,
   SegSetSummary(seg, summary);
   ShieldCover(arena, seg);
 
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
-    if(TraceSetIsMember(ts, ti)) {
-      TraceUpdateCounts(ArenaTrace(arena, ti), &ss,
-                        TraceAccountingPhaseSingleScan);
-    }
-  }
+  TraceSetUpdateCounts(ts, arena, &ss, TraceAccountingPhaseSingleScan);
+  ScanStateFinish(&ss);
+
   return res;
 }
 
