@@ -211,6 +211,7 @@ variable is the symbol `default' the default behaviour is
 used (which currently is nil, unless you use a statistical
 spam.el test); if this variable is another non-nil value bodies
 will be downloaded."
+  :version "21.4"
   :group 'nnimap
   :type '(choice (const :tag "Let system decide" deault)
 		 boolean))
@@ -219,9 +220,10 @@ will be downloaded."
 
 (defcustom nnimap-close-asynchronous t
   "Close mailboxes asynchronously in `nnimap-close-group'.
-This means that errors cought by nnimap when closing the mailbox will
+This means that errors caught by nnimap when closing the mailbox will
 not prevent Gnus from updating the group status, which may be harmful.
 However, it increases speed."
+  :version "21.4"
   :type 'boolean
   :group 'nnimap)
 
@@ -230,6 +232,7 @@ However, it increases speed."
 This increases the speed of closing mailboxes (quiting group) but may
 decrease the speed of selecting another mailbox later.  Re-selecting
 the same mailbox will be faster though."
+  :version "21.4"
   :type 'boolean
   :group 'nnimap)
 
@@ -242,6 +245,7 @@ more carefully for new mail.
 
 In summary, the default is O((1-p)*k+p*n) and changing it to nil makes
 it O(n).  If p is small, then the default is probably faster."
+  :version "21.4"
   :type 'boolean
   :group 'nnimap)
 
@@ -812,9 +816,11 @@ function is generally only called when Gnus is shutting down."
   ;; BEWARE: we used to use string-as-multibyte here which is braindead
   ;; because it will turn accidental emacs-mule-valid byte sequences
   ;; into multibyte chars.  --Stef
-  (funcall (if (and (fboundp 'string-to-multibyte)
-		    (subrp (symbol-function 'string-to-multibyte)))
-	       'string-to-multibyte
+  ;; Reverted, braindead got 7.5 out of 10 on imdb, so it can't be
+  ;; that bad. --Simon
+  (funcall (if (and (fboundp 'string-as-multibyte)
+		    (subrp (symbol-function 'string-as-multibyte)))
+	       'string-as-multibyte
 	     'identity)
 	   (or string "")))
 

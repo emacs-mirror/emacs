@@ -282,7 +282,8 @@ location."
   "Major mode not specialized for anything in particular.
 Other major modes are defined by comparison with this one."
   (interactive)
-  (kill-all-local-variables))
+  (kill-all-local-variables)
+  (run-hooks 'after-change-major-mode-hook))
 
 ;; Making and deleting lines.
 

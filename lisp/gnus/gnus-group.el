@@ -435,6 +435,7 @@ For example:
 If non-nil, the value should be a string, e.g. \"nnml:\",
 in which case `gnus-group-jump-to-group' offers \"Group: nnml:\"
 in the minibuffer prompt."
+  :version "21.4"
   :group 'gnus-group-various
   :type '(choice (string :tag "Prompt string")
 		 (const :tag "Empty" nil)))
@@ -1959,12 +1960,14 @@ Same as `gnus-large-newsgroup', but only used for ephemeral newsgroups.
 If the number of articles in a newsgroup is greater than this value,
 confirmation is required for selecting the newsgroup.  If it is nil, no
 confirmation is required."
+  :version "21.4"
   :group 'gnus-group-select
   :type '(choice (const :tag "No limit" nil)
 		 integer))
 
 (defcustom gnus-fetch-old-ephemeral-headers nil
   "Same as `gnus-fetch-old-headers', but only used for ephemeral newsgroups."
+  :version "21.4"
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
 		 (const some)

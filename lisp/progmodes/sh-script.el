@@ -421,6 +421,7 @@ This is buffer-local in every such buffer.")
 	?^ "_"
 	?~ "_"
 	?, "_"
+	?= "."
 	?< "."
 	?> ".")
   "Default syntax table for shell mode.")

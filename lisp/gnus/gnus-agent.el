@@ -60,6 +60,7 @@
 
 (defcustom gnus-agent-fetched-hook nil
   "Hook run when finished fetching articles."
+  :version "21.4"
   :group 'gnus-agent
   :type 'hook)
 
@@ -125,7 +126,7 @@ If this is `ask' the hook will query the user."
 (defcustom gnus-agent-go-online 'ask
   "Indicate if offline servers go online when you plug in.
 If this is `ask' the hook will query the user."
-  :version "21.1"
+  :version "21.3"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))
@@ -178,6 +179,7 @@ enable expiration per categories, topics, and groups."
 Have gnus-agent-expire scan the directories under
 \(gnus-agent-directory) for groups that are no longer agentized.
 When found, offer to remove them."
+  :version "21.4"
   :type 'boolean
   :group 'gnus-agent)
 
@@ -185,6 +187,7 @@ When found, offer to remove them."
   "Initially, all servers from these methods are agentized.
 The user may remove or add servers using the Server buffer.
 See Info node `(gnus)Server Buffer'."
+  :version "21.4"
   :type '(repeat symbol)
   :group 'gnus-agent)
 

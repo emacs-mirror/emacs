@@ -5430,7 +5430,14 @@ Decimal digits after the % specify field width to which to pad.  */);
 
   DEFVAR_LISP_NOPRO ("default-major-mode", &buffer_defaults.major_mode,
 		     doc: /* *Major mode for new buffers.  Defaults to `fundamental-mode'.
-nil here means use current buffer's major mode.  */);
+nil here means use current buffer's major mode, provided it is not
+marked as "special".
+
+When a mode is used by default, `find-file' switches to it
+before it reads the contents into the buffer and before
+it finishes setting up the buffer.  Thus, the mode and
+its hooks should not expect certain variables such as
+`buffer-read-only' and `buffer-file-coding-system' to be set up.  */);
 
   DEFVAR_PER_BUFFER ("major-mode", &current_buffer->major_mode,
 		     make_number (Lisp_Symbol),

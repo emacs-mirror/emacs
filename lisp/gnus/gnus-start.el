@@ -47,6 +47,7 @@
   "Whether to create backup files.
 This variable takes the same values as the `version-control'
 variable."
+  :version "21.4"
   :group 'gnus-start
   :type '(choice (const :tag "Never" never)
 		 (const :tag "If existing" nil)
@@ -57,6 +58,7 @@ variable."
 the buffer or write directly to the file.  The buffer is faster
 because all of the contents are written at once.  The direct write
 uses considerably less memory."
+  :version "21.4"
   :group 'gnus-start
   :type '(choice (const :tag "Write via buffer" t)
                  (const :tag "Write directly to file" nil)))

@@ -1163,7 +1163,7 @@ Return the modified alist."
 Setting it to nil has no effect after the first time `gnus-byte-compile'
 is run."
   :type 'boolean
-  :version "21.1"
+  :version "21.4"
   :group 'gnus-various)
 
 (defun gnus-byte-compile (form)

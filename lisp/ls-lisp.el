@@ -534,7 +534,7 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	    " "
 	    (ls-lisp-format-time file-attr time-index now)
 	    " "
-	    file-name
+	    (propertize file-name 'dired-filename t)
 	    (if (stringp file-type)	; is a symbolic link
 		(concat " -> " file-type))
 	    "\n"

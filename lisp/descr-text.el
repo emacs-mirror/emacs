@@ -525,7 +525,8 @@ as well as widgets, buttons, overlays, and text properties."
 		    (push (format "%s;" (pop props)) ps))
 		  (list (cons "Properties" (nreverse ps)))))
 	    ("to input"
-	     ,@(let ((key-list (and current-input-method
+	     ,@(let ((key-list (and (eq input-method-function
+					'quail-input-method)
 				    (quail-find-key char))))
 		 (if (consp key-list)
 		     (list "type"

@@ -557,7 +557,7 @@ The command \\[yank] can retrieve it from there."
 	       (not (eq (cdr found) 'default)))
 	  (progn
 	    (if (eq (setq value (cdr (car v))) 'default)
-		(setq value (cdr (assq (car (car v)) calc-mode-var-list))))
+		(setq value (list (nth 1 (assq (car (car v)) calc-mode-var-list)))))
 	    (equal (symbol-value (car (car v))) value))
 	  (progn
 	    (setq changed t)

@@ -5,13 +5,13 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/07/20 21:44:43 vinicius>
+;; Time-stamp: <2004/09/21 22:51:58 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.8
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
 (defconst pr-version "6.8"
-  "printing.el, v 6.8 <2004/07/12 vinicius>
+  "printing.el, v 6.8 <2004/09/21 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -258,6 +258,17 @@ Please send all bug fixes and enhancements to
 ;;    Therefore, the printer `\\host\printer' is not a text printer, but a
 ;;    PostScript printer.  So, please, don't include this printer in
 ;;    `pr-txt-printer-alist' (which see).
+;;
+;; 5. Use gsprint instead of ghostscript to print monochrome PostScript files
+;;    in Windows.  The gsprint utility is faster than ghostscript to print
+;;    monochrome PostScript.
+;;
+;;    The efficiency is similar to print non-monochrome PostScript file.
+;;
+;;    Also the gsprint utility comes together with gsview distribution.
+;;
+;;    For more information about gsprint see
+;;    `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
 ;;
 ;;
 ;; Using `printing'
@@ -922,6 +933,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;;    gswin32, gsview32
 ;;                   `http://www.gnu.org/software/ghostscript/ghostscript.html'
+;;    gsprint        `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
 ;;    enscript       `http://people.ssh.fi/mtr/genscript/'
 ;;    psnup          `http://www.dcs.ed.ac.uk/home/ajcd/psutils/index.html'
 ;;    redmon         `http://www.cs.wisc.edu/~ghost/redmon/'
@@ -929,6 +941,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Acknowledgments
 ;; ---------------
+;;
+;; Thanks to Lennart Borgman <lennart.borgman.073@student.lu.se> for gsprint
+;; suggestion (see tip 5 in section Tips).
 ;;
 ;; Thanks to Drew Adams <drew.adams@oracle.com> for suggestions:
 ;;    - directory processing.

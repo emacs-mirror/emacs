@@ -1,3 +1,22 @@
+2004-09-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Display Custom): Remove stray `@end defvar'.
+
+2004-09-23  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Display Custom): Add `overflow-newline-into-fringe',
+	`indicate-buffer-boundaries' and `default-indicate-buffer-boundaries'.
+
+2004-09-20  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Hooks): Explain using setq to clear out a hook.
+	(File Variables): Explain multiline string constants.
+	(Non-ASCII Rebinding): Explain when you need to update
+	non-ASCII char codes in .emacs.
+
+	* building.texi (Compilation): Explain how to make a silent
+	subprocess that won't be terminated.  Explain compilation-environment.
+
 2004-09-13  Kim F. Storm  <storm@cua.dk>
 
 	* mini.texi (Repetition): Rename isearch-resume-enabled to

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2003, 2004
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/modes
@@ -103,6 +103,7 @@ Fundamental mode.  Rmail mode is a complicated and specialized mode.
 * Mode Help::               Finding out how to use a mode.
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
+* Mode Hooks::              Hooks run at the end of major mode functions.
 @end menu
 
 @node Major Mode Conventions
@@ -276,7 +277,7 @@ other packages would interfere with them.
 Each major mode should have a @dfn{mode hook} named
 @code{@var{modename}-mode-hook}.  The major mode command should run that
 hook, with @code{run-mode-hooks}, as the very last thing it
-does.  @xref{Hooks}.
+does.  @xref{Mode Hooks}.
 
 @item
 The major mode command may start by calling some other major mode
@@ -284,9 +285,11 @@ command (called the @dfn{parent mode}) and then alter some of its
 settings.  A mode that does this is called a @dfn{derived mode}.  The
 recommended way to define one is to use @code{define-derived-mode},
 but this is not required.  Such a mode should use
-@code{delay-mode-hooks} around its entire body, including the call to
-the parent mode command and the final call to @code{run-mode-hooks}.
-(Using @code{define-derived-mode} does this automatically.)
+@code{delay-mode-hooks} around its entire body (including the call to
+the parent mode command) @emph{except} for the final call to
+@code{run-mode-hooks}, which runs the derived mode's hook.  (Using
+@code{define-derived-mode} does this automatically.)  @xref{Derived
+Modes}, and @ref{Mode Hooks}.
 
 @item
 If something special should be done if the user switches a buffer from
@@ -575,7 +578,7 @@ visited.  It also processes local variables specified in the file text.
 in particular.  Other major modes are defined in effect by comparison
 with this one---their definitions say what to change, starting from
 Fundamental mode.  The @code{fundamental-mode} function does @emph{not}
-run any hooks; you're not supposed to customize it.  (If you want Emacs
+run any mode hooks; you're not supposed to customize it.  (If you want Emacs
 to behave differently in Fundamental mode, change the @emph{global}
 state of Emacs.)
 @end deffn
@@ -807,6 +810,58 @@ Here is a hypothetical example:
 Do not write an @code{interactive} spec in the definition;
 @code{define-derived-mode} does that automatically.
 @end defmac
+
+@node Mode Hooks
+@subsection Mode Hooks
+
+The two last things a major mode function does is to run its mode
+hook and finally the mode independent normal hook
+@code{after-change-major-mode-hook}.  If the major mode is a derived
+mode, that is if it calls another major mode (the parent mode) in its
+body, then the parent's mode hook is run just before the derived
+mode's hook.  Neither the parent's mode hook nor
+@code{after-change-major-mode-hook} are run at the end of the actual
+call to the parent mode.  This applies recursively if the parent mode
+has itself a parent.  That is, the mode hooks of all major modes called
+directly or indirectly by the major mode function are all run in
+sequence at the end, just before @code{after-change-major-mode-hook}.
+
+If you are customizing a major mode, rather than defining one, the
+above is all you need to know about the hooks run at the end of a
+major mode.  This also applies if you use @code{define-derived-mode}
+to define a major mode, because that macro will automatically
+implement the above for you.
+
+Programmers wishing to define a major mode without using
+@code{define-derived-mode}, should make sure that their major mode
+follows the above conventions.  @xref{Major Mode Conventions}, for how
+this should be accomplished.  Below, we give some implementation
+details.
+
+@defun run-mode-hooks &rest hookvars
+Major modes should run their mode hook using this function.  It is
+similar to @code{run-hooks} (@pxref{Hooks}), but if run inside a
+@code{delay-mode-hooks} form, this function does not run any hooks.
+Instead, it arranges for @var{hookvars} to be run at a later call to
+the function.  Otherwise, @code{run-mode-hooks} runs any delayed hooks
+in order, then @var{hookvars} and finally
+@code{after-change-major-mode-hook}.
+@end defun
+
+@defmac delay-mode-hooks body...
+This macro executes @var{body} like @code{progn}, but all calls to
+@code{run-mode-hooks} inside @var{body} delay running their hooks.
+They will be run by the first call to @code{run-mode-hooks} after exit
+from @code{delay-mode-hooks}.
+@end defmac
+
+@defvar after-change-major-mode-hook
+Every major mode function should run this normal hook at its very end.
+It normally does not need to do so explicitly.  Indeed, a major mode
+function should normally run its mode hook with @code{run-mode-hooks}
+as the very last thing it does and @code{run-mode-hooks} runs
+@code{after-change-major-mode-hook} at its very end.
+@end defvar
 
 @node Minor Modes
 @section Minor Modes
@@ -2087,7 +2142,7 @@ if there is no subexpression numbered @var{subexp} in @var{matcher}.
 Obviously, fontification of the subexpression numbered @var{subexp} will
 not occur.  However, fontification of other subexpressions (and other
 regexps) will continue.  If @var{laxmatch} is @code{nil}, and the
-specified subexpression is missing, then an error is signalled which
+specified subexpression is missing, then an error is signaled which
 terminates search-based fontification.
 
 Here are some examples of elements of this kind, and what they do:
@@ -2450,7 +2505,7 @@ a file, don't have to do anything to use this feature.
 
 For buffers not visiting a file to have their state saved, the major
 mode must bind the buffer local variable @code{desktop-save-buffer} to
-a non-nil value.
+a non-@code{nil} value.
 
 @defvar desktop-save-buffer
 If this buffer-local variable is non-@code{nil}, the buffer will have
@@ -2563,25 +2618,7 @@ obsolete.)  If the value is a function (either a lambda expression or
 a symbol with a function definition), it is called.  If it is a list
 that isn't a function, its elements are called, consecutively.  All
 the hook functions are called with no arguments.
-
-For example, here's how @code{emacs-lisp-mode} runs its mode hook:
-
-@example
-(run-hooks 'emacs-lisp-mode-hook)
-@end example
 @end defun
-
-@defun run-mode-hooks &rest hookvars
-Like @code{run-hooks}, but is affected by the @code{delay-mode-hooks}
-macro.
-@end defun
-
-@defmac delay-mode-hooks body...
-This macro executes the @var{body} forms but defers all calls to
-@code{run-mode-hooks} within them until the end of @var{body}.
-This macro enables a derived mode to arrange not to run
-its parent modes' mode hooks until the end.
-@end defmac
 
 @defun run-hook-with-args hook &rest args
 This function is the way to run an abnormal hook and always call all

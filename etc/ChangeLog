@@ -1,3 +1,8 @@
+2004-09-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm.ti: Change the strings for smso and rmso.
+          e/eterm: Regenerate.
+
 2004-09-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* MORE.STUFF (EDB): Update entry.

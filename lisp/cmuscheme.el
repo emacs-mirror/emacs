@@ -1,6 +1,6 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el
 
-;; Copyright (C) 1988, 1994, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1997, 2004  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: FSF
@@ -140,9 +140,9 @@
   (define-key map [switch]
     '("Switch to Scheme" . switch-to-scheme))
   (define-key map [com-def-go]
-    '("Compile Definitiion & Go" . scheme-compile-definition-and-go))
+    '("Compile Definition & Go" . scheme-compile-definition-and-go))
   (define-key map [com-def]
-    '("Compile Definitiion" . scheme-compile-definition))
+    '("Compile Definition" . scheme-compile-definition))
   (define-key map [send-def-go]
     '("Evaluate Last Definition & Go" . scheme-send-definition-and-go))
   (define-key map [send-def]
@@ -437,5 +437,5 @@ This is a good place to put keybindings."
 
 (provide 'cmuscheme)
 
-;;; arch-tag: e8795f4a-c496-45a2-97b4-8e0f2a2c57d2
+;; arch-tag: e8795f4a-c496-45a2-97b4-8e0f2a2c57d2
 ;;; cmuscheme.el ends here

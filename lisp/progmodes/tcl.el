@@ -1,6 +1,6 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994,98,1999,2000,01,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1994,98,1999,2000,01,02,2003,2004  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -1104,15 +1104,13 @@ See documentation for function `inferior-tcl-mode' for more information."
    (list (if current-prefix-arg
 	     (read-string "Run Tcl: " tcl-application)
 	   tcl-application)))
-  (if (not (comint-check-proc "*inferior-tcl*"))
-      (progn
-	(set-buffer (apply (function make-comint) "inferior-tcl" cmd nil
-			   tcl-command-switches))
-	(inferior-tcl-mode)))
-  (make-local-variable 'tcl-application)
-  (setq tcl-application cmd)
+  (unless (comint-check-proc "*inferior-tcl*")
+    (set-buffer (apply (function make-comint) "inferior-tcl" cmd nil
+		       tcl-command-switches))
+    (inferior-tcl-mode))
+  (set (make-local-variable 'tcl-application) cmd)
   (setq inferior-tcl-buffer "*inferior-tcl*")
-  (switch-to-buffer "*inferior-tcl*"))
+  (pop-to-buffer "*inferior-tcl*"))
 
 (defalias 'run-tcl 'inferior-tcl)
 

@@ -71,6 +71,7 @@ See Info node `(gnus)Formatting Variables'."
 (defcustom gnus-server-browse-in-group-buffer nil
   "Whether server browsing should take place in the group buffer.
 If nil, a faster, but more primitive, buffer is used instead."
+  :version "21.4"
   :group 'gnus-server-visual
   :type 'boolean)
 
@@ -224,6 +225,7 @@ If nil, a faster, but more primitive, buffer is used instead."
 
 (defcustom gnus-server-offline-face 'gnus-server-offline-face
   "Face name to use on OFFLINE servers."
+  :version "21.4"
   :group 'gnus-server-visual
   :type 'face)
 

@@ -63,7 +63,7 @@ it will be killed sometime later."
   "*Non-nil means that Gnus will try to build threads by grabbing old headers.
 If an unread article in the group refers to an older, already read (or
 just marked as read) article, the old article will not normally be
-displayed in the Summary buffer.  If this variable is non-nil, Gnus
+displayed in the Summary buffer.  If this variable is t, Gnus
 will attempt to grab the headers to the old articles, and thereby
 build complete threads.  If it has the value `some', only enough
 headers to connect otherwise loose threads will be displayed.  This
@@ -74,7 +74,9 @@ old headers will be fetched, but none will be displayed.
 The server has to support NOV for any of this to work."
   :group 'gnus-thread
   :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
 		 (const some)
+		 (const invisible)
 		 number
 		 (sexp :menu-tag "other" t)))
 
@@ -116,6 +118,7 @@ given by the `gnus-summary-same-subject' variable.)"
 
 (defcustom gnus-summary-make-false-root-always nil
   "Always make a false dummy root."
+  :version "21.4"
   :group 'gnus-thread
   :type 'boolean)
 
@@ -216,6 +219,7 @@ If this variable is nil, scoring will be disabled."
   "*Default threshold for a high scored article.
 An article will be highlighted as high scored if its score is greater
 than this score."
+  :version "21.4"
   :group 'gnus-score-default
   :type 'integer)
 
@@ -223,6 +227,7 @@ than this score."
   "*Default threshold for a low scored article.
 An article will be highlighted as low scored if its score is smaller
 than this score."
+  :version "21.4"
   :group 'gnus-score-default
   :type 'integer)
 
@@ -318,6 +323,7 @@ the first unseen article), 'unseen-or-unread' (place point on the subject
 line of the first unseen article or, if all article have been seen, on the
 subject line of the first unread article), or a function to be called to
 place point on some subject line."
+  :version "21.4"
   :group 'gnus-group-select
   :type '(choice (const best)
 		 (const unread)
@@ -361,6 +367,7 @@ ignores articles whose headers have not been fetched).
 
 NOTE: The list of unfetched articles will always be nil when plugged
 and, when unplugged, a subset of the undownloaded article list."
+  :version "21.4"
   :group 'gnus-summary-maneuvering
   :type '(choice (const :tag "None" nil)
                  (const :tag "Undownloaded when unplugged" undownloaded)
@@ -488,6 +495,7 @@ this variable specifies group names."
 
 (defcustom gnus-forwarded-mark ?F
   "*Mark used for articles that have been forwarded."
+  :version "21.4"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -508,11 +516,13 @@ this variable specifies group names."
 
 (defcustom gnus-unseen-mark ?.
   "*Mark used for articles that haven't been seen."
+  :version "21.4"
   :group 'gnus-summary-marks
   :type 'character)
 
 (defcustom gnus-no-mark ?               ;Whitespace
   "*Mark used for articles that have no other secondary mark."
+  :version "21.4"
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -893,7 +903,7 @@ automatically when it is selected."
   (and (fboundp 'display-graphic-p)
        (display-graphic-p))
   "*If non-nil, display an arrow highlighting the current article."
-  :version "21.1"
+  :version "21.4"
   :group 'gnus-summary
   :type 'boolean)
 
@@ -1071,22 +1081,23 @@ type of files to save."
 This is mostly relevant for slow back ends where the user may
 wish to widen the summary buffer to include all headers
 that were fetched.  Say, for nnultimate groups."
+  :version "21.4"
   :group 'gnus-summary
   :type '(choice boolean regexp))
 
 (defcustom gnus-summary-muttprint-program "muttprint"
   "Command (and optional arguments) used to run Muttprint."
-  :version "21.3"
+  :version "21.4"
   :group 'gnus-summary
   :type 'string)
 
 (defcustom gnus-article-loose-mime nil
   "If non-nil, don't require MIME-Version header.
 Some brain-damaged MUA/MTA, e.g. Lotus Domino 5.0.6 clients, does not
-supply the MIME-Version header or deliberately strip it From the mail.
+supply the MIME-Version header or deliberately strip it from the mail.
 Set it to non-nil, Gnus will treat some articles as MIME even if
 the MIME-Version header is missed."
-  :version "21.3"
+  :version "21.4"
   :type 'boolean
   :group 'gnus-article-mime)
 
@@ -1095,6 +1106,7 @@ the MIME-Version header is missed."
 This means that Gnus will search message bodies for text that look
 like uuencoded bits, yEncoded bits, and so on, and present that using
 the normal Gnus MIME machinery."
+  :version "21.4"
   :type 'boolean
   :group 'gnus-article-mime)
 
@@ -4589,32 +4601,39 @@ Unscored articles will be counted as having a score of zero."
 (defcustom gnus-sum-thread-tree-root "> "
   "With %B spec, used for the root of a thread.
 If nil, use subject instead."
+  :version "21.4"
   :type '(radio (const :format "%v  " nil) (string :size 0))
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-false-root "> "
   "With %B spec, used for a false root of a thread.
 If nil, use subject instead."
+  :version "21.4"
   :type '(radio (const :format "%v  " nil) (string :size 0))
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-single-indent ""
   "With %B spec, used for a thread with just one message.
 If nil, use subject instead."
+  :version "21.4"
   :type '(radio (const :format "%v  " nil) (string :size 0))
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-vertical "| "
   "With %B spec, used for drawing a vertical line."
+  :version "21.4"
   :type 'string
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-indent "  "
   "With %B spec, used for indenting."
+  :version "21.4"
   :type 'string
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-leaf-with-other "+-> "
   "With %B spec, used for a leaf with brothers."
+  :version "21.4"
   :type 'string
   :group 'gnus-thread)
 (defcustom gnus-sum-thread-tree-single-leaf "\\-> "
   "With %B spec, used for a leaf without brothers."
+  :version "21.4"
   :type 'string
   :group 'gnus-thread)
 

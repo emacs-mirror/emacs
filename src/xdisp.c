@@ -12404,10 +12404,36 @@ try_window_reusing_current_matrix (w)
       last_text_row = last_reused_text_row = NULL;
 
       while (it.current_y < it.last_visible_y
-	     && IT_CHARPOS (it) < CHARPOS (start)
 	     && !fonts_changed_p)
-	if (display_line (&it))
-	  last_text_row = it.glyph_row - 1;
+	{
+	  /* If we have reached into the characters in the START row,
+	     that means the line boundaries have changed.  So we
+	     can't start copying with the row START.  Maybe it will
+	     work to start copying with the following row.  */
+	  while (IT_CHARPOS (it) > CHARPOS (start))
+	    {
+	      /* Advance to the next row as the "start".  */
+	      start_row++;
+	      start = start_row->start.pos;
+	      /* If there are no more rows to try, or just one, give up.  */
+	      if (start_row == MATRIX_MODE_LINE_ROW (w->current_matrix) - 1
+		  || w->vscroll || MATRIX_ROW_PARTIALLY_VISIBLE_P (start_row)
+		  || CHARPOS (start) == ZV)
+		{
+		  clear_glyph_matrix (w->desired_matrix);
+		  return 0;
+		}
+
+	      start_vpos = MATRIX_ROW_VPOS (start_row, w->current_matrix);
+	    }
+	  /* If we have reached alignment,
+	     we can copy the rest of the rows.  */
+	  if (IT_CHARPOS (it) == CHARPOS (start))
+	    break;
+
+	  if (display_line (&it))
+	    last_text_row = it.glyph_row - 1;
+	}
 
       /* A value of current_y < last_visible_y means that we stopped
 	 at the previous window start, which in turn means that we
@@ -12415,12 +12441,12 @@ try_window_reusing_current_matrix (w)
       if (it.current_y < it.last_visible_y)
 	{
 	  /* IT.vpos always starts from 0; it counts text lines.  */
-	  nrows_scrolled = it.vpos;
+	  nrows_scrolled = it.vpos - (start_row - MATRIX_FIRST_TEXT_ROW (w->current_matrix));
 
 	  /* Find PT if not already found in the lines displayed.  */
 	  if (w->cursor.vpos < 0)
 	    {
-	      int dy = it.current_y - first_row_y;
+	      int dy = it.current_y - start_row->y;
 
 	      row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
 	      row = row_containing_pos (w, PT, row, NULL, dy);
@@ -12440,7 +12466,7 @@ try_window_reusing_current_matrix (w)
 	     scroll_run_hook will clear the cursor, and use the
 	     current matrix to get the height of the row the cursor is
 	     in.  */
-	  run.current_y = first_row_y;
+	  run.current_y = start_row->y;
 	  run.desired_y = it.current_y;
 	  run.height = it.last_visible_y - it.current_y;
 
@@ -15334,6 +15360,10 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	  {
 	    Lisp_Object oprops, aelt;
 	    oprops = Ftext_properties_at (make_number (0), elt);
+
+	    /* If the starting string's properties are not what
+	       we want, translate the string.  Also, if the string
+	       is risky, do that anyway.  */
 
 	    if (NILP (Fequal (props, oprops)) || risky)
 	      {

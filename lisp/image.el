@@ -228,6 +228,15 @@ height of the image; integer values are taken as pixel values."
 
 
 (defun insert-sliced-image (image &optional string area rows cols)
+  "Insert IMAGE into current buffer at point.
+IMAGE is displayed by inserting STRING into the current buffer
+with a `display' property whose value is the image.  STRING is
+defaulted if you omit it.
+AREA is where to display the image.  AREA nil or omitted means
+display it in the text area, a value of `left-margin' means
+display it in the left marginal area, a value of `right-margin'
+means display it in the right marginal area.
+The image is automatically split into ROW x COLS slices."
   (unless string (setq string " "))
   (unless (eq (car-safe image) 'image)
     (error "Not an image: %s" image))

@@ -278,6 +278,7 @@ This should make it easier to see who wrote what."
 
 (defcustom gnus-cite-blank-line-after-header t
   "If non-nil, put a blank line between the citation header and the button."
+  :version "21.4"
   :group 'gnus-cite
   :type 'boolean)
 
@@ -289,6 +290,7 @@ This should make it easier to see who wrote what."
 If an article has more pages below the one you are looking at, but
 nothing on those pages is a word of at least three letters that is not
 in a boring face, then the pages will be skipped."
+  :version "21.4"
   :type '(repeat face)
   :group 'gnus-article-hiding)
 

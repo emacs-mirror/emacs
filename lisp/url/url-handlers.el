@@ -1,6 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
-;; Copyright (c) 1996,97,98,1999,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1996, 1997, 1998, 1999, 2004  Free Software Foundation, Inc.
 ;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
 
 ;; Keywords: comm, data, processes, hypermedia
@@ -170,8 +170,7 @@ A prefix arg makes KEEP-TIME non-nil."
 	(handle nil))
     (if (not buffer)
 	(error "Opening input file: No such file or directory, %s" url))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (setq handle (mm-dissect-buffer t)))
     (mm-save-part-to-file handle newname)
     (kill-buffer buffer)
@@ -194,18 +193,22 @@ accessible."
     (if (not buffer)
 	(error "Opening input file: No such file or directory, %s" url))
     (if visit (setq buffer-file-name url))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (setq handle (mm-dissect-buffer t))
       (set-buffer (mm-handle-buffer handle))
-      (if beg
-	  (setq data (buffer-substring beg end))
-	(setq data (buffer-string))))
+      (setq data (if beg (buffer-substring beg end)
+		   (buffer-string))))
     (kill-buffer buffer)
     (mm-destroy-parts handle)
     (if replace (delete-region (point-min) (point-max)))
     (save-excursion
-      (insert data))
+      (let ((start (point)))
+	(insert data)
+	;; FIXME: for text/plain data, we sometimes receive a `charset'
+	;; annotation which we could use as a hint of the locale in use
+	;; at the remote site.  Not sure how/if that should be done.  --Stef
+	(decode-coding-inserted-region
+	 start (point) buffer-file-name visit beg end replace)))
     (list url (length data))))
 
 (defun url-file-name-completion (url directory)

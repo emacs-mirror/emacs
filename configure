@@ -310,7 +310,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO EGREP LIBSOUND SET_MAKE PKG_CONFIG GTK_CFLAGS GTK_LIBS ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile carbon_appdir LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS MAINT build build_cpu build_vendor build_os host host_cpu host_vendor host_os CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT LN_S CPP INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA RANLIB ac_ct_RANLIB INSTALL_INFO EGREP SETARCH LIBSOUND SET_MAKE PKG_CONFIG GTK_CFLAGS GTK_LIBS ALLOCA liblockfile LIBOBJS NEED_SETGID KMEM_GROUP GETLOADAVG_LIBS version configuration canonical srcdir lispdir locallisppath lisppath x_default_search_path etcdir archlibdir docdir bitmapdir gamedir gameuser c_switch_system c_switch_machine LD_SWITCH_X_SITE LD_SWITCH_X_SITE_AUX C_SWITCH_X_SITE X_TOOLKIT_TYPE machfile opsysfile carbon_appdir LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -4277,6 +4277,80 @@ fi
 rm -f conftest*
 
 
+
+echo "$as_me:$LINENO: checking for /proc/sys/kernel/exec-shield" >&5
+echo $ECHO_N "checking for /proc/sys/kernel/exec-shield... $ECHO_C" >&6
+if test "${ac_cv_file__proc_sys_kernel_exec_shield+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "/proc/sys/kernel/exec-shield"; then
+  ac_cv_file__proc_sys_kernel_exec_shield=yes
+else
+  ac_cv_file__proc_sys_kernel_exec_shield=no
+fi
+fi
+echo "$as_me:$LINENO: result: $ac_cv_file__proc_sys_kernel_exec_shield" >&5
+echo "${ECHO_T}$ac_cv_file__proc_sys_kernel_exec_shield" >&6
+if test $ac_cv_file__proc_sys_kernel_exec_shield = yes; then
+  emacs_cv_execshield=1
+else
+  emacs_cv_execshield=0
+fi
+
+if test "$emacs_cv_execshield" = 1; then
+   # Extract the first word of "setarch", so it can be a program name with args.
+set dummy setarch; ac_word=$2
+echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6
+if test "${ac_cv_path_SETARCH+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $SETARCH in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_SETARCH="$SETARCH" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if $as_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_SETARCH="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+
+  test -z "$ac_cv_path_SETARCH" && ac_cv_path_SETARCH="no"
+  ;;
+esac
+fi
+SETARCH=$ac_cv_path_SETARCH
+
+if test -n "$SETARCH"; then
+  echo "$as_me:$LINENO: result: $SETARCH" >&5
+echo "${ECHO_T}$SETARCH" >&6
+else
+  echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+fi
+
+
+   if test "$setarch" != no; then
+
+cat >>confdefs.h <<\_ACEOF
+#define HAVE_EXECSHIELD 1
+_ACEOF
+
+   fi
+fi
 
 #### Extract some information from the operating system and machine files.
 
@@ -13277,7 +13351,6 @@ done
 
 
 
-
 for ac_func in gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo \
 random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime res_init setsid \
@@ -13286,7 +13359,7 @@ utimes setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync bzero \
-memset memcmp memmove difftime memcpy mempcpy mblen mbrlen posix_memalign
+memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5
@@ -22002,6 +22075,7 @@ s,@RANLIB@,$RANLIB,;t t
 s,@ac_ct_RANLIB@,$ac_ct_RANLIB,;t t
 s,@INSTALL_INFO@,$INSTALL_INFO,;t t
 s,@EGREP@,$EGREP,;t t
+s,@SETARCH@,$SETARCH,;t t
 s,@LIBSOUND@,$LIBSOUND,;t t
 s,@SET_MAKE@,$SET_MAKE,;t t
 s,@PKG_CONFIG@,$PKG_CONFIG,;t t

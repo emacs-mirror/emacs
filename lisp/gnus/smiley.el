@@ -78,6 +78,7 @@ regexp to replace with IMAGE.  IMAGE is the name of a PBM file in
       (push "xpm" types))
     types)
   "*List of suffixes on picon file names to try."
+  :version "21.4"
   :type '(repeat string)
   :group 'smiley)
 

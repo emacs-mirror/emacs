@@ -237,6 +237,7 @@ This variable allows the same syntax as `gnus-home-score-file'."
 
 (defcustom gnus-adaptive-word-length-limit nil
   "*Words of a length lesser than this limit will be ignored when doing adaptive scoring."
+  :version "21.4"
   :group 'gnus-score-adapt
   :type '(radio (const :format "Unlimited " nil)
 		(integer :format "Maximum length: %v\n" :size 0)))

@@ -439,10 +439,7 @@ specified in a -*- line.")
   "*Control processing of the \"variable\" `eval' in a file's local variables.
 The value can be t, nil or something else.
 A value of t means obey `eval' variables;
-nil means ignore them; anything else means query.
-
-The command \\[normal-mode] always obeys local-variables lists
-and ignores this variable."
+nil means ignore them; anything else means query."
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
 		 (other :tag "Query" other))
@@ -2110,9 +2107,7 @@ is specified, returning t if it is specified."
 						   buffer-file-name)
 						(concat "buffer "
 							(buffer-name))))))))))
-	  (let ((continue t)
-		prefix prefixlen suffix beg
-		mode-specified
+	  (let (prefix prefixlen suffix beg
 		(enable-local-eval enable-local-eval))
 	    ;; The prefix is what comes before "local variables:" in its line.
 	    ;; The suffix is what comes after "local variables:" in its line.
@@ -2129,46 +2124,66 @@ is specified, returning t if it is specified."
 	    (if prefix (setq prefixlen (length prefix)
 			     prefix (regexp-quote prefix)))
 	    (if suffix (setq suffix (concat (regexp-quote suffix) "$")))
-	    (while continue
-	      ;; Look at next local variable spec.
-	      (if selective-display (re-search-forward "[\n\C-m]")
-		(forward-line 1))
-	      ;; Skip the prefix, if any.
-	      (if prefix
-		  (if (looking-at prefix)
-		      (forward-char prefixlen)
-		    (error "Local variables entry is missing the prefix")))
-	      ;; Find the variable name; strip whitespace.
-	      (skip-chars-forward " \t")
-	      (setq beg (point))
-	      (skip-chars-forward "^:\n")
-	      (if (eolp) (error "Missing colon in local variables entry"))
-	      (skip-chars-backward " \t")
-	      (let* ((str (buffer-substring beg (point)))
-		     (var (read str))
-		    val)
-		;; Setting variable named "end" means end of list.
-		(if (string-equal (downcase str) "end")
-		    (setq continue nil)
-		  ;; Otherwise read the variable value.
-		  (skip-chars-forward "^:")
-		  (forward-char 1)
-		  (setq val (read (current-buffer)))
-		  (skip-chars-backward "\n")
+	    (forward-line 1)
+	    (let ((startpos (point))
+		  endpos
+		  (thisbuf (current-buffer)))
+	      (save-excursion
+		(if (not (re-search-forward
+			  (concat (or prefix "")
+				  "[ \t]*End:[ \t]*"
+				  (or suffix ""))
+			  nil t))
+		    (error "Local variables list is not properly terminated"))
+		(beginning-of-line)
+		(setq endpos (point)))
+
+	      (with-temp-buffer
+		(insert-buffer-substring thisbuf startpos endpos)
+		(goto-char (point-min))
+		(subst-char-in-region (point) (point-max)
+				      ?\^m ?\n)
+		(while (not (eobp))
+		  ;; Discard the prefix, if any.
+		  (if prefix
+		      (if (looking-at prefix)
+			  (delete-region (point) (match-end 0))
+			(error "Local variables entry is missing the prefix")))
+		  (end-of-line)
+		  ;; Discard the suffix, if any.
+		  (if suffix
+		      (if (looking-back suffix)
+			  (delete-region (match-beginning 0) (point))
+			(error "Local variables entry is missing the suffix")))
+		  (forward-line 1))
+		(goto-char (point-min))
+		  
+		(while (not (eobp))
+		  ;; Find the variable name; strip whitespace.
 		  (skip-chars-forward " \t")
-		  (or (if suffix (looking-at suffix) (eolp))
-		      (error "Local variables entry is terminated incorrectly"))
-		  (if mode-only
-		      (if (eq var 'mode)
-			  (setq mode-specified t))
-		    ;; Set the variable.  "Variables" mode and eval are funny.
-		    (hack-one-local-variable var val))))))))
+		  (setq beg (point))
+		  (skip-chars-forward "^:\n")
+		  (if (eolp) (error "Missing colon in local variables entry"))
+		  (skip-chars-backward " \t")
+		  (let* ((str (buffer-substring beg (point)))
+			 (var (read str))
+			 val)
+		    ;; Read the variable value.
+		    (skip-chars-forward "^:")
+		    (forward-char 1)
+		    (setq val (read (current-buffer)))
+		    (if mode-only
+			(if (eq var 'mode)
+			    (setq mode-specified t))
+		      ;; Set the variable.  "Variables" mode and eval are funny.
+		      (with-current-buffer thisbuf
+			(hack-one-local-variable var val))))
+		  (forward-line 1)))))))
     (unless mode-only
       (run-hooks 'hack-local-variables-hook))
     mode-specified))
 
-(defvar ignored-local-variables
-  '(enable-local-eval)
+(defvar ignored-local-variables ()
   "Variables to be ignored in a file's local variable spec.")
 
 ;; Get confirmation before setting these variables as locals in a file.
@@ -2234,8 +2249,7 @@ is specified, returning t if it is specified."
 If VAL is nil or omitted, the question is whether any value might be
 dangerous."
   (let ((safep (get sym 'safe-local-variable)))
-    (or (memq sym ignored-local-variables)
-	(get sym 'risky-local-variable)
+    (or (get sym 'risky-local-variable)
 	(and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
 			   (symbol-name sym))
 	     (not safep))
@@ -2308,6 +2322,8 @@ is considered risky."
 				  "-mode"))))
 	((eq var 'coding)
 	 ;; We have already handled coding: tag in set-auto-coding.
+	 nil)
+	((memq var ignored-local-variables)
 	 nil)
 	;; "Setting" eval means either eval it or do nothing.
 	;; Likewise for setting hook variables.
