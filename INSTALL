@@ -861,6 +861,13 @@ rerun CONFIG.BAT.  If you have neither ECHO.EXE nor DJECHO.EXE, you
 should be able to find them in your djdevNNN.zip archive (where NNN is
 the DJGPP version number).
 
+On Windows NT or Windows 2000, running "config msdos" might print an
+error message like "VDM has been already loaded".  This is because
+those systems have a program called `redir.exe' which is incompatible
+with a program by the same name supplied with DJGPP, which is used by
+config.bat.  To resolve this, move the DJGPP's `bin' subdirectory to
+the front of your PATH environment variable.
+
 To install the international fonts, chdir to the intlfonts-X.Y
 directory created when you unpacked the intlfonts distribution (X.Y is
 the version number of the fonts' distribution), and type the following
