@@ -22,7 +22,11 @@
 #include <fcntl.h>
 #endif
 
-#include <../src/config.h>
+#include "../src/config.h"
+
+#ifdef __STDC__
+#include <stdlib.h>
+#endif
 
 #ifdef USG
 #include <string.h>
@@ -53,15 +57,21 @@ main (argc, argv)
   (stdout)->_flag &= ~_IOTEXT;
   (stdin)->_flag &= ~_IOTEXT;
 #endif
+  if (strcmp(argv[1], "--help") == 0)
+    {
+      fprintf(stderr, "Usage: %s <babylmailbox >unixmailbox\n", argv[0]);
+      exit (0);
+    }
   ltoday = time(0);
   today = ctime(&ltoday);
 
   if (gets(data))
-    if (strcmp(data, "BABYL OPTIONS:")) {
-      fprintf(stderr, "b2m: not a Babyl mailfile!\n");
-      exit(-1);
-    } else
-      printing = FALSE;
+    if (strncmp(data, "BABYL OPTIONS:", 14))
+      {
+	fprintf(stderr, "%s: not a Babyl mailfile!\n", argv[0]);
+	exit (-1);
+      } else
+	printing = FALSE;
   else
     exit(-1);
   if (printing)
@@ -78,11 +88,11 @@ main (argc, argv)
 
     if (!strcmp(data, "*** EOOH ***") && !printing) {
       printing = header = TRUE;
-      printf("From b2m %s", today);
+      printf("From %s %s", argv[0], today);
       continue;
     }
-    
-    if (!strcmp(data, "")) {
+
+    if (!strcmp(data, "\037\f")) {
       /* save labels */
       gets(data);
       p = strtok(data, " ,\r\n\t");
