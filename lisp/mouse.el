@@ -2156,10 +2156,15 @@ and selects that window."
 ;; Replaced with dragging mouse-1
 ;; (global-set-key [S-mouse-1]	'mouse-set-mark)
 
+;; Binding mouse-1 to mouse-select-window when on mode-, header-, or
+;; vertical-line prevents Emacs from signaling an error when the mouse
+;; button is released after dragging these lines, on non-toolkit
+;; versions.
 (global-set-key [mode-line mouse-1] 'mouse-select-window)
 (global-set-key [mode-line drag-mouse-1] 'mouse-select-window)
 (global-set-key [mode-line down-mouse-1] 'mouse-drag-mode-line)
 (global-set-key [header-line down-mouse-1] 'mouse-drag-header-line)
+(global-set-key [header-line mouse-1] 'mouse-select-window)
 (global-set-key [mode-line mouse-2] 'mouse-delete-other-windows)
 (global-set-key [mode-line mouse-3] 'mouse-delete-window)
 (global-set-key [mode-line C-mouse-2] 'mouse-split-window-horizontally)
