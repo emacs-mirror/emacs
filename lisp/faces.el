@@ -1230,6 +1230,10 @@ If SPEC is nil, do nothing."
 	(case attribute
 	  (:bold (setq attribute :weight value (if value 'bold 'normal)))
 	  (:italic (setq attribute :slant value (if value 'italic 'normal)))
+	  ((:foreground :background)
+	   ;; Compatibility with 20.x.  Some bogus face specs seem to 
+	   ;; exist containing things like `:foreground nil'.
+	   (if (null value) (setq value 'unspecified)))
 	  (t (unless (assq attribute face-x-resources)
 	       (setq attribute nil))))
 	(when attribute
