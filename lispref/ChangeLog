@@ -1,3 +1,21 @@
+2004-02-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Text from Minibuffer): Various corrections and
+	clarifications.
+	(Object from Minibuffer): Correct Lisp description of
+	read-minibuffer.
+	(Minibuffer History): Clarify description of cons values for
+	HISTORY arguments.
+	(Basic Completion): Various corrections and clarifications.  Add
+	completion-regexp-list.
+	(Minibuffer Completion): Correct and clarify description of
+	completing-read.
+	(Completion Commands): Mention partial-completion-mode.  Various
+	other minor changes.
+	(High-Level Completion): Various corrections and clarifications.
+	(Reading File Names): Ditto.
+	(Minibuffer Misc): Ditto.
+
 2004-01-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* strings.texi (Text Comparison): assoc-string also matches
