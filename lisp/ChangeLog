@@ -1,5 +1,8 @@
 2001-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* emulation/viper-util.el (viper-file-checked-in-p): Use `and'
+	instead of `progn'.
+
 	* tar-mode.el (tar-extract): Avoid generating a new buffer
 	for each file visited.  From Markus Rost <rost@math.ohio-state.edu>.
 
