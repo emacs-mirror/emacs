@@ -91,8 +91,7 @@ The default status is as follows.
 	     (charset . (ascii))
 	     (sample-text . "Hello!, Hi!, How are you?")
 	     (documentation . "\
-There's nothing special you should care to handle English in Emacs.
-You can use English both with enable-multibyte-characters t and nil.")
+Nothing special is needed to handle English.")
 	     ))
 
 (register-input-method "English"
