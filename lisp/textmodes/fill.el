@@ -358,8 +358,11 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
     (save-excursion
       (goto-char min)
       (beginning-of-line)
+      (narrow-to-region (point) max)
       (if mailp 
-	  (while (or (looking-at "[ \t]*[^ \t\n]*:") (looking-at "[ \t]*$"))
+	  (while (and (not (eobp))
+		      (or (looking-at "[ \t]*[^ \t\n]*:")
+			  (looking-at "[ \t]*$")))
 	    (if (looking-at "[ \t]*[^ \t\n]*:")
 		(search-forward "\n\n" nil 'move)
 	      (forward-line 1))))
