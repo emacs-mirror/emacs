@@ -58,6 +58,12 @@ static XrmDatabase xrdb;
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
 
+#ifdef HAVE_X11R4
+#define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
+#else
+#define MAXREQUEST(dpy) ((dpy)->max_request_size)
+#endif
+
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
 
@@ -2378,6 +2384,18 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
   return make_number (DisplayCells (dpy, DefaultScreen (dpy)));
 }
 
+DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
+       Sx_server_max_request_size,
+  0, 1, 0,
+  "Returns the maximum request size of the X server FRAME is using.")
+  (frame)
+     Lisp_Object frame;
+{
+  Display *dpy = x_current_display;
+  check_x ();
+  return make_number (MAXREQUEST (dpy));
+}
+
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
   "Returns the vendor ID string of the X server FRAME is on.")
   (frame)
@@ -3737,6 +3755,7 @@ switches, if present.");
   defsubr (&Sx_display_color_p);
   defsubr (&Sx_list_fonts);
   defsubr (&Sx_color_defined_p);
+  defsubr (&Sx_server_max_request_size);
   defsubr (&Sx_server_vendor);
   defsubr (&Sx_server_version);
   defsubr (&Sx_display_pixel_width);
