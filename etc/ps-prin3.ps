@@ -2,7 +2,7 @@
 
 % --- duplex feature verification
 UseSetpagedevice {
-  << /Duplex DuplexValue /Tumble TumbleValue >> setpagedevice
+  BMark /Duplex DuplexValue /Tumble TumbleValue EMark setpagedevice
 }{
   statusdict begin
    DuplexValue setduplexmode TumbleValue settumble
