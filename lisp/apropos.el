@@ -1,6 +1,6 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989, 1994, 1995, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1995, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>
@@ -248,9 +248,10 @@ before finding a label."
   "Make regexp matching any two of the words in WORDS."
   (concat "\\("
 	  (mapconcat 'identity words "\\|")
-	  "\\)" wild
+	  "\\)"
 	  (if (cdr words)
-	      (concat "\\("
+	      (concat wild
+		      "\\("
 		      (mapconcat 'identity words "\\|")
 		      "\\)")
 	    "")))
