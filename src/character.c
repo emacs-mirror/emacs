@@ -910,7 +910,7 @@ A char-table for width (columns) of each character.  */);
 
   DEFVAR_LISP ("printable-chars", &Vprintable_chars,
 	       doc: /* A char-table for each printable character.  */);
-  Vprintable_chars = Fmake_char_table (Qnil, Qt);
+  Vprintable_chars = Fmake_char_table (Qnil, Qnil);
 }
 
 #endif /* emacs */
