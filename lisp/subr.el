@@ -1140,7 +1140,8 @@ in BODY."
 	   (setq ,saved-combine-run-hooks combine-run-hooks)
 	   (fset 'run-hooks ,saved-run-hooks)
 	   (setq combine-run-hooks t)
-	   (apply 'run-hooks ,saved-combine-run-hooks))))))
+	   (if ,saved-combine-run-hooks
+	       (apply 'run-hooks ,saved-combine-run-hooks)))))))
 
 
 (defmacro with-syntax-table (table &rest body)
