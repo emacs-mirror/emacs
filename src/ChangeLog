@@ -1,5 +1,9 @@
 2000-09-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (menu_bar_one_keymap): If KEYMAP is a symbol,
+	use its function definition.
+	(tool_bar_items): Likewise.
+
 	* lisp.h (fatal): Declare NO_RETURN.
 	
 2000-09-29  Kenichi Handa  <handa@etl.go.jp>
