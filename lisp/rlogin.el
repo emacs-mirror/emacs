@@ -1,12 +1,12 @@
 ;;; rlogin.el --- remote login interface
 
-;; Copyright (C) 1992-1995, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 97, 1998 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.43 1998/09/11 01:22:53 friedman Exp $
+;; $Id: rlogin.el,v 1.44 1998/10/03 00:44:26 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
