@@ -70,10 +70,14 @@ strings or patterns."
   (let (from to)
     (if query-replace-interactive
 	(setq from (car (if regexp-flag regexp-search-ring search-ring)))
-      (setq from (read-from-minibuffer (format "%s: " string)
-				       nil nil nil
-				       query-replace-from-history-variable
-				       nil t))
+      ;; The save-excursion here is in case the user marks and copies
+      ;; a region in order to specify the minibuffer input.
+      ;; That should not clobber the region for the query-replace itself.
+      (save-excursion
+	(setq from (read-from-minibuffer (format "%s: " string)
+					 nil nil nil
+					 query-replace-from-history-variable
+					 nil t)))
       ;; Warn if user types \n or \t, but don't reject the input.
       (if (string-match "\\\\[nt]" from)
 	  (let ((match (match-string 0 from)))
@@ -84,9 +88,10 @@ strings or patterns."
 	      (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
 	    (sit-for 2))))
 
-    (setq to (read-from-minibuffer (format "%s %s with: " string from)
-				   nil nil nil
-				   query-replace-to-history-variable from t))
+    (save-excursion
+      (setq to (read-from-minibuffer (format "%s %s with: " string from)
+				     nil nil nil
+				     query-replace-to-history-variable from t)))
     (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional delimited start end)
@@ -252,7 +257,9 @@ Fourth and fifth arg START and END specify the region to operate on."
 		       from)
 	       nil nil nil
 	       'query-replace-history from t))
-     (list from to current-prefix-arg
+     (list from to
+	   (and current-prefix-arg
+		(prefix-numeric-value current-prefix-arg))
 	   (if (and transient-mark-mode mark-active)
 	       (region-beginning))
 	   (if (and transient-mark-mode mark-active)
