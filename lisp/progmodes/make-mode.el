@@ -178,7 +178,7 @@ You will be offered to complete on one of those in the minibuffer whenever
 you enter a \".\" at the beginning of a line in makefile-mode.")
 
 (defvar makefile-runtime-macros-list
-  '(("@") ("&") (">") ("<") ("*") ("^") ("?") ("%") ("$"))
+  '(("@") ("&") (">") ("<") ("*") ("^") ("+") ("?") ("%") ("$"))
   "List of macros that are resolved by make at runtime.
 If you insert a macro reference using makefile-insert-macro-ref, the name
 of the macro is checked against this list. If it can be found its name will
