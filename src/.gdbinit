@@ -217,14 +217,14 @@ This assumes that the last thing you printed was a cons cell contents
 (type struct Lisp_Cons) or a pointer to one.
 end
 define xcar
-print ((($ >> gdb_valbits) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits))->car : 0)
+print/x ((($ >> gdb_valbits) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits))->car : 0)
 end
 document xcar
 Print the car of $, assuming it is an Emacs Lisp pair.
 end
 
 define xcdr
-print ((($ >> gdb_valbits) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits))->cdr : 0)
+print/x ((($ >> gdb_valbits) & 0xf) == Lisp_Cons ? ((struct Lisp_Cons *) (($ & $valmask) | gdb_data_seg_bits))->cdr : 0)
 end
 document xcdr
 Print the cdr of $, assuming it is an Emacs Lisp pair.
