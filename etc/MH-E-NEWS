@@ -8,7 +8,7 @@ notice and this notice are preserved.
 
 * Changes in MH-E 7.82
 
-Version 7.81 continues to address the saga surrounding the use of CL
+Version 7.82 continues to address the saga surrounding the use of CL
 macros in CVS Emacs and fixes the auto-detection of vanilla MH (SF
 #1014781).
 
