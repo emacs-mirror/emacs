@@ -24,6 +24,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
+#include "keyboard.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -66,6 +67,11 @@ Lisp_Object Vminibuffer_local_must_match_map;
 
 /* Alist of minor mode variables and keymaps.  */
 Lisp_Object Vminor_mode_map_alist;
+
+/* Keymap mapping ASCII function key sequences onto their preferred forms.
+   Initialized by the terminal-specific lisp files.  See DEFVAR for more
+   documentation.  */
+Lisp_Object Vfunction_key_map;
 
 Lisp_Object Qkeymapp, Qkeymap;
 
@@ -220,8 +226,8 @@ access_keymap (map, idx)
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
      ought to be a symbol.  */
-  if (XTYPE (idx) == Lisp_Cons)
-    idx = XCONS (idx)->car;
+  if (EVENT_HAS_PARAMETERS (idx))
+    idx = EVENT_HEAD (idx);
 
   if (XTYPE (idx) == Lisp_Int
       && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
@@ -295,8 +301,8 @@ store_in_keymap (keymap, idx, def)
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
      ought to be a symbol.  */
-  if (XTYPE (idx) == Lisp_Cons)
-    idx = Fcar (idx);
+  if (EVENT_HAS_PARAMETERS (idx))
+    idx = EVENT_HEAD (idx);
 
   if (XTYPE (idx) == Lisp_Int
       && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
@@ -569,7 +575,8 @@ append_key (key_sequence, key)
 /* Global, local, and minor mode keymap stuff.				*/
 
 /* We can't put these variables inside current_minor_maps, since under
-   DGUX they dump as pure.  Bleah.  */
+   some systems, static gets macro-defined to be the empty string.
+   Ickypoo.  */
 static Lisp_Object *cmm_modes, *cmm_maps;
 static int cmm_size;
 
@@ -594,15 +601,15 @@ current_minor_maps (modeptr, mapptr)
      Lisp_Object **modeptr, **mapptr;
 {
   int i = 0;
-  Lisp_Object alist, assoc, var;
+  Lisp_Object alist, assoc, var, val;
 
   for (alist = Vminor_mode_map_alist;
        CONSP (alist);
        alist = XCONS (alist)->cdr)
     if (CONSP (assoc = XCONS (alist)->car)
 	&& XTYPE (var = XCONS (assoc)->car) == Lisp_Symbol
-	&& ! NILP (Fboundp (var))
-	&& ! NILP (Fsymbol_value (var)))
+	&& ! EQ ((val = find_symbol_value (var)), Qunbound)
+	&& ! NILP (val))
       {
 	if (i >= cmm_size)
 	  {
@@ -687,7 +694,9 @@ The binding is probably a symbol with a function definition.")
 DEFUN ("global-key-binding", Fglobal_key_binding, Sglobal_key_binding, 1, 1, 0,
   "Return the binding for command KEYS in current global keymap only.\n\
 KEYS is a string, a sequence of keystrokes.\n\
-The binding is probably a symbol with a function definition.")
+The binding is probably a symbol with a function definition.\n\
+This function's return values are the same as those of lookup-key\n\
+(which see).")
   (keys)
      Lisp_Object keys;
 {
@@ -1089,6 +1098,9 @@ Control characters turn into C-whatever, etc.")
   register unsigned char c;
   char tem[6];
 
+  if (EVENT_HAS_PARAMETERS (key))
+    key = EVENT_HEAD (key);
+
   switch (XTYPE (key))
     {
     case Lisp_Int:		/* Normal character */
@@ -1099,13 +1111,6 @@ Control characters turn into C-whatever, etc.")
     case Lisp_Symbol:		/* Function key or event-symbol */
       return Fsymbol_name (key);
 
-    case Lisp_Cons:		/* Mouse event */
-      key = XCONS (key)->car;
-      if (XTYPE (key) == Lisp_Symbol)
-	return Fsymbol_name (key);
-      /* Mouse events should have an identifying symbol as their car;
-	 fall through when this isn't the case.  */
-      
     default:
       error ("KEY must be an integer, cons, or symbol.");
     }
@@ -1803,6 +1808,24 @@ key sequences and look up bindings iff VARIABLE's value is non-nil.\n\
 If two active keymaps bind the same key, the keymap appearing earlier\n\
 in the list takes precedence.");
   Vminor_mode_map_alist = Qnil;
+
+  DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
+  "Keymap mapping ASCII function key sequences onto their preferred forms.\n\
+This allows Emacs to recognize function keys sent from ASCII\n\
+terminals at any point in a key sequence.\n\
+\n\
+The read-key-sequence function replaces subsequences bound by\n\
+function-key-map with their bindings.  When the current local and global\n\
+keymaps have no binding for the current key sequence but\n\
+function-key-map binds a suffix of the sequence to a vector,\n\
+read-key-sequence replaces the matching suffix with its binding, and\n\
+continues with the new sequence.\n\
+\n\
+For example, suppose function-key-map binds `ESC O P' to [pf1].\n\
+Typing `ESC O P' to read-key-sequence would return [pf1].  Typing\n\
+`C-x ESC O P' would return [?\C-x pf1].  If [pf1] were a prefix\n\
+key, typing `ESC O P x' would return [pf1 x].");
+  Vfunction_key_map = Fmake_sparse_keymap ();
 
   Qsingle_key_description = intern ("single-key-description");
   staticpro (&Qsingle_key_description);

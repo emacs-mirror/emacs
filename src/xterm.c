@@ -1286,20 +1286,11 @@ enum window_type
   text_window,
 };
 
-/* Symbol returned in input stream to indicate mouse movement. */
-Lisp_Object Qmouse_moved;
-
 /* Position of the mouse in characters */
 unsigned int x_mouse_x, x_mouse_y;
 
-/* Emacs window the mouse is in, if any. */
-extern Lisp_Object Vmouse_window;
-
 /* Offset in buffer of character under the pointer, or 0. */
 extern int mouse_buffer_offset;
-
-/* Part of the screen the mouse is in. */
-extern Lisp_Object Vmouse_screen_part;
 
 extern int buffer_posn_from_coords ();
 
@@ -1701,10 +1692,6 @@ static char *events[] =
 #define XEvent XKeyPressedEvent
 #endif /* HAVE_X11 */ 
 
-/* Symbols returned in the input stream to indicate various X events.  */
-Lisp_Object Qmouse_click;
-Lisp_Object Qscrollbar_click;
-
 /* Timestamp of enter window event.  This is only used by XTread_socket,
    but we have to put it out here, since static variables within functions
    sometimes don't work.  */
@@ -1888,7 +1875,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		   disabled; you don't want to spend time updating a
 		   display that won't ever be seen.  */
 		s->visible = 0;
-		Vmouse_window = Vmouse_screen_part = Qnil;
 		x_mouse_x = x_mouse_y = -1;
 	      }
 	  }
@@ -3323,7 +3309,6 @@ x_make_screen_visible (s)
 #endif				/* not HAVE_X11 */
     }
 
-  XRaiseWindow (XDISPLAY s->display.x->window_desc);
   XFlushQueue ();
 
   UNBLOCK_INPUT;
@@ -3761,10 +3746,6 @@ syms_of_xterm ()
 {
   staticpro (&invocation_name);
   invocation_name = Qnil;
-
-  Qmouse_moved = intern ("mouse-moved");
-  Qmouse_click = intern ("mouse-click");
-  Qscrollbar_click = intern ("scrollbar-click");
 }
 #endif /* HAVE_X11 */
 #endif /* HAVE_X_WINDOWS */
