@@ -1959,12 +1959,12 @@ If FILENAME is omitted, the printname of FEATURE is used as the file name.")
       Vautoload_queue = Qt;
 
       Fload (NILP (file_name) ? Fsymbol_name (feature) : file_name,
-	     Qnil, Qt, Qnil, Qt);
+	     Qnil, Qt, Qnil, (NILP (file_name) ? Qt : Qnil));
 
       tem = Fmemq (feature, Vfeatures);
       if (NILP (tem))
 	error ("Required feature %s was not provided",
-	       XSYMBOL (feature)->name->data );
+	       XSYMBOL (feature)->name->data);
 
       /* Once loading finishes, don't undo it.  */
       Vautoload_queue = Qt;
