@@ -369,8 +369,8 @@ This is instead of the groups in `msb-menu-cond'."
   :set 'msb-custom-set
   :group 'msb)
 
-(defcustom msb-after-load-hooks nil
-  "Hooks to be run after the msb package has been loaded."
+(defcustom msb-after-load-hook nil
+  "Hook run after the msb package has been loaded."
   :type 'hook
   :set 'msb-custom-set
   :group 'msb)
@@ -1141,7 +1141,6 @@ variable `msb-menu-cond'."
 With arg, turn Msb mode on if and only if arg is positive.
 This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
 different buffer menu using the function `msb'."
-  nil nil msb-mode-map
   :global t
   (if msb-mode
       (progn
@@ -1155,6 +1154,6 @@ different buffer menu using the function `msb'."
   (msb-mode 0))
 
 (provide 'msb)
-(eval-after-load 'msb (run-hooks 'msb-after-load-hooks))
+(eval-after-load 'msb (run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
 
 ;;; msb.el ends here
