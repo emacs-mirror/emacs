@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/12/15 02:06:45 $|$Revision: 1.80 $
+;; |$Date: 1994/12/17 00:41:34 $|$Revision: 1.81 $
 
 ;; This file is part of GNU Emacs.
 
@@ -507,6 +507,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (isearch-update)
   (run-hooks 'isearch-mode-hook)
 
+  (setq mouse-leave-buffer-hook '(isearch-done))
+
   ;; isearch-mode can be made modal (in the sense of not returning to 
   ;; the calling function until searching is completed) by entering 
   ;; a recursive-edit and exiting it when done isearching.
@@ -555,8 +557,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
    isearch-yank-flag nil)
   )
 
-
 (defun isearch-done (&optional nopush edit)
+  (setq mouse-leave-buffer-hook nil)
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
   (setq overriding-local-map nil)
