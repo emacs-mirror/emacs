@@ -858,7 +858,11 @@ it is displayed along with the global value."
 		(terpri)
 		(let ((from (point)))
 		  (pp val)
-		  (help-xref-on-pp from (point))))))
+		  (help-xref-on-pp from (point))
+		  (if (< (point) (+ from 20))
+		      (save-excursion
+			(goto-char from)
+			(delete-char -1)))))))
 	  (terpri)
 	  (if (local-variable-p variable)
 	      (progn
@@ -875,7 +879,11 @@ it is displayed along with the global value."
 		      ;; sensible size before prettyprinting.  -- fx
 		      (let ((from (point)))
 			(pp val)
-			(help-xref-on-pp from (point))))))
+			(help-xref-on-pp from (point))
+			(if (< (point) (+ from 20))
+			    (save-excursion
+			      (goto-char from)
+			      (delete-char -1)))))))
 		(terpri)))
 	  (terpri)
 	  (with-current-buffer standard-output
