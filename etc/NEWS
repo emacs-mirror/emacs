@@ -1836,8 +1836,13 @@ defined.
 **** JPEG, image type `jpeg'
 
 Support for JPEG images requires the external library `libjpeg',
-package `jpegsrc.v6a.tar.gz', or later.  There are no additional image
-properties defined.
+package `jpegsrc.v6a.tar.gz', or later.  Additional image properties
+are:
+
+`:data DATA'
+
+DATA must be a string containing a JPEG image.  The contents of the
+string are of the same format as that of JPEG files.
 
 **** TIFF, image type `tiff'
 
