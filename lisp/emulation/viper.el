@@ -8,7 +8,7 @@
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
-(defconst viper-version "3.02 (Polyglot) of March 7, 1998"
+(defconst viper-version "3.03 (Polyglot) of May 21, 1998"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
