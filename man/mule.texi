@@ -66,7 +66,9 @@ the @kbd{C-q} command (@pxref{Multibyte Conversion}).
 @findex view-hello-file
   The command @kbd{C-h h} (@code{view-hello-file}) displays the file
 @file{etc/HELLO}, which shows how to say ``hello'' in many languages.
-This illustrates various scripts.
+This illustrates various scripts.  If the font you're using doesn't have
+characters for all those different languages, you will see some hollow
+boxes instead of characters; see @ref{Fontsets}.
 
   Keyboards, even in the countries where these character sets are used,
 generally don't have keys for all the characters in them.  So Emacs
