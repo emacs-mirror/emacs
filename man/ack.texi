@@ -3,16 +3,17 @@
 @c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
-@c We should list here anyone who has contributed a new package,
-@c and anyone who has made major enhancements in Emacs
-@c that users would notice and consider important.
 @node Acknowledgments, Screen, Concept Index, Top
 @chapter Acknowledgments
 
 Many people have contributed code included in the Free Software
 Foundation's distribution of GNU Emacs.  To show our appreciation for
-their public spirit, we list here, in alphabetical order, those who have
+their public spirit, we list here in alphabetical order those who have
 written substantial portions.
+
+@c We should list here anyone who has contributed a new package,
+@c and anyone who has made major enhancements in Emacs
+@c that many users would notice and consider important.
 
 @itemize @bullet
 @item
