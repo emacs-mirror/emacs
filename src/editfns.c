@@ -596,7 +596,11 @@ STANDARD is a string giving the name of the time zone when no seasonal\n\
 SAVINGS is a string giving the name of the time zone when there is a\n\
     seasonal time adjustment in effect.\n\
 If the local area does not use a seasonal time adjustment,\n\
-SAVINGS-FLAG is always nil, and STANDARD and SAVINGS are equal.")
+SAVINGS-FLAG is always nil, and STANDARD and SAVINGS are equal.\n\
+\n\
+Some operating systems cannot provide all this information to Emacs;\n\
+in this case, current-time-zone will return a list containing nil for\n\
+the data it can't find.")
   ()
 {
 #ifdef EMACS_CURRENT_TIME_ZONE
@@ -612,8 +616,7 @@ SAVINGS-FLAG is always nil, and STANDARD and SAVINGS are equal.")
 			      Fcons (build_string (savings),
 				     Qnil))));
 #else
-  error
-    ("current-time-zone has not been implemented on this operating system.");
+  return Fmake_list (4, Qnil);
 #endif
 }
 
