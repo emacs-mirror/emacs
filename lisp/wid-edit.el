@@ -176,7 +176,13 @@ Larger menus are read through the minibuffer."
   :group 'widgets
   :type 'integer)
 
-(defcustom widget-menu-minibuffer-flag (string-match "XEmacs" emacs-version)
+(defcustom widget-menu-max-shortcuts 40
+  "Largest number of items for which it works to choose one with a character.
+For a larger number of items, the minibuffer is used."
+  :group 'widgets
+  :type 'integer)
+
+(defcustom widget-menu-minibuffer-flag nil
   "*Control how to ask for a choice from the keyboard.
 Non-nil means use the minibuffer;
 nil means read a single character."
@@ -202,7 +208,8 @@ minibuffer."
 	 ;; We are in Emacs-19, pressed by the mouse
 	 (x-popup-menu event
 		       (list title (cons "" items))))
-	(widget-menu-minibuffer-flag
+	((or widget-menu-minibuffer-flag
+	     (> (length items) widget-menu-max-shortcuts))
 	 ;; Read the choice of name from the minibuffer.
 	 (setq items (widget-remove-if 'stringp items))
 	 (let ((val (completing-read (concat title ": ") items nil t)))
