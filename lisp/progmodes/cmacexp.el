@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.18 1994/09/05 04:33:23 rms Exp pot $
+;; Version: $Id: cmacexp.el,v 1.19 1995/03/07 15:24:44 pot Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -84,6 +84,8 @@
 ;; If the start point of the region is inside a macro definition the
 ;; macro expansion is often inaccurate.
 
+
+(require 'cc-mode)
 
 (provide 'cmacexp)
 
