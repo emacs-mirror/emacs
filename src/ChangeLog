@@ -4,7 +4,7 @@
 	HAVE_GETSOCKOPT, HAVE_GETPEERNAME, HAVE_GETSOCKNAME, and
 	HAVE_SYS_UN_H.
 
-	*process.c: Define HAVE_LOCAL_SOCKETS based on HAVE_SYS_UN_H.
+	* process.c: Define HAVE_LOCAL_SOCKETS based on HAVE_SYS_UN_H.
 	Remove explicit GNU_LINUX settings for datagram support.
 
 2002-03-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
