@@ -2119,7 +2119,7 @@ x_figure_window_size (f, parms)
 	    window_prompting |= XNegative;
 	}
 
-      if (!NILP (tem2))
+      if (!NILP (tem2) && ! EQ (tem2, Qunbound))
 	window_prompting |= USPosition;
       else
 	window_prompting |= PPosition;
