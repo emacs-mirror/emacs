@@ -711,43 +711,33 @@ w32_draw_fringe_bitmap (w, row, p)
       HANDLE horig_obj;
 
       compat_hdc = CreateCompatibleDC (hdc);
+
       SaveDC (hdc);
 
       horig_obj = SelectObject (compat_hdc, pixmap);
       SetTextColor (hdc, face->background);
-      SetBkColor (hdc, face->foreground);
-
-#if 0  /* TODO: fringe overlay_p and cursor_p */
-      SetBkColor (hdc, (p->cursor_p
-			? (p->overlay_p ? face->background
+      SetBkColor (hdc, p->cursor_p
+		        ? (p->overlay_p ? face->background
 			   : f->output_data.w32->cursor_pixel)
-			: face->foreground));
+			   : face->foreground);
 
+      /* Paint overlays transparently.  */
       if (p->overlay_p)
 	{
-	  clipmask = XCreatePixmapFromBitmapData (display,
-						  FRAME_X_DISPLAY_INFO (f)->root_window,
-						  bits, p->wd, p->h,
-						  1, 0, 1);
-	  gcv.clip_mask = clipmask;
-	  gcv.clip_x_origin = p->x;
-	  gcv.clip_y_origin = p->y;
-	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
+	BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		compat_hdc, 0, p->dh,
+		DSTINVERT);
+	BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		compat_hdc, 0, p->dh,
+		MERGEPAINT);
+	BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		compat_hdc, 0, p->dh,
+		DSTINVERT);
 	}
-#endif
-
-      BitBlt (hdc, p->x, p->y, p->wd, p->h,
-	      compat_hdc, 0, p->dh,
-	      SRCCOPY);
-
-#if 0  /* TODO: fringe overlay_p and cursor_p */
-      if (p->overlay_p)
-	{
-	  gcv.clip_mask = (Pixmap) 0;
-	  XChangeGC (display, gc, GCClipMask, &gcv);
-	  XFreePixmap (display, clipmask);
-	}
-#endif
+      else
+	BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		compat_hdc, 0, p->dh,
+		SRCCOPY);
 
       SelectObject (compat_hdc, horig_obj);
       DeleteDC (compat_hdc);
