@@ -1327,14 +1327,13 @@ Start (w, ev, params, num_params)
   if (!mw->menu.popped_up)
     {
       menu_post_event = *ev;
-      pop_up_menu (mw, ev);
+      next_release_must_exit = 0;
     }
   else
     /* If we push a button while the menu is posted semipermanently,
        releasing the button should always pop the menu down.  */
     next_release_must_exit = 1;
 
-#if 0
   XtCallCallbackList ((Widget)mw, mw->menu.open, NULL);
   
   /* notes the absolute position of the menubar window */
@@ -1343,8 +1342,13 @@ Start (w, ev, params, num_params)
 
   /* handles the down like a move, slots are compatible */
   handle_motion_event (mw, &ev->xmotion);
-#endif
-
+  XtGrabPointer ((Widget)mw, False,
+		 (PointerMotionMask | PointerMotionHintMask
+		  | ButtonReleaseMask | ButtonPressMask),
+		 GrabModeAsync, GrabModeAsync, None,
+		 mw->menu.cursor_shape,
+		 ((XButtonPressedEvent *)ev)->time);
+  pointer_grabbed = 1;
 }
 
 static void 
