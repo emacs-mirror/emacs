@@ -162,6 +162,7 @@ case "${canonical}" in
       mips-*-netbsd*)	machine=pmax ;;
       ns32k-*-netbsd*)	machine=ns32000 ;;
       sparc-*-netbsd*)	machine=sparc ;;
+      vax-*-netbsd*)	machine=vax ;;
     esac
   ;;
 
