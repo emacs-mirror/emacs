@@ -13,9 +13,9 @@
 ;;; Code:
 
 (defgroup auto-show nil
-  "This customization group is kept for compatibilry only.
+  "This customization group is kept for compatibility only.
 Emacs now does hscrolling automatically.  Please remove references
-to hscroll from your init file and code."
+to auto-show from your init file and code."
   :group 'editing)
 
 ;;;###autoload
