@@ -88,14 +88,23 @@ used (see below).
 
 BODY contains code that will be executed each time the mode is (dis)activated.
   It will be executed after any toggling but before running the hooks.
-  BODY can start with a list of CL-style keys specifying additional arguments.
-  The following keyword arguments are supported:
-:group GROUP	Group name to use for any generated `defcustom'.
+  Before the actual body code, you can write
+  keyword arguments (alternating keywords and values).
+  These following keyword arguments are supported:
+:group GROUP	Custom group name to use in all generated `defcustom' forms.
 :global GLOBAL	If non-nil specifies that the minor mode is not meant to be
-              	buffer-local.  By default, the variable is made buffer-local.
+              	buffer-local, so don't make the variable MODE buffer-local.
+		By default, the mode is buffer-local.
 :init-value VAL	Same as the INIT-VALUE argument.
 :lighter SPEC	Same as the LIGHTER argument.
-:require SYM	Same as defcustom's :require argument."
+:require SYM	Same as in `defcustom'.
+
+For example, you could write
+  (define-minor-mode foo-mode \"If enabled, foo on you!\"
+    nil \"Foo \" foo-keymap
+    :require 'foo :global t :group 'inconvenience
+    ...BODY CODE...)"
+
   ;; Allow skipping the first three args.
   (cond
    ((keywordp init-value)
