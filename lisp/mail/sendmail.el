@@ -70,9 +70,9 @@ nil means use indentation.")
 (defvar mail-mode-map nil)
 
 ;;;###autoload
-(defvar mail-signature-file "~/.signature"
-  "*Name of file to insert at the end of the mail buffer.
-The text is inserted when the message is initialized.")
+(defvar mail-signature nil
+  "*Text inserted at end of mail buffer when a message is initialized.
+If t, it means to insert the contents of the file `~/.signature'.")
 
 (defvar mail-reply-buffer nil)
 (defvar mail-send-actions nil
@@ -124,11 +124,14 @@ so you can edit or delete these lines.")
     (if mail-archive-file-name
 	(insert "FCC: " mail-archive-file-name "\n"))
     (insert mail-header-separator "\n")
-    ;; Read the .signature file.
-    (and mail-signature-file
-	 (file-exists-p mail-signature-file)
-	 (progn (insert "\n")
-		(insert-file-contents (expand-file-name mail-signature-file))))
+    ;; Insert the signature.
+    (cond ((eq mail-signature t)
+	   (if (file-exists-p "~/.signature")
+	       (progn
+		 (insert "--\n")
+		 (insert-file-contents "~/.signature"))))
+	  (mail-signature
+	   (insert mail-signature)))
     (goto-char (point-max))
     (or (bolp) (newline)))
   (if to (goto-char (point-max)))
@@ -489,7 +492,7 @@ the user from the mailer."
     (or atpoint
 	(delete-region (point) (point-max)))
     (insert "\n\n--\n")
-    (insert-file-contents (expand-file-name mail-signature-file))))
+    (insert-file-contents (expand-file-name "~/.signature"))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
   "Fill the paragraphs of a message yanked into this one.
@@ -553,8 +556,8 @@ and don't delete any header fields."
 When this function returns, the buffer `*mail*' is selected.
 The value is t if the message was newly initialized; otherwise, nil.
 
-By default, the file named by the variable `mail-signature-file' is
-inserted at the end; by default, this is \"~/.signature\".
+By default, the signature file `~/.signature' is inserted at the end;
+see the variable `mail-signature'.
 
 \\<mail-mode-map>
 While editing message, type \\[mail-send-and-exit] to send the message and exit.
