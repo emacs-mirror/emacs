@@ -515,7 +515,7 @@ The R column contains a % for buffers that are read-only."
                 (setq this-buffer-directory list-buffers-directory))))
           (cond
             ;; Don't mention internal buffers.
-            ((string= (substring name 0 1) " "))
+            ((and (string= (substring name 0 1) " ") (null file)))
             ;; Maybe don't mention buffers without files.
             ((and files-only (not file)))
             ((string= name "*Buffer List*"))
