@@ -794,20 +794,34 @@ If FRAME is omitted, describe the currently selected frame."
   (cdr (assq 'width (frame-parameters frame))))
 
 (defalias 'set-default-font 'set-frame-font)
-(defun set-frame-font (font-name)
+(defun set-frame-font (font-name &optional keep-size)
   "Set the font of the selected frame to FONT-NAME.
 When called interactively, prompt for the name of the font to use.
-To get the frame's current default font, use `frame-parameters'."
+To get the frame's current default font, use `frame-parameters'.
+
+The default behavior is to keep the numbers of lines and columns in
+the frame, thus may change its pixel size. If optional KEEP-SIZE is
+non-nil (interactively, prefix argument) the current frame size (in
+pixels) is kept by adjusting the numbers of the lines and columns."
   (interactive
-   (list
-    (let ((completion-ignore-case t))
-      (completing-read "Font name: "
-		       (mapcar #'list
-			       ;; x-list-fonts will fail with an error
-			       ;; if this frame doesn't support fonts.
-			       (x-list-fonts "*" nil (selected-frame)))))))
-  (modify-frame-parameters (selected-frame)
-			   (list (cons 'font font-name)))
+   (let* ((completion-ignore-case t)
+	  (font (completing-read "Font name: "
+			 (mapcar #'list
+				 ;; x-list-fonts will fail with an error
+				 ;; if this frame doesn't support fonts.
+				 (x-list-fonts "*" nil (selected-frame))))))
+     (list font current-prefix-arg)))
+  (let (fht fwd)
+    (if keep-size
+	(setq fht (* (frame-parameter nil 'height) (frame-char-height))
+	      fwd (* (frame-parameter nil 'width)  (frame-char-width))))
+    (modify-frame-parameters (selected-frame)
+			     (list (cons 'font font-name)))
+    (if keep-size
+	(modify-frame-parameters
+	 (selected-frame)
+	 (list (cons 'height (round fht (frame-char-height)))
+	       (cons 'width (round fwd (frame-char-width)))))))
   (run-hooks 'after-setting-font-hook 'after-setting-font-hooks))
 
 (defun set-frame-parameter (frame parameter value)
