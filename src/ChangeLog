@@ -1,3 +1,23 @@
+2000-10-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (access_keymap): Add AUTOLOAD parameter.
+	Do the meta->esc mapping.  Call get_keyelt before returning.
+	Start scanning from the second element (the first is always `keymap')
+	to make it easier to detect when we reach a parent map.
+	Handle the case of inheriting from a symbol whose function is a map.
+	(Fkeymap_parent): Also handle the `inherit from symbol' case.
+	(fix_submap_inheritance, Fdefine_key): Update call to access_keymap.
+	(get_keyelt, Flookup_key): Update call to access_keymap.
+	Remove the meta->esc mappings.
+	(define_as_prefix): Delete old disabled code.
+	(menu_item_p): New function.
+	(where_is_internal_1): Skip over the few remaining menu items.
+	* lisp.h (access_keymap): Update prototype.
+	* keyboard.c (read_char, menu_bar_items, tool_bar_items):
+	Update call to access_keymap.
+	(follow_key, read_key_sequence): Update calls to access_keymap.
+	Remove the meta->esc mappings.
+
 2000-10-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (direct_output_for_insert): Call set_iterator_to_next
