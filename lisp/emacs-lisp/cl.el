@@ -178,7 +178,7 @@ Keywords supported:  :test :test-not :key"
 (defun cl-set-substring (str start end val)
   (if end (if (< end 0) (incf end (length str)))
     (setq end (length str)))
-  (if (< start 0) (incf start str))
+  (if (< start 0) (incf start (length str)))
   (concat (and (> start 0) (substring str 0 start))
 	  val
 	  (and (< end (length str)) (substring str end))))
@@ -676,8 +676,8 @@ Keywords supported:  :test :test-not :key"
 (defun cl-hack-byte-compiler ()
   (if (and (not cl-hacked-flag) (fboundp 'byte-compile-file-form))
       (progn
-	(cl-compile-time-init)   ; in cl-macs.el
-	(setq cl-hacked-flag t))))
+	(setq cl-hacked-flag t)		; Do it first, to prevent recursion.
+	(cl-compile-time-init))))	; In cl-macs.el.
 
 ;;; Try it now in case the compiler has already been loaded.
 (cl-hack-byte-compiler)
