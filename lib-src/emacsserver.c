@@ -569,7 +569,6 @@ main ()
 
 #endif /* HAVE_SYSVIPC */
 
-#endif /* HAVE_SOCKETS or HAVE_SYSVIPC */
 
 /* This is like perror but puts `Error: ' at the beginning.  */
 
@@ -594,3 +593,4 @@ fatal_error (string)
   fprintf (stderr, string);
   exit (1);
 }
+#endif /* HAVE_SOCKETS or HAVE_SYSVIPC */
