@@ -549,6 +549,7 @@ fs_load_font (f, fontname)
   if (!fontp)
     return NULL;
 
+  fontname = fontp->full_name;
   /* Fill in members (charset, vertical_centering, encoding, etc) of
      font_info structure that are not set by (*load_font_func).  */
   for (tail = Vfont_encoding_alist; CONSP (tail); tail = XCDR (tail))
@@ -567,7 +568,7 @@ fs_load_font (f, fontname)
   fontp->vertical_centering
     = (STRINGP (Vvertical_centering_font_regexp)
        && (fast_c_string_match_ignore_case
-	   (Vvertical_centering_font_regexp, fontp->full_name) >= 0));
+	   (Vvertical_centering_font_regexp, fontname) >= 0));
 
   fontp->font_encoder = NULL;
 
