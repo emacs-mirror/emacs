@@ -1,6 +1,6 @@
 /* impl.c.shield: SHIELD IMPLEMENTATION
  *
- * $HopeName: MMsrc!shield.c(trunk.14) $
+ * $HopeName: MMsrc!shield.c(trunk.15) $
  * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  *
  * See: idea.shield, design.mps.shield.
@@ -9,6 +9,7 @@
  * as long as possible.  When threads are suspended, it maintains a
  * cache of covered segments where the desired and actual protection
  * do not match.  This cache is flushed on leaving the shield.
+ *
  *
  * Definitions
  *
@@ -29,17 +30,17 @@
  * to leave and enter, and similarly .def.inside: being inside the
  * shield is being between calls to enter and leave.
  * .def.suspended: suspended is true iff the threads are suspended
- * .def.exposed: a segment is exposed if #exposes > #covers and
- * covered otherwise.
+ *
  *
  * Properties
  *
  * .prop.outside.running: The mutator may not be suspended while
  * outside the shield.
  * .prop.mutator.access: An attempt by the mutator to access
- * shielded memory must cause a SpaceAccess.
+ * shielded memory must cause an ArenaAccess.
  * .prop.inside.access: Inside the shield it must be possible to access
  * all unshielded segments and all exposed segments.
+ *
  *
  * Invariants
  *
@@ -48,7 +49,7 @@
  * .inv.outside.running: The mutator is running while outside the
  * shield.
  * .inv.unsynced.suspended: If any segment is not synced,
- *  the mutator is suspended.
+ * the mutator is suspended.
  * .inv.unsynced.depth: All unsynced segments have positive depth.
  * .inv.outside.depth: The total depth is zero while outside the shield.
  * .inv.prot.shield: The prot mode is never more than the shield mode.
@@ -73,7 +74,7 @@
 
 #include "mpm.h"
 
-SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.14) $");
+SRCID(shield, "$HopeName: MMsrc!shield.c(trunk.15) $");
 
 
 void (ShieldSuspend)(Arena arena)
@@ -81,7 +82,7 @@ void (ShieldSuspend)(Arena arena)
   AVERT(Arena, arena);
   AVER(arena->insideShield);
 
-  if(!arena->suspended) {
+  if (!arena->suspended) {
     ThreadRingSuspend(ArenaThreadRing(arena));
     arena->suspended = TRUE;
   }
@@ -105,7 +106,7 @@ static void protLower(Arena arena, Seg seg, AccessSet mode)
   UNUSED(arena);
   AVERT_CRITICAL(Seg, seg);
 
-  if(SegPM(seg) & mode) {
+  if (SegPM(seg) & mode) {
     SegSetPM(seg, SegPM(seg) & ~mode);
     ProtSet(SegBase(seg), SegLimit(seg), SegPM(seg));
   }
@@ -117,7 +118,7 @@ static void sync(Arena arena, Seg seg)
   AVERT(Arena, arena);
   AVERT(Seg, seg);
 
-  if(SegPM(seg) != SegSM(seg)) {
+  if (SegPM(seg) != SegSM(seg)) {
     ProtSet(SegBase(seg), SegLimit(seg), SegSM(seg));
     SegSetPM(seg, SegSM(seg));
     /* inv.prot.shield */
@@ -156,26 +157,26 @@ static void cache(Arena arena, Seg seg)
   AVERT_CRITICAL(Arena, arena);
   AVERT_CRITICAL(Seg, seg);
 
-  if(SegSM(seg) == SegPM(seg)) return;
-  if(SegDepth(seg) > 0) {
+  if (SegSM(seg) == SegPM(seg)) return;
+  if (SegDepth(seg) > 0) {
     ShieldSuspend(arena);
     return;
   }
-  if(SHIELD_CACHE_SIZE == 0 || !arena->suspended)
+  if (ShieldCacheSIZE == 0 || !arena->suspended)
     sync(arena, seg);
   else {
     SegSetDepth(seg, SegDepth(seg) + 1);
     ++arena->shDepth;
     AVER(arena->shDepth > 0);
     AVER(SegDepth(seg) > 0);
-    AVER(arena->shCacheLimit <= SHIELD_CACHE_SIZE);
+    AVER(arena->shCacheLimit <= ShieldCacheSIZE);
     AVER(arena->shCacheI < arena->shCacheLimit);
     flush(arena, arena->shCacheI);
     arena->shCache[arena->shCacheI] = seg;
     ++arena->shCacheI;
-    if(arena->shCacheI == SHIELD_CACHE_SIZE)
+    if (arena->shCacheI == ShieldCacheSIZE)
       arena->shCacheI = 0;
-    if(arena->shCacheI == arena->shCacheLimit)
+    if (arena->shCacheI == arena->shCacheLimit)
       ++arena->shCacheLimit;
   }
 }
@@ -221,7 +222,7 @@ void (ShieldEnter)(Arena arena)
   AVER(!arena->insideShield);
   AVER(arena->shDepth == 0);
   AVER(!arena->suspended);
-  AVER(arena->shCacheLimit <= SHIELD_CACHE_SIZE);
+  AVER(arena->shCacheLimit <= ShieldCacheSIZE);
   AVER(arena->shCacheI < arena->shCacheLimit);
   for(i = 0; i < arena->shCacheLimit; i++)
     AVER(arena->shCache[i] == NULL);
@@ -241,7 +242,7 @@ void (ShieldFlush)(Arena arena)
   Size i;
 
   for(i = 0; i < arena->shCacheLimit; ++i) {
-    if(arena->shDepth == 0)
+    if (arena->shDepth == 0)
       break;
     flush(arena, i);
   }
@@ -259,7 +260,7 @@ void (ShieldLeave)(Arena arena)
 
   /* Ensuring the mutator is running at this point
    * guarantees inv.outside.running */
-  if(arena->suspended) {
+  if (arena->suspended) {
     ThreadRingResume(ArenaThreadRing(arena));
     arena->suspended = FALSE;
   }
@@ -279,7 +280,7 @@ void (ShieldExpose)(Arena arena, Seg seg)
   /* design.mps.trace.fix.noaver */
   AVER_CRITICAL(arena->shDepth > 0);
   AVER_CRITICAL(SegDepth(seg) > 0);
-  if(SegPM(seg) & mode)
+  if (SegPM(seg) & mode)
     ShieldSuspend(arena);
 
   /* This ensures inv.expose.prot */
