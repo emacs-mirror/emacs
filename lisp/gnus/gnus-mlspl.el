@@ -98,8 +98,8 @@ gnus-group-split is a valid value for nnmail-split-methods."
 ;;;###autoload
 (defun gnus-group-split-fancy
   (&optional groups no-crosspost catch-all)
-  "Uses information from group parameters in order to split mail.  It
-can be embedded into nnmail-split-fancy lists with the SPLIT
+  "Uses information from group parameters in order to split mail.
+It can be embedded into `nnmail-split-fancy' lists with the SPLIT
 
 \(: gnus-group-split-fancy GROUPS NO-CROSSPOST CATCH-ALL\)
 
