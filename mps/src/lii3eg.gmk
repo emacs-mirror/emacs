@@ -1,0 +1,16 @@
+# impl.gmk.lii3eg: BUILD FOR LINUX/INTEL/EGCS PLATFORM
+#
+# $HopeName$
+# Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+#
+# This is the GNU makefile for platform.lii3eg.
+
+PFM = lii3eg
+
+MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmli.c \
+        protan.c prmcan.c ssan.c span.c
+SWPF = lockan.c than.c vman.c protsw.c prmcan.c ssan.c
+
+LIBS = -lm
+
+include eg.gmk
