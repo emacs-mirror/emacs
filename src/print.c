@@ -398,11 +398,15 @@ printchar (ch, fun)
 		     0, 1);
 	  printbufidx = size;
 	  if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
-	    printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
+	    {
+	      printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
+	      /* Rewind incomplete multi-byte form.  */
+	      while (printbufidx > 0 && tembuf[printbufidx] >= 0xA0)
+		printbufidx--;
+	    }
 	  bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
+	  message_enable_multibyte = 1;
 	}
-      message_enable_multibyte
-	= ! NILP (current_buffer->enable_multibyte_characters);
 
       if (printbufidx < FRAME_MESSAGE_BUF_SIZE (mini_frame) - len)
 	bcopy (str, &FRAME_MESSAGE_BUF (mini_frame)[printbufidx], len),
@@ -489,16 +493,44 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 	}
 
       message_dolog (ptr, size_byte, 0, multibyte);
+
+      /* Convert message to multibyte if we are now adding multibyte text.  */
+      if (multibyte
+	  && ! message_enable_multibyte
+	  && printbufidx > 0)
+	{
+	  int size = count_size_as_multibyte (FRAME_MESSAGE_BUF (mini_frame),
+					      printbufidx);
+	  unsigned char *tembuf = (unsigned char *) alloca (size + 1);
+	  copy_text (FRAME_MESSAGE_BUF (mini_frame), tembuf, printbufidx,
+		     0, 1);
+	  printbufidx = size;
+	  if (printbufidx > FRAME_MESSAGE_BUF_SIZE (mini_frame))
+	    {
+	      printbufidx = FRAME_MESSAGE_BUF_SIZE (mini_frame);
+	      /* Rewind incomplete multi-byte form.  */
+	      while (printbufidx > 0 && tembuf[printbufidx] >= 0xA0)
+		printbufidx--;
+	    }
+
+	  bcopy (tembuf, FRAME_MESSAGE_BUF (mini_frame), printbufidx);
+	  message_enable_multibyte = 1;
+	}
+
+      /* Compute how much of the new text will fit there.  */
       if (size_byte > FRAME_MESSAGE_BUF_SIZE (mini_frame) - printbufidx - 1)
 	{
 	  size_byte = FRAME_MESSAGE_BUF_SIZE (mini_frame) - printbufidx - 1;
 	  /* Rewind incomplete multi-byte form.  */
-	  while (size_byte && (unsigned char) ptr[size] >= 0xA0) size--;
+	  while (size_byte && (unsigned char) ptr[size_byte] >= 0xA0)
+	    size_byte--;
 	}
+
+      /* Put that part of the new text in.  */
       bcopy (ptr, &FRAME_MESSAGE_BUF (mini_frame) [printbufidx], size_byte);
       printbufidx += size_byte;
-      echo_area_glyphs_length = printbufidx;
       FRAME_MESSAGE_BUF (mini_frame) [printbufidx] = 0;
+      echo_area_glyphs_length = printbufidx;
 
       return;
     }
