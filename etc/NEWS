@@ -23,7 +23,11 @@ installed programs.
 You no longer need to download a separate tarball in order to build
 Emacs with Leim.
 
+---
 ** Support for FreeBSD/Alpha has been added.
+
+---
+** Support for BSD/OS 5.0 was added.
 
 
 * Changes in Emacs 21.3
