@@ -730,7 +730,14 @@ x_set_background_color (f, arg, oldval)
 		      f->display.x->background_pixel);
       XSetWindowBackground (x_current_display, FRAME_X_WINDOW (f),
 			    f->display.x->background_pixel);
-
+      {
+	Lisp_Object bar;
+	for (bar = FRAME_SCROLL_BARS (f); !NILP (bar);
+	     bar = XSCROLL_BAR (bar)->next)
+	  XSetWindowBackground (x_current_display,
+				SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
+				f->display.x->background_pixel);
+      }
 #else
       temp = XMakeTile (f->display.x->background_pixel);
       XChangeBackground (FRAME_X_WINDOW (f), temp);
