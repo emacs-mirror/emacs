@@ -268,9 +268,41 @@ unreadchar (readcharfun, c)
        since readchar didn't advance it when we read it.  */
     ;
   else if (BUFFERP (readcharfun))
-    readchar_backlog++;
+    {
+      if (!SINGLE_BYTE_CHAR_P (c))
+	readchar_backlog++;
+      else
+	{
+	  struct buffer *b = XBUFFER (readcharfun);
+	  int bytepos = BUF_PT_BYTE (b);
+
+	  BUF_PT (b)--;
+	  if (! NILP (b->enable_multibyte_characters))
+	    BUF_DEC_POS (b, bytepos);
+	  else
+	    bytepos--;
+
+	  BUF_PT_BYTE (b) = bytepos;
+	}
+    }
   else if (MARKERP (readcharfun))
-    readchar_backlog++;
+    {
+      if (!SINGLE_BYTE_CHAR_P (c))
+	readchar_backlog++;
+      else
+	{
+	  struct buffer *b = XMARKER (readcharfun)->buffer;
+	  int bytepos = XMARKER (readcharfun)->bytepos;
+
+	  XMARKER (readcharfun)->charpos--;
+	  if (! NILP (b->enable_multibyte_characters))
+	    BUF_DEC_POS (b, bytepos);
+	  else
+	    bytepos--;
+
+	  XMARKER (readcharfun)->bytepos = bytepos;
+	}
+    }
   else if (STRINGP (readcharfun))
     read_from_string_index--;
   else if (EQ (readcharfun, Qget_file_char))
