@@ -817,7 +817,8 @@ Commands for sorting the summary:
   (rmail-update-summary)
   (save-excursion
     (set-buffer rmail-buffer)
-    (save-buffer)))
+    (save-buffer))
+  (set-buffer-modified-p nil))
 
 (defun rmail-summary-get-new-mail ()
   "Get new mail and recompute summary headers."
