@@ -1,3 +1,16 @@
+2002-12-23  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer) <scroll-up-aggressively>
+	<scroll-down-aggressively>: Doc fix.
+
+	* xmenu.c (parse_single_submenu): Use individual keymap's prompt
+	string as pane name, if there is one.
+	(set_frame_menubar): Save menu_items_n_panes from each call to
+	parse_single_submenu and use it when calling digest_single_submenu.
+
+	* window.c (window_scroll_pixel_based): Fix check for reaching BEGV.
+	Don't try to make last line fully visible if it is past end of window.
+
 2002-12-22  Steven Tamm  <steventamm@mac.com>
 
 	* macmenu.c (MIN_POPUP_SUBMENU_ID): Added 

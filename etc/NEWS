@@ -1124,6 +1124,15 @@ with Custom.
 ** New function `optimize-char-coding-system-table' can be called
 after making changes to `char-coding-system-table'.
 
+** `save-selected-window' now saves and restores the selected window
+of every frame.  This way, it restores everything that can be changed
+by calling `select-window'.
+
+** `easy-menu-define' now allows you to use nil for the symbol name
+if you don't need to give the menu a name.  If you install the menu
+into other keymaps right away (MAPS is non-nil), it usually doesn't
+need to have a name.
+
 ** Byte compiler changes:
 
 *** `(featurep 'xemacs)' is treated by the compiler as nil.  This

@@ -11,6 +11,57 @@
 	* cus-start.el (scroll-up-aggressively, scroll-down-aggressively):
 	Update custom types.
 
+2002-12-23  Alex Schroeder  <alex@emacswiki.org>
+
+        Merging Dave Love <fx@gnu.org>'s custom_themes branch containing
+	Alex Schroeder's adaptation of Jan Vroonhof
+	<vroonhof@math.ethz.ch>'s code.  Doc strings corrected by RMS.
+	
+	* cus-edit.el (customize-save-variable): Take themes into account.
+	(custom-variable-save): Take themes into account.
+	(custom-variable-reset-saved): Add comment-widget.
+	(custom-variable-reset-standard): Add comment-widget.
+	(custom-variable-reset-standard): Take themes into account.
+	(custom-face-save): Take themes into account.
+	(custom-face-reset-standard): Take themes into account.
+	(custom-save-variables): Take themes into account.
+	(custom-save-faces): Take themes into account.
+	(custom-save-faces): Take themes into account.
+	(custom-save-resets): New function.
+	(custom-save-loaded-themes): New function.
+	(customize-save-customized): Take themes into account.
+
+	* cus-face.el (custom-set-faces): Call custom-theme-set-faces.
+	(custom-theme-set-faces): New function.
+	(custom-theme-face-value): New function.
+	(custom-theme-reset-internal-face): New function.
+	(custom-theme-reset-faces): New function.
+	(custom-reset-faces): New function.
+
+	* custom.el (custom-known-themes): New variable.
+	(custom-declare-theme): New function.
+	(deftheme): New macro.
+	(custom-make-theme-feature): New function.
+	(custom-theme-p): New function.
+	(custom-check-theme): New function.
+	(custom-push-theme): New function.
+	(custom-theme-set-variables): Take themes into account.
+	(custom-loaded-themes): New variable.
+	(custom-theme-loaded-p): New function.
+	(provide-theme): New function.
+	(require-theme): New function.
+	(custom-remove-theme): New function.
+	(custom-do-theme-reset): New function.
+	(custom-theme-load-themes): New function.
+	(custom-load-themes): New function.
+	(custom-theme-value): New function.
+	(custom-theme-variable-value): New function.
+	(custom-theme-reset-internal): New function.
+	(custom-theme-reset-variables): New function.
+	(custom-reset-variables): New function.
+
+	* cus-theme.el: New file.
+
 2002-12-23  Matthew Swift  <swift@alum.mit.edu>
 
 	* emacs-lisp/rx.el (rx-and): Generate a shy group.
