@@ -30,7 +30,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-comp.el,v 1.19 2000/08/16 20:39:14 monnier Exp $
+;; $Id: mh-comp.el,v 1.20 2000/11/02 12:37:38 gerd Exp $
 
 ;;; Code:
 
@@ -168,7 +168,7 @@ MH lib directory.")
 (defcustom mh-compose-letter-function nil
   "Invoked when setting up a letter draft.
 It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
-  :type 'function
+  :type '(choice (const nil) function)
   :group 'mh-compose)
 
 (defcustom mh-before-send-letter-hook nil
