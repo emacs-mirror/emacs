@@ -1057,7 +1057,7 @@ Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument EXITING means ask about certain non-file buffers
  as well as about file buffers."
   (interactive "P")
-  (save-excursion
+  (save-window-excursion
     (if (zerop (map-y-or-n-p
 		(function
 		 (lambda (buffer)
@@ -1080,7 +1080,13 @@ Optional second argument EXITING means ask about certain non-file buffers
 		   (set-buffer buffer)
 		   (save-buffer)))
 		(buffer-list)
-		'("buffer" "buffers" "save")))
+		'("buffer" "buffers" "save")
+		(list (list ?v (lambda (buf)
+				 (display-buffer buf)
+				 ;; Return nil to ask about BUF again.
+				 nil)
+			    "display the current buffer"))
+		))
 	(message "(No files need saving)"))))
 
 (defun not-modified (&optional arg)

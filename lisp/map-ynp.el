@@ -32,18 +32,10 @@
 
 ;;; Code:
 
-(defun map-y-or-n-p-help (object objects action)
-  (format "Type SPC or `y' to %s the current %s;
-DEL or `n' to skip the current %s;
-! to %s all remaining %s;
-ESC or `q' to exit;
-or . (period) to %s the current %s and exit."
-	  action object object action objects action object))
-
 ;;;###autoload
-(defun map-y-or-n-p (prompter actor list &optional help)
+(defun map-y-or-n-p (prompter actor list &optional help action-alist)
   "Ask a series of boolean questions.
-Takes args PROMPTER ACTOR LIST, and optional arg HELP.
+Takes args PROMPTER ACTOR LIST, and optional args HELP and ACTION-ALIST.
 
 LIST is a list of objects, or a function of no arguments to return the next
 object or nil.
@@ -54,7 +46,6 @@ returns a string to be used as the prompt for that object.  If the return
 value is not a string, it is eval'd to get the answer; it may be nil to
 ignore the object, t to act on the object without asking the user, or a
 form to do a more complex prompt.
-
 
 ACTOR is a function of one arg (an object from LIST),
 which gets called with each object that the user answers `yes' for.
@@ -69,14 +60,41 @@ n, N, or DEL to skip that object; ! to act on all following objects;
 ESC or q to exit (skip all following objects); . (period) to act on the
 current object and then exit; or \\[help-command] to get help.
 
+If ACTION-ALIST is given, it is an alist (KEY FUNCTION HELP) of extra keys
+that will be accepted.  KEY is a character; FUNCTION is a function of one
+arg (an object from LIST); HELP is a string.  When the user hits KEY,
+FUNCTION is called.  If it returns non-nil, the object is considered
+\"acted upon\", and the next object from LIST is processed.  If it returns
+nil, the prompt is repeated for the same object.
+
 Returns the number of actions taken."
   (let* ((old-help-form help-form)
-	 (help-form (cons 'map-y-or-n-p-help
-			  (or help '("object" "objects" "act on"))))
+	 (help-form (let ((object (if help (nth 0 help) "object"))
+			  (objects (if help (nth 1 help) "objects"))
+			  (action (if help (nth 2 help) "act on")))
+		      (concat (format "Type SPC or `y' to %s the current %s;
+DEL or `n' to skip the current %s;
+! to %s all remaining %s;
+ESC or `q' to exit;\n"
+				      action object object action objects)
+			      (mapconcat (lambda (elt)
+					   (format "%c to %s"
+						   (nth 0 elt)
+						   (nth 2 elt)))
+					 action-alist
+					 ";\n")
+			      (if action-alist ";\n")
+			      (format "or . (period) to %s \
+the current %s and exit."
+				      action object))))
+	 (user-keys (if action-alist
+			(concat (mapconcat (lambda (elt)
+					     (char-to-string (car elt)))
+					   action-alist ", ")
+				" ")
+		      ""))
 	 (actions 0)
-	 prompt
-	 char
-	 elt
+	 prompt char elt tail
 	 (next (if (or (symbolp list)
 		       (subrp list)
 		       (compiled-function-p list)
@@ -100,8 +118,9 @@ Returns the number of actions taken."
 	  (progn
 	    ;; Prompt the user about this object.
 	    (let ((cursor-in-echo-area t))
-	      (message "%s(y, n, ! ., q, or %s)"
-		       prompt (key-description (char-to-string help-char)))
+	      (message "%s(y, n, ! ., q, %sor %s)"
+		       prompt user-keys
+		       (key-description (char-to-string help-char)))
 	      (setq char (read-char)))
 	    (cond ((or (= ?q char)
 		       (= ?\e char))
@@ -139,6 +158,15 @@ Returns the number of actions taken."
 		   (setq next (` (lambda ()
 				   (setq next '(, next))
 				   '(, elt)))))
+		  ((setq tail (assq char action-alist))
+		   ;; A user-defined key.
+		   (if (funcall (nth 1 tail) elt) ;Call its function.
+		       ;; The function has eaten this object.
+		       (setq actions (1+ actions))
+		     ;; Regurgitated; try again.
+		     (setq next (` (lambda ()
+				   (setq next '(, next))
+				   '(, elt))))))
 		  (t
 		   ;; Random char.
 		   (message "Type %s for help."
