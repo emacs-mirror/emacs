@@ -20,8 +20,6 @@
 
 */
 
-#define WIN32
-
 #include <pwd.h>
 #include <malloc.h>
 
@@ -34,7 +32,7 @@
 #ifdef sleep
 #undef sleep
 #endif
-void sleep(int seconds);
+void sleep(unsigned long seconds);
 char *getwd (char *dir);
 int getppid(void);
 char * getlogin ();
@@ -113,5 +111,6 @@ int fchown (int fd, int uid, int gid);
 
 /* Make standard winsock definitions available if needed.  */
 #undef _WINSOCKAPI_
+#undef _WINSOCK_H
 
 /* end of ntlib.h */
