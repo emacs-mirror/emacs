@@ -1,5 +1,8 @@
 2001-05-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* cus-edit.el (custom-file): Don't assume we were invoked with -q
+	unless ~/.emacs exists.
+
 	* novice.el (enable-command): If user-init-file is nil or does not
 	exist, default to "~/.emacs" (~/_emacs on DOS and, maybe, Windows).
 
