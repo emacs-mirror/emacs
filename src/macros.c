@@ -51,6 +51,8 @@ int executing_macro_iterations;
 
 Lisp_Object executing_macro;
 
+extern Lisp_Object real_this_command;
+
 Lisp_Object Fexecute_kbd_macro ();
 
 DEFUN ("start-kbd-macro", Fstart_kbd_macro, Sstart_kbd_macro, 1, 1, "P",
@@ -285,6 +287,8 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
 	 && (STRINGP (Vexecuting_macro) || VECTORP (Vexecuting_macro)));
 
   executing_macro = Qnil;
+
+  real_this_command = Vexecuting_macro;
 
   UNGCPRO;
   return unbind_to (pdlcount, Qnil);
