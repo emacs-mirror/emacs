@@ -1177,6 +1177,7 @@ AC_PROG_INSTALL
 AC_PROG_YACC
 
 dnl checks for UNIX variants that set `DEFS'
+AC_AIX
 
 dnl checks for header files
 AC_HAVE_HEADERS(sys/timeb.h sys/time.h unistd.h)
