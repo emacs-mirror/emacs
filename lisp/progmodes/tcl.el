@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.32 $
+;; Version: $Revision: 1.33 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/05/11 22:12:49 $|$Revision: 1.32 $|~/modes/tcl.el.Z|
+;; $Date: 1995/06/27 20:01:29 $|$Revision: 1.33 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,12 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.33  1995/06/27  20:01:29  tromey
+;; (tcl-set-proc-regexp): Allow leading spaces.
+;; (tcl-proc-list): Changes for itcl.
+;; (tcl-typeword-list): Ditto.
+;; (tcl-keyword-list): Ditto.
+;;
 ;; Revision 1.32  1995/05/11  22:12:49  tromey
 ;; (tcl-type-alist): Include entry for "proc".
 ;;
@@ -303,7 +309,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.32 $")
+(defconst tcl-version "$Revision: 1.33 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -486,10 +492,7 @@ quoted for Tcl.")
   ;; Make menus.
   (if (and tcl-using-emacs-19 (not tcl-using-xemacs-19))
       (progn
-	;; In FSF 19, there is no standard button for the popup menu,
-	;; so I use shift-button2.
-	(tcl-add-fsf-menu tcl-mode-map)
-	(define-key tcl-mode-map [S-down-mouse-2] 'tcl-popup-menu))))
+	(tcl-add-fsf-menu tcl-mode-map))))
 
 (defun tcl-fill-inferior-map ()
   (define-key inferior-tcl-mode-map "\t" 'comint-dynamic-complete)
@@ -625,6 +628,7 @@ This variable is generally set from `tcl-proc-regexp',
 (defvar tcl-type-alist
   '(
     ("proc" nil tcl-expr tcl-commands)
+    ("method" nil tcl-expr tcl-commands)
     ("expr" tcl-expr)
     ("catch" tcl-commands)
     ("if" tcl-expr "then" tcl-commands)
@@ -938,7 +942,7 @@ Commands:
 	   (not (assoc "Tcl" current-menubar)))
       (progn
 	(set-buffer-menubar (copy-sequence current-menubar))
-	(add-menu nil "Tcl" tcl-lucid-menu)))
+	(add-menu nil "Tcl" tcl-xemacs-menu)))
   ;; Append Tcl menu to popup menu for XEmacs.
   (if (and tcl-using-xemacs-19 (boundp 'mode-popup-menu))
       (setq mode-popup-menu tcl-xemacs-menu))
