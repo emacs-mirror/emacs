@@ -2380,9 +2380,6 @@ will be inserted before the group at point."
   (setq show-trailing-whitespace nil)
   (set (make-local-variable 'revert-buffer-function)
        #'ibuffer-update)
-  ;; Only use font-core.el.
-  (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil (font-lock-core-only . t)))
   (set (make-local-variable 'ibuffer-sorting-mode)
        ibuffer-default-sorting-mode)
   (set (make-local-variable 'ibuffer-sorting-reversep)
