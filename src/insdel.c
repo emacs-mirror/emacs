@@ -1,5 +1,6 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 86,93,94,95,97,98, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,93,94,95,97,98, 1999, 2000, 2001
+   Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1901,6 +1902,8 @@ signal_before_change (start_int, end_int, preserve_ptr)
       Lisp_Object before_change_functions;
       Lisp_Object after_change_functions;
       struct gcpro gcpro1, gcpro2;
+      struct buffer *old = current_buffer;
+      struct buffer *new;
 
       PRESERVE_VALUE;
       PRESERVE_START_END;
@@ -1920,9 +1923,21 @@ signal_before_change (start_int, end_int, preserve_ptr)
       args[2] = FETCH_END;
       run_hook_list_with_args (before_change_functions, 3, args);
 
-      /* "Unbind" the variables we "bound" to nil.  */
-      Vbefore_change_functions = before_change_functions;
-      Vafter_change_functions = after_change_functions;
+      /* "Unbind" the variables we "bound" to nil.  Beware a
+	 buffer-local hook which changes the buffer when run (e.g. W3).  */
+      if (old != current_buffer)
+	{
+	  new = current_buffer;
+	  set_buffer_internal (old);
+	  Vbefore_change_functions = before_change_functions;
+	  Vafter_change_functions = after_change_functions;
+	  set_buffer_internal (new);
+	}
+      else
+	{
+	  Vbefore_change_functions = before_change_functions;
+	  Vafter_change_functions = after_change_functions;
+	}
       UNGCPRO;
     }
 
@@ -1988,6 +2003,8 @@ signal_after_change (charpos, lendel, lenins)
       Lisp_Object args[4];
       Lisp_Object before_change_functions;
       Lisp_Object after_change_functions;
+      struct buffer *old = current_buffer;
+      struct buffer *new;
       struct gcpro gcpro1, gcpro2;
 
       /* "Bind" before-change-functions and after-change-functions
@@ -2007,9 +2024,21 @@ signal_after_change (charpos, lendel, lenins)
       run_hook_list_with_args (after_change_functions,
 			       4, args);
 
-      /* "Unbind" the variables we "bound" to nil.  */
-      Vbefore_change_functions = before_change_functions;
-      Vafter_change_functions = after_change_functions;
+      /* "Unbind" the variables we "bound" to nil.  Beware a
+	 buffer-local hook which changes the buffer when run (e.g. W3).  */
+      if (old != current_buffer)
+	{
+	  new = current_buffer;
+	  set_buffer_internal (old);
+	  Vbefore_change_functions = before_change_functions;
+	  Vafter_change_functions = after_change_functions;
+	  set_buffer_internal (new);
+	}
+      else
+	{
+	  Vbefore_change_functions = before_change_functions;
+	  Vafter_change_functions = after_change_functions;
+	}
       UNGCPRO;
     }
 
