@@ -295,7 +295,7 @@ Lisp_Object
 save_excursion_restore (info)
      register Lisp_Object info;
 {
-  register Lisp_Object tem, tem1;
+  register Lisp_Object tem, tem1, omark, nmark;
 
   tem = Fmarker_buffer (Fcar (info));
   /* If buffer being returned to is now deleted, avoid error */
@@ -309,7 +309,9 @@ save_excursion_restore (info)
   Fgoto_char (tem);
   unchain_marker (tem);
   tem = Fcar (Fcdr (info));
+  omark = Fmarker_position (current_buffer->mark);
   Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
+  nmark = Fmarker_position (tem);
   unchain_marker (tem);
   tem = Fcdr (Fcdr (info));
 #if 0 /* We used to make the current buffer visible in the selected window
@@ -326,8 +328,14 @@ save_excursion_restore (info)
   current_buffer->mark_active = Fcdr (tem);
   if (!NILP (Vrun_hooks))
     {
+      /* If mark is active now, and either was not active
+	 or was at a different place, run the activate hook.  */
       if (! NILP (current_buffer->mark_active))
-	call1 (Vrun_hooks, intern ("activate-mark-hook"));
+	{
+	  if (! EQ (omark, nmark))
+	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
+	}
+      /* If mark has ceased to be active, run deactivate hook.  */
       else if (! NILP (tem1))
 	call1 (Vrun_hooks, intern ("deactivate-mark-hook"));
     }
