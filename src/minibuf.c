@@ -26,7 +26,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 #include "window.h"
 #include "syntax.h"
-#include "keyboard.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -134,9 +133,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   Lisp_Object mini_frame;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-#ifdef MULTI_KBOARD
-  kboard_locked = 1;
-#endif
+  single_kboard_state ();
 
   val = Qnil;
   /* Don't need to protect PROMPT, HISTVAR, and HISTPOS because we
