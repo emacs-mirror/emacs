@@ -1413,8 +1413,9 @@ makefile_command='echo "creating src/Makefile";
 '	-e '\''s/^ /	/'\'' 					'\
 '	| sed -n -e '\''/^..*$/p'\''				'\
 '	> Makefile.new;
+dnl There is a window of lossage if you mv Makefile.new before chmoding it.
+    chmod 444 Makefile.new;
     mv -f Makefile.new Makefile;
-    chmod 444 Makefile;
     rm -f junk.c junk.cpp;
 )'
 eval `echo $makefile_command`
