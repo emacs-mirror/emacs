@@ -5585,6 +5585,10 @@ realize_basic_faces (f)
      struct frame *f;
 {
   int success_p = 0;
+
+  /* Block input there so that we won't be surprised by an X expose
+     event, for instance without having the faces set up.  */
+  BLOCK_INPUT;
   
   if (realize_default_face (f))
     {
@@ -5600,6 +5604,7 @@ realize_basic_faces (f)
       success_p = 1;
     }
 
+  UNBLOCK_INPUT;
   return success_p;
 }
 
