@@ -178,25 +178,25 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    int i;
+    EMACS_INT i;
 
     struct
       {
-	int val: VALBITS;
-	int type: GCTYPEBITS+1;
+	EMACS_INT val  : VALBITS;
+	EMACS_INT type : GCTYPEBITS + 1;
       } s;
     struct
       {
-	unsigned int val: VALBITS;
-	int type: GCTYPEBITS+1;
+	EMACS_UINT val : VALBITS;
+	EMACS_INT type : GCTYPEBITS + 1;
       } u;
     struct
       {
-	unsigned int val: VALBITS;
-	enum Lisp_Type type: GCTYPEBITS;
+	EMACS_UINT val		: VALBITS;
+	enum Lisp_Type type	: GCTYPEBITS;
 	/* The markbit is not really part of the value of a Lisp_Object,
 	   and is always zero except during garbage collection.  */
-	unsigned int markbit: 1;
+	EMACS_UINT markbit	: 1;
       } gu;
   }
 Lisp_Object;
@@ -208,25 +208,25 @@ union Lisp_Object
   {
     /* Used for comparing two Lisp_Objects;
        also, positive integers can be accessed fast this way.  */
-    int i;
+    EMACS_INT i;
 
     struct
       {
-	int type: GCTYPEBITS+1;
-	int val: VALBITS;
+	EMACS_INT type : GCTYPEBITS+1;
+	EMACS_INT val  : VALBITS;
       } s;
     struct
       {
-	int type: GCTYPEBITS+1;
-	unsigned int val: VALBITS;
+	EMACS_INT type : GCTYPEBITS+1;
+	EMACS_UINT val : VALBITS;
       } u;
     struct
       {
 	/* The markbit is not really part of the value of a Lisp_Object,
 	   and is always zero except during garbage collection.  */
-	unsigned int markbit: 1;
-	enum Lisp_Type type: GCTYPEBITS;
-	unsigned int val: VALBITS;
+	EMACS_UINT markbit	: 1;
+	enum Lisp_Type type	: GCTYPEBITS;
+	EMACS_UINT val		: VALBITS;
       } gu;
   }
 Lisp_Object;
@@ -428,7 +428,7 @@ extern int pure_size;
 #define XPNTR(a) ((a).u.val)
 
 #define XSET(var, vartype, ptr) \
-   (((var).s.val = ((int) (ptr))), ((var).s.type = ((char) (vartype))))
+   (((var).s.val = ((EMACS_INT) (ptr))), ((var).s.type = ((char) (vartype))))
 
 #if __GNUC__ >= 2 && defined (__OPTIMIZE__)
 #define make_number(N) \
