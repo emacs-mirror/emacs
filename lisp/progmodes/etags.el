@@ -1750,10 +1750,8 @@ See documentation of variable `tags-file-name'."
     (let ((enable-recursive-minibuffers t))
       (visit-tags-table-buffer))
     (if (eq what t)
-	(all-completions string (mapcar 'list (tags-table-files))
-			 predicate)
-      (try-completion string (mapcar 'list (tags-table-files))
-		      predicate))))
+	(all-completions string (tags-table-files) predicate)
+      (try-completion string (tags-table-files) predicate))))
 
 ;;;###autoload
 (defun list-tags (file &optional next-match)
