@@ -677,5 +677,6 @@ just close the window, and wait for reopening."
 (defvar current-global-mousemap (make-mousemap))
 
 (provide 'sun-mouse)
+(provide 'term/sun-mouse)		; have to (require 'term/sun-mouse)
 
 ;;; sun-mouse.el ends here
