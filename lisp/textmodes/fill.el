@@ -828,7 +828,10 @@ MAIL-FLAG for a mail message, i. e. don't fill header lines."
 						(point))))
 			     fill-prefix-regexp (regexp-quote fill-prefix)))
 		   (forward-line 1)
-		   (move-to-left-margin)
+		   (if (bolp)
+		       ;; If forward-line went past a newline,
+		       ;; move further to the left margin.
+		       (move-to-left-margin))
 		   ;; Now stop the loop if end of paragraph.
 		   (and (not (eobp))
 			(if fill-individual-varying-indent
