@@ -806,8 +806,8 @@ See `imenu' for more information."
 	     (let ((newmap (make-sparse-keymap)))
 	       (define-key (current-local-map) [menu-bar index]
 		 (cons name (nconc (make-sparse-keymap "Imenu")
-				   (make-sparse-keymap)))))
-	     (use-local-map (append newmap (current-local-map))))
+				   (make-sparse-keymap))))
+	       (use-local-map (append newmap (current-local-map)))))
 	 (make-local-variable 'imenu-buffer-menubar)
 	 t)
        (let ((index-alist (imenu--make-index-alist t)))
