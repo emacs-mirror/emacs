@@ -391,7 +391,7 @@ main (argc, argv)
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
-		sprintf (server.sun_path, "/tmp/esrv%d-%s",
+		sprintf (server.sun_path, "/tmp/emacs%d-%s/server",
 			 (int) pw->pw_uid, system_name);
 		sock_status = socket_status (server.sun_path);
 	      }
