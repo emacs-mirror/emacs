@@ -290,16 +290,7 @@ displaying a difference."
   :group 'emerge)
 
 (defcustom emerge-temp-file-prefix
-  (let ((env (or (getenv "TMPDIR")
-		 (getenv "TMP")
-		 (getenv "TEMP")))
-	d)
-    (setq d (if (and env (> (length env) 0))
-		env
-	      "/tmp"))
-    (if (= (aref d (1- (length d))) ?/)
-	(setq d (substring d 0 -1)))
-    (concat d "/emerge"))
+  (concat system-tmp-directory "/emerge")
   "*Prefix to put on Emerge temporary file names.
 Do not start with `~/' or `~user-name/'."
   :type 'string
