@@ -1,3 +1,8 @@
+2001-12-18  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (lisp, shortlisp): Add language/utf-8-lang.el,
+	language/georgian.el.
+
 2001-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (lisp, shortlisp): Synchronize with changes to
