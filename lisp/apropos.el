@@ -96,7 +96,7 @@ turns off mouse highlighting."
   :group 'apropos
   :type 'face)
 
-(defcustom apropos-match-face 'secondary-selection
+(defcustom apropos-match-face 'match
   "*Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
 for the regexp; the part that matches gets displayed in this font."
