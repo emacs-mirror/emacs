@@ -23,7 +23,7 @@
 ;;; Commentary:
 
 ;; Support for remote logins using `rlogin'.
-;; $Id$
+;; $Id: rlogin.el,v 1.12 1993/10/18 07:05:11 friedman Exp rms $
 
 ;;; Todo:
 
@@ -127,7 +127,7 @@ the rlogin when starting.  They are added after any arguments given in ARGS."
           (set-process-filter proc 'rlogin-filter)
           ;; Set the prefix for filename completion and directory tracking
           ;; to find the remote machine's files by ftp.
-          (setq comint-filename-prefix (concat "/" (car args) ":"))
+          (setq comint-file-name-prefix (concat "/" (car args) ":"))
           (and rlogin-initially-track-cwd
                ;; Presume the user will start in his remote home directory.
                ;; If this is wrong, M-x dirs will fix it.
@@ -166,7 +166,7 @@ If `rlogin-mode-hook' is set, run it."
   (setq mode-name "rlogin")
   (use-local-map rlogin-mode-map)
   (setq shell-dirtrackp rlogin-initially-track-cwd)
-  (make-local-variable 'comint-filename-prefix)
+  (make-local-variable 'comint-file-name-prefix)
   (run-hooks 'rlogin-mode-hook))
 
 
