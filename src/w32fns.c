@@ -12217,6 +12217,44 @@ static struct image_type jpeg_type =
 };
 
 
+/* JPEG library details.  */
+DEF_IMGLIB_FN (jpeg_CreateDecompress);
+DEF_IMGLIB_FN (jpeg_start_decompress);
+DEF_IMGLIB_FN (jpeg_finish_decompress);
+DEF_IMGLIB_FN (jpeg_destroy_decompress);
+DEF_IMGLIB_FN (jpeg_read_header);
+DEF_IMGLIB_FN (jpeg_read_scanlines);
+DEF_IMGLIB_FN (jpeg_stdio_src);
+DEF_IMGLIB_FN (jpeg_std_error);
+DEF_IMGLIB_FN (jpeg_resync_to_restart);
+
+static int
+init_jpeg_functions (library)
+     HMODULE library;
+{
+  LOAD_IMGLIB_FN (library, jpeg_finish_decompress);
+  LOAD_IMGLIB_FN (library, jpeg_read_scanlines);
+  LOAD_IMGLIB_FN (library, jpeg_start_decompress);
+  LOAD_IMGLIB_FN (library, jpeg_read_header);
+  LOAD_IMGLIB_FN (library, jpeg_stdio_src);
+  LOAD_IMGLIB_FN (library, jpeg_CreateDecompress);
+  LOAD_IMGLIB_FN (library, jpeg_destroy_decompress);
+  LOAD_IMGLIB_FN (library, jpeg_std_error);
+  LOAD_IMGLIB_FN (library, jpeg_resync_to_restart);
+  return 1;
+}
+
+/* Wrapper since we can't directly assign the function pointer
+   to another function pointer that was declared more completely easily.  */
+static boolean
+jpeg_resync_to_restart_wrapper(cinfo, desired)
+     j_decompress_ptr cinfo;
+     int desired;
+{
+  return fn_jpeg_resync_to_restart (cinfo, desired);
+}
+
+
 /* Return non-zero if OBJECT is a valid JPEG image specification.  */
 
 static int
@@ -12224,9 +12262,9 @@ jpeg_image_p (object)
      Lisp_Object object;
 {
   struct image_keyword fmt[JPEG_LAST];
-
+  
   bcopy (jpeg_format, fmt, sizeof fmt);
-
+  
   if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg))
     return 0;
 
@@ -12241,6 +12279,7 @@ struct my_jpeg_error_mgr
   jmp_buf setjmp_buffer;
 };
 
+
 static void
 my_error_exit (cinfo)
      j_common_ptr cinfo;
@@ -12248,6 +12287,7 @@ my_error_exit (cinfo)
   struct my_jpeg_error_mgr *mgr = (struct my_jpeg_error_mgr *) cinfo->err;
   longjmp (mgr->setjmp_buffer, 1);
 }
+
 
 /* Init source method for JPEG data source manager.  Called by
    jpeg_read_header() before any data is actually read.  See
@@ -12295,7 +12335,7 @@ our_skip_input_data (cinfo, num_bytes)
     {
       if (num_bytes > src->bytes_in_buffer)
 	ERREXIT (cinfo, JERR_INPUT_EOF);
-
+      
       src->bytes_in_buffer -= num_bytes;
       src->next_input_byte += num_bytes;
     }
@@ -12333,12 +12373,12 @@ jpeg_memory_src (cinfo, data, len)
       src = (struct jpeg_source_mgr *) cinfo->src;
       src->next_input_byte = data;
     }
-
+  
   src = (struct jpeg_source_mgr *) cinfo->src;
   src->init_source = our_init_source;
   src->fill_input_buffer = our_fill_input_buffer;
   src->skip_input_data = our_skip_input_data;
-  src->resync_to_restart = jpeg_resync_to_restart; /* Use default method.  */
+  src->resync_to_restart = jpeg_resync_to_restart_wrapper; /* Use default method.  */
   src->term_source = our_term_source;
   src->bytes_in_buffer = len;
   src->next_input_byte = data;
@@ -12348,7 +12388,7 @@ jpeg_memory_src (cinfo, data, len)
 /* Load image IMG for use on frame F.  Patterned after example.c
    from the JPEG lib.  */
 
-static int
+static int 
 jpeg_load (f, img)
      struct frame *f;
      struct image *img;
@@ -12376,26 +12416,26 @@ jpeg_load (f, img)
     {
       file = x_find_image_file (specified_file);
       if (!STRINGP (file))
-        {
-          image_error ("Cannot find image file `%s'", specified_file, Qnil);
-          UNGCPRO;
-          return 0;
-        }
-
+	{
+	  image_error ("Cannot find image file `%s'", specified_file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
+  
       fp = fopen (SDATA (file), "r");
       if (fp == NULL)
-        {
-          image_error ("Cannot open `%s'", file, Qnil);
-          UNGCPRO;
-          return 0;
-        }
+	{
+	  image_error ("Cannot open `%s'", file, Qnil);
+	  UNGCPRO;
+	  return 0;
+	}
     }
 
   /* Customize libjpeg's error handling to call my_error_exit when an
-     error is detected. This function will perform a longjmp. */
-  cinfo.err = jpeg_std_error (&mgr.pub);
+     error is detected.  This function will perform a longjmp.  */
+  cinfo.err = fn_jpeg_std_error (&mgr.pub);
   mgr.pub.error_exit = my_error_exit;
-
+  
   if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
     {
       if (rc == 1)
@@ -12406,44 +12446,43 @@ jpeg_load (f, img)
 	  image_error ("Error reading JPEG image `%s': %s", img->spec,
 		       build_string (buffer));
 	}
-
+	  
       /* Close the input file and destroy the JPEG object.  */
       if (fp)
-        fclose (fp);
-      jpeg_destroy_decompress (&cinfo);
+	fclose ((FILE *) fp);
+      fn_jpeg_destroy_decompress (&cinfo);
 
       /* If we already have an XImage, free that.  */
       x_destroy_x_image (ximg);
 
       /* Free pixmap and colors.  */
       x_clear_image (f, img);
-
+      
       UNGCPRO;
       return 0;
     }
 
   /* Create the JPEG decompression object.  Let it read from fp.
-     Read the JPEG image header.  */
-  jpeg_create_decompress (&cinfo);
+	 Read the JPEG image header.  */
+  fn_jpeg_CreateDecompress (&cinfo, JPEG_LIB_VERSION, sizeof (cinfo));
 
   if (NILP (specified_data))
-    jpeg_stdio_src (&cinfo, fp);
+    fn_jpeg_stdio_src (&cinfo, (FILE *) fp);
   else
     jpeg_memory_src (&cinfo, SDATA (specified_data),
 		     SBYTES (specified_data));
 
-  jpeg_read_header (&cinfo, TRUE);
+  fn_jpeg_read_header (&cinfo, TRUE);
 
   /* Customize decompression so that color quantization will be used.
-     Start decompression.  */
+	 Start decompression.  */
   cinfo.quantize_colors = TRUE;
-  jpeg_start_decompress (&cinfo);
+  fn_jpeg_start_decompress (&cinfo);
   width = img->width = cinfo.output_width;
   height = img->height = cinfo.output_height;
 
   /* Create X image and pixmap.  */
-  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg,
-				    &img->pixmap))
+  if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     longjmp (mgr.setjmp_buffer, 2);
 
   /* Allocate colors.  When color quantization is used,
@@ -12461,27 +12500,33 @@ jpeg_load (f, img)
     else
       ir = 0, ig = 0, ib = 0;
 
+#if 0 /* TODO: Color tables.  */
     /* Use the color table mechanism because it handles colors that
        cannot be allocated nicely.  Such colors will be replaced with
        a default color, and we don't have to care about which colors
        can be freed safely, and which can't.  */
     init_color_table ();
+#endif
     colors = (unsigned long *) alloca (cinfo.actual_number_of_colors
 				       * sizeof *colors);
-
+  
     for (i = 0; i < cinfo.actual_number_of_colors; ++i)
       {
-	/* Multiply RGB values with 255 because X expects RGB values
-	   in the range 0..0xffff.  */
-	int r = cinfo.colormap[ir][i] << 8;
-	int g = cinfo.colormap[ig][i] << 8;
-	int b = cinfo.colormap[ib][i] << 8;
+	int r = cinfo.colormap[ir][i];
+	int g = cinfo.colormap[ig][i];
+	int b = cinfo.colormap[ib][i];
+#if 0 /* TODO: Color tables.  */
 	colors[i] = lookup_rgb_color (f, r, g, b);
+#else
+	colors[i] = PALETTERGB (r, g, b);
+#endif
       }
 
+#if 0 /* TODO: Color tables.  */
     /* Remember those colors actually allocated.  */
     img->colors = colors_in_color_table (&img->ncolors);
     free_color_table ();
+#endif
   }
 
   /* Read pixels.  */
@@ -12490,25 +12535,24 @@ jpeg_load (f, img)
 				    row_stride, 1);
   for (y = 0; y < height; ++y)
     {
-      jpeg_read_scanlines (&cinfo, buffer, 1);
+      fn_jpeg_read_scanlines (&cinfo, buffer, 1);
       for (x = 0; x < cinfo.output_width; ++x)
 	XPutPixel (ximg, x, y, colors[buffer[0][x]]);
     }
 
   /* Clean up.  */
-  jpeg_finish_decompress (&cinfo);
-  jpeg_destroy_decompress (&cinfo);
+  fn_jpeg_finish_decompress (&cinfo);
+  fn_jpeg_destroy_decompress (&cinfo);
   if (fp)
-    fclose (fp);
+    fclose ((FILE *) fp);
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
     IMAGE_BACKGROUND (img, f, ximg);
-
+  
   /* Put the image into the pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
   x_destroy_x_image (ximg);
-  UNBLOCK_INPUT;
   UNGCPRO;
   return 1;
 }
@@ -15022,8 +15066,8 @@ If the underlying system call fails, value is nil.  */)
 void
 syms_of_w32fns ()
 {
-	globals_of_w32fns ();
-	/* This is zero if not using MS-Windows.  */
+  globals_of_w32fns ();
+  /* This is zero if not using MS-Windows.  */
   w32_in_use = 0;
   track_mouse_window = NULL;
 
@@ -15628,14 +15672,19 @@ void globals_of_w32fns ()
 static void
 init_external_image_libraries ()
 {
-  HINSTANCE png_lib;
+  HINSTANCE library;
 
 #if HAVE_XPM
   define_image_type (&xpm_type);
 #endif
 
 #if HAVE_JPEG
-  define_image_type (&jpeg_type);
+  /* Try loading jpeg library under probable names.  */
+  if (library = LoadLibrary ("jpeg.dll"))
+    {
+      if (init_jpeg_functions (library))
+	define_image_type (&jpeg_type);
+    }
 #endif
 
 #if HAVE_TIFF
@@ -15652,13 +15701,13 @@ init_external_image_libraries ()
     LoadLibrary ("zlib.dll");
 
   /* Try loading libpng under probable names.  */
-  if ((png_lib = LoadLibrary ("libpng13d.dll"))
-      || (png_lib = LoadLibrary ("libpng13.dll"))
-      || (png_lib = LoadLibrary ("libpng12d.dll"))
-      || (png_lib = LoadLibrary ("libpng12.dll"))
-      || (png_lib = LoadLibrary ("libpng.dll")))
+  if ((library = LoadLibrary ("libpng13d.dll"))
+      || (library = LoadLibrary ("libpng13.dll"))
+      || (library = LoadLibrary ("libpng12d.dll"))
+      || (library = LoadLibrary ("libpng12.dll"))
+      || (library = LoadLibrary ("libpng.dll")))
     {
-      if (init_png_functions (png_lib))
+      if (init_png_functions (library))
 	define_image_type (&png_type);
     }
 #endif
