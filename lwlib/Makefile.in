@@ -21,18 +21,13 @@ USE_X_TOOLKIT=@X_TOOLKIT_TYPE@
            RANLIB = ranlib
                RM = rm -f
 
-     LUCID_SRCS = lwlib-Xlw.c xlwmenu.c lwlib-Xaw.c
      LUCID_OBJS = lwlib-Xlw.o xlwmenu.o lwlib-Xaw.o
-     MOTIF_SRCS = lwlib-Xm.c
      MOTIF_OBJS = lwlib-Xm.o
-      OLIT_SRCS = lwlib-Xol.c lwlib-Xolmb.c
       OLIT_OBJS = lwlib-Xol.o lwlib-Xolmb.o
 
 TOOLKIT_DEFINES = -DUSE_$(USE_X_TOOLKIT)
-   TOOLKIT_SRCS = $(@X_TOOLKIT_TYPE@_SRCS)
    TOOLKIT_OBJS = $(@X_TOOLKIT_TYPE@_OBJS)
 
-           SRCS = lwlib.c $(TOOLKIT_SRCS) lwlib-utils.c
            OBJS = lwlib.o $(TOOLKIT_OBJS) lwlib-utils.o
 
 ALL_CFLAGS= $(C_SWITCH_SITE) $(C_SWITCH_SYSTEM) $(C_SWITCH_X_SITE) \
@@ -53,10 +48,10 @@ liblw.a: $(OBJS)
 #If running ranlib fails, probably there is none.
 #That's ok.  So don't stop the build.
 
-lwlib.o:  lwlib.c
+lwlib.o:  $(srcdir)/lwlib.c
 	$(CC) -c $(TOOLKIT_DEFINES) $(ALL_CFLAGS) $(srcdir)/lwlib.c
 
-xrdb-cpp.o:  xrdb-cpp.c
+xrdb-cpp.o:  $(srcdir)/xrdb-cpp.c
 	$(CC) -c "-DCPP_PROGRAM=$(CPP)" $(ALL_CFLAGS) $(srcdir)/xrdb-cpp.c
 
 lwlib-utils.o: lwlib-utils.h
