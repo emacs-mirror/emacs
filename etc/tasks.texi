@@ -377,7 +377,7 @@ alignments.
 Volunteers are needed to write parsers/front ends for languages such as
 Algol 60, Algol 68, PL/I, or whatever, to be used with the code
 generation phases of the GNU C compiler.  (C++ and Objective C are done,
-and Ada, Fortran, Pascal and Modula are being worked on.
+and Ada, Fortran and Pascal are being worked on.
 @c Fortran status is here so gnu@prep and the volunteer coordinators
 @c don't have to answer the question -len
 The status of the Fortran compiler can be found by:
