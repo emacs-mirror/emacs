@@ -397,9 +397,12 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     }
 
   if (noninteractive)
-    return read_minibuf_noninteractive (map, initial, prompt, backup_n,
-					expflag, histvar, histpos, defalt,
-					allow_props, inherit_input_method);
+    {
+      val = read_minibuf_noninteractive (map, initial, prompt, backup_n,
+					 expflag, histvar, histpos, defalt,
+					 allow_props, inherit_input_method);
+      return unbind_to (count, val);
+    }
 
   /* Choose the minibuffer window and frame, and take action on them.  */
 
