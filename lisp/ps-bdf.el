@@ -40,7 +40,8 @@
 
 ;;;###autoload
 (defvar bdf-directory-list
-  (if (memq system-type '(ms-dos windows-nt))
+  (if (and (memq system-type '(ms-dos windows-nt))
+	   (boundp 'installation-directory))
       (list (expand-file-name "fonts/bdf" installation-directory))
     '("/usr/local/share/emacs/fonts/bdf"))
   "*List of directories to search for `BDF' font files.
@@ -48,7 +49,8 @@ The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
 
 ;; MS-DOS and MS-Windows users like to move the binary around after
 ;; it's built, but the value above is computed at load-up time.
-(and (memq system-type '(ms-dos windows-nt))
+(and (and (memq system-type '(ms-dos windows-nt))
+	  (boundp 'installation-directory))
      (setq bdf-directory-list
 	   (list (expand-file-name "fonts/bdf" installation-directory))))
 
