@@ -1,3 +1,21 @@
+2001-10-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_KILLFOCUS>: Destroy the system caret.
+	<WM_EMACS_DESTROY_CARET, WM_EMACS_TRACK_CARET>: Track cursor
+	position using the system caret.
+
+	* w32term.c (w32_system_caret_hwnd, w32_system_caret_width)
+	(w32_system_caret_height, w32_system_caret_x)
+	(w32_system_caret_y): New variables for tracking system caret.
+	(w32_initialize): Initialize them.
+	(x_display_and_set_cursor): Make system caret follow the active
+	cursor.
+
+	* w32term.h (WM_EMACS_TRACK_CARET, WM_EMACS_DESTROY_CARET): New
+	messages types.
+
+	* w32term.c (note_mouse_highlight): Clear old help_echo.
+
 2001-10-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xterm.c: Fix typo in a comment.
