@@ -289,7 +289,7 @@ See also the documentation of make-char."
 	      (not (eq (car l) 'composition))))))
 
 (defun decode-char (ccs code-point &optional restriction)
-  "Return a character specified by coded character set CCS and CODE-POINT in it.
+  "Return character specified by coded character set CCS and CODE-POINT in it.
 Return nil if such a character is not supported.
 Currently, supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set) only.
@@ -316,12 +316,12 @@ and CODE-POINT to a chracter.   Currently not supported and just ignored."
 	       ))))
 
 (defun encode-char (char ccs &optional restriction)
-  "Return a code-point in coded character set CCS that corresponds to CHAR.
+  "Return code-point in coded character set CCS that corresponds to CHAR.
 Return nil if CHAR is not included in CCS.
 Currently, supported coded character set is `ucs' (ISO/IEC
 10646: Universal Multi-Octet Coded Character Set) only.
-Return a Unicode character code for CHAR.
-Charset of CHAR should be one of these:
+
+CHAR should be in one of these charsets:
   ascii, latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-33ff,
   mule-unicode-e000-ffff
 Otherwise, return nil.
