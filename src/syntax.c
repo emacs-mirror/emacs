@@ -25,7 +25,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "syntax.h"
 
-Lisp_Object Qsyntax_table_p;
+Lisp_Object Qsyntax_table_p, Qsyntax_table;
 
 static void scan_sexps_forward ();
 static int char_quoted ();
@@ -116,7 +116,8 @@ Currently, any char-table counts as a syntax table.")
   (obj)
      Lisp_Object obj;
 {
-  if (CHAR_TABLE_P (obj))
+  if (CHAR_TABLE_P (obj)
+      && XCHAR_TABLE (obj)->purpose == Qsyntax_table)
     return Qt;
   return Qnil;
 }
@@ -1720,9 +1721,22 @@ init_syntax_once ()
   register int i;
   Lisp_Object temp;
 
+  /* This has to be done here, before we call Fmake_char_table.  */
+  Qsyntax_table = intern ("syntax-table");
+  staticpro (&Qsyntax_table);
+
+  /* Intern this now in case it isn't already done.
+     Setting this variable twice is harmless.
+     But don't staticpro it here--that is done in alloc.c.  */
+  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+
+  /* Now we are ready to set up this property, so we can
+     create syntax tables.  */
+  Fput (Qsyntax_table, Qchar_table_extra_slots, make_number (0));
+
   temp = Fcons (make_number ((int) Swhitespace), Qnil);
 
-  Vstandard_syntax_table = Fmake_char_table (make_number (0), temp);
+  Vstandard_syntax_table = Fmake_char_table (Qsyntax_table, temp);
 
   temp = Fcons (make_number ((int) Sword), Qnil);
   for (i = 'a'; i <= 'z'; i++)
