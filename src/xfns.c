@@ -3182,7 +3182,7 @@ x_make_gc (f)
   f->output_data.x->cursor_gc
     = XCreateGC (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		 (GCFont | GCForeground | GCBackground
-		  | GCFillStyle | GCStipple | GCLineWidth),
+		  | GCFillStyle /* | GCStipple */ | GCLineWidth),
 		 &gc_values);
 
   /* Create the gray border tile used when the pointer is not in
