@@ -1,6 +1,6 @@
-;;; scheme.el --- Scheme mode, and its idiosyncratic commands.
+;;; scheme.el --- Scheme (and DSSSL) editing mode.
 
-;; Copyright (C) 1986, 1987, 1988 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 87, 88, 1997 Free Software Foundation, Inc.
 
 ;; Author: Bill Rozas <jinz@prep.ai.mit.edu>
 ;; Keywords: languages, lisp
@@ -22,15 +22,29 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;; Originally adapted from Lisp mode by Bill Rozas, jinx@prep with a
+;; comment that the code should be merged back.  Merging done by
+;; d.love@dl.ac.uk when DSSSL features added.
+
 ;;; Commentary:
 
-;; Adapted from Lisp mode by Bill Rozas, jinx@prep.
-;; Initially a query replace of Lisp mode, except for the indentation 
-;; of special forms.  Probably the code should be merged at some point 
-;; so that there is sharing between both libraries.
+;; The major mode for editing Scheme-type Lisp code, very similar to
+;; the Lisp mode documented in the Emacs manual.  `dsssl-mode' is a
+;; variant of scheme-mode for editing DSSSL specifications for SGML
+;; documents.  [As of Apr 1997, some pointers for DSSSL may be found,
+;; for instance, at <URL:http://www.sil.org/sgml/related.html#dsssl>.]
+;; All these Lisp-ish modes vary basically in details of the language
+;; syntax they highlight/indent/index, but dsssl-mode uses "^;;;" as
+;; the page-delimiter since ^L isn't normally a legal SGML character.
+;;
+;; For interacting with a Scheme interpreter See also `run-scheme' in
+;; the `cmuscheme' package and also the implementation-specific
+;; `xscheme' package.
 
 ;;; Code:
 
+(require 'lisp-mode)
+
 (defvar scheme-mode-syntax-table nil "")
 (if (not scheme-mode-syntax-table)
     (let ((i 0))
@@ -65,8 +79,8 @@
 
       ;; These characters are delimiters but otherwise undefined.
       ;; Brackets and braces balance for editing convenience.
-      (modify-syntax-entry ?[ "(]  ")
-      (modify-syntax-entry ?] ")[  ")
+      (modify-syntax-entry ?\[ "(]  ")
+      (modify-syntax-entry ?\] ")[  ")
       (modify-syntax-entry ?{ "(}  ")
       (modify-syntax-entry ?} "){  ")
       (modify-syntax-entry ?\| "  23")
@@ -88,6 +102,15 @@
 (defvar scheme-mode-abbrev-table nil "")
 (define-abbrev-table 'scheme-mode-abbrev-table ())
 
+(defvar scheme-imenu-generic-expression
+      '((nil 
+	 "^(define\\(\\|-\\(generic\\(\\|-procedure\\)\\|method\\)\\)*\\s-+(?\\(\\(\\sw\\|\\s_\\)+\\)" 4)
+	(" Types" 
+	 "^(define-class\\s-+(?\\(\\(\\sw\\|\\s_\\)+\\)" 1)
+	(" Macros"
+	 "^(\\(defmacro\\|define-macro\\|define-syntax\\)\\s-+(?\\(\\(\\sw\\|\\s_\\)+\\)" 2))
+  "Imenu generic expression for Scheme mode.  See `imenu-generic-expression'.")
+
 (defun scheme-mode-variables ()
   (set-syntax-table scheme-mode-syntax-table)
   (setq local-abbrev-table scheme-mode-abbrev-table)
@@ -97,10 +120,19 @@
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'paragraph-ignore-fill-prefix)
   (setq paragraph-ignore-fill-prefix t)
+  (make-local-variable 'fill-paragraph-function)
+  (setq fill-paragraph-function 'lisp-fill-paragraph)
+  ;; Adaptive fill mode gets in the way of auto-fill,
+  ;; and should make no difference for explicit fill
+  ;; because lisp-fill-paragraph should do the job.
+  (make-local-variable 'adaptive-fill-mode)
+  (setq adaptive-fill-mode nil)
   (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'scheme-indent-line)
+  (setq indent-line-function 'lisp-indent-line)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
+  (make-local-variable 'outline-regexp)
+  (setq outline-regexp ";;; \\|(....")
   (make-local-variable 'comment-start)
   (setq comment-start ";")
   (make-local-variable 'comment-start-skip)
@@ -110,23 +142,42 @@
   (make-local-variable 'comment-column)
   (setq comment-column 40)
   (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'scheme-comment-indent)
+  (setq comment-indent-function 'lisp-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
-  (setq mode-line-process '("" scheme-mode-line-process)))
+  (make-local-variable 'lisp-indent-function)
+  (set lisp-indent-function 'scheme-indent-function)
+  (setq mode-line-process '("" scheme-mode-line-process))
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression scheme-imenu-generic-expression))
 
 (defvar scheme-mode-line-process "")
 
+(defvar scheme-mode-map nil
+  "Keymap for Scheme mode.
+All commands in `shared-lisp-mode-map' are inherited by this map.")
+
+(if scheme-mode-map
+    ()
+  (let ((map (make-sparse-keymap "Scheme")))
+    (setq scheme-mode-map
+	  (nconc (make-sparse-keymap) shared-lisp-mode-map))
+    (define-key scheme-mode-map "\e\t" 'lisp-complete-symbol)
+    (define-key scheme-mode-map [menu-bar] (make-sparse-keymap))
+    (define-key scheme-mode-map [menu-bar scheme]
+      (cons "Scheme" map))
+    (define-key map [run-scheme] '("Run Inferior Scheme" . run-scheme))
+    (define-key map [comment-region] '("Comment Out Region" . comment-region))
+    (define-key map [indent-region] '("Indent Region" . indent-region))
+    (define-key map [indent-line] '("Indent Line" . lisp-indent-line))
+    (put 'comment-region 'menu-enable 'mark-active)
+    (put 'indent-region 'menu-enable 'mark-active)))
+
+;; Used by cmuscheme
 (defun scheme-mode-commands (map)
   (define-key map "\t" 'scheme-indent-line)
   (define-key map "\177" 'backward-delete-char-untabify)
   (define-key map "\e\C-q" 'scheme-indent-sexp))
-
-(defvar scheme-mode-map nil)
-(if (not scheme-mode-map)
-    (progn
-      (setq scheme-mode-map (make-sparse-keymap))
-      (scheme-mode-commands scheme-mode-map)))
 
 ;;;###autoload
 (defun scheme-mode ()
@@ -160,212 +211,128 @@ if that value is non-nil."
 (defvar scheme-mit-dialect t
   "If non-nil, scheme mode is specialized for MIT Scheme.
 Set this to nil if you normally use another dialect.")
-
-(defun scheme-comment-indent (&optional pos)
-  (save-excursion
-    (if pos (goto-char pos))
-    (cond ((looking-at ";;;") (current-column))
-	  ((looking-at ";;")
-	   (let ((tem (calculate-scheme-indent)))
-	     (if (listp tem) (car tem) tem)))
-	  (t
-	   (skip-chars-backward " \t")
-	   (max (if (bolp) 0 (1+ (current-column)))
-		comment-column)))))
 
-(defvar scheme-indent-offset nil "")
-(defvar scheme-indent-function 'scheme-indent-function "")
+(defvar dsssl-sgml-declaration
+  "<!DOCTYPE style-sheet PUBLIC \"-//James Clark//DTD DSSSL Style Sheet//EN\">
+"
+  "*An SGML declaration (typically using James Clark's style-sheet
+doctype, as required for Jade) which will be inserted into an empty
+buffer in dsssl-mode.")
 
-(defun scheme-indent-line (&optional whole-exp)
-  "Indent current line as Scheme code.
-With argument, indent any additional lines of the same expression
-rigidly along with this one."
-  (interactive "P")
-  (let ((indent (calculate-scheme-indent)) shift-amt beg end
-	(pos (- (point-max) (point))))
-    (beginning-of-line)
-    (setq beg (point))
-    (skip-chars-forward " \t")
-    (if (looking-at "[ \t]*;;;")
-	;; Don't alter indentation of a ;;; comment line.
-	nil
-      (if (listp indent) (setq indent (car indent)))
-      (setq shift-amt (- indent (current-column)))
-      (if (zerop shift-amt)
-	  nil
-	(delete-region beg (point))
-	(indent-to indent))
-      ;; If initial point was within line's indentation,
-      ;; position after the indentation.  Else stay at same point in text.
-      (if (> (- (point-max) pos) (point))
-	  (goto-char (- (point-max) pos)))
-      ;; If desired, shift remaining lines of expression the same amount.
-      (and whole-exp (not (zerop shift-amt))
-	   (save-excursion
-	     (goto-char beg)
-	     (forward-sexp 1)
-	     (setq end (point))
-	     (goto-char beg)
-	     (forward-line 1)
-	     (setq beg (point))
-	     (> end beg))
-	   (indent-code-rigidly beg end shift-amt)))))
+(defvar dsssl-imenu-generic-expression
+  ;; Perhaps this should also look for the style-sheet DTD tags.  I'm
+  ;; not sure it's the best way to organize it; perhaps one type
+  ;; should be at the first level, though you don't see this anyhow if
+  ;; it gets split up.
+  '((" Defines" 
+     "^(define\\s-+(?\\(\\(\\sw\\|\\s_\\)+\\)" 1)
+    (" Modes"
+     "^\\s-*(mode\\s-+\\(\\(\\sw\\|\\s-\\|\\s_\\)+\\)" 1)
+    (" Elements"
+     ;; (element foo ...) or (element (foo bar ...) ...)
+     "^\\s-*(element\\s-+(?\\(\\(\\sw\\|\\s-\\|\\s_\\)+\\))?" 1)
+    (" Declarations" 
+     "^(declare\\(-\\sw+\\)+\\>\\s-+\\(\\(\\sw\\|\\s_\\)+\\)" 2))
+  "Imenu generic expression for DSSSL mode.  See `imenu-generic-expression'.")
+
+;;;###autoload
+(defun dsssl-mode ()
+  "Major mode for editing DSSSL code.
+Editing commands are similar to those of lisp-mode.
+
+Commands:
+Delete converts tabs to spaces as it moves back.
+Blank lines separate paragraphs.  Semicolons start comments.
+\\{scheme-mode-map}
+Entry to this mode calls the value of dsssl-mode-hook
+if that value is non-nil."
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map scheme-mode-map)
+  (scheme-mode-initialize)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(dsssl-font-lock-keywords
+			     nil t (("+-*/.<>=!?$%_&~^:" . "w"))
+			     beginning-of-defun
+			     (font-lock-comment-start-regexp . ";")
+			     (font-lock-mark-block-function . mark-defun)))
+  (make-local-variable 'page-delimiter)
+  (setq page-delimiter "^;;;" ; ^L not valid SGML char
+	major-mode 'dsssl-mode
+	mode-name "DSSSL")
+  ;; Insert a suitable SGML declaration into an empty buffer.
+  (and (zerop (buffer-size))
+       dsssl-sgml-declaration
+       (not buffer-read-only)
+       (insert dsssl-sgml-declaration))
+  (run-hooks 'scheme-mode-hook)
+  (run-hooks 'dsssl-mode-hook)
+  (scheme-mode-variables)
+  (setq imenu-generic-expression dsssl-imenu-generic-expression))
+
+;; Extra syntax for DSSSL.  This isn't separated from Scheme, but
+;; shouldn't cause much trouble in scheme-mode.
+(put 'element 'scheme-indent-function 1)
+(put 'mode 'scheme-indent-function 1)
+(put 'with-mode 'scheme-indent-function 1)
+
+(defvar dsssl-font-lock-keywords
+  '(("(\\(define\\(-\\w+\\)?\\)\\>[ 	]*\\\((?\\)\\(\\sw+\\)\\>"
+     (1 font-lock-keyword-face)
+     (4 font-lock-function-name-face))
+    ("(\\(case\\|cond\\|else\\|if\\|lambda\\|let\\*?\\|letrec\\|and\\|or\\|map\\|with-mode\\)\\>" . 1)
+    ("(\\(element\\|mode\\|declare-\\w+\\)\\>[ 	]*\\(\\sw+\\)"
+     (1 font-lock-keyword-face)
+     (2 font-lock-type-face))
+    ("(\\(element\\)\\>[ 	]*(\\(\\S)+\\))"
+     (1 font-lock-keyword-face)
+     (2 font-lock-type-face))
+    ("\\<\\sw+:\\>" . font-lock-reference-face)
+    ("<\\([!?][-a-z0-9]+\\)" 1 font-lock-keyword-face)
+    ("<\\(/?[-a-z0-9]+\\)" 1 font-lock-function-name-face))
+  "Default expressions to highlight in DSSSL mode.")
+
 
-(defun calculate-scheme-indent (&optional parse-start)
-  "Return appropriate indentation for current line as scheme code.
-In usual case returns an integer: the column to indent to.
-Can instead return a list, whose car is the column to indent to.
-This means that following lines at the same level of indentation
-should not necessarily be indented the same way.
-The second element of the list is the buffer position
-of the start of the containing expression."
-  (save-excursion
-    (beginning-of-line)
-    (let ((indent-point (point)) state paren-depth desired-indent (retry t)
-	  last-sexp containing-sexp first-sexp-list-p)
-      (if parse-start
-	  (goto-char parse-start)
-	(beginning-of-defun))
-      ;; Find outermost containing sexp
-      (while (< (point) indent-point)
-	(setq state (parse-partial-sexp (point) indent-point 0)))
-      ;; Find innermost containing sexp
-      (while (and retry (setq paren-depth (car state)) (> paren-depth 0))
-	(setq retry nil)
-	(setq last-sexp (nth 2 state))
-	(setq containing-sexp (car (cdr state)))
-	;; Position following last unclosed open.
-	(goto-char (1+ containing-sexp))
-	;; Is there a complete sexp since then?
-	(if (and last-sexp (> last-sexp (point)))
-	    ;; Yes, but is there a containing sexp after that?
-	    (let ((peek (parse-partial-sexp last-sexp indent-point 0)))
-	      (if (setq retry (car (cdr peek))) (setq state peek))))
-	(if (not retry)
-	    ;; Innermost containing sexp found
-	    (progn
-	      (goto-char (1+ containing-sexp))
-	      (if (not last-sexp)
-		  ;; indent-point immediately follows open paren.
-		  ;; Don't call hook.
-		  (setq desired-indent (current-column))
-		;; Move to first sexp after containing open paren
-		(parse-partial-sexp (point) last-sexp 0 t)
-		(setq first-sexp-list-p (looking-at "\\s("))
-		(cond
-		 ((> (save-excursion (forward-line 1) (point))
-		     last-sexp)
-		  ;; Last sexp is on same line as containing sexp.
-		  ;; It's almost certainly a function call.
-		  (parse-partial-sexp (point) last-sexp 0 t)
-		  (if (/= (point) last-sexp)
-		      ;; Indent beneath first argument or, if only one sexp
-		      ;; on line, indent beneath that.
-		      (progn (forward-sexp 1)
-			     (parse-partial-sexp (point) last-sexp 0 t)))
-		  (backward-prefix-chars))
-		 (t
-		  ;; Indent beneath first sexp on same line as last-sexp.
-		  ;; Again, it's almost certainly a function call.
-		  (goto-char last-sexp)
-		  (beginning-of-line)
-		  (parse-partial-sexp (point) last-sexp 0 t)
-		  (backward-prefix-chars)))))))
-      ;; If looking at a list, don't call hook.
-      (if first-sexp-list-p
-	  (setq desired-indent (current-column)))
-      ;; Point is at the point to indent under unless we are inside a string.
-      ;; Call indentation hook except when overridden by scheme-indent-offset
-      ;; or if the desired indentation has already been computed.
-      (cond ((car (nthcdr 3 state))
-	     ;; Inside a string, don't change indentation.
-	     (goto-char indent-point)
-	     (skip-chars-forward " \t")
-	     (setq desired-indent (current-column)))
-	    ((and (integerp scheme-indent-offset) containing-sexp)
-	     ;; Indent by constant offset
-	     (goto-char containing-sexp)
-	     (setq desired-indent (+ scheme-indent-offset (current-column))))
-	    ((not (or desired-indent
-		      (and (boundp 'scheme-indent-function)
-			   scheme-indent-function
-			   (not retry)
-			   (setq desired-indent
-				 (funcall scheme-indent-function
-					  indent-point state)))))
-	     ;; Use default indentation if not computed yet
-	     (setq desired-indent (current-column))))
-      desired-indent)))
-
+(defvar calculate-lisp-indent-last-sexp)
+
+;; Copied from lisp-indent-function, but with gets of
+;; scheme-indent-{function,hook}.
 (defun scheme-indent-function (indent-point state)
   (let ((normal-indent (current-column)))
-    (save-excursion
-      (goto-char (1+ (car (cdr state))))
-      (re-search-forward "\\sw\\|\\s_")
-      (if (/= (point) (car (cdr state)))
-	  (let ((function (buffer-substring (progn (forward-char -1) (point))
-					    (progn (forward-sexp 1) (point))))
-		method)
-	    ;; Who cares about this, really?
-	    ;(if (not (string-match "\\\\\\||" function)))
-	    (setq function (downcase function))
-	    (setq method (get (intern-soft function) 'scheme-indent-function))
-	    (cond ((integerp method)
-		   (scheme-indent-specform method state indent-point))
-		  (method
-		   (funcall method state indent-point))
-		  ((and (> (length function) 3)
-			(string-equal (substring function 0 3) "def"))
-		   (scheme-indent-defform state indent-point))))))))
+    (goto-char (1+ (elt state 1)))
+    (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
+    (if (and (elt state 2)
+             (not (looking-at "\\sw\\|\\s_")))
+        ;; car of form doesn't seem to be a a symbol
+        (progn
+          (if (not (> (save-excursion (forward-line 1) (point))
+                      calculate-lisp-indent-last-sexp))
+              (progn (goto-char calculate-lisp-indent-last-sexp)
+                     (beginning-of-line)
+                     (parse-partial-sexp (point)
+					 calculate-lisp-indent-last-sexp 0 t)))
+          ;; Indent under the list or under the first sexp on the same
+          ;; line as calculate-lisp-indent-last-sexp.  Note that first
+          ;; thing on that line has to be complete sexp since we are
+          ;; inside the innermost containing sexp.
+          (backward-prefix-chars)
+          (current-column))
+      (let ((function (buffer-substring (point)
+					(progn (forward-sexp 1) (point))))
+	    method)
+	(setq method (or (get (intern-soft function) 'scheme-indent-function)
+			 (get (intern-soft function) 'scheme-indent-hook)))
+	(cond ((or (eq method 'defun)
+		   (and (null method)
+			(> (length function) 3)
+			(string-match "\\`def" function)))
+	       (lisp-indent-defform state indent-point))
+	      ((integerp method)
+	       (lisp-indent-specform method state
+				     indent-point normal-indent))
+	      (method
+		(funcall method state indent-point)))))))
 
-(defvar scheme-body-indent 2 "")
-
-(defun scheme-indent-specform (count state indent-point)
-  (let ((containing-form-start (car (cdr state))) (i count)
-	body-indent containing-form-column)
-    ;; Move to the start of containing form, calculate indentation
-    ;; to use for non-distinguished forms (> count), and move past the
-    ;; function symbol.  scheme-indent-function guarantees that there is at
-    ;; least one word or symbol character following open paren of containing
-    ;; form.
-    (goto-char containing-form-start)
-    (setq containing-form-column (current-column))
-    (setq body-indent (+ scheme-body-indent containing-form-column))
-    (forward-char 1)
-    (forward-sexp 1)
-    ;; Now find the start of the last form.
-    (parse-partial-sexp (point) indent-point 1 t)
-    (while (and (< (point) indent-point)
-		(condition-case nil
-		    (progn
-		      (setq count (1- count))
-		      (forward-sexp 1)
-		      (parse-partial-sexp (point) indent-point 1 t))
-		  (error nil))))
-    ;; Point is sitting on first character of last (or count) sexp.
-    (cond ((> count 0)
-	   ;; A distinguished form.  Use double scheme-body-indent.
-	   (list (+ containing-form-column (* 2 scheme-body-indent))
-		 containing-form-start))
-	  ;; A non-distinguished form. Use body-indent if there are no
-	  ;; distinguished forms and this is the first undistinguished
-	  ;; form, or if this is the first undistinguished form and
-	  ;; the preceding distinguished form has indentation at least
-	  ;; as great as body-indent.
-	  ((and (= count 0)
-		(or (= i 0)
-		    (<= body-indent normal-indent)))
-	   body-indent)
-	  (t
-	   normal-indent))))
-
-(defun scheme-indent-defform (state indent-point)
-  (goto-char (car (cdr state)))
-  (forward-line 1)
-  (if (> (point) (car (cdr (cdr state))))
-      (progn
-	(goto-char (car (cdr state)))
-	(+ scheme-body-indent (current-column)))))
 
 ;;; Let is different in Scheme
 
@@ -389,8 +356,8 @@ of the start of the containing expression."
 (defun scheme-let-indent (state indent-point)
   (skip-chars-forward " \t")
   (if (looking-at "[-a-zA-Z0-9+*/?!@$%^&_:~]")
-      (scheme-indent-specform 2 state indent-point)
-      (scheme-indent-specform 1 state indent-point)))
+      (lisp-indent-specform 2 state indent-point (current-column))
+      (lisp-indent-specform 1 state indent-point (current-column))))
 
 ;; (put 'begin 'scheme-indent-function 0), say, causes begin to be indented
 ;; like defun if the first form is placed on the next line, otherwise
@@ -456,59 +423,6 @@ of the start of the containing expression."
       (put 'unassigned\?-components 'scheme-indent-function 1)
       (put 'unbound\?-components 'scheme-indent-function 1)
       (put 'variable-components 'scheme-indent-function 1)))
-
-(defun scheme-indent-sexp ()
-  "Indent each line of the list starting just after point."
-  (interactive)
-  (let ((indent-stack (list nil)) (next-depth 0) bol
-	outer-loop-done inner-loop-done state this-indent)
-    (save-excursion (forward-sexp 1))
-    (save-excursion
-      (setq outer-loop-done nil)
-      (while (not outer-loop-done)
-	(setq last-depth next-depth
-	      innerloop-done nil)
-	(while (and (not innerloop-done)
-		    (not (setq outer-loop-done (eobp))))
-	  (setq state (parse-partial-sexp (point) (progn (end-of-line) (point))
-					  nil nil state))
-	  (setq next-depth (car state))
-	  (if (car (nthcdr 4 state))
-	      (progn (indent-for-comment)
-		     (end-of-line)
-		     (setcar (nthcdr 4 state) nil)))
-	  (if (car (nthcdr 3 state))
-	      (progn
-		(forward-line 1)
-		(setcar (nthcdr 5 state) nil))
-	    (setq innerloop-done t)))
-	(if (setq outer-loop-done (<= next-depth 0))
-	    nil
-	  (while (> last-depth next-depth)
-	    (setq indent-stack (cdr indent-stack)
-		  last-depth (1- last-depth)))
-	  (while (< last-depth next-depth)
-	    (setq indent-stack (cons nil indent-stack)
-		  last-depth (1+ last-depth)))
-	  (forward-line 1)
-	  (setq bol (point))
-	  (skip-chars-forward " \t")
-	  (if (or (eobp) (looking-at "[;\n]"))
-	      nil
-	    (if (and (car indent-stack)
-		     (>= (car indent-stack) 0))
-		(setq this-indent (car indent-stack))
-	      (let ((val (calculate-scheme-indent
-			  (if (car indent-stack) (- (car indent-stack))))))
-		(if (integerp val)
-		    (setcar indent-stack
-			    (setq this-indent val))
-                  (if (cdr val)
-                      (setcar indent-stack (- (car (cdr val)))))
-		  (setq this-indent (car val)))))
-	    (if (/= (current-column) this-indent)
-		(progn (delete-region bol (point))
-		       (indent-to this-indent)))))))))
 
 (provide 'scheme)
 
