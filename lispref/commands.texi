@@ -2731,9 +2731,8 @@ the command to be considered complex.
 This variable's value is a list of recent complex commands, each
 represented as a form to evaluate.  It continues to accumulate all
 complex commands for the duration of the editing session, but when it
-reaches the maximum size (specified by the variable
-@code{history-length}), the oldest elements are deleted as new ones are
-added.
+reaches the maximum size (@pxref{Minibuffer History}), the oldest
+elements are deleted as new ones are added.
 
 @example
 @group
