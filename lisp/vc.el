@@ -1957,6 +1957,9 @@ default directory."
 	  ((file-exists-p "CVS") 'CVS)
 	  (t vc-default-back-end))))
     (cond ((eq backend 'SCCS)
+	   ;; If there is no SCCS subdirectory yet, create it.
+           ;; (SCCS could do without it, but VC requires it to be there.)
+           (if (not (file-exists-p "SCCS")) (make-directory "SCCS"))
 	   (apply 'vc-do-command nil 0 "admin" file 'MASTER	;; SCCS
                                  (and rev (concat "-r" rev))
                                  "-fb"
