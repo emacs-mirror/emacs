@@ -1,7 +1,7 @@
 /* impl.c.seg: SEGMENTS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .design: The design for this module is design.mps.seg.
  *

@@ -1,7 +1,7 @@
 /*  impl.h.poolmv2: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: The implementation of the new manual-variable pool class
  *

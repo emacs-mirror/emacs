@@ -1,7 +1,7 @@
 /* impl.h.testlib: TEST LIBRARY INTERFACE
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: A library of functions that may be of use to unit tests.
  */

@@ -1,7 +1,7 @@
 @rem impl.bat.proddw
 @rem Script that automates building and collating a dylan product
 @rem $Id$
-@rem Copyright (c) 2001 Ravenbrook Limited.
+@rem Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 
 nmake /f w3i3mv.nmk VARIETY=ci mmdw.lib mpsplan.lib
 nmake /f w3i3mv.nmk VARIETY=hi mmdw.lib mpsplan.lib

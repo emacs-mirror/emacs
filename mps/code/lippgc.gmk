@@ -1,7 +1,7 @@
 # impl.gmk.lippgc: BUILD FOR LINUX/POWER(32)/GCC PLATFORM
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This is the GNU makefile for platform.lippgc.
 

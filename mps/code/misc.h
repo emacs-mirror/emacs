@@ -1,7 +1,7 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * Small general things which are useful for C but aren't part of the
  * memory manager itself.  The only reason that this file exists is

@@ -1,7 +1,7 @@
 /* impl.c.reserv: ARENA RESERVOIR
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * IMPROVEMENTS
  *

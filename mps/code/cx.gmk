@@ -1,7 +1,7 @@
 # impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR CXREF
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that generate a c
 # cross-reference using the cxref tool.

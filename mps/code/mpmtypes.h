@@ -1,7 +1,7 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .design: design.mps.type
  *

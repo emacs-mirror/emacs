@@ -1,7 +1,7 @@
 /* impl.c.vmfr: VIRTUAL MEMORY MAPPING FOR FreeBSD
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .purpose: This is the implementation of the virtual memory mapping
  * interface (vm.h) for FreeBSD.  It was created by copying vmli.c (the

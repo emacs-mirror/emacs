@@ -1,7 +1,7 @@
 /* impl.h.prmcw3:  PROTECTION FOR WIN32
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: MPS developers.
  */

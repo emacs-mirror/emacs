@@ -1,7 +1,7 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
  *                   pool, since it is used to implement that pool.

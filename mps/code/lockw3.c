@@ -1,7 +1,7 @@
 /* impl.c.lockw3: RECURSIVE LOCKS IN WIN32
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .design: These are implemented using critical sections.
  *  See the section titled "Synchronization functions" in the Groups

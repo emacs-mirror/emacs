@@ -1,7 +1,7 @@
 /* impl.c.amcsshe: POOL CLASS AMC STRESS TEST WITH HEADER
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  */
 
 #include "fmthe.h"

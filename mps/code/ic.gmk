@@ -1,7 +1,7 @@
 # impl.gmk.ic: GNUMAKEFILE FRAGMENT FOR IRIX CC (IRIX 4 OR 5)
 #
 # $Id$
-# Copyright (c) 2001 Ravenbrook Limited.
+# Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the IRIX CC
 # compiler.  It defines the compiler specific variables that the

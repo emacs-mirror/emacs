@@ -1,7 +1,7 @@
 /* impl.c.lockfr: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .freebsd: This implementation supports FreeBSD (platform
  * MPS_OS_FR).

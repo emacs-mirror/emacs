@@ -1,7 +1,7 @@
 /* impl.h.mpstd: RAVENBROOK MEMORY POOL SYSTEM TARGET DETECTION
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * Detect the target platform using predefined preprocessor symbols
  * defined by the build environment.  The symbols are derived from the
