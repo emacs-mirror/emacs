@@ -263,7 +263,7 @@ at the place of `..':
   (let* ((proc (get-buffer-process (current-buffer)))
 	 (process-coding-systems (if proc (process-coding-system proc))))
     (message
-     "F[%c%c],K[%c%c],T[%c%c],P>[%c%c],P<[%c%c], default F[%c%c],P>[%c%c],P<[%c%c]"
+     "F[%c%s],K[%c%s],T[%c%s],P>[%c%s],P<[%c%s], default F[%c%s],P>[%c%s],P<[%c%s]"
      (coding-system-mnemonic buffer-file-coding-system)
      (coding-system-eol-type-mnemonic buffer-file-coding-system)
      (coding-system-mnemonic (keyboard-coding-system))
