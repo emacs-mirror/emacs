@@ -1,3 +1,26 @@
+1999-11-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* comint.el (comint-preoutput-filter-functions): Doc fix.
+
+1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine): 
+	Improve messages for capitalization of arg names,
+	for flag variables, for t and nil, for imperatives.
+	Call them imperatives rather than infinitives sans "to".
+	(checkdoc-common-verbs-wrong-voice): Add "moves".
+	(checkdoc-message-text-engine): Improve messages for y-or-n-p.
+
+	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine):
+	Don't convert comments from 3-semicolon to 2-semicolon.
+	That is a matter of style.
+	(checkdoc-triple-semi-comment-check-flag): Variable deleted.
+	(checkdoc-comments): Don't bind that variable.
+
+1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* files.el (write-file-hooks): Doc fix.
+
 1999-11-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/f90.el (f90-abbrev-start): Use `eq' instead of `='.
@@ -571,6 +594,7 @@
 	* progmodes/compile.el (compilation-error-regexp-alist):
 	Undo previous change.
 
+>>>>>>> 1.97
 1999-10-28  Dave Love  <fx@gnu.org>
 
 	* help.el (help-follow): Make arg optional again and really
@@ -605,6 +629,11 @@
 
 	* ange-ftp.el (ange-ftp-insert-file-contents): Don't change
 	last-coding-system-used by the call of ange-ftp-set-ascii-mode.
+
+1999-10-24  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* window.el (walk-windows): If ALL-FRAMES is a frame,
+	start on that frame.  Use save-selected-window.
 
 1999-10-27  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
@@ -953,6 +982,7 @@
 	* emacs-lisp/cl-indent.el (common-lisp-indent-function): Use `eq'
 	instead of `eql'.
 
+>>>>>>> 1.86
 1999-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* ange-ftp.el (ange-ftp-make-tmp-name, ange-ftp-del-tmp-name):
