@@ -42,11 +42,9 @@
 ;; 8-bit CODING-SYSTEM, and INPUT-METHOD.
 (defun setup-8-bit-environment (language charset coding-system input-method)
   (setup-english-environment)
-  (setq-default buffer-file-coding-system coding-system)
+  (set-default-coding-systems coding-system)
   (setq coding-category-iso-8-1 coding-system
 	coding-category-iso-8-2 coding-system)
-  (set-terminal-coding-system-internal coding-system)
-  (set-keyboard-coding-system-internal coding-system)
   (setq sendmail-coding-system coding-system
 	rmail-file-coding-system coding-system)
 
