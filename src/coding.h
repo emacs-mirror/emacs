@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #define _CODING_H
 
 #ifndef _CCL_H
-#include "../src/ccl.h"
+#include "ccl.h"
 #endif
 
 /*** EMACS' INTERNAL FORMAT (emacs-mule) section ***/
