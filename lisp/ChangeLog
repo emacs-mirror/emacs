@@ -1,5 +1,12 @@
 2002-04-10  Colin Walters  <walters@verbum.org>
 
+	* play/snake.el (snake-score-file): Default to just "snake-scores".
+
+	* play/tetris.el (tetris-score-file): Likewise.
+	
+	* play/gamegrid.el (gamegrid-add-score): Rewrite from scratch to
+	use `update-game-score'.
+
 	* ibuffer.el (ibuffer-canonicalize-state-list): Delete unused
 	function.
 	(ibuffer-current-buffers-with-marks): Don't call `buffer-list'
