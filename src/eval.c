@@ -2288,7 +2288,7 @@ specbind (symbol, value)
   specpdl_ptr->func = 0;
   specpdl_ptr->old_value = ovalue = find_symbol_value (symbol);
   specpdl_ptr++;
-  if (BUFFER_OBJFWDP (ovalue) || DISPLAY_OBJFWDP (ovalue))
+  if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
     store_symval_forwarding (symbol, ovalue, value);
   else
     Fset (symbol, value);
