@@ -1224,13 +1224,13 @@ where FACE is a valid face specification, as it can be used with
 (defun fancy-splash-screens ()
   "Display fancy splash screens when Emacs starts."
   (setq fancy-splash-help-echo (startup-echo-area-message))
-  (setq tab-width 20)
   (let ((old-hourglass display-hourglass)
 	(fancy-splash-outer-buffer (current-buffer))
 	splash-buffer
 	(old-minor-mode-map-alist minor-mode-map-alist)
 	timer)
     (switch-to-buffer "GNU Emacs")
+    (setq tab-width 20)
     (setq splash-buffer (current-buffer))
     (catch 'stop-splashing
       (unwind-protect
