@@ -1654,13 +1654,27 @@ to the corresponding values.
 @end defun
 
 @tindex face-attribute
-@defun face-attribute face attribute &optional frame
+@defun face-attribute face attribute &optional frame inherit
 This returns the value of the @var{attribute} attribute of face
 @var{face} on @var{frame}.  If @var{frame} is @code{nil},
 that means the selected frame (@pxref{Input Focus}).
 
 If @var{frame} is @code{t}, the value is the default for
 @var{face} for new frames.
+
+If @var{inherit} is nil, only attributes directly defined by
+@var{face} are considered, so the return value may be
+@code{unspecified}, or a relative value.  If @var{inherit} is non-nil,
+@var{face}'s definition of @var{attribute} is merged with the faces
+specified by its @code{:inherit} attribute; however the return value
+may still be @code{unspecified} or relative.  If @var{inherit} is a
+face or a list of faces, then the result is further merged with that
+face (or faces), until it becomes specified and absolute.
+
+To ensure that the return value is always specified and absolute, use
+a value of @code{default} for @var{inherit}; this will resolve any
+unspecified or relative values by merging with the @code{default} face
+(which is always completely specified).
 
 For example,
 
@@ -1673,6 +1687,21 @@ For example,
   The functions above did not exist before Emacs 21.  For compatibility
 with older Emacs versions, you can use the following functions to set
 and examine the face attributes which existed in those versions.
+
+@tindex face-attribute-relative-p
+@defun face-attribute-relative-p attribute value
+This function returns non-@code{nil} if @var{value}, when used as a
+the value of the face attribute @var{attribute}, is relative (that is,
+if it modifies an underlying or inherited value of @var{attribute}).
+@end defun
+
+@tindex merge-face-attribute
+@defun merge-face-attribute attribute value1 value2
+If @var{value1} is a relative value for the face attribute
+@var{attribute}, returns it merged with the underlying value
+@var{value2}; otherwise, if @var{value1} is an absolute value for the
+face a attribute @var{attribute}, returns @var{value1} unchanged.
+@end defun
 
 @defun set-face-foreground face color &optional frame
 @defunx set-face-background face color &optional frame
