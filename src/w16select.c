@@ -486,8 +486,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   unsigned ok = 1, put_status = 0;
   int nbytes;
   unsigned char *src, *dst = NULL;
-  int charsets[MAX_CHARSET + 1];
-  int num;
+  int charset_info;
   int no_crlf_conversion;
 
   CHECK_STRING (string, 0);
@@ -506,14 +505,10 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
   /* Since we are now handling multilingual text, we must consider
      encoding text for the clipboard.  */
-  bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-  num = ((nbytes <= 1	/* Check the possibility of short cut.  */
-	  || !STRING_MULTIBYTE (string)
-	  || nbytes == XSTRING (string)->size)
-	 ? 0
-	 : find_charset_in_str (src, nbytes, charsets, Qnil, 0, 1));
+  charset_info = find_charset_in_text (src, XSTRING (string)->size, nbytes,
+				       NULL, Qnil);
 
-  if (!num || (num == 1 && charsets[CHARSET_ASCII]))
+  if (charset_info == 0)
     {
       /* No multibyte character in OBJ.  We need not encode it, but we
 	 will have to convert it to DOS CR-LF style.  */
@@ -531,6 +526,8 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	Vnext_selection_coding_system = Vselection_coding_system;
       setup_coding_system
 	(Fcheck_coding_system (Vnext_selection_coding_system), &coding);
+      coding->src_multibyte = 1;
+      coding->dst_multibyte = 0;
       Vnext_selection_coding_system = Qnil;
       coding.mode |= CODING_MODE_LAST_BLOCK;
       Vlast_coding_system_used = coding.symbol;
@@ -654,16 +651,16 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
 	Vnext_selection_coding_system = Vselection_coding_system;
       setup_coding_system
 	(Fcheck_coding_system (Vnext_selection_coding_system), &coding);
+      coding.src_multibyte = 0;
+      coding.dst_multibyte = 1;
       Vnext_selection_coding_system = Qnil;
       coding.mode |= CODING_MODE_LAST_BLOCK;
       truelen = get_clipboard_data (CF_OEMTEXT, htext, data_size, 1);
       bufsize = decoding_buffer_size (&coding, truelen);
       buf = (unsigned char *) xmalloc (bufsize);
       decode_coding (&coding, htext, buf, truelen, bufsize);
-      truelen = (coding.fake_multibyte
-		 ? multibyte_chars_in_text (buf, coding.produced)
-		 : coding.produced_char);
-      ret = make_string_from_bytes ((char *) buf, truelen, coding.produced);
+      ret = make_string_from_bytes ((char *) buf,
+				    coding.produced_char, coding.produced);
       xfree (buf);
       Vlast_coding_system_used = coding.symbol;
     }
