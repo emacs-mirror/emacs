@@ -2206,40 +2206,48 @@ where_is_internal_1 (binding, key, definition, noindirect, keymap, this, last,
 
 /* describe-bindings - summarizing all the bindings in a set of keymaps.  */
 
-DEFUN ("describe-bindings", Fdescribe_bindings, Sdescribe_bindings, 0, 1, "",
+DEFUN ("describe-bindings-internal", Fdescribe_bindings_internal, Sdescribe_bindings_internal, 0, 2, "",
   "Show a list of all defined keys, and their definitions.\n\
-The list is put in a buffer, which is displayed.\n\
-An optional argument PREFIX, if non-nil, should be a key sequence;\n\
+We put that list in a buffer, and display the buffer.\n\
+\n\
+The optional argument MENUS, if non-nil, says to mention menu bindings.\n\
+\(Ordinarily these are omitted from the output.)\n\
+The optional argument PREFIX, if non-nil, should be a key sequence;\n\
 then we display only bindings that start with that prefix.")
-  (prefix)
-     Lisp_Object prefix;
+  (menus, prefix)
+     Lisp_Object menus, prefix;
 {
   register Lisp_Object thisbuf;
   XSETBUFFER (thisbuf, current_buffer);
   internal_with_output_to_temp_buffer ("*Help*",
 				       describe_buffer_bindings,
-				       Fcons (thisbuf, prefix));
+				       list3 (thisbuf, prefix, menus));
   return Qnil;
 }
 
-/* ARG is (BUFFER . PREFIX).  */
+/* ARG is (BUFFER PREFIX MENU-FLAG).  */
 
 static Lisp_Object
 describe_buffer_bindings (arg)
      Lisp_Object arg;
 {
   Lisp_Object descbuf, prefix, shadow;
+  int nomenu;
   register Lisp_Object start1;
   struct gcpro gcpro1;
 
   char *alternate_heading
     = "\
-Alternate Characters (use anywhere the nominal character is listed):\n\
-nominal         alternate\n\
--------         ---------\n";
+Keyboard translations:\n\n\
+You type        Translation\n\
+--------        -----------\n";
 
   descbuf = XCONS (arg)->car;
-  prefix = XCONS (arg)->cdr;
+  arg = XCONS (arg)->cdr;
+  prefix = XCONS (arg)->car;
+  arg = XCONS (arg)->cdr;
+  nomenu = NILP (XCONS (arg)->car);
+
   shadow = Qnil;
   GCPRO1 (shadow);
 
@@ -2278,7 +2286,7 @@ nominal         alternate\n\
 
   if (!NILP (Vkey_translation_map))
     describe_map_tree (Vkey_translation_map, 0, Qnil, prefix,
-		       "Key translations", 0, 1, 0);
+		       "Key translations", nomenu, 1, 0);
 
   {
     int i, nmaps;
@@ -2317,7 +2325,7 @@ nominal         alternate\n\
 	p += sizeof (" Minor Mode Bindings") - 1;
 	*p = 0;
 
-	describe_map_tree (maps[i], 1, shadow, prefix, title, 0, 0, 0);
+	describe_map_tree (maps[i], 1, shadow, prefix, title, nomenu, 0, 0);
 	shadow = Fcons (maps[i], shadow);
       }
   }
@@ -2333,17 +2341,17 @@ nominal         alternate\n\
   if (!NILP (start1))
     {
       describe_map_tree (start1, 1, shadow, prefix,
-			 "Major Mode Bindings", 0, 0, 0);
+			 "Major Mode Bindings", nomenu, 0, 0);
       shadow = Fcons (start1, shadow);
     }
 
   describe_map_tree (current_global_map, 1, shadow, prefix,
-		     "Global Bindings", 0, 0, 1);
+		     "Global Bindings", nomenu, 0, 1);
 
   /* Print the function-key-map translations under this prefix.  */
   if (!NILP (Vfunction_key_map))
     describe_map_tree (Vfunction_key_map, 0, Qnil, prefix,
-		       "Function key map translations", 0, 1, 0);
+		       "Function key map translations", nomenu, 1, 0);
 
   call0 (intern ("help-mode"));
   Fset_buffer (descbuf);
@@ -3213,7 +3221,7 @@ and applies even for keys that have ordinary bindings.");
   defsubr (&Ssingle_key_description);
   defsubr (&Stext_char_description);
   defsubr (&Swhere_is_internal);
-  defsubr (&Sdescribe_bindings);
+  defsubr (&Sdescribe_bindings_internal);
   defsubr (&Sapropos_internal);
 }
 
