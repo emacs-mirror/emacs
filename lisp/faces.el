@@ -1516,10 +1516,7 @@ created."
 
 
 (defface mode-line
-  '((((type x) (class color))
-     (:box (:line-width 2 :style released-button)
-	   :background "grey75" :foreground "black"))
-    (((type w32) (class color))
+  '((((type x w32) (class color))
      (:box (:line-width 2 :style released-button)
 	   :background "grey75" :foreground "black"))
     (t
@@ -1555,15 +1552,12 @@ created."
 
 
 (defface tool-bar
-  '((((type x) (class color))
+  '((((type x w32) (class color))
      (:box (:line-width 1 :style released-button)
 	   :background "grey75" :foreground "black"))
     (((type x) (class mono))
      (:box (:line-width 1 :style released-button)
 	   :background "grey" :foreground "black"))
-    (((type w32) (class color))
-     (:box (:line-width 1 :style released-button)
-	   :background "grey75" :foreground "black"))
     (t
      ()))
   "Basic tool-bar face."
