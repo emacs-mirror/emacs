@@ -1,4 +1,4 @@
-/* $HopeName:$
+/* $HopeName: MMQA_test_function!132.c(trunk.1) $
 TEST_HEADER
  summary = low-memory reservoir tests with commit limit, part I
  language = c
@@ -125,8 +125,8 @@ static void test(void) {
   res = allocrone(&q, apamc, 10, MPS_RANK_EXACT);
   if (res == MPS_RES_OK) {
    setref(q, 0, p);
+   p = q;
   }
-  p = q;
   i++;
  }
  report("allocfail", "%d", i);
@@ -150,8 +150,8 @@ static void test(void) {
   res = reservoir_allocrone(&q, apamc, 10, MPS_RANK_EXACT);
   if (res == MPS_RES_OK) {
    setref(q, 0, p);
+   p = q;
   }
-  p = q;
   i++;
  }
  report("allocfail2", "%d", i);
