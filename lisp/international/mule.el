@@ -345,11 +345,13 @@ Now we have the variable `charset-list'."
     safe
     latin-extra
     composition
-    euc-tw-shift)
+    euc-tw-shift
+    use-roman
+    use-oldjis)
   "List of symbols that control ISO-2022 encoder/decoder.
 
 The value of `:flags' attribute in the argument of the function
-`define-coding-system' must be one of them.
+`define-coding-system' must be composed from them.
 
 If `long-form' is specified, use a long designation sequence on
 encoding for the charsets `japanese-jisx0208-1978', `chinese-gb2312',
@@ -399,7 +401,13 @@ composition sequence is correctly decode on decoding, and is produced
 on encoding.
 
 If `euc-tw-shift' is specified, the EUC-TW specific shifting code is
-correctly decoded on decoding, and is produced on encoding.")
+correctly decoded on decoding, and is produced on encoding.
+
+If `use-roman' is specified, JIS0201-1976-Roman is designated instead
+of ASCII.
+
+If `use-oldjis' is specified, JIS0208-1976 is designated instead of
+JIS0208-1983.")
 
 (defun define-coding-system (name docstring &rest props)
   "Define NAME (symbol) as a coding system with DOCSTRING and attributes.
