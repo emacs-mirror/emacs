@@ -50,6 +50,7 @@ With prefix arg, prompt for second argument SWITCHES,
    (let ((default (if (mark t)
 		      (save-excursion (goto-char (mark t))
 				      (dired-get-filename t t)))))
+     (require 'diff)
      (list (read-file-name (format "Diff %s with: %s"
 				   (dired-get-filename t)
 				   (if default
