@@ -1,4 +1,4 @@
-;;; devanagari.el --- Support for Devanagari -*- coding: iso-2022-7bit; -*-
+;;; devanagari.el --- Support for Devanagari -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1996, 2001 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; english.el --- support for English
+;;; english.el --- support for English -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

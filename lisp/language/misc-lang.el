@@ -1,4 +1,4 @@
-;;; misc-lang.el --- support for miscellaneous languages (characters)
+;;; misc-lang.el --- support for miscellaneous languages (characters) -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

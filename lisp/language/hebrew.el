@@ -1,4 +1,4 @@
-;;; hebrew.el --- support for Hebrew -*- coding: iso-2022-7bit; -*-
+;;; hebrew.el --- support for Hebrew -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

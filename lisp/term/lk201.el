@@ -1,3 +1,4 @@
+;; -*- no-byte-compile: t -*-
 ;; Define function key sequences for DEC terminals.
 
 ;; Termcap or terminfo should set these.

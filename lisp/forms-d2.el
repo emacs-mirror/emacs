@@ -1,4 +1,4 @@
-;;; forms-d2.el --- demo forms-mode
+;;; forms-d2.el --- demo forms-mode -*- no-byte-compile: t -*-
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 ;; Created: 1989

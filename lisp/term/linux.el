@@ -1,3 +1,4 @@
+;; -*- no-byte-compile: t -*-
 ;; The Linux console handles Latin-1 by default.
 
 (unless (terminal-coding-system)

@@ -1,4 +1,4 @@
-;;; paths.el --- define pathnames for use by various Emacs commands
+;;; paths.el --- define pathnames for use by various Emacs commands -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1986, 1988, 1994, 1999, 2000 Free Software Foundation, Inc.
 

@@ -1,4 +1,4 @@
-;;; wyse50.el --- terminal support code for Wyse 50
+;;; wyse50.el --- terminal support code for Wyse 50 -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1989, 1993, 1994 Free Software Foundation, Inc.
 

@@ -1,3 +1,4 @@
+;; -*- no-byte-compile: t -*-
 (load "term/vt100" nil t)
 
 ;; Make F11 an escape key.

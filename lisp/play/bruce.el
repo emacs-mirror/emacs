@@ -1,4 +1,4 @@
-;;; bruce.el --- bruce phrase utility for overloading the Communications
+;;; bruce.el --- bruce phrase utility for overloading the Communications -*- no-byte-compile: t -*-
 ;;; Decency Act snoops, if any.
 
 ;; Copyright (C) 1988, 1993, 1997 Free Software Foundation, Inc.

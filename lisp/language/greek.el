@@ -1,4 +1,4 @@
-;;; greek.el --- support for Greek
+;;; greek.el --- support for Greek -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

@@ -1,4 +1,4 @@
-;;; mule-conf.el --- configure multilingual environment
+;;; mule-conf.el --- configure multilingual environment -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

@@ -1,4 +1,4 @@
-;;; romanian.el --- support for Romanian -*- coding: iso-latin-2; -*-
+;;; romanian.el --- support for Romanian -*- coding: iso-latin-2; no-byte-compile: t -*-
 
 ;; Copyright (C) 1998 Free Software Foundation.
 

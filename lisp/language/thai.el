@@ -1,4 +1,4 @@
-;;; thai.el --- support for Thai -*- coding: iso-2022-7bit; -*-
+;;; thai.el --- support for Thai -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

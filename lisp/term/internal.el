@@ -1,4 +1,4 @@
-;;; internal.el --- support for PC internal terminal -*- coding: raw-text; -*-
+;;; internal.el --- support for PC internal terminal -*- coding: raw-text; no-byte-compile: t -*-
 
 ;; Copyright (C) 1993, 1994, 1998, 1999, 2001 Free Software Foundation, Inc.
 

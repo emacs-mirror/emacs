@@ -1,4 +1,4 @@
-;;; georgian.el --- language support for Georgian
+;;; georgian.el --- language support for Georgian -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 2001  Free Software Foundation, Inc.
 

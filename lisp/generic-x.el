@@ -1,4 +1,4 @@
-;;; generic-x.el --- Extra Modes for generic-mode
+;;; generic-x.el --- Extra Modes for generic-mode -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
