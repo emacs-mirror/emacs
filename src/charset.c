@@ -802,7 +802,7 @@ CHARSET should be defined by `defined-charset' in advance.  */)
 
 int
 find_charset_in_text (ptr, nchars, nbytes, charsets, table)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nchars, nbytes, *charsets;
      Lisp_Object table;
 {
@@ -810,7 +810,7 @@ find_charset_in_text (ptr, nchars, nbytes, charsets, table)
     {
       if (charsets && nbytes > 0)
 	{
-	  unsigned char *endp = ptr + nbytes;
+	  const unsigned char *endp = ptr + nbytes;
 	  int maskbits = 0;
 
 	  while (ptr < endp && maskbits != 7)
@@ -1271,7 +1271,7 @@ strwidth (str, len)
 
 int
 c_string_width (str, len, precision, nchars, nbytes)
-     unsigned char *str;
+     const unsigned char *str;
      int precision, *nchars, *nbytes;
 {
   int i = 0, i_byte = 0;
@@ -1337,7 +1337,7 @@ lisp_string_width (string, precision, nchars, nbytes)
 {
   int len = SCHARS (string);
   int len_byte = SBYTES (string);
-  unsigned char *str = SDATA (string);
+  const unsigned char *str = SDATA (string);
   int i = 0, i_byte = 0;
   int width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
@@ -1451,7 +1451,7 @@ DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
 
 int
 chars_in_text (ptr, nbytes)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nbytes;
 {
   /* current_buffer is null at early stages of Emacs initialization.  */
@@ -1468,10 +1468,10 @@ chars_in_text (ptr, nbytes)
 
 int
 multibyte_chars_in_text (ptr, nbytes)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nbytes;
 {
-  unsigned char *endp;
+  const unsigned char *endp;
   int chars, bytes;
 
   endp = ptr + nbytes;
@@ -1493,10 +1493,10 @@ multibyte_chars_in_text (ptr, nbytes)
    0x80..0x9F are represented by 2 bytes in multibyte text.  */
 void
 parse_str_as_multibyte (str, len, nchars, nbytes)
-     unsigned char *str;
+     const unsigned char *str;
      int len, *nchars, *nbytes;
 {
-  unsigned char *endp = str + len;
+  const unsigned char *endp = str + len;
   int n, chars = 0, bytes = 0;
 
   while (str < endp)
