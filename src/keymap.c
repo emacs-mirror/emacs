@@ -2108,7 +2108,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect)
       if (nomenus && XINT (last) >= 0)
 	{ /* If no menu entries should be returned, skip over the
 	     keymaps bound to `menu-bar' and `tool-bar'.  */
-	  Lisp_Object tem = Faref (this, 0);
+	  Lisp_Object tem = Faref (this, make_number (0));
 	  if (EQ (tem, Qmenu_bar) || EQ (tem, Qtool_bar))
 	    continue;
 	}

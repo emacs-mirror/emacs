@@ -2,6 +2,12 @@
 
 	* window.h (Fwindow_live_p): Declare.
 
+	* undo.c (record_delete): Check that last_undo_buffer is really a
+	buffer before applying XBUFFER to it.
+
+	* keymap.c (where_is_internal): Pass lisp object, not integer, to
+	Faref.
+
 2000-10-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* lisp.h (KEYMAPP): New macro.
