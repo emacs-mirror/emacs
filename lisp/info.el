@@ -331,158 +331,188 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
   ;; Expand it.
   (if filename
       (let (temp temp-downcase found)
-	(setq filename (substitute-in-file-name filename))
-	(if (string= (downcase filename) "dir")
-	    (setq found t)
-	  (let ((dirs (if (string-match "^\\./" filename)
-			  ;; If specified name starts with `./'
-			  ;; then just try current directory.
-			  '("./")
-			(if (file-name-absolute-p filename)
-			    ;; No point in searching for an
-			    ;; absolute file name
-			    '(nil)
-			  (if Info-additional-directory-list
-			      (append Info-directory-list
-				      Info-additional-directory-list)
-			    Info-directory-list)))))
-	    ;; Search the directory list for file FILENAME.
-	    (while (and dirs (not found))
-	      (setq temp (expand-file-name filename (car dirs)))
-	      (setq temp-downcase
-		    (expand-file-name (downcase filename) (car dirs)))
-	      ;; Try several variants of specified name.
-	      (let ((suffix-list Info-suffix-list))
-		(while (and suffix-list (not found))
-		  (cond ((info-file-exists-p
-			  (info-insert-file-contents-1
-			   temp (car (car suffix-list))))
-			 (setq found temp))
-			((info-file-exists-p
-			  (info-insert-file-contents-1
-			   temp-downcase (car (car suffix-list))))
-			 (setq found temp-downcase)))
-		  (setq suffix-list (cdr suffix-list))))
-	      (setq dirs (cdr dirs)))))
-	(if found
-	    (setq filename found)
-	  (error "Info file %s does not exist" filename))))
+        (setq filename (substitute-in-file-name filename))
+        (if (string= (downcase filename) "dir")
+            (setq found t)
+          (let ((dirs (if (string-match "^\\./" filename)
+                          ;; If specified name starts with `./'
+                          ;; then just try current directory.
+                          '("./")
+                        (if (file-name-absolute-p filename)
+                            ;; No point in searching for an
+                            ;; absolute file name
+                            '(nil)
+                          (if Info-additional-directory-list
+                              (append Info-directory-list
+                                      Info-additional-directory-list)
+                            Info-directory-list)))))
+            ;; Search the directory list for file FILENAME.
+            (while (and dirs (not found))
+              (setq temp (expand-file-name filename (car dirs)))
+              (setq temp-downcase
+                    (expand-file-name (downcase filename) (car dirs)))
+              ;; Try several variants of specified name.
+              (let ((suffix-list Info-suffix-list))
+                (while (and suffix-list (not found))
+                  (cond ((info-file-exists-p
+                          (info-insert-file-contents-1
+                           temp (car (car suffix-list))))
+                         (setq found temp))
+                        ((info-file-exists-p
+                          (info-insert-file-contents-1
+                           temp-downcase (car (car suffix-list))))
+                         (setq found temp-downcase)))
+                  (setq suffix-list (cdr suffix-list))))
+              (setq dirs (cdr dirs)))))
+        (if found
+            (setq filename found)
+          (error "Info file %s does not exist" filename))))
+  ;; Record the node we are leaving.
+  (if (and Info-current-file (not no-going-back))
+      (setq Info-history
+            (cons (list Info-current-file Info-current-node (point))
+                  Info-history)))
   ;; Go into info buffer.
   (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
   (buffer-disable-undo (current-buffer))
   (or (eq major-mode 'Info-mode)
       (Info-mode))
-  ;; Record the node we are leaving.
-  (if (and Info-current-file (not no-going-back))
-      (setq Info-history
-	    (cons (list Info-current-file Info-current-node (point))
-		  Info-history)))
   (widen)
   (setq Info-current-node nil)
   (unwind-protect
       (progn
-	;; Switch files if necessary
-	(or (null filename)
-	    (equal Info-current-file filename)
-	    (let ((buffer-read-only nil))
-	      (setq Info-current-file nil
-		    Info-current-subfile nil
-		    Info-current-file-completions nil
-		    buffer-file-name nil)
-	      (erase-buffer)
-	      (if (eq filename t)
-		  (Info-insert-dir)
-		(info-insert-file-contents filename t)
-		(setq default-directory (file-name-directory filename)))
-	      (set-buffer-modified-p nil)
-	      ;; See whether file has a tag table.  Record the location if yes.
-	      (goto-char (point-max))
-	      (forward-line -8)
-	      ;; Use string-equal, not equal, to ignore text props.
-	      (if (not (or (string-equal nodename "*")
-			   (not
-			    (search-forward "\^_\nEnd tag table\n" nil t))))
-		  (let (pos)
-		    ;; We have a tag table.  Find its beginning.
-		    ;; Is this an indirect file?
-		    (search-backward "\nTag table:\n")
-		    (setq pos (point))
-		    (if (save-excursion
-			  (forward-line 2)
-			  (looking-at "(Indirect)\n"))
-			;; It is indirect.  Copy it to another buffer
-			;; and record that the tag table is in that buffer.
-			(let ((buf (current-buffer))
-			      (tagbuf
-			       (or Info-tag-table-buffer
-				   (generate-new-buffer " *info tag table*"))))
-			  (setq Info-tag-table-buffer tagbuf)
-			  (save-excursion
-			    (set-buffer tagbuf)
+        ;; Switch files if necessary
+        (or (null filename)
+            (equal Info-current-file filename)
+            (let ((buffer-read-only nil))
+              (setq Info-current-file nil
+                    Info-current-subfile nil
+                    Info-current-file-completions nil
+                    buffer-file-name nil)
+              (erase-buffer)
+              (if (eq filename t)
+                  (Info-insert-dir)
+                (info-insert-file-contents filename t)
+                (setq default-directory (file-name-directory filename)))
+              (set-buffer-modified-p nil)
+              ;; See whether file has a tag table.  Record the location if yes.
+              (goto-char (point-max))
+              (forward-line -8)
+              ;; Use string-equal, not equal, to ignore text props.
+              (if (not (or (string-equal nodename "*")
+                           (not
+                            (search-forward "\^_\nEnd tag table\n" nil t))))
+                  (let (pos)
+                    ;; We have a tag table.  Find its beginning.
+                    ;; Is this an indirect file?
+                    (search-backward "\nTag table:\n")
+                    (setq pos (point))
+                    (if (save-excursion
+                          (forward-line 2)
+                          (looking-at "(Indirect)\n"))
+                        ;; It is indirect.  Copy it to another buffer
+                        ;; and record that the tag table is in that buffer.
+                        (let ((buf (current-buffer))
+                              (tagbuf
+                               (or Info-tag-table-buffer
+                                   (generate-new-buffer " *info tag table*"))))
+                          (setq Info-tag-table-buffer tagbuf)
+                          (save-excursion
+                            (set-buffer tagbuf)
                             (buffer-disable-undo (current-buffer))
-			    (setq case-fold-search t)
-			    (erase-buffer)
-			    (insert-buffer-substring buf))
-			  (set-marker Info-tag-table-marker
-				      (match-end 0) tagbuf))
-		      (set-marker Info-tag-table-marker pos)))
-		(set-marker Info-tag-table-marker nil))
-	      (setq Info-current-file
-		    (if (eq filename t) "dir" filename))))
-	;; Use string-equal, not equal, to ignore text props.
-	(if (string-equal nodename "*")
-	    (progn (setq Info-current-node nodename)
-		   (Info-set-mode-line))
-	  ;; Search file for a suitable node.
-	  (let ((guesspos (point-min))
-		(regexp (concat "Node: *" (regexp-quote nodename) " *[,\t\n\177]")))
-	    ;; First get advice from tag table if file has one.
-	    ;; Also, if this is an indirect info file,
-	    ;; read the proper subfile into this buffer.
-	    (if (marker-position Info-tag-table-marker)
-		(save-excursion
-		  (let ((m Info-tag-table-marker)
-			found found-mode)
-		    (save-excursion
-		      (set-buffer (marker-buffer m))
-		      (goto-char m)
-		      (beginning-of-line) ;so re-search will work.
-		      (setq found (re-search-forward regexp nil t))
-		      (if found
-			  (setq guesspos (read (current-buffer))))
-		      (setq found-mode major-mode))
-		    (if found
-			(progn
-			  ;; If this is an indirect file, determine
-			  ;; which file really holds this node and
-			  ;; read it in.
-			  (if (not (eq found-mode 'Info-mode))
-			      ;; Note that the current buffer must be
-			      ;; the *info* buffer on entry to
-			      ;; Info-read-subfile.  Thus the hackery
-			      ;; above.
-			      (setq guesspos (Info-read-subfile guesspos))))
-		      (error "No such node: %s" nodename)))))
-	    (goto-char (max (point-min) (- (byte-to-position guesspos) 1000)))
-	    ;; Now search from our advised position (or from beg of buffer)
-	    ;; to find the actual node.
-	    (catch 'foo
-	      (while (search-forward "\n\^_" nil t)
-		(forward-line 1)
-		(let ((beg (point)))
-		  (forward-line 1)
-		  (if (re-search-backward regexp beg t)
-		      (throw 'foo t))))
-	      (error "No such node: %s" nodename)))
-	  (Info-select-node)))
+                            (setq case-fold-search t)
+                            (erase-buffer)
+                            (insert-buffer-substring buf))
+                          (set-marker Info-tag-table-marker
+                                      (match-end 0) tagbuf))
+                      (set-marker Info-tag-table-marker pos)))
+                (set-marker Info-tag-table-marker nil))
+              (setq Info-current-file
+                    (if (eq filename t) "dir" filename))))
+        ;; Use string-equal, not equal, to ignore text props.
+        (if (string-equal nodename "*")
+            (progn (setq Info-current-node nodename)
+                   (Info-set-mode-line))
+          ;; Possibilities:
+          ;;
+          ;; 1. Anchor found in tag table
+          ;; 2. Anchor *not* in tag table
+          ;;
+          ;; 3. Node found in tag table
+          ;; 4. Node *not* found in tag table, but found in file
+          ;; 5. Node *not* in tag table, and *not* in file
+          ;;
+          ;; *Or* the same, but in an indirect subfile.
+
+          ;; Search file for a suitable node.
+          (let ((guesspos (point-min))
+                (regexp
+                 (concat "\\(Node:\\|Ref:\\) *"
+                         (regexp-quote nodename)
+                         " *[,\t\n\177]")))
+
+            ;; First, search a tag table, if any
+            (if (marker-position Info-tag-table-marker)
+
+                (let (found-in-tag-table
+                      found-mode
+                      (m Info-tag-table-marker))
+                  (save-excursion
+                    (set-buffer (marker-buffer m))
+                    (goto-char m)
+                    (beginning-of-line) ; so re-search will work.
+
+                    ;; Search tag table
+                    (setq found-in-tag-table
+                          (re-search-forward regexp nil t))
+                    (if found-in-tag-table
+                        (setq guesspos (read (current-buffer))))
+                    (setq found-mode major-mode))
+
+                  ;; Indirect file among split files
+                  (if found-in-tag-table
+                      (progn
+                        ;; If this is an indirect file, determine
+                        ;; which file really holds this node and
+                        ;; read it in.
+                        (if (not (eq found-mode 'Info-mode))
+                            ;; Note that the current buffer must be
+                            ;; the *info* buffer on entry to
+                            ;; Info-read-subfile.  Thus the hackery
+                            ;; above.
+                            (setq guesspos (Info-read-subfile guesspos)))))
+
+                  ;; Handle anchor
+                  (if (and found-in-tag-table
+                           (string-equal "Ref:" (match-string 1)))
+                      (goto-char guesspos)
+
+                    ;; Else we may have a node, which we search for:
+                    (goto-char (max (point-min) (- guesspos 1000)))
+                    ;; Now search from our advised position
+                    ;; (or from beg of buffer)
+                    ;; to find the actual node.
+                    (catch 'foo
+                      (while (search-forward "\n\^_" nil t)
+                        (forward-line 1)
+                        (let ((beg (point)))
+                          (forward-line 1)
+                          (if (re-search-backward regexp beg t)
+                              (progn
+                                (beginning-of-line)
+                                (throw 'foo t)))))
+                      (error
+                       "No such anchor in tag table or node in tag table or file: %s"
+                       nodename))))))
+
+          (Info-select-node)))
     ;; If we did not finish finding the specified node,
     ;; go back to the previous one.
     (or Info-current-node no-going-back (null Info-history)
-	(let ((hist (car Info-history)))
-	  (setq Info-history (cdr Info-history))
-	  (Info-find-node (nth 0 hist) (nth 1 hist) t)
-	  (goto-char (nth 2 hist)))))
-  (goto-char (point-min)))
+        (let ((hist (car Info-history)))
+          (setq Info-history (cdr Info-history))
+          (Info-find-node (nth 0 hist) (nth 1 hist) t)
+          (goto-char (nth 2 hist))))))
 
 ;; Cache the contents of the (virtual) dir file, once we have merged
 ;; it for the first time, so we can save time subsequently.
@@ -637,8 +667,6 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 
 ;; Note that on entry to this function the current-buffer must be the
 ;; *info* buffer; not the info tags buffer.
-;; nodepos should be a byte-position such as is found in
-;; the Info file tags table.
 (defun Info-read-subfile (nodepos)
   ;; NODEPOS is either a position (in the Info file as a whole,
   ;; not relative to a subfile) or the name of a subfile.
