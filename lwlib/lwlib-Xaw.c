@@ -124,7 +124,10 @@ xaw_update_one_widget (instance, widget, val, deep_p)
     }
   else if (XtIsSubclass (widget, dialogWidgetClass))
     {
-      XtVaSetValues (widget, XtNlabel, val->contents->value, 0);
+      Arg al[1];
+      int ac = 0;
+      XtSetArg (al[ac], XtNlabel, val->contents->value); ac++;
+      XtSetValues (widget,  al, ac);
     }
   else if (XtIsSubclass (widget, commandWidgetClass))
     {
