@@ -1558,12 +1558,12 @@ sys_rename (const char * oldname, const char * newname)
 	{
 	  /* Force temp name to require a manufactured 8.3 alias - this
 	     seems to make the second rename work properly.  */
-	  sprintf (p, ".%s.%u", o, i);
+	  sprintf (p, "_.%s.%u", o, i);
 	  i++;
 	  result = rename (oldname, temp);
 	}
       /* This loop must surely terminate!  */
-      while (result < 0 && errno == EEXIST);
+      while (result < 0 && (errno == EEXIST || errno == EACCES));
       if (result < 0)
 	return -1;
     }
@@ -1583,7 +1583,7 @@ sys_rename (const char * oldname, const char * newname)
   result = rename (temp, newname);
 
   if (result < 0
-      && errno == EEXIST
+      && (errno == EEXIST || errno == EACCES)
       && _chmod (newname, 0666) == 0
       && _unlink (newname) == 0)
     result = rename (temp, newname);
