@@ -588,7 +588,7 @@ echo "Making links to \`man'"
  test -f Makefile.in && ln Makefile.in ../${tempdir}/man
  ln ChangeLog ../${tempdir}/man
  test -f split-man && ln split-man ../${tempdir}/man
- test -f texinfo.tex && cp texinfo.tex ../${tempdir}/man
+ cp texinfo.tex ../${tempdir}/man
  cd ../${tempdir}/man
  rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
  rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
