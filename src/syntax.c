@@ -431,6 +431,12 @@ describe_syntax (value)
       return;
     }
 
+  if (CHAR_TABLE_P (value))
+    {
+      insert_string ("deeper char-table ...\n");
+      return;
+    }
+
   if (!CONSP (value))
     {
       insert_string ("invalid\n");
