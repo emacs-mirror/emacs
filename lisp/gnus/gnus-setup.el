@@ -34,36 +34,27 @@
 
 (eval-when-compile (require 'cl))
 
-(defvar running-xemacs (string-match "XEmacs\\|Lucid" emacs-version))
-
 (defvar gnus-use-installed-gnus t
   "*If non-nil Use installed version of Gnus.")
 
-(defvar gnus-use-installed-tm running-xemacs
-  "*If non-nil use installed version of tm.")
-
-(defvar gnus-use-installed-mailcrypt running-xemacs
+(defvar gnus-use-installed-mailcrypt (featurep 'xemacs)
   "*If non-nil use installed version of mailcrypt.")
 
-(defvar gnus-emacs-lisp-directory (if running-xemacs
+(defvar gnus-emacs-lisp-directory (if (featurep 'xemacs)
 				      "/usr/local/lib/xemacs/"
 				    "/usr/local/share/emacs/")
   "Directory where Emacs site lisp is located.")
 
 (defvar gnus-gnus-lisp-directory (concat gnus-emacs-lisp-directory
-					 "gnus-5.0.15/lisp/")
+					 "gnus/lisp/")
   "Directory where Gnus Emacs lisp is found.")
 
-(defvar gnus-tm-lisp-directory (concat gnus-emacs-lisp-directory
-				       "site-lisp/")
-  "Directory where TM Emacs lisp is found.")
-
 (defvar gnus-mailcrypt-lisp-directory (concat gnus-emacs-lisp-directory
-					      "site-lisp/mailcrypt-3.4/")
+					      "site-lisp/mailcrypt/")
   "Directory where Mailcrypt Emacs Lisp is found.")
 
 (defvar gnus-bbdb-lisp-directory (concat gnus-emacs-lisp-directory
-					 "site-lisp/bbdb-1.51/")
+					 "site-lisp/bbdb/")
   "Directory where Big Brother Database is found.")
 
 (defvar gnus-use-mhe nil
