@@ -1985,10 +1985,8 @@ Zero means the entire text matched by the whole regexp or whole string.
 STRING should be given if the last search was by `string-match' on STRING."
   (if (match-beginning num)
       (if string
-	  (let ((result
-		 (substring string (match-beginning num) (match-end num))))
-	    (set-text-properties 0 (length result) nil result)
-	    result)
+	  (substring-no-properties string (match-beginning num)
+				   (match-end num))
 	(buffer-substring-no-properties (match-beginning num)
 					(match-end num)))))
 
