@@ -352,13 +352,24 @@ A large number or nil slows down menu responsiveness."
 	      :help "Find function/variables whose names match regexp"))
 (define-key menu-bar-goto-menu [next-tag-otherw]
   '(menu-item "Next Tag in Other Window"
-	      (lambda () (interactive)  (find-tag-other-window nil t))
+	      menu-bar-next-tag-other-window
 	      :enable (and (boundp 'tags-location-ring)
 			   (not (ring-empty-p tags-location-ring)))
 	      :help "Find next function/variable matching last tag name in another window"))
+
+(defun menu-bar-next-tag-other-window ()
+  "Find the next definition of the tag already specified."
+  (interactive)
+  (find-tag-other-window nil t))
+
+(defun menu-bar-next-tag ()
+  "Find the next definition of the tag already specified."
+  (interactive)
+  (find-tag nil t))
+
 (define-key menu-bar-goto-menu [next-tag]
   '(menu-item "Find Next Tag"
-	      (lambda () (interactive) (find-tag nil t))
+	      menu-bar-next-tag
 	      :enable (and (boundp 'tags-location-ring)
 			   (not (ring-empty-p tags-location-ring)))
 	      :help "Find next function/variable matching last tag name"))
@@ -631,13 +642,11 @@ Do the same for the keys of the same name."
   (interactive)
   (if (display-time-mode)
       (message "Display-time mode enabled.")
-    (message "Display-time mode disabled.")))
+    (message "Display-time mode disabled."))
+  (customize-mark-as-set 'display-time-mode))
 
 (define-key menu-bar-showhide-menu [showhide-date-time]
-  '(menu-item "Date and Time" (lambda ()
-				(interactive)
-				(showhide-date-time)
-				(customize-mark-as-set 'display-time-mode))
+  '(menu-item "Date and Time" showhide-date-time
 	      :help "Display date and time in the mode line"
 	      :button (:toggle . display-time-mode)))
 
@@ -666,7 +675,7 @@ Do the same for the keys of the same name."
 	      :visible (display-graphic-p)))
 
 (defun menu-bar-showhide-fringe-menu-customize-reset ()
-  "Reset the default fringe mode."
+  "Reset the fringe mode: display fringes on both sides of a window."
   (interactive)
   (customize-set-variable 'fringe-mode nil))
 
@@ -674,11 +683,10 @@ Do the same for the keys of the same name."
   '(menu-item "Default" menu-bar-showhide-fringe-menu-customize-reset
 	      :help "Default width fringe on both left and right side"
 	      :visible (display-graphic-p)
-	      :button (:radio . (or (not (boundp 'fringe-mode))
-				    (eq fringe-mode nil)))))
+	      :button (:radio . (eq fringe-mode nil))))
 
 (defun menu-bar-showhide-fringe-menu-customize-left ()
-  "Make fringes appear only on the left."
+  "Display fringes only on the left of each window."
   (interactive)
   (require 'fringe)
   (customize-set-variable 'fringe-mode '(nil . 0)))
@@ -687,11 +695,10 @@ Do the same for the keys of the same name."
   '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
 	      :help "Fringe only on the left side"
 	      :visible (display-graphic-p)
-	      :button (:radio . (and (boundp 'fringe-mode)
-				     (equal fringe-mode '(nil . 0))))))
+	      :button (:radio . (equal fringe-mode '(nil . 0)))))
 
 (defun menu-bar-showhide-fringe-menu-customize-right ()
-  "Make fringes appear only on the right."
+  "Display fringes only on the right of each window."
   (interactive)
   (require 'fringe)
   (customize-set-variable 'fringe-mode '(0 . nil)))
@@ -700,11 +707,10 @@ Do the same for the keys of the same name."
   '(menu-item "On the Right" menu-bar-showhide-fringe-menu-customize-right
 	      :help "Fringe only on the right side"
 	      :visible (display-graphic-p)
-	      :button (:radio . (and (boundp 'fringe-mode)
-				     (equal fringe-mode '(0 . nil))))))
+	      :button (:radio . (equal fringe-mode '(0 . nil)))))
 
 (defun menu-bar-showhide-fringe-menu-customize-disable ()
-  "Make fringes disappear."
+  "Do not display window fringes."
   (interactive)
   (require 'fringe)
   (customize-set-variable 'fringe-mode 0))
@@ -713,8 +719,7 @@ Do the same for the keys of the same name."
   '(menu-item "None" menu-bar-showhide-fringe-menu-customize-disable
 	      :help "Turn off fringe"
 	      :visible (display-graphic-p)
-	      :button (:radio . (and (boundp 'fringe-mode)
-				     (eq fringe-mode 0)))))
+	      :button (:radio . (eq fringe-mode 0))))
 
 (define-key menu-bar-showhide-menu [showhide-fringe]
   (list 'menu-item "Fringe" menu-bar-showhide-fringe-menu
@@ -725,33 +730,41 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-showhide-scroll-bar-menu [right]
   '(menu-item "On the Right"
-	      (lambda ()
-		(interactive)
-		(customize-set-variable 'scroll-bar-mode 'right))
+	      menu-bar-right-scroll-bar
 	      :help "Scroll-bar on the right side"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) 'right))))
+(defun menu-bar-right-scroll-bar ()
+  "Display scroll bars on the right of each window."
+  (interactive)
+  (customize-set-variable 'scroll-bar-mode 'right))
 
 (define-key menu-bar-showhide-scroll-bar-menu [left]
   '(menu-item "On the Left"
-	      (lambda ()
-		(interactive)
-		(customize-set-variable 'scroll-bar-mode 'left))
+	      menu-bar-left-scroll-bar
 	      :help "Scroll-bar on the left side"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) 'left))))
 
+(defun menu-bar-left-scroll-bar ()
+  "Display scroll bars on the left of each window."
+  (interactive)
+  (customize-set-variable 'scroll-bar-mode 'right))
+
 (define-key menu-bar-showhide-scroll-bar-menu [none]
   '(menu-item "None"
-	      (lambda ()
-		(interactive)
-		(customize-set-variable 'scroll-bar-mode nil))
+	      menu-bar-no-scroll-bar
 	      :help "Turn off scroll-bar"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) nil))))
+
+(defun menu-bar-no-scroll-bar ()
+  "Turn off scroll bars."
+  (interactive)
+  (customize-set-variable 'scroll-bar-mode nil))
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
   (list 'menu-item "Scroll-bar" menu-bar-showhide-scroll-bar-menu
@@ -822,13 +835,19 @@ Do the same for the keys of the same name."
   '("--"))
 (define-key menu-bar-options-menu [toggle-auto-compression]
   '(menu-item "Automatic File De/compression"
-	      (lambda ()
-		(interactive)
-		(auto-compression-mode)
-		(customize-mark-as-set 'auto-compression-mode))
+	      menu-bar-toggle-auto-compression-mode 
 	      :help "Transparently decompress compressed files"
 	      :button (:toggle . (rassq 'jka-compr-handler
 					file-name-handler-alist))))
+
+(defun menu-bar-toggle-auto-compression ()
+  "Toggle automatic file compression and uncompression.
+With prefix argument ARG, turn auto compression on if positive, else off.
+Returns the new status of auto compression (non-nil means on)."
+  (interactive)
+  (auto-compression-mode)
+  (customize-mark-as-set 'auto-compression-mode))
+
 (define-key menu-bar-options-menu [save-place]
   (menu-bar-make-toggle toggle-save-place-globally save-place
 			"Save Place in Files between Sessions"
@@ -850,40 +869,46 @@ Do the same for the keys of the same name."
   '("--"))
 (define-key menu-bar-options-menu [cua-mode]
   '(menu-item "CUA-style cut and paste"
-	      (lambda ()
-		(interactive)
-		(cua-mode nil)
-		(customize-mark-as-set 'cua-mode)
-		(message "CUA-style cut and paste %s"
-			 (if cua-mode "enabled" "disabled")))
+	      menu-bar-toggle-cua-mode
 	      :help "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
 	      :button (:toggle . cua-mode)))
+
+(defun menu-bar-toggle-cua-mode ()
+  "Toggle CUA key-binding mode.
+When enabled, using shifted movement keys will activate the region (and
+highlight the region using `transient-mark-mode'), and typed text replaces
+the active selection.  C-z, C-x, C-c, and C-v will undo, cut, copy, and
+paste (in addition to the normal Emacs bindings)."
+  (interactive)
+  (cua-mode nil)
+  (customize-mark-as-set 'cua-mode)
+  (message "CUA-style cut and paste %s"
+	   (if cua-mode "enabled" "disabled")))
+
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
 			"Case-Insensitive Search"
 			"Case-Insensitive Search %s"
 			"Ignore letter-case in search"))
+
+(defun menu-bar-text-mode-auto-fill ()
+  (interactive)
+  (toggle-text-mode-auto-fill)
+  ;; This is somewhat questionable, as `text-mode-hook'
+  ;; might have changed outside customize.
+  ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
+  (customize-mark-as-set 'text-mode-hook))
+
 (define-key menu-bar-options-menu [auto-fill-mode]
   '(menu-item "Word Wrap in Text Modes"
-              (lambda ()
-		(interactive)
-		(toggle-text-mode-auto-fill)
-		;; This is somewhat questionable, as `text-mode-hook'
-		;; might have changed outside customize.
-		;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-		(customize-mark-as-set 'text-mode-hook))
+              menu-bar-text-mode-auto-fill
 	      :help "Automatically fill text between left and right margins (Auto Fill)"
               :button (:toggle . (if (listp text-mode-hook)
 				     (member 'turn-on-auto-fill text-mode-hook)
 				   (eq 'turn-on-auto-fill text-mode-hook)))))
 (define-key menu-bar-options-menu [truncate-lines]
   '(menu-item "Truncate Long Lines in this Buffer"
-	      (lambda ()
-		(interactive)
-		(setq truncate-lines (not truncate-lines))
-		(set-buffer-modified-p (buffer-modified-p))
-		(message "Truncate long lines %s"
-			 (if truncate-lines "enabled" "disabled")))
+	      toggle-truncate-lines
 	      :help "Truncate long lines on the screen"
 	      :button (:toggle . truncate-lines)))
 
@@ -996,11 +1021,15 @@ Do the same for the keys of the same name."
 (define-key menu-bar-tools-menu [rmail]
   (list
    'menu-item `(format "Read Mail (with %s)" (read-mail-item-name))
-   (lambda ()
-     (interactive)
-     (call-interactively read-mail-command))
+   'menu-bar-read-mail
    :visible `(and read-mail-command (not (eq read-mail-command 'ignore)))
    :help "Read your mail and reply to it"))
+
+(defun menu-bar-read-mail ()
+  "Read manu using `read-mail-command'."
+  (interactive)
+  (call-interactively read-mail-command))
+
 (define-key menu-bar-tools-menu [gnus]
   '(menu-item "Read Net News (Gnus)" gnus
 	      :help "Read network news groups"))
@@ -1121,11 +1150,6 @@ key (or menu-item)"))
   (interactive)
   (info "eintr"))
 
-(defun menu-bar-read-emacs-man ()
-  "Display Emacs User Manual in Info mode."
-  (interactive)
-  (info "emacs"))
-
 (defun search-emacs-glossary ()
   "Display the Glossary node of the Emacs manual in Info mode."
   (interactive)
@@ -1215,13 +1239,15 @@ key (or menu-item)"))
 	      :help "How to get latest versions of Emacs"))
 (define-key menu-bar-help-menu [more]
   '(menu-item "Find Extra Packages"
-	      (lambda ()
-		(interactive)
-		(let (enable-local-variables)
-		  (view-file (expand-file-name "MORE.STUFF"
-					       data-directory))
-		  (goto-address)))
+	      menu-bar-help-extra-packages
 	      :help "Where to find some extra packages and possible updates"))
+(defun menu-bar-help-extra-packages ()
+  "Display help about some additional packages available for Emacs."
+  (interactive)
+  (let (enable-local-variables)
+    (view-file (expand-file-name "MORE.STUFF"
+				 data-directory))
+    (goto-address)))
 (define-key menu-bar-help-menu [about]
   '(menu-item "About Emacs" display-splash-screen
 	      :help "Display version number, copyright info, and basic help"))
@@ -1234,7 +1260,7 @@ key (or menu-item)"))
   (list 'menu-item "More Manuals" menu-bar-manuals-menu
 	:help "Search and browse on-line manuals"))
 (define-key menu-bar-help-menu [emacs-manual]
-  '(menu-item "Read the Emacs Manual" menu-bar-read-emacs-man
+  '(menu-item "Read the Emacs Manual" info-emacs-manual
 	      :help "Full documentation of Emacs features"))
 (define-key menu-bar-help-menu [describe]
   (list 'menu-item "Describe" menu-bar-describe-menu
@@ -1254,9 +1280,15 @@ key (or menu-item)"))
 	      :help "New features of this version"))
 (define-key menu-bar-help-menu [emacs-faq]
   '(menu-item "Emacs FAQ" view-emacs-FAQ))
+
+(defun help-with-tutorial-spec-language ()
+  "Use the Emacs tutorial, specifying which language you want."
+  (interactive) 
+  (help-with-tutorial t))
+
 (define-key menu-bar-help-menu [emacs-tutorial-language-specific]
   '(menu-item "Emacs Tutorial (choose language)..."
-	      (lambda () (interactive) (help-with-tutorial t))
+	      help-with-tutorial-spec-language
 	      :help "Learn how to use Emacs (choose a language)"))
 (define-key menu-bar-help-menu [emacs-tutorial]
   '(menu-item "Emacs Tutorial" help-with-tutorial
