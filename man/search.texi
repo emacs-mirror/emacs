@@ -437,7 +437,7 @@ non-greedy: they will match as little as possible.
 is another postfix operator that specifies an interval of iteration:
 the preceding regular expression must match between @var{n} and
 @var{m} times.  If @var{m} is omitted, then there is no upper bound
-and if @kbd,{@var{m}} is omitted, then the regular expression must match
+and if @samp{,@var{m}} is omitted, then the regular expression must match
 exactly @var{n} times.				@*
 @samp{\@{0,1\@}} is equivalent to @samp{?}.	@*
 @samp{\@{0,\@}} is equivalent to @samp{*}.	@*
