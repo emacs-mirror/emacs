@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.51) $
+ * $HopeName: MMsrc!pool.c(trunk.52) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.51) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.52) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -464,14 +464,14 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
                "  arena $P ($U)\n", 
                (WriteFP)pool->arena, (WriteFU)pool->arena->serial,
                "  alignment $W\n", (WriteFW)pool->alignment,
-	       "  fillMutatorSize $UKb\n",
-	         (WriteFU)(pool->fillMutatorSize / 1024),
-	       "  emptyMutatorSize $UKb\n",
-	         (WriteFU)(pool->emptyMutatorSize / 1024),
-	       "  fillInternalSize $UKb\n",
-	         (WriteFU)(pool->fillInternalSize / 1024),
-	       "  emptyInternalSize $UKb\n",
-	         (WriteFU)(pool->emptyInternalSize / 1024),
+               "  fillMutatorSize $UKb\n",
+                 (WriteFU)(pool->fillMutatorSize / 1024),
+               "  emptyMutatorSize $UKb\n",
+                 (WriteFU)(pool->emptyMutatorSize / 1024),
+               "  fillInternalSize $UKb\n",
+                 (WriteFU)(pool->fillInternalSize / 1024),
+               "  emptyInternalSize $UKb\n",
+                 (WriteFU)(pool->emptyInternalSize / 1024),
                NULL);
   if(res != ResOK)
     return res;
@@ -820,19 +820,19 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
       if(WordIsAligned((Word)ref, sizeof(Word))) {
         TraceSet ts;
 
-	ts = arena->flippedTraces;
-	/* See the note in TraceSegAccess about using RankEXACT here */
-	/* (impl.c.trace.scan.conservative) */
+        ts = arena->flippedTraces;
+        /* See the note in TraceSegAccess about using RankEXACT here */
+        /* (impl.c.trace.scan.conservative) */
         res = TraceScanSingleRef(ts, arena, seg, RankEXACT, (Ref *)addr);
-	if(res != ResOK) {
-	  TraceId ti;
-	  /* enter emergency tracing mode */
-	  for(ti = 0; ti < TRACE_MAX; ++ti) {
-	    ArenaTrace(arena, ti)->emergency = TRUE;
-	  }
-	}
-        res = TraceScanSingleRef(ts, arena, seg, RankEXACT, (Ref *)addr);
-	AVER(res == ResOK);
+        if(res != ResOK) {
+          TraceId ti;
+          /* enter emergency tracing mode */
+          for(ti = 0; ti < TRACE_MAX; ++ti) {
+            ArenaTrace(arena, ti)->emergency = TRUE;
+          }
+          res = TraceScanSingleRef(ts, arena, seg, RankEXACT, (Ref *)addr);
+        }
+        AVER(res == ResOK);
       }
     }
     res = ProtStepInstruction(context);
@@ -1013,7 +1013,7 @@ failCreate:
 
 void PoolNoWalk(Pool pool, Seg seg,
                 FormattedObjectsStepMethod f,
-		void *p, Size s)
+                void *p, Size s)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
