@@ -1,3 +1,8 @@
+2002-03-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Optimize calls of
+	modify-category-entry.
+
 2002-03-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* bindings.el: Don't bind multibyte characters to
