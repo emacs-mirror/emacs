@@ -1,5 +1,8 @@
 2001-03-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_create_frame): Adjust the frame's height for presence
+	of the tool bar before calling x_figure_window_size.
+
 	* xmenu.c (free_frame_menubar): Set the frame's menubar_widget to
 	NULL after destroying it, otherwise XTread_socket can access a
 	destroyed widget when input is unblocked.
