@@ -1,5 +1,7 @@
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* coding.c: Doc fix.
+
 	* cmds.c, composite.c, dired.c, doc.c, filelock.c, floatfns.c,
 	* fontset.c, insdel.c, keymap.c: Change doc-string comments to
 	`new style' [w/`doc:' keyword].
