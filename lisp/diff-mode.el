@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.17 2000/09/19 16:25:43 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.18 2000/09/20 06:40:30 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -952,26 +952,40 @@ If TEXT isn't found, nil is returned."
 	(if (> (- forw orig) (- orig back)) back forw)
       (or back forw))))
 
-(defun diff-find-source-location (&optional other-file)
-  "Find out (FILE LINE)."
+(defun diff-find-source-location (&optional other-file reverse)
+  "Find out (BUF LINE POS SRC DST SWITCHED)."
   (save-excursion
-    (diff-beginning-of-hunk)
     (let* ((old (if (not other-file) diff-jump-to-old-file-flag
 		  (not diff-jump-to-old-file-flag)))
+	   (orig-point (point))
+	   (hunk-line-offset
+	    (progn (diff-beginning-of-hunk) (count-lines (point) orig-point)))
 	   ;; Find the location specification.
-	   (loc (if (not (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
+	   (line (if (not (looking-at "\\(?:\\*\\{15\\}.*\n\\)?[-@* ]*\\([0-9,]+\\)\\([ acd+]+\\([0-9,]+\\)\\)?"))
 		    (error "Can't find the hunk header")
 		  (if old (match-string 1)
 		    (if (match-end 3) (match-string 3)
 		      (unless (re-search-forward "^--- \\([0-9,]+\\)" nil t)
 			(error "Can't find the hunk separator"))
 		      (match-string 1)))))
-	   (file (diff-find-file-name old)))
+	   (file (or (diff-find-file-name old) (error "Can't find the file")))
+	   (buf (find-file-noselect file))
+	   (hunk
+	    (buffer-substring (point) (progn (diff-end-of-hunk) (point))))
+	   (old (diff-hunk-text hunk reverse hunk-line-offset))
+	   (new (diff-hunk-text hunk (not reverse) hunk-line-offset)))
       ;; Update the user preference if he so wished.
       (when (> (prefix-numeric-value other-file) 8)
 	(setq diff-jump-to-old-file-flag old))
-      (if (null file) (error "Can't find the file")
-	(list file (string-to-number loc))))))
+      (with-current-buffer buf
+	(goto-line (string-to-number line))
+	(let* ((orig-pos (point))
+	       (pos (diff-find-text (car old)))
+	       (switched nil))
+	  (when (null pos)
+	    (setq pos (diff-find-text (car new)) switched t))
+	  (list* buf (string-to-number line) pos
+		 (if switched (list new old t) (list old new))))))))
 
 (defun diff-apply-hunk (&optional reverse other-file dry-run popup noerror)
   "Apply the current hunk to the source file.
@@ -990,7 +1004,7 @@ If POPUP is non-nil, pop up the patched file in another window; if POPUP
 If NOERROR is non-nil, then no error is signaled in the case where the hunk
   cannot be found in the source file (other errors may still be signaled).
 
-Return values are `t' if the hunk was sucessfully applied (or could be
+Return values are t if the hunk was sucessfully applied (or could be
 applied, in the case where DRY-RUN was non-nil), `reversed' if the hunk
 was applied backwards, or nil if the hunk couldn't be found and NOERROR
 was non-nil."
@@ -1004,52 +1018,27 @@ was non-nil."
     ;; sense of OTHER-FILE (in `diff-find-source-location')
     (setq reverse (not reverse)))
 
-  (let* ((loc (diff-find-source-location other-file))
-	 (buf (find-file-noselect (car loc)))
-	 (patch-line (cadr loc))
-	 hunk-line-offset
-	 (hunk
-	  (let ((orig-point (point)))
-	    (save-excursion
-	      (diff-beginning-of-hunk)
-	      (setq hunk-line-offset (count-lines (point) orig-point))
-	      (unless (looking-at diff-hunk-header-re)
-		(error "Malformed hunk"))
-	      (buffer-substring (point) (progn (diff-end-of-hunk) (point))))))
-	 (old (diff-hunk-text hunk reverse hunk-line-offset))
-	 (new (diff-hunk-text hunk (not reverse) hunk-line-offset))
-	 (pos
-	  (with-current-buffer buf
-	    (goto-line patch-line)
-	    (diff-find-text (car old))))
-	 (reversed-pos
-	  (and (null pos)
-	       (with-current-buffer buf
-		 (goto-line patch-line)
-		 (diff-find-text (car new))))))
+  (destructuring-bind (buf patch-line pos old new &optional switched)
+      (diff-find-source-location other-file reverse)
 
-    (when (and reversed-pos popup)
+    (when (and pos switched popup)
       ;; A reversed patch was detected, perhaps apply it in reverse
       ;; (this is only done in `interactive' mode, when POPUP is non-nil).
       (if (or dry-run
 	      (save-window-excursion
 		(pop-to-buffer buf)
-		(goto-char reversed-pos)
-		(forward-line (cdr new))
+		(goto-char pos)
+		(forward-line (cdr old))
 		(if reverse
 		    (y-or-n-p
 		     "Hunk hasn't been applied yet, so can't reverse it; apply it now? ")
 		  (y-or-n-p "Hunk has already been applied; undo it? "))))
 
-	  ;; Set up things to reverse the diff
-	  (let ((swap new))
-	    (setq pos reversed-pos)
-	    (setq old new)
-	    (setq new swap))
-
+	  nil
 	;; The user has chosen not to apply the reversed hunk, but we
 	;; don't want to given an error message, so set things up so
 	;; nothing else gets done down below
+	(setq pos nil)
 	(message "(Nothing done)")
 	(setq noerror t)))
 
@@ -1058,7 +1047,7 @@ was non-nil."
 	(unless noerror
 	  (error "Can't find the text to patch"))
 
-      (let ((reversed (if reversed-pos (not reverse) reverse)))
+      (let ((reversed (if switched (not reverse) reverse)))
 	(unless dry-run
 	  ;; Apply the hunk
 	  (with-current-buffer buf
@@ -1111,12 +1100,16 @@ is give) determines whether to jump to the old or the new file.
 If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[universal-argument])
   then `diff-jump-to-old-file-flag' is also set, for the next invocations."
   (interactive "P")
-  (or (diff-apply-hunk nil other-file t 'select t)
-      ;; couldn't actually find the hunk, just obey the hunk line number
-      (let ((loc (diff-find-source-location other-file)))
-	(pop-to-buffer (find-file-noselect (car loc)))
-	(goto-line (cadr loc))
-	(message "Hunk text not found"))))
+  (destructuring-bind (buf patch-line pos src &rest ignore)
+      (diff-find-source-location other-file)
+    (pop-to-buffer buf)
+    (if (null pos)
+	(progn
+	  (goto-line patch-line)
+	  (message "Hunk text not found"))
+      (goto-char pos)
+      (forward-line (cdr src)))))
+
 
 
 ;; provide the package
