@@ -62,7 +62,7 @@ enum define_coding_utf16_arg_index
 
 enum define_coding_ccl_arg_index
   {
-    coding_arg_ccl_decoder,
+    coding_arg_ccl_decoder = coding_arg_max,
     coding_arg_ccl_encoder,
     coding_arg_ccl_valids,
     coding_arg_ccl_max
