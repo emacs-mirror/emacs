@@ -1,3 +1,7 @@
+2000-10-14  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info/dir (Top): Add an entry for Eshell.
+
 2000-10-02  Dave Love  <fx@gnu.org>
 
 	* configure.in: Check for gai_strerror.
