@@ -80,6 +80,13 @@ This file defines aliases to be expanded by the mailer; this is a different
 feature from that of defining aliases in `.mailrc' to be expanded in Emacs.
 This variable has no effect unless your system uses sendmail as its mailer.")
 
+;;;###autoload
+(defvar mail-personal-alias-file "~/.mailrc"
+  "*If non-nil, the name of the user's personal mail alias file.
+This file typically should be in same format as the `.mailrc' file used by
+the `Mail' or `mailx' program.
+This file need not actually exist.")
+
 (defvar mail-aliases t
   "Alist of mail address aliases,
 or t meaning should be initialized from your mail aliases file.
@@ -119,7 +126,7 @@ instead of no action.")
 (defvar mail-mode-map nil)
 
 (autoload 'build-mail-aliases "mailalias"
-  "Read mail aliases from `~/.mailrc' and set `mail-aliases'."
+  "Read mail aliases from user's personal aliases file and set `mail-aliases'."
   nil)
 
 (autoload 'expand-mail-aliases "mailalias"
@@ -192,7 +199,7 @@ actually occur.")
   "Normal hook run before sending mail, in Mail mode.")
 
 (defun sendmail-synch-aliases ()
-  (let ((modtime (nth 5 (file-attributes (or (getenv "MAILRC") "~/.mailrc")))))
+  (let ((modtime (nth 5 (file-attributes mail-personal-alias-file))))
     (or (equal mail-alias-modtime modtime)
 	(setq mail-alias-modtime modtime
 	      mail-aliases t))))
@@ -204,7 +211,7 @@ actually occur.")
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
-	(if (file-exists-p "~/.mailrc")
+	(if (file-exists-p mail-personal-alias-file)
 	    (build-mail-aliases))))
   (setq mail-send-actions actions)
   (setq mail-reply-buffer replybuffer)
