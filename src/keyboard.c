@@ -440,6 +440,8 @@ Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
 Lisp_Object Qextended_command_history;
 
+extern char *x_get_keysym_name ();
+
 Lisp_Object Qpolling_period;
 
 extern Lisp_Object Vprint_level, Vprint_length;
@@ -3003,11 +3005,11 @@ make_lispy_event (event)
 	     since we can't make a vector long enuf.  */
 	  if (NILP (system_key_syms))
 	    system_key_syms = Fcons (Qnil, Qnil);
-	  return modify_event_symbol (event->code & 0xffffff,
+	  return modify_event_symbol (event->code,
 				      event->modifiers,
 				      Qfunction_key,
 				      current_kboard->Vsystem_key_alist,
-				      0, &system_key_syms, 0xffffff);
+				      0, &system_key_syms, (unsigned)-1);
 	}
 
       return modify_event_symbol (event->code - 0xff00,
@@ -3722,12 +3724,13 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
      Lisp_Object name_alist;
      char **name_table;
      Lisp_Object *symbol_table;
-     int table_size;
+     unsigned int table_size;
 {
   Lisp_Object value;
   Lisp_Object symbol_int;
 
-  XSETINT (symbol_int, symbol_num);
+  /* Get rid of the "vendor-specific" bit here.  */
+  XSETINT (symbol_int, symbol_num & 0xffffff);
 
   /* Is this a request for a valid symbol?  */
   if (symbol_num < 0 || symbol_num >= table_size)
@@ -3762,6 +3765,15 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
 	value = Fcdr_safe (Fassq (symbol_int, name_alist));
       else if (name_table[symbol_num])
 	value = intern (name_table[symbol_num]);
+
+#ifdef HAVE_X_WINDOWS
+      if (NILP (value))
+	{
+	  char *name = x_get_keysym_name (symbol_num);
+	  if (name)
+	    value = intern (name);
+	}
+#endif
 
       if (NILP (value))
 	{
