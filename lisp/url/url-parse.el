@@ -84,6 +84,7 @@
   
 ;;;###autoload
 (defun url-recreate-url (urlobj)
+  "Recreate a URL string from the parsed URLOBJ."
   (concat (url-type urlobj) ":" (if (url-host urlobj) "//" "")
 	  (if (url-user urlobj)
 	      (concat (url-user urlobj)
@@ -111,7 +112,7 @@
 (defun url-generic-parse-url (url)
   "Return a vector of the parts of URL.
 Format is:
-\[proto username password hostname portnumber file reference attributes fullp\]"
+\[TYPE USER PASSWORD HOST PORT FILE TARGET ATTRIBUTES FULL\]"
   (cond
    ((null url)
     (make-vector 9 nil))
