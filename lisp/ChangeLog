@@ -1,3 +1,8 @@
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* bindings.el: Remove no-byte-compile from file local variables
+	to enable bootstrapping.
+
 2001-10-04  Andrew Innes  <andrewi@gnu.org>
 
 	* faces.el (face-font-registry-alternatives) [windows-nt]: Make
