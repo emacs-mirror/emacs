@@ -27,7 +27,3 @@
 /* According to template.h HAVE_TERMIO and HAVE_TERMIOS shouldn't be */
 /* defined at the same time. */
 #undef HAVE_TERMIO
-
-#define HAVE_SOCKETS
-#define NO_SOCKETS_IN_FILE_SYSTEM
-#define NEED_NET_ERRNO_H
