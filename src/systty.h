@@ -116,6 +116,7 @@ static struct sensemode {
 #endif /* not HAVE_TERMIO */
 
 #ifdef __GNU_LIBRARY__
+#include <sys/ioctl.h>
 #include <termios.h>
 #endif
 
