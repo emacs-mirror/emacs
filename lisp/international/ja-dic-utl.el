@@ -214,3 +214,7 @@ LEIM is available from the same ftp directory as Emacs."))
 (provide 'ja-dic-utl)
 
 ;; ja-dic-utl.el ends here
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
