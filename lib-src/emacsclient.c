@@ -261,7 +261,7 @@ main (argc, argv)
     }
   else
     {
-      fprintf (stderr, cwd);
+      fprintf (stderr, "%s: %s\n", argv[0], cwd);
       exit (1);
     }
 
