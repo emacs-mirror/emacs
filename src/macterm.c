@@ -8451,19 +8451,23 @@ main (void)
 #endif
 
 /* Table for translating Mac keycode to X keysym values.  Contributed
-   by Sudhir Shenoy.  */
+   by Sudhir Shenoy.
+   Mapping for special keys is now identical to that in Apple X11
+   except `clear' (-> <clear>) on the KeyPad, `enter' (-> <kp-enter>)
+   on the right of the Cmd key on laptops, and fn + `enter' (->
+   <linefeed>). */
 static unsigned char keycode_to_xkeysym_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x20*/ 0, 0, 0, 0, 0x0d /*return*/, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
   /*0x30*/ 0x09 /*tab*/, 0 /*0x0020 space*/, 0, 0x08 /*backspace*/,
-  /*0x34*/ 0, 0x1b /*escape*/, 0, 0,
+  /*0x34*/ 0x8d /*enter on laptops*/, 0x1b /*escape*/, 0, 0,
   /*0x38*/ 0, 0, 0, 0,
   /*0x3C*/ 0, 0, 0, 0,
 
   /*0x40*/ 0, 0xae /*kp-.*/, 0, 0xaa /*kp-**/,
-  /*0x44*/ 0, 0xab /*kp-+*/, 0, 0x7f /*kp-clear*/,
+  /*0x44*/ 0, 0xab /*kp-+*/, 0, 0x0b /*clear*/,
   /*0x48*/ 0, 0, 0, 0xaf /*kp-/*/,
   /*0x4C*/ 0x8d /*kp-enter*/, 0, 0xad /*kp--*/, 0,
 
@@ -8475,11 +8479,11 @@ static unsigned char keycode_to_xkeysym_table[] = {
   /*0x60*/ 0xc2 /*f5*/, 0xc3 /*f6*/, 0xc4 /*f7*/, 0xc0 /*f3*/,
   /*0x64*/ 0xc5 /*f8*/, 0xc6 /*f9*/, 0, 0xc8 /*f11*/,
   /*0x68*/ 0, 0xca /*f13*/, 0, 0xcb /*f14*/,
-  /*0x6C*/ 0, 0xc7 /*f10*/, 0, 0xc9 /*f12*/,
+  /*0x6C*/ 0, 0xc7 /*f10*/, 0x0a /*fn+enter on laptops*/, 0xc9 /*f12*/,
 
-  /*0x70*/ 0, 0xcc /*f15*/, 0x9e /*insert (or 0x6a==help)*/, 0x95 /*home*/,
-  /*0x74*/ 0x9a /*pgup*/, 0x9f /*delete*/, 0xc1 /*f4*/, 0x9c /*end*/,
-  /*0x78*/ 0xbf /*f2*/, 0x9b /*pgdown*/, 0xbe /*f1*/, 0x51 /*left*/,
+  /*0x70*/ 0, 0xcc /*f15*/, 0x6a /*help*/, 0x50 /*home*/,
+  /*0x74*/ 0x55 /*pgup*/, 0xff /*delete*/, 0xc1 /*f4*/, 0x57 /*end*/,
+  /*0x78*/ 0xbf /*f2*/, 0x56 /*pgdown*/, 0xbe /*f1*/, 0x51 /*left*/,
   /*0x7C*/ 0x53 /*right*/, 0x54 /*down*/, 0x52 /*up*/, 0
 };
 
