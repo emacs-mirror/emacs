@@ -282,12 +282,8 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
 
 (defun view-helpful-message ()
   (message
-   (if (and (eq (key-binding (char-to-string help-char)) 'Helper-help)
-	    (eq (key-binding "?") 'Helper-describe-bindings)
-	    (eq (key-binding "\C-c") 'view-exit))
-       "Type \\[Helper-help] for help, ? for commands, C-c to quit"
      (substitute-command-keys
-      "Type \\[Helper-help] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit."))))
+      "Type \\[Helper-help] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit.")))
 
 (defun View-undefined ()
   (interactive)
