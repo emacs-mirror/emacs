@@ -1585,8 +1585,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
   term_get_fkeys (address);
 
   /* Get frame size from system, or else from termcap.  */
-  get_frame_size (&FRAME_WIDTH (selected_frame),
-		   &FRAME_HEIGHT (selected_frame));
+  {
+    int height, width;
+    get_frame_size (&width, &height);
+    FRAME_WIDTH (selected_frame) = width;
+    FRAME_HEIGHT (selected_frame) = height;
+  }
+
   if (FRAME_WIDTH (selected_frame) <= 0)
     FRAME_WIDTH (selected_frame) = tgetnum ("co");
   if (FRAME_HEIGHT (selected_frame) <= 0)
