@@ -1,3 +1,8 @@
+2000-10-17  Miles Bader  <miles@gnu.org>
+
+	* help.el (resize-temp-buffer-window): Add hack to avoid last line
+	being obscured by whizzy mode-lines on graphics displays.
+
 2000-10-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-title-1-face, Info-title-2-face)
