@@ -662,7 +662,8 @@ Similarly for Soar, Scheme, etc."
 	  (nchars (length string)))
       (widen)
       (goto-char (process-mark process))
-      (setq opoint (+ opoint nchars))
+      (if (<= (point) opoint)
+	  (setq opoint (+ opoint nchars)))
       ;; Insert after old_begv, but before old_zv.
       (if (< (point) obeg)
 	  (setq obeg (+ obeg nchars)))
