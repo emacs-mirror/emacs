@@ -628,7 +628,8 @@ a program specified by the rest of the value."
 		 (if (and gnus-author-copy-saver
 			  (not (eq gnus-author-copy-saver 'rmail-output)))
 		     (funcall gnus-author-copy-saver fcc-file)
-		   (if (and (file-readable-p fcc-file) (rmail-file-p fcc-file))
+		   (if (and (file-readable-p fcc-file)
+			    (mail-file-babyl-p fcc-file))
 		       (gnus-output-to-rmail fcc-file)
 		     (rmail-output fcc-file 1 t t)))
 		 ))
