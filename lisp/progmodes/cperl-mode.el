@@ -576,7 +576,7 @@ For best results apply to an older Emacs the patches from
   ftp://ftp.math.ohio-state.edu/pub/users/ilya/cperl-mode/patches
 \(this upgrades syntax-parsing abilities of RMS Emaxen v19.34 and
 v20.2 up to the level of RMS Emacs v20.3 - a must for a good Perl
-mode.)  You will not get much from XEmacs, it's syntax abilities are
+mode.)  You will not get much from XEmacs, its syntax abilities are
 too primitive.
 
 Get support packages choose-color.el (or font-lock-extra.el before
