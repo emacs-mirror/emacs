@@ -9,7 +9,7 @@
 
   A @dfn{buffer} is a Lisp object containing text to be edited.  Buffers
 are used to hold the contents of files that are being visited; there may
-also be buffers which are not visiting files.  While several buffers may
+also be buffers that are not visiting files.  While several buffers may
 exist at one time, exactly one buffer is designated the @dfn{current
 buffer} at any time.  Most editing commands act on the contents of the
 current buffer.  Each buffer, including the current buffer, may or may
@@ -37,14 +37,14 @@ not be displayed in any windows.
 @ifinfo
   A @dfn{buffer} is a Lisp object containing text to be edited.  Buffers
 are used to hold the contents of files that are being visited; there may
-also be buffers which are not visiting files.  While several buffers may
+also be buffers that are not visiting files.  While several buffers may
 exist at one time, exactly one buffer is designated the @dfn{current
 buffer} at any time.  Most editing commands act on the contents of the
 current buffer.  Each buffer, including the current buffer, may or may
 not be displayed in any windows.
 @end ifinfo
 
-  Buffers in Emacs editing are objects which have distinct names and
+  Buffers in Emacs editing are objects that have distinct names and
 hold text that can be edited.  Buffers appear to Lisp programs as a
 special data type.  The contents of a buffer may be viewed as an
 extendable string; insertions and deletions may occur in any part of the
@@ -52,7 +52,7 @@ buffer.  @xref{Text}.
 
   A Lisp buffer object contains numerous pieces of information.  Some of
 this information is directly accessible to the programmer through
-variables, while other information is only accessible through
+variables, while other information is accessible only through
 special-purpose functions.  For example, the visited file name is
 directly accessible through a variable, while the value of point is
 accessible only through a primitive function.
@@ -403,23 +403,23 @@ normally, or if the file itself has been changed for some known benign
 reason.
 @end defun
 
-@defun ask-user-about-supersession-threat fn
+@defun ask-user-about-supersession-threat filename
 @cindex obsolete buffer
 This function is used to ask a user how to proceed after an attempt to
-modify an obsolete buffer.  An @dfn{obsolete buffer} is an unmodified
-buffer for which the associated file on disk is newer than the last
-save-time of the buffer.  This means some other program has probably
-altered the file.
-
-This function is called automatically by Emacs on the proper
-occasions.  It exists so you can customize Emacs by redefining it.
-See the file @file{userlock.el} for the standard definition.
+modify an obsolete buffer visiting file @var{filename}.  An
+@dfn{obsolete buffer} is an unmodified buffer for which the associated
+file on disk is newer than the last save-time of the buffer.  This means
+some other program has probably altered the file.
 
 @kindex file-supersession
 Depending on the user's answer, the function may return normally, in
 which case the modification of the buffer proceeds, or it may signal a
-@code{file-supersession} error with data @code{(@var{fn})}, in which
+@code{file-supersession} error with data @code{(@var{filename})}, in which
 case the proposed buffer modification is not allowed.  
+
+This function is called automatically by Emacs on the proper
+occasions.  It exists so you can customize Emacs by redefining it.
+See the file @file{userlock.el} for the standard definition.
 
 See also the file locking mechanism in @ref{File Locks}.
 @end defun
@@ -460,14 +460,16 @@ The buffer is read-only if this variable is non-@code{nil}.
 
 @defvar inhibit-read-only
 If this variable is non-@code{nil}, then read-only buffers and read-only
-characters may be modified.  The value of @code{buffer-read-only} does
-not matter when @code{inhibit-read-only} is non-@code{nil}.
+characters may be modified.  Read-only characters in a buffer are those
+that have non-@code{nil} @code{read-only} properties (either text
+properties or overlay properties).  @xref{Special Properties}, for more
+information about text properties.  @xref{Overlays}, for more
+information about overlays and their properties.
 
-If @code{inhibit-read-only} is @code{t}, all @code{read-only} text
-properties have no effect (@pxref{Special Properties}).  If
-@code{inhibit-read-only} is a list, then @code{read-only} text
-properties are ignored if they are members of the list (comparison is
-done with @code{eq}).
+If @code{inhibit-read-only} is @code{t}, all @code{read-only} character
+properties have no effect.  If @code{inhibit-read-only} is a list, then
+@code{read-only} character properties have no effect if they are members
+of the list (comparison is done with @code{eq}).
 @end defvar
 
 @deffn Command toggle-read-only
@@ -547,11 +549,11 @@ without changing the order of any of the other buffers on the list.
 This buffer therefore becomes the least desirable candidate for
 @code{other-buffer} to return.
 
-If @var{buffer-or-name} is @code{nil} or omitted, this means to bury
-the current buffer.  In addition, this switches to some other buffer
-(obtained using @code{other-buffer}) in the selected window.  If the
-buffer is displayed in a window other than the selected one, it remains
-there.
+If @var{buffer-or-name} is @code{nil} or omitted, this means to bury the
+current buffer.  In addition, if the buffer is displayed in the selected
+window, this switches to some other buffer (obtained using
+@code{other-buffer}) in the selected window.  But if the buffer is
+displayed in some other window, it remains displayed there.
 
 If you wish to replace a buffer in all the windows that display it, use
 @code{replace-buffer-in-windows}.  @xref{Buffers and Windows}.
@@ -563,9 +565,9 @@ If you wish to replace a buffer in all the windows that display it, use
 @cindex buffers, creating
 
   This section describes the two primitives for creating buffers.
-@code{get-buffer-create} creates a buffer if it finds no existing
-buffer; @code{generate-new-buffer} always creates a new buffer, and
-gives it a unique name.
+@code{get-buffer-create} creates a buffer if it finds no existing buffer
+with the specified name; @code{generate-new-buffer} always creates a new
+buffer and gives it a unique name.
 
   Other functions you can use to create buffers include
 @code{with-output-to-temp-buffer} (@pxref{Temporary Displays}) and
@@ -595,9 +597,9 @@ The major mode for the new buffer is set according to the variable
 This function returns a newly created, empty buffer, but does not make
 it current.  If there is no buffer named @var{name}, then that is the
 name of the new buffer.  If that name is in use, this function adds
-suffixes of the form @samp{<@var{n}>} are added to @var{name}, where
-@var{n} is an integer.  It tries successive integers starting with 2
-until it finds an available name.
+suffixes of the form @samp{<@var{n}>} to @var{name}, where @var{n} is an
+integer.  It tries successive integers starting with 2 until it finds an
+available name.
 
 An error is signaled if @var{name} is not a string.
 
@@ -629,9 +631,9 @@ Names}.
 @cindex buffers, killing
 
   @dfn{Killing a buffer} makes its name unknown to Emacs and makes its
-space available for other use.
+text space available for other use.
 
-  The buffer object for the buffer which has been killed remains in
+  The buffer object for the buffer that has been killed remains in
 existence as long as anything refers to it, but it is specially marked
 so that you cannot make it current or display it.  Killed buffers retain
 their identity, however; two distinct buffers, when killed, remain
@@ -733,8 +735,8 @@ is designated.
 
   When an editing command returns to the editor command loop, the
 command loop designates the buffer displayed in the selected window as
-current, to prevent confusion: the buffer that the cursor is in, when
-Emacs reads a command, is the one to which the command will apply.
+current, to prevent confusion: the buffer that the cursor is in when
+Emacs reads a command is the buffer that the command will apply to.
 (@xref{Command Loop}.)  Therefore, @code{set-buffer} is not the way to
 switch visibly to a different buffer so that the user can edit it.  For
 this, you must use the functions described in @ref{Displaying Buffers}.
@@ -788,7 +790,7 @@ is unbound.
 
   It is not reliable to change the current buffer back with
 @code{set-buffer}, because that won't do the job if a quit happens while
-the wrong buffer is current.  Here is what not to do:
+the wrong buffer is current.  Here is what @emph{not} to do:
 
 @example
 @group
@@ -801,8 +803,8 @@ the wrong buffer is current.  Here is what not to do:
 @end example
 
 @noindent
-Using  @code{save-excursion}, as shown below, handles quitting, errors
-and @code{throw} as well as ordinary evaluation.
+Using @code{save-excursion}, as shown below, handles quitting, errors,
+and @code{throw}, as well as ordinary evaluation.
 
 @example
 @group
