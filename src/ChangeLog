@@ -1,3 +1,8 @@
+2000-10-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (forward_to_next_line_start): Switch iterator's handling
+	of selective display off while searching for the next line start.
+
 2000-10-17  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (term.o): Depend on dispextern.h.
