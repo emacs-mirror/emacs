@@ -7539,7 +7539,7 @@ The default value is `select-safe-coding-system' (which see).  */);
   DEFVAR_LISP ("char-coding-system-table", &Vchar_coding_system_table,
 	       doc: /* Char-table containing safe coding systems of each characters.
 Each element doesn't include such generic coding systems that can
-encode any characters.   They are in the first extra slot.  */);
+encode any characters.  They are in the first extra slot.  */);
   Vchar_coding_system_table = Fmake_char_table (Qchar_coding_system, Qnil);
 
   DEFVAR_BOOL ("inhibit-iso-escape-detection",
