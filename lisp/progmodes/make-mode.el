@@ -971,13 +971,13 @@ If called with a prefix argument, trailing backslashes are removed."
       (beginning-of-line)
       (if (makefile-browser-on-macro-line-p)
 	  (let ((macro-name (makefile-browser-this-line-macro-name)))
-	    (kill-line)
+	    (delete-region (point) (progn (end-of-line) (point)))
 	    (insert
 	     (makefile-browser-format-macro-line
 		macro-name
 		(makefile-browser-get-state-for-line this-line))))
 	(let ((target-name (makefile-browser-this-line-target-name)))
-	  (kill-line)
+	  (delete-region (point) (progn (end-of-line) (point)))
 	  (insert
 	   (makefile-browser-format-target-line
 	      target-name
