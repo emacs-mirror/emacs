@@ -1,3 +1,7 @@
+2004-04-12  Miles Bader  <miles@gnu.org>
+
+	* macros.texi (Expansion): Add description of `macroexpand-all'.
+
 2004-04-05  Jesper Harder  <harder@ifa.au.dk>
 
 	* variables.texi (Variable Aliases): Mention
