@@ -4479,7 +4479,7 @@ displayed_window_lines (w)
     {
       struct frame *f = XFRAME (w->frame);
       int rest = height - bottom_y;
-      int lines = (rest + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
+      int lines = rest / CANON_Y_UNIT (f);
       it.vpos += lines;
     }
 
