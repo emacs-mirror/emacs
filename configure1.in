@@ -1417,9 +1417,14 @@ if test -d /usr/X386/include; then
   test -z "${C_SWITCH_X_SITE}" && C_SWITCH_X_SITE="-I/usr/X386/include"
 fi
 
+# We change CFLAGS temporarily so that C_SWITCH_X_SITE gets used
+# for the tests that follow.
+orig_cflags="$CFLAGS"
+
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LIBS="$LD_SWITCH_X_SITE $LIBX $LIBS"
+  CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
   AC_HAVE_FUNCS(XrmSetDatabase XScreenResourceString \
 XScreenNumberOfScreen XSetWMProtocols)
 fi
@@ -1430,7 +1435,8 @@ if test "${USE_X_TOOLKIT}" != "none"; then
 		   [
 #if XtSpecificationRelease < 6
 fail;
-#endif],
+#endif
+],
 		   AC_DEFINE(HAVE_X11XTR6))
 fi
 
@@ -1453,6 +1459,10 @@ fi
 if test -n "$ok_so_far"; then
   AC_DEFINE(HAVE_INET_SOCKETS)
 fi
+
+# Restore the original CFLAGS value.
+CFLAGS="$orig_cflags"
+
 [
 #### Find out which version of Emacs this is.
 version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
