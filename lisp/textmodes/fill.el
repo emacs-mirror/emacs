@@ -211,9 +211,6 @@ space does not end a sentence, so don't break a line there."
 	  (if (or (memq justify '(right center))
 		  (< (current-indentation) (current-left-margin)))
 	      (indent-to-left-margin))
-	  ;; and remove indentation from other lines.
-	  (beginning-of-line 2)
-	  (indent-region (point) (point-max) 0)
 	  ;; Delete the fill prefix from every line except the first.
 	  ;; The first line may not even have a fill prefix.
 	  (goto-char from)
@@ -235,7 +232,12 @@ space does not end a sentence, so don't break a line there."
 		   (goto-char from)
 		   (and (looking-at fpre) (goto-char (match-end 0)))
 		   (setq from (point)))))
-	  ;; "from" is now before the text to fill,
+	  ;; Remove indentation from lines other than the first.
+	  (beginning-of-line 2)
+	  (indent-region (point) (point-max) 0)
+	  (goto-char from)
+
+	  ;; FROM, and point, are now before the text to fill,
 	  ;; but after any fill prefix on the first line.
 
 	  ;; Make sure sentences ending at end of line get an extra space.
