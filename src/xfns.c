@@ -8205,7 +8205,7 @@ x_build_heuristic_mask (f, img, how)
     }
   
   if (use_img_background)
-    bg = IMAGE_BACKGROUND (img, f, ximg);
+    bg = four_corners_best (ximg, img->width, img->height);
 
   /* Set all bits in mask_img to 1 whose color in ximg is different
      from the background color bg.  */
