@@ -1775,6 +1775,16 @@ session would be slow.  If you want to include these files in state
 saving, set @code{desktop-files-not-to-save} to @code{"^$"}.
 @xref{Remote Files}.
 
+@vindex save-place
+@cindex Saveplace
+@findex toggle-save-place
+There is a simpler mechanism provided by Saveplace library which records
+your position in each file when you kill its buffer (or kill Emacs), and
+jumps to the same position when you visit the file again (even in
+another Emacs session).  Use @key{M-x toggle-save-place} to turn on
+place-saving in a given file.  Customize the option @code{save-place} to
+turn it on for all files in each session.
+
 @node Recursive Edit, Emulation, Saving Emacs Sessions, Top
 @section Recursive Editing Levels
 @cindex recursive editing level
