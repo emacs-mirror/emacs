@@ -101,6 +101,86 @@ This function is suitable for execution in a .emacs file."
            (displayed-year (extract-calendar-year date)))
       (list-calendar-holidays))))
 
+(defun list-holidays (y1 y2 &optional l label)
+  "Display holidays for years Y1 to Y2 (inclusive).
+
+The optional list of holidays L defaults to `calendar-holidays'.  See the
+documentation for that variable for a description of holiday lists.
+
+The optional LABEL is used to label the buffer created."
+  (interactive
+   (let* ((start-year (calendar-read
+                       "Starting year of holidays (>0): "
+                       '(lambda (x) (> x 0))
+                       (int-to-string (extract-calendar-year
+                                       (calendar-current-date)))))
+          (end-year (calendar-read
+                       (format "Ending year (inclusive) of holidays (>=%s): "
+                               start-year)
+                       '(lambda (x) (>= x start-year))
+                       (int-to-string start-year)))
+          (completion-ignore-case t)
+          (lists
+           (list
+            (cons "All" calendar-holidays)
+            (if (fboundp 'atan)
+                (cons "Equinoxes/Solstices"
+                      (list (list 'solar-equinoxes-solstices))))
+            (if general-holidays (cons "General" general-holidays))
+            (if local-holidays (cons "Local" local-holidays))
+            (if other-holidays (cons "Other" other-holidays))
+            (if christian-holidays (cons "Christian" christian-holidays))
+            (if hebrew-holidays (cons "Hebrew" hebrew-holidays))
+            (if islamic-holidays (cons "Islamic" islamic-holidays))
+            (if oriental-holidays (cons "Oriental" oriental-holidays))
+            (if solar-holidays (cons "Solar" solar-holidays))
+            (cons "Ask" nil)))
+          (choice (capitalize
+                   (completing-read "List (TAB for choices): " lists nil t)))
+          (which (if (string-equal choice "Ask")
+                     (eval (read-variable "Enter list name: "))
+                   (cdr (assoc choice lists))))
+          (name (if (string-equal choice "Equinoxes/Solstices")
+                    choice
+                  (if (string-equal choice "Ask")
+                      "Holidays" 
+                    (format "%s Holidays" choice)))))
+     (list start-year end-year which name)))
+  (message "Computing holidays...")
+  (let* ((holiday-buffer "*Holidays*")
+         (calendar-holidays (if l l calendar-holidays))
+         (title (if label label "Holidays"))
+         (holiday-list nil)
+         (s (calendar-absolute-from-gregorian (list 2 1 y1)))
+         (e (calendar-absolute-from-gregorian (list 11 1 y2)))
+         (d s)
+         (never t)
+         (displayed-month 2)
+         (displayed-year y1))
+    (while (or never (<= d e))
+      (setq holiday-list (append holiday-list (calendar-holiday-list)))
+      (setq never nil)
+      (increment-calendar-month displayed-month displayed-year 3)
+      (setq d (calendar-absolute-from-gregorian
+               (list displayed-month 1 displayed-year))))
+    (set-buffer (get-buffer-create holiday-buffer))
+    (setq buffer-read-only nil)
+    (calendar-set-mode-line
+     (if (= y1 y2)
+         (format "%s for %s" label y1)
+       (format "%s for %s-%s" label y1 y2)))
+    (erase-buffer)
+    (goto-char (point-min))
+    (insert
+     (mapconcat
+      '(lambda (x) (concat (calendar-date-string (car x)) ": " (car (cdr x))))
+      holiday-list "\n"))
+    (goto-char (point-min))
+    (set-buffer-modified-p nil)
+    (setq buffer-read-only t)
+    (display-buffer holiday-buffer)
+    (message "Computing holidays...done")))
+
 (defun check-calendar-holidays (date)
   "Check the list of holidays for any that occur on DATE.
 The value returned is a list of strings of relevant holiday descriptions.
