@@ -2007,10 +2007,10 @@ arith_driver (code, nargs, args)
   return val;
 }
 
-#ifdef LISP_FLOAT_TYPE
-
 #undef isnan
 #define isnan(x) ((x) != (x))
+
+#ifdef LISP_FLOAT_TYPE
 
 Lisp_Object
 float_arith_driver (accum, argnum, code, nargs, args)
@@ -2141,9 +2141,21 @@ double
 fmod (f1, f2)
      double f1, f2;
 {
+  double r = f1;
+
   if (f2 < 0.0)
     f2 = -f2;
-  return (f1 - f2 * floor (f1/f2));
+
+  /* If the magnitude of the result exceeds that of the divisor, or
+     the sign of the result does not agree with that of the dividend,
+     iterate with the reduced value.  This does not yield a
+     particularly accurate result, but at least it will be in the
+     range promised by fmod.  */
+  do
+    r -= f2 * floor (r / f2);
+  while (f2 <= (r < 0 ? -r : r) || ((r < 0) != (f1 < 0) && ! isnan (r)));
+
+  return r;
 }
 #endif /* ! HAVE_FMOD */
 
