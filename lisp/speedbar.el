@@ -57,14 +57,14 @@
 ;; applicable, tags in the active file can be expanded.
 ;;
 ;;   To add new supported files types into speedbar, use the function
-;; `speedbar-add-supported-extension' If speedbar complains that the
+;; `speedbar-add-supported-extension'.  If speedbar complains that the
 ;; file type is not supported, that means there is no built in
 ;; support from imenu, and the etags part wasn't set up correctly.  You
 ;; may add elements to `speedbar-supported-extension-expressions' as long
 ;; as it is done before speedbar is loaded.
 ;;
 ;;   To prevent speedbar from following you into certain directories
-;; use the function `speedbar-add-ignored-path-regexp' too add a new
+;; use the function `speedbar-add-ignored-path-regexp' to add a new
 ;; regular expression matching a type of path.  You may add list
 ;; elements to `speedbar-ignored-path-expressions' as long as it is
 ;; done before speedbar is loaded.
@@ -90,9 +90,9 @@
 ;; which controls how tags are layed out.  It is actually a list of
 ;; functions that filter the data.  The default groups large tag lists
 ;; into sub-lists.  A long flat list can be used instead if needed.
-;; Other filters could be easily added.
+;; Other filters can be easily added.
 ;;
-;;    AUC-TEX users: The imenu tags for AUC-TEX mode don't work very
+;;    AUC-TEX users: The imenu tags for AUC-TEX mode doesn't work very
 ;; well.  Use the imenu keywords from tex-mode.el for better results.
 ;;
 ;; This file requires the library package assoc (association lists)
@@ -102,7 +102,7 @@
 ;; Adding a speedbar specialized display mode:
 ;;
 ;; Speedbar can be configured to create a special display for certain
-;; modes that do not display tradition file/tag data.  Rmail, Info,
+;; modes that do not display traditional file/tag data.  Rmail, Info,
 ;; and the debugger are examples.  These modes can, however, benefit
 ;; from a speedbar style display in their own way.
 ;;
@@ -116,7 +116,7 @@
 ;; `speedbar-insert-generic-list'.  If you use
 ;; `speedbar-insert-generic-list', also read the doc for
 ;; `speedbar-tag-hierarchy-method' in case you wish to override it.
-;; The function `speedbar-with-attached-buffer' brings you back to the
+;; The macro `speedbar-with-attached-buffer' brings you back to the
 ;; buffer speedbar is displaying for.
 ;;
 ;; For those functions that make buttons, the "function" should be a
@@ -132,7 +132,7 @@
 ;; functions are `speedbar-change-expand-button-char',
 ;; `speedbar-delete-subblock', and `speedbar-center-buffer-smartly'.
 ;; The variable `speedbar-power-click' is set to t in your functions
-;; when the user shift-clicks.  This indications anything from
+;; when the user shift-clicks.  This is an indication of anything from
 ;; refreshing cached data to making a buffer appear in a new frame.
 ;;
 ;; If you wish to add to the default speedbar menu for the case of
@@ -157,14 +157,14 @@
 ;; splice in.  KEYMAP is a symbol holding the keymap to use, and
 ;; BUTTON-FUNCTIONS are the function names to call, in order, to create
 ;; the display.
-;;  Another tweekable variable is `speedbar-stealthy-function-list'
+;;  Another tweakable variable is `speedbar-stealthy-function-list'
 ;; which is of the form (NAME &rest FUNCTION ...).  NAME is the string
 ;; name matching `speedbar-add-expansion-list'.  (It does not need to
 ;; exist.). This provides additional display info which might be
 ;; time-consuming to calculate.
 ;;  Lastly, `speedbar-mode-functions-list' allows you to set special
-;; function overrides.  At the moment very few functions are
-;; over ridable, but more will be added as the need is discovered.
+;; function overrides.  At the moment very few functions may be
+;; overridden, but more will be added as the need is discovered.
 
 ;;; TODO:
 ;; - More functions to create buttons and options
