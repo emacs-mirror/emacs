@@ -1077,9 +1077,8 @@ This shows which font is used for which character(s)."
    (if (not (and window-system (fboundp 'fontset-list)))
        (error "No fontsets being used")
      (let ((fontset-list (nconc
-			  (mapcar 'list (fontset-list))
-			  (mapcar (lambda (x) (list (cdr x)))
-				  fontset-alias-alist)))
+			  (fontset-list)
+			  (mapcar 'cdr fontset-alias-alist)))
 	   (completion-ignore-case t))
        (list (completing-read
 	      "Fontset (default, used by the current frame): "
