@@ -35,12 +35,24 @@
 
 ;;; Customizable variables
 
+(defgroup dired nil
+  "Directory editing."
+  :group 'environment)
+
+(defgroup dired-mark nil
+  "Handling marks in dired."
+  :prefix "dired-"
+  :group 'dired)
+
+
 ;;;###autoload
-(defvar dired-listing-switches "-al"
+(defcustom dired-listing-switches "-al"
   "*Switches passed to `ls' for dired.  MUST contain the `l' option.
 May contain all other options that don't contradict `-l';
 may contain even `F', `b', `i' and `s'.  See also the variable
-`dired-ls-F-marks-symlinks' concerning the `F' switch.")
+`dired-ls-F-marks-symlinks' concerning the `F' switch."
+  :type 'string
+  :group 'dired)
 
 ; Don't use absolute paths as /bin should be in any PATH and people
 ; may prefer /usr/local/gnu/bin or whatever.  However, chown is
@@ -61,7 +73,7 @@ may contain even `F', `b', `i' and `s'.  See also the variable
   "Name of chmod command (usually `chmod' or `chmode').")
 
 ;;;###autoload
-(defvar dired-ls-F-marks-symlinks nil
+(defcustom dired-ls-F-marks-symlinks nil
   "*Informs dired about how `ls -lF' marks symbolic links.
 Set this to t if `ls' (or whatever program is specified by
 `insert-directory-program') with `-lF' marks the symbolic link
@@ -73,52 +85,74 @@ nil (the default), if it gives `bar@ -> foo', set it to t.
 Dired checks if there is really a @ appended.  Thus, if you have a
 marking `ls' program on one host and a non-marking on another host, and
 don't care about symbolic links which really end in a @, you can
-always set this variable to t.")
+always set this variable to t."
+  :type 'boolean
+  :group 'dired-mark)
 
 ;;;###autoload
-(defvar dired-trivial-filenames "^\\.\\.?$\\|^#"
+(defcustom dired-trivial-filenames "^\\.\\.?$\\|^#"
   "*Regexp of files to skip when finding first file of a directory.
 A value of nil means move to the subdir line.
-A value of t means move to first file.")
+A value of t means move to first file."
+  :type '(choice (const :tag "Move to subdir" nil)
+		 (const :tag "Move to first" t)
+		 regexp)
+  :group 'dired)
 
 ;;;###autoload
-(defvar dired-keep-marker-rename t
+(defcustom dired-keep-marker-rename t
   ;; Use t as default so that moved files "take their markers with them".
   "*Controls marking of renamed files.
 If t, files keep their previous marks when they are renamed.
 If a character, renamed files (whether previously marked or not)
-are afterward marked with that character.")
+are afterward marked with that character."
+  :type '(choice (const :tag "Keep" t)
+		 (character :tag "Mark"))
+  :group 'dired-mark)
 
 ;;;###autoload
-(defvar dired-keep-marker-copy ?C
+(defcustom dired-keep-marker-copy ?C
   "*Controls marking of copied files.
 If t, copied files are marked if and as the corresponding original files were.
-If a character, copied files are unconditionally marked with that character.")
+If a character, copied files are unconditionally marked with that character."
+  :type '(choice (const :tag "Keep" t)
+		 (character :tag "Mark"))
+  :group 'dired-mark)
 
 ;;;###autoload
-(defvar dired-keep-marker-hardlink ?H
+(defcustom dired-keep-marker-hardlink ?H
   "*Controls marking of newly made hard links.
 If t, they are marked if and as the files linked to were marked.
-If a character, new links are unconditionally marked with that character.")
+If a character, new links are unconditionally marked with that character."
+  :type '(choice (const :tag "Keep" t)
+		 (character :tag "Mark"))
+  :group 'dired-mark)
 
 ;;;###autoload
-(defvar dired-keep-marker-symlink ?Y
+(defcustom dired-keep-marker-symlink ?Y
   "*Controls marking of newly made symbolic links.
 If t, they are marked if and as the files linked to were marked.
-If a character, new links are unconditionally marked with that character.")
+If a character, new links are unconditionally marked with that character."
+  :type '(choice (const :tag "Keep" t)
+		 (character :tag "Mark"))
+  :group 'dired-mark)
 
 ;;;###autoload
-(defvar dired-dwim-target nil
+(defcustom dired-dwim-target nil
   "*If non-nil, dired tries to guess a default target directory.
 This means: if there is a dired buffer displayed in the next window,
 use its current subdir, instead of the current subdir of this dired buffer.
 
-The target is used in the prompt for file copy, rename etc.")
+The target is used in the prompt for file copy, rename etc."
+  :type 'boolean
+  :group 'dired)
 
 ;;;###autoload
-(defvar dired-copy-preserve-time t
+(defcustom dired-copy-preserve-time t
   "*If non-nil, Dired preserves the last-modified time in a file copy.
-\(This works on only some systems.)")
+\(This works on only some systems.)"
+  :type 'boolean
+  :group 'dired)
 
 ;;; Hook variables
 
