@@ -1,3 +1,8 @@
+2001-10-12  Eli Barzilay <eli@barzilay.org>
+
+	* calculator.el (calculator-eng-display): Don't call concat
+	with an integer argument.
+
 2001-10-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/iso-transl.el (iso-transl-e-caret)
