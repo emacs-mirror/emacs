@@ -1,3 +1,7 @@
+1999-10-14  Karl Heuer  <kwzh@gnu.org>
+
+	* mail/rmail.el (rmail-pop-password-error): Add new pattern.
+
 1999-10-14  Dave Love  <fx@gnu.org>
 
 	* international/characters.el: 
