@@ -2034,6 +2034,7 @@ extern Lisp_Object Qnumberp, Qnumber_or_marker_p;
 extern Lisp_Object Qinteger;
 
 extern void circular_list_error P_ ((Lisp_Object));
+EXFUN (Finteractive_form, 1);
 
 /* Defined in frame.c */
 extern Lisp_Object Qframep;
