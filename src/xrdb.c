@@ -71,7 +71,7 @@ extern short getuid ();		/* If this causes portability problems,
 				   default to `int' anyway.  */
 #endif
 
-#if defined (__bsdi__) || defined (DECLARE_GETPWUID_WITH_UID_T)
+#ifdef DECLARE_GETPWUID_WITH_UID_T
 extern struct passwd *getpwuid (uid_t);
 extern struct passwd *getpwnam (const char *);
 #else
