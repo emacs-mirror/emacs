@@ -2958,7 +2958,7 @@ face_before_or_after_it_pos (it, before_p)
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
 
 	  c = string_char_and_length (p, rest, &len);
-	  face_id = FACE_FOR_CHAR (it->f, face, c);
+	  face_id = FACE_FOR_CHAR (it->f, face, c, CHARPOS (pos), it->string);
 	}
     }
   else
@@ -2997,7 +2997,7 @@ face_before_or_after_it_pos (it, before_p)
 	{
 	  int c = FETCH_MULTIBYTE_CHAR (BYTEPOS (pos));
 	  struct face *face = FACE_FROM_ID (it->f, face_id);
-	  face_id = FACE_FOR_CHAR (it->f, face, c);
+	  face_id = FACE_FOR_CHAR (it->f, face, c, CHARPOS (pos), Qnil);
 	}
     }
 
@@ -4925,7 +4925,10 @@ get_next_display_element (it)
 	  && FRAME_WINDOW_P (it->f))
 	{
 	  struct face *face = FACE_FROM_ID (it->f, it->face_id);
-	  it->face_id = FACE_FOR_CHAR (it->f, face, it->c);
+	  int pos = (STRINGP (it->string)
+		     ? IT_STRING_CHARPOS (*it) : IT_CHARPOS (*it));
+
+	  it->face_id = FACE_FOR_CHAR (it->f, face, it->c, pos, it->string);
 	}
     }
 
@@ -14112,7 +14115,7 @@ append_space (it, default_face_p)
 	  else if (it->face_before_selective_p)
 	    it->face_id = it->saved_face_id;
 	  face = FACE_FROM_ID (it->f, it->face_id);
-	  it->face_id = FACE_FOR_CHAR (it->f, face, 0);
+	  it->face_id = FACE_FOR_CHAR (it->f, face, 0, -1, Qnil);
 
 	  PRODUCE_GLYPHS (it);
 
@@ -14171,7 +14174,7 @@ extend_face_to_end_of_line (it)
          that the character will always be single byte in unibyte text.  */
   if (!ASCII_CHAR_P (it->c))
     {
-      it->face_id = FACE_FOR_CHAR (f, face, 0);
+      it->face_id = FACE_FOR_CHAR (f, face, 0, -1, Qnil);
     }
 
   if (FRAME_WINDOW_P (f))
@@ -17052,7 +17055,7 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
       /* Unibyte case.  We don't have to encode, but we have to make
 	 sure to use a face suitable for unibyte.  */
       STORE_XCHAR2B (char2b, 0, c);
-      face_id = FACE_FOR_CHAR (f, face, c);
+      face_id = FACE_FOR_CHAR (f, face, c, -1, Qnil);
       face = FACE_FROM_ID (f, face_id);
     }
   else if (c < 128 && face_id < BASIC_FACE_ID_SENTINEL)
@@ -17274,7 +17277,7 @@ compute_overhangs_and_x (s, x, backward_p)
     for (n = 0; n < glyph_len; n++)					  \
       {									  \
 	int c = COMPOSITION_GLYPH (cmp, n);				  \
-	int this_face_id = FACE_FOR_CHAR (f, base_face, c);		  \
+	int this_face_id = FACE_FOR_CHAR (f, base_face, c, -1, Qnil);	  \
 	faces[n] = FACE_FROM_ID (f, this_face_id);			  \
 	get_char_face_and_encoding (f, c, this_face_id, 		  \
 				    char2b + n, 1, 1);			  \
@@ -17922,7 +17925,8 @@ x_produce_glyphs (it)
 	  if (! SINGLE_BYTE_CHAR_P (it->c))
 	    {
 	      it->multibyte_p = 1;
-	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
+	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display,
+					   -1, Qnil);
 	      face = FACE_FROM_ID (it->f, it->face_id);
 	    }
 	}
@@ -18158,7 +18162,7 @@ x_produce_glyphs (it)
 	}
 
       /* Get face and font to use.  Encode IT->char_to_display.  */
-      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
+      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display, -1, Qnil);
       face = FACE_FROM_ID (it->f, it->face_id);
       get_char_face_and_encoding (it->f, it->char_to_display, it->face_id,
 				  &char2b, it->multibyte_p, 0);
@@ -18246,7 +18250,7 @@ x_produce_glyphs (it)
 	    {
 	      int left, right, btm, top;
 	      int ch = COMPOSITION_GLYPH (cmp, i);
-	      int face_id = FACE_FOR_CHAR (it->f, face, ch);
+	      int face_id = FACE_FOR_CHAR (it->f, face, ch, -1, Qnil);
 
 	      face = FACE_FROM_ID (it->f, face_id);
 	      get_char_face_and_encoding (it->f, ch, face->id,
