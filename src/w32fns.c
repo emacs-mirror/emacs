@@ -5607,14 +5607,12 @@ w32_font_match (fontname, pattern)
     char * fontname;
     char * pattern;
 {
-  char *font_name_copy;
   char *ptr;
-  Lisp_Object encoded_font_name;
+  char *font_name_copy;
   char *regex = alloca (strlen (pattern) * 2 + 3);
 
-  /* Convert fontname to unibyte for match.  */
-  encoded_font_name = string_make_unibyte (build_string (fontname));
-  font_name_copy = SDATA (encoded_font_name);
+  font_name_copy = alloca (strlen (fontname) + 1);
+  strcpy (font_name_copy, fontname);
 
   ptr = regex;
   *ptr++ = '^';
@@ -5652,8 +5650,8 @@ w32_font_match (fontname, pattern)
       return FALSE;
   }
 
-  return (fast_c_string_match_ignore_case (build_string (regex),
-                                           font_name_copy) >= 0);
+  return (fast_string_match_ignore_case (build_string (regex),
+                                         build_string(font_name_copy)) >= 0);
 }
 
 /* Callback functions, and a structure holding info they need, for
