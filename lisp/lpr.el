@@ -79,6 +79,8 @@ See definition of `print-region-1' for calling conventions.")
   (print-region-1 start end lpr-switches t))
 
 (defun print-region-1 (start end switches page-headers)
+  ;; Avoid having a space in the job name
+  ;; because on some MIPS system that crashes the printer demon.
   (let ((name (concat (buffer-name) "-Emacs-buffer"))
 	(title (concat (buffer-name) " Emacs buffer"))
 	(width tab-width))
