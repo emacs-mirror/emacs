@@ -127,35 +127,20 @@
 ;; (modify-syntax-entry (make-char 'chinese-gb2312 33) "_")
 ;; (modify-syntax-entry (make-char 'chinese-gb2312 34) "_")
 ;; (modify-syntax-entry (make-char 'chinese-gb2312 41) "_")
-(modify-syntax-entry ?\$A!2(B "($A!3(B")
-(modify-syntax-entry ?\$A!4(B "($A!5(B")
-(modify-syntax-entry ?\$A!6(B "($A!7(B")
-(modify-syntax-entry ?\$A!8(B "($A!9(B")
-(modify-syntax-entry ?\$A!:(B "($A!;(B")
-(modify-syntax-entry ?\$A!<(B "($A!=(B")
-(modify-syntax-entry ?\$A!>(B "($A!?(B")
-(modify-syntax-entry ?\$A!3(B ")$A!2(B")
-(modify-syntax-entry ?\$A!5(B ")$A!4(B")
-(modify-syntax-entry ?\$A!7(B ")$A!6(B")
-(modify-syntax-entry ?\$A!9(B ")$A!8(B")
-(modify-syntax-entry ?\$A!;(B ")$A!:(B")
-(modify-syntax-entry ?\$A!=(B ")$A!<(B")
-(modify-syntax-entry ?\$A!?(B ")$A!>(B")
-;; Unicode equivalents of above
-(modify-syntax-entry ?\$,2=T(B "($,2=U(B")
-(modify-syntax-entry ?\$,2=H(B "($,2=I(B")
-(modify-syntax-entry ?\$,2=J(B "($,2=K(B")
-(modify-syntax-entry ?\$,2=L(B "($,2=M(B")
-(modify-syntax-entry ?\$,2=N(B "($,2=O(B")
-(modify-syntax-entry ?\$,2=V(B "($,2=W(B")
-(modify-syntax-entry ?\$,2=P(B "($,2=Q(B")
-(modify-syntax-entry ?\$,2=U(B ")$,2=T(B")
-(modify-syntax-entry ?\$,2=I(B ")$,2=H(B")
-(modify-syntax-entry ?\$,2=K(B ")$,2=J(B")
-(modify-syntax-entry ?\$,2=M(B ")$,2=L(B")
-(modify-syntax-entry ?\$,2=O(B ")$,2=N(B")
-(modify-syntax-entry ?\$,2=W(B ")$,2=V(B")
-(modify-syntax-entry ?\$,2=Q(B ")$,2=P(B")
+(modify-syntax-entry ?\ã€” "(ã€•")
+(modify-syntax-entry ?\ã€ˆ "(ã€‰")
+(modify-syntax-entry ?\ã€Š "(ã€‹")
+(modify-syntax-entry ?\ã€Œ "(ã€")
+(modify-syntax-entry ?\ã€ "(ã€")
+(modify-syntax-entry ?\ã€– "(ã€—")
+(modify-syntax-entry ?\ã€ "(ã€‘")
+(modify-syntax-entry ?\ã€• ")ã€”")
+(modify-syntax-entry ?\ã€‰ ")ã€ˆ")
+(modify-syntax-entry ?\ã€‹ ")ã€Š")
+(modify-syntax-entry ?\ã€ ")ã€Œ")
+(modify-syntax-entry ?\ã€ ")ã€")
+(modify-syntax-entry ?\ã€— ")ã€–")
+(modify-syntax-entry ?\ã€‘ ")ã€")
 
 ;; (modify-category-entry (make-char 'chinese-gb2312) ?c)
 ;; (modify-category-entry (make-char 'chinese-gb2312) ?\|)
@@ -207,121 +192,75 @@
 ;; Cyrillic character set (ISO-8859-5)
 
 (modify-syntax-entry (decode-char 'iso-8859-5 160) " ")
-(modify-syntax-entry ?,L-(B ".")
-(modify-syntax-entry ?,Lp(B ".")
-(modify-syntax-entry ?,L}(B ".")
+(modify-syntax-entry ?Â­ ".")
+(modify-syntax-entry ?â„– ".")
+(modify-syntax-entry ?Â§ ".")
 (let ((tbl (standard-case-table)))
-  (set-case-syntax-pair ?,L!(B ?,Lq(B tbl)
-  (set-case-syntax-pair ?,L"(B ?,Lr(B tbl)
-  (set-case-syntax-pair ?,L#(B ?,Ls(B tbl)
-  (set-case-syntax-pair ?,L$(B ?,Lt(B tbl)
-  (set-case-syntax-pair ?,L%(B ?,Lu(B tbl)
-  (set-case-syntax-pair ?,L&(B ?,Lv(B tbl)
-  (set-case-syntax-pair ?,L'(B ?,Lw(B tbl)
-  (set-case-syntax-pair ?,L((B ?,Lx(B tbl)
-  (set-case-syntax-pair ?,L)(B ?,Ly(B tbl)
-  (set-case-syntax-pair ?,L*(B ?,Lz(B tbl)
-  (set-case-syntax-pair ?,L+(B ?,L{(B tbl)
-  (set-case-syntax-pair ?,L,(B ?,L|(B tbl)
-  (set-case-syntax-pair ?,L.(B ?,L~(B tbl)
-  (set-case-syntax-pair ?,L/(B ?,L(B tbl)
-  (set-case-syntax-pair ?,L0(B ?,LP(B tbl)
-  (set-case-syntax-pair ?,L1(B ?,LQ(B tbl)
-  (set-case-syntax-pair ?,L2(B ?,LR(B tbl)
-  (set-case-syntax-pair ?,L3(B ?,LS(B tbl)
-  (set-case-syntax-pair ?,L4(B ?,LT(B tbl)
-  (set-case-syntax-pair ?,L5(B ?,LU(B tbl)
-  (set-case-syntax-pair ?,L6(B ?,LV(B tbl)
-  (set-case-syntax-pair ?,L7(B ?,LW(B tbl)
-  (set-case-syntax-pair ?,L8(B ?,LX(B tbl)
-  (set-case-syntax-pair ?,L9(B ?,LY(B tbl)
-  (set-case-syntax-pair ?,L:(B ?,LZ(B tbl)
-  (set-case-syntax-pair ?,L;(B ?,L[(B tbl)
-  (set-case-syntax-pair ?,L<(B ?,L\(B tbl)
-  (set-case-syntax-pair ?,L=(B ?,L](B tbl)
-  (set-case-syntax-pair ?,L>(B ?,L^(B tbl)
-  (set-case-syntax-pair ?,L?(B ?,L_(B tbl)
-  (set-case-syntax-pair ?,L@(B ?,L`(B tbl)
-  (set-case-syntax-pair ?,LA(B ?,La(B tbl)
-  (set-case-syntax-pair ?,LB(B ?,Lb(B tbl)
-  (set-case-syntax-pair ?,LC(B ?,Lc(B tbl)
-  (set-case-syntax-pair ?,LD(B ?,Ld(B tbl)
-  (set-case-syntax-pair ?,LE(B ?,Le(B tbl)
-  (set-case-syntax-pair ?,LF(B ?,Lf(B tbl)
-  (set-case-syntax-pair ?,LG(B ?,Lg(B tbl)
-  (set-case-syntax-pair ?,LH(B ?,Lh(B tbl)
-  (set-case-syntax-pair ?,LI(B ?,Li(B tbl)
-  (set-case-syntax-pair ?,LJ(B ?,Lj(B tbl)
-  (set-case-syntax-pair ?,LK(B ?,Lk(B tbl)
-  (set-case-syntax-pair ?,LL(B ?,Ll(B tbl)
-  (set-case-syntax-pair ?,LM(B ?,Lm(B tbl)
-  (set-case-syntax-pair ?,LN(B ?,Ln(B tbl)
-  (set-case-syntax-pair ?,LO(B ?,Lo(B tbl)
-  (set-case-syntax-pair ?$,1(!(B ?$,1(q(B tbl)
-  (set-case-syntax-pair ?$,1("(B ?$,1(r(B tbl)
-  (set-case-syntax-pair ?$,1(#(B ?$,1(s(B tbl)
-  (set-case-syntax-pair ?$,1($(B ?$,1(t(B tbl)
-  (set-case-syntax-pair ?$,1(%(B ?$,1(u(B tbl)
-  (set-case-syntax-pair ?$,1(&(B ?$,1(v(B tbl)
-  (set-case-syntax-pair ?$,1('(B ?$,1(w(B tbl)
-  (set-case-syntax-pair ?$,1(((B ?$,1(x(B tbl)
-  (set-case-syntax-pair ?$,1()(B ?$,1(y(B tbl)
-  (set-case-syntax-pair ?$,1(*(B ?$,1(z(B tbl)
-  (set-case-syntax-pair ?$,1(+(B ?$,1({(B tbl)
-  (set-case-syntax-pair ?$,1(,(B ?$,1(|(B tbl)
-  (set-case-syntax-pair ?$,1(.(B ?$,1(~(B tbl)
-  (set-case-syntax-pair ?$,1(/(B ?$,1((B tbl)
-  (set-case-syntax-pair ?$,1(0(B ?$,1(P(B tbl)
-  (set-case-syntax-pair ?$,1(1(B ?$,1(Q(B tbl)
-  (set-case-syntax-pair ?$,1(2(B ?$,1(R(B tbl)
-  (set-case-syntax-pair ?$,1(3(B ?$,1(S(B tbl)
-  (set-case-syntax-pair ?$,1(4(B ?$,1(T(B tbl)
-  (set-case-syntax-pair ?$,1(5(B ?$,1(U(B tbl)
-  (set-case-syntax-pair ?$,1(6(B ?$,1(V(B tbl)
-  (set-case-syntax-pair ?$,1(7(B ?$,1(W(B tbl)
-  (set-case-syntax-pair ?$,1(8(B ?$,1(X(B tbl)
-  (set-case-syntax-pair ?$,1(9(B ?$,1(Y(B tbl)
-  (set-case-syntax-pair ?$,1(:(B ?$,1(Z(B tbl)
-  (set-case-syntax-pair ?$,1(;(B ?$,1([(B tbl)
-  (set-case-syntax-pair ?$,1(<(B ?$,1(\(B tbl)
-  (set-case-syntax-pair ?$,1(=(B ?$,1(](B tbl)
-  (set-case-syntax-pair ?$,1(>(B ?$,1(^(B tbl)
-  (set-case-syntax-pair ?$,1(?(B ?$,1(_(B tbl)
-  (set-case-syntax-pair ?$,1(@(B ?$,1(`(B tbl)
-  (set-case-syntax-pair ?$,1(A(B ?$,1(a(B tbl)
-  (set-case-syntax-pair ?$,1(B(B ?$,1(b(B tbl)
-  (set-case-syntax-pair ?$,1(C(B ?$,1(c(B tbl)
-  (set-case-syntax-pair ?$,1(D(B ?$,1(d(B tbl)
-  (set-case-syntax-pair ?$,1(E(B ?$,1(e(B tbl)
-  (set-case-syntax-pair ?$,1(F(B ?$,1(f(B tbl)
-  (set-case-syntax-pair ?$,1(G(B ?$,1(g(B tbl)
-  (set-case-syntax-pair ?$,1(H(B ?$,1(h(B tbl)
-  (set-case-syntax-pair ?$,1(I(B ?$,1(i(B tbl)
-  (set-case-syntax-pair ?$,1(J(B ?$,1(j(B tbl)
-  (set-case-syntax-pair ?$,1(K(B ?$,1(k(B tbl)
-  (set-case-syntax-pair ?$,1(L(B ?$,1(l(B tbl)
-  (set-case-syntax-pair ?$,1(M(B ?$,1(m(B tbl)
-  (set-case-syntax-pair ?$,1(N(B ?$,1(n(B tbl)
-  (set-case-syntax-pair ?$,1(O(B ?$,1(o(B tbl))
+  (set-case-syntax-pair ?Ğ ?Ñ‘ tbl)
+  (set-case-syntax-pair ?Ğ‚ ?Ñ’ tbl)
+  (set-case-syntax-pair ?Ğƒ ?Ñ“ tbl)
+  (set-case-syntax-pair ?Ğ„ ?Ñ” tbl)
+  (set-case-syntax-pair ?Ğ… ?Ñ• tbl)
+  (set-case-syntax-pair ?Ğ† ?Ñ– tbl)
+  (set-case-syntax-pair ?Ğ‡ ?Ñ— tbl)
+  (set-case-syntax-pair ?Ğˆ ?Ñ˜ tbl)
+  (set-case-syntax-pair ?Ğ‰ ?Ñ™ tbl)
+  (set-case-syntax-pair ?ĞŠ ?Ñš tbl)
+  (set-case-syntax-pair ?Ğ‹ ?Ñ› tbl)
+  (set-case-syntax-pair ?ĞŒ ?Ñœ tbl)
+  (set-case-syntax-pair ?Ğ ?Ñ tbl)
+  (set-case-syntax-pair ?Ğ ?ÑŸ tbl)
+  (set-case-syntax-pair ?Ğ ?Ğ° tbl)
+  (set-case-syntax-pair ?Ğ‘ ?Ğ± tbl)
+  (set-case-syntax-pair ?Ğ’ ?Ğ² tbl)
+  (set-case-syntax-pair ?Ğ“ ?Ğ³ tbl)
+  (set-case-syntax-pair ?Ğ” ?Ğ´ tbl)
+  (set-case-syntax-pair ?Ğ• ?Ğµ tbl)
+  (set-case-syntax-pair ?Ğ– ?Ğ¶ tbl)
+  (set-case-syntax-pair ?Ğ— ?Ğ· tbl)
+  (set-case-syntax-pair ?Ğ˜ ?Ğ¸ tbl)
+  (set-case-syntax-pair ?Ğ™ ?Ğ¹ tbl)
+  (set-case-syntax-pair ?Ğš ?Ğº tbl)
+  (set-case-syntax-pair ?Ğ› ?Ğ» tbl)
+  (set-case-syntax-pair ?Ğœ ?Ğ¼ tbl)
+  (set-case-syntax-pair ?Ğ ?Ğ½ tbl)
+  (set-case-syntax-pair ?Ğ ?Ğ¾ tbl)
+  (set-case-syntax-pair ?ĞŸ ?Ğ¿ tbl)
+  (set-case-syntax-pair ?Ğ  ?Ñ€ tbl)
+  (set-case-syntax-pair ?Ğ¡ ?Ñ tbl)
+  (set-case-syntax-pair ?Ğ¢ ?Ñ‚ tbl)
+  (set-case-syntax-pair ?Ğ£ ?Ñƒ tbl)
+  (set-case-syntax-pair ?Ğ¤ ?Ñ„ tbl)
+  (set-case-syntax-pair ?Ğ¥ ?Ñ… tbl)
+  (set-case-syntax-pair ?Ğ¦ ?Ñ† tbl)
+  (set-case-syntax-pair ?Ğ§ ?Ñ‡ tbl)
+  (set-case-syntax-pair ?Ğ¨ ?Ñˆ tbl)
+  (set-case-syntax-pair ?Ğ© ?Ñ‰ tbl)
+  (set-case-syntax-pair ?Ğª ?ÑŠ tbl)
+  (set-case-syntax-pair ?Ğ« ?Ñ‹ tbl)
+  (set-case-syntax-pair ?Ğ¬ ?ÑŒ tbl)
+  (set-case-syntax-pair ?Ğ­ ?Ñ tbl)
+  (set-case-syntax-pair ?Ğ® ?Ñ tbl)
+  (set-case-syntax-pair ?Ğ¯ ?Ñ tbl))
 
 ;; Devanagari character set
 
 ;;; Commented out since the categories appear not to be used anywhere
 ;;; and word syntax is the default.
 ;; (let ((deflist	'(;; chars	syntax	category
-;; 		  ("$(5!!!"!#(B"	"w"	?7) ; vowel-modifying diacritical mark
+;; 		  ("ö„€€ö„€ö„€‚"	"w"	?7) ; vowel-modifying diacritical mark
 ;; 					    ; chandrabindu, anuswar, visarga
-;; 		  ("$(5!$(B-$(5!2(B"	"w"	?1) ; independent vowel
-;; 		  ("$(5!3(B-$(5!X(B"	"w"	?0) ; consonant
-;; 		  ("$(5!Z(B-$(5!g(B"	"w"	?8) ; matra
-;; 		  ("$(5!q(B-$(5!z(B"	"w"	?6) ; digit
+;; 		  ("ö„€ƒ-ö„€‘"	"w"	?1) ; independent vowel
+;; 		  ("ö„€’-ö„€·"	"w"	?0) ; consonant
+;; 		  ("ö„€¹-ö„†"	"w"	?8) ; matra
+;; 		  ("ö„-ö„™"	"w"	?6) ; digit
 ;; 		  ;; Unicode equivalents
-;; 		  ("$,15A5B5C(B"	"w"	?7) ; vowel-modifying diacritical mark
+;; 		  ("à¤à¤‚à¤ƒ"	"w"	?7) ; vowel-modifying diacritical mark
 ;; 					    ; chandrabindu, anuswar, visarga
-;; 		  ("$,15E(B-$,15M(B"	"w"	?1) ; independent vowel
-;; 		  ("$,15U(B-$,15y(B"	"w"	?0) ; consonant
-;; 		  ("$,15~(B-$,16)(B"	"w"	?8) ; matra
-;; 		  ("$,16F(B-$,16O(B"	"w"	?6) ; digit
+;; 		  ("à¤…-à¤"	"w"	?1) ; independent vowel
+;; 		  ("à¤•-à¤¹"	"w"	?0) ; consonant
+;; 		  ("à¤¾-à¥‰"	"w"	?8) ; matra
+;; 		  ("à¥¦-à¥¯"	"w"	?6) ; digit
 ;; 		  ))
 ;;       elm chars len syntax category to ch i)
 ;;   (while deflist
@@ -349,9 +288,9 @@
 ;; (modify-category-entry (make-char 'ethiopic) ?e)
 ;; (modify-syntax-entry (make-char 'ethiopic) "w")
 (modify-category-entry '(#x1200 . #x137b) ?e)
-(let ((chars '(?$(3$h(B ?$(3$i(B ?$(3$j(B ?$(3$k(B ?$(3$l(B ?$(3$m(B ?$(3$n(B ?$(3$o(B ?$(3%i(B ?$(3%t(B ?$(3%u(B ?$(3%v(B ?$(3%w(B ?$(3%x(B
+(let ((chars '(?ö …¡ ?ö …¢ ?ö …£ ?ö …¤ ?ö …¥ ?ö …¦ ?ö …§ ?ö …¨ ?ö ‡€ ?ö ‡‹ ?ö ‡Œ ?ö ‡ ?ö ‡ ?ö ‡
 	       ;; Unicode equivalents of the above:
-	       ?$,1Q!(B ?$,1Q"(B ?$,1Q#(B ?$,1Q$(B ?$,1Q%(B ?$,1Q&(B ?$,1Q'(B ?$,1Q((B ?$,3op(B ?$,3o{(B ?$,3o|(B ?$,3o}(B ?$,3o~(B ?$,3o(B)))
+	       ?á¡ ?á¢ ?á£ ?á¤ ?á¥ ?á¦ ?á§ ?á¨ ?ï·° ?ï·» ?ï·¼ ?ï·½ ?ï·¾ ?ï·¿)))
   (while chars
     (modify-syntax-entry (car chars) ".")
     (setq chars (cdr chars))))
@@ -369,93 +308,59 @@
 ;;     (modify-syntax-entry (make-char 'greek-iso8859-7 c) "w")
 ;;     (setq c (1+ c))))
 ;; (modify-syntax-entry (make-char 'greek-iso8859-7 160) "w") ; NBSP
-;; (modify-syntax-entry ?,F7(B ".")
-;; (modify-syntax-entry ?,F;(B ".")
-;; (modify-syntax-entry ?,F=(B ".")
+;; (modify-syntax-entry ?Â· ".")
+;; (modify-syntax-entry ?Â» ".")
+;; (modify-syntax-entry ?Â½ ".")
 (let ((tbl (standard-case-table)))
   ;; Fixme: non-letter syntax copied from latin-1, but that's dubious
   ;; in several cases.
-  (set-case-syntax ?,F!(B "." tbl)
-  (set-case-syntax ?,F"(B "." tbl)
-  (set-case-syntax ?,F&(B "." tbl)
-  (set-case-syntax ?,F&(B "_" tbl)
-  (set-case-syntax ?,F'(B "." tbl)
-  (set-case-syntax ?,F)(B "_" tbl)
-  (set-case-syntax ?,F+(B "." tbl)
-  (set-case-syntax ?,F,(B "_" tbl)
-  (set-case-syntax ?,F-(B "_" tbl)
-  (set-case-syntax ?,F/(B "." tbl)
-  (set-case-syntax ?,F0(B "_" tbl)
-  (set-case-syntax ?,F1(B "_" tbl)
-;;  (set-case-syntax ?,F7(B "_" tbl)
-;;  (set-case-syntax ?,F=(B "_" tbl)
-  (set-case-syntax-pair ?,FA(B ?,Fa(B tbl)
-  (set-case-syntax-pair ?,FB(B ?,Fb(B tbl)
-  (set-case-syntax-pair ?,FC(B ?,Fc(B tbl)
-  (set-case-syntax-pair ?,FD(B ?,Fd(B tbl)
-  (set-case-syntax-pair ?,FE(B ?,Fe(B tbl)
-  (set-case-syntax-pair ?,FF(B ?,Ff(B tbl)
-  (set-case-syntax-pair ?,FG(B ?,Fg(B tbl)
-  (set-case-syntax-pair ?,FH(B ?,Fh(B tbl)
-  (set-case-syntax-pair ?,FI(B ?,Fi(B tbl)
-  (set-case-syntax-pair ?,FJ(B ?,Fj(B tbl)
-  (set-case-syntax-pair ?,FK(B ?,Fk(B tbl)
-  (set-case-syntax-pair ?,FL(B ?,Fl(B tbl)
-  (set-case-syntax-pair ?,FM(B ?,Fm(B tbl)
-  (set-case-syntax-pair ?,FN(B ?,Fn(B tbl)
-  (set-case-syntax-pair ?,FO(B ?,Fo(B tbl)
-  (set-case-syntax-pair ?,FP(B ?,Fp(B tbl)
-  (set-case-syntax-pair ?,FQ(B ?,Fq(B tbl)
-  (set-case-syntax-pair ?,FS(B ?,Fs(B tbl)
-  (set-case-syntax-pair ?,FT(B ?,Ft(B tbl)
-  (set-case-syntax-pair ?,FU(B ?,Fu(B tbl)
-  (set-case-syntax-pair ?,FV(B ?,Fv(B tbl)
-  (set-case-syntax-pair ?,FW(B ?,Fw(B tbl)
-  (set-case-syntax-pair ?,FX(B ?,Fx(B tbl)
-  (set-case-syntax-pair ?,FY(B ?,Fy(B tbl)
-  (set-case-syntax-pair ?,FZ(B ?,Fz(B tbl)
-  (set-case-syntax-pair ?,F[(B ?,F{(B tbl)
-  (set-case-syntax-pair ?,F?(B ?,F~(B tbl)
-  (set-case-syntax-pair ?,F>(B ?,F}(B tbl)
-  (set-case-syntax-pair ?,F<(B ?,F|(B tbl)
-  (set-case-syntax-pair ?,F6(B ?,F\(B tbl)
-  (set-case-syntax-pair ?,F8(B ?,F](B tbl)
-  (set-case-syntax-pair ?,F9(B ?,F^(B tbl)
-  (set-case-syntax-pair ?,F:(B ?,F_(B tbl)
-  ;; Unicode equivalents
-  (set-case-syntax-pair ?$,1&q(B ?$,1'1(B tbl)
-  (set-case-syntax-pair ?$,1&r(B ?$,1'2(B tbl)
-  (set-case-syntax-pair ?$,1&s(B ?$,1'3(B tbl)
-  (set-case-syntax-pair ?$,1&t(B ?$,1'4(B tbl)
-  (set-case-syntax-pair ?$,1&u(B ?$,1'5(B tbl)
-  (set-case-syntax-pair ?$,1&v(B ?$,1'6(B tbl)
-  (set-case-syntax-pair ?$,1&w(B ?$,1'7(B tbl)
-  (set-case-syntax-pair ?$,1&x(B ?$,1'8(B tbl)
-  (set-case-syntax-pair ?$,1&y(B ?$,1'9(B tbl)
-  (set-case-syntax-pair ?$,1&z(B ?$,1':(B tbl)
-  (set-case-syntax-pair ?$,1&{(B ?$,1';(B tbl)
-  (set-case-syntax-pair ?$,1&|(B ?$,1'<(B tbl)
-  (set-case-syntax-pair ?$,1&}(B ?$,1'=(B tbl)
-  (set-case-syntax-pair ?$,1&~(B ?$,1'>(B tbl)
-  (set-case-syntax-pair ?$,1&(B ?$,1'?(B tbl)
-  (set-case-syntax-pair ?$,1' (B ?$,1'@(B tbl)
-  (set-case-syntax-pair ?$,1'!(B ?$,1'A(B tbl)
-  (set-case-syntax-pair ?$,1'#(B ?$,1'C(B tbl)
-  (set-case-syntax-pair ?$,1'$(B ?$,1'D(B tbl)
-  (set-case-syntax-pair ?$,1'%(B ?$,1'E(B tbl)
-  (set-case-syntax-pair ?$,1'&(B ?$,1'F(B tbl)
-  (set-case-syntax-pair ?$,1''(B ?$,1'G(B tbl)
-  (set-case-syntax-pair ?$,1'((B ?$,1'H(B tbl)
-  (set-case-syntax-pair ?$,1')(B ?$,1'I(B tbl)
-  (set-case-syntax-pair ?$,1'*(B ?$,1'J(B tbl)
-  (set-case-syntax-pair ?$,1'+(B ?$,1'K(B tbl)
-  (set-case-syntax-pair ?$,1&o(B ?$,1'N(B tbl)
-  (set-case-syntax-pair ?$,1&n(B ?$,1'M(B tbl)
-  (set-case-syntax-pair ?$,1&l(B ?$,1'L(B tbl)
-  (set-case-syntax-pair ?$,1&f(B ?$,1',(B tbl)
-  (set-case-syntax-pair ?$,1&h(B ?$,1'-(B tbl)
-  (set-case-syntax-pair ?$,1&i(B ?$,1'.(B tbl)
-  (set-case-syntax-pair ?$,1&j(B ?$,1'/(B tbl))
+  (set-case-syntax ?â€˜ "." tbl)
+  (set-case-syntax ?â€™ "." tbl)
+  (set-case-syntax ?Â¦ "." tbl)
+  (set-case-syntax ?Â¦ "_" tbl)
+  (set-case-syntax ?Â§ "." tbl)
+  (set-case-syntax ?Â© "_" tbl)
+  (set-case-syntax ?\Â« "." tbl)
+  (set-case-syntax ?Â¬ "_" tbl)
+  (set-case-syntax ?Â­ "_" tbl)
+  (set-case-syntax ?â€• "." tbl)
+  (set-case-syntax ?Â° "_" tbl)
+  (set-case-syntax ?Â± "_" tbl)
+;;  (set-case-syntax ?Â· "_" tbl)
+;;  (set-case-syntax ?Â½ "_" tbl)
+  (set-case-syntax-pair ?Î‘ ?Î± tbl)
+  (set-case-syntax-pair ?Î’ ?Î² tbl)
+  (set-case-syntax-pair ?Î“ ?Î³ tbl)
+  (set-case-syntax-pair ?Î” ?Î´ tbl)
+  (set-case-syntax-pair ?Î• ?Îµ tbl)
+  (set-case-syntax-pair ?Î– ?Î¶ tbl)
+  (set-case-syntax-pair ?Î— ?Î· tbl)
+  (set-case-syntax-pair ?Î˜ ?Î¸ tbl)
+  (set-case-syntax-pair ?Î™ ?Î¹ tbl)
+  (set-case-syntax-pair ?Îš ?Îº tbl)
+  (set-case-syntax-pair ?Î› ?Î» tbl)
+  (set-case-syntax-pair ?Îœ ?Î¼ tbl)
+  (set-case-syntax-pair ?Î ?Î½ tbl)
+  (set-case-syntax-pair ?Î ?Î¾ tbl)
+  (set-case-syntax-pair ?ÎŸ ?Î¿ tbl)
+  (set-case-syntax-pair ?Î  ?Ï€ tbl)
+  (set-case-syntax-pair ?Î¡ ?Ï tbl)
+  (set-case-syntax-pair ?Î£ ?Ïƒ tbl)
+  (set-case-syntax-pair ?Î¤ ?Ï„ tbl)
+  (set-case-syntax-pair ?Î¥ ?Ï… tbl)
+  (set-case-syntax-pair ?Î¦ ?Ï† tbl)
+  (set-case-syntax-pair ?Î§ ?Ï‡ tbl)
+  (set-case-syntax-pair ?Î¨ ?Ïˆ tbl)
+  (set-case-syntax-pair ?Î© ?Ï‰ tbl)
+  (set-case-syntax-pair ?Îª ?ÏŠ tbl)
+  (set-case-syntax-pair ?Î« ?Ï‹ tbl)
+  (set-case-syntax-pair ?Î ?Ï tbl)
+  (set-case-syntax-pair ?Î ?Ï tbl)
+  (set-case-syntax-pair ?ÎŒ ?ÏŒ tbl)
+  (set-case-syntax-pair ?Î† ?Î¬ tbl)
+  (set-case-syntax-pair ?Îˆ ?Î­ tbl)
+  (set-case-syntax-pair ?Î‰ ?Î® tbl)
+  (set-case-syntax-pair ?ÎŠ ?Î¯ tbl))
 
 ;; Hebrew character set (ISO-8859-8)
 
@@ -494,12 +399,12 @@
 ;;; and word syntax is the default.
 ;; (let ((deflist				;
 ;; 	'(;; chars	syntax	category
-;; 	  ("(5!"#(B"	"w"	?7) ; vowel-modifying diacritical mark
+;; 	  ("ö€€€ö€€ö€€‚"	"w"	?7) ; vowel-modifying diacritical mark
 ;; 				    ; chandrabindu, anuswar, visarga
-;; 	  ("(5$(B-(52(B"	"w"	?1) ; base (independent) vowel
-;; 	  ("(53(B-(5X(B"	"w"	?0) ; consonant
-;; 	  ("(5Z(B-(5g(B"	"w"	?8) ; matra
-;; 	  ("(5q(B-(5z(B"	"w"	?6) ; digit
+;; 	  ("ö€€ƒ-ö€€‘"	"w"	?1) ; base (independent) vowel
+;; 	  ("ö€€’-ö€€·"	"w"	?0) ; consonant
+;; 	  ("ö€€¹-ö€†"	"w"	?8) ; matra
+;; 	  ("ö€-ö€™"	"w"	?6) ; digit
 ;; 	  ))
 ;;       elm chars len syntax category to ch i)
 ;;   (while deflist
@@ -591,7 +496,7 @@
 ;; (modify-syntax-entry (make-char 'japanese-jisx0208 33) "_")
 ;; (modify-syntax-entry (make-char 'japanese-jisx0208 34) "_")
 ;; (modify-syntax-entry (make-char 'japanese-jisx0208 40) "_")
-;; (let ((chars '(?$B!<(B ?$B!+(B ?$B!,(B ?$B!3(B ?$B!4(B ?$B!5(B ?$B!6(B ?$B!7(B ?$B!8(B ?$B!9(B ?$B!:(B ?$B!;(B)))
+;; (let ((chars '(?õ€€› ?õ€€Š ?õ€€‹ ?õ€€’ ?õ€€“ ?õ€€” ?õ€€• ?õ€€– ?õ€€— ?õ€€˜ ?õ€€™ ?õ€€š)))
 ;;   (while chars
 ;;     (modify-syntax-entry (car chars) "w")
 ;;     (setq chars (cdr chars))))
@@ -600,16 +505,16 @@
 			   (decode-char 'japanese-jisx0208 #x227E)) "_")
 (modify-syntax-entry (cons (decode-char 'japanese-jisx0208 #x2821)
 			   (decode-char 'japanese-jisx0208 #x287E)) "_")
-(modify-syntax-entry ?\$B!J(B "($B!K(B")
-(modify-syntax-entry ?\$B!N(B "($B!O(B")
-(modify-syntax-entry ?\$B!P(B "($B!Q(B")
-(modify-syntax-entry ?\$B!V(B "($B!W(B")
-(modify-syntax-entry ?\$B!X(B "($B!Y(B")
-(modify-syntax-entry ?\$B!K(B ")$B!J(B")
-(modify-syntax-entry ?\$B!O(B ")$B!N(B")
-(modify-syntax-entry ?\$B!Q(B ")$B!P(B")
-(modify-syntax-entry ?\$B!W(B ")$B!V(B")
-(modify-syntax-entry ?\$B!Y(B ")$B!X(B")
+(modify-syntax-entry ?\õ€€© "(õ€€ª")
+(modify-syntax-entry ?\õ€€­ "(õ€€®")
+(modify-syntax-entry ?\õ€€¯ "(õ€€°")
+(modify-syntax-entry ?\õ€€µ "(õ€€¶")
+(modify-syntax-entry ?\õ€€· "(õ€€¸")
+(modify-syntax-entry ?\õ€€ª ")õ€€©")
+(modify-syntax-entry ?\õ€€® ")õ€€­")
+(modify-syntax-entry ?\õ€€° ")õ€€¯")
+(modify-syntax-entry ?\õ€€¶ ")õ€€µ")
+(modify-syntax-entry ?\õ€€¸ ")õ€€·")
 
 ;; (modify-category-entry (make-char 'japanese-jisx0208 35) ?A)
 ;; (modify-category-entry (make-char 'japanese-jisx0208 36) ?H)
@@ -620,13 +525,13 @@
 ;;   (while (< row 127)
 ;;     (modify-category-entry (make-char 'japanese-jisx0208 row) ?C)
 ;;     (setq row (1+ row))))
-(modify-category-entry ?$B!<(B ?K)
-(let ((chars '(?$B!+(B ?$B!,(B)))
+(modify-category-entry ?õ€€› ?K)
+(let ((chars '(?õ€€Š ?õ€€‹)))
   (while chars
     (modify-category-entry (car chars) ?K)
     (modify-category-entry (car chars) ?H)
     (setq chars (cdr chars))))
-(let ((chars '(?$B!3(B ?$B!4(B ?$B!5(B ?$B!6(B ?$B!7(B ?$B!8(B ?$B!9(B ?$B!:(B ?$B!;(B)))
+(let ((chars '(?õ€€’ ?õ€€“ ?õ€€” ?õ€€• ?õ€€– ?õ€€— ?õ€€˜ ?õ€€™ ?õ€€š)))
   (while chars
     (modify-category-entry (car chars) ?C)
     (setq chars (cdr chars))))
@@ -643,15 +548,15 @@
 
 ;; JISX0201-Kana
 ;; (modify-syntax-entry (make-char 'katakana-jisx0201) "w")
-(let ((chars '(?(I!(B ?(I$(B ?(I%(B
+(let ((chars '(?ï½¡ ?ï½¤ ?ï½¥
 	       ;; Unicode:
-	       ?$,3sa(B ?$,3sd(B ?$,3se(B)))
+	       ?ï½¡ ?ï½¤ ?ï½¥)))
   (while chars
     (modify-syntax-entry (car chars) ".")
     (setq chars (cdr chars))))
 
-(modify-syntax-entry ?\(I"(B "((I#(B")
-(modify-syntax-entry ?\(I#(B "((I"(B")
+(modify-syntax-entry ?\ï½¢ "(ï½£")
+(modify-syntax-entry ?\ï½£ "(ï½¢")
 
 ;; Korean character set (KSC5601)
 
@@ -695,23 +600,23 @@
   (modify-category-entry (decode-char 'ucs (+ i #xe80)) ?o))
 
 (let ((deflist	'(;; chars	syntax	category
-		  ("(1!(B-(1N(B"	"w"	?0) ; consonant
-		  ("(1PRS]`(B-(1d(B"	"w"	?1) ; vowel base
-		  ("(1QT(B-(1W[m(B"	"w"	?2) ; vowel upper
-		  ("(1XY(B"		"w"	?3) ; vowel lower
-		  ("(1h(B-(1l(B"	"w"	?4) ; tone mark 
-		  ("(1\(B"		"w"	?9) ; semivowel lower
-		  ("(1p(B-(1y(B"	"w"	?6) ; digit
-		  ("(1Of(B"		"_"	?5) ; symbol
+		  ("àº-àº®"	"w"	?0) ; consonant
+		  ("àº°àº²àº³àº½à»€-à»„"	"w"	?1) ; vowel base
+		  ("àº±àº´-àº·àº»à»"	"w"	?2) ; vowel upper
+		  ("àº¸àº¹"		"w"	?3) ; vowel lower
+		  ("à»ˆ-à»Œ"	"w"	?4) ; tone mark 
+		  ("àº¼"		"w"	?9) ; semivowel lower
+		  ("à»-à»™"	"w"	?6) ; digit
+		  ("àº¯à»†"		"_"	?5) ; symbol
 		  ;; Unicode equivalents
-		  ("$,1D!(B-$,1DN(B"	"w"	?0) ; consonant
-		  ("$,1DPDRDSD]D`(B-$,1Dd(B"	"w"	?1) ; vowel base
-		  ("$,1DQDT(B-$,1DWD[Dm(B"	"w"	?2) ; vowel upper
-		  ("$,1DXDY(B"	"w"	?3) ; vowel lower
-		  ("$,1Dh(B-$,1Dk(B"	"w"	?4) ; tone mark 
-		  ("$,1D\D](B"	"w"	?9) ; semivowel lower
-		  ("$,1Dp(B-$,1Dy(B"	"w"	?6) ; digit
-		  ("$,1DODf(B"	"_"	?5) ; symbol
+		  ("àº-àº®"	"w"	?0) ; consonant
+		  ("àº°àº²àº³àº½à»€-à»„"	"w"	?1) ; vowel base
+		  ("àº±àº´-àº·àº»à»"	"w"	?2) ; vowel upper
+		  ("àº¸àº¹"	"w"	?3) ; vowel lower
+		  ("à»ˆ-à»‹"	"w"	?4) ; tone mark 
+		  ("àº¼àº½"	"w"	?9) ; semivowel lower
+		  ("à»-à»™"	"w"	?6) ; digit
+		  ("àº¯à»†"	"_"	?5) ; symbol
 		  ))
       elm chars len syntax category to ch i)
   (while deflist
@@ -742,21 +647,13 @@
   (modify-category-entry (decode-char 'ucs (+ i #xe00)) ?t))
 
 (let ((deflist	'(;; chars	syntax	category
-		  (",T!(B-,TCEG(B-,TN(B"	"w"	?0) ; consonant
-		  (",TDFPRS`(B-,Te(B"	"w"	?1) ; vowel base
-		  (",TQT(B-,TWgn(B"	"w"	?2) ; vowel upper
-		  (",TX(B-,TZ(B"	"w"	?3) ; vowel lower
-		  (",Th(B-,Tm(B"	"w"	?4) ; tone mark 
-		  (",Tp(B-,Ty(B"	"w"	?6) ; digit
-		  (",TOf_oz{(B"	"_"	?5) ; symbol
-		  ;; Unicode equivalents
-		  ("$,1Ba(B-$,1C#C%C'(B-$,1C.(B"	"w"	?0) ; consonant
-		  ("$,1C$C&C0C2C3C@(B-$,1CE(B"	"w"	?1) ; vowel base
-		  ("$,1C1C4(B-$,1C7CGCN(B"	"w"	?2) ; vowel upper
-		  ("$,1C8(B-$,1C:(B"	"w"	?3) ; vowel lower
-		  ("$,1CH(B-$,1CM(B"	"w"	?4) ; tone mark 
-		  ("$,1CP(B-$,1CY(B"	"w"	?6) ; digit
-		  ("$,1C/CFC?COCZC[(B"	"_"	?5) ; symbol
+		  ("à¸-à¸£à¸¥à¸§-à¸®"	"w"	?0) ; consonant
+		  ("à¸¤à¸¦à¸°à¸²à¸³à¹€-à¹…"	"w"	?1) ; vowel base
+		  ("à¸±à¸´-à¸·à¹‡à¹"	"w"	?2) ; vowel upper
+		  ("à¸¸-à¸º"	"w"	?3) ; vowel lower
+		  ("à¹ˆ-à¹"	"w"	?4) ; tone mark 
+		  ("à¹-à¹™"	"w"	?6) ; digit
+		  ("à¸¯à¹†à¸¿à¹à¹šà¹›"	"_"	?5) ; symbol
 		  ))
       elm chars len syntax category to ch i)
   (while deflist
@@ -788,32 +685,32 @@
   (modify-category-entry (decode-char 'ucs (+ i #xf00)) ?q))
 
 (let ((deflist	'(;; chars             syntax category
-		  ("4$(7"!0"!1(B-4$(7"J0"J14"K0"K1(B"        	"w"	?0) ; consonant
-		  ("$(7#!(B-$(7#J#K#L#M!"!#(B"       "w"     ?0) ;
-		  ("$(7$!(B-$(7$e(B"              "w"     ?0) ;
-		  ("$(7%!(B-$(7%u(B"              "w"     ?0) ;
-		  ("$(7"S"["\"]"^"a(B"       "w"	?2) ; upper vowel
-		  ("$(7"_"c"d"g"h"i"j"k"l(B" "w"	?2) ; upper modifier
-		  ("$(7!I"Q"R"U"e!e!g(B"       "w"	?3) ; lowel vowel/modifier
-		  ("$(7!P(B-$(7!Y!Z(B-$(7!c(B"	        "w"	?6) ; digit
-		  ("$(7!;!=(B-$(7!B!D"`(B"        "."     ?|) ; line-break char
-		  ("$(8!;!=!?!@!A!D"`(B"            "."     ?|) ;
-		  ("$(7!8!;!=(B-$(7!B!D"`!m!d(B"  "."     ?>) ; prohibition
-		  ("$(8!;!=!?!@!A!D"`(B"            "."     ?>) ;
-		  ("$(7!0(B-$(7!:!l#R#S"f(B"      "."     ?<) ; prohibition
-		  ("$(7!C!E(B-$(7!H!J(B-$(7!O!f!h(B-$(7!k!n!o#O#P(B-$(7#`(B" "." ?q) ; others
+		  ("ö-ö‚‡ö‚ˆ"        	"w"	?0) ; consonant
+		  ("ö‚¼-öƒ¥öƒ¦öƒ§öƒ¨ö€ö€‚"       "w"     ?0) ;
+		  ("ö„š-ö…"              "w"     ?0) ;
+		  ("ö…¸-ö‡Œ"              "w"     ?0) ;
+		  ("ö‚ö‚˜ö‚™ö‚šö‚›ö‚"       "w"	?2) ; upper vowel
+		  ("ö‚œö‚ ö‚¡ö‚¤ö‚¥ö‚¦ö‚§ö‚¨ö‚©" "w"	?2) ; upper modifier
+		  ("ö€¨ö‚ö‚ö‚’ö‚¢ö„ö†"       "w"	?3) ; lowel vowel/modifier
+		  ("ö€¯-ö€¸ö€¹-ö‚"	        "w"	?6) ; digit
+		  ("ö€šö€œ-ö€¡ö€£ö‚"        "."     ?|) ; line-break char
+		  ("ö€šö€œö€ö€Ÿö€ ö€£ö‚"            "."     ?|) ;
+		  ("ö€—ö€šö€œ-ö€¡ö€£ö‚öŒöƒ"  "."     ?>) ; prohibition
+		  ("ö€šö€œö€ö€Ÿö€ ö€£ö‚"            "."     ?>) ;
+		  ("ö€-ö€™ö‹öƒ­öƒ®ö‚£"      "."     ?<) ; prohibition
+		  ("ö€¢ö€¤-ö€§ö€©-ö€®ö…ö‡-öŠöööƒªöƒ«-öƒ»" "." ?q) ; others
 
 		  ;; Unicode version (not complete)
-		  ("$,1F (B-$,1FIFJ(B"        	"w"	?0) ; consonant
-		  ("$,1Fp(B-$,1G9G:G;G<(B"       "w"     ?0) ;
-		  ("$,1FRFZF[F\F]F`(B"       "w"	?2) ; upper vowel
-		  ("$,1F^FbFcFfFgFhFiFjFk(B" "w"	?2) ; upper modifier
-		  ("$,1EYFPFQFTFdEuEw(B"       "w"	?3) ; lowel vowel/modifier
-		  ("$,1E`(B-$,1EiEj(B-$,1Es(B"	        "w"	?6) ; digit
-		  ("$,1EKEM(B-$,1ERETF_(B"        "."     ?|) ; line-break char
-		  ("$,1EHEKEM(B-$,1ERETF_E}Et(B"  "."     ?>) ; prohibition
-		  ("$,1E@(B-$,1EJE|GAGBFe(B"      "."     ?<) ; prohibition
-		  ("$,1ESEU(B-$,1EXEZ(B-$,1E_EvEx(B-$,1E{E~EG>G?(B-$,1GO(B" "." ?q) ; others
+		  ("à½€-à½©à½ª"        	"w"	?0) ; consonant
+		  ("à¾-à¾¹à¾ºà¾»à¾¼"       "w"     ?0) ;
+		  ("à½²à½ºà½»à½¼à½½à¾€"       "w"	?2) ; upper vowel
+		  ("à½¾à¾‚à¾ƒà¾†à¾‡à¾ˆà¾‰à¾Šà¾‹" "w"	?2) ; upper modifier
+		  ("à¼™à½°à½±à½´à¾„à¼µà¼·"       "w"	?3) ; lowel vowel/modifier
+		  ("à¼ -à¼©à¼ª-à¼³"	        "w"	?6) ; digit
+		  ("à¼‹à¼-à¼’à¼”à½¿"        "."     ?|) ; line-break char
+		  ("à¼ˆà¼‹à¼-à¼’à¼”à½¿à¼½à¼´"  "."     ?>) ; prohibition
+		  ("à¼€-à¼Šà¼¼à¿à¿‚à¾…"      "."     ?<) ; prohibition
+		  ("à¼“à¼•-à¼˜à¼š-à¼Ÿà¼¶à¼¸-à¼»à¼¾à¼¿à¾¾à¾¿-à¿" "." ?q) ; others
 		  ))
       elm chars len syntax category to ch i)
   (while deflist
@@ -883,109 +780,109 @@
 	 (set-case-syntax-pair
 	  (decode-char 'ucs (1- c)) (decode-char 'ucs c) tbl))
     (setq c (1+ c)))
-  (set-case-syntax-pair ?$,1 R(B ?$,1 S(B tbl)
-  (set-case-syntax-pair ?$,1 T(B ?$,1 U(B tbl)
-  (set-case-syntax-pair ?$,1 V(B ?$,1 W(B tbl)
-;;;  (set-case-syntax-pair ?$,1!8(B ?,A(B tbl)	; these two have different length!
-  (set-case-syntax-pair ?$,1!9(B ?$,1!:(B tbl)
-  (set-case-syntax-pair ?$,1!;(B ?$,1!<(B tbl)
-  (set-case-syntax-pair ?$,1!=(B ?$,1!>(B tbl)
+  (set-case-syntax-pair ?Ä² ?Ä³ tbl)
+  (set-case-syntax-pair ?Ä´ ?Äµ tbl)
+  (set-case-syntax-pair ?Ä¶ ?Ä· tbl)
+;;;  (set-case-syntax-pair ?Å¸ ?Ã¿ tbl)	; these two have different length!
+  (set-case-syntax-pair ?Å¹ ?Åº tbl)
+  (set-case-syntax-pair ?Å» ?Å¼ tbl)
+  (set-case-syntax-pair ?Å½ ?Å¾ tbl)
 
   ;; Latin Extended-B
-  (set-case-syntax-pair ?$,1!A(B ?$,1#S(B tbl)
-  (set-case-syntax-pair ?$,1!B(B ?$,1!C(B tbl)
-  (set-case-syntax-pair ?$,1!D(B ?$,1!E(B tbl)
-  (set-case-syntax-pair ?$,1!F(B ?$,1#T(B tbl)
-  (set-case-syntax-pair ?$,1!G(B ?$,1!H(B tbl)
-  (set-case-syntax-pair ?$,1!I(B ?$,1#V(B tbl)
-  (set-case-syntax-pair ?$,1!J(B ?$,1#W(B tbl)
-  (set-case-syntax-pair ?$,1!K(B ?$,1!L(B tbl)
-  (set-case-syntax-pair ?$,1!N(B ?$,1"=(B tbl)
-  (set-case-syntax-pair ?$,1!O(B ?$,1#Y(B tbl)
-  (set-case-syntax-pair ?$,1!P(B ?$,1#[(B tbl)
-  (set-case-syntax-pair ?$,1!Q(B ?$,1!R(B tbl)
-  (set-case-syntax-pair ?$,1!S(B ?$,1#`(B tbl)
-  (set-case-syntax-pair ?$,1!T(B ?$,1#c(B tbl)
-  (set-case-syntax-pair ?$,1!V(B ?$,1#i(B tbl)
-  (set-case-syntax-pair ?$,1!W(B ?$,1#h(B tbl)
-  (set-case-syntax-pair ?$,1!X(B ?$,1!Y(B tbl)
-  (set-case-syntax-pair ?$,1!\(B ?$,1#o(B tbl)
-  (set-case-syntax-pair ?$,1!](B ?$,1#r(B tbl)
-  (set-case-syntax-pair ?$,1!_(B ?$,1#u(B tbl)
-  (set-case-syntax-pair ?$,1!`(B ?$,1!a(B tbl)
-  (set-case-syntax-pair ?$,1!b(B ?$,1!c(B tbl)
-  (set-case-syntax-pair ?$,1!d(B ?$,1!e(B tbl)
-  (set-case-syntax-pair ?$,1!f(B ?$,1$ (B tbl)
-  (set-case-syntax-pair ?$,1!g(B ?$,1!h(B tbl)
-  (set-case-syntax-pair ?$,1!i(B ?$,1$#(B tbl)
-  (set-case-syntax-pair ?$,1!l(B ?$,1!m(B tbl)
-  (set-case-syntax-pair ?$,1!n(B ?$,1$((B tbl)
-  (set-case-syntax-pair ?$,1!o(B ?$,1!p(B tbl)
-  (set-case-syntax-pair ?$,1!q(B ?$,1$*(B tbl)
-  (set-case-syntax-pair ?$,1!r(B ?$,1$+(B tbl)
-  (set-case-syntax-pair ?$,1!s(B ?$,1!t(B tbl)
-  (set-case-syntax-pair ?$,1!u(B ?$,1!v(B tbl)
-  (set-case-syntax-pair ?$,1!w(B ?$,1$2(B tbl)
-  (set-case-syntax-pair ?$,1!x(B ?$,1!y(B tbl)
-  (set-case-syntax-pair ?$,1!|(B ?$,1!}(B tbl)
-  (set-case-syntax-pair ?$,1"$(B ?$,1"&(B tbl)
-  (set-case-syntax-pair ?$,1"%(B ?$,1"&(B tbl)
-  (set-case-syntax-pair ?$,1"'(B ?$,1")(B tbl)
-  (set-case-syntax-pair ?$,1"((B ?$,1")(B tbl)
-  (set-case-syntax-pair ?$,1"*(B ?$,1",(B tbl)
-  (set-case-syntax-pair ?$,1"+(B ?$,1",(B tbl)
-  (set-case-syntax-pair ?$,1"-(B ?$,1".(B tbl)
-  (set-case-syntax-pair ?$,1"/(B ?$,1"0(B tbl)
-  (set-case-syntax-pair ?$,1"1(B ?$,1"2(B tbl)
-  (set-case-syntax-pair ?$,1"3(B ?$,1"4(B tbl)
-  (set-case-syntax-pair ?$,1"5(B ?$,1"6(B tbl)
-  (set-case-syntax-pair ?$,1"7(B ?$,1"8(B tbl)
-  (set-case-syntax-pair ?$,1"9(B ?$,1":(B tbl)
-  (set-case-syntax-pair ?$,1";(B ?$,1"<(B tbl)
-  (set-case-syntax-pair ?$,1">(B ?$,1"?(B tbl)
-  (set-case-syntax-pair ?$,1"@(B ?$,1"A(B tbl)
-  (set-case-syntax-pair ?$,1"B(B ?$,1"C(B tbl)
-  (set-case-syntax-pair ?$,1"D(B ?$,1"E(B tbl)
-  (set-case-syntax-pair ?$,1"F(B ?$,1"G(B tbl)
-  (set-case-syntax-pair ?$,1"H(B ?$,1"I(B tbl)
-  (set-case-syntax-pair ?$,1"J(B ?$,1"K(B tbl)
-  (set-case-syntax-pair ?$,1"L(B ?$,1"M(B tbl)
-  (set-case-syntax-pair ?$,1"N(B ?$,1"O(B tbl)
+  (set-case-syntax-pair ?Æ ?É“ tbl)
+  (set-case-syntax-pair ?Æ‚ ?Æƒ tbl)
+  (set-case-syntax-pair ?Æ„ ?Æ… tbl)
+  (set-case-syntax-pair ?Æ† ?É” tbl)
+  (set-case-syntax-pair ?Æ‡ ?Æˆ tbl)
+  (set-case-syntax-pair ?Æ‰ ?É– tbl)
+  (set-case-syntax-pair ?ÆŠ ?É— tbl)
+  (set-case-syntax-pair ?Æ‹ ?ÆŒ tbl)
+  (set-case-syntax-pair ?Æ ?Ç tbl)
+  (set-case-syntax-pair ?Æ ?É™ tbl)
+  (set-case-syntax-pair ?Æ ?É› tbl)
+  (set-case-syntax-pair ?Æ‘ ?Æ’ tbl)
+  (set-case-syntax-pair ?Æ“ ?É  tbl)
+  (set-case-syntax-pair ?Æ” ?É£ tbl)
+  (set-case-syntax-pair ?Æ– ?É© tbl)
+  (set-case-syntax-pair ?Æ— ?É¨ tbl)
+  (set-case-syntax-pair ?Æ˜ ?Æ™ tbl)
+  (set-case-syntax-pair ?Æœ ?É¯ tbl)
+  (set-case-syntax-pair ?Æ ?É² tbl)
+  (set-case-syntax-pair ?ÆŸ ?Éµ tbl)
+  (set-case-syntax-pair ?Æ  ?Æ¡ tbl)
+  (set-case-syntax-pair ?Æ¢ ?Æ£ tbl)
+  (set-case-syntax-pair ?Æ¤ ?Æ¥ tbl)
+  (set-case-syntax-pair ?Æ¦ ?Ê€ tbl)
+  (set-case-syntax-pair ?Æ§ ?Æ¨ tbl)
+  (set-case-syntax-pair ?Æ© ?Êƒ tbl)
+  (set-case-syntax-pair ?Æ¬ ?Æ­ tbl)
+  (set-case-syntax-pair ?Æ® ?Êˆ tbl)
+  (set-case-syntax-pair ?Æ¯ ?Æ° tbl)
+  (set-case-syntax-pair ?Æ± ?ÊŠ tbl)
+  (set-case-syntax-pair ?Æ² ?Ê‹ tbl)
+  (set-case-syntax-pair ?Æ³ ?Æ´ tbl)
+  (set-case-syntax-pair ?Æµ ?Æ¶ tbl)
+  (set-case-syntax-pair ?Æ· ?Ê’ tbl)
+  (set-case-syntax-pair ?Æ¸ ?Æ¹ tbl)
+  (set-case-syntax-pair ?Æ¼ ?Æ½ tbl)
+  (set-case-syntax-pair ?Ç„ ?Ç† tbl)
+  (set-case-syntax-pair ?Ç… ?Ç† tbl)
+  (set-case-syntax-pair ?Ç‡ ?Ç‰ tbl)
+  (set-case-syntax-pair ?Çˆ ?Ç‰ tbl)
+  (set-case-syntax-pair ?ÇŠ ?ÇŒ tbl)
+  (set-case-syntax-pair ?Ç‹ ?ÇŒ tbl)
+  (set-case-syntax-pair ?Ç ?Ç tbl)
+  (set-case-syntax-pair ?Ç ?Ç tbl)
+  (set-case-syntax-pair ?Ç‘ ?Ç’ tbl)
+  (set-case-syntax-pair ?Ç“ ?Ç” tbl)
+  (set-case-syntax-pair ?Ç• ?Ç– tbl)
+  (set-case-syntax-pair ?Ç— ?Ç˜ tbl)
+  (set-case-syntax-pair ?Ç™ ?Çš tbl)
+  (set-case-syntax-pair ?Ç› ?Çœ tbl)
+  (set-case-syntax-pair ?Ç ?ÇŸ tbl)
+  (set-case-syntax-pair ?Ç  ?Ç¡ tbl)
+  (set-case-syntax-pair ?Ç¢ ?Ç£ tbl)
+  (set-case-syntax-pair ?Ç¤ ?Ç¥ tbl)
+  (set-case-syntax-pair ?Ç¦ ?Ç§ tbl)
+  (set-case-syntax-pair ?Ç¨ ?Ç© tbl)
+  (set-case-syntax-pair ?Çª ?Ç« tbl)
+  (set-case-syntax-pair ?Ç¬ ?Ç­ tbl)
+  (set-case-syntax-pair ?Ç® ?Ç¯ tbl)
   ;; 01F0; F; 006A 030C; # LATIN SMALL LETTER J WITH CARON
-  (set-case-syntax-pair ?$,1"Q(B ?$,1"S(B tbl)
-  (set-case-syntax-pair ?$,1"R(B ?$,1"S(B tbl)
-  (set-case-syntax-pair ?$,1"T(B ?$,1"U(B tbl)
-  (set-case-syntax-pair ?$,1"V(B ?$,1!U(B tbl)
-  (set-case-syntax-pair ?$,1"W(B ?$,1!(B tbl)
-  (set-case-syntax-pair ?$,1"X(B ?$,1"Y(B tbl)
-  (set-case-syntax-pair ?$,1"Z(B ?$,1"[(B tbl)
-  (set-case-syntax-pair ?$,1"\(B ?$,1"](B tbl)
-  (set-case-syntax-pair ?$,1"^(B ?$,1"_(B tbl)
-  (set-case-syntax-pair ?$,1"`(B ?$,1"a(B tbl)
-  (set-case-syntax-pair ?$,1"b(B ?$,1"c(B tbl)
-  (set-case-syntax-pair ?$,1"d(B ?$,1"e(B tbl)
-  (set-case-syntax-pair ?$,1"f(B ?$,1"g(B tbl)
-  (set-case-syntax-pair ?$,1"h(B ?$,1"i(B tbl)
-  (set-case-syntax-pair ?$,1"j(B ?$,1"k(B tbl)
-  (set-case-syntax-pair ?$,1"l(B ?$,1"m(B tbl)
-  (set-case-syntax-pair ?$,1"n(B ?$,1"o(B tbl)
-  (set-case-syntax-pair ?$,1"p(B ?$,1"q(B tbl)
-  (set-case-syntax-pair ?$,1"r(B ?$,1"s(B tbl)
-  (set-case-syntax-pair ?$,1"t(B ?$,1"u(B tbl)
-  (set-case-syntax-pair ?$,1"v(B ?$,1"w(B tbl)
-  (set-case-syntax-pair ?$,1"x(B ?$,1"y(B tbl)
-  (set-case-syntax-pair ?$,1"z(B ?$,1"{(B tbl)
-  (set-case-syntax-pair ?$,1"|(B ?$,1"}(B tbl)
-  (set-case-syntax-pair ?$,1"~(B ?$,1"(B tbl)
-  (set-case-syntax-pair ?$,1#"(B ?$,1##(B tbl)
-  (set-case-syntax-pair ?$,1#$(B ?$,1#%(B tbl)
-  (set-case-syntax-pair ?$,1#&(B ?$,1#'(B tbl)
-  (set-case-syntax-pair ?$,1#((B ?$,1#)(B tbl)
-  (set-case-syntax-pair ?$,1#*(B ?$,1#+(B tbl)
-  (set-case-syntax-pair ?$,1#,(B ?$,1#-(B tbl)
-  (set-case-syntax-pair ?$,1#.(B ?$,1#/(B tbl)
-  (set-case-syntax-pair ?$,1#0(B ?$,1#1(B tbl)
-  (set-case-syntax-pair ?$,1#2(B ?$,1#3(B tbl)
+  (set-case-syntax-pair ?Ç± ?Ç³ tbl)
+  (set-case-syntax-pair ?Ç² ?Ç³ tbl)
+  (set-case-syntax-pair ?Ç´ ?Çµ tbl)
+  (set-case-syntax-pair ?Ç¶ ?Æ• tbl)
+  (set-case-syntax-pair ?Ç· ?Æ¿ tbl)
+  (set-case-syntax-pair ?Ç¸ ?Ç¹ tbl)
+  (set-case-syntax-pair ?Çº ?Ç» tbl)
+  (set-case-syntax-pair ?Ç¼ ?Ç½ tbl)
+  (set-case-syntax-pair ?Ç¾ ?Ç¿ tbl)
+  (set-case-syntax-pair ?È€ ?È tbl)
+  (set-case-syntax-pair ?È‚ ?Èƒ tbl)
+  (set-case-syntax-pair ?È„ ?È… tbl)
+  (set-case-syntax-pair ?È† ?È‡ tbl)
+  (set-case-syntax-pair ?Èˆ ?È‰ tbl)
+  (set-case-syntax-pair ?ÈŠ ?È‹ tbl)
+  (set-case-syntax-pair ?ÈŒ ?È tbl)
+  (set-case-syntax-pair ?È ?È tbl)
+  (set-case-syntax-pair ?È ?È‘ tbl)
+  (set-case-syntax-pair ?È’ ?È“ tbl)
+  (set-case-syntax-pair ?È” ?È• tbl)
+  (set-case-syntax-pair ?È– ?È— tbl)
+  (set-case-syntax-pair ?È˜ ?È™ tbl)
+  (set-case-syntax-pair ?Èš ?È› tbl)
+  (set-case-syntax-pair ?Èœ ?È tbl)
+  (set-case-syntax-pair ?È ?ÈŸ tbl)
+  (set-case-syntax-pair ?È¢ ?È£ tbl)
+  (set-case-syntax-pair ?È¤ ?È¥ tbl)
+  (set-case-syntax-pair ?È¦ ?È§ tbl)
+  (set-case-syntax-pair ?È¨ ?È© tbl)
+  (set-case-syntax-pair ?Èª ?È« tbl)
+  (set-case-syntax-pair ?È¬ ?È­ tbl)
+  (set-case-syntax-pair ?È® ?È¯ tbl)
+  (set-case-syntax-pair ?È° ?È± tbl)
+  (set-case-syntax-pair ?È² ?È³ tbl)
 
   ;; Latin Extended Additional
   (setq c #x1e00)
@@ -1011,13 +908,13 @@
 	 (set-case-syntax-pair
 	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))
     (setq c (1+ c)))
-  (set-case-syntax-pair ?$,1&f(B ?$,1',(B tbl)
-  (set-case-syntax-pair ?$,1&h(B ?$,1'-(B tbl)
-  (set-case-syntax-pair ?$,1&i(B ?$,1'.(B tbl)
-  (set-case-syntax-pair ?$,1&j(B ?$,1'/(B tbl)
-  (set-case-syntax-pair ?$,1&l(B ?$,1'L(B tbl)
-  (set-case-syntax-pair ?$,1&n(B ?$,1'M(B tbl)
-  (set-case-syntax-pair ?$,1&o(B ?$,1'N(B tbl)
+  (set-case-syntax-pair ?Î† ?Î¬ tbl)
+  (set-case-syntax-pair ?Îˆ ?Î­ tbl)
+  (set-case-syntax-pair ?Î‰ ?Î® tbl)
+  (set-case-syntax-pair ?ÎŠ ?Î¯ tbl)
+  (set-case-syntax-pair ?ÎŒ ?ÏŒ tbl)
+  (set-case-syntax-pair ?Î ?Ï tbl)
+  (set-case-syntax-pair ?Î ?Ï tbl)
 
   ;; Armenian
   (setq c #x531)
@@ -1037,30 +934,30 @@
 	 (set-case-syntax-pair
 	  (decode-char 'ucs (+ c 8)) (decode-char 'ucs c) tbl))
     (setq c (1+ c)))
-  (set-case-syntax-pair ?$,1qx(B ?$,1qp(B tbl)
-  (set-case-syntax-pair ?$,1qy(B ?$,1qq(B tbl)
-  (set-case-syntax-pair ?$,1qz(B ?$,1q0(B tbl)
-  (set-case-syntax-pair ?$,1q{(B ?$,1q1(B tbl)
-  (set-case-syntax-pair ?$,1q|(B ?$,1qs(B tbl)
-  (set-case-syntax-pair ?$,1r((B ?$,1q2(B tbl)
-  (set-case-syntax-pair ?$,1r)(B ?$,1q3(B tbl)
-  (set-case-syntax-pair ?$,1r*(B ?$,1q4(B tbl)
-  (set-case-syntax-pair ?$,1r+(B ?$,1q5(B tbl)
-  (set-case-syntax-pair ?$,1r,(B ?$,1r#(B tbl)
-  (set-case-syntax-pair ?$,1r8(B ?$,1r0(B tbl)
-  (set-case-syntax-pair ?$,1r9(B ?$,1r1(B tbl)
-  (set-case-syntax-pair ?$,1r:(B ?$,1q6(B tbl)
-  (set-case-syntax-pair ?$,1r;(B ?$,1q7(B tbl)
-  (set-case-syntax-pair ?$,1rH(B ?$,1r@(B tbl)
-  (set-case-syntax-pair ?$,1rI(B ?$,1rA(B tbl)
-  (set-case-syntax-pair ?$,1rJ(B ?$,1q:(B tbl)
-  (set-case-syntax-pair ?$,1rK(B ?$,1q;(B tbl)
-  (set-case-syntax-pair ?$,1rL(B ?$,1rE(B tbl)
-  (set-case-syntax-pair ?$,1rX(B ?$,1q8(B tbl)
-  (set-case-syntax-pair ?$,1rY(B ?$,1q9(B tbl)
-  (set-case-syntax-pair ?$,1rZ(B ?$,1q<(B tbl)
-  (set-case-syntax-pair ?$,1r[(B ?$,1q=(B tbl)
-  (set-case-syntax-pair ?$,1r\(B ?$,1rS(B tbl)
+  (set-case-syntax-pair ?á¾¸ ?á¾° tbl)
+  (set-case-syntax-pair ?á¾¹ ?á¾± tbl)
+  (set-case-syntax-pair ?á¾º ?á½° tbl)
+  (set-case-syntax-pair ?á¾» ?á½± tbl)
+  (set-case-syntax-pair ?á¾¼ ?á¾³ tbl)
+  (set-case-syntax-pair ?á¿ˆ ?á½² tbl)
+  (set-case-syntax-pair ?á¿‰ ?á½³ tbl)
+  (set-case-syntax-pair ?á¿Š ?á½´ tbl)
+  (set-case-syntax-pair ?á¿‹ ?á½µ tbl)
+  (set-case-syntax-pair ?á¿Œ ?á¿ƒ tbl)
+  (set-case-syntax-pair ?á¿˜ ?á¿ tbl)
+  (set-case-syntax-pair ?á¿™ ?á¿‘ tbl)
+  (set-case-syntax-pair ?á¿š ?á½¶ tbl)
+  (set-case-syntax-pair ?á¿› ?á½· tbl)
+  (set-case-syntax-pair ?á¿¨ ?á¿  tbl)
+  (set-case-syntax-pair ?á¿© ?á¿¡ tbl)
+  (set-case-syntax-pair ?á¿ª ?á½º tbl)
+  (set-case-syntax-pair ?á¿« ?á½» tbl)
+  (set-case-syntax-pair ?á¿¬ ?á¿¥ tbl)
+  (set-case-syntax-pair ?á¿¸ ?á½¸ tbl)
+  (set-case-syntax-pair ?á¿¹ ?á½¹ tbl)
+  (set-case-syntax-pair ?á¿º ?á½¼ tbl)
+  (set-case-syntax-pair ?á¿» ?á½½ tbl)
+  (set-case-syntax-pair ?á¿¼ ?á¿³ tbl)
 
   ;; cyrillic
   (setq c #x0400)
@@ -1081,11 +978,11 @@
 	 (set-case-syntax-pair
 	  (decode-char 'ucs c) (decode-char 'ucs (1+ c)) tbl))	 
     (setq c (1+ c)))
-  (set-case-syntax-pair ?$,1*!(B ?$,1*"(B tbl)
-  (set-case-syntax-pair ?$,1*#(B ?$,1*$(B tbl)
-  (set-case-syntax-pair ?$,1*'(B ?$,1*((B tbl)
-  (set-case-syntax-pair ?$,1*+(B ?$,1*,(B tbl)
-  (set-case-syntax-pair ?$,1*X(B ?$,1*Y(B tbl)
+  (set-case-syntax-pair ?Ó ?Ó‚ tbl)
+  (set-case-syntax-pair ?Óƒ ?Ó„ tbl)
+  (set-case-syntax-pair ?Ó‡ ?Óˆ tbl)
+  (set-case-syntax-pair ?Ó‹ ?ÓŒ tbl)
+  (set-case-syntax-pair ?Ó¸ ?Ó¹ tbl)
 
   ;; general punctuation
   (setq c #x2000)
@@ -1123,10 +1020,10 @@
     (setq c (1+ c)))
 
   ;; Ohm, Kelvin, Angstrom
-  (set-case-syntax-pair ?$,1uf(B ?$,1'I(B tbl)
-;;;  These mess up the case conversion of k and ,Ae(B.
-;;;  (set-case-syntax-pair ?$,1uj(B ?k tbl)
-;;;  (set-case-syntax-pair ?$,1uk(B ?,Ae(B tbl)
+  (set-case-syntax-pair ?â„¦ ?Ï‰ tbl)
+;;;  These mess up the case conversion of k and Ã¥.
+;;;  (set-case-syntax-pair ?â„ª ?k tbl)
+;;;  (set-case-syntax-pair ?â„« ?Ã¥ tbl)
 
   ;; Combining diacritics
   (setq c #x300)
@@ -1228,7 +1125,7 @@
 
 
 ;;; Local Variables:
-;;; coding: iso-2022-7bit
+;;; coding: utf-8-emacs
 ;;; End:
 
 ;;; characters.el ends here
