@@ -4559,7 +4559,8 @@ x_wm_set_size_hint (f, prompting)
     {
       XSizeHints hints;		/* Sometimes I hate X Windows... */
       
-      XGetNormalHints (x_current_display, window, &hints);
+      if (XGetNormalHints (x_current_display, window, &hints) == 0)
+	hints.flags = 0;
       if (hints.flags & PSize)
 	size_hints.flags |= PSize;
       if (hints.flags & PPosition)
