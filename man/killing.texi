@@ -49,6 +49,16 @@ that can destroy significant amounts of nontrivial data generally kill.
 The commands' names and individual descriptions use the words @samp{kill}
 and @samp{delete} to say which they do.
 
+@cindex Delete Selection mode
+@cindex mode, Delete Selection
+@findex delete-selection-mode
+You can arrange for selected text to be killed when you insert something
+and replaced by what you insert; this is the way many text interfaces
+work.  To do this turn on Delete Selection mode. with @kbd{M-x
+delete-selection-mode} or using Custom.  Also in Delete Selection mode
+@key{DEL}, @kbd{C-d} and some other keys will just kill the whole
+selection and Transient Mark mode is turned on (@pxref{Transient Mark}).
+
 @menu
 * Deletion::            Commands for deleting small amounts of text and
                           blank areas.
