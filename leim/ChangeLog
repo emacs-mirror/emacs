@@ -1,3 +1,7 @@
+2001-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* quail/latin-post.el ("finnish-keyboard"): Fix a typo.
+
 2001-03-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/japanese.el (quail-japanese-transliteration-rules): New
