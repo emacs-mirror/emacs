@@ -539,9 +539,9 @@ but contains full information about each coding systems."
 	   (setq style (concat style "reverse slant"))))
     (beginning-of-line)
     (insert fontset)
-    (indent-to 56)
+    (indent-to 58)
     (insert (if (> size 0) (format "%dx%d" size height) "  ?"))
-    (indent-to 62)
+    (indent-to 64)
     (insert style "\n")
     (when print-fonts
       (insert "  O Charset / Fontname\n"
@@ -575,10 +575,10 @@ in the fontset).  The letter `?' in this column means that the
 corresponding fontset is not yet used in any frame.
 
 The O column of each font contains one of the following letters.
- o -- the font already opened
- - -- the font not yet opened
- x -- the font can't be opened
- ? -- no font specified in FONTSET
+ o -- font already opened
+ - -- font not yet opened
+ x -- font can't be opened
+ ? -- no font specified
 
 The Charset column of each font contains a name of character set
 displayed by the font."
@@ -598,8 +598,8 @@ displayed by the font."
     (with-output-to-temp-buffer "*Help*"
       (save-excursion
 	(set-buffer standard-output)
-	(insert "Fontset-Name\t\t\t\t\t\tSize  Style\n")
-	(insert "------------\t\t\t\t\t\t----  -----\n")
+	(insert "Fontset-Name\t\t\t\t\t\t  Size  Style\n")
+	(insert "------------\t\t\t\t\t\t  ----  -----\n")
 	(print-fontset fontset t)))))
 
 ;;;###autoload
@@ -619,8 +619,8 @@ See the function `describe-fontset' for the format of the list."
   (with-output-to-temp-buffer "*Help*"
     (save-excursion
       (set-buffer standard-output)
-      (insert "Fontset-Name\t\t\t\t\t\tSize Style\n")
-      (insert "------------\t\t\t\t\t\t---- -----\n")
+      (insert "Fontset-Name\t\t\t\t\t\t  Size  Style\n")
+      (insert "------------\t\t\t\t\t\t  ----  -----\n")
       (let ((fontsets (fontset-list)))
 	(while fontsets
 	  (print-fontset (car fontsets) arg)
