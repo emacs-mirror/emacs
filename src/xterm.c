@@ -2955,7 +2955,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      {
 		if (!x_focus_frame || (f == x_focus_frame))
 		  construct_mouse_click (&emacs_event,
-					 &event, f, Qnil, 0);
+					 &event, f);
 	      }
 	    else
 	      {
