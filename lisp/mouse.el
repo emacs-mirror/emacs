@@ -88,9 +88,14 @@ PREFIX is the prefix argument (if any) to pass to the command."
 	      ;; Try again but with the submap.
 	      (setq map cmd)
 	    (setq prefix-arg prefix)
+	    ;; `setup-specified-language-environment', for instance,
+	    ;; expects this to be set from a menu keymap.
+	    (setq last-command-event (car (last event)))
 	    ;; mouse-major-mode-menu was using `command-execute' instead.
 	    (call-interactively cmd)))))))
-	
+
+(defvar mouse-major-mode-menu-prefix)	; dynamically bound
+
 (defun mouse-major-mode-menu (event prefix)
   "Pop up a mode-specific menu of mouse commands.
 Default to the Edit menu if the major mode doesn't define a menu."
