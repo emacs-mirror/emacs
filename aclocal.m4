@@ -278,6 +278,9 @@ else
 fi
 ])# AC_C_PROTOTYPES
 
+dnl The following isn't in the prerelease autoconf at this time, but
+dnl eggert expects it to go in eventually.
+
 dnl By default, many hosts won't let programs access large files;
 dnl one must use special compiler options to get large-file access to work.
 dnl For more details about this brain damage please see:
