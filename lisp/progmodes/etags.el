@@ -658,10 +658,17 @@ See documentation of variable `tags-file-name'."
   ;; windows.  To prevent this, we save the selected window's point before
   ;; doing find-tag-noselect, and restore it after.
   (let* ((window-point (window-point (selected-window)))
-	 (tagbuf (find-tag-noselect tagname next-p)))
+	 (tagbuf (find-tag-noselect tagname next-p))
+	 (tagpoint (progn (set-buffer tagbuf) (point))))
     (set-window-point (prog1
 			  (selected-window)
-			(switch-to-buffer-other-window tagbuf))
+			(switch-to-buffer-other-window tagbuf)
+			;; We have to set this new window's point; it
+			;; might already have been displaying a
+			;; different portion of tagbuf, in which case
+			;; switch-to-buffer-other-window doesn't set
+			;; the window's point from the buffer.
+			(set-window-point (selected-window) tagpoint))
 		      window-point)))
 ;;;###autoload (define-key ctl-x-4-map "." 'find-tag-other-window)
 
