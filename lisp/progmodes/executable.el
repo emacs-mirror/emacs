@@ -1,6 +1,6 @@
 ;;; executable.el --- base functionality for executable interpreter scripts -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1994, 1995, 1996, 2000, 2003 by Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 2000, 2003, 2004 by Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: languages, unix
@@ -143,7 +143,7 @@ See `compilation-error-regexp-alist'.")
 ;;;###autoload
 (defun executable-command-find-posix-p (&optional program)
   "Check if PROGRAM handles arguments Posix-style.
-If PROGRAM is non-nil, use that instead of "find"."
+If PROGRAM is non-nil, use that instead of \"find\"."
   ;;  Pick file to search from location we know
   (let* ((dir   (car load-path))
          (file  (find-if
