@@ -618,37 +618,36 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;; Utility functions and macros.
 ;;
 
-(defmacro mail-extr-delete-char (n)
+(defsubst mail-extr-delete-char (n)
   ;; in v19, delete-char is compiled as a function call, but delete-region
   ;; is byte-coded, so it's much much faster.
-  (list 'delete-region '(point) (list '+ '(point) n)))
+  (delete-region (point) (+ (point) n)))
 
-(defmacro mail-extr-skip-whitespace-forward ()
+(defsubst mail-extr-skip-whitespace-forward ()
   ;; v19 fn skip-syntax-forward is more tasteful, but not byte-coded.
-  '(skip-chars-forward " \t\n\r\240"))
+  (skip-chars-forward " \t\n\r\240"))
 
-(defmacro mail-extr-skip-whitespace-backward ()
+(defsubst mail-extr-skip-whitespace-backward ()
   ;; v19 fn skip-syntax-backward is more tasteful, but not byte-coded.
-  '(skip-chars-backward " \t\n\r\240"))
+  (skip-chars-backward " \t\n\r\240"))
 
 
-(defmacro mail-extr-undo-backslash-quoting (beg end)
-  (`(save-excursion
-      (save-restriction
-	(narrow-to-region (, beg) (, end))
-	(goto-char (point-min))
-	;; undo \ quoting
-	(while (search-forward "\\" nil t)
-	  (mail-extr-delete-char -1)
-	  (or (eobp)
-	      (forward-char 1))
-	  )))))
+(defsubst mail-extr-undo-backslash-quoting (beg end)
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      ;; undo \ quoting
+      (while (search-forward "\\" nil t)
+	(mail-extr-delete-char -1)
+	(or (eobp)
+	    (forward-char 1))))))
 
-(defmacro mail-extr-nuke-char-at (pos)
-  (` (save-excursion
-       (goto-char (, pos))
-       (mail-extr-delete-char 1)
-       (insert ?\ ))))
+(defsubst mail-extr-nuke-char-at (pos)
+  (save-excursion
+    (goto-char pos)
+    (mail-extr-delete-char 1)
+    (insert ?\ )))
 
 (put 'mail-extr-nuke-outside-range
      'edebug-form-spec '(symbolp &optional form form atom))
@@ -693,26 +692,18 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
       pos
     (copy-marker pos)))
 
-(defmacro mail-extr-last (list)
-  ;; Returns last element of LIST.
-  ;; Could be a subst.
-  (` (let ((list (, list)))
-       (while (not (null (cdr list)))
-	 (setq list (cdr list)))
-       (car list))))
-  
-(defmacro mail-extr-safe-move-sexp (arg)
+(defsubst mail-extr-safe-move-sexp (arg)
   ;; Safely skip over one balanced sexp, if there is one.  Return t if success.
-  (` (condition-case error
-	 (progn
-	   (goto-char (or (scan-sexps (point) (, arg)) (point)))
-	   t)
-       (error
-	;; #### kludge kludge kludge kludge kludge kludge kludge !!!
-	(if (string-equal (nth 1 error) "Unbalanced parentheses")
-	    nil
-	  (while t
-	    (signal (car error) (cdr error))))))))
+  (condition-case error
+      (progn
+	(goto-char (or (scan-sexps (point) arg) (point)))
+	t)
+    (error
+     ;; #### kludge kludge kludge kludge kludge kludge kludge !!!
+     (if (string-equal (nth 1 error) "Unbalanced parentheses")
+	 nil
+       (while t
+	 (signal (car error) (cdr error)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
@@ -735,7 +726,7 @@ the form ((FULL-NAME CANONICAL-ADDRESS) ...) with one element for
 each recipient.  If ALL is nil, then if ADDRESS contains more than
 one recipients, all but the first is ignored.
 
-ADDRESS may be a string or a buffer.  If it is a buffer, the visible 
+ADDRESS may be a string or a buffer.  If it is a buffer, the visible
  (narrowed) portion of the buffer will be interpreted as the address.
  (This feature exists so that the clever caller might be able to avoid
  consing a string.)"
@@ -743,8 +734,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	(extraction-buffer (get-buffer-create " *extract address components*"))
 	value-list)
 
-    (save-excursion
-      (set-buffer extraction-buffer)
+    (with-current-buffer (get-buffer-create extraction-buffer)
       (fundamental-mode)
       (buffer-disable-undo extraction-buffer)
       (set-syntax-table mail-extr-address-syntax-table)
@@ -766,11 +756,9 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 
       (set-text-properties (point-min) (point-max) nil)
 
-      (save-excursion
-	(set-buffer canonicalization-buffer)
+      (with-current-buffer (get-buffer-create canonicalization-buffer)
 	(fundamental-mode)
 	(buffer-disable-undo canonicalization-buffer)
-	(set-syntax-table mail-extr-address-syntax-table)
 	(setq case-fold-search nil))
 
       
@@ -804,6 +792,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 	      ;;	mailbox-name-processed-flag
 	      disable-initial-guessing-flag) ; dynamically set from -voodoo
 
+	  (set-syntax-table mail-extr-address-syntax-table)
 	  (goto-char (point-min))
 
 	  ;; Insert extra space at beginning to allow later replacement with <
@@ -868,12 +857,12 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 			    ;; BUG FIX: This test was reversed.  Thanks to the
 			    ;; brilliant Rod Whitby <rwhitby@research.canon.oz.au>
 			    ;; for discovering this!
-			    (< (mail-extr-last <-pos) (car >-pos)))))
+			    (< (car (last <-pos)) (car >-pos)))))
 	      ;; The argument contains more than one address.
 	      ;; Temporarily hide everything after this one.
-	      (setq end-of-address (copy-marker (1+ (point))))
+	      (setq end-of-address (copy-marker (1+ (point)) t))
 	      (narrow-to-region (point-min) (1+ (point)))
-	      (mail-extr-delete-char 1)
+	      (delete-char 1)
 	      (setq char ?\() ; HAVE I NO SHAME??
 	      )
 	     ;; record the position of various interesting chars, determine
@@ -1145,7 +1134,7 @@ ADDRESS may be a string or a buffer.  If it is a buffer, the visible
 			       (mail-extr-@-binds-tighter-than-!
 				(setq insert-point (point-max)))
 			       (%-pos
-				(setq insert-point (mail-extr-last %-pos)
+				(setq insert-point (car (last %-pos))
 				      saved-%-pos (mapcar 'mail-extr-markerize %-pos)
 				      %-pos nil
 				      @-pos (mail-extr-markerize @-pos)))
