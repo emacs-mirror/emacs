@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.0
 
-;;	$Id: vc.el,v 1.22 1993/03/07 18:20:54 eggert Exp eric $	
+;;	$Id: vc.el,v 1.23 1993/03/09 22:56:29 eric Exp eric $	
 
 ;; This file is part of GNU Emacs.
 
@@ -417,7 +417,7 @@ level to check it in under."
   (auto-save-mode auto-save-default)
   (mail-mode)
   (erase-buffer)
-  (mail-sketup owner (format "%s:%s" file rev) nil nil nil
+  (mail-setup owner (format "%s:%s" file rev) nil nil nil
 	      (list (list 'vc-finish-steal file rev)))
   (goto-char (point-max))
   (insert
