@@ -1,3 +1,13 @@
+2004-06-25  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (allocate_misc): Update total_free_markers.
+	(free_misc): New function.
+	(safe_alloca_unwind, free_marker): Use it.
+
+	* lisp.h (free_misc): Add prototype.
+
+	* fns.c (Fmapconcat, Fmapcar): Remove superfluous GCPROs.
+
 2004-06-24  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs.c (Vsignal_USR1_hook, Vsignal_USR2_hook): Definitions deleted.
