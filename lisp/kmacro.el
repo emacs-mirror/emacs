@@ -165,6 +165,10 @@ macro to be executed before appending to it."
   :type 'boolean
   :group 'kmacro)
 
+(defcustom kmacro-step-edit-mini-window-height 0.75
+  "Override `max-mini-window-height' when step edit keyboard macro."
+  :type 'number
+  :group 'kmacro)
 
 ;; Keymap
 
@@ -174,6 +178,7 @@ macro to be executed before appending to it."
     (define-key map "\C-k" 'kmacro-end-or-call-macro-repeat)
     (define-key map "\C-e" 'kmacro-edit-macro-repeat)
     (define-key map "\r"   'kmacro-edit-macro)
+    (define-key map " "    'kmacro-step-edit-macro)
     (define-key map "l"    'kmacro-edit-lossage)
     (define-key map "\C-i" 'kmacro-insert-counter)
     (define-key map "\C-a" 'kmacro-add-counter)
@@ -199,7 +204,7 @@ macro to be executed before appending to it."
 ;;; Provide some binding for startup:
 ;;;###autoload (global-set-key "\C-x(" 'kmacro-start-macro)
 ;;;###autoload (global-set-key "\C-x)" 'kmacro-end-macro)
-;;;###autoload (global-set-key "\C-xe" 'kmacro-end-or-call-macro)
+;;;###autoload (global-set-key "\C-xe" 'kmacro-end-and-call-macro)
 ;;;###autoload (global-set-key [f3] 'kmacro-start-macro-or-insert-counter)
 ;;;###autoload (global-set-key [f4] 'kmacro-end-or-call-macro)
 ;;;###autoload (global-set-key "\C-x\C-k" 'kmacro-keymap)
@@ -581,8 +586,7 @@ others, use M-x name-last-kbd-macro."
     (when (and (or (null arg) (> arg 0))
 	       (setq repeat-key
 		     (if (eq kmacro-call-repeat-key t) repeat-key kmacro-call-repeat-key)))
-      (require 'edmacro)
-      (setq repeat-key-str (edmacro-format-keys (vector repeat-key) nil))
+      (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
       (while repeat-key
 	(message "Repeat macro %swith `%s'..." 
 		 (if (and kmacro-call-repeat-with-arg
@@ -654,6 +658,16 @@ With \\[universal-argument], call second macro in macro ring."
 
 
 ;;;###autoload
+(defun kmacro-end-and-call-macro (arg &optional no-repeat)
+  "Call last keyboard macro, ending it first if currently being defined.
+With numeric prefix ARG, repeat macro that many times."
+  (interactive "P")
+  (if defining-kbd-macro
+      (kmacro-end-macro nil))
+  (kmacro-call-macro arg no-repeat))
+
+
+;;;###autoload
 (defun kmacro-end-call-mouse (event)
   "Move point to the position clicked with the mouse and call last kbd macro.
 If kbd macro currently being defined end it before activating it."
@@ -716,6 +730,351 @@ If kbd macro currently being defined end it before activating it."
   (kmacro-push-ring)
   (edit-kbd-macro "\C-hl"))
 
+
+;;; Single-step editing of keyboard macros
+
+(defvar kmacro-step-edit-active)  	 ;; step-editing active
+(defvar kmacro-step-edit-new-macro)  	 ;; storage for new macro
+(defvar kmacro-step-edit-inserting)  	 ;; inserting into macro
+(defvar kmacro-step-edit-appending)  	 ;; append to end of macro
+(defvar kmacro-step-edit-replace)    	 ;; replace orig macro when done
+(defvar kmacro-step-edit-prefix-index)   ;; index of first prefix arg key
+(defvar kmacro-step-edit-key-index)      ;; index of current key
+(defvar kmacro-step-edit-action)     	 ;; automatic action on next pre-command hook
+(defvar kmacro-step-edit-help)     	 ;; kmacro step edit help enabled
+(defvar kmacro-step-edit-num-input-keys) ;; to ignore duplicate pre-command hook
+
+(defvar kmacro-step-edit-map (make-sparse-keymap)
+  "Keymap that defines the responses to questions in `kmacro-step-edit-macro'.
+This keymap is an extension to the `query-replace-map', allowing the
+following additional answers: `insert-1', `insert', `append-1', 
+`append', `replace-1', `replace', `act-repeat', `skip-rest',
+`skip-keep'.")
+
+;; query-replace-map answers include: `act', `skip', `act-and-show',
+;; `exit', `act-and-exit', `edit', `delete-and-edit', `recenter',
+;; `automatic', `backup', `exit-prefix', and `help'.")
+;; Also: `quit', `edit-replacement'
+
+(set-keymap-parent kmacro-step-edit-map query-replace-map)
+
+(define-key kmacro-step-edit-map "\t" 'act-repeat)
+(define-key kmacro-step-edit-map [tab] 'act-repeat)
+(define-key kmacro-step-edit-map "\C-k" 'skip-rest)
+(define-key kmacro-step-edit-map "c" 'automatic)
+(define-key kmacro-step-edit-map "f" 'skip-keep)
+(define-key kmacro-step-edit-map "q" 'quit)
+(define-key kmacro-step-edit-map "d" 'skip)
+(define-key kmacro-step-edit-map "i" 'insert)
+(define-key kmacro-step-edit-map "I" 'insert-1)
+(define-key kmacro-step-edit-map "r" 'replace)
+(define-key kmacro-step-edit-map "R" 'replace-1)
+(define-key kmacro-step-edit-map "a" 'append)
+(define-key kmacro-step-edit-map "A" 'append-1)
+
+(defvar kmacro-step-edit-prefix-commands
+  '(universal-argument universal-argument-more universal-argument-minus
+		       digit-argument negative-argument)
+  "Commands which builds up a prefix arg for the current command")
+
+(defun kmacro-step-edit-prompt (macro index)
+  ;; Show step-edit prompt
+  (let ((keys (and (not kmacro-step-edit-appending)
+		   index (substring macro index executing-macro-index)))
+	(future (and (not kmacro-step-edit-appending)
+		     (substring macro executing-macro-index)))
+	(message-log-max nil)
+	(curmsg (current-message)))
+
+    ;; TODO: Scroll macro if max-mini-window-height is too small.
+    (message (concat
+	      (format "Macro: %s%s%s%s%s\n"
+		      (format-kbd-macro kmacro-step-edit-new-macro 1)
+		      (if (and kmacro-step-edit-new-macro (> (length kmacro-step-edit-new-macro) 0)) " " "")
+		      (propertize (if keys (format-kbd-macro keys) 
+				    (if kmacro-step-edit-appending "<APPEND>" "<INSERT>")) 'face 'region)
+		      (if future " " "")
+		      (if future (format-kbd-macro future) ""))
+	      (cond
+	       ((minibufferp)
+		(format "%s\n%s\n"
+			  (propertize "\
+                         minibuffer                             " 'face 'header-line)
+			  (buffer-substring (point-min) (point-max))))
+	       (curmsg
+		(format "%s\n%s\n"
+			(propertize "\
+                         echo area                              " 'face 'header-line)
+			curmsg))
+	       (t ""))
+	      (if keys
+		  (format "%s\n%s%s %S [yn iIaArR C-k kq!] " 
+			  (propertize "\
+--------------Step Edit Keyboard Macro  [?: help]---------------" 'face 'mode-line)
+			  (if kmacro-step-edit-help "\
+ Step: y/SPC: execute next,  d/n/DEL: skip next,  f: skip but keep
+       TAB: execute while same,  ?: toggle help
+ Edit: i: insert,  a: append,  r: replace, I/A/R: one sequence
+ End:  !/c: execute rest,  C-k: skip rest and save,  q/C-g: quit
+----------------------------------------------------------------
+" "")
+			  (propertize "Next command:" 'face 'bold)
+			  this-command)
+		(propertize 
+		 (format "Type key sequence%s to insert and execute%s: "
+			 (if (numberp kmacro-step-edit-inserting) ""  "s")
+			 (if (numberp kmacro-step-edit-inserting) ""  "[end with C-j]"))
+		 'face 'bold))))))
+
+(defun kmacro-step-edit-query ()
+  ;; Pre-command hook function for step-edit in "command" mode
+  (let ((resize-mini-windows t)
+	(max-mini-window-height kmacro-step-edit-mini-window-height)
+	act restore-index next-index)
+
+    ;; Handle commands which reads additional input using read-char.
+    (cond
+     ((and (eq this-command 'quoted-insert)
+	   (not (eq kmacro-step-edit-action t)))
+      ;; Find the actual end of this key sequence.
+      ;; Must be able to backtrack in case we actually execute it.
+      (setq restore-index executing-macro-index)
+      (let (unread-command-events)
+	(quoted-insert 0)
+	(when unread-command-events
+	  (setq executing-macro-index (- executing-macro-index (length unread-command-events))
+		next-index executing-macro-index)))))
+
+    ;; Query the user; stop macro exection temporarily
+    (let ((macro executing-kbd-macro)
+	  (executing-kbd-macro nil)
+	  (defining-kbd-macro nil))
+
+      ;; Any action requested by previous command
+      (cond
+       ((eq kmacro-step-edit-action t)  ;; Reentry for actual command @ end of prefix arg.
+	(cond
+	 ((eq this-command 'quoted-insert)
+	  (clear-this-command-keys) ;; recent-keys actually
+	  (let (unread-command-events)
+	    (quoted-insert (prefix-numeric-value current-prefix-arg))
+	    (setq kmacro-step-edit-new-macro 
+		  (vconcat kmacro-step-edit-new-macro (recent-keys)))
+	    (when unread-command-events
+	      (setq kmacro-step-edit-new-macro
+		    (substring kmacro-step-edit-new-macro 0 (- (length unread-command-events)))
+		    executing-macro-index (- executing-macro-index (length unread-command-events)))))
+	  (setq current-prefix-arg nil
+		prefix-arg nil)
+	  (setq act 'ignore))
+	 (t
+	  (setq act 'act)))
+	(setq kmacro-step-edit-action nil))
+       ((eq this-command kmacro-step-edit-action)  ;; TAB -> activate while same command
+	(setq act 'act))
+       (t
+	(setq kmacro-step-edit-action nil)))
+
+      ;; Handle prefix arg, or query user
+      (cond
+       (act act) ;; set above
+       ((memq this-command kmacro-step-edit-prefix-commands)
+	(unless kmacro-step-edit-prefix-index
+	  (setq kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq act 'universal-argument))
+       ((eq this-command 'universal-argument-other-key)
+	(setq act 'universal-argument))
+       (t
+	(kmacro-step-edit-prompt macro (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq act (lookup-key kmacro-step-edit-map
+			      (vector (with-current-buffer (current-buffer) (read-event))))))))
+
+    ;; Resume macro execution and perform the action
+    (cond
+     ((eq act 'universal-argument)
+      nil)
+     ((cond
+       ((eq act 'act)
+	t)
+       ((eq act 'act-repeat)
+	(setq kmacro-step-edit-action this-command)
+	t)
+       ((eq act 'quit)
+	(setq kmacro-step-edit-replace nil)
+	(setq kmacro-step-edit-active 'ignore)
+	nil)
+       ((eq act 'skip)
+	(setq kmacro-step-edit-prefix-index nil)
+	nil)
+       ((eq act 'skip-keep)
+	(setq this-command 'ignore)
+	t)
+       ((eq act 'skip-rest)
+	(setq kmacro-step-edit-active 'ignore)
+	nil)
+       ((eq act 'automatic)
+	(setq kmacro-step-edit-active nil)
+	(setq act t)
+	t)
+       ((member act '(insert-1 insert))
+	(setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq kmacro-step-edit-inserting (if (eq act 'insert-1) 1 t))
+	nil)
+       ((member act '(replace-1 replace))
+	(setq kmacro-step-edit-inserting (if (eq act 'replace-1) 1 t))
+	(setq kmacro-step-edit-prefix-index nil)
+	(if (= executing-macro-index (length executing-kbd-macro))
+	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
+		  kmacro-step-edit-appending t))
+	nil)
+       ((member act '(append-1 append))
+	(setq kmacro-step-edit-inserting (if (eq act 'append-1) 1 t))
+	(if (= executing-macro-index (length executing-kbd-macro))
+	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
+		  kmacro-step-edit-appending t))
+	t)
+       ((eq act 'help)
+	(setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq kmacro-step-edit-help (not kmacro-step-edit-help))
+	nil)
+       (t ;; Ignore unknown responses
+	(setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	nil))
+      (if (> executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	  (setq kmacro-step-edit-new-macro
+		(vconcat kmacro-step-edit-new-macro
+			 (substring executing-kbd-macro 
+				    (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index)
+				    (if (eq act t) nil executing-macro-index)))
+		kmacro-step-edit-prefix-index nil))
+      (if restore-index
+	  (setq executing-macro-index restore-index)))
+     (t
+      (setq this-command 'ignore)))
+    (setq kmacro-step-edit-key-index next-index)))
+
+(defun kmacro-step-edit-insert ()
+  ;; Pre-command hook function for step-edit in "insert" mode
+  (let ((resize-mini-windows t)
+	(max-mini-window-height kmacro-step-edit-mini-window-height)
+	(macro executing-kbd-macro)
+	(executing-kbd-macro nil)
+	(defining-kbd-macro nil)
+	cmd keys next-index)
+    (setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index)
+	  kmacro-step-edit-prefix-index nil)
+    (kmacro-step-edit-prompt macro nil)
+    ;; Now, we have read a key sequence from the macro, but we don't want
+    ;; to execute it yet.  So push it back and read another sequence.
+    (reset-this-command-lengths)
+    (setq keys (read-key-sequence nil nil nil nil t))
+    (setq cmd (key-binding keys t nil))
+    (if (cond
+	 ((null cmd)
+	  t)
+	 ((eq cmd 'quoted-insert)
+	  (clear-this-command-keys) ;; recent-keys actually
+	  (quoted-insert (prefix-numeric-value current-prefix-arg))
+	  (setq current-prefix-arg nil
+		prefix-arg nil)
+	  (setq keys (vconcat keys (recent-keys)))
+	  (when (numberp kmacro-step-edit-inserting)
+	    (setq kmacro-step-edit-inserting nil)
+	    (when unread-command-events
+	      (setq keys (substring keys 0 (- (length unread-command-events)))
+		    executing-macro-index (- executing-macro-index (length unread-command-events))
+		    next-index executing-macro-index
+		    unread-command-events nil)))
+	  (setq cmd 'ignore)
+	  nil)
+	 ((memq cmd kmacro-step-edit-prefix-commands)
+	  (setq universal-argument-num-events 0)
+	  (reset-this-command-lengths)
+	  nil)
+	 ((eq cmd 'universal-argument-other-key)
+	  (setq kmacro-step-edit-action t)
+	  (setq universal-argument-num-events 0)
+	  (reset-this-command-lengths)
+	  (if (numberp kmacro-step-edit-inserting)
+	      (setq kmacro-step-edit-inserting nil))
+	  nil)
+	 ((numberp kmacro-step-edit-inserting)
+	  (setq kmacro-step-edit-inserting nil)
+	  nil)
+	 ((equal keys "\C-j")
+	  (setq kmacro-step-edit-inserting nil)
+	  (setq kmacro-step-edit-action nil)
+	  ;; Forget any (partial) prefix arg from next command
+	  (setq kmacro-step-edit-prefix-index nil)
+	  (reset-this-command-lengths)
+	  (setq overriding-terminal-local-map nil)
+	  (setq universal-argument-num-events nil)
+	  (setq next-index kmacro-step-edit-key-index)
+	  t)
+	 (t nil))
+	(setq this-command 'ignore)
+      (setq this-command cmd)
+      (if (memq this-command '(self-insert-command digit-argument))
+	  (setq last-command-char (aref keys (1- (length keys)))))
+      (if keys
+	  (setq kmacro-step-edit-new-macro (vconcat kmacro-step-edit-new-macro keys))))
+    (setq kmacro-step-edit-key-index next-index)))
+
+(defun kmacro-step-edit-pre-command ()
+  (remove-hook 'post-command-hook 'kmacro-step-edit-post-command)
+  (when kmacro-step-edit-active
+    (cond
+     ((eq kmacro-step-edit-active 'ignore)
+      (setq this-command 'ignore))
+     ((/= kmacro-step-edit-num-input-keys num-input-keys)
+      (if kmacro-step-edit-inserting
+	  (kmacro-step-edit-insert)
+	(kmacro-step-edit-query))
+      (setq kmacro-step-edit-num-input-keys num-input-keys)
+      (if (and kmacro-step-edit-appending (not kmacro-step-edit-inserting))
+	  (setq kmacro-step-edit-appending nil
+		kmacro-step-edit-active 'ignore)))))
+  (when (eq kmacro-step-edit-active t)
+    (add-hook 'post-command-hook 'kmacro-step-edit-post-command t)))
+
+(defun kmacro-step-edit-minibuf-setup ()
+  (remove-hook 'pre-command-hook 'kmacro-step-edit-pre-command t)
+  (when kmacro-step-edit-active
+    (add-hook 'pre-command-hook 'kmacro-step-edit-pre-command nil t)))
+
+(defun kmacro-step-edit-post-command ()
+  (remove-hook 'pre-command-hook 'kmacro-step-edit-pre-command)
+  (when kmacro-step-edit-active
+    (add-hook 'pre-command-hook 'kmacro-step-edit-pre-command nil nil)
+    (if kmacro-step-edit-key-index
+	(setq executing-macro-index kmacro-step-edit-key-index)
+      (setq kmacro-step-edit-key-index executing-macro-index))))  
+
+
+(defun kmacro-step-edit-macro ()
+  "Step edit and execute last keyboard macro.
+
+To customize possible responses, change the \"bindings\" in `kmacro-step-edit-map'."
+  (interactive)
+  (let ((kmacro-step-edit-active t)
+	(kmacro-step-edit-new-macro "")
+	(kmacro-step-edit-inserting nil)
+	(kmacro-step-edit-appending nil)
+	(kmacro-step-edit-replace t)
+	(kmacro-step-edit-prefix-index nil)
+	(kmacro-step-edit-key-index 0)
+	(kmacro-step-edit-action nil)
+	(kmacro-step-edit-help nil)
+	(kmacro-step-edit-num-input-keys num-input-keys)
+	(pre-command-hook pre-command-hook)
+	(post-command-hook post-command-hook)
+	(minibuffer-setup-hook minibuffer-setup-hook))
+    (add-hook 'pre-command-hook 'kmacro-step-edit-pre-command nil)
+    (add-hook 'post-command-hook 'kmacro-step-edit-post-command t)
+    (add-hook 'minibuffer-setup-hook 'kmacro-step-edit-minibuf-setup t)
+    (call-last-kbd-macro nil nil)
+    (if kmacro-step-edit-replace
+	(setq last-kbd-macro kmacro-step-edit-new-macro))))
 
 (provide 'kmacro)
 ;;; kmacro.el ends here
