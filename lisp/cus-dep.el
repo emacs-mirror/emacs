@@ -54,7 +54,8 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 	    (insert-file-contents file)
 	    (goto-char (point-min))
 	    (string-match "\\`\\(.*\\)\\.el\\'" file)
-	    (let ((name (file-name-nondirectory (match-string 1 file))))
+	    (let ((name (file-name-nondirectory (match-string 1 file)))
+		  (load-file-name file))
 	      (if (save-excursion
 		    (re-search-forward
 		     (concat "(provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
