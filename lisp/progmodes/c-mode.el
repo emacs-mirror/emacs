@@ -55,7 +55,7 @@
 (define-key c-mode-map [menu-bar] (make-sparse-keymap))
 
 (define-key c-mode-map [menu-bar c]
-  (cons "C mode" (make-sparse-keymap "C mode")))
+  (cons "C Mode" (make-sparse-keymap "C Mode")))
 
 (define-key c-mode-map [menu-bar c comment-region]
   '("Comment Out Region" . comment-region))
