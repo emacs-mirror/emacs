@@ -435,7 +435,7 @@ static void
 reorder_font_vector (fontset_element)
      Lisp_Object fontset_element;
 {
-  Lisp_Object vec, list, *new_vec;
+  Lisp_Object list, *new_vec;
   Lisp_Object font_def;
   int size;
   int *charset_id_table;
@@ -1366,12 +1366,10 @@ characters in the charset.
 TARGET may be nil.  In that case, use FONT-SPEC for any characters for
 that no FONT-SPEC is specified.
 
-FONT-SPEC may be:
- * A vector [ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ].
-   See the documentation of `set-face-attribute' for the detail of
-   these vector elements;
+FONT-SPEC may one of these:
  * A cons (FAMILY . REGISTRY), where FAMILY is a font family name and
-   REGISTRY is a font registry name;
+   REGISTRY is a font registry name.  FAMILY may contains foundry
+   name, and REGISTRY may contains encoding name.
  * A font name string.
 
 Optional 4th argument FRAME, if non-nil, is a frame.  This argument is
@@ -1399,6 +1397,10 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 
   if (VECTORP (font_spec))
     {
+      /* FONT_SPEC should have this form:
+		[ FAMILY WEIGHT SLANT WIDTH ADSTYLE REGISTRY ]
+	 This is a feature not yet documented because WEIGHT thru
+	 ADSTYLE are ignored for the moment.  */
       int j;
 
       if (ASIZE (font_spec) != FONT_SPEC_MAX_INDEX)
@@ -1933,21 +1935,61 @@ fontset.  The format is the same as abobe.  */)
 }
 
 
-DEFUN ("fontset-font", Ffontset_font, Sfontset_font, 2, 2, 0,
+DEFUN ("fontset-font", Ffontset_font, Sfontset_font, 2, 3, 0,
        doc: /* Return a font name pattern for character CH in fontset NAME.
-If NAME is t, find a font name pattern in the default fontset.  */)
-     (name, ch)
-     Lisp_Object name, ch;
+If NAME is t, find a pattern in the default fontset.
+
+The value has the form (FAMILY . REGISTRY), where FAMILY is a font
+family name and REGISTRY is a font registry name.  This is actually
+the first font name pattern for CH in the fontset or in the default
+fontset.
+
+If the 2nd optional arg ALL is non-nil, return a list of all font name
+patterns.  */)
+  (name, ch, all)
+     Lisp_Object name, ch, all;
 {
   int c;
-  Lisp_Object fontset, elt;
+  Lisp_Object fontset, elt, list, repertory, val;
+  int i, j;
 
   fontset = check_fontset_name (name);
 
   CHECK_CHARACTER (ch);
   c = XINT (ch);
-  elt = FONTSET_REF (fontset, c);
-  return Fcopy_sequence (elt);
+  list = Qnil;
+  while (1)
+    {
+      for (i = 0, elt = FONTSET_REF (fontset, c); i < 2;
+	   i++, elt = FONTSET_FALLBACK (fontset))
+	if (VECTORP (elt))
+	  for (j = 0; j < ASIZE (elt); j++)
+	    {
+	      val = AREF (elt, j);
+	      repertory = AREF (val, 1);
+	      if (INTEGERP (repertory))
+		{
+		  struct charset *charset = CHARSET_FROM_ID (XINT (repertory));
+
+		  if (! CHAR_CHARSET_P (c, charset))
+		    continue;
+		}
+	      else if (CHAR_TABLE_P (repertory))
+		{
+		  if (NILP (CHAR_TABLE_REF (repertory, c)))
+		    continue;
+		}
+	      val = AREF (val, 0);
+	      val = Fcons (AREF (val, 0), AREF (val, 5));
+	      if (NILP (all))
+		return val;
+	      list = Fcons (val, list);
+	    }
+      if (EQ (fontset, Vdefault_fontset))
+	break;
+      fontset = Vdefault_fontset;
+    }
+  return (Fnreverse (list));
 }
 
 DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
