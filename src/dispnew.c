@@ -1167,8 +1167,8 @@ update_frame (f, force, inhibit_hairy_id)
      int force;
      int inhibit_hairy_id;
 {
-  register struct frame_glyphs *current_frame = FRAME_CURRENT_GLYPHS (f);
-  register struct frame_glyphs *desired_frame = FRAME_DESIRED_GLYPHS (f);
+  register struct frame_glyphs *current_frame;
+  register struct frame_glyphs *desired_frame;
   register int i;
   int pause;
   int preempt_count = baud_rate / 2400 + 1;
@@ -1176,6 +1176,10 @@ update_frame (f, force, inhibit_hairy_id)
 #ifdef HAVE_X_WINDOWS
   register int downto, leftmost;
 #endif
+
+  /* These are separate to avoid a possible bug in the AIX C compiler.  */
+  current_frame = FRAME_CURRENT_GLYPHS (f);
+  desired_frame = FRAME_DESIRED_GLYPHS (f);
 
   if (preempt_count <= 0)
     preempt_count = 1;
