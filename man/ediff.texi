@@ -894,9 +894,20 @@ what exactly differs inside these chunks.  Since eyeballing large pieces of
 text is contrary to human nature, Ediff has a special command to help
 reduce the risk of developing a cataract.
 
-The above command compares regions within Ediff buffers.  This creates a
-child Ediff session for comparing current Emacs regions in buffers A, B, or
-C as follows:
+In other situations, the currently highlighted region might be big and you
+might want to reconcile of them interactively.
+
+All of this can be done with the above comand, @kbd{=}, which
+compares regions within Ediff buffers.  Typing @kbd{=} creates a
+child Ediff session for comparing regions in buffers A, B, or
+C as follows.
+
+First, you will be asked whether you want to compare the fine differences
+between the currently highlighted buffers on a word-by-word basis. If you
+accept, a child Ediff session will start using the currently highlighted
+regions. Ediff will let you step over the differences word-wise.
+
+If you reject the offer, you will be asked to select regions of your choice.
 
 @emph{If you are comparing 2 files or buffers:}
 Ediff will ask you to select regions in buffers A and B.
