@@ -155,6 +155,14 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	      (condition-case ()
 		  (setq pos (scan-sexps (point) dir))
 		(error (setq pos t mismatch t)))
+	      ;; Move back the other way and verify we get back to the
+	      ;; starting point.  If not, these two parens don't really match.
+	      ;; Maybe the one at point is escaped and doesn't really count.
+	      (when (integerp pos)
+		(unless (condition-case ()
+			    (eq (point) (scan-sexps pos (- dir)))
+			  (error nil))
+		  (setq pos nil)))
 	      ;; If found a "matching" paren, see if it is the right
 	      ;; kind of paren to match the one we started at.
 	      (when (integerp pos)
