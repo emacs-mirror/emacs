@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate September 22, 1998
+@set lastupdate October 27, 1998
 @c %**end of header
 
 @setchapternewpage off
@@ -32,7 +32,7 @@ last updated on @value{lastupdate}.
 * X Windows Projects::
 * Encryption Projects::
 * Other Projects::
-* Compilers::
+* Languages::
 * Games and Recreations::
 @end menu
 
@@ -115,11 +115,12 @@ at the URL @uref{http://www.gnu.org/software/guile/guile.html}
 and then contact the Guile developers at @email{guile@@gnu.org}.
 
 @item
-Help develop XmHTML.
+Help develop XmHTML.  See @uref{http://www.xs4all.nl/~ripley/XmHTML/}.
 
 @item
 Help develop software to emulate Windows NT on top of GNU systems.
 For example, you could help work on Willows Twin.
+See @uref{http://www.willows.com/}.
 
 @item
 Implement the Kermit data transfer protocol.  (See below.)
@@ -140,11 +141,6 @@ the only solution.  Hence the high degree of urgency of this project.
 @end ignore
 
 @item
-Develop a free replacement for a semi-free program such as Xv or POV.
-These semi-free programs are less restricted than typical proprietary
-programs, but too restricted to be part of any free operating system.
-
-@item
 Develop a substitute, which runs on GNU systems, for some very popular
 or very important application that many non-programmers use on Windows,
 and which has no comparable free equivalent now.
@@ -157,17 +153,50 @@ We very urgently need documentation for many existing parts of the
 system.
 
 Note that there are proprietary manuals for many of these topics, but
-proprietary manuals do not count, because we are not free to copy and
-modify them along with the software they document.  For this reason,
-we do not recommend any non-free manuals.
+proprietary manuals do not count, for the same reason proprietary
+software does not count: we are not free to copy and modify them.
+We do not recommend any non-free materials as documentation.
 
 @itemize @bullet
+@item
+A unified manual for La@TeX{}.  (Existing documentation is non-free.)
+
+@item
+A tutorial introduction to Midnight Commander.
+
+@item
+A manual for GNU SQL.
+
+@item
+A thorough manual for RCS.
+
+@item
+A reference manual for Mach.
+
+@item
+A reference manual for the GNU Hurd features in GNU libc.
+
+@item
+A manual for writing Hurd servers.
+
 @item
 A C reference manual.  (RMS made a try at one, which you could start
 with).
 
 @item
-Reference manuals for C++, Pascal, Fortran 77, and Java.
+Reference manuals for C++, Objective C, Pascal, Fortran 77, and Java.
+
+@item
+A tutorial manual for the C++ STL (standard template library).
+
+@item
+GNU Objective-C Runtime Library Manual; this would be a reference manual
+for the runtime library functions, structures, and classes.  Some work
+has been done on this job.
+
+@item
+Manuals for GNUstep: developer tutorial, developer programming manual,
+developer reference manual, and user manual.
 
 @item
 A manual for Ghostscript.
@@ -195,7 +224,7 @@ A book on how GCC works and why various machine descriptions
 are written as they are.
 
 @item
-A manual for programming X-window applications.
+A manual for programming applications for X11.
 
 @item
 Manuals for various X window managers.
@@ -321,8 +350,21 @@ about the level of @code{cxref}.)  We also could use something like
 An emulator for Macintosh graphics calls on top of X Windows.
 
 @item
+A package that emulates the API of Visual C++, but operates on top of
+X11.  It need not match the screen appearance of Visual C++.  Instead,
+it would be best to use GTK, so as to give coherence with GNOME.
+
+@item
+A compatible replacement for Visual Basic, running on top of X11.
+It need not match the screen appearance of Visual C++.  Instead,
+it would be best to use GTK, so as to give coherence with GNOME.
+
+@item
 A music playing and editing system.  This should work with LilyPond, a
 GNU program for music typesetting.
+
+@item
+An ear-training program for students of music.
 
 @item
 An ephemeris program to replace xephem (which is, alas, too restricted
@@ -340,6 +382,9 @@ A program to display and edit Hypercard stacks.
 
 @item
 A program for graphic morphing of scanned photographs.
+
+@item
+Software for designing and printing business cards.
 @end itemize
 
 @node Encryption Projects
@@ -358,17 +403,6 @@ the US expired in 1997.  This library can probably be developed from
 the code for the GNU Privacy Guard (now in development).
 
 @item
-A free secure telnet program more or less like ssh/sshd.  Since this
-requires a public key encryption algorithm, it should be based
-on the library above.
-
-This program should follow the draft standard for ssh.  As always, it
-cannot implement the RSA algorithm, but must instead support the
-alternatives that will be patent-free in late 1997.  It cannot support
-IDEA, but can use triple-DES and/or Blowfish or other non-patented
-alternatives.
-
-@item
 Free software for doing secure commercial transactions on the web.
 This too needs public key encryption.
 @end itemize
@@ -383,10 +417,6 @@ If you think of others that should be added, please
 send them to @email{gnu@@gnu.org}.
 
 @itemize @bullet
-
-@item
-A program to reformat HTML source to make it easier to read as HTML.
-
 @item
 A simple PC BIOS.  On most new PCs, the BIOS is stored in writable
 memory (misleadingly known as ``flash ROM'').  In order to have a wholly
@@ -421,6 +451,16 @@ alas, not free software).
 @item
 A free replacement for Glimpse, which is not free software.
 
+@item 
+Software for making "slide" presentations.  It need not be compatible
+with the popular proprietary software to do this job, but it should do
+the same job.
+
+@item
+Software for desktop publishing.  We are extending Emacs into a WYSIWYG
+word processor, to handle primarily linear text; what this item proposes
+is software focused on page layout.
+
 @item
 A program to typeset C code for printing, to make it easier to read on
 paper.  For ideas on what to do, see the book,
@@ -432,6 +472,9 @@ Addison-Wesley, ISBN 0-201-10745-7
 @end display
 
 But you don't have to do exactly what they propose.
+
+@item
+A program to reformat HTML source to make it easier to read as HTML.
 
 @ignore
 @c This is now being worked on -- rms, 22 June 1998
@@ -515,6 +558,13 @@ and all the other standard project progress reports.
 Grammar and style checking programs.
 
 @item
+A program to calculate nutritional information from recipes.
+
+There is a free (unambiguously public domain) database of nutritional
+information compiled by the USDA at
+@url{http://www.nal.usda.gov/fnic/foodcomp}.
+
+@item
 A translator from Scheme to C.
 
 @item
@@ -548,8 +598,8 @@ A program to receive data from a serial-line tap to facilitate the
 reverse-engineering of communication protocols.
 @end itemize
 
-@node Compilers
-@chapter Compilers for Other Batch Languages
+@node Languages
+@chapter Programming Languages
 
 Volunteers are needed to write parsers/front ends for languages such as
 Algol 60, Algol 68, PL/I, Cobol, Fortran 90, or whatever, to be
@@ -562,6 +612,12 @@ You can get the status of the Fortran front end with this command:
 @example
 finger -l fortran@@gnu.org
 @end example
+
+We would like to have translators from various languages into Scheme.
+These languages include TCL, Python, Perl, Java and Rexx.
+
+We would like to have an implementation of Clipper, perhaps a GCC front
+end, and perhaps a translator into Scheme.
 
 @node Games and Recreations
 @chapter Games and Recreations
@@ -578,6 +634,10 @@ simulation games.
 
 @item
 Improve GnuGo, which is not yet very sophisticated.
+
+@item
+Network servers and clients for board and card games for which such
+software does not yet exist.
 
 @item
 A Hierarchical Task Network package which can be used
