@@ -331,7 +331,8 @@ commands reverses the effect of this variable.  Requires Netscape version
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
     (,@ (if (memq system-type '(windows-nt ms-dos))
-	    '(("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/"))))
+	    '(("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/")
+              ("^[\\/][\\/]+" . "file://"))))
     ("^/+" . "file:/")))
   "An alist of (REGEXP . STRING) pairs used by `browse-url-of-file'.
 Any substring of a filename matching one of the REGEXPs is replaced by
