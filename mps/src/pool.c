@@ -1,16 +1,11 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.70) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- *
- * READERSHIP
- *
- * .readership: any MPS developer
+ * $HopeName: MMsrc!pool.c(trunk.71) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
  *
- * .design: See design.mps.class-interface and design.mps.pool [both of
- * these are somewhat dated, but still useful in part -- drj 1998-04-17]
+ * .design: See design.mps.class-interface and design.mps.pool.
  *
  * PURPOSE
  *
@@ -37,7 +32,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.70) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.71) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -151,6 +146,7 @@ Res PoolInitV(Pool pool, Arena arena,
   pool->actionSerial = (Serial)0;
   pool->alignment = MPS_PF_ALIGN;
   pool->format = NULL;
+  pool->fix = class->fix;
   pool->fillMutatorSize = 0.0;
   pool->emptyMutatorSize = 0.0;
   pool->fillInternalSize = 0.0;
@@ -727,8 +723,7 @@ void PoolNoBufferEmpty(Pool pool, Buffer buffer,
   NOTREACHED;
 }
 
-void PoolTrivBufferEmpty(Pool pool, Buffer buffer, 
-                       Addr init, Addr limit)
+void PoolTrivBufferEmpty(Pool pool, Buffer buffer, Addr init, Addr limit)
 {
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
@@ -1080,7 +1075,6 @@ Res PoolNoFramePush(AllocFrame *frameReturn, Pool pool, Buffer buf)
   AVERT(Buffer, buf);
   NOTREACHED;
   return ResUNIMPL;
-
 }
 
 
@@ -1092,7 +1086,6 @@ Res PoolNoFramePop(Pool pool, Buffer buf, AllocFrame frame)
   UNUSED(frame);
   NOTREACHED;
   return ResUNIMPL;
-
 }
 
 
@@ -1144,5 +1137,4 @@ BufferClass PoolNoBufferClass(void)
 {
   NOTREACHED;
   return NULL;
-
 }
