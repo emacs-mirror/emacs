@@ -3877,6 +3877,7 @@ x_new_font (f, fontname)
   font_names = (char **) XListFontsWithInfo (x_current_display, fontname,
 					     1024, &n_matching_fonts,
 					     &font_info);
+
   /* If the server couldn't find any fonts whose named matched fontname,
      return an error code.  */
   if (n_matching_fonts == 0)
@@ -3904,7 +3905,18 @@ x_new_font (f, fontname)
   /* Otherwise, load the font and add it to the table.  */
   else
     {
+      int i;
       XFontStruct *font;
+
+      /* Try to find a character-cell font in the list.  */
+      for (i = 0; i < n_matching_fonts; i++)
+	if (! font_info[i].per_char)
+	  break;
+
+      if (i >= n_matching_fonts)
+	return 2;
+      else
+	fontname = font_names[i];
 
       font = (XFontStruct *) XLoadQueryFont (x_current_display, fontname);
       if (! font)
