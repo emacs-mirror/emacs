@@ -2712,6 +2712,9 @@ and (2) it puts less data in the undo list.")
 
 	  /* At what file position are we now scanning?  */
 	  curpos = st.st_size - (ZV - same_at_end);
+	  /* If the entire file matches the buffer tail, stop the scan.  */
+	  if (curpos == 0)
+	    break;
 	  /* How much can we scan in the next step?  */
 	  trial = min (curpos, sizeof buffer);
 	  if (lseek (fd, curpos - trial, 0) < 0)
