@@ -3645,7 +3645,9 @@ but `kill-emacs', the low level primitive, does not.
 See also `kill-emacs-hook'.")
 
 (defcustom confirm-kill-emacs nil
-  "Ask for confirmation when leaving Emacs."
+  "How to ask for confirmation when leaving Emacs.
+If nil, the default, don't ask at all.  If the value is non-nil, it should
+be a predicate function such as `yes-or-no-p'."
   :type '(choice (const :tag "Ask with yes-or-no-p" yes-or-no-p)
 		 (const :tag "Ask with y-or-n-p" y-or-n-p)
 		 (const :tag "Don't confirm" nil))
