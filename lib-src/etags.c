@@ -31,7 +31,7 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` (pot@gnu.org) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 13.44";
+char pot_etags_version[] = "@(#) pot revision number is 13.47";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -160,21 +160,21 @@ char pot_etags_version[] = "@(#) pot revision number is 13.44";
 #define strneq(s,t,n)	((DEBUG && (s) == NULL && (t) == NULL	\
 			  && (abort (), 1)) || !strncmp (s, t, n))
 
-#define lowcase(c)	tolower ((unsigned char)(c))
-#define UPCASE(c)	toupper ((unsigned char)(c))
-
 #define CHARS 256		/* 2^sizeof(char) */
-#define CHAR(x)		((unsigned int)x & (CHARS - 1))
+#define CHAR(x)		((unsigned int)(x) & (CHARS - 1))
 #define	iswhite(c)	(_wht[CHAR(c)]) /* c is white */
 #define notinname(c)	(_nin[CHAR(c)]) /* c is not in a name */
 #define	begtoken(c)	(_btk[CHAR(c)]) /* c can start token */
 #define	intoken(c)	(_itk[CHAR(c)]) /* c can be in token */
 #define	endtoken(c)	(_etk[CHAR(c)]) /* c ends tokens */
 
-#define ISALNUM(c)	isalnum ((unsigned char) (c))
-#define ISALPHA(c)	isalpha ((unsigned char) (c))
-#define ISDIGIT(c)	isdigit ((unsigned char) (c))
-#define ISLOWER(c)	islower ((unsigned char) (c))
+#define ISALNUM(c)	isalnum (CHAR(c))
+#define ISALPHA(c)	isalpha (CHAR(c))
+#define ISDIGIT(c)	isdigit (CHAR(c))
+#define ISLOWER(c)	islower (CHAR(c))
+
+#define lowcase(c)	tolower (CHAR(c))
+#define upcase(c)	toupper (CHAR(c))
 
 
 /*
@@ -208,6 +208,7 @@ typedef struct
 {
   char *name;
   Lang_function *function;
+  char **filenames;
   char **suffixes;
   char **interpreters;
 } language;
@@ -254,14 +255,15 @@ static void Erlang_functions P_((FILE *));
 static void Fortran_functions P_((FILE *));
 static void Yacc_entries P_((FILE *));
 static void Lisp_functions P_((FILE *));
+static void Makefile_targets P_((FILE *));
 static void Pascal_functions P_((FILE *));
 static void Perl_functions P_((FILE *));
 static void Postscript_functions P_((FILE *));
 static void Prolog_functions P_((FILE *));
 static void Python_functions P_((FILE *));
 static void Scheme_functions P_((FILE *));
-static void TeX_functions P_((FILE *));
-static void Texinfo_functions P_ ((FILE *));
+static void TeX_commands P_((FILE *));
+static void Texinfo_nodes P_((FILE *));
 static void just_read_file P_((FILE *));
 
 static void print_language_names P_((void));
@@ -271,9 +273,9 @@ int main P_((int, char **));
 static int number_len P_((long));
 
 static compressor *get_compressor_from_suffix P_((char *, char **));
-static language *get_language_from_name P_((char *));
+static language *get_language_from_langname P_((char *));
 static language *get_language_from_interpreter P_((char *));
-static language *get_language_from_suffix P_((char *));
+static language *get_language_from_filename P_((char *));
 static int total_size_of_entries P_((node *));
 static long readline P_((linebuffer *, FILE *));
 static long readline_internal P_((linebuffer *, FILE *));
@@ -476,7 +478,7 @@ char *default_C_suffixes [] =
   { "c", "h", NULL };
 
 char *Cplusplus_suffixes [] =
-  { "C", "H", "c++", "cc", "cpp", "cxx", "h++", "hh", "hpp", "hxx",
+  { "C", "c++", "cc", "cpp", "cxx", "H", "h++", "hh", "hpp", "hxx",
     "M",			/* Objective C++ */
     "pdb",			/* Postscript with C syntax */
     NULL };
@@ -497,7 +499,10 @@ char *Fortran_suffixes [] =
   { "F", "f", "f90", "for", NULL };
 
 char *Lisp_suffixes [] =
-  { "cl", "clisp", "el", "l", "lisp", "lsp", "ml", "LSP", NULL };
+  { "cl", "clisp", "el", "l", "lisp", "LSP", "lsp", "ml", NULL };
+
+char *Makefile_filenames [] =
+  { "Makefile", "makefile", "GNUMakefile", "Makefile.in", "Makefile.am", NULL};
 
 char *Pascal_suffixes [] =
   { "p", "pas", NULL };
@@ -508,9 +513,9 @@ char *Perl_interpreters [] =
   { "perl", "@PERL@", NULL };
 
 char *plain_C_suffixes [] =
-  { "pc",			/* Pro*C file */
+  { "lm",			/* Objective lex file */
     "m",			/* Objective C file */
-    "lm",			/* Objective lex file */
+    "pc",			/* Pro*C file */
      NULL };
 
 char *Postscript_suffixes [] =
@@ -524,16 +529,16 @@ char *Python_suffixes [] =
 
 /* Can't do the `SCM' or `scm' prefix with a version number. */
 char *Scheme_suffixes [] =
-  { "SCM", "SM", "oak", "sch", "scheme", "scm", "sm", "ss", "t", NULL };
+  { "oak", "sch", "scheme", "SCM", "scm", "SM", "sm", "ss", "t", NULL };
 
 char *TeX_suffixes [] =
-  { "TeX", "bib", "clo", "cls", "ltx", "sty", "tex", NULL };
+  { "bib", "clo", "cls", "ltx", "sty", "TeX", "tex", NULL };
 
 char *Texinfo_suffixes [] =
-  { "texi", "txi", "texinfo", NULL };
+  { "texi", "texinfo", "txi", NULL };
 
 char *Yacc_suffixes [] =
-  { "y", "ym", "yy", "yxx", "y++", NULL }; /* .ym is Objective yacc file */
+  { "y", "y++", "ym", "yxx", "yy", NULL }; /* .ym is Objective yacc file */
 
 /*
  * Table of languages.
@@ -544,26 +549,27 @@ char *Yacc_suffixes [] =
 
 language lang_names [] =
 {
-  { "ada",     Ada_funcs,           Ada_suffixes,         NULL              },
-  { "asm",     Asm_labels,          Asm_suffixes,         NULL              },
-  { "c",       default_C_entries,   default_C_suffixes,   NULL              },
-  { "c++",     Cplusplus_entries,   Cplusplus_suffixes,   NULL              },
-  { "c*",      Cstar_entries,       Cstar_suffixes,       NULL              },
-  { "cobol",   Cobol_paragraphs,    Cobol_suffixes,       NULL              },
-  { "erlang",  Erlang_functions,    Erlang_suffixes,      NULL              },
-  { "fortran", Fortran_functions,   Fortran_suffixes,     NULL              },
-  { "java",    Cjava_entries,       Cjava_suffixes,       NULL              },
-  { "lisp",    Lisp_functions,      Lisp_suffixes,        NULL              },
-  { "pascal",  Pascal_functions,    Pascal_suffixes,      NULL              },
-  { "perl",    Perl_functions,      Perl_suffixes,        Perl_interpreters },
-  { "postscript", Postscript_functions, Postscript_suffixes, NULL           },
-  { "proc",    plain_C_entries,     plain_C_suffixes,     NULL              },
-  { "prolog",  Prolog_functions,    Prolog_suffixes,      NULL              },
-  { "python",  Python_functions,    Python_suffixes,      NULL              },
-  { "scheme",  Scheme_functions,    Scheme_suffixes,      NULL              },
-  { "tex",     TeX_functions,       TeX_suffixes,         NULL              },
-  { "texinfo", Texinfo_functions,   Texinfo_suffixes,     NULL              },
-  { "yacc",    Yacc_entries,        Yacc_suffixes,        NULL              },
+  { "ada",     	  Ada_funcs,           	NULL, Ada_suffixes,        	NULL },
+  { "asm",     	  Asm_labels,          	NULL, Asm_suffixes,        	NULL },
+  { "c",       	  default_C_entries,   	NULL, default_C_suffixes,  	NULL },
+  { "c++",     	  Cplusplus_entries,   	NULL, Cplusplus_suffixes,  	NULL },
+  { "c*",      	  Cstar_entries,       	NULL, Cstar_suffixes,      	NULL },
+  { "cobol",   	  Cobol_paragraphs,    	NULL, Cobol_suffixes,      	NULL },
+  { "erlang",  	  Erlang_functions,    	NULL, Erlang_suffixes,     	NULL },
+  { "fortran", 	  Fortran_functions,   	NULL, Fortran_suffixes,    	NULL },
+  { "java",    	  Cjava_entries,       	NULL, Cjava_suffixes,      	NULL },
+  { "lisp",    	  Lisp_functions,      	NULL, Lisp_suffixes,       	NULL },
+  { "makefile",   Makefile_targets,     Makefile_filenames, NULL,     	NULL },
+  { "pascal",  	  Pascal_functions,    	NULL, Pascal_suffixes,     	NULL },
+  { "perl",    	  Perl_functions,       NULL, Perl_suffixes, Perl_interpreters },
+  { "postscript", Postscript_functions, NULL, Postscript_suffixes, 	NULL },
+  { "proc",    	  plain_C_entries,     	NULL, plain_C_suffixes,    	NULL },
+  { "prolog",  	  Prolog_functions,    	NULL, Prolog_suffixes,     	NULL },
+  { "python",  	  Python_functions,    	NULL, Python_suffixes,     	NULL },
+  { "scheme",  	  Scheme_functions,    	NULL, Scheme_suffixes,     	NULL },
+  { "tex",     	  TeX_commands,        	NULL, TeX_suffixes,        	NULL },
+  { "texinfo", 	  Texinfo_nodes,       	NULL, Texinfo_suffixes,    	NULL },
+  { "yacc",    	  Yacc_entries,        	NULL, Yacc_suffixes,       	NULL },
   { "auto", NULL },             /* default guessing scheme */
   { "none", just_read_file },   /* regexp matching only */
   { NULL, NULL }                /* end of list */
@@ -988,7 +994,7 @@ main (argc, argv)
 	  break;
 	case 'l':
 	  {
-	    language *lang = get_language_from_name (optarg);
+	    language *lang = get_language_from_langname (optarg);
 	    if (lang != NULL)
 	      {
 		argbuffer[current_arg].lang = lang;
@@ -1251,7 +1257,7 @@ get_compressor_from_suffix (file, extptr)
  * Return a language given the name.
  */
 static language *
-get_language_from_name (name)
+get_language_from_langname (name)
      char *name;
 {
   language *lang;
@@ -1297,12 +1303,20 @@ get_language_from_interpreter (interpreter)
  * Return a language given the file name.
  */
 static language *
-get_language_from_suffix (file)
+get_language_from_filename (file)
      char *file;
 {
   language *lang;
-  char **ext, *suffix;
+  char **name, **ext, *suffix;
 
+  /* Try whole file name first. */
+  for (lang = lang_names; lang->name != NULL; lang++)
+    if (lang->filenames != NULL)
+      for (name = lang->filenames; *name != NULL; name++)
+	if (streq (*name, file))
+	  return lang;
+
+  /* If not found, try suffix after last dot. */
   suffix = etags_strrchr (file, '.');
   if (suffix == NULL)
     return NULL;
@@ -1530,7 +1544,7 @@ find_entries (file, inf)
     }
 
   /* Try to guess the language given the file name. */
-  lang = get_language_from_suffix (file);
+  lang = get_language_from_filename (file);
   if (lang != NULL && lang->function != NULL)
     {
       curlang = lang;
@@ -1575,7 +1589,7 @@ find_entries (file, inf)
 
   /* Try Fortran. */
   old_last_node = last_node;
-  curlang = get_language_from_name ("fortran");
+  curlang = get_language_from_langname ("fortran");
   Fortran_functions (inf);
 
   /* No Fortran entries found.  Try C. */
@@ -1584,7 +1598,7 @@ find_entries (file, inf)
       /* We do not tag if rewind fails.
 	 Only the file name will be recorded in the tags file. */
       rewind (inf);
-      curlang = get_language_from_name (cplusplus ? "c++" : "c");
+      curlang = get_language_from_langname (cplusplus ? "c++" : "c");
       default_C_entries (inf);
     }
   return;
@@ -3854,6 +3868,27 @@ Cobol_paragraphs (inf)
     }
 }
 
+/*
+ * Makefile support
+ */
+static void
+Makefile_targets (inf)
+     FILE *inf;
+{
+  register char *bp;
+
+  LOOP_ON_INPUT_LINES (inf, lb, bp)
+    {
+      if (*bp == '\t' || *bp == '#')
+	continue;
+      while (*bp != '\0' && *bp != '=' && *bp != ':')
+	bp++;
+      if (*bp == ':')
+	pfnote (savenstr (lb.buffer, bp - lb.buffer), TRUE,
+		lb.buffer, bp - lb.buffer + 1, lineno, linecharno);
+    }
+}
+
 /* Added by Mosur Mohan, 4/22/88 */
 /* Pascal parsing                */
 
@@ -4239,7 +4274,7 @@ char TEX_clgrp = '}';
  * TeX/LaTeX scanning loop.
  */
 static void
-TeX_functions (inf)
+TeX_commands (inf)
      FILE *inf;
 {
   char *cp, *lasthit;
@@ -4391,23 +4426,24 @@ TEX_Token (cp)
 
 /* Texinfo support.  Dave Love, Mar. 2000.  */
 static void
-Texinfo_functions (inf)
+Texinfo_nodes (inf)
      FILE * inf;
 {
   char *cp, *start;
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
-      if ((*cp++ == '@' && *cp++ == 'n' && *cp++ == 'o' && *cp++ == 'd'
-	      && *cp++ == 'e' && iswhite (*cp++)))
+      if ((*cp++ == '@'
+	   && *cp++ == 'n'
+	   && *cp++ == 'o'
+	   && *cp++ == 'd'
+	   && *cp++ == 'e' && iswhite (*cp++)))
 	{
-	    while (iswhite (*cp))
-	          cp++;
-	      start = cp;
-	        while (*cp != '\0' && *cp != ',')
-		      cp++;
-		  pfnote (savenstr (start, cp - start), TRUE,
-			    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
-		  }
+	  start = cp = skip_spaces(cp);
+	  while (*cp != '\0' && *cp != ',')
+	    cp++;
+	  pfnote (savenstr (start, cp - start), TRUE,
+		  lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+	}
     }
 }
 
@@ -4859,7 +4895,7 @@ analyse_regex (regex_arg, ignore_case)
 	      return;
 	    }
 	*cp = '\0';
-	lang = get_language_from_name (lang_name);
+	lang = get_language_from_langname (lang_name);
 	if (lang == NULL)
 	  return;
 	add_regex (cp + 1, ignore_case, lang);
@@ -5490,8 +5526,8 @@ canonicalize_filename (fn)
 {
 #ifdef DOS_NT
   /* Canonicalize drive letter case.  */
-  if (fn[0] && fn[1] == ':' && ISLOWER (fn[0]))
-    fn[0] = UPCASE (fn[0]);
+  if (fn[0] != '\0' && fn[1] == ':' && ISLOWER (fn[0]))
+    fn[0] = upcase (fn[0]);
   /* Convert backslashes to slashes.  */
   for (; *fn != '\0'; fn++)
     if (*fn == '\\')

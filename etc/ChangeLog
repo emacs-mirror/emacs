@@ -1,3 +1,19 @@
+2001-01-14  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (get_language_from_langname): Renamed from
+	get_language_from_name.
+	(get_language_from_filename): Renamed from
+	get_language_from_suffix.  Now first looks for the complete file
+	name.
+	(language): New member char **filenames.
+	(Makefile_filenames): List of possible filenames for makefiles.
+	(lang_names): Added a NULL member for every entry, added an entry
+	for makefiles.
+	(Makefile_targets): New function, inspired by Assar Westerlund
+	<assar@sics.se>.
+	(Texinfo_nodes): Renamed from Texinfo_fuctions and made
+	it conformant to the style of the rest of the code.
+
 2001-01-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* TUTORIAL.es: New file.
@@ -6,7 +22,7 @@
 
 	* edt-user.doc: Updated to reflect EDT Emulation version 4.0
         enhancements.
-	
+
 2000-12-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* fr-refcard.tex, fr-refcard.ps, fr-drdref.tex, fr-drdref.ps: New
@@ -17,7 +33,7 @@
 	* ps-prin1.ps: Handle form feed better when ps-zebra-stripe-follow
 	is non-nil.
 	(printZebra, BeginPage): Code fix.
-	
+
 2000-12-15  Miles Bader  <miles@gnu.org>
 
 	* DEBUG: Add note aboute using `inverse-video' to detect excessive
@@ -62,7 +78,7 @@
 
 	* splash.xbm: File removed.
 	* splash.pbm: New file.
-	
+
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* splash.xbm: New file.
@@ -85,7 +101,7 @@
 	* ps-prin1.ps: Changed comment version (6.0).
 
 	* ps-prin0.ps: Changed comment version (6.0).
-	
+
 2000-08-24  Wlodzimierz Bzyl <matwb@univ.gda.pl>
 
 	* survival.tex: New file.
@@ -93,7 +109,7 @@
 2000-08-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* de-refcard.ps, de-refcard.tex: Renamed from refcard-de.*.
-	
+
 	* pl-refcard.ps, pl-refcard.tex: Renamed from refcard-pl.*.
 
 2000-08-17  Gerd Moellmann  <gerd@gnu.org>
@@ -174,7 +190,7 @@
 	* ps-prin1.ps: Replace gs_languagelevel by languagelevel.
 	(printBackground, SetColor): New procs.
 	(ZebraColor): Renaming old ZebraGray var.
-	
+
 2000-03-23  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-prin1.ps: Eliminate SkipFirstPage.
@@ -184,14 +200,14 @@
 	* ps-prin0.ps: Define command only for language level 1.
 
 2000-03-16  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
-	
+
 	* ps-prin0.ps: Define packedarray operator for language level 1,
 	adjust setduplexmode and settumble definitions.
-	
+
 2000-03-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print0.ps: New file.
-	
+
 	* ps-prin1.ps, ps-prin3.ps: Eliminate CheckConfig.
 
 2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
@@ -230,15 +246,15 @@ line.  Change logs above this notice are those for the 21.x code line.
 2000-06-13  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.7 released.
-	
+
 2000-02-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.6 released.
-	
+
 1999-12-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* Version 20.5 released.
-	
+
 1999-11-30  Paul Eggert  <eggert@twinsun.com>
 
 	* PROBLEMS: Update Solaris 2.6 and 7 problems.

@@ -1989,6 +1989,9 @@ in the file.
 In Fortran code, functions, subroutines and blockdata are tags.
 
 @item
+In makefiles, targets are tags.
+
+@item
 In Objective C code, tags include Objective C definitions for classes,
 class categories, methods, and protocols.
 
