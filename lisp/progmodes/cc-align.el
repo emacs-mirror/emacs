@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.14
+;; Version:    5.15
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -146,9 +146,10 @@
 	     (looking-at "throws[ \t\n]"))
 	(forward-word 1)
 	(skip-chars-forward " \t")
-	(when (eolp)
-	  (back-to-indentation)
-	  (setq extra c-basic-offset)))
+	(if (eolp)
+	    (progn
+	      (back-to-indentation)
+	      (setq extra c-basic-offset))))
        (t (goto-char iopl)))
       (+ (- (current-column) langelem-col) extra))))
 
