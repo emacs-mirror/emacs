@@ -182,13 +182,13 @@ which is at least the number of distinct elements.")
 
   /* halftail is used to detect circular lists.  */
   halftail = list;
-  for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       if (EQ (tail, halftail) && len != 0)
 	break;
       len++;
       if ((len & 1) == 0)
-	halftail = XCONS (halftail)->cdr;
+	halftail = XCDR (halftail);
     }
 
   XSETINT (length, len);
@@ -630,9 +630,9 @@ concat (nargs, args, target_type, last_special)
 	  else if (BOOL_VECTOR_P (this) && XBOOL_VECTOR (this)->size > 0)
 	    wrong_type_argument (Qintegerp, Faref (this, make_number (0)));
 	  else if (CONSP (this))
-	    for (; CONSP (this); this = XCONS (this)->cdr)
+	    for (; CONSP (this); this = XCDR (this))
 	      {
-		ch = XCONS (this)->car;
+		ch = XCAR (this);
 		if (! INTEGERP (ch))
 		  wrong_type_argument (Qintegerp, ch);
 		this_len_byte = CHAR_BYTES (XINT (ch));
@@ -744,7 +744,7 @@ concat (nargs, args, target_type, last_special)
 	       `this' is exhausted. */
 	    if (NILP (this)) break;
 	    if (CONSP (this))
-	      elt = XCONS (this)->car, this = XCONS (this)->cdr;
+	      elt = XCAR (this), this = XCDR (this);
 	    else if (thisindex >= thisleni)
 	      break;
 	    else if (STRINGP (this))
@@ -787,9 +787,9 @@ concat (nargs, args, target_type, last_special)
 	    /* Store this element into the result.  */
 	    if (toindex < 0)
 	      {
-		XCONS (tail)->car = elt;
+		XCAR (tail) = elt;
 		prev = tail;
-		tail = XCONS (tail)->cdr;
+		tail = XCDR (tail);
 	      }
 	    else if (VECTORP (val))
 	      XVECTOR (val)->contents[toindex++] = elt;
@@ -826,7 +826,7 @@ concat (nargs, args, target_type, last_special)
 	  }
     }
   if (!NILP (prev))
-    XCONS (prev)->cdr = last_tail;
+    XCDR (prev) = last_tail;
 
   if (num_textprops > 0)
     {
@@ -1127,13 +1127,13 @@ Elements of ALIST that are not conses are also shared.")
   if (NILP (alist))
     return alist;
   alist = concat (1, &alist, Lisp_Cons, 0);
-  for (tem = alist; CONSP (tem); tem = XCONS (tem)->cdr)
+  for (tem = alist; CONSP (tem); tem = XCDR (tem))
     {
       register Lisp_Object car;
-      car = XCONS (tem)->car;
+      car = XCAR (tem);
 
       if (CONSP (car))
-	XCONS (tem)->car = Fcons (XCONS (car)->car, XCONS (car)->cdr);
+	XCAR (tem) = Fcons (XCAR (car), XCDR (car));
     }
   return alist;
 }
@@ -1302,7 +1302,7 @@ The value is actually the tail of LIST whose car is ELT.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; !NILP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
@@ -1321,7 +1321,7 @@ The value is actually the tail of LIST whose car is ELT.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; !NILP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
@@ -1340,12 +1340,12 @@ Elements of LIST that are not conses are ignored.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; !NILP (tail); tail = XCDR (tail))
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = XCONS (elt)->car;
+      tem = XCAR (elt);
       if (EQ (key, tem)) return elt;
       QUIT;
     }
@@ -1361,12 +1361,12 @@ assq_no_quit (key, list)
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = XCONS (elt)->car;
+      tem = XCAR (elt);
       if (EQ (key, tem)) return elt;
     }
   return Qnil;
@@ -1380,12 +1380,12 @@ The value is actually the element of LIST whose car equals KEY.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; !NILP (tail); tail = XCDR (tail))
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = Fequal (XCONS (elt)->car, key);
+      tem = Fequal (XCAR (elt), key);
       if (!NILP (tem)) return elt;
       QUIT;
     }
@@ -1400,12 +1400,12 @@ The value is actually the element of LIST whose cdr is ELT.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; !NILP (tail); tail = XCDR (tail))
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = XCONS (elt)->cdr;
+      tem = XCDR (elt);
       if (EQ (key, tem)) return elt;
       QUIT;
     }
@@ -1420,12 +1420,12 @@ The value is actually the element of LIST whose cdr equals KEY.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; !NILP (tail); tail = XCDR (tail))
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = Fequal (XCONS (elt)->cdr, key);
+      tem = Fequal (XCDR (elt), key);
       if (!NILP (tem)) return elt;
       QUIT;
     }
@@ -1453,13 +1453,13 @@ to be sure of changing the value of `foo'.")
       if (EQ (elt, tem))
 	{
 	  if (NILP (prev))
-	    list = XCONS (tail)->cdr;
+	    list = XCDR (tail);
 	  else
-	    Fsetcdr (prev, XCONS (tail)->cdr);
+	    Fsetcdr (prev, XCDR (tail));
 	}
       else
 	prev = tail;
-      tail = XCONS (tail)->cdr;
+      tail = XCDR (tail);
       QUIT;
     }
   return list;
@@ -1487,13 +1487,13 @@ to be sure of changing the value of `foo'.")
       if (! NILP (Fequal (elt, tem)))
 	{
 	  if (NILP (prev))
-	    list = XCONS (tail)->cdr;
+	    list = XCDR (tail);
 	  else
-	    Fsetcdr (prev, XCONS (tail)->cdr);
+	    Fsetcdr (prev, XCDR (tail));
 	}
       else
 	prev = tail;
-      tail = XCONS (tail)->cdr;
+      tail = XCDR (tail);
       QUIT;
     }
   return list;
@@ -1529,8 +1529,8 @@ See also the function `nreverse', which is used more often.")
 {
   Lisp_Object new;
 
-  for (new = Qnil; CONSP (list); list = XCONS (list)->cdr)
-    new = Fcons (XCONS (list)->car, new);
+  for (new = Qnil; CONSP (list); list = XCDR (list))
+    new = Fcons (XCAR (list), new);
   if (!NILP (list))
     wrong_type_argument (Qconsp, list);
   return new;
@@ -1641,12 +1641,12 @@ one of the properties on the list.")
      register Lisp_Object prop;
 {
   register Lisp_Object tail;
-  for (tail = plist; !NILP (tail); tail = Fcdr (XCONS (tail)->cdr))
+  for (tail = plist; !NILP (tail); tail = Fcdr (XCDR (tail)))
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
       if (EQ (prop, tem))
-	return Fcar (XCONS (tail)->cdr);
+	return Fcar (XCDR (tail));
     }
   return Qnil;
 }
@@ -1677,12 +1677,12 @@ The PLIST is modified by side effects.")
   register Lisp_Object tail, prev;
   Lisp_Object newcell;
   prev = Qnil;
-  for (tail = plist; CONSP (tail) && CONSP (XCONS (tail)->cdr);
-       tail = XCONS (XCONS (tail)->cdr)->cdr)
+  for (tail = plist; CONSP (tail) && CONSP (XCDR (tail));
+       tail = XCDR (XCDR (tail)))
     {
-      if (EQ (prop, XCONS (tail)->car))
+      if (EQ (prop, XCAR (tail)))
 	{
-	  Fsetcar (XCONS (tail)->cdr, val);
+	  Fsetcar (XCDR (tail), val);
 	  return plist;
 	}
       prev = tail;
@@ -1691,7 +1691,7 @@ The PLIST is modified by side effects.")
   if (NILP (prev))
     return newcell;
   else
-    Fsetcdr (XCONS (prev)->cdr, newcell);
+    Fsetcdr (XCDR (prev), newcell);
   return plist;
 }
 
@@ -1744,10 +1744,10 @@ internal_equal (o1, o2, depth)
 #endif
 
     case Lisp_Cons:
-      if (!internal_equal (XCONS (o1)->car, XCONS (o2)->car, depth + 1))
+      if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1))
 	return 0;
-      o1 = XCONS (o1)->cdr;
-      o2 = XCONS (o2)->cdr;
+      o1 = XCDR (o1);
+      o2 = XCDR (o2);
       goto tail_recurse;
 
     case Lisp_Misc:
@@ -2375,7 +2375,7 @@ mapcar1 (leni, vals, fn, seq)
       for (i = 0; i < leni; i++)
 	{
 	  vals[i] = call1 (fn, Fcar (tail));
-	  tail = XCONS (tail)->cdr;
+	  tail = XCDR (tail);
 	}
     }
 

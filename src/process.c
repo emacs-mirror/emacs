@@ -331,10 +331,10 @@ decode_status (l, symbol, code, coredump)
     }
   else
     {
-      *symbol = XCONS (l)->car;
-      tem = XCONS (l)->cdr;
-      *code = XFASTINT (XCONS (tem)->car);
-      tem = XCONS (tem)->cdr;
+      *symbol = XCAR (l);
+      tem = XCDR (l);
+      *code = XFASTINT (XCAR (tem));
+      tem = XCDR (tem);
       *coredump = !NILP (tem);
     }
 }
@@ -665,7 +665,7 @@ nil, indicating the current buffer's process.")
     update_status (p);
   status = p->status;
   if (CONSP (status))
-    status = XCONS (status)->car;
+    status = XCAR (status);
   if (NETCONN_P (process))
     {
       if (EQ (status, Qrun))
@@ -687,7 +687,7 @@ If PROCESS has not yet exited or died, return 0.")
   if (!NILP (XPROCESS (process)->raw_status_low))
     update_status (XPROCESS (process));
   if (CONSP (XPROCESS (process)->status))
-    return XCONS (XCONS (XPROCESS (process)->status)->cdr)->car;
+    return XCAR (XCDR (XPROCESS (process)->status));
   return make_number (0);
 }
 
@@ -964,7 +964,7 @@ Proc         Status   Buffer         Tty         Command\n\
 	update_status (p);
       symbol = p->status;
       if (CONSP (p->status))
-	symbol = XCONS (p->status)->car;
+	symbol = XCAR (p->status);
 
       
       if (EQ (symbol, Qsignal))
@@ -1024,7 +1024,7 @@ Proc         Status   Buffer         Tty         Command\n\
       if (NETCONN_P (proc))
         {
 	  sprintf (tembuf, "(network stream connection to %s)\n",
-		   XSTRING (XCONS (p->childp)->car)->data);
+		   XSTRING (XCAR (p->childp))->data);
 	  insert_string (tembuf);
         }
       else 
@@ -1226,9 +1226,9 @@ Remaining arguments are strings to give program as arguments.")
 	coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
 	UNGCPRO;
 	if (CONSP (coding_systems))
-	  val = XCONS (coding_systems)->car;
+	  val = XCAR (coding_systems);
 	else if (CONSP (Vdefault_process_coding_system))
-	  val = XCONS (Vdefault_process_coding_system)->car;
+	  val = XCAR (Vdefault_process_coding_system);
       }
     XPROCESS (proc)->decode_coding_system = val;
 
@@ -1245,9 +1245,9 @@ Remaining arguments are strings to give program as arguments.")
 	    UNGCPRO;
 	  }
 	if (CONSP (coding_systems))
-	  val = XCONS (coding_systems)->cdr;
+	  val = XCDR (coding_systems);
 	else if (CONSP (Vdefault_process_coding_system))
-	  val = XCONS (Vdefault_process_coding_system)->cdr;
+	  val = XCDR (Vdefault_process_coding_system);
       }
     XPROCESS (proc)->encode_coding_system = val;
   }
@@ -2101,9 +2101,9 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	coding_systems = Ffind_operation_coding_system (5, args);
 	UNGCPRO;
 	if (CONSP (coding_systems))
-	  val = XCONS (coding_systems)->car;
+	  val = XCAR (coding_systems);
 	else if (CONSP (Vdefault_process_coding_system))
-	  val = XCONS (Vdefault_process_coding_system)->car;
+	  val = XCAR (Vdefault_process_coding_system);
 	else
 	  val = Qnil;
       }
@@ -2124,9 +2124,9 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 	    UNGCPRO;
 	  }
 	if (CONSP (coding_systems))
-	  val = XCONS (coding_systems)->cdr;
+	  val = XCDR (coding_systems);
 	else if (CONSP (Vdefault_process_coding_system))
-	  val = XCONS (Vdefault_process_coding_system)->cdr;
+	  val = XCDR (Vdefault_process_coding_system);
 	else
 	  val = Qnil;
       }
@@ -2378,7 +2378,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   /* If waiting for non-nil in a cell, record where.  */
   if (CONSP (read_kbd))
     {
-      wait_for_cell = &XCONS (read_kbd)->car;
+      wait_for_cell = &XCAR (read_kbd);
       XSETFASTINT (read_kbd, 0);
     }
 
@@ -2837,7 +2837,7 @@ static Lisp_Object
 read_process_output_call (fun_and_args)
      Lisp_Object fun_and_args;
 {
-  return apply1 (XCONS (fun_and_args)->car, XCONS (fun_and_args)->cdr);
+  return apply1 (XCAR (fun_and_args), XCDR (fun_and_args));
 }
 
 static Lisp_Object
@@ -4075,9 +4075,9 @@ kill_buffer_processes (buffer)
 {
   Lisp_Object tail, proc;
 
-  for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
     {
-      proc = XCONS (XCONS (tail)->car)->cdr;
+      proc = XCDR (XCAR (tail));
       if (GC_PROCESSP (proc)
 	  && (NILP (buffer) || EQ (XPROCESS (proc)->buffer, buffer)))
 	{
@@ -4165,9 +4165,9 @@ sigchld_handler (signo)
       /* Find the process that signaled us, and record its status.  */
 
       p = 0;
-      for (tail = Vprocess_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+      for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
 	{
-	  proc = XCONS (XCONS (tail)->car)->cdr;
+	  proc = XCDR (XCAR (tail));
 	  p = XPROCESS (proc);
 	  if (EQ (p->childp, Qt) && XFASTINT (p->pid) == pid)
 	    break;
@@ -4177,9 +4177,9 @@ sigchld_handler (signo)
       /* Look for an asynchronous process whose pid hasn't been filled
 	 in yet.  */
       if (p == 0)
-	for (tail = Vprocess_alist; CONSP (tail); tail = XCONS (tail)->cdr)
+	for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
 	  {
-	    proc = XCONS (XCONS (tail)->car)->cdr;
+	    proc = XCDR (XCAR (tail));
 	    p = XPROCESS (proc);
 	    if (INTEGERP (p->pid) && XINT (p->pid) == -1)
 	      break;
@@ -4270,7 +4270,7 @@ static Lisp_Object
 exec_sentinel_unwind (data)
      Lisp_Object data;
 {
-  XPROCESS (XCONS (data)->car)->sentinel = XCONS (data)->cdr;
+  XPROCESS (XCAR (data))->sentinel = XCDR (data);
   return Qnil;
 }
 
@@ -4407,7 +4407,7 @@ status_notify ()
 	  /* If process is terminated, deactivate it or delete it.  */
 	  symbol = p->status;
 	  if (CONSP (p->status))
-	    symbol = XCONS (p->status)->car;
+	    symbol = XCAR (p->status);
 
 	  if (EQ (symbol, Qsignal) || EQ (symbol, Qexit)
 	      || EQ (symbol, Qclosed))
@@ -4755,7 +4755,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   /* If waiting for non-nil in a cell, record where.  */
   if (CONSP (read_kbd))
     {
-      wait_for_cell = &XCONS (read_kbd)->car;
+      wait_for_cell = &XCAR (read_kbd);
       XSETFASTINT (read_kbd, 0);
     }
 

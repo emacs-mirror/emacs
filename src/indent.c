@@ -1534,20 +1534,20 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
 
   CHECK_NUMBER_COERCE_MARKER (from, 0);
   CHECK_CONS (frompos, 0);
-  CHECK_NUMBER (XCONS (frompos)->car, 0);
-  CHECK_NUMBER (XCONS (frompos)->cdr, 0);
+  CHECK_NUMBER (XCAR (frompos), 0);
+  CHECK_NUMBER (XCDR (frompos), 0);
   CHECK_NUMBER_COERCE_MARKER (to, 0);
   CHECK_CONS (topos, 0);
-  CHECK_NUMBER (XCONS (topos)->car, 0);
-  CHECK_NUMBER (XCONS (topos)->cdr, 0);
+  CHECK_NUMBER (XCAR (topos), 0);
+  CHECK_NUMBER (XCDR (topos), 0);
   CHECK_NUMBER (width, 0);
   if (!NILP (offsets))
     {
       CHECK_CONS (offsets, 0);
-      CHECK_NUMBER (XCONS (offsets)->car, 0);
-      CHECK_NUMBER (XCONS (offsets)->cdr, 0);
-      hscroll = XINT (XCONS (offsets)->car);
-      tab_offset = XINT (XCONS (offsets)->cdr);
+      CHECK_NUMBER (XCAR (offsets), 0);
+      CHECK_NUMBER (XCDR (offsets), 0);
+      hscroll = XINT (XCAR (offsets));
+      tab_offset = XINT (XCDR (offsets));
     }
   else
     hscroll = tab_offset = 0;
@@ -1562,10 +1562,10 @@ DEFUN ("compute-motion", Fcompute_motion, Scompute_motion, 7, 7, 0,
   if (XINT (to) < BEGV || XINT (to) > ZV)
     args_out_of_range_3 (to, make_number (BEGV), make_number (ZV));
 
-  pos = compute_motion (XINT (from), XINT (XCONS (frompos)->cdr),
-			XINT (XCONS (frompos)->car), 0,
-			XINT (to), XINT (XCONS (topos)->cdr),
-			XINT (XCONS (topos)->car),
+  pos = compute_motion (XINT (from), XINT (XCDR (frompos)),
+			XINT (XCAR (frompos)), 0,
+			XINT (to), XINT (XCDR (topos)),
+			XINT (XCAR (topos)),
 			XINT (width), hscroll, tab_offset,
 			XWINDOW (window));
 

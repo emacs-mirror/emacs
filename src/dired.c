@@ -486,9 +486,9 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	      if (!passcount && len > XSTRING (encoded_file)->size)
 		/* and exit this for loop if a match is found */
 		for (tem = Vcompletion_ignored_extensions;
-		     CONSP (tem); tem = XCONS (tem)->cdr)
+		     CONSP (tem); tem = XCDR (tem))
 		  {
-		    elt = XCONS (tem)->car;
+		    elt = XCAR (tem);
 		    if (!STRINGP (elt)) continue;
 		    skip = len - XSTRING (elt)->size;
 		    if (skip < 0) continue;
@@ -514,9 +514,9 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 
 	      /* Ignore this element if it fails to match all the regexps.  */
 	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
-		   regexps = XCONS (regexps)->cdr)
+		   regexps = XCDR (regexps))
 		{
-		  tem = Fstring_match (XCONS (regexps)->car, elt, zero);
+		  tem = Fstring_match (XCAR (regexps), elt, zero);
 		  if (NILP (tem))
 		    break;
 		}

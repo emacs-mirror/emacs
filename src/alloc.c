@@ -680,7 +680,7 @@ make_float (float_value)
 	}
       XSETFLOAT (val, &float_block->floats[float_block_index++]);
     }
-  XFLOAT (val)->data = float_value;
+  XFLOAT_DATA (val) = float_value;
   XSETFASTINT (XFLOAT (val)->type, 0);	/* bug chasing -wsr */
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
@@ -765,8 +765,8 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	}
       XSETCONS (val, &cons_block->conses[cons_block_index++]);
     }
-  XCONS (val)->car = car;
-  XCONS (val)->cdr = cdr;
+  XCAR (val) = car;
+  XCDR (val) = cdr;
   consing_since_gc += sizeof (struct Lisp_Cons);
   cons_cells_consed++;
   return val;
@@ -1568,8 +1568,8 @@ pure_cons (car, cdr)
     error ("Pure Lisp storage exhausted");
   XSETCONS (new, PUREBEG + pureptr);
   pureptr += sizeof (struct Lisp_Cons);
-  XCONS (new)->car = Fpurecopy (car);
-  XCONS (new)->cdr = Fpurecopy (cdr);
+  XCAR (new) = Fpurecopy (car);
+  XCDR (new) = Fpurecopy (cdr);
   return new;
 }
 
@@ -1606,7 +1606,7 @@ make_pure_float (num)
     error ("Pure Lisp storage exhausted");
   XSETFLOAT (new, PUREBEG + pureptr);
   pureptr += sizeof (struct Lisp_Float);
-  XFLOAT (new)->data = num;
+  XFLOAT_DATA (new) = num;
   XSETFASTINT (XFLOAT (new)->type, 0);	/* bug chasing -wsr */
   return new;
 }
@@ -1644,10 +1644,10 @@ Does not copy symbols.")
     return obj;
 
   if (CONSP (obj))
-    return pure_cons (XCONS (obj)->car, XCONS (obj)->cdr);
+    return pure_cons (XCAR (obj), XCDR (obj));
 #ifdef LISP_FLOAT_TYPE
   else if (FLOATP (obj))
-    return make_pure_float (XFLOAT (obj)->data);
+    return make_pure_float (XFLOAT_DATA (obj));
 #endif /* LISP_FLOAT_TYPE */
   else if (STRINGP (obj))
     return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size,
@@ -1892,19 +1892,19 @@ Garbage collection happens automatically if you cons more than\n\
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
-		if (GC_CONSP (XCONS (tail)->car)
-		    && GC_MARKERP (XCONS (XCONS (tail)->car)->car)
-		    && ! XMARKBIT (XMARKER (XCONS (XCONS (tail)->car)->car)->chain))
+		if (GC_CONSP (XCAR (tail))
+		    && GC_MARKERP (XCAR (XCAR (tail)))
+		    && ! XMARKBIT (XMARKER (XCAR (XCAR (tail)))->chain))
 		  {
 		    if (NILP (prev))
-		      nextb->undo_list = tail = XCONS (tail)->cdr;
+		      nextb->undo_list = tail = XCDR (tail);
 		    else
-		      tail = XCONS (prev)->cdr = XCONS (tail)->cdr;
+		      tail = XCDR (prev) = XCDR (tail);
 		  }
 		else
 		  {
 		    prev = tail;
-		    tail = XCONS (tail)->cdr;
+		    tail = XCDR (tail);
 		  }
 	      }
 	  }
@@ -2462,7 +2462,7 @@ mark_object (argptr)
 	  }
 	mark_object (&ptr->car);
 	/* See comment above under Lisp_Vector for why not use ptr here.  */
-	objptr = &XCONS (obj)->cdr;
+	objptr = &XCDR (obj);
 	goto loop;
       }
 
@@ -2509,11 +2509,11 @@ mark_buffer (buf)
 	    break;
 	  XMARK (ptr->car);
 	  if (GC_CONSP (ptr->car)
-	      && ! XMARKBIT (XCONS (ptr->car)->car)
-	      && GC_MARKERP (XCONS (ptr->car)->car))
+	      && ! XMARKBIT (XCAR (ptr->car))
+	      && GC_MARKERP (XCAR (ptr->car)))
 	    {
-	      XMARK (XCONS (ptr->car)->car);
-	      mark_object (&XCONS (ptr->car)->cdr);
+	      XMARK (XCAR (ptr->car));
+	      mark_object (&XCDR (ptr->car));
 	    }
 	  else
 	    mark_object (&ptr->car);
@@ -2524,7 +2524,7 @@ mark_buffer (buf)
 	    break;
 	}
 
-      mark_object (&XCONS (tail)->cdr);
+      mark_object (&XCDR (tail));
     }
   else
     mark_object (&buffer->undo_list);

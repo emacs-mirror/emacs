@@ -270,9 +270,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
 	    if (CONSP (coding_systems))
-	      val = XCONS (coding_systems)->cdr;
+	      val = XCDR (coding_systems);
 	    else if (CONSP (Vdefault_process_coding_system))
-	      val = XCONS (Vdefault_process_coding_system)->cdr;
+	      val = XCDR (Vdefault_process_coding_system);
 	    else
 	      val = Qnil;
 	  }
@@ -296,10 +296,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	 (BUFFER-FOR-STDOUT FILE-FOR-STDERR).  */
       if (CONSP (buffer))
 	{
-	  if (CONSP (XCONS (buffer)->cdr))
+	  if (CONSP (XCDR (buffer)))
 	    {
 	      Lisp_Object stderr_file;
-	      stderr_file = XCONS (XCONS (buffer)->cdr)->car;
+	      stderr_file = XCAR (XCDR (buffer));
 
 	      if (NILP (stderr_file) || EQ (Qt, stderr_file))
 		error_file = stderr_file;
@@ -307,7 +307,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		error_file = Fexpand_file_name (stderr_file, Qnil);
 	    }
 
-	  buffer = XCONS (buffer)->car;
+	  buffer = XCAR (buffer);
 	}
 
       if (!(EQ (buffer, Qnil)
@@ -698,9 +698,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 		= Ffind_operation_coding_system (nargs + 1, args2);
 	    }
 	  if (CONSP (coding_systems))
-	    val = XCONS (coding_systems)->car;
+	    val = XCAR (coding_systems);
 	  else if (CONSP (Vdefault_process_coding_system))
-	    val = XCONS (Vdefault_process_coding_system)->car;
+	    val = XCAR (Vdefault_process_coding_system);
 	  else
 	    val = Qnil;
 	}
@@ -943,9 +943,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
       for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
       coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
       if (CONSP (coding_systems))
-	val = XCONS (coding_systems)->cdr;
+	val = XCDR (coding_systems);
       else if (CONSP (Vdefault_process_coding_system))
-	val = XCONS (Vdefault_process_coding_system)->cdr;
+	val = XCDR (Vdefault_process_coding_system);
       else
 	val = Qnil;
     }
@@ -1088,8 +1088,8 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
     new_length = 0;
     for (tem = Vprocess_environment;
-	 CONSP (tem) && STRINGP (XCONS (tem)->car);
-	 tem = XCONS (tem)->cdr)
+	 CONSP (tem) && STRINGP (XCAR (tem));
+	 tem = XCDR (tem))
       new_length++;
 
     /* new_length + 2 to include PWD and terminating 0.  */
@@ -1102,11 +1102,11 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
     /* Copy the Vprocess_environment strings into new_env.  */
     for (tem = Vprocess_environment;
-	 CONSP (tem) && STRINGP (XCONS (tem)->car);
-	 tem = XCONS (tem)->cdr)
+	 CONSP (tem) && STRINGP (XCAR (tem));
+	 tem = XCDR (tem))
       {
 	char **ep = env;
-	char *string = (char *) XSTRING (XCONS (tem)->car)->data;
+	char *string = (char *) XSTRING (XCAR (tem))->data;
 	/* See if this string duplicates any string already in the env.
 	   If so, don't put it in.
 	   When an env var has multiple definitions,
@@ -1255,11 +1255,11 @@ getenv_internal (var, varlen, value, valuelen)
 {
   Lisp_Object scan;
 
-  for (scan = Vprocess_environment; CONSP (scan); scan = XCONS (scan)->cdr)
+  for (scan = Vprocess_environment; CONSP (scan); scan = XCDR (scan))
     {
       Lisp_Object entry;
 
-      entry = XCONS (scan)->car;
+      entry = XCAR (scan);
       if (STRINGP (entry)
 	  && STRING_BYTES (XSTRING (entry)) > varlen
 	  && XSTRING (entry)->data[varlen] == '='

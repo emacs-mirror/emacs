@@ -67,7 +67,7 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 /* If o1 is a cons whose cdr is a cons, return non-zero and set o2 to
    the o1's cdr.  Otherwise, return zero.  This is handy for
    traversing plists.  */
-#define PLIST_ELT_P(o1, o2) (CONSP (o1) && ((o2)=XCONS (o1)->cdr, CONSP (o2)))
+#define PLIST_ELT_P(o1, o2) (CONSP (o1) && ((o2)=XCDR (o1), CONSP (o2)))
 
 Lisp_Object Vinhibit_point_motion_hooks;
 Lisp_Object Vdefault_text_properties;
@@ -268,10 +268,10 @@ property_value (plist, prop)
   Lisp_Object value;
 
   while (PLIST_ELT_P (plist, value))
-    if (EQ (XCONS (plist)->car, prop))
-      return XCONS (value)->car;
+    if (EQ (XCAR (plist), prop))
+      return XCAR (value);
     else
-      plist = XCONS (value)->cdr;
+      plist = XCDR (value);
 
   return Qunbound;
 }
@@ -293,12 +293,12 @@ set_properties (properties, interval, object)
 	 or has a different value in PROPERTIES, make an undo record.  */
       for (sym = interval->plist;
 	   PLIST_ELT_P (sym, value);
-	   sym = XCONS (value)->cdr)
-	if (! EQ (property_value (properties, XCONS (sym)->car),
-		  XCONS (value)->car))
+	   sym = XCDR (value))
+	if (! EQ (property_value (properties, XCAR (sym)),
+		  XCAR (value)))
 	  {
 	    record_property_change (interval->position, LENGTH (interval),
-				    XCONS (sym)->car, XCONS (value)->car,
+				    XCAR (sym), XCAR (value),
 				    object);
 	  }
 
@@ -306,11 +306,11 @@ set_properties (properties, interval, object)
 	 make an undo record binding it to nil, so it will be removed.  */
       for (sym = properties;
 	   PLIST_ELT_P (sym, value);
-	   sym = XCONS (value)->cdr)
-	if (EQ (property_value (interval->plist, XCONS (sym)->car), Qunbound))
+	   sym = XCDR (value))
+	if (EQ (property_value (interval->plist, XCAR (sym)), Qunbound))
 	  {
 	    record_property_change (interval->position, LENGTH (interval),
-				    XCONS (sym)->car, Qnil,
+				    XCAR (sym), Qnil,
 				    object);
 	  }
     }
@@ -1535,7 +1535,7 @@ extend_property_ranges (list, old_end, new_end)
       end = XCAR (XCDR (item));
 
       if (EQ (end, old_end))
-	XCONS (XCDR (item))->car = new_end;
+	XCAR (XCDR (item)) = new_end;
     }
 }
 

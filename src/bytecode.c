@@ -629,7 +629,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  while (--op >= 0)
 	    {
 	      if (CONSP (v1))
-		v1 = XCONS (v1)->cdr;
+		v1 = XCDR (v1);
 	      else if (!NILP (v1))
 		{
 		  immediate_quit = 0;
@@ -674,14 +674,14 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bcar:
 	  v1 = TOP;
 	docar:
-	  if (CONSP (v1)) TOP = XCONS (v1)->car;
+	  if (CONSP (v1)) TOP = XCAR (v1);
 	  else if (NILP (v1)) TOP = Qnil;
 	  else Fcar (wrong_type_argument (Qlistp, v1));
 	  break;
 
 	case Bcdr:
 	  v1 = TOP;
-	  if (CONSP (v1)) TOP = XCONS (v1)->cdr;
+	  if (CONSP (v1)) TOP = XCDR (v1);
 	  else if (NILP (v1)) TOP = Qnil;
 	  else Fcdr (wrong_type_argument (Qlistp, v1));
 	  break;
@@ -810,8 +810,8 @@ If the third argument is incorrect, Emacs may crash.")
 	    {
 	      double f1, f2;
 
-	      f1 = (FLOATP (v1) ? XFLOAT (v1)->data : XINT (v1));
-	      f2 = (FLOATP (v2) ? XFLOAT (v2)->data : XINT (v2));
+	      f1 = (FLOATP (v1) ? XFLOAT_DATA (v1) : XINT (v1));
+	      f2 = (FLOATP (v2) ? XFLOAT_DATA (v2) : XINT (v2));
 	      TOP = (f1 == f2 ? Qt : Qnil);
 	    }
 	  else
@@ -1097,7 +1097,7 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bcar_safe:
 	  v1 = TOP;
 	  if (CONSP (v1))
-	    TOP = XCONS (v1)->car;
+	    TOP = XCAR (v1);
 	  else
 	    TOP = Qnil;
 	  break;
@@ -1105,7 +1105,7 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bcdr_safe:
 	  v1 = TOP;
 	  if (CONSP (v1))
-	    TOP = XCONS (v1)->cdr;
+	    TOP = XCDR (v1);
 	  else
 	    TOP = Qnil;
 	  break;
