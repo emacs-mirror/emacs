@@ -1854,6 +1854,7 @@ initialize_frame_menubar (f)
   set_frame_menubar (f, 1, 1);
 }
 
+
 /* Get rid of the menu bar of frame F, and free its storage.
    This is used when deleting a frame, and when turning off the menu bar.  */
 
@@ -1869,9 +1870,33 @@ free_frame_menubar (f)
   
   if (menubar_widget)
     {
+#ifdef USE_MOTIF
+      /* Removing the menu bar magically changes the shell widget's x
+	 and y position of (0, 0) which, when the menu bar is turned
+	 on again, leads to pull-down menuss appearing in strange
+	 positions near the upper-left corner of the display.  This
+	 happens only with some window managers like twm and ctwm,
+	 but not with other like Motif's mwm or kwm, because the
+	 latter generate ConfigureNotify events when the menu bar
+	 is switched off, which fixes the shell position.  */
+      Position x0, y0, x1, y1;
+#endif
+      
       BLOCK_INPUT;
+
+#ifdef USE_MOTIF
+      XtVaGetValues (f->output_data.x->widget, XtNx, &x0, XtNy, &y0, NULL);
+#endif
+      
       lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
       f->output_data.x->menubar_widget = NULL;
+
+#ifdef USE_MOTIF
+      XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
+      if (x1 == 0 && y1 == 0)
+	XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
+#endif
+      
       UNBLOCK_INPUT;
     }
 }
