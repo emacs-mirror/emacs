@@ -348,6 +348,7 @@
  ("wkd"	"丈仗匠場墻壯奬將帳庄張掌暲杖樟檣欌漿牆狀獐璋章粧腸臟臧莊葬蔣薔藏裝贓醬長障")
  ("Od"	"爭箏諍錚")
  ("wo"	"再哉在宰才材栽梓渽滓災縡裁財載齋齎")
+ ("wod"	"爭箏諍錚")
  ("wj"	"佇低儲咀姐底抵杵楮樗沮渚狙猪疽箸紵苧菹著藷詛貯躇這邸雎齟")
  ("wjr"	"勣吊嫡寂摘敵滴狄炙的積笛籍績翟荻謫賊赤跡蹟迪迹適鏑")
  ("wjs"	"佃佺傳全典前剪塡塼奠專展廛悛戰栓殿氈澱煎琠田甸畑癲筌箋箭篆纏詮輾轉鈿銓錢鐫電顚顫餞")
