@@ -1,9 +1,46 @@
+2002-12-21  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (popup_get_selection): Now static.  New arg DO_TIMERS.
+	If it is non-nil, run timers.  Use an unwind-protect to requeue
+	the events that were read ahead.
+	(popup_get_selection_unwind): New subroutine.
+	(popup_get_selection_queue): File-scope variable now holds that queue.
+	(xmenu_show): Pass 0 for DO_TIMERS to popup_get_selection.
+	(xdialog_show): Pass 1 for DO_TIMERS to popup_get_selection.
+	Use an unwind-protect to pop down the dialog box.
+	(xdialog_show_unwind): New subroutine implements that.
+
+	* xdisp.c (row_containing_pos): Change exit test using last_y.
+	(try_window_id): Abort if row_containing_pos returns null.
+
+	* lread.c (load_error_handler): New function.
+	(Fload): Handle errors in Fsubstitute_in_file_name.
+	Don't expect Fsignal to return.
+
+	* Errors and throws work right with interrupt blocking.
+	* eval.c (struct catchtag): New elt interrupt_input_blocked.
+	(unwind_to_catch): Restore interrupt_input_blocked from saved value.
+	(internal_catch, Fcondition_case, internal_condition_case) 
+	(internal_condition_case_1, internal_condition_case_2): Save it.
+	(Fsignal): Don't do TOTALLY_UNBLOCK_INPUT.
+
+	* editfns.c (Fformat): Add parens.
+
+	* dired.c (file_name_completion): Fix that change.
+	Delete special quit-handling code; just use QUIT.
+
+2002-12-21  Tak Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
+
+	* dired.c (file_name_completion): Close directory on error
+	just as in directory_files_internal.
+
 2002-12-19  David Kastrup  <David.Kastrup@t-online.de>
 
 	* window.c (Fset_window_configuration): Set old_point to correct
 	value when new_current_buffer == current_buffer.
 
 2002-12-17  Ben Key <bkey1@tampabay.rr.com>
+
 	* Revisited my earlier fix for the following entry in
 	etc/PROBLEMS: 
 	"Emacs built on Windows 9x/ME crashes at startup on Windows XP,
@@ -153,11 +190,11 @@
 
 	* s/sol2-8: Removed.  (Not necessary.)
 
-2002-12-09  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2002-12-09  Matthew Swift  <swift@alum.mit.edu>
 
 	* editfns.c (Fformat): Handle precision in string conversion
 	specifiers like libc functions do (ie, print at most that many
-	characters).  From Matthew Swift <swift@alum.mit.edu>.
+	characters).
 
 2002-12-08  Richard M. Stallman  <rms@gnu.org>
 
@@ -180,7 +217,7 @@
 	while blocking on select.
 
 	* mac.c (sys_read): Use sys_select to test for input first
-	before calling read to allow C-g to break.
+	before calling read, to allow C-g to break.
 
 2002-12-07  Richard M. Stallman  <rms@gnu.org>
 
