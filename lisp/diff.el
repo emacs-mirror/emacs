@@ -54,7 +54,7 @@ subexpression gives the line number in the new file.  If OLD-IDX or NEW-IDX
 is nil, REGEXP matches only half a section.")
 
 ;; See compilation-parse-errors-function (compile.el).
-(defun diff-parse-differences (limit-search)
+(defun diff-parse-differences (limit-search find-at-least)
   (setq compilation-error-list nil)
   (message "Parsing differences...")
 
@@ -118,9 +118,11 @@ is nil, REGEXP matches only half a section.")
       (if (nth 2 g)			;NEW-IDX
 	  (funcall new-error diff-new-file (nth 2 g)))
 
-      (and limit-search (>= (point) limit-search)
-	   ;; The user wanted a specific diff, and we're past it.
-	   (setq found-desired t)))
+      (if (or (and find-at-least (>= nfound find-at-least))
+	      (and limit-search (>= (point) limit-search)))
+	      ;; We have found as many new errors as the user wants,
+	      ;; or the user wanted a specific diff, and we're past it.
+	  (setq found-desired t)))
     (if found-desired
 	(setq compilation-parsing-end (point))
       ;; Set to point-max, not point, so we don't perpetually

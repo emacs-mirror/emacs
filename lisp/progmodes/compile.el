@@ -49,7 +49,10 @@ error messages should be reparsed the next time the list of errors is wanted.")
 
 (defvar compilation-parse-errors-function 'compilation-parse-errors 
   "Function to call to parse error messages from a compilation.
-It takes one arg: if non-nil, don't bother parsing past that location.
+It takes args LIMIT-SEARCH and FIND-AT-LEAST.
+If LIMIT-SEARCH is non-nil, don't bother parsing past that location.
+If FIND-AT-LEAST is non-nil, don't bother parsing after finding that 
+ many new erros.
 It should read in the source files which have errors and set
 `compilation-error-list' to a list with an element for each error message
 found.  See that variable for more info.")
@@ -450,7 +453,7 @@ Does NOT find the source line like \\[next-error]."
 
 ;; Parse any new errors in the compilation buffer,
 ;; or reparse from the beginning if the user has asked for that.
-(defun compile-reinitialize-errors (argp &optional limit-search)
+(defun compile-reinitialize-errors (argp &optional limit-search find-at-least)
   (save-excursion
     (set-buffer compilation-last-buffer)
     ;; If we are out of errors, or if user says "reparse",
@@ -459,14 +462,17 @@ Does NOT find the source line like \\[next-error]."
 	    (consp argp))
 	(progn (compilation-forget-errors)
 	       (setq compilation-parsing-end 1)))
-    (if (and compilation-error-list (not limit-search))
+    (if (and compilation-error-list
+	     (not limit-search)
+	     (or (not find-at-least)
+		 (> (length compilation-error-list) find-at-least)))
 	;; Since compilation-error-list is non-nil, it points to a specific
 	;; error the user wanted.  So don't move it around.
 	nil
       (switch-to-buffer compilation-last-buffer)
       (set-buffer-modified-p nil)
       (let ((at-start (= compilation-parsing-end 1)))
-	(funcall compilation-parse-errors-function limit-search)
+	(funcall compilation-parse-errors-function limit-search find-at-least)
 	;; Remember the entire list for compilation-forget-errors.
 	;; If this is an incremental parse, append to previous list.
 	(if at-start
@@ -559,7 +565,7 @@ See variables `compilation-parse-errors-function' and
 \`compilation-error-regexp-alist' for customization ideas."
   (interactive "P")
   (setq compilation-last-buffer (compilation-find-buffer))
-  (compile-reinitialize-errors argp)
+  (compile-reinitialize-errors argp nil (prefix-numeric-value argp))
   ;; Make ARGP nil if the prefix arg was just C-u,
   ;; since that means to reparse the errors, which the
   ;; compile-reinitialize-errors call just did.
@@ -750,7 +756,7 @@ See variables `compilation-parse-errors-function' and
 		       (setq groupings (1+ groupings))))))))
     groupings))
 
-(defun compilation-parse-errors (limit-search)
+(defun compilation-parse-errors (limit-search find-at-least)
   "Parse the current buffer as grep, cc or lint error messages.
 See variable `compilation-parse-errors-function' for the interface it uses."
   (setq compilation-error-list nil)
@@ -758,7 +764,8 @@ See variable `compilation-parse-errors-function' for the interface it uses."
   (let (text-buffer
 	regexp enter-group leave-group error-group
 	alist subexpr error-regexp-groups
-	(found-desired nil))
+	(found-desired nil)
+	(nfound 0))
 
     ;; Don't reparse messages already seen at last parse.
     (goto-char compilation-parsing-end)
@@ -873,18 +880,25 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		 (setq compilation-error-list
 		       (cons (cons (point-marker)
 				   (cons filename linenum))
-			     compilation-error-list)))))
+			     compilation-error-list))))
+	     (setq nfound (1+ nfound))
+	     (message "Parsing error messages...%d (%d%% of buffer)"
+		      nfound
+		      (/ (* 100 (point)) (point-max)))
+	     (and find-at-least (>= nfound find-at-least)
+		  ;; We have found as many new errors as the user wants.
+		  (setq found-desired t)))
 	    (t
 	     (error "compilation-parse-errors: impossible regexp match!")))
       (and limit-search (>= (point) limit-search)
 	   ;; The user wanted a specific error, and we're past it.
 	   (setq found-desired t)))
-    (if found-desired
-	(setq compilation-parsing-end (point))
-      ;; We have searched the whole buffer.
-      (setq compilation-parsing-end (point-max))
-      (message "Parsing error messages...done")))
-  (setq compilation-error-list (nreverse compilation-error-list)))
+    (setq compilation-parsing-end (if found-desired
+				      (point)
+				    ;; We have searched the whole buffer.
+				    (point-max))))
+  (setq compilation-error-list (nreverse compilation-error-list))
+  (message "Parsing error messages...done"))
 
 (define-key ctl-x-map "`" 'next-error)
 

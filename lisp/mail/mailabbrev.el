@@ -3,11 +3,12 @@
 ;;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
-;;	Roland McGrath <roland@gnu.ai.mit.edu>
+;; Maintainer: Jamie Zawinski <jwz@lucid.com>
 ;; Created: 19 Oct 90
 ;; Keywords: mail
 
 ;;; ??? We must get papers for this or delete it.
+
 ;;; This file is part of GNU Emacs.
 
 ;;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -220,7 +221,7 @@ no aliases, which is represented by this being a table with no entries.)")
 	        (forward-char 1)))
 	  (goto-char (point-min))
 	  (while (re-search-forward
-		  "^\\(a\\(lias\\|\\)\\|g\\(roup\\)\\|source\\)[ \t]+" nil t)
+		  "^\\(a\\(lias\\)?\\|g\\(roup\\)?\\|source\\)[ \t]+" nil t)
 	    (beginning-of-line)
 	    (if (looking-at "source[ \t]+\\([^ \t\n]+\\)")
 		(progn
@@ -524,7 +525,10 @@ characters which may be a part of the name of a mail-alias.")
 
 (defun mail-interactive-insert-alias (&optional alias)
   "Prompt for and insert a mail alias."
-  (interactive (list (completing-read "Expand alias: " mail-aliases nil t)))
+  (interactive (progn
+		(if (not (vectorp mail-aliases)) (mail-aliases-setup))
+		(list (completing-read "Expand alias: " mail-aliases nil t))))
+  (if (not (vectorp mail-aliases)) (mail-aliases-setup))
   (insert (or (and alias (symbol-value (intern-soft alias mail-aliases))) "")))
 
 (defun abbrev-hacking-next-line (&optional arg)
