@@ -399,11 +399,6 @@ with no arguments, if that value is non-nil."
 	  (font-lock-syntactic-keywords . simula-font-lock-syntactic-keywords)))
   (abbrev-mode 1))
 
-(if simula-abbrev-file
-    (read-abbrev-file simula-abbrev-file))
-(let (abbrevs-changed)
-  (simula-install-standard-abbrevs))
-
 (defun simula-indent-exp ()
   "Indent SIMULA expression following point."
   (interactive)
@@ -1378,8 +1373,7 @@ If not nil and not t, move to limit of search and return nil."
   "Define Simula keywords, procedures and classes in local abbrev table."
   ;; procedure and class names are as of the SIMULA 87 standard.
   (interactive)
-  (mapcar (function (lambda (args)
-		      (apply 'define-abbrev simula-mode-abbrev-table args)))
+  (dolist (args
 	  '(("abs" "Abs" simula-expand-stdproc)
 	    ("accum" "Accum" simula-expand-stdproc)
 	    ("activate" "ACTIVATE" simula-expand-keyword)
@@ -1609,7 +1603,14 @@ If not nil and not t, move to limit of search and return nil."
 	    ("virtual" "VIRTUAL" simula-expand-keyword)
 	    ("wait" "Wait" simula-expand-stdproc)
 	    ("when" "WHEN" simula-electric-keyword)
-	    ("while" "WHILE" simula-expand-keyword))))
+	    ("while" "WHILE" simula-expand-keyword)))
+    (define-abbrev simula-mode-abbrev-table
+      (nth 0 args) (nth 1 args) (nth 2 args) nil 'system)))
+
+(if simula-abbrev-file
+    (read-abbrev-file simula-abbrev-file))
+(let (abbrevs-changed)
+  (simula-install-standard-abbrevs))
 
 ;; Hilit mode support.
 (if (and (fboundp 'hilit-set-mode-patterns)
