@@ -787,3 +787,19 @@ If non-@code{nil}, this variable enables detection of uninterned symbols
 uninterned symbols print with the prefix @samp{#:}, which tells the Lisp
 reader to produce an uninterned symbol.
 @end defvar
+
+@defvar print-continuous-numbering
+If non-@code{nil}, that means number continuously across print calls.
+This affects the numbers printed for @samp{#@var{n}=} labels and
+@samp{#@var{m}#} references.
+
+Don't set this variable with @code{setq}; you should only bind it
+temporarily to @code{t} with @code{let}.  When you do that, you should
+also bind @code{print-number-table} to @code{nil}.
+@end defvar
+
+@defvar print-number-table
+This variable holds a vector used internally by printing to implement
+the @code{print-circle} feature.  You should not use it except
+to bind it to @code{nil} when you bind @code{print-continuous-numbering}.
+@end defvar
