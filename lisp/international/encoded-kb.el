@@ -237,26 +237,26 @@ set by the command `encoded-kbd-set-coding-system'"
 	(if (null arg) (null encoded-kbd-mode)
 	  (> (prefix-numeric-value arg) 0)))
   (if encoded-kbd-mode
-      (let* ((coding (coding-system-vector (keyboard-coding-system)))
-	     (input-mode (current-input-mode)))
+      (let ((coding (keyboard-coding-system))
+	    (input-mode (current-input-mode)))
 	(cond ((null coding)
 	       (setq encoded-kbd-mode nil) 
 	       (error "No coding-system for terminal keyboard is set"))
 
-	      ((= (coding-vector-type coding) 1) ; SJIS
+	      ((= (coding-system-type coding) 1) ; SJIS
 	       (set-input-mode (nth 0 input-mode) (nth 1 input-mode)
 			       'use-8th-bit (nth 3 input-mode))	
 	       (setq encoded-kbd-coding 'sjis))
 
-	      ((= (coding-vector-type coding) 2) ; ISO2022
-	       (if (aref (coding-vector-flags coding) 7) ; 7-bit only
+	      ((= (coding-system-type coding) 2) ; ISO2022
+	       (if (aref (coding-system-flags coding) 7) ; 7-bit only
 		   (setq encoded-kbd-coding 'iso2022-7)
 		 (set-input-mode (nth 0 input-mode) (nth 1 input-mode)
 				 'use-8th-bit (nth 3 input-mode))	
 		 (setq encoded-kbd-coding 'iso2022-8))
 	       (make-variable-buffer-local 'encoded-kbd-iso2022-designations)
 	       (setq encoded-kbd-iso2022-designations (make-vector 4 nil))
-	       (let ((flags (coding-vector-flags coding))
+	       (let ((flags (coding-system-flags coding))
 		     (i 0))
 		 (while (< i 4)
 		   (if (charsetp (aref flags i))
@@ -268,7 +268,7 @@ set by the command `encoded-kbd-set-coding-system'"
 	       (aset encoded-kbd-iso2022-invocations 0 0)
 	       (aset encoded-kbd-iso2022-invocations 1 1))
 
-	      ((= (coding-vector-type coding) 3) ; BIG5
+	      ((= (coding-system-type coding) 3) ; BIG5
 	       (set-input-mode (nth 0 input-mode) (nth 1 input-mode)
 			       'use-8th-bit (nth 3 input-mode))	
 	       (setq encoded-kbd-coding 'big5))
