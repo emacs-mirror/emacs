@@ -443,9 +443,9 @@ See also docstring of the function tibetan-compose-region."
 	(narrow-to-region (point) (+ (point) len))
 	(tibetan-compose-region (point-min) (point-max))
 	(set-buffer-modified-p buffer-modified-p)
-	(point-max))))
-  (make-local-variable 'tibetan-decomposed)
-  (setq tibetan-decomposed nil))
+	(make-local-variable 'tibetan-decomposed)
+	(setq tibetan-decomposed nil)
+	(- (point-max) (point-min))))))
 
 
 ;;;###autoload
