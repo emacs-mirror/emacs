@@ -65,7 +65,7 @@ Optional argument PROMPT specifies a string to use to prompt the user."
 	     (and prompt (message (setq prompt
 					(format "%s %c" prompt char)))))
 	    ((> count 0)
-	     (setq unread-command-char char count 259))
+	     (setq unread-command-event char count 259))
 	    (t (setq code char count 259))))
     (logand 255 code)))
 
@@ -330,7 +330,7 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
 		   (single-key-description exit-char))
 	  (let ((char (read-char)))
 	    (or (eq char exit-char)
-		(setq unread-command-char char))))
+		(setq unread-command-event char))))
       (if insert-end
 	  (save-excursion
 	    (delete-region pos insert-end)))
@@ -413,6 +413,8 @@ and then modifies one entry in it."
   "Macro which allows one to write (lambda ...) for anonymous functions.
 This is instead of having to write (function (lambda ...)) or
 '(lambda ...), the latter of which won't get byte-compiled."
-  (` (function (lambda (,@ cdr)))))
+  ;; Note that this definition should not use backquotes; subr.el should not
+  ;; depend on backquote.el.
+  (list 'function (cons 'lambda cdr)))
 
 ;;; subr.el ends here
