@@ -294,11 +294,9 @@ handle_USR1_signal (sig)
 {
   struct input_event buf;
 
+  bzero (&buf, sizeof buf);
   buf.kind = user_signal;
-  buf.code = 0;
   buf.frame_or_window = selected_frame;
-  buf.modifiers = 0;
-  buf.timestamp = 0;
 
   kbd_buffer_store_event (&buf);
 }
@@ -311,11 +309,10 @@ handle_USR2_signal (sig)
 {
   struct input_event buf;
 
+  bzero (&buf, sizeof buf);
   buf.kind = user_signal;
   buf.code = 1;
   buf.frame_or_window = selected_frame;
-  buf.modifiers = 0;
-  buf.timestamp = 0;
 
   kbd_buffer_store_event (&buf);
 }
@@ -1429,6 +1426,7 @@ main (argc, argv, envp)
 #ifdef HAVE_SOUND
   init_sound ();
 #endif
+  init_window ();
 
   if (!initialized)
     {
