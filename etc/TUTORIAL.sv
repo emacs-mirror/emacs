@@ -1089,4 +1089,9 @@ same spirit.  Please read the file COPYING and then do give copies of
 GNU Emacs to your friends.  Help stamp out software obstructionism
 ("ownership") by using, writing, and sharing free software!
 
+;;; Local Variables:
+;;;   coding: latin-1
+;;;   sentence-end-double-space: nil
+;;; End:
+
 ;;; arch-tag: b352f774-622b-4cc6-85ce-43e3baf4fc1b
