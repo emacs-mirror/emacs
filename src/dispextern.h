@@ -64,6 +64,11 @@ typedef struct mac_display_info Display_Info;
 #endif
 
 
+#ifndef NativeRectangle
+#define NativeRectangle int
+#endif
+
+
 /* Structure forward declarations.  Some are here because function
    prototypes below reference structure types before their definition
    in this file.  Some are here because not every file including
