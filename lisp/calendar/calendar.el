@@ -5,8 +5,7 @@
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
-;; Human-Keywords: calendar, Gregorian calendar, Julian calendar, 
-;;	Julian day number, diary, holidays
+;; Human-Keywords: calendar, Gregorian calendar, diary, holidays
 
 ;; This file is part of GNU Emacs.
 
@@ -46,25 +45,27 @@
 ;; Ethiopic calendar, and to the astronomical (Julian) day number.  When
 ;; floating point is available, times of sunrise/sunset can be displayed, as
 ;; can the phases of the moon.  Appointment notification for diary entries is
-;; available.
+;; available.  Calendar printing via LaTeX is available.
 
 ;; The following files are part of the calendar/diary code:
 
-;;       cal-menu.el                   Menu support
-;;       cal-move.el                   Movement in the calendar
-;;       cal-x.el                      X-windows dedicated frame functions
-;;       diary.el                      Diary functions
-;;       holidays.el                   Holiday functions
-;;       cal-julian.el                 Julian/astronomical calendars
-;;       cal-hebrew.el                 Hebrew calendar
-;;       cal-islamic.el                Islamic calendar
-;;       cal-mayan.el                  Mayan calendars
+;;       appt.el                       Appointment notification
 ;;       cal-chinese.el                Chinese calendar
 ;;       cal-coptic.el                 Coptic/Ethiopic calendars
 ;;       cal-dst.el                    Daylight savings time rules
-;;       solar.el                      Sunrise/sunset, equinoxes/solstices
+;;       cal-hebrew.el                 Hebrew calendar
+;;       cal-islamic.el                Islamic calendar
+;;       cal-iso.el                    ISO calendar
+;;       cal-julian.el                 Julian/astronomical calendars
+;;       cal-mayan.el                  Mayan calendars
+;;       cal-menu.el                   Menu support
+;;       cal-move.el                   Movement in the calendar
+;;       cal-tex.el                    Calendars in LaTeX
+;;       cal-x.el                      X-windows dedicated frame functions
+;;       diary.el                      Diary functions
+;;       holidays.el                   Holiday functions
 ;;       lunar.el                      Phases of the moon
-;;       appt.el                       Appointment notification
+;;       solar.el                      Sunrise/sunset, equinoxes/solstices
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science
@@ -89,7 +90,7 @@
 
 (defun calendar-version ()
   (interactive)
-  (message "Version 6, September 17, 1995"))
+  (message "Version 6, October 12, 1995"))
 
 ;;;###autoload
 (defvar calendar-week-start-day 0
@@ -1443,6 +1444,54 @@ The holidays are those in the list `calendar-notable-days'.  Returns t if any
 holidays are found, nil if not."
   t)
 
+(autoload 'cal-tex-cursor-month "cal-tex"
+  "Make a buffer with LaTeX commands for the month cursor is on.
+Optional prefix argument specifies number of months to be produced.
+Calendar is condensed onto one page.")
+
+(autoload 'cal-tex-cursor-month-landscape "cal-tex"
+  "Make a buffer with LaTeX commands for the month cursor is on.
+Optional prefix argument specifies number of months to be produced.")
+
+(autoload 'cal-tex-cursor-day "cal-tex"
+  "Make a buffer with LaTeX commands for the day cursor is on.")
+
+(autoload 'cal-tex-cursor-week "cal-tex"
+  "Make a buffer with LaTeX commands for a one page weekly calendar.
+Optional prefix argument specifies number of weeks.")
+
+(autoload 'cal-tex-cursor-week2 "cal-tex"
+  "Make a buffer with LaTeX commands for a two page weekly calendar.
+Optional prefix argument specifies number of weeks.")
+
+(autoload 'cal-tex-cursor-week3 "cal-tex"
+  "Make a buffer with LaTeX commands for a one page weekly calendar.
+Optional prefix argument specifies number of weeks.")
+
+(autoload 'cal-tex-cursor-week4 "cal-tex"
+  "Make a buffer with LaTeX commands for a one page weekly calendar.
+Optional prefix argument specifies number of weeks.")
+
+(autoload 'cal-tex-cursor-week5 "cal-tex"
+  "Make a buffer with LaTeX commands for a Filofax one page weekly calendar.
+Optional prefix argument specifies number of weeks.")
+
+(autoload 'cal-tex-cursor-week6 "cal-tex"
+  "Make a buffer with LaTeX commands for a Filofax two page weekly calendar.
+Optional prefix argument specifies number of weeks.")
+
+(autoload 'cal-tex-cursor-year "cal-tex"
+  "Make a buffer with LaTeX commands for a year's calendar.
+Optional prefix argument specifies numeber of years.")
+
+(autoload 'cal-tex-cursor-year-landscape "cal-tex"
+  "Make a buffer with LaTeX commands for a year's calendar (landscape).
+Optional prefix argument specifies number of years.")
+
+(autoload 'cal-tex-cursor-filofax-year "cal-tex"
+  "Make a buffer with LaTeX commands for a year's calendar (Filofax).
+Optional prefix argument specifies number of years.")
+
 (autoload 'mark-calendar-holidays "holidays"
   "Mark notable days in the calendar window."
   t)
@@ -1664,7 +1713,19 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "iid" 'insert-islamic-diary-entry)
   (define-key calendar-mode-map "iim" 'insert-monthly-islamic-diary-entry)
   (define-key calendar-mode-map "iiy" 'insert-yearly-islamic-diary-entry)
-  (define-key calendar-mode-map "?"   'calendar-goto-info-node))
+  (define-key calendar-mode-map "?"   'calendar-goto-info-node)
+  (define-key calendar-mode-map "tm" 'cal-tex-cursor-month)
+  (define-key calendar-mode-map "tM" 'cal-tex-cursor-month-landscape)
+  (define-key calendar-mode-map "td" 'cal-tex-cursor-day)
+  (define-key calendar-mode-map "tw1" 'cal-tex-cursor-week)
+  (define-key calendar-mode-map "tw2" 'cal-tex-cursor-week2)
+  (define-key calendar-mode-map "tw3" 'cal-tex-cursor-week3)
+  (define-key calendar-mode-map "tw4" 'cal-tex-cursor-week4)
+  (define-key calendar-mode-map "tfw" 'cal-tex-cursor-week5)
+  (define-key calendar-mode-map "tfW" 'cal-tex-cursor-week6)
+  (define-key calendar-mode-map "tfy" 'cal-tex-cursor-filofax-year)
+  (define-key calendar-mode-map "ty" 'cal-tex-cursor-year)
+  (define-key calendar-mode-map "tY" 'cal-tex-cursor-year-landscape))
 
 (defun describe-calendar-mode ()
   "Create a help buffer with a brief description of the calendar-mode."
