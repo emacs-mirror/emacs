@@ -1307,6 +1307,7 @@ highlight the region using `transient-mark-mode'), and typed text replaces
 the active selection.  C-z, C-x, C-c, and C-v will undo, cut, copy, and
 paste (in addition to the normal emacs bindings)."
   :global t
+  :group 'cua
   :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
   :require 'cua-base
   :link '(emacs-commentary-link "cua-base.el")
