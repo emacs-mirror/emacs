@@ -425,6 +425,9 @@ x_get_local_selection (selection_symbol, target_type, local_request)
 
       CHECK_SYMBOL (target_type);
       handler_fn = Fcdr (Fassq (target_type, Vselection_converter_alist));
+      /* gcpro is not needed here since nothing but HANDLER_FN
+	 is live, and that ought to be a symbol.  */
+
       if (!NILP (handler_fn))
 	value = call3 (handler_fn,
 		       selection_symbol, (local_request ? Qnil : target_type),
@@ -837,8 +840,6 @@ x_handle_selection_request (event)
 
  DONE:
 
-  UNGCPRO;
-
   /* Let random lisp code notice that the selection has been asked for.  */
   {
     Lisp_Object rest;
@@ -847,6 +848,8 @@ x_handle_selection_request (event)
       for (; CONSP (rest); rest = Fcdr (rest))
 	call3 (Fcar (rest), selection_symbol, target_symbol, successful_p);
   }
+
+  UNGCPRO;
 }
 
 /* Handle a SelectionClear event EVENT, which indicates that some
