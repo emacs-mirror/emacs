@@ -1,0 +1,220 @@
+#! /usr/local/bin/perl
+# $Id: grep-changelog,v 1.19 1999/08/10 13:22:23 gerd Exp $
+
+# Copyright (C) 1999 Free Software Foundation, Inc.
+#
+# This file is part of GNU Emacs.
+#
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+
+# Extract entries from ChangeLogs matching specified criteria.
+# Optionally format the resulting output to a form suitable for RCS
+# logs, like they are used in Emacs, for example.  In this format,
+# author lines leading spaces, and file names are removed.
+
+require 5;
+
+# Parse command line options.
+
+use Getopt::Long;
+$result = GetOptions ("author=s" => \$author, 
+		      "text=s"  => \$regexp,
+		      "exclude=s"  => \$exclude,
+		      "from-date=s" => \$from_date,
+		      "to-date=s" => \$to_date,
+		      "rcs-log" => \$rcs_log,
+		      "with-date" => \$with_date,
+		      "version" => \$version,
+		      "help"    => \$help);
+
+# If date options are specified, check that they have the format
+# YYYY-MM-DD.
+
+$result = 0 if $from_date && $from_date !~ /^\d\d\d\d-\d\d-\d\d$/;
+$result = 0 if $to_date && $to_date !~ /^\d\d\d\d-\d\d-\d\d$/;
+
+# Print usage information and exit when necessary.
+
+if ($result == 0 || $help) {
+    print <<USAGE;
+Usage: $0 [options] [CHANGELOG...]
+Print entries in ChangeLogs matching various criteria.  Valid options
+are
+
+  --author=AUTHOR         match entries whose author line matches 
+			  regular expression AUTHOR
+  --text=TEXT             match entries whose text matches regular
+			  expression TEXT.
+  --exclude=TEXT	  exclude entries matching TEXT.
+  --from-date=YYYY-MM-DD  match entries not older than given date
+  --to-date=YYYY-MM-DD    match entries not younger than given date
+  --rcs-log		  format output suitable for RCS log entries.
+  --with-date		  print short date line in RCS log
+  --version		  print version info
+  --help		  print this help
+
+If no CHANGELOG is specified scan the files "ChangeLog" and
+"ChangeLog.[9-1]" in the current directory.  Old-style dates in ChangeLogs 
+are not recognized.
+USAGE
+    exit $help ? 0 : 1;
+}
+
+# Print version info and exit if `--version' was specified.
+
+if ($version) {
+    print "0.1\n";
+    exit 0;
+}
+
+
+# Value is non-zero if HEADER matches according to command line
+# options specified, i.e. it matches $author, and its date is in
+# the range $from_date <= date <= $to_date.
+
+sub header_match_p ($) {
+    my $header = shift;
+
+    # No match if AUTHOR-regexp specified and doesn't match.
+    return 0 if $author && $header !~ /$author/;
+
+    # Check that the date of the entry matches if date options
+    # `--from-date' and/or `--to-date' were specified .  Old-style
+    # dates in ChangeLogs are not recognized, and never match.
+    if ($from_date || $to_date) {
+	if ($header =~ /^(\d\d\d\d-\d\d-\d\d)/) {
+	    my $date = $1;
+	    return 0 if $from_date && $date lt $from_date;
+	    return 0 if $to_date && $date gt $to_date;
+	} else {
+	    # Don't bother recognizing old-style dates.
+	    return 0;
+	}
+    }
+
+    return 1;
+}
+
+
+# Value is non-zero if ENTRY matches the ciiteria specified on the
+# command line, i.e. it matches $regexp, and it doesn't match
+# $exclude.
+
+sub entry_match_p ($) {
+    my $entry = shift;
+
+    if ($regexp) {
+	return 1 if ($entry =~ /$regexp/ 
+		     && (!$exclude || $entry !~ $exclude));
+    } else {
+	return 1 if !$exclude || $entry !~ $exclude;
+    }
+
+    return 0;
+}
+
+
+# Print HEADER and/or ENTRY in a format suitable for what was
+# specified on the command line.  If $rcs_log is specified, author
+# lines are not printed, and leading spaces and file names are removed
+# from ChangeLog entries.
+
+sub print_log ($$) {
+    my ($header, $entry) = @_;
+
+    if ($rcs_log) {
+	# Remove leading whitespace from entry.
+	$entry =~ s/^\s+//mg;
+	# Remove file name parts.
+	$entry =~ s/^\*.*\(/(/mg;
+	# Remove file name parts, 2.
+	$entry =~ s/^\*.*://mg;
+        if ($with_date) {
+	    $header =~ /(\d\d\d\d-\d\d-\d\d)/;
+	    print "!changelog-date $1\n";
+	}
+	print $entry;
+    } else {
+	print $header, $entry;
+    }
+}
+
+# Scan LOG for matching entries, and print them to standard output.
+
+sub parse_changelog ($) {
+    my $log = shift;
+    my $entry;
+    my $match;
+
+    # Open the ChangeLog.
+    open (IN, "< $log") || die "Cannot open $log: $!";
+
+    while ($line = <IN>) {
+	if ($line =~ /^\S/) {
+	    # Line is an author-line.  Print previous entry if
+	    # it matches.
+	    print_log ($header, $entry) 
+		if header_match_p ($header) && entry_match_p ($entry);
+
+	    $entry = "";
+  	    $header = $line;
+
+	    # Add empty lines below the header.
+	    while (($line = <IN>) && $line =~ /^\s*$/) {
+	        $header = "$header$line";
+	    }
+        } 
+
+	if ($line =~ /^\s*\*/) {
+	    # LINE is the first line of a ChangeLog entry.  Print
+	    # previous entry if it matches.
+	    print_log ($header, $entry) 
+		if header_match_p ($header) && entry_match_p ($entry);
+	    $entry = $line;
+	} else {
+	    # Add LINE to the current entry.
+	    $entry = "$entry$line";
+	}
+    }
+
+    # Print last entry if it matches.
+    print_log ($header, $entry) 
+	if header_match_p ($header) && entry_match_p ($entry);
+
+    close IN;
+}
+
+
+# Main program.  Process ChangeLogs.
+
+if (@ARGV > 0) {
+    # If files were specified on the command line, parse those files.
+    while ($log = shift @ARGV) {
+	parse_changelog ($log);
+    }
+} else {
+    # Parse default files ChangeLog and ChangeLog.9...ChangeLog.1 in
+    # that order.
+    parse_changelog ("ChangeLog");
+    for ($i = 9; $i >= 1; --$i) {
+	my $log = "ChangeLog.$i";
+	parse_changelog ($log) if -f $log;
+    }
+}
+
+
+# gre-changelog ends here.
