@@ -550,7 +550,7 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bvarset+6:
 	  op = FETCH;
 	varset:
-	  set_internal (vectorp[op], POP, 0);
+	  set_internal (vectorp[op], POP, current_buffer, 0);
 	  /* Fset (vectorp[op], POP); */
 	  break;
 
@@ -1492,6 +1492,10 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 #endif
 
+	case 0:
+	  abort ();
+
+	case 255:
 	default:
 #ifdef BYTE_CODE_SAFE
 	  if (op < Bconstant)
