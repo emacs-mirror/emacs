@@ -2179,7 +2179,7 @@ If N is negative, find the previous or Nth previous match."
   "Move to end of Nth next prompt in the buffer.
 If `comint-use-prompt-regexp-instead-of-fields' is nil, then this means
 the beginning of the Nth next `input' field, otherwise, it means the Nth
-occurance of text matching `comint-prompt-regexp'."
+occurrence of text matching `comint-prompt-regexp'."
   (interactive "p")
   (if comint-use-prompt-regexp-instead-of-fields
       ;; Use comint-prompt-regexp
@@ -2216,7 +2216,7 @@ occurance of text matching `comint-prompt-regexp'."
   "Move to end of Nth previous prompt in the buffer.
 If `comint-use-prompt-regexp-instead-of-fields' is nil, then this means
 the beginning of the Nth previous `input' field, otherwise, it means the Nth
-occurance of text matching `comint-prompt-regexp'."
+occurrence of text matching `comint-prompt-regexp'."
   (interactive "p")
   (comint-next-prompt (- n)))
 
