@@ -1,3 +1,9 @@
+2004-05-17  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-end-block-re, f90-start-block-re): New
+	constants.
+	(hs-special-modes-alist): Add an f90-mode entry.
+
 2004-05-17  Sam Steingold  <sds@gnu.org>
 
 	* emacs-lisp/cl-indent.el (common-lisp-indent-function-1): Indent
