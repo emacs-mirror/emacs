@@ -778,6 +778,23 @@ code when called with a prefix argument.
 transient-mark-mode is on, and the mark is active.  Otherwise it
 spell-checks the current buffer.
 
+*** Support for synchronous subprocesses - DOS/Windoze - has been
+added.
+
+*** An "alignment error" bug was fixed when a manual spelling
+correction is made and re-checked.
+
+*** An Italian dictionary definition has been added.
+
+*** Region skipping performance has been vastly improved in some
+cases.
+
+*** Spell checking HTML buffers has been improved and isn't so strict
+on syntax errors.
+
+*** The buffer-local words are now always placed on a new line at the
+end of the buffer.
+
 ** Dired changes
 
 *** New variable `dired-recursive-deletes' determines if the delete

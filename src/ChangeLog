@@ -1,3 +1,8 @@
+2000-08-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (kbd_buffer_get_event): Handle the case that the
+	second half of a HELP_EVENT is found at the start of kbd_buffer.
+
 2000-08-18  Miles Bader  <miles@gnu.org>
 
 	* lisp.h (Lisp_String): Replace DECLARE_INTERVALS with real decl.
