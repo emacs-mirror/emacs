@@ -291,7 +291,7 @@ That buffer should be current already."
     (set-buffer (or buffer (current-buffer)))
     (setq buffer (current-buffer))
     (let ((buffer-read-only nil)
-	  (old-end 1) (new-end 1))
+	  (old-end (point-min)) (new-end (point-min)))
       ;; If we saved an old backtrace, find the common part
       ;; between the new and the old.
       ;; Compare line by line, starting from the end,
@@ -317,7 +317,7 @@ That buffer should be current already."
 	    ;; Now new-end is the position of the start of the
 	    ;; unchanged part in the current buffer, and old-end is
 	    ;; the position of that same text in the saved old
-	    ;; backtrace.  But we must subtract 1 since strings are
+	    ;; backtrace.  But we must subtract (point-min) since strings are
 	    ;; indexed in origin 0.
 
 	    ;; Replace the unchanged part of the backtrace
@@ -327,7 +327,8 @@ That buffer should be current already."
 	    ;; the changed part of the backtrace.
 	    (delete-region new-end (point-max))
 	    (goto-char (point-max))
-	    (insert (substring debugger-previous-backtrace (1- old-end)))
+	    (insert (substring debugger-previous-backtrace
+			       (- old-end (point-min))))
 	    ;; Make the unchanged part of the backtrace inaccessible
 	    ;; so it won't be scanned.
 	    (narrow-to-region (point-min) new-end)))
@@ -622,7 +623,7 @@ Redefining FUNCTION also cancels it."
       (error "Definition of %s is not a list" function))
   (fset function (debug-on-entry-1 function (symbol-function function) t))
   (or (memq function debug-function-list)
-      (setq debug-function-list (cons function debug-function-list)))
+      (push function debug-function-list))
   function)
 
 ;;;###autoload
