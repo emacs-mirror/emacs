@@ -1,3 +1,8 @@
+2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* fileio.c (choose_write_coding_system): Call
+	select-safe-coding-system properly.
+
 2002-06-03  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (message_with_string): Error if STRING is not a string.

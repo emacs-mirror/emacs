@@ -1,3 +1,8 @@
+2002-06-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* language/cyrillic.el (cyrillic-alternativnyj-decode-table): Fix
+	the table to contain correct characters.
+
 2002-06-04  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el: Don't require cl.
