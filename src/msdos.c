@@ -253,7 +253,7 @@ static int startup_pos_Y;
 static int term_setup_done;
 
 /* Similar to the_only_frame.  */
-struct x_display the_only_x_display;
+struct x_output the_only_x_display;
 
 /* This is never dereferenced.  */
 Display *x_current_display;
@@ -692,7 +692,7 @@ internal_terminal_init ()
       the_only_x_display.background_pixel = colors[1] & 0x07;
     }
   the_only_x_display.line_height = 1;
-  the_only_frame.display.x = &the_only_x_display;
+  the_only_frame.output_data.x = &the_only_x_display;
   the_only_frame.output_method = output_msdos_raw;
 
   init_frame_faces ((FRAME_PTR) &the_only_frame);
@@ -1988,23 +1988,29 @@ init_environment (argc, argv, skip_args)
       case 49:			/* Germany */
 	/* Daylight saving from last Sunday in March to last Sunday in
 	   September, both at 2AM.  */
-	setenv ("TZ", "MET" /* "-01METDST-02,M3.5.0/02:00,M9.5.0/02:00" */, 0);
+	setenv ("TZ", "MET-01METDST-02,M3.5.0/02:00,M9.5.0/02:00", 0);
 	break;
       case 44:			/* United Kingdom */
       case 351:			/* Portugal */
       case 354:			/* Iceland */
-	setenv ("TZ", "GMT" /* "+00" */, 0);
+	setenv ("TZ", "GMT+00", 0);
 	break;
       case 81:			/* Japan */
       case 82:			/* Korea */
-	setenv ("TZ", "JST" /* "-09" */, 0);
+	setenv ("TZ", "JST-09", 0);
 	break;
       case 90:			/* Turkey */
       case 358:			/* Finland */
+	setenv ("TZ", "EET-02", 0);
+	break;
       case 972:			/* Israel */
-	setenv ("TZ", "EET" /* "-02" */, 0);
+	/* This is an approximation.  (For exact rules, use the
+	   `zoneinfo/israel' file which comes with DJGPP, but you need
+	   to install it in `/usr/share/zoneinfo/' directory first.)  */
+	setenv ("TZ", "IST-02IDT-03,M4.1.6/00:00,M9.5.6/01:00", 0);
 	break;
       }
+  init_gettimeofday ();
 }
 
 
@@ -2273,7 +2279,7 @@ gethostname (p, size)
   return 0;
 }
 
-/* When time zones are set from Ms-Dos too may C-libraries are playing
+/* When time zones are set from Ms-Dos too many C-libraries are playing
    tricks with time values.  We solve this by defining our own version
    of `gettimeofday' bypassing GO32.  Our version needs to be initialized
    once and after each call to `tzset' with TZ changed.  That is 
