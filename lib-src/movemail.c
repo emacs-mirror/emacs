@@ -143,6 +143,7 @@ static char *mail_spool_name ();
 extern int errno;
 #endif
 char *strerror ();
+extern char *rindex ();
 
 void fatal ();
 void error ();
@@ -566,8 +567,8 @@ mail_spool_name (inname)
   if (status < 0)
     return NULL;
 
-  if ((stat1.st_dev == stat2.st_dev) &&
-      (stat1.st_ino == stat2.st_ino))
+  if (stat1.st_dev == stat2.st_dev
+      && stat1.st_ino == stat2.st_ino)
     return fname;
 
   return NULL;
