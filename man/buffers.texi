@@ -134,10 +134,11 @@ selected buffer.  Here is an example of a buffer list:@refill
 @end smallexample
 
 @noindent
-Note that the buffer @samp{*Help*} was made by a help request; it is not
-visiting any file.  The buffer @code{man} was made by Dired on the
-directory @file{/u2/emacs/man/}.  You can list buffers visiting files
-only by giving the command a prefix, i.e. type @kbd{C-u C-x C-b}.
+Note that the buffer @samp{*Help*} was made by a help request; it is
+not visiting any file.  The buffer @code{man} was made by Dired on the
+directory @file{/u2/emacs/man/}.  You can list only buffers that are
+visiting files by giving the command a prefix; for instance, by typing
+@kbd{C-u C-x C-b}.
 
 @need 2000
 @node Misc Buffer
@@ -159,13 +160,11 @@ Scroll through buffer @var{buffer}.
 @vindex buffer-read-only
 @cindex read-only buffer
   A buffer can be @dfn{read-only}, which means that commands to change
-its contents are not allowed.  The mode line indicates read-only buffers
-with @samp{%%} or @samp{%*} near the left margin.  Read-only buffers are
-usually made by subsystems such as Dired and Rmail that have special
-commands to operate on the text; also by visiting a file whose access
-control says you cannot write it.  However, if the variable
-@code{kill-read-only-ok} is set to a non-@code{nil} value, you can kill
-(a.k.a.@: cut) read-only text, see @ref{Killing}.
+its contents are not allowed.  The mode line indicates read-only
+buffers with @samp{%%} or @samp{%*} near the left margin.  Read-only
+buffers are usually made by subsystems such as Dired and Rmail that
+have special commands to operate on the text; also by visiting a file
+whose access control says you cannot write it.
 
   If you wish to make changes in a read-only buffer, use the command
 @kbd{C-x C-q} (@code{vc-toggle-read-only}).  It makes a read-only buffer
@@ -425,21 +424,22 @@ buffer, but killing an indirect buffer has no effect on its base buffer.
   One way to use indirect buffers is to display multiple views of an
 outline.  @xref{Outline Views}.
 
-  The command @kbd{M-x make-indirect-buffer} creates an indirect buffer
-whose name is @var{indirect-name} and whose text is identical to that of
-the buffer @var{base-buffer}.  It prompts for both @var{base-buffer} and
-@var{indirect-name}.
-
 @cindex multiple @samp{*info*} and @samp{*Help*} buffers
-  The command @kbd{M-x clone-indirect-buffer} creates an indirect buffer
-whose base buffer is the current buffer, and also selects the
-newly-created indirect buffer.  With a numeric argument, it prompts for
-the name of the indirect buffer; otherwise it defaults to the name of
-the current buffer, modifying it by adding a @samp{<@var{n}>} prefix if
-required.  @kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window})
-works like @kbd{M-x clone-indirect-buffer}, but it selects the cloned
-buffer in another window.  These commands come in handy if you want to
-create new @samp{*info*} or @samp{*Help*} buffers, for example.
+  A quick and handy way to make an indirect buffer is with the command
+@kbd{M-x clone-indirect-buffer}.  It creates and selects an indirect
+buffer whose base buffer is the current buffer.  With a numeric
+argument, it prompts for the name of the indirect buffer; otherwise it
+defaults to the name of the current buffer, modifying it by adding a
+@samp{<@var{n}>} prefix if required.  @kbd{C-x 4 c}
+(@code{clone-indirect-buffer-other-window}) works like @kbd{M-x
+clone-indirect-buffer}, but it selects the cloned buffer in another
+window.  These commands come in handy if you want to create new
+@samp{*info*} or @samp{*Help*} buffers, for example.
+
+  The more general way is with the command @kbd{M-x
+make-indirect-buffer}.  It creates an indirect buffer from buffer
+@var{base-buffer}, under the name @var{indirect-name}.  It prompts for
+both @var{base-buffer} and @var{indirect-name} using the minibuffer.
 
 @node Buffer Convenience
 @section Convenience Features and Customization of Buffer Handling
@@ -447,29 +447,46 @@ create new @samp{*info*} or @samp{*Help*} buffers, for example.
 @menu
 * Uniquify::               Buffer names can contain directory parts.
 * Iswitchb::               Switching between buffers with substrings.
-* BS::                     Configurable buffer menu.     
-* MSB::                    Customizing the Mouse Buffer Selection Menus.
+* Buffer Menus::           Configurable buffer menu.     
 @end menu
 
 @node Uniquify
-@subsection Directory Names in Buffer Names
+@subsection Making Buffer Names Unique
 
-@findex toggle-uniquify-buffer-names
-@vindex uniquify-buffer-name-style
 @cindex unique buffer names
 @cindex directories in buffer names
-Emacs's standard method for making buffer names unique adds @samp{<2>},
-@samp{<3>}, etc. to the end of (all but one of) the buffers.  The
-Uniquify package replaces that behavior, for buffers visiting files and
-dired buffers.  It implements a uniquification that adds parts of the
-file name until the buffer names are unique.  For instance, buffers
-visiting @file{/u/mernst/tmp/Makefile} and
-@file{/usr/projects/zaphod/Makefile} would be named @samp{tmp/Makefile}
-and @samp{zaphod/Makefile}, respectively (instead of @samp{Makefile}
-and @samp{Makefile<2>}).  You can turn on this mode and select other
-buffer name styles by customizing the user option
-@code{uniquify-buffer-name-style}.  The command @kbd{M-x
-toggle-uniquify-buffer-names} can also be used to toggle the mode.  
+  When several buffers visit identically-named files, Emacs must give
+the buffers distinct names.  The usual method for making buffer names
+unique adds @samp{<2>}, @samp{<3>}, etc. to the end of the buffer
+names (all but one of them).
+
+@vindex uniquify-buffer-name-style
+  Other methods work by adding parts of each file's directory to the
+buffer name.  To select one, customize the variable
+@code{uniquify-buffer-name-style} (@pxref{Easy Customization}).
+
+  For instance, the @code{forward} naming method puts part of the
+directory name at the beginning of the buffer name; using this method,
+buffers visiting @file{/u/mernst/tmp/Makefile} and
+@file{/usr/projects/zaphod/Makefile} would be named
+@samp{tmp/Makefile} and @samp{zaphod/Makefile}, respectively (instead
+of @samp{Makefile} and @samp{Makefile<2>}).
+
+  By contrast, the @code{post-forward} naming method would call the
+buffers @samp{Makefile|tmp} and @samp{Makefile|zaphod}, and the
+@code{reverse} naming method would call them @samp{Makefile\tmp} and
+@samp{Makefile\zaphod}.  The nontrivial difference between
+@code{post-forward} and @code{reverse} occurs when just one directory
+name is not enough to distinguish two files; then @code{reverse} puts
+the directory names in reverse order, so that @file{/top/middle/file}
+becomes @samp{file\middle\top}, while @code{post-forward} puts them in
+forward order after the file name, as in @samp{file|top/middle}.
+
+  Which rule to follow for putting the directory names in the buffer
+name is not very important if you are going to @emph{look} at the
+buffer names before you type one.  But as an experienced user, if you
+know the rule, you won't have to look.  And then you may find that one
+rule or another is easier for you to remember and utilize fast.
 
 @node Iswitchb
 @subsection Switching Between Buffers using Substrings
@@ -482,59 +499,51 @@ toggle-uniquify-buffer-names} can also be used to toggle the mode.
 @kindex C-x 5 b @r{(Iswitchb mode)}
 @kindex C-x 4 C-o @r{(Iswitchb mode)}
 
-Iswitchb global minor mode provides convenient switching between buffers
-using substrings of their names by replacing the normal keybindings
-@kbd{C-x b}, @kbd{C-x 4 b}, @kbd{C-x 5 b} and @kbd{C-x 4 C-o}.
+  Iswitchb global minor mode provides convenient switching between
+buffers using substrings of their names.  It replaces the normal
+definitions of @kbd{C-x b}, @kbd{C-x 4 b}, @kbd{C-x 5 b}, and @kbd{C-x
+4 C-o} with alternative commands that are somewhat ``smarter.''
 
-When you are prompted for a buffer name, as you type in a substring the
-list of buffers currently matching it is displayed as you type, with the
-most recent buffers visited towards the start of the list.  The buffer
-at the start will be the one visited when you press @key{RET}.  By
-typing more of the substring, the list is narrowed down so that
-gradually the buffer you want will be at the top of the list.
-Alternatively, you can use @kbd{C-s} and @kbd{C-r} to rotate buffer
-names in the list until the one you want is at the top of the list.
-Completion is available so that you can see what is common to all of the
-matching buffers as you type.
+  When one of these commands prompts you for a buffer name, you can
+type in just a substring of the name you want to choose.  As you enter
+the substring, Iswitchb mode continuously displays a list of buffers
+that match the substring you have typed.
 
-@node BS
-@subsection Configurable Buffer Menus
+  At any time, you can type @key{RET} to select the first buffer in
+the list.  So the way to select a particular buffer is to make it the
+first in the list.  There are two ways to do this.  You can type more
+of the buffer name and thus narrow down the list, excluding unwanted
+buffers above the desired one.  Alternatively, you can use @kbd{C-s}
+and @kbd{C-r} to rotate the list until the desired buffer is first.
+
+  @key{TAB} while entering the buffer name performs completion on the
+string you have entered, based on the displayed list of buffers.
+
+@node Buffer Menus
+@subsection Customizing Buffer Menus
 
 @findex bs-show
-@findex bs-cycle-next
-@findex bs-cycle-previous
 @cindex buffer list, customizable
 @table @kbd
 @item M-x bs-show
 Make a list of buffers similarly to @kbd{M-x list-buffers} but
 customizable.
-@item M-x bs-cycle-next
-Cycle to the next buffer in the configuration.
-@item M-x bs-cycle-previous
-Cycle to the previous buffer in the configuration.
 @end table
 
-@kbd{M-x bs-show} pops up a buffer list similar to the one normally
-displayed by @kbd{C-x C-b} but which can be customized.  You might like
-to bind it to @kbd{C-x C-b}.  You can customize the display, for
-instance to display a subset of buffers, in the @code{bs} Custom group.
-A special subset of all buffers is available---for instance avoiding
-ones like @samp{*Messages*}---through which you can cycle with @kbd{M-x
-bs-cycle-next} and @kbd{M-x bs-cycle-previous}.  Those commands could be
-bound to convenient keys.
-
-@node MSB
-@subsection Customizing the Mouse Buffer Selection Menus
+  @kbd{M-x bs-show} pops up a buffer list similar to the one normally
+displayed by @kbd{C-x C-b} but which you can customize.  If you prefer
+this to the usual buffer list, you can bind this command to @kbd{C-x
+C-b}.  To customize this buffer list, use the @code{bs} Custom group
+(@pxref{Easy Customization}).
 
 @findex msb-mode
 @cindex mode, MSB
 @cindex MSB mode
 @cindex buffer menu
 @findex mouse-buffer-menu
-@kindex C-down-mouse-1
-
-MSB global minor mode provides a different and customizable mouse buffer
-menu which you may prefer.  It replaces the bindings of
-@code{mouse-buffer-menu}, normally on @kbd{C-down-mouse-1}, and the menu
-bar buffer menu.  You can customize the menu in the @code{msb} Custom
-group.
+@kindex C-Down-Mouse-1
+  MSB global minor mode (``MSB'' stands for ``mouse select buffer'')
+provides a different and customizable mouse buffer menu which you may
+prefer.  It replaces the bindings of @code{mouse-buffer-menu},
+normally on @kbd{C-Down-Mouse-1}, and the menu bar buffer menu.  You
+can customize the menu in the @code{msb} Custom group.
