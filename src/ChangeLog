@@ -1,5 +1,7 @@
 2003-08-09  Andreas Schwab  <schwab@suse.de>
 
+	* alloc.c (mark_object): Handle Lisp_Misc_Save_Value.
+
 	* print.c (print_string): Fix printing of multibyte string with
 	nontrivial printcharfun.
 
