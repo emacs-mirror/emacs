@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: $
-;; Version:		$Revision: $
+;; Last-Modified:	$Date: 1994/09/21 16:15:42 $
+;; Version:		$Revision: 1.48 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -103,7 +103,7 @@
   "The name of the program that produces man pages.")
 
 ;; Use the value of the obsolete user option Man-notify, if set.
-(defvar Man-notify-flag (if (boundp 'Man-notify) Man-notify 'friendly)
+(defvar Man-notify-method (if (boundp 'Man-notify) Man-notify 'friendly)
   "*Selects the behavior when manpage is ready.
 This variable may have one of the following values, where (sf) means
 that the frames are switched, so the manpage is displayed in the frame
@@ -118,7 +118,7 @@ polite     -- don't display manpage, but prints message and beep when ready
 quiet      -- like `polite', but don't beep
 meek       -- make no indication that the manpage is ready
 
-Any other value of `Man-notify-flag' is equivalent to `meek'.")
+Any other value of `Man-notify-method' is equivalent to `meek'.")
 
 (defvar Man-frame-parameters nil
   "*Frame parameter list for creating a new frame for a manual page.")
@@ -127,7 +127,7 @@ Any other value of `Man-notify-flag' is equivalent to `meek'.")
   "*Reuse a manpage buffer if possible.
 If non-nil, and a manpage buffer already exists with the same
 invocation, man just indicates the manpage is ready according to the
-value of `Man-notify-flag'.  When nil, it always fires off a
+value of `Man-notify-method'.  When nil, it always fires off a
 background process,putting the results in a uniquely named buffer.")
 
 (defvar Man-downcase-section-letters-flag t
@@ -488,7 +488,7 @@ default section number is selected from `Man-auto-section-alist'."
 This command is the top-level command in the man package.  It runs a Un*x
 command to retrieve and clean a manpage in the background and places the
 results in a Man mode (manpage browsing) buffer.  See variable
-`Man-notify-flag' for what happens when the buffer is ready.
+`Man-notify-method' for what happens when the buffer is ready.
 Normally, if a buffer already exists for this man page, it will display
 immediately; either a prefix argument or a nil value to `Man-reuse-okay-flag'
 overrides this and forces the man page to be regenerated."
@@ -549,12 +549,12 @@ start a background process even if a buffer already exists and
 
 (defun Man-notify-when-ready (man-buffer)
   "Notify the user when MAN-BUFFER is ready.
-See the variable `Man-notify-flag' for the different notification behaviors."
+See the variable `Man-notify-method' for the different notification behaviors."
   (let ((saved-frame (save-excursion
 		       (set-buffer man-buffer)
 		       Man-original-frame)))
     (cond
-     ((eq Man-notify-flag 'newframe)
+     ((eq Man-notify-method 'newframe)
       ;; Since we run asynchronously, perhaps while Emacs is waiting
       ;; for input, we must not leave a different buffer current.  We
       ;; can't rely on the editor command loop to reselect the
@@ -562,30 +562,30 @@ See the variable `Man-notify-flag' for the different notification behaviors."
       (save-excursion
 	(set-buffer man-buffer)
 	(make-frame Man-frame-parameters)))
-     ((eq Man-notify-flag 'pushy)
+     ((eq Man-notify-method 'pushy)
       (switch-to-buffer man-buffer))
-     ((eq Man-notify-flag 'bully)
+     ((eq Man-notify-method 'bully)
       (and window-system
 	   (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (pop-to-buffer man-buffer)
       (delete-other-windows))
-     ((eq Man-notify-flag 'aggressive)
+     ((eq Man-notify-method 'aggressive)
       (and window-system
 	   (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (pop-to-buffer man-buffer))
-     ((eq Man-notify-flag 'friendly)
+     ((eq Man-notify-method 'friendly)
       (and window-system
 	   (frame-live-p saved-frame)
 	   (select-frame saved-frame))
       (display-buffer man-buffer 'not-this-window))
-     ((eq Man-notify-flag 'polite)
+     ((eq Man-notify-method 'polite)
       (beep)
       (message "Manual buffer %s is ready" (buffer-name man-buffer)))
-     ((eq Man-notify-flag 'quiet)
+     ((eq Man-notify-method 'quiet)
       (message "Manual buffer %s is ready" (buffer-name man-buffer)))
-     ((or (eq Man-notify-flag 'meek)
+     ((or (eq Man-notify-method 'meek)
 	  t)
       (message ""))
      )))
@@ -719,7 +719,7 @@ The following man commands are available in the buffer. Try
 The following variables may be of some use. Try
 \"\\[describe-variable] <variable-name> RET\" for more information:
 
-Man-notify-flag                 What happens when manpage formatting is done.
+Man-notify-method               What happens when manpage formatting is done.
 Man-reuse-okay-flag             Reuse already formatted buffer.
 Man-downcase-section-letters-flag  Force section letters to lower case.
 Man-circular-pages-flag         Treat multiple manpage list as circular.
@@ -987,9 +987,9 @@ Prefix argument ARG is passed to `Man-getpage-in-background'."
     (delete-windows-on buff)
     (kill-buffer buff))
   (if (and window-system
-	   (or (eq Man-notify-flag 'newframe)
+	   (or (eq Man-notify-method 'newframe)
 	       (and pop-up-frames
-		    (eq Man-notify-flag 'bully))))
+		    (eq Man-notify-method 'bully))))
       (delete-frame)))
 
 (defun Man-quit ()
@@ -999,9 +999,9 @@ Prefix argument ARG is passed to `Man-getpage-in-background'."
     (delete-windows-on buff)
     (bury-buffer buff))
   (if (and window-system
-	   (or (eq Man-notify-flag 'newframe)
+	   (or (eq Man-notify-method 'newframe)
 	       (and pop-up-frames
-		    (eq Man-notify-flag 'bully))))
+		    (eq Man-notify-method 'bully))))
       (delete-frame)))
 
 (defun Man-goto-page (page)
