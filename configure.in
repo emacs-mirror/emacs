@@ -114,7 +114,10 @@ case "${srcdir}" in
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
-    if test ".${PWD}" != "." && test ".`(cd ${PWD} ; sh -c pwd)`" = ".${PWD}"  ;
+    ## Note: we used to use ${PWD} at the end instead of `pwd`,
+    ## but that tested only for a well-formed and valid PWD,
+    ## it did not object when PWD was well-formed and valid but just wrong.
+    if test ".${PWD}" != "." && test ".`(cd ${PWD} ; sh -c pwd)`" = ".`pwd`"  ;
     then
       srcdir="$PWD"
     else
@@ -354,6 +357,11 @@ case "${canonical}" in
     ## We'll use the catch-all code at the bottom to guess the
     ## operating system.
   ;;
+
+  ## Compaq Nonstop
+  mips-compaq-nonstopux* )
+    machine=nonstopux opsys=nonstopux
+    ;;
 
   ## Convex
   *-convex-bsd* | *-convex-convexos* )
