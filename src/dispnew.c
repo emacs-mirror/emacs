@@ -1327,9 +1327,14 @@ update_frame (f, force, inhibit_hairy_id)
   /* Now just clean up termcap drivers and set cursor, etc.  */
   if (!pause)
     {
-      if (cursor_in_echo_area
-	  && FRAME_HAS_MINIBUF_P (f)
-	  && EQ (FRAME_MINIBUF_WINDOW (f), minibuf_window))
+      if ((cursor_in_echo_area
+	   && FRAME_HAS_MINIBUF_P (f)
+	   && EQ (FRAME_MINIBUF_WINDOW (f), minibuf_window))
+	  /* If we are showing a message instead of the minibuffer,
+	     show the cursor for the message instead of for the
+	     (now hidden) minibuffer contents.  */
+	  || (EQ (minibuf_window, selected_window)
+	      && echo_area_glyphs != 0))
 	{
 	  int top = XINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top);
 	  int row, col;
