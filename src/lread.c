@@ -3544,7 +3544,7 @@ Initialized based on EMACSLOADPATH environment variable, if any,\n\
 otherwise to default specified by file `epaths.h' when Emacs was built.");
 
   DEFVAR_LISP ("load-suffixes", &Vload_suffixes,
-    "*List of suffixes to try for files to load.
+    "*List of suffixes to try for files to load.\n\
 This list should not include the empty string.");
   Vload_suffixes = Fcons (build_string (".elc"),
 			  Fcons (build_string (".el"), Qnil));
