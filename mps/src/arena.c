@@ -1,7 +1,7 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.69) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!arena.c(trunk.70) $
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .intro: This is the implementation of Arenas.
  *
@@ -35,7 +35,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.69) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.70) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -560,6 +560,16 @@ void ArenaLeave(Arena arena)
 #endif
 
 
+/* mps_exception_info -- pointer to exception info
+ *
+ * This is a hack to make exception info easier to find in a release
+ * version.  The format is platform-specific.  We won't necessarily
+ * publish this.
+ */
+
+MutatorFaultContext mps_exception_info;
+
+
 /* ArenaAccess -- deal with an access fault
  *
  * This is called when a protected address is accessed.  The mode
@@ -573,6 +583,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context)
   Ring node, nextNode;
   Res res;
 
+  mps_exception_info = context;
   arenaClaimRingLock();    /* design.mps.arena.lock.ring */
   RING_FOR(node, &arenaRing, nextNode) {
     Arena arena = RING_ELT(Arena, globalRing, node);
