@@ -38,6 +38,23 @@ in each user's home directory.
 You no longer need to download a separate tarball in order to build
 Emacs with Leim.
 
++++
+** The Emacs Lisp Reference Manual is now part of the distribution.
+
+The ELisp reference manual in Info format is built as part of the
+Emacs build procedure and installed together with the Emacs User
+Manual.  A menu item was added to the menu bar that makes it easy
+accessible (Help->More Manuals->Emacs Lisp Reference).
+
+---
+** The Introduction to Programming in Emacs Lisp manual is now part of
+the distribution.
+
+This manual is now part of the standard distribution and is installed,
+together with the Emacs User Manual, into the Info directory.  A menu
+item was added to the menu bar that makes it easy accessible
+(Help->More Manuals->Introduction to Emacs Lisp).
+
 ---
 ** Support for AIX 5.1 was added.
 
@@ -56,14 +73,15 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 ---
 ** Support for GNU/Linux systems on X86-64 machines was added.
-
-* Changes in Emacs 21.4
 
 ---
-** SES mode (ses-mode) is a new major mode for creating and editing
-spreadsheet files.  Besides the usual Emacs features (intuitive command
-letters, undo, cell formulas in Lisp, plaintext files, etc.) it also offers
-viral immunity and import/export of tab-separated values.
+** A French translation of the `Emacs Survival Guide' is available.
+
+---
+** A French translation of the Emacs Tutorial is available.
+
+
+* Changes in Emacs 21.4
 
 ** Init file changes
 
@@ -896,22 +914,16 @@ Meta and Alt:
     (setq x-alt-keysym 'meta)
     (setq x-meta-keysym 'alt)
 
----
-** A French translation of the `Emacs Survival Guide' is available.
+* New modes and packages in 21.4
 
 ---
-** A French translation of the Emacs Tutorial is available.
-
-** New modes and packages
-
----
-*** The new ido package is an extension of the iswitchb package
+** The new ido package is an extension of the iswitchb package
 to do interactive opening of files and directories in addition to
 interactive buffer switching.  Ido is a superset of iswitchb (with a
 few exceptions), so don't enable both packages.
 
 ---
-*** The new cua package provides CUA-like keybindings using C-x for
+** The new cua package provides CUA-like keybindings using C-x for
 cut (kill), C-c for copy, C-v for paste (yank), and C-z for undo.
 With cua, the region can be set and extended using shifted movement
 keys (like pc-selection-mode) and typed text replaces the active
@@ -948,7 +960,7 @@ kill, copy, yank, and undo.  If you want to use cua mode, but don't
 want the C-x, C-c, C-v, and C-z bindings, you may customize the
 `cua-enable-cua-keys' variable.
 
-*** The new keypad setup package provides several common bindings for
+** The new keypad setup package provides several common bindings for
 the numeric keypad which is available on most keyboards.  The numeric
 keypad typically has the digits 0 to 9, a decimal point, keys marked
 +, -, /, and *, an Enter key, and a NumLock toggle key.  The keypad
@@ -972,7 +984,7 @@ where the keys work like (shifted) arrow keys, home/end, etc., and
 are left unspecified and can be bound individually through the global
 or local keymaps.
 
-*** The new kmacro package provides a simpler user interface to
+** The new kmacro package provides a simpler user interface to
 emacs' keyboard macro facilities.
 
 Basically, it uses two function keys (default F3 and F4) like this:
@@ -1006,7 +1018,7 @@ C-x C-k SPC will step through the last keyboard macro one key sequence
 at a time, prompting for the actions to take.
 
 +++
-*** Calc is now part of the Emacs distribution.
+** Calc is now part of the Emacs distribution.
 
 Calc is an advanced desk calculator and mathematical tool written in
 Emacs Lisp.  Its documentation is in a separate manual; within Emacs,
@@ -1014,15 +1026,7 @@ type "C-h i m calc RET" to read that manual.  A reference card is
 available in `etc/calccard.tex' and `etc/calccard.ps'.
 
 +++
-*** The Emacs Lisp Reference Manual is now part of the distribution.
-
-The ELisp reference manual in Info format is built as part of the
-Emacs build procedure and installed together with the Emacs User
-Manual.  A menu item was added to the menu bar that makes it easy
-accessible (Help->More Manuals->Emacs Lisp Reference).
-
-+++
-*** Tramp is now part of the distribution.
+** Tramp is now part of the distribution.
 
 This package is similar to Ange-FTP: it allows you to edit remote
 files.  But whereas Ange-FTP uses FTP to access the remote host,
@@ -1038,16 +1042,7 @@ Shell connections can be acquired via `rsh', `ssh', `telnet' and also
 `su' and `sudo'.
 
 ---
-*** The Introduction to Programming in Emacs Lisp manual is now part of
-the distribution.
-
-This manual is now part of the standard distribution and is installed,
-together with the Emacs User Manual, into the Info directory.  A menu
-item was added to the menu bar that makes it easy accessible
-(Help->More Manuals->Introduction to Emacs Lisp).
-
----
-*** The new global minor mode `file-name-shadow-mode' modifies the way
+** The new global minor mode `file-name-shadow-mode' modifies the way
 filenames being entered by the user in the minibuffer are displayed, so
 that it's clear when part of the entered filename will be ignored due to
 emacs' filename parsing rules.  The ignored portion can be made dim,
@@ -1055,13 +1050,13 @@ invisible, or otherwise less visually noticable.  The display method may
 be displayed by customizing the variable `file-name-shadow-properties'.
 
 ---
-*** The ruler-mode.el library provides a minor mode for displaying an
+** The ruler-mode.el library provides a minor mode for displaying an
 "active" ruler in the header line.  You can use the mouse to visually
 change the `fill-column', `window-margins' and `tab-stop-list'
 settings.
 
 ---
-*** The minor mode Reveal mode makes text visible on the fly as you
+** The minor mode Reveal mode makes text visible on the fly as you
 move your cursor into hidden region of the buffer.
 It should work with any package that uses overlays to hide parts
 of a buffer, such as outline-minor-mode, hs-minor-mode, hide-ifdef-mode, ...
@@ -1069,15 +1064,21 @@ of a buffer, such as outline-minor-mode, hs-minor-mode, hide-ifdef-mode, ...
 There is also Global Reveal mode which affects all buffers.
 
 ---
-*** The new package ibuffer provides a powerful, completely
+** The new package ibuffer provides a powerful, completely
 customizable replacement for buff-menu.el.
 
-*** The new package table.el implements editable, WYSIWYG, embedded
+** The new package table.el implements editable, WYSIWYG, embedded
 `text tables' in Emacs buffers.  It simulates the effect of putting
 these tables in a special major mode.  The package emulates WYSIWYG
 table editing available in modern word processors.  The package also
 can generate a table source in typesetting and markup languages such
 as latex and html from the visually laid out text table.
+
+---
+** SES mode (ses-mode) is a new major mode for creating and editing
+spreadsheet files.  Besides the usual Emacs features (intuitive command
+letters, undo, cell formulas in Lisp, plaintext files, etc.) it also offers
+viral immunity and import/export of tab-separated values.
 
 ---
 ** Support for `magic cookie' standout modes has been removed.
@@ -1438,6 +1439,9 @@ MORE INFO NEEDED HERE.
 *** New functions process-datagram-address and set-process-datagram-address.
 MORE INFO NEEDED HERE.
 
+*** New function format-network-address.
+MORE INFO NEEDED HERE.
+
 *** By default, the function process-contact still returns (HOST SERVICE)
 for a network process.  Using the new optional KEY arg, the complete list
 of network process properties or a specific property can be selected.
@@ -1452,12 +1456,17 @@ the fifth is the port number.
 connections are accepted in the stopped state.  For a client process,
 no input is received in the stopped state.
 
+** Enhancements to process support
+
 *** Function list-processes now has an optional argument; if non-nil,
 only the processes whose query-on-exit flag is set are listed.
 
 *** New set-process-query-on-exit-flag and process-query-on-exit-flag
 functions.  The existing process-kill-without-query function is still
 supported, but new code should use the new functions.
+
+*** Function signal-process now accepts a process object or process
+name in addition to a process id to identify the signalled process.
 
 ** New function copy-tree.
 
