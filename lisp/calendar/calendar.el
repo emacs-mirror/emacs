@@ -1471,28 +1471,41 @@ Optional prefix argument specifies number of months to be produced.")
   "Make a buffer with LaTeX commands for the day cursor is on.")
 
 (autoload 'cal-tex-cursor-week "cal-tex"
-  "Make a buffer with LaTeX commands for a one page weekly calendar.
-Optional prefix argument specifies number of weeks.")
+  "Make a buffer with LaTeX commands for a two-page one-week calendar.
+It applies to the week that point is in.
+Optional prefix argument specifies number of weeks.
+Holidays are included if `cal-tex-holidays' is t.")
 
-(autoload 'cal-tex-cursor-week2 "cal-tex"
-  "Make a buffer with LaTeX commands for a two page weekly calendar.
-Optional prefix argument specifies number of weeks.")
+(autoload 'cal-tex-cursor-week2 "cal-tex" 
+  "Make a buffer with LaTeX commands for a two-page one-week calendar.
+It applies to the week that point is in.
+Optional prefix argument specifies number of weeks.
+Holidays are included if `cal-tex-holidays' is t.")
 
-(autoload 'cal-tex-cursor-week3 "cal-tex"
-  "Make a buffer with LaTeX commands for a one page weekly calendar.
-Optional prefix argument specifies number of weeks.")
+(autoload 'cal-tex-cursor-week-iso "cal-tex"
+  "Make a buffer with LaTeX commands for a one page ISO-style weekly calendar.
+Optional prefix argument specifies number of weeks."
+Diary entries are included if `cal-tex-diary' is t.
+Holidays are included if `cal-tex-holidays' is t.")
 
-(autoload 'cal-tex-cursor-week4 "cal-tex"
-  "Make a buffer with LaTeX commands for a one page weekly calendar.
-Optional prefix argument specifies number of weeks.")
+(autoload 'cal-tex-cursor-week-monday "cal-tex"
+  "Make a buffer with LaTeX commands for a two-page one-week calendar.
+It applies to the week that point is in, and starts on Monday.
+Optional prefix argument specifies number of weeks.
+Holidays are included if `cal-tex-holidays' is t.")
 
-(autoload 'cal-tex-cursor-week5 "cal-tex"
-  "Make a buffer with LaTeX commands for a Filofax one page weekly calendar.
-Optional prefix argument specifies number of weeks.")
+(autoload 'cal-tex-cursor-filofax-2week "cal-tex"
+  "Two-weeks-at-a-glance Filofax style calendar for week indicated by cursor.
+Optional prefix argument specifies number of weeks.
+Diary entries are included if cal-tex-diary is t.
+Holidays are included if `cal-tex-holidays' is t.")
 
-(autoload 'cal-tex-cursor-week6 "cal-tex"
-  "Make a buffer with LaTeX commands for a Filofax two page weekly calendar.
-Optional prefix argument specifies number of weeks.")
+(autoload 'cal-tex-cursor-filofax-week "cal-tex"
+  "One-week-at-a-glance Filofax style calendar for week indicated by cursor.
+Optional prefix argument specifies number of weeks.
+Weeks start on Monday. 
+Diary entries are included if cal-tex-diary is t.
+Holidays are included if `cal-tex-holidays' is t.")
 
 (autoload 'cal-tex-cursor-year "cal-tex"
   "Make a buffer with LaTeX commands for a year's calendar.
@@ -1733,10 +1746,10 @@ the inserted text.  Value is always t."
   (define-key calendar-mode-map "td" 'cal-tex-cursor-day)
   (define-key calendar-mode-map "tw1" 'cal-tex-cursor-week)
   (define-key calendar-mode-map "tw2" 'cal-tex-cursor-week2)
-  (define-key calendar-mode-map "tw3" 'cal-tex-cursor-week3)
-  (define-key calendar-mode-map "tw4" 'cal-tex-cursor-week4)
-  (define-key calendar-mode-map "tfw" 'cal-tex-cursor-week5)
-  (define-key calendar-mode-map "tfW" 'cal-tex-cursor-week6)
+  (define-key calendar-mode-map "tw3" 'cal-tex-cursor-week-iso)
+  (define-key calendar-mode-map "tw4" 'cal-tex-cursor-week-monday)
+  (define-key calendar-mode-map "tfw" 'cal-tex-cursor-filofax-2week)
+  (define-key calendar-mode-map "tfW" 'cal-tex-cursor-filofax-week)
   (define-key calendar-mode-map "tfy" 'cal-tex-cursor-filofax-year)
   (define-key calendar-mode-map "ty" 'cal-tex-cursor-year)
   (define-key calendar-mode-map "tY" 'cal-tex-cursor-year-landscape))
