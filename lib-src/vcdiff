@@ -3,12 +3,13 @@
 # Enhanced sccs diff utility for use with vc mode.
 # This version is more compatible with rcsdiff(1).
 #
-#	$Id: vcdiff,v 1.2 1992/06/03 04:56:26 eric Exp $
+#	$Id: vcdiff,v 1.1 1992/08/04 16:08:22 eric Exp eggert $
 #
 
 DIFF="diff"
-usage="$0: Usage: vcdiff [-r<sid1>] [-r<sid2>] [diffopts] sccsfile..."
+usage="$0: Usage: vcdiff [-q] [-r<sid1>] [-r<sid2>] [diffopts] sccsfile..."
 
+echo=
 sid1=-r sid2=
 
 for f
@@ -16,6 +17,8 @@ do
 	case $f in
 	-*)
 		case $f in
+		-q)
+			echo=:;;
 		-r?*)
 			case $sid1 in
 			-r)
@@ -71,7 +74,7 @@ do
 				workfile=$rev2
 			esac
 		then
-			echo $DIFF $options $sid1 $sid2 $workfile >&2
+			$echo $DIFF $options $sid1 $sid2 $workfile >&2
 			$DIFF $options $rev1 $workfile
 			s=$?
 		fi
