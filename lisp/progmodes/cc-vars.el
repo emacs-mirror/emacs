@@ -291,7 +291,11 @@ It's only used when a one-line block comment is broken into two or
 more lines for the first time; otherwise the appropriate prefix is
 adapted from the comment.  This variable is not used for C++ line
 style comments."
-  :type 'string
+  ;; We need to specify a :value to prevent `defcustom-c-stylevar' from 
+  ;; giving it an invalid value.  Perhaps `defcustom-c-stylevar'
+  ;; should evaluate the value first?
+  ;; Per Abrahamsen <abraham@dina.kvl.dk> 2002-04-06.
+  :type '(string :value "* ")
   :group 'c)
 
 (defcustom-c-stylevar c-comment-prefix-regexp

@@ -1,3 +1,9 @@
+2002-04-06  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* progmodes/cc-vars.el (c-block-comment-prefix): Specify :value
+	for customization type.
+	Reported by Mattias Fredsberg <mattias.fredsberg@active-tv.com>.
+
 2002-04-06  Mike Williams  <mdub@bigfoot.com>
 
 	* textmodes/xml-lite.el: Remove.
