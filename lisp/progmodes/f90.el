@@ -1677,8 +1677,8 @@ Any other key combination is executed normally."
     (setq c (if (fboundp 'next-command-event) ; XEmacs
                 (event-to-character (next-command-event))
               (read-event)))
-    ;; Insert char if not equal to `?'.
-    (if (or (eq c ??) (eq c help-char))
+    ;; Insert char if not equal to `?', or if abbrev-mode is off.
+    (if (and abbrev-mode (or (eq c ??) (eq c help-char)))
 	(f90-abbrev-help)
       (setq unread-command-events (list c)))))
 
