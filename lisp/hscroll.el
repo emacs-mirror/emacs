@@ -21,7 +21,7 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;;; Commentary:a
+;;; Commentary:
 ;;
 ;;    Automatically scroll horizontally when the point moves off the
 ;;    left or right edge of the window.  
@@ -109,6 +109,8 @@ Set this to nil to conserve valuable mode line space."
   "Non-nil if HScroll mode is enabled.")
 (make-variable-buffer-local 'hscroll-mode)
 
+(defvar hscroll-timer nil
+  "Timer used by HScroll mode.")
 
 (defvar hscroll-old-truncate-local nil)
 (defvar hscroll-old-truncate-was-global nil)
@@ -134,7 +136,6 @@ In HScroll mode, truncated lines will automatically scroll left or
 right when point gets near either edge of the window.
   See also \\[hscroll-global-mode]."
   (interactive "P")
-  (make-local-hook 'post-command-hook)
   (let ((newmode (if (null arg)
 		      (not hscroll-mode)
 		    (> (prefix-numeric-value arg) 0))))
@@ -148,9 +149,8 @@ right when point gets near either edge of the window.
 		  (setq hscroll-old-truncate-local truncate-lines))
 	      (setq hscroll-old-truncate-was-global (not localp))
 	      (setq truncate-lines t)
-	      (add-hook 'post-command-hook 
-			(function hscroll-window-maybe) nil t)
-	      ))
+              (setq hscroll-timer
+                    (run-with-idle-timer 0 t 'hscroll-window-maybe))))
       ;; turn it off
       (if hscroll-mode
 	  ;; it was on
@@ -160,14 +160,10 @@ right when point gets near either edge of the window.
 	      (setq truncate-lines hscroll-old-truncate-local))
 	    (if (not truncate-lines)
 		(set-window-hscroll (selected-window) 0))
-	    (remove-hook 'post-command-hook
-			 (function hscroll-window-maybe) t)
-	    ))
-      )
+            (cancel-timer hscroll-timer))))
 
     (setq hscroll-mode newmode)
-    (force-mode-line-update nil)
-    ))
+    (force-mode-line-update nil)))
 
 
 ;;;###autoload
@@ -192,20 +188,17 @@ will have no effect on it).
 	      (setq hscroll-old-truncate-default (default-value truncate-lines))
 	      (setq hscroll-old-truncate-was-global t)
 	      (setq-default truncate-lines t)
-	      (add-hook 'post-command-hook (function hscroll-window-maybe))
-	      ))
+              (setq hscroll-timer
+                    (run-with-idle-timer 0 t 'hscroll-window-maybe))))
       ;; turn it off
       (if hscroll-mode
 	  ;; it was on
 	  (progn
 	    (setq-default truncate-lines hscroll-old-truncate-default)
-	    (remove-hook 'post-command-hook (function hscroll-window-maybe))
-	    ))
-      )
+            (cancel-timer hscroll-timer))))
 
     (setq-default hscroll-mode newmode)
-    (force-mode-line-update t)
-    ))
+    (force-mode-line-update t)))
 
 (defun hscroll-window-maybe ()
   "Scroll horizontally if point is off or nearly off the edge of the window.
@@ -221,8 +214,7 @@ invoked as well (i.e., it can be bound to a key)."
 	       (and truncate-partial-width-windows
 		    (< (window-width) (frame-width)))))
       (let ((linelen (save-excursion (end-of-line) (current-column)))
-	    (rightmost-char (+ (window-width) (window-hscroll)))
-	    )
+	    (rightmost-char (+ (window-width) (window-hscroll))))
  	(if (< (current-column) hscroll-snap-threshold)
  	    (set-window-hscroll 
  	     (selected-window) 
@@ -244,9 +236,7 @@ invoked as well (i.e., it can be bound to a key)."
 	      ;; Scroll to the right a proportion of the window's width.
 	      (set-window-hscroll
 	       (selected-window)
-	       (- (current-column) (/ (* (window-width) hscroll-step-percent) 100)))
-	    )))
-	)))
+	       (- (current-column) (/ (* (window-width) hscroll-step-percent) 100)))))))))
 
 ;;; 
 ;;; It's not a bug, it's a *feature*
