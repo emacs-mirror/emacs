@@ -1216,11 +1216,13 @@ current line."
       (let ((line (match-string 2))
 	    (file (match-string 1)))
 	(save-selected-window
-	  (gdb-display-buffer (find-file-noselect
-			       (if (file-exists-p file)
-				   file
-				 (expand-file-name file gdb-cdir))))
-	  (goto-line (string-to-number line))))))
+	  (let* ((buf (find-file-noselect (if (file-exists-p file)
+					      file
+					    (expand-file-name file gdb-cdir))))
+		 (window (gdb-display-buffer buf)))
+		 (with-current-buffer buf
+		   (goto-line (string-to-number line))
+		   (set-window-point window (point))))))))
 
 (defun gdb-mouse-goto-breakpoint (event)
   "Display the file in the source buffer at the selected breakpoint."
