@@ -2734,19 +2734,21 @@ read_key_sequence (keybuf, bufsize, prompt)
   return t;
 }
 
-DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 1, 0,
+DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 2, 0,
   "Read a sequence of keystrokes and return as a string or vector.\n\
 The sequence is sufficient to specify a non-prefix command in the\n\
 current local and global maps.\n\
 \n\
-Arg PROMPT is a prompt string.  If nil, do not prompt specially.\n\
+First arg PROMPT is a prompt string.  If nil, do not prompt specially.\n\
+Second (optional) arg CONTINUE-ECHO, if non-nil, means this key echos\n\
+as a continuation of the previous key.\n\
 \n\
 If Emacs is running on multiple screens, switching between screens in\n\
 the midst of a keystroke will toss any prefix typed so far.  A C-g\n\
 typed while in this function is treated like any other character, and\n\
 `quit-flag' is not set.")
-  (prompt)
-     Lisp_Object prompt;
+  (prompt, continue_echo)
+     Lisp_Object prompt, continue_echo;
 {
   Lisp_Object keybuf[30];
   register int i;
@@ -2760,7 +2762,9 @@ typed while in this function is treated like any other character, and\n\
   GCPRO1 (keybuf[0]);
   gcpro1.nvars = (sizeof keybuf/sizeof (keybuf[0]));
 
-  this_command_key_count = 0;
+  if (! NILP (continue_echo))
+    this_command_key_count = 0;
+
   i = read_key_sequence (keybuf, (sizeof keybuf/sizeof (keybuf[0])),
 			 NILP (prompt)  ? 0 : XSTRING (prompt)->data);
 
