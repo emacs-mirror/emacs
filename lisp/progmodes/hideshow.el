@@ -157,7 +157,7 @@ character is either `(' or `)' -- `hs-forward-sexp-func' would just be
 is necessary.")
 
 (defvar hs-emacs-type 'fsf
-  "Used to support both FSF Emacs and Xemacs.")
+  "Used to support both Emacs and XEmacs.")
 
 (eval-when-compile
   (if (string-match "xemacs\\|lucid" emacs-version)
