@@ -36,17 +36,21 @@
     (:debug "Debug%s: "))
   "List of severity level definitions for `display-warning'.
 Each element looks like (LEVEL STRING FUNCTION) and
-defines LEVEL as a severity level.  STRING is the description
-to use in the buffer, and FUNCTION (which may be omitted)
-if non-nil is a function to call with no arguments
-to get the user's attention.  STRING should use `%s' to
-specify where to put the warning group information.
+defines LEVEL as a severity level.  STRING specifies the
+description of this level.  STRING should use `%s' to
+specify where to put the warning group information,
+or it can omit the `%s' so as not to include that information.
 
-:debug level is ignored by default (see `warning-minimum-level').")
+The optional FUNCTION, if non-nil, is a function to call
+with no arguments, to get the user's attention.
+
+The standard levels are :emergency, :error, :warning and :debug.
+See `display-warning' for documentation of their meanings.
+Level :debug is ignored by default (see `warning-minimum-level').")
 (put 'warning-levels 'risky-local-variable t)
 
 ;; These are for compatibility with XEmacs.
-;; I don't think there is any chance of finding meaningful distinctions
+;; I don't think there is any chance of designing meaningful criteria
 ;; to distinguish so many levels.
 (defvar warning-level-aliases
   '((emergency . :emergency)
@@ -58,8 +62,9 @@ specify where to put the warning group information.
     (alarm . :emergency))
   "Alist of aliases for severity levels for `display-warning'.
 Each element looks like (ALIAS . LEVEL) and defines
-ALIAS as equivalent to LEVEL.")
-
+ALIAS as equivalent to LEVEL.   LEVEL must be defined in `warning-levels';
+it may not itself be an alias.")
+
 (defcustom warning-minimum-level :warning
   "Minimum severity level for displaying the warning buffer.
 If a warning's severity level is lower than this,
@@ -106,7 +111,11 @@ See also `warning-suppress-log-types'."
   :group 'warnings
   :type '(repeat (repeat symbol))
   :version "21.4")
-
+
+;;; The autoload cookie is so that programs can bind this variable
+;;; safely, testing the existing value, before they call one of the
+;;; warnings functions.
+;;;###autoload
 (defvar warning-prefix-function nil
   "Function to generate warning prefixes.
 This function, if non-nil, is called with two arguments,
@@ -116,12 +125,10 @@ The warnings buffer is current when this function is called
 and the function can insert text in it.  This text becomes
 the beginning of the warning.")
 
-(defun warning-numeric-level (level)
-  "Return a numeric measure of the warning severity level LEVEL."
-  (let* ((elt (assq level warning-levels))
-	 (link (memq elt warning-levels)))
-    (length link)))
-
+;;; The autoload cookie is so that programs can bind this variable
+;;; safely, testing the existing value, before they call one of the
+;;; warnings functions.
+;;;###autoload
 (defvar warning-series nil
   "Non-nil means treat multiple `display-warning' calls as a series.
 An integer is a position in the warnings buffer
@@ -131,13 +138,27 @@ A symbol with a function definition is like t, except
 also call that function before the next warning.")
 (put 'warning-series 'risky-local-variable t)
 
+;;; The autoload cookie is so that programs can bind this variable
+;;; safely, testing the existing value, before they call one of the
+;;; warnings functions.
+;;;###autoload
 (defvar warning-fill-prefix nil
   "Non-nil means fill each warning text using this string as `fill-prefix'.")
 
+;;; The autoload cookie is so that programs can bind this variable
+;;; safely, testing the existing value, before they call one of the
+;;; warnings functions.
+;;;###autoload
 (defvar warning-group-format " (%s)"
   "Format for displaying the warning group in the warning message.
 The result of formatting the group this way gets included in the
 message under the control of the string in `warning-levels'.")
+
+(defun warning-numeric-level (level)
+  "Return a numeric measure of the warning severity level LEVEL."
+  (let* ((elt (assq level warning-levels))
+	 (link (memq elt warning-levels)))
+    (length link)))
 
 (defun warning-suppress-p (group suppress-list)
   "Non-nil if a warning with group GROUP should be suppressed.
@@ -167,7 +188,7 @@ SUPPRESS-LIST is the list of kinds of warnings to suppress."
     ;; If some element of SUPPRESS-LIST matched,
     ;; we return t.
     some-match))
-
+
 ;;;###autoload
 (defun display-warning (group message &optional level buffer-name)
   "Display a warning message, MESSAGE.
@@ -244,7 +265,7 @@ See also `warning-series', `warning-prefix-function' and
 		(when warning-series
 		  (set-window-start window warning-series))
 		(sit-for 0)))))))
-
+
 ;;;###autoload
 (defun lwarn (group level message &rest args)
   "Display a warning message made from (format MESSAGE ARGS...).
